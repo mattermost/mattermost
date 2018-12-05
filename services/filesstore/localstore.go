@@ -35,19 +35,19 @@ func (b *LocalFileBackend) TestConnection() *model.AppError {
 }
 
 func (b *LocalFileBackend) Reader(path string) (io.ReadCloser, *model.AppError) {
-	if f, err := os.Open(filepath.Join(b.directory, path)); err != nil {
+	f, err := os.Open(filepath.Join(b.directory, path))
+	if err != nil {
 		return nil, model.NewAppError("Reader", "api.file.reader.reading_local.app_error", nil, err.Error(), http.StatusInternalServerError)
-	} else {
-		return f, nil
 	}
+	return f, nil
 }
 
 func (b *LocalFileBackend) ReadFile(path string) ([]byte, *model.AppError) {
-	if f, err := ioutil.ReadFile(filepath.Join(b.directory, path)); err != nil {
+	f, err := ioutil.ReadFile(filepath.Join(b.directory, path))
+	if err != nil {
 		return nil, model.NewAppError("ReadFile", "api.file.read_file.reading_local.app_error", nil, err.Error(), http.StatusInternalServerError)
-	} else {
-		return f, nil
 	}
+	return f, nil
 }
 
 func (b *LocalFileBackend) FileExists(path string) (bool, *model.AppError) {
@@ -55,11 +55,12 @@ func (b *LocalFileBackend) FileExists(path string) (bool, *model.AppError) {
 
 	if os.IsNotExist(err) {
 		return false, nil
-	} else if err == nil {
-		return true, nil
 	}
 
-	return false, model.NewAppError("ReadFile", "api.file.file_exists.exists_local.app_error", nil, err.Error(), http.StatusInternalServerError)
+	if err != nil {
+		return false, model.NewAppError("ReadFile", "api.file.file_exists.exists_local.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return true, nil
 }
 
 func (b *LocalFileBackend) CopyFile(oldPath, newPath string) *model.AppError {
@@ -111,13 +112,13 @@ func (b *LocalFileBackend) RemoveFile(path string) *model.AppError {
 
 func (b *LocalFileBackend) ListDirectory(path string) (*[]string, *model.AppError) {
 	var paths []string
-	if fileInfos, err := ioutil.ReadDir(filepath.Join(b.directory, path)); err != nil {
+	fileInfos, err := ioutil.ReadDir(filepath.Join(b.directory, path))
+	if err != nil {
 		return nil, model.NewAppError("ListDirectory", "utils.file.list_directory.local.app_error", nil, err.Error(), http.StatusInternalServerError)
-	} else {
-		for _, fileInfo := range fileInfos {
-			if fileInfo.IsDir() {
-				paths = append(paths, filepath.Join(path, fileInfo.Name()))
-			}
+	}
+	for _, fileInfo := range fileInfos {
+		if fileInfo.IsDir() {
+			paths = append(paths, filepath.Join(path, fileInfo.Name()))
 		}
 	}
 	return &paths, nil

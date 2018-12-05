@@ -42,7 +42,12 @@ func (a *App) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
 
 func (a *App) servePluginRequest(w http.ResponseWriter, r *http.Request, handler func(*plugin.Context, http.ResponseWriter, *http.Request)) {
 	token := ""
-	context := &plugin.Context{}
+	context := &plugin.Context{
+		RequestId:      model.NewId(),
+		IpAddress:      utils.GetIpAddress(r),
+		AcceptLanguage: r.Header.Get("Accept-Language"),
+		UserAgent:      r.UserAgent(),
+	}
 	cookieAuth := false
 
 	authHeader := r.Header.Get(model.HEADER_AUTH)

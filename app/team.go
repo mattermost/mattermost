@@ -468,7 +468,7 @@ func (a *App) JoinUserToTeam(team *model.Team, user *model.User, userRequestorId
 		}
 
 		a.Srv.Go(func() {
-			pluginContext := &plugin.Context{}
+			pluginContext := a.PluginContext()
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.UserHasJoinedTeam(pluginContext, tm, actor)
 				return true
@@ -791,7 +791,7 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 		}
 
 		a.Srv.Go(func() {
-			pluginContext := &plugin.Context{}
+			pluginContext := a.PluginContext()
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.UserHasLeftTeam(pluginContext, teamMember, actor)
 				return true

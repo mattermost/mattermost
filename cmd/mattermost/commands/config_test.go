@@ -72,7 +72,7 @@ func TestConfigValidate(t *testing.T) {
 	defer th.TearDown()
 
 	assert.Error(t, th.RunCommand(t, "--config", "foo.json", "config", "validate"))
-	assert.NoError(t, th.RunCommand(t, "config", "validate"))
+	th.CheckCommand(t, "config", "validate")
 }
 
 func TestConfigGet(t *testing.T) {
@@ -92,9 +92,9 @@ func TestConfigGet(t *testing.T) {
 	})
 
 	t.Run("No Error when a config setting which is in the config.json is given", func(t *testing.T) {
-		assert.NoError(t, th.RunCommand(t, "config", "get", "MessageExportSettings"))
-		assert.NoError(t, th.RunCommand(t, "config", "get", "MessageExportSettings.GlobalRelaySettings"))
-		assert.NoError(t, th.RunCommand(t, "config", "get", "MessageExportSettings.GlobalRelaySettings.CustomerType"))
+		th.CheckCommand(t, "config", "get", "MessageExportSettings")
+		th.CheckCommand(t, "config", "get", "MessageExportSettings.GlobalRelaySettings")
+		th.CheckCommand(t, "config", "get", "MessageExportSettings.GlobalRelaySettings.CustomerType")
 	})
 
 	t.Run("check output", func(t *testing.T) {
@@ -131,7 +131,7 @@ func TestConfigSet(t *testing.T) {
 	})
 
 	t.Run("Error when the wrong locale is set", func(t *testing.T) {
-		assert.NoError(t, th.RunCommand(t, "config", "set", "LocalizationSettings.DefaultServerLocale", "es"))
+		th.CheckCommand(t, "config", "set", "LocalizationSettings.DefaultServerLocale", "es")
 		assert.Error(t, th.RunCommand(t, "config", "set", "LocalizationSettings.DefaultServerLocale", "invalid"))
 		output := th.CheckCommand(t, "config", "get", "LocalizationSettings.DefaultServerLocale")
 		assert.NotContains(t, string(output), "invalid")
@@ -483,10 +483,10 @@ func TestSetConfig(t *testing.T) {
 	assert.Error(t, th.RunCommand(t, "config", "set"))
 
 	// No Error when more than one argument is given
-	assert.NoError(t, th.RunCommand(t, "config", "set", "ThemeSettings.AllowedThemes", "hello", "World"))
+	th.CheckCommand(t, "config", "set", "ThemeSettings.AllowedThemes", "hello", "World")
 
 	// No Error when two arguments are given
-	assert.NoError(t, th.RunCommand(t, "config", "set", "ThemeSettings.AllowedThemes", "hello"))
+	th.CheckCommand(t, "config", "set", "ThemeSettings.AllowedThemes", "hello")
 
 	// Error when only one argument is given
 	assert.Error(t, th.RunCommand(t, "config", "set", "ThemeSettings.AllowedThemes"))

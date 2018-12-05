@@ -4,8 +4,12 @@
 package plugin
 
 // Context passes through metadata about the request or hook event.
-//
-// It is currently a placeholder while the implementation details are sorted out.
+// For requests this is built in app/plugin_requests.go
+// For hooks, app.PluginContext() is called.
 type Context struct {
-	SessionId string
+	SessionId      string
+	RequestId      string
+	IpAddress      string
+	AcceptLanguage string
+	UserAgent      string
 }

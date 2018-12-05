@@ -69,8 +69,8 @@ func TestMoveChannel(t *testing.T) {
 
 	th.CheckCommand(t, "channel", "add", origin, adminEmail)
 
-	// should fail with nill because errors are logged instead of returned when a channel does not exist
-	require.Nil(t, th.RunCommand(t, "channel", "move", dest, team1.Name+":doesnotexist", "--username", adminUsername))
+	// should fail with nil because errors are logged instead of returned when a channel does not exist
+	th.CheckCommand(t, "channel", "move", dest, team1.Name+":doesnotexist", "--username", adminUsername)
 
 	th.CheckCommand(t, "channel", "move", dest, origin, "--username", adminUsername)
 }
