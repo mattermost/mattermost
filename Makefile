@@ -446,14 +446,14 @@ run-client: ## Runs the webapp.
 	ln -nfs $(BUILD_WEBAPP_DIR)/dist client
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) run
 
-run-client-fullmap: ## Runs the webapp with source code mapping (slower; better debugging).
-	@echo Running mattermost client for development with FULL SOURCE MAP
+run-client-fullmap: ## Legacy alias to run-client
+	@echo Running mattermost client for development
 
-	cd $(BUILD_WEBAPP_DIR) && $(MAKE) run-fullmap
+	cd $(BUILD_WEBAPP_DIR) && $(MAKE) run
 
 run: check-prereqs run-server run-client ## Runs the server and webapp.
 
-run-fullmap: run-server run-client-fullmap ## Same as run but with a full sourcemap for client.
+run-fullmap: run-server run-client ## Legacy alias to run
 
 stop-server: ## Stops the server.
 	@echo Stopping mattermost
