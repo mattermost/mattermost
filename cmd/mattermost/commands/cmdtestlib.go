@@ -29,13 +29,15 @@ var mainHelper *testlib.MainHelper
 type testHelper struct {
 	*api4.TestHelper
 
-	config         *model.Config
-	tempDir        string
-	configFilePath string
+	config            *model.Config
+	tempDir           string
+	configFilePath    string
+	disableAutoConfig bool
 }
 
+// Setup creates an instance of testHelper.
 func Setup() *testHelper {
-	dir, err := ioutil.TempDir("", "")
+	dir, err := ioutil.TempDir("", "testHelper")
 	if err != nil {
 		panic("failed to create temporary directory: " + err.Error())
 	}
@@ -45,7 +47,7 @@ func Setup() *testHelper {
 	testHelper := &testHelper{
 		TestHelper:     api4TestHelper,
 		tempDir:        dir,
-		configFilePath: filepath.Join(dir, "config.json"),
+		configFilePath: filepath.Join(dir, "config-helper.json"),
 	}
 
 	config := &model.Config{}
@@ -55,19 +57,28 @@ func Setup() *testHelper {
 	return testHelper
 }
 
+// InitBasic simply proxies to api4.InitBasic, while still returning a testHelper.
 func (h *testHelper) InitBasic() *testHelper {
 	h.TestHelper.InitBasic()
 	return h
 }
 
+// TemporaryDirectory returns the temporary directory created for user by the test helper.
+func (h *testHelper) TemporaryDirectory() string {
+	return h.tempDir
+}
+
+// Config returns the configuration passed to a running command.
 func (h *testHelper) Config() *model.Config {
 	return h.config.Clone()
 }
 
+// ConfigPath returns the path to the temporary config file passed to a running command.
 func (h *testHelper) ConfigPath() string {
 	return h.configFilePath
 }
 
+// SetConfig replaces the configuration passed to a running command.
 func (h *testHelper) SetConfig(config *model.Config) {
 	config.SqlSettings = *mainHelper.Settings
 	h.config = config
@@ -77,6 +88,12 @@ func (h *testHelper) SetConfig(config *model.Config) {
 	}
 }
 
+// SetAutoConfig configures whether the --config flag is automatically passed to a running command.
+func (h *testHelper) SetAutoConfig(autoConfig bool) {
+	h.disableAutoConfig = !autoConfig
+}
+
+// TearDown cleans up temporary files and assets created during the life of the test helper.
 func (h *testHelper) TearDown() {
 	h.TestHelper.TearDown()
 	os.RemoveAll(h.tempDir)
@@ -97,7 +114,7 @@ func (h *testHelper) execArgs(t *testing.T, args []string) []string {
 
 	// Unless the test passes a `--config` of its own, create a temporary one from the default
 	// configuration with the current test database applied.
-	hasConfig := false
+	hasConfig := h.disableAutoConfig
 	for _, arg := range args {
 		if arg == "--config" {
 			hasConfig = true
