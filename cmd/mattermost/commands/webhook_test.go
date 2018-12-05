@@ -19,6 +19,14 @@ func TestListWebhooks(t *testing.T) {
 	defer th.TearDown()
 	adminClient := th.SystemAdminClient
 
+	config := th.Config()
+	*config.ServiceSettings.EnableCommands = true
+	config.ServiceSettings.EnableIncomingWebhooks = true
+	config.ServiceSettings.EnableOutgoingWebhooks = true
+	config.ServiceSettings.EnablePostUsernameOverride = true
+	config.ServiceSettings.EnablePostIconOverride = true
+	th.SetConfig(config)
+
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostUsernameOverride = true })
@@ -56,6 +64,14 @@ func TestListWebhooks(t *testing.T) {
 func TestCreateIncomingWebhook(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
+
+	config := th.Config()
+	*config.ServiceSettings.EnableCommands = true
+	config.ServiceSettings.EnableIncomingWebhooks = true
+	config.ServiceSettings.EnableOutgoingWebhooks = true
+	config.ServiceSettings.EnablePostUsernameOverride = true
+	config.ServiceSettings.EnablePostIconOverride = true
+	th.SetConfig(config)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = true })
@@ -100,6 +116,14 @@ func TestCreateIncomingWebhook(t *testing.T) {
 func TestModifyIncomingWebhook(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
+
+	config := th.Config()
+	*config.ServiceSettings.EnableCommands = true
+	config.ServiceSettings.EnableIncomingWebhooks = true
+	config.ServiceSettings.EnableOutgoingWebhooks = true
+	config.ServiceSettings.EnablePostUsernameOverride = true
+	config.ServiceSettings.EnablePostIconOverride = true
+	th.SetConfig(config)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = true })
@@ -155,6 +179,14 @@ func TestModifyIncomingWebhook(t *testing.T) {
 func TestCreateOutgoingWebhook(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
+
+	config := th.Config()
+	*config.ServiceSettings.EnableCommands = true
+	config.ServiceSettings.EnableIncomingWebhooks = true
+	config.ServiceSettings.EnableOutgoingWebhooks = true
+	config.ServiceSettings.EnablePostUsernameOverride = true
+	config.ServiceSettings.EnablePostIconOverride = true
+	th.SetConfig(config)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = true })
@@ -217,6 +249,14 @@ func TestDeleteWebhooks(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 	adminClient := th.SystemAdminClient
+
+	config := th.Config()
+	*config.ServiceSettings.EnableCommands = true
+	config.ServiceSettings.EnableIncomingWebhooks = true
+	config.ServiceSettings.EnableOutgoingWebhooks = true
+	config.ServiceSettings.EnablePostUsernameOverride = true
+	config.ServiceSettings.EnablePostIconOverride = true
+	th.SetConfig(config)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = true })
