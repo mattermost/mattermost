@@ -551,7 +551,7 @@ func (a *App) trackConfig() {
 
 	a.SendDiagnostic(TRACK_CONFIG_DISPLAY, map[string]interface{}{
 		"experimental_timezone":        *cfg.DisplaySettings.ExperimentalTimezone,
-		"isdefault_custom_url_schemes": len(*cfg.DisplaySettings.CustomUrlSchemes) != 0,
+		"isdefault_custom_url_schemes": len(cfg.DisplaySettings.CustomUrlSchemes) != 0,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_TIMEZONE, map[string]interface{}{
