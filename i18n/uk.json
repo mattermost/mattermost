@@ -2304,7 +2304,7 @@
   },
   {
     "id": "api.user.update_oauth_user_attrs.get_user.app_error",
-    "translation": "Не вдалося отримати користувача з об'єкта користувача {{. SERVICE}}"
+    "translation": "Не вдалося отримати користувача з об'єкта користувача {{.Service}}"
   },
   {
     "id": "api.user.update_password.context.app_error",
