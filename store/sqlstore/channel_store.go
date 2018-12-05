@@ -2254,6 +2254,7 @@ func (s SqlChannelStore) MigrateChannelMembers(fromChannelId string, fromUserId 
 
 		if len(channelMembers) == 0 {
 			// No more channel members in query result means that the migration has finished.
+			transaction.Rollback()
 			return
 		}
 
@@ -2362,6 +2363,7 @@ func (s SqlChannelStore) ClearAllCustomRoleAssignments() store.StoreChannel {
 			}
 
 			if len(channelMembers) == 0 {
+				transaction.Rollback()
 				break
 			}
 

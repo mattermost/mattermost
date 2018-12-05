@@ -1326,6 +1326,7 @@ func (us SqlUserStore) ClearAllCustomRoleAssignments() store.StoreChannel {
 			}
 
 			if len(users) == 0 {
+				transaction.Rollback()
 				break
 			}
 

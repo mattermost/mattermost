@@ -787,6 +787,7 @@ func (s SqlTeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) s
 
 		if len(teamMembers) == 0 {
 			// No more team members in query result means that the migration has finished.
+			transaction.Rollback()
 			return
 		}
 
@@ -871,6 +872,7 @@ func (s SqlTeamStore) ClearAllCustomRoleAssignments() store.StoreChannel {
 			}
 
 			if len(teamMembers) == 0 {
+				transaction.Rollback()
 				break
 			}
 
