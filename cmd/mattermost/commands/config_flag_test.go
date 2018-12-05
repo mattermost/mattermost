@@ -13,6 +13,7 @@ import (
 
 	"encoding/json"
 
+	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
@@ -22,10 +23,11 @@ func TestConfigFlag(t *testing.T) {
 	defer os.RemoveAll(dir)
 
 	utils.TranslationsPreInit()
-	config, _, _, err := utils.LoadConfig("config.json")
-	require.Nil(t, err)
-	configPath := filepath.Join(dir, "foo.json")
-	require.NoError(t, ioutil.WriteFile(configPath, []byte(config.ToJson()), 0600))
+
+	config := &model.Config{}
+	config.SetDefaults()
+	configFilePath, cleanup := makeConfigFile(config)
+	defer cleanup()
 
 	timezones := utils.LoadTimezones("timezones.json")
 	tzConfigPath := filepath.Join(dir, "timezones.json")
@@ -44,5 +46,5 @@ func TestConfigFlag(t *testing.T) {
 	require.Error(t, RunCommand(t, "version"))
 	CheckCommand(t, "--config", "foo.json", "version")
 	CheckCommand(t, "--config", "./foo.json", "version")
-	CheckCommand(t, "--config", configPath, "version")
+	CheckCommand(t, "--config", configFilePath, "version")
 }

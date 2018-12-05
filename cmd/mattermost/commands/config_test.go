@@ -4,16 +4,12 @@
 package commands
 
 import (
-	"io/ioutil"
-	"os"
-	"path/filepath"
 	"reflect"
 	"sort"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
 )
@@ -72,17 +68,14 @@ type TestNewTeamSettings struct {
 }
 
 func TestConfigValidate(t *testing.T) {
-	dir, err := ioutil.TempDir("", "")
-	require.NoError(t, err)
-	defer os.RemoveAll(dir)
-
-	path := filepath.Join(dir, "config.json")
 	config := &model.Config{}
 	config.SetDefaults()
-	require.NoError(t, ioutil.WriteFile(path, []byte(config.ToJson()), 0600))
+
+	configFilePath, cleanup := makeConfigFile(config)
+	defer cleanup()
 
 	assert.Error(t, RunCommand(t, "--config", "foo.json", "config", "validate"))
-	assert.NoError(t, RunCommand(t, "--config", path, "config", "validate"))
+	assert.NoError(t, RunCommand(t, "--config", configFilePath, "config", "validate"))
 }
 
 func TestConfigGet(t *testing.T) {
@@ -110,47 +103,36 @@ func TestConfigGet(t *testing.T) {
 }
 
 func TestConfigSet(t *testing.T) {
-	dir, err := ioutil.TempDir("", "")
-	require.NoError(t, err)
-	defer os.RemoveAll(dir)
-
-	path := filepath.Join(dir, "config.json")
-	config := &model.Config{}
-	config.SetDefaults()
-	// Set the db to use from the testing and not from the default
-	config.SqlSettings = *mainHelper.Settings
-	require.NoError(t, ioutil.WriteFile(path, []byte(config.ToJson()), 0600))
-
 	// Error when no arguments are given
-	assert.Error(t, RunCommand(t, "--config", path, "config", "set"))
+	assert.Error(t, RunCommand(t, "config", "set"))
 
 	// Error when only one argument is given
-	assert.Error(t, RunCommand(t, "--config", path, "config", "set", "test"))
+	assert.Error(t, RunCommand(t, "config", "set", "test"))
 
 	// Error when the wrong key is set
-	assert.Error(t, RunCommand(t, "--config", path, "config", "set", "invalid-key", "value"))
-	assert.Error(t, RunCommand(t, "--config", path, "config", "get", "invalid-key"))
+	assert.Error(t, RunCommand(t, "config", "set", "invalid-key", "value"))
+	assert.Error(t, RunCommand(t, "config", "get", "invalid-key"))
 
 	// Error when the wrong value is set
-	assert.Error(t, RunCommand(t, "--config", path, "config", "set", "EmailSettings.ConnectionSecurity", "invalid"))
-	output := CheckCommand(t, "--config", path, "config", "get", "EmailSettings.ConnectionSecurity")
+	assert.Error(t, RunCommand(t, "config", "set", "EmailSettings.ConnectionSecurity", "invalid"))
+	output := CheckCommand(t, "config", "get", "EmailSettings.ConnectionSecurity")
 	assert.NotContains(t, string(output), "invalid")
 
 	// Error when the wrong locale is set
-	assert.NoError(t, RunCommand(t, "--config", path, "config", "set", "LocalizationSettings.DefaultServerLocale", "es"))
-	assert.Error(t, RunCommand(t, "--config", path, "config", "set", "LocalizationSettings.DefaultServerLocale", "invalid"))
-	output = CheckCommand(t, "--config", path, "config", "get", "LocalizationSettings.DefaultServerLocale")
+	assert.NoError(t, RunCommand(t, "config", "set", "LocalizationSettings.DefaultServerLocale", "es"))
+	assert.Error(t, RunCommand(t, "config", "set", "LocalizationSettings.DefaultServerLocale", "invalid"))
+	output = CheckCommand(t, "config", "get", "LocalizationSettings.DefaultServerLocale")
 	assert.NotContains(t, string(output), "invalid")
 	assert.NotContains(t, string(output), "\"en\"")
 
 	// Success when a valid value is set
-	assert.NoError(t, RunCommand(t, "--config", path, "config", "set", "EmailSettings.ConnectionSecurity", "TLS"))
-	output = CheckCommand(t, "--config", path, "config", "get", "EmailSettings.ConnectionSecurity")
+	assert.NoError(t, RunCommand(t, "config", "set", "EmailSettings.ConnectionSecurity", "TLS"))
+	output = CheckCommand(t, "config", "get", "EmailSettings.ConnectionSecurity")
 	assert.Contains(t, string(output), "TLS")
 
 	// Success when a valid locale is set
-	assert.NoError(t, RunCommand(t, "--config", path, "config", "set", "LocalizationSettings.DefaultServerLocale", "es"))
-	output = CheckCommand(t, "--config", path, "config", "get", "LocalizationSettings.DefaultServerLocale")
+	assert.NoError(t, RunCommand(t, "config", "set", "LocalizationSettings.DefaultServerLocale", "es"))
+	output = CheckCommand(t, "config", "get", "LocalizationSettings.DefaultServerLocale")
 	assert.Contains(t, string(output), "\"es\"")
 }
 

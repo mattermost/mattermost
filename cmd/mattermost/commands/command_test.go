@@ -4,8 +4,6 @@
 package commands
 
 import (
-	"os"
-	"os/exec"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/api4"
@@ -108,13 +106,16 @@ func TestCreateCommand(t *testing.T) {
 		},
 	}
 
-	path, err := os.Executable()
-	require.NoError(t, err)
-
 	for _, testCase := range testCases {
 		t.Run(testCase.Description, func(t *testing.T) {
+			config := &model.Config{}
+			config.SetDefaults()
+			*config.ServiceSettings.EnableCommands = true
 
-			actual, _ := exec.Command(path, execArgs(t, testCase.Args)...).CombinedOutput()
+			configFilePath, cleanup := makeConfigFile(config)
+			defer cleanup()
+
+			actual, _ := RunCommandWithOutput(t, append(testCase.Args, "--config", configFilePath)...)
 
 			cmds, _ := th.SystemAdminClient.ListCommands(team.Id, true)
 
