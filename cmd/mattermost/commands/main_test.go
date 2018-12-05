@@ -15,6 +15,7 @@ import (
 func TestMain(m *testing.M) {
 	// Command tests are run by re-invoking the test binary in question, so avoid creating
 	// another container when we detect same.
+	flag.Parse()
 	if filter := flag.Lookup("test.run").Value.String(); filter == "ExecCommand" {
 		status := m.Run()
 		os.Exit(status)
