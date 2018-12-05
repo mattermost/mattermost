@@ -463,17 +463,16 @@ func TestConfigShow(t *testing.T) {
 	th := Setup()
 	defer th.TearDown()
 
-	// error
-	assert.Error(t, th.RunCommand(t, "config", "show", "abc"))
+	t.Run("error with unknown subcommand", func(t *testing.T) {
+		assert.Error(t, th.RunCommand(t, "config", "show", "abc"))
+	})
 
-	// no error
-	assert.NoError(t, th.RunCommand(t, "config", "show"))
-
-	// check the output
-	output := th.CheckCommand(t, "config", "show")
-	assert.Contains(t, string(output), "SqlSettings")
-	assert.Contains(t, string(output), "MessageExportSettings")
-	assert.Contains(t, string(output), "AnnouncementSettings")
+	t.Run("successfully dumping config", func(t *testing.T) {
+		output := th.CheckCommand(t, "config", "show")
+		assert.Contains(t, string(output), "SqlSettings")
+		assert.Contains(t, string(output), "MessageExportSettings")
+		assert.Contains(t, string(output), "AnnouncementSettings")
+	})
 }
 
 func TestSetConfig(t *testing.T) {
