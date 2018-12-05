@@ -213,7 +213,7 @@ func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Chan
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv.Go(func() {
-			pluginContext := &plugin.Context{}
+			pluginContext := a.PluginContext()
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.ChannelHasBeenCreated(pluginContext, sc)
 				return true
@@ -243,7 +243,7 @@ func (a *App) GetOrCreateDirectChannel(userId, otherUserId string) (*model.Chann
 
 			if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 				a.Srv.Go(func() {
-					pluginContext := &plugin.Context{}
+					pluginContext := a.PluginContext()
 					pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 						hooks.ChannelHasBeenCreated(pluginContext, channel)
 						return true
@@ -866,7 +866,7 @@ func (a *App) AddChannelMember(userId string, channel *model.Channel, userReques
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv.Go(func() {
-			pluginContext := &plugin.Context{}
+			pluginContext := a.PluginContext()
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.UserHasJoinedChannel(pluginContext, cm, userRequestor)
 				return true
@@ -1256,7 +1256,7 @@ func (a *App) JoinChannel(channel *model.Channel, userId string) *model.AppError
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv.Go(func() {
-			pluginContext := &plugin.Context{}
+			pluginContext := a.PluginContext()
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.UserHasJoinedChannel(pluginContext, cm, nil)
 				return true
@@ -1462,7 +1462,7 @@ func (a *App) removeUserFromChannel(userIdToRemove string, removerUserId string,
 		}
 
 		a.Srv.Go(func() {
-			pluginContext := &plugin.Context{}
+			pluginContext := a.PluginContext()
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.UserHasLeftChannel(pluginContext, cm, actorUser)
 				return true
