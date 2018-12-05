@@ -11,22 +11,19 @@ import (
 	"github.com/mattermost/mattermost-server/services/configservice"
 )
 
-// HTTPService wraps the functionality for creating a new http.Client to provide some improvements to the default client
-// behaviour and allow it to be mocked when testing. The default implementation uses a Transport with the same settings
-// as the default Transport with the following modifications:
-// - A shorter timeout for dial and TLS handshake (defined as the constant "connectTimeout")
-// - A timeout for end-to-end requests (defined as constant "requestTimeout")
+// HTTPService wraps the functionality for making http requests to provide some improvements to the default client
+// behaviour.
 type HTTPService interface {
 	// MakeClient returns an http client constructed with a RoundTripper as returned by MakeTransport.
 	MakeClient(trustURLs bool) *http.Client
 
 	// MakeTransport returns a RoundTripper that is suitable for making requests to external resources. The default
-	// implementation provides a Mattermost-specific user agent header along with standard timeouts and security
-	// settings.
+	// implementation provides:
+	// - A shorter timeout for dial and TLS handshake (defined as constant "ConnectTimeout")
+	// - A timeout for end-to-end requests (defined as constant "RequestTimeout")
+	// - A Mattermost-specific user agent header
+	// - Additional security for untrusted and insecure connections
 	MakeTransport(trustURLs bool) http.RoundTripper
-
-	// Close performs any needed cleanup when shutting down the server.
-	Close()
 }
 
 type HTTPServiceImpl struct {
@@ -76,8 +73,4 @@ func (h *HTTPServiceImpl) MakeTransport(trustURLs bool) http.RoundTripper {
 	}
 
 	return NewTransport(insecure, allowHost, allowIP)
-}
-
-func (h *HTTPServiceImpl) Close() {
-	// Does nothing, but allows this to be overridden when mocking the service
 }
