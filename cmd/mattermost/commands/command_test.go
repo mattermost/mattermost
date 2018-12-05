@@ -6,15 +6,19 @@ package commands
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/api4"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestCreateCommand(t *testing.T) {
-	th := api4.Setup().InitBasic()
+	th := Setup().InitBasic()
 	defer th.TearDown()
+
+	config := th.Config()
+	*config.ServiceSettings.EnableCommands = true
+	th.SetConfig(config)
+
 	team := th.BasicTeam
 	adminUser := th.TeamAdminUser
 	user := th.BasicUser
@@ -108,14 +112,7 @@ func TestCreateCommand(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.Description, func(t *testing.T) {
-			config := &model.Config{}
-			config.SetDefaults()
-			*config.ServiceSettings.EnableCommands = true
-
-			configFilePath, cleanup := makeConfigFile(config)
-			defer cleanup()
-
-			actual, _ := RunCommandWithOutput(t, append(testCase.Args, "--config", configFilePath)...)
+			actual, _ := th.RunCommandWithOutput(t, testCase.Args...)
 
 			cmds, _ := th.SystemAdminClient.ListCommands(team.Id, true)
 
@@ -138,7 +135,7 @@ func TestDeleteCommand(t *testing.T) {
 	// Skipped due to v5.6 RC build issues.
 	t.Skip()
 
-	th := api4.Setup().InitBasic()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	url := "http://localhost:8000/test-command"
 	team := th.BasicTeam
@@ -162,13 +159,13 @@ func TestDeleteCommand(t *testing.T) {
 		require.Nil(t, err)
 		assert.Equal(t, len(commands), 1)
 
-		assert.Nil(t, RunCommand(t, "command", "delete", command.Id))
+		assert.Nil(t, th.RunCommand(t, "command", "delete", command.Id))
 		commands, err = th.App.ListTeamCommands(team.Id)
 		require.Nil(t, err)
 		assert.Equal(t, len(commands), 0)
 	})
 
 	t.Run("not existing command", func(t *testing.T) {
-		assert.Error(t, RunCommand(t, "command", "delete", "invalid"))
+		assert.Error(t, th.RunCommand(t, "command", "delete", "invalid"))
 	})
 }

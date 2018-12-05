@@ -12,8 +12,6 @@ import (
 	"github.com/mattermost/mattermost-server/testlib"
 )
 
-var mainHelper *testlib.MainHelper
-
 func TestMain(m *testing.M) {
 	// Command tests are run by re-invoking the test binary in question, so avoid creating
 	// another container when we detect same.

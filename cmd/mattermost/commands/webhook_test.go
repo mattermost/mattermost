@@ -15,7 +15,7 @@ import (
 )
 
 func TestListWebhooks(t *testing.T) {
-	th := api4.Setup().InitBasic()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	adminClient := th.SystemAdminClient
 
@@ -41,7 +41,7 @@ func TestListWebhooks(t *testing.T) {
 	_, resp = adminClient.CreateOutgoingWebhook(outHook)
 	api4.CheckNoError(t, resp)
 
-	output := CheckCommand(t, "webhook", "list", th.BasicTeam.Name)
+	output := th.CheckCommand(t, "webhook", "list", th.BasicTeam.Name)
 
 	if !strings.Contains(string(output), dispName) {
 		t.Fatal("should have incoming webhooks")
@@ -54,7 +54,7 @@ func TestListWebhooks(t *testing.T) {
 }
 
 func TestCreateIncomingWebhook(t *testing.T) {
-	th := api4.Setup().InitBasic()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = true })
@@ -70,16 +70,16 @@ func TestCreateIncomingWebhook(t *testing.T) {
 	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_WEBHOOKS.Id, model.TEAM_USER_ROLE_ID)
 
 	// should fail because you need to specify valid channel
-	require.Error(t, RunCommand(t, "webhook", "create-incoming"))
-	require.Error(t, RunCommand(t, "webhook", "create-incoming", "--channel", th.BasicTeam.Name+":doesnotexist"))
+	require.Error(t, th.RunCommand(t, "webhook", "create-incoming"))
+	require.Error(t, th.RunCommand(t, "webhook", "create-incoming", "--channel", th.BasicTeam.Name+":doesnotexist"))
 
 	// should fail because you need to specify valid user
-	require.Error(t, RunCommand(t, "webhook", "create-incoming", "--channel", th.BasicChannel.Id))
-	require.Error(t, RunCommand(t, "webhook", "create-incoming", "--channel", th.BasicChannel.Id, "--user", "doesnotexist"))
+	require.Error(t, th.RunCommand(t, "webhook", "create-incoming", "--channel", th.BasicChannel.Id))
+	require.Error(t, th.RunCommand(t, "webhook", "create-incoming", "--channel", th.BasicChannel.Id, "--user", "doesnotexist"))
 
 	description := "myhookinc"
 	displayName := "myhookinc"
-	CheckCommand(t, "webhook", "create-incoming", "--channel", th.BasicChannel.Id, "--user", th.BasicUser.Email, "--description", description, "--display-name", displayName)
+	th.CheckCommand(t, "webhook", "create-incoming", "--channel", th.BasicChannel.Id, "--user", th.BasicUser.Email, "--description", description, "--display-name", displayName)
 
 	webhooks, err := th.App.GetIncomingWebhooksPage(0, 1000)
 	if err != nil {
@@ -98,7 +98,7 @@ func TestCreateIncomingWebhook(t *testing.T) {
 }
 
 func TestModifyIncomingWebhook(t *testing.T) {
-	th := api4.Setup().InitBasic()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = true })
@@ -131,9 +131,9 @@ func TestModifyIncomingWebhook(t *testing.T) {
 	}()
 
 	// should fail because you need to specify valid incoming webhook
-	require.Error(t, RunCommand(t, "webhook", "modify-incoming", "doesnotexist"))
+	require.Error(t, th.RunCommand(t, "webhook", "modify-incoming", "doesnotexist"))
 	// should fail because you need to specify valid channel
-	require.Error(t, RunCommand(t, "webhook", "modify-incoming", oldHook.Id, "--channel", th.BasicTeam.Name+":doesnotexist"))
+	require.Error(t, th.RunCommand(t, "webhook", "modify-incoming", oldHook.Id, "--channel", th.BasicTeam.Name+":doesnotexist"))
 
 	modifiedDescription := "myhookincdesc2"
 	modifiedDisplayName := "myhookincname2"
@@ -141,7 +141,7 @@ func TestModifyIncomingWebhook(t *testing.T) {
 	modifiedChannelLocked := true
 	modifiedChannelId := th.BasicChannel2.Id
 
-	CheckCommand(t, "webhook", "modify-incoming", oldHook.Id, "--channel", modifiedChannelId, "--description", modifiedDescription, "--display-name", modifiedDisplayName, "--icon", modifiedIconUrl, "--lock-to-channel", strconv.FormatBool(modifiedChannelLocked))
+	th.CheckCommand(t, "webhook", "modify-incoming", oldHook.Id, "--channel", modifiedChannelId, "--description", modifiedDescription, "--display-name", modifiedDisplayName, "--icon", modifiedIconUrl, "--lock-to-channel", strconv.FormatBool(modifiedChannelLocked))
 
 	modifiedHook, err := th.App.GetIncomingWebhook(oldHook.Id)
 	if err != nil {
@@ -153,7 +153,7 @@ func TestModifyIncomingWebhook(t *testing.T) {
 }
 
 func TestCreateOutgoingWebhook(t *testing.T) {
-	th := api4.Setup().InitBasic()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = true })
@@ -178,24 +178,24 @@ func TestCreateOutgoingWebhook(t *testing.T) {
 	callbackURL2 := "http://localhost:8000/my-webhook-handler2"
 
 	// should fail because team is not specified
-	require.Error(t, RunCommand(t, "webhook", "create-outgoing", "--display-name", displayName, "--trigger-word", triggerWord1, "--trigger-word", triggerWord2, "--url", callbackURL1, "--url", callbackURL2, "--user", user))
+	require.Error(t, th.RunCommand(t, "webhook", "create-outgoing", "--display-name", displayName, "--trigger-word", triggerWord1, "--trigger-word", triggerWord2, "--url", callbackURL1, "--url", callbackURL2, "--user", user))
 
 	// should fail because user is not specified
-	require.Error(t, RunCommand(t, "webhook", "create-outgoing", "--team", team, "--display-name", displayName, "--trigger-word", triggerWord1, "--trigger-word", triggerWord2, "--url", callbackURL1, "--url", callbackURL2))
+	require.Error(t, th.RunCommand(t, "webhook", "create-outgoing", "--team", team, "--display-name", displayName, "--trigger-word", triggerWord1, "--trigger-word", triggerWord2, "--url", callbackURL1, "--url", callbackURL2))
 
 	// should fail because display name is not specified
-	require.Error(t, RunCommand(t, "webhook", "create-outgoing", "--team", team, "--trigger-word", triggerWord1, "--trigger-word", triggerWord2, "--url", callbackURL1, "--url", callbackURL2, "--user", user))
+	require.Error(t, th.RunCommand(t, "webhook", "create-outgoing", "--team", team, "--trigger-word", triggerWord1, "--trigger-word", triggerWord2, "--url", callbackURL1, "--url", callbackURL2, "--user", user))
 
 	// should fail because trigger words are not specified
-	require.Error(t, RunCommand(t, "webhook", "create-outgoing", "--team", team, "--display-name", displayName, "--url", callbackURL1, "--url", callbackURL2, "--user", user))
+	require.Error(t, th.RunCommand(t, "webhook", "create-outgoing", "--team", team, "--display-name", displayName, "--url", callbackURL1, "--url", callbackURL2, "--user", user))
 
 	// should fail because callback URLs are not specified
-	require.Error(t, RunCommand(t, "webhook", "create-outgoing", "--team", team, "--display-name", displayName, "--trigger-word", triggerWord1, "--trigger-word", triggerWord2, "--user", user))
+	require.Error(t, th.RunCommand(t, "webhook", "create-outgoing", "--team", team, "--display-name", displayName, "--trigger-word", triggerWord1, "--trigger-word", triggerWord2, "--user", user))
 
 	// should fail because outgoing webhooks cannot be made for private channels
-	require.Error(t, RunCommand(t, "webhook", "create-outgoing", "--team", team, "--channel", th.BasicPrivateChannel.Id, "--display-name", displayName, "--trigger-word", triggerWord1, "--trigger-word", triggerWord2, "--url", callbackURL1, "--url", callbackURL2, "--user", user))
+	require.Error(t, th.RunCommand(t, "webhook", "create-outgoing", "--team", team, "--channel", th.BasicPrivateChannel.Id, "--display-name", displayName, "--trigger-word", triggerWord1, "--trigger-word", triggerWord2, "--url", callbackURL1, "--url", callbackURL2, "--user", user))
 
-	CheckCommand(t, "webhook", "create-outgoing", "--team", team, "--channel", th.BasicChannel.Id, "--display-name", displayName, "--trigger-word", triggerWord1, "--trigger-word", triggerWord2, "--url", callbackURL1, "--url", callbackURL2, "--user", user)
+	th.CheckCommand(t, "webhook", "create-outgoing", "--team", team, "--channel", th.BasicChannel.Id, "--display-name", displayName, "--trigger-word", triggerWord1, "--trigger-word", triggerWord2, "--url", callbackURL1, "--url", callbackURL2, "--user", user)
 
 	webhooks, err := th.App.GetOutgoingWebhooksPage(0, 1000)
 	if err != nil {
@@ -214,7 +214,7 @@ func TestCreateOutgoingWebhook(t *testing.T) {
 }
 
 func TestDeleteWebhooks(t *testing.T) {
-	th := api4.Setup().InitBasic()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	adminClient := th.SystemAdminClient
 
@@ -240,7 +240,7 @@ func TestDeleteWebhooks(t *testing.T) {
 	outgoingHook, resp := adminClient.CreateOutgoingWebhook(outHookStruct)
 	api4.CheckNoError(t, resp)
 
-	hooksBeforeDeletion := CheckCommand(t, "webhook", "list", th.BasicTeam.Name)
+	hooksBeforeDeletion := th.CheckCommand(t, "webhook", "list", th.BasicTeam.Name)
 
 	if !strings.Contains(string(hooksBeforeDeletion), dispName) {
 		t.Fatal("Should have incoming webhooks")
@@ -250,10 +250,10 @@ func TestDeleteWebhooks(t *testing.T) {
 		t.Fatal("Should have outgoing webhooks")
 	}
 
-	CheckCommand(t, "webhook", "delete", incomingHook.Id)
-	CheckCommand(t, "webhook", "delete", outgoingHook.Id)
+	th.CheckCommand(t, "webhook", "delete", incomingHook.Id)
+	th.CheckCommand(t, "webhook", "delete", outgoingHook.Id)
 
-	hooksAfterDeletion := CheckCommand(t, "webhook", "list", th.BasicTeam.Name)
+	hooksAfterDeletion := th.CheckCommand(t, "webhook", "list", th.BasicTeam.Name)
 
 	if strings.Contains(string(hooksAfterDeletion), dispName) {
 		t.Fatal("Should not have incoming webhooks")

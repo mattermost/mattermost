@@ -68,33 +68,33 @@ type TestNewTeamSettings struct {
 }
 
 func TestConfigValidate(t *testing.T) {
-	config := &model.Config{}
-	config.SetDefaults()
+	th := Setup()
+	defer th.TearDown()
 
-	configFilePath, cleanup := makeConfigFile(config)
-	defer cleanup()
-
-	assert.Error(t, RunCommand(t, "--config", "foo.json", "config", "validate"))
-	assert.NoError(t, RunCommand(t, "--config", configFilePath, "config", "validate"))
+	assert.Error(t, th.RunCommand(t, "--config", "foo.json", "config", "validate"))
+	assert.NoError(t, th.RunCommand(t, "config", "validate"))
 }
 
 func TestConfigGet(t *testing.T) {
+	th := Setup()
+	defer th.TearDown()
+
 	// Error when no arguments are given
-	assert.Error(t, RunCommand(t, "config", "get"))
+	assert.Error(t, th.RunCommand(t, "config", "get"))
 
 	// Error when more than one config settings are given
-	assert.Error(t, RunCommand(t, "config", "get", "abc", "def"))
+	assert.Error(t, th.RunCommand(t, "config", "get", "abc", "def"))
 
 	// Error when a config setting which is not in the config.json is given
-	assert.Error(t, RunCommand(t, "config", "get", "abc"))
+	assert.Error(t, th.RunCommand(t, "config", "get", "abc"))
 
 	// No Error when a config setting which is  in the config.json is given
-	assert.NoError(t, RunCommand(t, "config", "get", "MessageExportSettings"))
-	assert.NoError(t, RunCommand(t, "config", "get", "MessageExportSettings.GlobalRelaySettings"))
-	assert.NoError(t, RunCommand(t, "config", "get", "MessageExportSettings.GlobalRelaySettings.CustomerType"))
+	assert.NoError(t, th.RunCommand(t, "config", "get", "MessageExportSettings"))
+	assert.NoError(t, th.RunCommand(t, "config", "get", "MessageExportSettings.GlobalRelaySettings"))
+	assert.NoError(t, th.RunCommand(t, "config", "get", "MessageExportSettings.GlobalRelaySettings.CustomerType"))
 
 	// check output
-	output := CheckCommand(t, "config", "get", "MessageExportSettings")
+	output := th.CheckCommand(t, "config", "get", "MessageExportSettings")
 
 	assert.Contains(t, string(output), "EnableExport")
 	assert.Contains(t, string(output), "ExportFormat")
@@ -103,41 +103,50 @@ func TestConfigGet(t *testing.T) {
 }
 
 func TestConfigSet(t *testing.T) {
-	// Error when no arguments are given
-	assert.Error(t, RunCommand(t, "config", "set"))
+	th := Setup()
+	defer th.TearDown()
 
-	// Error when only one argument is given
-	assert.Error(t, RunCommand(t, "config", "set", "test"))
+	t.Run("Error when no arguments are given", func(t *testing.T) {
+		assert.Error(t, th.RunCommand(t, "config", "set"))
+	})
 
-	// Error when the wrong key is set
-	assert.Error(t, RunCommand(t, "config", "set", "invalid-key", "value"))
-	assert.Error(t, RunCommand(t, "config", "get", "invalid-key"))
+	t.Run("Error when only one argument is given", func(t *testing.T) {
+		assert.Error(t, th.RunCommand(t, "config", "set", "test"))
+	})
 
-	// Error when the wrong value is set
-	assert.Error(t, RunCommand(t, "config", "set", "EmailSettings.ConnectionSecurity", "invalid"))
-	output := CheckCommand(t, "config", "get", "EmailSettings.ConnectionSecurity")
-	assert.NotContains(t, string(output), "invalid")
+	t.Run("Error when the wrong key is set", func(t *testing.T) {
+		assert.Error(t, th.RunCommand(t, "config", "set", "invalid-key", "value"))
+		assert.Error(t, th.RunCommand(t, "config", "get", "invalid-key"))
+	})
 
-	// Error when the wrong locale is set
-	assert.NoError(t, RunCommand(t, "config", "set", "LocalizationSettings.DefaultServerLocale", "es"))
-	assert.Error(t, RunCommand(t, "config", "set", "LocalizationSettings.DefaultServerLocale", "invalid"))
-	output = CheckCommand(t, "config", "get", "LocalizationSettings.DefaultServerLocale")
-	assert.NotContains(t, string(output), "invalid")
-	assert.NotContains(t, string(output), "\"en\"")
+	t.Run("Error when the wrong value is set", func(t *testing.T) {
+		assert.Error(t, th.RunCommand(t, "config", "set", "EmailSettings.ConnectionSecurity", "invalid"))
+		output := th.CheckCommand(t, "config", "get", "EmailSettings.ConnectionSecurity")
+		assert.NotContains(t, string(output), "invalid")
+	})
 
-	// Success when a valid value is set
-	assert.NoError(t, RunCommand(t, "config", "set", "EmailSettings.ConnectionSecurity", "TLS"))
-	output = CheckCommand(t, "config", "get", "EmailSettings.ConnectionSecurity")
-	assert.Contains(t, string(output), "TLS")
+	t.Run("Error when the wrong locale is set", func(t *testing.T) {
+		assert.NoError(t, th.RunCommand(t, "config", "set", "LocalizationSettings.DefaultServerLocale", "es"))
+		assert.Error(t, th.RunCommand(t, "config", "set", "LocalizationSettings.DefaultServerLocale", "invalid"))
+		output := th.CheckCommand(t, "config", "get", "LocalizationSettings.DefaultServerLocale")
+		assert.NotContains(t, string(output), "invalid")
+		assert.NotContains(t, string(output), "\"en\"")
+	})
 
-	// Success when a valid locale is set
-	assert.NoError(t, RunCommand(t, "config", "set", "LocalizationSettings.DefaultServerLocale", "es"))
-	output = CheckCommand(t, "config", "get", "LocalizationSettings.DefaultServerLocale")
-	assert.Contains(t, string(output), "\"es\"")
+	t.Run("Success when a valid value is set", func(t *testing.T) {
+		assert.NoError(t, th.RunCommand(t, "config", "set", "EmailSettings.ConnectionSecurity", "TLS"))
+		output := th.CheckCommand(t, "config", "get", "EmailSettings.ConnectionSecurity")
+		assert.Contains(t, string(output), "TLS")
+	})
+
+	t.Run("Success when a valid locale is set", func(t *testing.T) {
+		assert.NoError(t, th.RunCommand(t, "config", "set", "LocalizationSettings.DefaultServerLocale", "es"))
+		output := th.CheckCommand(t, "config", "get", "LocalizationSettings.DefaultServerLocale")
+		assert.Contains(t, string(output), "\"es\"")
+	})
 }
 
 func TestStructToMap(t *testing.T) {
-
 	cases := []struct {
 		Name     string
 		Input    interface{}
@@ -308,7 +317,6 @@ func TestConfigToMap(t *testing.T) {
 }
 
 func TestPrintMap(t *testing.T) {
-
 	inputCases := []interface{}{
 		map[string]interface{}{
 			"CustomerType": "A9",
@@ -371,7 +379,6 @@ func TestPrintMap(t *testing.T) {
 }
 
 func TestPrintConfigValues(t *testing.T) {
-
 	outputs := []string{
 		"Siteurl: \"abc\"\nWebsocketurl: \"def\"\nLicensedfieldlocation: \"ghi\"\n",
 		"Sitename: \"abc\"\nMaxuserperteam: \"1\"\n",
@@ -448,39 +455,43 @@ func TestPrintConfigValues(t *testing.T) {
 }
 
 func TestConfigShow(t *testing.T) {
+	th := Setup()
+	defer th.TearDown()
 
 	// error
-	assert.Error(t, RunCommand(t, "config", "show", "abc"))
+	assert.Error(t, th.RunCommand(t, "config", "show", "abc"))
 
 	// no error
-	assert.NoError(t, RunCommand(t, "config", "show"))
+	assert.NoError(t, th.RunCommand(t, "config", "show"))
 
 	// check the output
-	output := CheckCommand(t, "config", "show")
+	output := th.CheckCommand(t, "config", "show")
 	assert.Contains(t, string(output), "SqlSettings")
 	assert.Contains(t, string(output), "MessageExportSettings")
 	assert.Contains(t, string(output), "AnnouncementSettings")
 }
 
 func TestSetConfig(t *testing.T) {
+	th := Setup()
+	defer th.TearDown()
+
 	// Error when no argument is given
-	assert.Error(t, RunCommand(t, "config", "set"))
+	assert.Error(t, th.RunCommand(t, "config", "set"))
 
 	// No Error when more than one argument is given
-	assert.NoError(t, RunCommand(t, "config", "set", "ThemeSettings.AllowedThemes", "hello", "World"))
+	assert.NoError(t, th.RunCommand(t, "config", "set", "ThemeSettings.AllowedThemes", "hello", "World"))
 
 	// No Error when two arguments are given
-	assert.NoError(t, RunCommand(t, "config", "set", "ThemeSettings.AllowedThemes", "hello"))
+	assert.NoError(t, th.RunCommand(t, "config", "set", "ThemeSettings.AllowedThemes", "hello"))
 
 	// Error when only one argument is given
-	assert.Error(t, RunCommand(t, "config", "set", "ThemeSettings.AllowedThemes"))
+	assert.Error(t, th.RunCommand(t, "config", "set", "ThemeSettings.AllowedThemes"))
 
 	// Error when config settings not in the config file are given
-	assert.Error(t, RunCommand(t, "config", "set", "Abc"))
+	assert.Error(t, th.RunCommand(t, "config", "set", "Abc"))
 }
 
 func TestUpdateMap(t *testing.T) {
-
 	// create a config to make changes
 	config := TestNewConfig{
 		TestNewServiceSettings{
@@ -561,7 +572,6 @@ func TestUpdateMap(t *testing.T) {
 }
 
 func contains(configMap map[string]interface{}, v interface{}, configSettings []string) bool {
-
 	res := configMap[configSettings[0]]
 
 	value := reflect.ValueOf(res)

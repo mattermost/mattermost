@@ -17,38 +17,72 @@ import (
 
 	"github.com/stretchr/testify/require"
 
+	"github.com/mattermost/mattermost-server/api4"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/testlib"
 )
 
 var coverprofileCounters map[string]int = make(map[string]int)
 
-// makeConfigFile creates a default configuration and applies the current test database settings.
-// Returns the path to the resulting file and a cleanup function to be called when testing is complete.
-func makeConfigFile(config *model.Config) (configFilePath string, cleanup func()) {
-	if config == nil {
-		config = &model.Config{}
-		config.SetDefaults()
-	}
+var mainHelper *testlib.MainHelper
 
-	config.SqlSettings = *mainHelper.Settings
+type testHelper struct {
+	*api4.TestHelper
 
+	config         *model.Config
+	tempDir        string
+	configFilePath string
+}
+
+func Setup() *testHelper {
 	dir, err := ioutil.TempDir("", "")
 	if err != nil {
 		panic("failed to create temporary directory: " + err.Error())
 	}
 
-	configFilePath = filepath.Join(dir, "config.json")
-	if err := ioutil.WriteFile(configFilePath, []byte(config.ToJson()), 0600); err != nil {
-		os.RemoveAll(dir)
-		panic("failed to write file " + configFilePath + ": " + err.Error())
+	api4TestHelper := api4.Setup()
+
+	testHelper := &testHelper{
+		TestHelper:     api4TestHelper,
+		tempDir:        dir,
+		configFilePath: filepath.Join(dir, "config.json"),
 	}
 
-	return configFilePath, func() {
-		os.RemoveAll(dir)
+	config := &model.Config{}
+	config.SetDefaults()
+	testHelper.SetConfig(config)
+
+	return testHelper
+}
+
+func (h *testHelper) InitBasic() *testHelper {
+	h.TestHelper.InitBasic()
+	return h
+}
+
+func (h *testHelper) Config() *model.Config {
+	return h.config.Clone()
+}
+
+func (h *testHelper) ConfigPath() string {
+	return h.configFilePath
+}
+
+func (h *testHelper) SetConfig(config *model.Config) {
+	config.SqlSettings = *mainHelper.Settings
+	h.config = config
+
+	if err := ioutil.WriteFile(h.configFilePath, []byte(config.ToJson()), 0600); err != nil {
+		panic("failed to write file " + h.configFilePath + ": " + err.Error())
 	}
 }
 
-func execArgs(t *testing.T, args []string) ([]string, func()) {
+func (h *testHelper) TearDown() {
+	h.TestHelper.TearDown()
+	os.RemoveAll(h.tempDir)
+}
+
+func (h *testHelper) execArgs(t *testing.T, args []string) []string {
 	ret := []string{"-test.v", "-test.run", "ExecCommand"}
 	if coverprofile := flag.Lookup("test.coverprofile").Value.String(); coverprofile != "" {
 		dir := filepath.Dir(coverprofile)
@@ -71,49 +105,37 @@ func execArgs(t *testing.T, args []string) ([]string, func()) {
 		}
 	}
 
-	var configFilePath string
-	cleanup := func() {}
 	if !hasConfig {
-		configFilePath, cleanup = makeConfigFile(nil)
-
-		ret = append(ret, "--config", configFilePath)
+		ret = append(ret, "--config", h.configFilePath)
 	}
 
 	ret = append(ret, args...)
 
-	return ret, cleanup
+	return ret
 }
 
 // CheckCommand invokes the test binary, returning the output modified for assertion testing.
-func CheckCommand(t *testing.T, args ...string) string {
+func (h *testHelper) CheckCommand(t *testing.T, args ...string) string {
 	path, err := os.Executable()
 	require.NoError(t, err)
-	args, cleanup := execArgs(t, args)
-	defer cleanup()
-	output, err := exec.Command(path, args...).CombinedOutput()
+	output, err := exec.Command(path, h.execArgs(t, args)...).CombinedOutput()
 	require.NoError(t, err, string(output))
 	return strings.TrimSpace(strings.TrimSuffix(strings.TrimSpace(string(output)), "PASS"))
 }
 
 // RunCommand invokes the test binary, returning only any error.
-func RunCommand(t *testing.T, args ...string) error {
+func (h *testHelper) RunCommand(t *testing.T, args ...string) error {
 	path, err := os.Executable()
 	require.NoError(t, err)
-
-	args, cleanup := execArgs(t, args)
-	defer cleanup()
-
-	return exec.Command(path, args...).Run()
+	return exec.Command(path, h.execArgs(t, args)...).Run()
 }
 
-// RunCommandWithOutput is a variant of RunCommand that returns the umodified output and any error.
-func RunCommandWithOutput(t *testing.T, args ...string) (string, error) {
+// RunCommandWithOutput is a variant of RunCommand that returns the unmodified output and any error.
+func (h *testHelper) RunCommandWithOutput(t *testing.T, args ...string) (string, error) {
 	path, err := os.Executable()
 	require.NoError(t, err)
-	args, cleanup := execArgs(t, args)
-	defer cleanup()
 
-	cmd := exec.Command(path, args...)
+	cmd := exec.Command(path, h.execArgs(t, args)...)
 
 	var buf bytes.Buffer
 	reader, writer := io.Pipe()
