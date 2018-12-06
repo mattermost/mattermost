@@ -69,24 +69,6 @@ func (backend *LocalBackend) GetImage(w http.ResponseWriter, r *http.Request, im
 	backend.impl.ServeHTTP(w, req)
 }
 
-func copyProxiedResponse(w http.ResponseWriter, remoteResp *http.Response) {
-	for _, key := range []string{
-		"Content-Type",
-		"Content-Length",
-		"Cache-Control",
-		"Last-Modified",
-		"Expires",
-		"Etag",
-		"Link",
-	} {
-		w.Header().Add(key, remoteResp.Header.Get(key))
-	}
-
-	w.WriteHeader(remoteResp.StatusCode)
-
-	io.Copy(w, remoteResp.Body)
-}
-
 func (backend *LocalBackend) GetProxiedImageURL(imageURL string) string {
 	siteURL := *backend.proxy.ConfigService.Config().ServiceSettings.SiteURL
 
