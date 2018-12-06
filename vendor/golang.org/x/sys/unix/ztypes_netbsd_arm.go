@@ -6,11 +6,11 @@
 package unix
 
 const (
-	sizeofPtr      = 0x4
-	sizeofShort    = 0x2
-	sizeofInt      = 0x4
-	sizeofLong     = 0x4
-	sizeofLongLong = 0x8
+	SizeofPtr      = 0x4
+	SizeofShort    = 0x2
+	SizeofInt      = 0x4
+	SizeofLong     = 0x4
+	SizeofLongLong = 0x8
 )
 
 type (
@@ -405,6 +405,13 @@ type Winsize struct {
 	Col    uint16
 	Xpixel uint16
 	Ypixel uint16
+}
+
+type Ptmget struct {
+	Cfd int32
+	Sfd int32
+	Cn  [1024]byte
+	Sn  [1024]byte
 }
 
 const (

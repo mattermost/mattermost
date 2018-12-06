@@ -24,9 +24,13 @@ func TestPreparePostListForClient(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ExperimentalSettings.EnablePostMetadata = true
+	})
+
 	postList := model.NewPostList()
 	for i := 0; i < 5; i++ {
-		postList.AddPost(th.CreatePost(th.BasicChannel))
+		postList.AddPost(&model.Post{})
 	}
 
 	clientPostList := th.App.PreparePostListForClient(postList)
@@ -57,6 +61,7 @@ func TestPreparePostForClient(t *testing.T) {
 			*cfg.ServiceSettings.ImageProxyType = ""
 			*cfg.ServiceSettings.ImageProxyURL = ""
 			*cfg.ServiceSettings.ImageProxyOptions = ""
+			*cfg.ExperimentalSettings.EnablePostMetadata = true
 		})
 
 		return th
@@ -66,8 +71,10 @@ func TestPreparePostForClient(t *testing.T) {
 		th := setup()
 		defer th.TearDown()
 
-		post := th.CreatePost(th.BasicChannel)
-		message := post.Message
+		message := model.NewId()
+		post := &model.Post{
+			Message: message,
+		}
 
 		clientPost := th.App.PreparePostForClient(post)
 
@@ -93,7 +100,7 @@ func TestPreparePostForClient(t *testing.T) {
 		th := setup()
 		defer th.TearDown()
 
-		post := th.App.PreparePostForClient(th.CreatePost(th.BasicChannel))
+		post := th.CreatePost(th.BasicChannel)
 
 		clientPost := th.App.PreparePostForClient(post)
 
@@ -382,6 +389,24 @@ func TestPreparePostForClient(t *testing.T) {
 			}, imageDimensions["https://github.com/hmhealey/test-files/raw/master/icon.png"])
 		})
 	})
+
+	t.Run("when disabled", func(t *testing.T) {
+		th := setup()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ExperimentalSettings.EnablePostMetadata = false
+		})
+
+		post := th.CreatePost(th.BasicChannel)
+		post = th.App.PreparePostForClient(post)
+
+		assert.Nil(t, post.Metadata)
+
+		b := post.ToJson()
+
+		assert.NotContains(t, string(b), "metadata", "json shouldn't include a metadata field, not even a falsey one")
+	})
 }
 
 func TestPreparePostForClientWithImageProxy(t *testing.T) {
@@ -393,6 +418,7 @@ func TestPreparePostForClientWithImageProxy(t *testing.T) {
 			*cfg.ServiceSettings.ImageProxyType = "atmos/camo"
 			*cfg.ServiceSettings.ImageProxyURL = "https://127.0.0.1"
 			*cfg.ServiceSettings.ImageProxyOptions = "foo"
+			*cfg.ExperimentalSettings.EnablePostMetadata = true
 		})
 
 		return th
@@ -423,10 +449,6 @@ func testProxyLinkedImage(t *testing.T, th *TestHelper, shouldProxy bool) {
 		ChannelId: th.BasicChannel.Id,
 		Message:   fmt.Sprintf(postTemplate, imageURL),
 	}
-
-	var err *model.AppError
-	post, err = th.App.CreatePost(post, th.BasicChannel, false)
-	require.Nil(t, err)
 
 	clientPost := th.App.PreparePostForClient(post)
 
@@ -968,6 +990,47 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 			images := getImagesInMessageAttachments(test.Post)
 
 			assert.ElementsMatch(t, images, test.Expected)
+		})
+	}
+}
+
+func TestResolveMetadataURL(t *testing.T) {
+	for _, test := range []struct {
+		Name       string
+		RequestURL string
+		SiteURL    string
+		Expected   string
+	}{
+		{
+			Name:       "with HTTPS",
+			RequestURL: "https://example.com/file?param=1",
+			Expected:   "https://example.com/file?param=1",
+		},
+		{
+			Name:       "with HTTP",
+			RequestURL: "http://example.com/file?param=1",
+			Expected:   "http://example.com/file?param=1",
+		},
+		{
+			Name:       "with FTP",
+			RequestURL: "ftp://example.com/file?param=1",
+			Expected:   "ftp://example.com/file?param=1",
+		},
+		{
+			Name:       "relative to root",
+			RequestURL: "/file?param=1",
+			SiteURL:    "https://mattermost.example.com:123",
+			Expected:   "https://mattermost.example.com:123/file?param=1",
+		},
+		{
+			Name:       "relative to root with subpath",
+			RequestURL: "/file?param=1",
+			SiteURL:    "https://mattermost.example.com:123/subpath",
+			Expected:   "https://mattermost.example.com:123/file?param=1",
+		},
+	} {
+		t.Run(test.Name, func(t *testing.T) {
+			assert.Equal(t, resolveMetadataURL(test.RequestURL, test.SiteURL), test.Expected)
 		})
 	}
 }

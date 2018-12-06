@@ -653,6 +653,7 @@ func (s *MetricsSettings) SetDefaults() {
 type ExperimentalSettings struct {
 	ClientSideCertEnable *bool
 	ClientSideCertCheck  *string
+	EnablePostMetadata   *bool
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -662,6 +663,10 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.ClientSideCertCheck == nil {
 		s.ClientSideCertCheck = NewString(CLIENT_SIDE_CERT_CHECK_SECONDARY_AUTH)
+	}
+
+	if s.EnablePostMetadata == nil {
+		s.EnablePostMetadata = NewBool(false)
 	}
 }
 
@@ -1900,14 +1905,6 @@ func (s *MessageExportSettings) SetDefaults() {
 		s.ExportFromTimestamp = NewInt64(0)
 	}
 
-	if s.EnableExport != nil && *s.EnableExport && *s.ExportFromTimestamp == int64(0) {
-		// when the feature is enabled via the System Console, use the current timestamp as the start time for future exports
-		s.ExportFromTimestamp = NewInt64(GetMillis())
-	} else if s.EnableExport != nil && !*s.EnableExport {
-		// when the feature is disabled, reset the timestamp so that the timestamp will be set if the feature is re-enabled
-		s.ExportFromTimestamp = NewInt64(0)
-	}
-
 	if s.BatchSize == nil {
 		s.BatchSize = NewInt(10000)
 	}
@@ -1919,14 +1916,14 @@ func (s *MessageExportSettings) SetDefaults() {
 }
 
 type DisplaySettings struct {
-	CustomUrlSchemes     *[]string
+	CustomUrlSchemes     []string
 	ExperimentalTimezone *bool
 }
 
 func (s *DisplaySettings) SetDefaults() {
 	if s.CustomUrlSchemes == nil {
 		customUrlSchemes := []string{}
-		s.CustomUrlSchemes = &customUrlSchemes
+		s.CustomUrlSchemes = customUrlSchemes
 	}
 
 	if s.ExperimentalTimezone == nil {
@@ -2517,10 +2514,10 @@ func (mes *MessageExportSettings) isValid(fs FileSettings) *AppError {
 }
 
 func (ds *DisplaySettings) isValid() *AppError {
-	if len(*ds.CustomUrlSchemes) != 0 {
+	if len(ds.CustomUrlSchemes) != 0 {
 		validProtocolPattern := regexp.MustCompile(`(?i)^\s*[a-z][a-z0-9-]*\s*$`)
 
-		for _, scheme := range *ds.CustomUrlSchemes {
+		for _, scheme := range ds.CustomUrlSchemes {
 			if !validProtocolPattern.MatchString(scheme) {
 				return NewAppError(
 					"Config.IsValid",

@@ -1,5 +1,53 @@
 [
   {
+    "id": "April",
+    "translation": "April"
+  },
+  {
+    "id": "August",
+    "translation": "August"
+  },
+  {
+    "id": "December",
+    "translation": "December"
+  },
+  {
+    "id": "February",
+    "translation": "February"
+  },
+  {
+    "id": "January",
+    "translation": "January"
+  },
+  {
+    "id": "July",
+    "translation": "July"
+  },
+  {
+    "id": "June",
+    "translation": "June"
+  },
+  {
+    "id": "March",
+    "translation": "March"
+  },
+  {
+    "id": "May",
+    "translation": "May"
+  },
+  {
+    "id": "November",
+    "translation": "November"
+  },
+  {
+    "id": "October",
+    "translation": "October"
+  },
+  {
+    "id": "September",
+    "translation": "September"
+  },
+  {
     "id": "actiance.export.marshalToXml.appError",
     "translation": "Unable to convert export to XML."
   },

@@ -6,6 +6,7 @@ package commands
 import (
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost-server/api4"
 	"github.com/mattermost/mattermost-server/model"
@@ -39,7 +40,11 @@ func TestRemoveChannel(t *testing.T) {
 	// should fail because channel does not exist
 	require.Error(t, RunCommand(t, "channel", "remove", th.BasicTeam.Name+":doesnotexist", th.BasicUser2.Email))
 
+	time.Sleep(time.Second)
+
 	CheckCommand(t, "channel", "remove", th.BasicTeam.Name+":"+channel.Name, th.BasicUser2.Email)
+
+	time.Sleep(time.Second)
 
 	// Leaving twice should succeed
 	CheckCommand(t, "channel", "remove", th.BasicTeam.Name+":"+channel.Name, th.BasicUser2.Email)
@@ -65,8 +70,8 @@ func TestMoveChannel(t *testing.T) {
 
 	CheckCommand(t, "channel", "add", origin, adminEmail)
 
-	// should fail with nill because errors are logged instead of returned when a channel does not exist
-	require.Nil(t, RunCommand(t, "channel", "move", dest, team1.Name+":doesnotexist", "--username", adminUsername))
+	// should fail with nil because errors are logged instead of returned when a channel does not exist
+	CheckCommand(t, "channel", "move", dest, team1.Name+":doesnotexist", "--username", adminUsername)
 
 	CheckCommand(t, "channel", "move", dest, origin, "--username", adminUsername)
 }

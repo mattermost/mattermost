@@ -8,10 +8,9 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/segmentio/analytics-go"
-
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	analytics "github.com/segmentio/analytics-go"
 )
 
 const (
@@ -497,6 +496,7 @@ func (a *App) trackConfig() {
 	a.SendDiagnostic(TRACK_CONFIG_EXPERIMENTAL, map[string]interface{}{
 		"client_side_cert_enable":          *cfg.ExperimentalSettings.ClientSideCertEnable,
 		"isdefault_client_side_cert_check": isDefault(*cfg.ExperimentalSettings.ClientSideCertCheck, model.CLIENT_SIDE_CERT_CHECK_PRIMARY_AUTH),
+		"enable_post_metadata":             *cfg.ExperimentalSettings.EnablePostMetadata,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_ANALYTICS, map[string]interface{}{
@@ -554,7 +554,7 @@ func (a *App) trackConfig() {
 
 	a.SendDiagnostic(TRACK_CONFIG_DISPLAY, map[string]interface{}{
 		"experimental_timezone":        *cfg.DisplaySettings.ExperimentalTimezone,
-		"isdefault_custom_url_schemes": len(*cfg.DisplaySettings.CustomUrlSchemes) != 0,
+		"isdefault_custom_url_schemes": len(cfg.DisplaySettings.CustomUrlSchemes) != 0,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_TIMEZONE, map[string]interface{}{
@@ -571,6 +571,7 @@ func (a *App) trackLicense() {
 			"start":       license.StartsAt,
 			"expire":      license.ExpiresAt,
 			"users":       *license.Features.Users,
+			"edition":     license.SkuShortName,
 		}
 
 		features := license.Features.ToMap()

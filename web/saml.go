@@ -97,7 +97,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	action := relayProps["action"]
 	if user, err := samlInterface.DoLogin(encodedXML, relayProps); err != nil {
 		if action == model.OAUTH_ACTION_MOBILE {
-			err.Translate(c.T)
+			err.Translate(c.App.T)
 			w.Write([]byte(err.ToJson()))
 		} else {
 			c.Err = err
@@ -142,7 +142,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		c.Session = *session
+		c.App.Session = *session
 
 		if val, ok := relayProps["redirect_to"]; ok {
 			http.Redirect(w, r, c.GetSiteURLHeader()+val, http.StatusFound)
@@ -153,7 +153,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		case model.OAUTH_ACTION_MOBILE:
 			ReturnStatusOK(w)
 		case model.OAUTH_ACTION_CLIENT:
-			err = c.App.SendMessageToExtension(w, relayProps["extension_id"], c.Session.Token)
+			err = c.App.SendMessageToExtension(w, relayProps["extension_id"], c.App.Session.Token)
 
 			if err != nil {
 				c.Err = err

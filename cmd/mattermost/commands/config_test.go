@@ -82,7 +82,7 @@ func TestConfigValidate(t *testing.T) {
 	require.NoError(t, ioutil.WriteFile(path, []byte(config.ToJson()), 0600))
 
 	assert.Error(t, RunCommand(t, "--config", "foo.json", "config", "validate"))
-	assert.NoError(t, RunCommand(t, "--config", path, "config", "validate"))
+	CheckCommand(t, "--config", path, "config", "validate")
 }
 
 func TestConfigGet(t *testing.T) {
@@ -96,9 +96,9 @@ func TestConfigGet(t *testing.T) {
 	assert.Error(t, RunCommand(t, "config", "get", "abc"))
 
 	// No Error when a config setting which is  in the config.json is given
-	assert.NoError(t, RunCommand(t, "config", "get", "MessageExportSettings"))
-	assert.NoError(t, RunCommand(t, "config", "get", "MessageExportSettings.GlobalRelaySettings"))
-	assert.NoError(t, RunCommand(t, "config", "get", "MessageExportSettings.GlobalRelaySettings.CustomerType"))
+	CheckCommand(t, "config", "get", "MessageExportSettings")
+	CheckCommand(t, "config", "get", "MessageExportSettings.GlobalRelaySettings")
+	CheckCommand(t, "config", "get", "MessageExportSettings.GlobalRelaySettings.CustomerType")
 
 	// check output
 	output := CheckCommand(t, "config", "get", "MessageExportSettings")
@@ -107,6 +107,49 @@ func TestConfigGet(t *testing.T) {
 	assert.Contains(t, string(output), "ExportFormat")
 	assert.Contains(t, string(output), "DailyRunTime")
 	assert.Contains(t, string(output), "ExportFromTimestamp")
+}
+
+func TestConfigSet(t *testing.T) {
+	dir, err := ioutil.TempDir("", "")
+	require.NoError(t, err)
+	defer os.RemoveAll(dir)
+
+	path := filepath.Join(dir, "config.json")
+	config := &model.Config{}
+	config.SetDefaults()
+	require.NoError(t, ioutil.WriteFile(path, []byte(config.ToJson()), 0600))
+
+	// Error when no arguments are given
+	assert.Error(t, RunCommand(t, "--config", path, "config", "set"))
+
+	// Error when only one argument is given
+	assert.Error(t, RunCommand(t, "--config", path, "config", "set", "test"))
+
+	// Error when the wrong key is set
+	assert.Error(t, RunCommand(t, "--config", path, "config", "set", "invalid-key", "value"))
+	assert.Error(t, RunCommand(t, "--config", path, "config", "get", "invalid-key"))
+
+	// Error when the wrong value is set
+	assert.Error(t, RunCommand(t, "--config", path, "config", "set", "EmailSettings.ConnectionSecurity", "invalid"))
+	output := CheckCommand(t, "--config", path, "config", "get", "EmailSettings.ConnectionSecurity")
+	assert.NotContains(t, string(output), "invalid")
+
+	// Error when the wrong locale is set
+	CheckCommand(t, "--config", path, "config", "set", "LocalizationSettings.DefaultServerLocale", "es")
+	assert.Error(t, RunCommand(t, "--config", path, "config", "set", "LocalizationSettings.DefaultServerLocale", "invalid"))
+	output = CheckCommand(t, "--config", path, "config", "get", "LocalizationSettings.DefaultServerLocale")
+	assert.NotContains(t, string(output), "invalid")
+	assert.NotContains(t, string(output), "\"en\"")
+
+	// Success when a valid value is set
+	CheckCommand(t, "--config", path, "config", "set", "EmailSettings.ConnectionSecurity", "TLS")
+	output = CheckCommand(t, "--config", path, "config", "get", "EmailSettings.ConnectionSecurity")
+	assert.Contains(t, string(output), "TLS")
+
+	// Success when a valid locale is set
+	CheckCommand(t, "--config", path, "config", "set", "LocalizationSettings.DefaultServerLocale", "es")
+	output = CheckCommand(t, "--config", path, "config", "get", "LocalizationSettings.DefaultServerLocale")
+	assert.Contains(t, string(output), "\"es\"")
 }
 
 func TestStructToMap(t *testing.T) {
@@ -426,7 +469,7 @@ func TestConfigShow(t *testing.T) {
 	assert.Error(t, RunCommand(t, "config", "show", "abc"))
 
 	// no error
-	assert.NoError(t, RunCommand(t, "config", "show"))
+	CheckCommand(t, "config", "show")
 
 	// check the output
 	output := CheckCommand(t, "config", "show")
@@ -440,10 +483,10 @@ func TestSetConfig(t *testing.T) {
 	assert.Error(t, RunCommand(t, "config", "set"))
 
 	// No Error when more than one argument is given
-	assert.NoError(t, RunCommand(t, "config", "set", "ThemeSettings.AllowedThemes", "hello", "World"))
+	CheckCommand(t, "config", "set", "ThemeSettings.AllowedThemes", "hello", "World")
 
 	// No Error when two arguments are given
-	assert.NoError(t, RunCommand(t, "config", "set", "ThemeSettings.AllowedThemes", "hello"))
+	CheckCommand(t, "config", "set", "ThemeSettings.AllowedThemes", "hello")
 
 	// Error when only one argument is given
 	assert.Error(t, RunCommand(t, "config", "set", "ThemeSettings.AllowedThemes"))

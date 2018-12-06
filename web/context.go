@@ -9,8 +9,6 @@ import (
 	"regexp"
 	"strings"
 
-	goi18n "github.com/nicksnyder/go-i18n/i18n"
-
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -21,18 +19,13 @@ import (
 type Context struct {
 	App           *app.App
 	Log           *mlog.Logger
-	Session       model.Session
 	Params        *Params
 	Err           *model.AppError
-	T             goi18n.TranslateFunc
-	RequestId     string
-	IpAddress     string
-	Path          string
 	siteURLHeader string
 }
 
 func (c *Context) LogAudit(extraInfo string) {
-	audit := &model.Audit{UserId: c.Session.UserId, IpAddress: c.IpAddress, Action: c.Path, ExtraInfo: extraInfo, SessionId: c.Session.Id}
+	audit := &model.Audit{UserId: c.App.Session.UserId, IpAddress: c.App.IpAddress, Action: c.App.Path, ExtraInfo: extraInfo, SessionId: c.App.Session.Id}
 	if r := <-c.App.Srv.Store.Audit().Save(audit); r.Err != nil {
 		c.LogError(r.Err)
 	}
@@ -40,11 +33,11 @@ func (c *Context) LogAudit(extraInfo string) {
 
 func (c *Context) LogAuditWithUserId(userId, extraInfo string) {
 
-	if len(c.Session.UserId) > 0 {
-		extraInfo = strings.TrimSpace(extraInfo + " session_user=" + c.Session.UserId)
+	if len(c.App.Session.UserId) > 0 {
+		extraInfo = strings.TrimSpace(extraInfo + " session_user=" + c.App.Session.UserId)
 	}
 
-	audit := &model.Audit{UserId: userId, IpAddress: c.IpAddress, Action: c.Path, ExtraInfo: extraInfo, SessionId: c.Session.Id}
+	audit := &model.Audit{UserId: userId, IpAddress: c.App.IpAddress, Action: c.App.Path, ExtraInfo: extraInfo, SessionId: c.App.Session.Id}
 	if r := <-c.App.Srv.Store.Audit().Save(audit); r.Err != nil {
 		c.LogError(r.Err)
 	}
@@ -53,7 +46,7 @@ func (c *Context) LogAuditWithUserId(userId, extraInfo string) {
 func (c *Context) LogError(err *model.AppError) {
 	// Filter out 404s, endless reconnects and browser compatibility errors
 	if err.StatusCode == http.StatusNotFound ||
-		(c.Path == "/api/v3/users/websocket" && err.StatusCode == http.StatusUnauthorized) ||
+		(c.App.Path == "/api/v3/users/websocket" && err.StatusCode == http.StatusUnauthorized) ||
 		err.Id == "web.check_browser_compatibility.app_error" {
 		c.LogDebug(err)
 	} else {
@@ -90,16 +83,16 @@ func (c *Context) LogDebug(err *model.AppError) {
 }
 
 func (c *Context) IsSystemAdmin() bool {
-	return c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM)
+	return c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM)
 }
 
 func (c *Context) SessionRequired() {
-	if !*c.App.Config().ServiceSettings.EnableUserAccessTokens && c.Session.Props[model.SESSION_PROP_TYPE] == model.SESSION_TYPE_USER_ACCESS_TOKEN {
+	if !*c.App.Config().ServiceSettings.EnableUserAccessTokens && c.App.Session.Props[model.SESSION_PROP_TYPE] == model.SESSION_TYPE_USER_ACCESS_TOKEN {
 		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "UserAccessToken", http.StatusUnauthorized)
 		return
 	}
 
-	if len(c.Session.UserId) == 0 {
+	if len(c.App.Session.UserId) == 0 {
 		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "UserRequired", http.StatusUnauthorized)
 		return
 	}
@@ -112,11 +105,11 @@ func (c *Context) MfaRequired() {
 	}
 
 	// OAuth integrations are excepted
-	if c.Session.IsOAuth {
+	if c.App.Session.IsOAuth {
 		return
 	}
 
-	if user, err := c.App.GetUser(c.Session.UserId); err != nil {
+	if user, err := c.App.GetUser(c.App.Session.UserId); err != nil {
 		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "MfaRequired", http.StatusUnauthorized)
 		return
 	} else {
@@ -129,7 +122,7 @@ func (c *Context) MfaRequired() {
 
 		// Special case to let user get themself
 		subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
-		if c.Path == path.Join(subpath, "/api/v4/users/me") {
+		if c.App.Path == path.Join(subpath, "/api/v4/users/me") {
 			return
 		}
 
@@ -190,7 +183,7 @@ func NewInvalidUrlParamError(parameter string) *model.AppError {
 }
 
 func (c *Context) SetPermissionError(permission *model.Permission) {
-	c.Err = model.NewAppError("Permissions", "api.context.permissions.app_error", nil, "userId="+c.Session.UserId+", "+"permission="+permission.Id, http.StatusForbidden)
+	c.Err = model.NewAppError("Permissions", "api.context.permissions.app_error", nil, "userId="+c.App.Session.UserId+", "+"permission="+permission.Id, http.StatusForbidden)
 }
 
 func (c *Context) SetSiteURLHeader(url string) {
@@ -207,7 +200,7 @@ func (c *Context) RequireUserId() *Context {
 	}
 
 	if c.Params.UserId == model.ME {
-		c.Params.UserId = c.Session.UserId
+		c.Params.UserId = c.App.Session.UserId
 	}
 
 	if len(c.Params.UserId) != 26 {

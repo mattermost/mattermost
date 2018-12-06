@@ -23,7 +23,7 @@ func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannelByPost(c.Session, c.Params.PostId, model.PERMISSION_READ_CHANNEL) {
+	if !c.App.SessionHasPermissionToChannelByPost(c.App.Session, c.Params.PostId, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
@@ -36,7 +36,7 @@ func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
 	var err *model.AppError
 	resp := &model.PostActionAPIResponse{Status: "OK"}
 
-	if resp.TriggerId, err = c.App.DoPostAction(c.Params.PostId, c.Params.ActionId, c.Session.UserId, actionRequest.SelectedOption); err != nil {
+	if resp.TriggerId, err = c.App.DoPostAction(c.Params.PostId, c.Params.ActionId, c.App.Session.UserId, actionRequest.SelectedOption); err != nil {
 		c.Err = err
 		return
 	}
@@ -81,14 +81,14 @@ func submitDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	submit.UserId = c.Session.UserId
+	submit.UserId = c.App.Session.UserId
 
-	if !c.App.SessionHasPermissionToChannel(c.Session, submit.ChannelId, model.PERMISSION_READ_CHANNEL) {
+	if !c.App.SessionHasPermissionToChannel(c.App.Session, submit.ChannelId, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
 
-	if !c.App.SessionHasPermissionToTeam(c.Session, submit.TeamId, model.PERMISSION_VIEW_TEAM) {
+	if !c.App.SessionHasPermissionToTeam(c.App.Session, submit.TeamId, model.PERMISSION_VIEW_TEAM) {
 		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
 		return
 	}

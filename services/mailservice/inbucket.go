@@ -187,7 +187,7 @@ func RetryInbucket(attempts int, callback func() error) (err error) {
 
 func getInbucketHost() (host string) {
 
-	inbucket_host := os.Getenv("CI_HOST")
+	inbucket_host := os.Getenv("CI_INBUCKET_HOST")
 	if inbucket_host == "" {
 		inbucket_host = "dockerhost"
 	}

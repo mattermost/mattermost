@@ -83,13 +83,13 @@ func CryptEncoderSSHA256(salt string) func(pass []byte, hash interface{}) []byte
 	}
 }
 
-// CryptEncoderSHA384 encodes a password with SHA256
+// CryptEncoderSHA384 encodes a password with SHA384
 func CryptEncoderSHA384(pass []byte, hash interface{}) []byte {
 	h := sha512.Sum384(pass)
 	return h[:]
 }
 
-// CryptEncoderSSHA384 encodes a password with SHA256
+// CryptEncoderSSHA384 encodes a password with SHA384
 // with the configured salt
 func CryptEncoderSSHA384(salt string) func(pass []byte, hash interface{}) []byte {
 	return func(pass []byte, hash interface{}) []byte {
@@ -100,13 +100,13 @@ func CryptEncoderSSHA384(salt string) func(pass []byte, hash interface{}) []byte
 	}
 }
 
-// CryptEncoderSHA512 encodes a password with SHA256
+// CryptEncoderSHA512 encodes a password with SHA512
 func CryptEncoderSHA512(pass []byte, hash interface{}) []byte {
 	h := sha512.Sum512(pass)
 	return h[:]
 }
 
-// CryptEncoderSSHA512 encodes a password with SHA256
+// CryptEncoderSSHA512 encodes a password with SHA512
 // with the configured salt
 func CryptEncoderSSHA512(salt string) func(pass []byte, hash interface{}) []byte {
 	return func(pass []byte, hash interface{}) []byte {

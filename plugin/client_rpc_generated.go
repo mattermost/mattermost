@@ -767,36 +767,6 @@ func (s *apiRPCServer) CreateUser(args *Z_CreateUserArgs, returns *Z_CreateUserR
 	return nil
 }
 
-type Z_CreateDirectChannelArgs struct {
-	A string
-	B string
-}
-
-type Z_CreateDirectChannelReturns struct {
-	A *model.Channel
-	B *model.AppError
-}
-
-func (g *apiRPCClient) CreateDirectChannel(userId1 string, userId2 string) (*model.Channel, *model.AppError) {
-	_args := &Z_CreateDirectChannelArgs{userId1, userId2}
-	_returns := &Z_CreateDirectChannelReturns{}
-	if err := g.client.Call("Plugin.CreateDirectChannel", _args, _returns); err != nil {
-		log.Printf("RPC call to CreateDirectChannel API failed: %s", err.Error())
-	}
-	return _returns.A, _returns.B
-}
-
-func (s *apiRPCServer) CreateDirectChannel(args *Z_CreateDirectChannelArgs, returns *Z_CreateDirectChannelReturns) error {
-	if hook, ok := s.impl.(interface {
-		CreateDirectChannel(userId1 string, userId2 string) (*model.Channel, *model.AppError)
-	}); ok {
-		returns.A, returns.B = hook.CreateDirectChannel(args.A, args.B)
-	} else {
-		return encodableError(fmt.Errorf("API CreateDirectChannel called but not implemented."))
-	}
-	return nil
-}
-
 type Z_DeleteUserArgs struct {
 	A string
 }
@@ -2003,6 +1973,35 @@ func (s *apiRPCServer) SearchChannels(args *Z_SearchChannelsArgs, returns *Z_Sea
 		returns.A, returns.B = hook.SearchChannels(args.A, args.B)
 	} else {
 		return encodableError(fmt.Errorf("API SearchChannels called but not implemented."))
+	}
+	return nil
+}
+
+type Z_SearchUsersArgs struct {
+	A *model.UserSearch
+}
+
+type Z_SearchUsersReturns struct {
+	A []*model.User
+	B *model.AppError
+}
+
+func (g *apiRPCClient) SearchUsers(search *model.UserSearch) ([]*model.User, *model.AppError) {
+	_args := &Z_SearchUsersArgs{search}
+	_returns := &Z_SearchUsersReturns{}
+	if err := g.client.Call("Plugin.SearchUsers", _args, _returns); err != nil {
+		log.Printf("RPC call to SearchUsers API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) SearchUsers(args *Z_SearchUsersArgs, returns *Z_SearchUsersReturns) error {
+	if hook, ok := s.impl.(interface {
+		SearchUsers(search *model.UserSearch) ([]*model.User, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.SearchUsers(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API SearchUsers called but not implemented."))
 	}
 	return nil
 }

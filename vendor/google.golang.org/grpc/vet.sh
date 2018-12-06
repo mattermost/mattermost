@@ -71,7 +71,7 @@ fi
 
 git ls-files "*.go" | xargs grep -L "\(Copyright [0-9]\{4,\} gRPC authors\)\|DO NOT EDIT" 2>&1 | tee /dev/stderr | (! read)
 git ls-files "*.go" | xargs grep -l '"math/rand"' 2>&1 | (! grep -v '^examples\|^stress\|grpcrand') | tee /dev/stderr | (! read)
-git ls-files | xargs dirname | sort | uniq | xargs go run go_vet/vet.go | tee /dev/stderr | (! read)
+git ls-files | xargs dirname | sort | uniq | xargs go run test/go_vet/vet.go | tee /dev/stderr | (! read)
 gofmt -s -d -l . 2>&1 | tee /dev/stderr | (! read)
 goimports -l . 2>&1 | tee /dev/stderr | (! read)
 golint ./... 2>&1 | (grep -vE "(_mock|\.pb)\.go:" || true) | tee /dev/stderr | (! read)
@@ -80,7 +80,14 @@ golint ./... 2>&1 | (grep -vE "(_mock|\.pb)\.go:" || true) | tee /dev/stderr | (
 # TODO: Remove this mangling once "context" is imported directly (grpc/grpc-go#711).
 git ls-files "*.go" | xargs sed -i 's:"golang.org/x/net/context":"context":'
 set +o pipefail # vet exits with non-zero error if issues are found
-go tool vet -all . 2>&1 | grep -vE 'clientconn.go:.*cancel (function|var)' | tee /dev/stderr | (! read)
+
+# TODO(deklerk) remove when we drop Go 1.6 support
+go tool vet -all . 2>&1 | \
+    grep -vE 'clientconn.go:.*cancel (function|var)' | \
+    grep -vE '.*transport_test.go:.*cancel' | \
+    tee /dev/stderr | \
+    (! read)
+
 set -o pipefail
 git reset --hard HEAD
 

@@ -4,12 +4,14 @@
 package app
 
 import (
+	"html"
 	"io"
 	"net/url"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
-	"github.com/mattermost/mattermost-server/mlog"
 	"golang.org/x/net/html/charset"
+
+	"github.com/mattermost/mattermost-server/mlog"
 )
 
 func (a *App) GetOpenGraphMetadata(requestURL string) *opengraph.OpenGraph {
@@ -33,6 +35,8 @@ func (a *App) ParseOpenGraphMetadata(requestURL string, body io.Reader, contentT
 	}
 
 	makeOpenGraphURLsAbsolute(og, requestURL)
+
+	openGraphDecodeHtmlEntities(og)
 
 	// If image proxy enabled modify open graph data to feed though proxy
 	if toProxyURL := a.ImageProxyAdder(); toProxyURL != nil {
@@ -113,4 +117,9 @@ func OpenGraphDataWithProxyAddedToImageURLs(ogdata *opengraph.OpenGraph, toProxy
 	}
 
 	return ogdata
+}
+
+func openGraphDecodeHtmlEntities(og *opengraph.OpenGraph) {
+	og.Title = html.UnescapeString(og.Title)
+	og.Description = html.UnescapeString(og.Description)
 }

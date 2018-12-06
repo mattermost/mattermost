@@ -8,13 +8,6 @@ import (
 	"github.com/go-redis/redis/internal"
 )
 
-func readTimeout(timeout time.Duration) time.Duration {
-	if timeout == 0 {
-		return 0
-	}
-	return timeout + 10*time.Second
-}
-
 func usePrecise(dur time.Duration) bool {
 	return dur < time.Second || dur%time.Second != 0
 }
@@ -1397,6 +1390,9 @@ func (c *cmdable) XRead(a *XReadArgs) *XStreamSliceCmd {
 	}
 
 	cmd := NewXStreamSliceCmd(args...)
+	if a.Block >= 0 {
+		cmd.setReadTimeout(a.Block)
+	}
 	c.process(cmd)
 	return cmd
 }
@@ -1455,6 +1451,9 @@ func (c *cmdable) XReadGroup(a *XReadGroupArgs) *XStreamSliceCmd {
 	}
 
 	cmd := NewXStreamSliceCmd(args...)
+	if a.Block >= 0 {
+		cmd.setReadTimeout(a.Block)
+	}
 	c.process(cmd)
 	return cmd
 }

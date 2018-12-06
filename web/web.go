@@ -15,20 +15,23 @@ import (
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/configservice"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
 type Web struct {
-	App        *app.App
-	MainRouter *mux.Router
+	GetGlobalAppOptions app.AppOptionCreator
+	ConfigService       configservice.ConfigService
+	MainRouter          *mux.Router
 }
 
-func NewWeb(a *app.App, root *mux.Router) *Web {
+func New(config configservice.ConfigService, globalOptions app.AppOptionCreator, root *mux.Router) *Web {
 	mlog.Debug("Initializing web routes")
 
 	web := &Web{
-		App:        a,
-		MainRouter: root,
+		GetGlobalAppOptions: globalOptions,
+		ConfigService:       config,
+		MainRouter:          root,
 	}
 
 	web.InitWebhooks()
@@ -56,22 +59,22 @@ func CheckClientCompatability(agentString string) bool {
 	return true
 }
 
-func Handle404(a *app.App, w http.ResponseWriter, r *http.Request) {
+func Handle404(config configservice.ConfigService, w http.ResponseWriter, r *http.Request) {
 	err := model.NewAppError("Handle404", "api.context.404.app_error", nil, "", http.StatusNotFound)
 
 	mlog.Debug(fmt.Sprintf("%v: code=404 ip=%v", r.URL.Path, utils.GetIpAddress(r)))
 
-	if IsApiCall(a, r) {
+	if IsApiCall(config, r) {
 		w.WriteHeader(err.StatusCode)
 		err.DetailedError = "There doesn't appear to be an api call for the url='" + r.URL.Path + "'.  Typo? are you missing a team_id or user_id as part of the url?"
 		w.Write([]byte(err.ToJson()))
 	} else {
-		utils.RenderWebAppError(a.Config(), w, r, err, a.AsymmetricSigningKey())
+		utils.RenderWebAppError(config.Config(), w, r, err, config.AsymmetricSigningKey())
 	}
 }
 
-func IsApiCall(a *app.App, r *http.Request) bool {
-	subpath, _ := utils.GetSubpathFromConfig(a.Config())
+func IsApiCall(config configservice.ConfigService, r *http.Request) bool {
+	subpath, _ := utils.GetSubpathFromConfig(config.Config())
 
 	return strings.HasPrefix(r.URL.Path, path.Join(subpath, "api")+"/")
 }

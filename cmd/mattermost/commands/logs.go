@@ -4,10 +4,11 @@
 package commands
 
 import (
-	"github.com/mattermost/mattermost-server/mlog/human"
-	"github.com/spf13/cobra"
 	"io"
 	"os"
+
+	"github.com/mattermost/mattermost-server/mlog/human"
+	"github.com/spf13/cobra"
 )
 
 var LogsCmd = &cobra.Command{
