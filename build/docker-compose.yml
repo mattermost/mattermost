@@ -1,0 +1,67 @@
+version: '3.1'
+services:
+  mysql:
+    image: "mysql:5.7"
+    restart: always
+    container_name: mysql-$BUILD_NUMBER
+    networks:
+      - mm-test
+    environment:
+      MYSQL_ROOT_PASSWORD: mostest
+      MYSQL_PASSWORD: mostest
+      MYSQL_USER: mmuser
+      MYSQL_DATABASE: mattermost_test
+  postgres:
+    image: "postgres:9.4"
+    restart: always
+    container_name: postgres-$BUILD_NUMBER
+    networks:
+      - mm-test
+    environment:
+      POSTGRES_USER: mmuser
+      POSTGRES_PASSWORD: mostest
+      POSTGRES_DB: mattermost_test
+  minio:
+    image: "minio/minio:RELEASE.2018-05-25T19-49-13Z"
+    command: "server /data"
+    container_name: minio-$BUILD_NUMBER
+    networks:
+      - mm-test
+    environment:
+      MINIO_ACCESS_KEY: minioaccesskey
+      MINIO_SECRET_KEY: miniosecretkey
+  inbucket:
+    image: "jhillyerd/inbucket:release-1.2.0"
+    restart: always
+    container_name: inbucket-$BUILD_NUMBER
+    networks:
+      - mm-test
+  openldap:
+    image: "osixia/openldap:1.1.6"
+    restart: always
+    container_name: openldap-$BUILD_NUMBER
+    networks:
+      - mm-test
+    environment:
+      LDAP_TLS_VERIFY_CLIENT: "never"
+      LDAP_ORGANISATION: "Mattermost Test"
+      LDAP_DOMAIN: "mm.test.com"
+      LDAP_ADMIN_PASSWORD: "mostest"
+  elasticsearch:
+    image: "grundleborg/elasticsearch:latest"
+    container_name: elasticsearch-$BUILD_NUMBER
+    networks:
+      - mm-test
+    environment:
+      http.host: "0.0.0.0"
+      transport.host: "127.0.0.1"
+      ES_JAVA_OPTS: "-Xms250m -Xmx250m"
+  redis:
+    image: redis
+    networks:
+      - mm-test
+    container_name: redis-$BUILD_NUMBER
+
+networks:
+  mm-test:
+    driver: bridge
