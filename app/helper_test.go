@@ -13,12 +13,8 @@ import (
 
 	"testing"
 
-	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/store/sqlstore"
-	"github.com/mattermost/mattermost-server/store/storetest"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/mattermost/mattermost-server/utils/testutils"
 )
@@ -40,37 +36,8 @@ type TestHelper struct {
 	MockedHTTPService *testutils.MockedHTTPService
 }
 
-type persistentTestStore struct {
-	store.Store
-}
-
-func (*persistentTestStore) Close() {}
-
-var testStoreContainer *storetest.RunningContainer
-var testStore *persistentTestStore
-var testStoreSqlSupplier *sqlstore.SqlSupplier
-var testClusterInterface *FakeClusterInterface
-
-// UseTestStore sets the container and corresponding settings to use for tests. Once the tests are
-// complete (e.g. at the end of your TestMain implementation), you should call StopTestStore.
-func UseTestStore(container *storetest.RunningContainer, settings *model.SqlSettings) {
-	testClusterInterface = &FakeClusterInterface{}
-	testStoreContainer = container
-	testStoreSqlSupplier = sqlstore.NewSqlSupplier(*settings, nil)
-	testStore = &persistentTestStore{store.NewLayeredStore(testStoreSqlSupplier, nil, testClusterInterface)}
-}
-
-func StopTestStore() {
-	if testStoreContainer != nil {
-		testStoreContainer.Stop()
-		testStoreContainer = nil
-	}
-}
-
 func setupTestHelper(enterprise bool) *TestHelper {
-	if testStore != nil {
-		testStore.DropAllTables()
-	}
+	mainHelper.Store.DropAllTables()
 
 	permConfig, err := os.Open(utils.FindConfigFile("config.json"))
 	if err != nil {
@@ -88,9 +55,7 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	}
 
 	options := []Option{ConfigFile(tempConfig.Name()), DisableConfigWatch}
-	if testStore != nil {
-		options = append(options, StoreOverride(testStore))
-	}
+	options = append(options, StoreOverride(mainHelper.Store))
 
 	s, err := NewServer(options...)
 	if err != nil {
@@ -106,9 +71,7 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam = 50 })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.RateLimitSettings.Enable = false })
 	prevListenAddress := *th.App.Config().ServiceSettings.ListenAddress
-	if testStore != nil {
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
-	}
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
 	serverErr := th.App.StartServer()
 	if serverErr != nil {
 		panic(serverErr)
@@ -446,7 +409,6 @@ func (me *TestHelper) TearDown() {
 	me.ShutdownApp()
 	os.Remove(me.tempConfigPath)
 	if err := recover(); err != nil {
-		StopTestStore()
 		panic(err)
 	}
 	if me.tempWorkspace != "" {
@@ -455,25 +417,25 @@ func (me *TestHelper) TearDown() {
 }
 
 func (me *TestHelper) ResetRoleMigration() {
-	if _, err := testStoreSqlSupplier.GetMaster().Exec("DELETE from Roles"); err != nil {
+	if _, err := mainHelper.SqlSupplier.GetMaster().Exec("DELETE from Roles"); err != nil {
 		panic(err)
 	}
 
-	testClusterInterface.sendClearRoleCacheMessage()
+	mainHelper.ClusterInterface.SendClearRoleCacheMessage()
 
-	if _, err := testStoreSqlSupplier.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": ADVANCED_PERMISSIONS_MIGRATION_KEY}); err != nil {
+	if _, err := mainHelper.SqlSupplier.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": ADVANCED_PERMISSIONS_MIGRATION_KEY}); err != nil {
 		panic(err)
 	}
 }
 
 func (me *TestHelper) ResetEmojisMigration() {
-	if _, err := testStoreSqlSupplier.GetMaster().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ', manage_emojis', '') WHERE builtin=True"); err != nil {
+	if _, err := mainHelper.SqlSupplier.GetMaster().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ', manage_emojis', '') WHERE builtin=True"); err != nil {
 		panic(err)
 	}
 
-	testClusterInterface.sendClearRoleCacheMessage()
+	mainHelper.ClusterInterface.SendClearRoleCacheMessage()
 
-	if _, err := testStoreSqlSupplier.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": EMOJIS_PERMISSIONS_MIGRATION_KEY}); err != nil {
+	if _, err := mainHelper.SqlSupplier.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": EMOJIS_PERMISSIONS_MIGRATION_KEY}); err != nil {
 		panic(err)
 	}
 }
@@ -532,37 +494,4 @@ func (me *TestHelper) SetupPluginAPI() *PluginAPI {
 	}
 
 	return NewPluginAPI(me.App, manifest)
-}
-
-type FakeClusterInterface struct {
-	clusterMessageHandler einterfaces.ClusterMessageHandler
-}
-
-func (me *FakeClusterInterface) StartInterNodeCommunication() {}
-func (me *FakeClusterInterface) StopInterNodeCommunication()  {}
-func (me *FakeClusterInterface) RegisterClusterMessageHandler(event string, crm einterfaces.ClusterMessageHandler) {
-	me.clusterMessageHandler = crm
-}
-func (me *FakeClusterInterface) GetClusterId() string                             { return "" }
-func (me *FakeClusterInterface) IsLeader() bool                                   { return false }
-func (me *FakeClusterInterface) GetMyClusterInfo() *model.ClusterInfo             { return nil }
-func (me *FakeClusterInterface) GetClusterInfos() []*model.ClusterInfo            { return nil }
-func (me *FakeClusterInterface) SendClusterMessage(cluster *model.ClusterMessage) {}
-func (me *FakeClusterInterface) NotifyMsg(buf []byte)                             {}
-func (me *FakeClusterInterface) GetClusterStats() ([]*model.ClusterStats, *model.AppError) {
-	return nil, nil
-}
-func (me *FakeClusterInterface) GetLogs(page, perPage int) ([]string, *model.AppError) {
-	return []string{}, nil
-}
-func (me *FakeClusterInterface) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
-	return nil, nil
-}
-func (me *FakeClusterInterface) ConfigChanged(previousConfig *model.Config, newConfig *model.Config, sendToOtherServer bool) *model.AppError {
-	return nil
-}
-func (me *FakeClusterInterface) sendClearRoleCacheMessage() {
-	me.clusterMessageHandler(&model.ClusterMessage{
-		Event: model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_ROLES,
-	})
 }
