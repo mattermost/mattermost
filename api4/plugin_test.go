@@ -45,29 +45,31 @@ func TestPlugin(t *testing.T) {
 	defer file.Close()
 
 	// Successful upload
-	manifest, resp := th.SystemAdminClient.UploadPlugin(file)
+	manifest, resp := th.SystemAdminClient.UploadPlugin(file, false)
+	//CheckNoError(t, resp)
+	//manifest, resp = th.SystemAdminClient.UploadPlugin(file, true)
 	defer os.RemoveAll("plugins/testplugin")
 	CheckNoError(t, resp)
 
 	assert.Equal(t, "testplugin", manifest.Id)
 
 	// Upload error cases
-	_, resp = th.SystemAdminClient.UploadPlugin(bytes.NewReader([]byte("badfile")))
+	_, resp = th.SystemAdminClient.UploadPlugin(bytes.NewReader([]byte("badfile")), false)
 	CheckBadRequestStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = false })
-	_, resp = th.SystemAdminClient.UploadPlugin(file)
+	_, resp = th.SystemAdminClient.UploadPlugin(file, false)
 	CheckNotImplementedStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.PluginSettings.Enable = true
 		*cfg.PluginSettings.EnableUploads = false
 	})
-	_, resp = th.SystemAdminClient.UploadPlugin(file)
+	_, resp = th.SystemAdminClient.UploadPlugin(file, false)
 	CheckNotImplementedStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.EnableUploads = true })
-	_, resp = th.Client.UploadPlugin(file)
+	_, resp = th.Client.UploadPlugin(file, false)
 	CheckForbiddenStatus(t, resp)
 
 	// Successful gets
