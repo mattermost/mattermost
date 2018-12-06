@@ -14,7 +14,7 @@ pipeline {
     options { buildDiscarder(logRotator(numToKeepStr: '3')) }
 
     environment {
-        DCNAME = rnd
+        DCNAME = "${rnd}"
     }
 
     stages {
