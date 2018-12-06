@@ -18,16 +18,11 @@ pipeline {
     }
 
     stages {
-        stage('Stop Old Builds') {
+        stage('Setup') {
             steps {
                 script {
                     utils.stopOldBuilds()
                 }
-            }
-        }
-
-        stage('Checkout'){
-            steps {
                 cleanWs notFailBuild: true
                 sh """
                     mkdir -p src/github.com/mattermost/mattermost-server
@@ -43,11 +38,6 @@ pipeline {
                 dir('src/github.com/mattermost/enterprise') {
                     checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: '310159d3-f7c5-4f5d-bfa1-151e3ef2db57', url: 'https://github.com/mattermost/enterprise.git']]]
                 }
-            }
-        }
-
-        stage('Get Enterprise/Webapp') {
-            steps {
                 dir('src/github.com/mattermost/enterprise') {
                     ansiColor('xterm') {
                         sh """
@@ -135,15 +125,15 @@ pipeline {
                             docker exec -t openldap-${DCNAME}-${env.BUILD_NUMBER} bash -c 'echo -e "dn: uid=test.two,ou=testusers,dc=mm,dc=test,dc=com\nobjectclass: iNetOrgPerson\nsn: User\ncn: Test2\nmail: success+testtwo@simulator.amazonses.com" | ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
                             docker exec -t openldap-${DCNAME}-${env.BUILD_NUMBER} bash -c 'ldappasswd -s Password1 -D "cn=admin,dc=mm,dc=test,dc=com" -x "uid=test.two,ou=testusers,dc=mm,dc=test,dc=com" -w mostest';
                             docker exec -t openldap-${DCNAME}-${env.BUILD_NUMBER} bash -c 'echo -e "dn: cn=tgroup,ou=testusers,dc=mm,dc=test,dc=com\nobjectclass: groupOfUniqueNames\nuniqueMember: uid=test.one,ou=testusers,dc=mm,dc=test,dc=com" | ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
+
+                            ./wait-for-it.sh -t 30 mysql-${DCNAME}-${env.BUILD_NUMBER}:3306 -- echo "MySQL ready"
                         """
                     }
                 }
 
                 withDockerContainer(args: "-u root --privileged --net ${DCNAME}-${BUILD_NUMBER}_mm-test -v ${WORKSPACE}/src:/go/src/", image: 'mattermost/mattermost-build-server:5.6.0') {
                     ansiColor('xterm') {
-                        sh """
-                            while ! curl mysql:3306; do sleep 5; done
-
+                    sh """
                             cd /go/src/github.com/mattermost/mattermost-server
 
                             sed -i'.bak' 's|mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8|mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8|g' config/config.json;
@@ -161,77 +151,80 @@ pipeline {
             }
         }
 
-        stage('Push to S3 - PR') {
-            when {
-                allOf {
-                    expression { env.CHANGE_ID != null }
-                    expression { env.CHANGE_TARGET != null }
+        stage('Push to S3') {
+            stages {
+                stage('Pull request') {
+                    when {
+                        allOf {
+                            expression { env.CHANGE_ID != null }
+                            expression { env.CHANGE_TARGET != null }
+                        }
+                    }
+                    steps {
+                        dir('src/github.com/mattermost/mattermost-server/dist') {
+                            step([$class: 'S3BucketPublisher', dontWaitForConcurrentBuildCompletion: false, entries: [[
+                                bucket: "releases.mattermost.com/mattermost-platform-pr/${CHANGE_ID}",
+                                excludedFile: '',
+                                flatten: true,
+                                gzipFiles: false,
+                                keepForever: false,
+                                managedArtifacts: false,
+                                noUploadOnFailure: true,
+                                selectedRegion: 'us-east-1',
+                                showDirectlyInBrowser: false,
+                                sourceFile: '*.tar.gz',
+                                storageClass: 'STANDARD',
+                                uploadFromSlave: false,
+                                useServerSideEncryption: false,
+                                userMetadata: [[key: 'Cache-Control', value: 'no-cache']]
+                            ], [
+                                bucket: "releases.mattermost.com/mattermost-platform-pr/${CHANGE_BRANCH}",
+                                excludedFile: '',
+                                flatten: true,
+                                gzipFiles: false,
+                                keepForever: false,
+                                managedArtifacts: false,
+                                noUploadOnFailure: true,
+                                selectedRegion: 'us-east-1',
+                                showDirectlyInBrowser: false,
+                                sourceFile: '*.tar.gz',
+                                storageClass: 'STANDARD',
+                                uploadFromSlave: false,
+                                useServerSideEncryption: false,
+                                userMetadata: [[key: 'Cache-Control', value: 'no-cache']]
+                            ]], profileName: 'Releases', userMetadAta: []])
+                        }
+                    }
                 }
-            }
-            steps {
-                dir('src/github.com/mattermost/mattermost-server/dist') {
-                    step([$class: 'S3BucketPublisher', dontWaitForConcurrentBuildCompletion: false, entries: [[
-                        bucket: "releases.mattermost.com/mattermost-platform-pr/${CHANGE_ID}",
-                        excludedFile: '',
-                        flatten: true,
-                        gzipFiles: false,
-                        keepForever: false,
-                        managedArtifacts: false,
-                        noUploadOnFailure: true,
-                        selectedRegion: 'us-east-1',
-                        showDirectlyInBrowser: false,
-                        sourceFile: '*.tar.gz',
-                        storageClass: 'STANDARD',
-                        uploadFromSlave: false,
-                        useServerSideEncryption: false,
-                        userMetadata: [[key: 'Cache-Control', value: 'no-cache']]
-                    ], [
-                        bucket: "releases.mattermost.com/mattermost-platform-pr/${CHANGE_BRANCH}",
-                        excludedFile: '',
-                        flatten: true,
-                        gzipFiles: false,
-                        keepForever: false,
-                        managedArtifacts: false,
-                        noUploadOnFailure: true,
-                        selectedRegion: 'us-east-1',
-                        showDirectlyInBrowser: false,
-                        sourceFile: '*.tar.gz',
-                        storageClass: 'STANDARD',
-                        uploadFromSlave: false,
-                        useServerSideEncryption: false,
-                        userMetadata: [[key: 'Cache-Control', value: 'no-cache']]
-                    ]], profileName: 'Releases', userMetadAta: []])
+                stage('Branch') {
+                    when {
+                        expression { env.CHANGE_ID == null }
+                    }
+                    steps {
+                        dir('src/github.com/mattermost/mattermost-server/dist') {
+                            step([$class: 'S3BucketPublisher', dontWaitForConcurrentBuildCompletion: false, entries: [[
+                                bucket: "releases.mattermost.com/mattermost-platform-pr/${BRANCH_NAME}",
+                                excludedFile: '',
+                                flatten: true,
+                                gzipFiles: false,
+                                keepForever: false,
+                                managedArtifacts: false,
+                                noUploadOnFailure: true,
+                                selectedRegion: 'us-east-1',
+                                showDirectlyInBrowser: false,
+                                sourceFile: '*.tar.gz',
+                                storageClass: 'STANDARD',
+                                uploadFromSlave: false,
+                                useServerSideEncryption: false,
+                                userMetadata: [[key: 'Cache-Control', value: 'no-cache']]
+                            ]], profileName: 'Releases', userMetadAta: []])
+                        }
+                    }
                 }
             }
         }
 
-        stage('Push to S3 - BRANCH') {
-            when {
-                expression { env.CHANGE_ID == null }
-            }
-            steps {
-                dir('src/github.com/mattermost/mattermost-server/dist') {
-                    step([$class: 'S3BucketPublisher', dontWaitForConcurrentBuildCompletion: false, entries: [[
-                        bucket: "releases.mattermost.com/mattermost-platform-pr/${BRANCH_NAME}",
-                        excludedFile: '',
-                        flatten: true,
-                        gzipFiles: false,
-                        keepForever: false,
-                        managedArtifacts: false,
-                        noUploadOnFailure: true,
-                        selectedRegion: 'us-east-1',
-                        showDirectlyInBrowser: false,
-                        sourceFile: '*.tar.gz',
-                        storageClass: 'STANDARD',
-                        uploadFromSlave: false,
-                        useServerSideEncryption: false,
-                        userMetadata: [[key: 'Cache-Control', value: 'no-cache']]
-                    ]], profileName: 'Releases', userMetadAta: []])
-                }
-            }
-        }
-
-        stage('Trigger docker build') {
+        stage('Trigger release') {
             when {
                 expression { env.CHANGE_ID != null }
             }
