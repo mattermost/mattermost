@@ -1897,14 +1897,14 @@ func (s *MessageExportSettings) SetDefaults() {
 }
 
 type DisplaySettings struct {
-	CustomUrlSchemes     *[]string
+	CustomUrlSchemes     []string
 	ExperimentalTimezone *bool
 }
 
 func (s *DisplaySettings) SetDefaults() {
 	if s.CustomUrlSchemes == nil {
 		customUrlSchemes := []string{}
-		s.CustomUrlSchemes = &customUrlSchemes
+		s.CustomUrlSchemes = customUrlSchemes
 	}
 
 	if s.ExperimentalTimezone == nil {
@@ -2495,10 +2495,10 @@ func (mes *MessageExportSettings) isValid(fs FileSettings) *AppError {
 }
 
 func (ds *DisplaySettings) isValid() *AppError {
-	if len(*ds.CustomUrlSchemes) != 0 {
+	if len(ds.CustomUrlSchemes) != 0 {
 		validProtocolPattern := regexp.MustCompile(`(?i)^\s*[a-z][a-z0-9-]*\s*$`)
 
-		for _, scheme := range *ds.CustomUrlSchemes {
+		for _, scheme := range ds.CustomUrlSchemes {
 			if !validProtocolPattern.MatchString(scheme) {
 				return NewAppError(
 					"Config.IsValid",
