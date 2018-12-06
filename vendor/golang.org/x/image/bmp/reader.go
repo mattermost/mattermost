@@ -137,19 +137,25 @@ func decodeConfig(r io.Reader) (config image.Config, bitsPerPixel int, topDown b
 	// We only support those BMP images that are a BITMAPFILEHEADER
 	// immediately followed by a BITMAPINFOHEADER.
 	const (
-		fileHeaderLen = 14
-		infoHeaderLen = 40
+		fileHeaderLen   = 14
+		infoHeaderLen   = 40
+		v4InfoHeaderLen = 108
+		v5InfoHeaderLen = 124
 	)
 	var b [1024]byte
-	if _, err := io.ReadFull(r, b[:fileHeaderLen+infoHeaderLen]); err != nil {
+	if _, err := io.ReadFull(r, b[:fileHeaderLen+4]); err != nil {
 		return image.Config{}, 0, false, err
 	}
 	if string(b[:2]) != "BM" {
 		return image.Config{}, 0, false, errors.New("bmp: invalid format")
 	}
 	offset := readUint32(b[10:14])
-	if readUint32(b[14:18]) != infoHeaderLen {
+	infoLen := readUint32(b[14:18])
+	if infoLen != infoHeaderLen && infoLen != v4InfoHeaderLen && infoLen != v5InfoHeaderLen {
 		return image.Config{}, 0, false, ErrUnsupported
+	}
+	if _, err := io.ReadFull(r, b[fileHeaderLen+4:fileHeaderLen+infoLen]); err != nil {
+		return image.Config{}, 0, false, err
 	}
 	width := int(int32(readUint32(b[18:22])))
 	height := int(int32(readUint32(b[22:26])))
@@ -159,14 +165,22 @@ func decodeConfig(r io.Reader) (config image.Config, bitsPerPixel int, topDown b
 	if width < 0 || height < 0 {
 		return image.Config{}, 0, false, ErrUnsupported
 	}
-	// We only support 1 plane, 8 or 24 bits per pixel and no compression.
+	// We only support 1 plane and 8, 24 or 32 bits per pixel and no
+	// compression.
 	planes, bpp, compression := readUint16(b[26:28]), readUint16(b[28:30]), readUint32(b[30:34])
+	// if compression is set to BITFIELDS, but the bitmask is set to the default bitmask
+	// that would be used if compression was set to 0, we can continue as if compression was 0
+	if compression == 3 && infoLen > infoHeaderLen &&
+		readUint32(b[54:58]) == 0xff0000 && readUint32(b[58:62]) == 0xff00 &&
+		readUint32(b[62:66]) == 0xff && readUint32(b[66:70]) == 0xff000000 {
+		compression = 0
+	}
 	if planes != 1 || compression != 0 {
 		return image.Config{}, 0, false, ErrUnsupported
 	}
 	switch bpp {
 	case 8:
-		if offset != fileHeaderLen+infoHeaderLen+256*4 {
+		if offset != fileHeaderLen+infoLen+256*4 {
 			return image.Config{}, 0, false, ErrUnsupported
 		}
 		_, err = io.ReadFull(r, b[:256*4])
@@ -181,12 +195,12 @@ func decodeConfig(r io.Reader) (config image.Config, bitsPerPixel int, topDown b
 		}
 		return image.Config{ColorModel: pcm, Width: width, Height: height}, 8, topDown, nil
 	case 24:
-		if offset != fileHeaderLen+infoHeaderLen {
+		if offset != fileHeaderLen+infoLen {
 			return image.Config{}, 0, false, ErrUnsupported
 		}
 		return image.Config{ColorModel: color.RGBAModel, Width: width, Height: height}, 24, topDown, nil
 	case 32:
-		if offset != fileHeaderLen+infoHeaderLen {
+		if offset != fileHeaderLen+infoLen {
 			return image.Config{}, 0, false, ErrUnsupported
 		}
 		return image.Config{ColorModel: color.RGBAModel, Width: width, Height: height}, 32, topDown, nil

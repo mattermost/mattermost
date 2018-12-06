@@ -19,7 +19,6 @@
 package grpc
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -32,8 +31,6 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
-
-	"io/ioutil"
 
 	"golang.org/x/net/context"
 	"golang.org/x/net/trace"
@@ -901,26 +898,17 @@ func (s *Server) processUnaryRPC(t transport.ServerTransport, stream *transport.
 		}
 	}
 
-	p := &parser{r: stream}
-	pf, req, err := p.recvMsg(s.opts.maxReceiveMessageSize)
-	if err == io.EOF {
-		// The entire stream is done (for unary RPC only).
-		return err
+	var inPayload *stats.InPayload
+	if sh != nil {
+		inPayload = &stats.InPayload{
+			RecvTime: time.Now(),
+		}
 	}
-	if err == io.ErrUnexpectedEOF {
-		err = status.Errorf(codes.Internal, io.ErrUnexpectedEOF.Error())
-	}
+	d, err := recvAndDecompress(&parser{r: stream}, stream, dc, s.opts.maxReceiveMessageSize, inPayload, decomp)
 	if err != nil {
 		if st, ok := status.FromError(err); ok {
 			if e := t.WriteStatus(stream, st); e != nil {
 				grpclog.Warningf("grpc: Server.processUnaryRPC failed to write status %v", e)
-			}
-		} else {
-			switch st := err.(type) {
-			case transport.ConnectionError:
-				// Nothing to do here.
-			default:
-				panic(fmt.Sprintf("grpc: Unexpected error (%T) from recvMsg: %v", st, st))
 			}
 		}
 		return err
@@ -928,49 +916,14 @@ func (s *Server) processUnaryRPC(t transport.ServerTransport, stream *transport.
 	if channelz.IsOn() {
 		t.IncrMsgRecv()
 	}
-	if st := checkRecvPayload(pf, stream.RecvCompress(), dc != nil || decomp != nil); st != nil {
-		if e := t.WriteStatus(stream, st); e != nil {
-			grpclog.Warningf("grpc: Server.processUnaryRPC failed to write status %v", e)
-		}
-		return st.Err()
-	}
-	var inPayload *stats.InPayload
-	if sh != nil {
-		inPayload = &stats.InPayload{
-			RecvTime: time.Now(),
-		}
-	}
 	df := func(v interface{}) error {
-		if inPayload != nil {
-			inPayload.WireLength = len(req)
-		}
-		if pf == compressionMade {
-			var err error
-			if dc != nil {
-				req, err = dc.Do(bytes.NewReader(req))
-				if err != nil {
-					return status.Errorf(codes.Internal, err.Error())
-				}
-			} else {
-				tmp, _ := decomp.Decompress(bytes.NewReader(req))
-				req, err = ioutil.ReadAll(tmp)
-				if err != nil {
-					return status.Errorf(codes.Internal, "grpc: failed to decompress the received message %v", err)
-				}
-			}
-		}
-		if len(req) > s.opts.maxReceiveMessageSize {
-			// TODO: Revisit the error code. Currently keep it consistent with
-			// java implementation.
-			return status.Errorf(codes.ResourceExhausted, "grpc: received message larger than max (%d vs. %d)", len(req), s.opts.maxReceiveMessageSize)
-		}
-		if err := s.getCodec(stream.ContentSubtype()).Unmarshal(req, v); err != nil {
+		if err := s.getCodec(stream.ContentSubtype()).Unmarshal(d, v); err != nil {
 			return status.Errorf(codes.Internal, "grpc: error unmarshalling request: %v", err)
 		}
 		if inPayload != nil {
 			inPayload.Payload = v
-			inPayload.Data = req
-			inPayload.Length = len(req)
+			inPayload.Data = d
+			inPayload.Length = len(d)
 			sh.HandleRPC(stream.Context(), inPayload)
 		}
 		if trInfo != nil {
@@ -1180,47 +1133,27 @@ func (s *Server) handleStream(t transport.ServerTransport, stream *transport.Str
 	}
 	service := sm[:pos]
 	method := sm[pos+1:]
-	srv, ok := s.m[service]
-	if !ok {
-		if unknownDesc := s.opts.unknownStreamDesc; unknownDesc != nil {
-			s.processStreamingRPC(t, stream, nil, unknownDesc, trInfo)
+
+	if srv, ok := s.m[service]; ok {
+		if md, ok := srv.md[method]; ok {
+			s.processUnaryRPC(t, stream, srv, md, trInfo)
 			return
 		}
-		if trInfo != nil {
-			trInfo.tr.LazyLog(&fmtStringer{"Unknown service %v", []interface{}{service}}, true)
-			trInfo.tr.SetError()
+		if sd, ok := srv.sd[method]; ok {
+			s.processStreamingRPC(t, stream, srv, sd, trInfo)
+			return
 		}
-		errDesc := fmt.Sprintf("unknown service %v", service)
-		if err := t.WriteStatus(stream, status.New(codes.Unimplemented, errDesc)); err != nil {
-			if trInfo != nil {
-				trInfo.tr.LazyLog(&fmtStringer{"%v", []interface{}{err}}, true)
-				trInfo.tr.SetError()
-			}
-			grpclog.Warningf("grpc: Server.handleStream failed to write status: %v", err)
-		}
-		if trInfo != nil {
-			trInfo.tr.Finish()
-		}
-		return
 	}
-	// Unary RPC or Streaming RPC?
-	if md, ok := srv.md[method]; ok {
-		s.processUnaryRPC(t, stream, srv, md, trInfo)
-		return
-	}
-	if sd, ok := srv.sd[method]; ok {
-		s.processStreamingRPC(t, stream, srv, sd, trInfo)
-		return
-	}
-	if trInfo != nil {
-		trInfo.tr.LazyLog(&fmtStringer{"Unknown method %v", []interface{}{method}}, true)
-		trInfo.tr.SetError()
-	}
+	// Unknown service, or known server unknown method.
 	if unknownDesc := s.opts.unknownStreamDesc; unknownDesc != nil {
 		s.processStreamingRPC(t, stream, nil, unknownDesc, trInfo)
 		return
 	}
-	errDesc := fmt.Sprintf("unknown method %v", method)
+	if trInfo != nil {
+		trInfo.tr.LazyLog(&fmtStringer{"Unknown service %v", []interface{}{service}}, true)
+		trInfo.tr.SetError()
+	}
+	errDesc := fmt.Sprintf("unknown service %v", service)
 	if err := t.WriteStatus(stream, status.New(codes.Unimplemented, errDesc)); err != nil {
 		if trInfo != nil {
 			trInfo.tr.LazyLog(&fmtStringer{"%v", []interface{}{err}}, true)
