@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -11,21 +12,13 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	"encoding/json"
-
 	"github.com/mattermost/mattermost-server/utils"
 )
 
 func TestConfigFlag(t *testing.T) {
-	dir, err := ioutil.TempDir("", "")
-	require.NoError(t, err)
-	defer os.RemoveAll(dir)
-
-	utils.TranslationsPreInit()
-	config, _, _, err := utils.LoadConfig("config.json")
-	require.Nil(t, err)
-	configPath := filepath.Join(dir, "foo.json")
-	require.NoError(t, ioutil.WriteFile(configPath, []byte(config.ToJson()), 0600))
+	th := Setup()
+	defer th.TearDown()
+	dir := th.TemporaryDirectory()
 
 	timezones := utils.LoadTimezones("timezones.json")
 	tzConfigPath := filepath.Join(dir, "timezones.json")
@@ -41,8 +34,15 @@ func TestConfigFlag(t *testing.T) {
 	defer os.Chdir(prevDir)
 	os.Chdir(dir)
 
-	require.Error(t, RunCommand(t, "version"))
-	CheckCommand(t, "--config", "foo.json", "version")
-	CheckCommand(t, "--config", "./foo.json", "version")
-	CheckCommand(t, "--config", configPath, "version")
+	t.Run("version without a config file should fail", func(t *testing.T) {
+		th.SetAutoConfig(false)
+		defer th.SetAutoConfig(true)
+		require.Error(t, th.RunCommand(t, "version"))
+	})
+
+	t.Run("version with varying paths to the config file", func(t *testing.T) {
+		th.CheckCommand(t, "--config", filepath.Base(th.ConfigPath()), "version")
+		th.CheckCommand(t, "--config", "./"+filepath.Base(th.ConfigPath()), "version")
+		th.CheckCommand(t, "version")
+	})
 }

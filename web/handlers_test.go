@@ -18,7 +18,7 @@ func handlerForHTTPErrors(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func TestHandlerServeHTTPErrors(t *testing.T) {
-	s, err := app.NewServer(app.StoreOverride(testStore), app.DisableConfigWatch)
+	s, err := app.NewServer(app.StoreOverride(mainHelper.Store), app.DisableConfigWatch)
 	defer s.Shutdown()
 
 	web := New(s, s.AppOptions, s.Router)
@@ -61,7 +61,7 @@ func handlerForHTTPSecureTransport(c *Context, w http.ResponseWriter, r *http.Re
 }
 
 func TestHandlerServeHTTPSecureTransport(t *testing.T) {
-	s, err := app.NewServer(app.StoreOverride(testStore), app.DisableConfigWatch)
+	s, err := app.NewServer(app.StoreOverride(mainHelper.Store), app.DisableConfigWatch)
 	defer s.Shutdown()
 
 	a := s.FakeApp()

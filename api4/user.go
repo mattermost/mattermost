@@ -603,7 +603,7 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	var autocomplete *model.UserAutocomplete
+	var autocomplete model.UserAutocomplete
 
 	if len(channelId) > 0 {
 		// Applying the provided teamId here is useful for DMs and GMs which don't belong

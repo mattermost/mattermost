@@ -5,38 +5,43 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/api4"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestPlugin(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	config := th.Config()
+	*config.PluginSettings.EnableUploads = true
+	*config.PluginSettings.Directory = "./test-plugins"
+	*config.PluginSettings.ClientDirectory = "./test-client-plugins"
+	th.SetConfig(config)
+
 	os.MkdirAll("./test-plugins", os.ModePerm)
 	os.MkdirAll("./test-client-plugins", os.ModePerm)
-
-	th := api4.Setup().InitBasic()
-	defer th.TearDown()
 
 	path, _ := utils.FindDir("tests")
 
 	os.Chdir(filepath.Join("..", "..", ".."))
 
-	CheckCommand(t, "--config", filepath.Join(path, "test-config.json"), "plugin", "add", filepath.Join(path, "testplugin.tar.gz"))
+	th.CheckCommand(t, "plugin", "add", filepath.Join(path, "testplugin.tar.gz"))
 
-	CheckCommand(t, "--config", filepath.Join(path, "test-config.json"), "plugin", "enable", "testplugin")
-	cfg, _, _, err := utils.LoadConfig(filepath.Join(path, "test-config.json"))
+	th.CheckCommand(t, "plugin", "enable", "testplugin")
+	cfg, _, _, err := utils.LoadConfig(th.ConfigPath())
 	require.Nil(t, err)
 	assert.Equal(t, cfg.PluginSettings.PluginStates["testplugin"].Enable, true)
 
-	CheckCommand(t, "--config", filepath.Join(path, "test-config.json"), "plugin", "disable", "testplugin")
-	cfg, _, _, err = utils.LoadConfig(filepath.Join(path, "test-config.json"))
+	th.CheckCommand(t, "plugin", "disable", "testplugin")
+	cfg, _, _, err = utils.LoadConfig(th.ConfigPath())
 	require.Nil(t, err)
 	assert.Equal(t, cfg.PluginSettings.PluginStates["testplugin"].Enable, false)
 
-	CheckCommand(t, "--config", filepath.Join(path, "test-config.json"), "plugin", "list")
+	th.CheckCommand(t, "plugin", "list")
 
-	CheckCommand(t, "--config", filepath.Join(path, "test-config.json"), "plugin", "delete", "testplugin")
+	th.CheckCommand(t, "plugin", "delete", "testplugin")
 
 	os.Chdir(filepath.Join("cmd", "mattermost", "commands"))
 }
