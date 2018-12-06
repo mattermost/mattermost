@@ -1,0 +1,12 @@
+language: go
+
+go:
+  - 1.x
+  - 1.8.x
+
+sudo: false
+
+go_import_path: willnorris.com/go/imageproxy
+
+install:
+ - # skip go get, which ensures all dependencies are vendored

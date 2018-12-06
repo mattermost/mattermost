@@ -1,0 +1,3 @@
+build
+.goxc.local.json
+*.test

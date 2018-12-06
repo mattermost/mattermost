@@ -213,6 +213,14 @@
   version = "v1.4.0"
 
 [[projects]]
+  branch = "master"
+  digest = "1:c3cbd7046b40723107a9a31232846de2e5de8c2e6ff6890b453d5920d6fff193"
+  name = "github.com/gregjones/httpcache"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "c63ab54fda8f77302f8d414e19933f2b6026a089"
+
+[[projects]]
   digest = "1:09970bb8daf100bdf11b48b72c71ef980cd2b50efbd903989b3d182956be0b83"
   name = "github.com/hako/durafmt"
   packages = ["."]
@@ -491,6 +499,22 @@
   pruneopts = "UT"
   revision = "3536a929edddb9a5b34bd6861dc4a9647cb459fe"
   version = "v1.1.2"
+
+[[projects]]
+  digest = "1:9daa18c7506ff0e740eae69fa293b1047301e54ecd4ac89550eb6610115cfe96"
+  name = "github.com/muesli/smartcrop"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "c6b1bf08b297d053c1b0bb5b964311b3b74fa49e"
+  version = "v0.2.0"
+
+[[projects]]
+  branch = "master"
+  digest = "1:34534b73e925d20cc72cf202f8b482fdcbe3a1b113e19375f31aadabd0f0f97d"
+  name = "github.com/nfnt/resize"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "83c6a9932646f83e3267f353373d47347b6036b2"
 
 [[projects]]
   digest = "1:07140002dbf37da92090f731b46fa47be4820b82fe5c14a035203b0e813d0ec2"
@@ -799,14 +823,20 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:8aabc191fd00a92f1880d1ee3383ee57b44df6e55d6e682d0a8f994309f58e36"
+  digest = "1:98a6b94e615d35032ac0df5b783455db7ad09a0effd888953fc20c81652571a5"
   name = "golang.org/x/image"
   packages = [
     "bmp",
+    "draw",
     "font",
+    "math/f64",
     "math/fixed",
+    "riff",
     "tiff",
     "tiff/lzw",
+    "vp8",
+    "vp8l",
+    "webp",
   ]
   pruneopts = "UT"
   revision = "cd38e8056d9b27bb2f265effa37fb0ea6b8a7f0f"
@@ -987,6 +1017,25 @@
   revision = "51d6538a90f86fe93ac480b35f37b2be17fef232"
   version = "v2.2.2"
 
+[[projects]]
+  digest = "1:69c924347099fa89c7067b2d3cd41cf783f445ca4c1425144471a46383c7c2da"
+  name = "willnorris.com/go/gifresize"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "2593306bba2b31e43cf3d7b65d63489f356994b6"
+  version = "v1.0.0"
+
+[[projects]]
+  digest = "1:cee969a987e9c076dda9ed1d31c693c1d99af8be4b8b48ddc771518a9b0e29e1"
+  name = "willnorris.com/go/imageproxy"
+  packages = [
+    ".",
+    "third_party/http",
+  ]
+  pruneopts = "UT"
+  revision = "82ba3b64454920e6e46aa9cce2b1609838877b6a"
+  version = "v0.7.0"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
@@ -1051,6 +1100,7 @@
     "gopkg.in/natefinch/lumberjack.v2",
     "gopkg.in/olivere/elastic.v5",
     "gopkg.in/yaml.v2",
+    "willnorris.com/go/imageproxy",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1
