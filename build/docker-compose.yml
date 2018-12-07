@@ -7,7 +7,7 @@ services:
     networks:
       - mm-test
     environment:
-      MYSQL_HOST: localhost
+      MYSQL_ROOT_HOST: %
       MYSQL_ROOT_PASSWORD: mostest
       MYSQL_PASSWORD: mostest
       MYSQL_USER: mmuser
