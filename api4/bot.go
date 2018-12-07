@@ -105,7 +105,7 @@ func getBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_READ_OTHERS_BOTS) {
-		// Allow access any any bot.
+		// Allow access to any bot.
 	} else if bot.CreatorId == c.App.Session.UserId {
 		if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_READ_BOTS) {
 			c.SetPermissionError(model.PERMISSION_READ_BOTS)
