@@ -151,8 +151,8 @@ func BotPatchFromJson(data io.Reader) *BotPatch {
 	return &botPatch
 }
 
-// UserFromBotModel returns a user model describing the bot fields stored in the User store.
-func UserFromBotModel(b *Bot) *User {
+// UserFromBot returns a user model describing the bot fields stored in the User store.
+func UserFromBot(b *Bot) *User {
 	return &User{
 		Id:       b.UserId,
 		Username: b.Username,

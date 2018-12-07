@@ -9,7 +9,7 @@ import (
 
 // CreateBot creates the given bot and corresponding user.
 func (a *App) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
-	result := <-a.Srv.Store.User().Save(model.UserFromBotModel(bot))
+	result := <-a.Srv.Store.User().Save(model.UserFromBot(bot))
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -39,7 +39,7 @@ func (a *App) PatchBot(userId string, botPatch *model.BotPatch) (*model.Bot, *mo
 	}
 	user := result.Data.(*model.User)
 
-	patchedUser := model.UserFromBotModel(bot)
+	patchedUser := model.UserFromBot(bot)
 	user.Id = patchedUser.Id
 	user.Username = patchedUser.Username
 	user.Email = patchedUser.Email

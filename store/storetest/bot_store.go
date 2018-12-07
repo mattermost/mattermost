@@ -14,7 +14,7 @@ import (
 )
 
 func makeBotWithUser(ss store.Store, bot *model.Bot) (*model.Bot, *model.User) {
-	user := store.Must(ss.User().Save(model.UserFromBotModel(bot))).(*model.User)
+	user := store.Must(ss.User().Save(model.UserFromBot(bot))).(*model.User)
 
 	bot.UserId = user.Id
 	bot = store.Must(ss.Bot().Save(bot)).(*model.Bot)
@@ -276,7 +276,7 @@ func testBotStoreSave(t *testing.T, ss store.Store) {
 			CreatorId:   model.NewId(),
 		}
 
-		user := store.Must(ss.User().Save(model.UserFromBotModel(bot))).(*model.User)
+		user := store.Must(ss.User().Save(model.UserFromBot(bot))).(*model.User)
 		defer func() { store.Must(ss.User().PermanentDelete(user.Id)) }()
 		bot.UserId = user.Id
 

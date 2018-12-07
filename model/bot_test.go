@@ -480,7 +480,7 @@ func TestBotPatchToAndFromJson(t *testing.T) {
 	assert.Equal(t, botPatch2, BotPatchFromJson(bytes.NewReader(botPatch2.ToJson())))
 }
 
-func TestUserFromBotModel(t *testing.T) {
+func TestUserFromBot(t *testing.T) {
 	bot1 := &Bot{
 		UserId:      NewId(),
 		Username:    "username",
@@ -508,13 +508,13 @@ func TestUserFromBotModel(t *testing.T) {
 		Username:  "username",
 		Email:     "username@localhost",
 		FirstName: "display name",
-	}, UserFromBotModel(bot1))
+	}, UserFromBot(bot1))
 	assert.Equal(t, &User{
 		Id:        bot2.UserId,
 		Username:  "username2",
 		Email:     "username2@localhost",
 		FirstName: "display name 2",
-	}, UserFromBotModel(bot2))
+	}, UserFromBot(bot2))
 }
 
 func TestBotListToAndFromJson(t *testing.T) {
