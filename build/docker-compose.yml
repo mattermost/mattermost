@@ -63,7 +63,7 @@ services:
     container_name: redis-$DCNAME-$BUILD_NUMBER
 
   start_dependencies:
-    image: dadarek/wait-for-dependencies
+    image: mattermost/mattermost-wait-for-dep:latest
     networks:
       - mm-test
     depends_on:
