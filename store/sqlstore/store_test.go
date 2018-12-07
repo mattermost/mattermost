@@ -15,21 +15,14 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-var storeTypes = []*struct {
+type storeType struct {
 	Name        string
 	SqlSettings *model.SqlSettings
 	SqlSupplier *SqlSupplier
 	Store       store.Store
-}{
-	{
-		Name:        "MySQL",
-		SqlSettings: storetest.MySQLSettings(),
-	},
-	{
-		Name:        "PostgreSQL",
-		SqlSettings: storetest.PostgreSQLSettings(),
-	},
 }
+
+var storeTypes []*storeType
 
 func StoreTest(t *testing.T, f func(*testing.T, store.Store)) {
 	defer func() {
@@ -58,6 +51,15 @@ func StoreTestWithSqlSupplier(t *testing.T, f func(*testing.T, store.Store, stor
 }
 
 func initStores() {
+	storeTypes = append(storeTypes, &storeType{
+		Name:        "MySQL",
+		SqlSettings: storetest.MakeSqlSettings(model.DATABASE_DRIVER_MYSQL),
+	})
+	storeTypes = append(storeTypes, &storeType{
+		Name:        "PostgreSQL",
+		SqlSettings: storetest.MakeSqlSettings(model.DATABASE_DRIVER_POSTGRES),
+	})
+
 	defer func() {
 		if err := recover(); err != nil {
 			tearDownStores()

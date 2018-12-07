@@ -70,29 +70,6 @@ TESTS=.
 TESTFLAGS ?= -short
 TESTFLAGSEE ?= -short
 
-TEST_DATABASE_MYSQL_HOSTNAME ?= dockerhost
-TEST_DATABASE_MYSQL_PORT ?= 3307
-TEST_DATABASE_POSTGRES_HOSTNAME ?= dockerhost
-TEST_DATABASE_POSTGRES_PORT ?= 5433
-TEST_DATABASE_MYSQL_USERNAME ?= mmuser
-TEST_DATABASE_MYSQL_PASSWORD ?= mostest
-TEST_DATABASE_MYSQL_NAME ?= mattermost_unittest
-TEST_DATABASE_POSTGRES_USERNAME ?= mmuser
-TEST_DATABASE_POSTGRES_PASSWORD ?= mostest
-TEST_DATABASE_POSTGRES_NAME ?= mattermost_unittest
-
-# Export to ensure the go tests pick up on the configuration.
-export TEST_DATABASE_MYSQL_HOSTNAME
-export TEST_DATABASE_MYSQL_PORT
-export TEST_DATABASE_POSTGRES_HOSTNAME
-export TEST_DATABASE_POSTGRES_PORT
-export TEST_DATABASE_MYSQL_USERNAME
-export TEST_DATABASE_MYSQL_PASSWORD
-export TEST_DATABASE_MYSQL_NAME
-export TEST_DATABASE_POSTGRES_USERNAME
-export TEST_DATABASE_POSTGRES_PASSWORD
-export TEST_DATABASE_POSTGRES_NAME
-
 # Packages lists
 TE_PACKAGES=$(shell go list ./...)
 
@@ -140,20 +117,6 @@ ifeq ($(IS_CI),false)
 		docker start mattermost-mysql > /dev/null; \
 	fi
 
-	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-mysql-unittest$$ | wc -l) -eq 0 ]; then \
-		echo starting mattermost-mysql-unittest; \
-		docker run --name mattermost-mysql-unittest -p $(TEST_DATABASE_MYSQL_PORT):3306 \
-			-e MYSQL_ROOT_PASSWORD=$(TEST_DATABASE_POSTGRES_PASSWORD) \
-			-e MYSQL_USER=$(TEST_DATABASE_MYSQL_USERNAME) \
-			-e MYSQL_PASSWORD=$(TEST_DATABASE_MYSQL_PASSWORD) \
-			-e MYSQL_DATABASE=$(TEST_DATABASE_MYSQL_NAME) \
-			--tmpfs /var/lib/mysql \
-			-d mysql:5.7 > /dev/null; \
-	elif [ $(shell docker ps --no-trunc --quiet --filter name=^/mattermost-mysql-unittest$$ | wc -l) -eq 0 ]; then \
-		echo restarting mattermost-mysql-unittest; \
-		docker start mattermost-mysql-unittest > /dev/null; \
-	fi
-
 	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-postgres$$ | wc -l) -eq 0 ]; then \
 		echo starting mattermost-postgres; \
 		docker run --name mattermost-postgres -p 5432:5432 \
@@ -164,19 +127,6 @@ ifeq ($(IS_CI),false)
 	elif [ $(shell docker ps --no-trunc --quiet --filter name=^/mattermost-postgres$$ | wc -l) -eq 0 ]; then \
 		echo restarting mattermost-postgres; \
 		docker start mattermost-postgres > /dev/null; \
-	fi
-
-	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-postgres-unittest$$ | wc -l) -eq 0 ]; then \
-		echo starting mattermost-postgres-unittest; \
-		docker run --name mattermost-postgres-unittest -p $(TEST_DATABASE_POSTGRES_PORT):5432 \
-			-e POSTGRES_USER=$(TEST_DATABASE_POSTGRES_USERNAME) \
-			-e POSTGRES_PASSWORD=$(TEST_DATABASE_POSTGRES_PASSWORD) \
-			-e POSTGRES_DB=$(TEST_DATABASE_POSTGRES_NAME) \
-			--tmpfs /var/lib/postgresql/data \
-			-d postgres:9.4 > /dev/null; \
-	elif [ $(shell docker ps --no-trunc --quiet --filter name=^/mattermost-postgres$$ | wc -l) -eq 0 ]; then \
-		echo restarting mattermost-postgres-unittest; \
-		docker start mattermost-postgres-unittest > /dev/null; \
 	fi
 
 	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-inbucket$$ | wc -l) -eq 0 ]; then \

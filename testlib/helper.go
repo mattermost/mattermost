@@ -4,6 +4,7 @@
 package testlib
 
 import (
+	"flag"
 	"os"
 	"testing"
 
@@ -25,6 +26,8 @@ type MainHelper struct {
 }
 
 func NewMainHelper() *MainHelper {
+	flag.Parse()
+
 	// Setup a global logger to catch tests logging outside of app context
 	// The global logger will be stomped by apps initalizing but that's fine for testing.
 	// Ideally this won't happen.
@@ -37,17 +40,19 @@ func NewMainHelper() *MainHelper {
 
 	utils.TranslationsPreInit()
 
-	settings := storetest.MySQLSettings()
+	settings := storetest.MakeSqlSettings(model.DATABASE_DRIVER_MYSQL)
 
-	testClusterInterface := &FakeClusterInterface{}
-	testStoreSqlSupplier := sqlstore.NewSqlSupplier(*settings, nil)
-	testStore := &TestStore{store.NewLayeredStore(testStoreSqlSupplier, nil, testClusterInterface)}
+	clusterInterface := &FakeClusterInterface{}
+	sqlSupplier := sqlstore.NewSqlSupplier(*settings, nil)
+	testStore := &TestStore{
+		store.NewLayeredStore(sqlSupplier, nil, clusterInterface),
+	}
 
 	return &MainHelper{
 		Settings:         settings,
 		Store:            testStore,
-		SqlSupplier:      testStoreSqlSupplier,
-		ClusterInterface: testClusterInterface,
+		SqlSupplier:      sqlSupplier,
+		ClusterInterface: clusterInterface,
 	}
 }
 
@@ -56,6 +61,8 @@ func (h *MainHelper) Main(m *testing.M) {
 }
 
 func (h *MainHelper) Close() error {
+	storetest.CleanupSqlSettings(h.Settings)
+
 	os.Exit(h.status)
 
 	return nil
