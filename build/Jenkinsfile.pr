@@ -113,24 +113,11 @@ pipeline {
                 dir('src/github.com/mattermost/mattermost-server/build') {
                     ansiColor('xterm') {
                         sh """
-                            COMPOSE_PROJECT_NAME=${DCNAME}-${env.BUILD_NUMBER} docker-compose up -d
+                            COMPOSE_PROJECT_NAME=${DCNAME}-${env.BUILD_NUMBER} docker-compose run --rm start_dependencies
+                            COMPOSE_PROJECT_NAME=${DCNAME}-${env.BUILD_NUMBER} docker-compose up -d mysql postgres minio inbucket openldap elasticsearch redis
 
                             docker ps
-                        """
 
-                        withDockerContainer(args: "--net ${DCNAME}-${BUILD_NUMBER}_mm-test -v ${WORKSPACE}/src:/go/src/", image: 'postgres:9.4') {
-                            sh """
-                                cd /go/src/github.com/mattermost/mattermost-server/build
-
-                                ./wait-for-it.sh -t 30 openldap-${DCNAME}-${env.BUILD_NUMBER}:389 -- echo "Openldap ready"
-                                ./wait-for-it.sh -t 30 mysql-${DCNAME}-${env.BUILD_NUMBER}:3306 -- echo "MySQL ready"
-                                until PGPASSWORD=mostest psql -h postgres-${DCNAME}-${env.BUILD_NUMBER} -p 5432 -U "mmuser" mattermost_test -c \'\\l\'; do >&2 echo "Postgres is unavailable - sleeping"
-                                    sleep 5
-                                done
-                            """
-                        }
-
-                        sh """
                             docker exec -t openldap-${DCNAME}-${env.BUILD_NUMBER} bash -c 'echo -e "dn: ou=testusers,dc=mm,dc=test,dc=com\nobjectclass: organizationalunit" | ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
                             docker exec -t openldap-${DCNAME}-${env.BUILD_NUMBER} bash -c 'echo -e "dn: uid=test.one,ou=testusers,dc=mm,dc=test,dc=com\nobjectclass: iNetOrgPerson\nsn: User\ncn: Test1\nmail: success+testone@simulator.amazonses.com" | ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
                             docker exec -t openldap-${DCNAME}-${env.BUILD_NUMBER} bash -c 'ldappasswd -s Password1 -D "cn=admin,dc=mm,dc=test,dc=com" -x "uid=test.one,ou=testusers,dc=mm,dc=test,dc=com" -w mostest';

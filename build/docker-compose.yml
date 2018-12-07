@@ -1,4 +1,4 @@
-version: '3.1'
+version: '3.4'
 services:
   mysql:
     image: "mysql:5.7"
@@ -61,6 +61,20 @@ services:
     networks:
       - mm-test
     container_name: redis-$DCNAME-$BUILD_NUMBER
+
+  start_dependencies:
+    image: dadarek/wait-for-dependencies
+    networks:
+      - mm-test
+    depends_on:
+      - mysql
+      - postgres
+      - minio
+      - inbucket
+      - openldap
+      - elasticsearch
+      - redis
+    command: postgres:5432 mysql:3306 minio:9000 inbucket:10080 openldap:389 elasticsearch:9200 redis:6379
 
 networks:
   mm-test:
