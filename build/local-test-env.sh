@@ -39,16 +39,8 @@ up()
    -w /go/src/github.com/mattermost/mattermost-server/ \
    --net $DCNAME-$BUILD_NUMBER\_mm-test \
    -e GOPATH="/go" \
-   -e TEST_DATABASE_MYSQL_HOSTNAME="mysql" \
-   -e TEST_DATABASE_MYSQL_PORT="3306" \
-   -e TEST_DATABASE_POSTGRES_HOSTNAME="postgres" \
-   -e TEST_DATABASE_POSTGRES_PORT="5432" \
-   -e TEST_DATABASE_MYSQL_USERNAME="mmuser" \
-   -e TEST_DATABASE_MYSQL_PASSWORD="mostest" \
-   -e TEST_DATABASE_MYSQL_NAME="mattermost_test" \
-   -e TEST_DATABASE_POSTGRES_USERNAME="mmuser" \
-   -e TEST_DATABASE_POSTGRES_PASSWORD="mostest" \
-   -e TEST_DATABASE_POSTGRES_NAME="mattermost_test" \
+   -e TEST_DATABASE_MYSQL_DSN="mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8\u0026readTimeout=30s\u0026writeTimeout=30s" \
+   -e TEST_DATABASE_POSTGRES_DSN="postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10" \
    -e CI_INBUCKET_HOST="inbucket" \
    -e CI_MINIO_HOST="minio" \
    -e CI_INBUCKET_PORT="10080" \
