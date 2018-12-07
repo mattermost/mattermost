@@ -86,7 +86,6 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
 	w.Write(updatedBot.ToJson())
 }
 
@@ -120,7 +119,6 @@ func getBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
 	w.Write(bot.ToJson())
 }
 
@@ -149,7 +147,6 @@ func getBots(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
 	w.Write(bots.ToJson())
 }
 
@@ -170,6 +167,5 @@ func disableBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
 	w.Write(bot.ToJson())
 }
