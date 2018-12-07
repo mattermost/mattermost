@@ -5,36 +5,14 @@ package web
 
 import (
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/store/sqlstore"
-	"github.com/mattermost/mattermost-server/store/storetest"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 var ApiClient *model.Client4
 var URL string
-
-type persistentTestStore struct {
-	store.Store
-}
-
-func (*persistentTestStore) Close() {}
-
-var testStoreContainer *storetest.RunningContainer
-var testStore *persistentTestStore
-
-func StopTestStore() {
-	if testStoreContainer != nil {
-		testStoreContainer.Stop()
-		testStoreContainer = nil
-	}
-}
 
 type TestHelper struct {
 	App    *app.App
@@ -48,7 +26,9 @@ type TestHelper struct {
 }
 
 func Setup() *TestHelper {
-	s, err := app.NewServer(app.StoreOverride(testStore), app.DisableConfigWatch)
+	mainHelper.Store.DropAllTables()
+
+	s, err := app.NewServer(app.StoreOverride(mainHelper.Store), app.DisableConfigWatch)
 	if err != nil {
 		panic(err)
 	}
@@ -103,7 +83,6 @@ func (th *TestHelper) InitBasic() *TestHelper {
 func (th *TestHelper) TearDown() {
 	th.Server.Shutdown()
 	if err := recover(); err != nil {
-		StopTestStore()
 		panic(err)
 	}
 }
@@ -124,37 +103,6 @@ func TestStatic(t *testing.T) {
 	}
 }
 */
-
-func TestMain(m *testing.M) {
-	// Setup a global logger to catch tests logging outside of app context
-	// The global logger will be stomped by apps initalizing but that's fine for testing. Ideally this won't happen.
-	mlog.InitGlobalLogger(mlog.NewLogger(&mlog.LoggerConfiguration{
-		EnableConsole: true,
-		ConsoleJson:   true,
-		ConsoleLevel:  "error",
-		EnableFile:    false,
-	}))
-
-	utils.TranslationsPreInit()
-
-	status := 0
-
-	container, settings, err := storetest.NewPostgreSQLContainer()
-	if err != nil {
-		panic(err)
-	}
-
-	testStoreContainer = container
-	testStore = &persistentTestStore{store.NewLayeredStore(sqlstore.NewSqlSupplier(*settings, nil), nil, nil)}
-
-	defer func() {
-		StopTestStore()
-		os.Exit(status)
-	}()
-
-	status = m.Run()
-
-}
 
 func TestCheckClientCompatability(t *testing.T) {
 	//Browser Name, UA String, expected result (if the browser should fail the test false and if it should pass the true)
