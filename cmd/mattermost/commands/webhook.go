@@ -24,6 +24,14 @@ var WebhookListCmd = &cobra.Command{
 	RunE:    listWebhookCmdF,
 }
 
+var WebhookShowCmd = &cobra.Command{
+	Use:     "show",
+	Short:   "Show webhooks",
+	Long:    "Show a webhook's detailed information",
+	Example: "  webhook show w16zb5tu3n1zkqo18goqry1je",
+	RunE:    showWebhookCmdF,
+}
+
 var WebhookCreateIncomingCmd = &cobra.Command{
 	Use:     "create-incoming",
 	Short:   "Create incoming webhook",
@@ -106,6 +114,35 @@ func listWebhookCmdF(command *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to list outgoing webhooks for '" + args[i] + "'")
 		}
 	}
+	return nil
+}
+
+func showWebhookCmdF(command *cobra.Command, args []string) error {
+	app, err := InitDBCommandContextCobra(command)
+	if err != nil {
+		return err
+	}
+	defer app.Shutdown()
+
+	if len(args) < 1 {
+		return errors.New("WebhookID is not specified")
+	}
+
+	webhookId := args[0]
+	incomingWebhook, errIncomingWebhook := app.GetIncomingWebhook(webhookId)
+	outgoingWebhook, errOutgoingWebhook := app.GetOutgoingWebhook(webhookId)
+
+	if errIncomingWebhook != nil && errOutgoingWebhook != nil {
+		return errors.New("Unable to fetch webhook '" + webhookId + "'")
+	} else if errIncomingWebhook == nil && errOutgoingWebhook != nil {
+		incomingWebhook.DisplayWebhookDetails()
+	} else if errIncomingWebhook != nil && errOutgoingWebhook == nil {
+		outgoingWebhook.DisplayWebhookDetails()
+	} else {
+		incomingWebhook.DisplayWebhookDetails()
+		outgoingWebhook.DisplayWebhookDetails()
+	}
+
 	return nil
 }
 

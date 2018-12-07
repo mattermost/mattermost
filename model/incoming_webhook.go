@@ -6,6 +6,7 @@ package model
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"regexp"
@@ -38,6 +39,21 @@ type IncomingWebhookRequest struct {
 	Props       StringInterface    `json:"props"`
 	Attachments []*SlackAttachment `json:"attachments"`
 	Type        string             `json:"type"`
+}
+
+func (o *IncomingWebhook) DisplayWebhookDetails() {
+	fmt.Printf("Webhook ID:     %s\n", o.Id)
+	fmt.Printf("Create at:      %d\n", o.CreateAt)
+	fmt.Printf("Update at:      %d\n", o.UpdateAt)
+	fmt.Printf("Delete at:      %d\n", o.DeleteAt)
+	fmt.Printf("User ID:        %s\n", o.UserId)
+	fmt.Printf("Channel ID:     %s\n", o.ChannelId)
+	fmt.Printf("Team ID:        %s\n", o.TeamId)
+	fmt.Printf("Display Name:   %s\n", o.DisplayName)
+	fmt.Printf("Description:    %s\n", o.Description)
+	fmt.Printf("Username:       %s\n", o.Username)
+	fmt.Printf("Icon URL:       %s\n", o.IconURL)
+	fmt.Printf("Channel Locked: %t\n", o.ChannelLocked)
 }
 
 func (o *IncomingWebhook) ToJson() string {

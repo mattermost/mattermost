@@ -82,6 +82,25 @@ func (o *OutgoingWebhookPayload) ToFormValues() string {
 	return v.Encode()
 }
 
+func (o *OutgoingWebhook) DisplayWebhookDetails() {
+	fmt.Printf("Webhook ID:     %s\n", o.Id)
+	fmt.Printf("Token:          %s\n", o.Token)
+	fmt.Printf("Create at:      %d\n", o.CreateAt)
+	fmt.Printf("Update at:      %d\n", o.UpdateAt)
+	fmt.Printf("Delete at:      %d\n", o.DeleteAt)
+	fmt.Printf("Creator ID:     %s\n", o.CreatorId)
+	fmt.Printf("Channel ID:     %s\n", o.ChannelId)
+	fmt.Printf("Team ID:        %s\n", o.TeamId)
+	fmt.Printf("Trigger Words:  %s\n", o.TriggerWords)
+	fmt.Printf("Trigger When:   %d\n", o.TriggerWhen)
+	fmt.Printf("Callback URLs:  %s\n", o.CallbackURLs)
+	fmt.Printf("Display Name:   %s\n", o.DisplayName)
+	fmt.Printf("Description:    %s\n", o.Description)
+	fmt.Printf("Content Type:   %s\n", o.ContentType)
+	fmt.Printf("Username:       %s\n", o.Username)
+	fmt.Printf("Icon URL:       %s\n", o.IconURL)
+}
+
 func (o *OutgoingWebhook) ToJson() string {
 	b, _ := json.Marshal(o)
 	return string(b)

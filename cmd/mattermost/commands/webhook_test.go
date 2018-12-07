@@ -303,3 +303,55 @@ func TestDeleteWebhooks(t *testing.T) {
 		t.Fatal("Should not have outgoing webhooks")
 	}
 }
+
+func TestShowWebhooks(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	adminClient := th.SystemAdminClient
+
+	config := th.Config()
+	*config.ServiceSettings.EnableCommands = true
+	config.ServiceSettings.EnableIncomingWebhooks = true
+	config.ServiceSettings.EnableOutgoingWebhooks = true
+	config.ServiceSettings.EnablePostUsernameOverride = true
+	config.ServiceSettings.EnablePostIconOverride = true
+	th.SetConfig(config)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostUsernameOverride = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostIconOverride = true })
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_WEBHOOKS.Id, model.TEAM_ADMIN_ROLE_ID)
+	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_WEBHOOKS.Id, model.TEAM_USER_ROLE_ID)
+
+	dispName := "myhookinc"
+	inHookStruct := &model.IncomingWebhook{DisplayName: dispName, ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId}
+	incomingHook, resp := adminClient.CreateIncomingWebhook(inHookStruct)
+	api4.CheckNoError(t, resp)
+
+	dispName2 := "myhookout"
+	outHookStruct := &model.OutgoingWebhook{DisplayName: dispName2, ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId, CallbackURLs: []string{"http://nowhere.com"}, Username: "some-user-name", IconURL: "http://some-icon-url/"}
+	outgoingHook, resp := adminClient.CreateOutgoingWebhook(outHookStruct)
+	api4.CheckNoError(t, resp)
+
+	// should fail because the id provided is neither a valid incoming nor an outgoing webhook id
+	require.Error(t, th.RunCommand(t, "webhook", "show", "invalid-webhook-id"))
+
+	incomingOutput := th.CheckCommand(t, "webhook", "show", incomingHook.Id)
+
+	if !strings.Contains(string(incomingOutput), dispName) {
+		t.Fatal("should have incoming webhooks")
+	}
+
+	outgoingOutput := th.CheckCommand(t, "webhook", "show", outgoingHook.Id)
+
+	if !strings.Contains(string(outgoingOutput), dispName2) {
+		t.Fatal("should have outgoing webhooks")
+	}
+
+}
