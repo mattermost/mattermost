@@ -37,11 +37,6 @@ func sessionHasPermissionToManageBot(c *Context, userId string) *model.AppError 
 }
 
 func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_CREATE_BOT) {
-		c.SetPermissionError(model.PERMISSION_CREATE_BOT)
-		return
-	}
-
 	botPatch := model.BotPatchFromJson(r.Body)
 	if botPatch == nil {
 		c.SetInvalidParam("bot")
@@ -52,6 +47,11 @@ func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		CreatorId: c.App.Session.UserId,
 	}
 	bot.Patch(botPatch)
+
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_CREATE_BOT) {
+		c.SetPermissionError(model.PERMISSION_CREATE_BOT)
+		return
+	}
 
 	createdBot, err := c.App.CreateBot(bot)
 	if err != nil {
@@ -69,14 +69,14 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := sessionHasPermissionToManageBot(c, c.Params.UserId); err != nil {
-		c.Err = err
-		return
-	}
-
 	botPatch := model.BotPatchFromJson(r.Body)
 	if botPatch == nil {
 		c.SetInvalidParam("bot")
+		return
+	}
+
+	if err := sessionHasPermissionToManageBot(c, c.Params.UserId); err != nil {
+		c.Err = err
 		return
 	}
 
