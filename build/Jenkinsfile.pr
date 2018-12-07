@@ -50,7 +50,7 @@ pipeline {
                     }
                 }
                 dir('src/github.com/mattermost/mattermost-webapp') {
-                    withDockerContainer(args: '', image: 'mattermost/mattermost-build-webapp:v5.2.0') {
+                    withDockerContainer(args: '', image: 'mattermost/mattermost-build-webapp:oct-2-2018') {
                         ansiColor('xterm') {
                             sh """
                                 #!/bin/bash -ex
@@ -74,7 +74,7 @@ pipeline {
             }
 
             steps {
-                withDockerContainer(args: '-u root --privileged -v ${WORKSPACE}/src:/go/src/', image: 'mattermost/mattermost-build-server:5.6.0') {
+                withDockerContainer(args: '-u root --privileged -v ${WORKSPACE}/src:/go/src/', image: 'mattermost/mattermost-build-server:dec-7-2018') {
                     ansiColor('xterm') {
                         sh """
                             cd /go/src/github.com/mattermost/mattermost-server
@@ -118,6 +118,10 @@ pipeline {
                             docker ps
 
                             ./wait-for-it.sh -t 30 openldap-${DCNAME}-${env.BUILD_NUMBER}:389 -- echo "Openldap ready"
+                            ./wait-for-it.sh -t 30 mysql-${DCNAME}-${env.BUILD_NUMBER}:3306 -- echo "MySQL ready"
+                            until PGPASSWORD=mostest psql -h postgres-${DCNAME}-${env.BUILD_NUMBER} -U "mmuser" mattermost_test -c \'\\l\'; do >&2 echo "Postgres is unavailable - sleeping"
+                                sleep 5
+                            done
 
                             docker exec -t openldap-${DCNAME}-${env.BUILD_NUMBER} bash -c 'echo -e "dn: ou=testusers,dc=mm,dc=test,dc=com\nobjectclass: organizationalunit" | ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
                             docker exec -t openldap-${DCNAME}-${env.BUILD_NUMBER} bash -c 'echo -e "dn: uid=test.one,ou=testusers,dc=mm,dc=test,dc=com\nobjectclass: iNetOrgPerson\nsn: User\ncn: Test1\nmail: success+testone@simulator.amazonses.com" | ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
@@ -125,13 +129,11 @@ pipeline {
                             docker exec -t openldap-${DCNAME}-${env.BUILD_NUMBER} bash -c 'echo -e "dn: uid=test.two,ou=testusers,dc=mm,dc=test,dc=com\nobjectclass: iNetOrgPerson\nsn: User\ncn: Test2\nmail: success+testtwo@simulator.amazonses.com" | ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
                             docker exec -t openldap-${DCNAME}-${env.BUILD_NUMBER} bash -c 'ldappasswd -s Password1 -D "cn=admin,dc=mm,dc=test,dc=com" -x "uid=test.two,ou=testusers,dc=mm,dc=test,dc=com" -w mostest';
                             docker exec -t openldap-${DCNAME}-${env.BUILD_NUMBER} bash -c 'echo -e "dn: cn=tgroup,ou=testusers,dc=mm,dc=test,dc=com\nobjectclass: groupOfUniqueNames\nuniqueMember: uid=test.one,ou=testusers,dc=mm,dc=test,dc=com" | ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
-
-                            ./wait-for-it.sh -t 30 mysql-${DCNAME}-${env.BUILD_NUMBER}:3306 -- echo "MySQL ready"
                         """
                     }
                 }
 
-                withDockerContainer(args: "-u root --privileged --net ${DCNAME}-${BUILD_NUMBER}_mm-test -v ${WORKSPACE}/src:/go/src/", image: 'mattermost/mattermost-build-server:5.6.0') {
+                withDockerContainer(args: "-u root --privileged --net ${DCNAME}-${BUILD_NUMBER}_mm-test -v ${WORKSPACE}/src:/go/src/", image: 'mattermost/mattermost-build-server:dec-7-2018') {
                     ansiColor('xterm') {
                     sh """
                             cd /go/src/github.com/mattermost/mattermost-server
@@ -224,7 +226,7 @@ pipeline {
             }
         }
 
-        stage('Trigger release') {
+        stage('Trigger docker image') {
             when {
                 expression { env.CHANGE_ID != null }
             }
