@@ -553,6 +553,7 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		IsAdmin:       c.IsSystemAdmin(),
 		AllowInactive: props.AllowInactive,
 		Limit:         props.Limit,
+		Role:          props.Role,
 	}
 
 	if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {

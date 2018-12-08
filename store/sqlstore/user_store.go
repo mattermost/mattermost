@@ -1154,7 +1154,7 @@ var spaceFulltextSearchChar = []string{
 	"@",
 }
 
-func generateSearchQuery(searchQuery string, terms []string, fields []string, parameters map[string]interface{}, isPostgreSQL bool) string {
+func generateSearchQuery(searchQuery string, terms []string, fields []string, parameters map[string]interface{}, isPostgreSQL bool, role string) string {
 	searchTerms := []string{}
 	for i, term := range terms {
 		searchFields := []string{}
@@ -1167,6 +1167,10 @@ func generateSearchQuery(searchQuery string, terms []string, fields []string, pa
 		}
 		searchTerms = append(searchTerms, fmt.Sprintf("(%s)", strings.Join(searchFields, " OR ")))
 		parameters[fmt.Sprintf("Term%d", i)] = fmt.Sprintf("%s%%", strings.TrimLeft(term, "@"))
+	}
+
+	if role != "" {
+		searchTerms = append(searchTerms, fmt.Sprintf("Users.Roles like '%%%s%%'", role))
 	}
 
 	searchClause := strings.Join(searchTerms, " AND ")
@@ -1201,6 +1205,11 @@ func (us SqlUserStore) performSearch(searchQuery string, term string, options *m
 		}
 	}
 
+	role := ""
+	if options.Role != "" {
+		role = options.Role
+	}
+
 	if ok := options.AllowInactive; ok {
 		searchQuery = strings.Replace(searchQuery, "INACTIVE_CLAUSE", "", 1)
 	} else {
@@ -1211,7 +1220,7 @@ func (us SqlUserStore) performSearch(searchQuery string, term string, options *m
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
 	} else {
 		isPostgreSQL := us.DriverName() == model.DATABASE_DRIVER_POSTGRES
-		searchQuery = generateSearchQuery(searchQuery, strings.Fields(term), searchType, parameters, isPostgreSQL)
+		searchQuery = generateSearchQuery(searchQuery, strings.Fields(term), searchType, parameters, isPostgreSQL, role)
 	}
 
 	var users []*model.User

@@ -1410,6 +1410,22 @@ func assertUsers(t *testing.T, expected, actual []*model.User) {
 	}
 }
 
+func assertUsersMatchInAnyOrder(t *testing.T, expected, actual []*model.User) {
+	expectedUsernames := make([]string, 0, len(expected))
+	for _, user := range expected {
+		expectedUsernames = append(expectedUsernames, user.Username)
+	}
+
+	actualUsernames := make([]string, 0, len(actual))
+	for _, user := range actual {
+		actualUsernames = append(actualUsernames, user.Username)
+	}
+
+	if assert.ElementsMatch(t, expectedUsernames, actualUsernames) {
+		assert.ElementsMatch(t, expected, actual)
+	}
+}
+
 func testUserStoreSearch(t *testing.T, ss store.Store) {
 	u1 := &model.User{
 		Username:  "jimbo1" + model.NewId(),
@@ -1417,6 +1433,7 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 		LastName:  "Bill",
 		Nickname:  "Rob",
 		Email:     "harold" + model.NewId() + "@simulator.amazonses.com",
+		Roles:     "system_user system_admin",
 	}
 	store.Must(ss.User().Save(u1))
 	defer func() { store.Must(ss.User().PermanentDelete(u1.Id)) }()
@@ -1424,6 +1441,7 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 	u2 := &model.User{
 		Username: "jim-bobby" + model.NewId(),
 		Email:    MakeEmail(),
+		Roles:    "system_user",
 	}
 	store.Must(ss.User().Save(u2))
 	defer func() { store.Must(ss.User().PermanentDelete(u2.Id)) }()
@@ -1432,6 +1450,7 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 		Username: "jimbo3" + model.NewId(),
 		Email:    MakeEmail(),
 		DeleteAt: 1,
+		Roles:    "system_admin",
 	}
 	store.Must(ss.User().Save(u3))
 	defer func() { store.Must(ss.User().PermanentDelete(u3.Id)) }()
@@ -1668,13 +1687,46 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 			},
 			[]*model.User{u1},
 		},
+		{
+			"search jim-bobby with system_user roles",
+			tid,
+			"jim-bobby",
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+				Role:           "system_user",
+			},
+			[]*model.User{u2},
+		},
+		{
+			"search jim with system_admin roles",
+			tid,
+			"jim",
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+				Role:           "system_admin",
+			},
+			[]*model.User{u1},
+		},
+		{
+			"search j with system_admin roles",
+			tid,
+			"ji",
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+				Role:           "system_user",
+			},
+			[]*model.User{u1, u2},
+		},
 	}
 
 	for _, testCase := range testCases {
 		t.Run(testCase.Description, func(t *testing.T) {
 			result := <-ss.User().Search(testCase.TeamId, testCase.Term, testCase.Options)
 			require.Nil(t, result.Err)
-			assertUsers(t, testCase.Expected, result.Data.([]*model.User))
+			assertUsersMatchInAnyOrder(t, testCase.Expected, result.Data.([]*model.User))
 		})
 	}
 
