@@ -12,6 +12,12 @@ services:
       MYSQL_PASSWORD: mostest
       MYSQL_USER: mmuser
       MYSQL_DATABASE: mattermost_test
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+        reservations:
+          memory: 2G
   postgres:
     image: "postgres:9.4"
     restart: always
