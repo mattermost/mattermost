@@ -640,6 +640,20 @@ func (a *App) GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
 	return result.Data.(*model.FileInfo), nil
 }
 
+func (a *App) GetFile(fileId string) ([]byte, *model.AppError) {
+	info, err := a.GetFileInfo(fileId)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := a.ReadFile(info.Path)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
+}
+
 func (a *App) CopyFileInfos(userId string, fileIds []string) ([]string, *model.AppError) {
 	var newFileIds []string
 
