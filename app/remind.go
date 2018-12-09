@@ -379,9 +379,11 @@ func (a *App) ListReminders(userId string) string {
 
 	reminders := a.getReminders(userId)
 
+	//var inChannelOccurrences []model.Occurrence
 	var upcomingOccurrences []model.Occurrence
 	var recurringOccurrences []model.Occurrence
 	var pastOccurrences []model.Occurrence
+	var channelOccurrencs []model.Occurrence
 
 	output := ""
 
@@ -392,6 +394,8 @@ func (a *App) ListReminders(userId string) string {
 		if result.Err != nil {
 			continue
 		}
+
+		//TODO GetByChannel
 
 		occurrences := result.Data.(model.Occurrences)
 
@@ -405,21 +409,32 @@ func (a *App) ListReminders(userId string) string {
 					continue
 				}
 
-				if reminder.Completed == emptyTime.Format(time.RFC3339) &&
+				// TODO reminders in channel
+
+				if !strings.HasPrefix(reminder.Target, "~") &&
+					reminder.Completed == emptyTime.Format(time.RFC3339) &&
 					(occurrence.Repeat == "" && t.After(time.Now())) ||
 					(s != emptyTime && s.After(time.Now())) {
 					upcomingOccurrences = append(upcomingOccurrences, occurrence)
 				}
 
-				if occurrence.Repeat != "" && (t.After(time.Now()) ||
+				if !strings.HasPrefix(reminder.Target, "~") &&
+					occurrence.Repeat != "" && (t.After(time.Now()) ||
 					(s != emptyTime && s.After(time.Now()))) {
 					recurringOccurrences = append(recurringOccurrences, occurrence)
 				}
 
-				if reminder.Completed == emptyTime.Format(time.RFC3339) &&
+				if !strings.HasPrefix(reminder.Target, "~") &&
+					reminder.Completed == emptyTime.Format(time.RFC3339) &&
 					t.Before(time.Now()) &&
 					s == emptyTime {
 					pastOccurrences = append(pastOccurrences, occurrence)
+				}
+
+				if strings.HasPrefix(reminder.Target, "~") &&
+					reminder.Completed == emptyTime.Format(time.RFC3339) &&
+					t.After(time.Now()) {
+					channelOccurrencs = append(channelOccurrencs, occurrence)
 				}
 
 			}
@@ -427,6 +442,10 @@ func (a *App) ListReminders(userId string) string {
 		}
 
 	}
+
+	//TODO
+	//*In this channel*:
+	//• Remind #general “foobar” at 9AM tomorrow. Delete
 
 	if len(upcomingOccurrences) > 0 {
 		output = strings.Join([]string{
@@ -451,6 +470,15 @@ func (a *App) ListReminders(userId string) string {
 			output,
 			T("app.reminder.list_past_and_incomplete"),
 			a.listReminderGroup(userId, &pastOccurrences, &reminders, "past"),
+			"\n",
+		}, "\n")
+	}
+
+	if len(channelOccurrencs) > 0 {
+		output = strings.Join([]string{
+			output,
+			T("app.reminder.list_channel"),
+			a.listReminderGroup(userId, &channelOccurrencs, &reminders, "channel"),
 			"\n",
 		}, "\n")
 	}
@@ -512,6 +540,8 @@ func (a *App) listReminderGroup(userId string, occurrences *[]model.Occurrence, 
 				}
 			case "past":
 				output = strings.Join([]string{output, T("app.reminder.list.element.past", messageParameters)}, "\n")
+			case "channel":
+				output = strings.Join([]string{output, T("app.reminder.list.element.channel", messageParameters)}, "\n")
 			}
 		}
 	}

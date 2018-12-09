@@ -3143,6 +3143,10 @@
     "translation": "* \"{{.Message}}\"  [Complete]() · [Delete]() · Snooze: [15 mins]() · [1 hr]() · [Tomorrow]()"
   },
   {
+    "id": "app.reminder.list.element.channel",
+    "translation": "* \"{{.Message}}\"  [Delete]()"
+  },
+  {
     "id": "app.reminder.update.complete",
     "translation": "Ok! I’ve marked the reminder \"{{.Message}}\" as complete."
   },
@@ -3201,6 +3205,10 @@
   {
     "id": "app.reminder.list_past_and_incomplete",
     "translation": "**Past and incomplete:**"
+  },
+  {
+    "id": "app.reminder.list_channel",
+    "translation": "**Channel reminders**"
   },
   {
     "id": "app.reminder.list_footer",
