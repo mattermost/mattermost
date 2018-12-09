@@ -101,13 +101,13 @@ func TestUploadFiles(t *testing.T) {
 		// Upload a bunch of files, mixed images and non-images
 		{
 			title:             "Happy",
-			names:             []string{"test.png", "testgif.gif", "testplugin.tar.gz", "test-config.json"},
+			names:             []string{"test.png", "testgif.gif", "testplugin.tar.gz", "test-search.md"},
 			expectedCreatorId: th.BasicUser.Id,
 		},
 		// Upload a bunch of files, with clientIds
 		{
 			title:             "Happy client_ids",
-			names:             []string{"test.png", "testgif.gif", "testplugin.tar.gz", "test-config.json"},
+			names:             []string{"test.png", "testgif.gif", "testplugin.tar.gz", "test-search.md"},
 			clientIds:         []string{"1", "2", "3", "4"},
 			expectedCreatorId: th.BasicUser.Id,
 		},
@@ -125,7 +125,7 @@ func TestUploadFiles(t *testing.T) {
 		{
 			title:                 "Happy invalid image",
 			names:                 []string{"testgif.gif"},
-			openers:               []model.UploadOpener{model.NewUploadOpenerFile(filepath.Join(testDir, "test-config.json"))},
+			openers:               []model.UploadOpener{model.NewUploadOpenerFile(filepath.Join(testDir, "test-search.md"))},
 			skipPayloadValidation: true,
 			expectedCreatorId:     th.BasicUser.Id,
 		},
@@ -267,7 +267,7 @@ func TestUploadFiles(t *testing.T) {
 			// successfully, without a ClientId
 			title:                 "Error too few client_ids",
 			skipSimplePost:        true,
-			names:                 []string{"test.png", "testplugin.tar.gz", "test-config.json"},
+			names:                 []string{"test.png", "testplugin.tar.gz", "test-search.md"},
 			clientIds:             []string{"1", "4"},
 			skipSuccessValidation: true,
 			checkResponse:         CheckBadRequestStatus,
