@@ -1843,7 +1843,7 @@ func (a *App) normalizeTime(text string, user *model.User) (string, error) {
 			return "", nErr
 		}
 
-		numTime := time.Now().Round(time.Hour).Add(time.Hour * time.Duration(num+2))
+		numTime := time.Now().Round(time.Hour).Add(time.Hour * time.Duration(num))
 		dateTimeSplit := a.regSplit(a.chooseClosest(user, &numTime, false).Format(time.RFC3339), "T|Z")
 
 		switch len(dateTimeSplit) {
