@@ -71,7 +71,6 @@ TESTFLAGSEE ?= -short
 
 # Packages lists
 TE_PACKAGES=$(shell go list ./...)
-TE_PACKAGES_COMMA=$(shell echo $(TE_PACKAGES) | tr ' ' ',')
 
 # Plugins Packages
 PLUGIN_PACKAGES=mattermost-plugin-zoom mattermost-plugin-jira
@@ -83,15 +82,16 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 	IGNORE:=$(shell cp $(BUILD_ENTERPRISE_DIR)/imports/imports.go imports/)
 	IGNORE:=$(shell rm -f enterprise)
 	IGNORE:=$(shell ln -s $(BUILD_ENTERPRISE_DIR) enterprise)
+else
+	IGNORE:=$(shell rm -f imports/imports.go)
 endif
 
 EE_PACKAGES=$(shell go list ./enterprise/...)
-EE_PACKAGES_COMMA=$(shell echo $(EE_PACKAGES) | tr ' ' ',')
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-ALL_PACKAGES_COMMA=$(TE_PACKAGES_COMMA),$(EE_PACKAGES_COMMA)
+ALL_PACKAGES=$(TE_PACKAGES) $(EE_PACKAGES)
 else
-ALL_PACKAGES_COMMA=$(TE_PACKAGES_COMMA)
+ALL_PACKAGES=$(TE_PACKAGES)
 endif
 
 
@@ -354,33 +354,6 @@ do-cover-file: ## Creates the test coverage report file.
 go-junit-report:
 	go get -u github.com/jstemmer/go-junit-report
 
-test-te: start-docker go-junit-report do-cover-file ## Runs tests in the team edition.
-	@echo Testing TE
-	@echo "Packages to test: "$(TE_PACKAGES)
-	find . -name 'cprofile*.out' -exec sh -c 'rm "{}"' \;
-	$(GO) test $(GOFLAGS) -run=$(TESTS) $(TESTFLAGS) -p 1 -v -timeout=2000s -covermode=count -coverpkg=$(ALL_PACKAGES_COMMA) -exec $(ROOT)/scripts/test-xprog.sh $(TE_PACKAGES) | tee output-test-te
-	cat output-test-te | $(GOPATH)/bin/go-junit-report > report-te.xml && rm output-test-te
-	find . -name 'cprofile*.out' -exec sh -c 'tail -n +2 {} >> cover.out ; rm "{}"' \;
-
-test-ee: start-docker go-junit-report do-cover-file ## Runs tests in the enterprise edition.
-	@echo Testing EE
-
-	rm -f enterprise/config/*.crt
-	rm -f enterprise/config/*.key
-
-ifeq ($(BUILD_ENTERPRISE_READY),true)
-	@echo Testing EE
-	@echo "Packages to test: "$(EE_PACKAGES)
-	find . -name 'cprofile*.out' -exec sh -c 'rm "{}"' \;
-	$(GO) test $(GOFLAGS) -run=$(TESTS) $(TESTFLAGSEE) -p 1 -v -timeout=2000s -covermode=count -coverpkg=$(ALL_PACKAGES_COMMA) -exec $(ROOT)/scripts/test-xprog.sh $(EE_PACKAGES) 2>&1 | tee output-test-ee
-	cat output-test-ee | $(GOPATH)/bin/go-junit-report > report-ee.xml && rm output-test-ee
-	find . -name 'cprofile*.out' -exec sh -c 'tail -n +2 {} >> cover.out ; rm "{}"' \;
-	rm -f enterprise/config/*.crt
-	rm -f enterprise/config/*.key
-else
-	@echo Skipping EE Tests
-endif
-
 test-compile:
 	@echo COMPILE TESTS
 
@@ -388,8 +361,13 @@ test-compile:
 		$(GO) test $(GOFLAGS) -c $$package; \
 	done
 
-test-server: test-te test-ee ## Runs tests.
-	find . -type d -name data -not -path './vendor/*' | xargs rm -rf
+test-server: start-docker go-junit-report do-cover-file ## Runs tests.
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+	@echo Running all tests
+else
+	@echo Running only TE tests
+endif
+	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(ALL_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)"
 
 internal-test-web-client: ## Runs web client tests.
 	$(GO) run $(GOFLAGS) $(PLATFORM_FILES) test web_client_tests
@@ -446,14 +424,14 @@ run-client: ## Runs the webapp.
 	ln -nfs $(BUILD_WEBAPP_DIR)/dist client
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) run
 
-run-client-fullmap: ## Runs the webapp with source code mapping (slower; better debugging).
-	@echo Running mattermost client for development with FULL SOURCE MAP
+run-client-fullmap: ## Legacy alias to run-client
+	@echo Running mattermost client for development
 
-	cd $(BUILD_WEBAPP_DIR) && $(MAKE) run-fullmap
+	cd $(BUILD_WEBAPP_DIR) && $(MAKE) run
 
 run: check-prereqs run-server run-client ## Runs the server and webapp.
 
-run-fullmap: run-server run-client-fullmap ## Same as run but with a full sourcemap for client.
+run-fullmap: run-server run-client ## Legacy alias to run
 
 stop-server: ## Stops the server.
 	@echo Stopping mattermost

@@ -77,6 +77,12 @@ func updateHookTrampoline(handle uintptr, op int, db *C.char, table *C.char, row
 	callback(op, C.GoString(db), C.GoString(table), rowid)
 }
 
+//export authorizerTrampoline
+func authorizerTrampoline(handle uintptr, op int, arg1 *C.char, arg2 *C.char, arg3 *C.char) int {
+	callback := lookupHandle(handle).(func(int, string, string, string) int)
+	return callback(op, C.GoString(arg1), C.GoString(arg2), C.GoString(arg3))
+}
+
 // Use handles to avoid passing Go pointers to C.
 
 type handleVal struct {

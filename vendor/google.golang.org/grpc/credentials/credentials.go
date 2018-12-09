@@ -108,6 +108,25 @@ type TransportCredentials interface {
 	OverrideServerName(string) error
 }
 
+// Bundle is a combination of TransportCredentials and PerRPCCredentials.
+//
+// It also contains a mode switching method, so it can be used as a combination
+// of different credential policies.
+//
+// Bundle cannot be used together with individual TransportCredentials.
+// PerRPCCredentials from Bundle will be appended to other PerRPCCredentials.
+//
+// This API is experimental.
+type Bundle interface {
+	TransportCredentials() TransportCredentials
+	PerRPCCredentials() PerRPCCredentials
+	// NewWithMode should make a copy of Bundle, and switch mode. Modifying the
+	// existing Bundle may cause races.
+	//
+	// NewWithMode returns nil if the requested mode is not supported.
+	NewWithMode(mode string) (Bundle, error)
+}
+
 // TLSInfo contains the auth information for a TLS authenticated connection.
 // It implements the AuthInfo interface.
 type TLSInfo struct {

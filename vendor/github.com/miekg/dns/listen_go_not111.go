@@ -1,4 +1,4 @@
-// +build !go1.11 windows
+// +build !go1.11 !aix,!darwin,!dragonfly,!freebsd,!linux,!netbsd,!openbsd
 
 package dns
 
