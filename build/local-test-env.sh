@@ -15,10 +15,8 @@ USAGE
 
 up()
 {
-  COMPOSE_PROJECT_NAME=$DCNAME-$BUILD_NUMBER docker-compose up -d
-
-  echo "Waiting openldap"
-  sleep 15
+  COMPOSE_PROJECT_NAME=$DCNAME-$BUILD_NUMBER docker-compose run --rm start_dependencies
+  COMPOSE_PROJECT_NAME=$DCNAME-$BUILD_NUMBER docker-compose up -d mysql postgres minio inbucket openldap elasticsearch redis
 
   docker exec -t openldap-$DCNAME-$BUILD_NUMBER bash -c 'echo -e "dn: ou=testusers,dc=mm,dc=test,dc=com\nobjectclass: organizationalunit" | ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest'
   docker exec -t openldap-$DCNAME-$BUILD_NUMBER bash -c 'echo -e "dn: uid=test.one,ou=testusers,dc=mm,dc=test,dc=com\nobjectclass: iNetOrgPerson\nsn: User\ncn: Test1\nmail: success+testone@simulator.amazonses.com" | ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest'
@@ -40,14 +38,14 @@ up()
    --net $DCNAME-$BUILD_NUMBER\_mm-test \
    -e GOPATH="/go" \
    -e TEST_DATABASE_MYSQL_DSN="mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8\u0026readTimeout=30s\u0026writeTimeout=30s" \
-   -e TEST_DATABASE_POSTGRES_DSN="postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10" \
+   -e TEST_DATABASE_POSTGRESSQL_DSN="postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10" \
    -e CI_INBUCKET_HOST="inbucket" \
    -e CI_MINIO_HOST="minio" \
    -e CI_INBUCKET_PORT="10080" \
    -e CI_MINIO_PORT="9000" \
    -e CI_LDAP_HOST="openldap" \
    -e IS_CI=true \
-   mattermost/mattermost-build-server:5.6.0 /bin/bash
+   mattermost/mattermost-build-server:dec-7-2018 /bin/bash
 }
 
 down()
