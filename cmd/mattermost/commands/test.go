@@ -53,7 +53,7 @@ func webClientTestsCmdF(command *cobra.Command, args []string) error {
 	defer a.Shutdown()
 
 	utils.InitTranslations(a.Config().LocalizationSettings)
-	serverErr := a.StartServer()
+	serverErr := a.Srv.Start()
 	if serverErr != nil {
 		return serverErr
 	}
@@ -74,7 +74,7 @@ func serverForWebClientTestsCmdF(command *cobra.Command, args []string) error {
 	defer a.Shutdown()
 
 	utils.InitTranslations(a.Config().LocalizationSettings)
-	serverErr := a.StartServer()
+	serverErr := a.Srv.Start()
 	if serverErr != nil {
 		return serverErr
 	}

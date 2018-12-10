@@ -171,10 +171,20 @@ func (a *App) RemoveLicense() *model.AppError {
 	return nil
 }
 
+func (s *Server) AddLicenseListener(listener func()) string {
+	id := model.NewId()
+	s.licenseListeners[id] = listener
+	return id
+}
+
 func (a *App) AddLicenseListener(listener func()) string {
 	id := model.NewId()
 	a.Srv.licenseListeners[id] = listener
 	return id
+}
+
+func (s *Server) RemoveLicenseListener(id string) {
+	delete(s.licenseListeners, id)
 }
 
 func (a *App) RemoveLicenseListener(id string) {

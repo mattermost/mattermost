@@ -13,6 +13,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/mailservice"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
@@ -31,9 +32,9 @@ const (
 	PROP_SECURITY_UNIT_TESTS        = "ut"
 )
 
-func (a *App) DoSecurityUpdateCheck() {
-	if *a.Config().ServiceSettings.EnableSecurityFixAlert {
-		if result := <-a.Srv.Store.System().Get(); result.Err == nil {
+func (s *Server) DoSecurityUpdateCheck() {
+	if *s.Config().ServiceSettings.EnableSecurityFixAlert {
+		if result := <-s.Store.System().Get(); result.Err == nil {
 			props := result.Data.(model.StringMap)
 			lastSecurityTime, _ := strconv.ParseInt(props[model.SYSTEM_LAST_SECURITY_TIME], 10, 0)
 			currentTime := model.GetMillis()
@@ -43,10 +44,10 @@ func (a *App) DoSecurityUpdateCheck() {
 
 				v := url.Values{}
 
-				v.Set(PROP_SECURITY_ID, a.DiagnosticId())
+				v.Set(PROP_SECURITY_ID, s.diagnosticId)
 				v.Set(PROP_SECURITY_BUILD, model.CurrentVersion+"."+model.BuildNumber)
 				v.Set(PROP_SECURITY_ENTERPRISE_READY, model.BuildEnterpriseReady)
-				v.Set(PROP_SECURITY_DATABASE, *a.Config().SqlSettings.DriverName)
+				v.Set(PROP_SECURITY_DATABASE, *s.Config().SqlSettings.DriverName)
 				v.Set(PROP_SECURITY_OS, runtime.GOOS)
 
 				if len(props[model.SYSTEM_RAN_UNIT_TESTS]) > 0 {
@@ -57,20 +58,20 @@ func (a *App) DoSecurityUpdateCheck() {
 
 				systemSecurityLastTime := &model.System{Name: model.SYSTEM_LAST_SECURITY_TIME, Value: strconv.FormatInt(currentTime, 10)}
 				if lastSecurityTime == 0 {
-					<-a.Srv.Store.System().Save(systemSecurityLastTime)
+					<-s.Store.System().Save(systemSecurityLastTime)
 				} else {
-					<-a.Srv.Store.System().Update(systemSecurityLastTime)
+					<-s.Store.System().Update(systemSecurityLastTime)
 				}
 
-				if ucr := <-a.Srv.Store.User().GetTotalUsersCount(); ucr.Err == nil {
+				if ucr := <-s.Store.User().GetTotalUsersCount(); ucr.Err == nil {
 					v.Set(PROP_SECURITY_USER_COUNT, strconv.FormatInt(ucr.Data.(int64), 10))
 				}
 
-				if ucr := <-a.Srv.Store.Status().GetTotalActiveUsersCount(); ucr.Err == nil {
+				if ucr := <-s.Store.Status().GetTotalActiveUsersCount(); ucr.Err == nil {
 					v.Set(PROP_SECURITY_ACTIVE_USER_COUNT, strconv.FormatInt(ucr.Data.(int64), 10))
 				}
 
-				if tcr := <-a.Srv.Store.Team().AnalyticsTeamCount(); tcr.Err == nil {
+				if tcr := <-s.Store.Team().AnalyticsTeamCount(); tcr.Err == nil {
 					v.Set(PROP_SECURITY_TEAM_COUNT, strconv.FormatInt(tcr.Data.(int64), 10))
 				}
 
@@ -86,7 +87,7 @@ func (a *App) DoSecurityUpdateCheck() {
 				for _, bulletin := range bulletins {
 					if bulletin.AppliesToVersion == model.CurrentVersion {
 						if props["SecurityBulletin_"+bulletin.Id] == "" {
-							results := <-a.Srv.Store.User().GetSystemAdminProfiles()
+							results := <-s.Store.User().GetSystemAdminProfiles()
 							if results.Err != nil {
 								mlog.Error("Failed to get system admins for security update information from Mattermost.")
 								return
@@ -108,11 +109,12 @@ func (a *App) DoSecurityUpdateCheck() {
 
 							for _, user := range users {
 								mlog.Info(fmt.Sprintf("Sending security bulletin for %v to %v", bulletin.Id, user.Email))
-								a.SendMail(user.Email, utils.T("mattermost.bulletin.subject"), string(body))
+								license := s.License()
+								mailservice.SendMailUsingConfig(user.Email, utils.T("mattermost.bulletin.subject"), string(body), s.Config(), license != nil && *license.Features.Compliance)
 							}
 
 							bulletinSeen := &model.System{Name: "SecurityBulletin_" + bulletin.Id, Value: bulletin.Id}
-							<-a.Srv.Store.System().Save(bulletinSeen)
+							<-s.Store.System().Save(bulletinSeen)
 						}
 					}
 				}

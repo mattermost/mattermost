@@ -21,14 +21,14 @@ import (
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"github.com/mattermost/mattermost-server/utils/testutils"
 )
 
 var testDir = ""
 
 func init() {
-	testDir, _ = utils.FindDir("tests")
+	testDir, _ = fileutils.FindDir("tests")
 }
 
 func checkCond(tb testing.TB, cond bool, text string) {
