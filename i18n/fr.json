@@ -3152,7 +3152,7 @@
   },
   {
     "id": "app.submit_interactive_dialog.json_error",
-    "translation": "Encountered an error encoding JSON for the interactive dialog."
+    "translation": "Une erreur s'est produite durant l'encodage JSON utilisé par la boite de dialogue interactive."
   },
   {
     "id": "app.system_install_date.parse_int.app_error",
@@ -3616,27 +3616,27 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed",
-    "translation": "Failed to decode base64 for trigger ID for interactive dialog."
+    "translation": "Impossible de décoder en base 64 l'identifiant du déclencheur utilisé par la boite de dialogue interactive."
   },
   {
     "id": "interactive_message.decode_trigger_id.expired",
-    "translation": "Trigger ID for interactive dialog is expired. Trigger IDs live for a maximum of {{.Seconds}} seconds."
+    "translation": "Identifiant du déclencheur de dialogue interactive a expiré. Les identifiants de déclencheur sont valides pour au maximum {{.Seconds}} secondes."
   },
   {
     "id": "interactive_message.decode_trigger_id.missing_data",
-    "translation": "Trigger ID missing required data for interactive dialog."
+    "translation": "Identifiant du déclencheur est manquant dans les données requises par la boite de dialogue interactive."
   },
   {
     "id": "interactive_message.decode_trigger_id.signature_decode_failed",
-    "translation": "Failed to decode base64 signature of trigger ID for interactive dialog."
+    "translation": "Impossible de décoder en base 64 la signature de l'identifiant du déclencheur utilisé par la boite de dialogue interactive."
   },
   {
     "id": "interactive_message.decode_trigger_id.verify_signature_failed",
-    "translation": "Signature verification failed of trigger ID for interactive dialog."
+    "translation": "Impossible de vérifier la signature de l'identifiant du déclencheur utilisé par la boite de dialogue interactive."
   },
   {
     "id": "interactive_message.generate_trigger_id.signing_failed",
-    "translation": "Failed to sign generated trigger ID for interactive dialog."
+    "translation": "Impossible de signer l'identifiant généré du déclencheur utilisé par la boite de dialogue interactive."
   },
   {
     "id": "jobs.do_job.batch_size.parse_error",
@@ -3780,7 +3780,7 @@
   },
   {
     "id": "model.channel_member.is_valid.ignore_channel_mentions_value.app_error",
-    "translation": "Invalid ignore channel mentions status"
+    "translation": "Le statut pour ignorer les mentions dans un canal est invalide."
   },
   {
     "id": "model.channel_member.is_valid.notify_level.app_error",
@@ -4300,15 +4300,15 @@
   },
   {
     "id": "model.config.is_valid.tls_cert_file.app_error",
-    "translation": "Invalid value for TLS certificate file - Either use LetsEncrypt or set path to existing certificate file"
+    "translation": "Valeur invalide définie comme fichier de certificat TLS. Utilisez LetsEncrypt ou spécifiez le chemin menant à un fichier de certificat valide."
   },
   {
     "id": "model.config.is_valid.tls_key_file.app_error",
-    "translation": "Invalid value for TLS key file - Either use LetsEncrypt or set path to existing key file"
+    "translation": "Valeur invalide définie comme fichier de clé TLS. Utilisez LetsEncrypt ou spécifiez le chemin menant à un fichier de clé valide."
   },
   {
     "id": "model.config.is_valid.tls_overwrite_cipher.app_error",
-    "translation": "Invalid value passed for TLS overwrite cipher - Please refer to the documentation for valid values"
+    "translation": "Valeur invalide définie comme redéfinition de chiffrement TLS. Consultez la documentation pour connaître les valeurs acceptées."
   },
   {
     "id": "model.config.is_valid.webserver_security.app_error",
@@ -4824,7 +4824,7 @@
   },
   {
     "id": "model.user_terms_of_service.is_valid.service_terms_id.app_error",
-    "translation": "La propriété requise de conditions d'utilisation est manquante : user_id."
+    "translation": "La propriété requise de conditions d'utilisation est manquante : service_terms_id."
   },
   {
     "id": "model.user_terms_of_service.is_valid.user_id.app_error",
@@ -4852,7 +4852,7 @@
   },
   {
     "id": "plugin_api.get_file_link.no_post.app_error",
-    "translation": "Impossible de récupérer le lien du fichier. Le fichier doit être lié à un message qui peut être lu par l'utilisateur actuel."
+    "translation": "Impossible de récupérer le lien public du fichier. Le fichier doit être lié à un message qui peut être lu par l'utilisateur actuel."
   },
   {
     "id": "store.sql.convert_string_array",
@@ -5016,7 +5016,7 @@
   },
   {
     "id": "store.sql_channel.get_timezone.app_error",
-    "translation": "Impossible de récupérer les membres du canal"
+    "translation": "Impossible de récupérer les fuseaux horaires des membres du canal"
   },
   {
     "id": "store.sql_channel.get_unread.app_error",
@@ -6420,7 +6420,7 @@
   },
   {
     "id": "store.sql_user_terms_of_service.delete.app_error",
-    "translation": "Impossible de récupérer les conditions d'utilisation."
+    "translation": "Impossible de supprimer les conditions d'utilisation."
   },
   {
     "id": "store.sql_user_terms_of_service.get_by_user.app_error",

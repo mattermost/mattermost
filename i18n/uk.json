@@ -4820,7 +4820,7 @@
   },
   {
     "id": "model.user_terms_of_service.is_valid.create_at.app_error",
-    "translation": "Відсутня необхідна властивість для публікації: created_at."
+    "translation": "Відсутня необхідна властивість для публікації: created_at. "
   },
   {
     "id": "model.user_terms_of_service.is_valid.service_terms_id.app_error",

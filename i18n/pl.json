@@ -257,7 +257,7 @@
   },
   {
     "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
-    "translation": "The provided role is managed by a Scheme and therefore cannot be applied directly to a Channel Member"
+    "translation": "Ta rola jest zarządzana przez Schemat w związku z czym nie może być zastosowana bezpośrednio do Członka Kanału"
   },
   {
     "id": "api.channel.update_channel_scheme.license.error",
@@ -269,7 +269,7 @@
   },
   {
     "id": "api.channel.update_team_member_roles.scheme_role.app_error",
-    "translation": "The provided role is managed by a Scheme and therefore cannot be applied directly to a Team Member"
+    "translation": "Ta rola jest zarządzana przez Schemat w związku z czym nie może być zastosowana bezpośrednio do Członka Kanału"
   },
   {
     "id": "api.command.admin_only.app_error",
