@@ -104,7 +104,7 @@ type API interface {
 
 	// UpdateUserActive deactivates or reactivates an user.
 	//
-	// Minimum server version: 5.6
+	// Minimum server version: 5.8
 	UpdateUserActive(userId string, active bool) *model.AppError
 
 	// GetUsersInChannel returns a page of users in a channel. Page counting starts at 0.
