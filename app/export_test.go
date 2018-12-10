@@ -88,7 +88,8 @@ func TestExportUserChannels(t *testing.T) {
 	th.App.Srv.Store.Channel().SaveMember(&channelMember)
 	th.App.Srv.Store.Preference().Save(&preferences)
 	th.App.UpdateChannelMemberNotifyProps(notifyProps, channel.Id, user.Id)
-	exportData, _ := th.App.buildUserChannelMemberships(user.Id, team.Id)
+	exportData, err := th.App.buildUserChannelMemberships(user.Id, team.Id)
+	require.Nil(t, err)
 	assert.Equal(t, len(*exportData), 3)
 	for _, data := range *exportData {
 		if *data.Name == channelName {
@@ -158,15 +159,15 @@ func TestExportCustomEmoji(t *testing.T) {
 
 	filePath := "../demo.json"
 
-	fileWriter, _ := os.Create(filePath)
+	fileWriter, err := os.Create(filePath)
+	require.Nil(t, err)
 	defer os.Remove(filePath)
 
 	pathToEmojiDir := "../data/emoji/"
 	dirNameToExportEmoji := "exported_emoji_test"
-
-	err := th.App.ExportCustomEmoji(fileWriter, filePath, pathToEmojiDir, dirNameToExportEmoji)
 	defer os.RemoveAll("../" + dirNameToExportEmoji)
-	if err != nil {
+
+	if err := th.App.ExportCustomEmoji(fileWriter, filePath, pathToEmojiDir, dirNameToExportEmoji); err != nil {
 		t.Fatal(err)
 	}
 }
