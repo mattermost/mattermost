@@ -11,6 +11,7 @@ import (
 	"path"
 
 	"database/sql"
+
 	"github.com/go-sql-driver/mysql"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
@@ -22,6 +23,7 @@ import (
 const (
 	defaultMysqlDSN      = "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8\u0026readTimeout=30s\u0026writeTimeout=30s"
 	defaultPostgresqlDSN = "postgres://mmuser:mostest@dockerhost:5432/mattermost_test?sslmode=disable&connect_timeout=10"
+	defaultMysqlRootPWD  = "passwd"
 )
 
 func getEnv(name, defaultValue string) string {
@@ -76,12 +78,14 @@ func PostgreSQLSettings() *model.SqlSettings {
 }
 
 func mySQLRootDSN(dsn string) string {
+	rootPwd := getEnv("TEST_DATABASE_MYSQL_ROOT_PASSWD", defaultMysqlRootPWD)
 	cfg, err := mysql.ParseDSN(dsn)
 	if err != nil {
 		panic("failed to parse dsn " + dsn + ": " + err.Error())
 	}
 
 	cfg.User = "root"
+	cfg.Passwd = rootPwd
 	cfg.DBName = "mysql"
 
 	return cfg.FormatDSN()
