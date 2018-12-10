@@ -956,7 +956,7 @@
   },
   {
     "id": "api.email_batching.render_batched_post.date",
-    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}}"
+    "translation": "{{.Hour}}:{{.Minute}} {{.Timezone}}, {{.Month}} {{.Day}} "
   },
   {
     "id": "api.email_batching.render_batched_post.direct_message",
@@ -2060,7 +2060,7 @@
   },
   {
     "id": "api.user.complete_switch_with_oauth.parse.app_error",
-    "translation": "Не вдалося розібрати аутентичні дані з об'єкта користувача {{.SERVICE}}"
+    "translation": "Не вдалося розібрати аутентичні дані з об'єкта користувача {{.Service}}"
   },
   {
     "id": "api.user.complete_switch_with_oauth.unavailable.app_error",
@@ -2732,7 +2732,7 @@
   },
   {
     "id": "app.import.validate_emoji_import_data.name_missing.error",
-    "translation": "Імпорт emoji - зображення відсутнє або поле пусте."
+    "translation": "Імпорт emoji - зображення відсутнє або поле пусте. "
   },
   {
     "id": "app.import.validate_post_import_data.channel_missing.error",
@@ -3064,7 +3064,7 @@
   },
   {
     "id": "app.notification.subject.group_message.generic",
-    "translation": "[{{.SiteName}}] Нове повідомлення для {{.Month}} {{.Day}}, {{.Year}} "
+    "translation": "[{{.SiteName}}] Нове повідомлення для {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
     "id": "app.notification.subject.notification.full",

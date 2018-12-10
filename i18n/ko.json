@@ -570,8 +570,8 @@
   {
     "id": "api.command_groupmsg.invalid_user.app_error",
     "translation": {
-      "one": "Unable to find the user: {{.Users}}",
-      "other": "Unable to find the users: {{.Users}}"
+      "one": "사용자를 찾을 수 없습니다 : {{.Users}}사용자들을 찾을 수 없습니다 : {{.Users}}",
+      "other": ""
     }
   },
   {
@@ -1054,11 +1054,11 @@
   },
   {
     "id": "api.file.file_exists.exists_local.app_error",
-    "translation": "Unable to check if the file exists."
+    "translation": "파일이 있는지 확인할 수 없습니다."
   },
   {
     "id": "api.file.file_exists.s3.app_error",
-    "translation": "Unable to check if the file exists."
+    "translation": "파일이 있는지 확인할 수 없습니다."
   },
   {
     "id": "api.file.get_file.public_invalid.app_error",
@@ -1456,11 +1456,11 @@
   },
   {
     "id": "api.reaction.delete.archived_channel.app_error",
-    "translation": "You cannot remove a reaction in an archived channel."
+    "translation": "보관 된 채널에서는 반응을 제거 할 수 없습니다."
   },
   {
     "id": "api.reaction.save.archived_channel.app_error",
-    "translation": "You cannot react in an archived channel."
+    "translation": "보관 된 채널에서는 반응을 추가할 수 없습니다."
   },
   {
     "id": "api.reaction.save_reaction.invalid.app_error",
@@ -1776,7 +1776,7 @@
   },
   {
     "id": "api.templates.deactivate_body.title",
-    "translation": "Your account has been deactivated at {{ .ServerURL }}"
+    "translation": "귀하의 계정은 {{.ServerURL}}에서 비활성화 되었습니다."
   },
   {
     "id": "api.templates.deactivate_body.warning",
@@ -2984,7 +2984,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.username_invalid.error",
-    "translation": "Username is not valid."
+    "translation": "유효한 유저이름이 아닙니다."
   },
   {
     "id": "app.import.validate_user_import_data.username_missing.error",
@@ -3004,7 +3004,7 @@
   },
   {
     "id": "app.notification.body.intro.direct.generic",
-    "translation": "You have a new Direct Message from @{{.SenderName}}"
+    "translation": "@{{.SenderName}}으로부터 새로운 개인 메시지 알림이 왔습니다."
   },
   {
     "id": "app.notification.body.intro.group_message.full",
@@ -3012,7 +3012,7 @@
   },
   {
     "id": "app.notification.body.intro.group_message.generic",
-    "translation": "You have a new Group Message from @{{.SenderName}}"
+    "translation": "@{{.SenderName}}으로부터 새로운 알림이 있습니다."
   },
   {
     "id": "app.notification.body.intro.notification.full",
@@ -3020,7 +3020,7 @@
   },
   {
     "id": "app.notification.body.intro.notification.generic",
-    "translation": "You have a new notification from @{{.SenderName}}"
+    "translation": "@{{.SenderName}}으로부터 새로운 알림이 있습니다."
   },
   {
     "id": "app.notification.body.text.direct.full",
@@ -3032,7 +3032,7 @@
   },
   {
     "id": "app.notification.body.text.group_message.full",
-    "translation": "Channel: {{.ChannelName}}"
+    "translation": "채널 : {{.ChannelName}}"
   },
   {
     "id": "app.notification.body.text.group_message.full2",
@@ -3044,7 +3044,7 @@
   },
   {
     "id": "app.notification.body.text.notification.full",
-    "translation": "Channel: {{.ChannelName}}"
+    "translation": "채널 : {{.ChannelName}}"
   },
   {
     "id": "app.notification.body.text.notification.full2",
@@ -3152,7 +3152,7 @@
   },
   {
     "id": "app.submit_interactive_dialog.json_error",
-    "translation": "Encountered an error encoding JSON for the interactive dialog."
+    "translation": "대화식 대화 상자에서 JSON 인코딩 오류가 발생하였습니다."
   },
   {
     "id": "app.system_install_date.parse_int.app_error",
@@ -3616,7 +3616,7 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed",
-    "translation": "Failed to decode base64 for trigger ID for interactive dialog."
+    "translation": "대화식 대화 상자의 트리거 ID에 대해 base64 디코딩을 실패하였습니다."
   },
   {
     "id": "interactive_message.decode_trigger_id.expired",
@@ -3628,7 +3628,7 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.signature_decode_failed",
-    "translation": "Failed to decode base64 signature of trigger ID for interactive dialog."
+    "translation": "대화식 대화 상자의 트리거 ID에 대해 base64 디코딩을 실패하였습니다."
   },
   {
     "id": "interactive_message.decode_trigger_id.verify_signature_failed",
@@ -3636,7 +3636,7 @@
   },
   {
     "id": "interactive_message.generate_trigger_id.signing_failed",
-    "translation": "Failed to sign generated trigger ID for interactive dialog."
+    "translation": "대화식 대화 상자에서 생성된 트리거 ID 서명에 실패하였습니다."
   },
   {
     "id": "jobs.do_job.batch_size.parse_error",
@@ -5120,7 +5120,7 @@
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
-    "translation": "You can not modify an archived channel"
+    "translation": "보관 된 채널에서는 반응을 추가할 수 없습니다."
   },
   {
     "id": "store.sql_channel.save.commit_transaction.app_error",
@@ -5216,7 +5216,7 @@
   },
   {
     "id": "store.sql_channel.update.archived_channel.app_error",
-    "translation": "You can not modify an archived channel"
+    "translation": "보관 된 채널에서는 반응을 추가할 수 없습니다."
   },
   {
     "id": "store.sql_channel.update.commit_transaction.app_error",

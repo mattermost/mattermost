@@ -2732,7 +2732,7 @@
   },
   {
     "id": "app.import.validate_emoji_import_data.name_missing.error",
-    "translation": "Импорт emoji - изображение отсутствует или поле пустое."
+    "translation": "Имя поля Импорт эмодзи пропущено или пустое"
   },
   {
     "id": "app.import.validate_post_import_data.channel_missing.error",
@@ -3032,7 +3032,7 @@
   },
   {
     "id": "app.notification.body.text.group_message.full",
-    "translation": "Channel: {{.ChannelName}}"
+    "translation": "Канал: {{.ChannelName}}"
   },
   {
     "id": "app.notification.body.text.group_message.full2",
@@ -3044,7 +3044,7 @@
   },
   {
     "id": "app.notification.body.text.notification.full",
-    "translation": "Channel: {{.ChannelName}}"
+    "translation": "Канал: {{.ChannelName}}"
   },
   {
     "id": "app.notification.body.text.notification.full2",
@@ -3092,7 +3092,7 @@
   },
   {
     "id": "app.plugin.filesystem.app_error",
-    "translation": "Encountered filesystem error"
+    "translation": "Возникла ошибка файловой системы"
   },
   {
     "id": "app.plugin.get_cluster_plugin_statuses.app_error",
@@ -3108,7 +3108,7 @@
   },
   {
     "id": "app.plugin.install.app_error",
-    "translation": "Unable to install plugin."
+    "translation": "Невозможно установить плагин."
   },
   {
     "id": "app.plugin.install_id.app_error",

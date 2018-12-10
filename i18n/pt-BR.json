@@ -628,7 +628,7 @@
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "Não conseguimos encontrat o usuário. Ele pode ter sido desativado pelo Administrador do Sistema."
+    "translation": "Não conseguimos encontrar o usuário. Ele pode ter sido desativado pelo Administrador do Sistema."
   },
   {
     "id": "api.command_invite.name",
