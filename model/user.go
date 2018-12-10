@@ -26,8 +26,6 @@ const (
 	PUSH_NOTIFY_PROP                   = "push"
 	PUSH_STATUS_NOTIFY_PROP            = "push_status"
 	EMAIL_NOTIFY_PROP                  = "email"
-	MOBILE_NOTIFY_PROP                 = "mobile"
-	MOBILE_PUSH_STATUS_NOTIFY_PROP     = "mobile_push_status"
 	CHANNEL_MENTIONS_NOTIFY_PROP       = "channel"
 	COMMENTS_NOTIFY_PROP               = "comments"
 	MENTION_KEYS_NOTIFY_PROP           = "mention_keys"
