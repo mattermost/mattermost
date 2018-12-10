@@ -23,7 +23,7 @@ import (
 const (
 	defaultMysqlDSN      = "mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8\u0026readTimeout=30s\u0026writeTimeout=30s"
 	defaultPostgresqlDSN = "postgres://mmuser:mostest@dockerhost:5432/mattermost_test?sslmode=disable&connect_timeout=10"
-	defaultMysqlRootPWD  = "passwd"
+	defaultMysqlRootPWD  = "mostest"
 )
 
 func getEnv(name, defaultValue string) string {
