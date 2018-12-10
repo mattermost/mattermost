@@ -850,8 +850,8 @@ func (a *App) SetProfileImageFromFile(userId string, file io.Reader) *model.AppE
 
 	a.InvalidateCacheForUser(userId)
 
-	user, err := a.GetUser(userId)
-	if err != nil {
+	user, userErr := a.GetUser(userId)
+	if userErr != nil {
 		mlog.Error(fmt.Sprintf("Error in getting users profile for id=%v forcing logout", userId), mlog.String("user_id", userId))
 		return nil
 	}
