@@ -4876,15 +4876,15 @@
   },
   {
     "id": "model.user_terms_of_service.is_valid.user_id.app_error",
-    "translation": "Missing required user terms of service property: user_id."
+    "translation": "Missing required terms of service property: user_id."
   },
   {
     "id": "model.user_terms_of_service.is_valid.service_terms_id.app_error",
-    "translation": "Missing required user terms of service property: service_terms_id."
+    "translation": "Missing required terms of service property: service_terms_id."
   },
   {
     "id": "model.user_terms_of_service.is_valid.create_at.app_error",
-    "translation": "Missing required user terms of service property: create_at."
+    "translation": "Missing required terms of service property: create_at."
   },
   {
     "id": "oauth.gitlab.tos.error",
@@ -6548,19 +6548,19 @@
   },
   {
     "id": "store.sql_user_terms_of_service.get_by_user.no_rows.app_error",
-    "translation": "No user terms of service found."
+    "translation": "No terms of service found."
   },
   {
     "id": "store.sql_user_terms_of_service.get_by_user.app_error",
-    "translation": "Unable to fetch user terms of service."
+    "translation": "Unable to fetch terms of service."
   },
   {
     "id": "store.sql_user_terms_of_service.save.app_error",
-    "translation": "Unable to save user terms of service."
+    "translation": "Unable to save terms of service."
   },
   {
     "id": "store.sql_user_terms_of_service.delete.app_error",
-    "translation": "Unable to delete user terms of service."
+    "translation": "Unable to delete terms of service."
   },
   {
     "id": "system.message.name",
