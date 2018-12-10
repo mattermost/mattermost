@@ -165,10 +165,9 @@ func TestExportCustomEmoji(t *testing.T) {
 
 	pathToEmojiDir := "../data/emoji/"
 	dirNameToExportEmoji := "exported_emoji_test"
-
-	err = th.App.ExportCustomEmoji(fileWriter, filePath, pathToEmojiDir, dirNameToExportEmoji)
 	defer os.RemoveAll("../" + dirNameToExportEmoji)
-	if err != nil {
+
+	if err := th.App.ExportCustomEmoji(fileWriter, filePath, pathToEmojiDir, dirNameToExportEmoji); err != nil {
 		t.Fatal(err)
 	}
 }
