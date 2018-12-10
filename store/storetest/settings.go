@@ -139,7 +139,7 @@ func databaseSettings(driver, dataSource string) *model.SqlSettings {
 	*settings.MaxIdleConns = 10
 	*settings.ConnMaxLifetimeMilliseconds = 3600000
 	*settings.MaxOpenConns = 100
-	*settings.QueryTimeout = 10
+	*settings.QueryTimeout = 60
 
 	return settings
 }
