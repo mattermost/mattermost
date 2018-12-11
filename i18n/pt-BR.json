@@ -3152,7 +3152,7 @@
   },
   {
     "id": "app.submit_interactive_dialog.json_error",
-    "translation": "Encountered an error encoding JSON for the interactive dialog."
+    "translation": "Encontrou um erro ao codificar JSON para o diálogo interativo."
   },
   {
     "id": "app.system_install_date.parse_int.app_error",
@@ -3616,27 +3616,27 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed",
-    "translation": "Failed to decode base64 for trigger ID for interactive dialog."
+    "translation": "Falha ao decodificar a base64 do ID do gatilho para o diálogo interativo."
   },
   {
     "id": "interactive_message.decode_trigger_id.expired",
-    "translation": "Trigger ID for interactive dialog is expired. Trigger IDs live for a maximum of {{.Seconds}} seconds."
+    "translation": "O ID do gatilho da caixa de diálogo interativa está expirado. As IDs de gatilho são ativadas por no máximo {{.Seconds}} segundos."
   },
   {
     "id": "interactive_message.decode_trigger_id.missing_data",
-    "translation": "Trigger ID missing required data for interactive dialog."
+    "translation": "ID do gatilho sem dados necessários para a caixa de diálogo interativa."
   },
   {
     "id": "interactive_message.decode_trigger_id.signature_decode_failed",
-    "translation": "Failed to decode base64 signature of trigger ID for interactive dialog."
+    "translation": "Falha ao decodificar a assinatura base64 do ID do gatilho para o diálogo interativo."
   },
   {
     "id": "interactive_message.decode_trigger_id.verify_signature_failed",
-    "translation": "Signature verification failed of trigger ID for interactive dialog."
+    "translation": "Verificação de assinatura do ID do gatilho falhou para o diálogo interativo."
   },
   {
     "id": "interactive_message.generate_trigger_id.signing_failed",
-    "translation": "Failed to sign generated trigger ID for interactive dialog."
+    "translation": "Falha ao assinar o ID do gatilho gerado para o diálogo interativo."
   },
   {
     "id": "jobs.do_job.batch_size.parse_error",
@@ -3780,7 +3780,7 @@
   },
   {
     "id": "model.channel_member.is_valid.ignore_channel_mentions_value.app_error",
-    "translation": "Invalid ignore channel mentions status"
+    "translation": "Status de menções de canal de ignorar inválido"
   },
   {
     "id": "model.channel_member.is_valid.notify_level.app_error",
@@ -4300,15 +4300,15 @@
   },
   {
     "id": "model.config.is_valid.tls_cert_file.app_error",
-    "translation": "Invalid value for TLS certificate file - Either use LetsEncrypt or set path to existing certificate file"
+    "translation": "Valor inválido para o arquivo de certificado TLS - Use LetsEncrypt ou defina o caminho para o arquivo de certificado existente"
   },
   {
     "id": "model.config.is_valid.tls_key_file.app_error",
-    "translation": "Invalid value for TLS key file - Either use LetsEncrypt or set path to existing key file"
+    "translation": "Valor inválido para o arquivo de chave TLS - Use LetsEncrypt ou defina o caminho para o arquivo de chave existente"
   },
   {
     "id": "model.config.is_valid.tls_overwrite_cipher.app_error",
-    "translation": "Invalid value passed for TLS overwrite cipher - Please refer to the documentation for valid values"
+    "translation": "Valor inválido passado para a cifra de substituição TLS - Consulte a documentação para obter valores válidos"
   },
   {
     "id": "model.config.is_valid.webserver_security.app_error",
@@ -4824,7 +4824,7 @@
   },
   {
     "id": "model.user_terms_of_service.is_valid.service_terms_id.app_error",
-    "translation": "Termo obrigatório em falta da propriedade do serviço: user_id."
+    "translation": "Termo obrigatório em falta da propriedade do serviço: service_terms_id."
   },
   {
     "id": "model.user_terms_of_service.is_valid.user_id.app_error",
@@ -4852,7 +4852,7 @@
   },
   {
     "id": "plugin_api.get_file_link.no_post.app_error",
-    "translation": "Não foi possível obter o link público para o arquivo. O arquivo deve ser anexado a uma publicão que pode ser lido pelo usuário atual."
+    "translation": "Não foi possível obter o link público para o arquivo. O arquivo deve ser anexado a uma publicação que pode ser lida."
   },
   {
     "id": "store.sql.convert_string_array",
@@ -5016,7 +5016,7 @@
   },
   {
     "id": "store.sql_channel.get_timezone.app_error",
-    "translation": "Não foi possível obter os membros do canal"
+    "translation": "Não foi possível obter o fuso horário dos membros do canal"
   },
   {
     "id": "store.sql_channel.get_unread.app_error",
@@ -6420,19 +6420,19 @@
   },
   {
     "id": "store.sql_user_terms_of_service.delete.app_error",
-    "translation": "Não foi possível carregar os termos de serviço."
+    "translation": "Não foi possível excluir os termos de serviço de usuário."
   },
   {
     "id": "store.sql_user_terms_of_service.get_by_user.app_error",
-    "translation": "Não foi possível carregar os termos de serviço."
+    "translation": "Não foi possível carregar os termos de serviço de usuário."
   },
   {
     "id": "store.sql_user_terms_of_service.get_by_user.no_rows.app_error",
-    "translation": "Nenhum termo de serviço encontrado."
+    "translation": "Nenhum termo de serviço de usuário encontrado."
   },
   {
     "id": "store.sql_user_terms_of_service.save.app_error",
-    "translation": "Não foi possível salvar os termos de serviço."
+    "translation": "Não foi possível salvar os termos de serviço de usuário."
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",

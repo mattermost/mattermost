@@ -5016,7 +5016,7 @@
   },
   {
     "id": "store.sql_channel.get_timezone.app_error",
-    "translation": "Am putut sa ma membrii canalului"
+    "translation": "Nu am putut obține de la membrii canalului fusuri orare"
   },
   {
     "id": "store.sql_channel.get_unread.app_error",
@@ -6420,19 +6420,19 @@
   },
   {
     "id": "store.sql_user_terms_of_service.delete.app_error",
-    "translation": "Imposibil de preluat condițiile de serviciu."
+    "translation": "Nu se pot șterge condițiile de utilizare ale utilizatorilor."
   },
   {
     "id": "store.sql_user_terms_of_service.get_by_user.app_error",
-    "translation": "Imposibil de preluat condițiile de serviciu."
+    "translation": "Nu se pot obține condițiile de utilizare ale utilizatorilor."
   },
   {
     "id": "store.sql_user_terms_of_service.get_by_user.no_rows.app_error",
-    "translation": "Nu au fost găsite condiții de serviciu."
+    "translation": "Nu au fost găsite termeni de utilizare pentru utilizatori."
   },
   {
     "id": "store.sql_user_terms_of_service.save.app_error",
-    "translation": "Imposibil de salvat termenii și condițiile."
+    "translation": "Nu pot fi salvate termenii și condițiile pentru utilizatori."
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",

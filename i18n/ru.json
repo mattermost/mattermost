@@ -5120,7 +5120,7 @@
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
-    "translation": "Вы не можете реагировать на архивный канал."
+    "translation": "Вы не можете редактировать архивный канал."
   },
   {
     "id": "store.sql_channel.save.commit_transaction.app_error",
@@ -5216,7 +5216,7 @@
   },
   {
     "id": "store.sql_channel.update.archived_channel.app_error",
-    "translation": "Вы не можете реагировать на архивный канал."
+    "translation": "Вы не можете редактировать архивный канал."
   },
   {
     "id": "store.sql_channel.update.commit_transaction.app_error",

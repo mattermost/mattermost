@@ -2412,7 +2412,7 @@
   },
   {
     "id": "api.webhook.create_outgoing.triggers.app_error",
-    "translation": "Entweder trigger_words oder channel_id müssen gesetzt sein"
+    "translation": "Entweder trigger_words oder channel_id müssen gesetzt sein."
   },
   {
     "id": "api.webhook.incoming.error",
@@ -3616,27 +3616,27 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed",
-    "translation": "Failed to decode base64 for trigger ID for interactive dialog."
+    "translation": "Fehler beim Dekodieren von base64 für Auslöse-ID für interaktiven Dialog."
   },
   {
     "id": "interactive_message.decode_trigger_id.expired",
-    "translation": "Trigger ID for interactive dialog is expired. Trigger IDs live for a maximum of {{.Seconds}} seconds."
+    "translation": "Auslöse-ID für interaktiven Dialog ist abgelaufen. Auslöse-IDs sind maximal {{.Seconds}} Sekunden aktiv."
   },
   {
     "id": "interactive_message.decode_trigger_id.missing_data",
-    "translation": "Trigger ID missing required data for interactive dialog."
+    "translation": "Der Auslöse-ID fehlen benötigte Daten für interaktiven Dialog."
   },
   {
     "id": "interactive_message.decode_trigger_id.signature_decode_failed",
-    "translation": "Failed to decode base64 signature of trigger ID for interactive dialog."
+    "translation": "Fehler beim Dekodieren von base64 der Auslöse-ID für interaktiven Dialog."
   },
   {
     "id": "interactive_message.decode_trigger_id.verify_signature_failed",
-    "translation": "Signature verification failed of trigger ID for interactive dialog."
+    "translation": "Signaturverifikation der Auslöse-ID für interaktiven Dialog fehlgeschlagen."
   },
   {
     "id": "interactive_message.generate_trigger_id.signing_failed",
-    "translation": "Failed to sign generated trigger ID for interactive dialog."
+    "translation": "Fehler bei der Signierung der generierten Auslöse-ID für interaktiven Dialog."
   },
   {
     "id": "jobs.do_job.batch_size.parse_error",
@@ -3780,7 +3780,7 @@
   },
   {
     "id": "model.channel_member.is_valid.ignore_channel_mentions_value.app_error",
-    "translation": "Invalid ignore channel mentions status"
+    "translation": "Ungültiger Status für ignorierte Kanalerwähnungen."
   },
   {
     "id": "model.channel_member.is_valid.notify_level.app_error",
@@ -4300,15 +4300,15 @@
   },
   {
     "id": "model.config.is_valid.tls_cert_file.app_error",
-    "translation": "Invalid value for TLS certificate file - Either use LetsEncrypt or set path to existing certificate file"
+    "translation": "Ungültiger Wert für TLS-Zertifikatsdatei - Entweder LetsEncrypt verwenden oder Pfad zu bestehender Zertifikatsdatei verwenden."
   },
   {
     "id": "model.config.is_valid.tls_key_file.app_error",
-    "translation": "Invalid value for TLS key file - Either use LetsEncrypt or set path to existing key file"
+    "translation": "Ungültiger Wert für TLS-Schlüsseldatei - Entweder LetsEncrypt verwenden oder Pfad zu bestehender Schlüsseldatei verwenden."
   },
   {
     "id": "model.config.is_valid.tls_overwrite_cipher.app_error",
-    "translation": "Invalid value passed for TLS overwrite cipher - Please refer to the documentation for valid values"
+    "translation": "Ungültiger Wert für TLS-Überschreibungs-Chiffre übergeben. Erfahren Sie mehr in der Dokumentation über gültige Werte."
   },
   {
     "id": "model.config.is_valid.webserver_security.app_error",
@@ -5016,7 +5016,7 @@
   },
   {
     "id": "store.sql_channel.get_timezone.app_error",
-    "translation": "Es konnten nicht alle Kanalmitglieder abgerufen werden"
+    "translation": "Es konnten nicht die Zeitzonen der Kanalmitglieder abgerufen werden."
   },
   {
     "id": "store.sql_channel.get_unread.app_error",
