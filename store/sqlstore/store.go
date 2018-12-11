@@ -59,6 +59,7 @@ type SqlStore interface {
 	RenameColumnIfExists(tableName string, oldColumnName string, newColumnName string, colType string) bool
 	GetMaxLengthOfColumnIfExists(tableName string, columnName string) string
 	AlterColumnTypeIfExists(tableName string, columnName string, mySqlColType string, postgresColType string) bool
+	AlterColumnDefaultIfExists(tableName string, columnName string, mySqlColDefault *string, postgresColDefault *string) bool
 	CreateUniqueIndexIfNotExists(indexName string, tableName string, columnName string) bool
 	CreateIndexIfNotExists(indexName string, tableName string, columnName string) bool
 	CreateCompositeIndexIfNotExists(indexName string, tableName string, columnNames []string) bool

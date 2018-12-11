@@ -14,7 +14,7 @@ import (
 	"net/smtp"
 	"time"
 
-	"gopkg.in/gomail.v2"
+	gomail "gopkg.in/mail.v2"
 
 	"net/http"
 

@@ -9,6 +9,9 @@ import (
 )
 
 func IsRetryableError(err error, retryTimeout bool) bool {
+	if err == nil {
+		return false
+	}
 	if err == io.EOF {
 		return true
 	}

@@ -8,5 +8,8 @@ import (
 )
 
 func TestVersion(t *testing.T) {
-	CheckCommand(t, "version")
+	th := Setup()
+	defer th.TearDown()
+
+	th.CheckCommand(t, "version")
 }

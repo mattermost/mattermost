@@ -209,15 +209,14 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var post *model.Post
-	var err *model.AppError
-	if post, err = c.App.GetSinglePost(c.Params.PostId); err != nil {
+	post, err := c.App.GetSinglePost(c.Params.PostId)
+	if err != nil {
 		c.Err = err
 		return
 	}
 
-	var channel *model.Channel
-	if channel, err = c.App.GetChannel(post.ChannelId); err != nil {
+	channel, err := c.App.GetChannel(post.ChannelId)
+	if err != nil {
 		c.Err = err
 		return
 	}
@@ -282,23 +281,20 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var list *model.PostList
-	var err *model.AppError
-	if list, err = c.App.GetPostThread(c.Params.PostId); err != nil {
+	list, err := c.App.GetPostThread(c.Params.PostId)
+	if err != nil {
 		c.Err = err
 		return
 	}
 
-	var post *model.Post
-	if val, ok := list.Posts[c.Params.PostId]; ok {
-		post = val
-	} else {
+	post, ok := list.Posts[c.Params.PostId]
+	if !ok {
 		c.SetInvalidUrlParam("post_id")
 		return
 	}
 
-	var channel *model.Channel
-	if channel, err = c.App.GetChannel(post.ChannelId); err != nil {
+	channel, err := c.App.GetChannel(post.ChannelId)
+	if err != nil {
 		c.Err = err
 		return
 	}
