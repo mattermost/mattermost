@@ -530,6 +530,20 @@ func TestGetExplicitMentions(t *testing.T) {
 				HereMentioned: true,
 			},
 		},
+		"Name on keywords is a prefix of a mention": {
+			Message:  "@other @test-two",
+			Keywords: map[string][]string{"@test": {model.NewId()}},
+			Expected: &ExplicitMentions{
+				OtherPotentialMentions: []string{"other", "test-two"},
+			},
+		},
+		"Name on mentions is a prefix of other mention": {
+			Message:  "@other-one @other @other-two",
+			Keywords: nil,
+			Expected: &ExplicitMentions{
+				OtherPotentialMentions: []string{"other-one", "other", "other-two"},
+			},
+		},
 	} {
 		t.Run(name, func(t *testing.T) {
 
