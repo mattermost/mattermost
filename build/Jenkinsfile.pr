@@ -98,6 +98,7 @@ pipeline {
                 CI_MINIO_HOST = "minio"
                 CI_INBUCKET_PORT = "10080"
                 CI_MINIO_PORT = "9000"
+                CI_INBUCKET_SMTP_PORT = "10025"
                 CI_LDAP_HOST = "openldap"
                 IS_CI = true
             }
@@ -228,6 +229,7 @@ pipeline {
         always {
             dir('src/github.com/mattermost/mattermost-server') {
                 junit allowEmptyResults: true, healthScaleFactor: 0.0, testResults: 'report*.xml'
+                archiveArtifacts 'report*.xml'
             }
             dir('src/github.com/mattermost/mattermost-server/build') {
                 ansiColor('xterm') {
