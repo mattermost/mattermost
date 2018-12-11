@@ -486,7 +486,7 @@ func GetExplicitMentions(post *model.Post, keywords map[string][]string) *Explic
 
 			foundWithoutSuffix := false
 			wordWithoutSuffix := word
-			for strings.LastIndexAny(wordWithoutSuffix, ".-:_") != -1 {
+			for len(wordWithoutSuffix) > 0 && strings.LastIndexAny(wordWithoutSuffix, ".-:_") == (len(wordWithoutSuffix)-1) {
 				wordWithoutSuffix = wordWithoutSuffix[0 : len(wordWithoutSuffix)-1]
 
 				if checkForMention(wordWithoutSuffix) {
