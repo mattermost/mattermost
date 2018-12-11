@@ -665,3 +665,27 @@ func (m *Memberlist) hasShutdown() bool {
 func (m *Memberlist) hasLeft() bool {
 	return atomic.LoadInt32(&m.leave) == 1
 }
+
+func (m *Memberlist) getNodeState(addr string) nodeStateType {
+	m.nodeLock.RLock()
+	defer m.nodeLock.RUnlock()
+
+	n := m.nodeMap[addr]
+	return n.State
+}
+
+func (m *Memberlist) getNodeStateChange(addr string) time.Time {
+	m.nodeLock.RLock()
+	defer m.nodeLock.RUnlock()
+
+	n := m.nodeMap[addr]
+	return n.StateChange
+}
+
+func (m *Memberlist) changeNode(addr string, f func(*nodeState)) {
+	m.nodeLock.Lock()
+	defer m.nodeLock.Unlock()
+
+	n := m.nodeMap[addr]
+	f(n)
+}

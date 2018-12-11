@@ -27,6 +27,26 @@ type limitedBroadcast struct {
 	transmits int // Number of transmissions attempted.
 	b         Broadcast
 }
+
+// for testing; emits in transmit order if reverse=false
+func (q *TransmitLimitedQueue) orderedView(reverse bool) []*limitedBroadcast {
+	q.Lock()
+	defer q.Unlock()
+
+	out := make([]*limitedBroadcast, 0, len(q.bcQueue))
+	if reverse {
+		for i := 0; i < len(q.bcQueue); i++ {
+			out = append(out, q.bcQueue[i])
+		}
+	} else {
+		for i := len(q.bcQueue) - 1; i >= 0; i-- {
+			out = append(out, q.bcQueue[i])
+		}
+	}
+
+	return out
+}
+
 type limitedBroadcasts []*limitedBroadcast
 
 // Broadcast is something that can be broadcasted via gossip to

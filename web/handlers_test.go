@@ -11,6 +11,7 @@ import (
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func handlerForHTTPErrors(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -18,7 +19,8 @@ func handlerForHTTPErrors(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func TestHandlerServeHTTPErrors(t *testing.T) {
-	s, err := app.NewServer(app.StoreOverride(testStore), app.DisableConfigWatch)
+	s, err := app.NewServer(app.StoreOverride(mainHelper.Store), app.DisableConfigWatch)
+	require.Nil(t, err)
 	defer s.Shutdown()
 
 	web := New(s, s.AppOptions, s.Router)
@@ -61,7 +63,8 @@ func handlerForHTTPSecureTransport(c *Context, w http.ResponseWriter, r *http.Re
 }
 
 func TestHandlerServeHTTPSecureTransport(t *testing.T) {
-	s, err := app.NewServer(app.StoreOverride(testStore), app.DisableConfigWatch)
+	s, err := app.NewServer(app.StoreOverride(mainHelper.Store), app.DisableConfigWatch)
+	require.Nil(t, err)
 	defer s.Shutdown()
 
 	a := s.FakeApp()

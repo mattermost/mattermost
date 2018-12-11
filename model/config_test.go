@@ -512,7 +512,7 @@ func TestDisplaySettingsIsValidCustomUrlSchemes(t *testing.T) {
 			ds := &DisplaySettings{}
 			ds.SetDefaults()
 
-			ds.CustomUrlSchemes = &test.value
+			ds.CustomUrlSchemes = test.value
 
 			if err := ds.isValid(); err != nil && test.valid {
 				t.Error("Expected CustomUrlSchemes to be valid but got error:", err)

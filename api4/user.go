@@ -113,10 +113,8 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// No permission check required
 
-	var user *model.User
-	var err *model.AppError
-
-	if user, err = c.App.GetUser(c.Params.UserId); err != nil {
+	user, err := c.App.GetUser(c.Params.UserId)
+	if err != nil {
 		c.Err = err
 		return
 	}
@@ -145,10 +143,8 @@ func getUserByUsername(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// No permission check required
 
-	var user *model.User
-	var err *model.AppError
-
-	if user, err = c.App.GetUserByUsername(c.Params.Username); err != nil {
+	user, err := c.App.GetUserByUsername(c.Params.Username)
+	if err != nil {
 		c.Err = err
 		return
 	}
@@ -176,10 +172,8 @@ func getUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// No permission check required
 
-	var user *model.User
-	var err *model.AppError
-
-	if user, err = c.App.GetUserByEmail(c.Params.Email); err != nil {
+	user, err := c.App.GetUserByEmail(c.Params.Email)
+	if err != nil {
 		c.Err = err
 		return
 	}
@@ -247,7 +241,6 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var img []byte
 	img, readFailed, err := c.App.GetProfileImage(user)
 	if err != nil {
 		c.Err = err
@@ -294,7 +287,6 @@ func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	m := r.MultipartForm
-
 	imageArray, ok := m.File["image"]
 	if !ok {
 		c.Err = model.NewAppError("uploadProfileImage", "api.user.upload_profile_user.no_file.app_error", nil, "", http.StatusBadRequest)
@@ -307,7 +299,6 @@ func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	imageData := imageArray[0]
-
 	if err := c.App.SetProfileImage(c.Params.UserId, imageData); err != nil {
 		c.Err = err
 		return
@@ -585,9 +576,6 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		limit = model.USER_SEARCH_DEFAULT_LIMIT
 	}
 
-	autocomplete := new(model.UserAutocomplete)
-	var err *model.AppError
-
 	options := &model.UserSearchOptions{
 		IsAdmin: c.IsSystemAdmin(),
 		// Never autocomplete on emails.
@@ -614,6 +602,8 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+
+	var autocomplete model.UserAutocomplete
 
 	if len(channelId) > 0 {
 		// Applying the provided teamId here is useful for DMs and GMs which don't belong
@@ -643,11 +633,6 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		autocomplete.Users = result
-	}
-
-	if err != nil {
-		c.Err = err
-		return
 	}
 
 	w.Write([]byte((autocomplete.ToJson())))
@@ -760,15 +745,13 @@ func deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var user *model.User
-	var err *model.AppError
-
-	if user, err = c.App.GetUser(userId); err != nil {
+	user, err := c.App.GetUser(userId)
+	if err != nil {
 		c.Err = err
 		return
 	}
 
-	if _, err := c.App.UpdateActive(user, false); err != nil {
+	if _, err = c.App.UpdateActive(user, false); err != nil {
 		c.Err = err
 		return
 	}
@@ -832,15 +815,13 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var user *model.User
-	var err *model.AppError
-
-	if user, err = c.App.GetUser(c.Params.UserId); err != nil {
+	user, err := c.App.GetUser(c.Params.UserId)
+	if err != nil {
 		c.Err = err
 		return
 	}
 
-	if _, err := c.App.UpdateActive(user, active); err != nil {
+	if _, err = c.App.UpdateActive(user, active); err != nil {
 		c.Err = err
 	}
 
@@ -925,7 +906,6 @@ func updateUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	props := model.StringInterfaceFromJson(r.Body)
-
 	activate, ok := props["activate"].(bool)
 	if !ok {
 		c.SetInvalidParam("activate")
@@ -988,7 +968,6 @@ func updatePassword(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	props := model.MapFromJson(r.Body)
-
 	newPassword := props["new_password"]
 
 	c.LogAudit("attempted")
@@ -1089,17 +1068,18 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 		if license := c.App.License(); license == nil || !*license.Features.SAML {
 			c.Err = model.NewAppError("ClientSideCertNotAllowed", "api.user.login.client_side_cert.license.app_error", nil, "", http.StatusBadRequest)
 			return
-		} else {
-			certPem, certSubject, certEmail := c.App.CheckForClienSideCert(r)
-			mlog.Debug("Client Cert", mlog.String("cert_subject", certSubject), mlog.String("cert_email", certEmail))
+		}
+		certPem, certSubject, certEmail := c.App.CheckForClienSideCert(r)
+		mlog.Debug("Client Cert", mlog.String("cert_subject", certSubject), mlog.String("cert_email", certEmail))
 
-			if len(certPem) == 0 || len(certEmail) == 0 {
-				c.Err = model.NewAppError("ClientSideCertMissing", "api.user.login.client_side_cert.certificate.app_error", nil, "", http.StatusBadRequest)
-				return
-			} else if *c.App.Config().ExperimentalSettings.ClientSideCertCheck == model.CLIENT_SIDE_CERT_CHECK_PRIMARY_AUTH {
-				loginId = certEmail
-				password = "certificate"
-			}
+		if len(certPem) == 0 || len(certEmail) == 0 {
+			c.Err = model.NewAppError("ClientSideCertMissing", "api.user.login.client_side_cert.certificate.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+
+		if *c.App.Config().ExperimentalSettings.ClientSideCertCheck == model.CLIENT_SIDE_CERT_CHECK_PRIMARY_AUTH {
+			loginId = certEmail
+			password = "certificate"
 		}
 	}
 
@@ -1114,8 +1094,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAuditWithUserId(user.Id, "authenticated")
 
-	var session *model.Session
-	session, err = c.App.DoLogin(w, r, user, deviceId)
+	session, err := c.App.DoLogin(w, r, user, deviceId)
 	if err != nil {
 		c.Err = err
 		return
@@ -1184,15 +1163,13 @@ func revokeSession(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	props := model.MapFromJson(r.Body)
 	sessionId := props["session_id"]
-
 	if sessionId == "" {
 		c.SetInvalidParam("session_id")
 		return
 	}
 
-	var session *model.Session
-	var err *model.AppError
-	if session, err = c.App.GetSessionById(sessionId); err != nil {
+	session, err := c.App.GetSessionById(sessionId)
+	if err != nil {
 		c.Err = err
 		return
 	}
@@ -1331,8 +1308,7 @@ func sendVerificationEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = c.App.SendEmailVerification(user)
-	if err != nil {
+	if err = c.App.SendEmailVerification(user); err != nil {
 		// Don't want to leak whether the email is valid or not
 		mlog.Error(err.Error())
 		ReturnStatusOK(w)
@@ -1417,8 +1393,7 @@ func createUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	accessToken.UserId = c.Params.UserId
 	accessToken.Token = ""
 
-	var err *model.AppError
-	accessToken, err = c.App.CreateUserAccessToken(accessToken)
+	accessToken, err := c.App.CreateUserAccessToken(accessToken)
 	if err != nil {
 		c.Err = err
 		return
@@ -1443,6 +1418,7 @@ func searchUserAccessTokens(c *Context, w http.ResponseWriter, r *http.Request) 
 		c.SetInvalidParam("term")
 		return
 	}
+
 	accessTokens, err := c.App.SearchUserAccessTokens(props.Term)
 	if err != nil {
 		c.Err = err
@@ -1519,8 +1495,8 @@ func getUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func revokeUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
-	tokenId := props["token_id"]
 
+	tokenId := props["token_id"]
 	if tokenId == "" {
 		c.SetInvalidParam("token_id")
 	}
@@ -1543,8 +1519,7 @@ func revokeUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = c.App.RevokeUserAccessToken(accessToken)
-	if err != nil {
+	if err = c.App.RevokeUserAccessToken(accessToken); err != nil {
 		c.Err = err
 		return
 	}
@@ -1580,8 +1555,7 @@ func disableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	err = c.App.DisableUserAccessToken(accessToken)
-	if err != nil {
+	if err = c.App.DisableUserAccessToken(accessToken); err != nil {
 		c.Err = err
 		return
 	}
@@ -1592,8 +1566,8 @@ func disableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) 
 
 func enableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	props := model.MapFromJson(r.Body)
-	tokenId := props["token_id"]
 
+	tokenId := props["token_id"]
 	if tokenId == "" {
 		c.SetInvalidParam("token_id")
 	}
@@ -1617,8 +1591,7 @@ func enableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = c.App.EnableUserAccessToken(accessToken)
-	if err != nil {
+	if err = c.App.EnableUserAccessToken(accessToken); err != nil {
 		c.Err = err
 		return
 	}
@@ -1650,10 +1623,10 @@ func saveUserTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) 
 
 func getUserTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
 	userId := c.App.Session.UserId
-	if result, err := c.App.GetUserTermsOfService(userId); err != nil {
+	result, err := c.App.GetUserTermsOfService(userId)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.Write([]byte(result.ToJson()))
 	}
+	w.Write([]byte(result.ToJson()))
 }

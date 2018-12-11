@@ -20,6 +20,8 @@ Package ini provides INI file read and write functionality in Go.
 
 ## Installation
 
+The minimum requirement of Go is **1.6**.
+
 To use a tagged revision:
 
 ```sh

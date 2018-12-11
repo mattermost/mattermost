@@ -85,8 +85,9 @@ func main() {
 		} else {
 			log.Fatalln(err)
 		}
+	} else {
+		log.Printf("Successfully created %s\n", bucketName)
 	}
-	log.Printf("Successfully created %s\n", bucketName)
 
 	// Upload the zip file
 	objectName := "golden-oldies.zip"

@@ -52,16 +52,8 @@
 
 [[constraint]]
   name = "github.com/hashicorp/go-plugin"
-  revision = "a4620f9913d19f03a6bf19b2f304daaaf83ea130"
-
-[[constraint]]
-  name = "github.com/blang/semver"
-  version = "~3.5.0"
+  revision = "54b6ff97d8180dbbd93d2010dd4a92c86f604bb8"
 
 [prune]
   go-tests = true
   unused-packages = true
-
-[[constraint]]
-  name = "github.com/sirupsen/logrus"
-  version = "1.2.0"

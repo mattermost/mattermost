@@ -100,7 +100,7 @@ func cleanComment(in []byte) ([]byte, bool) {
 	return in[i:], true
 }
 
-func readKeyName(in []byte) (string, int, error) {
+func readKeyName(delimiters string, in []byte) (string, int, error) {
 	line := string(in)
 
 	// Check if key name surrounded by quotes.
@@ -127,7 +127,7 @@ func readKeyName(in []byte) (string, int, error) {
 		pos += startIdx
 
 		// Find key-value delimiter
-		i := strings.IndexAny(line[pos+startIdx:], "=:")
+		i := strings.IndexAny(line[pos+startIdx:], delimiters)
 		if i < 0 {
 			return "", -1, ErrDelimiterNotFound{line}
 		}
@@ -135,7 +135,7 @@ func readKeyName(in []byte) (string, int, error) {
 		return strings.TrimSpace(line[startIdx:pos]), endIdx + startIdx + 1, nil
 	}
 
-	endIdx = strings.IndexAny(line, "=:")
+	endIdx = strings.IndexAny(line, delimiters)
 	if endIdx < 0 {
 		return "", -1, ErrDelimiterNotFound{line}
 	}
@@ -273,7 +273,6 @@ func (p *parser) readValue(in []byte,
 		parserBufferPeekResult, _ := p.buf.Peek(parserBufferSize)
 		peekBuffer := bytes.NewBuffer(parserBufferPeekResult)
 
-		identSize := -1
 		val := line
 
 		for {
@@ -290,12 +289,11 @@ func (p *parser) readValue(in []byte,
 				return val, nil
 			}
 
-			currentIdentSize := len(peekMatches[1])
 			// NOTE: Return if not a python-ini multi-line value.
-			if currentIdentSize < 0 {
+			currentIdentSize := len(peekMatches[1])
+			if currentIdentSize <= 0 {
 				return val, nil
 			}
-			identSize = currentIdentSize
 
 			// NOTE: Just advance the parser reader (buffer) in-sync with the peek buffer.
 			_, err := p.readUntil('\n')
@@ -304,12 +302,6 @@ func (p *parser) readValue(in []byte,
 			}
 
 			val += fmt.Sprintf("\n%s", peekMatches[2])
-		}
-
-		// NOTE: If it was a Python multi-line value,
-		// return the appended value.
-		if identSize > 0 {
-			return val, nil
 		}
 	}
 
@@ -428,7 +420,7 @@ func (f *File) parse(reader io.Reader) (err error) {
 			continue
 		}
 
-		kname, offset, err := readKeyName(line)
+		kname, offset, err := readKeyName(f.options.KeyValueDelimiters, line)
 		if err != nil {
 			// Treat as boolean key when desired, and whole line is key name.
 			if IsErrDelimiterNotFound(err) {

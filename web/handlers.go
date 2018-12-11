@@ -56,6 +56,8 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.App.T, _ = utils.GetTranslationsAndLocale(w, r)
 	c.App.RequestId = model.NewId()
 	c.App.IpAddress = utils.GetIpAddress(r)
+	c.App.UserAgent = r.UserAgent()
+	c.App.AcceptLanguage = r.Header.Get("Accept-Language")
 	c.Params = ParamsFromRequest(r)
 	c.App.Path = r.URL.Path
 	c.Log = c.App.Log
