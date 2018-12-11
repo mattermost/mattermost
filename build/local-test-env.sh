@@ -39,7 +39,7 @@ up()
    -e GOPATH="/go" \
    -e TEST_DATABASE_MYSQL_DSN="mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8\u0026readTimeout=30s\u0026writeTimeout=30s" \
    -e TEST_DATABASE_POSTGRESQL_DSN="postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10" \
-   -e TEST_DATABASE_MYSQL_ROOT_PASSWD="mostest"
+   -e TEST_DATABASE_MYSQL_ROOT_PASSWD="mostest" \
    -e CI_INBUCKET_HOST="inbucket" \
    -e CI_MINIO_HOST="minio" \
    -e CI_INBUCKET_PORT="10080" \
