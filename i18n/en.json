@@ -3703,8 +3703,8 @@
     "translation": "Error saving the MFA secret"
   },
   {
-    "id": "mfa.license_disable.app_error",
-    "translation": "Your license does not support using multi-factor authentication"
+    "id": "mfa.mfa_disabled.app_error",
+    "translation": "Multi-factor authentication has been disabled on this server."
   },
   {
     "id": "mfa.validate_token.authenticate.app_error",

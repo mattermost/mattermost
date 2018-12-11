@@ -32,7 +32,7 @@ func New(configService configservice.ConfigService, store store.Store) Mfa {
 
 func (m *Mfa) checkConfig() *model.AppError {
 	if !*m.ConfigService.Config().ServiceSettings.EnableMultifactorAuthentication {
-		return model.NewAppError("checkConfig", "mfa.license_disable.app_error", nil, "", http.StatusNotImplemented)
+		return model.NewAppError("checkConfig", "mfa.mfa_disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	return nil
