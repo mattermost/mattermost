@@ -44,6 +44,7 @@ up()
    -e CI_MINIO_HOST="minio" \
    -e CI_INBUCKET_PORT="10080" \
    -e CI_MINIO_PORT="9000" \
+   -e CI_INBUCKET_SMTP_PORT="10025" \
    -e CI_LDAP_HOST="openldap" \
    -e IS_CI=true \
    mattermost/mattermost-build-server:dec-7-2018 /bin/bash
