@@ -699,6 +699,10 @@ func (ss *SqlSupplier) AlterColumnDefaultIfExists(tableName string, columnName s
 		tableName = strings.ToLower(tableName)
 		columnName = strings.ToLower(columnName)
 		defaultValue = *postgresColDefault
+	} else if ss.DriverName() == model.DATABASE_DRIVER_SQLITE {
+		// SQLite doesn't support altering column defaults, but we don't use this in
+		// production so just ignore.
+		return true
 	} else {
 		mlog.Critical("Failed to alter column default because of missing driver")
 		time.Sleep(time.Second)
