@@ -3783,8 +3783,23 @@ func (c *Client4) GetChannelsForScheme(schemeId string, page int, perPage int) (
 // UploadPlugin takes an io.Reader stream pointing to the contents of a .tar.gz plugin.
 // WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
 func (c *Client4) UploadPlugin(file io.Reader) (*Manifest, *Response) {
+	return c.uploadPlugin(file, false)
+}
+
+func (c *Client4) UploadPluginForced(file io.Reader) (*Manifest, *Response) {
+	return c.uploadPlugin(file, true)
+}
+
+func (c *Client4) uploadPlugin(file io.Reader, force bool) (*Manifest, *Response) {
 	body := new(bytes.Buffer)
 	writer := multipart.NewWriter(body)
+
+	if force {
+		err := writer.WriteField("force", "true")
+		if err != nil {
+			return nil, &Response{Error: NewAppError("UploadPlugin", "model.client.writer.app_error", nil, err.Error(), 0)}
+		}
+	}
 
 	part, err := writer.CreateFormFile("plugin", "plugin.tar.gz")
 	if err != nil {

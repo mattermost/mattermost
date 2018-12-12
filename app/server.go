@@ -425,9 +425,6 @@ func (s *Server) Shutdown() error {
 
 	s.DisableConfigWatch()
 
-	if s.HTTPService != nil {
-		s.HTTPService.Close()
-	}
 	mlog.Info("Server stopped")
 	return nil
 }

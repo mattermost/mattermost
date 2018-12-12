@@ -1416,7 +1416,17 @@ func TestViewChannel(t *testing.T) {
 
 	view.PrevChannelId = "junk"
 	_, resp = Client.ViewChannel(th.BasicUser.Id, view)
-	CheckNoError(t, resp)
+	CheckBadRequestStatus(t, resp)
+
+	view.PrevChannelId = ""
+	view.ChannelId = "junk"
+	_, resp = Client.ViewChannel(th.BasicUser.Id, view)
+	CheckBadRequestStatus(t, resp)
+
+	view.ChannelId = "correctlysizedjunkdddfdfdf"
+	_, resp = Client.ViewChannel(th.BasicUser.Id, view)
+	CheckBadRequestStatus(t, resp)
+	view.ChannelId = th.BasicChannel.Id
 
 	member, resp := Client.GetChannelMember(th.BasicChannel.Id, th.BasicUser.Id, "")
 	CheckNoError(t, resp)
