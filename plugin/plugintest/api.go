@@ -2170,6 +2170,22 @@ func (_m *API) UpdateUser(user *model.User) (*model.User, *model.AppError) {
 	return r0, r1
 }
 
+// UpdateUserActive provides a mock function with given fields: userId, active
+func (_m *API) UpdateUserActive(userId string, active bool) *model.AppError {
+	ret := _m.Called(userId, active)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, bool) *model.AppError); ok {
+		r0 = rf(userId, active)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // UpdateUserStatus provides a mock function with given fields: userId, status
 func (_m *API) UpdateUserStatus(userId string, status string) (*model.Status, *model.AppError) {
 	ret := _m.Called(userId, status)

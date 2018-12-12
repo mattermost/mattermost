@@ -1056,6 +1056,19 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 	return rusers[0], nil
 }
 
+func (a *App) UpdateUserActive(userId string, active bool) *model.AppError {
+	user, err := a.GetUser(userId)
+
+	if err != nil {
+		return err
+	}
+	if _, err = a.UpdateActive(user, active); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (a *App) UpdateUserNotifyProps(userId string, props map[string]string) (*model.User, *model.AppError) {
 	user, err := a.GetUser(userId)
 	if err != nil {

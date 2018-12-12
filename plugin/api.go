@@ -102,6 +102,11 @@ type API interface {
 	// The status parameter can be: "online", "away", "dnd", or "offline".
 	UpdateUserStatus(userId, status string) (*model.Status, *model.AppError)
 
+	// UpdateUserActive deactivates or reactivates an user.
+	//
+	// Minimum server version: 5.8
+	UpdateUserActive(userId string, active bool) *model.AppError
+
 	// GetUsersInChannel returns a page of users in a channel. Page counting starts at 0.
 	// The sortBy parameter can be: "username" or "status".
 	//
