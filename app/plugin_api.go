@@ -195,6 +195,10 @@ func (api *PluginAPI) UpdateUser(user *model.User) (*model.User, *model.AppError
 	return api.app.UpdateUser(user, true)
 }
 
+func (api *PluginAPI) UpdateUserActive(userId string, active bool) *model.AppError {
+	return api.app.UpdateUserActive(userId, active)
+}
+
 func (api *PluginAPI) GetUserStatus(userId string) (*model.Status, *model.AppError) {
 	return api.app.GetStatus(userId)
 }
