@@ -34,6 +34,7 @@ func (s *SqlSupplier) ReactionSave(ctx context.Context, reaction *model.Reaction
 	if transaction, err := s.GetMaster().Begin(); err != nil {
 		result.Err = model.NewAppError("SqlReactionStore.Save", "store.sql_reaction.save.begin.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else {
+		defer transaction.Rollback()
 		err := saveReactionAndUpdatePost(transaction, reaction)
 
 		if err != nil {
@@ -64,6 +65,7 @@ func (s *SqlSupplier) ReactionDelete(ctx context.Context, reaction *model.Reacti
 	if transaction, err := s.GetMaster().Begin(); err != nil {
 		result.Err = model.NewAppError("SqlReactionStore.Delete", "store.sql_reaction.delete.begin.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else {
+		defer transaction.Rollback()
 		err := deleteReactionAndUpdatePost(transaction, reaction)
 
 		if err != nil {

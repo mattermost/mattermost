@@ -38,6 +38,7 @@ func (s *SqlSupplier) SchemeSave(ctx context.Context, scheme *model.Scheme, hint
 		if transaction, err := s.GetMaster().Begin(); err != nil {
 			result.Err = model.NewAppError("SqlSchemeStore.SaveScheme", "store.sql_scheme.save.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
+			defer transaction.Rollback()
 			result = s.createScheme(ctx, scheme, transaction, hints...)
 
 			if result.Err != nil {

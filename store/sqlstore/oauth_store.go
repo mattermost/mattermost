@@ -164,6 +164,7 @@ func (as SqlOAuthStore) DeleteApp(id string) store.StoreChannel {
 		if err != nil {
 			result.Err = model.NewAppError("SqlOAuthStore.DeleteApp", "store.sql_oauth.delete.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
+			defer transaction.Rollback()
 			if extrasResult := as.deleteApp(transaction, id); extrasResult.Err != nil {
 				*result = extrasResult
 			}

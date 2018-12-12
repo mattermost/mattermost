@@ -778,6 +778,7 @@ func (s SqlTeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) s
 			result.Err = model.NewAppError("SqlTeamStore.MigrateTeamMembers", "store.sql_team.migrate_team_members.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		defer transaction.Rollback()
 
 		var teamMembers []teamMember
 		if _, err := transaction.Select(&teamMembers, "SELECT * from TeamMembers WHERE (TeamId, UserId) > (:FromTeamId, :FromUserId) ORDER BY TeamId, UserId LIMIT 100", map[string]interface{}{"FromTeamId": fromTeamId, "FromUserId": fromUserId}); err != nil {
@@ -787,7 +788,6 @@ func (s SqlTeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) s
 
 		if len(teamMembers) == 0 {
 			// No more team members in query result means that the migration has finished.
-			transaction.Rollback()
 			return
 		}
 
@@ -860,6 +860,7 @@ func (s SqlTeamStore) ClearAllCustomRoleAssignments() store.StoreChannel {
 				result.Err = model.NewAppError("SqlTeamStore.ClearAllCustomRoleAssignments", "store.sql_team.clear_all_custom_role_assignments.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 				return
 			}
+			defer transaction.Rollback()
 
 			var teamMembers []*teamMember
 			if _, err := transaction.Select(&teamMembers, "SELECT * from TeamMembers WHERE (TeamId, UserId) > (:TeamId, :UserId) ORDER BY TeamId, UserId LIMIT 1000", map[string]interface{}{"TeamId": lastTeamId, "UserId": lastUserId}); err != nil {
@@ -872,7 +873,6 @@ func (s SqlTeamStore) ClearAllCustomRoleAssignments() store.StoreChannel {
 			}
 
 			if len(teamMembers) == 0 {
-				transaction.Rollback()
 				break
 			}
 

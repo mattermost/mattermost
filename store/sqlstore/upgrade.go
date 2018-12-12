@@ -168,14 +168,17 @@ func UpgradeDatabaseToVersion33(sqlStore SqlStore) {
 			if err != nil {
 				themeMigrationFailed(err)
 			}
+			defer transaction.Rollback()
 
 			// increase size of Value column of Preferences table to match the size of the ThemeProps column
 			if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 				if _, err := transaction.Exec("ALTER TABLE Preferences ALTER COLUMN Value TYPE varchar(2000)"); err != nil {
+					transaction.Rollback()
 					themeMigrationFailed(err)
 				}
 			} else if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
 				if _, err := transaction.Exec("ALTER TABLE Preferences MODIFY Value text"); err != nil {
+					transaction.Rollback()
 					themeMigrationFailed(err)
 				}
 			}
@@ -190,15 +193,18 @@ func UpgradeDatabaseToVersion33(sqlStore SqlStore) {
 					Users
 				WHERE
 					Users.ThemeProps != 'null'`, params); err != nil {
+				transaction.Rollback()
 				themeMigrationFailed(err)
 			}
 
 			// delete old data
 			if _, err := transaction.Exec("ALTER TABLE Users DROP COLUMN ThemeProps"); err != nil {
+				transaction.Rollback()
 				themeMigrationFailed(err)
 			}
 
 			if err := transaction.Commit(); err != nil {
+				transaction.Rollback()
 				themeMigrationFailed(err)
 			}
 

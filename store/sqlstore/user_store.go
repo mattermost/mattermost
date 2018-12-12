@@ -1314,6 +1314,7 @@ func (us SqlUserStore) ClearAllCustomRoleAssignments() store.StoreChannel {
 				result.Err = model.NewAppError("SqlUserStore.ClearAllCustomRoleAssignments", "store.sql_user.clear_all_custom_role_assignments.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 				return
 			}
+			defer transaction.Rollback()
 
 			var users []*model.User
 			if _, err := transaction.Select(&users, "SELECT * from Users WHERE Id > :Id ORDER BY Id LIMIT 1000", map[string]interface{}{"Id": lastUserId}); err != nil {
@@ -1326,7 +1327,6 @@ func (us SqlUserStore) ClearAllCustomRoleAssignments() store.StoreChannel {
 			}
 
 			if len(users) == 0 {
-				transaction.Rollback()
 				break
 			}
 

@@ -61,6 +61,7 @@ func (s SqlPreferenceStore) Save(preferences *model.Preferences) store.StoreChan
 		if err != nil {
 			result.Err = model.NewAppError("SqlPreferenceStore.Save", "store.sql_preference.save.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
+			defer transaction.Rollback()
 			for _, preference := range *preferences {
 				if upsertResult := s.save(transaction, &preference); upsertResult.Err != nil {
 					*result = upsertResult

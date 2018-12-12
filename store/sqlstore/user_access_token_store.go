@@ -57,6 +57,7 @@ func (s SqlUserAccessTokenStore) Delete(tokenId string) store.StoreChannel {
 		if err != nil {
 			result.Err = model.NewAppError("SqlUserAccessTokenStore.Delete", "store.sql_user_access_token.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
+			defer transaction.Rollback()
 			if extrasResult := s.deleteSessionsAndTokensById(transaction, tokenId); extrasResult.Err != nil {
 				*result = extrasResult
 			}
@@ -109,6 +110,7 @@ func (s SqlUserAccessTokenStore) DeleteAllForUser(userId string) store.StoreChan
 		if err != nil {
 			result.Err = model.NewAppError("SqlUserAccessTokenStore.DeleteAllForUser", "store.sql_user_access_token.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
+			defer transaction.Rollback()
 			if extrasResult := s.deleteSessionsandTokensByUser(transaction, userId); extrasResult.Err != nil {
 				*result = extrasResult
 			}
@@ -247,6 +249,7 @@ func (s SqlUserAccessTokenStore) UpdateTokenDisable(tokenId string) store.StoreC
 		if err != nil {
 			result.Err = model.NewAppError("SqlUserAccessTokenStore.UpdateTokenDisable", "store.sql_user_access_token.update_token_disable.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
+			defer transaction.Rollback()
 			if extrasResult := s.deleteSessionsAndDisableToken(transaction, tokenId); extrasResult.Err != nil {
 				*result = extrasResult
 			}
