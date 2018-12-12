@@ -339,9 +339,8 @@ func TestPermanentDeleteTeam(t *testing.T) {
 		t.Fatal("unable to get new command")
 	}
 
-	if err := th.App.PermanentDeleteTeam(team); err != nil {
-		t.Fatal(err.Error())
-	}
+	err = th.App.PermanentDeleteTeam(team)
+	require.Nil(t, err)
 
 	if command, err = th.App.GetCommand(command.Id); command != nil || err == nil {
 		t.Fatal("command wasn't deleted")

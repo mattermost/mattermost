@@ -34,7 +34,7 @@ func (a *App) CreateDefaultChannels(teamId string) ([]*model.Channel, *model.App
 }
 
 func (a *App) JoinDefaultChannels(teamId string, user *model.User, shouldBeAdmin bool, userRequestorId string) *model.AppError {
-	var err *model.AppError = nil
+	var returnErr *model.AppError
 
 	var requestor *model.User
 	if userRequestorId != "" {
@@ -61,7 +61,7 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, shouldBeAdmin
 
 	for _, channelName := range defaultChannelList {
 		if result := <-a.Srv.Store.Channel().GetByName(teamId, channelName, true); result.Err != nil {
-			err = result.Err
+			returnErr = result.Err
 		} else {
 
 			channel := result.Data.(*model.Channel)
@@ -79,10 +79,10 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, shouldBeAdmin
 			}
 
 			if cmResult := <-a.Srv.Store.Channel().SaveMember(cm); cmResult.Err != nil {
-				err = cmResult.Err
+				returnErr = cmResult.Err
 			}
-			if result := <-a.Srv.Store.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); result.Err != nil {
-				mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", result.Err))
+			if resultEvent := <-a.Srv.Store.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); resultEvent.Err != nil {
+				mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", resultEvent.Err))
 			}
 
 			if *a.Config().ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages {
@@ -113,7 +113,7 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, shouldBeAdmin
 		}
 	}
 
-	return err
+	return returnErr
 }
 
 func (a *App) CreateChannelWithUser(channel *model.Channel, userId string) (*model.Channel, *model.AppError) {
@@ -517,19 +517,19 @@ func (a *App) PatchChannel(channel *model.Channel, patch *model.ChannelPatch, us
 	}
 
 	if oldChannelDisplayName != channel.DisplayName {
-		if err := a.PostUpdateChannelDisplayNameMessage(userId, channel, oldChannelDisplayName, channel.DisplayName); err != nil {
+		if err = a.PostUpdateChannelDisplayNameMessage(userId, channel, oldChannelDisplayName, channel.DisplayName); err != nil {
 			mlog.Error(err.Error())
 		}
 	}
 
 	if channel.Header != oldChannelHeader {
-		if err := a.PostUpdateChannelHeaderMessage(userId, channel, oldChannelHeader, channel.Header); err != nil {
+		if err = a.PostUpdateChannelHeaderMessage(userId, channel, oldChannelHeader, channel.Header); err != nil {
 			mlog.Error(err.Error())
 		}
 	}
 
 	if channel.Purpose != oldChannelPurpose {
-		if err := a.PostUpdateChannelPurposeMessage(userId, channel, oldChannelPurpose, channel.Purpose); err != nil {
+		if err = a.PostUpdateChannelPurposeMessage(userId, channel, oldChannelPurpose, channel.Purpose); err != nil {
 			mlog.Error(err.Error())
 		}
 	}
@@ -538,24 +538,22 @@ func (a *App) PatchChannel(channel *model.Channel, patch *model.ChannelPatch, us
 }
 
 func (a *App) GetSchemeRolesForChannel(channelId string) (string, string, *model.AppError) {
-	var channel *model.Channel
-	var err *model.AppError
-
-	if channel, err = a.GetChannel(channelId); err != nil {
+	channel, err := a.GetChannel(channelId)
+	if err != nil {
 		return "", "", err
 	}
 
 	if channel.SchemeId != nil && len(*channel.SchemeId) != 0 {
-		scheme, err := a.GetScheme(*channel.SchemeId)
+		var scheme *model.Scheme
+		scheme, err = a.GetScheme(*channel.SchemeId)
 		if err != nil {
 			return "", "", err
 		}
 		return scheme.DefaultChannelUserRole, scheme.DefaultChannelAdminRole, nil
 	}
 
-	var team *model.Team
-
-	if team, err = a.GetTeam(channel.TeamId); err != nil {
+	team, err := a.GetTeam(channel.TeamId)
+	if err != nil {
 		return "", "", err
 	}
 

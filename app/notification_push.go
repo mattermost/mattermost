@@ -316,7 +316,7 @@ func DoesNotifyPropsAllowPushNotification(user *model.User, channelNotifyProps m
 	channelNotify, ok := channelNotifyProps[model.PUSH_NOTIFY_PROP]
 
 	// If the channel is muted do not send push notifications
-	if channelMuted, ok := channelNotifyProps[model.MARK_UNREAD_NOTIFY_PROP]; ok {
+	if channelMuted, channelMutedOk := channelNotifyProps[model.MARK_UNREAD_NOTIFY_PROP]; channelMutedOk {
 		if channelMuted == model.CHANNEL_MARK_UNREAD_MENTION {
 			return false
 		}
