@@ -132,28 +132,39 @@ func (h *testHelper) execArgs(t *testing.T, args []string) []string {
 	return ret
 }
 
-// CheckCommand invokes the test binary, returning the output modified for assertion testing.
-func (h *testHelper) CheckCommand(t *testing.T, args ...string) string {
+func (h *testHelper) cmd(t *testing.T, args []string) *exec.Cmd {
 	path, err := os.Executable()
 	require.NoError(t, err)
-	output, err := exec.Command(path, h.execArgs(t, args)...).CombinedOutput()
+	cmd := exec.Command(path, h.execArgs(t, args)...)
+
+	cmd.Env = []string{}
+	for _, env := range os.Environ() {
+		// Ignore MM_SQLSETTINGS_DATASOURCE from the environment, since we override.
+		if strings.HasPrefix(env, "MM_SQLSETTINGS_DATASOURCE=") {
+			continue
+		}
+
+		cmd.Env = append(cmd.Env, env)
+	}
+
+	return cmd
+}
+
+// CheckCommand invokes the test binary, returning the output modified for assertion testing.
+func (h *testHelper) CheckCommand(t *testing.T, args ...string) string {
+	output, err := h.cmd(t, args).CombinedOutput()
 	require.NoError(t, err, string(output))
 	return strings.TrimSpace(strings.TrimSuffix(strings.TrimSpace(string(output)), "PASS"))
 }
 
 // RunCommand invokes the test binary, returning only any error.
 func (h *testHelper) RunCommand(t *testing.T, args ...string) error {
-	path, err := os.Executable()
-	require.NoError(t, err)
-	return exec.Command(path, h.execArgs(t, args)...).Run()
+	return h.cmd(t, args).Run()
 }
 
 // RunCommandWithOutput is a variant of RunCommand that returns the unmodified output and any error.
 func (h *testHelper) RunCommandWithOutput(t *testing.T, args ...string) (string, error) {
-	path, err := os.Executable()
-	require.NoError(t, err)
-
-	cmd := exec.Command(path, h.execArgs(t, args)...)
+	cmd := h.cmd(t, args)
 
 	var buf bytes.Buffer
 	reader, writer := io.Pipe()
@@ -166,7 +177,7 @@ func (h *testHelper) RunCommandWithOutput(t *testing.T, args ...string) (string,
 		close(done)
 	}()
 
-	err = cmd.Run()
+	err := cmd.Run()
 	writer.Close()
 	<-done
 
