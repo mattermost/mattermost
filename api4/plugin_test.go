@@ -6,6 +6,7 @@ package api4
 import (
 	"bytes"
 	"encoding/json"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -38,38 +39,37 @@ func TestPlugin(t *testing.T) {
 	})
 
 	path, _ := utils.FindDir("tests")
-	file, err := os.Open(filepath.Join(path, "testplugin.tar.gz"))
+	tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer file.Close()
 
 	// Successful upload
-	manifest, resp := th.SystemAdminClient.UploadPlugin(file, false)
-	//CheckNoError(t, resp)
-	//manifest, resp = th.SystemAdminClient.UploadPlugin(file, true)
+	manifest, resp := th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
+	CheckNoError(t, resp)
+	manifest, resp = th.SystemAdminClient.UploadPluginForced(bytes.NewReader(tarData))
 	defer os.RemoveAll("plugins/testplugin")
 	CheckNoError(t, resp)
 
 	assert.Equal(t, "testplugin", manifest.Id)
 
 	// Upload error cases
-	_, resp = th.SystemAdminClient.UploadPlugin(bytes.NewReader([]byte("badfile")), false)
+	_, resp = th.SystemAdminClient.UploadPlugin(bytes.NewReader([]byte("badfile")))
 	CheckBadRequestStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = false })
-	_, resp = th.SystemAdminClient.UploadPlugin(file, false)
+	_, resp = th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
 	CheckNotImplementedStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.PluginSettings.Enable = true
 		*cfg.PluginSettings.EnableUploads = false
 	})
-	_, resp = th.SystemAdminClient.UploadPlugin(file, false)
+	_, resp = th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
 	CheckNotImplementedStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.EnableUploads = true })
-	_, resp = th.Client.UploadPlugin(file, false)
+	_, resp = th.Client.UploadPlugin(bytes.NewReader(tarData))
 	CheckForbiddenStatus(t, resp)
 
 	// Successful gets
