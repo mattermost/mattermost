@@ -18,7 +18,7 @@ func TestReactionsOfPost(t *testing.T) {
 	post.HasReactions = true
 
 	reactionObject := model.Reaction{
-		UserId:    model.NewId(),
+		UserId:    th.BasicUser.Id,
 		PostId:    post.Id,
 		EmojiName: "emoji",
 		CreateAt:  model.GetMillis(),
@@ -26,10 +26,7 @@ func TestReactionsOfPost(t *testing.T) {
 
 	th.App.SaveReactionForPost(&reactionObject)
 	reactionsOfPost, err := th.App.BuildPostReactions(post.Id)
-
-	if err != nil {
-		t.Fatal("should have reactions")
-	}
+	require.Nil(t, err)
 
 	assert.Equal(t, reactionObject.EmojiName, *(*reactionsOfPost)[0].EmojiName)
 }
