@@ -27,7 +27,6 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/services/httpservice"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
@@ -132,7 +131,7 @@ func (a *App) DoActionRequest(rawURL string, body []byte) (*http.Response, *mode
 	req.Header.Set("Accept", "application/json")
 
 	// Allow access to plugin routes for action buttons
-	var httpClient *httpservice.Client
+	var httpClient *http.Client
 	url, _ := url.Parse(rawURL)
 	siteURL, _ := url.Parse(*a.Config().ServiceSettings.SiteURL)
 	subpath, _ := utils.GetSubpathFromConfig(a.Config())
