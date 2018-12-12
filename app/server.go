@@ -121,7 +121,6 @@ type Server struct {
 	Ldap             einterfaces.LdapInterface
 	MessageExport    einterfaces.MessageExportInterface
 	Metrics          einterfaces.MetricsInterface
-	Mfa              einterfaces.MfaInterface
 	Saml             einterfaces.SamlInterface
 }
 

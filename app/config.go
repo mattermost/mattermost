@@ -281,6 +281,7 @@ func (a *App) AsymmetricSigningKey() *ecdsa.PrivateKey {
 
 func (a *App) regenerateClientConfig() {
 	a.Srv.clientConfig = utils.GenerateClientConfig(a.Config(), a.DiagnosticId(), a.License())
+	a.Srv.limitedClientConfig = utils.GenerateLimitedClientConfig(a.Config(), a.DiagnosticId(), a.License())
 
 	if a.Srv.clientConfig["EnableCustomTermsOfService"] == "true" {
 		termsOfService, err := a.GetLatestTermsOfService()
@@ -288,10 +289,9 @@ func (a *App) regenerateClientConfig() {
 			mlog.Err(err)
 		} else {
 			a.Srv.clientConfig["CustomTermsOfServiceId"] = termsOfService.Id
+			a.Srv.limitedClientConfig["CustomTermsOfServiceId"] = termsOfService.Id
 		}
 	}
-
-	a.Srv.limitedClientConfig = utils.GenerateLimitedClientConfig(a.Config(), a.DiagnosticId(), a.License())
 
 	if key := a.AsymmetricSigningKey(); key != nil {
 		der, _ := x509.MarshalPKIXPublicKey(&key.PublicKey)
