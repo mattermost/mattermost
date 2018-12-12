@@ -3,7 +3,6 @@ services:
   mysql:
     image: "mysql:5.7"
     restart: always
-    container_name: mysql-$DCNAME-$BUILD_NUMBER
     networks:
       - mm-test
     environment:
@@ -18,7 +17,6 @@ services:
   postgres:
     image: "postgres:9.4"
     restart: always
-    container_name: postgres-$DCNAME-$BUILD_NUMBER
     networks:
       - mm-test
     environment:
@@ -29,7 +27,6 @@ services:
   minio:
     image: "minio/minio:RELEASE.2018-05-25T19-49-13Z"
     command: "server /data"
-    container_name: minio-$DCNAME-$BUILD_NUMBER
     networks:
       - mm-test
     environment:
@@ -38,13 +35,11 @@ services:
   inbucket:
     image: "jhillyerd/inbucket:release-1.2.0"
     restart: always
-    container_name: inbucket-$DCNAME-$BUILD_NUMBER
     networks:
       - mm-test
   openldap:
     image: "osixia/openldap:1.1.6"
     restart: always
-    container_name: openldap-$DCNAME-$BUILD_NUMBER
     networks:
       - mm-test
     environment:
@@ -54,7 +49,6 @@ services:
       LDAP_ADMIN_PASSWORD: "mostest"
   elasticsearch:
     image: "mattermost/mattermost-elasticsearch-docker:6.5.1"
-    container_name: elasticsearch-$DCNAME-$BUILD_NUMBER
     networks:
       - mm-test
     environment:
@@ -65,7 +59,6 @@ services:
     image: redis
     networks:
       - mm-test
-    container_name: redis-$DCNAME-$BUILD_NUMBER
 
   start_dependencies:
     image: mattermost/mattermost-wait-for-dep:latest
