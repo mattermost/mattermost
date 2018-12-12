@@ -7,7 +7,7 @@
 imageproxy is a caching image proxy server written in go.  It features:
 
  - basic image adjustments like resizing, cropping, and rotation
- - access control using host whitelists or request signing (HMAC-SHA256)
+ - access control using allowed hosts list or request signing (HMAC-SHA256)
  - support for jpeg, png, webp (decode only), tiff, and gif image formats
    (including animated gifs)
  - caching in-memory, on disk, or with Amazon S3, Google Cloud Storage, Azure
@@ -91,8 +91,8 @@ using:
 
     imageproxy
 
-This will start the proxy on port 8080, without any caching and with no host
-whitelist (meaning any remote URL can be proxied).  Test this by navigating to
+This will start the proxy on port 8080, without any caching and with no allowed
+host list (meaning any remote URL can be proxied).  Test this by navigating to
 <http://localhost:8080/500/https://octodex.github.com/images/codercat.jpg> and
 you should see a 500px square coder octocat.
 
@@ -148,7 +148,7 @@ followed by a gcs bucket:
 
 [tiered fashion]: https://godoc.org/github.com/die-net/lrucache/twotier
 
-### Referrer Whitelist ###
+### Allowed Referrer List ###
 
 You can limit images to only be accessible for certain hosts in the HTTP
 referrer header, which can help prevent others from hotlinking to images. It can
@@ -161,26 +161,34 @@ Reload the [codercat URL][], and you should now get an error message.  You can
 specify multiple hosts as a comma separated list, or prefix a host value with
 `*.` to allow all sub-domains as well.
 
-### Host whitelist ###
+### Allowed Hosts List ###
 
 You can limit the remote hosts that the proxy will fetch images from using the
-`whitelist` flag.  This is useful, for example, for locking the proxy down to
+`remoteHosts` flag.  This is useful, for example, for locking the proxy down to
 your own hosts to prevent others from abusing it.  Of course if you want to
-support fetching from any host, leave off the whitelist flag.  Try it out by
+support fetching from any host, leave off the remoteHosts flag.  Try it out by
 running:
 
-    imageproxy -whitelist example.com
+    imageproxy -remoteHosts example.com
 
 Reload the [codercat URL][], and you should now get an error message.  You can
 specify multiple hosts as a comma separated list, or prefix a host value with
 `*.` to allow all sub-domains as well.
 
+### Allowed Content-Type List ###
+
+You can limit what content types can be proxied by using the `contentTypes`
+flag. By default, this is set to `image/*`, meaning that imageproxy will
+process any image types. You can specify multiple content types as a comma
+separated list, and suffix values with `*` to perform a wildcard match. Set the
+flag to an empty string to proxy all requests, regardless of content type.
+
 ### Signed Requests ###
 
-Instead of a host whitelist, you can require that requests be signed.  This is
-useful in preventing abuse when you don't have just a static list of hosts you
-want to allow.  Signatures are generated using HMAC-SHA256 against the remote
-URL, and url-safe base64 encoding the result:
+Instead of an allowed host list, you can require that requests be signed.  This
+is useful in preventing abuse when you don't have just a static list of hosts
+you want to allow.  Signatures are generated using HMAC-SHA256 against the
+remote URL, and url-safe base64 encoding the result:
 
     base64urlencode(hmac.New(sha256, <key>).digest(<remote_url>))
 
@@ -201,8 +209,8 @@ Some simple code samples for generating signatures in various languages can be
 found in [URL Signing](https://github.com/willnorris/imageproxy/wiki/URL-signing).
 
 If both a whiltelist and signatureKey are specified, requests can match either.
-In other words, requests that match one of the whitelisted hosts don't
-necessarily need to be signed, though they can be.
+In other words, requests that match one of the allowed hosts don't necessarily
+need to be signed, though they can be.
 
 ### Default Base URL ###
 

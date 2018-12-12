@@ -1026,15 +1026,15 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:cee969a987e9c076dda9ed1d31c693c1d99af8be4b8b48ddc771518a9b0e29e1"
+  branch = "master"
+  digest = "1:7779169c828b767159228ce500f3c96c43672f43a9540e0ddda164de743cb1da"
   name = "willnorris.com/go/imageproxy"
   packages = [
     ".",
     "third_party/http",
   ]
   pruneopts = "UT"
-  revision = "82ba3b64454920e6e46aa9cce2b1609838877b6a"
-  version = "v0.7.0"
+  revision = "a903995ee7a34913f548592f7215d8a8a2a99d7e"
 
 [solve-meta]
   analyzer-name = "dep"
