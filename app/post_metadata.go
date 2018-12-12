@@ -26,7 +26,7 @@ func (a *App) InitPostMetadata() {
 	// Dump any cached links if the proxy settings have changed so image URLs can be updated
 	a.AddConfigListener(func(before, after *model.Config) {
 		if (before.ServiceSettings.ImageProxyType != after.ServiceSettings.ImageProxyType) ||
-			(before.ServiceSettings.ImageProxyURL != after.ServiceSettings.ImageProxyType) {
+			(before.ServiceSettings.ImageProxyURL != after.ServiceSettings.ImageProxyURL) {
 			linkCache.Purge()
 		}
 	})
