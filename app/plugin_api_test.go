@@ -620,6 +620,33 @@ func TestPluginAPIRemoveTeamIcon(t *testing.T) {
 	require.Nil(t, err)
 }
 
+func TestPluginAPIUpdateUserActive(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	err := api.UpdateUserActive(th.BasicUser.Id, true)
+	require.Nil(t, err)
+	user, err := api.GetUser(th.BasicUser.Id)
+	require.Nil(t, err)
+	require.Equal(t, int64(0), user.DeleteAt)
+
+	err = api.UpdateUserActive(th.BasicUser.Id, false)
+	require.Nil(t, err)
+	user, err = api.GetUser(th.BasicUser.Id)
+	require.Nil(t, err)
+	require.NotNil(t, user)
+	require.NotEqual(t, int64(0), user.DeleteAt)
+
+	err = api.UpdateUserActive(th.BasicUser.Id, true)
+	require.Nil(t, err)
+	err = api.UpdateUserActive(th.BasicUser.Id, true)
+	require.Nil(t, err)
+	user, err = api.GetUser(th.BasicUser.Id)
+	require.Nil(t, err)
+	require.Equal(t, int64(0), user.DeleteAt)
+}
+
 func TestPluginAPIGetDirectChannel(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
