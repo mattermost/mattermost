@@ -59,7 +59,11 @@ const (
 var client *analytics.Client
 
 func (a *App) SendDailyDiagnostics() {
-	if *a.Config().LogSettings.EnableDiagnostics && a.IsLeader() && !strings.Contains(SEGMENT_KEY, "placeholder") {
+	a.sendDailyDiagnostics(false)
+}
+
+func (a *App) sendDailyDiagnostics(override bool) {
+	if *a.Config().LogSettings.EnableDiagnostics && a.IsLeader() && (!strings.Contains(SEGMENT_KEY, "placeholder") || override) {
 		a.initDiagnostics("")
 		a.trackActivity()
 		a.trackConfig()
