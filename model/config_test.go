@@ -567,9 +567,9 @@ func TestListenAddressIsValidated(t *testing.T) {
 
 func TestImageProxySettingsSetDefaults(t *testing.T) {
 	ss := ServiceSettings{
-		ImageProxyType:    NewString(IMAGE_PROXY_TYPE_ATMOS_CAMO),
-		ImageProxyURL:     NewString("http://images.example.com"),
-		ImageProxyOptions: NewString("1234abcd"),
+		DEPRECATED_DO_NOT_USE_ImageProxyType:    NewString(IMAGE_PROXY_TYPE_ATMOS_CAMO),
+		DEPRECATED_DO_NOT_USE_ImageProxyURL:     NewString("http://images.example.com"),
+		DEPRECATED_DO_NOT_USE_ImageProxyOptions: NewString("1234abcd"),
 	}
 
 	t.Run("default, no old settings", func(t *testing.T) {
@@ -587,9 +587,9 @@ func TestImageProxySettingsSetDefaults(t *testing.T) {
 		ips.SetDefaults(ss)
 
 		assert.Equal(t, true, *ips.Enable)
-		assert.Equal(t, *ss.ImageProxyType, *ips.ImageProxyType)
-		assert.Equal(t, *ss.ImageProxyURL, *ips.RemoteImageProxyURL)
-		assert.Equal(t, *ss.ImageProxyOptions, *ips.RemoteImageProxyOptions)
+		assert.Equal(t, *ss.DEPRECATED_DO_NOT_USE_ImageProxyType, *ips.ImageProxyType)
+		assert.Equal(t, *ss.DEPRECATED_DO_NOT_USE_ImageProxyURL, *ips.RemoteImageProxyURL)
+		assert.Equal(t, *ss.DEPRECATED_DO_NOT_USE_ImageProxyOptions, *ips.RemoteImageProxyOptions)
 	})
 
 	t.Run("not default, old settings", func(t *testing.T) {
@@ -650,7 +650,7 @@ func TestImageProxySettingsIsValid(t *testing.T) {
 		{
 			Name:                    "atmos/camo",
 			Enable:                  true,
-			ImageProxyType:          model.IMAGE_PROXY_TYPE_ATMOS_CAMO,
+			ImageProxyType:          IMAGE_PROXY_TYPE_ATMOS_CAMO,
 			RemoteImageProxyURL:     "someurl",
 			RemoteImageProxyOptions: "someoptions",
 			ExpectError:             false,
@@ -658,7 +658,7 @@ func TestImageProxySettingsIsValid(t *testing.T) {
 		{
 			Name:                    "atmos/camo, missing url",
 			Enable:                  true,
-			ImageProxyType:          model.IMAGE_PROXY_TYPE_ATMOS_CAMO,
+			ImageProxyType:          IMAGE_PROXY_TYPE_ATMOS_CAMO,
 			RemoteImageProxyURL:     "",
 			RemoteImageProxyOptions: "garbage",
 			ExpectError:             true,
@@ -666,7 +666,7 @@ func TestImageProxySettingsIsValid(t *testing.T) {
 		{
 			Name:                    "atmos/camo, missing options",
 			Enable:                  true,
-			ImageProxyType:          model.IMAGE_PROXY_TYPE_ATMOS_CAMO,
+			ImageProxyType:          IMAGE_PROXY_TYPE_ATMOS_CAMO,
 			RemoteImageProxyURL:     "someurl",
 			RemoteImageProxyOptions: "",
 			ExpectError:             true,
