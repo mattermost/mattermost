@@ -1734,8 +1734,16 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 
 		selectQuery := "SELECT Id, LastPostAt, TotalMsgCount FROM Channels WHERE (" + selectIdQuery + ")"
 
-		if _, err := s.GetMaster().Select(&lastPostAtTimes, selectQuery, props); err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.UpdateLastViewedAt", "store.sql_channel.update_last_viewed_at.app_error", nil, "channel_ids="+strings.Join(channelIds, ",")+", user_id="+userId+", "+err.Error(), http.StatusInternalServerError)
+		if _, err := s.GetMaster().Select(&lastPostAtTimes, selectQuery, props); err != nil || len(lastPostAtTimes) <= 0 {
+			var extra string
+			status := http.StatusInternalServerError
+			if err == nil {
+				status = http.StatusBadRequest
+				extra = "No channels found"
+			} else {
+				extra = err.Error()
+			}
+			result.Err = model.NewAppError("SqlChannelStore.UpdateLastViewedAt", "store.sql_channel.update_last_viewed_at.app_error", nil, "channel_ids="+strings.Join(channelIds, ",")+", user_id="+userId+", "+extra, status)
 			return
 		}
 
