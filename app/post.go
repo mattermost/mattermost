@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -18,6 +19,13 @@ import (
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
 )
+
+const (
+	PENDING_POST_IDS_CACHE_SIZE = 25000
+	PENDING_POST_IDS_CACHE_SEC  = 30
+)
+
+var seenPendingPostIds = utils.NewLruWithParams(PENDING_POST_IDS_CACHE_SIZE, "seenPendingPostIds", PENDING_POST_IDS_CACHE_SEC, "")
 
 func (a *App) CreatePostAsUser(post *model.Post, clearPushNotifications bool) (*model.Post, *model.AppError) {
 	// Check that channel has not been deleted
@@ -89,7 +97,74 @@ func (a *App) CreatePostMissingChannel(post *model.Post, triggerWebhooks bool) (
 	return a.CreatePost(post, channel, triggerWebhooks)
 }
 
-func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhooks bool) (*model.Post, *model.AppError) {
+// deduplicateCreatePost attempts to make posting idempotent within a caching window.
+func (a *App) deduplicateCreatePost(post *model.Post) (foundPost *model.Post, err *model.AppError) {
+	// We rely on the client sending the pending post id across "duplicate" requests. If there
+	// isn't one, we can't deduplicate, so allow creation normally.
+	if post.PendingPostId == "" {
+		return nil, nil
+	}
+
+	const unknownPostId = ""
+
+	for attempt := 1; attempt <= 3; attempt++ {
+		// Query the cache atomically for the given pending post id, saving a record if
+		// it hasn't previously been seen.
+		value, loaded := seenPendingPostIds.GetOrAddWithDefaultExpires(post.PendingPostId, unknownPostId)
+
+		// If we were the first thread to save this pending post id into the cache,
+		// proceed with create post normally.
+		if !loaded {
+			return nil, nil
+		}
+
+		postId := value.(string)
+
+		// If another thread saved the cache record, but hasn't yet updated it with the
+		// actual post id, wait a bit and try again. If the cache record expires, we'll
+		// still end up with a duplicate post as expected. Note that we'll only ever be
+		// doing any of this when racing on duplicate create post requests.
+		if postId == unknownPostId {
+			time.Sleep(time.Duration(attempt) * time.Second)
+			continue
+		}
+
+		// Return the created post back to the client, making the API call feel idempotent,
+		// and avoiding having special-case logic in the client.
+		post, err := a.GetSinglePost(postId)
+		if err != nil {
+			return nil, model.NewAppError("deduplicateCreatePost", "api.post.deduplicate_create_post.failed_to_get", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		return post, nil
+	}
+
+	// If we failed to create a cache entry above, or resolve to a created post, the attempt to
+	// deduplicate failed altogether.
+	return nil, model.NewAppError("deduplicateCreatePost", "api.post.deduplicate_create_post.failed", nil, "", http.StatusInternalServerError)
+}
+
+func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhooks bool) (savedPost *model.Post, err *model.AppError) {
+	if foundPost, err := a.deduplicateCreatePost(post); err != nil {
+		return nil, err
+	} else if foundPost != nil {
+		return foundPost, nil
+	}
+
+	// If we get this far, we've recorded the client-provided pending post id to the cache.
+	// Remove it if we fail below, allowing a proper retry by the client.
+	defer func() {
+		if post.PendingPostId == "" {
+			return
+		}
+
+		if err != nil {
+			seenPendingPostIds.Remove(post.PendingPostId)
+		} else {
+			seenPendingPostIds.AddWithDefaultExpires(post.PendingPostId, savedPost.Id)
+		}
+	}()
+
 	post.SanitizeProps()
 
 	var pchan store.StoreChannel
@@ -179,6 +254,10 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 	}
 	rpost := result.Data.(*model.Post)
 
+	// Update the mapping from pending post id to the actual post id, for any clients that
+	// might be duplicating requests.
+	seenPendingPostIds.Add(post.PendingPostId, rpost.Id)
+
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv.Go(func() {
 			pluginContext := a.PluginContext()
@@ -220,7 +299,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 	rpost = a.PreparePostForClient(rpost)
 
 	if err := a.handlePostEvents(rpost, user, channel, triggerWebhooks, parentPostList); err != nil {
-		return nil, err
+		mlog.Error("Failed to handle post events", mlog.Err(err))
 	}
 
 	return rpost, nil

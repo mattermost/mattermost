@@ -6,6 +6,7 @@ package app
 import (
 	"fmt"
 	"net/http"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -16,7 +17,246 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/store/storetest"
+	"github.com/mattermost/mattermost-server/utils"
 )
+
+func TestCreatePostDeduplicate(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	t.Run("duplicate create post is idempotent", func(t *testing.T) {
+		pendingPostId := model.NewId()
+		post, err := th.App.CreatePostAsUser(&model.Post{
+			UserId:        th.BasicUser.Id,
+			ChannelId:     th.BasicChannel.Id,
+			Message:       "message",
+			PendingPostId: pendingPostId,
+		}, false)
+		require.Nil(t, err)
+		require.Equal(t, "message", post.Message)
+
+		duplicatePost, err := th.App.CreatePostAsUser(&model.Post{
+			UserId:        th.BasicUser.Id,
+			ChannelId:     th.BasicChannel.Id,
+			Message:       "message",
+			PendingPostId: pendingPostId,
+		}, false)
+		require.Nil(t, err)
+		require.Equal(t, post.Id, duplicatePost.Id, "should have returned previously created post id")
+		require.Equal(t, "message", duplicatePost.Message)
+	})
+
+	t.Run("post rejected by plugin leaves cache ready for non-deduplicated try", func(t *testing.T) {
+		setupPluginApiTest(t, `
+			package main
+
+			import (
+				"github.com/mattermost/mattermost-server/plugin"
+				"github.com/mattermost/mattermost-server/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+				allow bool
+			}
+
+			func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
+				if !p.allow {
+					p.allow = true
+					return nil, "rejected"
+				}
+
+				return nil, ""
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+		`, `{"id": "testrejectfirstpost", "backend": {"executable": "backend.exe"}}`, "testrejectfirstpost", th.App)
+
+		pendingPostId := model.NewId()
+		post, err := th.App.CreatePostAsUser(&model.Post{
+			UserId:        th.BasicUser.Id,
+			ChannelId:     th.BasicChannel.Id,
+			Message:       "message",
+			PendingPostId: pendingPostId,
+		}, false)
+		require.NotNil(t, err)
+		require.Equal(t, "Post rejected by plugin. rejected", err.Id)
+		require.Nil(t, post)
+
+		duplicatePost, err := th.App.CreatePostAsUser(&model.Post{
+			UserId:        th.BasicUser.Id,
+			ChannelId:     th.BasicChannel.Id,
+			Message:       "message",
+			PendingPostId: pendingPostId,
+		}, false)
+		require.Nil(t, err)
+		require.Equal(t, "message", duplicatePost.Message)
+	})
+
+	t.Run("slow posting after cache entry blocks duplicate request", func(t *testing.T) {
+		setupPluginApiTest(t, `
+			package main
+
+			import (
+				"github.com/mattermost/mattermost-server/plugin"
+				"github.com/mattermost/mattermost-server/model"
+				"time"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+				instant bool
+			}
+
+			func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
+				if !p.instant {
+					p.instant = true
+					time.Sleep(3 * time.Second)
+				}
+
+				return nil, ""
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+		`, `{"id": "testdelayfirstpost", "backend": {"executable": "backend.exe"}}`, "testdelayfirstpost", th.App)
+
+		var post *model.Post
+		pendingPostId := model.NewId()
+
+		wg := sync.WaitGroup{}
+
+		// Launch a goroutine to make the first CreatePost call that will get delayed
+		// by the plugin above.
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			var err error
+			post, err = th.App.CreatePostAsUser(&model.Post{
+				UserId:        th.BasicUser.Id,
+				ChannelId:     th.BasicChannel.Id,
+				Message:       "plugin delayed",
+				PendingPostId: pendingPostId,
+			}, false)
+			require.Nil(t, err)
+			require.Equal(t, post.Message, "plugin delayed")
+		}()
+
+		// Give the goroutine above a chance to start and get delayed by the plugin.
+		time.Sleep(2 * time.Second)
+
+		// Try creating a duplicate post
+		duplicatePost, err := th.App.CreatePostAsUser(&model.Post{
+			UserId:        th.BasicUser.Id,
+			ChannelId:     th.BasicChannel.Id,
+			Message:       "plugin delayed",
+			PendingPostId: pendingPostId,
+		}, false)
+		require.Nil(t, err)
+
+		// Wait for the first CreatePost to finish so we can compare post ids.
+		wg.Wait()
+
+		require.Equal(t, post.Id, duplicatePost.Id, "should have returned previously created post id")
+		require.Equal(t, "plugin delayed", duplicatePost.Message)
+	})
+
+	t.Run("extra slow posting after cache entry fails duplicate request", func(t *testing.T) {
+		setupPluginApiTest(t, `
+			package main
+
+			import (
+				"github.com/mattermost/mattermost-server/plugin"
+				"github.com/mattermost/mattermost-server/model"
+				"time"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+				instant bool
+			}
+
+			func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
+				if !p.instant {
+					p.instant = true
+					time.Sleep(10 * time.Second)
+				}
+
+				return nil, ""
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+		`, `{"id": "testdelayfirstpost", "backend": {"executable": "backend.exe"}}`, "testdelayfirstpost", th.App)
+
+		var post *model.Post
+		pendingPostId := model.NewId()
+
+		wg := sync.WaitGroup{}
+
+		// Launch a goroutine to make the first CreatePost call that will get delayed
+		// by the plugin above.
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			var err error
+			post, err = th.App.CreatePostAsUser(&model.Post{
+				UserId:        th.BasicUser.Id,
+				ChannelId:     th.BasicChannel.Id,
+				Message:       "plugin delayed",
+				PendingPostId: pendingPostId,
+			}, false)
+			require.Nil(t, err)
+			require.Equal(t, post.Message, "plugin delayed")
+		}()
+
+		// Give the goroutine above a chance to start and get delayed by the plugin.
+		time.Sleep(2 * time.Second)
+
+		// Try creating a duplicate post
+		duplicatePost, err := th.App.CreatePostAsUser(&model.Post{
+			UserId:        th.BasicUser.Id,
+			ChannelId:     th.BasicChannel.Id,
+			Message:       "plugin delayed",
+			PendingPostId: pendingPostId,
+		}, false)
+		require.NotNil(t, err)
+		require.Equal(t, "api.post.deduplicate_create_post.failed", err.Id)
+		require.Nil(t, duplicatePost)
+	})
+
+	// Don't want to actually wait PENDING_POST_IDS_CACHE_SEC seconds for last test.
+	pendingPostIdsCacheSec := int64(5)
+	seenPendingPostIds = utils.NewLruWithParams(PENDING_POST_IDS_CACHE_SIZE, "seenPendingPostIds", pendingPostIdsCacheSec, "")
+
+	t.Run("duplicate create post after cache expires is not idempotent", func(t *testing.T) {
+		pendingPostId := model.NewId()
+		post, err := th.App.CreatePostAsUser(&model.Post{
+			UserId:        th.BasicUser.Id,
+			ChannelId:     th.BasicChannel.Id,
+			Message:       "message",
+			PendingPostId: pendingPostId,
+		}, false)
+		require.Nil(t, err)
+		require.Equal(t, "message", post.Message)
+
+		time.Sleep(time.Duration(pendingPostIdsCacheSec+1) * time.Second)
+
+		duplicatePost, err := th.App.CreatePostAsUser(&model.Post{
+			UserId:        th.BasicUser.Id,
+			ChannelId:     th.BasicChannel.Id,
+			Message:       "message",
+			PendingPostId: pendingPostId,
+		}, false)
+		require.Nil(t, err)
+		require.NotEqual(t, post.Id, duplicatePost.Id, "should have created new post id")
+		require.Equal(t, "message", duplicatePost.Message)
+	})
+}
 
 func TestUpdatePostEditAt(t *testing.T) {
 	th := Setup().InitBasic()
