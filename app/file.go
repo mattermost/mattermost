@@ -60,7 +60,7 @@ const (
 	ImageThumbnailRatio  = float64(ImageThumbnailHeight) / float64(ImageThumbnailWidth)
 	ImagePreviewWidth    = 1920
 
-	MinUploadFileBufferSize = 2 * 1024 * 1024
+	UploadFileInitialBufferSize = 2 * 1024 * 1024 // 2Mb
 
 	// Deprecated
 	IMAGE_THUMBNAIL_PIXEL_WIDTH  = 120
@@ -535,7 +535,7 @@ func (t *uploadFileTask) init(a *App) {
 	} else {
 		// If we don't know the upload size, grow the buffer somewhat
 		// anyway to avoid extra reslicing.
-		t.buf.Grow(MinUploadFileBufferSize)
+		t.buf.Grow(UploadFileInitialBufferSize)
 	}
 	t.limitedInput = &io.LimitedReader{
 		R: t.Input,
@@ -772,6 +772,7 @@ func (t *uploadFileTask) postprocessImage() {
 	wg := &sync.WaitGroup{}
 	wg.Add(2)
 	go func() {
+		defer wg.Done()
 		thumb := decoded
 		if h > ImageThumbnailHeight || w > ImageThumbnailWidth {
 			if float64(h)/float64(w) < ImageThumbnailRatio {
@@ -781,16 +782,15 @@ func (t *uploadFileTask) postprocessImage() {
 			}
 		}
 		writeJPEG(thumb, t.fileinfo.ThumbnailPath)
-		wg.Done()
 	}()
 
 	go func() {
+		defer wg.Done()
 		preview := decoded
 		if w > ImagePreviewWidth {
 			preview = imaging.Resize(decoded, ImagePreviewWidth, 0, imaging.Lanczos)
 		}
 		writeJPEG(preview, t.fileinfo.PreviewPath)
-		wg.Done()
 	}()
 	wg.Wait()
 }

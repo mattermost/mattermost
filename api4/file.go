@@ -50,7 +50,7 @@ var MEDIA_CONTENT_TYPES = [...]string{
 }
 
 const maxUploadDrainBytes = (10 * 1024 * 1024) // 10Mb
-const maxMultipartFormDataBytes = 10 * 1024
+const maxMultipartFormDataBytes = 10 * 1024    // 10Kb
 
 func (api *API) InitFile() {
 	api.BaseRoutes.Files.Handle("", api.ApiSessionRequired(uploadFileStream)).Methods("POST")
@@ -181,6 +181,9 @@ func multipartReader(req *http.Request, stream io.Reader) (*multipart.Reader, er
 }
 
 func uploadFileStream(c *Context, w http.ResponseWriter, r *http.Request) {
+	// Drain any remaining bytes in the request body, up to a limit
+	defer io.CopyN(ioutil.Discard, r.Body, maxUploadDrainBytes)
+
 	if !*c.App.Config().FileSettings.EnableFileAttachments {
 		c.Err = model.NewAppError("uploadFileStream",
 			"api.file.attachments.disabled.app_error",
@@ -224,9 +227,6 @@ func uploadFileStream(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Write the response values to the output upon return
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(fileUploadResponse.ToJson()))
-
-	// Drain any remaining bytes in the request body, up to a limit
-	defer io.CopyN(ioutil.Discard, r.Body, maxUploadDrainBytes)
 }
 
 // uploadFileSimple uploads a file from a simple POST with the file in the request body
@@ -268,7 +268,7 @@ func uploadFileSimple(c *Context, r *http.Request, timestamp time.Time) *model.F
 // request.  It pre-buffers up to the first part which is either the (a)
 // `channel_id` value, or (b) a file. Then in case of (a) it re-processes the
 // entire message recursively calling itself in stream mode. In case of (b) it
-// calls to uploadFileMultipartBuffered for legacy support
+// calls to uploadFileMultipartLegacy for legacy support
 func uploadFileMultipart(c *Context, r *http.Request, asStream io.Reader, timestamp time.Time) *model.FileUploadResponse {
 
 	expectClientIds := true
@@ -363,6 +363,7 @@ NEXT_PART:
 		// A file part.
 
 		if c.Params.ChannelId == "" && asStream == nil {
+			// Got file before channel_id, fall back to legacy buffered mode
 			mr, err = multipartReader(r, io.MultiReader(buf, r.Body))
 			if err != nil {
 				c.Err = model.NewAppError("uploadFileMultipart",
@@ -371,7 +372,7 @@ NEXT_PART:
 				return nil
 			}
 
-			return uploadFileMultipartBuffered(c, mr, timestamp)
+			return uploadFileMultipartLegacy(c, mr, timestamp)
 		}
 
 		c.RequireChannelId()
@@ -432,16 +433,16 @@ NEXT_PART:
 	return &resp
 }
 
-// uploadFileMultipartBuffered reads, buffers, and then uploads the message,
+// uploadFileMultipartLegacy reads, buffers, and then uploads the message,
 // borrowing from http.ParseMultipartForm.  If successful it returns a
 // *model.FileUploadResponse filled in with the individual model.FileInfo's.
-func uploadFileMultipartBuffered(c *Context, mr *multipart.Reader,
+func uploadFileMultipartLegacy(c *Context, mr *multipart.Reader,
 	timestamp time.Time) *model.FileUploadResponse {
 
 	// Parse the entire form.
 	form, err := mr.ReadForm(*c.App.Config().FileSettings.MaxFileSize)
 	if err != nil {
-		c.Err = model.NewAppError("uploadFileMultipartBuffered",
+		c.Err = model.NewAppError("uploadFileMultipartLegacy",
 			"api.file.upload_file.read_request.app_error",
 			nil, err.Error(), http.StatusInternalServerError)
 		return nil
@@ -482,7 +483,7 @@ func uploadFileMultipartBuffered(c *Context, mr *multipart.Reader,
 	for i, fileHeader := range fileHeaders {
 		f, err := fileHeader.Open()
 		if err != nil {
-			c.Err = model.NewAppError("uploadFileMultipartBuffered",
+			c.Err = model.NewAppError("uploadFileMultipartLegacy",
 				"api.file.upload_file.read_request.app_error",
 				nil, err.Error(), http.StatusBadRequest)
 			return nil
