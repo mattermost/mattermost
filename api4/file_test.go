@@ -8,7 +8,11 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"mime/multipart"
 	"net/http"
+	"net/textproto"
+	"net/url"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -57,6 +61,249 @@ func (z *zeroReader) Read(b []byte) (int, error) {
 	return len(b), nil
 }
 
+// File Section
+var quoteEscaper = strings.NewReplacer("\\", "\\\\", `"`, "\\\"")
+
+func escapeQuotes(s string) string {
+	return quoteEscaper.Replace(s)
+}
+
+type UploadOpener func() (io.ReadCloser, int64, error)
+
+func NewUploadOpenerReader(in io.Reader) UploadOpener {
+	return func() (io.ReadCloser, int64, error) {
+		rc, ok := in.(io.ReadCloser)
+		if ok {
+			return rc, -1, nil
+		} else {
+			return ioutil.NopCloser(in), -1, nil
+		}
+	}
+}
+
+func NewUploadOpenerFile(path string) UploadOpener {
+	return func() (io.ReadCloser, int64, error) {
+		fi, err := os.Stat(path)
+		if err != nil {
+			return nil, 0, err
+		}
+		f, err := os.Open(path)
+		if err != nil {
+			return nil, 0, err
+		}
+		return f, fi.Size(), nil
+	}
+}
+
+// testUploadFile and testUploadFiles have been "staged" here, eventually they
+// should move back to being model.Client4 methods, once the specifics of the
+// public API are sorted out.
+func testUploadFile(c *model.Client4, url string, body io.Reader, contentType string,
+	contentLength int64) (*model.FileUploadResponse, *model.Response) {
+	rq, _ := http.NewRequest("POST", c.ApiUrl+c.GetFilesRoute()+url, body)
+	if contentLength != 0 {
+		rq.ContentLength = contentLength
+	}
+	rq.Header.Set("Content-Type", contentType)
+
+	if len(c.AuthToken) > 0 {
+		rq.Header.Set(model.HEADER_AUTH, c.AuthType+" "+c.AuthToken)
+	}
+
+	rp, err := c.HttpClient.Do(rq)
+	if err != nil || rp == nil {
+		return nil, model.BuildErrorResponse(rp, model.NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), 0))
+	}
+	defer closeBody(rp)
+
+	if rp.StatusCode >= 300 {
+		return nil, model.BuildErrorResponse(rp, model.AppErrorFromJson(rp.Body))
+	}
+
+	return model.FileUploadResponseFromJson(rp.Body), model.BuildResponse(rp)
+}
+
+func testUploadFiles(
+	c *model.Client4,
+	channelId string,
+	names []string,
+	openers []UploadOpener,
+	contentLengths []int64,
+	clientIds []string,
+	useMultipart,
+	useChunkedInSimplePost bool,
+) (
+	fileUploadResponse *model.FileUploadResponse,
+	response *model.Response,
+) {
+	// Do not check len(clientIds), leave it entirely to the user to
+	// provide. The server will error out if it does not match the number
+	// of files, but it's not critical here.
+	if len(names) == 0 || len(openers) == 0 || len(names) != len(openers) {
+		return nil, &model.Response{
+			Error: model.NewAppError("testUploadFiles",
+				"model.client.upload_post_attachment.file.app_error",
+				nil, "Empty or mismatched file data", http.StatusBadRequest),
+		}
+	}
+
+	// emergencyResponse is a convenience wrapper to return an error response
+	emergencyResponse := func(err error, errCode string) *model.Response {
+		return &model.Response{
+			Error: model.NewAppError("testUploadFiles",
+				"model.client."+errCode+".app_error",
+				nil, err.Error(), http.StatusBadRequest),
+		}
+	}
+
+	// For multipart, start writing the request as a goroutine, and pipe
+	// multipart.Writer into it, otherwise generate a new request each
+	// time.
+	pipeReader, pipeWriter := io.Pipe()
+	mw := multipart.NewWriter(pipeWriter)
+
+	if useMultipart {
+		fileUploadResponseChannel := make(chan *model.FileUploadResponse)
+		responseChannel := make(chan *model.Response)
+		closedMultipart := false
+
+		go func() {
+			fur, resp := testUploadFile(c, "", pipeReader, mw.FormDataContentType(), -1)
+			responseChannel <- resp
+			fileUploadResponseChannel <- fur
+		}()
+
+		defer func() {
+			for {
+				select {
+				// Premature response, before the entire
+				// multipart was sent
+				case response = <-responseChannel:
+					// Guaranteed to be there
+					fileUploadResponse = <-fileUploadResponseChannel
+					if !closedMultipart {
+						_ = mw.Close()
+						_ = pipeWriter.Close()
+						closedMultipart = true
+					}
+					return
+
+				// Normal response, after the multipart was sent.
+				default:
+					if !closedMultipart {
+						err := mw.Close()
+						if err != nil {
+							fileUploadResponse = nil
+							response = emergencyResponse(err, "upload_post_attachment.writer")
+							return
+						}
+						err = pipeWriter.Close()
+						if err != nil {
+							fileUploadResponse = nil
+							response = emergencyResponse(err, "upload_post_attachment.writer")
+							return
+						}
+						closedMultipart = true
+					}
+				}
+			}
+		}()
+
+		err := mw.WriteField("channel_id", channelId)
+		if err != nil {
+			return nil, emergencyResponse(err, "upload_post_attachment.channel_id")
+		}
+	} else {
+		fileUploadResponse = &model.FileUploadResponse{}
+	}
+
+	var f io.ReadCloser
+	var cl int64
+	var err error
+	data := make([]byte, 512)
+
+	upload := func(i int, f io.ReadCloser) *model.Response {
+		defer f.Close()
+
+		if len(contentLengths) > i {
+			cl = contentLengths[i]
+		}
+
+		n, err := f.Read(data)
+		if err != nil && err != io.EOF {
+			return emergencyResponse(err, "upload_post_attachment")
+		}
+		ct := http.DetectContentType(data[:n])
+		reader := io.MultiReader(bytes.NewReader(data[:n]), f)
+
+		if useMultipart {
+			if len(clientIds) > i {
+				err := mw.WriteField("client_ids", clientIds[i])
+				if err != nil {
+					return emergencyResponse(err, "upload_post_attachment.file")
+				}
+			}
+
+			h := make(textproto.MIMEHeader)
+			h.Set("Content-Disposition",
+				fmt.Sprintf(`form-data; name="files"; filename="%s"`, escapeQuotes(names[i])))
+			h.Set("Content-Type", ct)
+
+			// If we error here, writing to mw, the deferred handler
+			part, err := mw.CreatePart(h)
+			if err != nil {
+				return emergencyResponse(err, "upload_post_attachment.writer")
+			}
+
+			_, err = io.Copy(part, reader)
+			if err != nil {
+				return emergencyResponse(err, "upload_post_attachment.writer")
+			}
+		} else {
+			postURL := fmt.Sprintf("?channel_id=%v", url.QueryEscape(channelId)) +
+				fmt.Sprintf("&filename=%v", url.QueryEscape(names[i]))
+			if len(clientIds) > i {
+				postURL += fmt.Sprintf("&client_id=%v", url.QueryEscape(clientIds[i]))
+			}
+			if useChunkedInSimplePost {
+				cl = -1
+			}
+			fur, resp := testUploadFile(c, postURL, reader, ct, cl)
+			if resp.Error != nil {
+				return resp
+			}
+			fileUploadResponse.FileInfos = append(fileUploadResponse.FileInfos, fur.FileInfos[0])
+			if len(clientIds) > 0 {
+				if len(fur.ClientIds) > 0 {
+					fileUploadResponse.ClientIds = append(fileUploadResponse.ClientIds, fur.ClientIds[0])
+				} else {
+					fileUploadResponse.ClientIds = append(fileUploadResponse.ClientIds, "")
+				}
+			}
+			response = resp
+		}
+
+		return nil
+	}
+
+	for i, open := range openers {
+		f, cl, err = open()
+		if err != nil {
+			return nil, emergencyResponse(err, "upload_post_attachment")
+		}
+
+		resp := upload(i, f)
+		if resp != nil && resp.Error != nil {
+			return nil, resp
+		}
+	}
+
+	// In case of a simple POST, the return values have been set by upload(),
+	// otherwise we finished writing the multipart, and the return values will
+	// be set in defer
+	return fileUploadResponse, response
+}
+
 func TestUploadFiles(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
@@ -70,14 +317,14 @@ func TestUploadFiles(t *testing.T) {
 	// Get better error messages
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = true })
 
-	op := func(name string) model.UploadOpener {
-		return model.NewUploadOpenerFile(filepath.Join(testDir, name))
+	op := func(name string) UploadOpener {
+		return NewUploadOpenerFile(filepath.Join(testDir, name))
 	}
 
 	tests := []struct {
 		title     string
 		client    *model.Client4
-		openers   []model.UploadOpener
+		openers   []UploadOpener
 		names     []string
 		clientIds []string
 
@@ -125,7 +372,7 @@ func TestUploadFiles(t *testing.T) {
 		{
 			title:                 "Happy invalid image",
 			names:                 []string{"testgif.gif"},
-			openers:               []model.UploadOpener{model.NewUploadOpenerFile(filepath.Join(testDir, "test-search.md"))},
+			openers:               []UploadOpener{NewUploadOpenerFile(filepath.Join(testDir, "test-search.md"))},
 			skipPayloadValidation: true,
 			expectedCreatorId:     th.BasicUser.Id,
 		},
@@ -244,7 +491,7 @@ func TestUploadFiles(t *testing.T) {
 			useChunkedInSimplePost: true,
 			skipPayloadValidation:  true,
 			names:                  []string{"50Mb-stream"},
-			openers:                []model.UploadOpener{model.NewUploadOpenerReader(&zeroReader{limit: 50 * 1024 * 1024})},
+			openers:                []UploadOpener{NewUploadOpenerReader(&zeroReader{limit: 50 * 1024 * 1024})},
 			setupConfig: func(a *app.App) func(a *app.App) {
 				maxFileSize := *a.Config().FileSettings.MaxFileSize
 				a.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxFileSize = 50 * 1024 * 1024 })
@@ -342,7 +589,7 @@ func TestUploadFiles(t *testing.T) {
 			title:                 "Error stream too large",
 			skipPayloadValidation: true,
 			names:                 []string{"50Mb-stream"},
-			openers:               []model.UploadOpener{model.NewUploadOpenerReader(&zeroReader{limit: 50 * 1024 * 1024})},
+			openers:               []UploadOpener{NewUploadOpenerReader(&zeroReader{limit: 50 * 1024 * 1024})},
 			skipSuccessValidation: true,
 			checkResponse:         CheckRequestEntityTooLargeStatus,
 			setupConfig: func(a *app.App) func(a *app.App) {
@@ -397,7 +644,7 @@ func TestUploadFiles(t *testing.T) {
 						tc.openers = append(tc.openers, op(name))
 					}
 				}
-				fileResp, resp := client.UploadFiles(channelId, tc.names,
+				fileResp, resp := testUploadFiles(client, channelId, tc.names,
 					tc.openers, nil, tc.clientIds, useMultipart,
 					tc.useChunkedInSimplePost)
 				tc.checkResponse(t, resp)
