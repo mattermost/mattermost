@@ -67,7 +67,7 @@ func TestGetImage(t *testing.T) {
 			cfg.ImageProxySettings.Enable = model.NewBool(true)
 			cfg.ImageProxySettings.ImageProxyType = model.NewString("local")
 
-			// Allow requests to the mocked http server
+			// Allow requests to the "remote" image
 			cfg.ServiceSettings.AllowedUntrustedInternalConnections = model.NewString("127.0.0.1")
 		})
 
@@ -76,10 +76,10 @@ func TestGetImage(t *testing.T) {
 			w.Write([]byte("success"))
 		})
 
-		mock := httptest.NewServer(handler)
-		defer mock.Close()
+		imageServer := httptest.NewServer(handler)
+		defer imageServer.Close()
 
-		r, err := http.NewRequest("GET", th.Client.ApiUrl+"/image?url="+url.QueryEscape(mock.URL+"/image.png"), nil)
+		r, err := http.NewRequest("GET", th.Client.ApiUrl+"/image?url="+url.QueryEscape(imageServer.URL+"/image.png"), nil)
 		require.NoError(t, err)
 		r.Header.Set(model.HEADER_AUTH, th.Client.AuthType+" "+th.Client.AuthToken)
 

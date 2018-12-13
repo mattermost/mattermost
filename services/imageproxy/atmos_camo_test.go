@@ -52,36 +52,72 @@ func TestAtmosCamoBackend_GetProxiedImageURL(t *testing.T) {
 
 	proxy := makeTestAtmosCamoProxy()
 
+	// Most of this logic is tested in TestGetAtmosCamoImageURL
+	assert.Equal(t, proxiedURL, proxy.GetProxiedImageURL(imageURL))
+}
+
+func TestGetAtmosCamoImageURL(t *testing.T) {
+	imageURL := "http://www.mattermost.org/wp-content/uploads/2016/03/logoHorizontal.png"
+	proxiedURL := "http://images.example.com/5b6f6661516bc837b89b54566eb619d14a5c3eca/687474703a2f2f7777772e6d61747465726d6f73742e6f72672f77702d636f6e74656e742f75706c6f6164732f323031362f30332f6c6f676f486f72697a6f6e74616c2e706e67"
+
+	defaultSiteURL := "https://mattermost.example.com"
+	proxyURL := "http://images.example.com"
+	options := "7e5f3fab20b94782b43cdb022a66985ef28ba355df2c5d5da3c9a05e4b697bac"
+
 	for _, test := range []struct {
 		Name     string
 		Input    string
+		SiteURL  string
 		Expected string
 	}{
 		{
 			Name:     "should proxy image",
 			Input:    imageURL,
+			SiteURL:  defaultSiteURL,
+			Expected: proxiedURL,
+		},
+		{
+			Name:     "should proxy image when no site URL is set",
+			Input:    imageURL,
+			SiteURL:  "",
+			Expected: proxiedURL,
+		},
+		{
+			Name:     "should proxy image when a site URL with a subpath is set",
+			Input:    imageURL,
+			SiteURL:  proxyURL + "/subpath",
 			Expected: proxiedURL,
 		},
 		{
 			Name:     "should not proxy a relative image",
 			Input:    "/static/logo.png",
+			SiteURL:  defaultSiteURL,
 			Expected: "/static/logo.png",
 		},
 		{
 			Name:     "should not proxy an image on the Mattermost server",
 			Input:    "https://mattermost.example.com/static/logo.png",
+			SiteURL:  defaultSiteURL,
+			Expected: "https://mattermost.example.com/static/logo.png",
+		},
+		{
+			Name:     "should not proxy an image on the Mattermost server when a subpath is set",
+			Input:    "https://mattermost.example.com/static/logo.png",
+			SiteURL:  defaultSiteURL + "/static",
 			Expected: "https://mattermost.example.com/static/logo.png",
 		},
 		{
 			Name:     "should not proxy an image that has already been proxied",
 			Input:    proxiedURL,
+			SiteURL:  defaultSiteURL,
 			Expected: proxiedURL,
 		},
 	} {
 		t.Run(test.Name, func(t *testing.T) {
-			assert.Equal(t, test.Expected, proxy.GetProxiedImageURL(test.Input))
+			assert.Equal(t, test.Expected, getAtmosCamoImageURL(test.Input, test.SiteURL, proxyURL, options))
 		})
 	}
+
 }
 
 func TestAtmosCamoBackend_GetUnproxiedImageURL(t *testing.T) {

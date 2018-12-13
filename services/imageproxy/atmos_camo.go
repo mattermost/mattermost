@@ -31,7 +31,12 @@ func (backend *AtmosCamoBackend) GetProxiedImageURL(imageURL string) string {
 	proxyURL := *cfg.ImageProxySettings.RemoteImageProxyURL
 	options := *cfg.ImageProxySettings.RemoteImageProxyOptions
 
-	if imageURL == "" || imageURL[0] == '/' || strings.HasPrefix(imageURL, siteURL) || strings.HasPrefix(imageURL, proxyURL) {
+	return getAtmosCamoImageURL(imageURL, siteURL, proxyURL, options)
+}
+
+func getAtmosCamoImageURL(imageURL, siteURL, proxyURL, options string) string {
+	// Don't proxy blank images, relative URLs, absolute URLs on this server, or URLs that are already going through the proxy
+	if imageURL == "" || imageURL[0] == '/' || (siteURL != "" && strings.HasPrefix(imageURL, siteURL)) || strings.HasPrefix(imageURL, proxyURL) {
 		return imageURL
 	}
 
