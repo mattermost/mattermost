@@ -95,12 +95,6 @@ func RegisterMetricsInterface(f func(*App) einterfaces.MetricsInterface) {
 	metricsInterface = f
 }
 
-var mfaInterface func(*App) einterfaces.MfaInterface
-
-func RegisterMfaInterface(f func(*App) einterfaces.MfaInterface) {
-	mfaInterface = f
-}
-
 var samlInterface func(*App) einterfaces.SamlInterface
 
 func RegisterSamlInterface(f func(*App) einterfaces.SamlInterface) {
@@ -130,9 +124,6 @@ func (s *Server) initEnterprise() {
 	}
 	if metricsInterface != nil {
 		s.Metrics = metricsInterface(s.FakeApp())
-	}
-	if mfaInterface != nil {
-		s.Mfa = mfaInterface(s.FakeApp())
 	}
 	if samlInterface != nil {
 		s.Saml = samlInterface(s.FakeApp())
