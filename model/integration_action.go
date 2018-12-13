@@ -20,6 +20,8 @@ import (
 const (
 	POST_ACTION_TYPE_BUTTON                         = "button"
 	POST_ACTION_TYPE_SELECT                         = "select"
+	POST_ACTION_RESPONSE_TYPE_MESSAGE               = "message"
+	POST_ACTION_RESPONSE_TYPE_REPLY                 = "reply"
 	INTERACTIVE_DIALOG_TRIGGER_TIMEOUT_MILLISECONDS = 3000
 )
 
@@ -28,12 +30,13 @@ type DoPostActionRequest struct {
 }
 
 type PostAction struct {
-	Id          string                 `json:"id"`
-	Name        string                 `json:"name"`
-	Type        string                 `json:"type"`
-	DataSource  string                 `json:"data_source"`
-	Options     []*PostActionOptions   `json:"options"`
-	Integration *PostActionIntegration `json:"integration,omitempty"`
+	Id           string                 `json:"id"`
+	Name         string                 `json:"name"`
+	Type         string                 `json:"type"`
+	ResponseType string                 `json:"response_type,omitempty"`
+	DataSource   string                 `json:"data_source"`
+	Options      []*PostActionOptions   `json:"options"`
+	Integration  *PostActionIntegration `json:"integration,omitempty"`
 }
 
 type PostActionOptions struct {
