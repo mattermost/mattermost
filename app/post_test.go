@@ -369,9 +369,10 @@ func TestCreatePost(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ExperimentalSettings.EnablePostMetadata = false
-			*cfg.ServiceSettings.ImageProxyType = "atmos/camo"
-			*cfg.ServiceSettings.ImageProxyURL = "https://127.0.0.1"
-			*cfg.ServiceSettings.ImageProxyOptions = "foo"
+			*cfg.ImageProxySettings.Enable = true
+			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
+			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
+			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
 		})
 
 		imageURL := "http://mydomain.com/myimage"
@@ -396,9 +397,10 @@ func TestPatchPost(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ExperimentalSettings.EnablePostMetadata = false
-			*cfg.ServiceSettings.ImageProxyType = "atmos/camo"
-			*cfg.ServiceSettings.ImageProxyURL = "https://127.0.0.1"
-			*cfg.ServiceSettings.ImageProxyOptions = "foo"
+			*cfg.ImageProxySettings.Enable = true
+			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
+			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
+			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
 		})
 
 		imageURL := "http://mydomain.com/myimage"
@@ -431,9 +433,10 @@ func TestUpdatePost(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ExperimentalSettings.EnablePostMetadata = false
-			*cfg.ServiceSettings.ImageProxyType = "atmos/camo"
-			*cfg.ServiceSettings.ImageProxyURL = "https://127.0.0.1"
-			*cfg.ServiceSettings.ImageProxyOptions = "foo"
+			*cfg.ImageProxySettings.Enable = true
+			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
+			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
+			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
 		})
 
 		imageURL := "http://mydomain.com/myimage"
