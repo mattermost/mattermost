@@ -340,3 +340,99 @@ func TestDeletePostWithFileAttachments(t *testing.T) {
 	_, err = th.App.GetFileInfo(info1.Id)
 	assert.NotNil(t, err)
 }
+
+func TestCreatePost(t *testing.T) {
+	t.Run("call PreparePostForClient before returning", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ExperimentalSettings.EnablePostMetadata = false
+			*cfg.ServiceSettings.ImageProxyType = "atmos/camo"
+			*cfg.ServiceSettings.ImageProxyURL = "https://127.0.0.1"
+			*cfg.ServiceSettings.ImageProxyOptions = "foo"
+		})
+
+		imageURL := "http://mydomain.com/myimage"
+		proxiedImageURL := "https://127.0.0.1/f8dace906d23689e8d5b12c3cefbedbf7b9b72f5/687474703a2f2f6d79646f6d61696e2e636f6d2f6d79696d616765"
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "![image](" + imageURL + ")",
+			UserId:    th.BasicUser.Id,
+		}
+
+		rpost, err := th.App.CreatePost(post, th.BasicChannel, false)
+		require.Nil(t, err)
+		assert.Equal(t, "![image]("+proxiedImageURL+")", rpost.Message)
+	})
+}
+
+func TestPatchPost(t *testing.T) {
+	t.Run("call PreparePostForClient before returning", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ExperimentalSettings.EnablePostMetadata = false
+			*cfg.ServiceSettings.ImageProxyType = "atmos/camo"
+			*cfg.ServiceSettings.ImageProxyURL = "https://127.0.0.1"
+			*cfg.ServiceSettings.ImageProxyOptions = "foo"
+		})
+
+		imageURL := "http://mydomain.com/myimage"
+		proxiedImageURL := "https://127.0.0.1/f8dace906d23689e8d5b12c3cefbedbf7b9b72f5/687474703a2f2f6d79646f6d61696e2e636f6d2f6d79696d616765"
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "![image](http://mydomain/anotherimage)",
+			UserId:    th.BasicUser.Id,
+		}
+
+		rpost, err := th.App.CreatePost(post, th.BasicChannel, false)
+		require.Nil(t, err)
+		assert.NotEqual(t, "![image]("+proxiedImageURL+")", rpost.Message)
+
+		patch := &model.PostPatch{
+			Message: model.NewString("![image](" + imageURL + ")"),
+		}
+
+		rpost, err = th.App.PatchPost(rpost.Id, patch)
+		require.Nil(t, err)
+		assert.Equal(t, "![image]("+proxiedImageURL+")", rpost.Message)
+	})
+}
+
+func TestUpdatePost(t *testing.T) {
+	t.Run("call PreparePostForClient before returning", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ExperimentalSettings.EnablePostMetadata = false
+			*cfg.ServiceSettings.ImageProxyType = "atmos/camo"
+			*cfg.ServiceSettings.ImageProxyURL = "https://127.0.0.1"
+			*cfg.ServiceSettings.ImageProxyOptions = "foo"
+		})
+
+		imageURL := "http://mydomain.com/myimage"
+		proxiedImageURL := "https://127.0.0.1/f8dace906d23689e8d5b12c3cefbedbf7b9b72f5/687474703a2f2f6d79646f6d61696e2e636f6d2f6d79696d616765"
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "![image](http://mydomain/anotherimage)",
+			UserId:    th.BasicUser.Id,
+		}
+
+		rpost, err := th.App.CreatePost(post, th.BasicChannel, false)
+		require.Nil(t, err)
+		assert.NotEqual(t, "![image]("+proxiedImageURL+")", rpost.Message)
+
+		post.Id = rpost.Id
+		post.Message = "![image](" + imageURL + ")"
+
+		rpost, err = th.App.UpdatePost(post, false)
+		require.Nil(t, err)
+		assert.Equal(t, "![image]("+proxiedImageURL+")", rpost.Message)
+	})
+}
