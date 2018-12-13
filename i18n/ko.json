@@ -1042,7 +1042,7 @@
   },
   {
     "id": "api.emoji.upload.large_image.too_large.app_error",
-    "translation": "Unable to create emoji. Image must be smaller than {{.MaxWidth}} by {{.MaxHeight}}."
+    "translation": "이모지를 생성할 수 없습니다. 이미지는 가로{{ .MaxWidth }}, 세로{{ .MaxHeight }} 보다 작아야 합니다."
   },
   {
     "id": "api.emoji.upload.open.app_error",
@@ -1760,7 +1760,7 @@
   },
   {
     "id": "api.team.update_restricted_domains.mismatch.app_error",
-    "translation": "Restricting team to {{ .Domain }} is not allowed by the system config. Please contact your system administrator."
+    "translation": "팀을 {{ .Domain }}로 제한하는 것은 시스템 설정에 의해 허가되어 있지 않습니다. 시스템 관리자에게 문의하세요."
   },
   {
     "id": "api.team.update_team_scheme.license.error",
@@ -1780,15 +1780,15 @@
   },
   {
     "id": "api.templates.deactivate_body.warning",
-    "translation": "If this change was not initiated by you or you want to reactivate your account, contact your system administrator."
+    "translation": "만약 이 변경사항이 당신에 의해 적용되지 않았거나 계정을 다시 활성화 시키고 싶으시면 시스템 관리자에게 문의하세요."
   },
   {
     "id": "api.templates.deactivate_subject",
-    "translation": "[{{ .SiteName }}] Your account at {{ .ServerURL }} has been deactivated"
+    "translation": "[{{ .SiteName }}], {{ .ServerURL }}에 가입된 당신의 계정이 비활성화 되었습니다."
   },
   {
     "id": "api.templates.email_change_body.info",
-    "translation": "Your email address for {{.TeamDisplayName}} has been changed to {{.NewEmail}}."
+    "translation": "{{.TeamDisplayName}}에 속한 당신의 이메일 주소가 {{.NewEmail}}로 변경되었습니다."
   },
   {
     "id": "api.templates.email_change_body.title",
@@ -1796,7 +1796,7 @@
   },
   {
     "id": "api.templates.email_change_subject",
-    "translation": "[{{ .SiteName }}] Your email address has changed"
+    "translation": "[{{ .SiteName }}], 당신의 이메일 주소가 변경되었습니다."
   },
   {
     "id": "api.templates.email_change_verify_body.button",
@@ -1812,7 +1812,7 @@
   },
   {
     "id": "api.templates.email_change_verify_subject",
-    "translation": "[{{ .SiteName }}] Verify new email address"
+    "translation": "[{{ .SiteName }}], 새로운 이메일 주소를 확인하세요."
   },
   {
     "id": "api.templates.email_footer",
@@ -1820,15 +1820,15 @@
   },
   {
     "id": "api.templates.email_info1",
-    "translation": "Any questions at all, mail us any time: "
+    "translation": "궁금한 점이 있으면 언제든지 메일로 연락하세요: "
   },
   {
     "id": "api.templates.email_info2",
-    "translation": "Best wishes,"
+    "translation": "행복을 기원하며,"
   },
   {
     "id": "api.templates.email_info3",
-    "translation": "The {{.SiteName}} Team"
+    "translation": "{{.SiteName}} 팀"
   },
   {
     "id": "api.templates.email_organization",
@@ -1836,7 +1836,7 @@
   },
   {
     "id": "api.templates.email_warning",
-    "translation": "If you did not make this change, please contact the system administrator."
+    "translation": "만약 변경한 적이 없다면, 시스템 관리자에게 문의해 주세요."
   },
   {
     "id": "api.templates.invite_body.button",
@@ -1844,11 +1844,11 @@
   },
   {
     "id": "api.templates.invite_body.extra_info",
-    "translation": "Mattermost lets you share messages and files from your PC or phone, with instant search and archiving. After you’ve joined <strong>{{.TeamDisplayName}}</strong>, you can sign-in to your new team and access these features anytime from the web address:<br/><br/><a href='{{.TeamURL}}'>{{.TeamURL}}</a>"
+    "translation": "Mattermost에서는 PC와 모바일간에 메시지와 파일들을 공유할 수 있으며, 검색과 보관 기능을 사용할 수 있습니다. [[{{.TeamDisplayName}}]] 에 참여한 후에는, 새로운 팀에 들어갈 수 있으며 이러한 기능들을 언제든지 사용할 수 있습니다. 웹 주소:"
   },
   {
     "id": "api.templates.invite_body.info",
-    "translation": "The team {{.SenderStatus}} [[{{.SenderName}}]], has invited you to join [[{{.TeamDisplayName}}]]."
+    "translation": "팀 {{.SenderStatus}} [[{{.SenderName}}]] 가 당신을 [[{{.TeamDisplayName}}]] 에 초대했습니다."
   },
   {
     "id": "api.templates.invite_body.title",
@@ -1856,31 +1856,31 @@
   },
   {
     "id": "api.templates.invite_subject",
-    "translation": "[{{ .SiteName }}] {{ .SenderName }} invited you to join {{ .TeamDisplayName }} Team"
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} 가 당신을 {{ .TeamDisplayName }} 팀에 초대했습니다."
   },
   {
     "id": "api.templates.mfa_activated_body.info",
-    "translation": "Multi-factor authentication has been added to your account on {{ .SiteURL }}."
+    "translation": "{{ .SiteURL }} 의 당신의 계정에 다중 요소 인증이 추가되었습니다."
   },
   {
     "id": "api.templates.mfa_activated_body.title",
-    "translation": "Multi-factor authentication was added"
+    "translation": "다중 요소 인증이 추가되었습니다"
   },
   {
     "id": "api.templates.mfa_change_subject",
-    "translation": "[{{ .SiteName }}] Your MFA has been updated"
+    "translation": "[{{ .SiteName }}], 당신의 MFA가 업데이트 되었습니다"
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
-    "translation": "Multi-factor authentication has been removed from your account on {{ .SiteURL }}."
+    "translation": "{{ .SiteURL }}의 당신의 계정에서 다중 요소 인증이 제거되었습니다."
   },
   {
     "id": "api.templates.mfa_deactivated_body.title",
-    "translation": "Multi-factor authentication was removed"
+    "translation": "다중 요소 인증이 제거되었습니다"
   },
   {
     "id": "api.templates.password_change_body.info",
-    "translation": "Your password has been updated for {{.TeamDisplayName}} on {{ .TeamURL }} by {{.Method}}."
+    "translation": "{{.Method}} 에 의해 {{ .TeamURL }} 의 {{.TeamDisplayName}} 에 대한 당신의 비밀번호가 업데이트 되었습니다."
   },
   {
     "id": "api.templates.password_change_body.title",
@@ -1888,7 +1888,7 @@
   },
   {
     "id": "api.templates.password_change_subject",
-    "translation": "[{{ .SiteName }}] Your password has been updated"
+    "translation": "[{{ .SiteName }}], 당신의 비밀번호가 업데이트 되었습니다"
   },
   {
     "id": "api.templates.post_body.button",
@@ -1900,11 +1900,11 @@
   },
   {
     "id": "api.templates.reset_body.info1",
-    "translation": "To change your password, click \"Reset Password\" below."
+    "translation": "비밀번호를 변경하기 위해서는, 아래의 \"비밀번호 초기화\" 를 누르세요."
   },
   {
     "id": "api.templates.reset_body.info2",
-    "translation": "If you did not mean to reset your password, please ignore this email and your password will remain the same. The password reset link expires in 24 hours."
+    "translation": "만약 비밀번호를 초기화 할 의사가 없다면, 이 이메일은 무시하세요. 당신의 비밀번호는 변경되지 않을 것입니다. 비밀번호 변경 링크는 24시간 안에 폐기됩니다."
   },
   {
     "id": "api.templates.reset_body.title",
@@ -1912,7 +1912,7 @@
   },
   {
     "id": "api.templates.reset_subject",
-    "translation": "[{{ .SiteName }}] Reset your password"
+    "translation": "[{{ .SiteName }}] 비밀번호를 초기화했습니다."
   },
   {
     "id": "api.templates.signin_change_email.body.info",
@@ -1928,23 +1928,23 @@
   },
   {
     "id": "api.templates.signin_change_email.subject",
-    "translation": "[{{ .SiteName }}] Your sign-in method has been updated"
+    "translation": "[{{ .SiteName }}] 당신의 로그인 방식이 변경되었습니다."
   },
   {
     "id": "api.templates.user_access_token_body.info",
-    "translation": "A personal access token was added to your account on {{ .SiteURL }}. They can be used to access {{.SiteName}} with your account."
+    "translation": "{{ .SiteURL }} 에서 당신의 계정에 개인 엑세스 토큰이 발급되었습니다. 당신의 계정으로 {{.SiteName}} 에 접속할 때 사용하실 수 있습니다."
   },
   {
     "id": "api.templates.user_access_token_body.title",
-    "translation": "Personal access token added to your account"
+    "translation": "개인 엑세스 토큰이 당신의 계정에 발급되었습니다"
   },
   {
     "id": "api.templates.user_access_token_subject",
-    "translation": "[{{ .SiteName }}] Personal access token added to your account"
+    "translation": "[{{ .SiteName }}] 당신의 계정에 개인 엑세스 토큰이 발급되었습니다"
   },
   {
     "id": "api.templates.username_change_body.info",
-    "translation": "Your username for {{.TeamDisplayName}} has been changed to {{.NewUsername}}."
+    "translation": "{{.TeamDisplayName}} 팀의 당신의 사용자명이 {{.NewUsername}} 로 변경되었습니다."
   },
   {
     "id": "api.templates.username_change_body.title",
@@ -1952,7 +1952,7 @@
   },
   {
     "id": "api.templates.username_change_subject",
-    "translation": "[{{ .SiteName }}] Your username has changed"
+    "translation": "[{{ .SiteName }}] 당신의 사용자명이 변경되었습니다"
   },
   {
     "id": "api.templates.verify_body.button",
@@ -1996,7 +1996,7 @@
   },
   {
     "id": "api.templates.welcome_subject",
-    "translation": "[{{ .SiteName }}] You joined {{ .ServerURL }}"
+    "translation": "[{{ .SiteName }}] {{ .ServerURL }} 에 참가했습니다."
   },
   {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",

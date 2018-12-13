@@ -165,7 +165,7 @@
   },
   {
     "id": "api.channel.join_channel.post_and_forget",
-    "translation": "%v присоединяется к каналу."
+    "translation": "%v - выполнен вход на канал"
   },
   {
     "id": "api.channel.leave.default.app_error",
@@ -1330,7 +1330,7 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "{{.Username}} были упомянуты, но они не получили уведомлений поскольку не состоят в этом канале."
+    "translation": "{{.Username}} упомянули, но уведомлений не будут получены поскольку пользователи не состоят в этом канале."
   },
   {
     "id": "api.post.create_post.can_not_post_to_deleted.error",
@@ -3160,7 +3160,7 @@
   },
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
-    "translation": "Эта команда достигла максимального количества разрешенных учетных записей. Свяжитесь с системным администратором для установки большего предела."
+    "translation": "Эта команда достигла максимального количества разрешенных учетных записей. Свяжитесь с системным администратором для увеличения лимита учётных записей."
   },
   {
     "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
@@ -3312,7 +3312,7 @@
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.get_indexes.error",
-    "translation": "Не удалось создать индекс Elasticsearch"
+    "translation": "Не удалось получить индексы Elasticsearch"
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
@@ -3324,7 +3324,7 @@
   },
   {
     "id": "ent.elasticsearch.index_post.error",
-    "translation": "Не удалось удалить плагин"
+    "translation": "Не удалось проиндексировать запись"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
@@ -3388,7 +3388,7 @@
   },
   {
     "id": "ent.elasticsearch.test_config.license.error",
-    "translation": "Редакция не поддерживает Elasticsearch."
+    "translation": "Ваша версия сервера Mattermost не поддерживает Elasticsearch."
   },
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
