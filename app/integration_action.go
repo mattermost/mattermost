@@ -51,6 +51,34 @@ func (a *App) DoPostAction(postId, actionId, userId, selectedOption string) (str
 		return "", model.NewAppError("DoPostAction", "api.post.do_action.action_id.app_error", nil, fmt.Sprintf("action=%v", action), http.StatusNotFound)
 	}
 
+	if action.Type == model.POST_ACTION_TYPE_REPLY || action.Type == model.POST_ACTION_TYPE_MESSAGE {
+		var message string
+		if action.Integration.Context["action"] != nil {
+			message = action.Integration.Context["action"].(string)
+		} else {
+			message = action.Name
+		}
+
+		replyPost := &model.Post{
+			Message:       message,
+			ChannelId:     post.ChannelId,
+			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+			UserId:        userId,
+		}
+
+		if action.Type == model.POST_ACTION_TYPE_REPLY {
+			replyPost.RootId = post.Id
+			replyPost.ParentId = post.Id
+		}
+
+		_, err := a.CreatePostAsUser(replyPost, true)
+		if err != nil {
+			return "", model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
+		}
+
+		return "", nil
+	}
+
 	request := &model.PostActionIntegrationRequest{
 		UserId:    userId,
 		ChannelId: post.ChannelId,

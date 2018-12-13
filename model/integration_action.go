@@ -20,6 +20,8 @@ import (
 const (
 	POST_ACTION_TYPE_BUTTON                         = "button"
 	POST_ACTION_TYPE_SELECT                         = "select"
+	POST_ACTION_TYPE_MESSAGE                        = "message"
+	POST_ACTION_TYPE_REPLY                          = "reply"
 	INTERACTIVE_DIALOG_TRIGGER_TIMEOUT_MILLISECONDS = 3000
 )
 
