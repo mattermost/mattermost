@@ -550,6 +550,18 @@ func (s *ServiceSettings) SetDefaults() {
 		s.ExperimentalChannelOrganization = NewBool(experimentalUnreadEnabled)
 	}
 
+	if s.DEPRECATED_DO_NOT_USE_ImageProxyType == nil {
+		s.DEPRECATED_DO_NOT_USE_ImageProxyType = NewString("")
+	}
+
+	if s.DEPRECATED_DO_NOT_USE_ImageProxyURL == nil {
+		s.DEPRECATED_DO_NOT_USE_ImageProxyURL = NewString("")
+	}
+
+	if s.DEPRECATED_DO_NOT_USE_ImageProxyOptions == nil {
+		s.DEPRECATED_DO_NOT_USE_ImageProxyOptions = NewString("")
+	}
+
 	if s.EnableAPITeamDeletion == nil {
 		s.EnableAPITeamDeletion = NewBool(false)
 	}
