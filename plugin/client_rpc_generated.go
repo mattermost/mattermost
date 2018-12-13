@@ -2837,6 +2837,35 @@ func (s *apiRPCServer) GetFileInfo(args *Z_GetFileInfoArgs, returns *Z_GetFileIn
 	return nil
 }
 
+type Z_GetFileArgs struct {
+	A string
+}
+
+type Z_GetFileReturns struct {
+	A []byte
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetFile(fileId string) ([]byte, *model.AppError) {
+	_args := &Z_GetFileArgs{fileId}
+	_returns := &Z_GetFileReturns{}
+	if err := g.client.Call("Plugin.GetFile", _args, _returns); err != nil {
+		log.Printf("RPC call to GetFile API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetFile(args *Z_GetFileArgs, returns *Z_GetFileReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetFile(fileId string) ([]byte, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetFile(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetFile called but not implemented."))
+	}
+	return nil
+}
+
 type Z_GetFileLinkArgs struct {
 	A string
 }
