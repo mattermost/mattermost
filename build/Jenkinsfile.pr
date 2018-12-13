@@ -54,13 +54,13 @@ pipeline {
                         ansiColor('xterm') {
                             sh """
                                 #!/bin/bash -ex
-                                git checkout $env.BRANCH_NAME || git checkout $env.CHANGE_BRANCH || git checkout $env.GIT_BRANCH || git checkout master || echo 1
+                                git checkout $env.BRANCH_NAME || git checkout $env.CHANGE_BRANCH || git checkout $env.GIT_BRANCH || git checkout master
                                 rm -rf ./dist
                                 export WEBAPP_GIT_COMMIT=\$(git rev-parse HEAD)
 
                                 echo Webapp Commit: \${WEBAPP_GIT_COMMIT}
 
-                                curl -f -o ./dist.tar.gz https://releases.mattermost.com/mattermost-webapp/commit/\${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz && mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1 || make node_modules test build || exit 1
+                                curl -f -o ./dist.tar.gz https://releases.mattermost.com/mattermost-webapp/commit/\${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz && mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1 || make node_modules test build
                             """
                         }
                     }
@@ -79,9 +79,9 @@ pipeline {
                         sh """
                             cd /go/src/github.com/mattermost/mattermost-server
                             mv config/default.json config/config.json || echo ""
-                            make check-style BUILD_NUMBER='${BRANCH_NAME}-${BUILD_NUMBER}' || exit 1
-                            make build BUILD_NUMBER='${BRANCH_NAME}-${BUILD_NUMBER}' || exit 1
-                            make package BUILD_NUMBER='${BRANCH_NAME}-${BUILD_NUMBER}' || exit 1
+                            make check-style BUILD_NUMBER='${BRANCH_NAME}-${BUILD_NUMBER}'
+                            make build BUILD_NUMBER='${BRANCH_NAME}-${BUILD_NUMBER}'
+                            make package BUILD_NUMBER='${BRANCH_NAME}-${BUILD_NUMBER}'
                         """
                     }
                 }
@@ -132,7 +132,7 @@ pipeline {
                             mkdir -p client/plugins
                             cat config/config.json
 
-                            make test-server BUILD_NUMBER='${BRANCH_NAME}-${BUILD_NUMBER}' TESTFLAGS= TESTFLAGSEE= || exit 1
+                            make test-server BUILD_NUMBER='${BRANCH_NAME}-${BUILD_NUMBER}' TESTFLAGS= TESTFLAGSEE=
                         """
                     }
                 }
