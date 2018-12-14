@@ -414,12 +414,13 @@ func (a *App) copyEmojiImages(emojiId string, emojiImagePath string, pathToDir s
 
 	emojiDir := pathToDir + "/" + emojiId
 
-	if _, err := os.Stat(emojiDir); os.IsNotExist(err) {
-		os.Mkdir(emojiDir, os.ModePerm)
+	if _, err = os.Stat(emojiDir); os.IsNotExist(err) {
+		err = os.Mkdir(emojiDir, os.ModePerm)
+		if err != nil {
+			return errors.New("Error creating directory for the emoji " + err.Error())
+		}
 	}
-	if err != nil {
-		return errors.New("Error creating directory for the emoji " + err.Error())
-	}
+
 	toPath, err := os.OpenFile(emojiDir+"/image", os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
 		return errors.New("Error creating the image file " + err.Error())

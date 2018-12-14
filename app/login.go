@@ -45,7 +45,7 @@ func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken string, l
 	}()
 
 	if len(password) == 0 {
-		err := model.NewAppError("AuthenticateUserForLogin", "api.user.login.blank_pwd.app_error", nil, "", http.StatusBadRequest)
+		err = model.NewAppError("AuthenticateUserForLogin", "api.user.login.blank_pwd.app_error", nil, "", http.StatusBadRequest)
 		return nil, err
 	}
 
