@@ -25,11 +25,6 @@ func TestOpenDialog(t *testing.T) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
 	})
 
-	WebSocketClient, err := th.CreateWebSocketClient()
-	require.Nil(t, err)
-
-	WebSocketClient.Listen()
-
 	_, triggerId, err := model.GenerateTriggerId(th.BasicUser.Id, th.App.AsymmetricSigningKey())
 	require.Nil(t, err)
 
@@ -57,21 +52,6 @@ func TestOpenDialog(t *testing.T) {
 	CheckNoError(t, resp)
 	assert.True(t, pass)
 
-	timeout := time.After(300 * time.Millisecond)
-	waiting := true
-	for waiting {
-		select {
-		case event := <-WebSocketClient.EventChannel:
-			if event.Event == model.WEBSOCKET_EVENT_OPEN_DIALOG {
-				waiting = false
-			}
-
-		case <-timeout:
-			waiting = false
-			t.Fatal("should have received open_dialog event")
-		}
-	}
-
 	// Should fail on bad trigger ID
 	request.TriggerId = "junk"
 	pass, resp = Client.OpenInteractiveDialog(request)
@@ -84,6 +64,20 @@ func TestOpenDialog(t *testing.T) {
 	pass, resp = Client.OpenInteractiveDialog(request)
 	CheckBadRequestStatus(t, resp)
 	assert.False(t, pass)
+<<<<<<< HEAD
+=======
+
+	// At least one element is required
+	request.URL = "http://localhost:8065"
+	request.Dialog.Elements = nil
+	pass, resp = Client.OpenInteractiveDialog(request)
+	CheckBadRequestStatus(t, resp)
+	assert.False(t, pass)
+	request.Dialog.Elements = []model.DialogElement{}
+	pass, resp = Client.OpenInteractiveDialog(request)
+	CheckBadRequestStatus(t, resp)
+	assert.False(t, pass)
+>>>>>>> 6c2e216c3... Require at least one element in interactive dialogs (#10003)
 }
 
 func TestSubmitDialog(t *testing.T) {
