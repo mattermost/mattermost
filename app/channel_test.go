@@ -57,9 +57,8 @@ func TestPermanentDeleteChannel(t *testing.T) {
 		t.Fatal("unable to get new outgoing webhook")
 	}
 
-	if err := th.App.PermanentDeleteChannel(channel); err != nil {
-		t.Fatal(err.Error())
-	}
+	err = th.App.PermanentDeleteChannel(channel)
+	require.Nil(t, err)
 
 	if incoming, err = th.App.GetIncomingWebhook(incoming.Id); incoming != nil || err == nil {
 		t.Error("incoming webhook wasn't deleted")
@@ -790,8 +789,8 @@ func TestGetPublicChannelsForTeam(t *testing.T) {
 			Type:        model.CHANNEL_OPEN,
 			TeamId:      team.Id,
 		}
-		rchannel, err := th.App.CreateChannel(&channel, false)
-		require.Nil(t, err)
+		rchannel, channelErr := th.App.CreateChannel(&channel, false)
+		require.Nil(t, channelErr)
 		require.NotNil(t, rchannel)
 		defer th.App.PermanentDeleteChannel(rchannel)
 
