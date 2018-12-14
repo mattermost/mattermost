@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -64,8 +63,6 @@ func TestOpenDialog(t *testing.T) {
 	pass, resp = Client.OpenInteractiveDialog(request)
 	CheckBadRequestStatus(t, resp)
 	assert.False(t, pass)
-<<<<<<< HEAD
-=======
 
 	// At least one element is required
 	request.URL = "http://localhost:8065"
@@ -77,7 +74,6 @@ func TestOpenDialog(t *testing.T) {
 	pass, resp = Client.OpenInteractiveDialog(request)
 	CheckBadRequestStatus(t, resp)
 	assert.False(t, pass)
->>>>>>> 6c2e216c3... Require at least one element in interactive dialogs (#10003)
 }
 
 func TestSubmitDialog(t *testing.T) {
