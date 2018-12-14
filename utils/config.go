@@ -581,8 +581,6 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["EnableUserTypingMessages"] = strconv.FormatBool(*c.ServiceSettings.EnableUserTypingMessages)
 	props["EnableChannelViewedMessages"] = strconv.FormatBool(*c.ServiceSettings.EnableChannelViewedMessages)
 
-	props["PluginsEnabled"] = strconv.FormatBool(*c.PluginSettings.Enable)
-
 	props["RunJobs"] = strconv.FormatBool(*c.JobSettings.RunJobs)
 
 	props["EnableEmailInvitations"] = strconv.FormatBool(*c.ServiceSettings.EnableEmailInvitations)
@@ -745,6 +743,8 @@ func GenerateLimitedClientConfig(c *model.Config, diagnosticId string, license *
 
 	hasImageProxy := c.ServiceSettings.ImageProxyType != nil && *c.ServiceSettings.ImageProxyType != "" && c.ServiceSettings.ImageProxyURL != nil && *c.ServiceSettings.ImageProxyURL != ""
 	props["HasImageProxy"] = strconv.FormatBool(hasImageProxy)
+
+	props["PluginsEnabled"] = strconv.FormatBool(*c.PluginSettings.Enable)
 
 	// Set default values for all options that require a license.
 	props["EnableCustomBrand"] = "false"
