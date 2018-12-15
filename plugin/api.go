@@ -336,6 +336,11 @@ type API interface {
 	// Minimum server version: 5.3
 	GetFileInfo(fileId string) (*model.FileInfo, *model.AppError)
 
+	// GetFile gets content of a file by it's ID
+	//
+	// Minimum Server version: 5.8
+	GetFile(fileId string) ([]byte, *model.AppError)
+
 	// GetFileLink gets the public link to a file by fileId.
 	//
 	// Minimum server version: 5.6

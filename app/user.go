@@ -28,6 +28,7 @@ import (
 	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/mfa"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
@@ -589,16 +590,13 @@ func (a *App) sanitizeProfiles(users []*model.User, asAdmin bool) []*model.User 
 }
 
 func (a *App) GenerateMfaSecret(userId string) (*model.MfaSecret, *model.AppError) {
-	if a.Mfa == nil {
-		return nil, model.NewAppError("generateMfaSecret", "api.user.generate_mfa_qr.not_available.app_error", nil, "", http.StatusNotImplemented)
-	}
-
 	user, err := a.GetUser(userId)
 	if err != nil {
 		return nil, err
 	}
 
-	secret, img, err := a.Mfa.GenerateSecret(user)
+	mfaService := mfa.New(a, a.Srv.Store)
+	secret, img, err := mfaService.GenerateSecret(user)
 	if err != nil {
 		return nil, err
 	}
@@ -608,11 +606,6 @@ func (a *App) GenerateMfaSecret(userId string) (*model.MfaSecret, *model.AppErro
 }
 
 func (a *App) ActivateMfa(userId, token string) *model.AppError {
-	if a.Mfa == nil {
-		err := model.NewAppError("ActivateMfa", "api.user.update_mfa.not_available.app_error", nil, "", http.StatusNotImplemented)
-		return err
-	}
-
 	result := <-a.Srv.Store.User().Get(userId)
 	if result.Err != nil {
 		return result.Err
@@ -623,7 +616,8 @@ func (a *App) ActivateMfa(userId, token string) *model.AppError {
 		return model.NewAppError("ActivateMfa", "api.user.activate_mfa.email_and_ldap_only.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if err := a.Mfa.Activate(user, token); err != nil {
+	mfaService := mfa.New(a, a.Srv.Store)
+	if err := mfaService.Activate(user, token); err != nil {
 		return err
 	}
 
@@ -631,12 +625,8 @@ func (a *App) ActivateMfa(userId, token string) *model.AppError {
 }
 
 func (a *App) DeactivateMfa(userId string) *model.AppError {
-	if a.Mfa == nil {
-		err := model.NewAppError("DeactivateMfa", "api.user.update_mfa.not_available.app_error", nil, "", http.StatusNotImplemented)
-		return err
-	}
-
-	if err := a.Mfa.Deactivate(userId); err != nil {
+	mfaService := mfa.New(a, a.Srv.Store)
+	if err := mfaService.Deactivate(userId); err != nil {
 		return err
 	}
 

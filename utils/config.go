@@ -581,8 +581,6 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["EnableUserTypingMessages"] = strconv.FormatBool(*c.ServiceSettings.EnableUserTypingMessages)
 	props["EnableChannelViewedMessages"] = strconv.FormatBool(*c.ServiceSettings.EnableChannelViewedMessages)
 
-	props["PluginsEnabled"] = strconv.FormatBool(*c.PluginSettings.Enable)
-
 	props["RunJobs"] = strconv.FormatBool(*c.JobSettings.RunJobs)
 
 	props["EnableEmailInvitations"] = strconv.FormatBool(*c.ServiceSettings.EnableEmailInvitations)
@@ -688,11 +686,6 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 			props["DataRetentionEnableFileDeletion"] = strconv.FormatBool(*c.DataRetentionSettings.EnableFileDeletion)
 			props["DataRetentionFileRetentionDays"] = strconv.FormatInt(int64(*c.DataRetentionSettings.FileRetentionDays), 10)
 		}
-
-		if *license.Features.CustomTermsOfService {
-			props["EnableCustomTermsOfService"] = strconv.FormatBool(*c.SupportSettings.CustomTermsOfServiceEnabled)
-			props["CustomTermsOfServiceReAcceptancePeriod"] = strconv.FormatInt(int64(*c.SupportSettings.CustomTermsOfServiceReAcceptancePeriod), 10)
-		}
 	}
 
 	return props
@@ -751,6 +744,8 @@ func GenerateLimitedClientConfig(c *model.Config, diagnosticId string, license *
 	hasImageProxy := c.ServiceSettings.ImageProxyType != nil && *c.ServiceSettings.ImageProxyType != "" && c.ServiceSettings.ImageProxyURL != nil && *c.ServiceSettings.ImageProxyURL != ""
 	props["HasImageProxy"] = strconv.FormatBool(hasImageProxy)
 
+	props["PluginsEnabled"] = strconv.FormatBool(*c.PluginSettings.Enable)
+
 	// Set default values for all options that require a license.
 	props["EnableCustomBrand"] = "false"
 	props["CustomBrandText"] = ""
@@ -771,6 +766,7 @@ func GenerateLimitedClientConfig(c *model.Config, diagnosticId string, license *
 	props["EnableCustomBrand"] = strconv.FormatBool(*c.TeamSettings.EnableCustomBrand)
 	props["CustomBrandText"] = *c.TeamSettings.CustomBrandText
 	props["CustomDescriptionText"] = *c.TeamSettings.CustomDescriptionText
+	props["EnableMultifactorAuthentication"] = strconv.FormatBool(*c.ServiceSettings.EnableMultifactorAuthentication)
 
 	if license != nil {
 		if *license.Features.LDAP {
@@ -779,10 +775,6 @@ func GenerateLimitedClientConfig(c *model.Config, diagnosticId string, license *
 			props["LdapLoginButtonColor"] = *c.LdapSettings.LoginButtonColor
 			props["LdapLoginButtonBorderColor"] = *c.LdapSettings.LoginButtonBorderColor
 			props["LdapLoginButtonTextColor"] = *c.LdapSettings.LoginButtonTextColor
-		}
-
-		if *license.Features.MFA {
-			props["EnableMultifactorAuthentication"] = strconv.FormatBool(*c.ServiceSettings.EnableMultifactorAuthentication)
 		}
 
 		if *license.Features.SAML {
@@ -799,6 +791,11 @@ func GenerateLimitedClientConfig(c *model.Config, diagnosticId string, license *
 
 		if *license.Features.Office365OAuth {
 			props["EnableSignUpWithOffice365"] = strconv.FormatBool(c.Office365Settings.Enable)
+		}
+
+		if *license.Features.CustomTermsOfService {
+			props["EnableCustomTermsOfService"] = strconv.FormatBool(*c.SupportSettings.CustomTermsOfServiceEnabled)
+			props["CustomTermsOfServiceReAcceptancePeriod"] = strconv.FormatInt(int64(*c.SupportSettings.CustomTermsOfServiceReAcceptancePeriod), 10)
 		}
 	}
 

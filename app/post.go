@@ -409,6 +409,8 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 		})
 	}
 
+	rpost = a.PreparePostForClient(rpost)
+
 	a.sendUpdatedPostEvent(rpost)
 
 	a.InvalidateCacheForChannelPosts(rpost.ChannelId)
@@ -434,7 +436,7 @@ func (a *App) PatchPost(postId string, patch *model.PostPatch) (*model.Post, *mo
 
 func (a *App) sendUpdatedPostEvent(post *model.Post) {
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", post.ChannelId, "", nil)
-	message.Add("post", a.PreparePostForClient(post).ToJson())
+	message.Add("post", post.ToJson())
 	a.Publish(message)
 }
 
