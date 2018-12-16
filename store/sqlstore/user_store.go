@@ -364,9 +364,11 @@ func (s SqlUserStore) GetEtagForAllProfiles() store.StoreChannel {
 	})
 }
 
-func (us SqlUserStore) GetAllProfiles(offset int, limit int) store.StoreChannel {
+func (us SqlUserStore) GetAllProfiles(options *model.UserGetOptions) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var users []*model.User
+		offset := options.Page * options.PerPage
+		limit := options.PerPage
 
 		if _, err := us.GetReplica().Select(&users, "SELECT * FROM Users ORDER BY Username ASC LIMIT :Limit OFFSET :Offset", map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.GetAllProfiles", "store.sql_user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)

@@ -373,32 +373,16 @@ func (a *App) GetUserByAuth(authData *string, authService string) (*model.User, 
 	return result.Data.(*model.User), nil
 }
 
-func (a *App) GetUsers(offset int, limit int) ([]*model.User, *model.AppError) {
-	result := <-a.Srv.Store.User().GetAllProfiles(offset, limit)
+func (a *App) GetUsers(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
+	result := <-a.Srv.Store.User().GetAllProfiles(options)
 	if result.Err != nil {
 		return nil, result.Err
 	}
 	return result.Data.([]*model.User), nil
 }
 
-func (a *App) GetUsersMap(offset int, limit int, asAdmin bool) (map[string]*model.User, *model.AppError) {
-	users, err := a.GetUsers(offset, limit)
-	if err != nil {
-		return nil, err
-	}
-
-	userMap := make(map[string]*model.User, len(users))
-
-	for _, user := range users {
-		a.SanitizeProfile(user, asAdmin)
-		userMap[user.Id] = user
-	}
-
-	return userMap, nil
-}
-
-func (a *App) GetUsersPage(page int, perPage int, asAdmin bool) ([]*model.User, *model.AppError) {
-	users, err := a.GetUsers(page*perPage, perPage)
+func (a *App) GetUsersPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
+	users, err := a.GetUsers(options)
 	if err != nil {
 		return nil, err
 	}

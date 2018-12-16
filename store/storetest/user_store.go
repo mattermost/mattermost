@@ -307,7 +307,9 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 	store.Must(ss.User().Save(u2))
 	defer func() { store.Must(ss.User().PermanentDelete(u2.Id)) }()
 
-	if r1 := <-ss.User().GetAllProfiles(0, 100); r1.Err != nil {
+	options := &model.UserGetOptions{Page: 0, PerPage: 100}
+
+	if r1 := <-ss.User().GetAllProfiles(options); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		users := r1.Data.([]*model.User)
@@ -316,7 +318,8 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if r2 := <-ss.User().GetAllProfiles(0, 1); r2.Err != nil {
+	options = &model.UserGetOptions{Page: 0, PerPage: 1}
+	if r2 := <-ss.User().GetAllProfiles(options); r2.Err != nil {
 		t.Fatal(r2.Err)
 	} else {
 		users := r2.Data.([]*model.User)

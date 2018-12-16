@@ -365,6 +365,8 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	inChannelId := r.URL.Query().Get("in_channel")
 	notInChannelId := r.URL.Query().Get("not_in_channel")
 	withoutTeam := r.URL.Query().Get("without_team")
+	inactive := r.URL.Query().Get("inactive")
+	role := r.URL.Query().Get("role")
 	sort := r.URL.Query().Get("sort")
 
 	if len(notInChannelId) > 0 && len(inTeamId) == 0 {
@@ -386,6 +388,22 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	if sort == "status" && inChannelId == "" {
 		c.SetInvalidUrlParam("sort")
 		return
+	}
+
+	withoutTeamBool, _ := strconv.ParseBool(withoutTeam)
+	inactiveBool, _ := strconv.ParseBool(inactive)
+
+	userGetOptions := &model.UserGetOptions{
+		InTeamId:       inTeamId,
+		InChannelId:    inChannelId,
+		NotInTeamId:    notInTeamId,
+		NotInChannelId: notInChannelId,
+		WithoutTeam:    withoutTeamBool,
+		Inactive:       inactiveBool,
+		Role:           role,
+		Sort:           sort,
+		Page:           c.Params.Page,
+		PerPage:        c.Params.PerPage,
 	}
 
 	var profiles []*model.User
@@ -454,7 +472,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		if c.HandleEtag(etag, "Get Users", w, r) {
 			return
 		}
-		profiles, err = c.App.GetUsersPage(c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
+		profiles, err = c.App.GetUsersPage(userGetOptions, c.IsSystemAdmin())
 	}
 
 	if err != nil {
