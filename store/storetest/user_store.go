@@ -346,6 +346,7 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 
 	u3 := &model.User{}
 	u3.Email = MakeEmail()
+	u3.Roles = "system_user some-other-role"
 	store.Must(ss.User().Save(u3))
 	defer func() { store.Must(ss.User().PermanentDelete(u3.Id)) }()
 
@@ -355,6 +356,29 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 		if etag == r2.Data.(string) {
 			t.Fatal("etags should not match")
 		}
+	}
+
+	u4 := &model.User{}
+	u4.Email = MakeEmail()
+	u4.Roles = "system_admin some-other-role"
+	store.Must(ss.User().Save(u4))
+	defer func() { store.Must(ss.User().PermanentDelete(u4.Id)) }()
+
+	u5 := &model.User{}
+	u5.Email = MakeEmail()
+	u5.Roles = "system_admin"
+	store.Must(ss.User().Save(u5))
+	defer func() { store.Must(ss.User().PermanentDelete(u5.Id)) }()
+
+	options = &model.UserGetOptions{Page: 0, PerPage: 10, Role: "system_admin"}
+	if r2 := <-ss.User().GetAllProfiles(options); r2.Err != nil {
+		t.Fatal(r2.Err)
+	} else {
+		users := r2.Data.([]*model.User)
+		if len(users) != 2 {
+			t.Fatal("invalid returned users, role filter did not work")
+		}
+		assert.ElementsMatch(t, []string{u4.Id, u5.Id}, []string{users[0].Id, users[1].Id})
 	}
 }
 

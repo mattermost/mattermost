@@ -370,7 +370,16 @@ func (us SqlUserStore) GetAllProfiles(options *model.UserGetOptions) store.Store
 		offset := options.Page * options.PerPage
 		limit := options.PerPage
 
-		if _, err := us.GetReplica().Select(&users, "SELECT * FROM Users ORDER BY Username ASC LIMIT :Limit OFFSET :Offset", map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
+		baseQuery := "SELECT * FROM Users"
+		whereClauses := []string{}
+		if options.Role != "" {
+			whereClauses = append(whereClauses, fmt.Sprintf("Users.Roles like'%%%v%%'", options.Role))
+		}
+
+		searchQuery := generateQuery(baseQuery, whereClauses)
+		searchQuery = fmt.Sprintf("%v ORDER BY Username ASC LIMIT :Limit OFFSET :Offset", searchQuery)
+
+		if _, err := us.GetReplica().Select(&users, searchQuery, map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.GetAllProfiles", "store.sql_user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
 
@@ -381,6 +390,14 @@ func (us SqlUserStore) GetAllProfiles(options *model.UserGetOptions) store.Store
 			result.Data = users
 		}
 	})
+}
+
+func generateQuery(baseQuery string, whereClauses []string) string {
+	query := baseQuery
+	if len(whereClauses) > 0 {
+		query = fmt.Sprintf("%v WHERE %v", baseQuery, strings.Join(whereClauses, " "))
+	}
+	return query
 }
 
 func (s SqlUserStore) GetEtagForProfiles(teamId string) store.StoreChannel {
