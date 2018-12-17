@@ -1449,6 +1449,14 @@
     "translation": "Error creating post"
   },
   {
+    "id": "api.post.deduplicate_create_post.failed_to_get",
+    "translation": "Failed to fetch original post after deduplicating a client repeating the same request."
+  },
+  {
+    "id": "api.post.deduplicate_create_post.pending",
+    "translation": "Rejected post since another client is making the same request."
+  },
+  {
     "id": "api.post.disabled_all",
     "translation": "@all has been disabled because the channel has more than {{.Users}} users."
   },
