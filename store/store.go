@@ -250,7 +250,7 @@ type UserStore interface {
 	GetProfilesWithoutTeam(offset int, limit int) StoreChannel
 	GetProfilesByUsernames(usernames []string, teamId string) StoreChannel
 	GetAllProfiles(options *model.UserGetOptions) StoreChannel
-	GetProfiles(teamId string, offset int, limit int) StoreChannel
+	GetProfiles(options *model.UserGetOptions) StoreChannel
 	GetProfileByIds(userId []string, allowFromCache bool) StoreChannel
 	InvalidatProfileCacheForUser(userId string)
 	GetByEmail(email string) StoreChannel

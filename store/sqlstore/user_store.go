@@ -370,10 +370,13 @@ func (us SqlUserStore) GetAllProfiles(options *model.UserGetOptions) store.Store
 		offset := options.Page * options.PerPage
 		limit := options.PerPage
 
-		baseQuery := "SELECT * FROM Users"
+		searchQuery := `
+			SELECT * FROM Users
+			WHERE_CONDITION
+			ORDER BY Username ASC LIMIT :Limit OFFSET :Offset
+		`
 
-		whereClause := generateWhereClause(options)
-		searchQuery := fmt.Sprintf("%v %v ORDER BY Username ASC LIMIT :Limit OFFSET :Offset", baseQuery, whereClause)
+		searchQuery = substituteWhereClause(searchQuery, options)
 
 		if _, err := us.GetReplica().Select(&users, searchQuery, map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.GetAllProfiles", "store.sql_user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -388,20 +391,26 @@ func (us SqlUserStore) GetAllProfiles(options *model.UserGetOptions) store.Store
 	})
 }
 
-func generateWhereClause(options *model.UserGetOptions) string {
+func substituteWhereClause(searchQuery string, options *model.UserGetOptions) string {
 	whereClause := ""
 	whereClauses := []string{}
 	if options.Role != "" {
-		whereClauses = append(whereClauses, fmt.Sprintf("Users.Roles like'%%%v%%'", options.Role))
+		whereClauses = append(whereClauses, fmt.Sprintf(" Users.Roles like'%%%v%%' ", options.Role))
 	}
 	if options.Inactive {
-		whereClauses = append(whereClauses, "Users.DeleteAt != 0")
+		whereClauses = append(whereClauses, " Users.DeleteAt != 0 ")
 	}
 
 	if len(whereClauses) > 0 {
-		whereClause = fmt.Sprintf("WHERE %v", strings.Join(whereClauses, " AND "))
+		whereClause = strings.Join(whereClauses, " AND ")
+		searchQuery = strings.Replace(searchQuery, "WHERE_CONDITION", fmt.Sprintf(" WHERE %s ", whereClause), 1)
+		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", fmt.Sprintf(" AND %s ", whereClause), 1)
+	} else {
+		searchQuery = strings.Replace(searchQuery, "WHERE_CONDITION", "", 1)
+		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
 	}
-	return whereClause
+
+	return searchQuery
 }
 
 func (s SqlUserStore) GetEtagForProfiles(teamId string) store.StoreChannel {
@@ -415,11 +424,24 @@ func (s SqlUserStore) GetEtagForProfiles(teamId string) store.StoreChannel {
 	})
 }
 
-func (us SqlUserStore) GetProfiles(teamId string, offset int, limit int) store.StoreChannel {
+func (us SqlUserStore) GetProfiles(options *model.UserGetOptions) store.StoreChannel {
+	teamId := options.InTeamId
+	offset := options.Page * options.PerPage
+	limit := options.PerPage
+
+	searchQuery := `
+		SELECT Users.* FROM Users, TeamMembers 
+		WHERE TeamMembers.TeamId = :TeamId AND Users.Id = TeamMembers.UserId AND TeamMembers.DeleteAt = 0
+		SEARCH_CLAUSE
+		ORDER BY Users.Username ASC LIMIT :Limit OFFSET :Offset
+		`
+
+	searchQuery = substituteWhereClause(searchQuery, options)
+
 	return store.Do(func(result *store.StoreResult) {
 		var users []*model.User
 
-		if _, err := us.GetReplica().Select(&users, "SELECT Users.* FROM Users, TeamMembers WHERE TeamMembers.TeamId = :TeamId AND Users.Id = TeamMembers.UserId AND TeamMembers.DeleteAt = 0 ORDER BY Users.Username ASC LIMIT :Limit OFFSET :Offset", map[string]interface{}{"TeamId": teamId, "Offset": offset, "Limit": limit}); err != nil {
+		if _, err := us.GetReplica().Select(&users, searchQuery, map[string]interface{}{"TeamId": teamId, "Offset": offset, "Limit": limit}); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.GetProfiles", "store.sql_user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
 

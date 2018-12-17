@@ -432,7 +432,8 @@ func testUserStoreGetProfiles(t *testing.T, ss store.Store) {
 	defer func() { store.Must(ss.User().PermanentDelete(u2.Id)) }()
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1))
 
-	if r1 := <-ss.User().GetProfiles(teamId, 0, 100); r1.Err != nil {
+	options := &model.UserGetOptions{InTeamId: teamId, Page: 0, PerPage: 100}
+	if r1 := <-ss.User().GetProfiles(options); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		users := r1.Data.([]*model.User)
@@ -452,7 +453,8 @@ func testUserStoreGetProfiles(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if r2 := <-ss.User().GetProfiles("123", 0, 100); r2.Err != nil {
+	options = &model.UserGetOptions{InTeamId: "123", Page: 0, PerPage: 100}
+	if r2 := <-ss.User().GetProfiles(options); r2.Err != nil {
 		t.Fatal(r2.Err)
 	} else {
 		if len(r2.Data.([]*model.User)) != 0 {
@@ -480,6 +482,53 @@ func testUserStoreGetProfiles(t *testing.T, ss store.Store) {
 			t.Fatal("etags should not match")
 		}
 	}
+
+	u4 := &model.User{}
+	u4.Email = MakeEmail()
+	u4.Roles = "system_admin"
+	store.Must(ss.User().Save(u4))
+	defer func() { store.Must(ss.User().PermanentDelete(u4.Id)) }()
+	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u4.Id}, -1))
+
+	u5 := &model.User{}
+	u5.Email = MakeEmail()
+	u5.DeleteAt = model.GetMillis()
+	store.Must(ss.User().Save(u5))
+	defer func() { store.Must(ss.User().PermanentDelete(u5.Id)) }()
+	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u5.Id}, -1))
+
+	options = &model.UserGetOptions{InTeamId: teamId, Page: 0, PerPage: 100}
+	if r1 := <-ss.User().GetProfiles(options); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		users := r1.Data.([]*model.User)
+		if len(users) != 5 {
+			t.Fatal("invalid returned users")
+		}
+	}
+
+	options = &model.UserGetOptions{InTeamId: teamId, Role: "system_admin", Inactive: false, Page: 0, PerPage: 100}
+	if r1 := <-ss.User().GetProfiles(options); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		users := r1.Data.([]*model.User)
+		if len(users) != 1 {
+			t.Fatal("invalid returned users")
+		}
+		assert.Equal(t, u4.Id, users[0].Id)
+	}
+
+	options = &model.UserGetOptions{InTeamId: teamId, Inactive: true, Page: 0, PerPage: 100}
+	if r1 := <-ss.User().GetProfiles(options); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		users := r1.Data.([]*model.User)
+		if len(users) != 1 {
+			t.Fatal("invalid returned users")
+		}
+		assert.Equal(t, u5.Id, users[0].Id)
+	}
+
 }
 
 func testUserStoreGetProfilesInChannel(t *testing.T, ss store.Store) {
@@ -999,7 +1048,8 @@ func testUserStoreGetProfilesByIds(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if r2 := <-ss.User().GetProfiles("123", 0, 100); r2.Err != nil {
+	options := &model.UserGetOptions{InTeamId: "123", Page: 0, PerPage: 100}
+	if r2 := <-ss.User().GetProfiles(options); r2.Err != nil {
 		t.Fatal(r2.Err)
 	} else {
 		if len(r2.Data.([]*model.User)) != 0 {
