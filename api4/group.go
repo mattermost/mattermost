@@ -397,6 +397,11 @@ func unlinkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireGroupId()
+	if c.Err != nil {
+		return
+	}
+
 	if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.getGroupMembers", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
@@ -404,11 +409,6 @@ func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
-		return
-	}
-
-	c.RequireGroupId()
-	if c.Err != nil {
 		return
 	}
 
