@@ -97,8 +97,8 @@ func TestDoUploadFile(t *testing.T) {
 		t.Fatal(err)
 	} else {
 		defer func() {
-			<-th.App.Srv.Store.FileInfo().PermanentDelete(info3.Id)
-			th.App.RemoveFile(info3.Path)
+			<-th.App.Srv.Store.FileInfo().PermanentDelete(info4.Id)
+			th.App.RemoveFile(info4.Path)
 		}()
 	}
 
