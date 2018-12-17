@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -23,7 +24,7 @@ func TestPlugin(t *testing.T) {
 	os.MkdirAll("./test-plugins", os.ModePerm)
 	os.MkdirAll("./test-client-plugins", os.ModePerm)
 
-	path, _ := utils.FindDir("tests")
+	path, _ := fileutils.FindDir("tests")
 
 	os.Chdir(filepath.Join("..", "..", ".."))
 

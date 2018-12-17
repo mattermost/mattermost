@@ -5,6 +5,8 @@ package utils
 
 import (
 	"testing"
+
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 )
 
 func TestValidateLicense(t *testing.T) {
@@ -37,7 +39,7 @@ func TestGetLicenseFileFromDisk(t *testing.T) {
 		t.Fatal("invalid bytes")
 	}
 
-	fileBytes = GetLicenseFileFromDisk(FindConfigFile("config.json"))
+	fileBytes = GetLicenseFileFromDisk(fileutils.FindConfigFile("config.json"))
 	if len(fileBytes) == 0 { // a valid bytes but should be a fail license
 		t.Fatal("invalid bytes")
 	}

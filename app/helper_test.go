@@ -15,6 +15,7 @@ import (
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 )
 
 type TestHelper struct {
@@ -35,7 +36,7 @@ type TestHelper struct {
 func setupTestHelper(enterprise bool) *TestHelper {
 	mainHelper.Store.DropAllTables()
 
-	permConfig, err := os.Open(utils.FindConfigFile("config.json"))
+	permConfig, err := os.Open(fileutils.FindConfigFile("config.json"))
 	if err != nil {
 		panic(err)
 	}
@@ -68,15 +69,12 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.RateLimitSettings.Enable = false })
 	prevListenAddress := *th.App.Config().ServiceSettings.ListenAddress
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
-	serverErr := th.App.StartServer()
+	serverErr := th.Server.Start()
 	if serverErr != nil {
 		panic(serverErr)
 	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
-
-	th.App.DoAdvancedPermissionsMigration()
-	th.App.DoEmojisPermissionsMigration()
 
 	th.App.Srv.Store.MarkSystemRanUnitTests()
 

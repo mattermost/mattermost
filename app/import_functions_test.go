@@ -13,7 +13,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 )
 
 func TestImportImportScheme(t *testing.T) {
@@ -613,7 +613,7 @@ func TestImportImportUser(t *testing.T) {
 
 	// Do a valid user in apply mode.
 	username := model.NewId()
-	testsDir, _ := utils.FindDir("tests")
+	testsDir, _ := fileutils.FindDir("tests")
 	data = UserImportData{
 		ProfileImage: ptrStr(filepath.Join(testsDir, "test.png")),
 		Username:     &username,
@@ -2345,7 +2345,7 @@ func TestImportImportEmoji(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = true })
 
-	testsDir, _ := utils.FindDir("tests")
+	testsDir, _ := fileutils.FindDir("tests")
 	testImage := filepath.Join(testsDir, "test.png")
 
 	data := EmojiImportData{Name: ptrStr(model.NewId())}
@@ -2382,7 +2382,7 @@ func TestImportAttachment(t *testing.T) {
 	th := Setup()
 	defer th.TearDown()
 
-	testsDir, _ := utils.FindDir("tests")
+	testsDir, _ := fileutils.FindDir("tests")
 	testImage := filepath.Join(testsDir, "test.png")
 	invalidPath := "some-invalid-path"
 
@@ -2455,7 +2455,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 	time := model.GetMillis()
 	attachmentsPostTime := time
 	attachmentsReplyTime := time + 1
-	testsDir, _ := utils.FindDir("tests")
+	testsDir, _ := fileutils.FindDir("tests")
 	testImage := filepath.Join(testsDir, "test.png")
 	testMarkDown := filepath.Join(testsDir, "test-attachments.md")
 	data := &PostImportData{
@@ -2545,7 +2545,7 @@ func TestImportDirectPostWithAttachments(t *testing.T) {
 	th := Setup()
 	defer th.TearDown()
 
-	testsDir, _ := utils.FindDir("tests")
+	testsDir, _ := fileutils.FindDir("tests")
 	testImage := filepath.Join(testsDir, "test.png")
 
 	// Create a user.

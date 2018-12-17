@@ -14,7 +14,7 @@ pipeline {
     options { buildDiscarder(logRotator(numToKeepStr: '3')) }
 
     environment {
-        DCNAME = "${rnd}"
+        COMPOSE_PROJECT_NAME="${rnd}-${env.BUILD_NUMBER}"
     }
 
     stages {
@@ -54,13 +54,13 @@ pipeline {
                         ansiColor('xterm') {
                             sh """
                                 #!/bin/bash -ex
-                                git checkout $env.BRANCH_NAME || git checkout $env.CHANGE_BRANCH || git checkout $env.GIT_BRANCH || git checkout master || echo 1
+                                git checkout $env.BRANCH_NAME || git checkout $env.CHANGE_BRANCH || git checkout $env.GIT_BRANCH || git checkout master
                                 rm -rf ./dist
                                 export WEBAPP_GIT_COMMIT=\$(git rev-parse HEAD)
 
                                 echo Webapp Commit: \${WEBAPP_GIT_COMMIT}
 
-                                curl -f -o ./dist.tar.gz https://releases.mattermost.com/mattermost-webapp/commit/\${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz && mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1 || make node_modules test build || exit 1
+                                curl -f -o ./dist.tar.gz https://releases.mattermost.com/mattermost-webapp/commit/\${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz && mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1 || make node_modules test build
                             """
                         }
                     }
@@ -79,9 +79,9 @@ pipeline {
                         sh """
                             cd /go/src/github.com/mattermost/mattermost-server
                             mv config/default.json config/config.json || echo ""
-                            make check-style BUILD_NUMBER='${BRANCH_NAME}-${BUILD_NUMBER}' || exit 1
-                            make build BUILD_NUMBER='${BRANCH_NAME}-${BUILD_NUMBER}' || exit 1
-                            make package BUILD_NUMBER='${BRANCH_NAME}-${BUILD_NUMBER}' || exit 1
+                            make check-style BUILD_NUMBER='${BRANCH_NAME}-${BUILD_NUMBER}'
+                            make build BUILD_NUMBER='${BRANCH_NAME}-${BUILD_NUMBER}'
+                            make package BUILD_NUMBER='${BRANCH_NAME}-${BUILD_NUMBER}'
                         """
                     }
                 }
@@ -101,41 +101,38 @@ pipeline {
                 CI_INBUCKET_SMTP_PORT = "10025"
                 CI_LDAP_HOST = "openldap"
                 IS_CI = true
+                MM_SQLSETTINGS_DATASOURCE = "mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8"
+                MM_EMAILSETTINGS_SMTPSERVER = "inbucket"
+                MM_EMAILSETTINGS_SMTPPORT = "10025"
+                MM_ELASTICSEARCHSETTINGS_CONNECTIONURL = "http://elasticsearch:9200"
             }
 
             steps {
                 dir('src/github.com/mattermost/mattermost-server/build') {
                     ansiColor('xterm') {
                         sh """
-                            COMPOSE_PROJECT_NAME=${DCNAME}-${env.BUILD_NUMBER} docker-compose run --rm start_dependencies
-                            COMPOSE_PROJECT_NAME=${DCNAME}-${env.BUILD_NUMBER} docker-compose up -d mysql postgres minio inbucket openldap elasticsearch redis
+                            docker-compose --no-ansi run --rm start_dependencies
+                            docker-compose --no-ansi ps
 
-                            docker ps
-
-                            docker exec -t openldap-${DCNAME}-${env.BUILD_NUMBER} bash -c 'echo -e "dn: ou=testusers,dc=mm,dc=test,dc=com\nobjectclass: organizationalunit" | ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
-                            docker exec -t openldap-${DCNAME}-${env.BUILD_NUMBER} bash -c 'echo -e "dn: uid=test.one,ou=testusers,dc=mm,dc=test,dc=com\nobjectclass: iNetOrgPerson\nsn: User\ncn: Test1\nmail: success+testone@simulator.amazonses.com" | ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
-                            docker exec -t openldap-${DCNAME}-${env.BUILD_NUMBER} bash -c 'ldappasswd -s Password1 -D "cn=admin,dc=mm,dc=test,dc=com" -x "uid=test.one,ou=testusers,dc=mm,dc=test,dc=com" -w mostest';
-                            docker exec -t openldap-${DCNAME}-${env.BUILD_NUMBER} bash -c 'echo -e "dn: uid=test.two,ou=testusers,dc=mm,dc=test,dc=com\nobjectclass: iNetOrgPerson\nsn: User\ncn: Test2\nmail: success+testtwo@simulator.amazonses.com" | ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
-                            docker exec -t openldap-${DCNAME}-${env.BUILD_NUMBER} bash -c 'ldappasswd -s Password1 -D "cn=admin,dc=mm,dc=test,dc=com" -x "uid=test.two,ou=testusers,dc=mm,dc=test,dc=com" -w mostest';
-                            docker exec -t openldap-${DCNAME}-${env.BUILD_NUMBER} bash -c 'echo -e "dn: cn=tgroup,ou=testusers,dc=mm,dc=test,dc=com\nobjectclass: groupOfUniqueNames\nuniqueMember: uid=test.one,ou=testusers,dc=mm,dc=test,dc=com" | ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
+                            docker-compose --no-ansi exec -T openldap bash -c 'echo -e "dn: ou=testusers,dc=mm,dc=test,dc=com\nobjectclass: organizationalunit" | ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
+                            docker-compose --no-ansi exec -T openldap bash -c 'echo -e "dn: uid=test.one,ou=testusers,dc=mm,dc=test,dc=com\nobjectclass: iNetOrgPerson\nsn: User\ncn: Test1\nmail: success+testone@simulator.amazonses.com" | ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
+                            docker-compose --no-ansi exec -T openldap bash -c 'ldappasswd -s Password1 -D "cn=admin,dc=mm,dc=test,dc=com" -x "uid=test.one,ou=testusers,dc=mm,dc=test,dc=com" -w mostest';
+                            docker-compose --no-ansi exec -T openldap bash -c 'echo -e "dn: uid=test.two,ou=testusers,dc=mm,dc=test,dc=com\nobjectclass: iNetOrgPerson\nsn: User\ncn: Test2\nmail: success+testtwo@simulator.amazonses.com" | ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
+                            docker-compose --no-ansi exec -T openldap bash -c 'ldappasswd -s Password1 -D "cn=admin,dc=mm,dc=test,dc=com" -x "uid=test.two,ou=testusers,dc=mm,dc=test,dc=com" -w mostest';
+                            docker-compose --no-ansi exec -T openldap bash -c 'echo -e "dn: cn=tgroup,ou=testusers,dc=mm,dc=test,dc=com\nobjectclass: groupOfUniqueNames\nuniqueMember: uid=test.one,ou=testusers,dc=mm,dc=test,dc=com" | ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
                         """
                     }
                 }
 
-                withDockerContainer(args: "-u root --privileged --net ${DCNAME}-${BUILD_NUMBER}_mm-test -v ${WORKSPACE}/src:/go/src/", image: 'mattermost/mattermost-build-server:dec-7-2018') {
+                withDockerContainer(args: "-u root --privileged --net ${COMPOSE_PROJECT_NAME}_mm-test -v ${WORKSPACE}/src:/go/src/", image: 'mattermost/mattermost-build-server:dec-7-2018') {
                     ansiColor('xterm') {
                     sh """
                             cd /go/src/github.com/mattermost/mattermost-server
 
-                            sed -i'.bak' 's|mmuser:mostest@tcp(dockerhost:3306)/mattermost_test?charset=utf8mb4,utf8|mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8|g' config/config.json;
-                            sed -i'.bak' 's|"SMTPServer": "dockerhost",|"SMTPServer": "inbucket",|g' config/config.json;
-                            sed -i'.bak' 's|"SMTPPort": "2500",|"SMTPPort": "10025",|g' config/config.json;
-                            sed -i'.bak' 's|"ConnectionUrl": "http://dockerhost:9200",|"ConnectionUrl": "http://elasticsearch:9200",|g' config/config.json;
                             mkdir -p client/plugins
-
                             cat config/config.json
 
-                            make test-server BUILD_NUMBER='${BRANCH_NAME}-${BUILD_NUMBER}' TESTFLAGS= TESTFLAGSEE= || exit 1
+                            make test-server BUILD_NUMBER='${BRANCH_NAME}-${BUILD_NUMBER}' TESTFLAGS= TESTFLAGSEE=
                         """
                     }
                 }
@@ -234,7 +231,7 @@ pipeline {
             dir('src/github.com/mattermost/mattermost-server/build') {
                 ansiColor('xterm') {
                     sh """
-                        COMPOSE_PROJECT_NAME=${DCNAME}-${env.BUILD_NUMBER} docker-compose down -v
+                        docker-compose --no-ansi down -v
                     """
                 }
             }
