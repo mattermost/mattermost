@@ -375,6 +375,9 @@ func (us SqlUserStore) GetAllProfiles(options *model.UserGetOptions) store.Store
 		if options.Role != "" {
 			whereClauses = append(whereClauses, fmt.Sprintf("Users.Roles like'%%%v%%'", options.Role))
 		}
+		if options.Inactive {
+			whereClauses = append(whereClauses, "Users.DeleteAt != 0")
+		}
 
 		searchQuery := generateQuery(baseQuery, whereClauses)
 		searchQuery = fmt.Sprintf("%v ORDER BY Username ASC LIMIT :Limit OFFSET :Offset", searchQuery)
@@ -395,7 +398,7 @@ func (us SqlUserStore) GetAllProfiles(options *model.UserGetOptions) store.Store
 func generateQuery(baseQuery string, whereClauses []string) string {
 	query := baseQuery
 	if len(whereClauses) > 0 {
-		query = fmt.Sprintf("%v WHERE %v", baseQuery, strings.Join(whereClauses, " "))
+		query = fmt.Sprintf("%v WHERE %v", baseQuery, strings.Join(whereClauses, " AND "))
 	}
 	return query
 }

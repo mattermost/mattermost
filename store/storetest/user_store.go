@@ -380,6 +380,41 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 		}
 		assert.ElementsMatch(t, []string{u4.Id, u5.Id}, []string{users[0].Id, users[1].Id})
 	}
+
+	u6 := &model.User{}
+	u6.Email = MakeEmail()
+	u6.DeleteAt = model.GetMillis()
+	u6.Roles = "system_admin"
+	store.Must(ss.User().Save(u6))
+	defer func() { store.Must(ss.User().PermanentDelete(u6.Id)) }()
+
+	u7 := &model.User{}
+	u7.Email = MakeEmail()
+	u7.DeleteAt = model.GetMillis()
+	store.Must(ss.User().Save(u7))
+	defer func() { store.Must(ss.User().PermanentDelete(u7.Id)) }()
+
+	options = &model.UserGetOptions{Page: 0, PerPage: 10, Role: "system_admin", Inactive: true}
+	if r2 := <-ss.User().GetAllProfiles(options); r2.Err != nil {
+		t.Fatal(r2.Err)
+	} else {
+		users := r2.Data.([]*model.User)
+		if len(users) != 1 {
+			t.Fatal("invalid returned users, Role and Inactive filter did not work")
+		}
+		assert.Equal(t, u6.Id, users[0].Id)
+	}
+
+	options = &model.UserGetOptions{Page: 0, PerPage: 10, Inactive: true}
+	if r2 := <-ss.User().GetAllProfiles(options); r2.Err != nil {
+		t.Fatal(r2.Err)
+	} else {
+		users := r2.Data.([]*model.User)
+		if len(users) != 2 {
+			t.Fatal("invalid returned users, Inactive filter did not work")
+		}
+		assert.ElementsMatch(t, []string{u6.Id, u7.Id}, []string{users[0].Id, users[1].Id})
+	}
 }
 
 func testUserStoreGetProfiles(t *testing.T, ss store.Store) {
