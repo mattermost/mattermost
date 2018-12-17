@@ -336,7 +336,6 @@ func patchGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var appErr *model.AppError
 	groupSyncable, appErr := c.App.GetGroupSyncable(c.Params.GroupId, syncableID, syncableType)
 	if appErr != nil {
 		c.Err = appErr
