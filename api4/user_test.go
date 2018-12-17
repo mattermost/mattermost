@@ -1203,7 +1203,7 @@ func TestUpdateUserAuth(t *testing.T) {
 	userAuth.AuthData = user.AuthData
 	userAuth.AuthService = ""
 	userAuth.Password = "1"
-	if _, err := th.Client.UpdateUserAuth(user.Id, userAuth); err == nil {
+	if _, err := Client.UpdateUserAuth(user.Id, userAuth); err == nil {
 		t.Fatal("Should have errored - user password not valid")
 	}
 
