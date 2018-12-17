@@ -317,12 +317,12 @@ NEXT_PART:
 		filename := part.FileName()
 		if filename == "" {
 			var b bytes.Buffer
-			_, err := io.CopyN(&b, part, maxMultipartFormDataBytes)
-			if err != nil && err != io.EOF {
+			_, copyErr := io.CopyN(&b, part, maxMultipartFormDataBytes)
+			if copyErr != nil && copyErr != io.EOF {
 				c.Err = model.NewAppError("uploadFileMultipart",
 					"api.file.upload_file.read_form_value.app_error",
 					map[string]interface{}{"Formname": formname},
-					err.Error(), http.StatusBadRequest)
+					copyErr.Error(), http.StatusBadRequest)
 				return nil
 			}
 			v := b.String()
