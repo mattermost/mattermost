@@ -67,11 +67,6 @@ func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(groups) == 0 {
-		w.Write([]byte("[]"))
-		return
-	}
-
 	mugs := []*model.MixedUnlinkedGroup{}
 	for _, group := range groups {
 		mug := &model.MixedUnlinkedGroup{
