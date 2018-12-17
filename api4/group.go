@@ -205,7 +205,6 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 
-	var marshalErr error
 	b, marshalErr := json.Marshal(groupSyncable)
 	if marshalErr != nil {
 		c.Err = model.NewAppError("Api4.createGroupSyncable", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
