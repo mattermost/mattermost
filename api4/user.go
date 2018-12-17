@@ -856,6 +856,7 @@ func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	user, err := c.App.UpdateUserAuth(c.Params.UserId, userAuth)
 	if err != nil {
 		c.Err = err
+		return
 	}
 
 	c.LogAuditWithUserId(c.Params.UserId, fmt.Sprintf("updated user auth to service=%v", user.AuthService))
