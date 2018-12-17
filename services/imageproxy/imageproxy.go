@@ -44,9 +44,6 @@ func MakeImageProxy(configService configservice.ConfigService, httpService https
 		HTTPService:   httpService,
 	}
 
-	proxy.lock.Lock()
-	defer proxy.lock.Unlock()
-
 	proxy.configListenerId = proxy.ConfigService.AddConfigListener(proxy.OnConfigChange)
 
 	config := proxy.ConfigService.Config()
