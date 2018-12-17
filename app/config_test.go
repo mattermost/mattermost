@@ -16,13 +16,14 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store/sqlstore"
 	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 )
 
 func TestLoadConfig(t *testing.T) {
 	tempConfig, err := ioutil.TempFile("", "")
 	require.Nil(t, err)
 
-	input, err := ioutil.ReadFile(utils.FindConfigFile("config.json"))
+	input, err := ioutil.ReadFile(fileutils.FindConfigFile("config.json"))
 	require.Nil(t, err)
 	lines := strings.Split(string(input), "\n")
 	for i, line := range lines {

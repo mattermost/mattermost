@@ -8,20 +8,14 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	"github.com/mattermost/mattermost-server/api4"
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/manualtesting"
 	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/web"
 	"github.com/mattermost/mattermost-server/wsapi"
 	"github.com/spf13/cobra"
-)
-
-const (
-	SESSIONS_CLEANUP_BATCH_SIZE = 1000
 )
 
 var serverCmd = &cobra.Command{
@@ -50,7 +44,10 @@ func serverCmdF(command *cobra.Command, args []string) error {
 }
 
 func runServer(configFileLocation string, disableConfigWatch bool, usedPlatform bool, interruptChan chan os.Signal) error {
-	options := []app.Option{app.ConfigFile(configFileLocation)}
+	options := []app.Option{
+		app.ConfigFile(configFileLocation),
+		app.RunJobs,
+	}
 	if disableConfigWatch {
 		options = append(options, app.DisableConfigWatch)
 	}
@@ -61,67 +58,23 @@ func runServer(configFileLocation string, disableConfigWatch bool, usedPlatform 
 	}
 	defer server.Shutdown()
 
-	a := server.FakeApp()
-
 	if usedPlatform {
 		mlog.Error("The platform binary has been deprecated, please switch to using the mattermost binary.")
 	}
 
-	serverErr := a.StartServer()
+	serverErr := server.Start()
 	if serverErr != nil {
 		mlog.Critical(serverErr.Error())
 		return serverErr
 	}
 
 	api := api4.Init(server, server.AppOptions, server.Router)
-	wsapi.Init(a, server.WebSocketRouter)
+	wsapi.Init(server.FakeApp(), server.WebSocketRouter)
 	web.New(server, server.AppOptions, server.Router)
 
 	// If we allow testing then listen for manual testing URL hits
-	if a.Config().ServiceSettings.EnableTesting {
+	if server.Config().ServiceSettings.EnableTesting {
 		manualtesting.Init(api)
-	}
-
-	a.Srv.Go(func() {
-		runSecurityJob(a)
-	})
-	a.Srv.Go(func() {
-		runDiagnosticsJob(a)
-	})
-	a.Srv.Go(func() {
-		runSessionCleanupJob(a)
-	})
-	a.Srv.Go(func() {
-		runTokenCleanupJob(a)
-	})
-	a.Srv.Go(func() {
-		runCommandWebhookCleanupJob(a)
-	})
-
-	if complianceI := a.Compliance; complianceI != nil {
-		complianceI.StartComplianceDailyJob()
-	}
-
-	if a.Cluster != nil {
-		a.RegisterAllClusterMessageHandlers()
-		a.Cluster.StartInterNodeCommunication()
-	}
-
-	if a.Metrics != nil {
-		a.Metrics.StartServer()
-	}
-
-	if a.Elasticsearch != nil {
-		a.StartElasticsearch()
-	}
-
-	if *a.Config().JobSettings.RunJobs {
-		a.Srv.Jobs.StartWorkers()
-		defer a.Srv.Jobs.StopWorkers()
-	}
-	if *a.Config().JobSettings.RunScheduler {
-		a.Srv.Jobs.StartSchedulers()
-		defer a.Srv.Jobs.StopSchedulers()
 	}
 
 	notifyReady()
@@ -131,60 +84,7 @@ func runServer(configFileLocation string, disableConfigWatch bool, usedPlatform 
 	signal.Notify(interruptChan, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 	<-interruptChan
 
-	if a.Cluster != nil {
-		a.Cluster.StopInterNodeCommunication()
-	}
-
-	if a.Metrics != nil {
-		a.Metrics.StopServer()
-	}
-
 	return nil
-}
-
-func runSecurityJob(a *app.App) {
-	doSecurity(a)
-	model.CreateRecurringTask("Security", func() {
-		doSecurity(a)
-	}, time.Hour*4)
-}
-
-func runDiagnosticsJob(a *app.App) {
-	doDiagnostics(a)
-	model.CreateRecurringTask("Diagnostics", func() {
-		doDiagnostics(a)
-	}, time.Hour*24)
-}
-
-func runTokenCleanupJob(a *app.App) {
-	doTokenCleanup(a)
-	model.CreateRecurringTask("Token Cleanup", func() {
-		doTokenCleanup(a)
-	}, time.Hour*1)
-}
-
-func runCommandWebhookCleanupJob(a *app.App) {
-	doCommandWebhookCleanup(a)
-	model.CreateRecurringTask("Command Hook Cleanup", func() {
-		doCommandWebhookCleanup(a)
-	}, time.Hour*1)
-}
-
-func runSessionCleanupJob(a *app.App) {
-	doSessionCleanup(a)
-	model.CreateRecurringTask("Session Cleanup", func() {
-		doSessionCleanup(a)
-	}, time.Hour*24)
-}
-
-func doSecurity(a *app.App) {
-	a.DoSecurityUpdateCheck()
-}
-
-func doDiagnostics(a *app.App) {
-	if *a.Config().LogSettings.EnableDiagnostics {
-		a.SendDailyDiagnostics()
-	}
 }
 
 func notifyReady() {
@@ -214,16 +114,4 @@ func sendSystemdReadyNotification(socketPath string) error {
 	defer conn.Close()
 	_, err = conn.Write([]byte(msg))
 	return err
-}
-
-func doTokenCleanup(a *app.App) {
-	a.Srv.Store.Token().Cleanup()
-}
-
-func doCommandWebhookCleanup(a *app.App) {
-	a.Srv.Store.CommandWebhook().Cleanup()
-}
-
-func doSessionCleanup(a *app.App) {
-	a.Srv.Store.Session().Cleanup(model.GetMillis(), SESSIONS_CLEANUP_BATCH_SIZE)
 }

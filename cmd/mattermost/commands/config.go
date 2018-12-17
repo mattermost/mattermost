@@ -18,6 +18,7 @@ import (
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 )
 
 var ConfigCmd = &cobra.Command{
@@ -89,7 +90,7 @@ func configValidateCmdF(command *cobra.Command, args []string) error {
 		return err
 	}
 
-	filePath = utils.FindConfigFile(filePath)
+	filePath = fileutils.FindConfigFile(filePath)
 
 	file, err := os.Open(filePath)
 	if err != nil {

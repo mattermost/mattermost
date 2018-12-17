@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -572,7 +572,7 @@ func TestImportValidateUserImportData(t *testing.T) {
 	}
 
 	// Test a valid User with all fields populated.
-	testsDir, _ := utils.FindDir("tests")
+	testsDir, _ := fileutils.FindDir("tests")
 	data = UserImportData{
 		ProfileImage: ptrStr(filepath.Join(testsDir, "test.png")),
 		Username:     ptrStr("bob"),

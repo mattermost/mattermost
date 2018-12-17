@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 )
 
 func TestConfigFlag(t *testing.T) {
@@ -20,12 +21,12 @@ func TestConfigFlag(t *testing.T) {
 	defer th.TearDown()
 	dir := th.TemporaryDirectory()
 
-	timezones := utils.LoadTimezones("timezones.json")
+	timezones := th.App.Timezones.GetSupported()
 	tzConfigPath := filepath.Join(dir, "timezones.json")
 	timezoneData, _ := json.Marshal(timezones)
 	require.NoError(t, ioutil.WriteFile(tzConfigPath, timezoneData, 0600))
 
-	i18n, ok := utils.FindDir("i18n")
+	i18n, ok := fileutils.FindDir("i18n")
 	require.True(t, ok)
 	require.NoError(t, utils.CopyDir(i18n, filepath.Join(dir, "i18n")))
 

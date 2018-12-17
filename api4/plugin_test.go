@@ -12,7 +12,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -38,7 +38,7 @@ func TestPlugin(t *testing.T) {
 		*cfg.PluginSettings.EnableUploads = true
 	})
 
-	path, _ := utils.FindDir("tests")
+	path, _ := fileutils.FindDir("tests")
 	tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
 	if err != nil {
 		t.Fatal(err)

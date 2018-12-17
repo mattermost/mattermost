@@ -56,6 +56,9 @@ func (a *App) installPlugin(pluginFile io.Reader, replace bool) (*model.Manifest
 		return nil, model.NewAppError("installPlugin", "app.plugin.invalid_id.app_error", map[string]interface{}{"Min": plugin.MinIdLength, "Max": plugin.MaxIdLength, "Regex": plugin.ValidIdRegex}, "", http.StatusBadRequest)
 	}
 
+	// Stash the previous state of the plugin, if available
+	stashed := a.Config().PluginSettings.PluginStates[manifest.Id]
+
 	bundles, err := pluginsEnvironment.Available()
 	if err != nil {
 		return nil, model.NewAppError("installPlugin", "app.plugin.install.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -78,6 +81,10 @@ func (a *App) installPlugin(pluginFile io.Reader, replace bool) (*model.Manifest
 	err = utils.CopyDir(tmpPluginDir, pluginPath)
 	if err != nil {
 		return nil, model.NewAppError("installPlugin", "app.plugin.mvdir.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if stashed != nil && stashed.Enable {
+		a.EnablePlugin(manifest.Id)
 	}
 
 	if err := a.notifyPluginStatusesChanged(); err != nil {

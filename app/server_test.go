@@ -12,9 +12,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/utils"
-
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"github.com/stretchr/testify/require"
 )
 
@@ -23,7 +22,7 @@ func TestStartServerSuccess(t *testing.T) {
 	require.NoError(t, err)
 
 	s.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
-	serverErr := s.StartServer()
+	serverErr := s.Start()
 
 	client := &http.Client{}
 	checkEndpoint(t, client, "http://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/", http.StatusNotFound)
@@ -42,7 +41,7 @@ func TestStartServerRateLimiterCriticalError(t *testing.T) {
 		*cfg.RateLimitSettings.MaxBurst = -100
 	})
 
-	serverErr := s.StartServer()
+	serverErr := s.Start()
 	s.Shutdown()
 	require.Error(t, serverErr)
 }
@@ -60,7 +59,7 @@ func TestStartServerPortUnavailable(t *testing.T) {
 		*cfg.ServiceSettings.ListenAddress = listener.Addr().String()
 	})
 
-	serverErr := s.StartServer()
+	serverErr := s.Start()
 	s.Shutdown()
 	require.Error(t, serverErr)
 }
@@ -69,14 +68,14 @@ func TestStartServerTLSSuccess(t *testing.T) {
 	s, err := NewServer()
 	require.NoError(t, err)
 
-	testDir, _ := utils.FindDir("tests")
+	testDir, _ := fileutils.FindDir("tests")
 	s.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ListenAddress = ":0"
 		*cfg.ServiceSettings.ConnectionSecurity = "TLS"
 		*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
 		*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
 	})
-	serverErr := s.StartServer()
+	serverErr := s.Start()
 
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
@@ -93,7 +92,7 @@ func TestStartServerTLSVersion(t *testing.T) {
 	s, err := NewServer()
 	require.NoError(t, err)
 
-	testDir, _ := utils.FindDir("tests")
+	testDir, _ := fileutils.FindDir("tests")
 	s.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ListenAddress = ":0"
 		*cfg.ServiceSettings.ConnectionSecurity = "TLS"
@@ -101,7 +100,7 @@ func TestStartServerTLSVersion(t *testing.T) {
 		*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
 		*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
 	})
-	serverErr := s.StartServer()
+	serverErr := s.Start()
 
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{
@@ -137,7 +136,7 @@ func TestStartServerTLSOverwriteCipher(t *testing.T) {
 	s, err := NewServer()
 	require.NoError(t, err)
 
-	testDir, _ := utils.FindDir("tests")
+	testDir, _ := fileutils.FindDir("tests")
 	s.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.ListenAddress = ":0"
 		*cfg.ServiceSettings.ConnectionSecurity = "TLS"
@@ -148,7 +147,7 @@ func TestStartServerTLSOverwriteCipher(t *testing.T) {
 		*cfg.ServiceSettings.TLSKeyFile = path.Join(testDir, "tls_test_key.pem")
 		*cfg.ServiceSettings.TLSCertFile = path.Join(testDir, "tls_test_cert.pem")
 	})
-	serverErr := s.StartServer()
+	serverErr := s.Start()
 
 	tr := &http.Transport{
 		TLSClientConfig: &tls.Config{
