@@ -285,11 +285,6 @@ func getGroupSyncables(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(groupSyncables) == 0 {
-		w.Write([]byte("[]"))
-		return
-	}
-
 	b, marshalErr := json.Marshal(groupSyncables)
 	if marshalErr != nil {
 		c.Err = model.NewAppError("Api4.getGroupSyncables", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
