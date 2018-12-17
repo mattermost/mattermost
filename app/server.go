@@ -91,6 +91,7 @@ type Server struct {
 
 	htmlTemplateWatcher     *utils.HTMLTemplateWatcher
 	sessionCache            *utils.Cache
+	seenPendingPostIdsCache *utils.Cache
 	configListenerId        string
 	licenseListenerId       string
 	logListenerId           string
@@ -128,13 +129,14 @@ func NewServer(options ...Option) (*Server, error) {
 	rootRouter := mux.NewRouter()
 
 	s := &Server{
-		goroutineExitSignal: make(chan struct{}, 1),
-		RootRouter:          rootRouter,
-		configFile:          "config.json",
-		configListeners:     make(map[string]func(*model.Config, *model.Config)),
-		licenseListeners:    map[string]func(){},
-		sessionCache:        utils.NewLru(model.SESSION_CACHE_SIZE),
-		clientConfig:        make(map[string]string),
+		goroutineExitSignal:     make(chan struct{}, 1),
+		RootRouter:              rootRouter,
+		configFile:              "config.json",
+		configListeners:         make(map[string]func(*model.Config, *model.Config)),
+		licenseListeners:        map[string]func(){},
+		sessionCache:            utils.NewLru(model.SESSION_CACHE_SIZE),
+		seenPendingPostIdsCache: utils.NewLru(PENDING_POST_IDS_CACHE_SIZE),
+		clientConfig:            make(map[string]string),
 	}
 	for _, option := range options {
 		option(s)

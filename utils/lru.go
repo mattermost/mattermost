@@ -13,18 +13,6 @@ import (
 	"time"
 )
 
-// Caching Interface
-type ObjectCache interface {
-	AddWithExpiresInSecs(key, value interface{}, expireAtSecs int64)
-	AddWithDefaultExpires(key, value interface{})
-	Purge()
-	Get(key interface{}) (value interface{}, ok bool)
-	Remove(key interface{})
-	Len() int
-	Name() string
-	GetInvalidateClusterEvent() string
-}
-
 // Cache is a thread-safe fixed size LRU cache.
 type Cache struct {
 	size                   int
@@ -38,15 +26,15 @@ type Cache struct {
 	len                    int
 }
 
-// entry is used to hold a value in the evictList
+// entry is used to hold a value in the evictList.
 type entry struct {
-	key          interface{}
-	value        interface{}
-	expireAtSecs int64
-	generation   int64
+	key        interface{}
+	value      interface{}
+	expires    time.Time
+	generation int64
 }
 
-// New creates an LRU of the given size
+// New creates an LRU of the given size.
 func NewLru(size int) *Cache {
 	return &Cache{
 		size:      size,
@@ -55,6 +43,7 @@ func NewLru(size int) *Cache {
 	}
 }
 
+// New creates an LRU with the given parameters.
 func NewLruWithParams(size int, name string, defaultExpiry int64, invalidateClusterEvent string) *Cache {
 	lru := NewLru(size)
 	lru.name = name
@@ -63,7 +52,7 @@ func NewLruWithParams(size int, name string, defaultExpiry int64, invalidateClus
 	return lru
 }
 
-// Purge is used to completely clear the cache
+// Purge is used to completely clear the cache.
 func (c *Cache) Purge() {
 	c.lock.Lock()
 	defer c.lock.Unlock()
@@ -72,28 +61,36 @@ func (c *Cache) Purge() {
 	c.currentGeneration++
 }
 
+// Add adds the given key and value to the store without an expiry.
 func (c *Cache) Add(key, value interface{}) {
 	c.AddWithExpiresInSecs(key, value, 0)
 }
 
+// Add adds the given key and value to the store with the default expiry.
 func (c *Cache) AddWithDefaultExpires(key, value interface{}) {
 	c.AddWithExpiresInSecs(key, value, c.defaultExpiry)
 }
 
+// AddWithExpiresInSecs adds the given key and value to the cache with the given expiry.
 func (c *Cache) AddWithExpiresInSecs(key, value interface{}, expireAtSecs int64) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
-	if expireAtSecs > 0 {
-		expireAtSecs = (time.Now().UnixNano() / int64(time.Second)) + expireAtSecs
+	c.add(key, value, time.Duration(expireAtSecs)*time.Second)
+}
+
+func (c *Cache) add(key, value interface{}, ttl time.Duration) {
+	var expires time.Time
+	if ttl > 0 {
+		expires = time.Now().Add(ttl)
 	}
 
-	// Check for existing item
+	// Check for existing item, ignoring expiry since we'd update anyway.
 	if ent, ok := c.items[key]; ok {
 		c.evictList.MoveToFront(ent)
 		e := ent.Value.(*entry)
 		e.value = value
-		e.expireAtSecs = expireAtSecs
+		e.expires = expires
 		if e.generation != c.currentGeneration {
 			e.generation = c.currentGeneration
 			c.len++
@@ -102,7 +99,7 @@ func (c *Cache) AddWithExpiresInSecs(key, value interface{}, expireAtSecs int64)
 	}
 
 	// Add new item
-	ent := &entry{key, value, expireAtSecs, c.currentGeneration}
+	ent := &entry{key, value, expires, c.currentGeneration}
 	entry := c.evictList.PushFront(ent)
 	c.items[key] = entry
 	c.len++
@@ -112,14 +109,19 @@ func (c *Cache) AddWithExpiresInSecs(key, value interface{}, expireAtSecs int64)
 	}
 }
 
+// Get returns the value stored in the cache for a key, or nil if no value is present. The ok result indicates whether value was found in the cache.
 func (c *Cache) Get(key interface{}) (value interface{}, ok bool) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
+	return c.getValue(key)
+}
+
+func (c *Cache) getValue(key interface{}) (value interface{}, ok bool) {
 	if ent, ok := c.items[key]; ok {
 		e := ent.Value.(*entry)
 
-		if e.generation != c.currentGeneration || (e.expireAtSecs > 0 && (time.Now().UnixNano()/int64(time.Second)) > e.expireAtSecs) {
+		if e.generation != c.currentGeneration || (!e.expires.IsZero() && time.Now().After(e.expires)) {
 			c.removeElement(ent)
 			return nil, false
 		}
@@ -131,6 +133,23 @@ func (c *Cache) Get(key interface{}) (value interface{}, ok bool) {
 	return nil, false
 }
 
+// GetOrAdd returns the existing value for the key if present. Otherwise, it stores and returns the given value. The loaded result is true if the value was loaded, false if stored.
+// This API intentionally deviates from the Add-only variants above for simplicity. We should simplify the entire API in the future.
+func (c *Cache) GetOrAdd(key, value interface{}, ttl time.Duration) (actual interface{}, loaded bool) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+
+	// Check for existing item
+	if value, ok := c.getValue(key); ok {
+		return value, true
+	}
+
+	c.add(key, value, ttl)
+
+	return value, false
+}
+
+// Remove deletes the value for a key.
 func (c *Cache) Remove(key interface{}) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
@@ -165,15 +184,16 @@ func (c *Cache) Len() int {
 	return c.len
 }
 
+// Name identifies this cache instance among others in the system.
 func (c *Cache) Name() string {
 	return c.name
 }
 
+// GetInvalidateClusterEvent returns the cluster event configured when this cache was created.
 func (c *Cache) GetInvalidateClusterEvent() string {
 	return c.invalidateClusterEvent
 }
 
-// removeElement is used to remove a given list element from the cache
 func (c *Cache) removeElement(e *list.Element) {
 	c.evictList.Remove(e)
 	kv := e.Value.(*entry)
