@@ -131,6 +131,8 @@ func (a *App) deduplicateCreatePost(post *model.Post) (foundPost *model.Post, er
 		return nil, model.NewAppError("deduplicateCreatePost", "api.post.deduplicate_create_post.failed_to_get", nil, err.Error(), http.StatusInternalServerError)
 	}
 
+	mlog.Debug("Deduplicated create post", mlog.String("post_id", actualPost.Id), mlog.String("pending_post_id", post.PendingPostId))
+
 	return actualPost, nil
 }
 
