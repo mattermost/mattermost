@@ -25,8 +25,6 @@ const (
 	PENDING_POST_IDS_CACHE_TTL  = 30 * time.Second
 )
 
-var seenPendingPostIds = utils.NewLruWithParams(PENDING_POST_IDS_CACHE_SIZE, "seenPendingPostIds", 0, "")
-
 func (a *App) CreatePostAsUser(post *model.Post, clearPushNotifications bool) (*model.Post, *model.AppError) {
 	// Check that channel has not been deleted
 	result := <-a.Srv.Store.Channel().Get(post.ChannelId, true)
@@ -110,7 +108,7 @@ func (a *App) deduplicateCreatePost(post *model.Post) (foundPost *model.Post, er
 	for attempt := 1; attempt <= 3; attempt++ {
 		// Query the cache atomically for the given pending post id, saving a record if
 		// it hasn't previously been seen.
-		value, loaded := seenPendingPostIds.GetOrAdd(post.PendingPostId, unknownPostId, PENDING_POST_IDS_CACHE_TTL)
+		value, loaded := a.Srv.seenPendingPostIdsCache.GetOrAdd(post.PendingPostId, unknownPostId, PENDING_POST_IDS_CACHE_TTL)
 
 		// If we were the first thread to save this pending post id into the cache,
 		// proceed with create post normally.
@@ -159,10 +157,11 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		}
 
 		if err != nil {
-			seenPendingPostIds.Remove(post.PendingPostId)
-		} else {
-			seenPendingPostIds.AddWithExpiresInSecs(post.PendingPostId, savedPost.Id, int64(PENDING_POST_IDS_CACHE_TTL.Seconds()))
+			a.Srv.seenPendingPostIdsCache.Remove(post.PendingPostId)
+			return
 		}
+
+		a.Srv.seenPendingPostIdsCache.AddWithExpiresInSecs(post.PendingPostId, savedPost.Id, int64(PENDING_POST_IDS_CACHE_TTL.Seconds()))
 	}()
 
 	post.SanitizeProps()
@@ -256,7 +255,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 
 	// Update the mapping from pending post id to the actual post id, for any clients that
 	// might be duplicating requests.
-	seenPendingPostIds.AddWithExpiresInSecs(post.PendingPostId, rpost.Id, int64(PENDING_POST_IDS_CACHE_TTL.Seconds()))
+	a.Srv.seenPendingPostIdsCache.AddWithExpiresInSecs(post.PendingPostId, rpost.Id, int64(PENDING_POST_IDS_CACHE_TTL.Seconds()))
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv.Go(func() {
