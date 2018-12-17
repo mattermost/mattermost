@@ -17,7 +17,6 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/store/storetest"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 func TestCreatePostDeduplicate(t *testing.T) {
@@ -229,10 +228,6 @@ func TestCreatePostDeduplicate(t *testing.T) {
 		require.Nil(t, duplicatePost)
 	})
 
-	// Don't want to actually wait PENDING_POST_IDS_CACHE_SEC seconds for last test.
-	pendingPostIdsCacheSec := int64(5)
-	seenPendingPostIds = utils.NewLruWithParams(PENDING_POST_IDS_CACHE_SIZE, "seenPendingPostIds", pendingPostIdsCacheSec, "")
-
 	t.Run("duplicate create post after cache expires is not idempotent", func(t *testing.T) {
 		pendingPostId := model.NewId()
 		post, err := th.App.CreatePostAsUser(&model.Post{
@@ -244,7 +239,7 @@ func TestCreatePostDeduplicate(t *testing.T) {
 		require.Nil(t, err)
 		require.Equal(t, "message", post.Message)
 
-		time.Sleep(time.Duration(pendingPostIdsCacheSec+1) * time.Second)
+		time.Sleep(PENDING_POST_IDS_CACHE_TTL)
 
 		duplicatePost, err := th.App.CreatePostAsUser(&model.Post{
 			UserId:        th.BasicUser.Id,

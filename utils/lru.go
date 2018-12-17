@@ -28,10 +28,10 @@ type Cache struct {
 
 // entry is used to hold a value in the evictList.
 type entry struct {
-	key          interface{}
-	value        interface{}
-	expireAtSecs int64
-	generation   int64
+	key        interface{}
+	value      interface{}
+	expires    time.Time
+	generation int64
 }
 
 // New creates an LRU of the given size.
@@ -76,12 +76,13 @@ func (c *Cache) AddWithExpiresInSecs(key, value interface{}, expireAtSecs int64)
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
-	c.add(key, value, expireAtSecs)
+	c.add(key, value, time.Duration(expireAtSecs)*time.Second)
 }
 
-func (c *Cache) add(key, value interface{}, expireAtSecs int64) {
-	if expireAtSecs > 0 {
-		expireAtSecs = (time.Now().UnixNano() / int64(time.Second)) + expireAtSecs
+func (c *Cache) add(key, value interface{}, ttl time.Duration) {
+	var expires time.Time
+	if ttl > 0 {
+		expires = time.Now().Add(ttl)
 	}
 
 	// Check for existing item, ignoring expiry since we'd update anyway.
@@ -89,7 +90,7 @@ func (c *Cache) add(key, value interface{}, expireAtSecs int64) {
 		c.evictList.MoveToFront(ent)
 		e := ent.Value.(*entry)
 		e.value = value
-		e.expireAtSecs = expireAtSecs
+		e.expires = expires
 		if e.generation != c.currentGeneration {
 			e.generation = c.currentGeneration
 			c.len++
@@ -98,7 +99,7 @@ func (c *Cache) add(key, value interface{}, expireAtSecs int64) {
 	}
 
 	// Add new item
-	ent := &entry{key, value, expireAtSecs, c.currentGeneration}
+	ent := &entry{key, value, expires, c.currentGeneration}
 	entry := c.evictList.PushFront(ent)
 	c.items[key] = entry
 	c.len++
@@ -120,7 +121,7 @@ func (c *Cache) getValue(key interface{}) (value interface{}, ok bool) {
 	if ent, ok := c.items[key]; ok {
 		e := ent.Value.(*entry)
 
-		if e.generation != c.currentGeneration || (e.expireAtSecs > 0 && (time.Now().UnixNano()/int64(time.Second)) > e.expireAtSecs) {
+		if e.generation != c.currentGeneration || (!e.expires.IsZero() && time.Now().After(e.expires)) {
 			c.removeElement(ent)
 			return nil, false
 		}
@@ -133,17 +134,8 @@ func (c *Cache) getValue(key interface{}) (value interface{}, ok bool) {
 }
 
 // GetOrAdd returns the existing value for the key if present. Otherwise, it stores and returns the given value. The loaded result is true if the value was loaded, false if stored.
-func (c *Cache) GetOrAdd(key, value interface{}) (actual interface{}, loaded bool) {
-	return c.GetOrAddWithExpiresInSecs(key, value, 0)
-}
-
-// GetOrAddWithDefaultExpires is a variant of GetOrAdd that uses the default expiry configured for the cache.
-func (c *Cache) GetOrAddWithDefaultExpires(key, value interface{}) (actual interface{}, loaded bool) {
-	return c.GetOrAddWithExpiresInSecs(key, value, c.defaultExpiry)
-}
-
-// GetOrAddWithExpiresInSecs is a variant of GetOrAdd that uses the given expiry configured for the cache.
-func (c *Cache) GetOrAddWithExpiresInSecs(key interface{}, value interface{}, expireAtSecs int64) (actual interface{}, loaded bool) {
+// This API intentionally deviates from the Add-only variants above for simplicity. We should simplify the entire API in the future.
+func (c *Cache) GetOrAdd(key, value interface{}, ttl time.Duration) (actual interface{}, loaded bool) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
@@ -152,7 +144,7 @@ func (c *Cache) GetOrAddWithExpiresInSecs(key interface{}, value interface{}, ex
 		return value, true
 	}
 
-	c.add(key, value, expireAtSecs)
+	c.add(key, value, ttl)
 
 	return value, false
 }
