@@ -50,6 +50,7 @@ func ServerConnector(s *Server) AppOption {
 		a.Log = s.Log
 
 		a.HTTPService = s.HTTPService
+		a.ImageProxy = s.ImageProxy
 		a.AccountMigration = s.AccountMigration
 		a.Cluster = s.Cluster
 		a.Compliance = s.Compliance

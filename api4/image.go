@@ -17,5 +17,5 @@ func getImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.App.Srv.ImageProxy.GetImage(w, r, r.URL.Query().Get("url"))
+	c.App.ImageProxy.GetImage(w, r, r.URL.Query().Get("url"))
 }
