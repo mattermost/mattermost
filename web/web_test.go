@@ -35,7 +35,7 @@ func Setup() *TestHelper {
 	a := s.FakeApp()
 	prevListenAddress := *a.Config().ServiceSettings.ListenAddress
 	a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
-	serverErr := a.StartServer()
+	serverErr := s.Start()
 	if serverErr != nil {
 		panic(serverErr)
 	}

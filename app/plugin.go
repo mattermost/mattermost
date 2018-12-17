@@ -12,7 +12,7 @@ import (
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 )
 
 // GetPluginsEnvironment returns the plugin environment for use if plugins are enabled and
@@ -146,7 +146,7 @@ func (a *App) InitPlugins(pluginDir, webappPluginDir string) {
 	}
 	a.SetPluginsEnvironment(env)
 
-	prepackagedPluginsDir, found := utils.FindDir("prepackaged_plugins")
+	prepackagedPluginsDir, found := fileutils.FindDir("prepackaged_plugins")
 	if found {
 		if err := filepath.Walk(prepackagedPluginsDir, func(walkPath string, info os.FileInfo, err error) error {
 			if !strings.HasSuffix(walkPath, ".tar.gz") {

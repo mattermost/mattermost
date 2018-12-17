@@ -3595,13 +3595,15 @@ func (c *Client4) DeleteReaction(reaction *Reaction) (bool, *Response) {
 // Timezone Section
 
 // GetSupportedTimezone returns a page of supported timezones on the system.
-func (c *Client4) GetSupportedTimezone() (SupportedTimezones, *Response) {
+func (c *Client4) GetSupportedTimezone() ([]string, *Response) {
 	r, err := c.DoApiGet(c.GetTimezonesRoute(), "")
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
 	}
 	defer closeBody(r)
-	return TimezonesFromJson(r.Body), BuildResponse(r)
+	var timezones []string
+	json.NewDecoder(r.Body).Decode(&timezones)
+	return timezones, BuildResponse(r)
 }
 
 // Open Graph Metadata Section

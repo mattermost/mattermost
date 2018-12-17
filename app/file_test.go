@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 )
 
 func TestGeneratePublicLinkHash(t *testing.T) {
@@ -171,7 +171,7 @@ func TestMigrateFilenamesToFileInfos(t *testing.T) {
 	infos = th.App.MigrateFilenamesToFileInfos(post)
 	assert.Equal(t, 0, len(infos))
 
-	path, _ := utils.FindDir("tests")
+	path, _ := fileutils.FindDir("tests")
 	file, fileErr := os.Open(filepath.Join(path, "test.png"))
 	require.Nil(t, fileErr)
 	defer file.Close()

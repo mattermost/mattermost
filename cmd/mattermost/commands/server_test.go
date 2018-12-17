@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/jobs"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"github.com/stretchr/testify/require"
 )
 
@@ -36,7 +36,7 @@ func SetupServerTest() *ServerTestHelper {
 	jobs.DEFAULT_WATCHER_POLLING_INTERVAL = 200
 
 	th := &ServerTestHelper{
-		configPath:         utils.FindConfigFile("config.json"),
+		configPath:         fileutils.FindConfigFile("config.json"),
 		disableConfigWatch: true,
 		interruptChan:      interruptChan,
 		originalInterval:   originalInterval,

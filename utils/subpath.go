@@ -19,6 +19,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 )
 
 // UpdateAssetsSubpath rewrites assets in the /client directory to assume the application is hosted
@@ -28,7 +29,7 @@ func UpdateAssetsSubpath(subpath string) error {
 		subpath = "/"
 	}
 
-	staticDir, found := FindDir(model.CLIENT_DIR)
+	staticDir, found := fileutils.FindDir(model.CLIENT_DIR)
 	if !found {
 		return errors.New("failed to find client dir")
 	}
