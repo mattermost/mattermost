@@ -371,16 +371,9 @@ func (us SqlUserStore) GetAllProfiles(options *model.UserGetOptions) store.Store
 		limit := options.PerPage
 
 		baseQuery := "SELECT * FROM Users"
-		whereClauses := []string{}
-		if options.Role != "" {
-			whereClauses = append(whereClauses, fmt.Sprintf("Users.Roles like'%%%v%%'", options.Role))
-		}
-		if options.Inactive {
-			whereClauses = append(whereClauses, "Users.DeleteAt != 0")
-		}
 
-		searchQuery := generateQuery(baseQuery, whereClauses)
-		searchQuery = fmt.Sprintf("%v ORDER BY Username ASC LIMIT :Limit OFFSET :Offset", searchQuery)
+		whereClause := generateWhereClause(options)
+		searchQuery := fmt.Sprintf("%v %v ORDER BY Username ASC LIMIT :Limit OFFSET :Offset", baseQuery, whereClause)
 
 		if _, err := us.GetReplica().Select(&users, searchQuery, map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.GetAllProfiles", "store.sql_user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -395,12 +388,20 @@ func (us SqlUserStore) GetAllProfiles(options *model.UserGetOptions) store.Store
 	})
 }
 
-func generateQuery(baseQuery string, whereClauses []string) string {
-	query := baseQuery
-	if len(whereClauses) > 0 {
-		query = fmt.Sprintf("%v WHERE %v", baseQuery, strings.Join(whereClauses, " AND "))
+func generateWhereClause(options *model.UserGetOptions) string {
+	whereClause := ""
+	whereClauses := []string{}
+	if options.Role != "" {
+		whereClauses = append(whereClauses, fmt.Sprintf("Users.Roles like'%%%v%%'", options.Role))
 	}
-	return query
+	if options.Inactive {
+		whereClauses = append(whereClauses, "Users.DeleteAt != 0")
+	}
+
+	if len(whereClauses) > 0 {
+		whereClause = fmt.Sprintf("WHERE %v", strings.Join(whereClauses, " AND "))
+	}
+	return whereClause
 }
 
 func (s SqlUserStore) GetEtagForProfiles(teamId string) store.StoreChannel {
