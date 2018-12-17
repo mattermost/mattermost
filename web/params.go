@@ -224,8 +224,6 @@ func ParamsFromRequest(r *http.Request) *Params {
 			params.SyncableType = model.GroupSyncableTypeTeam
 		case "channels":
 			params.SyncableType = model.GroupSyncableTypeChannel
-		default:
-			params.SyncableType = -1
 		}
 	}
 	return params

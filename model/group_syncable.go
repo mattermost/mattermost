@@ -10,16 +10,15 @@ import (
 	"net/http"
 )
 
-type GroupSyncableType int
+type GroupSyncableType string
 
 const (
-	GroupSyncableTypeTeam GroupSyncableType = iota
-	GroupSyncableTypeChannel
+	GroupSyncableTypeTeam    GroupSyncableType = "Team"
+	GroupSyncableTypeChannel GroupSyncableType = "Channel"
 )
 
 func (gst GroupSyncableType) String() string {
-	// Order matters. Keep in sync with iotas.
-	return [...]string{"Team", "Channel"}[gst]
+	return string(gst)
 }
 
 type GroupSyncable struct {
