@@ -105,41 +105,33 @@ func (a *App) deduplicateCreatePost(post *model.Post) (foundPost *model.Post, er
 
 	const unknownPostId = ""
 
-	for attempt := 1; attempt <= 3; attempt++ {
-		// Query the cache atomically for the given pending post id, saving a record if
-		// it hasn't previously been seen.
-		value, loaded := a.Srv.seenPendingPostIdsCache.GetOrAdd(post.PendingPostId, unknownPostId, PENDING_POST_IDS_CACHE_TTL)
+	// Query the cache atomically for the given pending post id, saving a record if
+	// it hasn't previously been seen.
+	value, loaded := a.Srv.seenPendingPostIdsCache.GetOrAdd(post.PendingPostId, unknownPostId, PENDING_POST_IDS_CACHE_TTL)
 
-		// If we were the first thread to save this pending post id into the cache,
-		// proceed with create post normally.
-		if !loaded {
-			return nil, nil
-		}
-
-		postId := value.(string)
-
-		// If another thread saved the cache record, but hasn't yet updated it with the
-		// actual post id, wait a bit and try again. If the cache record expires, we'll
-		// still end up with a duplicate post as expected. Note that we'll only ever be
-		// doing any of this when racing on duplicate create post requests.
-		if postId == unknownPostId {
-			time.Sleep(time.Duration(attempt) * time.Second)
-			continue
-		}
-
-		// Return the created post back to the client, making the API call feel idempotent,
-		// and avoiding having special-case logic in the client.
-		post, err := a.GetSinglePost(postId)
-		if err != nil {
-			return nil, model.NewAppError("deduplicateCreatePost", "api.post.deduplicate_create_post.failed_to_get", nil, err.Error(), http.StatusInternalServerError)
-		}
-
-		return post, nil
+	// If we were the first thread to save this pending post id into the cache,
+	// proceed with create post normally.
+	if !loaded {
+		return nil, nil
 	}
 
-	// If we failed to create a cache entry above, or resolve to a created post, the attempt to
-	// deduplicate failed altogether.
-	return nil, model.NewAppError("deduplicateCreatePost", "api.post.deduplicate_create_post.failed", nil, "", http.StatusInternalServerError)
+	postId := value.(string)
+
+	// If another thread saved the cache record, but hasn't yet updated it with the actual post
+	// id (because it's still saving), notify the client with an error. Ideally, we'd wait
+	// for the other thread, but coordinating that adds complexity to the happy path.
+	if postId == unknownPostId {
+		return nil, model.NewAppError("deduplicateCreatePost", "api.post.deduplicate_create_post.pending", nil, "", http.StatusInternalServerError)
+	}
+
+	// If the other thread finished creating the post, return the created post back to the
+	// client, making the API call feel idempotent.
+	actualPost, err := a.GetSinglePost(postId)
+	if err != nil {
+		return nil, model.NewAppError("deduplicateCreatePost", "api.post.deduplicate_create_post.failed_to_get", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return actualPost, nil
 }
 
 func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhooks bool) (savedPost *model.Post, err *model.AppError) {

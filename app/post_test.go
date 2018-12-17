@@ -154,78 +154,12 @@ func TestCreatePostDeduplicate(t *testing.T) {
 			Message:       "plugin delayed",
 			PendingPostId: pendingPostId,
 		}, false)
-		require.Nil(t, err)
-
-		// Wait for the first CreatePost to finish so we can compare post ids.
-		wg.Wait()
-
-		require.Equal(t, post.Id, duplicatePost.Id, "should have returned previously created post id")
-		require.Equal(t, "plugin delayed", duplicatePost.Message)
-	})
-
-	t.Run("extra slow posting after cache entry fails duplicate request", func(t *testing.T) {
-		setupPluginApiTest(t, `
-			package main
-
-			import (
-				"github.com/mattermost/mattermost-server/plugin"
-				"github.com/mattermost/mattermost-server/model"
-				"time"
-			)
-
-			type MyPlugin struct {
-				plugin.MattermostPlugin
-				instant bool
-			}
-
-			func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
-				if !p.instant {
-					p.instant = true
-					time.Sleep(10 * time.Second)
-				}
-
-				return nil, ""
-			}
-
-			func main() {
-				plugin.ClientMain(&MyPlugin{})
-			}
-		`, `{"id": "testdelayfirstpost", "backend": {"executable": "backend.exe"}}`, "testdelayfirstpost", th.App)
-
-		var post *model.Post
-		pendingPostId := model.NewId()
-
-		wg := sync.WaitGroup{}
-
-		// Launch a goroutine to make the first CreatePost call that will get delayed
-		// by the plugin above.
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			var err error
-			post, err = th.App.CreatePostAsUser(&model.Post{
-				UserId:        th.BasicUser.Id,
-				ChannelId:     th.BasicChannel.Id,
-				Message:       "plugin delayed",
-				PendingPostId: pendingPostId,
-			}, false)
-			require.Nil(t, err)
-			require.Equal(t, post.Message, "plugin delayed")
-		}()
-
-		// Give the goroutine above a chance to start and get delayed by the plugin.
-		time.Sleep(2 * time.Second)
-
-		// Try creating a duplicate post
-		duplicatePost, err := th.App.CreatePostAsUser(&model.Post{
-			UserId:        th.BasicUser.Id,
-			ChannelId:     th.BasicChannel.Id,
-			Message:       "plugin delayed",
-			PendingPostId: pendingPostId,
-		}, false)
 		require.NotNil(t, err)
-		require.Equal(t, "api.post.deduplicate_create_post.failed", err.Id)
+		require.Equal(t, "api.post.deduplicate_create_post.pending", err.Id)
 		require.Nil(t, duplicatePost)
+
+		// Wait for the first CreatePost to finish to ensure assertions are made.
+		wg.Wait()
 	})
 
 	t.Run("duplicate create post after cache expires is not idempotent", func(t *testing.T) {
