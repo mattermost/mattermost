@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/timezones"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
@@ -230,7 +231,7 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTimeWithTimezone(t *testi
 	defer th.TearDown()
 
 	recipient := &model.User{
-		Timezone: model.DefaultUserTimezone(),
+		Timezone: timezones.DefaultUserTimezone(),
 	}
 	recipient.Timezone["automaticTimezone"] = "America/New_York"
 	post := &model.Post{
@@ -261,7 +262,7 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTimeNoTimezone(t *testing
 	defer th.TearDown()
 
 	recipient := &model.User{
-		Timezone: model.DefaultUserTimezone(),
+		Timezone: timezones.DefaultUserTimezone(),
 	}
 	post := &model.Post{
 		CreateAt: 1524681000000,
@@ -303,7 +304,7 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTime12Hour(t *testing.T) 
 	defer th.TearDown()
 
 	recipient := &model.User{
-		Timezone: model.DefaultUserTimezone(),
+		Timezone: timezones.DefaultUserTimezone(),
 	}
 	recipient.Timezone["automaticTimezone"] = "America/New_York"
 	post := &model.Post{
@@ -335,7 +336,7 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTime24Hour(t *testing.T) 
 	defer th.TearDown()
 
 	recipient := &model.User{
-		Timezone: model.DefaultUserTimezone(),
+		Timezone: timezones.DefaultUserTimezone(),
 	}
 	recipient.Timezone["automaticTimezone"] = "America/New_York"
 	post := &model.Post{

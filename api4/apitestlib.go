@@ -22,6 +22,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"github.com/mattermost/mattermost-server/web"
 	"github.com/mattermost/mattermost-server/wsapi"
 
@@ -63,7 +64,7 @@ func UseTestStore(store store.Store) {
 func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHelper {
 	testStore.DropAllTables()
 
-	permConfig, err := os.Open(utils.FindConfigFile("config.json"))
+	permConfig, err := os.Open(fileutils.FindConfigFile("config.json"))
 	if err != nil {
 		panic(err)
 	}
@@ -102,7 +103,7 @@ func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHel
 	if updateConfig != nil {
 		th.App.UpdateConfig(updateConfig)
 	}
-	serverErr := th.App.StartServer()
+	serverErr := th.Server.Start()
 	if serverErr != nil {
 		panic(serverErr)
 	}

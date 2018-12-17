@@ -16,13 +16,14 @@ import (
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 )
 
 func (w *Web) InitStatic() {
 	if *w.ConfigService.Config().ServiceSettings.WebserverMode != "disabled" {
 		utils.UpdateAssetsSubpathFromConfig(w.ConfigService.Config())
 
-		staticDir, _ := utils.FindDir(model.CLIENT_DIR)
+		staticDir, _ := fileutils.FindDir(model.CLIENT_DIR)
 		mlog.Debug(fmt.Sprintf("Using client directory at %v", staticDir))
 
 		subpath, _ := utils.GetSubpathFromConfig(w.ConfigService.Config())
@@ -69,7 +70,7 @@ func root(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Cache-Control", "no-cache, max-age=31556926, public")
 
-	staticDir, _ := utils.FindDir(model.CLIENT_DIR)
+	staticDir, _ := fileutils.FindDir(model.CLIENT_DIR)
 	http.ServeFile(w, r, filepath.Join(staticDir, "root.html"))
 }
 

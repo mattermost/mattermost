@@ -5,6 +5,7 @@ package api4
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -419,15 +420,18 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getSupportedTimezones(c *Context, w http.ResponseWriter, r *http.Request) {
-	supportedTimezones := c.App.Timezones()
-
-	if supportedTimezones != nil {
-		w.Write([]byte(model.TimezonesToJson(supportedTimezones)))
-		return
+	supportedTimezones := c.App.Timezones.GetSupported()
+	if supportedTimezones == nil {
+		supportedTimezones = make([]string, 0)
 	}
 
-	emptyTimezones := make([]string, 0)
-	w.Write([]byte(model.TimezonesToJson(emptyTimezones)))
+	b, err := json.Marshal(supportedTimezones)
+	if err != nil {
+		c.Log.Warn("Unable to marshal JSON in timezones.", mlog.Err(err))
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	w.Write(b)
 }
 
 func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
