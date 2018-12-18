@@ -114,21 +114,21 @@ func (s SqlRemindStore) GetByTime(time string) store.StoreChannel {
 	})
 }
 
-func (s SqlRemindStore) GetReminder(reminderId string) store.StoreChannel {
+func (s SqlRemindStore) GetByChannel(channel string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 
-		query := "SELECT * FROM Reminders WHERE Id = :ReminderId"
-		var reminder model.Reminder
-		if err := s.GetReplica().SelectOne(
-			&reminder,
-			query,
-			map[string]interface{}{"ReminderId": reminderId}); err != nil {
-			result.Err = model.NewAppError("SqlRemindStore.GetReminder", "store.sql_remind.get_reminder.app_error", nil, "Id="+reminderId+", "+err.Error(), http.StatusInternalServerError)
-			if err == sql.ErrNoRows {
-				result.Err.StatusCode = http.StatusNotFound
-			}
-		}
-		result.Data = reminder
+		//TODO select from reminders, then select occurrences
+//		query := "SELECT * FROM Occurrences WHERE Occurrence = :Occurrence or Snoozed = :Occurrence"
+//
+//		var occurrences model.Occurrences
+//		if _, err := s.GetReplica().Select(
+//			&occurrences,
+//			query,
+//			map[string]interface{}{"Occurrence": time}); err != nil {
+//			mlog.Error(err.Error())
+//			result.Err = model.NewAppError("SqlRemindStore.GetByTime", "store.sql_remind.get_by_time.app_error", nil, "time="+fmt.Sprintf("%v", time)+", "+err.Error(), http.StatusInternalServerError)
+//		}
+//		result.Data = occurrences
 	})
 }
 
@@ -147,6 +147,24 @@ func (s SqlRemindStore) GetByReminder(reminderId string) store.StoreChannel {
 			}
 		}
 		result.Data = occurrences
+	})
+}
+
+func (s SqlRemindStore) GetReminder(reminderId string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+
+		query := "SELECT * FROM Reminders WHERE Id = :ReminderId"
+		var reminder model.Reminder
+		if err := s.GetReplica().SelectOne(
+			&reminder,
+			query,
+			map[string]interface{}{"ReminderId": reminderId}); err != nil {
+			result.Err = model.NewAppError("SqlRemindStore.GetReminder", "store.sql_remind.get_reminder.app_error", nil, "Id="+reminderId+", "+err.Error(), http.StatusInternalServerError)
+			if err == sql.ErrNoRows {
+				result.Err.StatusCode = http.StatusNotFound
+			}
+		}
+		result.Data = reminder
 	})
 }
 

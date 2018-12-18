@@ -373,17 +373,17 @@ func (a *App) UpdateReminder(post *model.Post, action *model.PostAction, userId 
 
 }
 
-func (a *App) ListReminders(userId string) string {
+func (a *App) ListReminders(userId string, channelId string) string {
 
 	_, _, _, T := a.shared(userId)
-
-	reminders := a.getReminders(userId)
 
 	//var inChannelOccurrences []model.Occurrence
 	var upcomingOccurrences []model.Occurrence
 	var recurringOccurrences []model.Occurrence
 	var pastOccurrences []model.Occurrence
 	var channelOccurrencs []model.Occurrence
+
+	reminders := a.getReminders(userId)
 
 	output := ""
 
@@ -394,8 +394,6 @@ func (a *App) ListReminders(userId string) string {
 		if result.Err != nil {
 			continue
 		}
-
-		//TODO GetByChannel
 
 		occurrences := result.Data.(model.Occurrences)
 
@@ -408,8 +406,6 @@ func (a *App) ListReminders(userId string) string {
 				if pErr != nil || pErr2 != nil {
 					continue
 				}
-
-				// TODO reminders in channel
 
 				if !strings.HasPrefix(reminder.Target, "~") &&
 					reminder.Completed == emptyTime.Format(time.RFC3339) &&
@@ -443,7 +439,11 @@ func (a *App) ListReminders(userId string) string {
 
 	}
 
-	//TODO
+	//TODO in channel
+	channel, _ := a.GetChannel(channelId)
+
+	mlog.Info(channel.Name)
+
 	//*In this channel*:
 	//• Remind #general “foobar” at 9AM tomorrow. Delete
 

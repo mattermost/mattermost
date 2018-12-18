@@ -27,7 +27,7 @@ func TestListReminders(t *testing.T) {
 	user, _ := th.App.GetUserByUsername(model.REMIND_BOTNAME)
 	T := utils.GetUserTranslations(user.Locale)
 
-	list := th.App.ListReminders(user.Id)
+	list := th.App.ListReminders(user.Id, "")
 
 	assert.NotEqual(t, list, T(model.REMIND_EXCEPTION_TEXT))
 }

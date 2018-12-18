@@ -46,7 +46,7 @@ func (me *RemindProvider) DoCommand(a *App, args *model.CommandArgs, message str
 	if strings.HasSuffix(args.Command, T("list")) {
 		return &model.CommandResponse{
 			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
-			Text:         fmt.Sprintf(a.ListReminders(args.UserId)),
+			Text:         fmt.Sprintf(a.ListReminders(args.UserId, args.ChannelId)),
 		}
 	}
 
@@ -71,8 +71,6 @@ func (me *RemindProvider) DoCommand(a *App, args *model.CommandArgs, message str
 			Occurrences: model.Occurrences{},
 		}
 		response, err := a.ScheduleReminder(&request)
-
-		// TODO status update for webapp
 
 		if err != nil {
 			return &model.CommandResponse{
