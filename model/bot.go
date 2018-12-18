@@ -14,6 +14,7 @@ import (
 
 const (
 	BOT_DISPLAY_NAME_MAX_RUNES = USER_FIRST_NAME_MAX_RUNES
+	BOT_DESCRIPTION_MAX_RUNES  = 1024
 )
 
 // Bot is a special type of User meant for programmatic interactions.
@@ -65,7 +66,7 @@ func (b *Bot) IsValid() *AppError {
 		return NewAppError("Bot.IsValid", "model.bot.is_valid.user_id.app_error", b.Trace(), "", http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(b.Description) > 1024 {
+	if utf8.RuneCountInString(b.Description) > BOT_DESCRIPTION_MAX_RUNES {
 		return NewAppError("Bot.IsValid", "model.bot.is_valid.description.app_error", b.Trace(), "", http.StatusBadRequest)
 	}
 
