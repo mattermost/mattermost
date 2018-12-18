@@ -29,7 +29,7 @@ func (gts *GroupTypes) String() string {
 	for _, gt := range *gts {
 		gtStrs = append(gtStrs, string(gt))
 	}
-	return strings.Join(gtStrs, ",")
+	return strings.Join(gtStrs, ", ")
 }
 
 var groupTypes = GroupTypes{
