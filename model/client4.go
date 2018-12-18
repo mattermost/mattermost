@@ -1308,7 +1308,7 @@ func (c *Client4) EnableUserAccessToken(tokenId string) (bool, *Response) {
 
 // Bots section
 
-// CreateBot creates a bot in the system based on the provided user struct.
+// CreateBot creates a bot in the system based on the provided bot struct.
 func (c *Client4) CreateBot(bot *Bot) (*Bot, *Response) {
 	r, err := c.doApiPostBytes(c.GetBotsRoute(), bot.ToJson())
 	if err != nil {
