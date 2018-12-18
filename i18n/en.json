@@ -2235,6 +2235,10 @@
     "translation": "Unable to get profile image, user not found."
   },
   {
+    "id": "api.user.get_user_by_email.permissions.app_error",
+    "translation": "Unable to get user by email."
+  },
+  {
     "id": "api.user.ldap_to_email.not_available.app_error",
     "translation": "AD/LDAP not available on this server"
   },
