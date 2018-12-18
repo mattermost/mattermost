@@ -181,12 +181,8 @@ func NewInvalidUrlParamError(parameter string) *model.AppError {
 	return err
 }
 
-func (c *Context) MakePermissionError(permission *model.Permission) *model.AppError {
-	return model.NewAppError("Permissions", "api.context.permissions.app_error", nil, "userId="+c.App.Session.UserId+", "+"permission="+permission.Id, http.StatusForbidden)
-}
-
 func (c *Context) SetPermissionError(permission *model.Permission) {
-	c.Err = c.MakePermissionError(permission)
+	c.Err = c.App.MakePermissionError(permission)
 }
 
 func (c *Context) SetSiteURLHeader(url string) {

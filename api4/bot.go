@@ -17,25 +17,6 @@ func (api *API) InitBot() {
 	api.BaseRoutes.Bot.Handle("/disable", api.ApiSessionRequired(disableBot)).Methods("POST")
 }
 
-func sessionHasPermissionToManageBot(c *Context, userId string) *model.AppError {
-	existingBot, err := c.App.GetBot(c.Params.UserId, true)
-	if err != nil {
-		return err
-	}
-
-	if existingBot.CreatorId == c.App.Session.UserId {
-		if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_BOTS) {
-			return c.MakePermissionError(model.PERMISSION_MANAGE_BOTS)
-		}
-	} else {
-		if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_OTHERS_BOTS) {
-			return c.MakePermissionError(model.PERMISSION_MANAGE_OTHERS_BOTS)
-		}
-	}
-
-	return nil
-}
-
 func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	botPatch := model.BotPatchFromJson(r.Body)
 	if botPatch == nil {
@@ -75,7 +56,7 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := sessionHasPermissionToManageBot(c, c.Params.UserId); err != nil {
+	if err := c.App.SessionHasPermissionToManageBot(c.App.Session, c.Params.UserId); err != nil {
 		c.Err = err
 		return
 	}
@@ -156,7 +137,7 @@ func disableBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := sessionHasPermissionToManageBot(c, c.Params.UserId); err != nil {
+	if err := c.App.SessionHasPermissionToManageBot(c.App.Session, c.Params.UserId); err != nil {
 		c.Err = err
 		return
 	}
