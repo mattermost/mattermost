@@ -53,6 +53,7 @@ func (a *App) GetLdapGroup(ldapGroupID string) (*model.Group, *model.AppError) {
 	} else {
 		ae := model.NewAppError("GetLdapGroup", "ent.ldap.app_error", nil, "", http.StatusNotImplemented)
 		mlog.Error(fmt.Sprintf("%v", ae.Error()))
+		return nil, ae
 	}
 
 	return group, nil
@@ -73,6 +74,7 @@ func (a *App) GetAllLdapGroupsPage(page int, perPage int) ([]*model.Group, int, 
 	} else {
 		ae := model.NewAppError("GetAllLdapGroupsPage", "ent.ldap.app_error", nil, "", http.StatusNotImplemented)
 		mlog.Error(fmt.Sprintf("%v", ae.Error()))
+		return nil, 0, ae
 	}
 
 	return groups, total, nil
