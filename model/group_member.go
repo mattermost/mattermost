@@ -13,7 +13,7 @@ type GroupMember struct {
 }
 
 func (gm *GroupMember) IsValid() *AppError {
-	if len(gm.GroupId) != 26 {
+	if !IsValidId(gm.GroupId) {
 		return NewAppError("GroupMember.IsValid", "model.group_member.group_id.app_error", nil, "", http.StatusBadRequest)
 	}
 	if len(gm.UserId) != 26 {
