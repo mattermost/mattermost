@@ -28,7 +28,9 @@ import (
 	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/mfa"
 	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 )
 
 const (
@@ -589,16 +591,13 @@ func (a *App) sanitizeProfiles(users []*model.User, asAdmin bool) []*model.User 
 }
 
 func (a *App) GenerateMfaSecret(userId string) (*model.MfaSecret, *model.AppError) {
-	if a.Mfa == nil {
-		return nil, model.NewAppError("generateMfaSecret", "api.user.generate_mfa_qr.not_available.app_error", nil, "", http.StatusNotImplemented)
-	}
-
 	user, err := a.GetUser(userId)
 	if err != nil {
 		return nil, err
 	}
 
-	secret, img, err := a.Mfa.GenerateSecret(user)
+	mfaService := mfa.New(a, a.Srv.Store)
+	secret, img, err := mfaService.GenerateSecret(user)
 	if err != nil {
 		return nil, err
 	}
@@ -608,11 +607,6 @@ func (a *App) GenerateMfaSecret(userId string) (*model.MfaSecret, *model.AppErro
 }
 
 func (a *App) ActivateMfa(userId, token string) *model.AppError {
-	if a.Mfa == nil {
-		err := model.NewAppError("ActivateMfa", "api.user.update_mfa.not_available.app_error", nil, "", http.StatusNotImplemented)
-		return err
-	}
-
 	result := <-a.Srv.Store.User().Get(userId)
 	if result.Err != nil {
 		return result.Err
@@ -623,7 +617,8 @@ func (a *App) ActivateMfa(userId, token string) *model.AppError {
 		return model.NewAppError("ActivateMfa", "api.user.activate_mfa.email_and_ldap_only.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if err := a.Mfa.Activate(user, token); err != nil {
+	mfaService := mfa.New(a, a.Srv.Store)
+	if err := mfaService.Activate(user, token); err != nil {
 		return err
 	}
 
@@ -631,12 +626,8 @@ func (a *App) ActivateMfa(userId, token string) *model.AppError {
 }
 
 func (a *App) DeactivateMfa(userId string) *model.AppError {
-	if a.Mfa == nil {
-		err := model.NewAppError("DeactivateMfa", "api.user.update_mfa.not_available.app_error", nil, "", http.StatusNotImplemented)
-		return err
-	}
-
-	if err := a.Mfa.Deactivate(userId); err != nil {
+	mfaService := mfa.New(a, a.Srv.Store)
+	if err := mfaService.Deactivate(userId); err != nil {
 		return err
 	}
 
@@ -717,7 +708,7 @@ func getFont(initialFont string) (*truetype.Font, error) {
 		initialFont = "nunito-bold.ttf"
 	}
 
-	fontDir, _ := utils.FindDir("fonts")
+	fontDir, _ := fileutils.FindDir("fonts")
 	fontBytes, err := ioutil.ReadFile(filepath.Join(fontDir, initialFont))
 	if err != nil {
 		return nil, err
@@ -850,8 +841,8 @@ func (a *App) SetProfileImageFromFile(userId string, file io.Reader) *model.AppE
 
 	a.InvalidateCacheForUser(userId)
 
-	user, err := a.GetUser(userId)
-	if err != nil {
+	user, userErr := a.GetUser(userId)
+	if userErr != nil {
 		mlog.Error(fmt.Sprintf("Error in getting users profile for id=%v forcing logout", userId), mlog.String("user_id", userId))
 		return nil
 	}
@@ -1064,6 +1055,19 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 	a.InvalidateCacheForUser(user.Id)
 
 	return rusers[0], nil
+}
+
+func (a *App) UpdateUserActive(userId string, active bool) *model.AppError {
+	user, err := a.GetUser(userId)
+
+	if err != nil {
+		return err
+	}
+	if _, err = a.UpdateActive(user, active); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (a *App) UpdateUserNotifyProps(userId string, props map[string]string) (*model.User, *model.AppError) {

@@ -435,8 +435,6 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rpost = c.App.PreparePostForClient(rpost)
-
 	w.Write([]byte(rpost.ToJson()))
 }
 
@@ -476,8 +474,6 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-
-	patchedPost = c.App.PreparePostForClient(patchedPost)
 
 	w.Write([]byte(patchedPost.ToJson()))
 }

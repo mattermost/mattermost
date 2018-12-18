@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-/*func TestOpenDialog(t *testing.T) {
+func TestOpenDialog(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
@@ -23,11 +23,6 @@ import (
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
 	})
-
-	WebSocketClient, err := th.CreateWebSocketClient()
-	require.Nil(t, err)
-
-	WebSocketClient.Listen()
 
 	_, triggerId, err := model.GenerateTriggerId(th.BasicUser.Id, th.App.AsymmetricSigningKey())
 	require.Nil(t, err)
@@ -56,21 +51,6 @@ import (
 	CheckNoError(t, resp)
 	assert.True(t, pass)
 
-	timeout := time.After(300 * time.Millisecond)
-	waiting := true
-	for waiting {
-		select {
-		case event := <-WebSocketClient.EventChannel:
-			if event.Event == model.WEBSOCKET_EVENT_OPEN_DIALOG {
-				waiting = false
-			}
-
-		case <-timeout:
-			waiting = false
-			t.Fatal("should have received open_dialog event")
-		}
-	}
-
 	// Should fail on bad trigger ID
 	request.TriggerId = "junk"
 	pass, resp = Client.OpenInteractiveDialog(request)
@@ -83,7 +63,18 @@ import (
 	pass, resp = Client.OpenInteractiveDialog(request)
 	CheckBadRequestStatus(t, resp)
 	assert.False(t, pass)
-}*/
+
+	// At least one element is required
+	request.URL = "http://localhost:8065"
+	request.Dialog.Elements = nil
+	pass, resp = Client.OpenInteractiveDialog(request)
+	CheckBadRequestStatus(t, resp)
+	assert.False(t, pass)
+	request.Dialog.Elements = []model.DialogElement{}
+	pass, resp = Client.OpenInteractiveDialog(request)
+	CheckBadRequestStatus(t, resp)
+	assert.False(t, pass)
+}
 
 func TestSubmitDialog(t *testing.T) {
 	th := Setup().InitBasic()

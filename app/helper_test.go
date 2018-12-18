@@ -6,7 +6,6 @@ package app
 import (
 	"io"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"path/filepath"
 	"time"
@@ -16,7 +15,7 @@ import (
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
-	"github.com/mattermost/mattermost-server/utils/testutils"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 )
 
 type TestHelper struct {
@@ -32,14 +31,12 @@ type TestHelper struct {
 
 	tempConfigPath string
 	tempWorkspace  string
-
-	MockedHTTPService *testutils.MockedHTTPService
 }
 
 func setupTestHelper(enterprise bool) *TestHelper {
 	mainHelper.Store.DropAllTables()
 
-	permConfig, err := os.Open(utils.FindConfigFile("config.json"))
+	permConfig, err := os.Open(fileutils.FindConfigFile("config.json"))
 	if err != nil {
 		panic(err)
 	}
@@ -72,15 +69,12 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.RateLimitSettings.Enable = false })
 	prevListenAddress := *th.App.Config().ServiceSettings.ListenAddress
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
-	serverErr := th.App.StartServer()
+	serverErr := th.Server.Start()
 	if serverErr != nil {
 		panic(serverErr)
 	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
-
-	th.App.DoAdvancedPermissionsMigration()
-	th.App.DoEmojisPermissionsMigration()
 
 	th.App.Srv.Store.MarkSystemRanUnitTests()
 
@@ -129,13 +123,6 @@ func (me *TestHelper) InitBasic() *TestHelper {
 	me.LinkUserToTeam(me.BasicUser2, me.BasicTeam)
 	me.BasicChannel = me.CreateChannel(me.BasicTeam)
 	me.BasicPost = me.CreatePost(me.BasicChannel)
-
-	return me
-}
-
-func (me *TestHelper) MockHTTPService(handler http.Handler) *TestHelper {
-	me.MockedHTTPService = testutils.MakeMockedHTTPService(handler)
-	me.App.HTTPService = me.MockedHTTPService
 
 	return me
 }

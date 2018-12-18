@@ -36,6 +36,10 @@ func ConfigFile(file string) Option {
 	}
 }
 
+func RunJobs(s *Server) {
+	s.runjobs = true
+}
+
 func DisableConfigWatch(s *Server) {
 	s.disableConfigWatch = true
 }
@@ -49,7 +53,6 @@ func ServerConnector(s *Server) AppOption {
 
 		a.Log = s.Log
 
-		a.HTTPService = s.HTTPService
 		a.AccountMigration = s.AccountMigration
 		a.Cluster = s.Cluster
 		a.Compliance = s.Compliance
@@ -58,7 +61,9 @@ func ServerConnector(s *Server) AppOption {
 		a.Ldap = s.Ldap
 		a.MessageExport = s.MessageExport
 		a.Metrics = s.Metrics
-		a.Mfa = s.Mfa
 		a.Saml = s.Saml
+
+		a.HTTPService = s.HTTPService
+		a.Timezones = s.timezones
 	}
 }

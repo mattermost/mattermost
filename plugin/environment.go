@@ -19,11 +19,6 @@ import (
 
 type apiImplCreatorFunc func(*model.Manifest) API
 
-// multiPluginHookRunnerFunc is a callback function to invoke as part of RunMultiPluginHook.
-//
-// Return false to stop the hook from iterating to subsequent plugins.
-type multiPluginHookRunnerFunc func(hooks Hooks) bool
-
 type activePlugin struct {
 	BundleInfo *model.BundleInfo
 	State      int
@@ -288,7 +283,7 @@ func (env *Environment) HooksForPlugin(id string) (Hooks, error) {
 //
 // If hookRunnerFunc returns false, iteration will not continue. The iteration order among active
 // plugins is not specified.
-func (env *Environment) RunMultiPluginHook(hookRunnerFunc multiPluginHookRunnerFunc, hookId int) {
+func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks) bool, hookId int) {
 	env.activePlugins.Range(func(key, value interface{}) bool {
 		activePlugin := value.(activePlugin)
 

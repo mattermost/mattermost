@@ -18,7 +18,8 @@ import (
 	"os"
 	"reflect"
 
-	"github.com/hashicorp/go-plugin"
+	"github.com/dyatlov/go-opengraph/opengraph"
+	plugin "github.com/hashicorp/go-plugin"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
@@ -95,6 +96,7 @@ func init() {
 	gob.Register(map[string]interface{}{})
 	gob.Register(&model.AppError{})
 	gob.Register(&ErrorString{})
+	gob.Register(&opengraph.OpenGraph{})
 }
 
 // These enforce compile time checks to make sure types implement the interface

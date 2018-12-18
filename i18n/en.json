@@ -384,6 +384,10 @@
     "translation": "No command trigger found"
   },
   {
+    "id": "api.command.command_post.forbidden.app_error",
+    "translation": "Specified user is not a member of specified channel."
+  },
+  {
     "id": "api.command.invite_people.desc",
     "translation": "Send an email invite to your Mattermost team"
   },
@@ -1217,12 +1221,28 @@
     "translation": "Bad connection to S3 or minio."
   },
   {
-    "id": "api.file.upload_file.bad_parse.app_error",
-    "translation": "Unable to upload file. Header cannot be parsed."
+    "id": "api.file.upload_file.read_request.app_error",
+    "translation": "Unable to upload file(s). Error reading or parsing request data."
+  },
+  {
+    "id": "api.file.upload_file.read_form_value.app_error",
+    "translation": "Unable to upload file(s). Error reading the value for {{.Formname}}."
+  },
+  {
+    "id": "api.file.upload_file.multiple_channel_ids.app_error",
+    "translation": "Unable to upload file(s). Multiple conflicting channel_ids."
+  },
+  {
+    "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
+    "translation": "Unable to upload file(s). Have {{.NumClientIds}} client_ids for {{.NumFiles}} files."
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_files.app_error",
     "translation": "Unable to upload files. Incorrect number of files specified."
+  },
+  {
+    "id": "api.file.upload_file.large_image_detailed.app_error",
+    "translation": "{{.Filename}} dimensions ({{.Width}} by {{.Height}} pixels) exceed the limits"
   },
   {
     "id": "api.file.upload_file.large_image.app_error",
@@ -1235,6 +1255,10 @@
   {
     "id": "api.file.upload_file.too_large.app_error",
     "translation": "Unable to upload file. File is too large."
+  },
+  {
+    "id": "api.file.upload_file.too_large_detailed.app_error",
+    "translation": "Unable to upload file {{.Filename}}. {{.Length}} bytes exceeds the maximum allowed {{.Limit}} bytes."
   },
   {
     "id": "api.file.write_file.s3.app_error",
@@ -1443,6 +1467,14 @@
   {
     "id": "api.post.create_webhook_post.creating.app_error",
     "translation": "Error creating post"
+  },
+  {
+    "id": "api.post.deduplicate_create_post.failed_to_get",
+    "translation": "Failed to fetch original post after deduplicating a client repeating the same request."
+  },
+  {
+    "id": "api.post.deduplicate_create_post.pending",
+    "translation": "Rejected post since another client is making the same request."
   },
   {
     "id": "api.post.disabled_all",
@@ -2135,10 +2167,6 @@
     "translation": "Invalid MFA token."
   },
   {
-    "id": "api.user.check_user_mfa.not_available.app_error",
-    "translation": "MFA is not configured or supported on this server"
-  },
-  {
     "id": "api.user.check_user_password.invalid.app_error",
     "translation": "Login failed because of invalid password"
   },
@@ -2217,10 +2245,6 @@
   {
     "id": "api.user.email_to_oauth.not_available.app_error",
     "translation": "Authentication Transfer not configured or available on this server."
-  },
-  {
-    "id": "api.user.generate_mfa_qr.not_available.app_error",
-    "translation": "MFA not configured or available on this server"
   },
   {
     "id": "api.user.get_authorization_code.unsupported.app_error",
@@ -2381,10 +2405,6 @@
   {
     "id": "api.user.update_active.permissions.app_error",
     "translation": "You do not have the appropriate permissions"
-  },
-  {
-    "id": "api.user.update_mfa.not_available.app_error",
-    "translation": "MFA not configured or available on this server"
   },
   {
     "id": "api.user.update_oauth_user_attrs.get_user.app_error",
@@ -4515,42 +4535,6 @@
     "translation": "Unable to open the export temporary file"
   },
   {
-    "id": "ent.mfa.activate.authenticate.app_error",
-    "translation": "Error attempting to authenticate MFA token"
-  },
-  {
-    "id": "ent.mfa.activate.bad_token.app_error",
-    "translation": "Invalid MFA token"
-  },
-  {
-    "id": "ent.mfa.activate.save_active.app_error",
-    "translation": "Unable to update MFA active status for the user"
-  },
-  {
-    "id": "ent.mfa.deactivate.save_active.app_error",
-    "translation": "Unable to update MFA active status for the user"
-  },
-  {
-    "id": "ent.mfa.deactivate.save_secret.app_error",
-    "translation": "Error clearing the MFA secret"
-  },
-  {
-    "id": "ent.mfa.generate_qr_code.create_code.app_error",
-    "translation": "Error generating QR code"
-  },
-  {
-    "id": "ent.mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Error saving the MFA secret"
-  },
-  {
-    "id": "ent.mfa.license_disable.app_error",
-    "translation": "Your license does not support using multi-factor authentication"
-  },
-  {
-    "id": "ent.mfa.validate_token.authenticate.app_error",
-    "translation": "Error trying to authenticate MFA token"
-  },
-  {
     "id": "ent.migration.migratetoldap.duplicate_field",
     "translation": "Unable to migrate AD/LDAP users with specified field. Duplicate entry detected. Please remove all duplcates and try again."
   },
@@ -4661,6 +4645,42 @@
   {
     "id": "mattermost.bulletin.subject",
     "translation": "Mattermost Security Bulletin"
+  },
+  {
+    "id": "mfa.activate.authenticate.app_error",
+    "translation": "Error attempting to authenticate MFA token"
+  },
+  {
+    "id": "mfa.activate.bad_token.app_error",
+    "translation": "Invalid MFA token"
+  },
+  {
+    "id": "mfa.activate.save_active.app_error",
+    "translation": "Unable to update MFA active status for the user"
+  },
+  {
+    "id": "mfa.deactivate.save_active.app_error",
+    "translation": "Unable to update MFA active status for the user"
+  },
+  {
+    "id": "mfa.deactivate.save_secret.app_error",
+    "translation": "Error clearing the MFA secret"
+  },
+  {
+    "id": "mfa.generate_qr_code.create_code.app_error",
+    "translation": "Error generating QR code"
+  },
+  {
+    "id": "mfa.generate_qr_code.save_secret.app_error",
+    "translation": "Error saving the MFA secret"
+  },
+  {
+    "id": "mfa.mfa_disabled.app_error",
+    "translation": "Multi-factor authentication has been disabled on this server."
+  },
+  {
+    "id": "mfa.validate_token.authenticate.app_error",
+    "translation": "Error trying to authenticate MFA token"
   },
   {
     "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",
@@ -5820,15 +5840,15 @@
   },
   {
     "id": "model.user_terms_of_service.is_valid.user_id.app_error",
-    "translation": "Missing required user terms of service property: user_id."
+    "translation": "Missing required terms of service property: user_id."
   },
   {
     "id": "model.user_terms_of_service.is_valid.service_terms_id.app_error",
-    "translation": "Missing required user terms of service property: service_terms_id."
+    "translation": "Missing required terms of service property: service_terms_id."
   },
   {
     "id": "model.user_terms_of_service.is_valid.create_at.app_error",
-    "translation": "Missing required user terms of service property: create_at."
+    "translation": "Missing required terms of service property: create_at."
   },
   {
     "id": "oauth.gitlab.tos.error",
@@ -7520,19 +7540,19 @@
   },
   {
     "id": "store.sql_user_terms_of_service.get_by_user.no_rows.app_error",
-    "translation": "No user terms of service found."
+    "translation": "No terms of service found."
   },
   {
     "id": "store.sql_user_terms_of_service.get_by_user.app_error",
-    "translation": "Unable to fetch user terms of service."
+    "translation": "Unable to fetch terms of service."
   },
   {
     "id": "store.sql_user_terms_of_service.save.app_error",
-    "translation": "Unable to save user terms of service."
+    "translation": "Unable to save terms of service."
   },
   {
     "id": "store.sql_user_terms_of_service.delete.app_error",
-    "translation": "Unable to delete user terms of service."
+    "translation": "Unable to delete terms of service."
   },
   {
     "id": "system.message.name",
