@@ -440,9 +440,9 @@ func (a *App) ListReminders(userId string, channelId string) string {
 	}
 
 	//TODO in channel
-	channel, _ := a.GetChannel(channelId)
-
-	mlog.Info(channel.Name)
+	//channel, _ := a.GetChannel(channelId)
+	//
+	//mlog.Info(channel.Name)
 
 	//*In this channel*:
 	//• Remind #general “foobar” at 9AM tomorrow. Delete
