@@ -10,7 +10,7 @@ import (
 )
 
 func (api *API) InitBot() {
-	api.BaseRoutes.Bots.Handle("", api.ApiHandler(createBot)).Methods("POST")
+	api.BaseRoutes.Bots.Handle("", api.ApiSessionRequired(createBot)).Methods("POST")
 	api.BaseRoutes.Bot.Handle("", api.ApiSessionRequired(patchBot)).Methods("PUT")
 	api.BaseRoutes.Bot.Handle("", api.ApiSessionRequired(getBot)).Methods("GET")
 	api.BaseRoutes.Bots.Handle("", api.ApiSessionRequired(getBots)).Methods("GET")
