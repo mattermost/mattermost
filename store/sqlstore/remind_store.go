@@ -118,17 +118,17 @@ func (s SqlRemindStore) GetByChannel(channel string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 
 		//TODO select from reminders, then select occurrences
-//		query := "SELECT * FROM Occurrences WHERE Occurrence = :Occurrence or Snoozed = :Occurrence"
-//
-//		var occurrences model.Occurrences
-//		if _, err := s.GetReplica().Select(
-//			&occurrences,
-//			query,
-//			map[string]interface{}{"Occurrence": time}); err != nil {
-//			mlog.Error(err.Error())
-//			result.Err = model.NewAppError("SqlRemindStore.GetByTime", "store.sql_remind.get_by_time.app_error", nil, "time="+fmt.Sprintf("%v", time)+", "+err.Error(), http.StatusInternalServerError)
-//		}
-//		result.Data = occurrences
+		//		query := "SELECT * FROM Occurrences WHERE Occurrence = :Occurrence or Snoozed = :Occurrence"
+		//
+		//		var occurrences model.Occurrences
+		//		if _, err := s.GetReplica().Select(
+		//			&occurrences,
+		//			query,
+		//			map[string]interface{}{"Occurrence": time}); err != nil {
+		//			mlog.Error(err.Error())
+		//			result.Err = model.NewAppError("SqlRemindStore.GetByTime", "store.sql_remind.get_by_time.app_error", nil, "time="+fmt.Sprintf("%v", time)+", "+err.Error(), http.StatusInternalServerError)
+		//		}
+		//		result.Data = occurrences
 	})
 }
 
