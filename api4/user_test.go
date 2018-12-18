@@ -533,6 +533,7 @@ func TestGetUserByEmail(t *testing.T) {
 
 	t.Run("should sanitize full name for non-admin based on privacy settings", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.PrivacySettings.ShowEmailAddress = true
 			cfg.PrivacySettings.ShowFullName = false
 		})
 
@@ -553,6 +554,7 @@ func TestGetUserByEmail(t *testing.T) {
 
 	t.Run("should not sanitize full name for admin, regardless of privacy settings", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.PrivacySettings.ShowEmailAddress = true
 			cfg.PrivacySettings.ShowFullName = false
 		})
 
