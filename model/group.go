@@ -95,14 +95,14 @@ func (group *Group) IsValidForCreate() *AppError {
 		return NewAppError("Group.IsValidForCreate", "model.group.type.app_error", map[string]interface{}{"ValidGroupTypes": groupTypes.String()}, "", http.StatusBadRequest)
 	}
 
-	if len(group.RemoteId) > GroupRemoteIDMaxLength || (len(group.RemoteId) == 0 && group.RequiresRemoteId()) {
+	if len(group.RemoteId) > GroupRemoteIDMaxLength || (len(group.RemoteId) == 0 && group.requiresRemoteId()) {
 		return NewAppError("Group.IsValidForCreate", "model.group.remote_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
 }
 
-func (group *Group) RequiresRemoteId() bool {
+func (group *Group) requiresRemoteId() bool {
 	for _, groupType := range groupTypesRequiringRemoteID {
 		if groupType == group.Type {
 			return true
