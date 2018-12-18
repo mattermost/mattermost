@@ -6,7 +6,10 @@ package app
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/stretchr/testify/require"
 )
 
 func TestGetGroup(t *testing.T) {
@@ -14,14 +17,11 @@ func TestGetGroup(t *testing.T) {
 	defer th.TearDown()
 	group := th.CreateGroup()
 
-	if _, err := th.App.GetGroup(group.Id); err != nil {
-		t.Log(err)
-		t.Fatal("Should get the group")
-	}
+	_, err := th.App.GetGroup(group.Id)
+	require.Nil(t, err)
 
-	if _, err := th.App.GetGroup(model.NewId()); err == nil {
-		t.Fatal("Should not have found a group")
-	}
+	_, err = th.App.GetGroup(model.NewId())
+	require.NotNil(t, err)
 }
 
 func TestGetGroupByRemoteID(t *testing.T) {
@@ -29,14 +29,11 @@ func TestGetGroupByRemoteID(t *testing.T) {
 	defer th.TearDown()
 	group := th.CreateGroup()
 
-	if _, err := th.App.GetGroupByRemoteID(group.RemoteId, model.GroupTypeLdap); err != nil {
-		t.Log(err)
-		t.Fatal("Should get the group")
-	}
+	_, err := th.App.GetGroupByRemoteID(group.RemoteId, model.GroupTypeLdap)
+	require.Nil(t, err)
 
-	if _, err := th.App.GetGroupByRemoteID(model.NewId(), model.GroupTypeLdap); err == nil {
-		t.Fatal("Should not have found a group")
-	}
+	_, err = th.App.GetGroupByRemoteID(model.NewId(), model.GroupTypeLdap)
+	require.NotNil(t, err)
 }
 
 func TestGetGroupsByType(t *testing.T) {
@@ -47,18 +44,13 @@ func TestGetGroupsByType(t *testing.T) {
 	th.CreateGroup()
 
 	groups, err := th.App.GetGroupsByType(model.GroupTypeLdap)
-	if err != nil {
-		t.Log(err)
-		t.Fatal("Should have groups")
-	}
+	require.Nil(t, err)
 
-	if len(groups) < 1 {
-		t.Fatal("Should have retrieved at least one group")
-	}
+	require.NotEmpty(t, groups)
 
-	if groups, _ = th.App.GetGroupsByType(model.GroupType("blah")); len(groups) > 0 {
-		t.Fatal("Should not have groups.")
-	}
+	groups, _ = th.App.GetGroupsByType(model.GroupType("blah"))
+
+	require.Empty(t, groups)
 }
 
 func TestCreateGroup(t *testing.T) {
@@ -73,14 +65,11 @@ func TestCreateGroup(t *testing.T) {
 		RemoteId:    model.NewId(),
 	}
 
-	if _, err := th.App.CreateGroup(group); err != nil {
-		t.Log(err)
-		t.Fatal("Should create a new group")
-	}
+	_, err := th.App.CreateGroup(group)
+	assert.Nil(t, err)
 
-	if _, err := th.App.CreateGroup(group); err == nil {
-		t.Fatal("Should not create a new group - group already exist")
-	}
+	_, err = th.App.CreateGroup(group)
+	assert.NotNil(t, err)
 }
 
 func TestUpdateGroup(t *testing.T) {
@@ -89,10 +78,8 @@ func TestUpdateGroup(t *testing.T) {
 	group := th.CreateGroup()
 	group.DisplayName = model.NewId()
 
-	if _, err := th.App.UpdateGroup(group); err != nil {
-		t.Log(err)
-		t.Fatal("Should update the group")
-	}
+	_, err := th.App.UpdateGroup(group)
+	assert.Nil(t, err)
 }
 
 func TestDeleteGroup(t *testing.T) {
@@ -100,14 +87,11 @@ func TestDeleteGroup(t *testing.T) {
 	defer th.TearDown()
 	group := th.CreateGroup()
 
-	if _, err := th.App.DeleteGroup(group.Id); err != nil {
-		t.Log(err)
-		t.Fatal("Should delete the group")
-	}
+	_, err := th.App.DeleteGroup(group.Id)
+	assert.Nil(t, err)
 
-	if _, err := th.App.DeleteGroup(group.Id); err == nil {
-		t.Fatal("Should not delete the group again - group already deleted")
-	}
+	_, err = th.App.DeleteGroup(group.Id)
+	assert.NotNil(t, err)
 }
 
 func TestCreateOrRestoreGroupMember(t *testing.T) {
@@ -115,14 +99,11 @@ func TestCreateOrRestoreGroupMember(t *testing.T) {
 	defer th.TearDown()
 	group := th.CreateGroup()
 
-	if _, err := th.App.CreateOrRestoreGroupMember(group.Id, th.BasicUser.Id); err != nil {
-		t.Log(err)
-		t.Fatal("Should create a group member")
-	}
+	_, err := th.App.CreateOrRestoreGroupMember(group.Id, th.BasicUser.Id)
+	assert.Nil(t, err)
 
-	if _, err := th.App.CreateOrRestoreGroupMember(group.Id, th.BasicUser.Id); err == nil {
-		t.Fatal("Should not create a new group member - group member already exist")
-	}
+	_, err = th.App.CreateOrRestoreGroupMember(group.Id, th.BasicUser.Id)
+	assert.NotNil(t, err)
 }
 
 func TestDeleteGroupMember(t *testing.T) {
@@ -130,19 +111,13 @@ func TestDeleteGroupMember(t *testing.T) {
 	defer th.TearDown()
 	group := th.CreateGroup()
 	groupMember, err := th.App.CreateOrRestoreGroupMember(group.Id, th.BasicUser.Id)
-	if err != nil {
-		t.Log(err)
-		t.Fatal("Should create a group member")
-	}
+	assert.Nil(t, err)
 
-	if _, err := th.App.DeleteGroupMember(groupMember.GroupId, groupMember.UserId); err != nil {
-		t.Log(err)
-		t.Fatal("Should delete group member")
-	}
+	_, err = th.App.DeleteGroupMember(groupMember.GroupId, groupMember.UserId)
+	assert.Nil(t, err)
 
-	if _, err := th.App.DeleteGroupMember(groupMember.GroupId, groupMember.UserId); err == nil {
-		t.Fatal("Should not re-delete group member - group member already deleted")
-	}
+	_, err = th.App.DeleteGroupMember(groupMember.GroupId, groupMember.UserId)
+	assert.NotNil(t, err)
 }
 
 func TestCreateGroupSyncable(t *testing.T) {
@@ -157,14 +132,11 @@ func TestCreateGroupSyncable(t *testing.T) {
 		Type:       model.GroupSyncableTypeTeam,
 	}
 
-	if _, err := th.App.CreateGroupSyncable(groupSyncable); err != nil {
-		t.Log(err)
-		t.Fatal("Should create group team")
-	}
+	_, err := th.App.CreateGroupSyncable(groupSyncable)
+	assert.Nil(t, err)
 
-	if _, err := th.App.CreateGroupSyncable(groupSyncable); err == nil {
-		t.Fatal("Should not create group team - group team already exists")
-	}
+	_, err = th.App.CreateGroupSyncable(groupSyncable)
+	assert.NotNil(t, err)
 }
 
 func TestGetGroupSyncable(t *testing.T) {
@@ -180,15 +152,11 @@ func TestGetGroupSyncable(t *testing.T) {
 	}
 
 	// Create GroupSyncable
-	if _, err := th.App.CreateGroupSyncable(groupSyncable); err != nil {
-		t.Log(err)
-		t.Fatal("Should create group team")
-	}
+	_, err := th.App.CreateGroupSyncable(groupSyncable)
+	assert.Nil(t, err)
 
-	if _, err := th.App.GetGroupSyncable(group.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam); err != nil {
-		t.Log(err)
-		t.Fatal("Should delete group team")
-	}
+	_, err = th.App.GetGroupSyncable(group.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
+	assert.Nil(t, err)
 }
 
 func TestGetGroupSyncables(t *testing.T) {
@@ -205,20 +173,13 @@ func TestGetGroupSyncables(t *testing.T) {
 		Type:       model.GroupSyncableTypeTeam,
 	}
 
-	if _, err := th.App.CreateGroupSyncable(groupSyncable); err != nil {
-		t.Log(err)
-		t.Fatal("Should create group team")
-	}
+	_, err := th.App.CreateGroupSyncable(groupSyncable)
+	assert.Nil(t, err)
 
 	groupTeams, err := th.App.GetGroupSyncables(group.Id, model.GroupSyncableTypeTeam)
-	if err != nil {
-		t.Log(err)
-		t.Fatal("Should have group teams")
-	}
+	assert.Nil(t, err)
 
-	if len(groupTeams) < 1 {
-		t.Fatal("Should have retrieved at least one group team")
-	}
+	assert.NotEmpty(t, groupTeams)
 }
 
 func TestDeleteGroupSyncable(t *testing.T) {
@@ -234,17 +195,12 @@ func TestDeleteGroupSyncable(t *testing.T) {
 	}
 
 	// Create GroupSyncable
-	if _, err := th.App.CreateGroupSyncable(groupChannel); err != nil {
-		t.Log(err)
-		t.Fatal("Should create group channel")
-	}
+	_, err := th.App.CreateGroupSyncable(groupChannel)
+	assert.Nil(t, err)
 
-	if _, err := th.App.DeleteGroupSyncable(group.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel); err != nil {
-		t.Log(err)
-		t.Fatal("Should delete group channel")
-	}
+	_, err = th.App.DeleteGroupSyncable(group.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
+	assert.Nil(t, err)
 
-	if _, err := th.App.DeleteGroupSyncable(group.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel); err == nil {
-		t.Fatal("Should not re-delete group channel - group channel already deleted")
-	}
+	_, err = th.App.DeleteGroupSyncable(group.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
+	assert.NotNil(t, err)
 }
