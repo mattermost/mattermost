@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -174,11 +175,9 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	groupSyncable, appErr := c.App.GetGroupSyncable(c.Params.GroupId, syncableID, syncableType)
-	if appErr != nil {
-		if appErr.Id != "store.sql_group.no_rows" {
-			c.Err = appErr
-			return
-		}
+	if appErr != nil && appErr.DetailedError != sql.ErrNoRows.Error() {
+		c.Err = appErr
+		return
 	}
 
 	if groupSyncable == nil {
