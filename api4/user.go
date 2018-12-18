@@ -174,7 +174,13 @@ func getUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// No permission check required
+	// No permission check required, but still prevent users who can't see another user's email address from using this
+
+	sanitizeOptions := c.App.GetSanitizeOptions(c.IsSystemAdmin())
+	if !sanitizeOptions["email"] {
+		c.Err = model.NewAppError("getUserByEmail", "api.user.get_user_by_email.permissions.app_error", nil, "userId="+c.App.Session.UserId, http.StatusForbidden)
+		return
+	}
 
 	var user *model.User
 	var err *model.AppError
