@@ -53,7 +53,7 @@ func (b *Bot) Clone() *Bot {
 
 // IsValid validates the bot and returns an error if it isn't configured correctly.
 func (b *Bot) IsValid() *AppError {
-	if len(b.UserId) != 26 {
+	if !IsValidId(b.UserId) {
 		return NewAppError("Bot.IsValid", "model.bot.is_valid.user_id.app_error", b.Trace(), "", http.StatusBadRequest)
 	}
 
