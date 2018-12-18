@@ -53,15 +53,6 @@ type Group struct {
 	HasSyncables bool      `db:"-" json:"has_syncables"`
 }
 
-// MixedUnlinkedGroup is for displaying potentially unlinked (no associated MM group) groups from an SCIM such as
-// LDAP or Google groups.
-type MixedUnlinkedGroup struct {
-	Id           *string `json:"mattermost_group_id"`
-	DisplayName  string  `json:"name"`
-	RemoteId     string  `json:"primary_key"`
-	HasSyncables *bool   `json:"has_syncables"`
-}
-
 type GroupPatch struct {
 	Name        *string `json:"name"`
 	DisplayName *string `json:"display_name"`

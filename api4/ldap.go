@@ -11,6 +11,13 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
+type mixedUnlinkedGroup struct {
+	Id           *string `json:"mattermost_group_id"`
+	DisplayName  string  `json:"name"`
+	RemoteId     string  `json:"primary_key"`
+	HasSyncables *bool   `json:"has_syncables"`
+}
+
 func (api *API) InitLdap() {
 	api.BaseRoutes.LDAP.Handle("/sync", api.ApiSessionRequired(syncLdap)).Methods("POST")
 	api.BaseRoutes.LDAP.Handle("/test", api.ApiSessionRequired(testLdap)).Methods("POST")
@@ -67,9 +74,9 @@ func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mugs := []*model.MixedUnlinkedGroup{}
+	mugs := []*mixedUnlinkedGroup{}
 	for _, group := range groups {
-		mug := &model.MixedUnlinkedGroup{
+		mug := &mixedUnlinkedGroup{
 			DisplayName: group.DisplayName,
 			RemoteId:    group.RemoteId,
 		}
@@ -81,8 +88,8 @@ func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	b, marshalErr := json.Marshal(struct {
-		Count  int                         `json:"count"`
-		Groups []*model.MixedUnlinkedGroup `json:"groups"`
+		Count  int                   `json:"count"`
+		Groups []*mixedUnlinkedGroup `json:"groups"`
 	}{Count: total, Groups: mugs})
 	if marshalErr != nil {
 		c.Err = model.NewAppError("Api4.getLdapGroups", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
