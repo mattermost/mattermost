@@ -220,7 +220,7 @@ func (a *App) buildUserChannelMemberships(userId string, teamId string) (*[]User
 
 	category := model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL
 	preferences, err := a.GetPreferenceByCategoryForUser(userId, category)
-	if err != nil {
+	if err != nil && err.StatusCode != http.StatusNotFound {
 		return nil, err
 	}
 
@@ -243,8 +243,8 @@ func (a *App) buildUserNotifyProps(notifyProps model.StringMap) *UserNotifyProps
 		Desktop:          getProp(model.DESKTOP_NOTIFY_PROP),
 		DesktopSound:     getProp(model.DESKTOP_SOUND_NOTIFY_PROP),
 		Email:            getProp(model.EMAIL_NOTIFY_PROP),
-		Mobile:           getProp(model.MOBILE_NOTIFY_PROP),
-		MobilePushStatus: getProp(model.MOBILE_PUSH_STATUS_NOTIFY_PROP),
+		Mobile:           getProp(model.PUSH_NOTIFY_PROP),
+		MobilePushStatus: getProp(model.PUSH_STATUS_NOTIFY_PROP),
 		ChannelTrigger:   getProp(model.CHANNEL_MENTIONS_NOTIFY_PROP),
 		CommentsTrigger:  getProp(model.COMMENTS_NOTIFY_PROP),
 		MentionKeys:      getProp(model.MENTION_KEYS_NOTIFY_PROP),
@@ -330,7 +330,6 @@ func (a *App) BuildPostReactions(postId string) (*[]ReactionImportData, *model.A
 	var reactionsOfPost []ReactionImportData
 
 	result := <-a.Srv.Store.Reaction().GetForPost(postId, true)
-
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -338,7 +337,12 @@ func (a *App) BuildPostReactions(postId string) (*[]ReactionImportData, *model.A
 	reactions := result.Data.([]*model.Reaction)
 
 	for _, reaction := range reactions {
-		reactionsOfPost = append(reactionsOfPost, *ImportReactionFromPost(reaction))
+		result := <-a.Srv.Store.User().Get(reaction.UserId)
+		if result.Err != nil {
+			return nil, result.Err
+		}
+		user := result.Data.(*model.User)
+		reactionsOfPost = append(reactionsOfPost, *ImportReactionFromPost(user, reaction))
 	}
 
 	return &reactionsOfPost, nil

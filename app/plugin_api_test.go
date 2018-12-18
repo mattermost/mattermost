@@ -15,6 +15,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
@@ -173,6 +174,31 @@ func TestPluginAPIUpdateUserStatus(t *testing.T) {
 	assert.Nil(t, status)
 }
 
+func TestPluginAPIGetFile(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	// check a valid file first
+	uploadTime := time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local)
+	filename := "testGetFile"
+	fileData := []byte("Hello World")
+	info, err := th.App.DoUploadFile(uploadTime, th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, filename, fileData)
+	require.Nil(t, err)
+	defer func() {
+		<-th.App.Srv.Store.FileInfo().PermanentDelete(info.Id)
+		th.App.RemoveFile(info.Path)
+	}()
+
+	data, err1 := api.GetFile(info.Id)
+	require.Nil(t, err1)
+	assert.Equal(t, data, fileData)
+
+	// then checking invalid file
+	data, err = api.GetFile("../fake/testingApi")
+	require.NotNil(t, err)
+	require.Nil(t, data)
+}
 func TestPluginAPISavePluginConfig(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
@@ -618,6 +644,33 @@ func TestPluginAPIRemoveTeamIcon(t *testing.T) {
 	require.Nil(t, err)
 	err = api.RemoveTeamIcon(th.BasicTeam.Id)
 	require.Nil(t, err)
+}
+
+func TestPluginAPIUpdateUserActive(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	err := api.UpdateUserActive(th.BasicUser.Id, true)
+	require.Nil(t, err)
+	user, err := api.GetUser(th.BasicUser.Id)
+	require.Nil(t, err)
+	require.Equal(t, int64(0), user.DeleteAt)
+
+	err = api.UpdateUserActive(th.BasicUser.Id, false)
+	require.Nil(t, err)
+	user, err = api.GetUser(th.BasicUser.Id)
+	require.Nil(t, err)
+	require.NotNil(t, user)
+	require.NotEqual(t, int64(0), user.DeleteAt)
+
+	err = api.UpdateUserActive(th.BasicUser.Id, true)
+	require.Nil(t, err)
+	err = api.UpdateUserActive(th.BasicUser.Id, true)
+	require.Nil(t, err)
+	user, err = api.GetUser(th.BasicUser.Id)
+	require.Nil(t, err)
+	require.Equal(t, int64(0), user.DeleteAt)
 }
 
 func TestPluginAPIGetDirectChannel(t *testing.T) {

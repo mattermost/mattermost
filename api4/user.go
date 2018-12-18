@@ -856,6 +856,7 @@ func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	user, err := c.App.UpdateUserAuth(c.Params.UserId, userAuth)
 	if err != nil {
 		c.Err = err
+		return
 	}
 
 	c.LogAuditWithUserId(c.Params.UserId, fmt.Sprintf("updated user auth to service=%v", user.AuthService))
@@ -874,7 +875,7 @@ func checkUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 	resp := map[string]interface{}{}
 	resp["mfa_required"] = false
 
-	if license := c.App.License(); license == nil || !*license.Features.MFA || !*c.App.Config().ServiceSettings.EnableMultifactorAuthentication {
+	if !*c.App.Config().ServiceSettings.EnableMultifactorAuthentication {
 		w.Write([]byte(model.StringInterfaceToJson(resp)))
 		return
 	}

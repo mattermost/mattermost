@@ -32,7 +32,7 @@ func compileGo(t *testing.T, sourceCode, outputPath string) {
 	cmd.Dir = dir
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	require.NoError(t, cmd.Run())
+	require.NoError(t, cmd.Run(), "failed to compile go")
 }
 
 func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, apiFunc func(*model.Manifest) plugin.API) (func(), []string, []error) {

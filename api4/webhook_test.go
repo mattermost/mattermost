@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
 )
@@ -525,20 +526,15 @@ func TestUpdateIncomingHook(t *testing.T) {
 	t.Run("RetainCreateAt", func(t *testing.T) {
 		hook2 := &model.IncomingWebhook{ChannelId: th.BasicChannel.Id, CreateAt: 100}
 
-		createdHook, resp := th.SystemAdminClient.CreateIncomingWebhook(hook2)
+		createdHook2, resp := th.SystemAdminClient.CreateIncomingWebhook(hook2)
 		CheckNoError(t, resp)
 
-		createdHook.DisplayName = "Name2"
+		createdHook2.DisplayName = "Name2"
 
-		updatedHook, resp := th.SystemAdminClient.UpdateIncomingWebhook(createdHook)
+		updatedHook, resp := th.SystemAdminClient.UpdateIncomingWebhook(createdHook2)
 		CheckNoError(t, resp)
-		if updatedHook != nil {
-			if updatedHook.CreateAt != createdHook.CreateAt {
-				t.Fatal("failed - hook create at should not be changed")
-			}
-		} else {
-			t.Fatal("should not be nil")
-		}
+		require.NotNil(t, updatedHook)
+		assert.Equal(t, createdHook2.CreateAt, updatedHook.CreateAt)
 	})
 
 	t.Run("ModifyUpdateAt", func(t *testing.T) {
@@ -691,8 +687,8 @@ func TestUpdateOutgoingHook(t *testing.T) {
 	createdHook := &model.OutgoingWebhook{ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId,
 		CallbackURLs: []string{"http://nowhere.com"}, TriggerWords: []string{"cats"}}
 
-	createdHook, resp := th.SystemAdminClient.CreateOutgoingWebhook(createdHook)
-	CheckNoError(t, resp)
+	createdHook, webookResp := th.SystemAdminClient.CreateOutgoingWebhook(createdHook)
+	CheckNoError(t, webookResp)
 
 	t.Run("UpdateOutgoingWebhook", func(t *testing.T) {
 		createdHook.DisplayName = "Cats"

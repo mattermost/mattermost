@@ -16,13 +16,16 @@ import (
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 )
+
+var robotsTxt = []byte("User-agent: *\nDisallow: /\n")
 
 func (w *Web) InitStatic() {
 	if *w.ConfigService.Config().ServiceSettings.WebserverMode != "disabled" {
 		utils.UpdateAssetsSubpathFromConfig(w.ConfigService.Config())
 
-		staticDir, _ := utils.FindDir(model.CLIENT_DIR)
+		staticDir, _ := fileutils.FindDir(model.CLIENT_DIR)
 		mlog.Debug(fmt.Sprintf("Using client directory at %v", staticDir))
 
 		subpath, _ := utils.GetSubpathFromConfig(w.ConfigService.Config())
@@ -39,6 +42,7 @@ func (w *Web) InitStatic() {
 
 		w.MainRouter.PathPrefix("/static/plugins/").Handler(pluginHandler)
 		w.MainRouter.PathPrefix("/static/").Handler(staticHandler)
+		w.MainRouter.Handle("/robots.txt", http.HandlerFunc(robotsHandler))
 		w.MainRouter.Handle("/{anything:.*}", w.NewStaticHandler(root)).Methods("GET")
 
 		// When a subpath is defined, it's necessary to handle redirects without a
@@ -69,7 +73,7 @@ func root(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Cache-Control", "no-cache, max-age=31556926, public")
 
-	staticDir, _ := utils.FindDir(model.CLIENT_DIR)
+	staticDir, _ := fileutils.FindDir(model.CLIENT_DIR)
 	http.ServeFile(w, r, filepath.Join(staticDir, "root.html"))
 }
 
@@ -82,4 +86,12 @@ func staticFilesHandler(handler http.Handler) http.Handler {
 		}
 		handler.ServeHTTP(w, r)
 	})
+}
+
+func robotsHandler(w http.ResponseWriter, r *http.Request) {
+	if strings.HasSuffix(r.URL.Path, "/") {
+		http.NotFound(w, r)
+		return
+	}
+	w.Write(robotsTxt)
 }

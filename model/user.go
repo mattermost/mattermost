@@ -12,6 +12,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
+	"github.com/mattermost/mattermost-server/services/timezones"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -26,8 +27,6 @@ const (
 	PUSH_NOTIFY_PROP                   = "push"
 	PUSH_STATUS_NOTIFY_PROP            = "push_status"
 	EMAIL_NOTIFY_PROP                  = "email"
-	MOBILE_NOTIFY_PROP                 = "mobile"
-	MOBILE_PUSH_STATUS_NOTIFY_PROP     = "mobile_push_status"
 	CHANNEL_MENTIONS_NOTIFY_PROP       = "channel"
 	COMMENTS_NOTIFY_PROP               = "comments"
 	MENTION_KEYS_NOTIFY_PROP           = "mention_keys"
@@ -232,7 +231,7 @@ func (u *User) PreSave() {
 	}
 
 	if u.Timezone == nil {
-		u.Timezone = DefaultUserTimezone()
+		u.Timezone = timezones.DefaultUserTimezone()
 	}
 
 	if len(u.Password) > 0 {

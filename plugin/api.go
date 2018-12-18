@@ -102,6 +102,11 @@ type API interface {
 	// The status parameter can be: "online", "away", "dnd", or "offline".
 	UpdateUserStatus(userId, status string) (*model.Status, *model.AppError)
 
+	// UpdateUserActive deactivates or reactivates an user.
+	//
+	// Minimum server version: 5.8
+	UpdateUserActive(userId string, active bool) *model.AppError
+
 	// GetUsersInChannel returns a page of users in a channel. Page counting starts at 0.
 	// The sortBy parameter can be: "username" or "status".
 	//
@@ -330,6 +335,11 @@ type API interface {
 	//
 	// Minimum server version: 5.3
 	GetFileInfo(fileId string) (*model.FileInfo, *model.AppError)
+
+	// GetFile gets content of a file by it's ID
+	//
+	// Minimum Server version: 5.8
+	GetFile(fileId string) ([]byte, *model.AppError)
 
 	// GetFileLink gets the public link to a file by fileId.
 	//

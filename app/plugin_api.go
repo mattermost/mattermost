@@ -195,6 +195,10 @@ func (api *PluginAPI) UpdateUser(user *model.User) (*model.User, *model.AppError
 	return api.app.UpdateUser(user, true)
 }
 
+func (api *PluginAPI) UpdateUserActive(userId string, active bool) *model.AppError {
+	return api.app.UpdateUserActive(userId, active)
+}
+
 func (api *PluginAPI) GetUserStatus(userId string) (*model.Status, *model.AppError) {
 	return api.app.GetStatus(userId)
 }
@@ -478,6 +482,10 @@ func (api *PluginAPI) GetFileLink(fileId string) (string, *model.AppError) {
 
 func (api *PluginAPI) ReadFile(path string) ([]byte, *model.AppError) {
 	return api.app.ReadFile(path)
+}
+
+func (api *PluginAPI) GetFile(fileId string) ([]byte, *model.AppError) {
+	return api.app.GetFile(fileId)
 }
 
 func (api *PluginAPI) UploadFile(data []byte, channelId string, filename string) (*model.FileInfo, *model.AppError) {
