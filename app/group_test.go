@@ -6,8 +6,6 @@ package app
 import (
 	"testing"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/stretchr/testify/require"
 )
@@ -17,11 +15,13 @@ func TestGetGroup(t *testing.T) {
 	defer th.TearDown()
 	group := th.CreateGroup()
 
-	_, err := th.App.GetGroup(group.Id)
+	group, err := th.App.GetGroup(group.Id)
 	require.Nil(t, err)
+	require.NotNil(t, group)
 
-	_, err = th.App.GetGroup(model.NewId())
+	group, err = th.App.GetGroup(model.NewId())
 	require.NotNil(t, err)
+	require.Nil(t, group)
 }
 
 func TestGetGroupByRemoteID(t *testing.T) {
@@ -29,11 +29,13 @@ func TestGetGroupByRemoteID(t *testing.T) {
 	defer th.TearDown()
 	group := th.CreateGroup()
 
-	_, err := th.App.GetGroupByRemoteID(group.RemoteId, model.GroupTypeLdap)
+	g, err := th.App.GetGroupByRemoteID(group.RemoteId, model.GroupTypeLdap)
 	require.Nil(t, err)
+	require.NotNil(t, g)
 
-	_, err = th.App.GetGroupByRemoteID(model.NewId(), model.GroupTypeLdap)
+	g, err = th.App.GetGroupByRemoteID(model.NewId(), model.GroupTypeLdap)
 	require.NotNil(t, err)
+	require.Nil(t, g)
 }
 
 func TestGetGroupsByType(t *testing.T) {
@@ -45,11 +47,10 @@ func TestGetGroupsByType(t *testing.T) {
 
 	groups, err := th.App.GetGroupsByType(model.GroupTypeLdap)
 	require.Nil(t, err)
-
 	require.NotEmpty(t, groups)
 
-	groups, _ = th.App.GetGroupsByType(model.GroupType("blah"))
-
+	groups, err = th.App.GetGroupsByType(model.GroupType("blah"))
+	require.Nil(t, err)
 	require.Empty(t, groups)
 }
 
@@ -65,11 +66,13 @@ func TestCreateGroup(t *testing.T) {
 		RemoteId:    model.NewId(),
 	}
 
-	_, err := th.App.CreateGroup(group)
-	assert.Nil(t, err)
+	g, err := th.App.CreateGroup(group)
+	require.Nil(t, err)
+	require.NotNil(t, g)
 
-	_, err = th.App.CreateGroup(group)
-	assert.NotNil(t, err)
+	g, err = th.App.CreateGroup(group)
+	require.NotNil(t, err)
+	require.Nil(t, g)
 }
 
 func TestUpdateGroup(t *testing.T) {
@@ -78,8 +81,9 @@ func TestUpdateGroup(t *testing.T) {
 	group := th.CreateGroup()
 	group.DisplayName = model.NewId()
 
-	_, err := th.App.UpdateGroup(group)
-	assert.Nil(t, err)
+	g, err := th.App.UpdateGroup(group)
+	require.Nil(t, err)
+	require.NotNil(t, g)
 }
 
 func TestDeleteGroup(t *testing.T) {
@@ -87,11 +91,13 @@ func TestDeleteGroup(t *testing.T) {
 	defer th.TearDown()
 	group := th.CreateGroup()
 
-	_, err := th.App.DeleteGroup(group.Id)
-	assert.Nil(t, err)
+	g, err := th.App.DeleteGroup(group.Id)
+	require.Nil(t, err)
+	require.NotNil(t, g)
 
-	_, err = th.App.DeleteGroup(group.Id)
-	assert.NotNil(t, err)
+	g, err = th.App.DeleteGroup(group.Id)
+	require.NotNil(t, err)
+	require.Nil(t, g)
 }
 
 func TestCreateOrRestoreGroupMember(t *testing.T) {
@@ -99,11 +105,13 @@ func TestCreateOrRestoreGroupMember(t *testing.T) {
 	defer th.TearDown()
 	group := th.CreateGroup()
 
-	_, err := th.App.CreateOrRestoreGroupMember(group.Id, th.BasicUser.Id)
-	assert.Nil(t, err)
+	g, err := th.App.CreateOrRestoreGroupMember(group.Id, th.BasicUser.Id)
+	require.Nil(t, err)
+	require.NotNil(t, g)
 
-	_, err = th.App.CreateOrRestoreGroupMember(group.Id, th.BasicUser.Id)
-	assert.NotNil(t, err)
+	g, err = th.App.CreateOrRestoreGroupMember(group.Id, th.BasicUser.Id)
+	require.NotNil(t, err)
+	require.Nil(t, g)
 }
 
 func TestDeleteGroupMember(t *testing.T) {
@@ -111,13 +119,16 @@ func TestDeleteGroupMember(t *testing.T) {
 	defer th.TearDown()
 	group := th.CreateGroup()
 	groupMember, err := th.App.CreateOrRestoreGroupMember(group.Id, th.BasicUser.Id)
-	assert.Nil(t, err)
+	require.Nil(t, err)
+	require.NotNil(t, groupMember)
 
-	_, err = th.App.DeleteGroupMember(groupMember.GroupId, groupMember.UserId)
-	assert.Nil(t, err)
+	groupMember, err = th.App.DeleteGroupMember(groupMember.GroupId, groupMember.UserId)
+	require.Nil(t, err)
+	require.NotNil(t, groupMember)
 
-	_, err = th.App.DeleteGroupMember(groupMember.GroupId, groupMember.UserId)
-	assert.NotNil(t, err)
+	groupMember, err = th.App.DeleteGroupMember(groupMember.GroupId, groupMember.UserId)
+	require.NotNil(t, err)
+	require.Nil(t, groupMember)
 }
 
 func TestCreateGroupSyncable(t *testing.T) {
@@ -132,11 +143,13 @@ func TestCreateGroupSyncable(t *testing.T) {
 		Type:       model.GroupSyncableTypeTeam,
 	}
 
-	_, err := th.App.CreateGroupSyncable(groupSyncable)
-	assert.Nil(t, err)
+	gs, err := th.App.CreateGroupSyncable(groupSyncable)
+	require.Nil(t, err)
+	require.NotNil(t, gs)
 
-	_, err = th.App.CreateGroupSyncable(groupSyncable)
-	assert.NotNil(t, err)
+	gs, err = th.App.CreateGroupSyncable(groupSyncable)
+	require.NotNil(t, err)
+	require.Nil(t, gs)
 }
 
 func TestGetGroupSyncable(t *testing.T) {
@@ -151,12 +164,13 @@ func TestGetGroupSyncable(t *testing.T) {
 		Type:       model.GroupSyncableTypeTeam,
 	}
 
-	// Create GroupSyncable
-	_, err := th.App.CreateGroupSyncable(groupSyncable)
-	assert.Nil(t, err)
+	gs, err := th.App.CreateGroupSyncable(groupSyncable)
+	require.Nil(t, err)
+	require.NotNil(t, gs)
 
-	_, err = th.App.GetGroupSyncable(group.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
-	assert.Nil(t, err)
+	gs, err = th.App.GetGroupSyncable(group.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
+	require.Nil(t, err)
+	require.NotNil(t, gs)
 }
 
 func TestGetGroupSyncables(t *testing.T) {
@@ -173,13 +187,14 @@ func TestGetGroupSyncables(t *testing.T) {
 		Type:       model.GroupSyncableTypeTeam,
 	}
 
-	_, err := th.App.CreateGroupSyncable(groupSyncable)
-	assert.Nil(t, err)
+	gs, err := th.App.CreateGroupSyncable(groupSyncable)
+	require.Nil(t, err)
+	require.NotNil(t, gs)
 
 	groupTeams, err := th.App.GetGroupSyncables(group.Id, model.GroupSyncableTypeTeam)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
-	assert.NotEmpty(t, groupTeams)
+	require.NotEmpty(t, groupTeams)
 }
 
 func TestDeleteGroupSyncable(t *testing.T) {
@@ -194,13 +209,15 @@ func TestDeleteGroupSyncable(t *testing.T) {
 		Type:       model.GroupSyncableTypeChannel,
 	}
 
-	// Create GroupSyncable
-	_, err := th.App.CreateGroupSyncable(groupChannel)
-	assert.Nil(t, err)
+	gs, err := th.App.CreateGroupSyncable(groupChannel)
+	require.Nil(t, err)
+	require.NotNil(t, gs)
 
-	_, err = th.App.DeleteGroupSyncable(group.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
-	assert.Nil(t, err)
+	gs, err = th.App.DeleteGroupSyncable(group.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
+	require.Nil(t, err)
+	require.NotNil(t, gs)
 
-	_, err = th.App.DeleteGroupSyncable(group.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
-	assert.NotNil(t, err)
+	gs, err = th.App.DeleteGroupSyncable(group.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
+	require.NotNil(t, err)
+	require.Nil(t, gs)
 }
