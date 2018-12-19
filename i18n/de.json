@@ -3500,11 +3500,11 @@
   },
   {
     "id": "ent.mfa.activate.authenticate.app_error",
-    "translation": "Fehler bei Authentifizierung des MFA Tokens"
+    "translation": "Fehler beim Versuch der Authentifizierung des MFA-Tokens."
   },
   {
     "id": "ent.mfa.activate.bad_token.app_error",
-    "translation": "Ungültiger MFA token"
+    "translation": "Ungültiges MFA-Token."
   },
   {
     "id": "ent.mfa.activate.save_active.app_error",
@@ -3516,15 +3516,15 @@
   },
   {
     "id": "ent.mfa.deactivate.save_secret.app_error",
-    "translation": "Fehler beim Löschen des MFA Secrets"
+    "translation": "Fehler beim Löschen des MFA-Secrets."
   },
   {
     "id": "ent.mfa.generate_qr_code.create_code.app_error",
-    "translation": "Fehler beim Generieren des QR Codes"
+    "translation": "Fehler beim Generieren des QR-Codes."
   },
   {
     "id": "ent.mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Fehler beim Speichern des MFA Secrets"
+    "translation": "Fehler beim Speichern des MFA-Secrets."
   },
   {
     "id": "ent.mfa.license_disable.app_error",
@@ -3532,7 +3532,7 @@
   },
   {
     "id": "ent.mfa.validate_token.authenticate.app_error",
-    "translation": "Fehler beim Authentifizieren des MFA Tokens"
+    "translation": "Fehler beim Authentifizieren des MFA-Tokens."
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
@@ -4824,7 +4824,7 @@
   },
   {
     "id": "model.user_terms_of_service.is_valid.service_terms_id.app_error",
-    "translation": "Fehlende erforderliche Nutzungsbedingungen-Eigenschaft: user_id."
+    "translation": "Fehlende erforderliche Nutzungsbedingungen-Eigenschaft: service_terms_id."
   },
   {
     "id": "model.user_terms_of_service.is_valid.user_id.app_error",
@@ -4852,7 +4852,7 @@
   },
   {
     "id": "plugin_api.get_file_link.no_post.app_error",
-    "translation": "Öffentlicher Link für Datei konnte nicht abgerufen werden. Datei muss an einen Beitrag angehängt sein, der vom aktuellen Benutzer gelesen werden kann."
+    "translation": "Öffentlicher Link für Datei konnte nicht abgerufen werden. Datei muss an einen Beitrag angehängt sein, der gelesen werden kann."
   },
   {
     "id": "store.sql.convert_string_array",
@@ -6420,7 +6420,7 @@
   },
   {
     "id": "store.sql_user_terms_of_service.delete.app_error",
-    "translation": "Konnte die Nutzungsbedingungen nicht abrufen."
+    "translation": "Konnte die Nutzungsbedingungen nicht löschen."
   },
   {
     "id": "store.sql_user_terms_of_service.get_by_user.app_error",
