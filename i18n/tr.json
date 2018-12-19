@@ -53,7 +53,7 @@
   },
   {
     "id": "api.admin.test_email.subject",
-    "translation": "Mattermost - E-posta Ayarları Sınanıyor"
+    "translation": "Mattermost - E-posta Ayarları Test Ediliyor"
   },
   {
     "id": "api.admin.test_s3.missing_s3_bucket",
@@ -61,7 +61,7 @@
   },
   {
     "id": "api.admin.upload_brand_image.array.app_error",
-    "translation": "İstekte 'görsel' altında boş dizi"
+    "translation": "İstekte 'görsel' altındaki dizi boş"
   },
   {
     "id": "api.admin.upload_brand_image.no_file.app_error",
@@ -85,11 +85,11 @@
   },
   {
     "id": "api.channel.add_user.to.channel.failed.app_error",
-    "translation": "Kullanıcının kanala eklenemedi"
+    "translation": "Kullanıcı kanala eklenemedi"
   },
   {
     "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
-    "translation": "Takımdan çıkarılmış olduğundan kullanıcı kanala eklenemedi."
+    "translation": "Takımdan çıkarılmış olduğundan dolayı kullanıcı kanala eklenemedi."
   },
   {
     "id": "api.channel.add_user_to_channel.type.app_error",
@@ -137,7 +137,7 @@
   },
   {
     "id": "api.channel.create_group.bad_size.app_error",
-    "translation": "Grup ileti kanallarında en az 3 en çok 8 kullanıcı olmalıdır"
+    "translation": "Grup ileti kanallarında en az 3, en çok 8 kullanıcı olmalıdır"
   },
   {
     "id": "api.channel.create_group.bad_user.app_error",
@@ -149,7 +149,7 @@
   },
   {
     "id": "api.channel.delete_channel.cannot.app_error",
-    "translation": "{{.Channel}} varsayılan kanalı silinemez"
+    "translation": "{{.Channel}} kanalı silinemez"
   },
   {
     "id": "api.channel.delete_channel.deleted.app_error",
@@ -177,7 +177,7 @@
   },
   {
     "id": "api.channel.leave.last_member.app_error",
-    "translation": "Kalan yalnız siz varsınız. Ayrılmak yerine Özel Grubu kaldırmayı deneyin."
+    "translation": "Bu kanalda kalan yalnız siz varsınız. Ayrılmak yerine Özel Grubu kaldırmayı deneyin."
   },
   {
     "id": "api.channel.leave.left",
