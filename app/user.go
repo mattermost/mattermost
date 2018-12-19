@@ -930,13 +930,19 @@ func (a *App) UpdateActive(user *model.User, active bool) (*model.User, *model.A
 	return ruser, nil
 }
 
-func (a *App) SanitizeProfile(user *model.User, asAdmin bool) {
+func (a *App) GetSanitizeOptions(asAdmin bool) map[string]bool {
 	options := a.Config().GetSanitizeOptions()
 	if asAdmin {
 		options["email"] = true
 		options["fullname"] = true
 		options["authservice"] = true
 	}
+	return options
+}
+
+func (a *App) SanitizeProfile(user *model.User, asAdmin bool) {
+	options := a.GetSanitizeOptions(asAdmin)
+
 	user.SanitizeProfile(options)
 }
 
