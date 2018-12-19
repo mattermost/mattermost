@@ -6847,14 +6847,6 @@
     "translation": "group syncable was already deleted"
   },
   {
-    "id": "store.begin_transaction_error",
-    "translation": "error beginning transaction"
-  },
-  {
-    "id": "store.commit_error",
-    "translation": "transaction commit error"
-  },
-  {
     "id": "store.insert_error",
     "translation": "insert error"
   },

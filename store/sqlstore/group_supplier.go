@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/mattermost/gorp"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 )
@@ -82,30 +81,17 @@ func (s *SqlSupplier) GroupCreate(ctx context.Context, group *model.Group, hints
 		return result
 	}
 
-	var transaction *gorp.Transaction
-	var tErr error
-	if transaction, tErr = s.GetMaster().Begin(); tErr != nil {
-		result.Err = model.NewAppError("SqlGroupStore.GroupCreate", "store.begin_transaction_error", nil, tErr.Error(), http.StatusInternalServerError)
-		return result
-	}
-
 	group.Id = model.NewId()
 	group.CreateAt = model.GetMillis()
 	group.UpdateAt = group.CreateAt
 
-	if err := transaction.Insert(group); err != nil {
+	if err := s.GetMaster().Insert(group); err != nil {
 		if IsUniqueConstraintError(err, []string{"Name", "groups_name_key"}) {
 			result.Err = model.NewAppError("SqlGroupStore.GroupCreate", "store.sql_group.unique_constraint", nil, err.Error(), http.StatusInternalServerError)
 		} else {
 			result.Err = model.NewAppError("SqlGroupStore.GroupCreate", "store.insert_error", nil, err.Error(), http.StatusInternalServerError)
 		}
-		transaction.Rollback()
 		return result
-	}
-
-	if err := transaction.Commit(); err != nil {
-		result.Err = model.NewAppError("SqlGroupStore.GroupCreate", "store.commit_error", nil, err.Error(), http.StatusInternalServerError)
-		result.Data = nil
 	}
 
 	result.Data = group
