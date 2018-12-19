@@ -12,7 +12,6 @@ import (
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
@@ -519,14 +518,6 @@ func (c *Context) RequireRoleName() *Context {
 	}
 
 	return c
-}
-
-func (c *Context) ToPluginContext() *plugin.Context {
-	return &plugin.Context{
-		//sessionId: c.App.Session.Id,
-		//requestId: c.RequestId,
-		//userIp: c.IpAddress,
-	}
 }
 
 func (c *Context) RequireGroupId() *Context {
