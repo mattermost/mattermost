@@ -113,8 +113,8 @@ pipeline {
                         sh """
                             docker-compose --no-ansi run --rm start_dependencies
                             docker-compose --no-ansi ps
-                            docker-compose exec -t openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest -f /add-users.ldif';
-                            docker-compose exec -t openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest -f /add-groups.ldif';
+                            docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest -f /add-users.ldif';
+                            docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest -f /add-groups.ldif';
                         """
                     }
                 }
