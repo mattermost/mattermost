@@ -1118,7 +1118,7 @@
   },
   {
     "id": "api.emoji.upload.open.app_error",
-    "translation": "Unable to create the emoji. An error ocurred when trying to open the attached image."
+    "translation": "Unable to create the emoji. An error occurred when trying to open the attached image."
   },
   {
     "id": "api.file.attachments.disabled.app_error",
@@ -2572,7 +2572,7 @@
   },
   {
     "id": "app.export.export_write_line.json_marshall.error",
-    "translation": "An error occured marshalling the JSON data for export."
+    "translation": "An error occurred marshalling the JSON data for export."
   },
   {
     "id": "app.import.attachment.bad_file.error",
@@ -6372,7 +6372,7 @@
   },
   {
     "id": "store.sql_user.search.app_error",
-    "translation": "Unable to find any user maching the search parameters"
+    "translation": "Unable to find any user matching the search parameters"
   },
   {
     "id": "store.sql_user.update.app_error",
