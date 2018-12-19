@@ -533,9 +533,6 @@ func UpgradeDatabaseToVersion56(sqlStore SqlStore) {
 			sqlStore.RemoveIndexIfExists("idx_users_lastname_lower", "lower(LastName)")
 		}
 
-		sqlStore.CreateIndexIfNotExists("idx_groupmembers_create_at", "GroupMembers", "CreateAt")
-		sqlStore.CreateIndexIfNotExists("idx_groups_remote_id", "Groups", "RemoteId")
-
 		saveSchemaVersion(sqlStore, VERSION_5_6_0)
 	}
 
