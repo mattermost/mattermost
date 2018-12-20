@@ -5,7 +5,6 @@ package app
 
 import (
 	"encoding/json"
-	"errors"
 	"io"
 	"net/http"
 	"os"
@@ -13,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/pkg/errors"
 )
 
 func (a *App) BulkExport(writer io.Writer, file string, pathToEmojiDir string, dirNameToExportEmoji string) *model.AppError {
@@ -414,11 +414,11 @@ func (a *App) copyEmojiImages(emojiId string, emojiImagePath string, pathToDir s
 
 	if _, err = os.Stat(emojiDir); err != nil {
 		if !os.IsNotExist(err) {
-			return errors.New("Error fetching file info of emoji directory  " + err.Error())
+			return errors.Wrapf(err, "Error fetching file info of emoji directory %v", emojiDir)
 		}
 
 		if err = os.Mkdir(emojiDir, os.ModePerm); err != nil {
-			return errors.New("Error creating directory for the emoji " + err.Error())
+			return errors.Wrapf(err, "Error creating emoji directory %v", emojiDir)
 		}
 	}
 
