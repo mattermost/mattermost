@@ -102,7 +102,7 @@ func (s *SqlSupplier) GroupGet(ctx context.Context, groupId string, hints ...sto
 	result := store.NewSupplierResult()
 
 	var group *model.Group
-	if err := s.GetReplica().SelectOne(&group, "SELECT * from Groups WHERE Id = :Id", map[string]interface{}{"Id": groupId}); err != nil {
+	if err := s.GetReplica().SelectOne(&group, "SELECT * from `Groups` WHERE Id = :Id", map[string]interface{}{"Id": groupId}); err != nil {
 		if err == sql.ErrNoRows {
 			result.Err = model.NewAppError("SqlGroupStore.GroupGet", "store.sql_group.no_rows", nil, err.Error(), http.StatusNotFound)
 		} else {
@@ -119,7 +119,7 @@ func (s *SqlSupplier) GroupGetByRemoteID(ctx context.Context, remoteID string, g
 	result := store.NewSupplierResult()
 
 	var group *model.Group
-	if err := s.GetReplica().SelectOne(&group, "SELECT * from Groups WHERE RemoteId = :RemoteId AND Type = :Type", map[string]interface{}{"RemoteId": remoteID, "Type": groupType}); err != nil {
+	if err := s.GetReplica().SelectOne(&group, "SELECT * from `Groups` WHERE RemoteId = :RemoteId AND Type = :Type", map[string]interface{}{"RemoteId": remoteID, "Type": groupType}); err != nil {
 		if err == sql.ErrNoRows {
 			// This AppError's details may be compared against in a call to GroupGetByRemoteID, so don't change it.
 			result.Err = model.NewAppError("SqlGroupStore.GroupGetByRemoteID", "store.sql_group.no_rows", nil, err.Error(), http.StatusNotFound)
@@ -138,7 +138,7 @@ func (s *SqlSupplier) GroupGetAllByType(ctx context.Context, groupType model.Gro
 
 	var groups []*model.Group
 
-	if _, err := s.GetReplica().Select(&groups, "SELECT * from Groups WHERE DeleteAt = 0 AND Type = :Type", map[string]interface{}{"Type": groupType}); err != nil {
+	if _, err := s.GetReplica().Select(&groups, "SELECT * from `Groups` WHERE DeleteAt = 0 AND Type = :Type", map[string]interface{}{"Type": groupType}); err != nil {
 		if err != sql.ErrNoRows {
 			result.Err = model.NewAppError("SqlGroupStore.GroupGetAllByType", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
 			return result
@@ -154,7 +154,7 @@ func (s *SqlSupplier) GroupUpdate(ctx context.Context, group *model.Group, hints
 	result := store.NewSupplierResult()
 
 	var retrievedGroup *model.Group
-	if err := s.GetMaster().SelectOne(&retrievedGroup, "SELECT * FROM Groups WHERE Id = :Id", map[string]interface{}{"Id": group.Id}); err != nil {
+	if err := s.GetMaster().SelectOne(&retrievedGroup, "SELECT * FROM `Groups` WHERE Id = :Id", map[string]interface{}{"Id": group.Id}); err != nil {
 		if err == sql.ErrNoRows {
 			result.Err = model.NewAppError("SqlGroupStore.GroupUpdate", "store.sql_group.no_rows", nil, "id="+group.Id+","+err.Error(), http.StatusNotFound)
 		} else {
@@ -200,7 +200,7 @@ func (s *SqlSupplier) GroupDelete(ctx context.Context, groupID string, hints ...
 	}
 
 	var group *model.Group
-	if err := s.GetReplica().SelectOne(&group, "SELECT * from Groups WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": groupID}); err != nil {
+	if err := s.GetReplica().SelectOne(&group, "SELECT * from `Groups` WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": groupID}); err != nil {
 		if err == sql.ErrNoRows {
 			result.Err = model.NewAppError("SqlGroupStore.GroupDelete", "store.sql_group.no_rows", nil, "Id="+groupID+", "+err.Error(), http.StatusNotFound)
 		} else {
@@ -335,7 +335,7 @@ func (s *SqlSupplier) GroupCreateOrRestoreMember(ctx context.Context, groupID st
 	}
 
 	var retrievedGroup *model.Group
-	if err := s.GetMaster().SelectOne(&retrievedGroup, "SELECT * FROM Groups WHERE Id = :Id", map[string]interface{}{"Id": groupID}); err != nil {
+	if err := s.GetMaster().SelectOne(&retrievedGroup, "SELECT * FROM `Groups` WHERE Id = :Id", map[string]interface{}{"Id": groupID}); err != nil {
 		if err != nil {
 			result.Err = model.NewAppError("SqlGroupStore.GroupCreateOrRestoreMember", "store.insert_error", nil, "group_id="+member.GroupId+"user_id="+member.UserId+","+err.Error(), http.StatusInternalServerError)
 			return result
@@ -766,7 +766,7 @@ func (s *SqlSupplier) PendingAutoAddTeamMembers(ctx context.Context, since int64
 			GroupMembers
 			JOIN GroupTeams 
 			ON GroupTeams.GroupId = GroupMembers.GroupId
-			JOIN Groups ON Groups.Id = GroupMembers.GroupId
+			JOIN ` + "`Groups` ON `Groups`.Id" + ` = GroupMembers.GroupId
 			JOIN Teams ON Teams.Id = GroupTeams.TeamId
 			%s JOIN TeamMembers 
 			ON 
@@ -774,7 +774,7 @@ func (s *SqlSupplier) PendingAutoAddTeamMembers(ctx context.Context, since int64
 				AND TeamMembers.UserId = GroupMembers.UserId
 		WHERE 
 			TeamMembers.UserId IS NULL
-			AND Groups.DeleteAt = 0
+			AND ` + "`Groups`.DeleteAt" + ` = 0
 			AND GroupTeams.DeleteAt = 0
 			AND GroupTeams.AutoAdd = true
 			AND GroupMembers.DeleteAt = 0
@@ -809,7 +809,7 @@ func (s *SqlSupplier) PendingAutoAddChannelMembers(ctx context.Context, since in
 		FROM 
 			GroupMembers
 			JOIN GroupChannels ON GroupChannels.GroupId = GroupMembers.GroupId
-			JOIN Groups ON Groups.Id = GroupMembers.GroupId
+			JOIN ` + "`Groups` ON `Groups`.Id" + ` = GroupMembers.GroupId
 			JOIN Channels ON Channels.Id = GroupChannels.ChannelId
 			%s JOIN ChannelMemberHistory 
 			ON 
@@ -818,7 +818,7 @@ func (s *SqlSupplier) PendingAutoAddChannelMembers(ctx context.Context, since in
 		WHERE
 			ChannelMemberHistory.UserId IS NULL
 			AND ChannelMemberHistory.LeaveTime IS NULL
-			AND Groups.DeleteAt = 0
+			AND ` + "`Groups`.DeleteAt" + ` = 0
 			AND GroupChannels.DeleteAt = 0
 			AND GroupChannels.AutoAdd = true
 			AND GroupMembers.DeleteAt = 0
