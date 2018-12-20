@@ -867,7 +867,7 @@ func TestImportImportUser(t *testing.T) {
 	// Check no new member objects were created because dry run mode.
 	tmc, err := th.App.GetTeamMembers(team.Id, 0, 1000)
 	require.Nil(t, err, "Failed to get Team Member Count")
-	require.Equal(t, teamMemberCount, len(tmc), "Number of team members not as expected")
+	require.Len(t, tmc, teamMemberCount, "Number of team members not as expected")
 
 	cmc, err := th.App.GetChannelMemberCount(channel.Id)
 	require.Nil(t, err, "Failed to get Channel Member Count")
@@ -918,7 +918,7 @@ func TestImportImportUser(t *testing.T) {
 	// Check no new member objects were created because all tests should have failed so far.
 	tmc, err = th.App.GetTeamMembers(team.Id, 0, 1000)
 	require.Nil(t, err, "Failed to get Team Member Count")
-	require.Equal(t, teamMemberCount, len(tmc))
+	require.Len(t, tmc, teamMemberCount)
 
 	cmc, err = th.App.GetChannelMemberCount(channel.Id)
 	require.Nil(t, err, "Failed to get Channel Member Count")
@@ -941,7 +941,7 @@ func TestImportImportUser(t *testing.T) {
 	// Check only new team member object created because dry run mode.
 	tmc, err = th.App.GetTeamMembers(team.Id, 0, 1000)
 	require.Nil(t, err, "Failed to get Team Member Count")
-	require.Equal(t, teamMemberCount+1, len(tmc))
+	require.Len(t, tmc, teamMemberCount+1)
 
 	cmc, err = th.App.GetChannelMemberCount(channel.Id)
 	require.Nil(t, err, "Failed to get Channel Member Count")
@@ -974,7 +974,7 @@ func TestImportImportUser(t *testing.T) {
 	// Check only new channel member object created because dry run mode.
 	tmc, err = th.App.GetTeamMembers(team.Id, 0, 1000)
 	require.Nil(t, err, "Failed to get Team Member Count")
-	require.Equal(t, teamMemberCount+1, len(tmc), "Number of team members not as expected")
+	require.Len(t, tmc, teamMemberCount+1, "Number of team members not as expected")
 
 	cmc, err = th.App.GetChannelMemberCount(channel.Id)
 	require.Nil(t, err, "Failed to get Channel Member Count")
@@ -1029,7 +1029,7 @@ func TestImportImportUser(t *testing.T) {
 	// No more new member objects.
 	tmc, err = th.App.GetTeamMembers(team.Id, 0, 1000)
 	require.Nil(t, err, "Failed to get Team Member Count")
-	require.Equal(t, len(tmc), teamMemberCount+1, "Number of team members not as expected")
+	require.Len(t, tmc, teamMemberCount+1, "Number of team members not as expected")
 
 	cmc, err = th.App.GetChannelMemberCount(channel.Id)
 	require.Nil(t, err, "Failed to get Channel Member Count")
