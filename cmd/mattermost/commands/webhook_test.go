@@ -246,13 +246,12 @@ func TestCreateOutgoingWebhook(t *testing.T) {
 }
 
 func TestModifyOutgoingWebhook(t *testing.T) {
-	th := api4.Setup().InitBasic()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostUsernameOverride = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostIconOverride = true })
+	config := th.Config()
+	config.ServiceSettings.EnableOutgoingWebhooks = true
+	th.SetConfig(config)
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	defer func() {
@@ -292,13 +291,13 @@ func TestModifyOutgoingWebhook(t *testing.T) {
 	}()
 
 	// should fail because you need to specify valid outgoing webhook
-	require.Error(t, RunCommand(t, "webhook", "modify-outgoing", "doesnotexist"))
+	require.Error(t, th.RunCommand(t, "webhook", "modify-outgoing", "doesnotexist"))
 	// should fail because you need to specify valid channel
-	require.Error(t, RunCommand(t, "webhook", "modify-outgoing", oldHook.Id, "--channel", th.BasicTeam.Name+":doesnotexist"))
+	require.Error(t, th.RunCommand(t, "webhook", "modify-outgoing", oldHook.Id, "--channel", th.BasicTeam.Name+":doesnotexist"))
 	// should fail because you need to specify valid trigger when
-	require.Error(t, RunCommand(t, "webhook", "modify-outgoing", oldHook.Id, "--channel", th.BasicTeam.Name+th.BasicChannel.Id, "--trigger-when", "invalid"))
+	require.Error(t, th.RunCommand(t, "webhook", "modify-outgoing", oldHook.Id, "--channel", th.BasicTeam.Name+th.BasicChannel.Id, "--trigger-when", "invalid"))
 	// should fail because you need to specify a valid callback URL
-	require.Error(t, RunCommand(t, "webhook", "modify-outgoing", oldHook.Id, "--channel", th.BasicTeam.Name+th.BasicChannel.Id, "--callback-url", "invalid"))
+	require.Error(t, th.RunCommand(t, "webhook", "modify-outgoing", oldHook.Id, "--channel", th.BasicTeam.Name+th.BasicChannel.Id, "--callback-url", "invalid"))
 
 	modifiedChannelID := th.BasicChannel2.Id
 	modifiedDisplayName := "myhookoutname2"
@@ -309,7 +308,7 @@ func TestModifyOutgoingWebhook(t *testing.T) {
 	modifiedContentType := "myhookcontent2"
 	modifiedCallbackURLs := model.StringArray{"http://myhookouturl2A", "http://myhookouturl2B"}
 
-	CheckCommand(t, "webhook", "modify-outgoing", oldHook.Id,
+	th.CheckCommand(t, "webhook", "modify-outgoing", oldHook.Id,
 		"--channel", modifiedChannelID,
 		"--display-name", modifiedDisplayName,
 		"--description", modifiedDescription,
