@@ -208,14 +208,11 @@ func (s *SqlSupplier) GroupDelete(ctx context.Context, groupID string, hints ...
 	group.DeleteAt = time
 	group.UpdateAt = time
 
-	if rowsChanged, err := s.GetMaster().Update(group); err != nil {
+	if _, err := s.GetMaster().Update(group); err != nil {
 		result.Err = model.NewAppError("SqlGroupStore.GroupDelete", "store.update_error", nil, err.Error(), http.StatusInternalServerError)
-	} else if rowsChanged != 1 {
-		result.Err = model.NewAppError("SqlGroupStore.GroupDelete", "store.sql_group.no_rows_affected", nil, "no record to update", http.StatusInternalServerError)
-	} else {
-		result.Data = group
 	}
 
+	result.Data = group
 	return result
 }
 
@@ -375,11 +372,8 @@ func (s *SqlSupplier) GroupDeleteMember(ctx context.Context, groupID string, use
 
 	retrievedMember.DeleteAt = model.GetMillis()
 
-	if rowsChanged, err := s.GetMaster().Update(retrievedMember); err != nil {
+	if _, err := s.GetMaster().Update(retrievedMember); err != nil {
 		result.Err = model.NewAppError("SqlGroupStore.GroupDeleteMember", "store.update_error", nil, err.Error(), http.StatusInternalServerError)
-		return result
-	} else if rowsChanged != 1 {
-		result.Err = model.NewAppError("SqlGroupStore.GroupDeleteMember", "store.sql_group.no_rows_affected", nil, "no record to update", http.StatusInternalServerError)
 		return result
 	}
 
@@ -625,12 +619,11 @@ func (s *SqlSupplier) GroupUpdateGroupSyncable(ctx context.Context, groupSyncabl
 	groupSyncable.CreateAt = retrievedGroupSyncable.CreateAt
 	groupSyncable.UpdateAt = model.GetMillis()
 
-	var rowsAffected int64
 	switch groupSyncable.Type {
 	case model.GroupSyncableTypeTeam:
-		rowsAffected, err = s.GetMaster().Update(groupSyncableToGroupTeam(groupSyncable))
+		_, err = s.GetMaster().Update(groupSyncableToGroupTeam(groupSyncable))
 	case model.GroupSyncableTypeChannel:
-		rowsAffected, err = s.GetMaster().Update(groupSyncableToGroupChannel(groupSyncable))
+		_, err = s.GetMaster().Update(groupSyncableToGroupChannel(groupSyncable))
 	default:
 		model.NewAppError("SqlGroupStore.GroupUpdateGroupSyncable", "model.group.type.app_error", nil, "group_id="+groupSyncable.GroupId+", syncable_id="+groupSyncable.SyncableId+", "+err.Error(), http.StatusInternalServerError)
 		return result
@@ -638,11 +631,6 @@ func (s *SqlSupplier) GroupUpdateGroupSyncable(ctx context.Context, groupSyncabl
 
 	if err != nil {
 		result.Err = model.NewAppError("SqlGroupStore.GroupUpdateGroupSyncable", "store.update_error", nil, err.Error(), http.StatusInternalServerError)
-		return result
-	}
-
-	if rowsAffected == 0 {
-		result.Err = model.NewAppError("SqlGroupStore.GroupUpdateGroupSyncable", "store.sql_group.no_rows_affected", nil, "GroupId="+groupSyncable.GroupId+", SyncableId="+groupSyncable.SyncableId+", SyncableType="+groupSyncable.Type.String()+", "+err.Error(), http.StatusInternalServerError)
 		return result
 	}
 
@@ -672,12 +660,11 @@ func (s *SqlSupplier) GroupDeleteGroupSyncable(ctx context.Context, groupID stri
 	groupSyncable.DeleteAt = time
 	groupSyncable.UpdateAt = time
 
-	var rowsAffected int64
 	switch groupSyncable.Type {
 	case model.GroupSyncableTypeTeam:
-		rowsAffected, err = s.GetMaster().Update(groupSyncableToGroupTeam(groupSyncable))
+		_, err = s.GetMaster().Update(groupSyncableToGroupTeam(groupSyncable))
 	case model.GroupSyncableTypeChannel:
-		rowsAffected, err = s.GetMaster().Update(groupSyncableToGroupChannel(groupSyncable))
+		_, err = s.GetMaster().Update(groupSyncableToGroupChannel(groupSyncable))
 	default:
 		model.NewAppError("SqlGroupStore.GroupDeleteGroupSyncable", "model.group.type.app_error", nil, "group_id="+groupSyncable.GroupId+", syncable_id="+groupSyncable.SyncableId+", "+err.Error(), http.StatusInternalServerError)
 		return result
@@ -688,13 +675,7 @@ func (s *SqlSupplier) GroupDeleteGroupSyncable(ctx context.Context, groupID stri
 		return result
 	}
 
-	if rowsAffected == 0 {
-		result.Err = model.NewAppError("SqlGroupStore.GroupDeleteGroupSyncable", "store.sql_group.no_rows_affected", nil, "", http.StatusInternalServerError)
-		return result
-	}
-
 	result.Data = groupSyncable
-
 	return result
 }
 
