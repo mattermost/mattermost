@@ -454,8 +454,8 @@ func (s *SqlSupplier) getGroupSyncable(groupID string, syncableID string, syncab
 		result, err = s.GetMaster().Get(groupTeam{}, groupID, syncableID)
 	case model.GroupSyncableTypeChannel:
 		result, err = s.GetMaster().Get(groupChannel{}, groupID, syncableID)
-	default:
 	}
+
 	if err != nil {
 		return nil, err
 	}
@@ -578,7 +578,6 @@ func (s *SqlSupplier) GroupGetAllGroupSyncablesByGroup(ctx context.Context, grou
 			}
 			groupSyncables = append(groupSyncables, groupSyncable)
 		}
-	default:
 	}
 
 	result.Data = groupSyncables
