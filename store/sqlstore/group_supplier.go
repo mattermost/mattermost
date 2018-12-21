@@ -360,18 +360,7 @@ func (s *SqlSupplier) GroupCreateOrRestoreMember(ctx context.Context, groupID st
 		}
 	}
 
-	retrievedMember = nil
-
-	if err := s.GetMaster().SelectOne(&retrievedMember, "SELECT * FROM GroupMembers WHERE GroupId = :GroupId AND UserId = :UserId AND DeleteAt = 0", map[string]interface{}{"GroupId": member.GroupId, "UserId": member.UserId}); err != nil {
-		if err == sql.ErrNoRows {
-			result.Err = model.NewAppError("SqlGroupStore.GroupCreateOrRestoreMember", "store.sql_group.no_rows", nil, "group_id="+member.GroupId+"user_id="+member.UserId+","+err.Error(), http.StatusNotFound)
-		} else {
-			result.Err = model.NewAppError("SqlGroupStore.GroupCreateOrRestoreMember", "store.select_error", nil, "group_id="+member.GroupId+"user_id="+member.UserId+","+err.Error(), http.StatusInternalServerError)
-		}
-		return result
-	}
-
-	result.Data = retrievedMember
+	result.Data = member
 	return result
 }
 
