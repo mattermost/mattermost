@@ -1881,13 +1881,13 @@ func (c *Client4) SearchChannels(teamId string, search *ChannelSearch) ([]*Chann
 }
 
 // SearchAllChannels search in all the channels. Must be a system administrator.
-func (c *Client4) SearchAllChannels(search *ChannelSearch) (ChannelListWithTeamData, *Response) {
+func (c *Client4) SearchAllChannels(search *ChannelSearch) (*ChannelListWithTeamData, *Response) {
 	r, err := c.DoApiPost(c.GetChannelsRoute()+"/search", search.ToJson())
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
 	}
 	defer closeBody(r)
-	return ChannelWithTeamDataSliceFromJson(r.Body), BuildResponse(r)
+	return ChannelListWithTeamDataFromJson(r.Body), BuildResponse(r)
 }
 
 // DeleteChannel deletes channel based on the provided channel id string.

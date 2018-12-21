@@ -867,21 +867,21 @@ func TestSearchAllChannels(t *testing.T) {
 	channels, resp := th.SystemAdminClient.SearchAllChannels(search)
 	CheckNoError(t, resp)
 
-	assert.Len(t, channels, 1)
-	assert.Equal(t, channels[0].Id, th.BasicChannel.Id)
+	assert.Len(t, *channels, 1)
+	assert.Equal(t, (*channels)[0].Id, th.BasicChannel.Id)
 
 	search.Term = th.BasicPrivateChannel.Name
 	channels, resp = th.SystemAdminClient.SearchAllChannels(search)
 	CheckNoError(t, resp)
 
-	assert.Len(t, channels, 1)
-	assert.Equal(t, channels[0].Id, th.BasicPrivateChannel.Id)
+	assert.Len(t, *channels, 1)
+	assert.Equal(t, (*channels)[0].Id, th.BasicPrivateChannel.Id)
 
 	search.Term = ""
 	channels, resp = th.SystemAdminClient.SearchAllChannels(search)
 	CheckNoError(t, resp)
 	// At least, all the not-deleted channels created during the InitBasic
-	assert.True(t, len(channels) >= 3)
+	assert.True(t, len(*channels) >= 3)
 
 	search.Term = th.BasicChannel.Name
 	_, resp = Client.SearchAllChannels(search)

@@ -93,9 +93,3 @@ func ChannelListWithTeamDataFromJson(data io.Reader) *ChannelListWithTeamData {
 	json.NewDecoder(data).Decode(&o)
 	return o
 }
-
-func ChannelWithTeamDataSliceFromJson(data io.Reader) ChannelListWithTeamData {
-	var o ChannelListWithTeamData
-	json.NewDecoder(data).Decode(&o)
-	return o
-}
