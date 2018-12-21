@@ -798,7 +798,7 @@ func (ss *SqlSupplier) createIndexIfNotExists(indexName string, tableName string
 			fullTextIndex = " FULLTEXT "
 		}
 
-		_, err = ss.GetMaster().ExecNoTimeout("CREATE  " + uniqueStr + fullTextIndex + " INDEX " + indexName + " ON `" + tableName + "` (" + strings.Join(columnNames, ", ") + ")")
+		_, err = ss.GetMaster().ExecNoTimeout("CREATE  " + uniqueStr + fullTextIndex + " INDEX " + indexName + " ON " + tableName + " (" + strings.Join(columnNames, ", ") + ")")
 		if err != nil {
 			mlog.Critical(fmt.Sprintf("Failed to create index %v", err))
 			time.Sleep(time.Second)
