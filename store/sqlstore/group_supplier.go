@@ -139,10 +139,8 @@ func (s *SqlSupplier) GroupGetAllByType(ctx context.Context, groupType model.Gro
 	var groups []*model.Group
 
 	if _, err := s.GetReplica().Select(&groups, "SELECT * from UserGroups WHERE DeleteAt = 0 AND Type = :Type", map[string]interface{}{"Type": groupType}); err != nil {
-		if err != sql.ErrNoRows {
-			result.Err = model.NewAppError("SqlGroupStore.GroupGetAllByType", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
-			return result
-		}
+		result.Err = model.NewAppError("SqlGroupStore.GroupGetAllByType", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+		return result
 	}
 
 	result.Data = groups
@@ -449,10 +447,8 @@ func (s *SqlSupplier) GroupCreateGroupSyncable(ctx context.Context, groupSyncabl
 		result.Err = model.NewAppError("SqlGroupStore.GroupCreateGroupSyncable", "model.group.type.app_error", nil, "group_id="+groupSyncable.GroupId+", syncable_id="+groupSyncable.SyncableId+", "+err.Error(), http.StatusInternalServerError)
 		return result
 	}
+
 	if err != nil {
-		if err == sql.ErrNoRows {
-			result.Err = model.NewAppError("SqlGroupStore.GroupCreateGroupSyncable", "store.sql_group.no_rows_affected", nil, "group_id="+groupSyncable.GroupId+", syncable_id="+groupSyncable.SyncableId, http.StatusInternalServerError)
-		}
 		result.Err = model.NewAppError("SqlGroupStore.GroupCreateGroupSyncable", "store.insert_error", nil, "group_id="+groupSyncable.GroupId+", syncable_id="+groupSyncable.SyncableId+", "+err.Error(), http.StatusInternalServerError)
 		return result
 	}
