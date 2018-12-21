@@ -74,7 +74,9 @@ TE_PACKAGES=$(shell go list ./...)
 TE_PACKAGES_COMMA=$(shell echo $(TE_PACKAGES) | tr ' ' ',')
 
 # Plugins Packages
-PLUGIN_PACKAGES=mattermost-plugin-zoom mattermost-plugin-jira
+PLUGIN_PACKAGES=mattermost-plugin-zoom
+# 12076003 means release version 1.0.1
+PLUGIN_PACKAGES_LEGACY=mattermost-plugin-jira/releases/12076003
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
