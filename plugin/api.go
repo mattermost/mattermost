@@ -272,6 +272,12 @@ type API interface {
 	// SendEphemeralPost creates an ephemeral post.
 	SendEphemeralPost(userId string, post *model.Post) *model.Post
 
+	// UpdateEphemeralPost updates an ephemeral message previously sent to the user.
+	UpdateEphemeralPost(userId string, post *model.Post) *model.Post
+
+	// DeleteEphemeralPost deletes an ephemeral message previously sent to the user.
+	DeleteEphemeralPost(userId string, post *model.Post)
+
 	// DeletePost deletes a post.
 	DeletePost(postId string) *model.AppError
 

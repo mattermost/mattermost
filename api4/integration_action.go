@@ -36,13 +36,13 @@ func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
 	var err *model.AppError
 	resp := &model.PostActionAPIResponse{Status: "OK"}
 
-	if resp.TriggerId, err = c.App.DoPostAction(c.Params.PostId, c.Params.ActionId, c.App.Session.UserId, actionRequest.SelectedOption); err != nil {
+	resp.TriggerId, err = c.App.DoPostActionWithCookie(c.Params.PostId, c.Params.ActionId, c.App.Session.UserId, actionRequest)
+	if err != nil {
 		c.Err = err
 		return
 	}
 
 	b, _ := json.Marshal(resp)
-
 	w.Write(b)
 }
 

@@ -25,15 +25,49 @@ const (
 
 type DoPostActionRequest struct {
 	SelectedOption string `json:"selected_option"`
+	Cookie         string `json:"cookie,omitempty"`
 }
 
 type PostAction struct {
-	Id          string                 `json:"id"`
-	Name        string                 `json:"name"`
-	Type        string                 `json:"type"`
-	DataSource  string                 `json:"data_source"`
-	Options     []*PostActionOptions   `json:"options"`
+	// A unique Action ID. If not set, generated automatically.
+	Id string `json:"id"`
+
+	// The type of the interactive element. Currently supported are
+	// "select" and "button".
+	Type string `json:"type"`
+
+	// The text on the button, or in the select placeholder.
+	Name string `json:"name"`
+
+	// DataSource indicates the data source for the select action. If left
+	// empty, the select is populated from Options. Other supported values
+	// are "users" and "channels".
+	DataSource string               `json:"data_source"`
+	Options    []*PostActionOptions `json:"options"`
+
+	// Defines the interaction with the backend upon a user action.
+	// Integration contains Context, which is private plugin data;
+	// Integrations are stripped from Posts when they are sent to the
+	// client, or are encrypted in a Cookie.
 	Integration *PostActionIntegration `json:"integration,omitempty"`
+	Cookie      string                 `json:"cookie,omitempty" db:"-"`
+}
+
+// PostActionCookie is set by the server, serialized and encrypted into
+// PostAction.Cookie. The clients should hold on to it, and include it with
+// subsequent DoPostAction requests.  This allows the server to access the
+// action metadata even when it's not available in the database, for ephemeral
+// posts.
+type PostActionCookie struct {
+	Type        string                 `json:"type,omitempty"`
+	PostId      string                 `json:"post_id,omitempty"`
+	RootPostId  string                 `json:"root_post_id,omitempty"`
+	ChannelId   string                 `json:"channel_id,omitempty"`
+	TeamId      string                 `json:"team_id,omitempty"`
+	DataSource  string                 `json:"data_source,omitempty"`
+	Integration *PostActionIntegration `json:"integration,omitempty"`
+	RetainProps map[string]interface{} `json:"retain_props,omitempty"`
+	RemoveProps []string               `json:"remove_props,omitempty"`
 }
 
 type PostActionOptions struct {

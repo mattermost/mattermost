@@ -439,6 +439,7 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 
 	props["EnableOAuthServiceProvider"] = strconv.FormatBool(*c.ServiceSettings.EnableOAuthServiceProvider)
 	props["GoogleDeveloperKey"] = *c.ServiceSettings.GoogleDeveloperKey
+	props["ActionCookieSecret"] = *c.ServiceSettings.ActionCookieSecret
 	props["EnableIncomingWebhooks"] = strconv.FormatBool(*c.ServiceSettings.EnableIncomingWebhooks)
 	props["EnableOutgoingWebhooks"] = strconv.FormatBool(*c.ServiceSettings.EnableOutgoingWebhooks)
 	props["EnableCommands"] = strconv.FormatBool(*c.ServiceSettings.EnableCommands)
