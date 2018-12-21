@@ -242,10 +242,8 @@ func (s *SqlSupplier) GroupGetMemberUsers(stc context.Context, groupID string, h
 			AND GroupId = :GroupId`
 
 	if _, err := s.GetReplica().Select(&groupMembers, query, map[string]interface{}{"GroupId": groupID}); err != nil {
-		if err != sql.ErrNoRows {
-			result.Err = model.NewAppError("SqlGroupStore.GroupGetAllByType", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
-			return result
-		}
+		result.Err = model.NewAppError("SqlGroupStore.GroupGetAllByType", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+		return result
 	}
 
 	result.Data = groupMembers
@@ -276,10 +274,8 @@ func (s *SqlSupplier) GroupGetMemberUsersPage(stc context.Context, groupID strin
 			:Offset`
 
 	if _, err := s.GetReplica().Select(&groupMembers, query, map[string]interface{}{"GroupId": groupID, "Limit": limit, "Offset": offset}); err != nil {
-		if err != sql.ErrNoRows {
-			result.Err = model.NewAppError("SqlGroupStore.GroupGetMemberUsersPage", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
-			return result
-		}
+		result.Err = model.NewAppError("SqlGroupStore.GroupGetMemberUsersPage", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+		return result
 	}
 
 	result.Data = groupMembers
