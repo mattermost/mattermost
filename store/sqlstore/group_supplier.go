@@ -193,10 +193,6 @@ func (s *SqlSupplier) GroupUpdate(ctx context.Context, group *model.Group, hints
 func (s *SqlSupplier) GroupDelete(ctx context.Context, groupID string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	result := store.NewSupplierResult()
 
-	if !model.IsValidId(groupID) {
-		result.Err = model.NewAppError("SqlGroupStore.GroupDelete", "model.group.id.app_error", nil, "Id="+groupID, http.StatusBadRequest)
-	}
-
 	var group *model.Group
 	if err := s.GetReplica().SelectOne(&group, "SELECT * from UserGroups WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": groupID}); err != nil {
 		if err == sql.ErrNoRows {
@@ -366,15 +362,6 @@ func (s *SqlSupplier) GroupCreateOrRestoreMember(ctx context.Context, groupID st
 
 func (s *SqlSupplier) GroupDeleteMember(ctx context.Context, groupID string, userID string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	result := store.NewSupplierResult()
-
-	if !model.IsValidId(groupID) {
-		result.Err = model.NewAppError("SqlGroupStore.GroupDeleteMember", "model.group.id.app_error", nil, "", http.StatusBadRequest)
-		return result
-	}
-	if !model.IsValidId(userID) {
-		result.Err = model.NewAppError("SqlGroupStore.GroupDeleteMember", "model.group_member.user_id.app_error", nil, "", http.StatusBadRequest)
-		return result
-	}
 
 	var retrievedMember *model.GroupMember
 	if err := s.GetMaster().SelectOne(&retrievedMember, "SELECT * FROM GroupMembers WHERE GroupId = :GroupId AND UserId = :UserId AND DeleteAt = 0", map[string]interface{}{"GroupId": groupID, "UserId": userID}); err != nil {
@@ -665,16 +652,6 @@ func (s *SqlSupplier) GroupUpdateGroupSyncable(ctx context.Context, groupSyncabl
 
 func (s *SqlSupplier) GroupDeleteGroupSyncable(ctx context.Context, groupID string, syncableID string, syncableType model.GroupSyncableType, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	result := store.NewSupplierResult()
-
-	if !model.IsValidId(groupID) {
-		result.Err = model.NewAppError("SqlGroupStore.GroupDeleteGroupSyncable", "model.group.id.app_error", nil, "group_id="+groupID, http.StatusBadRequest)
-		return result
-	}
-
-	if !model.IsValidId(syncableID) {
-		result.Err = model.NewAppError("SqlGroupStore.GroupDeleteGroupSyncable", "model.group_syncable.syncable_id.app_error", nil, "group_id="+groupID, http.StatusBadRequest)
-		return result
-	}
 
 	groupSyncable, err := s.getGroupSyncable(groupID, syncableID, syncableType)
 	if err != nil {

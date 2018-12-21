@@ -77,20 +77,6 @@ func testGroupStoreCreate(t *testing.T, ss store.Store) {
 	assert.NotNil(t, res3.Err)
 	assert.Equal(t, res3.Err.Id, "model.group.display_name.app_error")
 
-	// Can't invent an ID and save it
-	g3 := &model.Group{
-		Id:          model.NewId(),
-		Name:        model.NewId(),
-		DisplayName: model.NewId(),
-		Type:        model.GroupTypeLdap,
-		CreateAt:    1,
-		UpdateAt:    1,
-		RemoteId:    model.NewId(),
-	}
-	res4 := <-ss.Group().Create(g3)
-	assert.Nil(t, res4.Data)
-	assert.Equal(t, res4.Err.Id, "model.group.id.app_error")
-
 	// Won't accept a duplicate name
 	g4 := &model.Group{
 		Name:        model.NewId(),
@@ -624,14 +610,6 @@ func testGroupDeleteMember(t *testing.T, ss store.Store) {
 	res5 := <-ss.Group().DeleteMember(group.Id, user.Id)
 	assert.Equal(t, res5.Err.Id, "store.sql_group.no_rows")
 
-	// Delete with invalid UserId
-	res6 := <-ss.Group().DeleteMember(group.Id, strings.Repeat("x", 27))
-	assert.Equal(t, res6.Err.Id, "model.group_member.user_id.app_error")
-
-	// Delete with invalid GroupId
-	res7 := <-ss.Group().DeleteMember(strings.Repeat("x", 27), user.Id)
-	assert.Equal(t, res7.Err.Id, "model.group.id.app_error")
-
 	// Delete with non-existent User
 	res8 := <-ss.Group().DeleteMember(group.Id, model.NewId())
 	assert.Equal(t, res8.Err.Id, "store.sql_group.no_rows")
@@ -642,15 +620,6 @@ func testGroupDeleteMember(t *testing.T, ss store.Store) {
 }
 
 func testCreateGroupSyncable(t *testing.T, ss store.Store) {
-	// Invalid TeamID
-	res1 := <-ss.Group().CreateGroupSyncable(&model.GroupSyncable{
-		GroupId:    model.NewId(),
-		CanLeave:   true,
-		SyncableId: string("x"),
-		Type:       model.GroupSyncableTypeTeam,
-	})
-	assert.Equal(t, res1.Err.Id, "model.group_syncable.syncable_id.app_error")
-
 	// Invalid GroupID
 	res2 := <-ss.Group().CreateGroupSyncable(&model.GroupSyncable{
 		GroupId:    "x",
@@ -967,14 +936,6 @@ func testDeleteGroupSyncable(t *testing.T, ss store.Store) {
 	res7 := <-ss.Group().CreateGroupSyncable(gt1)
 	assert.Nil(t, res7.Err)
 	groupTeam := res7.Data.(*model.GroupSyncable)
-
-	// Invalid GroupId
-	res3 := <-ss.Group().DeleteGroupSyncable("x", groupTeam.SyncableId, model.GroupSyncableTypeTeam)
-	assert.Equal(t, res3.Err.Id, "model.group.id.app_error")
-
-	// Invalid TeamId
-	res4 := <-ss.Group().DeleteGroupSyncable(groupTeam.GroupId, "x", model.GroupSyncableTypeTeam)
-	assert.Equal(t, res4.Err.Id, "model.group_syncable.syncable_id.app_error")
 
 	// Non-existent Group
 	res5 := <-ss.Group().DeleteGroupSyncable(model.NewId(), groupTeam.SyncableId, model.GroupSyncableTypeTeam)
