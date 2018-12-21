@@ -298,10 +298,8 @@ func (s *SqlSupplier) GroupGetMemberCount(stc context.Context, groupID string, h
 			GroupMembers.GroupId = :GroupId`
 
 	if count, err = s.GetReplica().SelectInt(query, map[string]interface{}{"GroupId": groupID}); err != nil {
-		if err != sql.ErrNoRows {
-			result.Err = model.NewAppError("SqlGroupStore.GroupGetMemberUsersPage", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
-			return result
-		}
+		result.Err = model.NewAppError("SqlGroupStore.GroupGetMemberUsersPage", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+		return result
 	}
 
 	result.Data = count
