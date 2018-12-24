@@ -2143,6 +2143,10 @@
     "translation": "無法取得個人圖像，找不到使用者。"
   },
   {
+    "id": "api.user.get_user_by_email.permissions.app_error",
+    "translation": "Unable to get user by email."
+  },
+  {
     "id": "api.user.ldap_to_email.not_available.app_error",
     "translation": "此伺服器不支援 AD/LDAP"
   },

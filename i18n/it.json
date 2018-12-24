@@ -2143,6 +2143,10 @@
     "translation": "Impossibile trovare l'immagine del profilo utente, utente non trovato."
   },
   {
+    "id": "api.user.get_user_by_email.permissions.app_error",
+    "translation": "Impossibile trovare l'utente per email."
+  },
+  {
     "id": "api.user.ldap_to_email.not_available.app_error",
     "translation": "AD/LDAP non è disponibile su questo server"
   },
@@ -3520,7 +3524,7 @@
   },
   {
     "id": "ent.mfa.generate_qr_code.create_code.app_error",
-    "translation": "Errore dutante la generazione del QR code"
+    "translation": "Errore durante la generazione del QR code"
   },
   {
     "id": "ent.mfa.generate_qr_code.save_secret.app_error",
@@ -4824,7 +4828,7 @@
   },
   {
     "id": "model.user_terms_of_service.is_valid.service_terms_id.app_error",
-    "translation": "Manca una proprietà obbligatoria dei termini di servizio: user_id."
+    "translation": "Manca una proprietà obbligatoria dei termini di servizio: service_terms_id."
   },
   {
     "id": "model.user_terms_of_service.is_valid.user_id.app_error",

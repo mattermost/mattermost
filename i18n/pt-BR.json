@@ -2143,6 +2143,10 @@
     "translation": "Não foi possível retornar a image de perfil, usuário não encontrado."
   },
   {
+    "id": "api.user.get_user_by_email.permissions.app_error",
+    "translation": "Unable to get user by email."
+  },
+  {
     "id": "api.user.ldap_to_email.not_available.app_error",
     "translation": "AD/LDAP não está disponível neste servidor"
   },

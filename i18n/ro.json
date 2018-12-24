@@ -2143,6 +2143,10 @@
     "translation": "Imposibilitatea de a obţine imaginea de profil, utilizatorul nu a fost găsit."
   },
   {
+    "id": "api.user.get_user_by_email.permissions.app_error",
+    "translation": "Nu se poate găsi utilizatorul prin e-mail."
+  },
+  {
     "id": "api.user.ldap_to_email.not_available.app_error",
     "translation": "AD/LDAP nu sunt disponibile pe acest server"
   },
@@ -3500,15 +3504,15 @@
   },
   {
     "id": "ent.mfa.activate.authenticate.app_error",
-    "translation": "Eroare încearcă să se autentifice Mae token"
+    "translation": "Eroare la încercarea de a autentifica tokenul MFA"
   },
   {
     "id": "ent.mfa.activate.bad_token.app_error",
-    "translation": "Token-ul Mae invalidă"
+    "translation": "Etichetă MFA nevalidă"
   },
   {
     "id": "ent.mfa.activate.save_active.app_error",
-    "translation": "Imposibilitatea de a actualiza starea activă Mae pentru utilizator"
+    "translation": "Nu se poate actualiza starea activă a MFA pentru utilizator"
   },
   {
     "id": "ent.mfa.deactivate.save_active.app_error",
@@ -3516,15 +3520,15 @@
   },
   {
     "id": "ent.mfa.deactivate.save_secret.app_error",
-    "translation": "Eroare secretul Mae de compensare"
+    "translation": "Eroare la eliminarea secretului MFA"
   },
   {
     "id": "ent.mfa.generate_qr_code.create_code.app_error",
-    "translation": "Eroare generarea codului QR"
+    "translation": "Eroare la generarea codului QR"
   },
   {
     "id": "ent.mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Eroare la salvarea secretul Mae"
+    "translation": "Eroare la salvarea secretului MFA"
   },
   {
     "id": "ent.mfa.license_disable.app_error",
@@ -3532,7 +3536,7 @@
   },
   {
     "id": "ent.mfa.validate_token.authenticate.app_error",
-    "translation": "Eroare încearcă să se autentifice Mae token"
+    "translation": "Eroare la încercarea de a autentifica tokenul MFA"
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
@@ -4824,7 +4828,7 @@
   },
   {
     "id": "model.user_terms_of_service.is_valid.service_terms_id.app_error",
-    "translation": "Lipsesc proprietățile de proprietate ale serviciului obligatorii: service_terms_id."
+    "translation": "Lipsesc condițiile de utilizare a serviciilor de utilizator necesare: service_terms_id."
   },
   {
     "id": "model.user_terms_of_service.is_valid.user_id.app_error",
