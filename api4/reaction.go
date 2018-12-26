@@ -13,6 +13,7 @@ func (api *API) InitReaction() {
 	api.BaseRoutes.Reactions.Handle("", api.ApiSessionRequired(saveReaction)).Methods("POST")
 	api.BaseRoutes.Post.Handle("/reactions", api.ApiSessionRequired(getReactions)).Methods("GET")
 	api.BaseRoutes.ReactionByNameForPostForUser.Handle("", api.ApiSessionRequired(deleteReaction)).Methods("DELETE")
+	api.BaseRoutes.Posts.Handle("/ids/reactions", api.ApiSessionRequired(getBulkReactions)).Methods("POST")
 }
 
 func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -105,4 +106,14 @@ func deleteReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	ReturnStatusOK(w)
+}
+
+func getBulkReactions(c *Context, w http.ResponseWriter, r *http.Request) {
+	postIds := model.ArrayFromJson(r.Body)
+	reactions := make(map[string][]*model.Reaction)
+	for _, postId := range postIds {
+		reactionsForPost, _ := c.App.GetReactionsForPost(postId)
+		reactions[postId] = reactionsForPost
+	}
+	w.Write([]byte(model.MapPostIdToReactionsToJson(reactions)))
 }
