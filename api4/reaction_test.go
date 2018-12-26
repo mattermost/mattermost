@@ -641,4 +641,11 @@ func TestGetBulkReactions(t *testing.T) {
 		assert.Equal(t, expectedPostIdsReactionsMap, postIdsReactionsMap)
 
 	})
+
+	t.Run("get-reactions-as-anonymous-user", func(t *testing.T) {
+		Client.Logout()
+
+		_, resp := Client.GetBulkReactions(postIds)
+		CheckUnauthorizedStatus(t, resp)
+	})
 }
