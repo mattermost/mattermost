@@ -60,6 +60,15 @@ func (a *App) GetReactionsForPost(postId string) ([]*model.Reaction, *model.AppE
 	return result.Data.([]*model.Reaction), nil
 }
 
+func (a *App) GetBulkReactionsForPosts(postIds []string) (map[string][]*model.Reaction, *model.AppError) {
+	reactions := make(map[string][]*model.Reaction)
+	for _, postId := range postIds {
+		reactionsForPost, _ := a.GetReactionsForPost(postId)
+		reactions[postId] = reactionsForPost
+	}
+	return reactions, nil
+}
+
 func (a *App) DeleteReactionForPost(reaction *model.Reaction) *model.AppError {
 	post, err := a.GetSinglePost(reaction.PostId)
 	if err != nil {
