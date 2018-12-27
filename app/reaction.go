@@ -62,11 +62,27 @@ func (a *App) GetReactionsForPost(postId string) ([]*model.Reaction, *model.AppE
 
 func (a *App) GetBulkReactionsForPosts(postIds []string) (map[string][]*model.Reaction, *model.AppError) {
 	reactions := make(map[string][]*model.Reaction)
-	for _, postId := range postIds {
-		reactionsForPost, _ := a.GetReactionsForPost(postId)
-		reactions[postId] = reactionsForPost
+
+	result := <-a.Srv.Store.Reaction().BulkGetForPosts(postIds)
+	allReactions := result.Data.([]*model.Reaction)
+	for _, reaction := range allReactions {
+		reactionsForPost := reactions[reaction.PostId]
+		reactionsForPost = append(reactionsForPost, reaction)
+
+		reactions[reaction.PostId] = reactionsForPost
 	}
+
+	reactions = populateEmptyReactions(postIds, reactions)
 	return reactions, nil
+}
+
+func populateEmptyReactions(postIds []string, reactions map[string][]*model.Reaction) map[string][]*model.Reaction {
+	for _, postId := range postIds {
+		if _, present := reactions[postId]; !present {
+			reactions[postId] = []*model.Reaction{}
+		}
+	}
+	return reactions
 }
 
 func (a *App) DeleteReactionForPost(reaction *model.Reaction) *model.AppError {
