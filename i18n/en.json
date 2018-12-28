@@ -1206,7 +1206,7 @@
   },
   {
     "id": "api.file.upload_file.read_request.app_error",
-    "translation": "Unable to upload file(s). Error reading or parsing request data."
+    "translation": "Unable to upload file(s). Error reading or processing request data."
   },
   {
     "id": "api.file.upload_file.read_form_value.app_error",
@@ -4237,6 +4237,10 @@
   {
     "id": "model.config.is_valid.max_file_size.app_error",
     "translation": "Invalid max file size for file settings. Must be a whole number greater than zero."
+  },
+  {
+    "id": "model.config.is_valid.max_memory_buffer.app_error",
+    "translation": "Invalid max memory buffer for file settings. Must be a whole number greater than zero."
   },
   {
     "id": "model.config.is_valid.max_notify_per_channel.app_error",

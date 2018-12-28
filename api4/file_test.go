@@ -46,19 +46,20 @@ func checkNeq(tb testing.TB, v1, v2 interface{}, text string) {
 }
 
 type zeroReader struct {
-	limit, read int
+	limit int
 }
 
 func (z *zeroReader) Read(b []byte) (int, error) {
-	for i := range b {
-		if z.read == z.limit {
-			return i, io.EOF
-		}
-		b[i] = 0
-		z.read++
+	if z.limit <= 0 {
+		return 0, io.EOF
 	}
 
-	return len(b), nil
+	n := len(b)
+	if n > z.limit {
+		n = z.limit
+	}
+	z.limit -= n
+	return n, nil
 }
 
 // File Section
@@ -315,6 +316,10 @@ func TestUploadFiles(t *testing.T) {
 	// Get better error messages
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = true })
 
+	// Lower the in-memory buffer size, shouldn't get in the way since no
+	// plugins are involved
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxMemoryBuffer = 8 * 1024 * 1024 })
+
 	op := func(name string) UploadOpener {
 		return NewUploadOpenerFile(filepath.Join(testDir, name))
 	}
@@ -488,11 +493,11 @@ func TestUploadFiles(t *testing.T) {
 			title:                  "Happy stream",
 			useChunkedInSimplePost: true,
 			skipPayloadValidation:  true,
-			names:                  []string{"50Mb-stream"},
-			openers:                []UploadOpener{NewUploadOpenerReader(&zeroReader{limit: 50 * 1024 * 1024})},
+			names:                  []string{"200Mb-stream"},
+			openers:                []UploadOpener{NewUploadOpenerReader(&zeroReader{limit: 200 * 1024 * 1024})},
 			setupConfig: func(a *app.App) func(a *app.App) {
 				maxFileSize := *a.Config().FileSettings.MaxFileSize
-				a.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxFileSize = 50 * 1024 * 1024 })
+				a.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxFileSize = 200 * 1024 * 1024 })
 				return func(a *app.App) {
 					a.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxFileSize = maxFileSize })
 				}
@@ -554,49 +559,25 @@ func TestUploadFiles(t *testing.T) {
 				}
 			},
 		},
+		// Too large
 		{
-			title:                 "Error file too large",
-			names:                 []string{"test.png"},
-			skipSuccessValidation: true,
-			checkResponse:         CheckRequestEntityTooLargeStatus,
-			setupConfig: func(a *app.App) func(a *app.App) {
-				maxFileSize := *a.Config().FileSettings.MaxFileSize
-				a.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxFileSize = 279590 })
-				return func(a *app.App) {
-					a.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxFileSize = maxFileSize })
-				}
-			},
-		},
-		// File too large (chunked, simple POST only, multipart would've been redundant with above)
-		{
-			title:                  "File too large chunked",
+			title:                  "Too large chunked",
+			names:                  []string{"50Mb-plus-stream"},
 			useChunkedInSimplePost: true,
 			skipMultipart:          true,
-			names:                  []string{"test.png"},
+			openers:                []UploadOpener{NewUploadOpenerReader(&zeroReader{limit: 52428800 + 1})},
+			skipPayloadValidation:  true,
 			skipSuccessValidation:  true,
 			checkResponse:          CheckRequestEntityTooLargeStatus,
-			setupConfig: func(a *app.App) func(a *app.App) {
-				maxFileSize := *a.Config().FileSettings.MaxFileSize
-				a.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxFileSize = 279590 })
-				return func(a *app.App) {
-					a.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxFileSize = maxFileSize })
-				}
-			},
 		},
 		{
-			title:                 "Error stream too large",
+			title:                 "Too large",
+			names:                 []string{"50Mb-plus-stream"},
+			openers:               []UploadOpener{NewUploadOpenerReader(&zeroReader{limit: 52428800 + 1})},
+			skipSimplePost:        true,
 			skipPayloadValidation: true,
-			names:                 []string{"50Mb-stream"},
-			openers:               []UploadOpener{NewUploadOpenerReader(&zeroReader{limit: 50 * 1024 * 1024})},
 			skipSuccessValidation: true,
 			checkResponse:         CheckRequestEntityTooLargeStatus,
-			setupConfig: func(a *app.App) func(a *app.App) {
-				maxFileSize := *a.Config().FileSettings.MaxFileSize
-				a.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxFileSize = 100 * 1024 })
-				return func(a *app.App) {
-					a.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxFileSize = maxFileSize })
-				}
-			},
 		},
 	}
 

@@ -35,7 +35,10 @@ func compileGo(t *testing.T, sourceCode, outputPath string) {
 	require.NoError(t, cmd.Run(), "failed to compile go")
 }
 
-func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, apiFunc func(*model.Manifest) plugin.API) (func(), []string, []error) {
+func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App,
+	apiFunc func(*model.Manifest) plugin.API) (
+	func(), []string, []error) {
+
 	pluginDir, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 	webappPluginDir, err := ioutil.TempDir("", "")
@@ -448,20 +451,23 @@ func TestHookMessageHasBeenUpdated(t *testing.T) {
 }
 
 func TestHookFileWillBeUploaded(t *testing.T) {
+	const maxsize = 75 * 1024 * 1024
+	var large = make([]byte, maxsize-1)
+
 	t.Run("rejected", func(t *testing.T) {
 		th := Setup().InitBasic()
 		defer th.TearDown()
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxFileSize = maxsize })
 
 		var mockAPI plugintest.API
 		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
-		mockAPI.On("LogDebug", "testhook.txt").Return(nil)
-		mockAPI.On("LogDebug", "inputfile").Return(nil)
 		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
 			`
 			package main
 
 			import (
 				"io"
+				"io/ioutil"
 				"github.com/mattermost/mattermost-server/plugin"
 				"github.com/mattermost/mattermost-server/model"
 			)
@@ -471,7 +477,8 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 			}
 
 			func (p *MyPlugin) FileWillBeUploaded(c *plugin.Context, info *model.FileInfo, file io.Reader, output io.Writer) (*model.FileInfo, string) {
-				return nil, "rejected"
+				io.Copy(ioutil.Discard, file)
+				return nil, "For personal reasons."
 			}
 
 			func main() {
@@ -481,34 +488,33 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 		}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
 		defer tearDown()
 
-		_, err := th.App.UploadFiles(
-			"noteam",
-			th.BasicChannel.Id,
-			th.BasicUser.Id,
-			[]io.ReadCloser{ioutil.NopCloser(bytes.NewBufferString("inputfile"))},
-			[]string{"testhook.txt"},
-			[]string{},
-			time.Now(),
+		_, err := th.App.UploadFileX(th.BasicChannel.Id,
+			"testhook.txt",
+			bytes.NewReader(large),
+			UploadFileSetTeamId("noteam"),
+			UploadFileSetUserId(th.BasicUser.Id),
 		)
+
 		if assert.NotNil(t, err) {
-			assert.Equal(t, "File rejected by plugin. rejected", err.Message)
+			assert.Equal(t, "Unable to upload file(s). Error reading or processing request data.", err.Message)
+			assert.Equal(t, "File rejected by plugin. For personal reasons.", err.DetailedError)
 		}
 	})
 
 	t.Run("rejected, returned file ignored", func(t *testing.T) {
 		th := Setup().InitBasic()
 		defer th.TearDown()
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxFileSize = maxsize })
 
 		var mockAPI plugintest.API
 		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
-		mockAPI.On("LogDebug", "testhook.txt").Return(nil)
-		mockAPI.On("LogDebug", "inputfile").Return(nil)
 		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
 			`
 			package main
 
 			import (
 				"io"
+				"io/ioutil"
 				"github.com/mattermost/mattermost-server/plugin"
 				"github.com/mattermost/mattermost-server/model"
 			)
@@ -517,10 +523,12 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 				plugin.MattermostPlugin
 			}
 
+			// Write a 100Mb replacement back, it should be ignored by the server
 			func (p *MyPlugin) FileWillBeUploaded(c *plugin.Context, info *model.FileInfo, file io.Reader, output io.Writer) (*model.FileInfo, string) {
-				output.Write([]byte("ignored"))
+				io.Copy(ioutil.Discard, file)
+				output.Write(make([]byte, 100*1024*1024))
 				info.Name = "ignored"
-				return info, "rejected"
+				return info, "Replacement should be ignored."
 			}
 
 			func main() {
@@ -530,34 +538,32 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 		}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
 		defer tearDown()
 
-		_, err := th.App.UploadFiles(
-			"noteam",
-			th.BasicChannel.Id,
-			th.BasicUser.Id,
-			[]io.ReadCloser{ioutil.NopCloser(bytes.NewBufferString("inputfile"))},
-			[]string{"testhook.txt"},
-			[]string{},
-			time.Now(),
+		fileinfo, err := th.App.UploadFileX(th.BasicChannel.Id,
+			"testhook.txt",
+			bytes.NewReader(large),
+			UploadFileSetTeamId("noteam"),
+			UploadFileSetUserId(th.BasicUser.Id),
 		)
-		if assert.NotNil(t, err) {
-			assert.Equal(t, "File rejected by plugin. rejected", err.Message)
-		}
+		require.NotNil(t, err)
+		require.Equal(t, "Unable to upload file(s). Error reading or processing request data.", err.Message)
+		require.Equal(t, "File rejected by plugin. Replacement should be ignored.", err.DetailedError)
+		require.Nil(t, fileinfo)
 	})
 
 	t.Run("allowed", func(t *testing.T) {
 		th := Setup().InitBasic()
 		defer th.TearDown()
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxFileSize = maxsize })
 
 		var mockAPI plugintest.API
 		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
-		mockAPI.On("LogDebug", "testhook.txt").Return(nil)
-		mockAPI.On("LogDebug", "inputfile").Return(nil)
 		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
 			`
 			package main
 
 			import (
 				"io"
+				"io/ioutil"
 				"github.com/mattermost/mattermost-server/plugin"
 				"github.com/mattermost/mattermost-server/model"
 			)
@@ -567,6 +573,7 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 			}
 
 			func (p *MyPlugin) FileWillBeUploaded(c *plugin.Context, info *model.FileInfo, file io.Reader, output io.Writer) (*model.FileInfo, string) {
+				io.Copy(ioutil.Discard, file)
 				return nil, ""
 			}
 
@@ -577,19 +584,15 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 		}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
 		defer tearDown()
 
-		response, err := th.App.UploadFiles(
-			"noteam",
-			th.BasicChannel.Id,
-			th.BasicUser.Id,
-			[]io.ReadCloser{ioutil.NopCloser(bytes.NewBufferString("inputfile"))},
-			[]string{"testhook.txt"},
-			[]string{},
-			time.Now(),
+		fileinfo, err := th.App.UploadFileX(th.BasicChannel.Id,
+			"testhook.txt",
+			bytes.NewReader(large),
+			UploadFileSetTeamId("noteam"),
+			UploadFileSetUserId(th.BasicUser.Id),
 		)
-		assert.Nil(t, err)
-		assert.NotNil(t, response)
-		assert.Equal(t, 1, len(response.FileInfos))
-		fileId := response.FileInfos[0].Id
+		require.Nil(t, err)
+		require.NotNil(t, fileinfo)
+		fileId := fileinfo.Id
 
 		fileInfo, err := th.App.GetFileInfo(fileId)
 		assert.Nil(t, err)
@@ -597,27 +600,26 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 		assert.Equal(t, "testhook.txt", fileInfo.Name)
 
 		fileReader, err := th.App.FileReader(fileInfo.Path)
-		assert.Nil(t, err)
-		var resultBuf bytes.Buffer
-		io.Copy(&resultBuf, fileReader)
-		assert.Equal(t, "inputfile", resultBuf.String())
+		require.Nil(t, err)
+		fileReader.Close()
 	})
 
 	t.Run("updated", func(t *testing.T) {
 		th := Setup().InitBasic()
 		defer th.TearDown()
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxFileSize = maxsize })
 
 		var mockAPI plugintest.API
 		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
 		mockAPI.On("LogDebug", "testhook.txt").Return(nil)
-		mockAPI.On("LogDebug", "inputfile").Return(nil)
 		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
 			`
 			package main
 
 			import (
+				"fmt"
 				"io"
-				"bytes"
+				"io/ioutil"
 				"github.com/mattermost/mattermost-server/plugin"
 				"github.com/mattermost/mattermost-server/model"
 			)
@@ -627,13 +629,8 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 			}
 
 			func (p *MyPlugin) FileWillBeUploaded(c *plugin.Context, info *model.FileInfo, file io.Reader, output io.Writer) (*model.FileInfo, string) {
-				p.API.LogDebug(info.Name)
-				var buf bytes.Buffer
-				buf.ReadFrom(file)
-				p.API.LogDebug(buf.String())
-
-				outbuf := bytes.NewBufferString("changedtext")
-				io.Copy(output, outbuf)
+				io.Copy(ioutil.Discard, file)
+				fmt.Fprintf(output, "changedtext")
 				info.Name = "modifiedinfo"
 				return info, ""
 			}
@@ -645,19 +642,15 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 		}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
 		defer tearDown()
 
-		response, err := th.App.UploadFiles(
-			"noteam",
-			th.BasicChannel.Id,
-			th.BasicUser.Id,
-			[]io.ReadCloser{ioutil.NopCloser(bytes.NewBufferString("inputfile"))},
-			[]string{"testhook.txt"},
-			[]string{},
-			time.Now(),
+		fileinfo, err := th.App.UploadFileX(th.BasicChannel.Id,
+			"testhook.txt",
+			bytes.NewReader(large),
+			UploadFileSetTeamId("noteam"),
+			UploadFileSetUserId(th.BasicUser.Id),
 		)
-		assert.Nil(t, err)
-		assert.NotNil(t, response)
-		assert.Equal(t, 1, len(response.FileInfos))
-		fileId := response.FileInfos[0].Id
+		require.Nil(t, err)
+		require.NotNil(t, fileinfo)
+		fileId := fileinfo.Id
 
 		fileInfo, err := th.App.GetFileInfo(fileId)
 		assert.Nil(t, err)
@@ -665,10 +658,11 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 		assert.Equal(t, "modifiedinfo", fileInfo.Name)
 
 		fileReader, err := th.App.FileReader(fileInfo.Path)
-		assert.Nil(t, err)
+		require.Nil(t, err)
 		var resultBuf bytes.Buffer
 		io.Copy(&resultBuf, fileReader)
 		assert.Equal(t, "changedtext", resultBuf.String())
+		fileReader.Close()
 	})
 }
 

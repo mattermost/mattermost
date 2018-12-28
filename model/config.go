@@ -802,6 +802,7 @@ type FileSettings struct {
 	EnableMobileUpload      *bool
 	EnableMobileDownload    *bool
 	MaxFileSize             *int64
+	MaxMemoryBuffer         *int64
 	DriverName              *string
 	Directory               string
 	EnablePublicLink        bool
@@ -859,6 +860,10 @@ func (s *FileSettings) SetDefaults() {
 
 	if s.MaxFileSize == nil {
 		s.MaxFileSize = NewInt64(52428800) // 50 MB
+	}
+
+	if s.MaxMemoryBuffer == nil {
+		s.MaxMemoryBuffer = NewInt64(48 * 1024 * 1024) // 48MB
 	}
 
 	if s.PublicLinkSalt == nil || len(*s.PublicLinkSalt) == 0 {
@@ -2220,6 +2225,10 @@ func (ss *SqlSettings) isValid() *AppError {
 func (fs *FileSettings) isValid() *AppError {
 	if *fs.MaxFileSize <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.max_file_size.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *fs.MaxMemoryBuffer <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.max_memory_buffer.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if !(*fs.DriverName == IMAGE_DRIVER_LOCAL || *fs.DriverName == IMAGE_DRIVER_S3) {

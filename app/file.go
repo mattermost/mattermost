@@ -14,6 +14,7 @@ import (
 	"image/gif"
 	"image/jpeg"
 	"io"
+	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"net/url"
@@ -59,8 +60,6 @@ const (
 	ImageThumbnailHeight = 100
 	ImageThumbnailRatio  = float64(ImageThumbnailHeight) / float64(ImageThumbnailWidth)
 	ImagePreviewWidth    = 1920
-
-	UploadFileInitialBufferSize = 2 * 1024 * 1024 // 2Mb
 
 	// Deprecated
 	IMAGE_THUMBNAIL_PIXEL_WIDTH  = 120
@@ -468,7 +467,6 @@ func UploadFileSetRaw() func(t *uploadFileTask) {
 }
 
 type uploadFileTask struct {
-	// File name.
 	Name string
 
 	ChannelId string
@@ -488,60 +486,103 @@ type uploadFileTask struct {
 	ClientId string
 
 	// If Raw, do not execute special processing for images, just upload
-	// the file.  Plugins are still invoked.
+	// the file. If the mime type of the file is that of an image, assign
+	// it generic thumbnail and preview URLs. Plugins are still invoked.
+	// TODO assign generic preview/thumb URLs to Raw images
 	Raw bool
 
 	//=============================================================
 	// Internal state
 
-	buf          *bytes.Buffer
-	limit        int64
-	limitedInput io.Reader
-	teeInput     io.Reader
-	fileinfo     *model.FileInfo
-	maxFileSize  int64
+	// Overall, the upload is handled is
+	//  1. Pre-process images (headers, orientation, etc.). Pre-read from
+	//     the input as much as needed.
+	//  2. run Plugins. Upon the first actual invocation drain the input
+	//     and buffer the payload. The payload may be replaced by the
+	//     plugins.
+	//  3. Post-process images: generate and upload preview and thumbnail
+	//     versions.
+	//  4. Write the payload to the store and update the database
+	//
+	// For preprocessing (#1), we setup a pipe of nested io.Readers:
+	//     Input |
+	//     sizeLimitedInput |
+	//     (memoryLimitedInput) |
+	//     memoryLimitedTeeInput
+	//         |-> preprocessImage
+	//         |-> lbuf
+	//
+	// In the first plugin invocation (#2), drain memoryLimitedTeeInput, then
+	// drain sizeLimitedInput directly into lbuf, buffering the entire
+	// allowed payload there. Close (flush!) lbuf. Plugins may replace lbuf.
+	//
+	// Post-process images and save (##3,4) to the file store out of lbuf
+
+	appErr                *model.AppError
+	lbuf                  *utils.LargeBuffer
+	sizeLimitedInput      io.Reader
+	memoryLimitedTeeInput io.Reader
+	bytesRead             int64
+	maxFileSize           int64
+	maxMemoryBuffer       int
+
+	fileinfo *model.FileInfo
 
 	// Cached image data that (may) get initialized in preprocessImage and
 	// is used in postprocessImage
-	decoded          image.Image
-	imageType        string
-	imageOrientation int
+	decoded            image.Image
+	imageType          string
+	imageIsTooLarge    bool
+	imageOrientation   int
+	pluginsEnvironment *plugin.Environment
+	pluginContext      *plugin.Context
 
 	// Testing: overrideable dependency functions
-	pluginsEnvironment *plugin.Environment
-	writeFile          func(io.Reader, string) (int64, *model.AppError)
-	saveToDatabase     func(*model.FileInfo) store.StoreChannel
+	writeFile      func(io.Reader, string) (int64, *model.AppError)
+	saveToDatabase func(*model.FileInfo) store.StoreChannel
 }
 
 func (t *uploadFileTask) init(a *App) {
-	t.buf = &bytes.Buffer{}
 	t.maxFileSize = *a.Config().FileSettings.MaxFileSize
-	t.limit = *a.Config().FileSettings.MaxFileSize
+	t.maxMemoryBuffer = int(*a.Config().FileSettings.MaxMemoryBuffer)
+	t.lbuf = utils.NewLargeBuffer(t.maxMemoryBuffer, "base64")
 
 	t.fileinfo = model.NewInfo(filepath.Base(t.Name))
 	t.fileinfo.Id = model.NewId()
 	t.fileinfo.CreatorId = t.UserId
+	if t.Timestamp.IsZero() {
+		t.Timestamp = time.Now()
+	}
 	t.fileinfo.CreateAt = t.Timestamp.UnixNano() / int64(time.Millisecond)
 	t.fileinfo.Path = t.pathPrefix() + t.Name
 
-	// Prepare to read ContentLength if it is known, otherwise limit
-	// ourselves to MaxFileSize. Add an extra byte to check and fail if the
-	// client sent too many bytes.
-	if t.ContentLength > 0 {
-		t.limit = t.ContentLength
-		// Over-Grow the buffer to prevent bytes.ReadFrom from doing it
-		// at the very end.
-		t.buf.Grow(int(t.limit + 1 + bytes.MinRead))
-	} else {
-		// If we don't know the upload size, grow the buffer somewhat
-		// anyway to avoid extra reslicing.
-		t.buf.Grow(UploadFileInitialBufferSize)
+	// t.sizeLimitedInput will error if the length of the upload exceeds
+	// the MaxSize limit, or its stated ContentLength, whichever is less.
+	limit := t.maxFileSize
+	if t.ContentLength > 0 && t.ContentLength < t.maxFileSize {
+		limit = t.ContentLength + 1
 	}
-	t.limitedInput = &io.LimitedReader{
+	t.sizeLimitedInput = &utils.LimitedReader{
 		R: t.Input,
-		N: t.limit + 1,
+		N: limit,
+		LimitReached: func(l *utils.LimitedReader) error {
+			t.appErr = t.newAppError("api.file.upload_file.too_large_detailed.app_error",
+				"", http.StatusRequestEntityTooLarge, "Bytes read", l.BytesRead, "Limit", limit)
+			return fmt.Errorf("Entity too large: %v bytes, limit: %v bytes", l.BytesRead, limit)
+		},
 	}
-	t.teeInput = io.TeeReader(t.limitedInput, t.buf)
+
+	// memoryLimitedTeeInput will stop at t.maxMemoryBuffer (io.EOF). It also sets
+	// imageRaw flag to disable post-processing and assign generic
+	// thumbnail/preview URLs. It copies everything that is read from it to lbuf.
+	t.memoryLimitedTeeInput = io.TeeReader(&utils.LimitedReader{
+		R: t.sizeLimitedInput,
+		N: int64(t.maxMemoryBuffer),
+		LimitReached: func(l *utils.LimitedReader) error {
+			t.imageIsTooLarge = true
+			return io.EOF
+		},
+	}, t.lbuf)
 
 	t.pluginsEnvironment = a.GetPluginsEnvironment()
 	t.writeFile = a.WriteFile
@@ -554,7 +595,7 @@ func (t *uploadFileTask) init(a *App) {
 // upload, returning a rejection error. In this case FileInfo would have
 // contained the last "good" FileInfo before the execution of that plugin.
 func (a *App) UploadFileX(channelId, name string, input io.Reader,
-	opts ...func(*uploadFileTask)) (*model.FileInfo, *model.AppError) {
+	opts ...func(*uploadFileTask)) (resultFileinfo *model.FileInfo, resultError *model.AppError) {
 
 	t := &uploadFileTask{
 		ChannelId: filepath.Base(channelId),
@@ -565,6 +606,16 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 		o(t)
 	}
 	t.init(a)
+	defer t.lbuf.Clear()
+
+	// We may run into the entityTooLarge error in a Read() call, where there's no way to
+	// return the desired AppError. So we set the flag, and check it in defer.
+	defer func() {
+		if t.appErr != nil {
+			resultFileinfo = nil
+			resultError = t.appErr
+		}
+	}()
 
 	if len(*a.Config().FileSettings.DriverName) == 0 {
 		return nil, t.newAppError("api.file.upload_file.storage.app_error",
@@ -576,16 +627,11 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 	}
 
 	var aerr *model.AppError
-	if !t.Raw && t.fileinfo.IsImage() {
+	if t.needProcessImage() {
 		aerr = t.preprocessImage()
 		if aerr != nil {
 			return t.fileinfo, aerr
 		}
-	}
-
-	aerr = t.readAll()
-	if aerr != nil {
-		return t.fileinfo, aerr
 	}
 
 	aerr = t.runPlugins()
@@ -593,45 +639,83 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 		return t.fileinfo, aerr
 	}
 
-	// Concurrently upload and update DB, and post-process the image.
+	// No need to buffer after plugins have run
+	aerr = t.stopBuffering()
+	if aerr != nil {
+		return t.fileinfo, aerr
+	}
+
+	// Concurrently upload/update DB, and post-process the image.  Achieve
+	// it by tee-ing the input into a pipe as we are uploading it to the
+	// file store. Image post-processing is on the receiving end of the
+	// pipe.  This way the entire file is always uploaded, even if image
+	// decoding terminates early.
+	var pr *io.PipeReader
+	var pw *io.PipeWriter
+	var writeError *model.AppError
 	wg := sync.WaitGroup{}
 
-	if !t.Raw && t.fileinfo.IsImage() {
+	input, closer, aerr := t.newCombinedReadCloser()
+	if aerr != nil {
+		return t.fileinfo, aerr
+	}
+	defer closer.Close()
+
+	if t.needDecodeImage() {
+		// Set up for concurrent image decoding if needed
+		pr, pw = io.Pipe()
+		input = io.TeeReader(input, pw)
+	}
+
+	// TODO: Revisit the order: now not truly parallelized, postprocessing
+	// won't start until after decoding, until after last byte saved to the
+	// store.
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		_, writeError = t.writeFile(input, t.fileinfo.Path)
+		if pw != nil {
+			pw.Close()
+		}
+		if writeError != nil {
+			return
+		}
+
+		result := <-t.saveToDatabase(t.fileinfo)
+		if result.Err != nil {
+			writeError = result.Err
+			return
+		}
+	}()
+
+	if t.needProcessImage() {
 		wg.Add(1)
 		go func() {
+			defer wg.Done()
+			if t.needDecodeImage() {
+				t.decodePipedImage(pr)
+			}
 			t.postprocessImage()
-			wg.Done()
 		}()
 	}
 
-	_, aerr = t.writeFile(t.newReader(), t.fileinfo.Path)
-	if aerr != nil {
-		return nil, aerr
-	}
-
-	if result := <-t.saveToDatabase(t.fileinfo); result.Err != nil {
-		return nil, result.Err
-	}
-
 	wg.Wait()
+	if writeError != nil {
+		return nil, writeError
+	}
 
 	return t.fileinfo, nil
 }
 
-func (t *uploadFileTask) readAll() *model.AppError {
-	_, err := t.buf.ReadFrom(t.limitedInput)
+func (t *uploadFileTask) stopBuffering() *model.AppError {
+	t.memoryLimitedTeeInput = nil
+	err := t.lbuf.Close()
 	if err != nil {
 		return t.newAppError("api.file.upload_file.read_request.app_error",
-			err.Error(), http.StatusBadRequest)
+			err.Error(), http.StatusInternalServerError)
 	}
-	if int64(t.buf.Len()) > t.limit {
-		return t.newAppError("api.file.upload_file.too_large_detailed.app_error",
-			"", http.StatusRequestEntityTooLarge, "Length", t.buf.Len(), "Limit", t.limit)
-	}
-	t.fileinfo.Size = int64(t.buf.Len())
 
-	t.limitedInput = nil
-	t.teeInput = nil
 	return nil
 }
 
@@ -639,42 +723,73 @@ func (t *uploadFileTask) runPlugins() *model.AppError {
 	if t.pluginsEnvironment == nil {
 		return nil
 	}
-
-	pluginContext := &plugin.Context{}
-	var rejectionError *model.AppError
-
-	t.pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-		buf := &bytes.Buffer{}
-		replacementInfo, rejectionReason := hooks.FileWillBeUploaded(pluginContext,
-			t.fileinfo, t.newReader(), buf)
-		if rejectionReason != "" {
-			rejectionError = t.newAppError("api.file.upload_file.read_request.app_error",
-				rejectionReason, http.StatusBadRequest)
-			return false
-		}
-		if replacementInfo != nil {
-			t.fileinfo = replacementInfo
-		}
-		if buf.Len() != 0 {
-			t.buf = buf
-			t.teeInput = nil
-			t.limitedInput = nil
-			t.fileinfo.Size = int64(buf.Len())
-		}
-
-		return true
-	}, plugin.FileWillBeUploadedId)
-
-	if rejectionError != nil {
-		return rejectionError
+	t.pluginContext = &plugin.Context{}
+	t.pluginsEnvironment.RunMultiPluginHook(t.runPlugin, plugin.FileWillBeUploadedId)
+	if t.appErr != nil {
+		return t.appErr
 	}
 
 	return nil
 }
 
+// runPlugin will only get invoked if there is indeed a FileWillBeUploaded hook
+// registered by an active plugin. The first time it's invoked, need to fully
+// buffer the input since the plugin may consume it and not return a
+// replacement.
+func (t *uploadFileTask) runPlugin(hooks plugin.Hooks) bool {
+	if t.sizeLimitedInput != nil {
+		_, err := io.Copy(t.lbuf, t.sizeLimitedInput)
+		if err != nil {
+			if t.appErr == nil {
+				t.appErr = t.newAppError("api.file.upload_file.read_request.app_error",
+					err.Error(), http.StatusBadRequest)
+			}
+			return false
+		}
+
+		t.sizeLimitedInput = nil
+		appErr := t.stopBuffering()
+		if appErr != nil {
+			if t.appErr == nil {
+				t.appErr = appErr
+			}
+			return false
+		}
+	}
+
+	newLbuf := &utils.LargeBuffer{}
+	newFileinfo, rejection := hooks.FileWillBeUploaded(t.pluginContext,
+		t.fileinfo,
+		&plugin.FileWillBeUploadedWrapper{P: t.lbuf},
+		&plugin.FileWillBeUploadedWrapper{P: newLbuf},
+	)
+	if rejection != "" {
+		t.appErr = t.newAppError("api.file.upload_file.read_request.app_error",
+			"File rejected by plugin. "+rejection, http.StatusBadRequest)
+		return false
+	}
+	if newFileinfo != nil {
+		t.fileinfo = newFileinfo
+	}
+	if !newLbuf.IsEmpty() {
+		err := t.lbuf.Close()
+		if err != nil {
+			t.appErr = t.newAppError("api.file.upload_file.read_request.app_error",
+				err.Error(), http.StatusBadRequest)
+			return false
+		}
+		t.lbuf.Clear()
+		t.lbuf = newLbuf
+		t.memoryLimitedTeeInput = nil
+		t.sizeLimitedInput = nil
+		// TODO t.fileinfo.Size = int64(newLbuf.Len())
+	}
+	return true
+}
+
 func (t *uploadFileTask) preprocessImage() *model.AppError {
 	// If we fail to decode, return "as is".
-	config, _, err := image.DecodeConfig(t.newReader())
+	config, _, err := image.DecodeConfig(t.newMemoryBufferReader())
 	if err != nil {
 		return nil
 	}
@@ -692,10 +807,8 @@ func (t *uploadFileTask) preprocessImage() *model.AppError {
 	t.fileinfo.PreviewPath = t.pathPrefix() + nameWithoutExtension + "_preview.jpg"
 	t.fileinfo.ThumbnailPath = t.pathPrefix() + nameWithoutExtension + "_thumb.jpg"
 
-	// check the image orientation with goexif; consume the bytes we
-	// already have first, then keep Tee-ing from input.
 	// TODO: try to reuse exif's .Raw buffer rather than Tee-ing
-	if t.imageOrientation, err = getImageOrientation(t.newReader()); err == nil &&
+	if t.imageOrientation, err = getImageOrientation(t.newMemoryBufferReader()); err == nil &&
 		(t.imageOrientation == RotatedCWMirrored ||
 			t.imageOrientation == RotatedCCW ||
 			t.imageOrientation == RotatedCCWMirrored ||
@@ -706,7 +819,7 @@ func (t *uploadFileTask) preprocessImage() *model.AppError {
 	// For animated GIFs disable the preview; since we have to Decode gifs
 	// anyway, cache the decoded image for later.
 	if t.fileinfo.MimeType == "image/gif" {
-		gifConfig, err := gif.DecodeAll(t.newReader())
+		gifConfig, err := gif.DecodeAll(t.newMemoryBufferReader())
 		if err == nil {
 			if len(gifConfig.Image) >= 1 {
 				t.fileinfo.HasPreviewImage = false
@@ -722,11 +835,22 @@ func (t *uploadFileTask) preprocessImage() *model.AppError {
 	return nil
 }
 
-func (t *uploadFileTask) postprocessImage() {
+func (t *uploadFileTask) needProcessImage() bool {
+	return !t.Raw && t.fileinfo.IsImage() && !t.imageIsTooLarge
+}
+
+func (t *uploadFileTask) needDecodeImage() bool {
+	return t.needProcessImage() && t.decoded == nil
+}
+
+func (t *uploadFileTask) decodePipedImage(in io.Reader) {
+	// Since in is a pipe reader, need to fully drain it to avoid broken pipe or hangs.
+	defer io.Copy(ioutil.Discard, in)
+
 	decoded, typ := t.decoded, t.imageType
 	if decoded == nil {
 		var err error
-		decoded, typ, err = image.Decode(t.newReader())
+		decoded, typ, err = image.Decode(in)
 		if err != nil {
 			mlog.Error(fmt.Sprintf("Unable to decode image err=%v", err))
 			return
@@ -743,6 +867,14 @@ func (t *uploadFileTask) postprocessImage() {
 	}
 
 	decoded = makeImageUpright(decoded, t.imageOrientation)
+	if decoded == nil {
+		return
+	}
+	t.decoded = decoded
+}
+
+func (t *uploadFileTask) postprocessImage() {
+	decoded := t.decoded
 	if decoded == nil {
 		return
 	}
@@ -795,12 +927,35 @@ func (t *uploadFileTask) postprocessImage() {
 	wg.Wait()
 }
 
-func (t uploadFileTask) newReader() io.Reader {
-	if t.teeInput != nil {
-		return io.MultiReader(bytes.NewReader(t.buf.Bytes()), t.teeInput)
-	} else {
-		return bytes.NewReader(t.buf.Bytes())
+func (t uploadFileTask) newMemoryBufferReader() io.Reader {
+	var r io.Reader = bytes.NewReader(t.lbuf.Bytes())
+	if t.memoryLimitedTeeInput != nil {
+		// We are still operating in the memory buffer
+		r = io.MultiReader(r, t.memoryLimitedTeeInput)
 	}
+	return r
+}
+
+func (t uploadFileTask) newCombinedReadCloser() (io.Reader, io.Closer, *model.AppError) {
+	// First, read from the buffer
+	buffered, err := t.lbuf.NewReadCloser()
+	if err != nil {
+		return nil, nil, t.newAppError("api.file.upload_file.read_request.app_error",
+			err.Error(), http.StatusInternalServerError)
+	}
+
+	if t.sizeLimitedInput == nil {
+		return buffered, buffered, nil
+	}
+
+	var unread io.Reader
+	if t.memoryLimitedTeeInput != nil {
+		unread = t.memoryLimitedTeeInput
+	} else {
+		unread = t.sizeLimitedInput
+	}
+
+	return io.MultiReader(buffered, unread), buffered, nil
 }
 
 func (t uploadFileTask) pathPrefix() string {

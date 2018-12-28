@@ -22,6 +22,7 @@ import (
 	plugin "github.com/hashicorp/go-plugin"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 var hookNameToId map[string]int = make(map[string]int)
@@ -365,16 +366,32 @@ func init() {
 	hookNameToId["FileWillBeUploaded"] = FileWillBeUploadedId
 }
 
+type FileWillBeUploadedWrapper struct {
+	P interface{}
+}
+
+func (wrapper *FileWillBeUploadedWrapper) Read(p []byte) (int, error) {
+	return 0, fmt.Errorf("Unreachable code. Fake FileWillBeUploadedWrapper.Read called.")
+}
+
+func (wrapper *FileWillBeUploadedWrapper) Write(p []byte) (int, error) {
+	return 0, fmt.Errorf("Unreachable code. Fake FileWillBeUploadedWrapper.Write called.")
+}
+
 type Z_FileWillBeUploadedArgs struct {
-	A                     *Context
-	B                     *model.FileInfo
-	UploadedFileStream    uint32
-	ReplacementFileStream uint32
+	A                *Context
+	B                *model.FileInfo
+	Bytes            []byte
+	TempFileName     string
+	TempFileEncoding string
 }
 
 type Z_FileWillBeUploadedReturns struct {
-	A *model.FileInfo
-	B string
+	A                *model.FileInfo
+	B                string
+	Bytes            []byte
+	TempFileName     string
+	TempFileEncoding string
 }
 
 func (g *hooksRPCClient) FileWillBeUploaded(c *Context, info *model.FileInfo, file io.Reader, output io.Writer) (*model.FileInfo, string) {
@@ -382,64 +399,70 @@ func (g *hooksRPCClient) FileWillBeUploaded(c *Context, info *model.FileInfo, fi
 		return info, ""
 	}
 
-	uploadedFileStreamId := g.muxBroker.NextId()
-	go func() {
-		uploadedFileConnection, err := g.muxBroker.Accept(uploadedFileStreamId)
-		if err != nil {
-			g.log.Error("Plugin failed to serve upload file stream. MuxBroker could not Accept connection", mlog.Err(err))
-			return
-		}
-		defer uploadedFileConnection.Close()
-		serveIOReader(file, uploadedFileConnection)
-	}()
+	wrapper, ok := file.(*FileWillBeUploadedWrapper)
+	if !ok {
+		return nil, "Invalid 'file' value, expected a *FileWillBeUploadedWrapper"
+	}
+	inLbuf, ok := wrapper.P.(*utils.LargeBuffer)
+	if !ok {
+		return nil, "Invalid 'file' value, expected a *utils.LargeBuffer"
+	}
 
-	replacementFileStreamId := g.muxBroker.NextId()
-	go func() {
-		replacementFileConnection, err := g.muxBroker.Accept(replacementFileStreamId)
-		if err != nil {
-			g.log.Error("Plugin failed to serve replacement file stream. MuxBroker could not Accept connection", mlog.Err(err))
-			return
-		}
-		defer replacementFileConnection.Close()
-		if _, err := io.Copy(output, replacementFileConnection); err != nil && err != io.EOF {
-			g.log.Error("Error reading replacement file.", mlog.Err(err))
-		}
-	}()
+	wrapper, ok = output.(*FileWillBeUploadedWrapper)
+	if !ok {
+		return nil, "Invalid 'output' value, expected a *FileWillBeUploadedWrapper"
+	}
+	outLbuf, ok := wrapper.P.(*utils.LargeBuffer)
+	if !ok {
+		return nil, "Invalid 'output' value, expected a *utils.LargeBuffer"
+	}
 
-	_args := &Z_FileWillBeUploadedArgs{c, info, uploadedFileStreamId, replacementFileStreamId}
-	_returns := &Z_FileWillBeUploadedReturns{A: _args.B}
+	_args := &Z_FileWillBeUploadedArgs{
+		A:                c,
+		B:                info,
+		Bytes:            inLbuf.Bytes(),
+		TempFileName:     inLbuf.TempFileName(),
+		TempFileEncoding: inLbuf.TempFileEncoding(),
+	}
+
+	_returns := &Z_FileWillBeUploadedReturns{
+		A: info,
+	}
+
 	if g.implemented[FileWillBeUploadedId] {
 		if err := g.client.Call("Plugin.FileWillBeUploaded", _args, _returns); err != nil {
 			g.log.Error("RPC call FileWillBeUploaded to plugin failed.", mlog.Err(err))
 		}
 	}
+
+	outLbuf.InitFrom(_returns.Bytes, _returns.TempFileName, _returns.TempFileEncoding)
+
 	return _returns.A, _returns.B
 }
 
 func (s *hooksRPCServer) FileWillBeUploaded(args *Z_FileWillBeUploadedArgs, returns *Z_FileWillBeUploadedReturns) error {
-	uploadFileConnection, err := s.muxBroker.Dial(args.UploadedFileStream)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "[ERROR] Can't connect to remote upload file stream, error: %v", err.Error())
-		return err
-	}
-	defer uploadFileConnection.Close()
-	fileReader := connectIOReader(uploadFileConnection)
-	defer fileReader.Close()
 
-	replacementFileConnection, err := s.muxBroker.Dial(args.ReplacementFileStream)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "[ERROR] Can't connect to remote replacement file stream, error: %v", err.Error())
-		return err
-	}
-	defer replacementFileConnection.Close()
-	returnFileWriter := replacementFileConnection
-
-	if hook, ok := s.impl.(interface {
+	hook, ok := s.impl.(interface {
 		FileWillBeUploaded(c *Context, info *model.FileInfo, file io.Reader, output io.Writer) (*model.FileInfo, string)
-	}); ok {
-		returns.A, returns.B = hook.FileWillBeUploaded(args.A, args.B, fileReader, returnFileWriter)
-	} else {
+	})
+	if !ok {
 		return fmt.Errorf("Hook FileWillBeUploaded called but not implemented.")
+	}
+
+	inLbuf := utils.NewLargeBufferFrom(args.Bytes, args.TempFileName, args.TempFileEncoding)
+	rc, err := inLbuf.NewReadCloser()
+	if err != nil {
+		return err
+	}
+	defer rc.Close()
+	outLbuf := utils.NewLargeBuffer(len(args.Bytes), args.TempFileEncoding)
+
+	returns.A, returns.B = hook.FileWillBeUploaded(args.A, args.B, rc, outLbuf)
+	if !outLbuf.IsEmpty() {
+		outLbuf.Close()
+		returns.Bytes = outLbuf.Bytes()
+		returns.TempFileName = outLbuf.TempFileName()
+		returns.TempFileEncoding = outLbuf.TempFileEncoding()
 	}
 	return nil
 }
