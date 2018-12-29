@@ -57,7 +57,7 @@
   },
   {
     "id": "api.admin.test_s3.missing_s3_bucket",
-    "translation": "S3 Buketi zorunludur"
+    "translation": "S3 Klasörü zorunludur"
   },
   {
     "id": "api.admin.upload_brand_image.array.app_error",
@@ -85,7 +85,7 @@
   },
   {
     "id": "api.channel.add_user.to.channel.failed.app_error",
-    "translation": "Kullanıcının kanala eklenemedi"
+    "translation": "Kullanıcı kanala eklenemedi"
   },
   {
     "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
@@ -305,7 +305,7 @@
   },
   {
     "id": "api.command.execute_command.start.app_error",
-    "translation": "Henüz bir komut tetikleyicisi yok"
+    "translation": "Herhangi bir komut tetikleyicisi bulunamadı"
   },
   {
     "id": "api.command.invite_people.desc",
@@ -337,7 +337,7 @@
   },
   {
     "id": "api.command.invite_people.no_email",
-    "translation": "Lütfen bir ya da bir kaç geçerli e-posta adresi yazın"
+    "translation": "Lütfen bir ya da birkaç geçerli e-posta adresi yazın"
   },
   {
     "id": "api.command.invite_people.sent",
@@ -604,7 +604,7 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "{{.Channel}} kanalı belirlenemedi. Lütfen kanalları belirtmek için [kanal kısaltması] kullanın (https://about.mattermost.com/default-channel-handle-documentation)."
+    "translation": "{{.Channel}} kanalı bulunamadı. Lütfen kanalları belirtmek için [kanal kısaltması] kullanın (https://about.mattermost.com/default-channel-handle-documentation)."
   },
   {
     "id": "api.command_invite.desc",
@@ -696,7 +696,7 @@
   },
   {
     "id": "api.command_logout.desc",
-    "translation": "Mattermosttan Oturumunu Kapat"
+    "translation": "Mattermost Oturumunu Kapat"
   },
   {
     "id": "api.command_logout.fail_message",
@@ -716,7 +716,7 @@
   },
   {
     "id": "api.command_me.name",
-    "translation": "bana"
+    "translation": "ben"
   },
   {
     "id": "api.command_msg.desc",
@@ -752,7 +752,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "{{.Channel}} kanalı belirlenemedi. Lütfen kanalları belirtmek için [kanal kısaltması](https://about.mattermost.com/default-channel-handle-documentation) kullanın."
+    "translation": "{{.Channel}} kanalı bulunamadı. Lütfen kanalları belirtmek için [kanal kısaltması](https://about.mattermost.com/default-channel-handle-documentation) kullanın."
   },
   {
     "id": "api.command_mute.hint",
@@ -1118,11 +1118,11 @@
   },
   {
     "id": "api.file.test_connection.s3.bucked_create.app_error",
-    "translation": "Buket oluşturulamadı."
+    "translation": "Klasör oluşturulamadı."
   },
   {
     "id": "api.file.test_connection.s3.bucket_exists.app_error",
-    "translation": "Buketin var olup olmadığı denetlenemedi."
+    "translation": "Klasörün var olup olmadığı denetlenemedi."
   },
   {
     "id": "api.file.test_connection.s3.connection.app_error",
@@ -2141,6 +2141,10 @@
   {
     "id": "api.user.get_profile_image.not_found.app_error",
     "translation": "Profil görseli alınamadı, kullanıcı bulunamadı."
+  },
+  {
+    "id": "api.user.get_user_by_email.permissions.app_error",
+    "translation": "Kullanıcı e-posta aracılığı ile alınırken sorun çıktı"
   },
   {
     "id": "api.user.ldap_to_email.not_available.app_error",
@@ -3500,7 +3504,7 @@
   },
   {
     "id": "ent.mfa.activate.authenticate.app_error",
-    "translation": "MFA kodu ile kimlik doğrulanırken sorun çıktı"
+    "translation": "MFA kodu doğrulanırken sorun çıktı"
   },
   {
     "id": "ent.mfa.activate.bad_token.app_error",
@@ -3516,7 +3520,7 @@
   },
   {
     "id": "ent.mfa.deactivate.save_secret.app_error",
-    "translation": "MFA parolası temizlenirlen sorun çıktı"
+    "translation": "MFA parolası temizlenirken sorun çıktı"
   },
   {
     "id": "ent.mfa.generate_qr_code.create_code.app_error",
@@ -3532,7 +3536,7 @@
   },
   {
     "id": "ent.mfa.validate_token.authenticate.app_error",
-    "translation": "MFA kodu ile kimlik doğrulanırken sorun çıktı"
+    "translation": "MFA kodu doğrulanırken sorun çıktı"
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",

@@ -2143,6 +2143,10 @@
     "translation": "无法获取个人资料图片，用户不存在。"
   },
   {
+    "id": "api.user.get_user_by_email.permissions.app_error",
+    "translation": "无法以邮箱地址获取用户。"
+  },
+  {
     "id": "api.user.ldap_to_email.not_available.app_error",
     "translation": "AD/LDAP 在本服务器上不可用"
   },
@@ -3524,7 +3528,7 @@
   },
   {
     "id": "ent.mfa.generate_qr_code.save_secret.app_error",
-    "translation": "多重验证密码保存时出错"
+    "translation": "保存多重验证密码时出错"
   },
   {
     "id": "ent.mfa.license_disable.app_error",
@@ -6420,7 +6424,7 @@
   },
   {
     "id": "store.sql_user_terms_of_service.delete.app_error",
-    "translation": "无法删除使用条款。"
+    "translation": "无法删除用户服务条款。"
   },
   {
     "id": "store.sql_user_terms_of_service.get_by_user.app_error",
