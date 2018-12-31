@@ -1720,7 +1720,7 @@
   },
   {
     "id": "api.team.set_team_icon.encode.app_error",
-    "translation": "Konnte Teamsymbol nicht dekodieren"
+    "translation": "Konnte Teamsymbol nicht kodieren"
   },
   {
     "id": "api.team.set_team_icon.get_team.app_error",
