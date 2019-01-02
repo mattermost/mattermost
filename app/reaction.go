@@ -64,6 +64,10 @@ func (a *App) GetBulkReactionsForPosts(postIds []string) (map[string][]*model.Re
 	reactions := make(map[string][]*model.Reaction)
 
 	result := <-a.Srv.Store.Reaction().BulkGetForPosts(postIds)
+	if result.Err != nil {
+		return nil, result.Err
+	}
+
 	allReactions := result.Data.([]*model.Reaction)
 	for _, reaction := range allReactions {
 		reactionsForPost := reactions[reaction.PostId]

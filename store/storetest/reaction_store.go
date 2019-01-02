@@ -410,7 +410,7 @@ func testReactionBulkGetForPosts(t *testing.T, ss store.Store) {
 		}
 
 		if post4IdFound {
-			t.Fatal("Wrong reactipn returned")
+			t.Fatal("Wrong reaction returned")
 		}
 	}
 

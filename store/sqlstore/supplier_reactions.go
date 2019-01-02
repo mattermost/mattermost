@@ -12,7 +12,6 @@ import (
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
-	"strings"
 )
 
 func initSqlSupplierReactions(sqlStore SqlStore) {
@@ -107,34 +106,23 @@ func (s *SqlSupplier) ReactionGetForPost(ctx context.Context, postId string, hin
 func (s *SqlSupplier) ReactionsBulkGetForPosts(ctx context.Context, postIds []string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	result := store.NewSupplierResult()
 
+	keys, params := MapStringsToQueryParams(postIds, "postId")
 	var reactions []*model.Reaction
-	query := `SELECT
+
+	if _, err := s.GetReplica().Select(&reactions, `SELECT
 				*
 			FROM
 				Reactions
 			WHERE
-				PostId in (%v)
+				PostId IN `+keys+`
 			ORDER BY
-				CreateAt`
-
-	query = fmt.Sprintf(query, getPostIdsClause(postIds))
-
-	if _, err := s.GetReplica().Select(&reactions, query); err != nil {
+				CreateAt`, params); err != nil {
 		result.Err = model.NewAppError("SqlReactionStore.GetForPost", "store.sql_reaction.bulk_get_for_post_ids.app_error", nil, "", http.StatusInternalServerError)
 	} else {
 		result.Data = reactions
 	}
 
 	return result
-}
-
-func getPostIdsClause(postIds []string) string {
-	var postIdsQuoted []string
-
-	for _, postId := range postIds {
-		postIdsQuoted = append(postIdsQuoted, fmt.Sprintf(`'%v'`, postId))
-	}
-	return strings.Join(postIdsQuoted, ",")
 }
 
 func (s *SqlSupplier) ReactionDeleteAllWithEmojiName(ctx context.Context, emojiName string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {

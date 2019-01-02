@@ -116,6 +116,11 @@ func getBulkReactions(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	reactions, _ := c.App.GetBulkReactionsForPosts(postIds)
+	reactions, err := c.App.GetBulkReactionsForPosts(postIds)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
 	w.Write([]byte(model.MapPostIdToReactionsToJson(reactions)))
 }
