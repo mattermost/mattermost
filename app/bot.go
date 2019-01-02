@@ -76,18 +76,16 @@ func (a *App) GetBots(page, perPage int, creatorId string, includeDeleted bool) 
 	return result.Data.([]*model.Bot), nil
 }
 
-// DisableBot marks a bot and its corresponding user as disabled.
-func (a *App) DisableBot(userId string) (*model.Bot, *model.AppError) {
+// UpdateBotActive marks a bot as active or inactive, along with its corresponding user.
+func (a *App) UpdateBotActive(userId string, active bool) (*model.Bot, *model.AppError) {
 	result := <-a.Srv.Store.User().Get(userId)
 	if result.Err != nil {
 		return nil, result.Err
 	}
 	user := result.Data.(*model.User)
 
-	if user.DeleteAt == 0 {
-		if _, err := a.UpdateActive(user, false); err != nil {
-			return nil, err
-		}
+	if _, err := a.UpdateActive(user, active); err != nil {
+		return nil, err
 	}
 
 	result = <-a.Srv.Store.Bot().Get(userId, true)
@@ -96,9 +94,16 @@ func (a *App) DisableBot(userId string) (*model.Bot, *model.AppError) {
 	}
 	bot := result.Data.(*model.Bot)
 
-	if bot.DeleteAt == 0 {
+	changed := true
+	if active && bot.DeleteAt != 0 {
+		bot.DeleteAt = 0
+	} else if !active && bot.DeleteAt == 0 {
 		bot.DeleteAt = model.GetMillis()
+	} else {
+		changed = false
+	}
 
+	if changed {
 		result := <-a.Srv.Store.Bot().Update(bot)
 		if result.Err != nil {
 			return nil, result.Err

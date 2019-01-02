@@ -142,7 +142,7 @@ func disableBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bot, err := c.App.DisableBot(c.Params.UserId)
+	bot, err := c.App.UpdateBotActive(c.Params.UserId, false)
 	if err != nil {
 		c.Err = err
 		return

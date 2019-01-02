@@ -199,7 +199,7 @@ func TestGetBot(t *testing.T) {
 		CreatorId:   th.BasicUser.Id,
 	})
 	require.Nil(t, err)
-	deletedBot, err = th.App.DisableBot(deletedBot.UserId)
+	deletedBot, err = th.App.UpdateBotActive(deletedBot.UserId, false)
 	require.Nil(t, err)
 	defer th.App.PermanentDeleteBot(deletedBot.UserId)
 
@@ -255,7 +255,7 @@ func TestGetBots(t *testing.T) {
 		CreatorId:   creatorId1,
 	})
 	require.Nil(t, err)
-	deletedBot1, err = th.App.DisableBot(deletedBot1.UserId)
+	deletedBot1, err = th.App.UpdateBotActive(deletedBot1.UserId, false)
 	require.Nil(t, err)
 	defer th.App.PermanentDeleteBot(deletedBot1.UserId)
 
@@ -289,7 +289,7 @@ func TestGetBots(t *testing.T) {
 		CreatorId:   creatorId2,
 	})
 	require.Nil(t, err)
-	deletedBot2, err = th.App.DisableBot(deletedBot2.UserId)
+	deletedBot2, err = th.App.UpdateBotActive(deletedBot2.UserId, false)
 	require.Nil(t, err)
 	defer th.App.PermanentDeleteBot(deletedBot2.UserId)
 
@@ -366,17 +366,17 @@ func TestGetBots(t *testing.T) {
 	})
 }
 
-func TestDisableBot(t *testing.T) {
+func TestUpdateBotActive(t *testing.T) {
 	t.Run("unknown bot", func(t *testing.T) {
 		th := Setup().InitBasic()
 		defer th.TearDown()
 
-		_, err := th.App.DisableBot(model.NewId())
+		_, err := th.App.UpdateBotActive(model.NewId(), false)
 		require.NotNil(t, err)
 		require.Equal(t, "store.sql_user.missing_account.const", err.Id)
 	})
 
-	t.Run("disable bot", func(t *testing.T) {
+	t.Run("disable/enable bot", func(t *testing.T) {
 		th := Setup().InitBasic()
 		defer th.TearDown()
 
@@ -388,14 +388,23 @@ func TestDisableBot(t *testing.T) {
 		require.Nil(t, err)
 		defer th.App.PermanentDeleteBot(bot.UserId)
 
-		disabledBot, err := th.App.DisableBot(bot.UserId)
+		disabledBot, err := th.App.UpdateBotActive(bot.UserId, false)
 		require.Nil(t, err)
 		require.NotEqual(t, 0, disabledBot.DeleteAt)
 
 		// Disabling should be idempotent
-		disabledBotAgain, err := th.App.DisableBot(bot.UserId)
+		disabledBotAgain, err := th.App.UpdateBotActive(bot.UserId, false)
 		require.Nil(t, err)
 		require.Equal(t, disabledBot.DeleteAt, disabledBotAgain.DeleteAt)
+
+		reenabledBot, err := th.App.UpdateBotActive(bot.UserId, true)
+		require.Nil(t, err)
+		require.EqualValues(t, 0, reenabledBot.DeleteAt)
+
+		// Re-enabling should be idempotent
+		reenabledBotAgain, err := th.App.UpdateBotActive(bot.UserId, true)
+		require.Nil(t, err)
+		require.Equal(t, reenabledBot.DeleteAt, reenabledBotAgain.DeleteAt)
 	})
 }
 
