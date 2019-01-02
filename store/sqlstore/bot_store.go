@@ -104,7 +104,7 @@ func (us SqlBotStore) Get(userId string, includeDeleted bool) store.StoreChannel
 		`, map[string]interface{}{
 			"user_id": userId,
 		}); err == sql.ErrNoRows {
-			result.Err = model.NewAppError("SqlBotStore.Get", "store.sql_bot.get.missing.app_error", map[string]interface{}{"user_id": userId}, "", http.StatusNotFound)
+			result.Err = model.MakeBotNotFoundError(userId)
 		} else if err != nil {
 			result.Err = model.NewAppError("SqlBotStore.Get", "store.sql_bot.get.app_error", map[string]interface{}{"user_id": userId}, err.Error(), http.StatusInternalServerError)
 		} else {
