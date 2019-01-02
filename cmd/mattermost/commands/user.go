@@ -339,10 +339,21 @@ func userCreateCmdF(command *cobra.Command, args []string) error {
 		Locale:    locale,
 	}
 
-	if ruser, err := a.CreateUser(user); err != nil {
+	ruser, err := a.CreateUser(user)
+	if ruser == nil {
 		return errors.New("Unable to create user. Error: " + err.Error())
-	} else if systemAdmin {
-		a.UpdateUserRoles(ruser.Id, "system_user system_admin", false)
+	}
+
+	if systemAdmin {
+		if _, err := a.UpdateUserRoles(ruser.Id, "system_user system_admin", false); err != nil {
+			return errors.New("Unable to make user system admin. Error: " + err.Error())
+		}
+	} else {
+		// This else case exists to prevent the first user created from being
+		// created as a system admin unless explicity specified.
+		if _, err := a.UpdateUserRoles(ruser.Id, "system_user", false); err != nil {
+			return errors.New("If this is the first user: Unable to prevent user from being system admin. Error: " + err.Error())
+		}
 	}
 
 	CommandPrettyPrintln("Created User")
