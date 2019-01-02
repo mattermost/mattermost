@@ -378,10 +378,6 @@ func (a *App) trackConfig() {
 		"isdefault_login_button_text_color":    isDefault(*cfg.EmailSettings.LoginButtonTextColor, ""),
 	})
 
-	a.SendDiagnostic(TRACK_CONFIG_EXTENSION, map[string]interface{}{
-		"enable_experimental_extensions": *cfg.ExtensionSettings.EnableExperimentalExtensions,
-	})
-
 	a.SendDiagnostic(TRACK_CONFIG_RATE, map[string]interface{}{
 		"enable_rate_limiter":      *cfg.RateLimitSettings.Enable,
 		"vary_by_remote_address":   *cfg.RateLimitSettings.VaryByRemoteAddr,
