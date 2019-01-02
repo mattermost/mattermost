@@ -4,11 +4,14 @@
 package sqlstore
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -53,10 +56,11 @@ const (
 )
 
 const (
-	EXIT_VERSION_SAVE_MISSING = 1001
-	EXIT_TOO_OLD              = 1002
-	EXIT_VERSION_SAVE         = 1003
-	EXIT_THEME_MIGRATION      = 1004
+	EXIT_VERSION_SAVE_MISSING  = 1001
+	EXIT_TOO_OLD               = 1002
+	EXIT_VERSION_SAVE          = 1003
+	EXIT_THEME_MIGRATION       = 1004
+	EXIT_ROLE_MIGRATION_FAILED = 1005
 )
 
 func UpgradeDatabase(sqlStore SqlStore) {
@@ -545,6 +549,33 @@ func UpgradeDatabaseToVersion57(sqlStore SqlStore) {
 	// }
 }
 
+func getRole(sqlStore SqlStore, name string) (*model.Role, error) {
+	var dbRole Role
+
+	if err := sqlStore.GetReplica().SelectOne(&dbRole, "SELECT * from Roles WHERE Name = :Name", map[string]interface{}{"Name": name}); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.Wrapf(err, "failed to find role %s", name)
+		} else {
+			return nil, errors.Wrapf(err, "failed to query role %s", name)
+		}
+	}
+
+	return dbRole.ToModel(), nil
+}
+
+func saveRole(sqlStore SqlStore, role *model.Role) error {
+	dbRole := NewRoleFromModel(role)
+
+	dbRole.UpdateAt = model.GetMillis()
+	if rowsChanged, err := sqlStore.GetMaster().Update(dbRole); err != nil {
+		return errors.Wrap(err, "failed to update role")
+	} else if rowsChanged != 1 {
+		return errors.New("found no role to update")
+	}
+
+	return nil
+}
+
 func UpgradeDatabaseToVersion58(sqlStore SqlStore) {
 	// TODO: Uncomment following condition when version 5.8.0 is released
 	// if shouldPerformUpgrade(sqlStore, VERSION_5_7_0, VERSION_5_8_0) {
@@ -562,6 +593,26 @@ func UpgradeDatabaseToVersion58(sqlStore SqlStore) {
 	sqlStore.AlterColumnDefaultIfExists("OutgoingWebhooks", "Username", model.NewString("NULL"), model.NewString(""))
 	sqlStore.AlterColumnDefaultIfExists("OutgoingWebhooks", "IconURL", nil, model.NewString(""))
 	sqlStore.AlterColumnDefaultIfExists("PluginKeyValueStore", "ExpireAt", model.NewString("NULL"), model.NewString("NULL"))
+
+	// Grant new bot permissions to the system admin. Ideally we'd use the RoleStore directly,
+	// but it uses the new supplier model, which isn't initialized in the UpgradeDatabase code
+	// path. Also, the role won't exist for new servers, so don't fail on fetch, and don't
+	// bother inserting since it will be created with the new permissions anyway.
+	if role, err := getRole(sqlStore, model.SYSTEM_ADMIN_ROLE_ID); err != nil {
+		mlog.Warn("Failed to find role " + model.SYSTEM_ADMIN_ROLE_ID + " for upgrade: " + err.Error())
+	} else {
+		role.Permissions = append(role.Permissions, model.PERMISSION_CREATE_BOT.Id)
+		role.Permissions = append(role.Permissions, model.PERMISSION_READ_BOTS.Id)
+		role.Permissions = append(role.Permissions, model.PERMISSION_READ_OTHERS_BOTS.Id)
+		role.Permissions = append(role.Permissions, model.PERMISSION_MANAGE_BOTS.Id)
+		role.Permissions = append(role.Permissions, model.PERMISSION_MANAGE_OTHERS_BOTS.Id)
+
+		if err := saveRole(sqlStore, role); err != nil {
+			mlog.Critical(err.Error())
+			time.Sleep(time.Second)
+			os.Exit(EXIT_ROLE_MIGRATION_FAILED)
+		}
+	}
 
 	// 	saveSchemaVersion(sqlStore, VERSION_5_8_0)
 	// }
