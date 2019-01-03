@@ -5843,6 +5843,10 @@
     "translation": "Unable to get reactions for post"
   },
   {
+    "id": "store.sql_reaction.bulk_get_for_post_ids.app_error",
+    "translation": "Unable to get reactions for post"
+  },
+  {
     "id": "store.sql_reaction.permanent_delete_batch.app_error",
     "translation": "We encountered an error permanently deleting the batch of reactions"
   },

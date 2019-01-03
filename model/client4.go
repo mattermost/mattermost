@@ -3592,6 +3592,16 @@ func (c *Client4) DeleteReaction(reaction *Reaction) (bool, *Response) {
 	return CheckStatusOK(r), BuildResponse(r)
 }
 
+// FetchBulkReactions returns a map of postIds and corresponding reactions
+func (c *Client4) GetBulkReactions(postIds []string) (map[string][]*Reaction, *Response) {
+	r, err := c.DoApiPost(c.GetPostsRoute()+"/ids/reactions", ArrayToJson(postIds))
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return MapPostIdToReactionsFromJson(r.Body), BuildResponse(r)
+}
+
 // Timezone Section
 
 // GetSupportedTimezone returns a page of supported timezones on the system.
