@@ -1118,7 +1118,7 @@
   },
   {
     "id": "api.emoji.upload.open.app_error",
-    "translation": "Unable to create the emoji. An error ocurred when trying to open the attached image."
+    "translation": "Unable to create the emoji. An error occurred when trying to open the attached image."
   },
   {
     "id": "api.file.attachments.disabled.app_error",
@@ -1447,6 +1447,14 @@
   {
     "id": "api.post.create_webhook_post.creating.app_error",
     "translation": "Error creating post"
+  },
+  {
+    "id": "api.post.deduplicate_create_post.failed_to_get",
+    "translation": "Failed to fetch original post after deduplicating a client repeating the same request."
+  },
+  {
+    "id": "api.post.deduplicate_create_post.pending",
+    "translation": "Rejected post since another client is making the same request."
   },
   {
     "id": "api.post.disabled_all",
@@ -2227,6 +2235,10 @@
     "translation": "Unable to get profile image, user not found."
   },
   {
+    "id": "api.user.get_user_by_email.permissions.app_error",
+    "translation": "Unable to get user by email."
+  },
+  {
     "id": "api.user.ldap_to_email.not_available.app_error",
     "translation": "AD/LDAP not available on this server"
   },
@@ -2560,7 +2572,7 @@
   },
   {
     "id": "app.export.export_write_line.json_marshall.error",
-    "translation": "An error occured marshalling the JSON data for export."
+    "translation": "An error occurred marshalling the JSON data for export."
   },
   {
     "id": "app.import.attachment.bad_file.error",
@@ -5835,6 +5847,10 @@
     "translation": "Unable to get reactions for post"
   },
   {
+    "id": "store.sql_reaction.bulk_get_for_post_ids.app_error",
+    "translation": "Unable to get reactions for post"
+  },
+  {
     "id": "store.sql_reaction.permanent_delete_batch.app_error",
     "translation": "We encountered an error permanently deleting the batch of reactions"
   },
@@ -6364,7 +6380,7 @@
   },
   {
     "id": "store.sql_user.search.app_error",
-    "translation": "Unable to find any user maching the search parameters"
+    "translation": "Unable to find any user matching the search parameters"
   },
   {
     "id": "store.sql_user.update.app_error",

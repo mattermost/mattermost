@@ -200,10 +200,6 @@
         "LoginButtonBorderColor": "",
         "LoginButtonTextColor": ""
     },
-    "ExtensionSettings": {
-        "EnableExperimentalExtensions": false,
-        "AllowedExtensionsIDs": []
-    },
     "RateLimitSettings": {
         "Enable": false,
         "PerSec": 10,

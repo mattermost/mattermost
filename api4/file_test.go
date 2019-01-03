@@ -217,12 +217,10 @@ func testUploadFiles(
 		fileUploadResponse = &model.FileUploadResponse{}
 	}
 
-	var f io.ReadCloser
-	var cl int64
-	var err error
 	data := make([]byte, 512)
 
 	upload := func(i int, f io.ReadCloser) *model.Response {
+		var cl int64
 		defer f.Close()
 
 		if len(contentLengths) > i {
@@ -287,7 +285,7 @@ func testUploadFiles(
 	}
 
 	for i, open := range openers {
-		f, cl, err = open()
+		f, _, err := open()
 		if err != nil {
 			return nil, emergencyResponse(err, "upload_post_attachment")
 		}

@@ -51,3 +51,8 @@ func (s *LocalCacheSupplier) ReactionPermanentDeleteBatch(ctx context.Context, e
 	// expire from the cache in due course.
 	return s.Next().ReactionPermanentDeleteBatch(ctx, endTime, limit)
 }
+
+func (s *LocalCacheSupplier) ReactionsBulkGetForPosts(ctx context.Context, postIds []string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	// Ignoring this.
+	return s.Next().ReactionsBulkGetForPosts(ctx, postIds, hints...)
+}

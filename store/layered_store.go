@@ -236,6 +236,12 @@ func (s *LayeredReactionStore) GetForPost(postId string, allowFromCache bool) St
 	})
 }
 
+func (s *LayeredReactionStore) BulkGetForPosts(postIds []string) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.ReactionsBulkGetForPosts(s.TmpContext, postIds)
+	})
+}
+
 func (s *LayeredReactionStore) DeleteAllWithEmojiName(emojiName string) StoreChannel {
 	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
 		return supplier.ReactionDeleteAllWithEmojiName(s.TmpContext, emojiName)
