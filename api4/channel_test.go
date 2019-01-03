@@ -1418,6 +1418,12 @@ func TestViewChannel(t *testing.T) {
 	_, resp = Client.ViewChannel(th.BasicUser.Id, view)
 	CheckBadRequestStatus(t, resp)
 
+	// All blank is OK we use it for clicking off of the browser.
+	view.PrevChannelId = ""
+	view.ChannelId = ""
+	_, resp = Client.ViewChannel(th.BasicUser.Id, view)
+	CheckNoError(t, resp)
+
 	view.PrevChannelId = ""
 	view.ChannelId = "junk"
 	_, resp = Client.ViewChannel(th.BasicUser.Id, view)

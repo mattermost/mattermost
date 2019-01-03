@@ -917,7 +917,7 @@ func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	view := model.ChannelViewFromJson(r.Body)
-	if view == nil || !model.IsValidId(view.ChannelId) || (view.PrevChannelId != "" && !model.IsValidId(view.PrevChannelId)) {
+	if view == nil || (view.ChannelId != "" && !model.IsValidId(view.ChannelId)) || (view.PrevChannelId != "" && !model.IsValidId(view.PrevChannelId)) {
 		c.SetInvalidParam("channel_view")
 		return
 	}
