@@ -2144,7 +2144,7 @@
   },
   {
     "id": "api.user.get_user_by_email.permissions.app_error",
-    "translation": "Unable to get user by email."
+    "translation": "Невозможно определить пользователя по электронной почте"
   },
   {
     "id": "api.user.ldap_to_email.not_available.app_error",
