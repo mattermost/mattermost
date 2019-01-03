@@ -103,6 +103,28 @@ func (s *SqlSupplier) ReactionGetForPost(ctx context.Context, postId string, hin
 	return result
 }
 
+func (s *SqlSupplier) ReactionsBulkGetForPosts(ctx context.Context, postIds []string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+	result := store.NewSupplierResult()
+
+	keys, params := MapStringsToQueryParams(postIds, "postId")
+	var reactions []*model.Reaction
+
+	if _, err := s.GetReplica().Select(&reactions, `SELECT
+				*
+			FROM
+				Reactions
+			WHERE
+				PostId IN `+keys+`
+			ORDER BY
+				CreateAt`, params); err != nil {
+		result.Err = model.NewAppError("SqlReactionStore.GetForPost", "store.sql_reaction.bulk_get_for_post_ids.app_error", nil, "", http.StatusInternalServerError)
+	} else {
+		result.Data = reactions
+	}
+
+	return result
+}
+
 func (s *SqlSupplier) ReactionDeleteAllWithEmojiName(ctx context.Context, emojiName string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	result := store.NewSupplierResult()
 

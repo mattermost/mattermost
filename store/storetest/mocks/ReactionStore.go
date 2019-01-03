@@ -13,6 +13,22 @@ type ReactionStore struct {
 	mock.Mock
 }
 
+// BulkGetForPosts provides a mock function with given fields: postIds
+func (_m *ReactionStore) BulkGetForPosts(postIds []string) store.StoreChannel {
+	ret := _m.Called(postIds)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func([]string) store.StoreChannel); ok {
+		r0 = rf(postIds)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // Delete provides a mock function with given fields: reaction
 func (_m *ReactionStore) Delete(reaction *model.Reaction) store.StoreChannel {
 	ret := _m.Called(reaction)

@@ -54,3 +54,8 @@ func (s *RedisSupplier) ReactionPermanentDeleteBatch(ctx context.Context, endTim
 	// Ignoring this. It's probably OK to have the emoji slowly expire from Redis.
 	return s.Next().ReactionPermanentDeleteBatch(ctx, endTime, limit, hints...)
 }
+
+func (s *RedisSupplier) ReactionsBulkGetForPosts(ctx context.Context, postIds []string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	// Ignoring this.
+	return s.Next().ReactionsBulkGetForPosts(ctx, postIds, hints...)
+}
