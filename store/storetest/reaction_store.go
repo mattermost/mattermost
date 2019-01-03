@@ -16,6 +16,7 @@ func TestReactionStore(t *testing.T, ss store.Store) {
 	t.Run("ReactionGetForPost", func(t *testing.T) { testReactionGetForPost(t, ss) })
 	t.Run("ReactionDeleteAllWithEmojiName", func(t *testing.T) { testReactionDeleteAllWithEmojiName(t, ss) })
 	t.Run("PermanentDeleteBatch", func(t *testing.T) { testReactionStorePermanentDeleteBatch(t, ss) })
+	t.Run("ReactionBulkGetForPosts", func(t *testing.T) { testReactionBulkGetForPosts(t, ss) })
 }
 
 func testReactionSave(t *testing.T, ss store.Store) {
@@ -347,4 +348,70 @@ func testReactionStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 	if returned := store.Must(ss.Reaction().GetForPost(post.Id, false)).([]*model.Reaction); len(returned) != 1 {
 		t.Fatalf("expected 1 reaction. Got: %v", len(returned))
 	}
+}
+
+func testReactionBulkGetForPosts(t *testing.T, ss store.Store) {
+	postId := model.NewId()
+	post2Id := model.NewId()
+	post3Id := model.NewId()
+	post4Id := model.NewId()
+
+	userId := model.NewId()
+
+	reactions := []*model.Reaction{
+		{
+			UserId:    userId,
+			PostId:    postId,
+			EmojiName: "smile",
+		},
+		{
+			UserId:    model.NewId(),
+			PostId:    post2Id,
+			EmojiName: "smile",
+		},
+		{
+			UserId:    userId,
+			PostId:    post3Id,
+			EmojiName: "sad",
+		},
+		{
+			UserId:    userId,
+			PostId:    postId,
+			EmojiName: "angry",
+		},
+		{
+			UserId:    userId,
+			PostId:    post2Id,
+			EmojiName: "angry",
+		},
+		{
+			UserId:    userId,
+			PostId:    post4Id,
+			EmojiName: "angry",
+		},
+	}
+
+	for _, reaction := range reactions {
+		store.Must(ss.Reaction().Save(reaction))
+	}
+
+	postIds := []string{postId, post2Id, post3Id}
+	if result := <-ss.Reaction().BulkGetForPosts(postIds); result.Err != nil {
+		t.Fatal(result.Err)
+	} else if returned := result.Data.([]*model.Reaction); len(returned) != 5 {
+		t.Fatal("should've returned 5 reactions")
+	} else {
+		post4IdFound := false
+		for _, reaction := range returned {
+			if reaction.PostId == post4Id {
+				post4IdFound = true
+				break
+			}
+		}
+
+		if post4IdFound {
+			t.Fatal("Wrong reaction returned")
+		}
+	}
+
 }
