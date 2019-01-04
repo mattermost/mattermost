@@ -4,6 +4,7 @@
 package app
 
 import (
+	"io"
 	"strings"
 	"testing"
 
@@ -651,4 +652,53 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 		})
 	}
 
+}
+
+type InfiniteReader struct {}
+
+func (r InfiniteReader) Read(p []byte) (n int, err error) {
+	return len(p), nil
+}
+
+func TestOutgoingWebhookWithLargeResponse(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	channel := th.BasicChannel
+	post := th.BasicPost
+	user := th.BasicUser
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.AllowedUntrustedInternalConnections = model.NewString("127.0.0.1")
+		cfg.ServiceSettings.EnableOutgoingWebhooks = true
+	})
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		io.Copy(w, InfiniteReader{})
+	}))
+
+	hook, err := th.App.CreateOutgoingWebhook(&model.OutgoingWebhook{
+		ChannelId:    channel.Id,
+		TeamId:       channel.TeamId,
+		CallbackURLs: []string{server.URL},
+		CreatorId:    user.Id,
+	})
+	require.Nil(t, err)
+
+	payload := &model.OutgoingWebhookPayload{
+		Token:       hook.Token,
+		TeamId:      hook.TeamId,
+		TeamDomain:  th.BasicTeam.Name,
+		ChannelId:   channel.Id,
+		ChannelName: channel.Name,
+		Timestamp:   post.CreateAt,
+		UserId:      post.UserId,
+		UserName:    user.Username,
+		PostId:      post.Id,
+		Text:        post.Message,
+		TriggerWord: "Abracadabra",
+		FileIds:     strings.Join(post.FileIds, ","),
+	}
+
+	th.App.TriggerWebhook(payload, hook, post, channel)
 }
