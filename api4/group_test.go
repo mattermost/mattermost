@@ -519,7 +519,7 @@ func TestPatchGroupTeam(t *testing.T) {
 
 	assert.Equal(t, g.Id, groupSyncable.GroupId)
 	assert.Equal(t, th.BasicTeam.Id, groupSyncable.SyncableId)
-	assert.Equal(t, model.GroupSyncableTypeTeam, groupSyncable.Source)
+	assert.Equal(t, model.GroupSyncableTypeTeam, groupSyncable.Type)
 
 	patch.CanLeave = model.NewBool(false)
 	_, response = th.SystemAdminClient.PatchGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
@@ -591,7 +591,7 @@ func TestPatchGroupChannel(t *testing.T) {
 
 	assert.Equal(t, g.Id, groupSyncable.GroupId)
 	assert.Equal(t, th.BasicChannel.Id, groupSyncable.SyncableId)
-	assert.Equal(t, model.GroupSyncableTypeChannel, groupSyncable.Source)
+	assert.Equal(t, model.GroupSyncableTypeChannel, groupSyncable.Type)
 
 	patch.CanLeave = model.NewBool(false)
 	_, response = th.SystemAdminClient.PatchGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
