@@ -365,6 +365,7 @@ func (s SqlUserStore) GetEtagForAllProfiles() store.StoreChannel {
 }
 
 func (us SqlUserStore) GetAllProfiles(options *model.UserGetOptions) store.StoreChannel {
+	isPostgreSQL := us.DriverName() == model.DATABASE_DRIVER_POSTGRES
 	return store.Do(func(result *store.StoreResult) {
 		var users []*model.User
 		offset := options.Page * options.PerPage
@@ -376,9 +377,10 @@ func (us SqlUserStore) GetAllProfiles(options *model.UserGetOptions) store.Store
 			ORDER BY Username ASC LIMIT :Limit OFFSET :Offset
 		`
 
-		searchQuery = substituteWhereClause(searchQuery, options)
+		parameters := map[string]interface{}{"Offset": offset, "Limit": limit}
+		searchQuery = substituteWhereClause(searchQuery, options, parameters, isPostgreSQL)
 
-		if _, err := us.GetReplica().Select(&users, searchQuery, map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
+		if _, err := us.GetReplica().Select(&users, searchQuery, parameters); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.GetAllProfiles", "store.sql_user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
 
@@ -391,11 +393,12 @@ func (us SqlUserStore) GetAllProfiles(options *model.UserGetOptions) store.Store
 	})
 }
 
-func substituteWhereClause(searchQuery string, options *model.UserGetOptions) string {
+func substituteWhereClause(searchQuery string, options *model.UserGetOptions, parameters map[string]interface{}, isPostgreSQL bool) string {
 	whereClause := ""
 	whereClauses := []string{}
 	if options.Role != "" {
-		whereClauses = append(whereClauses, fmt.Sprintf(" Users.Roles like'%%%v%%' ", options.Role))
+		whereClauses = append(whereClauses, getRoleFilter(isPostgreSQL))
+		parameters["Role"] = fmt.Sprintf("%%%s%%", options.Role)
 	}
 	if options.Inactive {
 		whereClauses = append(whereClauses, " Users.DeleteAt != 0 ")
@@ -413,6 +416,14 @@ func substituteWhereClause(searchQuery string, options *model.UserGetOptions) st
 	return searchQuery
 }
 
+func getRoleFilter(isPostgreSQL bool) string {
+	if isPostgreSQL {
+		return fmt.Sprintf("Users.Roles like lower(%s)", ":Role")
+	} else {
+		return fmt.Sprintf("Users.Roles LIKE %s escape '*' ", ":Role")
+	}
+}
+
 func (s SqlUserStore) GetEtagForProfiles(teamId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		updateAt, err := s.GetReplica().SelectInt("SELECT UpdateAt FROM Users, TeamMembers WHERE TeamMembers.TeamId = :TeamId AND Users.Id = TeamMembers.UserId ORDER BY UpdateAt DESC LIMIT 1", map[string]interface{}{"TeamId": teamId})
@@ -425,6 +436,7 @@ func (s SqlUserStore) GetEtagForProfiles(teamId string) store.StoreChannel {
 }
 
 func (us SqlUserStore) GetProfiles(options *model.UserGetOptions) store.StoreChannel {
+	isPostgreSQL := us.DriverName() == model.DATABASE_DRIVER_POSTGRES
 	teamId := options.InTeamId
 	offset := options.Page * options.PerPage
 	limit := options.PerPage
@@ -436,12 +448,13 @@ func (us SqlUserStore) GetProfiles(options *model.UserGetOptions) store.StoreCha
 		ORDER BY Users.Username ASC LIMIT :Limit OFFSET :Offset
 		`
 
-	searchQuery = substituteWhereClause(searchQuery, options)
+	parameters := map[string]interface{}{"TeamId": teamId, "Offset": offset, "Limit": limit}
+	searchQuery = substituteWhereClause(searchQuery, options, parameters, isPostgreSQL)
 
 	return store.Do(func(result *store.StoreResult) {
 		var users []*model.User
 
-		if _, err := us.GetReplica().Select(&users, searchQuery, map[string]interface{}{"TeamId": teamId, "Offset": offset, "Limit": limit}); err != nil {
+		if _, err := us.GetReplica().Select(&users, searchQuery, parameters); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.GetProfiles", "store.sql_user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
 
@@ -1215,7 +1228,8 @@ func generateSearchQuery(searchQuery string, terms []string, fields []string, pa
 	}
 
 	if role != "" {
-		searchTerms = append(searchTerms, fmt.Sprintf("Users.Roles like '%%%s%%'", role))
+		searchTerms = append(searchTerms, getRoleFilter(isPostgreSQL))
+		parameters["Role"] = fmt.Sprintf("%%%s%%", role)
 	}
 
 	searchClause := strings.Join(searchTerms, " AND ")

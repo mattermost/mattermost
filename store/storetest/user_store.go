@@ -1822,7 +1822,7 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 			[]*model.User{u1},
 		},
 		{
-			"search j with system_admin roles",
+			"search ji with system_user roles",
 			tid,
 			"ji",
 			&model.UserSearchOptions{

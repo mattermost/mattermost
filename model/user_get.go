@@ -6,13 +6,13 @@ package model
 type UserGetOptions struct {
 	// Filters the users in the team
 	InTeamId string
-	// Filters the Users not in the team
+	// Filters the users not in the team
 	NotInTeamId string
 	// Filters the users in the channel
 	InChannelId string
 	// Filters the users not in the channel
 	NotInChannelId string
-	// Filters the users without the team
+	// Filters the users without a team
 	WithoutTeam bool
 	// Filters the inactive users
 	Inactive bool
