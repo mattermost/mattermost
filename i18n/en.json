@@ -4636,7 +4636,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Invalid file ids"
+    "translation": "Invalid file ids. Note that uploads are limited to 5 files maximum. Please use additional posts for more files."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -5840,6 +5840,10 @@
   },
   {
     "id": "store.sql_reaction.get_for_post.app_error",
+    "translation": "Unable to get reactions for post"
+  },
+  {
+    "id": "store.sql_reaction.bulk_get_for_post_ids.app_error",
     "translation": "Unable to get reactions for post"
   },
   {
