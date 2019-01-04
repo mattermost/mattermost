@@ -306,8 +306,8 @@ func modifyOutgoingWebhookCmdF(command *cobra.Command, args []string) error {
 	}
 
 	webhookArg := args[0]
-	oldHook, getErr := app.GetOutgoingWebhook(webhookArg)
-	if getErr != nil {
+	oldHook, appErr := app.GetOutgoingWebhook(webhookArg)
+	if appErr != nil {
 		return fmt.Errorf("unable to find webhook '%s'", webhookArg)
 	}
 
@@ -332,9 +332,9 @@ func modifyOutgoingWebhookCmdF(command *cobra.Command, args []string) error {
 		updatedHook.Description = description
 	}
 
-	triggerWords, errWords := command.Flags().GetStringArray("trigger-word")
-	if errWords != nil {
-		return errors.Wrap(errWords, "invalid trigger-word parameter")
+	triggerWords, err := command.Flags().GetStringArray("trigger-word")
+	if err != nil {
+		return errors.Wrap(err, "invalid trigger-word parameter")
 	}
 	if len(triggerWords) > 0 {
 		updatedHook.TriggerWords = triggerWords
@@ -363,16 +363,16 @@ func modifyOutgoingWebhookCmdF(command *cobra.Command, args []string) error {
 		updatedHook.ContentType = contentType
 	}
 
-	callbackURLs, errURL := command.Flags().GetStringArray("url")
-	if errURL != nil {
-		return errors.Wrap(errURL, "invalid URL parameter")
+	callbackURLs, err := command.Flags().GetStringArray("url")
+	if err != nil {
+		return errors.Wrap(err, "invalid URL parameter")
 	}
 	if len(callbackURLs) > 0 {
 		updatedHook.CallbackURLs = callbackURLs
 	}
 
-	if _, err := app.UpdateOutgoingWebhook(oldHook, updatedHook); err != nil {
-		return err
+	if _, appErr := app.UpdateOutgoingWebhook(oldHook, updatedHook); appErr != nil {
+		return appErr
 	}
 
 	return nil
