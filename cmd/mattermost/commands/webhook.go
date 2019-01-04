@@ -307,7 +307,7 @@ func modifyOutgoingWebhookCmdF(command *cobra.Command, args []string) error {
 	webhookArg := args[0]
 	oldHook, getErr := app.GetOutgoingWebhook(webhookArg)
 	if getErr != nil {
-		return errors.New("Unable to find webhook '" + webhookArg + "'")
+		return fmt.Errorf("unable to find webhook '%s'", webhookArg)
 	}
 
 	updatedHook := oldHook
@@ -316,7 +316,7 @@ func modifyOutgoingWebhookCmdF(command *cobra.Command, args []string) error {
 	if channelArg != "" {
 		channel := getChannelFromChannelArg(app, channelArg)
 		if channel == nil {
-			return errors.New("Unable to find channel '" + channelArg + "'")
+			return fmt.Errorf("unable to find channel '%s'", channelArg)
 		}
 		updatedHook.ChannelId = channel.Id
 	}
@@ -347,7 +347,7 @@ func modifyOutgoingWebhookCmdF(command *cobra.Command, args []string) error {
 		} else if triggerWhenString == "start" {
 			triggerWhen = 1
 		} else {
-			return errors.New("Invalid trigger when parameter")
+			return errors.New("invalid trigger-when parameter")
 		}
 		updatedHook.TriggerWhen = triggerWhen
 	}
