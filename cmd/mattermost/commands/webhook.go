@@ -5,6 +5,7 @@ package commands
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/pkg/errors"
@@ -310,7 +311,7 @@ func modifyOutgoingWebhookCmdF(command *cobra.Command, args []string) error {
 		return fmt.Errorf("unable to find webhook '%s'", webhookArg)
 	}
 
-	updatedHook := oldHook
+	updatedHook := model.OutgoingWebhookFromJson(strings.NewReader(oldHook.ToJson()))
 
 	channelArg, _ := command.Flags().GetString("channel")
 	if channelArg != "" {
