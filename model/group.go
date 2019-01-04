@@ -34,7 +34,7 @@ type Group struct {
 	Name         string      `json:"name"`
 	DisplayName  string      `json:"display_name"`
 	Description  string      `json:"description"`
-	Source       GroupSource `json:"type"`
+	Source       GroupSource `json:"source"`
 	RemoteId     string      `json:"remote_id"`
 	CreateAt     int64       `json:"create_at"`
 	UpdateAt     int64       `json:"update_at"`
