@@ -16,7 +16,7 @@ func (gm *GroupMember) IsValid() *AppError {
 	if !IsValidId(gm.GroupId) {
 		return NewAppError("GroupMember.IsValid", "model.group_member.group_id.app_error", nil, "", http.StatusBadRequest)
 	}
-	if len(gm.UserId) != 26 {
+	if !IsValidId(gm.UserId) {
 		return NewAppError("GroupMember.IsValid", "model.group_member.user_id.app_error", nil, "", http.StatusBadRequest)
 	}
 	return nil
