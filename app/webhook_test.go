@@ -680,6 +680,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
 		}))
+		defer server.Close()
 
 		resp, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
 		require.Nil(t, err)
@@ -693,6 +694,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			io.Copy(w, strings.NewReader("aaaaaaaa"))
 		}))
+		defer server.Close()
 
 		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
 		require.NotNil(t, err)
@@ -703,6 +705,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			io.Copy(w, io.MultiReader(strings.NewReader(`{"text": "`), InfiniteReader{}, strings.NewReader(`"}`)))
 		}))
+		defer server.Close()
 
 		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
 		require.NotNil(t, err)
@@ -713,6 +716,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			io.Copy(w, InfiniteReader{})
 		}))
+		defer server.Close()
 
 		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
 		require.NotNil(t, err)
@@ -720,12 +724,15 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 	})
 
 	t.Run("with a slow response", func(t *testing.T) {
+		timeout := 100 * time.Millisecond
+
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			time.Sleep(time.Second * 60)
+			time.Sleep(timeout + time.Millisecond)
 			io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
 		}))
+		defer server.Close()
 
-		th.App.HTTPService.(*httpservice.HTTPServiceImpl).RequestTimeout = 100 * time.Millisecond
+		th.App.HTTPService.(*httpservice.HTTPServiceImpl).RequestTimeout = timeout
 		defer func() {
 			th.App.HTTPService.(*httpservice.HTTPServiceImpl).RequestTimeout = httpservice.RequestTimeout
 		}()

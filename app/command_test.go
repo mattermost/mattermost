@@ -222,6 +222,7 @@ func TestDoCommandRequest(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			io.Copy(w, strings.NewReader("Hello, World!"))
 		}))
+		defer server.Close()
 
 		_, resp, err := th.App.doCommandRequest(&model.Command{URL: server.URL}, url.Values{})
 		require.Nil(t, err)
@@ -235,8 +236,8 @@ func TestDoCommandRequest(t *testing.T) {
 			w.Header().Add("Content-Type", "application/json")
 
 			io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
-
 		}))
+		defer server.Close()
 
 		_, resp, err := th.App.doCommandRequest(&model.Command{URL: server.URL}, url.Values{})
 		require.Nil(t, err)
@@ -249,6 +250,7 @@ func TestDoCommandRequest(t *testing.T) {
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			io.Copy(w, InfiniteReader{})
 		}))
+		defer server.Close()
 
 		// Since we limit the length of the response, no error will be returned and resp.Text will be a finite string
 
@@ -262,8 +264,8 @@ func TestDoCommandRequest(t *testing.T) {
 			w.Header().Add("Content-Type", "application/json")
 
 			io.Copy(w, io.MultiReader(strings.NewReader(`{"text": "`), InfiniteReader{}, strings.NewReader(`"}`)))
-
 		}))
+		defer server.Close()
 
 		_, _, err := th.App.doCommandRequest(&model.Command{URL: server.URL}, url.Values{})
 		require.NotNil(t, err)
@@ -276,6 +278,7 @@ func TestDoCommandRequest(t *testing.T) {
 
 			io.Copy(w, InfiniteReader{})
 		}))
+		defer server.Close()
 
 		_, _, err := th.App.doCommandRequest(&model.Command{URL: server.URL}, url.Values{})
 		require.NotNil(t, err)
@@ -283,12 +286,15 @@ func TestDoCommandRequest(t *testing.T) {
 	})
 
 	t.Run("with a slow response", func(t *testing.T) {
+		timeout := 100 * time.Millisecond
+
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			time.Sleep(time.Second * 60)
+			time.Sleep(timeout + time.Millisecond)
 			io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
 		}))
+		defer server.Close()
 
-		th.App.HTTPService.(*httpservice.HTTPServiceImpl).RequestTimeout = 100 * time.Millisecond
+		th.App.HTTPService.(*httpservice.HTTPServiceImpl).RequestTimeout = timeout
 		defer func() {
 			th.App.HTTPService.(*httpservice.HTTPServiceImpl).RequestTimeout = httpservice.RequestTimeout
 		}()
