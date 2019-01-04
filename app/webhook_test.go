@@ -4,18 +4,19 @@
 package app
 
 import (
+	"encoding/json"
 	"io"
-	"strings"
-	"testing"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-
 	"net/http"
 	"net/http/httptest"
+	"net/url"
+	"strings"
+	"testing"
 	"time"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/httpservice"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCreateIncomingWebhookForChannel(t *testing.T) {
@@ -654,51 +655,83 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 
 }
 
-type InfiniteReader struct {}
+type InfiniteReader struct {
+	Prefix string
+}
 
 func (r InfiniteReader) Read(p []byte) (n int, err error) {
+	for i := range p {
+		p[i] = 'a'
+	}
+
 	return len(p), nil
 }
 
-func TestOutgoingWebhookWithLargeResponse(t *testing.T) {
+func TestDoOutgoingWebhookRequest(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
-
-	channel := th.BasicChannel
-	post := th.BasicPost
-	user := th.BasicUser
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.ServiceSettings.AllowedUntrustedInternalConnections = model.NewString("127.0.0.1")
 		cfg.ServiceSettings.EnableOutgoingWebhooks = true
 	})
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		io.Copy(w, InfiniteReader{})
-	}))
+	t.Run("with a valid response", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
+		}))
 
-	hook, err := th.App.CreateOutgoingWebhook(&model.OutgoingWebhook{
-		ChannelId:    channel.Id,
-		TeamId:       channel.TeamId,
-		CallbackURLs: []string{server.URL},
-		CreatorId:    user.Id,
+		resp, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
+		require.Nil(t, err)
+
+		assert.NotNil(t, resp)
+		assert.NotNil(t, resp.Text)
+		assert.Equal(t, "Hello, World!", *resp.Text)
 	})
-	require.Nil(t, err)
 
-	payload := &model.OutgoingWebhookPayload{
-		Token:       hook.Token,
-		TeamId:      hook.TeamId,
-		TeamDomain:  th.BasicTeam.Name,
-		ChannelId:   channel.Id,
-		ChannelName: channel.Name,
-		Timestamp:   post.CreateAt,
-		UserId:      post.UserId,
-		UserName:    user.Username,
-		PostId:      post.Id,
-		Text:        post.Message,
-		TriggerWord: "Abracadabra",
-		FileIds:     strings.Join(post.FileIds, ","),
-	}
+	t.Run("with an invalid response", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			io.Copy(w, strings.NewReader("aaaaaaaa"))
+		}))
 
-	th.App.TriggerWebhook(payload, hook, post, channel)
+		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
+		require.NotNil(t, err)
+		require.IsType(t, &json.SyntaxError{}, err)
+	})
+
+	t.Run("with a large, valid response", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			io.Copy(w, io.MultiReader(strings.NewReader(`{"text": "`), InfiniteReader{}, strings.NewReader(`"}`)))
+		}))
+
+		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
+		require.NotNil(t, err)
+		require.Equal(t, io.ErrUnexpectedEOF, err)
+	})
+
+	t.Run("with a large, invalid response", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			io.Copy(w, InfiniteReader{})
+		}))
+
+		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
+		require.NotNil(t, err)
+		require.IsType(t, &json.SyntaxError{}, err)
+	})
+
+	t.Run("with a slow response", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			time.Sleep(time.Second * 60)
+			io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
+		}))
+
+		th.App.HTTPService.(*httpservice.HTTPServiceImpl).RequestTimeout = 100 * time.Millisecond
+		defer func() {
+			th.App.HTTPService.(*httpservice.HTTPServiceImpl).RequestTimeout = httpservice.RequestTimeout
+		}()
+
+		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
+		require.NotNil(t, err)
+		require.IsType(t, &url.Error{}, err)
+	})
 }

@@ -4,11 +4,19 @@
 package app
 
 import (
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/httpservice"
 )
 
 func TestMoveCommand(t *testing.T) {
@@ -85,16 +93,16 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	command := &model.Command{}
 	args := &model.CommandArgs{
 		ChannelId: th.BasicChannel.Id,
-		TeamId: th.BasicTeam.Id,
-		UserId: th.BasicUser.Id,
-		RootId: "root_id",
-		ParentId: "parent_id",
+		TeamId:    th.BasicTeam.Id,
+		UserId:    th.BasicUser.Id,
+		RootId:    "root_id",
+		ParentId:  "parent_id",
 	}
 
 	resp := &model.CommandResponse{
-		Type: model.POST_EPHEMERAL,
+		Type:  model.POST_EPHEMERAL,
 		Props: model.StringInterface{"some_key": "some value"},
-		Text: "some message",
+		Text:  "some message",
 	}
 
 	builtIn := true
@@ -199,4 +207,94 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	post, err = th.App.HandleCommandResponsePost(command, args, resp, builtIn)
 	assert.Nil(t, err)
 	assert.Equal(t, "@here", resp.Attachments[0].Text)
+}
+
+func TestDoCommandRequest(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.AllowedUntrustedInternalConnections = model.NewString("127.0.0.1")
+		cfg.ServiceSettings.EnableCommands = model.NewBool(true)
+	})
+
+	t.Run("with a valid text response", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			io.Copy(w, strings.NewReader("Hello, World!"))
+		}))
+
+		_, resp, err := th.App.doCommandRequest(&model.Command{URL: server.URL}, url.Values{})
+		require.Nil(t, err)
+
+		assert.NotNil(t, resp)
+		assert.Equal(t, "Hello, World!", resp.Text)
+	})
+
+	t.Run("with a valid json response", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Add("Content-Type", "application/json")
+
+			io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
+
+		}))
+
+		_, resp, err := th.App.doCommandRequest(&model.Command{URL: server.URL}, url.Values{})
+		require.Nil(t, err)
+
+		assert.NotNil(t, resp)
+		assert.Equal(t, "Hello, World!", resp.Text)
+	})
+
+	t.Run("with a large text response", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			io.Copy(w, InfiniteReader{})
+		}))
+
+		// Since we limit the length of the response, no error will be returned and resp.Text will be a finite string
+
+		_, resp, err := th.App.doCommandRequest(&model.Command{URL: server.URL}, url.Values{})
+		require.Nil(t, err)
+		require.NotNil(t, resp)
+	})
+
+	t.Run("with a large, valid json response", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Add("Content-Type", "application/json")
+
+			io.Copy(w, io.MultiReader(strings.NewReader(`{"text": "`), InfiniteReader{}, strings.NewReader(`"}`)))
+
+		}))
+
+		_, _, err := th.App.doCommandRequest(&model.Command{URL: server.URL}, url.Values{})
+		require.NotNil(t, err)
+		require.Equal(t, "api.command.execute_command.failed.app_error", err.Id)
+	})
+
+	t.Run("with a large, invalid json response", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Add("Content-Type", "application/json")
+
+			io.Copy(w, InfiniteReader{})
+		}))
+
+		_, _, err := th.App.doCommandRequest(&model.Command{URL: server.URL}, url.Values{})
+		require.NotNil(t, err)
+		require.Equal(t, "api.command.execute_command.failed.app_error", err.Id)
+	})
+
+	t.Run("with a slow response", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			time.Sleep(time.Second * 60)
+			io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
+		}))
+
+		th.App.HTTPService.(*httpservice.HTTPServiceImpl).RequestTimeout = 100 * time.Millisecond
+		defer func() {
+			th.App.HTTPService.(*httpservice.HTTPServiceImpl).RequestTimeout = httpservice.RequestTimeout
+		}()
+
+		_, _, err := th.App.doCommandRequest(&model.Command{URL: server.URL}, url.Values{})
+		require.NotNil(t, err)
+		require.Equal(t, "api.command.execute_command.failed.app_error", err.Id)
+	})
 }
