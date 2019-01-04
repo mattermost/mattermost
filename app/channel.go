@@ -1600,7 +1600,14 @@ func (a *App) MarkChannelsAsViewed(channelIds []string, userId string, clearPush
 	channelsToClearPushNotifications := []string{}
 	if *a.Config().EmailSettings.SendPushNotifications && clearPushNotifications {
 		for _, channelId := range channelIds {
-			result := <-a.Srv.Store.Channel().GetMember(channelId, userId)
+			result := <-a.Srv.Store.Channel().Get(channelId, true)
+			if result.Err != nil {
+				mlog.Warn(fmt.Sprintf("Failed to get channel %v", result.Err))
+				continue
+			}
+			channel := result.Data.(*model.Channel)
+
+			result = <-a.Srv.Store.Channel().GetMember(channelId, userId)
 			if result.Err != nil {
 				mlog.Warn(fmt.Sprintf("Failed to get membership %v", result.Err))
 				continue
@@ -1618,9 +1625,10 @@ func (a *App) MarkChannelsAsViewed(channelIds []string, userId string, clearPush
 						channelsToClearPushNotifications = append(channelsToClearPushNotifications, channelId)
 					}
 				}
-			} else if notify == model.USER_NOTIFY_MENTION {
+			} else if notify == model.USER_NOTIFY_MENTION || channel.Type == model.CHANNEL_DIRECT {
 				if result := <-a.Srv.Store.User().GetUnreadCountForChannel(userId, channelId); result.Err == nil {
-					if result.Data.(int64) > 0 {
+					count := result.Data.(int64)
+					if count > 0 {
 						channelsToClearPushNotifications = append(channelsToClearPushNotifications, channelId)
 					}
 				}
