@@ -152,7 +152,8 @@ func (us SqlBotStore) GetAll(offset, limit int, creatorId string, includeDeleted
 			    Users u ON (u.Id = b.UserId)
 			` + conditionsSql + `
 			ORDER BY
-			    b.CreateAt ASC
+			    b.CreateAt ASC,
+			    u.Username ASC
 			LIMIT
 			    :limit
 			OFFSET
