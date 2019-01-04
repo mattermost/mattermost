@@ -6,6 +6,7 @@ package api4
 import (
 	"net/http"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -27,7 +28,21 @@ func TestCreateUser(t *testing.T) {
 	CheckNoError(t, resp)
 	CheckCreatedStatus(t, resp)
 
-	th.Client.Login(user.Email, user.Password)
+	_, resp = th.Client.Login(user.Email, user.Password)
+	session, _ := th.App.GetSession(th.Client.AuthToken)
+	expectedCsrf := "MMCSRF=" + session.GetCSRF()
+
+	for _, cookie := range resp.Header["Set-Cookie"] {
+		if !strings.HasPrefix(cookie, "MMCSRF") {
+			continue
+		}
+
+		cookieParts := strings.Split(cookie, ";")
+
+		if expectedCsrf != cookieParts[0] {
+			t.Errorf("CSRF Mismatch - Expected %s, got %s", expectedCsrf, cookie)
+		}
+	}
 
 	if ruser.Nickname != user.Nickname {
 		t.Fatal("nickname didn't match")

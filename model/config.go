@@ -280,6 +280,7 @@ type ServiceSettings struct {
 	DEPRECATED_DO_NOT_USE_ImageProxyOptions           *string `json:"ImageProxyOptions"` // This field is deprecated and must not be used.
 	EnableAPITeamDeletion                             *bool
 	ExperimentalEnableHardenedMode                    *bool
+	ExperimentalStrictCSRFEnforcement                 *bool
 	EnableEmailInvitations                            *bool
 	ExperimentalLdapGroupSync                         *bool
 }
@@ -575,6 +576,10 @@ func (s *ServiceSettings) SetDefaults() {
 
 	if s.ExperimentalLdapGroupSync == nil {
 		s.ExperimentalLdapGroupSync = NewBool(false)
+	}
+
+	if s.ExperimentalStrictCSRFEnforcement == nil {
+		s.ExperimentalStrictCSRFEnforcement = NewBool(false)
 	}
 }
 
