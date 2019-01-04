@@ -333,7 +333,7 @@ func modifyOutgoingWebhookCmdF(command *cobra.Command, args []string) error {
 
 	triggerWords, errWords := command.Flags().GetStringArray("trigger-word")
 	if errWords != nil {
-		return errors.New("Error with trigger word or words " + errWords.Error())
+		return errors.Wrap(errWords, "invalid trigger-word parameter")
 	}
 	if len(triggerWords) > 0 {
 		updatedHook.TriggerWords = triggerWords
@@ -364,7 +364,7 @@ func modifyOutgoingWebhookCmdF(command *cobra.Command, args []string) error {
 
 	callbackURLs, errURL := command.Flags().GetStringArray("url")
 	if errURL != nil {
-		return errors.New("Error with callback URL or URLs " + errURL.Error())
+		return errors.Wrap(errURL, "invalid URL parameter")
 	}
 	if len(callbackURLs) > 0 {
 		updatedHook.CallbackURLs = callbackURLs
