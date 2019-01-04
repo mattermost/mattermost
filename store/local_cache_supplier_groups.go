@@ -33,12 +33,12 @@ func (s *LocalCacheSupplier) GroupGet(ctx context.Context, groupID string, hints
 	return result
 }
 
-func (s *LocalCacheSupplier) GroupGetByRemoteID(ctx context.Context, remoteID string, groupType model.GroupType, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	return s.Next().GroupGetByRemoteID(ctx, remoteID, groupType, hints...)
+func (s *LocalCacheSupplier) GroupGetByRemoteID(ctx context.Context, remoteID string, groupSource model.GroupSource, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	return s.Next().GroupGetByRemoteID(ctx, remoteID, groupSource, hints...)
 }
 
-func (s *LocalCacheSupplier) GroupGetAllByType(ctx context.Context, groupType model.GroupType, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	return s.Next().GroupGetAllByType(ctx, groupType, hints...)
+func (s *LocalCacheSupplier) GroupGetAllBySource(ctx context.Context, groupSource model.GroupSource, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	return s.Next().GroupGetAllBySource(ctx, groupSource, hints...)
 }
 
 func (s *LocalCacheSupplier) GroupUpdate(ctx context.Context, group *model.Group, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {

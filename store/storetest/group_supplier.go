@@ -16,7 +16,7 @@ func TestGroupStore(t *testing.T, ss store.Store) {
 	t.Run("Create", func(t *testing.T) { testGroupStoreCreate(t, ss) })
 	t.Run("Get", func(t *testing.T) { testGroupStoreGet(t, ss) })
 	t.Run("GetByRemoteID", func(t *testing.T) { testGroupStoreGetByRemoteID(t, ss) })
-	t.Run("GetAllByType", func(t *testing.T) { testGroupStoreGetAllByType(t, ss) })
+	t.Run("GetAllBySource", func(t *testing.T) { testGroupStoreGetAllByType(t, ss) })
 	t.Run("Update", func(t *testing.T) { testGroupStoreUpdate(t, ss) })
 	t.Run("Delete", func(t *testing.T) { testGroupStoreDelete(t, ss) })
 
@@ -40,7 +40,7 @@ func testGroupStoreCreate(t *testing.T, ss store.Store) {
 	g1 := &model.Group{
 		Name:        model.NewId(),
 		DisplayName: model.NewId(),
-		Type:        model.GroupTypeLdap,
+		Source:      model.GroupSourceLdap,
 		Description: model.NewId(),
 		RemoteId:    model.NewId(),
 	}
@@ -62,7 +62,7 @@ func testGroupStoreCreate(t *testing.T, ss store.Store) {
 	g2 := &model.Group{
 		Name:        "",
 		DisplayName: model.NewId(),
-		Type:        model.GroupTypeLdap,
+		Source:      model.GroupSourceLdap,
 		RemoteId:    model.NewId(),
 	}
 	res2 := <-ss.Group().Create(g2)
@@ -81,7 +81,7 @@ func testGroupStoreCreate(t *testing.T, ss store.Store) {
 	g4 := &model.Group{
 		Name:        model.NewId(),
 		DisplayName: model.NewId(),
-		Type:        model.GroupTypeLdap,
+		Source:      model.GroupSourceLdap,
 		RemoteId:    model.NewId(),
 	}
 	res5 := <-ss.Group().Create(g4)
@@ -89,7 +89,7 @@ func testGroupStoreCreate(t *testing.T, ss store.Store) {
 	g4b := &model.Group{
 		Name:        g4.Name,
 		DisplayName: model.NewId(),
-		Type:        model.GroupTypeLdap,
+		Source:      model.GroupSourceLdap,
 		RemoteId:    model.NewId(),
 	}
 	res5b := <-ss.Group().Create(g4b)
@@ -101,7 +101,7 @@ func testGroupStoreCreate(t *testing.T, ss store.Store) {
 		Name:        strings.Repeat("x", model.GroupNameMaxLength),
 		DisplayName: strings.Repeat("x", model.GroupDisplayNameMaxLength),
 		Description: strings.Repeat("x", model.GroupDescriptionMaxLength),
-		Type:        model.GroupTypeLdap,
+		Source:      model.GroupSourceLdap,
 		RemoteId:    model.NewId(),
 	}
 	assert.Nil(t, g5.IsValidForCreate())
@@ -126,10 +126,10 @@ func testGroupStoreCreate(t *testing.T, ss store.Store) {
 		Name:        model.NewId(),
 		DisplayName: model.NewId(),
 		Description: model.NewId(),
-		Type:        model.GroupType("fake"),
+		Source:      model.GroupSource("fake"),
 		RemoteId:    model.NewId(),
 	}
-	assert.Equal(t, g6.IsValidForCreate().Id, "model.group.type.app_error")
+	assert.Equal(t, g6.IsValidForCreate().Id, "model.group.source.app_error")
 }
 
 func testGroupStoreGet(t *testing.T, ss store.Store) {
@@ -138,7 +138,7 @@ func testGroupStoreGet(t *testing.T, ss store.Store) {
 		Name:        model.NewId(),
 		DisplayName: model.NewId(),
 		Description: model.NewId(),
-		Type:        model.GroupTypeLdap,
+		Source:      model.GroupSourceLdap,
 		RemoteId:    model.NewId(),
 	}
 	res1 := <-ss.Group().Create(g1)
@@ -171,7 +171,7 @@ func testGroupStoreGetByRemoteID(t *testing.T, ss store.Store) {
 		Name:        model.NewId(),
 		DisplayName: model.NewId(),
 		Description: model.NewId(),
-		Type:        model.GroupTypeLdap,
+		Source:      model.GroupSourceLdap,
 		RemoteId:    model.NewId(),
 	}
 	res1 := <-ss.Group().Create(g1)
@@ -180,7 +180,7 @@ func testGroupStoreGetByRemoteID(t *testing.T, ss store.Store) {
 	assert.Len(t, d1.Id, 26)
 
 	// Get the group
-	res2 := <-ss.Group().GetByRemoteID(d1.RemoteId, model.GroupTypeLdap)
+	res2 := <-ss.Group().GetByRemoteID(d1.RemoteId, model.GroupSourceLdap)
 	assert.Nil(t, res2.Err)
 	d2 := res2.Data.(*model.Group)
 	assert.Equal(t, d1.Id, d2.Id)
@@ -193,7 +193,7 @@ func testGroupStoreGetByRemoteID(t *testing.T, ss store.Store) {
 	assert.Equal(t, d1.DeleteAt, d2.DeleteAt)
 
 	// Get an invalid group
-	res3 := <-ss.Group().GetByRemoteID(model.NewId(), model.GroupType("fake"))
+	res3 := <-ss.Group().GetByRemoteID(model.NewId(), model.GroupSource("fake"))
 	assert.NotNil(t, res3.Err)
 	assert.Equal(t, res3.Err.Id, "store.sql_group.no_rows")
 }
@@ -209,7 +209,7 @@ func testGroupStoreGetAllByType(t *testing.T, ss store.Store) {
 			Name:        model.NewId(),
 			DisplayName: model.NewId(),
 			Description: model.NewId(),
-			Type:        model.GroupTypeLdap,
+			Source:      model.GroupSourceLdap,
 			RemoteId:    model.NewId(),
 		}
 		groups = append(groups, g)
@@ -218,7 +218,7 @@ func testGroupStoreGetAllByType(t *testing.T, ss store.Store) {
 	}
 
 	// Returns all the groups
-	res1 := <-ss.Group().GetAllByType(model.GroupTypeLdap)
+	res1 := <-ss.Group().GetAllBySource(model.GroupSourceLdap)
 	d1 := res1.Data.([]*model.Group)
 	assert.Condition(t, func() bool { return len(d1) >= numGroups })
 	for _, expectedGroup := range groups {
@@ -238,7 +238,7 @@ func testGroupStoreUpdate(t *testing.T, ss store.Store) {
 	g1 := &model.Group{
 		Name:        "g1-test",
 		DisplayName: model.NewId(),
-		Type:        model.GroupTypeLdap,
+		Source:      model.GroupSourceLdap,
 		Description: model.NewId(),
 		RemoteId:    model.NewId(),
 	}
@@ -262,7 +262,7 @@ func testGroupStoreUpdate(t *testing.T, ss store.Store) {
 	// Not changed...
 	assert.Equal(t, d1.Id, ud1.Id)
 	assert.Equal(t, d1.CreateAt, ud1.CreateAt)
-	assert.Equal(t, d1.Type, ud1.Type)
+	assert.Equal(t, d1.Source, ud1.Source)
 	// Still zero...
 	assert.Zero(t, ud1.DeleteAt)
 	// Updated...
@@ -277,7 +277,7 @@ func testGroupStoreUpdate(t *testing.T, ss store.Store) {
 		Id:          d1.Id,
 		Name:        "",
 		DisplayName: model.NewId(),
-		Type:        model.GroupTypeLdap,
+		Source:      model.GroupSourceLdap,
 		RemoteId:    model.NewId(),
 		Description: model.NewId(),
 	})
@@ -289,7 +289,7 @@ func testGroupStoreUpdate(t *testing.T, ss store.Store) {
 		Id:          d1.Id,
 		Name:        model.NewId(),
 		DisplayName: "",
-		Type:        model.GroupTypeLdap,
+		Source:      model.GroupSourceLdap,
 		RemoteId:    model.NewId(),
 	})
 	assert.Nil(t, res4.Data)
@@ -300,7 +300,7 @@ func testGroupStoreUpdate(t *testing.T, ss store.Store) {
 	g2 := &model.Group{
 		Name:        model.NewId(),
 		DisplayName: model.NewId(),
-		Type:        model.GroupTypeLdap,
+		Source:      model.GroupSourceLdap,
 		Description: model.NewId(),
 		RemoteId:    model.NewId(),
 	}
@@ -313,7 +313,7 @@ func testGroupStoreUpdate(t *testing.T, ss store.Store) {
 		Id:          d2.Id,
 		Name:        g1Update.Name,
 		DisplayName: model.NewId(),
-		Type:        model.GroupTypeLdap,
+		Source:      model.GroupSourceLdap,
 		Description: model.NewId(),
 		RemoteId:    model.NewId(),
 	})
@@ -345,7 +345,7 @@ func testGroupStoreDelete(t *testing.T, ss store.Store) {
 		Name:        model.NewId(),
 		DisplayName: model.NewId(),
 		Description: model.NewId(),
-		Type:        model.GroupTypeLdap,
+		Source:      model.GroupSourceLdap,
 		RemoteId:    model.NewId(),
 	}
 
@@ -359,7 +359,7 @@ func testGroupStoreDelete(t *testing.T, ss store.Store) {
 	assert.Nil(t, res2.Err)
 
 	// Get the before count
-	res7 := <-ss.Group().GetAllByType(model.GroupTypeLdap)
+	res7 := <-ss.Group().GetAllBySource(model.GroupSourceLdap)
 	d7 := res7.Data.([]*model.Group)
 	beforeCount := len(d7)
 
@@ -373,7 +373,7 @@ func testGroupStoreDelete(t *testing.T, ss store.Store) {
 	assert.NotZero(t, d4.DeleteAt)
 
 	// Check the after count
-	res5 := <-ss.Group().GetAllByType(model.GroupTypeLdap)
+	res5 := <-ss.Group().GetAllBySource(model.GroupSourceLdap)
 	d5 := res5.Data.([]*model.Group)
 	afterCount := len(d5)
 	assert.Condition(t, func() bool { return beforeCount == afterCount+1 })
@@ -394,7 +394,7 @@ func testGroupGetMemberUsers(t *testing.T, ss store.Store) {
 		Name:        model.NewId(),
 		DisplayName: model.NewId(),
 		Description: model.NewId(),
-		Type:        model.GroupTypeLdap,
+		Source:      model.GroupSourceLdap,
 		RemoteId:    model.NewId(),
 	}
 	res := <-ss.Group().Create(g1)
@@ -448,7 +448,7 @@ func testGroupGetMemberUsersPage(t *testing.T, ss store.Store) {
 		Name:        model.NewId(),
 		DisplayName: model.NewId(),
 		Description: model.NewId(),
-		Type:        model.GroupTypeLdap,
+		Source:      model.GroupSourceLdap,
 		RemoteId:    model.NewId(),
 	}
 	res := <-ss.Group().Create(g1)
@@ -515,7 +515,7 @@ func testGroupCreateOrRestoreMember(t *testing.T, ss store.Store) {
 	g1 := &model.Group{
 		Name:        model.NewId(),
 		DisplayName: model.NewId(),
-		Type:        model.GroupTypeLdap,
+		Source:      model.GroupSourceLdap,
 		RemoteId:    model.NewId(),
 	}
 	res1 := <-ss.Group().Create(g1)
@@ -576,7 +576,7 @@ func testGroupDeleteMember(t *testing.T, ss store.Store) {
 	g1 := &model.Group{
 		Name:        model.NewId(),
 		DisplayName: model.NewId(),
-		Type:        model.GroupTypeLdap,
+		Source:      model.GroupSourceLdap,
 		RemoteId:    model.NewId(),
 	}
 	res1 := <-ss.Group().Create(g1)
@@ -643,7 +643,7 @@ func testCreateGroupSyncable(t *testing.T, ss store.Store) {
 	g1 := &model.Group{
 		Name:        model.NewId(),
 		DisplayName: model.NewId(),
-		Type:        model.GroupTypeLdap,
+		Source:      model.GroupSourceLdap,
 		RemoteId:    model.NewId(),
 	}
 	res4 := <-ss.Group().Create(g1)
@@ -690,7 +690,7 @@ func testGetGroupSyncable(t *testing.T, ss store.Store) {
 		Name:        model.NewId(),
 		DisplayName: model.NewId(),
 		Description: model.NewId(),
-		Type:        model.GroupTypeLdap,
+		Source:      model.GroupSourceLdap,
 		RemoteId:    model.NewId(),
 	}
 	res1 := <-ss.Group().Create(g1)
@@ -745,7 +745,7 @@ func testGetAllGroupSyncablesByGroup(t *testing.T, ss store.Store) {
 		Name:        model.NewId(),
 		DisplayName: model.NewId(),
 		Description: model.NewId(),
-		Type:        model.GroupTypeLdap,
+		Source:      model.GroupSourceLdap,
 		RemoteId:    model.NewId(),
 	}
 	res1 := <-ss.Group().Create(g)
@@ -804,7 +804,7 @@ func testUpdateGroupSyncable(t *testing.T, ss store.Store) {
 	g1 := &model.Group{
 		Name:        model.NewId(),
 		DisplayName: model.NewId(),
-		Type:        model.GroupTypeLdap,
+		Source:      model.GroupSourceLdap,
 		RemoteId:    model.NewId(),
 	}
 	res4 := <-ss.Group().Create(g1)
@@ -903,7 +903,7 @@ func testDeleteGroupSyncable(t *testing.T, ss store.Store) {
 	g1 := &model.Group{
 		Name:        model.NewId(),
 		DisplayName: model.NewId(),
-		Type:        model.GroupTypeLdap,
+		Source:      model.GroupSourceLdap,
 		RemoteId:    model.NewId(),
 	}
 	res1 := <-ss.Group().Create(g1)
@@ -969,7 +969,7 @@ func testPendingAutoAddTeamMembers(t *testing.T, ss store.Store) {
 		Name:        model.NewId(),
 		DisplayName: "PendingAutoAddTeamMembers Test Group",
 		RemoteId:    model.NewId(),
-		Type:        model.GroupTypeLdap,
+		Source:      model.GroupSourceLdap,
 	})
 	assert.Nil(t, res.Err)
 	group := res.Data.(*model.Group)
@@ -1144,7 +1144,7 @@ func testPendingAutoAddChannelMembers(t *testing.T, ss store.Store) {
 		Name:        model.NewId(),
 		DisplayName: "PendingAutoAddChannelMembers Test Group",
 		RemoteId:    model.NewId(),
-		Type:        model.GroupTypeLdap,
+		Source:      model.GroupSourceLdap,
 	})
 	assert.Nil(t, res.Err)
 	group := res.Data.(*model.Group)

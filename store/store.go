@@ -543,8 +543,8 @@ type UserTermsOfServiceStore interface {
 type GroupStore interface {
 	Create(group *model.Group) StoreChannel
 	Get(groupID string) StoreChannel
-	GetByRemoteID(remoteID string, groupType model.GroupType) StoreChannel
-	GetAllByType(groupType model.GroupType) StoreChannel
+	GetByRemoteID(remoteID string, groupSource model.GroupSource) StoreChannel
+	GetAllBySource(groupSource model.GroupSource) StoreChannel
 	Update(group *model.Group) StoreChannel
 	Delete(groupID string) StoreChannel
 

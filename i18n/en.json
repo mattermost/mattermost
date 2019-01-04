@@ -6815,8 +6815,12 @@
     "translation": "invalid remote id property for group"
   },
   {
-    "id": "model.group.type.app_error",
-    "translation": "invalid type property for group"
+    "id": "model.group.source.app_error",
+    "translation": "invalid source property for group"
+  },
+  {
+    "id": "model.group_syncable.type.app_error",
+    "translation": "invalid type property for group syncable"
   },
   {
     "id": "model.group.update_at.app_error",

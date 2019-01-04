@@ -19,14 +19,14 @@ func (s *RedisSupplier) GroupGet(ctx context.Context, groupID string, hints ...L
 	return s.Next().GroupGet(ctx, groupID, hints...)
 }
 
-func (s *RedisSupplier) GroupGetByRemoteID(ctx context.Context, remoteID string, groupType model.GroupType, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+func (s *RedisSupplier) GroupGetByRemoteID(ctx context.Context, remoteID string, groupSource model.GroupSource, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
 	// TODO: Redis caching.
-	return s.Next().GroupGetByRemoteID(ctx, remoteID, groupType, hints...)
+	return s.Next().GroupGetByRemoteID(ctx, remoteID, groupSource, hints...)
 }
 
-func (s *RedisSupplier) GroupGetAllByType(ctx context.Context, groupType model.GroupType, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+func (s *RedisSupplier) GroupGetAllBySource(ctx context.Context, groupSource model.GroupSource, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
 	// TODO: Redis caching.
-	return s.Next().GroupGetAllByType(ctx, groupType, hints...)
+	return s.Next().GroupGetAllBySource(ctx, groupSource, hints...)
 }
 
 func (s *RedisSupplier) GroupUpdate(ctx context.Context, group *model.Group, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {

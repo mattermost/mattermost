@@ -21,7 +21,7 @@ func TestGetGroup(t *testing.T) {
 	g, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
 		Name:        "name" + id,
-		Type:        model.GroupTypeLdap,
+		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
 	})
@@ -40,7 +40,7 @@ func TestGetGroup(t *testing.T) {
 
 	assert.Equal(t, g.DisplayName, group.DisplayName)
 	assert.Equal(t, g.Name, group.Name)
-	assert.Equal(t, g.Type, group.Type)
+	assert.Equal(t, g.Source, group.Source)
 	assert.Equal(t, g.Description, group.Description)
 	assert.Equal(t, g.RemoteId, group.RemoteId)
 	assert.Equal(t, g.CreateAt, group.CreateAt)
@@ -66,7 +66,7 @@ func TestPatchGroup(t *testing.T) {
 	g, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
 		Name:        "name" + id,
-		Type:        model.GroupTypeLdap,
+		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
 	})
@@ -107,8 +107,8 @@ func TestPatchGroup(t *testing.T) {
 
 	assert.Equal(t, group2.UpdateAt, group.UpdateAt)
 
-	assert.Equal(t, g.Type, group.Type)
-	assert.Equal(t, g.Type, group2.Type)
+	assert.Equal(t, g.Source, group.Source)
+	assert.Equal(t, g.Source, group2.Source)
 	assert.Equal(t, g.RemoteId, group.RemoteId)
 	assert.Equal(t, g.RemoteId, group2.RemoteId)
 	assert.Equal(t, g.CreateAt, group.CreateAt)
@@ -132,7 +132,7 @@ func TestLinkGroupTeam(t *testing.T) {
 	g, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
 		Name:        "name" + id,
-		Type:        model.GroupTypeLdap,
+		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
 	})
@@ -164,7 +164,7 @@ func TestLinkGroupChannel(t *testing.T) {
 	g, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
 		Name:        "name" + id,
-		Type:        model.GroupTypeLdap,
+		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
 	})
@@ -195,7 +195,7 @@ func TestUnlinkGroupTeam(t *testing.T) {
 	g, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
 		Name:        "name" + id,
-		Type:        model.GroupTypeLdap,
+		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
 	})
@@ -233,7 +233,7 @@ func TestUnlinkGroupChannel(t *testing.T) {
 	g, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
 		Name:        "name" + id,
-		Type:        model.GroupTypeLdap,
+		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
 	})
@@ -271,7 +271,7 @@ func TestGetGroupTeam(t *testing.T) {
 	g, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
 		Name:        "name" + id,
-		Type:        model.GroupTypeLdap,
+		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
 	})
@@ -327,7 +327,7 @@ func TestGetGroupChannel(t *testing.T) {
 	g, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
 		Name:        "name" + id,
-		Type:        model.GroupTypeLdap,
+		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
 	})
@@ -383,7 +383,7 @@ func TestGetGroupTeams(t *testing.T) {
 	g, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
 		Name:        "name" + id,
-		Type:        model.GroupTypeLdap,
+		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
 	})
@@ -433,7 +433,7 @@ func TestGetGroupChannels(t *testing.T) {
 	g, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
 		Name:        "name" + id,
-		Type:        model.GroupTypeLdap,
+		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
 	})
@@ -483,7 +483,7 @@ func TestPatchGroupTeam(t *testing.T) {
 	g, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
 		Name:        "name" + id,
-		Type:        model.GroupTypeLdap,
+		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
 	})
@@ -519,7 +519,7 @@ func TestPatchGroupTeam(t *testing.T) {
 
 	assert.Equal(t, g.Id, groupSyncable.GroupId)
 	assert.Equal(t, th.BasicTeam.Id, groupSyncable.SyncableId)
-	assert.Equal(t, model.GroupSyncableTypeTeam, groupSyncable.Type)
+	assert.Equal(t, model.GroupSyncableTypeTeam, groupSyncable.Source)
 
 	patch.CanLeave = model.NewBool(false)
 	_, response = th.SystemAdminClient.PatchGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
@@ -555,7 +555,7 @@ func TestPatchGroupChannel(t *testing.T) {
 	g, err := th.App.CreateGroup(&model.Group{
 		DisplayName: "dn_" + id,
 		Name:        "name" + id,
-		Type:        model.GroupTypeLdap,
+		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
 	})
@@ -591,7 +591,7 @@ func TestPatchGroupChannel(t *testing.T) {
 
 	assert.Equal(t, g.Id, groupSyncable.GroupId)
 	assert.Equal(t, th.BasicChannel.Id, groupSyncable.SyncableId)
-	assert.Equal(t, model.GroupSyncableTypeChannel, groupSyncable.Type)
+	assert.Equal(t, model.GroupSyncableTypeChannel, groupSyncable.Source)
 
 	patch.CanLeave = model.NewBool(false)
 	_, response = th.SystemAdminClient.PatchGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)

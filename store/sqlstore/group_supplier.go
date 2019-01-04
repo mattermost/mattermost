@@ -45,9 +45,9 @@ func initSqlSupplierGroups(sqlStore SqlStore) {
 		groups.ColMap("Name").SetMaxSize(model.GroupNameMaxLength).SetUnique(true)
 		groups.ColMap("DisplayName").SetMaxSize(model.GroupDisplayNameMaxLength)
 		groups.ColMap("Description").SetMaxSize(model.GroupDescriptionMaxLength)
-		groups.ColMap("Type").SetMaxSize(model.GroupTypeMaxLength)
+		groups.ColMap("Source").SetMaxSize(model.GroupSourceMaxLength)
 		groups.ColMap("RemoteId").SetMaxSize(model.GroupRemoteIDMaxLength)
-		groups.SetUniqueTogether("Type", "RemoteId")
+		groups.SetUniqueTogether("Source", "RemoteId")
 
 		groupMembers := db.AddTableWithName(model.GroupMember{}, "GroupMembers").SetKeys(false, "GroupId", "UserId")
 		groupMembers.ColMap("GroupId").SetMaxSize(26)
@@ -115,11 +115,11 @@ func (s *SqlSupplier) GroupGet(ctx context.Context, groupId string, hints ...sto
 	return result
 }
 
-func (s *SqlSupplier) GroupGetByRemoteID(ctx context.Context, remoteID string, groupType model.GroupType, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+func (s *SqlSupplier) GroupGetByRemoteID(ctx context.Context, remoteID string, groupSource model.GroupSource, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	result := store.NewSupplierResult()
 
 	var group *model.Group
-	if err := s.GetReplica().SelectOne(&group, "SELECT * from UserGroups WHERE RemoteId = :RemoteId AND Type = :Type", map[string]interface{}{"RemoteId": remoteID, "Type": groupType}); err != nil {
+	if err := s.GetReplica().SelectOne(&group, "SELECT * from UserGroups WHERE RemoteId = :RemoteId AND Source = :Source", map[string]interface{}{"RemoteId": remoteID, "Source": groupSource}); err != nil {
 		if err == sql.ErrNoRows {
 			// This AppError's details may be compared against in a call to GroupGetByRemoteID, so don't change it.
 			result.Err = model.NewAppError("SqlGroupStore.GroupGetByRemoteID", "store.sql_group.no_rows", nil, err.Error(), http.StatusNotFound)
@@ -133,13 +133,13 @@ func (s *SqlSupplier) GroupGetByRemoteID(ctx context.Context, remoteID string, g
 	return result
 }
 
-func (s *SqlSupplier) GroupGetAllByType(ctx context.Context, groupType model.GroupType, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+func (s *SqlSupplier) GroupGetAllBySource(ctx context.Context, groupSource model.GroupSource, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	result := store.NewSupplierResult()
 
 	var groups []*model.Group
 
-	if _, err := s.GetReplica().Select(&groups, "SELECT * from UserGroups WHERE DeleteAt = 0 AND Type = :Type", map[string]interface{}{"Type": groupType}); err != nil {
-		result.Err = model.NewAppError("SqlGroupStore.GroupGetAllByType", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+	if _, err := s.GetReplica().Select(&groups, "SELECT * from UserGroups WHERE DeleteAt = 0 AND Source = :Source", map[string]interface{}{"Source": groupSource}); err != nil {
+		result.Err = model.NewAppError("SqlGroupStore.GroupGetAllBySource", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
 		return result
 	}
 
@@ -233,7 +233,7 @@ func (s *SqlSupplier) GroupGetMemberUsers(stc context.Context, groupID string, h
 			AND GroupId = :GroupId`
 
 	if _, err := s.GetReplica().Select(&groupMembers, query, map[string]interface{}{"GroupId": groupID}); err != nil {
-		result.Err = model.NewAppError("SqlGroupStore.GroupGetAllByType", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+		result.Err = model.NewAppError("SqlGroupStore.GroupGetAllBySource", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
 		return result
 	}
 
@@ -414,7 +414,7 @@ func (s *SqlSupplier) GroupCreateGroupSyncable(ctx context.Context, groupSyncabl
 
 		err = s.GetMaster().Insert(groupSyncableToGroupChannel(groupSyncable))
 	default:
-		result.Err = model.NewAppError("SqlGroupStore.GroupCreateGroupSyncable", "model.group.type.app_error", nil, "group_id="+groupSyncable.GroupId+", syncable_id="+groupSyncable.SyncableId+", "+err.Error(), http.StatusInternalServerError)
+		result.Err = model.NewAppError("SqlGroupStore.GroupCreateGroupSyncable", "model.group_syncable.type.app_error", nil, "group_id="+groupSyncable.GroupId+", syncable_id="+groupSyncable.SyncableId+", "+err.Error(), http.StatusInternalServerError)
 		return result
 	}
 
@@ -624,7 +624,7 @@ func (s *SqlSupplier) GroupUpdateGroupSyncable(ctx context.Context, groupSyncabl
 	case model.GroupSyncableTypeChannel:
 		_, err = s.GetMaster().Update(groupSyncableToGroupChannel(groupSyncable))
 	default:
-		model.NewAppError("SqlGroupStore.GroupUpdateGroupSyncable", "model.group.type.app_error", nil, "group_id="+groupSyncable.GroupId+", syncable_id="+groupSyncable.SyncableId+", "+err.Error(), http.StatusInternalServerError)
+		model.NewAppError("SqlGroupStore.GroupUpdateGroupSyncable", "model.group_syncable.type.app_error", nil, "group_id="+groupSyncable.GroupId+", syncable_id="+groupSyncable.SyncableId+", "+err.Error(), http.StatusInternalServerError)
 		return result
 	}
 
@@ -665,7 +665,7 @@ func (s *SqlSupplier) GroupDeleteGroupSyncable(ctx context.Context, groupID stri
 	case model.GroupSyncableTypeChannel:
 		_, err = s.GetMaster().Update(groupSyncableToGroupChannel(groupSyncable))
 	default:
-		model.NewAppError("SqlGroupStore.GroupDeleteGroupSyncable", "model.group.type.app_error", nil, "group_id="+groupSyncable.GroupId+", syncable_id="+groupSyncable.SyncableId+", "+err.Error(), http.StatusInternalServerError)
+		model.NewAppError("SqlGroupStore.GroupDeleteGroupSyncable", "model.group_syncable.type.app_error", nil, "group_id="+groupSyncable.GroupId+", syncable_id="+groupSyncable.SyncableId+", "+err.Error(), http.StatusInternalServerError)
 		return result
 	}
 

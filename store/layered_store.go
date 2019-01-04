@@ -356,15 +356,15 @@ func (s *LayeredGroupStore) Get(groupID string) StoreChannel {
 	})
 }
 
-func (s *LayeredGroupStore) GetByRemoteID(remoteID string, groupType model.GroupType) StoreChannel {
+func (s *LayeredGroupStore) GetByRemoteID(remoteID string, groupSource model.GroupSource) StoreChannel {
 	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.GroupGetByRemoteID(s.TmpContext, remoteID, groupType)
+		return supplier.GroupGetByRemoteID(s.TmpContext, remoteID, groupSource)
 	})
 }
 
-func (s *LayeredGroupStore) GetAllByType(groupType model.GroupType) StoreChannel {
+func (s *LayeredGroupStore) GetAllBySource(groupSource model.GroupSource) StoreChannel {
 	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.GroupGetAllByType(s.TmpContext, groupType)
+		return supplier.GroupGetAllBySource(s.TmpContext, groupSource)
 	})
 }
 

@@ -345,20 +345,20 @@ func (_m *LayeredStoreDatabaseLayer) GroupGet(ctx context.Context, groupID strin
 	return r0
 }
 
-// GroupGetAllByType provides a mock function with given fields: ctx, groupType, hints
-func (_m *LayeredStoreDatabaseLayer) GroupGetAllByType(ctx context.Context, groupType model.GroupType, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+// GroupGetAllBySource provides a mock function with given fields: ctx, groupSource, hints
+func (_m *LayeredStoreDatabaseLayer) GroupGetAllBySource(ctx context.Context, groupSource model.GroupSource, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	_va := make([]interface{}, len(hints))
 	for _i := range hints {
 		_va[_i] = hints[_i]
 	}
 	var _ca []interface{}
-	_ca = append(_ca, ctx, groupType)
+	_ca = append(_ca, ctx, groupSource)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
 	var r0 *store.LayeredStoreSupplierResult
-	if rf, ok := ret.Get(0).(func(context.Context, model.GroupType, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
-		r0 = rf(ctx, groupType, hints...)
+	if rf, ok := ret.Get(0).(func(context.Context, model.GroupSource, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
+		r0 = rf(ctx, groupSource, hints...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*store.LayeredStoreSupplierResult)
@@ -391,20 +391,20 @@ func (_m *LayeredStoreDatabaseLayer) GroupGetAllGroupSyncablesByGroup(ctx contex
 	return r0
 }
 
-// GroupGetByRemoteID provides a mock function with given fields: ctx, remoteID, groupType, hints
-func (_m *LayeredStoreDatabaseLayer) GroupGetByRemoteID(ctx context.Context, remoteID string, groupType model.GroupType, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+// GroupGetByRemoteID provides a mock function with given fields: ctx, remoteID, groupSource, hints
+func (_m *LayeredStoreDatabaseLayer) GroupGetByRemoteID(ctx context.Context, remoteID string, groupSource model.GroupSource, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	_va := make([]interface{}, len(hints))
 	for _i := range hints {
 		_va[_i] = hints[_i]
 	}
 	var _ca []interface{}
-	_ca = append(_ca, ctx, remoteID, groupType)
+	_ca = append(_ca, ctx, remoteID, groupSource)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
 	var r0 *store.LayeredStoreSupplierResult
-	if rf, ok := ret.Get(0).(func(context.Context, string, model.GroupType, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
-		r0 = rf(ctx, remoteID, groupType, hints...)
+	if rf, ok := ret.Get(0).(func(context.Context, string, model.GroupSource, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
+		r0 = rf(ctx, remoteID, groupSource, hints...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*store.LayeredStoreSupplierResult)

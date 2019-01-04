@@ -348,7 +348,7 @@ func (me *TestHelper) CreateGroup() *model.Group {
 	group := &model.Group{
 		DisplayName: "dn_" + id,
 		Name:        "name" + id,
-		Type:        model.GroupTypeLdap,
+		Source:      model.GroupSourceLdap,
 		Description: "description_" + id,
 		RemoteId:    model.NewId(),
 	}

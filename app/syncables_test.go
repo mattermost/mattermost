@@ -54,7 +54,7 @@ func TestPopulateSyncablesSince(t *testing.T) {
 		Name:        model.NewId(),
 		DisplayName: "Glee Club",
 		RemoteId:    model.NewId(),
-		Type:        model.GroupTypeLdap,
+		Source:      model.GroupSourceLdap,
 	})
 	if err != nil {
 		t.Errorf("test group not created: %s", err.Error())
@@ -64,7 +64,7 @@ func TestPopulateSyncablesSince(t *testing.T) {
 		Name:        model.NewId(),
 		DisplayName: "Science Club",
 		RemoteId:    model.NewId(),
-		Type:        model.GroupTypeLdap,
+		Source:      model.GroupSourceLdap,
 	})
 	if err != nil {
 		t.Errorf("test group not created: %s", err.Error())

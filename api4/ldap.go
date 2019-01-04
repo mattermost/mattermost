@@ -126,7 +126,7 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group, err := c.App.GetGroupByRemoteID(ldapGroup.RemoteId, model.GroupTypeLdap)
+	group, err := c.App.GetGroupByRemoteID(ldapGroup.RemoteId, model.GroupSourceLdap)
 	if err != nil && err.DetailedError != sql.ErrNoRows.Error() {
 		c.Err = err
 		return
@@ -160,7 +160,7 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 			Name:        model.NewId(),
 			DisplayName: ldapGroup.DisplayName,
 			RemoteId:    ldapGroup.RemoteId,
-			Type:        model.GroupTypeLdap,
+			Source:      model.GroupSourceLdap,
 		}
 		newOrUpdatedGroup, err = c.App.CreateGroup(newGroup)
 		if err != nil {
@@ -196,7 +196,7 @@ func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	group, err := c.App.GetGroupByRemoteID(c.Params.RemoteId, model.GroupTypeLdap)
+	group, err := c.App.GetGroupByRemoteID(c.Params.RemoteId, model.GroupSourceLdap)
 	if err != nil {
 		c.Err = err
 		return
