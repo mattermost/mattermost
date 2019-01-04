@@ -1600,14 +1600,14 @@ func (a *App) MarkChannelsAsViewed(channelIds []string, userId string, clearPush
 	channelsToClearPushNotifications := []string{}
 	if *a.Config().EmailSettings.SendPushNotifications && clearPushNotifications {
 		for _, channelId := range channelIds {
-			result := <-a.Srv.Store.Channel().Get(channelId, true)
-			if result.Err != nil {
-				mlog.Warn(fmt.Sprintf("Failed to get channel %v", result.Err))
+			chanResult := <-a.Srv.Store.Channel().Get(channelId, true)
+			if chanResult.Err != nil {
+				mlog.Warn(fmt.Sprintf("Failed to get channel %v", chanResult.Err))
 				continue
 			}
-			channel := result.Data.(*model.Channel)
+			channel := chanResult.Data.(*model.Channel)
 
-			result = <-a.Srv.Store.Channel().GetMember(channelId, userId)
+			result := <-a.Srv.Store.Channel().GetMember(channelId, userId)
 			if result.Err != nil {
 				mlog.Warn(fmt.Sprintf("Failed to get membership %v", result.Err))
 				continue
