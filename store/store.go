@@ -481,6 +481,7 @@ type ReactionStore interface {
 	GetForPost(postId string, allowFromCache bool) StoreChannel
 	DeleteAllWithEmojiName(emojiName string) StoreChannel
 	PermanentDeleteBatch(endTime int64, limit int64) StoreChannel
+	BulkGetForPosts(postIds []string) StoreChannel
 }
 
 type JobStore interface {

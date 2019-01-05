@@ -538,11 +538,9 @@ func UpgradeDatabaseToVersion56(sqlStore SqlStore) {
 }
 
 func UpgradeDatabaseToVersion57(sqlStore SqlStore) {
-	// TODO: Uncomment following condition when version 5.7.0 is released
-	// if shouldPerformUpgrade(sqlStore, VERSION_5_6_0, VERSION_5_7_0) {
-
-	// 	saveSchemaVersion(sqlStore, VERSION_5_7_0)
-	// }
+	if shouldPerformUpgrade(sqlStore, VERSION_5_6_0, VERSION_5_7_0) {
+		saveSchemaVersion(sqlStore, VERSION_5_7_0)
+	}
 }
 
 func UpgradeDatabaseToVersion58(sqlStore SqlStore) {
