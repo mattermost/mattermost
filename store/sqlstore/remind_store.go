@@ -6,11 +6,11 @@ package sqlstore
 import (
 	"database/sql"
 	"fmt"
-	"net/http"
-
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
+	"net/http"
+	"strings"
 )
 
 type SqlRemindStore struct {
@@ -107,7 +107,6 @@ func (s SqlRemindStore) GetByTime(time string) store.StoreChannel {
 			&occurrences,
 			query,
 			map[string]interface{}{"Occurrence": time}); err != nil {
-			mlog.Error(err.Error())
 			result.Err = model.NewAppError("SqlRemindStore.GetByTime", "store.sql_remind.get_by_time.app_error", nil, "time="+fmt.Sprintf("%v", time)+", "+err.Error(), http.StatusInternalServerError)
 		}
 		result.Data = occurrences
@@ -117,18 +116,40 @@ func (s SqlRemindStore) GetByTime(time string) store.StoreChannel {
 func (s SqlRemindStore) GetByChannel(channel string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 
-		//TODO select from reminders, then select occurrences
-		//		query := "SELECT * FROM Occurrences WHERE Occurrence = :Occurrence or Snoozed = :Occurrence"
-		//
-		//		var occurrences model.Occurrences
-		//		if _, err := s.GetReplica().Select(
-		//			&occurrences,
-		//			query,
-		//			map[string]interface{}{"Occurrence": time}); err != nil {
-		//			mlog.Error(err.Error())
-		//			result.Err = model.NewAppError("SqlRemindStore.GetByTime", "store.sql_remind.get_by_time.app_error", nil, "time="+fmt.Sprintf("%v", time)+", "+err.Error(), http.StatusInternalServerError)
-		//		}
-		//		result.Data = occurrences
+		var channelReminders model.ChannelReminders
+
+		query := "SELECT * FROM Reminders WHERE Target = :Target"
+		var reminders []model.Reminder
+		if _, err := s.GetReplica().Select(
+			&reminders,
+			query,
+			map[string]interface{}{"Target": channel}); err != nil {
+			result.Err = model.NewAppError("SqlRemindStore.GetByChannel", "store.sql_remind.get_by_channel.app_error", nil, "Target="+channel+", "+err.Error(), http.StatusInternalServerError)
+		}
+		channelReminders.Reminders = reminders
+
+		//TODO figure out select IN.  list len > 1 returns nothing.  len == 1 returns 1.
+
+		var reminderIds []string
+		for i, reminder := range reminders {
+			if i > 0 {
+				continue
+			}
+			reminderIds = append(reminderIds, reminder.Id)
+		}
+		mlog.Info(strings.Join(reminderIds, ","))
+
+		query = "SELECT * from Occurrences WHERE ReminderId IN (:ReminderIds)"
+		var occurrences []model.Occurrence
+		if _, err := s.GetReplica().Select(
+			&occurrences,
+			query,
+			map[string]interface{}{"ReminderIds": strings.Join(reminderIds, ",")}); err != nil {
+			result.Err = model.NewAppError("SqlRemindStore.GetByChannel", "store.sql_remind.get_by_channel.app_error", nil, "Target="+channel+", "+err.Error(), http.StatusInternalServerError)
+		}
+		channelReminders.Occurrences = occurrences
+
+		result.Data = channelReminders
 	})
 }
 

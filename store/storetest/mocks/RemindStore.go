@@ -61,6 +61,22 @@ func (_m *RemindStore) DeleteForUser(userId string) store.StoreChannel {
 	return r0
 }
 
+// GetByChannel provides a mock function with given fields: channel
+func (_m *RemindStore) GetByChannel(channel string) store.StoreChannel {
+	ret := _m.Called(channel)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+		r0 = rf(channel)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // GetByReminder provides a mock function with given fields: reminderId
 func (_m *RemindStore) GetByReminder(reminderId string) store.StoreChannel {
 	ret := _m.Called(reminderId)

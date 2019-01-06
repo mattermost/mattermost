@@ -46,6 +46,11 @@ type ReminderRequest struct {
 	Occurrences Occurrences `json:"occurrences"`
 }
 
+type ChannelReminders struct {
+	Reminders   []Reminder
+	Occurrences []Occurrence
+}
+
 func (r *Reminder) ToJson() string {
 	b, _ := json.Marshal(r)
 	return string(b)
@@ -75,6 +80,17 @@ func (r *ReminderRequest) ToJson() string {
 
 func ReminderRequestFromJson(data io.Reader) *ReminderRequest {
 	var r *ReminderRequest
+	json.NewDecoder(data).Decode(&r)
+	return r
+}
+
+func (r *ChannelReminders) ToJson() string {
+	b, _ := json.Marshal(r)
+	return string(b)
+}
+
+func ChannelRemindersFromJson(data io.Reader) *ChannelReminders {
+	var r *ChannelReminders
 	json.NewDecoder(data).Decode(&r)
 	return r
 }

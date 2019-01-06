@@ -883,13 +883,13 @@ func TestEvery(t *testing.T) {
 	}
 	assert.Equal(t, times[0].Weekday().String(), time.Now().AddDate(0, 0, 1).Weekday().String())
 
-	when = "every 12/18"
+	when = "every 12/18/2022"
 	times, iErr = th.App.every(when, user)
 	if iErr != nil {
 		mlog.Error(iErr.Error())
 		t.Fatal("every 12/18 doesn't parse")
 	}
-	assert.True(t, times[0].Month() == 12 && times[0].Year() == 2018)
+	assert.True(t, times[0].Month() == 12 && times[0].Year() == 2022)
 
 	when = "every January 25"
 	times, iErr = th.App.every(when, user)

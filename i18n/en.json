@@ -3219,6 +3219,10 @@
     "translation": "* \"{{.Message}}\"  [Delete]()"
   },
   {
+    "id": "app.reminder.list.element.inchannel",
+    "translation": "* \"{{.Message}}\"  [Delete]()"
+  },
+  {
     "id": "app.reminder.update.complete",
     "translation": "Ok! I’ve marked the reminder \"{{.Message}}\" as complete."
   },
@@ -3265,6 +3269,10 @@
   {
     "id": "app.reminder.list",
     "translation": "list"
+  },
+  {
+    "id": "app.reminder.list_inchannel",
+    "translation": "**In this channel:**"
   },
   {
     "id": "app.reminder.list_upcoming",

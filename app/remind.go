@@ -377,11 +377,10 @@ func (a *App) ListReminders(userId string, channelId string) string {
 
 	_, _, _, T := a.shared(userId)
 
-	//var inChannelOccurrences []model.Occurrence
 	var upcomingOccurrences []model.Occurrence
 	var recurringOccurrences []model.Occurrence
 	var pastOccurrences []model.Occurrence
-	var channelOccurrencs []model.Occurrence
+	var channelOccurrences []model.Occurrence
 
 	reminders := a.getReminders(userId)
 
@@ -430,7 +429,7 @@ func (a *App) ListReminders(userId string, channelId string) string {
 				if strings.HasPrefix(reminder.Target, "~") &&
 					reminder.Completed == emptyTime.Format(time.RFC3339) &&
 					t.After(time.Now()) {
-					channelOccurrencs = append(channelOccurrencs, occurrence)
+					channelOccurrences = append(channelOccurrences, occurrence)
 				}
 
 			}
@@ -439,13 +438,26 @@ func (a *App) ListReminders(userId string, channelId string) string {
 
 	}
 
-	//TODO in channel
-	//channel, _ := a.GetChannel(channelId)
-	//
-	//mlog.Info(channel.Name)
+	channel, _ := a.GetChannel(channelId)
+	schan := a.Srv.Store.Remind().GetByChannel("~" + channel.Name)
+	result := <-schan
 
-	//*In this channel*:
-	//• Remind #general “foobar” at 9AM tomorrow. Delete
+	if result.Err != nil {
+		mlog.Error(result.Err.Error())
+	} else {
+		inChannel := result.Data.(model.ChannelReminders)
+		mlog.Info(fmt.Sprintf("%v", inChannel.Occurrences))
+
+		if len(inChannel.Occurrences) > 0 {
+			mlog.Info("************************************************")
+			output = strings.Join([]string{
+				output,
+				T("app.reminder.list_inchannel"),
+				a.listReminderGroup(userId, &inChannel.Occurrences, &reminders, "inchannel"),
+				"\n",
+			}, "\n")
+		}
+	}
 
 	if len(upcomingOccurrences) > 0 {
 		output = strings.Join([]string{
@@ -474,11 +486,11 @@ func (a *App) ListReminders(userId string, channelId string) string {
 		}, "\n")
 	}
 
-	if len(channelOccurrencs) > 0 {
+	if len(channelOccurrences) > 0 {
 		output = strings.Join([]string{
 			output,
 			T("app.reminder.list_channel"),
-			a.listReminderGroup(userId, &channelOccurrencs, &reminders, "channel"),
+			a.listReminderGroup(userId, &channelOccurrences, &reminders, "channel"),
 			"\n",
 		}, "\n")
 	}
@@ -542,6 +554,8 @@ func (a *App) listReminderGroup(userId string, occurrences *[]model.Occurrence, 
 				output = strings.Join([]string{output, T("app.reminder.list.element.past", messageParameters)}, "\n")
 			case "channel":
 				output = strings.Join([]string{output, T("app.reminder.list.element.channel", messageParameters)}, "\n")
+			case "inchannel":
+				output = strings.Join([]string{output, T("app.reminder.list.element.inchannel", messageParameters)}, "\n")
 			}
 		}
 	}

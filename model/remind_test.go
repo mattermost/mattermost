@@ -66,3 +66,16 @@ func TestReminderRequest(t *testing.T) {
 	assert.Equal(t, request.Occurrences[0], request2.Occurrences[0])
 
 }
+
+func TestChannelReminders(t *testing.T) {
+	reminder := Reminder{NewId(), NewId(), NewId(), "me", "foo", "at 10am", ""}
+	occurrence := Occurrence{NewId(), NewId(), NewId(), "FOO", "BAR", "SNOOZE"}
+	channelReminders := ChannelReminders{Reminders{reminder}, Occurrences{occurrence}}
+	json := channelReminders.ToJson()
+	channelReminders2 := ChannelRemindersFromJson(strings.NewReader(json))
+
+	assert.Equal(t, channelReminders.Occurrences, channelReminders2.Occurrences)
+
+	assert.Equal(t, channelReminders.Reminders, channelReminders2.Reminders)
+
+}
