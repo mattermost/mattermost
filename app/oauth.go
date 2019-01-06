@@ -177,7 +177,7 @@ func (a *App) AllowOAuthAppAccessToUser(userId string, authRequest *model.Author
 		return authRequest.RedirectUri + "?error=server_error&state=" + authRequest.State, nil
 	}
 
-	// this saves the OAuth2 app as authorized
+	// This saves the OAuth2 app as authorized
 	authorizedApp := model.Preference{
 		UserId:   userId,
 		Category: model.PREFERENCE_CATEGORY_AUTHORIZED_OAUTH_APP,
@@ -310,7 +310,7 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(clientId, grantType, redirectUri, c
 
 		<-a.Srv.Store.OAuth().RemoveAuthData(authData.Code)
 	} else {
-		// when grantType is refresh_token
+		// When grantType is refresh_token
 		result := <-a.Srv.Store.OAuth().GetAccessDataByRefreshToken(refreshToken)
 		if result.Err != nil {
 			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.refresh_token.app_error", nil, "", http.StatusNotFound)
@@ -438,7 +438,7 @@ func (a *App) DeauthorizeOAuthAppForUser(userId, appId string) *model.AppError {
 		return model.NewAppError("DeauthorizeOAuthAppForUser", "api.oauth.allow_oauth.turn_off.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	// revoke app sessions
+	// Revoke app sessions
 	result := <-a.Srv.Store.OAuth().GetAccessDataByUserForApp(userId, appId)
 	if result.Err != nil {
 		return result.Err
