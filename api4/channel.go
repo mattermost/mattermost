@@ -917,8 +917,19 @@ func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	view := model.ChannelViewFromJson(r.Body)
-	if view == nil || !model.IsValidId(view.ChannelId) || (view.PrevChannelId != "" && !model.IsValidId(view.PrevChannelId)) {
+	if view == nil {
 		c.SetInvalidParam("channel_view")
+		return
+	}
+
+	// Validate view struct
+	// Check IDs are valid or blank. Blank IDs are used to denote focus loss or inital channel view.
+	if view.ChannelId != "" && !model.IsValidId(view.ChannelId) {
+		c.SetInvalidParam("channel_view.channel_id")
+		return
+	}
+	if view.PrevChannelId != "" && !model.IsValidId(view.PrevChannelId) {
+		c.SetInvalidParam("channel_view.prev_channel_id")
 		return
 	}
 
