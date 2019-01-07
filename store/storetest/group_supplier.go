@@ -544,10 +544,6 @@ func testGroupCreateOrRestoreMember(t *testing.T, ss store.Store) {
 	res4 := <-ss.Group().CreateOrRestoreMember(group.Id, user.Id)
 	assert.Equal(t, res4.Err.Id, "store.sql_group.uniqueness_error")
 
-	// Invalid UserId
-	res5 := <-ss.Group().CreateOrRestoreMember(group.Id, model.NewId())
-	assert.Equal(t, res5.Err.Id, "store.insert_error")
-
 	// Invalid GroupId
 	res6 := <-ss.Group().CreateOrRestoreMember(model.NewId(), user.Id)
 	assert.Equal(t, res6.Err.Id, "store.insert_error")
