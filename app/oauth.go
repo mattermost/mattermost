@@ -83,7 +83,9 @@ func (a *App) DeleteOAuthApp(appId string) *model.AppError {
 		return err
 	}
 
-	_ = a.InvalidateAllCaches()
+	if err := a.InvalidateAllCaches(); err != nil {
+		mlog.Error(err.Error())
+	}
 
 	return nil
 }
@@ -519,15 +521,17 @@ func (a *App) CompleteOAuth(service string, body io.ReadCloser, teamId string, p
 }
 
 func (a *App) LoginByOAuth(service string, userData io.Reader, teamId string) (*model.User, *model.AppError) {
-	buf := bytes.Buffer{}
-	_, _ = buf.ReadFrom(userData)
-
 	provider := einterfaces.GetOauthProvider(service)
 	if provider == nil {
 		return nil, model.NewAppError("LoginByOAuth", "api.user.login_by_oauth.not_available.app_error",
 			map[string]interface{}{"Service": strings.Title(service)}, "", http.StatusNotImplemented)
 	}
 
+	buf := bytes.Buffer{}
+	if _, err := buf.ReadFrom(userData); err != nil {
+		return nil, model.NewAppError("LoginByOAuth", "api.user.login_by_oauth.parse.app_error",
+			map[string]interface{}{"Service": service}, "", http.StatusBadRequest)
+	}
 	authUser := provider.GetUserFromJson(bytes.NewReader(buf.Bytes()))
 
 	authData := ""
@@ -748,7 +752,9 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 		return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.invalid_state.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	_ = a.DeleteToken(expectedToken)
+	if err = a.DeleteToken(expectedToken); err != nil {
+		mlog.Error(err.Error())
+	}
 
 	httpCookie := &http.Cookie{
 		Name:     COOKIE_OAUTH,
@@ -769,7 +775,10 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 	p.Set("grant_type", model.ACCESS_TOKEN_GRANT_TYPE)
 	p.Set("redirect_uri", redirectUri)
 
-	req, _ := http.NewRequest("POST", sso.TokenEndpoint, strings.NewReader(p.Encode()))
+	req, requestErr := http.NewRequest("POST", sso.TokenEndpoint, strings.NewReader(p.Encode()))
+	if requestErr != nil {
+		return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.token_failed.app_error", nil, requestErr.Error(), http.StatusInternalServerError)
+	}
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Accept", "application/json")
@@ -779,7 +788,10 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 		return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.token_failed.app_error", nil, serviceErr.Error(), http.StatusInternalServerError)
 	}
 
-	bodyBytes, _ := ioutil.ReadAll(resp.Body)
+	bodyBytes, readErr := ioutil.ReadAll(resp.Body)
+	if readErr != nil {
+		return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.token_failed.app_error", nil, readErr.Error(), http.StatusInternalServerError)
+	}
 	resp.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
 
 	ar := model.AccessResponseFromJson(resp.Body)
@@ -799,7 +811,10 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 
 	p = url.Values{}
 	p.Set("access_token", ar.AccessToken)
-	req, _ = http.NewRequest("GET", sso.UserApiEndpoint, strings.NewReader(""))
+	req, requestErr = http.NewRequest("GET", sso.UserApiEndpoint, strings.NewReader(""))
+	if requestErr != nil {
+		return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.service.app_error", map[string]interface{}{"Service": service}, requestErr.Error(), http.StatusInternalServerError)
+	}
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Accept", "application/json")
@@ -810,7 +825,11 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 		return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.service.app_error", map[string]interface{}{"Service": service}, serviceErr.Error(), http.StatusInternalServerError)
 	}
 
-	bodyBytes, _ = ioutil.ReadAll(resp.Body)
+	bodyBytes, readErr = ioutil.ReadAll(resp.Body)
+	if readErr != nil {
+		return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.token_failed.app_error", nil, readErr.Error(), http.StatusInternalServerError)
+	}
+
 	if resp.StatusCode != http.StatusOK {
 		bodyString := string(bodyBytes)
 		mlog.Error("Error getting OAuth user: " + bodyString)
