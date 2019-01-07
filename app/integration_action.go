@@ -126,7 +126,10 @@ func (a *App) DoPostAction(postId, actionId, userId, selectedOption string) (str
 // Perform an HTTP POST request to an integration's action endpoint.
 // Caller must consume and close returned http.Response as necessary.
 func (a *App) DoActionRequest(rawURL string, body []byte) (*http.Response, *model.AppError) {
-	req, _ := http.NewRequest("POST", rawURL, bytes.NewReader(body))
+	req, err := http.NewRequest("POST", rawURL, bytes.NewReader(body))
+	if err != nil {
+		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
 
