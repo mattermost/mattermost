@@ -4,6 +4,10 @@
 package app
 
 import (
+	"encoding/base64"
+	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -142,4 +146,356 @@ func TestOAuthDeleteApp(t *testing.T) {
 	if _, err := th.App.GetSession(session.Token); err == nil {
 		t.Fatal("should not get session from cache or db")
 	}
+}
+
+func TestAuthorizeOAuthUser(t *testing.T) {
+	setup := func(enable, tokenEndpoint, userEndpoint bool, serverURL string) *TestHelper {
+		th := Setup()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.GitLabSettings.Enable = enable
+
+			if tokenEndpoint {
+				cfg.GitLabSettings.TokenEndpoint = serverURL + "/token"
+			} else {
+				cfg.GitLabSettings.TokenEndpoint = ""
+			}
+
+			if userEndpoint {
+				cfg.GitLabSettings.UserApiEndpoint = serverURL + "/user"
+			} else {
+				cfg.GitLabSettings.UserApiEndpoint = ""
+			}
+		})
+
+		return th
+	}
+
+	makeState := func(token *model.Token) string {
+		return base64.StdEncoding.EncodeToString([]byte(model.MapToJson(map[string]string{
+			"token": token.Token,
+		})))
+	}
+
+	makeToken := func(th *TestHelper, cookie string) *model.Token {
+		token, _ := th.App.CreateOAuthStateToken(generateOAuthStateTokenExtra("", "", cookie))
+		return token
+	}
+
+	makeRequest := func(cookie string) *http.Request {
+		request, _ := http.NewRequest(http.MethodGet, "https://mattermost.example.com", nil)
+
+		if cookie != "" {
+			request.AddCookie(&http.Cookie{
+				Name:  COOKIE_OAUTH,
+				Value: cookie,
+			})
+		}
+
+		return request
+	}
+
+	t.Run("not enabled", func(t *testing.T) {
+		th := setup(false, true, true, "")
+		defer th.TearDown()
+
+		_, _, _, err := th.App.AuthorizeOAuthUser(nil, nil, model.SERVICE_GITLAB, "", "", "")
+		require.NotNil(t, err)
+		assert.Equal(t, "api.user.authorize_oauth_user.unsupported.app_error", err.Id)
+	})
+
+	t.Run("with an improperly encoded state", func(t *testing.T) {
+		th := setup(true, true, true, "")
+		defer th.TearDown()
+
+		state := "!"
+
+		_, _, _, err := th.App.AuthorizeOAuthUser(nil, nil, model.SERVICE_GITLAB, "", state, "")
+		require.NotNil(t, err)
+		assert.Equal(t, "api.user.authorize_oauth_user.invalid_state.app_error", err.Id)
+	})
+
+	t.Run("without a stored token", func(t *testing.T) {
+		th := setup(true, true, true, "")
+		defer th.TearDown()
+
+		state := base64.StdEncoding.EncodeToString([]byte(model.MapToJson(map[string]string{
+			"token": model.NewId(),
+		})))
+
+		_, _, _, err := th.App.AuthorizeOAuthUser(nil, nil, model.SERVICE_GITLAB, "", state, "")
+		require.NotNil(t, err)
+		assert.Equal(t, "api.oauth.invalid_state_token.app_error", err.Id)
+		assert.NotEqual(t, "", err.DetailedError)
+	})
+
+	t.Run("with a stored token of the wrong type", func(t *testing.T) {
+		th := setup(true, true, true, "")
+		defer th.TearDown()
+
+		token := model.NewToken("invalid", "")
+		result := <-th.App.Srv.Store.Token().Save(token)
+		require.Nil(t, result.Err)
+
+		state := makeState(token)
+
+		_, _, _, err := th.App.AuthorizeOAuthUser(nil, nil, model.SERVICE_GITLAB, "", state, "")
+		require.NotNil(t, err)
+		assert.Equal(t, "api.oauth.invalid_state_token.app_error", err.Id)
+		assert.Equal(t, "", err.DetailedError)
+	})
+
+	t.Run("with email missing when changing login types", func(t *testing.T) {
+		th := setup(true, true, true, "")
+		defer th.TearDown()
+
+		email := ""
+		action := model.OAUTH_ACTION_EMAIL_TO_SSO
+		cookie := model.NewId()
+
+		token, err := th.App.CreateOAuthStateToken(generateOAuthStateTokenExtra(email, action, cookie))
+		require.Nil(t, err)
+
+		state := base64.StdEncoding.EncodeToString([]byte(model.MapToJson(map[string]string{
+			"action": action,
+			"email":  email,
+			"token":  token.Token,
+		})))
+
+		_, _, _, err = th.App.AuthorizeOAuthUser(nil, nil, model.SERVICE_GITLAB, "", state, "")
+		require.NotNil(t, err)
+		assert.Equal(t, "api.user.authorize_oauth_user.invalid_state.app_error", err.Id)
+	})
+
+	t.Run("without an OAuth cookie", func(t *testing.T) {
+		th := setup(true, true, true, "")
+		defer th.TearDown()
+
+		cookie := model.NewId()
+		request := makeRequest("")
+		state := makeState(makeToken(th, cookie))
+
+		_, _, _, err := th.App.AuthorizeOAuthUser(nil, request, model.SERVICE_GITLAB, "", state, "")
+		require.NotNil(t, err)
+		assert.Equal(t, "api.user.authorize_oauth_user.invalid_state.app_error", err.Id)
+	})
+
+	t.Run("with an invalid token", func(t *testing.T) {
+		th := setup(true, true, true, "")
+		defer th.TearDown()
+
+		cookie := model.NewId()
+
+		token, err := th.App.CreateOAuthStateToken(model.NewId())
+		require.Nil(t, err)
+
+		request := makeRequest(cookie)
+		state := makeState(token)
+
+		_, _, _, err = th.App.AuthorizeOAuthUser(nil, request, model.SERVICE_GITLAB, "", state, "")
+		require.NotNil(t, err)
+		assert.Equal(t, "api.user.authorize_oauth_user.invalid_state.app_error", err.Id)
+	})
+
+	t.Run("with an incorrect token endpoint", func(t *testing.T) {
+		th := setup(true, false, true, "")
+		defer th.TearDown()
+
+		cookie := model.NewId()
+		request := makeRequest(cookie)
+		state := makeState(makeToken(th, cookie))
+
+		_, _, _, err := th.App.AuthorizeOAuthUser(&httptest.ResponseRecorder{}, request, model.SERVICE_GITLAB, "", state, "")
+		require.NotNil(t, err)
+		assert.Equal(t, "api.user.authorize_oauth_user.token_failed.app_error", err.Id)
+	})
+
+	t.Run("with an error token response", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusTeapot)
+		}))
+		defer server.Close()
+
+		th := setup(true, true, true, server.URL)
+		defer th.TearDown()
+
+		cookie := model.NewId()
+		request := makeRequest(cookie)
+		state := makeState(makeToken(th, cookie))
+
+		_, _, _, err := th.App.AuthorizeOAuthUser(&httptest.ResponseRecorder{}, request, model.SERVICE_GITLAB, "", state, "")
+		require.NotNil(t, err)
+		assert.Equal(t, "api.user.authorize_oauth_user.bad_response.app_error", err.Id)
+	})
+
+	t.Run("with an invalid token response", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Write([]byte("invalid"))
+		}))
+		defer server.Close()
+
+		th := setup(true, true, true, server.URL)
+		defer th.TearDown()
+
+		cookie := model.NewId()
+		request := makeRequest(cookie)
+		state := makeState(makeToken(th, cookie))
+
+		_, _, _, err := th.App.AuthorizeOAuthUser(&httptest.ResponseRecorder{}, request, model.SERVICE_GITLAB, "", state, "")
+		require.NotNil(t, err)
+		assert.Equal(t, "api.user.authorize_oauth_user.bad_response.app_error", err.Id)
+	})
+
+	t.Run("with an invalid token type", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			json.NewEncoder(w).Encode(&model.AccessResponse{
+				AccessToken: model.NewId(),
+				TokenType:   "",
+			})
+		}))
+		defer server.Close()
+
+		th := setup(true, true, true, server.URL)
+		defer th.TearDown()
+
+		cookie := model.NewId()
+		request := makeRequest(cookie)
+		state := makeState(makeToken(th, cookie))
+
+		_, _, _, err := th.App.AuthorizeOAuthUser(&httptest.ResponseRecorder{}, request, model.SERVICE_GITLAB, "", state, "")
+		require.NotNil(t, err)
+		assert.Equal(t, "api.user.authorize_oauth_user.bad_token.app_error", err.Id)
+	})
+
+	t.Run("with an empty token response", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			json.NewEncoder(w).Encode(&model.AccessResponse{
+				AccessToken: "",
+				TokenType:   model.ACCESS_TOKEN_TYPE,
+			})
+		}))
+		defer server.Close()
+
+		th := setup(true, true, true, server.URL)
+		defer th.TearDown()
+
+		cookie := model.NewId()
+		request := makeRequest(cookie)
+		state := makeState(makeToken(th, cookie))
+
+		_, _, _, err := th.App.AuthorizeOAuthUser(&httptest.ResponseRecorder{}, request, model.SERVICE_GITLAB, "", state, "")
+		require.NotNil(t, err)
+		assert.Equal(t, "api.user.authorize_oauth_user.missing.app_error", err.Id)
+	})
+
+	t.Run("with an incorrect user endpoint", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			json.NewEncoder(w).Encode(&model.AccessResponse{
+				AccessToken: model.NewId(),
+				TokenType:   model.ACCESS_TOKEN_TYPE,
+			})
+		}))
+		defer server.Close()
+
+		th := setup(true, true, false, server.URL)
+		defer th.TearDown()
+
+		cookie := model.NewId()
+		request := makeRequest(cookie)
+		state := makeState(makeToken(th, cookie))
+
+		_, _, _, err := th.App.AuthorizeOAuthUser(&httptest.ResponseRecorder{}, request, model.SERVICE_GITLAB, "", state, "")
+		require.NotNil(t, err)
+		assert.Equal(t, "api.user.authorize_oauth_user.service.app_error", err.Id)
+	})
+
+	t.Run("with an error user response", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			switch r.URL.Path {
+			case "/token":
+				t.Log("hit token")
+				json.NewEncoder(w).Encode(&model.AccessResponse{
+					AccessToken: model.NewId(),
+					TokenType:   model.ACCESS_TOKEN_TYPE,
+				})
+			case "/user":
+				t.Log("hit user")
+				w.WriteHeader(http.StatusTeapot)
+			}
+		}))
+		defer server.Close()
+
+		th := setup(true, true, true, server.URL)
+		defer th.TearDown()
+
+		cookie := model.NewId()
+		request := makeRequest(cookie)
+		state := makeState(makeToken(th, cookie))
+
+		_, _, _, err := th.App.AuthorizeOAuthUser(&httptest.ResponseRecorder{}, request, model.SERVICE_GITLAB, "", state, "")
+		require.NotNil(t, err)
+		assert.Equal(t, "api.user.authorize_oauth_user.response.app_error", err.Id)
+	})
+
+	t.Run("with an error user response due to GitLab TOS", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			switch r.URL.Path {
+			case "/token":
+				t.Log("hit token")
+				json.NewEncoder(w).Encode(&model.AccessResponse{
+					AccessToken: model.NewId(),
+					TokenType:   model.ACCESS_TOKEN_TYPE,
+				})
+			case "/user":
+				t.Log("hit user")
+				w.WriteHeader(http.StatusForbidden)
+				w.Write([]byte("Terms of Service"))
+			}
+		}))
+		defer server.Close()
+
+		th := setup(true, true, true, server.URL)
+		defer th.TearDown()
+
+		cookie := model.NewId()
+		request := makeRequest(cookie)
+		state := makeState(makeToken(th, cookie))
+
+		_, _, _, err := th.App.AuthorizeOAuthUser(&httptest.ResponseRecorder{}, request, model.SERVICE_GITLAB, "", state, "")
+		require.NotNil(t, err)
+		assert.Equal(t, "oauth.gitlab.tos.error", err.Id)
+	})
+
+	t.Run("enabled and properly configured", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			switch r.URL.Path {
+			case "/token":
+				json.NewEncoder(w).Encode(&model.AccessResponse{
+					AccessToken: model.NewId(),
+					TokenType:   model.ACCESS_TOKEN_TYPE,
+				})
+			case "/user":
+				w.WriteHeader(http.StatusOK)
+			}
+		}))
+		defer server.Close()
+
+		th := setup(true, true, true, server.URL)
+		defer th.TearDown()
+
+		cookie := model.NewId()
+		request := makeRequest(cookie)
+
+		stateProps := map[string]string{
+			"team_id": model.NewId(),
+			"token":   makeToken(th, cookie).Token,
+		}
+		state := base64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
+
+		body, receivedTeamId, receivedStateProps, err := th.App.AuthorizeOAuthUser(&httptest.ResponseRecorder{}, request, model.SERVICE_GITLAB, "", state, "")
+		assert.NotNil(t, body)
+		assert.Equal(t, stateProps["team_id"], receivedTeamId)
+		assert.Equal(t, stateProps, receivedStateProps)
+		assert.Nil(t, err)
+	})
 }
