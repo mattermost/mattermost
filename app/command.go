@@ -176,18 +176,21 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 
 	args.TriggerId = triggerId
 
-	if cmd, response := a.tryExecuteBuiltInCommand(args, trigger, message); cmd != nil && response != nil {
+	cmd, response := a.tryExecuteBuiltInCommand(args, trigger, message)
+	if cmd != nil && response != nil {
 		return a.HandleCommandResponse(cmd, args, response, true)
 	}
 
-	if cmd, response, appErr := a.ExecutePluginCommand(args); appErr != nil {
+	cmd, response, appErr = a.tryExecutePluginCommand(args)
+	if appErr != nil {
 		return nil, appErr
 	} else if cmd != nil && response != nil {
 		response.TriggerId = clientTriggerId
 		return a.HandleCommandResponse(cmd, args, response, true)
 	}
 
-	if cmd, response, appErr := a.tryExecuteCustomCommand(args, trigger, message); appErr != nil {
+	cmd, response, appErr = a.tryExecuteCustomCommand(args, trigger, message)
+	if appErr != nil {
 		return nil, appErr
 	} else if cmd != nil && response != nil {
 		response.TriggerId = clientTriggerId
@@ -197,6 +200,8 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 	return nil, model.NewAppError("command", "api.command.execute_command.not_found.app_error", map[string]interface{}{"Trigger": trigger}, "", http.StatusNotFound)
 }
 
+// tryExecutePluginCommand attempts to run a built in command based on the given arguments. If no such command can be
+// found, returns nil for all arguments.
 func (a *App) tryExecuteBuiltInCommand(args *model.CommandArgs, trigger string, message string) (*model.Command, *model.CommandResponse) {
 	provider := GetCommandProvider(trigger)
 	if provider == nil {
@@ -211,6 +216,8 @@ func (a *App) tryExecuteBuiltInCommand(args *model.CommandArgs, trigger string, 
 	return cmd, provider.DoCommand(a, args, message)
 }
 
+// tryExecuteCustomCommand attempts to run a custom command based on the given arguments. If no such command can be
+// found, returns nil for all arguments.
 func (a *App) tryExecuteCustomCommand(args *model.CommandArgs, trigger string, message string) (*model.Command, *model.CommandResponse, *model.AppError) {
 	// Handle custom commands
 	if !*a.Config().ServiceSettings.EnableCommands {
@@ -288,15 +295,22 @@ func (a *App) tryExecuteCustomCommand(args *model.CommandArgs, trigger string, m
 func (a *App) doCommandRequest(cmd *model.Command, p url.Values) (*model.Command, *model.CommandResponse, *model.AppError) {
 	// Prepare the request
 	var req *http.Request
+	var err error
 	if cmd.Method == model.COMMAND_METHOD_GET {
-		req, _ = http.NewRequest(http.MethodGet, cmd.URL, nil)
+		req, err = http.NewRequest(http.MethodGet, cmd.URL, nil)
+	} else {
+		req, err = http.NewRequest(http.MethodPost, cmd.URL, strings.NewReader(p.Encode()))
+	}
 
+	if err != nil {
+		return cmd, nil, model.NewAppError("command", "api.command.execute_command.failed.app_error", map[string]interface{}{"Trigger": cmd.Trigger}, err.Error(), http.StatusInternalServerError)
+	}
+
+	if cmd.Method == model.COMMAND_METHOD_GET {
 		if req.URL.RawQuery != "" {
 			req.URL.RawQuery += "&"
 		}
 		req.URL.RawQuery += p.Encode()
-	} else {
-		req, _ = http.NewRequest(http.MethodPost, cmd.URL, strings.NewReader(p.Encode()))
 	}
 
 	req.Header.Set("Accept", "application/json")
