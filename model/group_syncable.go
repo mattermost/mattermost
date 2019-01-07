@@ -28,7 +28,7 @@ type GroupSyncable struct {
 	// TeamId.
 	SyncableId string `db:"-" json:"-"`
 
-	CanLeave bool              `json:"can_leave"`
+	CanLeave bool              `db:"-" json:"can_leave"`
 	AutoAdd  bool              `json:"auto_add"`
 	CreateAt int64             `json:"create_at"`
 	DeleteAt int64             `json:"delete_at"`
