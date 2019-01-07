@@ -6871,6 +6871,10 @@
     "translation": "nothing to update for group syncable"
   },
   {
+    "id": "model.group_syncable.invalid_state",
+    "translation": "invalid state of group syncable"
+  },
+  {
     "id": "store.select_error",
     "translation": "select error"
   },

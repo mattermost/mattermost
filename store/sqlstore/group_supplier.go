@@ -607,12 +607,6 @@ func (s *SqlSupplier) GroupUpdateGroupSyncable(ctx context.Context, groupSyncabl
 		return result
 	}
 
-	// Check if no update is required
-	if (retrievedGroupSyncable.AutoAdd == groupSyncable.AutoAdd) && (retrievedGroupSyncable.CanLeave == groupSyncable.CanLeave) && groupSyncable.DeleteAt != 0 {
-		result.Err = model.NewAppError("SqlGroupStore.GroupUpdateGroupSyncable", "store.sql_group.nothing_to_update", nil, "group_id="+groupSyncable.GroupId+", syncable_id="+groupSyncable.SyncableId, http.StatusInternalServerError)
-		return result
-	}
-
 	// Reset these properties, don't update them based on input
 	groupSyncable.CreateAt = retrievedGroupSyncable.CreateAt
 	groupSyncable.UpdateAt = model.GetMillis()
