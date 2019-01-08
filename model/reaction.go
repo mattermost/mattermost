@@ -37,6 +37,22 @@ func ReactionsToJson(o []*Reaction) string {
 	return string(b)
 }
 
+func MapPostIdToReactionsToJson(o map[string][]*Reaction) string {
+	b, _ := json.Marshal(o)
+	return string(b)
+}
+
+func MapPostIdToReactionsFromJson(data io.Reader) map[string][]*Reaction {
+	decoder := json.NewDecoder(data)
+
+	var objmap map[string][]*Reaction
+	if err := decoder.Decode(&objmap); err != nil {
+		return make(map[string][]*Reaction)
+	} else {
+		return objmap
+	}
+}
+
 func ReactionsFromJson(data io.Reader) []*Reaction {
 	var o []*Reaction
 

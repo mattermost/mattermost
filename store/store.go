@@ -43,6 +43,7 @@ type Store interface {
 	Channel() ChannelStore
 	Post() PostStore
 	User() UserStore
+	Bot() BotStore
 	Audit() AuditStore
 	ClusterDiscovery() ClusterDiscoveryStore
 	Compliance() ComplianceStore
@@ -283,6 +284,14 @@ type UserStore interface {
 	GetAllAfter(limit int, afterId string) StoreChannel
 }
 
+type BotStore interface {
+	Get(userId string, includeDeleted bool) StoreChannel
+	GetAll(page, perPage int, creatorId string, includeDeleted bool) StoreChannel
+	Save(bot *model.Bot) StoreChannel
+	Update(bot *model.Bot) StoreChannel
+	PermanentDelete(userId string) StoreChannel
+}
+
 type SessionStore interface {
 	Save(session *model.Session) StoreChannel
 	Get(sessionIdOrToken string) StoreChannel
@@ -467,6 +476,7 @@ type ReactionStore interface {
 	GetForPost(postId string, allowFromCache bool) StoreChannel
 	DeleteAllWithEmojiName(emojiName string) StoreChannel
 	PermanentDeleteBatch(endTime int64, limit int64) StoreChannel
+	BulkGetForPosts(postIds []string) StoreChannel
 }
 
 type JobStore interface {

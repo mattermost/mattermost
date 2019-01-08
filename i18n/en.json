@@ -1118,7 +1118,7 @@
   },
   {
     "id": "api.emoji.upload.open.app_error",
-    "translation": "Unable to create the emoji. An error ocurred when trying to open the attached image."
+    "translation": "Unable to create the emoji. An error occurred when trying to open the attached image."
   },
   {
     "id": "api.file.attachments.disabled.app_error",
@@ -2235,6 +2235,10 @@
     "translation": "Unable to get profile image, user not found."
   },
   {
+    "id": "api.user.get_user_by_email.permissions.app_error",
+    "translation": "Unable to get user by email."
+  },
+  {
     "id": "api.user.ldap_to_email.not_available.app_error",
     "translation": "AD/LDAP not available on this server"
   },
@@ -2568,7 +2572,7 @@
   },
   {
     "id": "app.export.export_write_line.json_marshall.error",
-    "translation": "An error occured marshalling the JSON data for export."
+    "translation": "An error occurred marshalling the JSON data for export."
   },
   {
     "id": "app.import.attachment.bad_file.error",
@@ -3803,6 +3807,30 @@
     "translation": "Invalid user id"
   },
   {
+    "id": "model.bot.is_valid.create_at.app_error",
+    "translation": "Invalid create at"
+  },
+  {
+    "id": "model.bot.is_valid.creator_id.app_error",
+    "translation": "Invalid creator id"
+  },
+  {
+    "id": "model.bot.is_valid.description.app_error",
+    "translation": "Invalid description"
+  },
+  {
+    "id": "model.bot.is_valid.update_at.app_error",
+    "translation": "Invalid update at"
+  },
+  {
+    "id": "model.bot.is_valid.user_id.app_error",
+    "translation": "Invalid user id"
+  },
+  {
+    "id": "model.bot.is_valid.username.app_error",
+    "translation": "Invalid username"
+  },
+  {
     "id": "model.channel.is_valid.2_or_more.app_error",
     "translation": "Name must be 2 or more lowercase alphanumeric characters"
   },
@@ -4632,7 +4660,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Invalid file ids"
+    "translation": "Invalid file ids. Note that uploads are limited to 5 files maximum. Please use additional posts for more files."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -4957,6 +4985,34 @@
   {
     "id": "store.sql_audit.save.saving.app_error",
     "translation": "We encountered an error saving the audit"
+  },
+  {
+    "id": "store.sql_bot.delete.app_error",
+    "translation": "Unable to delete the bot"
+  },
+  {
+    "id": "store.sql_bot.get.app_error",
+    "translation": "Unable to get the bot"
+  },
+  {
+    "id": "store.sql_bot.get.missing.app_error",
+    "translation": "Bot does not exist"
+  },
+  {
+    "id": "store.sql_bot.get_all.app_error",
+    "translation": "Unable to get the bots"
+  },
+  {
+    "id": "store.sql_bot.save.app_error",
+    "translation": "Unable to save the bot"
+  },
+  {
+    "id": "store.sql_bot.update.app_error",
+    "translation": "Unable to update the bot"
+  },
+  {
+    "id": "store.sql_bot.update.updating.app_error",
+    "translation": "We encountered an error updating the bot"
   },
   {
     "id": "store.sql_channel.analytics_deleted_type_count.app_error",
@@ -5839,6 +5895,10 @@
     "translation": "Unable to get reactions for post"
   },
   {
+    "id": "store.sql_reaction.bulk_get_for_post_ids.app_error",
+    "translation": "Unable to get reactions for post"
+  },
+  {
     "id": "store.sql_reaction.permanent_delete_batch.app_error",
     "translation": "We encountered an error permanently deleting the batch of reactions"
   },
@@ -6368,7 +6428,7 @@
   },
   {
     "id": "store.sql_user.search.app_error",
-    "translation": "Unable to find any user maching the search parameters"
+    "translation": "Unable to find any user matching the search parameters"
   },
   {
     "id": "store.sql_user.update.app_error",

@@ -85,6 +85,10 @@ func (s *LayeredStore) User() UserStore {
 	return s.DatabaseLayer.User()
 }
 
+func (s *LayeredStore) Bot() BotStore {
+	return s.DatabaseLayer.Bot()
+}
+
 func (s *LayeredStore) Audit() AuditStore {
 	return s.DatabaseLayer.Audit()
 }
@@ -233,6 +237,12 @@ func (s *LayeredReactionStore) Delete(reaction *model.Reaction) StoreChannel {
 func (s *LayeredReactionStore) GetForPost(postId string, allowFromCache bool) StoreChannel {
 	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
 		return supplier.ReactionGetForPost(s.TmpContext, postId)
+	})
+}
+
+func (s *LayeredReactionStore) BulkGetForPosts(postIds []string) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.ReactionsBulkGetForPosts(s.TmpContext, postIds)
 	})
 }
 

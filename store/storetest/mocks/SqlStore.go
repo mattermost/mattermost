@@ -14,6 +14,20 @@ type SqlStore struct {
 	mock.Mock
 }
 
+// AlterColumnDefaultIfExists provides a mock function with given fields: tableName, columnName, mySqlColDefault, postgresColDefault
+func (_m *SqlStore) AlterColumnDefaultIfExists(tableName string, columnName string, mySqlColDefault *string, postgresColDefault *string) bool {
+	ret := _m.Called(tableName, columnName, mySqlColDefault, postgresColDefault)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(string, string, *string, *string) bool); ok {
+		r0 = rf(tableName, columnName, mySqlColDefault, postgresColDefault)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
 // AlterColumnTypeIfExists provides a mock function with given fields: tableName, columnName, mySqlColType, postgresColType
 func (_m *SqlStore) AlterColumnTypeIfExists(tableName string, columnName string, mySqlColType string, postgresColType string) bool {
 	ret := _m.Called(tableName, columnName, mySqlColType, postgresColType)
@@ -38,6 +52,22 @@ func (_m *SqlStore) Audit() store.AuditStore {
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.AuditStore)
+		}
+	}
+
+	return r0
+}
+
+// Bot provides a mock function with given fields:
+func (_m *SqlStore) Bot() store.BotStore {
+	ret := _m.Called()
+
+	var r0 store.BotStore
+	if rf, ok := ret.Get(0).(func() store.BotStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.BotStore)
 		}
 	}
 

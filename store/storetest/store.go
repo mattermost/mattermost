@@ -23,6 +23,7 @@ type Store struct {
 	ChannelStore              mocks.ChannelStore
 	PostStore                 mocks.PostStore
 	UserStore                 mocks.UserStore
+	BotStore                  mocks.BotStore
 	AuditStore                mocks.AuditStore
 	ClusterDiscoveryStore     mocks.ClusterDiscoveryStore
 	ComplianceStore           mocks.ComplianceStore
@@ -53,6 +54,7 @@ func (s *Store) Team() store.TeamStore                             { return &s.T
 func (s *Store) Channel() store.ChannelStore                       { return &s.ChannelStore }
 func (s *Store) Post() store.PostStore                             { return &s.PostStore }
 func (s *Store) User() store.UserStore                             { return &s.UserStore }
+func (s *Store) Bot() store.BotStore                               { return &s.BotStore }
 func (s *Store) Audit() store.AuditStore                           { return &s.AuditStore }
 func (s *Store) ClusterDiscovery() store.ClusterDiscoveryStore     { return &s.ClusterDiscoveryStore }
 func (s *Store) Compliance() store.ComplianceStore                 { return &s.ComplianceStore }
@@ -94,6 +96,7 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.ChannelStore,
 		&s.PostStore,
 		&s.UserStore,
+		&s.BotStore,
 		&s.AuditStore,
 		&s.ClusterDiscoveryStore,
 		&s.ComplianceStore,

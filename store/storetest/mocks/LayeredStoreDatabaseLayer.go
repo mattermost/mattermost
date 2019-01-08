@@ -30,6 +30,22 @@ func (_m *LayeredStoreDatabaseLayer) Audit() store.AuditStore {
 	return r0
 }
 
+// Bot provides a mock function with given fields:
+func (_m *LayeredStoreDatabaseLayer) Bot() store.BotStore {
+	ret := _m.Called()
+
+	var r0 store.BotStore
+	if rf, ok := ret.Get(0).(func() store.BotStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.BotStore)
+		}
+	}
+
+	return r0
+}
+
 // Channel provides a mock function with given fields:
 func (_m *LayeredStoreDatabaseLayer) Channel() store.ChannelStore {
 	ret := _m.Called()
@@ -412,6 +428,29 @@ func (_m *LayeredStoreDatabaseLayer) ReactionSave(ctx context.Context, reaction 
 	var r0 *store.LayeredStoreSupplierResult
 	if rf, ok := ret.Get(0).(func(context.Context, *model.Reaction, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
 		r0 = rf(ctx, reaction, hints...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*store.LayeredStoreSupplierResult)
+		}
+	}
+
+	return r0
+}
+
+// ReactionsBulkGetForPosts provides a mock function with given fields: ctx, postIds, hints
+func (_m *LayeredStoreDatabaseLayer) ReactionsBulkGetForPosts(ctx context.Context, postIds []string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+	_va := make([]interface{}, len(hints))
+	for _i := range hints {
+		_va[_i] = hints[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, postIds)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *store.LayeredStoreSupplierResult
+	if rf, ok := ret.Get(0).(func(context.Context, []string, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
+		r0 = rf(ctx, postIds, hints...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*store.LayeredStoreSupplierResult)
