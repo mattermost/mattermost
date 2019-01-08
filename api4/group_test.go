@@ -499,7 +499,7 @@ func TestPatchGroupTeam(t *testing.T) {
 	groupSyncable, response := th.SystemAdminClient.LinkGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
 	assert.Equal(t, http.StatusCreated, response.StatusCode)
 	assert.NotNil(t, groupSyncable)
-	assert.True(t, groupSyncable.CanLeave)
+	// assert.True(t, groupSyncable.CanLeave) // TODO: Re-add this test in phase 2 of LDAP groups sync.
 	assert.True(t, groupSyncable.AutoAdd)
 
 	_, response = th.Client.PatchGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
@@ -521,9 +521,10 @@ func TestPatchGroupTeam(t *testing.T) {
 	assert.Equal(t, th.BasicTeam.Id, groupSyncable.SyncableId)
 	assert.Equal(t, model.GroupSyncableTypeTeam, groupSyncable.Type)
 
-	patch.CanLeave = model.NewBool(false)
-	_, response = th.SystemAdminClient.PatchGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
-	CheckBadRequestStatus(t, response)
+	// TODO: Re-add this test in phase 2 of LDAP groups sync.
+	// patch.CanLeave = model.NewBool(false)
+	// _, response = th.SystemAdminClient.PatchGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+	// CheckBadRequestStatus(t, response)
 
 	patch.AutoAdd = model.NewBool(true)
 	groupSyncable, response = th.SystemAdminClient.PatchGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)

@@ -6823,6 +6823,10 @@
     "translation": "invalid type property for group syncable"
   },
   {
+    "id": "model.group_syncable.unmarshaljson.duplicate_type_identifier",
+    "translation": "type identifier already exists: perhaps json contains both 'team_id' and 'channel_id'"
+  },
+  {
     "id": "model.group.update_at.app_error",
     "translation": "invalid update at property for group"
   },

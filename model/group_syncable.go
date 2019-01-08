@@ -63,6 +63,9 @@ func (syncable *GroupSyncable) UnmarshalJSON(b []byte) error {
 	if err != nil {
 		return err
 	}
+	if kvp["team_id"] != nil && kvp["channel_id"] != nil {
+		return NewAppError("GroupSyncable.UnmarshalJSON", "model.group_syncable.unmarshaljson.duplicate_type_identifier", nil, "", http.StatusBadRequest)
+	}
 	for key, value := range kvp {
 		switch key {
 		case "team_id":
@@ -132,9 +135,10 @@ type GroupSyncablePatch struct {
 }
 
 func (syncable *GroupSyncable) Patch(patch *GroupSyncablePatch) {
-	if patch.CanLeave != nil {
-		syncable.CanLeave = *patch.CanLeave
-	}
+	// TODO: Add this validation check for phase 2 of LDAP group sync.
+	// if patch.CanLeave != nil {
+	// 	syncable.CanLeave = *patch.CanLeave
+	// }
 	if patch.AutoAdd != nil {
 		syncable.AutoAdd = *patch.AutoAdd
 	}
