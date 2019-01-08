@@ -79,11 +79,6 @@ func TestExportUserChannels(t *testing.T) {
 	}
 	var preferences model.Preferences
 	preferences = append(preferences, preference)
-	channelMember := model.ChannelMember{
-		ChannelId: channel.Id,
-		UserId:    user.Id,
-	}
-	store.Must(th.App.Srv.Store.Channel().SaveMember(&channelMember))
 	store.Must(th.App.Srv.Store.Preference().Save(&preferences))
 	th.App.UpdateChannelMemberNotifyProps(notifyProps, channel.Id, user.Id)
 	exportData, err := th.App.buildUserChannelMemberships(user.Id, team.Id)
