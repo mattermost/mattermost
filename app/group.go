@@ -4,8 +4,6 @@
 package app
 
 import (
-	"net/http"
-
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -120,10 +118,11 @@ func (a *App) GetGroupSyncables(groupID string, syncableType model.GroupSyncable
 }
 
 func (a *App) UpdateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
-	if (groupSyncable.AutoAdd == groupSyncable.AutoAdd) && (groupSyncable.CanLeave == groupSyncable.CanLeave) && groupSyncable.DeleteAt != 0 {
-		err := model.NewAppError("App.UpdateGroupSyncable", "model.group_syncable.invalid_state", nil, "group_id="+groupSyncable.GroupId+", syncable_id="+groupSyncable.SyncableId, http.StatusInternalServerError)
-		return nil, err
-	}
+	// TODO: In phase 2 add this validation.
+	// if (groupSyncable.AutoAdd == false) && (groupSyncable.CanLeave == false) {
+	// 	err := model.NewAppError("App.UpdateGroupSyncable", "model.group_syncable.invalid_state", nil, "group_id="+groupSyncable.GroupId+", syncable_id="+groupSyncable.SyncableId, http.StatusInternalServerError)
+	// 	return nil, err
+	// }
 
 	result := <-a.Srv.Store.Group().UpdateGroupSyncable(groupSyncable)
 	if result.Err != nil {
