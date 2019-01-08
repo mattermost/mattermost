@@ -50,9 +50,10 @@ func (syncable *GroupSyncable) IsValid() *AppError {
 	if !IsValidId(syncable.SyncableId) {
 		return NewAppError("GroupSyncable.SyncableIsValid", "model.group_syncable.syncable_id.app_error", nil, "", http.StatusBadRequest)
 	}
-	if syncable.AutoAdd == false && syncable.CanLeave == false {
-		return NewAppError("GroupSyncable.SyncableIsValid", "model.group_syncable.invalid_state", nil, "", http.StatusBadRequest)
-	}
+	// TODO: Add this validation check for phase 2 of LDAP group sync.
+	// if syncable.AutoAdd == false && syncable.CanLeave == false {
+	// 	return NewAppError("GroupSyncable.SyncableIsValid", "model.group_syncable.invalid_state", nil, "", http.StatusBadRequest)
+	// }
 	return nil
 }
 

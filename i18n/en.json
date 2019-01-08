@@ -6839,10 +6839,6 @@
     "translation": "invalid group id property for group syncable"
   },
   {
-    "id": "model.group_syncable.invalid_state",
-    "translation": "invalid state for group syncable: AutoAdd and CanLeave cannot both be false"
-  },
-  {
     "id": "model.group_syncable.syncable_id.app_error",
     "translation": "invalid syncable id for group syncable"
   },
@@ -6869,10 +6865,6 @@
   {
     "id": "store.sql_group.nothing_to_update",
     "translation": "nothing to update for group syncable"
-  },
-  {
-    "id": "model.group_syncable.invalid_state",
-    "translation": "invalid state of group syncable"
   },
   {
     "id": "store.select_error",
