@@ -149,7 +149,11 @@ func (a *App) TriggerWebhook(payload *model.OutgoingWebhookPayload, hook *model.
 }
 
 func (a *App) doOutgoingWebhookRequest(url string, body io.Reader, contentType string) (*model.OutgoingWebhookResponse, error) {
-	req, _ := http.NewRequest("POST", url, body)
+	req, err := http.NewRequest("POST", url, body)
+	if err != nil {
+		return nil, err
+	}
+
 	req.Header.Set("Content-Type", contentType)
 	req.Header.Set("Accept", "application/json")
 
