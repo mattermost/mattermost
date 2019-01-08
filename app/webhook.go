@@ -104,46 +104,56 @@ func (a *App) TriggerWebhook(payload *model.OutgoingWebhookPayload, hook *model.
 	for _, url := range hook.CallbackURLs {
 		a.Srv.Go(func(url string) func() {
 			return func() {
-				req, _ := http.NewRequest("POST", url, body)
+				req, err := http.NewRequest("POST", url, body)
+				if err != nil {
+					mlog.Error(fmt.Sprintf("Event POST failed, err=%s", err.Error()))
+					return
+				}
 				req.Header.Set("Content-Type", contentType)
 				req.Header.Set("Accept", "application/json")
-				if resp, err := a.HTTPService.MakeClient(false).Do(req); err != nil {
+				resp, err := a.HTTPService.MakeClient(false).Do(req)
+				if err != nil {
 					mlog.Error(fmt.Sprintf("Event POST failed, err=%s", err.Error()))
-				} else {
-					defer consumeAndClose(resp)
+					return
+				}
 
-					webhookResp := model.OutgoingWebhookResponseFromJson(resp.Body)
+				defer consumeAndClose(resp)
 
-					if webhookResp != nil && (webhookResp.Text != nil || len(webhookResp.Attachments) > 0) {
-						postRootId := ""
-						if webhookResp.ResponseType == model.OUTGOING_HOOK_RESPONSE_TYPE_COMMENT {
-							postRootId = post.Id
-						}
-						if len(webhookResp.Props) == 0 {
-							webhookResp.Props = make(model.StringInterface)
-						}
-						webhookResp.Props["webhook_display_name"] = hook.DisplayName
+				webhookResp := model.OutgoingWebhookResponseFromJson(resp.Body)
+				if webhookResp == nil {
+					return
+				}
+				if webhookResp.Text == nil && len(webhookResp.Attachments) == 0 {
+					return
+				}
 
-						text := ""
-						if webhookResp.Text != nil {
-							text = a.ProcessSlackText(*webhookResp.Text)
-						}
-						webhookResp.Attachments = a.ProcessSlackAttachments(webhookResp.Attachments)
-						// attachments is in here for slack compatibility
-						if len(webhookResp.Attachments) > 0 {
-							webhookResp.Props["attachments"] = webhookResp.Attachments
-						}
-						if a.Config().ServiceSettings.EnablePostUsernameOverride && hook.Username != "" && webhookResp.Username == "" {
-							webhookResp.Username = hook.Username
-						}
+				postRootId := ""
+				if webhookResp.ResponseType == model.OUTGOING_HOOK_RESPONSE_TYPE_COMMENT {
+					postRootId = post.Id
+				}
+				if len(webhookResp.Props) == 0 {
+					webhookResp.Props = make(model.StringInterface)
+				}
+				webhookResp.Props["webhook_display_name"] = hook.DisplayName
 
-						if a.Config().ServiceSettings.EnablePostIconOverride && hook.IconURL != "" && webhookResp.IconURL == "" {
-							webhookResp.IconURL = hook.IconURL
-						}
-						if _, err := a.CreateWebhookPost(hook.CreatorId, channel, text, webhookResp.Username, webhookResp.IconURL, webhookResp.Props, webhookResp.Type, postRootId); err != nil {
-							mlog.Error(fmt.Sprintf("Failed to create response post, err=%v", err))
-						}
-					}
+				text := ""
+				if webhookResp.Text != nil {
+					text = a.ProcessSlackText(*webhookResp.Text)
+				}
+				webhookResp.Attachments = a.ProcessSlackAttachments(webhookResp.Attachments)
+				// attachments is in here for slack compatibility
+				if len(webhookResp.Attachments) > 0 {
+					webhookResp.Props["attachments"] = webhookResp.Attachments
+				}
+				if a.Config().ServiceSettings.EnablePostUsernameOverride && hook.Username != "" && webhookResp.Username == "" {
+					webhookResp.Username = hook.Username
+				}
+
+				if a.Config().ServiceSettings.EnablePostIconOverride && hook.IconURL != "" && webhookResp.IconURL == "" {
+					webhookResp.IconURL = hook.IconURL
+				}
+				if _, err := a.CreateWebhookPost(hook.CreatorId, channel, text, webhookResp.Username, webhookResp.IconURL, webhookResp.Props, webhookResp.Type, postRootId); err != nil {
+					mlog.Error(fmt.Sprintf("Failed to create response post, err=%v", err))
 				}
 			}
 		}(url))
