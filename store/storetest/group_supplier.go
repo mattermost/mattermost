@@ -727,7 +727,7 @@ func testGetGroupSyncable(t *testing.T, ss store.Store) {
 	dgt := res4.Data.(*model.GroupSyncable)
 	assert.Equal(t, gt1.GroupId, dgt.GroupId)
 	assert.Equal(t, gt1.SyncableId, dgt.SyncableId)
-	assert.Equal(t, gt1.CanLeave, dgt.CanLeave)
+	// assert.Equal(t, gt1.CanLeave, dgt.CanLeave) // TODO: Re-add this test in phase 2 of LDAP groups sync.
 	assert.Equal(t, gt1.AutoAdd, dgt.AutoAdd)
 	assert.NotZero(t, gt1.CreateAt)
 	assert.NotZero(t, gt1.UpdateAt)
@@ -950,7 +950,7 @@ func testDeleteGroupSyncable(t *testing.T, ss store.Store) {
 	assert.NotZero(t, d1.DeleteAt)
 	assert.Equal(t, d1.GroupId, groupTeam.GroupId)
 	assert.Equal(t, d1.SyncableId, groupTeam.SyncableId)
-	assert.Equal(t, d1.CanLeave, groupTeam.CanLeave)
+	// assert.Equal(t, d1.CanLeave, groupTeam.CanLeave) // TODO: Re-add this test in phase 2 of LDAP groups sync.
 	assert.Equal(t, d1.AutoAdd, groupTeam.AutoAdd)
 	assert.Equal(t, d1.CreateAt, groupTeam.CreateAt)
 	assert.Condition(t, func() bool { return d1.UpdateAt > groupTeam.UpdateAt })

@@ -300,7 +300,7 @@ func TestGetGroupTeam(t *testing.T) {
 	assert.Equal(t, g.Id, groupSyncable.GroupId)
 	assert.Equal(t, th.BasicTeam.Id, groupSyncable.SyncableId)
 	assert.Equal(t, *patch.AutoAdd, groupSyncable.AutoAdd)
-	assert.Equal(t, *patch.CanLeave, groupSyncable.CanLeave)
+	// assert.Equal(t, *patch.CanLeave, groupSyncable.CanLeave) // TODO: Re-add this test in phase 2 of LDAP groups sync.
 
 	_, response = th.SystemAdminClient.GetGroupSyncable(model.NewId(), th.BasicTeam.Id, model.GroupSyncableTypeTeam, "")
 	CheckNotFoundStatus(t, response)
@@ -356,7 +356,7 @@ func TestGetGroupChannel(t *testing.T) {
 	assert.Equal(t, g.Id, groupSyncable.GroupId)
 	assert.Equal(t, th.BasicChannel.Id, groupSyncable.SyncableId)
 	assert.Equal(t, *patch.AutoAdd, groupSyncable.AutoAdd)
-	assert.Equal(t, *patch.CanLeave, groupSyncable.CanLeave)
+	// assert.Equal(t, *patch.CanLeave, groupSyncable.CanLeave) // TODO: Re-add this test in phase 2 of LDAP groups sync.
 
 	_, response = th.SystemAdminClient.GetGroupSyncable(model.NewId(), th.BasicChannel.Id, model.GroupSyncableTypeChannel, "")
 	CheckNotFoundStatus(t, response)
