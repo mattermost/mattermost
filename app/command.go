@@ -251,20 +251,16 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 			}
 			p.Set("response_url", args.SiteURL+"/hooks/commands/"+hook.Id)
 
-			var err error
 			var req *http.Request
 			if cmd.Method == model.COMMAND_METHOD_GET {
-				req, err = http.NewRequest(http.MethodGet, cmd.URL, nil)
+				req, _ = http.NewRequest(http.MethodGet, cmd.URL, nil)
+
 				if req.URL.RawQuery != "" {
 					req.URL.RawQuery += "&"
 				}
 				req.URL.RawQuery += p.Encode()
 			} else {
-				req, err = http.NewRequest(http.MethodPost, cmd.URL, strings.NewReader(p.Encode()))
-			}
-			if err != nil {
-				return nil, model.NewAppError("command", "api.command.execute_command.failed.app_error",
-					map[string]interface{}{"Trigger": trigger}, err.Error(), http.StatusBadRequest)
+				req, _ = http.NewRequest(http.MethodPost, cmd.URL, strings.NewReader(p.Encode()))
 			}
 
 			req.Header.Set("Accept", "application/json")
