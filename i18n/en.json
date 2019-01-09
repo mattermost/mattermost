@@ -2127,6 +2127,10 @@
     "translation": "Missing access token"
   },
   {
+    "id": "api.user.authorize_oauth_user.response.app_error",
+    "translation": "Received invalid response from OAuth service provider"
+  },
+  {
     "id": "api.user.authorize_oauth_user.service.app_error",
     "translation": "Token request to {{.Service}} failed"
   },

@@ -339,7 +339,8 @@ func (a *App) getLinkMetadata(requestURL string, useCache bool) (*opengraph.Open
 	if err != nil {
 		return nil, nil, err
 	}
-	defer consumeAndClose(res)
+
+	defer res.Body.Close()
 
 	// Parse the data
 	og, image, err := a.parseLinkMetadata(requestURL, res.Body, res.Header.Get("Content-Type"))
