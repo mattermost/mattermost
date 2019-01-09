@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/mattermost/mattermost-server/services/configservice"
 )
@@ -20,7 +21,7 @@ type HTTPService interface {
 	// MakeTransport returns a RoundTripper that is suitable for making requests to external resources. The default
 	// implementation provides:
 	// - A shorter timeout for dial and TLS handshake (defined as constant "ConnectTimeout")
-	// - A timeout for end-to-end requests (defined as constant "RequestTimeout")
+	// - A timeout for end-to-end requests
 	// - A Mattermost-specific user agent header
 	// - Additional security for untrusted and insecure connections
 	MakeTransport(trustURLs bool) http.RoundTripper
@@ -28,14 +29,22 @@ type HTTPService interface {
 
 type HTTPServiceImpl struct {
 	configService configservice.ConfigService
+
+	RequestTimeout time.Duration
 }
 
 func MakeHTTPService(configService configservice.ConfigService) HTTPService {
-	return &HTTPServiceImpl{configService}
+	return &HTTPServiceImpl{
+		configService,
+		RequestTimeout,
+	}
 }
 
 func (h *HTTPServiceImpl) MakeClient(trustURLs bool) *http.Client {
-	return NewHTTPClient(h.MakeTransport(trustURLs))
+	return &http.Client{
+		Transport: h.MakeTransport(trustURLs),
+		Timeout:   h.RequestTimeout,
+	}
 }
 
 func (h *HTTPServiceImpl) MakeTransport(trustURLs bool) http.RoundTripper {

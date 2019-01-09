@@ -20,7 +20,7 @@ func (a *App) GetOpenGraphMetadata(requestURL string) *opengraph.OpenGraph {
 		mlog.Error("GetOpenGraphMetadata request failed", mlog.String("requestURL", requestURL), mlog.Any("err", err))
 		return nil
 	}
-	defer consumeAndClose(res)
+	defer res.Body.Close()
 
 	return a.ParseOpenGraphMetadata(requestURL, res.Body, res.Header.Get("Content-Type"))
 }
