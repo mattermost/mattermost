@@ -678,7 +678,7 @@ func (s *SqlSupplier) GroupDeleteGroupSyncable(ctx context.Context, groupID stri
 func (s *SqlSupplier) PendingAutoAddTeamMembers(ctx context.Context, since int64, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	result := store.NewSupplierResult()
 
-	query := `
+	sql := `
 		SELECT 
 			GroupMembers.UserId, GroupTeams.TeamId
 		FROM 
@@ -687,7 +687,7 @@ func (s *SqlSupplier) PendingAutoAddTeamMembers(ctx context.Context, since int64
 			ON GroupTeams.GroupId = GroupMembers.GroupId
 			JOIN UserGroups ON UserGroups.Id = GroupMembers.GroupId
 			JOIN Teams ON Teams.Id = GroupTeams.TeamId
-			%s JOIN TeamMembers 
+			LEFT OUTER JOIN TeamMembers 
 			ON 
 				TeamMembers.TeamId = GroupTeams.TeamId 
 				AND TeamMembers.UserId = GroupMembers.UserId
@@ -700,8 +700,6 @@ func (s *SqlSupplier) PendingAutoAddTeamMembers(ctx context.Context, since int64
 			AND Teams.DeleteAt = 0
 			AND (GroupMembers.CreateAt >= :Since
 			OR GroupTeams.UpdateAt >= :Since)`
-
-	sql := fmt.Sprintf("%s UNION %s", fmt.Sprintf(query, "LEFT"), fmt.Sprintf(query, "RIGHT"))
 
 	var userTeamIDs []*model.UserTeamIDPair
 
@@ -722,7 +720,7 @@ func (s *SqlSupplier) PendingAutoAddTeamMembers(ctx context.Context, since int64
 func (s *SqlSupplier) PendingAutoAddChannelMembers(ctx context.Context, since int64, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	result := store.NewSupplierResult()
 
-	query := `
+	sql := `
 		SELECT 
 			GroupMembers.UserId, GroupChannels.ChannelId
 		FROM 
@@ -730,7 +728,7 @@ func (s *SqlSupplier) PendingAutoAddChannelMembers(ctx context.Context, since in
 			JOIN GroupChannels ON GroupChannels.GroupId = GroupMembers.GroupId
 			JOIN UserGroups ON UserGroups.Id = GroupMembers.GroupId
 			JOIN Channels ON Channels.Id = GroupChannels.ChannelId
-			%s JOIN ChannelMemberHistory 
+			LEFT OUTER JOIN ChannelMemberHistory 
 			ON 
 				ChannelMemberHistory.ChannelId = GroupChannels.ChannelId 
 				AND ChannelMemberHistory.UserId = GroupMembers.UserId
@@ -744,8 +742,6 @@ func (s *SqlSupplier) PendingAutoAddChannelMembers(ctx context.Context, since in
 			AND Channels.DeleteAt = 0
 			AND (GroupMembers.CreateAt >= :Since
 			OR GroupChannels.UpdateAt >= :Since)`
-
-	sql := fmt.Sprintf("%s UNION %s", fmt.Sprintf(query, "LEFT"), fmt.Sprintf(query, "RIGHT"))
 
 	var userChannelIDs []*model.UserChannelIDPair
 
