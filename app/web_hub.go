@@ -359,7 +359,7 @@ func (h *Hub) Register(webConn *WebConn) {
 func (h *Hub) Unregister(webConn *WebConn) {
 	select {
 	case h.unregister <- webConn:
-	case <-h.didStop:
+	case <-h.stop:
 	}
 }
 
