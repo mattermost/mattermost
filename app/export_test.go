@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/store"
 	"github.com/stretchr/testify/require"
 )
 
@@ -78,12 +79,7 @@ func TestExportUserChannels(t *testing.T) {
 	}
 	var preferences model.Preferences
 	preferences = append(preferences, preference)
-	channelMember := model.ChannelMember{
-		ChannelId: channel.Id,
-		UserId:    user.Id,
-	}
-	th.App.Srv.Store.Channel().SaveMember(&channelMember)
-	th.App.Srv.Store.Preference().Save(&preferences)
+	store.Must(th.App.Srv.Store.Preference().Save(&preferences))
 	th.App.UpdateChannelMemberNotifyProps(notifyProps, channel.Id, user.Id)
 	exportData, err := th.App.buildUserChannelMemberships(user.Id, team.Id)
 	require.Nil(t, err)
