@@ -438,7 +438,10 @@ func (c *Client4) doApiRequestBytes(method, url string, data []byte, etag string
 }
 
 func (c *Client4) doApiRequestReader(method, url string, data io.Reader, etag string) (*http.Response, *AppError) {
-	rq, _ := http.NewRequest(method, url, data)
+	rq, err := http.NewRequest(method, url, data)
+	if err != nil {
+		return nil, NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
 
 	if len(etag) > 0 {
 		rq.Header.Set(HEADER_ETAG_CLIENT, etag)
@@ -476,7 +479,10 @@ func (c *Client4) DoUploadFile(url string, data []byte, contentType string) (*Fi
 }
 
 func (c *Client4) doUploadFile(url string, body io.Reader, contentType string, contentLength int64) (*FileUploadResponse, *Response) {
-	rq, _ := http.NewRequest("POST", c.ApiUrl+url, body)
+	rq, err := http.NewRequest("POST", c.ApiUrl+url, body)
+	if err != nil {
+		return nil, &Response{Error: NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
 	if contentLength != 0 {
 		rq.ContentLength = contentLength
 	}
@@ -500,7 +506,10 @@ func (c *Client4) doUploadFile(url string, body io.Reader, contentType string, c
 }
 
 func (c *Client4) DoEmojiUploadFile(url string, data []byte, contentType string) (*Emoji, *Response) {
-	rq, _ := http.NewRequest("POST", c.ApiUrl+url, bytes.NewReader(data))
+	rq, err := http.NewRequest("POST", c.ApiUrl+url, bytes.NewReader(data))
+	if err != nil {
+		return nil, &Response{Error: NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
 	rq.Header.Set("Content-Type", contentType)
 
 	if len(c.AuthToken) > 0 {
@@ -521,7 +530,10 @@ func (c *Client4) DoEmojiUploadFile(url string, data []byte, contentType string)
 }
 
 func (c *Client4) DoUploadImportTeam(url string, data []byte, contentType string) (map[string]string, *Response) {
-	rq, _ := http.NewRequest("POST", c.ApiUrl+url, bytes.NewReader(data))
+	rq, err := http.NewRequest("POST", c.ApiUrl+url, bytes.NewReader(data))
+	if err != nil {
+		return nil, &Response{Error: NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
 	rq.Header.Set("Content-Type", contentType)
 
 	if len(c.AuthToken) > 0 {
@@ -1170,7 +1182,10 @@ func (c *Client4) SetProfileImage(userId string, data []byte) (bool, *Response) 
 		return false, &Response{Error: NewAppError("SetProfileImage", "model.client.set_profile_user.writer.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}
 
-	rq, _ := http.NewRequest("POST", c.ApiUrl+c.GetUserRoute(userId)+"/image", bytes.NewReader(body.Bytes()))
+	rq, err := http.NewRequest("POST", c.ApiUrl+c.GetUserRoute(userId)+"/image", bytes.NewReader(body.Bytes()))
+	if err != nil {
+		return false, &Response{Error: NewAppError("SetProfileImage", "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
 	rq.Header.Set("Content-Type", writer.FormDataContentType())
 
 	if len(c.AuthToken) > 0 {
@@ -1179,8 +1194,7 @@ func (c *Client4) SetProfileImage(userId string, data []byte) (bool, *Response) 
 
 	rp, err := c.HttpClient.Do(rq)
 	if err != nil || rp == nil {
-		// set to http.StatusForbidden(403)
-		return false, &Response{StatusCode: http.StatusForbidden, Error: NewAppError(c.GetUserRoute(userId)+"/image", "model.client.connecting.app_error", nil, err.Error(), 403)}
+		return false, &Response{StatusCode: http.StatusForbidden, Error: NewAppError(c.GetUserRoute(userId)+"/image", "model.client.connecting.app_error", nil, err.Error(), http.StatusForbidden)}
 	}
 	defer closeBody(rp)
 
@@ -1641,7 +1655,10 @@ func (c *Client4) SetTeamIcon(teamId string, data []byte) (bool, *Response) {
 		return false, &Response{Error: NewAppError("SetTeamIcon", "model.client.set_team_icon.writer.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}
 
-	rq, _ := http.NewRequest("POST", c.ApiUrl+c.GetTeamRoute(teamId)+"/image", bytes.NewReader(body.Bytes()))
+	rq, err := http.NewRequest("POST", c.ApiUrl+c.GetTeamRoute(teamId)+"/image", bytes.NewReader(body.Bytes()))
+	if err != nil {
+		return false, &Response{Error: NewAppError("SetTeamIcon", "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
 	rq.Header.Set("Content-Type", writer.FormDataContentType())
 
 	if len(c.AuthToken) > 0 {
@@ -2594,7 +2611,10 @@ func (c *Client4) UploadLicenseFile(data []byte) (bool, *Response) {
 		return false, &Response{Error: NewAppError("UploadLicenseFile", "model.client.set_profile_user.writer.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}
 
-	rq, _ := http.NewRequest("POST", c.ApiUrl+c.GetLicenseRoute(), bytes.NewReader(body.Bytes()))
+	rq, err := http.NewRequest("POST", c.ApiUrl+c.GetLicenseRoute(), bytes.NewReader(body.Bytes()))
+	if err != nil {
+		return false, &Response{Error: NewAppError("UploadLicenseFile", "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
 	rq.Header.Set("Content-Type", writer.FormDataContentType())
 
 	if len(c.AuthToken) > 0 {
@@ -2984,7 +3004,10 @@ func (c *Client4) GetComplianceReport(reportId string) (*Compliance, *Response) 
 
 // DownloadComplianceReport returns a full compliance report as a file.
 func (c *Client4) DownloadComplianceReport(reportId string) ([]byte, *Response) {
-	rq, _ := http.NewRequest("GET", c.ApiUrl+c.GetComplianceReportRoute(reportId), nil)
+	rq, err := http.NewRequest("GET", c.ApiUrl+c.GetComplianceReportRoute(reportId), nil)
+	if err != nil {
+		return nil, &Response{Error: NewAppError("DownloadComplianceReport", "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
 
 	if len(c.AuthToken) > 0 {
 		rq.Header.Set(HEADER_AUTH, "BEARER "+c.AuthToken)
@@ -3105,7 +3128,10 @@ func (c *Client4) UploadBrandImage(data []byte) (bool, *Response) {
 		return false, &Response{Error: NewAppError("UploadBrandImage", "model.client.set_profile_user.writer.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}
 
-	rq, _ := http.NewRequest("POST", c.ApiUrl+c.GetBrandRoute()+"/image", bytes.NewReader(body.Bytes()))
+	rq, err := http.NewRequest("POST", c.ApiUrl+c.GetBrandRoute()+"/image", bytes.NewReader(body.Bytes()))
+	if err != nil {
+		return false, &Response{Error: NewAppError("UploadBrandImage", "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
 	rq.Header.Set("Content-Type", writer.FormDataContentType())
 
 	if len(c.AuthToken) > 0 {
@@ -3257,7 +3283,10 @@ func (c *Client4) DeauthorizeOAuthApp(appId string) (bool, *Response) {
 
 // GetOAuthAccessToken is a test helper function for the OAuth access token endpoint.
 func (c *Client4) GetOAuthAccessToken(data url.Values) (*AccessResponse, *Response) {
-	rq, _ := http.NewRequest(http.MethodPost, c.Url+"/oauth/access_token", strings.NewReader(data.Encode()))
+	rq, err := http.NewRequest(http.MethodPost, c.Url+"/oauth/access_token", strings.NewReader(data.Encode()))
+	if err != nil {
+		return nil, &Response{Error: NewAppError(c.Url+"/oauth/access_token", "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
 	rq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	if len(c.AuthToken) > 0 {
@@ -3833,7 +3862,10 @@ func (c *Client4) uploadPlugin(file io.Reader, force bool) (*Manifest, *Response
 		return nil, &Response{Error: NewAppError("UploadPlugin", "model.client.writer.app_error", nil, err.Error(), 0)}
 	}
 
-	rq, _ := http.NewRequest("POST", c.ApiUrl+c.GetPluginsRoute(), body)
+	rq, err := http.NewRequest("POST", c.ApiUrl+c.GetPluginsRoute(), body)
+	if err != nil {
+		return nil, &Response{Error: NewAppError("UploadPlugin", "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
 	rq.Header.Set("Content-Type", writer.FormDataContentType())
 
 	if len(c.AuthToken) > 0 {
