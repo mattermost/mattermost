@@ -5,6 +5,7 @@ package model
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -122,7 +123,9 @@ func (syncable *GroupSyncable) MarshalJSON() ([]byte, error) {
 			Alias: (*Alias)(syncable),
 		})
 	default:
-		return nil, &json.MarshalerError{}
+		return nil, &json.MarshalerError{
+			Err: fmt.Errorf("unknown syncable type: %s", syncable.Type),
+		}
 	}
 }
 
