@@ -1,11 +1,11 @@
 [
   {
     "id": "actiance.export.marshalToXml.appError",
-    "translation": "Unable to convert export to XML."
+    "translation": "Kan export niet converteren naar XML."
   },
   {
     "id": "api.admin.add_certificate.array.app_error",
-    "translation": "Geen bestand gevonden in 'certificate' veld in verzoek"
+    "translation": "Geen bestand gevonden in 'certificaat' veld in verzoek."
   },
   {
     "id": "api.admin.add_certificate.no_file.app_error",
@@ -41,7 +41,7 @@
   },
   {
     "id": "api.admin.test_email.body",
-    "translation": "<br/><br/><br/>Mail voor Mattermost lijkt goed geconfigureerd te zijn!"
+    "translation": "Mail voor Mattermost lijkt goed geconfigureerd te zijn!"
   },
   {
     "id": "api.admin.test_email.missing_server",
@@ -213,7 +213,7 @@
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
-    "translation": "Kon de gebruiker niet ophalen tijdens het bewaren van de nieuwe kanaalkoptekst %v"
+    "translation": "Kon de gebruiker niet ophalen tijdens het bewaren van de nieuwe kanaalkoptekst"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.updated_from",
@@ -225,7 +225,7 @@
   },
   {
     "id": "api.channel.post_user_add_remove_message_and_forget.error",
-    "translation": "Plaatsen van bericht over binnenkomen/verlaten %v is mislukt"
+    "translation": "Mislukt post doe/bericht achterlaten"
   },
   {
     "id": "api.channel.remove.default.app_error",

@@ -21,7 +21,7 @@
   },
   {
     "id": "api.admin.file_read_error",
-    "translation": "Erreur lors de la lecture du fichier journal."
+    "translation": "Une erreur s'est produite lors de la lecture du fichier journal."
   },
   {
     "id": "api.admin.get_brand_image.storage.app_error",
@@ -29,7 +29,7 @@
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
-    "translation": "Erreur lors de la suppression du certificat. Veuillez vérifier que le fichier config/{{.Filename}} existe."
+    "translation": "Une erreur s'est produite lors de la suppression du certificat. Veuillez vérifier que le fichier config/{{.Filename}} existe."
   },
   {
     "id": "api.admin.saml.metadata.app_error",
@@ -321,7 +321,7 @@
   },
   {
     "id": "api.command.invite_people.fail",
-    "translation": "Un problème s'est produit à l'envoi de l'e-mail d'invitation."
+    "translation": "Une erreur s'est produite lors de l'envoi de l'e-mail d'invitation."
   },
   {
     "id": "api.command.invite_people.hint",
@@ -361,7 +361,7 @@
   },
   {
     "id": "api.command_channel_header.channel.app_error",
-    "translation": "Impossible de récupérer le canal courant."
+    "translation": "Une erreur s'est produite lors de la récupération du canal courant."
   },
   {
     "id": "api.command_channel_header.desc",
@@ -385,11 +385,11 @@
   },
   {
     "id": "api.command_channel_header.update_channel.app_error",
-    "translation": "Une erreur s'est produite lors de la modification du canal."
+    "translation": "Une erreur s'est produite lors de la modification du canal courant."
   },
   {
     "id": "api.command_channel_purpose.channel.app_error",
-    "translation": "Impossible de récupérer le canal courant."
+    "translation": "Une erreur s'est produite lors de la récupération du canal courant."
   },
   {
     "id": "api.command_channel_purpose.desc",
@@ -421,11 +421,11 @@
   },
   {
     "id": "api.command_channel_remove.channel.app_error",
-    "translation": "Impossible de récupérer le canal courant."
+    "translation": "Une erreur s'est produite lors de la récupération du canal courant."
   },
   {
     "id": "api.command_channel_rename.channel.app_error",
-    "translation": "Impossible de récupérer le canal courant."
+    "translation": "Une erreur s'est produite lors de la récupération du canal courant."
   },
   {
     "id": "api.command_channel_rename.desc",
@@ -549,7 +549,7 @@
   },
   {
     "id": "api.command_expand_collapse.fail.app_error",
-    "translation": "Une erreur est survenue lors de l'expansion des aperçus"
+    "translation": "Une erreur s'est produite lors de l'expansion des aperçus"
   },
   {
     "id": "api.command_groupmsg.desc",
@@ -600,7 +600,7 @@
   },
   {
     "id": "api.command_invite.channel.app_error",
-    "translation": "Impossible de récupérer le canal courant."
+    "translation": "Une erreur s'est produite lors de la récupération du canal courant."
   },
   {
     "id": "api.command_invite.channel.error",
@@ -724,7 +724,7 @@
   },
   {
     "id": "api.command_msg.dm_fail.app_error",
-    "translation": "Une erreur s'est produite à la création du message personnel."
+    "translation": "Une erreur s'est produite lors de la création du message personnel."
   },
   {
     "id": "api.command_msg.fail.app_error",
@@ -1026,19 +1026,19 @@
   },
   {
     "id": "api.emoji.upload.large_image.decode_error",
-    "translation": "Impossible de créer l'émoticône. Une erreur est survenue durant le décodage de l'image."
+    "translation": "Impossible de créer l'émoticône. Une erreur s'est produite lors du décodage de l'image."
   },
   {
     "id": "api.emoji.upload.large_image.encode_error",
-    "translation": "Impossible de créer l'émoticône. Une erreur est survenue durant l'encodage de l'image."
+    "translation": "Impossible de créer l'émoticône. Une erreur s'est produite lors de l'encodage de l'image."
   },
   {
     "id": "api.emoji.upload.large_image.gif_decode_error",
-    "translation": "Impossible de créer l'émoticône. Une erreur est survenue durant le décodage de l'image GIF."
+    "translation": "Impossible de créer l'émoticône. Une erreur s'est produite lors du décodage de l'image GIF."
   },
   {
     "id": "api.emoji.upload.large_image.gif_encode_error",
-    "translation": "Impossible de créer l'émoticône. Une erreur est survenue durant l'encodage de l'image GIF."
+    "translation": "Impossible de créer l'émoticône. Une erreur s'est produite lors de l'encodage de l'image GIF."
   },
   {
     "id": "api.emoji.upload.large_image.too_large.app_error",
@@ -1046,7 +1046,7 @@
   },
   {
     "id": "api.emoji.upload.open.app_error",
-    "translation": "Impossible de créer l'émoticône. Une erreur est survenue lors de l'ouverture de l'image liée."
+    "translation": "Impossible de créer l'émoticône. Une erreur s'est produite lors de l'ouverture de l'image liée."
   },
   {
     "id": "api.file.attachments.disabled.app_error",
@@ -1098,11 +1098,11 @@
   },
   {
     "id": "api.file.read_file.reading_local.app_error",
-    "translation": "Une erreur est survenue lors de la lecture à partir du stockage local du serveur"
+    "translation": "Une erreur s'est produite lors de la lecture à partir du stockage local du serveur"
   },
   {
     "id": "api.file.read_file.s3.app_error",
-    "translation": "Une erreur est survenue lors de la lecture à partir du stockage S3"
+    "translation": "Une erreur s'est produite lors de la lecture à partir du stockage S3"
   },
   {
     "id": "api.file.reader.reading_local.app_error",
@@ -1150,15 +1150,15 @@
   },
   {
     "id": "api.file.write_file.s3.app_error",
-    "translation": "Une erreur est survenue lors de l'écriture vers S3"
+    "translation": "Une erreur s'est produite lors de l'écriture vers S3"
   },
   {
     "id": "api.file.write_file_locally.create_dir.app_error",
-    "translation": "Une erreur est survenue lors de la création du dossier pour le nouveau fichier"
+    "translation": "Une erreur s'est produite lors de la création du dossier pour le nouveau fichier"
   },
   {
     "id": "api.file.write_file_locally.writing.app_error",
-    "translation": "Une erreur est survenue durant l'écriture sur le stockage du serveur local"
+    "translation": "Une erreur s'est produite lors de l'écriture sur le stockage du serveur local"
   },
   {
     "id": "api.incoming_webhook.disabled.app_error",
@@ -1246,19 +1246,19 @@
   },
   {
     "id": "api.oauth.get_access_token.internal.app_error",
-    "translation": "server_error : Une erreur interne serveur est survenue durant l'accès à la base de données"
+    "translation": "server_error : Une erreur interne serveur s'est produite lors de l'accès à la base de données"
   },
   {
     "id": "api.oauth.get_access_token.internal_saving.app_error",
-    "translation": "server_error : Une erreur interne serveur est survenue durant l'enregistrement du jeton d'accès dans la base de données"
+    "translation": "server_error : Une erreur interne serveur s'est produite lors de l'enregistrement du jeton d'accès dans la base de données"
   },
   {
     "id": "api.oauth.get_access_token.internal_session.app_error",
-    "translation": "server_error : Une erreur interne serveur est survenue durant l'enregistrement de la session en base de données"
+    "translation": "server_error : Une erreur interne serveur s'est produite lors de l'enregistrement de la session en base de données"
   },
   {
     "id": "api.oauth.get_access_token.internal_user.app_error",
-    "translation": "server_error : Une erreur interne serveur est survenue durant la récupération de l'utilisateur depuis la base de données"
+    "translation": "server_error : Une erreur interne serveur s'est produite lors de la récupération de l'utilisateur depuis la base de données"
   },
   {
     "id": "api.oauth.get_access_token.missing_code.app_error",
@@ -1286,15 +1286,15 @@
   },
   {
     "id": "api.oauth.revoke_access_token.del_session.app_error",
-    "translation": "Erreur lors de la suppression de la session en base de données"
+    "translation": "Une erreur s'est produite lors de la suppression de la session en base de données"
   },
   {
     "id": "api.oauth.revoke_access_token.del_token.app_error",
-    "translation": "Error lors de la suppression du jeton d'accès dans la base de données"
+    "translation": "Une erreur s'est produite lors de la suppression du jeton d'accès dans la base de données"
   },
   {
     "id": "api.oauth.revoke_access_token.get.app_error",
-    "translation": "Erreur lors de la récupération du jeton d'accès avant suppression"
+    "translation": "Une erreur s'est produite lors de la récupération du jeton d'accès de la base de données avant suppression"
   },
   {
     "id": "api.oauth.singup_with_oauth.disabled.app_error",
@@ -1354,7 +1354,7 @@
   },
   {
     "id": "api.post.create_webhook_post.creating.app_error",
-    "translation": "Erreur lors de la création du message"
+    "translation": "Une erreur s'est produite lors de la création du message"
   },
   {
     "id": "api.post.disabled_all",
@@ -1374,7 +1374,7 @@
   },
   {
     "id": "api.post.do_action.action_integration.app_error",
-    "translation": "Erreur d'action d'intégration"
+    "translation": "Une erreur s'est produite lors de l'action de l'intégration"
   },
   {
     "id": "api.post.get_message_for_notification.files_sent",
@@ -1516,7 +1516,7 @@
   },
   {
     "id": "api.server.start_server.starting.critical",
-    "translation": "Erreur de démarrage du serveur, err : %v"
+    "translation": "Une erreur s'est produite lors du démarrage du serveur, err : %v"
   },
   {
     "id": "api.slackimport.slack_add_bot_user.email_pwd",
@@ -1752,7 +1752,7 @@
   },
   {
     "id": "api.team.team_icon.update.app_error",
-    "translation": "Une erreur est survenue lors du changement d'icône d'équipe."
+    "translation": "Une erreur s'est produite lors du changement d'icône d'équipe."
   },
   {
     "id": "api.team.update_member_roles.not_a_member",
@@ -2144,7 +2144,7 @@
   },
   {
     "id": "api.user.get_user_by_email.permissions.app_error",
-    "translation": "Unable to get user by email."
+    "translation": "Impossible de récupérer l'utilisateur par son adresse e-mail."
   },
   {
     "id": "api.user.ldap_to_email.not_available.app_error",
@@ -2480,15 +2480,15 @@
   },
   {
     "id": "app.import.attachment.bad_file.error",
-    "translation": "Erreur lors de la lecture du fichier : « {{.FilePath}} »"
+    "translation": "Une erreur s'est produite lors de la lecture du fichier : « {{.FilePath}} »"
   },
   {
     "id": "app.import.attachment.file_upload.error",
-    "translation": "Erreur lors de l'envoi du fichier : « {{.FilePath}} »"
+    "translation": "Une erreur s'est produite lors de l'envoi du fichier : « {{.FilePath}} »"
   },
   {
     "id": "app.import.bulk_import.file_scan.error",
-    "translation": "Erreur lors de la lecture du fichier d'importation de données"
+    "translation": "Une erreur s'est produite lors de la lecture du fichier d'importation de données"
   },
   {
     "id": "app.import.bulk_import.json_decode.error",
@@ -2500,7 +2500,7 @@
   },
   {
     "id": "app.import.emoji.bad_file.error",
-    "translation": "Erreur lors de la lecture du fichier d'émoticône. Émoticône portant le nom  : « {{.EmojiName}} »"
+    "translation": "Une erreur s'est produite lors de la lecture du fichier d'émoticône. Émoticône portant le nom  : « {{.EmojiName}} »"
   },
   {
     "id": "app.import.import_channel.scheme_deleted.error",
@@ -2512,7 +2512,7 @@
   },
   {
     "id": "app.import.import_channel.team_not_found.error",
-    "translation": "Erreur lors de l'importation du canal. L'équipe portant le nom « {{.TeamName}} » n'a pas pu être trouvée."
+    "translation": "Une erreur s'est produite lors de l'importation du canal. L'équipe portant le nom « {{.TeamName}} » n'a pas pu être trouvée."
   },
   {
     "id": "app.import.import_direct_channel.create_direct_channel.error",
@@ -2544,7 +2544,7 @@
   },
   {
     "id": "app.import.import_direct_post.save_preferences.error",
-    "translation": "Erreur lors de l'importation du message personnel. Impossible de sauvegarder les préférences."
+    "translation": "Une erreur s'est produite lors de l'importation du message personnel. Impossible de sauvegarder les préférences."
   },
   {
     "id": "app.import.import_direct_post.user_not_found.error",
@@ -2588,19 +2588,19 @@
   },
   {
     "id": "app.import.import_post.channel_not_found.error",
-    "translation": "Erreur lors de l'importation du message. Le canal portant le nom « {{.ChannelName}} » n'a pas pu être trouvé."
+    "translation": "Une erreur s'est produite lors de l'importation du message. Le canal portant le nom « {{.ChannelName}} » n'a pas pu être trouvé."
   },
   {
     "id": "app.import.import_post.save_preferences.error",
-    "translation": "Erreur lors de l'importation du message. Impossible de sauvegarder les préférences."
+    "translation": "Une erreur s'est produite lors de l'importation du message. Impossible de sauvegarder les préférences."
   },
   {
     "id": "app.import.import_post.team_not_found.error",
-    "translation": "Erreur lors de l'importation du message. L'équipe portant le nom « {{.TeamName}} » n'a pas pu être trouvée."
+    "translation": "Une erreur s'est produite lors de l'importation du message. L'équipe portant le nom « {{.TeamName}} » n'a pas pu être trouvée."
   },
   {
     "id": "app.import.import_post.user_not_found.error",
-    "translation": "Erreur lors de l'importation du message. L'utilisateur portant le nom « {{.Username}} » n'a pas pu être trouvé."
+    "translation": "Une erreur s'est produite lors de l'importation du message. L'utilisateur portant le nom « {{.Username}} » n'a pas pu être trouvé."
   },
   {
     "id": "app.import.import_scheme.scope_change.error",
@@ -2616,11 +2616,11 @@
   },
   {
     "id": "app.import.import_user.save_preferences.error",
-    "translation": "Erreur lors de l'importation des préférences utilisateur. Impossible de sauvegarder les préférences."
+    "translation": "Une erreur s'est produite lors de l'importation des préférences utilisateur. Impossible de sauvegarder les préférences."
   },
   {
     "id": "app.import.import_user_channels.save_preferences.error",
-    "translation": "Erreur lors de l'importation des membres du canal. Impossible de sauvegarder les préférences."
+    "translation": "Une erreur s'est produite lors de l'importation des membres du canal. Impossible de sauvegarder les préférences."
   },
   {
     "id": "app.import.process_import_data_file_version_line.invalid_version.error",
@@ -3156,7 +3156,7 @@
   },
   {
     "id": "app.submit_interactive_dialog.json_error",
-    "translation": "Une erreur s'est produite durant l'encodage JSON utilisé par la boite de dialogue interactive."
+    "translation": "Une erreur s'est produite lors de l'encodage JSON utilisé par la boite de dialogue interactive."
   },
   {
     "id": "app.system_install_date.parse_int.app_error",
@@ -3520,15 +3520,15 @@
   },
   {
     "id": "ent.mfa.deactivate.save_secret.app_error",
-    "translation": "Erreur lors de la réinitialisation du secret MFA"
+    "translation": "Une erreur s'est produite lors de la réinitialisation de la clé secrète MFA"
   },
   {
     "id": "ent.mfa.generate_qr_code.create_code.app_error",
-    "translation": "Erreur lors de la génération du QR code"
+    "translation": "Une erreur s'est produite lors de la génération du QR code"
   },
   {
     "id": "ent.mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Erreur lors de la sauvegarde du secret MFA"
+    "translation": "Une erreur s'est produite lors de la sauvegarde de la clé secrète MFA"
   },
   {
     "id": "ent.mfa.license_disable.app_error",
@@ -3804,7 +3804,7 @@
   },
   {
     "id": "model.client.connecting.app_error",
-    "translation": "Une erreur est survenue durant la connexion au serveur"
+    "translation": "Une erreur s'est produite lors de la connexion au serveur"
   },
   {
     "id": "model.client.create_emoji.emoji.app_error",
@@ -3852,27 +3852,27 @@
   },
   {
     "id": "model.client.upload_post_attachment.channel_id.app_error",
-    "translation": "Une erreur est survenue lors de l'écriture de l'ID du channel dans le formulaire multiforme"
+    "translation": "Une erreur s'est produite lors de l'écriture de l'ID du channel dans le formulaire multiforme"
   },
   {
     "id": "model.client.upload_post_attachment.file.app_error",
-    "translation": "Une erreur est survenue lors de l'écriture du fichier dans le formulaire à contenu multiple"
+    "translation": "Une erreur s'est produite lors de l'écriture du fichier dans le formulaire à contenu multiple"
   },
   {
     "id": "model.client.upload_post_attachment.file_size.app_error",
-    "translation": "Une erreur est survenue lors de l'écriture de la taille du fichier (fileSize) dans le formulaire à contenu multiple"
+    "translation": "Une erreur s'est produite lors de l'écriture de la taille du fichier (fileSize) dans le formulaire à contenu multiple"
   },
   {
     "id": "model.client.upload_post_attachment.import_from.app_error",
-    "translation": "Une erreur est survenue lors de l'écriture de l'origine d'importation (importForm) dans le formulaire à contenu multiple"
+    "translation": "Une erreur s'est produite lors de l'écriture de l'origine d'importation (importForm) dans le formulaire à contenu multiple"
   },
   {
     "id": "model.client.upload_post_attachment.writer.app_error",
-    "translation": "Une erreur est survenue lors de la fermeture de l'outil d'écriture de contenu multiple"
+    "translation": "Une erreur s'est produite lors de la fermeture de l'outil d'écriture de contenu multiple"
   },
   {
     "id": "model.client.upload_saml_cert.app_error",
-    "translation": "Erreur lors de la création de la requête pour le formulaire multipart pour le certificat SAML"
+    "translation": "Une erreur s'est produite lors de la requête pour le formulaire multipart pour le certificat SAML"
   },
   {
     "id": "model.client.writer.app_error",
@@ -5480,7 +5480,7 @@
   },
   {
     "id": "store.sql_oauth.delete_app.app_error",
-    "translation": "Une erreur a eu lieu pendant la suppression de l'application OAuth2"
+    "translation": "Une erreur s'est produite lors de la suppression de l'application OAuth2"
   },
   {
     "id": "store.sql_oauth.get_access_data.app_error",
@@ -5496,7 +5496,7 @@
   },
   {
     "id": "store.sql_oauth.get_app.finding.app_error",
-    "translation": "Impossible de trouver l'application"
+    "translation": "Une erreur s'est produite lors de la recherche de l'application"
   },
   {
     "id": "store.sql_oauth.get_app_by_user.find.app_error",
@@ -5564,7 +5564,7 @@
   },
   {
     "id": "store.sql_oauth.update_app.updating.app_error",
-    "translation": "Un erreur s'est produite lors de la modification de l'application"
+    "translation": "Une erreur s'est produite lors de la modification de l'application"
   },
   {
     "id": "store.sql_plugin_store.delete.app_error",
@@ -5936,7 +5936,7 @@
   },
   {
     "id": "store.sql_status.get.app_error",
-    "translation": "Erreur lors de la récupération du statut"
+    "translation": "Une erreur s'est produite lors de la récupération du statut"
   },
   {
     "id": "store.sql_status.get.missing.app_error",
@@ -5944,7 +5944,7 @@
   },
   {
     "id": "store.sql_status.get_online.app_error",
-    "translation": "Erreur lors de la récupération de tous les statuts en-ligne"
+    "translation": "Une erreur s'est produite lors de la récupération de tous les statuts en-ligne"
   },
   {
     "id": "store.sql_status.get_online_away.app_error",
@@ -6528,11 +6528,11 @@
   },
   {
     "id": "utils.config.load_config.decoding.panic",
-    "translation": "Erreur de décodage de la configuration fichier={{.Filename}}, err={{.Error}}"
+    "translation": "Une erreur s'est produite lors du décodage du fichier de configuration={{.Filename}}, err={{.Error}}"
   },
   {
     "id": "utils.config.load_config.opening.panic",
-    "translation": "Erreur d'ouverture du fichier de configuration fichier={{.Filename}}, err={{.Error}}"
+    "translation": "Une erreur s'est produite lors de l'ouverture du fichier de configuration={{.Filename}}, err={{.Error}}"
   },
   {
     "id": "utils.config.save_config.saving.app_error",
@@ -6600,7 +6600,7 @@
   },
   {
     "id": "utils.mail.send_mail.from_address.app_error",
-    "translation": "Impossible de définir l'adresse source"
+    "translation": "Une erreur s'est produite lors de la définition de l'adresse source"
   },
   {
     "id": "utils.mail.send_mail.msg.app_error",
@@ -6612,7 +6612,7 @@
   },
   {
     "id": "utils.mail.send_mail.to_address.app_error",
-    "translation": "Impossible de définir l'adresse de destination"
+    "translation": "Une erreur s'est produite lors de la définition de l'adresse de destination"
   },
   {
     "id": "web.command_webhook.command.app_error",
