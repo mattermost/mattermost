@@ -6,6 +6,7 @@ package app
 import (
 	"encoding/base64"
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -182,7 +183,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		return token
 	}
 
-	makeRequest := func(cookie string) *http.Request {
+	makeRequest := func(t *testing.T, cookie string) *http.Request {
 		request, _ := http.NewRequest(http.MethodGet, "https://mattermost.example.com", nil)
 
 		if cookie != "" {
@@ -272,7 +273,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer th.TearDown()
 
 		cookie := model.NewId()
-		request := makeRequest("")
+		request := makeRequest(t, "")
 		state := makeState(makeToken(th, cookie))
 
 		_, _, _, err := th.App.AuthorizeOAuthUser(nil, request, model.SERVICE_GITLAB, "", state, "")
@@ -289,7 +290,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		token, err := th.App.CreateOAuthStateToken(model.NewId())
 		require.Nil(t, err)
 
-		request := makeRequest(cookie)
+		request := makeRequest(t, cookie)
 		state := makeState(token)
 
 		_, _, _, err = th.App.AuthorizeOAuthUser(nil, request, model.SERVICE_GITLAB, "", state, "")
@@ -302,7 +303,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer th.TearDown()
 
 		cookie := model.NewId()
-		request := makeRequest(cookie)
+		request := makeRequest(t, cookie)
 		state := makeState(makeToken(th, cookie))
 
 		_, _, _, err := th.App.AuthorizeOAuthUser(&httptest.ResponseRecorder{}, request, model.SERVICE_GITLAB, "", state, "")
@@ -320,7 +321,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer th.TearDown()
 
 		cookie := model.NewId()
-		request := makeRequest(cookie)
+		request := makeRequest(t, cookie)
 		state := makeState(makeToken(th, cookie))
 
 		_, _, _, err := th.App.AuthorizeOAuthUser(&httptest.ResponseRecorder{}, request, model.SERVICE_GITLAB, "", state, "")
@@ -338,7 +339,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer th.TearDown()
 
 		cookie := model.NewId()
-		request := makeRequest(cookie)
+		request := makeRequest(t, cookie)
 		state := makeState(makeToken(th, cookie))
 
 		_, _, _, err := th.App.AuthorizeOAuthUser(&httptest.ResponseRecorder{}, request, model.SERVICE_GITLAB, "", state, "")
@@ -359,7 +360,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer th.TearDown()
 
 		cookie := model.NewId()
-		request := makeRequest(cookie)
+		request := makeRequest(t, cookie)
 		state := makeState(makeToken(th, cookie))
 
 		_, _, _, err := th.App.AuthorizeOAuthUser(&httptest.ResponseRecorder{}, request, model.SERVICE_GITLAB, "", state, "")
@@ -380,7 +381,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer th.TearDown()
 
 		cookie := model.NewId()
-		request := makeRequest(cookie)
+		request := makeRequest(t, cookie)
 		state := makeState(makeToken(th, cookie))
 
 		_, _, _, err := th.App.AuthorizeOAuthUser(&httptest.ResponseRecorder{}, request, model.SERVICE_GITLAB, "", state, "")
@@ -401,7 +402,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer th.TearDown()
 
 		cookie := model.NewId()
-		request := makeRequest(cookie)
+		request := makeRequest(t, cookie)
 		state := makeState(makeToken(th, cookie))
 
 		_, _, _, err := th.App.AuthorizeOAuthUser(&httptest.ResponseRecorder{}, request, model.SERVICE_GITLAB, "", state, "")
@@ -429,7 +430,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer th.TearDown()
 
 		cookie := model.NewId()
-		request := makeRequest(cookie)
+		request := makeRequest(t, cookie)
 		state := makeState(makeToken(th, cookie))
 
 		_, _, _, err := th.App.AuthorizeOAuthUser(&httptest.ResponseRecorder{}, request, model.SERVICE_GITLAB, "", state, "")
@@ -458,7 +459,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer th.TearDown()
 
 		cookie := model.NewId()
-		request := makeRequest(cookie)
+		request := makeRequest(t, cookie)
 		state := makeState(makeToken(th, cookie))
 
 		_, _, _, err := th.App.AuthorizeOAuthUser(&httptest.ResponseRecorder{}, request, model.SERVICE_GITLAB, "", state, "")
@@ -467,6 +468,8 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 	})
 
 	t.Run("enabled and properly configured", func(t *testing.T) {
+		userData := "Hello, World!"
+
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			switch r.URL.Path {
 			case "/token":
@@ -476,6 +479,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 				})
 			case "/user":
 				w.WriteHeader(http.StatusOK)
+				w.Write([]byte(userData))
 			}
 		}))
 		defer server.Close()
@@ -484,7 +488,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer th.TearDown()
 
 		cookie := model.NewId()
-		request := makeRequest(cookie)
+		request := makeRequest(t, cookie)
 
 		stateProps := map[string]string{
 			"team_id": model.NewId(),
@@ -493,7 +497,12 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		state := base64.StdEncoding.EncodeToString([]byte(model.MapToJson(stateProps)))
 
 		body, receivedTeamId, receivedStateProps, err := th.App.AuthorizeOAuthUser(&httptest.ResponseRecorder{}, request, model.SERVICE_GITLAB, "", state, "")
-		assert.NotNil(t, body)
+
+		require.NotNil(t, body)
+		bodyBytes, bodyErr := ioutil.ReadAll(body)
+		require.Nil(t, bodyErr)
+		assert.Equal(t, userData, string(bodyBytes))
+
 		assert.Equal(t, stateProps["team_id"], receivedTeamId)
 		assert.Equal(t, stateProps, receivedStateProps)
 		assert.Nil(t, err)
