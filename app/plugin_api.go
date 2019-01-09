@@ -540,7 +540,7 @@ func (api *PluginAPI) RemoveTeamIcon(teamId string) *model.AppError {
 	return nil
 }
 
-// Admin Section
+// Mail Section
 
 func (api *PluginAPI) SendMail(to, subject, htmlBody string) *model.AppError {
 	if to == "" {
