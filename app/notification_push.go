@@ -273,7 +273,12 @@ func (a *App) StopPushNotificationsHubWorkers() {
 func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session) {
 	msg.ServerId = a.DiagnosticId()
 
-	request, _ := http.NewRequest("POST", strings.TrimRight(*a.Config().EmailSettings.PushNotificationServer, "/")+model.API_URL_SUFFIX_V1+"/send_push", strings.NewReader(msg.ToJson()))
+	request, err := http.NewRequest("POST", strings.TrimRight(*a.Config().EmailSettings.PushNotificationServer, "/")+model.API_URL_SUFFIX_V1+"/send_push", strings.NewReader(msg.ToJson()))
+	if err != nil {
+		mlog.Error(fmt.Sprintf("Error sending to push proxy: UserId=%v SessionId=%v message=%v",
+			session.UserId, session.Id, err.Error()), mlog.String("user_id", session.UserId))
+		return
+	}
 
 	resp, err := a.HTTPService.MakeClient(true).Do(request)
 	if err != nil {
