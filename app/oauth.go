@@ -731,9 +731,9 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 
 	stateProps := model.MapFromJson(strings.NewReader(stateStr))
 
-	expectedToken, err := a.GetOAuthStateToken(stateProps["token"])
-	if err != nil {
-		return nil, "", stateProps, err
+	expectedToken, appErr := a.GetOAuthStateToken(stateProps["token"])
+	if appErr != nil {
+		return nil, "", stateProps, appErr
 	}
 
 	stateEmail := stateProps["email"]
@@ -752,8 +752,9 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 		return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.invalid_state.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if err = a.DeleteToken(expectedToken); err != nil {
-		mlog.Error(err.Error())
+	appErr = a.DeleteToken(expectedToken)
+	if appErr != nil {
+		mlog.Error(appErr.Error())
 	}
 
 	httpCookie := &http.Cookie{
@@ -783,30 +784,26 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("Accept", "application/json")
 
-	resp, serviceErr := a.HTTPService.MakeClient(true).Do(req)
-	if serviceErr != nil {
-		return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.token_failed.app_error", nil, serviceErr.Error(), http.StatusInternalServerError)
+	resp, err := a.HTTPService.MakeClient(true).Do(req)
+	if err != nil {
+		return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.token_failed.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
+	defer resp.Body.Close()
 
-	bodyBytes, readErr := ioutil.ReadAll(resp.Body)
-	if readErr != nil {
-		return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.token_failed.app_error", nil, readErr.Error(), http.StatusInternalServerError)
-	}
-	resp.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
-
-	ar := model.AccessResponseFromJson(resp.Body)
-	consumeAndClose(resp)
+	var buf bytes.Buffer
+	tee := io.TeeReader(resp.Body, &buf)
+	ar := model.AccessResponseFromJson(tee)
 
 	if ar == nil || resp.StatusCode != http.StatusOK {
-		return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.bad_response.app_error", nil, "response_body="+string(bodyBytes), http.StatusInternalServerError)
+		return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.bad_response.app_error", nil, "response_body="+buf.String(), http.StatusInternalServerError)
 	}
 
 	if strings.ToLower(ar.TokenType) != model.ACCESS_TOKEN_TYPE {
-		return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.bad_token.app_error", nil, "token_type="+ar.TokenType+", response_body="+string(bodyBytes), http.StatusInternalServerError)
+		return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.bad_token.app_error", nil, "token_type="+ar.TokenType+", response_body="+buf.String(), http.StatusInternalServerError)
 	}
 
 	if len(ar.AccessToken) == 0 {
-		return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.missing.app_error", nil, "response_body="+string(bodyBytes), http.StatusInternalServerError)
+		return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.missing.app_error", nil, "response_body="+buf.String(), http.StatusInternalServerError)
 	}
 
 	p = url.Values{}
@@ -820,25 +817,27 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 	req.Header.Set("Accept", "application/json")
 	req.Header.Set("Authorization", "Bearer "+ar.AccessToken)
 
-	resp, serviceErr = a.HTTPService.MakeClient(true).Do(req)
-	if serviceErr != nil {
-		return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.service.app_error", map[string]interface{}{"Service": service}, serviceErr.Error(), http.StatusInternalServerError)
-	}
+	resp, err = a.HTTPService.MakeClient(true).Do(req)
+	if err != nil {
+		return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.service.app_error", map[string]interface{}{"Service": service}, err.Error(), http.StatusInternalServerError)
+	} else if resp.StatusCode != http.StatusOK {
+		defer resp.Body.Close()
 
-	bodyBytes, readErr = ioutil.ReadAll(resp.Body)
-	if readErr != nil {
-		return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.token_failed.app_error", nil, readErr.Error(), http.StatusInternalServerError)
-	}
-
-	if resp.StatusCode != http.StatusOK {
+		// Ignore the error below because the resulting string will just be the empty string if bodyBytes is nil
+		bodyBytes, _ := ioutil.ReadAll(resp.Body)
 		bodyString := string(bodyBytes)
+
 		mlog.Error("Error getting OAuth user: " + bodyString)
+
 		if service == model.SERVICE_GITLAB && resp.StatusCode == http.StatusForbidden && strings.Contains(bodyString, "Terms of Service") {
+			// Return a nicer error when the user hasn't accepted GitLab's terms of service
 			return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "oauth.gitlab.tos.error", nil, "", http.StatusBadRequest)
 		}
+
+		return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.response.app_error", nil, "response_body="+bodyString, http.StatusInternalServerError)
 	}
 
-	resp.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+	// Note that resp.Body is not closed here, so it must be closed by the caller
 	return resp.Body, teamId, stateProps, nil
 }
 

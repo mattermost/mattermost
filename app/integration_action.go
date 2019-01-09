@@ -71,12 +71,11 @@ func (a *App) DoPostAction(postId, actionId, userId, selectedOption string) (str
 	}
 
 	resp, err := a.DoActionRequest(action.Integration.URL, request.ToJson())
-	if resp != nil {
-		defer consumeAndClose(resp)
-	}
 	if err != nil {
 		return "", err
 	}
+
+	defer resp.Body.Close()
 
 	var response model.PostActionIntegrationResponse
 	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
@@ -184,13 +183,11 @@ func (a *App) SubmitInteractiveDialog(request model.SubmitDialogRequest) (*model
 	}
 
 	resp, err := a.DoActionRequest(url, b)
-	if resp != nil {
-		defer consumeAndClose(resp)
-	}
-
 	if err != nil {
 		return nil, err
 	}
+
+	defer resp.Body.Close()
 
 	var response model.SubmitDialogResponse
 	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
