@@ -823,6 +823,7 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 	} else if resp.StatusCode != http.StatusOK {
 		defer resp.Body.Close()
 
+		// Ignore the error below because the resulting string will just be the empty string if bodyBytes is nil
 		bodyBytes, _ := ioutil.ReadAll(resp.Body)
 		bodyString := string(bodyBytes)
 

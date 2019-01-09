@@ -331,7 +331,9 @@ func (a *App) doCommandRequest(cmd *model.Command, p url.Values) (*model.Command
 	body := io.LimitReader(resp.Body, MaxIntegrationResponseSize)
 
 	if resp.StatusCode != http.StatusOK {
+		// Ignore the error below because the resulting string will just be the empty string if bodyBytes is nil
 		bodyBytes, _ := ioutil.ReadAll(body)
+
 		return cmd, nil, model.NewAppError("command", "api.command.execute_command.failed_resp.app_error", map[string]interface{}{"Trigger": cmd.Trigger, "Status": resp.Status}, string(bodyBytes), http.StatusInternalServerError)
 	}
 
