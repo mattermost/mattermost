@@ -65,7 +65,8 @@ func initSqlSupplierGroups(sqlStore SqlStore) {
 
 func (s *SqlSupplier) CreateIndexesIfNotExistsGroups() {
 	s.CreateIndexIfNotExists("idx_groupmembers_create_at", "GroupMembers", "CreateAt")
-	s.CreateIndexIfNotExists("idx_groups_remote_id", "UserGroups", "RemoteId")
+	s.CreateIndexIfNotExists("idx_usergroups_remote_id", "UserGroups", "RemoteId")
+	s.CreateIndexIfNotExists("idx_usergroups_delete_at", "UserGroups", "DeleteAt")
 }
 
 func (s *SqlSupplier) GroupCreate(ctx context.Context, group *model.Group, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
