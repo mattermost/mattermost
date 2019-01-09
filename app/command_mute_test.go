@@ -99,7 +99,6 @@ func TestMuteCommandSpecificChannel(t *testing.T) {
 		UserId:    th.BasicUser.Id,
 	}, channel2.Name)
 	assert.Equal(t, "api.command_mute.success_mute", resp.Text)
-	time.Sleep(time.Millisecond)
 	channel2M, _ = th.App.GetChannelMember(channel2.Id, th.BasicUser.Id)
 	assert.Equal(t, model.CHANNEL_NOTIFY_MENTION, channel2M.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP])
 
@@ -111,7 +110,6 @@ func TestMuteCommandSpecificChannel(t *testing.T) {
 	}, "~"+channel2.Name)
 
 	assert.Equal(t, "api.command_mute.success_unmute", resp.Text)
-	time.Sleep(time.Millisecond)
 	channel2M, _ = th.App.GetChannelMember(channel2.Id, th.BasicUser.Id)
 	assert.Equal(t, model.CHANNEL_NOTIFY_ALL, channel2M.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP])
 }
