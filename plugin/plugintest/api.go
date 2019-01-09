@@ -1974,6 +1974,22 @@ func (_m *API) SendEphemeralPost(userId string, post *model.Post) *model.Post {
 	return r0
 }
 
+// SendMail provides a mock function with given fields: to, subject, htmlBody
+func (_m *API) SendMail(to string, subject string, htmlBody string) *model.AppError {
+	ret := _m.Called(to, subject, htmlBody)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, string, string) *model.AppError); ok {
+		r0 = rf(to, subject, htmlBody)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // SetProfileImage provides a mock function with given fields: userId, data
 func (_m *API) SetProfileImage(userId string, data []byte) *model.AppError {
 	ret := _m.Called(userId, data)
