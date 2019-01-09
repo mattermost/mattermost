@@ -64,18 +64,6 @@ func TestCreateCommandPost(t *testing.T) {
 	if err == nil || err.Id != "api.context.invalid_param.app_error" {
 		t.Fatal("should have failed - bad post type")
 	}
-
-	channel := th.CreateChannel(th.BasicTeam)
-
-	post = &model.Post{
-		ChannelId: th.BasicChannel.Id,
-		UserId:    channel.Id,
-	}
-
-	_, err = th.App.CreateCommandPost(post, th.BasicTeam.Id, resp)
-	if err == nil || err.Id != "api.command.command_post.forbidden.app_error" {
-		t.Fatal("should have failed - forbidden channel post")
-	}
 }
 
 func TestHandleCommandResponsePost(t *testing.T) {
@@ -85,16 +73,17 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	command := &model.Command{}
 	args := &model.CommandArgs{
 		ChannelId: th.BasicChannel.Id,
-		TeamId: th.BasicTeam.Id,
-		UserId: th.BasicUser.Id,
-		RootId: "root_id",
-		ParentId: "parent_id",
+		TeamId:    th.BasicTeam.Id,
+		UserId:    th.BasicUser.Id,
+		RootId:    "",
+		ParentId:  "",
 	}
 
 	resp := &model.CommandResponse{
-		Type: model.POST_EPHEMERAL,
-		Props: model.StringInterface{"some_key": "some value"},
-		Text: "some message",
+		Type:         model.POST_DEFAULT,
+		ResponseType: model.COMMAND_RESPONSE_TYPE_IN_CHANNEL,
+		Props:        model.StringInterface{"some_key": "some value"},
+		Text:         "some message",
 	}
 
 	builtIn := true
@@ -199,4 +188,72 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	post, err = th.App.HandleCommandResponsePost(command, args, resp, builtIn)
 	assert.Nil(t, err)
 	assert.Equal(t, "@here", resp.Attachments[0].Text)
+
+	channel = th.CreatePrivateChannel(th.BasicTeam)
+	resp.ChannelId = channel.Id
+	args.UserId = th.BasicUser2.Id
+	post, err = th.App.HandleCommandResponsePost(command, args, resp, builtIn)
+
+	if err == nil || err.Id != "api.command.command_post.forbidden.app_error" {
+		t.Fatal("should have failed - forbidden channel post")
+	}
+}
+func TestHandleCommandResponse(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	command := &model.Command{}
+
+	args := &model.CommandArgs{
+		Command:   "/invite username",
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+	}
+
+	resp := &model.CommandResponse{
+		Text: "message 1",
+		Type: model.POST_SYSTEM_GENERIC,
+	}
+
+	builtIn := true
+
+	_, err := th.App.HandleCommandResponse(command, args, resp, builtIn)
+	if err == nil || err.Id != "api.command.execute_command.create_post_failed.app_error" {
+		t.Fatal("should have failed - invalid post type")
+	}
+
+	resp = &model.CommandResponse{
+		Text: "message 1",
+	}
+
+	_, err = th.App.HandleCommandResponse(command, args, resp, builtIn)
+	assert.Nil(t, err)
+
+	resp = &model.CommandResponse{
+		Text: "message 1",
+		ExtraResponses: []*model.CommandResponse{
+			&model.CommandResponse{
+				Text: "message 2",
+			},
+			&model.CommandResponse{
+				Type: model.POST_SYSTEM_GENERIC,
+				Text: "message 3",
+			},
+		},
+	}
+
+	_, err = th.App.HandleCommandResponse(command, args, resp, builtIn)
+	if err == nil || err.Id != "api.command.execute_command.create_post_failed.app_error" {
+		t.Fatal("should have failed - invalid post type on extra response")
+	}
+
+	resp = &model.CommandResponse{
+		ExtraResponses: []*model.CommandResponse{
+			&model.CommandResponse{},
+			&model.CommandResponse{},
+		},
+	}
+
+	_, err = th.App.HandleCommandResponse(command, args, resp, builtIn)
+	assert.Nil(t, err)
 }

@@ -245,6 +245,105 @@ func TestCreateOutgoingWebhook(t *testing.T) {
 	}
 }
 
+func TestModifyOutgoingWebhook(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	config := th.Config()
+	config.ServiceSettings.EnableOutgoingWebhooks = true
+	th.SetConfig(config)
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_WEBHOOKS.Id, model.TEAM_ADMIN_ROLE_ID)
+	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_WEBHOOKS.Id, model.TEAM_USER_ROLE_ID)
+
+	description := "myhookoutdesc"
+	displayName := "myhookoutname"
+	triggerWords := model.StringArray{"myhookoutword1"}
+	triggerWhen := 0
+	callbackURLs := model.StringArray{"http://myhookouturl1"}
+	iconURL := "myhookicon1"
+	contentType := "myhookcontent1"
+
+	outgoingWebhook := &model.OutgoingWebhook{
+		CreatorId:    th.BasicUser.Id,
+		Username:     th.BasicUser.Username,
+		TeamId:       th.BasicTeam.Id,
+		ChannelId:    th.BasicChannel.Id,
+		DisplayName:  displayName,
+		Description:  description,
+		TriggerWords: triggerWords,
+		TriggerWhen:  triggerWhen,
+		CallbackURLs: callbackURLs,
+		IconURL:      iconURL,
+		ContentType:  contentType,
+	}
+
+	oldHook, err := th.App.CreateOutgoingWebhook(outgoingWebhook)
+	if err != nil {
+		t.Fatal("unable to create outgoing webhooks: " + err.Error())
+	}
+	defer func() {
+		th.App.DeleteOutgoingWebhook(oldHook.Id)
+	}()
+
+	// should fail because you need to specify valid outgoing webhook
+	require.Error(t, th.RunCommand(t, "webhook", "modify-outgoing", "doesnotexist"))
+	// should fail because you need to specify valid channel
+	require.Error(t, th.RunCommand(t, "webhook", "modify-outgoing", oldHook.Id, "--channel", th.BasicTeam.Name+":doesnotexist"))
+	// should fail because you need to specify valid trigger when
+	require.Error(t, th.RunCommand(t, "webhook", "modify-outgoing", oldHook.Id, "--channel", th.BasicTeam.Name+th.BasicChannel.Id, "--trigger-when", "invalid"))
+	// should fail because you need to specify a valid callback URL
+	require.Error(t, th.RunCommand(t, "webhook", "modify-outgoing", oldHook.Id, "--channel", th.BasicTeam.Name+th.BasicChannel.Id, "--callback-url", "invalid"))
+
+	modifiedChannelID := th.BasicChannel2.Id
+	modifiedDisplayName := "myhookoutname2"
+	modifiedDescription := "myhookoutdesc2"
+	modifiedTriggerWords := model.StringArray{"myhookoutword2A", "myhookoutword2B"}
+	modifiedTriggerWhen := "start"
+	modifiedIconURL := "myhookouticon2"
+	modifiedContentType := "myhookcontent2"
+	modifiedCallbackURLs := model.StringArray{"http://myhookouturl2A", "http://myhookouturl2B"}
+
+	th.CheckCommand(t, "webhook", "modify-outgoing", oldHook.Id,
+		"--channel", modifiedChannelID,
+		"--display-name", modifiedDisplayName,
+		"--description", modifiedDescription,
+		"--trigger-word", modifiedTriggerWords[0],
+		"--trigger-word", modifiedTriggerWords[1],
+		"--trigger-when", modifiedTriggerWhen,
+		"--icon", modifiedIconURL,
+		"--content-type", modifiedContentType,
+		"--url", modifiedCallbackURLs[0],
+		"--url", modifiedCallbackURLs[1],
+	)
+
+	modifiedHook, err := th.App.GetOutgoingWebhook(oldHook.Id)
+	if err != nil {
+		t.Fatal("unable to retrieve modified outgoing webhook")
+	}
+
+	updateFailed := modifiedHook.ChannelId != modifiedChannelID ||
+		modifiedHook.DisplayName != modifiedDisplayName ||
+		modifiedHook.Description != modifiedDescription ||
+		len(modifiedHook.TriggerWords) != len(modifiedTriggerWords) ||
+		modifiedHook.TriggerWords[0] != modifiedTriggerWords[0] ||
+		modifiedHook.TriggerWords[1] != modifiedTriggerWords[1] ||
+		modifiedHook.TriggerWhen != 1 ||
+		modifiedHook.IconURL != modifiedIconURL ||
+		modifiedHook.ContentType != modifiedContentType ||
+		len(modifiedHook.CallbackURLs) != len(modifiedCallbackURLs) ||
+		modifiedHook.CallbackURLs[0] != modifiedCallbackURLs[0] ||
+		modifiedHook.CallbackURLs[1] != modifiedCallbackURLs[1]
+
+	if updateFailed {
+		t.Fatal("Failed to update outgoing webhook")
+	}
+}
+
 func TestDeleteWebhooks(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()

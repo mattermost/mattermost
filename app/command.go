@@ -41,13 +41,6 @@ func (a *App) CreateCommandPost(post *model.Post, teamId string, response *model
 	post.Message = model.ParseSlackLinksToMarkdown(response.Text)
 	post.CreateAt = model.GetMillis()
 
-	_, err := a.GetChannelMember(post.ChannelId, post.UserId)
-	if err != nil {
-		err = model.NewAppError("CreateCommandPost", "api.command.command_post.forbidden.app_error", nil, err.Error(), http.StatusForbidden)
-		mlog.Error(err.Error())
-		return nil, err
-	}
-
 	if strings.HasPrefix(post.Type, model.POST_SYSTEM_MESSAGE_PREFIX) {
 		err := model.NewAppError("CreateCommandPost", "api.context.invalid_param.app_error", map[string]interface{}{"Name": "post.type"}, "", http.StatusBadRequest)
 		return nil, err
@@ -297,12 +290,34 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 }
 
 func (a *App) HandleCommandResponse(command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.CommandResponse, *model.AppError) {
-	a.HandleCommandResponsePost(command, args, response, builtIn)
+	trigger := ""
+	if len(args.Command) != 0 {
+		parts := strings.Split(args.Command, " ")
+		trigger = parts[0][1:]
+		trigger = strings.ToLower(trigger)
+	}
+
+	var lastError *model.AppError
+	_, err := a.HandleCommandResponsePost(command, args, response, builtIn)
+
+	if err != nil {
+		mlog.Error(err.Error())
+		lastError = err
+	}
 
 	if response.ExtraResponses != nil {
 		for _, resp := range response.ExtraResponses {
-			a.HandleCommandResponsePost(command, args, resp, builtIn)
+			_, err := a.HandleCommandResponsePost(command, args, resp, builtIn)
+
+			if err != nil {
+				mlog.Error(err.Error())
+				lastError = err
+			}
 		}
+	}
+
+	if lastError != nil {
+		return response, model.NewAppError("command", "api.command.execute_command.create_post_failed.app_error", map[string]interface{}{"Trigger": trigger}, "", http.StatusInternalServerError)
 	}
 
 	return response, nil
@@ -318,6 +333,11 @@ func (a *App) HandleCommandResponsePost(command *model.Command, args *model.Comm
 	post.Props = response.Props
 
 	if len(response.ChannelId) != 0 {
+		_, err := a.GetChannelMember(response.ChannelId, args.UserId)
+		if err != nil {
+			err = model.NewAppError("HandleCommandResponsePost", "api.command.command_post.forbidden.app_error", nil, err.Error(), http.StatusForbidden)
+			return nil, err
+		}
 		post.ChannelId = response.ChannelId
 	}
 
@@ -354,7 +374,7 @@ func (a *App) HandleCommandResponsePost(command *model.Command, args *model.Comm
 	response.Attachments = a.ProcessSlackAttachments(response.Attachments)
 
 	if _, err := a.CreateCommandPost(post, args.TeamId, response); err != nil {
-		mlog.Error(err.Error())
+		return post, err
 	}
 
 	return post, nil
