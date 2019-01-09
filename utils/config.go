@@ -637,10 +637,6 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 			props["LdapLastNameAttributeSet"] = strconv.FormatBool(*c.LdapSettings.LastNameAttribute != "")
 		}
 
-		if *license.Features.MFA {
-			props["EnforceMultifactorAuthentication"] = strconv.FormatBool(*c.ServiceSettings.EnforceMultifactorAuthentication)
-		}
-
 		if *license.Features.Compliance {
 			props["EnableCompliance"] = strconv.FormatBool(*c.ComplianceSettings.Enable)
 			props["EnableMobileFileDownload"] = strconv.FormatBool(*c.FileSettings.EnableMobileDownload)
@@ -755,7 +751,6 @@ func GenerateLimitedClientConfig(c *model.Config, diagnosticId string, license *
 	props["LdapLoginButtonColor"] = ""
 	props["LdapLoginButtonBorderColor"] = ""
 	props["LdapLoginButtonTextColor"] = ""
-	props["EnableMultifactorAuthentication"] = "false"
 	props["EnableSaml"] = "false"
 	props["SamlLoginButtonText"] = ""
 	props["SamlLoginButtonColor"] = ""
@@ -799,6 +794,10 @@ func GenerateLimitedClientConfig(c *model.Config, diagnosticId string, license *
 		if *license.Features.CustomTermsOfService {
 			props["EnableCustomTermsOfService"] = strconv.FormatBool(*c.SupportSettings.CustomTermsOfServiceEnabled)
 			props["CustomTermsOfServiceReAcceptancePeriod"] = strconv.FormatInt(int64(*c.SupportSettings.CustomTermsOfServiceReAcceptancePeriod), 10)
+		}
+
+		if *license.Features.MFA {
+			props["EnforceMultifactorAuthentication"] = strconv.FormatBool(*c.ServiceSettings.EnforceMultifactorAuthentication)
 		}
 	}
 
