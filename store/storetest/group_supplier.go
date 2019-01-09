@@ -266,7 +266,6 @@ func testGroupStoreUpdate(t *testing.T, ss store.Store) {
 	// Still zero...
 	assert.Zero(t, ud1.DeleteAt)
 	// Updated...
-	assert.NotEqual(t, d1.UpdateAt, ud1.UpdateAt)
 	assert.Equal(t, g1Update.Name, ud1.Name)
 	assert.Equal(t, g1Update.DisplayName, ud1.DisplayName)
 	assert.Equal(t, g1Update.Description, ud1.Description)
