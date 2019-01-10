@@ -383,9 +383,7 @@ func (a *App) OriginChecker() func(*http.Request) bool {
 				allowed += " " + siteURL.String()
 			}
 		}
-
 		return utils.OriginChecker(allowed)
 	}
 	return nil
 }
-

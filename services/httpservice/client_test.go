@@ -139,9 +139,3 @@ func TestUserAgentIsSet(t *testing.T) {
 	}
 	client.Do(req)
 }
-
-func NewHTTPClient(transport http.RoundTripper) *http.Client {
-	return &http.Client{
-		Transport: transport,
-	}
-}
