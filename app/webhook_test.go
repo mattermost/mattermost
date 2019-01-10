@@ -8,13 +8,11 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/services/httpservice"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -723,22 +721,23 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		require.IsType(t, &json.SyntaxError{}, err)
 	})
 
-	t.Run("with a slow response", func(t *testing.T) {
-		timeout := 100 * time.Millisecond
+	// // This test has been commented out because it relies on test logic only available in 5.8+
+	// t.Run("with a slow response", func(t *testing.T) {
+	// 	timeout := 100 * time.Millisecond
 
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			time.Sleep(timeout + time.Millisecond)
-			io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
-		}))
-		defer server.Close()
+	// 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	// 		time.Sleep(timeout + time.Millisecond)
+	// 		io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
+	// 	}))
+	// 	defer server.Close()
 
-		th.App.HTTPService.(*httpservice.HTTPServiceImpl).RequestTimeout = timeout
-		defer func() {
-			th.App.HTTPService.(*httpservice.HTTPServiceImpl).RequestTimeout = httpservice.RequestTimeout
-		}()
+	// 	th.App.HTTPService.(*httpservice.HTTPServiceImpl).RequestTimeout = timeout
+	// 	defer func() {
+	// 		th.App.HTTPService.(*httpservice.HTTPServiceImpl).RequestTimeout = httpservice.RequestTimeout
+	// 	}()
 
-		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
-		require.NotNil(t, err)
-		require.IsType(t, &url.Error{}, err)
-	})
+	// 	_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
+	// 	require.NotNil(t, err)
+	// 	require.IsType(t, &url.Error{}, err)
+	// })
 }

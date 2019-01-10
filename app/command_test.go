@@ -10,13 +10,11 @@ import (
 	"net/url"
 	"strings"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/services/httpservice"
 )
 
 func TestMoveCommand(t *testing.T) {
@@ -150,23 +148,24 @@ func TestDoCommandRequest(t *testing.T) {
 		require.Equal(t, "api.command.execute_command.failed.app_error", err.Id)
 	})
 
-	t.Run("with a slow response", func(t *testing.T) {
-		timeout := 100 * time.Millisecond
+	// // This test has been commented out because it relies on test logic only available in 5.8+
+	// t.Run("with a slow response", func(t *testing.T) {
+	// 	timeout := 100 * time.Millisecond
 
-		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			time.Sleep(timeout + time.Millisecond)
-			io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
-		}))
-		defer server.Close()
+	// 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	// 		time.Sleep(timeout + time.Millisecond)
+	// 		io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
+	// 	}))
+	// 	defer server.Close()
 
-		th.App.HTTPService.(*httpservice.HTTPServiceImpl).RequestTimeout = timeout
-		defer func() {
-			th.App.HTTPService.(*httpservice.HTTPServiceImpl).RequestTimeout = httpservice.RequestTimeout
-		}()
+	// 	th.App.HTTPService.(*httpservice.HTTPServiceImpl).RequestTimeout = timeout
+	// 	defer func() {
+	// 		th.App.HTTPService.(*httpservice.HTTPServiceImpl).RequestTimeout = httpservice.RequestTimeout
+	// 	}()
 
-		_, _, err := th.App.doCommandRequest(&model.Command{URL: server.URL}, url.Values{})
-		require.NotNil(t, err)
-		require.Equal(t, "api.command.execute_command.failed.app_error", err.Id)
-	})
+	// 	_, _, err := th.App.doCommandRequest(&model.Command{URL: server.URL}, url.Values{})
+	// 	require.NotNil(t, err)
+	// 	require.Equal(t, "api.command.execute_command.failed.app_error", err.Id)
+	// })
 }
 
