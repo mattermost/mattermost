@@ -11,8 +11,10 @@ import (
 )
 
 func (api *API) InitChannel() {
+	api.BaseRoutes.Channels.Handle("", api.ApiSessionRequired(getAllChannels)).Methods("GET")
 	api.BaseRoutes.Channels.Handle("", api.ApiSessionRequired(createChannel)).Methods("POST")
 	api.BaseRoutes.Channels.Handle("/direct", api.ApiSessionRequired(createDirectChannel)).Methods("POST")
+	api.BaseRoutes.Channels.Handle("/search", api.ApiSessionRequired(searchAllChannels)).Methods("POST")
 	api.BaseRoutes.Channels.Handle("/group", api.ApiSessionRequired(createGroupChannel)).Methods("POST")
 	api.BaseRoutes.Channels.Handle("/members/{user_id:[A-Za-z0-9]+}/view", api.ApiSessionRequired(viewChannel)).Methods("POST")
 	api.BaseRoutes.Channels.Handle("/{channel_id:[A-Za-z0-9]+}/scheme", api.ApiSessionRequired(updateChannelScheme)).Methods("PUT")
@@ -490,6 +492,21 @@ func getPinnedPosts(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(clientPostList.ToJson()))
 }
 
+func getAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	channels, err := c.App.GetAllChannels(c.Params.Page, c.Params.PerPage, false)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(channels.ToJson()))
+}
+
 func getPublicChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireTeamId()
 	if c.Err != nil {
@@ -683,6 +700,31 @@ func searchChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	channels, err := c.App.SearchChannels(c.Params.TeamId, props.Term)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	// Don't fill in channels props, since unused by client and potentially expensive.
+
+	w.Write([]byte(channels.ToJson()))
+}
+
+func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.ChannelSearchFromJson(r.Body)
+	if props == nil {
+		c.SetInvalidParam("channel_search")
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	includeDeleted := r.URL.Query().Get("include_deleted") == "true"
+
+	channels, err := c.App.SearchAllChannels(props.Term, includeDeleted)
 	if err != nil {
 		c.Err = err
 		return

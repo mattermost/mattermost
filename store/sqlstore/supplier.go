@@ -93,6 +93,7 @@ type SqlSupplierOldStores struct {
 	role                 store.RoleStore
 	scheme               store.SchemeStore
 	TermsOfService       store.TermsOfServiceStore
+	group                store.GroupStore
 	UserTermsOfService   store.UserTermsOfServiceStore
 }
 
@@ -148,6 +149,7 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	initSqlSupplierReactions(supplier)
 	initSqlSupplierRoles(supplier)
 	initSqlSupplierSchemes(supplier)
+	initSqlSupplierGroups(supplier)
 
 	err := supplier.GetMaster().CreateTablesIfNotExists()
 	if err != nil {
@@ -181,6 +183,8 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.oldStores.plugin.(*SqlPluginStore).CreateIndexesIfNotExists()
 	supplier.oldStores.TermsOfService.(SqlTermsOfServiceStore).CreateIndexesIfNotExists()
 	supplier.oldStores.UserTermsOfService.(SqlUserTermsOfServiceStore).CreateIndexesIfNotExists()
+
+	supplier.CreateIndexesIfNotExistsGroups()
 
 	supplier.oldStores.preference.(*SqlPreferenceStore).DeleteUnusedFeatures()
 
@@ -1022,6 +1026,10 @@ func (ss *SqlSupplier) UserTermsOfService() store.UserTermsOfServiceStore {
 
 func (ss *SqlSupplier) Scheme() store.SchemeStore {
 	return ss.oldStores.scheme
+}
+
+func (ss *SqlSupplier) Group() store.GroupStore {
+	return ss.oldStores.group
 }
 
 func (ss *SqlSupplier) DropAllTables() {

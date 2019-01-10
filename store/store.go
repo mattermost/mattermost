@@ -66,6 +66,7 @@ type Store interface {
 	ChannelMemberHistory() ChannelMemberHistoryStore
 	Plugin() PluginStore
 	TermsOfService() TermsOfServiceStore
+	Group() GroupStore
 	UserTermsOfService() UserTermsOfServiceStore
 	MarkSystemRanUnitTests()
 	Close()
@@ -137,6 +138,7 @@ type ChannelStore interface {
 	GetDeletedByName(team_id string, name string) StoreChannel
 	GetDeleted(team_id string, offset int, limit int) StoreChannel
 	GetChannels(teamId string, userId string, includeDeleted bool) StoreChannel
+	GetAllChannels(page, perPage int, includeDeleted bool) StoreChannel
 	GetMoreChannels(teamId string, userId string, offset int, limit int) StoreChannel
 	GetPublicChannelsForTeam(teamId string, offset int, limit int) StoreChannel
 	GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) StoreChannel
@@ -168,6 +170,7 @@ type ChannelStore interface {
 	GetMembersForUser(teamId string, userId string) StoreChannel
 	AutocompleteInTeam(teamId string, term string, includeDeleted bool) StoreChannel
 	AutocompleteInTeamForSearch(teamId string, userId string, term string, includeDeleted bool) StoreChannel
+	SearchAllChannels(term string, includeDeleted bool) StoreChannel
 	SearchInTeam(teamId string, term string, includeDeleted bool) StoreChannel
 	SearchMore(userId string, teamId string, term string) StoreChannel
 	GetMembersByIds(channelId string, userIds []string) StoreChannel
@@ -535,4 +538,28 @@ type UserTermsOfServiceStore interface {
 	GetByUser(userId string) StoreChannel
 	Save(userTermsOfService *model.UserTermsOfService) StoreChannel
 	Delete(userId, termsOfServiceId string) StoreChannel
+}
+
+type GroupStore interface {
+	Create(group *model.Group) StoreChannel
+	Get(groupID string) StoreChannel
+	GetByRemoteID(remoteID string, groupSource model.GroupSource) StoreChannel
+	GetAllBySource(groupSource model.GroupSource) StoreChannel
+	Update(group *model.Group) StoreChannel
+	Delete(groupID string) StoreChannel
+
+	GetMemberUsers(groupID string) StoreChannel
+	GetMemberUsersPage(groupID string, offset int, limit int) StoreChannel
+	GetMemberCount(groupID string) StoreChannel
+	CreateOrRestoreMember(groupID string, userID string) StoreChannel
+	DeleteMember(groupID string, userID string) StoreChannel
+
+	CreateGroupSyncable(groupSyncable *model.GroupSyncable) StoreChannel
+	GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) StoreChannel
+	GetAllGroupSyncablesByGroupId(groupID string, syncableType model.GroupSyncableType) StoreChannel
+	UpdateGroupSyncable(groupSyncable *model.GroupSyncable) StoreChannel
+	DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) StoreChannel
+
+	PendingAutoAddTeamMembers(minGroupMembersCreateAt int64) StoreChannel
+	PendingAutoAddChannelMembers(minGroupMembersCreateAt int64) StoreChannel
 }
