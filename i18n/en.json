@@ -4935,6 +4935,18 @@
     "translation": "Unable to set the user status. Unknown user status."
   },
   {
+    "id": "plugin_api.send_mail.missing_htmlbody",
+    "translation": "Missing HTML Body."
+  },
+  {
+    "id": "plugin_api.send_mail.missing_to",
+    "translation": "Missing TO address."
+  },
+  {
+    "id": "plugin_api.send_mail.missing_subject",
+    "translation": "Missing email subject."
+  },
+  {
     "id": "store.sql_channel.remove_all_deactivated_members.app_error",
     "translation": "We could not remove the deactivated users from the channel"
   },
