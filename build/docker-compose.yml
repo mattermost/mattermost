@@ -38,7 +38,7 @@ services:
     networks:
       - mm-test
   openldap:
-    image: "osixia/openldap:1.1.6"
+    image: "osixia/openldap:1.2.2"
     restart: always
     networks:
       - mm-test
@@ -47,6 +47,9 @@ services:
       LDAP_ORGANISATION: "Mattermost Test"
       LDAP_DOMAIN: "mm.test.com"
       LDAP_ADMIN_PASSWORD: "mostest"
+    volumes:
+      - "../tests/add-users.ldif:/add-users.ldif"
+      - "../tests/add-groups.ldif:/add-groups.ldif"
   elasticsearch:
     image: "mattermost/mattermost-elasticsearch-docker:6.5.1"
     networks:

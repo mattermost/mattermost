@@ -29,6 +29,7 @@ type LayeredStore struct {
 	LocalCacheLayer *LocalCacheSupplier
 	RedisLayer      *RedisSupplier
 	LayerChainHead  LayeredStoreSupplier
+	GroupStore      GroupStore
 }
 
 func NewLayeredStore(db LayeredStoreDatabaseLayer, metrics einterfaces.MetricsInterface, cluster einterfaces.ClusterInterface) Store {
@@ -41,6 +42,7 @@ func NewLayeredStore(db LayeredStoreDatabaseLayer, metrics einterfaces.MetricsIn
 	store.ReactionStore = &LayeredReactionStore{store}
 	store.RoleStore = &LayeredRoleStore{store}
 	store.SchemeStore = &LayeredSchemeStore{store}
+	store.GroupStore = &LayeredGroupStore{store}
 
 	// Setup the chain
 	if ENABLE_EXPERIMENTAL_REDIS {
@@ -179,6 +181,10 @@ func (s *LayeredStore) UserTermsOfService() UserTermsOfServiceStore {
 
 func (s *LayeredStore) Scheme() SchemeStore {
 	return s.SchemeStore
+}
+
+func (s *LayeredStore) Group() GroupStore {
+	return s.GroupStore
 }
 
 func (s *LayeredStore) MarkSystemRanUnitTests() {
@@ -331,5 +337,117 @@ func (s *LayeredSchemeStore) GetAllPage(scope string, offset int, limit int) Sto
 func (s *LayeredSchemeStore) PermanentDeleteAll() StoreChannel {
 	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
 		return supplier.SchemePermanentDeleteAll(s.TmpContext)
+	})
+}
+
+type LayeredGroupStore struct {
+	*LayeredStore
+}
+
+func (s *LayeredGroupStore) Create(group *model.Group) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.GroupCreate(s.TmpContext, group)
+	})
+}
+
+func (s *LayeredGroupStore) Get(groupID string) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.GroupGet(s.TmpContext, groupID)
+	})
+}
+
+func (s *LayeredGroupStore) GetByRemoteID(remoteID string, groupSource model.GroupSource) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.GroupGetByRemoteID(s.TmpContext, remoteID, groupSource)
+	})
+}
+
+func (s *LayeredGroupStore) GetAllBySource(groupSource model.GroupSource) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.GroupGetAllBySource(s.TmpContext, groupSource)
+	})
+}
+
+func (s *LayeredGroupStore) Update(group *model.Group) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.GroupUpdate(s.TmpContext, group)
+	})
+}
+
+func (s *LayeredGroupStore) Delete(groupID string) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.GroupDelete(s.TmpContext, groupID)
+	})
+}
+
+func (s *LayeredGroupStore) GetMemberUsers(groupID string) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.GroupGetMemberUsers(s.TmpContext, groupID)
+	})
+}
+
+func (s *LayeredGroupStore) GetMemberUsersPage(groupID string, offset int, limit int) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.GroupGetMemberUsersPage(s.TmpContext, groupID, offset, limit)
+	})
+}
+
+func (s *LayeredGroupStore) GetMemberCount(groupID string) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.GroupGetMemberCount(s.TmpContext, groupID)
+	})
+}
+
+func (s *LayeredGroupStore) CreateOrRestoreMember(groupID string, userID string) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.GroupCreateOrRestoreMember(s.TmpContext, groupID, userID)
+	})
+}
+
+func (s *LayeredGroupStore) DeleteMember(groupID string, userID string) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.GroupDeleteMember(s.TmpContext, groupID, userID)
+	})
+}
+
+func (s *LayeredGroupStore) CreateGroupSyncable(groupSyncable *model.GroupSyncable) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.GroupCreateGroupSyncable(s.TmpContext, groupSyncable)
+	})
+}
+
+func (s *LayeredGroupStore) GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.GroupGetGroupSyncable(s.TmpContext, groupID, syncableID, syncableType)
+	})
+}
+
+func (s *LayeredGroupStore) GetAllGroupSyncablesByGroupId(groupID string, syncableType model.GroupSyncableType) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.GroupGetAllGroupSyncablesByGroup(s.TmpContext, groupID, syncableType)
+	})
+}
+
+func (s *LayeredGroupStore) UpdateGroupSyncable(groupSyncable *model.GroupSyncable) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.GroupUpdateGroupSyncable(s.TmpContext, groupSyncable)
+	})
+}
+
+func (s *LayeredGroupStore) DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.GroupDeleteGroupSyncable(s.TmpContext, groupID, syncableID, syncableType)
+	})
+}
+
+func (s *LayeredGroupStore) PendingAutoAddTeamMembers(minGroupMembersCreateAt int64) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.PendingAutoAddTeamMembers(s.TmpContext, minGroupMembersCreateAt)
+	})
+}
+
+func (s *LayeredGroupStore) PendingAutoAddChannelMembers(minGroupMembersCreateAt int64) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.PendingAutoAddChannelMembers(s.TmpContext, minGroupMembersCreateAt)
 	})
 }

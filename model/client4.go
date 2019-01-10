@@ -409,6 +409,22 @@ func (c *Client4) GetTermsOfServiceRoute() string {
 	return "/terms_of_service"
 }
 
+func (c *Client4) GetGroupsRoute() string {
+	return "/groups"
+}
+
+func (c *Client4) GetGroupRoute(groupID string) string {
+	return fmt.Sprintf("%s/%s", c.GetGroupsRoute(), groupID)
+}
+
+func (c *Client4) GetGroupSyncableRoute(groupID, syncableID string, syncableType GroupSyncableType) string {
+	return fmt.Sprintf("%s/%ss/%s", c.GetGroupRoute(groupID), strings.ToLower(syncableType.String()), syncableID)
+}
+
+func (c *Client4) GetGroupSyncablesRoute(groupID string, syncableType GroupSyncableType) string {
+	return fmt.Sprintf("%s/%ss", c.GetGroupRoute(groupID), strings.ToLower(syncableType.String()))
+}
+
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodGet, c.ApiUrl+url, "", etag)
 }
@@ -1706,6 +1722,17 @@ func (c *Client4) RemoveTeamIcon(teamId string) (bool, *Response) {
 
 // Channel Section
 
+// GetAllChannels get all the channels. Must be a system administrator.
+func (c *Client4) GetAllChannels(page int, perPage int, etag string) (*ChannelListWithTeamData, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
+	r, err := c.DoApiGet(c.GetChannelsRoute()+query, etag)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ChannelListWithTeamDataFromJson(r.Body), BuildResponse(r)
+}
+
 // CreateChannel creates a channel based on the provided channel struct.
 func (c *Client4) CreateChannel(channel *Channel) (*Channel, *Response) {
 	r, err := c.DoApiPost(c.GetChannelsRoute(), channel.ToJson())
@@ -1868,6 +1895,16 @@ func (c *Client4) SearchChannels(teamId string, search *ChannelSearch) ([]*Chann
 	}
 	defer closeBody(r)
 	return ChannelSliceFromJson(r.Body), BuildResponse(r)
+}
+
+// SearchAllChannels search in all the channels. Must be a system administrator.
+func (c *Client4) SearchAllChannels(search *ChannelSearch) (*ChannelListWithTeamData, *Response) {
+	r, err := c.DoApiPost(c.GetChannelsRoute()+"/search", search.ToJson())
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ChannelListWithTeamDataFromJson(r.Body), BuildResponse(r)
 }
 
 // DeleteChannel deletes channel based on the provided channel id string.
@@ -3066,6 +3103,45 @@ func (c *Client4) TestLdap() (bool, *Response) {
 	return CheckStatusOK(r), BuildResponse(r)
 }
 
+// GetLdapGroups retrieves the immediate child groups of the given parent group.
+func (c *Client4) GetLdapGroups() ([]*Group, *Response) {
+	path := fmt.Sprintf("%s/groups", c.GetLdapRoute())
+
+	r, appErr := c.DoApiGet(path, "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	return GroupsFromJson(r.Body), BuildResponse(r)
+}
+
+// LinkLdapGroup creates or undeletes a Mattermost group and associates it to the given LDAP group DN.
+func (c *Client4) LinkLdapGroup(dn string) (*Group, *Response) {
+	path := fmt.Sprintf("%s/groups/%s/link", c.GetLdapRoute(), dn)
+
+	r, appErr := c.DoApiPost(path, "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	return GroupFromJson(r.Body), BuildResponse(r)
+}
+
+// UnlinkLdapGroup deletes the Mattermost group associated with the given LDAP group DN.
+func (c *Client4) UnlinkLdapGroup(dn string) (*Group, *Response) {
+	path := fmt.Sprintf("%s/groups/%s/link", c.GetLdapRoute(), dn)
+
+	r, appErr := c.DoApiDelete(path)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	return GroupFromJson(r.Body), BuildResponse(r)
+}
+
 // Audits Section
 
 // GetAudits returns a list of audits for the whole system.
@@ -4029,4 +4105,72 @@ func (c *Client4) CreateTermsOfService(text, userId string) (*TermsOfService, *R
 	}
 	defer closeBody(r)
 	return TermsOfServiceFromJson(r.Body), BuildResponse(r)
+}
+
+func (c *Client4) GetGroup(groupID, etag string) (*Group, *Response) {
+	r, appErr := c.DoApiGet(c.GetGroupRoute(groupID), etag)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+	return GroupFromJson(r.Body), BuildResponse(r)
+}
+
+func (c *Client4) PatchGroup(groupID string, patch *GroupPatch) (*Group, *Response) {
+	payload, _ := json.Marshal(patch)
+	r, appErr := c.DoApiPut(c.GetGroupRoute(groupID)+"/patch", string(payload))
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+	return GroupFromJson(r.Body), BuildResponse(r)
+}
+
+func (c *Client4) LinkGroupSyncable(groupID, syncableID string, syncableType GroupSyncableType, patch *GroupSyncablePatch) (*GroupSyncable, *Response) {
+	payload, _ := json.Marshal(patch)
+	url := fmt.Sprintf("%s/link", c.GetGroupSyncableRoute(groupID, syncableID, syncableType))
+	r, appErr := c.DoApiPost(url, string(payload))
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+	return GroupSyncableFromJson(r.Body), BuildResponse(r)
+}
+
+func (c *Client4) UnlinkGroupSyncable(groupID, syncableID string, syncableType GroupSyncableType) *Response {
+	url := fmt.Sprintf("%s/link", c.GetGroupSyncableRoute(groupID, syncableID, syncableType))
+	r, appErr := c.DoApiDelete(url)
+	if appErr != nil {
+		return BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+	return BuildResponse(r)
+}
+
+func (c *Client4) GetGroupSyncable(groupID, syncableID string, syncableType GroupSyncableType, etag string) (*GroupSyncable, *Response) {
+	r, appErr := c.DoApiGet(c.GetGroupSyncableRoute(groupID, syncableID, syncableType), etag)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+	return GroupSyncableFromJson(r.Body), BuildResponse(r)
+}
+
+func (c *Client4) GetGroupSyncables(groupID string, syncableType GroupSyncableType, etag string) ([]*GroupSyncable, *Response) {
+	r, appErr := c.DoApiGet(c.GetGroupSyncablesRoute(groupID, syncableType), etag)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+	return GroupSyncablesFromJson(r.Body), BuildResponse(r)
+}
+
+func (c *Client4) PatchGroupSyncable(groupID, syncableID string, syncableType GroupSyncableType, patch *GroupSyncablePatch) (*GroupSyncable, *Response) {
+	payload, _ := json.Marshal(patch)
+	r, appErr := c.DoApiPut(c.GetGroupSyncableRoute(groupID, syncableID, syncableType)+"/patch", string(payload))
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+	return GroupSyncableFromJson(r.Body), BuildResponse(r)
 }

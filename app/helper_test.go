@@ -343,6 +343,28 @@ func (me *TestHelper) CreateScheme() (*model.Scheme, []*model.Role) {
 	return scheme, roles
 }
 
+func (me *TestHelper) CreateGroup() *model.Group {
+	id := model.NewId()
+	group := &model.Group{
+		DisplayName: "dn_" + id,
+		Name:        "name" + id,
+		Source:      model.GroupSourceLdap,
+		Description: "description_" + id,
+		RemoteId:    model.NewId(),
+	}
+
+	utils.DisableDebugLogForTest()
+	var err *model.AppError
+	if group, err = me.App.CreateGroup(group); err != nil {
+		mlog.Error(err.Error())
+
+		time.Sleep(time.Second)
+		panic(err)
+	}
+	utils.EnableDebugLogForTest()
+	return group
+}
+
 func (me *TestHelper) CreateEmoji() *model.Emoji {
 	utils.DisableDebugLogForTest()
 
