@@ -1,5 +1,53 @@
 [
   {
+    "id": "April",
+    "translation": "4월"
+  },
+  {
+    "id": "August",
+    "translation": "8월"
+  },
+  {
+    "id": "December",
+    "translation": "10월"
+  },
+  {
+    "id": "February",
+    "translation": "2월"
+  },
+  {
+    "id": "January",
+    "translation": "1월"
+  },
+  {
+    "id": "July",
+    "translation": "7월"
+  },
+  {
+    "id": "June",
+    "translation": "6월"
+  },
+  {
+    "id": "March",
+    "translation": "3월"
+  },
+  {
+    "id": "May",
+    "translation": "5월"
+  },
+  {
+    "id": "November",
+    "translation": "11월"
+  },
+  {
+    "id": "October",
+    "translation": "10월"
+  },
+  {
+    "id": "September",
+    "translation": "9월"
+  },
+  {
     "id": "actiance.export.marshalToXml.appError",
     "translation": "XML형식으로 변환하여 내보낼 수 없습니다."
   },
@@ -4857,6 +4905,18 @@
   {
     "id": "plugin_api.get_file_link.no_post.app_error",
     "translation": "파일의 공개링크를 가져올 수 없습니다. 파일에 현재 유저가 읽을 수 있는 설명이 작성되어야 합니다."
+  },
+  {
+    "id": "plugin_api.send_mail.missing_htmlbody",
+    "translation": "Missing HTML Body."
+  },
+  {
+    "id": "plugin_api.send_mail.missing_subject",
+    "translation": "Missing email subject."
+  },
+  {
+    "id": "plugin_api.send_mail.missing_to",
+    "translation": "Missing TO address."
   },
   {
     "id": "store.sql.convert_string_array",

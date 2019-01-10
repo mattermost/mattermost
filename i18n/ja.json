@@ -1,5 +1,53 @@
 [
   {
+    "id": "April",
+    "translation": "4月"
+  },
+  {
+    "id": "August",
+    "translation": "8月"
+  },
+  {
+    "id": "December",
+    "translation": "12月"
+  },
+  {
+    "id": "February",
+    "translation": "2月"
+  },
+  {
+    "id": "January",
+    "translation": "1月"
+  },
+  {
+    "id": "July",
+    "translation": "7月"
+  },
+  {
+    "id": "June",
+    "translation": "6月"
+  },
+  {
+    "id": "March",
+    "translation": "3月"
+  },
+  {
+    "id": "May",
+    "translation": "5月"
+  },
+  {
+    "id": "November",
+    "translation": "11月"
+  },
+  {
+    "id": "October",
+    "translation": "10月"
+  },
+  {
+    "id": "September",
+    "translation": "9月"
+  },
+  {
     "id": "actiance.export.marshalToXml.appError",
     "translation": "エクスポート情報をXMLへ変換できませんでした。"
   },
@@ -4857,6 +4905,18 @@
   {
     "id": "plugin_api.get_file_link.no_post.app_error",
     "translation": "ファイルの公開リンクを取得できません。ファイルは現在のユーザーが読むことができる投稿に添付されている必要があります。"
+  },
+  {
+    "id": "plugin_api.send_mail.missing_htmlbody",
+    "translation": "Missing HTML Body."
+  },
+  {
+    "id": "plugin_api.send_mail.missing_subject",
+    "translation": "Missing email subject."
+  },
+  {
+    "id": "plugin_api.send_mail.missing_to",
+    "translation": "Missing TO address."
   },
   {
     "id": "store.sql.convert_string_array",

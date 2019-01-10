@@ -1,5 +1,53 @@
 [
   {
+    "id": "April",
+    "translation": "Abril"
+  },
+  {
+    "id": "August",
+    "translation": "Agosto"
+  },
+  {
+    "id": "December",
+    "translation": "Diciembre"
+  },
+  {
+    "id": "February",
+    "translation": "Febrero"
+  },
+  {
+    "id": "January",
+    "translation": "Enero"
+  },
+  {
+    "id": "July",
+    "translation": "Julio"
+  },
+  {
+    "id": "June",
+    "translation": "Junio"
+  },
+  {
+    "id": "March",
+    "translation": "Marzo"
+  },
+  {
+    "id": "May",
+    "translation": "Mayo"
+  },
+  {
+    "id": "November",
+    "translation": "Noviembre"
+  },
+  {
+    "id": "October",
+    "translation": "Octubre"
+  },
+  {
+    "id": "September",
+    "translation": "Septiembre"
+  },
+  {
     "id": "actiance.export.marshalToXml.appError",
     "translation": "No se puede convertir la exportación a XML."
   },
@@ -4857,6 +4905,18 @@
   {
     "id": "plugin_api.get_file_link.no_post.app_error",
     "translation": "No se puede obtener el enlace público para el archivo. El archivo debe estar adjunto a un mensaje que puede ser leído."
+  },
+  {
+    "id": "plugin_api.send_mail.missing_htmlbody",
+    "translation": "Missing HTML Body."
+  },
+  {
+    "id": "plugin_api.send_mail.missing_subject",
+    "translation": "Missing email subject."
+  },
+  {
+    "id": "plugin_api.send_mail.missing_to",
+    "translation": "Missing TO address."
   },
   {
     "id": "store.sql.convert_string_array",

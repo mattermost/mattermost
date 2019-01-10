@@ -1,5 +1,53 @@
 [
   {
+    "id": "April",
+    "translation": "квітень"
+  },
+  {
+    "id": "August",
+    "translation": "серпень"
+  },
+  {
+    "id": "December",
+    "translation": "грудень"
+  },
+  {
+    "id": "February",
+    "translation": "лютий"
+  },
+  {
+    "id": "January",
+    "translation": "січень"
+  },
+  {
+    "id": "July",
+    "translation": "липень"
+  },
+  {
+    "id": "June",
+    "translation": "червень"
+  },
+  {
+    "id": "March",
+    "translation": "березень"
+  },
+  {
+    "id": "May",
+    "translation": "Травень"
+  },
+  {
+    "id": "November",
+    "translation": "Листопад"
+  },
+  {
+    "id": "October",
+    "translation": "Жовтень"
+  },
+  {
+    "id": "September",
+    "translation": "Вересень"
+  },
+  {
     "id": "actiance.export.marshalToXml.appError",
     "translation": "Не вдалося перетворити експорт в XML. "
   },
@@ -353,7 +401,7 @@
   },
   {
     "id": "api.command_away.name",
-    "translation": "відсутній"
+    "translation": "Відсутній"
   },
   {
     "id": "api.command_away.success",
@@ -4857,6 +4905,18 @@
   {
     "id": "plugin_api.get_file_link.no_post.app_error",
     "translation": "Не вдається отримати інформацію для файлу. Файл повинен бути прикріплений до публікації, який може бути прочитаний поточним користувачем.  "
+  },
+  {
+    "id": "plugin_api.send_mail.missing_htmlbody",
+    "translation": "Missing HTML Body."
+  },
+  {
+    "id": "plugin_api.send_mail.missing_subject",
+    "translation": "Missing email subject."
+  },
+  {
+    "id": "plugin_api.send_mail.missing_to",
+    "translation": "Missing TO address."
   },
   {
     "id": "store.sql.convert_string_array",

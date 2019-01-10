@@ -1,5 +1,53 @@
 [
   {
+    "id": "April",
+    "translation": "Avril"
+  },
+  {
+    "id": "August",
+    "translation": "Août"
+  },
+  {
+    "id": "December",
+    "translation": "Décembre"
+  },
+  {
+    "id": "February",
+    "translation": "Février"
+  },
+  {
+    "id": "January",
+    "translation": "Janvier"
+  },
+  {
+    "id": "July",
+    "translation": "Juillet"
+  },
+  {
+    "id": "June",
+    "translation": "Juin"
+  },
+  {
+    "id": "March",
+    "translation": "Mars"
+  },
+  {
+    "id": "May",
+    "translation": "Mai"
+  },
+  {
+    "id": "November",
+    "translation": "Novembre"
+  },
+  {
+    "id": "October",
+    "translation": "Octobre"
+  },
+  {
+    "id": "September",
+    "translation": "Septembre"
+  },
+  {
     "id": "actiance.export.marshalToXml.appError",
     "translation": "Impossible de convertir l'export en XML."
   },
@@ -4857,6 +4905,18 @@
   {
     "id": "plugin_api.get_file_link.no_post.app_error",
     "translation": "Impossible de récupérer le lien public du fichier. Le fichier doit être lié à un message qui peut être lu par l'utilisateur actuel."
+  },
+  {
+    "id": "plugin_api.send_mail.missing_htmlbody",
+    "translation": "Missing HTML Body."
+  },
+  {
+    "id": "plugin_api.send_mail.missing_subject",
+    "translation": "Missing email subject."
+  },
+  {
+    "id": "plugin_api.send_mail.missing_to",
+    "translation": "Missing TO address."
   },
   {
     "id": "store.sql.convert_string_array",

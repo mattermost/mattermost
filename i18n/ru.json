@@ -1,5 +1,53 @@
 [
   {
+    "id": "April",
+    "translation": "Апрель"
+  },
+  {
+    "id": "August",
+    "translation": "Август"
+  },
+  {
+    "id": "December",
+    "translation": "Декабрь"
+  },
+  {
+    "id": "February",
+    "translation": "Февраль"
+  },
+  {
+    "id": "January",
+    "translation": "Январь"
+  },
+  {
+    "id": "July",
+    "translation": "Июль"
+  },
+  {
+    "id": "June",
+    "translation": "Июнь"
+  },
+  {
+    "id": "March",
+    "translation": "Март"
+  },
+  {
+    "id": "May",
+    "translation": "Май"
+  },
+  {
+    "id": "November",
+    "translation": "Ноябрь"
+  },
+  {
+    "id": "October",
+    "translation": "Октябрь"
+  },
+  {
+    "id": "September",
+    "translation": "Сентябрь"
+  },
+  {
     "id": "actiance.export.marshalToXml.appError",
     "translation": "Не удалось экспортировать в XML."
   },
@@ -4857,6 +4905,18 @@
   {
     "id": "plugin_api.get_file_link.no_post.app_error",
     "translation": "Не удалось получить публичную ссылку для файла. Файл должен быть прикреплен к сообщению, которое может быть прочитано текущим пользователем."
+  },
+  {
+    "id": "plugin_api.send_mail.missing_htmlbody",
+    "translation": "Missing HTML Body."
+  },
+  {
+    "id": "plugin_api.send_mail.missing_subject",
+    "translation": "Missing email subject."
+  },
+  {
+    "id": "plugin_api.send_mail.missing_to",
+    "translation": "Missing TO address."
   },
   {
     "id": "store.sql.convert_string_array",
