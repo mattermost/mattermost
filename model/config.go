@@ -278,6 +278,7 @@ type ServiceSettings struct {
 	EnableAPITeamDeletion                             *bool
 	ExperimentalEnableHardenedMode                    *bool
 	EnableEmailInvitations                            *bool
+	ExperimentalLdapGroupSync                         *bool
 }
 
 func (s *ServiceSettings) SetDefaults() {
@@ -567,6 +568,10 @@ func (s *ServiceSettings) SetDefaults() {
 
 	if s.ExperimentalEnableHardenedMode == nil {
 		s.ExperimentalEnableHardenedMode = NewBool(false)
+	}
+
+	if s.ExperimentalLdapGroupSync == nil {
+		s.ExperimentalLdapGroupSync = NewBool(false)
 	}
 }
 
