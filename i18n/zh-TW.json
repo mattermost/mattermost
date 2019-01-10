@@ -1,5 +1,53 @@
 [
   {
+    "id": "April",
+    "translation": "四月"
+  },
+  {
+    "id": "August",
+    "translation": "八月"
+  },
+  {
+    "id": "December",
+    "translation": "十二月"
+  },
+  {
+    "id": "February",
+    "translation": "二月"
+  },
+  {
+    "id": "January",
+    "translation": "一月"
+  },
+  {
+    "id": "July",
+    "translation": "七月"
+  },
+  {
+    "id": "June",
+    "translation": "六月"
+  },
+  {
+    "id": "March",
+    "translation": "三月"
+  },
+  {
+    "id": "May",
+    "translation": "五月"
+  },
+  {
+    "id": "November",
+    "translation": "十一月"
+  },
+  {
+    "id": "October",
+    "translation": "十月"
+  },
+  {
+    "id": "September",
+    "translation": "九月"
+  },
+  {
     "id": "actiance.export.marshalToXml.appError",
     "translation": "無法轉換匯出至 XML"
   },
@@ -4857,6 +4905,18 @@
   {
     "id": "plugin_api.get_file_link.no_post.app_error",
     "translation": "無法取得檔案公開連結。檔案必須附加在可以被當前使用者讀取的發文。"
+  },
+  {
+    "id": "plugin_api.send_mail.missing_htmlbody",
+    "translation": "Missing HTML Body."
+  },
+  {
+    "id": "plugin_api.send_mail.missing_subject",
+    "translation": "Missing email subject."
+  },
+  {
+    "id": "plugin_api.send_mail.missing_to",
+    "translation": "Missing TO address."
   },
   {
     "id": "store.sql.convert_string_array",

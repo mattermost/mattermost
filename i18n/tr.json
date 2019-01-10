@@ -1,5 +1,53 @@
 [
   {
+    "id": "April",
+    "translation": "Nisan"
+  },
+  {
+    "id": "August",
+    "translation": "Ağustos"
+  },
+  {
+    "id": "December",
+    "translation": "Aralık"
+  },
+  {
+    "id": "February",
+    "translation": "Şubat"
+  },
+  {
+    "id": "January",
+    "translation": "Ocak"
+  },
+  {
+    "id": "July",
+    "translation": "Temmuz"
+  },
+  {
+    "id": "June",
+    "translation": "Haziran"
+  },
+  {
+    "id": "March",
+    "translation": "Mart"
+  },
+  {
+    "id": "May",
+    "translation": "Mayıs"
+  },
+  {
+    "id": "November",
+    "translation": "Kasım"
+  },
+  {
+    "id": "October",
+    "translation": "Ekim"
+  },
+  {
+    "id": "September",
+    "translation": "Eylül"
+  },
+  {
     "id": "actiance.export.marshalToXml.appError",
     "translation": "Dışa aktarılan veriler XML biçimine dönüştürülemedi."
   },
@@ -4857,6 +4905,18 @@
   {
     "id": "plugin_api.get_file_link.no_post.app_error",
     "translation": "Dosyanın herkese açık bağlantısı alınamadı. Dosya okunabilecek bir iletiye eklenmiş olmalıdır."
+  },
+  {
+    "id": "plugin_api.send_mail.missing_htmlbody",
+    "translation": "Missing HTML Body."
+  },
+  {
+    "id": "plugin_api.send_mail.missing_subject",
+    "translation": "Missing email subject."
+  },
+  {
+    "id": "plugin_api.send_mail.missing_to",
+    "translation": "Missing TO address."
   },
   {
     "id": "store.sql.convert_string_array",

@@ -1,5 +1,53 @@
 [
   {
+    "id": "April",
+    "translation": "Kwiecień"
+  },
+  {
+    "id": "August",
+    "translation": "Sierpień"
+  },
+  {
+    "id": "December",
+    "translation": "Grudzień"
+  },
+  {
+    "id": "February",
+    "translation": "Luty"
+  },
+  {
+    "id": "January",
+    "translation": "Styczeń"
+  },
+  {
+    "id": "July",
+    "translation": "Lipiec"
+  },
+  {
+    "id": "June",
+    "translation": "Czerwiec"
+  },
+  {
+    "id": "March",
+    "translation": "Marzec"
+  },
+  {
+    "id": "May",
+    "translation": "Maj"
+  },
+  {
+    "id": "November",
+    "translation": "Listopad"
+  },
+  {
+    "id": "October",
+    "translation": "Październik"
+  },
+  {
+    "id": "September",
+    "translation": "Wrzesień"
+  },
+  {
     "id": "actiance.export.marshalToXml.appError",
     "translation": "Nie można przekonwertować eksportu do formatu XML."
   },
@@ -565,7 +613,7 @@
   },
   {
     "id": "api.command_groupmsg.hint",
-    "translation": "@[username1],@[username2] 'wiadomość'"
+    "translation": "@[nazwaużytkownika1],@[nazwaużytkownika2] 'wiadomość'"
   },
   {
     "id": "api.command_groupmsg.invalid_user.app_error",
@@ -800,15 +848,15 @@
   },
   {
     "id": "api.command_online.desc",
-    "translation": "Zmień swój status na Dostępny."
+    "translation": "Zmień swój status na online."
   },
   {
     "id": "api.command_online.name",
-    "translation": "dostępny"
+    "translation": "online"
   },
   {
     "id": "api.command_online.success",
-    "translation": "Jesteś teraz dostępny"
+    "translation": "Jesteś teraz online"
   },
   {
     "id": "api.command_open.name",
@@ -824,7 +872,7 @@
   },
   {
     "id": "api.command_remove.hint",
-    "translation": "@[username]"
+    "translation": "@[nazwaużytkownika]"
   },
   {
     "id": "api.command_remove.message.app_error",
@@ -1912,7 +1960,7 @@
   },
   {
     "id": "api.templates.reset_subject",
-    "translation": "[{{ .SiteName }}] Restart hasła"
+    "translation": "[{{ .SiteName }}] Zresetuj swoje hasło"
   },
   {
     "id": "api.templates.signin_change_email.body.info",
@@ -3060,7 +3108,7 @@
   },
   {
     "id": "app.notification.subject.direct.full",
-    "translation": "[{{.SiteName}}] Nowa Wiadomość Bezpośrednia od @{{.SenderDisplayName}} w {{.Month}} {{.Day}}, {{.Year}}"
+    "translation": "[{{.SiteName}}] Nowa Wiadomość Bezpośrednia od @{{.SenderDisplayName}} z {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
     "id": "app.notification.subject.group_message.full",
@@ -4857,6 +4905,18 @@
   {
     "id": "plugin_api.get_file_link.no_post.app_error",
     "translation": "Nie można uzyskać publicznego linku do pliku. Plik musi być załączony do wiadomości, którą możesz odczytać."
+  },
+  {
+    "id": "plugin_api.send_mail.missing_htmlbody",
+    "translation": "Missing HTML Body."
+  },
+  {
+    "id": "plugin_api.send_mail.missing_subject",
+    "translation": "Missing email subject."
+  },
+  {
+    "id": "plugin_api.send_mail.missing_to",
+    "translation": "Missing TO address."
   },
   {
     "id": "store.sql.convert_string_array",
