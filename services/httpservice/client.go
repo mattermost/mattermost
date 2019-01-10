@@ -126,10 +126,3 @@ func NewTransport(enableInsecureConnections bool, allowHost func(host string) bo
 		},
 	}
 }
-
-func NewHTTPClient(transport http.RoundTripper) *http.Client {
-	return &http.Client{
-		Transport: transport,
-		Timeout:   RequestTimeout,
-	}
-}

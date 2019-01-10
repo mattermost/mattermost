@@ -465,6 +465,11 @@ type API interface {
 	// do not need to add that info.
 	// keyValuePairs should be primitive go types or other values that can be encoded by encoding/gob
 	LogWarn(msg string, keyValuePairs ...interface{})
+
+	// SendMail sends an email to a specific address
+	//
+	// Minimum server version: 5.7
+	SendMail(to, subject, htmlBody string) *model.AppError
 }
 
 var handshake = plugin.HandshakeConfig{
