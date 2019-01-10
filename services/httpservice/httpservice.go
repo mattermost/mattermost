@@ -6,6 +6,7 @@ package httpservice
 import (
 	"net"
 	"strings"
+	"time"
 
 	"github.com/mattermost/mattermost-server/services/configservice"
 )
@@ -18,10 +19,15 @@ type HTTPService interface {
 
 type HTTPServiceImpl struct {
 	configService configservice.ConfigService
+
+	RequestTimeout time.Duration
 }
 
 func MakeHTTPService(configService configservice.ConfigService) HTTPService {
-	return &HTTPServiceImpl{configService}
+	return &HTTPServiceImpl{
+		configService,
+		RequestTimeout,
+	}
 }
 
 func (h *HTTPServiceImpl) MakeClient(trustURLs bool) *Client {

@@ -109,10 +109,10 @@ func (o *OutgoingWebhookResponse) ToJson() string {
 	return string(b)
 }
 
-func OutgoingWebhookResponseFromJson(data io.Reader) *OutgoingWebhookResponse {
+func OutgoingWebhookResponseFromJson(data io.Reader) (*OutgoingWebhookResponse, error) {
 	var o *OutgoingWebhookResponse
-	json.NewDecoder(data).Decode(&o)
-	return o
+	err := json.NewDecoder(data).Decode(&o)
+	return o, err
 }
 
 func (o *OutgoingWebhook) IsValid() *AppError {
