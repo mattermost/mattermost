@@ -38,7 +38,7 @@ func TestMockHTTPService(t *testing.T) {
 		client := th.App.HTTPService.MakeClient(false)
 
 		resp, err := client.Get(url + "/get")
-		defer consumeAndClose(resp)
+		defer resp.Body.Close()
 
 		bodyContents, _ := ioutil.ReadAll(resp.Body)
 
@@ -53,7 +53,7 @@ func TestMockHTTPService(t *testing.T) {
 
 		request, _ := http.NewRequest(http.MethodPut, url+"/put", nil)
 		resp, err := client.Do(request)
-		defer consumeAndClose(resp)
+		defer resp.Body.Close()
 
 		bodyContents, _ := ioutil.ReadAll(resp.Body)
 

@@ -21,7 +21,9 @@ type HTTPServiceImpl struct {
 }
 
 func MakeHTTPService(configService configservice.ConfigService) HTTPService {
-	return &HTTPServiceImpl{configService}
+	return &HTTPServiceImpl{
+		configService,
+	}
 }
 
 func (h *HTTPServiceImpl) MakeClient(trustURLs bool) *Client {
