@@ -540,6 +540,24 @@ func (api *PluginAPI) RemoveTeamIcon(teamId string) *model.AppError {
 	return nil
 }
 
+// Mail Section
+
+func (api *PluginAPI) SendMail(to, subject, htmlBody string) *model.AppError {
+	if to == "" {
+		return model.NewAppError("SendMail", "plugin_api.send_mail.missing_to", nil, "", http.StatusBadRequest)
+	}
+
+	if subject == "" {
+		return model.NewAppError("SendMail", "plugin_api.send_mail.missing_subject", nil, "", http.StatusBadRequest)
+	}
+
+	if htmlBody == "" {
+		return model.NewAppError("SendMail", "plugin_api.send_mail.missing_htmlbody", nil, "", http.StatusBadRequest)
+	}
+
+	return api.app.SendMail(to, subject, htmlBody)
+}
+
 // Plugin Section
 
 func (api *PluginAPI) GetPlugins() ([]*model.Manifest, *model.AppError) {
