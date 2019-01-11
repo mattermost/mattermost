@@ -38,11 +38,11 @@ func TestMockHTTPService(t *testing.T) {
 		client := th.App.HTTPService.MakeClient(false)
 
 		resp, err := client.Get(url + "/get")
+		require.Nil(t, err)
 		defer resp.Body.Close()
 
 		bodyContents, _ := ioutil.ReadAll(resp.Body)
 
-		require.Nil(t, err)
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 		assert.Equal(t, "OK", string(bodyContents))
 		assert.True(t, getCalled)
@@ -53,11 +53,11 @@ func TestMockHTTPService(t *testing.T) {
 
 		request, _ := http.NewRequest(http.MethodPut, url+"/put", nil)
 		resp, err := client.Do(request)
+		require.Nil(t, err)
 		defer resp.Body.Close()
 
 		bodyContents, _ := ioutil.ReadAll(resp.Body)
 
-		require.Nil(t, err)
 		assert.Equal(t, http.StatusCreated, resp.StatusCode)
 		assert.Equal(t, "CREATED", string(bodyContents))
 		assert.True(t, putCalled)
