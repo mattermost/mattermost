@@ -487,9 +487,10 @@ func TestGetClientConfig(t *testing.T) {
 			"",
 			nil,
 			map[string]string{
-				"DiagnosticId":                  "",
-				"EmailNotificationContentsType": "full",
-				"AllowCustomThemes":             "true",
+				"DiagnosticId":                     "",
+				"EmailNotificationContentsType":    "full",
+				"AllowCustomThemes":                "true",
+				"EnforceMultifactorAuthentication": "false",
 			},
 		},
 		{
@@ -535,6 +536,23 @@ func TestGetClientConfig(t *testing.T) {
 				"DiagnosticId":                  "tag2",
 				"EmailNotificationContentsType": "full",
 				"AllowCustomThemes":             "false",
+			},
+		},
+		{
+			"licensed for enforcement",
+			&model.Config{
+				ServiceSettings: model.ServiceSettings{
+					EnforceMultifactorAuthentication: bToP(true),
+				},
+			},
+			"tag1",
+			&model.License{
+				Features: &model.Features{
+					MFA: bToP(true),
+				},
+			},
+			map[string]string{
+				"EnforceMultifactorAuthentication": "true",
 			},
 		},
 	}

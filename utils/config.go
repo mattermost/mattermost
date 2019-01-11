@@ -505,7 +505,6 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["LdapNicknameAttributeSet"] = "false"
 	props["LdapFirstNameAttributeSet"] = "false"
 	props["LdapLastNameAttributeSet"] = "false"
-	props["EnforceMultifactorAuthentication"] = "false"
 	props["EnableCompliance"] = "false"
 	props["EnableMobileFileDownload"] = "true"
 	props["EnableMobileFileUpload"] = "true"
@@ -675,6 +674,7 @@ func GenerateLimitedClientConfig(c *model.Config, diagnosticId string, license *
 	props["CustomBrandText"] = *c.TeamSettings.CustomBrandText
 	props["CustomDescriptionText"] = *c.TeamSettings.CustomDescriptionText
 	props["EnableMultifactorAuthentication"] = strconv.FormatBool(*c.ServiceSettings.EnableMultifactorAuthentication)
+	props["EnforceMultifactorAuthentication"] = "false"
 
 	if license != nil {
 		if *license.Features.LDAP {
