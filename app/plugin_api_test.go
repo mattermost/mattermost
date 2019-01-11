@@ -19,6 +19,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/mattermost/mattermost-server/services/mailservice"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -689,4 +690,34 @@ func TestPluginAPIGetDirectChannel(t *testing.T) {
 	dm3, err := api.GetDirectChannel(th.BasicUser.Id, model.NewId())
 	require.NotNil(t, err)
 	require.Empty(t, dm3)
+}
+
+func TestPluginAPISendMail(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	to := th.BasicUser.Email
+	subject := "testing plugin api sending email"
+	body := "this is a test."
+
+	err := api.SendMail(to, subject, body)
+	require.Nil(t, err)
+
+	// Check if we received the email
+	var resultsMailbox mailservice.JSONMessageHeaderInbucket
+	errMail := mailservice.RetryInbucket(5, func() error {
+		var err error
+		resultsMailbox, err = mailservice.GetMailBox(to)
+		return err
+	})
+	require.Nil(t, errMail)
+	require.NotZero(t, len(resultsMailbox))
+	require.True(t, strings.ContainsAny(resultsMailbox[len(resultsMailbox)-1].To[0], to))
+
+	resultsEmail, err1 := mailservice.GetMessageFromMailbox(to, resultsMailbox[len(resultsMailbox)-1].ID)
+	require.Nil(t, err1)
+	require.Equal(t, resultsEmail.Subject, subject)
+	require.Equal(t, resultsEmail.Body.Text, body)
+
 }

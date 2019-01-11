@@ -955,6 +955,27 @@ func (s SqlChannelStore) GetChannels(teamId string, userId string, includeDelete
 	})
 }
 
+func (s SqlChannelStore) GetAllChannels(offset int, limit int, includeDeleted bool) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		deleteFilter := "AND c.DeleteAt = 0"
+		if includeDeleted {
+			deleteFilter = ""
+		}
+
+		query := "SELECT c.*, Teams.DisplayName AS TeamDisplayName, Teams.Name AS TeamName, Teams.UpdateAt as TeamUpdateAt FROM Channels AS c JOIN Teams ON Teams.Id = c.TeamId WHERE (c.Type = 'P' OR c.Type = 'O') " + deleteFilter + " ORDER BY c.DisplayName, Teams.DisplayName LIMIT :Limit OFFSET :Offset"
+
+		data := &model.ChannelListWithTeamData{}
+		_, err := s.GetReplica().Select(data, query, map[string]interface{}{"Limit": limit, "Offset": offset})
+
+		if err != nil {
+			result.Err = model.NewAppError("SqlChannelStore.GetAllChannels", "store.sql_channel.get_all_channels.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		result.Data = data
+	})
+}
+
 func (s SqlChannelStore) GetMoreChannels(teamId string, userId string, offset int, limit int) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		data := &model.ChannelList{}
@@ -2069,6 +2090,36 @@ func (s SqlChannelStore) SearchInTeam(teamId string, term string, includeDeleted
 		`, term, map[string]interface{}{
 			"TeamId": teamId,
 		})
+	})
+}
+
+func (s SqlChannelStore) SearchAllChannels(term string, includeDeleted bool) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		parameters := map[string]interface{}{}
+		deleteFilter := "AND c.DeleteAt = 0"
+		if includeDeleted {
+			deleteFilter = ""
+		}
+		searchQuery := `SELECT c.*, t.DisplayName AS TeamDisplayName, t.Name AS TeamName, t.UpdateAt as TeamUpdateAt FROM Channels AS c JOIN Teams AS t ON t.Id = c.TeamId WHERE (c.Type = 'P' OR c.Type = 'O') ` + deleteFilter + ` SEARCH_CLAUSE ORDER BY c.DisplayName, t.DisplayName LIMIT 100`
+
+		likeClause, likeTerm := s.buildLIKEClause(term, "c.Name, c.DisplayName, c.Purpose")
+		if likeTerm == "" {
+			// If the likeTerm is empty after preparing, then don't bother searching.
+			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
+		} else {
+			parameters["LikeTerm"] = likeTerm
+			fulltextClause, fulltextTerm := s.buildFulltextClause(term, "c.Name, c.DisplayName, c.Purpose")
+			parameters["FulltextTerm"] = fulltextTerm
+			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "AND ("+likeClause+" OR "+fulltextClause+")", 1)
+		}
+
+		var channels model.ChannelListWithTeamData
+
+		if _, err := s.GetReplica().Select(&channels, searchQuery, parameters); err != nil {
+			result.Err = model.NewAppError("SqlChannelStore.Search", "store.sql_channel.search.app_error", nil, "term="+term+", "+", "+err.Error(), http.StatusInternalServerError)
+		}
+
+		result.Data = &channels
 	})
 }
 

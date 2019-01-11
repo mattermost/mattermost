@@ -891,7 +891,8 @@ func (a *App) AddChannelMember(userId string, channel *model.Channel, userReques
 
 func (a *App) AddDirectChannels(teamId string, user *model.User) *model.AppError {
 	var profiles []*model.User
-	result := <-a.Srv.Store.User().GetProfiles(teamId, 0, 100)
+	options := &model.UserGetOptions{InTeamId: teamId, Page: 0, PerPage: 100}
+	result := <-a.Srv.Store.User().GetProfiles(options)
 	if result.Err != nil {
 		return model.NewAppError("AddDirectChannels", "api.user.add_direct_channels_and_forget.failed.error", map[string]interface{}{"UserId": user.Id, "TeamId": teamId, "Error": result.Err.Error()}, "", http.StatusInternalServerError)
 	}
@@ -1114,6 +1115,14 @@ func (a *App) GetChannelsForUser(teamId string, userId string, includeDeleted bo
 		return nil, result.Err
 	}
 	return result.Data.(*model.ChannelList), nil
+}
+
+func (a *App) GetAllChannels(page, perPage int, includeDeleted bool) (*model.ChannelListWithTeamData, *model.AppError) {
+	result := <-a.Srv.Store.Channel().GetAllChannels(page*perPage, perPage, includeDeleted)
+	if result.Err != nil {
+		return nil, result.Err
+	}
+	return result.Data.(*model.ChannelListWithTeamData), nil
 }
 
 func (a *App) GetDeletedChannels(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
@@ -1575,6 +1584,14 @@ func (a *App) AutocompleteChannelsForSearch(teamId string, userId string, term s
 		return nil, result.Err
 	}
 	return result.Data.(*model.ChannelList), nil
+}
+
+func (a *App) SearchAllChannels(term string, includeDeleted bool) (*model.ChannelListWithTeamData, *model.AppError) {
+	result := <-a.Srv.Store.Channel().SearchAllChannels(term, *a.Config().TeamSettings.ExperimentalViewArchivedChannels && includeDeleted)
+	if result.Err != nil {
+		return nil, result.Err
+	}
+	return result.Data.(*model.ChannelListWithTeamData), nil
 }
 
 func (a *App) SearchChannels(teamId string, term string) (*model.ChannelList, *model.AppError) {
