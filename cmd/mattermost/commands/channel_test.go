@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -130,4 +131,17 @@ func TestRenameChannel(t *testing.T) {
 	updatedChannel, _ := th.App.GetChannel(channel.Id)
 	assert.Equal(t, "newchannelname10", updatedChannel.Name)
 	assert.Equal(t, "New Display Name", updatedChannel.DisplayName)
+}
+
+func Test_searchChannelCmdF(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	channel := th.CreatePublicChannel()
+
+	fmt.Println(th.CheckCommand(t, "channel", "search", channel.Name))
+	fmt.Println(th.CheckCommand(t, "channel", "search", channel.Name+"404"))
+
+	fmt.Println(th.CheckCommand(t, "channel", "search", "--team", channel.TeamId, channel.Name))
+	fmt.Println(th.CheckCommand(t, "channel", "search", "--team", channel.TeamId+"404", channel.Name))
 }
