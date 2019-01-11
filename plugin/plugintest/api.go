@@ -1491,6 +1491,31 @@ func (_m *API) GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.A
 	return r0, r1
 }
 
+// GetUsers provides a mock function with given fields: page, perPage
+func (_m *API) GetUsers(page int, perPage int) ([]*model.User, *model.AppError) {
+	ret := _m.Called(page, perPage)
+
+	var r0 []*model.User
+	if rf, ok := ret.Get(0).(func(int, int) []*model.User); ok {
+		r0 = rf(page, perPage)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.User)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(int, int) *model.AppError); ok {
+		r1 = rf(page, perPage)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetUsersByUsernames provides a mock function with given fields: usernames
 func (_m *API) GetUsersByUsernames(usernames []string) ([]*model.User, *model.AppError) {
 	ret := _m.Called(usernames)
