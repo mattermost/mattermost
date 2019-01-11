@@ -764,11 +764,13 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 	if resp, err := a.HTTPService.MakeClient(true).Do(req); err != nil {
 		return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.token_failed.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else {
-		bodyBytes, _ = ioutil.ReadAll(resp.Body)
-		resp.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+		defer resp.Body.Close()
 
-		ar = model.AccessResponseFromJson(resp.Body)
-		consumeAndClose(resp)
+		var buf bytes.Buffer
+		tee := io.TeeReader(resp.Body, &buf)
+		ar = model.AccessResponseFromJson(tee)
+
+		bodyBytes = buf.Bytes()
 
 		if ar == nil || resp.StatusCode != http.StatusOK {
 			return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.bad_response.app_error", nil, "response_body="+string(bodyBytes), http.StatusInternalServerError)
@@ -793,19 +795,24 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 
 	if resp, err := a.HTTPService.MakeClient(true).Do(req); err != nil {
 		return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.service.app_error", map[string]interface{}{"Service": service}, err.Error(), http.StatusInternalServerError)
-	} else {
-		bodyBytes, _ = ioutil.ReadAll(resp.Body)
-		if resp.StatusCode != http.StatusOK {
-			bodyString := string(bodyBytes)
-			mlog.Error("Error getting OAuth user: " + bodyString)
-			if service == model.SERVICE_GITLAB && resp.StatusCode == http.StatusForbidden && strings.Contains(bodyString, "Terms of Service") {
-				return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "oauth.gitlab.tos.error", nil, "", http.StatusBadRequest)
-			}
+	} else if resp.StatusCode != http.StatusOK {
+		defer resp.Body.Close()
+
+		bodyBytes, _ := ioutil.ReadAll(resp.Body)
+		bodyString := string(bodyBytes)
+
+		mlog.Error("Error getting OAuth user: " + bodyString)
+
+		if service == model.SERVICE_GITLAB && resp.StatusCode == http.StatusForbidden && strings.Contains(bodyString, "Terms of Service") {
+			// Return a nicer error when the user hasn't accepted GitLab's terms of service
+			return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "oauth.gitlab.tos.error", nil, "", http.StatusBadRequest)
 		}
-		resp.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+
+		return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.response.app_error", nil, "response_body="+bodyString, http.StatusInternalServerError)
+	} else {
+		// Note that resp.Body is not closed here, so it must be closed by the caller
 		return resp.Body, teamId, stateProps, nil
 	}
-
 }
 
 func (a *App) SwitchEmailToOAuth(w http.ResponseWriter, r *http.Request, email, password, code, service string) (string, *model.AppError) {

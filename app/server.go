@@ -7,8 +7,6 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
@@ -260,12 +258,4 @@ func (a *App) OriginChecker() func(*http.Request) bool {
 		return utils.OriginChecker(allowed)
 	}
 	return nil
-}
-
-// This is required to re-use the underlying connection and not take up file descriptors
-func consumeAndClose(r *http.Response) {
-	if r.Body != nil {
-		io.Copy(ioutil.Discard, r.Body)
-		r.Body.Close()
-	}
 }

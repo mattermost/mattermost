@@ -275,10 +275,9 @@ func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session
 	if resp, err := a.HTTPService.MakeClient(true).Do(request); err != nil {
 		mlog.Error(fmt.Sprintf("Device push reported as error for UserId=%v SessionId=%v message=%v", session.UserId, session.Id, err.Error()), mlog.String("user_id", session.UserId))
 	} else {
+		defer resp.Body.Close()
+
 		pushResponse := model.PushResponseFromJson(resp.Body)
-		if resp.Body != nil {
-			consumeAndClose(resp)
-		}
 
 		if pushResponse[model.PUSH_STATUS] == model.PUSH_STATUS_REMOVE {
 			mlog.Info(fmt.Sprintf("Device was reported as removed for UserId=%v SessionId=%v removing push for this session", session.UserId, session.Id), mlog.String("user_id", session.UserId))
