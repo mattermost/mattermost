@@ -245,6 +245,8 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 				if resp, err := a.HTTPClient(false).Do(req); err != nil {
 					return nil, model.NewAppError("command", "api.command.execute_command.failed.app_error", map[string]interface{}{"Trigger": trigger}, err.Error(), http.StatusInternalServerError)
 				} else {
+					defer resp.Body.Close()
+
 					if resp.StatusCode == http.StatusOK {
 						if response, err := model.CommandResponseFromHTTPBody(resp.Header.Get("Content-Type"), resp.Body); err != nil {
 							return nil, model.NewAppError("command", "api.command.execute_command.failed.app_error", map[string]interface{}{"Trigger": trigger}, err.Error(), http.StatusInternalServerError)
@@ -254,7 +256,6 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 							return a.HandleCommandResponse(cmd, args, response, false)
 						}
 					} else {
-						defer resp.Body.Close()
 						body, _ := ioutil.ReadAll(resp.Body)
 						return nil, model.NewAppError("command", "api.command.execute_command.failed_resp.app_error", map[string]interface{}{"Trigger": trigger, "Status": resp.Status}, string(body), http.StatusInternalServerError)
 					}

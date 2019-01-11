@@ -726,7 +726,8 @@ func (a *App) GetOpenGraphMetadata(requestURL string) *opengraph.OpenGraph {
 		mlog.Error(fmt.Sprintf("GetOpenGraphMetadata request failed for url=%v with err=%v", requestURL, err.Error()))
 		return og
 	}
-	defer consumeAndClose(res)
+
+	defer res.Body.Close()
 
 	contentType := res.Header.Get("Content-Type")
 	body := forceHTMLEncodingToUTF8(res.Body, contentType)
@@ -819,7 +820,8 @@ func (a *App) DoPostAction(postId string, actionId string, userId string) *model
 	if err != nil {
 		return model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
 	}
-	defer consumeAndClose(resp)
+
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		return model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, fmt.Sprintf("status=%v", resp.StatusCode), http.StatusBadRequest)

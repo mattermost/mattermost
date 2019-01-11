@@ -690,8 +690,9 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 	if resp, err := a.HTTPClient(true).Do(req); err != nil {
 		return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.token_failed.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else {
+		defer resp.Body.Close()
+
 		ar = model.AccessResponseFromJson(resp.Body)
-		consumeAndClose(resp)
 
 		if ar == nil {
 			return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.bad_response.app_error", nil, "response_body="+string(bodyBytes), http.StatusInternalServerError)
@@ -717,9 +718,10 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 	if resp, err := a.HTTPClient(true).Do(req); err != nil {
 		return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.service.app_error", map[string]interface{}{"Service": service}, err.Error(), http.StatusInternalServerError)
 	} else {
+		// Note that resp.Body is not closed here, so it must be closed by the caller
+
 		return resp.Body, teamId, stateProps, nil
 	}
-
 }
 
 func (a *App) SwitchEmailToOAuth(w http.ResponseWriter, r *http.Request, email, password, code, service string) (string, *model.AppError) {

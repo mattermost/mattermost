@@ -80,8 +80,9 @@ func (a *App) DoSecurityUpdateCheck() {
 					return
 				}
 
+				defer res.Body.Close()
+
 				bulletins := model.SecurityBulletinsFromJson(res.Body)
-				consumeAndClose(res)
 
 				for _, bulletin := range bulletins {
 					if bulletin.AppliesToVersion == model.CurrentVersion {

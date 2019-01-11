@@ -62,9 +62,12 @@ func (a *App) GetWebrtcToken(sessionId string) (string, *model.AppError) {
 	if rp, err := a.HTTPClient(true).Do(rq); err != nil {
 		return "", model.NewAppError("WebRTC.Token", "model.client.connecting.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else if rp.StatusCode >= 300 {
-		defer consumeAndClose(rp)
+		defer rp.Body.Close()
+
 		return "", model.AppErrorFromJson(rp.Body)
 	} else {
+		defer rp.Body.Close()
+
 		janusResponse := model.GatewayResponseFromJson(rp.Body)
 		if janusResponse.Status != "success" {
 			return "", model.NewAppError("getWebrtcToken", "api.webrtc.register_token.app_error", nil, "", http.StatusInternalServerError)

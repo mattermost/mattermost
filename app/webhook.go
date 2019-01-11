@@ -110,7 +110,7 @@ func (a *App) TriggerWebhook(payload *model.OutgoingWebhookPayload, hook *model.
 				if resp, err := a.HTTPClient(false).Do(req); err != nil {
 					mlog.Error(fmt.Sprintf("Event POST failed, err=%s", err.Error()))
 				} else {
-					defer consumeAndClose(resp)
+					defer resp.Body.Close()
 
 					webhookResp := model.OutgoingWebhookResponseFromJson(resp.Body)
 
