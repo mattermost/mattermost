@@ -21,6 +21,7 @@ type UserSearch struct {
 	AllowInactive  bool   `json:"allow_inactive"`
 	WithoutTeam    bool   `json:"without_team"`
 	Limit          int    `json:"limit"`
+	Role           string `json:"role"`
 }
 
 // ToJson convert a User to a json string
@@ -54,4 +55,6 @@ type UserSearchOptions struct {
 	AllowInactive bool
 	// Limit limits the total number of results returned.
 	Limit int
+	// Filters for the given role
+	Role string
 }
