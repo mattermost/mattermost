@@ -13,6 +13,22 @@ type FileInfoStore struct {
 	mock.Mock
 }
 
+// AttachMultipleToPost provides a mock function with given fields: fileIds, postId, userId
+func (_m *FileInfoStore) AttachMultipleToPost(fileIds []string, postId string, userId string) store.StoreChannel {
+	ret := _m.Called(fileIds, postId, userId)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func([]string, string, string) store.StoreChannel); ok {
+		r0 = rf(fileIds, postId, userId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // AttachToPost provides a mock function with given fields: fileId, postId
 func (_m *FileInfoStore) AttachToPost(fileId string, postId string) store.StoreChannel {
 	ret := _m.Called(fileId, postId)

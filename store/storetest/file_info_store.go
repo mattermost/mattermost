@@ -9,6 +9,9 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestFileInfoStore(t *testing.T, ss store.Store) {
@@ -17,6 +20,7 @@ func TestFileInfoStore(t *testing.T, ss store.Store) {
 	t.Run("FileInfoGetForPost", func(t *testing.T) { testFileInfoGetForPost(t, ss) })
 	t.Run("FileInfoGetForUser", func(t *testing.T) { testFileInfoGetForUser(t, ss) })
 	t.Run("FileInfoAttachToPost", func(t *testing.T) { testFileInfoAttachToPost(t, ss) })
+	t.Run("FileInfoAttachMultipleToPost", func(t *testing.T) { testFileInfoAttachMultipleToPost(t, ss) })
 	t.Run("FileInfoDeleteForPost", func(t *testing.T) { testFileInfoDeleteForPost(t, ss) })
 	t.Run("FileInfoPermanentDelete", func(t *testing.T) { testFileInfoPermanentDelete(t, ss) })
 	t.Run("FileInfoPermanentDeleteBatch", func(t *testing.T) { testFileInfoPermanentDeleteBatch(t, ss) })
@@ -248,6 +252,82 @@ func testFileInfoAttachToPost(t *testing.T, ss store.Store) {
 	} else if infos := result.Data.([]*model.FileInfo); len(infos) != 2 {
 		t.Fatal("should've returned exactly 2 file infos")
 	}
+}
+
+func testFileInfoAttachMultipleToPost(t *testing.T, ss store.Store) {
+	t.Run("should attach files", func(t *testing.T) {
+		userId := model.NewId()
+		postId := model.NewId()
+
+		info1 := store.Must(ss.FileInfo().Save(&model.FileInfo{
+			CreatorId: userId,
+			Path:      "file.txt",
+		})).(*model.FileInfo)
+		info2 := store.Must(ss.FileInfo().Save(&model.FileInfo{
+			CreatorId: userId,
+			Path:      "file2.txt",
+		})).(*model.FileInfo)
+
+		require.Equal(t, "", info1.PostId)
+		require.Equal(t, "", info2.PostId)
+
+		result := <-ss.FileInfo().AttachMultipleToPost([]string{info1.Id, info2.Id}, postId, userId)
+
+		assert.Nil(t, result.Err)
+		assert.Exactly(t, int64(2), result.Data)
+	})
+
+	t.Run("should not attach files to multiple posts", func(t *testing.T) {
+		userId := model.NewId()
+		postId := model.NewId()
+
+		info1 := store.Must(ss.FileInfo().Save(&model.FileInfo{
+			CreatorId: userId,
+			Path:      "file.txt",
+		})).(*model.FileInfo)
+		info2 := store.Must(ss.FileInfo().Save(&model.FileInfo{
+			CreatorId: userId,
+			Path:      "file2.txt",
+		})).(*model.FileInfo)
+
+		require.Equal(t, "", info1.PostId)
+		require.Equal(t, "", info2.PostId)
+
+		result := <-ss.FileInfo().AttachMultipleToPost([]string{info1.Id}, model.NewId(), userId)
+		require.Nil(t, result.Err)
+
+		result = <-ss.FileInfo().AttachMultipleToPost([]string{info1.Id, info2.Id}, postId, userId)
+
+		assert.Nil(t, result.Err)
+		assert.Exactly(t, int64(1), result.Data)
+
+		result = <-ss.FileInfo().AttachMultipleToPost([]string{info1.Id, info2.Id}, model.NewId(), userId)
+
+		assert.Nil(t, result.Err)
+		assert.Exactly(t, int64(0), result.Data)
+	})
+
+	t.Run("should not attach files owned from a different user", func(t *testing.T) {
+		userId := model.NewId()
+		postId := model.NewId()
+
+		info1 := store.Must(ss.FileInfo().Save(&model.FileInfo{
+			CreatorId: userId,
+			Path:      "file.txt",
+		})).(*model.FileInfo)
+		info2 := store.Must(ss.FileInfo().Save(&model.FileInfo{
+			CreatorId: model.NewId(),
+			Path:      "file2.txt",
+		})).(*model.FileInfo)
+
+		require.Equal(t, "", info1.PostId)
+		require.Equal(t, "", info2.PostId)
+
+		result := <-ss.FileInfo().AttachMultipleToPost([]string{info1.Id, info2.Id}, postId, userId)
+
+		assert.Nil(t, result.Err)
+		assert.Exactly(t, int64(1), result.Data)
+	})
 }
 
 func testFileInfoDeleteForPost(t *testing.T, ss store.Store) {

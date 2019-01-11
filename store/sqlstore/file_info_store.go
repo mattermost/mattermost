@@ -217,6 +217,36 @@ func (fs SqlFileInfoStore) AttachToPost(fileId, postId string) store.StoreChanne
 	})
 }
 
+func (fs SqlFileInfoStore) AttachMultipleToPost(fileIds []string, postId string, creatorId string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		keys, params := MapStringsToQueryParams(fileIds, "FileId")
+
+		params["PostId"] = postId
+		params["CreatorId"] = creatorId
+
+		sqlResult, err := fs.GetMaster().Exec(
+			`UPDATE
+					FileInfo
+				SET
+					PostId = :PostId
+				WHERE
+					Id IN `+keys+`
+					AND PostId = ''
+					AND CreatorId = :CreatorId`, params)
+		if err != nil {
+			result.Err = model.NewAppError("SqlFileInfoStore.AttachMultipleToPost",
+				"store.sql_file_info.attach_to_post.app_error", nil, "post_id="+postId+", err="+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		result.Data, err = sqlResult.RowsAffected()
+		if err != nil {
+			// This error should only occur if the database driver does not support counting rows affected
+			result.Data = int64(-1)
+		}
+	})
+}
+
 func (fs SqlFileInfoStore) DeleteForPost(postId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		if _, err := fs.GetMaster().Exec(

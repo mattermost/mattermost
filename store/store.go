@@ -457,6 +457,7 @@ type FileInfoStore interface {
 	GetForUser(userId string) StoreChannel
 	InvalidateFileInfosForPostCache(postId string)
 	AttachToPost(fileId string, postId string) StoreChannel
+	AttachMultipleToPost(fileIds []string, postId string, creatorId string) StoreChannel
 	DeleteForPost(postId string) StoreChannel
 	PermanentDelete(fileId string) StoreChannel
 	PermanentDeleteBatch(endTime int64, limit int64) StoreChannel

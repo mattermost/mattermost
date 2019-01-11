@@ -273,13 +273,8 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 	}
 
 	if len(post.FileIds) > 0 {
-		// There's a rare bug where the client sends up duplicate FileIds so protect against that
-		post.FileIds = utils.RemoveDuplicatesFromStringArray(post.FileIds)
-
-		for _, fileId := range post.FileIds {
-			if result := <-a.Srv.Store.FileInfo().AttachToPost(fileId, post.Id); result.Err != nil {
-				mlog.Error(fmt.Sprintf("Encountered error attaching files to post, post_id=%s, user_id=%s, file_ids=%v, err=%v", post.Id, post.FileIds, post.UserId, result.Err), mlog.String("post_id", post.Id))
-			}
+		if err := a.attachFilesToPost(post); err != nil {
+			mlog.Error("Encountered error attaching files to post", mlog.String("post_id", post.Id), mlog.Any("file_ids", post.FileIds), mlog.Err(result.Err))
 		}
 
 		if a.Metrics != nil {
@@ -296,6 +291,40 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 	}
 
 	return rpost, nil
+}
+
+func (a *App) attachFilesToPost(post *model.Post) *model.AppError {
+	result := <-a.Srv.Store.FileInfo().AttachMultipleToPost(post.FileIds, post.Id, post.UserId)
+	if result.Err != nil {
+		return result.Err
+	}
+
+	count := result.Data.(int64)
+	if count != -1 && count != int64(len(post.FileIds)) {
+		// We couldn't attach all files to the post, so ensure that post.FileIds reflects what was actually attached
+		mlog.Warn("Failed to attach all files to the post", mlog.String("post_id", post.Id))
+
+		result := <-a.Srv.Store.FileInfo().GetForPost(post.Id, true, false)
+		if result.Err != nil {
+			return result.Err
+		}
+
+		fileInfos := result.Data.([]*model.FileInfo)
+		fileIds := make([]string, len(fileInfos))
+
+		for i, fileInfo := range fileInfos {
+			fileIds[i] = fileInfo.Id
+		}
+
+		post.FileIds = fileIds
+
+		result = <-a.Srv.Store.Post().Overwrite(post)
+		if result.Err != nil {
+			return result.Err
+		}
+	}
+
+	return nil
 }
 
 // FillInPostProps should be invoked before saving posts to fill in properties such as
