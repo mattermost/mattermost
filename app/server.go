@@ -49,7 +49,7 @@ type RecoveryLogger struct {
 
 func (rl *RecoveryLogger) Println(i ...interface{}) {
 	mlog.Error("Please check the std error output for the stack trace")
-	mlog.Error(fmt.Sprint(i))
+	mlog.Error(fmt.Sprint(i...))
 }
 
 type CorsWrapper struct {
