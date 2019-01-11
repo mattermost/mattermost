@@ -20,6 +20,8 @@ import (
 const (
 	TRIGGERWORDS_EXACT_MATCH = 0
 	TRIGGERWORDS_STARTS_WITH = 1
+
+	MaxIntegrationResponseSize = 1024 * 1024 // Posts can be <100KB at most, so this is likely more than enough
 )
 
 func (a *App) handleWebhookEvents(post *model.Post, team *model.Team, channel *model.Channel, user *model.User) *model.AppError {
@@ -112,7 +114,7 @@ func (a *App) TriggerWebhook(payload *model.OutgoingWebhookPayload, hook *model.
 				} else {
 					defer resp.Body.Close()
 
-					webhookResp := model.OutgoingWebhookResponseFromJson(resp.Body)
+					webhookResp := model.OutgoingWebhookResponseFromJson(io.LimitReader(resp.Body, MaxIntegrationResponseSize))
 
 					if webhookResp != nil && (webhookResp.Text != nil || len(webhookResp.Attachments) > 0) {
 						postRootId := ""

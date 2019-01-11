@@ -5,6 +5,7 @@ package app
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -247,8 +248,10 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 				} else {
 					defer resp.Body.Close()
 
+					body := io.LimitReader(resp.Body, MaxIntegrationResponseSize)
+
 					if resp.StatusCode == http.StatusOK {
-						if response, err := model.CommandResponseFromHTTPBody(resp.Header.Get("Content-Type"), resp.Body); err != nil {
+						if response, err := model.CommandResponseFromHTTPBody(resp.Header.Get("Content-Type"), body); err != nil {
 							return nil, model.NewAppError("command", "api.command.execute_command.failed.app_error", map[string]interface{}{"Trigger": trigger}, err.Error(), http.StatusInternalServerError)
 						} else if response == nil {
 							return nil, model.NewAppError("command", "api.command.execute_command.failed_empty.app_error", map[string]interface{}{"Trigger": trigger}, "", http.StatusInternalServerError)
@@ -256,8 +259,8 @@ func (a *App) ExecuteCommand(args *model.CommandArgs) (*model.CommandResponse, *
 							return a.HandleCommandResponse(cmd, args, response, false)
 						}
 					} else {
-						body, _ := ioutil.ReadAll(resp.Body)
-						return nil, model.NewAppError("command", "api.command.execute_command.failed_resp.app_error", map[string]interface{}{"Trigger": trigger, "Status": resp.Status}, string(body), http.StatusInternalServerError)
+						bodyBytes, _ := ioutil.ReadAll(body)
+						return nil, model.NewAppError("command", "api.command.execute_command.failed_resp.app_error", map[string]interface{}{"Trigger": trigger, "Status": resp.Status}, string(bodyBytes), http.StatusInternalServerError)
 					}
 				}
 			}
