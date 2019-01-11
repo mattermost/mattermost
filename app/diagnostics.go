@@ -174,14 +174,14 @@ func (a *App) trackActivity() {
 		"registered_users":             userCount,
 		"active_users":                 activeUserCount,
 		"registered_deactivated_users": inactiveUserCount,
-		"teams":                    teamCount,
-		"public_channels":          publicChannelCount,
-		"private_channels":         privateChannelCount,
-		"direct_message_channels":  directChannelCount,
-		"public_channels_deleted":  deletedPublicChannelCount,
-		"private_channels_deleted": deletedPrivateChannelCount,
-		"posts":                    postsCount,
-		"used_apiv3":               atomic.LoadInt32(model.UsedApiV3) == 1,
+		"teams":                        teamCount,
+		"public_channels":              publicChannelCount,
+		"private_channels":             privateChannelCount,
+		"direct_message_channels":      directChannelCount,
+		"public_channels_deleted":      deletedPublicChannelCount,
+		"private_channels_deleted":     deletedPrivateChannelCount,
+		"posts":                        postsCount,
+		"used_apiv3":                   atomic.LoadInt32(model.UsedApiV3) == 1,
 	})
 
 	atomic.StoreInt32(model.UsedApiV3, 0)
