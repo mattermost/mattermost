@@ -146,13 +146,13 @@ func (_m *UserStore) GetAllAfter(limit int, afterId string) store.StoreChannel {
 	return r0
 }
 
-// GetAllProfiles provides a mock function with given fields: offset, limit
-func (_m *UserStore) GetAllProfiles(offset int, limit int) store.StoreChannel {
-	ret := _m.Called(offset, limit)
+// GetAllProfiles provides a mock function with given fields: options
+func (_m *UserStore) GetAllProfiles(options *model.UserGetOptions) store.StoreChannel {
+	ret := _m.Called(options)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(int, int) store.StoreChannel); ok {
-		r0 = rf(offset, limit)
+	if rf, ok := ret.Get(0).(func(*model.UserGetOptions) store.StoreChannel); ok {
+		r0 = rf(options)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)
@@ -354,13 +354,13 @@ func (_m *UserStore) GetProfileByIds(userId []string, allowFromCache bool) store
 	return r0
 }
 
-// GetProfiles provides a mock function with given fields: teamId, offset, limit
-func (_m *UserStore) GetProfiles(teamId string, offset int, limit int) store.StoreChannel {
-	ret := _m.Called(teamId, offset, limit)
+// GetProfiles provides a mock function with given fields: options
+func (_m *UserStore) GetProfiles(options *model.UserGetOptions) store.StoreChannel {
+	ret := _m.Called(options)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, int, int) store.StoreChannel); ok {
-		r0 = rf(teamId, offset, limit)
+	if rf, ok := ret.Get(0).(func(*model.UserGetOptions) store.StoreChannel); ok {
+		r0 = rf(options)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)
