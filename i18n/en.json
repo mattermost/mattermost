@@ -3231,28 +3231,60 @@
     "translation": "* \"{{.Message}}\"  [Delete]()"
   },
   {
+    "id": "app.reminder.update.button.complete",
+    "translation": "Mark as Complete"
+  },
+  {
     "id": "app.reminder.update.complete",
     "translation": "Ok! I’ve marked the reminder \"{{.Message}}\" as complete."
+  },
+  {
+    "id": "app.reminder.update.button.delete",
+    "translation": "Delete"
   },
   {
     "id": "app.reminder.update.delete",
     "translation": "Ok! I’ve deleted the reminder \"{{.Message}}\"."
   },
   {
+    "id": "app.reminder.update.button.snooze",
+    "translation": "Snooze"
+  },
+  {
+    "id": "app.reminder.update.button.snooze.20min",
+    "translation": "20 minutes"
+  },
+  {
     "id": "app.reminder.update.snooze.20min",
     "translation": "Ok! I’ll remind you \"{{.Message}}\" in 20 minutes"
+  },
+  {
+    "id": "app.reminder.update.button.snooze.1hr",
+    "translation": "1 hour"
   },
   {
     "id": "app.reminder.update.snooze.1hr",
     "translation": "Ok! I’ll remind you \"{{.Message}}\" in 1 hour"
   },
   {
+    "id": "app.reminder.update.button.snooze.3hr",
+    "translation": "3 hourS"
+  },
+  {
     "id": "app.reminder.update.snooze.3hr",
     "translation": "Ok! I’ll remind you \"{{.Message}}\" in 3 hours"
   },
   {
+    "id": "app.reminder.update.button.snooze.tomorrow",
+    "translation": "Tomorrow at 9AM"
+  },
+  {
     "id": "app.reminder.update.snooze.tomorrow",
     "translation": "Ok! I’ll remind you \"{{.Message}}\" at 9am tommorrow"
+  },
+  {
+    "id": "app.reminder.update.button.snooze.nextweek",
+    "translation": "Next week"
   },
   {
     "id": "app.reminder.update.snooze.nextweek",

@@ -139,7 +139,7 @@ func (s SqlRemindStore) GetByChannel(channel string) store.StoreChannel {
 			idQuery += ":reminderId" + strconv.Itoa(i)
 		}
 
-		query = "SELECT * from Occurrences WHERE ReminderId IN ("+idQuery+")"
+		query = "SELECT * from Occurrences WHERE ReminderId IN (" + idQuery + ")"
 		var occurrences []model.Occurrence
 		if _, err := s.GetReplica().Select(
 			&occurrences,

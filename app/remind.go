@@ -120,7 +120,6 @@ func (a *App) triggerReminders() {
 					Props: model.StringInterface{
 						"attachments": []*model.SlackAttachment{
 							{
-								//Text:  T("app.reminder.message", messageParameters),
 								Actions: []*model.PostAction{
 									{
 										Integration: &model.PostActionIntegration{
@@ -131,7 +130,7 @@ func (a *App) triggerReminders() {
 											},
 											URL: "mattermost://remind",
 										},
-										Name: "Mark as Complete",
+										Name: T("app.reminder.update.button.complete"),
 										Type: "action",
 									},
 									{
@@ -143,7 +142,7 @@ func (a *App) triggerReminders() {
 											},
 											URL: "mattermost://remind",
 										},
-										Name: "Delete",
+										Name: T("app.reminder.update.button.delete"),
 										Type: "action",
 									},
 									{
@@ -155,27 +154,27 @@ func (a *App) triggerReminders() {
 											},
 											URL: "mattermost://remind",
 										},
-										Name: "Snooze",
+										Name: T("app.reminder.update.button.snooze"),
 										Type: "select",
 										Options: []*model.PostActionOptions{
 											{
-												Text:  "20 minutes",
+												Text:  T("app.reminder.update.button.snooze.20min"),
 												Value: "20min",
 											},
 											{
-												Text:  "1 hour",
+												Text:  T("app.reminder.update.button.snooze.1hr"),
 												Value: "1hr",
 											},
 											{
-												Text:  "3 hours",
+												Text:  T("app.reminder.update.button.snooze.3hr"),
 												Value: "3hrs",
 											},
 											{
-												Text:  "Tomorrow at 9AM",
+												Text:  T("app.reminder.update.button.snooze.tomorrow"),
 												Value: "tomorrow",
 											},
 											{
-												Text:  "Next week",
+												Text:  T("app.reminder.update.button.snooze.nextweek"),
 												Value: "nextweek",
 											},
 										},
