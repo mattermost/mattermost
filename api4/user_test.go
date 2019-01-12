@@ -73,15 +73,9 @@ func TestCreateUser(t *testing.T) {
 	_, resp = th.SystemAdminClient.CreateUser(user2)
 	CheckNoError(t, resp)
 
-	if r, err := th.Client.DoApiPost("/users", "garbage"); err == nil {
-		t.Fatal("should have errored")
-	} else {
-		if r.StatusCode != http.StatusBadRequest {
-			t.Log("actual: " + strconv.Itoa(r.StatusCode))
-			t.Log("expected: " + strconv.Itoa(http.StatusBadRequest))
-			t.Fatal("wrong status code")
-		}
-	}
+	r, err := th.Client.DoApiPost("/users", "garbage")
+	require.NotNil(t, err, "should have errored")
+	assert.Equal(t, http.StatusBadRequest, r.StatusCode)
 }
 
 func TestCreateUserWithToken(t *testing.T) {
