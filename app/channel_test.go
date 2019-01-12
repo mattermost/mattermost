@@ -5,6 +5,7 @@ package app
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 	"testing"
 
@@ -306,6 +307,9 @@ func TestCreateGroupChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 			assert.Equal(t, channel.Id, history.ChannelId)
 			channelMemberHistoryUserIds = append(channelMemberHistoryUserIds, history.UserId)
 		}
+
+		sort.Strings(groupUserIds)
+		sort.Strings(channelMemberHistoryUserIds)
 		assert.Equal(t, groupUserIds, channelMemberHistoryUserIds)
 	}
 }
