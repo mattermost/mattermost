@@ -158,6 +158,10 @@ func (api *PluginAPI) UpdateTeamMemberRoles(teamId, userId, newRoles string) (*m
 	return api.app.UpdateTeamMemberRoles(teamId, userId, newRoles)
 }
 
+func (api *PluginAPI) GetTeamStats(teamId string) (*model.TeamStats, *model.AppError) {
+	return api.app.GetTeamStats(teamId)
+}
+
 func (api *PluginAPI) CreateUser(user *model.User) (*model.User, *model.AppError) {
 	return api.app.CreateUser(user)
 }
