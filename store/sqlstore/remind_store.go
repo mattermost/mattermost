@@ -6,11 +6,10 @@ package sqlstore
 import (
 	"database/sql"
 	"fmt"
-	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"net/http"
-	"strings"
+	"strconv"
 )
 
 type SqlRemindStore struct {
@@ -128,23 +127,24 @@ func (s SqlRemindStore) GetByChannel(channel string) store.StoreChannel {
 		}
 		channelReminders.Reminders = reminders
 
-		//TODO figure out select IN.  list len > 1 returns nothing.  len == 1 returns 1.
+		props := make(map[string]interface{})
+		idQuery := ""
 
-		var reminderIds []string
 		for i, reminder := range reminders {
-			if i > 0 {
-				continue
+			if len(idQuery) > 0 {
+				idQuery += ", "
 			}
-			reminderIds = append(reminderIds, reminder.Id)
-		}
-		mlog.Info(strings.Join(reminderIds, ","))
 
-		query = "SELECT * from Occurrences WHERE ReminderId IN (:ReminderIds)"
+			props["reminderId"+strconv.Itoa(i)] = reminder.Id
+			idQuery += ":reminderId" + strconv.Itoa(i)
+		}
+
+		query = "SELECT * from Occurrences WHERE ReminderId IN ("+idQuery+")"
 		var occurrences []model.Occurrence
 		if _, err := s.GetReplica().Select(
 			&occurrences,
 			query,
-			map[string]interface{}{"ReminderIds": strings.Join(reminderIds, ",")}); err != nil {
+			props); err != nil {
 			result.Err = model.NewAppError("SqlRemindStore.GetByChannel", "store.sql_remind.get_by_channel.app_error", nil, "Target="+channel+", "+err.Error(), http.StatusInternalServerError)
 		}
 		channelReminders.Occurrences = occurrences

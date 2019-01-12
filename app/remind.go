@@ -446,10 +446,8 @@ func (a *App) ListReminders(userId string, channelId string) string {
 		mlog.Error(result.Err.Error())
 	} else {
 		inChannel := result.Data.(model.ChannelReminders)
-		mlog.Info(fmt.Sprintf("%v", inChannel.Occurrences))
 
 		if len(inChannel.Occurrences) > 0 {
-			mlog.Info("************************************************")
 			output = strings.Join([]string{
 				output,
 				T("app.reminder.list_inchannel"),
