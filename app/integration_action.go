@@ -65,8 +65,8 @@ func (a *App) DoPostAction(postId, actionId, userId, selectedOption string) (str
 		return "", err
 	}
 
-	u, _ := url.Parse(action.Integration.URL)
-	if u != nil && u.Scheme == "mattermost" {
+	u, e := url.Parse(action.Integration.URL)
+	if e == nil && u != nil && u.Scheme == "mattermost" {
 		switch u.Host {
 		case "remind":
 			a.UpdateReminder(post, action, userId, selectedOption)
