@@ -14,12 +14,12 @@ import (
 var argRe = regexp.MustCompile(`\B:[a-zA-Z_]+\b`)
 
 // Query builds dynamic SQL queries using a fluent and immutable interface.
-// At its core, it is nothing more than SQL-aware string concatenation library. It is not an ORM.
+// At its core, it is nothing more than a SQL-aware string concatenation library. It is not an ORM.
 //
 // Unlike similar libraries, it doesn't integrate with database/sql directly, doesn't read and
-// populate model structs, and generally doesn't try expose more of an API than needed. Feel free
-// to pass in entire SQL statements as necessary, but realize that this library won't try to parse
-// or validate the resulting SQL. Garbage in: garbage out.
+// populate model structs, and generally doesn't try to expose more of an API than needed. Feel
+// free to pass in entire SQL statements as necessary, but realize that this library won't try to
+// parse or validate the resulting SQL. Garbage in: garbage out.
 //
 // It doesn't current support INSERT, UPDATE or DELETE statements, but this would be a trivial
 // addition.
