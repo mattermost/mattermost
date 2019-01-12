@@ -127,28 +127,29 @@ func (s SqlRemindStore) GetByChannel(channel string) store.StoreChannel {
 		}
 		channelReminders.Reminders = reminders
 
-		props := make(map[string]interface{})
-		idQuery := ""
+		if len(reminders) > 0 {
+			props := make(map[string]interface{})
+			idQuery := ""
 
-		for i, reminder := range reminders {
-			if len(idQuery) > 0 {
-				idQuery += ", "
+			for i, reminder := range reminders {
+				if len(idQuery) > 0 {
+					idQuery += ", "
+				}
+
+				props["reminderId"+strconv.Itoa(i)] = reminder.Id
+				idQuery += ":reminderId" + strconv.Itoa(i)
 			}
 
-			props["reminderId"+strconv.Itoa(i)] = reminder.Id
-			idQuery += ":reminderId" + strconv.Itoa(i)
+			query = "SELECT * from Occurrences WHERE ReminderId IN (" + idQuery + ")"
+			var occurrences []model.Occurrence
+			if _, err := s.GetReplica().Select(
+				&occurrences,
+				query,
+				props); err != nil {
+				result.Err = model.NewAppError("SqlRemindStore.GetByChannel", "store.sql_remind.get_by_channel.app_error", nil, "Target="+channel+", "+err.Error(), http.StatusInternalServerError)
+			}
+			channelReminders.Occurrences = occurrences
 		}
-
-		query = "SELECT * from Occurrences WHERE ReminderId IN (" + idQuery + ")"
-		var occurrences []model.Occurrence
-		if _, err := s.GetReplica().Select(
-			&occurrences,
-			query,
-			props); err != nil {
-			result.Err = model.NewAppError("SqlRemindStore.GetByChannel", "store.sql_remind.get_by_channel.app_error", nil, "Target="+channel+", "+err.Error(), http.StatusInternalServerError)
-		}
-		channelReminders.Occurrences = occurrences
-
 		result.Data = channelReminders
 	})
 }

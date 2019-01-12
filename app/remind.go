@@ -92,7 +92,8 @@ func (a *App) triggerReminders() {
 				reminder = result.Data.(model.Reminder)
 			}
 
-			user, _, _, _, T := a.shared(reminder.UserId)
+			user, _ := a.GetUser(reminder.UserId)
+			T, _ := a.translation(user)
 
 			if strings.HasPrefix(reminder.Target, "@") || strings.HasPrefix(reminder.Target, T("app.reminder.me")) {
 
@@ -237,7 +238,10 @@ func (a *App) triggerReminders() {
 
 func (a *App) UpdateReminder(post *model.Post, action *model.PostAction, userId string, selectedOption string) error {
 
-	_, cfg, location, _, T := a.shared(userId)
+	cfg := a.Config()
+	user, _ := a.GetUser(userId)
+	location := a.location(user)
+	T, _ := a.translation(user)
 
 	update := &model.Post{}
 	update.Id = post.Id
@@ -375,7 +379,8 @@ func (a *App) UpdateReminder(post *model.Post, action *model.PostAction, userId 
 
 func (a *App) ListReminders(userId string, channelId string) string {
 
-	_, _, _, _, T := a.shared(userId)
+	user, _ := a.GetUser(userId)
+	T, _ := a.translation(user)
 
 	var upcomingOccurrences []model.Occurrence
 	var recurringOccurrences []model.Occurrence
@@ -438,22 +443,24 @@ func (a *App) ListReminders(userId string, channelId string) string {
 
 	}
 
-	channel, _ := a.GetChannel(channelId)
-	schan := a.Srv.Store.Remind().GetByChannel("~" + channel.Name)
-	result := <-schan
+	channel, cErr := a.GetChannel(channelId)
+	if cErr == nil {
+		schan := a.Srv.Store.Remind().GetByChannel("~" + channel.Name)
+		result := <-schan
 
-	if result.Err != nil {
-		mlog.Error(result.Err.Error())
-	} else {
-		inChannel := result.Data.(model.ChannelReminders)
+		if result.Err != nil {
+			mlog.Error(result.Err.Error())
+		} else {
+			inChannel := result.Data.(model.ChannelReminders)
 
-		if len(inChannel.Occurrences) > 0 {
-			output = strings.Join([]string{
-				output,
-				T("app.reminder.list_inchannel"),
-				a.listReminderGroup(userId, &inChannel.Occurrences, &reminders, "inchannel"),
-				"\n",
-			}, "\n")
+			if len(inChannel.Occurrences) > 0 {
+				output = strings.Join([]string{
+					output,
+					T("app.reminder.list_inchannel"),
+					a.listReminderGroup(userId, &inChannel.Occurrences, &reminders, "inchannel"),
+					"\n",
+				}, "\n")
+			}
 		}
 	}
 
@@ -498,7 +505,10 @@ func (a *App) ListReminders(userId string, channelId string) string {
 
 func (a *App) listReminderGroup(userId string, occurrences *[]model.Occurrence, reminders *[]model.Reminder, gType string) string {
 
-	_, cfg, location, _, T := a.shared(userId)
+	cfg := a.Config()
+	user, _ := a.GetUser(userId)
+	location := a.location(user)
+	T, _ := a.translation(user)
 
 	var output string
 	output = ""
@@ -571,7 +581,8 @@ func (a *App) findReminder(reminderId string, reminders *[]model.Reminder) *mode
 
 func (a *App) DeleteReminders(userId string) string {
 
-	_, _, _, _, T := a.shared(userId)
+	user, _ := a.GetUser(userId)
+	T, _ := a.translation(user)
 
 	schan := a.Srv.Store.Remind().DeleteForUser(userId)
 	if result := <-schan; result.Err != nil {
@@ -592,7 +603,8 @@ func (a *App) getReminders(userId string) []model.Reminder {
 
 func (a *App) ScheduleReminder(request *model.ReminderRequest) (string, error) {
 
-	_, _, _, _, T := a.shared(request.UserId)
+	user, _ := a.GetUser(request.UserId)
+	T, _ := a.translation(user)
 
 	if pErr := a.parseRequest(request); pErr != nil {
 		mlog.Error(pErr.Error())
@@ -640,7 +652,9 @@ func (a *App) ScheduleReminder(request *model.ReminderRequest) (string, error) {
 
 func (a *App) RescheduleOccurrence(occurrence *model.Occurrence) {
 
-	user, _, _, _, T := a.shared(occurrence.UserId)
+	user, _ := a.GetUser(occurrence.UserId)
+	T, _ := a.translation(user)
+
 	var times []time.Time
 
 	if strings.HasPrefix(occurrence.Repeat, T("app.reminder.chrono.in")) {
@@ -684,7 +698,8 @@ func (a *App) RescheduleOccurrence(occurrence *model.Occurrence) {
 
 func (a *App) formatWhen(userId string, when string, occurrence string, snoozed bool) string {
 
-	user, _, _, _, T := a.shared(userId)
+	user, _ := a.GetUser(userId)
+	T, _ := a.translation(user)
 
 	if strings.HasPrefix(when, T("app.reminder.chrono.in")) {
 
@@ -776,7 +791,8 @@ func (a *App) formatWhen(userId string, when string, occurrence string, snoozed 
 
 func (a *App) parseRequest(request *model.ReminderRequest) error {
 
-	_, _, _, _, T := a.shared(request.UserId)
+	user, _ := a.GetUser(request.UserId)
+	T, _ := a.translation(user)
 
 	commandSplit := strings.Split(request.Payload, " ")
 
@@ -823,7 +839,8 @@ func (a *App) parseRequest(request *model.ReminderRequest) error {
 
 func (a *App) createOccurrences(request *model.ReminderRequest) error {
 
-	user, _, _, _, T := a.shared(request.UserId)
+	user, _ := a.GetUser(request.UserId)
+	T, _ := a.translation(user)
 
 	if strings.HasPrefix(request.Reminder.When, T("app.reminder.chrono.in")) {
 		if occurrences, inErr := a.in(request.Reminder.When, user); inErr != nil {
@@ -867,7 +884,8 @@ func (a *App) createOccurrences(request *model.ReminderRequest) error {
 
 func (a *App) addOccurrences(request *model.ReminderRequest, occurrences []time.Time) error {
 
-	_, _, _, _, T := a.shared(request.UserId)
+	user, _ := a.GetUser(request.UserId)
+	T, _ := a.translation(user)
 
 	for _, o := range occurrences {
 
@@ -915,7 +933,8 @@ func (a *App) addOccurrences(request *model.ReminderRequest, occurrences []time.
 
 func (a *App) isRepeating(request *model.ReminderRequest) bool {
 
-	_, _, _, _, T := a.shared(request.UserId)
+	user, _ := a.GetUser(request.UserId)
+	T, _ := a.translation(user)
 
 	return strings.Contains(request.Reminder.When, T("app.reminder.chrono.every")) ||
 		strings.Contains(request.Reminder.When, T("app.reminder.chrono.sundays")) ||
@@ -930,7 +949,8 @@ func (a *App) isRepeating(request *model.ReminderRequest) bool {
 
 func (a *App) findWhen(request *model.ReminderRequest) error {
 
-	user, _, _, _, T := a.shared(request.UserId)
+	user, _ := a.GetUser(request.UserId)
+	T, _ := a.translation(user)
 
 	inIndex := strings.Index(request.Payload, " "+T("app.reminder.chrono.in")+" ")
 	if inIndex > -1 {
@@ -1105,7 +1125,9 @@ func (a *App) findWhen(request *model.ReminderRequest) error {
 
 func (a *App) in(when string, user *model.User) (times []time.Time, err error) {
 
-	_, cfg, location, _, T := a.shared(user.Id)
+	cfg := a.Config()
+	location := a.location(user)
+	T, _ := a.translation(user)
 
 	whenSplit := strings.Split(when, " ")
 	value := whenSplit[1]
@@ -1947,7 +1969,9 @@ func (a *App) normalizeTime(text string, user *model.User) (string, error) {
 
 func (a *App) normalizeDate(text string, user *model.User) (string, error) {
 
-	_, cfg, location, _, T := a.shared(user.Id)
+	cfg := a.Config()
+	location := a.location(user)
+	T, _ := a.translation(user)
 
 	date := strings.ToLower(text)
 	if strings.EqualFold(T("app.reminder.chrono.day"), date) {
@@ -2433,7 +2457,8 @@ func (a *App) wordToNumber(word string, user *model.User) (int, error) {
 
 func (a *App) chooseClosest(user *model.User, chosen *time.Time, dayInterval bool) time.Time {
 
-	_, cfg, location, _, _ := a.shared(user.Id)
+	cfg := a.Config()
+	location := a.location(user)
 
 	if dayInterval {
 		if chosen.Before(time.Now()) {
@@ -2466,24 +2491,6 @@ func (a *App) chooseClosest(user *model.User, chosen *time.Time, dayInterval boo
 	}
 }
 
-func (a *App) shared(userId string) (*model.User, *model.Config, *time.Location, string, i18n.TranslateFunc) {
-
-	user, _ := a.GetUser(userId)
-
-	cfg := a.Config()
-
-	timezone := user.GetPreferredTimezone()
-	if timezone == "" {
-		timezone, _ = time.Now().Zone()
-	}
-	location, _ := time.LoadLocation(timezone)
-
-	T, locale := a.translation(user)
-
-	return user, cfg, location, locale, T
-
-}
-
 func (a *App) translation(user *model.User) (i18n.TranslateFunc, string) {
 	locale := "en"
 	for _, l := range supportedLocales {
@@ -2492,4 +2499,13 @@ func (a *App) translation(user *model.User) (i18n.TranslateFunc, string) {
 		}
 	}
 	return utils.GetUserTranslations(locale), locale
+}
+
+func (a *App) location(user *model.User) *time.Location {
+	timezone := user.GetPreferredTimezone()
+	if timezone == "" {
+		timezone, _ = time.Now().Zone()
+	}
+	location, _ := time.LoadLocation(timezone)
+	return location
 }

@@ -34,7 +34,8 @@ func (me *RemindProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Comm
 
 func (me *RemindProvider) DoCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse {
 
-	_, _, _, _, T := a.shared(args.UserId)
+	user, _ := a.GetUser(args.UserId)
+	T, _ := a.translation(user)
 
 	if strings.HasSuffix(args.Command, T("help")) {
 		return &model.CommandResponse{
