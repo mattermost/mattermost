@@ -422,9 +422,9 @@ type API interface {
 	KVList(page, perPage int) ([]string, *model.AppError)
 
 	// PublishWebSocketEvent sends an event to WebSocket connections.
-	// event is the type and will be prepended with "custom_<pluginid>_"
-	// payload is the data sent with the event. Interface values must be primitive Go types or mattermost-server/model types
-	// broadcast determines to which users to send the event
+	// event is the type and will be prepended with "custom_<pluginid>_".
+	// payload is the data sent with the event. Interface values must be primitive Go types or mattermost-server/model types.
+	// broadcast determines to which users to send the event.
 	PublishWebSocketEvent(event string, payload map[string]interface{}, broadcast *model.WebsocketBroadcast)
 
 	// HasPermissionTo check if the user has the permission at system scope.
@@ -465,6 +465,11 @@ type API interface {
 	// do not need to add that info.
 	// keyValuePairs should be primitive go types or other values that can be encoded by encoding/gob
 	LogWarn(msg string, keyValuePairs ...interface{})
+
+	// SendMail sends an email to a specific address
+	//
+	// Minimum server version: 5.7
+	SendMail(to, subject, htmlBody string) *model.AppError
 }
 
 var handshake = plugin.HandshakeConfig{

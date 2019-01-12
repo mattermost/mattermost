@@ -532,6 +532,7 @@ func UpgradeDatabaseToVersion56(sqlStore SqlStore) {
 			sqlStore.RemoveIndexIfExists("idx_users_firstname_lower", "lower(FirstName)")
 			sqlStore.RemoveIndexIfExists("idx_users_lastname_lower", "lower(LastName)")
 		}
+
 		saveSchemaVersion(sqlStore, VERSION_5_6_0)
 	}
 

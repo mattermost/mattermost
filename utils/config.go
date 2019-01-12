@@ -505,7 +505,6 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["LdapNicknameAttributeSet"] = "false"
 	props["LdapFirstNameAttributeSet"] = "false"
 	props["LdapLastNameAttributeSet"] = "false"
-	props["EnforceMultifactorAuthentication"] = "false"
 	props["EnableCompliance"] = "false"
 	props["EnableMobileFileDownload"] = "true"
 	props["EnableMobileFileUpload"] = "true"
@@ -548,10 +547,6 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 			props["LdapNicknameAttributeSet"] = strconv.FormatBool(*c.LdapSettings.NicknameAttribute != "")
 			props["LdapFirstNameAttributeSet"] = strconv.FormatBool(*c.LdapSettings.FirstNameAttribute != "")
 			props["LdapLastNameAttributeSet"] = strconv.FormatBool(*c.LdapSettings.LastNameAttribute != "")
-		}
-
-		if *license.Features.MFA {
-			props["EnforceMultifactorAuthentication"] = strconv.FormatBool(*c.ServiceSettings.EnforceMultifactorAuthentication)
 		}
 
 		if *license.Features.Compliance {
@@ -668,7 +663,6 @@ func GenerateLimitedClientConfig(c *model.Config, diagnosticId string, license *
 	props["LdapLoginButtonColor"] = ""
 	props["LdapLoginButtonBorderColor"] = ""
 	props["LdapLoginButtonTextColor"] = ""
-	props["EnableMultifactorAuthentication"] = "false"
 	props["EnableSaml"] = "false"
 	props["SamlLoginButtonText"] = ""
 	props["SamlLoginButtonColor"] = ""
@@ -680,6 +674,7 @@ func GenerateLimitedClientConfig(c *model.Config, diagnosticId string, license *
 	props["CustomBrandText"] = *c.TeamSettings.CustomBrandText
 	props["CustomDescriptionText"] = *c.TeamSettings.CustomDescriptionText
 	props["EnableMultifactorAuthentication"] = strconv.FormatBool(*c.ServiceSettings.EnableMultifactorAuthentication)
+	props["EnforceMultifactorAuthentication"] = "false"
 
 	if license != nil {
 		if *license.Features.LDAP {
@@ -709,6 +704,10 @@ func GenerateLimitedClientConfig(c *model.Config, diagnosticId string, license *
 		if *license.Features.CustomTermsOfService {
 			props["EnableCustomTermsOfService"] = strconv.FormatBool(*c.SupportSettings.CustomTermsOfServiceEnabled)
 			props["CustomTermsOfServiceReAcceptancePeriod"] = strconv.FormatInt(int64(*c.SupportSettings.CustomTermsOfServiceReAcceptancePeriod), 10)
+		}
+
+		if *license.Features.MFA {
+			props["EnforceMultifactorAuthentication"] = strconv.FormatBool(*c.ServiceSettings.EnforceMultifactorAuthentication)
 		}
 	}
 

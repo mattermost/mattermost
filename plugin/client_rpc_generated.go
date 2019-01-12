@@ -3556,3 +3556,33 @@ func (s *apiRPCServer) LogWarn(args *Z_LogWarnArgs, returns *Z_LogWarnReturns) e
 	}
 	return nil
 }
+
+type Z_SendMailArgs struct {
+	A string
+	B string
+	C string
+}
+
+type Z_SendMailReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) SendMail(to, subject, htmlBody string) *model.AppError {
+	_args := &Z_SendMailArgs{to, subject, htmlBody}
+	_returns := &Z_SendMailReturns{}
+	if err := g.client.Call("Plugin.SendMail", _args, _returns); err != nil {
+		log.Printf("RPC call to SendMail API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) SendMail(args *Z_SendMailArgs, returns *Z_SendMailReturns) error {
+	if hook, ok := s.impl.(interface {
+		SendMail(to, subject, htmlBody string) *model.AppError
+	}); ok {
+		returns.A = hook.SendMail(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API SendMail called but not implemented."))
+	}
+	return nil
+}

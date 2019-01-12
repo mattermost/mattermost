@@ -4,17 +4,19 @@
 package app
 
 import (
-	"strings"
-	"testing"
-
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-
+	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
+	"strings"
+	"testing"
 	"time"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/httpservice"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCreateIncomingWebhookForChannel(t *testing.T) {
@@ -651,4 +653,92 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 		})
 	}
 
+}
+
+type InfiniteReader struct {
+	Prefix string
+}
+
+func (r InfiniteReader) Read(p []byte) (n int, err error) {
+	for i := range p {
+		p[i] = 'a'
+	}
+
+	return len(p), nil
+}
+
+func TestDoOutgoingWebhookRequest(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.AllowedUntrustedInternalConnections = model.NewString("127.0.0.1")
+		cfg.ServiceSettings.EnableOutgoingWebhooks = true
+	})
+
+	t.Run("with a valid response", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
+		}))
+		defer server.Close()
+
+		resp, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
+		require.Nil(t, err)
+
+		assert.NotNil(t, resp)
+		assert.NotNil(t, resp.Text)
+		assert.Equal(t, "Hello, World!", *resp.Text)
+	})
+
+	t.Run("with an invalid response", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			io.Copy(w, strings.NewReader("aaaaaaaa"))
+		}))
+		defer server.Close()
+
+		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
+		require.NotNil(t, err)
+		require.IsType(t, &json.SyntaxError{}, err)
+	})
+
+	t.Run("with a large, valid response", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			io.Copy(w, io.MultiReader(strings.NewReader(`{"text": "`), InfiniteReader{}, strings.NewReader(`"}`)))
+		}))
+		defer server.Close()
+
+		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
+		require.NotNil(t, err)
+		require.Equal(t, io.ErrUnexpectedEOF, err)
+	})
+
+	t.Run("with a large, invalid response", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			io.Copy(w, InfiniteReader{})
+		}))
+		defer server.Close()
+
+		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
+		require.NotNil(t, err)
+		require.IsType(t, &json.SyntaxError{}, err)
+	})
+
+	t.Run("with a slow response", func(t *testing.T) {
+		timeout := 100 * time.Millisecond
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			time.Sleep(timeout + time.Millisecond)
+			io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
+		}))
+		defer server.Close()
+
+		th.App.HTTPService.(*httpservice.HTTPServiceImpl).RequestTimeout = timeout
+		defer func() {
+			th.App.HTTPService.(*httpservice.HTTPServiceImpl).RequestTimeout = httpservice.RequestTimeout
+		}()
+
+		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
+		require.NotNil(t, err)
+		require.IsType(t, &url.Error{}, err)
+	})
 }

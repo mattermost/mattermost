@@ -373,32 +373,16 @@ func (a *App) GetUserByAuth(authData *string, authService string) (*model.User, 
 	return result.Data.(*model.User), nil
 }
 
-func (a *App) GetUsers(offset int, limit int) ([]*model.User, *model.AppError) {
-	result := <-a.Srv.Store.User().GetAllProfiles(offset, limit)
+func (a *App) GetUsers(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
+	result := <-a.Srv.Store.User().GetAllProfiles(options)
 	if result.Err != nil {
 		return nil, result.Err
 	}
 	return result.Data.([]*model.User), nil
 }
 
-func (a *App) GetUsersMap(offset int, limit int, asAdmin bool) (map[string]*model.User, *model.AppError) {
-	users, err := a.GetUsers(offset, limit)
-	if err != nil {
-		return nil, err
-	}
-
-	userMap := make(map[string]*model.User, len(users))
-
-	for _, user := range users {
-		a.SanitizeProfile(user, asAdmin)
-		userMap[user.Id] = user
-	}
-
-	return userMap, nil
-}
-
-func (a *App) GetUsersPage(page int, perPage int, asAdmin bool) ([]*model.User, *model.AppError) {
-	users, err := a.GetUsers(page*perPage, perPage)
+func (a *App) GetUsersPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
+	users, err := a.GetUsers(options)
 	if err != nil {
 		return nil, err
 	}
@@ -410,8 +394,8 @@ func (a *App) GetUsersEtag() string {
 	return fmt.Sprintf("%v.%v.%v", (<-a.Srv.Store.User().GetEtagForAllProfiles()).Data.(string), a.Config().PrivacySettings.ShowFullName, a.Config().PrivacySettings.ShowEmailAddress)
 }
 
-func (a *App) GetUsersInTeam(teamId string, offset int, limit int) ([]*model.User, *model.AppError) {
-	result := <-a.Srv.Store.User().GetProfiles(teamId, offset, limit)
+func (a *App) GetUsersInTeam(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
+	result := <-a.Srv.Store.User().GetProfiles(options)
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -426,24 +410,8 @@ func (a *App) GetUsersNotInTeam(teamId string, offset int, limit int) ([]*model.
 	return result.Data.([]*model.User), nil
 }
 
-func (a *App) GetUsersInTeamMap(teamId string, offset int, limit int, asAdmin bool) (map[string]*model.User, *model.AppError) {
-	users, err := a.GetUsersInTeam(teamId, offset, limit)
-	if err != nil {
-		return nil, err
-	}
-
-	userMap := make(map[string]*model.User, len(users))
-
-	for _, user := range users {
-		a.SanitizeProfile(user, asAdmin)
-		userMap[user.Id] = user
-	}
-
-	return userMap, nil
-}
-
-func (a *App) GetUsersInTeamPage(teamId string, page int, perPage int, asAdmin bool) ([]*model.User, *model.AppError) {
-	users, err := a.GetUsersInTeam(teamId, page*perPage, perPage)
+func (a *App) GetUsersInTeamPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
+	users, err := a.GetUsersInTeam(options)
 	if err != nil {
 		return nil, err
 	}

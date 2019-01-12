@@ -109,7 +109,10 @@ type Routes struct {
 
 	TermsOfService *mux.Router // 'api/v4/terms_of_service
 
+	Groups *mux.Router // 'api/v4/groups'
+
 	Remind *mux.Router // 'api/v4/remind'
+
 }
 
 type API struct {
@@ -207,6 +210,7 @@ func Init(configservice configservice.ConfigService, globalOptionsFunc app.AppOp
 	api.BaseRoutes.Image = api.BaseRoutes.ApiRoot.PathPrefix("/image").Subrouter()
 
 	api.BaseRoutes.TermsOfService = api.BaseRoutes.ApiRoot.PathPrefix("/terms_of_service").Subrouter()
+	api.BaseRoutes.Groups = api.BaseRoutes.ApiRoot.PathPrefix("/groups").Subrouter()
 
 	api.BaseRoutes.Remind = api.BaseRoutes.ApiRoot.PathPrefix("/remind").Subrouter()
 
@@ -238,6 +242,7 @@ func Init(configservice configservice.ConfigService, globalOptionsFunc app.AppOp
 	api.InitScheme()
 	api.InitImage()
 	api.InitTermsOfService()
+	api.InitGroup()
 	api.InitAction()
 	api.InitRemind()
 

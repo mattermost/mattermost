@@ -90,7 +90,9 @@ func (a *App) PluginCommandsForTeam(teamId string) []*model.Command {
 	return commands
 }
 
-func (a *App) ExecutePluginCommand(args *model.CommandArgs) (*model.Command, *model.CommandResponse, *model.AppError) {
+// tryExecutePluginCommand attempts to run a command provided by a plugin based on the given arguments. If no such
+// command can be found, returns nil for all arguments.
+func (a *App) tryExecutePluginCommand(args *model.CommandArgs) (*model.Command, *model.CommandResponse, *model.AppError) {
 	parts := strings.Split(args.Command, " ")
 	trigger := parts[0][1:]
 	trigger = strings.ToLower(trigger)

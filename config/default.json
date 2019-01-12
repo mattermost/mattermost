@@ -76,7 +76,8 @@
         "ImageProxyURL": "",
         "EnableAPITeamDeletion": false,
         "ExperimentalEnableHardenedMode": false,
-        "EnableEmailInvitations": false
+        "EnableEmailInvitations": false,
+        "ExperimentalLdapGroupSync": false
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
@@ -277,6 +278,9 @@
         "BindUsername": "",
         "BindPassword": "",
         "UserFilter": "",
+        "GroupFilter": "",
+        "GroupDisplayNameAttribute": "",
+        "GroupIdAttribute": "",
         "FirstNameAttribute": "",
         "LastNameAttribute": "",
         "EmailAttribute": "",
