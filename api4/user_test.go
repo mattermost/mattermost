@@ -2477,83 +2477,181 @@ func TestSwitchAccount(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 }
 
-func TestCreateUserAccessToken(t *testing.T) {
-	th := Setup().InitBasic()
-	defer th.TearDown()
-
-	testDescription := "test token"
-
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
-
-	_, resp := th.Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
-	CheckForbiddenStatus(t, resp)
-
-	_, resp = th.Client.CreateUserAccessToken("notarealuserid", testDescription)
-	CheckBadRequestStatus(t, resp)
-
-	_, resp = th.Client.CreateUserAccessToken(th.BasicUser.Id, "")
-	CheckBadRequestStatus(t, resp)
-
-	th.App.UpdateUserRoles(th.BasicUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_USER_ACCESS_TOKEN_ROLE_ID, false)
-
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = false })
-	_, resp = th.Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
-	CheckNotImplementedStatus(t, resp)
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
-
-	rtoken, resp := th.Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
-	CheckNoError(t, resp)
-
-	if rtoken.UserId != th.BasicUser.Id {
-		t.Fatal("wrong user id")
-	} else if rtoken.Token == "" {
-		t.Fatal("token should not be empty")
-	} else if rtoken.Id == "" {
-		t.Fatal("id should not be empty")
-	} else if rtoken.Description != testDescription {
-		t.Fatal("description did not match")
-	} else if !rtoken.IsActive {
-		t.Fatal("token should be active")
-	}
-
+func assertToken(t *testing.T, th *TestHelper, token *model.UserAccessToken, expectedUserId string) {
 	oldSessionToken := th.Client.AuthToken
-	th.Client.AuthToken = rtoken.Token
+	defer func() { th.Client.AuthToken = oldSessionToken }()
+
+	th.Client.AuthToken = token.Token
 	ruser, resp := th.Client.GetMe("")
 	CheckNoError(t, resp)
 
-	if ruser.Id != th.BasicUser.Id {
-		t.Fatal("returned wrong user")
-	}
+	assert.Equal(t, expectedUserId, ruser.Id, "returned wrong user")
+}
 
-	th.Client.AuthToken = oldSessionToken
+func TestCreateUserAccessToken(t *testing.T) {
+	t.Run("create token without permission", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
 
-	_, resp = th.Client.CreateUserAccessToken(th.BasicUser2.Id, testDescription)
-	CheckForbiddenStatus(t, resp)
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-	rtoken, resp = th.SystemAdminClient.CreateUserAccessToken(th.BasicUser.Id, testDescription)
-	CheckNoError(t, resp)
+		_, resp := th.Client.CreateUserAccessToken(th.BasicUser.Id, "test token")
+		CheckForbiddenStatus(t, resp)
+	})
 
-	if rtoken.UserId != th.BasicUser.Id {
-		t.Fatal("wrong user id")
-	}
+	t.Run("create token for invalid user id", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
 
-	oldSessionToken = th.Client.AuthToken
-	th.Client.AuthToken = rtoken.Token
-	ruser, resp = th.Client.GetMe("")
-	CheckNoError(t, resp)
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-	if ruser.Id != th.BasicUser.Id {
-		t.Fatal("returned wrong user")
-	}
+		_, resp := th.Client.CreateUserAccessToken("notarealuserid", "test token")
+		CheckBadRequestStatus(t, resp)
+	})
 
-	th.Client.AuthToken = oldSessionToken
+	t.Run("create token with invalid value", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
 
-	session, _ := th.App.GetSession(th.Client.AuthToken)
-	session.IsOAuth = true
-	th.App.AddSessionToCache(session)
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 
-	_, resp = th.Client.CreateUserAccessToken(th.BasicUser.Id, testDescription)
-	CheckForbiddenStatus(t, resp)
+		_, resp := th.Client.CreateUserAccessToken(th.BasicUser.Id, "")
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("create token with user access tokens disabled", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = false })
+		th.App.UpdateUserRoles(th.BasicUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_USER_ACCESS_TOKEN_ROLE_ID, false)
+
+		_, resp := th.Client.CreateUserAccessToken(th.BasicUser.Id, "test token")
+		CheckNotImplementedStatus(t, resp)
+	})
+
+	t.Run("create user access token", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+		th.App.UpdateUserRoles(th.BasicUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.SYSTEM_USER_ACCESS_TOKEN_ROLE_ID, false)
+
+		rtoken, resp := th.Client.CreateUserAccessToken(th.BasicUser.Id, "test token")
+		CheckNoError(t, resp)
+
+		assert.Equal(t, th.BasicUser.Id, rtoken.UserId, "wrong user id")
+		assert.NotEmpty(t, rtoken.Token, "token should not be empty")
+		assert.NotEmpty(t, rtoken.Id, "id should not be empty")
+		assert.Equal(t, "test token", rtoken.Description, "description did not match")
+		assert.True(t, rtoken.IsActive, "token should be active")
+
+		assertToken(t, th, rtoken, th.BasicUser.Id)
+	})
+
+	t.Run("create user access token as second user, without permission", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
+
+		_, resp := th.Client.CreateUserAccessToken(th.BasicUser2.Id, "test token")
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("create user access token for basic user as as system admin", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
+
+		rtoken, resp := th.SystemAdminClient.CreateUserAccessToken(th.BasicUser.Id, "test token")
+		CheckNoError(t, resp)
+		assert.Equal(t, th.BasicUser.Id, rtoken.UserId)
+
+		oldSessionToken := th.Client.AuthToken
+		defer func() { th.Client.AuthToken = oldSessionToken }()
+
+		assertToken(t, th, rtoken, th.BasicUser.Id)
+	})
+
+	t.Run("create access token as oauth session", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
+
+		session, _ := th.App.GetSession(th.Client.AuthToken)
+		session.IsOAuth = true
+		th.App.AddSessionToCache(session)
+
+		_, resp := th.Client.CreateUserAccessToken(th.BasicUser.Id, "test token")
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("create access token for bot created by user", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
+		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+
+		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_CREATE_USER_ACCESS_TOKEN.Id, model.TEAM_USER_ROLE_ID)
+		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+
+		createdBot, resp := th.Client.CreateBot(&model.Bot{
+			Username:    GenerateTestUsername(),
+			DisplayName: "a bot",
+			Description: "bot",
+		})
+		CheckCreatedStatus(t, resp)
+		defer th.App.PermanentDeleteBot(createdBot.UserId)
+
+		t.Run("without MANAGE_BOT permission", func(t *testing.T) {
+			th.RemovePermissionFromRole(model.PERMISSION_MANAGE_BOTS.Id, model.TEAM_USER_ROLE_ID)
+
+			_, resp = th.Client.CreateUserAccessToken(createdBot.UserId, "test token")
+			CheckForbiddenStatus(t, resp)
+		})
+
+		t.Run("with MANAGE_BOTS permission", func(t *testing.T) {
+			th.AddPermissionToRole(model.PERMISSION_MANAGE_BOTS.Id, model.TEAM_USER_ROLE_ID)
+
+			token, resp := th.Client.CreateUserAccessToken(createdBot.UserId, "test token")
+			CheckNoError(t, resp)
+			assert.Equal(t, createdBot.UserId, token.UserId)
+			assertToken(t, th, token, createdBot.UserId)
+		})
+	})
+
+	t.Run("create access token for bot created by another user, only having MANAGE_BOTS permission", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
+		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+
+		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_MANAGE_BOTS.Id, model.TEAM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_CREATE_USER_ACCESS_TOKEN.Id, model.TEAM_USER_ROLE_ID)
+		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+
+		createdBot, resp := th.SystemAdminClient.CreateBot(&model.Bot{
+			Username:    GenerateTestUsername(),
+			DisplayName: "a bot",
+			Description: "bot",
+		})
+		CheckCreatedStatus(t, resp)
+		defer th.App.PermanentDeleteBot(createdBot.UserId)
+
+		t.Run("only having MANAGE_BOTS permission", func(t *testing.T) {
+			_, resp = th.Client.CreateUserAccessToken(createdBot.UserId, "test token")
+			CheckForbiddenStatus(t, resp)
+		})
+
+		t.Run("with MANAGE_OTHERS_BOTS permission", func(t *testing.T) {
+			th.AddPermissionToRole(model.PERMISSION_MANAGE_OTHERS_BOTS.Id, model.TEAM_USER_ROLE_ID)
+
+			rtoken, resp := th.Client.CreateUserAccessToken(createdBot.UserId, "test token")
+			CheckNoError(t, resp)
+			assert.Equal(t, createdBot.UserId, rtoken.UserId)
+
+			assertToken(t, th, rtoken, createdBot.UserId)
+		})
+	})
 }
 
 func TestGetUserAccessToken(t *testing.T) {
