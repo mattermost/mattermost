@@ -21,13 +21,6 @@ func TestCreateUser(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	enableOpenServer := th.App.Config().TeamSettings.EnableOpenServer
-	enableUserCreation := th.App.Config().TeamSettings.EnableUserCreation
-	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.EnableOpenServer = enableOpenServer })
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.EnableUserCreation = enableUserCreation })
-	}()
-
 	user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
 
 	ruser, resp := th.Client.CreateUser(&user)
@@ -356,13 +349,6 @@ func TestGetUser(t *testing.T) {
 
 	th.App.UpdateUser(user, false)
 
-	showEmailAddress := th.App.Config().PrivacySettings.ShowEmailAddress
-	showFullName := th.App.Config().PrivacySettings.ShowFullName
-	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = showEmailAddress })
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = showFullName })
-	}()
-
 	ruser, resp := th.Client.GetUser(user.Id, "")
 	CheckNoError(t, resp)
 	CheckUserSanitization(t, ruser)
@@ -422,13 +408,6 @@ func TestGetUserByUsername(t *testing.T) {
 	defer th.TearDown()
 
 	user := th.BasicUser
-
-	showEmailAddress := th.App.Config().PrivacySettings.ShowEmailAddress
-	showFullName := th.App.Config().PrivacySettings.ShowFullName
-	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = showEmailAddress })
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = showFullName })
-	}()
 
 	ruser, resp := th.Client.GetUserByUsername(user.Username, "")
 	CheckNoError(t, resp)
@@ -604,13 +583,6 @@ func TestGetUserByEmail(t *testing.T) {
 func TestSearchUsers(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
-
-	showEmailAddress := th.App.Config().PrivacySettings.ShowEmailAddress
-	showFullName := th.App.Config().PrivacySettings.ShowFullName
-	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = showEmailAddress })
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = showFullName })
-	}()
 
 	search := &model.UserSearch{Term: th.BasicUser.Username}
 
@@ -796,11 +768,6 @@ func TestAutocompleteUsers(t *testing.T) {
 	teamId := th.BasicTeam.Id
 	channelId := th.BasicChannel.Id
 	username := th.BasicUser.Username
-
-	showFullName := th.App.Config().PrivacySettings.ShowFullName
-	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = showFullName })
-	}()
 
 	rusers, resp := th.Client.AutocompleteUsersInChannel(teamId, channelId, username, model.USER_SEARCH_DEFAULT_LIMIT, "")
 	CheckNoError(t, resp)
@@ -1343,11 +1310,6 @@ func TestUpdateUserActive(t *testing.T) {
 
 		user := th.BasicUser
 
-		EnableUserDeactivation := th.App.Config().TeamSettings.EnableUserDeactivation
-		defer func() {
-			th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.EnableUserDeactivation = EnableUserDeactivation })
-		}()
-
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableUserDeactivation = true })
 		pass, resp := th.Client.UpdateUserActive(user.Id, false)
 		CheckNoError(t, resp)
@@ -1408,11 +1370,6 @@ func TestUpdateUserActive(t *testing.T) {
 
 		user := th.BasicUser2
 
-		EnableUserDeactivation := th.App.Config().TeamSettings.EnableUserDeactivation
-		defer func() {
-			th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.EnableUserDeactivation = EnableUserDeactivation })
-		}()
-
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableUserDeactivation = true })
 
 		webSocketClient, err := th.CreateWebSocketClient()
@@ -1436,11 +1393,6 @@ func TestUpdateUserActive(t *testing.T) {
 		if resp := <-adminWebSocketClient.ResponseChannel; resp.Status != model.STATUS_OK {
 			t.Fatal("should have responded OK to authentication challenge")
 		}
-
-		ShowEmailAddress := th.App.Config().PrivacySettings.ShowEmailAddress
-		defer func() {
-			th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = ShowEmailAddress })
-		}()
 
 		// Verify that both admins and regular users see the email when privacy settings allow same.
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = true })
