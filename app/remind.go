@@ -653,20 +653,15 @@ func (a *App) ScheduleReminder(request *model.ReminderRequest) (string, error) {
 func (a *App) RescheduleOccurrence(occurrence *model.Occurrence) {
 
 	user, _ := a.GetUser(occurrence.UserId)
-	T, _ := a.translation(user)
+	_, locale := a.translation(user)
 
 	var times []time.Time
 
-	if strings.HasPrefix(occurrence.Repeat, T("app.reminder.chrono.in")) {
-		times, _ = a.in(occurrence.Repeat, user)
-	} else if strings.HasPrefix(occurrence.Repeat, T("app.reminder.chrono.at")) {
-		times, _ = a.at(occurrence.Repeat, user)
-	} else if strings.HasPrefix(occurrence.Repeat, T("app.reminder.chrono.on")) {
-		times, _ = a.on(occurrence.Repeat, user)
-	} else if strings.HasPrefix(occurrence.Repeat, T("app.reminder.chrono.every")) {
-		times, _ = a.every(occurrence.Repeat, user)
-	} else {
-		times, _ = a.freeForm(occurrence.Repeat, user)
+	switch locale {
+	case "en":
+		times, _ = a.RescheduleOccurrenceEN(occurrence)
+	default:
+		times, _ = a.RescheduleOccurrenceEN(occurrence)
 	}
 
 	if len(times) > 1 {
@@ -696,7 +691,38 @@ func (a *App) RescheduleOccurrence(occurrence *model.Occurrence) {
 
 }
 
+func (a *App) RescheduleOccurrenceEN(occurrence *model.Occurrence) ([]time.Time, error) {
+
+	user, _ := a.GetUser(occurrence.UserId)
+	T, _ := a.translation(user)
+
+	if strings.HasPrefix(occurrence.Repeat, T("app.reminder.chrono.in")) {
+		return a.in(occurrence.Repeat, user)
+	} else if strings.HasPrefix(occurrence.Repeat, T("app.reminder.chrono.at")) {
+		return a.at(occurrence.Repeat, user)
+	} else if strings.HasPrefix(occurrence.Repeat, T("app.reminder.chrono.on")) {
+		return a.on(occurrence.Repeat, user)
+	} else if strings.HasPrefix(occurrence.Repeat, T("app.reminder.chrono.every")) {
+		return a.every(occurrence.Repeat, user)
+	} else {
+		return a.freeForm(occurrence.Repeat, user)
+	}
+}
+
 func (a *App) formatWhen(userId string, when string, occurrence string, snoozed bool) string {
+
+	user, _ := a.GetUser(userId)
+	_, locale := a.translation(user)
+
+	switch locale {
+	case "en":
+		return a.formatWhenEN(userId, when, occurrence, snoozed)
+	default:
+		return a.formatWhenEN(userId, when, occurrence, snoozed)
+	}
+}
+
+func (a *App) formatWhenEN(userId string, when string, occurrence string, snoozed bool) string {
 
 	user, _ := a.GetUser(userId)
 	T, _ := a.translation(user)
@@ -2496,6 +2522,7 @@ func (a *App) translation(user *model.User) (i18n.TranslateFunc, string) {
 	for _, l := range supportedLocales {
 		if user.Locale == l {
 			locale = user.Locale
+			break
 		}
 	}
 	return utils.GetUserTranslations(locale), locale
