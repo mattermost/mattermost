@@ -22,8 +22,8 @@ func TestListReminders(t *testing.T) {
 	th := Setup()
 	defer th.TearDown()
 
-	th.App.InitReminders()
-	defer th.App.StopReminders()
+	th.Server.InitReminders()
+	defer th.Server.StopReminders()
 	user, _ := th.App.GetUserByUsername(model.REMIND_BOTNAME)
 	T := utils.GetUserTranslations(user.Locale)
 
@@ -36,8 +36,8 @@ func TestScheduleReminders(t *testing.T) {
 	th := Setup()
 	defer th.TearDown()
 
-	th.App.InitReminders()
-	defer th.App.StopReminders()
+	th.Server.InitReminders()
+	defer th.Server.StopReminders()
 	user, _ := th.App.GetUserByUsername(model.REMIND_BOTNAME)
 	T := utils.GetUserTranslations(user.Locale)
 
@@ -240,8 +240,8 @@ func TestFindWhen(t *testing.T) {
 	th := Setup()
 	defer th.TearDown()
 
-	th.App.InitReminders()
-	defer th.App.StopReminders()
+	th.Server.InitReminders()
+	defer th.Server.StopReminders()
 	user, _ := th.App.GetUserByUsername(model.REMIND_BOTNAME)
 	//T := utils.GetUserTranslations(user.Locale)
 
@@ -374,8 +374,8 @@ func TestIn(t *testing.T) {
 	th := Setup()
 	defer th.TearDown()
 
-	th.App.InitReminders()
-	defer th.App.StopReminders()
+	th.Server.InitReminders()
+	defer th.Server.StopReminders()
 	user, _ := th.App.GetUserByUsername(model.REMIND_BOTNAME)
 	//T := utils.GetUserTranslations(user.Locale)
 
@@ -450,8 +450,8 @@ func TestAt(t *testing.T) {
 	th := Setup()
 	defer th.TearDown()
 
-	th.App.InitReminders()
-	defer th.App.StopReminders()
+	th.Server.InitReminders()
+	defer th.Server.StopReminders()
 	user, _ := th.App.GetUserByUsername(model.REMIND_BOTNAME)
 	//T := utils.GetUserTranslations(user.Locale)
 
@@ -583,8 +583,8 @@ func TestOn(t *testing.T) {
 	th := Setup()
 	defer th.TearDown()
 
-	th.App.InitReminders()
-	defer th.App.StopReminders()
+	th.Server.InitReminders()
+	defer th.Server.StopReminders()
 	user, _ := th.App.GetUserByUsername(model.REMIND_BOTNAME)
 	//T := utils.GetUserTranslations(user.Locale)
 
@@ -879,8 +879,8 @@ func TestEvery(t *testing.T) {
 	th := Setup()
 	defer th.TearDown()
 
-	th.App.InitReminders()
-	defer th.App.StopReminders()
+	th.Server.InitReminders()
+	defer th.Server.StopReminders()
 	user, _ := th.App.GetUserByUsername(model.REMIND_BOTNAME)
 	//T := utils.GetUserTranslations(user.Locale)
 
@@ -1020,8 +1020,8 @@ func TestFreeForm(t *testing.T) {
 	th := Setup()
 	defer th.TearDown()
 
-	th.App.InitReminders()
-	defer th.App.StopReminders()
+	th.Server.InitReminders()
+	defer th.Server.StopReminders()
 	user, _ := th.App.GetUserByUsername(model.REMIND_BOTNAME)
 	//T := utils.GetUserTranslations(user.Locale)
 

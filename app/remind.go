@@ -22,9 +22,9 @@ var remindUser *model.User
 var emptyTime time.Time
 var supportedLocales []string
 
-func (a *App) InitReminders() {
+func (s *Server) InitReminders() {
 
-	user, err := a.GetUserByUsername(model.REMIND_BOTNAME)
+	user, err := s.FakeApp().GetUserByUsername(model.REMIND_BOTNAME)
 	if err != nil {
 		userNew := model.User{
 			Email:    "-@-.-",
@@ -32,7 +32,7 @@ func (a *App) InitReminders() {
 			Password: model.NewId(),
 		}
 
-		user, err = a.CreateUserAsAdmin(&userNew)
+		user, err = s.FakeApp().CreateUserAsAdmin(&userNew)
 		if err != nil {
 			mlog.Error(err.Message)
 		}
@@ -44,14 +44,14 @@ func (a *App) InitReminders() {
 	supportedLocales = []string{"en"}
 }
 
-func (a *App) StartReminders() {
+func (s *Server) StartReminders() {
 	if !running {
 		running = true
-		a.runner()
+		s.FakeApp().runner()
 	}
 }
 
-func (a *App) StopReminders() {
+func (s *Server) StopReminders() {
 	running = false
 }
 

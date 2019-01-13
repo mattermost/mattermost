@@ -157,7 +157,6 @@ func (s *Server) RunOldAppShutdown() {
 	a.ShutDownPlugins()
 	a.RemoveLicenseListener(s.licenseListenerId)
 	a.RemoveClusterLeaderChangedListener(s.clusterLeaderListenerId)
-	a.StopReminders()
 }
 
 // A temporary bridge to deal with cases where the code is so tighly coupled that

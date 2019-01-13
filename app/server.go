@@ -227,6 +227,9 @@ func NewServer(options ...Option) (*Server, error) {
 		s.StartElasticsearch()
 	}
 
+	s.InitReminders()
+	s.StartReminders()
+
 	s.initJobs()
 
 	if s.runjobs {
@@ -244,9 +247,6 @@ func NewServer(options ...Option) (*Server, error) {
 		})
 		s.Go(func() {
 			runCommandWebhookCleanupJob(s)
-		})
-		s.Go(func() {
-			runReminderBot(s)
 		})
 
 		if complianceI := s.Compliance; complianceI != nil {
@@ -299,6 +299,8 @@ func (s *Server) Shutdown() error {
 	mlog.Info("Stopping Server...")
 
 	s.RunOldAppShutdown()
+
+	s.StopReminders()
 
 	s.StopHTTPServer()
 	s.WaitForGoroutines()
@@ -630,12 +632,6 @@ func runSessionCleanupJob(s *Server) {
 	model.CreateRecurringTask("Session Cleanup", func() {
 		doSessionCleanup(s)
 	}, time.Hour*24)
-}
-
-func runReminderBot(s *Server) {
-	a := s.FakeApp()
-	a.InitReminders()
-	a.StartReminders()
 }
 
 func doSecurity(s *Server) {
