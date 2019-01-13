@@ -2304,6 +2304,55 @@ func (a *App) normalizeDate(text string, user *model.User) (string, error) {
 			return "", errors.New("unrecognized date")
 		}
 
+	} else if match, _ := regexp.MatchString("^(([0-9]{2}|[0-9]{1})(.)([0-9]{2}|[0-9]{1})((.)([0-9]{4}|[0-9]{2}))?)", date); match {
+
+		date := a.regSplit(date, "\\.")
+
+		switch len(date) {
+		case 2:
+			year := time.Now().Year()
+			month, mErr := strconv.Atoi(date[1])
+			if mErr != nil {
+				return "", mErr
+			}
+			day, dErr := strconv.Atoi(date[0])
+			if dErr != nil {
+				return "", dErr
+			}
+
+			if *cfg.DisplaySettings.ExperimentalTimezone {
+				return time.Date(year, time.Month(month), day, 0, 0, 0, 0, location).Format(time.RFC3339), nil
+			}
+
+			return time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.Local).Format(time.RFC3339), nil
+
+		case 3:
+			if len(date[2]) == 2 {
+				date[2] = "20" + date[2]
+			}
+			year, yErr := strconv.Atoi(date[2])
+			if yErr != nil {
+				return "", yErr
+			}
+			month, mErr := strconv.Atoi(date[1])
+			if mErr != nil {
+				return "", mErr
+			}
+			day, dErr := strconv.Atoi(date[0])
+			if dErr != nil {
+				return "", dErr
+			}
+
+			if *cfg.DisplaySettings.ExperimentalTimezone {
+				return time.Date(year, time.Month(month), day, 0, 0, 0, 0, location).Format(time.RFC3339), nil
+			}
+
+			return time.Date(year, time.Month(month), day, 0, 0, 0, 0, time.Local).Format(time.RFC3339), nil
+
+		default:
+			return "", errors.New("unrecognized date")
+		}
+
 	} else { //single number day
 
 		var dayInt int
