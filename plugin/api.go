@@ -216,6 +216,13 @@ type API interface {
 	// Minimum server version: 5.6
 	SearchUsers(search *model.UserSearch) ([]*model.User, *model.AppError)
 
+	// SearchPostsInTeam returns a list of posts in a specific team that match the given params.
+	//
+	// userId must be in teamId for this to work.
+	//
+	// Minimum server version: TODO: Fill in minimum version.
+	SearchPostsInTeam(teamId, userId string, params *model.SearchParameter) (*model.PostList, *model.AppError)
+
 	// AddChannelMember creates a channel membership for a user.
 	AddChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError)
 

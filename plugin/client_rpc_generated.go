@@ -2035,6 +2035,37 @@ func (s *apiRPCServer) SearchUsers(args *Z_SearchUsersArgs, returns *Z_SearchUse
 	return nil
 }
 
+type Z_SearchPostsInTeamArgs struct {
+	A string
+	B string
+	C *model.SearchParameter
+}
+
+type Z_SearchPostsInTeamReturns struct {
+	A *model.PostList
+	B *model.AppError
+}
+
+func (g *apiRPCClient) SearchPostsInTeam(teamId, userId string, params *model.SearchParameter) (*model.PostList, *model.AppError) {
+	_args := &Z_SearchPostsInTeamArgs{teamId, userId, params}
+	_returns := &Z_SearchPostsInTeamReturns{}
+	if err := g.client.Call("Plugin.SearchPostsInTeam", _args, _returns); err != nil {
+		log.Printf("RPC call to SearchPostsInTeam API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) SearchPostsInTeam(args *Z_SearchPostsInTeamArgs, returns *Z_SearchPostsInTeamReturns) error {
+	if hook, ok := s.impl.(interface {
+		SearchPostsInTeam(teamId, userId string, params *model.SearchParameter) (*model.PostList, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.SearchPostsInTeam(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API SearchPostsInTeam called but not implemented."))
+	}
+	return nil
+}
+
 type Z_AddChannelMemberArgs struct {
 	A string
 	B string

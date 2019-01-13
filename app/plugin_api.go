@@ -330,6 +330,40 @@ func (api *PluginAPI) SearchUsers(search *model.UserSearch) ([]*model.User, *mod
 	return api.app.SearchUsers(search, pluginSearchUsersOptions)
 }
 
+func (api *PluginAPI) SearchPostsInTeam(teamId, userId string, params *model.SearchParameter) (*model.PostList, *model.AppError) {
+	terms := ""
+	isOrSearch := false
+	includeDeletedChannels := false
+	timeZoneOffset := 0
+	page := 0
+	perPage := 0
+	if params.Terms != nil {
+		terms = *params.Terms
+	}
+	if params.IsOrSearch != nil {
+		isOrSearch = *params.IsOrSearch
+	}
+	if params.IncludeDeletedChannels != nil {
+		includeDeletedChannels = *params.IncludeDeletedChannels
+	}
+	if params.TimeZoneOffset != nil {
+		timeZoneOffset = *params.TimeZoneOffset
+	}
+	if params.Page != nil {
+		page = *params.Page
+	}
+	if params.PerPage != nil {
+		perPage = *params.PerPage
+	}
+
+	results, err := api.app.SearchPostsInTeam(terms, userId, teamId, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
+	if err != nil {
+		return nil, err
+	}
+
+	return results.PostList, nil
+}
+
 func (api *PluginAPI) AddChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError) {
 	// For now, don't allow overriding these via the plugin API.
 	userRequestorId := ""

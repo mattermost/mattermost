@@ -606,6 +606,80 @@ func TestPluginAPISearchChannels(t *testing.T) {
 	})
 }
 
+func TestPluginAPISearchPostsInTeam(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	team1 := th.CreateTeam()
+	user1, err := th.App.CreateUser(&model.User{
+		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
+		Password: "password",
+		Username: "user1" + model.NewId(),
+	})
+	require.Nil(t, err)
+	defer th.App.PermanentDeleteUser(user1)
+	_, _, err = th.App.joinUserToTeam(team1, user1)
+	require.Nil(t, err)
+
+	badMessage := "bad message"
+
+	basicPostList := model.NewPostList()
+	basicPostList.AddPost(th.BasicPost)
+	basicPostList.AddOrder(th.BasicPost.Id)
+
+	testCases := []struct {
+		description   string
+		teamId        string
+		userId        string
+		params        *model.SearchParameter
+		expectedPosts *model.PostList
+	}{
+		{
+			"unknown team and user",
+			"",
+			"",
+			&model.SearchParameter{},
+			model.NewPostList(),
+		},
+		{
+			"unknown user not in team",
+			th.BasicTeam.Id,
+			user1.Id,
+			&model.SearchParameter{
+				Terms: &th.BasicPost.Message,
+			},
+			model.NewPostList(),
+		},
+		{
+			"user in team but no matched posts",
+			th.BasicTeam.Id,
+			th.BasicUser.Id,
+			&model.SearchParameter{
+				Terms: &badMessage,
+			},
+			model.NewPostList(),
+		},
+		{
+			"matched posts",
+			th.BasicTeam.Id,
+			th.BasicUser.Id,
+			&model.SearchParameter{
+				Terms: &th.BasicPost.Message,
+			},
+			basicPostList,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.description, func(t *testing.T) {
+			posts, err := api.SearchPostsInTeam(testCase.teamId, testCase.userId, testCase.params)
+			assert.Nil(t, err)
+			assert.Equal(t, testCase.expectedPosts, posts)
+		})
+	}
+}
+
 func TestPluginAPIGetChannelsForTeamForUser(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
