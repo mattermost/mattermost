@@ -171,7 +171,7 @@ func showCommandCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Unable to find command '" + args[0] + "'")
 	}
 	// pretty print
-	fmt.Printf("%s", prettyPrint(configToMap(*slashCommand)))
+	fmt.Printf("%s", prettyPrintStruct(*slashCommand))
 
 	return nil
 }
