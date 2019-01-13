@@ -866,6 +866,20 @@ func (a *App) parseRequest(request *model.ReminderRequest) error {
 func (a *App) createOccurrences(request *model.ReminderRequest) error {
 
 	user, _ := a.GetUser(request.UserId)
+	_, locale := a.translation(user)
+
+	switch locale {
+	case "en":
+		return a.createOccurrencesEN(request)
+	default:
+		return a.createOccurrencesEN(request)
+	}
+
+}
+
+func (a *App) createOccurrencesEN(request *model.ReminderRequest) error {
+
+	user, _ := a.GetUser(request.UserId)
 	T, _ := a.translation(user)
 
 	if strings.HasPrefix(request.Reminder.When, T("app.reminder.chrono.in")) {
@@ -974,6 +988,20 @@ func (a *App) isRepeating(request *model.ReminderRequest) bool {
 }
 
 func (a *App) findWhen(request *model.ReminderRequest) error {
+
+	user, _ := a.GetUser(request.UserId)
+	_, locale := a.translation(user)
+
+	switch locale {
+	case "en":
+		return a.findWhenEN(request)
+	default:
+		return a.findWhenEN(request)
+	}
+
+}
+
+func (a *App) findWhenEN(request *model.ReminderRequest) error {
 
 	user, _ := a.GetUser(request.UserId)
 	T, _ := a.translation(user)
@@ -1147,9 +1175,23 @@ func (a *App) findWhen(request *model.ReminderRequest) error {
 	}
 
 	return errors.New("unable to find when")
+
 }
 
 func (a *App) in(when string, user *model.User) (times []time.Time, err error) {
+
+	_, locale := a.translation(user)
+
+	switch locale {
+	case "en":
+		return a.inEN(when, user)
+	default:
+		return a.inEN(when, user)
+	}
+
+}
+
+func (a *App) inEN(when string, user *model.User) (times []time.Time, err error) {
 
 	cfg := a.Config()
 	location := a.location(user)
@@ -1334,6 +1376,19 @@ func (a *App) in(when string, user *model.User) (times []time.Time, err error) {
 
 func (a *App) at(when string, user *model.User) (times []time.Time, err error) {
 
+	_, locale := a.translation(user)
+
+	switch locale {
+	case "en":
+		return a.atEN(when, user)
+	default:
+		return a.atEN(when, user)
+	}
+
+}
+
+func (a *App) atEN(when string, user *model.User) (times []time.Time, err error) {
+
 	T, _ := a.translation(user)
 
 	whenTrim := strings.Trim(when, " ")
@@ -1508,10 +1563,22 @@ func (a *App) at(when string, user *model.User) (times []time.Time, err error) {
 		return []time.Time{a.chooseClosest(user, &occurrence, dayInterval)}, nil
 
 	}
-
 }
 
 func (a *App) on(when string, user *model.User) (times []time.Time, err error) {
+
+	_, locale := a.translation(user)
+
+	switch locale {
+	case "en":
+		return a.onEN(when, user)
+	default:
+		return a.onEN(when, user)
+	}
+
+}
+
+func (a *App) onEN(when string, user *model.User) (times []time.Time, err error) {
 
 	T, _ := a.translation(user)
 
@@ -1618,6 +1685,19 @@ func (a *App) on(when string, user *model.User) (times []time.Time, err error) {
 }
 
 func (a *App) every(when string, user *model.User) (times []time.Time, err error) {
+
+	_, locale := a.translation(user)
+
+	switch locale {
+	case "en":
+		return a.everyEN(when, user)
+	default:
+		return a.everyEN(when, user)
+	}
+
+}
+
+func (a *App) everyEN(when string, user *model.User) (times []time.Time, err error) {
 
 	T, _ := a.translation(user)
 
@@ -1753,6 +1833,19 @@ func (a *App) every(when string, user *model.User) (times []time.Time, err error
 }
 
 func (a *App) freeForm(when string, user *model.User) (times []time.Time, err error) {
+
+	_, locale := a.translation(user)
+
+	switch locale {
+	case "en":
+		return a.freeFormEN(when, user)
+	default:
+		return a.freeFormEN(when, user)
+	}
+
+}
+
+func (a *App) freeFormEN(when string, user *model.User) (times []time.Time, err error) {
 
 	T, _ := a.translation(user)
 
