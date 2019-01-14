@@ -102,6 +102,18 @@ func (a *App) SessionHasPermissionToUser(session model.Session, userId string) b
 	return false
 }
 
+func (a *App) SessionHasPermissionToUserOrBot(session model.Session, userId string) bool {
+	if a.SessionHasPermissionToUser(session, userId) {
+		return true
+	}
+
+	if err := a.SessionHasPermissionToManageBot(session, userId); err == nil {
+		return true
+	}
+
+	return false
+}
+
 func (a *App) HasPermissionTo(askingUserId string, permission *model.Permission) bool {
 	user, err := a.GetUser(askingUserId)
 	if err != nil {
