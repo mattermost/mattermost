@@ -193,7 +193,7 @@
   },
   {
     "id": "api.channel.delete_channel.archived",
-    "translation": "% v долучився до каналу "
+    "translation": "% v долучився до каналу"
   },
   {
     "id": "api.channel.delete_channel.cannot.app_error",
@@ -2069,6 +2069,10 @@
   {
     "id": "api.user.authorize_oauth_user.missing.app_error",
     "translation": "Відсутній токен доступу"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.response.app_error",
+    "translation": "Received invalid response from OAuth service provider"
   },
   {
     "id": "api.user.authorize_oauth_user.service.app_error",

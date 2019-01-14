@@ -2071,6 +2071,10 @@
     "translation": "缺少访问令牌"
   },
   {
+    "id": "api.user.authorize_oauth_user.response.app_error",
+    "translation": "从 OAuth 服务提供商收到无效的回复"
+  },
+  {
     "id": "api.user.authorize_oauth_user.service.app_error",
     "translation": "令牌请求到 {{.Service}} 失败"
   },
@@ -4908,15 +4912,15 @@
   },
   {
     "id": "plugin_api.send_mail.missing_htmlbody",
-    "translation": "Missing HTML Body."
+    "translation": "缺少 HTML 内容。"
   },
   {
     "id": "plugin_api.send_mail.missing_subject",
-    "translation": "Missing email subject."
+    "translation": "缺少标题。"
   },
   {
     "id": "plugin_api.send_mail.missing_to",
-    "translation": "Missing TO address."
+    "translation": "缺少 TO 地址。"
   },
   {
     "id": "store.sql.convert_string_array",

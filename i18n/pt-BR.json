@@ -2071,6 +2071,10 @@
     "translation": "Faltando o token de acesso"
   },
   {
+    "id": "api.user.authorize_oauth_user.response.app_error",
+    "translation": "Resposta inválida recebida do provedor de serviços OAuth"
+  },
+  {
     "id": "api.user.authorize_oauth_user.service.app_error",
     "translation": "Solicitação de token para {{.Service}} falhou"
   },
@@ -4908,15 +4912,15 @@
   },
   {
     "id": "plugin_api.send_mail.missing_htmlbody",
-    "translation": "Missing HTML Body."
+    "translation": "Corpo HTML ausente."
   },
   {
     "id": "plugin_api.send_mail.missing_subject",
-    "translation": "Missing email subject."
+    "translation": "Assunto do email ausente."
   },
   {
     "id": "plugin_api.send_mail.missing_to",
-    "translation": "Missing TO address."
+    "translation": "Endereço PARA ausente."
   },
   {
     "id": "store.sql.convert_string_array",

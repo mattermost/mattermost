@@ -2071,6 +2071,10 @@
     "translation": "沒有存取 Token"
   },
   {
+    "id": "api.user.authorize_oauth_user.response.app_error",
+    "translation": "Received invalid response from OAuth service provider"
+  },
+  {
     "id": "api.user.authorize_oauth_user.service.app_error",
     "translation": " {{.Service}} Token 要求失敗"
   },
