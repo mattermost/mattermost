@@ -737,7 +737,7 @@ func TestGetTeamStats(t *testing.T) {
 	teamStats, err := th.App.GetTeamStats(th.BasicTeam.Id)
 	require.Nil(t, err)
 	require.NotNil(t, teamStats)
-	memebers, err := th.App.GetTeamMembers(th.BasicTeam.Id, 0, 5)
+	members, err := th.App.GetTeamMembers(th.BasicTeam.Id, 0, 5)
 	require.Nil(t, err)
 	assert.Equal(t, int64(len(memebers)), teamStats.TotalMemberCount)
 }
