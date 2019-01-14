@@ -53,7 +53,7 @@ func NewSqlBotStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) sto
 		table := db.AddTableWithName(bot{}, "Bots").SetKeys(false, "UserId")
 		table.ColMap("UserId").SetMaxSize(26)
 		table.ColMap("Description").SetMaxSize(1024)
-		table.ColMap("CreatorId").SetMaxSize(26)
+		table.ColMap("CreatorId").SetMaxSize(model.BOT_CREATOR_ID_MAX_RUNES)
 	}
 
 	return us

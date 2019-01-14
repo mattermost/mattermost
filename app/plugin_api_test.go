@@ -721,3 +721,144 @@ func TestPluginAPISendMail(t *testing.T) {
 	require.Equal(t, resultsEmail.Body.Text, body)
 
 }
+
+func TestPluginBots(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	setupPluginApiTest(t,
+		`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost-server/plugin"
+			"github.com/mattermost/mattermost-server/model"
+			"github.com/pkg/errors"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
+			createdBot, err := p.API.CreateBot(&model.Bot{
+				Username: "bot",
+				Description: "a plugin bot",
+			})
+			if err != nil {
+				return nil, errors.Wrap(err, "failed to create bot").Error()
+			}
+
+			fetchedBot, err := p.API.GetBot(createdBot.UserId, false)
+			if err != nil {
+				return nil, errors.Wrap(err, "failed to get bot").Error()
+			}
+			if fetchedBot.Description != "a plugin bot" {
+				return nil, "GetBot did not return the expected bot Description"
+			}
+			if fetchedBot.CreatorId != "testpluginbots" {
+				return nil, "GetBot did not return the expected bot CreatorId"
+			}
+
+			updatedDescription := createdBot.Description + ", updated"
+			patchedBot, err := p.API.PatchBot(createdBot.UserId, &model.BotPatch{
+				Description: &updatedDescription,
+			})
+			if err != nil {
+				return nil, errors.Wrap(err, "failed to patch bot").Error()
+			}
+
+			fetchedBot, err = p.API.GetBot(patchedBot.UserId, false)
+			if err != nil {
+				return nil, errors.Wrap(err, "failed to get bot").Error()
+			}
+
+			if fetchedBot.UserId != patchedBot.UserId {
+				return nil, "GetBot did not return the expected bot"
+			}
+			if fetchedBot.Description != "a plugin bot, updated" {
+				return nil, "GetBot did not return the updated bot Description"
+			}
+
+			fetchedBots, err := p.API.GetBots(0, 1, "", false)
+			if err != nil {
+				return nil, errors.Wrap(err, "failed to get bots").Error()
+			}
+
+			if len(fetchedBots) != 1 {
+				return nil, "GetBots did not return a single bot"
+			}
+			if fetchedBot.UserId != fetchedBots[0].UserId {
+				return nil, "GetBots did not return the expected bot"
+			}
+
+			_, err = p.API.UpdateBotActive(fetchedBot.UserId, false)
+			if err != nil {
+				return nil, errors.Wrap(err, "failed to disable bot").Error()
+			}
+
+			fetchedBot, err = p.API.GetBot(patchedBot.UserId, false)
+			if err == nil {
+				return nil, "expected not to find disabled bot"
+			}
+
+			_, err = p.API.UpdateBotActive(fetchedBot.UserId, true)
+			if err != nil {
+				return nil, errors.Wrap(err, "failed to disable bot").Error()
+			}
+
+			fetchedBot, err = p.API.GetBot(patchedBot.UserId, false)
+			if err != nil {
+				return nil, errors.Wrap(err, "failed to get bot after enabling").Error()
+			}
+			if fetchedBot.UserId != patchedBot.UserId {
+				return nil, "GetBot did not return the expected bot after enabling"
+			}
+
+			err = p.API.PermanentDeleteBot(patchedBot.UserId)
+			if err != nil {
+				return nil, errors.Wrap(err, "failed to delete bot").Error()
+			}
+
+			_, err = p.API.GetBot(patchedBot.UserId, false)
+			if err == nil {
+				return nil, errors.Wrap(err, "found bot after permanently deleting").Error()
+			}
+
+			createdBotWithOverriddenCreator, err := p.API.CreateBot(&model.Bot{
+				Username: "bot",
+				Description: "a plugin bot",
+				CreatorId: "abc123",
+			})
+			if err != nil {
+				return nil, errors.Wrap(err, "failed to create bot with overridden creator").Error()
+			}
+
+			fetchedBot, err = p.API.GetBot(createdBotWithOverriddenCreator.UserId, false)
+			if err != nil {
+				return nil, errors.Wrap(err, "failed to get bot").Error()
+			}
+			if fetchedBot.Description != "a plugin bot" {
+				return nil, "GetBot did not return the expected bot Description"
+			}
+			if fetchedBot.CreatorId != "abc123" {
+				return nil, "GetBot did not return the expected bot CreatorId"
+			}
+
+			return nil, ""
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+		`,
+		`{"id": "testpluginbots", "backend": {"executable": "backend.exe"}}`,
+		 "testpluginbots",
+		 th.App,
+	)
+
+	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin("testpluginbots")
+	assert.NoError(t, err)
+	_, errString := hooks.MessageWillBePosted(nil, nil)
+	assert.Empty(t, errString)
+}
