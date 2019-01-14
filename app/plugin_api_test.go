@@ -124,7 +124,10 @@ func TestPluginAPIGetUsers(t *testing.T) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.Description, func(t *testing.T) {
-			users, err := api.GetUsers(testCase.Page, testCase.PerPage)
+			users, err := api.GetUsers(&model.UserGetOptions{
+				Page:    testCase.Page,
+				PerPage: testCase.PerPage,
+			})
 			assert.Nil(t, err)
 			assert.Equal(t, testCase.ExpectedUsers, users)
 		})

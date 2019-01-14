@@ -171,11 +171,8 @@ func (api *PluginAPI) DeleteUser(userId string) *model.AppError {
 	return err
 }
 
-func (api *PluginAPI) GetUsers(page int, perPage int) ([]*model.User, *model.AppError) {
-	return api.app.GetUsers(&model.UserGetOptions{
-		Page:    page,
-		PerPage: perPage,
-	})
+func (api *PluginAPI) GetUsers(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
+	return api.app.GetUsers(options)
 }
 
 func (api *PluginAPI) GetUser(userId string) (*model.User, *model.AppError) {

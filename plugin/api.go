@@ -56,7 +56,7 @@ type API interface {
 	DeleteUser(userId string) *model.AppError
 
 	// GetUsers gets a users.
-	GetUsers(page int, perPage int) ([]*model.User, *model.AppError)
+	GetUsers(*model.UserGetOptions) ([]*model.User, *model.AppError)
 
 	// GetUser gets a user.
 	GetUser(userId string) (*model.User, *model.AppError)
