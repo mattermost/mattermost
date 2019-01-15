@@ -294,31 +294,22 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 }
 
 func (a *App) attachFilesToPost(post *model.Post) *model.AppError {
-	result := <-a.Srv.Store.FileInfo().AttachMultipleToPost(post.FileIds, post.Id, post.UserId)
-	if result.Err != nil {
-		return result.Err
+	var attachedIds []string
+	for _, fileId := range post.FileIds {
+		result := <-a.Srv.Store.FileInfo().AttachToPost(fileId, post.Id, post.UserId)
+		if result.Err != nil {
+			mlog.Warn("Failed to attach file to post", mlog.String("file_id", fileId), mlog.String("post_id", post.Id), mlog.Err(result.Err))
+			continue
+		}
+
+		attachedIds = append(attachedIds, fileId)
 	}
 
-	count := result.Data.(int64)
-	if count != -1 && count != int64(len(post.FileIds)) {
+	if len(post.FileIds) != len(attachedIds) {
 		// We couldn't attach all files to the post, so ensure that post.FileIds reflects what was actually attached
-		mlog.Warn("Failed to attach all files to the post", mlog.String("post_id", post.Id))
+		post.FileIds = attachedIds
 
-		result := <-a.Srv.Store.FileInfo().GetForPost(post.Id, true, false)
-		if result.Err != nil {
-			return result.Err
-		}
-
-		fileInfos := result.Data.([]*model.FileInfo)
-		fileIds := make([]string, len(fileInfos))
-
-		for i, fileInfo := range fileInfos {
-			fileIds[i] = fileInfo.Id
-		}
-
-		post.FileIds = fileIds
-
-		result = <-a.Srv.Store.Post().Overwrite(post)
+		result := <-a.Srv.Store.Post().Overwrite(post)
 		if result.Err != nil {
 			return result.Err
 		}
