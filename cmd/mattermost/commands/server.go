@@ -47,6 +47,7 @@ func runServer(configFileLocation string, disableConfigWatch bool, usedPlatform 
 	options := []app.Option{
 		app.ConfigFile(configFileLocation),
 		app.RunJobs,
+		app.JoinCluster,
 	}
 	if disableConfigWatch {
 		options = append(options, app.DisableConfigWatch)
