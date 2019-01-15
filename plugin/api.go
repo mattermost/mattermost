@@ -144,6 +144,9 @@ type API interface {
 	// UpdateTeam updates a team.
 	UpdateTeam(team *model.Team) (*model.Team, *model.AppError)
 
+	// SearchTeams search a team.
+	SearchTeams(term string) ([]*model.Team, *model.AppError)
+
 	// GetTeamsForUser returns list of teams of given user ID.
 	//
 	// Minimum server version: 5.6
