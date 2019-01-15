@@ -112,6 +112,10 @@ type Server struct {
 
 	Log *mlog.Logger
 
+	joinCluster        bool
+	startMetrics       bool
+	startElasticsearch bool
+
 	AccountMigration einterfaces.AccountMigrationInterface
 	Cluster          einterfaces.ClusterInterface
 	Compliance       einterfaces.ComplianceInterface
@@ -214,16 +218,16 @@ func NewServer(options ...Option) (*Server, error) {
 		mlog.Error(fmt.Sprint("Error to reset the server status.", result.Err.Error()))
 	}
 
-	if s.Cluster != nil {
+	if s.joinCluster && s.Cluster != nil {
 		s.FakeApp().RegisterAllClusterMessageHandlers()
 		s.Cluster.StartInterNodeCommunication()
 	}
 
-	if s.Metrics != nil {
+	if s.startMetrics && s.Metrics != nil {
 		s.Metrics.StartServer()
 	}
 
-	if s.Elasticsearch != nil {
+	if s.startElasticsearch && s.Elasticsearch != nil {
 		s.StartElasticsearch()
 	}
 
