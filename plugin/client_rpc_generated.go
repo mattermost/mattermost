@@ -3684,11 +3684,11 @@ type Z_GetBotsArgs struct {
 }
 
 type Z_GetBotsReturns struct {
-	A model.BotList
+	A []*model.Bot
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetBots(page, perPage int, creatorId string, includeDeleted bool) (model.BotList, *model.AppError) {
+func (g *apiRPCClient) GetBots(page, perPage int, creatorId string, includeDeleted bool) ([]*model.Bot, *model.AppError) {
 	_args := &Z_GetBotsArgs{page, perPage, creatorId, includeDeleted}
 	_returns := &Z_GetBotsReturns{}
 	if err := g.client.Call("Plugin.GetBots", _args, _returns); err != nil {
@@ -3699,7 +3699,7 @@ func (g *apiRPCClient) GetBots(page, perPage int, creatorId string, includeDelet
 
 func (s *apiRPCServer) GetBots(args *Z_GetBotsArgs, returns *Z_GetBotsReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetBots(page, perPage int, creatorId string, includeDeleted bool) (model.BotList, *model.AppError)
+		GetBots(page, perPage int, creatorId string, includeDeleted bool) ([]*model.Bot, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetBots(args.A, args.B, args.C, args.D)
 	} else {

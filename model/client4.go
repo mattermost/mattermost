@@ -1379,7 +1379,7 @@ func (c *Client4) GetBotIncludeDeleted(userId string, etag string) (*Bot, *Respo
 }
 
 // GetBots fetches the given page of bots, excluding deleted.
-func (c *Client4) GetBots(page, perPage int, etag string) (BotList, *Response) {
+func (c *Client4) GetBots(page, perPage int, etag string) ([]*Bot, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
 	r, err := c.DoApiGet(c.GetBotsRoute()+query, etag)
 	if err != nil {
@@ -1390,7 +1390,7 @@ func (c *Client4) GetBots(page, perPage int, etag string) (BotList, *Response) {
 }
 
 // GetBotsIncludeDeleted fetches the given page of bots, including deleted.
-func (c *Client4) GetBotsIncludeDeleted(page, perPage int, etag string) (BotList, *Response) {
+func (c *Client4) GetBotsIncludeDeleted(page, perPage int, etag string) ([]*Bot, *Response) {
 	query := fmt.Sprintf("?page=%v&per_page=%v&include_deleted=true", page, perPage)
 	r, err := c.DoApiGet(c.GetBotsRoute()+query, etag)
 	if err != nil {

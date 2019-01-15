@@ -669,8 +669,10 @@ func (api *PluginAPI) GetBot(userId string, includeDeleted bool) (*model.Bot, *m
 	return api.app.GetBot(userId, includeDeleted)
 }
 
-func (api *PluginAPI) GetBots(page, perPage int, creatorId string, includeDeleted bool) (model.BotList, *model.AppError) {
-	return api.app.GetBots(page, perPage, creatorId, includeDeleted)
+func (api *PluginAPI) GetBots(page, perPage int, creatorId string, includeDeleted bool) ([]*model.Bot, *model.AppError) {
+	bots, err := api.app.GetBots(page, perPage, creatorId, includeDeleted)
+
+	return []*model.Bot(bots), err
 }
 
 func (api *PluginAPI) UpdateBotActive(userId string, active bool) (*model.Bot, *model.AppError) {

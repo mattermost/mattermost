@@ -416,15 +416,15 @@ func (_m *API) GetBot(userId string, includeDeleted bool) (*model.Bot, *model.Ap
 }
 
 // GetBots provides a mock function with given fields: page, perPage, creatorId, includeDeleted
-func (_m *API) GetBots(page int, perPage int, creatorId string, includeDeleted bool) (model.BotList, *model.AppError) {
+func (_m *API) GetBots(page int, perPage int, creatorId string, includeDeleted bool) ([]*model.Bot, *model.AppError) {
 	ret := _m.Called(page, perPage, creatorId, includeDeleted)
 
-	var r0 model.BotList
-	if rf, ok := ret.Get(0).(func(int, int, string, bool) model.BotList); ok {
+	var r0 []*model.Bot
+	if rf, ok := ret.Get(0).(func(int, int, string, bool) []*model.Bot); ok {
 		r0 = rf(page, perPage, creatorId, includeDeleted)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(model.BotList)
+			r0 = ret.Get(0).([]*model.Bot)
 		}
 	}
 
