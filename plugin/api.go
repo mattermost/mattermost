@@ -293,6 +293,11 @@ type API interface {
 	// Minimum server version: 5.6
 	GetPostsForChannel(channelId string, page, perPage int) (*model.PostList, *model.AppError)
 
+	// GetTeamStats gets a team's statistics
+	//
+	// Minimum server version: 5.8
+	GetTeamStats(teamId string) (*model.TeamStats, *model.AppError)
+
 	// UpdatePost updates a post.
 	UpdatePost(post *model.Post) (*model.Post, *model.AppError)
 

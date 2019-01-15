@@ -2527,6 +2527,35 @@ func (s *apiRPCServer) GetPostsForChannel(args *Z_GetPostsForChannelArgs, return
 	return nil
 }
 
+type Z_GetTeamStatsArgs struct {
+	A string
+}
+
+type Z_GetTeamStatsReturns struct {
+	A *model.TeamStats
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetTeamStats(teamId string) (*model.TeamStats, *model.AppError) {
+	_args := &Z_GetTeamStatsArgs{teamId}
+	_returns := &Z_GetTeamStatsReturns{}
+	if err := g.client.Call("Plugin.GetTeamStats", _args, _returns); err != nil {
+		log.Printf("RPC call to GetTeamStats API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetTeamStats(args *Z_GetTeamStatsArgs, returns *Z_GetTeamStatsReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetTeamStats(teamId string) (*model.TeamStats, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetTeamStats(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetTeamStats called but not implemented."))
+	}
+	return nil
+}
+
 type Z_UpdatePostArgs struct {
 	A *model.Post
 }
