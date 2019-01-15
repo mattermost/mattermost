@@ -2274,7 +2274,7 @@ func TestSetDefaultProfileImage(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	// status code returns either forbidden or unauthorized
-	// note: forbidden is set as default atth.Client..SetDefaultProfileImage when request is terminated early by server
+	// note: forbidden is set as default at th.Client.SetDefaultProfileImage when request is terminated early by server
 	th.Client.Logout()
 	_, resp = th.Client.SetDefaultProfileImage(user.Id)
 	if resp.StatusCode == http.StatusForbidden {
