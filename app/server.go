@@ -227,8 +227,10 @@ func NewServer(options ...Option) (*Server, error) {
 		s.StartElasticsearch()
 	}
 
-	s.InitReminders()
-	s.StartReminders()
+	s.Go(func() {
+		s.InitReminders()
+		s.StartReminders()
+	})
 
 	s.initJobs()
 
@@ -300,8 +302,6 @@ func (s *Server) Shutdown() error {
 
 	s.RunOldAppShutdown()
 
-	s.StopReminders()
-
 	s.StopHTTPServer()
 	s.WaitForGoroutines()
 
@@ -325,6 +325,8 @@ func (s *Server) Shutdown() error {
 	if s.Metrics != nil {
 		s.Metrics.StopServer()
 	}
+
+	s.StopReminders()
 
 	if s.Jobs != nil && s.runjobs {
 		s.Jobs.StopWorkers()
