@@ -226,7 +226,7 @@ func (fs SqlFileInfoStore) AttachToPost(fileId, postId, creatorId string) store.
 		} else if count == 0 {
 			// Could not attach the file to the post
 			result.Err = model.NewAppError("SqlFileInfoStore.AttachToPost",
-				"store.sql_file_info.attach_to_post.app_error", nil, "post_id="+postId+", file_id="+fileId, http.StatusInternalServerError)
+				"store.sql_file_info.attach_to_post.app_error", nil, "post_id="+postId+", file_id="+fileId, http.StatusBadRequest)
 		}
 	})
 }
