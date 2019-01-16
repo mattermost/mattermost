@@ -108,7 +108,7 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, shouldBeAdmin
 				}
 			}
 
-			a.InvalidateCacheForChannelMembers(result.Data.(*model.Channel).Id)
+			a.InvalidateCacheForChannelMembers(channel.Id)
 		}
 	}
 
