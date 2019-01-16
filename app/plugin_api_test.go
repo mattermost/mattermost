@@ -721,3 +721,30 @@ func TestPluginAPISendMail(t *testing.T) {
 	require.Equal(t, resultsEmail.Body.Text, body)
 
 }
+
+func TestPluginAPI_SearchTeams(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	api := th.SetupPluginAPI()
+
+	t.Run("all fine", func(t *testing.T) {
+		teams, err := api.SearchTeams(th.BasicTeam.Name)
+		assert.Nil(t, err)
+		assert.Len(t, teams, 1)
+
+		teams, err = api.SearchTeams(th.BasicTeam.DisplayName)
+		assert.Nil(t, err)
+		assert.Len(t, teams, 1)
+
+		teams, err = api.SearchTeams(th.BasicTeam.Name[:3])
+		assert.Nil(t, err)
+		assert.Len(t, teams, 1)
+	})
+
+	t.Run("invalid team name", func(t *testing.T) {
+		teams, err := api.SearchTeams("not found")
+		assert.Nil(t, err)
+		assert.Empty(t, teams)
+	})
+}
