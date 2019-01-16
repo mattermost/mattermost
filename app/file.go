@@ -725,21 +725,15 @@ func (t *uploadFileTask) preprocessImage() *model.AppError {
 
 func (t *uploadFileTask) postprocessImage() {
 	decoded, typ := t.decoded, t.imageType
-	if typ == "tiff" {
-		img, err := tiff.Decode(t.Input)
-		if err != nil {
-			mlog.Error(fmt.Sprintf("Unable to decode tiff err=%v", err))
-			return
-		}
-		decoded = img
-	}
-
 	if decoded == nil {
 		var err error
 		decoded, typ, err = image.Decode(t.newReader())
 		if err != nil {
-			mlog.Error(fmt.Sprintf("Unable to decode image err=%v", err))
-			return
+			decoded, err = tiff.Decode(t.Input)
+			if err != nil {
+				mlog.Error(fmt.Sprintf("Unable to decode image err=%v", err))
+				return
+			}
 		}
 	}
 
