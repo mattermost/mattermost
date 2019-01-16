@@ -147,8 +147,6 @@ type API interface {
 	// SearchTeams search a team.
 	//
 	// Minimum server version: 5.6
-	//
-	// Minimum server version: 5.6
 	SearchTeams(term string) ([]*model.Team, *model.AppError)
 
 	// GetTeamsForUser returns list of teams of given user ID.
