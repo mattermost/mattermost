@@ -1362,6 +1362,35 @@ func (s *apiRPCServer) UpdateTeam(args *Z_UpdateTeamArgs, returns *Z_UpdateTeamR
 	return nil
 }
 
+type Z_SearchTeamsArgs struct {
+	A string
+}
+
+type Z_SearchTeamsReturns struct {
+	A []*model.Team
+	B *model.AppError
+}
+
+func (g *apiRPCClient) SearchTeams(term string) ([]*model.Team, *model.AppError) {
+	_args := &Z_SearchTeamsArgs{term}
+	_returns := &Z_SearchTeamsReturns{}
+	if err := g.client.Call("Plugin.SearchTeams", _args, _returns); err != nil {
+		log.Printf("RPC call to SearchTeams API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) SearchTeams(args *Z_SearchTeamsArgs, returns *Z_SearchTeamsReturns) error {
+	if hook, ok := s.impl.(interface {
+		SearchTeams(term string) ([]*model.Team, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.SearchTeams(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API SearchTeams called but not implemented."))
+	}
+	return nil
+}
+
 type Z_GetTeamsForUserArgs struct {
 	A string
 }
