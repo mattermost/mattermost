@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCreateTeam(t *testing.T) {
@@ -187,22 +188,20 @@ func TestArchiveTeams(t *testing.T) {
 }
 
 func TestRestoreTeams(t *testing.T) {
-	th := api4.Setup().InitBasic()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
 	name := "name" + id
 	displayName := "Name " + id
 
-	CheckCommand(t, "team", "create", "--name", name, "--display_name", displayName)
+	th.CheckCommand(t, "team", "create", "--name", name, "--display_name", displayName)
 
-	CheckCommand(t, "team", "archive", name)
+	th.CheckCommand(t, "team", "archive", name)
 
-	CheckCommand(t, "team", "restore", name)
+	th.CheckCommand(t, "team", "restore", name)
 
 	found := th.SystemAdminClient.Must(th.SystemAdminClient.TeamExists(name, "")).(bool)
 
-	if !found {
-		t.Fatal("Failed to restore Team")
-	}
+	require.True(t, found)
 }
