@@ -185,3 +185,24 @@ func TestArchiveTeams(t *testing.T) {
 		t.Fatal("should have archived team")
 	}
 }
+
+func TestRestoreTeams(t *testing.T) {
+	th := api4.Setup().InitBasic()
+	defer th.TearDown()
+
+	id := model.NewId()
+	name := "name" + id
+	displayName := "Name " + id
+
+	CheckCommand(t, "team", "create", "--name", name, "--display_name", displayName)
+
+	CheckCommand(t, "team", "archive", name)
+
+	CheckCommand(t, "team", "restore", name)
+
+	found := th.SystemAdminClient.Must(th.SystemAdminClient.TeamExists(name, "")).(bool)
+
+	if !found {
+		t.Fatal("Failed to restore Team")
+	}
+}
