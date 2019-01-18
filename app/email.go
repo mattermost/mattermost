@@ -404,5 +404,10 @@ func (a *App) SendDeactivateAccountEmail(email string, locale, siteURL string) *
 
 func (a *App) SendMail(to, subject, htmlBody string) *model.AppError {
 	license := a.License()
-	return mailservice.SendMailUsingConfig(to, subject, htmlBody, a.Config(), license != nil && *license.Features.Compliance)
+	return mailservice.SendMailUsingConfig(to, subject, htmlBody, a.Config(), license != nil && *license.Features.Compliance, nil)
+}
+
+func (a *App) SendMailWithAdditionalHeaders(to, subject, htmlBody string, additionalHeaders map[string]string) *model.AppError {
+	license := a.License()
+	return mailservice.SendMailUsingConfig(to, subject, htmlBody, a.Config(), license != nil && *license.Features.Compliance, additionalHeaders)
 }
