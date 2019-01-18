@@ -15,12 +15,15 @@ import (
 	"testing"
 	"time"
 
+	"golang.org/x/image/tiff"
+
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
 
 var randomJPEG []byte
 var randomGIF []byte
+var randomTIFF []byte
 var zero10M = make([]byte, 10*1024*1024)
 var rgba *image.RGBA
 
@@ -39,7 +42,7 @@ func prepareTestImages(tb testing.TB) {
 		tb.Fatal(err)
 	}
 
-	// Encode it as JPEG and GIF
+	// Encode it as JPEG, GIF, and TIFF
 	buf := &bytes.Buffer{}
 	err = jpeg.Encode(buf, rgba, &jpeg.Options{Quality: 50})
 	if err != nil {
@@ -53,6 +56,13 @@ func prepareTestImages(tb testing.TB) {
 		tb.Fatal(err)
 	}
 	randomGIF = buf.Bytes()
+
+	buf = &bytes.Buffer{}
+	err = tiff.Encode(buf, rgba, nil)
+	if err != nil {
+		tb.Fatal(err)
+	}
+	randomTIFF = buf.Bytes()
 }
 
 func BenchmarkUploadFile(b *testing.B) {
@@ -76,6 +86,7 @@ func BenchmarkUploadFile(b *testing.B) {
 	}{
 		{fmt.Sprintf("random-%dMb-gif", mb(len(randomGIF))), ".gif", randomGIF},
 		{fmt.Sprintf("random-%dMb-jpg", mb(len(randomJPEG))), ".jpg", randomJPEG},
+		{fmt.Sprintf("random-%dMb-tiff", mb(len(randomTIFF))), ".tiff", randomTIFF},
 		{fmt.Sprintf("zero-%dMb", mb(len(zero10M))), ".zero", zero10M},
 	}
 
