@@ -575,9 +575,9 @@ func searchChannelCmdF(command *cobra.Command, args []string) error {
 			} else if aErr != nil {
 				continue
 			} else if channel.DeleteAt > 0 {
-				CommandPrettyPrintln(channel.Name + " (archived)")
+				CommandPrettyPrintln(fmt.Sprintf(`%s : %s (%s) (archived)`, channel.Name, channel.DisplayName, channel.Id))
 			} else {
-				CommandPrettyPrintln(channel.Name)
+				CommandPrettyPrintln(fmt.Sprintf(`%s : %s (%s)`, channel.Name, channel.DisplayName, channel.Id))
 			}
 			return nil
 		} else if team.Name == args[0] || team.Id == args[0] {
@@ -589,7 +589,7 @@ func searchChannelCmdF(command *cobra.Command, args []string) error {
 	}
 
 	if !teamFound {
-		_, _ = CommandPrettyPrintln(fmt.Sprintf(" team %s not found", args[0]))
+		CommandPrettyPrintln(fmt.Sprintf(" team %s not found", args[0]))
 		return nil
 	}
 
@@ -599,9 +599,9 @@ func searchChannelCmdF(command *cobra.Command, args []string) error {
 	}
 
 	if channel.DeleteAt > 0 {
-		CommandPrettyPrintln(channel.Name + " (archived)")
+		CommandPrettyPrintln(fmt.Sprintf(`%s : %s (%s) (archived)`, channel.Name, channel.DisplayName, channel.Id))
 	} else {
-		CommandPrettyPrintln(channel.Name)
+		CommandPrettyPrintln(fmt.Sprintf(`%s : %s (%s)`, channel.Name, channel.DisplayName, channel.Id))
 	}
 	return nil
 }
