@@ -104,7 +104,7 @@ func (a *App) sendNotificationEmail(notification *postNotification, user *model.
 	var bodyText = a.getNotificationEmailBody(user, post, channel, channelName, senderName, team.Name, teamURL, emailNotificationContentsType, useMilitaryTime, translateFunc)
 
 	a.Srv.Go(func() {
-		additionalHeaders := map[string]string{"Message-Id": post.Id, "Reply-To": "replytommm@gmail.com"}
+		additionalHeaders := map[string]string{"Message-Id": post.Id, "Reply-To": "replytommm@gmail.com", "X-Mattermost-Post-Id": post.Id}
 		if err := a.SendMailWithAdditionalHeaders(user.Email, html.UnescapeString(subjectText), bodyText, additionalHeaders); err != nil {
 			mlog.Error(fmt.Sprint("Error to send the email", user.Email, err))
 		}
