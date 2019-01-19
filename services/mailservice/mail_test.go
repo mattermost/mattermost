@@ -104,7 +104,7 @@ func TestSendMailUsingConfig(t *testing.T) {
 	//Delete all the messages before check the sample email
 	DeleteMailBox(emailTo)
 
-	if err := SendMailUsingConfig(emailTo, emailSubject, emailBody, cfg, true); err != nil {
+	if err := SendMailUsingConfig(emailTo, emailSubject, emailBody, cfg, true, nil); err != nil {
 		t.Log(err)
 		t.Fatal("Should connect to the STMP Server")
 	} else {
