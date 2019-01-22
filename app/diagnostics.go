@@ -23,7 +23,6 @@ const (
 	TRACK_CONFIG_LOG                = "config_log"
 	TRACK_CONFIG_FILE               = "config_file"
 	TRACK_CONFIG_RATE               = "config_rate"
-	TRACK_CONFIG_EXTENSION          = "config_extension"
 	TRACK_CONFIG_EMAIL              = "config_email"
 	TRACK_CONFIG_PRIVACY            = "config_privacy"
 	TRACK_CONFIG_THEME              = "config_theme"
