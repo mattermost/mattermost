@@ -13,13 +13,13 @@ type FileInfoStore struct {
 	mock.Mock
 }
 
-// AttachToPost provides a mock function with given fields: fileId, postId
-func (_m *FileInfoStore) AttachToPost(fileId string, postId string) store.StoreChannel {
-	ret := _m.Called(fileId, postId)
+// AttachToPost provides a mock function with given fields: fileId, postId, creatorId
+func (_m *FileInfoStore) AttachToPost(fileId string, postId string, creatorId string) store.StoreChannel {
+	ret := _m.Called(fileId, postId, creatorId)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, string) store.StoreChannel); ok {
-		r0 = rf(fileId, postId)
+	if rf, ok := ret.Get(0).(func(string, string, string) store.StoreChannel); ok {
+		r0 = rf(fileId, postId, creatorId)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)
