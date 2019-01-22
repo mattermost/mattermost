@@ -483,6 +483,11 @@ func TestGetClientConfig(t *testing.T) {
 					// Ignored, since not licensed.
 					AllowCustomThemes: bToP(false),
 				},
+				ServiceSettings: model.ServiceSettings{
+					WebsocketURL:        sToP("ws://mattermost.example.com:8065"),
+					WebsocketPort:       iToP(80),
+					WebsocketSecurePort: iToP(443),
+				},
 			},
 			"",
 			nil,
@@ -491,6 +496,9 @@ func TestGetClientConfig(t *testing.T) {
 				"EmailNotificationContentsType":    "full",
 				"AllowCustomThemes":                "true",
 				"EnforceMultifactorAuthentication": "false",
+				"WebsocketURL":                     "ws://mattermost.example.com:8065",
+				"WebsocketPort":                    "80",
+				"WebsocketSecurePort":              "443",
 			},
 		},
 		{
@@ -570,8 +578,67 @@ func TestGetClientConfig(t *testing.T) {
 			configMap := GenerateClientConfig(testCase.config, testCase.diagnosticId, testCase.license)
 			for expectedField, expectedValue := range testCase.expectedFields {
 				actualValue, ok := configMap[expectedField]
-				assert.True(t, ok, fmt.Sprintf("config does not contain %v", expectedField))
-				assert.Equal(t, expectedValue, actualValue)
+				if assert.True(t, ok, fmt.Sprintf("config does not contain %v", expectedField)) {
+					assert.Equal(t, expectedValue, actualValue)
+				}
+			}
+		})
+	}
+}
+
+func TestGetLimitedClientConfig(t *testing.T) {
+	t.Parallel()
+	testCases := []struct {
+		description    string
+		config         *model.Config
+		diagnosticId   string
+		license        *model.License
+		expectedFields map[string]string
+	}{
+		{
+			"unlicensed",
+			&model.Config{
+				EmailSettings: model.EmailSettings{
+					EmailNotificationContentsType: sToP(model.EMAIL_NOTIFICATION_CONTENTS_FULL),
+				},
+				ThemeSettings: model.ThemeSettings{
+					// Ignored, since not licensed.
+					AllowCustomThemes: bToP(false),
+				},
+				ServiceSettings: model.ServiceSettings{
+					WebsocketURL:        sToP("ws://mattermost.example.com:8065"),
+					WebsocketPort:       iToP(80),
+					WebsocketSecurePort: iToP(443),
+				},
+			},
+			"",
+			nil,
+			map[string]string{
+				"DiagnosticId":                     "",
+				"EnforceMultifactorAuthentication": "false",
+				"WebsocketURL":                     "ws://mattermost.example.com:8065",
+				"WebsocketPort":                    "80",
+				"WebsocketSecurePort":              "443",
+			},
+		},
+	}
+
+	for _, testCase := range testCases {
+		testCase := testCase
+		t.Run(testCase.description, func(t *testing.T) {
+			t.Parallel()
+
+			testCase.config.SetDefaults()
+			if testCase.license != nil {
+				testCase.license.Features.SetDefaults()
+			}
+
+			configMap := GenerateLimitedClientConfig(testCase.config, testCase.diagnosticId, testCase.license)
+			for expectedField, expectedValue := range testCase.expectedFields {
+				actualValue, ok := configMap[expectedField]
+				if assert.True(t, ok, fmt.Sprintf("config does not contain %v", expectedField)) {
+					assert.Equal(t, expectedValue, actualValue)
+				}
 			}
 		})
 	}
@@ -583,6 +650,10 @@ func sToP(s string) *string {
 
 func bToP(b bool) *bool {
 	return &b
+}
+
+func iToP(i int) *int {
+	return &i
 }
 
 func TestGetDefaultsFromStruct(t *testing.T) {
