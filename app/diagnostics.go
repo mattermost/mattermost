@@ -221,6 +221,7 @@ func (a *App) trackConfig() {
 		"enforce_multifactor_authentication":                      *cfg.ServiceSettings.EnforceMultifactorAuthentication,
 		"enable_oauth_service_provider":                           cfg.ServiceSettings.EnableOAuthServiceProvider,
 		"connection_security":                                     *cfg.ServiceSettings.ConnectionSecurity,
+		"tls_strict_transport":                                    *cfg.ServiceSettings.TLSStrictTransport,
 		"uses_letsencrypt":                                        *cfg.ServiceSettings.UseLetsEncrypt,
 		"forward_80_to_443":                                       *cfg.ServiceSettings.Forward80To443,
 		"maximum_login_attempts":                                  *cfg.ServiceSettings.MaximumLoginAttempts,
