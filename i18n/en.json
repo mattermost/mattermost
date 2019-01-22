@@ -1536,7 +1536,7 @@
   },
   {
     "id": "api.post.update_post.permissions_time_limit.app_error",
-    "translation": "Post edit is only allowed for {{.timeLimit}} seconds. Please ask your systems administrator for details."
+    "translation": "Post edit is only allowed for {{.timeLimit}} seconds. Please ask your System Administrator for details."
   },
   {
     "id": "api.post.update_post.system_message.app_error",
@@ -1772,11 +1772,11 @@
   },
   {
     "id": "api.team.is_team_creation_allowed.disabled.app_error",
-    "translation": "Team creation has been disabled. Please ask your systems administrator for details."
+    "translation": "Team creation has been disabled. Please ask your System Administrator for details."
   },
   {
     "id": "api.team.is_team_creation_allowed.domain.app_error",
-    "translation": "Email must be from a specific domain (e.g. @example.com). Please ask your systems administrator for details."
+    "translation": "Email must be from a specific domain (e.g. @example.com). Please ask your System Administrator for details."
   },
   {
     "id": "api.team.join_team.post_and_forget",
@@ -3264,7 +3264,7 @@
   },
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
-    "translation": "This team has reached the maximum number of allowed accounts. Contact your systems administrator to set a higher limit."
+    "translation": "This team has reached the maximum number of allowed accounts. Contact your System Administrator to set a higher limit."
   },
   {
     "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
@@ -6376,7 +6376,7 @@
   },
   {
     "id": "store.sql_user.save.max_accounts.app_error",
-    "translation": "This team has reached the maximum number of allowed accounts. Contact your systems administrator to set a higher limit."
+    "translation": "This team has reached the maximum number of allowed accounts. Contact your System Administrator to set a higher limit."
   },
   {
     "id": "store.sql_user.save.member_count.app_error",
