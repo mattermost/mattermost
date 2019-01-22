@@ -118,6 +118,10 @@ func (api *PluginAPI) GetTeam(teamId string) (*model.Team, *model.AppError) {
 	return api.app.GetTeam(teamId)
 }
 
+func (api *PluginAPI) SearchTeams(term string) ([]*model.Team, *model.AppError) {
+	return api.app.SearchAllTeams(term)
+}
+
 func (api *PluginAPI) GetTeamByName(name string) (*model.Team, *model.AppError) {
 	return api.app.GetTeamByName(name)
 }
@@ -156,6 +160,10 @@ func (api *PluginAPI) GetTeamMember(teamId, userId string) (*model.TeamMember, *
 
 func (api *PluginAPI) UpdateTeamMemberRoles(teamId, userId, newRoles string) (*model.TeamMember, *model.AppError) {
 	return api.app.UpdateTeamMemberRoles(teamId, userId, newRoles)
+}
+
+func (api *PluginAPI) GetTeamStats(teamId string) (*model.TeamStats, *model.AppError) {
+	return api.app.GetTeamStats(teamId)
 }
 
 func (api *PluginAPI) CreateUser(user *model.User) (*model.User, *model.AppError) {

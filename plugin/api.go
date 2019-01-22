@@ -144,6 +144,11 @@ type API interface {
 	// UpdateTeam updates a team.
 	UpdateTeam(team *model.Team) (*model.Team, *model.AppError)
 
+	// SearchTeams search a team.
+	//
+	// Minimum server version: 5.8
+	SearchTeams(term string) ([]*model.Team, *model.AppError)
+
 	// GetTeamsForUser returns list of teams of given user ID.
 	//
 	// Minimum server version: 5.6
@@ -292,6 +297,11 @@ type API interface {
 	//
 	// Minimum server version: 5.6
 	GetPostsForChannel(channelId string, page, perPage int) (*model.PostList, *model.AppError)
+
+	// GetTeamStats gets a team's statistics
+	//
+	// Minimum server version: 5.8
+	GetTeamStats(teamId string) (*model.TeamStats, *model.AppError)
 
 	// UpdatePost updates a post.
 	UpdatePost(post *model.Post) (*model.Post, *model.AppError)

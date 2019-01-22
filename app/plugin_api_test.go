@@ -722,6 +722,33 @@ func TestPluginAPISendMail(t *testing.T) {
 
 }
 
+func TestPluginAPI_SearchTeams(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	api := th.SetupPluginAPI()
+
+	t.Run("all fine", func(t *testing.T) {
+		teams, err := api.SearchTeams(th.BasicTeam.Name)
+		assert.Nil(t, err)
+		assert.Len(t, teams, 1)
+
+		teams, err = api.SearchTeams(th.BasicTeam.DisplayName)
+		assert.Nil(t, err)
+		assert.Len(t, teams, 1)
+
+		teams, err = api.SearchTeams(th.BasicTeam.Name[:3])
+		assert.Nil(t, err)
+		assert.Len(t, teams, 1)
+	})
+
+	t.Run("invalid team name", func(t *testing.T) {
+		teams, err := api.SearchTeams("not found")
+		assert.Nil(t, err)
+		assert.Empty(t, teams)
+	})
+}
+
 func TestPluginBots(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
@@ -853,8 +880,8 @@ func TestPluginBots(t *testing.T) {
 		}
 		`,
 		`{"id": "testpluginbots", "backend": {"executable": "backend.exe"}}`,
-		 "testpluginbots",
-		 th.App,
+		"testpluginbots",
+		th.App,
 	)
 
 	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin("testpluginbots")
