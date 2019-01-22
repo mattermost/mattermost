@@ -86,7 +86,7 @@ func (s *Server) RunOldAppInitalization() error {
 	a.EnsureDiagnosticId()
 	a.regenerateClientConfig()
 
-	a.Srv.clusterLeaderListenerId = a.AddClusterLeaderChangedListener(func() {
+	a.Srv.clusterLeaderListenerId = a.Srv.AddClusterLeaderChangedListener(func() {
 		mlog.Info("Cluster leader changed. Determining if job schedulers should be running:", mlog.Bool("isLeader", a.IsLeader()))
 		if a.Srv.Jobs != nil {
 			a.Srv.Jobs.Schedulers.HandleClusterLeaderChange(a.IsLeader())
@@ -156,7 +156,7 @@ func (s *Server) RunOldAppShutdown() {
 	a.StopPushNotificationsHubWorkers()
 	a.ShutDownPlugins()
 	a.RemoveLicenseListener(s.licenseListenerId)
-	a.RemoveClusterLeaderChangedListener(s.clusterLeaderListenerId)
+	s.RemoveClusterLeaderChangedListener(s.clusterLeaderListenerId)
 }
 
 // A temporary bridge to deal with cases where the code is so tighly coupled that

@@ -23,7 +23,6 @@ const (
 	TRACK_CONFIG_LOG                = "config_log"
 	TRACK_CONFIG_FILE               = "config_file"
 	TRACK_CONFIG_RATE               = "config_rate"
-	TRACK_CONFIG_EXTENSION          = "config_extension"
 	TRACK_CONFIG_EMAIL              = "config_email"
 	TRACK_CONFIG_PRIVACY            = "config_privacy"
 	TRACK_CONFIG_THEME              = "config_theme"
@@ -222,6 +221,7 @@ func (a *App) trackConfig() {
 		"enforce_multifactor_authentication":                      *cfg.ServiceSettings.EnforceMultifactorAuthentication,
 		"enable_oauth_service_provider":                           cfg.ServiceSettings.EnableOAuthServiceProvider,
 		"connection_security":                                     *cfg.ServiceSettings.ConnectionSecurity,
+		"tls_strict_transport":                                    *cfg.ServiceSettings.TLSStrictTransport,
 		"uses_letsencrypt":                                        *cfg.ServiceSettings.UseLetsEncrypt,
 		"forward_80_to_443":                                       *cfg.ServiceSettings.Forward80To443,
 		"maximum_login_attempts":                                  *cfg.ServiceSettings.MaximumLoginAttempts,
