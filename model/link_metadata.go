@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
-	"github.com/mattermost/mattermost-server/mlog"
 )
 
 const (
