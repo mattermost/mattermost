@@ -1337,7 +1337,7 @@ func TestSearchPosts(t *testing.T) {
 	_ = th.CreateMessagePostWithClient(th.Client, archivedChannel, "#hashtag for post3")
 	th.Client.DeleteChannel(archivedChannel.Id)
 
-	terms := ""
+	terms := "search"
 	isOrSearch := false
 	timezoneOffset := 5
 	searchParams := model.SearchParameter{
