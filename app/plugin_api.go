@@ -330,38 +330,35 @@ func (api *PluginAPI) SearchUsers(search *model.UserSearch) ([]*model.User, *mod
 	return api.app.SearchUsers(search, pluginSearchUsersOptions)
 }
 
-func (api *PluginAPI) SearchPostsInTeam(teamId, userId string, params *model.SearchParameter) (*model.PostList, *model.AppError) {
-	terms := ""
-	isOrSearch := false
+func (api *PluginAPI) SearchPostsInTeam(teamId string, params *model.SearchParameter) (*model.PostList, *model.AppError) {
+	// Check for required fields.
+	if params.Terms == nil {
+		return nil, model.NewAppError("SearchPostsInTeam", "plugin.api.search_posts_in_team.missing_terms", nil, "", http.StatusBadRequest)
+	}
+	if params.IsOrSearch == nil {
+		return nil, model.NewAppError("SearchPostsInTeam", "plugin.api.search_posts_in_team.missing_is_or_search", nil, "", http.StatusBadRequest)
+	}
+	terms := *params.Terms
+	isOrSearch := *params.IsOrSearch
+
 	includeDeletedChannels := false
-	timeZoneOffset := 0
-	page := 0
-	perPage := 0
-	if params.Terms != nil {
-		terms = *params.Terms
-	}
-	if params.IsOrSearch != nil {
-		isOrSearch = *params.IsOrSearch
-	}
 	if params.IncludeDeletedChannels != nil {
 		includeDeletedChannels = *params.IncludeDeletedChannels
 	}
+	timeZoneOffset := 0
 	if params.TimeZoneOffset != nil {
 		timeZoneOffset = *params.TimeZoneOffset
 	}
+	page := 0
 	if params.Page != nil {
 		page = *params.Page
 	}
+	perPage := 60
 	if params.PerPage != nil {
 		perPage = *params.PerPage
 	}
 
-	results, err := api.app.SearchPostsInTeam(terms, userId, teamId, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
-	if err != nil {
-		return nil, err
-	}
-
-	return results.PostList, nil
+	return api.app.SearchPostsInTeam(terms, teamId, isOrSearch, includeDeletedChannels, timeZoneOffset, page, perPage)
 }
 
 func (api *PluginAPI) AddChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError) {

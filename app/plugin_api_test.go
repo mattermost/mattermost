@@ -611,18 +611,9 @@ func TestPluginAPISearchPostsInTeam(t *testing.T) {
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
-	team1 := th.CreateTeam()
-	user1, err := th.App.CreateUser(&model.User{
-		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
-		Password: "password",
-		Username: "user1" + model.NewId(),
-	})
-	require.Nil(t, err)
-	defer th.App.PermanentDeleteUser(user1)
-	_, _, err = th.App.joinUserToTeam(team1, user1)
-	require.Nil(t, err)
-
 	badMessage := "bad message"
+
+	trueValue := true
 
 	basicPostList := model.NewPostList()
 	basicPostList.AddPost(th.BasicPost)
@@ -631,50 +622,56 @@ func TestPluginAPISearchPostsInTeam(t *testing.T) {
 	testCases := []struct {
 		description   string
 		teamId        string
-		userId        string
 		params        *model.SearchParameter
 		expectedPosts *model.PostList
+		expectError   bool
 	}{
 		{
-			"unknown team and user",
-			"",
-			"",
+			"missing terms",
+			th.BasicTeam.Id,
 			&model.SearchParameter{},
-			model.NewPostList(),
+			nil,
+			true,
 		},
 		{
-			"unknown user not in team",
+			"missing IsOrSearch",
 			th.BasicTeam.Id,
-			user1.Id,
 			&model.SearchParameter{
 				Terms: &th.BasicPost.Message,
 			},
-			model.NewPostList(),
+			nil,
+			true,
 		},
 		{
-			"user in team but no matched posts",
+			"doesn't match any posts",
 			th.BasicTeam.Id,
-			th.BasicUser.Id,
 			&model.SearchParameter{
-				Terms: &badMessage,
+				Terms:      &badMessage,
+				IsOrSearch: &trueValue,
 			},
 			model.NewPostList(),
+			false,
 		},
 		{
 			"matched posts",
 			th.BasicTeam.Id,
-			th.BasicUser.Id,
 			&model.SearchParameter{
-				Terms: &th.BasicPost.Message,
+				Terms:      &th.BasicPost.Message,
+				IsOrSearch: &trueValue,
 			},
 			basicPostList,
+			false,
 		},
 	}
 
 	for _, testCase := range testCases {
 		t.Run(testCase.description, func(t *testing.T) {
-			posts, err := api.SearchPostsInTeam(testCase.teamId, testCase.userId, testCase.params)
-			assert.Nil(t, err)
+			posts, err := api.SearchPostsInTeam(testCase.teamId, testCase.params)
+			if testCase.expectError {
+				assert.NotNil(t, err)
+			} else {
+				assert.Nil(t, err)
+			}
 			assert.Equal(t, testCase.expectedPosts, posts)
 		})
 	}
