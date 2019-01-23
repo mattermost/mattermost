@@ -21,7 +21,7 @@ var argRe = regexp.MustCompile(`\B:[a-zA-Z_]+\b`)
 // free to pass in entire SQL statements as necessary, but realize that this library won't try to
 // parse or validate the resulting SQL. Garbage in: garbage out.
 //
-// It doesn't current support INSERT, UPDATE or DELETE statements, but this would be a trivial
+// It doesn't currently support INSERT, UPDATE or DELETE statements, but this would be a trivial
 // addition.
 type Query struct {
 	selectStatements  []string
@@ -205,7 +205,7 @@ func (q *Query) String() string {
 			case reflect.Int:
 				valueLen := reflect.ValueOf(value).Len()
 
-				keys := []string{}
+				var keys []string
 				for index := 0; index < valueLen; index++ {
 					keys = append(keys, fmt.Sprintf(":%s_%d", key, index))
 				}
