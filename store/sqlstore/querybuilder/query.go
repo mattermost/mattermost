@@ -196,13 +196,9 @@ func (q *Query) String() string {
 	for key, value := range q.args {
 		rt := reflect.TypeOf(value)
 		switch rt.Kind() {
-		case reflect.Slice:
-			fallthrough
-		case reflect.Array:
+		case reflect.Slice, reflect.Array:
 			switch rt.Elem().Kind() {
-			case reflect.String:
-				fallthrough
-			case reflect.Int:
+			case reflect.String, reflect.Int:
 				valueLen := reflect.ValueOf(value).Len()
 
 				var keys []string
@@ -231,9 +227,7 @@ func (q *Query) Args() map[string]interface{} {
 	for key, value := range q.args {
 		rt := reflect.TypeOf(value)
 		switch rt.Kind() {
-		case reflect.Slice:
-			fallthrough
-		case reflect.Array:
+		case reflect.Slice, reflect.Array:
 			switch rt.Elem().Kind() {
 			case reflect.String:
 				for index, v := range value.([]string) {
