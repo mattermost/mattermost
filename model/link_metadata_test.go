@@ -39,6 +39,16 @@ func TestLinkMetadataIsValid(t *testing.T) {
 			Expected: true,
 		},
 		{
+			Name: "should be valid with no metadata",
+			Metadata: &LinkMetadata{
+				URL:       "http://example.com",
+				Timestamp: 1546300800000,
+				Type:      LINK_METADATA_TYPE_NONE,
+				Data:      nil,
+			},
+			Expected: true,
+		},
+		{
 			Name: "should be invalid because of empty URL",
 			Metadata: &LinkMetadata{
 				Timestamp: 1546300800000,

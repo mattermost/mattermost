@@ -227,4 +227,25 @@ func testLinkMetadataStoreTypes(t *testing.T, ss store.Store) {
 		require.IsType(t, &opengraph.OpenGraph{}, received.Data)
 		assert.Equal(t, *(metadata.Data.(*opengraph.OpenGraph)), *(received.Data.(*opengraph.OpenGraph)))
 	})
+
+	t.Run("should save and get nil", func(t *testing.T) {
+		metadata := &model.LinkMetadata{
+			URL:       "http://example.com",
+			Timestamp: getNextLinkMetadataTimestamp(),
+			Type:      model.LINK_METADATA_TYPE_NONE,
+			Data:      nil,
+		}
+
+		result := <-ss.LinkMetadata().Save(metadata)
+		require.Nil(t, result.Err)
+
+		received := result.Data.(*model.LinkMetadata)
+		assert.Nil(t, received.Data)
+
+		result = <-ss.LinkMetadata().Get(metadata.URL, metadata.Timestamp)
+		require.Nil(t, result.Err)
+
+		received = result.Data.(*model.LinkMetadata)
+		require.Nil(t, received.Data)
+	})
 }

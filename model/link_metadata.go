@@ -11,10 +11,12 @@ import (
 	"time"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
+	"github.com/mattermost/mattermost-server/mlog"
 )
 
 const (
 	LINK_METADATA_TYPE_IMAGE     LinkMetadataType = "image"
+	LINK_METADATA_TYPE_NONE      LinkMetadataType = "none"
 	LINK_METADATA_TYPE_OPENGRAPH LinkMetadataType = "opengraph"
 )
 
@@ -33,6 +35,7 @@ type LinkMetadata struct {
 	// Data is the actual metadata for the link. It should contain data of one of the following types:
 	// - *model.PostImage if the linked content is an image
 	// - *opengraph.OpenGraph if the linked content is an HTML document
+	// - nil if the linked content has no metadata
 	Data interface{}
 }
 
@@ -49,16 +52,24 @@ func (o *LinkMetadata) IsValid() *AppError {
 		return NewAppError("LinkMetadata.IsValid", "model.link_metadata.is_valid.timestamp.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if o.Data == nil {
-		return NewAppError("LinkMetadata.IsValid", "model.link_metadata.is_valid.data.app_error", nil, "", http.StatusBadRequest)
-	}
-
 	switch o.Type {
 	case LINK_METADATA_TYPE_IMAGE:
+		if o.Data == nil {
+			return NewAppError("LinkMetadata.IsValid", "model.link_metadata.is_valid.data.app_error", nil, "", http.StatusBadRequest)
+		}
+
 		if _, ok := o.Data.(*PostImage); !ok {
 			return NewAppError("LinkMetadata.IsValid", "model.link_metadata.is_valid.data_type.app_error", nil, "", http.StatusBadRequest)
 		}
+	case LINK_METADATA_TYPE_NONE:
+		if o.Data != nil {
+			return NewAppError("LinkMetadata.IsValid", "model.link_metadata.is_valid.data_type.app_error", nil, "", http.StatusBadRequest)
+		}
 	case LINK_METADATA_TYPE_OPENGRAPH:
+		if o.Data == nil {
+			return NewAppError("LinkMetadata.IsValid", "model.link_metadata.is_valid.data.app_error", nil, "", http.StatusBadRequest)
+		}
+
 		if _, ok := o.Data.(*opengraph.OpenGraph); !ok {
 			return NewAppError("LinkMetadata.IsValid", "model.link_metadata.is_valid.data_type.app_error", nil, "", http.StatusBadRequest)
 		}
