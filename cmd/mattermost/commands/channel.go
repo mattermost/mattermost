@@ -86,12 +86,12 @@ Archived channels are appended with ' (archived)'.`,
 }
 
 var MoveChannelsCmd = &cobra.Command{
-	Use:   "move [team] [channels] --username [user]",
+	Use:   "mv [channels] [team] --username [user]",
 	Short: "Moves channels to the specified team",
 	Long: `Moves the provided channels to the specified team.
 Validates that all users in the channel belong to the target team. Incoming/Outgoing webhooks are moved along with the channel.
 Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
-	Example: "  channel move newteam oldteam:mychannel --username myusername",
+	Example: "  channel mv oldteam:mychannel newteam --username myusername",
 	Args:    cobra.MinimumNArgs(2),
 	RunE:    moveChannelsCmdF,
 }
@@ -348,9 +348,10 @@ func moveChannelsCmdF(command *cobra.Command, args []string) error {
 	}
 	defer a.Shutdown()
 
-	team := getTeamFromTeamArg(a, args[0])
+	teamArgs := args[len(args)-1]
+	team := getTeamFromTeamArg(a, teamArgs)
 	if team == nil {
-		return errors.New("Unable to find destination team '" + args[0] + "'")
+		return errors.New("Unable to find destination team '" + teamArgs + "'")
 	}
 
 	username, erru := command.Flags().GetString("username")
@@ -361,10 +362,10 @@ func moveChannelsCmdF(command *cobra.Command, args []string) error {
 
 	removeDeactivatedMembers, _ := command.Flags().GetBool("remove-deactivated-users")
 
-	channels := getChannelsFromChannelArgs(a, args[1:])
+	channels := getChannelsFromChannelArgs(a, args[:len(args)-1])
 	for i, channel := range channels {
 		if channel == nil {
-			CommandPrintErrorln("Unable to find channel '" + args[i+1] + "'")
+			CommandPrintErrorln("Unable to find channel '" + args[i] + "'")
 			continue
 		}
 		originTeamID := channel.TeamId

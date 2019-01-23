@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -70,9 +71,9 @@ func TestMoveChannel(t *testing.T) {
 	th.CheckCommand(t, "channel", "add", origin, adminEmail)
 
 	// should fail with nil because errors are logged instead of returned when a channel does not exist
-	th.CheckCommand(t, "channel", "move", dest, team1.Name+":doesnotexist", "--username", adminUsername)
+	fmt.Println(th.CheckCommand(t, "channel", "mv", team1.Name+":doesnotexist", dest, "--username", adminUsername))
 
-	th.CheckCommand(t, "channel", "move", dest, origin, "--username", adminUsername)
+	fmt.Println(th.CheckCommand(t, "channel", "mv", origin, dest, "--username", adminUsername))
 }
 
 func TestListChannels(t *testing.T) {
