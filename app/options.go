@@ -40,6 +40,18 @@ func RunJobs(s *Server) {
 	s.runjobs = true
 }
 
+func JoinCluster(s *Server) {
+	s.joinCluster = true
+}
+
+func StartMetrics(s *Server) {
+	s.startMetrics = true
+}
+
+func StartElasticsearch(s *Server) {
+	s.startElasticsearch = true
+}
+
 func DisableConfigWatch(s *Server) {
 	s.disableConfigWatch = true
 }

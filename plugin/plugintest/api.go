@@ -1291,6 +1291,31 @@ func (_m *API) GetTeamMembers(teamId string, page int, perPage int) ([]*model.Te
 	return r0, r1
 }
 
+// GetTeamStats provides a mock function with given fields: teamId
+func (_m *API) GetTeamStats(teamId string) (*model.TeamStats, *model.AppError) {
+	ret := _m.Called(teamId)
+
+	var r0 *model.TeamStats
+	if rf, ok := ret.Get(0).(func(string) *model.TeamStats); ok {
+		r0 = rf(teamId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.TeamStats)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(teamId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetTeams provides a mock function with given fields:
 func (_m *API) GetTeams() ([]*model.Team, *model.AppError) {
 	ret := _m.Called()
@@ -1933,6 +1958,31 @@ func (_m *API) SearchChannels(teamId string, term string) ([]*model.Channel, *mo
 	return r0, r1
 }
 
+// SearchTeams provides a mock function with given fields: term
+func (_m *API) SearchTeams(term string) ([]*model.Team, *model.AppError) {
+	ret := _m.Called(term)
+
+	var r0 []*model.Team
+	if rf, ok := ret.Get(0).(func(string) []*model.Team); ok {
+		r0 = rf(term)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Team)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(term)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // SearchUsers provides a mock function with given fields: search
 func (_m *API) SearchUsers(search *model.UserSearch) ([]*model.User, *model.AppError) {
 	ret := _m.Called(search)
@@ -1968,6 +2018,22 @@ func (_m *API) SendEphemeralPost(userId string, post *model.Post) *model.Post {
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Post)
+		}
+	}
+
+	return r0
+}
+
+// SendMail provides a mock function with given fields: to, subject, htmlBody
+func (_m *API) SendMail(to string, subject string, htmlBody string) *model.AppError {
+	ret := _m.Called(to, subject, htmlBody)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, string, string) *model.AppError); ok {
+		r0 = rf(to, subject, htmlBody)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 

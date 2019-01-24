@@ -187,6 +187,63 @@ func TestCreatePostDeduplicate(t *testing.T) {
 	})
 }
 
+func TestAttachFilesToPost(t *testing.T) {
+	t.Run("should attach files", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
+
+		info1 := store.Must(th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
+			CreatorId: th.BasicUser.Id,
+			Path:      "path.txt",
+		})).(*model.FileInfo)
+		info2 := store.Must(th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
+			CreatorId: th.BasicUser.Id,
+			Path:      "path.txt",
+		})).(*model.FileInfo)
+
+		post := th.BasicPost
+		post.FileIds = []string{info1.Id, info2.Id}
+
+		err := th.App.attachFilesToPost(post)
+		assert.Nil(t, err)
+
+		infos, err := th.App.GetFileInfosForPost(post.Id)
+		assert.Nil(t, err)
+		assert.Len(t, infos, 2)
+	})
+
+	t.Run("should update File.PostIds after failing to add files", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
+
+		info1 := store.Must(th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
+			CreatorId: th.BasicUser.Id,
+			Path:      "path.txt",
+			PostId:    model.NewId(),
+		})).(*model.FileInfo)
+		info2 := store.Must(th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
+			CreatorId: th.BasicUser.Id,
+			Path:      "path.txt",
+		})).(*model.FileInfo)
+
+		post := th.BasicPost
+		post.FileIds = []string{info1.Id, info2.Id}
+
+		err := th.App.attachFilesToPost(post)
+		assert.Nil(t, err)
+
+		infos, err := th.App.GetFileInfosForPost(post.Id)
+		assert.Nil(t, err)
+		assert.Len(t, infos, 1)
+		assert.Equal(t, info2.Id, infos[0].Id)
+
+		updated, err := th.App.GetSinglePost(post.Id)
+		require.Nil(t, err)
+		assert.Len(t, updated.FileIds, 1)
+		assert.Contains(t, updated.FileIds, info2.Id)
+	})
+}
+
 func TestUpdatePostEditAt(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()

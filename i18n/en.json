@@ -360,6 +360,10 @@
     "translation": "This trigger word is already in use. Please choose another word."
   },
   {
+    "id": "api.command.execute_command.create_post_failed.app_error",
+    "translation": "Command '{{.Trigger}}' failed to post response. Please contact your System Administrator."
+  },
+  {
     "id": "api.command.execute_command.debug",
     "translation": "Executing cmd=%v userId=%v"
   },
@@ -1532,7 +1536,7 @@
   },
   {
     "id": "api.post.update_post.permissions_time_limit.app_error",
-    "translation": "Post edit is only allowed for {{.timeLimit}} seconds. Please ask your systems administrator for details."
+    "translation": "Post edit is only allowed for {{.timeLimit}} seconds. Please ask your System Administrator for details."
   },
   {
     "id": "api.post.update_post.system_message.app_error",
@@ -1768,11 +1772,11 @@
   },
   {
     "id": "api.team.is_team_creation_allowed.disabled.app_error",
-    "translation": "Team creation has been disabled. Please ask your systems administrator for details."
+    "translation": "Team creation has been disabled. Please ask your System Administrator for details."
   },
   {
     "id": "api.team.is_team_creation_allowed.domain.app_error",
-    "translation": "Email must be from a specific domain (e.g. @example.com). Please ask your systems administrator for details."
+    "translation": "Email must be from a specific domain (e.g. @example.com). Please ask your System Administrator for details."
   },
   {
     "id": "api.team.join_team.post_and_forget",
@@ -2121,6 +2125,10 @@
   {
     "id": "api.user.authorize_oauth_user.missing.app_error",
     "translation": "Missing access token"
+  },
+  {
+    "id": "api.user.authorize_oauth_user.response.app_error",
+    "translation": "Received invalid response from OAuth service provider"
   },
   {
     "id": "api.user.authorize_oauth_user.service.app_error",
@@ -3256,7 +3264,7 @@
   },
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
-    "translation": "This team has reached the maximum number of allowed accounts. Contact your systems administrator to set a higher limit."
+    "translation": "This team has reached the maximum number of allowed accounts. Contact your System Administrator to set a higher limit."
   },
   {
     "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
@@ -4640,7 +4648,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Invalid file ids"
+    "translation": "Invalid file ids. Note that uploads are limited to 5 files maximum. Please use additional posts for more files."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -4929,6 +4937,18 @@
   {
     "id": "plugin.api.update_user_status.bad_status",
     "translation": "Unable to set the user status. Unknown user status."
+  },
+  {
+    "id": "plugin_api.send_mail.missing_htmlbody",
+    "translation": "Missing HTML Body."
+  },
+  {
+    "id": "plugin_api.send_mail.missing_to",
+    "translation": "Missing TO address."
+  },
+  {
+    "id": "plugin_api.send_mail.missing_subject",
+    "translation": "Missing email subject."
   },
   {
     "id": "store.sql_channel.remove_all_deactivated_members.app_error",
@@ -6360,7 +6380,7 @@
   },
   {
     "id": "store.sql_user.save.max_accounts.app_error",
-    "translation": "This team has reached the maximum number of allowed accounts. Contact your systems administrator to set a higher limit."
+    "translation": "This team has reached the maximum number of allowed accounts. Contact your System Administrator to set a higher limit."
   },
   {
     "id": "store.sql_user.save.member_count.app_error",
@@ -6749,5 +6769,149 @@
   {
     "id": "web.incoming_webhook.user.app_error",
     "translation": "Couldn't find the user"
+  },
+  {
+    "id": "api.io_error",
+    "translation": "input/output error"
+  },
+  {
+    "id": "api.marshal_error",
+    "translation": "marshal error"
+  },
+  {
+    "id": "api.ldap_groups.license_error",
+    "translation": "your license does not support ldap groups"
+  },
+  {
+    "id": "api.ldap_group.not_found",
+    "translation": "ldap group not found"
+  },
+  {
+    "id": "ent.ldap_groups.reachable_groups_error",
+    "translation": "error retrieving groups for user"
+  },
+  {
+    "id": "ent.ldap_groups.no_rows",
+    "translation": "no groups found with matching uid"
+  },
+  {
+    "id": "ent.ldap_groups.members_of_group_error",
+    "translation": "error retrieving members of group"
+  },
+  {
+    "id": "ent.ldap_groups.group_search_error",
+    "translation": "error retrieving ldap group"
+  },
+  {
+    "id": "ent.ldap_groups.groups_search_error",
+    "translation": "error retrieving ldap groups"
+  },
+  {
+    "id": "ent.ldap.syncronize.get_all_groups.app_error",
+    "translation": "error retrieving groups"
+  },
+  {
+    "id": "ent.ldap.syncronize.populate_syncables",
+    "translation": "error populating syncables"
+  },
+  {
+    "id": "model.group.create_at.app_error",
+    "translation": "invalid create at property for group"
+  },
+  {
+    "id": "model.group.description.app_error",
+    "translation": "invalid description property for group"
+  },
+  {
+    "id": "model.group.display_name.app_error",
+    "translation": "invalid display name property for group"
+  },
+  {
+    "id": "model.group.id.app_error",
+    "translation": "invalid id property for group"
+  },
+  {
+    "id": "model.group.name.app_error",
+    "translation": "invalid name property for group"
+  },
+  {
+    "id": "model.group.remote_id.app_error",
+    "translation": "invalid remote id property for group"
+  },
+  {
+    "id": "model.group.source.app_error",
+    "translation": "invalid source property for group"
+  },
+  {
+    "id": "model.group_syncable.type.app_error",
+    "translation": "invalid type property for group syncable"
+  },
+  {
+    "id": "model.group_syncable.unmarshaljson.duplicate_type_identifier",
+    "translation": "type identifier already exists: perhaps json contains both 'team_id' and 'channel_id'"
+  },
+  {
+    "id": "model.group.update_at.app_error",
+    "translation": "invalid update at property for group"
+  },
+  {
+    "id": "model.group_member.group_id.app_error",
+    "translation": "invalid group id property for group member"
+  },
+  {
+    "id": "model.group_member.user_id.app_error",
+    "translation": "invalid user id property for group member"
+  },
+  {
+    "id": "model.group_syncable.group_id.app_error",
+    "translation": "invalid group id property for group syncable"
+  },
+  {
+    "id": "model.group_syncable.syncable_id.app_error",
+    "translation": "invalid syncable id for group syncable"
+  },
+  {
+    "id": "store.sql_group.group_syncable_already_deleted",
+    "translation": "group syncable was already deleted"
+  },
+  {
+    "id": "store.insert_error",
+    "translation": "insert error"
+  },
+  {
+    "id": "model.group.delete_at.app_error",
+    "translation": "invalid delete at property for group"
+  },
+  {
+    "id": "store.sql_group.no_rows",
+    "translation": "no matching group found"
+  },
+  {
+    "id": "store.sql_group.no_rows_changed",
+    "translation": "no rows changed"
+  },
+  {
+    "id": "store.sql_group.nothing_to_update",
+    "translation": "nothing to update for group syncable"
+  },
+  {
+    "id": "store.select_error",
+    "translation": "select error"
+  },
+  {
+    "id": "store.sql_group.unique_constraint",
+    "translation": "a group with that name already exists"
+  },
+  {
+    "id": "store.sql_group.uniqueness_error",
+    "translation": "group member already exists"
+  },
+  {
+    "id": "store.update_error",
+    "translation": "update error"
+  },
+  {
+    "id": "ent.ldap.app_error",
+    "translation": "ldap interface was nil"
   }
 ]

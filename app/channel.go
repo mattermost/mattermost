@@ -891,7 +891,8 @@ func (a *App) AddChannelMember(userId string, channel *model.Channel, userReques
 
 func (a *App) AddDirectChannels(teamId string, user *model.User) *model.AppError {
 	var profiles []*model.User
-	result := <-a.Srv.Store.User().GetProfiles(teamId, 0, 100)
+	options := &model.UserGetOptions{InTeamId: teamId, Page: 0, PerPage: 100}
+	result := <-a.Srv.Store.User().GetProfiles(options)
 	if result.Err != nil {
 		return model.NewAppError("AddDirectChannels", "api.user.add_direct_channels_and_forget.failed.error", map[string]interface{}{"UserId": user.Id, "TeamId": teamId, "Error": result.Err.Error()}, "", http.StatusInternalServerError)
 	}
@@ -1114,6 +1115,14 @@ func (a *App) GetChannelsForUser(teamId string, userId string, includeDeleted bo
 		return nil, result.Err
 	}
 	return result.Data.(*model.ChannelList), nil
+}
+
+func (a *App) GetAllChannels(page, perPage int, includeDeleted bool) (*model.ChannelListWithTeamData, *model.AppError) {
+	result := <-a.Srv.Store.Channel().GetAllChannels(page*perPage, perPage, includeDeleted)
+	if result.Err != nil {
+		return nil, result.Err
+	}
+	return result.Data.(*model.ChannelListWithTeamData), nil
 }
 
 func (a *App) GetDeletedChannels(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
@@ -1577,6 +1586,14 @@ func (a *App) AutocompleteChannelsForSearch(teamId string, userId string, term s
 	return result.Data.(*model.ChannelList), nil
 }
 
+func (a *App) SearchAllChannels(term string, includeDeleted bool) (*model.ChannelListWithTeamData, *model.AppError) {
+	result := <-a.Srv.Store.Channel().SearchAllChannels(term, *a.Config().TeamSettings.ExperimentalViewArchivedChannels && includeDeleted)
+	if result.Err != nil {
+		return nil, result.Err
+	}
+	return result.Data.(*model.ChannelListWithTeamData), nil
+}
+
 func (a *App) SearchChannels(teamId string, term string) (*model.ChannelList, *model.AppError) {
 	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 
@@ -1600,6 +1617,13 @@ func (a *App) MarkChannelsAsViewed(channelIds []string, userId string, clearPush
 	channelsToClearPushNotifications := []string{}
 	if *a.Config().EmailSettings.SendPushNotifications && clearPushNotifications {
 		for _, channelId := range channelIds {
+			chanResult := <-a.Srv.Store.Channel().Get(channelId, true)
+			if chanResult.Err != nil {
+				mlog.Warn(fmt.Sprintf("Failed to get channel %v", chanResult.Err))
+				continue
+			}
+			channel := chanResult.Data.(*model.Channel)
+
 			result := <-a.Srv.Store.Channel().GetMember(channelId, userId)
 			if result.Err != nil {
 				mlog.Warn(fmt.Sprintf("Failed to get membership %v", result.Err))
@@ -1618,9 +1642,10 @@ func (a *App) MarkChannelsAsViewed(channelIds []string, userId string, clearPush
 						channelsToClearPushNotifications = append(channelsToClearPushNotifications, channelId)
 					}
 				}
-			} else if notify == model.USER_NOTIFY_MENTION {
+			} else if notify == model.USER_NOTIFY_MENTION || channel.Type == model.CHANNEL_DIRECT {
 				if result := <-a.Srv.Store.User().GetUnreadCountForChannel(userId, channelId); result.Err == nil {
-					if result.Data.(int64) > 0 {
+					count := result.Data.(int64)
+					if count > 0 {
 						channelsToClearPushNotifications = append(channelsToClearPushNotifications, channelId)
 					}
 				}
@@ -1782,7 +1807,7 @@ func (a *App) ToggleMuteChannel(channelId string, userId string) *model.ChannelM
 		member.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] = model.CHANNEL_NOTIFY_MENTION
 	}
 
-	a.Srv.Store.Channel().UpdateMember(member)
+	<-a.Srv.Store.Channel().UpdateMember(member)
 	return member
 }
 

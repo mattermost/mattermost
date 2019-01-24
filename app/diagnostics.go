@@ -23,7 +23,6 @@ const (
 	TRACK_CONFIG_LOG                = "config_log"
 	TRACK_CONFIG_FILE               = "config_file"
 	TRACK_CONFIG_RATE               = "config_rate"
-	TRACK_CONFIG_EXTENSION          = "config_extension"
 	TRACK_CONFIG_EMAIL              = "config_email"
 	TRACK_CONFIG_PRIVACY            = "config_privacy"
 	TRACK_CONFIG_THEME              = "config_theme"
@@ -223,6 +222,7 @@ func (a *App) trackConfig() {
 		"enforce_multifactor_authentication":                      *cfg.ServiceSettings.EnforceMultifactorAuthentication,
 		"enable_oauth_service_provider":                           cfg.ServiceSettings.EnableOAuthServiceProvider,
 		"connection_security":                                     *cfg.ServiceSettings.ConnectionSecurity,
+		"tls_strict_transport":                                    *cfg.ServiceSettings.TLSStrictTransport,
 		"uses_letsencrypt":                                        *cfg.ServiceSettings.UseLetsEncrypt,
 		"forward_80_to_443":                                       *cfg.ServiceSettings.Forward80To443,
 		"maximum_login_attempts":                                  *cfg.ServiceSettings.MaximumLoginAttempts,
@@ -262,6 +262,7 @@ func (a *App) trackConfig() {
 		"experimental_enable_hardened_mode":                       *cfg.ServiceSettings.ExperimentalEnableHardenedMode,
 		"enable_email_invitations":                                *cfg.ServiceSettings.EnableEmailInvitations,
 		"experimental_channel_organization":                       *cfg.ServiceSettings.ExperimentalChannelOrganization,
+		"experimental_ldap_group_sync":                            *cfg.ServiceSettings.ExperimentalLdapGroupSync,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_TEAM, map[string]interface{}{
@@ -416,25 +417,28 @@ func (a *App) trackConfig() {
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_LDAP, map[string]interface{}{
-		"enable":                              *cfg.LdapSettings.Enable,
-		"enable_sync":                         *cfg.LdapSettings.EnableSync,
-		"connection_security":                 *cfg.LdapSettings.ConnectionSecurity,
-		"skip_certificate_verification":       *cfg.LdapSettings.SkipCertificateVerification,
-		"sync_interval_minutes":               *cfg.LdapSettings.SyncIntervalMinutes,
-		"query_timeout":                       *cfg.LdapSettings.QueryTimeout,
-		"max_page_size":                       *cfg.LdapSettings.MaxPageSize,
-		"isdefault_first_name_attribute":      isDefault(*cfg.LdapSettings.FirstNameAttribute, model.LDAP_SETTINGS_DEFAULT_FIRST_NAME_ATTRIBUTE),
-		"isdefault_last_name_attribute":       isDefault(*cfg.LdapSettings.LastNameAttribute, model.LDAP_SETTINGS_DEFAULT_LAST_NAME_ATTRIBUTE),
-		"isdefault_email_attribute":           isDefault(*cfg.LdapSettings.EmailAttribute, model.LDAP_SETTINGS_DEFAULT_EMAIL_ATTRIBUTE),
-		"isdefault_username_attribute":        isDefault(*cfg.LdapSettings.UsernameAttribute, model.LDAP_SETTINGS_DEFAULT_USERNAME_ATTRIBUTE),
-		"isdefault_nickname_attribute":        isDefault(*cfg.LdapSettings.NicknameAttribute, model.LDAP_SETTINGS_DEFAULT_NICKNAME_ATTRIBUTE),
-		"isdefault_id_attribute":              isDefault(*cfg.LdapSettings.IdAttribute, model.LDAP_SETTINGS_DEFAULT_ID_ATTRIBUTE),
-		"isdefault_position_attribute":        isDefault(*cfg.LdapSettings.PositionAttribute, model.LDAP_SETTINGS_DEFAULT_POSITION_ATTRIBUTE),
-		"isdefault_login_id_attribute":        isDefault(*cfg.LdapSettings.LoginIdAttribute, ""),
-		"isdefault_login_field_name":          isDefault(*cfg.LdapSettings.LoginFieldName, model.LDAP_SETTINGS_DEFAULT_LOGIN_FIELD_NAME),
-		"isdefault_login_button_color":        isDefault(*cfg.LdapSettings.LoginButtonColor, ""),
-		"isdefault_login_button_border_color": isDefault(*cfg.LdapSettings.LoginButtonBorderColor, ""),
-		"isdefault_login_button_text_color":   isDefault(*cfg.LdapSettings.LoginButtonTextColor, ""),
+		"enable":                                 *cfg.LdapSettings.Enable,
+		"enable_sync":                            *cfg.LdapSettings.EnableSync,
+		"connection_security":                    *cfg.LdapSettings.ConnectionSecurity,
+		"skip_certificate_verification":          *cfg.LdapSettings.SkipCertificateVerification,
+		"sync_interval_minutes":                  *cfg.LdapSettings.SyncIntervalMinutes,
+		"query_timeout":                          *cfg.LdapSettings.QueryTimeout,
+		"max_page_size":                          *cfg.LdapSettings.MaxPageSize,
+		"isdefault_first_name_attribute":         isDefault(*cfg.LdapSettings.FirstNameAttribute, model.LDAP_SETTINGS_DEFAULT_FIRST_NAME_ATTRIBUTE),
+		"isdefault_last_name_attribute":          isDefault(*cfg.LdapSettings.LastNameAttribute, model.LDAP_SETTINGS_DEFAULT_LAST_NAME_ATTRIBUTE),
+		"isdefault_email_attribute":              isDefault(*cfg.LdapSettings.EmailAttribute, model.LDAP_SETTINGS_DEFAULT_EMAIL_ATTRIBUTE),
+		"isdefault_username_attribute":           isDefault(*cfg.LdapSettings.UsernameAttribute, model.LDAP_SETTINGS_DEFAULT_USERNAME_ATTRIBUTE),
+		"isdefault_nickname_attribute":           isDefault(*cfg.LdapSettings.NicknameAttribute, model.LDAP_SETTINGS_DEFAULT_NICKNAME_ATTRIBUTE),
+		"isdefault_id_attribute":                 isDefault(*cfg.LdapSettings.IdAttribute, model.LDAP_SETTINGS_DEFAULT_ID_ATTRIBUTE),
+		"isdefault_position_attribute":           isDefault(*cfg.LdapSettings.PositionAttribute, model.LDAP_SETTINGS_DEFAULT_POSITION_ATTRIBUTE),
+		"isdefault_login_id_attribute":           isDefault(*cfg.LdapSettings.LoginIdAttribute, ""),
+		"isdefault_login_field_name":             isDefault(*cfg.LdapSettings.LoginFieldName, model.LDAP_SETTINGS_DEFAULT_LOGIN_FIELD_NAME),
+		"isdefault_login_button_color":           isDefault(*cfg.LdapSettings.LoginButtonColor, ""),
+		"isdefault_login_button_border_color":    isDefault(*cfg.LdapSettings.LoginButtonBorderColor, ""),
+		"isdefault_login_button_text_color":      isDefault(*cfg.LdapSettings.LoginButtonTextColor, ""),
+		"isempty_group_filter":                   isDefault(*cfg.LdapSettings.GroupFilter, ""),
+		"isdefault_group_display_name_attribute": isDefault(*cfg.LdapSettings.GroupDisplayNameAttribute, model.LDAP_SETTINGS_DEFAULT_GROUP_DISPLAY_NAME_ATTRIBUTE),
+		"isdefault_group_id_attribute":           isDefault(*cfg.LdapSettings.GroupIdAttribute, model.LDAP_SETTINGS_DEFAULT_GROUP_ID_ATTRIBUTE),
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_COMPLIANCE, map[string]interface{}{

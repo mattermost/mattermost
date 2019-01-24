@@ -729,3 +729,15 @@ func TestGetTeamMembers(t *testing.T) {
 		assert.Equal(t, userIDs[i], member.UserId)
 	}
 }
+
+func TestGetTeamStats(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	teamStats, err := th.App.GetTeamStats(th.BasicTeam.Id)
+	require.Nil(t, err)
+	require.NotNil(t, teamStats)
+	members, err := th.App.GetTeamMembers(th.BasicTeam.Id, 0, 5)
+	require.Nil(t, err)
+	assert.Equal(t, int64(len(members)), teamStats.TotalMemberCount)
+}

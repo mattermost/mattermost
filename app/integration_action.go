@@ -71,12 +71,11 @@ func (a *App) DoPostAction(postId, actionId, userId, selectedOption string) (str
 	}
 
 	resp, err := a.DoActionRequest(action.Integration.URL, request.ToJson())
-	if resp != nil {
-		defer consumeAndClose(resp)
-	}
 	if err != nil {
 		return "", err
 	}
+
+	defer resp.Body.Close()
 
 	var response model.PostActionIntegrationResponse
 	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
@@ -126,7 +125,10 @@ func (a *App) DoPostAction(postId, actionId, userId, selectedOption string) (str
 // Perform an HTTP POST request to an integration's action endpoint.
 // Caller must consume and close returned http.Response as necessary.
 func (a *App) DoActionRequest(rawURL string, body []byte) (*http.Response, *model.AppError) {
-	req, _ := http.NewRequest("POST", rawURL, bytes.NewReader(body))
+	req, err := http.NewRequest("POST", rawURL, bytes.NewReader(body))
+	if err != nil {
+		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
 
@@ -181,13 +183,11 @@ func (a *App) SubmitInteractiveDialog(request model.SubmitDialogRequest) (*model
 	}
 
 	resp, err := a.DoActionRequest(url, b)
-	if resp != nil {
-		defer consumeAndClose(resp)
-	}
-
 	if err != nil {
 		return nil, err
 	}
+
+	defer resp.Body.Close()
 
 	var response model.SubmitDialogResponse
 	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {

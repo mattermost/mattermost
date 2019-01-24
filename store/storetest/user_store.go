@@ -307,7 +307,9 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 	store.Must(ss.User().Save(u2))
 	defer func() { store.Must(ss.User().PermanentDelete(u2.Id)) }()
 
-	if r1 := <-ss.User().GetAllProfiles(0, 100); r1.Err != nil {
+	options := &model.UserGetOptions{Page: 0, PerPage: 100}
+
+	if r1 := <-ss.User().GetAllProfiles(options); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		users := r1.Data.([]*model.User)
@@ -316,7 +318,8 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if r2 := <-ss.User().GetAllProfiles(0, 1); r2.Err != nil {
+	options = &model.UserGetOptions{Page: 0, PerPage: 1}
+	if r2 := <-ss.User().GetAllProfiles(options); r2.Err != nil {
 		t.Fatal(r2.Err)
 	} else {
 		users := r2.Data.([]*model.User)
@@ -343,6 +346,7 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 
 	u3 := &model.User{}
 	u3.Email = MakeEmail()
+	u3.Roles = "system_user some-other-role"
 	store.Must(ss.User().Save(u3))
 	defer func() { store.Must(ss.User().PermanentDelete(u3.Id)) }()
 
@@ -352,6 +356,64 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 		if etag == r2.Data.(string) {
 			t.Fatal("etags should not match")
 		}
+	}
+
+	u4 := &model.User{}
+	u4.Email = MakeEmail()
+	u4.Roles = "system_admin some-other-role"
+	store.Must(ss.User().Save(u4))
+	defer func() { store.Must(ss.User().PermanentDelete(u4.Id)) }()
+
+	u5 := &model.User{}
+	u5.Email = MakeEmail()
+	u5.Roles = "system_admin"
+	store.Must(ss.User().Save(u5))
+	defer func() { store.Must(ss.User().PermanentDelete(u5.Id)) }()
+
+	options = &model.UserGetOptions{Page: 0, PerPage: 10, Role: "system_admin"}
+	if r2 := <-ss.User().GetAllProfiles(options); r2.Err != nil {
+		t.Fatal(r2.Err)
+	} else {
+		users := r2.Data.([]*model.User)
+		if len(users) != 2 {
+			t.Fatal("invalid returned users, role filter did not work")
+		}
+		assert.ElementsMatch(t, []string{u4.Id, u5.Id}, []string{users[0].Id, users[1].Id})
+	}
+
+	u6 := &model.User{}
+	u6.Email = MakeEmail()
+	u6.DeleteAt = model.GetMillis()
+	u6.Roles = "system_admin"
+	store.Must(ss.User().Save(u6))
+	defer func() { store.Must(ss.User().PermanentDelete(u6.Id)) }()
+
+	u7 := &model.User{}
+	u7.Email = MakeEmail()
+	u7.DeleteAt = model.GetMillis()
+	store.Must(ss.User().Save(u7))
+	defer func() { store.Must(ss.User().PermanentDelete(u7.Id)) }()
+
+	options = &model.UserGetOptions{Page: 0, PerPage: 10, Role: "system_admin", Inactive: true}
+	if r2 := <-ss.User().GetAllProfiles(options); r2.Err != nil {
+		t.Fatal(r2.Err)
+	} else {
+		users := r2.Data.([]*model.User)
+		if len(users) != 1 {
+			t.Fatal("invalid returned users, Role and Inactive filter did not work")
+		}
+		assert.Equal(t, u6.Id, users[0].Id)
+	}
+
+	options = &model.UserGetOptions{Page: 0, PerPage: 10, Inactive: true}
+	if r2 := <-ss.User().GetAllProfiles(options); r2.Err != nil {
+		t.Fatal(r2.Err)
+	} else {
+		users := r2.Data.([]*model.User)
+		if len(users) != 2 {
+			t.Fatal("invalid returned users, Inactive filter did not work")
+		}
+		assert.ElementsMatch(t, []string{u6.Id, u7.Id}, []string{users[0].Id, users[1].Id})
 	}
 }
 
@@ -370,7 +432,8 @@ func testUserStoreGetProfiles(t *testing.T, ss store.Store) {
 	defer func() { store.Must(ss.User().PermanentDelete(u2.Id)) }()
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1))
 
-	if r1 := <-ss.User().GetProfiles(teamId, 0, 100); r1.Err != nil {
+	options := &model.UserGetOptions{InTeamId: teamId, Page: 0, PerPage: 100}
+	if r1 := <-ss.User().GetProfiles(options); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		users := r1.Data.([]*model.User)
@@ -390,7 +453,8 @@ func testUserStoreGetProfiles(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if r2 := <-ss.User().GetProfiles("123", 0, 100); r2.Err != nil {
+	options = &model.UserGetOptions{InTeamId: "123", Page: 0, PerPage: 100}
+	if r2 := <-ss.User().GetProfiles(options); r2.Err != nil {
 		t.Fatal(r2.Err)
 	} else {
 		if len(r2.Data.([]*model.User)) != 0 {
@@ -418,6 +482,53 @@ func testUserStoreGetProfiles(t *testing.T, ss store.Store) {
 			t.Fatal("etags should not match")
 		}
 	}
+
+	u4 := &model.User{}
+	u4.Email = MakeEmail()
+	u4.Roles = "system_admin"
+	store.Must(ss.User().Save(u4))
+	defer func() { store.Must(ss.User().PermanentDelete(u4.Id)) }()
+	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u4.Id}, -1))
+
+	u5 := &model.User{}
+	u5.Email = MakeEmail()
+	u5.DeleteAt = model.GetMillis()
+	store.Must(ss.User().Save(u5))
+	defer func() { store.Must(ss.User().PermanentDelete(u5.Id)) }()
+	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u5.Id}, -1))
+
+	options = &model.UserGetOptions{InTeamId: teamId, Page: 0, PerPage: 100}
+	if r1 := <-ss.User().GetProfiles(options); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		users := r1.Data.([]*model.User)
+		if len(users) != 5 {
+			t.Fatal("invalid returned users")
+		}
+	}
+
+	options = &model.UserGetOptions{InTeamId: teamId, Role: "system_admin", Inactive: false, Page: 0, PerPage: 100}
+	if r1 := <-ss.User().GetProfiles(options); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		users := r1.Data.([]*model.User)
+		if len(users) != 1 {
+			t.Fatal("invalid returned users")
+		}
+		assert.Equal(t, u4.Id, users[0].Id)
+	}
+
+	options = &model.UserGetOptions{InTeamId: teamId, Inactive: true, Page: 0, PerPage: 100}
+	if r1 := <-ss.User().GetProfiles(options); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		users := r1.Data.([]*model.User)
+		if len(users) != 1 {
+			t.Fatal("invalid returned users")
+		}
+		assert.Equal(t, u5.Id, users[0].Id)
+	}
+
 }
 
 func testUserStoreGetProfilesInChannel(t *testing.T, ss store.Store) {
@@ -937,7 +1048,8 @@ func testUserStoreGetProfilesByIds(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if r2 := <-ss.User().GetProfiles("123", 0, 100); r2.Err != nil {
+	options := &model.UserGetOptions{InTeamId: "123", Page: 0, PerPage: 100}
+	if r2 := <-ss.User().GetProfiles(options); r2.Err != nil {
 		t.Fatal(r2.Err)
 	} else {
 		if len(r2.Data.([]*model.User)) != 0 {
@@ -1410,6 +1522,22 @@ func assertUsers(t *testing.T, expected, actual []*model.User) {
 	}
 }
 
+func assertUsersMatchInAnyOrder(t *testing.T, expected, actual []*model.User) {
+	expectedUsernames := make([]string, 0, len(expected))
+	for _, user := range expected {
+		expectedUsernames = append(expectedUsernames, user.Username)
+	}
+
+	actualUsernames := make([]string, 0, len(actual))
+	for _, user := range actual {
+		actualUsernames = append(actualUsernames, user.Username)
+	}
+
+	if assert.ElementsMatch(t, expectedUsernames, actualUsernames) {
+		assert.ElementsMatch(t, expected, actual)
+	}
+}
+
 func testUserStoreSearch(t *testing.T, ss store.Store) {
 	u1 := &model.User{
 		Username:  "jimbo1" + model.NewId(),
@@ -1417,6 +1545,7 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 		LastName:  "Bill",
 		Nickname:  "Rob",
 		Email:     "harold" + model.NewId() + "@simulator.amazonses.com",
+		Roles:     "system_user system_admin",
 	}
 	store.Must(ss.User().Save(u1))
 	defer func() { store.Must(ss.User().PermanentDelete(u1.Id)) }()
@@ -1424,6 +1553,7 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 	u2 := &model.User{
 		Username: "jim-bobby" + model.NewId(),
 		Email:    MakeEmail(),
+		Roles:    "system_user",
 	}
 	store.Must(ss.User().Save(u2))
 	defer func() { store.Must(ss.User().PermanentDelete(u2.Id)) }()
@@ -1432,6 +1562,7 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 		Username: "jimbo3" + model.NewId(),
 		Email:    MakeEmail(),
 		DeleteAt: 1,
+		Roles:    "system_admin",
 	}
 	store.Must(ss.User().Save(u3))
 	defer func() { store.Must(ss.User().PermanentDelete(u3.Id)) }()
@@ -1668,13 +1799,46 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 			},
 			[]*model.User{u1},
 		},
+		{
+			"search jim-bobby with system_user roles",
+			tid,
+			"jim-bobby",
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+				Role:           "system_user",
+			},
+			[]*model.User{u2},
+		},
+		{
+			"search jim with system_admin roles",
+			tid,
+			"jim",
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+				Role:           "system_admin",
+			},
+			[]*model.User{u1},
+		},
+		{
+			"search ji with system_user roles",
+			tid,
+			"ji",
+			&model.UserSearchOptions{
+				AllowFullNames: true,
+				Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
+				Role:           "system_user",
+			},
+			[]*model.User{u1, u2},
+		},
 	}
 
 	for _, testCase := range testCases {
 		t.Run(testCase.Description, func(t *testing.T) {
 			result := <-ss.User().Search(testCase.TeamId, testCase.Term, testCase.Options)
 			require.Nil(t, result.Err)
-			assertUsers(t, testCase.Expected, result.Data.([]*model.User))
+			assertUsersMatchInAnyOrder(t, testCase.Expected, result.Data.([]*model.User))
 		})
 	}
 

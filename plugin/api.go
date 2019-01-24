@@ -144,6 +144,11 @@ type API interface {
 	// UpdateTeam updates a team.
 	UpdateTeam(team *model.Team) (*model.Team, *model.AppError)
 
+	// SearchTeams search a team.
+	//
+	// Minimum server version: 5.8
+	SearchTeams(term string) ([]*model.Team, *model.AppError)
+
 	// GetTeamsForUser returns list of teams of given user ID.
 	//
 	// Minimum server version: 5.6
@@ -293,6 +298,11 @@ type API interface {
 	// Minimum server version: 5.6
 	GetPostsForChannel(channelId string, page, perPage int) (*model.PostList, *model.AppError)
 
+	// GetTeamStats gets a team's statistics
+	//
+	// Minimum server version: 5.8
+	GetTeamStats(teamId string) (*model.TeamStats, *model.AppError)
+
 	// UpdatePost updates a post.
 	UpdatePost(post *model.Post) (*model.Post, *model.AppError)
 
@@ -422,9 +432,9 @@ type API interface {
 	KVList(page, perPage int) ([]string, *model.AppError)
 
 	// PublishWebSocketEvent sends an event to WebSocket connections.
-	// event is the type and will be prepended with "custom_<pluginid>_"
-	// payload is the data sent with the event. Interface values must be primitive Go types or mattermost-server/model types
-	// broadcast determines to which users to send the event
+	// event is the type and will be prepended with "custom_<pluginid>_".
+	// payload is the data sent with the event. Interface values must be primitive Go types or mattermost-server/model types.
+	// broadcast determines to which users to send the event.
 	PublishWebSocketEvent(event string, payload map[string]interface{}, broadcast *model.WebsocketBroadcast)
 
 	// HasPermissionTo check if the user has the permission at system scope.
@@ -465,6 +475,11 @@ type API interface {
 	// do not need to add that info.
 	// keyValuePairs should be primitive go types or other values that can be encoded by encoding/gob
 	LogWarn(msg string, keyValuePairs ...interface{})
+
+	// SendMail sends an email to a specific address
+	//
+	// Minimum server version: 5.7
+	SendMail(to, subject, htmlBody string) *model.AppError
 }
 
 var handshake = plugin.HandshakeConfig{

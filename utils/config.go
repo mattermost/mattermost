@@ -428,7 +428,6 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props := GenerateLimitedClientConfig(c, diagnosticId, license)
 
 	props["SiteURL"] = strings.TrimRight(*c.ServiceSettings.SiteURL, "/")
-	props["WebsocketURL"] = strings.TrimRight(*c.ServiceSettings.WebsocketURL, "/")
 	props["EnableUserDeactivation"] = strconv.FormatBool(*c.TeamSettings.EnableUserDeactivation)
 	props["RestrictDirectMessage"] = *c.TeamSettings.RestrictDirectMessage
 	props["EnableXToLeaveChannelsFromLHS"] = strconv.FormatBool(*c.TeamSettings.EnableXToLeaveChannelsFromLHS)
@@ -476,9 +475,6 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["EnableFileAttachments"] = strconv.FormatBool(*c.FileSettings.EnableFileAttachments)
 	props["EnablePublicLink"] = strconv.FormatBool(c.FileSettings.EnablePublicLink)
 
-	props["WebsocketPort"] = fmt.Sprintf("%v", *c.ServiceSettings.WebsocketPort)
-	props["WebsocketSecurePort"] = fmt.Sprintf("%v", *c.ServiceSettings.WebsocketSecurePort)
-
 	props["AvailableLocales"] = *c.LocalizationSettings.AvailableLocales
 	props["SQLDriverName"] = *c.SqlSettings.DriverName
 
@@ -505,7 +501,6 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["LdapNicknameAttributeSet"] = "false"
 	props["LdapFirstNameAttributeSet"] = "false"
 	props["LdapLastNameAttributeSet"] = "false"
-	props["EnforceMultifactorAuthentication"] = "false"
 	props["EnableCompliance"] = "false"
 	props["EnableMobileFileDownload"] = "true"
 	props["EnableMobileFileUpload"] = "true"
@@ -548,10 +543,6 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 			props["LdapNicknameAttributeSet"] = strconv.FormatBool(*c.LdapSettings.NicknameAttribute != "")
 			props["LdapFirstNameAttributeSet"] = strconv.FormatBool(*c.LdapSettings.FirstNameAttribute != "")
 			props["LdapLastNameAttributeSet"] = strconv.FormatBool(*c.LdapSettings.LastNameAttribute != "")
-		}
-
-		if *license.Features.MFA {
-			props["EnforceMultifactorAuthentication"] = strconv.FormatBool(*c.ServiceSettings.EnforceMultifactorAuthentication)
 		}
 
 		if *license.Features.Compliance {
@@ -615,6 +606,9 @@ func GenerateLimitedClientConfig(c *model.Config, diagnosticId string, license *
 	props["BuildEnterpriseReady"] = model.BuildEnterpriseReady
 
 	props["SiteName"] = c.TeamSettings.SiteName
+	props["WebsocketURL"] = strings.TrimRight(*c.ServiceSettings.WebsocketURL, "/")
+	props["WebsocketPort"] = fmt.Sprintf("%v", *c.ServiceSettings.WebsocketPort)
+	props["WebsocketSecurePort"] = fmt.Sprintf("%v", *c.ServiceSettings.WebsocketSecurePort)
 	props["EnableUserCreation"] = strconv.FormatBool(*c.TeamSettings.EnableUserCreation)
 	props["EnableOpenServer"] = strconv.FormatBool(*c.TeamSettings.EnableOpenServer)
 
@@ -667,7 +661,6 @@ func GenerateLimitedClientConfig(c *model.Config, diagnosticId string, license *
 	props["LdapLoginButtonColor"] = ""
 	props["LdapLoginButtonBorderColor"] = ""
 	props["LdapLoginButtonTextColor"] = ""
-	props["EnableMultifactorAuthentication"] = "false"
 	props["EnableSaml"] = "false"
 	props["SamlLoginButtonText"] = ""
 	props["SamlLoginButtonColor"] = ""
@@ -679,6 +672,7 @@ func GenerateLimitedClientConfig(c *model.Config, diagnosticId string, license *
 	props["CustomBrandText"] = *c.TeamSettings.CustomBrandText
 	props["CustomDescriptionText"] = *c.TeamSettings.CustomDescriptionText
 	props["EnableMultifactorAuthentication"] = strconv.FormatBool(*c.ServiceSettings.EnableMultifactorAuthentication)
+	props["EnforceMultifactorAuthentication"] = "false"
 
 	if license != nil {
 		if *license.Features.LDAP {
@@ -708,6 +702,10 @@ func GenerateLimitedClientConfig(c *model.Config, diagnosticId string, license *
 		if *license.Features.CustomTermsOfService {
 			props["EnableCustomTermsOfService"] = strconv.FormatBool(*c.SupportSettings.CustomTermsOfServiceEnabled)
 			props["CustomTermsOfServiceReAcceptancePeriod"] = strconv.FormatInt(int64(*c.SupportSettings.CustomTermsOfServiceReAcceptancePeriod), 10)
+		}
+
+		if *license.Features.MFA {
+			props["EnforceMultifactorAuthentication"] = strconv.FormatBool(*c.ServiceSettings.EnforceMultifactorAuthentication)
 		}
 	}
 

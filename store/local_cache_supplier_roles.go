@@ -18,7 +18,7 @@ func (s *LocalCacheSupplier) handleClusterInvalidateRole(msg *model.ClusterMessa
 }
 
 func (s *LocalCacheSupplier) RoleSave(ctx context.Context, role *model.Role, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	if len(role.Id) != 0 {
+	if len(role.Name) != 0 {
 		defer s.doInvalidateCacheCluster(s.roleCache, role.Name)
 	}
 	return s.Next().RoleSave(ctx, role, hints...)

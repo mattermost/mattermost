@@ -201,18 +201,32 @@ func (fs SqlFileInfoStore) GetForUser(userId string) store.StoreChannel {
 	})
 }
 
-func (fs SqlFileInfoStore) AttachToPost(fileId, postId string) store.StoreChannel {
+func (fs SqlFileInfoStore) AttachToPost(fileId, postId, creatorId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		if _, err := fs.GetMaster().Exec(
+		sqlResult, err := fs.GetMaster().Exec(
 			`UPDATE
 					FileInfo
 				SET
 					PostId = :PostId
 				WHERE
 					Id = :Id
-					AND PostId = ''`, map[string]interface{}{"PostId": postId, "Id": fileId}); err != nil {
+					AND PostId = ''
+					AND CreatorId = :CreatorId`, map[string]interface{}{"PostId": postId, "Id": fileId, "CreatorId": creatorId})
+		if err != nil {
 			result.Err = model.NewAppError("SqlFileInfoStore.AttachToPost",
 				"store.sql_file_info.attach_to_post.app_error", nil, "post_id="+postId+", file_id="+fileId+", err="+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		count, err := sqlResult.RowsAffected()
+		if err != nil {
+			// RowsAffected should never fail with the MySQL or Postgres drivers
+			result.Err = model.NewAppError("SqlFileInfoStore.AttachToPost",
+				"store.sql_file_info.attach_to_post.app_error", nil, "post_id="+postId+", file_id="+fileId+", err="+err.Error(), http.StatusInternalServerError)
+		} else if count == 0 {
+			// Could not attach the file to the post
+			result.Err = model.NewAppError("SqlFileInfoStore.AttachToPost",
+				"store.sql_file_info.attach_to_post.app_error", nil, "post_id="+postId+", file_id="+fileId, http.StatusBadRequest)
 		}
 	})
 }

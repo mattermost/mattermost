@@ -15,7 +15,7 @@ import (
 	"github.com/mattermost/mattermost-server/store"
 )
 
-func (a *App) CheckForClienSideCert(r *http.Request) (string, string, string) {
+func (a *App) CheckForClientSideCert(r *http.Request) (string, string, string) {
 	pem := r.Header.Get("X-SSL-Client-Cert")                // mapped to $ssl_client_cert from nginx
 	subject := r.Header.Get("X-SSL-Client-Cert-Subject-DN") // mapped to $ssl_client_s_dn from nginx
 	email := ""
