@@ -2482,6 +2482,8 @@ func TestSwitchAccount(t *testing.T) {
 }
 
 func assertToken(t *testing.T, th *TestHelper, token *model.UserAccessToken, expectedUserId string) {
+	t.Helper()
+
 	oldSessionToken := th.Client.AuthToken
 	defer func() { th.Client.AuthToken = oldSessionToken }()
 
@@ -2493,6 +2495,8 @@ func assertToken(t *testing.T, th *TestHelper, token *model.UserAccessToken, exp
 }
 
 func assertInvalidToken(t *testing.T, th *TestHelper, token *model.UserAccessToken) {
+	t.Helper()
+
 	oldSessionToken := th.Client.AuthToken
 	defer func() { th.Client.AuthToken = oldSessionToken }()
 
