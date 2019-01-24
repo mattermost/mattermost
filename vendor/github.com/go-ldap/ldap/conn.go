@@ -85,6 +85,9 @@ const (
 
 // Conn represents an LDAP Connection
 type Conn struct {
+	// requestTimeout is loaded atomically
+	// so we need to ensure 64-bit alignment on 32-bit platforms.
+	requestTimeout      int64
 	conn                net.Conn
 	isTLS               bool
 	closing             uint32
@@ -98,7 +101,6 @@ type Conn struct {
 	wgClose             sync.WaitGroup
 	outstandingRequests uint
 	messageMutex        sync.Mutex
-	requestTimeout      int64
 }
 
 var _ Client = &Conn{}

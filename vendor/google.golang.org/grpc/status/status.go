@@ -28,6 +28,7 @@
 package status
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -190,4 +191,20 @@ func Code(err error) codes.Code {
 		return se.GRPCStatus().Code()
 	}
 	return codes.Unknown
+}
+
+// FromContextError converts a context error into a Status.  It returns a
+// Status with codes.OK if err is nil, or a Status with codes.Unknown if err is
+// non-nil and not a context error.
+func FromContextError(err error) *Status {
+	switch err {
+	case nil:
+		return New(codes.OK, "")
+	case context.DeadlineExceeded:
+		return New(codes.DeadlineExceeded, err.Error())
+	case context.Canceled:
+		return New(codes.Canceled, err.Error())
+	default:
+		return New(codes.Unknown, err.Error())
+	}
 }
