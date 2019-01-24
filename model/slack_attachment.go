@@ -31,9 +31,9 @@ type SlackAttachment struct {
 }
 
 type SlackAttachmentField struct {
-	Title string      `json:"title"`
-	Value interface{} `json:"value"`
-	Short bool        `json:"short"`
+	Title string              `json:"title"`
+	Value interface{}         `json:"value"`
+	Short SlackCompatibleBool `json:"short"`
 }
 
 func StringifySlackFieldValue(a []*SlackAttachment) []*SlackAttachment {

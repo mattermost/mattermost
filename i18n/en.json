@@ -4084,7 +4084,11 @@
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
-    "translation": "Invalid atmos/camo image proxy options for service settings. Must be set to your shared key."
+    "translation": "Invalid RemoteImageProxyOptions for atmos/camo. Must be set to your shared key."
+  },
+  {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
+    "translation": "Invalid RemoteImageProxyURL for atmos/camo. Must be set to your shared key."
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
@@ -4172,7 +4176,7 @@
   },
   {
     "id": "model.config.is_valid.image_proxy_type.app_error",
-    "translation": "Invalid image proxy type for service settings."
+    "translation": "Invalid image proxy type. Must be 'local' or 'atmos/camo'."
   },
   {
     "id": "model.config.is_valid.ldap_basedn",
