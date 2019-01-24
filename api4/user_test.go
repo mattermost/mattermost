@@ -3007,7 +3007,7 @@ func TestRevokeUserAccessToken(t *testing.T) {
 
 		ok, resp := th.Client.RevokeUserAccessToken(token.Id)
 		CheckNoError(t, resp)
-		assert.True(t,ok, "should have passed")
+		assert.True(t, ok, "should have passed")
 
 		assertInvalidToken(t, th, token)
 	})
@@ -3119,7 +3119,7 @@ func TestDisableUserAccessToken(t *testing.T) {
 
 		ok, resp := th.Client.DisableUserAccessToken(token.Id)
 		CheckNoError(t, resp)
-		assert.True(t,ok, "should have passed")
+		assert.True(t, ok, "should have passed")
 
 		assertInvalidToken(t, th, token)
 	})
@@ -3231,7 +3231,7 @@ func TestEnableUserAccessToken(t *testing.T) {
 
 		ok, resp := th.Client.DisableUserAccessToken(token.Id)
 		CheckNoError(t, resp)
-		assert.True(t,ok, "should have passed")
+		assert.True(t, ok, "should have passed")
 
 		assertInvalidToken(t, th, token)
 
@@ -3253,7 +3253,7 @@ func TestEnableUserAccessToken(t *testing.T) {
 
 		ok, resp := th.SystemAdminClient.DisableUserAccessToken(token.Id)
 		CheckNoError(t, resp)
-		assert.True(t,ok, "should have passed")
+		assert.True(t, ok, "should have passed")
 
 		ok, resp = th.Client.DisableUserAccessToken(token.Id)
 		CheckForbiddenStatus(t, resp)
