@@ -130,6 +130,9 @@ type Manifest struct {
 	// To allow administrators to configure your plugin via the Mattermost system console, you can
 	// provide your settings schema.
 	SettingsSchema *PluginSettingsSchema `json:"settings_schema,omitempty" yaml:"settings_schema,omitempty"`
+
+	// Plugins can store any kind of data in Props to allow other plugins to use it.
+	Props map[string]interface{} `json:"props,omitempty" yaml:"props,omitempty"`
 }
 
 type ManifestServer struct {

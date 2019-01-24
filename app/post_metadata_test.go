@@ -58,9 +58,7 @@ func TestPreparePostForClient(t *testing.T) {
 		th := Setup().InitBasic()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.ImageProxyType = ""
-			*cfg.ServiceSettings.ImageProxyURL = ""
-			*cfg.ServiceSettings.ImageProxyOptions = ""
+			*cfg.ImageProxySettings.Enable = false
 			*cfg.ExperimentalSettings.EnablePostMetadata = true
 		})
 
@@ -248,7 +246,7 @@ func TestPreparePostForClient(t *testing.T) {
 
 		t.Run("populates image dimensions", func(t *testing.T) {
 			imageDimensions := clientPost.Metadata.Images
-			assert.Len(t, imageDimensions, 2)
+			require.Len(t, imageDimensions, 2)
 			assert.Equal(t, &model.PostImage{
 				Width:  1068,
 				Height: 552,
@@ -301,7 +299,7 @@ func TestPreparePostForClient(t *testing.T) {
 
 		t.Run("populates image dimensions", func(t *testing.T) {
 			imageDimensions := clientPost.Metadata.Images
-			assert.Len(t, imageDimensions, 1)
+			require.Len(t, imageDimensions, 1)
 			assert.Equal(t, &model.PostImage{
 				Width:  1068,
 				Height: 552,
@@ -345,7 +343,7 @@ func TestPreparePostForClient(t *testing.T) {
 
 		t.Run("populates image dimensions", func(t *testing.T) {
 			imageDimensions := clientPost.Metadata.Images
-			assert.Len(t, imageDimensions, 1)
+			require.Len(t, imageDimensions, 1)
 			assert.Equal(t, &model.PostImage{
 				Width:  420,
 				Height: 420,
@@ -382,7 +380,7 @@ func TestPreparePostForClient(t *testing.T) {
 
 		t.Run("populates image dimensions", func(t *testing.T) {
 			imageDimensions := clientPost.Metadata.Images
-			assert.Len(t, imageDimensions, 1)
+			require.Len(t, imageDimensions, 1)
 			assert.Equal(t, &model.PostImage{
 				Width:  501,
 				Height: 501,
@@ -415,9 +413,10 @@ func TestPreparePostForClientWithImageProxy(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
-			*cfg.ServiceSettings.ImageProxyType = "atmos/camo"
-			*cfg.ServiceSettings.ImageProxyURL = "https://127.0.0.1"
-			*cfg.ServiceSettings.ImageProxyOptions = "foo"
+			*cfg.ImageProxySettings.Enable = true
+			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
+			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
+			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
 			*cfg.ExperimentalSettings.EnablePostMetadata = true
 		})
 
@@ -453,10 +452,10 @@ func testProxyLinkedImage(t *testing.T, th *TestHelper, shouldProxy bool) {
 	clientPost := th.App.PreparePostForClient(post)
 
 	if shouldProxy {
-		assert.Equal(t, post.Message, fmt.Sprintf(postTemplate, imageURL), "should not have mutated original post")
-		assert.Equal(t, clientPost.Message, fmt.Sprintf(postTemplate, proxiedImageURL), "should've replaced linked image URLs")
+		assert.Equal(t, fmt.Sprintf(postTemplate, imageURL), post.Message, "should not have mutated original post")
+		assert.Equal(t, fmt.Sprintf(postTemplate, proxiedImageURL), clientPost.Message, "should've replaced linked image URLs")
 	} else {
-		assert.Equal(t, clientPost.Message, fmt.Sprintf(postTemplate, imageURL), "shouldn't have replaced linked image URLs")
+		assert.Equal(t, fmt.Sprintf(postTemplate, imageURL), clientPost.Message, "shouldn't have replaced linked image URLs")
 	}
 }
 
@@ -468,29 +467,27 @@ func testProxyOpenGraphImage(t *testing.T, th *TestHelper, shouldProxy bool) {
 	}, th.BasicChannel, false)
 	require.Nil(t, err)
 
-	clientPost := th.App.PreparePostForClient(post)
+	embeds := th.App.PreparePostForClient(post).Metadata.Embeds
+	require.Len(t, embeds, 1, "should have one embed")
 
-	image := &opengraph.Image{}
+	embed := embeds[0]
+	assert.Equal(t, model.POST_EMBED_OPENGRAPH, embed.Type, "embed type should be OpenGraph")
+	assert.Equal(t, "https://github.com/hmhealey/test-files", embed.URL, "embed URL should be correct")
+
+	og, ok := embed.Data.(*opengraph.OpenGraph)
+	assert.Equal(t, true, ok, "data should be non-nil OpenGraph data")
+	assert.Equal(t, "GitHub", og.SiteName, "OpenGraph data should be correctly populated")
+
+	require.Len(t, og.Images, 1, "OpenGraph data should have one image")
+
+	image := og.Images[0]
 	if shouldProxy {
-		image.SecureURL = "https://127.0.0.1/b2ef6ef4890a0107aa80ba33b3011fd51f668303/68747470733a2f2f61766174617273312e67697468756275736572636f6e74656e742e636f6d2f752f333237373331303f733d34303026763d34"
+		assert.Equal(t, "", image.URL, "image URL should not be set with proxy")
+		assert.Equal(t, "https://127.0.0.1/b2ef6ef4890a0107aa80ba33b3011fd51f668303/68747470733a2f2f61766174617273312e67697468756275736572636f6e74656e742e636f6d2f752f333237373331303f733d34303026763d34", image.SecureURL, "secure image URL should be sent through proxy")
 	} else {
-		image.URL = "https://avatars1.githubusercontent.com/u/3277310?s=400&v=4"
+		assert.Equal(t, "https://avatars1.githubusercontent.com/u/3277310?s=400&v=4", image.URL, "image URL should be set")
+		assert.Equal(t, "", image.SecureURL, "secure image URL should not be set")
 	}
-
-	assert.ElementsMatch(t, []*model.PostEmbed{
-		{
-			Type: model.POST_EMBED_OPENGRAPH,
-			URL:  "https://github.com/hmhealey/test-files",
-			Data: &opengraph.OpenGraph{
-				Description: "Contribute to hmhealey/test-files development by creating an account on GitHub.",
-				SiteName:    "GitHub",
-				Title:       "hmhealey/test-files",
-				Type:        "object",
-				URL:         "https://github.com/hmhealey/test-files",
-				Images:      []*opengraph.Image{image},
-			},
-		},
-	}, clientPost.Metadata.Embeds)
 }
 
 func TestGetEmojiNamesForString(t *testing.T) {

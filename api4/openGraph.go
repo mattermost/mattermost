@@ -19,8 +19,10 @@ func (api *API) InitOpenGraph() {
 
 	// Dump the image cache if the proxy settings have changed. (need switch URLs to the correct proxy)
 	api.ConfigService.AddConfigListener(func(before, after *model.Config) {
-		if (before.ServiceSettings.ImageProxyType != after.ServiceSettings.ImageProxyType) ||
-			(before.ServiceSettings.ImageProxyURL != after.ServiceSettings.ImageProxyType) {
+		if (before.ImageProxySettings.Enable != after.ImageProxySettings.Enable) ||
+			(before.ImageProxySettings.ImageProxyType != after.ImageProxySettings.ImageProxyType) ||
+			(before.ImageProxySettings.RemoteImageProxyURL != after.ImageProxySettings.RemoteImageProxyURL) ||
+			(before.ImageProxySettings.RemoteImageProxyOptions != after.ImageProxySettings.RemoteImageProxyOptions) {
 			openGraphDataCache.Purge()
 		}
 	})
