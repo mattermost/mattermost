@@ -6,11 +6,13 @@ package api4
 import (
 	"net/http"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/mailservice"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils/testutils"
 	"github.com/stretchr/testify/assert"
@@ -1879,22 +1881,24 @@ func TestUpdateUserPassword(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
-/*func TestResetPassword(t *testing.T) {
+func TestResetPassword(t *testing.T) {
+	t.Skip("test disabled during old build server changes, should be investigated")
+
 	th := Setup().InitBasic()
 	defer th.TearDown()
-th.Client.Logout()
+	th.Client.Logout()
 	user := th.BasicUser
 	// Delete all the messages before check the reset password
 	mailservice.DeleteMailBox(user.Email)
-	success, resp :=th.Client.SendPasswordResetEmail(user.Email)
+	success, resp := th.Client.SendPasswordResetEmail(user.Email)
 	CheckNoError(t, resp)
 	if !success {
 		t.Fatal("should have succeeded")
 	}
-	_, resp =th.Client.SendPasswordResetEmail("")
+	_, resp = th.Client.SendPasswordResetEmail("")
 	CheckBadRequestStatus(t, resp)
 	// Should not leak whether the email is attached to an account or not
-	success, resp =th.Client.SendPasswordResetEmail("notreal@example.com")
+	success, resp = th.Client.SendPasswordResetEmail("notreal@example.com")
 	CheckNoError(t, resp)
 	if !success {
 		t.Fatal("should have succeeded")
@@ -1933,36 +1937,36 @@ th.Client.Logout()
 	} else {
 		recoveryToken = result.Data.(*model.Token)
 	}
-	_, resp =th.Client.ResetPassword(recoveryToken.Token, "")
+	_, resp = th.Client.ResetPassword(recoveryToken.Token, "")
 	CheckBadRequestStatus(t, resp)
-	_, resp =th.Client.ResetPassword(recoveryToken.Token, "newp")
+	_, resp = th.Client.ResetPassword(recoveryToken.Token, "newp")
 	CheckBadRequestStatus(t, resp)
-	_, resp =th.Client.ResetPassword("", "newpwd")
+	_, resp = th.Client.ResetPassword("", "newpwd")
 	CheckBadRequestStatus(t, resp)
-	_, resp =th.Client.ResetPassword("junk", "newpwd")
+	_, resp = th.Client.ResetPassword("junk", "newpwd")
 	CheckBadRequestStatus(t, resp)
 	code := ""
 	for i := 0; i < model.TOKEN_SIZE; i++ {
 		code += "a"
 	}
-	_, resp =th.Client.ResetPassword(code, "newpwd")
+	_, resp = th.Client.ResetPassword(code, "newpwd")
 	CheckBadRequestStatus(t, resp)
-	success, resp =th.Client.ResetPassword(recoveryToken.Token, "newpwd")
+	success, resp = th.Client.ResetPassword(recoveryToken.Token, "newpwd")
 	CheckNoError(t, resp)
 	if !success {
 		t.Fatal("should have succeeded")
 	}
-th.Client.Login(user.Email, "newpwd")
-th.Client.Logout()
-	_, resp =th.Client.ResetPassword(recoveryToken.Token, "newpwd")
+	th.Client.Login(user.Email, "newpwd")
+	th.Client.Logout()
+	_, resp = th.Client.ResetPassword(recoveryToken.Token, "newpwd")
 	CheckBadRequestStatus(t, resp)
 	authData := model.NewId()
-	if result := <-app.Srv.Store.User().UpdateAuthData(user.Id, "random", &authData, "", true); result.Err != nil {
+	if result := <-th.App.Srv.Store.User().UpdateAuthData(user.Id, "random", &authData, "", true); result.Err != nil {
 		t.Fatal(result.Err)
 	}
-	_, resp =th.Client.SendPasswordResetEmail(user.Email)
+	_, resp = th.Client.SendPasswordResetEmail(user.Email)
 	CheckBadRequestStatus(t, resp)
-}*/
+}
 
 func TestGetSessions(t *testing.T) {
 	th := Setup().InitBasic()
