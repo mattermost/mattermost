@@ -2347,7 +2347,7 @@ func TestUpdateChannelScheme(t *testing.T) {
 
 	th.App.SetPhase2PermissionsMigrationStatus(true)
 
-	team, err := th.SystemAdminClient.CreateTeam(&model.Team{
+	team, resp := th.SystemAdminClient.CreateTeam(&model.Team{
 		DisplayName:     "Name",
 		Description:     "Some description",
 		CompanyName:     "Some company name",
@@ -2357,34 +2357,34 @@ func TestUpdateChannelScheme(t *testing.T) {
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TEAM_OPEN,
 	})
-	require.Nil(t, err)
+	CheckNoError(t, resp)
 
-	channel, err := th.SystemAdminClient.CreateChannel(&model.Channel{
+	channel, resp := th.SystemAdminClient.CreateChannel(&model.Channel{
 		DisplayName: "Name",
 		Name:        "z-z-" + model.NewId() + "a",
 		Type:        model.CHANNEL_OPEN,
 		TeamId:      team.Id,
 	})
-	require.Nil(t, err)
+	CheckNoError(t, resp)
 
-	channelScheme, err := th.SystemAdminClient.CreateScheme(&model.Scheme{
+	channelScheme, resp := th.SystemAdminClient.CreateScheme(&model.Scheme{
 		DisplayName: "DisplayName",
 		Name:        model.NewId(),
 		Description: "Some description",
 		Scope:       model.SCHEME_SCOPE_CHANNEL,
 	})
-	require.Nil(t, err)
+	CheckNoError(t, resp)
 
-	teamScheme, err := th.SystemAdminClient.CreateScheme(&model.Scheme{
+	teamScheme, resp := th.SystemAdminClient.CreateScheme(&model.Scheme{
 		DisplayName: "DisplayName",
 		Name:        model.NewId(),
 		Description: "Some description",
 		Scope:       model.SCHEME_SCOPE_TEAM,
 	})
-	require.Nil(t, err)
+	CheckNoError(t, resp)
 
 	// Test the setup/base case.
-	_, resp := th.SystemAdminClient.UpdateChannelScheme(channel.Id, channelScheme.Id)
+	_, resp = th.SystemAdminClient.UpdateChannelScheme(channel.Id, channelScheme.Id)
 	CheckNoError(t, resp)
 
 	// Test various invalid channel and scheme id combinations.
