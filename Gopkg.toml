@@ -45,6 +45,11 @@
   name = "github.com/segmentio/analytics-go"
   version = "2.1.1"
 
+# Use latest master since we rely on some security features that don't exist in latest release
+[[constraint]]
+  name = "willnorris.com/go/imageproxy"
+  branch = "master"
+
 # Lock to control when plugins use new versions
 [[constraint]]
   name = "github.com/hashicorp/go-hclog"

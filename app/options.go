@@ -76,6 +76,7 @@ func ServerConnector(s *Server) AppOption {
 		a.Saml = s.Saml
 
 		a.HTTPService = s.HTTPService
+		a.ImageProxy = s.ImageProxy
 		a.Timezones = s.timezones
 	}
 }
