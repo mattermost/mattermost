@@ -195,12 +195,39 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 		posts, err = c.App.GetFlaggedPosts(c.Params.UserId, c.Params.Page, c.Params.PerPage)
 	}
 
+	pl := model.NewPostList()
+	var channelsAllowed []string
+
+	for _, post := range posts.Posts {
+		allowed := false
+
+		for _, channel := range channelsAllowed {
+			if channel == post.ChannelId {
+				allowed = true
+				break
+			}
+		}
+
+		if !allowed && c.App.SessionHasPermissionToChannel(c.App.Session, post.ChannelId, model.PERMISSION_READ_CHANNEL){
+			channelsAllowed = append(channelsAllowed, post.ChannelId)
+			allowed = true
+		}
+
+		if !allowed {
+			continue
+		}
+
+		pl.AddPost(post)
+		pl.AddOrder(post.Id)
+
+	}
+
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	w.Write([]byte(c.App.PreparePostListForClient(posts).ToJson()))
+	w.Write([]byte(c.App.PreparePostListForClient(pl).ToJson()))
 }
 
 func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
