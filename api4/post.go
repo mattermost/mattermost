@@ -208,7 +208,7 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 			}
 		}
 
-		if !allowed && c.App.SessionHasPermissionToChannel(c.App.Session, post.ChannelId, model.PERMISSION_READ_CHANNEL){
+		if !allowed && c.App.SessionHasPermissionToChannel(c.App.Session, post.ChannelId, model.PERMISSION_READ_CHANNEL) {
 			channelsAllowed = append(channelsAllowed, post.ChannelId)
 			allowed = true
 		}
