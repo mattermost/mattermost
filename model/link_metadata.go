@@ -79,9 +79,9 @@ func (o *LinkMetadata) IsValid() *AppError {
 	return nil
 }
 
-// FixData converts o.Data from JSON into properly structured data. This is intended to be used after deserializing
-// a LinkMetadata object that has been stored in the database.
-func (o *LinkMetadata) FixData() error {
+// DeserializeDataToConcreteType converts o.Data from JSON into properly structured data. This is intended to be used
+// after getting a LinkMetadata object that has been stored in the database.
+func (o *LinkMetadata) DeserializeDataToConcreteType() error {
 	var b []byte
 	switch t := o.Data.(type) {
 	case []byte:
@@ -124,18 +124,16 @@ func (o *LinkMetadata) FixData() error {
 	return nil
 }
 
-// FloorToNearestHour takes a timestamp (in milliseconds) and returns it rounded to the previous hour.
+// FloorToNearestHour takes a timestamp (in milliseconds) and returns it rounded to the previous hour in UTC.
 func FloorToNearestHour(ms int64) int64 {
 	t := time.Unix(0, ms*int64(1000*1000))
 
 	return time.Date(t.Year(), t.Month(), t.Day(), t.Hour(), 0, 0, 0, t.Location()).UnixNano() / int64(time.Millisecond)
 }
 
-// isRoundedToNearestHour returns true if the given timestamp (in milliseconds) has been rounded to the nearest hour.
+// isRoundedToNearestHour returns true if the given timestamp (in milliseconds) has been rounded to the nearest hour in UTC.
 func isRoundedToNearestHour(ms int64) bool {
-	t := time.Unix(0, ms*int64(1000*1000))
-
-	return t.Minute() == 0 && t.Second() == 0 && t.Nanosecond() == 0
+	return FloorToNearestHour(ms) == ms
 }
 
 // GenerateLinkMetadataHash generates a unique hash for a given URL and timestamp for use as a database key.

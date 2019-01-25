@@ -138,7 +138,7 @@ func TestLinkMetadataIsValid(t *testing.T) {
 	}
 }
 
-func TestLinkMetadataFixData(t *testing.T) {
+func TestLinkMetadataDeserializeDataToConcreteType(t *testing.T) {
 	t.Run("should convert []byte to PostImage", func(t *testing.T) {
 		image := &PostImage{
 			Height: 400,
@@ -152,7 +152,7 @@ func TestLinkMetadataFixData(t *testing.T) {
 
 		require.IsType(t, []byte{}, metadata.Data)
 
-		err := metadata.FixData()
+		err := metadata.DeserializeDataToConcreteType()
 
 		assert.Nil(t, err)
 		assert.IsType(t, &PostImage{}, metadata.Data)
@@ -181,7 +181,7 @@ func TestLinkMetadataFixData(t *testing.T) {
 
 		require.IsType(t, []byte{}, metadata.Data)
 
-		err = metadata.FixData()
+		err = metadata.DeserializeDataToConcreteType()
 
 		assert.Nil(t, err)
 		assert.IsType(t, &opengraph.OpenGraph{}, metadata.Data)
@@ -194,7 +194,7 @@ func TestLinkMetadataFixData(t *testing.T) {
 			Data: 1234,
 		}
 
-		err := metadata.FixData()
+		err := metadata.DeserializeDataToConcreteType()
 
 		assert.Nil(t, err)
 	})
@@ -205,7 +205,7 @@ func TestLinkMetadataFixData(t *testing.T) {
 			Data: "garbage",
 		}
 
-		err := metadata.FixData()
+		err := metadata.DeserializeDataToConcreteType()
 
 		assert.Nil(t, err)
 	})
@@ -216,7 +216,7 @@ func TestLinkMetadataFixData(t *testing.T) {
 			Data: "garbage",
 		}
 
-		err := metadata.FixData()
+		err := metadata.DeserializeDataToConcreteType()
 
 		assert.NotNil(t, err)
 	})

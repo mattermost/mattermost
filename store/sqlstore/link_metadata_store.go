@@ -76,7 +76,7 @@ func (s SqlLinkMetadataStore) Get(url string, timestamp int64) store.StoreChanne
 			return
 		}
 
-		err = metadata.FixData()
+		err = metadata.DeserializeDataToConcreteType()
 		if err != nil {
 			result.Err = model.NewAppError("SqlLinkMetadataStore.Get", "store.sql_link_metadata.get.app_error", nil, "url="+url+", "+err.Error(), http.StatusInternalServerError)
 

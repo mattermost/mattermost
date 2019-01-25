@@ -1052,10 +1052,10 @@ func TestGetLinkMetadata(t *testing.T) {
 		timestamp := int64(1547510400000)
 		title := "from cache"
 
-		cacheLinkMetadata(model.GenerateLinkMetadataHash(requestURL, timestamp), &opengraph.OpenGraph{Title: title}, nil)
+		cacheLinkMetadata(requestURL, timestamp, &opengraph.OpenGraph{Title: title}, nil)
 
 		t.Run("should use cache if cached entry exists", func(t *testing.T) {
-			_, ok := linkCache.Get(model.GenerateLinkMetadataHash(requestURL, timestamp))
+			_, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 			require.True(t, ok, "data should already exist in in-memory cache")
 
 			_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
@@ -1070,7 +1070,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		})
 
 		t.Run("should use cache if cached entry exists near time", func(t *testing.T) {
-			_, ok := linkCache.Get(model.GenerateLinkMetadataHash(requestURL, timestamp))
+			_, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 			require.True(t, ok, "data should already exist in in-memory cache")
 
 			_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
@@ -1087,7 +1087,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		t.Run("should not use cache if URL is different", func(t *testing.T) {
 			differentURL := server.URL + "/other"
 
-			_, ok := linkCache.Get(model.GenerateLinkMetadataHash(differentURL, timestamp))
+			_, _, ok := getLinkMetadataFromCache(differentURL, timestamp)
 			require.False(t, ok, "data should not exist in in-memory cache")
 
 			_, _, ok = th.App.getLinkMetadataFromDatabase(differentURL, timestamp)
@@ -1103,7 +1103,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		t.Run("should not use cache if timestamp is different", func(t *testing.T) {
 			differentTimestamp := timestamp + 60*60*1000
 
-			_, ok := linkCache.Get(model.GenerateLinkMetadataHash(requestURL, differentTimestamp))
+			_, _, ok := getLinkMetadataFromCache(requestURL, differentTimestamp)
 			require.False(t, ok, "data should not exist in in-memory cache")
 
 			_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, differentTimestamp)
@@ -1130,7 +1130,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		t.Run("should use database if saved entry exists", func(t *testing.T) {
 			linkCache.Purge()
 
-			_, ok := linkCache.Get(model.GenerateLinkMetadataHash(requestURL, timestamp))
+			_, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 			require.False(t, ok, "data should not exist in in-memory cache")
 
 			_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
@@ -1147,7 +1147,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		t.Run("should use database if saved entry exists near time", func(t *testing.T) {
 			linkCache.Purge()
 
-			_, ok := linkCache.Get(model.GenerateLinkMetadataHash(requestURL, timestamp))
+			_, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 			require.False(t, ok, "data should not exist in in-memory cache")
 
 			_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
@@ -1166,7 +1166,7 @@ func TestGetLinkMetadata(t *testing.T) {
 
 			differentURL := requestURL + "/other"
 
-			_, ok := linkCache.Get(model.GenerateLinkMetadataHash(differentURL, timestamp))
+			_, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 			require.False(t, ok, "data should not exist in in-memory cache")
 
 			_, _, ok = th.App.getLinkMetadataFromDatabase(differentURL, timestamp)
@@ -1184,7 +1184,7 @@ func TestGetLinkMetadata(t *testing.T) {
 
 			differentTimestamp := timestamp + 60*60*1000
 
-			_, ok := linkCache.Get(model.GenerateLinkMetadataHash(requestURL, differentTimestamp))
+			_, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 			require.False(t, ok, "data should not exist in in-memory cache")
 
 			_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, differentTimestamp)
@@ -1205,7 +1205,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		requestURL := server.URL + "/opengraph?title=Remote&name=" + t.Name()
 		timestamp := int64(1547510400000)
 
-		_, ok := linkCache.Get(model.GenerateLinkMetadataHash(requestURL, timestamp))
+		_, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 		require.False(t, ok, "data should not exist in in-memory cache")
 
 		_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
@@ -1225,7 +1225,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		requestURL := server.URL + "/opengraph?title=Remote&name=" + t.Name()
 		timestamp := int64(1547510400000)
 
-		_, ok := linkCache.Get(model.GenerateLinkMetadataHash(requestURL, timestamp))
+		_, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 		require.False(t, ok, "data should not exist in in-memory cache")
 
 		_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
@@ -1237,7 +1237,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		assert.Nil(t, img)
 		assert.Nil(t, err)
 
-		fromCache, ok := linkCache.Get(model.GenerateLinkMetadataHash(requestURL, timestamp))
+		fromCache, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 		assert.True(t, ok)
 		assert.Exactly(t, og, fromCache)
 
@@ -1253,7 +1253,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		requestURL := server.URL + "/image?height=300&width=400&name=" + t.Name()
 		timestamp := int64(1547510400000)
 
-		_, ok := linkCache.Get(model.GenerateLinkMetadataHash(requestURL, timestamp))
+		_, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 		require.False(t, ok, "data should not exist in in-memory cache")
 
 		_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
@@ -1265,7 +1265,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		assert.NotNil(t, img)
 		assert.Nil(t, err)
 
-		fromCache, ok := linkCache.Get(model.GenerateLinkMetadataHash(requestURL, timestamp))
+		_, fromCache, ok := getLinkMetadataFromCache(requestURL, timestamp)
 		assert.True(t, ok)
 		assert.Exactly(t, img, fromCache)
 
@@ -1281,7 +1281,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		requestURL := server.URL + "/error"
 		timestamp := int64(1547510400000)
 
-		_, ok := linkCache.Get(model.GenerateLinkMetadataHash(requestURL, timestamp))
+		_, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 		require.False(t, ok, "data should not exist in in-memory cache")
 
 		_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
@@ -1293,9 +1293,10 @@ func TestGetLinkMetadata(t *testing.T) {
 		assert.Nil(t, img)
 		assert.Nil(t, err)
 
-		fromCache, ok := linkCache.Get(model.GenerateLinkMetadataHash(requestURL, timestamp))
+		ogFromCache, imgFromCache, ok := getLinkMetadataFromCache(requestURL, timestamp)
 		assert.True(t, ok)
-		assert.Nil(t, fromCache)
+		assert.Nil(t, ogFromCache)
+		assert.Nil(t, imgFromCache)
 
 		ogFromDatabase, imageFromDatabase, ok := th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
 		assert.True(t, ok)
@@ -1310,7 +1311,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		requestURL := server.URL + "/image?height=300&width=400&name=" + t.Name()
 		timestamp := int64(1547510400000)
 
-		_, ok := linkCache.Get(model.GenerateLinkMetadataHash(requestURL, timestamp))
+		_, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 		require.False(t, ok, "data should not exist in in-memory cache")
 
 		_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
@@ -1319,11 +1320,11 @@ func TestGetLinkMetadata(t *testing.T) {
 		_, img, err := th.App.getLinkMetadata(requestURL, timestamp, false)
 		require.Nil(t, err)
 
-		_, ok = linkCache.Get(model.GenerateLinkMetadataHash(requestURL, timestamp))
+		_, _, ok = getLinkMetadataFromCache(requestURL, timestamp)
 		require.True(t, ok, "data should now exist in in-memory cache")
 
 		linkCache.Purge()
-		_, ok = linkCache.Get(model.GenerateLinkMetadataHash(requestURL, timestamp))
+		_, _, ok = getLinkMetadataFromCache(requestURL, timestamp)
 		require.False(t, ok, "data should no longer exist in in-memory cache")
 
 		_, fromDatabase, ok := th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
@@ -1351,7 +1352,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		requestURL := server.URL + "/error?name=" + t.Name()
 		timestamp := int64(1547510400000)
 
-		cacheLinkMetadata(model.GenerateLinkMetadataHash(requestURL, timestamp), &opengraph.OpenGraph{Title: "cached"}, nil)
+		cacheLinkMetadata(requestURL, timestamp, &opengraph.OpenGraph{Title: "cached"}, nil)
 
 		og, img, err := th.App.getLinkMetadata(requestURL, timestamp, true)
 		assert.NotNil(t, og)
