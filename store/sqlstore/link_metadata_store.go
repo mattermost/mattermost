@@ -20,7 +20,7 @@ func NewSqlLinkMetadataStore(sqlStore SqlStore) store.LinkMetadataStore {
 
 	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.LinkMetadata{}, "LinkMetadata").SetKeys(false, "Hash")
-		table.ColMap("URL").SetMaxSize(512)
+		table.ColMap("URL").SetMaxSize(2048)
 		table.ColMap("Type").SetMaxSize(16)
 		table.ColMap("Data").SetMaxSize(4096)
 	}
