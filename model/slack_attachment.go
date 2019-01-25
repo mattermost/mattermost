@@ -68,7 +68,13 @@ func ParseSlackAttachment(post *Post, attachments []*SlackAttachment) {
 		post.Type = POST_SLACK_ATTACHMENT
 	}
 
+	postAttachments := []*SlackAttachment{}
+
 	for _, attachment := range attachments {
+		if attachment == nil {
+			continue
+		}
+
 		attachment.Text = ParseSlackLinksToMarkdown(attachment.Text)
 		attachment.Pretext = ParseSlackLinksToMarkdown(attachment.Pretext)
 
@@ -77,8 +83,9 @@ func ParseSlackAttachment(post *Post, attachments []*SlackAttachment) {
 				field.Value = ParseSlackLinksToMarkdown(value)
 			}
 		}
+		postAttachments = append(postAttachments, attachment)
 	}
-	post.AddProp("attachments", attachments)
+	post.AddProp("attachments", postAttachments)
 }
 
 func ParseSlackLinksToMarkdown(text string) string {
