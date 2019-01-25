@@ -196,22 +196,21 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	pl := model.NewPostList()
-	var channelsAllowed []string
+	channelReadPermission := make(map[string]bool)
 
 	for _, post := range posts.Posts {
-		allowed := false
+		allowed, ok := channelReadPermission[post.ChannelId]
 
-		for _, channel := range channelsAllowed {
-			if channel == post.ChannelId {
+		if !ok {
+			allowed = false
+
+			if c.App.SessionHasPermissionToChannel(c.App.Session, post.ChannelId, model.PERMISSION_READ_CHANNEL) {
 				allowed = true
-				break
 			}
+
+			channelReadPermission[post.ChannelId] = allowed
 		}
 
-		if !allowed && c.App.SessionHasPermissionToChannel(c.App.Session, post.ChannelId, model.PERMISSION_READ_CHANNEL) {
-			channelsAllowed = append(channelsAllowed, post.ChannelId)
-			allowed = true
-		}
 
 		if !allowed {
 			continue
