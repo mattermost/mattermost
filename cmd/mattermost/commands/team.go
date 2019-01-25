@@ -86,6 +86,7 @@ var RestoreTeamsCmd = &cobra.Command{
 	Short:   "Restore some teams",
 	Long:    `Restore a previously deleted team`,
 	Example: "  team restore myteam",
+	Args:    cobra.MinimumNArgs(1),
 	RunE:    restoreTeamsCmdF,
 }
 
@@ -310,9 +311,7 @@ func restoreTeamsCmdF(command *cobra.Command, args []string) error {
 		return err
 	}
 	defer a.Shutdown()
-	if len(args) < 1 {
-		return errors.New("Enter at least one team.")
-	}
+
 	teams := getTeamsFromTeamArgs(a, args)
 	for i, team := range teams {
 		if team == nil {
