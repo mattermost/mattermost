@@ -3,7 +3,6 @@ package redis
 import (
 	"context"
 	"crypto/tls"
-	"errors"
 	"fmt"
 	"math"
 	"math/rand"
@@ -18,7 +17,6 @@ import (
 	"github.com/go-redis/redis/internal/hashtag"
 	"github.com/go-redis/redis/internal/pool"
 	"github.com/go-redis/redis/internal/proto"
-	"github.com/go-redis/redis/internal/singleflight"
 )
 
 var errClusterNoNodes = fmt.Errorf("redis: cluster has no nodes")
@@ -49,6 +47,9 @@ type ClusterOptions struct {
 	// It can use service like ZooKeeper to maintain configuration information
 	// and Cluster.ReloadState to manually trigger state reloading.
 	ClusterSlots func() ([]ClusterSlot, error)
+
+	// Optional hook that is called when a new node is created.
+	OnNewNode func(*Client)
 
 	// Following options are copied from Options struct.
 
@@ -166,6 +167,10 @@ func newClusterNode(clOpt *ClusterOptions, addr string) *clusterNode {
 		go node.updateLatency()
 	}
 
+	if clOpt.OnNewNode != nil {
+		clOpt.OnNewNode(node.Client)
+	}
+
 	return &node
 }
 
@@ -236,8 +241,6 @@ type clusterNodes struct {
 	allNodes     map[string]*clusterNode
 	clusterAddrs []string
 	closed       bool
-
-	nodeCreateGroup singleflight.Group
 
 	_generation uint32 // atomic
 }
@@ -341,11 +344,6 @@ func (c *clusterNodes) GetOrCreate(addr string) (*clusterNode, error) {
 		return node, nil
 	}
 
-	v, err := c.nodeCreateGroup.Do(addr, func() (interface{}, error) {
-		node := newClusterNode(c.opt, addr)
-		return node, nil
-	})
-
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -355,15 +353,13 @@ func (c *clusterNodes) GetOrCreate(addr string) (*clusterNode, error) {
 
 	node, ok := c.allNodes[addr]
 	if ok {
-		_ = v.(*clusterNode).Close()
 		return node, err
 	}
-	node = v.(*clusterNode)
+
+	node = newClusterNode(c.opt, addr)
 
 	c.allAddrs = appendIfNotExists(c.allAddrs, addr)
-	if err == nil {
-		c.clusterAddrs = append(c.clusterAddrs, addr)
-	}
+	c.clusterAddrs = append(c.clusterAddrs, addr)
 	c.allNodes[addr] = node
 
 	return node, err
@@ -533,10 +529,12 @@ func (c *clusterState) slotSlaveNode(slot int) (*clusterNode, error) {
 			n := rand.Intn(len(nodes)-1) + 1
 			slave = nodes[n]
 			if !slave.Loading() {
-				break
+				return slave, nil
 			}
 		}
-		return slave, nil
+
+		// All slaves are loading - use master.
+		return nodes[0], nil
 	}
 }
 
@@ -580,23 +578,12 @@ func (c *clusterState) slotNodes(slot int) []*clusterNode {
 	return nil
 }
 
-func (c *clusterState) IsConsistent() bool {
-	if c.nodes.opt.ClusterSlots != nil {
-		return true
-	}
-	return len(c.Masters) <= len(c.Slaves)
-}
-
 //------------------------------------------------------------------------------
 
 type clusterStateHolder struct {
 	load func() (*clusterState, error)
 
-	state atomic.Value
-
-	firstErrMu sync.RWMutex
-	firstErr   error
-
+	state     atomic.Value
 	reloading uint32 // atomic
 }
 
@@ -607,24 +594,8 @@ func newClusterStateHolder(fn func() (*clusterState, error)) *clusterStateHolder
 }
 
 func (c *clusterStateHolder) Reload() (*clusterState, error) {
-	state, err := c.reload()
-	if err != nil {
-		return nil, err
-	}
-	if !state.IsConsistent() {
-		time.AfterFunc(time.Second, c.LazyReload)
-	}
-	return state, nil
-}
-
-func (c *clusterStateHolder) reload() (*clusterState, error) {
 	state, err := c.load()
 	if err != nil {
-		c.firstErrMu.Lock()
-		if c.firstErr == nil {
-			c.firstErr = err
-		}
-		c.firstErrMu.Unlock()
 		return nil, err
 	}
 	c.state.Store(state)
@@ -638,16 +609,11 @@ func (c *clusterStateHolder) LazyReload() {
 	go func() {
 		defer atomic.StoreUint32(&c.reloading, 0)
 
-		for {
-			state, err := c.reload()
-			if err != nil {
-				return
-			}
-			time.Sleep(100 * time.Millisecond)
-			if state.IsConsistent() {
-				return
-			}
+		_, err := c.Reload()
+		if err != nil {
+			return
 		}
+		time.Sleep(100 * time.Millisecond)
 	}()
 }
 
@@ -660,15 +626,7 @@ func (c *clusterStateHolder) Get() (*clusterState, error) {
 		}
 		return state, nil
 	}
-
-	c.firstErrMu.RLock()
-	err := c.firstErr
-	c.firstErrMu.RUnlock()
-	if err != nil {
-		return nil, err
-	}
-
-	return nil, errors.New("redis: cluster has no state")
+	return c.Reload()
 }
 
 func (c *clusterStateHolder) ReloadOrGet() (*clusterState, error) {
@@ -716,10 +674,6 @@ func NewClusterClient(opt *ClusterOptions) *ClusterClient {
 	c.processTxPipeline = c.defaultProcessTxPipeline
 
 	c.init()
-
-	_, _ = c.state.Reload()
-	_, _ = c.cmdsInfoCache.Get()
-
 	if opt.IdleCheckFrequency > 0 {
 		go c.reaper(opt.IdleCheckFrequency)
 	}
@@ -727,15 +681,15 @@ func NewClusterClient(opt *ClusterOptions) *ClusterClient {
 	return c
 }
 
-// ReloadState reloads cluster state. It calls ClusterSlots func
+func (c *ClusterClient) init() {
+	c.cmdable.setProcessor(c.Process)
+}
+
+// ReloadState reloads cluster state. If available it calls ClusterSlots func
 // to get cluster slots information.
 func (c *ClusterClient) ReloadState() error {
 	_, err := c.state.Reload()
 	return err
-}
-
-func (c *ClusterClient) init() {
-	c.cmdable.setProcessor(c.Process)
 }
 
 func (c *ClusterClient) Context() context.Context {
@@ -979,9 +933,10 @@ func (c *ClusterClient) defaultProcess(cmd Cmder) error {
 			break
 		}
 
-		// If slave is loading - read from master.
+		// If slave is loading - pick another node.
 		if c.opt.ReadOnly && internal.IsLoadingError(err) {
 			node.MarkAsLoading()
+			node = nil
 			continue
 		}
 
@@ -1349,14 +1304,15 @@ func (c *ClusterClient) pipelineProcessCmds(
 	}
 
 	err = cn.WithReader(c.opt.ReadTimeout, func(rd *proto.Reader) error {
-		return c.pipelineReadCmds(rd, cmds, failedCmds)
+		return c.pipelineReadCmds(node, rd, cmds, failedCmds)
 	})
 	return err
 }
 
 func (c *ClusterClient) pipelineReadCmds(
-	rd *proto.Reader, cmds []Cmder, failedCmds *cmdsMap,
+	node *clusterNode, rd *proto.Reader, cmds []Cmder, failedCmds *cmdsMap,
 ) error {
+	var firstErr error
 	for _, cmd := range cmds {
 		err := cmd.readReply(rd)
 		if err == nil {
@@ -1371,9 +1327,14 @@ func (c *ClusterClient) pipelineReadCmds(
 			continue
 		}
 
-		return err
+		failedCmds.mu.Lock()
+		failedCmds.m[node] = append(failedCmds.m[node], cmd)
+		failedCmds.mu.Unlock()
+		if firstErr == nil {
+			firstErr = err
+		}
 	}
-	return nil
+	return firstErr
 }
 
 func (c *ClusterClient) checkMovedErr(

@@ -15,10 +15,11 @@ func Dedup(rrs []RR, m map[string]RR) []RR {
 	for _, r := range rrs {
 		key := normalizedString(r)
 		keys = append(keys, &key)
-		if _, ok := m[key]; ok {
+		if mr, ok := m[key]; ok {
 			// Shortest TTL wins.
-			if m[key].Header().Ttl > r.Header().Ttl {
-				m[key].Header().Ttl = r.Header().Ttl
+			rh, mrh := r.Header(), mr.Header()
+			if mrh.Ttl > rh.Ttl {
+				mrh.Ttl = rh.Ttl
 			}
 			continue
 		}
