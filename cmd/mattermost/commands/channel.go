@@ -86,12 +86,12 @@ Archived channels are appended with ' (archived)'.`,
 }
 
 var MoveChannelsCmd = &cobra.Command{
-	Use:   "mv [channels] [team] --username [user]",
+	Use:   "move [channels] [team] --username [user]",
 	Short: "Moves channels to the specified team",
 	Long: `Moves the provided channels to the specified team.
 Validates that all users in the channel belong to the target team. Incoming/Outgoing webhooks are moved along with the channel.
 Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
-	Example: "  channel mv oldteam:mychannel newteam --username myusername",
+	Example: "  channel move oldteam:mychannel newteam --username myusername",
 	Args:    cobra.MinimumNArgs(2),
 	RunE:    moveChannelsCmdF,
 }
