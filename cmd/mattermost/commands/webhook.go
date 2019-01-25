@@ -161,8 +161,8 @@ func createIncomingWebhookCmdF(command *cobra.Command, args []string) error {
 		return errIncomingWebhook
 	}
 
-	CommandPrettyPrintln("Display Name: " + createdIncoming.DisplayName)
 	CommandPrettyPrintln("Id: " + createdIncoming.Id)
+	CommandPrettyPrintln("Display Name: " + createdIncoming.DisplayName)
 
 	return nil
 }
@@ -296,8 +296,8 @@ func createOutgoingWebhookCmdF(command *cobra.Command, args []string) error {
 		return errOutgoing
 	}
 
-	CommandPrettyPrintln("Display Name: " + createdOutgoing.DisplayName)
 	CommandPrettyPrintln("Id: " + createdOutgoing.Id)
+	CommandPrettyPrintln("Display Name: " + createdOutgoing.DisplayName)
 
 	return nil
 }
