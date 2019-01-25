@@ -33,7 +33,7 @@ func (a *App) installPlugin(pluginFile io.Reader, replace bool) (*model.Manifest
 	}
 	defer os.RemoveAll(tmpDir)
 
-	if err := utils.ExtractTarGz(pluginFile, tmpDir); err != nil {
+	if err = utils.ExtractTarGz(pluginFile, tmpDir); err != nil {
 		return nil, model.NewAppError("installPlugin", "app.plugin.extract.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
