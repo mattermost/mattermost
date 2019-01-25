@@ -57,12 +57,11 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, shouldBeAdmin
 		}
 	}
 
-	var returnErr *model.AppError
+	var err *model.AppError
 	for _, channelName := range defaultChannelList {
 		if result := <-a.Srv.Store.Channel().GetByName(teamId, channelName, true); result.Err != nil {
-			returnErr = result.Err
+			err = result.Err
 		} else {
-
 			channel := result.Data.(*model.Channel)
 
 			if channel.Type != model.CHANNEL_OPEN {
@@ -78,41 +77,45 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, shouldBeAdmin
 			}
 
 			if cmResult := <-a.Srv.Store.Channel().SaveMember(cm); cmResult.Err != nil {
-				returnErr = cmResult.Err
+				err = cmResult.Err
 			}
 			if result = <-a.Srv.Store.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); result.Err != nil {
 				mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", result.Err))
 			}
 
 			if *a.Config().ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages {
-				if channel.Name == model.DEFAULT_CHANNEL {
-					if requestor == nil {
-						if err := a.postJoinTeamMessage(user, channel); err != nil {
-							mlog.Error(fmt.Sprint("Failed to post join/leave message", err))
-						}
-					} else {
-						if err := a.postAddToTeamMessage(requestor, user, channel, ""); err != nil {
-							mlog.Error(fmt.Sprint("Failed to post join/leave message", err))
-						}
-					}
-				} else {
-					if requestor == nil {
-						if err := a.postJoinChannelMessage(user, channel); err != nil {
-							mlog.Error(fmt.Sprint("Failed to post join/leave message", err))
-						}
-					} else {
-						if err := a.PostAddToChannelMessage(requestor, user, channel, ""); err != nil {
-							mlog.Error(fmt.Sprint("Failed to post join/leave message", err))
-						}
-					}
-				}
+				a.postJoinMessageForDefaultChannel(user, requestor, channel)
 			}
 
 			a.InvalidateCacheForChannelMembers(channel.Id)
 		}
 	}
 
-	return returnErr
+	return err
+}
+
+func (a *App) postJoinMessageForDefaultChannel(user *model.User, requestor *model.User, channel *model.Channel) {
+	if channel.Name == model.DEFAULT_CHANNEL {
+		if requestor == nil {
+			if err := a.postJoinTeamMessage(user, channel); err != nil {
+				mlog.Error(fmt.Sprint("Failed to post join/leave message", err))
+			}
+		} else {
+			if err := a.postAddToTeamMessage(requestor, user, channel, ""); err != nil {
+				mlog.Error(fmt.Sprint("Failed to post join/leave message", err))
+			}
+		}
+	} else {
+		if requestor == nil {
+			if err := a.postJoinChannelMessage(user, channel); err != nil {
+				mlog.Error(fmt.Sprint("Failed to post join/leave message", err))
+			}
+		} else {
+			if err := a.PostAddToChannelMessage(requestor, user, channel, ""); err != nil {
+				mlog.Error(fmt.Sprint("Failed to post join/leave message", err))
+			}
+		}
+	}
 }
 
 func (a *App) CreateChannelWithUser(channel *model.Channel, userId string) (*model.Channel, *model.AppError) {
