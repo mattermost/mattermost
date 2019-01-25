@@ -177,7 +177,7 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 	headers := make(map[string]string)
 	headers["TestHeader"] = "TestValue"
 
-	if err := SendMailUsingConfigAdvanced(mimeTo, smtpTo, from, emailSubject, emailBody, attachments, headers, cfg, true); err != nil {
+	if err := SendMailUsingConfigAdvanced(mimeTo, smtpTo, from, from, emailSubject, emailBody, attachments, headers, cfg, true); err != nil {
 		t.Log(err)
 		t.Fatal("Should connect to the STMP Server")
 	} else {
