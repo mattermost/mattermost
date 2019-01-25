@@ -14,8 +14,6 @@ matrix:
   - go: 1.9.x
   - go: 1.9.x
     env: GAE=1
-  - go: 1.8.x
-  - go: 1.6.x
 
 go_import_path: google.golang.org/grpc
 

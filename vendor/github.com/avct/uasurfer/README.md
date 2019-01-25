@@ -72,6 +72,10 @@ where example UserAgent is:
 * `BrowserSilk` - Amazon [Silk](https://en.wikipedia.org/wiki/Amazon_Silk)
 * `BrowserSpotify` - [Spotify](https://en.wikipedia.org/wiki/Spotify#Clients) desktop client
 * `BrowserBlackberry` - RIM [BlackBerry](https://en.wikipedia.org/wiki/BlackBerry)
+* `BrowserYandex` - [Yandex](https://en.wikipedia.org/wiki/Yandex_Browser)
+* `BrowserNintendo` - [Nintendo DS(i) Browser](https://en.wikipedia.org/wiki/Nintendo_DS_%26_DSi_Browser)
+* `BrowserSamsung` - [Samsung Internet](https://en.wikipedia.org/wiki/Samsung_Internet_for_Android)
+* `BrowserCocCoc`- [Cốc Cốc](https://en.wikipedia.org/wiki/C%E1%BB%91c_C%E1%BB%91c)
 * `BrowserUnknown` - Unknown
 
 #### Browser Version
@@ -90,7 +94,7 @@ Unknown version is returned as `0`.
 * `PlatformWindowsPhone` Microsoft Windows Phone & Mobile
 * `PlatformKindle` - Amazon Kindle & Kindle Fire
 * `PlatformPlaystation` - Sony Playstation, Vita, PSP
-* `PlatformXbox` - Microsoft Xbox - `PlatformXbox`
+* `PlatformXbox` - Microsoft Xbox
 * `PlatformNintendo` - Nintendo DS, Wii, etc.
 * `PlatformUnknown` - Unknown
 

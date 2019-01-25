@@ -193,6 +193,8 @@ func main() {
 				fallthrough
 			case st.Tag(i) == `dns:"hex"`:
 				o("l += len(rr.%s)/2 + 1\n")
+			case st.Tag(i) == `dns:"any"`:
+				o("l += len(rr.%s)\n")
 			case st.Tag(i) == `dns:"a"`:
 				o("l += net.IPv4len // %s\n")
 			case st.Tag(i) == `dns:"aaaa"`:
