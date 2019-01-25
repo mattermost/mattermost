@@ -79,7 +79,7 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 		if postChan == nil {
 			rows[2].Value = -1
 		} else {
-			r := <-postChan
+			r = <-postChan
 			if r.Err != nil {
 				return nil, r.Err
 			}
@@ -89,7 +89,7 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 		if userChan == nil {
 			rows[3].Value = float64(systemUserCount)
 		} else {
-			r := <-userChan
+			r = <-userChan
 			if r.Err != nil {
 				return nil, r.Err
 			}
@@ -99,7 +99,7 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 		if userInactiveChan == nil {
 			rows[10].Value = -1
 		} else {
-			r := <-userInactiveChan
+			r = <-userInactiveChan
 			if r.Err != nil {
 				return nil, r.Err
 			}
