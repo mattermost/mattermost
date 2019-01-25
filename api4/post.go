@@ -211,7 +211,6 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 			channelReadPermission[post.ChannelId] = allowed
 		}
 
-
 		if !allowed {
 			continue
 		}
