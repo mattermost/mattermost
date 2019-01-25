@@ -345,18 +345,28 @@ func userCreateCmdF(command *cobra.Command, args []string) error {
 	}
 
 	if systemAdmin {
-		if _, err := a.UpdateUserRoles(ruser.Id, "system_user system_admin", false); err != nil {
+		_, err := a.UpdateUserRoles(ruser.Id, "system_user system_admin", false)
+		if err != nil {
 			return errors.New("Unable to make user system admin. Error: " + err.Error())
 		}
 	} else {
 		// This else case exists to prevent the first user created from being
 		// created as a system admin unless explicity specified.
-		if _, err := a.UpdateUserRoles(ruser.Id, "system_user", false); err != nil {
+		_, err := a.UpdateUserRoles(ruser.Id, "system_user", false)
+		if err != nil {
 			return errors.New("If this is the first user: Unable to prevent user from being system admin. Error: " + err.Error())
 		}
 	}
 
 	CommandPrettyPrintln("Created User")
+	CommandPrettyPrintln("id: " + ruser.Id)
+	CommandPrettyPrintln("username: " + ruser.Username)
+	CommandPrettyPrintln("nickname: " + ruser.Nickname)
+	CommandPrettyPrintln("position: " + ruser.Position)
+	CommandPrettyPrintln("first_name: " + ruser.FirstName)
+	CommandPrettyPrintln("last_name: " + ruser.LastName)
+	CommandPrettyPrintln("email: " + ruser.Email)
+	CommandPrettyPrintln("auth_service: " + ruser.AuthService)
 
 	return nil
 }
