@@ -789,8 +789,9 @@ func TestGetPublicChannelsForTeam(t *testing.T) {
 			Type:        model.CHANNEL_OPEN,
 			TeamId:      team.Id,
 		}
-		rchannel, channelErr := th.App.CreateChannel(&channel, false)
-		require.Nil(t, channelErr)
+		var rchannel *model.Channel
+		rchannel, err = th.App.CreateChannel(&channel, false)
+		require.Nil(t, err)
 		require.NotNil(t, rchannel)
 		defer th.App.PermanentDeleteChannel(rchannel)
 
