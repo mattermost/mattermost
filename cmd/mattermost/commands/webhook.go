@@ -162,7 +162,7 @@ func createIncomingWebhookCmdF(command *cobra.Command, args []string) error {
 	}
 
 	CommandPrettyPrintln("Display Name: " + createdIncoming.DisplayName)
-	CommandPrettyPrintln("Token Id: " + createdIncoming.Id)
+	CommandPrettyPrintln("Id: " + createdIncoming.Id)
 
 	return nil
 }
@@ -297,7 +297,7 @@ func createOutgoingWebhookCmdF(command *cobra.Command, args []string) error {
 	}
 
 	CommandPrettyPrintln("Display Name: " + createdOutgoing.DisplayName)
-	CommandPrettyPrintln("Token Id: " + createdOutgoing.Id)
+	CommandPrettyPrintln("Id: " + createdOutgoing.Id)
 
 	return nil
 }
