@@ -201,9 +201,9 @@ func createChannelCmdF(command *cobra.Command, args []string) error {
 		return errCreatedChannel
 	}
 
-	CommandPrettyPrintln("Channel Id: " + createdChannel.Id)
-	CommandPrettyPrintln("Channel Name: " + createdChannel.Name)
-	CommandPrettyPrintln("Channel Display Name: " + createdChannel.DisplayName)
+	CommandPrettyPrintln("Id: " + createdChannel.Id)
+	CommandPrettyPrintln("Name: " + createdChannel.Name)
+	CommandPrettyPrintln("Display Name: " + createdChannel.DisplayName)
 	return nil
 }
 
