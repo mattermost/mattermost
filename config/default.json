@@ -71,12 +71,10 @@
         "ExperimentalEnableDefaultChannelLeaveJoinMessages": true,
         "ExperimentalGroupUnreadChannels": "disabled",
         "ExperimentalChannelOrganization": false,
-        "ImageProxyType": "",
-        "ImageProxyOptions": "",
-        "ImageProxyURL": "",
         "EnableAPITeamDeletion": false,
         "ExperimentalEnableHardenedMode": false,
-        "EnableEmailInvitations": false
+        "EnableEmailInvitations": false,
+        "ExperimentalLdapGroupSync": false
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
@@ -203,10 +201,6 @@
         "LoginButtonBorderColor": "",
         "LoginButtonTextColor": ""
     },
-    "ExtensionSettings": {
-        "EnableExperimentalExtensions": false,
-        "AllowedExtensionsIDs": []
-    },
     "RateLimitSettings": {
         "Enable": false,
         "PerSec": 10,
@@ -281,6 +275,9 @@
         "BindUsername": "",
         "BindPassword": "",
         "UserFilter": "",
+        "GroupFilter": "",
+        "GroupDisplayNameAttribute": "",
+        "GroupIdAttribute": "",
         "FirstNameAttribute": "",
         "LastNameAttribute": "",
         "EmailAttribute": "",
@@ -413,5 +410,11 @@
         "ClientDirectory": "./client/plugins",
         "Plugins": {},
         "PluginStates": {}
+    },
+    "ImageProxySettings": {
+        "Enable": true,
+        "ImageProxyType": "local",
+        "RemoteImageProxyURL": "",
+        "RemoteImageProxyOptions": ""
     }
 }

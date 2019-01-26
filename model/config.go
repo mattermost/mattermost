@@ -114,14 +114,16 @@ const (
 	SUPPORT_SETTINGS_DEFAULT_SUPPORT_EMAIL         = "feedback@mattermost.com"
 	SUPPORT_SETTINGS_DEFAULT_RE_ACCEPTANCE_PERIOD  = 365
 
-	LDAP_SETTINGS_DEFAULT_FIRST_NAME_ATTRIBUTE = ""
-	LDAP_SETTINGS_DEFAULT_LAST_NAME_ATTRIBUTE  = ""
-	LDAP_SETTINGS_DEFAULT_EMAIL_ATTRIBUTE      = ""
-	LDAP_SETTINGS_DEFAULT_USERNAME_ATTRIBUTE   = ""
-	LDAP_SETTINGS_DEFAULT_NICKNAME_ATTRIBUTE   = ""
-	LDAP_SETTINGS_DEFAULT_ID_ATTRIBUTE         = ""
-	LDAP_SETTINGS_DEFAULT_POSITION_ATTRIBUTE   = ""
-	LDAP_SETTINGS_DEFAULT_LOGIN_FIELD_NAME     = ""
+	LDAP_SETTINGS_DEFAULT_FIRST_NAME_ATTRIBUTE         = ""
+	LDAP_SETTINGS_DEFAULT_LAST_NAME_ATTRIBUTE          = ""
+	LDAP_SETTINGS_DEFAULT_EMAIL_ATTRIBUTE              = ""
+	LDAP_SETTINGS_DEFAULT_USERNAME_ATTRIBUTE           = ""
+	LDAP_SETTINGS_DEFAULT_NICKNAME_ATTRIBUTE           = ""
+	LDAP_SETTINGS_DEFAULT_ID_ATTRIBUTE                 = ""
+	LDAP_SETTINGS_DEFAULT_POSITION_ATTRIBUTE           = ""
+	LDAP_SETTINGS_DEFAULT_LOGIN_FIELD_NAME             = ""
+	LDAP_SETTINGS_DEFAULT_GROUP_DISPLAY_NAME_ATTRIBUTE = ""
+	LDAP_SETTINGS_DEFAULT_GROUP_ID_ATTRIBUTE           = ""
 
 	SAML_SETTINGS_DEFAULT_ID_ATTRIBUTE         = ""
 	SAML_SETTINGS_DEFAULT_FIRST_NAME_ATTRIBUTE = ""
@@ -172,6 +174,9 @@ const (
 
 	CLIENT_SIDE_CERT_CHECK_PRIMARY_AUTH   = "primary"
 	CLIENT_SIDE_CERT_CHECK_SECONDARY_AUTH = "secondary"
+
+	IMAGE_PROXY_TYPE_LOCAL      = "local"
+	IMAGE_PROXY_TYPE_ATMOS_CAMO = "atmos/camo"
 )
 
 var ServerTLSSupportedCiphers = map[string]uint16{
@@ -270,12 +275,13 @@ type ServiceSettings struct {
 	ExperimentalEnableDefaultChannelLeaveJoinMessages *bool
 	ExperimentalGroupUnreadChannels                   *string
 	ExperimentalChannelOrganization                   *bool
-	ImageProxyType                                    *string
-	ImageProxyURL                                     *string
-	ImageProxyOptions                                 *string
+	DEPRECATED_DO_NOT_USE_ImageProxyType              *string `json:"ImageProxyType"`    // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_ImageProxyURL               *string `json:"ImageProxyURL"`     // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_ImageProxyOptions           *string `json:"ImageProxyOptions"` // This field is deprecated and must not be used.
 	EnableAPITeamDeletion                             *bool
 	ExperimentalEnableHardenedMode                    *bool
 	EnableEmailInvitations                            *bool
+	ExperimentalLdapGroupSync                         *bool
 }
 
 func (s *ServiceSettings) SetDefaults() {
@@ -547,16 +553,16 @@ func (s *ServiceSettings) SetDefaults() {
 		s.ExperimentalChannelOrganization = NewBool(experimentalUnreadEnabled)
 	}
 
-	if s.ImageProxyType == nil {
-		s.ImageProxyType = NewString("")
+	if s.DEPRECATED_DO_NOT_USE_ImageProxyType == nil {
+		s.DEPRECATED_DO_NOT_USE_ImageProxyType = NewString("")
 	}
 
-	if s.ImageProxyURL == nil {
-		s.ImageProxyURL = NewString("")
+	if s.DEPRECATED_DO_NOT_USE_ImageProxyURL == nil {
+		s.DEPRECATED_DO_NOT_USE_ImageProxyURL = NewString("")
 	}
 
-	if s.ImageProxyOptions == nil {
-		s.ImageProxyOptions = NewString("")
+	if s.DEPRECATED_DO_NOT_USE_ImageProxyOptions == nil {
+		s.DEPRECATED_DO_NOT_USE_ImageProxyOptions = NewString("")
 	}
 
 	if s.EnableAPITeamDeletion == nil {
@@ -565,6 +571,10 @@ func (s *ServiceSettings) SetDefaults() {
 
 	if s.ExperimentalEnableHardenedMode == nil {
 		s.ExperimentalEnableHardenedMode = NewBool(false)
+	}
+
+	if s.ExperimentalLdapGroupSync == nil {
+		s.ExperimentalLdapGroupSync = NewBool(false)
 	}
 }
 
@@ -979,21 +989,6 @@ func (s *EmailSettings) SetDefaults() {
 	}
 }
 
-type ExtensionSettings struct {
-	EnableExperimentalExtensions *bool
-	AllowedExtensionsIDs         []string
-}
-
-func (s *ExtensionSettings) SetDefaults() {
-	if s.EnableExperimentalExtensions == nil {
-		s.EnableExperimentalExtensions = NewBool(false)
-	}
-
-	if s.AllowedExtensionsIDs == nil {
-		s.AllowedExtensionsIDs = []string{}
-	}
-}
-
 type RateLimitSettings struct {
 	Enable           *bool
 	PerSec           *int
@@ -1337,7 +1332,12 @@ type LdapSettings struct {
 	BindPassword       *string
 
 	// Filtering
-	UserFilter *string
+	UserFilter  *string
+	GroupFilter *string
+
+	// Group Mapping
+	GroupDisplayNameAttribute *string
+	GroupIdAttribute          *string
 
 	// User Mapping
 	FirstNameAttribute *string
@@ -1401,6 +1401,18 @@ func (s *LdapSettings) SetDefaults() {
 
 	if s.UserFilter == nil {
 		s.UserFilter = NewString("")
+	}
+
+	if s.GroupFilter == nil {
+		s.GroupFilter = NewString("")
+	}
+
+	if s.GroupDisplayNameAttribute == nil {
+		s.GroupDisplayNameAttribute = NewString(LDAP_SETTINGS_DEFAULT_GROUP_DISPLAY_NAME_ATTRIBUTE)
+	}
+
+	if s.GroupIdAttribute == nil {
+		s.GroupIdAttribute = NewString(LDAP_SETTINGS_DEFAULT_GROUP_ID_ATTRIBUTE)
 	}
 
 	if s.FirstNameAttribute == nil {
@@ -1897,14 +1909,14 @@ func (s *MessageExportSettings) SetDefaults() {
 }
 
 type DisplaySettings struct {
-	CustomUrlSchemes     *[]string
+	CustomUrlSchemes     []string
 	ExperimentalTimezone *bool
 }
 
 func (s *DisplaySettings) SetDefaults() {
 	if s.CustomUrlSchemes == nil {
 		customUrlSchemes := []string{}
-		s.CustomUrlSchemes = &customUrlSchemes
+		s.CustomUrlSchemes = customUrlSchemes
 	}
 
 	if s.ExperimentalTimezone == nil {
@@ -1922,6 +1934,43 @@ func (s *TimezoneSettings) SetDefaults() {
 	}
 }
 
+type ImageProxySettings struct {
+	Enable                  *bool
+	ImageProxyType          *string
+	RemoteImageProxyURL     *string
+	RemoteImageProxyOptions *string
+}
+
+func (ips *ImageProxySettings) SetDefaults(ss ServiceSettings) {
+	if ips.Enable == nil {
+		ips.Enable = NewBool(true)
+	}
+
+	if ips.ImageProxyType == nil {
+		if ss.DEPRECATED_DO_NOT_USE_ImageProxyType == nil || *ss.DEPRECATED_DO_NOT_USE_ImageProxyType == "" {
+			ips.ImageProxyType = NewString(IMAGE_PROXY_TYPE_LOCAL)
+		} else {
+			ips.ImageProxyType = ss.DEPRECATED_DO_NOT_USE_ImageProxyType
+		}
+	}
+
+	if ips.RemoteImageProxyURL == nil {
+		if ss.DEPRECATED_DO_NOT_USE_ImageProxyURL == nil {
+			ips.RemoteImageProxyURL = NewString("")
+		} else {
+			ips.RemoteImageProxyURL = ss.DEPRECATED_DO_NOT_USE_ImageProxyURL
+		}
+	}
+
+	if ips.RemoteImageProxyOptions == nil {
+		if ss.DEPRECATED_DO_NOT_USE_ImageProxyOptions == nil {
+			ips.RemoteImageProxyOptions = NewString("")
+		} else {
+			ips.RemoteImageProxyOptions = ss.DEPRECATED_DO_NOT_USE_ImageProxyOptions
+		}
+	}
+}
+
 type ConfigFunc func() *Config
 
 type Config struct {
@@ -1933,7 +1982,6 @@ type Config struct {
 	PasswordSettings      PasswordSettings
 	FileSettings          FileSettings
 	EmailSettings         EmailSettings
-	ExtensionSettings     ExtensionSettings
 	RateLimitSettings     RateLimitSettings
 	PrivacySettings       PrivacySettings
 	SupportSettings       SupportSettings
@@ -1958,6 +2006,7 @@ type Config struct {
 	PluginSettings        PluginSettings
 	DisplaySettings       DisplaySettings
 	TimezoneSettings      TimezoneSettings
+	ImageProxySettings    ImageProxySettings
 }
 
 func (o *Config) Clone() *Config {
@@ -2029,7 +2078,7 @@ func (o *Config) SetDefaults() {
 	o.MessageExportSettings.SetDefaults()
 	o.TimezoneSettings.SetDefaults()
 	o.DisplaySettings.SetDefaults()
-	o.ExtensionSettings.SetDefaults()
+	o.ImageProxySettings.SetDefaults(o.ServiceSettings)
 }
 
 func (o *Config) IsValid() *AppError {
@@ -2098,6 +2147,10 @@ func (o *Config) IsValid() *AppError {
 	}
 
 	if err := o.DisplaySettings.isValid(); err != nil {
+		return err
+	}
+
+	if err := o.ImageProxySettings.isValid(); err != nil {
 		return err
 	}
 
@@ -2385,16 +2438,6 @@ func (ss *ServiceSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.group_unread_channels.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	switch *ss.ImageProxyType {
-	case "":
-	case "atmos/camo":
-		if *ss.ImageProxyOptions == "" {
-			return NewAppError("Config.IsValid", "model.config.is_valid.atmos_camo_image_proxy_options.app_error", nil, "", http.StatusBadRequest)
-		}
-	default:
-		return NewAppError("Config.IsValid", "model.config.is_valid.image_proxy_type.app_error", nil, "", http.StatusBadRequest)
-	}
-
 	return nil
 }
 
@@ -2495,10 +2538,10 @@ func (mes *MessageExportSettings) isValid(fs FileSettings) *AppError {
 }
 
 func (ds *DisplaySettings) isValid() *AppError {
-	if len(*ds.CustomUrlSchemes) != 0 {
+	if len(ds.CustomUrlSchemes) != 0 {
 		validProtocolPattern := regexp.MustCompile(`(?i)^\s*[a-z][a-z0-9-]*\s*$`)
 
-		for _, scheme := range *ds.CustomUrlSchemes {
+		for _, scheme := range ds.CustomUrlSchemes {
 			if !validProtocolPattern.MatchString(scheme) {
 				return NewAppError(
 					"Config.IsValid",
@@ -2508,6 +2551,27 @@ func (ds *DisplaySettings) isValid() *AppError {
 					http.StatusBadRequest,
 				)
 			}
+		}
+	}
+
+	return nil
+}
+
+func (ips *ImageProxySettings) isValid() *AppError {
+	if *ips.Enable {
+		switch *ips.ImageProxyType {
+		case IMAGE_PROXY_TYPE_LOCAL:
+			// No other settings to validate
+		case IMAGE_PROXY_TYPE_ATMOS_CAMO:
+			if *ips.RemoteImageProxyURL == "" {
+				return NewAppError("Config.IsValid", "model.config.is_valid.atmos_camo_image_proxy_url.app_error", nil, "", http.StatusBadRequest)
+			}
+
+			if *ips.RemoteImageProxyOptions == "" {
+				return NewAppError("Config.IsValid", "model.config.is_valid.atmos_camo_image_proxy_options.app_error", nil, "", http.StatusBadRequest)
+			}
+		default:
+			return NewAppError("Config.IsValid", "model.config.is_valid.image_proxy_type.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
 

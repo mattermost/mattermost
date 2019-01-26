@@ -21,9 +21,8 @@ import (
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/store/sqlstore"
-	"github.com/mattermost/mattermost-server/store/storetest"
 	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"github.com/mattermost/mattermost-server/web"
 	"github.com/mattermost/mattermost-server/wsapi"
 
@@ -52,35 +51,20 @@ type TestHelper struct {
 	tempWorkspace     string
 }
 
-type persistentTestStore struct {
-	store.Store
-}
+// testStore tracks the active test store.
+// This is a bridge between the new testlib ownership of the test store and the existing usage
+// of the api4 test helper by many packages. In the future, this test helper would ideally belong
+// to the testlib altogether.
+var testStore store.Store
 
-func (*persistentTestStore) Close() {}
-
-var testStoreContainer *storetest.RunningContainer
-var testStore *persistentTestStore
-
-// UseTestStore sets the container and corresponding settings to use for tests. Once the tests are
-// complete (e.g. at the end of your TestMain implementation), you should call StopTestStore.
-func UseTestStore(container *storetest.RunningContainer, settings *model.SqlSettings) {
-	testStoreContainer = container
-	testStore = &persistentTestStore{store.NewLayeredStore(sqlstore.NewSqlSupplier(*settings, nil), nil, nil)}
-}
-
-func StopTestStore() {
-	if testStoreContainer != nil {
-		testStoreContainer.Stop()
-		testStoreContainer = nil
-	}
+func UseTestStore(store store.Store) {
+	testStore = store
 }
 
 func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHelper {
-	if testStore != nil {
-		testStore.DropAllTables()
-	}
+	testStore.DropAllTables()
 
-	permConfig, err := os.Open(utils.FindConfigFile("config.json"))
+	permConfig, err := os.Open(fileutils.FindConfigFile("config.json"))
 	if err != nil {
 		panic(err)
 	}
@@ -96,9 +80,7 @@ func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHel
 	}
 
 	options := []app.Option{app.ConfigFile(tempConfig.Name()), app.DisableConfigWatch}
-	if testStore != nil {
-		options = append(options, app.StoreOverride(testStore))
-	}
+	options = append(options, app.StoreOverride(testStore))
 
 	s, err := app.NewServer(options...)
 	if err != nil {
@@ -117,13 +99,11 @@ func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHel
 		cfg.EmailSettings.SendEmailNotifications = true
 	})
 	prevListenAddress := *th.App.Config().ServiceSettings.ListenAddress
-	if testStore != nil {
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
-	}
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
 	if updateConfig != nil {
 		th.App.UpdateConfig(updateConfig)
 	}
-	serverErr := th.App.StartServer()
+	serverErr := th.Server.Start()
 	if serverErr != nil {
 		panic(serverErr)
 	}
@@ -205,7 +185,6 @@ func (me *TestHelper) TearDown() {
 	utils.EnableDebugLogForTest()
 
 	if err := recover(); err != nil {
-		StopTestStore()
 		panic(err)
 	}
 }
@@ -595,103 +574,71 @@ func CheckNoError(t *testing.T, resp *model.Response) {
 	t.Helper()
 
 	if resp.Error != nil {
-		t.Fatal("Expected no error, got " + resp.Error.Error())
+		t.Fatalf("Expected no error, got %q", resp.Error.Error())
 	}
 }
 
-func CheckCreatedStatus(t *testing.T, resp *model.Response) {
+func checkHTTPStatus(t *testing.T, resp *model.Response, expectedStatus int, expectError bool) {
 	t.Helper()
 
-	if resp.StatusCode != http.StatusCreated {
-		t.Log("actual: " + strconv.Itoa(resp.StatusCode))
-		t.Log("expected: " + strconv.Itoa(http.StatusCreated))
-		t.Fatal("wrong status code")
-	}
-}
+	switch {
+	case resp == nil:
+		t.Fatalf("Unexpected nil response, expected http:%v, expectError:%v)", expectedStatus, expectError)
 
-func CheckForbiddenStatus(t *testing.T, resp *model.Response) {
-	t.Helper()
+	case expectError && resp.Error == nil:
+		t.Fatalf("Expected a non-nil error and http status:%v, got nil, %v", expectedStatus, resp.StatusCode)
 
-	if resp.Error == nil {
-		t.Fatal("should have errored with status:" + strconv.Itoa(http.StatusForbidden))
-		return
-	}
+	case !expectError && resp.Error != nil:
+		t.Fatalf("Expected no error and http status:%v, got %q, http:%v", expectedStatus, resp.Error, resp.StatusCode)
 
-	if resp.StatusCode != http.StatusForbidden {
-		t.Log("actual: " + strconv.Itoa(resp.StatusCode))
-		t.Log("expected: " + strconv.Itoa(http.StatusForbidden))
-		t.Fatal("wrong status code")
-	}
-}
-
-func CheckUnauthorizedStatus(t *testing.T, resp *model.Response) {
-	t.Helper()
-
-	if resp.Error == nil {
-		t.Fatal("should have errored with status:" + strconv.Itoa(http.StatusUnauthorized))
-		return
-	}
-
-	if resp.StatusCode != http.StatusUnauthorized {
-		t.Log("actual: " + strconv.Itoa(resp.StatusCode))
-		t.Log("expected: " + strconv.Itoa(http.StatusUnauthorized))
-		t.Fatal("wrong status code")
-	}
-}
-
-func CheckNotFoundStatus(t *testing.T, resp *model.Response) {
-	t.Helper()
-
-	if resp.Error == nil {
-		t.Fatal("should have errored with status:" + strconv.Itoa(http.StatusNotFound))
-		return
-	}
-
-	if resp.StatusCode != http.StatusNotFound {
-		t.Log("actual: " + strconv.Itoa(resp.StatusCode))
-		t.Log("expected: " + strconv.Itoa(http.StatusNotFound))
-		t.Fatal("wrong status code")
-	}
-}
-
-func CheckBadRequestStatus(t *testing.T, resp *model.Response) {
-	t.Helper()
-
-	if resp.Error == nil {
-		t.Fatal("should have errored with status:" + strconv.Itoa(http.StatusBadRequest))
-		return
-	}
-
-	if resp.StatusCode != http.StatusBadRequest {
-		t.Log("actual: " + strconv.Itoa(resp.StatusCode))
-		t.Log("expected: " + strconv.Itoa(http.StatusBadRequest))
-		t.Fatal("wrong status code")
-	}
-}
-
-func CheckNotImplementedStatus(t *testing.T, resp *model.Response) {
-	t.Helper()
-
-	if resp.Error == nil {
-		t.Fatal("should have errored with status:" + strconv.Itoa(http.StatusNotImplemented))
-		return
-	}
-
-	if resp.StatusCode != http.StatusNotImplemented {
-		t.Log("actual: " + strconv.Itoa(resp.StatusCode))
-		t.Log("expected: " + strconv.Itoa(http.StatusNotImplemented))
-		t.Fatal("wrong status code")
+	case resp.StatusCode != expectedStatus:
+		t.Fatalf("Expected http status:%v, got %v (err: %q)", expectedStatus, resp.StatusCode, resp.Error)
 	}
 }
 
 func CheckOKStatus(t *testing.T, resp *model.Response) {
 	t.Helper()
+	checkHTTPStatus(t, resp, http.StatusOK, false)
+}
 
-	CheckNoError(t, resp)
+func CheckCreatedStatus(t *testing.T, resp *model.Response) {
+	t.Helper()
+	checkHTTPStatus(t, resp, http.StatusCreated, false)
+}
 
-	if resp.StatusCode != http.StatusOK {
-		t.Fatalf("wrong status code. expected %d got %d", http.StatusOK, resp.StatusCode)
-	}
+func CheckForbiddenStatus(t *testing.T, resp *model.Response) {
+	t.Helper()
+	checkHTTPStatus(t, resp, http.StatusForbidden, true)
+}
+
+func CheckUnauthorizedStatus(t *testing.T, resp *model.Response) {
+	t.Helper()
+	checkHTTPStatus(t, resp, http.StatusUnauthorized, true)
+}
+
+func CheckNotFoundStatus(t *testing.T, resp *model.Response) {
+	t.Helper()
+	checkHTTPStatus(t, resp, http.StatusNotFound, true)
+}
+
+func CheckBadRequestStatus(t *testing.T, resp *model.Response) {
+	t.Helper()
+	checkHTTPStatus(t, resp, http.StatusBadRequest, true)
+}
+
+func CheckNotImplementedStatus(t *testing.T, resp *model.Response) {
+	t.Helper()
+	checkHTTPStatus(t, resp, http.StatusNotImplemented, true)
+}
+
+func CheckRequestEntityTooLargeStatus(t *testing.T, resp *model.Response) {
+	t.Helper()
+	checkHTTPStatus(t, resp, http.StatusRequestEntityTooLarge, true)
+}
+
+func CheckInternalErrorStatus(t *testing.T, resp *model.Response) {
+	t.Helper()
+	checkHTTPStatus(t, resp, http.StatusInternalServerError, true)
 }
 
 func CheckErrorMessage(t *testing.T, resp *model.Response, errorId string) {
@@ -706,21 +653,6 @@ func CheckErrorMessage(t *testing.T, resp *model.Response, errorId string) {
 		t.Log("actual: " + resp.Error.Id)
 		t.Log("expected: " + errorId)
 		t.Fatal("incorrect error message")
-	}
-}
-
-func CheckInternalErrorStatus(t *testing.T, resp *model.Response) {
-	t.Helper()
-
-	if resp.Error == nil {
-		t.Fatal("should have errored with status:" + strconv.Itoa(http.StatusInternalServerError))
-		return
-	}
-
-	if resp.StatusCode != http.StatusInternalServerError {
-		t.Log("actual: " + strconv.Itoa(resp.StatusCode))
-		t.Log("expected: " + strconv.Itoa(http.StatusInternalServerError))
-		t.Fatal("wrong status code")
 	}
 }
 

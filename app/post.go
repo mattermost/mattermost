@@ -4,18 +4,22 @@
 package app
 
 import (
-	"crypto/hmac"
-	"crypto/sha1"
-	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
+)
+
+const (
+	PENDING_POST_IDS_CACHE_SIZE = 25000
+	PENDING_POST_IDS_CACHE_TTL  = 30 * time.Second
 )
 
 func (a *App) CreatePostAsUser(post *model.Post, clearPushNotifications bool) (*model.Post, *model.AppError) {
@@ -88,7 +92,69 @@ func (a *App) CreatePostMissingChannel(post *model.Post, triggerWebhooks bool) (
 	return a.CreatePost(post, channel, triggerWebhooks)
 }
 
-func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhooks bool) (*model.Post, *model.AppError) {
+// deduplicateCreatePost attempts to make posting idempotent within a caching window.
+func (a *App) deduplicateCreatePost(post *model.Post) (foundPost *model.Post, err *model.AppError) {
+	// We rely on the client sending the pending post id across "duplicate" requests. If there
+	// isn't one, we can't deduplicate, so allow creation normally.
+	if post.PendingPostId == "" {
+		return nil, nil
+	}
+
+	const unknownPostId = ""
+
+	// Query the cache atomically for the given pending post id, saving a record if
+	// it hasn't previously been seen.
+	value, loaded := a.Srv.seenPendingPostIdsCache.GetOrAdd(post.PendingPostId, unknownPostId, PENDING_POST_IDS_CACHE_TTL)
+
+	// If we were the first thread to save this pending post id into the cache,
+	// proceed with create post normally.
+	if !loaded {
+		return nil, nil
+	}
+
+	postId := value.(string)
+
+	// If another thread saved the cache record, but hasn't yet updated it with the actual post
+	// id (because it's still saving), notify the client with an error. Ideally, we'd wait
+	// for the other thread, but coordinating that adds complexity to the happy path.
+	if postId == unknownPostId {
+		return nil, model.NewAppError("deduplicateCreatePost", "api.post.deduplicate_create_post.pending", nil, "", http.StatusInternalServerError)
+	}
+
+	// If the other thread finished creating the post, return the created post back to the
+	// client, making the API call feel idempotent.
+	actualPost, err := a.GetSinglePost(postId)
+	if err != nil {
+		return nil, model.NewAppError("deduplicateCreatePost", "api.post.deduplicate_create_post.failed_to_get", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	mlog.Debug("Deduplicated create post", mlog.String("post_id", actualPost.Id), mlog.String("pending_post_id", post.PendingPostId))
+
+	return actualPost, nil
+}
+
+func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhooks bool) (savedPost *model.Post, err *model.AppError) {
+	if foundPost, err := a.deduplicateCreatePost(post); err != nil {
+		return nil, err
+	} else if foundPost != nil {
+		return foundPost, nil
+	}
+
+	// If we get this far, we've recorded the client-provided pending post id to the cache.
+	// Remove it if we fail below, allowing a proper retry by the client.
+	defer func() {
+		if post.PendingPostId == "" {
+			return
+		}
+
+		if err != nil {
+			a.Srv.seenPendingPostIdsCache.Remove(post.PendingPostId)
+			return
+		}
+
+		a.Srv.seenPendingPostIdsCache.AddWithExpiresInSecs(post.PendingPostId, savedPost.Id, int64(PENDING_POST_IDS_CACHE_TTL.Seconds()))
+	}()
+
 	post.SanitizeProps()
 
 	var pchan store.StoreChannel
@@ -139,9 +205,22 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		return nil, err
 	}
 
+	// Temporary fix so old plugins don't clobber new fields in SlackAttachment struct, see MM-13088
+	if attachments, ok := post.Props["attachments"].([]*model.SlackAttachment); ok {
+		jsonAttachments, err := json.Marshal(attachments)
+		if err == nil {
+			attachmentsInterface := []interface{}{}
+			err = json.Unmarshal(jsonAttachments, &attachmentsInterface)
+			post.Props["attachments"] = attachmentsInterface
+		}
+		if err != nil {
+			mlog.Error("Could not convert post attachments to map interface, err=%s" + err.Error())
+		}
+	}
+
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		var rejectionError *model.AppError
-		pluginContext := &plugin.Context{}
+		pluginContext := a.PluginContext()
 		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 			replacementPost, rejectionReason := hooks.MessageWillBePosted(pluginContext, post)
 			if rejectionReason != "" {
@@ -165,9 +244,13 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 	}
 	rpost := result.Data.(*model.Post)
 
+	// Update the mapping from pending post id to the actual post id, for any clients that
+	// might be duplicating requests.
+	a.Srv.seenPendingPostIdsCache.AddWithExpiresInSecs(post.PendingPostId, rpost.Id, int64(PENDING_POST_IDS_CACHE_TTL.Seconds()))
+
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv.Go(func() {
-			pluginContext := &plugin.Context{}
+			pluginContext := a.PluginContext()
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.MessageHasBeenPosted(pluginContext, rpost)
 				return true
@@ -187,13 +270,8 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 	}
 
 	if len(post.FileIds) > 0 {
-		// There's a rare bug where the client sends up duplicate FileIds so protect against that
-		post.FileIds = utils.RemoveDuplicatesFromStringArray(post.FileIds)
-
-		for _, fileId := range post.FileIds {
-			if result := <-a.Srv.Store.FileInfo().AttachToPost(fileId, post.Id); result.Err != nil {
-				mlog.Error(fmt.Sprintf("Encountered error attaching files to post, post_id=%s, user_id=%s, file_ids=%v, err=%v", post.Id, post.FileIds, post.UserId, result.Err), mlog.String("post_id", post.Id))
-			}
+		if err := a.attachFilesToPost(post); err != nil {
+			mlog.Error("Encountered error attaching files to post", mlog.String("post_id", post.Id), mlog.Any("file_ids", post.FileIds), mlog.Err(result.Err))
 		}
 
 		if a.Metrics != nil {
@@ -206,10 +284,35 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 	rpost = a.PreparePostForClient(rpost)
 
 	if err := a.handlePostEvents(rpost, user, channel, triggerWebhooks, parentPostList); err != nil {
-		return nil, err
+		mlog.Error("Failed to handle post events", mlog.Err(err))
 	}
 
 	return rpost, nil
+}
+
+func (a *App) attachFilesToPost(post *model.Post) *model.AppError {
+	var attachedIds []string
+	for _, fileId := range post.FileIds {
+		result := <-a.Srv.Store.FileInfo().AttachToPost(fileId, post.Id, post.UserId)
+		if result.Err != nil {
+			mlog.Warn("Failed to attach file to post", mlog.String("file_id", fileId), mlog.String("post_id", post.Id), mlog.Err(result.Err))
+			continue
+		}
+
+		attachedIds = append(attachedIds, fileId)
+	}
+
+	if len(post.FileIds) != len(attachedIds) {
+		// We couldn't attach all files to the post, so ensure that post.FileIds reflects what was actually attached
+		post.FileIds = attachedIds
+
+		result := <-a.Srv.Store.Post().Overwrite(post)
+		if result.Err != nil {
+			return result.Err
+		}
+	}
+
+	return nil
 }
 
 // FillInPostProps should be invoked before saving posts to fill in properties such as
@@ -357,7 +460,7 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		var rejectionReason string
-		pluginContext := &plugin.Context{}
+		pluginContext := a.PluginContext()
 		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 			newPost, rejectionReason = hooks.MessageWillBeUpdated(pluginContext, newPost, oldPost)
 			return post != nil
@@ -375,7 +478,7 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv.Go(func() {
-			pluginContext := &plugin.Context{}
+			pluginContext := a.PluginContext()
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.MessageHasBeenUpdated(pluginContext, newPost, oldPost)
 				return true
@@ -394,6 +497,8 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 			esInterface.IndexPost(rpost, rchannel.Data.(*model.Channel).TeamId)
 		})
 	}
+
+	rpost = a.PreparePostForClient(rpost)
 
 	a.sendUpdatedPostEvent(rpost)
 
@@ -420,7 +525,7 @@ func (a *App) PatchPost(postId string, patch *model.PostPatch) (*model.Post, *mo
 
 func (a *App) sendUpdatedPostEvent(post *model.Post) {
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", post.ChannelId, "", nil)
-	message.Add("post", a.PreparePostForClient(post).ToJson())
+	message.Add("post", post.ToJson())
 	a.Publish(message)
 }
 
@@ -808,78 +913,23 @@ func (a *App) PostPatchWithProxyRemovedFromImageURLs(patch *model.PostPatch) *mo
 	return patch
 }
 
-func (a *App) imageProxyConfig() (proxyType, proxyURL, options, siteURL string) {
-	cfg := a.Config()
-
-	if cfg.ServiceSettings.ImageProxyURL == nil || cfg.ServiceSettings.ImageProxyType == nil || cfg.ServiceSettings.SiteURL == nil {
-		return
-	}
-
-	proxyURL = *cfg.ServiceSettings.ImageProxyURL
-	proxyType = *cfg.ServiceSettings.ImageProxyType
-	siteURL = *cfg.ServiceSettings.SiteURL
-
-	if proxyURL == "" || proxyType == "" {
-		return "", "", "", ""
-	}
-
-	if proxyURL[len(proxyURL)-1] != '/' {
-		proxyURL += "/"
-	}
-
-	if siteURL == "" || siteURL[len(siteURL)-1] != '/' {
-		siteURL += "/"
-	}
-
-	if cfg.ServiceSettings.ImageProxyOptions != nil {
-		options = *cfg.ServiceSettings.ImageProxyOptions
-	}
-
-	return
-}
-
 func (a *App) ImageProxyAdder() func(string) string {
-	proxyType, proxyURL, options, siteURL := a.imageProxyConfig()
-	if proxyType == "" {
+	if !*a.Config().ImageProxySettings.Enable {
 		return nil
 	}
 
 	return func(url string) string {
-		if url == "" || url[0] == '/' || strings.HasPrefix(url, siteURL) || strings.HasPrefix(url, proxyURL) {
-			return url
-		}
-
-		switch proxyType {
-		case "atmos/camo":
-			mac := hmac.New(sha1.New, []byte(options))
-			mac.Write([]byte(url))
-			digest := hex.EncodeToString(mac.Sum(nil))
-			return proxyURL + digest + "/" + hex.EncodeToString([]byte(url))
-		}
-
-		return url
+		return a.Srv.ImageProxy.GetProxiedImageURL(url)
 	}
 }
 
 func (a *App) ImageProxyRemover() (f func(string) string) {
-	proxyType, proxyURL, _, _ := a.imageProxyConfig()
-	if proxyType == "" {
+	if !*a.Config().ImageProxySettings.Enable {
 		return nil
 	}
 
 	return func(url string) string {
-		switch proxyType {
-		case "atmos/camo":
-			if strings.HasPrefix(url, proxyURL) {
-				if slash := strings.IndexByte(url[len(proxyURL):], '/'); slash >= 0 {
-					if decoded, err := hex.DecodeString(url[len(proxyURL)+slash+1:]); err == nil {
-						return string(decoded)
-					}
-				}
-			}
-		}
-
-		return url
+		return a.Srv.ImageProxy.GetUnproxiedImageURL(url)
 	}
 }
 

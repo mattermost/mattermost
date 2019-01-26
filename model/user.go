@@ -12,7 +12,9 @@ import (
 	"strings"
 	"unicode/utf8"
 
+	"github.com/mattermost/mattermost-server/services/timezones"
 	"golang.org/x/crypto/bcrypt"
+	"golang.org/x/text/language"
 )
 
 const (
@@ -26,8 +28,6 @@ const (
 	PUSH_NOTIFY_PROP                   = "push"
 	PUSH_STATUS_NOTIFY_PROP            = "push_status"
 	EMAIL_NOTIFY_PROP                  = "email"
-	MOBILE_NOTIFY_PROP                 = "mobile"
-	MOBILE_PUSH_STATUS_NOTIFY_PROP     = "mobile_push_status"
 	CHANNEL_MENTIONS_NOTIFY_PROP       = "channel"
 	COMMENTS_NOTIFY_PROP               = "comments"
 	MENTION_KEYS_NOTIFY_PROP           = "mention_keys"
@@ -50,6 +50,7 @@ const (
 	USER_NAME_MAX_LENGTH      = 64
 	USER_NAME_MIN_LENGTH      = 1
 	USER_PASSWORD_MAX_LENGTH  = 72
+	USER_LOCALE_MAX_LENGTH    = 5
 )
 
 type User struct {
@@ -173,6 +174,10 @@ func (u *User) IsValid() *AppError {
 		return InvalidUserError("password_limit", u.Id)
 	}
 
+	if !IsValidLocale(u.Locale) {
+		return InvalidUserError("locale", u.Id)
+	}
+
 	return nil
 }
 
@@ -232,7 +237,7 @@ func (u *User) PreSave() {
 	}
 
 	if u.Timezone == nil {
-		u.Timezone = DefaultUserTimezone()
+		u.Timezone = timezones.DefaultUserTimezone()
 	}
 
 	if len(u.Password) > 0 {
@@ -644,4 +649,16 @@ func IsValidEmailBatchingInterval(emailInterval string) bool {
 	return emailInterval == PREFERENCE_EMAIL_INTERVAL_IMMEDIATELY ||
 		emailInterval == PREFERENCE_EMAIL_INTERVAL_FIFTEEN ||
 		emailInterval == PREFERENCE_EMAIL_INTERVAL_HOUR
+}
+
+func IsValidLocale(locale string) bool {
+	if locale != "" {
+		if len(locale) > USER_LOCALE_MAX_LENGTH {
+			return false
+		} else if _, err := language.Parse(locale); err != nil {
+			return false
+		}
+	}
+
+	return true
 }

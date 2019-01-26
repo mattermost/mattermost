@@ -36,6 +36,22 @@ func ConfigFile(file string) Option {
 	}
 }
 
+func RunJobs(s *Server) {
+	s.runjobs = true
+}
+
+func JoinCluster(s *Server) {
+	s.joinCluster = true
+}
+
+func StartMetrics(s *Server) {
+	s.startMetrics = true
+}
+
+func StartElasticsearch(s *Server) {
+	s.startElasticsearch = true
+}
+
 func DisableConfigWatch(s *Server) {
 	s.disableConfigWatch = true
 }
@@ -49,7 +65,6 @@ func ServerConnector(s *Server) AppOption {
 
 		a.Log = s.Log
 
-		a.HTTPService = s.HTTPService
 		a.AccountMigration = s.AccountMigration
 		a.Cluster = s.Cluster
 		a.Compliance = s.Compliance
@@ -58,7 +73,10 @@ func ServerConnector(s *Server) AppOption {
 		a.Ldap = s.Ldap
 		a.MessageExport = s.MessageExport
 		a.Metrics = s.Metrics
-		a.Mfa = s.Mfa
 		a.Saml = s.Saml
+
+		a.HTTPService = s.HTTPService
+		a.ImageProxy = s.ImageProxy
+		a.Timezones = s.timezones
 	}
 }

@@ -19,6 +19,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 )
 
 var publicKey []byte = []byte(`-----BEGIN PUBLIC KEY-----
@@ -114,7 +115,7 @@ func GetLicenseFileFromDisk(fileName string) []byte {
 
 func GetLicenseFileLocation(fileLocation string) string {
 	if fileLocation == "" {
-		configDir, _ := FindDir("config")
+		configDir, _ := fileutils.FindDir("config")
 		return filepath.Join(configDir, "mattermost.mattermost-license")
 	} else {
 		return fileLocation
@@ -132,6 +133,7 @@ func GetClientLicense(l *model.License) map[string]string {
 		props["SkuShortName"] = l.SkuShortName
 		props["Users"] = strconv.Itoa(*l.Features.Users)
 		props["LDAP"] = strconv.FormatBool(*l.Features.LDAP)
+		props["LDAPGroups"] = strconv.FormatBool(*l.Features.LDAPGroups)
 		props["MFA"] = strconv.FormatBool(*l.Features.MFA)
 		props["SAML"] = strconv.FormatBool(*l.Features.SAML)
 		props["Cluster"] = strconv.FormatBool(*l.Features.Cluster)

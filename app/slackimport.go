@@ -248,7 +248,7 @@ func (a *App) SlackAddPosts(teamId string, channel *model.Channel, posts []Slack
 			}
 			a.OldImportPost(&newPost)
 			for _, fileId := range newPost.FileIds {
-				if result := <-a.Srv.Store.FileInfo().AttachToPost(fileId, newPost.Id); result.Err != nil {
+				if result := <-a.Srv.Store.FileInfo().AttachToPost(fileId, newPost.Id, newPost.UserId); result.Err != nil {
 					mlog.Error(fmt.Sprintf("Slack Import: An error occurred when attaching files to a message, post_id=%s, file_ids=%v, err=%v.", newPost.Id, newPost.FileIds, result.Err))
 				}
 			}
@@ -723,7 +723,7 @@ func (a *App) OldImportPost(post *model.Post) {
 		}
 
 		for _, fileId := range post.FileIds {
-			if result := <-a.Srv.Store.FileInfo().AttachToPost(fileId, post.Id); result.Err != nil {
+			if result := <-a.Srv.Store.FileInfo().AttachToPost(fileId, post.Id, post.UserId); result.Err != nil {
 				mlog.Error(fmt.Sprintf("Error attaching files to post. postId=%v, fileIds=%v, message=%v", post.Id, post.FileIds, result.Err), mlog.String("post_id", post.Id))
 			}
 		}
@@ -780,8 +780,8 @@ func (a *App) OldImportFile(timestamp time.Time, file io.Reader, teamId string, 
 	if fileInfo.IsImage() && fileInfo.MimeType != "image/svg+xml" {
 		img, width, height := prepareImage(data)
 		if img != nil {
-			a.generateThumbnailImage(*img, fileInfo.ThumbnailPath, width, height)
-			a.generatePreviewImage(*img, fileInfo.PreviewPath, width)
+			a.generateThumbnailImage(img, fileInfo.ThumbnailPath, width, height)
+			a.generatePreviewImage(img, fileInfo.PreviewPath, width)
 		}
 	}
 

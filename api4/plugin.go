@@ -66,7 +66,11 @@ func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	manifest, unpackErr := c.App.InstallPlugin(file, false)
+	force := false
+	if len(m.Value["force"]) > 0 && m.Value["force"][0] == "true" {
+		force = true
+	}
+	manifest, unpackErr := c.App.InstallPlugin(file, force)
 
 	if unpackErr != nil {
 		c.Err = unpackErr

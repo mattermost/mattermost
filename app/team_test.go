@@ -339,9 +339,8 @@ func TestPermanentDeleteTeam(t *testing.T) {
 		t.Fatal("unable to get new command")
 	}
 
-	if err := th.App.PermanentDeleteTeam(team); err != nil {
-		t.Fatal(err.Error())
-	}
+	err = th.App.PermanentDeleteTeam(team)
+	require.Nil(t, err)
 
 	if command, err = th.App.GetCommand(command.Id); command != nil || err == nil {
 		t.Fatal("command wasn't deleted")
@@ -728,4 +727,16 @@ func TestGetTeamMembers(t *testing.T) {
 	for i, member := range members {
 		assert.Equal(t, userIDs[i], member.UserId)
 	}
+}
+
+func TestGetTeamStats(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	teamStats, err := th.App.GetTeamStats(th.BasicTeam.Id)
+	require.Nil(t, err)
+	require.NotNil(t, teamStats)
+	members, err := th.App.GetTeamMembers(th.BasicTeam.Id, 0, 5)
+	require.Nil(t, err)
+	assert.Equal(t, int64(len(members)), teamStats.TotalMemberCount)
 }

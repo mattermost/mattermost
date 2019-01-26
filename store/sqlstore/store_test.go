@@ -15,22 +15,14 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-var storeTypes = []*struct {
+type storeType struct {
 	Name        string
-	Func        func() (*storetest.RunningContainer, *model.SqlSettings, error)
-	Container   *storetest.RunningContainer
+	SqlSettings *model.SqlSettings
 	SqlSupplier *SqlSupplier
 	Store       store.Store
-}{
-	{
-		Name: "MySQL",
-		Func: storetest.NewMySQLContainer,
-	},
-	{
-		Name: "PostgreSQL",
-		Func: storetest.NewPostgreSQLContainer,
-	},
 }
+
+var storeTypes []*storeType
 
 func StoreTest(t *testing.T, f func(*testing.T, store.Store)) {
 	defer func() {
@@ -59,6 +51,15 @@ func StoreTestWithSqlSupplier(t *testing.T, f func(*testing.T, store.Store, stor
 }
 
 func initStores() {
+	storeTypes = append(storeTypes, &storeType{
+		Name:        "MySQL",
+		SqlSettings: storetest.MakeSqlSettings(model.DATABASE_DRIVER_MYSQL),
+	})
+	storeTypes = append(storeTypes, &storeType{
+		Name:        "PostgreSQL",
+		SqlSettings: storetest.MakeSqlSettings(model.DATABASE_DRIVER_POSTGRES),
+	})
+
 	defer func() {
 		if err := recover(); err != nil {
 			tearDownStores()
@@ -66,29 +67,18 @@ func initStores() {
 		}
 	}()
 	var wg sync.WaitGroup
-	errCh := make(chan error, len(storeTypes))
-	wg.Add(len(storeTypes))
 	for _, st := range storeTypes {
 		st := st
+		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			container, settings, err := st.Func()
-			if err != nil {
-				errCh <- err
-				return
-			}
-			st.Container = container
-			st.SqlSupplier = NewSqlSupplier(*settings, nil)
+			st.SqlSupplier = NewSqlSupplier(*st.SqlSettings, nil)
 			st.Store = store.NewLayeredStore(st.SqlSupplier, nil, nil)
+			st.Store.DropAllTables()
 			st.Store.MarkSystemRanUnitTests()
 		}()
 	}
 	wg.Wait()
-	select {
-	case err := <-errCh:
-		panic(err)
-	default:
-	}
 }
 
 var tearDownStoresOnce sync.Once
@@ -102,9 +92,6 @@ func tearDownStores() {
 			go func() {
 				if st.Store != nil {
 					st.Store.Close()
-				}
-				if st.Container != nil {
-					st.Container.Stop()
 				}
 				wg.Done()
 			}()

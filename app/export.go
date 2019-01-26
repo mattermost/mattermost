@@ -5,7 +5,6 @@ package app
 
 import (
 	"encoding/json"
-	"errors"
 	"io"
 	"net/http"
 	"os"
@@ -13,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/pkg/errors"
 )
 
 //We use this map to identify the exportable preferences.
@@ -294,7 +294,7 @@ func (a *App) buildUserChannelMemberships(userId string, teamId string) (*[]User
 
 	category := model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL
 	preferences, err := a.GetPreferenceByCategoryForUser(userId, category)
-	if err != nil {
+	if err != nil && err.StatusCode != http.StatusNotFound {
 		return nil, err
 	}
 
@@ -317,8 +317,8 @@ func (a *App) buildUserNotifyProps(notifyProps model.StringMap) *UserNotifyProps
 		Desktop:          getProp(model.DESKTOP_NOTIFY_PROP),
 		DesktopSound:     getProp(model.DESKTOP_SOUND_NOTIFY_PROP),
 		Email:            getProp(model.EMAIL_NOTIFY_PROP),
-		Mobile:           getProp(model.MOBILE_NOTIFY_PROP),
-		MobilePushStatus: getProp(model.MOBILE_PUSH_STATUS_NOTIFY_PROP),
+		Mobile:           getProp(model.PUSH_NOTIFY_PROP),
+		MobilePushStatus: getProp(model.PUSH_STATUS_NOTIFY_PROP),
 		ChannelTrigger:   getProp(model.CHANNEL_MENTIONS_NOTIFY_PROP),
 		CommentsTrigger:  getProp(model.COMMENTS_NOTIFY_PROP),
 		MentionKeys:      getProp(model.MENTION_KEYS_NOTIFY_PROP),
@@ -404,7 +404,6 @@ func (a *App) BuildPostReactions(postId string) (*[]ReactionImportData, *model.A
 	var reactionsOfPost []ReactionImportData
 
 	result := <-a.Srv.Store.Reaction().GetForPost(postId, true)
-
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -412,7 +411,12 @@ func (a *App) BuildPostReactions(postId string) (*[]ReactionImportData, *model.A
 	reactions := result.Data.([]*model.Reaction)
 
 	for _, reaction := range reactions {
-		reactionsOfPost = append(reactionsOfPost, *ImportReactionFromPost(reaction))
+		result := <-a.Srv.Store.User().Get(reaction.UserId)
+		if result.Err != nil {
+			return nil, result.Err
+		}
+		user := result.Data.(*model.User)
+		reactionsOfPost = append(reactionsOfPost, *ImportReactionFromPost(user, reaction))
 	}
 
 	return &reactionsOfPost, nil
@@ -474,8 +478,6 @@ func (a *App) createDirForEmoji(file string, dirName string) string {
 
 // Copies emoji files from 'data/emoji' dir to 'exported_emoji' dir
 func (a *App) copyEmojiImages(emojiId string, emojiImagePath string, pathToDir string) error {
-	var err error
-
 	fromPath, err := os.Open(emojiImagePath)
 	if fromPath == nil || err != nil {
 		return errors.New("Error reading " + emojiImagePath + "file")
@@ -484,12 +486,16 @@ func (a *App) copyEmojiImages(emojiId string, emojiImagePath string, pathToDir s
 
 	emojiDir := pathToDir + "/" + emojiId
 
-	if _, err := os.Stat(emojiDir); os.IsNotExist(err) {
-		os.Mkdir(emojiDir, os.ModePerm)
+	if _, err = os.Stat(emojiDir); err != nil {
+		if !os.IsNotExist(err) {
+			return errors.Wrapf(err, "Error fetching file info of emoji directory %v", emojiDir)
+		}
+
+		if err = os.Mkdir(emojiDir, os.ModePerm); err != nil {
+			return errors.Wrapf(err, "Error creating emoji directory %v", emojiDir)
+		}
 	}
-	if err != nil {
-		return errors.New("Error creating directory for the emoji " + err.Error())
-	}
+
 	toPath, err := os.OpenFile(emojiDir+"/image", os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
 		return errors.New("Error creating the image file " + err.Error())

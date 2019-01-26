@@ -25,8 +25,10 @@ var linkCache = utils.NewLru(LINK_CACHE_SIZE)
 func (a *App) InitPostMetadata() {
 	// Dump any cached links if the proxy settings have changed so image URLs can be updated
 	a.AddConfigListener(func(before, after *model.Config) {
-		if (before.ServiceSettings.ImageProxyType != after.ServiceSettings.ImageProxyType) ||
-			(before.ServiceSettings.ImageProxyURL != after.ServiceSettings.ImageProxyType) {
+		if (before.ImageProxySettings.Enable != after.ImageProxySettings.Enable) ||
+			(before.ImageProxySettings.ImageProxyType != after.ImageProxySettings.ImageProxyType) ||
+			(before.ImageProxySettings.RemoteImageProxyURL != after.ImageProxySettings.RemoteImageProxyURL) ||
+			(before.ImageProxySettings.RemoteImageProxyOptions != after.ImageProxySettings.RemoteImageProxyOptions) {
 			linkCache.Purge()
 		}
 	})
@@ -339,7 +341,8 @@ func (a *App) getLinkMetadata(requestURL string, useCache bool) (*opengraph.Open
 	if err != nil {
 		return nil, nil, err
 	}
-	defer consumeAndClose(res)
+
+	defer res.Body.Close()
 
 	// Parse the data
 	og, image, err := a.parseLinkMetadata(requestURL, res.Body, res.Header.Get("Content-Type"))

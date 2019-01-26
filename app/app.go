@@ -14,6 +14,8 @@ import (
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/services/httpservice"
+	"github.com/mattermost/mattermost-server/services/imageproxy"
+	"github.com/mattermost/mattermost-server/services/timezones"
 	"github.com/mattermost/mattermost-server/utils"
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
@@ -23,11 +25,13 @@ type App struct {
 
 	Log *mlog.Logger
 
-	T         goi18n.TranslateFunc
-	Session   model.Session
-	RequestId string
-	IpAddress string
-	Path      string
+	T              goi18n.TranslateFunc
+	Session        model.Session
+	RequestId      string
+	IpAddress      string
+	Path           string
+	UserAgent      string
+	AcceptLanguage string
 
 	AccountMigration einterfaces.AccountMigrationInterface
 	Cluster          einterfaces.ClusterInterface
@@ -37,10 +41,11 @@ type App struct {
 	Ldap             einterfaces.LdapInterface
 	MessageExport    einterfaces.MessageExportInterface
 	Metrics          einterfaces.MetricsInterface
-	Mfa              einterfaces.MfaInterface
 	Saml             einterfaces.SamlInterface
 
 	HTTPService httpservice.HTTPService
+	ImageProxy  *imageproxy.ImageProxy
+	Timezones   *timezones.Timezones
 }
 
 func New(options ...AppOption) *App {
@@ -129,57 +134,6 @@ func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {
 	mlog.Debug(fmt.Sprintf("%v: code=404 ip=%v", r.URL.Path, utils.GetIpAddress(r)))
 
 	utils.RenderWebAppError(a.Config(), w, r, err, a.AsymmetricSigningKey())
-}
-
-func (a *App) StartElasticsearch() {
-	a.Srv.Go(func() {
-		if err := a.Elasticsearch.Start(); err != nil {
-			mlog.Error(err.Error())
-		}
-	})
-
-	a.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
-		if !*oldConfig.ElasticsearchSettings.EnableIndexing && *newConfig.ElasticsearchSettings.EnableIndexing {
-			a.Srv.Go(func() {
-				if err := a.Elasticsearch.Start(); err != nil {
-					mlog.Error(err.Error())
-				}
-			})
-		} else if *oldConfig.ElasticsearchSettings.EnableIndexing && !*newConfig.ElasticsearchSettings.EnableIndexing {
-			a.Srv.Go(func() {
-				if err := a.Elasticsearch.Stop(); err != nil {
-					mlog.Error(err.Error())
-				}
-			})
-		} else if *oldConfig.ElasticsearchSettings.Password != *newConfig.ElasticsearchSettings.Password || *oldConfig.ElasticsearchSettings.Username != *newConfig.ElasticsearchSettings.Username || *oldConfig.ElasticsearchSettings.ConnectionUrl != *newConfig.ElasticsearchSettings.ConnectionUrl || *oldConfig.ElasticsearchSettings.Sniff != *newConfig.ElasticsearchSettings.Sniff {
-			a.Srv.Go(func() {
-				if *oldConfig.ElasticsearchSettings.EnableIndexing {
-					if err := a.Elasticsearch.Stop(); err != nil {
-						mlog.Error(err.Error())
-					}
-					if err := a.Elasticsearch.Start(); err != nil {
-						mlog.Error(err.Error())
-					}
-				}
-			})
-		}
-	})
-
-	a.AddLicenseListener(func() {
-		if a.License() != nil {
-			a.Srv.Go(func() {
-				if err := a.Elasticsearch.Start(); err != nil {
-					mlog.Error(err.Error())
-				}
-			})
-		} else {
-			a.Srv.Go(func() {
-				if err := a.Elasticsearch.Stop(); err != nil {
-					mlog.Error(err.Error())
-				}
-			})
-		}
-	})
 }
 
 func (a *App) getSystemInstallDate() (int64, *model.AppError) {

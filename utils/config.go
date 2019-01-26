@@ -24,6 +24,7 @@ import (
 	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"github.com/mattermost/mattermost-server/utils/jsonutils"
 )
 
@@ -33,13 +34,6 @@ const (
 )
 
 var (
-	commonBaseSearchPaths = []string{
-		".",
-		"..",
-		"../..",
-		"../../..",
-	}
-
 	termsOfServiceEnabledAndEmpty = model.NewAppError(
 		"Config.IsValid",
 		"model.config.is_valid.support.custom_terms_of_service_text.app_error",
@@ -48,87 +42,6 @@ var (
 		http.StatusBadRequest,
 	)
 )
-
-func FindPath(path string, baseSearchPaths []string, filter func(os.FileInfo) bool) string {
-	if filepath.IsAbs(path) {
-		if _, err := os.Stat(path); err == nil {
-			return path
-		}
-
-		return ""
-	}
-
-	searchPaths := []string{}
-	searchPaths = append(searchPaths, baseSearchPaths...)
-
-	// Additionally attempt to search relative to the location of the running binary.
-	var binaryDir string
-	if exe, err := os.Executable(); err == nil {
-		if exe, err = filepath.EvalSymlinks(exe); err == nil {
-			if exe, err = filepath.Abs(exe); err == nil {
-				binaryDir = filepath.Dir(exe)
-			}
-		}
-	}
-	if binaryDir != "" {
-		for _, baseSearchPath := range baseSearchPaths {
-			searchPaths = append(
-				searchPaths,
-				filepath.Join(binaryDir, baseSearchPath),
-			)
-		}
-	}
-
-	for _, parent := range searchPaths {
-		found, err := filepath.Abs(filepath.Join(parent, path))
-		if err != nil {
-			continue
-		} else if fileInfo, err := os.Stat(found); err == nil {
-			if filter != nil {
-				if filter(fileInfo) {
-					return found
-				}
-			} else {
-				return found
-			}
-		}
-	}
-
-	return ""
-}
-
-// FindConfigFile attempts to find an existing configuration file. fileName can be an absolute or
-// relative path or name such as "/opt/mattermost/config.json" or simply "config.json". An empty
-// string is returned if no configuration is found.
-func FindConfigFile(fileName string) (path string) {
-	found := FindFile(filepath.Join("config", fileName))
-	if found == "" {
-		found = FindPath(fileName, []string{"."}, nil)
-	}
-
-	return found
-}
-
-// FindFile looks for the given file in nearby ancestors relative to the current working
-// directory as well as the directory of the executable.
-func FindFile(path string) string {
-	return FindPath(path, commonBaseSearchPaths, func(fileInfo os.FileInfo) bool {
-		return !fileInfo.IsDir()
-	})
-}
-
-// FindDir looks for the given directory in nearby ancestors relative to the current working
-// directory as well as the directory of the executable, falling back to `./` if not found.
-func FindDir(dir string) (string, bool) {
-	found := FindPath(dir, commonBaseSearchPaths, func(fileInfo os.FileInfo) bool {
-		return fileInfo.IsDir()
-	})
-	if found == "" {
-		return "./", false
-	}
-
-	return found, true
-}
 
 func MloggerConfigFromLoggerConfig(s *model.LogSettings) *mlog.LoggerConfiguration {
 	return &mlog.LoggerConfiguration{
@@ -154,7 +67,7 @@ func EnableDebugLogForTest() {
 
 func GetLogFileLocation(fileLocation string) string {
 	if fileLocation == "" {
-		fileLocation, _ = FindDir("logs")
+		fileLocation, _ = fileutils.FindDir("logs")
 	}
 
 	return filepath.Join(fileLocation, LOG_FILENAME)
@@ -432,10 +345,10 @@ func ReadConfigFile(path string, allowEnvironmentOverrides bool) (*model.Config,
 // it will attempt to locate a default config file, and copy it to a file named fileName in the same
 // directory. In either case, the config file path is returned.
 func EnsureConfigFile(fileName string) (string, error) {
-	if configFile := FindConfigFile(fileName); configFile != "" {
+	if configFile := fileutils.FindConfigFile(fileName); configFile != "" {
 		return configFile, nil
 	}
-	if defaultPath := FindConfigFile("default.json"); defaultPath != "" {
+	if defaultPath := fileutils.FindConfigFile("default.json"); defaultPath != "" {
 		destPath := filepath.Join(filepath.Dir(defaultPath), fileName)
 		src, err := os.Open(defaultPath)
 		if err != nil {
@@ -515,7 +428,6 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props := GenerateLimitedClientConfig(c, diagnosticId, license)
 
 	props["SiteURL"] = strings.TrimRight(*c.ServiceSettings.SiteURL, "/")
-	props["WebsocketURL"] = strings.TrimRight(*c.ServiceSettings.WebsocketURL, "/")
 	props["EnableUserDeactivation"] = strconv.FormatBool(*c.TeamSettings.EnableUserDeactivation)
 	props["RestrictDirectMessage"] = *c.TeamSettings.RestrictDirectMessage
 	props["EnableXToLeaveChannelsFromLHS"] = strconv.FormatBool(*c.TeamSettings.EnableXToLeaveChannelsFromLHS)
@@ -540,6 +452,7 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["EnableTutorial"] = strconv.FormatBool(*c.ServiceSettings.EnableTutorial)
 	props["ExperimentalEnableDefaultChannelLeaveJoinMessages"] = strconv.FormatBool(*c.ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages)
 	props["ExperimentalGroupUnreadChannels"] = *c.ServiceSettings.ExperimentalGroupUnreadChannels
+	props["ExperimentalEnablePostMetadata"] = strconv.FormatBool(*c.ExperimentalSettings.EnablePostMetadata)
 
 	if *c.ServiceSettings.ExperimentalChannelOrganization || *c.ServiceSettings.ExperimentalGroupUnreadChannels != model.GROUP_UNREAD_CHANNELS_DISABLED {
 		props["ExperimentalChannelOrganization"] = strconv.FormatBool(true)
@@ -562,9 +475,6 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["EnableFileAttachments"] = strconv.FormatBool(*c.FileSettings.EnableFileAttachments)
 	props["EnablePublicLink"] = strconv.FormatBool(c.FileSettings.EnablePublicLink)
 
-	props["WebsocketPort"] = fmt.Sprintf("%v", *c.ServiceSettings.WebsocketPort)
-	props["WebsocketSecurePort"] = fmt.Sprintf("%v", *c.ServiceSettings.WebsocketSecurePort)
-
 	props["AvailableLocales"] = *c.LocalizationSettings.AvailableLocales
 	props["SQLDriverName"] = *c.SqlSettings.DriverName
 
@@ -580,8 +490,6 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["EnableUserTypingMessages"] = strconv.FormatBool(*c.ServiceSettings.EnableUserTypingMessages)
 	props["EnableChannelViewedMessages"] = strconv.FormatBool(*c.ServiceSettings.EnableChannelViewedMessages)
 
-	props["PluginsEnabled"] = strconv.FormatBool(*c.PluginSettings.Enable)
-
 	props["RunJobs"] = strconv.FormatBool(*c.JobSettings.RunJobs)
 
 	props["EnableEmailInvitations"] = strconv.FormatBool(*c.ServiceSettings.EnableEmailInvitations)
@@ -593,7 +501,6 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["LdapNicknameAttributeSet"] = "false"
 	props["LdapFirstNameAttributeSet"] = "false"
 	props["LdapLastNameAttributeSet"] = "false"
-	props["EnforceMultifactorAuthentication"] = "false"
 	props["EnableCompliance"] = "false"
 	props["EnableMobileFileDownload"] = "true"
 	props["EnableMobileFileUpload"] = "true"
@@ -625,7 +532,7 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["PasswordRequireUppercase"] = strconv.FormatBool(*c.PasswordSettings.Uppercase)
 	props["PasswordRequireNumber"] = strconv.FormatBool(*c.PasswordSettings.Number)
 	props["PasswordRequireSymbol"] = strconv.FormatBool(*c.PasswordSettings.Symbol)
-	props["CustomUrlSchemes"] = strings.Join(*c.DisplaySettings.CustomUrlSchemes, ",")
+	props["CustomUrlSchemes"] = strings.Join(c.DisplaySettings.CustomUrlSchemes, ",")
 
 	if license != nil {
 		props["ExperimentalHideTownSquareinLHS"] = strconv.FormatBool(*c.TeamSettings.ExperimentalHideTownSquareinLHS)
@@ -636,10 +543,6 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 			props["LdapNicknameAttributeSet"] = strconv.FormatBool(*c.LdapSettings.NicknameAttribute != "")
 			props["LdapFirstNameAttributeSet"] = strconv.FormatBool(*c.LdapSettings.FirstNameAttribute != "")
 			props["LdapLastNameAttributeSet"] = strconv.FormatBool(*c.LdapSettings.LastNameAttribute != "")
-		}
-
-		if *license.Features.MFA {
-			props["EnforceMultifactorAuthentication"] = strconv.FormatBool(*c.ServiceSettings.EnforceMultifactorAuthentication)
 		}
 
 		if *license.Features.Compliance {
@@ -687,11 +590,6 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 			props["DataRetentionEnableFileDeletion"] = strconv.FormatBool(*c.DataRetentionSettings.EnableFileDeletion)
 			props["DataRetentionFileRetentionDays"] = strconv.FormatInt(int64(*c.DataRetentionSettings.FileRetentionDays), 10)
 		}
-
-		if *license.Features.CustomTermsOfService {
-			props["EnableCustomTermsOfService"] = strconv.FormatBool(*c.SupportSettings.CustomTermsOfServiceEnabled)
-			props["CustomTermsOfServiceReAcceptancePeriod"] = strconv.FormatInt(int64(*c.SupportSettings.CustomTermsOfServiceReAcceptancePeriod), 10)
-		}
 	}
 
 	return props
@@ -708,6 +606,9 @@ func GenerateLimitedClientConfig(c *model.Config, diagnosticId string, license *
 	props["BuildEnterpriseReady"] = model.BuildEnterpriseReady
 
 	props["SiteName"] = c.TeamSettings.SiteName
+	props["WebsocketURL"] = strings.TrimRight(*c.ServiceSettings.WebsocketURL, "/")
+	props["WebsocketPort"] = fmt.Sprintf("%v", *c.ServiceSettings.WebsocketPort)
+	props["WebsocketSecurePort"] = fmt.Sprintf("%v", *c.ServiceSettings.WebsocketSecurePort)
 	props["EnableUserCreation"] = strconv.FormatBool(*c.TeamSettings.EnableUserCreation)
 	props["EnableOpenServer"] = strconv.FormatBool(*c.TeamSettings.EnableOpenServer)
 
@@ -747,8 +648,9 @@ func GenerateLimitedClientConfig(c *model.Config, diagnosticId string, license *
 	props["DiagnosticId"] = diagnosticId
 	props["DiagnosticsEnabled"] = strconv.FormatBool(*c.LogSettings.EnableDiagnostics)
 
-	hasImageProxy := c.ServiceSettings.ImageProxyType != nil && *c.ServiceSettings.ImageProxyType != "" && c.ServiceSettings.ImageProxyURL != nil && *c.ServiceSettings.ImageProxyURL != ""
-	props["HasImageProxy"] = strconv.FormatBool(hasImageProxy)
+	props["HasImageProxy"] = strconv.FormatBool(*c.ImageProxySettings.Enable)
+
+	props["PluginsEnabled"] = strconv.FormatBool(*c.PluginSettings.Enable)
 
 	// Set default values for all options that require a license.
 	props["EnableCustomBrand"] = "false"
@@ -759,7 +661,6 @@ func GenerateLimitedClientConfig(c *model.Config, diagnosticId string, license *
 	props["LdapLoginButtonColor"] = ""
 	props["LdapLoginButtonBorderColor"] = ""
 	props["LdapLoginButtonTextColor"] = ""
-	props["EnableMultifactorAuthentication"] = "false"
 	props["EnableSaml"] = "false"
 	props["SamlLoginButtonText"] = ""
 	props["SamlLoginButtonColor"] = ""
@@ -770,6 +671,8 @@ func GenerateLimitedClientConfig(c *model.Config, diagnosticId string, license *
 	props["EnableCustomBrand"] = strconv.FormatBool(*c.TeamSettings.EnableCustomBrand)
 	props["CustomBrandText"] = *c.TeamSettings.CustomBrandText
 	props["CustomDescriptionText"] = *c.TeamSettings.CustomDescriptionText
+	props["EnableMultifactorAuthentication"] = strconv.FormatBool(*c.ServiceSettings.EnableMultifactorAuthentication)
+	props["EnforceMultifactorAuthentication"] = "false"
 
 	if license != nil {
 		if *license.Features.LDAP {
@@ -778,10 +681,6 @@ func GenerateLimitedClientConfig(c *model.Config, diagnosticId string, license *
 			props["LdapLoginButtonColor"] = *c.LdapSettings.LoginButtonColor
 			props["LdapLoginButtonBorderColor"] = *c.LdapSettings.LoginButtonBorderColor
 			props["LdapLoginButtonTextColor"] = *c.LdapSettings.LoginButtonTextColor
-		}
-
-		if *license.Features.MFA {
-			props["EnableMultifactorAuthentication"] = strconv.FormatBool(*c.ServiceSettings.EnableMultifactorAuthentication)
 		}
 
 		if *license.Features.SAML {
@@ -798,6 +697,15 @@ func GenerateLimitedClientConfig(c *model.Config, diagnosticId string, license *
 
 		if *license.Features.Office365OAuth {
 			props["EnableSignUpWithOffice365"] = strconv.FormatBool(c.Office365Settings.Enable)
+		}
+
+		if *license.Features.CustomTermsOfService {
+			props["EnableCustomTermsOfService"] = strconv.FormatBool(*c.SupportSettings.CustomTermsOfServiceEnabled)
+			props["CustomTermsOfServiceReAcceptancePeriod"] = strconv.FormatInt(int64(*c.SupportSettings.CustomTermsOfServiceReAcceptancePeriod), 10)
+		}
+
+		if *license.Features.MFA {
+			props["EnforceMultifactorAuthentication"] = strconv.FormatBool(*c.ServiceSettings.EnforceMultifactorAuthentication)
 		}
 	}
 

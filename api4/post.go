@@ -195,12 +195,37 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 		posts, err = c.App.GetFlaggedPosts(c.Params.UserId, c.Params.Page, c.Params.PerPage)
 	}
 
+	pl := model.NewPostList()
+	channelReadPermission := make(map[string]bool)
+
+	for _, post := range posts.Posts {
+		allowed, ok := channelReadPermission[post.ChannelId]
+
+		if !ok {
+			allowed = false
+
+			if c.App.SessionHasPermissionToChannel(c.App.Session, post.ChannelId, model.PERMISSION_READ_CHANNEL) {
+				allowed = true
+			}
+
+			channelReadPermission[post.ChannelId] = allowed
+		}
+
+		if !allowed {
+			continue
+		}
+
+		pl.AddPost(post)
+		pl.AddOrder(post.Id)
+
+	}
+
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	w.Write([]byte(c.App.PreparePostListForClient(posts).ToJson()))
+	w.Write([]byte(c.App.PreparePostListForClient(pl).ToJson()))
 }
 
 func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -209,15 +234,14 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var post *model.Post
-	var err *model.AppError
-	if post, err = c.App.GetSinglePost(c.Params.PostId); err != nil {
+	post, err := c.App.GetSinglePost(c.Params.PostId)
+	if err != nil {
 		c.Err = err
 		return
 	}
 
-	var channel *model.Channel
-	if channel, err = c.App.GetChannel(post.ChannelId); err != nil {
+	channel, err := c.App.GetChannel(post.ChannelId)
+	if err != nil {
 		c.Err = err
 		return
 	}
@@ -282,23 +306,20 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var list *model.PostList
-	var err *model.AppError
-	if list, err = c.App.GetPostThread(c.Params.PostId); err != nil {
+	list, err := c.App.GetPostThread(c.Params.PostId)
+	if err != nil {
 		c.Err = err
 		return
 	}
 
-	var post *model.Post
-	if val, ok := list.Posts[c.Params.PostId]; ok {
-		post = val
-	} else {
+	post, ok := list.Posts[c.Params.PostId]
+	if !ok {
 		c.SetInvalidUrlParam("post_id")
 		return
 	}
 
-	var channel *model.Channel
-	if channel, err = c.App.GetChannel(post.ChannelId); err != nil {
+	channel, err := c.App.GetChannel(post.ChannelId)
+	if err != nil {
 		c.Err = err
 		return
 	}
@@ -439,8 +460,6 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rpost = c.App.PreparePostForClient(rpost)
-
 	w.Write([]byte(rpost.ToJson()))
 }
 
@@ -480,8 +499,6 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = err
 		return
 	}
-
-	patchedPost = c.App.PreparePostForClient(patchedPost)
 
 	w.Write([]byte(patchedPost.ToJson()))
 }

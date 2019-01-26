@@ -2,6 +2,7 @@
 
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
+IS_CI ?= false
 # Build Flags
 BUILD_NUMBER ?= $(BUILD_NUMBER:)
 BUILD_DATE = $(shell date -u)
@@ -71,7 +72,6 @@ TESTFLAGSEE ?= -short
 
 # Packages lists
 TE_PACKAGES=$(shell go list ./...)
-TE_PACKAGES_COMMA=$(shell echo $(TE_PACKAGES) | tr ' ' ',')
 
 # Plugins Packages
 PLUGIN_PACKAGES=mattermost-plugin-zoom mattermost-plugin-jira
@@ -83,15 +83,16 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 	IGNORE:=$(shell cp $(BUILD_ENTERPRISE_DIR)/imports/imports.go imports/)
 	IGNORE:=$(shell rm -f enterprise)
 	IGNORE:=$(shell ln -s $(BUILD_ENTERPRISE_DIR) enterprise)
+else
+	IGNORE:=$(shell rm -f imports/imports.go)
 endif
 
 EE_PACKAGES=$(shell go list ./enterprise/...)
-EE_PACKAGES_COMMA=$(shell echo $(EE_PACKAGES) | tr ' ' ',')
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-ALL_PACKAGES_COMMA=$(TE_PACKAGES_COMMA),$(EE_PACKAGES_COMMA)
+ALL_PACKAGES=$(TE_PACKAGES) $(EE_PACKAGES)
 else
-ALL_PACKAGES_COMMA=$(TE_PACKAGES_COMMA)
+ALL_PACKAGES=$(TE_PACKAGES)
 endif
 
 
@@ -100,103 +101,123 @@ all: run ## Alias for 'run'.
 include build/*.mk
 
 start-docker: ## Starts the docker containers for local development.
+ifeq ($(IS_CI),false)
 	@echo Starting docker containers
 
-	@if [ $(shell docker ps -a | grep -ci mattermost-mysql) -eq 0 ]; then \
+	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-mysql$$ | wc -l) -eq 0 ]; then \
 		echo starting mattermost-mysql; \
-		docker run --name mattermost-mysql -p 3306:3306 -e MYSQL_ROOT_PASSWORD=mostest \
-		-e MYSQL_USER=mmuser -e MYSQL_PASSWORD=mostest -e MYSQL_DATABASE=mattermost_test -d mysql:5.7 > /dev/null; \
-	elif [ $(shell docker ps | grep -ci mattermost-mysql) -eq 0 ]; then \
+		docker run --name mattermost-mysql -p 3306:3306 \
+			-e MYSQL_ROOT_PASSWORD=mostest \
+			-e MYSQL_USER=mmuser \
+			-e MYSQL_PASSWORD=mostest \
+			-e MYSQL_DATABASE=mattermost_test \
+			-d mysql:5.7 > /dev/null; \
+	elif [ $(shell docker ps --no-trunc --quiet --filter name=^/mattermost-mysql$$ | wc -l) -eq 0 ]; then \
 		echo restarting mattermost-mysql; \
 		docker start mattermost-mysql > /dev/null; \
 	fi
 
-	@if [ $(shell docker ps -a | grep -ci mattermost-postgres) -eq 0 ]; then \
+	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-postgres$$ | wc -l) -eq 0 ]; then \
 		echo starting mattermost-postgres; \
-		docker run --name mattermost-postgres -p 5432:5432 -e POSTGRES_USER=mmuser -e POSTGRES_PASSWORD=mostest -e POSTGRES_DB=mattermost_test \
-		-d postgres:9.4 > /dev/null; \
-	elif [ $(shell docker ps | grep -ci mattermost-postgres) -eq 0 ]; then \
+		docker run --name mattermost-postgres -p 5432:5432 \
+			-e POSTGRES_USER=mmuser \
+			-e POSTGRES_PASSWORD=mostest \
+			-e POSTGRES_DB=mattermost_test \
+			-d postgres:9.4 > /dev/null; \
+	elif [ $(shell docker ps --no-trunc --quiet --filter name=^/mattermost-postgres$$ | wc -l) -eq 0 ]; then \
 		echo restarting mattermost-postgres; \
 		docker start mattermost-postgres > /dev/null; \
 	fi
 
-	@if [ $(shell docker ps -a | grep -ci mattermost-inbucket) -eq 0 ]; then \
+	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-inbucket$$ | wc -l) -eq 0 ]; then \
 		echo starting mattermost-inbucket; \
 		docker run --name mattermost-inbucket -p 9000:10080 -p 2500:10025 -d jhillyerd/inbucket:release-1.2.0 > /dev/null; \
-	elif [ $(shell docker ps | grep -ci mattermost-inbucket) -eq 0 ]; then \
+	elif [ $(shell docker ps --no-trunc --quiet --filter name=^/mattermost-inbucket$$ | wc -l) -eq 0 ]; then \
 		echo restarting mattermost-inbucket; \
 		docker start mattermost-inbucket > /dev/null; \
 	fi
 
-	@if [ $(shell docker ps -a | grep -ci mattermost-minio) -eq 0 ]; then \
+	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-minio$$ | wc -l) -eq 0 ]; then \
 		echo starting mattermost-minio; \
 		docker run --name mattermost-minio -p 9001:9000 -e "MINIO_ACCESS_KEY=minioaccesskey" \
 		-e "MINIO_SECRET_KEY=miniosecretkey" -d minio/minio:RELEASE.2018-05-25T19-49-13Z server /data > /dev/null; \
 		docker exec -it mattermost-minio /bin/sh -c "mkdir -p /data/mattermost-test" > /dev/null; \
-	elif [ $(shell docker ps | grep -ci mattermost-minio) -eq 0 ]; then \
+	elif [ $(shell docker ps --no-trunc --quiet --filter name=^/mattermost-minio$$ | wc -l) -eq 0 ]; then \
 		echo restarting mattermost-minio; \
 		docker start mattermost-minio > /dev/null; \
 	fi
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Ldap test user test.one
-	@if [ $(shell docker ps -a | grep -ci mattermost-openldap) -eq 0 ]; then \
+	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-openldap$$ | wc -l) -eq 0 ]; then \
 		echo starting mattermost-openldap; \
 		docker run --name mattermost-openldap -p 389:389 -p 636:636 \
 			-e LDAP_TLS_VERIFY_CLIENT="never" \
 			-e LDAP_ORGANISATION="Mattermost Test" \
 			-e LDAP_DOMAIN="mm.test.com" \
 			-e LDAP_ADMIN_PASSWORD="mostest" \
-			-d osixia/openldap:1.1.6 > /dev/null;\
+			-d osixia/openldap:1.2.2 > /dev/null;\
 		sleep 10; \
-		docker exec -ti mattermost-openldap bash -c 'echo -e "dn: ou=testusers,dc=mm,dc=test,dc=com\nobjectclass: organizationalunit" | ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';\
-		docker exec -ti mattermost-openldap bash -c 'echo -e "dn: uid=test.one,ou=testusers,dc=mm,dc=test,dc=com\nobjectclass: iNetOrgPerson\nsn: User\ncn: Test1\nmail: success+testone@simulator.amazonses.com" | ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';\
-		docker exec -ti mattermost-openldap bash -c 'ldappasswd -s Password1 -D "cn=admin,dc=mm,dc=test,dc=com" -x "uid=test.one,ou=testusers,dc=mm,dc=test,dc=com" -w mostest';\
-		docker exec -ti mattermost-openldap bash -c 'echo -e "dn: uid=test.two,ou=testusers,dc=mm,dc=test,dc=com\nobjectclass: iNetOrgPerson\nsn: User\ncn: Test2\nmail: success+testtwo@simulator.amazonses.com" | ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';\
-		docker exec -ti mattermost-openldap bash -c 'ldappasswd -s Password1 -D "cn=admin,dc=mm,dc=test,dc=com" -x "uid=test.two,ou=testusers,dc=mm,dc=test,dc=com" -w mostest';\
-		docker exec -ti mattermost-openldap bash -c 'echo -e "dn: cn=tgroup,ou=testusers,dc=mm,dc=test,dc=com\nobjectclass: groupOfUniqueNames\nuniqueMember: uid=test.one,ou=testusers,dc=mm,dc=test,dc=com" | ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';\
+		docker cp tests/add-users.ldif mattermost-openldap:/add-users.ldif;\
+		docker cp tests/add-groups.ldif mattermost-openldap:/add-groups.ldif;\
+		docker cp tests/qa-data.ldif mattermost-openldap:/qa-data.ldif;\
+		docker exec -ti mattermost-openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest -f /add-users.ldif';\
+		docker exec -ti mattermost-openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest -f /add-groups.ldif';\
 	elif [ $(shell docker ps | grep -ci mattermost-openldap) -eq 0 ]; then \
 		echo restarting mattermost-openldap; \
 		docker start mattermost-openldap > /dev/null; \
 		sleep 10; \
 	fi
 
-	@if [ $(shell docker ps -a | grep -ci mattermost-elasticsearch) -eq 0 ]; then \
+	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-elasticsearch$$ | wc -l) -eq 0 ]; then \
 		echo starting mattermost-elasticsearch; \
 		docker run --name mattermost-elasticsearch -p 9200:9200 -e "http.host=0.0.0.0" -e "transport.host=127.0.0.1" -e "ES_JAVA_OPTS=-Xms250m -Xmx250m" -d grundleborg/elasticsearch:latest > /dev/null; \
-	elif [ $(shell docker ps | grep -ci mattermost-elasticsearch) -eq 0 ]; then \
+	elif [ $(shell docker ps --no-trunc --quiet --filter name=^/mattermost-elasticsearch$$ | wc -l) -eq 0 ]; then \
 		echo restarting mattermost-elasticsearch; \
 		docker start mattermost-elasticsearch> /dev/null; \
 	fi
 
-	@if [ $(shell docker ps -a | grep -ci mattermost-redis) -eq 0 ]; then \
+	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-redis$$ | wc -l) -eq 0 ]; then \
 		echo starting mattermost-redis; \
 		docker run --name mattermost-redis -p 6379:6379 -d redis > /dev/null; \
-	elif [ $(shell docker ps | grep -ci mattermost-redis) -eq 0 ]; then \
+	elif [ $(shell docker ps --no-trunc --quiet --filter name=^/mattermost-redis$$ | wc -l) -eq 0 ]; then \
 		echo restarting mattermost-redis; \
 		docker start mattermost-redis > /dev/null; \
 	fi
+endif
+else
+	@echo CI Build: skipping docker start
 endif
 
 stop-docker: ## Stops the docker containers for local development.
 	@echo Stopping docker containers
 
-	@if [ $(shell docker ps -a | grep -ci mattermost-mysql) -eq 1 ]; then \
+	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-mysql$$ | wc -l) -eq 1 ]; then \
 		echo stopping mattermost-mysql; \
 		docker stop mattermost-mysql > /dev/null; \
 	fi
 
-	@if [ $(shell docker ps -a | grep -ci mattermost-postgres) -eq 1 ]; then \
+	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-mysql-unittest$$ | wc -l) -eq 1 ]; then \
+		echo stopping mattermost-mysql-unittest; \
+		docker stop mattermost-mysql-unittest > /dev/null; \
+	fi
+
+	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-postgres$$ | wc -l) -eq 1 ]; then \
 		echo stopping mattermost-postgres; \
 		docker stop mattermost-postgres > /dev/null; \
 	fi
 
-	@if [ $(shell docker ps -a | grep -ci mattermost-openldap) -eq 1 ]; then \
+	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-postgres-unittest$$ | wc -l) -eq 1 ]; then \
+		echo stopping mattermost-postgres-unittest; \
+		docker stop mattermost-postgres-unittest > /dev/null; \
+	fi
+
+	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-openldap$$ | wc -l) -eq 1 ]; then \
 		echo stopping mattermost-openldap; \
 		docker stop mattermost-openldap > /dev/null; \
 	fi
 
-	@if [ $(shell docker ps -a | grep -ci mattermost-inbucket) -eq 1 ]; then \
+	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-inbucket$$ | wc -l) -eq 1 ]; then \
 		echo stopping mattermost-inbucket; \
 		docker stop mattermost-inbucket > /dev/null; \
 	fi
@@ -206,24 +227,41 @@ stop-docker: ## Stops the docker containers for local development.
 		docker stop mattermost-minio > /dev/null; \
 	fi
 
-	@if [ $(shell docker ps -a | grep -ci mattermost-elasticsearch) -eq 1 ]; then \
+	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-elasticsearch$$ | wc -l) -eq 1 ]; then \
 		echo stopping mattermost-elasticsearch; \
 		docker stop mattermost-elasticsearch > /dev/null; \
+	fi
+
+	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-redis$$ | wc -l) -eq 1 ]; then \
+		echo stopping mattermost-redis; \
+		docker stop mattermost-redis > /dev/null; \
 	fi
 
 clean-docker: ## Deletes the docker containers for local development.
 	@echo Removing docker containers
 
-	@if [ $(shell docker ps -a | grep -ci mattermost-mysql) -eq 1 ]; then \
+	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-mysql$$ | wc -l) -eq 1 ]; then \
 		echo removing mattermost-mysql; \
 		docker stop mattermost-mysql > /dev/null; \
 		docker rm -v mattermost-mysql > /dev/null; \
 	fi
 
-	@if [ $(shell docker ps -a | grep -ci mattermost-postgres) -eq 1 ]; then \
+	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-mysql-unittest$$ | wc -l) -eq 1 ]; then \
+		echo removing mattermost-mysql-unittest; \
+		docker stop mattermost-mysql-unittest > /dev/null; \
+		docker rm -v mattermost-mysql-unittest > /dev/null; \
+	fi
+
+	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-postgres$$ | wc -l) -eq 1 ]; then \
 		echo removing mattermost-postgres; \
 		docker stop mattermost-postgres > /dev/null; \
 		docker rm -v mattermost-postgres > /dev/null; \
+	fi
+
+	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-postgres-unittest$$ | wc -l) -eq 1 ]; then \
+		echo removing mattermost-postgres-unittest; \
+		docker stop mattermost-postgres-unittest > /dev/null; \
+		docker rm -v mattermost-postgres-unittest > /dev/null; \
 	fi
 
 	@if [ $(shell docker ps -a | grep -ci mattermost-openldap) -eq 1 ]; then \
@@ -354,33 +392,6 @@ do-cover-file: ## Creates the test coverage report file.
 go-junit-report:
 	go get -u github.com/jstemmer/go-junit-report
 
-test-te: start-docker go-junit-report do-cover-file ## Runs tests in the team edition.
-	@echo Testing TE
-	@echo "Packages to test: "$(TE_PACKAGES)
-	find . -name 'cprofile*.out' -exec sh -c 'rm "{}"' \;
-	$(GO) test $(GOFLAGS) -run=$(TESTS) $(TESTFLAGS) -p 1 -v -timeout=2000s -covermode=count -coverpkg=$(ALL_PACKAGES_COMMA) -exec $(ROOT)/scripts/test-xprog.sh $(TE_PACKAGES) | tee output-test-te
-	cat output-test-te | $(GOPATH)/bin/go-junit-report > report-te.xml && rm output-test-te
-	find . -name 'cprofile*.out' -exec sh -c 'tail -n +2 {} >> cover.out ; rm "{}"' \;
-
-test-ee: start-docker go-junit-report do-cover-file ## Runs tests in the enterprise edition.
-	@echo Testing EE
-
-	rm -f enterprise/config/*.crt
-	rm -f enterprise/config/*.key
-
-ifeq ($(BUILD_ENTERPRISE_READY),true)
-	@echo Testing EE
-	@echo "Packages to test: "$(EE_PACKAGES)
-	find . -name 'cprofile*.out' -exec sh -c 'rm "{}"' \;
-	$(GO) test $(GOFLAGS) -run=$(TESTS) $(TESTFLAGSEE) -p 1 -v -timeout=2000s -covermode=count -coverpkg=$(ALL_PACKAGES_COMMA) -exec $(ROOT)/scripts/test-xprog.sh $(EE_PACKAGES) 2>&1 | tee output-test-ee
-	cat output-test-ee | $(GOPATH)/bin/go-junit-report > report-ee.xml && rm output-test-ee
-	find . -name 'cprofile*.out' -exec sh -c 'tail -n +2 {} >> cover.out ; rm "{}"' \;
-	rm -f enterprise/config/*.crt
-	rm -f enterprise/config/*.key
-else
-	@echo Skipping EE Tests
-endif
-
 test-compile:
 	@echo COMPILE TESTS
 
@@ -388,8 +399,13 @@ test-compile:
 		$(GO) test $(GOFLAGS) -c $$package; \
 	done
 
-test-server: test-te test-ee ## Runs tests.
-	find . -type d -name data -not -path './vendor/*' | xargs rm -rf
+test-server: start-docker go-junit-report do-cover-file ## Runs tests.
+ifeq ($(BUILD_ENTERPRISE_READY),true)
+	@echo Running all tests
+else
+	@echo Running only TE tests
+endif
+	./scripts/test.sh "$(GO)" "$(GOFLAGS)" "$(ALL_PACKAGES)" "$(TESTS)" "$(TESTFLAGS)"
 
 internal-test-web-client: ## Runs web client tests.
 	$(GO) run $(GOFLAGS) $(PLATFORM_FILES) test web_client_tests
@@ -446,14 +462,14 @@ run-client: ## Runs the webapp.
 	ln -nfs $(BUILD_WEBAPP_DIR)/dist client
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) run
 
-run-client-fullmap: ## Runs the webapp with source code mapping (slower; better debugging).
-	@echo Running mattermost client for development with FULL SOURCE MAP
+run-client-fullmap: ## Legacy alias to run-client
+	@echo Running mattermost client for development
 
-	cd $(BUILD_WEBAPP_DIR) && $(MAKE) run-fullmap
+	cd $(BUILD_WEBAPP_DIR) && $(MAKE) run
 
 run: check-prereqs run-server run-client ## Runs the server and webapp.
 
-run-fullmap: run-server run-client-fullmap ## Same as run but with a full sourcemap for client.
+run-fullmap: run-server run-client ## Legacy alias to run
 
 stop-server: ## Stops the server.
 	@echo Stopping mattermost
@@ -493,7 +509,7 @@ config-ldap: ## Configures LDAP.
 	@echo Setting up configuration for local LDAP
 
 	@sed -i'' -e 's|"LdapServer": ".*"|"LdapServer": "dockerhost"|g' config/config.json
-	@sed -i'' -e 's|"BaseDN": ".*"|"BaseDN": "ou=testusers,dc=mm,dc=test,dc=com"|g' config/config.json
+	@sed -i'' -e 's|"BaseDN": ".*"|"BaseDN": "dc=mm,dc=test,dc=com"|g' config/config.json
 	@sed -i'' -e 's|"BindUsername": ".*"|"BindUsername": "cn=admin,dc=mm,dc=test,dc=com"|g' config/config.json
 	@sed -i'' -e 's|"BindPassword": ".*"|"BindPassword": "mostest"|g' config/config.json
 	@sed -i'' -e 's|"FirstNameAttribute": ".*"|"FirstNameAttribute": "cn"|g' config/config.json
@@ -502,6 +518,9 @@ config-ldap: ## Configures LDAP.
 	@sed -i'' -e 's|"EmailAttribute": ".*"|"EmailAttribute": "mail"|g' config/config.json
 	@sed -i'' -e 's|"UsernameAttribute": ".*"|"UsernameAttribute": "uid"|g' config/config.json
 	@sed -i'' -e 's|"IdAttribute": ".*"|"IdAttribute": "uid"|g' config/config.json
+	@sed -i'' -e 's|"LoginIdAttribute": ".*"|"LoginIdAttribute": "uid"|g' config/config.json
+	@sed -i'' -e 's|"GroupDisplayNameAttribute": ".*"|"GroupDisplayNameAttribute": "cn"|g' config/config.json
+	@sed -i'' -e 's|"GroupIdAttribute": ".*"|"GroupIdAttribute": "entryUUID"|g' config/config.json
 
 config-reset: ## Resets the config/config.json file to the default.
 	@echo Resetting configuration to default

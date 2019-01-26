@@ -364,11 +364,23 @@ func (s SqlUserStore) GetEtagForAllProfiles() store.StoreChannel {
 	})
 }
 
-func (us SqlUserStore) GetAllProfiles(offset int, limit int) store.StoreChannel {
+func (us SqlUserStore) GetAllProfiles(options *model.UserGetOptions) store.StoreChannel {
+	isPostgreSQL := us.DriverName() == model.DATABASE_DRIVER_POSTGRES
 	return store.Do(func(result *store.StoreResult) {
 		var users []*model.User
+		offset := options.Page * options.PerPage
+		limit := options.PerPage
 
-		if _, err := us.GetReplica().Select(&users, "SELECT * FROM Users ORDER BY Username ASC LIMIT :Limit OFFSET :Offset", map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
+		searchQuery := `
+			SELECT * FROM Users
+			WHERE_CONDITION
+			ORDER BY Username ASC LIMIT :Limit OFFSET :Offset
+		`
+
+		parameters := map[string]interface{}{"Offset": offset, "Limit": limit}
+		searchQuery = substituteWhereClause(searchQuery, options, parameters, isPostgreSQL)
+
+		if _, err := us.GetReplica().Select(&users, searchQuery, parameters); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.GetAllProfiles", "store.sql_user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
 
@@ -379,6 +391,37 @@ func (us SqlUserStore) GetAllProfiles(offset int, limit int) store.StoreChannel 
 			result.Data = users
 		}
 	})
+}
+
+func substituteWhereClause(searchQuery string, options *model.UserGetOptions, parameters map[string]interface{}, isPostgreSQL bool) string {
+	whereClause := ""
+	whereClauses := []string{}
+	if options.Role != "" {
+		whereClauses = append(whereClauses, getRoleFilter(isPostgreSQL))
+		parameters["Role"] = fmt.Sprintf("%%%s%%", options.Role)
+	}
+	if options.Inactive {
+		whereClauses = append(whereClauses, " Users.DeleteAt != 0 ")
+	}
+
+	if len(whereClauses) > 0 {
+		whereClause = strings.Join(whereClauses, " AND ")
+		searchQuery = strings.Replace(searchQuery, "WHERE_CONDITION", fmt.Sprintf(" WHERE %s ", whereClause), 1)
+		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", fmt.Sprintf(" AND %s ", whereClause), 1)
+	} else {
+		searchQuery = strings.Replace(searchQuery, "WHERE_CONDITION", "", 1)
+		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
+	}
+
+	return searchQuery
+}
+
+func getRoleFilter(isPostgreSQL bool) string {
+	if isPostgreSQL {
+		return fmt.Sprintf("Users.Roles like lower(%s)", ":Role")
+	} else {
+		return fmt.Sprintf("Users.Roles LIKE %s escape '*' ", ":Role")
+	}
 }
 
 func (s SqlUserStore) GetEtagForProfiles(teamId string) store.StoreChannel {
@@ -392,11 +435,26 @@ func (s SqlUserStore) GetEtagForProfiles(teamId string) store.StoreChannel {
 	})
 }
 
-func (us SqlUserStore) GetProfiles(teamId string, offset int, limit int) store.StoreChannel {
+func (us SqlUserStore) GetProfiles(options *model.UserGetOptions) store.StoreChannel {
+	isPostgreSQL := us.DriverName() == model.DATABASE_DRIVER_POSTGRES
+	teamId := options.InTeamId
+	offset := options.Page * options.PerPage
+	limit := options.PerPage
+
+	searchQuery := `
+		SELECT Users.* FROM Users, TeamMembers 
+		WHERE TeamMembers.TeamId = :TeamId AND Users.Id = TeamMembers.UserId AND TeamMembers.DeleteAt = 0
+		SEARCH_CLAUSE
+		ORDER BY Users.Username ASC LIMIT :Limit OFFSET :Offset
+		`
+
+	parameters := map[string]interface{}{"TeamId": teamId, "Offset": offset, "Limit": limit}
+	searchQuery = substituteWhereClause(searchQuery, options, parameters, isPostgreSQL)
+
 	return store.Do(func(result *store.StoreResult) {
 		var users []*model.User
 
-		if _, err := us.GetReplica().Select(&users, "SELECT Users.* FROM Users, TeamMembers WHERE TeamMembers.TeamId = :TeamId AND Users.Id = TeamMembers.UserId AND TeamMembers.DeleteAt = 0 ORDER BY Users.Username ASC LIMIT :Limit OFFSET :Offset", map[string]interface{}{"TeamId": teamId, "Offset": offset, "Limit": limit}); err != nil {
+		if _, err := us.GetReplica().Select(&users, searchQuery, parameters); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.GetProfiles", "store.sql_user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
 
@@ -1154,7 +1212,7 @@ var spaceFulltextSearchChar = []string{
 	"@",
 }
 
-func generateSearchQuery(searchQuery string, terms []string, fields []string, parameters map[string]interface{}, isPostgreSQL bool) string {
+func generateSearchQuery(searchQuery string, terms []string, fields []string, parameters map[string]interface{}, isPostgreSQL bool, role string) string {
 	searchTerms := []string{}
 	for i, term := range terms {
 		searchFields := []string{}
@@ -1167,6 +1225,11 @@ func generateSearchQuery(searchQuery string, terms []string, fields []string, pa
 		}
 		searchTerms = append(searchTerms, fmt.Sprintf("(%s)", strings.Join(searchFields, " OR ")))
 		parameters[fmt.Sprintf("Term%d", i)] = fmt.Sprintf("%s%%", strings.TrimLeft(term, "@"))
+	}
+
+	if role != "" {
+		searchTerms = append(searchTerms, getRoleFilter(isPostgreSQL))
+		parameters["Role"] = fmt.Sprintf("%%%s%%", role)
 	}
 
 	searchClause := strings.Join(searchTerms, " AND ")
@@ -1201,6 +1264,11 @@ func (us SqlUserStore) performSearch(searchQuery string, term string, options *m
 		}
 	}
 
+	role := ""
+	if options.Role != "" {
+		role = options.Role
+	}
+
 	if ok := options.AllowInactive; ok {
 		searchQuery = strings.Replace(searchQuery, "INACTIVE_CLAUSE", "", 1)
 	} else {
@@ -1211,7 +1279,7 @@ func (us SqlUserStore) performSearch(searchQuery string, term string, options *m
 		searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
 	} else {
 		isPostgreSQL := us.DriverName() == model.DATABASE_DRIVER_POSTGRES
-		searchQuery = generateSearchQuery(searchQuery, strings.Fields(term), searchType, parameters, isPostgreSQL)
+		searchQuery = generateSearchQuery(searchQuery, strings.Fields(term), searchType, parameters, isPostgreSQL, role)
 	}
 
 	var users []*model.User

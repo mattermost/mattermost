@@ -43,6 +43,18 @@ func (u *UserAgent) evalBrowserName(ua string) bool {
 		case strings.Contains(ua, "ucbrowser/") || strings.Contains(ua, "ucweb/"):
 			u.Browser.Name = BrowserUCBrowser
 
+		case strings.Contains(ua, "nintendobrowser/"):
+			u.Browser.Name = BrowserNintendo
+
+		case strings.Contains(ua, "samsungbrowser/"):
+			u.Browser.Name = BrowserSamsung
+
+		case strings.Contains(ua, "coc_coc_browser/"):
+			u.Browser.Name = BrowserCocCoc
+
+		case strings.Contains(ua, "yabrowser/"):
+			u.Browser.Name = BrowserYandex
+
 		// Edge, Silk and other chrome-identifying browsers must evaluate before chrome, unless we want to add more overhead
 		case strings.Contains(ua, "chrome/") || strings.Contains(ua, "crios/") || strings.Contains(ua, "chromium/") || strings.Contains(ua, "crmo/"):
 			u.Browser.Name = BrowserChrome
@@ -62,7 +74,7 @@ func (u *UserAgent) evalBrowserName(ua string) bool {
 			u.Browser.Name = BrowserAppleBot
 
 		// presume it's safari unless an esoteric browser is being specified (webOSBrowser, SamsungBrowser, etc.)
-		case strings.Contains(ua, "like gecko") && strings.Contains(ua, "mozilla/") && strings.Contains(ua, "safari/") && !strings.Contains(ua, "linux") && !strings.Contains(ua, "android") && !strings.Contains(ua, "browser/") && !strings.Contains(ua, "os/"):
+		case strings.Contains(ua, "like gecko") && strings.Contains(ua, "mozilla/") && strings.Contains(ua, "safari/") && !strings.Contains(ua, "linux") && !strings.Contains(ua, "android") && !strings.Contains(ua, "browser/") && !strings.Contains(ua, "os/") && !strings.Contains(ua, "yabrowser/"):
 			u.Browser.Name = BrowserSafari
 
 		// if we got this far and the device is iPhone or iPad, assume safari. Some agents don't actually contain the word "safari"
@@ -130,6 +142,9 @@ notwebkit:
 	case strings.Contains(ua, "yahoo"):
 		u.Browser.Name = BrowserYahooBot
 
+	case strings.Contains(ua, "coccocbot"):
+		u.Browser.Name = BrowserCocCocBot
+
 	case strings.Contains(ua, "phantomjs"):
 		u.Browser.Name = BrowserBot
 
@@ -156,7 +171,8 @@ func (u *UserAgent) evalBrowserVersion(ua string) {
 	case BrowserChrome:
 		// match both chrome and crios
 		_ = u.Browser.Version.findVersionNumber(ua, "chrome/") || u.Browser.Version.findVersionNumber(ua, "crios/") || u.Browser.Version.findVersionNumber(ua, "crmo/")
-
+	case BrowserYandex:
+		_ = u.Browser.Version.findVersionNumber(ua, "yabrowser/")
 	case BrowserIE:
 		if u.Browser.Version.findVersionNumber(ua, "msie ") || u.Browser.Version.findVersionNumber(ua, "edge/") {
 			return
@@ -191,5 +207,8 @@ func (u *UserAgent) evalBrowserVersion(ua string) {
 
 	case BrowserSpotify:
 		_ = u.Browser.Version.findVersionNumber(ua, "spotify/")
+
+	case BrowserCocCoc:
+		_ = u.Browser.Version.findVersionNumber(ua, "coc_coc_browser/")
 	}
 }

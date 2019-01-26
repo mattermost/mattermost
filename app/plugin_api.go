@@ -118,6 +118,10 @@ func (api *PluginAPI) GetTeam(teamId string) (*model.Team, *model.AppError) {
 	return api.app.GetTeam(teamId)
 }
 
+func (api *PluginAPI) SearchTeams(term string) ([]*model.Team, *model.AppError) {
+	return api.app.SearchAllTeams(term)
+}
+
 func (api *PluginAPI) GetTeamByName(name string) (*model.Team, *model.AppError) {
 	return api.app.GetTeamByName(name)
 }
@@ -158,6 +162,10 @@ func (api *PluginAPI) UpdateTeamMemberRoles(teamId, userId, newRoles string) (*m
 	return api.app.UpdateTeamMemberRoles(teamId, userId, newRoles)
 }
 
+func (api *PluginAPI) GetTeamStats(teamId string) (*model.TeamStats, *model.AppError) {
+	return api.app.GetTeamStats(teamId)
+}
+
 func (api *PluginAPI) CreateUser(user *model.User) (*model.User, *model.AppError) {
 	return api.app.CreateUser(user)
 }
@@ -188,11 +196,16 @@ func (api *PluginAPI) GetUsersByUsernames(usernames []string) ([]*model.User, *m
 }
 
 func (api *PluginAPI) GetUsersInTeam(teamId string, page int, perPage int) ([]*model.User, *model.AppError) {
-	return api.app.GetUsersInTeam(teamId, page*perPage, perPage)
+	options := &model.UserGetOptions{InTeamId: teamId, Page: page, PerPage: perPage}
+	return api.app.GetUsersInTeam(options)
 }
 
 func (api *PluginAPI) UpdateUser(user *model.User) (*model.User, *model.AppError) {
 	return api.app.UpdateUser(user, true)
+}
+
+func (api *PluginAPI) UpdateUserActive(userId string, active bool) *model.AppError {
+	return api.app.UpdateUserActive(userId, active)
 }
 
 func (api *PluginAPI) GetUserStatus(userId string) (*model.Status, *model.AppError) {
@@ -480,6 +493,10 @@ func (api *PluginAPI) ReadFile(path string) ([]byte, *model.AppError) {
 	return api.app.ReadFile(path)
 }
 
+func (api *PluginAPI) GetFile(fileId string) ([]byte, *model.AppError) {
+	return api.app.GetFile(fileId)
+}
+
 func (api *PluginAPI) UploadFile(data []byte, channelId string, filename string) (*model.FileInfo, *model.AppError) {
 	return api.app.UploadFile(data, channelId, filename)
 }
@@ -530,6 +547,24 @@ func (api *PluginAPI) RemoveTeamIcon(teamId string) *model.AppError {
 		return err
 	}
 	return nil
+}
+
+// Mail Section
+
+func (api *PluginAPI) SendMail(to, subject, htmlBody string) *model.AppError {
+	if to == "" {
+		return model.NewAppError("SendMail", "plugin_api.send_mail.missing_to", nil, "", http.StatusBadRequest)
+	}
+
+	if subject == "" {
+		return model.NewAppError("SendMail", "plugin_api.send_mail.missing_subject", nil, "", http.StatusBadRequest)
+	}
+
+	if htmlBody == "" {
+		return model.NewAppError("SendMail", "plugin_api.send_mail.missing_htmlbody", nil, "", http.StatusBadRequest)
+	}
+
+	return api.app.SendMail(to, subject, htmlBody)
 }
 
 // Plugin Section
