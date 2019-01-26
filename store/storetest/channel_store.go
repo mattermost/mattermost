@@ -576,12 +576,12 @@ func testChannelStoreGetByName(t *testing.T, ss store.Store) {
 		t.Fatal("Missing id should have failed")
 	}
 
-	if r1 := <-ss.Channel().GetByName(o1.TeamId, o1.Name, false); r1.Err != nil {
+	r1 = <-ss.Channel().GetByName(o1.TeamId, o1.Name, false)
+	if r1.Err != nil {
 		t.Fatal(r1.Err)
-	} else {
-		if r1.Data.(*model.Channel).ToJson() != o1.ToJson() {
-			t.Fatal("invalid returned channel")
-		}
+	}
+	if r1.Data.(*model.Channel).ToJson() != o1.ToJson() {
+		t.Fatal("invalid returned channel")
 	}
 
 	if err := (<-ss.Channel().GetByName(o1.TeamId, "", false)).Err; err == nil {
