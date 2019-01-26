@@ -94,7 +94,26 @@ func updatePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.UpdatePreferences(c.Params.UserId, preferences); err != nil {
+	var sanitizedPreferences model.Preferences
+
+	for _, pref := range preferences {
+		if pref.Category == model.PREFERENCE_CATEGORY_FLAGGED_POST {
+			post, err := c.App.GetSinglePost(pref.Name)
+			if err != nil {
+				c.SetInvalidParam("preference.name")
+				return
+			}
+
+			if !c.App.SessionHasPermissionToChannel(c.App.Session, post.ChannelId, model.PERMISSION_READ_CHANNEL) {
+				c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+				return
+			}
+		}
+
+		sanitizedPreferences = append(sanitizedPreferences, pref)
+	}
+
+	if err := c.App.UpdatePreferences(c.Params.UserId, sanitizedPreferences); err != nil {
 		c.Err = err
 		return
 	}
