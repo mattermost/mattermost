@@ -53,6 +53,15 @@ var CommandDeleteCmd = &cobra.Command{
 	RunE:    deleteCommandCmdF,
 }
 
+var CommandModifyCmd = &cobra.Command{
+	Use:     "modify [commandID]",
+	Short:   "Modify a slash command",
+	Long:    `Modify a slash command. Commands can be specified by command ID.`,
+	Example: `  command modify w16zb5tu3n1zkqo18goqry1je --title MyCommand --description "My Command Description" --trigger-word mycommand --url http://localhost:8000/my-slash-handler --creator myusername --response-username my-bot-username --icon http://localhost:8000/my-slash-handler-bot-icon.png --autocomplete --post`,
+	Args:    cobra.MinimumNArgs(1),
+	RunE:    modifyCommandCmdF,
+}
+
 func init() {
 	CommandCreateCmd.Flags().String("title", "", "Command Title")
 	CommandCreateCmd.Flags().String("description", "", "Command Description")
@@ -69,11 +78,24 @@ func init() {
 	CommandCreateCmd.Flags().String("autocompleteHint", "", "Command Arguments displayed as help in autocomplete list")
 	CommandCreateCmd.Flags().Bool("post", false, "Use POST method for Callback URL")
 
+	CommandModifyCmd.Flags().String("title", "", "Command Title")
+	CommandModifyCmd.Flags().String("description", "", "Command Description")
+	CommandModifyCmd.Flags().String("trigger-word", "", "Command Trigger Word (required)")
+	CommandModifyCmd.Flags().String("url", "", "Command Callback URL (required)")
+	CommandModifyCmd.Flags().String("creator", "", "Command Creator's Username (required)")
+	CommandModifyCmd.Flags().String("response-username", "", "Command Response Username")
+	CommandModifyCmd.Flags().String("icon", "", "Command Icon URL")
+	CommandModifyCmd.Flags().Bool("autocomplete", false, "Show Command in autocomplete list")
+	CommandModifyCmd.Flags().String("autocompleteDesc", "", "Short Command Description for autocomplete list")
+	CommandModifyCmd.Flags().String("autocompleteHint", "", "Command Arguments displayed as help in autocomplete list")
+	CommandModifyCmd.Flags().Bool("post", false, "Use POST method for Callback URL")
+
 	CommandCmd.AddCommand(
 		CommandCreateCmd,
 		CommandMoveCmd,
 		CommandListCmd,
 		CommandDeleteCmd,
+		CommandModifyCmd,
 	)
 	RootCmd.AddCommand(CommandCmd)
 }
@@ -240,3 +262,73 @@ func deleteCommandCmdF(command *cobra.Command, args []string) error {
 	CommandPrettyPrintln("Deleted command '" + slashCommand.Id + "' (" + slashCommand.DisplayName + ")")
 	return nil
 }
+
+func modifyCommandCmdF(command *cobra.Command, args []string) error {
+	a, err := InitDBCommandContextCobra(command)
+	if err != nil {
+		return err
+	}
+	defer a.Shutdown()
+
+	originalCommand,err := a.GetCommand(args[0])
+	if err != nil{
+		return nil
+	}
+
+	team := getTeamFromTeamArg(a, args[0])
+	if team == nil {
+		return errors.New("unable to find team '" + args[0] + "'")
+	}
+
+	title, _ := command.Flags().GetString("title")
+	description, _ := command.Flags().GetString("description")
+	trigger, _ := command.Flags().GetString("trigger-word")
+
+	if strings.HasPrefix(trigger, "/") {
+		return errors.New("a trigger word cannot begin with a /")
+	}
+	if strings.Contains(trigger, " ") {
+		return errors.New("a trigger word must not contain spaces")
+	}
+
+	url, _ := command.Flags().GetString("url")
+	creator, _ := command.Flags().GetString("creator")
+	user := getUserFromUserArg(a, creator)
+	if user == nil {
+		return errors.New("unable to find user '" + creator + "'")
+	}
+	responseUsername, _ := command.Flags().GetString("response-username")
+	icon, _ := command.Flags().GetString("icon")
+	autocomplete, _ := command.Flags().GetBool("autocomplete")
+	autocompleteDesc, _ := command.Flags().GetString("autocompleteDesc")
+	autocompleteHint, _ := command.Flags().GetString("autocompleteHint")
+	post, errp := command.Flags().GetBool("post")
+	method := "P"
+	if errp != nil || post == false {
+		method = "G"
+	}
+
+	modifiedCommand := &model.Command{
+		CreatorId:        user.Id,
+		TeamId:           team.Id,
+		Trigger:          trigger,
+		Method:           method,
+		Username:         responseUsername,
+		IconURL:          icon,
+		AutoComplete:     autocomplete,
+		AutoCompleteDesc: autocompleteDesc,
+		AutoCompleteHint: autocompleteHint,
+		DisplayName:      title,
+		Description:      description,
+		URL:              url,
+	}
+
+	_, err = a.UpdateCommand(originalCommand, modifiedCommand)
+
+	if err != nil {
+		return err
+	}
+	return nil
+
+}
+

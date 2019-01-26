@@ -169,3 +169,50 @@ func TestDeleteCommand(t *testing.T) {
 		assert.Error(t, th.RunCommand(t, "command", "delete", "invalid"))
 	})
 }
+
+//func TestModifyCommand(t *testing.T)  {
+//	th := Setup().InitBasic()
+//	defer th.TearDown()
+//
+//	config := th.Config()
+//	*config.ServiceSettings.EnableCommands = true
+//	th.SetConfig(config)
+//
+//	team := th.BasicTeam
+//	adminUser := th.TeamAdminUser
+//	user := th.BasicUser
+//
+//	testCases := []struct {
+//		Description string
+//		Args        []string
+//		ExpectedErr string
+//	}{
+//		{
+//			"nil error",
+//			[]string{"command", "modify", team.Name, "--trigger-word", "testcmd", "--url", "http://localhost:8000/my-slash-handler", "--creator", adminUser.Username},
+//			"",
+//		},
+//	}
+//
+//	for _, testCase := range testCases {
+//		t.Run(testCase.Description, func(t *testing.T) {
+//			actual, _ := th.RunCommandWithOutput(t, testCase.Args...)
+//
+//			cmds, _ := th.SystemAdminClient.ListCommands(team.Id, true)
+//
+//			if testCase.ExpectedErr == "" {
+//				if len(cmds) == 0 || cmds[0].Trigger != "testcmd" {
+//					t.Fatal("Failed to Modify command")
+//				}
+//				assert.Contains(t, string(actual), "PASS")
+//			} else {
+//				if len(cmds) > 1 {
+//					t.Fatal("Modified command that shouldn't have been modified")
+//				}
+//				assert.Contains(t, string(actual), testCase.ExpectedErr)
+//			}
+//		})
+//	}
+//
+//
+//}
