@@ -138,6 +138,7 @@ func (a *App) DoActionRequest(rawURL string, body []byte) (*http.Response, *mode
 	siteURL, _ := url.Parse(*a.Config().ServiceSettings.SiteURL)
 	subpath, _ := utils.GetSubpathFromConfig(a.Config())
 	if (url.Hostname() == "localhost" || url.Hostname() == "127.0.0.1" || url.Hostname() == siteURL.Hostname()) && strings.HasPrefix(url.Path, path.Join(subpath, "plugins")) {
+		req.Header.Set(model.HEADER_AUTH, "Bearer "+a.Session.Token)
 		httpClient = a.HTTPService.MakeClient(true)
 	} else {
 		httpClient = a.HTTPService.MakeClient(false)
