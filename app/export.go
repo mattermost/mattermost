@@ -15,8 +15,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-//We use this map to identify the exportable preferences.
-//Here we link the preference category and name, to the name of the relevant filed in the import struct.
+// We use this map to identify the exportable preferences.
+// Here we link the preference category and name, to the name of the relevant filed in the import struct.
 var exportablePreferences = map[ComparablePreference]string{{
 	Category: model.PREFERENCE_CATEGORY_THEME,
 	Name:     "",
@@ -51,7 +51,6 @@ var exportablePreferences = map[ComparablePreference]string{{
 }
 
 func (a *App) BulkExport(writer io.Writer, file string, pathToEmojiDir string, dirNameToExportEmoji string) *model.AppError {
-
 	if err := a.ExportVersion(writer); err != nil {
 		return err
 	}
@@ -190,18 +189,18 @@ func (a *App) ExportAllUsers(writer io.Writer) *model.AppError {
 				continue
 			}
 
-			//Gathering here the exportable preferences to pass them on to ImportLineFromUser
+			// Gathering here the exportable preferences to pass them on to ImportLineFromUser
 			exportedPrefs := make(map[string]*string)
 			allPrefs, err := a.GetPreferencesForUser(user.Id)
 			if err != nil {
 				return err
 			}
 			for _, pref := range allPrefs {
-				//We need to manage the special cases
-				//Here we manage Tutorial steps
+				// We need to manage the special cases
+				// Here we manage Tutorial steps
 				if pref.Category == model.PREFERENCE_CATEGORY_TUTORIAL_STEPS {
 					pref.Name = ""
-					//Then the email interval
+					// Then the email interval
 				} else if pref.Category == model.PREFERENCE_CATEGORY_NOTIFICATIONS && pref.Name == model.PREFERENCE_NAME_EMAIL_INTERVAL {
 					switch pref.Value {
 					case model.PREFERENCE_EMAIL_INTERVAL_NO_BATCHING_SECONDS:
