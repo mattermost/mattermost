@@ -1,14 +1,16 @@
 package app
 
 import (
+	"bytes"
+	"io/ioutil"
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
-	"github.com/stretchr/testify/require"
 )
 
 func TestReactionsOfPost(t *testing.T) {
@@ -163,4 +165,17 @@ func TestExportCustomEmoji(t *testing.T) {
 	if err := th.App.ExportCustomEmoji(fileWriter, filePath, pathToEmojiDir, dirNameToExportEmoji); err != nil {
 		t.Fatal(err)
 	}
+}
+
+func TestExportAllUsers(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	var b bytes.Buffer
+
+	appErr := th.App.ExportAllUsers(&b)
+	require.Nil(t, appErr)
+	out, err := ioutil.ReadAll(&b)
+	require.Nil(t, err)
+	require.NotNil(t, out)
 }
