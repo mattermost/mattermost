@@ -51,9 +51,11 @@ func (a *App) DoPostAction(postId, actionId, userId, selectedOption string) (str
 		return "", model.NewAppError("DoPostAction", "api.post.do_action.action_id.app_error", nil, fmt.Sprintf("action=%v", action), http.StatusNotFound)
 	}
 
-	if action.Type == model.POST_ACTION_TYPE_REPLY || action.Type == model.POST_ACTION_TYPE_MESSAGE {
+	if action.ResponseType == model.POST_ACTION_RESPONSE_TYPE_MESSAGE || action.ResponseType == model.POST_ACTION_RESPONSE_TYPE_REPLY {
 		var message string
-		if action.Integration.Context["action"] != nil {
+		if action.Type == model.POST_ACTION_TYPE_SELECT {
+			message = selectedOption
+		} else if action.Integration.Context["action"] != nil {
 			message = action.Integration.Context["action"].(string)
 		} else {
 			message = action.Name
@@ -66,7 +68,7 @@ func (a *App) DoPostAction(postId, actionId, userId, selectedOption string) (str
 			UserId:        userId,
 		}
 
-		if action.Type == model.POST_ACTION_TYPE_REPLY {
+		if action.Type == model.POST_ACTION_RESPONSE_TYPE_REPLY {
 			replyPost.RootId = post.Id
 			replyPost.ParentId = post.Id
 		}
