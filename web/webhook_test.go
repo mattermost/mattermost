@@ -205,8 +205,9 @@ func TestIncomingWebhook(t *testing.T) {
 
 		hook, err := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id, ChannelLocked: true})
 		require.Nil(t, err)
+		require.NotNil(t, hook)
 
-		url := ApiClient.Url + "/hooks/" + hook.Id
+		url = ApiClient.Url + "/hooks/" + hook.Id
 
 		payload := "payload={\"text\": \"test text\"}"
 		resp, err2 := http.Post(url, "application/x-www-form-urlencoded", strings.NewReader(payload))
