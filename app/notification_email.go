@@ -6,8 +6,10 @@ package app
 import (
 	"fmt"
 	"html"
+	"html/template"
 	"net/url"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
@@ -172,7 +174,9 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 	var bodyPage *utils.HTMLTemplate
 	if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
 		bodyPage = a.NewEmailTemplate("post_body_full", recipient.Locale)
-		bodyPage.Props["PostMessage"] = a.GetMessageForNotification(post, translateFunc)
+		postMessage := a.GetMessageForNotification(post, translateFunc)
+		normalizedPostMessage := a.generateHyperlinkForChannels(postMessage, teamName, teamURL)
+		bodyPage.Props["PostMessage"] = template.HTML(normalizedPostMessage)
 	} else {
 		bodyPage = a.NewEmailTemplate("post_body_generic", recipient.Locale)
 	}
@@ -282,6 +286,23 @@ func getFormattedPostTime(user *model.User, post *model.Post, useMilitaryTime bo
 		Minute:   fmt.Sprintf("%02d"+period, localTime.Minute()),
 		TimeZone: zone,
 	}
+}
+
+func (a *App) generateHyperlinkForChannels(postMessage, teamName, teamURL string) string {
+	r := regexp.MustCompile(`\~[-a-zA-Z0-9]+\b`)
+	matches := r.FindAllString(postMessage, -1)
+	var channelURL, channelHyperLink string
+	for _, channelName := range matches {
+		ch, err := a.GetChannelByNameForTeamName(channelName[1:], teamName, true)
+		if ch == nil || err != nil {
+			mlog.Warn(fmt.Sprintf("Encountered error while generating hyperlink for %s, as channel with that name doesn't exist.", channelName[1:]))
+		} else {
+			channelURL = teamURL + "/channels/" + ch.Name
+			channelHyperLink = fmt.Sprintf("<a href='%s'>%s</a>", channelURL, channelName)
+			postMessage = strings.Replace(postMessage, channelName, channelHyperLink, -1)
+		}
+	}
+	return postMessage
 }
 
 func (a *App) GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string {
