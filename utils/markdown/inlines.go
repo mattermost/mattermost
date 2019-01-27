@@ -398,7 +398,7 @@ func (p *inlineParser) lookForLinkOrImage() {
 				p.inlines = append(p.inlines[:d.TextNode], inline)
 			} else {
 				p.inlines = append(p.inlines[:d.TextNode], inline)
-				for inlineElement := element.Prev(); inlineElement != nil; inlineElement = element.Prev() {
+				for inlineElement := element.Prev(); inlineElement != nil; inlineElement = inlineElement.Prev() {
 					if d := inlineElement.Value.(*delimiter); d.Type == linkOpeningDelimiter {
 						d.IsInactive = true
 					}
