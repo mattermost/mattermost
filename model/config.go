@@ -138,6 +138,8 @@ const (
 	NATIVEAPP_SETTINGS_DEFAULT_ANDROID_APP_DOWNLOAD_LINK = "https://about.mattermost.com/mattermost-android-app/"
 	NATIVEAPP_SETTINGS_DEFAULT_IOS_APP_DOWNLOAD_LINK     = "https://about.mattermost.com/mattermost-ios-app/"
 
+	EXPERIMENTAL_SETTINGS_DEFAULT_LINK_METADATA_TIMEOUT = 5000
+
 	ANALYTICS_SETTINGS_DEFAULT_MAX_USERS_FOR_STATISTICS = 2500
 
 	ANNOUNCEMENT_SETTINGS_DEFAULT_BANNER_COLOR      = "#f2a93b"
@@ -662,6 +664,7 @@ type ExperimentalSettings struct {
 	ClientSideCertEnable *bool
 	ClientSideCertCheck  *string
 	EnablePostMetadata   *bool
+	LinkMetadataTimeout  *int64
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -675,6 +678,10 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.EnablePostMetadata == nil {
 		s.EnablePostMetadata = NewBool(false)
+	}
+
+	if s.LinkMetadataTimeout == nil {
+		s.LinkMetadataTimeout = NewInt64(EXPERIMENTAL_SETTINGS_DEFAULT_LINK_METADATA_TIMEOUT)
 	}
 }
 
