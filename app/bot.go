@@ -25,15 +25,15 @@ func (a *App) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
 }
 
 // PatchBot applies the given patch to the bot and corresponding user.
-func (a *App) PatchBot(userId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError) {
-	bot, err := a.GetBot(userId, true)
+func (a *App) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError) {
+	bot, err := a.GetBot(botUserId, true)
 	if err != nil {
 		return nil, err
 	}
 
 	bot.Patch(botPatch)
 
-	result := <-a.Srv.Store.User().Get(userId)
+	result := <-a.Srv.Store.User().Get(botUserId)
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -57,8 +57,8 @@ func (a *App) PatchBot(userId string, botPatch *model.BotPatch) (*model.Bot, *mo
 }
 
 // GetBot returns the given bot.
-func (a *App) GetBot(userId string, includeDeleted bool) (*model.Bot, *model.AppError) {
-	result := <-a.Srv.Store.Bot().Get(userId, includeDeleted)
+func (a *App) GetBot(botUserId string, includeDeleted bool) (*model.Bot, *model.AppError) {
+	result := <-a.Srv.Store.Bot().Get(botUserId, includeDeleted)
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -67,8 +67,8 @@ func (a *App) GetBot(userId string, includeDeleted bool) (*model.Bot, *model.App
 }
 
 // GetBots returns the requested page of bots.
-func (a *App) GetBots(page, perPage int, creatorId string, includeDeleted bool) (model.BotList, *model.AppError) {
-	result := <-a.Srv.Store.Bot().GetAll(page*perPage, perPage, creatorId, includeDeleted)
+func (a *App) GetBots(options *model.BotGetOptions) (model.BotList, *model.AppError) {
+	result := <-a.Srv.Store.Bot().GetAll(options.Page*options.PerPage, options.PerPage, options.CreatorId, options.IncludeDeleted)
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -77,8 +77,8 @@ func (a *App) GetBots(page, perPage int, creatorId string, includeDeleted bool) 
 }
 
 // UpdateBotActive marks a bot as active or inactive, along with its corresponding user.
-func (a *App) UpdateBotActive(userId string, active bool) (*model.Bot, *model.AppError) {
-	result := <-a.Srv.Store.User().Get(userId)
+func (a *App) UpdateBotActive(botUserId string, active bool) (*model.Bot, *model.AppError) {
+	result := <-a.Srv.Store.User().Get(botUserId)
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -88,7 +88,7 @@ func (a *App) UpdateBotActive(userId string, active bool) (*model.Bot, *model.Ap
 		return nil, err
 	}
 
-	result = <-a.Srv.Store.Bot().Get(userId, true)
+	result = <-a.Srv.Store.Bot().Get(botUserId, true)
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -115,12 +115,12 @@ func (a *App) UpdateBotActive(userId string, active bool) (*model.Bot, *model.Ap
 }
 
 // PermanentDeleteBot permanently deletes a bot and its corresponding user.
-func (a *App) PermanentDeleteBot(userId string) *model.AppError {
-	if result := <-a.Srv.Store.Bot().PermanentDelete(userId); result.Err != nil {
+func (a *App) PermanentDeleteBot(botUserId string) *model.AppError {
+	if result := <-a.Srv.Store.Bot().PermanentDelete(botUserId); result.Err != nil {
 		return result.Err
 	}
 
-	if result := <-a.Srv.Store.User().PermanentDelete(userId); result.Err != nil {
+	if result := <-a.Srv.Store.User().PermanentDelete(botUserId); result.Err != nil {
 		return result.Err
 	}
 

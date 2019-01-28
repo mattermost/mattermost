@@ -294,73 +294,133 @@ func TestGetBots(t *testing.T) {
 	defer th.App.PermanentDeleteBot(deletedBot2.UserId)
 
 	t.Run("get bots, page=0, perPage=10", func(t *testing.T) {
-		bots, err := th.App.GetBots(0, 10, "", false)
+		bots, err := th.App.GetBots(&model.BotGetOptions{
+			Page:           0,
+			PerPage:        10,
+			CreatorId:      "",
+			IncludeDeleted: false,
+		})
 		require.Nil(t, err)
 		assert.Equal(t, model.BotList{bot1, bot2, bot3, bot4}, bots)
 	})
 
 	t.Run("get bots, page=0, perPage=1", func(t *testing.T) {
-		bots, err := th.App.GetBots(0, 1, "", false)
+		bots, err := th.App.GetBots(&model.BotGetOptions{
+			Page:           0,
+			PerPage:        1,
+			CreatorId:      "",
+			IncludeDeleted: false,
+		})
 		require.Nil(t, err)
 		assert.Equal(t, model.BotList{bot1}, bots)
 	})
 
 	t.Run("get bots, page=1, perPage=2", func(t *testing.T) {
-		bots, err := th.App.GetBots(1, 2, "", false)
+		bots, err := th.App.GetBots(&model.BotGetOptions{
+			Page:           1,
+			PerPage:        2,
+			CreatorId:      "",
+			IncludeDeleted: false,
+		})
 		require.Nil(t, err)
 		assert.Equal(t, model.BotList{bot3, bot4}, bots)
 	})
 
 	t.Run("get bots, page=2, perPage=2", func(t *testing.T) {
-		bots, err := th.App.GetBots(2, 2, "", false)
+		bots, err := th.App.GetBots(&model.BotGetOptions{
+			Page:           2,
+			PerPage:        2,
+			CreatorId:      "",
+			IncludeDeleted: false,
+		})
 		require.Nil(t, err)
 		assert.Equal(t, model.BotList{}, bots)
 	})
 
 	t.Run("get bots, page=0, perPage=10, include deleted", func(t *testing.T) {
-		bots, err := th.App.GetBots(0, 10, "", true)
+		bots, err := th.App.GetBots(&model.BotGetOptions{
+			Page:           0,
+			PerPage:        10,
+			CreatorId:      "",
+			IncludeDeleted: true,
+		})
 		require.Nil(t, err)
 		assert.Equal(t, model.BotList{bot1, deletedBot1, bot2, bot3, bot4, deletedBot2}, bots)
 	})
 
 	t.Run("get bots, page=0, perPage=1, include deleted", func(t *testing.T) {
-		bots, err := th.App.GetBots(0, 1, "", true)
+		bots, err := th.App.GetBots(&model.BotGetOptions{
+			Page:           0,
+			PerPage:        1,
+			CreatorId:      "",
+			IncludeDeleted: true,
+		})
 		require.Nil(t, err)
 		assert.Equal(t, model.BotList{bot1}, bots)
 	})
 
 	t.Run("get bots, page=1, perPage=2, include deleted", func(t *testing.T) {
-		bots, err := th.App.GetBots(1, 2, "", true)
+		bots, err := th.App.GetBots(&model.BotGetOptions{
+			Page:           1,
+			PerPage:        2,
+			CreatorId:      "",
+			IncludeDeleted: true,
+		})
 		require.Nil(t, err)
 		assert.Equal(t, model.BotList{bot2, bot3}, bots)
 	})
 
 	t.Run("get bots, page=2, perPage=2, include deleted", func(t *testing.T) {
-		bots, err := th.App.GetBots(2, 2, "", true)
+		bots, err := th.App.GetBots(&model.BotGetOptions{
+			Page:           2,
+			PerPage:        2,
+			CreatorId:      "",
+			IncludeDeleted: true,
+		})
 		require.Nil(t, err)
 		assert.Equal(t, model.BotList{bot4, deletedBot2}, bots)
 	})
 
 	t.Run("get offset=0, limit=10, creator id 1", func(t *testing.T) {
-		bots, err := th.App.GetBots(0, 10, creatorId1, false)
+		bots, err := th.App.GetBots(&model.BotGetOptions{
+			Page:           0,
+			PerPage:        10,
+			CreatorId:      creatorId1,
+			IncludeDeleted: false,
+		})
 		require.Nil(t, err)
 		require.Equal(t, model.BotList{bot1, bot2, bot3}, bots)
 	})
 
 	t.Run("get offset=0, limit=10, creator id 2", func(t *testing.T) {
-		bots, err := th.App.GetBots(0, 10, creatorId2, false)
+		bots, err := th.App.GetBots(&model.BotGetOptions{
+			Page:           0,
+			PerPage:        10,
+			CreatorId:      creatorId2,
+			IncludeDeleted: false,
+		})
 		require.Nil(t, err)
 		require.Equal(t, model.BotList{bot4}, bots)
 	})
 
 	t.Run("get offset=0, limit=10, include deleted, creator id 1", func(t *testing.T) {
-		bots, err := th.App.GetBots(0, 10, creatorId1, true)
+		bots, err := th.App.GetBots(&model.BotGetOptions{
+			Page:           0,
+			PerPage:        10,
+			CreatorId:      creatorId1,
+			IncludeDeleted: true,
+		})
 		require.Nil(t, err)
 		require.Equal(t, model.BotList{bot1, deletedBot1, bot2, bot3}, bots)
 	})
 
 	t.Run("get offset=0, limit=10, include deleted, creator id 2", func(t *testing.T) {
-		bots, err := th.App.GetBots(0, 10, creatorId2, true)
+		bots, err := th.App.GetBots(&model.BotGetOptions{
+			Page:           0,
+			PerPage:        10,
+			CreatorId:      creatorId2,
+			IncludeDeleted: true,
+		})
 		require.Nil(t, err)
 		require.Equal(t, model.BotList{bot4, deletedBot2}, bots)
 	})

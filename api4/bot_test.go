@@ -480,9 +480,10 @@ func TestGetBots(t *testing.T) {
 
 		bots, resp := th.Client.GetBots(0, 10, "")
 		CheckOKStatus(t, resp)
-		require.Equal(t, model.BotList{bot1, bot2, bot3}, bots)
+		require.Equal(t, []*model.Bot{bot1, bot2, bot3}, bots)
 
-		bots, resp = th.Client.GetBots(0, 10, bots.Etag())
+		botList := model.BotList(bots)
+		bots, resp = th.Client.GetBots(0, 10, botList.Etag())
 		CheckEtag(t, bots, resp)
 	})
 
@@ -495,9 +496,10 @@ func TestGetBots(t *testing.T) {
 
 		bots, resp := th.Client.GetBots(0, 1, "")
 		CheckOKStatus(t, resp)
-		require.Equal(t, model.BotList{bot1}, bots)
+		require.Equal(t, []*model.Bot{bot1}, bots)
 
-		bots, resp = th.Client.GetBots(0, 1, bots.Etag())
+		botList := model.BotList(bots)
+		bots, resp = th.Client.GetBots(0, 1, botList.Etag())
 		CheckEtag(t, bots, resp)
 	})
 
@@ -510,9 +512,10 @@ func TestGetBots(t *testing.T) {
 
 		bots, resp := th.Client.GetBots(1, 2, "")
 		CheckOKStatus(t, resp)
-		require.Equal(t, model.BotList{bot3}, bots)
+		require.Equal(t, []*model.Bot{bot3}, bots)
 
-		bots, resp = th.Client.GetBots(1, 2, bots.Etag())
+		botList := model.BotList(bots)
+		bots, resp = th.Client.GetBots(1, 2, botList.Etag())
 		CheckEtag(t, bots, resp)
 	})
 
@@ -525,9 +528,10 @@ func TestGetBots(t *testing.T) {
 
 		bots, resp := th.Client.GetBots(2, 2, "")
 		CheckOKStatus(t, resp)
-		require.Equal(t, model.BotList{}, bots)
+		require.Equal(t, []*model.Bot{}, bots)
 
-		bots, resp = th.Client.GetBots(2, 2, bots.Etag())
+		botList := model.BotList(bots)
+		bots, resp = th.Client.GetBots(2, 2, botList.Etag())
 		CheckEtag(t, bots, resp)
 	})
 
@@ -540,9 +544,10 @@ func TestGetBots(t *testing.T) {
 
 		bots, resp := th.Client.GetBotsIncludeDeleted(0, 10, "")
 		CheckOKStatus(t, resp)
-		require.Equal(t, model.BotList{bot1, deletedBot1, bot2, bot3, deletedBot2}, bots)
+		require.Equal(t, []*model.Bot{bot1, deletedBot1, bot2, bot3, deletedBot2}, bots)
 
-		bots, resp = th.Client.GetBotsIncludeDeleted(0, 10, bots.Etag())
+		botList := model.BotList(bots)
+		bots, resp = th.Client.GetBotsIncludeDeleted(0, 10, botList.Etag())
 		CheckEtag(t, bots, resp)
 	})
 
@@ -555,9 +560,10 @@ func TestGetBots(t *testing.T) {
 
 		bots, resp := th.Client.GetBotsIncludeDeleted(0, 1, "")
 		CheckOKStatus(t, resp)
-		require.Equal(t, model.BotList{bot1}, bots)
+		require.Equal(t, []*model.Bot{bot1}, bots)
 
-		bots, resp = th.Client.GetBotsIncludeDeleted(0, 1, bots.Etag())
+		botList := model.BotList(bots)
+		bots, resp = th.Client.GetBotsIncludeDeleted(0, 1, botList.Etag())
 		CheckEtag(t, bots, resp)
 	})
 
@@ -570,9 +576,10 @@ func TestGetBots(t *testing.T) {
 
 		bots, resp := th.Client.GetBotsIncludeDeleted(1, 2, "")
 		CheckOKStatus(t, resp)
-		require.Equal(t, model.BotList{bot2, bot3}, bots)
+		require.Equal(t, []*model.Bot{bot2, bot3}, bots)
 
-		bots, resp = th.Client.GetBotsIncludeDeleted(1, 2, bots.Etag())
+		botList := model.BotList(bots)
+		bots, resp = th.Client.GetBotsIncludeDeleted(1, 2, botList.Etag())
 		CheckEtag(t, bots, resp)
 	})
 
@@ -585,9 +592,10 @@ func TestGetBots(t *testing.T) {
 
 		bots, resp := th.Client.GetBotsIncludeDeleted(2, 2, "")
 		CheckOKStatus(t, resp)
-		require.Equal(t, model.BotList{deletedBot2}, bots)
+		require.Equal(t, []*model.Bot{deletedBot2}, bots)
 
-		bots, resp = th.Client.GetBotsIncludeDeleted(2, 2, bots.Etag())
+		botList := model.BotList(bots)
+		bots, resp = th.Client.GetBotsIncludeDeleted(2, 2, botList.Etag())
 		CheckEtag(t, bots, resp)
 	})
 

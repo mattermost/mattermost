@@ -15,6 +15,7 @@ import (
 const (
 	BOT_DISPLAY_NAME_MAX_RUNES = USER_FIRST_NAME_MAX_RUNES
 	BOT_DESCRIPTION_MAX_RUNES  = 1024
+	BOT_CREATOR_ID_MAX_RUNES   = KEY_VALUE_PLUGIN_ID_MAX_RUNES // UserId or PluginId
 )
 
 // Bot is a special type of User meant for programmatic interactions.
@@ -36,6 +37,14 @@ type BotPatch struct {
 	Username    *string `json:"username"`
 	DisplayName *string `json:"display_name"`
 	Description *string `json:"description"`
+}
+
+// BotGetOptions acts as a filter on bulk bot fetching queries.
+type BotGetOptions struct {
+	CreatorId      string
+	IncludeDeleted bool
+	Page           int
+	PerPage        int
 }
 
 // BotList is a list of bots.
@@ -70,7 +79,7 @@ func (b *Bot) IsValid() *AppError {
 		return NewAppError("Bot.IsValid", "model.bot.is_valid.description.app_error", b.Trace(), "", http.StatusBadRequest)
 	}
 
-	if len(b.CreatorId) != 26 {
+	if len(b.CreatorId) == 0 || utf8.RuneCountInString(b.CreatorId) > BOT_CREATOR_ID_MAX_RUNES {
 		return NewAppError("Bot.IsValid", "model.bot.is_valid.creator_id.app_error", b.Trace(), "", http.StatusBadRequest)
 	}
 
