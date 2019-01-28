@@ -1337,6 +1337,68 @@ func zSliceParser(rd *proto.Reader, n int64) (interface{}, error) {
 
 //------------------------------------------------------------------------------
 
+type ZWithKeyCmd struct {
+	baseCmd
+
+	val ZWithKey
+}
+
+var _ Cmder = (*ZWithKeyCmd)(nil)
+
+func NewZWithKeyCmd(args ...interface{}) *ZWithKeyCmd {
+	return &ZWithKeyCmd{
+		baseCmd: baseCmd{_args: args},
+	}
+}
+
+func (cmd *ZWithKeyCmd) Val() ZWithKey {
+	return cmd.val
+}
+
+func (cmd *ZWithKeyCmd) Result() (ZWithKey, error) {
+	return cmd.Val(), cmd.Err()
+}
+
+func (cmd *ZWithKeyCmd) String() string {
+	return cmdString(cmd, cmd.val)
+}
+
+func (cmd *ZWithKeyCmd) readReply(rd *proto.Reader) error {
+	var v interface{}
+	v, cmd.err = rd.ReadArrayReply(zWithKeyParser)
+	if cmd.err != nil {
+		return cmd.err
+	}
+	cmd.val = v.(ZWithKey)
+	return nil
+}
+
+// Implements proto.MultiBulkParse
+func zWithKeyParser(rd *proto.Reader, n int64) (interface{}, error) {
+	if n != 3 {
+		return nil, fmt.Errorf("got %d elements, expected 3", n)
+	}
+
+	var z ZWithKey
+	var err error
+
+	z.Key, err = rd.ReadString()
+	if err != nil {
+		return nil, err
+	}
+	z.Member, err = rd.ReadString()
+	if err != nil {
+		return nil, err
+	}
+	z.Score, err = rd.ReadFloatReply()
+	if err != nil {
+		return nil, err
+	}
+	return z, nil
+}
+
+//------------------------------------------------------------------------------
+
 type ScanCmd struct {
 	baseCmd
 

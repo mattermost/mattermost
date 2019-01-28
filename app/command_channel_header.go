@@ -62,7 +62,8 @@ func (me *HeaderProvider) DoCommand(a *App, args *model.CommandArgs, message str
 
 	case model.CHANNEL_GROUP, model.CHANNEL_DIRECT:
 		// Modifying the header is not linked to any specific permission for group/dm channels, so just check for membership.
-		channelMember, err := a.GetChannelMember(args.ChannelId, args.Session.UserId)
+		var channelMember *model.ChannelMember
+		channelMember, err = a.GetChannelMember(args.ChannelId, args.Session.UserId)
 		if err != nil || channelMember == nil {
 			return &model.CommandResponse{
 				Text:         args.T("api.command_channel_header.permission.app_error"),

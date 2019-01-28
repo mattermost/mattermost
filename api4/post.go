@@ -97,7 +97,7 @@ func createEphemeralPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	rp := c.App.SendEphemeralPost(ephRequest.UserID, c.App.PostWithProxyRemovedFromImageURLs(ephRequest.Post))
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(c.App.PreparePostForClient(rp).ToJson()))
+	w.Write([]byte(c.App.PreparePostForClient(rp, true).ToJson()))
 }
 
 func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -195,12 +195,38 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 		posts, err = c.App.GetFlaggedPosts(c.Params.UserId, c.Params.Page, c.Params.PerPage)
 	}
 
+	pl := model.NewPostList()
+	channelReadPermission := make(map[string]bool)
+
+	for _, post := range posts.Posts {
+		allowed, ok := channelReadPermission[post.ChannelId]
+
+		if !ok {
+			allowed = false
+
+			if c.App.SessionHasPermissionToChannel(c.App.Session, post.ChannelId, model.PERMISSION_READ_CHANNEL) {
+				allowed = true
+			}
+
+			channelReadPermission[post.ChannelId] = allowed
+		}
+
+		if !allowed {
+			continue
+		}
+
+		pl.AddPost(post)
+		pl.AddOrder(post.Id)
+	}
+
+	pl.SortByCreateAt()
+
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	w.Write([]byte(c.App.PreparePostListForClient(posts).ToJson()))
+	w.Write([]byte(c.App.PreparePostListForClient(pl).ToJson()))
 }
 
 func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -233,7 +259,7 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	post = c.App.PreparePostForClient(post)
+	post = c.App.PreparePostForClient(post, false)
 
 	if c.HandleEtag(post.Etag(), "Get Post", w, r) {
 		return
