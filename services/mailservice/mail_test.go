@@ -142,6 +142,7 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 	var mimeTo = "test@example.com"
 	var smtpTo = "test2@example.com"
 	var from = mail.Address{Name: "Nobody", Address: "nobody@mattermost.com"}
+	var replyTo = mail.Address{Name: "ReplyTo", Address: "reply_to@mattermost.com"}
 	var emailSubject = "Testing this email"
 	var emailBody = "This is a test from autobot"
 
@@ -177,7 +178,7 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 	headers := make(map[string]string)
 	headers["TestHeader"] = "TestValue"
 
-	if err := SendMailUsingConfigAdvanced(mimeTo, smtpTo, from, from, emailSubject, emailBody, attachments, headers, cfg, true); err != nil {
+	if err := SendMailUsingConfigAdvanced(mimeTo, smtpTo, from, replyTo, emailSubject, emailBody, attachments, headers, cfg, true); err != nil {
 		t.Log(err)
 		t.Fatal("Should connect to the STMP Server")
 	} else {
