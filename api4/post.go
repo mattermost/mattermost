@@ -515,10 +515,37 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, r *http.Request, isPinn
 		return
 	}
 
+	// Restrict pinning if the experimental read-only-town-square setting is on.
+	user, err := c.App.GetUser(c.App.Session.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	post, err := c.App.GetSinglePost(c.Params.PostId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	channel, err := c.App.GetChannel(post.ChannelId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if c.App.License() != nil &&
+		*c.App.Config().TeamSettings.ExperimentalTownSquareIsReadOnly &&
+		channel.Name == model.DEFAULT_CHANNEL &&
+		!c.App.RolesGrantPermission(user.GetRoles(), model.PERMISSION_MANAGE_SYSTEM.Id) {
+		c.Err = model.NewAppError("saveIsPinnedPost", "api.post.save_is_pinned_post.town_square_read_only", nil, "", http.StatusForbidden)
+		return
+	}
+
 	patch := &model.PostPatch{}
 	patch.IsPinned = model.NewBool(isPinned)
 
-	_, err := c.App.PatchPost(c.Params.PostId, patch)
+	_, err = c.App.PatchPost(c.Params.PostId, patch)
 	if err != nil {
 		c.Err = err
 		return
