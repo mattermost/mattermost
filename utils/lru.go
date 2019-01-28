@@ -140,8 +140,8 @@ func (c *Cache) GetOrAdd(key, value interface{}, ttl time.Duration) (actual inte
 	defer c.lock.Unlock()
 
 	// Check for existing item
-	if value, ok := c.getValue(key); ok {
-		return value, true
+	if actualValue, ok := c.getValue(key); ok {
+		return actualValue, true
 	}
 
 	c.add(key, value, ttl)
