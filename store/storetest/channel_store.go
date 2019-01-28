@@ -563,36 +563,28 @@ func testChannelStoreGetByName(t *testing.T, ss store.Store) {
 	o1.Type = model.CHANNEL_OPEN
 	store.Must(ss.Channel().Save(&o1, -1))
 
-	r1 := <-ss.Channel().GetByName(o1.TeamId, o1.Name, true)
-	if r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		if r1.Data.(*model.Channel).ToJson() != o1.ToJson() {
-			t.Fatal("invalid returned channel")
-		}
-	}
+	result := <-ss.Channel().GetByName(o1.TeamId, o1.Name, true)
+	require.NotNil(t, result)
+	assert.Nil(t, result.Err)
+	assert.Equal(t, o1.ToJson(), result.Data.(*model.Channel).ToJson(), "invalid returned channel")
 
-	if err := (<-ss.Channel().GetByName(o1.TeamId, "", true)).Err; err == nil {
-		t.Fatal("Missing id should have failed")
-	}
+	result = (<-ss.Channel().GetByName(o1.TeamId, "", true))
+	require.NotNil(t, result)
+	assert.NotNil(t, result.Err, "Missing id should have failed")
 
-	r1 = <-ss.Channel().GetByName(o1.TeamId, o1.Name, false)
-	if r1.Err != nil {
-		t.Fatal(r1.Err)
-	}
-	if r1.Data.(*model.Channel).ToJson() != o1.ToJson() {
-		t.Fatal("invalid returned channel")
-	}
+	result = <-ss.Channel().GetByName(o1.TeamId, o1.Name, false)
+	require.NotNil(t, result)
+	assert.Nil(t, result.Err)
+	assert.Equal(t, o1.ToJson(), result.Data.(*model.Channel).ToJson())
 
-	if err := (<-ss.Channel().GetByName(o1.TeamId, "", false)).Err; err == nil {
-		t.Fatal("Missing id should have failed")
-	}
+	result = (<-ss.Channel().GetByName(o1.TeamId, "", false))
+	require.NotNil(t, result)
+	assert.NotNil(t, result.Err, "Missing id should have failed")
 
-	store.Must(ss.Channel().Delete(r1.Data.(*model.Channel).Id, model.GetMillis()))
-
-	if err := (<-ss.Channel().GetByName(o1.TeamId, r1.Data.(*model.Channel).Name, false)).Err; err == nil {
-		t.Fatal("Deleted channel should not be returned by GetByName()")
-	}
+	store.Must(ss.Channel().Delete(result.Data.(*model.Channel).Id, model.GetMillis()))
+	result = <-ss.Channel().GetByName(o1.TeamId, result.Data.(*model.Channel).Name, false)
+	require.NotNil(t, result)
+	assert.NotNil(t, result.Err, "Deleted channel should not be returned by GetByName()")
 }
 
 func testChannelStoreGetByNames(t *testing.T, ss store.Store) {

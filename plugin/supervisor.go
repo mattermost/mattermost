@@ -23,10 +23,10 @@ type supervisor struct {
 }
 
 func newSupervisor(pluginInfo *model.BundleInfo, parentLogger *mlog.Logger, apiImpl API) (retSupervisor *supervisor, retErr error) {
-	s := supervisor{}
+	supervisorInstance := supervisor{}
 	defer func() {
 		if retErr != nil {
-			s.Shutdown()
+			supervisorInstance.Shutdown()
 		}
 	}()
 
@@ -53,7 +53,7 @@ func newSupervisor(pluginInfo *model.BundleInfo, parentLogger *mlog.Logger, apiI
 	}
 	executable = filepath.Join(pluginInfo.Path, executable)
 
-	s.client = plugin.NewClient(&plugin.ClientConfig{
+	supervisorInstance.client = plugin.NewClient(&plugin.ClientConfig{
 		HandshakeConfig: handshake,
 		Plugins:         pluginMap,
 		Cmd:             exec.Command(executable),
@@ -63,7 +63,7 @@ func newSupervisor(pluginInfo *model.BundleInfo, parentLogger *mlog.Logger, apiI
 		StartTimeout:    time.Second * 3,
 	})
 
-	rpcClient, err := s.client.Client()
+	rpcClient, err := supervisorInstance.client.Client()
 	if err != nil {
 		return nil, err
 	}
@@ -73,24 +73,24 @@ func newSupervisor(pluginInfo *model.BundleInfo, parentLogger *mlog.Logger, apiI
 		return nil, err
 	}
 
-	s.hooks = raw.(Hooks)
+	supervisorInstance.hooks = raw.(Hooks)
 
-	impl, err := s.hooks.Implemented()
+	impl, err := supervisorInstance.hooks.Implemented()
 	if err != nil {
 		return nil, err
 	}
 	for _, hookName := range impl {
 		if hookId, ok := hookNameToId[hookName]; ok {
-			s.implemented[hookId] = true
+			supervisorInstance.implemented[hookId] = true
 		}
 	}
 
-	err = s.Hooks().OnActivate()
+	err = supervisorInstance.Hooks().OnActivate()
 	if err != nil {
 		return nil, err
 	}
 
-	return &s, nil
+	return &supervisorInstance, nil
 }
 
 func (sup *supervisor) Shutdown() {
