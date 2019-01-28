@@ -207,7 +207,7 @@ func TestIncomingWebhook(t *testing.T) {
 		require.Nil(t, err)
 		require.NotNil(t, hook)
 
-		apiHookUrl = ApiClient.Url + "/hooks/" + hook.Id
+		apiHookUrl := ApiClient.Url + "/hooks/" + hook.Id
 
 		payload := "payload={\"text\": \"test text\"}"
 		resp, err2 := http.Post(apiHookUrl, "application/x-www-form-urlencoded", strings.NewReader(payload))
