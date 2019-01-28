@@ -1,5 +1,53 @@
 [
   {
+    "id": "April",
+    "translation": "四月"
+  },
+  {
+    "id": "August",
+    "translation": "八月"
+  },
+  {
+    "id": "December",
+    "translation": "十二月"
+  },
+  {
+    "id": "February",
+    "translation": "二月"
+  },
+  {
+    "id": "January",
+    "translation": "一月"
+  },
+  {
+    "id": "July",
+    "translation": "七月"
+  },
+  {
+    "id": "June",
+    "translation": "六月"
+  },
+  {
+    "id": "March",
+    "translation": "三月"
+  },
+  {
+    "id": "May",
+    "translation": "五月"
+  },
+  {
+    "id": "November",
+    "translation": "十一月"
+  },
+  {
+    "id": "October",
+    "translation": "十月"
+  },
+  {
+    "id": "September",
+    "translation": "九月"
+  },
+  {
     "id": "actiance.export.marshalToXml.appError",
     "translation": "無法轉換匯出至 XML"
   },
@@ -240,6 +288,14 @@
     "translation": "%v 已從頻道中移除。"
   },
   {
+    "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
+    "translation": "無法更改直接訊息頻道名稱。"
+  },
+  {
+    "id": "api.channel.rename_channel.cant_rename_group_messages.app_error",
+    "translation": "無法更改群組訊息頻道名稱。"
+  },
+  {
     "id": "api.channel.update_channel.deleted.app_error",
     "translation": "頻道已被封存或刪除"
   },
@@ -268,12 +324,20 @@
     "translation": "整合功能被限定為只有管理員可以設定。"
   },
   {
+    "id": "api.command.command_post.forbidden.app_error",
+    "translation": "指定的使用者不是指定團隊的成員。"
+  },
+  {
     "id": "api.command.disabled.app_error",
     "translation": "命令已被系統管理員停用。"
   },
   {
     "id": "api.command.duplicate_trigger.app_error",
     "translation": "此觸發關鍵字已被使用。請選擇另外的關鍵字。"
+  },
+  {
+    "id": "api.command.execute_command.create_post_failed.app_error",
+    "translation": "Command '{{.Trigger}}' failed to post response. Please contact your System Administrator."
   },
   {
     "id": "api.command.execute_command.debug",
@@ -410,6 +474,10 @@
   {
     "id": "api.command_channel_purpose.update_channel.app_error",
     "translation": "更新當前頻道時錯誤。"
+  },
+  {
+    "id": "api.command_channel_remove.channel.app_error",
+    "translation": "取得當前頻道時錯誤。"
   },
   {
     "id": "api.command_channel_rename.channel.app_error",
@@ -558,8 +626,8 @@
   {
     "id": "api.command_groupmsg.invalid_user.app_error",
     "translation": {
-      "one": "Unable to find the user: {{.Users}}",
-      "other": "Unable to find the users: {{.Users}}"
+      "one": "找不到使用者：{{.Users}}找不到使用者：{{.Users}}",
+      "other": ""
     }
   },
   {
@@ -616,7 +684,7 @@
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "無法儲存 Token"
+    "translation": "找不到使用者。可能已被系統管理員停用。"
   },
   {
     "id": "api.command_invite.name",
@@ -660,7 +728,7 @@
   },
   {
     "id": "api.command_join.missing.app_error",
-    "translation": "無法儲存 Token"
+    "translation": "找不到頻道。"
   },
   {
     "id": "api.command_join.name",
@@ -681,10 +749,6 @@
   {
     "id": "api.command_leave.name",
     "translation": "離開"
-  },
-  {
-    "id": "api.command_leave.success",
-    "translation": "已離開頻道。"
   },
   {
     "id": "api.command_logout.desc",
@@ -728,7 +792,7 @@
   },
   {
     "id": "api.command_msg.missing.app_error",
-    "translation": "無法儲存 Token"
+    "translation": "找不到使用者。"
   },
   {
     "id": "api.command_msg.name",
@@ -824,7 +888,7 @@
   },
   {
     "id": "api.command_remove.missing.app_error",
-    "translation": "無法儲存 Token"
+    "translation": "找不到使用者。可能已被系統管理員停用。"
   },
   {
     "id": "api.command_remove.name",
@@ -931,6 +995,14 @@
     "translation": "工作階段並非使用 OAuth 協定，查詢字串中卻出現了 Token"
   },
   {
+    "id": "api.create_terms_of_service.custom_terms_of_service_disabled.app_error",
+    "translation": "已停用自訂服務條款"
+  },
+  {
+    "id": "api.create_terms_of_service.empty_text.app_error",
+    "translation": "請輸入自訂服務條款的文字。"
+  },
+  {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
     "translation": "批次郵件的接收頻道已滿。請增加 EmailBatchingBufferSize。"
   },
@@ -1026,7 +1098,7 @@
   },
   {
     "id": "api.emoji.upload.large_image.too_large.app_error",
-    "translation": "Unable to create emoji. Image must be smaller than {{.MaxWidth}} by {{.MaxHeight}}."
+    "translation": "無法建立繪文字。圖片必須小於 {{.MaxWidth}} 乘 {{.MaxHeight}} 。"
   },
   {
     "id": "api.emoji.upload.open.app_error",
@@ -1038,11 +1110,11 @@
   },
   {
     "id": "api.file.file_exists.exists_local.app_error",
-    "translation": "Unable to check if the file exists."
+    "translation": "無法確認檔案是否存在。"
   },
   {
     "id": "api.file.file_exists.s3.app_error",
-    "translation": "Unable to check if the file exists."
+    "translation": "無法確認檔案是否存在。"
   },
   {
     "id": "api.file.get_file.public_invalid.app_error",
@@ -1113,8 +1185,8 @@
     "translation": "與 S3 或 minio 之間的連線異常。"
   },
   {
-    "id": "api.file.upload_file.bad_parse.app_error",
-    "translation": "無法上傳檔案。無法解析標頭。"
+    "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
+    "translation": "Unable to upload file(s). Have {{.NumClientIds}} client_ids for {{.NumFiles}} files."
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_files.app_error",
@@ -1125,12 +1197,32 @@
     "translation": "無法上傳超過最大尺寸的檔案：{{.Filename}}"
   },
   {
+    "id": "api.file.upload_file.large_image_detailed.app_error",
+    "translation": "{{.Filename}} dimensions ({{.Width}} by {{.Height}} pixels) exceed the limits"
+  },
+  {
+    "id": "api.file.upload_file.multiple_channel_ids.app_error",
+    "translation": "Unable to upload file(s). Multiple conflicting channel_ids."
+  },
+  {
+    "id": "api.file.upload_file.read_form_value.app_error",
+    "translation": "Unable to upload file(s). Error reading the value for {{.Formname}}."
+  },
+  {
+    "id": "api.file.upload_file.read_request.app_error",
+    "translation": "Unable to upload file(s). Error reading or parsing request data."
+  },
+  {
     "id": "api.file.upload_file.storage.app_error",
     "translation": "無法上傳檔案。尚未設定圖片儲存位置。"
   },
   {
     "id": "api.file.upload_file.too_large.app_error",
     "translation": "檔案太大無法上傳。"
+  },
+  {
+    "id": "api.file.upload_file.too_large_detailed.app_error",
+    "translation": "Unable to upload file {{.Filename}}. {{.Length}} bytes exceeds the maximum allowed {{.Limit}} bytes."
   },
   {
     "id": "api.file.write_file.s3.app_error",
@@ -1151,6 +1243,18 @@
   {
     "id": "api.incoming_webhook.invalid_username.app_error",
     "translation": "無效的使用者名稱。"
+  },
+  {
+    "id": "api.io_error",
+    "translation": "input/output error"
+  },
+  {
+    "id": "api.ldap_group.not_found",
+    "translation": "ldap group not found"
+  },
+  {
+    "id": "api.ldap_groups.license_error",
+    "translation": "your license does not support ldap groups"
   },
   {
     "id": "api.license.add_license.array.app_error",
@@ -1191,6 +1295,10 @@
   {
     "id": "api.license.client.old_format.app_error",
     "translation": "尚未支援新格式的用戶端授權。請在查詢字串中指定 format=old 。"
+  },
+  {
+    "id": "api.marshal_error",
+    "translation": "marshal error"
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
@@ -1339,6 +1447,14 @@
   {
     "id": "api.post.create_webhook_post.creating.app_error",
     "translation": "建立訊息時遇到錯誤"
+  },
+  {
+    "id": "api.post.deduplicate_create_post.failed_to_get",
+    "translation": "Failed to fetch original post after deduplicating a client repeating the same request."
+  },
+  {
+    "id": "api.post.deduplicate_create_post.pending",
+    "translation": "Rejected post since another client is making the same request."
   },
   {
     "id": "api.post.disabled_all",
@@ -2007,6 +2123,10 @@
     "translation": "沒有存取 Token"
   },
   {
+    "id": "api.user.authorize_oauth_user.response.app_error",
+    "translation": "Received invalid response from OAuth service provider"
+  },
+  {
     "id": "api.user.authorize_oauth_user.service.app_error",
     "translation": " {{.Service}} Token 要求失敗"
   },
@@ -2019,16 +2139,16 @@
     "translation": "不支援的 OAuth 服務供應者"
   },
   {
+    "id": "api.user.autocomplete_users.invalid_team_id",
+    "translation": "無效的團隊 ID"
+  },
+  {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
     "translation": "您的帳號已經因為嘗試太多次的錯誤密碼而被鎖定。請重設密碼。"
   },
   {
     "id": "api.user.check_user_mfa.bad_code.app_error",
     "translation": "無效的多重要素驗證 Token。"
-  },
-  {
-    "id": "api.user.check_user_mfa.not_available.app_error",
-    "translation": "本機不支援或未設定多重要素驗證"
   },
   {
     "id": "api.user.check_user_password.invalid.app_error",
@@ -2111,16 +2231,16 @@
     "translation": "此伺服器尚未設定或不支援認證轉移。"
   },
   {
-    "id": "api.user.generate_mfa_qr.not_available.app_error",
-    "translation": "本機不支援或尚未設定多重要素驗證"
-  },
-  {
     "id": "api.user.get_authorization_code.unsupported.app_error",
     "translation": "不支援的 OAuth 服務供應者"
   },
   {
     "id": "api.user.get_profile_image.not_found.app_error",
     "translation": "無法取得個人圖像，找不到使用者。"
+  },
+  {
+    "id": "api.user.get_user_by_email.permissions.app_error",
+    "translation": "Unable to get user by email."
   },
   {
     "id": "api.user.ldap_to_email.not_available.app_error",
@@ -2177,6 +2297,10 @@
   {
     "id": "api.user.oauth_to_email.not_available.app_error",
     "translation": "此伺服器尚未設定或不支援認證轉移。"
+  },
+  {
+    "id": "api.user.register_terms_of_service_action.bad_value.app_error",
+    "translation": "已接收的值有問題"
   },
   {
     "id": "api.user.reset_password.broken_token.app_error",
@@ -2273,10 +2397,6 @@
   {
     "id": "api.user.update_active.permissions.app_error",
     "translation": "您沒有適當的權限"
-  },
-  {
-    "id": "api.user.update_mfa.not_available.app_error",
-    "translation": "本機不支援或尚未設定多重要素驗證"
   },
   {
     "id": "api.user.update_oauth_user_attrs.get_user.app_error",
@@ -2403,14 +2523,6 @@
     "translation": "同一頻道的外寄 Webhook 不可以使用相同的觸發關鍵字/回呼網址。"
   },
   {
-    "id": "api.webrtc.disabled.app_error",
-    "translation": "此伺服器未啟用 WebRTC。"
-  },
-  {
-    "id": "api.webrtc.register_token.app_error",
-    "translation": "嘗試註冊 WebRTC Token時發生錯誤"
-  },
-  {
     "id": "api.websocket_handler.invalid_param.app_error",
     "translation": "無效的參數 {{.Name}}"
   },
@@ -2452,11 +2564,11 @@
   },
   {
     "id": "app.export.export_write_line.io_writer.error",
-    "translation": "An error occurred writing the export data."
+    "translation": "寫入匯出資料時發生錯誤"
   },
   {
     "id": "app.export.export_write_line.json_marshall.error",
-    "translation": "An error occured marshalling the JSON data for export."
+    "translation": "封裝 JSON 資料以匯出時發生錯誤"
   },
   {
     "id": "app.import.attachment.bad_file.error",
@@ -2903,10 +3015,6 @@
     "translation": "使用者認證資料過長。"
   },
   {
-    "id": "app.import.validate_user_import_data.auth_service_length.error",
-    "translation": "如果有提供使用者認證服務，該值不能為空。"
-  },
-  {
     "id": "app.import.validate_user_import_data.email_length.error",
     "translation": "使用者電子郵件的長度無效。"
   },
@@ -3137,6 +3245,10 @@
   {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
     "translation": "必須執行的資料移轉尚未完成，無法存取此 API 端點。"
+  },
+  {
+    "id": "app.submit_interactive_dialog.json_error",
+    "translation": "編碼互動對話欄的 JSON 時發生錯誤。"
   },
   {
     "id": "app.system_install_date.parse_int.app_error",
@@ -3379,6 +3491,10 @@
     "translation": "Elasticsearch 伺服器網址或使用者名稱有所變更。請重新輸入 Elasticsearch 密碼以測試連線。"
   },
   {
+    "id": "ent.ldap.app_error",
+    "translation": "ldap interface was nil"
+  },
+  {
     "id": "ent.ldap.create_fail",
     "translation": "無法建立 LDAP 使用者。"
   },
@@ -3423,6 +3539,14 @@
     "translation": "無法用 AD/LDAP 取得所有使用者"
   },
   {
+    "id": "ent.ldap.syncronize.get_all_groups.app_error",
+    "translation": "error retrieving groups"
+  },
+  {
+    "id": "ent.ldap.syncronize.populate_syncables",
+    "translation": "error populating syncables"
+  },
+  {
     "id": "ent.ldap.syncronize.search_failure.app_error",
     "translation": "無法用 AD/LDAP 搜尋使用者。請測試 Mattermost 是否能連線至 AD/LDAP 伺服器並重新嘗試。"
   },
@@ -3431,12 +3555,32 @@
     "translation": "無效的 AD/LDAP Filter"
   },
   {
+    "id": "ent.ldap_groups.group_search_error",
+    "translation": "error retrieving ldap group"
+  },
+  {
+    "id": "ent.ldap_groups.groups_search_error",
+    "translation": "error retrieving ldap groups"
+  },
+  {
+    "id": "ent.ldap_groups.members_of_group_error",
+    "translation": "error retrieving members of group"
+  },
+  {
+    "id": "ent.ldap_groups.no_rows",
+    "translation": "no groups found with matching uid"
+  },
+  {
+    "id": "ent.ldap_groups.reachable_groups_error",
+    "translation": "error retrieving groups for user"
+  },
+  {
     "id": "ent.message_export.global_relay.attach_file.app_error",
     "translation": "無法增加附加檔案至 Global Relay 匯出格式。"
   },
   {
     "id": "ent.message_export.global_relay.close_zip_file.app_error",
-    "translation": "無法建立 eml 檔案。"
+    "translation": "無法關閉 zip 檔案。"
   },
   {
     "id": "ent.message_export.global_relay.create_file_in_zip.app_error",
@@ -3481,42 +3625,6 @@
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
     "translation": "無法開啟匯出暫存檔"
-  },
-  {
-    "id": "ent.mfa.activate.authenticate.app_error",
-    "translation": "嘗試認證多重要素驗證 Token 時遇到錯誤"
-  },
-  {
-    "id": "ent.mfa.activate.bad_token.app_error",
-    "translation": "無效的多重要素驗證 Token"
-  },
-  {
-    "id": "ent.mfa.activate.save_active.app_error",
-    "translation": "無法為使用者更新多重要素驗證使用狀態"
-  },
-  {
-    "id": "ent.mfa.deactivate.save_active.app_error",
-    "translation": "無法為使用者更新多重要素驗證使用狀態"
-  },
-  {
-    "id": "ent.mfa.deactivate.save_secret.app_error",
-    "translation": "清除多重要素驗證密碼時遇到錯誤"
-  },
-  {
-    "id": "ent.mfa.generate_qr_code.create_code.app_error",
-    "translation": "產生 QR code 時遇到錯誤"
-  },
-  {
-    "id": "ent.mfa.generate_qr_code.save_secret.app_error",
-    "translation": "儲存多重要素驗證密碼時遇到錯誤"
-  },
-  {
-    "id": "ent.mfa.license_disable.app_error",
-    "translation": "您的授權不支援多重要素驗證"
-  },
-  {
-    "id": "ent.mfa.validate_token.authenticate.app_error",
-    "translation": "嘗試認證多重要素驗證 Token 時遇到錯誤"
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
@@ -3599,6 +3707,30 @@
     "translation": "本機不支援或未設定 SAML 2.0"
   },
   {
+    "id": "interactive_message.decode_trigger_id.base64_decode_failed",
+    "translation": "Base64 編碼解碼互動對話欄的觸發 ID 時發生錯誤。"
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.expired",
+    "translation": "互動對話欄的觸發 ID 已過期。觸發 ID 最多保留 {{.Seconds}} 秒。"
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.missing_data",
+    "translation": "互動對話欄的觸發 ID 缺少必要資料。"
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.signature_decode_failed",
+    "translation": "Base64 編碼解碼互動對話欄觸發 ID 的簽名時發生錯誤。"
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.verify_signature_failed",
+    "translation": "驗證互動對話欄觸發 ID 簽名失敗。"
+  },
+  {
+    "id": "interactive_message.generate_trigger_id.signing_failed",
+    "translation": "簽名互動對話欄的觸發 ID 時發生錯誤。"
+  },
+  {
     "id": "jobs.do_job.batch_size.parse_error",
     "translation": "無法解析訊息匯出工作 BatchSize。"
   },
@@ -3629,6 +3761,42 @@
   {
     "id": "mattermost.bulletin.subject",
     "translation": "Mattermost 安全性公告"
+  },
+  {
+    "id": "mfa.activate.authenticate.app_error",
+    "translation": "嘗試認證多重要素驗證 Token 時遇到錯誤"
+  },
+  {
+    "id": "mfa.activate.bad_token.app_error",
+    "translation": "無效的多重要素驗證 Token"
+  },
+  {
+    "id": "mfa.activate.save_active.app_error",
+    "translation": "無法為使用者更新多重要素驗證使用狀態"
+  },
+  {
+    "id": "mfa.deactivate.save_active.app_error",
+    "translation": "無法為使用者更新多重要素驗證使用狀態"
+  },
+  {
+    "id": "mfa.deactivate.save_secret.app_error",
+    "translation": "清除多重要素驗證密碼時遇到錯誤"
+  },
+  {
+    "id": "mfa.generate_qr_code.create_code.app_error",
+    "translation": "產生 QR code 時遇到錯誤"
+  },
+  {
+    "id": "mfa.generate_qr_code.save_secret.app_error",
+    "translation": "儲存多重要素驗證密碼時遇到錯誤"
+  },
+  {
+    "id": "mfa.mfa_disabled.app_error",
+    "translation": "此伺服器要求多重要素驗證。"
+  },
+  {
+    "id": "mfa.validate_token.authenticate.app_error",
+    "translation": "嘗試認證多重要素驗證 Token 時遇到錯誤"
   },
   {
     "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",
@@ -3737,6 +3905,10 @@
   {
     "id": "model.channel_member.is_valid.email_value.app_error",
     "translation": "無效的電子郵件通知值"
+  },
+  {
+    "id": "model.channel_member.is_valid.ignore_channel_mentions_value.app_error",
+    "translation": "無效的忽略頻道提及狀態"
   },
   {
     "id": "model.channel_member.is_valid.notify_level.app_error",
@@ -4255,32 +4427,16 @@
     "translation": "使用者輸入更新間隔不應該設定為低於 1000 毫秒。"
   },
   {
-    "id": "model.config.is_valid.webrtc_gateway_admin_secret.app_error",
-    "translation": "必須設定 WebRTC 閘道管理員密碼。"
+    "id": "model.config.is_valid.tls_cert_file.app_error",
+    "translation": "TLS 憑證檔案的值無效：請用 LetsEncrypt 或是設定為現有憑證檔案的路徑"
   },
   {
-    "id": "model.config.is_valid.webrtc_gateway_admin_url.app_error",
-    "translation": "WebRTC 閘道管理員網址必須是以 http:// 或 https:// 起始的有效網址。"
+    "id": "model.config.is_valid.tls_key_file.app_error",
+    "translation": "TLS 金鑰檔案的值無效：請用 LetsEncrypt 或是設定為現有金鑰檔案的路徑"
   },
   {
-    "id": "model.config.is_valid.webrtc_gateway_ws_url.app_error",
-    "translation": "WebRTC 閘道 Websocket 網址必須是以 ws:// 或 wss:// 起始的有效網址。"
-  },
-  {
-    "id": "model.config.is_valid.webrtc_stun_uri.app_error",
-    "translation": "WebRTC STUN URI 必須是以 stun: 的有效 URI。"
-  },
-  {
-    "id": "model.config.is_valid.webrtc_turn_shared_key.app_error",
-    "translation": "如果已設定 TURN URI，WebRTC TURN 共享金鑰不能為空。"
-  },
-  {
-    "id": "model.config.is_valid.webrtc_turn_uri.app_error",
-    "translation": "WebRTC TURN URI 必須是以 turn: 的有效 URI。"
-  },
-  {
-    "id": "model.config.is_valid.webrtc_turn_username.app_error",
-    "translation": "如果已設定 TURN URI，WebRTC TURN 使用者名稱不能為空。"
+    "id": "model.config.is_valid.tls_overwrite_cipher.app_error",
+    "translation": "TLS 覆寫加密模式的值無效：請參閱文件查詢有效的值"
   },
   {
     "id": "model.config.is_valid.webserver_security.app_error",
@@ -4341,6 +4497,66 @@
   {
     "id": "model.file_info.is_valid.user_id.app_error",
     "translation": "無效的使用者 ID"
+  },
+  {
+    "id": "model.group.create_at.app_error",
+    "translation": "invalid create at property for group"
+  },
+  {
+    "id": "model.group.delete_at.app_error",
+    "translation": "invalid delete at property for group"
+  },
+  {
+    "id": "model.group.description.app_error",
+    "translation": "invalid description property for group"
+  },
+  {
+    "id": "model.group.display_name.app_error",
+    "translation": "invalid display name property for group"
+  },
+  {
+    "id": "model.group.id.app_error",
+    "translation": "invalid id property for group"
+  },
+  {
+    "id": "model.group.name.app_error",
+    "translation": "invalid name property for group"
+  },
+  {
+    "id": "model.group.remote_id.app_error",
+    "translation": "invalid remote id property for group"
+  },
+  {
+    "id": "model.group.source.app_error",
+    "translation": "invalid source property for group"
+  },
+  {
+    "id": "model.group.update_at.app_error",
+    "translation": "invalid update at property for group"
+  },
+  {
+    "id": "model.group_member.group_id.app_error",
+    "translation": "invalid group id property for group member"
+  },
+  {
+    "id": "model.group_member.user_id.app_error",
+    "translation": "invalid user id property for group member"
+  },
+  {
+    "id": "model.group_syncable.group_id.app_error",
+    "translation": "invalid group id property for group syncable"
+  },
+  {
+    "id": "model.group_syncable.syncable_id.app_error",
+    "translation": "invalid syncable id for group syncable"
+  },
+  {
+    "id": "model.group_syncable.type.app_error",
+    "translation": "invalid type property for group syncable"
+  },
+  {
+    "id": "model.group_syncable.unmarshaljson.duplicate_type_identifier",
+    "translation": "type identifier already exists: perhaps json contains both 'team_id' and 'channel_id'"
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -4536,7 +4752,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "無效的檔名 ID"
+    "translation": "Invalid file ids. Note that uploads are limited to 5 files maximum. Please use additional posts for more files."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -4679,6 +4895,22 @@
     "translation": "無效的使用者 ID"
   },
   {
+    "id": "model.terms_of_service.is_valid.create_at.app_error",
+    "translation": "缺少必要的服務條款屬性：建立日期。"
+  },
+  {
+    "id": "model.terms_of_service.is_valid.id.app_error",
+    "translation": "無效的服務條款 ID。"
+  },
+  {
+    "id": "model.terms_of_service.is_valid.text.app_error",
+    "translation": "自訂使用條款文字過長。最多僅允許 {{.MaxLength}} 個字"
+  },
+  {
+    "id": "model.terms_of_service.is_valid.user_id.app_error",
+    "translation": "缺少必要的服務條款屬性：使用者 ID。"
+  },
+  {
     "id": "model.token.is_valid.expiry",
     "translation": "無效的 Token 失效期"
   },
@@ -4688,15 +4920,75 @@
   },
   {
     "id": "model.user.is_valid.email.app_error",
-    "translation": "Please enter a valid email address."
+    "translation": "請輸入有效的電子郵件位址。"
   },
   {
     "id": "model.user.is_valid.pwd.app_error",
     "translation": "密碼最短必須有{{.Min}}個字元。"
   },
   {
+    "id": "model.user.is_valid.pwd_lowercase.app_error",
+    "translation": "密碼最短必須有{{.Min}}個字元且至少有一個小寫英文字母。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number.app_error",
+    "translation": "密碼最短必須有{{.Min}}個字元且至少有一個小寫英文字母和一個數字。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number_symbol.app_error",
+    "translation": "密碼最短必須有{{.Min}}個字元且至少有一個小寫英文字母、一個數字和一個符號(\"~!@#$%^&*()\")。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_symbol.app_error",
+    "translation": "密碼最短必須有{{.Min}}個字元且至少有一個小寫英文字母和一個符號(\"~!@#$%^&*()\")。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase.app_error",
+    "translation": "密碼最短必須有{{.Min}}個字元且至少有一個小寫英文字母和一個大寫英文字母。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number.app_error",
+    "translation": "密碼最短必須有{{.Min}}個字元且至少有一個小寫英文字母、一個大寫英文字母和一個數字。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number_symbol.app_error",
+    "translation": "密碼最短必須有{{.Min}}個字元且至少有一個小寫英文字母、一個大寫英文字母、一個數字和一個符號(\"~!@#$%^&*()\")。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_symbol.app_error",
+    "translation": "密碼最短必須有{{.Min}}個字元且至少有一個小寫英文字母、一個大寫英文字母和一個符號(\"~!@#$%^&*()\")。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_number.app_error",
+    "translation": "密碼最短必須有{{.Min}}個字元且至少有一個數字。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_number_symbol.app_error",
+    "translation": "密碼最短必須有{{.Min}}個字元且至少有一個數字和一個符號(\"~!@#$%^&*()\")。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_symbol.app_error",
+    "translation": "密碼最短必須有{{.Min}}個字元且至少有一個符號(\"~!@#$%^&*()\")。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase.app_error",
+    "translation": "密碼最短必須有{{.Min}}個字元且至少有一個大寫英文字母。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number.app_error",
+    "translation": "密碼最短必須有{{.Min}}個字元且至少有一個大寫英文字母和一個數字。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
+    "translation": "密碼最短必須有{{.Min}}個字元且至少有一個大寫英文字母、一個數字和一個符號(\"~!@#$%^&*()\")。"
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_symbol.app_error",
+    "translation": "密碼最短必須有{{.Min}}個字元且至少有一個大寫英文字母和一個符號(\"~!@#$%^&*()\")。"
+  },
+  {
     "id": "model.user.is_valid.username.app_error",
-    "translation": "Username must begin with a letter and contain between 3 and 22 characters including numbers, lowercase letters, and the symbols \".\", \"-\", and \"_\"."
+    "translation": "使用者名稱必須要以小寫英字母開頭，最少 3 個最多 22 個字，只能使用小寫英字母、數字、'.'、'-'跟'_'。"
   },
   {
     "id": "model.user_access_token.is_valid.description.app_error",
@@ -4715,6 +5007,18 @@
     "translation": "無效的使用者 ID"
   },
   {
+    "id": "model.user_terms_of_service.is_valid.create_at.app_error",
+    "translation": "缺少必要的服務條款屬性：建立日期。"
+  },
+  {
+    "id": "model.user_terms_of_service.is_valid.service_terms_id.app_error",
+    "translation": "缺少必要的服務條款屬性：使用條款 ID。"
+  },
+  {
+    "id": "model.user_terms_of_service.is_valid.user_id.app_error",
+    "translation": "缺少必要的服務條款屬性：使用者 ID。"
+  },
+  {
     "id": "model.utils.decode_json.app_error",
     "translation": "無法解碼"
   },
@@ -4729,6 +5033,34 @@
   {
     "id": "plugin.api.update_user_status.bad_status",
     "translation": "無法設定使用者狀態。未知的使用者狀態。"
+  },
+  {
+    "id": "plugin_api.get_file_link.disabled.app_error",
+    "translation": "公開連結已被停用"
+  },
+  {
+    "id": "plugin_api.get_file_link.no_post.app_error",
+    "translation": "無法取得檔案公開連結。檔案必須附加在可以被當前使用者讀取的發文。"
+  },
+  {
+    "id": "plugin_api.send_mail.missing_htmlbody",
+    "translation": "Missing HTML Body."
+  },
+  {
+    "id": "plugin_api.send_mail.missing_subject",
+    "translation": "Missing email subject."
+  },
+  {
+    "id": "plugin_api.send_mail.missing_to",
+    "translation": "Missing TO address."
+  },
+  {
+    "id": "store.insert_error",
+    "translation": "insert error"
+  },
+  {
+    "id": "store.select_error",
+    "translation": "select error"
   },
   {
     "id": "store.sql.convert_string_array",
@@ -4768,7 +5100,7 @@
   },
   {
     "id": "store.sql_channel.analytics_type_count.app_error",
-    "translation": "無法取得已刪除的頻道類別數量"
+    "translation": "無法取得頻道類別數量"
   },
   {
     "id": "store.sql_channel.clear_all_custom_role_assignments.commit_transaction.app_error",
@@ -4792,11 +5124,11 @@
   },
   {
     "id": "store.sql_channel.delete.channel.app_error",
-    "translation": "無法刪除配置"
+    "translation": "無法刪除頻道"
   },
   {
     "id": "store.sql_channel.get.existing.app_error",
-    "translation": "找不到現有的已刪除頻道"
+    "translation": "找不到現有的頻道"
   },
   {
     "id": "store.sql_channel.get.find.app_error",
@@ -4808,7 +5140,7 @@
   },
   {
     "id": "store.sql_channel.get_by_name.existing.app_error",
-    "translation": "找不到現有的已刪除頻道"
+    "translation": "找不到現有的頻道"
   },
   {
     "id": "store.sql_channel.get_by_name.missing.app_error",
@@ -4820,7 +5152,7 @@
   },
   {
     "id": "store.sql_channel.get_channel_counts.get.app_error",
-    "translation": "無法新增直接訊息頻道的成員"
+    "translation": "無法取得頻道類別數量"
   },
   {
     "id": "store.sql_channel.get_channels.get.app_error",
@@ -4860,7 +5192,7 @@
   },
   {
     "id": "store.sql_channel.get_member.app_error",
-    "translation": "無法新增直接訊息頻道的成員"
+    "translation": "無法取得頻道成員"
   },
   {
     "id": "store.sql_channel.get_member.missing.app_error",
@@ -4876,11 +5208,11 @@
   },
   {
     "id": "store.sql_channel.get_members.app_error",
-    "translation": "無法新增直接訊息頻道的成員"
+    "translation": "無法取得頻道成員"
   },
   {
     "id": "store.sql_channel.get_members_by_ids.app_error",
-    "translation": "無法新增直接訊息頻道的成員"
+    "translation": "無法取得頻道成員"
   },
   {
     "id": "store.sql_channel.get_more_channels.get.app_error",
@@ -4888,7 +5220,11 @@
   },
   {
     "id": "store.sql_channel.get_public_channels.get.app_error",
-    "translation": "無法取得頻道"
+    "translation": "無法取得公開頻道"
+  },
+  {
+    "id": "store.sql_channel.get_timezone.app_error",
+    "translation": "無法取得頻道成員時區"
   },
   {
     "id": "store.sql_channel.get_unread.app_error",
@@ -4896,7 +5232,7 @@
   },
   {
     "id": "store.sql_channel.increment_mention_count.app_error",
-    "translation": "Unable to increment the mention count"
+    "translation": "無法增加提及的計數"
   },
   {
     "id": "store.sql_channel.migrate_channel_members.commit_transaction.app_error",
@@ -4920,7 +5256,7 @@
   },
   {
     "id": "store.sql_channel.permanent_delete.app_error",
-    "translation": "無法刪除配置"
+    "translation": "無法刪除頻道"
   },
   {
     "id": "store.sql_channel.permanent_delete.commit_transaction.app_error",
@@ -4928,7 +5264,7 @@
   },
   {
     "id": "store.sql_channel.permanent_delete.delete_public_channel.app_error",
-    "translation": "Unable to delete materialized public channel"
+    "translation": "無法刪除已實體化的公開頻道"
   },
   {
     "id": "store.sql_channel.permanent_delete.open_transaction.app_error",
@@ -4936,7 +5272,7 @@
   },
   {
     "id": "store.sql_channel.permanent_delete_by_team.app_error",
-    "translation": "無法刪除配置"
+    "translation": "無法刪除頻道"
   },
   {
     "id": "store.sql_channel.permanent_delete_by_team.commit_transaction.app_error",
@@ -4944,7 +5280,7 @@
   },
   {
     "id": "store.sql_channel.permanent_delete_by_team.delete_public_channels.app_error",
-    "translation": "Unable to delete materialized public channels"
+    "translation": "無法刪除已實體化的公開頻道"
   },
   {
     "id": "store.sql_channel.permanent_delete_by_team.open_transaction.app_error",
@@ -4952,15 +5288,19 @@
   },
   {
     "id": "store.sql_channel.permanent_delete_members_by_user.app_error",
-    "translation": "取得頻道成員時失敗"
+    "translation": "無法移除頻道成員"
   },
   {
     "id": "store.sql_channel.pinned_posts.app_error",
-    "translation": "Unable to find the pinned posts"
+    "translation": "找不到被釘選的訊息"
+  },
+  {
+    "id": "store.sql_channel.remove_all_deactivated_members.app_error",
+    "translation": "無法將已被停用的使用者從頻道中移除"
   },
   {
     "id": "store.sql_channel.remove_member.app_error",
-    "translation": "取得頻道成員時失敗"
+    "translation": "無法移除頻道成員"
   },
   {
     "id": "store.sql_channel.reset_all_channel_schemes.app_error",
@@ -5004,7 +5344,7 @@
   },
   {
     "id": "store.sql_channel.save.upsert_public_channel.app_error",
-    "translation": "Unable to upsert materialized public channel"
+    "translation": "無法新增/更新已實體化的公開頻道"
   },
   {
     "id": "store.sql_channel.save_channel.current_count.app_error",
@@ -5028,7 +5368,7 @@
   },
   {
     "id": "store.sql_channel.save_channel.save.app_error",
-    "translation": "無法儲存 Token"
+    "translation": "無法儲存頻道"
   },
   {
     "id": "store.sql_channel.save_direct_channel.add_members.app_error",
@@ -5060,7 +5400,7 @@
   },
   {
     "id": "store.sql_channel.save_member.save.app_error",
-    "translation": "更新頻道成員時失敗"
+    "translation": "無法儲存頻道成員"
   },
   {
     "id": "store.sql_channel.search.app_error",
@@ -5076,7 +5416,7 @@
   },
   {
     "id": "store.sql_channel.set_delete_at.update_public_channel.app_error",
-    "translation": "Unable to update the materialized public channel"
+    "translation": "無法更新已實體化的公開頻道"
   },
   {
     "id": "store.sql_channel.update.app_error",
@@ -5108,7 +5448,7 @@
   },
   {
     "id": "store.sql_channel.update.upsert_public_channel.app_error",
-    "translation": "Unable to upsert materialized public channel"
+    "translation": "無法新增/更新已實體化的公開頻道"
   },
   {
     "id": "store.sql_channel.update_last_viewed_at.app_error",
@@ -5160,31 +5500,31 @@
   },
   {
     "id": "store.sql_command.analytics_command_count.app_error",
-    "translation": "無法取得配置"
+    "translation": "無法計算指令數量"
   },
   {
     "id": "store.sql_command.get_by_trigger.app_error",
-    "translation": "無法取得配置"
+    "translation": "無法取得指令"
   },
   {
     "id": "store.sql_command.save.delete.app_error",
-    "translation": "無法刪除角色"
+    "translation": "無法刪除指令"
   },
   {
     "id": "store.sql_command.save.delete_perm.app_error",
-    "translation": "無法刪除角色"
+    "translation": "無法刪除指令"
   },
   {
     "id": "store.sql_command.save.get.app_error",
-    "translation": "無法取得配置"
+    "translation": "無法取得指令"
   },
   {
     "id": "store.sql_command.save.get_team.app_error",
-    "translation": "無法取得配置"
+    "translation": "無法取得指令"
   },
   {
     "id": "store.sql_command.save.saving.app_error",
-    "translation": "無法儲存 Token"
+    "translation": "無法儲存指令"
   },
   {
     "id": "store.sql_command.save.saving_overwrite.app_error",
@@ -5192,15 +5532,15 @@
   },
   {
     "id": "store.sql_command.save.update.app_error",
-    "translation": "無法更新配置"
+    "translation": "無法更新指令"
   },
   {
     "id": "store.sql_command_webhooks.get.app_error",
-    "translation": "無法使用 Webhook"
+    "translation": "無法取得 Webhook"
   },
   {
     "id": "store.sql_command_webhooks.save.app_error",
-    "translation": "無法儲存 Token"
+    "translation": "無法儲存指令 Webhook"
   },
   {
     "id": "store.sql_command_webhooks.save.existing.app_error",
@@ -5228,7 +5568,7 @@
   },
   {
     "id": "store.sql_emoji.delete.app_error",
-    "translation": "無法刪除角色"
+    "translation": "無法刪除繪文字"
   },
   {
     "id": "store.sql_emoji.delete.no_results",
@@ -5236,19 +5576,19 @@
   },
   {
     "id": "store.sql_emoji.get.app_error",
-    "translation": "無法取得配置"
+    "translation": "無法取得繪文字"
   },
   {
     "id": "store.sql_emoji.get_all.app_error",
-    "translation": "無法取得配置"
+    "translation": "無法取得繪文字"
   },
   {
     "id": "store.sql_emoji.get_by_name.app_error",
-    "translation": "無法取得配置"
+    "translation": "無法取得繪文字"
   },
   {
     "id": "store.sql_emoji.save.app_error",
-    "translation": "無法儲存 Token"
+    "translation": "無法儲存繪文字"
   },
   {
     "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
@@ -5256,23 +5596,23 @@
   },
   {
     "id": "store.sql_file_info.attach_to_post.app_error",
-    "translation": "無法添加檔案訊息到發文上"
+    "translation": "無法添加檔案訊息到訊息上"
   },
   {
     "id": "store.sql_file_info.delete_for_post.app_error",
-    "translation": "無法從發文刪除檔案訊息"
+    "translation": "無法刪除訊息的檔案訊息"
   },
   {
     "id": "store.sql_file_info.get.app_error",
-    "translation": "無法儲存 Token"
+    "translation": "無法取得檔案訊息"
   },
   {
     "id": "store.sql_file_info.get_by_path.app_error",
-    "translation": "無法取得發文的檔案訊息"
+    "translation": "無法根據路徑取得檔案訊息"
   },
   {
     "id": "store.sql_file_info.get_for_post.app_error",
-    "translation": "無法取得發文的檔案訊息"
+    "translation": "無法取得訊息的檔案訊息"
   },
   {
     "id": "store.sql_file_info.get_for_user_id.app_error",
@@ -5288,19 +5628,43 @@
   },
   {
     "id": "store.sql_file_info.save.app_error",
-    "translation": "無法儲存 Token"
+    "translation": "無法儲存檔案訊息"
+  },
+  {
+    "id": "store.sql_group.group_syncable_already_deleted",
+    "translation": "group syncable was already deleted"
+  },
+  {
+    "id": "store.sql_group.no_rows",
+    "translation": "no matching group found"
+  },
+  {
+    "id": "store.sql_group.no_rows_changed",
+    "translation": "no rows changed"
+  },
+  {
+    "id": "store.sql_group.nothing_to_update",
+    "translation": "nothing to update for group syncable"
+  },
+  {
+    "id": "store.sql_group.unique_constraint",
+    "translation": "已經存在相同名稱的團隊"
+  },
+  {
+    "id": "store.sql_group.uniqueness_error",
+    "translation": "group member already exists"
   },
   {
     "id": "store.sql_job.delete.app_error",
-    "translation": "無法刪除角色"
+    "translation": "無法刪除工作"
   },
   {
     "id": "store.sql_job.get.app_error",
-    "translation": "無法取得配置"
+    "translation": "無法取得工作"
   },
   {
     "id": "store.sql_job.get_all.app_error",
-    "translation": "無法取得配置"
+    "translation": "無法取得工作"
   },
   {
     "id": "store.sql_job.get_count_by_status_and_type.app_error",
@@ -5312,11 +5676,11 @@
   },
   {
     "id": "store.sql_job.save.app_error",
-    "translation": "無法儲存 Token"
+    "translation": "無法儲存工作"
   },
   {
     "id": "store.sql_job.update.app_error",
-    "translation": "無法更新配置"
+    "translation": "無法更新工作"
   },
   {
     "id": "store.sql_license.get.app_error",
@@ -5356,7 +5720,7 @@
   },
   {
     "id": "store.sql_oauth.get_app.find.app_error",
-    "translation": "Unable to find the requested app"
+    "translation": "找不到要求的應用程式"
   },
   {
     "id": "store.sql_oauth.get_app.finding.app_error",
@@ -5364,7 +5728,7 @@
   },
   {
     "id": "store.sql_oauth.get_app_by_user.find.app_error",
-    "translation": "找不到已存在的團隊來更新"
+    "translation": "找不到已存在的應用程式"
   },
   {
     "id": "store.sql_oauth.get_apps.find.app_error",
@@ -5372,7 +5736,7 @@
   },
   {
     "id": "store.sql_oauth.get_auth_data.find.app_error",
-    "translation": "找不到授權碼"
+    "translation": "找不到已存在的授權碼"
   },
   {
     "id": "store.sql_oauth.get_auth_data.finding.app_error",
@@ -5388,7 +5752,7 @@
   },
   {
     "id": "store.sql_oauth.remove_access_data.app_error",
-    "translation": "無法儲存 Token"
+    "translation": "無法儲存存取 Token"
   },
   {
     "id": "store.sql_oauth.remove_auth_data.app_error",
@@ -5396,7 +5760,7 @@
   },
   {
     "id": "store.sql_oauth.save_access_data.app_error",
-    "translation": "無法儲存 Token"
+    "translation": "無法儲存存取 Token"
   },
   {
     "id": "store.sql_oauth.save_app.existing.app_error",
@@ -5404,7 +5768,7 @@
   },
   {
     "id": "store.sql_oauth.save_app.save.app_error",
-    "translation": "無法儲存 Token"
+    "translation": "無法儲存應用程式"
   },
   {
     "id": "store.sql_oauth.save_auth_data.app_error",
@@ -5424,7 +5788,7 @@
   },
   {
     "id": "store.sql_oauth.update_app.update.app_error",
-    "translation": "無法更新配置"
+    "translation": "無法更新應用程式"
   },
   {
     "id": "store.sql_oauth.update_app.updating.app_error",
@@ -5444,15 +5808,15 @@
   },
   {
     "id": "store.sql_post.analytics_posts_count.app_error",
-    "translation": "Unable to get post counts"
+    "translation": "無法取得訊息計數"
   },
   {
     "id": "store.sql_post.analytics_posts_count_by_day.app_error",
-    "translation": "Unable to get post counts by day"
+    "translation": "無法取得每日訊息計數"
   },
   {
     "id": "store.sql_post.analytics_user_counts_posts_by_day.app_error",
-    "translation": "Unable to get user counts with posts"
+    "translation": "無法取得使用者訊息計數"
   },
   {
     "id": "store.sql_post.compliance_export.app_error",
@@ -5460,7 +5824,7 @@
   },
   {
     "id": "store.sql_post.delete.app_error",
-    "translation": "無法刪除角色"
+    "translation": "無法刪除訊息"
   },
   {
     "id": "store.sql_post.get.app_error",
@@ -5468,7 +5832,7 @@
   },
   {
     "id": "store.sql_post.get_flagged_posts.app_error",
-    "translation": "無法新增直接訊息頻道的成員"
+    "translation": "無法新增被標記的訊息"
   },
   {
     "id": "store.sql_post.get_parents_posts.app_error",
@@ -5508,11 +5872,11 @@
   },
   {
     "id": "store.sql_post.overwrite.app_error",
-    "translation": "無法刪除角色"
+    "translation": "無法覆蓋訊息"
   },
   {
     "id": "store.sql_post.permanent_delete.app_error",
-    "translation": "無法刪除角色"
+    "translation": "無法刪除訊息"
   },
   {
     "id": "store.sql_post.permanent_delete_all_comments_by_user.app_error",
@@ -5524,7 +5888,7 @@
   },
   {
     "id": "store.sql_post.permanent_delete_by_channel.app_error",
-    "translation": "無法刪除配置"
+    "translation": "無法根據頻道刪除訊息"
   },
   {
     "id": "store.sql_post.permanent_delete_by_user.app_error",
@@ -5540,7 +5904,7 @@
   },
   {
     "id": "store.sql_post.save.app_error",
-    "translation": "無法儲存 Token"
+    "translation": "無法儲存訊息"
   },
   {
     "id": "store.sql_post.save.existing.app_error",
@@ -5552,7 +5916,7 @@
   },
   {
     "id": "store.sql_post.update.app_error",
-    "translation": "無法更新配置"
+    "translation": "無法更新訊息"
   },
   {
     "id": "store.sql_preference.cleanup_flags_batch.app_error",
@@ -5580,7 +5944,7 @@
   },
   {
     "id": "store.sql_preference.insert.save.app_error",
-    "translation": "Unable to save the preference"
+    "translation": "無法儲存偏好"
   },
   {
     "id": "store.sql_preference.is_feature_enabled.app_error",
@@ -5612,7 +5976,11 @@
   },
   {
     "id": "store.sql_preference.update.app_error",
-    "translation": "Unable to update the preference"
+    "translation": "無法更新偏好"
+  },
+  {
+    "id": "store.sql_reaction.bulk_get_for_post_ids.app_error",
+    "translation": "無法取得對於文章的互動"
   },
   {
     "id": "store.sql_reaction.delete.app_error",
@@ -5756,7 +6124,7 @@
   },
   {
     "id": "store.sql_session.analytics_session_count.app_error",
-    "translation": "無法儲存 Token"
+    "translation": "無法計算工作階段數量"
   },
   {
     "id": "store.sql_session.get.app_error",
@@ -5772,15 +6140,15 @@
   },
   {
     "id": "store.sql_session.remove.app_error",
-    "translation": "無法儲存 Token"
+    "translation": "無法移除工作階段"
   },
   {
     "id": "store.sql_session.remove_all_sessions_for_team.app_error",
-    "translation": "無法儲存 Token"
+    "translation": "無法移除所有的工作階段"
   },
   {
     "id": "store.sql_session.save.app_error",
-    "translation": "無法儲存 Token"
+    "translation": "無法儲存工作階段"
   },
   {
     "id": "store.sql_session.save.existing.app_error",
@@ -5788,15 +6156,15 @@
   },
   {
     "id": "store.sql_session.update_device_id.app_error",
-    "translation": "Unable to update the device id"
+    "translation": "無法更新裝置 ID"
   },
   {
     "id": "store.sql_session.update_last_activity.app_error",
-    "translation": "Unable to update the last_activity_at"
+    "translation": "無法更新最新活動時間"
   },
   {
     "id": "store.sql_session.update_roles.app_error",
-    "translation": "無法更新配置"
+    "translation": "無法更新角色"
   },
   {
     "id": "store.sql_status.get.app_error",
@@ -5844,7 +6212,7 @@
   },
   {
     "id": "store.sql_system.get_by_name.app_error",
-    "translation": "Unable to find the system variable."
+    "translation": "找不到系統變數"
   },
   {
     "id": "store.sql_system.permanent_delete_by_name.app_error",
@@ -5864,7 +6232,7 @@
   },
   {
     "id": "store.sql_team.analytics_team_count.app_error",
-    "translation": "無法儲存 Token"
+    "translation": "無法計算團隊數量"
   },
   {
     "id": "store.sql_team.clear_all_custom_role_assignments.commit_transaction.app_error",
@@ -5920,7 +6288,7 @@
   },
   {
     "id": "store.sql_team.get_member.app_error",
-    "translation": "更新團隊成員時失敗"
+    "translation": "無法取得團隊成員"
   },
   {
     "id": "store.sql_team.get_member.missing.app_error",
@@ -5928,15 +6296,15 @@
   },
   {
     "id": "store.sql_team.get_member_count.app_error",
-    "translation": "更新團隊成員時失敗"
+    "translation": "無法計算團隊成員數量"
   },
   {
     "id": "store.sql_team.get_members.app_error",
-    "translation": "更新團隊成員時失敗"
+    "translation": "無法取得團隊成員"
   },
   {
     "id": "store.sql_team.get_members_by_ids.app_error",
-    "translation": "更新團隊成員時失敗"
+    "translation": "無法取得團隊成員"
   },
   {
     "id": "store.sql_team.get_unread.app_error",
@@ -5964,11 +6332,11 @@
   },
   {
     "id": "store.sql_team.permanent_delete.app_error",
-    "translation": "找不到已存在的團隊來更新"
+    "translation": "無法刪除已存在的團隊"
   },
   {
     "id": "store.sql_team.remove_member.app_error",
-    "translation": "更新團隊成員時失敗"
+    "translation": "無法移除團隊成員"
   },
   {
     "id": "store.sql_team.reset_all_team_schemes.app_error",
@@ -5976,7 +6344,7 @@
   },
   {
     "id": "store.sql_team.save.app_error",
-    "translation": "無法儲存 Token"
+    "translation": "無法儲存團隊"
   },
   {
     "id": "store.sql_team.save.domain_exists.app_error",
@@ -5992,7 +6360,7 @@
   },
   {
     "id": "store.sql_team.save_member.save.app_error",
-    "translation": "更新團隊成員時失敗"
+    "translation": "無法儲存團隊成員"
   },
   {
     "id": "store.sql_team.search_all_team.app_error",
@@ -6004,7 +6372,7 @@
   },
   {
     "id": "store.sql_team.update.app_error",
-    "translation": "無法更新配置"
+    "translation": "無法更新團隊"
   },
   {
     "id": "store.sql_team.update.find.app_error",
@@ -6020,11 +6388,27 @@
   },
   {
     "id": "store.sql_team.update_display_name.app_error",
-    "translation": "無法更新配置"
+    "translation": "無法更新團隊名稱"
   },
   {
     "id": "store.sql_team.update_last_team_icon_update.app_error",
     "translation": "無法更新最後一次團隊圖示更新的日期"
+  },
+  {
+    "id": "store.sql_terms_of_service.save.app_error",
+    "translation": "無法儲存使用條款"
+  },
+  {
+    "id": "store.sql_terms_of_service_store.get.app_error",
+    "translation": "無法取得使用條款"
+  },
+  {
+    "id": "store.sql_terms_of_service_store.get.no_rows.app_error",
+    "translation": "找不到使用條款"
+  },
+  {
+    "id": "store.sql_terms_of_service_store.save.existing.app_error",
+    "translation": "不能對現有的使用條款呼叫儲存"
   },
   {
     "id": "store.sql_user.analytics_daily_active_users.app_error",
@@ -6036,11 +6420,11 @@
   },
   {
     "id": "store.sql_user.analytics_get_system_admin_count.app_error",
-    "translation": "Unable to get the system admin count"
+    "translation": "無法取得系統管理員計數"
   },
   {
     "id": "store.sql_user.analytics_unique_user_count.app_error",
-    "translation": "Unable to get the unique user count"
+    "translation": "無法取得使用者計數"
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.commit_transaction.app_error",
@@ -6120,15 +6504,15 @@
   },
   {
     "id": "store.sql_user.missing_account.const",
-    "translation": "無法儲存 Token"
+    "translation": "找不到使用者。"
   },
   {
     "id": "store.sql_user.permanent_delete.app_error",
-    "translation": "找不到已存在的團隊來更新"
+    "translation": "無法刪除已存在的帳號"
   },
   {
     "id": "store.sql_user.save.app_error",
-    "translation": "無法更新配置"
+    "translation": "無法儲存帳號"
   },
   {
     "id": "store.sql_user.save.email_exists.app_error",
@@ -6172,7 +6556,7 @@
   },
   {
     "id": "store.sql_user.update.app_error",
-    "translation": "無法更新配置"
+    "translation": "無法更新帳號"
   },
   {
     "id": "store.sql_user.update.can_not_change_ldap.app_error",
@@ -6200,7 +6584,7 @@
   },
   {
     "id": "store.sql_user.update_auth_data.app_error",
-    "translation": "無法更新配置"
+    "translation": "無法更新認證資料"
   },
   {
     "id": "store.sql_user.update_auth_data.email_exists.app_error",
@@ -6208,11 +6592,11 @@
   },
   {
     "id": "store.sql_user.update_failed_pwd_attempts.app_error",
-    "translation": "Unable to update the failed_attempts"
+    "translation": "無法更新失敗嘗試"
   },
   {
     "id": "store.sql_user.update_last_picture_update.app_error",
-    "translation": "無法更新配置"
+    "translation": "無法更新更新時間"
   },
   {
     "id": "store.sql_user.update_mfa_active.app_error",
@@ -6224,7 +6608,7 @@
   },
   {
     "id": "store.sql_user.update_password.app_error",
-    "translation": "Unable to update the user password"
+    "translation": "無法更新使用者密碼"
   },
   {
     "id": "store.sql_user.update_update.app_error",
@@ -6264,71 +6648,87 @@
   },
   {
     "id": "store.sql_user_access_token.update_token_disable.app_error",
-    "translation": "無法儲存 Token"
+    "translation": "無法停用存取 Token"
   },
   {
     "id": "store.sql_user_access_token.update_token_enable.app_error",
-    "translation": "無法儲存 Token"
+    "translation": "無法啟用存取 Token"
+  },
+  {
+    "id": "store.sql_user_terms_of_service.delete.app_error",
+    "translation": "無法刪除使用條款"
+  },
+  {
+    "id": "store.sql_user_terms_of_service.get_by_user.app_error",
+    "translation": "無法取得使用條款"
+  },
+  {
+    "id": "store.sql_user_terms_of_service.get_by_user.no_rows.app_error",
+    "translation": "找不到使用條款"
+  },
+  {
+    "id": "store.sql_user_terms_of_service.save.app_error",
+    "translation": "無法儲存使用條款"
   },
   {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
-    "translation": "無法使用 Webhook"
+    "translation": "無法計算內送 Webhook 數量"
   },
   {
     "id": "store.sql_webhooks.analytics_outgoing_count.app_error",
-    "translation": "無法使用 Webhook"
+    "translation": "無法計算外寄 Webhook 數量"
   },
   {
     "id": "store.sql_webhooks.delete_incoming.app_error",
-    "translation": "無法使用 Webhook"
+    "translation": "無法刪除 Webhook"
   },
   {
     "id": "store.sql_webhooks.delete_outgoing.app_error",
-    "translation": "無法使用 Webhook"
+    "translation": "無法刪除 Webhook"
   },
   {
     "id": "store.sql_webhooks.get_incoming.app_error",
-    "translation": "無法使用 Webhook"
+    "translation": "無法取得 Webhook"
   },
   {
     "id": "store.sql_webhooks.get_incoming_by_channel.app_error",
-    "translation": "無法使用 Webhook"
+    "translation": "無法取得 Webhook"
   },
   {
     "id": "store.sql_webhooks.get_incoming_by_user.app_error",
-    "translation": "無法使用 Webhook"
+    "translation": "無法取得 Webhook"
   },
   {
     "id": "store.sql_webhooks.get_outgoing.app_error",
-    "translation": "無法使用 Webhook"
+    "translation": "無法取得 Webhook"
   },
   {
     "id": "store.sql_webhooks.get_outgoing_by_channel.app_error",
-    "translation": "無法使用 Webhook"
+    "translation": "無法取得 Webhook"
   },
   {
     "id": "store.sql_webhooks.get_outgoing_by_team.app_error",
-    "translation": "無法使用 Webhook"
+    "translation": "無法取得 Webhook"
   },
   {
     "id": "store.sql_webhooks.permanent_delete_incoming_by_channel.app_error",
-    "translation": "無法使用 Webhook"
+    "translation": "無法刪除 Webhook"
   },
   {
     "id": "store.sql_webhooks.permanent_delete_incoming_by_user.app_error",
-    "translation": "無法使用 Webhook"
+    "translation": "無法刪除 Webhook"
   },
   {
     "id": "store.sql_webhooks.permanent_delete_outgoing_by_channel.app_error",
-    "translation": "無法使用 Webhook"
+    "translation": "無法刪除 Webhook"
   },
   {
     "id": "store.sql_webhooks.permanent_delete_outgoing_by_user.app_error",
-    "translation": "無法使用 Webhook"
+    "translation": "無法刪除 Webhook"
   },
   {
     "id": "store.sql_webhooks.save_incoming.app_error",
-    "translation": "無法使用 Webhook"
+    "translation": "無法儲存內送 Webhook"
   },
   {
     "id": "store.sql_webhooks.save_incoming.existing.app_error",
@@ -6336,7 +6736,7 @@
   },
   {
     "id": "store.sql_webhooks.save_outgoing.app_error",
-    "translation": "無法儲存 Token"
+    "translation": "無法儲存外寄 Webhook"
   },
   {
     "id": "store.sql_webhooks.save_outgoing.override.app_error",
@@ -6344,11 +6744,15 @@
   },
   {
     "id": "store.sql_webhooks.update_incoming.app_error",
-    "translation": "無法使用 Webhook"
+    "translation": "無法更新內送 Webhook"
   },
   {
     "id": "store.sql_webhooks.update_outgoing.app_error",
-    "translation": "無法使用 Webhook"
+    "translation": "無法更新 Webhook"
+  },
+  {
+    "id": "store.update_error",
+    "translation": "update error"
   },
   {
     "id": "system.message.name",
