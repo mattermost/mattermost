@@ -281,7 +281,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 
 	// Normally, we would let the API layer call PreparePostForClient, but we do it here since it also needs
 	// to be done when we send the post over the websocket in handlePostEvents
-	rpost = a.PreparePostForClient(rpost)
+	rpost = a.PreparePostForClient(rpost, true)
 
 	if err := a.handlePostEvents(rpost, user, channel, triggerWebhooks, parentPostList); err != nil {
 		mlog.Error("Failed to handle post events", mlog.Err(err))
@@ -401,7 +401,7 @@ func (a *App) SendEphemeralPost(userId string, post *model.Post) *model.Post {
 	}
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE, "", post.ChannelId, userId, nil)
-	message.Add("post", a.PreparePostForClient(post).ToJson())
+	message.Add("post", a.PreparePostForClient(post, true).ToJson())
 	a.Publish(message)
 
 	return post
@@ -498,7 +498,7 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 		})
 	}
 
-	rpost = a.PreparePostForClient(rpost)
+	rpost = a.PreparePostForClient(rpost, false)
 
 	a.sendUpdatedPostEvent(rpost)
 
@@ -665,7 +665,7 @@ func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppErro
 	}
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_DELETED, "", post.ChannelId, "", nil)
-	message.Add("post", a.PreparePostForClient(post).ToJson())
+	message.Add("post", a.PreparePostForClient(post, false).ToJson())
 	a.Publish(message)
 
 	a.Srv.Go(func() {

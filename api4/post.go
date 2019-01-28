@@ -97,7 +97,7 @@ func createEphemeralPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	rp := c.App.SendEphemeralPost(ephRequest.UserID, c.App.PostWithProxyRemovedFromImageURLs(ephRequest.Post))
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(c.App.PreparePostForClient(rp).ToJson()))
+	w.Write([]byte(c.App.PreparePostForClient(rp, true).ToJson()))
 }
 
 func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -259,7 +259,7 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	post = c.App.PreparePostForClient(post)
+	post = c.App.PreparePostForClient(post, false)
 
 	if c.HandleEtag(post.Etag(), "Get Post", w, r) {
 		return
