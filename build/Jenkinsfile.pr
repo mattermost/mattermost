@@ -13,7 +13,7 @@ pipeline {
 
     options {
         buildDiscarder(logRotator(numToKeepStr: '3'))
-        timeout(time: 2, unit: 'HOURS')
+        timeout(time: 1, unit: 'HOURS')
     }
 
     environment {
