@@ -304,6 +304,10 @@ func testUploadFiles(
 }
 
 func TestUploadFiles(t *testing.T) {
+	const (
+		maxMemoryBuffer = 8 * 1024 * 1024   // 8MB
+		maxFileSize     = 100 * 1024 * 1024 // 100MB
+	)
 	th := Setup().InitBasic()
 	defer th.TearDown()
 	if *th.App.Config().FileSettings.DriverName == "" {
@@ -317,79 +321,105 @@ func TestUploadFiles(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = true })
 
 	// Lower the in-memory buffer size, shouldn't get in the way since no
-	// plugins are involved
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxMemoryBuffer = 8 * 1024 * 1024 })
+	// plugins are involved.
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxMemoryBuffer = maxMemoryBuffer })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxFileSize = maxFileSize })
 
 	op := func(name string) UploadOpener {
 		return NewUploadOpenerFile(filepath.Join(testDir, name))
 	}
 
 	tests := []struct {
-		title     string
-		client    *model.Client4
-		openers   []UploadOpener
-		names     []string
-		clientIds []string
-
-		skipSuccessValidation       bool
-		skipPayloadValidation       bool
-		skipSimplePost              bool
-		skipMultipart               bool
+		title                       string
+		client                      *model.Client4
+		openers                     []UploadOpener
+		names                       []string
+		clientIds                   []string
 		channelId                   string
-		useChunkedInSimplePost      bool
 		expectedCreatorId           string
 		expectedPayloadNames        []string
-		expectImage                 bool
 		expectedImageWidths         []int
 		expectedImageHeights        []int
 		expectedImageThumbnailNames []string
 		expectedImagePreviewNames   []string
 		expectedImageHasPreview     []bool
-		setupConfig                 func(a *app.App) func(a *app.App)
-		checkResponse               func(t *testing.T, resp *model.Response)
+
+		expectImage            bool
+		skipMultipart          bool
+		skipPayloadValidation  bool
+		skipSimplePost         bool
+		skipSuccessValidation  bool
+		useChunkedInSimplePost bool
+
+		checkResponse func(t *testing.T, resp *model.Response)
 	}{
 		// Upload a bunch of files, mixed images and non-images
 		{
-			title:             "Happy",
-			names:             []string{"test.png", "testgif.gif", "testplugin.tar.gz", "test-search.md"},
-			expectedCreatorId: th.BasicUser.Id,
+			title:                  "Happy",
+			names:                  []string{"test.png", "testgif.gif", "testplugin.tar.gz", "test-search.md"},
+			expectedCreatorId:      th.BasicUser.Id,
+			expectImage:            false,
+			skipMultipart:          false,
+			skipPayloadValidation:  false,
+			skipSimplePost:         false,
+			skipSuccessValidation:  false,
+			useChunkedInSimplePost: false,
 		},
 		// Upload a bunch of files, with clientIds
 		{
-			title:             "Happy client_ids",
-			names:             []string{"test.png", "testgif.gif", "testplugin.tar.gz", "test-search.md"},
-			clientIds:         []string{"1", "2", "3", "4"},
-			expectedCreatorId: th.BasicUser.Id,
+			title:                  "Happy client_ids",
+			names:                  []string{"test.png", "testgif.gif", "testplugin.tar.gz", "test-search.md"},
+			clientIds:              []string{"1", "2", "3", "4"},
+			expectedCreatorId:      th.BasicUser.Id,
+			expectImage:            false,
+			skipMultipart:          false,
+			skipPayloadValidation:  false,
+			skipSimplePost:         false,
+			skipSuccessValidation:  false,
+			useChunkedInSimplePost: false,
 		},
 		// Upload a bunch of images. testgif.gif is an animated GIF,
 		// so it does not have HasPreviewImage set.
 		{
 			title:                   "Happy images",
 			names:                   []string{"test.png", "testgif.gif"},
-			expectImage:             true,
 			expectedCreatorId:       th.BasicUser.Id,
 			expectedImageWidths:     []int{408, 118},
 			expectedImageHeights:    []int{336, 118},
 			expectedImageHasPreview: []bool{true, false},
+			expectImage:             true,
+			skipMultipart:           false,
+			skipPayloadValidation:   false,
+			skipSimplePost:          false,
+			skipSuccessValidation:   false,
+			useChunkedInSimplePost:  false,
 		},
 		{
-			title:                 "Happy invalid image",
-			names:                 []string{"testgif.gif"},
-			openers:               []UploadOpener{NewUploadOpenerFile(filepath.Join(testDir, "test-search.md"))},
-			skipPayloadValidation: true,
-			expectedCreatorId:     th.BasicUser.Id,
+			title:                  "Happy invalid image",
+			names:                  []string{"testgif.gif"},
+			openers:                []UploadOpener{NewUploadOpenerFile(filepath.Join(testDir, "test-search.md"))},
+			expectedCreatorId:      th.BasicUser.Id,
+			expectImage:            false,
+			skipMultipart:          false,
+			skipPayloadValidation:  true,
+			skipSimplePost:         false,
+			skipSuccessValidation:  false,
+			useChunkedInSimplePost: false,
 		},
 		// Simple POST, chunked encoding
 		{
 			title:                   "Happy image chunked post",
-			skipMultipart:           true,
-			useChunkedInSimplePost:  true,
 			names:                   []string{"test.png"},
-			expectImage:             true,
 			expectedImageWidths:     []int{408},
 			expectedImageHeights:    []int{336},
 			expectedImageHasPreview: []bool{true},
 			expectedCreatorId:       th.BasicUser.Id,
+			expectImage:             true,
+			skipMultipart:           true,
+			skipPayloadValidation:   false,
+			skipSimplePost:          false,
+			skipSuccessValidation:   false,
+			useChunkedInSimplePost:  true,
 		},
 		// Image thumbnail and preview: size and orientation. Note that
 		// the expected image dimensions remain the same regardless of the
@@ -400,184 +430,245 @@ func TestUploadFiles(t *testing.T) {
 			names:                       []string{"orientation_test_1.jpeg"},
 			expectedImageThumbnailNames: []string{"orientation_test_1_expected_thumb.jpeg"},
 			expectedImagePreviewNames:   []string{"orientation_test_1_expected_preview.jpeg"},
-			expectImage:                 true,
 			expectedImageWidths:         []int{2860},
 			expectedImageHeights:        []int{1578},
 			expectedImageHasPreview:     []bool{true},
 			expectedCreatorId:           th.BasicUser.Id,
+
+			expectImage:            true,
+			skipMultipart:          false,
+			skipPayloadValidation:  false,
+			skipSimplePost:         false,
+			skipSuccessValidation:  false,
+			useChunkedInSimplePost: false,
 		},
 		{
 			title:                       "Happy image thumbnail/preview 2",
 			names:                       []string{"orientation_test_2.jpeg"},
 			expectedImageThumbnailNames: []string{"orientation_test_2_expected_thumb.jpeg"},
 			expectedImagePreviewNames:   []string{"orientation_test_2_expected_preview.jpeg"},
-			expectImage:                 true,
 			expectedImageWidths:         []int{2860},
 			expectedImageHeights:        []int{1578},
 			expectedImageHasPreview:     []bool{true},
 			expectedCreatorId:           th.BasicUser.Id,
+			expectImage:                 true,
+			skipMultipart:               false,
+			skipPayloadValidation:       false,
+			skipSimplePost:              false,
+			skipSuccessValidation:       false,
+			useChunkedInSimplePost:      false,
 		},
 		{
 			title:                       "Happy image thumbnail/preview 3",
 			names:                       []string{"orientation_test_3.jpeg"},
 			expectedImageThumbnailNames: []string{"orientation_test_3_expected_thumb.jpeg"},
 			expectedImagePreviewNames:   []string{"orientation_test_3_expected_preview.jpeg"},
-			expectImage:                 true,
 			expectedImageWidths:         []int{2860},
 			expectedImageHeights:        []int{1578},
 			expectedImageHasPreview:     []bool{true},
 			expectedCreatorId:           th.BasicUser.Id,
+			expectImage:                 true,
+			skipMultipart:               false,
+			skipPayloadValidation:       false,
+			skipSimplePost:              false,
+			skipSuccessValidation:       false,
+			useChunkedInSimplePost:      false,
 		},
 		{
 			title:                       "Happy image thumbnail/preview 4",
 			names:                       []string{"orientation_test_4.jpeg"},
 			expectedImageThumbnailNames: []string{"orientation_test_4_expected_thumb.jpeg"},
 			expectedImagePreviewNames:   []string{"orientation_test_4_expected_preview.jpeg"},
-			expectImage:                 true,
 			expectedImageWidths:         []int{2860},
 			expectedImageHeights:        []int{1578},
 			expectedImageHasPreview:     []bool{true},
 			expectedCreatorId:           th.BasicUser.Id,
+			expectImage:                 true,
+			skipMultipart:               false,
+			skipPayloadValidation:       false,
+			skipSimplePost:              false,
+			skipSuccessValidation:       false,
+			useChunkedInSimplePost:      false,
 		},
 		{
 			title:                       "Happy image thumbnail/preview 5",
 			names:                       []string{"orientation_test_5.jpeg"},
 			expectedImageThumbnailNames: []string{"orientation_test_5_expected_thumb.jpeg"},
 			expectedImagePreviewNames:   []string{"orientation_test_5_expected_preview.jpeg"},
-			expectImage:                 true,
 			expectedImageWidths:         []int{2860},
 			expectedImageHeights:        []int{1578},
 			expectedImageHasPreview:     []bool{true},
 			expectedCreatorId:           th.BasicUser.Id,
+			expectImage:                 true,
+			skipMultipart:               false,
+			skipPayloadValidation:       false,
+			skipSimplePost:              false,
+			skipSuccessValidation:       false,
+			useChunkedInSimplePost:      false,
 		},
 		{
 			title:                       "Happy image thumbnail/preview 6",
 			names:                       []string{"orientation_test_6.jpeg"},
 			expectedImageThumbnailNames: []string{"orientation_test_6_expected_thumb.jpeg"},
 			expectedImagePreviewNames:   []string{"orientation_test_6_expected_preview.jpeg"},
-			expectImage:                 true,
 			expectedImageWidths:         []int{2860},
 			expectedImageHeights:        []int{1578},
 			expectedImageHasPreview:     []bool{true},
 			expectedCreatorId:           th.BasicUser.Id,
+			expectImage:                 true,
+			skipMultipart:               false,
+			skipPayloadValidation:       false,
+			skipSimplePost:              false,
+			skipSuccessValidation:       false,
+			useChunkedInSimplePost:      false,
 		},
 		{
 			title:                       "Happy image thumbnail/preview 7",
 			names:                       []string{"orientation_test_7.jpeg"},
 			expectedImageThumbnailNames: []string{"orientation_test_7_expected_thumb.jpeg"},
 			expectedImagePreviewNames:   []string{"orientation_test_7_expected_preview.jpeg"},
-			expectImage:                 true,
 			expectedImageWidths:         []int{2860},
 			expectedImageHeights:        []int{1578},
 			expectedImageHasPreview:     []bool{true},
 			expectedCreatorId:           th.BasicUser.Id,
+			expectImage:                 true,
+			skipMultipart:               false,
+			skipPayloadValidation:       false,
+			skipSimplePost:              false,
+			skipSuccessValidation:       false,
+			useChunkedInSimplePost:      false,
 		},
 		{
 			title:                       "Happy image thumbnail/preview 8",
 			names:                       []string{"orientation_test_8.jpeg"},
 			expectedImageThumbnailNames: []string{"orientation_test_8_expected_thumb.jpeg"},
 			expectedImagePreviewNames:   []string{"orientation_test_8_expected_preview.jpeg"},
-			expectImage:                 true,
 			expectedImageWidths:         []int{2860},
 			expectedImageHeights:        []int{1578},
 			expectedImageHasPreview:     []bool{true},
 			expectedCreatorId:           th.BasicUser.Id,
+			expectImage:                 true,
+			skipMultipart:               false,
+			skipPayloadValidation:       false,
+			skipSimplePost:              false,
+			skipSuccessValidation:       false,
+			useChunkedInSimplePost:      false,
 		},
 		{
-			title:             "Happy admin",
-			client:            th.SystemAdminClient,
-			names:             []string{"test.png"},
-			expectedCreatorId: th.SystemAdminUser.Id,
+			title:                   "Happy admin",
+			client:                  th.SystemAdminClient,
+			names:                   []string{"test.png"},
+			expectedImageWidths:     []int{408},
+			expectedImageHeights:    []int{336},
+			expectedImageHasPreview: []bool{true},
+			expectedCreatorId:       th.SystemAdminUser.Id,
+			expectImage:             true,
+			skipMultipart:           false,
+			skipPayloadValidation:   false,
+			skipSimplePost:          false,
+			skipSuccessValidation:   false,
+			useChunkedInSimplePost:  false,
 		},
 		{
-			title:                  "Happy stream",
-			useChunkedInSimplePost: true,
+			title:                  "Happy maxFileSize stream",
+			names:                  []string{"maxFileSize-stream"},
+			openers:                []UploadOpener{NewUploadOpenerReader(&zeroReader{limit: maxFileSize})},
+			expectedCreatorId:      th.BasicUser.Id,
+			expectImage:            false,
+			skipMultipart:          false,
 			skipPayloadValidation:  true,
-			names:                  []string{"200Mb-stream"},
-			openers:                []UploadOpener{NewUploadOpenerReader(&zeroReader{limit: 200 * 1024 * 1024})},
-			setupConfig: func(a *app.App) func(a *app.App) {
-				maxFileSize := *a.Config().FileSettings.MaxFileSize
-				a.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxFileSize = 200 * 1024 * 1024 })
-				return func(a *app.App) {
-					a.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.MaxFileSize = maxFileSize })
-				}
-			},
-			expectedCreatorId: th.BasicUser.Id,
+			skipSimplePost:         false,
+			skipSuccessValidation:  false,
+			useChunkedInSimplePost: true,
 		},
 		// Error cases
 		{
-			title:                 "Error channel_id does not exist",
-			channelId:             model.NewId(),
-			names:                 []string{"test.png"},
-			skipSuccessValidation: true,
-			checkResponse:         CheckForbiddenStatus,
+			title:                  "Error channel_id does not exist",
+			channelId:              model.NewId(),
+			names:                  []string{"test.png"},
+			checkResponse:          CheckForbiddenStatus,
+			expectImage:            false,
+			skipMultipart:          false,
+			skipPayloadValidation:  false,
+			skipSimplePost:         false,
+			skipSuccessValidation:  true,
+			useChunkedInSimplePost: false,
 		},
 		{
 			// on simple post this uploads the last file
 			// successfully, without a ClientId
-			title:                 "Error too few client_ids",
-			skipSimplePost:        true,
-			names:                 []string{"test.png", "testplugin.tar.gz", "test-search.md"},
-			clientIds:             []string{"1", "4"},
-			skipSuccessValidation: true,
-			checkResponse:         CheckBadRequestStatus,
-		},
-		{
-			title:                 "Error invalid channel_id",
-			channelId:             "../../junk",
-			names:                 []string{"test.png"},
-			skipSuccessValidation: true,
-			checkResponse:         CheckBadRequestStatus,
-		},
-		{
-			title:                 "Error admin channel_id does not exist",
-			client:                th.SystemAdminClient,
-			channelId:             model.NewId(),
-			names:                 []string{"test.png"},
-			skipSuccessValidation: true,
-			checkResponse:         CheckForbiddenStatus,
-		},
-		{
-			title:                 "Error admin invalid channel_id",
-			client:                th.SystemAdminClient,
-			channelId:             "../../junk",
-			names:                 []string{"test.png"},
-			skipSuccessValidation: true,
-			checkResponse:         CheckBadRequestStatus,
-		},
-		{
-			title:                 "Error admin disabled uploads",
-			client:                th.SystemAdminClient,
-			names:                 []string{"test.png"},
-			skipSuccessValidation: true,
-			checkResponse:         CheckNotImplementedStatus,
-			setupConfig: func(a *app.App) func(a *app.App) {
-				enableFileAttachments := *a.Config().FileSettings.EnableFileAttachments
-				a.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnableFileAttachments = false })
-				return func(a *app.App) {
-					a.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnableFileAttachments = enableFileAttachments })
-				}
-			},
-		},
-		// Too large
-		{
-			title:                  "Too large chunked",
-			names:                  []string{"50Mb-plus-stream"},
-			useChunkedInSimplePost: true,
-			skipMultipart:          true,
-			openers:                []UploadOpener{NewUploadOpenerReader(&zeroReader{limit: 52428800 + 1})},
-			skipPayloadValidation:  true,
+			title:                  "Error too few client_ids",
+			names:                  []string{"test.png", "testplugin.tar.gz", "test-search.md"},
+			clientIds:              []string{"1", "4"},
+			checkResponse:          CheckBadRequestStatus,
+			expectImage:            false,
+			skipMultipart:          false,
+			skipPayloadValidation:  false,
+			skipSimplePost:         true,
 			skipSuccessValidation:  true,
-			checkResponse:          CheckRequestEntityTooLargeStatus,
+			useChunkedInSimplePost: false,
 		},
 		{
-			title:                 "Too large",
-			names:                 []string{"50Mb-plus-stream"},
-			openers:               []UploadOpener{NewUploadOpenerReader(&zeroReader{limit: 52428800 + 1})},
-			skipSimplePost:        true,
-			skipPayloadValidation: true,
-			skipSuccessValidation: true,
-			checkResponse:         CheckRequestEntityTooLargeStatus,
+			title:                  "Error invalid channel_id",
+			channelId:              "../../junk",
+			names:                  []string{"test.png"},
+			checkResponse:          CheckBadRequestStatus,
+			expectImage:            false,
+			skipMultipart:          false,
+			skipPayloadValidation:  false,
+			skipSimplePost:         false,
+			skipSuccessValidation:  true,
+			useChunkedInSimplePost: false,
+		},
+		{
+			title:                  "Error admin channel_id does not exist",
+			client:                 th.SystemAdminClient,
+			channelId:              model.NewId(),
+			names:                  []string{"test.png"},
+			checkResponse:          CheckForbiddenStatus,
+			expectImage:            false,
+			skipMultipart:          false,
+			skipPayloadValidation:  false,
+			skipSimplePost:         false,
+			skipSuccessValidation:  true,
+			useChunkedInSimplePost: false,
+		},
+		{
+			title:                  "Error admin invalid channel_id",
+			client:                 th.SystemAdminClient,
+			channelId:              "../../junk",
+			names:                  []string{"test.png"},
+			checkResponse:          CheckBadRequestStatus,
+			expectImage:            false,
+			skipMultipart:          false,
+			skipPayloadValidation:  false,
+			skipSimplePost:         false,
+			skipSuccessValidation:  true,
+			useChunkedInSimplePost: false,
+		},
+		{
+			title:                  "Too large, POST, chunked",
+			names:                  []string{"maxFileSize-plus-stream"},
+			openers:                []UploadOpener{NewUploadOpenerReader(&zeroReader{limit: maxFileSize + 1})},
+			checkResponse:          CheckRequestEntityTooLargeStatus,
+			expectImage:            false,
+			skipMultipart:          true,
+			skipPayloadValidation:  true,
+			skipSimplePost:         false,
+			skipSuccessValidation:  true,
+			useChunkedInSimplePost: true,
+		},
+		{
+			title:                  "Too large, multipart",
+			names:                  []string{"maxFileSize-plus-stream"},
+			openers:                []UploadOpener{NewUploadOpenerReader(&zeroReader{limit: maxFileSize + 1})},
+			checkResponse:          CheckRequestEntityTooLargeStatus,
+			expectImage:            false,
+			skipMultipart:          false,
+			skipPayloadValidation:  true,
+			skipSimplePost:         true,
+			skipSuccessValidation:  true,
+			useChunkedInSimplePost: false,
 		},
 	}
 
@@ -613,10 +704,6 @@ func TestUploadFiles(t *testing.T) {
 
 			// Apply any necessary config changes
 			var restoreConfig func(a *app.App)
-			if tc.setupConfig != nil {
-				restoreConfig = tc.setupConfig(th.App)
-			}
-
 			t.Run(title, func(t *testing.T) {
 				if len(tc.openers) == 0 {
 					for _, name := range tc.names {
@@ -730,6 +817,25 @@ func TestUploadFiles(t *testing.T) {
 			}
 		}
 	}
+}
+
+func TestUploadFilesDisabled(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	if *th.App.Config().FileSettings.DriverName == "" {
+		t.Skip("skipping because no file driver is enabled")
+	}
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnableFileAttachments = false })
+
+	client := th.Client
+	channel := th.BasicChannel
+	channelId := channel.Id
+
+	_, resp := testUploadFiles(client, channelId, []string{"test.png"},
+		[]UploadOpener{NewUploadOpenerFile(filepath.Join(testDir, "test.png"))},
+		nil, nil, true, false)
+	CheckNotImplementedStatus(t, resp)
 }
 
 func TestGetFile(t *testing.T) {
