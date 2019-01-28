@@ -134,9 +134,11 @@ func (a *App) deduplicateCreatePost(post *model.Post) (foundPost *model.Post, er
 }
 
 func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhooks bool) (savedPost *model.Post, err *model.AppError) {
-	if foundPost, err := a.deduplicateCreatePost(post); err != nil {
+	foundPost, err := a.deduplicateCreatePost(post)
+	if err != nil {
 		return nil, err
-	} else if foundPost != nil {
+	}
+	if foundPost != nil {
 		return foundPost, nil
 	}
 
