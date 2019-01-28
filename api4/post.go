@@ -215,8 +215,9 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 
 		pl.AddPost(post)
 		pl.AddOrder(post.Id)
-
 	}
+
+	pl.SortByCreateAt()
 
 	if err != nil {
 		c.Err = err
