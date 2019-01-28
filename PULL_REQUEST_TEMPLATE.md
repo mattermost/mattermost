@@ -23,7 +23,7 @@ Otherwise, link the Jira ticket.
 <!--
 Please review each item, and remove those not relevant for your pull request
 -->
-- Run test on the related changes locally
+- Tested related changes <!-- See https://developers.mattermost.com/contribute/server/developer-workflow/#running-only-specific-server-unit-tests how to run specific unit tests. -->
 - Added or updated unit tests
 - Added REST API documentation (required for all new REST API endpoints)
 - Added Enterprise changes (please link)
