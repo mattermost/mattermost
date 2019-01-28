@@ -123,7 +123,12 @@ func getBots(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bots, err := c.App.GetBots(c.Params.Page, c.Params.PerPage, creatorId, includeDeleted)
+	bots, err := c.App.GetBots(&model.BotGetOptions{
+		Page:           c.Params.Page,
+		PerPage:        c.Params.PerPage,
+		CreatorId:      creatorId,
+		IncludeDeleted: includeDeleted,
+	})
 	if err != nil {
 		c.Err = err
 		return

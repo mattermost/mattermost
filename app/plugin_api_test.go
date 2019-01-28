@@ -807,7 +807,12 @@ func TestPluginBots(t *testing.T) {
 				return nil, "GetBot did not return the updated bot Description"
 			}
 
-			fetchedBots, err := p.API.GetBots(0, 1, "", false)
+			fetchedBots, err := p.API.GetBots(&model.BotGetOptions{
+				Page: 0,
+				PerPage: 1,
+				CreatorId: "",
+				IncludeDeleted: false,
+			})
 			if err != nil {
 				return nil, errors.Wrap(err, "failed to get bots").Error()
 			}

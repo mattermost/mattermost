@@ -499,7 +499,7 @@ type API interface {
 	// GetBots returns the requested page of bots.
 	//
 	// Minimum server version: 5.8
-	GetBots(page, perPage int, creatorId string, includeDeleted bool) ([]*model.Bot, *model.AppError)
+	GetBots(options *model.BotGetOptions) ([]*model.Bot, *model.AppError)
 
 	// UpdateBotActive marks a bot as active or inactive, along with its corresponding user.
 	//

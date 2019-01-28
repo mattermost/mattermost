@@ -39,6 +39,14 @@ type BotPatch struct {
 	Description *string `json:"description"`
 }
 
+// BotGetOptions acts as a filter on bulk bot fetching queries.
+type BotGetOptions struct {
+	CreatorId      string
+	IncludeDeleted bool
+	Page           int
+	PerPage        int
+}
+
 // BotList is a list of bots.
 type BotList []*Bot
 

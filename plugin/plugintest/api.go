@@ -415,13 +415,13 @@ func (_m *API) GetBot(userId string, includeDeleted bool) (*model.Bot, *model.Ap
 	return r0, r1
 }
 
-// GetBots provides a mock function with given fields: page, perPage, creatorId, includeDeleted
-func (_m *API) GetBots(page int, perPage int, creatorId string, includeDeleted bool) ([]*model.Bot, *model.AppError) {
-	ret := _m.Called(page, perPage, creatorId, includeDeleted)
+// GetBots provides a mock function with given fields: options
+func (_m *API) GetBots(options *model.BotGetOptions) ([]*model.Bot, *model.AppError) {
+	ret := _m.Called(options)
 
 	var r0 []*model.Bot
-	if rf, ok := ret.Get(0).(func(int, int, string, bool) []*model.Bot); ok {
-		r0 = rf(page, perPage, creatorId, includeDeleted)
+	if rf, ok := ret.Get(0).(func(*model.BotGetOptions) []*model.Bot); ok {
+		r0 = rf(options)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Bot)
@@ -429,8 +429,8 @@ func (_m *API) GetBots(page int, perPage int, creatorId string, includeDeleted b
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(int, int, string, bool) *model.AppError); ok {
-		r1 = rf(page, perPage, creatorId, includeDeleted)
+	if rf, ok := ret.Get(1).(func(*model.BotGetOptions) *model.AppError); ok {
+		r1 = rf(options)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

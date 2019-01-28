@@ -3660,10 +3660,7 @@ func (s *apiRPCServer) GetBot(args *Z_GetBotArgs, returns *Z_GetBotReturns) erro
 }
 
 type Z_GetBotsArgs struct {
-	A int
-	B int
-	C string
-	D bool
+	A *model.BotGetOptions
 }
 
 type Z_GetBotsReturns struct {
@@ -3671,8 +3668,8 @@ type Z_GetBotsReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetBots(page, perPage int, creatorId string, includeDeleted bool) ([]*model.Bot, *model.AppError) {
-	_args := &Z_GetBotsArgs{page, perPage, creatorId, includeDeleted}
+func (g *apiRPCClient) GetBots(options *model.BotGetOptions) ([]*model.Bot, *model.AppError) {
+	_args := &Z_GetBotsArgs{options}
 	_returns := &Z_GetBotsReturns{}
 	if err := g.client.Call("Plugin.GetBots", _args, _returns); err != nil {
 		log.Printf("RPC call to GetBots API failed: %s", err.Error())
@@ -3682,9 +3679,9 @@ func (g *apiRPCClient) GetBots(page, perPage int, creatorId string, includeDelet
 
 func (s *apiRPCServer) GetBots(args *Z_GetBotsArgs, returns *Z_GetBotsReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetBots(page, perPage int, creatorId string, includeDeleted bool) ([]*model.Bot, *model.AppError)
+		GetBots(options *model.BotGetOptions) ([]*model.Bot, *model.AppError)
 	}); ok {
-		returns.A, returns.B = hook.GetBots(args.A, args.B, args.C, args.D)
+		returns.A, returns.B = hook.GetBots(args.A)
 	} else {
 		return encodableError(fmt.Errorf("API GetBots called but not implemented."))
 	}

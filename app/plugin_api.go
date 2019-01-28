@@ -677,8 +677,8 @@ func (api *PluginAPI) GetBot(userId string, includeDeleted bool) (*model.Bot, *m
 	return api.app.GetBot(userId, includeDeleted)
 }
 
-func (api *PluginAPI) GetBots(page, perPage int, creatorId string, includeDeleted bool) ([]*model.Bot, *model.AppError) {
-	bots, err := api.app.GetBots(page, perPage, creatorId, includeDeleted)
+func (api *PluginAPI) GetBots(options *model.BotGetOptions) ([]*model.Bot, *model.AppError) {
+	bots, err := api.app.GetBots(options)
 
 	return []*model.Bot(bots), err
 }
