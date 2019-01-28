@@ -497,7 +497,7 @@ type uploadFileTask struct {
 	// Overall, the upload is handled is
 	//  1. Pre-process images (headers, orientation, etc.). Pre-read from
 	//     the input as much as needed.
-	//  2. run Plugins. Upon the first actual invocation drain the input
+	//  2. Run Plugins. Upon the first actual invocation drain the input
 	//     and buffer the payload. The payload may be replaced by the
 	//     plugins.
 	//  3. Post-process images: generate and upload preview and thumbnail
@@ -516,9 +516,9 @@ type uploadFileTask struct {
 	// drain sizeLimitedInput directly into lbuf, buffering the entire
 	// allowed payload there. Close (flush!) lbuf. Plugins may replace lbuf.
 	//
-	// Post-process images and save (##3,4) to the file store out of lbuf
+	// Post-process images and save (#3,#4) to the file store out of lbuf
 
-	appErr                *model.AppError
+	sizeLimitExceeded     bool
 	lbuf                  *utils.LargeBuffer
 	sizeLimitedInput      io.Reader
 	memoryLimitedTeeInput io.Reader
@@ -558,6 +558,8 @@ func (t *uploadFileTask) init(a *App) {
 
 	// t.sizeLimitedInput will error if the length of the upload exceeds
 	// the MaxSize limit, or its stated ContentLength, whichever is less.
+	// Add an extra byte to check and fail if the client sent too many
+	// bytes.
 	limit := t.maxFileSize
 	if t.ContentLength > 0 && t.ContentLength < t.maxFileSize {
 		limit = t.ContentLength + 1
@@ -566,8 +568,7 @@ func (t *uploadFileTask) init(a *App) {
 		R: t.Input,
 		N: limit,
 		LimitReached: func(l *utils.LimitedReader) error {
-			t.appErr = t.newAppError("api.file.upload_file.too_large_detailed.app_error",
-				"", http.StatusRequestEntityTooLarge, "Bytes read", l.BytesRead, "Limit", limit)
+			t.sizeLimitExceeded = true
 			return fmt.Errorf("Entity too large: %v bytes, limit: %v bytes", l.BytesRead, limit)
 		},
 	}
@@ -585,6 +586,8 @@ func (t *uploadFileTask) init(a *App) {
 	}, t.lbuf)
 
 	t.pluginsEnvironment = a.GetPluginsEnvironment()
+	t.pluginContext = a.PluginContext()
+
 	t.writeFile = a.WriteFile
 	t.saveToDatabase = a.Srv.Store.FileInfo().Save
 }
@@ -596,6 +599,7 @@ func (t *uploadFileTask) init(a *App) {
 // contained the last "good" FileInfo before the execution of that plugin.
 func (a *App) UploadFileX(channelId, name string, input io.Reader,
 	opts ...func(*uploadFileTask)) (resultFileinfo *model.FileInfo, resultError *model.AppError) {
+	var aerr *model.AppError
 
 	t := &uploadFileTask{
 		ChannelId: filepath.Base(channelId),
@@ -608,12 +612,16 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 	t.init(a)
 	defer t.lbuf.Clear()
 
-	// We may run into the entityTooLarge error in a Read() call, where there's no way to
-	// return the desired AppError. So we set the flag, and check it in defer.
+	// We may run into the entityTooLarge error in a Read() call, it
+	// results in a premature EOF, and there's no way to return the desired
+	// AppError. So we set the flag when it happens, and check it before we
+	// return. Note that EntityTooLarge should override whatever indirect
+	// error code it caused.
 	defer func() {
-		if t.appErr != nil {
+		if t.sizeLimitExceeded {
+			resultError = t.newAppError("api.file.upload_file.too_large_detailed.app_error",
+				"", http.StatusRequestEntityTooLarge)
 			resultFileinfo = nil
-			resultError = t.appErr
 		}
 	}()
 
@@ -626,23 +634,22 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 			"", http.StatusRequestEntityTooLarge, "Length", t.ContentLength, "Limit", t.maxFileSize)
 	}
 
-	var aerr *model.AppError
 	if t.needProcessImage() {
 		aerr = t.preprocessImage()
 		if aerr != nil {
-			return t.fileinfo, aerr
+			return nil, aerr
 		}
 	}
 
 	aerr = t.runPlugins()
 	if aerr != nil {
-		return t.fileinfo, aerr
+		return nil, aerr
 	}
 
 	// No need to buffer after plugins have run
 	aerr = t.stopBuffering()
 	if aerr != nil {
-		return t.fileinfo, aerr
+		return nil, aerr
 	}
 
 	// Concurrently upload/update DB, and post-process the image.  Achieve
@@ -657,7 +664,7 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 
 	input, closer, aerr := t.newCombinedReadCloser()
 	if aerr != nil {
-		return t.fileinfo, aerr
+		return nil, aerr
 	}
 	defer closer.Close()
 
@@ -667,14 +674,11 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 		input = io.TeeReader(input, pw)
 	}
 
-	// TODO: Revisit the order: now not truly parallelized, postprocessing
-	// won't start until after decoding, until after last byte saved to the
-	// store.
-
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		_, writeError = t.writeFile(input, t.fileinfo.Path)
+		var size int64
+		size, writeError = t.writeFile(input, t.fileinfo.Path)
 		if pw != nil {
 			pw.Close()
 		}
@@ -682,6 +686,8 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 			return
 		}
 
+		// Use the actual byte count written
+		t.fileinfo.Size = size
 		result := <-t.saveToDatabase(t.fileinfo)
 		if result.Err != nil {
 			writeError = result.Err
@@ -723,37 +729,32 @@ func (t *uploadFileTask) runPlugins() *model.AppError {
 	if t.pluginsEnvironment == nil {
 		return nil
 	}
-	t.pluginContext = &plugin.Context{}
-	t.pluginsEnvironment.RunMultiPluginHook(t.runPlugin, plugin.FileWillBeUploadedId)
-	if t.appErr != nil {
-		return t.appErr
-	}
 
-	return nil
+	var rejectionError *model.AppError
+	t.pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+		rejectionError = t.runPlugin(hooks)
+		return rejectionError == nil && !t.sizeLimitExceeded
+	}, plugin.FileWillBeUploadedId)
+
+	return rejectionError
 }
 
 // runPlugin will only get invoked if there is indeed a FileWillBeUploaded hook
 // registered by an active plugin. The first time it's invoked, need to fully
 // buffer the input since the plugin may consume it and not return a
 // replacement.
-func (t *uploadFileTask) runPlugin(hooks plugin.Hooks) bool {
+func (t *uploadFileTask) runPlugin(hooks plugin.Hooks) *model.AppError {
 	if t.sizeLimitedInput != nil {
 		_, err := io.Copy(t.lbuf, t.sizeLimitedInput)
 		if err != nil {
-			if t.appErr == nil {
-				t.appErr = t.newAppError("api.file.upload_file.read_request.app_error",
-					err.Error(), http.StatusBadRequest)
-			}
-			return false
+			return t.newAppError("api.file.upload_file.read_request.app_error",
+				err.Error(), http.StatusBadRequest)
 		}
 
 		t.sizeLimitedInput = nil
 		appErr := t.stopBuffering()
 		if appErr != nil {
-			if t.appErr == nil {
-				t.appErr = appErr
-			}
-			return false
+			return appErr
 		}
 	}
 
@@ -764,9 +765,8 @@ func (t *uploadFileTask) runPlugin(hooks plugin.Hooks) bool {
 		&plugin.FileWillBeUploadedWrapper{P: newLbuf},
 	)
 	if rejection != "" {
-		t.appErr = t.newAppError("api.file.upload_file.read_request.app_error",
+		return t.newAppError("api.file.upload_file.read_request.app_error",
 			"File rejected by plugin. "+rejection, http.StatusBadRequest)
-		return false
 	}
 	if newFileinfo != nil {
 		t.fileinfo = newFileinfo
@@ -774,17 +774,15 @@ func (t *uploadFileTask) runPlugin(hooks plugin.Hooks) bool {
 	if !newLbuf.IsEmpty() {
 		err := t.lbuf.Close()
 		if err != nil {
-			t.appErr = t.newAppError("api.file.upload_file.read_request.app_error",
+			return t.newAppError("api.file.upload_file.read_request.app_error",
 				err.Error(), http.StatusBadRequest)
-			return false
 		}
 		t.lbuf.Clear()
 		t.lbuf = newLbuf
 		t.memoryLimitedTeeInput = nil
 		t.sizeLimitedInput = nil
-		// TODO t.fileinfo.Size = int64(newLbuf.Len())
 	}
-	return true
+	return nil
 }
 
 func (t *uploadFileTask) preprocessImage() *model.AppError {
