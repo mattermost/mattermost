@@ -44,7 +44,7 @@ package:
 	@# Reset email sending to original configuration
 	sed -i'' -e 's|"SendEmailNotifications": true,|"SendEmailNotifications": false,|g' $(DIST_PATH)/config/config.json
 	sed -i'' -e 's|"FeedbackEmail": "test@example.com",|"FeedbackEmail": "",|g' $(DIST_PATH)/config/config.json
-	sed -i'' -e 's|"FeedbackReplyEmail": "test@example.com",|"FeedbackReplyEmail": "",|g' $(DIST_PATH)/config/config.json
+	sed -i'' -e 's|"ReplyToAddress": "test@example.com",|"ReplyToAddress": "",|g' $(DIST_PATH)/config/config.json
 	sed -i'' -e 's|"SMTPServer": "dockerhost",|"SMTPServer": "",|g' $(DIST_PATH)/config/config.json
 	sed -i'' -e 's|"SMTPPort": "2500",|"SMTPPort": "",|g' $(DIST_PATH)/config/config.json
 

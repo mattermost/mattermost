@@ -163,7 +163,7 @@
         "RequireEmailVerification": false,
         "FeedbackName": "",
         "FeedbackEmail": "test@example.com",
-        "FeedbackReplyEmail": "test@example.com",
+        "ReplyToAddress": "test@example.com",
         "FeedbackOrganization": "",
         "EnableSMTPAuth": false,
         "SMTPUsername": "",

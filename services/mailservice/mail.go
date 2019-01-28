@@ -199,13 +199,13 @@ func TestConnection(config *model.Config) {
 
 func SendMailUsingConfig(to, subject, htmlBody string, config *model.Config, enableComplianceFeatures bool) *model.AppError {
 	fromMail := mail.Address{Name: config.EmailSettings.FeedbackName, Address: config.EmailSettings.FeedbackEmail}
-	replyMail := mail.Address{Name: config.EmailSettings.FeedbackName, Address: config.EmailSettings.FeedbackReplyEmail}
+	replyTo := mail.Address{Name: config.EmailSettings.FeedbackName, Address: config.EmailSettings.ReplyToAddress}
 
-	return SendMailUsingConfigAdvanced(to, to, fromMail, replyMail, subject, htmlBody, nil, nil, config, enableComplianceFeatures)
+	return SendMailUsingConfigAdvanced(to, to, fromMail, replyTo, subject, htmlBody, nil, nil, config, enableComplianceFeatures)
 }
 
 // allows for sending an email with attachments and differing MIME/SMTP recipients
-func SendMailUsingConfigAdvanced(mimeTo, smtpTo string, from, reply mail.Address, subject, htmlBody string, attachments []*model.FileInfo, mimeHeaders map[string]string, config *model.Config, enableComplianceFeatures bool) *model.AppError {
+func SendMailUsingConfigAdvanced(mimeTo, smtpTo string, from, replyTo mail.Address, subject, htmlBody string, attachments []*model.FileInfo, mimeHeaders map[string]string, config *model.Config, enableComplianceFeatures bool) *model.AppError {
 	if !config.EmailSettings.SendEmailNotifications || len(config.EmailSettings.SMTPServer) == 0 {
 		return nil
 	}
@@ -228,10 +228,10 @@ func SendMailUsingConfigAdvanced(mimeTo, smtpTo string, from, reply mail.Address
 		return err
 	}
 
-	return SendMail(c, mimeTo, smtpTo, from, reply, subject, htmlBody, attachments, mimeHeaders, fileBackend, time.Now())
+	return SendMail(c, mimeTo, smtpTo, from, replyTo, subject, htmlBody, attachments, mimeHeaders, fileBackend, time.Now())
 }
 
-func SendMail(c *smtp.Client, mimeTo, smtpTo string, from, reply mail.Address, subject, htmlBody string, attachments []*model.FileInfo, mimeHeaders map[string]string, fileBackend filesstore.FileBackend, date time.Time) *model.AppError {
+func SendMail(c *smtp.Client, mimeTo, smtpTo string, from, replyTo mail.Address, subject, htmlBody string, attachments []*model.FileInfo, mimeHeaders map[string]string, fileBackend filesstore.FileBackend, date time.Time) *model.AppError {
 	mlog.Debug(fmt.Sprintf("sending mail to %v with subject of '%v'", smtpTo, subject))
 
 	htmlMessage := "\r\n<html><body>" + htmlBody + "</body></html>"
@@ -244,7 +244,7 @@ func SendMail(c *smtp.Client, mimeTo, smtpTo string, from, reply mail.Address, s
 
 	headers := map[string][]string{
 		"From":                      {from.String()},
-		"Reply-To":                  {reply.String()},
+		"Reply-To":                  {replyTo.String()},
 		"To":                        {mimeTo},
 		"Subject":                   {encodeRFC2047Word(subject)},
 		"Content-Transfer-Encoding": {"8bit"},
