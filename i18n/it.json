@@ -325,7 +325,7 @@
   },
   {
     "id": "api.command.command_post.forbidden.app_error",
-    "translation": "L'utente indicato non è membro del gruppo specificato."
+    "translation": "L'utente indicato non è membro del canale specificato."
   },
   {
     "id": "api.command.disabled.app_error",
@@ -337,7 +337,7 @@
   },
   {
     "id": "api.command.execute_command.create_post_failed.app_error",
-    "translation": "Command '{{.Trigger}}' failed to post response. Please contact your System Administrator."
+    "translation": "Il comando '{{.Trigger}}' ha fallito pubblicando la risposta. Contattare l'Amministratore di Sistema."
   },
   {
     "id": "api.command.execute_command.debug",
@@ -1186,7 +1186,7 @@
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
-    "translation": "Unable to upload file(s). Have {{.NumClientIds}} client_ids for {{.NumFiles}} files."
+    "translation": "Impossibile caricare i file. Ci sono {{.NumClientIds}} client_ids per {{.NumFiles}} file."
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_files.app_error",
@@ -1198,19 +1198,19 @@
   },
   {
     "id": "api.file.upload_file.large_image_detailed.app_error",
-    "translation": "{{.Filename}} dimensions ({{.Width}} by {{.Height}} pixels) exceed the limits"
+    "translation": "Le dimensioni ({{.Width}} per {{.Height}} pixels) del file {{.Filename}} superano i limiti"
   },
   {
     "id": "api.file.upload_file.multiple_channel_ids.app_error",
-    "translation": "Unable to upload file(s). Multiple conflicting channel_ids."
+    "translation": "Impossibile caricare i file. Conflitto con channel_ids multipli."
   },
   {
     "id": "api.file.upload_file.read_form_value.app_error",
-    "translation": "Unable to upload file(s). Error reading the value for {{.Formname}}."
+    "translation": "Impossibile caricare i file. Errore leggendo il valore di {{.Formname}}."
   },
   {
     "id": "api.file.upload_file.read_request.app_error",
-    "translation": "Unable to upload file(s). Error reading or parsing request data."
+    "translation": "Impossibile caricare i file. Errore leggendo o interpretando i dati della richiesta."
   },
   {
     "id": "api.file.upload_file.storage.app_error",
@@ -1222,7 +1222,7 @@
   },
   {
     "id": "api.file.upload_file.too_large_detailed.app_error",
-    "translation": "Unable to upload file {{.Filename}}. {{.Length}} bytes exceeds the maximum allowed {{.Limit}} bytes."
+    "translation": "Impossibile caricare il file {{.Filename}}. Il numero di bytes {{.Length}} supera la lunghezza massima consentita di {{.Limit}} bytes."
   },
   {
     "id": "api.file.write_file.s3.app_error",
@@ -1246,15 +1246,15 @@
   },
   {
     "id": "api.io_error",
-    "translation": "input/output error"
+    "translation": "errore inpu/output"
   },
   {
     "id": "api.ldap_group.not_found",
-    "translation": "ldap group not found"
+    "translation": "gruppo ldap non trovato"
   },
   {
     "id": "api.ldap_groups.license_error",
-    "translation": "your license does not support ldap groups"
+    "translation": "la licenza non supporta i gruppi ldap"
   },
   {
     "id": "api.license.add_license.array.app_error",
@@ -1298,7 +1298,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "marshal error"
+    "translation": "errore raccolta"
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
@@ -1450,11 +1450,11 @@
   },
   {
     "id": "api.post.deduplicate_create_post.failed_to_get",
-    "translation": "Failed to fetch original post after deduplicating a client repeating the same request."
+    "translation": "Impossibile caricare la pubblicazione originale dopo aver deduplicato una richiesta ripetuta da un client."
   },
   {
     "id": "api.post.deduplicate_create_post.pending",
-    "translation": "Rejected post since another client is making the same request."
+    "translation": "Pubblicazione rifiutata poiché un altro client sta eseguendo la stessa richiesta."
   },
   {
     "id": "api.post.disabled_all",
@@ -1768,11 +1768,11 @@
   },
   {
     "id": "api.team.is_team_creation_allowed.disabled.app_error",
-    "translation": "La creazione di gruppo è stata disabilitata. Chiedi al tuo amministratore per maggiori informazioni."
+    "translation": "La creazione di gruppi è stata disabilitata. Chiedi al tuo amministratore per maggiori informazioni."
   },
   {
     "id": "api.team.is_team_creation_allowed.domain.app_error",
-    "translation": "La email deve essere da uno specifico dominio (e.s. @example.com). Per favore chiedi al tuo amministratore di sistema maggiori informazioni."
+    "translation": "La email deve essere da uno specifico dominio (e.s. @esempio.com). Per favore chiedi al tuo amministratore di sistema maggiori informazioni."
   },
   {
     "id": "api.team.join_team.post_and_forget",
@@ -3492,7 +3492,7 @@
   },
   {
     "id": "ent.ldap.app_error",
-    "translation": "ldap interface was nil"
+    "translation": "l'interfaccia ldap era nil"
   },
   {
     "id": "ent.ldap.create_fail",
@@ -3540,11 +3540,11 @@
   },
   {
     "id": "ent.ldap.syncronize.get_all_groups.app_error",
-    "translation": "error retrieving groups"
+    "translation": "errore recuperando i gruppi"
   },
   {
     "id": "ent.ldap.syncronize.populate_syncables",
-    "translation": "error populating syncables"
+    "translation": "errore popolando syncables"
   },
   {
     "id": "ent.ldap.syncronize.search_failure.app_error",
@@ -3556,23 +3556,23 @@
   },
   {
     "id": "ent.ldap_groups.group_search_error",
-    "translation": "error retrieving ldap group"
+    "translation": "errore recuperando il gruppo ldap"
   },
   {
     "id": "ent.ldap_groups.groups_search_error",
-    "translation": "error retrieving ldap groups"
+    "translation": "errore recuperando i gruppi ldap"
   },
   {
     "id": "ent.ldap_groups.members_of_group_error",
-    "translation": "error retrieving members of group"
+    "translation": "errore recuperando i membri del gruppo"
   },
   {
     "id": "ent.ldap_groups.no_rows",
-    "translation": "no groups found with matching uid"
+    "translation": "nessun gruppo trovato con l'uid corrispondente"
   },
   {
     "id": "ent.ldap_groups.reachable_groups_error",
-    "translation": "error retrieving groups for user"
+    "translation": "errore recuperando i gruppi dell'utente"
   },
   {
     "id": "ent.message_export.global_relay.attach_file.app_error",
@@ -3792,7 +3792,7 @@
   },
   {
     "id": "mfa.mfa_disabled.app_error",
-    "translation": "L'autenticazione a più fattori è richiesta da questo server."
+    "translation": "L'autenticazione a più fattori è disattivata su questo server."
   },
   {
     "id": "mfa.validate_token.authenticate.app_error",
@@ -4132,7 +4132,11 @@
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
-    "translation": "Opzioni proxy immagine atmos/camo non valide nelle impostazione del servizio. Dev'essere una chiave condivisa."
+    "translation": "Invalid RemoteImageProxyOptions for atmos/camo. Must be set to your shared key."
+  },
+  {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
+    "translation": "Invalid RemoteImageProxyURL for atmos/camo. Must be set to your shared key."
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
@@ -4220,7 +4224,7 @@
   },
   {
     "id": "model.config.is_valid.image_proxy_type.app_error",
-    "translation": "Tipo proxy immagine non valido nelle impostazioni del servizio."
+    "translation": "Invalid image proxy type. Must be 'local' or 'atmos/camo'."
   },
   {
     "id": "model.config.is_valid.ldap_basedn",
@@ -4500,63 +4504,63 @@
   },
   {
     "id": "model.group.create_at.app_error",
-    "translation": "invalid create at property for group"
+    "translation": "proprietà create at non valida per il gruppo"
   },
   {
     "id": "model.group.delete_at.app_error",
-    "translation": "invalid delete at property for group"
+    "translation": "proprietà delete at non valida per il gruppo"
   },
   {
     "id": "model.group.description.app_error",
-    "translation": "invalid description property for group"
+    "translation": "proprietà description non valida per il gruppo"
   },
   {
     "id": "model.group.display_name.app_error",
-    "translation": "invalid display name property for group"
+    "translation": "proprietà display name non valida per il gruppo"
   },
   {
     "id": "model.group.id.app_error",
-    "translation": "invalid id property for group"
+    "translation": "proprietà id non valida per il gruppo"
   },
   {
     "id": "model.group.name.app_error",
-    "translation": "invalid name property for group"
+    "translation": "proprietà name non valida per il gruppo"
   },
   {
     "id": "model.group.remote_id.app_error",
-    "translation": "invalid remote id property for group"
+    "translation": "proprietà remote id non valida per il gruppo"
   },
   {
     "id": "model.group.source.app_error",
-    "translation": "invalid source property for group"
+    "translation": "proprietà source non valida per il gruppo"
   },
   {
     "id": "model.group.update_at.app_error",
-    "translation": "invalid update at property for group"
+    "translation": "proprietà update at non valida per il gruppo"
   },
   {
     "id": "model.group_member.group_id.app_error",
-    "translation": "invalid group id property for group member"
+    "translation": "proprietà group id non valida per il membro del gruppo"
   },
   {
     "id": "model.group_member.user_id.app_error",
-    "translation": "invalid user id property for group member"
+    "translation": "proprietà user id non valida per il membro del gruppo"
   },
   {
     "id": "model.group_syncable.group_id.app_error",
-    "translation": "invalid group id property for group syncable"
+    "translation": "proprietà group id non valida per il gruppo syncable"
   },
   {
     "id": "model.group_syncable.syncable_id.app_error",
-    "translation": "invalid syncable id for group syncable"
+    "translation": "proprietà syncable id non valida per il gruppo syncable"
   },
   {
     "id": "model.group_syncable.type.app_error",
-    "translation": "invalid type property for group syncable"
+    "translation": "proprietà type non valida per il gruppo syncable"
   },
   {
     "id": "model.group_syncable.unmarshaljson.duplicate_type_identifier",
-    "translation": "type identifier already exists: perhaps json contains both 'team_id' and 'channel_id'"
+    "translation": "l'identificatore di tipo esiste già: forse il json contiene sia 'team_id' che 'channel_id'"
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -4625,6 +4629,30 @@
   {
     "id": "model.license_record.is_valid.id.app_error",
     "translation": "Valore non valido per id caricando la licenza."
+  },
+  {
+    "id": "model.link_metadata.is_valid.data.app_error",
+    "translation": "Link metadata data cannot be nil"
+  },
+  {
+    "id": "model.link_metadata.is_valid.data_type.app_error",
+    "translation": "Link metadata data does not match the given type"
+  },
+  {
+    "id": "model.link_metadata.is_valid.id.app_error",
+    "translation": "Link metadata id invalid"
+  },
+  {
+    "id": "model.link_metadata.is_valid.timestamp.app_error",
+    "translation": "Link metadata timestamp must be nonzero and rounded to the nearest hour"
+  },
+  {
+    "id": "model.link_metadata.is_valid.type.app_error",
+    "translation": "Invalid link metadata type"
+  },
+  {
+    "id": "model.link_metadata.is_valid.url.app_error",
+    "translation": "Link metadata URL must be set"
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",
@@ -4752,7 +4780,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Invalid file ids. Note that uploads are limited to 5 files maximum. Please use additional posts for more files."
+    "translation": "Id file non valido. I caricamenti sono limitati ad un massimo di 5 file. Utilizzare più pubblicazioni per più file."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -5056,11 +5084,11 @@
   },
   {
     "id": "store.insert_error",
-    "translation": "insert error"
+    "translation": "errore inserimento"
   },
   {
     "id": "store.select_error",
-    "translation": "select error"
+    "translation": "errore selezione"
   },
   {
     "id": "store.sql.convert_string_array",
@@ -5632,19 +5660,19 @@
   },
   {
     "id": "store.sql_group.group_syncable_already_deleted",
-    "translation": "group syncable was already deleted"
+    "translation": "il gruppo syncable è già stato cancellato"
   },
   {
     "id": "store.sql_group.no_rows",
-    "translation": "no matching group found"
+    "translation": "nessun gruppo corrispondente trovato"
   },
   {
     "id": "store.sql_group.no_rows_changed",
-    "translation": "no rows changed"
+    "translation": "nessuna riga modificata"
   },
   {
     "id": "store.sql_group.nothing_to_update",
-    "translation": "nothing to update for group syncable"
+    "translation": "niente da aggiornare per il gruppo syncable"
   },
   {
     "id": "store.sql_group.unique_constraint",
@@ -5652,7 +5680,7 @@
   },
   {
     "id": "store.sql_group.uniqueness_error",
-    "translation": "group member already exists"
+    "translation": "il membro del gruppo esiste già"
   },
   {
     "id": "store.sql_job.delete.app_error",
@@ -6752,7 +6780,7 @@
   },
   {
     "id": "store.update_error",
-    "translation": "update error"
+    "translation": "errore aggiornamento"
   },
   {
     "id": "system.message.name",

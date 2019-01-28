@@ -325,7 +325,7 @@
   },
   {
     "id": "api.command.command_post.forbidden.app_error",
-    "translation": "指定的使用者不是指定團隊的成員。"
+    "translation": "指定的使用者不是指定頻道的成員。"
   },
   {
     "id": "api.command.disabled.app_error",
@@ -1532,7 +1532,7 @@
   },
   {
     "id": "api.post.update_post.permissions_time_limit.app_error",
-    "translation": "僅在 {{.timeLimit}} 秒內可以編輯訊息。請洽詢系統管理員了解詳情。 "
+    "translation": "僅在 {{.timeLimit}} 秒內可以編輯訊息。請洽詢系統管理員了解詳情。"
   },
   {
     "id": "api.post.update_post.system_message.app_error",
@@ -1772,7 +1772,7 @@
   },
   {
     "id": "api.team.is_team_creation_allowed.domain.app_error",
-    "translation": "電子郵件地址必須來自一個指定的網域 (例如 @example.com)。請洽詢系統管理員了解詳情。"
+    "translation": "電子郵件地址必須來自特定的網域 (例如 @example.com)。請洽詢系統管理員了解詳情。"
   },
   {
     "id": "api.team.join_team.post_and_forget",
@@ -3792,7 +3792,7 @@
   },
   {
     "id": "mfa.mfa_disabled.app_error",
-    "translation": "此伺服器要求多重要素驗證。"
+    "translation": "此伺服器上的多重要素驗證已被停用。"
   },
   {
     "id": "mfa.validate_token.authenticate.app_error",
@@ -4132,7 +4132,11 @@
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
-    "translation": "服務設定中的 atmos/camo 圖片代理無效。必須設定為分享金鑰。"
+    "translation": "Invalid RemoteImageProxyOptions for atmos/camo. Must be set to your shared key."
+  },
+  {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
+    "translation": "Invalid RemoteImageProxyURL for atmos/camo. Must be set to your shared key."
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
@@ -4220,7 +4224,7 @@
   },
   {
     "id": "model.config.is_valid.image_proxy_type.app_error",
-    "translation": "服務設定中的圖片代理類型無效。"
+    "translation": "Invalid image proxy type. Must be 'local' or 'atmos/camo'."
   },
   {
     "id": "model.config.is_valid.ldap_basedn",
@@ -4625,6 +4629,30 @@
   {
     "id": "model.license_record.is_valid.id.app_error",
     "translation": "上傳授權時的 ID 無效"
+  },
+  {
+    "id": "model.link_metadata.is_valid.data.app_error",
+    "translation": "Link metadata data cannot be nil"
+  },
+  {
+    "id": "model.link_metadata.is_valid.data_type.app_error",
+    "translation": "Link metadata data does not match the given type"
+  },
+  {
+    "id": "model.link_metadata.is_valid.id.app_error",
+    "translation": "Link metadata id invalid"
+  },
+  {
+    "id": "model.link_metadata.is_valid.timestamp.app_error",
+    "translation": "Link metadata timestamp must be nonzero and rounded to the nearest hour"
+  },
+  {
+    "id": "model.link_metadata.is_valid.type.app_error",
+    "translation": "Invalid link metadata type"
+  },
+  {
+    "id": "model.link_metadata.is_valid.url.app_error",
+    "translation": "Link metadata URL must be set"
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",
