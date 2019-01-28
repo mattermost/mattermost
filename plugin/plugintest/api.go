@@ -390,13 +390,13 @@ func (_m *API) EnablePlugin(id string) *model.AppError {
 	return r0
 }
 
-// GetBot provides a mock function with given fields: userId, includeDeleted
-func (_m *API) GetBot(userId string, includeDeleted bool) (*model.Bot, *model.AppError) {
-	ret := _m.Called(userId, includeDeleted)
+// GetBot provides a mock function with given fields: botUserId, includeDeleted
+func (_m *API) GetBot(botUserId string, includeDeleted bool) (*model.Bot, *model.AppError) {
+	ret := _m.Called(botUserId, includeDeleted)
 
 	var r0 *model.Bot
 	if rf, ok := ret.Get(0).(func(string, bool) *model.Bot); ok {
-		r0 = rf(userId, includeDeleted)
+		r0 = rf(botUserId, includeDeleted)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Bot)
@@ -405,7 +405,7 @@ func (_m *API) GetBot(userId string, includeDeleted bool) (*model.Bot, *model.Ap
 
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(string, bool) *model.AppError); ok {
-		r1 = rf(userId, includeDeleted)
+		r1 = rf(botUserId, includeDeleted)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -1884,13 +1884,13 @@ func (_m *API) OpenInteractiveDialog(dialog model.OpenDialogRequest) *model.AppE
 	return r0
 }
 
-// PatchBot provides a mock function with given fields: userId, botPatch
-func (_m *API) PatchBot(userId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError) {
-	ret := _m.Called(userId, botPatch)
+// PatchBot provides a mock function with given fields: botUserId, botPatch
+func (_m *API) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError) {
+	ret := _m.Called(botUserId, botPatch)
 
 	var r0 *model.Bot
 	if rf, ok := ret.Get(0).(func(string, *model.BotPatch) *model.Bot); ok {
-		r0 = rf(userId, botPatch)
+		r0 = rf(botUserId, botPatch)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Bot)
@@ -1899,7 +1899,7 @@ func (_m *API) PatchBot(userId string, botPatch *model.BotPatch) (*model.Bot, *m
 
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(string, *model.BotPatch) *model.AppError); ok {
-		r1 = rf(userId, botPatch)
+		r1 = rf(botUserId, botPatch)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -1909,13 +1909,13 @@ func (_m *API) PatchBot(userId string, botPatch *model.BotPatch) (*model.Bot, *m
 	return r0, r1
 }
 
-// PermanentDeleteBot provides a mock function with given fields: userId
-func (_m *API) PermanentDeleteBot(userId string) *model.AppError {
-	ret := _m.Called(userId)
+// PermanentDeleteBot provides a mock function with given fields: botUserId
+func (_m *API) PermanentDeleteBot(botUserId string) *model.AppError {
+	ret := _m.Called(botUserId)
 
 	var r0 *model.AppError
 	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
-		r0 = rf(userId)
+		r0 = rf(botUserId)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.AppError)
@@ -2202,13 +2202,13 @@ func (_m *API) UnregisterCommand(teamId string, trigger string) error {
 	return r0
 }
 
-// UpdateBotActive provides a mock function with given fields: userId, active
-func (_m *API) UpdateBotActive(userId string, active bool) (*model.Bot, *model.AppError) {
-	ret := _m.Called(userId, active)
+// UpdateBotActive provides a mock function with given fields: botUserId, active
+func (_m *API) UpdateBotActive(botUserId string, active bool) (*model.Bot, *model.AppError) {
+	ret := _m.Called(botUserId, active)
 
 	var r0 *model.Bot
 	if rf, ok := ret.Get(0).(func(string, bool) *model.Bot); ok {
-		r0 = rf(userId, active)
+		r0 = rf(botUserId, active)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Bot)
@@ -2217,7 +2217,7 @@ func (_m *API) UpdateBotActive(userId string, active bool) (*model.Bot, *model.A
 
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(string, bool) *model.AppError); ok {
-		r1 = rf(userId, active)
+		r1 = rf(botUserId, active)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

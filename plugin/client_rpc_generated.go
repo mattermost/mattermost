@@ -3609,8 +3609,8 @@ type Z_PatchBotReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) PatchBot(userId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError) {
-	_args := &Z_PatchBotArgs{userId, botPatch}
+func (g *apiRPCClient) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError) {
+	_args := &Z_PatchBotArgs{botUserId, botPatch}
 	_returns := &Z_PatchBotReturns{}
 	if err := g.client.Call("Plugin.PatchBot", _args, _returns); err != nil {
 		log.Printf("RPC call to PatchBot API failed: %s", err.Error())
@@ -3620,7 +3620,7 @@ func (g *apiRPCClient) PatchBot(userId string, botPatch *model.BotPatch) (*model
 
 func (s *apiRPCServer) PatchBot(args *Z_PatchBotArgs, returns *Z_PatchBotReturns) error {
 	if hook, ok := s.impl.(interface {
-		PatchBot(userId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError)
+		PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.PatchBot(args.A, args.B)
 	} else {
@@ -3639,8 +3639,8 @@ type Z_GetBotReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetBot(userId string, includeDeleted bool) (*model.Bot, *model.AppError) {
-	_args := &Z_GetBotArgs{userId, includeDeleted}
+func (g *apiRPCClient) GetBot(botUserId string, includeDeleted bool) (*model.Bot, *model.AppError) {
+	_args := &Z_GetBotArgs{botUserId, includeDeleted}
 	_returns := &Z_GetBotReturns{}
 	if err := g.client.Call("Plugin.GetBot", _args, _returns); err != nil {
 		log.Printf("RPC call to GetBot API failed: %s", err.Error())
@@ -3650,7 +3650,7 @@ func (g *apiRPCClient) GetBot(userId string, includeDeleted bool) (*model.Bot, *
 
 func (s *apiRPCServer) GetBot(args *Z_GetBotArgs, returns *Z_GetBotReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetBot(userId string, includeDeleted bool) (*model.Bot, *model.AppError)
+		GetBot(botUserId string, includeDeleted bool) (*model.Bot, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetBot(args.A, args.B)
 	} else {
@@ -3698,8 +3698,8 @@ type Z_UpdateBotActiveReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) UpdateBotActive(userId string, active bool) (*model.Bot, *model.AppError) {
-	_args := &Z_UpdateBotActiveArgs{userId, active}
+func (g *apiRPCClient) UpdateBotActive(botUserId string, active bool) (*model.Bot, *model.AppError) {
+	_args := &Z_UpdateBotActiveArgs{botUserId, active}
 	_returns := &Z_UpdateBotActiveReturns{}
 	if err := g.client.Call("Plugin.UpdateBotActive", _args, _returns); err != nil {
 		log.Printf("RPC call to UpdateBotActive API failed: %s", err.Error())
@@ -3709,7 +3709,7 @@ func (g *apiRPCClient) UpdateBotActive(userId string, active bool) (*model.Bot, 
 
 func (s *apiRPCServer) UpdateBotActive(args *Z_UpdateBotActiveArgs, returns *Z_UpdateBotActiveReturns) error {
 	if hook, ok := s.impl.(interface {
-		UpdateBotActive(userId string, active bool) (*model.Bot, *model.AppError)
+		UpdateBotActive(botUserId string, active bool) (*model.Bot, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.UpdateBotActive(args.A, args.B)
 	} else {
@@ -3726,8 +3726,8 @@ type Z_PermanentDeleteBotReturns struct {
 	A *model.AppError
 }
 
-func (g *apiRPCClient) PermanentDeleteBot(userId string) *model.AppError {
-	_args := &Z_PermanentDeleteBotArgs{userId}
+func (g *apiRPCClient) PermanentDeleteBot(botUserId string) *model.AppError {
+	_args := &Z_PermanentDeleteBotArgs{botUserId}
 	_returns := &Z_PermanentDeleteBotReturns{}
 	if err := g.client.Call("Plugin.PermanentDeleteBot", _args, _returns); err != nil {
 		log.Printf("RPC call to PermanentDeleteBot API failed: %s", err.Error())
@@ -3737,7 +3737,7 @@ func (g *apiRPCClient) PermanentDeleteBot(userId string) *model.AppError {
 
 func (s *apiRPCServer) PermanentDeleteBot(args *Z_PermanentDeleteBotArgs, returns *Z_PermanentDeleteBotReturns) error {
 	if hook, ok := s.impl.(interface {
-		PermanentDeleteBot(userId string) *model.AppError
+		PermanentDeleteBot(botUserId string) *model.AppError
 	}); ok {
 		returns.A = hook.PermanentDeleteBot(args.A)
 	} else {

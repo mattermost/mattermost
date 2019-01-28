@@ -49,6 +49,7 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
+	botUserId := c.Params.UserId
 
 	botPatch := model.BotPatchFromJson(r.Body)
 	if botPatch == nil {
@@ -56,12 +57,12 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.SessionHasPermissionToManageBot(c.App.Session, c.Params.UserId); err != nil {
+	if err := c.App.SessionHasPermissionToManageBot(c.App.Session, botUserId); err != nil {
 		c.Err = err
 		return
 	}
 
-	updatedBot, err := c.App.PatchBot(c.Params.UserId, botPatch)
+	updatedBot, err := c.App.PatchBot(botUserId, botPatch)
 	if err != nil {
 		c.Err = err
 		return
@@ -75,10 +76,11 @@ func getBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
+	botUserId := c.Params.UserId
 
 	includeDeleted := r.URL.Query().Get("include_deleted") == "true"
 
-	bot, err := c.App.GetBot(c.Params.UserId, includeDeleted)
+	bot, err := c.App.GetBot(botUserId, includeDeleted)
 	if err != nil {
 		c.Err = err
 		return
@@ -91,13 +93,13 @@ func getBot(c *Context, w http.ResponseWriter, r *http.Request) {
 			// Pretend like the bot doesn't exist at all to avoid revealing that the
 			// user is a bot. It's kind of silly in this case, sine we created the bot,
 			// but we don't have read bot permissions.
-			c.Err = model.MakeBotNotFoundError(c.Params.UserId)
+			c.Err = model.MakeBotNotFoundError(botUserId)
 			return
 		}
 	} else {
 		// Pretend like the bot doesn't exist at all, to avoid revealing that the
 		// user is a bot.
-		c.Err = model.MakeBotNotFoundError(c.Params.UserId)
+		c.Err = model.MakeBotNotFoundError(botUserId)
 		return
 	}
 
@@ -146,13 +148,14 @@ func disableBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
 	}
+	botUserId := c.Params.UserId
 
-	if err := c.App.SessionHasPermissionToManageBot(c.App.Session, c.Params.UserId); err != nil {
+	if err := c.App.SessionHasPermissionToManageBot(c.App.Session, botUserId); err != nil {
 		c.Err = err
 		return
 	}
 
-	bot, err := c.App.UpdateBotActive(c.Params.UserId, false)
+	bot, err := c.App.UpdateBotActive(botUserId, false)
 	if err != nil {
 		c.Err = err
 		return

@@ -489,12 +489,12 @@ type API interface {
 	// PatchBot applies the given patch to the bot and corresponding user.
 	//
 	// Minimum server version: 5.8
-	PatchBot(userId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError)
+	PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError)
 
 	// GetBot returns the given bot.
 	//
 	// Minimum server version: 5.8
-	GetBot(userId string, includeDeleted bool) (*model.Bot, *model.AppError)
+	GetBot(botUserId string, includeDeleted bool) (*model.Bot, *model.AppError)
 
 	// GetBots returns the requested page of bots.
 	//
@@ -504,12 +504,12 @@ type API interface {
 	// UpdateBotActive marks a bot as active or inactive, along with its corresponding user.
 	//
 	// Minimum server version: 5.8
-	UpdateBotActive(userId string, active bool) (*model.Bot, *model.AppError)
+	UpdateBotActive(botUserId string, active bool) (*model.Bot, *model.AppError)
 
 	// PermanentDeleteBot permanently deletes a bot and its corresponding user.
 	//
 	// Minimum server version: 5.8
-	PermanentDeleteBot(userId string) *model.AppError
+	PermanentDeleteBot(botUserId string) *model.AppError
 }
 
 var handshake = plugin.HandshakeConfig{

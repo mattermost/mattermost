@@ -76,7 +76,7 @@ func traceBot(bot *model.Bot, extra map[string]interface{}) map[string]interface
 }
 
 // Get fetches the given bot in the database.
-func (us SqlBotStore) Get(userId string, includeDeleted bool) store.StoreChannel {
+func (us SqlBotStore) Get(botUserId string, includeDeleted bool) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var excludeDeletedSql = "AND b.DeleteAt = 0"
 		if includeDeleted {
@@ -102,11 +102,11 @@ func (us SqlBotStore) Get(userId string, includeDeleted bool) store.StoreChannel
 			    b.UserId = :user_id
 			    `+excludeDeletedSql+`
 		`, map[string]interface{}{
-			"user_id": userId,
+			"user_id": botUserId,
 		}); err == sql.ErrNoRows {
-			result.Err = model.MakeBotNotFoundError(userId)
+			result.Err = model.MakeBotNotFoundError(botUserId)
 		} else if err != nil {
-			result.Err = model.NewAppError("SqlBotStore.Get", "store.sql_bot.get.app_error", map[string]interface{}{"user_id": userId}, err.Error(), http.StatusInternalServerError)
+			result.Err = model.NewAppError("SqlBotStore.Get", "store.sql_bot.get.app_error", map[string]interface{}{"user_id": botUserId}, err.Error(), http.StatusInternalServerError)
 		} else {
 			result.Data = bot
 		}
@@ -225,9 +225,9 @@ func (us SqlBotStore) Update(bot *model.Bot) store.StoreChannel {
 
 // PermanentDelete removes the bot from the database altogether.
 // If the corresponding user is to be deleted, it must be done via the user store.
-func (us SqlBotStore) PermanentDelete(userId string) store.StoreChannel {
+func (us SqlBotStore) PermanentDelete(botUserId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		userResult := <-us.User().PermanentDelete(userId)
+		userResult := <-us.User().PermanentDelete(botUserId)
 		if userResult.Err != nil {
 			result.Err = userResult.Err
 			return
@@ -239,9 +239,9 @@ func (us SqlBotStore) PermanentDelete(userId string) store.StoreChannel {
 			WHERE
 			    UserId = :user_id
 		`, map[string]interface{}{
-			"user_id": userId,
+			"user_id": botUserId,
 		}); err != nil {
-			result.Err = model.NewAppError("SqlBotStore.Update", "store.sql_bot.delete.app_error", map[string]interface{}{"user_id": userId}, err.Error(), http.StatusBadRequest)
+			result.Err = model.NewAppError("SqlBotStore.Update", "store.sql_bot.delete.app_error", map[string]interface{}{"user_id": botUserId}, err.Error(), http.StatusBadRequest)
 		}
 	})
 }
