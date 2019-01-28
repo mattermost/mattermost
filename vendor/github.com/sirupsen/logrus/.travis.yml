@@ -1,4 +1,5 @@
 language: go
+go_import_path: github.com/sirupsen/logrus
 env:
   - GOMAXPROCS=4 GORACE=halt_on_error=1
 matrix:

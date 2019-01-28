@@ -912,9 +912,11 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 		Name:     post1.Id,
 		Value:    "true",
 	}
-	Client.UpdatePreferences(user.Id, &model.Preferences{preference})
+	_, resp := Client.UpdatePreferences(user.Id, &model.Preferences{preference})
+	CheckNoError(t, resp)
 	preference.Name = post2.Id
-	Client.UpdatePreferences(user.Id, &model.Preferences{preference})
+	_, resp = Client.UpdatePreferences(user.Id, &model.Preferences{preference})
+	CheckNoError(t, resp)
 
 	opl := model.NewPostList()
 	opl.AddPost(post1)
@@ -1047,6 +1049,66 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 
 	if len(rpl.Posts) != 0 {
 		t.Fatal("should be empty")
+	}
+
+	channel4 := th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_PRIVATE)
+	post5 := th.CreatePostWithClient(th.SystemAdminClient, channel4)
+
+	preference.Name = post5.Id
+	_, resp = Client.UpdatePreferences(user.Id, &model.Preferences{preference})
+	CheckForbiddenStatus(t, resp)
+
+	rpl, resp = Client.GetFlaggedPostsForUser(user.Id, 0, 10)
+	CheckNoError(t, resp)
+
+	if len(rpl.Posts) != 3 {
+		t.Fatal("should have returned 3 posts")
+	}
+
+	if !reflect.DeepEqual(rpl.Posts, opl.Posts) {
+		t.Fatal("posts should have matched")
+	}
+
+	th.AddUserToChannel(user, channel4)
+	_, resp = Client.UpdatePreferences(user.Id, &model.Preferences{preference})
+	CheckNoError(t, resp)
+
+	rpl, resp = Client.GetFlaggedPostsForUser(user.Id, 0, 10)
+	CheckNoError(t, resp)
+
+	opl.AddPost(post5)
+	opl.AddOrder(post5.Id)
+
+	if len(rpl.Posts) != 4 {
+		t.Fatal("should have returned 4 posts")
+	}
+
+	if !reflect.DeepEqual(rpl.Posts, opl.Posts) {
+		t.Fatal("posts should have matched")
+	}
+
+	err := th.App.RemoveUserFromChannel(user.Id, "", channel4)
+	if err != nil {
+		t.Error("Unable to remove user from channel")
+	}
+
+	rpl, resp = Client.GetFlaggedPostsForUser(user.Id, 0, 10)
+	CheckNoError(t, resp)
+
+	opl2 := model.NewPostList()
+	opl2.AddPost(post1)
+	opl2.AddOrder(post1.Id)
+	opl2.AddPost(post2)
+	opl2.AddOrder(post2.Id)
+	opl2.AddPost(post4)
+	opl2.AddOrder(post4.Id)
+
+	if len(rpl.Posts) != 3 {
+		t.Fatal("should have returned 3 posts")
+	}
+
+	if !reflect.DeepEqual(rpl.Posts, opl2.Posts) {
+		t.Fatal("posts should have matched")
 	}
 
 	_, resp = Client.GetFlaggedPostsForUser("junk", 0, 10)

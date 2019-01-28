@@ -4,9 +4,6 @@
 package app
 
 import (
-	"crypto/hmac"
-	"crypto/sha1"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -273,13 +270,8 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 	}
 
 	if len(post.FileIds) > 0 {
-		// There's a rare bug where the client sends up duplicate FileIds so protect against that
-		post.FileIds = utils.RemoveDuplicatesFromStringArray(post.FileIds)
-
-		for _, fileId := range post.FileIds {
-			if result := <-a.Srv.Store.FileInfo().AttachToPost(fileId, post.Id); result.Err != nil {
-				mlog.Error(fmt.Sprintf("Encountered error attaching files to post, post_id=%s, user_id=%s, file_ids=%v, err=%v", post.Id, post.FileIds, post.UserId, result.Err), mlog.String("post_id", post.Id))
-			}
+		if err := a.attachFilesToPost(post); err != nil {
+			mlog.Error("Encountered error attaching files to post", mlog.String("post_id", post.Id), mlog.Any("file_ids", post.FileIds), mlog.Err(result.Err))
 		}
 
 		if a.Metrics != nil {
@@ -296,6 +288,31 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 	}
 
 	return rpost, nil
+}
+
+func (a *App) attachFilesToPost(post *model.Post) *model.AppError {
+	var attachedIds []string
+	for _, fileId := range post.FileIds {
+		result := <-a.Srv.Store.FileInfo().AttachToPost(fileId, post.Id, post.UserId)
+		if result.Err != nil {
+			mlog.Warn("Failed to attach file to post", mlog.String("file_id", fileId), mlog.String("post_id", post.Id), mlog.Err(result.Err))
+			continue
+		}
+
+		attachedIds = append(attachedIds, fileId)
+	}
+
+	if len(post.FileIds) != len(attachedIds) {
+		// We couldn't attach all files to the post, so ensure that post.FileIds reflects what was actually attached
+		post.FileIds = attachedIds
+
+		result := <-a.Srv.Store.Post().Overwrite(post)
+		if result.Err != nil {
+			return result.Err
+		}
+	}
+
+	return nil
 }
 
 // FillInPostProps should be invoked before saving posts to fill in properties such as
@@ -896,78 +913,23 @@ func (a *App) PostPatchWithProxyRemovedFromImageURLs(patch *model.PostPatch) *mo
 	return patch
 }
 
-func (a *App) imageProxyConfig() (proxyType, proxyURL, options, siteURL string) {
-	cfg := a.Config()
-
-	if cfg.ServiceSettings.ImageProxyURL == nil || cfg.ServiceSettings.ImageProxyType == nil || cfg.ServiceSettings.SiteURL == nil {
-		return
-	}
-
-	proxyURL = *cfg.ServiceSettings.ImageProxyURL
-	proxyType = *cfg.ServiceSettings.ImageProxyType
-	siteURL = *cfg.ServiceSettings.SiteURL
-
-	if proxyURL == "" || proxyType == "" {
-		return "", "", "", ""
-	}
-
-	if proxyURL[len(proxyURL)-1] != '/' {
-		proxyURL += "/"
-	}
-
-	if siteURL == "" || siteURL[len(siteURL)-1] != '/' {
-		siteURL += "/"
-	}
-
-	if cfg.ServiceSettings.ImageProxyOptions != nil {
-		options = *cfg.ServiceSettings.ImageProxyOptions
-	}
-
-	return
-}
-
 func (a *App) ImageProxyAdder() func(string) string {
-	proxyType, proxyURL, options, siteURL := a.imageProxyConfig()
-	if proxyType == "" {
+	if !*a.Config().ImageProxySettings.Enable {
 		return nil
 	}
 
 	return func(url string) string {
-		if url == "" || url[0] == '/' || strings.HasPrefix(url, siteURL) || strings.HasPrefix(url, proxyURL) {
-			return url
-		}
-
-		switch proxyType {
-		case "atmos/camo":
-			mac := hmac.New(sha1.New, []byte(options))
-			mac.Write([]byte(url))
-			digest := hex.EncodeToString(mac.Sum(nil))
-			return proxyURL + digest + "/" + hex.EncodeToString([]byte(url))
-		}
-
-		return url
+		return a.Srv.ImageProxy.GetProxiedImageURL(url)
 	}
 }
 
 func (a *App) ImageProxyRemover() (f func(string) string) {
-	proxyType, proxyURL, _, _ := a.imageProxyConfig()
-	if proxyType == "" {
+	if !*a.Config().ImageProxySettings.Enable {
 		return nil
 	}
 
 	return func(url string) string {
-		switch proxyType {
-		case "atmos/camo":
-			if strings.HasPrefix(url, proxyURL) {
-				if slash := strings.IndexByte(url[len(proxyURL):], '/'); slash >= 0 {
-					if decoded, err := hex.DecodeString(url[len(proxyURL)+slash+1:]); err == nil {
-						return string(decoded)
-					}
-				}
-			}
-		}
-
-		return url
+		return a.Srv.ImageProxy.GetUnproxiedImageURL(url)
 	}
 }
 

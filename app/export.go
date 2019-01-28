@@ -5,7 +5,6 @@ package app
 
 import (
 	"encoding/json"
-	"errors"
 	"io"
 	"net/http"
 	"os"
@@ -13,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/pkg/errors"
 )
 
 func (a *App) BulkExport(writer io.Writer, file string, pathToEmojiDir string, dirNameToExportEmoji string) *model.AppError {
@@ -404,8 +404,6 @@ func (a *App) createDirForEmoji(file string, dirName string) string {
 
 // Copies emoji files from 'data/emoji' dir to 'exported_emoji' dir
 func (a *App) copyEmojiImages(emojiId string, emojiImagePath string, pathToDir string) error {
-	var err error
-
 	fromPath, err := os.Open(emojiImagePath)
 	if fromPath == nil || err != nil {
 		return errors.New("Error reading " + emojiImagePath + "file")
@@ -414,12 +412,16 @@ func (a *App) copyEmojiImages(emojiId string, emojiImagePath string, pathToDir s
 
 	emojiDir := pathToDir + "/" + emojiId
 
-	if _, err := os.Stat(emojiDir); os.IsNotExist(err) {
-		os.Mkdir(emojiDir, os.ModePerm)
+	if _, err = os.Stat(emojiDir); err != nil {
+		if !os.IsNotExist(err) {
+			return errors.Wrapf(err, "Error fetching file info of emoji directory %v", emojiDir)
+		}
+
+		if err = os.Mkdir(emojiDir, os.ModePerm); err != nil {
+			return errors.Wrapf(err, "Error creating emoji directory %v", emojiDir)
+		}
 	}
-	if err != nil {
-		return errors.New("Error creating directory for the emoji " + err.Error())
-	}
+
 	toPath, err := os.OpenFile(emojiDir+"/image", os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
 		return errors.New("Error creating the image file " + err.Error())

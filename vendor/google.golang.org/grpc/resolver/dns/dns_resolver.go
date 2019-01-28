@@ -21,6 +21,7 @@
 package dns
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -31,7 +32,6 @@ import (
 	"sync"
 	"time"
 
-	"golang.org/x/net/context"
 	"google.golang.org/grpc/grpclog"
 	"google.golang.org/grpc/internal/backoff"
 	"google.golang.org/grpc/internal/grpcrand"
@@ -43,9 +43,10 @@ func init() {
 }
 
 const (
-	defaultPort = "443"
-	defaultFreq = time.Minute * 30
-	golang      = "GO"
+	defaultPort       = "443"
+	defaultFreq       = time.Minute * 30
+	defaultDNSSvrPort = "53"
+	golang            = "GO"
 	// In DNS, service config is encoded in a TXT record via the mechanism
 	// described in RFC-1464 using the attribute name grpc_config.
 	txtAttribute = "grpc_config="
@@ -60,6 +61,31 @@ var (
 	// a colon as the host and port separator
 	errEndsWithColon = errors.New("dns resolver: missing port after port-separator colon")
 )
+
+var (
+	defaultResolver netResolver = net.DefaultResolver
+)
+
+var customAuthorityDialler = func(authority string) func(ctx context.Context, network, address string) (net.Conn, error) {
+	return func(ctx context.Context, network, address string) (net.Conn, error) {
+		var dialer net.Dialer
+		return dialer.DialContext(ctx, network, authority)
+	}
+}
+
+var customAuthorityResolver = func(authority string) (netResolver, error) {
+	host, port, err := parseTarget(authority, defaultDNSSvrPort)
+	if err != nil {
+		return nil, err
+	}
+
+	authorityWithPort := net.JoinHostPort(host, port)
+
+	return &net.Resolver{
+		PreferGo: true,
+		Dial:     customAuthorityDialler(authorityWithPort),
+	}, nil
+}
 
 // NewBuilder creates a dnsBuilder which is used to factory DNS resolvers.
 func NewBuilder() resolver.Builder {
