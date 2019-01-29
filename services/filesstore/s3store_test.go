@@ -17,13 +17,13 @@ func TestCheckMandatoryS3Fields(t *testing.T) {
 		t.Fatal("should've failed with missing s3 bucket")
 	}
 
-	cfg.AmazonS3Bucket = model.NewString("test-mm")
+	*cfg.AmazonS3Bucket = "test-mm"
 	err = CheckMandatoryS3Fields(&cfg)
 	if err != nil {
 		t.Fatal("should've not failed")
 	}
 
-	cfg.AmazonS3Endpoint = model.NewString("")
+	*cfg.AmazonS3Endpoint = ""
 	err = CheckMandatoryS3Fields(&cfg)
 	if err != nil || *cfg.AmazonS3Endpoint != "s3.amazonaws.com" {
 		t.Fatal("should've not failed because it should set the endpoint to the default")

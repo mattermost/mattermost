@@ -492,7 +492,7 @@ func TestCreateOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 		CreatorId:    th.BasicUser.Id,
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = model.NewBool(true) })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
 
 	createdHook, err := th.App.CreateOutgoingWebhook(&outgoingWebhook)
 
@@ -609,9 +609,9 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 
 			th.App.UpdateConfig(func(cfg *model.Config) {
-				cfg.ServiceSettings.EnableOutgoingWebhooks = model.NewBool(true)
-				cfg.ServiceSettings.EnablePostUsernameOverride = model.NewBool(testCase.EnablePostUsernameOverride)
-				cfg.ServiceSettings.EnablePostIconOverride = model.NewBool(testCase.EnablePostIconOverride)
+				*cfg.ServiceSettings.EnableOutgoingWebhooks = true
+				*cfg.ServiceSettings.EnablePostUsernameOverride = testCase.EnablePostUsernameOverride
+				*cfg.ServiceSettings.EnablePostIconOverride = testCase.EnablePostIconOverride
 			})
 
 			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

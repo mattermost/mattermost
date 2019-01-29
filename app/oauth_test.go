@@ -20,7 +20,7 @@ func TestGetOAuthAccessTokenForImplicitFlow(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = model.NewBool(true) })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oapp := &model.OAuthApp{
 		Name:         "fakeoauthapp" + model.NewRandomString(10),
@@ -45,13 +45,13 @@ func TestGetOAuthAccessTokenForImplicitFlow(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, session)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = model.NewBool(false) })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
 
 	session, err = th.App.GetOAuthAccessTokenForImplicitFlow(th.BasicUser.Id, authRequest)
 	assert.NotNil(t, err, "should fail - oauth2 disabled")
 	assert.Nil(t, session)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = model.NewBool(true) })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 	authRequest.ClientId = "junk"
 
 	session, err = th.App.GetOAuthAccessTokenForImplicitFlow(th.BasicUser.Id, authRequest)
@@ -157,15 +157,15 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 			*cfg.GitLabSettings.Enable = enable
 
 			if tokenEndpoint {
-				cfg.GitLabSettings.TokenEndpoint = model.NewString(serverURL + "/token")
+				*cfg.GitLabSettings.TokenEndpoint = serverURL + "/token"
 			} else {
-				cfg.GitLabSettings.TokenEndpoint = model.NewString("")
+				*cfg.GitLabSettings.TokenEndpoint = ""
 			}
 
 			if userEndpoint {
-				cfg.GitLabSettings.UserApiEndpoint = model.NewString(serverURL + "/user")
+				*cfg.GitLabSettings.UserApiEndpoint = serverURL + "/user"
 			} else {
-				cfg.GitLabSettings.UserApiEndpoint = model.NewString("")
+				*cfg.GitLabSettings.UserApiEndpoint = ""
 			}
 		})
 
