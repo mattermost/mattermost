@@ -325,7 +325,7 @@
   },
   {
     "id": "api.command.command_post.forbidden.app_error",
-    "translation": "指定的用户不属于指定的团队。"
+    "translation": "指定的用户不属于指定的频道。"
   },
   {
     "id": "api.command.disabled.app_error",
@@ -1186,7 +1186,7 @@
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
-    "translation": "Unable to upload file(s). Have {{.NumClientIds}} client_ids for {{.NumFiles}} files."
+    "translation": "无法上传文件。{{.NumFiles}} 个文件拥有 {{.NumClientIds}} 个 client_ids。"
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_files.app_error",
@@ -1202,15 +1202,15 @@
   },
   {
     "id": "api.file.upload_file.multiple_channel_ids.app_error",
-    "translation": "Unable to upload file(s). Multiple conflicting channel_ids."
+    "translation": "无法上传文件。多个冲突的 channel_ids。"
   },
   {
     "id": "api.file.upload_file.read_form_value.app_error",
-    "translation": "Unable to upload file(s). Error reading the value for {{.Formname}}."
+    "translation": "无法上传文件。读取或解析 {{.Formname}} 时出错。"
   },
   {
     "id": "api.file.upload_file.read_request.app_error",
-    "translation": "Unable to upload file(s). Error reading or parsing request data."
+    "translation": "无法上传文件。读取或解析请求数据时出错。"
   },
   {
     "id": "api.file.upload_file.storage.app_error",
@@ -1222,7 +1222,7 @@
   },
   {
     "id": "api.file.upload_file.too_large_detailed.app_error",
-    "translation": "Unable to upload file {{.Filename}}. {{.Length}} bytes exceeds the maximum allowed {{.Limit}} bytes."
+    "translation": "无法上传文件 {{.Filename}}。{{.Length}} 字节超过最大允许的 {{.Limit}} 字节。"
   },
   {
     "id": "api.file.write_file.s3.app_error",
@@ -1246,15 +1246,15 @@
   },
   {
     "id": "api.io_error",
-    "translation": "input/output error"
+    "translation": "输入/输出错误"
   },
   {
     "id": "api.ldap_group.not_found",
-    "translation": "ldap group not found"
+    "translation": "未找到 ldap 组"
   },
   {
     "id": "api.ldap_groups.license_error",
-    "translation": "your license does not support ldap groups"
+    "translation": "您的许可证不支持 ldap 组"
   },
   {
     "id": "api.license.add_license.array.app_error",
@@ -3540,7 +3540,7 @@
   },
   {
     "id": "ent.ldap.syncronize.get_all_groups.app_error",
-    "translation": "error retrieving groups"
+    "translation": "获取用户组出错"
   },
   {
     "id": "ent.ldap.syncronize.populate_syncables",
@@ -3556,23 +3556,23 @@
   },
   {
     "id": "ent.ldap_groups.group_search_error",
-    "translation": "error retrieving ldap group"
+    "translation": "获取 ldap 用户组出错"
   },
   {
     "id": "ent.ldap_groups.groups_search_error",
-    "translation": "error retrieving ldap groups"
+    "translation": "获取 ldap 用户组出错"
   },
   {
     "id": "ent.ldap_groups.members_of_group_error",
-    "translation": "error retrieving members of group"
+    "translation": "获取用户组成员出错"
   },
   {
     "id": "ent.ldap_groups.no_rows",
-    "translation": "no groups found with matching uid"
+    "translation": "为找到拥有此 uid 的组"
   },
   {
     "id": "ent.ldap_groups.reachable_groups_error",
-    "translation": "error retrieving groups for user"
+    "translation": "获取用户的组失败"
   },
   {
     "id": "ent.message_export.global_relay.attach_file.app_error",
@@ -3792,7 +3792,7 @@
   },
   {
     "id": "mfa.mfa_disabled.app_error",
-    "translation": "此服务器要求多重验证。"
+    "translation": "多重验证已在此服务器停用。"
   },
   {
     "id": "mfa.validate_token.authenticate.app_error",
@@ -4132,7 +4132,11 @@
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
-    "translation": "无效的 atmos/camo 图片代理设定。必须设为您的共享密钥。"
+    "translation": "无效的 atmos/camo 设置 RemoteImageProxyOptions。必须设为您的共享密钥。"
+  },
+  {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
+    "translation": "无效的 atmos/camo 设置 RemoteImageProxyURL。必须设为您的共享密钥。"
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
@@ -4220,7 +4224,7 @@
   },
   {
     "id": "model.config.is_valid.image_proxy_type.app_error",
-    "translation": "无效的图片代理类型服务设定。"
+    "translation": "无效的图片代理类型。必须为 'local' 或 'atmos/camo'。"
   },
   {
     "id": "model.config.is_valid.ldap_basedn",
@@ -4627,6 +4631,30 @@
     "translation": "上传许可证时错误的 id 值。"
   },
   {
+    "id": "model.link_metadata.is_valid.data.app_error",
+    "translation": "Link metadata data cannot be nil"
+  },
+  {
+    "id": "model.link_metadata.is_valid.data_type.app_error",
+    "translation": "Link metadata data does not match the given type"
+  },
+  {
+    "id": "model.link_metadata.is_valid.id.app_error",
+    "translation": "Link metadata id invalid"
+  },
+  {
+    "id": "model.link_metadata.is_valid.timestamp.app_error",
+    "translation": "Link metadata timestamp must be nonzero and rounded to the nearest hour"
+  },
+  {
+    "id": "model.link_metadata.is_valid.type.app_error",
+    "translation": "Invalid link metadata type"
+  },
+  {
+    "id": "model.link_metadata.is_valid.url.app_error",
+    "translation": "Link metadata URL must be set"
+  },
+  {
     "id": "model.oauth.is_valid.app_id.app_error",
     "translation": "无效应用 id"
   },
@@ -4752,7 +4780,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Invalid file ids. Note that uploads are limited to 5 files maximum. Please use additional posts for more files."
+    "translation": "无效的文件 id。上传只允许最多 5 个文件。请考虑创建新的消息以上传更多文件。"
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -5056,11 +5084,11 @@
   },
   {
     "id": "store.insert_error",
-    "translation": "insert error"
+    "translation": "插入错误"
   },
   {
     "id": "store.select_error",
-    "translation": "select error"
+    "translation": "选择错误"
   },
   {
     "id": "store.sql.convert_string_array",
@@ -5648,11 +5676,11 @@
   },
   {
     "id": "store.sql_group.unique_constraint",
-    "translation": "已有团队拥有此名称"
+    "translation": "已有用户组拥有此名称"
   },
   {
     "id": "store.sql_group.uniqueness_error",
-    "translation": "group member already exists"
+    "translation": "用户组成员已存在"
   },
   {
     "id": "store.sql_job.delete.app_error",
@@ -6656,7 +6684,7 @@
   },
   {
     "id": "store.sql_user_terms_of_service.delete.app_error",
-    "translation": "无法删除用户服务条款。"
+    "translation": "无法删除服务条款。"
   },
   {
     "id": "store.sql_user_terms_of_service.get_by_user.app_error",
@@ -6752,7 +6780,7 @@
   },
   {
     "id": "store.update_error",
-    "translation": "update error"
+    "translation": "更新错误"
   },
   {
     "id": "system.message.name",

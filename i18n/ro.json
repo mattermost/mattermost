@@ -337,7 +337,7 @@
   },
   {
     "id": "api.command.execute_command.create_post_failed.app_error",
-    "translation": "Command '{{.Trigger}}' failed to post response. Please contact your System Administrator."
+    "translation": "Comanda \"{{.Trigger}}\" nu a reușit să publice răspunsul. Contactați administratorul de sistem."
   },
   {
     "id": "api.command.execute_command.debug",
@@ -1186,7 +1186,7 @@
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
-    "translation": "Unable to upload file(s). Have {{.NumClientIds}} client_ids for {{.NumFiles}} files."
+    "translation": "În imposibilitatea de a încărca fișierul(e). Au {{.NumClientIds}} client_ids pentru {{.NumFiles}} fișiere."
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_files.app_error",
@@ -1198,19 +1198,19 @@
   },
   {
     "id": "api.file.upload_file.large_image_detailed.app_error",
-    "translation": "{{.Filename}} dimensions ({{.Width}} by {{.Height}} pixels) exceed the limits"
+    "translation": "{{.Filename}} dimensiuni ({{.Width}} de {{.Height}} pixeli) depășesc limitele"
   },
   {
     "id": "api.file.upload_file.multiple_channel_ids.app_error",
-    "translation": "Unable to upload file(s). Multiple conflicting channel_ids."
+    "translation": "Imposibil de încărcat fișierul(e). Mai multe contradictorii channel_ids."
   },
   {
     "id": "api.file.upload_file.read_form_value.app_error",
-    "translation": "Unable to upload file(s). Error reading the value for {{.Formname}}."
+    "translation": "Imposibil de încărcat fișierul (fișierele). Eroare la citirea valorii pentru {{.Formname}}."
   },
   {
     "id": "api.file.upload_file.read_request.app_error",
-    "translation": "Unable to upload file(s). Error reading or parsing request data."
+    "translation": "Imposibil de încărcat fișierul (fișierele). Eroare la citirea sau parsarea datelor din solicitare."
   },
   {
     "id": "api.file.upload_file.storage.app_error",
@@ -1222,7 +1222,7 @@
   },
   {
     "id": "api.file.upload_file.too_large_detailed.app_error",
-    "translation": "Unable to upload file {{.Filename}}. {{.Length}} bytes exceeds the maximum allowed {{.Limit}} bytes."
+    "translation": "Imposibil de încărcat fișierul {{.Filename}}. {{.Length}} octeții depășesc maximul permis {{.Limit}} octeți."
   },
   {
     "id": "api.file.write_file.s3.app_error",
@@ -1246,15 +1246,15 @@
   },
   {
     "id": "api.io_error",
-    "translation": "input/output error"
+    "translation": "eroare de intrare/ieșire"
   },
   {
     "id": "api.ldap_group.not_found",
-    "translation": "ldap group not found"
+    "translation": "grupul ldap nu a fost găsit"
   },
   {
     "id": "api.ldap_groups.license_error",
-    "translation": "your license does not support ldap groups"
+    "translation": "licența dvs. nu are suport pentru grupuri ldap"
   },
   {
     "id": "api.license.add_license.array.app_error",
@@ -1298,7 +1298,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "marshal error"
+    "translation": "eroare marshal"
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
@@ -1450,11 +1450,11 @@
   },
   {
     "id": "api.post.deduplicate_create_post.failed_to_get",
-    "translation": "Failed to fetch original post after deduplicating a client repeating the same request."
+    "translation": "Nu s-a putut prelua postarea inițială după deduplicarea unui client care repeta aceeași solicitare."
   },
   {
     "id": "api.post.deduplicate_create_post.pending",
-    "translation": "Rejected post since another client is making the same request."
+    "translation": "Postul respins deoarece un alt client face aceeași solicitare."
   },
   {
     "id": "api.post.disabled_all",
@@ -1532,7 +1532,7 @@
   },
   {
     "id": "api.post.update_post.permissions_time_limit.app_error",
-    "translation": "Post edit este permisă numai pentru {{.timeLimit}} secunde. Vă rugăm să întrebaţi administratorul de sistem pentru detalii."
+    "translation": "Editare post este permisă numai pentru {{.timeLimit}} secunde. Contactați administratorul de sistem pentru detalii."
   },
   {
     "id": "api.post.update_post.system_message.app_error",
@@ -1768,11 +1768,11 @@
   },
   {
     "id": "api.team.is_team_creation_allowed.disabled.app_error",
-    "translation": "Echipa de creaţie a fost dezactivat. Vă rugăm să întrebaţi administratorul de sistem pentru detalii."
+    "translation": "Crearea de echipe a fost dezactivată. Contactați administratorul de sistem pentru detalii."
   },
   {
     "id": "api.team.is_team_creation_allowed.domain.app_error",
-    "translation": "E-mail trebuie să fie la un domeniu specific (ex. @example.com). Vă rugăm să întrebaţi administratorul de sistem pentru detalii."
+    "translation": "E-mailul trebuie să fie dintr-un anumit domeniu (de ex., @exemplu.ro). Contactați administratorul de sistem pentru detalii."
   },
   {
     "id": "api.team.join_team.post_and_forget",
@@ -2568,7 +2568,7 @@
   },
   {
     "id": "app.export.export_write_line.json_marshall.error",
-    "translation": "A apărut o eroare de marshalling datele JSON pentru export."
+    "translation": "A apărut o eroare prin depunerea datelor JSON pentru export."
   },
   {
     "id": "app.import.attachment.bad_file.error",
@@ -3256,7 +3256,7 @@
   },
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
-    "translation": "Această echipă a atins numărul maxim de permise conturi. Contactați administratorul de sistem pentru a seta o limită mai mare."
+    "translation": "Această echipă a atins numărul maxim de conturi permise. Contactați administratorul de sistem pentru a seta o limită mai mare."
   },
   {
     "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
@@ -3492,7 +3492,7 @@
   },
   {
     "id": "ent.ldap.app_error",
-    "translation": "ldap interface was nil"
+    "translation": "interfața LDAP a fost zero"
   },
   {
     "id": "ent.ldap.create_fail",
@@ -3540,11 +3540,11 @@
   },
   {
     "id": "ent.ldap.syncronize.get_all_groups.app_error",
-    "translation": "error retrieving groups"
+    "translation": "eroare de recuperare a grupurilor"
   },
   {
     "id": "ent.ldap.syncronize.populate_syncables",
-    "translation": "error populating syncables"
+    "translation": "eroare de încărcare a sincronizărilor"
   },
   {
     "id": "ent.ldap.syncronize.search_failure.app_error",
@@ -3556,23 +3556,23 @@
   },
   {
     "id": "ent.ldap_groups.group_search_error",
-    "translation": "error retrieving ldap group"
+    "translation": "eroare la preluarea grupului LDAP"
   },
   {
     "id": "ent.ldap_groups.groups_search_error",
-    "translation": "error retrieving ldap groups"
+    "translation": "eroare la preluarea grupurilor LDAP"
   },
   {
     "id": "ent.ldap_groups.members_of_group_error",
-    "translation": "error retrieving members of group"
+    "translation": "eroare de recuperare a membrilor grupului"
   },
   {
     "id": "ent.ldap_groups.no_rows",
-    "translation": "no groups found with matching uid"
+    "translation": "nu s-au găsit grupuri cu potrivirea uid"
   },
   {
     "id": "ent.ldap_groups.reachable_groups_error",
-    "translation": "error retrieving groups for user"
+    "translation": "eroare de enumerare a grupurilor pentru utilizatori"
   },
   {
     "id": "ent.message_export.global_relay.attach_file.app_error",
@@ -3768,15 +3768,15 @@
   },
   {
     "id": "mfa.activate.bad_token.app_error",
-    "translation": "Etichetă MFA nevalidă"
+    "translation": "Indicator nevalid pentru MAI"
   },
   {
     "id": "mfa.activate.save_active.app_error",
-    "translation": "Nu se poate actualiza starea activă a MFA pentru utilizator"
+    "translation": "Imposibil de actualizat starea activă a MFA pentru utilizator"
   },
   {
     "id": "mfa.deactivate.save_active.app_error",
-    "translation": "Imposibilitatea de a actualiza starea activă Mae pentru utilizator"
+    "translation": "Imposibil de actualizat starea activă a MFA pentru utilizator"
   },
   {
     "id": "mfa.deactivate.save_secret.app_error",
@@ -3792,7 +3792,7 @@
   },
   {
     "id": "mfa.mfa_disabled.app_error",
-    "translation": "Autentificare multi-factor este necesară pe acest server."
+    "translation": "Autentificarea cu mai mulți factori a fost dezactivată pe acest server."
   },
   {
     "id": "mfa.validate_token.authenticate.app_error",
@@ -4132,7 +4132,11 @@
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
-    "translation": "Invalid atmos/camo imagine opţiunile pentru proxy setările serviciului. Trebuie setată pentru cheia partajată."
+    "translation": "Invalid RemoteImageProxyOptions pentru atmos/camo. Trebuie să fie setată pe cheia dvs. partajată."
+  },
+  {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
+    "translation": "Invalid RemoteImageProxyURL pentru atmos/camo. Trebuie să fie setată pe cheia dvs. partajată."
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
@@ -4220,7 +4224,7 @@
   },
   {
     "id": "model.config.is_valid.image_proxy_type.app_error",
-    "translation": "Tipul de proxy invalidă imagine pentru setãrile serviciului."
+    "translation": "Tip de proxy imagine invalid. Trebuie să fie 'local' sau 'atmos/camo'."
   },
   {
     "id": "model.config.is_valid.ldap_basedn",
@@ -4500,63 +4504,63 @@
   },
   {
     "id": "model.group.create_at.app_error",
-    "translation": "invalid create at property for group"
+    "translation": "creare nevalidă la proprietate pentru grup"
   },
   {
     "id": "model.group.delete_at.app_error",
-    "translation": "invalid delete at property for group"
+    "translation": "ștergere invalidă la proprietate pentru grup"
   },
   {
     "id": "model.group.description.app_error",
-    "translation": "invalid description property for group"
+    "translation": "descriere nevalidă pentru proprietatea de grup"
   },
   {
     "id": "model.group.display_name.app_error",
-    "translation": "invalid display name property for group"
+    "translation": "numele de afișare invalid pentru grup"
   },
   {
     "id": "model.group.id.app_error",
-    "translation": "invalid id property for group"
+    "translation": "id invalid pentru grup"
   },
   {
     "id": "model.group.name.app_error",
-    "translation": "invalid name property for group"
+    "translation": "nume de proprietate invalidă pentru grup"
   },
   {
     "id": "model.group.remote_id.app_error",
-    "translation": "invalid remote id property for group"
+    "translation": "invalid id proprietate id pentru grup"
   },
   {
     "id": "model.group.source.app_error",
-    "translation": "invalid source property for group"
+    "translation": "sursă invalidă pentru grup"
   },
   {
     "id": "model.group.update_at.app_error",
-    "translation": "invalid update at property for group"
+    "translation": "invalid update la proprietate de grup"
   },
   {
     "id": "model.group_member.group_id.app_error",
-    "translation": "invalid group id property for group member"
+    "translation": "invalid id-ul grupului de proprietate pentru un membru al grupului"
   },
   {
     "id": "model.group_member.user_id.app_error",
-    "translation": "invalid user id property for group member"
+    "translation": "invalid id-ul de utilizator de proprietate pentru un membru al grupului"
   },
   {
     "id": "model.group_syncable.group_id.app_error",
-    "translation": "invalid group id property for group syncable"
+    "translation": "invalid proprietate id grup pentru sincronizare de grup"
   },
   {
     "id": "model.group_syncable.syncable_id.app_error",
-    "translation": "invalid syncable id for group syncable"
+    "translation": "id sincronizat invalid pentru sincronizare în grup"
   },
   {
     "id": "model.group_syncable.type.app_error",
-    "translation": "invalid type property for group syncable"
+    "translation": "tipul de proprietate invalidă pentru gruparea sincronizabilă"
   },
   {
     "id": "model.group_syncable.unmarshaljson.duplicate_type_identifier",
-    "translation": "type identifier already exists: perhaps json contains both 'team_id' and 'channel_id'"
+    "translation": "tip identificator există deja: json poate conține atât 'team_id\" cat și \"channel_id'"
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -4625,6 +4629,30 @@
   {
     "id": "model.license_record.is_valid.id.app_error",
     "translation": "Valoare invalidă pentru ID-ul atunci când încărcaţi o licenţă."
+  },
+  {
+    "id": "model.link_metadata.is_valid.data.app_error",
+    "translation": "Link metadata data cannot be nil"
+  },
+  {
+    "id": "model.link_metadata.is_valid.data_type.app_error",
+    "translation": "Link metadata data does not match the given type"
+  },
+  {
+    "id": "model.link_metadata.is_valid.id.app_error",
+    "translation": "Link metadata id invalid"
+  },
+  {
+    "id": "model.link_metadata.is_valid.timestamp.app_error",
+    "translation": "Link metadata timestamp must be nonzero and rounded to the nearest hour"
+  },
+  {
+    "id": "model.link_metadata.is_valid.type.app_error",
+    "translation": "Invalid link metadata type"
+  },
+  {
+    "id": "model.link_metadata.is_valid.url.app_error",
+    "translation": "Link metadata URL must be set"
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",
@@ -4752,7 +4780,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Invalid file ids. Note that uploads are limited to 5 files maximum. Please use additional posts for more files."
+    "translation": "Identitatea fișierului invalidă. Rețineți că încărcările sunt limitate la maxim 5 fișiere. Utilizați postări suplimentare pentru mai multe fișiere."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -5008,15 +5036,15 @@
   },
   {
     "id": "model.user_terms_of_service.is_valid.create_at.app_error",
-    "translation": "Lipsește proprietatea privind termenul de serviciu cerut: create_at."
+    "translation": "Lipsește proprietatea necesară termenilor de serviciu: create_at."
   },
   {
     "id": "model.user_terms_of_service.is_valid.service_terms_id.app_error",
-    "translation": "Lipsesc condițiile de utilizare a serviciilor de utilizator necesare: service_terms_id."
+    "translation": "Lipsește proprietatea necesară termenilor de serviciu: service_terms_id."
   },
   {
     "id": "model.user_terms_of_service.is_valid.user_id.app_error",
-    "translation": "Lipsește proprietatea privind condițiile de utilizare: user_id."
+    "translation": "Lipsește proprietatea necesară termenilor de serviciului: user_id."
   },
   {
     "id": "model.utils.decode_json.app_error",
@@ -5056,11 +5084,11 @@
   },
   {
     "id": "store.insert_error",
-    "translation": "insert error"
+    "translation": "introdu eroarea"
   },
   {
     "id": "store.select_error",
-    "translation": "select error"
+    "translation": "selectați eroare"
   },
   {
     "id": "store.sql.convert_string_array",
@@ -5632,27 +5660,27 @@
   },
   {
     "id": "store.sql_group.group_syncable_already_deleted",
-    "translation": "group syncable was already deleted"
+    "translation": "grupul sincronizat a fost deja șters"
   },
   {
     "id": "store.sql_group.no_rows",
-    "translation": "no matching group found"
+    "translation": "nici o potrivire de grup găsita"
   },
   {
     "id": "store.sql_group.no_rows_changed",
-    "translation": "no rows changed"
+    "translation": "nu s-au schimbat rânduri"
   },
   {
     "id": "store.sql_group.nothing_to_update",
-    "translation": "nothing to update for group syncable"
+    "translation": "nimic de actualizat pentru sincronizare în grup"
   },
   {
     "id": "store.sql_group.unique_constraint",
-    "translation": "O echipă cu acest nume există deja"
+    "translation": "un grup cu acest nume există deja"
   },
   {
     "id": "store.sql_group.uniqueness_error",
-    "translation": "group member already exists"
+    "translation": "membru al grupului există deja"
   },
   {
     "id": "store.sql_job.delete.app_error",
@@ -5980,7 +6008,7 @@
   },
   {
     "id": "store.sql_reaction.bulk_get_for_post_ids.app_error",
-    "translation": "Imposibilitatea de a obţine reacţii pentru post"
+    "translation": "Nu pot primi reacții pentru postare"
   },
   {
     "id": "store.sql_reaction.delete.app_error",
@@ -6532,7 +6560,7 @@
   },
   {
     "id": "store.sql_user.save.max_accounts.app_error",
-    "translation": "Această echipă a atins numărul maxim de permise conturi. Contactați administratorul de sistem pentru a seta o limită mai mare."
+    "translation": "Această echipă a atins numărul maxim de conturi permise. Contactați administratorul de sistem pentru a seta o limită mai mare."
   },
   {
     "id": "store.sql_user.save.member_count.app_error",
@@ -6552,7 +6580,7 @@
   },
   {
     "id": "store.sql_user.search.app_error",
-    "translation": "Nu a putut fi găsit niciun utilizator care să utilizeze parametrii de căutare"
+    "translation": "Nu se poate găsi niciun utilizator care să corespundă parametrilor de căutare"
   },
   {
     "id": "store.sql_user.update.app_error",
@@ -6656,7 +6684,7 @@
   },
   {
     "id": "store.sql_user_terms_of_service.delete.app_error",
-    "translation": "Nu se pot șterge condițiile de utilizare ale utilizatorilor."
+    "translation": "Termenii de serviciu nu se pot șterge."
   },
   {
     "id": "store.sql_user_terms_of_service.get_by_user.app_error",
@@ -6664,7 +6692,7 @@
   },
   {
     "id": "store.sql_user_terms_of_service.get_by_user.no_rows.app_error",
-    "translation": "Nu au fost găsite condiții de serviciu."
+    "translation": "Nu sau găsit condițiile de serviciu."
   },
   {
     "id": "store.sql_user_terms_of_service.save.app_error",
@@ -6752,7 +6780,7 @@
   },
   {
     "id": "store.update_error",
-    "translation": "update error"
+    "translation": "eroare de actualizare"
   },
   {
     "id": "system.message.name",
