@@ -37,10 +37,10 @@ func getEnv(name, defaultValue string) string {
 func log(message string) {
 	verbose := false
 	if verboseFlag := flag.Lookup("test.v"); verboseFlag != nil {
-		verbose = verboseFlag.Value.String() == "true"
+		verbose = verboseFlag.Value.String() != ""
 	}
 	if verboseFlag := flag.Lookup("v"); verboseFlag != nil {
-		verbose = verboseFlag.Value.String() == "true"
+		verbose = verboseFlag.Value.String() != ""
 	}
 
 	if verbose {
@@ -207,7 +207,7 @@ func MakeSqlSettings(driver string) *model.SqlSettings {
 		panic("unsupported driver " + driver)
 	}
 
-	log("Created temporary database " + dbName)
+	log("Created temporary " + driver + " database " + dbName)
 
 	return settings
 }
