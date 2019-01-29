@@ -59,7 +59,7 @@ var ErrLargeBufferMustClose = errors.New("LargeBuffer must be Closed before read
 // Type LargeBuffer implements a buffer backed by a bytes.Buffer up to
 // maxMemoryBuffer bytes. It uses a temporary file for any extra payload bytes.
 // The file can be optionally encoded to alleviate concerns about saving
-// maliciopus contents to disk.
+// malicious contents to disk.
 //
 // NewReadCloser returns the stream for the entire payload. However, clients
 // should not Read beyond what's buffered in memory until the LargeBuffer is
