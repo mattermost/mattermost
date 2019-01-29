@@ -34,7 +34,7 @@ const (
 
 	// Maximum allowed depth when recursively substituing variable names.
 	_DEPTH_VALUES = 99
-	_VERSION      = "1.38.1"
+	_VERSION      = "1.41.0"
 )
 
 // Version returns current package version literal.
@@ -47,6 +47,10 @@ var (
 	// This variable will be changed to "\r\n" automatically on Windows
 	// at package init time.
 	LineBreak = "\n"
+
+	// Place custom spaces when PrettyFormat and PrettyEqual are both disabled
+	DefaultFormatLeft  = ""
+	DefaultFormatRight = ""
 
 	// Variable regexp pattern: %(variable)s
 	varPattern = regexp.MustCompile(`%\(([^\)]+)\)s`)
@@ -164,6 +168,8 @@ type LoadOptions struct {
 	// UnparseableSections stores a list of blocks that are allowed with raw content which do not otherwise
 	// conform to key/value pairs. Specify the names of those blocks here.
 	UnparseableSections []string
+	// KeyValueDelimiters is the sequence of delimiters that are used to separate key and value. By default, it is "=:".
+	KeyValueDelimiters string
 }
 
 func LoadSources(opts LoadOptions, source interface{}, others ...interface{}) (_ *File, err error) {
@@ -204,7 +210,7 @@ func InsensitiveLoad(source interface{}, others ...interface{}) (*File, error) {
 	return LoadSources(LoadOptions{Insensitive: true}, source, others...)
 }
 
-// InsensitiveLoad has exactly same functionality as Load function
+// ShadowLoad has exactly same functionality as Load function
 // except it allows have shadow keys.
 func ShadowLoad(source interface{}, others ...interface{}) (*File, error) {
 	return LoadSources(LoadOptions{AllowShadows: true}, source, others...)

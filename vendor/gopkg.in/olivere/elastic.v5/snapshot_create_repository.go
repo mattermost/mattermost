@@ -150,7 +150,7 @@ func (s *SnapshotCreateRepositoryService) Validate() error {
 	if s.repository == "" {
 		invalid = append(invalid, "Repository")
 	}
-	if s.bodyString == "" && s.bodyJson == nil {
+	if s.bodyString == "" && s.bodyJson == nil && len(s.settings) == 0 {
 		invalid = append(invalid, "BodyJson")
 	}
 	if len(invalid) > 0 {

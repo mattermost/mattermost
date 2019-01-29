@@ -5,6 +5,7 @@ Mattermost is an open source, private cloud, Slack-alternative from [https://mat
 It's written in Golang and React and runs as a single Linux binary with MySQL or PostgreSQL. Every month on the 16th [a new compiled version is released under an MIT license](https://www.mattermost.org/download/).
 
 - [Review product documentation](http://docs.mattermost.com/).
+- [Review developer documentation](http://developers.mattermost.com/).
 - [Download compiled version](https://mattermost.org/download).
 
 <img width="1006" alt="screenshot at nov 29 14-11-32" src="https://user-images.githubusercontent.com/29708087/33394101-404e23e4-d50f-11e7-8fe5-99d4802a9768.png">
@@ -61,9 +62,9 @@ Receive notifications of critical security updates. The sophistication of online
 
 ## Get the Latest News
 
-- **Twitter** - Follow [MattermostHQ](https://twitter.com/mattermosthq)
+- **Twitter** - Follow [Mattermost](https://twitter.com/mattermost)
 - **Blog** - Get the latest updates from the [Mattermost blog](https://about.mattermost.com/blog/).
 - **Email** - Subscribe to our [newsletter](http://mattermost.us11.list-manage.com/subscribe?u=6cdba22349ae374e188e7ab8e&id=2add1c8034) (1 or 2 per month)
-- **IRC** - Join us on #matterbridge (thanks to [matterircd](https://github.com/42wim/matterircd))
+- **IRC** - Join the #matterbridge channel on [Freenode](https://freenode.net/) (thanks to [matterircd](https://github.com/42wim/matterircd))
 
 Any other questions, mail us at info@mattermost.com. We’d love to meet you!

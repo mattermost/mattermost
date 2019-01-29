@@ -26,6 +26,11 @@ type TeamUnread struct {
 	MentionCount int64  `json:"mention_count"`
 }
 
+type TeamMemberForExport struct {
+	TeamMember
+	TeamName string
+}
+
 func (o *TeamMember) ToJson() string {
 	b, _ := json.Marshal(o)
 	return string(b)

@@ -30,6 +30,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"strings"
+	"sync"
 	"time"
 
 	yaml "gopkg.in/yaml.v2"
@@ -111,6 +112,23 @@ type ConfigFileNotFoundError struct {
 // Error returns the formatted configuration error.
 func (fnfe ConfigFileNotFoundError) Error() string {
 	return fmt.Sprintf("Config File %q Not Found in %q", fnfe.name, fnfe.locations)
+}
+
+// A DecoderConfigOption can be passed to viper.Unmarshal to configure
+// mapstructure.DecoderConfig options
+type DecoderConfigOption func(*mapstructure.DecoderConfig)
+
+// DecodeHook returns a DecoderConfigOption which overrides the default
+// DecoderConfig.DecodeHook value, the default is:
+//
+//  mapstructure.ComposeDecodeHookFunc(
+//		mapstructure.StringToTimeDurationHookFunc(),
+//		mapstructure.StringToSliceHookFunc(","),
+//	)
+func DecodeHook(hook mapstructure.DecodeHookFunc) DecoderConfigOption {
+	return func(c *mapstructure.DecoderConfig) {
+		c.DecodeHook = hook
+	}
 }
 
 // Viper is a prioritized configuration registry. It
@@ -259,48 +277,73 @@ func (v *Viper) OnConfigChange(run func(in fsnotify.Event)) {
 }
 
 func WatchConfig() { v.WatchConfig() }
+
 func (v *Viper) WatchConfig() {
+	initWG := sync.WaitGroup{}
+	initWG.Add(1)
 	go func() {
 		watcher, err := fsnotify.NewWatcher()
 		if err != nil {
 			log.Fatal(err)
 		}
 		defer watcher.Close()
-
 		// we have to watch the entire directory to pick up renames/atomic saves in a cross-platform way
 		filename, err := v.getConfigFile()
 		if err != nil {
-			log.Println("error:", err)
+			log.Printf("error: %v\n", err)
 			return
 		}
 
 		configFile := filepath.Clean(filename)
 		configDir, _ := filepath.Split(configFile)
+		realConfigFile, _ := filepath.EvalSymlinks(filename)
 
-		done := make(chan bool)
+		eventsWG := sync.WaitGroup{}
+		eventsWG.Add(1)
 		go func() {
 			for {
 				select {
-				case event := <-watcher.Events:
-					// we only care about the config file
-					if filepath.Clean(event.Name) == configFile {
-						if event.Op&fsnotify.Write == fsnotify.Write || event.Op&fsnotify.Create == fsnotify.Create {
-							err := v.ReadInConfig()
-							if err != nil {
-								log.Println("error:", err)
-							}
+				case event, ok := <-watcher.Events:
+					if !ok { // 'Events' channel is closed
+						eventsWG.Done()
+						return
+					}
+					currentConfigFile, _ := filepath.EvalSymlinks(filename)
+					// we only care about the config file with the following cases:
+					// 1 - if the config file was modified or created
+					// 2 - if the real path to the config file changed (eg: k8s ConfigMap replacement)
+					const writeOrCreateMask = fsnotify.Write | fsnotify.Create
+					if (filepath.Clean(event.Name) == configFile &&
+						event.Op&writeOrCreateMask != 0) ||
+						(currentConfigFile != "" && currentConfigFile != realConfigFile) {
+						realConfigFile = currentConfigFile
+						err := v.ReadInConfig()
+						if err != nil {
+							log.Printf("error reading config file: %v\n", err)
+						}
+						if v.onConfigChange != nil {
 							v.onConfigChange(event)
 						}
+					} else if filepath.Clean(event.Name) == configFile &&
+						event.Op&fsnotify.Remove&fsnotify.Remove != 0 {
+						eventsWG.Done()
+						return
 					}
-				case err := <-watcher.Errors:
-					log.Println("error:", err)
+
+				case err, ok := <-watcher.Errors:
+					if ok { // 'Errors' channel is not closed
+						log.Printf("watcher error: %v\n", err)
+					}
+					eventsWG.Done()
+					return
 				}
 			}
 		}()
-
 		watcher.Add(configDir)
-		<-done
+		initWG.Done()   // done initalizing the watch in this go routine, so the parent routine can move on...
+		eventsWG.Wait() // now, wait for event loop to end in this go-routine...
 	}()
+	initWG.Wait() // make sure that the go routine above fully ended before returning
 }
 
 // SetConfigFile explicitly defines the path, name and extension of the config file.
@@ -631,8 +674,10 @@ func (v *Viper) Get(key string) interface{} {
 			return cast.ToBool(val)
 		case string:
 			return cast.ToString(val)
-		case int64, int32, int16, int8, int:
+		case int32, int16, int8, int:
 			return cast.ToInt(val)
+		case int64:
+			return cast.ToInt64(val)
 		case float64, float32:
 			return cast.ToFloat64(val)
 		case time.Time:
@@ -680,6 +725,12 @@ func (v *Viper) GetBool(key string) bool {
 func GetInt(key string) int { return v.GetInt(key) }
 func (v *Viper) GetInt(key string) int {
 	return cast.ToInt(v.Get(key))
+}
+
+// GetInt32 returns the value associated with the key as an integer.
+func GetInt32(key string) int32 { return v.GetInt32(key) }
+func (v *Viper) GetInt32(key string) int32 {
+	return cast.ToInt32(v.Get(key))
 }
 
 // GetInt64 returns the value associated with the key as an integer.
@@ -739,9 +790,11 @@ func (v *Viper) GetSizeInBytes(key string) uint {
 }
 
 // UnmarshalKey takes a single key and unmarshals it into a Struct.
-func UnmarshalKey(key string, rawVal interface{}) error { return v.UnmarshalKey(key, rawVal) }
-func (v *Viper) UnmarshalKey(key string, rawVal interface{}) error {
-	err := decode(v.Get(key), defaultDecoderConfig(rawVal))
+func UnmarshalKey(key string, rawVal interface{}, opts ...DecoderConfigOption) error {
+	return v.UnmarshalKey(key, rawVal, opts...)
+}
+func (v *Viper) UnmarshalKey(key string, rawVal interface{}, opts ...DecoderConfigOption) error {
+	err := decode(v.Get(key), defaultDecoderConfig(rawVal, opts...))
 
 	if err != nil {
 		return err
@@ -754,9 +807,11 @@ func (v *Viper) UnmarshalKey(key string, rawVal interface{}) error {
 
 // Unmarshal unmarshals the config into a Struct. Make sure that the tags
 // on the fields of the structure are properly set.
-func Unmarshal(rawVal interface{}) error { return v.Unmarshal(rawVal) }
-func (v *Viper) Unmarshal(rawVal interface{}) error {
-	err := decode(v.AllSettings(), defaultDecoderConfig(rawVal))
+func Unmarshal(rawVal interface{}, opts ...DecoderConfigOption) error {
+	return v.Unmarshal(rawVal, opts...)
+}
+func (v *Viper) Unmarshal(rawVal interface{}, opts ...DecoderConfigOption) error {
+	err := decode(v.AllSettings(), defaultDecoderConfig(rawVal, opts...))
 
 	if err != nil {
 		return err
@@ -769,8 +824,8 @@ func (v *Viper) Unmarshal(rawVal interface{}) error {
 
 // defaultDecoderConfig returns default mapsstructure.DecoderConfig with suppot
 // of time.Duration values & string slices
-func defaultDecoderConfig(output interface{}) *mapstructure.DecoderConfig {
-	return &mapstructure.DecoderConfig{
+func defaultDecoderConfig(output interface{}, opts ...DecoderConfigOption) *mapstructure.DecoderConfig {
+	c := &mapstructure.DecoderConfig{
 		Metadata:         nil,
 		Result:           output,
 		WeaklyTypedInput: true,
@@ -779,6 +834,10 @@ func defaultDecoderConfig(output interface{}) *mapstructure.DecoderConfig {
 			mapstructure.StringToSliceHookFunc(","),
 		),
 	}
+	for _, opt := range opts {
+		opt(c)
+	}
+	return c
 }
 
 // A wrapper around mapstructure.Decode that mimics the WeakDecode functionality
@@ -1108,7 +1167,7 @@ func (v *Viper) SetDefault(key string, value interface{}) {
 	deepestMap[lastKey] = value
 }
 
-// Set sets the value for the key in the override regiser.
+// Set sets the value for the key in the override register.
 // Set is case-insensitive for a key.
 // Will be used instead of values obtained via
 // flags, config file, ENV, default, or key/value store.
@@ -1682,8 +1741,8 @@ func (v *Viper) EnvSettings() map[string]interface{} {
 	m := map[string]interface{}{}
 	// start from the list of keys, and construct the map one value at a time
 	for _, k := range v.AllKeys() {
-		_, ok := v.getEnv(v.mergeWithEnvPrefix(k))
-		if !ok {
+		_, set := v.getEnv(v.mergeWithEnvPrefix(k))
+		if !set {
 			continue
 		}
 		path := strings.Split(k, v.keyDelim)

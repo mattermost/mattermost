@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestPostStore(t *testing.T, ss store.Store) {
@@ -43,6 +44,8 @@ func TestPostStore(t *testing.T, ss store.Store) {
 	t.Run("PermanentDeleteBatch", func(t *testing.T) { testPostStorePermanentDeleteBatch(t, ss) })
 	t.Run("GetOldest", func(t *testing.T) { testPostStoreGetOldest(t, ss) })
 	t.Run("TestGetMaxPostSize", func(t *testing.T) { testGetMaxPostSize(t, ss) })
+	t.Run("GetParentsForExportAfter", func(t *testing.T) { testPostStoreGetParentsForExportAfter(t, ss) })
+	t.Run("GetRepliesForExport", func(t *testing.T) { testPostStoreGetRepliesForExport(t, ss) })
 }
 
 func testPostStoreSave(t *testing.T, ss store.Store) {
@@ -513,7 +516,7 @@ func testPostStoreGetPostsWithDetails(t *testing.T, ss store.Store) {
 	o2.Message = "zz" + model.NewId() + "b"
 	o2.ParentId = o1.Id
 	o2.RootId = o1.Id
-	o2 = (<-ss.Post().Save(o2)).Data.(*model.Post)
+	_ = (<-ss.Post().Save(o2)).Data.(*model.Post)
 	time.Sleep(2 * time.Millisecond)
 
 	o2a := &model.Post{}
@@ -608,7 +611,7 @@ func testPostStoreGetPostsWithDetails(t *testing.T, ss store.Store) {
 	o6.ChannelId = o1.ChannelId
 	o6.UserId = model.NewId()
 	o6.Message = "zz" + model.NewId() + "b"
-	o6 = (<-ss.Post().Save(o6)).Data.(*model.Post)
+	_ = (<-ss.Post().Save(o6)).Data.(*model.Post)
 
 	// Should only be 6 since we hit the cache
 	r3 := (<-ss.Post().GetPosts(o1.ChannelId, 0, 30, true)).Data.(*model.PostList)
@@ -626,7 +629,7 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 	o0.ChannelId = model.NewId()
 	o0.UserId = model.NewId()
 	o0.Message = "zz" + model.NewId() + "b"
-	o0 = (<-ss.Post().Save(o0)).Data.(*model.Post)
+	_ = (<-ss.Post().Save(o0)).Data.(*model.Post)
 	time.Sleep(2 * time.Millisecond)
 
 	o1 := &model.Post{}
@@ -676,7 +679,7 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 	o5.Message = "zz" + model.NewId() + "b"
 	o5.ParentId = o4.Id
 	o5.RootId = o4.Id
-	o5 = (<-ss.Post().Save(o5)).Data.(*model.Post)
+	_ = (<-ss.Post().Save(o5)).Data.(*model.Post)
 
 	r1 := (<-ss.Post().GetPostsBefore(o1.ChannelId, o1.Id, 4, 0)).Data.(*model.PostList)
 
@@ -730,7 +733,7 @@ func testPostStoreGetPostsSince(t *testing.T, ss store.Store) {
 	o0.ChannelId = model.NewId()
 	o0.UserId = model.NewId()
 	o0.Message = "zz" + model.NewId() + "b"
-	o0 = (<-ss.Post().Save(o0)).Data.(*model.Post)
+	_ = (<-ss.Post().Save(o0)).Data.(*model.Post)
 	time.Sleep(2 * time.Millisecond)
 
 	o1 := &model.Post{}
@@ -746,7 +749,7 @@ func testPostStoreGetPostsSince(t *testing.T, ss store.Store) {
 	o2.Message = "zz" + model.NewId() + "b"
 	o2.ParentId = o1.Id
 	o2.RootId = o1.Id
-	o2 = (<-ss.Post().Save(o2)).Data.(*model.Post)
+	_ = (<-ss.Post().Save(o2)).Data.(*model.Post)
 	time.Sleep(2 * time.Millisecond)
 
 	o2a := &model.Post{}
@@ -839,6 +842,20 @@ func testPostStoreSearch(t *testing.T, ss store.Store) {
 	c2.Type = model.CHANNEL_OPEN
 	c2 = (<-ss.Channel().Save(c2, -1)).Data.(*model.Channel)
 
+	c3 := &model.Channel{}
+	c3.TeamId = teamId
+	c3.DisplayName = "Channel1"
+	c3.Name = "zz" + model.NewId() + "b"
+	c3.Type = model.CHANNEL_OPEN
+	c3 = (<-ss.Channel().Save(c3, -1)).Data.(*model.Channel)
+	<-ss.Channel().Delete(c3.Id, model.GetMillis())
+
+	m3 := model.ChannelMember{}
+	m3.ChannelId = c3.Id
+	m3.UserId = userId
+	m3.NotifyProps = model.GetDefaultChannelNotifyProps()
+	store.Must(ss.Channel().SaveMember(&m3))
+
 	o1 := &model.Post{}
 	o1.ChannelId = c1.Id
 	o1.UserId = model.NewId()
@@ -850,7 +867,7 @@ func testPostStoreSearch(t *testing.T, ss store.Store) {
 	o1a.UserId = model.NewId()
 	o1a.Message = "corey mattermost new york"
 	o1a.Type = model.POST_JOIN_CHANNEL
-	o1a = (<-ss.Post().Save(o1a)).Data.(*model.Post)
+	_ = (<-ss.Post().Save(o1a)).Data.(*model.Post)
 
 	o2 := &model.Post{}
 	o2.ChannelId = c1.Id
@@ -862,7 +879,7 @@ func testPostStoreSearch(t *testing.T, ss store.Store) {
 	o3.ChannelId = c2.Id
 	o3.UserId = model.NewId()
 	o3.Message = "New Jersey is where John is from corey new york"
-	o3 = (<-ss.Post().Save(o3)).Data.(*model.Post)
+	_ = (<-ss.Post().Save(o3)).Data.(*model.Post)
 
 	o4 := &model.Post{}
 	o4.ChannelId = c1.Id
@@ -877,69 +894,129 @@ func testPostStoreSearch(t *testing.T, ss store.Store) {
 	o5.Hashtags = "#secret #howdy"
 	o5 = (<-ss.Post().Save(o5)).Data.(*model.Post)
 
-	r1 := (<-ss.Post().Search(teamId, userId, &model.SearchParams{Terms: "corey", IsHashtag: false})).Data.(*model.PostList)
-	if len(r1.Order) != 1 || r1.Order[0] != o1.Id {
-		t.Fatal("returned wrong search result")
-	}
+	o6 := &model.Post{}
+	o6.ChannelId = c3.Id
+	o6.UserId = model.NewId()
+	o6.Hashtags = "#hashtag"
+	o6 = (<-ss.Post().Save(o6)).Data.(*model.Post)
 
-	r3 := (<-ss.Post().Search(teamId, userId, &model.SearchParams{Terms: "new", IsHashtag: false})).Data.(*model.PostList)
-	if len(r3.Order) != 2 || (r3.Order[0] != o1.Id && r3.Order[1] != o1.Id) {
-		t.Fatal("returned wrong search result")
-	}
+	o7 := &model.Post{}
+	o7.ChannelId = c3.Id
+	o7.UserId = model.NewId()
+	o7.Message = "New Jersey is where John is from corey new york"
+	o7 = (<-ss.Post().Save(o7)).Data.(*model.Post)
 
-	r4 := (<-ss.Post().Search(teamId, userId, &model.SearchParams{Terms: "john", IsHashtag: false})).Data.(*model.PostList)
-	if len(r4.Order) != 1 || r4.Order[0] != o2.Id {
-		t.Fatal("returned wrong search result")
-	}
+	o8 := &model.Post{}
+	o8.ChannelId = c3.Id
+	o8.UserId = model.NewId()
+	o8.Message = "Deleted"
+	o8 = (<-ss.Post().Save(o8)).Data.(*model.Post)
 
-	r5 := (<-ss.Post().Search(teamId, userId, &model.SearchParams{Terms: "matter*", IsHashtag: false})).Data.(*model.PostList)
-	if len(r5.Order) != 1 || r5.Order[0] != o1.Id {
-		t.Fatal("returned wrong search result")
+	tt := []struct {
+		name                     string
+		searchParams             *model.SearchParams
+		extectedResultsCount     int
+		expectedMessageResultIds []string
+	}{
+		{
+			"normal-search-1",
+			&model.SearchParams{Terms: "corey"},
+			1,
+			[]string{o1.Id},
+		},
+		{
+			"normal-search-2",
+			&model.SearchParams{Terms: "new"},
+			2,
+			[]string{o1.Id, o2.Id},
+		},
+		{
+			"normal-search-3",
+			&model.SearchParams{Terms: "john"},
+			1,
+			[]string{o2.Id},
+		},
+		{
+			"wildcard-search",
+			&model.SearchParams{Terms: "matter*"},
+			1,
+			[]string{o1.Id},
+		},
+		{
+			"hashtag-search",
+			&model.SearchParams{Terms: "#hashtag", IsHashtag: true},
+			1,
+			[]string{o4.Id},
+		},
+		{
+			"hashtag-search-2",
+			&model.SearchParams{Terms: "#secret", IsHashtag: true},
+			1,
+			[]string{o5.Id},
+		},
+		{
+			"no-match-mention",
+			&model.SearchParams{Terms: "@thisshouldmatchnothing", IsHashtag: true},
+			0,
+			[]string{},
+		},
+		{
+			"no-results-search",
+			&model.SearchParams{Terms: "mattermost jersey"},
+			0,
+			[]string{},
+		},
+		{
+			"multiple-words-search",
+			&model.SearchParams{Terms: "corey new york"},
+			1,
+			[]string{o1.Id},
+		},
+		{
+			"multiple-wildcard-search",
+			&model.SearchParams{Terms: "matter* jer*"},
+			0,
+			[]string{},
+		},
+		{
+			"search-with-work-next-to-a-symbol",
+			&model.SearchParams{Terms: "message blargh"},
+			1,
+			[]string{o4.Id},
+		},
+		{
+			"search-with-or",
+			&model.SearchParams{Terms: "Jersey corey", OrTerms: true},
+			2,
+			[]string{o1.Id, o2.Id},
+		},
+		{
+			"search-with-or-and-deleted",
+			&model.SearchParams{Terms: "Jersey corey", OrTerms: true, IncludeDeletedChannels: true},
+			3,
+			[]string{o1.Id, o2.Id, o7.Id},
+		},
+		{
+			"search-hashtag-deleted",
+			&model.SearchParams{Terms: "#hashtag", IsHashtag: true, IncludeDeletedChannels: true},
+			2,
+			[]string{o4.Id, o6.Id},
+		},
+		{
+			"search-deleted-only",
+			&model.SearchParams{Terms: "Deleted", IncludeDeletedChannels: true},
+			1,
+			[]string{o8.Id},
+		},
 	}
-
-	r6 := (<-ss.Post().Search(teamId, userId, &model.SearchParams{Terms: "#hashtag", IsHashtag: true})).Data.(*model.PostList)
-	if len(r6.Order) != 1 || r6.Order[0] != o4.Id {
-		t.Fatal("returned wrong search result")
-	}
-
-	r7 := (<-ss.Post().Search(teamId, userId, &model.SearchParams{Terms: "#secret", IsHashtag: true})).Data.(*model.PostList)
-	if len(r7.Order) != 1 || r7.Order[0] != o5.Id {
-		t.Fatal("returned wrong search result")
-	}
-
-	r8 := (<-ss.Post().Search(teamId, userId, &model.SearchParams{Terms: "@thisshouldmatchnothing", IsHashtag: true})).Data.(*model.PostList)
-	if len(r8.Order) != 0 {
-		t.Fatal("returned wrong search result")
-	}
-
-	r9 := (<-ss.Post().Search(teamId, userId, &model.SearchParams{Terms: "mattermost jersey", IsHashtag: false})).Data.(*model.PostList)
-	if len(r9.Order) != 0 {
-		t.Fatal("returned wrong search result")
-	}
-
-	r9a := (<-ss.Post().Search(teamId, userId, &model.SearchParams{Terms: "corey new york", IsHashtag: false})).Data.(*model.PostList)
-	if len(r9a.Order) != 1 {
-		t.Fatal("returned wrong search result")
-	}
-
-	r10 := (<-ss.Post().Search(teamId, userId, &model.SearchParams{Terms: "matter* jer*", IsHashtag: false})).Data.(*model.PostList)
-	if len(r10.Order) != 0 {
-		t.Fatal("returned wrong search result")
-	}
-
-	r11 := (<-ss.Post().Search(teamId, userId, &model.SearchParams{Terms: "message blargh", IsHashtag: false})).Data.(*model.PostList)
-	if len(r11.Order) != 1 {
-		t.Fatal("returned wrong search result")
-	}
-
-	r12 := (<-ss.Post().Search(teamId, userId, &model.SearchParams{Terms: "blargh>", IsHashtag: false})).Data.(*model.PostList)
-	if len(r12.Order) != 1 {
-		t.Fatal("returned wrong search result")
-	}
-
-	r13 := (<-ss.Post().Search(teamId, userId, &model.SearchParams{Terms: "Jersey corey", IsHashtag: false, OrTerms: true})).Data.(*model.PostList)
-	if len(r13.Order) != 2 {
-		t.Fatal("returned wrong search result")
+	for _, tc := range tt {
+		t.Run(tc.name, func(t *testing.T) {
+			result := (<-ss.Post().Search(teamId, userId, tc.searchParams)).Data.(*model.PostList)
+			require.Len(t, result.Order, tc.extectedResultsCount)
+			for _, expectedMessageResultId := range tc.expectedMessageResultIds {
+				assert.Contains(t, result.Order, expectedMessageResultId)
+			}
+		})
 	}
 }
 
@@ -947,7 +1024,7 @@ func testUserCountsWithPostsByDay(t *testing.T, ss store.Store) {
 	t1 := &model.Team{}
 	t1.DisplayName = "DisplayName"
 	t1.Name = "zz" + model.NewId() + "b"
-	t1.Email = model.NewId() + "@nowhere.com"
+	t1.Email = MakeEmail()
 	t1.Type = model.TEAM_OPEN
 	t1 = store.Must(ss.Team().Save(t1)).(*model.Team)
 
@@ -970,7 +1047,7 @@ func testUserCountsWithPostsByDay(t *testing.T, ss store.Store) {
 	o1a.UserId = model.NewId()
 	o1a.CreateAt = o1.CreateAt
 	o1a.Message = "zz" + model.NewId() + "b"
-	o1a = store.Must(ss.Post().Save(o1a)).(*model.Post)
+	_ = store.Must(ss.Post().Save(o1a)).(*model.Post)
 
 	o2 := &model.Post{}
 	o2.ChannelId = c1.Id
@@ -984,7 +1061,7 @@ func testUserCountsWithPostsByDay(t *testing.T, ss store.Store) {
 	o2a.UserId = o2.UserId
 	o2a.CreateAt = o1.CreateAt - (1000 * 60 * 60 * 24)
 	o2a.Message = "zz" + model.NewId() + "b"
-	o2a = store.Must(ss.Post().Save(o2a)).(*model.Post)
+	_ = store.Must(ss.Post().Save(o2a)).(*model.Post)
 
 	if r1 := <-ss.Post().AnalyticsUserCountsWithPostsByDay(t1.Id); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -1005,7 +1082,7 @@ func testPostCountsByDay(t *testing.T, ss store.Store) {
 	t1 := &model.Team{}
 	t1.DisplayName = "DisplayName"
 	t1.Name = "zz" + model.NewId() + "b"
-	t1.Email = model.NewId() + "@nowhere.com"
+	t1.Email = MakeEmail()
 	t1.Type = model.TEAM_OPEN
 	t1 = store.Must(ss.Team().Save(t1)).(*model.Team)
 
@@ -1028,7 +1105,7 @@ func testPostCountsByDay(t *testing.T, ss store.Store) {
 	o1a.UserId = model.NewId()
 	o1a.CreateAt = o1.CreateAt
 	o1a.Message = "zz" + model.NewId() + "b"
-	o1a = store.Must(ss.Post().Save(o1a)).(*model.Post)
+	_ = store.Must(ss.Post().Save(o1a)).(*model.Post)
 
 	o2 := &model.Post{}
 	o2.ChannelId = c1.Id
@@ -1042,7 +1119,7 @@ func testPostCountsByDay(t *testing.T, ss store.Store) {
 	o2a.UserId = o2.UserId
 	o2a.CreateAt = o1.CreateAt - (1000 * 60 * 60 * 24 * 2)
 	o2a.Message = "zz" + model.NewId() + "b"
-	o2a = store.Must(ss.Post().Save(o2a)).(*model.Post)
+	_ = store.Must(ss.Post().Save(o2a)).(*model.Post)
 
 	time.Sleep(1 * time.Second)
 
@@ -1459,14 +1536,14 @@ func testPostStoreGetPostsCreatedAt(t *testing.T, ss store.Store) {
 	o2.ParentId = o1.Id
 	o2.RootId = o1.Id
 	o2.CreateAt = createTime + 1
-	o2 = (<-ss.Post().Save(o2)).Data.(*model.Post)
+	_ = (<-ss.Post().Save(o2)).Data.(*model.Post)
 
 	o3 := &model.Post{}
 	o3.ChannelId = model.NewId()
 	o3.UserId = model.NewId()
 	o3.Message = "zz" + model.NewId() + "b"
 	o3.CreateAt = createTime
-	o3 = (<-ss.Post().Save(o3)).Data.(*model.Post)
+	_ = (<-ss.Post().Save(o3)).Data.(*model.Post)
 
 	r1 := (<-ss.Post().GetPostsCreatedAt(o1.ChannelId, createTime)).Data.([]*model.Post)
 	assert.Equal(t, 2, len(r1))
@@ -1599,8 +1676,8 @@ func testPostStoreGetPostsByIds(t *testing.T, ss store.Store) {
 
 	store.Must(ss.Post().Delete(ro1.Id, model.GetMillis(), ""))
 
-	if ro5 := store.Must(ss.Post().GetPostsByIds(postIds)).([]*model.Post); len(ro5) != 2 {
-		t.Fatalf("Expected 2 posts in results. Got %v", len(ro5))
+	if ro5 := store.Must(ss.Post().GetPostsByIds(postIds)).([]*model.Post); len(ro5) != 3 {
+		t.Fatalf("Expected 3 posts in results. Got %v", len(ro5))
 	}
 }
 
@@ -1738,4 +1815,98 @@ func testPostStoreGetOldest(t *testing.T, ss store.Store) {
 func testGetMaxPostSize(t *testing.T, ss store.Store) {
 	assert.Equal(t, model.POST_MESSAGE_MAX_RUNES_V2, (<-ss.Post().GetMaxPostSize()).Data.(int))
 	assert.Equal(t, model.POST_MESSAGE_MAX_RUNES_V2, (<-ss.Post().GetMaxPostSize()).Data.(int))
+}
+
+func testPostStoreGetParentsForExportAfter(t *testing.T, ss store.Store) {
+	t1 := model.Team{}
+	t1.DisplayName = "Name"
+	t1.Name = model.NewId()
+	t1.Email = MakeEmail()
+	t1.Type = model.TEAM_OPEN
+	store.Must(ss.Team().Save(&t1))
+
+	c1 := model.Channel{}
+	c1.TeamId = t1.Id
+	c1.DisplayName = "Channel1"
+	c1.Name = "zz" + model.NewId() + "b"
+	c1.Type = model.CHANNEL_OPEN
+	store.Must(ss.Channel().Save(&c1, -1))
+
+	u1 := model.User{}
+	u1.Username = model.NewId()
+	u1.Email = MakeEmail()
+	u1.Nickname = model.NewId()
+	store.Must(ss.User().Save(&u1))
+
+	p1 := &model.Post{}
+	p1.ChannelId = c1.Id
+	p1.UserId = u1.Id
+	p1.Message = "zz" + model.NewId() + "AAAAAAAAAAA"
+	p1.CreateAt = 1000
+	p1 = (<-ss.Post().Save(p1)).Data.(*model.Post)
+
+	r1 := <-ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26))
+	assert.Nil(t, r1.Err)
+	d1 := r1.Data.([]*model.PostForExport)
+
+	found := false
+	for _, p := range d1 {
+		if p.Id == p1.Id {
+			found = true
+			assert.Equal(t, p.Id, p1.Id)
+			assert.Equal(t, p.Message, p1.Message)
+			assert.Equal(t, p.Username, u1.Username)
+			assert.Equal(t, p.TeamName, t1.Name)
+			assert.Equal(t, p.ChannelName, c1.Name)
+		}
+	}
+	assert.True(t, found)
+}
+
+func testPostStoreGetRepliesForExport(t *testing.T, ss store.Store) {
+	t1 := model.Team{}
+	t1.DisplayName = "Name"
+	t1.Name = model.NewId()
+	t1.Email = MakeEmail()
+	t1.Type = model.TEAM_OPEN
+	store.Must(ss.Team().Save(&t1))
+
+	c1 := model.Channel{}
+	c1.TeamId = t1.Id
+	c1.DisplayName = "Channel1"
+	c1.Name = "zz" + model.NewId() + "b"
+	c1.Type = model.CHANNEL_OPEN
+	store.Must(ss.Channel().Save(&c1, -1))
+
+	u1 := model.User{}
+	u1.Email = MakeEmail()
+	u1.Nickname = model.NewId()
+	store.Must(ss.User().Save(&u1))
+
+	p1 := &model.Post{}
+	p1.ChannelId = c1.Id
+	p1.UserId = u1.Id
+	p1.Message = "zz" + model.NewId() + "AAAAAAAAAAA"
+	p1.CreateAt = 1000
+	p1 = (<-ss.Post().Save(p1)).Data.(*model.Post)
+
+	p2 := &model.Post{}
+	p2.ChannelId = c1.Id
+	p2.UserId = u1.Id
+	p2.Message = "zz" + model.NewId() + "AAAAAAAAAAA"
+	p2.CreateAt = 1001
+	p2.ParentId = p1.Id
+	p2.RootId = p1.Id
+	p2 = (<-ss.Post().Save(p2)).Data.(*model.Post)
+
+	r1 := <-ss.Post().GetRepliesForExport(p1.Id)
+	assert.Nil(t, r1.Err)
+
+	d1 := r1.Data.([]*model.ReplyForExport)
+	assert.Len(t, d1, 1)
+
+	reply1 := d1[0]
+	assert.Equal(t, reply1.Id, p2.Id)
+	assert.Equal(t, reply1.Message, p2.Message)
+	assert.Equal(t, reply1.Username, u1.Username)
 }

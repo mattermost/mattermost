@@ -6,20 +6,62 @@ package model
 import (
 	"regexp"
 	"strings"
+	"time"
 )
 
 var searchTermPuncStart = regexp.MustCompile(`^[^\pL\d\s#"]+`)
 var searchTermPuncEnd = regexp.MustCompile(`[^\pL\d\s*"]+$`)
 
 type SearchParams struct {
-	Terms      string
-	IsHashtag  bool
-	InChannels []string
-	FromUsers  []string
-	OrTerms    bool
+	Terms                  string
+	IsHashtag              bool
+	InChannels             []string
+	FromUsers              []string
+	AfterDate              string
+	BeforeDate             string
+	OnDate                 string
+	OrTerms                bool
+	IncludeDeletedChannels bool
+	TimeZoneOffset         int
 }
 
-var searchFlags = [...]string{"from", "channel", "in"}
+// Returns the epoch timestamp of the start of the day specified by SearchParams.AfterDate
+func (p *SearchParams) GetAfterDateMillis() int64 {
+	date, err := time.Parse("2006-01-02", PadDateStringZeros(p.AfterDate))
+	if err != nil {
+		date = time.Now()
+	}
+
+	// travel forward 1 day
+	oneDay := time.Hour * 24
+	afterDate := date.Add(oneDay)
+	return GetStartOfDayMillis(afterDate, p.TimeZoneOffset)
+}
+
+// Returns the epoch timestamp of the end of the day specified by SearchParams.BeforeDate
+func (p *SearchParams) GetBeforeDateMillis() int64 {
+	date, err := time.Parse("2006-01-02", PadDateStringZeros(p.BeforeDate))
+	if err != nil {
+		return 0
+	}
+
+	// travel back 1 day
+	oneDay := time.Hour * -24
+	beforeDate := date.Add(oneDay)
+	return GetEndOfDayMillis(beforeDate, p.TimeZoneOffset)
+}
+
+// Returns the epoch timestamps of the start and end of the day specified by SearchParams.OnDate
+func (p *SearchParams) GetOnDateMillis() (int64, int64) {
+	date, err := time.Parse("2006-01-02", PadDateStringZeros(p.OnDate))
+	if err != nil {
+		return 0, 0
+	}
+
+	return GetStartOfDayMillis(date, p.TimeZoneOffset), GetEndOfDayMillis(date, p.TimeZoneOffset)
+}
+
+var searchFlags = [...]string{"from", "channel", "in", "before", "after", "on"}
 
 func splitWords(text string) []string {
 	words := []string{}
@@ -100,7 +142,7 @@ func parseSearchFlags(input []string) ([]string, [][2]string) {
 	return words, flags
 }
 
-func ParseSearchParams(text string) []*SearchParams {
+func ParseSearchParams(text string, timeZoneOffset int) []*SearchParams {
 	words, flags := parseSearchFlags(splitWords(text))
 
 	hashtagTermList := []string{}
@@ -119,6 +161,9 @@ func ParseSearchParams(text string) []*SearchParams {
 
 	inChannels := []string{}
 	fromUsers := []string{}
+	afterDate := ""
+	beforeDate := ""
+	onDate := ""
 
 	for _, flagPair := range flags {
 		flag := flagPair[0]
@@ -128,6 +173,12 @@ func ParseSearchParams(text string) []*SearchParams {
 			inChannels = append(inChannels, value)
 		} else if flag == "from" {
 			fromUsers = append(fromUsers, value)
+		} else if flag == "after" {
+			afterDate = value
+		} else if flag == "before" {
+			beforeDate = value
+		} else if flag == "on" {
+			onDate = value
 		}
 	}
 
@@ -135,29 +186,41 @@ func ParseSearchParams(text string) []*SearchParams {
 
 	if len(plainTerms) > 0 {
 		paramsList = append(paramsList, &SearchParams{
-			Terms:      plainTerms,
-			IsHashtag:  false,
-			InChannels: inChannels,
-			FromUsers:  fromUsers,
+			Terms:          plainTerms,
+			IsHashtag:      false,
+			InChannels:     inChannels,
+			FromUsers:      fromUsers,
+			AfterDate:      afterDate,
+			BeforeDate:     beforeDate,
+			OnDate:         onDate,
+			TimeZoneOffset: timeZoneOffset,
 		})
 	}
 
 	if len(hashtagTerms) > 0 {
 		paramsList = append(paramsList, &SearchParams{
-			Terms:      hashtagTerms,
-			IsHashtag:  true,
-			InChannels: inChannels,
-			FromUsers:  fromUsers,
+			Terms:          hashtagTerms,
+			IsHashtag:      true,
+			InChannels:     inChannels,
+			FromUsers:      fromUsers,
+			AfterDate:      afterDate,
+			BeforeDate:     beforeDate,
+			OnDate:         onDate,
+			TimeZoneOffset: timeZoneOffset,
 		})
 	}
 
 	// special case for when no terms are specified but we still have a filter
-	if len(plainTerms) == 0 && len(hashtagTerms) == 0 && (len(inChannels) != 0 || len(fromUsers) != 0) {
+	if len(plainTerms) == 0 && len(hashtagTerms) == 0 && (len(inChannels) != 0 || len(fromUsers) != 0 || len(afterDate) != 0 || len(beforeDate) != 0 || len(onDate) != 0) {
 		paramsList = append(paramsList, &SearchParams{
-			Terms:      "",
-			IsHashtag:  false,
-			InChannels: inChannels,
-			FromUsers:  fromUsers,
+			Terms:          "",
+			IsHashtag:      false,
+			InChannels:     inChannels,
+			FromUsers:      fromUsers,
+			AfterDate:      afterDate,
+			BeforeDate:     beforeDate,
+			OnDate:         onDate,
+			TimeZoneOffset: timeZoneOffset,
 		})
 	}
 

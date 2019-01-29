@@ -6,6 +6,8 @@ package model
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestEmojiIsValid(t *testing.T) {
@@ -23,61 +25,39 @@ func TestEmojiIsValid(t *testing.T) {
 	}
 
 	emoji.Id = "1234"
-	if err := emoji.IsValid(); err == nil {
-		t.Fatal()
-	}
+	require.NotNil(t, emoji.IsValid())
 
 	emoji.Id = NewId()
 	emoji.CreateAt = 0
-	if err := emoji.IsValid(); err == nil {
-		t.Fatal()
-	}
+	require.NotNil(t, emoji.IsValid())
 
 	emoji.CreateAt = 1234
 	emoji.UpdateAt = 0
-	if err := emoji.IsValid(); err == nil {
-		t.Fatal()
-	}
+	require.NotNil(t, emoji.IsValid())
 
 	emoji.UpdateAt = 1234
 	emoji.CreatorId = strings.Repeat("1", 27)
-	if err := emoji.IsValid(); err == nil {
-		t.Fatal()
-	}
+	require.NotNil(t, emoji.IsValid())
 
 	emoji.CreatorId = NewId()
 	emoji.Name = strings.Repeat("1", 65)
-	if err := emoji.IsValid(); err == nil {
-		t.Fatal()
-	}
+	require.NotNil(t, emoji.IsValid())
 
 	emoji.Name = ""
-	if err := emoji.IsValid(); err == nil {
-		t.Fatal(err)
-	}
+	require.NotNil(t, emoji.IsValid())
 
 	emoji.Name = strings.Repeat("1", 64)
-	if err := emoji.IsValid(); err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, emoji.IsValid())
 
 	emoji.Name = "name-"
-	if err := emoji.IsValid(); err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, emoji.IsValid())
 
 	emoji.Name = "name_"
-	if err := emoji.IsValid(); err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, emoji.IsValid())
 
 	emoji.Name = "name:"
-	if err := emoji.IsValid(); err == nil {
-		t.Fatal(err)
-	}
+	require.NotNil(t, emoji.IsValid())
 
 	emoji.Name = "croissant"
-	if err := emoji.IsValid(); err == nil {
-		t.Fatal(err)
-	}
+	require.NotNil(t, emoji.IsValid())
 }

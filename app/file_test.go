@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 )
 
 func TestGeneratePublicLinkHash(t *testing.T) {
@@ -97,13 +97,37 @@ func TestDoUploadFile(t *testing.T) {
 		t.Fatal(err)
 	} else {
 		defer func() {
-			<-th.App.Srv.Store.FileInfo().PermanentDelete(info3.Id)
-			th.App.RemoveFile(info3.Path)
+			<-th.App.Srv.Store.FileInfo().PermanentDelete(info4.Id)
+			th.App.RemoveFile(info4.Path)
 		}()
 	}
 
 	if info4.Path != fmt.Sprintf("20090305/teams/%v/channels/%v/users/%v/%v/%v", teamId, channelId, userId, info4.Id, filename) {
 		t.Fatal("stored file at incorrect path", info4.Path)
+	}
+}
+
+func TestUploadFile(t *testing.T) {
+	th := Setup()
+	defer th.TearDown()
+
+	channelId := model.NewId()
+	filename := "test"
+	data := []byte("abcd")
+
+	info1, err := th.App.UploadFile(data, channelId, filename)
+	if err != nil {
+		t.Fatal(err)
+	} else {
+		defer func() {
+			<-th.App.Srv.Store.FileInfo().PermanentDelete(info1.Id)
+			th.App.RemoveFile(info1.Path)
+		}()
+	}
+
+	if info1.Path != fmt.Sprintf("%v/teams/noteam/channels/%v/users/nouser/%v/%v",
+		time.Now().Format("20060102"), channelId, info1.Id, filename) {
+		t.Fatal("stored file at incorrect path", info1.Path)
 	}
 }
 
@@ -147,7 +171,7 @@ func TestMigrateFilenamesToFileInfos(t *testing.T) {
 	infos = th.App.MigrateFilenamesToFileInfos(post)
 	assert.Equal(t, 0, len(infos))
 
-	path, _ := utils.FindDir("tests")
+	path, _ := fileutils.FindDir("tests")
 	file, fileErr := os.Open(filepath.Join(path, "test.png"))
 	require.Nil(t, fileErr)
 	defer file.Close()
@@ -160,4 +184,35 @@ func TestMigrateFilenamesToFileInfos(t *testing.T) {
 
 	infos = th.App.MigrateFilenamesToFileInfos(rpost)
 	assert.Equal(t, 1, len(infos))
+}
+
+func TestCopyFileInfos(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	teamId := model.NewId()
+	channelId := model.NewId()
+	userId := model.NewId()
+	filename := "test"
+	data := []byte("abcd")
+
+	info1, err := th.App.DoUploadFile(time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local), teamId, channelId, userId, filename, data)
+	require.Nil(t, err)
+	defer func() {
+		<-th.App.Srv.Store.FileInfo().PermanentDelete(info1.Id)
+		th.App.RemoveFile(info1.Path)
+	}()
+
+	infoIds, err := th.App.CopyFileInfos(userId, []string{info1.Id})
+	require.Nil(t, err)
+
+	info2, err := th.App.GetFileInfo(infoIds[0])
+	require.Nil(t, err)
+	defer func() {
+		<-th.App.Srv.Store.FileInfo().PermanentDelete(info2.Id)
+		th.App.RemoveFile(info2.Path)
+	}()
+
+	assert.NotEqual(t, info1.Id, info2.Id, "should not be equal")
+	assert.Equal(t, info2.PostId, "", "should be empty string")
 }

@@ -53,7 +53,7 @@ func NewBoolResult(val bool, err error) *BoolCmd {
 // NewStringResult returns a StringCmd initialised with val and err for testing
 func NewStringResult(val string, err error) *StringCmd {
 	var cmd StringCmd
-	cmd.val = []byte(val)
+	cmd.val = val
 	cmd.setErr(err)
 	return &cmd
 }

@@ -3,6 +3,8 @@ all: testdeps
 	go test ./... -short -race
 	env GOOS=linux GOARCH=386 go test ./...
 	go vet
+	go get github.com/gordonklaus/ineffassign
+	ineffassign .
 
 testdeps: testdata/redis/src/redis-server
 

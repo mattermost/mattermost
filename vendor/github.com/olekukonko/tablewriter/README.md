@@ -7,7 +7,7 @@ ASCII Table Writer
 
 Generate ASCII table on the fly ...  Installation is simple as
 
-    go get  github.com/olekukonko/tablewriter
+    go get github.com/olekukonko/tablewriter
 
 
 #### Features
@@ -115,7 +115,7 @@ table.SetRowLine(true)         // Enable row line
 
 // Change table lines
 table.SetCenterSeparator("*")
-table.SetColumnSeparator("‡")
+table.SetColumnSeparator("╪")
 table.SetRowSeparator("-")
 
 table.SetAlignment(tablewriter.ALIGN_LEFT)

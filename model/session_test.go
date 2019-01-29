@@ -31,7 +31,7 @@ func TestSessionDeepCopy(t *testing.T) {
 	session = &Session{Id: sessionId}
 	copySession = session.DeepCopy()
 
-	assert.Equal(t, sessionId, session.Id)
+	assert.Equal(t, sessionId, copySession.Id)
 
 	session = &Session{TeamMembers: []*TeamMember{}}
 	copySession = session.DeepCopy()
@@ -62,4 +62,17 @@ func TestSessionJson(t *testing.T) {
 	}
 
 	session.SetExpireInDays(10)
+}
+
+func TestSessionCSRF(t *testing.T) {
+	s := Session{}
+	token := s.GetCSRF()
+	assert.Empty(t, token)
+
+	token = s.GenerateCSRF()
+	assert.NotEmpty(t, token)
+
+	token2 := s.GetCSRF()
+	assert.NotEmpty(t, token2)
+	assert.Equal(t, token, token2)
 }

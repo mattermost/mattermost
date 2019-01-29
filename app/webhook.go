@@ -20,6 +20,8 @@ import (
 const (
 	TRIGGERWORDS_EXACT_MATCH = 0
 	TRIGGERWORDS_STARTS_WITH = 1
+
+	MaxIntegrationResponseSize = 1024 * 1024 // Posts can be <100KB at most, so this is likely more than enough
 )
 
 func (a *App) handleWebhookEvents(post *model.Post, team *model.Team, channel *model.Channel, user *model.User) *model.AppError {
@@ -80,7 +82,7 @@ func (a *App) handleWebhookEvents(post *model.Post, team *model.Team, channel *m
 			TriggerWord: triggerWord,
 			FileIds:     strings.Join(post.FileIds, ","),
 		}
-		a.Go(func(hook *model.OutgoingWebhook) func() {
+		a.Srv.Go(func(hook *model.OutgoingWebhook) func() {
 			return func() {
 				a.TriggerWebhook(payload, hook, post, channel)
 			}
@@ -101,53 +103,68 @@ func (a *App) TriggerWebhook(payload *model.OutgoingWebhookPayload, hook *model.
 		contentType = "application/x-www-form-urlencoded"
 	}
 
-	for _, url := range hook.CallbackURLs {
-		a.Go(func(url string) func() {
-			return func() {
-				req, _ := http.NewRequest("POST", url, body)
-				req.Header.Set("Content-Type", contentType)
-				req.Header.Set("Accept", "application/json")
-				if resp, err := a.HTTPClient(false).Do(req); err != nil {
-					mlog.Error(fmt.Sprintf("Event POST failed, err=%s", err.Error()))
-				} else {
-					defer consumeAndClose(resp)
+	for i := range hook.CallbackURLs {
+		// Get the callback URL by index to properly capture it for the go func
+		url := hook.CallbackURLs[i]
 
-					webhookResp := model.OutgoingWebhookResponseFromJson(resp.Body)
+		a.Srv.Go(func() {
+			webhookResp, err := a.doOutgoingWebhookRequest(url, body, contentType)
+			if err != nil {
+				mlog.Error(fmt.Sprintf("Event POST failed, err=%s", err.Error()))
+				return
+			}
 
-					if webhookResp != nil && (webhookResp.Text != nil || len(webhookResp.Attachments) > 0) {
-						postRootId := ""
-						if webhookResp.ResponseType == model.OUTGOING_HOOK_RESPONSE_TYPE_COMMENT {
-							postRootId = post.Id
-						}
-						if len(webhookResp.Props) == 0 {
-							webhookResp.Props = make(model.StringInterface)
-						}
-						webhookResp.Props["webhook_display_name"] = hook.DisplayName
+			if webhookResp != nil && (webhookResp.Text != nil || len(webhookResp.Attachments) > 0) {
+				postRootId := ""
+				if webhookResp.ResponseType == model.OUTGOING_HOOK_RESPONSE_TYPE_COMMENT {
+					postRootId = post.Id
+				}
+				if len(webhookResp.Props) == 0 {
+					webhookResp.Props = make(model.StringInterface)
+				}
+				webhookResp.Props["webhook_display_name"] = hook.DisplayName
 
-						text := ""
-						if webhookResp.Text != nil {
-							text = a.ProcessSlackText(*webhookResp.Text)
-						}
-						webhookResp.Attachments = a.ProcessSlackAttachments(webhookResp.Attachments)
-						// attachments is in here for slack compatibility
-						if len(webhookResp.Attachments) > 0 {
-							webhookResp.Props["attachments"] = webhookResp.Attachments
-						}
-						if *a.Config().ServiceSettings.EnablePostUsernameOverride && hook.Username != "" && webhookResp.Username == "" {
-							webhookResp.Username = hook.Username
-						}
+				text := ""
+				if webhookResp.Text != nil {
+					text = a.ProcessSlackText(*webhookResp.Text)
+				}
+				webhookResp.Attachments = a.ProcessSlackAttachments(webhookResp.Attachments)
+				// attachments is in here for slack compatibility
+				if len(webhookResp.Attachments) > 0 {
+					webhookResp.Props["attachments"] = webhookResp.Attachments
+				}
+				if *a.Config().ServiceSettings.EnablePostUsernameOverride && hook.Username != "" && webhookResp.Username == "" {
+					webhookResp.Username = hook.Username
+				}
 
-						if *a.Config().ServiceSettings.EnablePostIconOverride && hook.IconURL != "" && webhookResp.IconURL == "" {
-							webhookResp.IconURL = hook.IconURL
-						}
-						if _, err := a.CreateWebhookPost(hook.CreatorId, channel, text, webhookResp.Username, webhookResp.IconURL, webhookResp.Props, webhookResp.Type, postRootId); err != nil {
-							mlog.Error(fmt.Sprintf("Failed to create response post, err=%v", err))
-						}
-					}
+				if *a.Config().ServiceSettings.EnablePostIconOverride && hook.IconURL != "" && webhookResp.IconURL == "" {
+					webhookResp.IconURL = hook.IconURL
+				}
+				if _, err := a.CreateWebhookPost(hook.CreatorId, channel, text, webhookResp.Username, webhookResp.IconURL, webhookResp.Props, webhookResp.Type, postRootId); err != nil {
+					mlog.Error(fmt.Sprintf("Failed to create response post, err=%v", err))
 				}
 			}
-		}(url))
+		})
 	}
+}
+
+func (a *App) doOutgoingWebhookRequest(url string, body io.Reader, contentType string) (*model.OutgoingWebhookResponse, error) {
+	req, err := http.NewRequest("POST", url, body)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Content-Type", contentType)
+	req.Header.Set("Accept", "application/json")
+
+	resp, err := a.HTTPService.MakeClient(false).Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	return model.OutgoingWebhookResponseFromJson(io.LimitReader(resp.Body, MaxIntegrationResponseSize))
 }
 
 func SplitWebhookPost(post *model.Post, maxPostSize int) ([]*model.Post, *model.AppError) {
@@ -265,7 +282,7 @@ func (a *App) CreateWebhookPost(userId string, channel *model.Channel, text, ove
 		for key, val := range props {
 			if key == "attachments" {
 				if attachments, success := val.([]*model.SlackAttachment); success {
-					parseSlackAttachment(post, attachments)
+					model.ParseSlackAttachment(post, attachments)
 				}
 			} else if key != "override_icon_url" && key != "override_username" && key != "from_webhook" {
 				post.AddProp(key, val)
@@ -617,7 +634,7 @@ func (a *App) HandleIncomingWebhook(hookId string, req *model.IncomingWebhookReq
 			if result := <-a.Srv.Store.User().GetByUsername(channelName[1:]); result.Err != nil {
 				return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.user.app_error", nil, "err="+result.Err.Message, http.StatusBadRequest)
 			} else {
-				if ch, err := a.GetDirectChannel(hook.UserId, result.Data.(*model.User).Id); err != nil {
+				if ch, err := a.GetOrCreateDirectChannel(hook.UserId, result.Data.(*model.User).Id); err != nil {
 					return err
 				} else {
 					channel = ch

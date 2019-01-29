@@ -41,11 +41,15 @@ func jobserverCmdF(command *cobra.Command, args []string) {
 
 	// Run jobs
 	mlog.Info("Starting Mattermost job server")
+	defer mlog.Info("Stopped Mattermost job server")
+
 	if !noJobs {
-		a.Jobs.StartWorkers()
+		a.Srv.Jobs.StartWorkers()
+		defer a.Srv.Jobs.StopWorkers()
 	}
 	if !noSchedule {
-		a.Jobs.StartSchedulers()
+		a.Srv.Jobs.StartSchedulers()
+		defer a.Srv.Jobs.StopSchedulers()
 	}
 
 	signalChan := make(chan os.Signal, 1)
@@ -54,9 +58,4 @@ func jobserverCmdF(command *cobra.Command, args []string) {
 
 	// Cleanup anything that isn't handled by a defer statement
 	mlog.Info("Stopping Mattermost job server")
-
-	a.Jobs.StopSchedulers()
-	a.Jobs.StopWorkers()
-
-	mlog.Info("Stopped Mattermost job server")
 }

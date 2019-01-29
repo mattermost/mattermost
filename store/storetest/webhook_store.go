@@ -484,7 +484,7 @@ func testWebhookStoreCountIncoming(t *testing.T, ss store.Store) {
 	o1.UserId = model.NewId()
 	o1.TeamId = model.NewId()
 
-	o1 = (<-ss.Webhook().SaveIncoming(o1)).Data.(*model.IncomingWebhook)
+	_ = (<-ss.Webhook().SaveIncoming(o1)).Data.(*model.IncomingWebhook)
 
 	if r := <-ss.Webhook().AnalyticsIncomingCount(""); r.Err != nil {
 		t.Fatal(r.Err)
@@ -502,7 +502,7 @@ func testWebhookStoreCountOutgoing(t *testing.T, ss store.Store) {
 	o1.TeamId = model.NewId()
 	o1.CallbackURLs = []string{"http://nowhere.com/"}
 
-	o1 = (<-ss.Webhook().SaveOutgoing(o1)).Data.(*model.OutgoingWebhook)
+	_ = (<-ss.Webhook().SaveOutgoing(o1)).Data.(*model.OutgoingWebhook)
 
 	if r := <-ss.Webhook().AnalyticsOutgoingCount(""); r.Err != nil {
 		t.Fatal(r.Err)

@@ -90,7 +90,7 @@ func (ar *AuthorizeRequest) IsValid() *AppError {
 		return NewAppError("AuthData.IsValid", "model.authorize.is_valid.redirect_uri.app_error", nil, "client_id="+ar.ClientId, http.StatusBadRequest)
 	}
 
-	if len(ar.State) > 128 {
+	if len(ar.State) > 1024 {
 		return NewAppError("AuthData.IsValid", "model.authorize.is_valid.state.app_error", nil, "client_id="+ar.ClientId, http.StatusBadRequest)
 	}
 

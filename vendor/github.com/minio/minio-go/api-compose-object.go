@@ -101,7 +101,11 @@ func (d *DestinationInfo) getUserMetaHeadersMap(withCopyDirectiveHeader bool) ma
 		r["x-amz-metadata-directive"] = "REPLACE"
 	}
 	for k, v := range d.userMetadata {
-		r["x-amz-meta-"+k] = v
+		if isAmzHeader(k) || isStandardHeader(k) || isStorageClassHeader(k) {
+			r[k] = v
+		} else {
+			r["x-amz-meta-"+k] = v
+		}
 	}
 	return r
 }
@@ -358,10 +362,10 @@ func (c Client) ComposeObjectWithProgress(dst DestinationInfo, srcs []SourceInfo
 	srcSizes := make([]int64, len(srcs))
 	var totalSize, size, totalParts int64
 	var srcUserMeta map[string]string
-	var etag string
+	etags := make([]string, len(srcs))
 	var err error
 	for i, src := range srcs {
-		size, etag, srcUserMeta, err = src.getProps(c)
+		size, etags[i], srcUserMeta, err = src.getProps(c)
 		if err != nil {
 			return err
 		}
@@ -371,15 +375,6 @@ func (c Client) ComposeObjectWithProgress(dst DestinationInfo, srcs []SourceInfo
 		if len(srcs) > 1 && src.Headers.Get("x-amz-meta-x-amz-key") != "" {
 			return ErrInvalidArgument(
 				fmt.Sprintf("Client side encryption is used in source object %s/%s", src.bucket, src.object))
-		}
-
-		// Since we did a HEAD to get size, we use the ETag
-		// value to make sure the object has not changed by
-		// the time we perform the copy. This is done, only if
-		// the user has not set their own ETag match
-		// condition.
-		if src.Headers.Get("x-amz-copy-source-if-match") == "" {
-			src.SetMatchETagCond(etag)
 		}
 
 		// Check if a segment is specified, and if so, is the
@@ -429,7 +424,15 @@ func (c Client) ComposeObjectWithProgress(dst DestinationInfo, srcs []SourceInfo
 
 	// Now, handle multipart-copy cases.
 
-	// 1. Initiate a new multipart upload.
+	// 1. Ensure that the object has not been changed while
+	//    we are copying data.
+	for i, src := range srcs {
+		if src.Headers.Get("x-amz-copy-source-if-match") == "" {
+			src.SetMatchETagCond(etags[i])
+		}
+	}
+
+	// 2. Initiate a new multipart upload.
 
 	// Set user-metadata on the destination object. If no
 	// user-metadata is specified, and there is only one source,
@@ -449,13 +452,13 @@ func (c Client) ComposeObjectWithProgress(dst DestinationInfo, srcs []SourceInfo
 		return err
 	}
 
-	// 2. Perform copy part uploads
+	// 3. Perform copy part uploads
 	objParts := []CompletePart{}
 	partIndex := 1
 	for i, src := range srcs {
 		h := src.Headers
 		if src.encryption != nil {
-			src.encryption.Marshal(h)
+			encrypt.SSECopy(src.encryption).Marshal(h)
 		}
 		// Add destination encryption headers
 		if dst.encryption != nil {
@@ -480,14 +483,14 @@ func (c Client) ComposeObjectWithProgress(dst DestinationInfo, srcs []SourceInfo
 				return err
 			}
 			if progress != nil {
-				io.CopyN(ioutil.Discard, progress, start+end-1)
+				io.CopyN(ioutil.Discard, progress, end-start+1)
 			}
 			objParts = append(objParts, complPart)
 			partIndex++
 		}
 	}
 
-	// 3. Make final complete-multipart request.
+	// 4. Make final complete-multipart request.
 	_, err = c.completeMultipartUpload(ctx, dst.bucket, dst.object, uploadID,
 		completeMultipartUpload{Parts: objParts})
 	if err != nil {

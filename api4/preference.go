@@ -23,18 +23,18 @@ func getPreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.App.Session, c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
 
-	if preferences, err := c.App.GetPreferencesForUser(c.Params.UserId); err != nil {
+	preferences, err := c.App.GetPreferencesForUser(c.Params.UserId)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.Write([]byte(preferences.ToJson()))
-		return
 	}
+
+	w.Write([]byte(preferences.ToJson()))
 }
 
 func getPreferencesByCategory(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -43,18 +43,18 @@ func getPreferencesByCategory(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.App.Session, c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
 
-	if preferences, err := c.App.GetPreferenceByCategoryForUser(c.Params.UserId, c.Params.Category); err != nil {
+	preferences, err := c.App.GetPreferenceByCategoryForUser(c.Params.UserId, c.Params.Category)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.Write([]byte(preferences.ToJson()))
-		return
 	}
+
+	w.Write([]byte(preferences.ToJson()))
 }
 
 func getPreferenceByCategoryAndName(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -63,18 +63,18 @@ func getPreferenceByCategoryAndName(c *Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.App.Session, c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
 
-	if preferences, err := c.App.GetPreferenceByCategoryAndNameForUser(c.Params.UserId, c.Params.Category, c.Params.PreferenceName); err != nil {
+	preferences, err := c.App.GetPreferenceByCategoryAndNameForUser(c.Params.UserId, c.Params.Category, c.Params.PreferenceName)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.Write([]byte(preferences.ToJson()))
-		return
 	}
+
+	w.Write([]byte(preferences.ToJson()))
 }
 
 func updatePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -83,7 +83,7 @@ func updatePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.App.Session, c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
@@ -94,7 +94,26 @@ func updatePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.UpdatePreferences(c.Params.UserId, preferences); err != nil {
+	var sanitizedPreferences model.Preferences
+
+	for _, pref := range preferences {
+		if pref.Category == model.PREFERENCE_CATEGORY_FLAGGED_POST {
+			post, err := c.App.GetSinglePost(pref.Name)
+			if err != nil {
+				c.SetInvalidParam("preference.name")
+				return
+			}
+
+			if !c.App.SessionHasPermissionToChannel(c.App.Session, post.ChannelId, model.PERMISSION_READ_CHANNEL) {
+				c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+				return
+			}
+		}
+
+		sanitizedPreferences = append(sanitizedPreferences, pref)
+	}
+
+	if err := c.App.UpdatePreferences(c.Params.UserId, sanitizedPreferences); err != nil {
 		c.Err = err
 		return
 	}
@@ -108,7 +127,7 @@ func deletePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUser(c.App.Session, c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}

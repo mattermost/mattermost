@@ -5,7 +5,10 @@ package model
 
 import (
 	"fmt"
+	"regexp"
 )
+
+var linkWithTextRegex = regexp.MustCompile(`<([^<\|]+)\|([^>]+)>`)
 
 type SlackAttachment struct {
 	Id         int64                   `json:"id"`
@@ -28,9 +31,9 @@ type SlackAttachment struct {
 }
 
 type SlackAttachmentField struct {
-	Title string      `json:"title"`
-	Value interface{} `json:"value"`
-	Short bool        `json:"short"`
+	Title string              `json:"title"`
+	Value interface{}         `json:"value"`
+	Short SlackCompatibleBool `json:"short"`
 }
 
 func StringifySlackFieldValue(a []*SlackAttachment) []*SlackAttachment {
@@ -56,4 +59,35 @@ func StringifySlackFieldValue(a []*SlackAttachment) []*SlackAttachment {
 		attachment.Fields = nonNilFields
 	}
 	return nonNilAttachments
+}
+
+// This method only parses and processes the attachments,
+// all else should be set in the post which is passed
+func ParseSlackAttachment(post *Post, attachments []*SlackAttachment) {
+	if post.Type == "" {
+		post.Type = POST_SLACK_ATTACHMENT
+	}
+
+	postAttachments := []*SlackAttachment{}
+
+	for _, attachment := range attachments {
+		if attachment == nil {
+			continue
+		}
+
+		attachment.Text = ParseSlackLinksToMarkdown(attachment.Text)
+		attachment.Pretext = ParseSlackLinksToMarkdown(attachment.Pretext)
+
+		for _, field := range attachment.Fields {
+			if value, ok := field.Value.(string); ok {
+				field.Value = ParseSlackLinksToMarkdown(value)
+			}
+		}
+		postAttachments = append(postAttachments, attachment)
+	}
+	post.AddProp("attachments", postAttachments)
+}
+
+func ParseSlackLinksToMarkdown(text string) string {
+	return linkWithTextRegex.ReplaceAllString(text, "[${2}](${1})")
 }

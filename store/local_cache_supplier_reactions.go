@@ -18,12 +18,12 @@ func (s *LocalCacheSupplier) handleClusterInvalidateReaction(msg *model.ClusterM
 }
 
 func (s *LocalCacheSupplier) ReactionSave(ctx context.Context, reaction *model.Reaction, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	s.doInvalidateCacheCluster(s.reactionCache, reaction.PostId)
+	defer s.doInvalidateCacheCluster(s.reactionCache, reaction.PostId)
 	return s.Next().ReactionSave(ctx, reaction, hints...)
 }
 
 func (s *LocalCacheSupplier) ReactionDelete(ctx context.Context, reaction *model.Reaction, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	s.doInvalidateCacheCluster(s.reactionCache, reaction.PostId)
+	defer s.doInvalidateCacheCluster(s.reactionCache, reaction.PostId)
 	return s.Next().ReactionDelete(ctx, reaction, hints...)
 }
 
@@ -42,7 +42,7 @@ func (s *LocalCacheSupplier) ReactionGetForPost(ctx context.Context, postId stri
 func (s *LocalCacheSupplier) ReactionDeleteAllWithEmojiName(ctx context.Context, emojiName string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
 	// This could be improved. Right now we just clear the whole
 	// cache because we don't have a way find what post Ids have this emoji name.
-	s.doClearCacheCluster(s.reactionCache)
+	defer s.doClearCacheCluster(s.reactionCache)
 	return s.Next().ReactionDeleteAllWithEmojiName(ctx, emojiName, hints...)
 }
 
@@ -50,4 +50,9 @@ func (s *LocalCacheSupplier) ReactionPermanentDeleteBatch(ctx context.Context, e
 	// Don't bother to clear the cache as the posts will be gone anyway and the reactions being deleted will
 	// expire from the cache in due course.
 	return s.Next().ReactionPermanentDeleteBatch(ctx, endTime, limit)
+}
+
+func (s *LocalCacheSupplier) ReactionsBulkGetForPosts(ctx context.Context, postIds []string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	// Ignoring this.
+	return s.Next().ReactionsBulkGetForPosts(ctx, postIds, hints...)
 }

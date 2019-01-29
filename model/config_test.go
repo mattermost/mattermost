@@ -360,6 +360,7 @@ func TestMessageExportSetDefaults(t *testing.T) {
 }
 
 func TestMessageExportSetDefaultsExportEnabledExportFromTimestampNil(t *testing.T) {
+	// Test retained as protection against regression of MM-13185
 	mes := &MessageExportSettings{
 		EnableExport: NewBool(true),
 	}
@@ -367,12 +368,13 @@ func TestMessageExportSetDefaultsExportEnabledExportFromTimestampNil(t *testing.
 
 	require.True(t, *mes.EnableExport)
 	require.Equal(t, "01:00", *mes.DailyRunTime)
-	require.NotEqual(t, int64(0), *mes.ExportFromTimestamp)
+	require.Equal(t, int64(0), *mes.ExportFromTimestamp)
 	require.True(t, *mes.ExportFromTimestamp <= GetMillis())
 	require.Equal(t, 10000, *mes.BatchSize)
 }
 
 func TestMessageExportSetDefaultsExportEnabledExportFromTimestampZero(t *testing.T) {
+	// Test retained as protection against regression of MM-13185
 	mes := &MessageExportSettings{
 		EnableExport:        NewBool(true),
 		ExportFromTimestamp: NewInt64(0),
@@ -381,7 +383,7 @@ func TestMessageExportSetDefaultsExportEnabledExportFromTimestampZero(t *testing
 
 	require.True(t, *mes.EnableExport)
 	require.Equal(t, "01:00", *mes.DailyRunTime)
-	require.NotEqual(t, int64(0), *mes.ExportFromTimestamp)
+	require.Equal(t, int64(0), *mes.ExportFromTimestamp)
 	require.True(t, *mes.ExportFromTimestamp <= GetMillis())
 	require.Equal(t, 10000, *mes.BatchSize)
 }
@@ -425,6 +427,7 @@ func TestMessageExportSetDefaultsExportDisabledExportFromTimestampZero(t *testin
 }
 
 func TestMessageExportSetDefaultsExportDisabledExportFromTimestampNonZero(t *testing.T) {
+	// Test retained as protection against regression of MM-13185
 	mes := &MessageExportSettings{
 		EnableExport:        NewBool(false),
 		ExportFromTimestamp: NewInt64(12345),
@@ -433,7 +436,7 @@ func TestMessageExportSetDefaultsExportDisabledExportFromTimestampNonZero(t *tes
 
 	require.False(t, *mes.EnableExport)
 	require.Equal(t, "01:00", *mes.DailyRunTime)
-	require.Equal(t, int64(0), *mes.ExportFromTimestamp)
+	require.Equal(t, int64(12345), *mes.ExportFromTimestamp)
 	require.Equal(t, 10000, *mes.BatchSize)
 }
 
@@ -509,12 +512,179 @@ func TestDisplaySettingsIsValidCustomUrlSchemes(t *testing.T) {
 			ds := &DisplaySettings{}
 			ds.SetDefaults()
 
-			ds.CustomUrlSchemes = &test.value
+			ds.CustomUrlSchemes = test.value
 
 			if err := ds.isValid(); err != nil && test.valid {
 				t.Error("Expected CustomUrlSchemes to be valid but got error:", err)
 			} else if err == nil && !test.valid {
 				t.Error("Expected CustomUrlSchemes to be invalid but got no error")
+			}
+		})
+	}
+}
+
+func TestListenAddressIsValidated(t *testing.T) {
+
+	testValues := map[string]bool{
+		":8065":                true,
+		":9917":                true,
+		"0.0.0.0:9917":         true,
+		"[2001:db8::68]:9918":  true,
+		"[::1]:8065":           true,
+		"localhost:8065":       true,
+		"test.com:8065":        true,
+		":0":                   true,
+		":33147":               true,
+		"123:8065":             false,
+		"[::1]:99999":          false,
+		"[::1]:-1":             false,
+		"[::1]:8065a":          false,
+		"0.0.0:9917":           false,
+		"0.0.0.0:9917/":        false,
+		"0..0.0:9917/":         false,
+		"0.0.0222.0:9917/":     false,
+		"http://0.0.0.0:9917/": false,
+		"http://0.0.0.0:9917":  false,
+		"8065":                 false,
+		"[2001:db8::68]":       false,
+	}
+
+	for key, expected := range testValues {
+		ss := &ServiceSettings{
+			ListenAddress: NewString(key),
+		}
+		ss.SetDefaults()
+		if expected {
+			require.Nil(t, ss.isValid(), fmt.Sprintf("Got an error from '%v'.", key))
+		} else {
+			err := ss.isValid()
+			require.NotNil(t, err, fmt.Sprintf("Expected '%v' to throw an error.", key))
+			require.Equal(t, "model.config.is_valid.listen_address.app_error", err.Message)
+		}
+	}
+
+}
+
+func TestImageProxySettingsSetDefaults(t *testing.T) {
+	ss := ServiceSettings{
+		DEPRECATED_DO_NOT_USE_ImageProxyType:    NewString(IMAGE_PROXY_TYPE_ATMOS_CAMO),
+		DEPRECATED_DO_NOT_USE_ImageProxyURL:     NewString("http://images.example.com"),
+		DEPRECATED_DO_NOT_USE_ImageProxyOptions: NewString("1234abcd"),
+	}
+
+	t.Run("default, no old settings", func(t *testing.T) {
+		ips := ImageProxySettings{}
+		ips.SetDefaults(ServiceSettings{})
+
+		assert.Equal(t, true, *ips.Enable)
+		assert.Equal(t, IMAGE_PROXY_TYPE_LOCAL, *ips.ImageProxyType)
+		assert.Equal(t, "", *ips.RemoteImageProxyURL)
+		assert.Equal(t, "", *ips.RemoteImageProxyOptions)
+	})
+
+	t.Run("default, old settings", func(t *testing.T) {
+		ips := ImageProxySettings{}
+		ips.SetDefaults(ss)
+
+		assert.Equal(t, true, *ips.Enable)
+		assert.Equal(t, *ss.DEPRECATED_DO_NOT_USE_ImageProxyType, *ips.ImageProxyType)
+		assert.Equal(t, *ss.DEPRECATED_DO_NOT_USE_ImageProxyURL, *ips.RemoteImageProxyURL)
+		assert.Equal(t, *ss.DEPRECATED_DO_NOT_USE_ImageProxyOptions, *ips.RemoteImageProxyOptions)
+	})
+
+	t.Run("not default, old settings", func(t *testing.T) {
+		url := "http://images.mattermost.com"
+		options := "aaaaaaaa"
+
+		ips := ImageProxySettings{
+			Enable:                  NewBool(false),
+			ImageProxyType:          NewString(IMAGE_PROXY_TYPE_LOCAL),
+			RemoteImageProxyURL:     &url,
+			RemoteImageProxyOptions: &options,
+		}
+		ips.SetDefaults(ss)
+
+		assert.Equal(t, false, *ips.Enable)
+		assert.Equal(t, IMAGE_PROXY_TYPE_LOCAL, *ips.ImageProxyType)
+		assert.Equal(t, url, *ips.RemoteImageProxyURL)
+		assert.Equal(t, options, *ips.RemoteImageProxyOptions)
+	})
+}
+
+func TestImageProxySettingsIsValid(t *testing.T) {
+	for _, test := range []struct {
+		Name                    string
+		Enable                  bool
+		ImageProxyType          string
+		RemoteImageProxyURL     string
+		RemoteImageProxyOptions string
+		ExpectError             bool
+	}{
+		{
+			Name:        "disabled",
+			Enable:      false,
+			ExpectError: false,
+		},
+		{
+			Name:                    "disabled with bad values",
+			Enable:                  false,
+			ImageProxyType:          "garbage",
+			RemoteImageProxyURL:     "garbage",
+			RemoteImageProxyOptions: "garbage",
+			ExpectError:             false,
+		},
+		{
+			Name:           "missing type",
+			Enable:         true,
+			ImageProxyType: "",
+			ExpectError:    true,
+		},
+		{
+			Name:                    "local",
+			Enable:                  true,
+			ImageProxyType:          "local",
+			RemoteImageProxyURL:     "garbage",
+			RemoteImageProxyOptions: "garbage",
+			ExpectError:             false,
+		},
+		{
+			Name:                    "atmos/camo",
+			Enable:                  true,
+			ImageProxyType:          IMAGE_PROXY_TYPE_ATMOS_CAMO,
+			RemoteImageProxyURL:     "someurl",
+			RemoteImageProxyOptions: "someoptions",
+			ExpectError:             false,
+		},
+		{
+			Name:                    "atmos/camo, missing url",
+			Enable:                  true,
+			ImageProxyType:          IMAGE_PROXY_TYPE_ATMOS_CAMO,
+			RemoteImageProxyURL:     "",
+			RemoteImageProxyOptions: "garbage",
+			ExpectError:             true,
+		},
+		{
+			Name:                    "atmos/camo, missing options",
+			Enable:                  true,
+			ImageProxyType:          IMAGE_PROXY_TYPE_ATMOS_CAMO,
+			RemoteImageProxyURL:     "someurl",
+			RemoteImageProxyOptions: "",
+			ExpectError:             true,
+		},
+	} {
+		t.Run(test.Name, func(t *testing.T) {
+			ips := &ImageProxySettings{
+				Enable:                  &test.Enable,
+				ImageProxyType:          &test.ImageProxyType,
+				RemoteImageProxyURL:     &test.RemoteImageProxyURL,
+				RemoteImageProxyOptions: &test.RemoteImageProxyOptions,
+			}
+
+			err := ips.isValid()
+			if test.ExpectError {
+				assert.NotNil(t, err)
+			} else {
+				assert.Nil(t, err)
 			}
 		})
 	}

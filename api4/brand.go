@@ -14,18 +14,21 @@ import (
 func (api *API) InitBrand() {
 	api.BaseRoutes.Brand.Handle("/image", api.ApiHandlerTrustRequester(getBrandImage)).Methods("GET")
 	api.BaseRoutes.Brand.Handle("/image", api.ApiSessionRequired(uploadBrandImage)).Methods("POST")
+	api.BaseRoutes.Brand.Handle("/image", api.ApiSessionRequired(deleteBrandImage)).Methods("DELETE")
 }
 
 func getBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	// No permission check required
 
-	if img, err := c.App.GetBrandImage(); err != nil {
+	img, err := c.App.GetBrandImage()
+	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		w.Write(nil)
-	} else {
-		w.Header().Set("Content-Type", "image/png")
-		w.Write(img)
+		return
 	}
+
+	w.Header().Set("Content-Type", "image/png")
+	w.Write(img)
 }
 
 func uploadBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -54,7 +57,7 @@ func uploadBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
@@ -67,5 +70,19 @@ func uploadBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.LogAudit("")
 
 	w.WriteHeader(http.StatusCreated)
+	ReturnStatusOK(w)
+}
+
+func deleteBrandImage(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	if err := c.App.DeleteBrandImage(); err != nil {
+		c.Err = err
+		return
+	}
+
 	ReturnStatusOK(w)
 }

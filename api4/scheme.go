@@ -31,19 +31,19 @@ func createScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
 
-	var err *model.AppError
-	if scheme, err = c.App.CreateScheme(scheme); err != nil {
+	scheme, err := c.App.CreateScheme(scheme)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.WriteHeader(http.StatusCreated)
-		w.Write([]byte(scheme.ToJson()))
 	}
+
+	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte(scheme.ToJson()))
 }
 
 func getScheme(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -52,25 +52,22 @@ func getScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
 
-	if scheme, err := c.App.GetScheme(c.Params.SchemeId); err != nil {
+	scheme, err := c.App.GetScheme(c.Params.SchemeId)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.Write([]byte(scheme.ToJson()))
 	}
+
+	w.Write([]byte(scheme.ToJson()))
 }
 
 func getSchemes(c *Context, w http.ResponseWriter, r *http.Request) {
-	if c.Err != nil {
-		return
-	}
-
-	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
@@ -81,12 +78,13 @@ func getSchemes(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if schemes, err := c.App.GetSchemesPage(c.Params.Scope, c.Params.Page, c.Params.PerPage); err != nil {
+	schemes, err := c.App.GetSchemesPage(c.Params.Scope, c.Params.Page, c.Params.PerPage)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.Write([]byte(model.SchemesToJson(schemes)))
 	}
+
+	w.Write([]byte(model.SchemesToJson(schemes)))
 }
 
 func getTeamsForScheme(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -95,7 +93,7 @@ func getTeamsForScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
@@ -111,12 +109,13 @@ func getTeamsForScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if teams, err := c.App.GetTeamsForSchemePage(scheme, c.Params.Page, c.Params.PerPage); err != nil {
+	teams, err := c.App.GetTeamsForSchemePage(scheme, c.Params.Page, c.Params.PerPage)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.Write([]byte(model.TeamListToJson(teams)))
 	}
+
+	w.Write([]byte(model.TeamListToJson(teams)))
 }
 
 func getChannelsForScheme(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -125,7 +124,7 @@ func getChannelsForScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
@@ -141,12 +140,13 @@ func getChannelsForScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if channels, err := c.App.GetChannelsForSchemePage(scheme, c.Params.Page, c.Params.PerPage); err != nil {
+	channels, err := c.App.GetChannelsForSchemePage(scheme, c.Params.Page, c.Params.PerPage)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.Write([]byte(channels.ToJson()))
 	}
+
+	w.Write([]byte(channels.ToJson()))
 }
 
 func patchScheme(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -172,18 +172,19 @@ func patchScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
 
-	if scheme, err = c.App.PatchScheme(scheme, patch); err != nil {
+	scheme, err = c.App.PatchScheme(scheme, patch)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		c.LogAudit("")
-		w.Write([]byte(scheme.ToJson()))
 	}
+
+	c.LogAudit("")
+	w.Write([]byte(scheme.ToJson()))
 }
 
 func deleteScheme(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -197,7 +198,7 @@ func deleteScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}

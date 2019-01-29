@@ -13,6 +13,7 @@ func (api *API) InitReaction() {
 	api.BaseRoutes.Reactions.Handle("", api.ApiSessionRequired(saveReaction)).Methods("POST")
 	api.BaseRoutes.Post.Handle("/reactions", api.ApiSessionRequired(getReactions)).Methods("GET")
 	api.BaseRoutes.ReactionByNameForPostForUser.Handle("", api.ApiSessionRequired(deleteReaction)).Methods("DELETE")
+	api.BaseRoutes.Posts.Handle("/ids/reactions", api.ApiSessionRequired(getBulkReactions)).Methods("POST")
 }
 
 func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -27,23 +28,23 @@ func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if reaction.UserId != c.Session.UserId {
+	if reaction.UserId != c.App.Session.UserId {
 		c.Err = model.NewAppError("saveReaction", "api.reaction.save_reaction.user_id.app_error", nil, "", http.StatusForbidden)
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannelByPost(c.Session, reaction.PostId, model.PERMISSION_ADD_REACTION) {
+	if !c.App.SessionHasPermissionToChannelByPost(c.App.Session, reaction.PostId, model.PERMISSION_ADD_REACTION) {
 		c.SetPermissionError(model.PERMISSION_ADD_REACTION)
 		return
 	}
 
-	if reaction, err := c.App.SaveReactionForPost(reaction); err != nil {
+	reaction, err := c.App.SaveReactionForPost(reaction)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.Write([]byte(reaction.ToJson()))
-		return
 	}
+
+	w.Write([]byte(reaction.ToJson()))
 }
 
 func getReactions(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -52,18 +53,18 @@ func getReactions(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannelByPost(c.Session, c.Params.PostId, model.PERMISSION_READ_CHANNEL) {
+	if !c.App.SessionHasPermissionToChannelByPost(c.App.Session, c.Params.PostId, model.PERMISSION_READ_CHANNEL) {
 		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 		return
 	}
 
-	if reactions, err := c.App.GetReactionsForPost(c.Params.PostId); err != nil {
+	reactions, err := c.App.GetReactionsForPost(c.Params.PostId)
+	if err != nil {
 		c.Err = err
 		return
-	} else {
-		w.Write([]byte(model.ReactionsToJson(reactions)))
-		return
 	}
+
+	w.Write([]byte(model.ReactionsToJson(reactions)))
 }
 
 func deleteReaction(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -82,12 +83,12 @@ func deleteReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannelByPost(c.Session, c.Params.PostId, model.PERMISSION_REMOVE_REACTION) {
+	if !c.App.SessionHasPermissionToChannelByPost(c.App.Session, c.Params.PostId, model.PERMISSION_REMOVE_REACTION) {
 		c.SetPermissionError(model.PERMISSION_REMOVE_REACTION)
 		return
 	}
 
-	if c.Params.UserId != c.Session.UserId && !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_REMOVE_OTHERS_REACTIONS) {
+	if c.Params.UserId != c.App.Session.UserId && !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_REMOVE_OTHERS_REACTIONS) {
 		c.SetPermissionError(model.PERMISSION_REMOVE_OTHERS_REACTIONS)
 		return
 	}
@@ -105,4 +106,21 @@ func deleteReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	ReturnStatusOK(w)
+}
+
+func getBulkReactions(c *Context, w http.ResponseWriter, r *http.Request) {
+	postIds := model.ArrayFromJson(r.Body)
+	for _, postId := range postIds {
+		if !c.App.SessionHasPermissionToChannelByPost(c.App.Session, postId, model.PERMISSION_READ_CHANNEL) {
+			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+			return
+		}
+	}
+	reactions, err := c.App.GetBulkReactionsForPosts(postIds)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(model.MapPostIdToReactionsToJson(reactions)))
 }

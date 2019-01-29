@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 )
 
 func StringInSlice(a string, slice []string) bool {
@@ -44,7 +45,7 @@ func FileExistsInConfigFolder(filename string) bool {
 		return false
 	}
 
-	if _, err := os.Stat(FindConfigFile(filename)); err == nil {
+	if _, err := os.Stat(fileutils.FindConfigFile(filename)); err == nil {
 		return true
 	}
 	return false

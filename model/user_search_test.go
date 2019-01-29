@@ -4,14 +4,14 @@
 package model
 
 import (
-	"strings"
+	"bytes"
 	"testing"
 )
 
 func TestUserSearchJson(t *testing.T) {
 	userSearch := UserSearch{Term: NewId(), TeamId: NewId()}
 	json := userSearch.ToJson()
-	ruserSearch := UserSearchFromJson(strings.NewReader(json))
+	ruserSearch := UserSearchFromJson(bytes.NewReader(json))
 
 	if userSearch.Term != ruserSearch.Term {
 		t.Fatal("Terms do not match")

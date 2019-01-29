@@ -105,15 +105,15 @@ func TestGetPreferencesByCategory(t *testing.T) {
 		t.Fatalf("received the wrong number of preferences %v:%v", len(prefs), 2)
 	}
 
-	prefs, resp = Client.GetPreferencesByCategory(user1.Id, "junk")
+	_, resp = Client.GetPreferencesByCategory(user1.Id, "junk")
 	CheckNotFoundStatus(t, resp)
 
 	th.LoginBasic2()
 
-	prefs, resp = Client.GetPreferencesByCategory(th.BasicUser2.Id, category)
+	_, resp = Client.GetPreferencesByCategory(th.BasicUser2.Id, category)
 	CheckNotFoundStatus(t, resp)
 
-	prefs, resp = Client.GetPreferencesByCategory(user1.Id, category)
+	_, resp = Client.GetPreferencesByCategory(user1.Id, category)
 	CheckForbiddenStatus(t, resp)
 
 	prefs, resp = Client.GetPreferencesByCategory(th.BasicUser2.Id, "junk")
@@ -309,7 +309,7 @@ func TestDeletePreferences(t *testing.T) {
 
 	th.LoginBasic()
 
-	prefs, resp := Client.GetPreferences(th.BasicUser.Id)
+	prefs, _ := Client.GetPreferences(th.BasicUser.Id)
 	originalCount := len(prefs)
 
 	// save 10 preferences
@@ -328,7 +328,7 @@ func TestDeletePreferences(t *testing.T) {
 	// delete 10 preferences
 	th.LoginBasic2()
 
-	_, resp = Client.DeletePreferences(th.BasicUser2.Id, &preferences)
+	_, resp := Client.DeletePreferences(th.BasicUser2.Id, &preferences)
 	CheckForbiddenStatus(t, resp)
 
 	th.LoginBasic()
@@ -339,7 +339,7 @@ func TestDeletePreferences(t *testing.T) {
 	_, resp = Client.DeletePreferences(th.BasicUser2.Id, &preferences)
 	CheckForbiddenStatus(t, resp)
 
-	prefs, resp = Client.GetPreferences(th.BasicUser.Id)
+	prefs, _ = Client.GetPreferences(th.BasicUser.Id)
 	if len(prefs) != originalCount {
 		t.Fatal("should've deleted preferences")
 	}

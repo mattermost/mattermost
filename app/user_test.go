@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
@@ -115,6 +116,25 @@ func TestCreateProfileImage(t *testing.T) {
 	}
 }
 
+func TestSetDefaultProfileImage(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	err := th.App.SetDefaultProfileImage(&model.User{
+		Id:       model.NewId(),
+		Username: "notvaliduser",
+	})
+	require.Error(t, err)
+
+	user := th.BasicUser
+
+	err = th.App.SetDefaultProfileImage(user)
+	require.Nil(t, err)
+
+	user = getUserFromDB(th.App, user.Id, t)
+	assert.Equal(t, int64(0), user.LastPictureUpdate)
+}
+
 func TestUpdateUserToRestrictedDomain(t *testing.T) {
 	th := Setup()
 	defer th.TearDown()
@@ -132,6 +152,24 @@ func TestUpdateUserToRestrictedDomain(t *testing.T) {
 	user.Email = "asdf@ghjk.l"
 	_, err = th.App.UpdateUser(user, false)
 	assert.False(t, err == nil)
+}
+
+func TestUpdateUserActive(t *testing.T) {
+	th := Setup()
+	defer th.TearDown()
+
+	user := th.CreateUser()
+
+	EnableUserDeactivation := th.App.Config().TeamSettings.EnableUserDeactivation
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.EnableUserDeactivation = EnableUserDeactivation })
+	}()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.TeamSettings.EnableUserDeactivation = true
+	})
+	err := th.App.UpdateUserActive(user.Id, false)
+	assert.Nil(t, err)
 }
 
 func TestUpdateOAuthUserAttrs(t *testing.T) {
@@ -249,25 +287,25 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 }
 
 func getUserFromDB(a *App, id string, t *testing.T) *model.User {
-	if user, err := a.GetUser(id); err != nil {
-		t.Fatal("user is not found")
+	user, err := a.GetUser(id)
+	if err != nil {
+		t.Fatal("user is not found", err)
 		return nil
-	} else {
-		return user
 	}
+	return user
 }
 
 func getGitlabUserPayload(gitlabUser oauthgitlab.GitLabUser, t *testing.T) []byte {
 	var payload []byte
 	var err error
 	if payload, err = json.Marshal(gitlabUser); err != nil {
-		t.Fatal("Serialization of gitlab user to json failed")
+		t.Fatal("Serialization of gitlab user to json failed", err)
 	}
 
 	return payload
 }
 
-func createGitlabUser(t *testing.T, a *App, email string, username string) (*model.User, oauthgitlab.GitLabUser) {
+func createGitlabUser(t *testing.T, a *App, username string, email string) (*model.User, oauthgitlab.GitLabUser) {
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	gitlabUserObj := oauthgitlab.GitLabUser{Id: int64(r.Intn(1000)) + 1, Username: username, Login: "user1", Email: email, Name: "Test User"}
 	gitlabUser := getGitlabUserPayload(gitlabUserObj, t)
@@ -276,7 +314,7 @@ func createGitlabUser(t *testing.T, a *App, email string, username string) (*mod
 	var err *model.AppError
 
 	if user, err = a.CreateOAuthUser("gitlab", bytes.NewReader(gitlabUser), ""); err != nil {
-		t.Fatal("unable to create the user")
+		t.Fatal("unable to create the user", err)
 	}
 
 	return user, gitlabUserObj

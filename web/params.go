@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/gorilla/mux"
+	"github.com/mattermost/mattermost-server/model"
 )
 
 const (
@@ -49,10 +50,14 @@ type Params struct {
 	RoleName       string
 	SchemeId       string
 	Scope          string
+	GroupId        string
 	Page           int
 	PerPage        int
 	LogsPerPage    int
 	Permanent      bool
+	RemoteId       string
+	SyncableId     string
+	SyncableType   model.GroupSyncableType
 }
 
 func ParamsFromRequest(r *http.Request) *Params {
@@ -173,6 +178,14 @@ func ParamsFromRequest(r *http.Request) *Params {
 		params.SchemeId = val
 	}
 
+	if val, ok := props["group_id"]; ok {
+		params.GroupId = val
+	}
+
+	if val, ok := props["remote_id"]; ok {
+		params.RemoteId = val
+	}
+
 	params.Scope = query.Get("scope")
 
 	if val, err := strconv.Atoi(query.Get("page")); err != nil || val < 0 {
@@ -201,5 +214,17 @@ func ParamsFromRequest(r *http.Request) *Params {
 		params.LogsPerPage = val
 	}
 
+	if val, ok := props["syncable_id"]; ok {
+		params.SyncableId = val
+	}
+
+	if val, ok := props["syncable_type"]; ok {
+		switch val {
+		case "teams":
+			params.SyncableType = model.GroupSyncableTypeTeam
+		case "channels":
+			params.SyncableType = model.GroupSyncableTypeChannel
+		}
+	}
 	return params
 }

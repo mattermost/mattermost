@@ -11,10 +11,11 @@ import (
 
 	"github.com/avct/uasurfer"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/store"
 )
 
-func (a *App) CheckForClienSideCert(r *http.Request) (string, string, string) {
+func (a *App) CheckForClientSideCert(r *http.Request) (string, string, string) {
 	pem := r.Header.Get("X-SSL-Client-Cert")                // mapped to $ssl_client_cert from nginx
 	subject := r.Header.Get("X-SSL-Client-Cert-Subject-DN") // mapped to $ssl_client_s_dn from nginx
 	email := ""
@@ -44,8 +45,7 @@ func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken string, l
 	}()
 
 	if len(password) == 0 {
-		err := model.NewAppError("AuthenticateUserForLogin", "api.user.login.blank_pwd.app_error", nil, "", http.StatusBadRequest)
-		return nil, err
+		return nil, model.NewAppError("AuthenticateUserForLogin", "api.user.login.blank_pwd.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	// Get the MM user we are trying to login
@@ -65,6 +65,27 @@ func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken string, l
 		return nil, err
 	}
 
+	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
+		var rejectionReason string
+		pluginContext := a.PluginContext()
+		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			rejectionReason = hooks.UserWillLogIn(pluginContext, user)
+			return rejectionReason == ""
+		}, plugin.UserWillLogInId)
+
+		if rejectionReason != "" {
+			return nil, model.NewAppError("AuthenticateUserForLogin", "Login rejected by plugin: "+rejectionReason, nil, "", http.StatusBadRequest)
+		}
+
+		a.Srv.Go(func() {
+			pluginContext := a.PluginContext()
+			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+				hooks.UserHasLoggedIn(pluginContext, user)
+				return true
+			}, plugin.UserHasLoggedInId)
+		})
+	}
+
 	return user, nil
 }
 
@@ -74,17 +95,16 @@ func (a *App) GetUserForLogin(id, loginId string) (*model.User, *model.AppError)
 
 	// If we are given a userID then fail if we can't find a user with that ID
 	if len(id) != 0 {
-		if user, err := a.GetUser(id); err != nil {
+		user, err := a.GetUser(id)
+		if err != nil {
 			if err.Id != store.MISSING_ACCOUNT_ERROR {
 				err.StatusCode = http.StatusInternalServerError
 				return nil, err
-			} else {
-				err.StatusCode = http.StatusBadRequest
-				return nil, err
 			}
-		} else {
-			return user, nil
+			err.StatusCode = http.StatusBadRequest
+			return nil, err
 		}
+		return user, nil
 	}
 
 	// Try to get the user by username/email
@@ -94,8 +114,11 @@ func (a *App) GetUserForLogin(id, loginId string) (*model.User, *model.AppError)
 
 	// Try to get the user with LDAP if enabled
 	if *a.Config().LdapSettings.Enable && a.Ldap != nil {
-		if user, err := a.Ldap.GetUser(loginId); err == nil {
-			return user, nil
+		if ldapUser, err := a.Ldap.GetUser(loginId); err == nil {
+			if user, err := a.GetUserByAuth(ldapUser.AuthData, model.USER_AUTH_SERVICE_LDAP); err == nil {
+				return user, nil
+			}
+			return ldapUser, nil
 		}
 	}
 
@@ -104,7 +127,7 @@ func (a *App) GetUserForLogin(id, loginId string) (*model.User, *model.AppError)
 
 func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, deviceId string) (*model.Session, *model.AppError) {
 	session := &model.Session{UserId: user.Id, Roles: user.GetRawRoles(), DeviceId: deviceId, IsOAuth: false}
-
+	session.GenerateCSRF()
 	maxAge := *a.Config().ServiceSettings.SessionLengthWebInDays * 60 * 60 * 24
 
 	if len(deviceId) > 0 {
@@ -175,7 +198,6 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 func GetProtocol(r *http.Request) string {
 	if r.Header.Get(model.HEADER_FORWARDED_PROTO) == "https" || r.TLS != nil {
 		return "https"
-	} else {
-		return "http"
 	}
+	return "http"
 }

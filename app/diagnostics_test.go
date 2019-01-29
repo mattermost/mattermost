@@ -99,23 +99,17 @@ func TestDiagnostics(t *testing.T) {
 	})
 
 	t.Run("SendDailyDiagnostics", func(t *testing.T) {
-		th.App.SendDailyDiagnostics()
+		th.App.sendDailyDiagnostics(true)
 
 		info := ""
 		// Collect the info sent.
+	Loop:
 		for {
-			done := false
 			select {
 			case result := <-data:
 				info += result
 			case <-time.After(time.Second * 1):
-				// Done recieving
-				done = true
-				break
-			}
-
-			if done {
-				break
+				break Loop
 			}
 		}
 
@@ -138,7 +132,6 @@ func TestDiagnostics(t *testing.T) {
 			TRACK_CONFIG_PASSWORD,
 			TRACK_CONFIG_CLUSTER,
 			TRACK_CONFIG_METRICS,
-			TRACK_CONFIG_WEBRTC,
 			TRACK_CONFIG_SUPPORT,
 			TRACK_CONFIG_NATIVEAPP,
 			TRACK_CONFIG_ANALYTICS,
@@ -154,10 +147,21 @@ func TestDiagnostics(t *testing.T) {
 		}
 	})
 
+	t.Run("SendDailyDiagnosticsNoSegmentKey", func(t *testing.T) {
+		th.App.SendDailyDiagnostics()
+
+		select {
+		case <-data:
+			t.Fatal("Should not send diagnostics when the segment key is not set")
+		case <-time.After(time.Second * 1):
+			// Did not receive diagnostics
+		}
+	})
+
 	t.Run("SendDailyDiagnosticsDisabled", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.LogSettings.EnableDiagnostics = false })
 
-		th.App.SendDailyDiagnostics()
+		th.App.sendDailyDiagnostics(true)
 
 		select {
 		case <-data:

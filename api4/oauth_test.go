@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"strconv"
 	"testing"
@@ -18,10 +19,11 @@ import (
 	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/web"
 )
 
 func TestCreateOAuthApp(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
@@ -94,7 +96,7 @@ func TestCreateOAuthApp(t *testing.T) {
 }
 
 func TestUpdateOAuthApp(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
@@ -211,7 +213,7 @@ func TestUpdateOAuthApp(t *testing.T) {
 }
 
 func TestGetOAuthApps(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
@@ -285,7 +287,7 @@ func TestGetOAuthApps(t *testing.T) {
 }
 
 func TestGetOAuthApp(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
@@ -361,7 +363,7 @@ func TestGetOAuthApp(t *testing.T) {
 }
 
 func TestGetOAuthAppInfo(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
@@ -437,7 +439,7 @@ func TestGetOAuthAppInfo(t *testing.T) {
 }
 
 func TestDeleteOAuthApp(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
@@ -507,7 +509,7 @@ func TestDeleteOAuthApp(t *testing.T) {
 }
 
 func TestRegenerateOAuthAppSecret(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
@@ -581,7 +583,7 @@ func TestRegenerateOAuthAppSecret(t *testing.T) {
 }
 
 func TestGetAuthorizedOAuthAppsForUser(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
@@ -641,7 +643,7 @@ func TestGetAuthorizedOAuthAppsForUser(t *testing.T) {
 }
 
 func TestAuthorizeOAuthApp(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
@@ -730,7 +732,7 @@ func TestAuthorizeOAuthApp(t *testing.T) {
 }
 
 func TestDeauthorizeOAuthApp(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	AdminClient := th.SystemAdminClient
@@ -1145,6 +1147,30 @@ func TestOAuthComplete(t *testing.T) {
 	if r, err := HttpGet(Client.Url+"/login/"+model.SERVICE_GITLAB+"/complete?code="+url.QueryEscape(code)+"&state="+url.QueryEscape(state), Client.HttpClient, "", false); err == nil {
 		closeBody(r)
 	}
+}
+
+func TestOAuthComplete_AccessDenied(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	c := &Context{
+		App: th.App,
+		Params: &web.Params{
+			Service: "TestService",
+		},
+	}
+	responseWriter := httptest.NewRecorder()
+	request, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/signup/TestService/complete?error=access_denied", nil)
+
+	completeOAuth(c, responseWriter, request)
+
+	response := responseWriter.Result()
+
+	assert.Equal(t, http.StatusTemporaryRedirect, response.StatusCode)
+
+	location, _ := url.Parse(response.Header.Get("Location"))
+	assert.Equal(t, "oauth_access_denied", location.Query().Get("type"))
+	assert.Equal(t, "TestService", location.Query().Get("service"))
 }
 
 func HttpGet(url string, httpClient *http.Client, authToken string, followRedirect bool) (*http.Response, *model.AppError) {

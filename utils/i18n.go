@@ -12,6 +12,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"github.com/nicksnyder/go-i18n/i18n"
 )
 
@@ -27,12 +28,7 @@ func TranslationsPreInit() error {
 	// segfault trying to handle the error, and the untranslated IDs are strictly better.
 	T = TfuncWithFallback("en")
 	TDefault = TfuncWithFallback("en")
-
-	if err := InitTranslationsWithDir("i18n"); err != nil {
-		return err
-	}
-
-	return nil
+	return InitTranslationsWithDir("i18n")
 }
 
 func InitTranslations(localizationSettings model.LocalizationSettings) error {
@@ -44,7 +40,7 @@ func InitTranslations(localizationSettings model.LocalizationSettings) error {
 }
 
 func InitTranslationsWithDir(dir string) error {
-	i18nDirectory, found := FindDir(dir)
+	i18nDirectory, found := fileutils.FindDir(dir)
 	if !found {
 		return fmt.Errorf("Unable to find i18n directory")
 	}

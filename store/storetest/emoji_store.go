@@ -17,6 +17,7 @@ func TestEmojiStore(t *testing.T, ss store.Store) {
 	t.Run("EmojiSaveDelete", func(t *testing.T) { testEmojiSaveDelete(t, ss) })
 	t.Run("EmojiGet", func(t *testing.T) { testEmojiGet(t, ss) })
 	t.Run("EmojiGetByName", func(t *testing.T) { testEmojiGetByName(t, ss) })
+	t.Run("EmojiGetMultipleByName", func(t *testing.T) { testEmojiGetMultipleByName(t, ss) })
 	t.Run("EmojiGetList", func(t *testing.T) { testEmojiGetList(t, ss) })
 	t.Run("EmojiSearch", func(t *testing.T) { testEmojiSearch(t, ss) })
 }
@@ -130,6 +131,64 @@ func testEmojiGetByName(t *testing.T, ss store.Store) {
 			t.Fatalf("failed to get emoji with name %v: %v", emoji.Name, result.Err)
 		}
 	}
+}
+
+func testEmojiGetMultipleByName(t *testing.T, ss store.Store) {
+	emojis := []model.Emoji{
+		{
+			CreatorId: model.NewId(),
+			Name:      model.NewId(),
+		},
+		{
+			CreatorId: model.NewId(),
+			Name:      model.NewId(),
+		},
+		{
+			CreatorId: model.NewId(),
+			Name:      model.NewId(),
+		},
+	}
+
+	for i, emoji := range emojis {
+		emojis[i] = *store.Must(ss.Emoji().Save(&emoji)).(*model.Emoji)
+	}
+	defer func() {
+		for _, emoji := range emojis {
+			store.Must(ss.Emoji().Delete(emoji.Id, time.Now().Unix()))
+		}
+	}()
+
+	t.Run("one emoji", func(t *testing.T) {
+		if result := <-ss.Emoji().GetMultipleByName([]string{emojis[0].Name}); result.Err != nil {
+			t.Fatal("could not get emoji", result.Err)
+		} else if received := result.Data.([]*model.Emoji); len(received) != 1 || *received[0] != emojis[0] {
+			t.Fatal("got incorrect emoji")
+		}
+	})
+
+	t.Run("multiple emojis", func(t *testing.T) {
+		if result := <-ss.Emoji().GetMultipleByName([]string{emojis[0].Name, emojis[1].Name, emojis[2].Name}); result.Err != nil {
+			t.Fatal("could not get emojis", result.Err)
+		} else if received := result.Data.([]*model.Emoji); len(received) != 3 {
+			t.Fatal("got incorrect emojis")
+		}
+	})
+
+	t.Run("one nonexistent emoji", func(t *testing.T) {
+		if result := <-ss.Emoji().GetMultipleByName([]string{"ab"}); result.Err != nil {
+			t.Fatal("could not get emoji", result.Err)
+		} else if received := result.Data.([]*model.Emoji); len(received) != 0 {
+			t.Fatal("got incorrect emoji")
+		}
+	})
+
+	t.Run("multiple emojis with nonexistent names", func(t *testing.T) {
+		if result := <-ss.Emoji().GetMultipleByName([]string{emojis[0].Name, emojis[1].Name, emojis[2].Name, "abcd", "1234"}); result.Err != nil {
+			t.Fatal("could not get emojis", result.Err)
+		} else if received := result.Data.([]*model.Emoji); len(received) != 3 {
+			t.Fatal("got incorrect emojis")
+		}
+	})
 }
 
 func testEmojiGetList(t *testing.T, ss store.Store) {

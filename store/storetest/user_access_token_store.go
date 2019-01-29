@@ -134,7 +134,7 @@ func testUserAccessTokenDisableEnable(t *testing.T, ss store.Store) {
 
 func testUserAccessTokenSearch(t *testing.T, ss store.Store) {
 	u1 := model.User{}
-	u1.Email = model.NewId()
+	u1.Email = MakeEmail()
 	u1.Username = model.NewId()
 
 	store.Must(ss.User().Save(&u1))

@@ -7,12 +7,13 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
 )
 
 func TestCreateIncomingWebhook(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -74,7 +75,7 @@ func TestCreateIncomingWebhook(t *testing.T) {
 }
 
 func TestGetIncomingWebhooks(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -153,7 +154,7 @@ func TestGetIncomingWebhooks(t *testing.T) {
 }
 
 func TestGetIncomingWebhook(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.SystemAdminClient
 
@@ -192,7 +193,7 @@ func TestGetIncomingWebhook(t *testing.T) {
 }
 
 func TestDeleteIncomingWebhook(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.SystemAdminClient
 
@@ -243,7 +244,7 @@ func TestDeleteIncomingWebhook(t *testing.T) {
 }
 
 func TestCreateOutgoingWebhook(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -293,7 +294,7 @@ func TestCreateOutgoingWebhook(t *testing.T) {
 }
 
 func TestGetOutgoingWebhooks(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -365,7 +366,7 @@ func TestGetOutgoingWebhooks(t *testing.T) {
 		t.Fatal("missing hook")
 	}
 
-	hooks, resp = th.SystemAdminClient.GetOutgoingWebhooksForChannel(model.NewId(), 0, 1000, "")
+	_, resp = th.SystemAdminClient.GetOutgoingWebhooksForChannel(model.NewId(), 0, 1000, "")
 	CheckForbiddenStatus(t, resp)
 
 	_, resp = Client.GetOutgoingWebhooks(0, 1000, "")
@@ -394,7 +395,7 @@ func TestGetOutgoingWebhooks(t *testing.T) {
 }
 
 func TestGetOutgoingWebhook(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -424,7 +425,7 @@ func TestGetOutgoingWebhook(t *testing.T) {
 }
 
 func TestUpdateIncomingHook(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -525,20 +526,15 @@ func TestUpdateIncomingHook(t *testing.T) {
 	t.Run("RetainCreateAt", func(t *testing.T) {
 		hook2 := &model.IncomingWebhook{ChannelId: th.BasicChannel.Id, CreateAt: 100}
 
-		createdHook, resp := th.SystemAdminClient.CreateIncomingWebhook(hook2)
+		createdHook2, resp := th.SystemAdminClient.CreateIncomingWebhook(hook2)
 		CheckNoError(t, resp)
 
-		createdHook.DisplayName = "Name2"
+		createdHook2.DisplayName = "Name2"
 
-		updatedHook, resp := th.SystemAdminClient.UpdateIncomingWebhook(createdHook)
+		updatedHook, resp := th.SystemAdminClient.UpdateIncomingWebhook(createdHook2)
 		CheckNoError(t, resp)
-		if updatedHook != nil {
-			if updatedHook.CreateAt != createdHook.CreateAt {
-				t.Fatal("failed - hook create at should not be changed")
-			}
-		} else {
-			t.Fatal("should not be nil")
-		}
+		require.NotNil(t, updatedHook)
+		assert.Equal(t, createdHook2.CreateAt, updatedHook.CreateAt)
 	})
 
 	t.Run("ModifyUpdateAt", func(t *testing.T) {
@@ -644,7 +640,7 @@ func TestUpdateIncomingHook(t *testing.T) {
 }
 
 func TestRegenOutgoingHookToken(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -676,7 +672,7 @@ func TestRegenOutgoingHookToken(t *testing.T) {
 }
 
 func TestUpdateOutgoingHook(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -691,8 +687,8 @@ func TestUpdateOutgoingHook(t *testing.T) {
 	createdHook := &model.OutgoingWebhook{ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId,
 		CallbackURLs: []string{"http://nowhere.com"}, TriggerWords: []string{"cats"}}
 
-	createdHook, resp := th.SystemAdminClient.CreateOutgoingWebhook(createdHook)
-	CheckNoError(t, resp)
+	createdHook, webookResp := th.SystemAdminClient.CreateOutgoingWebhook(createdHook)
+	CheckNoError(t, webookResp)
 
 	t.Run("UpdateOutgoingWebhook", func(t *testing.T) {
 		createdHook.DisplayName = "Cats"
@@ -839,7 +835,7 @@ func TestUpdateOutgoingHook(t *testing.T) {
 }
 
 func TestDeleteOutgoingHook(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.SystemAdminClient
 

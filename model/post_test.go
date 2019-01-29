@@ -11,14 +11,18 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestPostJson(t *testing.T) {
+func TestPostToJson(t *testing.T) {
 	o := Post{Id: NewId(), Message: NewId()}
-	json := o.ToJson()
-	ro := PostFromJson(strings.NewReader(json))
+	j := o.ToJson()
+	ro := PostFromJson(strings.NewReader(j))
 
-	if o.Id != ro.Id {
-		t.Fatal("Ids do not match")
-	}
+	assert.NotNil(t, ro)
+	assert.Equal(t, o, *ro)
+}
+
+func TestPostFromJsonError(t *testing.T) {
+	ro := PostFromJson(strings.NewReader(""))
+	assert.Nil(t, ro)
 }
 
 func TestPostIsValid(t *testing.T) {

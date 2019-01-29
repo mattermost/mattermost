@@ -12,7 +12,7 @@ type HelloWorldPlugin struct {
 }
 
 func (p *HelloWorldPlugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello, world!")
+	fmt.Fprint(w, "Hello, world!")
 }
 
 // This example demonstrates a plugin that handles HTTP requests which respond by greeting the

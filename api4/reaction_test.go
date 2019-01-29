@@ -13,7 +13,7 @@ import (
 )
 
 func TestSaveReaction(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	userId := th.BasicUser.Id
@@ -176,7 +176,7 @@ func TestSaveReaction(t *testing.T) {
 	t.Run("unable-to-react-in-read-only-town-square", func(t *testing.T) {
 		th.LoginBasic()
 
-		channel, err := th.App.GetChannelByName("town-square", th.BasicTeam.Id)
+		channel, err := th.App.GetChannelByName("town-square", th.BasicTeam.Id, true)
 		assert.Nil(t, err)
 		post := th.CreatePostWithClient(th.Client, channel)
 
@@ -192,17 +192,40 @@ func TestSaveReaction(t *testing.T) {
 		_, resp := Client.SaveReaction(reaction)
 		CheckForbiddenStatus(t, resp)
 
-		if reactions, err := th.App.GetReactionsForPost(postId); err != nil || len(reactions) != 3 {
-			t.Fatal("should have not created a reactions")
+		if reactions, err := th.App.GetReactionsForPost(post.Id); err != nil || len(reactions) != 0 {
+			t.Fatal("should have not created a reaction")
 		}
 
 		th.App.RemoveLicense()
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = false })
 	})
+
+	t.Run("unable-to-react-in-an-archived-channel", func(t *testing.T) {
+		th.LoginBasic()
+
+		channel := th.CreatePublicChannel()
+		post := th.CreatePostWithClient(th.Client, channel)
+
+		reaction := &model.Reaction{
+			UserId:    userId,
+			PostId:    post.Id,
+			EmojiName: "smile",
+		}
+
+		err := th.App.DeleteChannel(channel, userId)
+		assert.Nil(t, err)
+
+		_, resp := Client.SaveReaction(reaction)
+		CheckForbiddenStatus(t, resp)
+
+		if reactions, err := th.App.GetReactionsForPost(post.Id); err != nil || len(reactions) != 0 {
+			t.Fatal("should have not created a reaction")
+		}
+	})
 }
 
 func TestGetReactions(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	userId := th.BasicUser.Id
@@ -283,7 +306,7 @@ func TestGetReactions(t *testing.T) {
 }
 
 func TestDeleteReaction(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	userId := th.BasicUser.Id
@@ -482,7 +505,7 @@ func TestDeleteReaction(t *testing.T) {
 	t.Run("unable-to-delete-reactions-in-read-only-town-square", func(t *testing.T) {
 		th.LoginBasic()
 
-		channel, err := th.App.GetChannelByName("town-square", th.BasicTeam.Id)
+		channel, err := th.App.GetChannelByName("town-square", th.BasicTeam.Id, true)
 		assert.Nil(t, err)
 		post := th.CreatePostWithClient(th.Client, channel)
 
@@ -498,7 +521,7 @@ func TestDeleteReaction(t *testing.T) {
 		CheckNoError(t, resp)
 
 		if reactions, err := th.App.GetReactionsForPost(postId); err != nil || len(reactions) != 1 {
-			t.Fatal("should have created a reactions")
+			t.Fatal("should have created a reaction")
 		}
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = true })
@@ -507,10 +530,122 @@ func TestDeleteReaction(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 
 		if reactions, err := th.App.GetReactionsForPost(postId); err != nil || len(reactions) != 1 {
-			t.Fatal("should have not deleted a reactions")
+			t.Fatal("should have not deleted a reaction")
 		}
 
 		th.App.RemoveLicense()
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = false })
+	})
+
+	t.Run("unable-to-delete-reactions-in-an-archived-channel", func(t *testing.T) {
+		th.LoginBasic()
+
+		channel := th.CreatePublicChannel()
+		post := th.CreatePostWithClient(th.Client, channel)
+
+		reaction := &model.Reaction{
+			UserId:    userId,
+			PostId:    post.Id,
+			EmojiName: "smile",
+		}
+
+		r1, resp := Client.SaveReaction(reaction)
+		CheckNoError(t, resp)
+
+		if reactions, err := th.App.GetReactionsForPost(postId); err != nil || len(reactions) != 1 {
+			t.Fatal("should have created a reaction")
+		}
+
+		err := th.App.DeleteChannel(channel, userId)
+		assert.Nil(t, err)
+
+		_, resp = Client.SaveReaction(r1)
+		CheckForbiddenStatus(t, resp)
+
+		if reactions, err := th.App.GetReactionsForPost(post.Id); err != nil || len(reactions) != 1 {
+			t.Fatal("should have not deleted a reaction")
+		}
+	})
+}
+
+func TestGetBulkReactions(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+	userId := th.BasicUser.Id
+	user2Id := th.BasicUser2.Id
+	post1 := &model.Post{UserId: userId, ChannelId: th.BasicChannel.Id, Message: "zz" + model.NewId() + "a"}
+	post2 := &model.Post{UserId: userId, ChannelId: th.BasicChannel.Id, Message: "zz" + model.NewId() + "a"}
+	post3 := &model.Post{UserId: userId, ChannelId: th.BasicChannel.Id, Message: "zz" + model.NewId() + "a"}
+
+	post4 := &model.Post{UserId: user2Id, ChannelId: th.BasicChannel.Id, Message: "zz" + model.NewId() + "a"}
+	post5 := &model.Post{UserId: user2Id, ChannelId: th.BasicChannel.Id, Message: "zz" + model.NewId() + "a"}
+
+	post1, _ = Client.CreatePost(post1)
+	post2, _ = Client.CreatePost(post2)
+	post3, _ = Client.CreatePost(post3)
+	post4, _ = Client.CreatePost(post4)
+	post5, _ = Client.CreatePost(post5)
+
+	expectedPostIdsReactionsMap := make(map[string][]*model.Reaction)
+	expectedPostIdsReactionsMap[post1.Id] = []*model.Reaction{}
+	expectedPostIdsReactionsMap[post2.Id] = []*model.Reaction{}
+	expectedPostIdsReactionsMap[post3.Id] = []*model.Reaction{}
+	expectedPostIdsReactionsMap[post5.Id] = []*model.Reaction{}
+
+	userReactions := []*model.Reaction{
+		{
+			UserId:    userId,
+			PostId:    post1.Id,
+			EmojiName: "happy",
+		},
+		{
+			UserId:    userId,
+			PostId:    post1.Id,
+			EmojiName: "sad",
+		},
+		{
+			UserId:    userId,
+			PostId:    post2.Id,
+			EmojiName: "smile",
+		},
+		{
+			UserId:    user2Id,
+			PostId:    post4.Id,
+			EmojiName: "smile",
+		},
+	}
+
+	for _, userReaction := range userReactions {
+		reactions := expectedPostIdsReactionsMap[userReaction.PostId]
+		if result := <-th.App.Srv.Store.Reaction().Save(userReaction); result.Err != nil {
+			t.Fatal(result.Err)
+		} else {
+			reactions = append(reactions, result.Data.(*model.Reaction))
+
+		}
+		expectedPostIdsReactionsMap[userReaction.PostId] = reactions
+	}
+
+	postIds := []string{post1.Id, post2.Id, post3.Id, post4.Id, post5.Id}
+
+	t.Run("get-reactions", func(t *testing.T) {
+		postIdsReactionsMap, resp := Client.GetBulkReactions(postIds)
+		CheckNoError(t, resp)
+
+		assert.ElementsMatch(t, expectedPostIdsReactionsMap[post1.Id], postIdsReactionsMap[post1.Id])
+		assert.ElementsMatch(t, expectedPostIdsReactionsMap[post2.Id], postIdsReactionsMap[post2.Id])
+		assert.ElementsMatch(t, expectedPostIdsReactionsMap[post3.Id], postIdsReactionsMap[post3.Id])
+		assert.ElementsMatch(t, expectedPostIdsReactionsMap[post4.Id], postIdsReactionsMap[post4.Id])
+		assert.ElementsMatch(t, expectedPostIdsReactionsMap[post5.Id], postIdsReactionsMap[post5.Id])
+		assert.Equal(t, expectedPostIdsReactionsMap, postIdsReactionsMap)
+
+	})
+
+	t.Run("get-reactions-as-anonymous-user", func(t *testing.T) {
+		Client.Logout()
+
+		_, resp := Client.GetBulkReactions(postIds)
+		CheckUnauthorizedStatus(t, resp)
 	})
 }
