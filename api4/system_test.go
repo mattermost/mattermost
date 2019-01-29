@@ -686,6 +686,7 @@ func TestS3TestConnection(t *testing.T) {
 			AmazonS3SecretAccessKey: model.NewString(model.MINIO_SECRET_KEY),
 			AmazonS3Bucket:          model.NewString(""),
 			AmazonS3Endpoint:        model.NewString(s3Endpoint),
+			AmazonS3Region:          model.NewString(""),
 			AmazonS3SSL:             model.NewBool(false),
 		},
 	}
