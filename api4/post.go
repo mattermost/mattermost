@@ -202,7 +202,7 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 		if !ok {
 			allowed = false
 
-			if c.App.SessionHasPermissionToChannel(c.App.Session, post.ChannelId, model.PERMISSION_READ_CHANNEL) {
+			if c.App.SessionHasPermissionToChannel(c.Session, post.ChannelId, model.PERMISSION_READ_CHANNEL) {
 				allowed = true
 			}
 
@@ -224,7 +224,7 @@ func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	w.Write([]byte(c.App.PreparePostListForClient(pl).ToJson()))
+	w.Write([]byte(c.App.PostListWithProxyAddedToImageURLs(pl).ToJson()))
 }
 
 func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
