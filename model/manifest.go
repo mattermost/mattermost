@@ -90,7 +90,7 @@ type PluginSettingsSchema struct {
 //    {
 //      "id": "com.mycompany.myplugin",
 //      "name": "My Plugin",
-//      "description": "This is my plugin. It does stuff.",
+//      "description": "This is my plugin",
 //      "version": "0.1.0",
 //      "min_server_version": "5.6.0",
 //      "server": {
@@ -108,9 +108,9 @@ type PluginSettingsSchema struct {
 //        "footer": "Some footer text",
 //        "settings": [{
 //          "key": "someKey",
-//          "display_name": "Enable Extra Thing",
+//          "display_name": "Enable Extra Feature",
 //          "type": "bool",
-//          "help_text": "When true, an extra thing will be enabled!",
+//          "help_text": "When true, an extra feature will be enabled!",
 //          "default": "false"
 //        }]
 //      },
