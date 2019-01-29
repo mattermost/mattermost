@@ -121,7 +121,7 @@ func TestUpdateConfig(t *testing.T) {
 	cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
 	CheckNoError(t, resp)
 
-	require.Equal(t, "MyFancyName", cfg.TeamSettings.SiteName, "It should update the SiteName")
+	require.Equal(t, "MyFancyName", *cfg.TeamSettings.SiteName, "It should update the SiteName")
 
 	//Revert the change
 	cfg.TeamSettings.SiteName = SiteName
