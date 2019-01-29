@@ -48,7 +48,7 @@ func setupPluginApiTest(t *testing.T, pluginCode string, pluginManifest string, 
 }
 
 func TestPluginAPIGetUsers(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
@@ -116,7 +116,7 @@ func TestPluginAPIGetUsers(t *testing.T) {
 		},
 		{
 			"page 10, perPage 10",
-			0,
+			10,
 			10,
 			[]*model.User{},
 		},
