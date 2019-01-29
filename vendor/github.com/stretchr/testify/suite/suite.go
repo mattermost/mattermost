@@ -55,10 +55,32 @@ func (suite *Suite) Assert() *assert.Assertions {
 	return suite.Assertions
 }
 
+func failOnPanic(t *testing.T) {
+	r := recover()
+	if r != nil {
+		t.Errorf("test panicked: %v", r)
+		t.FailNow()
+	}
+}
+
+// Run provides suite functionality around golang subtests.  It should be
+// called in place of t.Run(name, func(t *testing.T)) in test suite code.
+// The passed-in func will be executed as a subtest with a fresh instance of t.
+// Provides compatibility with go test pkg -run TestSuite/TestName/SubTestName.
+func (suite *Suite) Run(name string, subtest func()) bool {
+	oldT := suite.T()
+	defer suite.SetT(oldT)
+	return oldT.Run(name, func(t *testing.T) {
+		suite.SetT(t)
+		subtest()
+	})
+}
+
 // Run takes a testing suite and runs all of the tests attached
 // to it.
 func Run(t *testing.T, suite TestingSuite) {
 	suite.SetT(t)
+	defer failOnPanic(t)
 
 	if setupAllSuite, ok := suite.(SetupAllSuite); ok {
 		setupAllSuite.SetupSuite()
@@ -84,6 +106,8 @@ func Run(t *testing.T, suite TestingSuite) {
 				F: func(t *testing.T) {
 					parentT := suite.T()
 					suite.SetT(t)
+					defer failOnPanic(t)
+
 					if setupTestSuite, ok := suite.(SetupTestSuite); ok {
 						setupTestSuite.SetupTest()
 					}

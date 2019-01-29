@@ -69,6 +69,7 @@ type Store interface {
 	TermsOfService() TermsOfServiceStore
 	Group() GroupStore
 	UserTermsOfService() UserTermsOfServiceStore
+	LinkMetadata() LinkMetadataStore
 	MarkSystemRanUnitTests()
 	Close()
 	LockToMaster()
@@ -571,4 +572,9 @@ type GroupStore interface {
 
 	PendingAutoAddTeamMembers(minGroupMembersCreateAt int64) StoreChannel
 	PendingAutoAddChannelMembers(minGroupMembersCreateAt int64) StoreChannel
+}
+
+type LinkMetadataStore interface {
+	Save(linkMetadata *model.LinkMetadata) StoreChannel
+	Get(url string, timestamp int64) StoreChannel
 }

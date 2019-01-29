@@ -131,6 +131,51 @@ func TestCreateCommand(t *testing.T) {
 	}
 }
 
+func TestShowCommand(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	url := "http://localhost:8000/test-command"
+	team := th.BasicTeam
+	user := th.BasicUser
+	th.LinkUserToTeam(user, team)
+	trigger := "trigger_" + model.NewId()
+	displayName := "dn_" + model.NewId()
+
+	c := &model.Command{
+		DisplayName: displayName,
+		Method:      "G",
+		TeamId:      team.Id,
+		Username:    user.Username,
+		CreatorId:   user.Id,
+		URL:         url,
+		Trigger:     trigger,
+	}
+
+	t.Run("existing command", func(t *testing.T) {
+		command, err := th.App.CreateCommand(c)
+		require.Nil(t, err)
+		commands, err := th.App.ListTeamCommands(team.Id)
+		require.Nil(t, err)
+		assert.Equal(t, len(commands), 1)
+
+		output := th.CheckCommand(t, "command", "show", command.Id)
+		assert.Contains(t, string(output), command.Id)
+		assert.Contains(t, string(output), command.TeamId)
+		assert.Contains(t, string(output), trigger)
+		assert.Contains(t, string(output), displayName)
+		assert.Contains(t, string(output), user.Username)
+	})
+
+	t.Run("not existing command", func(t *testing.T) {
+		assert.Error(t, th.RunCommand(t, "command", "show", "invalid"))
+	})
+
+	t.Run("no commandID", func(t *testing.T) {
+		assert.Error(t, th.RunCommand(t, "command", "show"))
+	})
+}
+
 func TestDeleteCommand(t *testing.T) {
 	// Skipped due to v5.6 RC build issues.
 	t.Skip()

@@ -136,7 +136,7 @@ func NewSMTPClientAdvanced(conn net.Conn, hostname string, connectionInfo *SmtpC
 	}
 
 	if hostname != "" {
-		err := c.Hello(hostname)
+		err = c.Hello(hostname)
 		if err != nil {
 			mlog.Error(fmt.Sprintf("Failed to to set the HELO to SMTP server %v", err))
 			return nil, model.NewAppError("SendMail", "utils.mail.connect_smtp.helo.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -273,11 +273,11 @@ func SendMail(c *smtp.Client, mimeTo, smtpTo string, from mail.Address, subject,
 		}))
 	}
 
-	if err := c.Mail(from.Address); err != nil {
+	if err = c.Mail(from.Address); err != nil {
 		return model.NewAppError("SendMail", "utils.mail.send_mail.from_address.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	if err := c.Rcpt(smtpTo); err != nil {
+	if err = c.Rcpt(smtpTo); err != nil {
 		return model.NewAppError("SendMail", "utils.mail.send_mail.to_address.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 

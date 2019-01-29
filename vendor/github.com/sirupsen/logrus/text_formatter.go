@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"runtime"
 	"sort"
 	"strings"
 	"sync"
@@ -90,7 +91,7 @@ func (f *TextFormatter) init(entry *Entry) {
 }
 
 func (f *TextFormatter) isColored() bool {
-	isColored := f.ForceColors || f.isTerminal
+	isColored := f.ForceColors || (f.isTerminal && (runtime.GOOS != "windows"))
 
 	if f.EnvironmentOverrideColors {
 		if force, ok := os.LookupEnv("CLICOLOR_FORCE"); ok && force != "0" {
@@ -107,14 +108,17 @@ func (f *TextFormatter) isColored() bool {
 
 // Format renders a single log entry
 func (f *TextFormatter) Format(entry *Entry) ([]byte, error) {
-	prefixFieldClashes(entry.Data, f.FieldMap, entry.HasCaller())
-
-	keys := make([]string, 0, len(entry.Data))
-	for k := range entry.Data {
+	data := make(Fields)
+	for k, v := range entry.Data {
+		data[k] = v
+	}
+	prefixFieldClashes(data, f.FieldMap, entry.HasCaller())
+	keys := make([]string, 0, len(data))
+	for k := range data {
 		keys = append(keys, k)
 	}
 
-	fixedKeys := make([]string, 0, 4+len(entry.Data))
+	fixedKeys := make([]string, 0, 4+len(data))
 	if !f.DisableTimestamp {
 		fixedKeys = append(fixedKeys, f.FieldMap.resolve(FieldKeyTime))
 	}
@@ -160,7 +164,7 @@ func (f *TextFormatter) Format(entry *Entry) ([]byte, error) {
 		timestampFormat = defaultTimestampFormat
 	}
 	if f.isColored() {
-		f.printColored(b, entry, keys, timestampFormat)
+		f.printColored(b, entry, keys, data, timestampFormat)
 	} else {
 		for _, key := range fixedKeys {
 			var value interface{}
@@ -178,7 +182,7 @@ func (f *TextFormatter) Format(entry *Entry) ([]byte, error) {
 			case key == f.FieldMap.resolve(FieldKeyFile) && entry.HasCaller():
 				value = fmt.Sprintf("%s:%d", entry.Caller.File, entry.Caller.Line)
 			default:
-				value = entry.Data[key]
+				value = data[key]
 			}
 			f.appendKeyValue(b, key, value)
 		}
@@ -188,7 +192,7 @@ func (f *TextFormatter) Format(entry *Entry) ([]byte, error) {
 	return b.Bytes(), nil
 }
 
-func (f *TextFormatter) printColored(b *bytes.Buffer, entry *Entry, keys []string, timestampFormat string) {
+func (f *TextFormatter) printColored(b *bytes.Buffer, entry *Entry, keys []string, data Fields, timestampFormat string) {
 	var levelColor int
 	switch entry.Level {
 	case DebugLevel, TraceLevel:
@@ -225,7 +229,7 @@ func (f *TextFormatter) printColored(b *bytes.Buffer, entry *Entry, keys []strin
 		fmt.Fprintf(b, "\x1b[%dm%s\x1b[0m[%s]%s %-44s ", levelColor, levelText, entry.Time.Format(timestampFormat), caller, entry.Message)
 	}
 	for _, k := range keys {
-		v := entry.Data[k]
+		v := data[k]
 		fmt.Fprintf(b, " \x1b[%dm%s\x1b[0m=", levelColor, k)
 		f.appendValue(b, v)
 	}

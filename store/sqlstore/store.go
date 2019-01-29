@@ -97,4 +97,5 @@ type SqlStore interface {
 	Scheme() store.SchemeStore
 	TermsOfService() store.TermsOfServiceStore
 	UserTermsOfService() store.UserTermsOfServiceStore
+	LinkMetadata() store.LinkMetadataStore
 }

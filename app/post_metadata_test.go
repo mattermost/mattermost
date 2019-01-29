@@ -6,7 +6,12 @@ package app
 import (
 	"bytes"
 	"fmt"
+	"image"
+	"image/png"
 	"io"
+	"net/http"
+	"net/http/httptest"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -74,7 +79,7 @@ func TestPreparePostForClient(t *testing.T) {
 			Message: message,
 		}
 
-		clientPost := th.App.PreparePostForClient(post)
+		clientPost := th.App.PreparePostForClient(post, false)
 
 		t.Run("doesn't mutate provided post", func(t *testing.T) {
 			assert.NotEqual(t, clientPost, post, "should've returned a new post")
@@ -100,7 +105,7 @@ func TestPreparePostForClient(t *testing.T) {
 
 		post := th.CreatePost(th.BasicChannel)
 
-		clientPost := th.App.PreparePostForClient(post)
+		clientPost := th.App.PreparePostForClient(post, false)
 
 		assert.False(t, clientPost == post, "should've returned a new post")
 		assert.Equal(t, clientPost, post, "shouldn't have changed any metadata")
@@ -116,7 +121,7 @@ func TestPreparePostForClient(t *testing.T) {
 		reaction3 := th.AddReactionToPost(post, th.BasicUser2, "ice_cream")
 		post.HasReactions = true
 
-		clientPost := th.App.PreparePostForClient(post)
+		clientPost := th.App.PreparePostForClient(post, false)
 
 		assert.Len(t, clientPost.Metadata.Reactions, 3, "should've populated Reactions")
 		assert.Equal(t, reaction1, clientPost.Metadata.Reactions[0], "first reaction is incorrect")
@@ -140,7 +145,7 @@ func TestPreparePostForClient(t *testing.T) {
 
 		fileInfo.PostId = post.Id
 
-		clientPost := th.App.PreparePostForClient(post)
+		clientPost := th.App.PreparePostForClient(post, false)
 
 		assert.Equal(t, []*model.FileInfo{fileInfo}, clientPost.Metadata.Files, "should've populated Files")
 	})
@@ -174,7 +179,7 @@ func TestPreparePostForClient(t *testing.T) {
 		th.AddReactionToPost(post, th.BasicUser2, "angry")
 		post.HasReactions = true
 
-		clientPost := th.App.PreparePostForClient(post)
+		clientPost := th.App.PreparePostForClient(post, false)
 
 		t.Run("populates emojis", func(t *testing.T) {
 			assert.ElementsMatch(t, []*model.Emoji{}, clientPost.Metadata.Emojis, "should've populated empty Emojis")
@@ -219,7 +224,7 @@ func TestPreparePostForClient(t *testing.T) {
 		th.AddReactionToPost(post, th.BasicUser2, "angry")
 		post.HasReactions = true
 
-		clientPost := th.App.PreparePostForClient(post)
+		clientPost := th.App.PreparePostForClient(post, false)
 
 		t.Run("pupulates emojis", func(t *testing.T) {
 			assert.ElementsMatch(t, []*model.Emoji{emoji1, emoji2, emoji3, emoji4}, clientPost.Metadata.Emojis, "should've populated post.Emojis")
@@ -242,7 +247,7 @@ func TestPreparePostForClient(t *testing.T) {
 		}, th.BasicChannel, false)
 		require.Nil(t, err)
 
-		clientPost := th.App.PreparePostForClient(post)
+		clientPost := th.App.PreparePostForClient(post, false)
 
 		t.Run("populates image dimensions", func(t *testing.T) {
 			imageDimensions := clientPost.Metadata.Images
@@ -284,7 +289,7 @@ func TestPreparePostForClient(t *testing.T) {
 		}, th.BasicChannel, false)
 		require.Nil(t, err)
 
-		clientPost := th.App.PreparePostForClient(post)
+		clientPost := th.App.PreparePostForClient(post, false)
 
 		// Reminder that only the first link gets an embed and dimensions
 
@@ -318,7 +323,7 @@ func TestPreparePostForClient(t *testing.T) {
 		}, th.BasicChannel, false)
 		require.Nil(t, err)
 
-		clientPost := th.App.PreparePostForClient(post)
+		clientPost := th.App.PreparePostForClient(post, false)
 
 		t.Run("populates embeds", func(t *testing.T) {
 			assert.ElementsMatch(t, []*model.PostEmbed{
@@ -368,7 +373,7 @@ func TestPreparePostForClient(t *testing.T) {
 		}, th.BasicChannel, false)
 		require.Nil(t, err)
 
-		clientPost := th.App.PreparePostForClient(post)
+		clientPost := th.App.PreparePostForClient(post, false)
 
 		t.Run("populates embeds", func(t *testing.T) {
 			assert.ElementsMatch(t, []*model.PostEmbed{
@@ -397,7 +402,7 @@ func TestPreparePostForClient(t *testing.T) {
 		})
 
 		post := th.CreatePost(th.BasicChannel)
-		post = th.App.PreparePostForClient(post)
+		post = th.App.PreparePostForClient(post, false)
 
 		assert.Nil(t, post.Metadata)
 
@@ -449,7 +454,7 @@ func testProxyLinkedImage(t *testing.T, th *TestHelper, shouldProxy bool) {
 		Message:   fmt.Sprintf(postTemplate, imageURL),
 	}
 
-	clientPost := th.App.PreparePostForClient(post)
+	clientPost := th.App.PreparePostForClient(post, false)
 
 	if shouldProxy {
 		assert.Equal(t, fmt.Sprintf(postTemplate, imageURL), post.Message, "should not have mutated original post")
@@ -467,7 +472,7 @@ func testProxyOpenGraphImage(t *testing.T, th *TestHelper, shouldProxy bool) {
 	}, th.BasicChannel, false)
 	require.Nil(t, err)
 
-	embeds := th.App.PreparePostForClient(post).Metadata.Embeds
+	embeds := th.App.PreparePostForClient(post, false).Metadata.Embeds
 	require.Len(t, embeds, 1, "should have one embed")
 
 	embed := embeds[0]
@@ -989,6 +994,404 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 			assert.ElementsMatch(t, images, test.Expected)
 		})
 	}
+}
+
+func TestGetLinkMetadata(t *testing.T) {
+	setup := func() *TestHelper {
+		th := Setup().InitBasic()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.1"
+		})
+
+		linkCache.Purge()
+
+		return th
+	}
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		params := r.URL.Query()
+
+		if strings.HasPrefix(r.URL.Path, "/image") {
+			height, _ := strconv.ParseInt(params["height"][0], 10, 0)
+			width, _ := strconv.ParseInt(params["width"][0], 10, 0)
+
+			img := image.NewGray(image.Rect(0, 0, int(width), int(height)))
+
+			var encoder png.Encoder
+
+			encoder.Encode(w, img)
+		} else if strings.HasPrefix(r.URL.Path, "/opengraph") {
+			w.Header().Set("Content-Type", "text/html")
+
+			w.Write([]byte(`
+				<html prefix="og:http://ogp.me/ns#">
+				<head>
+				<meta property="og:title" content="` + params["title"][0] + `" />
+				</head>
+				<body>
+				</body>
+				</html>`))
+		} else if strings.HasPrefix(r.URL.Path, "/json") {
+			w.Header().Set("Content-Type", "application/json")
+
+			w.Write([]byte("true"))
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+	}))
+	defer server.Close()
+
+	t.Run("in-memory cache", func(t *testing.T) {
+		th := setup()
+		defer th.TearDown()
+
+		requestURL := server.URL + "/cached"
+		timestamp := int64(1547510400000)
+		title := "from cache"
+
+		cacheLinkMetadata(requestURL, timestamp, &opengraph.OpenGraph{Title: title}, nil)
+
+		t.Run("should use cache if cached entry exists", func(t *testing.T) {
+			_, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
+			require.True(t, ok, "data should already exist in in-memory cache")
+
+			_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
+			require.False(t, ok, "data should not exist in database")
+
+			og, img, err := th.App.getLinkMetadata(requestURL, timestamp, false)
+
+			require.NotNil(t, og)
+			assert.Nil(t, img)
+			assert.Nil(t, err)
+			assert.Equal(t, title, og.Title)
+		})
+
+		t.Run("should use cache if cached entry exists near time", func(t *testing.T) {
+			_, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
+			require.True(t, ok, "data should already exist in in-memory cache")
+
+			_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
+			require.False(t, ok, "data should not exist in database")
+
+			og, img, err := th.App.getLinkMetadata(requestURL, timestamp+60*1000, false)
+
+			require.NotNil(t, og)
+			assert.Nil(t, img)
+			assert.Nil(t, err)
+			assert.Equal(t, title, og.Title)
+		})
+
+		t.Run("should not use cache if URL is different", func(t *testing.T) {
+			differentURL := server.URL + "/other"
+
+			_, _, ok := getLinkMetadataFromCache(differentURL, timestamp)
+			require.False(t, ok, "data should not exist in in-memory cache")
+
+			_, _, ok = th.App.getLinkMetadataFromDatabase(differentURL, timestamp)
+			require.False(t, ok, "data should not exist in database")
+
+			og, img, err := th.App.getLinkMetadata(differentURL, timestamp, false)
+
+			assert.Nil(t, og)
+			assert.Nil(t, img)
+			assert.Nil(t, err)
+		})
+
+		t.Run("should not use cache if timestamp is different", func(t *testing.T) {
+			differentTimestamp := timestamp + 60*60*1000
+
+			_, _, ok := getLinkMetadataFromCache(requestURL, differentTimestamp)
+			require.False(t, ok, "data should not exist in in-memory cache")
+
+			_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, differentTimestamp)
+			require.False(t, ok, "data should not exist in database")
+
+			og, img, err := th.App.getLinkMetadata(requestURL, differentTimestamp, false)
+
+			assert.Nil(t, og)
+			assert.Nil(t, img)
+			assert.Nil(t, err)
+		})
+	})
+
+	t.Run("database cache", func(t *testing.T) {
+		th := setup()
+		defer th.TearDown()
+
+		requestURL := server.URL
+		timestamp := int64(1547510400000)
+		title := "from database"
+
+		th.App.saveLinkMetadataToDatabase(requestURL, timestamp, &opengraph.OpenGraph{Title: title}, nil)
+
+		t.Run("should use database if saved entry exists", func(t *testing.T) {
+			linkCache.Purge()
+
+			_, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
+			require.False(t, ok, "data should not exist in in-memory cache")
+
+			_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
+			require.True(t, ok, "data should already exist in database")
+
+			og, img, err := th.App.getLinkMetadata(requestURL, timestamp, false)
+
+			require.NotNil(t, og)
+			assert.Nil(t, img)
+			assert.Nil(t, err)
+			assert.Equal(t, title, og.Title)
+		})
+
+		t.Run("should use database if saved entry exists near time", func(t *testing.T) {
+			linkCache.Purge()
+
+			_, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
+			require.False(t, ok, "data should not exist in in-memory cache")
+
+			_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
+			require.True(t, ok, "data should already exist in database")
+
+			og, img, err := th.App.getLinkMetadata(requestURL, timestamp+60*1000, false)
+
+			require.NotNil(t, og)
+			assert.Nil(t, img)
+			assert.Nil(t, err)
+			assert.Equal(t, title, og.Title)
+		})
+
+		t.Run("should not use database if URL is different", func(t *testing.T) {
+			linkCache.Purge()
+
+			differentURL := requestURL + "/other"
+
+			_, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
+			require.False(t, ok, "data should not exist in in-memory cache")
+
+			_, _, ok = th.App.getLinkMetadataFromDatabase(differentURL, timestamp)
+			require.False(t, ok, "data should not exist in database")
+
+			og, img, err := th.App.getLinkMetadata(differentURL, timestamp, false)
+
+			assert.Nil(t, og)
+			assert.Nil(t, img)
+			assert.Nil(t, err)
+		})
+
+		t.Run("should not use database if timestamp is different", func(t *testing.T) {
+			linkCache.Purge()
+
+			differentTimestamp := timestamp + 60*60*1000
+
+			_, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
+			require.False(t, ok, "data should not exist in in-memory cache")
+
+			_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, differentTimestamp)
+			require.False(t, ok, "data should not exist in database")
+
+			og, img, err := th.App.getLinkMetadata(requestURL, differentTimestamp, false)
+
+			assert.Nil(t, og)
+			assert.Nil(t, img)
+			assert.Nil(t, err)
+		})
+	})
+
+	t.Run("should get data from remote source", func(t *testing.T) {
+		th := setup()
+		defer th.TearDown()
+
+		requestURL := server.URL + "/opengraph?title=Remote&name=" + t.Name()
+		timestamp := int64(1547510400000)
+
+		_, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
+		require.False(t, ok, "data should not exist in in-memory cache")
+
+		_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
+		require.False(t, ok, "data should not exist in database")
+
+		og, img, err := th.App.getLinkMetadata(requestURL, timestamp, false)
+
+		assert.NotNil(t, og)
+		assert.Nil(t, img)
+		assert.Nil(t, err)
+	})
+
+	t.Run("should cache OpenGraph results", func(t *testing.T) {
+		th := setup()
+		defer th.TearDown()
+
+		requestURL := server.URL + "/opengraph?title=Remote&name=" + t.Name()
+		timestamp := int64(1547510400000)
+
+		_, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
+		require.False(t, ok, "data should not exist in in-memory cache")
+
+		_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
+		require.False(t, ok, "data should not exist in database")
+
+		og, img, err := th.App.getLinkMetadata(requestURL, timestamp, false)
+
+		assert.NotNil(t, og)
+		assert.Nil(t, img)
+		assert.Nil(t, err)
+
+		fromCache, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
+		assert.True(t, ok)
+		assert.Exactly(t, og, fromCache)
+
+		fromDatabase, _, ok := th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
+		assert.True(t, ok)
+		assert.Exactly(t, og, fromDatabase)
+	})
+
+	t.Run("should cache image results", func(t *testing.T) {
+		th := setup()
+		defer th.TearDown()
+
+		requestURL := server.URL + "/image?height=300&width=400&name=" + t.Name()
+		timestamp := int64(1547510400000)
+
+		_, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
+		require.False(t, ok, "data should not exist in in-memory cache")
+
+		_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
+		require.False(t, ok, "data should not exist in database")
+
+		og, img, err := th.App.getLinkMetadata(requestURL, timestamp, false)
+
+		assert.Nil(t, og)
+		assert.NotNil(t, img)
+		assert.Nil(t, err)
+
+		_, fromCache, ok := getLinkMetadataFromCache(requestURL, timestamp)
+		assert.True(t, ok)
+		assert.Exactly(t, img, fromCache)
+
+		_, fromDatabase, ok := th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
+		assert.True(t, ok)
+		assert.Exactly(t, img, fromDatabase)
+	})
+
+	t.Run("should cache error results", func(t *testing.T) {
+		th := setup()
+		defer th.TearDown()
+
+		requestURL := server.URL + "/error"
+		timestamp := int64(1547510400000)
+
+		_, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
+		require.False(t, ok, "data should not exist in in-memory cache")
+
+		_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
+		require.False(t, ok, "data should not exist in database")
+
+		og, img, err := th.App.getLinkMetadata(requestURL, timestamp, false)
+
+		assert.Nil(t, og)
+		assert.Nil(t, img)
+		assert.Nil(t, err)
+
+		ogFromCache, imgFromCache, ok := getLinkMetadataFromCache(requestURL, timestamp)
+		assert.True(t, ok)
+		assert.Nil(t, ogFromCache)
+		assert.Nil(t, imgFromCache)
+
+		ogFromDatabase, imageFromDatabase, ok := th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
+		assert.True(t, ok)
+		assert.Nil(t, ogFromDatabase)
+		assert.Nil(t, imageFromDatabase)
+	})
+
+	t.Run("should cache database results in memory", func(t *testing.T) {
+		th := setup()
+		defer th.TearDown()
+
+		requestURL := server.URL + "/image?height=300&width=400&name=" + t.Name()
+		timestamp := int64(1547510400000)
+
+		_, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
+		require.False(t, ok, "data should not exist in in-memory cache")
+
+		_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
+		require.False(t, ok, "data should not exist in database")
+
+		_, img, err := th.App.getLinkMetadata(requestURL, timestamp, false)
+		require.Nil(t, err)
+
+		_, _, ok = getLinkMetadataFromCache(requestURL, timestamp)
+		require.True(t, ok, "data should now exist in in-memory cache")
+
+		linkCache.Purge()
+		_, _, ok = getLinkMetadataFromCache(requestURL, timestamp)
+		require.False(t, ok, "data should no longer exist in in-memory cache")
+
+		_, fromDatabase, ok := th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
+		assert.True(t, ok, "data should be be in in-memory cache again")
+		assert.Exactly(t, img, fromDatabase)
+	})
+
+	t.Run("should reject non-html, non-image response", func(t *testing.T) {
+		th := setup()
+		defer th.TearDown()
+
+		requestURL := server.URL + "/json?name=" + t.Name()
+		timestamp := int64(1547510400000)
+
+		og, img, err := th.App.getLinkMetadata(requestURL, timestamp, false)
+		assert.Nil(t, og)
+		assert.Nil(t, img)
+		assert.Nil(t, err)
+	})
+
+	t.Run("should check in-memory cache for new post", func(t *testing.T) {
+		th := setup()
+		defer th.TearDown()
+
+		requestURL := server.URL + "/error?name=" + t.Name()
+		timestamp := int64(1547510400000)
+
+		cacheLinkMetadata(requestURL, timestamp, &opengraph.OpenGraph{Title: "cached"}, nil)
+
+		og, img, err := th.App.getLinkMetadata(requestURL, timestamp, true)
+		assert.NotNil(t, og)
+		assert.Nil(t, img)
+		assert.Nil(t, err)
+	})
+
+	t.Run("should skip database cache for new post", func(t *testing.T) {
+		th := setup()
+		defer th.TearDown()
+
+		requestURL := server.URL + "/error?name=" + t.Name()
+		timestamp := int64(1547510400000)
+
+		th.App.saveLinkMetadataToDatabase(requestURL, timestamp, &opengraph.OpenGraph{Title: "cached"}, nil)
+
+		og, img, err := th.App.getLinkMetadata(requestURL, timestamp, true)
+		assert.Nil(t, og)
+		assert.Nil(t, img)
+		assert.Nil(t, err)
+	})
+
+	t.Run("should resolve relative URL", func(t *testing.T) {
+		th := setup()
+		defer th.TearDown()
+
+		// Fake the SiteURL to have the relative URL resolve to the external server
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = server.URL
+		})
+
+		requestURL := "/image?height=200&width=300&name=" + t.Name()
+		timestamp := int64(1547510400000)
+
+		og, img, err := th.App.getLinkMetadata(requestURL, timestamp, false)
+		assert.Nil(t, og)
+		assert.NotNil(t, img)
+		assert.Nil(t, err)
+	})
 }
 
 func TestResolveMetadataURL(t *testing.T) {

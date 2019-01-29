@@ -11,7 +11,10 @@ pipeline {
         label 'default-mm-builder'
     }
 
-    options { buildDiscarder(logRotator(numToKeepStr: '3')) }
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '3'))
+        timeout(time: 1, unit: 'HOURS')
+    }
 
     environment {
         COMPOSE_PROJECT_NAME="${rnd}-${env.BUILD_NUMBER}"
