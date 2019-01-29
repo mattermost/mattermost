@@ -91,6 +91,8 @@ func (a *App) servePluginRequest(w http.ResponseWriter, r *http.Request, handler
 				a.Log.Warn("CSRF Check failed for request - Please migrate your plugin to either send a CSRF Header or Form Field, XMLHttpRequest is deprecated")
 				csrfCheckPassed = true
 			}
+		} else {
+			csrfCheckPassed = true
 		}
 
 		if session != nil && err == nil && csrfCheckPassed {
