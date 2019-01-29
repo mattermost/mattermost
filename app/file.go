@@ -668,7 +668,7 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 	}
 	defer closer.Close()
 
-	if t.needDecodeImage() {
+	if t.needProcessImage() && t.decoded == nil {
 		// Set up for concurrent image decoding if needed
 		pr, pw = io.Pipe()
 		input = io.TeeReader(input, pw)
@@ -699,8 +699,10 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			if t.needDecodeImage() {
-				t.decodePipedImage(pr)
+			if t.decoded == nil {
+				t.decodeImage(pr)
+				// Fully drain the pipe reader.
+				defer io.Copy(ioutil.Discard, pr)
 			}
 			t.postprocessImage()
 		}()
@@ -837,14 +839,7 @@ func (t *uploadFileTask) needProcessImage() bool {
 	return !t.Raw && t.fileinfo.IsImage() && !t.imageIsTooLarge
 }
 
-func (t *uploadFileTask) needDecodeImage() bool {
-	return t.needProcessImage() && t.decoded == nil
-}
-
-func (t *uploadFileTask) decodePipedImage(in io.Reader) {
-	// Since in is a pipe reader, need to fully drain it to avoid broken pipe or hangs.
-	defer io.Copy(ioutil.Discard, in)
-
+func (t *uploadFileTask) decodeImage(in io.Reader) {
 	decoded, typ := t.decoded, t.imageType
 	if decoded == nil {
 		var err error
