@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
-	"fmt"
 )
 
 func TestCheckMandatoryS3Fields(t *testing.T) {
@@ -27,7 +26,6 @@ func TestCheckMandatoryS3Fields(t *testing.T) {
 	cfg.AmazonS3Endpoint = model.NewString("")
 	err = CheckMandatoryS3Fields(&cfg)
 	if err != nil || *cfg.AmazonS3Endpoint != "s3.amazonaws.com" {
-		fmt.Println(*cfg.AmazonS3Endpoint)
 		t.Fatal("should've not failed because it should set the endpoint to the default")
 	}
 
