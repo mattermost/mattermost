@@ -55,7 +55,9 @@ type API interface {
 	// DeleteUser deletes a user.
 	DeleteUser(userId string) *model.AppError
 
-	// GetUsers gets a users.
+	// GetUsers a list of users based on search options.
+	//
+	// Minimum server version: 5.8
 	GetUsers(*model.UserGetOptions) ([]*model.User, *model.AppError)
 
 	// GetUser gets a user.
