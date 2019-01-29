@@ -421,8 +421,12 @@ func TestEmailTest(t *testing.T) {
 			SiteURL: model.NewString(""),
 		},
 		EmailSettings: model.EmailSettings{
-			SMTPServer: model.NewString(""),
-			SMTPPort:   model.NewString(""),
+			SMTPServer:             model.NewString(""),
+			SMTPPort:               model.NewString(""),
+			SMTPPassword:           model.NewString(""),
+			FeedbackName:           model.NewString(""),
+			FeedbackEmail:          model.NewString(""),
+			SendEmailNotifications: model.NewBool(false),
 		},
 	}
 
