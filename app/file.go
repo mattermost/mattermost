@@ -716,17 +716,6 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 	return t.fileinfo, nil
 }
 
-func (t *uploadFileTask) stopBuffering() *model.AppError {
-	t.memoryLimitedTeeInput = nil
-	err := t.lbuf.Close()
-	if err != nil {
-		return t.newAppError("api.file.upload_file.read_request.app_error",
-			err.Error(), http.StatusInternalServerError)
-	}
-
-	return nil
-}
-
 func (t *uploadFileTask) runPlugins() *model.AppError {
 	if t.pluginsEnvironment == nil {
 		return nil
@@ -747,6 +736,7 @@ func (t *uploadFileTask) runPlugins() *model.AppError {
 // replacement.
 func (t *uploadFileTask) runPlugin(hooks plugin.Hooks) *model.AppError {
 	if t.sizeLimitedInput != nil {
+		// Bypass the Tee reader and just copy directly
 		_, err := io.Copy(t.lbuf, t.sizeLimitedInput)
 		if err != nil {
 			return t.newAppError("api.file.upload_file.read_request.app_error",
@@ -920,6 +910,13 @@ func (t *uploadFileTask) postprocessImage() {
 	wg.Wait()
 }
 
+// newMemoryBufferReader supports multiple attempts to (pre-)read the incoming
+// payload. It is intended use is in preprocessImage which can take multiple
+// passes over the payload.
+//
+// It combines any bytes already buffered in memory with the still-unread
+// input, while appending the new bytes to the buffer. It is limited to
+// MaxMemoryBuffer bytes.
 func (t uploadFileTask) newMemoryBufferReader() io.Reader {
 	var r io.Reader = bytes.NewReader(t.lbuf.Bytes())
 	if t.memoryLimitedTeeInput != nil {
@@ -929,6 +926,9 @@ func (t uploadFileTask) newMemoryBufferReader() io.Reader {
 	return r
 }
 
+// newCombinedReadCloser combines the previously buffered payload with the
+// remainder of the input stream.  It returns a Closer that should be called
+// once the caller is done with the Reader.
 func (t uploadFileTask) newCombinedReadCloser() (io.Reader, io.Closer, *model.AppError) {
 	// First, read from the buffer
 	buffered, err := t.lbuf.NewReadCloser()
@@ -949,6 +949,17 @@ func (t uploadFileTask) newCombinedReadCloser() (io.Reader, io.Closer, *model.Ap
 	}
 
 	return io.MultiReader(buffered, unread), buffered, nil
+}
+
+func (t *uploadFileTask) stopBuffering() *model.AppError {
+	t.memoryLimitedTeeInput = nil
+	err := t.lbuf.Close()
+	if err != nil {
+		return t.newAppError("api.file.upload_file.read_request.app_error",
+			err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
 }
 
 func (t uploadFileTask) pathPrefix() string {
