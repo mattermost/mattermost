@@ -86,14 +86,16 @@ Archived channels are appended with ' (archived)'.`,
 }
 
 var MoveChannelsCmd = &cobra.Command{
-	Use:   "move [channels] [team] --username [user]",
+	Use: `move [channel] [team] --username [user]
+  mattermost channel move -t [team] [channels] --username [user]`,
 	Short: "Moves channels to the specified team",
 	Long: `Moves the provided channels to the specified team.
 Validates that all users in the channel belong to the target team. Incoming/Outgoing webhooks are moved along with the channel.
 Channels can be specified by [team]:[channel]. ie. myteam:mychannel or by channel ID.`,
-	Example: "  channel move oldteam:mychannel newteam --username myusername",
-	Args:    cobra.MinimumNArgs(2),
-	RunE:    moveChannelsCmdF,
+	Example: `  channel move oldteam:mychannel newteam --username myusername
+  channel move -t newteam oldteam:mychannel oldteam:mychannel1 oldteam:mychannel2 --username myusername`,
+	Args: cobra.MinimumNArgs(2),
+	RunE: moveChannelsCmdF,
 }
 
 var RestoreChannelsCmd = &cobra.Command{
@@ -124,8 +126,10 @@ func init() {
 	ChannelCreateCmd.Flags().String("purpose", "", "Channel purpose")
 	ChannelCreateCmd.Flags().Bool("private", false, "Create a private channel.")
 
+	var target bool
 	MoveChannelsCmd.Flags().String("username", "", "Required. Username who is moving the channel.")
 	MoveChannelsCmd.Flags().Bool("remove-deactivated-users", false, "Automatically remove any deactivated users from the channel before moving it.")
+	MoveChannelsCmd.Flags().BoolVarP(&target, "target", "t", false, "Move all source channel into new team")
 
 	DeleteChannelsCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the channels.")
 
@@ -349,6 +353,16 @@ func moveChannelsCmdF(command *cobra.Command, args []string) error {
 	defer a.Shutdown()
 
 	teamArgs := args[len(args)-1]
+	channelArgs := args[:len(args)-1]
+
+	targetFlag, err := command.Flags().GetBool("target")
+	if err == nil && targetFlag {
+		teamArgs = args[0]
+		channelArgs = args[1:]
+	} else if len(args) > 2 {
+		return errors.New("To move multiple channel use flag -t or --target")
+	}
+
 	team := getTeamFromTeamArg(a, teamArgs)
 	if team == nil {
 		return errors.New("Unable to find destination team '" + teamArgs + "'")
@@ -358,14 +372,19 @@ func moveChannelsCmdF(command *cobra.Command, args []string) error {
 	if erru != nil || username == "" {
 		return errors.New("Username is required.")
 	}
+
 	user := getUserFromUserArg(a, username)
+	if user == nil {
+		CommandPrintErrorln("Username", username, "is not found")
+		return nil
+	}
 
 	removeDeactivatedMembers, _ := command.Flags().GetBool("remove-deactivated-users")
 
-	channels := getChannelsFromChannelArgs(a, args[:len(args)-1])
+	channels := getChannelsFromChannelArgs(a, channelArgs)
 	for i, channel := range channels {
 		if channel == nil {
-			CommandPrintErrorln("Unable to find channel '" + args[i] + "'")
+			CommandPrintErrorln("Unable to find channel '" + channelArgs[i] + "'")
 			continue
 		}
 		originTeamID := channel.TeamId
