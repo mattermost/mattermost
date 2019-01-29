@@ -355,6 +355,7 @@ func TestGetUser(t *testing.T) {
 
 	assert.NotNil(t, ruser.Props)
 	assert.Equal(t, ruser.Props["testpropkey"], "testpropvalue")
+	require.False(t, ruser.IsBot)
 
 	ruser, resp = th.Client.GetUser(user.Id, resp.Etag)
 	CheckEtag(t, ruser, resp)
@@ -397,6 +398,30 @@ func TestGetUser(t *testing.T) {
 	if ruser.LastName == "" {
 		t.Fatal("last name should not be blank")
 	}
+}
+
+func TestGetBotUser(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+
+	th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
+	th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+
+	bot := &model.Bot{
+		Username:    GenerateTestUsername(),
+		DisplayName: "a bot",
+		Description: "bot",
+	}
+
+	createdBot, resp := th.Client.CreateBot(bot)
+	CheckCreatedStatus(t, resp)
+	defer th.App.PermanentDeleteBot(createdBot.UserId)
+
+	botUser, resp := th.Client.GetUser(createdBot.UserId, "")
+	require.Equal(t, bot.Username, botUser.Username)
+	require.True(t, botUser.IsBot)
 }
 
 func TestGetUserByUsername(t *testing.T) {
