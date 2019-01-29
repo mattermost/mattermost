@@ -728,12 +728,15 @@ func (t *uploadFileTask) postprocessImage() {
 	if decoded == nil {
 		var err error
 		decoded, typ, err = image.Decode(t.newReader())
-		if err != nil {
+
+		if typ == "tiff" {
+			mlog.Info(fmt.Sprintf("Unable to decode image err=%v", decoded))
 			decoded, err = tiff.Decode(t.Input)
-			if err != nil {
-				mlog.Error(fmt.Sprintf("Unable to decode image err=%v", err))
-				return
-			}
+		}
+
+		if err != nil {
+			mlog.Error(fmt.Sprintf("Unable to decode image err=%v", err))
+			return
 		}
 	}
 
