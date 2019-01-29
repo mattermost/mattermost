@@ -702,7 +702,7 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 			if t.decoded == nil {
 				t.decodeImage(pr)
 				// Fully drain the pipe reader.
-				defer io.Copy(ioutil.Discard, pr)
+				io.Copy(ioutil.Discard, pr)
 			}
 			t.postprocessImage()
 		}()
