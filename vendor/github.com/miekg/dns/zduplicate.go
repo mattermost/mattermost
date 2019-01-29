@@ -2,164 +2,38 @@
 
 package dns
 
-// isDuplicateRdata calls the rdata specific functions
-func isDuplicateRdata(r1, r2 RR) bool {
-	switch r1.Header().Rrtype {
-	case TypeA:
-		return isDuplicateA(r1.(*A), r2.(*A))
-	case TypeAAAA:
-		return isDuplicateAAAA(r1.(*AAAA), r2.(*AAAA))
-	case TypeAFSDB:
-		return isDuplicateAFSDB(r1.(*AFSDB), r2.(*AFSDB))
-	case TypeAVC:
-		return isDuplicateAVC(r1.(*AVC), r2.(*AVC))
-	case TypeCAA:
-		return isDuplicateCAA(r1.(*CAA), r2.(*CAA))
-	case TypeCERT:
-		return isDuplicateCERT(r1.(*CERT), r2.(*CERT))
-	case TypeCNAME:
-		return isDuplicateCNAME(r1.(*CNAME), r2.(*CNAME))
-	case TypeCSYNC:
-		return isDuplicateCSYNC(r1.(*CSYNC), r2.(*CSYNC))
-	case TypeDHCID:
-		return isDuplicateDHCID(r1.(*DHCID), r2.(*DHCID))
-	case TypeDNAME:
-		return isDuplicateDNAME(r1.(*DNAME), r2.(*DNAME))
-	case TypeDNSKEY:
-		return isDuplicateDNSKEY(r1.(*DNSKEY), r2.(*DNSKEY))
-	case TypeDS:
-		return isDuplicateDS(r1.(*DS), r2.(*DS))
-	case TypeEID:
-		return isDuplicateEID(r1.(*EID), r2.(*EID))
-	case TypeEUI48:
-		return isDuplicateEUI48(r1.(*EUI48), r2.(*EUI48))
-	case TypeEUI64:
-		return isDuplicateEUI64(r1.(*EUI64), r2.(*EUI64))
-	case TypeGID:
-		return isDuplicateGID(r1.(*GID), r2.(*GID))
-	case TypeGPOS:
-		return isDuplicateGPOS(r1.(*GPOS), r2.(*GPOS))
-	case TypeHINFO:
-		return isDuplicateHINFO(r1.(*HINFO), r2.(*HINFO))
-	case TypeHIP:
-		return isDuplicateHIP(r1.(*HIP), r2.(*HIP))
-	case TypeKX:
-		return isDuplicateKX(r1.(*KX), r2.(*KX))
-	case TypeL32:
-		return isDuplicateL32(r1.(*L32), r2.(*L32))
-	case TypeL64:
-		return isDuplicateL64(r1.(*L64), r2.(*L64))
-	case TypeLOC:
-		return isDuplicateLOC(r1.(*LOC), r2.(*LOC))
-	case TypeLP:
-		return isDuplicateLP(r1.(*LP), r2.(*LP))
-	case TypeMB:
-		return isDuplicateMB(r1.(*MB), r2.(*MB))
-	case TypeMD:
-		return isDuplicateMD(r1.(*MD), r2.(*MD))
-	case TypeMF:
-		return isDuplicateMF(r1.(*MF), r2.(*MF))
-	case TypeMG:
-		return isDuplicateMG(r1.(*MG), r2.(*MG))
-	case TypeMINFO:
-		return isDuplicateMINFO(r1.(*MINFO), r2.(*MINFO))
-	case TypeMR:
-		return isDuplicateMR(r1.(*MR), r2.(*MR))
-	case TypeMX:
-		return isDuplicateMX(r1.(*MX), r2.(*MX))
-	case TypeNAPTR:
-		return isDuplicateNAPTR(r1.(*NAPTR), r2.(*NAPTR))
-	case TypeNID:
-		return isDuplicateNID(r1.(*NID), r2.(*NID))
-	case TypeNIMLOC:
-		return isDuplicateNIMLOC(r1.(*NIMLOC), r2.(*NIMLOC))
-	case TypeNINFO:
-		return isDuplicateNINFO(r1.(*NINFO), r2.(*NINFO))
-	case TypeNS:
-		return isDuplicateNS(r1.(*NS), r2.(*NS))
-	case TypeNSAPPTR:
-		return isDuplicateNSAPPTR(r1.(*NSAPPTR), r2.(*NSAPPTR))
-	case TypeNSEC:
-		return isDuplicateNSEC(r1.(*NSEC), r2.(*NSEC))
-	case TypeNSEC3:
-		return isDuplicateNSEC3(r1.(*NSEC3), r2.(*NSEC3))
-	case TypeNSEC3PARAM:
-		return isDuplicateNSEC3PARAM(r1.(*NSEC3PARAM), r2.(*NSEC3PARAM))
-	case TypeOPENPGPKEY:
-		return isDuplicateOPENPGPKEY(r1.(*OPENPGPKEY), r2.(*OPENPGPKEY))
-	case TypePTR:
-		return isDuplicatePTR(r1.(*PTR), r2.(*PTR))
-	case TypePX:
-		return isDuplicatePX(r1.(*PX), r2.(*PX))
-	case TypeRKEY:
-		return isDuplicateRKEY(r1.(*RKEY), r2.(*RKEY))
-	case TypeRP:
-		return isDuplicateRP(r1.(*RP), r2.(*RP))
-	case TypeRRSIG:
-		return isDuplicateRRSIG(r1.(*RRSIG), r2.(*RRSIG))
-	case TypeRT:
-		return isDuplicateRT(r1.(*RT), r2.(*RT))
-	case TypeSMIMEA:
-		return isDuplicateSMIMEA(r1.(*SMIMEA), r2.(*SMIMEA))
-	case TypeSOA:
-		return isDuplicateSOA(r1.(*SOA), r2.(*SOA))
-	case TypeSPF:
-		return isDuplicateSPF(r1.(*SPF), r2.(*SPF))
-	case TypeSRV:
-		return isDuplicateSRV(r1.(*SRV), r2.(*SRV))
-	case TypeSSHFP:
-		return isDuplicateSSHFP(r1.(*SSHFP), r2.(*SSHFP))
-	case TypeTA:
-		return isDuplicateTA(r1.(*TA), r2.(*TA))
-	case TypeTALINK:
-		return isDuplicateTALINK(r1.(*TALINK), r2.(*TALINK))
-	case TypeTKEY:
-		return isDuplicateTKEY(r1.(*TKEY), r2.(*TKEY))
-	case TypeTLSA:
-		return isDuplicateTLSA(r1.(*TLSA), r2.(*TLSA))
-	case TypeTSIG:
-		return isDuplicateTSIG(r1.(*TSIG), r2.(*TSIG))
-	case TypeTXT:
-		return isDuplicateTXT(r1.(*TXT), r2.(*TXT))
-	case TypeUID:
-		return isDuplicateUID(r1.(*UID), r2.(*UID))
-	case TypeUINFO:
-		return isDuplicateUINFO(r1.(*UINFO), r2.(*UINFO))
-	case TypeURI:
-		return isDuplicateURI(r1.(*URI), r2.(*URI))
-	case TypeX25:
-		return isDuplicateX25(r1.(*X25), r2.(*X25))
-	}
-	return false
-}
-
 // isDuplicate() functions
 
-func isDuplicateA(r1, r2 *A) bool {
-	if len(r1.A) != len(r2.A) {
+func (r1 *A) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*A)
+	if !ok {
 		return false
 	}
-	for i := 0; i < len(r1.A); i++ {
-		if r1.A[i] != r2.A[i] {
-			return false
-		}
+	_ = r2
+	if !r1.A.Equal(r2.A) {
+		return false
 	}
 	return true
 }
 
-func isDuplicateAAAA(r1, r2 *AAAA) bool {
-	if len(r1.AAAA) != len(r2.AAAA) {
+func (r1 *AAAA) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*AAAA)
+	if !ok {
 		return false
 	}
-	for i := 0; i < len(r1.AAAA); i++ {
-		if r1.AAAA[i] != r2.AAAA[i] {
-			return false
-		}
+	_ = r2
+	if !r1.AAAA.Equal(r2.AAAA) {
+		return false
 	}
 	return true
 }
 
-func isDuplicateAFSDB(r1, r2 *AFSDB) bool {
+func (r1 *AFSDB) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*AFSDB)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if r1.Subtype != r2.Subtype {
 		return false
 	}
@@ -169,7 +43,21 @@ func isDuplicateAFSDB(r1, r2 *AFSDB) bool {
 	return true
 }
 
-func isDuplicateAVC(r1, r2 *AVC) bool {
+func (r1 *ANY) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*ANY)
+	if !ok {
+		return false
+	}
+	_ = r2
+	return true
+}
+
+func (r1 *AVC) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*AVC)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if len(r1.Txt) != len(r2.Txt) {
 		return false
 	}
@@ -181,7 +69,12 @@ func isDuplicateAVC(r1, r2 *AVC) bool {
 	return true
 }
 
-func isDuplicateCAA(r1, r2 *CAA) bool {
+func (r1 *CAA) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*CAA)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if r1.Flag != r2.Flag {
 		return false
 	}
@@ -194,7 +87,12 @@ func isDuplicateCAA(r1, r2 *CAA) bool {
 	return true
 }
 
-func isDuplicateCERT(r1, r2 *CERT) bool {
+func (r1 *CERT) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*CERT)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if r1.Type != r2.Type {
 		return false
 	}
@@ -210,14 +108,24 @@ func isDuplicateCERT(r1, r2 *CERT) bool {
 	return true
 }
 
-func isDuplicateCNAME(r1, r2 *CNAME) bool {
+func (r1 *CNAME) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*CNAME)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if !isDulicateName(r1.Target, r2.Target) {
 		return false
 	}
 	return true
 }
 
-func isDuplicateCSYNC(r1, r2 *CSYNC) bool {
+func (r1 *CSYNC) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*CSYNC)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if r1.Serial != r2.Serial {
 		return false
 	}
@@ -235,21 +143,36 @@ func isDuplicateCSYNC(r1, r2 *CSYNC) bool {
 	return true
 }
 
-func isDuplicateDHCID(r1, r2 *DHCID) bool {
+func (r1 *DHCID) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*DHCID)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if r1.Digest != r2.Digest {
 		return false
 	}
 	return true
 }
 
-func isDuplicateDNAME(r1, r2 *DNAME) bool {
+func (r1 *DNAME) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*DNAME)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if !isDulicateName(r1.Target, r2.Target) {
 		return false
 	}
 	return true
 }
 
-func isDuplicateDNSKEY(r1, r2 *DNSKEY) bool {
+func (r1 *DNSKEY) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*DNSKEY)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if r1.Flags != r2.Flags {
 		return false
 	}
@@ -265,7 +188,12 @@ func isDuplicateDNSKEY(r1, r2 *DNSKEY) bool {
 	return true
 }
 
-func isDuplicateDS(r1, r2 *DS) bool {
+func (r1 *DS) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*DS)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if r1.KeyTag != r2.KeyTag {
 		return false
 	}
@@ -281,35 +209,60 @@ func isDuplicateDS(r1, r2 *DS) bool {
 	return true
 }
 
-func isDuplicateEID(r1, r2 *EID) bool {
+func (r1 *EID) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*EID)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if r1.Endpoint != r2.Endpoint {
 		return false
 	}
 	return true
 }
 
-func isDuplicateEUI48(r1, r2 *EUI48) bool {
+func (r1 *EUI48) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*EUI48)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if r1.Address != r2.Address {
 		return false
 	}
 	return true
 }
 
-func isDuplicateEUI64(r1, r2 *EUI64) bool {
+func (r1 *EUI64) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*EUI64)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if r1.Address != r2.Address {
 		return false
 	}
 	return true
 }
 
-func isDuplicateGID(r1, r2 *GID) bool {
+func (r1 *GID) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*GID)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if r1.Gid != r2.Gid {
 		return false
 	}
 	return true
 }
 
-func isDuplicateGPOS(r1, r2 *GPOS) bool {
+func (r1 *GPOS) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*GPOS)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if r1.Longitude != r2.Longitude {
 		return false
 	}
@@ -322,7 +275,12 @@ func isDuplicateGPOS(r1, r2 *GPOS) bool {
 	return true
 }
 
-func isDuplicateHINFO(r1, r2 *HINFO) bool {
+func (r1 *HINFO) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*HINFO)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if r1.Cpu != r2.Cpu {
 		return false
 	}
@@ -332,7 +290,12 @@ func isDuplicateHINFO(r1, r2 *HINFO) bool {
 	return true
 }
 
-func isDuplicateHIP(r1, r2 *HIP) bool {
+func (r1 *HIP) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*HIP)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if r1.HitLength != r2.HitLength {
 		return false
 	}
@@ -359,7 +322,12 @@ func isDuplicateHIP(r1, r2 *HIP) bool {
 	return true
 }
 
-func isDuplicateKX(r1, r2 *KX) bool {
+func (r1 *KX) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*KX)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if r1.Preference != r2.Preference {
 		return false
 	}
@@ -369,22 +337,27 @@ func isDuplicateKX(r1, r2 *KX) bool {
 	return true
 }
 
-func isDuplicateL32(r1, r2 *L32) bool {
+func (r1 *L32) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*L32)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if r1.Preference != r2.Preference {
 		return false
 	}
-	if len(r1.Locator32) != len(r2.Locator32) {
+	if !r1.Locator32.Equal(r2.Locator32) {
 		return false
-	}
-	for i := 0; i < len(r1.Locator32); i++ {
-		if r1.Locator32[i] != r2.Locator32[i] {
-			return false
-		}
 	}
 	return true
 }
 
-func isDuplicateL64(r1, r2 *L64) bool {
+func (r1 *L64) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*L64)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if r1.Preference != r2.Preference {
 		return false
 	}
@@ -394,7 +367,12 @@ func isDuplicateL64(r1, r2 *L64) bool {
 	return true
 }
 
-func isDuplicateLOC(r1, r2 *LOC) bool {
+func (r1 *LOC) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*LOC)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if r1.Version != r2.Version {
 		return false
 	}
@@ -419,7 +397,12 @@ func isDuplicateLOC(r1, r2 *LOC) bool {
 	return true
 }
 
-func isDuplicateLP(r1, r2 *LP) bool {
+func (r1 *LP) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*LP)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if r1.Preference != r2.Preference {
 		return false
 	}
@@ -429,35 +412,60 @@ func isDuplicateLP(r1, r2 *LP) bool {
 	return true
 }
 
-func isDuplicateMB(r1, r2 *MB) bool {
+func (r1 *MB) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*MB)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if !isDulicateName(r1.Mb, r2.Mb) {
 		return false
 	}
 	return true
 }
 
-func isDuplicateMD(r1, r2 *MD) bool {
+func (r1 *MD) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*MD)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if !isDulicateName(r1.Md, r2.Md) {
 		return false
 	}
 	return true
 }
 
-func isDuplicateMF(r1, r2 *MF) bool {
+func (r1 *MF) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*MF)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if !isDulicateName(r1.Mf, r2.Mf) {
 		return false
 	}
 	return true
 }
 
-func isDuplicateMG(r1, r2 *MG) bool {
+func (r1 *MG) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*MG)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if !isDulicateName(r1.Mg, r2.Mg) {
 		return false
 	}
 	return true
 }
 
-func isDuplicateMINFO(r1, r2 *MINFO) bool {
+func (r1 *MINFO) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*MINFO)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if !isDulicateName(r1.Rmail, r2.Rmail) {
 		return false
 	}
@@ -467,14 +475,24 @@ func isDuplicateMINFO(r1, r2 *MINFO) bool {
 	return true
 }
 
-func isDuplicateMR(r1, r2 *MR) bool {
+func (r1 *MR) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*MR)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if !isDulicateName(r1.Mr, r2.Mr) {
 		return false
 	}
 	return true
 }
 
-func isDuplicateMX(r1, r2 *MX) bool {
+func (r1 *MX) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*MX)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if r1.Preference != r2.Preference {
 		return false
 	}
@@ -484,7 +502,12 @@ func isDuplicateMX(r1, r2 *MX) bool {
 	return true
 }
 
-func isDuplicateNAPTR(r1, r2 *NAPTR) bool {
+func (r1 *NAPTR) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*NAPTR)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if r1.Order != r2.Order {
 		return false
 	}
@@ -506,7 +529,12 @@ func isDuplicateNAPTR(r1, r2 *NAPTR) bool {
 	return true
 }
 
-func isDuplicateNID(r1, r2 *NID) bool {
+func (r1 *NID) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*NID)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if r1.Preference != r2.Preference {
 		return false
 	}
@@ -516,14 +544,24 @@ func isDuplicateNID(r1, r2 *NID) bool {
 	return true
 }
 
-func isDuplicateNIMLOC(r1, r2 *NIMLOC) bool {
+func (r1 *NIMLOC) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*NIMLOC)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if r1.Locator != r2.Locator {
 		return false
 	}
 	return true
 }
 
-func isDuplicateNINFO(r1, r2 *NINFO) bool {
+func (r1 *NINFO) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*NINFO)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if len(r1.ZSData) != len(r2.ZSData) {
 		return false
 	}
@@ -535,21 +573,36 @@ func isDuplicateNINFO(r1, r2 *NINFO) bool {
 	return true
 }
 
-func isDuplicateNS(r1, r2 *NS) bool {
+func (r1 *NS) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*NS)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if !isDulicateName(r1.Ns, r2.Ns) {
 		return false
 	}
 	return true
 }
 
-func isDuplicateNSAPPTR(r1, r2 *NSAPPTR) bool {
+func (r1 *NSAPPTR) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*NSAPPTR)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if !isDulicateName(r1.Ptr, r2.Ptr) {
 		return false
 	}
 	return true
 }
 
-func isDuplicateNSEC(r1, r2 *NSEC) bool {
+func (r1 *NSEC) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*NSEC)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if !isDulicateName(r1.NextDomain, r2.NextDomain) {
 		return false
 	}
@@ -564,7 +617,12 @@ func isDuplicateNSEC(r1, r2 *NSEC) bool {
 	return true
 }
 
-func isDuplicateNSEC3(r1, r2 *NSEC3) bool {
+func (r1 *NSEC3) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*NSEC3)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if r1.Hash != r2.Hash {
 		return false
 	}
@@ -597,7 +655,12 @@ func isDuplicateNSEC3(r1, r2 *NSEC3) bool {
 	return true
 }
 
-func isDuplicateNSEC3PARAM(r1, r2 *NSEC3PARAM) bool {
+func (r1 *NSEC3PARAM) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*NSEC3PARAM)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if r1.Hash != r2.Hash {
 		return false
 	}
@@ -616,21 +679,48 @@ func isDuplicateNSEC3PARAM(r1, r2 *NSEC3PARAM) bool {
 	return true
 }
 
-func isDuplicateOPENPGPKEY(r1, r2 *OPENPGPKEY) bool {
+func (r1 *NULL) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*NULL)
+	if !ok {
+		return false
+	}
+	_ = r2
+	if r1.Data != r2.Data {
+		return false
+	}
+	return true
+}
+
+func (r1 *OPENPGPKEY) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*OPENPGPKEY)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if r1.PublicKey != r2.PublicKey {
 		return false
 	}
 	return true
 }
 
-func isDuplicatePTR(r1, r2 *PTR) bool {
+func (r1 *PTR) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*PTR)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if !isDulicateName(r1.Ptr, r2.Ptr) {
 		return false
 	}
 	return true
 }
 
-func isDuplicatePX(r1, r2 *PX) bool {
+func (r1 *PX) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*PX)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if r1.Preference != r2.Preference {
 		return false
 	}
@@ -643,7 +733,24 @@ func isDuplicatePX(r1, r2 *PX) bool {
 	return true
 }
 
-func isDuplicateRKEY(r1, r2 *RKEY) bool {
+func (r1 *RFC3597) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*RFC3597)
+	if !ok {
+		return false
+	}
+	_ = r2
+	if r1.Rdata != r2.Rdata {
+		return false
+	}
+	return true
+}
+
+func (r1 *RKEY) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*RKEY)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if r1.Flags != r2.Flags {
 		return false
 	}
@@ -659,7 +766,12 @@ func isDuplicateRKEY(r1, r2 *RKEY) bool {
 	return true
 }
 
-func isDuplicateRP(r1, r2 *RP) bool {
+func (r1 *RP) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*RP)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if !isDulicateName(r1.Mbox, r2.Mbox) {
 		return false
 	}
@@ -669,7 +781,12 @@ func isDuplicateRP(r1, r2 *RP) bool {
 	return true
 }
 
-func isDuplicateRRSIG(r1, r2 *RRSIG) bool {
+func (r1 *RRSIG) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*RRSIG)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if r1.TypeCovered != r2.TypeCovered {
 		return false
 	}
@@ -700,7 +817,12 @@ func isDuplicateRRSIG(r1, r2 *RRSIG) bool {
 	return true
 }
 
-func isDuplicateRT(r1, r2 *RT) bool {
+func (r1 *RT) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*RT)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if r1.Preference != r2.Preference {
 		return false
 	}
@@ -710,7 +832,12 @@ func isDuplicateRT(r1, r2 *RT) bool {
 	return true
 }
 
-func isDuplicateSMIMEA(r1, r2 *SMIMEA) bool {
+func (r1 *SMIMEA) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*SMIMEA)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if r1.Usage != r2.Usage {
 		return false
 	}
@@ -726,7 +853,12 @@ func isDuplicateSMIMEA(r1, r2 *SMIMEA) bool {
 	return true
 }
 
-func isDuplicateSOA(r1, r2 *SOA) bool {
+func (r1 *SOA) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*SOA)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if !isDulicateName(r1.Ns, r2.Ns) {
 		return false
 	}
@@ -751,7 +883,12 @@ func isDuplicateSOA(r1, r2 *SOA) bool {
 	return true
 }
 
-func isDuplicateSPF(r1, r2 *SPF) bool {
+func (r1 *SPF) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*SPF)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if len(r1.Txt) != len(r2.Txt) {
 		return false
 	}
@@ -763,7 +900,12 @@ func isDuplicateSPF(r1, r2 *SPF) bool {
 	return true
 }
 
-func isDuplicateSRV(r1, r2 *SRV) bool {
+func (r1 *SRV) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*SRV)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if r1.Priority != r2.Priority {
 		return false
 	}
@@ -779,7 +921,12 @@ func isDuplicateSRV(r1, r2 *SRV) bool {
 	return true
 }
 
-func isDuplicateSSHFP(r1, r2 *SSHFP) bool {
+func (r1 *SSHFP) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*SSHFP)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if r1.Algorithm != r2.Algorithm {
 		return false
 	}
@@ -792,7 +939,12 @@ func isDuplicateSSHFP(r1, r2 *SSHFP) bool {
 	return true
 }
 
-func isDuplicateTA(r1, r2 *TA) bool {
+func (r1 *TA) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*TA)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if r1.KeyTag != r2.KeyTag {
 		return false
 	}
@@ -808,7 +960,12 @@ func isDuplicateTA(r1, r2 *TA) bool {
 	return true
 }
 
-func isDuplicateTALINK(r1, r2 *TALINK) bool {
+func (r1 *TALINK) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*TALINK)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if !isDulicateName(r1.PreviousName, r2.PreviousName) {
 		return false
 	}
@@ -818,7 +975,12 @@ func isDuplicateTALINK(r1, r2 *TALINK) bool {
 	return true
 }
 
-func isDuplicateTKEY(r1, r2 *TKEY) bool {
+func (r1 *TKEY) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*TKEY)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if !isDulicateName(r1.Algorithm, r2.Algorithm) {
 		return false
 	}
@@ -849,7 +1011,12 @@ func isDuplicateTKEY(r1, r2 *TKEY) bool {
 	return true
 }
 
-func isDuplicateTLSA(r1, r2 *TLSA) bool {
+func (r1 *TLSA) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*TLSA)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if r1.Usage != r2.Usage {
 		return false
 	}
@@ -865,7 +1032,12 @@ func isDuplicateTLSA(r1, r2 *TLSA) bool {
 	return true
 }
 
-func isDuplicateTSIG(r1, r2 *TSIG) bool {
+func (r1 *TSIG) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*TSIG)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if !isDulicateName(r1.Algorithm, r2.Algorithm) {
 		return false
 	}
@@ -896,7 +1068,12 @@ func isDuplicateTSIG(r1, r2 *TSIG) bool {
 	return true
 }
 
-func isDuplicateTXT(r1, r2 *TXT) bool {
+func (r1 *TXT) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*TXT)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if len(r1.Txt) != len(r2.Txt) {
 		return false
 	}
@@ -908,21 +1085,36 @@ func isDuplicateTXT(r1, r2 *TXT) bool {
 	return true
 }
 
-func isDuplicateUID(r1, r2 *UID) bool {
+func (r1 *UID) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*UID)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if r1.Uid != r2.Uid {
 		return false
 	}
 	return true
 }
 
-func isDuplicateUINFO(r1, r2 *UINFO) bool {
+func (r1 *UINFO) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*UINFO)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if r1.Uinfo != r2.Uinfo {
 		return false
 	}
 	return true
 }
 
-func isDuplicateURI(r1, r2 *URI) bool {
+func (r1 *URI) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*URI)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if r1.Priority != r2.Priority {
 		return false
 	}
@@ -935,7 +1127,12 @@ func isDuplicateURI(r1, r2 *URI) bool {
 	return true
 }
 
-func isDuplicateX25(r1, r2 *X25) bool {
+func (r1 *X25) isDuplicate(_r2 RR) bool {
+	r2, ok := _r2.(*X25)
+	if !ok {
+		return false
+	}
+	_ = r2
 	if r1.PSDNAddress != r2.PSDNAddress {
 		return false
 	}

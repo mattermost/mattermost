@@ -3,6 +3,10 @@
 
 package model
 
+import (
+	"encoding/json"
+)
+
 type PostMetadata struct {
 	// Embeds holds information required to render content embedded in the post. This includes the OpenGraph metadata
 	// for links in the post.
@@ -27,4 +31,9 @@ type PostMetadata struct {
 type PostImage struct {
 	Width  int `json:"width"`
 	Height int `json:"height"`
+}
+
+func (o *PostImage) ToJson() string {
+	b, _ := json.Marshal(o)
+	return string(b)
 }

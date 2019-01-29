@@ -118,6 +118,10 @@ func (api *PluginAPI) GetTeam(teamId string) (*model.Team, *model.AppError) {
 	return api.app.GetTeam(teamId)
 }
 
+func (api *PluginAPI) SearchTeams(term string) ([]*model.Team, *model.AppError) {
+	return api.app.SearchAllTeams(term)
+}
+
 func (api *PluginAPI) GetTeamByName(name string) (*model.Team, *model.AppError) {
 	return api.app.GetTeamByName(name)
 }

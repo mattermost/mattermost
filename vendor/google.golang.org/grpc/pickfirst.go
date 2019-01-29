@@ -19,7 +19,8 @@
 package grpc
 
 import (
-	"golang.org/x/net/context"
+	"context"
+
 	"google.golang.org/grpc/balancer"
 	"google.golang.org/grpc/connectivity"
 	"google.golang.org/grpc/grpclog"

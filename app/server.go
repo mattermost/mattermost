@@ -30,6 +30,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/services/httpservice"
+	"github.com/mattermost/mattermost-server/services/imageproxy"
 	"github.com/mattermost/mattermost-server/services/timezones"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
@@ -110,7 +111,13 @@ type Server struct {
 
 	HTTPService httpservice.HTTPService
 
+	ImageProxy *imageproxy.ImageProxy
+
 	Log *mlog.Logger
+
+	joinCluster        bool
+	startMetrics       bool
+	startElasticsearch bool
 
 	AccountMigration einterfaces.AccountMigrationInterface
 	Cluster          einterfaces.ClusterInterface
@@ -160,6 +167,8 @@ func NewServer(options ...Option) (*Server, error) {
 	})
 
 	s.HTTPService = httpservice.MakeHTTPService(s.FakeApp())
+
+	s.ImageProxy = imageproxy.MakeImageProxy(s, s.HTTPService)
 
 	if utils.T == nil {
 		if err := utils.TranslationsPreInit(); err != nil {
@@ -214,16 +223,16 @@ func NewServer(options ...Option) (*Server, error) {
 		mlog.Error(fmt.Sprint("Error to reset the server status.", result.Err.Error()))
 	}
 
-	if s.Cluster != nil {
+	if s.joinCluster && s.Cluster != nil {
 		s.FakeApp().RegisterAllClusterMessageHandlers()
 		s.Cluster.StartInterNodeCommunication()
 	}
 
-	if s.Metrics != nil {
+	if s.startMetrics && s.Metrics != nil {
 		s.Metrics.StartServer()
 	}
 
-	if s.Elasticsearch != nil {
+	if s.startElasticsearch && s.Elasticsearch != nil {
 		s.StartElasticsearch()
 	}
 

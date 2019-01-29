@@ -68,6 +68,7 @@ type Store interface {
 	TermsOfService() TermsOfServiceStore
 	Group() GroupStore
 	UserTermsOfService() UserTermsOfServiceStore
+	LinkMetadata() LinkMetadataStore
 	MarkSystemRanUnitTests()
 	Close()
 	LockToMaster()
@@ -456,7 +457,7 @@ type FileInfoStore interface {
 	GetForPost(postId string, readFromMaster bool, allowFromCache bool) StoreChannel
 	GetForUser(userId string) StoreChannel
 	InvalidateFileInfosForPostCache(postId string)
-	AttachToPost(fileId string, postId string) StoreChannel
+	AttachToPost(fileId string, postId string, creatorId string) StoreChannel
 	DeleteForPost(postId string) StoreChannel
 	PermanentDelete(fileId string) StoreChannel
 	PermanentDeleteBatch(endTime int64, limit int64) StoreChannel
@@ -562,4 +563,9 @@ type GroupStore interface {
 
 	PendingAutoAddTeamMembers(minGroupMembersCreateAt int64) StoreChannel
 	PendingAutoAddChannelMembers(minGroupMembersCreateAt int64) StoreChannel
+}
+
+type LinkMetadataStore interface {
+	Save(linkMetadata *model.LinkMetadata) StoreChannel
+	Get(url string, timestamp int64) StoreChannel
 }
