@@ -74,7 +74,7 @@ type Hooks interface {
 
 	// UserHasBeenCreated is invoked after a user was created.
 	//
-	// Minimum server version: 5.8
+	// Minimum server version: 5.10
 	UserHasBeenCreated(c *Context, user *model.User)
 
 	// UserWillLogIn before the login of the user is returned. Returning a non empty string will reject the login event.
