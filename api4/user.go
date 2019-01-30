@@ -691,19 +691,19 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if c.App.Session.IsOAuth {
+		if ouser.Email != user.Email {
+			c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+			c.Err.DetailedError += ", attempted email update by oauth app"
+			return
+		}
+	}
+
 	// If eMail update is attempted by the currently logged in user, check if correct password was provided
 	if user.Email != "" && ouser.Email != user.Email && c.App.Session.UserId == c.Params.UserId {
 		err := c.App.DoubleCheckPassword(ouser, user.Password)
 		if err != nil {
 			c.SetInvalidParam("password")
-			return
-		}
-	}
-
-	if c.App.Session.IsOAuth {
-		if ouser.Email != user.Email {
-			c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
-			c.Err.DetailedError += ", attempted email update by oauth app"
 			return
 		}
 	}
@@ -756,8 +756,12 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// If eMail update is attempted by the currently logged in user, check if correct password was provided
 	if patch.Email != nil && ouser.Email != *patch.Email && c.App.Session.UserId == c.Params.UserId {
-		err := c.App.DoubleCheckPassword(ouser, *patch.Password)
-		if err != nil {
+
+		if patch.Password != nil {
+			err = c.App.DoubleCheckPassword(ouser, *patch.Password)
+		}
+
+		if patch.Password == nil || err != nil {
 			c.SetInvalidParam("password")
 			return
 		}

@@ -1021,6 +1021,15 @@ func TestUpdateUser(t *testing.T) {
 		t.Fatal("LastPasswordUpdate should not have updated")
 	}
 
+	ruser.Email = th.GenerateTestEmail()
+	_, resp = th.Client.UpdateUser(ruser)
+	CheckBadRequestStatus(t, resp)
+
+	ruser.Password = user.Password
+	ruser, resp = th.Client.UpdateUser(ruser)
+	CheckNoError(t, resp)
+	CheckUserSanitization(t, ruser)
+
 	ruser.Id = "junk"
 	_, resp = th.Client.UpdateUser(ruser)
 	CheckBadRequestStatus(t, resp)
@@ -1100,7 +1109,7 @@ func TestPatchUser(t *testing.T) {
 		t.Fatal("Username should not have updated")
 	}
 	if ruser.Password != ""{
-		t.Fatal("Password should be returned")
+		t.Fatal("Password should not be returned")
 	}
 	if ruser.NotifyProps["comment"] != "somethingrandom" {
 		t.Fatal("NotifyProps did not update properly")
@@ -1116,9 +1125,7 @@ func TestPatchUser(t *testing.T) {
 	}
 
 	err := th.App.CheckPasswordAndAllCriteria(ruser, *patch.Password, "")
-	if err == nil {
-		t.Fatal("Password should not match")
-	}
+	assert.Error(t, err, "Password should not match")
 
 	currentPassword := user.Password
 	user, err = th.App.GetUser(ruser.Id)
@@ -1129,6 +1136,20 @@ func TestPatchUser(t *testing.T) {
 	err = th.App.CheckPasswordAndAllCriteria(user, currentPassword, "")
 	if err != nil {
 		t.Fatal("Password should still match")
+	}
+
+	patch = &model.UserPatch{}
+	patch.Email = model.NewString(th.GenerateTestEmail())
+
+	_, resp = th.Client.PatchUser(user.Id, patch)
+	CheckBadRequestStatus(t, resp)
+
+	patch.Password = model.NewString(currentPassword)
+	ruser, resp = th.Client.PatchUser(user.Id, patch)
+	CheckNoError(t, resp)
+
+	if ruser.Email != *patch.Email {
+		t.Fatal("Email did not update properly")
 	}
 
 	patch.Username = model.NewString(th.BasicUser2.Username)
