@@ -21,7 +21,6 @@ import (
 
 	"net/http"
 
-	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
@@ -680,15 +679,6 @@ func GenerateLimitedClientConfig(c *model.Config, diagnosticId string, license *
 	}
 
 	return props
-}
-
-func ValidateLdapFilter(cfg *model.Config, ldap einterfaces.LdapInterface) *model.AppError {
-	if *cfg.LdapSettings.Enable && ldap != nil && *cfg.LdapSettings.UserFilter != "" {
-		if err := ldap.ValidateFilter(*cfg.LdapSettings.UserFilter); err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 func ValidateLocales(cfg *model.Config) *model.AppError {
