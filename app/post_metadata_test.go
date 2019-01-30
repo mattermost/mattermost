@@ -1349,7 +1349,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ExperimentalSettings.LinkMetadataTimeout = 100
+			*cfg.ExperimentalSettings.LinkMetadataTimeoutMilliseconds = 100
 		})
 
 		requestURL := server.URL + "/timeout?name=" + t.Name()

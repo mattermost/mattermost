@@ -138,7 +138,7 @@ const (
 	NATIVEAPP_SETTINGS_DEFAULT_ANDROID_APP_DOWNLOAD_LINK = "https://about.mattermost.com/mattermost-android-app/"
 	NATIVEAPP_SETTINGS_DEFAULT_IOS_APP_DOWNLOAD_LINK     = "https://about.mattermost.com/mattermost-ios-app/"
 
-	EXPERIMENTAL_SETTINGS_DEFAULT_LINK_METADATA_TIMEOUT = 5000
+	EXPERIMENTAL_SETTINGS_DEFAULT_LINK_METADATA_TIMEOUT_MILLISECONDS = 5000
 
 	ANALYTICS_SETTINGS_DEFAULT_MAX_USERS_FOR_STATISTICS = 2500
 
@@ -661,10 +661,10 @@ func (s *MetricsSettings) SetDefaults() {
 }
 
 type ExperimentalSettings struct {
-	ClientSideCertEnable *bool
-	ClientSideCertCheck  *string
-	EnablePostMetadata   *bool
-	LinkMetadataTimeout  *int64
+	ClientSideCertEnable            *bool
+	ClientSideCertCheck             *string
+	EnablePostMetadata              *bool
+	LinkMetadataTimeoutMilliseconds *int64
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -680,8 +680,8 @@ func (s *ExperimentalSettings) SetDefaults() {
 		s.EnablePostMetadata = NewBool(false)
 	}
 
-	if s.LinkMetadataTimeout == nil {
-		s.LinkMetadataTimeout = NewInt64(EXPERIMENTAL_SETTINGS_DEFAULT_LINK_METADATA_TIMEOUT)
+	if s.LinkMetadataTimeoutMilliseconds == nil {
+		s.LinkMetadataTimeoutMilliseconds = NewInt64(EXPERIMENTAL_SETTINGS_DEFAULT_LINK_METADATA_TIMEOUT_MILLISECONDS)
 	}
 }
 

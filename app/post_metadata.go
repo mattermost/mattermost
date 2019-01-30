@@ -348,7 +348,7 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 	request.Header.Add("Accept", "text/html, image/*")
 
 	client := a.HTTPService.MakeClient(false)
-	client.Timeout = time.Duration(*a.Config().ExperimentalSettings.LinkMetadataTimeout) * time.Millisecond
+	client.Timeout = time.Duration(*a.Config().ExperimentalSettings.LinkMetadataTimeoutMilliseconds) * time.Millisecond
 
 	res, err := client.Do(request)
 

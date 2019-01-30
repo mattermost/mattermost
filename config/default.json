@@ -359,7 +359,7 @@
         "ClientSideCertEnable": false,
         "ClientSideCertCheck": "secondary",
         "EnablePostMetadata": false,
-        "LinkMetadataTimeout": 5000
+        "LinkMetadataTimeoutMilliseconds": 5000
     },
     "AnalyticsSettings": {
         "MaxUsersForStatistics": 2500
