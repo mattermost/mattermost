@@ -755,6 +755,35 @@ func (s *apiRPCServer) DeleteUser(args *Z_DeleteUserArgs, returns *Z_DeleteUserR
 	return nil
 }
 
+type Z_GetUsersArgs struct {
+	A *model.UserGetOptions
+}
+
+type Z_GetUsersReturns struct {
+	A []*model.User
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetUsers(*model.UserGetOptions) ([]*model.User, *model.AppError) {
+	_args := &Z_GetUsersArgs{}
+	_returns := &Z_GetUsersReturns{}
+	if err := g.client.Call("Plugin.GetUsers", _args, _returns); err != nil {
+		log.Printf("RPC call to GetUsers API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetUsers(args *Z_GetUsersArgs, returns *Z_GetUsersReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetUsers(*model.UserGetOptions) ([]*model.User, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetUsers(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetUsers called but not implemented."))
+	}
+	return nil
+}
+
 type Z_GetUserArgs struct {
 	A string
 }
