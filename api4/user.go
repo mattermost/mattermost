@@ -685,13 +685,22 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.Session.IsOAuth {
-		ouser, err := c.App.GetUser(user.Id)
+	ouser, err := c.App.GetUser(user.Id)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	// If eMail update is attempted by the currently logged in user, check if correct password was provided
+	if user.Email != "" && ouser.Email != user.Email && c.App.Session.UserId == c.Params.UserId {
+		err := c.App.DoubleCheckPassword(ouser, user.Password)
 		if err != nil {
-			c.Err = err
+			c.SetInvalidParam("password")
 			return
 		}
+	}
 
+	if c.App.Session.IsOAuth {
 		if ouser.Email != user.Email {
 			c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 			c.Err.DetailedError += ", attempted email update by oauth app"
