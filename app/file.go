@@ -25,7 +25,7 @@ import (
 	"github.com/disintegration/imaging"
 	"github.com/rwcarlsen/goexif/exif"
 	_ "golang.org/x/image/bmp"
-	"golang.org/x/image/tiff"
+	_ "golang.org/x/image/tiff"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -728,11 +728,6 @@ func (t *uploadFileTask) postprocessImage() {
 	if decoded == nil {
 		var err error
 		decoded, typ, err = image.Decode(t.newReader())
-
-		if typ == "tiff" {
-			mlog.Info(fmt.Sprintf("Unable to decode image err=%v", decoded))
-			decoded, err = tiff.Decode(t.Input)
-		}
 
 		if err != nil {
 			mlog.Error(fmt.Sprintf("Unable to decode image err=%v", err))
