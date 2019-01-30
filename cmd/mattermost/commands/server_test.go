@@ -105,9 +105,9 @@ func TestRunServerSystemdNotification(t *testing.T) {
 	socketReader := make(chan string)
 	go func(ch chan string) {
 		buffer := make([]byte, 512)
-		count, err := connection.Read(buffer)
-		if err != nil {
-			panic(err)
+		count, readErr := connection.Read(buffer)
+		if readErr != nil {
+			panic(readErr)
 		}
 		data := buffer[0:count]
 		ch <- string(data)
