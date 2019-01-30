@@ -547,12 +547,11 @@ func (a *App) LoginByOAuth(service string, userData io.Reader, teamId string) (*
 	user, err := a.GetUserByAuth(&authData, service)
 	if err != nil {
 		if err.Id == store.MISSING_AUTH_ACCOUNT_ERROR {
-			return a.CreateOAuthUser(service, bytes.NewReader(buf.Bytes()), teamId)
+			user, err = a.CreateOAuthUser(service, bytes.NewReader(buf.Bytes()), teamId)
+		} else {
+			return nil, err
 		}
-		return nil, err
-	}
-
-	if err = a.UpdateOAuthUserAttrs(bytes.NewReader(buf.Bytes()), user, provider, service); err != nil {
+	} else if err = a.UpdateOAuthUserAttrs(bytes.NewReader(buf.Bytes()), user, provider, service); err != nil {
 		return nil, err
 	}
 
