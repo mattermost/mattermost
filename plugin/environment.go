@@ -151,14 +151,14 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 		return nil, false, fmt.Errorf("plugin not found: %v", id)
 	}
 
-	plugin := activePlugin{BundleInfo: pluginInfo}
+	ap := activePlugin{BundleInfo: pluginInfo}
 	defer func() {
 		if reterr == nil {
-			plugin.State = model.PluginStateRunning
+			ap.State = model.PluginStateRunning
 		} else {
-			plugin.State = model.PluginStateFailedToStart
+			ap.State = model.PluginStateFailedToStart
 		}
-		env.activePlugins.Store(pluginInfo.Manifest.Id, plugin)
+		env.activePlugins.Store(pluginInfo.Manifest.Id, ap)
 	}()
 
 	if pluginInfo.Manifest.MinServerVersion != "" {
@@ -211,11 +211,11 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 	}
 
 	if pluginInfo.Manifest.HasServer() {
-		supervisor, err := newSupervisor(pluginInfo, env.logger, env.newAPIImpl(pluginInfo.Manifest))
+		sup, err := newSupervisor(pluginInfo, env.logger, env.newAPIImpl(pluginInfo.Manifest))
 		if err != nil {
 			return nil, false, errors.Wrapf(err, "unable to start plugin: %v", id)
 		}
-		plugin.supervisor = supervisor
+		ap.supervisor = sup
 
 		componentActivated = true
 	}
@@ -236,12 +236,12 @@ func (env *Environment) Deactivate(id string) bool {
 
 	env.activePlugins.Delete(id)
 
-	plugin := p.(activePlugin)
-	if plugin.supervisor != nil {
-		if err := plugin.supervisor.Hooks().OnDeactivate(); err != nil {
-			env.logger.Error("Plugin OnDeactivate() error", mlog.String("plugin_id", plugin.BundleInfo.Manifest.Id), mlog.Err(err))
+	ap := p.(activePlugin)
+	if ap.supervisor != nil {
+		if err := ap.supervisor.Hooks().OnDeactivate(); err != nil {
+			env.logger.Error("Plugin OnDeactivate() error", mlog.String("plugin_id", ap.BundleInfo.Manifest.Id), mlog.Err(err))
 		}
-		plugin.supervisor.Shutdown()
+		ap.supervisor.Shutdown()
 	}
 
 	return true
@@ -250,13 +250,13 @@ func (env *Environment) Deactivate(id string) bool {
 // Shutdown deactivates all plugins and gracefully shuts down the environment.
 func (env *Environment) Shutdown() {
 	env.activePlugins.Range(func(key, value interface{}) bool {
-		plugin := value.(activePlugin)
+		ap := value.(activePlugin)
 
-		if plugin.supervisor != nil {
-			if err := plugin.supervisor.Hooks().OnDeactivate(); err != nil {
-				env.logger.Error("Plugin OnDeactivate() error", mlog.String("plugin_id", plugin.BundleInfo.Manifest.Id), mlog.Err(err))
+		if ap.supervisor != nil {
+			if err := ap.supervisor.Hooks().OnDeactivate(); err != nil {
+				env.logger.Error("Plugin OnDeactivate() error", mlog.String("plugin_id", ap.BundleInfo.Manifest.Id), mlog.Err(err))
 			}
-			plugin.supervisor.Shutdown()
+			ap.supervisor.Shutdown()
 		}
 
 		env.activePlugins.Delete(key)
@@ -270,9 +270,9 @@ func (env *Environment) Shutdown() {
 // Consider using RunMultiPluginHook instead.
 func (env *Environment) HooksForPlugin(id string) (Hooks, error) {
 	if p, ok := env.activePlugins.Load(id); ok {
-		plugin := p.(activePlugin)
-		if plugin.supervisor != nil {
-			return plugin.supervisor.Hooks(), nil
+		ap := p.(activePlugin)
+		if ap.supervisor != nil {
+			return ap.supervisor.Hooks(), nil
 		}
 	}
 
@@ -285,12 +285,12 @@ func (env *Environment) HooksForPlugin(id string) (Hooks, error) {
 // plugins is not specified.
 func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks) bool, hookId int) {
 	env.activePlugins.Range(func(key, value interface{}) bool {
-		plugin := value.(activePlugin)
+		ap := value.(activePlugin)
 
-		if plugin.supervisor == nil || !plugin.supervisor.Implements(hookId) {
+		if ap.supervisor == nil || !ap.supervisor.Implements(hookId) {
 			return true
 		}
-		if !hookRunnerFunc(plugin.supervisor.Hooks()) {
+		if !hookRunnerFunc(ap.supervisor.Hooks()) {
 			return false
 		}
 
