@@ -580,7 +580,7 @@ func testChannelStoreGetByName(t *testing.T, ss store.Store) {
 	require.NotNil(t, result.Err, "Missing id should have failed")
 
 	store.Must(ss.Channel().Delete(channelID, model.GetMillis()))
-	result = <-ss.Channel().GetByName(o1.TeamId, channelID, false)
+	result = <-ss.Channel().GetByName(o1.TeamId, o1.Name, false)
 	require.NotNil(t, result.Err, "Deleted channel should not be returned by GetByName()")
 }
 
