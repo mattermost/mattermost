@@ -330,7 +330,7 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 
 	// Check the database if this isn't a new post. If it is a new post and the data is cached, it should be in memory.
 	if !isNewPost {
-		og, image, ok := a.getLinkMetadataFromDatabase(requestURL, timestamp)
+		og, image, ok = a.getLinkMetadataFromDatabase(requestURL, timestamp)
 		if ok {
 			cacheLinkMetadata(requestURL, timestamp, og, image)
 

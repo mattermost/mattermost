@@ -750,9 +750,9 @@ func TestPinPost(t *testing.T) {
 
 		channel, err := th.App.GetChannelByName("town-square", th.BasicTeam.Id, true)
 		assert.Nil(t, err)
-		post := th.CreatePostWithClient(th.SystemAdminClient, channel)
+		adminPost := th.CreatePostWithClient(th.SystemAdminClient, channel)
 
-		_, resp := Client.PinPost(post.Id)
+		_, resp = Client.PinPost(adminPost.Id)
 		CheckForbiddenStatus(t, resp)
 	})
 
