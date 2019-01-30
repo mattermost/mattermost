@@ -1068,7 +1068,7 @@ func TestPatchUser(t *testing.T) {
 	th.Client.Login(user.Email, user.Password)
 
 	patch := &model.UserPatch{}
-
+	patch.Password = model.NewString("testpassword")
 	patch.Nickname = model.NewString("Joram Wilander")
 	patch.FirstName = model.NewString("Joram")
 	patch.LastName = model.NewString("Wilander")
@@ -1099,6 +1099,9 @@ func TestPatchUser(t *testing.T) {
 	if ruser.Username != user.Username {
 		t.Fatal("Username should not have updated")
 	}
+	if ruser.Password != ""{
+		t.Fatal("Password should be returned")
+	}
 	if ruser.NotifyProps["comment"] != "somethingrandom" {
 		t.Fatal("NotifyProps did not update properly")
 	}
@@ -1110,6 +1113,22 @@ func TestPatchUser(t *testing.T) {
 	}
 	if ruser.Timezone["manualTimezone"] != "" {
 		t.Fatal("manualTimezone did not update properly")
+	}
+
+	err := th.App.CheckPasswordAndAllCriteria(ruser, *patch.Password, "")
+	if err == nil {
+		t.Fatal("Password should not match")
+	}
+
+	currentPassword := user.Password
+	user, err = th.App.GetUser(ruser.Id)
+	if err != nil {
+		t.Fatal("User Get shouldn't error")
+	}
+
+	err = th.App.CheckPasswordAndAllCriteria(user, currentPassword, "")
+	if err != nil {
+		t.Fatal("Password should still match")
 	}
 
 	patch.Username = model.NewString(th.BasicUser2.Username)
