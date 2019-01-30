@@ -16,6 +16,8 @@ import (
 )
 
 const (
+	VERSION_5_9_0            = "5.9.0"
+	VERSION_5_8_0            = "5.8.0"
 	VERSION_5_7_0            = "5.7.0"
 	VERSION_5_6_0            = "5.6.0"
 	VERSION_5_5_0            = "5.5.0"
@@ -94,6 +96,7 @@ func UpgradeDatabase(sqlStore SqlStore) {
 	UpgradeDatabaseToVersion56(sqlStore)
 	UpgradeDatabaseToVersion57(sqlStore)
 	UpgradeDatabaseToVersion58(sqlStore)
+	UpgradeDatabaseToVersion59(sqlStore)
 
 	// If the SchemaVersion is empty this this is the first time it has ran
 	// so lets set it to the current version.
@@ -545,23 +548,29 @@ func UpgradeDatabaseToVersion57(sqlStore SqlStore) {
 }
 
 func UpgradeDatabaseToVersion58(sqlStore SqlStore) {
-	// TODO: Uncomment following condition when version 5.8.0 is released
-	// if shouldPerformUpgrade(sqlStore, VERSION_5_7_0, VERSION_5_8_0) {
+	if shouldPerformUpgrade(sqlStore, VERSION_5_7_0, VERSION_5_8_0) {
+		// idx_channels_txt was removed in `UpgradeDatabaseToVersion50`, but merged as part of
+		// v5.1, so the migration wouldn't apply to anyone upgrading from v5.0. Remove it again to
+		// bring the upgraded (from v5.0) and fresh install schemas back in sync.
+		sqlStore.RemoveIndexIfExists("idx_channels_txt", "Channels")
 
-	// idx_channels_txt was removed in `UpgradeDatabaseToVersion50`, but merged as part of
-	// v5.1, so the migration wouldn't apply to anyone upgrading from v5.0. Remove it again to
-	// bring the upgraded (from v5.0) and fresh install schemas back in sync.
-	sqlStore.RemoveIndexIfExists("idx_channels_txt", "Channels")
+		// Fix column types and defaults where gorp converged on a different schema value than the
+		// original migration.
+		sqlStore.AlterColumnTypeIfExists("OutgoingWebhooks", "Description", "text", "VARCHAR(500)")
+		sqlStore.AlterColumnTypeIfExists("IncomingWebhooks", "Description", "text", "VARCHAR(500)")
+		sqlStore.AlterColumnTypeIfExists("OutgoingWebhooks", "IconURL", "text", "VARCHAR(1024)")
+		sqlStore.AlterColumnDefaultIfExists("OutgoingWebhooks", "Username", model.NewString("NULL"), model.NewString(""))
+		sqlStore.AlterColumnDefaultIfExists("OutgoingWebhooks", "IconURL", nil, model.NewString(""))
+		sqlStore.AlterColumnDefaultIfExists("PluginKeyValueStore", "ExpireAt", model.NewString("NULL"), model.NewString("NULL"))
 
-	// Fix column types and defaults where gorp converged on a different schema value than the
-	// original migration.
-	sqlStore.AlterColumnTypeIfExists("OutgoingWebhooks", "Description", "text", "VARCHAR(500)")
-	sqlStore.AlterColumnTypeIfExists("IncomingWebhooks", "Description", "text", "VARCHAR(500)")
-	sqlStore.AlterColumnTypeIfExists("OutgoingWebhooks", "IconURL", "text", "VARCHAR(1024)")
-	sqlStore.AlterColumnDefaultIfExists("OutgoingWebhooks", "Username", model.NewString("NULL"), model.NewString(""))
-	sqlStore.AlterColumnDefaultIfExists("OutgoingWebhooks", "IconURL", nil, model.NewString(""))
-	sqlStore.AlterColumnDefaultIfExists("PluginKeyValueStore", "ExpireAt", model.NewString("NULL"), model.NewString("NULL"))
+		saveSchemaVersion(sqlStore, VERSION_5_8_0)
+	}
+}
 
-	// 	saveSchemaVersion(sqlStore, VERSION_5_8_0)
+func UpgradeDatabaseToVersion59(sqlStore SqlStore) {
+	// TODO: Uncomment following condition when version 5.9.0 is released
+	// if shouldPerformUpgrade(sqlStore, VERSION_5_8_0, VERSION_5_9_0) {
+
+	// 	saveSchemaVersion(sqlStore, VERSION_5_9_0)
 	// }
 }
