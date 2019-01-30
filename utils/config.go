@@ -308,7 +308,7 @@ func fixEnvSettingsCase(in map[string]interface{}) (out map[string]interface{}, 
 			return nil
 		}
 
-		out := make(map[string]interface{}, len(in))
+		fixCaseOut := make(map[string]interface{}, len(in))
 
 		for i := 0; i < t.NumField(); i++ {
 			field := t.Field(i)
@@ -316,14 +316,14 @@ func fixEnvSettingsCase(in map[string]interface{}) (out map[string]interface{}, 
 			key := field.Name
 			if value, ok := in[strings.ToLower(key)]; ok {
 				if valueAsMap, ok := value.(map[string]interface{}); ok {
-					out[key] = fixCase(valueAsMap, field.Type)
+					fixCaseOut[key] = fixCase(valueAsMap, field.Type)
 				} else {
-					out[key] = value
+					fixCaseOut[key] = value
 				}
 			}
 		}
 
-		return out
+		return fixCaseOut
 	}
 
 	out = fixCase(in, reflect.TypeOf(model.Config{}))
@@ -428,7 +428,6 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props := GenerateLimitedClientConfig(c, diagnosticId, license)
 
 	props["SiteURL"] = strings.TrimRight(*c.ServiceSettings.SiteURL, "/")
-	props["WebsocketURL"] = strings.TrimRight(*c.ServiceSettings.WebsocketURL, "/")
 	props["EnableUserDeactivation"] = strconv.FormatBool(*c.TeamSettings.EnableUserDeactivation)
 	props["RestrictDirectMessage"] = *c.TeamSettings.RestrictDirectMessage
 	props["EnableXToLeaveChannelsFromLHS"] = strconv.FormatBool(*c.TeamSettings.EnableXToLeaveChannelsFromLHS)
@@ -475,9 +474,6 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 
 	props["EnableFileAttachments"] = strconv.FormatBool(*c.FileSettings.EnableFileAttachments)
 	props["EnablePublicLink"] = strconv.FormatBool(c.FileSettings.EnablePublicLink)
-
-	props["WebsocketPort"] = fmt.Sprintf("%v", *c.ServiceSettings.WebsocketPort)
-	props["WebsocketSecurePort"] = fmt.Sprintf("%v", *c.ServiceSettings.WebsocketSecurePort)
 
 	props["AvailableLocales"] = *c.LocalizationSettings.AvailableLocales
 	props["SQLDriverName"] = *c.SqlSettings.DriverName
@@ -610,6 +606,9 @@ func GenerateLimitedClientConfig(c *model.Config, diagnosticId string, license *
 	props["BuildEnterpriseReady"] = model.BuildEnterpriseReady
 
 	props["SiteName"] = c.TeamSettings.SiteName
+	props["WebsocketURL"] = strings.TrimRight(*c.ServiceSettings.WebsocketURL, "/")
+	props["WebsocketPort"] = fmt.Sprintf("%v", *c.ServiceSettings.WebsocketPort)
+	props["WebsocketSecurePort"] = fmt.Sprintf("%v", *c.ServiceSettings.WebsocketSecurePort)
 	props["EnableUserCreation"] = strconv.FormatBool(*c.TeamSettings.EnableUserCreation)
 	props["EnableOpenServer"] = strconv.FormatBool(*c.TeamSettings.EnableOpenServer)
 
@@ -649,8 +648,7 @@ func GenerateLimitedClientConfig(c *model.Config, diagnosticId string, license *
 	props["DiagnosticId"] = diagnosticId
 	props["DiagnosticsEnabled"] = strconv.FormatBool(*c.LogSettings.EnableDiagnostics)
 
-	hasImageProxy := c.ServiceSettings.ImageProxyType != nil && *c.ServiceSettings.ImageProxyType != "" && c.ServiceSettings.ImageProxyURL != nil && *c.ServiceSettings.ImageProxyURL != ""
-	props["HasImageProxy"] = strconv.FormatBool(hasImageProxy)
+	props["HasImageProxy"] = strconv.FormatBool(*c.ImageProxySettings.Enable)
 
 	props["PluginsEnabled"] = strconv.FormatBool(*c.PluginSettings.Enable)
 

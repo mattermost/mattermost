@@ -291,6 +291,9 @@ func (o *Post) PreCommit() {
 	}
 
 	o.GenerateActionIds()
+
+	// There's a rare bug where the client sends up duplicate FileIds so protect against that
+	o.FileIds = RemoveDuplicateStrings(o.FileIds)
 }
 
 func (o *Post) MakeNonNil() {

@@ -187,6 +187,10 @@ func (s *LayeredStore) Group() GroupStore {
 	return s.GroupStore
 }
 
+func (s *LayeredStore) LinkMetadata() LinkMetadataStore {
+	return s.DatabaseLayer.LinkMetadata()
+}
+
 func (s *LayeredStore) MarkSystemRanUnitTests() {
 	s.DatabaseLayer.MarkSystemRanUnitTests()
 }

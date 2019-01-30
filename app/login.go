@@ -15,7 +15,7 @@ import (
 	"github.com/mattermost/mattermost-server/store"
 )
 
-func (a *App) CheckForClienSideCert(r *http.Request) (string, string, string) {
+func (a *App) CheckForClientSideCert(r *http.Request) (string, string, string) {
 	pem := r.Header.Get("X-SSL-Client-Cert")                // mapped to $ssl_client_cert from nginx
 	subject := r.Header.Get("X-SSL-Client-Cert-Subject-DN") // mapped to $ssl_client_s_dn from nginx
 	email := ""
@@ -45,8 +45,7 @@ func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken string, l
 	}()
 
 	if len(password) == 0 {
-		err := model.NewAppError("AuthenticateUserForLogin", "api.user.login.blank_pwd.app_error", nil, "", http.StatusBadRequest)
-		return nil, err
+		return nil, model.NewAppError("AuthenticateUserForLogin", "api.user.login.blank_pwd.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	// Get the MM user we are trying to login

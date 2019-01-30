@@ -84,20 +84,40 @@ type PluginSettingsSchema struct {
 // file should be named plugin.json or plugin.yaml and placed in the top of your
 // plugin bundle.
 //
-// Example plugin.yaml:
+// Example plugin.json:
 //
-//     id: com.mycompany.myplugin
-//     name: My Plugin
-//     description: This is my plugin. It does stuff.
-//     server:
-//         executable: myplugin
-//     settings_schema:
-//         settings:
-//             - key: enable_extra_thing
-//               type: bool
-//               display_name: Enable Extra Thing
-//               help_text: When true, an extra thing will be enabled!
-//               default: false
+//
+//    {
+//      "id": "com.mycompany.myplugin",
+//      "name": "My Plugin",
+//      "description": "This is my plugin",
+//      "version": "0.1.0",
+//      "min_server_version": "5.6.0",
+//      "server": {
+//        "executables": {
+//          "linux-amd64": "server/dist/plugin-linux-amd64",
+//          "darwin-amd64": "server/dist/plugin-darwin-amd64",
+//          "windows-amd64": "server/dist/plugin-windows-amd64.exe"
+//        }
+//      },
+//      "webapp": {
+//          "bundle_path": "webapp/dist/main.js"
+//      },
+//      "settings_schema": {
+//        "header": "Some header text",
+//        "footer": "Some footer text",
+//        "settings": [{
+//          "key": "someKey",
+//          "display_name": "Enable Extra Feature",
+//          "type": "bool",
+//          "help_text": "When true, an extra feature will be enabled!",
+//          "default": "false"
+//        }]
+//      },
+//      "props": {
+//        "someKey": "someData"
+//      }
+//    }
 type Manifest struct {
 	// The id is a globally unique identifier that represents your plugin. Ids must be at least
 	// 3 characters, at most 190 characters and must match ^[a-zA-Z0-9-_\.]+$.
@@ -130,6 +150,9 @@ type Manifest struct {
 	// To allow administrators to configure your plugin via the Mattermost system console, you can
 	// provide your settings schema.
 	SettingsSchema *PluginSettingsSchema `json:"settings_schema,omitempty" yaml:"settings_schema,omitempty"`
+
+	// Plugins can store any kind of data in Props to allow other plugins to use it.
+	Props map[string]interface{} `json:"props,omitempty" yaml:"props,omitempty"`
 }
 
 type ManifestServer struct {

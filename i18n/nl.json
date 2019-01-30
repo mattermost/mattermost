@@ -1,11 +1,59 @@
 [
   {
+    "id": "April",
+    "translation": "April"
+  },
+  {
+    "id": "August",
+    "translation": "Augustus"
+  },
+  {
+    "id": "December",
+    "translation": "December"
+  },
+  {
+    "id": "February",
+    "translation": "Februari"
+  },
+  {
+    "id": "January",
+    "translation": "Januari"
+  },
+  {
+    "id": "July",
+    "translation": "Juli"
+  },
+  {
+    "id": "June",
+    "translation": "Juni"
+  },
+  {
+    "id": "March",
+    "translation": "Maart"
+  },
+  {
+    "id": "May",
+    "translation": "Mei"
+  },
+  {
+    "id": "November",
+    "translation": "November"
+  },
+  {
+    "id": "October",
+    "translation": "Oktober"
+  },
+  {
+    "id": "September",
+    "translation": "September"
+  },
+  {
     "id": "actiance.export.marshalToXml.appError",
-    "translation": "Unable to convert export to XML."
+    "translation": "Kan export niet converteren naar XML."
   },
   {
     "id": "api.admin.add_certificate.array.app_error",
-    "translation": "Geen bestand gevonden in 'certificate' veld in verzoek"
+    "translation": "Geen bestand gevonden in 'certificaat' veld in verzoek."
   },
   {
     "id": "api.admin.add_certificate.no_file.app_error",
@@ -41,7 +89,7 @@
   },
   {
     "id": "api.admin.test_email.body",
-    "translation": "<br/><br/><br/>Mail voor Mattermost lijkt goed geconfigureerd te zijn!"
+    "translation": "Mail voor Mattermost lijkt goed geconfigureerd te zijn!"
   },
   {
     "id": "api.admin.test_email.missing_server",
@@ -213,7 +261,7 @@
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.retrieve_user.error",
-    "translation": "Kon de gebruiker niet ophalen tijdens het bewaren van de nieuwe kanaalkoptekst %v"
+    "translation": "Kon de gebruiker niet ophalen tijdens het bewaren van de nieuwe kanaalkoptekst"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.updated_from",
@@ -225,7 +273,7 @@
   },
   {
     "id": "api.channel.post_user_add_remove_message_and_forget.error",
-    "translation": "Plaatsen van bericht over binnenkomen/verlaten %v is mislukt"
+    "translation": "Mislukt post doe/bericht achterlaten"
   },
   {
     "id": "api.channel.remove.default.app_error",
@@ -238,6 +286,14 @@
   {
     "id": "api.channel.remove_member.removed",
     "translation": "%v was verwijdert van het kanaal."
+  },
+  {
+    "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
+    "translation": "You cannot rename a direct message channel"
+  },
+  {
+    "id": "api.channel.rename_channel.cant_rename_group_messages.app_error",
+    "translation": "You cannot rename a group message channel"
   },
   {
     "id": "api.channel.update_channel.deleted.app_error",
@@ -268,12 +324,20 @@
     "translation": "Intergratie is beperkt voor alleen beheerders."
   },
   {
+    "id": "api.command.command_post.forbidden.app_error",
+    "translation": "Specified user is not a member of specified channel."
+  },
+  {
     "id": "api.command.disabled.app_error",
     "translation": "Deze opdrachten zijn uitgeschakeld door de beheerder."
   },
   {
     "id": "api.command.duplicate_trigger.app_error",
     "translation": "Dit trigger woord is al in gebruik. Kies een ander woord."
+  },
+  {
+    "id": "api.command.execute_command.create_post_failed.app_error",
+    "translation": "Command '{{.Trigger}}' failed to post response. Please contact your System Administrator."
   },
   {
     "id": "api.command.execute_command.debug",
@@ -410,6 +474,10 @@
   {
     "id": "api.command_channel_purpose.update_channel.app_error",
     "translation": "Error to update the current channel."
+  },
+  {
+    "id": "api.command_channel_remove.channel.app_error",
+    "translation": "Error retrieving the current channel."
   },
   {
     "id": "api.command_channel_rename.channel.app_error",
@@ -616,7 +684,7 @@
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "Kan de kanalen niet ophalen"
+    "translation": "We couldn't find the user. They may have been deactivated by the System Administrator."
   },
   {
     "id": "api.command_invite.name",
@@ -681,10 +749,6 @@
   {
     "id": "api.command_leave.name",
     "translation": "leave"
-  },
-  {
-    "id": "api.command_leave.success",
-    "translation": "%v heeft het kanaal verlaten."
   },
   {
     "id": "api.command_logout.desc",
@@ -824,7 +888,7 @@
   },
   {
     "id": "api.command_remove.missing.app_error",
-    "translation": "Kan de kanalen niet ophalen"
+    "translation": "We couldn't find the user. They may have been deactivated by the System Administrator."
   },
   {
     "id": "api.command_remove.name",
@@ -931,6 +995,14 @@
     "translation": "Sessie is niet OAuth, maar token was doorgegeven in de query string"
   },
   {
+    "id": "api.create_terms_of_service.custom_terms_of_service_disabled.app_error",
+    "translation": "Custom terms of service feature is disabled"
+  },
+  {
+    "id": "api.create_terms_of_service.empty_text.app_error",
+    "translation": "Please enter text for your Custom Terms of Service."
+  },
+  {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
     "translation": "Kanaal voor e-mail batch taken was vol. Verhoog a.u.b. de EmailBatchingBufferSize"
   },
@@ -1030,7 +1102,7 @@
   },
   {
     "id": "api.emoji.upload.open.app_error",
-    "translation": "Unable to create the emoji. An error ocurred when trying to open the attached image."
+    "translation": "Unable to create the emoji. An error occurred when trying to open the attached image."
   },
   {
     "id": "api.file.attachments.disabled.app_error",
@@ -1113,8 +1185,8 @@
     "translation": "Bad connection to S3 or minio."
   },
   {
-    "id": "api.file.upload_file.bad_parse.app_error",
-    "translation": "Unable to upload file. Header cannot be parsed."
+    "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
+    "translation": "Unable to upload file(s). Have {{.NumClientIds}} client_ids for {{.NumFiles}} files."
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_files.app_error",
@@ -1125,12 +1197,32 @@
     "translation": "File above maximum dimensions could not be uploaded: {{.Filename}}"
   },
   {
+    "id": "api.file.upload_file.large_image_detailed.app_error",
+    "translation": "{{.Filename}} dimensions ({{.Width}} by {{.Height}} pixels) exceed the limits"
+  },
+  {
+    "id": "api.file.upload_file.multiple_channel_ids.app_error",
+    "translation": "Unable to upload file(s). Multiple conflicting channel_ids."
+  },
+  {
+    "id": "api.file.upload_file.read_form_value.app_error",
+    "translation": "Unable to upload file(s). Error reading the value for {{.Formname}}."
+  },
+  {
+    "id": "api.file.upload_file.read_request.app_error",
+    "translation": "Unable to upload file(s). Error reading or parsing request data."
+  },
+  {
     "id": "api.file.upload_file.storage.app_error",
     "translation": "Kan bestand niet uploaden. Afbeeldings opslag is niet geconfigureerd."
   },
   {
     "id": "api.file.upload_file.too_large.app_error",
     "translation": "Kan bestand niet uploaden. Bestand is te groot."
+  },
+  {
+    "id": "api.file.upload_file.too_large_detailed.app_error",
+    "translation": "Unable to upload file {{.Filename}}. {{.Length}} bytes exceeds the maximum allowed {{.Limit}} bytes."
   },
   {
     "id": "api.file.write_file.s3.app_error",
@@ -1151,6 +1243,18 @@
   {
     "id": "api.incoming_webhook.invalid_username.app_error",
     "translation": "Ongeldige gebruikersnaam"
+  },
+  {
+    "id": "api.io_error",
+    "translation": "input/output error"
+  },
+  {
+    "id": "api.ldap_group.not_found",
+    "translation": "ldap group not found"
+  },
+  {
+    "id": "api.ldap_groups.license_error",
+    "translation": "your license does not support ldap groups"
   },
   {
     "id": "api.license.add_license.array.app_error",
@@ -1191,6 +1295,10 @@
   {
     "id": "api.license.client.old_format.app_error",
     "translation": "New format for the client license is not supported yet. Please specify format=old in the query string."
+  },
+  {
+    "id": "api.marshal_error",
+    "translation": "marshal error"
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
@@ -1341,6 +1449,14 @@
     "translation": "Fout bij het aanmaken van bericht"
   },
   {
+    "id": "api.post.deduplicate_create_post.failed_to_get",
+    "translation": "Failed to fetch original post after deduplicating a client repeating the same request."
+  },
+  {
+    "id": "api.post.deduplicate_create_post.pending",
+    "translation": "Rejected post since another client is making the same request."
+  },
+  {
     "id": "api.post.disabled_all",
     "translation": "@all has been disabled because the channel has more than {{.Users}} users."
   },
@@ -1416,7 +1532,7 @@
   },
   {
     "id": "api.post.update_post.permissions_time_limit.app_error",
-    "translation": "Post edit is only allowed for {{.timeLimit}} seconds. Please ask your systems administrator for details."
+    "translation": "Post edit is only allowed for {{.timeLimit}} seconds. Please ask your System Administrator for details."
   },
   {
     "id": "api.post.update_post.system_message.app_error",
@@ -2007,6 +2123,10 @@
     "translation": "Toegangs token mist"
   },
   {
+    "id": "api.user.authorize_oauth_user.response.app_error",
+    "translation": "Received invalid response from OAuth service provider"
+  },
+  {
     "id": "api.user.authorize_oauth_user.service.app_error",
     "translation": "Token aanvraag voor {{.Service}} is mislukt"
   },
@@ -2019,16 +2139,16 @@
     "translation": "Niet ondersteunde OAuth service provider"
   },
   {
+    "id": "api.user.autocomplete_users.invalid_team_id",
+    "translation": "Ongeldige team id"
+  },
+  {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
     "translation": "Uw account is afgesloten doordat er te vaak een verkeerd wachtwoord is gegeven. Voer aub een wachtwoord reset uit."
   },
   {
     "id": "api.user.check_user_mfa.bad_code.app_error",
     "translation": "Ongeldige 'MFA' token."
-  },
-  {
-    "id": "api.user.check_user_mfa.not_available.app_error",
-    "translation": "'MFA' is niet ondersteund, of niet geconfigureerd op deze server"
   },
   {
     "id": "api.user.check_user_password.invalid.app_error",
@@ -2111,16 +2231,16 @@
     "translation": "Authentication Transfer not configured or available on this server."
   },
   {
-    "id": "api.user.generate_mfa_qr.not_available.app_error",
-    "translation": "'MFA' is niet geconfigeerd of beschikbaar op deze server"
-  },
-  {
     "id": "api.user.get_authorization_code.unsupported.app_error",
     "translation": "Ongeldige OAuth service provider"
   },
   {
     "id": "api.user.get_profile_image.not_found.app_error",
     "translation": "Unable to get profile image, user not found."
+  },
+  {
+    "id": "api.user.get_user_by_email.permissions.app_error",
+    "translation": "Unable to get user by email."
   },
   {
     "id": "api.user.ldap_to_email.not_available.app_error",
@@ -2177,6 +2297,10 @@
   {
     "id": "api.user.oauth_to_email.not_available.app_error",
     "translation": "Authentication Transfer not configured or available on this server."
+  },
+  {
+    "id": "api.user.register_terms_of_service_action.bad_value.app_error",
+    "translation": "Bad accepted value"
   },
   {
     "id": "api.user.reset_password.broken_token.app_error",
@@ -2273,10 +2397,6 @@
   {
     "id": "api.user.update_active.permissions.app_error",
     "translation": "U beschikt niet over de juiste rechten"
-  },
-  {
-    "id": "api.user.update_mfa.not_available.app_error",
-    "translation": "'MFA' is niet geconfigueerd of niet beschikbaar op deze server"
   },
   {
     "id": "api.user.update_oauth_user_attrs.get_user.app_error",
@@ -2403,14 +2523,6 @@
     "translation": "Uitgaande webhooks van hetzelfde kanaal kunnen niet dezelfde trigger-woorden/callback URL's hebben."
   },
   {
-    "id": "api.webrtc.disabled.app_error",
-    "translation": "WebRTC is niet ingeschakeld op deze server."
-  },
-  {
-    "id": "api.webrtc.register_token.app_error",
-    "translation": "We encountered an error trying to register the WebRTC Token"
-  },
-  {
     "id": "api.websocket_handler.invalid_param.app_error",
     "translation": "Ongeldige {{.Name}} parameter"
   },
@@ -2456,7 +2568,7 @@
   },
   {
     "id": "app.export.export_write_line.json_marshall.error",
-    "translation": "An error occured marshalling the JSON data for export."
+    "translation": "An error occurred marshalling the JSON data for export."
   },
   {
     "id": "app.import.attachment.bad_file.error",
@@ -2903,10 +3015,6 @@
     "translation": "User AuthData is too long."
   },
   {
-    "id": "app.import.validate_user_import_data.auth_service_length.error",
-    "translation": "User AuthService should not be empty if it is provided."
-  },
-  {
     "id": "app.import.validate_user_import_data.email_length.error",
     "translation": "User email has an invalid length."
   },
@@ -3137,6 +3245,10 @@
   {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
     "translation": "This API endpoint is not accessible as required migrations have not yet completed."
+  },
+  {
+    "id": "app.submit_interactive_dialog.json_error",
+    "translation": "Encountered an error encoding JSON for the interactive dialog."
   },
   {
     "id": "app.system_install_date.parse_int.app_error",
@@ -3379,6 +3491,10 @@
     "translation": "The Elasticsearch Server URL or Username has changed. Please re-enter the Elasticsearch password to test connection."
   },
   {
+    "id": "ent.ldap.app_error",
+    "translation": "ldap interface was nil"
+  },
+  {
     "id": "ent.ldap.create_fail",
     "translation": "Unable to create LDAP user."
   },
@@ -3423,12 +3539,40 @@
     "translation": "Niet mogelijk alle gebruikers te krijgen via AD/LDAP"
   },
   {
+    "id": "ent.ldap.syncronize.get_all_groups.app_error",
+    "translation": "error retrieving groups"
+  },
+  {
+    "id": "ent.ldap.syncronize.populate_syncables",
+    "translation": "error populating syncables"
+  },
+  {
     "id": "ent.ldap.syncronize.search_failure.app_error",
     "translation": "Failed to search users in AD/LDAP. Test if the Mattermost server can connect to your AD/LDAP server and try again."
   },
   {
     "id": "ent.ldap.validate_filter.app_error",
     "translation": "Ongeldig AD/LDAP filter"
+  },
+  {
+    "id": "ent.ldap_groups.group_search_error",
+    "translation": "error retrieving ldap group"
+  },
+  {
+    "id": "ent.ldap_groups.groups_search_error",
+    "translation": "error retrieving ldap groups"
+  },
+  {
+    "id": "ent.ldap_groups.members_of_group_error",
+    "translation": "error retrieving members of group"
+  },
+  {
+    "id": "ent.ldap_groups.no_rows",
+    "translation": "no groups found with matching uid"
+  },
+  {
+    "id": "ent.ldap_groups.reachable_groups_error",
+    "translation": "error retrieving groups for user"
   },
   {
     "id": "ent.message_export.global_relay.attach_file.app_error",
@@ -3481,42 +3625,6 @@
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
     "translation": "Unable to open the export temporary file"
-  },
-  {
-    "id": "ent.mfa.activate.authenticate.app_error",
-    "translation": "Probleem bij het authenticeren met een MFA token"
-  },
-  {
-    "id": "ent.mfa.activate.bad_token.app_error",
-    "translation": "Ongeldige 'MFA' token"
-  },
-  {
-    "id": "ent.mfa.activate.save_active.app_error",
-    "translation": "Kan de MFA status van de gebruiker niet bijwerken"
-  },
-  {
-    "id": "ent.mfa.deactivate.save_active.app_error",
-    "translation": "Kan de MFA status van de gebruiker niet bijwerken"
-  },
-  {
-    "id": "ent.mfa.deactivate.save_secret.app_error",
-    "translation": "Fout bij het verwijderen van het MFA sleutel"
-  },
-  {
-    "id": "ent.mfa.generate_qr_code.create_code.app_error",
-    "translation": "Fout bij het genereren van een QR code"
-  },
-  {
-    "id": "ent.mfa.generate_qr_code.save_secret.app_error",
-    "translation": "Fout bij het opslaan van de MFA sleutel"
-  },
-  {
-    "id": "ent.mfa.license_disable.app_error",
-    "translation": "Uw licentie ondersteund geen multi-factor authenticatie"
-  },
-  {
-    "id": "ent.mfa.validate_token.authenticate.app_error",
-    "translation": "Er is een probleem bij het authenticeren met een MFA token opgetreden"
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
@@ -3599,6 +3707,30 @@
     "translation": "SAML wordt niet ondersteund, of is niet geconfigureerd op deze server."
   },
   {
+    "id": "interactive_message.decode_trigger_id.base64_decode_failed",
+    "translation": "Failed to decode base64 for trigger ID for interactive dialog."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.expired",
+    "translation": "Trigger ID for interactive dialog is expired. Trigger IDs live for a maximum of {{.Seconds}} seconds."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.missing_data",
+    "translation": "Trigger ID missing required data for interactive dialog."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.signature_decode_failed",
+    "translation": "Failed to decode base64 signature of trigger ID for interactive dialog."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.verify_signature_failed",
+    "translation": "Signature verification failed of trigger ID for interactive dialog."
+  },
+  {
+    "id": "interactive_message.generate_trigger_id.signing_failed",
+    "translation": "Failed to sign generated trigger ID for interactive dialog."
+  },
+  {
     "id": "jobs.do_job.batch_size.parse_error",
     "translation": "Could not parse message export job BatchSize."
   },
@@ -3629,6 +3761,42 @@
   {
     "id": "mattermost.bulletin.subject",
     "translation": "Mattermost beveiligings bulletin"
+  },
+  {
+    "id": "mfa.activate.authenticate.app_error",
+    "translation": "Probleem bij het authenticeren met een MFA token"
+  },
+  {
+    "id": "mfa.activate.bad_token.app_error",
+    "translation": "Ongeldige 'MFA' token"
+  },
+  {
+    "id": "mfa.activate.save_active.app_error",
+    "translation": "Kan de MFA status van de gebruiker niet bijwerken"
+  },
+  {
+    "id": "mfa.deactivate.save_active.app_error",
+    "translation": "Kan de MFA status van de gebruiker niet bijwerken"
+  },
+  {
+    "id": "mfa.deactivate.save_secret.app_error",
+    "translation": "Fout bij het verwijderen van het MFA sleutel"
+  },
+  {
+    "id": "mfa.generate_qr_code.create_code.app_error",
+    "translation": "Fout bij het genereren van een QR code"
+  },
+  {
+    "id": "mfa.generate_qr_code.save_secret.app_error",
+    "translation": "Fout bij het opslaan van de MFA sleutel"
+  },
+  {
+    "id": "mfa.mfa_disabled.app_error",
+    "translation": "Multi-factor authentication has been disabled on this server."
+  },
+  {
+    "id": "mfa.validate_token.authenticate.app_error",
+    "translation": "Er is een probleem bij het authenticeren met een MFA token opgetreden"
   },
   {
     "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",
@@ -3737,6 +3905,10 @@
   {
     "id": "model.channel_member.is_valid.email_value.app_error",
     "translation": "Invalid email notification value"
+  },
+  {
+    "id": "model.channel_member.is_valid.ignore_channel_mentions_value.app_error",
+    "translation": "Invalid ignore channel mentions status"
   },
   {
     "id": "model.channel_member.is_valid.notify_level.app_error",
@@ -4255,32 +4427,16 @@
     "translation": "Time between user typing updates should not be set to less than 1000 milliseconds."
   },
   {
-    "id": "model.config.is_valid.webrtc_gateway_admin_secret.app_error",
-    "translation": "WebRTC Gateway Admin Secret moet worden ingesteld."
+    "id": "model.config.is_valid.tls_cert_file.app_error",
+    "translation": "Invalid value for TLS certificate file - Either use LetsEncrypt or set path to existing certificate file"
   },
   {
-    "id": "model.config.is_valid.webrtc_gateway_admin_url.app_error",
-    "translation": "WebRTC Gateway Admin Url moet een geldige URL zijn en starten met http:// of https://."
+    "id": "model.config.is_valid.tls_key_file.app_error",
+    "translation": "Invalid value for TLS key file - Either use LetsEncrypt or set path to existing key file"
   },
   {
-    "id": "model.config.is_valid.webrtc_gateway_ws_url.app_error",
-    "translation": "WebRTC Gateway Websocket Url moet een geldige URL zijn en starten met ws:// of wss://."
-  },
-  {
-    "id": "model.config.is_valid.webrtc_stun_uri.app_error",
-    "translation": "WebRTC STUN URI must be a valid URL starting with stun:"
-  },
-  {
-    "id": "model.config.is_valid.webrtc_turn_shared_key.app_error",
-    "translation": "WebRTC TURN Gebruikersnaam kan niet leeg zijn als de TURN URI is ingesteld."
-  },
-  {
-    "id": "model.config.is_valid.webrtc_turn_uri.app_error",
-    "translation": "WebRTC TURN URI must be a valid URI and start with turn:"
-  },
-  {
-    "id": "model.config.is_valid.webrtc_turn_username.app_error",
-    "translation": "WebRTC TURN Gebruikersnaam kan niet leeg zijn als de TURN URI is ingesteld."
+    "id": "model.config.is_valid.tls_overwrite_cipher.app_error",
+    "translation": "Invalid value passed for TLS overwrite cipher - Please refer to the documentation for valid values"
   },
   {
     "id": "model.config.is_valid.webserver_security.app_error",
@@ -4341,6 +4497,66 @@
   {
     "id": "model.file_info.is_valid.user_id.app_error",
     "translation": "Invalid value for user_id."
+  },
+  {
+    "id": "model.group.create_at.app_error",
+    "translation": "invalid create at property for group"
+  },
+  {
+    "id": "model.group.delete_at.app_error",
+    "translation": "invalid delete at property for group"
+  },
+  {
+    "id": "model.group.description.app_error",
+    "translation": "invalid description property for group"
+  },
+  {
+    "id": "model.group.display_name.app_error",
+    "translation": "invalid display name property for group"
+  },
+  {
+    "id": "model.group.id.app_error",
+    "translation": "invalid id property for group"
+  },
+  {
+    "id": "model.group.name.app_error",
+    "translation": "invalid name property for group"
+  },
+  {
+    "id": "model.group.remote_id.app_error",
+    "translation": "invalid remote id property for group"
+  },
+  {
+    "id": "model.group.source.app_error",
+    "translation": "invalid source property for group"
+  },
+  {
+    "id": "model.group.update_at.app_error",
+    "translation": "invalid update at property for group"
+  },
+  {
+    "id": "model.group_member.group_id.app_error",
+    "translation": "invalid group id property for group member"
+  },
+  {
+    "id": "model.group_member.user_id.app_error",
+    "translation": "invalid user id property for group member"
+  },
+  {
+    "id": "model.group_syncable.group_id.app_error",
+    "translation": "invalid group id property for group syncable"
+  },
+  {
+    "id": "model.group_syncable.syncable_id.app_error",
+    "translation": "invalid syncable id for group syncable"
+  },
+  {
+    "id": "model.group_syncable.type.app_error",
+    "translation": "invalid type property for group syncable"
+  },
+  {
+    "id": "model.group_syncable.unmarshaljson.duplicate_type_identifier",
+    "translation": "type identifier already exists: perhaps json contains both 'team_id' and 'channel_id'"
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -4536,7 +4752,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Ongeldige bestands-ids"
+    "translation": "Invalid file ids. Note that uploads are limited to 5 files maximum. Please use additional posts for more files."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -4679,6 +4895,22 @@
     "translation": "Ongeldige gebruikers id"
   },
   {
+    "id": "model.terms_of_service.is_valid.create_at.app_error",
+    "translation": "Mist vereiste team kenmerk: naam."
+  },
+  {
+    "id": "model.terms_of_service.is_valid.id.app_error",
+    "translation": "Invalid term of service id."
+  },
+  {
+    "id": "model.terms_of_service.is_valid.text.app_error",
+    "translation": "Custom terms of service text is too long. Maximum {{.MaxLength}} characters allowed."
+  },
+  {
+    "id": "model.terms_of_service.is_valid.user_id.app_error",
+    "translation": "Mist vereiste team kenmerk: naam."
+  },
+  {
     "id": "model.token.is_valid.expiry",
     "translation": "Invalid token expiry"
   },
@@ -4693,6 +4925,66 @@
   {
     "id": "model.user.is_valid.pwd.app_error",
     "translation": "Het wachtwoord moet minimaal uit {{.Min}} karakters bestaan."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase.app_error",
+    "translation": "Het wachtwoord moet minimaal uit {{.Min}} karakters en minimaal 1 kleine letter bestaan."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number.app_error",
+    "translation": "Het wachtwoord moet minimaal uit {{.Min}} karakters bestaan en minimaal 1 kleine letter en 1 cijfer bevatten"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number_symbol.app_error",
+    "translation": "Het wachtwoord moet minimaal uit {{.Min}} karakters bestaan en minimaal 1 kleine letter, 1 cijfer en 1 symbol bevatten (bijv. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_symbol.app_error",
+    "translation": "Het wachtwoord moet minimaal uit {{.Min}} karakters bestaan en minimaal 1 kleine letter met 1 symbool uit bijv. \"~!@#$%^&*()\" bevatten."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase.app_error",
+    "translation": "Het wachtwoord moet minimaal uit {{.Min}} karakters bestaan en minimaal 1 kleine letter en 1 hoofdletter bevatten."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number.app_error",
+    "translation": "Het wachtwoord moet minimaal uit {{.Min}} karakters bestaan en minimaal 1 kleine letter, 1 hoofdletter en 1 cijfer bevatten"
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number_symbol.app_error",
+    "translation": "Het wachtwoord moet minimaal uit {{.Min}} karakters bestaan en minimaal 1 kleine letter, 1 hoofdletter, 1 cijfer en 1 symbol bevatten (bijv. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_symbol.app_error",
+    "translation": "Het wachtwoord moet minimaal uit {{.Min}} karakters bestaan en minimaal 1 kleine letter, 1 hoofdletter en 1 symbol bevatten (bijv. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_number.app_error",
+    "translation": "Je wachtwoord moet minimaal {{.Min}} karakters bevatten en met minimaal 1 cijfer."
+  },
+  {
+    "id": "model.user.is_valid.pwd_number_symbol.app_error",
+    "translation": "Je wachtwoord moet minimaal {{.Min}} karakters bevatten en met minimaal 1 cijfer en 1 karakter (bv. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_symbol.app_error",
+    "translation": "Je wachtwoord moet minimaal {{.Min}} karakters bevatten en met minimaal 1 karakter (bv. \"~!@#$%^&*()\"). "
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase.app_error",
+    "translation": "Het wachtwoord moet minimaal uit {{.Min}} karakters bestaan en minimaal 1 hoofdletter bevatten."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number.app_error",
+    "translation": "Het wachtwoord moet minimaal uit {{.Min}} karakters bestaan en minimaal 1 hoofdletter en 1 cijfer."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
+    "translation": "Je wachtwoord moet minimaal {{.Min}} karakters bevatten en met minimaal 1 hoofdletter, minimaal 1 cijfer en minimaal een karakter (bv. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_symbol.app_error",
+    "translation": "Het wachtwoord moet minimaal uit {{.Min}} karakters bestaan en minimaal 1 hoofdletter en 1 symbol bevatten (bijv. \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.username.app_error",
@@ -4715,6 +5007,18 @@
     "translation": "Ongeldige gebruikers id"
   },
   {
+    "id": "model.user_terms_of_service.is_valid.create_at.app_error",
+    "translation": "Mist vereiste team kenmerk: naam."
+  },
+  {
+    "id": "model.user_terms_of_service.is_valid.service_terms_id.app_error",
+    "translation": "Mist vereiste team kenmerk: naam."
+  },
+  {
+    "id": "model.user_terms_of_service.is_valid.user_id.app_error",
+    "translation": "Mist vereiste team kenmerk: naam."
+  },
+  {
     "id": "model.utils.decode_json.app_error",
     "translation": "kan niet decoderen"
   },
@@ -4729,6 +5033,34 @@
   {
     "id": "plugin.api.update_user_status.bad_status",
     "translation": "Unable to set the user status. Unknown user status."
+  },
+  {
+    "id": "plugin_api.get_file_link.disabled.app_error",
+    "translation": "Publieke links zijn uitgeschakeld"
+  },
+  {
+    "id": "plugin_api.get_file_link.no_post.app_error",
+    "translation": "Kon publieke link voor bestand niet ophalen. Bestand moet bijgevoegd zijn aan een bericht dat kan worden gelezen door de huidige gebruiker. "
+  },
+  {
+    "id": "plugin_api.send_mail.missing_htmlbody",
+    "translation": "Missing HTML Body."
+  },
+  {
+    "id": "plugin_api.send_mail.missing_subject",
+    "translation": "Missing email subject."
+  },
+  {
+    "id": "plugin_api.send_mail.missing_to",
+    "translation": "Missing TO address."
+  },
+  {
+    "id": "store.insert_error",
+    "translation": "insert error"
+  },
+  {
+    "id": "store.select_error",
+    "translation": "select error"
   },
   {
     "id": "store.sql.convert_string_array",
@@ -4891,6 +5223,10 @@
     "translation": "Kan de kanalen niet ophalen"
   },
   {
+    "id": "store.sql_channel.get_timezone.app_error",
+    "translation": "We kunnen de kanaal leden niet ophalen"
+  },
+  {
     "id": "store.sql_channel.get_unread.app_error",
     "translation": "Unable to get the channel unread messages"
   },
@@ -4957,6 +5293,10 @@
   {
     "id": "store.sql_channel.pinned_posts.app_error",
     "translation": "Unable to find the pinned posts"
+  },
+  {
+    "id": "store.sql_channel.remove_all_deactivated_members.app_error",
+    "translation": "We could not remove the deactivated users from the channel"
   },
   {
     "id": "store.sql_channel.remove_member.app_error",
@@ -5291,6 +5631,30 @@
     "translation": "We konden de bestandsinfo niet ophalen"
   },
   {
+    "id": "store.sql_group.group_syncable_already_deleted",
+    "translation": "group syncable was already deleted"
+  },
+  {
+    "id": "store.sql_group.no_rows",
+    "translation": "no matching group found"
+  },
+  {
+    "id": "store.sql_group.no_rows_changed",
+    "translation": "no rows changed"
+  },
+  {
+    "id": "store.sql_group.nothing_to_update",
+    "translation": "nothing to update for group syncable"
+  },
+  {
+    "id": "store.sql_group.unique_constraint",
+    "translation": "Een team met dat domein bestaat al"
+  },
+  {
+    "id": "store.sql_group.uniqueness_error",
+    "translation": "group member already exists"
+  },
+  {
     "id": "store.sql_job.delete.app_error",
     "translation": "Bericht kan niet opgehaald worden"
   },
@@ -5613,6 +5977,10 @@
   {
     "id": "store.sql_preference.update.app_error",
     "translation": "Unable to update the preference"
+  },
+  {
+    "id": "store.sql_reaction.bulk_get_for_post_ids.app_error",
+    "translation": "Unable to get reactions for post"
   },
   {
     "id": "store.sql_reaction.delete.app_error",
@@ -6027,6 +6395,22 @@
     "translation": "Unable to update the date of the last team icon update"
   },
   {
+    "id": "store.sql_terms_of_service.save.app_error",
+    "translation": "Unable to save terms of service."
+  },
+  {
+    "id": "store.sql_terms_of_service_store.get.app_error",
+    "translation": "Unable to fetch terms of service."
+  },
+  {
+    "id": "store.sql_terms_of_service_store.get.no_rows.app_error",
+    "translation": "No terms of service found."
+  },
+  {
+    "id": "store.sql_terms_of_service_store.save.existing.app_error",
+    "translation": "Must not call save for existing terms of service."
+  },
+  {
     "id": "store.sql_user.analytics_daily_active_users.app_error",
     "translation": "Unable to get the active users during the requested period"
   },
@@ -6168,7 +6552,7 @@
   },
   {
     "id": "store.sql_user.search.app_error",
-    "translation": "Unable to find any user maching the search parameters"
+    "translation": "Unable to find any user matching the search parameters"
   },
   {
     "id": "store.sql_user.update.app_error",
@@ -6271,6 +6655,22 @@
     "translation": "Het access token kan niet opgeslagen worden."
   },
   {
+    "id": "store.sql_user_terms_of_service.delete.app_error",
+    "translation": "Unable to delete terms of service."
+  },
+  {
+    "id": "store.sql_user_terms_of_service.get_by_user.app_error",
+    "translation": "Unable to fetch terms of service."
+  },
+  {
+    "id": "store.sql_user_terms_of_service.get_by_user.no_rows.app_error",
+    "translation": "No terms of service found."
+  },
+  {
+    "id": "store.sql_user_terms_of_service.save.app_error",
+    "translation": "Unable to save terms of service."
+  },
+  {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
     "translation": "Bericht kan niet opgehaald worden"
   },
@@ -6349,6 +6749,10 @@
   {
     "id": "store.sql_webhooks.update_outgoing.app_error",
     "translation": "Bericht kan niet opgehaald worden"
+  },
+  {
+    "id": "store.update_error",
+    "translation": "update error"
   },
   {
     "id": "system.message.name",

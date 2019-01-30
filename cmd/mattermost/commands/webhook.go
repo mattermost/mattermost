@@ -156,9 +156,13 @@ func createIncomingWebhookCmdF(command *cobra.Command, args []string) error {
 		ChannelLocked: channelLocked,
 	}
 
-	if _, err := app.CreateIncomingWebhookForChannel(user.Id, channel, incomingWebhook); err != nil {
-		return err
+	createdIncoming, errIncomingWebhook := app.CreateIncomingWebhookForChannel(user.Id, channel, incomingWebhook)
+	if errIncomingWebhook != nil {
+		return errIncomingWebhook
 	}
+
+	CommandPrettyPrintln("Id: " + createdIncoming.Id)
+	CommandPrettyPrintln("Display Name: " + createdIncoming.DisplayName)
 
 	return nil
 }
@@ -287,9 +291,13 @@ func createOutgoingWebhookCmdF(command *cobra.Command, args []string) error {
 		}
 	}
 
-	if _, err := app.CreateOutgoingWebhook(outgoingWebhook); err != nil {
-		return err
+	createdOutgoing, errOutgoing := app.CreateOutgoingWebhook(outgoingWebhook)
+	if errOutgoing != nil {
+		return errOutgoing
 	}
+
+	CommandPrettyPrintln("Id: " + createdOutgoing.Id)
+	CommandPrettyPrintln("Display Name: " + createdOutgoing.DisplayName)
 
 	return nil
 }

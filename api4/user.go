@@ -1094,7 +1094,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("ClientSideCertNotAllowed", "api.user.login.client_side_cert.license.app_error", nil, "", http.StatusBadRequest)
 			return
 		}
-		certPem, certSubject, certEmail := c.App.CheckForClienSideCert(r)
+		certPem, certSubject, certEmail := c.App.CheckForClientSideCert(r)
 		mlog.Debug("Client Cert", mlog.String("cert_subject", certSubject), mlog.String("cert_email", certEmail))
 
 		if len(certPem) == 0 || len(certEmail) == 0 {

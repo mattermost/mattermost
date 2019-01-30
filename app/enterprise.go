@@ -17,9 +17,9 @@ func RegisterAccountMigrationInterface(f func(*App) einterfaces.AccountMigration
 	accountMigrationInterface = f
 }
 
-var clusterInterface func(*App) einterfaces.ClusterInterface
+var clusterInterface func(*Server) einterfaces.ClusterInterface
 
-func RegisterClusterInterface(f func(*App) einterfaces.ClusterInterface) {
+func RegisterClusterInterface(f func(*Server) einterfaces.ClusterInterface) {
 	clusterInterface = f
 }
 
@@ -135,6 +135,6 @@ func (s *Server) initEnterprise() {
 		s.DataRetention = dataRetentionInterface(s.FakeApp())
 	}
 	if clusterInterface != nil {
-		s.Cluster = clusterInterface(s.FakeApp())
+		s.Cluster = clusterInterface(s)
 	}
 }
