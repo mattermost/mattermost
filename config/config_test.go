@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-package utils
+package config
 
 import (
 	"bytes"
@@ -14,16 +14,17 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 func TestConfig(t *testing.T) {
-	TranslationsPreInit()
+	utils.TranslationsPreInit()
 	_, _, _, err := LoadConfig("config.json")
 	require.Nil(t, err)
 }
 
 func TestReadConfig(t *testing.T) {
-	TranslationsPreInit()
+	utils.TranslationsPreInit()
 
 	_, _, err := ReadConfig(bytes.NewReader([]byte(``)), false)
 	require.EqualError(t, err, "parsing error at line 1, character 1: unexpected end of JSON input")
@@ -36,7 +37,7 @@ func TestReadConfig(t *testing.T) {
 }
 
 func TestReadConfig_PluginSettings(t *testing.T) {
-	TranslationsPreInit()
+	utils.TranslationsPreInit()
 
 	config, _, err := ReadConfig(bytes.NewReader([]byte(`{
 		"PluginSettings": {
@@ -111,7 +112,7 @@ func TestReadConfig_PluginSettings(t *testing.T) {
 }
 
 func TestConfigFromEnviroVars(t *testing.T) {
-	TranslationsPreInit()
+	utils.TranslationsPreInit()
 
 	config := `{
 		"ServiceSettings": {
@@ -356,7 +357,7 @@ func TestConfigFromEnviroVars(t *testing.T) {
 }
 
 func TestValidateLocales(t *testing.T) {
-	TranslationsPreInit()
+	utils.TranslationsPreInit()
 	cfg, _, _, err := LoadConfig("config.json")
 	require.Nil(t, err)
 

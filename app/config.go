@@ -18,6 +18,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mattermost/mattermost-server/config"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
@@ -63,13 +64,13 @@ func (a *App) UpdateConfig(f func(*model.Config)) {
 }
 
 func (a *App) PersistConfig() {
-	utils.SaveConfig(a.ConfigFileName(), a.Config())
+	config.SaveConfig(a.ConfigFileName(), a.Config())
 }
 
 func (s *Server) LoadConfig(configFile string) *model.AppError {
 	old := s.Config()
 
-	cfg, configPath, envConfig, err := utils.LoadConfig(configFile)
+	cfg, configPath, envConfig, err := config.LoadConfig(configFile)
 	if err != nil {
 		return err
 	}
@@ -117,7 +118,7 @@ func (a *App) LimitedClientConfig() map[string]string {
 
 func (s *Server) EnableConfigWatch() {
 	if s.configWatcher == nil && !s.disableConfigWatch {
-		configWatcher, err := utils.NewConfigWatcher(s.configFile, func() {
+		configWatcher, err := config.NewConfigWatcher(s.configFile, func() {
 			s.ReloadConfig()
 		})
 		if err != nil {
@@ -280,8 +281,8 @@ func (a *App) AsymmetricSigningKey() *ecdsa.PrivateKey {
 }
 
 func (a *App) regenerateClientConfig() {
-	a.Srv.clientConfig = utils.GenerateClientConfig(a.Config(), a.DiagnosticId(), a.License())
-	a.Srv.limitedClientConfig = utils.GenerateLimitedClientConfig(a.Config(), a.DiagnosticId(), a.License())
+	a.Srv.clientConfig = config.GenerateClientConfig(a.Config(), a.DiagnosticId(), a.License())
+	a.Srv.limitedClientConfig = config.GenerateLimitedClientConfig(a.Config(), a.DiagnosticId(), a.License())
 
 	if a.Srv.clientConfig["EnableCustomTermsOfService"] == "true" {
 		termsOfService, err := a.GetLatestTermsOfService()

@@ -13,6 +13,7 @@ import (
 
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/config"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/services/mailservice"
@@ -170,7 +171,7 @@ func (a *App) SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool)
 		return err
 	}
 
-	if err := utils.ValidateLdapFilter(cfg, a.Ldap); err != nil {
+	if err := config.ValidateLdapFilter(cfg, a.Ldap); err != nil {
 		return err
 	}
 

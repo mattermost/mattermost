@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
-package utils
+package config
 
 import (
 	"bytes"
@@ -24,13 +24,9 @@ import (
 	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
 	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"github.com/mattermost/mattermost-server/utils/jsonutils"
-)
-
-const (
-	LOG_ROTATE_SIZE = 10000
-	LOG_FILENAME    = "mattermost.log"
 )
 
 var (
@@ -42,36 +38,6 @@ var (
 		http.StatusBadRequest,
 	)
 )
-
-func MloggerConfigFromLoggerConfig(s *model.LogSettings) *mlog.LoggerConfiguration {
-	return &mlog.LoggerConfiguration{
-		EnableConsole: *s.EnableConsole,
-		ConsoleJson:   *s.ConsoleJson,
-		ConsoleLevel:  strings.ToLower(*s.ConsoleLevel),
-		EnableFile:    *s.EnableFile,
-		FileJson:      *s.FileJson,
-		FileLevel:     strings.ToLower(*s.FileLevel),
-		FileLocation:  GetLogFileLocation(*s.FileLocation),
-	}
-}
-
-// DON'T USE THIS Modify the level on the app logger
-func DisableDebugLogForTest() {
-	mlog.GloballyDisableDebugLogForTest()
-}
-
-// DON'T USE THIS Modify the level on the app logger
-func EnableDebugLogForTest() {
-	mlog.GloballyEnableDebugLogForTest()
-}
-
-func GetLogFileLocation(fileLocation string) string {
-	if fileLocation == "" {
-		fileLocation, _ = fileutils.FindDir("logs")
-	}
-
-	return filepath.Join(fileLocation, LOG_FILENAME)
-}
 
 func SaveConfig(fileName string, config *model.Config) *model.AppError {
 	b, err := json.MarshalIndent(config, "", "    ")
@@ -727,7 +693,7 @@ func ValidateLdapFilter(cfg *model.Config, ldap einterfaces.LdapInterface) *mode
 
 func ValidateLocales(cfg *model.Config) *model.AppError {
 	var err *model.AppError
-	locales := GetSupportedLocales()
+	locales := utils.GetSupportedLocales()
 	if _, ok := locales[*cfg.LocalizationSettings.DefaultServerLocale]; !ok {
 		*cfg.LocalizationSettings.DefaultServerLocale = model.DEFAULT_LOCALE
 		err = model.NewAppError("ValidateLocales", "utils.config.supported_server_locale.app_error", nil, "", http.StatusBadRequest)
@@ -760,7 +726,7 @@ func ValidateLocales(cfg *model.Config) *model.AppError {
 			err = model.NewAppError("ValidateLocales", "utils.config.add_client_locale.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		*cfg.LocalizationSettings.AvailableLocales = strings.Join(RemoveDuplicatesFromStringArray(strings.Split(availableLocales, ",")), ",")
+		*cfg.LocalizationSettings.AvailableLocales = strings.Join(utils.RemoveDuplicatesFromStringArray(strings.Split(availableLocales, ",")), ",")
 	}
 
 	return err

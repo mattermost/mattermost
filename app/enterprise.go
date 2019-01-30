@@ -4,6 +4,7 @@
 package app
 
 import (
+	"github.com/mattermost/mattermost-server/config"
 	"github.com/mattermost/mattermost-server/einterfaces"
 	ejobs "github.com/mattermost/mattermost-server/einterfaces/jobs"
 	tjobs "github.com/mattermost/mattermost-server/jobs/interfaces"
@@ -114,7 +115,7 @@ func (s *Server) initEnterprise() {
 	if ldapInterface != nil {
 		s.Ldap = ldapInterface(s.FakeApp())
 		s.AddConfigListener(func(_, cfg *model.Config) {
-			if err := utils.ValidateLdapFilter(cfg, s.Ldap); err != nil {
+			if err := config.ValidateLdapFilter(cfg, s.Ldap); err != nil {
 				panic(utils.T(err.Id))
 			}
 		})

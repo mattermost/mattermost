@@ -24,6 +24,7 @@ import (
 	"github.com/throttled/throttled"
 	"golang.org/x/crypto/acme/autocert"
 
+	"github.com/mattermost/mattermost-server/config"
 	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/jobs"
 	"github.com/mattermost/mattermost-server/mlog"
@@ -96,7 +97,7 @@ type Server struct {
 	logListenerId           string
 	clusterLeaderListenerId string
 	disableConfigWatch      bool
-	configWatcher           *utils.ConfigWatcher
+	configWatcher           *config.ConfigWatcher
 	asymmetricSigningKey    *ecdsa.PrivateKey
 
 	pluginCommands     []*PluginCommand
