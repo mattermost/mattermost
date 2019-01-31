@@ -1507,6 +1507,8 @@ func TestGetLinkMetadata(t *testing.T) {
 		assert.Nil(t, img)
 		assert.NotNil(t, err)
 		assert.IsType(t, imageproxy.Error{}, err)
+		t.Log(fmt.Sprint("SiteURL", th.App.GetSiteURL()))
+		t.Log(fmt.Sprint("err", err))
 	})
 }
 
