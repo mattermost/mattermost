@@ -359,7 +359,7 @@
     "ExperimentalSettings": {
         "ClientSideCertEnable": false,
         "ClientSideCertCheck": "secondary",
-        "EnablePostMetadata": false,
+        "DisablePostMetadata": false,
         "LinkMetadataTimeoutMilliseconds": 5000
     },
     "AnalyticsSettings": {

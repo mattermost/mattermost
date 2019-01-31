@@ -454,7 +454,9 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["EnableTutorial"] = strconv.FormatBool(*c.ServiceSettings.EnableTutorial)
 	props["ExperimentalEnableDefaultChannelLeaveJoinMessages"] = strconv.FormatBool(*c.ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages)
 	props["ExperimentalGroupUnreadChannels"] = *c.ServiceSettings.ExperimentalGroupUnreadChannels
-	props["ExperimentalEnablePostMetadata"] = strconv.FormatBool(*c.ExperimentalSettings.EnablePostMetadata)
+
+	// This setting is only temporary, so keep using the old setting name for the mobile and web apps
+	props["ExperimentalEnablePostMetadata"] = strconv.FormatBool(!*c.ExperimentalSettings.DisablePostMetadata)
 
 	if *c.ServiceSettings.ExperimentalChannelOrganization || *c.ServiceSettings.ExperimentalGroupUnreadChannels != model.GROUP_UNREAD_CHANNELS_DISABLED {
 		props["ExperimentalChannelOrganization"] = strconv.FormatBool(true)
