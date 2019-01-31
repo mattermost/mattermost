@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/mattermost/mattermost-server/mlog"
@@ -346,17 +347,19 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 
 	request.Header.Add("Accept", "text/html, image/*")
 
-	res, err := a.HTTPService.MakeClient(false).Do(request)
-	if err != nil {
-		return nil, nil, err
+	client := a.HTTPService.MakeClient(false)
+	client.Timeout = time.Duration(*a.Config().ExperimentalSettings.LinkMetadataTimeoutMilliseconds) * time.Millisecond
+
+	res, err := client.Do(request)
+
+	if err == nil {
+		defer res.Body.Close()
+
+		// Parse the data
+		og, image, err = a.parseLinkMetadata(requestURL, res.Body, res.Header.Get("Content-Type"))
 	}
 
-	defer res.Body.Close()
-
-	// Parse the data
-	og, image, err = a.parseLinkMetadata(requestURL, res.Body, res.Header.Get("Content-Type"))
-
-	// Write back to cache and database
+	// Write back to cache and database, even if there was an error and the results are nil
 	cacheLinkMetadata(requestURL, timestamp, og, image)
 
 	a.saveLinkMetadataToDatabase(requestURL, timestamp, og, image)
