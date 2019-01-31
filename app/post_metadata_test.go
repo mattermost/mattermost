@@ -1479,12 +1479,15 @@ func TestGetLinkMetadata(t *testing.T) {
 
 		// Disable AllowedUntrustedInternalConnections since it's turned on for the previous tests
 		oldAllowUntrusted := *th.App.Config().ServiceSettings.AllowedUntrustedInternalConnections
+		oldSiteURL := *th.App.Config().ServiceSettings.SiteURL
 		defer th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = oldAllowUntrusted
+			*cfg.ServiceSettings.SiteURL = oldSiteURL
 		})
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = ""
+			*cfg.ServiceSettings.SiteURL = "http://mattermost.example.com"
 			*cfg.ImageProxySettings.Enable = true
 			*cfg.ImageProxySettings.ImageProxyType = "local"
 		})
@@ -1507,8 +1510,6 @@ func TestGetLinkMetadata(t *testing.T) {
 		assert.Nil(t, img)
 		assert.NotNil(t, err)
 		assert.IsType(t, imageproxy.Error{}, err)
-		t.Log(fmt.Sprint("SiteURL", th.App.GetSiteURL()))
-		t.Log(fmt.Sprint("err", err))
 	})
 }
 
