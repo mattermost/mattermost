@@ -490,7 +490,7 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if location, ok := openGraphDataCache.Get(url); ok {
-		m["location"] = location.(string)
+		m["location"] = string(location.([]byte))
 		w.Write([]byte(model.MapToJson(m)))
 		return
 	}
