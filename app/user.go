@@ -161,7 +161,7 @@ func (a *App) CreateUserFromSignup(user *model.User) (*model.User, *model.AppErr
 }
 
 func (a *App) IsUserSignUpAllowed() *model.AppError {
-	if !a.Config().EmailSettings.EnableSignUpWithEmail || !*a.Config().TeamSettings.EnableUserCreation {
+	if !*a.Config().EmailSettings.EnableSignUpWithEmail || !*a.Config().TeamSettings.EnableUserCreation {
 		err := model.NewAppError("IsUserSignUpAllowed", "api.user.create_user.signup_email_disabled.app_error", nil, "", http.StatusNotImplemented)
 		return err
 	}
@@ -184,7 +184,7 @@ func (a *App) IsFirstUserAccount() bool {
 }
 
 func (a *App) CreateUser(user *model.User) (*model.User, *model.AppError) {
-	if !user.IsLDAPUser() && !user.IsSAMLUser() && !CheckUserDomain(user, a.Config().TeamSettings.RestrictCreationToDomains) {
+	if !user.IsLDAPUser() && !user.IsSAMLUser() && !CheckUserDomain(user, *a.Config().TeamSettings.RestrictCreationToDomains) {
 		return nil, model.NewAppError("CreateUser", "api.user.create_user.accepted_domain.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -698,7 +698,7 @@ func getFont(initialFont string) (*truetype.Font, error) {
 
 func (a *App) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) {
 	if len(*a.Config().FileSettings.DriverName) == 0 {
-		img, appErr := CreateProfileImage(user.Username, user.Id, a.Config().FileSettings.InitialFont)
+		img, appErr := CreateProfileImage(user.Username, user.Id, *a.Config().FileSettings.InitialFont)
 		if appErr != nil {
 			return nil, false, appErr
 		}
@@ -709,7 +709,7 @@ func (a *App) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) 
 
 	data, err := a.ReadFile(path)
 	if err != nil {
-		img, appErr := CreateProfileImage(user.Username, user.Id, a.Config().FileSettings.InitialFont)
+		img, appErr := CreateProfileImage(user.Username, user.Id, *a.Config().FileSettings.InitialFont)
 		if appErr != nil {
 			return nil, false, appErr
 		}
@@ -726,7 +726,7 @@ func (a *App) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) 
 }
 
 func (a *App) GetDefaultProfileImage(user *model.User) ([]byte, *model.AppError) {
-	img, appErr := CreateProfileImage(user.Username, user.Id, a.Config().FileSettings.InitialFont)
+	img, appErr := CreateProfileImage(user.Username, user.Id, *a.Config().FileSettings.InitialFont)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -734,7 +734,7 @@ func (a *App) GetDefaultProfileImage(user *model.User) ([]byte, *model.AppError)
 }
 
 func (a *App) SetDefaultProfileImage(user *model.User) *model.AppError {
-	img, appErr := CreateProfileImage(user.Username, user.Id, a.Config().FileSettings.InitialFont)
+	img, appErr := CreateProfileImage(user.Username, user.Id, *a.Config().FileSettings.InitialFont)
 	if appErr != nil {
 		return appErr
 	}
@@ -994,7 +994,7 @@ func (a *App) sendUpdatedUserEvent(user model.User) {
 }
 
 func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User, *model.AppError) {
-	if !CheckUserDomain(user, a.Config().TeamSettings.RestrictCreationToDomains) {
+	if !CheckUserDomain(user, *a.Config().TeamSettings.RestrictCreationToDomains) {
 		result := <-a.Srv.Store.User().Get(user.Id)
 		if result.Err != nil {
 			return nil, result.Err
@@ -1019,7 +1019,7 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 				}
 			})
 
-			if a.Config().EmailSettings.RequireEmailVerification {
+			if *a.Config().EmailSettings.RequireEmailVerification {
 				a.Srv.Go(func() {
 					if err := a.SendEmailVerification(rusers[0]); err != nil {
 						mlog.Error(err.Error())

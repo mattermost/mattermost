@@ -94,8 +94,8 @@ func setupClientTests(cfg *model.Config) {
 	*cfg.TeamSettings.EnableOpenServer = true
 	*cfg.ServiceSettings.EnableCommands = false
 	*cfg.ServiceSettings.EnableCustomEmoji = true
-	cfg.ServiceSettings.EnableIncomingWebhooks = false
-	cfg.ServiceSettings.EnableOutgoingWebhooks = false
+	*cfg.ServiceSettings.EnableIncomingWebhooks = false
+	*cfg.ServiceSettings.EnableOutgoingWebhooks = false
 }
 
 func executeTestCommand(command *exec.Cmd) {
