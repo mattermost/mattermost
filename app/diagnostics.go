@@ -133,6 +133,9 @@ func (a *App) trackActivity() {
 	var deletedPublicChannelCount int64
 	var deletedPrivateChannelCount int64
 	var postsCount int64
+	var slashCommandsCount int64
+	var incomingWebhooksCount int64
+	var outgoingWebhooksCount int64
 
 	dailyActiveChan := a.Srv.Store.User().AnalyticsActiveCount(DAY_MILLISECONDS)
 	monthlyActiveChan := a.Srv.Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS)
@@ -181,6 +184,18 @@ func (a *App) trackActivity() {
 		postsCount = pcr.Data.(int64)
 	}
 
+	if scc := <-a.Srv.Store.Command().AnalyticsCommandCount(""); scc.Err == nil {
+		slashCommandsCount = scc.Data.(int64)
+	}
+
+	if iwc := <-a.Srv.Store.Webhook().AnalyticsIncomingCount(""); iwc.Err == nil {
+		incomingWebhooksCount = iwc.Data.(int64)
+	}
+
+	if owc := <-a.Srv.Store.Webhook().AnalyticsOutgoingCount(""); owc.Err == nil {
+		outgoingWebhooksCount = owc.Data.(int64)
+	}
+
 	a.SendDiagnostic(TRACK_ACTIVITY, map[string]interface{}{
 		"registered_users":             userCount,
 		"active_users_daily":           activeUsersDailyCount,
@@ -193,6 +208,9 @@ func (a *App) trackActivity() {
 		"public_channels_deleted":      deletedPublicChannelCount,
 		"private_channels_deleted":     deletedPrivateChannelCount,
 		"posts":                        postsCount,
+		"slash_commands":               slashCommandsCount,
+		"incoming_webhooks":            incomingWebhooksCount,
+		"outgoing_webhooks":            outgoingWebhooksCount,
 	})
 }
 
