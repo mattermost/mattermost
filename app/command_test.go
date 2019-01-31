@@ -127,7 +127,7 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	assert.NotEqual(t, args.ChannelId, post.ChannelId)
 
 	// Override username config is turned off. No override should occur.
-	th.App.Config().ServiceSettings.EnablePostUsernameOverride = false
+	*th.App.Config().ServiceSettings.EnablePostUsernameOverride = false
 	resp.ChannelId = ""
 	command.Username = "Command username"
 	resp.Username = "Response username"
@@ -136,7 +136,7 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Nil(t, post.Props["override_username"])
 
-	th.App.Config().ServiceSettings.EnablePostUsernameOverride = true
+	*th.App.Config().ServiceSettings.EnablePostUsernameOverride = true
 
 	// Override username config is turned on. Override username through command property.
 	post, err = th.App.HandleCommandResponsePost(command, args, resp, builtIn)
@@ -152,10 +152,10 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	assert.Equal(t, resp.Username, post.Props["override_username"])
 	assert.Equal(t, "true", post.Props["from_webhook"])
 
-	th.App.Config().ServiceSettings.EnablePostUsernameOverride = false
+	*th.App.Config().ServiceSettings.EnablePostUsernameOverride = false
 
 	// Override icon url config is turned off. No override should occur.
-	th.App.Config().ServiceSettings.EnablePostIconOverride = false
+	*th.App.Config().ServiceSettings.EnablePostIconOverride = false
 	command.IconURL = "Command icon url"
 	resp.IconURL = "Response icon url"
 
@@ -163,7 +163,7 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Nil(t, post.Props["override_icon_url"])
 
-	th.App.Config().ServiceSettings.EnablePostIconOverride = true
+	*th.App.Config().ServiceSettings.EnablePostIconOverride = true
 
 	// Override icon url config is turned on. Override icon url through command property.
 	post, err = th.App.HandleCommandResponsePost(command, args, resp, builtIn)

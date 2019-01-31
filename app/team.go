@@ -67,7 +67,7 @@ func (a *App) normalizeDomains(domains string) []string {
 func (a *App) isTeamEmailAddressAllowed(email string, allowedDomains string) bool {
 	email = strings.ToLower(email)
 	// First check per team allowedDomains, then app wide restrictions
-	for _, restriction := range []string{allowedDomains, a.Config().TeamSettings.RestrictCreationToDomains} {
+	for _, restriction := range []string{allowedDomains, *a.Config().TeamSettings.RestrictCreationToDomains} {
 		domains := a.normalizeDomains(restriction)
 		if len(domains) <= 0 {
 			continue
@@ -103,7 +103,7 @@ func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 		return nil, err
 	}
 
-	validDomains := a.normalizeDomains(a.Config().TeamSettings.RestrictCreationToDomains)
+	validDomains := a.normalizeDomains(*a.Config().TeamSettings.RestrictCreationToDomains)
 	if len(validDomains) > 0 {
 		for _, domain := range a.normalizeDomains(team.AllowedDomains) {
 			matched := false
