@@ -171,8 +171,8 @@ func TestExportAllUsers(t *testing.T) {
 	defer th1.TearDown()
 
 	var b bytes.Buffer
-	appErr := th1.App.BulkExport(&b, "somefile", "somePath", "someDir")
-	require.Nil(t, appErr)
+	err := th1.App.BulkExport(&b, "somefile", "somePath", "someDir")
+	require.Nil(t, err)
 
 	th2 := Setup()
 	defer th2.TearDown()
