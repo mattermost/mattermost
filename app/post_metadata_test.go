@@ -11,6 +11,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strconv"
 	"strings"
 	"testing"
@@ -1038,6 +1039,15 @@ func TestGetLinkMetadata(t *testing.T) {
 			w.Header().Set("Content-Type", "application/json")
 
 			w.Write([]byte("true"))
+		} else if strings.HasPrefix(r.URL.Path, "/timeout") {
+			w.Header().Set("Content-Type", "text/html")
+
+			w.Write([]byte("<html>"))
+			select {
+			case <-time.After(60 * time.Second):
+			case <-r.Context().Done():
+			}
+			w.Write([]byte("</html>"))
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
 		}
@@ -1274,7 +1284,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		assert.Exactly(t, img, fromDatabase)
 	})
 
-	t.Run("should cache error results", func(t *testing.T) {
+	t.Run("should cache general errors", func(t *testing.T) {
 		th := setup()
 		defer th.TearDown()
 
@@ -1292,6 +1302,71 @@ func TestGetLinkMetadata(t *testing.T) {
 		assert.Nil(t, og)
 		assert.Nil(t, img)
 		assert.Nil(t, err)
+
+		ogFromCache, imgFromCache, ok := getLinkMetadataFromCache(requestURL, timestamp)
+		assert.True(t, ok)
+		assert.Nil(t, ogFromCache)
+		assert.Nil(t, imgFromCache)
+
+		ogFromDatabase, imageFromDatabase, ok := th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
+		assert.True(t, ok)
+		assert.Nil(t, ogFromDatabase)
+		assert.Nil(t, imageFromDatabase)
+	})
+
+	t.Run("should cache invalid URL errors", func(t *testing.T) {
+		th := setup()
+		defer th.TearDown()
+
+		requestURL := "http://notarealdomainthatactuallyexists.ca/?name=" + t.Name()
+		timestamp := int64(1547510400000)
+
+		_, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
+		require.False(t, ok, "data should not exist in in-memory cache")
+
+		_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
+		require.False(t, ok, "data should not exist in database")
+
+		og, img, err := th.App.getLinkMetadata(requestURL, timestamp, false)
+
+		assert.Nil(t, og)
+		assert.Nil(t, img)
+		assert.IsType(t, &url.Error{}, err)
+
+		ogFromCache, imgFromCache, ok := getLinkMetadataFromCache(requestURL, timestamp)
+		assert.True(t, ok)
+		assert.Nil(t, ogFromCache)
+		assert.Nil(t, imgFromCache)
+
+		ogFromDatabase, imageFromDatabase, ok := th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
+		assert.True(t, ok)
+		assert.Nil(t, ogFromDatabase)
+		assert.Nil(t, imageFromDatabase)
+	})
+
+	t.Run("should cache timeout errors", func(t *testing.T) {
+		th := setup()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ExperimentalSettings.LinkMetadataTimeoutMilliseconds = 100
+		})
+
+		requestURL := server.URL + "/timeout?name=" + t.Name()
+		timestamp := int64(1547510400000)
+
+		_, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
+		require.False(t, ok, "data should not exist in in-memory cache")
+
+		_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
+		require.False(t, ok, "data should not exist in database")
+
+		og, img, err := th.App.getLinkMetadata(requestURL, timestamp, false)
+
+		assert.Nil(t, og)
+		assert.Nil(t, img)
+		assert.NotNil(t, err)
+		assert.Contains(t, err.Error(), "Client.Timeout")
 
 		ogFromCache, imgFromCache, ok := getLinkMetadataFromCache(requestURL, timestamp)
 		assert.True(t, ok)
