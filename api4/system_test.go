@@ -751,6 +751,7 @@ func TestRedirectLocation(t *testing.T) {
 	}()
 
 	*th.App.Config().ServiceSettings.EnableLinkPreviews = true
+	*th.App.Config().ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.1"
 
 	_, resp := th.SystemAdminClient.GetRedirectLocation("https://mattermost.com/", "")
 	CheckNoError(t, resp)
@@ -760,9 +761,7 @@ func TestRedirectLocation(t *testing.T) {
 
 	actual, resp := th.SystemAdminClient.GetRedirectLocation(mockBitlyLink, "")
 	CheckNoError(t, resp)
-	if actual != expected {
-		t.Errorf("Expected %v but got %v.", expected, actual)
-	}
+	assert.Equal(t, expected, actual)
 
 	*th.App.Config().ServiceSettings.EnableLinkPreviews = false
 	actual, resp = th.SystemAdminClient.GetRedirectLocation("https://mattermost.com/", "")

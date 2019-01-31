@@ -1,5 +1,53 @@
 [
   {
+    "id": "April",
+    "translation": "Nisan"
+  },
+  {
+    "id": "August",
+    "translation": "Ağustos"
+  },
+  {
+    "id": "December",
+    "translation": "Aralık"
+  },
+  {
+    "id": "February",
+    "translation": "Şubat"
+  },
+  {
+    "id": "January",
+    "translation": "Ocak"
+  },
+  {
+    "id": "July",
+    "translation": "Temmuz"
+  },
+  {
+    "id": "June",
+    "translation": "Haziran"
+  },
+  {
+    "id": "March",
+    "translation": "Mart"
+  },
+  {
+    "id": "May",
+    "translation": "Mayıs"
+  },
+  {
+    "id": "November",
+    "translation": "Kasım"
+  },
+  {
+    "id": "October",
+    "translation": "Ekim"
+  },
+  {
+    "id": "September",
+    "translation": "Eylül"
+  },
+  {
     "id": "actiance.export.marshalToXml.appError",
     "translation": "Dışa aktarılan veriler XML biçimine dönüştürülemedi."
   },
@@ -57,7 +105,7 @@
   },
   {
     "id": "api.admin.test_s3.missing_s3_bucket",
-    "translation": "S3 Buketi zorunludur"
+    "translation": "S3 Klasörü zorunludur"
   },
   {
     "id": "api.admin.upload_brand_image.array.app_error",
@@ -85,7 +133,7 @@
   },
   {
     "id": "api.channel.add_user.to.channel.failed.app_error",
-    "translation": "Kullanıcının kanala eklenemedi"
+    "translation": "Kullanıcı kanala eklenemedi"
   },
   {
     "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
@@ -177,7 +225,7 @@
   },
   {
     "id": "api.channel.leave.last_member.app_error",
-    "translation": "Kalan yalnız siz varsınız. Ayrılmak yerine Özel Grubu kaldırmayı deneyin."
+    "translation": "Kanalda yalnız siz kaldınız. Kanaldan ayrılmak yerine Özel Grubu kaldırmayı deneyin."
   },
   {
     "id": "api.channel.leave.left",
@@ -240,6 +288,14 @@
     "translation": "%v kanaldan çıkarıldı."
   },
   {
+    "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
+    "translation": "Bir doğrudan ileti kanalını yeniden adlandıramazsınız"
+  },
+  {
+    "id": "api.channel.rename_channel.cant_rename_group_messages.app_error",
+    "translation": "Bir grup ileti kanalını yeniden adlandıramazsınız"
+  },
+  {
     "id": "api.channel.update_channel.deleted.app_error",
     "translation": "Kanal arşivlenmiş ya da silinmiş"
   },
@@ -268,12 +324,20 @@
     "translation": "Bütünleştirme işlemlerini yalnız sistem yöneticileri yapabilir."
   },
   {
+    "id": "api.command.command_post.forbidden.app_error",
+    "translation": "Belirtilen kullanıcı belirtilen takımın üyesi değil."
+  },
+  {
     "id": "api.command.disabled.app_error",
     "translation": "Komutlar sistem yöneticisi tarafından devre dışı bırakılmış."
   },
   {
     "id": "api.command.duplicate_trigger.app_error",
     "translation": "Bu tetikleyici sözcük zaten kullanılıyor. Lütfen başka bir sözcük seçin."
+  },
+  {
+    "id": "api.command.execute_command.create_post_failed.app_error",
+    "translation": "Command '{{.Trigger}}' failed to post response. Please contact your System Administrator."
   },
   {
     "id": "api.command.execute_command.debug",
@@ -297,7 +361,7 @@
   },
   {
     "id": "api.command.execute_command.start.app_error",
-    "translation": "Henüz bir komut tetikleyicisi yok"
+    "translation": "Herhangi bir komut tetikleyicisi bulunamadı"
   },
   {
     "id": "api.command.invite_people.desc",
@@ -329,7 +393,7 @@
   },
   {
     "id": "api.command.invite_people.no_email",
-    "translation": "Lütfen bir ya da bir kaç geçerli e-posta adresi yazın"
+    "translation": "Lütfen bir ya da birkaç geçerli e-posta adresi yazın"
   },
   {
     "id": "api.command.invite_people.sent",
@@ -410,6 +474,10 @@
   {
     "id": "api.command_channel_purpose.update_channel.app_error",
     "translation": "Geçerli kanal güncellenirken sorun çıktı."
+  },
+  {
+    "id": "api.command_channel_remove.channel.app_error",
+    "translation": "Geçerli kanal alınırken sorun çıktı."
   },
   {
     "id": "api.command_channel_rename.channel.app_error",
@@ -592,7 +660,7 @@
   },
   {
     "id": "api.command_invite.channel.error",
-    "translation": "{{.Channel}} kanalı belirlenemedi. Lütfen kanalları belirtmek için [kanal kısaltması] kullanın (https://about.mattermost.com/default-channel-handle-documentation)."
+    "translation": "{{.Channel}} kanalı bulunamadı. Lütfen kanalları belirtmek için [kanal kısaltması] kullanın (https://about.mattermost.com/default-channel-handle-documentation)."
   },
   {
     "id": "api.command_invite.desc",
@@ -616,7 +684,7 @@
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "Kullanıcı bulunamadı."
+    "translation": "Kullanıcı bulunamadı. Sistem Yöneticisi tarafından devre dışı bırakılmış olabilir."
   },
   {
     "id": "api.command_invite.name",
@@ -683,12 +751,8 @@
     "translation": "ayrıl"
   },
   {
-    "id": "api.command_leave.success",
-    "translation": "Kanaldan ayrıldı."
-  },
-  {
     "id": "api.command_logout.desc",
-    "translation": "Mattermosttan Oturumunu Kapat"
+    "translation": "Mattermost Oturumunu Kapat"
   },
   {
     "id": "api.command_logout.fail_message",
@@ -708,7 +772,7 @@
   },
   {
     "id": "api.command_me.name",
-    "translation": "bana"
+    "translation": "ben"
   },
   {
     "id": "api.command_msg.desc",
@@ -744,7 +808,7 @@
   },
   {
     "id": "api.command_mute.error",
-    "translation": "{{.Channel}} kanalı belirlenemedi. Lütfen kanalları belirtmek için [kanal kısaltması](https://about.mattermost.com/default-channel-handle-documentation) kullanın."
+    "translation": "{{.Channel}} kanalı bulunamadı. Lütfen kanalları belirtmek için [kanal kısaltması](https://about.mattermost.com/default-channel-handle-documentation) kullanın."
   },
   {
     "id": "api.command_mute.hint",
@@ -824,7 +888,7 @@
   },
   {
     "id": "api.command_remove.missing.app_error",
-    "translation": "Kullanıcı bulunamadı"
+    "translation": "Kullanıcı bulunamadı. Sistem Yöneticisi tarafından devre dışı bırakılmış olabilir."
   },
   {
     "id": "api.command_remove.name",
@@ -929,6 +993,14 @@
   {
     "id": "api.context.token_provided.app_error",
     "translation": "Oturum OAuth olmadığı halde sorgu dizgesinde kod belirtilmiş"
+  },
+  {
+    "id": "api.create_terms_of_service.custom_terms_of_service_disabled.app_error",
+    "translation": "Özel hizmet koşulları özelliği devre dışı"
+  },
+  {
+    "id": "api.create_terms_of_service.empty_text.app_error",
+    "translation": "Lütfen Özel Hizmet Koşulları metnini yazın."
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
@@ -1102,19 +1174,19 @@
   },
   {
     "id": "api.file.test_connection.s3.bucked_create.app_error",
-    "translation": "Buket oluşturulamadı."
+    "translation": "Klasör oluşturulamadı."
   },
   {
     "id": "api.file.test_connection.s3.bucket_exists.app_error",
-    "translation": "Buketin var olup olmadığı denetlenemedi."
+    "translation": "Klasörün var olup olmadığı denetlenemedi."
   },
   {
     "id": "api.file.test_connection.s3.connection.app_error",
     "translation": "S3 ya da minio bağlantısı kötü."
   },
   {
-    "id": "api.file.upload_file.bad_parse.app_error",
-    "translation": "Dosya yüklenemedi. Üst bilgi işlenemedi."
+    "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
+    "translation": "Unable to upload file(s). Have {{.NumClientIds}} client_ids for {{.NumFiles}} files."
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_files.app_error",
@@ -1125,12 +1197,32 @@
     "translation": "Dosya en büyük boyutları aştığından yüklenemedi: {{.Filename}}"
   },
   {
+    "id": "api.file.upload_file.large_image_detailed.app_error",
+    "translation": "{{.Filename}} dimensions ({{.Width}} by {{.Height}} pixels) exceed the limits"
+  },
+  {
+    "id": "api.file.upload_file.multiple_channel_ids.app_error",
+    "translation": "Unable to upload file(s). Multiple conflicting channel_ids."
+  },
+  {
+    "id": "api.file.upload_file.read_form_value.app_error",
+    "translation": "Unable to upload file(s). Error reading the value for {{.Formname}}."
+  },
+  {
+    "id": "api.file.upload_file.read_request.app_error",
+    "translation": "Unable to upload file(s). Error reading or parsing request data."
+  },
+  {
     "id": "api.file.upload_file.storage.app_error",
     "translation": "Dosya yüklenemedi. Görsel deposu ayarları yapılmamış."
   },
   {
     "id": "api.file.upload_file.too_large.app_error",
     "translation": "Dosya yüklenemedi. Dosya çok büyük."
+  },
+  {
+    "id": "api.file.upload_file.too_large_detailed.app_error",
+    "translation": "Unable to upload file {{.Filename}}. {{.Length}} bytes exceeds the maximum allowed {{.Limit}} bytes."
   },
   {
     "id": "api.file.write_file.s3.app_error",
@@ -1151,6 +1243,18 @@
   {
     "id": "api.incoming_webhook.invalid_username.app_error",
     "translation": "Kullanıcı adı geçersiz."
+  },
+  {
+    "id": "api.io_error",
+    "translation": "input/output error"
+  },
+  {
+    "id": "api.ldap_group.not_found",
+    "translation": "ldap group not found"
+  },
+  {
+    "id": "api.ldap_groups.license_error",
+    "translation": "your license does not support ldap groups"
   },
   {
     "id": "api.license.add_license.array.app_error",
@@ -1191,6 +1295,10 @@
   {
     "id": "api.license.client.old_format.app_error",
     "translation": "Yeni istemci lisansı biçimi henüz desteklenmiyor. Lütfen sorgu dizgesini format=old olarak yazın."
+  },
+  {
+    "id": "api.marshal_error",
+    "translation": "marshal error"
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
@@ -1339,6 +1447,14 @@
   {
     "id": "api.post.create_webhook_post.creating.app_error",
     "translation": "İleti oluşturulurken sorun çıktı"
+  },
+  {
+    "id": "api.post.deduplicate_create_post.failed_to_get",
+    "translation": "Failed to fetch original post after deduplicating a client repeating the same request."
+  },
+  {
+    "id": "api.post.deduplicate_create_post.pending",
+    "translation": "Rejected post since another client is making the same request."
   },
   {
     "id": "api.post.disabled_all",
@@ -1548,7 +1664,7 @@
   },
   {
     "id": "api.slackimport.slack_add_users.unable_import",
-    "translation": "{{.Username}} Slacks kullanıcısı içe aktarılamadı.\r\n"
+    "translation": "{{.Username}} Slack kullanıcısı içe aktarılamadı.\r\n"
   },
   {
     "id": "api.slackimport.slack_import.log",
@@ -1612,7 +1728,7 @@
   },
   {
     "id": "api.team.import_team.integer.app_error",
-    "translation": "Dosya boyutu değeri tamsayı olmalıdır"
+    "translation": "Dosya boyutu değeri tam sayı olmalıdır"
   },
   {
     "id": "api.team.import_team.no_file.app_error",
@@ -1664,7 +1780,7 @@
   },
   {
     "id": "api.team.join_user_to_team.allowed_domains.app_error",
-    "translation": "E-posta belirli bir etki alanından (@ornek.com gibi) gelmelidir. Lütfen ayrıntılı bilgi almak için sistem yöneticini ile görüşün."
+    "translation": "E-posta belirli bir etki alanından (@ornek.com gibi) gelmelidir. Lütfen ayrıntılı bilgi almak için sistem yöneticiniz ile görüşün."
   },
   {
     "id": "api.team.leave.left",
@@ -1828,7 +1944,7 @@
   },
   {
     "id": "api.templates.invite_body.extra_info",
-    "translation": "Mattermost kullanarak ileti ve dosyaları Bilgisayarınız ya da telefonunuz üzerinden paylaşabilir ve anında arama ve arşivleme özelliklerine sahip olabilirsiniz. [[{{.TeamDisplayName}}]] takımına katıldıktan sonra takımınızda oturum açmak ve bu özelliklere istediğiniz zaman ulaşmak için şu adresi kullanın:"
+    "translation": "Mattermost kullanarak ileti ve dosyaları bilgisayarınız ya da telefonunuz üzerinden paylaşabilir; anında arama ve arşivleme özelliklerine sahip olabilirsiniz. [[{{.TeamDisplayName}}]] takımına katıldıktan sonra takımınızda oturum açmak ve bu özelliklere istediğiniz zaman ulaşmak için şu adresi kullanın:"
   },
   {
     "id": "api.templates.invite_body.info",
@@ -2007,6 +2123,10 @@
     "translation": "Erişim kodu eksik"
   },
   {
+    "id": "api.user.authorize_oauth_user.response.app_error",
+    "translation": "OAuth hizmet sağlayıcısından alınan yanıt geçersiz"
+  },
+  {
     "id": "api.user.authorize_oauth_user.service.app_error",
     "translation": "{{.Service}} hizmeti için kod isteği tamamlanamadı"
   },
@@ -2019,16 +2139,16 @@
     "translation": "Desteklenmeyen OAuth hizmeti sağlayıcı"
   },
   {
+    "id": "api.user.autocomplete_users.invalid_team_id",
+    "translation": "Takım kodu geçersiz"
+  },
+  {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
     "translation": "Çok sayıda başarısız oturum açma girişimi nedeniyle hesabınız kilitlendi. Lütfen parolanızı sıfırlayın."
   },
   {
     "id": "api.user.check_user_mfa.bad_code.app_error",
     "translation": "MFA kodu geçersiz."
-  },
-  {
-    "id": "api.user.check_user_mfa.not_available.app_error",
-    "translation": "MFA ayarları yapılmamış ya da bu sunucu tarafından desteklenmiyor"
   },
   {
     "id": "api.user.check_user_password.invalid.app_error",
@@ -2111,16 +2231,16 @@
     "translation": "Kimlik Doğrulama Aktarımı yapılandırılmamış ya da bu sunucu üzerinde kullanılamıyor."
   },
   {
-    "id": "api.user.generate_mfa_qr.not_available.app_error",
-    "translation": "MFA ayarları yapılmamış ya da bu sunucu üzerinde kullanılamıyor"
-  },
-  {
     "id": "api.user.get_authorization_code.unsupported.app_error",
     "translation": "Desteklenmeyen OAuth hizmeti sağlayıcı"
   },
   {
     "id": "api.user.get_profile_image.not_found.app_error",
     "translation": "Profil görseli alınamadı, kullanıcı bulunamadı."
+  },
+  {
+    "id": "api.user.get_user_by_email.permissions.app_error",
+    "translation": "Kullanıcı e-posta aracılığı ile alınırken sorun çıktı"
   },
   {
     "id": "api.user.ldap_to_email.not_available.app_error",
@@ -2177,6 +2297,10 @@
   {
     "id": "api.user.oauth_to_email.not_available.app_error",
     "translation": "Kimlik Doğrulama Aktarımı yapılandırılmamış ya da bu sunucu üzerinde kullanılamıyor."
+  },
+  {
+    "id": "api.user.register_terms_of_service_action.bad_value.app_error",
+    "translation": "Onaylanan değer hatalı"
   },
   {
     "id": "api.user.reset_password.broken_token.app_error",
@@ -2273,10 +2397,6 @@
   {
     "id": "api.user.update_active.permissions.app_error",
     "translation": "İzinleriniz yeterli değil"
-  },
-  {
-    "id": "api.user.update_mfa.not_available.app_error",
-    "translation": "MFA ayarları yapılmamış ya da bu sunucu üzerinde kullanılamıyor"
   },
   {
     "id": "api.user.update_oauth_user_attrs.get_user.app_error",
@@ -2401,14 +2521,6 @@
   {
     "id": "api.webhook.update_outgoing.intersect.app_error",
     "translation": "Aynı kanaldaki giden web bağlantılarında aynı tetikleyici sözcük ve geri çağırma adresleri bulunamaz."
-  },
-  {
-    "id": "api.webrtc.disabled.app_error",
-    "translation": "Bu sunucu üzerinde WebRTC etkinleştirilmemiş."
-  },
-  {
-    "id": "api.webrtc.register_token.app_error",
-    "translation": "WebRTC kodu kaydedilirken bir sorun çıktı"
   },
   {
     "id": "api.websocket_handler.invalid_param.app_error",
@@ -2903,10 +3015,6 @@
     "translation": "Kullanıcı Kimlik Doğrulama Verileri çok uzun."
   },
   {
-    "id": "app.import.validate_user_import_data.auth_service_length.error",
-    "translation": "Kullanıcı Kimlik Doğrulama Hizmeti belirtilmiş ise boş olmamalıdır."
-  },
-  {
     "id": "app.import.validate_user_import_data.email_length.error",
     "translation": "Kullanıcı e-posta adresinin uzunluğu geçersiz."
   },
@@ -3137,6 +3245,10 @@
   {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
     "translation": "API bağlantı noktasına erişilemediğinden istenilen aktarımlar yapılamadı."
+  },
+  {
+    "id": "app.submit_interactive_dialog.json_error",
+    "translation": "Etkileşim penceresi için JSON kodlaması sırasında bir sorun çıktı."
   },
   {
     "id": "app.system_install_date.parse_int.app_error",
@@ -3379,6 +3491,10 @@
     "translation": "Elasticsearch sunucusunun adresi ya da Kullanıcı Adı değişmiş. Bağlantıyı sınamak için lütfen Elasticsearch parolasını yeniden yazın."
   },
   {
+    "id": "ent.ldap.app_error",
+    "translation": "ldap interface was nil"
+  },
+  {
     "id": "ent.ldap.create_fail",
     "translation": "LDAP kullanıcısı eklenemedi."
   },
@@ -3423,12 +3539,40 @@
     "translation": "AD/LDAP kullanılarak tüm kullanıcılar alınamadı"
   },
   {
+    "id": "ent.ldap.syncronize.get_all_groups.app_error",
+    "translation": "error retrieving groups"
+  },
+  {
+    "id": "ent.ldap.syncronize.populate_syncables",
+    "translation": "error populating syncables"
+  },
+  {
     "id": "ent.ldap.syncronize.search_failure.app_error",
     "translation": "AD/LDAP üzerinde kullanıcılar aranamadı. Mattermost sunucunuzun AD/LDAP sunucunuza bağlanabildiğinden emin olun."
   },
   {
     "id": "ent.ldap.validate_filter.app_error",
     "translation": "AD/LDAP süzgeci geçersiz"
+  },
+  {
+    "id": "ent.ldap_groups.group_search_error",
+    "translation": "error retrieving ldap group"
+  },
+  {
+    "id": "ent.ldap_groups.groups_search_error",
+    "translation": "error retrieving ldap groups"
+  },
+  {
+    "id": "ent.ldap_groups.members_of_group_error",
+    "translation": "error retrieving members of group"
+  },
+  {
+    "id": "ent.ldap_groups.no_rows",
+    "translation": "no groups found with matching uid"
+  },
+  {
+    "id": "ent.ldap_groups.reachable_groups_error",
+    "translation": "error retrieving groups for user"
   },
   {
     "id": "ent.message_export.global_relay.attach_file.app_error",
@@ -3481,42 +3625,6 @@
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_open_zip_file_data.app_error",
     "translation": "Geçici dışa aktarma dosyası açılamadı"
-  },
-  {
-    "id": "ent.mfa.activate.authenticate.app_error",
-    "translation": "MFA kodu ile kimlik doğrulanırken sorun çıktı"
-  },
-  {
-    "id": "ent.mfa.activate.bad_token.app_error",
-    "translation": "MFA kodu geçersiz"
-  },
-  {
-    "id": "ent.mfa.activate.save_active.app_error",
-    "translation": "Kullanıcının MFA etkin durumu güncellenemedi"
-  },
-  {
-    "id": "ent.mfa.deactivate.save_active.app_error",
-    "translation": "Kullanıcının MFA etkin durumu güncellenemedi"
-  },
-  {
-    "id": "ent.mfa.deactivate.save_secret.app_error",
-    "translation": "MFA parolası temizlenirlen sorun çıktı"
-  },
-  {
-    "id": "ent.mfa.generate_qr_code.create_code.app_error",
-    "translation": "QR kodu üretilirken sorun çıktı"
-  },
-  {
-    "id": "ent.mfa.generate_qr_code.save_secret.app_error",
-    "translation": "MFA parolası kaydedilirken sorun çıktı"
-  },
-  {
-    "id": "ent.mfa.license_disable.app_error",
-    "translation": "Geçerli lisansta çok aşamalı kimlik doğrulaması özelliği bulunmuyor"
-  },
-  {
-    "id": "ent.mfa.validate_token.authenticate.app_error",
-    "translation": "MFA kodu ile kimlik doğrulanırken sorun çıktı"
   },
   {
     "id": "ent.migration.migratetoldap.duplicate_field",
@@ -3599,6 +3707,30 @@
     "translation": "SAML 2.0 ayarları yapılmamış ya da bu sunucu tarafından desteklenmiyor."
   },
   {
+    "id": "interactive_message.decode_trigger_id.base64_decode_failed",
+    "translation": "Etkileşim penceresi için base64 tetikleyici kodu çözülemedi."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.expired",
+    "translation": "Etkileşimli pencere için tetikleyici kodunun süresi geçmiş. Tetikleyici kodları en fazla {{.Seconds}} saniye süreyle geçerlidir."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.missing_data",
+    "translation": "Etkileşim penceresi için tetikleyici kodunda istenilen veri eksik."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.signature_decode_failed",
+    "translation": "Etkileşim penceresi için tetikleyici kodunun base64 imzası çözülemedi."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.verify_signature_failed",
+    "translation": "Etkileşimli pencere için tetikleyici kodunun imzası doğrulanamadı."
+  },
+  {
+    "id": "interactive_message.generate_trigger_id.signing_failed",
+    "translation": "Etkileşim penceresi için üretilen tetikleyici kodu imzalanamadı."
+  },
+  {
     "id": "jobs.do_job.batch_size.parse_error",
     "translation": "İleti dışa aktarma görevinde BatchSize değeri çözümlenemedi."
   },
@@ -3629,6 +3761,42 @@
   {
     "id": "mattermost.bulletin.subject",
     "translation": "Mattermost Güvenlik Duyurusu"
+  },
+  {
+    "id": "mfa.activate.authenticate.app_error",
+    "translation": "MFA kodu doğrulanırken sorun çıktı"
+  },
+  {
+    "id": "mfa.activate.bad_token.app_error",
+    "translation": "MFA kodu geçersiz"
+  },
+  {
+    "id": "mfa.activate.save_active.app_error",
+    "translation": "Kullanıcının MFA etkin durumu güncellenemedi"
+  },
+  {
+    "id": "mfa.deactivate.save_active.app_error",
+    "translation": "Kullanıcının MFA etkin durumu güncellenemedi"
+  },
+  {
+    "id": "mfa.deactivate.save_secret.app_error",
+    "translation": "MFA parolası temizlenirken sorun çıktı"
+  },
+  {
+    "id": "mfa.generate_qr_code.create_code.app_error",
+    "translation": "QR kodu üretilirken sorun çıktı"
+  },
+  {
+    "id": "mfa.generate_qr_code.save_secret.app_error",
+    "translation": "MFA parolası kaydedilirken sorun çıktı"
+  },
+  {
+    "id": "mfa.mfa_disabled.app_error",
+    "translation": "Bu sunucuda çok aşamalı kimlik doğrulaması zorunludur."
+  },
+  {
+    "id": "mfa.validate_token.authenticate.app_error",
+    "translation": "MFA kodu doğrulanırken sorun çıktı"
   },
   {
     "id": "migrations.worker.run_advanced_permissions_phase_2_migration.invalid_progress",
@@ -3737,6 +3905,10 @@
   {
     "id": "model.channel_member.is_valid.email_value.app_error",
     "translation": "E-posta bildirimi değeri geçersiz"
+  },
+  {
+    "id": "model.channel_member.is_valid.ignore_channel_mentions_value.app_error",
+    "translation": "Kanal anmalarını yok sayma durumu geçersiz"
   },
   {
     "id": "model.channel_member.is_valid.notify_level.app_error",
@@ -4255,32 +4427,16 @@
     "translation": "Kullanıcının yazma aralıkları süresi 1000 milisaniyeden küçük olmamalıdır."
   },
   {
-    "id": "model.config.is_valid.webrtc_gateway_admin_secret.app_error",
-    "translation": "WebRTC Ağ Geçidi Yönetici parolası ayarlanmalıdır."
+    "id": "model.config.is_valid.tls_cert_file.app_error",
+    "translation": "TLS sertifikası dosyasının değeri geçersiz - LetsEncrypt kullanın ya da var olan sertifika dosyasının yolunu belirtin"
   },
   {
-    "id": "model.config.is_valid.webrtc_gateway_admin_url.app_error",
-    "translation": "WebRTC Ağ Geçidi Yönetici adresi http:// ya da https:// ile başlayan geçerli bir adres olmalıdır."
+    "id": "model.config.is_valid.tls_key_file.app_error",
+    "translation": "TLS anahtar dosyasının değeri geçersiz - LetsEncrypt kullanın ya da var olan anahtar dosyasının yolunu belirtin"
   },
   {
-    "id": "model.config.is_valid.webrtc_gateway_ws_url.app_error",
-    "translation": "WebRTC Ağ Geçidi Websocket adresi http:// ya da https:// ile başlayan geçerli bir adres olmalıdır."
-  },
-  {
-    "id": "model.config.is_valid.webrtc_stun_uri.app_error",
-    "translation": "WebRTC STUN adresi stun: ile başlayan geçerli bir adres olmalıdır"
-  },
-  {
-    "id": "model.config.is_valid.webrtc_turn_shared_key.app_error",
-    "translation": "WebRTC TURN adresi ayarlanmış ise TURN Paylaşılmış Anahtarı boş olamaz."
-  },
-  {
-    "id": "model.config.is_valid.webrtc_turn_uri.app_error",
-    "translation": "WebRTC TURN adresi turn: ile başlayan geçerli bir adres olmalıdır"
-  },
-  {
-    "id": "model.config.is_valid.webrtc_turn_username.app_error",
-    "translation": "WebRTC TURN adresi ayarlanmış ise TURN Kullanıcı Adı boş olamaz."
+    "id": "model.config.is_valid.tls_overwrite_cipher.app_error",
+    "translation": "TLS için kullanılacak şifreleyici için aktarılan değer geçersiz - Lütfen geçerli değerlerin neler olduğunu öğrenmek için belgelere bakın"
   },
   {
     "id": "model.config.is_valid.webserver_security.app_error",
@@ -4341,6 +4497,66 @@
   {
     "id": "model.file_info.is_valid.user_id.app_error",
     "translation": "Kullanıcı kodu değeri geçersiz."
+  },
+  {
+    "id": "model.group.create_at.app_error",
+    "translation": "invalid create at property for group"
+  },
+  {
+    "id": "model.group.delete_at.app_error",
+    "translation": "invalid delete at property for group"
+  },
+  {
+    "id": "model.group.description.app_error",
+    "translation": "invalid description property for group"
+  },
+  {
+    "id": "model.group.display_name.app_error",
+    "translation": "invalid display name property for group"
+  },
+  {
+    "id": "model.group.id.app_error",
+    "translation": "invalid id property for group"
+  },
+  {
+    "id": "model.group.name.app_error",
+    "translation": "invalid name property for group"
+  },
+  {
+    "id": "model.group.remote_id.app_error",
+    "translation": "invalid remote id property for group"
+  },
+  {
+    "id": "model.group.source.app_error",
+    "translation": "invalid source property for group"
+  },
+  {
+    "id": "model.group.update_at.app_error",
+    "translation": "invalid update at property for group"
+  },
+  {
+    "id": "model.group_member.group_id.app_error",
+    "translation": "invalid group id property for group member"
+  },
+  {
+    "id": "model.group_member.user_id.app_error",
+    "translation": "invalid user id property for group member"
+  },
+  {
+    "id": "model.group_syncable.group_id.app_error",
+    "translation": "invalid group id property for group syncable"
+  },
+  {
+    "id": "model.group_syncable.syncable_id.app_error",
+    "translation": "invalid syncable id for group syncable"
+  },
+  {
+    "id": "model.group_syncable.type.app_error",
+    "translation": "invalid type property for group syncable"
+  },
+  {
+    "id": "model.group_syncable.unmarshaljson.duplicate_type_identifier",
+    "translation": "type identifier already exists: perhaps json contains both 'team_id' and 'channel_id'"
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -4536,7 +4752,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Dosya kodları geçersiz"
+    "translation": "Invalid file ids. Note that uploads are limited to 5 files maximum. Please use additional posts for more files."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -4679,6 +4895,22 @@
     "translation": "Kullanıcı kodu geçersiz"
   },
   {
+    "id": "model.terms_of_service.is_valid.create_at.app_error",
+    "translation": "Zorunlu hizmet koşulları özelliği eksik: olusturulma_zamani."
+  },
+  {
+    "id": "model.terms_of_service.is_valid.id.app_error",
+    "translation": "Hizmet koşulları kodu geçersiz."
+  },
+  {
+    "id": "model.terms_of_service.is_valid.text.app_error",
+    "translation": "Özel hizmet koşulları metni çok uzun. En çok {{.MaxLength}} karakter uzunluğunda olabilir."
+  },
+  {
+    "id": "model.terms_of_service.is_valid.user_id.app_error",
+    "translation": "Zorunlu hizmet koşulları özelliği eksik: kullanici_kodu."
+  },
+  {
     "id": "model.token.is_valid.expiry",
     "translation": "Kod sona erme süresi geçersiz"
   },
@@ -4688,15 +4920,75 @@
   },
   {
     "id": "model.user.is_valid.email.app_error",
-    "translation": "Please enter a valid email address."
+    "translation": "Lütfen geçerli bir e-posta adresi yazın."
   },
   {
     "id": "model.user.is_valid.pwd.app_error",
     "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalıdır."
   },
   {
+    "id": "model.user.is_valid.pwd_lowercase.app_error",
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir küçük harf içermelidir."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number.app_error",
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir küçük harf ile bir rakam içermelidir."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_number_symbol.app_error",
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir küçük harf, bir rakam ve bir simge (\"~!@#$%^&*()\" gibi) içermelidir."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_symbol.app_error",
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir küçük harf ve bir simge (\"~!@#$%^&*()\" gibi) içermelidir."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase.app_error",
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir küçük ile bir büyük harf içermelidir."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number.app_error",
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir küçük, bir büyük harf ve bir rakam içermelidir."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_number_symbol.app_error",
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir küçük harf, bir büyük harf, bir rakam ve bir simge (\"~!@#$%^&*()\" gibi) içermelidir."
+  },
+  {
+    "id": "model.user.is_valid.pwd_lowercase_uppercase_symbol.app_error",
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir küçük harf, bir büyük harf ve bir simge (\"~!@#$%^&*()\" gibi) içermelidir."
+  },
+  {
+    "id": "model.user.is_valid.pwd_number.app_error",
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir rakam içermelidir."
+  },
+  {
+    "id": "model.user.is_valid.pwd_number_symbol.app_error",
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir rakam ile bir simge (\"~!@#$%^&*()\" gibi) içermelidir."
+  },
+  {
+    "id": "model.user.is_valid.pwd_symbol.app_error",
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir simge (\"~!@#$%^&*()\" gibi) içermelidir."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase.app_error",
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir büyük harf içermelidir."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number.app_error",
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir büyük harf ile bir rakam içermelidir."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir büyük harf, bir rakam ve bir simge (\"~!@#$%^&*()\" gibi) içermelidir."
+  },
+  {
+    "id": "model.user.is_valid.pwd_uppercase_symbol.app_error",
+    "translation": "Parolanız en az {{.Min}} karakter uzunluğunda olmalı ve en az bir büyük harf ile bir simge (\"~!@#$%^&*()\" gibi) içermelidir."
+  },
+  {
     "id": "model.user.is_valid.username.app_error",
-    "translation": "Username must begin with a letter and contain between 3 and 22 characters including numbers, lowercase letters, and the symbols \".\", \"-\", and \"_\"."
+    "translation": "Kullanıcı adı bir harf ile başlamalı, 3 ile 22 karakter arasında olmalı ve rakamlar, küçük harfler ve \".\",\"-\" ile \"_\" karakterlerini içermelidir."
   },
   {
     "id": "model.user_access_token.is_valid.description.app_error",
@@ -4715,6 +5007,18 @@
     "translation": "Kullanıcı kodu geçersiz"
   },
   {
+    "id": "model.user_terms_of_service.is_valid.create_at.app_error",
+    "translation": "Zorunlu hizmet koşulları özelliği eksik: olusturulma_zamani."
+  },
+  {
+    "id": "model.user_terms_of_service.is_valid.service_terms_id.app_error",
+    "translation": "Zorunlu hizmet koşulları özelliği eksik: hizmet_kosullari_kodu."
+  },
+  {
+    "id": "model.user_terms_of_service.is_valid.user_id.app_error",
+    "translation": "Zorunlu hizmet koşulları özelliği eksik: kullanici_kodu."
+  },
+  {
     "id": "model.utils.decode_json.app_error",
     "translation": "kod çözülemedi"
   },
@@ -4729,6 +5033,34 @@
   {
     "id": "plugin.api.update_user_status.bad_status",
     "translation": "Kullanıcı durumu ayarlanamadı. Kullanıcı durumu bilinmiyor."
+  },
+  {
+    "id": "plugin_api.get_file_link.disabled.app_error",
+    "translation": "Herkese açık bağlantılar devre dışı bırakılmış"
+  },
+  {
+    "id": "plugin_api.get_file_link.no_post.app_error",
+    "translation": "Dosyanın herkese açık bağlantısı alınamadı. Dosya okunabilecek bir iletiye eklenmiş olmalıdır."
+  },
+  {
+    "id": "plugin_api.send_mail.missing_htmlbody",
+    "translation": "HTML gövdesi içeriği eksik."
+  },
+  {
+    "id": "plugin_api.send_mail.missing_subject",
+    "translation": "E-posta konusu eksik."
+  },
+  {
+    "id": "plugin_api.send_mail.missing_to",
+    "translation": "KİME adresi eksik."
+  },
+  {
+    "id": "store.insert_error",
+    "translation": "insert error"
+  },
+  {
+    "id": "store.select_error",
+    "translation": "select error"
   },
   {
     "id": "store.sql.convert_string_array",
@@ -4891,6 +5223,10 @@
     "translation": "Herkese açık kanallar alınamadı"
   },
   {
+    "id": "store.sql_channel.get_timezone.app_error",
+    "translation": "Kanal üyelerinin saat dilimleri alınamadı"
+  },
+  {
     "id": "store.sql_channel.get_unread.app_error",
     "translation": "Okunmamış kanal iletileri alınamadı"
   },
@@ -4957,6 +5293,10 @@
   {
     "id": "store.sql_channel.pinned_posts.app_error",
     "translation": "Sabitlenmiş iletiler bulunamadı"
+  },
+  {
+    "id": "store.sql_channel.remove_all_deactivated_members.app_error",
+    "translation": "Devre dışı bırakılmış kullanıcılar kanaldan çıkarılamadı"
   },
   {
     "id": "store.sql_channel.remove_member.app_error",
@@ -5291,6 +5631,30 @@
     "translation": "Dosya bilgileri kaydedilemedi"
   },
   {
+    "id": "store.sql_group.group_syncable_already_deleted",
+    "translation": "group syncable was already deleted"
+  },
+  {
+    "id": "store.sql_group.no_rows",
+    "translation": "no matching group found"
+  },
+  {
+    "id": "store.sql_group.no_rows_changed",
+    "translation": "no rows changed"
+  },
+  {
+    "id": "store.sql_group.nothing_to_update",
+    "translation": "nothing to update for group syncable"
+  },
+  {
+    "id": "store.sql_group.unique_constraint",
+    "translation": "Aynı adlı bir takım zaten var"
+  },
+  {
+    "id": "store.sql_group.uniqueness_error",
+    "translation": "group member already exists"
+  },
+  {
     "id": "store.sql_job.delete.app_error",
     "translation": "Görev silinemedi"
   },
@@ -5613,6 +5977,10 @@
   {
     "id": "store.sql_preference.update.app_error",
     "translation": "Ayar güncellenemedi"
+  },
+  {
+    "id": "store.sql_reaction.bulk_get_for_post_ids.app_error",
+    "translation": "İletinin tepkileri alınamadı"
   },
   {
     "id": "store.sql_reaction.delete.app_error",
@@ -6027,6 +6395,22 @@
     "translation": "Son takım simgesi güncelleme tarihi güncellenemedi"
   },
   {
+    "id": "store.sql_terms_of_service.save.app_error",
+    "translation": "Hizmet koşulları kaydedilemedi."
+  },
+  {
+    "id": "store.sql_terms_of_service_store.get.app_error",
+    "translation": "Hizmet koşulları alınamadı."
+  },
+  {
+    "id": "store.sql_terms_of_service_store.get.no_rows.app_error",
+    "translation": "Herhangi bir hizmet koşulları metni bulunamadı."
+  },
+  {
+    "id": "store.sql_terms_of_service_store.save.existing.app_error",
+    "translation": "Var olan hizmet koşulları için kaydetme çağrısı yapılmamalıdır."
+  },
+  {
     "id": "store.sql_user.analytics_daily_active_users.app_error",
     "translation": "Belirtilen dönemde etkin olan kullanıcılar alınamadı"
   },
@@ -6271,6 +6655,22 @@
     "translation": "Erişim kodu etkinleştirilemedi"
   },
   {
+    "id": "store.sql_user_terms_of_service.delete.app_error",
+    "translation": "Hizmet koşulları silinemedi."
+  },
+  {
+    "id": "store.sql_user_terms_of_service.get_by_user.app_error",
+    "translation": "Hizmet koşulları alınamadı."
+  },
+  {
+    "id": "store.sql_user_terms_of_service.get_by_user.no_rows.app_error",
+    "translation": "Herhangi bir hizmet koşulları metni bulunamadı."
+  },
+  {
+    "id": "store.sql_user_terms_of_service.save.app_error",
+    "translation": "Hizmet koşulları kaydedilemedi."
+  },
+  {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
     "translation": "Gelen web bağlantıları sayılamadı"
   },
@@ -6349,6 +6749,10 @@
   {
     "id": "store.sql_webhooks.update_outgoing.app_error",
     "translation": "Web bağlantısı güncellenemedi"
+  },
+  {
+    "id": "store.update_error",
+    "translation": "update error"
   },
   {
     "id": "system.message.name",

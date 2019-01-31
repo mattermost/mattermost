@@ -308,7 +308,7 @@ func fixEnvSettingsCase(in map[string]interface{}) (out map[string]interface{}, 
 			return nil
 		}
 
-		out := make(map[string]interface{}, len(in))
+		fixCaseOut := make(map[string]interface{}, len(in))
 
 		for i := 0; i < t.NumField(); i++ {
 			field := t.Field(i)
@@ -316,14 +316,14 @@ func fixEnvSettingsCase(in map[string]interface{}) (out map[string]interface{}, 
 			key := field.Name
 			if value, ok := in[strings.ToLower(key)]; ok {
 				if valueAsMap, ok := value.(map[string]interface{}); ok {
-					out[key] = fixCase(valueAsMap, field.Type)
+					fixCaseOut[key] = fixCase(valueAsMap, field.Type)
 				} else {
-					out[key] = value
+					fixCaseOut[key] = value
 				}
 			}
 		}
 
-		return out
+		return fixCaseOut
 	}
 
 	out = fixCase(in, reflect.TypeOf(model.Config{}))

@@ -205,19 +205,20 @@ func TestIncomingWebhook(t *testing.T) {
 
 		hook, err := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id, ChannelLocked: true})
 		require.Nil(t, err)
+		require.NotNil(t, hook)
 
-		url := ApiClient.Url + "/hooks/" + hook.Id
+		apiHookUrl := ApiClient.Url + "/hooks/" + hook.Id
 
 		payload := "payload={\"text\": \"test text\"}"
-		resp, err2 := http.Post(url, "application/x-www-form-urlencoded", strings.NewReader(payload))
+		resp, err2 := http.Post(apiHookUrl, "application/x-www-form-urlencoded", strings.NewReader(payload))
 		require.Nil(t, err2)
 		assert.True(t, resp.StatusCode == http.StatusOK)
 
-		resp, err2 = http.Post(url, "application/json", strings.NewReader(fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", th.BasicChannel.Name)))
+		resp, err2 = http.Post(apiHookUrl, "application/json", strings.NewReader(fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", th.BasicChannel.Name)))
 		require.Nil(t, err2)
 		assert.True(t, resp.StatusCode == http.StatusOK)
 
-		resp, err2 = http.Post(url, "application/json", strings.NewReader(fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", channel.Name)))
+		resp, err2 = http.Post(apiHookUrl, "application/json", strings.NewReader(fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", channel.Name)))
 		require.Nil(t, err2)
 		assert.True(t, resp.StatusCode == http.StatusForbidden)
 	})

@@ -816,6 +816,53 @@ func TestUserHasLoggedIn(t *testing.T) {
 	}
 }
 
+func TestUserHasBeenCreated(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
+		[]string{
+			`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost-server/plugin"
+			"github.com/mattermost/mattermost-server/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) UserHasBeenCreated(c *plugin.Context, user *model.User) {
+			user.Nickname = "plugin-callback-success"
+			p.API.UpdateUser(user)
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, th.App.NewPluginAPI)
+	defer tearDown()
+
+	user := &model.User{
+		Email:       model.NewId() + "success+test@example.com",
+		Nickname:    "Darth Vader",
+		Username:    "vader" + model.NewId(),
+		Password:    "passwd1",
+		AuthService: "",
+	}
+	_, err := th.App.CreateUser(user)
+	require.Nil(t, err)
+
+	time.Sleep(1 * time.Second)
+
+	user, err = th.App.GetUser(user.Id)
+	require.Nil(t, err)
+
+	require.Equal(t, "plugin-callback-success", user.Nickname)
+}
+
 func TestErrorString(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
