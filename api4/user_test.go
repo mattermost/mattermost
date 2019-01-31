@@ -31,17 +31,18 @@ func TestCreateUser(t *testing.T) {
 	_, resp = th.Client.Login(user.Email, user.Password)
 	session, _ := th.App.GetSession(th.Client.AuthToken)
 	expectedCsrf := "MMCSRF=" + session.GetCSRF()
+	actualCsrf := ""
 
 	for _, cookie := range resp.Header["Set-Cookie"] {
-		if !strings.HasPrefix(cookie, "MMCSRF") {
-			continue
+		if strings.HasPrefix(cookie, "MMCSRF") {
+			cookieParts := strings.Split(cookie, ";")
+			actualCsrf = cookieParts[0]
+			break
 		}
+	}
 
-		cookieParts := strings.Split(cookie, ";")
-
-		if expectedCsrf != cookieParts[0] {
-			t.Errorf("CSRF Mismatch - Expected %s, got %s", expectedCsrf, cookie)
-		}
+	if expectedCsrf != actualCsrf {
+		t.Errorf("CSRF Mismatch - Expected %s, got %s", expectedCsrf, actualCsrf)
 	}
 
 	if ruser.Nickname != user.Nickname {
