@@ -19,6 +19,7 @@ import (
 
 const LINK_CACHE_SIZE = 10000
 const LINK_CACHE_DURATION = 3600
+const MaxMetadataImageSize = MaxOpenGraphResponseSize
 
 var linkCache = utils.NewLru(LINK_CACHE_SIZE)
 
@@ -397,7 +398,7 @@ func cacheLinkMetadata(requestURL string, og *opengraph.OpenGraph, image *model.
 
 func (a *App) parseLinkMetadata(requestURL string, body io.Reader, contentType string) (*opengraph.OpenGraph, *model.PostImage, error) {
 	if strings.HasPrefix(contentType, "image") {
-		image, err := parseImages(body)
+		image, err := parseImages(io.LimitReader(body, MaxMetadataImageSize))
 		return nil, image, err
 	} else if strings.HasPrefix(contentType, "text/html") {
 		og := a.ParseOpenGraphMetadata(requestURL, body, contentType)
