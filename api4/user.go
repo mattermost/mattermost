@@ -701,7 +701,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// If eMail update is attempted by the currently logged in user, check if correct password was provided
 	if user.Email != "" && ouser.Email != user.Email && c.App.Session.UserId == c.Params.UserId {
-		err := c.App.DoubleCheckPassword(ouser, user.Password)
+		err = c.App.DoubleCheckPassword(ouser, user.Password)
 		if err != nil {
 			c.SetInvalidParam("password")
 			return
@@ -761,7 +761,7 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if err := c.App.DoubleCheckPassword(ouser, *patch.Password); err != nil {
+		if err = c.App.DoubleCheckPassword(ouser, *patch.Password); err != nil {
 			c.SetInvalidParam("password")
 			return
 		}
