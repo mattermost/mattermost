@@ -564,13 +564,14 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.Session.IsOAuth {
-		ouser, err := c.App.GetUser(user.Id)
-		if err != nil {
-			c.Err = err
-			return
-		}
 
+	ouser, err := c.App.GetUser(user.Id)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if c.Session.IsOAuth {
 		if ouser.Email != user.Email {
 			c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 			c.Err.DetailedError += ", attempted email update by oauth app"
@@ -578,7 +579,18 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if ruser, err := c.App.UpdateUserAsUser(user, c.IsSystemAdmin()); err != nil {
+
+	// If eMail update is attempted by the currently logged in user, check if correct password was provided
+	if user.Email != "" && ouser.Email != user.Email && c.Session.UserId == c.Params.UserId {
+		err = c.App.DoubleCheckPassword(ouser, user.Password)
+		if err != nil {
+			c.SetInvalidParam("password")
+			return
+		}
+	}
+
+	ruser, err := c.App.UpdateUserAsUser(user, c.IsSystemAdmin())
+	if err != nil {
 		c.Err = err
 		return
 	} else {
@@ -623,7 +635,21 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if ruser, err := c.App.PatchUser(c.Params.UserId, patch, c.IsSystemAdmin()); err != nil {
+	// If eMail update is attempted by the currently logged in user, check if correct password was provided
+	if patch.Email != nil && ouser.Email != *patch.Email && c.Session.UserId == c.Params.UserId {
+		if patch.Password == nil {
+			c.SetInvalidParam("password")
+			return
+		}
+
+		if err = c.App.DoubleCheckPassword(ouser, *patch.Password); err != nil {
+			c.SetInvalidParam("password")
+			return
+		}
+	}
+
+	ruser, err := c.App.PatchUser(c.Params.UserId, patch, c.IsSystemAdmin())
+	if err != nil {
 		c.Err = err
 		return
 	} else {
