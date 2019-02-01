@@ -298,7 +298,7 @@ func (a *App) generateHyperlinkForChannels(postMessage, teamName, teamURL string
 			mlog.Warn(fmt.Sprintf("Encountered error while generating hyperlink for %s, as channel with that name doesn't exist.", channelName[1:]))
 		} else {
 			channelURL = teamURL + "/channels/" + ch.Name
-			channelHyperLink = fmt.Sprintf("<a href='%s'>%s</a>", channelURL, channelName)
+			channelHyperLink = fmt.Sprintf("<a href='%s'>%s</a>", channelURL, "~"+ch.DisplayName)
 			postMessage = strings.Replace(postMessage, channelName, channelHyperLink, -1)
 		}
 	}
