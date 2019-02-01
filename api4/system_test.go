@@ -771,6 +771,11 @@ func TestRedirectLocation(t *testing.T) {
 	CheckNoError(t, resp)
 	assert.Equal(t, expected, actual)
 
+	// Check cached value
+	actual, resp = th.SystemAdminClient.GetRedirectLocation(mockBitlyLink, "")
+	CheckNoError(t, resp)
+	assert.Equal(t, expected, actual)
+
 	*th.App.Config().ServiceSettings.EnableLinkPreviews = false
 	actual, resp = th.SystemAdminClient.GetRedirectLocation("https://mattermost.com/", "")
 	CheckNoError(t, resp)
