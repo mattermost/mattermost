@@ -854,7 +854,7 @@ func (a *App) UpdatePasswordAsUser(userId, currentPassword, newPassword string) 
 		return err
 	}
 
-	if err := a.doubleCheckPassword(user, currentPassword); err != nil {
+	if err := a.DoubleCheckPassword(user, currentPassword); err != nil {
 		if err.Id == "api.user.check_user_password.invalid.app_error" {
 			err = model.NewAppError("updatePassword", "api.user.update_password.incorrect.app_error", nil, "", http.StatusBadRequest)
 		}
