@@ -119,7 +119,7 @@ func TestAddUserToTeam(t *testing.T) {
 		}
 		defer th.App.PermanentDeleteUser(&user)
 
-		if _, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, ""); err == nil || err.Where != "JoinUserToTeam" {
+		if _, err = th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, ""); err == nil || err.Where != "JoinUserToTeam" {
 			t.Log(err)
 			t.Fatal("Should not add restricted user")
 		}
