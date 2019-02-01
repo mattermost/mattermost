@@ -283,6 +283,7 @@ type ServiceSettings struct {
 	DEPRECATED_DO_NOT_USE_ImageProxyOptions           *string `json:"ImageProxyOptions"` // This field is deprecated and must not be used.
 	EnableAPITeamDeletion                             *bool
 	ExperimentalEnableHardenedMode                    *bool
+	ExperimentalStrictCSRFEnforcement                 *bool
 	EnableEmailInvitations                            *bool
 	ExperimentalLdapGroupSync                         *bool
 }
@@ -611,6 +612,10 @@ func (s *ServiceSettings) SetDefaults() {
 	if s.ExperimentalLdapGroupSync == nil {
 		s.ExperimentalLdapGroupSync = NewBool(false)
 	}
+
+	if s.ExperimentalStrictCSRFEnforcement == nil {
+		s.ExperimentalStrictCSRFEnforcement = NewBool(false)
+	}
 }
 
 type ClusterSettings struct {
@@ -696,7 +701,7 @@ func (s *MetricsSettings) SetDefaults() {
 type ExperimentalSettings struct {
 	ClientSideCertEnable            *bool
 	ClientSideCertCheck             *string
-	EnablePostMetadata              *bool
+	DisablePostMetadata             *bool
 	LinkMetadataTimeoutMilliseconds *int64
 }
 
@@ -709,8 +714,8 @@ func (s *ExperimentalSettings) SetDefaults() {
 		s.ClientSideCertCheck = NewString(CLIENT_SIDE_CERT_CHECK_SECONDARY_AUTH)
 	}
 
-	if s.EnablePostMetadata == nil {
-		s.EnablePostMetadata = NewBool(false)
+	if s.DisablePostMetadata == nil {
+		s.DisablePostMetadata = NewBool(false)
 	}
 
 	if s.LinkMetadataTimeoutMilliseconds == nil {

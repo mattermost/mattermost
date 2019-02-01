@@ -74,7 +74,8 @@
         "EnableAPITeamDeletion": false,
         "ExperimentalEnableHardenedMode": false,
         "EnableEmailInvitations": false,
-        "ExperimentalLdapGroupSync": false
+        "ExperimentalLdapGroupSync": false,
+        "ExperimentalStrictCSRFEnforcement": false
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
@@ -358,7 +359,7 @@
     "ExperimentalSettings": {
         "ClientSideCertEnable": false,
         "ClientSideCertCheck": "secondary",
-        "EnablePostMetadata": false,
+        "DisablePostMetadata": false,
         "LinkMetadataTimeoutMilliseconds": 5000
     },
     "AnalyticsSettings": {
