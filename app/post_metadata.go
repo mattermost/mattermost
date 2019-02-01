@@ -192,7 +192,7 @@ func (a *App) getImagesForPost(post *model.Post, imageURLs []string, isNewPost b
 		if _, image, err := a.getLinkMetadata(imageURL, post.CreateAt, isNewPost); err != nil {
 			mlog.Warn("Failed to get dimensions of an image in a post",
 				mlog.String("post_id", post.Id), mlog.String("image_url", imageURL), mlog.Any("err", err))
-		} else {
+		} else if image != nil {
 			images[imageURL] = image
 		}
 	}
