@@ -551,12 +551,13 @@ func (a *App) LoginByOAuth(service string, userData io.Reader, teamId string) (*
 		} else {
 			return nil, err
 		}
-	} else if err = a.UpdateOAuthUserAttrs(bytes.NewReader(buf.Bytes()), user, provider, service); err != nil {
-		return nil, err
-	}
-
-	if len(teamId) > 0 {
-		err = a.AddUserToTeamByTeamId(teamId, user)
+	} else {
+		if err = a.UpdateOAuthUserAttrs(bytes.NewReader(buf.Bytes()), user, provider, service); err != nil {
+			return nil, err
+		}
+		if len(teamId) > 0 {
+			err = a.AddUserToTeamByTeamId(teamId, user)
+		}
 	}
 
 	if err != nil {
