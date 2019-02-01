@@ -496,6 +496,61 @@ func testProxyOpenGraphImage(t *testing.T, th *TestHelper, shouldProxy bool) {
 	}
 }
 
+func TestGetImagesForPost(t *testing.T) {
+	t.Run("with an image link", func(t *testing.T) {
+		th := Setup()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.1"
+		})
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			file, err := testutils.ReadTestFile("test.png")
+			require.Nil(t, err)
+
+			w.Header().Set("Content-Type", "image/png")
+			w.Write(file)
+		}))
+
+		post := &model.Post{
+			Metadata: &model.PostMetadata{},
+		}
+		imageURL := server.URL + "/image.png"
+
+		images := th.App.getImagesForPost(post, []string{imageURL}, false)
+
+		assert.Equal(t, images, map[string]*model.PostImage{
+			imageURL: {
+				Width:  408,
+				Height: 336,
+			},
+		})
+	})
+
+	t.Run("with an invalid image link", func(t *testing.T) {
+		th := Setup()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.1"
+		})
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusInternalServerError)
+		}))
+
+		post := &model.Post{
+			Metadata: &model.PostMetadata{},
+		}
+		imageURL := server.URL + "/bad_image.png"
+
+		images := th.App.getImagesForPost(post, []string{imageURL}, false)
+
+		assert.Equal(t, images, map[string]*model.PostImage{})
+	})
+}
+
 func TestGetEmojiNamesForString(t *testing.T) {
 	testCases := []struct {
 		Description string
