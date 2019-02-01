@@ -1037,6 +1037,15 @@ func TestUpdateUser(t *testing.T) {
 		t.Fatal("LastPasswordUpdate should not have updated")
 	}
 
+	ruser.Email = th.GenerateTestEmail()
+	_, resp = th.Client.UpdateUser(ruser)
+	CheckBadRequestStatus(t, resp)
+
+	ruser.Password = user.Password
+	ruser, resp = th.Client.UpdateUser(ruser)
+	CheckNoError(t, resp)
+	CheckUserSanitization(t, ruser)
+
 	ruser.Id = "junk"
 	_, resp = th.Client.UpdateUser(ruser)
 	CheckBadRequestStatus(t, resp)
@@ -1084,7 +1093,7 @@ func TestPatchUser(t *testing.T) {
 	th.Client.Login(user.Email, user.Password)
 
 	patch := &model.UserPatch{}
-
+	patch.Password = model.NewString("testpassword")
 	patch.Nickname = model.NewString("Joram Wilander")
 	patch.FirstName = model.NewString("Joram")
 	patch.LastName = model.NewString("Wilander")
@@ -1115,6 +1124,9 @@ func TestPatchUser(t *testing.T) {
 	if ruser.Username != user.Username {
 		t.Fatal("Username should not have updated")
 	}
+	if ruser.Password != ""{
+		t.Fatal("Password should not be returned")
+	}
 	if ruser.NotifyProps["comment"] != "somethingrandom" {
 		t.Fatal("NotifyProps did not update properly")
 	}
@@ -1126,6 +1138,34 @@ func TestPatchUser(t *testing.T) {
 	}
 	if ruser.Timezone["manualTimezone"] != "" {
 		t.Fatal("manualTimezone did not update properly")
+	}
+
+	err := th.App.CheckPasswordAndAllCriteria(ruser, *patch.Password, "")
+	assert.Error(t, err, "Password should not match")
+
+	currentPassword := user.Password
+	user, err = th.App.GetUser(ruser.Id)
+	if err != nil {
+		t.Fatal("User Get shouldn't error")
+	}
+
+	err = th.App.CheckPasswordAndAllCriteria(user, currentPassword, "")
+	if err != nil {
+		t.Fatal("Password should still match")
+	}
+
+	patch = &model.UserPatch{}
+	patch.Email = model.NewString(th.GenerateTestEmail())
+
+	_, resp = th.Client.PatchUser(user.Id, patch)
+	CheckBadRequestStatus(t, resp)
+
+	patch.Password = model.NewString(currentPassword)
+	ruser, resp = th.Client.PatchUser(user.Id, patch)
+	CheckNoError(t, resp)
+
+	if ruser.Email != *patch.Email {
+		t.Fatal("Email did not update properly")
 	}
 
 	patch.Username = model.NewString(th.BasicUser2.Username)
