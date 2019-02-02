@@ -1017,10 +1017,10 @@ type EmailSettings struct {
 	EnableSignInWithUsername          *bool
 	SendEmailNotifications            *bool
 	UseChannelInEmailNotifications    *bool
-	RequireEmailVerification          bool
-	FeedbackName                      string
-	FeedbackEmail                     string
-	ReplyToAddress                    string
+	RequireEmailVerification          *bool
+	FeedbackName                      *string
+	FeedbackEmail                     *string
+	ReplyToAddress                    *string
 	FeedbackOrganization              *string
 	EnableSMTPAuth                    *bool
 	SMTPUsername                      *string
