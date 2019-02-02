@@ -25,7 +25,6 @@ import (
 	"github.com/disintegration/imaging"
 	"github.com/rwcarlsen/goexif/exif"
 	_ "golang.org/x/image/bmp"
-	_ "golang.org/x/image/tiff"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
