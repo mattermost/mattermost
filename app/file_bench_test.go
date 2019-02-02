@@ -39,7 +39,7 @@ func prepareTestImages(tb testing.TB) {
 		tb.Fatal(err)
 	}
 
-	// Encode it as JPEG, GIF, and TIFF
+	// Encode it as JPEG and GIF
 	buf := &bytes.Buffer{}
 	err = jpeg.Encode(buf, rgba, &jpeg.Options{Quality: 50})
 	if err != nil {
