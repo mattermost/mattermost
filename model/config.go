@@ -1076,6 +1076,10 @@ func (s *EmailSettings) SetDefaults() {
 		s.FeedbackEmail = NewString("test@example.com")
 	}
 
+	if s.ReplyToAddress == nil {
+		s.ReplyToAddress = NewString("test@example.com")
+	}
+
 	if s.FeedbackOrganization == nil {
 		s.FeedbackOrganization = NewString(EMAIL_SETTINGS_DEFAULT_FEEDBACK_ORGANIZATION)
 	}
