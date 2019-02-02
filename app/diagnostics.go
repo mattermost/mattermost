@@ -133,6 +133,9 @@ func (a *App) trackActivity() {
 	var deletedPublicChannelCount int64
 	var deletedPrivateChannelCount int64
 	var postsCount int64
+	var slashCommandsCount int64
+	var incomingWebhooksCount int64
+	var outgoingWebhooksCount int64
 
 	dailyActiveChan := a.Srv.Store.User().AnalyticsActiveCount(DAY_MILLISECONDS)
 	monthlyActiveChan := a.Srv.Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS)
@@ -181,6 +184,18 @@ func (a *App) trackActivity() {
 		postsCount = pcr.Data.(int64)
 	}
 
+	if scc := <-a.Srv.Store.Command().AnalyticsCommandCount(""); scc.Err == nil {
+		slashCommandsCount = scc.Data.(int64)
+	}
+
+	if iwc := <-a.Srv.Store.Webhook().AnalyticsIncomingCount(""); iwc.Err == nil {
+		incomingWebhooksCount = iwc.Data.(int64)
+	}
+
+	if owc := <-a.Srv.Store.Webhook().AnalyticsOutgoingCount(""); owc.Err == nil {
+		outgoingWebhooksCount = owc.Data.(int64)
+	}
+
 	a.SendDiagnostic(TRACK_ACTIVITY, map[string]interface{}{
 		"registered_users":             userCount,
 		"active_users_daily":           activeUsersDailyCount,
@@ -193,6 +208,9 @@ func (a *App) trackActivity() {
 		"public_channels_deleted":      deletedPublicChannelCount,
 		"private_channels_deleted":     deletedPrivateChannelCount,
 		"posts":                        postsCount,
+		"slash_commands":               slashCommandsCount,
+		"incoming_webhooks":            incomingWebhooksCount,
+		"outgoing_webhooks":            outgoingWebhooksCount,
 	})
 }
 
@@ -260,6 +278,7 @@ func (a *App) trackConfig() {
 		"allow_cookies_for_subdomains":                            *cfg.ServiceSettings.AllowCookiesForSubdomains,
 		"enable_api_team_deletion":                                *cfg.ServiceSettings.EnableAPITeamDeletion,
 		"experimental_enable_hardened_mode":                       *cfg.ServiceSettings.ExperimentalEnableHardenedMode,
+		"experimental_strict_csrf_enforcement":                    *cfg.ServiceSettings.ExperimentalStrictCSRFEnforcement,
 		"enable_email_invitations":                                *cfg.ServiceSettings.EnableEmailInvitations,
 		"experimental_channel_organization":                       *cfg.ServiceSettings.ExperimentalChannelOrganization,
 		"experimental_ldap_group_sync":                            *cfg.ServiceSettings.ExperimentalLdapGroupSync,
@@ -340,8 +359,8 @@ func (a *App) trackConfig() {
 	a.SendDiagnostic(TRACK_CONFIG_FILE, map[string]interface{}{
 		"enable_public_links":     cfg.FileSettings.EnablePublicLink,
 		"driver_name":             *cfg.FileSettings.DriverName,
-		"isdefault_directory":     isDefault(cfg.FileSettings.Directory, model.FILE_SETTINGS_DEFAULT_DIRECTORY),
-		"isabsolute_directory":    filepath.IsAbs(cfg.FileSettings.Directory),
+		"isdefault_directory":     isDefault(*cfg.FileSettings.Directory, model.FILE_SETTINGS_DEFAULT_DIRECTORY),
+		"isabsolute_directory":    filepath.IsAbs(*cfg.FileSettings.Directory),
 		"amazon_s3_ssl":           *cfg.FileSettings.AmazonS3SSL,
 		"amazon_s3_sse":           *cfg.FileSettings.AmazonS3SSE,
 		"amazon_s3_signv2":        *cfg.FileSettings.AmazonS3SignV2,
@@ -493,9 +512,10 @@ func (a *App) trackConfig() {
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_EXPERIMENTAL, map[string]interface{}{
-		"client_side_cert_enable":          *cfg.ExperimentalSettings.ClientSideCertEnable,
-		"isdefault_client_side_cert_check": isDefault(*cfg.ExperimentalSettings.ClientSideCertCheck, model.CLIENT_SIDE_CERT_CHECK_PRIMARY_AUTH),
-		"enable_post_metadata":             *cfg.ExperimentalSettings.EnablePostMetadata,
+		"client_side_cert_enable":            *cfg.ExperimentalSettings.ClientSideCertEnable,
+		"isdefault_client_side_cert_check":   isDefault(*cfg.ExperimentalSettings.ClientSideCertCheck, model.CLIENT_SIDE_CERT_CHECK_PRIMARY_AUTH),
+		"enable_post_metadata":               !*cfg.ExperimentalSettings.DisablePostMetadata,
+		"link_metadata_timeout_milliseconds": *cfg.ExperimentalSettings.LinkMetadataTimeoutMilliseconds,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_ANALYTICS, map[string]interface{}{

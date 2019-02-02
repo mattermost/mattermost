@@ -341,7 +341,7 @@ func (a *App) SendInviteEmails(team *model.Team, senderName string, senderUserId
 			}
 			bodyPage.Props["Link"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s", siteURL, url.QueryEscape(data), url.QueryEscape(token.Token))
 
-			if !a.Config().EmailSettings.SendEmailNotifications {
+			if !*a.Config().EmailSettings.SendEmailNotifications {
 				mlog.Info(fmt.Sprintf("sending invitation to %v %v", invite, bodyPage.Props["Link"]))
 			}
 

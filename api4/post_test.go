@@ -174,16 +174,16 @@ func testCreatePostWithOutgoingHook(
 	team := th.BasicTeam
 	channel := th.BasicChannel
 
-	enableOutgoingWebhooks := th.App.Config().ServiceSettings.EnableOutgoingWebhooks
-	allowedUntrustedInternalConnections := th.App.Config().ServiceSettings.AllowedUntrustedInternalConnections
+	enableOutgoingWebhooks := *th.App.Config().ServiceSettings.EnableOutgoingWebhooks
+	allowedUntrustedInternalConnections := *th.App.Config().ServiceSettings.AllowedUntrustedInternalConnections
 	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = enableOutgoingWebhooks })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = enableOutgoingWebhooks })
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.AllowedUntrustedInternalConnections = allowedUntrustedInternalConnections
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = allowedUntrustedInternalConnections
 		})
 	}()
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
 	})
@@ -739,6 +739,22 @@ func TestPinPost(t *testing.T) {
 
 	_, resp = Client.PinPost(GenerateTestId())
 	CheckForbiddenStatus(t, resp)
+
+	t.Run("unable-to-pin-post-in-read-only-town-square", func(t *testing.T) {
+		townSquareIsReadOnly := *th.App.GetConfig().TeamSettings.ExperimentalTownSquareIsReadOnly
+		th.App.SetLicense(model.NewTestLicense())
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = true })
+
+		defer th.App.RemoveLicense()
+		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = townSquareIsReadOnly })
+
+		channel, err := th.App.GetChannelByName("town-square", th.BasicTeam.Id, true)
+		assert.Nil(t, err)
+		adminPost := th.CreatePostWithClient(th.SystemAdminClient, channel)
+
+		_, resp = Client.PinPost(adminPost.Id)
+		CheckForbiddenStatus(t, resp)
+	})
 
 	Client.Logout()
 	_, resp = Client.PinPost(post.Id)

@@ -65,21 +65,34 @@ func (a *App) servePluginRequest(w http.ResponseWriter, r *http.Request, handler
 	r.Header.Del("Mattermost-User-Id")
 	if token != "" {
 		session, err := a.GetSession(token)
-		csrfCheckPassed := true
+		csrfCheckPassed := false
 
-		if err == nil && cookieAuth && r.Method != "GET" && r.Header.Get(model.HEADER_REQUESTED_WITH) != model.HEADER_REQUESTED_WITH_XML {
-			bodyBytes, _ := ioutil.ReadAll(r.Body)
-			r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
-			r.ParseForm()
-			sentToken := r.FormValue("csrf")
-			expectedToken := session.GetCSRF()
+		if err == nil && cookieAuth && r.Method != "GET" {
+			sentToken := ""
 
-			if sentToken != expectedToken {
-				csrfCheckPassed = false
+			if r.Header.Get(model.HEADER_CSRF_TOKEN) == "" {
+				bodyBytes, _ := ioutil.ReadAll(r.Body)
+				r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+				r.ParseForm()
+				sentToken = r.FormValue("csrf")
+				r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+			} else {
+				sentToken = r.Header.Get(model.HEADER_CSRF_TOKEN)
 			}
 
-			// Set Request Body again, since otherwise form values aren't accessible in plugin handler
-			r.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
+			expectedToken := session.GetCSRF()
+
+			if sentToken == expectedToken {
+				csrfCheckPassed = true
+			}
+
+			// ToDo(DSchalla) 2019/01/04: Remove after deprecation period and only allow CSRF Header (MM-13657)
+			if !*a.Config().ServiceSettings.ExperimentalStrictCSRFEnforcement && r.Header.Get(model.HEADER_REQUESTED_WITH) == model.HEADER_REQUESTED_WITH_XML && !csrfCheckPassed {
+				a.Log.Warn("CSRF Check failed for request - Please migrate your plugin to either send a CSRF Header or Form Field, XMLHttpRequest is deprecated")
+				csrfCheckPassed = true
+			}
+		} else {
+			csrfCheckPassed = true
 		}
 
 		if session != nil && err == nil && csrfCheckPassed {
