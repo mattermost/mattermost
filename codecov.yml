@@ -6,7 +6,9 @@ codecov:
 
 coverage:
   status:
-    project: yes
+    project:
+      default:
+        threshold: 1%
     patch: off
     changes: no
 ignore:
