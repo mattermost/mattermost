@@ -138,7 +138,7 @@ pipeline {
                         sh '''#!/bin/bash
                             set -x
                             cd /go/src/github.com/mattermost/mattermost-server
-                            bash <(curl -s https://codecov.io/bash) -t $CODECOV -f cover.out
+                            bash <(curl -s https://codecov.io/bash) -t $CODECOV
                         '''
                     }
                 }
