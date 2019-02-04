@@ -4,7 +4,11 @@
 package imageproxy
 
 import (
+	"errors"
+	"io"
+	"io/ioutil"
 	"net/http"
+	"net/http/httptest"
 	"net/url"
 	"strings"
 	"time"
@@ -26,6 +30,8 @@ var imageContentTypes = []string{
 	"image/x-portable-bitmap", "image/x-portable-graymap", "image/x-portable-pixmap",
 	"image/x-quicktime", "image/x-rgb", "image/x-xbitmap", "image/x-xpixmap", "image/x-xwindowdump",
 }
+
+var ErrLocalRequestFailed = Error{errors.New("imageproxy.LocalBackend: failed to request proxied image")}
 
 type LocalBackend struct {
 	proxy *ImageProxy
@@ -66,6 +72,24 @@ func (backend *LocalBackend) GetImage(w http.ResponseWriter, r *http.Request, im
 	}
 
 	backend.impl.ServeHTTP(w, req)
+}
+
+func (backend *LocalBackend) GetImageDirect(imageURL string) (io.ReadCloser, string, error) {
+	// The interface to the proxy only exposes a ServeHTTP method, so fake a request to it
+	req, err := http.NewRequest(http.MethodGet, "/"+imageURL, nil)
+	if err != nil {
+		return nil, "", Error{err}
+	}
+
+	recorder := httptest.NewRecorder()
+
+	backend.impl.ServeHTTP(recorder, req)
+
+	if recorder.Code != http.StatusOK {
+		return nil, "", ErrLocalRequestFailed
+	}
+
+	return ioutil.NopCloser(recorder.Body), recorder.Header().Get("Content-Type"), nil
 }
 
 func (backend *LocalBackend) GetProxiedImageURL(imageURL string) string {
