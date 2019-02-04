@@ -7,6 +7,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha1"
 	"encoding/hex"
+	"io"
 	"net/http"
 	"strings"
 )
@@ -23,6 +24,23 @@ func makeAtmosCamoBackend(proxy *ImageProxy) *AtmosCamoBackend {
 
 func (backend *AtmosCamoBackend) GetImage(w http.ResponseWriter, r *http.Request, imageURL string) {
 	http.Redirect(w, r, backend.GetProxiedImageURL(imageURL), http.StatusFound)
+}
+
+func (backend *AtmosCamoBackend) GetImageDirect(imageURL string) (io.ReadCloser, string, error) {
+	req, err := http.NewRequest("GET", backend.GetProxiedImageURL(imageURL), nil)
+	if err != nil {
+		return nil, "", Error{err}
+	}
+
+	client := backend.proxy.HTTPService.MakeClient(false)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, "", Error{err}
+	}
+
+	// Note that we don't do any additional validation of the received data since we expect the image proxy to do that
+	return resp.Body, resp.Header.Get("Content-Type"), nil
 }
 
 func (backend *AtmosCamoBackend) GetProxiedImageURL(imageURL string) string {
