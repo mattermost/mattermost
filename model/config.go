@@ -1020,6 +1020,7 @@ type EmailSettings struct {
 	RequireEmailVerification          *bool
 	FeedbackName                      *string
 	FeedbackEmail                     *string
+	ReplyToAddress                    *string
 	FeedbackOrganization              *string
 	EnableSMTPAuth                    *bool
 	SMTPUsername                      *string
@@ -1073,6 +1074,10 @@ func (s *EmailSettings) SetDefaults() {
 
 	if s.FeedbackEmail == nil {
 		s.FeedbackEmail = NewString("test@example.com")
+	}
+
+	if s.ReplyToAddress == nil {
+		s.ReplyToAddress = NewString("test@example.com")
 	}
 
 	if s.FeedbackOrganization == nil {

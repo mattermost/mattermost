@@ -426,6 +426,7 @@ func TestEmailTest(t *testing.T) {
 			SMTPPassword:           model.NewString(""),
 			FeedbackName:           model.NewString(""),
 			FeedbackEmail:          model.NewString(""),
+			ReplyToAddress:         model.NewString(""),
 			SendEmailNotifications: model.NewBool(false),
 		},
 	}
