@@ -741,7 +741,7 @@ func TestPinPost(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 
 	t.Run("unable-to-pin-post-in-read-only-town-square", func(t *testing.T) {
-		townSquareIsReadOnly := *th.App.GetConfig().TeamSettings.ExperimentalTownSquareIsReadOnly
+		townSquareIsReadOnly := *th.App.Config().TeamSettings.ExperimentalTownSquareIsReadOnly
 		th.App.SetLicense(model.NewTestLicense())
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.ExperimentalTownSquareIsReadOnly = true })
 

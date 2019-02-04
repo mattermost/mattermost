@@ -6,7 +6,6 @@ package app
 import (
 	"io"
 	"os"
-	"strings"
 	"time"
 
 	"runtime/debug"
@@ -150,9 +149,8 @@ func (a *App) InvalidateAllCachesSkipSend() {
 	a.LoadLicense()
 }
 
-func (a *App) GetConfig() *model.Config {
-	json := a.Config().ToJson()
-	cfg := model.ConfigFromJson(strings.NewReader(json))
+func (a *App) GetSanitizedConfig() *model.Config {
+	cfg := a.Config().Clone()
 	cfg.Sanitize()
 
 	return cfg
