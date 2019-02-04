@@ -166,6 +166,134 @@ func TestLocalBackend_GetImage(t *testing.T) {
 	})
 }
 
+func TestLocalBackend_GetImageDirect(t *testing.T) {
+	t.Run("image", func(t *testing.T) {
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Cache-Control", "max-age=2592000, private")
+			w.Header().Set("Content-Type", "image/png")
+			w.Header().Set("Content-Length", "10")
+
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("1111111111"))
+		})
+
+		mock := httptest.NewServer(handler)
+		defer mock.Close()
+
+		proxy := makeTestLocalProxy()
+
+		body, contentType, err := proxy.GetImageDirect(mock.URL + "/image.png")
+
+		assert.Nil(t, err)
+		assert.Equal(t, "image/png", contentType)
+
+		respBody, _ := ioutil.ReadAll(body)
+		assert.Equal(t, []byte("1111111111"), respBody)
+	})
+
+	t.Run("not an image", func(t *testing.T) {
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusNotAcceptable)
+		})
+
+		mock := httptest.NewServer(handler)
+		defer mock.Close()
+
+		proxy := makeTestLocalProxy()
+
+		body, contentType, err := proxy.GetImageDirect(mock.URL + "/file.pdf")
+
+		assert.NotNil(t, err)
+		assert.Equal(t, "", contentType)
+		assert.Equal(t, ErrLocalRequestFailed, err)
+		assert.Nil(t, body)
+	})
+
+	t.Run("not an image, but remote server ignores accept header", func(t *testing.T) {
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Cache-Control", "max-age=2592000, private")
+			w.Header().Set("Content-Type", "application/pdf")
+			w.Header().Set("Content-Length", "10")
+
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte("1111111111"))
+		})
+
+		mock := httptest.NewServer(handler)
+		defer mock.Close()
+
+		proxy := makeTestLocalProxy()
+
+		body, contentType, err := proxy.GetImageDirect(mock.URL + "/file.pdf")
+
+		assert.NotNil(t, err)
+		assert.Equal(t, "", contentType)
+		assert.Equal(t, ErrLocalRequestFailed, err)
+		assert.Nil(t, body)
+	})
+
+	t.Run("not found", func(t *testing.T) {
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusNotFound)
+		})
+
+		mock := httptest.NewServer(handler)
+		defer mock.Close()
+
+		proxy := makeTestLocalProxy()
+
+		body, contentType, err := proxy.GetImageDirect(mock.URL + "/image.png")
+
+		assert.NotNil(t, err)
+		assert.Equal(t, "", contentType)
+		assert.Equal(t, ErrLocalRequestFailed, err)
+		assert.Nil(t, body)
+	})
+
+	t.Run("other server error", func(t *testing.T) {
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusInternalServerError)
+		})
+
+		mock := httptest.NewServer(handler)
+		defer mock.Close()
+
+		proxy := makeTestLocalProxy()
+
+		body, contentType, err := proxy.GetImageDirect(mock.URL + "/image.png")
+
+		assert.NotNil(t, err)
+		assert.Equal(t, "", contentType)
+		assert.Equal(t, ErrLocalRequestFailed, err)
+		assert.Nil(t, body)
+	})
+
+	t.Run("timeout", func(t *testing.T) {
+		wait := make(chan bool, 1)
+
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			<-wait
+		})
+
+		mock := httptest.NewServer(handler)
+		defer mock.Close()
+
+		proxy := makeTestLocalProxy()
+
+		// Modify the timeout to be much shorter than the default 30 seconds
+		proxy.backend.(*LocalBackend).impl.Timeout = time.Millisecond
+
+		body, contentType, err := proxy.GetImageDirect(mock.URL + "/image.png")
+
+		assert.NotNil(t, err)
+		assert.Equal(t, "", contentType)
+		assert.Equal(t, ErrLocalRequestFailed, err)
+		assert.Nil(t, body)
+
+		wait <- true
+	})
+}
+
 func TestLocalBackend_GetProxiedImageURL(t *testing.T) {
 	imageURL := "http://www.mattermost.org/wp-content/uploads/2016/03/logoHorizontal.png"
 	proxiedURL := "https://mattermost.example.com/api/v4/image?url=http%3A%2F%2Fwww.mattermost.org%2Fwp-content%2Fuploads%2F2016%2F03%2FlogoHorizontal.png"
