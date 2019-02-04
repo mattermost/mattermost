@@ -762,7 +762,7 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		if err = c.App.DoubleCheckPassword(ouser, *patch.Password); err != nil {
-			c.SetInvalidParam("password")
+			c.Err = err
 			return
 		}
 	}
