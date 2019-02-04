@@ -315,22 +315,27 @@ func deleteChannelsCmdF(command *cobra.Command, args []string) error {
 	}
 	defer a.Shutdown()
 
-	confirmFlag, _ := command.Flags().GetBool("confirm")
-	if !confirmFlag {
-		var confirm string
-		CommandPrettyPrintln("Are you sure you want to delete the channels specified?  All data will be permanently deleted? (YES/NO): ")
-		fmt.Scanln(&confirm)
-		if confirm != "YES" {
-			return errors.New("ABORTED: You did not answer YES exactly, in all capitals.")
-		}
-	}
-
 	channels := getChannelsFromChannelArgs(a, args)
-	for i, channel := range channels {
-		if channel == nil {
+	var channelNames []string
+	for i, ch := range channels {
+		if ch == nil {
 			CommandPrintErrorln("Unable to find channel '" + args[i] + "'")
 			continue
 		}
+		channelNames = append(channelNames, ch.Name)
+	}
+
+	confirmFlag, _ := command.Flags().GetBool("confirm")
+	if !confirmFlag {
+		var confirm string
+		CommandPrettyPrintln(fmt.Sprintf("Are you sure you want to PERMANENTLY DELETE the channels %v? (YES-DELETE-CHANNELS/NO): ", channelNames))
+		fmt.Scanln(&confirm)
+		if confirm != "YES-DELETE-CHANNELS" {
+			return errors.New("ABORTED: You did not answer YES-DELETE-CHANNELS exactly, in all capitals.")
+		}
+	}
+
+	for _, channel := range channels {
 		if err := deleteChannel(a, channel); err != nil {
 			CommandPrintErrorln("Unable to delete channel '" + channel.Name + "' error: " + err.Error())
 		} else {
