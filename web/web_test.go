@@ -5,10 +5,14 @@ package web
 
 import (
 	"fmt"
+	"io"
+	"io/ioutil"
+	"os"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 )
 
 var ApiClient *model.Client4
@@ -28,7 +32,25 @@ type TestHelper struct {
 func Setup() *TestHelper {
 	mainHelper.Store.DropAllTables()
 
-	s, err := app.NewServer(app.StoreOverride(mainHelper.Store), app.DisableConfigWatch)
+	permConfig, err := os.Open(fileutils.FindConfigFile("config.json"))
+	if err != nil {
+		panic(err)
+	}
+	defer permConfig.Close()
+	tempConfig, err := ioutil.TempFile("", "")
+	if err != nil {
+		panic(err)
+	}
+	_, err = io.Copy(tempConfig, permConfig)
+	tempConfig.Close()
+	if err != nil {
+		panic(err)
+	}
+
+	options := []app.Option{app.ConfigFile(tempConfig.Name())}
+	options = append(options, app.StoreOverride(mainHelper.Store))
+
+	s, err := app.NewServer(options...)
 	if err != nil {
 		panic(err)
 	}
