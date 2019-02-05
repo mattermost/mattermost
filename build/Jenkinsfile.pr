@@ -44,7 +44,10 @@ pipeline {
                 dir('src/github.com/mattermost/mattermost-server') {
                     sh """
                     git rev-parse --abbrev-ref HEAD
+                    
                     """
+                    echo scm.branches[0].name
+                    echo scm
                 }
                 dir('src/github.com/mattermost/enterprise') {
                     ansiColor('xterm') {
