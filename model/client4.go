@@ -154,8 +154,8 @@ func (c *Client4) GetBotsRoute() string {
 	return fmt.Sprintf("/bots")
 }
 
-func (c *Client4) GetBotRoute(userId string) string {
-	return fmt.Sprintf("%s/%s", c.GetBotsRoute(), userId)
+func (c *Client4) GetBotRoute(botUserId string) string {
+	return fmt.Sprintf("%s/%s", c.GetBotsRoute(), botUserId)
 }
 
 func (c *Client4) GetTeamsRoute() string {
@@ -1415,6 +1415,16 @@ func (c *Client4) GetBotsOrphaned(page, perPage int, etag string) ([]*Bot, *Resp
 // DisableBot disables the given bot in the system.
 func (c *Client4) DisableBot(userId string) (*Bot, *Response) {
 	r, err := c.doApiPostBytes(c.GetBotRoute(userId)+"/disable", nil)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return BotFromJson(r.Body), BuildResponse(r)
+}
+
+// AssignBot assigns the given bot to the given user
+func (c *Client4) AssignBot(botUserId, newOwnerId string) (*Bot, *Response) {
+	r, err := c.doApiPostBytes(c.GetBotRoute(botUserId)+"/assign/"+newOwnerId, nil)
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
 	}
