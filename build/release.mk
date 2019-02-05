@@ -33,7 +33,6 @@ package:
 
 	@# Resource directories
 	mkdir -p $(DIST_PATH)/config
-	cp -L config/README.md $(DIST_PATH)/config
 	cp -L config/config.json $(DIST_PATH)/config
 	cp -L config/timezones.json $(DIST_PATH)/config
 	cp -RL fonts $(DIST_PATH)

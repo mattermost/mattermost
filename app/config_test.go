@@ -4,67 +4,29 @@
 package app
 
 import (
-	"io/ioutil"
 	"strconv"
-	"strings"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store/sqlstore"
 	"github.com/mattermost/mattermost-server/utils"
-	"github.com/mattermost/mattermost-server/utils/fileutils"
 )
-
-func TestLoadConfig(t *testing.T) {
-	tempConfig, err := ioutil.TempFile("", "")
-	require.Nil(t, err)
-
-	input, err := ioutil.ReadFile(fileutils.FindConfigFile("config.json"))
-	require.Nil(t, err)
-	lines := strings.Split(string(input), "\n")
-	for i, line := range lines {
-		if strings.Contains(line, "SiteURL") {
-			lines[i] = `        "SiteURL": "http://localhost:8065/",`
-		}
-	}
-	output := strings.Join(lines, "\n")
-	err = ioutil.WriteFile(tempConfig.Name(), []byte(output), 0644)
-	require.Nil(t, err)
-	tempConfig.Close()
-
-	a := App{
-		Srv: &Server{},
-	}
-	appErr := a.LoadConfig(tempConfig.Name())
-	require.Nil(t, appErr)
-
-	assert.Equal(t, "http://localhost:8065", *a.Config().ServiceSettings.SiteURL)
-}
 
 func TestConfigListener(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
 	originalSiteName := th.App.Config().TeamSettings.SiteName
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.TeamSettings.SiteName = "test123"
-	})
 
 	listenerCalled := false
 	listener := func(oldConfig *model.Config, newConfig *model.Config) {
-		if listenerCalled {
-			t.Fatal("listener called twice")
-		}
+		assert.False(t, listenerCalled, "listener called twice")
 
-		if *oldConfig.TeamSettings.SiteName != "test123" {
-			t.Fatal("old config contains incorrect site name")
-		} else if *newConfig.TeamSettings.SiteName != *originalSiteName {
-			t.Fatal("new config contains incorrect site name")
-		}
+		assert.Equal(t, *originalSiteName, *oldConfig.TeamSettings.SiteName, "old config contains incorrect site name")
+		assert.Equal(t, "test123", *newConfig.TeamSettings.SiteName, "new config contains incorrect site name")
 
 		listenerCalled = true
 	}
@@ -73,22 +35,19 @@ func TestConfigListener(t *testing.T) {
 
 	listener2Called := false
 	listener2 := func(oldConfig *model.Config, newConfig *model.Config) {
-		if listener2Called {
-			t.Fatal("listener2 called twice")
-		}
+		assert.False(t, listener2Called, "listener2 called twice")
 
 		listener2Called = true
 	}
 	listener2Id := th.App.AddConfigListener(listener2)
 	defer th.App.RemoveConfigListener(listener2Id)
 
-	th.App.ReloadConfig()
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.TeamSettings.SiteName = "test123"
+	})
 
-	if !listenerCalled {
-		t.Fatal("listener should've been called")
-	} else if !listener2Called {
-		t.Fatal("listener 2 should've been called")
-	}
+	assert.True(t, listenerCalled, "listener should've been called")
+	assert.True(t, listener2Called, "listener 2 should've been called")
 }
 
 func TestAsymmetricSigningKey(t *testing.T) {
