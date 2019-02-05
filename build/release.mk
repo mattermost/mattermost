@@ -32,9 +32,10 @@ package:
 	mkdir -p $(DIST_PATH)/prepackaged_plugins
 
 	@# Resource directories
-	cp -L config/README.md $(DIST_PATH)
-	cp -L config/config.json $(DIST_PATH)
-	cp -L config/timezones.json $(DIST_PATH)
+	mkdir -p $(DIST_PATH)/config
+	cp -L config/README.md $(DIST_PATH)/config
+	cp -L config/config.json $(DIST_PATH)/config
+	cp -L config/timezones.json $(DIST_PATH)/config
 	cp -RL fonts $(DIST_PATH)
 	cp -RL templates $(DIST_PATH)
 	cp -RL i18n $(DIST_PATH)
