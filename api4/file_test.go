@@ -934,7 +934,7 @@ func TestGetFileLink(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FileSettings.EnablePublicLink = enablePublicLink })
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.PublicLinkSalt = publicLinkSalt })
 	}()
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FileSettings.EnablePublicLink = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.PublicLinkSalt = model.NewId() })
 
 	fileId := ""
@@ -953,14 +953,14 @@ func TestGetFileLink(t *testing.T) {
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
 	store.Must(th.App.Srv.Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id, th.BasicUser.Id))
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FileSettings.EnablePublicLink = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = false })
 	_, resp = Client.GetFileLink(fileId)
 	CheckNotImplementedStatus(t, resp)
 
 	// Wait a bit for files to ready
 	time.Sleep(2 * time.Second)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FileSettings.EnablePublicLink = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = true })
 	link, resp := Client.GetFileLink(fileId)
 	CheckNoError(t, resp)
 
@@ -1129,7 +1129,7 @@ func TestGetPublicFile(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FileSettings.EnablePublicLink = enablePublicLink })
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.PublicLinkSalt = publicLinkSalt })
 	}()
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FileSettings.EnablePublicLink = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.PublicLinkSalt = GenerateTestId() })
 
 	fileId := ""
@@ -1161,13 +1161,13 @@ func TestGetPublicFile(t *testing.T) {
 		t.Fatal("should've failed to get image with public link without hash", resp.Status)
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FileSettings.EnablePublicLink = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = false })
 	if resp, err := http.Get(link); err == nil && resp.StatusCode != http.StatusNotImplemented {
 		t.Fatal("should've failed to get image with disabled public link")
 	}
 
 	// test after the salt has changed
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FileSettings.EnablePublicLink = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.PublicLinkSalt = GenerateTestId() })
 
 	if resp, err := http.Get(link); err == nil && resp.StatusCode != http.StatusBadRequest {

@@ -21,16 +21,16 @@ func TestListWebhooks(t *testing.T) {
 
 	config := th.Config()
 	*config.ServiceSettings.EnableCommands = true
-	config.ServiceSettings.EnableIncomingWebhooks = true
-	config.ServiceSettings.EnableOutgoingWebhooks = true
-	config.ServiceSettings.EnablePostUsernameOverride = true
-	config.ServiceSettings.EnablePostIconOverride = true
+	*config.ServiceSettings.EnableIncomingWebhooks = true
+	*config.ServiceSettings.EnableOutgoingWebhooks = true
+	*config.ServiceSettings.EnablePostUsernameOverride = true
+	*config.ServiceSettings.EnablePostIconOverride = true
 	th.SetConfig(config)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostUsernameOverride = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostIconOverride = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnablePostUsernameOverride = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnablePostIconOverride = true })
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	defer func() {
@@ -61,22 +61,94 @@ func TestListWebhooks(t *testing.T) {
 
 }
 
+func TestShowWebhook(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	adminClient := th.SystemAdminClient
+
+	config := th.Config()
+	*config.ServiceSettings.EnableCommands = true
+	*config.ServiceSettings.EnableIncomingWebhooks = true
+	*config.ServiceSettings.EnableOutgoingWebhooks = true
+	*config.ServiceSettings.EnablePostUsernameOverride = true
+	*config.ServiceSettings.EnablePostIconOverride = true
+	th.SetConfig(config)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnablePostUsernameOverride = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnablePostIconOverride = true })
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_WEBHOOKS.Id, model.TEAM_ADMIN_ROLE_ID)
+	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_WEBHOOKS.Id, model.TEAM_USER_ROLE_ID)
+
+	dispName := "incominghook"
+	hook := &model.IncomingWebhook{
+		DisplayName: dispName,
+		ChannelId:   th.BasicChannel.Id,
+		TeamId:      th.BasicChannel.TeamId,
+	}
+	incomingWebhook, resp := adminClient.CreateIncomingWebhook(hook)
+	api4.CheckNoError(t, resp)
+
+	// should return an error when no webhookid is provided
+	require.Error(t, th.RunCommand(t, "webhook", "show"))
+
+	// invalid webhook should return error
+	require.Error(t, th.RunCommand(t, "webhook", "show", "invalid-webhook"))
+
+	// valid incoming webhook should return webhook data
+	output := th.CheckCommand(t, "webhook", "show", incomingWebhook.Id)
+	if !strings.Contains(string(output), "DisplayName: \""+dispName+"\"") {
+		t.Fatal("incoming: should have incominghook as displayname")
+	}
+	if !strings.Contains(string(output), "ChannelId: \""+hook.ChannelId+"\"") {
+		t.Fatal("incoming: should have a valid channelId")
+	}
+
+	dispName = "outgoinghook"
+	outgoingHook := &model.OutgoingWebhook{
+		DisplayName:  dispName,
+		ChannelId:    th.BasicChannel.Id,
+		TeamId:       th.BasicChannel.TeamId,
+		CallbackURLs: []string{"http://nowhere.com"},
+		Username:     "some-user-name",
+		IconURL:      "http://some-icon-url/",
+	}
+	outgoingWebhook, resp := adminClient.CreateOutgoingWebhook(outgoingHook)
+	api4.CheckNoError(t, resp)
+
+	// valid outgoing webhook should return webhook data
+	output = th.CheckCommand(t, "webhook", "show", outgoingWebhook.Id)
+	if !strings.Contains(string(output), "DisplayName: \""+dispName+"\"") {
+		t.Fatal("outgoing: should have outgoinghook as displayname")
+	}
+	if !strings.Contains(string(output), "ChannelId: \""+hook.ChannelId+"\"") {
+		t.Fatal("outgoing: should have a valid channelId")
+	}
+
+}
+
 func TestCreateIncomingWebhook(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
 	config := th.Config()
 	*config.ServiceSettings.EnableCommands = true
-	config.ServiceSettings.EnableIncomingWebhooks = true
-	config.ServiceSettings.EnableOutgoingWebhooks = true
-	config.ServiceSettings.EnablePostUsernameOverride = true
-	config.ServiceSettings.EnablePostIconOverride = true
+	*config.ServiceSettings.EnableIncomingWebhooks = true
+	*config.ServiceSettings.EnableOutgoingWebhooks = true
+	*config.ServiceSettings.EnablePostUsernameOverride = true
+	*config.ServiceSettings.EnablePostIconOverride = true
 	th.SetConfig(config)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostUsernameOverride = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostIconOverride = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnablePostUsernameOverride = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnablePostIconOverride = true })
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	defer func() {
@@ -119,16 +191,16 @@ func TestModifyIncomingWebhook(t *testing.T) {
 
 	config := th.Config()
 	*config.ServiceSettings.EnableCommands = true
-	config.ServiceSettings.EnableIncomingWebhooks = true
-	config.ServiceSettings.EnableOutgoingWebhooks = true
-	config.ServiceSettings.EnablePostUsernameOverride = true
-	config.ServiceSettings.EnablePostIconOverride = true
+	*config.ServiceSettings.EnableIncomingWebhooks = true
+	*config.ServiceSettings.EnableOutgoingWebhooks = true
+	*config.ServiceSettings.EnablePostUsernameOverride = true
+	*config.ServiceSettings.EnablePostIconOverride = true
 	th.SetConfig(config)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostUsernameOverride = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostIconOverride = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnablePostUsernameOverride = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnablePostIconOverride = true })
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	defer func() {
@@ -182,16 +254,16 @@ func TestCreateOutgoingWebhook(t *testing.T) {
 
 	config := th.Config()
 	*config.ServiceSettings.EnableCommands = true
-	config.ServiceSettings.EnableIncomingWebhooks = true
-	config.ServiceSettings.EnableOutgoingWebhooks = true
-	config.ServiceSettings.EnablePostUsernameOverride = true
-	config.ServiceSettings.EnablePostIconOverride = true
+	*config.ServiceSettings.EnableIncomingWebhooks = true
+	*config.ServiceSettings.EnableOutgoingWebhooks = true
+	*config.ServiceSettings.EnablePostUsernameOverride = true
+	*config.ServiceSettings.EnablePostIconOverride = true
 	th.SetConfig(config)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostUsernameOverride = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostIconOverride = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnablePostUsernameOverride = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnablePostIconOverride = true })
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	defer func() {
@@ -250,7 +322,7 @@ func TestModifyOutgoingWebhook(t *testing.T) {
 	defer th.TearDown()
 
 	config := th.Config()
-	config.ServiceSettings.EnableOutgoingWebhooks = true
+	*config.ServiceSettings.EnableOutgoingWebhooks = true
 	th.SetConfig(config)
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
@@ -351,16 +423,16 @@ func TestDeleteWebhooks(t *testing.T) {
 
 	config := th.Config()
 	*config.ServiceSettings.EnableCommands = true
-	config.ServiceSettings.EnableIncomingWebhooks = true
-	config.ServiceSettings.EnableOutgoingWebhooks = true
-	config.ServiceSettings.EnablePostUsernameOverride = true
-	config.ServiceSettings.EnablePostIconOverride = true
+	*config.ServiceSettings.EnableIncomingWebhooks = true
+	*config.ServiceSettings.EnableOutgoingWebhooks = true
+	*config.ServiceSettings.EnablePostUsernameOverride = true
+	*config.ServiceSettings.EnablePostIconOverride = true
 	th.SetConfig(config)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostUsernameOverride = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostIconOverride = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnablePostUsernameOverride = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnablePostIconOverride = true })
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	defer func() {

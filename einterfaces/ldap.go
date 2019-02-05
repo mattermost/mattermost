@@ -21,5 +21,5 @@ type LdapInterface interface {
 	MigrateIDAttribute(toAttribute string) error
 	GetGroup(groupUID string) (*model.Group, *model.AppError)
 	GetAllGroupsPage(page int, perPage int) ([]*model.Group, int, *model.AppError)
-	FirstLoginSync(user *model.User) *model.AppError
+	FirstLoginSync(userID, userAuthService, userAuthData string) *model.AppError
 }

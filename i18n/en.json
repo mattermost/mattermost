@@ -6287,6 +6287,10 @@
     "translation": "Unable to update the date of the last team icon update"
   },
   {
+    "id": "store.sql_user.app_error",
+    "translation": "Failed to build query"
+  },
+  {
     "id": "store.sql_user.analytics_daily_active_users.app_error",
     "translation": "Unable to get the active users during the requested period"
   },
