@@ -1495,6 +1495,10 @@
     "translation": "リンクプレビュー機能はシステム管理者によって無効にされています。"
   },
   {
+    "id": "api.post.save_is_pinned_post.town_square_read_only",
+    "translation": "このチャンネルは読み取り専用です。権限のあるメンバーのみがこのチャンネルの投稿をピン留めできます。"
+  },
+  {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
     "translation": " がチャンネルへ通知しました。"
   },
@@ -4632,27 +4636,27 @@
   },
   {
     "id": "model.link_metadata.is_valid.data.app_error",
-    "translation": "Link metadata data cannot be nil"
+    "translation": "リンクメタデータのデータをnilにすることはできません"
   },
   {
     "id": "model.link_metadata.is_valid.data_type.app_error",
-    "translation": "Link metadata data does not match the given type"
+    "translation": "リンクメタデータのデータが指定された種別と異なります"
   },
   {
     "id": "model.link_metadata.is_valid.id.app_error",
-    "translation": "Link metadata id invalid"
+    "translation": "リンクメタデータのIDが不正です"
   },
   {
     "id": "model.link_metadata.is_valid.timestamp.app_error",
-    "translation": "Link metadata timestamp must be nonzero and rounded to the nearest hour"
+    "translation": "リンクメタデータのタイムスタンプはゼロでない値で、最も近い時間に丸められている必要があります"
   },
   {
     "id": "model.link_metadata.is_valid.type.app_error",
-    "translation": "Invalid link metadata type"
+    "translation": "リンクメタデータの種別が不正です"
   },
   {
     "id": "model.link_metadata.is_valid.url.app_error",
-    "translation": "Link metadata URL must be set"
+    "translation": "リンクメタデータのURLを設定してください"
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",

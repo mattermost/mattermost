@@ -337,7 +337,7 @@
   },
   {
     "id": "api.command.execute_command.create_post_failed.app_error",
-    "translation": "Command '{{.Trigger}}' failed to post response. Please contact your System Administrator."
+    "translation": "指令 '{{.Trigger}}' 回应失败。请联系您的系统管理员。"
   },
   {
     "id": "api.command.execute_command.debug",
@@ -1493,6 +1493,10 @@
   {
     "id": "api.post.link_preview_disabled.app_error",
     "translation": "链接预览已被系统管理员禁用。"
+  },
+  {
+    "id": "api.post.save_is_pinned_post.town_square_read_only",
+    "translation": "此频道为只读。只有拥有权限的成员可以发布消息。"
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
@@ -4504,51 +4508,51 @@
   },
   {
     "id": "model.group.create_at.app_error",
-    "translation": "invalid create at property for group"
+    "translation": "无效的组创建日期属性"
   },
   {
     "id": "model.group.delete_at.app_error",
-    "translation": "invalid delete at property for group"
+    "translation": "无效的组删除日期属性"
   },
   {
     "id": "model.group.description.app_error",
-    "translation": "invalid description property for group"
+    "translation": "无效的组描述属性"
   },
   {
     "id": "model.group.display_name.app_error",
-    "translation": "invalid display name property for group"
+    "translation": "无效的组显示名属性"
   },
   {
     "id": "model.group.id.app_error",
-    "translation": "invalid id property for group"
+    "translation": "无效的组 id 属性"
   },
   {
     "id": "model.group.name.app_error",
-    "translation": "invalid name property for group"
+    "translation": "无效的组名称属性"
   },
   {
     "id": "model.group.remote_id.app_error",
-    "translation": "invalid remote id property for group"
+    "translation": "无效的组远程 id 属性"
   },
   {
     "id": "model.group.source.app_error",
-    "translation": "invalid source property for group"
+    "translation": "无效的组来源属性"
   },
   {
     "id": "model.group.update_at.app_error",
-    "translation": "invalid update at property for group"
+    "translation": "无效的组更新日期属性"
   },
   {
     "id": "model.group_member.group_id.app_error",
-    "translation": "invalid group id property for group member"
+    "translation": "无效的组成员的组 id 属性"
   },
   {
     "id": "model.group_member.user_id.app_error",
-    "translation": "invalid user id property for group member"
+    "translation": "无效的组成员用户 id 属性"
   },
   {
     "id": "model.group_syncable.group_id.app_error",
-    "translation": "invalid group id property for group syncable"
+    "translation": "无效的组成员的组 id 属性"
   },
   {
     "id": "model.group_syncable.syncable_id.app_error",
@@ -4556,7 +4560,7 @@
   },
   {
     "id": "model.group_syncable.type.app_error",
-    "translation": "invalid type property for group syncable"
+    "translation": "无效的组成员的组 id 属性"
   },
   {
     "id": "model.group_syncable.unmarshaljson.duplicate_type_identifier",

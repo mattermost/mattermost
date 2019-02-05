@@ -1495,6 +1495,10 @@
     "translation": "Les aperçus de liens ont été désactivées par l'administrateur système."
   },
   {
+    "id": "api.post.save_is_pinned_post.town_square_read_only",
+    "translation": "Le canal est en lecture seule. Seuls les membres disposant de la permission peuvent poster ici."
+  },
+  {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
     "translation": " a notifié le canal."
   },

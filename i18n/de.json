@@ -325,7 +325,7 @@
   },
   {
     "id": "api.command.command_post.forbidden.app_error",
-    "translation": "Der angegebene Benutzer ist kein Mitglied des angegebenen Teams."
+    "translation": "Der angegebene Benutzer ist kein Mitglied des angegebenen Kanals."
   },
   {
     "id": "api.command.disabled.app_error",
@@ -337,7 +337,7 @@
   },
   {
     "id": "api.command.execute_command.create_post_failed.app_error",
-    "translation": "Command '{{.Trigger}}' failed to post response. Please contact your System Administrator."
+    "translation": "Kommando '{{.Trigger}}' konnte keine Antwort senden. Bitte kontaktieren Sie ihren Systemadministrator."
   },
   {
     "id": "api.command.execute_command.debug",
@@ -1102,7 +1102,7 @@
   },
   {
     "id": "api.emoji.upload.open.app_error",
-    "translation": "Konnte Emoji nicht erstellen. Es trat ein Fehler beim Öffnen des Bildes auf."
+    "translation": "Konnte Emoji nicht erstellen. Es trat ein Fehler beim Öffnen des angehängten Bildes auf."
   },
   {
     "id": "api.file.attachments.disabled.app_error",
@@ -1186,7 +1186,7 @@
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
-    "translation": "Unable to upload file(s). Have {{.NumClientIds}} client_ids for {{.NumFiles}} files."
+    "translation": "Konnte Datei(en) nicht hochladen. Haben {{.NumClientIds}} client_ids für {{.NumFiles}} Dateien."
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_files.app_error",
@@ -1198,19 +1198,19 @@
   },
   {
     "id": "api.file.upload_file.large_image_detailed.app_error",
-    "translation": "{{.Filename}} dimensions ({{.Width}} by {{.Height}} pixels) exceed the limits"
+    "translation": "{{.Filename}} Dimensionen ({{.Width}} mal {{.Height}} Pixel) überschreiten die Limits."
   },
   {
     "id": "api.file.upload_file.multiple_channel_ids.app_error",
-    "translation": "Unable to upload file(s). Multiple conflicting channel_ids."
+    "translation": "Konnte Datei(en) nicht hochladen. Mehrere Konflikte bei channel_ids."
   },
   {
     "id": "api.file.upload_file.read_form_value.app_error",
-    "translation": "Unable to upload file(s). Error reading the value for {{.Formname}}."
+    "translation": "Konnte Datei(en) nicht hochladen. Fehler beim Lesen des Wertes für {{.Formname}}."
   },
   {
     "id": "api.file.upload_file.read_request.app_error",
-    "translation": "Unable to upload file(s). Error reading or parsing request data."
+    "translation": "Konnte Datei(en) nicht hochladen. Fehler beim verarbeiten der Anfrage-Daten."
   },
   {
     "id": "api.file.upload_file.storage.app_error",
@@ -1222,7 +1222,7 @@
   },
   {
     "id": "api.file.upload_file.too_large_detailed.app_error",
-    "translation": "Unable to upload file {{.Filename}}. {{.Length}} bytes exceeds the maximum allowed {{.Limit}} bytes."
+    "translation": "Konnte Datei {{.Filename}} nicht hochladen. {{.Length}} Bytes überschreiten die maximal erlaubten {{.Limit}} Bytes."
   },
   {
     "id": "api.file.write_file.s3.app_error",
@@ -1493,6 +1493,10 @@
   {
     "id": "api.post.link_preview_disabled.app_error",
     "translation": "Link-Vorschauen wurden vom Systemadministrator deaktiviert."
+  },
+  {
+    "id": "api.post.save_is_pinned_post.town_square_read_only",
+    "translation": "Der Kanal ist nur lesbar. Nur Mitglieder mit Berechtigung können hier Nachrichten an- oder abheften."
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",

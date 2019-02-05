@@ -1495,6 +1495,10 @@
     "translation": "Bağlantı ön izleme özelliği sistem yöneticisi tarafından devre dışı bırakılmış."
   },
   {
+    "id": "api.post.save_is_pinned_post.town_square_read_only",
+    "translation": "Bu kanal salt okunur. Burada yalnız izni olan üyeler iletileri sabitleme ya da sabitlemeyi kaldırma işlemi yapabilir."
+  },
+  {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
     "translation": " kanala bildirim gönderdi."
   },
@@ -4632,27 +4636,27 @@
   },
   {
     "id": "model.link_metadata.is_valid.data.app_error",
-    "translation": "Link metadata data cannot be nil"
+    "translation": "Bağlantı üst verisi boş olamaz"
   },
   {
     "id": "model.link_metadata.is_valid.data_type.app_error",
-    "translation": "Link metadata data does not match the given type"
+    "translation": "Bağlantı üst verisinin türü belirtilen tür ile aynı değil"
   },
   {
     "id": "model.link_metadata.is_valid.id.app_error",
-    "translation": "Link metadata id invalid"
+    "translation": "Bağlantı üst verisi kodu geçersiz"
   },
   {
     "id": "model.link_metadata.is_valid.timestamp.app_error",
-    "translation": "Link metadata timestamp must be nonzero and rounded to the nearest hour"
+    "translation": "Bağlantı üst verisi zaman damgası sıfırdan farklı ve en yakın saate yuvarlanmış olmalıdır"
   },
   {
     "id": "model.link_metadata.is_valid.type.app_error",
-    "translation": "Invalid link metadata type"
+    "translation": "Bağlantı üst verisi türü geçersiz"
   },
   {
     "id": "model.link_metadata.is_valid.url.app_error",
-    "translation": "Link metadata URL must be set"
+    "translation": "Bağlantı üst verisi adresi ayarlanmış olmalıdır"
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",

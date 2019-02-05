@@ -1495,6 +1495,10 @@
     "translation": "連結預覽已被系統管理員停用"
   },
   {
+    "id": "api.post.save_is_pinned_post.town_square_read_only",
+    "translation": "此頻道唯讀。只有具有權限的成員能在此發布訊息。"
+  },
+  {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
     "translation": " 頻道已通知。"
   },
