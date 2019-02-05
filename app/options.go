@@ -30,9 +30,10 @@ func StoreOverride(override interface{}) Option {
 	}
 }
 
-func ConfigFile(file string) Option {
+func ConfigFile(file string, watch bool) Option {
 	return func(s *Server) {
 		s.configFile = file
+		s.disableConfigWatch = !watch
 	}
 }
 
@@ -50,10 +51,6 @@ func StartMetrics(s *Server) {
 
 func StartElasticsearch(s *Server) {
 	s.startElasticsearch = true
-}
-
-func DisableConfigWatch(s *Server) {
-	s.disableConfigWatch = true
 }
 
 type AppOption func(a *App)
