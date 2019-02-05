@@ -4,6 +4,8 @@
 package imageproxy
 
 import (
+	"errors"
+	"io"
 	"net/http"
 	"sync"
 
@@ -11,6 +13,8 @@ import (
 	"github.com/mattermost/mattermost-server/services/configservice"
 	"github.com/mattermost/mattermost-server/services/httpservice"
 )
+
+var ErrNotEnabled = Error{errors.New("imageproxy.ImageProxy: image proxy not enabled")}
 
 // An ImageProxy is the public interface for Mattermost's image proxy. An instance of ImageProxy should be created
 // using MakeImageProxy which requires a configService and an HTTPService provided by the server.
@@ -29,6 +33,9 @@ type ImageProxy struct {
 type ImageProxyBackend interface {
 	// GetImage provides a proxied image in response to an HTTP request.
 	GetImage(w http.ResponseWriter, r *http.Request, imageURL string)
+
+	// GetImageDirect returns a proxied image along with its content type.
+	GetImageDirect(imageURL string) (io.ReadCloser, string, error)
 
 	// GetProxiedImageURL returns the URL to access a given image through the image proxy, whether the image proxy is
 	// running externally or as part of the Mattermost server itself.
@@ -95,6 +102,18 @@ func (proxy *ImageProxy) GetImage(w http.ResponseWriter, r *http.Request, imageU
 	}
 
 	proxy.backend.GetImage(w, r, imageURL)
+}
+
+// GetImageDirect takes the URL of an image and returns the image along with its content type.
+func (proxy *ImageProxy) GetImageDirect(imageURL string) (io.ReadCloser, string, error) {
+	proxy.lock.RLock()
+	defer proxy.lock.RUnlock()
+
+	if proxy.backend == nil {
+		return nil, "", ErrNotEnabled
+	}
+
+	return proxy.backend.GetImageDirect(imageURL)
 }
 
 // GetProxiedImageURL takes the URL of an image and returns a URL that can be used to view that image through the

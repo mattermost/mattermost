@@ -42,7 +42,7 @@ func (a *App) sendNotificationEmail(notification *postNotification, user *model.
 			team = teams[0]
 		} else {
 			// in case the user hasn't joined any teams we send them to the select_team page
-			team = &model.Team{Name: "select_team", DisplayName: a.Config().TeamSettings.SiteName}
+			team = &model.Team{Name: "select_team", DisplayName: *a.Config().TeamSettings.SiteName}
 		}
 	}
 
@@ -82,7 +82,7 @@ func (a *App) sendNotificationEmail(notification *postNotification, user *model.
 	}
 
 	channelName := notification.GetChannelName(nameFormat, "")
-	senderName := notification.GetSenderName(nameFormat, a.Config().ServiceSettings.EnablePostUsernameOverride)
+	senderName := notification.GetSenderName(nameFormat, *a.Config().ServiceSettings.EnablePostUsernameOverride)
 
 	emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
 	if license := a.License(); license != nil && *license.Features.EmailNotificationContents {
@@ -91,13 +91,13 @@ func (a *App) sendNotificationEmail(notification *postNotification, user *model.
 
 	var subjectText string
 	if channel.Type == model.CHANNEL_DIRECT {
-		subjectText = getDirectMessageNotificationEmailSubject(user, post, translateFunc, a.Config().TeamSettings.SiteName, senderName, useMilitaryTime)
+		subjectText = getDirectMessageNotificationEmailSubject(user, post, translateFunc, *a.Config().TeamSettings.SiteName, senderName, useMilitaryTime)
 	} else if channel.Type == model.CHANNEL_GROUP {
-		subjectText = getGroupMessageNotificationEmailSubject(user, post, translateFunc, a.Config().TeamSettings.SiteName, channelName, emailNotificationContentsType, useMilitaryTime)
+		subjectText = getGroupMessageNotificationEmailSubject(user, post, translateFunc, *a.Config().TeamSettings.SiteName, channelName, emailNotificationContentsType, useMilitaryTime)
 	} else if *a.Config().EmailSettings.UseChannelInEmailNotifications {
-		subjectText = getNotificationEmailSubject(user, post, translateFunc, a.Config().TeamSettings.SiteName, team.DisplayName+" ("+channelName+")", useMilitaryTime)
+		subjectText = getNotificationEmailSubject(user, post, translateFunc, *a.Config().TeamSettings.SiteName, team.DisplayName+" ("+channelName+")", useMilitaryTime)
 	} else {
-		subjectText = getNotificationEmailSubject(user, post, translateFunc, a.Config().TeamSettings.SiteName, team.DisplayName, useMilitaryTime)
+		subjectText = getNotificationEmailSubject(user, post, translateFunc, *a.Config().TeamSettings.SiteName, team.DisplayName, useMilitaryTime)
 	}
 
 	teamURL := a.GetSiteURL() + "/" + team.Name
