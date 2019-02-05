@@ -1401,6 +1401,17 @@ func (c *Client4) GetBotsIncludeDeleted(page, perPage int, etag string) ([]*Bot,
 	return BotListFromJson(r.Body), BuildResponse(r)
 }
 
+// GetBotsOrphaned fetches the given page of bots, only including orphanded bots.
+func (c *Client4) GetBotsOrphaned(page, perPage int, etag string) ([]*Bot, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v&only_orphaned=true", page, perPage)
+	r, err := c.DoApiGet(c.GetBotsRoute()+query, etag)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return BotListFromJson(r.Body), BuildResponse(r)
+}
+
 // DisableBot disables the given bot in the system.
 func (c *Client4) DisableBot(userId string) (*Bot, *Response) {
 	r, err := c.doApiPostBytes(c.GetBotRoute(userId)+"/disable", nil)

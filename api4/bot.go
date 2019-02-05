@@ -112,6 +112,7 @@ func getBot(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func getBots(c *Context, w http.ResponseWriter, r *http.Request) {
 	includeDeleted := r.URL.Query().Get("include_deleted") == "true"
+	onlyOrphaned := r.URL.Query().Get("only_orphaned") == "true"
 
 	var creatorId string
 	if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_READ_OTHERS_BOTS) {
@@ -130,6 +131,7 @@ func getBots(c *Context, w http.ResponseWriter, r *http.Request) {
 		PerPage:        c.Params.PerPage,
 		CreatorId:      creatorId,
 		IncludeDeleted: includeDeleted,
+		OnlyOrphaned:   onlyOrphaned,
 	})
 	if err != nil {
 		c.Err = err

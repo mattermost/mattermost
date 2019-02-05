@@ -114,22 +114,27 @@ func (us SqlBotStore) Get(botUserId string, includeDeleted bool) store.StoreChan
 }
 
 // GetAll fetches from all bots in the database.
-func (us SqlBotStore) GetAll(offset, limit int, creatorId string, includeDeleted bool) store.StoreChannel {
+func (us SqlBotStore) GetAll(options *model.BotGetOptions) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		params := map[string]interface{}{
-			"offset": offset,
-			"limit":  limit,
+			"offset": options.Page * options.PerPage,
+			"limit":  options.PerPage,
 		}
 
 		var conditions []string
 		var conditionsSql string
+		var additionalJoin string
 
-		if !includeDeleted {
+		if !options.IncludeDeleted {
 			conditions = append(conditions, "b.DeleteAt = 0")
 		}
-		if creatorId != "" {
+		if options.CreatorId != "" {
 			conditions = append(conditions, "b.CreatorId = :creator_id")
-			params["creator_id"] = creatorId
+			params["creator_id"] = options.CreatorId
+		}
+		if options.OnlyOrphaned {
+			additionalJoin = "JOIN Users o ON (o.Id = b.CreatorId)"
+			conditions = append(conditions, "o.DeleteAt != 0")
 		}
 
 		if len(conditions) > 0 {
@@ -150,6 +155,7 @@ func (us SqlBotStore) GetAll(offset, limit int, creatorId string, includeDeleted
 			    Bots b
 			JOIN
 			    Users u ON (u.Id = b.UserId)
+			` + additionalJoin + `
 			` + conditionsSql + `
 			ORDER BY
 			    b.CreateAt ASC,

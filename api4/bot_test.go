@@ -471,6 +471,19 @@ func TestGetBots(t *testing.T) {
 	deletedBot2, resp = th.SystemAdminClient.DisableBot(deletedBot2.UserId)
 	CheckOKStatus(t, resp)
 
+	th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
+	th.App.UpdateUserRoles(th.BasicUser2.Id, model.TEAM_USER_ROLE_ID, false)
+	th.LoginBasic2()
+	orphanedBot, resp := th.Client.CreateBot(&model.Bot{
+		Username:    GenerateTestUsername(),
+		Description: "an oprphaned bot",
+	})
+	CheckCreatedStatus(t, resp)
+	th.LoginBasic()
+	defer th.App.PermanentDeleteBot(orphanedBot.UserId)
+	_, resp = th.SystemAdminClient.DeleteUser(th.BasicUser2.Id)
+	CheckOKStatus(t, resp)
+
 	t.Run("get bots, page=0, perPage=10", func(t *testing.T) {
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
@@ -480,7 +493,7 @@ func TestGetBots(t *testing.T) {
 
 		bots, resp := th.Client.GetBots(0, 10, "")
 		CheckOKStatus(t, resp)
-		require.Equal(t, []*model.Bot{bot1, bot2, bot3}, bots)
+		require.Equal(t, []*model.Bot{bot1, bot2, bot3, orphanedBot}, bots)
 
 		botList := model.BotList(bots)
 		bots, resp = th.Client.GetBots(0, 10, botList.Etag())
@@ -512,7 +525,7 @@ func TestGetBots(t *testing.T) {
 
 		bots, resp := th.Client.GetBots(1, 2, "")
 		CheckOKStatus(t, resp)
-		require.Equal(t, []*model.Bot{bot3}, bots)
+		require.Equal(t, []*model.Bot{bot3, orphanedBot}, bots)
 
 		botList := model.BotList(bots)
 		bots, resp = th.Client.GetBots(1, 2, botList.Etag())
@@ -544,7 +557,7 @@ func TestGetBots(t *testing.T) {
 
 		bots, resp := th.Client.GetBotsIncludeDeleted(0, 10, "")
 		CheckOKStatus(t, resp)
-		require.Equal(t, []*model.Bot{bot1, deletedBot1, bot2, bot3, deletedBot2}, bots)
+		require.Equal(t, []*model.Bot{bot1, deletedBot1, bot2, bot3, deletedBot2, orphanedBot}, bots)
 
 		botList := model.BotList(bots)
 		bots, resp = th.Client.GetBotsIncludeDeleted(0, 10, botList.Etag())
@@ -592,10 +605,26 @@ func TestGetBots(t *testing.T) {
 
 		bots, resp := th.Client.GetBotsIncludeDeleted(2, 2, "")
 		CheckOKStatus(t, resp)
-		require.Equal(t, []*model.Bot{deletedBot2}, bots)
+		require.Equal(t, []*model.Bot{deletedBot2, orphanedBot}, bots)
 
 		botList := model.BotList(bots)
 		bots, resp = th.Client.GetBotsIncludeDeleted(2, 2, botList.Etag())
+		CheckEtag(t, bots, resp)
+	})
+
+	t.Run("get bots, page=0, perPage=10, only orphaned", func(t *testing.T) {
+		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+
+		th.AddPermissionToRole(model.PERMISSION_READ_BOTS.Id, model.TEAM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_READ_OTHERS_BOTS.Id, model.TEAM_USER_ROLE_ID)
+		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+
+		bots, resp := th.Client.GetBotsOrphaned(0, 10, "")
+		CheckOKStatus(t, resp)
+		require.Equal(t, []*model.Bot{orphanedBot}, bots)
+
+		botList := model.BotList(bots)
+		bots, resp = th.Client.GetBotsOrphaned(0, 10, botList.Etag())
 		CheckEtag(t, bots, resp)
 	})
 

@@ -141,7 +141,7 @@ func testBotStoreGetAll(t *testing.T, ss store.Store) {
 	defer func() { store.Must(ss.User().PermanentDelete(b2.UserId)) }()
 
 	t.Run("get original bots", func(t *testing.T) {
-		result := <-ss.Bot().GetAll(0, 10, "", false)
+		result := <-ss.Bot().GetAll(&model.BotGetOptions{Page: 0, PerPage: 10})
 		require.Nil(t, result.Err)
 		require.Equal(t, []*model.Bot{
 			b1,
@@ -165,19 +165,48 @@ func testBotStoreGetAll(t *testing.T, ss store.Store) {
 	defer func() { store.Must(ss.Bot().PermanentDelete(b4.UserId)) }()
 	defer func() { store.Must(ss.User().PermanentDelete(b4.UserId)) }()
 
+	deletedUser := model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	if err := (<-ss.User().Save(&deletedUser)).Err; err != nil {
+		t.Fatal("couldn't save user", err)
+	}
+	deletedUser.DeleteAt = model.GetMillis()
+	if err := (<-ss.User().Update(&deletedUser, true)).Err; err != nil {
+		t.Fatal("couldn't delete user", err)
+	}
+	defer func() { store.Must(ss.User().PermanentDelete(deletedUser.Id)) }()
+	ob5, _ := makeBotWithUser(ss, &model.Bot{
+		Username:    "ob5",
+		Description: "Orphaned bot 5",
+		CreatorId:   deletedUser.Id,
+	})
+	defer func() { store.Must(ss.Bot().PermanentDelete(b4.UserId)) }()
+	defer func() { store.Must(ss.User().PermanentDelete(b4.UserId)) }()
+
 	t.Run("get newly created bot stoo", func(t *testing.T) {
-		result := <-ss.Bot().GetAll(0, 10, "", false)
+		result := <-ss.Bot().GetAll(&model.BotGetOptions{Page: 0, PerPage: 10})
 		require.Nil(t, result.Err)
 		require.Equal(t, []*model.Bot{
 			b1,
 			b2,
 			b3,
 			b4,
+			ob5,
 		}, result.Data.([]*model.Bot))
 	})
 
-	t.Run("get offset=0, limit=2", func(t *testing.T) {
-		result := <-ss.Bot().GetAll(0, 2, "", false)
+	t.Run("get orphaned", func(t *testing.T) {
+		result := <-ss.Bot().GetAll(&model.BotGetOptions{Page: 0, PerPage: 10, OnlyOrphaned: true})
+		require.Nil(t, result.Err)
+		require.Equal(t, []*model.Bot{
+			ob5,
+		}, result.Data.([]*model.Bot))
+	})
+
+	t.Run("get page=0, per_page=2", func(t *testing.T) {
+		result := <-ss.Bot().GetAll(&model.BotGetOptions{Page: 0, PerPage: 2})
 		require.Nil(t, result.Err)
 		require.Equal(t, []*model.Bot{
 			b1,
@@ -185,8 +214,8 @@ func testBotStoreGetAll(t *testing.T, ss store.Store) {
 		}, result.Data.([]*model.Bot))
 	})
 
-	t.Run("get offset=2, limit=2", func(t *testing.T) {
-		result := <-ss.Bot().GetAll(2, 2, "", false)
+	t.Run("get page=1, limit=2", func(t *testing.T) {
+		result := <-ss.Bot().GetAll(&model.BotGetOptions{Page: 1, PerPage: 2})
 		require.Nil(t, result.Err)
 		require.Equal(t, []*model.Bot{
 			b3,
@@ -194,14 +223,14 @@ func testBotStoreGetAll(t *testing.T, ss store.Store) {
 		}, result.Data.([]*model.Bot))
 	})
 
-	t.Run("get offset=5, limit=1000", func(t *testing.T) {
-		result := <-ss.Bot().GetAll(5, 1000, "", false)
+	t.Run("get page=5, perpage=1000", func(t *testing.T) {
+		result := <-ss.Bot().GetAll(&model.BotGetOptions{Page: 5, PerPage: 1000})
 		require.Nil(t, result.Err)
 		require.Equal(t, []*model.Bot{}, result.Data.([]*model.Bot))
 	})
 
 	t.Run("get offset=0, limit=2, include deleted", func(t *testing.T) {
-		result := <-ss.Bot().GetAll(0, 2, "", true)
+		result := <-ss.Bot().GetAll(&model.BotGetOptions{Page: 0, PerPage: 2, IncludeDeleted: true})
 		require.Nil(t, result.Err)
 		require.Equal(t, []*model.Bot{
 			deletedBot,
@@ -210,7 +239,7 @@ func testBotStoreGetAll(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("get offset=2, limit=2, include deleted", func(t *testing.T) {
-		result := <-ss.Bot().GetAll(2, 2, "", true)
+		result := <-ss.Bot().GetAll(&model.BotGetOptions{Page: 1, PerPage: 2, IncludeDeleted: true})
 		require.Nil(t, result.Err)
 		require.Equal(t, []*model.Bot{
 			b2,
@@ -219,7 +248,7 @@ func testBotStoreGetAll(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("get offset=0, limit=10, creator id 1", func(t *testing.T) {
-		result := <-ss.Bot().GetAll(0, 10, creatorId1, false)
+		result := <-ss.Bot().GetAll(&model.BotGetOptions{Page: 0, PerPage: 10, CreatorId: creatorId1})
 		require.Nil(t, result.Err)
 		require.Equal(t, []*model.Bot{
 			b1,
@@ -229,7 +258,7 @@ func testBotStoreGetAll(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("get offset=0, limit=10, creator id 2", func(t *testing.T) {
-		result := <-ss.Bot().GetAll(0, 10, creatorId2, false)
+		result := <-ss.Bot().GetAll(&model.BotGetOptions{Page: 0, PerPage: 10, CreatorId: creatorId2})
 		require.Nil(t, result.Err)
 		require.Equal(t, []*model.Bot{
 			b4,
@@ -237,7 +266,7 @@ func testBotStoreGetAll(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("get offset=0, limit=10, include deleted, creator id 1", func(t *testing.T) {
-		result := <-ss.Bot().GetAll(0, 10, creatorId1, true)
+		result := <-ss.Bot().GetAll(&model.BotGetOptions{Page: 0, PerPage: 10, IncludeDeleted: true, CreatorId: creatorId1})
 		require.Nil(t, result.Err)
 		require.Equal(t, []*model.Bot{
 			deletedBot,
@@ -248,7 +277,7 @@ func testBotStoreGetAll(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("get offset=0, limit=10, include deleted, creator id 2", func(t *testing.T) {
-		result := <-ss.Bot().GetAll(0, 10, creatorId2, true)
+		result := <-ss.Bot().GetAll(&model.BotGetOptions{Page: 0, PerPage: 10, IncludeDeleted: true, CreatorId: creatorId2})
 		require.Nil(t, result.Err)
 		require.Equal(t, []*model.Bot{
 			b4,
