@@ -5,7 +5,7 @@ import org.mattermost.Utils
 import java.util.*;
 def utils = new org.mattermost.Utils()
 def rnd = UUID.randomUUID().toString()
-
+def scmVars = checkout(scm)
 pipeline {
     agent {
         label 'default-mm-builder'
@@ -46,7 +46,7 @@ pipeline {
                     git rev-parse --abbrev-ref HEAD
                     
                     """
-                    def scmVars = checkout(scm)
+                    
                     echo "scmVars: ${scmVars}"
                     echo "scmVars.GIT_COMMIT: ${scmVars.GIT_COMMIT}"
                     echo "scmVars.GIT_BRANCH: ${scmVars.GIT_BRANCH}"
