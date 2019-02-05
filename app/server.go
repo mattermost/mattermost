@@ -145,7 +145,9 @@ func NewServer(options ...Option) (*Server, error) {
 		clientConfig:            make(map[string]string),
 	}
 	for _, option := range options {
-		option(s)
+		if err := option(s); err != nil {
+			return nil, errors.Wrap(err, "failed to apply option")
+		}
 	}
 
 	if err := s.LoadConfig(s.configFile); err != nil {
