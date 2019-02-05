@@ -179,6 +179,10 @@ func (api *PluginAPI) DeleteUser(userId string) *model.AppError {
 	return err
 }
 
+func (api *PluginAPI) GetUsers(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
+	return api.app.GetUsers(options)
+}
+
 func (api *PluginAPI) GetUser(userId string) (*model.User, *model.AppError) {
 	return api.app.GetUser(userId)
 }
@@ -473,7 +477,7 @@ func (api *PluginAPI) GetFileInfo(fileId string) (*model.FileInfo, *model.AppErr
 }
 
 func (api *PluginAPI) GetFileLink(fileId string) (string, *model.AppError) {
-	if !api.app.Config().FileSettings.EnablePublicLink {
+	if !*api.app.Config().FileSettings.EnablePublicLink {
 		return "", model.NewAppError("GetFileLink", "plugin_api.get_file_link.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 

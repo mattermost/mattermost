@@ -51,7 +51,7 @@ func TestConfigListener(t *testing.T) {
 
 	originalSiteName := th.App.Config().TeamSettings.SiteName
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.TeamSettings.SiteName = "test123"
+		*cfg.TeamSettings.SiteName = "test123"
 	})
 
 	listenerCalled := false
@@ -60,9 +60,9 @@ func TestConfigListener(t *testing.T) {
 			t.Fatal("listener called twice")
 		}
 
-		if oldConfig.TeamSettings.SiteName != "test123" {
+		if *oldConfig.TeamSettings.SiteName != "test123" {
 			t.Fatal("old config contains incorrect site name")
-		} else if newConfig.TeamSettings.SiteName != originalSiteName {
+		} else if *newConfig.TeamSettings.SiteName != *originalSiteName {
 			t.Fatal("new config contains incorrect site name")
 		}
 

@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/mattermost/mattermost-server/mlog"
@@ -19,6 +20,7 @@ import (
 
 const LINK_CACHE_SIZE = 10000
 const LINK_CACHE_DURATION = 3600
+const MaxMetadataImageSize = MaxOpenGraphResponseSize
 
 var linkCache = utils.NewLru(LINK_CACHE_SIZE)
 
@@ -55,7 +57,7 @@ func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost bool) *mo
 	// Proxy image links before constructing metadata so that requests go through the proxy
 	post = a.PostWithProxyAddedToImageURLs(post)
 
-	if !*a.Config().ExperimentalSettings.EnablePostMetadata {
+	if *a.Config().ExperimentalSettings.DisablePostMetadata {
 		return post
 	}
 
@@ -190,7 +192,7 @@ func (a *App) getImagesForPost(post *model.Post, imageURLs []string, isNewPost b
 		if _, image, err := a.getLinkMetadata(imageURL, post.CreateAt, isNewPost); err != nil {
 			mlog.Warn("Failed to get dimensions of an image in a post",
 				mlog.String("post_id", post.Id), mlog.String("image_url", imageURL), mlog.Any("err", err))
-		} else {
+		} else if image != nil {
 			images[imageURL] = image
 		}
 	}
@@ -330,7 +332,7 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 
 	// Check the database if this isn't a new post. If it is a new post and the data is cached, it should be in memory.
 	if !isNewPost {
-		og, image, ok := a.getLinkMetadataFromDatabase(requestURL, timestamp)
+		og, image, ok = a.getLinkMetadataFromDatabase(requestURL, timestamp)
 		if ok {
 			cacheLinkMetadata(requestURL, timestamp, og, image)
 
@@ -344,19 +346,37 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 		return nil, nil, err
 	}
 
-	request.Header.Add("Accept", "text/html, image/*")
+	var body io.ReadCloser
+	var contentType string
 
-	res, err := a.HTTPService.MakeClient(false).Do(request)
-	if err != nil {
-		return nil, nil, err
+	if (request.URL.Scheme+"://"+request.URL.Host) == a.GetSiteURL() && request.URL.Path == "/api/v4/image" {
+		// /api/v4/image requires authentication, so bypass the API by hitting the proxy directly
+		body, contentType, err = a.ImageProxy.GetImageDirect(a.ImageProxy.GetUnproxiedImageURL(request.URL.String()))
+	} else {
+		request.Header.Add("Accept", "text/html, image/*")
+
+		client := a.HTTPService.MakeClient(false)
+		client.Timeout = time.Duration(*a.Config().ExperimentalSettings.LinkMetadataTimeoutMilliseconds) * time.Millisecond
+
+		var res *http.Response
+		res, err = client.Do(request)
+
+		if res != nil {
+			body = res.Body
+			contentType = res.Header.Get("Content-Type")
+		}
 	}
 
-	defer res.Body.Close()
+	if body != nil {
+		defer body.Close()
+	}
 
-	// Parse the data
-	og, image, err = a.parseLinkMetadata(requestURL, res.Body, res.Header.Get("Content-Type"))
+	if err == nil {
+		// Parse the data
+		og, image, err = a.parseLinkMetadata(requestURL, body, contentType)
+	}
 
-	// Write back to cache and database
+	// Write back to cache and database, even if there was an error and the results are nil
 	cacheLinkMetadata(requestURL, timestamp, og, image)
 
 	a.saveLinkMetadataToDatabase(requestURL, timestamp, og, image)
@@ -448,7 +468,7 @@ func cacheLinkMetadata(requestURL string, timestamp int64, og *opengraph.OpenGra
 
 func (a *App) parseLinkMetadata(requestURL string, body io.Reader, contentType string) (*opengraph.OpenGraph, *model.PostImage, error) {
 	if strings.HasPrefix(contentType, "image") {
-		image, err := parseImages(body)
+		image, err := parseImages(io.LimitReader(body, MaxMetadataImageSize))
 		return nil, image, err
 	} else if strings.HasPrefix(contentType, "text/html") {
 		og := a.ParseOpenGraphMetadata(requestURL, body, contentType)

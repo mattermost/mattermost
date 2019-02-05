@@ -84,6 +84,7 @@ type User struct {
 
 type UserPatch struct {
 	Username    *string   `json:"username"`
+	Password    *string   `json:"password,omitempty"`
 	Nickname    *string   `json:"nickname"`
 	FirstName   *string   `json:"first_name"`
 	LastName    *string   `json:"last_name"`

@@ -57,7 +57,7 @@ func (a *App) CheckPasswordAndAllCriteria(user *model.User, password string, mfa
 }
 
 // This to be used for places we check the users password when they are already logged in
-func (a *App) doubleCheckPassword(user *model.User, password string) *model.AppError {
+func (a *App) DoubleCheckPassword(user *model.User, password string) *model.AppError {
 	if err := checkUserLoginAttempts(user, *a.Config().ServiceSettings.MaximumLoginAttempts); err != nil {
 		return err
 	}
@@ -138,7 +138,7 @@ func (a *App) CheckUserPreflightAuthenticationCriteria(user *model.User, mfaToke
 }
 
 func (a *App) CheckUserPostflightAuthenticationCriteria(user *model.User) *model.AppError {
-	if !user.EmailVerified && a.Config().EmailSettings.RequireEmailVerification {
+	if !user.EmailVerified && *a.Config().EmailSettings.RequireEmailVerification {
 		return model.NewAppError("Login", "api.user.login.not_verified.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
 	}
 

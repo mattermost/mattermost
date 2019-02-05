@@ -11,6 +11,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strconv"
 	"strings"
 	"testing"
@@ -18,6 +19,8 @@ import (
 
 	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/httpservice"
+	"github.com/mattermost/mattermost-server/services/imageproxy"
 	"github.com/mattermost/mattermost-server/utils/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -30,7 +33,7 @@ func TestPreparePostListForClient(t *testing.T) {
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ExperimentalSettings.EnablePostMetadata = true
+		*cfg.ExperimentalSettings.DisablePostMetadata = false
 	})
 
 	postList := model.NewPostList()
@@ -64,7 +67,7 @@ func TestPreparePostForClient(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ImageProxySettings.Enable = false
-			*cfg.ExperimentalSettings.EnablePostMetadata = true
+			*cfg.ExperimentalSettings.DisablePostMetadata = false
 		})
 
 		return th
@@ -398,7 +401,7 @@ func TestPreparePostForClient(t *testing.T) {
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ExperimentalSettings.EnablePostMetadata = false
+			*cfg.ExperimentalSettings.DisablePostMetadata = true
 		})
 
 		post := th.CreatePost(th.BasicChannel)
@@ -422,7 +425,7 @@ func TestPreparePostForClientWithImageProxy(t *testing.T) {
 			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
 			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
 			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
-			*cfg.ExperimentalSettings.EnablePostMetadata = true
+			*cfg.ExperimentalSettings.DisablePostMetadata = false
 		})
 
 		return th
@@ -493,6 +496,61 @@ func testProxyOpenGraphImage(t *testing.T, th *TestHelper, shouldProxy bool) {
 		assert.Equal(t, "https://avatars1.githubusercontent.com/u/3277310?s=400&v=4", image.URL, "image URL should be set")
 		assert.Equal(t, "", image.SecureURL, "secure image URL should not be set")
 	}
+}
+
+func TestGetImagesForPost(t *testing.T) {
+	t.Run("with an image link", func(t *testing.T) {
+		th := Setup()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.1"
+		})
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			file, err := testutils.ReadTestFile("test.png")
+			require.Nil(t, err)
+
+			w.Header().Set("Content-Type", "image/png")
+			w.Write(file)
+		}))
+
+		post := &model.Post{
+			Metadata: &model.PostMetadata{},
+		}
+		imageURL := server.URL + "/image.png"
+
+		images := th.App.getImagesForPost(post, []string{imageURL}, false)
+
+		assert.Equal(t, images, map[string]*model.PostImage{
+			imageURL: {
+				Width:  408,
+				Height: 336,
+			},
+		})
+	})
+
+	t.Run("with an invalid image link", func(t *testing.T) {
+		th := Setup()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.1"
+		})
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusInternalServerError)
+		}))
+
+		post := &model.Post{
+			Metadata: &model.PostMetadata{},
+		}
+		imageURL := server.URL + "/bad_image.png"
+
+		images := th.App.getImagesForPost(post, []string{imageURL}, false)
+
+		assert.Equal(t, images, map[string]*model.PostImage{})
+	})
 }
 
 func TestGetEmojiNamesForString(t *testing.T) {
@@ -1008,8 +1066,6 @@ func TestGetLinkMetadata(t *testing.T) {
 
 		return th
 	}
-	th := Setup().InitBasic()
-	defer th.TearDown()
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		params := r.URL.Query()
@@ -1038,6 +1094,15 @@ func TestGetLinkMetadata(t *testing.T) {
 			w.Header().Set("Content-Type", "application/json")
 
 			w.Write([]byte("true"))
+		} else if strings.HasPrefix(r.URL.Path, "/timeout") {
+			w.Header().Set("Content-Type", "text/html")
+
+			w.Write([]byte("<html>"))
+			select {
+			case <-time.After(60 * time.Second):
+			case <-r.Context().Done():
+			}
+			w.Write([]byte("</html>"))
 		} else {
 			w.WriteHeader(http.StatusInternalServerError)
 		}
@@ -1274,7 +1339,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		assert.Exactly(t, img, fromDatabase)
 	})
 
-	t.Run("should cache error results", func(t *testing.T) {
+	t.Run("should cache general errors", func(t *testing.T) {
 		th := setup()
 		defer th.TearDown()
 
@@ -1292,6 +1357,71 @@ func TestGetLinkMetadata(t *testing.T) {
 		assert.Nil(t, og)
 		assert.Nil(t, img)
 		assert.Nil(t, err)
+
+		ogFromCache, imgFromCache, ok := getLinkMetadataFromCache(requestURL, timestamp)
+		assert.True(t, ok)
+		assert.Nil(t, ogFromCache)
+		assert.Nil(t, imgFromCache)
+
+		ogFromDatabase, imageFromDatabase, ok := th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
+		assert.True(t, ok)
+		assert.Nil(t, ogFromDatabase)
+		assert.Nil(t, imageFromDatabase)
+	})
+
+	t.Run("should cache invalid URL errors", func(t *testing.T) {
+		th := setup()
+		defer th.TearDown()
+
+		requestURL := "http://notarealdomainthatactuallyexists.ca/?name=" + t.Name()
+		timestamp := int64(1547510400000)
+
+		_, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
+		require.False(t, ok, "data should not exist in in-memory cache")
+
+		_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
+		require.False(t, ok, "data should not exist in database")
+
+		og, img, err := th.App.getLinkMetadata(requestURL, timestamp, false)
+
+		assert.Nil(t, og)
+		assert.Nil(t, img)
+		assert.IsType(t, &url.Error{}, err)
+
+		ogFromCache, imgFromCache, ok := getLinkMetadataFromCache(requestURL, timestamp)
+		assert.True(t, ok)
+		assert.Nil(t, ogFromCache)
+		assert.Nil(t, imgFromCache)
+
+		ogFromDatabase, imageFromDatabase, ok := th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
+		assert.True(t, ok)
+		assert.Nil(t, ogFromDatabase)
+		assert.Nil(t, imageFromDatabase)
+	})
+
+	t.Run("should cache timeout errors", func(t *testing.T) {
+		th := setup()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ExperimentalSettings.LinkMetadataTimeoutMilliseconds = 100
+		})
+
+		requestURL := server.URL + "/timeout?name=" + t.Name()
+		timestamp := int64(1547510400000)
+
+		_, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
+		require.False(t, ok, "data should not exist in in-memory cache")
+
+		_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
+		require.False(t, ok, "data should not exist in database")
+
+		og, img, err := th.App.getLinkMetadata(requestURL, timestamp, false)
+
+		assert.Nil(t, og)
+		assert.Nil(t, img)
+		assert.NotNil(t, err)
+		assert.Contains(t, err.Error(), "Client.Timeout")
 
 		ogFromCache, imgFromCache, ok := getLinkMetadataFromCache(requestURL, timestamp)
 		assert.True(t, ok)
@@ -1380,6 +1510,11 @@ func TestGetLinkMetadata(t *testing.T) {
 		defer th.TearDown()
 
 		// Fake the SiteURL to have the relative URL resolve to the external server
+		oldSiteURL := *th.App.Config().ServiceSettings.SiteURL
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = oldSiteURL
+		})
+
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = server.URL
 		})
@@ -1391,6 +1526,45 @@ func TestGetLinkMetadata(t *testing.T) {
 		assert.Nil(t, og)
 		assert.NotNil(t, img)
 		assert.Nil(t, err)
+	})
+
+	t.Run("should error on local addresses other than the image proxy", func(t *testing.T) {
+		th := setup()
+		defer th.TearDown()
+
+		// Disable AllowedUntrustedInternalConnections since it's turned on for the previous tests
+		oldAllowUntrusted := *th.App.Config().ServiceSettings.AllowedUntrustedInternalConnections
+		oldSiteURL := *th.App.Config().ServiceSettings.SiteURL
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = oldAllowUntrusted
+			*cfg.ServiceSettings.SiteURL = oldSiteURL
+		})
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = ""
+			*cfg.ServiceSettings.SiteURL = "http://mattermost.example.com"
+			*cfg.ImageProxySettings.Enable = true
+			*cfg.ImageProxySettings.ImageProxyType = "local"
+		})
+
+		requestURL := server.URL + "/image?height=200&width=300&name=" + t.Name()
+		timestamp := int64(1547510400000)
+
+		og, img, err := th.App.getLinkMetadata(requestURL, timestamp, false)
+		assert.Nil(t, og)
+		assert.Nil(t, img)
+		assert.NotNil(t, err)
+		assert.IsType(t, &url.Error{}, err)
+		assert.Equal(t, httpservice.AddressForbidden, err.(*url.Error).Err)
+
+		requestURL = th.App.GetSiteURL() + "/api/v4/image?url=" + url.QueryEscape(requestURL)
+
+		// Note that this request still fails while testing because the request made by the image proxy is blocked
+		og, img, err = th.App.getLinkMetadata(requestURL, timestamp, false)
+		assert.Nil(t, og)
+		assert.Nil(t, img)
+		assert.NotNil(t, err)
+		assert.IsType(t, imageproxy.Error{}, err)
 	})
 }
 
