@@ -17,12 +17,10 @@ if test -z "$GOARCH" -o -z "$GOOS"; then
 fi
 
 # Check that we are using the new build system if we should
-if [[ "$GOOS" = "linux" ]] && [[ "$GOARCH" != "sparc64" ]]; then
-	if [[ "$GOLANG_SYS_BUILD" != "docker" ]]; then
-		echo 1>&2 "In the new build system, mkerrors should not be called directly."
-		echo 1>&2 "See README.md"
-		exit 1
-	fi
+if [[ "$GOOS" = "linux" ]] && [[ "$GOLANG_SYS_BUILD" != "docker" ]]; then
+	echo 1>&2 "In the Docker based build system, mkerrors should not be called directly."
+	echo 1>&2 "See README.md"
+	exit 1
 fi
 
 if [[ "$GOOS" = "aix" ]]; then
@@ -101,7 +99,7 @@ includes_DragonFly='
 '
 
 includes_FreeBSD='
-#include <sys/capability.h>
+#include <sys/capsicum.h>
 #include <sys/param.h>
 #include <sys/types.h>
 #include <sys/event.h>
@@ -181,21 +179,26 @@ struct ltchars {
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/time.h>
+#include <sys/signalfd.h>
 #include <sys/socket.h>
 #include <sys/xattr.h>
+#include <linux/errqueue.h>
 #include <linux/if.h>
 #include <linux/if_alg.h>
 #include <linux/if_arp.h>
 #include <linux/if_ether.h>
+#include <linux/if_ppp.h>
 #include <linux/if_tun.h>
 #include <linux/if_packet.h>
 #include <linux/if_addr.h>
 #include <linux/falloc.h>
 #include <linux/filter.h>
 #include <linux/fs.h>
+#include <linux/kexec.h>
 #include <linux/keyctl.h>
 #include <linux/magic.h>
 #include <linux/memfd.h>
+#include <linux/module.h>
 #include <linux/netfilter/nfnetlink.h>
 #include <linux/netlink.h>
 #include <linux/net_namespace.h>
@@ -220,7 +223,15 @@ struct ltchars {
 #include <linux/if_xdp.h>
 #include <mtd/ubi-user.h>
 #include <net/route.h>
+
+#if defined(__sparc__)
+// On sparc{,64}, the kernel defines struct termios2 itself which clashes with the
+// definition in glibc. As only the error constants are needed here, include the
+// generic termibits.h (which is included by termbits.h on sparc).
+#include <asm-generic/termbits.h>
+#else
 #include <asm/termbits.h>
+#endif
 
 #ifndef MSG_FASTOPEN
 #define MSG_FASTOPEN    0x20000000
@@ -444,9 +455,11 @@ ccflags="$@"
 		$2 !~ "MNT_BITS" &&
 		$2 ~ /^(MS|MNT|UMOUNT)_/ ||
 		$2 ~ /^TUN(SET|GET|ATTACH|DETACH)/ ||
-		$2 ~ /^(O|F|E?FD|NAME|S|PTRACE|PT)_/ ||
+		$2 ~ /^(O|F|[ES]?FD|NAME|S|PTRACE|PT)_/ ||
+		$2 ~ /^KEXEC_/ ||
 		$2 ~ /^LINUX_REBOOT_CMD_/ ||
 		$2 ~ /^LINUX_REBOOT_MAGIC[12]$/ ||
+		$2 ~ /^MODULE_INIT_/ ||
 		$2 !~ "NLA_TYPE_MASK" &&
 		$2 ~ /^(NETLINK|NLM|NLMSG|NLA|IFA|IFAN|RT|RTC|RTCF|RTN|RTPROT|RTNH|ARPHRD|ETH_P|NETNSA)_/ ||
 		$2 ~ /^SIOC/ ||
@@ -463,7 +476,7 @@ ccflags="$@"
 		$2 ~ /^CLONE_[A-Z_]+/ ||
 		$2 !~ /^(BPF_TIMEVAL)$/ &&
 		$2 ~ /^(BPF|DLT)_/ ||
-		$2 ~ /^CLOCK_/ ||
+		$2 ~ /^(CLOCK|TIMER)_/ ||
 		$2 ~ /^CAN_/ ||
 		$2 ~ /^CAP_/ ||
 		$2 ~ /^ALG_/ ||
@@ -496,6 +509,7 @@ ccflags="$@"
 		$2 ~ /^(HDIO|WIN|SMART)_/ ||
 		$2 !~ "WMESGLEN" &&
 		$2 ~ /^W[A-Z0-9]+$/ ||
+		$2 ~/^PPPIOC/ ||
 		$2 ~ /^BLK[A-Z]*(GET$|SET$|BUF$|PART$|SIZE)/ {printf("\t%s = C.%s\n", $2, $2)}
 		$2 ~ /^__WCOREFLAG$/ {next}
 		$2 ~ /^__W[A-Z0-9]+$/ {printf("\t%s = C.%s\n", substr($2,3), $2)}

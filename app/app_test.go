@@ -4,56 +4,13 @@
 package app
 
 import (
-	"flag"
 	"fmt"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store/storetest"
-	"github.com/mattermost/mattermost-server/utils"
 )
-
-func TestMain(m *testing.M) {
-	flag.Parse()
-
-	// Setup a global logger to catch tests logging outside of app context
-	// The global logger will be stomped by apps initalizing but that's fine for testing. Ideally this won't happen.
-	mlog.InitGlobalLogger(mlog.NewLogger(&mlog.LoggerConfiguration{
-		EnableConsole: true,
-		ConsoleJson:   true,
-		ConsoleLevel:  "error",
-		EnableFile:    false,
-	}))
-
-	utils.TranslationsPreInit()
-
-	// In the case where a dev just wants to run a single test, it's faster to just use the default
-	// store.
-	if filter := flag.Lookup("test.run").Value.String(); filter != "" && filter != "." {
-		mlog.Info("-test.run used, not creating temporary containers")
-		os.Exit(m.Run())
-	}
-
-	status := 0
-
-	container, settings, err := storetest.NewMySQLContainer()
-	if err != nil {
-		panic(err)
-	}
-
-	UseTestStore(container, settings)
-
-	defer func() {
-		StopTestStore()
-		os.Exit(status)
-	}()
-
-	status = m.Run()
-}
 
 /* Temporarily comment out until MM-11108
 func TestAppRace(t *testing.T) {
@@ -88,7 +45,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 	th := Setup()
 	defer th.TearDown()
 
-	if testStoreSqlSupplier == nil {
+	if mainHelper.SqlSupplier == nil {
 		t.Skip("This test requires a TestStore to be run.")
 	}
 
@@ -246,8 +203,12 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 	restrictPrivateChannel := *th.App.Config().TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManagement
 
 	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPublicChannelManagement = restrictPublicChannel })
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManagement = restrictPrivateChannel })
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPublicChannelManagement = restrictPublicChannel
+		})
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManagement = restrictPrivateChannel
+		})
 	}()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -433,8 +394,8 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 	postEditTimeLimit := *th.App.Config().ServiceSettings.PostEditTimeLimit
 
 	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.DEPRECATED_DO_NOT_USE_AllowEditPost = allowEditPost})
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.PostEditTimeLimit = postEditTimeLimit})
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.DEPRECATED_DO_NOT_USE_AllowEditPost = allowEditPost })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.PostEditTimeLimit = postEditTimeLimit })
 	}()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -463,7 +424,7 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 	th := Setup()
 	defer th.TearDown()
 
-	if testStoreSqlSupplier == nil {
+	if mainHelper.SqlSupplier == nil {
 		t.Skip("This test requires a TestStore to be run.")
 	}
 

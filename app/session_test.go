@@ -22,16 +22,16 @@ func TestCache(t *testing.T) {
 		UserId: model.NewId(),
 	}
 
-	th.App.sessionCache.AddWithExpiresInSecs(session.Token, session, 5*60)
+	th.App.Srv.sessionCache.AddWithExpiresInSecs(session.Token, session, 5*60)
 
-	keys := th.App.sessionCache.Keys()
+	keys := th.App.Srv.sessionCache.Keys()
 	if len(keys) <= 0 {
 		t.Fatal("should have items")
 	}
 
 	th.App.ClearSessionCacheForUser(session.UserId)
 
-	rkeys := th.App.sessionCache.Keys()
+	rkeys := th.App.Srv.sessionCache.Keys()
 	if len(rkeys) != len(keys)-1 {
 		t.Fatal("should have one less")
 	}

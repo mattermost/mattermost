@@ -27,113 +27,145 @@ const (
 	ERROR_TERMS_OF_SERVICE_NO_ROWS_FOUND = "store.sql_terms_of_service_store.get.no_rows.app_error"
 )
 
-func (a *App) Config() *model.Config {
-	if cfg := a.config.Load(); cfg != nil {
+func (s *Server) Config() *model.Config {
+	if cfg := s.config.Load(); cfg != nil {
 		return cfg.(*model.Config)
 	}
 	return &model.Config{}
 }
 
-func (a *App) EnvironmentConfig() map[string]interface{} {
-	if a.envConfig != nil {
-		return a.envConfig
+func (a *App) Config() *model.Config {
+	return a.Srv.Config()
+}
+
+func (s *Server) EnvironmentConfig() map[string]interface{} {
+	if s.envConfig != nil {
+		return s.envConfig
 	}
 	return map[string]interface{}{}
 }
 
-func (a *App) UpdateConfig(f func(*model.Config)) {
-	old := a.Config()
+func (a *App) EnvironmentConfig() map[string]interface{} {
+	return a.Srv.EnvironmentConfig()
+}
+
+func (s *Server) UpdateConfig(f func(*model.Config)) {
+	old := s.Config()
 	updated := old.Clone()
 	f(updated)
-	a.config.Store(updated)
+	s.config.Store(updated)
 
-	a.InvokeConfigListeners(old, updated)
+	s.InvokeConfigListeners(old, updated)
+}
+
+func (a *App) UpdateConfig(f func(*model.Config)) {
+	a.Srv.UpdateConfig(f)
 }
 
 func (a *App) PersistConfig() {
 	utils.SaveConfig(a.ConfigFileName(), a.Config())
 }
 
-func (a *App) LoadConfig(configFile string) *model.AppError {
-	old := a.Config()
+func (s *Server) LoadConfig(configFile string) *model.AppError {
+	old := s.Config()
 
 	cfg, configPath, envConfig, err := utils.LoadConfig(configFile)
 	if err != nil {
 		return err
 	}
 	*cfg.ServiceSettings.SiteURL = strings.TrimRight(*cfg.ServiceSettings.SiteURL, "/")
-	a.config.Store(cfg)
+	s.config.Store(cfg)
 
-	a.configFile = configPath
-	a.envConfig = envConfig
-	a.siteURL = *cfg.ServiceSettings.SiteURL
+	s.configFile = configPath
+	s.envConfig = envConfig
 
-	a.InvokeConfigListeners(old, cfg)
+	s.InvokeConfigListeners(old, cfg)
+	return nil
+}
+
+func (a *App) LoadConfig(configFile string) *model.AppError {
+	return a.Srv.LoadConfig(configFile)
+}
+
+func (s *Server) ReloadConfig() *model.AppError {
+	debug.FreeOSMemory()
+	if err := s.LoadConfig(s.configFile); err != nil {
+		return err
+	}
 	return nil
 }
 
 func (a *App) ReloadConfig() *model.AppError {
-	debug.FreeOSMemory()
-	if err := a.LoadConfig(a.configFile); err != nil {
-		return err
-	}
-
-	// start/restart email batching job if necessary
-	a.InitEmailBatching()
-	return nil
+	return a.Srv.ReloadConfig()
 }
 
 func (a *App) ConfigFileName() string {
-	return a.configFile
+	return a.Srv.configFile
 }
 
 func (a *App) ClientConfig() map[string]string {
-	return a.clientConfig
+	return a.Srv.clientConfig
 }
 
 func (a *App) ClientConfigHash() string {
-	return a.clientConfigHash
+	return a.Srv.clientConfigHash
 }
 
 func (a *App) LimitedClientConfig() map[string]string {
-	return a.limitedClientConfig
+	return a.Srv.limitedClientConfig
 }
 
-func (a *App) EnableConfigWatch() {
-	if a.configWatcher == nil && !a.disableConfigWatch {
-		configWatcher, err := utils.NewConfigWatcher(a.ConfigFileName(), func() {
-			a.ReloadConfig()
+func (s *Server) EnableConfigWatch() {
+	if s.configWatcher == nil && !s.disableConfigWatch {
+		configWatcher, err := utils.NewConfigWatcher(s.configFile, func() {
+			s.ReloadConfig()
 		})
 		if err != nil {
 			mlog.Error(fmt.Sprint(err))
 		}
-		a.configWatcher = configWatcher
+		s.configWatcher = configWatcher
+	}
+}
+
+func (a *App) EnableConfigWatch() {
+	a.Srv.EnableConfigWatch()
+}
+
+func (s *Server) DisableConfigWatch() {
+	if s.configWatcher != nil {
+		s.configWatcher.Close()
+		s.configWatcher = nil
 	}
 }
 
 func (a *App) DisableConfigWatch() {
-	if a.configWatcher != nil {
-		a.configWatcher.Close()
-		a.configWatcher = nil
-	}
+	a.Srv.DisableConfigWatch()
 }
 
 // Registers a function with a given to be called when the config is reloaded and may have changed. The function
 // will be called with two arguments: the old config and the new config. AddConfigListener returns a unique ID
 // for the listener that can later be used to remove it.
-func (a *App) AddConfigListener(listener func(*model.Config, *model.Config)) string {
+func (s *Server) AddConfigListener(listener func(*model.Config, *model.Config)) string {
 	id := model.NewId()
-	a.configListeners[id] = listener
+	s.configListeners[id] = listener
 	return id
 }
 
-// Removes a listener function by the unique ID returned when AddConfigListener was called
-func (a *App) RemoveConfigListener(id string) {
-	delete(a.configListeners, id)
+func (a *App) AddConfigListener(listener func(*model.Config, *model.Config)) string {
+	return a.Srv.AddConfigListener(listener)
 }
 
-func (a *App) InvokeConfigListeners(old, current *model.Config) {
-	for _, listener := range a.configListeners {
+// Removes a listener function by the unique ID returned when AddConfigListener was called
+func (s *Server) RemoveConfigListener(id string) {
+	delete(s.configListeners, id)
+}
+
+func (a *App) RemoveConfigListener(id string) {
+	a.Srv.RemoveConfigListener(id)
+}
+
+func (s *Server) InvokeConfigListeners(old, current *model.Config) {
+	for _, listener := range s.configListeners {
 		listener(old, current)
 	}
 }
@@ -141,7 +173,7 @@ func (a *App) InvokeConfigListeners(old, current *model.Config) {
 // EnsureAsymmetricSigningKey ensures that an asymmetric signing key exists and future calls to
 // AsymmetricSigningKey will always return a valid signing key.
 func (a *App) ensureAsymmetricSigningKey() error {
-	if a.asymmetricSigningKey != nil {
+	if a.Srv.asymmetricSigningKey != nil {
 		return nil
 	}
 
@@ -202,7 +234,7 @@ func (a *App) ensureAsymmetricSigningKey() error {
 	default:
 		return fmt.Errorf("unknown curve: " + key.ECDSAKey.Curve)
 	}
-	a.asymmetricSigningKey = &ecdsa.PrivateKey{
+	a.Srv.asymmetricSigningKey = &ecdsa.PrivateKey{
 		PublicKey: ecdsa.PublicKey{
 			Curve: curve,
 			X:     key.ECDSAKey.X,
@@ -239,32 +271,36 @@ func (a *App) ensureInstallationDate() error {
 }
 
 // AsymmetricSigningKey will return a private key that can be used for asymmetric signing.
+func (s *Server) AsymmetricSigningKey() *ecdsa.PrivateKey {
+	return s.asymmetricSigningKey
+}
+
 func (a *App) AsymmetricSigningKey() *ecdsa.PrivateKey {
-	return a.asymmetricSigningKey
+	return a.Srv.AsymmetricSigningKey()
 }
 
 func (a *App) regenerateClientConfig() {
-	a.clientConfig = utils.GenerateClientConfig(a.Config(), a.DiagnosticId(), a.License())
+	a.Srv.clientConfig = utils.GenerateClientConfig(a.Config(), a.DiagnosticId(), a.License())
+	a.Srv.limitedClientConfig = utils.GenerateLimitedClientConfig(a.Config(), a.DiagnosticId(), a.License())
 
-	if a.clientConfig["EnableCustomTermsOfService"] == "true" {
+	if a.Srv.clientConfig["EnableCustomTermsOfService"] == "true" {
 		termsOfService, err := a.GetLatestTermsOfService()
 		if err != nil {
 			mlog.Err(err)
 		} else {
-			a.clientConfig["CustomTermsOfServiceId"] = termsOfService.Id
+			a.Srv.clientConfig["CustomTermsOfServiceId"] = termsOfService.Id
+			a.Srv.limitedClientConfig["CustomTermsOfServiceId"] = termsOfService.Id
 		}
 	}
 
-	a.limitedClientConfig = utils.GenerateLimitedClientConfig(a.Config(), a.DiagnosticId(), a.License())
-
 	if key := a.AsymmetricSigningKey(); key != nil {
 		der, _ := x509.MarshalPKIXPublicKey(&key.PublicKey)
-		a.clientConfig["AsymmetricSigningPublicKey"] = base64.StdEncoding.EncodeToString(der)
-		a.limitedClientConfig["AsymmetricSigningPublicKey"] = base64.StdEncoding.EncodeToString(der)
+		a.Srv.clientConfig["AsymmetricSigningPublicKey"] = base64.StdEncoding.EncodeToString(der)
+		a.Srv.limitedClientConfig["AsymmetricSigningPublicKey"] = base64.StdEncoding.EncodeToString(der)
 	}
 
-	clientConfigJSON, _ := json.Marshal(a.clientConfig)
-	a.clientConfigHash = fmt.Sprintf("%x", md5.Sum(clientConfigJSON))
+	clientConfigJSON, _ := json.Marshal(a.Srv.clientConfig)
+	a.Srv.clientConfigHash = fmt.Sprintf("%x", md5.Sum(clientConfigJSON))
 }
 
 func (a *App) Desanitize(cfg *model.Config) {
@@ -277,25 +313,25 @@ func (a *App) Desanitize(cfg *model.Config) {
 	if *cfg.FileSettings.PublicLinkSalt == model.FAKE_SETTING {
 		*cfg.FileSettings.PublicLinkSalt = *actual.FileSettings.PublicLinkSalt
 	}
-	if cfg.FileSettings.AmazonS3SecretAccessKey == model.FAKE_SETTING {
+	if *cfg.FileSettings.AmazonS3SecretAccessKey == model.FAKE_SETTING {
 		cfg.FileSettings.AmazonS3SecretAccessKey = actual.FileSettings.AmazonS3SecretAccessKey
 	}
 
-	if cfg.EmailSettings.InviteSalt == model.FAKE_SETTING {
+	if *cfg.EmailSettings.InviteSalt == model.FAKE_SETTING {
 		cfg.EmailSettings.InviteSalt = actual.EmailSettings.InviteSalt
 	}
-	if cfg.EmailSettings.SMTPPassword == model.FAKE_SETTING {
+	if *cfg.EmailSettings.SMTPPassword == model.FAKE_SETTING {
 		cfg.EmailSettings.SMTPPassword = actual.EmailSettings.SMTPPassword
 	}
 
-	if cfg.GitLabSettings.Secret == model.FAKE_SETTING {
-		cfg.GitLabSettings.Secret = actual.GitLabSettings.Secret
+	if *cfg.GitLabSettings.Secret == model.FAKE_SETTING {
+		*cfg.GitLabSettings.Secret = *actual.GitLabSettings.Secret
 	}
 
 	if *cfg.SqlSettings.DataSource == model.FAKE_SETTING {
 		*cfg.SqlSettings.DataSource = *actual.SqlSettings.DataSource
 	}
-	if cfg.SqlSettings.AtRestEncryptKey == model.FAKE_SETTING {
+	if *cfg.SqlSettings.AtRestEncryptKey == model.FAKE_SETTING {
 		cfg.SqlSettings.AtRestEncryptKey = actual.SqlSettings.AtRestEncryptKey
 	}
 
@@ -322,7 +358,7 @@ func (a *App) GetCookieDomain() string {
 }
 
 func (a *App) GetSiteURL() string {
-	return a.siteURL
+	return *a.Config().ServiceSettings.SiteURL
 }
 
 // ClientConfigWithComputed gets the configuration in a format suitable for sending to the client.

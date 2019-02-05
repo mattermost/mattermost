@@ -15,7 +15,7 @@ import (
 	"github.com/mattermost/mattermost-server/store"
 )
 
-func (a *App) CheckForClienSideCert(r *http.Request) (string, string, string) {
+func (a *App) CheckForClientSideCert(r *http.Request) (string, string, string) {
 	pem := r.Header.Get("X-SSL-Client-Cert")                // mapped to $ssl_client_cert from nginx
 	subject := r.Header.Get("X-SSL-Client-Cert-Subject-DN") // mapped to $ssl_client_s_dn from nginx
 	email := ""
@@ -45,8 +45,7 @@ func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken string, l
 	}()
 
 	if len(password) == 0 {
-		err := model.NewAppError("AuthenticateUserForLogin", "api.user.login.blank_pwd.app_error", nil, "", http.StatusBadRequest)
-		return nil, err
+		return nil, model.NewAppError("AuthenticateUserForLogin", "api.user.login.blank_pwd.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	// Get the MM user we are trying to login
@@ -66,10 +65,10 @@ func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken string, l
 		return nil, err
 	}
 
-	if a.PluginsReady() {
+	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		var rejectionReason string
-		pluginContext := &plugin.Context{}
-		a.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+		pluginContext := a.PluginContext()
+		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 			rejectionReason = hooks.UserWillLogIn(pluginContext, user)
 			return rejectionReason == ""
 		}, plugin.UserWillLogInId)
@@ -78,9 +77,9 @@ func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken string, l
 			return nil, model.NewAppError("AuthenticateUserForLogin", "Login rejected by plugin: "+rejectionReason, nil, "", http.StatusBadRequest)
 		}
 
-		a.Go(func() {
-			pluginContext := &plugin.Context{}
-			a.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+		a.Srv.Go(func() {
+			pluginContext := a.PluginContext()
+			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.UserHasLoggedIn(pluginContext, user)
 				return true
 			}, plugin.UserHasLoggedInId)
@@ -190,8 +189,19 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 		Secure:  secure,
 	}
 
+	csrfCookie := &http.Cookie{
+		Name:    model.SESSION_COOKIE_CSRF,
+		Value:   session.GetCSRF(),
+		Path:    "/",
+		MaxAge:  maxAge,
+		Expires: expiresAt,
+		Domain:  domain,
+		Secure:  secure,
+	}
+
 	http.SetCookie(w, sessionCookie)
 	http.SetCookie(w, userCookie)
+	http.SetCookie(w, csrfCookie)
 
 	return session, nil
 }

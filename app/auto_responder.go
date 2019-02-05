@@ -13,8 +13,8 @@ func (a *App) SendAutoResponse(channel *model.Channel, receiver *model.User) {
 		return
 	}
 
-	active := receiver.NotifyProps["auto_responder_active"] == "true"
-	message := receiver.NotifyProps["auto_responder_message"]
+	active := receiver.NotifyProps[model.AUTO_RESPONDER_ACTIVE_NOTIFY_PROP] == "true"
+	message := receiver.NotifyProps[model.AUTO_RESPONDER_MESSAGE_NOTIFY_PROP]
 
 	if active && message != "" {
 		autoResponderPost := &model.Post{
@@ -33,8 +33,8 @@ func (a *App) SendAutoResponse(channel *model.Channel, receiver *model.User) {
 }
 
 func (a *App) SetAutoResponderStatus(user *model.User, oldNotifyProps model.StringMap) {
-	active := user.NotifyProps["auto_responder_active"] == "true"
-	oldActive := oldNotifyProps["auto_responder_active"] == "true"
+	active := user.NotifyProps[model.AUTO_RESPONDER_ACTIVE_NOTIFY_PROP] == "true"
+	oldActive := oldNotifyProps[model.AUTO_RESPONDER_ACTIVE_NOTIFY_PROP] == "true"
 
 	autoResponderEnabled := !oldActive && active
 	autoResponderDisabled := oldActive && !active
@@ -52,12 +52,12 @@ func (a *App) DisableAutoResponder(userId string, asAdmin bool) *model.AppError 
 		return err
 	}
 
-	active := user.NotifyProps["auto_responder_active"] == "true"
+	active := user.NotifyProps[model.AUTO_RESPONDER_ACTIVE_NOTIFY_PROP] == "true"
 
 	if active {
 		patch := &model.UserPatch{}
 		patch.NotifyProps = user.NotifyProps
-		patch.NotifyProps["auto_responder_active"] = "false"
+		patch.NotifyProps[model.AUTO_RESPONDER_ACTIVE_NOTIFY_PROP] = "false"
 
 		_, err := a.PatchUser(userId, patch, asAdmin)
 		if err != nil {

@@ -29,7 +29,7 @@ type XOF interface {
 }
 
 // OutputLengthUnknown can be used as the size argument to NewXOF to indicate
-// the the length of the output is not known in advance.
+// the length of the output is not known in advance.
 const OutputLengthUnknown = 0
 
 // magicUnknownOutputLength is a magic value for the output size that indicates

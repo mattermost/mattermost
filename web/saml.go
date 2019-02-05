@@ -32,7 +32,6 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	action := r.URL.Query().Get("action")
 	redirectTo := r.URL.Query().Get("redirect_to")
-	extensionId := r.URL.Query().Get("extension_id")
 	relayProps := map[string]string{}
 	relayState := ""
 
@@ -46,15 +45,6 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if len(redirectTo) != 0 {
 		relayProps["redirect_to"] = redirectTo
-	}
-
-	if len(extensionId) != 0 {
-		relayProps["extension_id"] = extensionId
-		err := c.App.ValidateExtension(extensionId)
-		if err != nil {
-			c.Err = err
-			return
-		}
 	}
 
 	if len(relayProps) > 0 {
@@ -97,7 +87,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	action := relayProps["action"]
 	if user, err := samlInterface.DoLogin(encodedXML, relayProps); err != nil {
 		if action == model.OAUTH_ACTION_MOBILE {
-			err.Translate(c.T)
+			err.Translate(c.App.T)
 			w.Write([]byte(err.ToJson()))
 		} else {
 			c.Err = err
@@ -115,7 +105,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		case model.OAUTH_ACTION_SIGNUP:
 			teamId := relayProps["team_id"]
 			if len(teamId) > 0 {
-				c.App.Go(func() {
+				c.App.Srv.Go(func() {
 					if err := c.App.AddUserToTeamByTeamId(teamId, user); err != nil {
 						mlog.Error(err.Error())
 					} else {
@@ -129,7 +119,7 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			c.LogAuditWithUserId(user.Id, "Revoked all sessions for user")
-			c.App.Go(func() {
+			c.App.Srv.Go(func() {
 				if err := c.App.SendSignInChangeEmail(user.Email, strings.Title(model.USER_AUTH_SERVICE_SAML)+" SSO", user.Locale, c.App.GetSiteURL()); err != nil {
 					mlog.Error(err.Error())
 				}
@@ -142,23 +132,19 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		c.Session = *session
+		c.App.Session = *session
 
 		if val, ok := relayProps["redirect_to"]; ok {
 			http.Redirect(w, r, c.GetSiteURLHeader()+val, http.StatusFound)
 			return
 		}
 
-		if action == model.OAUTH_ACTION_MOBILE {
+		switch action {
+		case model.OAUTH_ACTION_MOBILE:
 			ReturnStatusOK(w)
-		} else if action == model.OAUTH_ACTION_CLIENT {
-			err = c.App.SendMessageToExtension(w, relayProps["extension_id"], c.Session.Token)
-
-			if err != nil {
-				c.Err = err
-				return
-			}
-		} else {
+		case model.OAUTH_ACTION_EMAIL_TO_SSO:
+			http.Redirect(w, r, c.GetSiteURLHeader()+"/login?extra=signin_change", http.StatusFound)
+		default:
 			http.Redirect(w, r, c.GetSiteURLHeader(), http.StatusFound)
 		}
 	}

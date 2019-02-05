@@ -38,20 +38,36 @@ func ImportLineFromChannel(channel *model.ChannelForExport) *LineImportData {
 	}
 }
 
-func ImportLineFromUser(user *model.User) *LineImportData {
+func ImportLineFromUser(user *model.User, exportedPrefs map[string]*string) *LineImportData {
+	// Bulk Importer doesn't accept "empty string" for AuthService.
+	var authService *string
+	if user.AuthService != "" {
+		authService = &user.AuthService
+	}
+
 	return &LineImportData{
 		Type: "user",
 		User: &UserImportData{
-			Username:    &user.Username,
-			Email:       &user.Email,
-			AuthService: &user.AuthService,
-			AuthData:    user.AuthData,
-			Nickname:    &user.Nickname,
-			FirstName:   &user.FirstName,
-			LastName:    &user.LastName,
-			Position:    &user.Position,
-			Roles:       &user.Roles,
-			Locale:      &user.Locale,
+			Username:           &user.Username,
+			Email:              &user.Email,
+			AuthService:        authService,
+			AuthData:           user.AuthData,
+			Nickname:           &user.Nickname,
+			FirstName:          &user.FirstName,
+			LastName:           &user.LastName,
+			Position:           &user.Position,
+			Roles:              &user.Roles,
+			Locale:             &user.Locale,
+			UseMarkdownPreview: exportedPrefs["UseMarkdownPreview"],
+			UseFormatting:      exportedPrefs["UseFormatting"],
+			ShowUnreadSection:  exportedPrefs["ShowUnreadSection"],
+			Theme:              exportedPrefs["Theme"],
+			UseMilitaryTime:    exportedPrefs["UseMilitaryTime"],
+			CollapsePreviews:   exportedPrefs["CollapsePreviews"],
+			MessageDisplay:     exportedPrefs["MessageDisplay"],
+			ChannelDisplayMode: exportedPrefs["ChannelDisplayMode"],
+			TutorialStep:       exportedPrefs["TutorialStep"],
+			EmailInterval:      exportedPrefs["EmailInterval"],
 		},
 	}
 }
@@ -71,7 +87,7 @@ func ImportUserTeamDataFromTeamMember(member *model.TeamMemberForExport) *UserTe
 	}
 }
 
-func ImportUserChannelDataFromChannelMember(member *model.ChannelMemberForExport) *UserChannelImportData {
+func ImportUserChannelDataFromChannelMemberAndPreferences(member *model.ChannelMemberForExport, preferences *model.Preferences) *UserChannelImportData {
 	rolesList := strings.Fields(member.Roles)
 	if member.SchemeAdmin {
 		rolesList = append(rolesList, model.CHANNEL_ADMIN_ROLE_ID)
@@ -95,11 +111,19 @@ func ImportUserChannelDataFromChannelMember(member *model.ChannelMemberForExport
 		notifyProps.MarkUnread = &markUnread
 	}
 
+	favorite := false
+	for _, preference := range *preferences {
+		if member.ChannelId == preference.Name {
+			favorite = true
+		}
+	}
+
 	roles := strings.Join(rolesList, " ")
 	return &UserChannelImportData{
 		Name:        &member.ChannelName,
 		Roles:       &roles,
 		NotifyProps: &notifyProps,
+		Favorite:    &favorite,
 	}
 }
 
@@ -124,10 +148,20 @@ func ImportReplyFromPost(post *model.ReplyForExport) *ReplyImportData {
 	}
 }
 
-func ImportReactionFromPost(reaction *model.Reaction) *ReactionImportData {
+func ImportReactionFromPost(user *model.User, reaction *model.Reaction) *ReactionImportData {
 	return &ReactionImportData{
-		User:      &reaction.UserId,
+		User:      &user.Username,
 		EmojiName: &reaction.EmojiName,
 		CreateAt:  &reaction.CreateAt,
+	}
+}
+
+func ImportLineFromEmoji(emoji *model.Emoji, filePath string) *LineImportData {
+	return &LineImportData{
+		Type: "emoji",
+		Emoji: &EmojiImportData{
+			Name:  &emoji.Name,
+			Image: &filePath,
+		},
 	}
 }

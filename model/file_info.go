@@ -85,7 +85,7 @@ func (o *FileInfo) IsValid() *AppError {
 		return NewAppError("FileInfo.IsValid", "model.file_info.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(o.CreatorId) != 26 {
+	if len(o.CreatorId) != 26 && o.CreatorId != "nouser" {
 		return NewAppError("FileInfo.IsValid", "model.file_info.is_valid.user_id.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
@@ -110,6 +110,24 @@ func (o *FileInfo) IsValid() *AppError {
 
 func (o *FileInfo) IsImage() bool {
 	return strings.HasPrefix(o.MimeType, "image")
+}
+
+func NewInfo(name string) *FileInfo {
+	info := &FileInfo{
+		Name: name,
+	}
+
+	extension := strings.ToLower(filepath.Ext(name))
+	info.MimeType = mime.TypeByExtension(extension)
+
+	if extension != "" && extension[0] == '.' {
+		// The client expects a file extension without the leading period
+		info.Extension = extension[1:]
+	} else {
+		info.Extension = extension
+	}
+
+	return info
 }
 
 func GetInfoForBytes(name string, data []byte) (*FileInfo, *AppError) {

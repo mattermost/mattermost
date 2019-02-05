@@ -4,6 +4,7 @@
 package app
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -83,6 +84,20 @@ func (api *PluginAPI) SaveConfig(config *model.Config) *model.AppError {
 	return api.app.SaveConfig(config, true)
 }
 
+func (api *PluginAPI) GetPluginConfig() map[string]interface{} {
+	cfg := api.app.GetConfig()
+	if pluginConfig, isOk := cfg.PluginSettings.Plugins[api.manifest.Id]; isOk {
+		return pluginConfig
+	}
+	return map[string]interface{}{}
+}
+
+func (api *PluginAPI) SavePluginConfig(pluginConfig map[string]interface{}) *model.AppError {
+	cfg := api.app.GetConfig()
+	cfg.PluginSettings.Plugins[api.manifest.Id] = pluginConfig
+	return api.app.SaveConfig(cfg, true)
+}
+
 func (api *PluginAPI) GetServerVersion() string {
 	return model.CurrentVersion
 }
@@ -103,8 +118,16 @@ func (api *PluginAPI) GetTeam(teamId string) (*model.Team, *model.AppError) {
 	return api.app.GetTeam(teamId)
 }
 
+func (api *PluginAPI) SearchTeams(term string) ([]*model.Team, *model.AppError) {
+	return api.app.SearchAllTeams(term)
+}
+
 func (api *PluginAPI) GetTeamByName(name string) (*model.Team, *model.AppError) {
 	return api.app.GetTeamByName(name)
+}
+
+func (api *PluginAPI) GetTeamsUnreadForUser(userId string) ([]*model.TeamUnread, *model.AppError) {
+	return api.app.GetTeamsUnreadForUser("", userId)
 }
 
 func (api *PluginAPI) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
@@ -127,8 +150,8 @@ func (api *PluginAPI) DeleteTeamMember(teamId, userId, requestorId string) *mode
 	return api.app.RemoveUserFromTeam(teamId, userId, requestorId)
 }
 
-func (api *PluginAPI) GetTeamMembers(teamId string, offset, limit int) ([]*model.TeamMember, *model.AppError) {
-	return api.app.GetTeamMembers(teamId, offset, limit)
+func (api *PluginAPI) GetTeamMembers(teamId string, page, perPage int) ([]*model.TeamMember, *model.AppError) {
+	return api.app.GetTeamMembers(teamId, page*perPage, perPage)
 }
 
 func (api *PluginAPI) GetTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError) {
@@ -137,6 +160,10 @@ func (api *PluginAPI) GetTeamMember(teamId, userId string) (*model.TeamMember, *
 
 func (api *PluginAPI) UpdateTeamMemberRoles(teamId, userId, newRoles string) (*model.TeamMember, *model.AppError) {
 	return api.app.UpdateTeamMemberRoles(teamId, userId, newRoles)
+}
+
+func (api *PluginAPI) GetTeamStats(teamId string) (*model.TeamStats, *model.AppError) {
+	return api.app.GetTeamStats(teamId)
 }
 
 func (api *PluginAPI) CreateUser(user *model.User) (*model.User, *model.AppError) {
@@ -150,6 +177,10 @@ func (api *PluginAPI) DeleteUser(userId string) *model.AppError {
 	}
 	_, err = api.app.UpdateActive(user, false)
 	return err
+}
+
+func (api *PluginAPI) GetUsers(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
+	return api.app.GetUsers(options)
 }
 
 func (api *PluginAPI) GetUser(userId string) (*model.User, *model.AppError) {
@@ -169,11 +200,16 @@ func (api *PluginAPI) GetUsersByUsernames(usernames []string) ([]*model.User, *m
 }
 
 func (api *PluginAPI) GetUsersInTeam(teamId string, page int, perPage int) ([]*model.User, *model.AppError) {
-	return api.app.GetUsersInTeam(teamId, page, perPage)
+	options := &model.UserGetOptions{InTeamId: teamId, Page: page, PerPage: perPage}
+	return api.app.GetUsersInTeam(options)
 }
 
 func (api *PluginAPI) UpdateUser(user *model.User) (*model.User, *model.AppError) {
 	return api.app.UpdateUser(user, true)
+}
+
+func (api *PluginAPI) UpdateUserActive(userId string, active bool) *model.AppError {
+	return api.app.UpdateUserActive(userId, active)
 }
 
 func (api *PluginAPI) GetUserStatus(userId string) (*model.Status, *model.AppError) {
@@ -241,8 +277,12 @@ func (api *PluginAPI) DeleteChannel(channelId string) *model.AppError {
 	return api.app.DeleteChannel(channel, "")
 }
 
-func (api *PluginAPI) GetPublicChannelsForTeam(teamId string, offset, limit int) (*model.ChannelList, *model.AppError) {
-	return api.app.GetPublicChannelsForTeam(teamId, offset, limit)
+func (api *PluginAPI) GetPublicChannelsForTeam(teamId string, page, perPage int) ([]*model.Channel, *model.AppError) {
+	channels, err := api.app.GetPublicChannelsForTeam(teamId, page*perPage, perPage)
+	if err != nil {
+		return nil, err
+	}
+	return *channels, err
 }
 
 func (api *PluginAPI) GetChannel(channelId string) (*model.Channel, *model.AppError) {
@@ -257,8 +297,12 @@ func (api *PluginAPI) GetChannelByNameForTeamName(teamName, channelName string, 
 	return api.app.GetChannelByNameForTeamName(channelName, teamName, includeDeleted)
 }
 
-func (api *PluginAPI) GetChannelsForTeamForUser(teamId, userId string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
-	return api.app.GetChannelsForUser(teamId, userId, includeDeleted)
+func (api *PluginAPI) GetChannelsForTeamForUser(teamId, userId string, includeDeleted bool) ([]*model.Channel, *model.AppError) {
+	channels, err := api.app.GetChannelsForUser(teamId, userId, includeDeleted)
+	if err != nil {
+		return nil, err
+	}
+	return *channels, err
 }
 
 func (api *PluginAPI) GetChannelStats(channelId string) (*model.ChannelStats, *model.AppError) {
@@ -270,7 +314,7 @@ func (api *PluginAPI) GetChannelStats(channelId string) (*model.ChannelStats, *m
 }
 
 func (api *PluginAPI) GetDirectChannel(userId1, userId2 string) (*model.Channel, *model.AppError) {
-	return api.app.GetDirectChannel(userId1, userId2)
+	return api.app.GetOrCreateDirectChannel(userId1, userId2)
 }
 
 func (api *PluginAPI) GetGroupChannel(userIds []string) (*model.Channel, *model.AppError) {
@@ -281,8 +325,21 @@ func (api *PluginAPI) UpdateChannel(channel *model.Channel) (*model.Channel, *mo
 	return api.app.UpdateChannel(channel)
 }
 
-func (api *PluginAPI) SearchChannels(teamId string, term string) (*model.ChannelList, *model.AppError) {
-	return api.app.SearchChannels(teamId, term)
+func (api *PluginAPI) SearchChannels(teamId string, term string) ([]*model.Channel, *model.AppError) {
+	channels, err := api.app.SearchChannels(teamId, term)
+	if err != nil {
+		return nil, err
+	}
+	return *channels, err
+}
+
+func (api *PluginAPI) SearchUsers(search *model.UserSearch) ([]*model.User, *model.AppError) {
+	pluginSearchUsersOptions := &model.UserSearchOptions{
+		IsAdmin:       true,
+		AllowInactive: search.AllowInactive,
+		Limit:         search.Limit,
+	}
+	return api.app.SearchUsers(search, pluginSearchUsersOptions)
 }
 
 func (api *PluginAPI) AddChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError) {
@@ -385,6 +442,24 @@ func (api *PluginAPI) GetProfileImage(userId string) ([]byte, *model.AppError) {
 	return data, err
 }
 
+func (api *PluginAPI) SetProfileImage(userId string, data []byte) *model.AppError {
+	_, err := api.app.GetUser(userId)
+	if err != nil {
+		return err
+	}
+
+	fileReader := bytes.NewReader(data)
+	err = api.app.SetProfileImageFromFile(userId, fileReader)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (api *PluginAPI) GetEmojiList(sortBy string, page, perPage int) ([]*model.Emoji, *model.AppError) {
+	return api.app.GetEmojiList(page, perPage, sortBy)
+}
+
 func (api *PluginAPI) GetEmojiByName(name string) (*model.Emoji, *model.AppError) {
 	return api.app.GetEmojiByName(name)
 }
@@ -402,7 +477,7 @@ func (api *PluginAPI) GetFileInfo(fileId string) (*model.FileInfo, *model.AppErr
 }
 
 func (api *PluginAPI) GetFileLink(fileId string) (string, *model.AppError) {
-	if !api.app.Config().FileSettings.EnablePublicLink {
+	if !*api.app.Config().FileSettings.EnablePublicLink {
 		return "", model.NewAppError("GetFileLink", "plugin_api.get_file_link.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -422,9 +497,114 @@ func (api *PluginAPI) ReadFile(path string) ([]byte, *model.AppError) {
 	return api.app.ReadFile(path)
 }
 
+func (api *PluginAPI) GetFile(fileId string) ([]byte, *model.AppError) {
+	return api.app.GetFile(fileId)
+}
+
+func (api *PluginAPI) UploadFile(data []byte, channelId string, filename string) (*model.FileInfo, *model.AppError) {
+	return api.app.UploadFile(data, channelId, filename)
+}
+
 func (api *PluginAPI) GetEmojiImage(emojiId string) ([]byte, string, *model.AppError) {
 	return api.app.GetEmojiImage(emojiId)
 }
+
+func (api *PluginAPI) GetTeamIcon(teamId string) ([]byte, *model.AppError) {
+	team, err := api.app.GetTeam(teamId)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := api.app.GetTeamIcon(team)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+func (api *PluginAPI) SetTeamIcon(teamId string, data []byte) *model.AppError {
+	team, err := api.app.GetTeam(teamId)
+	if err != nil {
+		return err
+	}
+
+	fileReader := bytes.NewReader(data)
+	err = api.app.SetTeamIconFromFile(team, fileReader)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (api *PluginAPI) OpenInteractiveDialog(dialog model.OpenDialogRequest) *model.AppError {
+	return api.app.OpenInteractiveDialog(dialog)
+}
+
+func (api *PluginAPI) RemoveTeamIcon(teamId string) *model.AppError {
+	_, err := api.app.GetTeam(teamId)
+	if err != nil {
+		return err
+	}
+
+	err = api.app.RemoveTeamIcon(teamId)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// Mail Section
+
+func (api *PluginAPI) SendMail(to, subject, htmlBody string) *model.AppError {
+	if to == "" {
+		return model.NewAppError("SendMail", "plugin_api.send_mail.missing_to", nil, "", http.StatusBadRequest)
+	}
+
+	if subject == "" {
+		return model.NewAppError("SendMail", "plugin_api.send_mail.missing_subject", nil, "", http.StatusBadRequest)
+	}
+
+	if htmlBody == "" {
+		return model.NewAppError("SendMail", "plugin_api.send_mail.missing_htmlbody", nil, "", http.StatusBadRequest)
+	}
+
+	return api.app.SendMail(to, subject, htmlBody)
+}
+
+// Plugin Section
+
+func (api *PluginAPI) GetPlugins() ([]*model.Manifest, *model.AppError) {
+	plugins, err := api.app.GetPlugins()
+	if err != nil {
+		return nil, err
+	}
+	var manifests []*model.Manifest
+	for _, manifest := range plugins.Active {
+		manifests = append(manifests, &manifest.Manifest)
+	}
+	for _, manifest := range plugins.Inactive {
+		manifests = append(manifests, &manifest.Manifest)
+	}
+	return manifests, nil
+}
+
+func (api *PluginAPI) EnablePlugin(id string) *model.AppError {
+	return api.app.EnablePlugin(id)
+}
+
+func (api *PluginAPI) DisablePlugin(id string) *model.AppError {
+	return api.app.DisablePlugin(id)
+}
+
+func (api *PluginAPI) RemovePlugin(id string) *model.AppError {
+	return api.app.RemovePlugin(id)
+}
+
+func (api *PluginAPI) GetPluginStatus(id string) (*model.PluginStatus, *model.AppError) {
+	return api.app.GetPluginStatus(id)
+}
+
+// KV Store Section
 
 func (api *PluginAPI) KVSet(key string, value []byte) *model.AppError {
 	return api.app.SetPluginKey(api.id, key, value)

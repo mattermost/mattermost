@@ -5,6 +5,7 @@ package app
 
 import (
 	"fmt"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -39,13 +40,14 @@ type WebConn struct {
 	AllChannelMembers         map[string]string
 	LastAllChannelMembersTime int64
 	Sequence                  int64
+	closeOnce                 sync.Once
 	endWritePump              chan struct{}
 	pumpFinished              chan struct{}
 }
 
 func (a *App) NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.TranslateFunc, locale string) *WebConn {
 	if len(session.UserId) > 0 {
-		a.Go(func() {
+		a.Srv.Go(func() {
 			a.SetStatusOnline(session.UserId, false)
 			a.UpdateLastActivityAtIfNeeded(session)
 		})
@@ -59,8 +61,8 @@ func (a *App) NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.Tra
 		UserId:             session.UserId,
 		T:                  t,
 		Locale:             locale,
-		endWritePump:       make(chan struct{}, 2),
-		pumpFinished:       make(chan struct{}, 1),
+		endWritePump:       make(chan struct{}),
+		pumpFinished:       make(chan struct{}),
 	}
 
 	wc.SetSession(&session)
@@ -72,7 +74,9 @@ func (a *App) NewWebConn(ws *websocket.Conn, session model.Session, t goi18n.Tra
 
 func (wc *WebConn) Close() {
 	wc.WebSocket.Close()
-	wc.endWritePump <- struct{}{}
+	wc.closeOnce.Do(func() {
+		close(wc.endWritePump)
+	})
 	<-wc.pumpFinished
 }
 
@@ -105,16 +109,18 @@ func (c *WebConn) SetSession(v *model.Session) {
 }
 
 func (c *WebConn) Pump() {
-	ch := make(chan struct{}, 1)
+	ch := make(chan struct{})
 	go func() {
 		c.writePump()
-		ch <- struct{}{}
+		close(ch)
 	}()
 	c.readPump()
-	c.endWritePump <- struct{}{}
+	c.closeOnce.Do(func() {
+		close(c.endWritePump)
+	})
 	<-ch
 	c.App.HubUnregister(c)
-	c.pumpFinished <- struct{}{}
+	close(c.pumpFinished)
 }
 
 func (c *WebConn) readPump() {
@@ -126,7 +132,7 @@ func (c *WebConn) readPump() {
 	c.WebSocket.SetPongHandler(func(string) error {
 		c.WebSocket.SetReadDeadline(time.Now().Add(PONG_WAIT))
 		if c.IsAuthenticated() {
-			c.App.Go(func() {
+			c.App.Srv.Go(func() {
 				c.App.SetStatusAwayIfNeeded(c.UserId, false)
 			})
 		}
@@ -212,7 +218,7 @@ func (c *WebConn) writePump() {
 				}
 
 				if c.App.Metrics != nil {
-					c.App.Go(func() {
+					c.App.Srv.Go(func() {
 						c.App.Metrics.IncrementWebSocketBroadcast(msg.EventType())
 					})
 				}

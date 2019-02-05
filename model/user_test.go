@@ -332,3 +332,59 @@ func TestRoles(t *testing.T) {
 	require.True(t, IsInRole("system_admin junk", "system_admin"))
 	require.False(t, IsInRole("admin", "system_admin"))
 }
+
+func TestIsValidLocale(t *testing.T) {
+	for _, test := range []struct {
+		Name     string
+		Locale   string
+		Expected bool
+	}{
+		{
+			Name:     "empty locale",
+			Locale:   "",
+			Expected: true,
+		},
+		{
+			Name:     "locale with only language",
+			Locale:   "fr",
+			Expected: true,
+		},
+		{
+			Name:     "locale with region",
+			Locale:   "en-DE", // English, as used in Germany
+			Expected: true,
+		},
+		{
+			Name:     "invalid locale",
+			Locale:   "'",
+			Expected: false,
+		},
+
+		// Note that the following cases are all valid language tags, but they're considered invalid here because of
+		// the max length of the User.Locale field.
+		{
+			Name:     "locale with extended language subtag",
+			Locale:   "zh-yue-HK", // Chinese, Cantonese, as used in Hong Kong
+			Expected: false,
+		},
+		{
+			Name:     "locale with script",
+			Locale:   "hy-Latn-IT-arevela", // Eastern Armenian written in Latin script, as used in Italy
+			Expected: false,
+		},
+		{
+			Name:     "locale with variant",
+			Locale:   "sl-rozaj-biske", // San Giorgio dialect of Resian dialect of Slovenian
+			Expected: false,
+		},
+		{
+			Name:     "locale with extension",
+			Locale:   "de-DE-u-co-phonebk", // German, as used in Germany, using German phonebook sort order
+			Expected: false,
+		},
+	} {
+		t.Run(test.Name, func(t *testing.T) {
+			assert.Equal(t, test.Expected, IsValidLocale(test.Locale))
+		})
+	}
+}

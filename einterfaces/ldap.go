@@ -19,4 +19,7 @@ type LdapInterface interface {
 	RunTest() *model.AppError
 	GetAllLdapUsers() ([]*model.User, *model.AppError)
 	MigrateIDAttribute(toAttribute string) error
+	GetGroup(groupUID string) (*model.Group, *model.AppError)
+	GetAllGroupsPage(page int, perPage int) ([]*model.Group, int, *model.AppError)
+	FirstLoginSync(userID, userAuthService, userAuthData string) *model.AppError
 }

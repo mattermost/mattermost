@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/mfa"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
@@ -56,7 +57,7 @@ func (a *App) CheckPasswordAndAllCriteria(user *model.User, password string, mfa
 }
 
 // This to be used for places we check the users password when they are already logged in
-func (a *App) doubleCheckPassword(user *model.User, password string) *model.AppError {
+func (a *App) DoubleCheckPassword(user *model.User, password string) *model.AppError {
 	if err := checkUserLoginAttempts(user, *a.Config().ServiceSettings.MaximumLoginAttempts); err != nil {
 		return err
 	}
@@ -137,7 +138,7 @@ func (a *App) CheckUserPreflightAuthenticationCriteria(user *model.User, mfaToke
 }
 
 func (a *App) CheckUserPostflightAuthenticationCriteria(user *model.User) *model.AppError {
-	if !user.EmailVerified && a.Config().EmailSettings.RequireEmailVerification {
+	if !user.EmailVerified && *a.Config().EmailSettings.RequireEmailVerification {
 		return model.NewAppError("Login", "api.user.login.not_verified.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
 	}
 
@@ -145,15 +146,12 @@ func (a *App) CheckUserPostflightAuthenticationCriteria(user *model.User) *model
 }
 
 func (a *App) CheckUserMfa(user *model.User, token string) *model.AppError {
-	if license := a.License(); !user.MfaActive || license == nil || !*license.Features.MFA || !*a.Config().ServiceSettings.EnableMultifactorAuthentication {
+	if !user.MfaActive || !*a.Config().ServiceSettings.EnableMultifactorAuthentication {
 		return nil
 	}
 
-	if a.Mfa == nil {
-		return model.NewAppError("checkUserMfa", "api.user.check_user_mfa.not_available.app_error", nil, "", http.StatusNotImplemented)
-	}
-
-	ok, err := a.Mfa.ValidateToken(user.MfaSecret, token)
+	mfaService := mfa.New(a, a.Srv.Store)
+	ok, err := mfaService.ValidateToken(user.MfaSecret, token)
 	if err != nil {
 		return err
 	}

@@ -128,9 +128,9 @@ func (s SqlPreferenceStore) save(transaction *gorp.Transaction, preference *mode
 		}
 
 		if count == 1 {
-			s.update(transaction, preference)
+			result = s.update(transaction, preference)
 		} else {
-			s.insert(transaction, preference)
+			result = s.insert(transaction, preference)
 		}
 	} else {
 		result.Err = model.NewAppError("SqlPreferenceStore.save", "store.sql_preference.save.missing_driver.app_error", nil, "Failed to update preference because of missing driver", http.StatusNotImplemented)

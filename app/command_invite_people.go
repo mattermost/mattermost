@@ -28,7 +28,7 @@ func (me *InvitePeopleProvider) GetTrigger() string {
 
 func (me *InvitePeopleProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Command {
 	autoComplete := true
-	if !a.Config().EmailSettings.SendEmailNotifications || !*a.Config().TeamSettings.EnableUserCreation || !*a.Config().ServiceSettings.EnableEmailInvitations {
+	if !*a.Config().EmailSettings.SendEmailNotifications || !*a.Config().TeamSettings.EnableUserCreation || !*a.Config().ServiceSettings.EnableEmailInvitations {
 		autoComplete = false
 	}
 	return &model.Command{
@@ -49,7 +49,7 @@ func (me *InvitePeopleProvider) DoCommand(a *App, args *model.CommandArgs, messa
 		return &model.CommandResponse{Text: args.T("api.command_invite_people.permission.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 	}
 
-	if !a.Config().EmailSettings.SendEmailNotifications {
+	if !*a.Config().EmailSettings.SendEmailNotifications {
 		return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL, Text: args.T("api.command.invite_people.email_off")}
 	}
 

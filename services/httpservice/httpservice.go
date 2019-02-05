@@ -5,30 +5,53 @@ package httpservice
 
 import (
 	"net"
+	"net/http"
 	"strings"
+	"time"
 
 	"github.com/mattermost/mattermost-server/services/configservice"
 )
 
-// Wraps the functionality for creating a new http.Client to encapsulate that and allow it to be mocked when testing
+// HTTPService wraps the functionality for making http requests to provide some improvements to the default client
+// behaviour.
 type HTTPService interface {
-	MakeClient(trustURLs bool) *Client
-	Close()
+	// MakeClient returns an http client constructed with a RoundTripper as returned by MakeTransport.
+	MakeClient(trustURLs bool) *http.Client
+
+	// MakeTransport returns a RoundTripper that is suitable for making requests to external resources. The default
+	// implementation provides:
+	// - A shorter timeout for dial and TLS handshake (defined as constant "ConnectTimeout")
+	// - A timeout for end-to-end requests
+	// - A Mattermost-specific user agent header
+	// - Additional security for untrusted and insecure connections
+	MakeTransport(trustURLs bool) http.RoundTripper
 }
 
 type HTTPServiceImpl struct {
 	configService configservice.ConfigService
+
+	RequestTimeout time.Duration
 }
 
 func MakeHTTPService(configService configservice.ConfigService) HTTPService {
-	return &HTTPServiceImpl{configService}
+	return &HTTPServiceImpl{
+		configService,
+		RequestTimeout,
+	}
 }
 
-func (h *HTTPServiceImpl) MakeClient(trustURLs bool) *Client {
+func (h *HTTPServiceImpl) MakeClient(trustURLs bool) *http.Client {
+	return &http.Client{
+		Transport: h.MakeTransport(trustURLs),
+		Timeout:   h.RequestTimeout,
+	}
+}
+
+func (h *HTTPServiceImpl) MakeTransport(trustURLs bool) http.RoundTripper {
 	insecure := h.configService.Config().ServiceSettings.EnableInsecureOutgoingConnections != nil && *h.configService.Config().ServiceSettings.EnableInsecureOutgoingConnections
 
 	if trustURLs {
-		return NewHTTPClient(insecure, nil, nil)
+		return NewTransport(insecure, nil, nil)
 	}
 
 	allowHost := func(host string) bool {
@@ -58,9 +81,5 @@ func (h *HTTPServiceImpl) MakeClient(trustURLs bool) *Client {
 		return false
 	}
 
-	return NewHTTPClient(insecure, allowHost, allowIP)
-}
-
-func (h *HTTPServiceImpl) Close() {
-	// Does nothing, but allows this to be overridden when mocking the service
+	return NewTransport(insecure, allowHost, allowIP)
 }

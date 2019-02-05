@@ -1,9 +1,10 @@
 package api4
 
 import (
+	"testing"
+
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestGetTermsOfService(t *testing.T) {
@@ -35,7 +36,7 @@ func TestCreateTermsOfService(t *testing.T) {
 }
 
 func TestCreateTermsOfServiceAdminUser(t *testing.T) {
-	th := Setup().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.SystemAdminClient
 

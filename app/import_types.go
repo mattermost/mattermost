@@ -190,3 +190,8 @@ type LineImportWorkerError struct {
 type AttachmentImportData struct {
 	Path *string `json:"path"`
 }
+
+type ComparablePreference struct {
+	Category string
+	Name     string
+}

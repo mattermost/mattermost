@@ -103,6 +103,28 @@ func (s *SqlSupplier) ReactionGetForPost(ctx context.Context, postId string, hin
 	return result
 }
 
+func (s *SqlSupplier) ReactionsBulkGetForPosts(ctx context.Context, postIds []string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+	result := store.NewSupplierResult()
+
+	keys, params := MapStringsToQueryParams(postIds, "postId")
+	var reactions []*model.Reaction
+
+	if _, err := s.GetReplica().Select(&reactions, `SELECT
+				*
+			FROM
+				Reactions
+			WHERE
+				PostId IN `+keys+`
+			ORDER BY
+				CreateAt`, params); err != nil {
+		result.Err = model.NewAppError("SqlReactionStore.GetForPost", "store.sql_reaction.bulk_get_for_post_ids.app_error", nil, "", http.StatusInternalServerError)
+	} else {
+		result.Data = reactions
+	}
+
+	return result
+}
+
 func (s *SqlSupplier) ReactionDeleteAllWithEmojiName(ctx context.Context, emojiName string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	result := store.NewSupplierResult()
 
@@ -192,22 +214,18 @@ func deleteReactionAndUpdatePost(transaction *gorp.Transaction, reaction *model.
 }
 
 const (
-	// Set HasReactions = true if and only if the post has reactions, update UpdateAt only if HasReactions changes
 	UPDATE_POST_HAS_REACTIONS_ON_DELETE_QUERY = `UPDATE
 			Posts
 		SET
-			UpdateAt = (CASE
-				WHEN HasReactions != (SELECT count(0) > 0 FROM Reactions WHERE PostId = :PostId) THEN :UpdateAt
-				ELSE UpdateAt
-			END),
+			UpdateAt = :UpdateAt,
 			HasReactions = (SELECT count(0) > 0 FROM Reactions WHERE PostId = :PostId)
 		WHERE
 			Id = :PostId`
 )
 
 func updatePostForReactionsOnDelete(transaction *gorp.Transaction, postId string) error {
-	_, err := transaction.Exec(UPDATE_POST_HAS_REACTIONS_ON_DELETE_QUERY, map[string]interface{}{"PostId": postId, "UpdateAt": model.GetMillis()})
-
+	updateAt := model.GetMillis()
+	_, err := transaction.Exec(UPDATE_POST_HAS_REACTIONS_ON_DELETE_QUERY, map[string]interface{}{"PostId": postId, "UpdateAt": updateAt})
 	return err
 }
 
@@ -219,7 +237,7 @@ func updatePostForReactionsOnInsert(transaction *gorp.Transaction, postId string
 			HasReactions = True,
 			UpdateAt = :UpdateAt
 		WHERE
-			Id = :PostId AND HasReactions = False`,
+			Id = :PostId`,
 		map[string]interface{}{"PostId": postId, "UpdateAt": model.GetMillis()})
 
 	return err

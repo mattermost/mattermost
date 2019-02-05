@@ -4,17 +4,18 @@
 package api4
 
 import (
+	"net/http"
+
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
-	"net/http"
 )
 
 func (api *API) InitTermsOfService() {
-	api.BaseRoutes.TermsOfService.Handle("", api.ApiSessionRequired(getTermsOfService)).Methods("GET")
+	api.BaseRoutes.TermsOfService.Handle("", api.ApiSessionRequired(getLatestTermsOfService)).Methods("GET")
 	api.BaseRoutes.TermsOfService.Handle("", api.ApiSessionRequired(createTermsOfService)).Methods("POST")
 }
 
-func getTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
+func getLatestTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
 	termsOfService, err := c.App.GetLatestTermsOfService()
 	if err != nil {
 		c.Err = err
@@ -25,7 +26,7 @@ func getTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
@@ -37,7 +38,7 @@ func createTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	props := model.MapFromJson(r.Body)
 	text := props["text"]
-	userId := c.Session.UserId
+	userId := c.App.Session.UserId
 
 	if text == "" {
 		c.Err = model.NewAppError("Config.IsValid", "api.create_terms_of_service.empty_text.app_error", nil, "", http.StatusBadRequest)

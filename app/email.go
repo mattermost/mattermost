@@ -42,7 +42,7 @@ func (a *App) SetupInviteEmailRateLimiting() error {
 		return errors.Wrap(err, "Unable to setup email rate limiting GCRA rate limiter.")
 	}
 
-	a.EmailRateLimiter = rateLimiter
+	a.Srv.EmailRateLimiter = rateLimiter
 	return nil
 }
 
@@ -286,11 +286,11 @@ func (a *App) SendMfaChangeEmail(email string, activated bool, locale, siteURL s
 }
 
 func (a *App) SendInviteEmails(team *model.Team, senderName string, senderUserId string, invites []string, siteURL string) {
-	if a.EmailRateLimiter == nil {
+	if a.Srv.EmailRateLimiter == nil {
 		a.Log.Error("Email invite not sent, rate limiting could not be setup.", mlog.String("user_id", senderUserId), mlog.String("team_id", team.Id))
 		return
 	}
-	rateLimited, result, err := a.EmailRateLimiter.RateLimit(senderUserId, len(invites))
+	rateLimited, result, err := a.Srv.EmailRateLimiter.RateLimit(senderUserId, len(invites))
 	if err != nil {
 		a.Log.Error("Error rate limiting invite email.", mlog.String("user_id", senderUserId), mlog.String("team_id", team.Id), mlog.Err(err))
 		return
@@ -319,7 +319,6 @@ func (a *App) SendInviteEmails(team *model.Team, senderName string, senderUserId
 			bodyPage.Props["Title"] = utils.T("api.templates.invite_body.title")
 			bodyPage.Html["Info"] = utils.TranslateAsHtml(utils.T, "api.templates.invite_body.info",
 				map[string]interface{}{"SenderStatus": senderRole, "SenderName": senderName, "TeamDisplayName": team.DisplayName})
-			bodyPage.Props["Info"] = map[string]interface{}{}
 			bodyPage.Props["Button"] = utils.T("api.templates.invite_body.button")
 			bodyPage.Html["ExtraInfo"] = utils.TranslateAsHtml(utils.T, "api.templates.invite_body.extra_info",
 				map[string]interface{}{"TeamDisplayName": team.DisplayName})
@@ -342,7 +341,7 @@ func (a *App) SendInviteEmails(team *model.Team, senderName string, senderUserId
 			}
 			bodyPage.Props["Link"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s", siteURL, url.QueryEscape(data), url.QueryEscape(token.Token))
 
-			if !a.Config().EmailSettings.SendEmailNotifications {
+			if !*a.Config().EmailSettings.SendEmailNotifications {
 				mlog.Info(fmt.Sprintf("sending invitation to %v %v", invite, bodyPage.Props["Link"]))
 			}
 

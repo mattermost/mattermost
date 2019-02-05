@@ -7,18 +7,19 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
 )
 
 func TestCreateIncomingWebhook(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostUsernameOverride = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostIconOverride = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnablePostUsernameOverride = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnablePostIconOverride = true })
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	defer func() {
@@ -62,23 +63,23 @@ func TestCreateIncomingWebhook(t *testing.T) {
 	_, resp = Client.CreateIncomingWebhook(hook)
 	CheckNoError(t, resp)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostUsernameOverride = false })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostIconOverride = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnablePostUsernameOverride = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnablePostIconOverride = false })
 
 	_, resp = Client.CreateIncomingWebhook(hook)
 	CheckNoError(t, resp)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = false })
 	_, resp = Client.CreateIncomingWebhook(hook)
 	CheckNotImplementedStatus(t, resp)
 }
 
 func TestGetIncomingWebhooks(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	defer func() {
@@ -153,11 +154,11 @@ func TestGetIncomingWebhooks(t *testing.T) {
 }
 
 func TestGetIncomingWebhook(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.SystemAdminClient
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
 
 	var resp *model.Response
 	var rhook *model.IncomingWebhook
@@ -192,11 +193,11 @@ func TestGetIncomingWebhook(t *testing.T) {
 }
 
 func TestDeleteIncomingWebhook(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.SystemAdminClient
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
 
 	var resp *model.Response
 	var rhook *model.IncomingWebhook
@@ -243,11 +244,11 @@ func TestDeleteIncomingWebhook(t *testing.T) {
 }
 
 func TestCreateOutgoingWebhook(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	defer func() {
@@ -287,17 +288,17 @@ func TestCreateOutgoingWebhook(t *testing.T) {
 	_, resp = Client.CreateOutgoingWebhook(hook)
 	CheckNoError(t, resp)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = false })
 	_, resp = Client.CreateOutgoingWebhook(hook)
 	CheckNotImplementedStatus(t, resp)
 }
 
 func TestGetOutgoingWebhooks(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	defer func() {
 		th.RestoreDefaultRolePermissions(defaultRolePermissions)
@@ -394,11 +395,11 @@ func TestGetOutgoingWebhooks(t *testing.T) {
 }
 
 func TestGetOutgoingWebhook(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
 
 	hook := &model.OutgoingWebhook{ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId, CallbackURLs: []string{"http://nowhere.com"}}
 
@@ -424,11 +425,11 @@ func TestGetOutgoingWebhook(t *testing.T) {
 }
 
 func TestUpdateIncomingHook(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	defer func() {
@@ -442,8 +443,8 @@ func TestUpdateIncomingHook(t *testing.T) {
 	createdHook, resp := th.SystemAdminClient.CreateIncomingWebhook(hook1)
 	CheckNoError(t, resp)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostUsernameOverride = false })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostIconOverride = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnablePostUsernameOverride = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnablePostIconOverride = false })
 
 	t.Run("UpdateIncomingHook, overrides disabled", func(t *testing.T) {
 		createdHook.DisplayName = "hook2"
@@ -482,8 +483,8 @@ func TestUpdateIncomingHook(t *testing.T) {
 		assert.Equal(t, updatedHook.ChannelId, createdHook.ChannelId)
 	})
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostUsernameOverride = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostIconOverride = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnablePostUsernameOverride = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnablePostIconOverride = true })
 
 	t.Run("UpdateIncomingHook", func(t *testing.T) {
 		createdHook.DisplayName = "hook2"
@@ -525,20 +526,15 @@ func TestUpdateIncomingHook(t *testing.T) {
 	t.Run("RetainCreateAt", func(t *testing.T) {
 		hook2 := &model.IncomingWebhook{ChannelId: th.BasicChannel.Id, CreateAt: 100}
 
-		createdHook, resp := th.SystemAdminClient.CreateIncomingWebhook(hook2)
+		createdHook2, resp := th.SystemAdminClient.CreateIncomingWebhook(hook2)
 		CheckNoError(t, resp)
 
-		createdHook.DisplayName = "Name2"
+		createdHook2.DisplayName = "Name2"
 
-		updatedHook, resp := th.SystemAdminClient.UpdateIncomingWebhook(createdHook)
+		updatedHook, resp := th.SystemAdminClient.UpdateIncomingWebhook(createdHook2)
 		CheckNoError(t, resp)
-		if updatedHook != nil {
-			if updatedHook.CreateAt != createdHook.CreateAt {
-				t.Fatal("failed - hook create at should not be changed")
-			}
-		} else {
-			t.Fatal("should not be nil")
-		}
+		require.NotNil(t, updatedHook)
+		assert.Equal(t, createdHook2.CreateAt, updatedHook.CreateAt)
 	})
 
 	t.Run("ModifyUpdateAt", func(t *testing.T) {
@@ -608,13 +604,13 @@ func TestUpdateIncomingHook(t *testing.T) {
 	})
 
 	t.Run("IncomingHooksDisabled", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = false })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = false })
 		_, resp := Client.UpdateIncomingWebhook(createdHook)
 		CheckNotImplementedStatus(t, resp)
 		CheckErrorMessage(t, resp, "api.incoming_webhook.disabled.app_error")
 	})
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
 
 	t.Run("PrivateChannel", func(t *testing.T) {
 		privateChannel := th.CreatePrivateChannel()
@@ -644,11 +640,11 @@ func TestUpdateIncomingHook(t *testing.T) {
 }
 
 func TestRegenOutgoingHookToken(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
 
 	hook := &model.OutgoingWebhook{ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId, CallbackURLs: []string{"http://nowhere.com"}}
 	rhook, resp := th.SystemAdminClient.CreateOutgoingWebhook(hook)
@@ -670,17 +666,17 @@ func TestRegenOutgoingHookToken(t *testing.T) {
 	_, resp = Client.RegenOutgoingHookToken(rhook.Id)
 	CheckForbiddenStatus(t, resp)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = false })
 	_, resp = th.SystemAdminClient.RegenOutgoingHookToken(rhook.Id)
 	CheckNotImplementedStatus(t, resp)
 }
 
 func TestUpdateOutgoingHook(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	defer func() {
 		th.RestoreDefaultRolePermissions(defaultRolePermissions)
@@ -691,8 +687,8 @@ func TestUpdateOutgoingHook(t *testing.T) {
 	createdHook := &model.OutgoingWebhook{ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId,
 		CallbackURLs: []string{"http://nowhere.com"}, TriggerWords: []string{"cats"}}
 
-	createdHook, resp := th.SystemAdminClient.CreateOutgoingWebhook(createdHook)
-	CheckNoError(t, resp)
+	createdHook, webookResp := th.SystemAdminClient.CreateOutgoingWebhook(createdHook)
+	CheckNoError(t, webookResp)
 
 	t.Run("UpdateOutgoingWebhook", func(t *testing.T) {
 		createdHook.DisplayName = "Cats"
@@ -709,12 +705,12 @@ func TestUpdateOutgoingHook(t *testing.T) {
 	})
 
 	t.Run("OutgoingHooksDisabled", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = false })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = false })
 		_, resp := th.SystemAdminClient.UpdateOutgoingWebhook(createdHook)
 		CheckNotImplementedStatus(t, resp)
 	})
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
 	t.Run("RetainCreateAt", func(t *testing.T) {
 		hook2 := &model.OutgoingWebhook{ChannelId: th.BasicChannel.Id, TeamId: th.BasicChannel.TeamId,
 			CallbackURLs: []string{"http://nowhere.com"}, TriggerWords: []string{"rats"}}
@@ -839,11 +835,11 @@ func TestUpdateOutgoingHook(t *testing.T) {
 }
 
 func TestDeleteOutgoingHook(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.SystemAdminClient
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
 
 	var resp *model.Response
 	var rhook *model.OutgoingWebhook

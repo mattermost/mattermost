@@ -20,7 +20,7 @@ import (
 )
 
 func TestCreateChannel(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	team := th.BasicTeam
@@ -142,7 +142,7 @@ func TestCreateChannel(t *testing.T) {
 }
 
 func TestUpdateChannel(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	team := th.BasicTeam
@@ -240,7 +240,7 @@ func TestUpdateChannel(t *testing.T) {
 }
 
 func TestPatchChannel(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -326,7 +326,7 @@ func TestPatchChannel(t *testing.T) {
 }
 
 func TestCreateDirectChannel(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	user1 := th.BasicUser
@@ -378,7 +378,7 @@ func TestCreateDirectChannel(t *testing.T) {
 }
 
 func TestDeleteDirectChannel(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	user := th.BasicUser
@@ -395,7 +395,7 @@ func TestDeleteDirectChannel(t *testing.T) {
 }
 
 func TestCreateGroupChannel(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	user := th.BasicUser
@@ -467,7 +467,7 @@ func TestCreateGroupChannel(t *testing.T) {
 }
 
 func TestDeleteGroupChannel(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	user := th.BasicUser
@@ -487,7 +487,7 @@ func TestDeleteGroupChannel(t *testing.T) {
 }
 
 func TestGetChannel(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -536,7 +536,7 @@ func TestGetChannel(t *testing.T) {
 }
 
 func TestGetDeletedChannelsForTeam(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	team := th.BasicTeam
@@ -583,7 +583,7 @@ func TestGetDeletedChannelsForTeam(t *testing.T) {
 }
 
 func TestGetPublicChannelsForTeam(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	team := th.BasicTeam
@@ -663,7 +663,7 @@ func TestGetPublicChannelsForTeam(t *testing.T) {
 }
 
 func TestGetPublicChannelsByIdsForTeam(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	teamId := th.BasicTeam.Id
@@ -725,7 +725,7 @@ func TestGetPublicChannelsByIdsForTeam(t *testing.T) {
 }
 
 func TestGetChannelsForTeamForUser(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -772,8 +772,38 @@ func TestGetChannelsForTeamForUser(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestGetAllChannels(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+
+	channels, resp := th.SystemAdminClient.GetAllChannels(0, 20, "")
+	CheckNoError(t, resp)
+
+	// At least, all the not-deleted channels created during the InitBasic
+	require.True(t, len(*channels) >= 3)
+	for _, c := range *channels {
+		require.NotEqual(t, c.TeamId, "")
+	}
+
+	channels, resp = th.SystemAdminClient.GetAllChannels(0, 10, "")
+	CheckNoError(t, resp)
+	require.True(t, len(*channels) >= 3)
+
+	channels, resp = th.SystemAdminClient.GetAllChannels(1, 1, "")
+	CheckNoError(t, resp)
+	require.Len(t, *channels, 1)
+
+	channels, resp = th.SystemAdminClient.GetAllChannels(10000, 10000, "")
+	CheckNoError(t, resp)
+	require.Len(t, *channels, 0)
+
+	_, resp = Client.GetAllChannels(0, 20, "")
+	CheckForbiddenStatus(t, resp)
+}
+
 func TestSearchChannels(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -827,8 +857,39 @@ func TestSearchChannels(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestSearchAllChannels(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+
+	search := &model.ChannelSearch{Term: th.BasicChannel.Name}
+
+	channels, resp := th.SystemAdminClient.SearchAllChannels(search)
+	CheckNoError(t, resp)
+
+	assert.Len(t, *channels, 1)
+	assert.Equal(t, (*channels)[0].Id, th.BasicChannel.Id)
+
+	search.Term = th.BasicPrivateChannel.Name
+	channels, resp = th.SystemAdminClient.SearchAllChannels(search)
+	CheckNoError(t, resp)
+
+	assert.Len(t, *channels, 1)
+	assert.Equal(t, (*channels)[0].Id, th.BasicPrivateChannel.Id)
+
+	search.Term = ""
+	channels, resp = th.SystemAdminClient.SearchAllChannels(search)
+	CheckNoError(t, resp)
+	// At least, all the not-deleted channels created during the InitBasic
+	assert.True(t, len(*channels) >= 3)
+
+	search.Term = th.BasicChannel.Name
+	_, resp = Client.SearchAllChannels(search)
+	CheckForbiddenStatus(t, resp)
+}
+
 func TestDeleteChannel(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	team := th.BasicTeam
@@ -915,8 +976,13 @@ func TestDeleteChannel(t *testing.T) {
 
 	_, resp = th.SystemAdminClient.DeleteChannel(publicChannel5.Id)
 	CheckNoError(t, resp)
+}
 
-	th.InitBasic().InitSystemAdmin()
+func TestDeleteChannel2(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+	user := th.BasicUser
 
 	// Check the appropriate permissions are enforced.
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
@@ -927,9 +993,6 @@ func TestDeleteChannel(t *testing.T) {
 	th.AddPermissionToRole(model.PERMISSION_DELETE_PUBLIC_CHANNEL.Id, model.TEAM_USER_ROLE_ID)
 	th.AddPermissionToRole(model.PERMISSION_DELETE_PRIVATE_CHANNEL.Id, model.TEAM_USER_ROLE_ID)
 
-	Client = th.Client
-	user = th.BasicUser
-
 	// channels created by SystemAdmin
 	publicChannel6 := th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_OPEN)
 	privateChannel7 := th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_PRIVATE)
@@ -938,7 +1001,7 @@ func TestDeleteChannel(t *testing.T) {
 	th.App.AddUserToChannel(user, privateChannel7)
 
 	// successful delete by user
-	_, resp = Client.DeleteChannel(publicChannel6.Id)
+	_, resp := Client.DeleteChannel(publicChannel6.Id)
 	CheckNoError(t, resp)
 
 	_, resp = Client.DeleteChannel(privateChannel7.Id)
@@ -991,7 +1054,7 @@ func TestDeleteChannel(t *testing.T) {
 }
 
 func TestConvertChannelToPrivate(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -1065,7 +1128,7 @@ func TestConvertChannelToPrivate(t *testing.T) {
 }
 
 func TestRestoreChannel(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -1091,7 +1154,7 @@ func TestRestoreChannel(t *testing.T) {
 }
 
 func TestGetChannelByName(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -1150,7 +1213,7 @@ func TestGetChannelByName(t *testing.T) {
 }
 
 func TestGetChannelByNameForTeamName(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -1191,7 +1254,7 @@ func TestGetChannelByNameForTeamName(t *testing.T) {
 }
 
 func TestGetChannelMembers(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -1246,7 +1309,7 @@ func TestGetChannelMembers(t *testing.T) {
 }
 
 func TestGetChannelMembersByIds(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -1293,7 +1356,7 @@ func TestGetChannelMembersByIds(t *testing.T) {
 }
 
 func TestGetChannelMember(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -1340,7 +1403,7 @@ func TestGetChannelMember(t *testing.T) {
 }
 
 func TestGetChannelMembersForUser(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -1383,7 +1446,7 @@ func TestGetChannelMembersForUser(t *testing.T) {
 }
 
 func TestViewChannel(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -1414,7 +1477,23 @@ func TestViewChannel(t *testing.T) {
 
 	view.PrevChannelId = "junk"
 	_, resp = Client.ViewChannel(th.BasicUser.Id, view)
+	CheckBadRequestStatus(t, resp)
+
+	// All blank is OK we use it for clicking off of the browser.
+	view.PrevChannelId = ""
+	view.ChannelId = ""
+	_, resp = Client.ViewChannel(th.BasicUser.Id, view)
 	CheckNoError(t, resp)
+
+	view.PrevChannelId = ""
+	view.ChannelId = "junk"
+	_, resp = Client.ViewChannel(th.BasicUser.Id, view)
+	CheckBadRequestStatus(t, resp)
+
+	view.ChannelId = "correctlysizedjunkdddfdfdf"
+	_, resp = Client.ViewChannel(th.BasicUser.Id, view)
+	CheckBadRequestStatus(t, resp)
+	view.ChannelId = th.BasicChannel.Id
 
 	member, resp := Client.GetChannelMember(th.BasicChannel.Id, th.BasicUser.Id, "")
 	CheckNoError(t, resp)
@@ -1454,7 +1533,7 @@ func TestViewChannel(t *testing.T) {
 }
 
 func TestGetChannelUnread(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	user := th.BasicUser
@@ -1498,7 +1577,7 @@ func TestGetChannelUnread(t *testing.T) {
 }
 
 func TestGetChannelStats(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	channel := th.CreatePrivateChannel()
@@ -1532,7 +1611,7 @@ func TestGetChannelStats(t *testing.T) {
 }
 
 func TestGetPinnedPosts(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	channel := th.BasicChannel
@@ -1571,7 +1650,7 @@ func TestGetPinnedPosts(t *testing.T) {
 }
 
 func TestUpdateChannelRoles(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -1650,7 +1729,7 @@ func TestUpdateChannelRoles(t *testing.T) {
 }
 
 func TestUpdateChannelMemberSchemeRoles(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	SystemAdminClient := th.SystemAdminClient
 	th.LoginBasic()
@@ -1725,7 +1804,7 @@ func TestUpdateChannelMemberSchemeRoles(t *testing.T) {
 }
 
 func TestUpdateChannelNotifyProps(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -1775,7 +1854,7 @@ func TestUpdateChannelNotifyProps(t *testing.T) {
 }
 
 func TestAddChannelMember(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	user := th.BasicUser
@@ -1934,7 +2013,7 @@ func TestAddChannelMember(t *testing.T) {
 }
 
 func TestRemoveChannelMember(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	user1 := th.BasicUser
 	user2 := th.BasicUser2
 	team := th.BasicTeam
@@ -2138,7 +2217,7 @@ func TestAutocompleteChannels(t *testing.T) {
 }
 
 func TestAutocompleteChannelsForSearch(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 
 	th.LoginSystemAdminWithClient(th.SystemAdminClient)
@@ -2261,14 +2340,14 @@ func TestAutocompleteChannelsForSearch(t *testing.T) {
 }
 
 func TestUpdateChannelScheme(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 
 	th.App.SetLicense(model.NewTestLicense(""))
 
 	th.App.SetPhase2PermissionsMigrationStatus(true)
 
-	team := &model.Team{
+	team, resp := th.SystemAdminClient.CreateTeam(&model.Team{
 		DisplayName:     "Name",
 		Description:     "Some description",
 		CompanyName:     "Some company name",
@@ -2277,34 +2356,35 @@ func TestUpdateChannelScheme(t *testing.T) {
 		Name:            "z-z-" + model.NewId() + "a",
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TEAM_OPEN,
-	}
-	team, _ = th.SystemAdminClient.CreateTeam(team)
+	})
+	CheckNoError(t, resp)
 
-	channel := &model.Channel{
+	channel, resp := th.SystemAdminClient.CreateChannel(&model.Channel{
 		DisplayName: "Name",
 		Name:        "z-z-" + model.NewId() + "a",
 		Type:        model.CHANNEL_OPEN,
 		TeamId:      team.Id,
-	}
-	channel, _ = th.SystemAdminClient.CreateChannel(channel)
+	})
+	CheckNoError(t, resp)
 
-	channelScheme := &model.Scheme{
+	channelScheme, resp := th.SystemAdminClient.CreateScheme(&model.Scheme{
 		DisplayName: "DisplayName",
 		Name:        model.NewId(),
 		Description: "Some description",
 		Scope:       model.SCHEME_SCOPE_CHANNEL,
-	}
-	channelScheme, _ = th.SystemAdminClient.CreateScheme(channelScheme)
-	teamScheme := &model.Scheme{
+	})
+	CheckNoError(t, resp)
+
+	teamScheme, resp := th.SystemAdminClient.CreateScheme(&model.Scheme{
 		DisplayName: "DisplayName",
 		Name:        model.NewId(),
 		Description: "Some description",
 		Scope:       model.SCHEME_SCOPE_TEAM,
-	}
-	teamScheme, _ = th.SystemAdminClient.CreateScheme(teamScheme)
+	})
+	CheckNoError(t, resp)
 
 	// Test the setup/base case.
-	_, resp := th.SystemAdminClient.UpdateChannelScheme(channel.Id, channelScheme.Id)
+	_, resp = th.SystemAdminClient.UpdateChannelScheme(channel.Id, channelScheme.Id)
 	CheckNoError(t, resp)
 
 	// Test various invalid channel and scheme id combinations.
@@ -2327,7 +2407,6 @@ func TestUpdateChannelScheme(t *testing.T) {
 
 	// Test an invalid scheme scope.
 	_, resp = th.SystemAdminClient.UpdateChannelScheme(channel.Id, teamScheme.Id)
-	fmt.Printf("resp: %+v\n", resp)
 	CheckBadRequestStatus(t, resp)
 
 	// Test that an unauthenticated user gets rejected.
@@ -2337,7 +2416,7 @@ func TestUpdateChannelScheme(t *testing.T) {
 }
 
 func TestGetChannelMembersTimezones(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 

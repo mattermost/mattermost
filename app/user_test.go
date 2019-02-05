@@ -143,7 +143,7 @@ func TestUpdateUserToRestrictedDomain(t *testing.T) {
 	defer th.App.PermanentDeleteUser(user)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.TeamSettings.RestrictCreationToDomains = "foo.com"
+		*cfg.TeamSettings.RestrictCreationToDomains = "foo.com"
 	})
 
 	_, err := th.App.UpdateUser(user, false)
@@ -152,6 +152,24 @@ func TestUpdateUserToRestrictedDomain(t *testing.T) {
 	user.Email = "asdf@ghjk.l"
 	_, err = th.App.UpdateUser(user, false)
 	assert.False(t, err == nil)
+}
+
+func TestUpdateUserActive(t *testing.T) {
+	th := Setup()
+	defer th.TearDown()
+
+	user := th.CreateUser()
+
+	EnableUserDeactivation := th.App.Config().TeamSettings.EnableUserDeactivation
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.EnableUserDeactivation = EnableUserDeactivation })
+	}()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.TeamSettings.EnableUserDeactivation = true
+	})
+	err := th.App.UpdateUserActive(user.Id, false)
+	assert.Nil(t, err)
 }
 
 func TestUpdateOAuthUserAttrs(t *testing.T) {
@@ -543,44 +561,4 @@ func TestPermanentDeleteUser(t *testing.T) {
 		t.Log(err)
 		t.Fatal("GetFileInfo after DeleteUser is nil")
 	}
-}
-
-func TestRecordUserTermsOfServiceAction(t *testing.T) {
-	th := Setup().InitBasic()
-	defer th.TearDown()
-
-	user := &model.User{
-		Email:       strings.ToLower(model.NewId()) + "success+test@example.com",
-		Nickname:    "Luke Skywalker", // trying to bring balance to the "Force", one test user at a time
-		Username:    "luke" + model.NewId(),
-		Password:    "passwd1",
-		AuthService: "",
-	}
-	user, err := th.App.CreateUser(user)
-	if err != nil {
-		t.Fatalf("failed to create user: %v", err)
-	}
-
-	defer th.App.PermanentDeleteUser(user)
-
-	termsOfService, err := th.App.CreateTermsOfService("text", user.Id)
-	if err != nil {
-		t.Fatalf("failed to create terms of service: %v", err)
-	}
-
-	err = th.App.RecordUserTermsOfServiceAction(user.Id, termsOfService.Id, true)
-	if err != nil {
-		t.Fatalf("failed to record user action: %v", err)
-	}
-
-	nuser, err := th.App.GetUser(user.Id)
-	assert.Equal(t, termsOfService.Id, nuser.AcceptedTermsOfServiceId)
-
-	err = th.App.RecordUserTermsOfServiceAction(user.Id, termsOfService.Id, false)
-	if err != nil {
-		t.Fatalf("failed to record user action: %v", err)
-	}
-
-	nuser, err = th.App.GetUser(user.Id)
-	assert.Empty(t, nuser.AcceptedTermsOfServiceId)
 }

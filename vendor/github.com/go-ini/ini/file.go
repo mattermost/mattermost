@@ -45,6 +45,9 @@ type File struct {
 
 // newFile initializes File object with given data sources.
 func newFile(dataSources []dataSource, opts LoadOptions) *File {
+	if len(opts.KeyValueDelimiters) == 0 {
+		opts.KeyValueDelimiters = "=:"
+	}
 	return &File{
 		BlockMode:   true,
 		dataSources: dataSources,
@@ -227,7 +230,8 @@ func (f *File) Append(source interface{}, others ...interface{}) error {
 }
 
 func (f *File) writeToBuffer(indent string) (*bytes.Buffer, error) {
-	equalSign := "="
+	equalSign := DefaultFormatLeft + "=" + DefaultFormatRight
+
 	if PrettyFormat || PrettyEqual {
 		equalSign = " = "
 	}
@@ -285,7 +289,7 @@ func (f *File) writeToBuffer(indent string) (*bytes.Buffer, error) {
 			for _, kname := range sec.keyList {
 				keyLength := len(kname)
 				// First case will surround key by ` and second by """
-				if strings.ContainsAny(kname, "\"=:") {
+				if strings.Contains(kname, "\"") || strings.ContainsAny(kname, f.options.KeyValueDelimiters) {
 					keyLength += 2
 				} else if strings.Contains(kname, "`") {
 					keyLength += 6
@@ -310,7 +314,7 @@ func (f *File) writeToBuffer(indent string) (*bytes.Buffer, error) {
 				lines := strings.Split(key.Comment, LineBreak)
 				for i := range lines {
 					if lines[i][0] != '#' && lines[i][0] != ';' {
-						lines[i] = "; " + lines[i]
+						lines[i] = "; " + strings.TrimSpace(lines[i])
 					} else {
 						lines[i] = lines[i][:1] + " " + strings.TrimSpace(lines[i][1:])
 					}
@@ -328,7 +332,7 @@ func (f *File) writeToBuffer(indent string) (*bytes.Buffer, error) {
 			switch {
 			case key.isAutoIncrement:
 				kname = "-"
-			case strings.ContainsAny(kname, "\"=:"):
+			case strings.Contains(kname, "\"") || strings.ContainsAny(kname, f.options.KeyValueDelimiters):
 				kname = "`" + kname + "`"
 			case strings.Contains(kname, "`"):
 				kname = `"""` + kname + `"""`

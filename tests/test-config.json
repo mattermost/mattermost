@@ -63,7 +63,8 @@
         "ImageProxyURL": "",
         "ImageProxyOptions": "",
         "EnableAPITeamDeletion": false,
-        "ExperimentalEnableHardenedMode": false
+        "ExperimentalEnableHardenedMode": false,
+        "ExperimentalLdapGroupSync": true
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
@@ -162,6 +163,7 @@
         "RequireEmailVerification": false,
         "FeedbackName": "",
         "FeedbackEmail": "test@example.com",
+        "ReplyToAddress": "test@example.com",
         "FeedbackOrganization": "",
         "EnableSMTPAuth": false,
         "SMTPUsername": "",

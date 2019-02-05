@@ -15,7 +15,7 @@ import (
 )
 
 func TestGetPing(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -39,7 +39,7 @@ func TestGetPing(t *testing.T) {
 }
 
 func TestGetConfig(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -57,22 +57,22 @@ func TestGetConfig(t *testing.T) {
 	if *cfg.FileSettings.PublicLinkSalt != model.FAKE_SETTING {
 		t.Fatal("did not sanitize properly")
 	}
-	if cfg.FileSettings.AmazonS3SecretAccessKey != model.FAKE_SETTING && len(cfg.FileSettings.AmazonS3SecretAccessKey) != 0 {
+	if *cfg.FileSettings.AmazonS3SecretAccessKey != model.FAKE_SETTING && len(*cfg.FileSettings.AmazonS3SecretAccessKey) != 0 {
 		t.Fatal("did not sanitize properly")
 	}
-	if cfg.EmailSettings.InviteSalt != model.FAKE_SETTING {
+	if *cfg.EmailSettings.InviteSalt != model.FAKE_SETTING {
 		t.Fatal("did not sanitize properly")
 	}
-	if cfg.EmailSettings.SMTPPassword != model.FAKE_SETTING && len(cfg.EmailSettings.SMTPPassword) != 0 {
+	if *cfg.EmailSettings.SMTPPassword != model.FAKE_SETTING && len(*cfg.EmailSettings.SMTPPassword) != 0 {
 		t.Fatal("did not sanitize properly")
 	}
-	if cfg.GitLabSettings.Secret != model.FAKE_SETTING && len(cfg.GitLabSettings.Secret) != 0 {
+	if *cfg.GitLabSettings.Secret != model.FAKE_SETTING && len(*cfg.GitLabSettings.Secret) != 0 {
 		t.Fatal("did not sanitize properly")
 	}
 	if *cfg.SqlSettings.DataSource != model.FAKE_SETTING {
 		t.Fatal("did not sanitize properly")
 	}
-	if cfg.SqlSettings.AtRestEncryptKey != model.FAKE_SETTING {
+	if *cfg.SqlSettings.AtRestEncryptKey != model.FAKE_SETTING {
 		t.Fatal("did not sanitize properly")
 	}
 	if !strings.Contains(strings.Join(cfg.SqlSettings.DataSourceReplicas, " "), model.FAKE_SETTING) && len(cfg.SqlSettings.DataSourceReplicas) != 0 {
@@ -84,7 +84,7 @@ func TestGetConfig(t *testing.T) {
 }
 
 func TestReloadConfig(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -105,7 +105,7 @@ func TestReloadConfig(t *testing.T) {
 }
 
 func TestUpdateConfig(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -117,11 +117,11 @@ func TestUpdateConfig(t *testing.T) {
 
 	SiteName := th.App.Config().TeamSettings.SiteName
 
-	cfg.TeamSettings.SiteName = "MyFancyName"
+	*cfg.TeamSettings.SiteName = "MyFancyName"
 	cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
 	CheckNoError(t, resp)
 
-	require.Equal(t, "MyFancyName", cfg.TeamSettings.SiteName, "It should update the SiteName")
+	require.Equal(t, "MyFancyName", *cfg.TeamSettings.SiteName, "It should update the SiteName")
 
 	//Revert the change
 	cfg.TeamSettings.SiteName = SiteName
@@ -147,12 +147,80 @@ func TestUpdateConfig(t *testing.T) {
 	})
 }
 
+func TestUpdateConfigMessageExportSpecialHandling(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	messageExportEnabled := *th.App.Config().MessageExportSettings.EnableExport
+	messageExportTimestamp := *th.App.Config().MessageExportSettings.ExportFromTimestamp
+
+	defer th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.MessageExportSettings.EnableExport = messageExportEnabled
+		*cfg.MessageExportSettings.ExportFromTimestamp = messageExportTimestamp
+	})
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.MessageExportSettings.EnableExport = false
+		*cfg.MessageExportSettings.ExportFromTimestamp = int64(0)
+	})
+
+	// Turn it on, timestamp should be updated.
+	cfg, resp := th.SystemAdminClient.GetConfig()
+	CheckNoError(t, resp)
+
+	*cfg.MessageExportSettings.EnableExport = true
+	cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
+	CheckNoError(t, resp)
+
+	assert.True(t, *th.App.Config().MessageExportSettings.EnableExport)
+	assert.NotEqual(t, int64(0), *th.App.Config().MessageExportSettings.ExportFromTimestamp)
+
+	// Turn it off, timestamp should be cleared.
+	cfg, resp = th.SystemAdminClient.GetConfig()
+	CheckNoError(t, resp)
+
+	*cfg.MessageExportSettings.EnableExport = false
+	cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
+	CheckNoError(t, resp)
+
+	assert.False(t, *th.App.Config().MessageExportSettings.EnableExport)
+	assert.Equal(t, int64(0), *th.App.Config().MessageExportSettings.ExportFromTimestamp)
+
+	// Set a value from the config file.
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.MessageExportSettings.EnableExport = false
+		*cfg.MessageExportSettings.ExportFromTimestamp = int64(12345)
+	})
+
+	// Turn it on, timestamp should *not* be updated.
+	cfg, resp = th.SystemAdminClient.GetConfig()
+	CheckNoError(t, resp)
+
+	*cfg.MessageExportSettings.EnableExport = true
+	cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
+	CheckNoError(t, resp)
+
+	assert.True(t, *th.App.Config().MessageExportSettings.EnableExport)
+	assert.Equal(t, int64(12345), *th.App.Config().MessageExportSettings.ExportFromTimestamp)
+
+	// Turn it off, timestamp should be cleared.
+	cfg, resp = th.SystemAdminClient.GetConfig()
+	CheckNoError(t, resp)
+
+	*cfg.MessageExportSettings.EnableExport = false
+	cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
+	CheckNoError(t, resp)
+
+	assert.False(t, *th.App.Config().MessageExportSettings.EnableExport)
+	assert.Equal(t, int64(0), *th.App.Config().MessageExportSettings.ExportFromTimestamp)
+}
+
 func TestGetEnvironmentConfig(t *testing.T) {
 	os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://example.mattermost.com")
 	os.Setenv("MM_SERVICESETTINGS_ENABLECUSTOMEMOJI", "true")
 	defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
 
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 
 	t.Run("as system admin", func(t *testing.T) {
@@ -212,15 +280,15 @@ func TestGetEnvironmentConfig(t *testing.T) {
 }
 
 func TestGetOldClientConfig(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 
 	testKey := "supersecretkey"
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.GoogleDeveloperKey = testKey })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.GoogleDeveloperKey = testKey })
 
 	t.Run("with session", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.GoogleDeveloperKey = testKey
+			*cfg.ServiceSettings.GoogleDeveloperKey = testKey
 		})
 
 		Client := th.Client
@@ -239,7 +307,7 @@ func TestGetOldClientConfig(t *testing.T) {
 
 	t.Run("without session", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.GoogleDeveloperKey = testKey
+			*cfg.ServiceSettings.GoogleDeveloperKey = testKey
 		})
 
 		Client := th.CreateClient()
@@ -274,7 +342,7 @@ func TestGetOldClientConfig(t *testing.T) {
 }
 
 func TestGetOldClientLicense(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -307,7 +375,7 @@ func TestGetOldClientLicense(t *testing.T) {
 }
 
 func TestGetAudits(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -344,14 +412,22 @@ func TestGetAudits(t *testing.T) {
 }
 
 func TestEmailTest(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
 	config := model.Config{
+		ServiceSettings: model.ServiceSettings{
+			SiteURL: model.NewString(""),
+		},
 		EmailSettings: model.EmailSettings{
-			SMTPServer: "",
-			SMTPPort:   "",
+			SMTPServer:             model.NewString(""),
+			SMTPPort:               model.NewString(""),
+			SMTPPassword:           model.NewString(""),
+			FeedbackName:           model.NewString(""),
+			FeedbackEmail:          model.NewString(""),
+			ReplyToAddress:         model.NewString(""),
+			SendEmailNotifications: model.NewBool(false),
 		},
 	}
 
@@ -362,7 +438,7 @@ func TestEmailTest(t *testing.T) {
 	CheckErrorMessage(t, resp, "api.admin.test_email.missing_server")
 	CheckBadRequestStatus(t, resp)
 
-	inbucket_host := os.Getenv("CI_HOST")
+	inbucket_host := os.Getenv("CI_INBUCKET_HOST")
 	if inbucket_host == "" {
 		inbucket_host = "dockerhost"
 	}
@@ -372,14 +448,14 @@ func TestEmailTest(t *testing.T) {
 		inbucket_port = "9000"
 	}
 
-	config.EmailSettings.SMTPServer = inbucket_host
-	config.EmailSettings.SMTPPort = inbucket_port
+	*config.EmailSettings.SMTPServer = inbucket_host
+	*config.EmailSettings.SMTPPort = inbucket_port
 	_, resp = th.SystemAdminClient.TestEmail(&config)
 	CheckOKStatus(t, resp)
 }
 
 func TestDatabaseRecycle(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -391,7 +467,7 @@ func TestDatabaseRecycle(t *testing.T) {
 }
 
 func TestInvalidateCaches(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -409,7 +485,7 @@ func TestInvalidateCaches(t *testing.T) {
 }
 
 func TestGetLogs(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -449,7 +525,7 @@ func TestGetLogs(t *testing.T) {
 }
 
 func TestPostLog(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -484,7 +560,7 @@ func TestPostLog(t *testing.T) {
 }
 
 func TestUploadLicenseFile(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -502,7 +578,7 @@ func TestUploadLicenseFile(t *testing.T) {
 }
 
 func TestRemoveLicenseFile(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -520,7 +596,7 @@ func TestRemoveLicenseFile(t *testing.T) {
 }
 
 func TestGetAnalyticsOld(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -593,11 +669,11 @@ func TestGetAnalyticsOld(t *testing.T) {
 }
 
 func TestS3TestConnection(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
-	s3Host := os.Getenv("CI_HOST")
+	s3Host := os.Getenv("CI_MINIO_HOST")
 	if s3Host == "" {
 		s3Host = "dockerhost"
 	}
@@ -611,10 +687,11 @@ func TestS3TestConnection(t *testing.T) {
 	config := model.Config{
 		FileSettings: model.FileSettings{
 			DriverName:              model.NewString(model.IMAGE_DRIVER_S3),
-			AmazonS3AccessKeyId:     model.MINIO_ACCESS_KEY,
-			AmazonS3SecretAccessKey: model.MINIO_SECRET_KEY,
-			AmazonS3Bucket:          "",
-			AmazonS3Endpoint:        s3Endpoint,
+			AmazonS3AccessKeyId:     model.NewString(model.MINIO_ACCESS_KEY),
+			AmazonS3SecretAccessKey: model.NewString(model.MINIO_SECRET_KEY),
+			AmazonS3Bucket:          model.NewString(""),
+			AmazonS3Endpoint:        model.NewString(s3Endpoint),
+			AmazonS3Region:          model.NewString(""),
 			AmazonS3SSL:             model.NewBool(false),
 		},
 	}
@@ -628,21 +705,23 @@ func TestS3TestConnection(t *testing.T) {
 		t.Fatal("should return error - missing s3 bucket")
 	}
 
-	config.FileSettings.AmazonS3Bucket = model.MINIO_BUCKET
-	config.FileSettings.AmazonS3Region = "us-east-1"
+	// If this fails, check the test configuration to ensure minio is setup with the
+	// `mattermost-test` bucket defined by model.MINIO_BUCKET.
+	*config.FileSettings.AmazonS3Bucket = model.MINIO_BUCKET
+	*config.FileSettings.AmazonS3Region = "us-east-1"
 	_, resp = th.SystemAdminClient.TestS3Connection(&config)
 	CheckOKStatus(t, resp)
 
-	config.FileSettings.AmazonS3Region = ""
+	config.FileSettings.AmazonS3Region = model.NewString("")
 	_, resp = th.SystemAdminClient.TestS3Connection(&config)
 	CheckOKStatus(t, resp)
 
-	config.FileSettings.AmazonS3Bucket = "Wrong_bucket"
+	config.FileSettings.AmazonS3Bucket = model.NewString("Wrong_bucket")
 	_, resp = th.SystemAdminClient.TestS3Connection(&config)
 	CheckInternalErrorStatus(t, resp)
 	assert.Equal(t, "Unable to create bucket.", resp.Error.Message)
 
-	config.FileSettings.AmazonS3Bucket = "shouldcreatenewbucket"
+	*config.FileSettings.AmazonS3Bucket = "shouldcreatenewbucket"
 	_, resp = th.SystemAdminClient.TestS3Connection(&config)
 	CheckOKStatus(t, resp)
 
@@ -653,7 +732,7 @@ func TestSupportedTimezones(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	supportedTimezonesFromConfig := th.App.Timezones()
+	supportedTimezonesFromConfig := th.App.Timezones.GetSupported()
 	supportedTimezones, resp := Client.GetSupportedTimezone()
 
 	CheckNoError(t, resp)
@@ -672,7 +751,7 @@ func TestRedirectLocation(t *testing.T) {
 
 	mockBitlyLink := testServer.URL
 
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	enableLinkPreviews := *th.App.Config().ServiceSettings.EnableLinkPreviews
@@ -681,6 +760,7 @@ func TestRedirectLocation(t *testing.T) {
 	}()
 
 	*th.App.Config().ServiceSettings.EnableLinkPreviews = true
+	*th.App.Config().ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.1"
 
 	_, resp := th.SystemAdminClient.GetRedirectLocation("https://mattermost.com/", "")
 	CheckNoError(t, resp)
@@ -690,9 +770,12 @@ func TestRedirectLocation(t *testing.T) {
 
 	actual, resp := th.SystemAdminClient.GetRedirectLocation(mockBitlyLink, "")
 	CheckNoError(t, resp)
-	if actual != expected {
-		t.Errorf("Expected %v but got %v.", expected, actual)
-	}
+	assert.Equal(t, expected, actual)
+
+	// Check cached value
+	actual, resp = th.SystemAdminClient.GetRedirectLocation(mockBitlyLink, "")
+	CheckNoError(t, resp)
+	assert.Equal(t, expected, actual)
 
 	*th.App.Config().ServiceSettings.EnableLinkPreviews = false
 	actual, resp = th.SystemAdminClient.GetRedirectLocation("https://mattermost.com/", "")

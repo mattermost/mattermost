@@ -15,9 +15,9 @@ func (i DeviceType) String() string {
 	return _DeviceType_name[_DeviceType_index[i]:_DeviceType_index[i+1]]
 }
 
-const _BrowserName_name = "BrowserUnknownBrowserChromeBrowserIEBrowserSafariBrowserFirefoxBrowserAndroidBrowserOperaBrowserBlackberryBrowserUCBrowserBrowserSilkBrowserNokiaBrowserNetFrontBrowserQQBrowserMaxthonBrowserSogouExplorerBrowserSpotifyBrowserBotBrowserAppleBotBrowserBaiduBotBrowserBingBotBrowserDuckDuckGoBotBrowserFacebookBotBrowserGoogleBotBrowserLinkedInBotBrowserMsnBotBrowserPingdomBotBrowserTwitterBotBrowserYandexBotBrowserYahooBot"
+const _BrowserName_name = "BrowserUnknownBrowserChromeBrowserIEBrowserSafariBrowserFirefoxBrowserAndroidBrowserOperaBrowserBlackberryBrowserUCBrowserBrowserSilkBrowserNokiaBrowserNetFrontBrowserQQBrowserMaxthonBrowserSogouExplorerBrowserSpotifyBrowserNintendoBrowserSamsungBrowserYandexBrowserCocCocBrowserBotBrowserAppleBotBrowserBaiduBotBrowserBingBotBrowserDuckDuckGoBotBrowserFacebookBotBrowserGoogleBotBrowserLinkedInBotBrowserMsnBotBrowserPingdomBotBrowserTwitterBotBrowserYandexBotBrowserCocCocBotBrowserYahooBot"
 
-var _BrowserName_index = [...]uint16{0, 14, 27, 36, 49, 63, 77, 89, 106, 122, 133, 145, 160, 169, 183, 203, 217, 227, 242, 257, 271, 291, 309, 325, 343, 356, 373, 390, 406, 421}
+var _BrowserName_index = [...]uint16{0, 14, 27, 36, 49, 63, 77, 89, 106, 122, 133, 145, 160, 169, 183, 203, 217, 232, 246, 259, 272, 282, 297, 312, 326, 346, 364, 380, 398, 411, 428, 445, 461, 477, 492}
 
 func (i BrowserName) String() string {
 	if i < 0 || i >= BrowserName(len(_BrowserName_index)-1) {

@@ -28,6 +28,15 @@ var CommandCreateCmd = &cobra.Command{
 	RunE:    createCommandCmdF,
 }
 
+var CommandShowCmd = &cobra.Command{
+	Use:     "show",
+	Short:   "Show a custom slash command",
+	Long:    `Show a custom slash command. Commands can be specified by command ID.`,
+	Args:    cobra.ExactArgs(1),
+	Example: `  command show commandID`,
+	RunE:    showCommandCmdF,
+}
+
 var CommandMoveCmd = &cobra.Command{
 	Use:     "move",
 	Short:   "Move a slash command to a different team",
@@ -49,7 +58,7 @@ var CommandDeleteCmd = &cobra.Command{
 	Short:   "Delete a slash command",
 	Long:    `Delete a slash command. Commands can be specified by command ID.`,
 	Example: `  command delete commandID`,
-	Args:    cobra.MinimumNArgs(1),
+	Args:    cobra.ExactArgs(1),
 	RunE:    deleteCommandCmdF,
 }
 
@@ -71,6 +80,7 @@ func init() {
 
 	CommandCmd.AddCommand(
 		CommandCreateCmd,
+		CommandShowCmd,
 		CommandMoveCmd,
 		CommandListCmd,
 		CommandDeleteCmd,
@@ -90,6 +100,18 @@ func createCommandCmdF(command *cobra.Command, args []string) error {
 		return errors.New("unable to find team '" + args[0] + "'")
 	}
 
+	// get the creator
+	creator, _ := command.Flags().GetString("creator")
+	user := getUserFromUserArg(a, creator)
+	if user == nil {
+		return errors.New("unable to find user '" + creator + "'")
+	}
+
+	// check if creator has permission to create slash commands
+	if !a.HasPermissionToTeam(user.Id, team.Id, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
+		return errors.New("the creator must be a user who has permissions to manage slash commands")
+	}
+
 	title, _ := command.Flags().GetString("title")
 	description, _ := command.Flags().GetString("description")
 	trigger, _ := command.Flags().GetString("trigger-word")
@@ -102,11 +124,6 @@ func createCommandCmdF(command *cobra.Command, args []string) error {
 	}
 
 	url, _ := command.Flags().GetString("url")
-	creator, _ := command.Flags().GetString("creator")
-	user := getUserFromUserArg(a, creator)
-	if user == nil {
-		return errors.New("unable to find user '" + creator + "'")
-	}
 	responseUsername, _ := command.Flags().GetString("response-username")
 	icon, _ := command.Flags().GetString("icon")
 	autocomplete, _ := command.Flags().GetBool("autocomplete")
@@ -134,9 +151,27 @@ func createCommandCmdF(command *cobra.Command, args []string) error {
 	}
 
 	if _, err := a.CreateCommand(newCommand); err != nil {
-		return errors.New("unable to create command '" + newCommand.Trigger + "'. " + err.Error())
+		return errors.New("unable to create command '" + newCommand.DisplayName + "'. " + err.Error())
 	}
-	CommandPrettyPrintln("created command '" + newCommand.Trigger + "'")
+	CommandPrettyPrintln("created command '" + newCommand.DisplayName + "'")
+
+	return nil
+}
+
+func showCommandCmdF(command *cobra.Command, args []string) error {
+	a, err := InitDBCommandContextCobra(command)
+	if err != nil {
+		return err
+	}
+	defer a.Shutdown()
+
+	slashCommand := getCommandFromCommandArg(a, args[0])
+	if slashCommand == nil {
+		command.SilenceUsage = true
+		return errors.New("Unable to find command '" + args[0] + "'")
+	}
+	// pretty print
+	fmt.Printf("%s", prettyPrintStruct(*slashCommand))
 
 	return nil
 }
@@ -149,7 +184,7 @@ func moveCommandCmdF(command *cobra.Command, args []string) error {
 	defer a.Shutdown()
 
 	if len(args) < 2 {
-		return errors.New("Enter the destination team and at least one comamnd to move.")
+		return errors.New("Enter the destination team and at least one command to move.")
 	}
 
 	team := getTeamFromTeamArg(a, args[0])
@@ -158,16 +193,15 @@ func moveCommandCmdF(command *cobra.Command, args []string) error {
 	}
 
 	commands := getCommandsFromCommandArgs(a, args[1:])
-	CommandPrintErrorln(commands)
 	for i, command := range commands {
 		if command == nil {
 			CommandPrintErrorln("Unable to find command '" + args[i+1] + "'")
 			continue
 		}
 		if err := moveCommand(a, team, command); err != nil {
-			CommandPrintErrorln("Unable to move command '" + command.Trigger + "' error: " + err.Error())
+			CommandPrintErrorln("Unable to move command '" + command.DisplayName + "' error: " + err.Error())
 		} else {
-			CommandPrettyPrintln("Moved command '" + command.Trigger + "'")
+			CommandPrettyPrintln("Moved command '" + command.DisplayName + "'")
 		}
 	}
 
@@ -222,13 +256,15 @@ func deleteCommandCmdF(command *cobra.Command, args []string) error {
 	}
 	defer a.Shutdown()
 
-	commandID := args[0]
-
-	deleteErr := a.DeleteCommand(commandID)
-	if deleteErr != nil {
-		CommandPrintErrorln("Unable to delete command '" + commandID + "' error: " + deleteErr.Error())
-		return deleteErr
+	slashCommand := getCommandFromCommandArg(a, args[0])
+	if slashCommand == nil {
+		command.SilenceUsage = true
+		return errors.New("Unable to find command '" + args[0] + "'")
 	}
-	CommandPrettyPrintln("Deleted command '" + commandID + "'")
+	if err := a.DeleteCommand(slashCommand.Id); err != nil {
+		command.SilenceUsage = true
+		return errors.New("Unable to delete command '" + slashCommand.Id + "' error: " + err.Error())
+	}
+	CommandPrettyPrintln("Deleted command '" + slashCommand.Id + "' (" + slashCommand.DisplayName + ")")
 	return nil
 }

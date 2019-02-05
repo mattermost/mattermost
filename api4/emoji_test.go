@@ -17,7 +17,7 @@ import (
 )
 
 func TestCreateEmoji(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -208,9 +208,9 @@ func TestGetEmojiList(t *testing.T) {
 	}
 
 	for idx, emoji := range emojis {
-		emoji, resp := Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+		newEmoji, resp := Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
 		CheckNoError(t, resp)
-		emojis[idx] = emoji
+		emojis[idx] = newEmoji
 	}
 
 	listEmoji, resp := Client.GetEmojiList(0, 100)
@@ -259,7 +259,7 @@ func TestGetEmojiList(t *testing.T) {
 }
 
 func TestDeleteEmoji(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -622,9 +622,9 @@ func TestSearchEmoji(t *testing.T) {
 	}
 
 	for idx, emoji := range emojis {
-		emoji, resp := Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+		newEmoji, resp := Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
 		CheckNoError(t, resp)
-		emojis[idx] = emoji
+		emojis[idx] = newEmoji
 	}
 
 	search := &model.EmojiSearch{Term: searchTerm1}
@@ -700,9 +700,9 @@ func TestAutocompleteEmoji(t *testing.T) {
 	}
 
 	for idx, emoji := range emojis {
-		emoji, resp := Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+		newEmoji, resp := Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
 		CheckNoError(t, resp)
-		emojis[idx] = emoji
+		emojis[idx] = newEmoji
 	}
 
 	remojis, resp := Client.AutocompleteEmoji(searchTerm1, "")

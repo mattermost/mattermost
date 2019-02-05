@@ -51,8 +51,8 @@ func (a *App) GetLogs(page, perPage int) ([]string, *model.AppError) {
 func (a *App) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) {
 	var lines []string
 
-	if a.Config().LogSettings.EnableFile {
-		file, err := os.Open(utils.GetLogFileLocation(a.Config().LogSettings.FileLocation))
+	if *a.Config().LogSettings.EnableFile {
+		file, err := os.Open(utils.GetLogFileLocation(*a.Config().LogSettings.FileLocation))
 		if err != nil {
 			return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, err.Error(), http.StatusInternalServerError)
 		}
@@ -139,7 +139,7 @@ func (a *App) InvalidateAllCaches() *model.AppError {
 
 func (a *App) InvalidateAllCachesSkipSend() {
 	mlog.Info("Purging all caches")
-	a.sessionCache.Purge()
+	a.Srv.sessionCache.Purge()
 	ClearStatusCache()
 	a.Srv.Store.Channel().ClearCaches()
 	a.Srv.Store.User().ClearCaches()
@@ -202,9 +202,6 @@ func (a *App) SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool)
 		}
 	}
 
-	// start/restart email batching job if necessary
-	a.InitEmailBatching()
-
 	return nil
 }
 
@@ -212,8 +209,8 @@ func (a *App) RecycleDatabaseConnection() {
 	oldStore := a.Srv.Store
 
 	mlog.Warn("Attempting to recycle the database connection.")
-	a.Srv.Store = a.newStore()
-	a.Jobs.Store = a.Srv.Store
+	a.Srv.Store = a.Srv.newStore()
+	a.Srv.Jobs.Store = a.Srv.Store
 
 	if a.Srv.Store != oldStore {
 		time.Sleep(20 * time.Second)
@@ -224,17 +221,17 @@ func (a *App) RecycleDatabaseConnection() {
 }
 
 func (a *App) TestEmail(userId string, cfg *model.Config) *model.AppError {
-	if len(cfg.EmailSettings.SMTPServer) == 0 {
+	if len(*cfg.EmailSettings.SMTPServer) == 0 {
 		return model.NewAppError("testEmail", "api.admin.test_email.missing_server", nil, utils.T("api.context.invalid_param.app_error", map[string]interface{}{"Name": "SMTPServer"}), http.StatusBadRequest)
 	}
 
 	// if the user hasn't changed their email settings, fill in the actual SMTP password so that
 	// the user can verify an existing SMTP connection
-	if cfg.EmailSettings.SMTPPassword == model.FAKE_SETTING {
-		if cfg.EmailSettings.SMTPServer == a.Config().EmailSettings.SMTPServer &&
-			cfg.EmailSettings.SMTPPort == a.Config().EmailSettings.SMTPPort &&
-			cfg.EmailSettings.SMTPUsername == a.Config().EmailSettings.SMTPUsername {
-			cfg.EmailSettings.SMTPPassword = a.Config().EmailSettings.SMTPPassword
+	if *cfg.EmailSettings.SMTPPassword == model.FAKE_SETTING {
+		if *cfg.EmailSettings.SMTPServer == *a.Config().EmailSettings.SMTPServer &&
+			*cfg.EmailSettings.SMTPPort == *a.Config().EmailSettings.SMTPPort &&
+			*cfg.EmailSettings.SMTPUsername == *a.Config().EmailSettings.SMTPUsername {
+			*cfg.EmailSettings.SMTPPassword = *a.Config().EmailSettings.SMTPPassword
 		} else {
 			return model.NewAppError("testEmail", "api.admin.test_email.reenter_password", nil, "", http.StatusBadRequest)
 		}

@@ -166,6 +166,22 @@ func (_m *Store) FileInfo() store.FileInfoStore {
 	return r0
 }
 
+// Group provides a mock function with given fields:
+func (_m *Store) Group() store.GroupStore {
+	ret := _m.Called()
+
+	var r0 store.GroupStore
+	if rf, ok := ret.Get(0).(func() store.GroupStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.GroupStore)
+		}
+	}
+
+	return r0
+}
+
 // Job provides a mock function with given fields:
 func (_m *Store) Job() store.JobStore {
 	ret := _m.Called()
@@ -192,6 +208,22 @@ func (_m *Store) License() store.LicenseStore {
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.LicenseStore)
+		}
+	}
+
+	return r0
+}
+
+// LinkMetadata provides a mock function with given fields:
+func (_m *Store) LinkMetadata() store.LinkMetadataStore {
+	ret := _m.Called()
+
+	var r0 store.LinkMetadataStore
+	if rf, ok := ret.Get(0).(func() store.LinkMetadataStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.LinkMetadataStore)
 		}
 	}
 
@@ -489,6 +521,22 @@ func (_m *Store) UserAccessToken() store.UserAccessTokenStore {
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.UserAccessTokenStore)
+		}
+	}
+
+	return r0
+}
+
+// UserTermsOfService provides a mock function with given fields:
+func (_m *Store) UserTermsOfService() store.UserTermsOfServiceStore {
+	ret := _m.Called()
+
+	var r0 store.UserTermsOfServiceStore
+	if rf, ok := ret.Get(0).(func() store.UserTermsOfServiceStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.UserTermsOfServiceStore)
 		}
 	}
 

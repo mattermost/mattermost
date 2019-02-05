@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"image"
 	"image/png"
+	"io"
 	"mime/multipart"
 	"net/http"
 	"net/url"
@@ -66,7 +67,7 @@ func (a *App) normalizeDomains(domains string) []string {
 func (a *App) isTeamEmailAddressAllowed(email string, allowedDomains string) bool {
 	email = strings.ToLower(email)
 	// First check per team allowedDomains, then app wide restrictions
-	for _, restriction := range []string{allowedDomains, a.Config().TeamSettings.RestrictCreationToDomains} {
+	for _, restriction := range []string{allowedDomains, *a.Config().TeamSettings.RestrictCreationToDomains} {
 		domains := a.normalizeDomains(restriction)
 		if len(domains) <= 0 {
 			continue
@@ -88,11 +89,6 @@ func (a *App) isTeamEmailAddressAllowed(email string, allowedDomains string) boo
 
 func (a *App) isTeamEmailAllowed(user *model.User, team *model.Team) bool {
 	email := strings.ToLower(user.Email)
-
-	if len(user.AuthService) > 0 && len(*user.AuthData) > 0 {
-		return true
-	}
-
 	return a.isTeamEmailAddressAllowed(email, team.AllowedDomains)
 }
 
@@ -102,7 +98,7 @@ func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 		return nil, err
 	}
 
-	validDomains := a.normalizeDomains(a.Config().TeamSettings.RestrictCreationToDomains)
+	validDomains := a.normalizeDomains(*a.Config().TeamSettings.RestrictCreationToDomains)
 	if len(validDomains) > 0 {
 		for _, domain := range a.normalizeDomains(team.AllowedDomains) {
 			matched := false
@@ -460,15 +456,15 @@ func (a *App) JoinUserToTeam(team *model.Team, user *model.User, userRequestorId
 		return nil
 	}
 
-	if a.PluginsReady() {
+	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		var actor *model.User
 		if userRequestorId != "" {
 			actor, _ = a.GetUser(userRequestorId)
 		}
 
-		a.Go(func() {
-			pluginContext := &plugin.Context{}
-			a.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+		a.Srv.Go(func() {
+			pluginContext := a.PluginContext()
+			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.UserHasJoinedTeam(pluginContext, tm, actor)
 				return true
 			}, plugin.UserHasJoinedTeamId)
@@ -694,7 +690,7 @@ func (a *App) GetTeamUnread(teamId, userId string) (*model.TeamUnread, *model.Ap
 	for _, cu := range channelUnreads {
 		teamUnread.MentionCount += cu.MentionCount
 
-		if cu.NotifyProps["mark_unread"] != model.CHANNEL_MARK_UNREAD_MENTION {
+		if cu.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] != model.CHANNEL_MARK_UNREAD_MENTION {
 			teamUnread.MsgCount += cu.MsgCount
 		}
 	}
@@ -783,15 +779,15 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 		return result.Err
 	}
 
-	if a.PluginsReady() {
+	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		var actor *model.User
 		if requestorId != "" {
 			actor, _ = a.GetUser(requestorId)
 		}
 
-		a.Go(func() {
-			pluginContext := &plugin.Context{}
-			a.Plugins.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+		a.Srv.Go(func() {
+			pluginContext := a.PluginContext()
+			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.UserHasLeftTeam(pluginContext, teamMember, actor)
 				return true
 			}, plugin.UserHasLeftTeamId)
@@ -913,7 +909,7 @@ func (a *App) GetTeamsUnreadForUser(excludeTeamId string, userId string) ([]*mod
 	unreads := func(cu *model.ChannelUnread, tu *model.TeamUnread) *model.TeamUnread {
 		tu.MentionCount += cu.MentionCount
 
-		if cu.NotifyProps["mark_unread"] != model.CHANNEL_MARK_UNREAD_MENTION {
+		if cu.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] != model.CHANNEL_MARK_UNREAD_MENTION {
 			tu.MsgCount += cu.MsgCount
 		}
 
@@ -996,6 +992,20 @@ func (a *App) SoftDeleteTeam(teamId string) *model.AppError {
 
 	a.sendTeamEvent(team, model.WEBSOCKET_EVENT_DELETE_TEAM)
 
+	return nil
+}
+
+func (a *App) RestoreTeam(teamId string) *model.AppError {
+	team, err := a.GetTeam(teamId)
+	if err != nil {
+		return err
+	}
+	team.DeleteAt = 0
+	result := <-a.Srv.Store.Team().Update(team)
+	if result.Err != nil {
+		return result.Err
+	}
+	a.sendTeamEvent(team, model.WEBSOCKET_EVENT_RESTORE_TEAM)
 	return nil
 }
 
@@ -1093,10 +1103,10 @@ func (a *App) SetTeamIcon(teamId string, imageData *multipart.FileHeader) *model
 		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.open.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 	defer file.Close()
-	return a.SetTeamIconFromFile(teamId, file)
+	return a.SetTeamIconFromMultiPartFile(teamId, file)
 }
 
-func (a *App) SetTeamIconFromFile(teamId string, file multipart.File) *model.AppError {
+func (a *App) SetTeamIconFromMultiPartFile(teamId string, file multipart.File) *model.AppError {
 	team, getTeamErr := a.GetTeam(teamId)
 
 	if getTeamErr != nil {
@@ -1118,13 +1128,15 @@ func (a *App) SetTeamIconFromFile(teamId string, file multipart.File) *model.App
 
 	file.Seek(0, 0)
 
+	return a.SetTeamIconFromFile(team, file)
+}
+
+func (a *App) SetTeamIconFromFile(team *model.Team, file io.Reader) *model.AppError {
 	// Decode image into Image object
 	img, _, err := image.Decode(file)
 	if err != nil {
 		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.decode.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
-
-	file.Seek(0, 0)
 
 	orientation, _ := getImageOrientation(file)
 	img = makeImageUpright(img, orientation)
@@ -1139,7 +1151,7 @@ func (a *App) SetTeamIconFromFile(teamId string, file multipart.File) *model.App
 		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.encode.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	path := "teams/" + teamId + "/teamIcon.png"
+	path := "teams/" + team.Id + "/teamIcon.png"
 
 	if _, err := a.WriteFile(buf, path); err != nil {
 		return model.NewAppError("SetTeamIcon", "api.team.set_team_icon.write_file.app_error", nil, "", http.StatusInternalServerError)
@@ -1147,7 +1159,7 @@ func (a *App) SetTeamIconFromFile(teamId string, file multipart.File) *model.App
 
 	curTime := model.GetMillis()
 
-	if result := <-a.Srv.Store.Team().UpdateLastTeamIconUpdate(teamId, curTime); result.Err != nil {
+	if result := <-a.Srv.Store.Team().UpdateLastTeamIconUpdate(team.Id, curTime); result.Err != nil {
 		return model.NewAppError("SetTeamIcon", "api.team.team_icon.update.app_error", nil, result.Err.Error(), http.StatusBadRequest)
 	}
 
