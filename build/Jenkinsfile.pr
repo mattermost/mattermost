@@ -46,7 +46,7 @@ pipeline {
                     git rev-parse --abbrev-ref HEAD
                     
                     """
-                    final scmVars = checkout(scm)
+                    def scmVars = checkout(scm)
                     echo "scmVars: ${scmVars}"
                     echo "scmVars.GIT_COMMIT: ${scmVars.GIT_COMMIT}"
                     echo "scmVars.GIT_BRANCH: ${scmVars.GIT_BRANCH}"
