@@ -41,13 +41,18 @@ pipeline {
                 dir('src/github.com/mattermost/enterprise') {
                     checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: '*/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: '310159d3-f7c5-4f5d-bfa1-151e3ef2db57', url: 'https://github.com/mattermost/enterprise.git']]]
                 }
+                dir('src/github.com/mattermost/mattermost-server') {
+                    sh """
+                    git rev-parse --abbrev-ref HEAD
+                    """
+                }
                 dir('src/github.com/mattermost/enterprise') {
                     ansiColor('xterm') {
                         sh """
                             #!/bin/bash -ex
                             export
                             exit 2
-                            
+
                             git checkout $env.BRANCH_NAME || git checkout $env.CHANGE_BRANCH || git checkout $env.GIT_BRANCH || git checkout $env.CHANGE_TARGET || echo 1
                             export EE_GIT_COMMIT=\$(git rev-parse HEAD)
 
