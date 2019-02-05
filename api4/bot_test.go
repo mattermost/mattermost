@@ -722,6 +722,113 @@ func TestDisableBot(t *testing.T) {
 	})
 }
 
+func TestAssignBot(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	t.Run("claim non-existent bot", func(t *testing.T) {
+		_, resp := th.SystemAdminClient.AssignBot(model.NewId(), model.NewId())
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("system admin assign bot", func(t *testing.T) {
+		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+
+		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.SYSTEM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_READ_BOTS.Id, model.SYSTEM_USER_ROLE_ID)
+
+		bot := &model.Bot{
+			Username:    GenerateTestUsername(),
+			Description: "bot",
+		}
+		bot, resp := th.Client.CreateBot(bot)
+		CheckCreatedStatus(t, resp)
+		defer th.App.PermanentDeleteBot(bot.UserId)
+
+		before, resp := th.Client.GetBot(bot.UserId, "")
+		CheckOKStatus(t, resp)
+		require.Equal(t, th.BasicUser.Id, before.CreatorId)
+
+		_, resp = th.SystemAdminClient.AssignBot(bot.UserId, th.SystemAdminUser.Id)
+		CheckOKStatus(t, resp)
+
+		// Original owner doesn't have read others bots permission, therefore can't see bot anymore
+		_, resp = th.Client.GetBot(bot.UserId, "")
+		CheckNotFoundStatus(t, resp)
+
+		// System admin can see creator ID has changed
+		after, resp := th.SystemAdminClient.GetBot(bot.UserId, "")
+		CheckOKStatus(t, resp)
+		require.Equal(t, th.SystemAdminUser.Id, after.CreatorId)
+
+		// Assign back to user without permissions to manage
+		_, resp = th.SystemAdminClient.AssignBot(bot.UserId, th.BasicUser.Id)
+		CheckOKStatus(t, resp)
+
+		after, resp = th.SystemAdminClient.GetBot(bot.UserId, "")
+		CheckOKStatus(t, resp)
+		require.Equal(t, th.BasicUser.Id, after.CreatorId)
+	})
+
+	t.Run("random user assign bot", func(t *testing.T) {
+		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+
+		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.SYSTEM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_READ_BOTS.Id, model.SYSTEM_USER_ROLE_ID)
+
+		bot := &model.Bot{
+			Username:    GenerateTestUsername(),
+			Description: "bot",
+		}
+		createdBot, resp := th.Client.CreateBot(bot)
+		CheckCreatedStatus(t, resp)
+		defer th.App.PermanentDeleteBot(createdBot.UserId)
+
+		th.LoginBasic2()
+
+		// Without permission to read others bots it doesn't exist
+		_, resp = th.Client.AssignBot(createdBot.UserId, th.BasicUser2.Id)
+		CheckErrorMessage(t, resp, "store.sql_bot.get.missing.app_error")
+
+		// With permissions to read we don't have permissions to modify
+		th.AddPermissionToRole(model.PERMISSION_READ_OTHERS_BOTS.Id, model.SYSTEM_USER_ROLE_ID)
+		_, resp = th.Client.AssignBot(createdBot.UserId, th.BasicUser2.Id)
+		CheckErrorMessage(t, resp, "api.context.permissions.app_error")
+
+		th.LoginBasic()
+	})
+
+	t.Run("deligated user assign bot", func(t *testing.T) {
+		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+
+		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.SYSTEM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_READ_BOTS.Id, model.SYSTEM_USER_ROLE_ID)
+
+		bot := &model.Bot{
+			Username:    GenerateTestUsername(),
+			Description: "bot",
+		}
+		bot, resp := th.Client.CreateBot(bot)
+		CheckCreatedStatus(t, resp)
+		defer th.App.PermanentDeleteBot(bot.UserId)
+
+		// Simulate custom role by just changing the system user role
+		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.SYSTEM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_READ_BOTS.Id, model.SYSTEM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_READ_OTHERS_BOTS.Id, model.SYSTEM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_MANAGE_BOTS.Id, model.SYSTEM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_MANAGE_OTHERS_BOTS.Id, model.SYSTEM_USER_ROLE_ID)
+		th.LoginBasic2()
+
+		_, resp = th.Client.AssignBot(bot.UserId, th.BasicUser2.Id)
+		CheckOKStatus(t, resp)
+
+		after, resp := th.SystemAdminClient.GetBot(bot.UserId, "")
+		CheckOKStatus(t, resp)
+		require.Equal(t, th.BasicUser2.Id, after.CreatorId)
+	})
+}
+
 func sToP(s string) *string {
 	return &s
 }

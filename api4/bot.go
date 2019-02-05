@@ -15,6 +15,7 @@ func (api *API) InitBot() {
 	api.BaseRoutes.Bot.Handle("", api.ApiSessionRequired(getBot)).Methods("GET")
 	api.BaseRoutes.Bots.Handle("", api.ApiSessionRequired(getBots)).Methods("GET")
 	api.BaseRoutes.Bot.Handle("/disable", api.ApiSessionRequired(disableBot)).Methods("POST")
+	api.BaseRoutes.Bot.Handle("/assign/{user_id:[A-Za-z0-9]+}", api.ApiSessionRequired(assignBot)).Methods("POST")
 }
 
 func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -45,11 +46,11 @@ func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireUserId()
+	c.RequireBotUserId()
 	if c.Err != nil {
 		return
 	}
-	botUserId := c.Params.UserId
+	botUserId := c.Params.BotUserId
 
 	botPatch := model.BotPatchFromJson(r.Body)
 	if botPatch == nil {
@@ -72,11 +73,11 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getBot(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireUserId()
+	c.RequireBotUserId()
 	if c.Err != nil {
 		return
 	}
-	botUserId := c.Params.UserId
+	botUserId := c.Params.BotUserId
 
 	includeDeleted := r.URL.Query().Get("include_deleted") == "true"
 
@@ -146,11 +147,11 @@ func getBots(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func disableBot(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireUserId()
+	c.RequireBotUserId()
 	if c.Err != nil {
 		return
 	}
-	botUserId := c.Params.UserId
+	botUserId := c.Params.BotUserId
 
 	if err := c.App.SessionHasPermissionToManageBot(c.App.Session, botUserId); err != nil {
 		c.Err = err
@@ -158,6 +159,29 @@ func disableBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	bot, err := c.App.UpdateBotActive(botUserId, false)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write(bot.ToJson())
+}
+
+func assignBot(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	c.RequireBotUserId()
+	if c.Err != nil {
+		return
+	}
+	botUserId := c.Params.BotUserId
+	userId := c.Params.UserId
+
+	if err := c.App.SessionHasPermissionToManageBot(c.App.Session, botUserId); err != nil {
+		c.Err = err
+		return
+	}
+
+	bot, err := c.App.UpdateBotOwner(botUserId, userId)
 	if err != nil {
 		c.Err = err
 		return
