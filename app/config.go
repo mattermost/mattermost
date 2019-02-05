@@ -281,26 +281,28 @@ func (a *App) AsymmetricSigningKey() *ecdsa.PrivateKey {
 }
 
 func (a *App) regenerateClientConfig() {
-	a.Srv.clientConfig = config.GenerateClientConfig(a.Config(), a.DiagnosticId(), a.License())
-	a.Srv.limitedClientConfig = config.GenerateLimitedClientConfig(a.Config(), a.DiagnosticId(), a.License())
+	clientConfig := config.GenerateClientConfig(a.Config(), a.DiagnosticId(), a.License())
+	limitedClientConfig := config.GenerateLimitedClientConfig(a.Config(), a.DiagnosticId(), a.License())
 
-	if a.Srv.clientConfig["EnableCustomTermsOfService"] == "true" {
+	if clientConfig["EnableCustomTermsOfService"] == "true" {
 		termsOfService, err := a.GetLatestTermsOfService()
 		if err != nil {
 			mlog.Err(err)
 		} else {
-			a.Srv.clientConfig["CustomTermsOfServiceId"] = termsOfService.Id
-			a.Srv.limitedClientConfig["CustomTermsOfServiceId"] = termsOfService.Id
+			clientConfig["CustomTermsOfServiceId"] = termsOfService.Id
+			limitedClientConfig["CustomTermsOfServiceId"] = termsOfService.Id
 		}
 	}
 
 	if key := a.AsymmetricSigningKey(); key != nil {
 		der, _ := x509.MarshalPKIXPublicKey(&key.PublicKey)
-		a.Srv.clientConfig["AsymmetricSigningPublicKey"] = base64.StdEncoding.EncodeToString(der)
-		a.Srv.limitedClientConfig["AsymmetricSigningPublicKey"] = base64.StdEncoding.EncodeToString(der)
+		clientConfig["AsymmetricSigningPublicKey"] = base64.StdEncoding.EncodeToString(der)
+		limitedClientConfig["AsymmetricSigningPublicKey"] = base64.StdEncoding.EncodeToString(der)
 	}
 
-	clientConfigJSON, _ := json.Marshal(a.Srv.clientConfig)
+	clientConfigJSON, _ := json.Marshal(clientConfig)
+	a.Srv.clientConfig = clientConfig
+	a.Srv.limitedClientConfig = limitedClientConfig
 	a.Srv.clientConfigHash = fmt.Sprintf("%x", md5.Sum(clientConfigJSON))
 }
 
