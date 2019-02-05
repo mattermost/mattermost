@@ -47,6 +47,7 @@ pipeline {
                             #!/bin/bash -ex
                             export
                             exit 2
+                            
                             git checkout $env.BRANCH_NAME || git checkout $env.CHANGE_BRANCH || git checkout $env.GIT_BRANCH || git checkout $env.CHANGE_TARGET || echo 1
                             export EE_GIT_COMMIT=\$(git rev-parse HEAD)
 
