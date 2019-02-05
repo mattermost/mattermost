@@ -36,7 +36,7 @@ func setupConfigFile(t *testing.T, cfgData []byte) (string, func()) {
 	ioutil.WriteFile(f.Name(), cfgData, 0644)
 
 	return f.Name(), func() {
-		defer os.RemoveAll(tempDir)
+		os.RemoveAll(tempDir)
 	}
 }
 
@@ -69,33 +69,29 @@ func TestFileStoreNew(t *testing.T) {
 		assert.False(t, needsSave)
 	})
 
-	t.Run("absolute path, cannot be read", func(t *testing.T) {
-		path, tearDown := setupConfigFile(t, testConfig)
-		defer tearDown()
-
-		os.Chmod(path, 0200)
-
-		_, _, err := config.NewFileStore(path, false)
-		if assert.Error(t, err) {
-			assert.True(t, strings.HasPrefix(err.Error(), "failed to open"))
-		}
-	})
-
-	t.Run("relative path, file exists", func(t *testing.T) {
-		os.Clearenv()
+	t.Run("absolute path, does not exist", func(t *testing.T) {
 		tempDir, err := ioutil.TempDir("", "TestFileStoreNew")
 		require.NoError(t, err)
 		defer os.RemoveAll(tempDir)
 
-		cwd := filepath.Join(tempDir, "a", "b")
-		err = os.MkdirAll(filepath.Join(cwd, "c"), 0700)
+		fs, needsSave, err := config.NewFileStore(filepath.Join(tempDir, "does/not/exist"), false)
 		require.NoError(t, err)
-		err = os.Chdir(cwd)
+		defer fs.Close()
+
+		assert.Equal(t, model.SERVICE_SETTINGS_DEFAULT_SITE_URL, *fs.Get().ServiceSettings.SiteURL)
+		assert.True(t, needsSave)
+	})
+
+	t.Run("relative path, file exists", func(t *testing.T) {
+		os.Clearenv()
+
+		err := os.MkdirAll("TestFileStoreNew/a/b/c", 0700)
 		require.NoError(t, err)
+		defer os.RemoveAll("TestFileStoreNew")
 
-		ioutil.WriteFile("c/config.json", testConfig, 0644)
+		ioutil.WriteFile("TestFileStoreNew/a/b/c/config.json", testConfig, 0644)
 
-		fs, needsSave, err := config.NewFileStore("c/config.json", false)
+		fs, needsSave, err := config.NewFileStore("TestFileStoreNew/a/b/c/config.json", false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -105,17 +101,12 @@ func TestFileStoreNew(t *testing.T) {
 
 	t.Run("relative path, file does not exist", func(t *testing.T) {
 		os.Clearenv()
-		tempDir, err := ioutil.TempDir("", "TestFileStoreNew")
-		require.NoError(t, err)
-		defer os.RemoveAll(tempDir)
 
-		cwd := filepath.Join(tempDir, "a", "b")
-		err = os.MkdirAll(filepath.Join(cwd, "c"), 0700)
+		err := os.MkdirAll("TestFileStoreNew/a/b/c", 0700)
 		require.NoError(t, err)
-		err = os.Chdir(cwd)
-		require.NoError(t, err)
+		defer os.RemoveAll("TestFileStoreNew")
 
-		fs, needsSave, err := config.NewFileStore("c/config.json", false)
+		fs, needsSave, err := config.NewFileStore("TestFileStoreNew/a/b/c/config.json", false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -378,22 +369,6 @@ func TestFileStoreLoad(t *testing.T) {
 		needsSave, err := fs.Load()
 		require.NoError(t, err)
 		require.True(t, needsSave)
-	})
-
-	t.Run("file cannot be read", func(t *testing.T) {
-		path, tearDown := setupConfigFile(t, emptyConfig)
-		defer tearDown()
-
-		fs, _, err := config.NewFileStore(path, false)
-		require.NoError(t, err)
-		defer fs.Close()
-
-		os.Chmod(path, 0200)
-
-		_, err = fs.Load()
-		if assert.Error(t, err) {
-			assert.True(t, strings.HasPrefix(err.Error(), "failed to open"))
-		}
 	})
 
 	t.Run("honour environment", func(t *testing.T) {
