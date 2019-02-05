@@ -1495,6 +1495,10 @@
     "translation": "Vistas previas de los enlaces han sido deshabilitadas por el administrador del sistema."
   },
   {
+    "id": "api.post.save_is_pinned_post.town_square_read_only",
+    "translation": "Este canal es de sólo lectura. Sólo los miembros con permiso pueden anclar y desprender mensajes aquí."
+  },
+  {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
     "translation": " notificó al canal."
   },
@@ -4632,27 +4636,27 @@
   },
   {
     "id": "model.link_metadata.is_valid.data.app_error",
-    "translation": "Link metadata data cannot be nil"
+    "translation": "Enlaces con metadata no pueden ser nulos"
   },
   {
     "id": "model.link_metadata.is_valid.data_type.app_error",
-    "translation": "Link metadata data does not match the given type"
+    "translation": "Enlaces con datos metadata no coinciden con el tipo asignado"
   },
   {
     "id": "model.link_metadata.is_valid.id.app_error",
-    "translation": "Link metadata id invalid"
+    "translation": "ID del enlace con metadata no es válido"
   },
   {
     "id": "model.link_metadata.is_valid.timestamp.app_error",
-    "translation": "Link metadata timestamp must be nonzero and rounded to the nearest hour"
+    "translation": "La marca de tiempo del enlace con metadata no debe ser cero y debe ser redondeado a la hora más reciente"
   },
   {
     "id": "model.link_metadata.is_valid.type.app_error",
-    "translation": "Invalid link metadata type"
+    "translation": "Tipo de enlace con metadata no válido"
   },
   {
     "id": "model.link_metadata.is_valid.url.app_error",
-    "translation": "Link metadata URL must be set"
+    "translation": "La URL del enlace con metadata debe ser asignado"
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",

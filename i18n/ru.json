@@ -1495,6 +1495,10 @@
     "translation": "Предпросмотр ссылок был запрещён системным администратором."
   },
   {
+    "id": "api.post.save_is_pinned_post.town_square_read_only",
+    "translation": "Этот канал доступен только для чтения. Недостаточно прав для отправки сообщений здесь."
+  },
+  {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
     "translation": " уведоми канал."
   },

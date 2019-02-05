@@ -1495,6 +1495,10 @@
     "translation": "Podgląd linków został wyłączony przez administratora systemu."
   },
   {
+    "id": "api.post.save_is_pinned_post.town_square_read_only",
+    "translation": "Ten kanał jest tylko do odczytu. Mogą tutaj pisać tylko użytkownicy z uprawnieniami."
+  },
+  {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
     "translation": " notified the channel."
   },
