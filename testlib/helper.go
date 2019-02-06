@@ -22,7 +22,8 @@ type MainHelper struct {
 	SqlSupplier      *sqlstore.SqlSupplier
 	ClusterInterface *FakeClusterInterface
 
-	status int
+	status           int
+	TestResourcePath string
 }
 
 func NewMainHelper() *MainHelper {
@@ -48,20 +49,31 @@ func NewMainHelper() *MainHelper {
 		store.NewLayeredStore(sqlSupplier, nil, clusterInterface),
 	}
 
+	testResourcePath := SetupTestResources()
+
 	return &MainHelper{
 		Settings:         settings,
 		Store:            testStore,
 		SqlSupplier:      sqlSupplier,
 		ClusterInterface: clusterInterface,
+		TestResourcePath: testResourcePath,
 	}
 }
 
 func (h *MainHelper) Main(m *testing.M) {
+	prevDir, err := os.Getwd()
+	if err != nil {
+		panic("Failed to get current working directory: " + err.Error())
+	}
+	defer os.Chdir(prevDir)
+	os.Chdir(h.TestResourcePath)
+
 	h.status = m.Run()
 }
 
 func (h *MainHelper) Close() error {
 	storetest.CleanupSqlSettings(h.Settings)
+	CleanupTestResources(h.TestResourcePath)
 
 	os.Exit(h.status)
 
