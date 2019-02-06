@@ -3633,3 +3633,33 @@ func (s *apiRPCServer) SendMail(args *Z_SendMailArgs, returns *Z_SendMailReturns
 	}
 	return nil
 }
+
+type Z_GetTeamMembersByIdsArgs struct {
+	A string
+	B []string
+}
+
+type Z_GetTeamMembersByIdsReturns struct {
+	A []*model.TeamMember
+	B *model.Response
+}
+
+func (g *apiRPCClient) GetTeamMembersByIds(teamId string, userIds []string) ([]*model.TeamMember, *model.Response) {
+	_args := &Z_GetTeamMembersByIdsArgs{teamId, userIds}
+	_returns := &Z_GetTeamMembersByIdsReturns{}
+	if err := g.client.Call("Plugin.GetTeamMembersByIds", _args, _returns); err != nil {
+		log.Printf("RPC call to GetTeamMembersByIds API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetTeamMembersByIds(args *Z_GetTeamMembersByIdsArgs, returns *Z_GetTeamMembersByIdsReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetTeamMembersByIds(teamId string, userIds []string) ([]*model.TeamMember, *model.Response)
+	}); ok {
+		returns.A, returns.B = hook.GetTeamMembersByIds(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API GetTeamMembersByIds called but not implemented."))
+	}
+	return nil
+}

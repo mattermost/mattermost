@@ -662,3 +662,11 @@ func (api *PluginAPI) LogError(msg string, keyValuePairs ...interface{}) {
 func (api *PluginAPI) LogWarn(msg string, keyValuePairs ...interface{}) {
 	api.logger.Warn(msg, keyValuePairs...)
 }
+
+func (api *PluginAPI) GetTeamMembersByIds(teamId string, userIds []string) ([]*model.TeamMember, *model.Response) {
+	members, err := api.app.GetTeamMembersByIds(teamId, userIds)
+	if err != nil {
+		return members, &model.Response{Error: err, StatusCode: http.StatusInternalServerError}
+	}
+	return members, &model.Response{StatusCode: http.StatusOK}
+}

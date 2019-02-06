@@ -485,6 +485,10 @@ type API interface {
 	//
 	// Minimum server version: 5.7
 	SendMail(to, subject, htmlBody string) *model.AppError
+
+	// GetTeamMembersByIds will return an array of team members based on the
+	// team id and a list of user ids provided. Must be authenticated.
+	GetTeamMembersByIds(teamId string, userIds []string) ([]*model.TeamMember, *model.Response)
 }
 
 var handshake = plugin.HandshakeConfig{
