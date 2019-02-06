@@ -798,7 +798,7 @@ func TestAssignBot(t *testing.T) {
 		th.LoginBasic()
 	})
 
-	t.Run("deligated user assign bot", func(t *testing.T) {
+	t.Run("delegated user assign bot", func(t *testing.T) {
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
 		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.SYSTEM_USER_ROLE_ID)
