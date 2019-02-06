@@ -15,11 +15,11 @@ func TestPlugin(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	c := th.Config()
-	*c.PluginSettings.EnableUploads = true
-	*c.PluginSettings.Directory = "./test-plugins"
-	*c.PluginSettings.ClientDirectory = "./test-client-plugins"
-	th.SetConfig(c)
+	cfg := th.Config()
+	*cfg.PluginSettings.EnableUploads = true
+	*cfg.PluginSettings.Directory = "./test-plugins"
+	*cfg.PluginSettings.ClientDirectory = "./test-client-plugins"
+	th.SetConfig(cfg)
 
 	os.MkdirAll("./test-plugins", os.ModePerm)
 	os.MkdirAll("./test-client-plugins", os.ModePerm)
