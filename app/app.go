@@ -90,6 +90,9 @@ func (s *Server) initJobs() {
 	if jobsMigrationsInterface != nil {
 		s.Jobs.Migrations = jobsMigrationsInterface(s.FakeApp())
 	}
+	if jobsPluginsInterface != nil {
+		s.Jobs.Plugins = jobsPluginsInterface(s.FakeApp())
+	}
 	s.Jobs.Workers = s.Jobs.InitWorkers()
 	s.Jobs.Schedulers = s.Jobs.InitSchedulers()
 }

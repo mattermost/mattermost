@@ -77,6 +77,12 @@ func RegisterJobsMigrationsJobInterface(f func(*App) tjobs.MigrationsJobInterfac
 	jobsMigrationsInterface = f
 }
 
+var jobsPluginsInterface func(*App) tjobs.PluginsJobInterface
+
+func RegisterJobsPluginsJobInterface(f func(*App) tjobs.PluginsJobInterface) {
+	jobsPluginsInterface = f
+}
+
 var ldapInterface func(*App) einterfaces.LdapInterface
 
 func RegisterLdapInterface(f func(*App) einterfaces.LdapInterface) {
