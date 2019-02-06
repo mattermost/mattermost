@@ -12,6 +12,7 @@ import (
 const (
 	SESSION_COOKIE_TOKEN              = "MMAUTHTOKEN"
 	SESSION_COOKIE_USER               = "MMUSERID"
+	SESSION_COOKIE_CSRF               = "MMCSRF"
 	SESSION_CACHE_SIZE                = 35000
 	SESSION_PROP_PLATFORM             = "platform"
 	SESSION_PROP_OS                   = "os"

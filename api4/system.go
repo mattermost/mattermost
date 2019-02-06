@@ -14,7 +14,12 @@ import (
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/services/filesstore"
+	"github.com/mattermost/mattermost-server/utils"
 )
+
+const REDIRECT_LOCATION_CACHE_SIZE = 10000
+
+var redirectLocationDataCache = utils.NewLru(REDIRECT_LOCATION_CACHE_SIZE)
 
 func (api *API) InitSystem() {
 	api.BaseRoutes.System.Handle("/ping", api.ApiHandler(getSystemPing)).Methods("GET")
@@ -451,7 +456,7 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if cfg.FileSettings.AmazonS3SecretAccessKey == model.FAKE_SETTING {
+	if *cfg.FileSettings.AmazonS3SecretAccessKey == model.FAKE_SETTING {
 		cfg.FileSettings.AmazonS3SecretAccessKey = c.App.Config().FileSettings.AmazonS3SecretAccessKey
 	}
 
@@ -471,32 +476,42 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 	m := make(map[string]string)
 	m["location"] = ""
+
 	cfg := c.App.GetConfig()
 	if !*cfg.ServiceSettings.EnableLinkPreviews {
 		w.Write([]byte(model.MapToJson(m)))
 		return
 	}
+
 	url := r.URL.Query().Get("url")
 	if len(url) == 0 {
 		c.SetInvalidParam("url")
 		return
 	}
 
-	client := &http.Client{
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			return http.ErrUseLastResponse
-		},
-	}
-
-	res, err := client.Head(url)
-	if err != nil {
-		// Always return a success status and a JSON string to limit the amount of information returned to a
-		// hacker attempting to use Mattermost to probe a private network.
+	if location, ok := redirectLocationDataCache.Get(url); ok {
+		m["location"] = location.(string)
 		w.Write([]byte(model.MapToJson(m)))
 		return
 	}
 
-	m["location"] = res.Header.Get("Location")
+	client := c.App.HTTPService.MakeClient(false)
+	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		return http.ErrUseLastResponse
+	}
+
+	res, err := client.Head(url)
+	if err != nil {
+		// Cache failures to prevent retries.
+		redirectLocationDataCache.AddWithExpiresInSecs(url, "", 3600) // Expires after 1 hour
+		// Always return a success status and a JSON string to limit information returned to client.
+		w.Write([]byte(model.MapToJson(m)))
+		return
+	}
+
+	location := res.Header.Get("Location")
+	redirectLocationDataCache.AddWithExpiresInSecs(url, location, 3600) // Expires after 1 hour
+	m["location"] = location
 
 	w.Write([]byte(model.MapToJson(m)))
 	return

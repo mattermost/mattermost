@@ -113,12 +113,27 @@ func TestAddUserToTeam(t *testing.T) {
 		}
 
 		user := model.User{Email: strings.ToLower(model.NewId()) + "test@invalid.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
-		ruser, _ := th.App.CreateUser(&user)
+		ruser, err := th.App.CreateUser(&user)
+		if err != nil {
+			t.Fatalf("Error creating user: %s", err)
+		}
+		defer th.App.PermanentDeleteUser(&user)
+
+		if _, err = th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, ""); err == nil || err.Where != "JoinUserToTeam" {
+			t.Log(err)
+			t.Fatal("Should not add restricted user")
+		}
+
+		user = model.User{Email: strings.ToLower(model.NewId()) + "test@invalid.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), AuthService: "notnil", AuthData: model.NewString("notnil")}
+		ruser, err = th.App.CreateUser(&user)
+		if err != nil {
+			t.Fatalf("Error creating authservice user: %s", err)
+		}
 		defer th.App.PermanentDeleteUser(&user)
 
 		if _, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, ""); err == nil || err.Where != "JoinUserToTeam" {
 			t.Log(err)
-			t.Fatal("Should not add restricted user")
+			t.Fatal("Should not add authservice user")
 		}
 	})
 

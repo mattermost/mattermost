@@ -214,6 +214,22 @@ func (_m *Store) License() store.LicenseStore {
 	return r0
 }
 
+// LinkMetadata provides a mock function with given fields:
+func (_m *Store) LinkMetadata() store.LinkMetadataStore {
+	ret := _m.Called()
+
+	var r0 store.LinkMetadataStore
+	if rf, ok := ret.Get(0).(func() store.LinkMetadataStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.LinkMetadataStore)
+		}
+	}
+
+	return r0
+}
+
 // LockToMaster provides a mock function with given fields:
 func (_m *Store) LockToMaster() {
 	_m.Called()

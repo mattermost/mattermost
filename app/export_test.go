@@ -1,14 +1,15 @@
 package app
 
 import (
+	"bytes"
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
-	"github.com/stretchr/testify/require"
 )
 
 func TestReactionsOfPost(t *testing.T) {
@@ -163,4 +164,32 @@ func TestExportCustomEmoji(t *testing.T) {
 	if err := th.App.ExportCustomEmoji(fileWriter, filePath, pathToEmojiDir, dirNameToExportEmoji); err != nil {
 		t.Fatal(err)
 	}
+}
+
+func TestExportAllUsers(t *testing.T) {
+	th1 := Setup().InitBasic()
+	defer th1.TearDown()
+
+	var b bytes.Buffer
+	err := th1.App.BulkExport(&b, "somefile", "somePath", "someDir")
+	require.Nil(t, err)
+
+	th2 := Setup()
+	defer th2.TearDown()
+	err, i := th2.App.BulkImport(&b, false, 5)
+	assert.Nil(t, err)
+	assert.Equal(t, 0, i)
+
+	users1, err := th1.App.GetUsers(&model.UserGetOptions{
+		Page:    0,
+		PerPage: 10,
+	})
+	assert.Nil(t, err)
+	users2, err := th2.App.GetUsers(&model.UserGetOptions{
+		Page:    0,
+		PerPage: 10,
+	})
+	assert.Nil(t, err)
+	assert.Equal(t, len(users1), len(users2))
+	assert.ElementsMatch(t, users1, users2)
 }

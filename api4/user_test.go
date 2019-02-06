@@ -6,6 +6,7 @@ package api4
 import (
 	"net/http"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 
@@ -27,7 +28,22 @@ func TestCreateUser(t *testing.T) {
 	CheckNoError(t, resp)
 	CheckCreatedStatus(t, resp)
 
-	th.Client.Login(user.Email, user.Password)
+	_, resp = th.Client.Login(user.Email, user.Password)
+	session, _ := th.App.GetSession(th.Client.AuthToken)
+	expectedCsrf := "MMCSRF=" + session.GetCSRF()
+	actualCsrf := ""
+
+	for _, cookie := range resp.Header["Set-Cookie"] {
+		if strings.HasPrefix(cookie, "MMCSRF") {
+			cookieParts := strings.Split(cookie, ";")
+			actualCsrf = cookieParts[0]
+			break
+		}
+	}
+
+	if expectedCsrf != actualCsrf {
+		t.Errorf("CSRF Mismatch - Expected %s, got %s", expectedCsrf, actualCsrf)
+	}
 
 	if ruser.Nickname != user.Nickname {
 		t.Fatal("nickname didn't match")
@@ -364,8 +380,8 @@ func TestGetUser(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 
 	// Check against privacy config settings
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = false })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowEmailAddress = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowFullName = false })
 
 	ruser, resp = th.Client.GetUser(user.Id, "")
 	CheckNoError(t, resp)
@@ -418,8 +434,8 @@ func TestGetUserByUsername(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 
 	// Check against privacy config settings
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = false })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowEmailAddress = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowFullName = false })
 
 	ruser, resp = th.Client.GetUserByUsername(th.BasicUser2.Username, "")
 	CheckNoError(t, resp)
@@ -464,8 +480,8 @@ func TestGetUserByEmail(t *testing.T) {
 	user := th.CreateUser()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.PrivacySettings.ShowEmailAddress = true
-		cfg.PrivacySettings.ShowFullName = true
+		*cfg.PrivacySettings.ShowEmailAddress = true
+		*cfg.PrivacySettings.ShowFullName = true
 	})
 
 	t.Run("should be able to get another user by email", func(t *testing.T) {
@@ -498,8 +514,8 @@ func TestGetUserByEmail(t *testing.T) {
 
 	t.Run("should sanitize full name for non-admin based on privacy settings", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.PrivacySettings.ShowEmailAddress = true
-			cfg.PrivacySettings.ShowFullName = false
+			*cfg.PrivacySettings.ShowEmailAddress = true
+			*cfg.PrivacySettings.ShowFullName = false
 		})
 
 		ruser, resp := th.Client.GetUserByEmail(user.Email, "")
@@ -508,7 +524,7 @@ func TestGetUserByEmail(t *testing.T) {
 		assert.Equal(t, "", ruser.LastName, "last name should be blank")
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.PrivacySettings.ShowFullName = true
+			*cfg.PrivacySettings.ShowFullName = true
 		})
 
 		ruser, resp = th.Client.GetUserByEmail(user.Email, "")
@@ -519,8 +535,8 @@ func TestGetUserByEmail(t *testing.T) {
 
 	t.Run("should not sanitize full name for admin, regardless of privacy settings", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.PrivacySettings.ShowEmailAddress = true
-			cfg.PrivacySettings.ShowFullName = false
+			*cfg.PrivacySettings.ShowEmailAddress = true
+			*cfg.PrivacySettings.ShowFullName = false
 		})
 
 		ruser, resp := th.SystemAdminClient.GetUserByEmail(user.Email, "")
@@ -529,7 +545,7 @@ func TestGetUserByEmail(t *testing.T) {
 		assert.NotEqual(t, "", ruser.LastName, "last name should be set")
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.PrivacySettings.ShowFullName = true
+			*cfg.PrivacySettings.ShowFullName = true
 		})
 
 		ruser, resp = th.SystemAdminClient.GetUserByEmail(user.Email, "")
@@ -540,14 +556,14 @@ func TestGetUserByEmail(t *testing.T) {
 
 	t.Run("should return forbidden for non-admin when privacy settings hide email", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.PrivacySettings.ShowEmailAddress = false
+			*cfg.PrivacySettings.ShowEmailAddress = false
 		})
 
 		_, resp := th.Client.GetUserByEmail(user.Email, "")
 		CheckForbiddenStatus(t, resp)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.PrivacySettings.ShowEmailAddress = true
+			*cfg.PrivacySettings.ShowEmailAddress = true
 		})
 
 		ruser, resp := th.Client.GetUserByEmail(user.Email, "")
@@ -557,7 +573,7 @@ func TestGetUserByEmail(t *testing.T) {
 
 	t.Run("should always return email for admin, regardless of privacy settings", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.PrivacySettings.ShowEmailAddress = false
+			*cfg.PrivacySettings.ShowEmailAddress = false
 		})
 
 		ruser, resp := th.SystemAdminClient.GetUserByEmail(user.Email, "")
@@ -565,7 +581,7 @@ func TestGetUserByEmail(t *testing.T) {
 		assert.Equal(t, user.Email, ruser.Email, "email should be set")
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.PrivacySettings.ShowEmailAddress = true
+			*cfg.PrivacySettings.ShowEmailAddress = true
 		})
 
 		ruser, resp = th.SystemAdminClient.GetUserByEmail(user.Email, "")
@@ -701,8 +717,8 @@ func TestSearchUsers(t *testing.T) {
 
 	search.Term = th.BasicUser.Username
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = false })
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowEmailAddress = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowFullName = false })
 
 	_, err = th.App.UpdateActive(th.BasicUser2, true)
 	if err != nil {
@@ -852,7 +868,7 @@ func TestAutocompleteUsers(t *testing.T) {
 	CheckNoError(t, resp)
 
 	// Check against privacy config settings
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowFullName = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowFullName = false })
 
 	th.LoginBasic()
 
@@ -1021,6 +1037,15 @@ func TestUpdateUser(t *testing.T) {
 		t.Fatal("LastPasswordUpdate should not have updated")
 	}
 
+	ruser.Email = th.GenerateTestEmail()
+	_, resp = th.Client.UpdateUser(ruser)
+	CheckBadRequestStatus(t, resp)
+
+	ruser.Password = user.Password
+	ruser, resp = th.Client.UpdateUser(ruser)
+	CheckNoError(t, resp)
+	CheckUserSanitization(t, ruser)
+
 	ruser.Id = "junk"
 	_, resp = th.Client.UpdateUser(ruser)
 	CheckBadRequestStatus(t, resp)
@@ -1068,7 +1093,7 @@ func TestPatchUser(t *testing.T) {
 	th.Client.Login(user.Email, user.Password)
 
 	patch := &model.UserPatch{}
-
+	patch.Password = model.NewString("testpassword")
 	patch.Nickname = model.NewString("Joram Wilander")
 	patch.FirstName = model.NewString("Joram")
 	patch.LastName = model.NewString("Wilander")
@@ -1099,6 +1124,9 @@ func TestPatchUser(t *testing.T) {
 	if ruser.Username != user.Username {
 		t.Fatal("Username should not have updated")
 	}
+	if ruser.Password != ""{
+		t.Fatal("Password should not be returned")
+	}
 	if ruser.NotifyProps["comment"] != "somethingrandom" {
 		t.Fatal("NotifyProps did not update properly")
 	}
@@ -1110,6 +1138,34 @@ func TestPatchUser(t *testing.T) {
 	}
 	if ruser.Timezone["manualTimezone"] != "" {
 		t.Fatal("manualTimezone did not update properly")
+	}
+
+	err := th.App.CheckPasswordAndAllCriteria(ruser, *patch.Password, "")
+	assert.Error(t, err, "Password should not match")
+
+	currentPassword := user.Password
+	user, err = th.App.GetUser(ruser.Id)
+	if err != nil {
+		t.Fatal("User Get shouldn't error")
+	}
+
+	err = th.App.CheckPasswordAndAllCriteria(user, currentPassword, "")
+	if err != nil {
+		t.Fatal("Password should still match")
+	}
+
+	patch = &model.UserPatch{}
+	patch.Email = model.NewString(th.GenerateTestEmail())
+
+	_, resp = th.Client.PatchUser(user.Id, patch)
+	CheckBadRequestStatus(t, resp)
+
+	patch.Password = model.NewString(currentPassword)
+	ruser, resp = th.Client.PatchUser(user.Id, patch)
+	CheckNoError(t, resp)
+
+	if ruser.Email != *patch.Email {
+		t.Fatal("Email did not update properly")
 	}
 
 	patch.Username = model.NewString(th.BasicUser2.Username)
@@ -1389,7 +1445,7 @@ func TestUpdateUserActive(t *testing.T) {
 		}
 
 		// Verify that both admins and regular users see the email when privacy settings allow same.
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = true })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowEmailAddress = true })
 		_, resp := th.SystemAdminClient.UpdateUserActive(user.Id, false)
 		CheckNoError(t, resp)
 
@@ -1397,7 +1453,7 @@ func TestUpdateUserActive(t *testing.T) {
 		assertWebsocketEventUserUpdatedWithEmail(t, adminWebSocketClient, user.Email)
 
 		// Verify that only admins see the email when privacy settings hide emails.
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.PrivacySettings.ShowEmailAddress = false })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PrivacySettings.ShowEmailAddress = false })
 		_, resp = th.SystemAdminClient.UpdateUserActive(user.Id, true)
 		CheckNoError(t, resp)
 
@@ -2354,7 +2410,7 @@ func TestSwitchAccount(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.GitLabSettings.Enable = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GitLabSettings.Enable = true })
 
 	th.Client.Logout()
 

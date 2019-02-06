@@ -108,3 +108,105 @@ func TestHandlerServeHTTPSecureTransport(t *testing.T) {
 		t.Errorf("Strict-Transport-Security header is not expected, but returned")
 	}
 }
+
+
+func handlerForCSRFToken(c *Context, w http.ResponseWriter, r *http.Request) {
+}
+
+func TestHandlerServeCSRFToken(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	session :=&model.Session{
+		UserId: th.BasicUser.Id,
+		CreateAt: model.GetMillis(),
+		Roles: model.SYSTEM_USER_ROLE_ID,
+		IsOAuth: false,
+	}
+	session.GenerateCSRF()
+	session.SetExpireInDays(1)
+	session, err := th.App.CreateSession(session)
+	if err != nil {
+		t.Errorf("Expected nil, got %s", err)
+	}
+
+	web := New(th.Server, th.Server.AppOptions, th.Server.Router)
+
+	handler := Handler{
+		GetGlobalAppOptions: web.GetGlobalAppOptions,
+		HandleFunc:          handlerForCSRFToken,
+		RequireSession:      true,
+		TrustRequester:      false,
+		RequireMfa:          false,
+		IsStatic:            false,
+	}
+
+	cookie := &http.Cookie{
+		Name: model.SESSION_COOKIE_USER,
+		Value: th.BasicUser.Username,
+	}
+	cookie2 := &http.Cookie{
+		Name: model.SESSION_COOKIE_TOKEN,
+		Value: session.Token,
+	}
+	cookie3 := &http.Cookie{
+		Name: model.SESSION_COOKIE_CSRF,
+		Value: session.GetCSRF(),
+	}
+
+	// CSRF Token Used - Success Expected
+
+	request := httptest.NewRequest("POST", "/api/v4/test", nil)
+	request.AddCookie(cookie)
+	request.AddCookie(cookie2)
+	request.AddCookie(cookie3)
+	request.Header.Add(model.HEADER_CSRF_TOKEN, session.GetCSRF())
+	response := httptest.NewRecorder()
+	handler.ServeHTTP(response, request)
+
+	if response.Code != 200 {
+		t.Errorf("Expected status 200, got %d", response.Code)
+	}
+
+	// No CSRF Token Used - Failure Expected
+
+	request = httptest.NewRequest("POST", "/api/v4/test", nil)
+	request.AddCookie(cookie)
+	request.AddCookie(cookie2)
+	request.AddCookie(cookie3)
+	response = httptest.NewRecorder()
+	handler.ServeHTTP(response, request)
+
+	if response.Code != 401 {
+		t.Errorf("Expected status 401, got %d", response.Code)
+	}
+
+	// Fallback Behavior Used - Success expected
+	// ToDo (DSchalla) 2019/01/04: Remove once legacy CSRF Handling is removed
+	th.App.UpdateConfig(func(config *model.Config){
+		*config.ServiceSettings.ExperimentalStrictCSRFEnforcement = false
+	})
+	request = httptest.NewRequest("POST", "/api/v4/test", nil)
+	request.AddCookie(cookie)
+	request.AddCookie(cookie2)
+	request.AddCookie(cookie3)
+	request.Header.Add(model.HEADER_REQUESTED_WITH, model.HEADER_REQUESTED_WITH_XML)
+	response = httptest.NewRecorder()
+	handler.ServeHTTP(response, request)
+
+	if response.Code != 200 {
+		t.Errorf("Expected status 200, got %d", response.Code)
+	}
+
+	// Fallback Behavior Used with Strict Enforcement - Failure Expected
+	// ToDo (DSchalla) 2019/01/04: Remove once legacy CSRF Handling is removed
+	th.App.UpdateConfig(func(config *model.Config){
+		*config.ServiceSettings.ExperimentalStrictCSRFEnforcement = true
+	})
+	response = httptest.NewRecorder()
+	handler.ServeHTTP(response, request)
+
+	if response.Code != 401 {
+		t.Errorf("Expected status 200, got %d", response.Code)
+	}
+}
