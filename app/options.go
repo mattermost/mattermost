@@ -39,7 +39,7 @@ func StoreOverride(override interface{}) Option {
 
 func ConfigFile(file string, watch bool) Option {
 	return func(s *Server) error {
-		configStore, _, err := config.NewFileStore(file, watch)
+		configStore, err := config.NewFileStore(file, watch)
 		if err != nil {
 			return errors.Wrap(err, "failed to apply ConfigFile option")
 		}

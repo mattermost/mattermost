@@ -21,7 +21,7 @@ import (
 )
 
 func TestMailConnectionFromConfig(t *testing.T) {
-	fs, _, err := config.NewFileStore("config.json", false)
+	fs, err := config.NewFileStore("config.json", false)
 	require.Nil(t, err)
 
 	cfg := fs.Get()
@@ -46,7 +46,7 @@ func TestMailConnectionFromConfig(t *testing.T) {
 }
 
 func TestMailConnectionAdvanced(t *testing.T) {
-	fs, _, err := config.NewFileStore("config.json", false)
+	fs, err := config.NewFileStore("config.json", false)
 	require.Nil(t, err)
 
 	cfg := fs.Get()
@@ -100,7 +100,7 @@ func TestMailConnectionAdvanced(t *testing.T) {
 func TestSendMailUsingConfig(t *testing.T) {
 	utils.T = utils.GetUserTranslations("en")
 
-	fs, _, err := config.NewFileStore("config.json", false)
+	fs, err := config.NewFileStore("config.json", false)
 	require.Nil(t, err)
 
 	cfg := fs.Get()
@@ -145,7 +145,7 @@ func TestSendMailUsingConfig(t *testing.T) {
 func TestSendMailUsingConfigAdvanced(t *testing.T) {
 	utils.T = utils.GetUserTranslations("en")
 
-	fs, _, err := config.NewFileStore("config.json", false)
+	fs, err := config.NewFileStore("config.json", false)
 	require.Nil(t, err)
 
 	cfg := fs.Get()

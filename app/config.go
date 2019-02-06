@@ -64,7 +64,7 @@ func (a *App) PersistConfig() {
 
 func (s *Server) ReloadConfig() error {
 	debug.FreeOSMemory()
-	if _, err := s.configStore.Load(); err != nil {
+	if err := s.configStore.Load(); err != nil {
 		return err
 	}
 	return nil

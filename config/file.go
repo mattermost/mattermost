@@ -5,7 +5,6 @@ package config
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -34,24 +33,23 @@ type fileStore struct {
 	path                 string
 	watch                bool
 	watcher              *watcher
-	needsSave            bool
 }
 
 // NewFileStore creates a new instance of a config store backed by the given file path.
 //
 // If watch is true, any external changes to the file will force a reload.
-func NewFileStore(path string, watch bool) (fs *fileStore, needsSave bool, err error) {
+func NewFileStore(path string, watch bool) (fs *fileStore, err error) {
 	resolvedPath, err := resolveConfigFilePath(path)
 	if err != nil {
-		return nil, false, err
+		return nil, err
 	}
 
 	fs = &fileStore{
 		path:  resolvedPath,
 		watch: watch,
 	}
-	if _, err = fs.Load(); err != nil {
-		return nil, false, err
+	if err = fs.Load(); err != nil {
+		return nil, errors.Wrap(err, "failed to load")
 	}
 
 	if fs.watch {
@@ -60,7 +58,7 @@ func NewFileStore(path string, watch bool) (fs *fileStore, needsSave bool, err e
 		}
 	}
 
-	return fs, fs.needsSave, nil
+	return fs, nil
 }
 
 // resolveConfigFilePath attempts to resolve the given configuration file path to an absolute path.
@@ -142,8 +140,6 @@ func (fs *fileStore) Set(newCfg *model.Config) (*model.Config, error) {
 		return nil, ReadOnlyConfigurationError
 	}
 
-	fs.needsSave = true
-
 	// Ideally, Set would persist automatically and abstract this completely away from the
 	// client. Doing so requires a few upstream changes first, so for now an explicit Save()
 	// remains required.
@@ -174,16 +170,11 @@ func (fs *fileStore) Patch(*model.Config) (*model.Config, error) {
 	return fs.config, nil
 }
 
-// serialize converts the given configuration into JSON bytes for persistence.
-func (fs *fileStore) serialize(cfg *model.Config) ([]byte, error) {
-	return json.MarshalIndent(cfg, "", "    ")
-}
-
 // persist writes the configuration to the configured file.
 func (fs *fileStore) persist(cfg *model.Config) error {
 	fs.stopWatcher()
 
-	b, err := fs.serialize(cfg)
+	b, err := marshalConfig(cfg)
 	if err != nil {
 		return errors.Wrap(err, "failed to serialize")
 	}
@@ -193,7 +184,6 @@ func (fs *fileStore) persist(cfg *model.Config) error {
 		return errors.Wrap(err, "failed to write file")
 	}
 
-	fs.needsSave = false
 	if fs.watch {
 		if err = fs.startWatcher(); err != nil {
 			mlog.Error("failed to start config watcher", mlog.String("path", fs.path), mlog.Err(err))
@@ -204,7 +194,8 @@ func (fs *fileStore) persist(cfg *model.Config) error {
 }
 
 // Load updates the current configuration from the backing store.
-func (fs *fileStore) Load() (needsSave bool, err error) {
+func (fs *fileStore) Load() (err error) {
+	var needsSave bool
 	var f io.ReadCloser
 
 	f, err = os.Open(fs.path)
@@ -214,15 +205,15 @@ func (fs *fileStore) Load() (needsSave bool, err error) {
 		defaultCfg.SetDefaults()
 
 		var defaultCfgBytes []byte
-		defaultCfgBytes, err = fs.serialize(&defaultCfg)
+		defaultCfgBytes, err = marshalConfig(&defaultCfg)
 		if err != nil {
-			return false, errors.Wrap(err, "failed to serialize default config")
+			return errors.Wrap(err, "failed to serialize default config")
 		}
 
 		f = ioutil.NopCloser(bytes.NewReader(defaultCfgBytes))
 
 	} else if err != nil {
-		return false, errors.Wrapf(err, "failed to open %s for reading", fs.path)
+		return errors.Wrapf(err, "failed to open %s for reading", fs.path)
 	}
 	defer func() {
 		closeErr := f.Close()
@@ -232,9 +223,9 @@ func (fs *fileStore) Load() (needsSave bool, err error) {
 	}()
 
 	allowEnvironmentOverrides := true
-	loadedCfg, environmentOverrides, err := readConfig(f, allowEnvironmentOverrides)
+	loadedCfg, environmentOverrides, err := unmarshalConfig(f, allowEnvironmentOverrides)
 	if err != nil {
-		return false, errors.Wrapf(err, "failed to load config from %s", fs.path)
+		return errors.Wrapf(err, "failed to load config from %s", fs.path)
 	}
 
 	// SetDefaults generates various keys and salts if not previously configured. Determine if
@@ -247,7 +238,7 @@ func (fs *fileStore) Load() (needsSave bool, err error) {
 	loadedCfg.SetDefaults()
 
 	if err := loadedCfg.IsValid(); err != nil {
-		return false, errors.Wrap(err, "invalid config")
+		return errors.Wrap(err, "invalid config")
 	}
 
 	if changed := fixConfig(loadedCfg); changed {
@@ -255,19 +246,32 @@ func (fs *fileStore) Load() (needsSave bool, err error) {
 	}
 
 	fs.configLock.Lock()
+	var unlockOnce sync.Once
+	defer func() {
+		unlockOnce.Do(func() {
+			fs.configLock.Unlock()
+		})
+	}()
+
+	if needsSave {
+		if err = fs.persist(loadedCfg); err != nil {
+			return errors.Wrap(err, "failed to persist required changes after load")
+		}
+	}
 
 	oldCfg := fs.config
-	fs.needsSave = needsSave
 	fs.config = loadedCfg
 	fs.environmentOverrides = environmentOverrides
 
-	fs.configLock.Unlock()
+	unlockOnce.Do(func() {
+		fs.configLock.Unlock()
+	})
 
 	// Notify listeners synchronously. Ideally, this would be asynchronous, but existing code
 	// assumes this and there would be increased complexity to avoid racing updates.
 	fs.invokeConfigListeners(oldCfg, loadedCfg)
 
-	return fs.needsSave, nil
+	return nil
 }
 
 // Save writes the current configuration to the backing store.
@@ -285,7 +289,7 @@ func (fs *fileStore) startWatcher() error {
 	}
 
 	watcher, err := newWatcher(fs.path, func() {
-		if _, err := fs.Load(); err != nil {
+		if err := fs.Load(); err != nil {
 			mlog.Error("failed to reload file on change", mlog.String("path", fs.path), mlog.Err(err))
 		}
 	})

@@ -124,8 +124,13 @@ func flattenStructToMap(in map[string]interface{}) map[string]interface{} {
 	return out
 }
 
-// readConfig unmarshals a raw configuration into a Config model and environment variable overrides.
-func readConfig(r io.Reader, allowEnvironmentOverrides bool) (*model.Config, map[string]interface{}, error) {
+// marshalConfig converts the given configuration into JSON bytes for persistence.
+func marshalConfig(cfg *model.Config) ([]byte, error) {
+	return json.MarshalIndent(cfg, "", "    ")
+}
+
+// unmarshalConfig unmarshals a raw configuration into a Config model and environment variable overrides.
+func unmarshalConfig(r io.Reader, allowEnvironmentOverrides bool) (*model.Config, map[string]interface{}, error) {
 	// Pre-flight check the syntax of the configuration file to improve error messaging.
 	configData, err := ioutil.ReadAll(r)
 	if err != nil {

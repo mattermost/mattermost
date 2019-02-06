@@ -25,7 +25,7 @@ type Store interface {
 	Patch(*model.Config) (*model.Config, error)
 
 	// Load updates the current configuration from the backing store, possibly initializing.
-	Load() (needsSave bool, err error)
+	Load() (err error)
 
 	// Save writes the current configuration to the backing store.
 	//

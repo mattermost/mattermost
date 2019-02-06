@@ -19,12 +19,70 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-var emptyConfig = []byte(`{}`)
-var readOnlyConfig = []byte(`{"ClusterSettings":{"Enable":true,"ReadOnlyConfig":true}}`)
-var minimalConfig = []byte(`{"ServiceSettings":{"SiteURL":"http://minimal"},"SqlSettings":{"AtRestEncryptKey":"abcdefghijklmnopqrstuvwxyz0123456789"},"FileSettings":{"PublicLinkSalt":"abcdefghijklmnopqrstuvwxyz0123456789"},"EmailSettings":{"InviteSalt":"abcdefghijklmnopqrstuvwxyz0123456789"},"LocalizationSettings":{"DefaultServerLocale":"en","DefaultClientLocale":"en"}}`)
-var invalidConfig = []byte(`{"ServiceSettings":{"SiteURL":"invalid"}}`)
+var emptyConfig, readOnlyConfig, minimalConfig, invalidConfig, trailingSlashConfig, ldapConfig, testConfig *model.Config
 
-func setupConfigFile(t *testing.T, cfgData []byte) (string, func()) {
+func init() {
+	emptyConfig = &model.Config{}
+	readOnlyConfig = &model.Config{
+		ClusterSettings: model.ClusterSettings{
+			Enable:         bToP(true),
+			ReadOnlyConfig: bToP(true),
+		},
+	}
+	minimalConfig = &model.Config{
+		ServiceSettings: model.ServiceSettings{
+			SiteURL: sToP("http://minimal"),
+		},
+		SqlSettings: model.SqlSettings{
+			AtRestEncryptKey: sToP("abcdefghijklmnopqrstuvwxyz0123456789"),
+		},
+		FileSettings: model.FileSettings{
+			PublicLinkSalt: sToP("abcdefghijklmnopqrstuvwxyz0123456789"),
+		},
+		EmailSettings: model.EmailSettings{
+			InviteSalt: sToP("abcdefghijklmnopqrstuvwxyz0123456789"),
+		},
+		LocalizationSettings: model.LocalizationSettings{
+			DefaultServerLocale: sToP("en"),
+			DefaultClientLocale: sToP("en"),
+		},
+	}
+	invalidConfig = &model.Config{
+		ServiceSettings: model.ServiceSettings{
+			SiteURL: sToP("invalid"),
+		},
+	}
+	trailingSlashConfig = &model.Config{
+		ServiceSettings: model.ServiceSettings{
+			SiteURL: sToP("http://trailingslash/"),
+		},
+		SqlSettings: model.SqlSettings{
+			AtRestEncryptKey: sToP("abcdefghijklmnopqrstuvwxyz0123456789"),
+		},
+		FileSettings: model.FileSettings{
+			PublicLinkSalt: sToP("abcdefghijklmnopqrstuvwxyz0123456789"),
+		},
+		EmailSettings: model.EmailSettings{
+			InviteSalt: sToP("abcdefghijklmnopqrstuvwxyz0123456789"),
+		},
+		LocalizationSettings: model.LocalizationSettings{
+			DefaultServerLocale: sToP("en"),
+			DefaultClientLocale: sToP("en"),
+		},
+	}
+	ldapConfig = &model.Config{
+		LdapSettings: model.LdapSettings{
+			BindPassword: sToP("password"),
+		},
+	}
+	testConfig = &model.Config{
+		ServiceSettings: model.ServiceSettings{
+			SiteURL: sToP("http://TestFileStoreNew"),
+		},
+	}
+}
+
+func setupConfigFile(t *testing.T, cfg *model.Config) (string, func()) {
 	os.Clearenv()
 	t.Helper()
 
@@ -33,6 +91,10 @@ func setupConfigFile(t *testing.T, cfgData []byte) (string, func()) {
 
 	f, err := ioutil.TempFile(tempDir, "setupConfigFile")
 	require.NoError(t, err)
+
+	cfgData, err := config.MarshalConfig(cfg)
+	require.NoError(t, err)
+
 	ioutil.WriteFile(f.Name(), cfgData, 0644)
 
 	return f.Name(), func() {
@@ -40,46 +102,87 @@ func setupConfigFile(t *testing.T, cfgData []byte) (string, func()) {
 	}
 }
 
+// assertFileEqualsConfig verifies the on disk contents of the given path equal the given config.
+func assertFileEqualsConfig(t *testing.T, expectedCfg *model.Config, path string) {
+	f, err := os.Open(path)
+	require.Nil(t, err)
+
+	// These fields require special initialization for our tests.
+	expectedCfg.MessageExportSettings.GlobalRelaySettings = &model.GlobalRelayMessageExportSettings{}
+	expectedCfg.PluginSettings.Plugins = make(map[string]map[string]interface{})
+	expectedCfg.PluginSettings.PluginStates = make(map[string]*model.PluginState)
+
+	actualCfg, _, err := config.UnmarshalConfig(f, false)
+	require.Nil(t, err)
+
+	assert.Equal(t, expectedCfg, actualCfg)
+}
+
+// assertFileNotEqualsConfig verifies the on disk contents of the given path does not equal the given config.
+func assertFileNotEqualsConfig(t *testing.T, expectedCfg *model.Config, path string) {
+	f, err := os.Open(path)
+	require.Nil(t, err)
+
+	// These fields require special initialization for our tests.
+	expectedCfg.MessageExportSettings.GlobalRelaySettings = &model.GlobalRelayMessageExportSettings{}
+	expectedCfg.PluginSettings.Plugins = make(map[string]map[string]interface{})
+	expectedCfg.PluginSettings.PluginStates = make(map[string]*model.PluginState)
+
+	actualCfg, _, err := config.UnmarshalConfig(f, false)
+	require.Nil(t, err)
+
+	assert.NotEqual(t, expectedCfg, actualCfg)
+}
+
 func TestFileStoreNew(t *testing.T) {
 	utils.TranslationsPreInit()
 
-	var testConfig = []byte(`{"ServiceSettings":{"SiteURL":"http://TestFileStoreNew"}}`)
-
-	t.Run("absolute path", func(t *testing.T) {
+	t.Run("absolute path, initialization required", func(t *testing.T) {
 		path, tearDown := setupConfigFile(t, testConfig)
 		defer tearDown()
 
-		fs, needsSave, err := config.NewFileStore(path, false)
+		fs, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
 		assert.Equal(t, "http://TestFileStoreNew", *fs.Get().ServiceSettings.SiteURL)
-		assert.True(t, needsSave)
+		assertFileNotEqualsConfig(t, testConfig, path)
 	})
 
 	t.Run("absolute path, already minimally configured", func(t *testing.T) {
 		path, tearDown := setupConfigFile(t, minimalConfig)
 		defer tearDown()
 
-		fs, needsSave, err := config.NewFileStore(path, false)
+		fs, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
 		assert.Equal(t, "http://minimal", *fs.Get().ServiceSettings.SiteURL)
-		assert.False(t, needsSave)
+		assertFileEqualsConfig(t, minimalConfig, path)
 	})
 
-	t.Run("absolute path, does not exist", func(t *testing.T) {
+	t.Run("absolute path, file does not exist", func(t *testing.T) {
 		tempDir, err := ioutil.TempDir("", "TestFileStoreNew")
 		require.NoError(t, err)
 		defer os.RemoveAll(tempDir)
 
-		fs, needsSave, err := config.NewFileStore(filepath.Join(tempDir, "does/not/exist"), false)
+		path := filepath.Join(tempDir, "does_not_exist")
+		fs, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
 		assert.Equal(t, model.SERVICE_SETTINGS_DEFAULT_SITE_URL, *fs.Get().ServiceSettings.SiteURL)
-		assert.True(t, needsSave)
+		assertFileNotEqualsConfig(t, testConfig, path)
+	})
+
+	t.Run("absolute path, path to file does not exist", func(t *testing.T) {
+		tempDir, err := ioutil.TempDir("", "TestFileStoreNew")
+		require.NoError(t, err)
+		defer os.RemoveAll(tempDir)
+
+		path := filepath.Join(tempDir, "does/not/exist")
+		_, err = config.NewFileStore(path, false)
+		require.Error(t, err)
 	})
 
 	t.Run("relative path, file exists", func(t *testing.T) {
@@ -89,14 +192,19 @@ func TestFileStoreNew(t *testing.T) {
 		require.NoError(t, err)
 		defer os.RemoveAll("TestFileStoreNew")
 
-		ioutil.WriteFile("TestFileStoreNew/a/b/c/config.json", testConfig, 0644)
+		path := "TestFileStoreNew/a/b/c/config.json"
 
-		fs, needsSave, err := config.NewFileStore("TestFileStoreNew/a/b/c/config.json", false)
+		cfgData, err := config.MarshalConfig(testConfig)
+		require.NoError(t, err)
+
+		ioutil.WriteFile(path, cfgData, 0644)
+
+		fs, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
 		assert.Equal(t, "http://TestFileStoreNew", *fs.Get().ServiceSettings.SiteURL)
-		assert.True(t, needsSave)
+		assertFileNotEqualsConfig(t, testConfig, path)
 	})
 
 	t.Run("relative path, file does not exist", func(t *testing.T) {
@@ -106,22 +214,21 @@ func TestFileStoreNew(t *testing.T) {
 		require.NoError(t, err)
 		defer os.RemoveAll("TestFileStoreNew")
 
-		fs, needsSave, err := config.NewFileStore("TestFileStoreNew/a/b/c/config.json", false)
+		path := "TestFileStoreNew/a/b/c/config.json"
+		fs, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
 		assert.Equal(t, model.SERVICE_SETTINGS_DEFAULT_SITE_URL, *fs.Get().ServiceSettings.SiteURL)
-		assert.True(t, needsSave)
+		assertFileNotEqualsConfig(t, testConfig, path)
 	})
 }
 
 func TestFileStoreGet(t *testing.T) {
-	var testConfig = []byte(`{"ServiceSettings":{"SiteURL":"http://TestFileStoreNew"}}`)
-
 	path, tearDown := setupConfigFile(t, testConfig)
 	defer tearDown()
 
-	fs, _, err := config.NewFileStore(path, false)
+	fs, err := config.NewFileStore(path, false)
 	require.NoError(t, err)
 	defer fs.Close()
 
@@ -141,12 +248,10 @@ func TestFileStoreGet(t *testing.T) {
 }
 
 func TestFileStoreGetEnivironmentOverrides(t *testing.T) {
-	var testConfig = []byte(`{"ServiceSettings":{"SiteURL":"http://TestFileStoreNew"}}`)
-
 	path, tearDown := setupConfigFile(t, testConfig)
 	defer tearDown()
 
-	fs, _, err := config.NewFileStore(path, false)
+	fs, err := config.NewFileStore(path, false)
 	require.NoError(t, err)
 	defer fs.Close()
 
@@ -155,7 +260,7 @@ func TestFileStoreGetEnivironmentOverrides(t *testing.T) {
 
 	os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://override")
 
-	fs, _, err = config.NewFileStore(path, false)
+	fs, err = config.NewFileStore(path, false)
 	require.NoError(t, err)
 	defer fs.Close()
 
@@ -170,7 +275,7 @@ func TestFileStoreSet(t *testing.T) {
 		path, tearDown := setupConfigFile(t, emptyConfig)
 		defer tearDown()
 
-		fs, _, err := config.NewFileStore(path, false)
+		fs, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -184,7 +289,7 @@ func TestFileStoreSet(t *testing.T) {
 		path, tearDown := setupConfigFile(t, minimalConfig)
 		defer tearDown()
 
-		fs, _, err := config.NewFileStore(path, false)
+		fs, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -200,12 +305,10 @@ func TestFileStoreSet(t *testing.T) {
 	})
 
 	t.Run("desanitization required", func(t *testing.T) {
-		var ldapConfig = []byte(`{"LdapSettings":{"BindPassword":"password"}}`)
-
 		path, tearDown := setupConfigFile(t, ldapConfig)
 		defer tearDown()
 
-		fs, _, err := config.NewFileStore(path, false)
+		fs, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -225,7 +328,7 @@ func TestFileStoreSet(t *testing.T) {
 		path, tearDown := setupConfigFile(t, emptyConfig)
 		defer tearDown()
 
-		fs, _, err := config.NewFileStore(path, false)
+		fs, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -244,7 +347,7 @@ func TestFileStoreSet(t *testing.T) {
 		path, tearDown := setupConfigFile(t, readOnlyConfig)
 		defer tearDown()
 
-		fs, _, err := config.NewFileStore(path, false)
+		fs, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -263,7 +366,7 @@ func TestFileStoreSet(t *testing.T) {
 		path, tearDown := setupConfigFile(t, emptyConfig)
 		defer tearDown()
 
-		fs, _, err := config.NewFileStore(path, false)
+		fs, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -283,7 +386,7 @@ func TestFileStoreSet(t *testing.T) {
 		path, tearDown := setupConfigFile(t, emptyConfig)
 		defer tearDown()
 
-		fs, _, err := config.NewFileStore(path, false)
+		fs, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -316,7 +419,7 @@ func TestFileStoreSet(t *testing.T) {
 		path, tearDown := setupConfigFile(t, emptyConfig)
 		defer tearDown()
 
-		fs, _, err := config.NewFileStore(path, true)
+		fs, err := config.NewFileStore(path, true)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -333,7 +436,10 @@ func TestFileStoreSet(t *testing.T) {
 		fs.AddListener(callback)
 
 		// Rewrite the config to the file on disk
-		ioutil.WriteFile(path, emptyConfig, 0644)
+		cfgData, err := config.MarshalConfig(emptyConfig)
+		require.NoError(t, err)
+
+		ioutil.WriteFile(path, cfgData, 0644)
 		select {
 		case <-called:
 		case <-time.After(5 * time.Second):
@@ -346,7 +452,7 @@ func TestFileStorePatch(t *testing.T) {
 	path, tearDown := setupConfigFile(t, emptyConfig)
 	defer tearDown()
 
-	fs, _, err := config.NewFileStore(path, false)
+	fs, err := config.NewFileStore(path, false)
 	require.NoError(t, err)
 	defer fs.Close()
 
@@ -360,28 +466,28 @@ func TestFileStoreLoad(t *testing.T) {
 		path, tearDown := setupConfigFile(t, emptyConfig)
 		defer tearDown()
 
-		fs, _, err := config.NewFileStore(path, false)
+		fs, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
 		os.Remove(path)
 
-		needsSave, err := fs.Load()
+		err = fs.Load()
 		require.NoError(t, err)
-		require.True(t, needsSave)
+		assertFileNotEqualsConfig(t, emptyConfig, path)
 	})
 
 	t.Run("honour environment", func(t *testing.T) {
 		path, tearDown := setupConfigFile(t, minimalConfig)
 		defer tearDown()
 
-		fs, _, err := config.NewFileStore(path, false)
+		fs, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
 		os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://override")
 
-		_, err = fs.Load()
+		err = fs.Load()
 		require.NoError(t, err)
 		assert.Equal(t, "http://override", *fs.Get().ServiceSettings.SiteURL)
 		assert.Equal(t, map[string]interface{}{"ServiceSettings": map[string]interface{}{"SiteURL": true}}, fs.GetEnvironmentOverrides())
@@ -391,31 +497,32 @@ func TestFileStoreLoad(t *testing.T) {
 		path, tearDown := setupConfigFile(t, emptyConfig)
 		defer tearDown()
 
-		fs, _, err := config.NewFileStore(path, false)
+		fs, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
-		ioutil.WriteFile(path, invalidConfig, 0644)
+		cfgData, err := config.MarshalConfig(invalidConfig)
+		require.NoError(t, err)
 
-		_, err = fs.Load()
+		ioutil.WriteFile(path, cfgData, 0644)
+
+		err = fs.Load()
 		if assert.Error(t, err) {
 			assert.EqualError(t, err, "invalid config: Config.IsValid: model.config.is_valid.site_url.app_error, ")
 		}
 	})
 
 	t.Run("fixes required", func(t *testing.T) {
-		var trailingSlashConfig = []byte(`{"ServiceSettings":{"SiteURL":"http://trailingslash/"},"SqlSettings":{"AtRestEncryptKey":"abcdefghijklmnopqrstuvwxyz0123456789"},"FileSettings":{"PublicLinkSalt":"abcdefghijklmnopqrstuvwxyz0123456789"},"EmailSettings":{"InviteSalt":"abcdefghijklmnopqrstuvwxyz0123456789"},"LocalizationSettings":{"DefaultServerLocale":"en","DefaultClientLocale":"en"}}`)
-
 		path, tearDown := setupConfigFile(t, trailingSlashConfig)
 		defer tearDown()
 
-		fs, _, err := config.NewFileStore(path, false)
+		fs, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
-		needsSave, err := fs.Load()
+		err = fs.Load()
 		require.NoError(t, err)
-		assert.True(t, needsSave)
+		assertFileNotEqualsConfig(t, trailingSlashConfig, path)
 		assert.Equal(t, "http://trailingslash", *fs.Get().ServiceSettings.SiteURL)
 	})
 
@@ -423,7 +530,7 @@ func TestFileStoreLoad(t *testing.T) {
 		path, tearDown := setupConfigFile(t, emptyConfig)
 		defer tearDown()
 
-		fs, _, err := config.NewFileStore(path, false)
+		fs, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -433,7 +540,7 @@ func TestFileStoreLoad(t *testing.T) {
 		}
 		fs.AddListener(callback)
 
-		_, err = fs.Load()
+		err = fs.Load()
 		require.NoError(t, err)
 
 		select {
@@ -455,7 +562,7 @@ func TestFileStoreWatcherEmitter(t *testing.T) {
 	defer tearDown()
 
 	t.Run("disabled", func(t *testing.T) {
-		fs, _, err := config.NewFileStore(path, false)
+		fs, err := config.NewFileStore(path, false)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -469,7 +576,10 @@ func TestFileStoreWatcherEmitter(t *testing.T) {
 		fs.AddListener(callback)
 
 		// Rewrite the config to the file on disk
-		ioutil.WriteFile(path, emptyConfig, 0644)
+		cfgData, err := config.MarshalConfig(emptyConfig)
+		require.NoError(t, err)
+
+		ioutil.WriteFile(path, cfgData, 0644)
 		select {
 		case <-called:
 			t.Fatal("callback should not have been called since watching disabled")
@@ -478,7 +588,7 @@ func TestFileStoreWatcherEmitter(t *testing.T) {
 	})
 
 	t.Run("enabled", func(t *testing.T) {
-		fs, _, err := config.NewFileStore(path, true)
+		fs, err := config.NewFileStore(path, true)
 		require.NoError(t, err)
 		defer fs.Close()
 
@@ -489,7 +599,10 @@ func TestFileStoreWatcherEmitter(t *testing.T) {
 		fs.AddListener(callback)
 
 		// Rewrite the config to the file on disk
-		ioutil.WriteFile(path, emptyConfig, 0644)
+		cfgData, err := config.MarshalConfig(emptyConfig)
+		require.NoError(t, err)
+
+		ioutil.WriteFile(path, cfgData, 0644)
 		select {
 		case <-called:
 		case <-time.After(5 * time.Second):
@@ -502,7 +615,7 @@ func TestFileStoreString(t *testing.T) {
 	path, tearDown := setupConfigFile(t, emptyConfig)
 	defer tearDown()
 
-	fs, _, err := config.NewFileStore(path, false)
+	fs, err := config.NewFileStore(path, false)
 	require.NoError(t, err)
 	defer fs.Close()
 

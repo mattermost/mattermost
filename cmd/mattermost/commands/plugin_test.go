@@ -31,13 +31,13 @@ func TestPlugin(t *testing.T) {
 	th.CheckCommand(t, "plugin", "add", filepath.Join(path, "testplugin.tar.gz"))
 
 	th.CheckCommand(t, "plugin", "enable", "testplugin")
-	fs, _, err := config.NewFileStore(th.ConfigPath(), false)
+	fs, err := config.NewFileStore(th.ConfigPath(), false)
 	require.Nil(t, err)
 	assert.True(t, fs.Get().PluginSettings.PluginStates["testplugin"].Enable)
 	fs.Close()
 
 	th.CheckCommand(t, "plugin", "disable", "testplugin")
-	fs, _, err = config.NewFileStore(th.ConfigPath(), false)
+	fs, err = config.NewFileStore(th.ConfigPath(), false)
 	require.Nil(t, err)
 	assert.False(t, fs.Get().PluginSettings.PluginStates["testplugin"].Enable)
 	fs.Close()

@@ -38,19 +38,19 @@ func TestGetDefaultsFromStruct(t *testing.T) {
 	assert.Len(t, defaults, 4)
 }
 
-func TestReadConfig(t *testing.T) {
-	_, _, err := readConfig(bytes.NewReader([]byte(``)), false)
+func TestUnmarshalConfig(t *testing.T) {
+	_, _, err := unmarshalConfig(bytes.NewReader([]byte(``)), false)
 	require.EqualError(t, err, "parsing error at line 1, character 1: unexpected end of JSON input")
 
-	_, _, err = readConfig(bytes.NewReader([]byte(`
+	_, _, err = unmarshalConfig(bytes.NewReader([]byte(`
 		{
 			malformed
 	`)), false)
 	require.EqualError(t, err, "parsing error at line 3, character 5: invalid character 'm' looking for beginning of object key string")
 }
 
-func TestReadConfig_PluginSettings(t *testing.T) {
-	config, _, err := readConfig(bytes.NewReader([]byte(`{
+func TestUnmarshalConfig_PluginSettings(t *testing.T) {
+	config, _, err := unmarshalConfig(bytes.NewReader([]byte(`{
 		"PluginSettings": {
 			"Directory": "/temp/mattermost-plugins",
 			"Plugins": {
@@ -155,7 +155,7 @@ func TestConfigFromEnviroVars(t *testing.T) {
 		os.Setenv("MM_TEAMSETTINGS_SITENAME", "From Environment")
 		os.Setenv("MM_TEAMSETTINGS_CUSTOMBRANDTEXT", "Custom Brand")
 
-		cfg, envCfg, err := readConfig(strings.NewReader(config), true)
+		cfg, envCfg, err := unmarshalConfig(strings.NewReader(config), true)
 		require.Nil(t, err)
 
 		assert.Equal(t, "From Environment", *cfg.TeamSettings.SiteName)
@@ -178,7 +178,7 @@ func TestConfigFromEnviroVars(t *testing.T) {
 		os.Unsetenv("MM_TEAMSETTINGS_SITENAME")
 		os.Unsetenv("MM_TEAMSETTINGS_CUSTOMBRANDTEXT")
 
-		cfg, envCfg, err = readConfig(strings.NewReader(config), true)
+		cfg, envCfg, err = unmarshalConfig(strings.NewReader(config), true)
 		require.Nil(t, err)
 
 		assert.Equal(t, "Mattermost", *cfg.TeamSettings.SiteName)
@@ -192,7 +192,7 @@ func TestConfigFromEnviroVars(t *testing.T) {
 		os.Setenv("MM_SERVICESETTINGS_ENABLECOMMANDS", "false")
 		defer os.Unsetenv("MM_SERVICESETTINGS_ENABLECOMMANDS")
 
-		cfg, envCfg, err := readConfig(strings.NewReader(config), true)
+		cfg, envCfg, err := unmarshalConfig(strings.NewReader(config), true)
 		require.Nil(t, err)
 
 		if *cfg.ServiceSettings.EnableCommands {
@@ -214,7 +214,7 @@ func TestConfigFromEnviroVars(t *testing.T) {
 		os.Setenv("MM_SERVICESETTINGS_READTIMEOUT", "400")
 		defer os.Unsetenv("MM_SERVICESETTINGS_READTIMEOUT")
 
-		cfg, envCfg, err := readConfig(strings.NewReader(config), true)
+		cfg, envCfg, err := unmarshalConfig(strings.NewReader(config), true)
 		require.Nil(t, err)
 
 		assert.Equal(t, 400, *cfg.ServiceSettings.ReadTimeout)
@@ -234,7 +234,7 @@ func TestConfigFromEnviroVars(t *testing.T) {
 		os.Setenv("MM_SERVICESETTINGS_SITEURL", "https://example.com")
 		defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
 
-		cfg, envCfg, err := readConfig(strings.NewReader(config), true)
+		cfg, envCfg, err := unmarshalConfig(strings.NewReader(config), true)
 		require.Nil(t, err)
 
 		assert.Equal(t, "https://example.com", *cfg.ServiceSettings.SiteURL)
@@ -254,7 +254,7 @@ func TestConfigFromEnviroVars(t *testing.T) {
 		os.Setenv("MM_SUPPORTSETTINGS_TERMSOFSERVICELINK", "")
 		defer os.Unsetenv("MM_SUPPORTSETTINGS_TERMSOFSERVICELINK")
 
-		cfg, envCfg, err := readConfig(strings.NewReader(config), true)
+		cfg, envCfg, err := unmarshalConfig(strings.NewReader(config), true)
 		require.Nil(t, err)
 
 		assert.Empty(t, *cfg.SupportSettings.TermsOfServiceLink)
@@ -278,7 +278,7 @@ func TestConfigFromEnviroVars(t *testing.T) {
 		defer os.Unsetenv("MM_PLUGINSETTINGS_DIRECTORY")
 		defer os.Unsetenv("MM_PLUGINSETTINGS_CLIENTDIRECTORY")
 
-		cfg, envCfg, err := readConfig(strings.NewReader(config), true)
+		cfg, envCfg, err := unmarshalConfig(strings.NewReader(config), true)
 		require.Nil(t, err)
 
 		assert.Equal(t, false, *cfg.PluginSettings.Enable)
@@ -307,7 +307,7 @@ func TestConfigFromEnviroVars(t *testing.T) {
 		defer os.Unsetenv("MM_PLUGINSETTINGS_PLUGINS_JIRA_SECRET")
 		defer os.Unsetenv("MM_PLUGINSETTINGS_PLUGINSTATES_JIRA_ENABLE")
 
-		cfg, envCfg, err := readConfig(strings.NewReader(config), true)
+		cfg, envCfg, err := unmarshalConfig(strings.NewReader(config), true)
 		require.Nil(t, err)
 
 		if pluginsJira, ok := cfg.PluginSettings.Plugins["jira"]; !ok {

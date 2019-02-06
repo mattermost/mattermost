@@ -33,7 +33,7 @@ func NewMemoryStore(allowEnvironmentOverrides bool) (*memoryStore, error) {
 		allowEnvironmentOverrides: allowEnvironmentOverrides,
 	}
 
-	if _, err := ms.Load(); err != nil {
+	if err := ms.Load(); err != nil {
 		return nil, err
 	}
 
@@ -73,25 +73,25 @@ func (ms *memoryStore) serialize(cfg *model.Config) ([]byte, error) {
 }
 
 // Load applies environment overrides to the current config as if a re-load had occurred.
-func (ms *memoryStore) Load() (needsSave bool, err error) {
+func (ms *memoryStore) Load() (err error) {
 	var cfgBytes []byte
 	cfgBytes, err = ms.serialize(ms.Config)
 	if err != nil {
-		return false, errors.Wrap(err, "failed to serialize config")
+		return errors.Wrap(err, "failed to serialize config")
 	}
 
 	f := ioutil.NopCloser(bytes.NewReader(cfgBytes))
 
 	allowEnvironmentOverrides := true
-	loadedCfg, environmentOverrides, err := readConfig(f, allowEnvironmentOverrides)
+	loadedCfg, environmentOverrides, err := unmarshalConfig(f, allowEnvironmentOverrides)
 	if err != nil {
-		return false, errors.Wrap(err, "failed to load config")
+		return errors.Wrap(err, "failed to load config")
 	}
 
 	ms.Config = loadedCfg
 	ms.EnvironmentOverrides = environmentOverrides
 
-	return false, nil
+	return nil
 }
 
 // Save does nothing, as there is no backing store.
