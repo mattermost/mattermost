@@ -8,7 +8,6 @@ import (
 	ejobs "github.com/mattermost/mattermost-server/einterfaces/jobs"
 	tjobs "github.com/mattermost/mattermost-server/jobs/interfaces"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 var accountMigrationInterface func(*App) einterfaces.AccountMigrationInterface
@@ -116,14 +115,6 @@ func (s *Server) initEnterprise() {
 	}
 	if elasticsearchInterface != nil {
 		s.Elasticsearch = elasticsearchInterface(s.FakeApp())
-	}
-	if ldapInterface != nil {
-		s.Ldap = ldapInterface(s.FakeApp())
-		s.AddConfigListener(func(_, cfg *model.Config) {
-			if err := validateLdapFilter(cfg, s.Ldap); err != nil {
-				panic(utils.T(err.Id))
-			}
-		})
 	}
 	if messageExportInterface != nil {
 		s.MessageExport = messageExportInterface(s.FakeApp())

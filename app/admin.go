@@ -13,7 +13,6 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/config"
-	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/services/mailservice"
@@ -161,19 +160,7 @@ func (a *App) GetEnvironmentConfig() map[string]interface{} {
 	return a.EnvironmentConfig()
 }
 
-func validateLdapFilter(cfg *model.Config, ldap einterfaces.LdapInterface) *model.AppError {
-	if !*cfg.LdapSettings.Enable || ldap == nil || *cfg.LdapSettings.UserFilter == "" {
-		return nil
-	}
-
-	return ldap.ValidateFilter(*cfg.LdapSettings.UserFilter)
-}
-
 func (a *App) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) *model.AppError {
-	if err := validateLdapFilter(newCfg, a.Ldap); err != nil {
-		return err
-	}
-
 	oldCfg, err := a.Srv.configStore.Set(newCfg)
 	if err == config.ReadOnlyConfigurationError {
 		return model.NewAppError("saveConfig", "ent.cluster.save_config.error", nil, err.Error(), http.StatusForbidden)
