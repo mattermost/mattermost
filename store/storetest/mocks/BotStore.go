@@ -29,13 +29,13 @@ func (_m *BotStore) Get(userId string, includeDeleted bool) store.StoreChannel {
 	return r0
 }
 
-// GetAll provides a mock function with given fields: page, perPage, creatorId, includeDeleted
-func (_m *BotStore) GetAll(page int, perPage int, creatorId string, includeDeleted bool) store.StoreChannel {
-	ret := _m.Called(page, perPage, creatorId, includeDeleted)
+// GetAll provides a mock function with given fields: options
+func (_m *BotStore) GetAll(options *model.BotGetOptions) store.StoreChannel {
+	ret := _m.Called(options)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(int, int, string, bool) store.StoreChannel); ok {
-		r0 = rf(page, perPage, creatorId, includeDeleted)
+	if rf, ok := ret.Get(0).(func(*model.BotGetOptions) store.StoreChannel); ok {
+		r0 = rf(options)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)

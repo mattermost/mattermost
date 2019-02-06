@@ -44,7 +44,7 @@ func (a *App) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, 
 	user.Username = patchedUser.Username
 	user.Email = patchedUser.Email
 	user.FirstName = patchedUser.FirstName
-	if result := <-a.Srv.Store.User().Update(user, true); result.Err != nil {
+	if result = <-a.Srv.Store.User().Update(user, true); result.Err != nil {
 		return nil, result.Err
 	}
 
@@ -68,7 +68,7 @@ func (a *App) GetBot(botUserId string, includeDeleted bool) (*model.Bot, *model.
 
 // GetBots returns the requested page of bots.
 func (a *App) GetBots(options *model.BotGetOptions) (model.BotList, *model.AppError) {
-	result := <-a.Srv.Store.Bot().GetAll(options.Page*options.PerPage, options.PerPage, options.CreatorId, options.IncludeDeleted)
+	result := <-a.Srv.Store.Bot().GetAll(options)
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -125,4 +125,21 @@ func (a *App) PermanentDeleteBot(botUserId string) *model.AppError {
 	}
 
 	return nil
+}
+
+// UpdateBotOwner changes a bot's owner to the given value
+func (a *App) UpdateBotOwner(botUserId, newOwnerId string) (*model.Bot, *model.AppError) {
+	result := <-a.Srv.Store.Bot().Get(botUserId, true)
+	if result.Err != nil {
+		return nil, result.Err
+	}
+	bot := result.Data.(*model.Bot)
+
+	bot.CreatorId = newOwnerId
+
+	if result = <-a.Srv.Store.Bot().Update(bot); result.Err != nil {
+		return nil, result.Err
+	}
+
+	return result.Data.(*model.Bot), nil
 }

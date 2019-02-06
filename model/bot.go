@@ -43,6 +43,7 @@ type BotPatch struct {
 type BotGetOptions struct {
 	CreatorId      string
 	IncludeDeleted bool
+	OnlyOrphaned   bool
 	Page           int
 	PerPage        int
 }
