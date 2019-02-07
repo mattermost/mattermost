@@ -101,9 +101,9 @@ func updateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.Session.UserId != oldHook.UserId && !c.App.SessionHasPermissionToTeam(c.App.Session, updatedHook.TeamId, model.PERMISSION_MANAGE_OTHERS_WEBHOOKS) {
+	if c.App.Session.UserId != oldHook.UserId && !c.App.SessionHasPermissionToTeam(c.App.Session, updatedHook.TeamId, model.PERMISSION_MANAGE_OTHERS_INCOMING_WEBHOOKS) {
 		c.LogAudit("fail - inappropriate permissions")
-		c.SetPermissionError(model.PERMISSION_MANAGE_OTHERS_WEBHOOKS)
+		c.SetPermissionError(model.PERMISSION_MANAGE_OTHERS_INCOMING_WEBHOOKS)
 		return
 	}
 
@@ -285,9 +285,9 @@ func updateOutgoingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.Session.UserId != oldHook.CreatorId && !c.App.SessionHasPermissionToTeam(c.App.Session, updatedHook.TeamId, model.PERMISSION_MANAGE_OTHERS_WEBHOOKS) {
+	if c.App.Session.UserId != oldHook.CreatorId && !c.App.SessionHasPermissionToTeam(c.App.Session, updatedHook.TeamId, model.PERMISSION_MANAGE_OTHERS_OUTGOING_WEBHOOKS) {
 		c.LogAudit("fail - inappropriate permissions")
-		c.SetPermissionError(model.PERMISSION_MANAGE_OTHERS_WEBHOOKS)
+		c.SetPermissionError(model.PERMISSION_MANAGE_OTHERS_OUTGOING_WEBHOOKS)
 		return
 	}
 
