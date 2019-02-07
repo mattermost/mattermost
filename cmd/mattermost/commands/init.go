@@ -30,13 +30,13 @@ func InitDBCommandContextCobra(command *cobra.Command) (*app.App, error) {
 	return a, nil
 }
 
-func InitDBCommandContext(configFileLocation string) (*app.App, error) {
+func InitDBCommandContext(configDSN string) (*app.App, error) {
 	if err := utils.TranslationsPreInit(); err != nil {
 		return nil, err
 	}
 	model.AppErrorInit(utils.T)
 
-	s, err := app.NewServer(app.ConfigFile(configFileLocation, true))
+	s, err := app.NewServer(app.Config(configDSN, false))
 	if err != nil {
 		return nil, err
 	}

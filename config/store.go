@@ -4,6 +4,8 @@
 package config
 
 import (
+	"strings"
+
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -38,4 +40,13 @@ type Store interface {
 
 	// Close cleans up resources associated with the store.
 	Close() error
+}
+
+// NewStore creates a database or file store given a data source name by which to connect.
+func NewStore(dsn string, watch bool) (Store, error) {
+	if strings.HasPrefix(dsn, "mysql://") || strings.HasPrefix(dsn, "postgres://") {
+		return NewDatabaseStore(dsn)
+	}
+
+	return NewFileStore(dsn, watch)
 }
