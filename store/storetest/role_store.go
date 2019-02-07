@@ -99,6 +99,10 @@ func testRoleStoreSave(t *testing.T, ss store.Store) {
 }
 
 func testRoleStoreGetAll(t *testing.T, ss store.Store) {
+	prev := <-ss.Role().GetAll()
+	require.Nil(t, prev.Err)
+	prevCount := len(prev.Data.([]*model.Role))
+
 	// Save a role to test with.
 	r1 := &model.Role{
 		Name:        model.NewId(),
@@ -132,7 +136,7 @@ func testRoleStoreGetAll(t *testing.T, ss store.Store) {
 	res3 := <-ss.Role().GetAll()
 	require.Nil(t, res3.Err)
 	data := res3.Data.([]*model.Role)
-	assert.Len(t, data, 2)
+	assert.Len(t, data, prevCount+2)
 }
 
 func testRoleStoreGet(t *testing.T, ss store.Store) {
