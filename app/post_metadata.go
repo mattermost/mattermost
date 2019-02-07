@@ -169,15 +169,26 @@ func (a *App) getImagesForPost(post *model.Post, imageURLs []string, isNewPost b
 
 		case model.POST_EMBED_OPENGRAPH:
 			for _, image := range embed.Data.(*opengraph.OpenGraph).Images {
+				var imageURL string
+				if image.SecureURL != "" {
+					imageURL = image.SecureURL
+				} else if image.URL != "" {
+					imageURL = image.URL
+				}
+
+				if imageURL == "" {
+					continue
+				}
+
 				if image.Width != 0 || image.Height != 0 {
 					// The site has already told us the image dimensions
-					images[image.URL] = &model.PostImage{
+					images[imageURL] = &model.PostImage{
 						Width:  int(image.Width),
 						Height: int(image.Height),
 					}
 				} else {
 					// The site did not specify its image dimensions
-					imageURLs = append(imageURLs, image.URL)
+					imageURLs = append(imageURLs, imageURL)
 				}
 			}
 		}
