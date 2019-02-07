@@ -100,8 +100,8 @@ func (a *App) sendNotificationEmail(notification *postNotification, user *model.
 		subjectText = getNotificationEmailSubject(user, post, translateFunc, *a.Config().TeamSettings.SiteName, team.DisplayName, useMilitaryTime)
 	}
 
-	teamURL := a.GetSiteURL() + "/" + team.Name
-	var bodyText = a.getNotificationEmailBody(user, post, channel, channelName, senderName, team.Name, teamURL, emailNotificationContentsType, useMilitaryTime, translateFunc)
+	landingURL := a.GetSiteURL() + "/vault#/" + team.Name
+	var bodyText = a.getNotificationEmailBody(user, post, channel, channelName, senderName, team.Name, landingURL, emailNotificationContentsType, useMilitaryTime, translateFunc)
 
 	a.Srv.Go(func() {
 		if err := a.SendMail(user.Email, html.UnescapeString(subjectText), bodyText); err != nil {
@@ -167,7 +167,7 @@ func getGroupMessageNotificationEmailSubject(user *model.User, post *model.Post,
 /**
  * Computes the email body for notification messages
  */
-func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, channel *model.Channel, channelName string, senderName string, teamName string, teamURL string, emailNotificationContentsType string, useMilitaryTime bool, translateFunc i18n.TranslateFunc) string {
+func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, channel *model.Channel, channelName string, senderName string, teamName string, landingURL string, emailNotificationContentsType string, useMilitaryTime bool, translateFunc i18n.TranslateFunc) string {
 	// only include message contents in notification email if email notification contents type is set to full
 	var bodyPage *utils.HTMLTemplate
 	if emailNotificationContentsType == model.EMAIL_NOTIFICATION_CONTENTS_FULL {
@@ -179,9 +179,9 @@ func (a *App) getNotificationEmailBody(recipient *model.User, post *model.Post, 
 
 	bodyPage.Props["SiteURL"] = a.GetSiteURL()
 	if teamName != "select_team" {
-		bodyPage.Props["TeamLink"] = teamURL + "/pl/" + post.Id
+		bodyPage.Props["TeamLink"] = landingURL + "/pl/" + post.Id
 	} else {
-		bodyPage.Props["TeamLink"] = teamURL
+		bodyPage.Props["TeamLink"] = landingURL
 	}
 
 	t := getFormattedPostTime(recipient, post, useMilitaryTime, translateFunc)
