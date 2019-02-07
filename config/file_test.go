@@ -448,19 +448,6 @@ func TestFileStoreSet(t *testing.T) {
 	})
 }
 
-func TestFileStorePatch(t *testing.T) {
-	path, tearDown := setupConfigFile(t, emptyConfig)
-	defer tearDown()
-
-	fs, err := config.NewFileStore(path, false)
-	require.NoError(t, err)
-	defer fs.Close()
-
-	assert.Panics(t, func() {
-		fs.Patch(&model.Config{})
-	})
-}
-
 func TestFileStoreLoad(t *testing.T) {
 	t.Run("file no longer exists", func(t *testing.T) {
 		path, tearDown := setupConfigFile(t, emptyConfig)

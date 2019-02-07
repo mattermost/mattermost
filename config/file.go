@@ -160,16 +160,6 @@ func (fs *fileStore) Set(newCfg *model.Config) (*model.Config, error) {
 	return oldCfg, nil
 }
 
-// Patch merges the given config with the current configuration, without updating the backing store.
-func (fs *fileStore) Patch(*model.Config) (*model.Config, error) {
-	fs.configLock.Lock()
-	defer fs.configLock.Unlock()
-
-	panic("patch is not yet implemented")
-
-	return fs.config, nil
-}
-
 // persist writes the configuration to the configured file.
 func (fs *fileStore) persist(cfg *model.Config) error {
 	fs.stopWatcher()

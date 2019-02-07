@@ -60,13 +60,6 @@ func (ms *memoryStore) Set(newCfg *model.Config) (*model.Config, error) {
 	return oldCfg, nil
 }
 
-// Patch merges the given config with the current configuration.
-func (ms *memoryStore) Patch(*model.Config) (*model.Config, error) {
-	panic("patch is not yet implemented")
-
-	return ms.Config, nil
-}
-
 // serialize converts the given configuration into JSON bytes for persistence.
 func (ms *memoryStore) serialize(cfg *model.Config) ([]byte, error) {
 	return json.MarshalIndent(cfg, "", "    ")
