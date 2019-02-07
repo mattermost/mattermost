@@ -110,11 +110,7 @@ func (fs *fileStore) GetEnvironmentOverrides() map[string]interface{} {
 func (fs *fileStore) Set(newCfg *model.Config) (*model.Config, error) {
 	fs.configLock.Lock()
 	var unlockOnce sync.Once
-	defer func() {
-		unlockOnce.Do(func() {
-			fs.configLock.Unlock()
-		})
-	}()
+	defer unlockOnce.Do(fs.configLock.Unlock)
 
 	oldCfg := fs.config
 
@@ -149,9 +145,7 @@ func (fs *fileStore) Set(newCfg *model.Config) (*model.Config, error) {
 
 	fs.config = newCfg
 
-	unlockOnce.Do(func() {
-		fs.configLock.Unlock()
-	})
+	unlockOnce.Do(fs.configLock.Unlock)
 
 	// Notify listeners synchronously. Ideally, this would be asynchronous, but existing code
 	// assumes this and there would be increased complexity to avoid racing updates.
@@ -237,11 +231,7 @@ func (fs *fileStore) Load() (err error) {
 
 	fs.configLock.Lock()
 	var unlockOnce sync.Once
-	defer func() {
-		unlockOnce.Do(func() {
-			fs.configLock.Unlock()
-		})
-	}()
+	defer unlockOnce.Do(fs.configLock.Unlock)
 
 	if needsSave {
 		if err = fs.persist(loadedCfg); err != nil {
@@ -253,9 +243,7 @@ func (fs *fileStore) Load() (err error) {
 	fs.config = loadedCfg
 	fs.environmentOverrides = environmentOverrides
 
-	unlockOnce.Do(func() {
-		fs.configLock.Unlock()
-	})
+	unlockOnce.Do(fs.configLock.Unlock)
 
 	// Notify listeners synchronously. Ideally, this would be asynchronous, but existing code
 	// assumes this and there would be increased complexity to avoid racing updates.
