@@ -109,6 +109,25 @@ func TestReadConfig_PluginSettings(t *testing.T) {
 		}, *config.PluginSettings.PluginStates["jira"])
 	}
 }
+func TestReadConfig_ImageProxySettings(t *testing.T) {
+	TranslationsPreInit()
+
+	t.Run("deprecated settings should still be read properly", func(t *testing.T) {
+		config, _, err := ReadConfig(bytes.NewReader([]byte(`{
+			"ServiceSettings": {
+				"ImageProxyType": "OldImageProxyType",
+				"ImageProxyURL": "OldImageProxyURL",
+				"ImageProxyOptions": "OldImageProxyOptions"
+			}
+		}`)), false)
+
+		require.Nil(t, err)
+
+		assert.Equal(t, model.NewString("OldImageProxyType"), config.ServiceSettings.DEPRECATED_DO_NOT_USE_ImageProxyType)
+		assert.Equal(t, model.NewString("OldImageProxyURL"), config.ServiceSettings.DEPRECATED_DO_NOT_USE_ImageProxyURL)
+		assert.Equal(t, model.NewString("OldImageProxyOptions"), config.ServiceSettings.DEPRECATED_DO_NOT_USE_ImageProxyOptions)
+	})
+}
 
 func TestConfigFromEnviroVars(t *testing.T) {
 	TranslationsPreInit()
