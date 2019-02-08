@@ -1150,7 +1150,7 @@ func TestPatchUser(t *testing.T) {
 	if ruser.Username != user.Username {
 		t.Fatal("Username should not have updated")
 	}
-	if ruser.Password != ""{
+	if ruser.Password != "" {
 		t.Fatal("Password should not be returned")
 	}
 	if ruser.NotifyProps["comment"] != "somethingrandom" {
@@ -2382,56 +2382,145 @@ func TestSetDefaultProfileImage(t *testing.T) {
 	}
 }
 
-func TestCBALogin(t *testing.T) {
+func TestLogin(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 	th.Client.Logout()
 
-	th.App.SetLicense(model.NewTestLicense("saml"))
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ExperimentalSettings.ClientSideCertEnable = true
-		*cfg.ExperimentalSettings.ClientSideCertCheck = model.CLIENT_SIDE_CERT_CHECK_PRIMARY_AUTH
+	t.Run("missing password", func(t *testing.T) {
+		_, resp := th.Client.Login(th.BasicUser.Email, "")
+		CheckErrorMessage(t, resp, "api.user.login.blank_pwd.app_error")
 	})
 
-	user, resp := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
-	if resp.Error.StatusCode != 400 && user == nil {
-		t.Fatal("Should have failed because it's missing the cert header")
-	}
-
-	th.Client.HttpHeader["X-SSL-Client-Cert"] = "valid_cert_fake"
-	user, resp = th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
-	if resp.Error.StatusCode != 400 && user == nil {
-		t.Fatal("Should have failed because it's missing the cert subject")
-	}
-
-	th.Client.HttpHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=mis_match" + th.BasicUser.Email
-	user, resp = th.Client.Login(th.BasicUser.Email, "")
-	if resp.Error.StatusCode != 400 && user == nil {
-		t.Fatal("Should have failed because the emails mismatch")
-	}
-
-	th.Client.HttpHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=" + th.BasicUser.Email
-	user, _ = th.Client.Login(th.BasicUser.Email, "")
-	if !(user != nil && user.Email == th.BasicUser.Email) {
-		t.Fatal("Should have been able to login")
-	}
-
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ExperimentalSettings.ClientSideCertEnable = true
-		*cfg.ExperimentalSettings.ClientSideCertCheck = model.CLIENT_SIDE_CERT_CHECK_SECONDARY_AUTH
+	t.Run("unknown user", func(t *testing.T) {
+		_, resp := th.Client.Login("unknown", th.BasicUser.Password)
+		CheckErrorMessage(t, resp, "store.sql_user.get_for_login.app_error")
 	})
 
-	th.Client.HttpHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=" + th.BasicUser.Email
-	user, _ = th.Client.Login(th.BasicUser.Email, "")
-	if resp.Error.StatusCode != 400 && user == nil {
-		t.Fatal("Should have failed because password is required")
-	}
+	t.Run("valid login", func(t *testing.T) {
+		user, resp := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+		CheckNoError(t, resp)
+		assert.Equal(t, user.Id, th.BasicUser.Id)
+	})
 
-	th.Client.HttpHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=" + th.BasicUser.Email
-	user, _ = th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
-	if !(user != nil && user.Email == th.BasicUser.Email) {
-		t.Fatal("Should have been able to login")
-	}
+	t.Run("bot login rejected", func(t *testing.T) {
+		bot, resp := th.SystemAdminClient.CreateBot(&model.Bot{
+			Username: "bot",
+		})
+		CheckNoError(t, resp)
+
+		botUser, resp := th.SystemAdminClient.GetUser(bot.UserId, "")
+		CheckNoError(t, resp)
+
+		changed, resp := th.SystemAdminClient.UpdateUserPassword(bot.UserId, "", "password")
+		CheckNoError(t, resp)
+		require.True(t, changed)
+
+		_, resp = th.Client.Login(botUser.Email, "password")
+		CheckErrorMessage(t, resp, "api.user.login.bot_login_forbidden.app_error")
+	})
+}
+
+func TestCBALogin(t *testing.T) {
+	t.Run("primary", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
+		th.App.SetLicense(model.NewTestLicense("saml"))
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ExperimentalSettings.ClientSideCertEnable = true
+			*cfg.ExperimentalSettings.ClientSideCertCheck = model.CLIENT_SIDE_CERT_CHECK_PRIMARY_AUTH
+		})
+
+		t.Run("missing cert header", func(t *testing.T) {
+			th.Client.Logout()
+			_, resp := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+			CheckBadRequestStatus(t, resp)
+		})
+
+		t.Run("missing cert subject", func(t *testing.T) {
+			th.Client.Logout()
+			th.Client.HttpHeader["X-SSL-Client-Cert"] = "valid_cert_fake"
+			_, resp := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+			CheckBadRequestStatus(t, resp)
+		})
+
+		t.Run("emails mismatch", func(t *testing.T) {
+			th.Client.Logout()
+			th.Client.HttpHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=mis_match" + th.BasicUser.Email
+			_, resp := th.Client.Login(th.BasicUser.Email, "")
+			CheckBadRequestStatus(t, resp)
+		})
+
+		t.Run("successful cba login", func(t *testing.T) {
+			th.Client.HttpHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=" + th.BasicUser.Email
+			user, resp := th.Client.Login(th.BasicUser.Email, "")
+			CheckNoError(t, resp)
+			require.NotNil(t, user)
+			require.Equal(t, th.BasicUser.Id, user.Id)
+		})
+
+		t.Run("bot login rejected", func(t *testing.T) {
+			bot, resp := th.SystemAdminClient.CreateBot(&model.Bot{
+				Username: "bot",
+			})
+			CheckNoError(t, resp)
+
+			botUser, resp := th.SystemAdminClient.GetUser(bot.UserId, "")
+			CheckNoError(t, resp)
+
+			th.Client.HttpHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=" + botUser.Email
+
+			_, resp = th.Client.Login(botUser.Email, "")
+			CheckErrorMessage(t, resp, "api.user.login.bot_login_forbidden.app_error")
+		})
+	})
+
+	t.Run("secondary", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
+		th.App.SetLicense(model.NewTestLicense("saml"))
+
+		th.Client.HttpHeader["X-SSL-Client-Cert"] = "valid_cert_fake"
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ExperimentalSettings.ClientSideCertEnable = true
+			*cfg.ExperimentalSettings.ClientSideCertCheck = model.CLIENT_SIDE_CERT_CHECK_SECONDARY_AUTH
+		})
+
+		t.Run("password required", func(t *testing.T) {
+			th.Client.HttpHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=" + th.BasicUser.Email
+			_, resp := th.Client.Login(th.BasicUser.Email, "")
+			CheckBadRequestStatus(t, resp)
+		})
+
+		t.Run("successful cba login with password", func(t *testing.T) {
+			th.Client.HttpHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=" + th.BasicUser.Email
+			user, resp := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+			CheckNoError(t, resp)
+			require.NotNil(t, user)
+			require.Equal(t, th.BasicUser.Id, user.Id)
+		})
+
+		t.Run("bot login rejected", func(t *testing.T) {
+			bot, resp := th.SystemAdminClient.CreateBot(&model.Bot{
+				Username: "bot",
+			})
+			CheckNoError(t, resp)
+
+			botUser, resp := th.SystemAdminClient.GetUser(bot.UserId, "")
+			CheckNoError(t, resp)
+
+			changed, resp := th.SystemAdminClient.UpdateUserPassword(bot.UserId, "", "password")
+			CheckNoError(t, resp)
+			require.True(t, changed)
+
+			th.Client.HttpHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=" + botUser.Email
+
+			_, resp = th.Client.Login(botUser.Email, "password")
+			CheckErrorMessage(t, resp, "api.user.login.bot_login_forbidden.app_error")
+		})
+	})
 }
 
 func TestSwitchAccount(t *testing.T) {
