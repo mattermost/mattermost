@@ -23,37 +23,35 @@ import (
 // Don't add anything new here, new initilization should be done in the server and
 // performed in the NewServer function.
 func (s *Server) RunOldAppInitalization() error {
-	a := s.FakeApp()
+	s.FakeApp().CreatePushNotificationsHub()
+	s.FakeApp().StartPushNotificationsHubWorkers()
 
-	a.CreatePushNotificationsHub()
-	a.StartPushNotificationsHubWorkers()
-
-	if err := utils.InitTranslations(a.Config().LocalizationSettings); err != nil {
+	if err := utils.InitTranslations(s.FakeApp().Config().LocalizationSettings); err != nil {
 		return errors.Wrapf(err, "unable to load Mattermost translation files")
 	}
 
-	a.Srv.configListenerId = a.AddConfigListener(func(_, _ *model.Config) {
-		a.configOrLicenseListener()
+	s.FakeApp().Srv.configListenerId = s.FakeApp().AddConfigListener(func(_, _ *model.Config) {
+		s.FakeApp().configOrLicenseListener()
 
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CONFIG_CHANGED, "", "", "", nil)
 
-		message.Add("config", a.ClientConfigWithComputed())
-		a.Srv.Go(func() {
-			a.Publish(message)
+		message.Add("config", s.FakeApp().ClientConfigWithComputed())
+		s.Go(func() {
+			s.FakeApp().Publish(message)
 		})
 	})
-	a.Srv.licenseListenerId = a.AddLicenseListener(func() {
-		a.configOrLicenseListener()
+	s.FakeApp().Srv.licenseListenerId = s.FakeApp().AddLicenseListener(func() {
+		s.FakeApp().configOrLicenseListener()
 
 		message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_LICENSE_CHANGED, "", "", "", nil)
-		message.Add("license", a.GetSanitizedClientLicense())
-		a.Srv.Go(func() {
-			a.Publish(message)
+		message.Add("license", s.FakeApp().GetSanitizedClientLicense())
+		s.Go(func() {
+			s.FakeApp().Publish(message)
 		})
 
 	})
 
-	if err := a.SetupInviteEmailRateLimiting(); err != nil {
+	if err := s.FakeApp().SetupInviteEmailRateLimiting(); err != nil {
 		return err
 	}
 
@@ -61,67 +59,67 @@ func (s *Server) RunOldAppInitalization() error {
 
 	s.initEnterprise()
 
-	if a.Srv.newStore == nil {
-		a.Srv.newStore = func() store.Store {
-			return store.NewLayeredStore(sqlstore.NewSqlSupplier(a.Config().SqlSettings, a.Metrics), a.Metrics, a.Cluster)
+	if s.FakeApp().Srv.newStore == nil {
+		s.FakeApp().Srv.newStore = func() store.Store {
+			return store.NewLayeredStore(sqlstore.NewSqlSupplier(s.FakeApp().Config().SqlSettings, s.Metrics), s.Metrics, s.Cluster)
 		}
 	}
 
 	if htmlTemplateWatcher, err := utils.NewHTMLTemplateWatcher("templates"); err != nil {
 		mlog.Error(fmt.Sprintf("Failed to parse server templates %v", err))
 	} else {
-		a.Srv.htmlTemplateWatcher = htmlTemplateWatcher
+		s.FakeApp().Srv.htmlTemplateWatcher = htmlTemplateWatcher
 	}
 
-	a.Srv.Store = a.Srv.newStore()
+	s.FakeApp().Srv.Store = s.FakeApp().Srv.newStore()
 
-	if err := a.ensureAsymmetricSigningKey(); err != nil {
+	if err := s.FakeApp().ensureAsymmetricSigningKey(); err != nil {
 		return errors.Wrapf(err, "unable to ensure asymmetric signing key")
 	}
 
-	if err := a.ensureInstallationDate(); err != nil {
+	if err := s.FakeApp().ensureInstallationDate(); err != nil {
 		return errors.Wrapf(err, "unable to ensure installation date")
 	}
 
-	a.EnsureDiagnosticId()
-	a.regenerateClientConfig()
+	s.FakeApp().EnsureDiagnosticId()
+	s.FakeApp().regenerateClientConfig()
 
-	a.Srv.clusterLeaderListenerId = a.Srv.AddClusterLeaderChangedListener(func() {
-		mlog.Info("Cluster leader changed. Determining if job schedulers should be running:", mlog.Bool("isLeader", a.IsLeader()))
-		if a.Srv.Jobs != nil {
-			a.Srv.Jobs.Schedulers.HandleClusterLeaderChange(a.IsLeader())
+	s.FakeApp().Srv.clusterLeaderListenerId = s.FakeApp().Srv.AddClusterLeaderChangedListener(func() {
+		mlog.Info("Cluster leader changed. Determining if job schedulers should be running:", mlog.Bool("isLeader", s.FakeApp().IsLeader()))
+		if s.FakeApp().Srv.Jobs != nil {
+			s.FakeApp().Srv.Jobs.Schedulers.HandleClusterLeaderChange(s.FakeApp().IsLeader())
 		}
 	})
 
-	subpath, err := utils.GetSubpathFromConfig(a.Config())
+	subpath, err := utils.GetSubpathFromConfig(s.FakeApp().Config())
 	if err != nil {
 		return errors.Wrap(err, "failed to parse SiteURL subpath")
 	}
-	a.Srv.Router = a.Srv.RootRouter.PathPrefix(subpath).Subrouter()
-	a.Srv.Router.HandleFunc("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}", a.ServePluginRequest)
-	a.Srv.Router.HandleFunc("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}/{anything:.*}", a.ServePluginRequest)
+	s.FakeApp().Srv.Router = s.FakeApp().Srv.RootRouter.PathPrefix(subpath).Subrouter()
+	s.FakeApp().Srv.Router.HandleFunc("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}", s.FakeApp().ServePluginRequest)
+	s.FakeApp().Srv.Router.HandleFunc("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}/{anything:.*}", s.FakeApp().ServePluginRequest)
 
 	// If configured with a subpath, redirect 404s at the root back into the subpath.
 	if subpath != "/" {
-		a.Srv.RootRouter.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		s.FakeApp().Srv.RootRouter.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			r.URL.Path = path.Join(subpath, r.URL.Path)
 			http.Redirect(w, r, r.URL.String(), http.StatusFound)
 		})
 	}
-	a.Srv.Router.NotFoundHandler = http.HandlerFunc(a.Handle404)
+	s.FakeApp().Srv.Router.NotFoundHandler = http.HandlerFunc(s.FakeApp().Handle404)
 
-	a.Srv.WebSocketRouter = &WebSocketRouter{
-		app:      a,
+	s.FakeApp().Srv.WebSocketRouter = &WebSocketRouter{
+		app:      s.FakeApp(),
 		handlers: make(map[string]webSocketHandler),
 	}
 
-	mailservice.TestConnection(a.Config())
+	mailservice.TestConnection(s.FakeApp().Config())
 
-	if _, err := url.ParseRequestURI(*a.Config().ServiceSettings.SiteURL); err != nil {
+	if _, err := url.ParseRequestURI(*s.FakeApp().Config().ServiceSettings.SiteURL); err != nil {
 		mlog.Error("SiteURL must be set. Some features will operate incorrectly if the SiteURL is not set. See documentation for details: http://about.mattermost.com/default-site-url")
 	}
 
-	backend, appErr := a.FileBackend()
+	backend, appErr := s.FakeApp().FileBackend()
 	if appErr == nil {
 		appErr = backend.TestConnection()
 	}
@@ -130,20 +128,20 @@ func (s *Server) RunOldAppInitalization() error {
 	}
 
 	if model.BuildEnterpriseReady == "true" {
-		a.LoadLicense()
+		s.FakeApp().LoadLicense()
 	}
 
-	a.DoAdvancedPermissionsMigration()
-	a.DoEmojisPermissionsMigration()
+	s.FakeApp().DoAdvancedPermissionsMigration()
+	s.FakeApp().DoEmojisPermissionsMigration()
 
-	a.InitPostMetadata()
+	s.FakeApp().InitPostMetadata()
 
-	a.InitPlugins(*a.Config().PluginSettings.Directory, *a.Config().PluginSettings.ClientDirectory)
-	a.AddConfigListener(func(prevCfg, cfg *model.Config) {
+	s.FakeApp().InitPlugins(*s.Config().PluginSettings.Directory, *s.Config().PluginSettings.ClientDirectory)
+	s.FakeApp().AddConfigListener(func(prevCfg, cfg *model.Config) {
 		if *cfg.PluginSettings.Enable {
-			a.InitPlugins(*cfg.PluginSettings.Directory, *a.Config().PluginSettings.ClientDirectory)
+			s.FakeApp().InitPlugins(*cfg.PluginSettings.Directory, *s.Config().PluginSettings.ClientDirectory)
 		} else {
-			a.ShutDownPlugins()
+			s.FakeApp().ShutDownPlugins()
 		}
 	})
 
@@ -151,11 +149,10 @@ func (s *Server) RunOldAppInitalization() error {
 }
 
 func (s *Server) RunOldAppShutdown() {
-	a := s.FakeApp()
-	a.HubStop()
-	a.StopPushNotificationsHubWorkers()
-	a.ShutDownPlugins()
-	a.RemoveLicenseListener(s.licenseListenerId)
+	s.FakeApp().HubStop()
+	s.FakeApp().StopPushNotificationsHubWorkers()
+	s.FakeApp().ShutDownPlugins()
+	s.FakeApp().RemoveLicenseListener(s.licenseListenerId)
 	s.RemoveClusterLeaderChangedListener(s.clusterLeaderListenerId)
 }
 
