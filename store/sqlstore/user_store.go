@@ -1025,9 +1025,10 @@ func (us SqlUserStore) GetForLogin(loginId string, allowSignInWithUsername, allo
 	})
 }
 
-func (us SqlUserStore) VerifyEmail(userId string) store.StoreChannel {
+func (us SqlUserStore) VerifyEmail(userId, email string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		if _, err := us.GetMaster().Exec("UPDATE Users SET EmailVerified = true WHERE Id = :UserId", map[string]interface{}{"UserId": userId}); err != nil {
+		curTime := model.GetMillis()
+		if _, err := us.GetMaster().Exec("UPDATE Users SET Email = :email, EmailVerified = true, UpdateAt = :Time WHERE Id = :UserId", map[string]interface{}{"email": email, "Time": curTime, "UserId": userId}); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.VerifyEmail", "store.sql_user.verify_email.app_error", nil, "userId="+userId+", "+err.Error(), http.StatusInternalServerError)
 		}
 

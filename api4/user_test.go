@@ -1220,7 +1220,7 @@ func TestUpdateUserAuth(t *testing.T) {
 	user := th.CreateUser()
 
 	th.LinkUserToTeam(user, team)
-	store.Must(th.App.Srv.Store.User().VerifyEmail(user.Id))
+	store.Must(th.App.Srv.Store.User().VerifyEmail(user.Id, user.Email))
 
 	userAuth := &model.UserAuth{}
 	userAuth.AuthData = user.AuthData
@@ -1260,7 +1260,7 @@ func TestUpdateUserAuth(t *testing.T) {
 	// Regular user can not use endpoint
 	user2 := th.CreateUser()
 	th.LinkUserToTeam(user2, team)
-	store.Must(th.App.Srv.Store.User().VerifyEmail(user2.Id))
+	store.Must(th.App.Srv.Store.User().VerifyEmail(user2.Id, user2.Email))
 
 	th.SystemAdminClient.Login(user2.Email, "passwd1")
 
@@ -2220,11 +2220,12 @@ func TestVerifyUserEmail(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	user := model.User{Email: th.GenerateTestEmail(), Nickname: "Darth Vader", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
+	email := th.GenerateTestEmail()
+	user := model.User{Email: email, Nickname: "Darth Vader", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
 
 	ruser, _ := th.Client.CreateUser(&user)
 
-	token, err := th.App.CreateVerifyEmailToken(ruser.Id)
+	token, err := th.App.CreateVerifyEmailToken(ruser.Id, email)
 	if err != nil {
 		t.Fatal("Unable to create email verify token")
 	}

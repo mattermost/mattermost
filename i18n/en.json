@@ -2363,6 +2363,18 @@
     "translation": "Failed to send email change verification email successfully"
   },
   {
+    "id": "api.user.verify_email.link_expired.app_error",
+    "translation": "The email verification link has expired."
+  },
+  {
+    "id": "api.user.verify_email.token_parse.error",
+    "translation": "Failed to parse token data from email verification"
+  },
+  {
+    "id": "api.user.create_email_token.error",
+    "translation": "Failed to create token data for email verification"
+  },
+  {
     "id": "api.user.send_mfa_change_email.error",
     "translation": "Unable to send email notification for MFA change."
   },
