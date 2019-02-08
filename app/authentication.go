@@ -45,14 +45,14 @@ func (a *App) CheckPasswordAndAllCriteria(user *model.User, password string, mfa
 		return err
 	}
 
-	if err := a.CheckUserMfa(user, mfaToken); err != nil {
+	if err := a.checkUserPassword(user, password); err != nil {
 		if result := <-a.Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); result.Err != nil {
 			return result.Err
 		}
 		return err
 	}
 
-	if err := a.checkUserPassword(user, password); err != nil {
+	if err := a.CheckUserMfa(user, mfaToken); err != nil {
 		if result := <-a.Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); result.Err != nil {
 			return result.Err
 		}
