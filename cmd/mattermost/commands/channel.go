@@ -566,7 +566,7 @@ func searchChannelCmdF(command *cobra.Command, args []string) error {
 
 		var aErr *model.AppError
 		channel, aErr = a.GetChannelByName(args[1], team.Id, true)
-		if aErr != nil {
+		if aErr != nil || channel == nil {
 			CommandPrettyPrintln(fmt.Sprintf("Channel %s is not found in team %s", args[1], args[0]))
 			return nil
 		}
@@ -577,16 +577,16 @@ func searchChannelCmdF(command *cobra.Command, args []string) error {
 		}
 
 		for _, team := range teams {
-			channel, aErr = a.GetChannelByName(args[0], team.Id, true)
-			if channel != nil {
+			channel, _ = a.GetChannelByName(args[0], team.Id, true)
+			if channel != nil && channel.Name == args[0] {
 				break
 			}
 		}
-	}
 
-	if channel == nil {
-		CommandPrettyPrintln(fmt.Sprintf("Channel %s is not found in any team", args[0]))
-		return nil
+		if channel == nil {
+			CommandPrettyPrintln(fmt.Sprintf("Channel %s is not found in any team", args[0]))
+			return nil
+		}
 	}
 
 	if channel.DeleteAt > 0 {
