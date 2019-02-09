@@ -141,6 +141,38 @@ func (_m *TeamStore) GetAllPage(offset int, limit int) store.StoreChannel {
 	return r0
 }
 
+// GetAllPrivateTeamListing provides a mock function with given fields:
+func (_m *TeamStore) GetAllPrivateTeamListing() store.StoreChannel {
+	ret := _m.Called()
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func() store.StoreChannel); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
+// GetAllPrivateTeamPageListing provides a mock function with given fields: offset, limit
+func (_m *TeamStore) GetAllPrivateTeamPageListing(offset int, limit int) store.StoreChannel {
+	ret := _m.Called(offset, limit)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(int, int) store.StoreChannel); ok {
+		r0 = rf(offset, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // GetAllTeamListing provides a mock function with given fields:
 func (_m *TeamStore) GetAllTeamListing() store.StoreChannel {
 	ret := _m.Called()

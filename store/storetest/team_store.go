@@ -30,6 +30,8 @@ func TestTeamStore(t *testing.T, ss store.Store) {
 	t.Run("ByUserId", func(t *testing.T) { testTeamStoreByUserId(t, ss) })
 	t.Run("GetAllTeamListing", func(t *testing.T) { testGetAllTeamListing(t, ss) })
 	t.Run("GetAllTeamPageListing", func(t *testing.T) { testGetAllTeamPageListing(t, ss) })
+	t.Run("GetAllPrivateTeamListing", func(t *testing.T) { testGetAllPrivateTeamListing(t, ss) })
+	t.Run("GetAllPrivateTeamPageListing", func(t *testing.T) { testGetAllPrivateTeamPageListing(t, ss) })
 	t.Run("Delete", func(t *testing.T) { testDelete(t, ss) })
 	t.Run("TeamCount", func(t *testing.T) { testTeamCount(t, ss) })
 	t.Run("TeamMembers", func(t *testing.T) { testTeamMembers(t, ss) })
@@ -527,6 +529,144 @@ func testGetAllTeamPageListing(t *testing.T, ss store.Store) {
 		for _, team := range teams {
 			if !team.AllowOpenInvite {
 				t.Fatal("should have returned team with AllowOpenInvite as true")
+			}
+		}
+
+		if len(teams) > 1 {
+			t.Fatal("should have returned max of 1 team")
+		}
+	}
+}
+
+func testGetAllPrivateTeamListing(t *testing.T, ss store.Store) {
+	o1 := model.Team{}
+	o1.DisplayName = "DisplayName"
+	o1.Name = "z-z-z" + model.NewId() + "b"
+	o1.Email = MakeEmail()
+	o1.Type = model.TEAM_OPEN
+	o1.AllowOpenInvite = true
+	store.Must(ss.Team().Save(&o1))
+
+	o2 := model.Team{}
+	o2.DisplayName = "DisplayName"
+	o2.Name = "zz" + model.NewId() + "b"
+	o2.Email = MakeEmail()
+	o2.Type = model.TEAM_OPEN
+	store.Must(ss.Team().Save(&o2))
+
+	o3 := model.Team{}
+	o3.DisplayName = "DisplayName"
+	o3.Name = "z-z-z" + model.NewId() + "b"
+	o3.Email = MakeEmail()
+	o3.Type = model.TEAM_INVITE
+	o3.AllowOpenInvite = true
+	store.Must(ss.Team().Save(&o3))
+
+	o4 := model.Team{}
+	o4.DisplayName = "DisplayName"
+	o4.Name = "zz" + model.NewId() + "b"
+	o4.Email = MakeEmail()
+	o4.Type = model.TEAM_INVITE
+	store.Must(ss.Team().Save(&o4))
+
+	if r1 := <-ss.Team().GetAllPrivateTeamListing(); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		teams := r1.Data.([]*model.Team)
+
+		for _, team := range teams {
+			if team.AllowOpenInvite {
+				t.Fatal("should have returned team with AllowOpenInvite as false")
+			}
+		}
+
+		if len(teams) == 0 {
+			t.Fatal("failed team listing")
+		}
+	}
+}
+
+func testGetAllPrivateTeamPageListing(t *testing.T, ss store.Store) {
+	o1 := model.Team{}
+	o1.DisplayName = "DisplayName"
+	o1.Name = "z-z-z" + model.NewId() + "b"
+	o1.Email = MakeEmail()
+	o1.Type = model.TEAM_OPEN
+	o1.AllowOpenInvite = true
+	store.Must(ss.Team().Save(&o1))
+
+	o2 := model.Team{}
+	o2.DisplayName = "DisplayName"
+	o2.Name = "zz" + model.NewId() + "b"
+	o2.Email = MakeEmail()
+	o2.Type = model.TEAM_OPEN
+	o2.AllowOpenInvite = false
+	store.Must(ss.Team().Save(&o2))
+
+	o3 := model.Team{}
+	o3.DisplayName = "DisplayName"
+	o3.Name = "z-z-z" + model.NewId() + "b"
+	o3.Email = MakeEmail()
+	o3.Type = model.TEAM_INVITE
+	o3.AllowOpenInvite = true
+	store.Must(ss.Team().Save(&o3))
+
+	o4 := model.Team{}
+	o4.DisplayName = "DisplayName"
+	o4.Name = "zz" + model.NewId() + "b"
+	o4.Email = MakeEmail()
+	o4.Type = model.TEAM_INVITE
+	o4.AllowOpenInvite = false
+	store.Must(ss.Team().Save(&o4))
+
+	if r1 := <-ss.Team().GetAllPrivateTeamPageListing(0, 10); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		teams := r1.Data.([]*model.Team)
+
+		for _, team := range teams {
+			if team.AllowOpenInvite {
+				t.Fatal("should have returned team with AllowOpenInvite as false")
+			}
+		}
+
+		if len(teams) > 10 {
+			t.Fatal("should have returned max of 10 teams")
+		}
+	}
+
+	o5 := model.Team{}
+	o5.DisplayName = "DisplayName"
+	o5.Name = "z-z-z" + model.NewId() + "b"
+	o5.Email = MakeEmail()
+	o5.Type = model.TEAM_OPEN
+	o5.AllowOpenInvite = true
+	store.Must(ss.Team().Save(&o5))
+
+	if r1 := <-ss.Team().GetAllPrivateTeamPageListing(0, 4); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		teams := r1.Data.([]*model.Team)
+
+		for _, team := range teams {
+			if team.AllowOpenInvite {
+				t.Fatal("should have returned team with AllowOpenInvite as false")
+			}
+		}
+
+		if len(teams) > 4 {
+			t.Fatal("should have returned max of 4 teams")
+		}
+	}
+
+	if r1 := <-ss.Team().GetAllPrivateTeamPageListing(1, 1); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		teams := r1.Data.([]*model.Team)
+
+		for _, team := range teams {
+			if team.AllowOpenInvite {
+				t.Fatal("should have returned team with AllowOpenInvite as false")
 			}
 		}
 
