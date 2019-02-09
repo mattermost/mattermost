@@ -137,14 +137,14 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId string, actionRequ
 		upstreamURL = action.Integration.URL
 	}
 
-	clientTriggerId, _, err := upstreamRequest.GenerateTriggerId(a.AsymmetricSigningKey())
-	if err != nil {
-		return "", err
+	clientTriggerId, _, appErr := upstreamRequest.GenerateTriggerId(a.AsymmetricSigningKey())
+	if appErr != nil {
+		return "", appErr
 	}
 
-	resp, err := a.DoActionRequest(upstreamURL, upstreamRequest.ToJson())
-	if err != nil {
-		return "", err
+	resp, appErr := a.DoActionRequest(upstreamURL, upstreamRequest.ToJson())
+	if appErr != nil {
+		return "", appErr
 	}
 	defer resp.Body.Close()
 
@@ -162,8 +162,8 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId string, actionRequ
 		for _, key := range remove {
 			delete(response.Update.Props, key)
 		}
-		if _, err := a.UpdatePost(response.Update, false); err != nil {
-			return "", err
+		if _, appErr = a.UpdatePost(response.Update, false); appErr != nil {
+			return "", appErr
 		}
 	}
 
