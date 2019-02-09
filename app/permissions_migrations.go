@@ -118,12 +118,12 @@ func getEmojisPermissionsSplitMigration() permissionsMap {
 	return permissionsMap{
 		permissionTransformation{
 			On:     permissionExists(PERMISSION_MANAGE_EMOJIS),
-			Add:    []string{PERMISSION_CREATE_EMOJIS, PERMISSION_DELETE_EMOJIS, PERMISSION_MANAGE_EMOJIS},
+			Add:    []string{PERMISSION_CREATE_EMOJIS, PERMISSION_DELETE_EMOJIS},
 			Remove: []string{PERMISSION_MANAGE_EMOJIS},
 		},
 		permissionTransformation{
 			On:     permissionExists(PERMISSION_MANAGE_OTHERS_EMOJIS),
-			Add:    []string{PERMISSION_DELETE_OTHERS_EMOJIS, PERMISSION_MANAGE_OTHERS_EMOJIS},
+			Add:    []string{PERMISSION_DELETE_OTHERS_EMOJIS},
 			Remove: []string{PERMISSION_MANAGE_OTHERS_EMOJIS},
 		},
 	}
