@@ -1958,13 +1958,13 @@ func (_m *API) SearchChannels(teamId string, term string) ([]*model.Channel, *mo
 	return r0, r1
 }
 
-// SearchPostsInTeam provides a mock function with given fields: teamId, params
-func (_m *API) SearchPostsInTeam(teamId string, params *model.SearchParameter) (*model.PostList, *model.AppError) {
-	ret := _m.Called(teamId, params)
+// SearchPostsInTeam provides a mock function with given fields: teamId, paramsList
+func (_m *API) SearchPostsInTeam(teamId string, paramsList []*model.SearchParams) (*model.PostList, *model.AppError) {
+	ret := _m.Called(teamId, paramsList)
 
 	var r0 *model.PostList
-	if rf, ok := ret.Get(0).(func(string, *model.SearchParameter) *model.PostList); ok {
-		r0 = rf(teamId, params)
+	if rf, ok := ret.Get(0).(func(string, []*model.SearchParams) *model.PostList); ok {
+		r0 = rf(teamId, paramsList)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.PostList)
@@ -1972,8 +1972,8 @@ func (_m *API) SearchPostsInTeam(teamId string, params *model.SearchParameter) (
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, *model.SearchParameter) *model.AppError); ok {
-		r1 = rf(teamId, params)
+	if rf, ok := ret.Get(1).(func(string, []*model.SearchParams) *model.AppError); ok {
+		r1 = rf(teamId, paramsList)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

@@ -611,10 +611,6 @@ func TestPluginAPISearchPostsInTeam(t *testing.T) {
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
-	badMessage := "bad message"
-
-	trueValue := true
-
 	basicPostList := model.NewPostList()
 	basicPostList.AddPost(th.BasicPost)
 	basicPostList.AddOrder(th.BasicPost.Id)
@@ -622,56 +618,39 @@ func TestPluginAPISearchPostsInTeam(t *testing.T) {
 	testCases := []struct {
 		description   string
 		teamId        string
-		params        *model.SearchParameter
+		params        []*model.SearchParams
 		expectedPosts *model.PostList
-		expectError   bool
 	}{
 		{
-			"missing terms",
+			"nil params",
 			th.BasicTeam.Id,
-			&model.SearchParameter{},
 			nil,
-			true,
+			model.NewPostList(),
 		},
 		{
-			"missing IsOrSearch",
+			"empty params",
 			th.BasicTeam.Id,
-			&model.SearchParameter{
-				Terms: &th.BasicPost.Message,
-			},
-			nil,
-			true,
+			[]*model.SearchParams{},
+			model.NewPostList(),
 		},
 		{
 			"doesn't match any posts",
 			th.BasicTeam.Id,
-			&model.SearchParameter{
-				Terms:      &badMessage,
-				IsOrSearch: &trueValue,
-			},
+			model.ParseSearchParams("bad message", 0),
 			model.NewPostList(),
-			false,
 		},
 		{
 			"matched posts",
 			th.BasicTeam.Id,
-			&model.SearchParameter{
-				Terms:      &th.BasicPost.Message,
-				IsOrSearch: &trueValue,
-			},
+			model.ParseSearchParams(th.BasicPost.Message, 0),
 			basicPostList,
-			false,
 		},
 	}
 
 	for _, testCase := range testCases {
 		t.Run(testCase.description, func(t *testing.T) {
 			posts, err := api.SearchPostsInTeam(testCase.teamId, testCase.params)
-			if testCase.expectError {
-				assert.NotNil(t, err)
-			} else {
-				assert.Nil(t, err)
-			}
+			assert.Nil(t, err)
 			assert.Equal(t, testCase.expectedPosts, posts)
 		})
 	}
