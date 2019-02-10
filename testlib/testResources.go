@@ -1,3 +1,6 @@
+// Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
+// See License.txt for license information.
+
 package testlib
 
 import (
@@ -9,10 +12,6 @@ import (
 	"path"
 	"path/filepath"
 )
-
-type TestResources struct {
-	TempPath string
-}
 
 const (
 	resourceTypeFile = iota
@@ -46,6 +45,7 @@ func init() {
 	var srcPath string
 	var found bool
 
+	// Finding resources and setting full path to source to be used for further processing
 	for i, testResource := range testResourcesToSetup {
 		if testResource.resType == resourceTypeFile {
 			srcPath = fileutils.FindFile(testResource.src)
@@ -61,6 +61,8 @@ func init() {
 			}
 
 			testResourcesToSetup[i].src = srcPath
+		} else {
+			panic(fmt.Sprintf("Invalid resource type: %d", testResource.resType))
 		}
 	}
 }
@@ -73,8 +75,12 @@ func SetupTestResources() string {
 
 	var resourceDestInTemp string
 
+	// Setting up test resources in temp.
+	// Action in each resource tells whether it needs to be copied or just symlinked
+
 	for _, testResource := range testResourcesToSetup {
 		resourceDestInTemp = filepath.Join(tempDir, testResource.dest)
+
 		if testResource.action == actionCopy {
 			if testResource.resType == resourceTypeFile {
 				err = utils.CopyFile(testResource.src, resourceDestInTemp)
@@ -95,10 +101,13 @@ func SetupTestResources() string {
 					panic(fmt.Sprintf("failed to make dir %s: %s", destDir, err.Error()))
 				}
 			}
+
 			err = os.Symlink(testResource.src, resourceDestInTemp)
 			if err != nil {
 				panic("failed to symlink client/plugins directory to temp: " + err.Error())
 			}
+		} else {
+			panic(fmt.Sprintf("Invalid action: %d", testResource.action))
 		}
 
 	}

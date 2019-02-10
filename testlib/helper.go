@@ -5,6 +5,7 @@ package testlib
 
 import (
 	"flag"
+	"fmt"
 	"os"
 	"testing"
 
@@ -65,8 +66,18 @@ func (h *MainHelper) Main(m *testing.M) {
 	if err != nil {
 		panic("Failed to get current working directory: " + err.Error())
 	}
-	defer os.Chdir(prevDir)
-	os.Chdir(h.TestResourcePath)
+
+	err = os.Chdir(h.TestResourcePath)
+	if err != nil {
+		panic(fmt.Sprintf("Failed to set current working directory to %s: %s", h.TestResourcePath, err.Error()))
+	}
+
+	defer func() {
+		err := os.Chdir(prevDir)
+		if err != nil {
+			mlog.Error(fmt.Sprintf("Failed to set current working directory to %s: %s", prevDir, err.Error()))
+		}
+	}()
 
 	h.status = m.Run()
 }
