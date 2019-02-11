@@ -4,6 +4,9 @@
 package app
 
 import (
+	"testing"
+
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/store"
 )
 
@@ -54,6 +57,12 @@ func StartElasticsearch(s *Server) {
 
 func DisableConfigWatch(s *Server) {
 	s.disableConfigWatch = true
+}
+
+func SetLogProxy(tb testing.TB) Option {
+	return func(s *Server) {
+		s.Log = mlog.NewLogProxy(tb)
+	}
 }
 
 type AppOption func(a *App)

@@ -12,7 +12,7 @@ import (
 )
 
 func TestInvitePeopleProvider(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	enableEmailInvitations := *th.App.Config().ServiceSettings.EnableEmailInvitations
