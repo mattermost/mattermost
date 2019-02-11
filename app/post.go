@@ -23,6 +23,8 @@ import (
 	"golang.org/x/net/html/charset"
 )
 
+const MaxOpenGraphResponseSize = 1024 * 1024 * 50
+
 var linkWithTextRegex = regexp.MustCompile(`<([^<\|]+)\|([^>]+)>`)
 
 func (a *App) CreatePostAsUser(post *model.Post) (*model.Post, *model.AppError) {
@@ -730,7 +732,7 @@ func (a *App) GetOpenGraphMetadata(requestURL string) *opengraph.OpenGraph {
 	defer res.Body.Close()
 
 	contentType := res.Header.Get("Content-Type")
-	body := forceHTMLEncodingToUTF8(res.Body, contentType)
+	body := forceHTMLEncodingToUTF8(io.LimitReader(res.Body, MaxOpenGraphResponseSize), contentType)
 
 	if err := og.ProcessHTML(body); err != nil {
 		mlog.Error(fmt.Sprintf("GetOpenGraphMetadata processing failed for url=%v with err=%v", requestURL, err.Error()))
