@@ -19,7 +19,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/mattermost/mattermost-server/utils/testutils"
 )
@@ -1668,128 +1667,128 @@ func TestGetPostsAfter(t *testing.T) {
 	}
 }
 
-func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
-	th := Setup().InitBasic()
-	defer th.TearDown()
-	Client := th.Client
-	userId := th.BasicUser.Id
-	channelId := th.BasicChannel.Id
+// func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
+// 	th := Setup().InitBasic()
+// 	defer th.TearDown()
+// 	Client := th.Client
+// 	userId := th.BasicUser.Id
+// 	channelId := th.BasicChannel.Id
 
-	// 12 posts = 2 systems posts + 10 created posts below
-	post1 := th.CreatePost()
-	post2 := th.CreatePost()
-	post3 := th.CreatePost()
-	post4 := th.CreatePost()
-	th.CreatePost() // post5
-	post6 := th.CreatePost()
-	post7 := th.CreatePost()
-	post8 := th.CreatePost()
-	post9 := th.CreatePost()
-	post10 := th.CreatePost()
+// 	// 12 posts = 2 systems posts + 10 created posts below
+// 	post1 := th.CreatePost()
+// 	post2 := th.CreatePost()
+// 	post3 := th.CreatePost()
+// 	post4 := th.CreatePost()
+// 	th.CreatePost() // post5
+// 	post6 := th.CreatePost()
+// 	post7 := th.CreatePost()
+// 	post8 := th.CreatePost()
+// 	post9 := th.CreatePost()
+// 	post10 := th.CreatePost()
 
-	// All returned posts are all read by the user, since it's created by the user itself.
-	posts, resp := Client.GetPostsAroundLastUnread(userId, channelId, 20, 20)
-	CheckNoError(t, resp)
+// 	// All returned posts are all read by the user, since it's created by the user itself.
+// 	posts, resp := Client.GetPostsAroundLastUnread(userId, channelId, 20, 20)
+// 	CheckNoError(t, resp)
 
-	if len(posts.Order) != 12 {
-		t.Fatal("Should return 12 posts only since there's no unread post")
-	}
+// 	if len(posts.Order) != 12 {
+// 		t.Fatal("Should return 12 posts only since there's no unread post")
+// 	}
 
-	// Set channel member's last viewed to 0.
-	// All returned posts are latest posts as if all previous posts were already read by the user.
-	channelMember := store.Must(th.App.Srv.Store.Channel().GetMember(channelId, userId)).(*model.ChannelMember)
-	channelMember.LastViewedAt = 0
-	store.Must(th.App.Srv.Store.Channel().UpdateMember(channelMember))
-	th.App.Srv.Store.Post().InvalidateLastPostTimeCache(channelId)
+// 	// Set channel member's last viewed to 0.
+// 	// All returned posts are latest posts as if all previous posts were already read by the user.
+// 	channelMember := store.Must(th.App.Srv.Store.Channel().GetMember(channelId, userId)).(*model.ChannelMember)
+// 	channelMember.LastViewedAt = 0
+// 	store.Must(th.App.Srv.Store.Channel().UpdateMember(channelMember))
+// 	th.App.Srv.Store.Post().InvalidateLastPostTimeCache(channelId)
 
-	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 20, 20)
-	CheckNoError(t, resp)
+// 	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 20, 20)
+// 	CheckNoError(t, resp)
 
-	if len(posts.Order) != 12 {
-		t.Fatal("Should return 12 posts only since there's no unread post")
-	}
+// 	if len(posts.Order) != 12 {
+// 		t.Fatal("Should return 12 posts only since there's no unread post")
+// 	}
 
-	// Set channel member's last viewed before post1.
-	channelMember = store.Must(th.App.Srv.Store.Channel().GetMember(channelId, userId)).(*model.ChannelMember)
-	channelMember.LastViewedAt = post1.CreateAt - 1
-	store.Must(th.App.Srv.Store.Channel().UpdateMember(channelMember))
-	th.App.Srv.Store.Post().InvalidateLastPostTimeCache(channelId)
+// 	// Set channel member's last viewed before post1.
+// 	channelMember = store.Must(th.App.Srv.Store.Channel().GetMember(channelId, userId)).(*model.ChannelMember)
+// 	channelMember.LastViewedAt = post1.CreateAt - 1
+// 	store.Must(th.App.Srv.Store.Channel().UpdateMember(channelMember))
+// 	th.App.Srv.Store.Post().InvalidateLastPostTimeCache(channelId)
 
-	// get the first system post generated before the created posts above
-	posts, resp = Client.GetPostsBefore(th.BasicChannel.Id, post1.Id, 0, 2, "")
-	CheckNoError(t, resp)
-	systemPostId1 := posts.Order[1]
+// 	// get the first system post generated before the created posts above
+// 	posts, resp = Client.GetPostsBefore(th.BasicChannel.Id, post1.Id, 0, 2, "")
+// 	CheckNoError(t, resp)
+// 	systemPostId1 := posts.Order[1]
 
-	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 3, 3)
-	CheckNoError(t, resp)
+// 	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 3, 3)
+// 	CheckNoError(t, resp)
 
-	if len(posts.Order) != 5 || posts.Order[0] != post3.Id || posts.Order[4] != systemPostId1 {
-		t.Fatal("Should return 5 posts and match order")
-	}
-	if posts.NextPostId != post4.Id {
-		t.Fatal("should return post4.Id as NextPostId")
-	}
-	if posts.PrevPostId != "" {
-		t.Fatal("should return an empty PrevPostId")
-	}
+// 	if len(posts.Order) != 5 || posts.Order[0] != post3.Id || posts.Order[4] != systemPostId1 {
+// 		t.Fatal("Should return 5 posts and match order")
+// 	}
+// 	if posts.NextPostId != post4.Id {
+// 		t.Fatal("should return post4.Id as NextPostId")
+// 	}
+// 	if posts.PrevPostId != "" {
+// 		t.Fatal("should return an empty PrevPostId")
+// 	}
 
-	// Set channel member's last viewed before post6.
-	channelMember = store.Must(th.App.Srv.Store.Channel().GetMember(channelId, userId)).(*model.ChannelMember)
-	channelMember.LastViewedAt = post6.CreateAt - 1
-	store.Must(th.App.Srv.Store.Channel().UpdateMember(channelMember))
-	th.App.Srv.Store.Post().InvalidateLastPostTimeCache(channelId)
+// 	// Set channel member's last viewed before post6.
+// 	channelMember = store.Must(th.App.Srv.Store.Channel().GetMember(channelId, userId)).(*model.ChannelMember)
+// 	channelMember.LastViewedAt = post6.CreateAt - 1
+// 	store.Must(th.App.Srv.Store.Channel().UpdateMember(channelMember))
+// 	th.App.Srv.Store.Post().InvalidateLastPostTimeCache(channelId)
 
-	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 3, 3)
-	CheckNoError(t, resp)
+// 	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 3, 3)
+// 	CheckNoError(t, resp)
 
-	if len(posts.Order) != 6 || posts.Order[0] != post8.Id || posts.Order[5] != post3.Id {
-		t.Fatal("Should return 6 posts and match order")
-	}
-	if posts.NextPostId != post9.Id {
-		t.Fatal("should return post8.Id as NextPostId")
-	}
-	if posts.PrevPostId != post2.Id {
-		t.Fatal("should return post2.Id as PrevPostId")
-	}
+// 	if len(posts.Order) != 6 || posts.Order[0] != post8.Id || posts.Order[5] != post3.Id {
+// 		t.Fatal("Should return 6 posts and match order")
+// 	}
+// 	if posts.NextPostId != post9.Id {
+// 		t.Fatal("should return post8.Id as NextPostId")
+// 	}
+// 	if posts.PrevPostId != post2.Id {
+// 		t.Fatal("should return post2.Id as PrevPostId")
+// 	}
 
-	// Set channel member's last viewed before post10.
-	channelMember = store.Must(th.App.Srv.Store.Channel().GetMember(channelId, userId)).(*model.ChannelMember)
-	channelMember.LastViewedAt = post10.CreateAt - 1
-	store.Must(th.App.Srv.Store.Channel().UpdateMember(channelMember))
-	th.App.Srv.Store.Post().InvalidateLastPostTimeCache(channelId)
+// 	// Set channel member's last viewed before post10.
+// 	channelMember = store.Must(th.App.Srv.Store.Channel().GetMember(channelId, userId)).(*model.ChannelMember)
+// 	channelMember.LastViewedAt = post10.CreateAt - 1
+// 	store.Must(th.App.Srv.Store.Channel().UpdateMember(channelMember))
+// 	th.App.Srv.Store.Post().InvalidateLastPostTimeCache(channelId)
 
-	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 3, 3)
-	CheckNoError(t, resp)
+// 	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 3, 3)
+// 	CheckNoError(t, resp)
 
-	if len(posts.Order) != 4 || posts.Order[0] != post10.Id || posts.Order[3] != post7.Id {
-		t.Fatal("Should return 4 posts and match order")
-	}
-	if posts.NextPostId != "" {
-		t.Fatal("should return an empty NextPostId")
-	}
-	if posts.PrevPostId != post6.Id {
-		t.Fatal("should return post6.Id as PrevPostId")
-	}
+// 	if len(posts.Order) != 4 || posts.Order[0] != post10.Id || posts.Order[3] != post7.Id {
+// 		t.Fatal("Should return 4 posts and match order")
+// 	}
+// 	if posts.NextPostId != "" {
+// 		t.Fatal("should return an empty NextPostId")
+// 	}
+// 	if posts.PrevPostId != post6.Id {
+// 		t.Fatal("should return post6.Id as PrevPostId")
+// 	}
 
-	// Set channel member's last viewed equal to post10.
-	channelMember = store.Must(th.App.Srv.Store.Channel().GetMember(channelId, userId)).(*model.ChannelMember)
-	channelMember.LastViewedAt = post10.CreateAt
-	store.Must(th.App.Srv.Store.Channel().UpdateMember(channelMember))
-	th.App.Srv.Store.Post().InvalidateLastPostTimeCache(channelId)
+// 	// Set channel member's last viewed equal to post10.
+// 	channelMember = store.Must(th.App.Srv.Store.Channel().GetMember(channelId, userId)).(*model.ChannelMember)
+// 	channelMember.LastViewedAt = post10.CreateAt
+// 	store.Must(th.App.Srv.Store.Channel().UpdateMember(channelMember))
+// 	th.App.Srv.Store.Post().InvalidateLastPostTimeCache(channelId)
 
-	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 3, 3)
-	CheckNoError(t, resp)
+// 	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 3, 3)
+// 	CheckNoError(t, resp)
 
-	if len(posts.Order) != 3 || posts.Order[0] != post10.Id || posts.Order[2] != post8.Id {
-		t.Fatal("Should return 3 posts and match order")
-	}
-	if posts.NextPostId != "" {
-		t.Fatal("should return an empty NextPostId")
-	}
-	if posts.PrevPostId != post7.Id {
-		t.Fatal("should return post7.Id as PrevPostId")
-	}
-}
+// 	if len(posts.Order) != 3 || posts.Order[0] != post10.Id || posts.Order[2] != post8.Id {
+// 		t.Fatal("Should return 3 posts and match order")
+// 	}
+// 	if posts.NextPostId != "" {
+// 		t.Fatal("should return an empty NextPostId")
+// 	}
+// 	if posts.PrevPostId != post7.Id {
+// 		t.Fatal("should return post7.Id as PrevPostId")
+// 	}
+// }
 
 func TestGetPost(t *testing.T) {
 	th := Setup().InitBasic()
