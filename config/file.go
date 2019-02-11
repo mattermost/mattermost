@@ -23,8 +23,8 @@ var (
 	ErrReadOnlyConfiguration = errors.New("configuration is read-only")
 )
 
-// fileStore is a config store backed by a file such as config/config.json.
-type fileStore struct {
+// FileStore is a config store backed by a file such as config/config.json.
+type FileStore struct {
 	emitter
 
 	config               *model.Config
@@ -38,13 +38,13 @@ type fileStore struct {
 // NewFileStore creates a new instance of a config store backed by the given file path.
 //
 // If watch is true, any external changes to the file will force a reload.
-func NewFileStore(path string, watch bool) (fs *fileStore, err error) {
+func NewFileStore(path string, watch bool) (fs *FileStore, err error) {
 	resolvedPath, err := resolveConfigFilePath(path)
 	if err != nil {
 		return nil, err
 	}
 
-	fs = &fileStore{
+	fs = &FileStore{
 		path:  resolvedPath,
 		watch: watch,
 	}
@@ -91,7 +91,7 @@ func resolveConfigFilePath(path string) (string, error) {
 }
 
 // Get fetches the current, cached configuration.
-func (fs *fileStore) Get() *model.Config {
+func (fs *FileStore) Get() *model.Config {
 	fs.configLock.RLock()
 	defer fs.configLock.RUnlock()
 
@@ -99,7 +99,7 @@ func (fs *fileStore) Get() *model.Config {
 }
 
 // GetEnvironmentOverrides fetches the configuration fields overridden by environment variables.
-func (fs *fileStore) GetEnvironmentOverrides() map[string]interface{} {
+func (fs *FileStore) GetEnvironmentOverrides() map[string]interface{} {
 	fs.configLock.RLock()
 	defer fs.configLock.RUnlock()
 
@@ -107,7 +107,7 @@ func (fs *fileStore) GetEnvironmentOverrides() map[string]interface{} {
 }
 
 // Set replaces the current configuration in its entirety, without updating the backing store.
-func (fs *fileStore) Set(newCfg *model.Config) (*model.Config, error) {
+func (fs *FileStore) Set(newCfg *model.Config) (*model.Config, error) {
 	fs.configLock.Lock()
 	var unlockOnce sync.Once
 	defer unlockOnce.Do(fs.configLock.Unlock)
@@ -155,7 +155,7 @@ func (fs *fileStore) Set(newCfg *model.Config) (*model.Config, error) {
 }
 
 // persist writes the configuration to the configured file.
-func (fs *fileStore) persist(cfg *model.Config) error {
+func (fs *FileStore) persist(cfg *model.Config) error {
 	fs.stopWatcher()
 
 	b, err := marshalConfig(cfg)
@@ -178,7 +178,7 @@ func (fs *fileStore) persist(cfg *model.Config) error {
 }
 
 // Load updates the current configuration from the backing store.
-func (fs *fileStore) Load() (err error) {
+func (fs *FileStore) Load() (err error) {
 	var needsSave bool
 	var f io.ReadCloser
 
@@ -253,7 +253,7 @@ func (fs *fileStore) Load() (err error) {
 }
 
 // Save writes the current configuration to the backing store.
-func (fs *fileStore) Save() error {
+func (fs *FileStore) Save() error {
 	fs.configLock.RLock()
 	defer fs.configLock.RUnlock()
 
@@ -261,7 +261,7 @@ func (fs *fileStore) Save() error {
 }
 
 // startWatcher starts a watcher to monitor for external config file changes.
-func (fs *fileStore) startWatcher() error {
+func (fs *FileStore) startWatcher() error {
 	if fs.watcher != nil {
 		return nil
 	}
@@ -281,7 +281,7 @@ func (fs *fileStore) startWatcher() error {
 }
 
 // stopWatcher stops any previously started watcher.
-func (fs *fileStore) stopWatcher() {
+func (fs *FileStore) stopWatcher() {
 	if fs.watcher == nil {
 		return
 	}
@@ -293,12 +293,12 @@ func (fs *fileStore) stopWatcher() {
 }
 
 // String returns the path to the file backing the config.
-func (fs *fileStore) String() string {
+func (fs *FileStore) String() string {
 	return "file://" + fs.path
 }
 
 // Close cleans up resources associated with the store.
-func (fs *fileStore) Close() error {
+func (fs *FileStore) Close() error {
 	fs.stopWatcher()
 
 	return nil
