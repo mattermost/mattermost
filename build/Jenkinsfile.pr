@@ -137,7 +137,7 @@ pipeline {
                     withCredentials([string(credentialsId: 'CODECOV_TOKEN', variable: 'CODECOV')]) {
                         sh '''
                             cd /go/src/github.com/mattermost/mattermost-server
-                            bash <(curl -s https://codecov.io/bash) -t $CODECOV || echo 'Codecov failed to upload'
+                            curl -s https://codecov.io/bash | bash -s - -t $CODECOV || echo 'Codecov failed to upload'
                         '''
                     }
                 }
