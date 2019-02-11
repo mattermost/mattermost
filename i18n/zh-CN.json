@@ -1198,7 +1198,7 @@
   },
   {
     "id": "api.file.upload_file.large_image_detailed.app_error",
-    "translation": "{{.Filename}} dimensions ({{.Width}} by {{.Height}} pixels) exceed the limits"
+    "translation": "{{.Filename}} 的尺寸 ({{.Width}}x{{.Height}} 像素) 超过了限制"
   },
   {
     "id": "api.file.upload_file.multiple_channel_ids.app_error",
@@ -1298,7 +1298,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "marshal error"
+    "translation": "编码错误"
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
@@ -1450,11 +1450,11 @@
   },
   {
     "id": "api.post.deduplicate_create_post.failed_to_get",
-    "translation": "Failed to fetch original post after deduplicating a client repeating the same request."
+    "translation": "处理客户端发送同样请求时获取原始消息失败。"
   },
   {
     "id": "api.post.deduplicate_create_post.pending",
-    "translation": "Rejected post since another client is making the same request."
+    "translation": "由于另一个客户端发送同样的请求而拒绝消息。"
   },
   {
     "id": "api.post.disabled_all",
@@ -1496,7 +1496,7 @@
   },
   {
     "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "此频道为只读。只有拥有权限的成员可以发布消息。"
+    "translation": "此频道为只读。只有拥有权限的成员可以置顶或取消置顶消息。"
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
@@ -3496,7 +3496,7 @@
   },
   {
     "id": "ent.ldap.app_error",
-    "translation": "ldap interface was nil"
+    "translation": "ldap 接口为 nil"
   },
   {
     "id": "ent.ldap.create_fail",
@@ -3548,7 +3548,7 @@
   },
   {
     "id": "ent.ldap.syncronize.populate_syncables",
-    "translation": "error populating syncables"
+    "translation": "填充可同步数据出错"
   },
   {
     "id": "ent.ldap.syncronize.search_failure.app_error",
@@ -4552,19 +4552,19 @@
   },
   {
     "id": "model.group_syncable.group_id.app_error",
-    "translation": "无效的组成员的组 id 属性"
+    "translation": "无效的可同步组组 id 属性"
   },
   {
     "id": "model.group_syncable.syncable_id.app_error",
-    "translation": "invalid syncable id for group syncable"
+    "translation": "无效的可同步组 id"
   },
   {
     "id": "model.group_syncable.type.app_error",
-    "translation": "无效的组成员的组 id 属性"
+    "translation": "无效的可同步组类型属性"
   },
   {
     "id": "model.group_syncable.unmarshaljson.duplicate_type_identifier",
-    "translation": "type identifier already exists: perhaps json contains both 'team_id' and 'channel_id'"
+    "translation": "类型已存在：也许 json 同时拥有 'team_id' 以及 'channel_id'"
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -4636,27 +4636,27 @@
   },
   {
     "id": "model.link_metadata.is_valid.data.app_error",
-    "translation": "Link metadata data cannot be nil"
+    "translation": "连接元数据不能为 nil"
   },
   {
     "id": "model.link_metadata.is_valid.data_type.app_error",
-    "translation": "Link metadata data does not match the given type"
+    "translation": "连接元数据不复合置顶的类型"
   },
   {
     "id": "model.link_metadata.is_valid.id.app_error",
-    "translation": "Link metadata id invalid"
+    "translation": "无效的连接元数据 id"
   },
   {
     "id": "model.link_metadata.is_valid.timestamp.app_error",
-    "translation": "Link metadata timestamp must be nonzero and rounded to the nearest hour"
+    "translation": "连接元数据日期必须有效并且精确到小时"
   },
   {
     "id": "model.link_metadata.is_valid.type.app_error",
-    "translation": "Invalid link metadata type"
+    "translation": "无效的连接元数据类型"
   },
   {
     "id": "model.link_metadata.is_valid.url.app_error",
-    "translation": "Link metadata URL must be set"
+    "translation": "必须设定连接元数据网址"
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",
@@ -5664,19 +5664,19 @@
   },
   {
     "id": "store.sql_group.group_syncable_already_deleted",
-    "translation": "group syncable was already deleted"
+    "translation": "可同步组已被删除"
   },
   {
     "id": "store.sql_group.no_rows",
-    "translation": "no matching group found"
+    "translation": "未找到符合的组"
   },
   {
     "id": "store.sql_group.no_rows_changed",
-    "translation": "no rows changed"
+    "translation": "无数据更新"
   },
   {
     "id": "store.sql_group.nothing_to_update",
-    "translation": "nothing to update for group syncable"
+    "translation": "没有可更新的可同步组"
   },
   {
     "id": "store.sql_group.unique_constraint",
