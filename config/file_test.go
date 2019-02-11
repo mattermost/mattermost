@@ -357,7 +357,7 @@ func TestFileStoreSet(t *testing.T) {
 
 		_, err = fs.Set(newCfg)
 		if assert.Error(t, err) {
-			assert.Equal(t, err, config.ReadOnlyConfigurationError)
+			assert.Equal(t, err, config.ErrReadOnlyConfiguration)
 		}
 
 		assert.Equal(t, model.SERVICE_SETTINGS_DEFAULT_SITE_URL, *fs.Get().ServiceSettings.SiteURL)
