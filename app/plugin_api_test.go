@@ -658,15 +658,6 @@ func TestPluginAPIUpdateUserActive(t *testing.T) {
 
 	err = api.UpdateUserActive(th.BasicUser.Id, false)
 	require.Nil(t, err)
-<<<<<<< HEAD
-	if user, err = api.GetUser(th.BasicUser.Id); err != nil {
-		require.Equal(t, "nfke7th9e3bqmn1cg8d1f61o3r", err.Id)
-	}
-	require.Nil(t, err)
-	require.NotEqual(t, int64(0), user.DeleteAt)
-
-	err = api.UpdateUserActive(th.BasicUser.Id, true)
-=======
 	user, err = api.GetUser(th.BasicUser.Id)
 	require.Nil(t, err)
 	require.NotNil(t, user)
@@ -674,7 +665,6 @@ func TestPluginAPIUpdateUserActive(t *testing.T) {
 
 	err = api.UpdateUserActive(th.BasicUser.Id, true)
 	require.Nil(t, err)
->>>>>>> upstream/master
 	err = api.UpdateUserActive(th.BasicUser.Id, true)
 	require.Nil(t, err)
 	user, err = api.GetUser(th.BasicUser.Id)

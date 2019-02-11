@@ -170,49 +170,52 @@ func TestDeleteCommand(t *testing.T) {
 	})
 }
 
-//func TestModifyCommand(t *testing.T)  {
-//	th := Setup().InitBasic()
-//	defer th.TearDown()
-//
-//	config := th.Config()
-//	*config.ServiceSettings.EnableCommands = true
-//	th.SetConfig(config)
-//
-//	team := th.BasicTeam
-//	adminUser := th.TeamAdminUser
-//	user := th.BasicUser
-//
-//	testCases := []struct {
-//		Description string
-//		Args        []string
-//		ExpectedErr string
-//	}{
-//		{
-//			"nil error",
-//			[]string{"command", "modify", team.Name, "--trigger-word", "testcmd", "--url", "http://localhost:8000/my-slash-handler", "--creator", adminUser.Username},
-//			"",
-//		},
-//	}
-//
-//	for _, testCase := range testCases {
-//		t.Run(testCase.Description, func(t *testing.T) {
-//			actual, _ := th.RunCommandWithOutput(t, testCase.Args...)
-//
-//			cmds, _ := th.SystemAdminClient.ListCommands(team.Id, true)
-//
-//			if testCase.ExpectedErr == "" {
-//				if len(cmds) == 0 || cmds[0].Trigger != "testcmd" {
-//					t.Fatal("Failed to Modify command")
-//				}
-//				assert.Contains(t, string(actual), "PASS")
-//			} else {
-//				if len(cmds) > 1 {
-//					t.Fatal("Modified command that shouldn't have been modified")
-//				}
-//				assert.Contains(t, string(actual), testCase.ExpectedErr)
-//			}
-//		})
-//	}
-//
-//
-//}
+func TestModifyCommand(t *testing.T)  {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	team := th.BasicTeam
+	user := th.BasicUser
+	th.LinkUserToTeam(user, team)
+
+	originalCommand := &model.Command{
+		DisplayName: "dn_" + model.NewId(),
+		Method:      "G",
+		TeamId:      team.Id,
+		Username:    user.Username,
+		CreatorId:   user.Id,
+		Trigger:     "trigger_" + model.NewId(),
+		Description :"old description",
+		URL : "http://localhost:8000/modify-command",
+		IconURL : "original icon",
+		AutoComplete : false,
+	}
+	modifiedTitle := "modified title"
+	modifiedDescription := "modified description"
+	modifiedTrigger := "modified trigger"
+	modifiedURL := "http://localhost:8000/modified-command"
+	modifiedIcon := "modified icon"
+	modifiedUsername := "modified username"
+	modifiedCreator := "modified creator"
+
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_SLASH_COMMANDS.Id, model.TEAM_USER_ROLE_ID)
+
+	t.Run("original command", func(t *testing.T) {
+		command, err := th.App.CreateCommand(originalCommand)
+		require.Nil(t, err)
+
+		commands, err := th.App.ListTeamCommands(team.Id)
+		require.Nil(t, err)
+		assert.Equal(t, len(commands), 1)
+
+		th.CheckCommand(t, "command", "modify", command.Id, "--title","--description", modifiedDescription,
+			modifiedTitle,"--trigger-word",modifiedTrigger,"--url", modifiedURL, "--creator", modifiedCreator,
+			"--response-username", modifiedUsername, "--icon", modifiedIcon, "--autocomplete", "--post")
+
+		commands, err = th.App.ListTeamCommands(team.Id)
+		require.Nil(t, err)
+		modifiedCommand := commands[0]
+		assert.Equal(t, len(commands), 1)
+		assert.Equal(t,"modifiedtrigger", modifiedCommand.Trigger)
+	})
+
+}

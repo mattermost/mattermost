@@ -54,11 +54,11 @@ var CommandDeleteCmd = &cobra.Command{
 }
 
 var CommandModifyCmd = &cobra.Command{
-	Use:     "modify [commandID]",
+	Use:     "modify [commandID]", //"modify"
 	Short:   "Modify a slash command",
 	Long:    `Modify a slash command. Commands can be specified by command ID.`,
 	Example: `  command modify w16zb5tu3n1zkqo18goqry1je --title MyCommand --description "My Command Description" --trigger-word mycommand --url http://localhost:8000/my-slash-handler --creator myusername --response-username my-bot-username --icon http://localhost:8000/my-slash-handler-bot-icon.png --autocomplete --post`,
-	Args:    cobra.MinimumNArgs(1),
+	Args:    cobra.MinimumNArgs(1), //No min args
 	RunE:    modifyCommandCmdF,
 }
 
@@ -80,14 +80,12 @@ func init() {
 
 	CommandModifyCmd.Flags().String("title", "", "Command Title")
 	CommandModifyCmd.Flags().String("description", "", "Command Description")
-	CommandModifyCmd.Flags().String("trigger-word", "", "Command Trigger Word (required)")
-	CommandModifyCmd.Flags().String("url", "", "Command Callback URL (required)")
-	CommandModifyCmd.Flags().String("creator", "", "Command Creator's Username (required)")
+	CommandModifyCmd.Flags().String("trigger-word", "", "Command Trigger Word")
+	CommandModifyCmd.Flags().String("url", "", "Command Callback URL")
+	CommandModifyCmd.Flags().String("creator", "", "Command Creator's Username")
 	CommandModifyCmd.Flags().String("response-username", "", "Command Response Username")
 	CommandModifyCmd.Flags().String("icon", "", "Command Icon URL")
 	CommandModifyCmd.Flags().Bool("autocomplete", false, "Show Command in autocomplete list")
-	CommandModifyCmd.Flags().String("autocompleteDesc", "", "Short Command Description for autocomplete list")
-	CommandModifyCmd.Flags().String("autocompleteHint", "", "Command Arguments displayed as help in autocomplete list")
 	CommandModifyCmd.Flags().Bool("post", false, "Use POST method for Callback URL")
 
 	CommandCmd.AddCommand(
@@ -270,8 +268,8 @@ func modifyCommandCmdF(command *cobra.Command, args []string) error {
 	}
 	defer a.Shutdown()
 
-	originalCommand,err := a.GetCommand(args[0])
-	if err != nil{
+	originalCommand, err := a.GetCommand(args[0])
+	if err != nil {
 		return nil
 	}
 
@@ -300,8 +298,6 @@ func modifyCommandCmdF(command *cobra.Command, args []string) error {
 	responseUsername, _ := command.Flags().GetString("response-username")
 	icon, _ := command.Flags().GetString("icon")
 	autocomplete, _ := command.Flags().GetBool("autocomplete")
-	autocompleteDesc, _ := command.Flags().GetString("autocompleteDesc")
-	autocompleteHint, _ := command.Flags().GetString("autocompleteHint")
 	post, errp := command.Flags().GetBool("post")
 	method := "P"
 	if errp != nil || post == false {
@@ -309,26 +305,23 @@ func modifyCommandCmdF(command *cobra.Command, args []string) error {
 	}
 
 	modifiedCommand := &model.Command{
-		CreatorId:        user.Id,
-		TeamId:           team.Id,
-		Trigger:          trigger,
-		Method:           method,
-		Username:         responseUsername,
-		IconURL:          icon,
-		AutoComplete:     autocomplete,
-		AutoCompleteDesc: autocompleteDesc,
-		AutoCompleteHint: autocompleteHint,
-		DisplayName:      title,
-		Description:      description,
-		URL:              url,
+		Id:           args[0],
+		CreatorId:    creator,
+		Trigger:      trigger,
+		Method:       method,
+		Username:     responseUsername,
+		IconURL:      icon,
+		AutoComplete: autocomplete,
+		DisplayName:  title,
+		Description:  description,
+		URL:          url,
 	}
 
 	_, err = a.UpdateCommand(originalCommand, modifiedCommand)
-
 	if err != nil {
 		return err
 	}
+
 	return nil
 
 }
-
