@@ -174,6 +174,9 @@ type API interface {
 	// GetTeamMember returns a specific membership.
 	GetTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError)
 
+	// GetTeamMembersForUser returns team members for all teams a user is on
+	GetTeamMembersForUser(userId string, page int, perPage int) ([]*model.TeamMember, *model.AppError)
+
 	// UpdateTeamMemberRoles updates the role for a team membership.
 	UpdateTeamMemberRoles(teamId, userId, newRoles string) (*model.TeamMember, *model.AppError)
 
@@ -246,6 +249,9 @@ type API interface {
 	//
 	// Minimum server version: 5.6
 	GetChannelMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError)
+
+	// GetChannelMembersForUser gets channel membership for all users on a team that a user belongs
+	GetChannelMembersForUser(teamId, userId string, page, perPage int) (*model.ChannelMembers, *model.AppError)
 
 	// UpdateChannelMemberRoles updates a user's roles for a channel.
 	UpdateChannelMemberRoles(channelId, userId, newRoles string) (*model.ChannelMember, *model.AppError)
