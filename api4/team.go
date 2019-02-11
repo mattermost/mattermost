@@ -94,7 +94,7 @@ func getTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if (!team.AllowOpenInvite || team.Type != model.TEAM_OPEN) && !c.App.SessionHasPermissionToTeam(c.App.Session, team.Id, model.PERMISSION_VIEW_TEAM) {
+	if (!team.IsPublic || team.InviteId == "") && !c.App.SessionHasPermissionToTeam(c.App.Session, team.Id, model.PERMISSION_VIEW_TEAM) {
 		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
 		return
 	}
@@ -115,7 +115,7 @@ func getTeamByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if (!team.AllowOpenInvite || team.Type != model.TEAM_OPEN) && !c.App.SessionHasPermissionToTeam(c.App.Session, team.Id, model.PERMISSION_VIEW_TEAM) {
+	if (!team.IsPublic || team.InviteId == "") && !c.App.SessionHasPermissionToTeam(c.App.Session, team.Id, model.PERMISSION_VIEW_TEAM) {
 		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
 		return
 	}
@@ -752,7 +752,7 @@ func getInviteInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !(team.Type == model.TEAM_OPEN) {
+	if team.InviteId == "" {
 		c.Err = model.NewAppError("getInviteInfo", "api.team.get_invite_info.not_open_team", nil, "id="+c.Params.InviteId, http.StatusForbidden)
 		return
 	}
@@ -779,7 +779,7 @@ func getTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !c.App.SessionHasPermissionToTeam(c.App.Session, c.Params.TeamId, model.PERMISSION_VIEW_TEAM) &&
-		(team.Type != model.TEAM_OPEN || team.AllowOpenInvite) {
+		(team.InviteId == "" || team.IsPublic) {
 		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
 		return
 	}

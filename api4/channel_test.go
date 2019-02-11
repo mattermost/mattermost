@@ -2348,14 +2348,13 @@ func TestUpdateChannelScheme(t *testing.T) {
 	th.App.SetPhase2PermissionsMigrationStatus(true)
 
 	team, resp := th.SystemAdminClient.CreateTeam(&model.Team{
-		DisplayName:     "Name",
-		Description:     "Some description",
-		CompanyName:     "Some company name",
-		AllowOpenInvite: false,
-		InviteId:        "inviteid0",
-		Name:            "z-z-" + model.NewId() + "a",
-		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
-		Type:            model.TEAM_OPEN,
+		DisplayName: "Name",
+		Description: "Some description",
+		CompanyName: "Some company name",
+		IsPublic:    false,
+		InviteId:    "inviteid0",
+		Name:        "z-z-" + model.NewId() + "a",
+		Email:       "success+" + model.NewId() + "@simulator.amazonses.com",
 	})
 	CheckNoError(t, resp)
 

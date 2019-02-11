@@ -648,14 +648,13 @@ func testCreateGroupSyncable(t *testing.T, ss store.Store) {
 
 	// Create Team
 	t1 := &model.Team{
-		DisplayName:     "Name",
-		Description:     "Some description",
-		CompanyName:     "Some company name",
-		AllowOpenInvite: false,
-		InviteId:        "inviteid0",
-		Name:            "z-z-" + model.NewId() + "a",
-		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
-		Type:            model.TEAM_OPEN,
+		DisplayName: "Name",
+		Description: "Some description",
+		CompanyName: "Some company name",
+		IsPublic:    false,
+		InviteId:    "inviteid0",
+		Name:        "z-z-" + model.NewId() + "a",
+		Email:       "success+" + model.NewId() + "@simulator.amazonses.com",
 	}
 	res5 := <-ss.Team().Save(t1)
 	assert.Nil(t, res5.Err)
@@ -695,14 +694,13 @@ func testGetGroupSyncable(t *testing.T, ss store.Store) {
 
 	// Create Team
 	t1 := &model.Team{
-		DisplayName:     "Name",
-		Description:     "Some description",
-		CompanyName:     "Some company name",
-		AllowOpenInvite: false,
-		InviteId:        "inviteid0",
-		Name:            "z-z-" + model.NewId() + "a",
-		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
-		Type:            model.TEAM_OPEN,
+		DisplayName: "Name",
+		Description: "Some description",
+		CompanyName: "Some company name",
+		IsPublic:    false,
+		InviteId:    "inviteid0",
+		Name:        "z-z-" + model.NewId() + "a",
+		Email:       "success+" + model.NewId() + "@simulator.amazonses.com",
 	}
 	res2 := <-ss.Team().Save(t1)
 	assert.Nil(t, res2.Err)
@@ -754,14 +752,13 @@ func testGetAllGroupSyncablesByGroup(t *testing.T, ss store.Store) {
 	for i := 0; i < numGroupSyncables; i++ {
 		// Create Team
 		t1 := &model.Team{
-			DisplayName:     "Name",
-			Description:     "Some description",
-			CompanyName:     "Some company name",
-			AllowOpenInvite: false,
-			InviteId:        "inviteid0",
-			Name:            "z-z-" + model.NewId() + "a",
-			Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
-			Type:            model.TEAM_OPEN,
+			DisplayName: "Name",
+			Description: "Some description",
+			CompanyName: "Some company name",
+			IsPublic:    false,
+			InviteId:    "inviteid0",
+			Name:        "z-z-" + model.NewId() + "a",
+			Email:       "success+" + model.NewId() + "@simulator.amazonses.com",
 		}
 		res2 := <-ss.Team().Save(t1)
 		assert.Nil(t, res2.Err)
@@ -809,14 +806,13 @@ func testUpdateGroupSyncable(t *testing.T, ss store.Store) {
 
 	// Create Team
 	t1 := &model.Team{
-		DisplayName:     "Name",
-		Description:     "Some description",
-		CompanyName:     "Some company name",
-		AllowOpenInvite: false,
-		InviteId:        "inviteid0",
-		Name:            "z-z-" + model.NewId() + "a",
-		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
-		Type:            model.TEAM_OPEN,
+		DisplayName: "Name",
+		Description: "Some description",
+		CompanyName: "Some company name",
+		IsPublic:    false,
+		InviteId:    "inviteid0",
+		Name:        "z-z-" + model.NewId() + "a",
+		Email:       "success+" + model.NewId() + "@simulator.amazonses.com",
 	}
 	res5 := <-ss.Team().Save(t1)
 	assert.Nil(t, res5.Err)
@@ -909,14 +905,13 @@ func testDeleteGroupSyncable(t *testing.T, ss store.Store) {
 
 	// Create Team
 	t1 := &model.Team{
-		DisplayName:     "Name",
-		Description:     "Some description",
-		CompanyName:     "Some company name",
-		AllowOpenInvite: false,
-		InviteId:        "inviteid0",
-		Name:            "z-z-" + model.NewId() + "a",
-		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
-		Type:            model.TEAM_OPEN,
+		DisplayName: "Name",
+		Description: "Some description",
+		CompanyName: "Some company name",
+		IsPublic:    false,
+		InviteId:    "inviteid0",
+		Name:        "z-z-" + model.NewId() + "a",
+		Email:       "success+" + model.NewId() + "@simulator.amazonses.com",
 	}
 	res2 := <-ss.Team().Save(t1)
 	assert.Nil(t, res2.Err)
@@ -986,14 +981,13 @@ func testPendingAutoAddTeamMembers(t *testing.T, ss store.Store) {
 
 	// Create Team
 	team := &model.Team{
-		DisplayName:     "Name",
-		Description:     "Some description",
-		CompanyName:     "Some company name",
-		AllowOpenInvite: false,
-		InviteId:        "inviteid0",
-		Name:            "z-z-" + model.NewId() + "a",
-		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
-		Type:            model.TEAM_OPEN,
+		DisplayName: "Name",
+		Description: "Some description",
+		CompanyName: "Some company name",
+		IsPublic:    false,
+		InviteId:    "inviteid0",
+		Name:        "z-z-" + model.NewId() + "a",
+		Email:       "success+" + model.NewId() + "@simulator.amazonses.com",
 	}
 	res = <-ss.Team().Save(team)
 	assert.Nil(t, res.Err)

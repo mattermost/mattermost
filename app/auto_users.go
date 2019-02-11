@@ -38,7 +38,7 @@ func NewAutoUserCreator(a *App, client *model.Client4, team *model.Team) *AutoUs
 func (a *App) CreateBasicUser(client *model.Client4) *model.AppError {
 	found, _ := client.TeamExists(BTEST_TEAM_NAME, "")
 	if !found {
-		newteam := &model.Team{DisplayName: BTEST_TEAM_DISPLAY_NAME, Name: BTEST_TEAM_NAME, Email: BTEST_TEAM_EMAIL, Type: BTEST_TEAM_TYPE}
+		newteam := &model.Team{DisplayName: BTEST_TEAM_DISPLAY_NAME, Name: BTEST_TEAM_NAME, Email: BTEST_TEAM_EMAIL}
 		basicteam, resp := client.CreateTeam(newteam)
 		if resp.Error != nil {
 			return resp.Error

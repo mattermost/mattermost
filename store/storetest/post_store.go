@@ -1057,7 +1057,6 @@ func testUserCountsWithPostsByDay(t *testing.T, ss store.Store) {
 	t1.DisplayName = "DisplayName"
 	t1.Name = "zz" + model.NewId() + "b"
 	t1.Email = MakeEmail()
-	t1.Type = model.TEAM_OPEN
 	t1 = store.Must(ss.Team().Save(t1)).(*model.Team)
 
 	c1 := &model.Channel{}
@@ -1115,7 +1114,6 @@ func testPostCountsByDay(t *testing.T, ss store.Store) {
 	t1.DisplayName = "DisplayName"
 	t1.Name = "zz" + model.NewId() + "b"
 	t1.Email = MakeEmail()
-	t1.Type = model.TEAM_OPEN
 	t1 = store.Must(ss.Team().Save(t1)).(*model.Team)
 
 	c1 := &model.Channel{}
@@ -1854,7 +1852,6 @@ func testPostStoreGetParentsForExportAfter(t *testing.T, ss store.Store) {
 	t1.DisplayName = "Name"
 	t1.Name = model.NewId()
 	t1.Email = MakeEmail()
-	t1.Type = model.TEAM_OPEN
 	store.Must(ss.Team().Save(&t1))
 
 	c1 := model.Channel{}
@@ -1900,7 +1897,6 @@ func testPostStoreGetRepliesForExport(t *testing.T, ss store.Store) {
 	t1.DisplayName = "Name"
 	t1.Name = model.NewId()
 	t1.Email = MakeEmail()
-	t1.Type = model.TEAM_OPEN
 	store.Must(ss.Team().Save(&t1))
 
 	c1 := model.Channel{}

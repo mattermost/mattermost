@@ -74,7 +74,6 @@ func testComplianceExport(t *testing.T, ss store.Store) {
 	t1.DisplayName = "DisplayName"
 	t1.Name = "zz" + model.NewId() + "b"
 	t1.Email = MakeEmail()
-	t1.Type = model.TEAM_OPEN
 	t1 = store.Must(ss.Team().Save(t1)).(*model.Team)
 
 	u1 := &model.User{}
@@ -236,7 +235,6 @@ func testComplianceExportDirectMessages(t *testing.T, ss store.Store) {
 	t1.DisplayName = "DisplayName"
 	t1.Name = "zz" + model.NewId() + "b"
 	t1.Email = MakeEmail()
-	t1.Type = model.TEAM_OPEN
 	t1 = store.Must(ss.Team().Save(t1)).(*model.Team)
 
 	u1 := &model.User{}
@@ -333,7 +331,6 @@ func testMessageExportPublicChannel(t *testing.T, ss store.Store) {
 		DisplayName: "DisplayName",
 		Name:        "zz" + model.NewId() + "b",
 		Email:       MakeEmail(),
-		Type:        model.TEAM_OPEN,
 	}
 	team = store.Must(ss.Team().Save(team)).(*model.Team)
 
@@ -434,7 +431,6 @@ func testMessageExportPrivateChannel(t *testing.T, ss store.Store) {
 		DisplayName: "DisplayName",
 		Name:        "zz" + model.NewId() + "b",
 		Email:       MakeEmail(),
-		Type:        model.TEAM_OPEN,
 	}
 	team = store.Must(ss.Team().Save(team)).(*model.Team)
 
@@ -537,7 +533,6 @@ func testMessageExportDirectMessageChannel(t *testing.T, ss store.Store) {
 		DisplayName: "DisplayName",
 		Name:        "zz" + model.NewId() + "b",
 		Email:       MakeEmail(),
-		Type:        model.TEAM_OPEN,
 	}
 	team = store.Must(ss.Team().Save(team)).(*model.Team)
 
@@ -615,7 +610,6 @@ func testMessageExportGroupMessageChannel(t *testing.T, ss store.Store) {
 		DisplayName: "DisplayName",
 		Name:        "zz" + model.NewId() + "b",
 		Email:       MakeEmail(),
-		Type:        model.TEAM_OPEN,
 	}
 	team = store.Must(ss.Team().Save(team)).(*model.Team)
 

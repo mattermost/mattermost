@@ -125,7 +125,6 @@ func testGetAllFromTeam(t *testing.T, ss store.Store) {
 	team1.DisplayName = model.NewId()
 	team1.Name = model.NewId()
 	team1.Email = MakeEmail()
-	team1.Type = model.TEAM_OPEN
 
 	if err := (<-ss.Team().Save(&team1)).Err; err != nil {
 		t.Fatal("couldn't save team", err)
@@ -135,7 +134,6 @@ func testGetAllFromTeam(t *testing.T, ss store.Store) {
 	team2.DisplayName = model.NewId()
 	team2.Name = model.NewId()
 	team2.Email = MakeEmail()
-	team2.Type = model.TEAM_OPEN
 
 	if err := (<-ss.Team().Save(&team2)).Err; err != nil {
 		t.Fatal("couldn't save team", err)

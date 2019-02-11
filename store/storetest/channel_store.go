@@ -968,14 +968,12 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store) {
 	t1.DisplayName = "Name"
 	t1.Name = model.NewId()
 	t1.Email = MakeEmail()
-	t1.Type = model.TEAM_OPEN
 	store.Must(ss.Team().Save(&t1))
 
 	t2 := model.Team{}
 	t2.DisplayName = "Name2"
 	t2.Name = model.NewId()
 	t2.Email = MakeEmail()
-	t2.Type = model.TEAM_OPEN
 	store.Must(ss.Team().Save(&t2))
 
 	c1 := model.Channel{}
@@ -1381,7 +1379,6 @@ func testChannelStoreGetMembersForUser(t *testing.T, ss store.Store) {
 	t1.DisplayName = "Name"
 	t1.Name = model.NewId()
 	t1.Email = MakeEmail()
-	t1.Type = model.TEAM_OPEN
 	store.Must(ss.Team().Save(&t1))
 
 	o1 := model.Channel{}
@@ -2090,14 +2087,12 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 	t1.DisplayName = "Name"
 	t1.Name = model.NewId()
 	t1.Email = MakeEmail()
-	t1.Type = model.TEAM_OPEN
 	store.Must(ss.Team().Save(&t1))
 
 	t2 := model.Team{}
 	t2.DisplayName = "Name2"
 	t2.Name = model.NewId()
 	t2.Email = MakeEmail()
-	t2.Type = model.TEAM_OPEN
 	store.Must(ss.Team().Save(&t2))
 
 	o1 := model.Channel{
@@ -2965,7 +2960,6 @@ func testChannelStoreGetAllChannelsForExportAfter(t *testing.T, ss store.Store) 
 	t1.DisplayName = "Name"
 	t1.Name = model.NewId()
 	t1.Email = MakeEmail()
-	t1.Type = model.TEAM_OPEN
 	store.Must(ss.Team().Save(&t1))
 
 	c1 := model.Channel{}
@@ -2996,7 +2990,6 @@ func testChannelStoreGetChannelMembersForExport(t *testing.T, ss store.Store) {
 	t1.DisplayName = "Name"
 	t1.Name = model.NewId()
 	t1.Email = MakeEmail()
-	t1.Type = model.TEAM_OPEN
 	store.Must(ss.Team().Save(&t1))
 
 	c1 := model.Channel{}
@@ -3048,7 +3041,6 @@ func testChannelStoreRemoveAllDeactivatedMembers(t *testing.T, ss store.Store) {
 	t1.DisplayName = "Name"
 	t1.Name = model.NewId()
 	t1.Email = MakeEmail()
-	t1.Type = model.TEAM_OPEN
 	store.Must(ss.Team().Save(&t1))
 
 	c1 := model.Channel{}

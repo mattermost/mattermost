@@ -14,8 +14,6 @@ import (
 )
 
 const (
-	TEAM_OPEN                       = "O"
-	TEAM_INVITE                     = "I"
 	TEAM_ALLOWED_DOMAINS_MAX_LENGTH = 500
 	TEAM_COMPANY_NAME_MAX_LENGTH    = 64
 	TEAM_DESCRIPTION_MAX_LENGTH     = 255
@@ -34,22 +32,21 @@ type Team struct {
 	Name               string  `json:"name"`
 	Description        string  `json:"description"`
 	Email              string  `json:"email"`
-	Type               string  `json:"type"`
 	CompanyName        string  `json:"company_name"`
 	AllowedDomains     string  `json:"allowed_domains"`
 	InviteId           string  `json:"invite_id"`
-	AllowOpenInvite    bool    `json:"allow_open_invite"`
+	IsPublic           bool    `json:"is_public"`
 	LastTeamIconUpdate int64   `json:"last_team_icon_update,omitempty"`
 	SchemeId           *string `json:"scheme_id"`
 }
 
 type TeamPatch struct {
-	DisplayName     *string `json:"display_name"`
-	Description     *string `json:"description"`
-	CompanyName     *string `json:"company_name"`
-	AllowedDomains  *string `json:"allowed_domains"`
-	InviteId        *string `json:"invite_id"`
-	AllowOpenInvite *bool   `json:"allow_open_invite"`
+	DisplayName    *string `json:"display_name"`
+	Description    *string `json:"description"`
+	CompanyName    *string `json:"company_name"`
+	AllowedDomains *string `json:"allowed_domains"`
+	InviteId       *string `json:"invite_id"`
+	IsPublic       *bool   `json:"is_public"`
 }
 
 type TeamForExport struct {
@@ -159,10 +156,6 @@ func (o *Team) IsValid() *AppError {
 		return NewAppError("Team.IsValid", "model.team.is_valid.characters.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if !(o.Type == TEAM_OPEN || o.Type == TEAM_INVITE) {
-		return NewAppError("Team.IsValid", "model.team.is_valid.type.app_error", nil, "id="+o.Id, http.StatusBadRequest)
-	}
-
 	if len(o.CompanyName) > TEAM_COMPANY_NAME_MAX_LENGTH {
 		return NewAppError("Team.IsValid", "model.team.is_valid.company.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
@@ -181,10 +174,6 @@ func (o *Team) PreSave() {
 
 	o.CreateAt = GetMillis()
 	o.UpdateAt = o.CreateAt
-
-	if len(o.InviteId) == 0 {
-		o.InviteId = NewId()
-	}
 }
 
 func (o *Team) PreUpdate() {
@@ -270,8 +259,8 @@ func (t *Team) Patch(patch *TeamPatch) {
 		t.InviteId = *patch.InviteId
 	}
 
-	if patch.AllowOpenInvite != nil {
-		t.AllowOpenInvite = *patch.AllowOpenInvite
+	if patch.IsPublic != nil {
+		t.IsPublic = *patch.IsPublic
 	}
 }
 

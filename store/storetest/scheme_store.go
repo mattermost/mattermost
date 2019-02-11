@@ -382,7 +382,6 @@ func testSchemeStoreDelete(t *testing.T, ss store.Store) {
 		Name:        model.NewId(),
 		DisplayName: model.NewId(),
 		Email:       MakeEmail(),
-		Type:        model.TEAM_OPEN,
 		SchemeId:    &d4.Id,
 	}
 	tres4 := <-ss.Team().Save(t4)

@@ -333,7 +333,7 @@ func (s SqlTeamStore) SearchOpen(term string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var teams []*model.Team
 
-		if _, err := s.GetReplica().Select(&teams, "SELECT * FROM Teams WHERE Type = 'O' AND AllowOpenInvite = true AND (Name LIKE :Term OR DisplayName LIKE :Term)", map[string]interface{}{"Term": term + "%"}); err != nil {
+		if _, err := s.GetReplica().Select(&teams, "SELECT * FROM Teams WHERE IsPublic = true AND (Name LIKE :Term OR DisplayName LIKE :Term)", map[string]interface{}{"Term": term + "%"}); err != nil {
 			result.Err = model.NewAppError("SqlTeamStore.SearchOpen", "store.sql_team.search_open_team.app_error", nil, "term="+term+", "+err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -398,10 +398,10 @@ func (s SqlTeamStore) GetTeamsByUserId(userId string) store.StoreChannel {
 
 func (s SqlTeamStore) GetAllTeamListing() store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		query := "SELECT * FROM Teams WHERE AllowOpenInvite = 1"
+		query := "SELECT * FROM Teams WHERE IsPublic = 1"
 
 		if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-			query = "SELECT * FROM Teams WHERE AllowOpenInvite = true"
+			query = "SELECT * FROM Teams WHERE IsPublic = true"
 		}
 
 		var data []*model.Team
@@ -422,10 +422,10 @@ func (s SqlTeamStore) GetAllTeamListing() store.StoreChannel {
 
 func (s SqlTeamStore) GetAllTeamPageListing(offset int, limit int) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		query := "SELECT * FROM Teams WHERE AllowOpenInvite = 1 LIMIT :Limit OFFSET :Offset"
+		query := "SELECT * FROM Teams WHERE IsPublic = 1 LIMIT :Limit OFFSET :Offset"
 
 		if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-			query = "SELECT * FROM Teams WHERE AllowOpenInvite = true LIMIT :Limit OFFSET :Offset"
+			query = "SELECT * FROM Teams WHERE IsPublic = true LIMIT :Limit OFFSET :Offset"
 		}
 
 		var data []*model.Team

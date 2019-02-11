@@ -122,12 +122,6 @@ func validateTeamImportData(data *TeamImportData) *model.AppError {
 		return model.NewAppError("BulkImport", "app.import.validate_team_import_data.display_name_length.error", nil, "", http.StatusBadRequest)
 	}
 
-	if data.Type == nil {
-		return model.NewAppError("BulkImport", "app.import.validate_team_import_data.type_missing.error", nil, "", http.StatusBadRequest)
-	} else if *data.Type != model.TEAM_OPEN && *data.Type != model.TEAM_INVITE {
-		return model.NewAppError("BulkImport", "app.import.validate_team_import_data.type_invalid.error", nil, "", http.StatusBadRequest)
-	}
-
 	if data.Description != nil && len(*data.Description) > model.TEAM_DESCRIPTION_MAX_LENGTH {
 		return model.NewAppError("BulkImport", "app.import.validate_team_import_data.description_length.error", nil, "", http.StatusBadRequest)
 	}

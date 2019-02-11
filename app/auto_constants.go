@@ -14,7 +14,6 @@ const (
 	BTEST_TEAM_DISPLAY_NAME = "TestTeam"
 	BTEST_TEAM_NAME         = "z-z-testdomaina"
 	BTEST_TEAM_EMAIL        = "test@nowhere.com"
-	BTEST_TEAM_TYPE         = model.TEAM_OPEN
 	BTEST_USER_NAME         = "Mr. Testing Tester"
 	BTEST_USER_EMAIL        = "success+ttester@simulator.amazonses.com"
 	BTEST_USER_PASSWORD     = "passwd"

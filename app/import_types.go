@@ -21,12 +21,12 @@ type LineImportData struct {
 }
 
 type TeamImportData struct {
-	Name            *string `json:"name"`
-	DisplayName     *string `json:"display_name"`
-	Type            *string `json:"type"`
-	Description     *string `json:"description,omitempty"`
-	AllowOpenInvite *bool   `json:"allow_open_invite,omitempty"`
-	Scheme          *string `json:"scheme,omitempty"`
+	Name        *string `json:"name"`
+	DisplayName *string `json:"display_name"`
+	Type        *string `json:"type"`
+	Description *string `json:"description,omitempty"`
+	IsPublic    *bool   `json:"allow_open_invite,omitempty"`
+	Scheme      *string `json:"scheme,omitempty"`
 }
 
 type ChannelImportData struct {

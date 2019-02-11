@@ -150,14 +150,13 @@ func (a *App) ImportTeam(data *TeamImportData, dryRun bool) *model.AppError {
 
 	team.Name = *data.Name
 	team.DisplayName = *data.DisplayName
-	team.Type = *data.Type
 
 	if data.Description != nil {
 		team.Description = *data.Description
 	}
 
-	if data.AllowOpenInvite != nil {
-		team.AllowOpenInvite = *data.AllowOpenInvite
+	if data.IsPublic != nil {
+		team.IsPublic = *data.IsPublic
 	}
 
 	if data.Scheme != nil {

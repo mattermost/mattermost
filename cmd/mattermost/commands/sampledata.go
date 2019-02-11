@@ -492,24 +492,18 @@ func createChannelMembership(channelName string) app.UserChannelImportData {
 func createTeam(idx int) app.LineImportData {
 	displayName := fake.Word()
 	name := fmt.Sprintf("%s-%d", fake.Word(), idx)
-	allowOpenInvite := rand.Intn(2) == 0
+	isPublic := rand.Intn(2) == 0
 
 	description := fake.Paragraph()
 	if len(description) > 255 {
 		description = description[0:255]
 	}
 
-	teamType := "O"
-	if rand.Intn(2) == 0 {
-		teamType = "I"
-	}
-
 	team := app.TeamImportData{
-		DisplayName:     &displayName,
-		Name:            &name,
-		AllowOpenInvite: &allowOpenInvite,
-		Description:     &description,
-		Type:            &teamType,
+		DisplayName: &displayName,
+		Name:        &name,
+		IsPublic:    &isPublic,
+		Description: &description,
 	}
 	return app.LineImportData{
 		Type: "team",

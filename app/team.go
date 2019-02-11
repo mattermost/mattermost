@@ -118,7 +118,7 @@ func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 	oldTeam.DisplayName = team.DisplayName
 	oldTeam.Description = team.Description
 	oldTeam.InviteId = team.InviteId
-	oldTeam.AllowOpenInvite = team.AllowOpenInvite
+	oldTeam.IsPublic = team.IsPublic
 	oldTeam.CompanyName = team.CompanyName
 	oldTeam.AllowedDomains = team.AllowedDomains
 	oldTeam.LastTeamIconUpdate = team.LastTeamIconUpdate

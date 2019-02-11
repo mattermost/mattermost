@@ -97,6 +97,7 @@ func UpgradeDatabase(sqlStore SqlStore) {
 	UpgradeDatabaseToVersion57(sqlStore)
 	UpgradeDatabaseToVersion58(sqlStore)
 	UpgradeDatabaseToVersion59(sqlStore)
+	UpgradeDatabaseToVersion510(sqlStore)
 
 	// If the SchemaVersion is empty this this is the first time it has ran
 	// so lets set it to the current version.
@@ -572,5 +573,16 @@ func UpgradeDatabaseToVersion59(sqlStore SqlStore) {
 	// if shouldPerformUpgrade(sqlStore, VERSION_5_8_0, VERSION_5_9_0) {
 
 	// 	saveSchemaVersion(sqlStore, VERSION_5_9_0)
+	// }
+}
+
+func UpgradeDatabaseToVersion510(sqlStore SqlStore) {
+	// TODO: Uncomment following condition when version 5.10.0 is released
+	// if shouldPerformUpgrade(sqlStore, VERSION_5_9_0, VERSION_5_10_0) {
+	sqlStore.CreateColumnIfNotExists("Teams", "IsPublic", "boolean", "boolean", "0")
+	sqlStore.GetMaster().Exec("UPDATE Teams SET IsPublic=AllowOpenInvite")
+	sqlStore.GetMaster().Exec("UPDATE InviteId SET InviteId='' WHERE Type='I'")
+
+	// saveSchemaVersion(sqlStore, VERSION_5_10_0)
 	// }
 }

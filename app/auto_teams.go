@@ -54,7 +54,6 @@ func (cfg *AutoTeamCreator) createRandomTeam() (*model.Team, bool) {
 		DisplayName: teamDisplayName,
 		Name:        teamName,
 		Email:       teamEmail,
-		Type:        model.TEAM_OPEN,
 	}
 
 	createdTeam, err := cfg.client.CreateTeam(team)

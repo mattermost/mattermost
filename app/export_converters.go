@@ -13,12 +13,11 @@ func ImportLineFromTeam(team *model.TeamForExport) *LineImportData {
 	return &LineImportData{
 		Type: "team",
 		Team: &TeamImportData{
-			Name:            &team.Name,
-			DisplayName:     &team.DisplayName,
-			Type:            &team.Type,
-			Description:     &team.Description,
-			AllowOpenInvite: &team.AllowOpenInvite,
-			Scheme:          team.SchemeName,
+			Name:        &team.Name,
+			DisplayName: &team.DisplayName,
+			Description: &team.Description,
+			IsPublic:    &team.IsPublic,
+			Scheme:      team.SchemeName,
 		},
 	}
 }
@@ -30,7 +29,6 @@ func ImportLineFromChannel(channel *model.ChannelForExport) *LineImportData {
 			Team:        &channel.TeamName,
 			Name:        &channel.Name,
 			DisplayName: &channel.DisplayName,
-			Type:        &channel.Type,
 			Header:      &channel.Header,
 			Purpose:     &channel.Purpose,
 			Scheme:      channel.SchemeName,
