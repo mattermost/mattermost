@@ -135,10 +135,10 @@ pipeline {
                         """
                     }
                     withCredentials([string(credentialsId: 'CODECOV_TOKEN', variable: 'CODECOV')]) {
-                        sh """"
+                        sh '''
                             cd /go/src/github.com/mattermost/mattermost-server
-                            bash <(curl -s https://codecov.io/bash) -t $CODECOV
-                        """
+                            bash <(curl -s https://codecov.io/bash) -t $CODECOV || echo 'Codecov failed to upload'
+                        '''
                     }
                 }
             }
