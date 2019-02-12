@@ -356,7 +356,7 @@ func TestReadConfig_ImageProxySettings(t *testing.T) {
 	utils.TranslationsPreInit()
 
 	t.Run("deprecated settings should still be read properly", func(t *testing.T) {
-		config, _, err := ReadConfig(bytes.NewReader([]byte(`{
+		config, _, err := unmarshalConfig(bytes.NewReader([]byte(`{
 			"ServiceSettings": {
 				"ImageProxyType": "OldImageProxyType",
 				"ImageProxyURL": "OldImageProxyURL",
