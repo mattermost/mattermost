@@ -254,8 +254,8 @@ func (fs *FileStore) Load() (err error) {
 
 // Save writes the current configuration to the backing store.
 func (fs *FileStore) Save() error {
-	fs.configLock.RLock()
-	defer fs.configLock.RUnlock()
+	fs.configLock.Lock()
+	defer fs.configLock.Unlock()
 
 	return fs.persist(fs.config)
 }
@@ -299,6 +299,9 @@ func (fs *FileStore) String() string {
 
 // Close cleans up resources associated with the store.
 func (fs *FileStore) Close() error {
+	fs.configLock.Lock()
+	defer fs.configLock.Unlock()
+
 	fs.stopWatcher()
 
 	return nil
