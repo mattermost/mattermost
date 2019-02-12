@@ -110,8 +110,9 @@ func TestReadConfig_PluginSettings(t *testing.T) {
 		}, *config.PluginSettings.PluginStates["jira"])
 	}
 }
+
 func TestReadConfig_ImageProxySettings(t *testing.T) {
-	TranslationsPreInit()
+	utils.TranslationsPreInit()
 
 	t.Run("deprecated settings should still be read properly", func(t *testing.T) {
 		config, _, err := ReadConfig(bytes.NewReader([]byte(`{
