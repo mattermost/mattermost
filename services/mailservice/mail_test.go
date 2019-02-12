@@ -21,8 +21,10 @@ import (
 )
 
 func TestMailConnectionFromConfig(t *testing.T) {
-	cfg, _, _, err := config.LoadConfig("config.json")
+	fs, err := config.NewFileStore("config.json", false)
 	require.Nil(t, err)
+
+	cfg := fs.Get()
 
 	if conn, err := ConnectToSMTPServer(cfg); err != nil {
 		t.Log(err)
@@ -44,8 +46,10 @@ func TestMailConnectionFromConfig(t *testing.T) {
 }
 
 func TestMailConnectionAdvanced(t *testing.T) {
-	cfg, _, _, err := config.LoadConfig("config.json")
+	fs, err := config.NewFileStore("config.json", false)
 	require.Nil(t, err)
+
+	cfg := fs.Get()
 
 	if conn, err := ConnectToSMTPServerAdvanced(
 		&SmtpConnectionInfo{
@@ -94,9 +98,12 @@ func TestMailConnectionAdvanced(t *testing.T) {
 }
 
 func TestSendMailUsingConfig(t *testing.T) {
-	cfg, _, _, err := config.LoadConfig("config.json")
-	require.Nil(t, err)
 	utils.T = utils.GetUserTranslations("en")
+
+	fs, err := config.NewFileStore("config.json", false)
+	require.Nil(t, err)
+
+	cfg := fs.Get()
 
 	var emailTo = "test@example.com"
 	var emailSubject = "Testing this email"
@@ -136,9 +143,12 @@ func TestSendMailUsingConfig(t *testing.T) {
 }
 
 func TestSendMailUsingConfigAdvanced(t *testing.T) {
-	cfg, _, _, err := config.LoadConfig("config.json")
-	require.Nil(t, err)
 	utils.T = utils.GetUserTranslations("en")
+
+	fs, err := config.NewFileStore("config.json", false)
+	require.Nil(t, err)
+
+	cfg := fs.Get()
 
 	var mimeTo = "test@example.com"
 	var smtpTo = "test2@example.com"
