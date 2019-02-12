@@ -28,6 +28,15 @@ var CommandCreateCmd = &cobra.Command{
 	RunE:    createCommandCmdF,
 }
 
+var CommandShowCmd = &cobra.Command{
+	Use:     "show",
+	Short:   "Show a custom slash command",
+	Long:    `Show a custom slash command. Commands can be specified by command ID.`,
+	Args:    cobra.ExactArgs(1),
+	Example: `  command show commandID`,
+	RunE:    showCommandCmdF,
+}
+
 var CommandMoveCmd = &cobra.Command{
 	Use:     "move",
 	Short:   "Move a slash command to a different team",
@@ -71,6 +80,7 @@ func init() {
 
 	CommandCmd.AddCommand(
 		CommandCreateCmd,
+		CommandShowCmd,
 		CommandMoveCmd,
 		CommandListCmd,
 		CommandDeleteCmd,
@@ -148,6 +158,24 @@ func createCommandCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
+func showCommandCmdF(command *cobra.Command, args []string) error {
+	a, err := InitDBCommandContextCobra(command)
+	if err != nil {
+		return err
+	}
+	defer a.Shutdown()
+
+	slashCommand := getCommandFromCommandArg(a, args[0])
+	if slashCommand == nil {
+		command.SilenceUsage = true
+		return errors.New("Unable to find command '" + args[0] + "'")
+	}
+	// pretty print
+	fmt.Printf("%s", prettyPrintStruct(*slashCommand))
+
+	return nil
+}
+
 func moveCommandCmdF(command *cobra.Command, args []string) error {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
@@ -156,7 +184,7 @@ func moveCommandCmdF(command *cobra.Command, args []string) error {
 	defer a.Shutdown()
 
 	if len(args) < 2 {
-		return errors.New("Enter the destination team and at least one comamnd to move.")
+		return errors.New("Enter the destination team and at least one command to move.")
 	}
 
 	team := getTeamFromTeamArg(a, args[0])

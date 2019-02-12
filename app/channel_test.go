@@ -5,6 +5,7 @@ package app
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 	"testing"
 
@@ -20,8 +21,8 @@ func TestPermanentDeleteChannel(t *testing.T) {
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.ServiceSettings.EnableIncomingWebhooks = true
-		cfg.ServiceSettings.EnableOutgoingWebhooks = true
+		*cfg.ServiceSettings.EnableIncomingWebhooks = true
+		*cfg.ServiceSettings.EnableOutgoingWebhooks = true
 	})
 
 	channel, err := th.App.CreateChannel(&model.Channel{DisplayName: "deletion-test", Name: "deletion-test", Type: model.CHANNEL_OPEN, TeamId: th.BasicTeam.Id}, false)
@@ -57,9 +58,8 @@ func TestPermanentDeleteChannel(t *testing.T) {
 		t.Fatal("unable to get new outgoing webhook")
 	}
 
-	if err := th.App.PermanentDeleteChannel(channel); err != nil {
-		t.Fatal(err.Error())
-	}
+	err = th.App.PermanentDeleteChannel(channel)
+	require.Nil(t, err)
 
 	if incoming, err = th.App.GetIncomingWebhook(incoming.Id); incoming != nil || err == nil {
 		t.Error("incoming webhook wasn't deleted")
@@ -306,6 +306,9 @@ func TestCreateGroupChannelCreatesChannelMemberHistoryRecord(t *testing.T) {
 			assert.Equal(t, channel.Id, history.ChannelId)
 			channelMemberHistoryUserIds = append(channelMemberHistoryUserIds, history.UserId)
 		}
+
+		sort.Strings(groupUserIds)
+		sort.Strings(channelMemberHistoryUserIds)
 		assert.Equal(t, groupUserIds, channelMemberHistoryUserIds)
 	}
 }
@@ -790,7 +793,8 @@ func TestGetPublicChannelsForTeam(t *testing.T) {
 			Type:        model.CHANNEL_OPEN,
 			TeamId:      team.Id,
 		}
-		rchannel, err := th.App.CreateChannel(&channel, false)
+		var rchannel *model.Channel
+		rchannel, err = th.App.CreateChannel(&channel, false)
 		require.Nil(t, err)
 		require.NotNil(t, rchannel)
 		defer th.App.PermanentDeleteChannel(rchannel)

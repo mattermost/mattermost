@@ -664,7 +664,7 @@ func (a *App) ImportUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 		}
 
 		if member.ExplicitRoles != roles {
-			if _, err := a.UpdateTeamMemberRoles(team.Id, user.Id, roles); err != nil {
+			if _, err = a.UpdateTeamMemberRoles(team.Id, user.Id, roles); err != nil {
 				return err
 			}
 		}

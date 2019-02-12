@@ -9,5 +9,7 @@ branches:
   only:
     - master
 
-install:
-  - make deps
+install: true
+
+env:
+  - GO111MODULE=on # Enable Go modules in 1.11

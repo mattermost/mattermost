@@ -77,7 +77,7 @@ func (api *PluginAPI) GetSession(sessionId string) (*model.Session, *model.AppEr
 }
 
 func (api *PluginAPI) GetConfig() *model.Config {
-	return api.app.GetConfig()
+	return api.app.GetSanitizedConfig()
 }
 
 func (api *PluginAPI) SaveConfig(config *model.Config) *model.AppError {
@@ -85,7 +85,7 @@ func (api *PluginAPI) SaveConfig(config *model.Config) *model.AppError {
 }
 
 func (api *PluginAPI) GetPluginConfig() map[string]interface{} {
-	cfg := api.app.GetConfig()
+	cfg := api.app.GetSanitizedConfig()
 	if pluginConfig, isOk := cfg.PluginSettings.Plugins[api.manifest.Id]; isOk {
 		return pluginConfig
 	}
@@ -93,7 +93,7 @@ func (api *PluginAPI) GetPluginConfig() map[string]interface{} {
 }
 
 func (api *PluginAPI) SavePluginConfig(pluginConfig map[string]interface{}) *model.AppError {
-	cfg := api.app.GetConfig()
+	cfg := api.app.GetSanitizedConfig()
 	cfg.PluginSettings.Plugins[api.manifest.Id] = pluginConfig
 	return api.app.SaveConfig(cfg, true)
 }
@@ -177,6 +177,10 @@ func (api *PluginAPI) DeleteUser(userId string) *model.AppError {
 	}
 	_, err = api.app.UpdateActive(user, false)
 	return err
+}
+
+func (api *PluginAPI) GetUsers(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
+	return api.app.GetUsers(options)
 }
 
 func (api *PluginAPI) GetUser(userId string) (*model.User, *model.AppError) {
@@ -481,7 +485,7 @@ func (api *PluginAPI) GetFileInfo(fileId string) (*model.FileInfo, *model.AppErr
 }
 
 func (api *PluginAPI) GetFileLink(fileId string) (string, *model.AppError) {
-	if !api.app.Config().FileSettings.EnablePublicLink {
+	if !*api.app.Config().FileSettings.EnablePublicLink {
 		return "", model.NewAppError("GetFileLink", "plugin_api.get_file_link.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 

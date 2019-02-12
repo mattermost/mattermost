@@ -119,11 +119,11 @@ func ConnectToSMTPServerAdvanced(connectionInfo *SmtpConnectionInfo) (net.Conn, 
 func ConnectToSMTPServer(config *model.Config) (net.Conn, *model.AppError) {
 	return ConnectToSMTPServerAdvanced(
 		&SmtpConnectionInfo{
-			ConnectionSecurity:   config.EmailSettings.ConnectionSecurity,
+			ConnectionSecurity:   *config.EmailSettings.ConnectionSecurity,
 			SkipCertVerification: *config.EmailSettings.SkipServerCertificateVerification,
-			SmtpServerName:       config.EmailSettings.SMTPServer,
-			SmtpServerHost:       config.EmailSettings.SMTPServer,
-			SmtpPort:             config.EmailSettings.SMTPPort,
+			SmtpServerName:       *config.EmailSettings.SMTPServer,
+			SmtpServerHost:       *config.EmailSettings.SMTPServer,
+			SmtpPort:             *config.EmailSettings.SMTPPort,
 		},
 	)
 }
@@ -136,7 +136,7 @@ func NewSMTPClientAdvanced(conn net.Conn, hostname string, connectionInfo *SmtpC
 	}
 
 	if hostname != "" {
-		err := c.Hello(hostname)
+		err = c.Hello(hostname)
 		if err != nil {
 			mlog.Error(fmt.Sprintf("Failed to to set the HELO to SMTP server %v", err))
 			return nil, model.NewAppError("SendMail", "utils.mail.connect_smtp.helo.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -164,20 +164,20 @@ func NewSMTPClient(conn net.Conn, config *model.Config) (*smtp.Client, *model.Ap
 		conn,
 		utils.GetHostnameFromSiteURL(*config.ServiceSettings.SiteURL),
 		&SmtpConnectionInfo{
-			ConnectionSecurity:   config.EmailSettings.ConnectionSecurity,
+			ConnectionSecurity:   *config.EmailSettings.ConnectionSecurity,
 			SkipCertVerification: *config.EmailSettings.SkipServerCertificateVerification,
-			SmtpServerName:       config.EmailSettings.SMTPServer,
-			SmtpServerHost:       config.EmailSettings.SMTPServer,
-			SmtpPort:             config.EmailSettings.SMTPPort,
+			SmtpServerName:       *config.EmailSettings.SMTPServer,
+			SmtpServerHost:       *config.EmailSettings.SMTPServer,
+			SmtpPort:             *config.EmailSettings.SMTPPort,
 			Auth:                 *config.EmailSettings.EnableSMTPAuth,
-			SmtpUsername:         config.EmailSettings.SMTPUsername,
-			SmtpPassword:         config.EmailSettings.SMTPPassword,
+			SmtpUsername:         *config.EmailSettings.SMTPUsername,
+			SmtpPassword:         *config.EmailSettings.SMTPPassword,
 		},
 	)
 }
 
 func TestConnection(config *model.Config) {
-	if !config.EmailSettings.SendEmailNotifications {
+	if !*config.EmailSettings.SendEmailNotifications {
 		return
 	}
 
@@ -198,14 +198,15 @@ func TestConnection(config *model.Config) {
 }
 
 func SendMailUsingConfig(to, subject, htmlBody string, config *model.Config, enableComplianceFeatures bool) *model.AppError {
-	fromMail := mail.Address{Name: config.EmailSettings.FeedbackName, Address: config.EmailSettings.FeedbackEmail}
+	fromMail := mail.Address{Name: *config.EmailSettings.FeedbackName, Address: *config.EmailSettings.FeedbackEmail}
+	replyTo := mail.Address{Name: *config.EmailSettings.FeedbackName, Address: *config.EmailSettings.ReplyToAddress}
 
-	return SendMailUsingConfigAdvanced(to, to, fromMail, subject, htmlBody, nil, nil, config, enableComplianceFeatures)
+	return SendMailUsingConfigAdvanced(to, to, fromMail, replyTo, subject, htmlBody, nil, nil, config, enableComplianceFeatures)
 }
 
 // allows for sending an email with attachments and differing MIME/SMTP recipients
-func SendMailUsingConfigAdvanced(mimeTo, smtpTo string, from mail.Address, subject, htmlBody string, attachments []*model.FileInfo, mimeHeaders map[string]string, config *model.Config, enableComplianceFeatures bool) *model.AppError {
-	if !config.EmailSettings.SendEmailNotifications || len(config.EmailSettings.SMTPServer) == 0 {
+func SendMailUsingConfigAdvanced(mimeTo, smtpTo string, from, replyTo mail.Address, subject, htmlBody string, attachments []*model.FileInfo, mimeHeaders map[string]string, config *model.Config, enableComplianceFeatures bool) *model.AppError {
+	if !*config.EmailSettings.SendEmailNotifications || len(*config.EmailSettings.SMTPServer) == 0 {
 		return nil
 	}
 
@@ -227,10 +228,10 @@ func SendMailUsingConfigAdvanced(mimeTo, smtpTo string, from mail.Address, subje
 		return err
 	}
 
-	return SendMail(c, mimeTo, smtpTo, from, subject, htmlBody, attachments, mimeHeaders, fileBackend, time.Now())
+	return SendMail(c, mimeTo, smtpTo, from, replyTo, subject, htmlBody, attachments, mimeHeaders, fileBackend, time.Now())
 }
 
-func SendMail(c *smtp.Client, mimeTo, smtpTo string, from mail.Address, subject, htmlBody string, attachments []*model.FileInfo, mimeHeaders map[string]string, fileBackend filesstore.FileBackend, date time.Time) *model.AppError {
+func SendMail(c *smtp.Client, mimeTo, smtpTo string, from, replyTo mail.Address, subject, htmlBody string, attachments []*model.FileInfo, mimeHeaders map[string]string, fileBackend filesstore.FileBackend, date time.Time) *model.AppError {
 	mlog.Debug(fmt.Sprintf("sending mail to %v with subject of '%v'", smtpTo, subject))
 
 	htmlMessage := "\r\n<html><body>" + htmlBody + "</body></html>"
@@ -243,6 +244,7 @@ func SendMail(c *smtp.Client, mimeTo, smtpTo string, from mail.Address, subject,
 
 	headers := map[string][]string{
 		"From":                      {from.String()},
+		"Reply-To":                  {replyTo.String()},
 		"To":                        {mimeTo},
 		"Subject":                   {encodeRFC2047Word(subject)},
 		"Content-Transfer-Encoding": {"8bit"},
@@ -273,11 +275,11 @@ func SendMail(c *smtp.Client, mimeTo, smtpTo string, from mail.Address, subject,
 		}))
 	}
 
-	if err := c.Mail(from.Address); err != nil {
+	if err = c.Mail(from.Address); err != nil {
 		return model.NewAppError("SendMail", "utils.mail.send_mail.from_address.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	if err := c.Rcpt(smtpTo); err != nil {
+	if err = c.Rcpt(smtpTo); err != nil {
 		return model.NewAppError("SendMail", "utils.mail.send_mail.to_address.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 

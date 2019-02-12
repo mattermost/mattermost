@@ -25,7 +25,7 @@ const (
 )
 
 func (a *App) handleWebhookEvents(post *model.Post, team *model.Team, channel *model.Channel, user *model.User) *model.AppError {
-	if !a.Config().ServiceSettings.EnableOutgoingWebhooks {
+	if !*a.Config().ServiceSettings.EnableOutgoingWebhooks {
 		return nil
 	}
 
@@ -133,11 +133,11 @@ func (a *App) TriggerWebhook(payload *model.OutgoingWebhookPayload, hook *model.
 				if len(webhookResp.Attachments) > 0 {
 					webhookResp.Props["attachments"] = webhookResp.Attachments
 				}
-				if a.Config().ServiceSettings.EnablePostUsernameOverride && hook.Username != "" && webhookResp.Username == "" {
+				if *a.Config().ServiceSettings.EnablePostUsernameOverride && hook.Username != "" && webhookResp.Username == "" {
 					webhookResp.Username = hook.Username
 				}
 
-				if a.Config().ServiceSettings.EnablePostIconOverride && hook.IconURL != "" && webhookResp.IconURL == "" {
+				if *a.Config().ServiceSettings.EnablePostIconOverride && hook.IconURL != "" && webhookResp.IconURL == "" {
 					webhookResp.IconURL = hook.IconURL
 				}
 				if _, err := a.CreateWebhookPost(hook.CreatorId, channel, text, webhookResp.Username, webhookResp.IconURL, webhookResp.Props, webhookResp.Type, postRootId); err != nil {
@@ -264,7 +264,7 @@ func (a *App) CreateWebhookPost(userId string, channel *model.Channel, text, ove
 		metrics.IncrementWebhookPost()
 	}
 
-	if a.Config().ServiceSettings.EnablePostUsernameOverride {
+	if *a.Config().ServiceSettings.EnablePostUsernameOverride {
 		if len(overrideUsername) != 0 {
 			post.AddProp("override_username", overrideUsername)
 		} else {
@@ -272,7 +272,7 @@ func (a *App) CreateWebhookPost(userId string, channel *model.Channel, text, ove
 		}
 	}
 
-	if a.Config().ServiceSettings.EnablePostIconOverride {
+	if *a.Config().ServiceSettings.EnablePostIconOverride {
 		if len(overrideIconUrl) != 0 {
 			post.AddProp("override_icon_url", overrideIconUrl)
 		}
@@ -305,17 +305,17 @@ func (a *App) CreateWebhookPost(userId string, channel *model.Channel, text, ove
 }
 
 func (a *App) CreateIncomingWebhookForChannel(creatorId string, channel *model.Channel, hook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError) {
-	if !a.Config().ServiceSettings.EnableIncomingWebhooks {
+	if !*a.Config().ServiceSettings.EnableIncomingWebhooks {
 		return nil, model.NewAppError("CreateIncomingWebhookForChannel", "api.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	hook.UserId = creatorId
 	hook.TeamId = channel.TeamId
 
-	if !a.Config().ServiceSettings.EnablePostUsernameOverride {
+	if !*a.Config().ServiceSettings.EnablePostUsernameOverride {
 		hook.Username = ""
 	}
-	if !a.Config().ServiceSettings.EnablePostIconOverride {
+	if !*a.Config().ServiceSettings.EnablePostIconOverride {
 		hook.IconURL = ""
 	}
 
@@ -331,14 +331,14 @@ func (a *App) CreateIncomingWebhookForChannel(creatorId string, channel *model.C
 }
 
 func (a *App) UpdateIncomingWebhook(oldHook, updatedHook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError) {
-	if !a.Config().ServiceSettings.EnableIncomingWebhooks {
+	if !*a.Config().ServiceSettings.EnableIncomingWebhooks {
 		return nil, model.NewAppError("UpdateIncomingWebhook", "api.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if !a.Config().ServiceSettings.EnablePostUsernameOverride {
+	if !*a.Config().ServiceSettings.EnablePostUsernameOverride {
 		updatedHook.Username = oldHook.Username
 	}
-	if !a.Config().ServiceSettings.EnablePostIconOverride {
+	if !*a.Config().ServiceSettings.EnablePostIconOverride {
 		updatedHook.IconURL = oldHook.IconURL
 	}
 
@@ -362,7 +362,7 @@ func (a *App) UpdateIncomingWebhook(oldHook, updatedHook *model.IncomingWebhook)
 }
 
 func (a *App) DeleteIncomingWebhook(hookId string) *model.AppError {
-	if !a.Config().ServiceSettings.EnableIncomingWebhooks {
+	if !*a.Config().ServiceSettings.EnableIncomingWebhooks {
 		return model.NewAppError("DeleteIncomingWebhook", "api.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -376,7 +376,7 @@ func (a *App) DeleteIncomingWebhook(hookId string) *model.AppError {
 }
 
 func (a *App) GetIncomingWebhook(hookId string) (*model.IncomingWebhook, *model.AppError) {
-	if !a.Config().ServiceSettings.EnableIncomingWebhooks {
+	if !*a.Config().ServiceSettings.EnableIncomingWebhooks {
 		return nil, model.NewAppError("GetIncomingWebhook", "api.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -388,7 +388,7 @@ func (a *App) GetIncomingWebhook(hookId string) (*model.IncomingWebhook, *model.
 }
 
 func (a *App) GetIncomingWebhooksForTeamPage(teamId string, page, perPage int) ([]*model.IncomingWebhook, *model.AppError) {
-	if !a.Config().ServiceSettings.EnableIncomingWebhooks {
+	if !*a.Config().ServiceSettings.EnableIncomingWebhooks {
 		return nil, model.NewAppError("GetIncomingWebhooksForTeamPage", "api.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -400,7 +400,7 @@ func (a *App) GetIncomingWebhooksForTeamPage(teamId string, page, perPage int) (
 }
 
 func (a *App) GetIncomingWebhooksPage(page, perPage int) ([]*model.IncomingWebhook, *model.AppError) {
-	if !a.Config().ServiceSettings.EnableIncomingWebhooks {
+	if !*a.Config().ServiceSettings.EnableIncomingWebhooks {
 		return nil, model.NewAppError("GetIncomingWebhooksPage", "api.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -412,7 +412,7 @@ func (a *App) GetIncomingWebhooksPage(page, perPage int) ([]*model.IncomingWebho
 }
 
 func (a *App) CreateOutgoingWebhook(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError) {
-	if !a.Config().ServiceSettings.EnableOutgoingWebhooks {
+	if !*a.Config().ServiceSettings.EnableOutgoingWebhooks {
 		return nil, model.NewAppError("CreateOutgoingWebhook", "api.outgoing_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -460,7 +460,7 @@ func (a *App) CreateOutgoingWebhook(hook *model.OutgoingWebhook) (*model.Outgoin
 }
 
 func (a *App) UpdateOutgoingWebhook(oldHook, updatedHook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError) {
-	if !a.Config().ServiceSettings.EnableOutgoingWebhooks {
+	if !*a.Config().ServiceSettings.EnableOutgoingWebhooks {
 		return nil, model.NewAppError("UpdateOutgoingWebhook", "api.outgoing_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -511,7 +511,7 @@ func (a *App) UpdateOutgoingWebhook(oldHook, updatedHook *model.OutgoingWebhook)
 }
 
 func (a *App) GetOutgoingWebhook(hookId string) (*model.OutgoingWebhook, *model.AppError) {
-	if !a.Config().ServiceSettings.EnableOutgoingWebhooks {
+	if !*a.Config().ServiceSettings.EnableOutgoingWebhooks {
 		return nil, model.NewAppError("GetOutgoingWebhook", "api.outgoing_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -523,7 +523,7 @@ func (a *App) GetOutgoingWebhook(hookId string) (*model.OutgoingWebhook, *model.
 }
 
 func (a *App) GetOutgoingWebhooksPage(page, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
-	if !a.Config().ServiceSettings.EnableOutgoingWebhooks {
+	if !*a.Config().ServiceSettings.EnableOutgoingWebhooks {
 		return nil, model.NewAppError("GetOutgoingWebhooksPage", "api.outgoing_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -535,7 +535,7 @@ func (a *App) GetOutgoingWebhooksPage(page, perPage int) ([]*model.OutgoingWebho
 }
 
 func (a *App) GetOutgoingWebhooksForChannelPage(channelId string, page, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
-	if !a.Config().ServiceSettings.EnableOutgoingWebhooks {
+	if !*a.Config().ServiceSettings.EnableOutgoingWebhooks {
 		return nil, model.NewAppError("GetOutgoingWebhooksForChannelPage", "api.outgoing_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -547,7 +547,7 @@ func (a *App) GetOutgoingWebhooksForChannelPage(channelId string, page, perPage 
 }
 
 func (a *App) GetOutgoingWebhooksForTeamPage(teamId string, page, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
-	if !a.Config().ServiceSettings.EnableOutgoingWebhooks {
+	if !*a.Config().ServiceSettings.EnableOutgoingWebhooks {
 		return nil, model.NewAppError("GetOutgoingWebhooksForTeamPage", "api.outgoing_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -559,7 +559,7 @@ func (a *App) GetOutgoingWebhooksForTeamPage(teamId string, page, perPage int) (
 }
 
 func (a *App) DeleteOutgoingWebhook(hookId string) *model.AppError {
-	if !a.Config().ServiceSettings.EnableOutgoingWebhooks {
+	if !*a.Config().ServiceSettings.EnableOutgoingWebhooks {
 		return model.NewAppError("DeleteOutgoingWebhook", "api.outgoing_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -571,7 +571,7 @@ func (a *App) DeleteOutgoingWebhook(hookId string) *model.AppError {
 }
 
 func (a *App) RegenOutgoingWebhookToken(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError) {
-	if !a.Config().ServiceSettings.EnableOutgoingWebhooks {
+	if !*a.Config().ServiceSettings.EnableOutgoingWebhooks {
 		return nil, model.NewAppError("RegenOutgoingWebhookToken", "api.outgoing_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
@@ -585,7 +585,7 @@ func (a *App) RegenOutgoingWebhookToken(hook *model.OutgoingWebhook) (*model.Out
 }
 
 func (a *App) HandleIncomingWebhook(hookId string, req *model.IncomingWebhookRequest) *model.AppError {
-	if !a.Config().ServiceSettings.EnableIncomingWebhooks {
+	if !*a.Config().ServiceSettings.EnableIncomingWebhooks {
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 

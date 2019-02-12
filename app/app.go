@@ -14,6 +14,7 @@ import (
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/services/httpservice"
+	"github.com/mattermost/mattermost-server/services/imageproxy"
 	"github.com/mattermost/mattermost-server/services/timezones"
 	"github.com/mattermost/mattermost-server/utils"
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
@@ -43,6 +44,7 @@ type App struct {
 	Saml             einterfaces.SamlInterface
 
 	HTTPService httpservice.HTTPService
+	ImageProxy  *imageproxy.ImageProxy
 	Timezones   *timezones.Timezones
 }
 
@@ -87,6 +89,9 @@ func (s *Server) initJobs() {
 	}
 	if jobsMigrationsInterface != nil {
 		s.Jobs.Migrations = jobsMigrationsInterface(s.FakeApp())
+	}
+	if jobsPluginsInterface != nil {
+		s.Jobs.Plugins = jobsPluginsInterface(s.FakeApp())
 	}
 	s.Jobs.Workers = s.Jobs.InitWorkers()
 	s.Jobs.Schedulers = s.Jobs.InitSchedulers()

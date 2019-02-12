@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/mattermost/mattermost-server/mlog"
@@ -19,14 +20,17 @@ import (
 
 const LINK_CACHE_SIZE = 10000
 const LINK_CACHE_DURATION = 3600
+const MaxMetadataImageSize = MaxOpenGraphResponseSize
 
 var linkCache = utils.NewLru(LINK_CACHE_SIZE)
 
 func (a *App) InitPostMetadata() {
 	// Dump any cached links if the proxy settings have changed so image URLs can be updated
 	a.AddConfigListener(func(before, after *model.Config) {
-		if (before.ServiceSettings.ImageProxyType != after.ServiceSettings.ImageProxyType) ||
-			(before.ServiceSettings.ImageProxyURL != after.ServiceSettings.ImageProxyURL) {
+		if (before.ImageProxySettings.Enable != after.ImageProxySettings.Enable) ||
+			(before.ImageProxySettings.ImageProxyType != after.ImageProxySettings.ImageProxyType) ||
+			(before.ImageProxySettings.RemoteImageProxyURL != after.ImageProxySettings.RemoteImageProxyURL) ||
+			(before.ImageProxySettings.RemoteImageProxyOptions != after.ImageProxySettings.RemoteImageProxyOptions) {
 			linkCache.Purge()
 		}
 	})
@@ -39,7 +43,7 @@ func (a *App) PreparePostListForClient(originalList *model.PostList) *model.Post
 	}
 
 	for id, originalPost := range originalList.Posts {
-		post := a.PreparePostForClient(originalPost)
+		post := a.PreparePostForClient(originalPost, false)
 
 		list.Posts[id] = post
 	}
@@ -47,13 +51,13 @@ func (a *App) PreparePostListForClient(originalList *model.PostList) *model.Post
 	return list
 }
 
-func (a *App) PreparePostForClient(originalPost *model.Post) *model.Post {
+func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost bool) *model.Post {
 	post := originalPost.Clone()
 
 	// Proxy image links before constructing metadata so that requests go through the proxy
 	post = a.PostWithProxyAddedToImageURLs(post)
 
-	if !*a.Config().ExperimentalSettings.EnablePostMetadata {
+	if *a.Config().ExperimentalSettings.DisablePostMetadata {
 		return post
 	}
 
@@ -77,7 +81,7 @@ func (a *App) PreparePostForClient(originalPost *model.Post) *model.Post {
 	// Embeds and image dimensions
 	firstLink, images := getFirstLinkAndImages(post.Message)
 
-	if embed, err := a.getEmbedForPost(post, firstLink); err != nil {
+	if embed, err := a.getEmbedForPost(post, firstLink, isNewPost); err != nil {
 		mlog.Warn("Failed to get embedded content for a post", mlog.String("post_id", post.Id), mlog.Any("err", err))
 	} else if embed == nil {
 		post.Metadata.Embeds = []*model.PostEmbed{}
@@ -85,7 +89,7 @@ func (a *App) PreparePostForClient(originalPost *model.Post) *model.Post {
 		post.Metadata.Embeds = []*model.PostEmbed{embed}
 	}
 
-	post.Metadata.Images = a.getImagesForPost(post, images)
+	post.Metadata.Images = a.getImagesForPost(post, images, isNewPost)
 
 	return post
 }
@@ -116,7 +120,7 @@ func (a *App) getEmojisAndReactionsForPost(post *model.Post) ([]*model.Emoji, []
 	return emojis, reactions, nil
 }
 
-func (a *App) getEmbedForPost(post *model.Post, firstLink string) (*model.PostEmbed, error) {
+func (a *App) getEmbedForPost(post *model.Post, firstLink string, isNewPost bool) (*model.PostEmbed, error) {
 	if _, ok := post.Props["attachments"]; ok {
 		return &model.PostEmbed{
 			Type: model.POST_EMBED_MESSAGE_ATTACHMENT,
@@ -127,7 +131,7 @@ func (a *App) getEmbedForPost(post *model.Post, firstLink string) (*model.PostEm
 		return nil, nil
 	}
 
-	og, image, err := a.getLinkMetadata(firstLink, true)
+	og, image, err := a.getLinkMetadata(firstLink, post.CreateAt, isNewPost)
 	if err != nil {
 		return nil, err
 	}
@@ -151,7 +155,7 @@ func (a *App) getEmbedForPost(post *model.Post, firstLink string) (*model.PostEm
 	return nil, nil
 }
 
-func (a *App) getImagesForPost(post *model.Post, imageURLs []string) map[string]*model.PostImage {
+func (a *App) getImagesForPost(post *model.Post, imageURLs []string, isNewPost bool) map[string]*model.PostImage {
 	images := map[string]*model.PostImage{}
 
 	for _, embed := range post.Metadata.Embeds {
@@ -165,15 +169,26 @@ func (a *App) getImagesForPost(post *model.Post, imageURLs []string) map[string]
 
 		case model.POST_EMBED_OPENGRAPH:
 			for _, image := range embed.Data.(*opengraph.OpenGraph).Images {
+				var imageURL string
+				if image.SecureURL != "" {
+					imageURL = image.SecureURL
+				} else if image.URL != "" {
+					imageURL = image.URL
+				}
+
+				if imageURL == "" {
+					continue
+				}
+
 				if image.Width != 0 || image.Height != 0 {
 					// The site has already told us the image dimensions
-					images[image.URL] = &model.PostImage{
+					images[imageURL] = &model.PostImage{
 						Width:  int(image.Width),
 						Height: int(image.Height),
 					}
 				} else {
 					// The site did not specify its image dimensions
-					imageURLs = append(imageURLs, image.URL)
+					imageURLs = append(imageURLs, imageURL)
 				}
 			}
 		}
@@ -185,10 +200,10 @@ func (a *App) getImagesForPost(post *model.Post, imageURLs []string) map[string]
 	}
 
 	for _, imageURL := range imageURLs {
-		if _, image, err := a.getLinkMetadata(imageURL, true); err != nil {
+		if _, image, err := a.getLinkMetadata(imageURL, post.CreateAt, isNewPost); err != nil {
 			mlog.Warn("Failed to get dimensions of an image in a post",
 				mlog.String("post_id", post.Id), mlog.String("image_url", imageURL), mlog.Any("err", err))
-		} else {
+		} else if image != nil {
 			images[imageURL] = image
 		}
 	}
@@ -315,14 +330,23 @@ func getImagesInMessageAttachments(post *model.Post) []string {
 	return images
 }
 
-func (a *App) getLinkMetadata(requestURL string, useCache bool) (*opengraph.OpenGraph, *model.PostImage, error) {
+func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool) (*opengraph.OpenGraph, *model.PostImage, error) {
 	requestURL = resolveMetadataURL(requestURL, a.GetSiteURL())
 
-	// Check cache
-	if useCache {
-		og, image, ok := getLinkMetadataFromCache(requestURL)
+	timestamp = model.FloorToNearestHour(timestamp)
 
+	// Check cache
+	og, image, ok := getLinkMetadataFromCache(requestURL, timestamp)
+	if ok {
+		return og, image, nil
+	}
+
+	// Check the database if this isn't a new post. If it is a new post and the data is cached, it should be in memory.
+	if !isNewPost {
+		og, image, ok = a.getLinkMetadataFromDatabase(requestURL, timestamp)
 		if ok {
+			cacheLinkMetadata(requestURL, timestamp, og, image)
+
 			return og, image, nil
 		}
 	}
@@ -333,22 +357,40 @@ func (a *App) getLinkMetadata(requestURL string, useCache bool) (*opengraph.Open
 		return nil, nil, err
 	}
 
-	request.Header.Add("Accept", "text/html, image/*")
+	var body io.ReadCloser
+	var contentType string
 
-	res, err := a.HTTPService.MakeClient(false).Do(request)
-	if err != nil {
-		return nil, nil, err
+	if (request.URL.Scheme+"://"+request.URL.Host) == a.GetSiteURL() && request.URL.Path == "/api/v4/image" {
+		// /api/v4/image requires authentication, so bypass the API by hitting the proxy directly
+		body, contentType, err = a.ImageProxy.GetImageDirect(a.ImageProxy.GetUnproxiedImageURL(request.URL.String()))
+	} else {
+		request.Header.Add("Accept", "image/*, text/html")
+
+		client := a.HTTPService.MakeClient(false)
+		client.Timeout = time.Duration(*a.Config().ExperimentalSettings.LinkMetadataTimeoutMilliseconds) * time.Millisecond
+
+		var res *http.Response
+		res, err = client.Do(request)
+
+		if res != nil {
+			body = res.Body
+			contentType = res.Header.Get("Content-Type")
+		}
 	}
 
-	defer res.Body.Close()
-
-	// Parse the data
-	og, image, err := a.parseLinkMetadata(requestURL, res.Body, res.Header.Get("Content-Type"))
-
-	// Write back to cache
-	if useCache {
-		cacheLinkMetadata(requestURL, og, image)
+	if body != nil {
+		defer body.Close()
 	}
+
+	if err == nil {
+		// Parse the data
+		og, image, err = a.parseLinkMetadata(requestURL, body, contentType)
+	}
+
+	// Write back to cache and database, even if there was an error and the results are nil
+	cacheLinkMetadata(requestURL, timestamp, og, image)
+
+	a.saveLinkMetadataToDatabase(requestURL, timestamp, og, image)
 
 	return og, image, err
 }
@@ -368,8 +410,8 @@ func resolveMetadataURL(requestURL string, siteURL string) string {
 	return resolved.String()
 }
 
-func getLinkMetadataFromCache(requestURL string) (*opengraph.OpenGraph, *model.PostImage, bool) {
-	cached, ok := linkCache.Get(requestURL)
+func getLinkMetadataFromCache(requestURL string, timestamp int64) (*opengraph.OpenGraph, *model.PostImage, bool) {
+	cached, ok := linkCache.Get(model.GenerateLinkMetadataHash(requestURL, timestamp))
 	if !ok {
 		return nil, nil, false
 	}
@@ -384,7 +426,47 @@ func getLinkMetadataFromCache(requestURL string) (*opengraph.OpenGraph, *model.P
 	}
 }
 
-func cacheLinkMetadata(requestURL string, og *opengraph.OpenGraph, image *model.PostImage) {
+func (a *App) getLinkMetadataFromDatabase(requestURL string, timestamp int64) (*opengraph.OpenGraph, *model.PostImage, bool) {
+	result := <-a.Srv.Store.LinkMetadata().Get(requestURL, timestamp)
+	if result.Err != nil {
+		return nil, nil, false
+	}
+
+	data := result.Data.(*model.LinkMetadata).Data
+
+	switch v := data.(type) {
+	case *opengraph.OpenGraph:
+		return v, nil, true
+	case *model.PostImage:
+		return nil, v, true
+	default:
+		return nil, nil, true
+	}
+}
+
+func (a *App) saveLinkMetadataToDatabase(requestURL string, timestamp int64, og *opengraph.OpenGraph, image *model.PostImage) {
+	metadata := &model.LinkMetadata{
+		URL:       requestURL,
+		Timestamp: timestamp,
+	}
+
+	if og != nil {
+		metadata.Type = model.LINK_METADATA_TYPE_OPENGRAPH
+		metadata.Data = og
+	} else if image != nil {
+		metadata.Type = model.LINK_METADATA_TYPE_IMAGE
+		metadata.Data = image
+	} else {
+		metadata.Type = model.LINK_METADATA_TYPE_NONE
+	}
+
+	result := <-a.Srv.Store.LinkMetadata().Save(metadata)
+	if result.Err != nil {
+		mlog.Warn("Failed to write link metadata", mlog.String("request_url", requestURL), mlog.Err(result.Err))
+	}
+}
+
+func cacheLinkMetadata(requestURL string, timestamp int64, og *opengraph.OpenGraph, image *model.PostImage) {
 	var val interface{}
 	if og != nil {
 		val = og
@@ -392,12 +474,12 @@ func cacheLinkMetadata(requestURL string, og *opengraph.OpenGraph, image *model.
 		val = image
 	}
 
-	linkCache.AddWithExpiresInSecs(requestURL, val, LINK_CACHE_DURATION)
+	linkCache.AddWithExpiresInSecs(model.GenerateLinkMetadataHash(requestURL, timestamp), val, LINK_CACHE_DURATION)
 }
 
 func (a *App) parseLinkMetadata(requestURL string, body io.Reader, contentType string) (*opengraph.OpenGraph, *model.PostImage, error) {
 	if strings.HasPrefix(contentType, "image") {
-		image, err := parseImages(body)
+		image, err := parseImages(io.LimitReader(body, MaxMetadataImageSize))
 		return nil, image, err
 	} else if strings.HasPrefix(contentType, "text/html") {
 		og := a.ParseOpenGraphMetadata(requestURL, body, contentType)

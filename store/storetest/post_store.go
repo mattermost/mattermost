@@ -18,6 +18,7 @@ import (
 
 func TestPostStore(t *testing.T, ss store.Store) {
 	t.Run("Save", func(t *testing.T) { testPostStoreSave(t, ss) })
+	t.Run("SaveAndUpdateChannelMsgCounts", func(t *testing.T) { testPostStoreSaveChannelMsgCounts(t, ss) })
 	t.Run("Get", func(t *testing.T) { testPostStoreGet(t, ss) })
 	t.Run("GetSingle", func(t *testing.T) { testPostStoreGetSingle(t, ss) })
 	t.Run("GetEtagCache", func(t *testing.T) { testGetEtagCache(t, ss) })
@@ -61,6 +62,37 @@ func testPostStoreSave(t *testing.T, ss store.Store) {
 	if err := (<-ss.Post().Save(&o1)).Err; err == nil {
 		t.Fatal("shouldn't be able to update from save")
 	}
+}
+
+func testPostStoreSaveChannelMsgCounts(t *testing.T, ss store.Store) {
+	c1 := &model.Channel{Name: model.NewId(), DisplayName: "posttestchannel", Type: model.CHANNEL_OPEN}
+	res := <-ss.Channel().Save(c1, 1000000)
+	require.Nil(t, res.Err)
+
+	o1 := model.Post{}
+	o1.ChannelId = c1.Id
+	o1.UserId = model.NewId()
+	o1.Message = "zz" + model.NewId() + "b"
+
+	require.Nil(t, (<-ss.Post().Save(&o1)).Err)
+
+	res = <-ss.Channel().Get(c1.Id, false)
+	require.Nil(t, res.Err)
+	c1 = res.Data.(*model.Channel)
+	assert.Equal(t, int64(1), c1.TotalMsgCount, "Message count should update by 1")
+
+	o1.Id = ""
+	o1.Type = model.POST_ADD_TO_TEAM
+	require.Nil(t, (<-ss.Post().Save(&o1)).Err)
+
+	o1.Id = ""
+	o1.Type = model.POST_REMOVE_FROM_TEAM
+	require.Nil(t, (<-ss.Post().Save(&o1)).Err)
+
+	res = <-ss.Channel().Get(c1.Id, false)
+	require.Nil(t, res.Err)
+	c1 = res.Data.(*model.Channel)
+	assert.Equal(t, int64(1), c1.TotalMsgCount, "Message count should not update for team add/removed message")
 }
 
 func testPostStoreGet(t *testing.T, ss store.Store) {

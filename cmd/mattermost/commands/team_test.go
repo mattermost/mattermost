@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCreateTeam(t *testing.T) {
@@ -184,4 +185,23 @@ func TestArchiveTeams(t *testing.T) {
 	if !strings.Contains(string(output), name+" (archived)") {
 		t.Fatal("should have archived team")
 	}
+}
+
+func TestRestoreTeams(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	id := model.NewId()
+	name := "name" + id
+	displayName := "Name " + id
+
+	th.CheckCommand(t, "team", "create", "--name", name, "--display_name", displayName)
+
+	th.CheckCommand(t, "team", "archive", name)
+
+	th.CheckCommand(t, "team", "restore", name)
+
+	found := th.SystemAdminClient.Must(th.SystemAdminClient.TeamExists(name, "")).(bool)
+
+	require.True(t, found)
 }

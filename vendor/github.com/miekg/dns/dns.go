@@ -41,8 +41,23 @@ type RR interface {
 	// size will be returned and domain names will be added to the map for future compression.
 	len(off int, compression map[string]struct{}) int
 
-	// pack packs an RR into wire format.
-	pack(msg []byte, off int, compression compressionMap, compress bool) (headerEnd int, off1 int, err error)
+	// pack packs the records RDATA into wire format. The header will
+	// already have been packed into msg.
+	pack(msg []byte, off int, compression compressionMap, compress bool) (off1 int, err error)
+
+	// unpack unpacks an RR from wire format.
+	//
+	// This will only be called on a new and empty RR type with only the header populated. It
+	// will only be called if the record's RDATA is non-empty.
+	unpack(msg []byte, off int) (off1 int, err error)
+
+	// parse parses an RR from zone file format.
+	//
+	// This will only be called on a new and empty RR type with only the header populated.
+	parse(c *zlexer, origin, file string) *ParseError
+
+	// isDuplicate returns whether the two RRs are duplicates.
+	isDuplicate(r2 RR) bool
 }
 
 // RR_Header is the header all DNS resource records share.
@@ -81,6 +96,19 @@ func (h *RR_Header) len(off int, compression map[string]struct{}) int {
 	return l
 }
 
+func (h *RR_Header) pack(msg []byte, off int, compression compressionMap, compress bool) (off1 int, err error) {
+	// RR_Header has no RDATA to pack.
+	return off, nil
+}
+
+func (h *RR_Header) unpack(msg []byte, off int) (int, error) {
+	panic("dns: internal error: unpack should never be called on RR_Header")
+}
+
+func (h *RR_Header) parse(c *zlexer, origin, file string) *ParseError {
+	panic("dns: internal error: parse should never be called on RR_Header")
+}
+
 // ToRFC3597 converts a known RR to the unknown RR representation from RFC 3597.
 func (rr *RFC3597) ToRFC3597(r RR) error {
 	buf := make([]byte, Len(r)*2)
@@ -90,14 +118,17 @@ func (rr *RFC3597) ToRFC3597(r RR) error {
 	}
 	buf = buf[:off]
 
-	hdr := *r.Header()
-	hdr.Rdlength = uint16(off - headerEnd)
+	*rr = RFC3597{Hdr: *r.Header()}
+	rr.Hdr.Rdlength = uint16(off - headerEnd)
 
-	rfc3597, _, err := unpackRFC3597(hdr, buf, headerEnd)
+	if noRdata(rr.Hdr) {
+		return nil
+	}
+
+	_, err = rr.unpack(buf, headerEnd)
 	if err != nil {
 		return err
 	}
 
-	*rr = *rfc3597.(*RFC3597)
 	return nil
 }

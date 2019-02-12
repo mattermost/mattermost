@@ -11,7 +11,10 @@ pipeline {
         label 'default-mm-builder'
     }
 
-    options { buildDiscarder(logRotator(numToKeepStr: '3')) }
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '3'))
+        timeout(time: 1, unit: 'HOURS')
+    }
 
     environment {
         COMPOSE_PROJECT_NAME="${rnd}-${env.BUILD_NUMBER}"
@@ -42,7 +45,7 @@ pipeline {
                     ansiColor('xterm') {
                         sh """
                             #!/bin/bash -ex
-                            git checkout $env.BRANCH_NAME || git checkout $env.CHANGE_BRANCH || git checkout $env.GIT_BRANCH || git checkout master || echo 1
+                            git checkout $env.BRANCH_NAME || git checkout $env.CHANGE_BRANCH || git checkout $env.GIT_BRANCH || git checkout $env.CHANGE_TARGET || git checkout master || echo 1
                             export EE_GIT_COMMIT=\$(git rev-parse HEAD)
 
                             echo EE Commit: \${EE_GIT_COMMIT}
@@ -54,7 +57,7 @@ pipeline {
                         ansiColor('xterm') {
                             sh """
                                 #!/bin/bash -ex
-                                git checkout $env.BRANCH_NAME || git checkout $env.CHANGE_BRANCH || git checkout $env.GIT_BRANCH || git checkout master
+                                git checkout $env.BRANCH_NAME || git checkout $env.CHANGE_BRANCH || git checkout $env.GIT_BRANCH || git checkout $env.CHANGE_TARGET || git checkout master
                                 rm -rf ./dist
                                 export WEBAPP_GIT_COMMIT=\$(git rev-parse HEAD)
 
