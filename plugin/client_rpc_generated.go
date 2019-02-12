@@ -1995,11 +1995,11 @@ type Z_SearchPostsInTeamArgs struct {
 }
 
 type Z_SearchPostsInTeamReturns struct {
-	A *model.PostList
+	A []*model.Post
 	B *model.AppError
 }
 
-func (g *apiRPCClient) SearchPostsInTeam(teamId string, paramsList []*model.SearchParams) (*model.PostList, *model.AppError) {
+func (g *apiRPCClient) SearchPostsInTeam(teamId string, paramsList []*model.SearchParams) ([]*model.Post, *model.AppError) {
 	_args := &Z_SearchPostsInTeamArgs{teamId, paramsList}
 	_returns := &Z_SearchPostsInTeamReturns{}
 	if err := g.client.Call("Plugin.SearchPostsInTeam", _args, _returns); err != nil {
@@ -2010,7 +2010,7 @@ func (g *apiRPCClient) SearchPostsInTeam(teamId string, paramsList []*model.Sear
 
 func (s *apiRPCServer) SearchPostsInTeam(args *Z_SearchPostsInTeamArgs, returns *Z_SearchPostsInTeamReturns) error {
 	if hook, ok := s.impl.(interface {
-		SearchPostsInTeam(teamId string, paramsList []*model.SearchParams) (*model.PostList, *model.AppError)
+		SearchPostsInTeam(teamId string, paramsList []*model.SearchParams) ([]*model.Post, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.SearchPostsInTeam(args.A, args.B)
 	} else {
