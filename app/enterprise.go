@@ -120,7 +120,7 @@ func (s *Server) initEnterprise() {
 	if ldapInterface != nil {
 		s.Ldap = ldapInterface(s.FakeApp())
 		s.AddConfigListener(func(_, cfg *model.Config) {
-			if err := utils.ValidateLdapFilter(cfg, s.Ldap); err != nil {
+			if err := validateLdapFilter(cfg, s.Ldap); err != nil {
 				panic(utils.T(err.Id))
 			}
 		})

@@ -103,7 +103,7 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cfg := c.App.GetConfig()
+	cfg := c.App.GetSanitizedConfig()
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	w.Write([]byte(cfg.ToJson()))
@@ -134,12 +134,12 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Do not allow plugin uploads to be toggled through the API
-	cfg.PluginSettings.EnableUploads = c.App.GetConfig().PluginSettings.EnableUploads
+	cfg.PluginSettings.EnableUploads = c.App.Config().PluginSettings.EnableUploads
 
 	// If the Message Export feature has been toggled in the System Console, rewrite the ExportFromTimestamp field to an
 	// appropriate value. The rewriting occurs here to ensure it doesn't affect values written to the config file
 	// directly and not through the System Console UI.
-	if *cfg.MessageExportSettings.EnableExport != *c.App.GetConfig().MessageExportSettings.EnableExport {
+	if *cfg.MessageExportSettings.EnableExport != *c.App.Config().MessageExportSettings.EnableExport {
 		if *cfg.MessageExportSettings.EnableExport && *cfg.MessageExportSettings.ExportFromTimestamp == int64(0) {
 			// When the feature is toggled on, use the current timestamp as the start time for future exports.
 			cfg.MessageExportSettings.ExportFromTimestamp = model.NewInt64(model.GetMillis())
@@ -158,7 +158,7 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("updateConfig")
 
-	cfg = c.App.GetConfig()
+	cfg = c.App.GetSanitizedConfig()
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	w.Write([]byte(cfg.ToJson()))
@@ -477,8 +477,7 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 	m := make(map[string]string)
 	m["location"] = ""
 
-	cfg := c.App.GetConfig()
-	if !*cfg.ServiceSettings.EnableLinkPreviews {
+	if !*c.App.Config().ServiceSettings.EnableLinkPreviews {
 		w.Write([]byte(model.MapToJson(m)))
 		return
 	}

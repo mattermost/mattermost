@@ -18,6 +18,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mattermost/mattermost-server/config"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
@@ -63,13 +64,13 @@ func (a *App) UpdateConfig(f func(*model.Config)) {
 }
 
 func (a *App) PersistConfig() {
-	utils.SaveConfig(a.ConfigFileName(), a.Config())
+	config.SaveConfig(a.ConfigFileName(), a.Config())
 }
 
 func (s *Server) LoadConfig(configFile string) *model.AppError {
 	old := s.Config()
 
-	cfg, configPath, envConfig, err := utils.LoadConfig(configFile)
+	cfg, configPath, envConfig, err := config.LoadConfig(configFile)
 	if err != nil {
 		return err
 	}
@@ -117,7 +118,7 @@ func (a *App) LimitedClientConfig() map[string]string {
 
 func (s *Server) EnableConfigWatch() {
 	if s.configWatcher == nil && !s.disableConfigWatch {
-		configWatcher, err := utils.NewConfigWatcher(s.configFile, func() {
+		configWatcher, err := config.NewConfigWatcher(s.configFile, func() {
 			s.ReloadConfig()
 		})
 		if err != nil {
@@ -280,26 +281,28 @@ func (a *App) AsymmetricSigningKey() *ecdsa.PrivateKey {
 }
 
 func (a *App) regenerateClientConfig() {
-	a.Srv.clientConfig = utils.GenerateClientConfig(a.Config(), a.DiagnosticId(), a.License())
-	a.Srv.limitedClientConfig = utils.GenerateLimitedClientConfig(a.Config(), a.DiagnosticId(), a.License())
+	clientConfig := config.GenerateClientConfig(a.Config(), a.DiagnosticId(), a.License())
+	limitedClientConfig := config.GenerateLimitedClientConfig(a.Config(), a.DiagnosticId(), a.License())
 
-	if a.Srv.clientConfig["EnableCustomTermsOfService"] == "true" {
+	if clientConfig["EnableCustomTermsOfService"] == "true" {
 		termsOfService, err := a.GetLatestTermsOfService()
 		if err != nil {
 			mlog.Err(err)
 		} else {
-			a.Srv.clientConfig["CustomTermsOfServiceId"] = termsOfService.Id
-			a.Srv.limitedClientConfig["CustomTermsOfServiceId"] = termsOfService.Id
+			clientConfig["CustomTermsOfServiceId"] = termsOfService.Id
+			limitedClientConfig["CustomTermsOfServiceId"] = termsOfService.Id
 		}
 	}
 
 	if key := a.AsymmetricSigningKey(); key != nil {
 		der, _ := x509.MarshalPKIXPublicKey(&key.PublicKey)
-		a.Srv.clientConfig["AsymmetricSigningPublicKey"] = base64.StdEncoding.EncodeToString(der)
-		a.Srv.limitedClientConfig["AsymmetricSigningPublicKey"] = base64.StdEncoding.EncodeToString(der)
+		clientConfig["AsymmetricSigningPublicKey"] = base64.StdEncoding.EncodeToString(der)
+		limitedClientConfig["AsymmetricSigningPublicKey"] = base64.StdEncoding.EncodeToString(der)
 	}
 
-	clientConfigJSON, _ := json.Marshal(a.Srv.clientConfig)
+	clientConfigJSON, _ := json.Marshal(clientConfig)
+	a.Srv.clientConfig = clientConfig
+	a.Srv.limitedClientConfig = limitedClientConfig
 	a.Srv.clientConfigHash = fmt.Sprintf("%x", md5.Sum(clientConfigJSON))
 }
 

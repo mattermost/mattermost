@@ -45,14 +45,11 @@ func serverCmdF(command *cobra.Command, args []string) error {
 
 func runServer(configFileLocation string, disableConfigWatch bool, usedPlatform bool, interruptChan chan os.Signal) error {
 	options := []app.Option{
-		app.ConfigFile(configFileLocation),
+		app.ConfigFile(configFileLocation, !disableConfigWatch),
 		app.RunJobs,
 		app.JoinCluster,
 		app.StartElasticsearch,
 		app.StartMetrics,
-	}
-	if disableConfigWatch {
-		options = append(options, app.DisableConfigWatch)
 	}
 	server, err := app.NewServer(options...)
 	if err != nil {

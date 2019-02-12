@@ -14,6 +14,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
+	"github.com/mattermost/mattermost-server/config"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/mattermost/mattermost-server/utils/fileutils"
@@ -234,7 +235,7 @@ func configSetCmdF(command *cobra.Command, args []string) error {
 		return err
 	}
 
-	if err := utils.ValidateLocales(app.Config()); err != nil {
+	if err := config.ValidateLocales(app.Config()); err != nil {
 		return errors.New("Invalid locale configuration")
 	}
 
