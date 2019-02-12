@@ -598,6 +598,44 @@ func TestFileStoreWatcherEmitter(t *testing.T) {
 	})
 }
 
+func TestFileStoreSave(t *testing.T) {
+	path, tearDown := setupConfigFile(t, minimalConfig)
+	defer tearDown()
+
+	fs, err := config.NewFileStore(path, true)
+	require.NoError(t, err)
+	defer fs.Close()
+
+	newCfg := &model.Config{
+		ServiceSettings: model.ServiceSettings{
+			SiteURL: sToP("http://new"),
+		},
+	}
+
+	t.Run("set without save", func(t *testing.T) {
+		_, err = fs.Set(newCfg)
+		require.NoError(t, err)
+
+		err = fs.Load()
+		require.NoError(t, err)
+
+		assert.Equal(t, "http://minimal", *fs.Get().ServiceSettings.SiteURL)
+	})
+
+	t.Run("set with save", func(t *testing.T) {
+		_, err = fs.Set(newCfg)
+		require.NoError(t, err)
+
+		err = fs.Save()
+		require.NoError(t, err)
+
+		err = fs.Load()
+		require.NoError(t, err)
+
+		assert.Equal(t, "http://new", *fs.Get().ServiceSettings.SiteURL)
+	})
+}
+
 func TestFileStoreString(t *testing.T) {
 	path, tearDown := setupConfigFile(t, emptyConfig)
 	defer tearDown()
