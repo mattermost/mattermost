@@ -123,7 +123,7 @@ var SearchChannelCmd = &cobra.Command{
 Channel can be specified by team. ie. --team myTeam myChannel or by team ID.`,
 	Example: `  channel search myChannel
   channel search --team myTeam myChannel`,
-	Args: cobra.MinimumNArgs(1),
+	Args: cobra.ExactArgs(1),
 	RunE: searchChannelCmdF,
 }
 
@@ -145,7 +145,7 @@ func init() {
 	ModifyChannelCmd.Flags().String("username", "", "Required. Username who changes the channel privacy.")
 
 	ChannelRenameCmd.Flags().String("display_name", "", "Channel Display Name")
-	SearchChannelCmd.Flags().Bool("team", false, "Team name or ID")
+	SearchChannelCmd.Flags().String("team", "", "Team name or ID")
 
 	RemoveChannelUsersCmd.Flags().Bool("all-users", false, "Remove all users from the indicated channel.")
 
@@ -557,17 +557,17 @@ func searchChannelCmdF(command *cobra.Command, args []string) error {
 
 	var channel *model.Channel
 
-	if withTeam, _ := command.Flags().GetBool("team"); withTeam {
-		team := getTeamFromTeamArg(a, args[0])
+	if teamArg, _ := command.Flags().GetString("team"); teamArg != "" {
+		team := getTeamFromTeamArg(a, teamArg)
 		if team == nil {
-			CommandPrettyPrintln(fmt.Sprintf("Team %s is not found", args[0]))
+			CommandPrettyPrintln(fmt.Sprintf("Team %s is not found", teamArg))
 			return nil
 		}
 
 		var aErr *model.AppError
-		channel, aErr = a.GetChannelByName(args[1], team.Id, true)
+		channel, aErr = a.GetChannelByName(args[0], team.Id, true)
 		if aErr != nil || channel == nil {
-			CommandPrettyPrintln(fmt.Sprintf("Channel %s is not found in team %s", args[1], args[0]))
+			CommandPrettyPrintln(fmt.Sprintf("Channel %s is not found in team %s", args[0], teamArg))
 			return nil
 		}
 	} else {

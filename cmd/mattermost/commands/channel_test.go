@@ -181,6 +181,16 @@ func Test_searchChannelCmdF(t *testing.T) {
 			[]string{"channel", "search", "--team", channel.TeamId + "404", channel.Name},
 			fmt.Sprintf("Team %s is not found", channel.TeamId+"404"),
 		},
+		{
+			"Success find Channel with param team ID",
+			[]string{"channel", "search", channel.Name, "--team", channel.TeamId},
+			fmt.Sprintf("Channel Name :%s, Display Name :%s, Channel ID :%s", channel.Name, channel.DisplayName, channel.Id),
+		},
+		{
+			"Success find Channel with param team ID",
+			[]string{"channel", "search", channel.Name, "--team=" + channel.TeamId},
+			fmt.Sprintf("Channel Name :%s, Display Name :%s, Channel ID :%s", channel.Name, channel.DisplayName, channel.Id),
+		},
 	}
 
 	for _, test := range tests {
