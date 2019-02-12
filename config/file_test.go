@@ -79,7 +79,7 @@ func init() {
 	}
 	testConfig = &model.Config{
 		ServiceSettings: model.ServiceSettings{
-			SiteURL: sToP("http://TestFileStoreNew"),
+			SiteURL: sToP("http://TestStoreNew"),
 		},
 	}
 }
@@ -110,6 +110,7 @@ func assertFileEqualsConfig(t *testing.T, expectedCfg *model.Config, path string
 	require.Nil(t, err)
 
 	// These fields require special initialization for our tests.
+	expectedCfg = expectedCfg.Clone()
 	expectedCfg.MessageExportSettings.GlobalRelaySettings = &model.GlobalRelayMessageExportSettings{}
 	expectedCfg.PluginSettings.Plugins = make(map[string]map[string]interface{})
 	expectedCfg.PluginSettings.PluginStates = make(map[string]*model.PluginState)
@@ -126,6 +127,7 @@ func assertFileNotEqualsConfig(t *testing.T, expectedCfg *model.Config, path str
 	require.Nil(t, err)
 
 	// These fields require special initialization for our tests.
+	expectedCfg = expectedCfg.Clone()
 	expectedCfg.MessageExportSettings.GlobalRelaySettings = &model.GlobalRelayMessageExportSettings{}
 	expectedCfg.PluginSettings.Plugins = make(map[string]map[string]interface{})
 	expectedCfg.PluginSettings.PluginStates = make(map[string]*model.PluginState)
@@ -147,7 +149,7 @@ func TestFileStoreNew(t *testing.T) {
 		require.NoError(t, err)
 		defer fs.Close()
 
-		assert.Equal(t, "http://TestFileStoreNew", *fs.Get().ServiceSettings.SiteURL)
+		assert.Equal(t, "http://TestStoreNew", *fs.Get().ServiceSettings.SiteURL)
 		assertFileNotEqualsConfig(t, testConfig, path)
 	})
 
@@ -205,7 +207,7 @@ func TestFileStoreNew(t *testing.T) {
 		require.NoError(t, err)
 		defer fs.Close()
 
-		assert.Equal(t, "http://TestFileStoreNew", *fs.Get().ServiceSettings.SiteURL)
+		assert.Equal(t, "http://TestStoreNew", *fs.Get().ServiceSettings.SiteURL)
 		assertFileNotEqualsConfig(t, testConfig, path)
 	})
 
@@ -235,10 +237,10 @@ func TestFileStoreGet(t *testing.T) {
 	defer fs.Close()
 
 	cfg := fs.Get()
-	assert.Equal(t, "http://TestFileStoreNew", *cfg.ServiceSettings.SiteURL)
+	assert.Equal(t, "http://TestStoreNew", *cfg.ServiceSettings.SiteURL)
 
 	cfg2 := fs.Get()
-	assert.Equal(t, "http://TestFileStoreNew", *cfg.ServiceSettings.SiteURL)
+	assert.Equal(t, "http://TestStoreNew", *cfg.ServiceSettings.SiteURL)
 
 	assert.True(t, cfg == cfg2, "Get() returned different configuration instances")
 
@@ -257,7 +259,7 @@ func TestFileStoreGetEnivironmentOverrides(t *testing.T) {
 	require.NoError(t, err)
 	defer fs.Close()
 
-	assert.Equal(t, "http://TestFileStoreNew", *fs.Get().ServiceSettings.SiteURL)
+	assert.Equal(t, "http://TestStoreNew", *fs.Get().ServiceSettings.SiteURL)
 	assert.Empty(t, fs.GetEnvironmentOverrides())
 
 	os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://override")

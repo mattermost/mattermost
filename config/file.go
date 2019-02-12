@@ -209,7 +209,7 @@ func (fs *FileStore) Load() (err error) {
 	allowEnvironmentOverrides := true
 	loadedCfg, environmentOverrides, err := unmarshalConfig(f, allowEnvironmentOverrides)
 	if err != nil {
-		return errors.Wrapf(err, "failed to load config from %s", fs.path)
+		return errors.Wrapf(err, "failed to unmarshal config from %s", fs.path)
 	}
 
 	// SetDefaults generates various keys and salts if not previously configured. Determine if
