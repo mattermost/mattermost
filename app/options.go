@@ -4,56 +4,69 @@
 package app
 
 import (
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost-server/store"
 )
 
-type Option func(s *Server)
+type Option func(s *Server) error
 
 // By default, the app will use the store specified by the configuration. This allows you to
 // construct an app with a different store.
 //
 // The override parameter must be either a store.Store or func(App) store.Store.
 func StoreOverride(override interface{}) Option {
-	return func(s *Server) {
+	return func(s *Server) error {
 		switch o := override.(type) {
 		case store.Store:
 			s.newStore = func() store.Store {
 				return o
 			}
+			return nil
+
 		case func(*Server) store.Store:
 			s.newStore = func() store.Store {
 				return o(s)
 			}
+			return nil
+
 		default:
-			panic("invalid StoreOverride")
+			return errors.New("invalid StoreOverride")
 		}
 	}
 }
 
-func ConfigFile(file string) Option {
-	return func(s *Server) {
+func ConfigFile(file string, watch bool) Option {
+	return func(s *Server) error {
 		s.configFile = file
+		s.disableConfigWatch = !watch
+
+		return nil
 	}
 }
 
-func RunJobs(s *Server) {
+func RunJobs(s *Server) error {
 	s.runjobs = true
+
+	return nil
 }
 
-func JoinCluster(s *Server) {
+func JoinCluster(s *Server) error {
 	s.joinCluster = true
+
+	return nil
 }
 
-func StartMetrics(s *Server) {
+func StartMetrics(s *Server) error {
 	s.startMetrics = true
+
+	return nil
 }
 
-func StartElasticsearch(s *Server) {
+func StartElasticsearch(s *Server) error {
 	s.startElasticsearch = true
-}
 
-func DisableConfigWatch(s *Server) {
-	s.disableConfigWatch = true
+	return nil
 }
 
 type AppOption func(a *App)

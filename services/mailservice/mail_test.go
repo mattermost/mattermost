@@ -12,6 +12,7 @@ import (
 	"net/mail"
 	"net/smtp"
 
+	"github.com/mattermost/mattermost-server/config"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/services/filesstore"
 	"github.com/mattermost/mattermost-server/utils"
@@ -20,7 +21,7 @@ import (
 )
 
 func TestMailConnectionFromConfig(t *testing.T) {
-	cfg, _, _, err := utils.LoadConfig("config.json")
+	cfg, _, _, err := config.LoadConfig("config.json")
 	require.Nil(t, err)
 
 	if conn, err := ConnectToSMTPServer(cfg); err != nil {
@@ -43,7 +44,7 @@ func TestMailConnectionFromConfig(t *testing.T) {
 }
 
 func TestMailConnectionAdvanced(t *testing.T) {
-	cfg, _, _, err := utils.LoadConfig("config.json")
+	cfg, _, _, err := config.LoadConfig("config.json")
 	require.Nil(t, err)
 
 	if conn, err := ConnectToSMTPServerAdvanced(
@@ -93,7 +94,7 @@ func TestMailConnectionAdvanced(t *testing.T) {
 }
 
 func TestSendMailUsingConfig(t *testing.T) {
-	cfg, _, _, err := utils.LoadConfig("config.json")
+	cfg, _, _, err := config.LoadConfig("config.json")
 	require.Nil(t, err)
 	utils.T = utils.GetUserTranslations("en")
 
@@ -135,7 +136,7 @@ func TestSendMailUsingConfig(t *testing.T) {
 }
 
 func TestSendMailUsingConfigAdvanced(t *testing.T) {
-	cfg, _, _, err := utils.LoadConfig("config.json")
+	cfg, _, _, err := config.LoadConfig("config.json")
 	require.Nil(t, err)
 	utils.T = utils.GetUserTranslations("en")
 

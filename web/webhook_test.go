@@ -235,13 +235,13 @@ func TestCommandWebhooks(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	cmd, err := th.App.CreateCommand(&model.Command{
+	cmd, appErr := th.App.CreateCommand(&model.Command{
 		CreatorId: th.BasicUser.Id,
 		TeamId:    th.BasicTeam.Id,
 		URL:       "http://nowhere.com",
 		Method:    model.COMMAND_METHOD_POST,
 		Trigger:   "delayed"})
-	require.Nil(t, err)
+	require.Nil(t, appErr)
 
 	args := &model.CommandArgs{
 		TeamId:    th.BasicTeam.Id,
@@ -249,22 +249,22 @@ func TestCommandWebhooks(t *testing.T) {
 		ChannelId: th.BasicChannel.Id,
 	}
 
-	hook, err := th.App.CreateCommandWebhook(cmd.Id, args)
-	if err != nil {
-		t.Fatal(err)
+	hook, appErr := th.App.CreateCommandWebhook(cmd.Id, args)
+	if appErr != nil {
+		t.Fatal(appErr)
 	}
 
-	if resp, _ := http.Post(ApiClient.Url+"/hooks/commands/123123123123", "application/json", bytes.NewBufferString(`{"text":"this is a test"}`)); resp.StatusCode != http.StatusNotFound {
-		t.Fatal("expected not-found for non-existent hook")
-	}
+	resp, err := http.Post(ApiClient.Url+"/hooks/commands/123123123123", "application/json", bytes.NewBufferString(`{"text":"this is a test"}`))
+	require.NoError(t, err)
+	assert.Equal(t, http.StatusNotFound, resp.StatusCode, "expected not-found for non-existent hook")
 
-	if resp, err := http.Post(ApiClient.Url+"/hooks/commands/"+hook.Id, "application/json", bytes.NewBufferString(`{"text":"invalid`)); err != nil || resp.StatusCode != http.StatusBadRequest {
-		t.Fatal(err)
-	}
+	resp, err = http.Post(ApiClient.Url+"/hooks/commands/"+hook.Id, "application/json", bytes.NewBufferString(`{"text":"invalid`))
+	require.NoError(t, err)
+	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 
 	for i := 0; i < 5; i++ {
-		if resp, err := http.Post(ApiClient.Url+"/hooks/commands/"+hook.Id, "application/json", bytes.NewBufferString(`{"text":"this is a test"}`)); err != nil || resp.StatusCode != http.StatusOK {
-			t.Fatal(err)
+		if resp, appErr := http.Post(ApiClient.Url+"/hooks/commands/"+hook.Id, "application/json", bytes.NewBufferString(`{"text":"this is a test"}`)); err != nil || resp.StatusCode != http.StatusOK {
+			t.Fatal(appErr)
 		}
 	}
 

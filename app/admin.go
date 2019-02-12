@@ -6,13 +6,13 @@ package app
 import (
 	"io"
 	"os"
-	"strings"
 	"time"
 
 	"runtime/debug"
 
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/services/mailservice"
@@ -149,9 +149,8 @@ func (a *App) InvalidateAllCachesSkipSend() {
 	a.LoadLicense()
 }
 
-func (a *App) GetConfig() *model.Config {
-	json := a.Config().ToJson()
-	cfg := model.ConfigFromJson(strings.NewReader(json))
+func (a *App) GetSanitizedConfig() *model.Config {
+	cfg := a.Config().Clone()
 	cfg.Sanitize()
 
 	return cfg
@@ -159,6 +158,14 @@ func (a *App) GetConfig() *model.Config {
 
 func (a *App) GetEnvironmentConfig() map[string]interface{} {
 	return a.EnvironmentConfig()
+}
+
+func validateLdapFilter(cfg *model.Config, ldap einterfaces.LdapInterface) *model.AppError {
+	if !*cfg.LdapSettings.Enable || ldap == nil || *cfg.LdapSettings.UserFilter == "" {
+		return nil
+	}
+
+	return ldap.ValidateFilter(*cfg.LdapSettings.UserFilter)
 }
 
 func (a *App) SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool) *model.AppError {
@@ -170,7 +177,7 @@ func (a *App) SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool)
 		return err
 	}
 
-	if err := utils.ValidateLdapFilter(cfg, a.Ldap); err != nil {
+	if err := validateLdapFilter(cfg, a.Ldap); err != nil {
 		return err
 	}
 
