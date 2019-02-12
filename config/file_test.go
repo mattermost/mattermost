@@ -19,7 +19,7 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-var emptyConfig, readOnlyConfig, minimalConfig, invalidConfig, trailingSlashConfig, ldapConfig, testConfig *model.Config
+var emptyConfig, readOnlyConfig, minimalConfig, invalidConfig, fixesRequiredConfig, ldapConfig, testConfig *model.Config
 
 func init() {
 	emptyConfig = &model.Config{}
@@ -52,7 +52,7 @@ func init() {
 			SiteURL: sToP("invalid"),
 		},
 	}
-	trailingSlashConfig = &model.Config{
+	fixesRequiredConfig = &model.Config{
 		ServiceSettings: model.ServiceSettings{
 			SiteURL: sToP("http://trailingslash/"),
 		},
@@ -60,14 +60,16 @@ func init() {
 			AtRestEncryptKey: sToP("abcdefghijklmnopqrstuvwxyz0123456789"),
 		},
 		FileSettings: model.FileSettings{
+			DriverName:     sToP(model.IMAGE_DRIVER_LOCAL),
+			Directory:      sToP("/path/to/directory"),
 			PublicLinkSalt: sToP("abcdefghijklmnopqrstuvwxyz0123456789"),
 		},
 		EmailSettings: model.EmailSettings{
 			InviteSalt: sToP("abcdefghijklmnopqrstuvwxyz0123456789"),
 		},
 		LocalizationSettings: model.LocalizationSettings{
-			DefaultServerLocale: sToP("en"),
-			DefaultClientLocale: sToP("en"),
+			DefaultServerLocale: sToP("garbage"),
+			DefaultClientLocale: sToP("garbage"),
 		},
 	}
 	ldapConfig = &model.Config{
@@ -500,7 +502,7 @@ func TestFileStoreLoad(t *testing.T) {
 	})
 
 	t.Run("fixes required", func(t *testing.T) {
-		path, tearDown := setupConfigFile(t, trailingSlashConfig)
+		path, tearDown := setupConfigFile(t, fixesRequiredConfig)
 		defer tearDown()
 
 		fs, err := config.NewFileStore(path, false)
@@ -509,8 +511,11 @@ func TestFileStoreLoad(t *testing.T) {
 
 		err = fs.Load()
 		require.NoError(t, err)
-		assertFileNotEqualsConfig(t, trailingSlashConfig, path)
+		assertFileNotEqualsConfig(t, fixesRequiredConfig, path)
 		assert.Equal(t, "http://trailingslash", *fs.Get().ServiceSettings.SiteURL)
+		assert.Equal(t, "/path/to/directory/", *fs.Get().FileSettings.Directory)
+		assert.Equal(t, "en", *fs.Get().LocalizationSettings.DefaultServerLocale)
+		assert.Equal(t, "en", *fs.Get().LocalizationSettings.DefaultClientLocale)
 	})
 
 	t.Run("listeners notifed", func(t *testing.T) {
