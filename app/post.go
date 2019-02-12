@@ -744,9 +744,7 @@ func (a *App) parseAndFetchChannelIdByNameFromInFilter(channelName, userId, team
 	return channel, nil
 }
 
-type paramsModifier func(*model.SearchParams)
-
-func (a *App) searchPostsInTeam(teamId string, userId string, paramsList []*model.SearchParams, modifierFun paramsModifier) (*model.PostList, *model.AppError) {
+func (a *App) searchPostsInTeam(teamId string, userId string, paramsList []*model.SearchParams, modifierFun func(*model.SearchParams)) (*model.PostList, *model.AppError) {
 	channels := []store.StoreChannel{}
 
 	for _, params := range paramsList {

@@ -23,7 +23,7 @@ type SearchParams struct {
 	OrTerms                bool
 	IncludeDeletedChannels bool
 	TimeZoneOffset         int
-	// True iff this search doesn't originate from a "current user".
+	// True if this search doesn't originate from a "current user".
 	SearchWithoutUserId bool
 }
 

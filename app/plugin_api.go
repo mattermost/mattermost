@@ -338,8 +338,12 @@ func (api *PluginAPI) SearchUsers(search *model.UserSearch) ([]*model.User, *mod
 	return api.app.SearchUsers(search, pluginSearchUsersOptions)
 }
 
-func (api *PluginAPI) SearchPostsInTeam(teamId string, paramsList []*model.SearchParams) (*model.PostList, *model.AppError) {
-	return api.app.SearchPostsInTeam(teamId, paramsList)
+func (api *PluginAPI) SearchPostsInTeam(teamId string, paramsList []*model.SearchParams) ([]*model.Post, *model.AppError) {
+	postList, err := api.app.SearchPostsInTeam(teamId, paramsList)
+	if err != nil {
+		return nil, err
+	}
+	return postList.ToSlice(), nil
 }
 
 func (api *PluginAPI) AddChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError) {

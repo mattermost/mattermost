@@ -21,6 +21,14 @@ func NewPostList() *PostList {
 	}
 }
 
+func (o *PostList) ToSlice() []*Post {
+	var posts []*Post
+	for _, id := range o.Order {
+		posts = append(posts, o.Posts[id])
+	}
+	return posts
+}
+
 func (o *PostList) WithRewrittenImageURLs(f func(string) string) *PostList {
 	copy := *o
 	copy.Posts = make(map[string]*Post)
