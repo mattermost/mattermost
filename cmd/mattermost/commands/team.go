@@ -133,7 +133,7 @@ func createTeamCmdF(command *cobra.Command, args []string) error {
 		Name:        name,
 		DisplayName: displayname,
 		Email:       email,
-		IsPublic:    !useprivate,
+		IsPublic:    model.NewBool(!useprivate),
 	}
 
 	if _, err := a.CreateTeam(team); err != nil {

@@ -16,7 +16,7 @@ func ImportLineFromTeam(team *model.TeamForExport) *LineImportData {
 			Name:        &team.Name,
 			DisplayName: &team.DisplayName,
 			Description: &team.Description,
-			IsPublic:    &team.IsPublic,
+			IsPublic:    team.IsPublic,
 			Scheme:      team.SchemeName,
 		},
 	}

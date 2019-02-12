@@ -156,7 +156,7 @@ func (a *App) ImportTeam(data *TeamImportData, dryRun bool) *model.AppError {
 	}
 
 	if data.IsPublic != nil {
-		team.IsPublic = *data.IsPublic
+		team.IsPublic = data.IsPublic
 	}
 
 	if data.Scheme != nil {

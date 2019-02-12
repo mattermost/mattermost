@@ -32,21 +32,24 @@ type Team struct {
 	Name               string  `json:"name"`
 	Description        string  `json:"description"`
 	Email              string  `json:"email"`
+	Type               *string `json:"type"` // Do not use, this will be deprecated in favor of InviteId == '' or InviteId != ''
 	CompanyName        string  `json:"company_name"`
 	AllowedDomains     string  `json:"allowed_domains"`
 	InviteId           string  `json:"invite_id"`
-	IsPublic           bool    `json:"is_public"`
+	IsPublic           *bool   `json:"is_public"`
+	AllowOpenInvite    *bool   `json:"allow_open_invite"` // Do not use, this will be deprecated in favor of IsPublic
 	LastTeamIconUpdate int64   `json:"last_team_icon_update,omitempty"`
 	SchemeId           *string `json:"scheme_id"`
 }
 
 type TeamPatch struct {
-	DisplayName    *string `json:"display_name"`
-	Description    *string `json:"description"`
-	CompanyName    *string `json:"company_name"`
-	AllowedDomains *string `json:"allowed_domains"`
-	InviteId       *string `json:"invite_id"`
-	IsPublic       *bool   `json:"is_public"`
+	DisplayName     *string `json:"display_name"`
+	Description     *string `json:"description"`
+	CompanyName     *string `json:"company_name"`
+	AllowedDomains  *string `json:"allowed_domains"`
+	InviteId        *string `json:"invite_id"`
+	IsPublic        *bool   `json:"is_public"`
+	AllowOpenInvite *bool   `json:"allow_open_invite"` // Do not use, this will be deprecated in favor of IsPublic
 }
 
 type TeamForExport struct {
@@ -260,7 +263,7 @@ func (t *Team) Patch(patch *TeamPatch) {
 	}
 
 	if patch.IsPublic != nil {
-		t.IsPublic = *patch.IsPublic
+		t.IsPublic = patch.IsPublic
 	}
 }
 

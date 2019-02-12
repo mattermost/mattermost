@@ -70,6 +70,26 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if team.IsPublic != nil && (team.AllowOpenInvite != nil || team.Type != nil) {
+		c.Err = model.NewAppError("updateTeam", "api.team.update_team.invalid_api_usage.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if team.AllowOpenInvite != nil {
+		team.IsPublic = team.AllowOpenInvite
+	}
+	if team.Type != nil && *team.Type == "O" {
+		team.InviteId = ""
+	}
+	if team.Type != nil && *team.Type == "I" {
+		if team.InviteId == "" {
+			team.InviteId = model.NewId()
+		}
+	}
+	if team.IsPublic != nil {
+		team.AllowOpenInvite = team.IsPublic
+	}
+
 	rteam, err := c.App.CreateTeamWithUser(team, c.App.Session.UserId)
 	if err != nil {
 		c.Err = err
@@ -94,7 +114,7 @@ func getTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if (!team.IsPublic || team.InviteId == "") && !c.App.SessionHasPermissionToTeam(c.App.Session, team.Id, model.PERMISSION_VIEW_TEAM) {
+	if (!*team.IsPublic || team.InviteId == "") && !c.App.SessionHasPermissionToTeam(c.App.Session, team.Id, model.PERMISSION_VIEW_TEAM) {
 		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
 		return
 	}
@@ -115,7 +135,7 @@ func getTeamByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if (!team.IsPublic || team.InviteId == "") && !c.App.SessionHasPermissionToTeam(c.App.Session, team.Id, model.PERMISSION_VIEW_TEAM) {
+	if (!*team.IsPublic || team.InviteId == "") && !c.App.SessionHasPermissionToTeam(c.App.Session, team.Id, model.PERMISSION_VIEW_TEAM) {
 		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
 		return
 	}
@@ -131,6 +151,25 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	team := model.TeamFromJson(r.Body)
+	if team.IsPublic != nil && (team.AllowOpenInvite != nil || team.Type != nil) {
+		c.Err = model.NewAppError("updateTeam", "api.team.update_team.invalid_api_usage.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if team.AllowOpenInvite != nil {
+		team.IsPublic = team.AllowOpenInvite
+	}
+	if team.Type != nil && *team.Type == "O" {
+		team.InviteId = ""
+	}
+	if team.Type != nil && *team.Type == "I" {
+		if team.InviteId == "" {
+			team.InviteId = model.NewId()
+		}
+	}
+	if team.IsPublic != nil {
+		team.AllowOpenInvite = team.IsPublic
+	}
 
 	if team == nil {
 		c.SetInvalidParam("team")
@@ -165,6 +204,17 @@ func patchTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	team := model.TeamPatchFromJson(r.Body)
+
+	if team.IsPublic != nil && team.AllowOpenInvite != nil {
+		c.Err = model.NewAppError("patchTeam", "api.team.patch_team.invalid_api_usage.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+	if team.AllowOpenInvite != nil {
+		team.IsPublic = team.AllowOpenInvite
+	}
+	if team.IsPublic != nil {
+		team.AllowOpenInvite = team.IsPublic
+	}
 
 	if team == nil {
 		c.SetInvalidParam("team")
@@ -779,7 +829,7 @@ func getTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !c.App.SessionHasPermissionToTeam(c.App.Session, c.Params.TeamId, model.PERMISSION_VIEW_TEAM) &&
-		(team.InviteId == "" || team.IsPublic) {
+		(team.InviteId == "" || *team.IsPublic) {
 		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
 		return
 	}
