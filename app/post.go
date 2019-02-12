@@ -859,6 +859,8 @@ func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamId strin
 	}
 
 	posts, err := a.searchPostsInTeam(teamId, userId, paramsList, func(params *model.SearchParams) {
+		params.IncludeDeletedChannels = includeDeleted
+		params.OrTerms = isOrSearch
 		for idx, channelName := range params.InChannels {
 			if strings.HasPrefix(channelName, "@") {
 				channel, err := a.parseAndFetchChannelIdByNameFromInFilter(channelName, userId, teamId, includeDeletedChannels)

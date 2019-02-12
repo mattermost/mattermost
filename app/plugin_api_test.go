@@ -698,39 +698,35 @@ func TestPluginAPISearchPostsInTeam(t *testing.T) {
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
-	basicPostList := model.NewPostList()
-	basicPostList.AddPost(th.BasicPost)
-	basicPostList.AddOrder(th.BasicPost.Id)
-
 	testCases := []struct {
-		description   string
-		teamId        string
-		params        []*model.SearchParams
-		expectedPosts *model.PostList
+		description      string
+		teamId           string
+		params           []*model.SearchParams
+		expectedPostsLen int
 	}{
 		{
 			"nil params",
 			th.BasicTeam.Id,
 			nil,
-			model.NewPostList(),
+			0,
 		},
 		{
 			"empty params",
 			th.BasicTeam.Id,
 			[]*model.SearchParams{},
-			model.NewPostList(),
+			0,
 		},
 		{
 			"doesn't match any posts",
 			th.BasicTeam.Id,
 			model.ParseSearchParams("bad message", 0),
-			model.NewPostList(),
+			0,
 		},
 		{
 			"matched posts",
 			th.BasicTeam.Id,
 			model.ParseSearchParams(th.BasicPost.Message, 0),
-			basicPostList,
+			1,
 		},
 	}
 
@@ -738,7 +734,7 @@ func TestPluginAPISearchPostsInTeam(t *testing.T) {
 		t.Run(testCase.description, func(t *testing.T) {
 			posts, err := api.SearchPostsInTeam(testCase.teamId, testCase.params)
 			assert.Nil(t, err)
-			assert.Equal(t, testCase.expectedPosts, posts)
+			assert.Equal(t, testCase.expectedPostsLen, len(posts))
 		})
 	}
 }
