@@ -3183,6 +3183,10 @@
     "translation": "[{{ .SiteName }}] Notification in {{ .TeamName}} on {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
+    "id": "app.save_config.app_error",
+    "translation": "An error occurred saving the configuration"
+  },
+  {
     "id": "app.plugin.cluster.save_config.app_error",
     "translation": "The plugin configuration in your config.json file must be updated manually when using ReadOnlyConfig with clustering enabled."
   },

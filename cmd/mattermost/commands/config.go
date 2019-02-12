@@ -167,24 +167,18 @@ func configShowCmdF(command *cobra.Command, args []string) error {
 	}
 	defer app.Shutdown()
 
-	// check that no arguments are given
 	err = cobra.NoArgs(command, args)
 	if err != nil {
 		return err
 	}
 
-	// set up the config object
-	config := app.Config()
-
-	// pretty print
-	fmt.Printf("%s", prettyPrintStruct(*config))
+	fmt.Printf("%s", prettyPrintStruct(*app.Config()))
 	return nil
 }
 
 // printConfigValues function prints out the value of the configSettings working recursively or
 // gives an error if config setting is not in the file.
 func printConfigValues(configMap map[string]interface{}, configSetting []string, name string) (string, error) {
-
 	res, ok := configMap[configSetting[0]]
 	if !ok {
 		return "", fmt.Errorf("%s configuration setting is not in the file", name)
@@ -217,36 +211,25 @@ func configSetCmdF(command *cobra.Command, args []string) error {
 	configSetting := args[0]
 	newVal := args[1:]
 
-	// Update the config
-
-	// first disable the watchers
-	app.DisableConfigWatch()
-
 	// create the function to update config
 	oldConfig := app.Config()
 	newConfig := app.Config()
 	f := updateConfigValue(configSetting, newVal, oldConfig, newConfig)
 
-	// update the config
 	app.UpdateConfig(f)
-
-	// Verify new config
 	if err := newConfig.IsValid(); err != nil {
 		return err
 	}
 
-	if err := config.ValidateLocales(app.Config()); err != nil {
+	// UpdateConfig above would have already fixed these invalid locales, but we check again
+	// in the context of an explicit change to these parameters to avoid saving the fixed
+	// settings in the first place.
+	if changed := config.FixInvalidLocales(newConfig); changed {
 		return errors.New("Invalid locale configuration")
 	}
 
 	// make the changes persist
 	app.PersistConfig()
-
-	// reload config
-	app.ReloadConfig()
-
-	// Enable config watchers
-	app.EnableConfigWatch()
 
 	return nil
 }

@@ -6,6 +6,7 @@ package app
 import (
 	"github.com/pkg/errors"
 
+	"github.com/mattermost/mattermost-server/config"
 	"github.com/mattermost/mattermost-server/store"
 )
 
@@ -38,8 +39,19 @@ func StoreOverride(override interface{}) Option {
 
 func ConfigFile(file string, watch bool) Option {
 	return func(s *Server) error {
-		s.configFile = file
-		s.disableConfigWatch = !watch
+		configStore, err := config.NewFileStore(file, watch)
+		if err != nil {
+			return errors.Wrap(err, "failed to apply ConfigFile option")
+		}
+
+		s.configStore = configStore
+		return nil
+	}
+}
+
+func ConfigStore(configStore config.Store) Option {
+	return func(s *Server) error {
+		s.configStore = configStore
 
 		return nil
 	}
