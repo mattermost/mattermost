@@ -212,5 +212,8 @@ func (ds *DatabaseStore) String() string {
 
 // Close cleans up resources associated with the store.
 func (ds *DatabaseStore) Close() error {
+	ds.configLock.Lock()
+	defer ds.configLock.Unlock()
+
 	return ds.db.Close()
 }
