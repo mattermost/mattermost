@@ -405,7 +405,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 
 	th.App.DoAdvancedPermissionsMigration()
 
-	config := th.App.GetConfig()
+	config := th.App.Config()
 	assert.Equal(t, -1, *config.ServiceSettings.PostEditTimeLimit)
 
 	th.ResetRoleMigration()
@@ -416,7 +416,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 	})
 
 	th.App.DoAdvancedPermissionsMigration()
-	config = th.App.GetConfig()
+	config = th.App.Config()
 	assert.Equal(t, 300, *config.ServiceSettings.PostEditTimeLimit)
 }
 

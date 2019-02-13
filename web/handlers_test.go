@@ -8,10 +8,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func handlerForHTTPErrors(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -19,14 +17,10 @@ func handlerForHTTPErrors(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func TestHandlerServeHTTPErrors(t *testing.T) {
-	s, err := app.NewServer(app.StoreOverride(mainHelper.Store), app.DisableConfigWatch)
-	require.Nil(t, err)
-	defer s.Shutdown()
+	th := Setup().InitBasic()
+	defer th.TearDown()
 
-	web := New(s, s.AppOptions, s.Router)
-	if err != nil {
-		panic(err)
-	}
+	web := New(th.Server, th.Server.AppOptions, th.Server.Router)
 	handler := web.NewHandler(handlerForHTTPErrors)
 
 	var flagtests = []struct {
@@ -63,21 +57,15 @@ func handlerForHTTPSecureTransport(c *Context, w http.ResponseWriter, r *http.Re
 }
 
 func TestHandlerServeHTTPSecureTransport(t *testing.T) {
-	s, err := app.NewServer(app.StoreOverride(mainHelper.Store), app.DisableConfigWatch)
-	require.Nil(t, err)
-	defer s.Shutdown()
+	th := Setup().InitBasic()
+	defer th.TearDown()
 
-	a := s.FakeApp()
-
-	a.UpdateConfig(func(config *model.Config) {
+	th.App.UpdateConfig(func(config *model.Config) {
 		*config.ServiceSettings.TLSStrictTransport = true
 		*config.ServiceSettings.TLSStrictTransportMaxAge = 6000
 	})
 
-	web := New(s, s.AppOptions, s.Router)
-	if err != nil {
-		panic(err)
-	}
+	web := New(th.Server, th.Server.AppOptions, th.Server.Router)
 	handler := web.NewHandler(handlerForHTTPSecureTransport)
 
 	request := httptest.NewRequest("GET", "/api/v4/test", nil)
@@ -94,7 +82,7 @@ func TestHandlerServeHTTPSecureTransport(t *testing.T) {
 		t.Errorf("Expected max-age=6000, got %s", header)
 	}
 
-	a.UpdateConfig(func(config *model.Config) {
+	th.App.UpdateConfig(func(config *model.Config) {
 		*config.ServiceSettings.TLSStrictTransport = false
 	})
 
@@ -109,7 +97,6 @@ func TestHandlerServeHTTPSecureTransport(t *testing.T) {
 	}
 }
 
-
 func handlerForCSRFToken(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
@@ -117,11 +104,11 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	session :=&model.Session{
-		UserId: th.BasicUser.Id,
+	session := &model.Session{
+		UserId:   th.BasicUser.Id,
 		CreateAt: model.GetMillis(),
-		Roles: model.SYSTEM_USER_ROLE_ID,
-		IsOAuth: false,
+		Roles:    model.SYSTEM_USER_ROLE_ID,
+		IsOAuth:  false,
 	}
 	session.GenerateCSRF()
 	session.SetExpireInDays(1)
@@ -142,15 +129,15 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 	}
 
 	cookie := &http.Cookie{
-		Name: model.SESSION_COOKIE_USER,
+		Name:  model.SESSION_COOKIE_USER,
 		Value: th.BasicUser.Username,
 	}
 	cookie2 := &http.Cookie{
-		Name: model.SESSION_COOKIE_TOKEN,
+		Name:  model.SESSION_COOKIE_TOKEN,
 		Value: session.Token,
 	}
 	cookie3 := &http.Cookie{
-		Name: model.SESSION_COOKIE_CSRF,
+		Name:  model.SESSION_COOKIE_CSRF,
 		Value: session.GetCSRF(),
 	}
 
@@ -183,7 +170,7 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 
 	// Fallback Behavior Used - Success expected
 	// ToDo (DSchalla) 2019/01/04: Remove once legacy CSRF Handling is removed
-	th.App.UpdateConfig(func(config *model.Config){
+	th.App.UpdateConfig(func(config *model.Config) {
 		*config.ServiceSettings.ExperimentalStrictCSRFEnforcement = false
 	})
 	request = httptest.NewRequest("POST", "/api/v4/test", nil)
@@ -200,7 +187,7 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 
 	// Fallback Behavior Used with Strict Enforcement - Failure Expected
 	// ToDo (DSchalla) 2019/01/04: Remove once legacy CSRF Handling is removed
-	th.App.UpdateConfig(func(config *model.Config){
+	th.App.UpdateConfig(func(config *model.Config) {
 		*config.ServiceSettings.ExperimentalStrictCSRFEnforcement = true
 	})
 	response = httptest.NewRecorder()

@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/config"
 	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -15,11 +15,11 @@ func TestPlugin(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	config := th.Config()
-	*config.PluginSettings.EnableUploads = true
-	*config.PluginSettings.Directory = "./test-plugins"
-	*config.PluginSettings.ClientDirectory = "./test-client-plugins"
-	th.SetConfig(config)
+	cfg := th.Config()
+	*cfg.PluginSettings.EnableUploads = true
+	*cfg.PluginSettings.Directory = "./test-plugins"
+	*cfg.PluginSettings.ClientDirectory = "./test-client-plugins"
+	th.SetConfig(cfg)
 
 	os.MkdirAll("./test-plugins", os.ModePerm)
 	os.MkdirAll("./test-client-plugins", os.ModePerm)
@@ -31,14 +31,16 @@ func TestPlugin(t *testing.T) {
 	th.CheckCommand(t, "plugin", "add", filepath.Join(path, "testplugin.tar.gz"))
 
 	th.CheckCommand(t, "plugin", "enable", "testplugin")
-	cfg, _, _, err := utils.LoadConfig(th.ConfigPath())
+	fs, err := config.NewFileStore(th.ConfigPath(), false)
 	require.Nil(t, err)
-	assert.Equal(t, cfg.PluginSettings.PluginStates["testplugin"].Enable, true)
+	assert.True(t, fs.Get().PluginSettings.PluginStates["testplugin"].Enable)
+	fs.Close()
 
 	th.CheckCommand(t, "plugin", "disable", "testplugin")
-	cfg, _, _, err = utils.LoadConfig(th.ConfigPath())
+	fs, err = config.NewFileStore(th.ConfigPath(), false)
 	require.Nil(t, err)
-	assert.Equal(t, cfg.PluginSettings.PluginStates["testplugin"].Enable, false)
+	assert.False(t, fs.Get().PluginSettings.PluginStates["testplugin"].Enable)
+	fs.Close()
 
 	th.CheckCommand(t, "plugin", "list")
 
