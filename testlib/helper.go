@@ -40,7 +40,12 @@ func NewMainHelper() *MainHelper {
 
 	utils.TranslationsPreInit()
 
-	settings := storetest.MakeSqlSettings(model.DATABASE_DRIVER_MYSQL)
+	driverName := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
+	if driverName == "" {
+		driverName = model.DATABASE_DRIVER_MYSQL
+	}
+
+	settings := storetest.MakeSqlSettings(driverName)
 
 	clusterInterface := &FakeClusterInterface{}
 	sqlSupplier := sqlstore.NewSqlSupplier(*settings, nil)
