@@ -346,14 +346,14 @@ func TestUploadFiles(t *testing.T) {
 		// Upload a bunch of files, mixed images and non-images
 		{
 			title:             "Happy",
-			names:             []string{"test.png", "testgif.gif", "testplugin.tar.gz", "test-search.md"},
+			names:             []string{"test.png", "testgif.gif", "testplugin.tar.gz", "test-search.md", "test.tiff"},
 			expectedCreatorId: th.BasicUser.Id,
 		},
 		// Upload a bunch of files, with clientIds
 		{
 			title:             "Happy client_ids",
-			names:             []string{"test.png", "testgif.gif", "testplugin.tar.gz", "test-search.md"},
-			clientIds:         []string{"1", "2", "3", "4"},
+			names:             []string{"test.png", "testgif.gif", "testplugin.tar.gz", "test-search.md", "test.tiff"},
+			clientIds:         []string{"1", "2", "3", "4", "5"},
 			expectedCreatorId: th.BasicUser.Id,
 		},
 		// Upload a bunch of images. testgif.gif is an animated GIF,
