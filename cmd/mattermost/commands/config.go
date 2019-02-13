@@ -234,7 +234,7 @@ func configSetCmdF(command *cobra.Command, args []string) error {
 	// in the context of an explicit change to these parameters to avoid saving the fixed
 	// settings in the first place.
 	if changed := config.FixInvalidLocales(newConfig); changed {
-		return fmt.Errorf("Invalid locale configuration")
+		return errors.New("Invalid locale configuration")
 	}
 
 	configStore.Save()
