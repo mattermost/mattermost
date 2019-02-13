@@ -20,6 +20,8 @@ func (lw *testingWriter) Write(b []byte) (int, error) {
 	return len(b), nil
 }
 
+// NewTestingLogger creates a Logger that proxies logs through a testing interface.
+// This allows tests that spin up App instances to avoid spewing logs unless the test fails or -verbose is specified.
 func NewTestingLogger(tb testing.TB) *Logger {
 	logWriter := &testingWriter{tb}
 	logWriterSync := zapcore.AddSync(logWriter)
