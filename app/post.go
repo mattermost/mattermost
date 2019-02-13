@@ -263,7 +263,9 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 	esInterface := a.Elasticsearch
 	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
 		a.Srv.Go(func() {
-			esInterface.IndexPost(rpost, channel.TeamId)
+			if err := esInterface.IndexPost(rpost, channel.TeamId); err != nil {
+				mlog.Error("Encountered error indexing post", mlog.String("post_id", post.Id), mlog.Err(err))
+			}
 		})
 	}
 
@@ -496,7 +498,9 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 				mlog.Error(fmt.Sprintf("Couldn't get channel %v for post %v for Elasticsearch indexing.", rpost.ChannelId, rpost.Id))
 				return
 			}
-			esInterface.IndexPost(rpost, rchannel.Data.(*model.Channel).TeamId)
+			if err := esInterface.IndexPost(rpost, rchannel.Data.(*model.Channel).TeamId); err != nil {
+				mlog.Error("Encountered error indexing post", mlog.String("post_id", post.Id), mlog.Err(err))
+			}
 		})
 	}
 
@@ -680,7 +684,9 @@ func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppErro
 	esInterface := a.Elasticsearch
 	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
 		a.Srv.Go(func() {
-			esInterface.DeletePost(post)
+			if err := esInterface.DeletePost(post); err != nil {
+				mlog.Error("Encountered error deleting post", mlog.String("post_id", post.Id), mlog.Err(err))
+			}
 		})
 	}
 
