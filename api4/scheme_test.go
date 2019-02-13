@@ -292,7 +292,7 @@ func TestGetTeamsForScheme(t *testing.T) {
 	team1 := &model.Team{
 		Name:        GenerateTestUsername(),
 		DisplayName: "A Test Team",
-		Type:        model.TEAM_OPEN,
+		IsPublic:    model.NewBool(true),
 	}
 
 	result1 := <-th.App.Srv.Store.Team().Save(team1)
@@ -316,7 +316,7 @@ func TestGetTeamsForScheme(t *testing.T) {
 	team2 := &model.Team{
 		Name:        GenerateTestUsername(),
 		DisplayName: "B Test Team",
-		Type:        model.TEAM_OPEN,
+		IsPublic:    model.NewBool(true),
 		SchemeId:    &scheme1.Id,
 	}
 	result3 := <-th.App.Srv.Store.Team().Save(team2)
@@ -609,7 +609,7 @@ func TestDeleteScheme(t *testing.T) {
 			Name:        model.NewId(),
 			DisplayName: model.NewId(),
 			Email:       model.NewId() + "@nowhere.com",
-			Type:        model.TEAM_OPEN,
+			IsPublic:    model.NewBool(true),
 			SchemeId:    &s1.Id,
 		})
 		assert.Nil(t, res.Err)

@@ -27,7 +27,7 @@ func TestCreateTeam(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	team := &model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team", Type: model.TEAM_OPEN}
+	team := &model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team", IsPublic: model.NewBool(true)}
 	rteam, resp := Client.CreateTeam(team)
 	CheckNoError(t, resp)
 	CheckCreatedStatus(t, resp)
@@ -97,7 +97,7 @@ func TestCreateTeamSanitization(t *testing.T) {
 			DisplayName:    t.Name() + "_1",
 			Name:           GenerateTestTeamName(),
 			Email:          th.GenerateTestEmail(),
-			Type:           model.TEAM_OPEN,
+			IsPublic:       model.NewBool(true),
 			AllowedDomains: "simulator.amazonses.com,dockerhost",
 		}
 
@@ -113,7 +113,7 @@ func TestCreateTeamSanitization(t *testing.T) {
 			DisplayName:    t.Name() + "_2",
 			Name:           GenerateTestTeamName(),
 			Email:          th.GenerateTestEmail(),
-			Type:           model.TEAM_OPEN,
+			IsPublic:       model.NewBool(true),
 			AllowedDomains: "simulator.amazonses.com,dockerhost",
 		}
 
@@ -149,10 +149,10 @@ func TestGetTeam(t *testing.T) {
 
 	th.LoginTeamAdmin()
 
-	team2 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), IsPublic: false}
+	team2 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), IsPublic: model.NewBool(false)}
 	rteam2, _ := Client.CreateTeam(team2)
 
-	team3 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), IsPublic: true}
+	team3 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), InviteId: "", IsPublic: model.NewBool(true)}
 	rteam3, _ := Client.CreateTeam(team3)
 
 	th.LoginBasic()
@@ -180,7 +180,7 @@ func TestGetTeamSanitization(t *testing.T) {
 		DisplayName:    t.Name() + "_1",
 		Name:           GenerateTestTeamName(),
 		Email:          th.GenerateTestEmail(),
-		Type:           model.TEAM_OPEN,
+		IsPublic:       model.NewBool(true),
 		AllowedDomains: "simulator.amazonses.com,dockerhost",
 	})
 	CheckNoError(t, resp)
@@ -254,7 +254,7 @@ func TestUpdateTeam(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	team := &model.Team{DisplayName: "Name", Description: "Some description", IsPublic: false, InviteId: "inviteid0", Name: "z-z-" + model.NewId() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com"}
+	team := &model.Team{DisplayName: "Name", Description: "Some description", IsPublic: model.NewBool(false), InviteId: "inviteid0", Name: "z-z-" + model.NewId() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com"}
 	team, _ = Client.CreateTeam(team)
 
 	team.Description = "updated description"
@@ -273,11 +273,11 @@ func TestUpdateTeam(t *testing.T) {
 		t.Fatal("Update failed")
 	}
 
-	team.IsPublic = true
+	team.IsPublic = model.NewBool(true)
 	uteam, resp = Client.UpdateTeam(team)
 	CheckNoError(t, resp)
 
-	if !uteam.IsPublic {
+	if !*uteam.IsPublic {
 		t.Fatal("Update failed")
 	}
 
@@ -313,13 +313,8 @@ func TestUpdateTeam(t *testing.T) {
 		t.Fatal("Should not update email")
 	}
 
-	team.Type = model.TEAM_INVITE
 	uteam, resp = Client.UpdateTeam(team)
 	CheckNoError(t, resp)
-
-	if uteam.Type == model.TEAM_INVITE {
-		t.Fatal("Should not update type")
-	}
 
 	originalTeamId := team.Id
 	team.Id = model.NewId()
@@ -352,7 +347,7 @@ func TestUpdateTeamSanitization(t *testing.T) {
 		DisplayName:    t.Name() + "_1",
 		Name:           GenerateTestTeamName(),
 		Email:          th.GenerateTestEmail(),
-		Type:           model.TEAM_OPEN,
+		IsPublic:       model.NewBool(true),
 		AllowedDomains: "simulator.amazonses.com,dockerhost",
 	})
 	CheckNoError(t, resp)
@@ -381,7 +376,7 @@ func TestPatchTeam(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	team := &model.Team{DisplayName: "Name", Description: "Some description", CompanyName: "Some company name", IsPublic: false, InviteId: "inviteid0", Name: "z-z-" + model.NewId() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com"}
+	team := &model.Team{DisplayName: "Name", Description: "Some description", CompanyName: "Some company name", IsPublic: model.NewBool(false), InviteId: "inviteid0", Name: "z-z-" + model.NewId() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com"}
 	team, _ = Client.CreateTeam(team)
 
 	patch := &model.TeamPatch{}
@@ -407,7 +402,7 @@ func TestPatchTeam(t *testing.T) {
 	if rteam.InviteId != "inviteid1" {
 		t.Fatal("InviteId did not update properly")
 	}
-	if !rteam.IsPublic {
+	if !*rteam.IsPublic {
 		t.Fatal("IsPublic did not update properly")
 	}
 
@@ -447,7 +442,7 @@ func TestPatchTeamSanitization(t *testing.T) {
 		DisplayName:    t.Name() + "_1",
 		Name:           GenerateTestTeamName(),
 		Email:          th.GenerateTestEmail(),
-		Type:           model.TEAM_OPEN,
+		InviteId:       model.NewId(),
 		AllowedDomains: "simulator.amazonses.com,dockerhost",
 	})
 	CheckNoError(t, resp)
@@ -476,7 +471,7 @@ func TestSoftDeleteTeam(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	team := &model.Team{DisplayName: "DisplayName", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TEAM_OPEN}
+	team := &model.Team{DisplayName: "DisplayName", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), InviteId: model.NewId()}
 	team, _ = Client.CreateTeam(team)
 
 	ok, resp := Client.SoftDeleteTeam(team.Id)
@@ -518,7 +513,7 @@ func TestPermanentDeleteTeam(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	team := &model.Team{DisplayName: "DisplayName", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TEAM_OPEN}
+	team := &model.Team{DisplayName: "DisplayName", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), InviteId: model.NewId()}
 	team, _ = Client.CreateTeam(team)
 
 	enableAPITeamDeletion := *th.App.Config().ServiceSettings.EnableAPITeamDeletion
@@ -559,11 +554,12 @@ func TestGetAllTeams(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	team := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), IsPublic: true}
+	team := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), InviteId: model.NewId(), IsPublic: model.NewBool(true)}
 	_, resp := Client.CreateTeam(team)
 	CheckNoError(t, resp)
 
-	team2 := &model.Team{DisplayName: "Name2", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), IsPublic: true}
+	team2 := &model.Team{DisplayName: "Name2", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), InviteId: model.NewId(), IsPublic: model.NewBool(true)}
+
 	_, resp = Client.CreateTeam(team2)
 	CheckNoError(t, resp)
 
@@ -576,7 +572,7 @@ func TestGetAllTeams(t *testing.T) {
 	}
 
 	for _, rt := range rrteams {
-		if !rt.IsPublic {
+		if !*rt.IsPublic {
 			t.Fatal("not all teams are open")
 		}
 	}
@@ -585,7 +581,7 @@ func TestGetAllTeams(t *testing.T) {
 	CheckNoError(t, resp)
 
 	for _, rt := range rrteams {
-		if !rt.IsPublic {
+		if !*rt.IsPublic {
 			t.Fatal("not all teams are open")
 		}
 	}
@@ -636,7 +632,8 @@ func TestGetAllTeamsSanitization(t *testing.T) {
 		Name:           GenerateTestTeamName(),
 		Email:          th.GenerateTestEmail(),
 		AllowedDomains: "simulator.amazonses.com,dockerhost",
-		IsPublic:       true,
+		IsPublic:       model.NewBool(true),
+		InviteId:       model.NewId(),
 	})
 	CheckNoError(t, resp)
 	team2, resp := th.SystemAdminClient.CreateTeam(&model.Team{
@@ -644,7 +641,8 @@ func TestGetAllTeamsSanitization(t *testing.T) {
 		Name:           GenerateTestTeamName(),
 		Email:          th.GenerateTestEmail(),
 		AllowedDomains: "simulator.amazonses.com,dockerhost",
-		IsPublic:       true,
+		IsPublic:       model.NewBool(true),
+		InviteId:       model.NewId(),
 	})
 	CheckNoError(t, resp)
 
@@ -721,10 +719,10 @@ func TestGetTeamByName(t *testing.T) {
 
 	th.LoginTeamAdmin()
 
-	team2 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), IsPublic: false}
+	team2 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), InviteId: model.NewId(), IsPublic: model.NewBool(false)}
 	rteam2, _ := Client.CreateTeam(team2)
 
-	team3 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), IsPublic: true}
+	team3 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), InviteId: "", IsPublic: model.NewBool(true)}
 	rteam3, _ := Client.CreateTeam(team3)
 
 	th.LoginBasic()
@@ -745,7 +743,7 @@ func TestGetTeamByNameSanitization(t *testing.T) {
 		DisplayName:    t.Name() + "_1",
 		Name:           GenerateTestTeamName(),
 		Email:          th.GenerateTestEmail(),
-		Type:           model.TEAM_OPEN,
+		InviteId:       model.NewId(),
 		AllowedDomains: "simulator.amazonses.com,dockerhost",
 	})
 	CheckNoError(t, resp)
@@ -785,7 +783,7 @@ func TestSearchAllTeams(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 	oTeam := th.BasicTeam
-	oTeam.IsPublic = true
+	oTeam.IsPublic = model.NewBool(true)
 
 	if updatedTeam, err := th.App.UpdateTeam(oTeam); err != nil {
 		t.Fatal(err)
@@ -793,7 +791,7 @@ func TestSearchAllTeams(t *testing.T) {
 		oTeam.UpdateAt = updatedTeam.UpdateAt
 	}
 
-	pTeam := &model.Team{DisplayName: "PName", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TEAM_INVITE}
+	pTeam := &model.Team{DisplayName: "PName", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), InviteId: ""}
 	Client.CreateTeam(pTeam)
 
 	rteams, resp := Client.SearchTeams(&model.TeamSearch{Term: oTeam.Name})
@@ -870,7 +868,7 @@ func TestSearchAllTeamsSanitization(t *testing.T) {
 		DisplayName:    t.Name() + "_1",
 		Name:           GenerateTestTeamName(),
 		Email:          th.GenerateTestEmail(),
-		Type:           model.TEAM_OPEN,
+		InviteId:       model.NewId(),
 		AllowedDomains: "simulator.amazonses.com,dockerhost",
 	})
 	CheckNoError(t, resp)
@@ -878,7 +876,7 @@ func TestSearchAllTeamsSanitization(t *testing.T) {
 		DisplayName:    t.Name() + "_2",
 		Name:           GenerateTestTeamName(),
 		Email:          th.GenerateTestEmail(),
-		Type:           model.TEAM_OPEN,
+		InviteId:       model.NewId(),
 		AllowedDomains: "simulator.amazonses.com,dockerhost",
 	})
 	CheckNoError(t, resp)
@@ -943,7 +941,7 @@ func TestGetTeamsForUser(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	team2 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TEAM_INVITE}
+	team2 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), InviteId: ""}
 	rteam2, _ := Client.CreateTeam(team2)
 
 	teams, resp := Client.GetTeamsForUser(th.BasicUser.Id, "")
@@ -988,7 +986,7 @@ func TestGetTeamsForUserSanitization(t *testing.T) {
 		DisplayName:    t.Name() + "_1",
 		Name:           GenerateTestTeamName(),
 		Email:          th.GenerateTestEmail(),
-		Type:           model.TEAM_OPEN,
+		InviteId:       model.NewId(),
 		AllowedDomains: "simulator.amazonses.com,dockerhost",
 	})
 	CheckNoError(t, resp)
@@ -996,7 +994,7 @@ func TestGetTeamsForUserSanitization(t *testing.T) {
 		DisplayName:    t.Name() + "_2",
 		Name:           GenerateTestTeamName(),
 		Email:          th.GenerateTestEmail(),
-		Type:           model.TEAM_OPEN,
+		InviteId:       model.NewId(),
 		AllowedDomains: "simulator.amazonses.com,dockerhost",
 	})
 	CheckNoError(t, resp)
@@ -2150,7 +2148,7 @@ func TestUpdateTeamScheme(t *testing.T) {
 		DisplayName: "Name",
 		Description: "Some description",
 		CompanyName: "Some company name",
-		IsPublic:    false,
+		IsPublic:    model.NewBool(false),
 		InviteId:    "inviteid0",
 		Name:        "z-z-" + model.NewId() + "a",
 		Email:       "success+" + model.NewId() + "@simulator.amazonses.com",

@@ -175,6 +175,10 @@ func (o *Team) PreSave() {
 		o.Id = NewId()
 	}
 
+	if o.IsPublic == nil {
+		o.IsPublic = NewBool(false)
+	}
+
 	o.CreateAt = GetMillis()
 	o.UpdateAt = o.CreateAt
 }

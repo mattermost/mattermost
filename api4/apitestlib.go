@@ -263,6 +263,8 @@ func (me *TestHelper) CreateTeamWithClient(client *model.Client4) *model.Team {
 		DisplayName: "dn_" + id,
 		Name:        GenerateTestTeamName(),
 		Email:       me.GenerateTestEmail(),
+		InviteId:    model.NewId(),
+		IsPublic:    model.NewBool(false),
 	}
 
 	utils.DisableDebugLogForTest()

@@ -2351,7 +2351,7 @@ func TestUpdateChannelScheme(t *testing.T) {
 		DisplayName: "Name",
 		Description: "Some description",
 		CompanyName: "Some company name",
-		IsPublic:    false,
+		IsPublic:    model.NewBool(false),
 		InviteId:    "inviteid0",
 		Name:        "z-z-" + model.NewId() + "a",
 		Email:       "success+" + model.NewId() + "@simulator.amazonses.com",

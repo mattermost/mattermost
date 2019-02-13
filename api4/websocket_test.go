@@ -298,7 +298,7 @@ func TestWebSocketStatuses(t *testing.T) {
 		t.Fatal("should have responded OK to authentication challenge")
 	}
 
-	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com", Type: model.TEAM_OPEN}
+	team := model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: "test@nowhere.com"}
 	rteam, _ := Client.CreateTeam(&team)
 
 	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1"}
