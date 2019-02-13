@@ -682,7 +682,6 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
 	ouser, err := c.App.GetUser(user.Id)
 	if err != nil {
 		c.Err = err
