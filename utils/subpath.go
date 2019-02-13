@@ -70,13 +70,13 @@ func UpdateAssetsSubpath(subpath string) error {
 	script := fmt.Sprintf("window.publicPath='%s'", newPath)
 	scriptHash := sha256.Sum256([]byte(script))
 
-	reCSP := regexp.MustCompile(`<meta http-equiv="Content-Security-Policy" content="script-src 'self' cdn.segment.com/analytics.js/ 'unsafe-eval'([^"]*)">`)
+	reCSP := regexp.MustCompile(`<meta http-equiv="Content-Security-Policy" content="script-src 'self' cdn.segment.com/analytics.js/([^"]*)">`)
 	if results := reCSP.FindAllString(newRootHtml, -1); len(results) == 0 {
 		return fmt.Errorf("failed to find 'Content-Security-Policy' meta tag to rewrite")
 	}
 
 	newRootHtml = reCSP.ReplaceAllLiteralString(newRootHtml, fmt.Sprintf(
-		`<meta http-equiv="Content-Security-Policy" content="script-src 'self' cdn.segment.com/analytics.js/ 'unsafe-eval' 'sha256-%s'">`,
+		`<meta http-equiv="Content-Security-Policy" content="script-src 'self' cdn.segment.com/analytics.js/ 'sha256-%s'">`,
 		base64.StdEncoding.EncodeToString(scriptHash[:]),
 	))
 

@@ -762,7 +762,7 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		if err = c.App.DoubleCheckPassword(ouser, *patch.Password); err != nil {
-			c.SetInvalidParam("password")
+			c.Err = err
 			return
 		}
 	}
@@ -856,7 +856,7 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// if EnableUserDeactivation flag is disabled the user cannot deactivate himself.
-	if isSelfDeactive && !*c.App.GetConfig().TeamSettings.EnableUserDeactivation {
+	if isSelfDeactive && !*c.App.Config().TeamSettings.EnableUserDeactivation {
 		c.Err = model.NewAppError("updateUserActive", "api.user.update_active.not_enable.app_error", nil, "userId="+c.Params.UserId, http.StatusUnauthorized)
 		return
 	}

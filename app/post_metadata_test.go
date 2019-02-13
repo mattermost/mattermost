@@ -19,6 +19,8 @@ import (
 
 	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/httpservice"
+	"github.com/mattermost/mattermost-server/services/imageproxy"
 	"github.com/mattermost/mattermost-server/utils/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -549,6 +551,194 @@ func TestGetImagesForPost(t *testing.T) {
 
 		assert.Equal(t, images, map[string]*model.PostImage{})
 	})
+
+	t.Run("for an OpenGraph image with dimensions", func(t *testing.T) {
+		th := Setup()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.1"
+		})
+
+		ogURL := "https://example.com/index.html"
+		imageURL := "https://example.com/image.png"
+
+		post := &model.Post{
+			Metadata: &model.PostMetadata{
+				Embeds: []*model.PostEmbed{
+					{
+						Type: model.POST_EMBED_OPENGRAPH,
+						URL:  ogURL,
+						Data: &opengraph.OpenGraph{
+							Images: []*opengraph.Image{
+								{
+									URL:    imageURL,
+									Width:  100,
+									Height: 200,
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		images := th.App.getImagesForPost(post, []string{}, false)
+
+		assert.Equal(t, images, map[string]*model.PostImage{
+			imageURL: {
+				Width:  100,
+				Height: 200,
+			},
+		})
+	})
+
+	t.Run("for an OpenGraph image without dimensions", func(t *testing.T) {
+		th := Setup()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.1"
+		})
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.URL.Path == "/image.png" {
+				w.Header().Set("Content-Type", "image/png")
+
+				img := image.NewGray(image.Rect(0, 0, 200, 300))
+
+				var encoder png.Encoder
+				encoder.Encode(w, img)
+			} else {
+				w.WriteHeader(http.StatusNotFound)
+			}
+		}))
+		defer server.Close()
+
+		ogURL := server.URL + "/index.html"
+		imageURL := server.URL + "/image.png"
+
+		post := &model.Post{
+			Metadata: &model.PostMetadata{
+				Embeds: []*model.PostEmbed{
+					{
+						Type: model.POST_EMBED_OPENGRAPH,
+						URL:  ogURL,
+						Data: &opengraph.OpenGraph{
+							Images: []*opengraph.Image{
+								{
+									URL: imageURL,
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		images := th.App.getImagesForPost(post, []string{}, false)
+
+		assert.Equal(t, images, map[string]*model.PostImage{
+			imageURL: {
+				Width:  200,
+				Height: 300,
+			},
+		})
+	})
+
+	t.Run("with an OpenGraph image with a secure_url and dimensions", func(t *testing.T) {
+		th := Setup()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.1"
+		})
+
+		ogURL := "https://example.com/index.html"
+		imageURL := "https://example.com/secure_image.png"
+
+		post := &model.Post{
+			Metadata: &model.PostMetadata{
+				Embeds: []*model.PostEmbed{
+					{
+						Type: model.POST_EMBED_OPENGRAPH,
+						URL:  ogURL,
+						Data: &opengraph.OpenGraph{
+							Images: []*opengraph.Image{
+								{
+									URL:    imageURL,
+									Width:  300,
+									Height: 400,
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		images := th.App.getImagesForPost(post, []string{}, false)
+
+		assert.Equal(t, images, map[string]*model.PostImage{
+			imageURL: {
+				Width:  300,
+				Height: 400,
+			},
+		})
+	})
+
+	t.Run("with an OpenGraph image with a secure_url and no dimensions", func(t *testing.T) {
+		th := Setup()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.1"
+		})
+
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.URL.Path == "/secure_image.png" {
+				w.Header().Set("Content-Type", "image/png")
+
+				img := image.NewGray(image.Rect(0, 0, 400, 500))
+
+				var encoder png.Encoder
+				encoder.Encode(w, img)
+			} else {
+				w.WriteHeader(http.StatusNotFound)
+			}
+		}))
+
+		ogURL := server.URL + "/index.html"
+		imageURL := server.URL + "/secure_image.png"
+
+		post := &model.Post{
+			Metadata: &model.PostMetadata{
+				Embeds: []*model.PostEmbed{
+					{
+						Type: model.POST_EMBED_OPENGRAPH,
+						URL:  ogURL,
+						Data: &opengraph.OpenGraph{
+							Images: []*opengraph.Image{
+								{
+									URL:       server.URL + "/image.png",
+									SecureURL: imageURL,
+								},
+							},
+						},
+					},
+				},
+			},
+		}
+
+		images := th.App.getImagesForPost(post, []string{}, false)
+
+		assert.Equal(t, images, map[string]*model.PostImage{
+			imageURL: {
+				Width:  400,
+				Height: 500,
+			},
+		})
+	})
 }
 
 func TestGetEmojiNamesForString(t *testing.T) {
@@ -1064,8 +1254,6 @@ func TestGetLinkMetadata(t *testing.T) {
 
 		return th
 	}
-	th := Setup().InitBasic()
-	defer th.TearDown()
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		params := r.URL.Query()
@@ -1510,6 +1698,11 @@ func TestGetLinkMetadata(t *testing.T) {
 		defer th.TearDown()
 
 		// Fake the SiteURL to have the relative URL resolve to the external server
+		oldSiteURL := *th.App.Config().ServiceSettings.SiteURL
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = oldSiteURL
+		})
+
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = server.URL
 		})
@@ -1521,6 +1714,45 @@ func TestGetLinkMetadata(t *testing.T) {
 		assert.Nil(t, og)
 		assert.NotNil(t, img)
 		assert.Nil(t, err)
+	})
+
+	t.Run("should error on local addresses other than the image proxy", func(t *testing.T) {
+		th := setup()
+		defer th.TearDown()
+
+		// Disable AllowedUntrustedInternalConnections since it's turned on for the previous tests
+		oldAllowUntrusted := *th.App.Config().ServiceSettings.AllowedUntrustedInternalConnections
+		oldSiteURL := *th.App.Config().ServiceSettings.SiteURL
+		defer th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = oldAllowUntrusted
+			*cfg.ServiceSettings.SiteURL = oldSiteURL
+		})
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = ""
+			*cfg.ServiceSettings.SiteURL = "http://mattermost.example.com"
+			*cfg.ImageProxySettings.Enable = true
+			*cfg.ImageProxySettings.ImageProxyType = "local"
+		})
+
+		requestURL := server.URL + "/image?height=200&width=300&name=" + t.Name()
+		timestamp := int64(1547510400000)
+
+		og, img, err := th.App.getLinkMetadata(requestURL, timestamp, false)
+		assert.Nil(t, og)
+		assert.Nil(t, img)
+		assert.NotNil(t, err)
+		assert.IsType(t, &url.Error{}, err)
+		assert.Equal(t, httpservice.AddressForbidden, err.(*url.Error).Err)
+
+		requestURL = th.App.GetSiteURL() + "/api/v4/image?url=" + url.QueryEscape(requestURL)
+
+		// Note that this request still fails while testing because the request made by the image proxy is blocked
+		og, img, err = th.App.getLinkMetadata(requestURL, timestamp, false)
+		assert.Nil(t, og)
+		assert.Nil(t, img)
+		assert.NotNil(t, err)
+		assert.IsType(t, imageproxy.Error{}, err)
 	})
 }
 
