@@ -44,7 +44,6 @@ func NewDatabaseStore(dsn string) (ds *DatabaseStore, err error) {
 		return nil, errors.Wrap(err, "invalid DSN")
 	}
 
-	// TODO: Retry logic?
 	db, err := sqlx.Open(driverName, dataSourceName)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to connect to %s database", driverName)
