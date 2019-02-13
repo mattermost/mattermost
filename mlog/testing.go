@@ -15,8 +15,8 @@ type testingWriter struct {
 	tb testing.TB
 }
 
-func (lw *testingWriter) Write(b []byte) (int, error) {
-	lw.tb.Log(string(b))
+func (tw *testingWriter) Write(b []byte) (int, error) {
+	tw.tb.Log(string(b))
 	return len(b), nil
 }
 
