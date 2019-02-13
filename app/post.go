@@ -743,7 +743,42 @@ func (a *App) parseAndFetchChannelIdByNameFromInFilter(channelName, userId, team
 	return channel, nil
 }
 
-func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.PostSearchResults, *model.AppError) {
+func (a *App) searchPostsInTeam(teamId string, userId string, paramsList []*model.SearchParams, modifierFun func(*model.SearchParams)) (*model.PostList, *model.AppError) {
+	channels := []store.StoreChannel{}
+
+	for _, params := range paramsList {
+		// Don't allow users to search for everything.
+		if params.Terms == "*" {
+			continue
+		}
+		modifierFun(params)
+		channels = append(channels, a.Srv.Store.Post().Search(teamId, userId, params))
+	}
+
+	posts := model.NewPostList()
+	for _, channel := range channels {
+		result := <-channel
+		if result.Err != nil {
+			return nil, result.Err
+		}
+		data := result.Data.(*model.PostList)
+		posts.Extend(data)
+	}
+
+	posts.SortByCreateAt()
+	return posts, nil
+}
+
+func (a *App) SearchPostsInTeam(teamId string, paramsList []*model.SearchParams) (*model.PostList, *model.AppError) {
+	if !*a.Config().ServiceSettings.EnablePostSearch {
+		return nil, model.NewAppError("SearchPostsInTeam", "store.sql_post.search.disabled", nil, fmt.Sprintf("teamId=%v", teamId), http.StatusNotImplemented)
+	}
+	return a.searchPostsInTeam(teamId, "", paramsList, func(params *model.SearchParams) {
+		params.SearchWithoutUserId = true
+	})
+}
+
+func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.PostSearchResults, *model.AppError) {
 	paramsList := model.ParseSearchParams(terms, timeZoneOffset)
 	includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 
@@ -815,7 +850,7 @@ func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOr
 	}
 
 	if !*a.Config().ServiceSettings.EnablePostSearch {
-		return nil, model.NewAppError("SearchPostsInTeam", "store.sql_post.search.disabled", nil, fmt.Sprintf("teamId=%v userId=%v", teamId, userId), http.StatusNotImplemented)
+		return nil, model.NewAppError("SearchPostsInTeamForUser", "store.sql_post.search.disabled", nil, fmt.Sprintf("teamId=%v userId=%v", teamId, userId), http.StatusNotImplemented)
 	}
 
 	// Since we don't support paging we just return nothing for later pages
@@ -823,39 +858,23 @@ func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOr
 		return model.MakePostSearchResults(model.NewPostList(), nil), nil
 	}
 
-	channels := []store.StoreChannel{}
-
-	for _, params := range paramsList {
+	posts, err := a.searchPostsInTeam(teamId, userId, paramsList, func(params *model.SearchParams) {
 		params.IncludeDeletedChannels = includeDeleted
 		params.OrTerms = isOrSearch
-		// don't allow users to search for everything
-		if params.Terms != "*" {
-			for idx, channelName := range params.InChannels {
-				if strings.HasPrefix(channelName, "@") {
-					channel, err := a.parseAndFetchChannelIdByNameFromInFilter(channelName, userId, teamId, includeDeletedChannels)
-					if err != nil {
-						mlog.Error(fmt.Sprint(err))
-						continue
-					}
-					params.InChannels[idx] = channel.Name
+		for idx, channelName := range params.InChannels {
+			if strings.HasPrefix(channelName, "@") {
+				channel, err := a.parseAndFetchChannelIdByNameFromInFilter(channelName, userId, teamId, includeDeletedChannels)
+				if err != nil {
+					mlog.Error(fmt.Sprint(err))
+					continue
 				}
+				params.InChannels[idx] = channel.Name
 			}
-			channels = append(channels, a.Srv.Store.Post().Search(teamId, userId, params))
 		}
+	})
+	if err != nil {
+		return nil, err
 	}
-
-	posts := model.NewPostList()
-	for _, channel := range channels {
-		result := <-channel
-		if result.Err != nil {
-			return nil, result.Err
-		}
-		data := result.Data.(*model.PostList)
-		posts.Extend(data)
-	}
-
-	posts.SortByCreateAt()
-
 	return model.MakePostSearchResults(posts, nil), nil
 }
 
