@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -117,7 +118,7 @@ func TestUpdateAssetsSubpath(t *testing.T) {
 				baseManifestJson,
 				"/",
 				nil,
-				resetRootHtml,
+				baseRootHtml,
 				baseCss,
 				baseManifestJson,
 			},
@@ -137,7 +138,11 @@ func TestUpdateAssetsSubpath(t *testing.T) {
 
 				contents, err := ioutil.ReadFile(filepath.Join(tempDir, model.CLIENT_DIR, "root.html"))
 				require.NoError(t, err)
-				require.Equal(t, testCase.ExpectedRootHTML, string(contents))
+
+				// Rewrite the expected and contents for simpler diffs when failed.
+				expectedRootHTML := strings.Replace(testCase.ExpectedRootHTML, ">", ">\n", -1)
+				contentsStr := strings.Replace(string(contents), ">", ">\n", -1)
+				require.Equal(t, expectedRootHTML, contentsStr)
 
 				contents, err = ioutil.ReadFile(filepath.Join(tempDir, model.CLIENT_DIR, "main.css"))
 				require.NoError(t, err)
