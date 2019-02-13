@@ -1246,15 +1246,15 @@
   },
   {
     "id": "api.io_error",
-    "translation": "input/output error"
+    "translation": "Eingabe-/Ausgabe-Fehler"
   },
   {
     "id": "api.ldap_group.not_found",
-    "translation": "ldap group not found"
+    "translation": "LDAP-Gruppe nicht gefunden"
   },
   {
     "id": "api.ldap_groups.license_error",
-    "translation": "your license does not support ldap groups"
+    "translation": "Ihre Lizenz unterstützt LDAP-Gruppen nicht"
   },
   {
     "id": "api.license.add_license.array.app_error",
@@ -1298,7 +1298,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "marshal error"
+    "translation": "Anordnungsfehler"
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
@@ -1450,11 +1450,11 @@
   },
   {
     "id": "api.post.deduplicate_create_post.failed_to_get",
-    "translation": "Failed to fetch original post after deduplicating a client repeating the same request."
+    "translation": "Konnte originale Nachricht nicht abrufen nachdem ein Client dedupliziert wurde, der die selbe Anfrage wiederholte."
   },
   {
     "id": "api.post.deduplicate_create_post.pending",
-    "translation": "Rejected post since another client is making the same request."
+    "translation": "Nachricht zurückgewiesen, da ein anderer Client die selbe Anfrage durchführt."
   },
   {
     "id": "api.post.disabled_all",
@@ -3496,7 +3496,7 @@
   },
   {
     "id": "ent.ldap.app_error",
-    "translation": "ldap interface was nil"
+    "translation": "LDAP-Schnittstelle war leer"
   },
   {
     "id": "ent.ldap.create_fail",
@@ -3544,11 +3544,11 @@
   },
   {
     "id": "ent.ldap.syncronize.get_all_groups.app_error",
-    "translation": "error retrieving groups"
+    "translation": "Fehler beim Abrufen der Gruppen"
   },
   {
     "id": "ent.ldap.syncronize.populate_syncables",
-    "translation": "error populating syncables"
+    "translation": "Fehler beim Einpflegen der synchronisierbaren Objekte."
   },
   {
     "id": "ent.ldap.syncronize.search_failure.app_error",
@@ -3560,23 +3560,23 @@
   },
   {
     "id": "ent.ldap_groups.group_search_error",
-    "translation": "error retrieving ldap group"
+    "translation": "Fehler beim Abrufen der LDAP-Gruppe"
   },
   {
     "id": "ent.ldap_groups.groups_search_error",
-    "translation": "error retrieving ldap groups"
+    "translation": "Fehler beim Abrufen der LDAP-Gruppen"
   },
   {
     "id": "ent.ldap_groups.members_of_group_error",
-    "translation": "error retrieving members of group"
+    "translation": "Fehler beim Abrufen der Gruppenmitglieder"
   },
   {
     "id": "ent.ldap_groups.no_rows",
-    "translation": "no groups found with matching uid"
+    "translation": "Keine Gruppen mit passender UID gefunden"
   },
   {
     "id": "ent.ldap_groups.reachable_groups_error",
-    "translation": "error retrieving groups for user"
+    "translation": "Fehler beim Abrufen der Gruppen für Benutzer"
   },
   {
     "id": "ent.message_export.global_relay.attach_file.app_error",
@@ -4136,11 +4136,11 @@
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
-    "translation": "Invalid RemoteImageProxyOptions for atmos/camo. Must be set to your shared key."
+    "translation": "Ungültige RemoteImageProxyOptions für atmos/camo. Muss auf ihren geteilten Schlüssel gesetzt sein."
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
-    "translation": "Invalid RemoteImageProxyURL for atmos/camo. Must be set to your shared key."
+    "translation": "Ungültige RemoteImageProxyURL für atmos/camo. Muss auf ihren geteilten Schlüssel gesetzt sein."
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
@@ -4228,7 +4228,7 @@
   },
   {
     "id": "model.config.is_valid.image_proxy_type.app_error",
-    "translation": "Invalid image proxy type. Must be 'local' or 'atmos/camo'."
+    "translation": "Ungültiger Bild-Proxy-Typ. Muss 'local' oder 'atmos/camo' sein."
   },
   {
     "id": "model.config.is_valid.ldap_basedn",
@@ -4508,63 +4508,63 @@
   },
   {
     "id": "model.group.create_at.app_error",
-    "translation": "invalid create at property for group"
+    "translation": "Ungültige Eigenschaft \"create at\" für Gruppe"
   },
   {
     "id": "model.group.delete_at.app_error",
-    "translation": "invalid delete at property for group"
+    "translation": "Ungültige Eigenschaft \"delete at\" für Gruppe"
   },
   {
     "id": "model.group.description.app_error",
-    "translation": "invalid description property for group"
+    "translation": "Ungültige Eigenschaft \"description\" für Gruppe"
   },
   {
     "id": "model.group.display_name.app_error",
-    "translation": "invalid display name property for group"
+    "translation": "Ungültige Eigenschaft \"display name\" für Gruppe"
   },
   {
     "id": "model.group.id.app_error",
-    "translation": "invalid id property for group"
+    "translation": "Ungültige Eigenschaft \"id\" für Gruppe"
   },
   {
     "id": "model.group.name.app_error",
-    "translation": "invalid name property for group"
+    "translation": "Ungültige Eigenschaft \"name\" für Gruppe"
   },
   {
     "id": "model.group.remote_id.app_error",
-    "translation": "invalid remote id property for group"
+    "translation": "Ungültige Eigenschaft \"remote id\" für Gruppe"
   },
   {
     "id": "model.group.source.app_error",
-    "translation": "invalid source property for group"
+    "translation": "Ungültige Eigenschaft \"source\" für Gruppe"
   },
   {
     "id": "model.group.update_at.app_error",
-    "translation": "invalid update at property for group"
+    "translation": "Ungültige Eigenschaft \"update at\" für Gruppe"
   },
   {
     "id": "model.group_member.group_id.app_error",
-    "translation": "invalid group id property for group member"
+    "translation": "Ungültige Eigenschaft \"group id\" für Gruppe"
   },
   {
     "id": "model.group_member.user_id.app_error",
-    "translation": "invalid user id property for group member"
+    "translation": "Ungültige Eigenschaft \"user id\" für Gruppenmitglied"
   },
   {
     "id": "model.group_syncable.group_id.app_error",
-    "translation": "invalid group id property for group syncable"
+    "translation": "Ungültige Eigenschaft \"group id\" für Gruppe der synchronisierbaren Objekte."
   },
   {
     "id": "model.group_syncable.syncable_id.app_error",
-    "translation": "invalid syncable id for group syncable"
+    "translation": "Ungültige \"syncable id\" für Gruppe der synchronisierbaren Objekte."
   },
   {
     "id": "model.group_syncable.type.app_error",
-    "translation": "invalid type property for group syncable"
+    "translation": "Ungültige Eigenschaft \"type\" für synchronisierbaren Objekte."
   },
   {
     "id": "model.group_syncable.unmarshaljson.duplicate_type_identifier",
-    "translation": "type identifier already exists: perhaps json contains both 'team_id' and 'channel_id'"
+    "translation": "Typenidentifizierer existiert bereits: Vielleicht enthält JSON sowohl 'team_id' als auch 'channel_id'"
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -4636,27 +4636,27 @@
   },
   {
     "id": "model.link_metadata.is_valid.data.app_error",
-    "translation": "Link metadata data cannot be nil"
+    "translation": "Link-Metadaten können nicht leer sein."
   },
   {
     "id": "model.link_metadata.is_valid.data_type.app_error",
-    "translation": "Link metadata data does not match the given type"
+    "translation": "Link-Metadaten entsprechen nicht dem angegebenen Typen."
   },
   {
     "id": "model.link_metadata.is_valid.id.app_error",
-    "translation": "Link metadata id invalid"
+    "translation": "Link-Metadaten-Id ungültig."
   },
   {
     "id": "model.link_metadata.is_valid.timestamp.app_error",
-    "translation": "Link metadata timestamp must be nonzero and rounded to the nearest hour"
+    "translation": "Link-Metadaten-Zeitstempel muss ungleich Null und auf die nächste Stunde gerundet sein."
   },
   {
     "id": "model.link_metadata.is_valid.type.app_error",
-    "translation": "Invalid link metadata type"
+    "translation": "Ungültiger Link-Metadaten-Typ."
   },
   {
     "id": "model.link_metadata.is_valid.url.app_error",
-    "translation": "Link metadata URL must be set"
+    "translation": "Link-Metadaten-URL muss gesetzt sein."
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",
@@ -4784,7 +4784,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Invalid file ids. Note that uploads are limited to 5 files maximum. Please use additional posts for more files."
+    "translation": "Ungültige Datei-Ids. Uploads sind auf maximal fünf Dateien begrenzt. Bitte verwenden Sie zusätzliche Nachrichten für mehr Dateien."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -5088,11 +5088,11 @@
   },
   {
     "id": "store.insert_error",
-    "translation": "insert error"
+    "translation": "Einfügefehler"
   },
   {
     "id": "store.select_error",
-    "translation": "select error"
+    "translation": "Auswahlfehler"
   },
   {
     "id": "store.sql.convert_string_array",
@@ -5664,27 +5664,27 @@
   },
   {
     "id": "store.sql_group.group_syncable_already_deleted",
-    "translation": "group syncable was already deleted"
+    "translation": "Gruppe der synchronisierbaren Objekte wurde bereits gelöscht"
   },
   {
     "id": "store.sql_group.no_rows",
-    "translation": "no matching group found"
+    "translation": "Keine passende Gruppe gefunden"
   },
   {
     "id": "store.sql_group.no_rows_changed",
-    "translation": "no rows changed"
+    "translation": "Keine Reihen geändert"
   },
   {
     "id": "store.sql_group.nothing_to_update",
-    "translation": "nothing to update for group syncable"
+    "translation": "Nichts zu aktualisieren für Gruppe der synchronisierbaren Objekte"
   },
   {
     "id": "store.sql_group.unique_constraint",
-    "translation": "Ein Team mit diesem Namen existiert bereits"
+    "translation": "Eine Gruppe mit diesem Namen existiert bereits"
   },
   {
     "id": "store.sql_group.uniqueness_error",
-    "translation": "group member already exists"
+    "translation": "Gruppenmitglied existiert bereits"
   },
   {
     "id": "store.sql_job.delete.app_error",
@@ -6784,7 +6784,7 @@
   },
   {
     "id": "store.update_error",
-    "translation": "update error"
+    "translation": "Aktualisierungsfehler"
   },
   {
     "id": "system.message.name",
