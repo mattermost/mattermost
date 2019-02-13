@@ -22,6 +22,29 @@ import (
 	"github.com/mattermost/mattermost-server/utils/fileutils"
 )
 
+// getSubpathScript renders the inline script that defines window.publicPath to change how webpack loads assets.
+func getSubpathScript(subpath string) string {
+	if subpath == "" {
+		subpath = "/"
+	}
+
+	newPath := path.Join(subpath, "static") + "/"
+
+	return fmt.Sprintf("window.publicPath='%s'", newPath)
+}
+
+// GetSubpathScriptHash computes the script-src addition required for the subpath script to bypass CSP protections.
+func GetSubpathScriptHash(subpath string) string {
+	// No hash is required for the default subpath.
+	if subpath == "" || subpath == "/" {
+		return ""
+	}
+
+	scriptHash := sha256.Sum256([]byte(getSubpathScript(subpath)))
+
+	return fmt.Sprintf(" 'sha256-%s'", base64.StdEncoding.EncodeToString(scriptHash[:]))
+}
+
 // UpdateAssetsSubpath rewrites assets in the /client directory to assume the application is hosted
 // at the given subpath instead of at the root. No changes are written unless necessary.
 func UpdateAssetsSubpath(subpath string) error {
@@ -45,30 +68,22 @@ func UpdateAssetsSubpath(subpath string) error {
 		return errors.Wrap(err, "failed to open root.html")
 	}
 
-	pathToReplace := "/static/"
-	newPath := path.Join(subpath, "static") + "/"
+	oldSubpath := "/"
 
 	// Determine if a previous subpath had already been rewritten into the assets.
-	reWebpackPublicPathScript := regexp.MustCompile("window.publicPath='([^']+)'")
+	reWebpackPublicPathScript := regexp.MustCompile("window.publicPath='([^']+/)static/'")
 	alreadyRewritten := false
 	if matches := reWebpackPublicPathScript.FindStringSubmatch(string(oldRootHtml)); matches != nil {
-		pathToReplace = matches[1]
+		oldSubpath = matches[1]
 		alreadyRewritten = true
 	}
 
-	if pathToReplace == newPath {
-		mlog.Debug("No rewrite required for static assets", mlog.String("path", pathToReplace))
-		return nil
-	}
+	pathToReplace := path.Join(oldSubpath, "static") + "/"
+	newPath := path.Join(subpath, "static") + "/"
 
-	mlog.Debug("Rewriting static assets", mlog.String("from_path", pathToReplace), mlog.String("to_path", newPath))
+	mlog.Debug("Rewriting static assets", mlog.String("from_subpath", oldSubpath), mlog.String("to_subpath", subpath))
 
 	newRootHtml := string(oldRootHtml)
-
-	// Compute the sha256 hash for the inline script and reference same in the CSP meta tag.
-	// This allows the inline script defining `window.publicPath` to bypass CSP protections.
-	script := fmt.Sprintf("window.publicPath='%s'", newPath)
-	scriptHash := sha256.Sum256([]byte(script))
 
 	reCSP := regexp.MustCompile(`<meta http-equiv="Content-Security-Policy" content="script-src 'self' cdn.segment.com/analytics.js/([^"]*)">`)
 	if results := reCSP.FindAllString(newRootHtml, -1); len(results) == 0 {
@@ -76,16 +91,24 @@ func UpdateAssetsSubpath(subpath string) error {
 	}
 
 	newRootHtml = reCSP.ReplaceAllLiteralString(newRootHtml, fmt.Sprintf(
-		`<meta http-equiv="Content-Security-Policy" content="script-src 'self' cdn.segment.com/analytics.js/ 'sha256-%s'">`,
-		base64.StdEncoding.EncodeToString(scriptHash[:]),
+		`<meta http-equiv="Content-Security-Policy" content="script-src 'self' cdn.segment.com/analytics.js/%s">`,
+		GetSubpathScriptHash(subpath),
 	))
 
-	// Rewrite the root.html references to `/static/*` to include the given subpath. This
-	// potentially includes a previously injected inline script.
+	// Rewrite the root.html references to `/static/*` to include the given subpath.
+	// This potentially includes a previously injected inline script that needs to
+	// be updated (and isn't covered by the cases above).
 	newRootHtml = strings.Replace(newRootHtml, pathToReplace, newPath, -1)
 
-	// Inject the script, if needed, to define `window.publicPath`.
-	if !alreadyRewritten {
+	if alreadyRewritten && subpath == "/" {
+		// Remove the injected script since no longer required. Note that the rewrite above
+		// will have affected the script, so look for the new subpath, not the old one.
+		oldScript := getSubpathScript(subpath)
+		newRootHtml = strings.Replace(newRootHtml, fmt.Sprintf("</style><script>%s</script>", oldScript), "</style>", 1)
+
+	} else if !alreadyRewritten && subpath != "/" {
+		// Otherwise, inject the script to define `window.publicPath`.
+		script := getSubpathScript(subpath)
 		newRootHtml = strings.Replace(newRootHtml, "</style>", fmt.Sprintf("</style><script>%s</script>", script), 1)
 	}
 

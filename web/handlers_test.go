@@ -6,6 +6,7 @@ package web
 import (
 	"net/http"
 	"net/http/httptest"
+	"path"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -196,4 +197,79 @@ func TestHandlerServeCSRFToken(t *testing.T) {
 	if response.Code != 401 {
 		t.Errorf("Expected status 200, got %d", response.Code)
 	}
+}
+
+func handlerForCSPHeader(c *Context, w http.ResponseWriter, r *http.Request) {
+}
+
+func TestHandlerServeCSPHeader(t *testing.T) {
+	t.Run("non-static", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
+
+		web := New(th.Server, th.Server.AppOptions, th.Server.Router)
+
+		handler := Handler{
+			GetGlobalAppOptions: web.GetGlobalAppOptions,
+			HandleFunc:          handlerForCSPHeader,
+			RequireSession:      false,
+			TrustRequester:      false,
+			RequireMfa:          false,
+			IsStatic:            false,
+		}
+
+		request := httptest.NewRequest("POST", "/api/v4/test", nil)
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+		assert.Equal(t, 200, response.Code)
+		assert.Empty(t, response.Header()["Content-Security-Policy"])
+	})
+
+	t.Run("static, without subpath", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
+
+		web := New(th.Server, th.Server.AppOptions, th.Server.Router)
+
+		handler := Handler{
+			GetGlobalAppOptions: web.GetGlobalAppOptions,
+			HandleFunc:          handlerForCSPHeader,
+			RequireSession:      false,
+			TrustRequester:      false,
+			RequireMfa:          false,
+			IsStatic:            true,
+		}
+
+		request := httptest.NewRequest("POST", "/", nil)
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+		assert.Equal(t, 200, response.Code)
+		assert.Contains(t, response.Header()["Content-Security-Policy"], "frame-ancestors 'self'; script-src 'self' cdn.segment.com/analytics.js/")
+	})
+
+	t.Run("static, with subpath", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = path.Join(*cfg.ServiceSettings.SiteURL, "/subpath/")
+		})
+
+		web := New(th.Server, th.Server.AppOptions, th.Server.Router)
+
+		handler := Handler{
+			GetGlobalAppOptions: web.GetGlobalAppOptions,
+			HandleFunc:          handlerForCSPHeader,
+			RequireSession:      false,
+			TrustRequester:      false,
+			RequireMfa:          false,
+			IsStatic:            true,
+		}
+
+		request := httptest.NewRequest("POST", "/", nil)
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, request)
+		assert.Equal(t, 200, response.Code)
+		assert.Contains(t, response.Header()["Content-Security-Policy"], "frame-ancestors 'self'; script-src 'self' cdn.segment.com/analytics.js/ 'sha256-FM9ZedAgORGblKMijevDdC2WMIirVsuXHcqSXpq3Gg0='")
+	})
 }
