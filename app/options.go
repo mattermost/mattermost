@@ -85,7 +85,6 @@ func StartElasticsearch(s *Server) error {
 func SetLogger(logger *mlog.Logger) Option {
 	return func(s *Server) error {
 		s.Log = logger
-
 		return nil
 	}
 }
