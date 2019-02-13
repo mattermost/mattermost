@@ -564,7 +564,6 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
 	ouser, err := c.App.GetUser(user.Id)
 	if err != nil {
 		c.Err = err
@@ -578,7 +577,6 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-
 
 	// If eMail update is attempted by the currently logged in user, check if correct password was provided
 	if user.Email != "" && ouser.Email != user.Email && c.Session.UserId == c.Params.UserId {
