@@ -8,12 +8,9 @@ coverage:
   status:
     project:
       default:
-        threshold: 1%
-        if_no_uploads: error
-        if_not_found: success
-        if_ci_failed: error
+        threshold: 1
     patch: off
-    changes: no
+    changes: off
 ignore:
   - store/storetest
 comment: false
