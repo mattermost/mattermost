@@ -6,7 +6,6 @@ package web
 import (
 	"net/http"
 	"net/http/httptest"
-	"path"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -252,7 +251,7 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.SiteURL = path.Join(*cfg.ServiceSettings.SiteURL, "/subpath/")
+			*cfg.ServiceSettings.SiteURL = *cfg.ServiceSettings.SiteURL + "/subpath"
 		})
 
 		web := New(th.Server, th.Server.AppOptions, th.Server.Router)
@@ -270,6 +269,6 @@ func TestHandlerServeCSPHeader(t *testing.T) {
 		response := httptest.NewRecorder()
 		handler.ServeHTTP(response, request)
 		assert.Equal(t, 200, response.Code)
-		assert.Contains(t, response.Header()["Content-Security-Policy"], "frame-ancestors 'self'; script-src 'self' cdn.segment.com/analytics.js/ 'sha256-FM9ZedAgORGblKMijevDdC2WMIirVsuXHcqSXpq3Gg0='")
+		assert.Contains(t, response.Header()["Content-Security-Policy"], "frame-ancestors 'self'; script-src 'self' cdn.segment.com/analytics.js/ 'sha256-tPOjw+tkVs9axL78ZwGtYl975dtyPHB6LYKAO2R3gR4='")
 	})
 }
