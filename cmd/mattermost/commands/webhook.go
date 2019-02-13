@@ -25,6 +25,15 @@ var WebhookListCmd = &cobra.Command{
 	RunE:    listWebhookCmdF,
 }
 
+var WebhookShowCmd = &cobra.Command{
+	Use:     "show [webhookId]",
+	Short:   "Show a webhook",
+	Long:    "Show the webhook specified by [webhookId]",
+	Args:    cobra.ExactArgs(1),
+	Example: "  webhook show w16zb5tu3n1zkqo18goqry1je",
+	RunE:    showWebhookCmdF,
+}
+
 var WebhookCreateIncomingCmd = &cobra.Command{
 	Use:     "create-incoming",
 	Short:   "Create incoming webhook",
@@ -156,9 +165,13 @@ func createIncomingWebhookCmdF(command *cobra.Command, args []string) error {
 		ChannelLocked: channelLocked,
 	}
 
-	if _, err := app.CreateIncomingWebhookForChannel(user.Id, channel, incomingWebhook); err != nil {
-		return err
+	createdIncoming, errIncomingWebhook := app.CreateIncomingWebhookForChannel(user.Id, channel, incomingWebhook)
+	if errIncomingWebhook != nil {
+		return errIncomingWebhook
 	}
+
+	CommandPrettyPrintln("Id: " + createdIncoming.Id)
+	CommandPrettyPrintln("Display Name: " + createdIncoming.DisplayName)
 
 	return nil
 }
@@ -287,9 +300,13 @@ func createOutgoingWebhookCmdF(command *cobra.Command, args []string) error {
 		}
 	}
 
-	if _, err := app.CreateOutgoingWebhook(outgoingWebhook); err != nil {
-		return err
+	createdOutgoing, errOutgoing := app.CreateOutgoingWebhook(outgoingWebhook)
+	if errOutgoing != nil {
+		return errOutgoing
 	}
+
+	CommandPrettyPrintln("Id: " + createdOutgoing.Id)
+	CommandPrettyPrintln("Display Name: " + createdOutgoing.DisplayName)
 
 	return nil
 }
@@ -400,6 +417,26 @@ func deleteWebhookCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
+func showWebhookCmdF(command *cobra.Command, args []string) error {
+	app, err := InitDBCommandContextCobra(command)
+	if err != nil {
+		return err
+	}
+	defer app.Shutdown()
+
+	webhookId := args[0]
+	if incomingWebhook, err := app.GetIncomingWebhook(webhookId); err == nil {
+		fmt.Printf("%s", prettyPrintStruct(*incomingWebhook))
+		return nil
+	}
+	if outgoingWebhook, err := app.GetOutgoingWebhook(webhookId); err == nil {
+		fmt.Printf("%s", prettyPrintStruct(*outgoingWebhook))
+		return nil
+	}
+
+	return errors.New("Webhook with id " + webhookId + " not found")
+}
+
 func init() {
 	WebhookCreateIncomingCmd.Flags().String("channel", "", "Channel ID (required)")
 	WebhookCreateIncomingCmd.Flags().String("user", "", "User ID (required)")
@@ -441,6 +478,7 @@ func init() {
 		WebhookCreateOutgoingCmd,
 		WebhookModifyOutgoingCmd,
 		WebhookDeleteCmd,
+		WebhookShowCmd,
 	)
 
 	RootCmd.AddCommand(WebhookCmd)

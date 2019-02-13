@@ -51,7 +51,7 @@ func setupTestHelper(enterprise bool) *TestHelper {
 		panic(err)
 	}
 
-	options := []Option{ConfigFile(tempConfig.Name()), DisableConfigWatch}
+	options := []Option{ConfigFile(tempConfig.Name(), false)}
 	options = append(options, StoreOverride(mainHelper.Store))
 
 	s, err := NewServer(options...)

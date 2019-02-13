@@ -62,16 +62,6 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.App.Path = r.URL.Path
 	c.Log = c.App.Log
 
-	token, tokenLocation := app.ParseAuthTokenFromRequest(r)
-
-	// CSRF Check
-	if tokenLocation == app.TokenLocationCookie && h.RequireSession && !h.TrustRequester {
-		if r.Header.Get(model.HEADER_REQUESTED_WITH) != model.HEADER_REQUESTED_WITH_XML {
-			c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token+" Appears to be a CSRF attempt", http.StatusUnauthorized)
-			token = ""
-		}
-	}
-
 	subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
 	siteURLHeader := app.GetProtocol(r) + "://" + r.Host + subpath
 	c.SetSiteURLHeader(siteURLHeader)
@@ -87,7 +77,10 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// Instruct the browser not to display us in an iframe unless is the same origin for anti-clickjacking
 		w.Header().Set("X-Frame-Options", "SAMEORIGIN")
 		// Set content security policy. This is also specified in the root.html of the webapp in a meta tag.
-		w.Header().Set("Content-Security-Policy", "frame-ancestors 'self'; script-src 'self' cdn.segment.com/analytics.js/")
+		w.Header().Set("Content-Security-Policy", fmt.Sprintf(
+			"frame-ancestors 'self'; script-src 'self' cdn.segment.com/analytics.js/%s",
+			utils.GetSubpathScriptHash(subpath),
+		))
 	} else {
 		// All api response bodies will be JSON formatted by default
 		w.Header().Set("Content-Type", "application/json")
@@ -97,26 +90,51 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	token, tokenLocation := app.ParseAuthTokenFromRequest(r)
+
 	if len(token) != 0 {
 		session, err := c.App.GetSession(token)
+		csrfCheckPassed := false
 
-		if err != nil {
-			c.Log.Info("Invalid session", mlog.Err(err))
-			if err.StatusCode == http.StatusInternalServerError {
-				c.Err = err
-			} else if h.RequireSession {
-				c.RemoveSessionCookie(w, r)
-				c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token, http.StatusUnauthorized)
+		// CSRF Check
+		if tokenLocation == app.TokenLocationCookie && h.RequireSession && !h.TrustRequester && r.Method != "GET" {
+			csrfHeader := r.Header.Get(model.HEADER_CSRF_TOKEN)
+			if csrfHeader == session.GetCSRF() {
+				csrfCheckPassed = true
+			} else if !*c.App.Config().ServiceSettings.ExperimentalStrictCSRFEnforcement && r.Header.Get(model.HEADER_REQUESTED_WITH) == model.HEADER_REQUESTED_WITH_XML {
+				// ToDo(DSchalla) 2019/01/04: Remove after deprecation period and only allow CSRF Header (MM-13657)
+				c.Log.Warn("CSRF Header check failed for request - Please upgrade your web application or custom app to set a CSRF Header")
+				csrfCheckPassed = true
 			}
-		} else if !session.IsOAuth && tokenLocation == app.TokenLocationQueryString {
-			c.Err = model.NewAppError("ServeHTTP", "api.context.token_provided.app_error", nil, "token="+token, http.StatusUnauthorized)
+
+			if !csrfCheckPassed {
+				token = ""
+				session = nil
+				c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token+" Appears to be a CSRF attempt", http.StatusUnauthorized)
+			}
 		} else {
-			c.App.Session = *session
+			csrfCheckPassed = true
 		}
 
-		// Rate limit by UserID
-		if c.App.Srv.RateLimiter != nil && c.App.Srv.RateLimiter.UserIdRateLimit(c.App.Session.UserId, w) {
-			return
+		if csrfCheckPassed {
+			if err != nil {
+				c.Log.Info("Invalid session", mlog.Err(err))
+				if err.StatusCode == http.StatusInternalServerError {
+					c.Err = err
+				} else if h.RequireSession {
+					c.RemoveSessionCookie(w, r)
+					c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token, http.StatusUnauthorized)
+				}
+			} else if !session.IsOAuth && tokenLocation == app.TokenLocationQueryString {
+				c.Err = model.NewAppError("ServeHTTP", "api.context.token_provided.app_error", nil, "token="+token, http.StatusUnauthorized)
+			} else {
+				c.App.Session = *session
+			}
+
+			// Rate limit by UserID
+			if c.App.Srv.RateLimiter != nil && c.App.Srv.RateLimiter.UserIdRateLimit(c.App.Session.UserId, w) {
+				return
+			}
 		}
 	}
 

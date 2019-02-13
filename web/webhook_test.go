@@ -20,7 +20,7 @@ func TestIncomingWebhook(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	if !th.App.Config().ServiceSettings.EnableIncomingWebhooks {
+	if !*th.App.Config().ServiceSettings.EnableIncomingWebhooks {
 		_, err := http.Post(ApiClient.Url+"/hooks/123", "", strings.NewReader("123"))
 		assert.NotNil(t, err, "should have errored - webhooks turned off")
 		return
@@ -205,25 +205,26 @@ func TestIncomingWebhook(t *testing.T) {
 
 		hook, err := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id, ChannelLocked: true})
 		require.Nil(t, err)
+		require.NotNil(t, hook)
 
-		url := ApiClient.Url + "/hooks/" + hook.Id
+		apiHookUrl := ApiClient.Url + "/hooks/" + hook.Id
 
 		payload := "payload={\"text\": \"test text\"}"
-		resp, err2 := http.Post(url, "application/x-www-form-urlencoded", strings.NewReader(payload))
+		resp, err2 := http.Post(apiHookUrl, "application/x-www-form-urlencoded", strings.NewReader(payload))
 		require.Nil(t, err2)
 		assert.True(t, resp.StatusCode == http.StatusOK)
 
-		resp, err2 = http.Post(url, "application/json", strings.NewReader(fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", th.BasicChannel.Name)))
+		resp, err2 = http.Post(apiHookUrl, "application/json", strings.NewReader(fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", th.BasicChannel.Name)))
 		require.Nil(t, err2)
 		assert.True(t, resp.StatusCode == http.StatusOK)
 
-		resp, err2 = http.Post(url, "application/json", strings.NewReader(fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", channel.Name)))
+		resp, err2 = http.Post(apiHookUrl, "application/json", strings.NewReader(fmt.Sprintf("{\"text\":\"this is a test\", \"channel\":\"%s\"}", channel.Name)))
 		require.Nil(t, err2)
 		assert.True(t, resp.StatusCode == http.StatusForbidden)
 	})
 
 	t.Run("DisableWebhooks", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = false })
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = false })
 		resp, err := http.Post(url, "application/json", strings.NewReader("{\"text\":\"this is a test\"}"))
 		require.Nil(t, err)
 		assert.True(t, resp.StatusCode == http.StatusNotImplemented)
@@ -234,13 +235,13 @@ func TestCommandWebhooks(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	cmd, err := th.App.CreateCommand(&model.Command{
+	cmd, appErr := th.App.CreateCommand(&model.Command{
 		CreatorId: th.BasicUser.Id,
 		TeamId:    th.BasicTeam.Id,
 		URL:       "http://nowhere.com",
 		Method:    model.COMMAND_METHOD_POST,
 		Trigger:   "delayed"})
-	require.Nil(t, err)
+	require.Nil(t, appErr)
 
 	args := &model.CommandArgs{
 		TeamId:    th.BasicTeam.Id,
@@ -248,22 +249,22 @@ func TestCommandWebhooks(t *testing.T) {
 		ChannelId: th.BasicChannel.Id,
 	}
 
-	hook, err := th.App.CreateCommandWebhook(cmd.Id, args)
-	if err != nil {
-		t.Fatal(err)
+	hook, appErr := th.App.CreateCommandWebhook(cmd.Id, args)
+	if appErr != nil {
+		t.Fatal(appErr)
 	}
 
-	if resp, _ := http.Post(ApiClient.Url+"/hooks/commands/123123123123", "application/json", bytes.NewBufferString(`{"text":"this is a test"}`)); resp.StatusCode != http.StatusNotFound {
-		t.Fatal("expected not-found for non-existent hook")
-	}
+	resp, err := http.Post(ApiClient.Url+"/hooks/commands/123123123123", "application/json", bytes.NewBufferString(`{"text":"this is a test"}`))
+	require.NoError(t, err)
+	assert.Equal(t, http.StatusNotFound, resp.StatusCode, "expected not-found for non-existent hook")
 
-	if resp, err := http.Post(ApiClient.Url+"/hooks/commands/"+hook.Id, "application/json", bytes.NewBufferString(`{"text":"invalid`)); err != nil || resp.StatusCode != http.StatusBadRequest {
-		t.Fatal(err)
-	}
+	resp, err = http.Post(ApiClient.Url+"/hooks/commands/"+hook.Id, "application/json", bytes.NewBufferString(`{"text":"invalid`))
+	require.NoError(t, err)
+	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 
 	for i := 0; i < 5; i++ {
-		if resp, err := http.Post(ApiClient.Url+"/hooks/commands/"+hook.Id, "application/json", bytes.NewBufferString(`{"text":"this is a test"}`)); err != nil || resp.StatusCode != http.StatusOK {
-			t.Fatal(err)
+		if resp, appErr := http.Post(ApiClient.Url+"/hooks/commands/"+hook.Id, "application/json", bytes.NewBufferString(`{"text":"this is a test"}`)); err != nil || resp.StatusCode != http.StatusOK {
+			t.Fatal(appErr)
 		}
 	}
 
