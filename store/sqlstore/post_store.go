@@ -808,6 +808,11 @@ func (s *SqlPostStore) Search(teamId string, userId string, params *model.Search
 			deletedQueryPart = ""
 		}
 
+		userIdPart := "AND UserId = :UserId"
+		if params.SearchWithoutUserId {
+			userIdPart = ""
+		}
+
 		searchQuery := `
 			SELECT
 				*
@@ -826,7 +831,7 @@ func (s *SqlPostStore) Search(teamId string, userId string, params *model.Search
 					WHERE
 						Id = ChannelId
 							AND (TeamId = :TeamId OR TeamId = '')
-							AND UserId = :UserId
+							` + userIdPart + `
 							` + deletedQueryPart + `
 							CHANNEL_FILTER)
 				CREATEDATE_CLAUSE							

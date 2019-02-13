@@ -23,7 +23,9 @@ var robotsTxt = []byte("User-agent: *\nDisallow: /\n")
 
 func (w *Web) InitStatic() {
 	if *w.ConfigService.Config().ServiceSettings.WebserverMode != "disabled" {
-		utils.UpdateAssetsSubpathFromConfig(w.ConfigService.Config())
+		if err := utils.UpdateAssetsSubpathFromConfig(w.ConfigService.Config()); err != nil {
+			mlog.Error("Failed to update assets subpath from config", mlog.Err(err))
+		}
 
 		staticDir, _ := fileutils.FindDir(model.CLIENT_DIR)
 		mlog.Debug(fmt.Sprintf("Using client directory at %v", staticDir))

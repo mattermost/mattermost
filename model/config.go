@@ -16,6 +16,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/go-ldap/ldap"
 )
 
 const (
@@ -2528,6 +2530,12 @@ func (ls *LdapSettings) isValid() *AppError {
 
 		if *ls.LoginIdAttribute == "" {
 			return NewAppError("Config.IsValid", "model.config.is_valid.ldap_login_id", nil, "", http.StatusBadRequest)
+		}
+
+		if *ls.UserFilter != "" {
+			if _, err := ldap.CompileFilter(*ls.UserFilter); err != nil {
+				return NewAppError("ValidateFilter", "ent.ldap.validate_filter.app_error", nil, err.Error(), http.StatusBadRequest)
+			}
 		}
 	}
 

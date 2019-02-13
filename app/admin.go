@@ -6,13 +6,13 @@ package app
 import (
 	"io"
 	"os"
-	"strings"
 	"time"
 
 	"runtime/debug"
 
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/config"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/services/mailservice"
@@ -149,9 +149,8 @@ func (a *App) InvalidateAllCachesSkipSend() {
 	a.LoadLicense()
 }
 
-func (a *App) GetConfig() *model.Config {
-	json := a.Config().ToJson()
-	cfg := model.ConfigFromJson(strings.NewReader(json))
+func (a *App) GetSanitizedConfig() *model.Config {
+	cfg := a.Config().Clone()
 	cfg.Sanitize()
 
 	return cfg
@@ -161,32 +160,15 @@ func (a *App) GetEnvironmentConfig() map[string]interface{} {
 	return a.EnvironmentConfig()
 }
 
-func (a *App) SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool) *model.AppError {
-	oldCfg := a.Config()
-	cfg.SetDefaults()
-	a.Desanitize(cfg)
-
-	if err := cfg.IsValid(); err != nil {
-		return err
+func (a *App) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) *model.AppError {
+	oldCfg, err := a.Srv.configStore.Set(newCfg)
+	if err == config.ErrReadOnlyConfiguration {
+		return model.NewAppError("saveConfig", "ent.cluster.save_config.error", nil, err.Error(), http.StatusForbidden)
+	} else if err != nil {
+		return model.NewAppError("saveConfig", "app.save_config.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	if err := utils.ValidateLdapFilter(cfg, a.Ldap); err != nil {
-		return err
-	}
-
-	if *a.Config().ClusterSettings.Enable && *a.Config().ClusterSettings.ReadOnlyConfig {
-		return model.NewAppError("saveConfig", "ent.cluster.save_config.error", nil, "", http.StatusForbidden)
-	}
-
-	a.DisableConfigWatch()
-
-	a.UpdateConfig(func(update *model.Config) {
-		*update = *cfg
-	})
 	a.PersistConfig()
-	a.ReloadConfig()
-	a.EnableConfigWatch()
-
 	if a.Metrics != nil {
 		if *a.Config().MetricsSettings.Enable {
 			a.Metrics.StartServer()
@@ -196,7 +178,7 @@ func (a *App) SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool)
 	}
 
 	if a.Cluster != nil {
-		err := a.Cluster.ConfigChanged(cfg, oldCfg, sendConfigChangeClusterMessage)
+		err := a.Cluster.ConfigChanged(newCfg, oldCfg, sendConfigChangeClusterMessage)
 		if err != nil {
 			return err
 		}

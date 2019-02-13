@@ -36,7 +36,7 @@ func InitDBCommandContext(configFileLocation string) (*app.App, error) {
 	}
 	model.AppErrorInit(utils.T)
 
-	s, err := app.NewServer(app.ConfigFile(configFileLocation))
+	s, err := app.NewServer(app.ConfigFile(configFileLocation, true))
 	if err != nil {
 		return nil, err
 	}
