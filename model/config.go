@@ -16,6 +16,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/go-ldap/ldap"
 )
 
 const (
@@ -278,9 +280,9 @@ type ServiceSettings struct {
 	ExperimentalEnableDefaultChannelLeaveJoinMessages *bool
 	ExperimentalGroupUnreadChannels                   *string
 	ExperimentalChannelOrganization                   *bool
-	DEPRECATED_DO_NOT_USE_ImageProxyType              *string `json:"ImageProxyType"`    // This field is deprecated and must not be used.
-	DEPRECATED_DO_NOT_USE_ImageProxyURL               *string `json:"ImageProxyURL"`     // This field is deprecated and must not be used.
-	DEPRECATED_DO_NOT_USE_ImageProxyOptions           *string `json:"ImageProxyOptions"` // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_ImageProxyType              *string `json:"ImageProxyType" mapstructure:"ImageProxyType"`       // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_ImageProxyURL               *string `json:"ImageProxyURL" mapstructure:"ImageProxyURL"`         // This field is deprecated and must not be used.
+	DEPRECATED_DO_NOT_USE_ImageProxyOptions           *string `json:"ImageProxyOptions" mapstructure:"ImageProxyOptions"` // This field is deprecated and must not be used.
 	EnableAPITeamDeletion                             *bool
 	ExperimentalEnableHardenedMode                    *bool
 	ExperimentalStrictCSRFEnforcement                 *bool
@@ -2528,6 +2530,12 @@ func (ls *LdapSettings) isValid() *AppError {
 
 		if *ls.LoginIdAttribute == "" {
 			return NewAppError("Config.IsValid", "model.config.is_valid.ldap_login_id", nil, "", http.StatusBadRequest)
+		}
+
+		if *ls.UserFilter != "" {
+			if _, err := ldap.CompileFilter(*ls.UserFilter); err != nil {
+				return NewAppError("ValidateFilter", "ent.ldap.validate_filter.app_error", nil, err.Error(), http.StatusBadRequest)
+			}
 		}
 	}
 

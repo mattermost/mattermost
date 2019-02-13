@@ -49,7 +49,7 @@ func setupTestHelper(enterprise bool) *TestHelper {
 		panic(err)
 	}
 
-	options := []app.Option{app.ConfigFile(tempConfig.Name()), app.DisableConfigWatch}
+	options := []app.Option{app.ConfigFile(tempConfig.Name(), false)}
 	options = append(options, app.StoreOverride(mainHelper.Store))
 
 	s, err := app.NewServer(options...)
