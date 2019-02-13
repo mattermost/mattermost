@@ -104,36 +104,32 @@ func setupConfigFile(t *testing.T, cfg *model.Config) (string, func()) {
 	}
 }
 
-// assertFileEqualsConfig verifies the on disk contents of the given path equal the given config.
-func assertFileEqualsConfig(t *testing.T, expectedCfg *model.Config, path string) {
+// getActualFileConfig returns the configuration present in the given file without relying a config store.
+func getActualFileConfig(t *testing.T, path string) *model.Config {
+	t.Helper()
+
 	f, err := os.Open(path)
 	require.Nil(t, err)
-
-	// These fields require special initialization for our tests.
-	expectedCfg = expectedCfg.Clone()
-	expectedCfg.MessageExportSettings.GlobalRelaySettings = &model.GlobalRelayMessageExportSettings{}
-	expectedCfg.PluginSettings.Plugins = make(map[string]map[string]interface{})
-	expectedCfg.PluginSettings.PluginStates = make(map[string]*model.PluginState)
+	defer f.Close()
 
 	actualCfg, _, err := config.UnmarshalConfig(f, false)
 	require.Nil(t, err)
+
+	return actualCfg
+}
+
+// assertFileEqualsConfig verifies the on disk contents of the given path equal the given config.
+func assertFileEqualsConfig(t *testing.T, expectedCfg *model.Config, path string) {
+	expectedCfg = prepareExpectedConfig(t, expectedCfg)
+	actualCfg := getActualFileConfig(t, path)
 
 	assert.Equal(t, expectedCfg, actualCfg)
 }
 
 // assertFileNotEqualsConfig verifies the on disk contents of the given path does not equal the given config.
 func assertFileNotEqualsConfig(t *testing.T, expectedCfg *model.Config, path string) {
-	f, err := os.Open(path)
-	require.Nil(t, err)
-
-	// These fields require special initialization for our tests.
-	expectedCfg = expectedCfg.Clone()
-	expectedCfg.MessageExportSettings.GlobalRelaySettings = &model.GlobalRelayMessageExportSettings{}
-	expectedCfg.PluginSettings.Plugins = make(map[string]map[string]interface{})
-	expectedCfg.PluginSettings.PluginStates = make(map[string]*model.PluginState)
-
-	actualCfg, _, err := config.UnmarshalConfig(f, false)
-	require.Nil(t, err)
+	expectedCfg = prepareExpectedConfig(t, expectedCfg)
+	actualCfg := getActualFileConfig(t, path)
 
 	assert.NotEqual(t, expectedCfg, actualCfg)
 }

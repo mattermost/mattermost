@@ -45,15 +45,9 @@ func setupConfigDatabase(t *testing.T, cfg *model.Config) (string, func()) {
 	}
 }
 
-// assertDatabaseEqualsConfig verifies the active in-database configuration equals the given config.
-func assertDatabaseEqualsConfig(t *testing.T, expectedCfg *model.Config) {
+// getActualDatabaseConfig returns the active configuration in the database without relying on a config store.
+func getActualDatabaseConfig(t *testing.T) *model.Config {
 	t.Helper()
-
-	// These fields require special initialization for our tests.
-	expectedCfg = expectedCfg.Clone()
-	expectedCfg.MessageExportSettings.GlobalRelaySettings = &model.GlobalRelayMessageExportSettings{}
-	expectedCfg.PluginSettings.Plugins = make(map[string]map[string]interface{})
-	expectedCfg.PluginSettings.PluginStates = make(map[string]*model.PluginState)
 
 	var actualCfgData []byte
 	db := sqlx.NewDb(mainHelper.SqlSupplier.GetMaster().Db, *mainHelper.Settings.DriverName)
@@ -63,6 +57,15 @@ func assertDatabaseEqualsConfig(t *testing.T, expectedCfg *model.Config) {
 	actualCfg, _, err := config.UnmarshalConfig(bytes.NewReader(actualCfgData), false)
 	require.Nil(t, err)
 
+	return actualCfg
+}
+
+// assertDatabaseEqualsConfig verifies the active in-database configuration equals the given config.
+func assertDatabaseEqualsConfig(t *testing.T, expectedCfg *model.Config) {
+	t.Helper()
+
+	expectedCfg = prepareExpectedConfig(t, expectedCfg)
+	actualCfg := getActualDatabaseConfig(t)
 	assert.Equal(t, expectedCfg, actualCfg)
 }
 
@@ -70,20 +73,8 @@ func assertDatabaseEqualsConfig(t *testing.T, expectedCfg *model.Config) {
 func assertDatabaseNotEqualsConfig(t *testing.T, expectedCfg *model.Config) {
 	t.Helper()
 
-	// These fields require special initialization for our tests.
-	expectedCfg = expectedCfg.Clone()
-	expectedCfg.MessageExportSettings.GlobalRelaySettings = &model.GlobalRelayMessageExportSettings{}
-	expectedCfg.PluginSettings.Plugins = make(map[string]map[string]interface{})
-	expectedCfg.PluginSettings.PluginStates = make(map[string]*model.PluginState)
-
-	var actualCfgData []byte
-	db := sqlx.NewDb(mainHelper.SqlSupplier.GetMaster().Db, *mainHelper.Settings.DriverName)
-	err := db.Get(&actualCfgData, "SELECT Value FROM Configurations WHERE Active")
-	require.NoError(t, err)
-
-	actualCfg, _, err := config.UnmarshalConfig(bytes.NewReader(actualCfgData), false)
-	require.Nil(t, err)
-
+	expectedCfg = prepareExpectedConfig(t, expectedCfg)
+	actualCfg := getActualDatabaseConfig(t)
 	assert.NotEqual(t, expectedCfg, actualCfg)
 }
 
