@@ -46,7 +46,21 @@ func (a *App) CheckPasswordAndAllCriteria(user *model.User, password string, mfa
 	}
 
 	if err := a.checkUserPassword(user, password); err != nil {
+		if result := <-a.Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); result.Err != nil {
+			return result.Err
+		}
 		return err
+	}
+
+	if err := a.CheckUserMfa(user, mfaToken); err != nil {
+		if result := <-a.Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); result.Err != nil {
+			return result.Err
+		}
+		return err
+	}
+
+	if result := <-a.Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, 0); result.Err != nil {
+		return result.Err
 	}
 
 	if err := a.CheckUserPostflightAuthenticationCriteria(user); err != nil {
@@ -63,7 +77,14 @@ func (a *App) DoubleCheckPassword(user *model.User, password string) *model.AppE
 	}
 
 	if err := a.checkUserPassword(user, password); err != nil {
+		if result := <-a.Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); result.Err != nil {
+			return result.Err
+		}
 		return err
+	}
+
+	if result := <-a.Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, 0); result.Err != nil {
+		return result.Err
 	}
 
 	return nil
@@ -71,15 +92,7 @@ func (a *App) DoubleCheckPassword(user *model.User, password string) *model.AppE
 
 func (a *App) checkUserPassword(user *model.User, password string) *model.AppError {
 	if !model.ComparePassword(user.Password, password) {
-		if result := <-a.Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); result.Err != nil {
-			return result.Err
-		}
-
 		return model.NewAppError("checkUserPassword", "api.user.check_user_password.invalid.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
-	}
-
-	if result := <-a.Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, 0); result.Err != nil {
-		return result.Err
 	}
 
 	return nil
@@ -122,10 +135,6 @@ func (a *App) CheckUserAllAuthenticationCriteria(user *model.User, mfaToken stri
 }
 
 func (a *App) CheckUserPreflightAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError {
-	if err := a.CheckUserMfa(user, mfaToken); err != nil {
-		return err
-	}
-
 	if err := checkUserNotDisabled(user); err != nil {
 		return err
 	}
