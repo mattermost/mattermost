@@ -6,11 +6,9 @@ package config
 import (
 	"bytes"
 	"database/sql"
-	"io"
 	"io/ioutil"
 	"net/url"
 	"strings"
-	"sync"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
@@ -26,15 +24,12 @@ import (
 
 // DatabaseStore is a config store backed by a database.
 type DatabaseStore struct {
-	emitter
+	commonStore
 
-	config               *model.Config
-	environmentOverrides map[string]interface{}
-	configLock           sync.RWMutex
-	originalDsn          string
-	driverName           string
-	dataSourceName       string
-	db                   *sqlx.DB
+	originalDsn    string
+	driverName     string
+	dataSourceName string
+	db             *sqlx.DB
 }
 
 // NewDatabaseStore creates a new instance of a config store backed by the given database.
@@ -116,64 +111,9 @@ func parseDSN(dsn string) (string, string, error) {
 	return scheme, dsn, nil
 }
 
-// Get fetches the current, cached configuration.
-func (ds *DatabaseStore) Get() *model.Config {
-	ds.configLock.RLock()
-	defer ds.configLock.RUnlock()
-
-	return ds.config
-}
-
-// GetEnvironmentOverrides fetches the configuration fields overridden by environment variables.
-func (ds *DatabaseStore) GetEnvironmentOverrides() map[string]interface{} {
-	ds.configLock.RLock()
-	defer ds.configLock.RUnlock()
-
-	return ds.environmentOverrides
-}
-
 // Set replaces the current configuration in its entirety, without updating the backing store.
 func (ds *DatabaseStore) Set(newCfg *model.Config) (*model.Config, error) {
-	ds.configLock.Lock()
-	var unlockOnce sync.Once
-	defer unlockOnce.Do(ds.configLock.Unlock)
-
-	oldCfg := ds.config
-
-	// TODO: disallow attempting to save a directly modified config (comparing pointers). This
-	// wouldn't be an exhaustive check, given the use of pointers throughout the data
-	// structure, but might prevent common mistakes. Requires upstream changes first.
-	// if newCfg == oldCfg {
-	// 	return nil, errors.New("old configuration modified instead of cloning")
-	// }
-
-	newCfg = newCfg.Clone()
-	newCfg.SetDefaults()
-
-	// Sometimes the config is received with "fake" data in sensitive fields. Apply the real
-	// data from the existing config as necessary.
-	desanitize(oldCfg, newCfg)
-
-	if err := newCfg.IsValid(); err != nil {
-		return nil, errors.Wrap(err, "new configuration is invalid")
-	}
-
-	// Ideally, Set would persist automatically and abstract this completely away from the
-	// client. Doing so requires a few upstream changes first, so for now an explicit Save()
-	// remains required.
-	// if err := ds.persist(newCfg); err != nil {
-	// 	return nil, errors.Wrap(err, "failed to persist")
-	// }
-
-	ds.config = newCfg
-
-	unlockOnce.Do(ds.configLock.Unlock)
-
-	// Notify listeners synchronously. Ideally, this would be asynchronous, but existing code
-	// assumes this and there would be increased complexity to avoid racing updates.
-	ds.invokeConfigListeners(oldCfg, newCfg)
-
-	return oldCfg, nil
+	return ds.commonStore.set(newCfg, nil)
 }
 
 // persist writes the configuration to the configured database.
@@ -222,7 +162,6 @@ func (ds *DatabaseStore) persist(cfg *model.Config) error {
 
 // Load updates the current configuration from the backing store.
 func (ds *DatabaseStore) Load() (err error) {
-	var f io.ReadCloser
 	var needsSave bool
 	var configurationData []byte
 
@@ -250,51 +189,7 @@ func (ds *DatabaseStore) Load() (err error) {
 		}
 	}
 
-	allowEnvironmentOverrides := true
-	f = ioutil.NopCloser(bytes.NewReader(configurationData))
-	loadedCfg, environmentOverrides, err := unmarshalConfig(f, allowEnvironmentOverrides)
-	if err != nil {
-		return errors.Wrapf(err, "failed to unmarshal config")
-	}
-
-	// SetDefaults generates various keys and salts if not previously configured. Determine if
-	// such a change will be made before invoking. This method will not effect the save: that
-	// remains the responsibility of the caller.
-	needsSave = needsSave || loadedCfg.SqlSettings.AtRestEncryptKey == nil || len(*loadedCfg.SqlSettings.AtRestEncryptKey) == 0
-	needsSave = needsSave || loadedCfg.FileSettings.PublicLinkSalt == nil || len(*loadedCfg.FileSettings.PublicLinkSalt) == 0
-	needsSave = needsSave || loadedCfg.EmailSettings.InviteSalt == nil || len(*loadedCfg.EmailSettings.InviteSalt) == 0
-
-	loadedCfg.SetDefaults()
-
-	if err := loadedCfg.IsValid(); err != nil {
-		return errors.Wrap(err, "invalid config")
-	}
-
-	if changed := fixConfig(loadedCfg); changed {
-		needsSave = true
-	}
-
-	ds.configLock.Lock()
-	var unlockOnce sync.Once
-	defer unlockOnce.Do(ds.configLock.Unlock)
-
-	if needsSave {
-		if err = ds.persist(loadedCfg); err != nil {
-			return errors.Wrap(err, "failed to persist required changes after load")
-		}
-	}
-
-	oldCfg := ds.config
-	ds.config = loadedCfg
-	ds.environmentOverrides = environmentOverrides
-
-	unlockOnce.Do(ds.configLock.Unlock)
-
-	// Notify listeners synchronously. Ideally, this would be asynchronous, but existing code
-	// assumes this and there would be increased complexity to avoid racing updates.
-	ds.invokeConfigListeners(oldCfg, loadedCfg)
-
-	return nil
+	return ds.commonStore.load(ioutil.NopCloser(bytes.NewReader(configurationData)), needsSave, ds.persist)
 }
 
 // Save writes the current configuration to the backing store.
