@@ -66,6 +66,23 @@ func NewDatabaseStore(dsn string) (ds *DatabaseStore, err error) {
 	return ds, nil
 }
 
+// initializeConfigurationsTable ensures the requisite tables in place to form the backing store.
+func initializeConfigurationsTable(db *sqlx.DB) error {
+	_, err := db.Exec(`
+		CREATE TABLE IF NOT EXISTS Configurations (
+		    Id VARCHAR(26) PRIMARY KEY,
+		    Value TEXT NOT NULL,
+		    CreateAt BIGINT NOT NULL,
+		    Active BOOLEAN NULL UNIQUE
+		)
+	`)
+	if err != nil {
+		return errors.Wrap(err, "failed to create Configurations table")
+	}
+
+	return nil
+}
+
 // parseDSN splits up a connection string into a driver name and data source name.
 //
 // For example:
@@ -198,23 +215,6 @@ func (ds *DatabaseStore) persist(cfg *model.Config) error {
 
 	if err := tx.Commit(); err != nil {
 		return errors.Wrap(err, "failed to commit transaction")
-	}
-
-	return nil
-}
-
-// initializeConfigurationsTable ensures the requisite tables in place to form the backing store.
-func initializeConfigurationsTable(db *sqlx.DB) error {
-	_, err := db.Exec(`
-		CREATE TABLE IF NOT EXISTS Configurations (
-		    Id VARCHAR(26) PRIMARY KEY,
-		    Value TEXT NOT NULL,
-		    CreateAt BIGINT NOT NULL,
-		    Active BOOLEAN NULL UNIQUE
-		)
-	`)
-	if err != nil {
-		return errors.Wrap(err, "failed to create Configurations table")
 	}
 
 	return nil
