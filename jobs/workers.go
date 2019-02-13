@@ -58,7 +58,7 @@ func (srv *JobServer) InitWorkers() *Workers {
 	}
 
 	if pluginsInterface := srv.Plugins; pluginsInterface != nil {
-		workers.Migrations = pluginsInterface.MakeWorker()
+		workers.Plugins = pluginsInterface.MakeWorker()
 	}
 
 	return workers
@@ -90,6 +90,10 @@ func (workers *Workers) Start() *Workers {
 
 		if workers.Migrations != nil {
 			go workers.Migrations.Run()
+		}
+
+		if workers.Plugins != nil {
+			go workers.Plugins.Run()
 		}
 
 		go workers.Watcher.Start()
@@ -171,6 +175,10 @@ func (workers *Workers) Stop() *Workers {
 
 	if workers.Migrations != nil {
 		workers.Migrations.Stop()
+	}
+
+	if workers.Plugins != nil {
+		workers.Plugins.Stop()
 	}
 
 	mlog.Info("Stopped workers")

@@ -169,15 +169,26 @@ func (a *App) getImagesForPost(post *model.Post, imageURLs []string, isNewPost b
 
 		case model.POST_EMBED_OPENGRAPH:
 			for _, image := range embed.Data.(*opengraph.OpenGraph).Images {
+				var imageURL string
+				if image.SecureURL != "" {
+					imageURL = image.SecureURL
+				} else if image.URL != "" {
+					imageURL = image.URL
+				}
+
+				if imageURL == "" {
+					continue
+				}
+
 				if image.Width != 0 || image.Height != 0 {
 					// The site has already told us the image dimensions
-					images[image.URL] = &model.PostImage{
+					images[imageURL] = &model.PostImage{
 						Width:  int(image.Width),
 						Height: int(image.Height),
 					}
 				} else {
 					// The site did not specify its image dimensions
-					imageURLs = append(imageURLs, image.URL)
+					imageURLs = append(imageURLs, imageURL)
 				}
 			}
 		}
@@ -346,18 +357,34 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 		return nil, nil, err
 	}
 
-	request.Header.Add("Accept", "text/html, image/*")
+	var body io.ReadCloser
+	var contentType string
 
-	client := a.HTTPService.MakeClient(false)
-	client.Timeout = time.Duration(*a.Config().ExperimentalSettings.LinkMetadataTimeoutMilliseconds) * time.Millisecond
+	if (request.URL.Scheme+"://"+request.URL.Host) == a.GetSiteURL() && request.URL.Path == "/api/v4/image" {
+		// /api/v4/image requires authentication, so bypass the API by hitting the proxy directly
+		body, contentType, err = a.ImageProxy.GetImageDirect(a.ImageProxy.GetUnproxiedImageURL(request.URL.String()))
+	} else {
+		request.Header.Add("Accept", "image/*, text/html")
 
-	res, err := client.Do(request)
+		client := a.HTTPService.MakeClient(false)
+		client.Timeout = time.Duration(*a.Config().ExperimentalSettings.LinkMetadataTimeoutMilliseconds) * time.Millisecond
+
+		var res *http.Response
+		res, err = client.Do(request)
+
+		if res != nil {
+			body = res.Body
+			contentType = res.Header.Get("Content-Type")
+		}
+	}
+
+	if body != nil {
+		defer body.Close()
+	}
 
 	if err == nil {
-		defer res.Body.Close()
-
 		// Parse the data
-		og, image, err = a.parseLinkMetadata(requestURL, res.Body, res.Header.Get("Content-Type"))
+		og, image, err = a.parseLinkMetadata(requestURL, body, contentType)
 	}
 
 	// Write back to cache and database, even if there was an error and the results are nil

@@ -4,8 +4,6 @@
 package app
 
 import (
-	"testing"
-
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/store"
 )
@@ -59,9 +57,9 @@ func DisableConfigWatch(s *Server) {
 	s.disableConfigWatch = true
 }
 
-func SetLogProxy(tb testing.TB) Option {
+func SetLogger(logger *mlog.Logger) Option {
 	return func(s *Server) {
-		s.Log = mlog.NewLogProxy(tb)
+		s.Log = logger
 	}
 }
 

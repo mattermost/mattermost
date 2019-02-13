@@ -52,11 +52,7 @@ func setupTestHelper(enterprise bool, tb testing.TB) *TestHelper {
 	}
 
 	options := []Option{ConfigFile(tempConfig.Name()), DisableConfigWatch}
-
-	// Initializing the proxy
-	proxyOption := SetLogProxy(tb)
-
-	options = append(options, StoreOverride(mainHelper.Store), proxyOption)
+	options = append(options, StoreOverride(mainHelper.Store), SetLogger(mlog.NewTestingLogger(tb)))
 
 	s, err := NewServer(options...)
 	if err != nil {

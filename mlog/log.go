@@ -7,7 +7,6 @@ import (
 	"io"
 	"log"
 	"os"
-	"testing"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -50,20 +49,6 @@ type Logger struct {
 	zap          *zap.Logger
 	consoleLevel zap.AtomicLevel
 	fileLevel    zap.AtomicLevel
-}
-
-// LogWriter is an io.Writer that writes through t.Log
-type LogWriter struct {
-	tb testing.TB
-}
-
-func (lw *LogWriter) Write(b []byte) (int, error) {
-	n := len(b)
-	s := string(b)
-	lw.tb.Log(s)
-
-	// Assuming that the logs are written succesfuly
-	return n, nil
 }
 
 func getZapLevel(level string) zapcore.Level {
@@ -122,24 +107,6 @@ func NewLogger(config *LoggerConfiguration) *Logger {
 	)
 
 	return logger
-}
-
-func NewLogProxy(tb testing.TB) *Logger {
-	logWriter := &LogWriter{tb}
-	logWriterSync := zapcore.AddSync(logWriter)
-
-	proxy := &Logger{
-		consoleLevel: zap.NewAtomicLevelAt(getZapLevel("debug")),
-		fileLevel:    zap.NewAtomicLevelAt(getZapLevel("info")),
-	}
-
-	logWriterCore := zapcore.NewCore(makeEncoder(true), logWriterSync, proxy.consoleLevel)
-
-	proxy.zap = zap.New(logWriterCore,
-		zap.AddCallerSkip(1),
-		zap.AddCaller(),
-	)
-	return proxy
 }
 
 func (l *Logger) ChangeLevels(config *LoggerConfiguration) {

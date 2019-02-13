@@ -153,7 +153,6 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.EnableConfigWatch()
 
-	// Initalize logging (if not already initialized to log through the proxy by the options in case of a test)
 	if s.Log == nil {
 		s.Log = mlog.NewLogger(utils.MloggerConfigFromLoggerConfig(&s.Config().LogSettings))
 	}
