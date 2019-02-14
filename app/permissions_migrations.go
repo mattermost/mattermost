@@ -96,7 +96,7 @@ func (a *App) doPermissionsMigration(key string, migrationMap permissionsMap) *m
 		return nil
 	}
 
-	roles, err := a.GetRoles()
+	roles, err := a.GetAllRoles()
 	if err != nil {
 		return err
 	}
@@ -146,12 +146,18 @@ func getWebhooksPermissionsSplitMigration() permissionsMap {
 
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
 func (a *App) DoPermissionsMigrations() *model.AppError {
-	if err := a.doPermissionsMigration(MIGRATION_KEY_EMOJI_PERMISSIONS_SPLIT, getEmojisPermissionsSplitMigration()); err != nil {
-		return err
+	PermissionsMigrations := []struct {
+		Key       string
+		Migration func() permissionsMap
+	}{
+		{Key: MIGRATION_KEY_EMOJI_PERMISSIONS_SPLIT, Migration: getEmojisPermissionsSplitMigration},
+		{Key: MIGRATION_KEY_WEBHOOK_PERMISSIONS_SPLIT, Migration: getWebhooksPermissionsSplitMigration},
 	}
 
-	if err := a.doPermissionsMigration(MIGRATION_KEY_WEBHOOK_PERMISSIONS_SPLIT, getWebhooksPermissionsSplitMigration()); err != nil {
-		return err
+	for _, migration := range PermissionsMigrations {
+		if err := a.doPermissionsMigration(migration.Key, migration.Migration()); err != nil {
+			return err
+		}
 	}
 	return nil
 }

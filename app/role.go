@@ -19,7 +19,7 @@ func (a *App) GetRole(id string) (*model.Role, *model.AppError) {
 	return result.Data.(*model.Role), nil
 }
 
-func (a *App) GetRoles() ([]*model.Role, *model.AppError) {
+func (a *App) GetAllRoles() ([]*model.Role, *model.AppError) {
 	result := <-a.Srv.Store.Role().GetAll()
 	if result.Err != nil {
 		return nil, result.Err
