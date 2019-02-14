@@ -4,6 +4,7 @@
 package mlog
 
 import (
+	"strings"
 	"testing"
 
 	"go.uber.org/zap"
@@ -16,7 +17,7 @@ type testingWriter struct {
 }
 
 func (tw *testingWriter) Write(b []byte) (int, error) {
-	tw.tb.Log(string(b))
+	tw.tb.Log(strings.TrimSpace(string(b)))
 	return len(b), nil
 }
 
