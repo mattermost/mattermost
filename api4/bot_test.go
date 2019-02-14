@@ -481,6 +481,10 @@ func TestGetBots(t *testing.T) {
 	CheckCreatedStatus(t, resp)
 	th.LoginBasic()
 	defer th.App.PermanentDeleteBot(orphanedBot.UserId)
+	// Automatic deactivation disabled
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.DisableBotsWhenOwnerIsDeactivated = false
+	})
 	_, resp = th.SystemAdminClient.DeleteUser(th.BasicUser2.Id)
 	CheckOKStatus(t, resp)
 
