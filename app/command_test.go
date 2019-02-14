@@ -20,7 +20,7 @@ import (
 )
 
 func TestMoveCommand(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	sourceTeam := th.CreateTeam()
@@ -55,7 +55,7 @@ func TestMoveCommand(t *testing.T) {
 }
 
 func TestCreateCommandPost(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	post := &model.Post{
@@ -75,7 +75,7 @@ func TestCreateCommandPost(t *testing.T) {
 }
 
 func TestHandleCommandResponsePost(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	command := &model.Command{}
@@ -207,7 +207,7 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	}
 }
 func TestHandleCommandResponse(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	command := &model.Command{}
@@ -267,7 +267,7 @@ func TestHandleCommandResponse(t *testing.T) {
 }
 
 func TestDoCommandRequest(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {

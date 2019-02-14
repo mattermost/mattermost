@@ -17,7 +17,7 @@ import (
 )
 
 func TestImportImportScheme(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	// Mark the phase 2 permissions migration as completed.
@@ -206,7 +206,7 @@ func TestImportImportScheme(t *testing.T) {
 }
 
 func TestImportImportRole(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	// Try importing an invalid role in dryRun mode.
@@ -311,7 +311,7 @@ func TestImportImportRole(t *testing.T) {
 }
 
 func TestImportImportTeam(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	// Mark the phase 2 permissions migration as completed.
@@ -412,7 +412,7 @@ func TestImportImportTeam(t *testing.T) {
 }
 
 func TestImportImportChannel(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	// Mark the phase 2 permissions migration as completed.
@@ -548,7 +548,7 @@ func TestImportImportChannel(t *testing.T) {
 }
 
 func TestImportImportUser(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	// Check how many users are in the database.
@@ -1303,7 +1303,7 @@ func TestImportImportUser(t *testing.T) {
 }
 
 func TestImportUserDefaultNotifyProps(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	// Create a valid new user with some, but not all, notify props populated.
@@ -1341,7 +1341,7 @@ func TestImportUserDefaultNotifyProps(t *testing.T) {
 }
 
 func TestImportImportPost(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	// Create a Team.
@@ -1757,7 +1757,7 @@ func TestImportImportPost(t *testing.T) {
 }
 
 func TestImportImportDirectChannel(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	// Check how many channels are in the database.
@@ -1933,7 +1933,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 }
 
 func TestImportImportDirectPost(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	// Create the DIRECT channel.
@@ -2285,7 +2285,7 @@ func TestImportImportDirectPost(t *testing.T) {
 }
 
 func TestImportImportEmoji(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = true })
@@ -2324,7 +2324,7 @@ func TestImportImportEmoji(t *testing.T) {
 }
 
 func TestImportAttachment(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	testsDir, _ := fileutils.FindDir("tests")
@@ -2347,7 +2347,7 @@ func TestImportAttachment(t *testing.T) {
 
 func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	// Create a Team.
@@ -2486,7 +2486,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 
 func TestImportDirectPostWithAttachments(t *testing.T) {
 
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	testsDir, _ := fileutils.FindDir("tests")

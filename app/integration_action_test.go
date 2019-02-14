@@ -19,7 +19,7 @@ import (
 
 // Test for MM-13598 where an invalid integration URL was causing a crash
 func TestPostActionInvalidURL(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -67,7 +67,7 @@ func TestPostActionInvalidURL(t *testing.T) {
 }
 
 func TestPostAction(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -311,7 +311,7 @@ func TestPostAction(t *testing.T) {
 }
 
 func TestSubmitInteractiveDialog(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
