@@ -124,14 +124,21 @@ pipeline {
 
                 withDockerContainer(args: "-u root --privileged --net ${COMPOSE_PROJECT_NAME}_mm-test -v ${WORKSPACE}/src:/go/src/", image: 'mattermost/mattermost-build-server:dec-7-2018') {
                     ansiColor('xterm') {
-                    sh """
+                        sh """
                             cd /go/src/github.com/mattermost/mattermost-server
 
                             mkdir -p client/plugins
                             cat config/config.json
 
                             make test-server BUILD_NUMBER='${BRANCH_NAME}-${BUILD_NUMBER}' TESTFLAGS= TESTFLAGSEE=
+
                         """
+                    }
+                    withCredentials([string(credentialsId: 'CODECOV_TOKEN', variable: 'CODECOV')]) {
+                        sh '''
+                            cd /go/src/github.com/mattermost/mattermost-server
+                            curl -s https://codecov.io/bash | bash -s - -t $CODECOV || echo 'Codecov failed to upload'
+                        '''
                     }
                 }
             }
