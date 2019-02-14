@@ -27,6 +27,7 @@ const (
 	HEADER_REAL_IP            = "X-Real-IP"
 	HEADER_FORWARDED_PROTO    = "X-Forwarded-Proto"
 	HEADER_TOKEN              = "token"
+	HEADER_CSRF_TOKEN         = "X-CSRF-Token"
 	HEADER_BEARER             = "BEARER"
 	HEADER_AUTH               = "Authorization"
 	HEADER_REQUESTED_WITH     = "X-Requested-With"
@@ -618,6 +619,15 @@ func (c *Client4) LoginWithDevice(loginId string, password string, deviceId stri
 	m["login_id"] = loginId
 	m["password"] = password
 	m["device_id"] = deviceId
+	return c.login(m)
+}
+
+// LoginWithMFA logs a user in with a MFA token
+func (c *Client4) LoginWithMFA(loginId, password, mfaToken string) (*User, *Response) {
+	m := make(map[string]string)
+	m["login_id"] = loginId
+	m["password"] = password
+	m["token"] = mfaToken
 	return c.login(m)
 }
 

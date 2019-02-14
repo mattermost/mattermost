@@ -104,7 +104,7 @@ func AssertChannelCount(t *testing.T, a *App, channelType string, expectedCount 
 }
 
 func TestImportImportLine(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	// Try import line with an invalid type.
@@ -160,7 +160,7 @@ func TestImportImportLine(t *testing.T) {
 }
 
 func TestImportBulkImport(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = true })

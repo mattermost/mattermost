@@ -17,10 +17,10 @@ import (
 )
 
 func TestGetOAuthAccessTokenForImplicitFlow(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 
 	oapp := &model.OAuthApp{
 		Name:         "fakeoauthapp" + model.NewRandomString(10),
@@ -45,13 +45,13 @@ func TestGetOAuthAccessTokenForImplicitFlow(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, session)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = false })
 
 	session, err = th.App.GetOAuthAccessTokenForImplicitFlow(th.BasicUser.Id, authRequest)
 	assert.NotNil(t, err, "should fail - oauth2 disabled")
 	assert.Nil(t, session)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOAuthServiceProvider = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
 	authRequest.ClientId = "junk"
 
 	session, err = th.App.GetOAuthAccessTokenForImplicitFlow(th.BasicUser.Id, authRequest)
@@ -66,7 +66,7 @@ func TestGetOAuthAccessTokenForImplicitFlow(t *testing.T) {
 }
 
 func TestOAuthRevokeAccessToken(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	if err := th.App.RevokeAccessToken(model.NewRandomString(16)); err == nil {
@@ -102,10 +102,10 @@ func TestOAuthRevokeAccessToken(t *testing.T) {
 }
 
 func TestOAuthDeleteApp(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
-	th.App.Config().ServiceSettings.EnableOAuthServiceProvider = true
+	*th.App.Config().ServiceSettings.EnableOAuthServiceProvider = true
 
 	a1 := &model.OAuthApp{}
 	a1.CreatorId = model.NewId()
@@ -151,21 +151,21 @@ func TestOAuthDeleteApp(t *testing.T) {
 
 func TestAuthorizeOAuthUser(t *testing.T) {
 	setup := func(enable, tokenEndpoint, userEndpoint bool, serverURL string) *TestHelper {
-		th := Setup()
+		th := Setup(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.GitLabSettings.Enable = enable
+			*cfg.GitLabSettings.Enable = enable
 
 			if tokenEndpoint {
-				cfg.GitLabSettings.TokenEndpoint = serverURL + "/token"
+				*cfg.GitLabSettings.TokenEndpoint = serverURL + "/token"
 			} else {
-				cfg.GitLabSettings.TokenEndpoint = ""
+				*cfg.GitLabSettings.TokenEndpoint = ""
 			}
 
 			if userEndpoint {
-				cfg.GitLabSettings.UserApiEndpoint = serverURL + "/user"
+				*cfg.GitLabSettings.UserApiEndpoint = serverURL + "/user"
 			} else {
-				cfg.GitLabSettings.UserApiEndpoint = ""
+				*cfg.GitLabSettings.UserApiEndpoint = ""
 			}
 		})
 

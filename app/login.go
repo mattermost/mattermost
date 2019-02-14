@@ -45,8 +45,7 @@ func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken string, l
 	}()
 
 	if len(password) == 0 {
-		err := model.NewAppError("AuthenticateUserForLogin", "api.user.login.blank_pwd.app_error", nil, "", http.StatusBadRequest)
-		return nil, err
+		return nil, model.NewAppError("AuthenticateUserForLogin", "api.user.login.blank_pwd.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	// Get the MM user we are trying to login
@@ -190,8 +189,19 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 		Secure:  secure,
 	}
 
+	csrfCookie := &http.Cookie{
+		Name:    model.SESSION_COOKIE_CSRF,
+		Value:   session.GetCSRF(),
+		Path:    "/",
+		MaxAge:  maxAge,
+		Expires: expiresAt,
+		Domain:  domain,
+		Secure:  secure,
+	}
+
 	http.SetCookie(w, sessionCookie)
 	http.SetCookie(w, userCookie)
+	http.SetCookie(w, csrfCookie)
 
 	return session, nil
 }

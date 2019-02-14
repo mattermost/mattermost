@@ -356,7 +356,14 @@ func userCreateCmdF(command *cobra.Command, args []string) error {
 		}
 	}
 
-	CommandPrettyPrintln("Created User")
+	CommandPrettyPrintln("id: " + ruser.Id)
+	CommandPrettyPrintln("username: " + ruser.Username)
+	CommandPrettyPrintln("nickname: " + ruser.Nickname)
+	CommandPrettyPrintln("position: " + ruser.Position)
+	CommandPrettyPrintln("first_name: " + ruser.FirstName)
+	CommandPrettyPrintln("last_name: " + ruser.LastName)
+	CommandPrettyPrintln("email: " + ruser.Email)
+	CommandPrettyPrintln("auth_service: " + ruser.AuthService)
 
 	return nil
 }

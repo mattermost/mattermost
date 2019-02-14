@@ -26,7 +26,7 @@ func TestAppRace(t *testing.T) {
 */
 
 func TestUpdateConfig(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	prev := *th.App.Config().ServiceSettings.SiteURL
@@ -42,7 +42,7 @@ func TestUpdateConfig(t *testing.T) {
 }
 
 func TestDoAdvancedPermissionsMigration(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	if mainHelper.SqlSupplier == nil {
@@ -405,7 +405,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 
 	th.App.DoAdvancedPermissionsMigration()
 
-	config := th.App.GetConfig()
+	config := th.App.Config()
 	assert.Equal(t, -1, *config.ServiceSettings.PostEditTimeLimit)
 
 	th.ResetRoleMigration()
@@ -416,12 +416,12 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 	})
 
 	th.App.DoAdvancedPermissionsMigration()
-	config = th.App.GetConfig()
+	config = th.App.Config()
 	assert.Equal(t, 300, *config.ServiceSettings.PostEditTimeLimit)
 }
 
 func TestDoEmojisPermissionsMigration(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	if mainHelper.SqlSupplier == nil {

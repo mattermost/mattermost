@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
-	"sync/atomic"
 	"testing"
 	"time"
 
@@ -20,7 +19,7 @@ import (
 )
 
 func TestCreatePostDeduplicate(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	t.Run("duplicate create post is idempotent", func(t *testing.T) {
@@ -189,7 +188,7 @@ func TestCreatePostDeduplicate(t *testing.T) {
 
 func TestAttachFilesToPost(t *testing.T) {
 	t.Run("should attach files", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		info1 := store.Must(th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
@@ -213,7 +212,7 @@ func TestAttachFilesToPost(t *testing.T) {
 	})
 
 	t.Run("should update File.PostIds after failing to add files", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		info1 := store.Must(th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
@@ -245,7 +244,7 @@ func TestAttachFilesToPost(t *testing.T) {
 }
 
 func TestUpdatePostEditAt(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	post := &model.Post{}
@@ -273,7 +272,7 @@ func TestUpdatePostEditAt(t *testing.T) {
 }
 
 func TestUpdatePostTimeLimit(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	post := &model.Post{}
@@ -312,7 +311,7 @@ func TestUpdatePostTimeLimit(t *testing.T) {
 func TestPostReplyToPostWhereRootPosterLeftChannel(t *testing.T) {
 	// This test ensures that when replying to a root post made by a user who has since left the channel, the reply
 	// post completes successfully. This is a regression test for PLT-6523.
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	channel := th.BasicChannel
@@ -344,7 +343,7 @@ func TestPostReplyToPostWhereRootPosterLeftChannel(t *testing.T) {
 }
 
 func TestPostChannelMentions(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	channel := th.BasicChannel
@@ -391,7 +390,7 @@ func TestPostChannelMentions(t *testing.T) {
 }
 
 func TestImageProxy(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -533,8 +532,7 @@ func TestMaxPostSize(t *testing.T) {
 
 			app := App{
 				Srv: &Server{
-					Store:  mockStore,
-					config: atomic.Value{},
+					Store: mockStore,
 				},
 			}
 
@@ -544,7 +542,7 @@ func TestMaxPostSize(t *testing.T) {
 }
 
 func TestDeletePostWithFileAttachments(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	// Create a post with a file attachment.
@@ -590,11 +588,11 @@ func TestDeletePostWithFileAttachments(t *testing.T) {
 
 func TestCreatePost(t *testing.T) {
 	t.Run("call PreparePostForClient before returning", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ExperimentalSettings.EnablePostMetadata = false
+			*cfg.ExperimentalSettings.DisablePostMetadata = true
 			*cfg.ImageProxySettings.Enable = true
 			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
 			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
@@ -618,11 +616,11 @@ func TestCreatePost(t *testing.T) {
 
 func TestPatchPost(t *testing.T) {
 	t.Run("call PreparePostForClient before returning", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ExperimentalSettings.EnablePostMetadata = false
+			*cfg.ExperimentalSettings.DisablePostMetadata = true
 			*cfg.ImageProxySettings.Enable = true
 			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
 			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
@@ -654,11 +652,11 @@ func TestPatchPost(t *testing.T) {
 
 func TestUpdatePost(t *testing.T) {
 	t.Run("call PreparePostForClient before returning", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ExperimentalSettings.EnablePostMetadata = false
+			*cfg.ExperimentalSettings.DisablePostMetadata = true
 			*cfg.ImageProxySettings.Enable = true
 			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
 			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"

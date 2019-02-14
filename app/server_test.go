@@ -12,6 +12,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/mattermost/mattermost-server/config"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"github.com/stretchr/testify/require"
@@ -32,14 +33,14 @@ func TestStartServerSuccess(t *testing.T) {
 }
 
 func TestStartServerRateLimiterCriticalError(t *testing.T) {
-	s, err := NewServer()
-	require.NoError(t, err)
-
 	// Attempt to use Rate Limiter with an invalid config
-	s.UpdateConfig(func(cfg *model.Config) {
-		*cfg.RateLimitSettings.Enable = true
-		*cfg.RateLimitSettings.MaxBurst = -100
-	})
+	ms, err := config.NewMemoryStore(true)
+	require.NoError(t, err)
+	*ms.Config.RateLimitSettings.Enable = true
+	*ms.Config.RateLimitSettings.MaxBurst = -100
+
+	s, err := NewServer(ConfigStore(ms))
+	require.NoError(t, err)
 
 	serverErr := s.Start()
 	s.Shutdown()

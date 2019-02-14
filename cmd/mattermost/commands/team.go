@@ -81,6 +81,15 @@ var ArchiveTeamCmd = &cobra.Command{
 	RunE:    archiveTeamCmdF,
 }
 
+var RestoreTeamsCmd = &cobra.Command{
+	Use:     "restore [teams]",
+	Short:   "Restore some teams",
+	Long:    `Restore a previously deleted team`,
+	Example: "  team restore myteam",
+	Args:    cobra.MinimumNArgs(1),
+	RunE:    restoreTeamsCmdF,
+}
+
 func init() {
 	TeamCreateCmd.Flags().String("name", "", "Team Name")
 	TeamCreateCmd.Flags().String("display_name", "", "Team Display Name")
@@ -97,6 +106,7 @@ func init() {
 		ListTeamsCmd,
 		SearchTeamCmd,
 		ArchiveTeamCmd,
+		RestoreTeamsCmd,
 	)
 	RootCmd.AddCommand(TeamCmd)
 }
@@ -291,6 +301,28 @@ func searchTeamCmdF(command *cobra.Command, args []string) error {
 		}
 	}
 
+	return nil
+}
+
+// Restores archived teams by name
+func restoreTeamsCmdF(command *cobra.Command, args []string) error {
+	a, err := InitDBCommandContextCobra(command)
+	if err != nil {
+		return err
+	}
+	defer a.Shutdown()
+
+	teams := getTeamsFromTeamArgs(a, args)
+	for i, team := range teams {
+		if team == nil {
+			CommandPrintErrorln("Unable to find team '" + args[i] + "'")
+			continue
+		}
+		err := a.RestoreTeam(team.Id)
+		if err != nil {
+			CommandPrintErrorln("Unable to restore team '" + team.Name + "' error: " + err.Error())
+		}
+	}
 	return nil
 }
 

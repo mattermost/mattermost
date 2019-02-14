@@ -89,8 +89,7 @@ func GetMailBox(email string) (results JSONMessageHeaderInbucket, err error) {
 	return record, nil
 }
 
-func GetMessageFromMailbox(email, id string) (results JSONMessageInbucket, err error) {
-
+func GetMessageFromMailbox(email, id string) (JSONMessageInbucket, error) {
 	parsedEmail := ParseEmail(email)
 
 	var record JSONMessageInbucket
@@ -102,17 +101,20 @@ func GetMessageFromMailbox(email, id string) (results JSONMessageInbucket, err e
 	}
 	defer emailResponse.Body.Close()
 
-	err = json.NewDecoder(emailResponse.Body).Decode(&record)
+	if err = json.NewDecoder(emailResponse.Body).Decode(&record); err != nil {
+		return record, err
+	}
 
 	// download attachments
 	if record.Attachments != nil && len(record.Attachments) > 0 {
 		for i := range record.Attachments {
-			if bytes, err := downloadAttachment(record.Attachments[i].DownloadLink); err != nil {
+			var bytes []byte
+			bytes, err = downloadAttachment(record.Attachments[i].DownloadLink)
+			if err != nil {
 				return record, err
-			} else {
-				record.Attachments[i].Bytes = make([]byte, len(bytes))
-				copy(record.Attachments[i].Bytes, bytes)
 			}
+			record.Attachments[i].Bytes = make([]byte, len(bytes))
+			copy(record.Attachments[i].Bytes, bytes)
 		}
 	}
 
