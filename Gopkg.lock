@@ -376,6 +376,17 @@
   revision = "1d33003b386959af197ba96475f198c114627b5e"
 
 [[projects]]
+  digest = "1:6c41d4f998a03b6604227ccad36edaed6126c397e5d78709ef4814a1145a6757"
+  name = "github.com/jmoiron/sqlx"
+  packages = [
+    ".",
+    "reflectx",
+  ]
+  pruneopts = "UT"
+  revision = "d161d7a76b5661016ad0b085869f77fd410f3e6a"
+  version = "v1.2.0"
+
+[[projects]]
   digest = "1:0a69a1c0db3591fcefb47f115b224592c8dfa4368b7ba9fae509d5e16cdc95c8"
   name = "github.com/konsorten/go-windows-terminal-sequences"
   packages = ["."]
@@ -1108,6 +1119,7 @@
     "github.com/hashicorp/memberlist",
     "github.com/icrowley/fake",
     "github.com/jaytaylor/html2text",
+    "github.com/jmoiron/sqlx",
     "github.com/lib/pq",
     "github.com/mattermost/gorp",
     "github.com/mattermost/rsc/qr",

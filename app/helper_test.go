@@ -52,8 +52,8 @@ func setupTestHelper(enterprise bool, tb testing.TB) *TestHelper {
 		panic(err)
 	}
 
-	options := []Option{ConfigFile(tempConfig.Name(), false)}
-	options = append(options, StoreOverride(store))
+	options := []Option{Config(tempConfig.Name(), false)}
+	options = append(options, StoreOverride(mainHelper.Store))
 	options = append(options, SetLogger(mlog.NewTestingLogger(tb)))
 
 	s, err := NewServer(options...)
