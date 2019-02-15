@@ -726,11 +726,11 @@ func TestGetTeamByName(t *testing.T) {
 	rteam3, _ := Client.CreateTeam(team3)
 
 	th.LoginBasic()
-	// AllowInviteOpen is false and team is open, and user is not on team
+	// IsPublic is false and team is open, and user is not on team
 	_, resp = Client.GetTeamByName(rteam2.Name, "")
 	CheckForbiddenStatus(t, resp)
 
-	// AllowInviteOpen is true and team is invite only, and user is not on team
+	// IsPublic is true and team is invite only, and user is not on team
 	_, resp = Client.GetTeamByName(rteam3.Name, "")
 	CheckForbiddenStatus(t, resp)
 }

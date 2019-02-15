@@ -256,9 +256,6 @@ func (s SqlTeamStore) Get(id string) store.StoreChannel {
 		}
 
 		team := obj.(*model.Team)
-		if len(team.InviteId) == 0 {
-			team.InviteId = team.Id
-		}
 
 		result.Data = team
 	})
@@ -271,10 +268,6 @@ func (s SqlTeamStore) GetByInviteId(inviteId string) store.StoreChannel {
 		if err := s.GetReplica().SelectOne(&team, "SELECT * FROM Teams WHERE Id = :InviteId OR InviteId = :InviteId", map[string]interface{}{"InviteId": inviteId}); err != nil {
 			result.Err = model.NewAppError("SqlTeamStore.GetByInviteId", "store.sql_team.get_by_invite_id.finding.app_error", nil, "inviteId="+inviteId+", "+err.Error(), http.StatusNotFound)
 			return
-		}
-
-		if len(team.InviteId) == 0 {
-			team.InviteId = team.Id
 		}
 
 		if len(inviteId) == 0 || team.InviteId != inviteId {
@@ -293,10 +286,6 @@ func (s SqlTeamStore) GetByName(name string) store.StoreChannel {
 		if err := s.GetReplica().SelectOne(&team, "SELECT * FROM Teams WHERE Name = :Name", map[string]interface{}{"Name": name}); err != nil {
 			result.Err = model.NewAppError("SqlTeamStore.GetByName", "store.sql_team.get_by_name.app_error", nil, "name="+name+", "+err.Error(), http.StatusInternalServerError)
 			return
-		}
-
-		if len(team.InviteId) == 0 {
-			team.InviteId = team.Id
 		}
 
 		result.Data = &team
@@ -350,12 +339,6 @@ func (s SqlTeamStore) GetAll() store.StoreChannel {
 			return
 		}
 
-		for _, team := range data {
-			if len(team.InviteId) == 0 {
-				team.InviteId = team.Id
-			}
-		}
-
 		result.Data = data
 	})
 }
@@ -368,12 +351,6 @@ func (s SqlTeamStore) GetAllPage(offset int, limit int) store.StoreChannel {
 			return
 		}
 
-		for _, team := range data {
-			if len(team.InviteId) == 0 {
-				team.InviteId = team.Id
-			}
-		}
-
 		result.Data = data
 	})
 }
@@ -384,12 +361,6 @@ func (s SqlTeamStore) GetTeamsByUserId(userId string) store.StoreChannel {
 		if _, err := s.GetReplica().Select(&data, "SELECT Teams.* FROM Teams, TeamMembers WHERE TeamMembers.TeamId = Teams.Id AND TeamMembers.UserId = :UserId AND TeamMembers.DeleteAt = 0 AND Teams.DeleteAt = 0", map[string]interface{}{"UserId": userId}); err != nil {
 			result.Err = model.NewAppError("SqlTeamStore.GetTeamsByUserId", "store.sql_team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 			return
-		}
-
-		for _, team := range data {
-			if len(team.InviteId) == 0 {
-				team.InviteId = team.Id
-			}
 		}
 
 		result.Data = data
@@ -410,12 +381,6 @@ func (s SqlTeamStore) GetAllTeamListing() store.StoreChannel {
 			return
 		}
 
-		for _, team := range data {
-			if len(team.InviteId) == 0 {
-				team.InviteId = team.Id
-			}
-		}
-
 		result.Data = data
 	})
 }
@@ -432,12 +397,6 @@ func (s SqlTeamStore) GetAllTeamPageListing(offset int, limit int) store.StoreCh
 		if _, err := s.GetReplica().Select(&data, query, map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
 			result.Err = model.NewAppError("SqlTeamStore.GetAllTeamListing", "store.sql_team.get_all_team_listing.app_error", nil, err.Error(), http.StatusInternalServerError)
 			return
-		}
-
-		for _, team := range data {
-			if len(team.InviteId) == 0 {
-				team.InviteId = team.Id
-			}
 		}
 
 		result.Data = data
@@ -945,12 +904,6 @@ func (s SqlTeamStore) GetAllForExportAfter(limit int, afterId string) store.Stor
 			map[string]interface{}{"AfterId": afterId, "Limit": limit}); err != nil {
 			result.Err = model.NewAppError("SqlTeamStore.GetAllTeams", "store.sql_team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 			return
-		}
-
-		for _, team := range data {
-			if len(team.InviteId) == 0 {
-				team.InviteId = team.Id
-			}
 		}
 
 		result.Data = data
