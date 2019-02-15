@@ -24,26 +24,26 @@ const (
 )
 
 type DoPostActionRequest struct {
-	SelectedOption string `json:"selected_option"`
+	SelectedOption string `json:"selected_option,omitempty"`
 	Cookie         string `json:"cookie,omitempty"`
 }
 
 type PostAction struct {
 	// A unique Action ID. If not set, generated automatically.
-	Id string `json:"id"`
+	Id string `json:"id,omitempty"`
 
 	// The type of the interactive element. Currently supported are
 	// "select" and "button".
-	Type string `json:"type"`
+	Type string `json:"type,omitempty"`
 
 	// The text on the button, or in the select placeholder.
-	Name string `json:"name"`
+	Name string `json:"name,omitempty"`
 
 	// DataSource indicates the data source for the select action. If left
 	// empty, the select is populated from Options. Other supported values
 	// are "users" and "channels".
-	DataSource string               `json:"data_source"`
-	Options    []*PostActionOptions `json:"options"`
+	DataSource string               `json:"data_source,omitempty"`
+	Options    []*PostActionOptions `json:"options,omitempty"`
 
 	// Defines the interaction with the backend upon a user action.
 	// Integration contains Context, which is private plugin data;
@@ -63,7 +63,6 @@ type PostActionCookie struct {
 	PostId      string                 `json:"post_id,omitempty"`
 	RootPostId  string                 `json:"root_post_id,omitempty"`
 	ChannelId   string                 `json:"channel_id,omitempty"`
-	TeamId      string                 `json:"team_id,omitempty"`
 	DataSource  string                 `json:"data_source,omitempty"`
 	Integration *PostActionIntegration `json:"integration,omitempty"`
 	RetainProps map[string]interface{} `json:"retain_props,omitempty"`

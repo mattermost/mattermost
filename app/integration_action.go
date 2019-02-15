@@ -59,40 +59,39 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId string, actionRequ
 		}
 
 		// Get action metadata from the cookie
-		c := model.PostActionCookie{}
-		cookie, err := a.decryptActionCookie(actionRequest.Cookie)
+		cookie := model.PostActionCookie{}
+		cookieStr, err := a.decryptActionCookie(actionRequest.Cookie)
 		if err != nil {
 			return "", model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
 		}
-		err = json.Unmarshal([]byte(cookie), &c)
+		err = json.Unmarshal([]byte(cookieStr), &cookie)
 		if err != nil {
 			return "", model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
 		}
-		if c.Integration == nil {
+		if cookie.Integration == nil {
 			return "", model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "no Integration in action cookie", http.StatusBadRequest)
 		}
 
-		if postId != c.PostId {
+		if postId != cookie.PostId {
 			return "", model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "postId doesn't match", http.StatusBadRequest)
 		}
 
-		upstreamRequest.ChannelId = c.ChannelId
-		upstreamRequest.TeamId = c.TeamId
-		upstreamRequest.Type = c.Type
-		upstreamRequest.Context = c.Integration.Context
+		upstreamRequest.ChannelId = cookie.ChannelId
+		upstreamRequest.Type = cookie.Type
+		upstreamRequest.Context = cookie.Integration.Context
 
-		if c.Type == model.POST_ACTION_TYPE_SELECT {
-			upstreamRequest.DataSource = c.DataSource
+		if cookie.Type == model.POST_ACTION_TYPE_SELECT {
+			upstreamRequest.DataSource = cookie.DataSource
 			if upstreamRequest.Context == nil {
 				upstreamRequest.Context = map[string]interface{}{}
 			}
 			upstreamRequest.Context["selected_option"] = actionRequest.SelectedOption
 		}
 
-		retain = c.RetainProps
-		remove = c.RemoveProps
-		rootPostId = c.RootPostId
-		upstreamURL = c.Integration.URL
+		retain = cookie.RetainProps
+		remove = cookie.RemoveProps
+		rootPostId = cookie.RootPostId
+		upstreamURL = cookie.Integration.URL
 	} else {
 		// Get action metadata from the database
 		post := result.Data.(*model.Post)
@@ -112,11 +111,8 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId string, actionRequ
 		upstreamRequest.TeamId = channel.TeamId
 		upstreamRequest.Type = action.Type
 		upstreamRequest.Context = action.Integration.Context
-
-		if action.Type == model.POST_ACTION_TYPE_SELECT {
-			upstreamRequest.DataSource = action.DataSource
-			upstreamRequest.Context["selected_option"] = actionRequest.SelectedOption
-		}
+		upstreamRequest.DataSource = action.DataSource
+		upstreamRequest.Context["selected_option"] = actionRequest.SelectedOption
 
 		retainPropKeys := []string{"override_username", "override_icon_url"}
 		for _, key := range retainPropKeys {
