@@ -682,8 +682,8 @@ func (api *PluginAPI) LogWarn(msg string, keyValuePairs ...interface{}) {
 func (api *PluginAPI) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
 	// Bots created by a plugin should use the plugin's ID for the creator field, unless
 	// otherwise specified by the plugin.
-	if bot.CreatorId == "" {
-		bot.CreatorId = api.id
+	if bot.OwnerId == "" {
+		bot.OwnerId = api.id
 	}
 
 	return api.app.CreateBot(bot)

@@ -17,7 +17,7 @@ import (
 type bot struct {
 	UserId      string `json:"user_id"`
 	Description string `json:"description"`
-	CreatorId   string `json:"creator_id"`
+	OwnerId     string `json:"owner_id"`
 	CreateAt    int64  `json:"create_at"`
 	UpdateAt    int64  `json:"update_at"`
 	DeleteAt    int64  `json:"delete_at"`
@@ -27,7 +27,7 @@ func botFromModel(b *model.Bot) *bot {
 	return &bot{
 		UserId:      b.UserId,
 		Description: b.Description,
-		CreatorId:   b.CreatorId,
+		OwnerId:     b.OwnerId,
 		CreateAt:    b.CreateAt,
 		UpdateAt:    b.UpdateAt,
 		DeleteAt:    b.DeleteAt,
@@ -53,7 +53,7 @@ func NewSqlBotStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) sto
 		table := db.AddTableWithName(bot{}, "Bots").SetKeys(false, "UserId")
 		table.ColMap("UserId").SetMaxSize(26)
 		table.ColMap("Description").SetMaxSize(1024)
-		table.ColMap("CreatorId").SetMaxSize(model.BOT_CREATOR_ID_MAX_RUNES)
+		table.ColMap("OwnerId").SetMaxSize(model.BOT_CREATOR_ID_MAX_RUNES)
 	}
 
 	return us
@@ -90,7 +90,7 @@ func (us SqlBotStore) Get(botUserId string, includeDeleted bool) store.StoreChan
 			    u.Username,
 			    u.FirstName AS DisplayName,
 			    b.Description,
-			    b.CreatorId,
+			    b.OwnerId,
 			    b.CreateAt,
 			    b.UpdateAt,
 			    b.DeleteAt
@@ -128,12 +128,12 @@ func (us SqlBotStore) GetAll(options *model.BotGetOptions) store.StoreChannel {
 		if !options.IncludeDeleted {
 			conditions = append(conditions, "b.DeleteAt = 0")
 		}
-		if options.CreatorId != "" {
-			conditions = append(conditions, "b.CreatorId = :creator_id")
-			params["creator_id"] = options.CreatorId
+		if options.OwnerId != "" {
+			conditions = append(conditions, "b.OwnerId = :creator_id")
+			params["creator_id"] = options.OwnerId
 		}
 		if options.OnlyOrphaned {
-			additionalJoin = "JOIN Users o ON (o.Id = b.CreatorId)"
+			additionalJoin = "JOIN Users o ON (o.Id = b.OwnerId)"
 			conditions = append(conditions, "o.DeleteAt != 0")
 		}
 
@@ -147,7 +147,7 @@ func (us SqlBotStore) GetAll(options *model.BotGetOptions) store.StoreChannel {
 			    u.Username,
 			    u.FirstName AS DisplayName,
 			    b.Description,
-			    b.CreatorId,
+			    b.OwnerId,
 			    b.CreateAt,
 			    b.UpdateAt,
 			    b.DeleteAt
@@ -214,7 +214,7 @@ func (us SqlBotStore) Update(bot *model.Bot) store.StoreChannel {
 		oldBot := oldBotResult.Data.(*model.Bot)
 
 		oldBot.Description = bot.Description
-		oldBot.CreatorId = bot.CreatorId
+		oldBot.OwnerId = bot.OwnerId
 		oldBot.UpdateAt = bot.UpdateAt
 		oldBot.DeleteAt = bot.DeleteAt
 		bot = oldBot

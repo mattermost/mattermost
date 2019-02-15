@@ -26,7 +26,7 @@ type Bot struct {
 	Username    string `json:"username"`
 	DisplayName string `json:"display_name"`
 	Description string `json:"description"`
-	CreatorId   string `json:"creator_id"`
+	OwnerId     string `json:"creator_id"`
 	CreateAt    int64  `json:"create_at"`
 	UpdateAt    int64  `json:"update_at"`
 	DeleteAt    int64  `json:"delete_at"`
@@ -41,7 +41,7 @@ type BotPatch struct {
 
 // BotGetOptions acts as a filter on bulk bot fetching queries.
 type BotGetOptions struct {
-	CreatorId      string
+	OwnerId        string
 	IncludeDeleted bool
 	OnlyOrphaned   bool
 	Page           int
@@ -80,7 +80,7 @@ func (b *Bot) IsValid() *AppError {
 		return NewAppError("Bot.IsValid", "model.bot.is_valid.description.app_error", b.Trace(), "", http.StatusBadRequest)
 	}
 
-	if len(b.CreatorId) == 0 || utf8.RuneCountInString(b.CreatorId) > BOT_CREATOR_ID_MAX_RUNES {
+	if len(b.OwnerId) == 0 || utf8.RuneCountInString(b.OwnerId) > BOT_CREATOR_ID_MAX_RUNES {
 		return NewAppError("Bot.IsValid", "model.bot.is_valid.creator_id.app_error", b.Trace(), "", http.StatusBadRequest)
 	}
 

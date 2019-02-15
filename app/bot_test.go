@@ -23,7 +23,7 @@ func TestCreateBot(t *testing.T) {
 			_, err := th.App.CreateBot(&model.Bot{
 				Username:    "invalid username",
 				Description: "a bot",
-				CreatorId:   th.BasicUser.Id,
+				OwnerId:     th.BasicUser.Id,
 			})
 			require.NotNil(t, err)
 			require.Equal(t, "model.user.is_valid.username.app_error", err.Id)
@@ -36,7 +36,7 @@ func TestCreateBot(t *testing.T) {
 			_, err := th.App.CreateBot(&model.Bot{
 				Username:    "username",
 				Description: strings.Repeat("x", 1025),
-				CreatorId:   th.BasicUser.Id,
+				OwnerId:     th.BasicUser.Id,
 			})
 			require.NotNil(t, err)
 			require.Equal(t, "model.bot.is_valid.description.app_error", err.Id)
@@ -50,13 +50,13 @@ func TestCreateBot(t *testing.T) {
 		bot, err := th.App.CreateBot(&model.Bot{
 			Username:    "username",
 			Description: "a bot",
-			CreatorId:   th.BasicUser.Id,
+			OwnerId:     th.BasicUser.Id,
 		})
 		require.Nil(t, err)
 		defer th.App.PermanentDeleteBot(bot.UserId)
 		assert.Equal(t, "username", bot.Username)
 		assert.Equal(t, "a bot", bot.Description)
-		assert.Equal(t, th.BasicUser.Id, bot.CreatorId)
+		assert.Equal(t, th.BasicUser.Id, bot.OwnerId)
 	})
 
 	t.Run("create bot, username already used by a non-bot user", func(t *testing.T) {
@@ -66,7 +66,7 @@ func TestCreateBot(t *testing.T) {
 		_, err := th.App.CreateBot(&model.Bot{
 			Username:    th.BasicUser.Username,
 			Description: "a bot",
-			CreatorId:   th.BasicUser.Id,
+			OwnerId:     th.BasicUser.Id,
 		})
 		require.NotNil(t, err)
 		require.Equal(t, "store.sql_user.save.username_exists.app_error", err.Id)
@@ -81,7 +81,7 @@ func TestPatchBot(t *testing.T) {
 		bot, err := th.App.CreateBot(&model.Bot{
 			Username:    "username",
 			Description: "a bot",
-			CreatorId:   th.BasicUser.Id,
+			OwnerId:     th.BasicUser.Id,
 		})
 		require.Nil(t, err)
 		defer th.App.PermanentDeleteBot(bot.UserId)
@@ -104,7 +104,7 @@ func TestPatchBot(t *testing.T) {
 		bot, err := th.App.CreateBot(&model.Bot{
 			Username:    "username",
 			Description: "a bot",
-			CreatorId:   th.BasicUser.Id,
+			OwnerId:     th.BasicUser.Id,
 		})
 		require.Nil(t, err)
 		defer th.App.PermanentDeleteBot(bot.UserId)
@@ -128,7 +128,7 @@ func TestPatchBot(t *testing.T) {
 			Username:    "username",
 			DisplayName: "bot",
 			Description: "a bot",
-			CreatorId:   th.BasicUser.Id,
+			OwnerId:     th.BasicUser.Id,
 		}
 
 		createdBot, err := th.App.CreateBot(bot)
@@ -159,7 +159,7 @@ func TestPatchBot(t *testing.T) {
 			Username:    "username",
 			DisplayName: "bot",
 			Description: "a bot",
-			CreatorId:   th.BasicUser.Id,
+			OwnerId:     th.BasicUser.Id,
 		})
 		require.Nil(t, err)
 		defer th.App.PermanentDeleteBot(bot.UserId)
@@ -181,7 +181,7 @@ func TestGetBot(t *testing.T) {
 	bot1, err := th.App.CreateBot(&model.Bot{
 		Username:    "username",
 		Description: "a bot",
-		CreatorId:   th.BasicUser.Id,
+		OwnerId:     th.BasicUser.Id,
 	})
 	require.Nil(t, err)
 	defer th.App.PermanentDeleteBot(bot1.UserId)
@@ -189,7 +189,7 @@ func TestGetBot(t *testing.T) {
 	bot2, err := th.App.CreateBot(&model.Bot{
 		Username:    "username2",
 		Description: "a second bot",
-		CreatorId:   th.BasicUser.Id,
+		OwnerId:     th.BasicUser.Id,
 	})
 	require.Nil(t, err)
 	defer th.App.PermanentDeleteBot(bot2.UserId)
@@ -197,7 +197,7 @@ func TestGetBot(t *testing.T) {
 	deletedBot, err := th.App.CreateBot(&model.Bot{
 		Username:    "username3",
 		Description: "a deleted bot",
-		CreatorId:   th.BasicUser.Id,
+		OwnerId:     th.BasicUser.Id,
 	})
 	require.Nil(t, err)
 	deletedBot, err = th.App.UpdateBotActive(deletedBot.UserId, false)
@@ -239,13 +239,13 @@ func TestGetBots(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	creatorId1 := model.NewId()
-	creatorId2 := model.NewId()
+	OwnerId1 := model.NewId()
+	OwnerId2 := model.NewId()
 
 	bot1, err := th.App.CreateBot(&model.Bot{
 		Username:    "username",
 		Description: "a bot",
-		CreatorId:   creatorId1,
+		OwnerId:     OwnerId1,
 	})
 	require.Nil(t, err)
 	defer th.App.PermanentDeleteBot(bot1.UserId)
@@ -253,7 +253,7 @@ func TestGetBots(t *testing.T) {
 	deletedBot1, err := th.App.CreateBot(&model.Bot{
 		Username:    "username4",
 		Description: "a deleted bot",
-		CreatorId:   creatorId1,
+		OwnerId:     OwnerId1,
 	})
 	require.Nil(t, err)
 	deletedBot1, err = th.App.UpdateBotActive(deletedBot1.UserId, false)
@@ -263,7 +263,7 @@ func TestGetBots(t *testing.T) {
 	bot2, err := th.App.CreateBot(&model.Bot{
 		Username:    "username2",
 		Description: "a second bot",
-		CreatorId:   creatorId1,
+		OwnerId:     OwnerId1,
 	})
 	require.Nil(t, err)
 	defer th.App.PermanentDeleteBot(bot2.UserId)
@@ -271,7 +271,7 @@ func TestGetBots(t *testing.T) {
 	bot3, err := th.App.CreateBot(&model.Bot{
 		Username:    "username3",
 		Description: "a third bot",
-		CreatorId:   creatorId1,
+		OwnerId:     OwnerId1,
 	})
 	require.Nil(t, err)
 	defer th.App.PermanentDeleteBot(bot3.UserId)
@@ -279,7 +279,7 @@ func TestGetBots(t *testing.T) {
 	bot4, err := th.App.CreateBot(&model.Bot{
 		Username:    "username5",
 		Description: "a fourth bot",
-		CreatorId:   creatorId2,
+		OwnerId:     OwnerId2,
 	})
 	require.Nil(t, err)
 	defer th.App.PermanentDeleteBot(bot4.UserId)
@@ -287,7 +287,7 @@ func TestGetBots(t *testing.T) {
 	deletedBot2, err := th.App.CreateBot(&model.Bot{
 		Username:    "username6",
 		Description: "a deleted bot",
-		CreatorId:   creatorId2,
+		OwnerId:     OwnerId2,
 	})
 	require.Nil(t, err)
 	deletedBot2, err = th.App.UpdateBotActive(deletedBot2.UserId, false)
@@ -298,7 +298,7 @@ func TestGetBots(t *testing.T) {
 		bots, err := th.App.GetBots(&model.BotGetOptions{
 			Page:           0,
 			PerPage:        10,
-			CreatorId:      "",
+			OwnerId:        "",
 			IncludeDeleted: false,
 		})
 		require.Nil(t, err)
@@ -309,7 +309,7 @@ func TestGetBots(t *testing.T) {
 		bots, err := th.App.GetBots(&model.BotGetOptions{
 			Page:           0,
 			PerPage:        1,
-			CreatorId:      "",
+			OwnerId:        "",
 			IncludeDeleted: false,
 		})
 		require.Nil(t, err)
@@ -320,7 +320,7 @@ func TestGetBots(t *testing.T) {
 		bots, err := th.App.GetBots(&model.BotGetOptions{
 			Page:           1,
 			PerPage:        2,
-			CreatorId:      "",
+			OwnerId:        "",
 			IncludeDeleted: false,
 		})
 		require.Nil(t, err)
@@ -331,7 +331,7 @@ func TestGetBots(t *testing.T) {
 		bots, err := th.App.GetBots(&model.BotGetOptions{
 			Page:           2,
 			PerPage:        2,
-			CreatorId:      "",
+			OwnerId:        "",
 			IncludeDeleted: false,
 		})
 		require.Nil(t, err)
@@ -342,7 +342,7 @@ func TestGetBots(t *testing.T) {
 		bots, err := th.App.GetBots(&model.BotGetOptions{
 			Page:           0,
 			PerPage:        10,
-			CreatorId:      "",
+			OwnerId:        "",
 			IncludeDeleted: true,
 		})
 		require.Nil(t, err)
@@ -353,7 +353,7 @@ func TestGetBots(t *testing.T) {
 		bots, err := th.App.GetBots(&model.BotGetOptions{
 			Page:           0,
 			PerPage:        1,
-			CreatorId:      "",
+			OwnerId:        "",
 			IncludeDeleted: true,
 		})
 		require.Nil(t, err)
@@ -364,7 +364,7 @@ func TestGetBots(t *testing.T) {
 		bots, err := th.App.GetBots(&model.BotGetOptions{
 			Page:           1,
 			PerPage:        2,
-			CreatorId:      "",
+			OwnerId:        "",
 			IncludeDeleted: true,
 		})
 		require.Nil(t, err)
@@ -375,7 +375,7 @@ func TestGetBots(t *testing.T) {
 		bots, err := th.App.GetBots(&model.BotGetOptions{
 			Page:           2,
 			PerPage:        2,
-			CreatorId:      "",
+			OwnerId:        "",
 			IncludeDeleted: true,
 		})
 		require.Nil(t, err)
@@ -386,7 +386,7 @@ func TestGetBots(t *testing.T) {
 		bots, err := th.App.GetBots(&model.BotGetOptions{
 			Page:           0,
 			PerPage:        10,
-			CreatorId:      creatorId1,
+			OwnerId:        OwnerId1,
 			IncludeDeleted: false,
 		})
 		require.Nil(t, err)
@@ -397,7 +397,7 @@ func TestGetBots(t *testing.T) {
 		bots, err := th.App.GetBots(&model.BotGetOptions{
 			Page:           0,
 			PerPage:        10,
-			CreatorId:      creatorId2,
+			OwnerId:        OwnerId2,
 			IncludeDeleted: false,
 		})
 		require.Nil(t, err)
@@ -408,7 +408,7 @@ func TestGetBots(t *testing.T) {
 		bots, err := th.App.GetBots(&model.BotGetOptions{
 			Page:           0,
 			PerPage:        10,
-			CreatorId:      creatorId1,
+			OwnerId:        OwnerId1,
 			IncludeDeleted: true,
 		})
 		require.Nil(t, err)
@@ -419,7 +419,7 @@ func TestGetBots(t *testing.T) {
 		bots, err := th.App.GetBots(&model.BotGetOptions{
 			Page:           0,
 			PerPage:        10,
-			CreatorId:      creatorId2,
+			OwnerId:        OwnerId2,
 			IncludeDeleted: true,
 		})
 		require.Nil(t, err)
@@ -444,7 +444,7 @@ func TestUpdateBotActive(t *testing.T) {
 		bot, err := th.App.CreateBot(&model.Bot{
 			Username:    "username",
 			Description: "a bot",
-			CreatorId:   th.BasicUser.Id,
+			OwnerId:     th.BasicUser.Id,
 		})
 		require.Nil(t, err)
 		defer th.App.PermanentDeleteBot(bot.UserId)
@@ -476,7 +476,7 @@ func TestPermanentDeleteBot(t *testing.T) {
 	bot, err := th.App.CreateBot(&model.Bot{
 		Username:    "username",
 		Description: "a bot",
-		CreatorId:   th.BasicUser.Id,
+		OwnerId:     th.BasicUser.Id,
 	})
 	require.Nil(t, err)
 
@@ -491,8 +491,8 @@ func TestDisableUserBots(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	creatorId1 := model.NewId()
-	creatorId2 := model.NewId()
+	ownerId1 := model.NewId()
+	ownerId2 := model.NewId()
 
 	bots := []*model.Bot{}
 	defer func() {
@@ -505,7 +505,7 @@ func TestDisableUserBots(t *testing.T) {
 		bot, err := th.App.CreateBot(&model.Bot{
 			Username:    fmt.Sprintf("username%v", i),
 			Description: "a bot",
-			CreatorId:   creatorId1,
+			OwnerId:     ownerId1,
 		})
 		require.Nil(t, err)
 		bots = append(bots, bot)
@@ -515,12 +515,12 @@ func TestDisableUserBots(t *testing.T) {
 	u2bot1, err := th.App.CreateBot(&model.Bot{
 		Username:    "username_nodisable",
 		Description: "a bot",
-		CreatorId:   creatorId2,
+		OwnerId:     ownerId2,
 	})
 	require.Nil(t, err)
 	defer th.App.PermanentDeleteBot(u2bot1.UserId)
 
-	err = th.App.disableUserBots(creatorId1)
+	err = th.App.disableUserBots(ownerId1)
 	require.Nil(t, err)
 
 	// Check all bots and corrensponding users are disabled for creator 1
