@@ -26,7 +26,7 @@ func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	bot := &model.Bot{
-		CreatorId: c.App.Session.UserId,
+		OwnerId: c.App.Session.UserId,
 	}
 	bot.Patch(botPatch)
 
@@ -89,7 +89,7 @@ func getBot(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_READ_OTHERS_BOTS) {
 		// Allow access to any bot.
-	} else if bot.CreatorId == c.App.Session.UserId {
+	} else if bot.OwnerId == c.App.Session.UserId {
 		if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_READ_BOTS) {
 			// Pretend like the bot doesn't exist at all to avoid revealing that the
 			// user is a bot. It's kind of silly in this case, sine we created the bot,
@@ -115,13 +115,13 @@ func getBots(c *Context, w http.ResponseWriter, r *http.Request) {
 	includeDeleted := r.URL.Query().Get("include_deleted") == "true"
 	onlyOrphaned := r.URL.Query().Get("only_orphaned") == "true"
 
-	var creatorId string
+	var OwnerId string
 	if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_READ_OTHERS_BOTS) {
 		// Get bots created by any user.
-		creatorId = ""
+		OwnerId = ""
 	} else if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_READ_BOTS) {
 		// Only get bots created by this user.
-		creatorId = c.App.Session.UserId
+		OwnerId = c.App.Session.UserId
 	} else {
 		c.SetPermissionError(model.PERMISSION_READ_BOTS)
 		return
@@ -130,7 +130,7 @@ func getBots(c *Context, w http.ResponseWriter, r *http.Request) {
 	bots, err := c.App.GetBots(&model.BotGetOptions{
 		Page:           c.Params.Page,
 		PerPage:        c.Params.PerPage,
-		CreatorId:      creatorId,
+		OwnerId:        OwnerId,
 		IncludeDeleted: includeDeleted,
 		OnlyOrphaned:   onlyOrphaned,
 	})

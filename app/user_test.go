@@ -179,7 +179,7 @@ func TestUpdateActiveBotsSideEffect(t *testing.T) {
 	bot, err := th.App.CreateBot(&model.Bot{
 		Username:    "username",
 		Description: "a bot",
-		CreatorId:   th.BasicUser.Id,
+		OwnerId:     th.BasicUser.Id,
 	})
 	require.Nil(t, err)
 	defer th.App.PermanentDeleteBot(bot.UserId)

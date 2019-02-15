@@ -231,7 +231,7 @@ func (a *App) SessionHasPermissionToManageBot(session model.Session, botUserId s
 		return err
 	}
 
-	if existingBot.CreatorId == session.UserId {
+	if existingBot.OwnerId == session.UserId {
 		if !a.SessionHasPermissionTo(session, model.PERMISSION_MANAGE_BOTS) {
 			if !a.SessionHasPermissionTo(session, model.PERMISSION_READ_BOTS) {
 				// If the user doesn't have permission to read bots, pretend as if

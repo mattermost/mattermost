@@ -136,7 +136,7 @@ func (a *App) UpdateBotOwner(botUserId, newOwnerId string) (*model.Bot, *model.A
 	}
 	bot := result.Data.(*model.Bot)
 
-	bot.CreatorId = newOwnerId
+	bot.OwnerId = newOwnerId
 
 	if result = <-a.Srv.Store.Bot().Update(bot); result.Err != nil {
 		return nil, result.Err
@@ -150,7 +150,7 @@ func (a *App) disableUserBots(userId string) *model.AppError {
 	perPage := 20
 	for {
 		options := &model.BotGetOptions{
-			CreatorId:      userId,
+			OwnerId:        userId,
 			IncludeDeleted: false,
 			OnlyOrphaned:   false,
 			Page:           0,

@@ -46,7 +46,7 @@ func TestCreateBot(t *testing.T) {
 		require.Equal(t, bot.Username, createdBot.Username)
 		require.Equal(t, bot.DisplayName, createdBot.DisplayName)
 		require.Equal(t, bot.Description, createdBot.Description)
-		require.Equal(t, th.BasicUser.Id, createdBot.CreatorId)
+		require.Equal(t, th.BasicUser.Id, createdBot.OwnerId)
 	})
 
 	t.Run("create invalid bot", func(t *testing.T) {
@@ -140,7 +140,7 @@ func TestPatchBot(t *testing.T) {
 		require.Equal(t, *botPatch.Username, patchedBot.Username)
 		require.Equal(t, *botPatch.DisplayName, patchedBot.DisplayName)
 		require.Equal(t, *botPatch.Description, patchedBot.Description)
-		require.Equal(t, th.SystemAdminUser.Id, patchedBot.CreatorId)
+		require.Equal(t, th.SystemAdminUser.Id, patchedBot.OwnerId)
 	})
 
 	t.Run("patch my bot without permission", func(t *testing.T) {
@@ -224,7 +224,7 @@ func TestPatchBot(t *testing.T) {
 		require.Equal(t, *botPatch.Username, patchedBot.Username)
 		require.Equal(t, *botPatch.DisplayName, patchedBot.DisplayName)
 		require.Equal(t, *botPatch.Description, patchedBot.Description)
-		require.Equal(t, th.BasicUser.Id, patchedBot.CreatorId)
+		require.Equal(t, th.BasicUser.Id, patchedBot.OwnerId)
 	})
 
 	t.Run("partial patch my bot with permission", func(t *testing.T) {
@@ -255,7 +255,7 @@ func TestPatchBot(t *testing.T) {
 		require.Equal(t, *botPatch.Username, patchedBot.Username)
 		require.Equal(t, bot.DisplayName, patchedBot.DisplayName)
 		require.Equal(t, bot.Description, patchedBot.Description)
-		require.Equal(t, th.BasicUser.Id, patchedBot.CreatorId)
+		require.Equal(t, th.BasicUser.Id, patchedBot.OwnerId)
 	})
 
 	t.Run("update bot, internally managed fields ignored", func(t *testing.T) {
@@ -285,7 +285,7 @@ func TestPatchBot(t *testing.T) {
 		resp = model.BuildResponse(r)
 		CheckOKStatus(t, resp)
 
-		require.Equal(t, th.BasicUser.Id, patchedBot.CreatorId)
+		require.Equal(t, th.BasicUser.Id, patchedBot.OwnerId)
 	})
 }
 
@@ -751,7 +751,7 @@ func TestAssignBot(t *testing.T) {
 
 		before, resp := th.Client.GetBot(bot.UserId, "")
 		CheckOKStatus(t, resp)
-		require.Equal(t, th.BasicUser.Id, before.CreatorId)
+		require.Equal(t, th.BasicUser.Id, before.OwnerId)
 
 		_, resp = th.SystemAdminClient.AssignBot(bot.UserId, th.SystemAdminUser.Id)
 		CheckOKStatus(t, resp)
@@ -763,7 +763,7 @@ func TestAssignBot(t *testing.T) {
 		// System admin can see creator ID has changed
 		after, resp := th.SystemAdminClient.GetBot(bot.UserId, "")
 		CheckOKStatus(t, resp)
-		require.Equal(t, th.SystemAdminUser.Id, after.CreatorId)
+		require.Equal(t, th.SystemAdminUser.Id, after.OwnerId)
 
 		// Assign back to user without permissions to manage
 		_, resp = th.SystemAdminClient.AssignBot(bot.UserId, th.BasicUser.Id)
@@ -771,7 +771,7 @@ func TestAssignBot(t *testing.T) {
 
 		after, resp = th.SystemAdminClient.GetBot(bot.UserId, "")
 		CheckOKStatus(t, resp)
-		require.Equal(t, th.BasicUser.Id, after.CreatorId)
+		require.Equal(t, th.BasicUser.Id, after.OwnerId)
 	})
 
 	t.Run("random user assign bot", func(t *testing.T) {
@@ -829,7 +829,7 @@ func TestAssignBot(t *testing.T) {
 
 		after, resp := th.SystemAdminClient.GetBot(bot.UserId, "")
 		CheckOKStatus(t, resp)
-		require.Equal(t, th.BasicUser2.Id, after.CreatorId)
+		require.Equal(t, th.BasicUser2.Id, after.OwnerId)
 	})
 }
 

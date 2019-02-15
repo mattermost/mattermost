@@ -915,8 +915,8 @@ func TestPluginBots(t *testing.T) {
 			if fetchedBot.Description != "a plugin bot" {
 				return nil, "GetBot did not return the expected bot Description"
 			}
-			if fetchedBot.CreatorId != "testpluginbots" {
-				return nil, "GetBot did not return the expected bot CreatorId"
+			if fetchedBot.OwnerId != "testpluginbots" {
+				return nil, "GetBot did not return the expected bot OwnerId"
 			}
 
 			updatedDescription := createdBot.Description + ", updated"
@@ -942,7 +942,7 @@ func TestPluginBots(t *testing.T) {
 			fetchedBots, err := p.API.GetBots(&model.BotGetOptions{
 				Page: 0,
 				PerPage: 1,
-				CreatorId: "",
+				OwnerId: "",
 				IncludeDeleted: false,
 			})
 			if err != nil {
@@ -992,7 +992,7 @@ func TestPluginBots(t *testing.T) {
 			createdBotWithOverriddenCreator, err := p.API.CreateBot(&model.Bot{
 				Username: "bot",
 				Description: "a plugin bot",
-				CreatorId: "abc123",
+				OwnerId: "abc123",
 			})
 			if err != nil {
 				return nil, err.Error() + "failed to create bot with overridden creator"
@@ -1005,8 +1005,8 @@ func TestPluginBots(t *testing.T) {
 			if fetchedBot.Description != "a plugin bot" {
 				return nil, "GetBot did not return the expected bot Description"
 			}
-			if fetchedBot.CreatorId != "abc123" {
-				return nil, "GetBot did not return the expected bot CreatorId"
+			if fetchedBot.OwnerId != "abc123" {
+				return nil, "GetBot did not return the expected bot OwnerId"
 			}
 
 			return nil, ""
