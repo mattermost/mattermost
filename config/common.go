@@ -38,7 +38,7 @@ func (cs *commonStore) GetEnvironmentOverrides() map[string]interface{} {
 
 // set replaces the current configuration in its entirety, without updating the backing store.
 //
-// This function assumes a write lock has already been acquired.
+// This function assumes no lock has been acquired, as it acquires a write lock itself.
 func (cs *commonStore) set(newCfg *model.Config, isValid func(*model.Config) error) (*model.Config, error) {
 	cs.configLock.Lock()
 	var unlockOnce sync.Once
