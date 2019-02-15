@@ -262,62 +262,97 @@ func deleteCommandCmdF(command *cobra.Command, args []string) error {
 }
 
 func modifyCommandCmdF(command *cobra.Command, args []string) error {
-	fmt.Println("MODIFY COMMAND START")
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
 	}
+
 	defer a.Shutdown()
 
 	originalCommand, err := a.GetCommand(args[0])
 	if err != nil {
-		return nil
+		return err
 	}
 
-	title, _ := command.Flags().GetString("title")
-	description, _ := command.Flags().GetString("description")
-	trigger, _ := command.Flags().GetString("trigger-word")
+	modifiedCommand := &model.Command{
+		Id: args[0],
+	}
 
+	if title, _ := command.Flags().GetString("title"); title != "" {
+		modifiedCommand = &model.Command{
+			DisplayName: title,
+		}
+	}
+
+	if description, _ := command.Flags().GetString("description"); description != "" {
+		modifiedCommand = &model.Command{
+			Description: description,
+		}
+	}
+
+	trigger, _ := command.Flags().GetString("trigger-word")
 	if strings.HasPrefix(trigger, "/") {
 		return errors.New("a trigger word cannot begin with a /")
 	}
+
 	if strings.Contains(trigger, " ") {
 		return errors.New("a trigger word must not contain spaces")
 	}
 
-	url, _ := command.Flags().GetString("url")
-	creator, _ := command.Flags().GetString("creator")
-	user := getUserFromUserArg(a, creator)
-	if user == nil {
-		return errors.New("unable to find user '" + creator + "'")
+	if trigger != "" {
+		modifiedCommand = &model.Command{
+			Trigger: trigger,
+		}
 	}
-	responseUsername, _ := command.Flags().GetString("response-username")
-	icon, _ := command.Flags().GetString("icon")
-	autocomplete, _ := command.Flags().GetBool("autocomplete")
+
+	if url, _ := command.Flags().GetString("url"); url != "" {
+		modifiedCommand = &model.Command{
+			URL: url,
+		}
+	}
+
+	if creator, _ := command.Flags().GetString("creator"); creator != "" {
+		user := getUserFromUserArg(a, creator)
+		if user == nil {
+			return errors.New("unable to find user '" + creator + "'")
+		}
+		modifiedCommand = &model.Command{
+			CreatorId: creator,
+		}
+	}
+
+	if responseUsername, _ := command.Flags().GetString("response-username"); responseUsername != "" {
+		modifiedCommand = &model.Command{
+			Username: responseUsername,
+		}
+	}
+
+	if icon, _ := command.Flags().GetString("icon"); icon != "" {
+		modifiedCommand = &model.Command{
+			IconURL: icon,
+		}
+	}
+	//Need to verify the case when autocomplete = true and doesn't send anything win modify command; But GetBool would return false
+	if autocomplete, _ := command.Flags().GetBool("autocomplete"); autocomplete != false {
+		modifiedCommand = &model.Command{
+			AutoComplete: autocomplete,
+		}
+	}
+
+	// Same issue here as well
 	post, errp := command.Flags().GetBool("post")
 	method := "P"
 	if errp != nil || post == false {
 		method = "G"
 	}
-
-	modifiedCommand := &model.Command{
-		Id:           args[0],
-		CreatorId:    creator,
-		Trigger:      trigger,
-		Method:       method,
-		Username:     responseUsername,
-		IconURL:      icon,
-		AutoComplete: autocomplete,
-		DisplayName:  title,
-		Description:  description,
-		URL:          url,
+	modifiedCommand = &model.Command{
+		Method: method,
 	}
 
 	_, err = a.UpdateCommand(originalCommand, modifiedCommand)
 	if err != nil {
-		return err
+		return errors.New("failed to modify the Command" + originalCommand.DisplayName)
 	}
 
 	return nil
-
 }

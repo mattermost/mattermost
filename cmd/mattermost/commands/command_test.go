@@ -173,8 +173,13 @@ func TestDeleteCommand(t *testing.T) {
 func TestModifyCommand(t *testing.T)  {
 	th := Setup().InitBasic()
 	defer th.TearDown()
+
+	config := th.Config()
+	*config.ServiceSettings.EnableCommands = true
+	th.SetConfig(config)
+
 	team := th.BasicTeam
-	user := th.BasicUser
+	user := th.TeamAdminUser
 	th.LinkUserToTeam(user, team)
 
 	originalCommand := &model.Command{
@@ -197,22 +202,24 @@ func TestModifyCommand(t *testing.T)  {
 	modifiedUsername := "modifiedUsername"
 	modifiedCreator := "modifiedCreator"
 
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_SLASH_COMMANDS.Id, model.TEAM_USER_ROLE_ID)
+
 	t.Run("original command", func(t *testing.T) {
 		command, err := th.App.CreateCommand(originalCommand)
 		require.Nil(t, err)
-
 		commands, err := th.App.ListTeamCommands(team.Id)
 		require.Nil(t, err)
 		assert.Equal(t, len(commands), 1)
 
-		th.CheckCommand(t, "command", "modify", command.Id, "--title",modifiedTitle, "--description", modifiedDescription,
-			"--trigger-word",modifiedTrigger,"--url", modifiedURL, "--creator", modifiedCreator,
-			"--response-username", modifiedUsername, "--icon", modifiedIcon)
+		th.CheckCommand(t, "command", "modify", command.Id, "--title",modifiedTitle,"--description",
+		modifiedDescription,"--trigger-word",modifiedTrigger,"--url", modifiedURL, "--creator", modifiedCreator,
+		"--response-username", modifiedUsername, "--icon", modifiedIcon)
+
 		commands, err = th.App.ListTeamCommands(team.Id)
 		require.Nil(t, err)
 		modifiedCommand := commands[0]
 		assert.Equal(t, len(commands), 1)
-		assert.Equal(t,modifiedUsername, modifiedCommand.Username)
+		assert.Equal(t,modifiedTitle, modifiedCommand.DisplayName)
 	})
 
 }
