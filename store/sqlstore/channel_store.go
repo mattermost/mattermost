@@ -796,10 +796,10 @@ func (s SqlChannelStore) SetDeleteAt(channelId string, deleteAt, updateAt int64)
 		// Additionally propagate the write to the PublicChannels table.
 		if _, err := transaction.Exec(`
 			UPDATE
-			    PublicChannels
-			SET
+			    PublicChannels 
+			SET 
 			    DeleteAt = :DeleteAt
-			WHERE
+			WHERE 
 			    Id = :ChannelId
 		`, map[string]interface{}{
 			"DeleteAt":  deleteAt,
@@ -847,7 +847,7 @@ func (s SqlChannelStore) PermanentDeleteByTeam(teamId string) store.StoreChannel
 		// Additionally propagate the deletions to the PublicChannels table.
 		if _, err := transaction.Exec(`
 			DELETE FROM
-			    PublicChannels
+			    PublicChannels 
 			WHERE
 			    TeamId = :TeamId
 		`, map[string]interface{}{
@@ -894,7 +894,7 @@ func (s SqlChannelStore) PermanentDelete(channelId string) store.StoreChannel {
 		// Additionally propagate the deletion to the PublicChannels table.
 		if _, err := transaction.Exec(`
 			DELETE FROM
-			    PublicChannels
+			    PublicChannels 
 			WHERE
 			    Id = :ChannelId
 		`, map[string]interface{}{
@@ -1703,7 +1703,7 @@ func (s SqlChannelStore) RemoveAllDeactivatedMembers(channelId string) store.Sto
 			DELETE
 			FROM
 				ChannelMembers
-			WHERE
+			WHERE 
 				UserId IN (
 					SELECT
 						Id

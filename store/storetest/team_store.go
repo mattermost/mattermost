@@ -677,19 +677,17 @@ func testTeamMembersWithPagination(t *testing.T, ss store.Store) {
 	m2 := &model.TeamMember{TeamId: teamId1, UserId: model.NewId()}
 	m3 := &model.TeamMember{TeamId: teamId2, UserId: model.NewId()}
 
-	if r1 := <-ss.Team().SaveMember(m1, -1); r1.Err != nil {
-		t.Fatal(r1.Err)
-	}
+	r1 := <-ss.Team().SaveMember(m1, -1)
+	require.Nil(t, r1.Err)
 
 	store.Must(ss.Team().SaveMember(m2, -1))
 	store.Must(ss.Team().SaveMember(m3, -1))
 
-	if r1 := <-ss.Team().GetMembers(teamId1, 0, 100); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		ms := r1.Data.([]*model.TeamMember)
-		require.Len(t, ms, 2)
-	}
+	r1 = <-ss.Team().GetMembers(teamId1, 0, 100)
+	require.Nil(t, r1.Err)
+
+	ms := r1.Data.([]*model.TeamMember)
+	require.Len(t, ms, 2)
 
 	if r1 := <-ss.Team().GetMembers(teamId2, 0, 100); r1.Err != nil {
 		t.Fatal(r1.Err)

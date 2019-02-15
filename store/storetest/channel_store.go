@@ -1458,9 +1458,7 @@ func testChannelStoreGetMembersForUserWithPagination(t *testing.T, ss store.Stor
 	members := cresult.Data.(*model.ChannelMembers)
 
 	// no unread messages
-	if len(*members) != 1 {
-		t.Fatal("wrong number of members")
-	}
+	assert.Len(t, *members, 1)
 }
 
 func testChannelStoreUpdateLastViewedAt(t *testing.T, ss store.Store) {
