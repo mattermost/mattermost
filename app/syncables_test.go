@@ -14,7 +14,7 @@ func TestPopulateSyncablesSince(t *testing.T) {
 		DisplayName: "Singers",
 		Name:        model.NewId(),
 		Email:       "singers@test.com",
-		Type:        model.TEAM_OPEN,
+		InviteId:    "invite-id",
 	})
 	if err != nil {
 		t.Errorf("test team not created: %s", err.Error())
@@ -24,7 +24,6 @@ func TestPopulateSyncablesSince(t *testing.T) {
 		DisplayName: "Nerds",
 		Name:        model.NewId(),
 		Email:       "nerds@test.com",
-		Type:        model.TEAM_INVITE,
 	})
 	if err != nil {
 		t.Errorf("test team not created: %s", err.Error())

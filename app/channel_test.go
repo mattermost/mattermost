@@ -501,7 +501,7 @@ func TestFillInChannelProps(t *testing.T) {
 		DisplayName: "dn_" + otherTeamId,
 		Name:        "name" + otherTeamId,
 		Email:       "success+" + otherTeamId + "@simulator.amazonses.com",
-		Type:        model.TEAM_OPEN,
+		InviteId:    "invite-id",
 	}
 	otherTeam, err = th.App.CreateTeam(otherTeam)
 	require.Nil(t, err)

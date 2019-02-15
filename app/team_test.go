@@ -23,7 +23,7 @@ func TestCreateTeam(t *testing.T) {
 		DisplayName: "dn_" + id,
 		Name:        "name" + id,
 		Email:       "success+" + id + "@simulator.amazonses.com",
-		Type:        model.TEAM_OPEN,
+		InviteId:    "invite-id",
 	}
 
 	if _, err := th.App.CreateTeam(team); err != nil {
@@ -45,7 +45,7 @@ func TestCreateTeamWithUser(t *testing.T) {
 		DisplayName: "dn_" + id,
 		Name:        "name" + id,
 		Email:       "success+" + id + "@simulator.amazonses.com",
-		Type:        model.TEAM_OPEN,
+		InviteId:    "invite-id",
 	}
 
 	if _, err := th.App.CreateTeamWithUser(team, th.BasicUser.Id); err != nil {
@@ -329,7 +329,7 @@ func TestPermanentDeleteTeam(t *testing.T) {
 		DisplayName: "deletion-test",
 		Name:        "deletion-test",
 		Email:       "foo@foo.com",
-		Type:        model.TEAM_OPEN,
+		InviteId:    "invite-id",
 	})
 	if err != nil {
 		t.Fatal(err.Error())
@@ -605,7 +605,7 @@ func TestJoinUserToTeam(t *testing.T) {
 		DisplayName: "dn_" + id,
 		Name:        "name" + id,
 		Email:       "success+" + id + "@simulator.amazonses.com",
-		Type:        model.TEAM_OPEN,
+		InviteId:    "invite-id",
 	}
 
 	if _, err := th.App.CreateTeam(team); err != nil {

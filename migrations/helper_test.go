@@ -125,7 +125,7 @@ func (me *TestHelper) CreateTeam() *model.Team {
 		DisplayName: "dn_" + id,
 		Name:        "name" + id,
 		Email:       "success+" + id + "@simulator.amazonses.com",
-		Type:        model.TEAM_OPEN,
+		InviteId:    "invite-id",
 	}
 
 	utils.DisableDebugLogForTest()

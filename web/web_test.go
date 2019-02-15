@@ -89,7 +89,7 @@ func (th *TestHelper) InitBasic() *TestHelper {
 
 	user, _ := th.App.CreateUser(&model.User{Email: model.NewId() + "success+test@simulator.amazonses.com", Nickname: "Corey Hulen", Password: "passwd1", EmailVerified: true, Roles: model.SYSTEM_USER_ROLE_ID})
 
-	team, _ := th.App.CreateTeam(&model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: user.Email, Type: model.TEAM_OPEN})
+	team, _ := th.App.CreateTeam(&model.Team{DisplayName: "Name", Name: "z-z-" + model.NewId() + "a", Email: user.Email, InviteId: model.NewId()})
 
 	th.App.JoinUserToTeam(team, user, "")
 

@@ -152,7 +152,7 @@ func TestFindTeamIdForFilename(t *testing.T) {
 	teamId := th.App.FindTeamIdForFilename(th.BasicPost, fmt.Sprintf("/%v/%v/%v/blargh.png", th.BasicChannel.Id, th.BasicUser.Id, "someid"))
 	assert.Equal(t, th.BasicTeam.Id, teamId)
 
-	_, err := th.App.CreateTeamWithUser(&model.Team{Email: th.BasicUser.Email, Name: "zz" + model.NewId(), DisplayName: "Joram's Test Team", Type: model.TEAM_OPEN}, th.BasicUser.Id)
+	_, err := th.App.CreateTeamWithUser(&model.Team{Email: th.BasicUser.Email, Name: "zz" + model.NewId(), DisplayName: "Joram's Test Team", InviteId: model.NewId()}, th.BasicUser.Id)
 	require.Nil(t, err)
 
 	teamId = th.App.FindTeamIdForFilename(th.BasicPost, fmt.Sprintf("/%v/%v/%v/blargh.png", th.BasicChannel.Id, th.BasicUser.Id, "someid"))
