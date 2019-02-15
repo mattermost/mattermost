@@ -713,16 +713,116 @@ func TestDisableBot(t *testing.T) {
 		CheckCreatedStatus(t, resp)
 		defer th.App.PermanentDeleteBot(bot.UserId)
 
-		disabledBot1, resp := th.Client.DisableBot(bot.UserId)
+		enabledBot1, resp := th.Client.DisableBot(bot.UserId)
 		CheckOKStatus(t, resp)
-		bot.UpdateAt = disabledBot1.UpdateAt
-		bot.DeleteAt = disabledBot1.DeleteAt
-		require.Equal(t, bot, disabledBot1)
+		bot.UpdateAt = enabledBot1.UpdateAt
+		bot.DeleteAt = enabledBot1.DeleteAt
+		require.Equal(t, bot, enabledBot1)
+
+		// Check bot disabled
+		disab, resp := th.SystemAdminClient.GetBotIncludeDeleted(bot.UserId, "")
+		CheckOKStatus(t, resp)
+		require.NotZero(t, disab.DeleteAt)
 
 		// Disabling should be idempotent.
-		disabledBot2, resp := th.Client.DisableBot(bot.UserId)
+		enabledBot2, resp := th.Client.DisableBot(bot.UserId)
 		CheckOKStatus(t, resp)
-		require.Equal(t, bot, disabledBot2)
+		require.Equal(t, bot, enabledBot2)
+	})
+}
+
+func TestEnableBot(t *testing.T) {
+	t.Run("enable non-existent bot", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
+
+		_, resp := th.Client.EnableBot(model.NewId())
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("enable bot without permission", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
+		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+
+		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
+		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+
+		bot := &model.Bot{
+			Username:    GenerateTestUsername(),
+			Description: "bot",
+		}
+
+		createdBot, resp := th.Client.CreateBot(bot)
+		CheckCreatedStatus(t, resp)
+		defer th.App.PermanentDeleteBot(createdBot.UserId)
+
+		_, resp = th.SystemAdminClient.DisableBot(createdBot.UserId)
+		CheckOKStatus(t, resp)
+
+		_, resp = th.Client.EnableBot(createdBot.UserId)
+		CheckErrorMessage(t, resp, "store.sql_bot.get.missing.app_error")
+	})
+
+	t.Run("enable bot without permission, but with read permission", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
+		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+
+		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_READ_BOTS.Id, model.TEAM_USER_ROLE_ID)
+		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+
+		bot := &model.Bot{
+			Username:    GenerateTestUsername(),
+			Description: "bot",
+		}
+
+		createdBot, resp := th.Client.CreateBot(bot)
+		CheckCreatedStatus(t, resp)
+		defer th.App.PermanentDeleteBot(createdBot.UserId)
+
+		_, resp = th.SystemAdminClient.DisableBot(createdBot.UserId)
+		CheckOKStatus(t, resp)
+
+		_, resp = th.Client.EnableBot(createdBot.UserId)
+		CheckErrorMessage(t, resp, "api.context.permissions.app_error")
+	})
+
+	t.Run("enable bot with permission", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
+		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+
+		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_MANAGE_BOTS.Id, model.TEAM_USER_ROLE_ID)
+		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+
+		bot, resp := th.Client.CreateBot(&model.Bot{
+			Username:    GenerateTestUsername(),
+			Description: "bot",
+		})
+		CheckCreatedStatus(t, resp)
+		defer th.App.PermanentDeleteBot(bot.UserId)
+
+		_, resp = th.SystemAdminClient.DisableBot(bot.UserId)
+		CheckOKStatus(t, resp)
+
+		enabledBot1, resp := th.Client.EnableBot(bot.UserId)
+		CheckOKStatus(t, resp)
+		bot.UpdateAt = enabledBot1.UpdateAt
+		bot.DeleteAt = enabledBot1.DeleteAt
+		require.Equal(t, bot, enabledBot1)
+
+		// Check bot enabled
+		enab, resp := th.SystemAdminClient.GetBotIncludeDeleted(bot.UserId, "")
+		CheckOKStatus(t, resp)
+		require.Zero(t, enab.DeleteAt)
+
+		// Disabling should be idempotent.
+		enabledBot2, resp := th.Client.EnableBot(bot.UserId)
+		CheckOKStatus(t, resp)
+		require.Equal(t, bot, enabledBot2)
 	})
 }
 
