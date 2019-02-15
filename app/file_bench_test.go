@@ -57,7 +57,7 @@ func prepareTestImages(tb testing.TB) {
 
 func BenchmarkUploadFile(b *testing.B) {
 	prepareTestImages(b)
-	th := Setup().InitBasic()
+	th := Setup(b).InitBasic()
 	defer th.TearDown()
 	// disable logging in the benchmark, as best we can
 	th.App.Log.SetConsoleLevel(mlog.LevelError)

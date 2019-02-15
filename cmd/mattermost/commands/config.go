@@ -14,6 +14,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
+	"github.com/mattermost/mattermost-server/config"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/mattermost/mattermost-server/utils/fileutils"
@@ -137,19 +138,31 @@ func configSubpathCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
+func getConfigStore(command *cobra.Command) (config.Store, error) {
+	if err := utils.TranslationsPreInit(); err != nil {
+		return nil, errors.Wrap(err, "failed to initialize i18n")
+	}
+
+	configDSN, err := command.Flags().GetString("config")
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to parse --config flag")
+	}
+
+	configStore, err := config.NewStore(configDSN, false)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to initialize config store")
+	}
+
+	return configStore, nil
+}
+
 func configGetCmdF(command *cobra.Command, args []string) error {
-	app, err := InitDBCommandContextCobra(command)
+	configStore, err := getConfigStore(command)
 	if err != nil {
 		return err
 	}
-	defer app.Shutdown()
 
-	// create the model for config
-	// Note: app.Config() returns a pointer, make appropriate changes
-	config := app.Config()
-
-	// get the print config setting and any error if there is
-	out, err := printConfigValues(configToMap(*config), strings.Split(args[0], "."), args[0])
+	out, err := printConfigValues(configToMap(*configStore.Get()), strings.Split(args[0], "."), args[0])
 	if err != nil {
 		return err
 	}
@@ -160,30 +173,23 @@ func configGetCmdF(command *cobra.Command, args []string) error {
 }
 
 func configShowCmdF(command *cobra.Command, args []string) error {
-	app, err := InitDBCommandContextCobra(command)
+	configStore, err := getConfigStore(command)
 	if err != nil {
 		return err
 	}
-	defer app.Shutdown()
 
-	// check that no arguments are given
 	err = cobra.NoArgs(command, args)
 	if err != nil {
 		return err
 	}
 
-	// set up the config object
-	config := app.Config()
-
-	// pretty print
-	fmt.Printf("%s", prettyPrintStruct(*config))
+	fmt.Printf("%s", prettyPrintStruct(*configStore.Get()))
 	return nil
 }
 
 // printConfigValues function prints out the value of the configSettings working recursively or
 // gives an error if config setting is not in the file.
 func printConfigValues(configMap map[string]interface{}, configSetting []string, name string) (string, error) {
-
 	res, ok := configMap[configSetting[0]]
 	if !ok {
 		return "", fmt.Errorf("%s configuration setting is not in the file", name)
@@ -204,48 +210,34 @@ func printConfigValues(configMap map[string]interface{}, configSetting []string,
 }
 
 func configSetCmdF(command *cobra.Command, args []string) error {
-	app, err := InitDBCommandContextCobra(command)
+	configStore, err := getConfigStore(command)
 	if err != nil {
 		return err
 	}
-
-	defer app.Shutdown()
 
 	// args[0] -> holds the config setting that we want to change
 	// args[1:] -> the new value of the config setting
 	configSetting := args[0]
 	newVal := args[1:]
 
-	// Update the config
-
-	// first disable the watchers
-	app.DisableConfigWatch()
-
 	// create the function to update config
-	oldConfig := app.Config()
-	newConfig := app.Config()
+	oldConfig := configStore.Get()
+	newConfig := configStore.Get()
+
 	f := updateConfigValue(configSetting, newVal, oldConfig, newConfig)
-
-	// update the config
-	app.UpdateConfig(f)
-
-	// Verify new config
-	if err := newConfig.IsValid(); err != nil {
-		return err
+	f(newConfig)
+	if _, err := configStore.Set(newConfig); err != nil {
+		return errors.Wrap(err, "failed to set config")
 	}
 
-	if err := utils.ValidateLocales(app.Config()); err != nil {
+	// UpdateConfig above would have already fixed these invalid locales, but we check again
+	// in the context of an explicit change to these parameters to avoid saving the fixed
+	// settings in the first place.
+	if changed := config.FixInvalidLocales(newConfig); changed {
 		return errors.New("Invalid locale configuration")
 	}
 
-	// make the changes persist
-	app.PersistConfig()
-
-	// reload config
-	app.ReloadConfig()
-
-	// Enable config watchers
-	app.EnableConfigWatch()
+	configStore.Save()
 
 	return nil
 }

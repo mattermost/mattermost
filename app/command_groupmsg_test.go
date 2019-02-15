@@ -42,7 +42,7 @@ func TestGroupMsgUsernames(t *testing.T) {
 }
 
 func TestGroupMsgProvider(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	user3 := th.CreateUser()

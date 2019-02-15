@@ -66,7 +66,7 @@ func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, a
 
 func TestHookMessageWillBePosted(t *testing.T) {
 	t.Run("rejected", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
@@ -106,7 +106,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 	})
 
 	t.Run("rejected, returned post ignored", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
@@ -147,7 +147,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 	})
 
 	t.Run("allowed", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
@@ -193,7 +193,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 	})
 
 	t.Run("updated", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
@@ -240,7 +240,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 	})
 
 	t.Run("multiple updated", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
@@ -305,7 +305,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 }
 
 func TestHookMessageHasBeenPosted(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	var mockAPI plugintest.API
@@ -349,7 +349,7 @@ func TestHookMessageHasBeenPosted(t *testing.T) {
 }
 
 func TestHookMessageWillBeUpdated(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
@@ -397,7 +397,7 @@ func TestHookMessageWillBeUpdated(t *testing.T) {
 }
 
 func TestHookMessageHasBeenUpdated(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	var mockAPI plugintest.API
@@ -449,7 +449,7 @@ func TestHookMessageHasBeenUpdated(t *testing.T) {
 
 func TestHookFileWillBeUploaded(t *testing.T) {
 	t.Run("rejected", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		var mockAPI plugintest.API
@@ -496,7 +496,7 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 	})
 
 	t.Run("rejected, returned file ignored", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		var mockAPI plugintest.API
@@ -545,7 +545,7 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 	})
 
 	t.Run("allowed", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		var mockAPI plugintest.API
@@ -604,7 +604,7 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 	})
 
 	t.Run("updated", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		var mockAPI plugintest.API
@@ -673,7 +673,7 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 }
 
 func TestUserWillLogIn_Blocked(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	err := th.App.UpdatePassword(th.BasicUser, "hunter2")
@@ -718,7 +718,7 @@ func TestUserWillLogIn_Blocked(t *testing.T) {
 }
 
 func TestUserWillLogInIn_Passed(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	err := th.App.UpdatePassword(th.BasicUser, "hunter2")
@@ -763,7 +763,7 @@ func TestUserWillLogInIn_Passed(t *testing.T) {
 }
 
 func TestUserHasLoggedIn(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	err := th.App.UpdatePassword(th.BasicUser, "hunter2")
@@ -817,7 +817,7 @@ func TestUserHasLoggedIn(t *testing.T) {
 }
 
 func TestUserHasBeenCreated(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
@@ -864,7 +864,7 @@ func TestUserHasBeenCreated(t *testing.T) {
 }
 
 func TestErrorString(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	t.Run("errors.New", func(t *testing.T) {
@@ -936,7 +936,7 @@ func TestErrorString(t *testing.T) {
 }
 
 func TestHookContext(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	// We don't actually have a session, we are faking it so just set something arbitrarily

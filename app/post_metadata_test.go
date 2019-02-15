@@ -29,7 +29,7 @@ import (
 func TestPreparePostListForClient(t *testing.T) {
 	// Most of this logic is covered by TestPreparePostForClient, so this just tests handling of multiple posts
 
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -63,7 +63,7 @@ func TestPreparePostListForClient(t *testing.T) {
 
 func TestPreparePostForClient(t *testing.T) {
 	setup := func() *TestHelper {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ImageProxySettings.Enable = false
@@ -417,7 +417,7 @@ func TestPreparePostForClient(t *testing.T) {
 
 func TestPreparePostForClientWithImageProxy(t *testing.T) {
 	setup := func() *TestHelper {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
@@ -500,7 +500,7 @@ func testProxyOpenGraphImage(t *testing.T, th *TestHelper, shouldProxy bool) {
 
 func TestGetImagesForPost(t *testing.T) {
 	t.Run("with an image link", func(t *testing.T) {
-		th := Setup()
+		th := Setup(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -531,7 +531,7 @@ func TestGetImagesForPost(t *testing.T) {
 	})
 
 	t.Run("with an invalid image link", func(t *testing.T) {
-		th := Setup()
+		th := Setup(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -553,7 +553,7 @@ func TestGetImagesForPost(t *testing.T) {
 	})
 
 	t.Run("for an OpenGraph image with dimensions", func(t *testing.T) {
-		th := Setup()
+		th := Setup(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -594,7 +594,7 @@ func TestGetImagesForPost(t *testing.T) {
 	})
 
 	t.Run("for an OpenGraph image without dimensions", func(t *testing.T) {
-		th := Setup()
+		th := Setup(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -647,7 +647,7 @@ func TestGetImagesForPost(t *testing.T) {
 	})
 
 	t.Run("with an OpenGraph image with a secure_url and dimensions", func(t *testing.T) {
-		th := Setup()
+		th := Setup(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -688,7 +688,7 @@ func TestGetImagesForPost(t *testing.T) {
 	})
 
 	t.Run("with an OpenGraph image with a secure_url and no dimensions", func(t *testing.T) {
-		th := Setup()
+		th := Setup(t)
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -887,7 +887,7 @@ func TestGetEmojiNamesForPost(t *testing.T) {
 }
 
 func TestGetCustomEmojisForPost(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -1244,7 +1244,7 @@ func TestGetImagesInMessageAttachments(t *testing.T) {
 
 func TestGetLinkMetadata(t *testing.T) {
 	setup := func() *TestHelper {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.1"
@@ -1798,7 +1798,7 @@ func TestResolveMetadataURL(t *testing.T) {
 }
 
 func TestParseLinkMetadata(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	imageURL := "http://example.com/test.png"
