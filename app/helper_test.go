@@ -33,7 +33,7 @@ type TestHelper struct {
 	tempWorkspace  string
 }
 
-func setupTestHelper(enterprise bool) *TestHelper {
+func setupTestHelper(enterprise bool, tb testing.TB) *TestHelper {
 	mainHelper.Store.DropAllTables()
 
 	permConfig, err := os.Open(fileutils.FindConfigFile("config.json"))
@@ -53,6 +53,7 @@ func setupTestHelper(enterprise bool) *TestHelper {
 
 	options := []Option{ConfigFile(tempConfig.Name(), false)}
 	options = append(options, StoreOverride(mainHelper.Store))
+	options = append(options, SetLogger(mlog.NewTestingLogger(tb)))
 
 	s, err := NewServer(options...)
 	if err != nil {
@@ -102,12 +103,12 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	return th
 }
 
-func SetupEnterprise() *TestHelper {
-	return setupTestHelper(true)
+func SetupEnterprise(tb testing.TB) *TestHelper {
+	return setupTestHelper(true, tb)
 }
 
-func Setup() *TestHelper {
-	return setupTestHelper(false)
+func Setup(tb testing.TB) *TestHelper {
+	return setupTestHelper(false, tb)
 }
 
 func (me *TestHelper) InitBasic() *TestHelper {

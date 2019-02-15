@@ -4,6 +4,7 @@
 package app
 
 import (
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/config"
@@ -79,6 +80,13 @@ func StartElasticsearch(s *Server) error {
 	s.startElasticsearch = true
 
 	return nil
+}
+
+func SetLogger(logger *mlog.Logger) Option {
+	return func(s *Server) error {
+		s.Log = logger
+		return nil
+	}
 }
 
 type AppOption func(a *App)
