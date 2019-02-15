@@ -15,6 +15,7 @@ func (api *API) InitBot() {
 	api.BaseRoutes.Bot.Handle("", api.ApiSessionRequired(getBot)).Methods("GET")
 	api.BaseRoutes.Bots.Handle("", api.ApiSessionRequired(getBots)).Methods("GET")
 	api.BaseRoutes.Bot.Handle("/disable", api.ApiSessionRequired(disableBot)).Methods("POST")
+	api.BaseRoutes.Bot.Handle("/enable", api.ApiSessionRequired(enableBot)).Methods("POST")
 	api.BaseRoutes.Bot.Handle("/assign/{user_id:[A-Za-z0-9]+}", api.ApiSessionRequired(assignBot)).Methods("POST")
 }
 
@@ -147,6 +148,14 @@ func getBots(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func disableBot(c *Context, w http.ResponseWriter, r *http.Request) {
+	updateBotActive(c, w, r, false)
+}
+
+func enableBot(c *Context, w http.ResponseWriter, r *http.Request) {
+	updateBotActive(c, w, r, true)
+}
+
+func updateBotActive(c *Context, w http.ResponseWriter, r *http.Request, active bool) {
 	c.RequireBotUserId()
 	if c.Err != nil {
 		return
@@ -158,7 +167,7 @@ func disableBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bot, err := c.App.UpdateBotActive(botUserId, false)
+	bot, err := c.App.UpdateBotActive(botUserId, active)
 	if err != nil {
 		c.Err = err
 		return

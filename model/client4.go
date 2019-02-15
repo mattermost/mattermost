@@ -1422,8 +1422,18 @@ func (c *Client4) GetBotsOrphaned(page, perPage int, etag string) ([]*Bot, *Resp
 }
 
 // DisableBot disables the given bot in the system.
-func (c *Client4) DisableBot(userId string) (*Bot, *Response) {
-	r, err := c.doApiPostBytes(c.GetBotRoute(userId)+"/disable", nil)
+func (c *Client4) DisableBot(botUserId string) (*Bot, *Response) {
+	r, err := c.doApiPostBytes(c.GetBotRoute(botUserId)+"/disable", nil)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return BotFromJson(r.Body), BuildResponse(r)
+}
+
+// EnableBot disables the given bot in the system.
+func (c *Client4) EnableBot(botUserId string) (*Bot, *Response) {
+	r, err := c.doApiPostBytes(c.GetBotRoute(botUserId)+"/enable", nil)
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
 	}
