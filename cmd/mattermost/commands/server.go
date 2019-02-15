@@ -43,9 +43,9 @@ func serverCmdF(command *cobra.Command, args []string) error {
 	return runServer(config, disableConfigWatch, usedPlatform, interruptChan)
 }
 
-func runServer(configFileLocation string, disableConfigWatch bool, usedPlatform bool, interruptChan chan os.Signal) error {
+func runServer(configDSN string, disableConfigWatch bool, usedPlatform bool, interruptChan chan os.Signal) error {
 	options := []app.Option{
-		app.ConfigFile(configFileLocation, !disableConfigWatch),
+		app.Config(configDSN, !disableConfigWatch),
 		app.RunJobs,
 		app.JoinCluster,
 		app.StartElasticsearch,
