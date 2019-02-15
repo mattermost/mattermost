@@ -96,7 +96,7 @@ func TestGetInfoForFile(t *testing.T) {
 		t.Fatalf("Got incorrect has preview image: %v", info.HasPreviewImage)
 	}
 
-	pngFile, err := ioutil.ReadFile("../tests/test.png")
+	pngFile, err := ioutil.ReadFile("tests/test.png")
 	if err != nil {
 		t.Fatalf("Failed to load test.png: %v", err.Error())
 	}

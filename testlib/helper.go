@@ -18,16 +18,17 @@ import (
 )
 
 type MainHelper struct {
-	Settings         *model.SqlSettings
-	Store            store.Store
-	SqlSupplier      *sqlstore.SqlSupplier
-	ClusterInterface *FakeClusterInterface
+	settings         *model.SqlSettings
+	testStore        *TestStore
+	sqlSupplier      *sqlstore.SqlSupplier
+	clusterInterface *FakeClusterInterface
 
 	status           int
-	TestResourcePath string
+	testResourcePath string
 }
 
-func NewMainHelper() *MainHelper {
+func NewMainHelper(setupDb bool) *MainHelper {
+	var mainHelper MainHelper
 	flag.Parse()
 
 	// Setup a global logger to catch tests logging outside of app context
@@ -42,28 +43,24 @@ func NewMainHelper() *MainHelper {
 
 	utils.TranslationsPreInit()
 
-	driverName := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
-	if driverName == "" {
-		driverName = model.DATABASE_DRIVER_MYSQL
+	if setupDb {
+		driverName := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
+		if driverName == "" {
+			driverName = model.DATABASE_DRIVER_MYSQL
+		}
+
+		mainHelper.settings = storetest.MakeSqlSettings(driverName)
+
+		mainHelper.clusterInterface = &FakeClusterInterface{}
+		mainHelper.sqlSupplier = sqlstore.NewSqlSupplier(*mainHelper.settings, nil)
+		mainHelper.testStore = &TestStore{
+			store.NewLayeredStore(mainHelper.sqlSupplier, nil, mainHelper.clusterInterface),
+		}
+
 	}
 
-	settings := storetest.MakeSqlSettings(driverName)
-
-	clusterInterface := &FakeClusterInterface{}
-	sqlSupplier := sqlstore.NewSqlSupplier(*settings, nil)
-	testStore := &TestStore{
-		store.NewLayeredStore(sqlSupplier, nil, clusterInterface),
-	}
-
-	testResourcePath := SetupTestResources()
-
-	return &MainHelper{
-		Settings:         settings,
-		Store:            testStore,
-		SqlSupplier:      sqlSupplier,
-		ClusterInterface: clusterInterface,
-		TestResourcePath: testResourcePath,
-	}
+	mainHelper.testResourcePath = SetupTestResources()
+	return &mainHelper
 }
 
 func (h *MainHelper) Main(m *testing.M) {
@@ -72,15 +69,15 @@ func (h *MainHelper) Main(m *testing.M) {
 		panic("Failed to get current working directory: " + err.Error())
 	}
 
-	err = os.Chdir(h.TestResourcePath)
+	err = os.Chdir(h.testResourcePath)
 	if err != nil {
-		panic(fmt.Sprintf("Failed to set current working directory to %s: %s", h.TestResourcePath, err.Error()))
+		panic(fmt.Sprintf("Failed to set current working directory to %s: %s", h.testResourcePath, err.Error()))
 	}
 
 	defer func() {
 		err := os.Chdir(prevDir)
 		if err != nil {
-			mlog.Error(fmt.Sprintf("Failed to set current working directory to %s: %s", prevDir, err.Error()))
+			panic(fmt.Sprintf("Failed to restore current working directory to %s: %s", prevDir, err.Error()))
 		}
 	}()
 
@@ -88,10 +85,44 @@ func (h *MainHelper) Main(m *testing.M) {
 }
 
 func (h *MainHelper) Close() error {
-	storetest.CleanupSqlSettings(h.Settings)
-	CleanupTestResources(h.TestResourcePath)
+	if h.settings != nil {
+		storetest.CleanupSqlSettings(h.settings)
+	}
+	os.RemoveAll(h.testResourcePath)
 
 	os.Exit(h.status)
 
 	return nil
+}
+
+func (h *MainHelper) GetSqlSettings() *model.SqlSettings {
+	if h.settings == nil {
+		panic("MainHelper not initialized with database access.")
+	}
+
+	return h.settings
+}
+
+func (h *MainHelper) GetStore() store.Store {
+	if h.testStore == nil {
+		panic("MainHelper not initialized with store.")
+	}
+
+	return h.testStore
+}
+
+func (h *MainHelper) GetSqlSupplier() *sqlstore.SqlSupplier {
+	if h.sqlSupplier == nil {
+		panic("MainHelper not initialized with sql supplier.")
+	}
+
+	return h.sqlSupplier
+}
+
+func (h *MainHelper) GetClusterInterface() *FakeClusterInterface {
+	if h.clusterInterface == nil {
+		panic("MainHelper not initialized with sql supplier.")
+	}
+
+	return h.clusterInterface
 }

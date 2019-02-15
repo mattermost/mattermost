@@ -5,12 +5,14 @@ package testlib
 
 import (
 	"fmt"
-	"github.com/mattermost/mattermost-server/utils"
-	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"io/ioutil"
 	"os"
 	"path"
 	"path/filepath"
+
+	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 )
 
 const (
@@ -23,6 +25,8 @@ const (
 	actionSymlink
 )
 
+var config model.Config
+
 type testResourceDetails struct {
 	src     string
 	dest    string
@@ -31,19 +35,19 @@ type testResourceDetails struct {
 }
 
 var testResourcesToSetup = []testResourceDetails{
-	{"config/default.json", "config/default.json", resourceTypeFile, actionCopy},
-	{"config/default.json", "config/config.json", resourceTypeFile, actionCopy},
 	{"config/timezones.json", "config/timezones.json", resourceTypeFile, actionCopy},
 	{"i18n", "i18n", resourceTypeFolder, actionSymlink},
 	{"plugins", "plugins", resourceTypeFolder, actionSymlink},
-	{"client/plugins", "client/plugins", resourceTypeFolder, actionSymlink},
+	{"client", "client", resourceTypeFolder, actionSymlink},
 	{"templates", "templates", resourceTypeFolder, actionSymlink},
 	{"tests", "tests", resourceTypeFolder, actionSymlink},
+	{"utils/policies-roles-mapping.json", "utils/policies-roles-mapping.json", resourceTypeFile, actionSymlink},
 }
 
 func init() {
 	var srcPath string
 	var found bool
+	config.SetDefaults()
 
 	// Finding resources and setting full path to source to be used for further processing
 	for i, testResource := range testResourcesToSetup {
@@ -68,10 +72,12 @@ func init() {
 }
 
 func SetupTestResources() string {
-	tempDir, err := ioutil.TempDir("", "testlibHelper")
+	tempDir, err := ioutil.TempDir("", "testlib")
 	if err != nil {
 		panic("failed to create temporary directory: " + err.Error())
 	}
+
+	setupConfig(path.Join(tempDir, "config"))
 
 	var resourceDestInTemp string
 
@@ -104,7 +110,7 @@ func SetupTestResources() string {
 
 			err = os.Symlink(testResource.src, resourceDestInTemp)
 			if err != nil {
-				panic("failed to symlink client/plugins directory to temp: " + err.Error())
+				panic(fmt.Sprintf("failed to symlink %s to %s: %s", testResource.src, resourceDestInTemp, err.Error()))
 			}
 		} else {
 			panic(fmt.Sprintf("Invalid action: %d", testResource.action))
@@ -115,8 +121,23 @@ func SetupTestResources() string {
 	return tempDir
 }
 
-func CleanupTestResources(tempPath string) {
-	if tempPath != "" {
-		os.RemoveAll(tempPath)
+func setupConfig(configDir string) {
+	var err error
+
+	err = os.Mkdir(configDir, 0700)
+	if err != nil {
+		panic(fmt.Sprintf("failed to create config directory %s: %s", configDir, err.Error()))
+	}
+
+	defaultJson := path.Join(configDir, "default.json")
+	err = ioutil.WriteFile(defaultJson, []byte(config.ToJson()), 0644)
+	if err != nil {
+		panic(fmt.Sprintf("failed to write config to %s: %s", defaultJson, err.Error()))
+	}
+
+	configJson := path.Join(configDir, "config.json")
+	err = utils.CopyFile(defaultJson, configJson)
+	if err != nil {
+		panic(fmt.Sprintf("failed to copy file %s to %s: %s", defaultJson, configJson, err.Error()))
 	}
 }

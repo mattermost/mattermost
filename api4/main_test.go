@@ -12,9 +12,10 @@ import (
 var mainHelper *testlib.MainHelper
 
 func TestMain(m *testing.M) {
-	mainHelper = testlib.NewMainHelper()
+	mainHelper = testlib.NewMainHelper(true)
 	defer mainHelper.Close()
-	UseTestStore(mainHelper.Store)
 
+	store := mainHelper.GetStore()
+	UseTestStore(store)
 	mainHelper.Main(m)
 }

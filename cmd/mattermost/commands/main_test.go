@@ -22,9 +22,11 @@ func TestMain(m *testing.M) {
 		return
 	}
 
-	mainHelper = testlib.NewMainHelper()
+	mainHelper = testlib.NewMainHelper(true)
 	defer mainHelper.Close()
-	api4.UseTestStore(mainHelper.Store)
+
+	store := mainHelper.GetStore()
+	api4.UseTestStore(store)
 
 	mainHelper.Main(m)
 }

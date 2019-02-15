@@ -13,12 +13,11 @@ import (
 var mainHelper *testlib.MainHelper
 
 func TestMain(m *testing.M) {
-	mainHelper = testlib.NewMainHelper()
+	mainHelper = testlib.NewMainHelper(false)
 	defer mainHelper.Close()
 
 	sqlstore.InitTest()
 
 	mainHelper.Main(m)
 	sqlstore.TearDownTest()
-
 }

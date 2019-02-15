@@ -80,7 +80,9 @@ func (h *testHelper) ConfigPath() string {
 
 // SetConfig replaces the configuration passed to a running command.
 func (h *testHelper) SetConfig(config *model.Config) {
-	config.SqlSettings = *mainHelper.Settings
+	sqlSettings := mainHelper.GetSqlSettings()
+
+	config.SqlSettings = *sqlSettings
 	h.config = config
 
 	if err := ioutil.WriteFile(h.configFilePath, []byte(config.ToJson()), 0600); err != nil {
