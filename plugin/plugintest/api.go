@@ -1983,6 +1983,31 @@ func (_m *API) SearchChannels(teamId string, term string) ([]*model.Channel, *mo
 	return r0, r1
 }
 
+// SearchPostsInTeam provides a mock function with given fields: teamId, paramsList
+func (_m *API) SearchPostsInTeam(teamId string, paramsList []*model.SearchParams) ([]*model.Post, *model.AppError) {
+	ret := _m.Called(teamId, paramsList)
+
+	var r0 []*model.Post
+	if rf, ok := ret.Get(0).(func(string, []*model.SearchParams) []*model.Post); ok {
+		r0 = rf(teamId, paramsList)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Post)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, []*model.SearchParams) *model.AppError); ok {
+		r1 = rf(teamId, paramsList)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // SearchTeams provides a mock function with given fields: term
 func (_m *API) SearchTeams(term string) ([]*model.Team, *model.AppError) {
 	ret := _m.Called(term)

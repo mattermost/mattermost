@@ -31,6 +31,14 @@ const (
 )
 
 func (a *App) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartImageData *multipart.Form) (*model.Emoji, *model.AppError) {
+	if !*a.Config().ServiceSettings.EnableCustomEmoji {
+		return nil, model.NewAppError("UploadEmojiImage", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	if len(*a.Config().FileSettings.DriverName) == 0 {
+		return nil, model.NewAppError("GetEmoji", "api.emoji.storage.app_error", nil, "", http.StatusNotImplemented)
+	}
+
 	// wipe the emoji id so that existing emojis can't get overwritten
 	emoji.Id = ""
 
@@ -79,6 +87,14 @@ func (a *App) GetEmojiList(page, perPage int, sort string) ([]*model.Emoji, *mod
 }
 
 func (a *App) UploadEmojiImage(id string, imageData *multipart.FileHeader) *model.AppError {
+	if !*a.Config().ServiceSettings.EnableCustomEmoji {
+		return model.NewAppError("UploadEmojiImage", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	if len(*a.Config().FileSettings.DriverName) == 0 {
+		return model.NewAppError("UploadEmojiImage", "api.emoji.storage.app_error", nil, "", http.StatusNotImplemented)
+	}
+
 	file, err := imageData.Open()
 	if err != nil {
 		return model.NewAppError("uploadEmojiImage", "api.emoji.upload.open.app_error", nil, "", http.StatusBadRequest)

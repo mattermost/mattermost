@@ -17,7 +17,7 @@ import (
 )
 
 func TestGetOAuthAccessTokenForImplicitFlow(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOAuthServiceProvider = true })
@@ -66,7 +66,7 @@ func TestGetOAuthAccessTokenForImplicitFlow(t *testing.T) {
 }
 
 func TestOAuthRevokeAccessToken(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	if err := th.App.RevokeAccessToken(model.NewRandomString(16)); err == nil {
@@ -102,7 +102,7 @@ func TestOAuthRevokeAccessToken(t *testing.T) {
 }
 
 func TestOAuthDeleteApp(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	*th.App.Config().ServiceSettings.EnableOAuthServiceProvider = true
@@ -151,7 +151,7 @@ func TestOAuthDeleteApp(t *testing.T) {
 
 func TestAuthorizeOAuthUser(t *testing.T) {
 	setup := func(enable, tokenEndpoint, userEndpoint bool, serverURL string) *TestHelper {
-		th := Setup()
+		th := Setup(t)
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.GitLabSettings.Enable = enable
