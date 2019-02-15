@@ -208,6 +208,10 @@ func patchTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	team := model.TeamPatchFromJson(r.Body)
+	if team == nil {
+		c.SetInvalidParam("team")
+		return
+	}
 
 	if team.IsPublic != nil && team.AllowOpenInvite != nil {
 		c.Err = model.NewAppError("patchTeam", "api.team.patch_team.invalid_api_usage.app_error", nil, "", http.StatusBadRequest)
@@ -218,11 +222,6 @@ func patchTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	if team.IsPublic != nil {
 		team.AllowOpenInvite = team.IsPublic
-	}
-
-	if team == nil {
-		c.SetInvalidParam("team")
-		return
 	}
 
 	if !c.App.SessionHasPermissionToTeam(c.App.Session, c.Params.TeamId, model.PERMISSION_MANAGE_TEAM) {

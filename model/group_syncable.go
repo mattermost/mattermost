@@ -37,11 +37,12 @@ type GroupSyncable struct {
 	Type     GroupSyncableType `db:"-" json:"-"`
 
 	// Values joined in from the associated team and/or channel
-	ChannelDisplayName string `db:"-" json:"-"`
-	TeamDisplayName    string `db:"-" json:"-"`
-	TeamType           string `db:"-" json:"-"`
-	ChannelType        string `db:"-" json:"-"`
-	TeamID             string `db:"-" json:"-"`
+	ChannelDisplayName string  `db:"-" json:"-"`
+	TeamDisplayName    string  `db:"-" json:"-"`
+	TeamType           *string `db:"-" json:"-"`
+	TeamIsPublic       *bool   `db:"-" json:"-"`
+	ChannelType        string  `db:"-" json:"-"`
+	TeamID             string  `db:"-" json:"-"`
 }
 
 func (syncable *GroupSyncable) IsValid() *AppError {
@@ -90,13 +91,15 @@ func (syncable *GroupSyncable) MarshalJSON() ([]byte, error) {
 	switch syncable.Type {
 	case GroupSyncableTypeTeam:
 		return json.Marshal(&struct {
-			TeamID          string `json:"team_id"`
-			TeamDisplayName string `json:"team_display_name,omitempty"`
-			TeamType        string `json:"team_type,omitempty"`
+			TeamID          string  `json:"team_id"`
+			TeamDisplayName string  `json:"team_display_name,omitempty"`
+			TeamType        *string `json:"team_type,omitempty"`
+			TeamIsPublic    *bool   `json:"is_public"`
 			*Alias
 		}{
 			TeamDisplayName: syncable.TeamDisplayName,
 			TeamType:        syncable.TeamType,
+			TeamIsPublic:    syncable.TeamIsPublic,
 			TeamID:          syncable.SyncableId,
 			Alias:           (*Alias)(syncable),
 		})
@@ -106,9 +109,10 @@ func (syncable *GroupSyncable) MarshalJSON() ([]byte, error) {
 			ChannelDisplayName string `json:"channel_display_name,omitempty"`
 			ChannelType        string `json:"channel_type,omitempty"`
 
-			TeamID          string `json:"team_id,omitempty"`
-			TeamDisplayName string `json:"team_display_name,omitempty"`
-			TeamType        string `json:"team_type,omitempty"`
+			TeamID          string  `json:"team_id,omitempty"`
+			TeamDisplayName string  `json:"team_display_name,omitempty"`
+			TeamType        *string `json:"team_type,omitempty"`
+			TeamIsPublic    *bool   `json:"is_public"`
 
 			*Alias
 		}{
@@ -119,6 +123,7 @@ func (syncable *GroupSyncable) MarshalJSON() ([]byte, error) {
 			TeamID:          syncable.TeamID,
 			TeamDisplayName: syncable.TeamDisplayName,
 			TeamType:        syncable.TeamType,
+			TeamIsPublic:    syncable.TeamIsPublic,
 
 			Alias: (*Alias)(syncable),
 		})

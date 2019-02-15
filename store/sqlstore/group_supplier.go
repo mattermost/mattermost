@@ -25,17 +25,19 @@ type groupChannel struct {
 
 type groupTeamJoin struct {
 	groupTeam
-	TeamDisplayName string `db:"TeamDisplayName"`
-	TeamType        string `db:"TeamType"`
+	TeamDisplayName string  `db:"TeamDisplayName"`
+	TeamType        *string `db:"TeamType"`
+	TeamIsPublic    *bool   `db:"TeamIsPublic"`
 }
 
 type groupChannelJoin struct {
 	groupChannel
-	ChannelDisplayName string `db:"ChannelDisplayName"`
-	TeamDisplayName    string `db:"TeamDisplayName"`
-	TeamType           string `db:"TeamType"`
-	ChannelType        string `db:"ChannelType"`
-	TeamID             string `db:"TeamId"`
+	ChannelDisplayName string  `db:"ChannelDisplayName"`
+	TeamDisplayName    string  `db:"TeamDisplayName"`
+	TeamType           *string `db:"TeamType"`
+	TeamIsPublic       *bool   `db:"TeamIsPublic"`
+	ChannelType        string  `db:"ChannelType"`
+	TeamID             string  `db:"TeamId"`
 }
 
 func initSqlSupplierGroups(sqlStore SqlStore) {
@@ -510,7 +512,8 @@ func (s *SqlSupplier) GroupGetAllGroupSyncablesByGroup(ctx context.Context, grou
 			SELECT
 				GroupTeams.*, 
 				Teams.DisplayName AS TeamDisplayName, 
-				Teams.Type AS TeamType
+				Teams.Type AS TeamType,
+				Teams.IsPublic AS TeamIsPublic
 			FROM 
 				GroupTeams
 				JOIN Teams ON Teams.Id = GroupTeams.TeamId
@@ -535,6 +538,7 @@ func (s *SqlSupplier) GroupGetAllGroupSyncablesByGroup(ctx context.Context, grou
 				Type:            syncableType,
 				TeamDisplayName: result.TeamDisplayName,
 				TeamType:        result.TeamType,
+				TeamIsPublic:    result.TeamIsPublic,
 			}
 			groupSyncables = append(groupSyncables, groupSyncable)
 		}
@@ -546,6 +550,7 @@ func (s *SqlSupplier) GroupGetAllGroupSyncablesByGroup(ctx context.Context, grou
 				Teams.DisplayName AS TeamDisplayName,
 				Channels.Type As ChannelType,
 				Teams.Type As TeamType,
+				Teams.IsPublic As TeamIsPublic,
 				Teams.Id AS TeamId
 			FROM 
 				GroupChannels 
@@ -574,6 +579,7 @@ func (s *SqlSupplier) GroupGetAllGroupSyncablesByGroup(ctx context.Context, grou
 				ChannelType:        result.ChannelType,
 				TeamDisplayName:    result.TeamDisplayName,
 				TeamType:           result.TeamType,
+				TeamIsPublic:       result.TeamIsPublic,
 				TeamID:             result.TeamID,
 			}
 			groupSyncables = append(groupSyncables, groupSyncable)

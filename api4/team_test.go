@@ -40,9 +40,12 @@ func TestCreateTeam(t *testing.T) {
 		t.Fatal("display names did not match")
 	}
 
-	if rteam.Type != team.Type {
+	if *rteam.IsPublic != *team.IsPublic {
 		t.Fatal("types did not match")
 	}
+
+	rteam.Type = nil
+	rteam.AllowOpenInvite = nil
 
 	_, resp = Client.CreateTeam(rteam)
 	CheckBadRequestStatus(t, resp)
@@ -257,6 +260,9 @@ func TestUpdateTeam(t *testing.T) {
 	team := &model.Team{DisplayName: "Name", Description: "Some description", IsPublic: model.NewBool(false), InviteId: "inviteid0", Name: "z-z-" + model.NewId() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com"}
 	team, _ = Client.CreateTeam(team)
 
+	team.Type = nil
+	team.AllowOpenInvite = nil
+
 	team.Description = "updated description"
 	uteam, resp := Client.UpdateTeam(team)
 	CheckNoError(t, resp)
@@ -351,6 +357,9 @@ func TestUpdateTeamSanitization(t *testing.T) {
 		AllowedDomains: "simulator.amazonses.com,dockerhost",
 	})
 	CheckNoError(t, resp)
+
+	team.Type = nil
+	team.AllowOpenInvite = nil
 
 	// Non-admin users cannot update the team
 
