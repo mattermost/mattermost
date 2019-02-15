@@ -7,12 +7,27 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestTimezoneConfig(t *testing.T) {
-	tz1 := New("timezones.json")
+	tz1 := New()
 	assert.NotEmpty(t, tz1.GetSupported())
+}
 
-	tz2 := New("timezones_file_does_not_exists.json")
-	assert.Equal(t, DefaultSupportedTimezones, tz2.GetSupported())
+func TestDefaultUserTimezone(t *testing.T) {
+	defaultTimezone := DefaultUserTimezone()
+	require.Equal(t, "true", defaultTimezone["useAutomaticTimezone"])
+	require.Empty(t, defaultTimezone["automaticTimezone"])
+	require.Empty(t, defaultTimezone["manualTimezone"])
+
+	defaultTimezone["useAutomaticTimezone"] = "false"
+	defaultTimezone["automaticTimezone"] = "EST"
+	defaultTimezone["manualTimezone"] = "AST"
+
+	defaultTimezone2 := DefaultUserTimezone()
+	require.Equal(t, "true", defaultTimezone2["useAutomaticTimezone"])
+	require.Empty(t, defaultTimezone2["automaticTimezone"])
+	require.Empty(t, defaultTimezone2["manualTimezone"])
+
 }
