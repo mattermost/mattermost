@@ -1457,7 +1457,10 @@ func testChannelStoreGetMembersForUserWithPagination(t *testing.T, ss store.Stor
 	cresult := <-ss.Channel().GetMembersForUserWithPagination(o1.TeamId, m1.UserId, 1, 0)
 	members := cresult.Data.(*model.ChannelMembers)
 
-	// no unread messages
+	assert.Len(t, *members, 1)
+
+	cresult = <-ss.Channel().GetMembersForUserWithPagination(o1.TeamId, m1.UserId, 1, 1)
+	members = cresult.Data.(*model.ChannelMembers)
 	assert.Len(t, *members, 1)
 }
 
