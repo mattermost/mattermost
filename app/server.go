@@ -151,8 +151,9 @@ func NewServer(options ...Option) (*Server, error) {
 		s.configStore = configStore
 	}
 
-	// Initalize logging
-	s.Log = mlog.NewLogger(utils.MloggerConfigFromLoggerConfig(&s.Config().LogSettings))
+	if s.Log == nil {
+		s.Log = mlog.NewLogger(utils.MloggerConfigFromLoggerConfig(&s.Config().LogSettings))
+	}
 
 	// Redirect default golang logger to this logger
 	mlog.RedirectStdLog(s.Log)

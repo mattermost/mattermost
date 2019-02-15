@@ -90,3 +90,21 @@ func TestPostListSortByCreateAt(t *testing.T) {
 	assert.EqualValues(t, pl.Order[1], p1.Id)
 	assert.EqualValues(t, pl.Order[2], p2.Id)
 }
+
+func TestPostListToSlice(t *testing.T) {
+	pl := PostList{}
+	p1 := &Post{Id: NewId(), Message: NewId(), CreateAt: 2}
+	pl.AddPost(p1)
+	p2 := &Post{Id: NewId(), Message: NewId(), CreateAt: 1}
+	pl.AddPost(p2)
+	p3 := &Post{Id: NewId(), Message: NewId(), CreateAt: 3}
+	pl.AddPost(p3)
+
+	pl.AddOrder(p1.Id)
+	pl.AddOrder(p2.Id)
+	pl.AddOrder(p3.Id)
+
+	want := []*Post{p1, p2, p3}
+
+	assert.Equal(t, want, pl.ToSlice())
+}
