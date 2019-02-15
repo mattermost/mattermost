@@ -189,15 +189,13 @@ func TestModifyCommand(t *testing.T)  {
 		IconURL : "original icon",
 		AutoComplete : false,
 	}
-	modifiedTitle := "modified title"
-	modifiedDescription := "modified description"
-	modifiedTrigger := "modified trigger"
+	modifiedTitle := "modifiedTitle"
+	modifiedDescription := "modifiedDescription"
+	modifiedTrigger := "modifiedtrigger"
 	modifiedURL := "http://localhost:8000/modified-command"
-	modifiedIcon := "modified icon"
-	modifiedUsername := "modified username"
-	modifiedCreator := "modified creator"
-
-	th.AddPermissionToRole(model.PERMISSION_MANAGE_SLASH_COMMANDS.Id, model.TEAM_USER_ROLE_ID)
+	modifiedIcon := "modifiedIcon"
+	modifiedUsername := "modifiedUsername"
+	modifiedCreator := "modifiedCreator"
 
 	t.Run("original command", func(t *testing.T) {
 		command, err := th.App.CreateCommand(originalCommand)
@@ -207,15 +205,14 @@ func TestModifyCommand(t *testing.T)  {
 		require.Nil(t, err)
 		assert.Equal(t, len(commands), 1)
 
-		th.CheckCommand(t, "command", "modify", command.Id, "--title","--description", modifiedDescription,
-			modifiedTitle,"--trigger-word",modifiedTrigger,"--url", modifiedURL, "--creator", modifiedCreator,
-			"--response-username", modifiedUsername, "--icon", modifiedIcon, "--autocomplete", "--post")
-
+		th.CheckCommand(t, "command", "modify", command.Id, "--title",modifiedTitle, "--description", modifiedDescription,
+			"--trigger-word",modifiedTrigger,"--url", modifiedURL, "--creator", modifiedCreator,
+			"--response-username", modifiedUsername, "--icon", modifiedIcon)
 		commands, err = th.App.ListTeamCommands(team.Id)
 		require.Nil(t, err)
 		modifiedCommand := commands[0]
 		assert.Equal(t, len(commands), 1)
-		assert.Equal(t,"modifiedtrigger", modifiedCommand.Trigger)
+		assert.Equal(t,modifiedUsername, modifiedCommand.Username)
 	})
 
 }

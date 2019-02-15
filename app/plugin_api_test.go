@@ -530,6 +530,7 @@ func TestPluginAPIGetTeamIcon(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
+
 	// Create an 128 x 128 image
 	img := image.NewRGBA(image.Rect(0, 0, 128, 128))
 	// Draw a red dot at (2, 3)

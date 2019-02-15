@@ -54,11 +54,11 @@ var CommandDeleteCmd = &cobra.Command{
 }
 
 var CommandModifyCmd = &cobra.Command{
-	Use:     "modify [commandID]", //"modify"
+	Use:     "modify [commandID]",
 	Short:   "Modify a slash command",
 	Long:    `Modify a slash command. Commands can be specified by command ID.`,
 	Example: `  command modify w16zb5tu3n1zkqo18goqry1je --title MyCommand --description "My Command Description" --trigger-word mycommand --url http://localhost:8000/my-slash-handler --creator myusername --response-username my-bot-username --icon http://localhost:8000/my-slash-handler-bot-icon.png --autocomplete --post`,
-	Args:    cobra.MinimumNArgs(1), //No min args
+	Args:    cobra.MinimumNArgs(1),
 	RunE:    modifyCommandCmdF,
 }
 
@@ -262,6 +262,7 @@ func deleteCommandCmdF(command *cobra.Command, args []string) error {
 }
 
 func modifyCommandCmdF(command *cobra.Command, args []string) error {
+	fmt.Println("MODIFY COMMAND START")
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
@@ -271,11 +272,6 @@ func modifyCommandCmdF(command *cobra.Command, args []string) error {
 	originalCommand, err := a.GetCommand(args[0])
 	if err != nil {
 		return nil
-	}
-
-	team := getTeamFromTeamArg(a, args[0])
-	if team == nil {
-		return errors.New("unable to find team '" + args[0] + "'")
 	}
 
 	title, _ := command.Flags().GetString("title")
