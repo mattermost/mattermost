@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -91,15 +92,23 @@ func setupConfigFile(t *testing.T, cfg *model.Config) (string, func()) {
 	tempDir, err := ioutil.TempDir("", "setupConfigFile")
 	require.NoError(t, err)
 
-	f, err := ioutil.TempFile(tempDir, "setupConfigFile")
+	err = os.Chdir(tempDir)
 	require.NoError(t, err)
 
-	cfgData, err := config.MarshalConfig(cfg)
-	require.NoError(t, err)
+	var name string
+	if cfg != nil {
+		f, err := ioutil.TempFile(tempDir, "setupConfigFile")
+		require.NoError(t, err)
 
-	ioutil.WriteFile(f.Name(), cfgData, 0644)
+		cfgData, err := config.MarshalConfig(cfg)
+		require.NoError(t, err)
 
-	return f.Name(), func() {
+		ioutil.WriteFile(f.Name(), cfgData, 0644)
+
+		name = f.Name()
+	}
+
+	return name, func() {
 		os.RemoveAll(tempDir)
 	}
 }
@@ -162,6 +171,9 @@ func TestFileStoreNew(t *testing.T) {
 	})
 
 	t.Run("absolute path, file does not exist", func(t *testing.T) {
+		_, tearDown := setupConfigFile(t, nil)
+		defer tearDown()
+
 		tempDir, err := ioutil.TempDir("", "TestFileStoreNew")
 		require.NoError(t, err)
 		defer os.RemoveAll(tempDir)
@@ -176,6 +188,9 @@ func TestFileStoreNew(t *testing.T) {
 	})
 
 	t.Run("absolute path, path to file does not exist", func(t *testing.T) {
+		_, tearDown := setupConfigFile(t, nil)
+		defer tearDown()
+
 		tempDir, err := ioutil.TempDir("", "TestFileStoreNew")
 		require.NoError(t, err)
 		defer os.RemoveAll(tempDir)
@@ -186,7 +201,8 @@ func TestFileStoreNew(t *testing.T) {
 	})
 
 	t.Run("relative path, file exists", func(t *testing.T) {
-		os.Clearenv()
+		_, tearDown := setupConfigFile(t, nil)
+		defer tearDown()
 
 		err := os.MkdirAll("TestFileStoreNew/a/b/c", 0700)
 		require.NoError(t, err)
@@ -208,7 +224,8 @@ func TestFileStoreNew(t *testing.T) {
 	})
 
 	t.Run("relative path, file does not exist", func(t *testing.T) {
-		os.Clearenv()
+		_, tearDown := setupConfigFile(t, nil)
+		defer tearDown()
 
 		err := os.MkdirAll("config/TestFileStoreNew/a/b/c", 0700)
 		require.NoError(t, err)
@@ -355,7 +372,7 @@ func TestFileStoreSet(t *testing.T) {
 
 		_, err = fs.Set(newCfg)
 		if assert.Error(t, err) {
-			assert.Equal(t, err, config.ErrReadOnlyConfiguration)
+			assert.Equal(t, config.ErrReadOnlyConfiguration, errors.Cause(err))
 		}
 
 		assert.Equal(t, model.SERVICE_SETTINGS_DEFAULT_SITE_URL, *fs.Get().ServiceSettings.SiteURL)
@@ -636,6 +653,207 @@ func TestFileStoreSave(t *testing.T) {
 		require.NoError(t, err)
 
 		assert.Equal(t, "http://new", *fs.Get().ServiceSettings.SiteURL)
+	})
+}
+
+func TestFileGetFile(t *testing.T) {
+	path, tearDown := setupConfigFile(t, minimalConfig)
+	defer tearDown()
+
+	fs, err := config.NewFileStore(path, true)
+	require.NoError(t, err)
+	defer fs.Close()
+
+	t.Run("get empty filename", func(t *testing.T) {
+		_, err := fs.GetFile("")
+		require.Error(t, err)
+	})
+
+	t.Run("get non-existent file", func(t *testing.T) {
+		_, err := fs.GetFile("unknown")
+		require.Error(t, err)
+	})
+
+	t.Run("get empty file", func(t *testing.T) {
+		err := os.MkdirAll("config", 0700)
+		require.NoError(t, err)
+
+		f, err := ioutil.TempFile("config", "empty-file")
+		require.NoError(t, err)
+		defer os.Remove(f.Name())
+
+		err = ioutil.WriteFile(f.Name(), nil, 0777)
+		require.NoError(t, err)
+
+		data, err := fs.GetFile(f.Name())
+		require.NoError(t, err)
+		require.Empty(t, data)
+	})
+
+	t.Run("get non-empty file", func(t *testing.T) {
+		err := os.MkdirAll("config", 0700)
+		require.NoError(t, err)
+
+		f, err := ioutil.TempFile("config", "test-file")
+		require.NoError(t, err)
+		defer os.Remove(f.Name())
+
+		err = ioutil.WriteFile(f.Name(), []byte("test"), 0777)
+		require.NoError(t, err)
+
+		data, err := fs.GetFile(f.Name())
+		require.NoError(t, err)
+		require.Equal(t, []byte("test"), data)
+	})
+}
+
+func TestFileSetFile(t *testing.T) {
+	path, tearDown := setupConfigFile(t, minimalConfig)
+	defer tearDown()
+
+	fs, err := config.NewFileStore(path, true)
+	require.NoError(t, err)
+	defer fs.Close()
+
+	t.Run("set new file", func(t *testing.T) {
+		err := fs.SetFile("new", []byte("new file"))
+		require.NoError(t, err)
+
+		data, err := fs.GetFile("new")
+		require.NoError(t, err)
+		require.Equal(t, []byte("new file"), data)
+	})
+
+	t.Run("overwrite existing file", func(t *testing.T) {
+		err := fs.SetFile("existing", []byte("existing file"))
+		require.NoError(t, err)
+
+		err = fs.SetFile("existing", []byte("overwritten file"))
+		require.NoError(t, err)
+
+		data, err := fs.GetFile("existing")
+		require.NoError(t, err)
+		require.Equal(t, []byte("overwritten file"), data)
+	})
+}
+
+func TestFileHasFile(t *testing.T) {
+
+	t.Run("has non-existent", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, minimalConfig)
+		defer tearDown()
+
+		fs, err := config.NewFileStore(path, true)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		has, err := fs.HasFile("non-existent")
+		require.NoError(t, err)
+		require.False(t, has)
+	})
+
+	t.Run("has existing", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, minimalConfig)
+		defer tearDown()
+
+		fs, err := config.NewFileStore(path, true)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		err = fs.SetFile("existing", []byte("existing file"))
+		require.NoError(t, err)
+
+		has, err := fs.HasFile("existing")
+		require.NoError(t, err)
+		require.True(t, has)
+	})
+
+	t.Run("has manually created file", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, minimalConfig)
+		defer tearDown()
+
+		fs, err := config.NewFileStore(path, true)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		err = os.MkdirAll("config", 0700)
+		require.NoError(t, err)
+
+		f, err := ioutil.TempFile("config", "test-file")
+		require.NoError(t, err)
+		defer os.Remove(f.Name())
+
+		err = ioutil.WriteFile(f.Name(), []byte("test"), 0777)
+		require.NoError(t, err)
+
+		has, err := fs.HasFile(f.Name())
+		require.NoError(t, err)
+		require.True(t, has)
+	})
+}
+
+func TestFileRemoveFile(t *testing.T) {
+	t.Run("remove non-existent", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, minimalConfig)
+		defer tearDown()
+
+		fs, err := config.NewFileStore(path, true)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		err = fs.RemoveFile("non-existent")
+		require.NoError(t, err)
+	})
+
+	t.Run("remove existing", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, minimalConfig)
+		defer tearDown()
+
+		fs, err := config.NewFileStore(path, true)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		err = fs.SetFile("existing", []byte("existing file"))
+		require.NoError(t, err)
+
+		err = fs.RemoveFile("existing")
+		require.NoError(t, err)
+
+		has, err := fs.HasFile("existing")
+		require.NoError(t, err)
+		require.False(t, has)
+
+		_, err = fs.GetFile("existing")
+		require.Error(t, err)
+	})
+
+	t.Run("remove manually created file", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, minimalConfig)
+		defer tearDown()
+
+		fs, err := config.NewFileStore(path, true)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		err = os.MkdirAll("config", 0700)
+		require.NoError(t, err)
+
+		f, err := ioutil.TempFile("config", "test-file")
+		require.NoError(t, err)
+		defer os.Remove(f.Name())
+
+		err = ioutil.WriteFile(f.Name(), []byte("test"), 0777)
+		require.NoError(t, err)
+
+		err = fs.RemoveFile(f.Name())
+		require.NoError(t, err)
+
+		has, err := fs.HasFile("existing")
+		require.NoError(t, err)
+		require.False(t, has)
+
+		_, err = fs.GetFile("existing")
+		require.Error(t, err)
 	})
 }
 

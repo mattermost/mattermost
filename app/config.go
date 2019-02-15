@@ -17,6 +17,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost-server/config"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -285,4 +287,14 @@ func (a *App) LimitedClientConfigWithComputed() map[string]string {
 	respCfg["NoAccounts"] = strconv.FormatBool(a.IsFirstUserAccount())
 
 	return respCfg
+}
+
+// GetConfigFile proxies access to the given configuration file to the underlying config store.
+func (a *App) GetConfigFile(name string) ([]byte, error) {
+	data, err := a.Srv.configStore.GetFile(name)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get config file %s", name)
+	}
+
+	return data, nil
 }

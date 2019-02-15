@@ -5,7 +5,6 @@ package api4
 
 import (
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -18,11 +17,11 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/app"
+	"github.com/mattermost/mattermost-server/config"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
-	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"github.com/mattermost/mattermost-server/web"
 	"github.com/mattermost/mattermost-server/wsapi"
 
@@ -31,9 +30,9 @@ import (
 )
 
 type TestHelper struct {
-	App            *app.App
-	Server         *app.Server
-	tempConfigPath string
+	App         *app.App
+	Server      *app.Server
+	ConfigStore config.Store
 
 	Client              *model.Client4
 	BasicUser           *model.User
@@ -64,22 +63,13 @@ func UseTestStore(store store.Store) {
 func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHelper {
 	testStore.DropAllTables()
 
-	permConfig, err := os.Open(fileutils.FindConfigFile("config.json"))
+	memoryStore, err := config.NewMemoryStore()
 	if err != nil {
-		panic(err)
-	}
-	defer permConfig.Close()
-	tempConfig, err := ioutil.TempFile("", "")
-	if err != nil {
-		panic(err)
-	}
-	_, err = io.Copy(tempConfig, permConfig)
-	tempConfig.Close()
-	if err != nil {
-		panic(err)
+		panic("failed to initialize memory store: " + err.Error())
 	}
 
-	options := []app.Option{app.Config(tempConfig.Name(), false)}
+	var options []app.Option
+	options = append(options, app.ConfigStore(memoryStore))
 	options = append(options, app.StoreOverride(testStore))
 
 	s, err := app.NewServer(options...)
@@ -88,9 +78,9 @@ func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHel
 	}
 
 	th := &TestHelper{
-		App:            s.FakeApp(),
-		Server:         s,
-		tempConfigPath: tempConfig.Name(),
+		App:         s.FakeApp(),
+		Server:      s,
+		ConfigStore: memoryStore,
 	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -180,7 +170,6 @@ func (me *TestHelper) TearDown() {
 	utils.DisableDebugLogForTest()
 
 	me.ShutdownApp()
-	os.Remove(me.tempConfigPath)
 
 	utils.EnableDebugLogForTest()
 

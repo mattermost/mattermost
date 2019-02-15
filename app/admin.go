@@ -17,6 +17,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/services/mailservice"
 	"github.com/mattermost/mattermost-server/utils"
+	"github.com/pkg/errors"
 )
 
 func (a *App) GetLogs(page, perPage int) ([]string, *model.AppError) {
@@ -162,7 +163,7 @@ func (a *App) GetEnvironmentConfig() map[string]interface{} {
 
 func (a *App) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) *model.AppError {
 	oldCfg, err := a.Srv.configStore.Set(newCfg)
-	if err == config.ErrReadOnlyConfiguration {
+	if errors.Cause(err) == config.ErrReadOnlyConfiguration {
 		return model.NewAppError("saveConfig", "ent.cluster.save_config.error", nil, err.Error(), http.StatusForbidden)
 	} else if err != nil {
 		return model.NewAppError("saveConfig", "app.save_config.app_error", nil, err.Error(), http.StatusInternalServerError)
