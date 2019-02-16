@@ -28,7 +28,7 @@ type MainHelper struct {
 }
 
 type HelperOptions struct {
-	EnableStore bool
+	EnableStore     bool
 	EnableResources bool
 }
 
@@ -111,7 +111,7 @@ func (h *MainHelper) setupStore() {
 	}
 }
 
-func (h *MainHelper) setupResources()  {
+func (h *MainHelper) setupResources() {
 	var err error
 	h.testResourcePath, err = SetupTestResources()
 	if err != nil {
