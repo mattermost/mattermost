@@ -122,6 +122,14 @@ func validateTeamImportData(data *TeamImportData) *model.AppError {
 		return model.NewAppError("BulkImport", "app.import.validate_team_import_data.display_name_length.error", nil, "", http.StatusBadRequest)
 	}
 
+	if data.IsPublic != nil && data.AllowOpenInvite != nil && *data.IsPublic != *data.AllowOpenInvite {
+		return model.NewAppError("BulkImport", "app.import.validate_team_import_data.is_public_invalid.error", nil, "", http.StatusBadRequest)
+	}
+
+	if data.Type != nil && *data.Type != "O" && *data.Type != "I" {
+		return model.NewAppError("BulkImport", "app.import.validate_team_import_data.type_invalid.error", nil, "", http.StatusBadRequest)
+	}
+
 	if data.Description != nil && len(*data.Description) > model.TEAM_DESCRIPTION_MAX_LENGTH {
 		return model.NewAppError("BulkImport", "app.import.validate_team_import_data.description_length.error", nil, "", http.StatusBadRequest)
 	}

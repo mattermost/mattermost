@@ -2715,6 +2715,10 @@
     "translation": "The bulk importer cannot change the scope of an already-existing scheme."
   },
   {
+    "id": "app.import.import_team.invalid_data.error",
+    "translation": "AllowOpenInvite field is deprecated, you should be using IsPublic only or use the same value for IsPublic and AllowOpenInvite."
+  },
+  {
     "id": "app.import.import_team.scheme_deleted.error",
     "translation": "Unable to set a team to use a deleted scheme."
   },
@@ -2973,6 +2977,10 @@
   {
     "id": "app.import.validate_team_import_data.display_name_missing.error",
     "translation": "Missing required team property: display_name."
+  },
+  {
+    "id": "app.import.validate_team_import_data.is_public_characters.error",
+    "translation": "If you use IsPublic and AllowOpenInvite they must be equal."
   },
   {
     "id": "app.import.validate_team_import_data.name_characters.error",

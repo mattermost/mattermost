@@ -280,6 +280,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 		inviteId := th.BasicTeam.InviteId
 
 		th.BasicTeam.InviteId = model.NewId()
+		th.BasicTeam.AllowOpenInvite = nil
 		_, resp := th.SystemAdminClient.UpdateTeam(th.BasicTeam)
 		CheckNoError(t, resp)
 

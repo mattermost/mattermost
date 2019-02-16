@@ -321,9 +321,6 @@ func TestImportValidateTeamImportData(t *testing.T) {
 		Name:        ptrStr("teamname"),
 		DisplayName: ptrStr("Display Name"),
 	}
-	if err := validateTeamImportData(&data); err == nil {
-		t.Fatal("Should have failed due to missing type.")
-	}
 
 	data.Type = ptrStr("A")
 	if err := validateTeamImportData(&data); err == nil {
@@ -368,6 +365,17 @@ func TestImportValidateTeamImportData(t *testing.T) {
 	data.Scheme = ptrStr("abcdefg")
 	if err := validateTeamImportData(&data); err != nil {
 		t.Fatal("Should have succeeded with valid scheme name.")
+	}
+
+	// Test passing IsPublic and AllowOpenInvite
+	data.IsPublic = ptrBool(true)
+	data.AllowOpenInvite = ptrBool(true)
+	if err := validateTeamImportData(&data); err != nil {
+		t.Fatal("Should have succeeded with IsPublic and AllowOpenInvite equal.")
+	}
+	data.AllowOpenInvite = ptrBool(false)
+	if err := validateTeamImportData(&data); err == nil {
+		t.Fatal("Should have failed with IsPublic and AllowOpenInvite different.")
 	}
 }
 

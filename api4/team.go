@@ -70,28 +70,10 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if team.IsPublic != nil && (team.AllowOpenInvite != nil || team.Type != nil) {
-		c.Err = model.NewAppError("updateTeam", "api.team.update_team.invalid_api_usage.app_error", nil, "", http.StatusBadRequest)
+	team, err := model.TeamIsPublicAllowOpenInviteBackwardCompatibilityLayer(team)
+	if err != nil {
+		c.Err = err
 		return
-	}
-
-	if team.AllowOpenInvite != nil {
-		team.IsPublic = team.AllowOpenInvite
-	}
-	if team.Type != nil && *team.Type == "I" {
-		team.InviteId = ""
-	}
-	if team.Type != nil && *team.Type == "O" {
-		if team.InviteId == "" {
-			team.InviteId = model.NewId()
-		}
-	}
-	if team.IsPublic != nil {
-		team.AllowOpenInvite = team.IsPublic
-	}
-
-	if team.IsPublic == nil {
-		team.IsPublic = model.NewBool(false)
 	}
 
 	rteam, err := c.App.CreateTeamWithUser(team, c.App.Session.UserId)
@@ -155,28 +137,14 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	team := model.TeamFromJson(r.Body)
-	if team.IsPublic != nil && (team.AllowOpenInvite != nil || team.Type != nil) {
-		c.Err = model.NewAppError("updateTeam", "api.team.update_team.invalid_api_usage.app_error", nil, "", http.StatusBadRequest)
+	if team == nil {
+		c.SetInvalidParam("team")
 		return
 	}
 
-	if team.AllowOpenInvite != nil {
-		team.IsPublic = team.AllowOpenInvite
-	}
-	if team.Type != nil && *team.Type == "I" {
-		team.InviteId = ""
-	}
-	if team.Type != nil && *team.Type == "O" {
-		if team.InviteId == "" {
-			team.InviteId = model.NewId()
-		}
-	}
-	if team.IsPublic != nil {
-		team.AllowOpenInvite = team.IsPublic
-	}
-
-	if team == nil {
-		c.SetInvalidParam("team")
+	team, err := model.TeamIsPublicAllowOpenInviteBackwardCompatibilityLayer(team)
+	if err != nil {
+		c.Err = err
 		return
 	}
 
@@ -213,7 +181,7 @@ func patchTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if team.IsPublic != nil && team.AllowOpenInvite != nil {
+	if team.IsPublic != nil && team.AllowOpenInvite != nil && *team.IsPublic != *team.AllowOpenInvite {
 		c.Err = model.NewAppError("patchTeam", "api.team.patch_team.invalid_api_usage.app_error", nil, "", http.StatusBadRequest)
 		return
 	}

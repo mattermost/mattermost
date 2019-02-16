@@ -290,3 +290,42 @@ func TeamPatchFromJson(data io.Reader) *TeamPatch {
 
 	return &team
 }
+
+func TeamIsPublicAllowOpenInviteBackwardCompatibilityLayer(team *Team) (*Team, *AppError) {
+	if team.IsPublic != nil && team.AllowOpenInvite != nil && *team.IsPublic != *team.AllowOpenInvite {
+		return nil, NewAppError("updateTeam", "api.team.update_team.invalid_api_usage.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if team.AllowOpenInvite != nil {
+		team.IsPublic = team.AllowOpenInvite
+	}
+
+	if team.IsPublic != nil {
+		team.AllowOpenInvite = team.IsPublic
+	}
+
+	if team.Type != nil {
+		if *team.Type == "I" {
+			team.InviteId = ""
+		} else if *team.Type == "O" {
+			if len(team.InviteId) == 0 {
+				team.InviteId = NewId()
+			}
+		} else {
+			return nil, NewAppError("Team.IsValid", "model.team.is_valid.type.app_error", nil, "id="+team.Id, http.StatusBadRequest)
+		}
+	}
+
+	if team.Type == nil {
+		if len(team.InviteId) == 0 {
+			team.Type = NewString("I")
+		} else {
+			team.Type = NewString("O")
+		}
+	}
+
+	if team.IsPublic == nil {
+		team.IsPublic = NewBool(false)
+	}
+	return team, nil
+}

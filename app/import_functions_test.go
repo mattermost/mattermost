@@ -378,9 +378,9 @@ func TestImportImportTeam(t *testing.T) {
 		t.Fatalf("Failed to get team from database.")
 	} else {
 		assert.Equal(t, *data.DisplayName, team.DisplayName)
-		assert.Equal(t, *data.Type, team.Type)
+		assert.Equal(t, *data.Type, *team.Type)
 		assert.Equal(t, *data.Description, team.Description)
-		assert.Equal(t, *data.IsPublic, team.IsPublic)
+		assert.Equal(t, *data.IsPublic, *team.IsPublic)
 		assert.Equal(t, scheme1.Id, *team.SchemeId)
 	}
 
@@ -404,9 +404,9 @@ func TestImportImportTeam(t *testing.T) {
 		t.Fatalf("Failed to get team from database.")
 	} else {
 		assert.Equal(t, *data.DisplayName, team.DisplayName)
-		assert.Equal(t, *data.Type, team.Type)
+		assert.Equal(t, *data.Type, *team.Type)
 		assert.Equal(t, *data.Description, team.Description)
-		assert.Equal(t, *data.IsPublic, team.IsPublic)
+		assert.Equal(t, *data.IsPublic, *team.IsPublic)
 		assert.Equal(t, scheme2.Id, *team.SchemeId)
 	}
 }
