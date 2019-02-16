@@ -19,7 +19,7 @@ import (
 
 type MainHelper struct {
 	settings         *model.SqlSettings
-	testStore        *TestStore
+	store            store.Store
 	sqlSupplier      *sqlstore.SqlSupplier
 	clusterInterface *FakeClusterInterface
 
@@ -27,7 +27,12 @@ type MainHelper struct {
 	testResourcePath string
 }
 
-func NewMainHelper(setupDb bool) *MainHelper {
+type HelperOptions struct {
+	EnableStore bool
+	EnableResources bool
+}
+
+func newMainHelper() *MainHelper {
 	var mainHelper MainHelper
 	flag.Parse()
 
@@ -43,52 +48,84 @@ func NewMainHelper(setupDb bool) *MainHelper {
 
 	utils.TranslationsPreInit()
 
-	if setupDb {
-		driverName := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
-		if driverName == "" {
-			driverName = model.DATABASE_DRIVER_MYSQL
-		}
-
-		mainHelper.settings = storetest.MakeSqlSettings(driverName)
-
-		mainHelper.clusterInterface = &FakeClusterInterface{}
-		mainHelper.sqlSupplier = sqlstore.NewSqlSupplier(*mainHelper.settings, nil)
-		mainHelper.testStore = &TestStore{
-			store.NewLayeredStore(mainHelper.sqlSupplier, nil, mainHelper.clusterInterface),
-		}
-
-	}
-
-	mainHelper.testResourcePath = SetupTestResources()
 	return &mainHelper
 }
 
-func (h *MainHelper) Main(m *testing.M) {
-	prevDir, err := os.Getwd()
-	if err != nil {
-		panic("Failed to get current working directory: " + err.Error())
-	}
+func NewMainHelper() *MainHelper {
+	mainHelper := newMainHelper()
+	mainHelper.setupStore()
+	return mainHelper
+}
 
-	err = os.Chdir(h.testResourcePath)
-	if err != nil {
-		panic(fmt.Sprintf("Failed to set current working directory to %s: %s", h.testResourcePath, err.Error()))
-	}
+func NewMainHelperWithOptions(options *HelperOptions) *MainHelper {
+	mainHelper := newMainHelper()
 
-	defer func() {
-		err := os.Chdir(prevDir)
-		if err != nil {
-			panic(fmt.Sprintf("Failed to restore current working directory to %s: %s", prevDir, err.Error()))
+	if options != nil {
+		if options.EnableStore {
+			mainHelper.setupStore()
 		}
-	}()
+
+		if options.EnableResources {
+			mainHelper.setupResources()
+		}
+	}
+
+	return mainHelper
+}
+
+func (h *MainHelper) Main(m *testing.M) {
+	if h.testResourcePath != "" {
+		prevDir, err := os.Getwd()
+		if err != nil {
+			panic("Failed to get current working directory: " + err.Error())
+		}
+
+		err = os.Chdir(h.testResourcePath)
+		if err != nil {
+			panic(fmt.Sprintf("Failed to set current working directory to %s: %s", h.testResourcePath, err.Error()))
+		}
+
+		defer func() {
+			err := os.Chdir(prevDir)
+			if err != nil {
+				panic(fmt.Sprintf("Failed to restore current working directory to %s: %s", prevDir, err.Error()))
+			}
+		}()
+	}
 
 	h.status = m.Run()
+}
+
+func (h *MainHelper) setupStore() {
+	driverName := os.Getenv("MM_SQLSETTINGS_DRIVERNAME")
+	if driverName == "" {
+		driverName = model.DATABASE_DRIVER_MYSQL
+	}
+
+	h.settings = storetest.MakeSqlSettings(driverName)
+
+	h.clusterInterface = &FakeClusterInterface{}
+	h.sqlSupplier = sqlstore.NewSqlSupplier(*h.settings, nil)
+	h.store = &TestStore{
+		store.NewLayeredStore(h.sqlSupplier, nil, h.clusterInterface),
+	}
+}
+
+func (h *MainHelper) setupResources()  {
+	var err error
+	h.testResourcePath, err = SetupTestResources()
+	if err != nil {
+		panic("failed to setup test resources: " + err.Error())
+	}
 }
 
 func (h *MainHelper) Close() error {
 	if h.settings != nil {
 		storetest.CleanupSqlSettings(h.settings)
 	}
-	os.RemoveAll(h.testResourcePath)
+	if h.testResourcePath != "" {
+		os.RemoveAll(h.testResourcePath)
+	}
 
 	os.Exit(h.status)
 
@@ -104,11 +141,11 @@ func (h *MainHelper) GetSqlSettings() *model.SqlSettings {
 }
 
 func (h *MainHelper) GetStore() store.Store {
-	if h.testStore == nil {
+	if h.store == nil {
 		panic("MainHelper not initialized with store.")
 	}
 
-	return h.testStore
+	return h.store
 }
 
 func (h *MainHelper) GetSqlSupplier() *sqlstore.SqlSupplier {

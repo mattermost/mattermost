@@ -45,8 +45,6 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
-	_ = mainHelper.GetSqlSupplier()
-
 	th.ResetRoleMigration()
 
 	th.App.DoAdvancedPermissionsMigration()
@@ -421,8 +419,6 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 func TestDoEmojisPermissionsMigration(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
-
-	_ = mainHelper.GetSqlSupplier()
 
 	// Add a license and change the policy config.
 	restrictCustomEmojiCreation := *th.App.Config().ServiceSettings.DEPRECATED_DO_NOT_USE_RestrictCustomEmojiCreation

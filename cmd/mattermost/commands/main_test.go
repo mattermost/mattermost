@@ -22,11 +22,15 @@ func TestMain(m *testing.M) {
 		return
 	}
 
-	mainHelper = testlib.NewMainHelper(true)
+	var options = testlib.HelperOptions{
+		EnableStore: true,
+		EnableResources: true,
+	}
+
+	mainHelper = testlib.NewMainHelperWithOptions(&options)
 	defer mainHelper.Close()
 
-	store := mainHelper.GetStore()
-	api4.UseTestStore(store)
+	api4.UseTestStore(mainHelper.GetStore())
 
 	mainHelper.Main(m)
 }

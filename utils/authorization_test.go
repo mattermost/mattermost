@@ -33,7 +33,7 @@ func mapping() (map[string]map[string][]RoleState, error) {
 
 	policiesRolesMapping := make(map[string]map[string][]RoleState)
 
-	raw, err := ioutil.ReadFile("utils/policies-roles-mapping.json")
+	raw, err := ioutil.ReadFile("./policies-roles-mapping.json")
 	if err != nil {
 		return policiesRolesMapping, err
 	}

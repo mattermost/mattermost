@@ -53,7 +53,7 @@ func setupTestHelper(enterprise bool, tb testing.TB) *TestHelper {
 	}
 
 	options := []Option{Config(tempConfig.Name(), false)}
-	options = append(options, StoreOverride(mainHelper.Store))
+	options = append(options, StoreOverride(store))
 	options = append(options, SetLogger(mlog.NewTestingLogger(tb)))
 
 	s, err := NewServer(options...)
@@ -433,8 +433,7 @@ func (me *TestHelper) ResetRoleMigration() {
 		panic(err)
 	}
 
-	clusterInterface := mainHelper.GetClusterInterface()
-	clusterInterface.SendClearRoleCacheMessage()
+	mainHelper.GetClusterInterface().SendClearRoleCacheMessage()
 
 	if _, err := sqlSupplier.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": ADVANCED_PERMISSIONS_MIGRATION_KEY}); err != nil {
 		panic(err)
@@ -447,8 +446,7 @@ func (me *TestHelper) ResetEmojisMigration() {
 		panic(err)
 	}
 
-	clusterInterface := mainHelper.GetClusterInterface()
-	clusterInterface.SendClearRoleCacheMessage()
+	mainHelper.GetClusterInterface().SendClearRoleCacheMessage()
 
 	if _, err := sqlSupplier.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": EMOJIS_PERMISSIONS_MIGRATION_KEY}); err != nil {
 		panic(err)

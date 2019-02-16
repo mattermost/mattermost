@@ -12,10 +12,14 @@ import (
 var mainHelper *testlib.MainHelper
 
 func TestMain(m *testing.M) {
-	mainHelper = testlib.NewMainHelper(true)
+	var options = testlib.HelperOptions{
+		EnableStore: true,
+		EnableResources: true,
+	}
+
+	mainHelper = testlib.NewMainHelperWithOptions(&options)
 	defer mainHelper.Close()
 
-	store := mainHelper.GetStore()
-	UseTestStore(store)
+	UseTestStore(mainHelper.GetStore())
 	mainHelper.Main(m)
 }

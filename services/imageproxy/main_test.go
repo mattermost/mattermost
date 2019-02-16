@@ -12,7 +12,7 @@ import (
 var mainHelper *testlib.MainHelper
 
 func TestMain(m *testing.M) {
-	mainHelper = testlib.NewMainHelper(false)
+	mainHelper = testlib.NewMainHelperWithOptions(nil)
 	defer mainHelper.Close()
 
 	mainHelper.Main(m)

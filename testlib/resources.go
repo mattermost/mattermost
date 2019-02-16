@@ -11,6 +11,8 @@ import (
 	"path/filepath"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/pkg/errors"
+
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/mattermost/mattermost-server/utils/fileutils"
 )
@@ -24,8 +26,6 @@ const (
 	actionCopy = iota
 	actionSymlink
 )
-
-var config model.Config
 
 type testResourceDetails struct {
 	src     string
@@ -44,10 +44,9 @@ var testResourcesToSetup = []testResourceDetails{
 	{"utils/policies-roles-mapping.json", "utils/policies-roles-mapping.json", resourceTypeFile, actionSymlink},
 }
 
-func init() {
+func resolveResourcesPath() {
 	var srcPath string
 	var found bool
-	config.SetDefaults()
 
 	// Finding resources and setting full path to source to be used for further processing
 	for i, testResource := range testResourcesToSetup {
@@ -71,13 +70,18 @@ func init() {
 	}
 }
 
-func SetupTestResources() string {
+func SetupTestResources() (string, error) {
+	resolveResourcesPath()
+
 	tempDir, err := ioutil.TempDir("", "testlib")
 	if err != nil {
-		panic("failed to create temporary directory: " + err.Error())
+		return "", errors.Wrap(err, "failed to create temporary directory")
 	}
 
-	setupConfig(path.Join(tempDir, "config"))
+	err = setupConfig(path.Join(tempDir, "config"))
+	if err != nil {
+		return "", errors.Wrap(err, "failed to setup config")
+	}
 
 	var resourceDestInTemp string
 
@@ -91,12 +95,12 @@ func SetupTestResources() string {
 			if testResource.resType == resourceTypeFile {
 				err = utils.CopyFile(testResource.src, resourceDestInTemp)
 				if err != nil {
-					panic(fmt.Sprintf("failed to copy file %s to %s: %s", testResource.src, resourceDestInTemp, err.Error()))
+					return "", errors.Wrapf(err, "failed to copy file %s to %s", testResource.src, resourceDestInTemp)
 				}
 			} else if testResource.resType == resourceTypeFolder {
 				err = utils.CopyDir(testResource.src, resourceDestInTemp)
 				if err != nil {
-					panic(fmt.Sprintf("failed to copy folder %s to %s: %s", testResource.src, resourceDestInTemp, err.Error()))
+					return "", errors.Wrapf(err, "failed to copy folder %s to %s", testResource.src, resourceDestInTemp)
 				}
 			}
 		} else if testResource.action == actionSymlink {
@@ -104,40 +108,45 @@ func SetupTestResources() string {
 			if destDir != "." {
 				err = os.MkdirAll(destDir, os.ModePerm)
 				if err != nil {
-					panic(fmt.Sprintf("failed to make dir %s: %s", destDir, err.Error()))
+					return "", errors.Wrapf(err, "failed to make dir %s", destDir)
 				}
 			}
 
 			err = os.Symlink(testResource.src, resourceDestInTemp)
 			if err != nil {
-				panic(fmt.Sprintf("failed to symlink %s to %s: %s", testResource.src, resourceDestInTemp, err.Error()))
+				return "", errors.Wrapf(err, "failed to symlink %s to %s", testResource.src, resourceDestInTemp)
 			}
 		} else {
-			panic(fmt.Sprintf("Invalid action: %d", testResource.action))
+			return "", errors.Wrapf(err, "Invalid action: %d", testResource.action)
 		}
 
 	}
 
-	return tempDir
+	return tempDir, nil
 }
 
-func setupConfig(configDir string) {
+func setupConfig(configDir string) error {
 	var err error
+	var config model.Config
+
+	config.SetDefaults()
 
 	err = os.Mkdir(configDir, 0700)
 	if err != nil {
-		panic(fmt.Sprintf("failed to create config directory %s: %s", configDir, err.Error()))
+		return errors.Wrapf(err, "failed to create config directory %s", configDir)
 	}
 
 	defaultJson := path.Join(configDir, "default.json")
 	err = ioutil.WriteFile(defaultJson, []byte(config.ToJson()), 0644)
 	if err != nil {
-		panic(fmt.Sprintf("failed to write config to %s: %s", defaultJson, err.Error()))
+		return errors.Wrapf(err, "failed to write config to %s", defaultJson)
 	}
 
 	configJson := path.Join(configDir, "config.json")
 	err = utils.CopyFile(defaultJson, configJson)
 	if err != nil {
-		panic(fmt.Sprintf("failed to copy file %s to %s: %s", defaultJson, configJson, err.Error()))
+		return errors.Wrapf(err, "failed to copy file %s to %s", defaultJson, configJson)
 	}
+
+	return nil
 }

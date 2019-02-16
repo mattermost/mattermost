@@ -197,11 +197,6 @@ func (fs *FileStore) String() string {
 	return "file://" + fs.path
 }
 
-// Path returns the path to the file backing the config.
-func (fs *FileStore) Path() string {
-	return fs.path
-}
-
 // Close cleans up resources associated with the store.
 func (fs *FileStore) Close() error {
 	fs.configLock.Lock()

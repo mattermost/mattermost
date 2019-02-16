@@ -399,7 +399,7 @@ test-compile:
 		$(GO) test $(GOFLAGS) -c $$package; \
 	done
 
-test-server: go-junit-report do-cover-file ## Runs tests.
+test-server: start-docker go-junit-report do-cover-file ## Runs tests.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	@echo Running all tests
 else
