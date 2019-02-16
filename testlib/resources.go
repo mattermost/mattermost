@@ -37,7 +37,6 @@ type testResourceDetails struct {
 var testResourcesToSetup = []testResourceDetails{
 	{"config/timezones.json", "config/timezones.json", resourceTypeFile, actionCopy},
 	{"i18n", "i18n", resourceTypeFolder, actionSymlink},
-	{"plugins", "plugins", resourceTypeFolder, actionSymlink},
 	{"client", "client", resourceTypeFolder, actionSymlink},
 	{"templates", "templates", resourceTypeFolder, actionSymlink},
 	{"tests", "tests", resourceTypeFolder, actionSymlink},
