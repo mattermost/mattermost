@@ -26,7 +26,7 @@ func TestTeamStore(t *testing.T, ss store.Store) {
 	t.Run("SearchByName", func(t *testing.T) { testTeamStoreSearchByName(t, ss) })
 	t.Run("SearchAll", func(t *testing.T) { testTeamStoreSearchAll(t, ss) })
 	t.Run("SearchOpen", func(t *testing.T) { testTeamStoreSearchOpen(t, ss) })
-	t.Run("GetByIniviteId", func(t *testing.T) { testTeamStoreGetByIniviteId(t, ss) })
+	t.Run("GetByInviteId", func(t *testing.T) { testTeamStoreGetByInviteId(t, ss) })
 	t.Run("ByUserId", func(t *testing.T) { testTeamStoreByUserId(t, ss) })
 	t.Run("GetAllTeamListing", func(t *testing.T) { testGetAllTeamListing(t, ss) })
 	t.Run("GetAllTeamPageListing", func(t *testing.T) { testGetAllTeamPageListing(t, ss) })
@@ -313,7 +313,7 @@ func testTeamStoreSearchOpen(t *testing.T, ss store.Store) {
 	}
 }
 
-func testTeamStoreGetByIniviteId(t *testing.T, ss store.Store) {
+func testTeamStoreGetByInviteId(t *testing.T, ss store.Store) {
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName"
 	o1.Name = "z-z-z" + model.NewId() + "b"
@@ -343,14 +343,6 @@ func testTeamStoreGetByIniviteId(t *testing.T, ss store.Store) {
 
 	o2.InviteId = ""
 	<-ss.Team().Update(&o2)
-
-	if r1 := <-ss.Team().GetByInviteId(o2.Id); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		if r1.Data.(*model.Team).Id != o2.Id {
-			t.Fatal("invalid returned team")
-		}
-	}
 
 	if err := (<-ss.Team().GetByInviteId("")).Err; err == nil {
 		t.Fatal("Missing id should have failed")
