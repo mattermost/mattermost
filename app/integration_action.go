@@ -79,14 +79,7 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId string, actionRequ
 		upstreamRequest.ChannelId = cookie.ChannelId
 		upstreamRequest.Type = cookie.Type
 		upstreamRequest.Context = cookie.Integration.Context
-
-		if cookie.Type == model.POST_ACTION_TYPE_SELECT {
-			upstreamRequest.DataSource = cookie.DataSource
-			if upstreamRequest.Context == nil {
-				upstreamRequest.Context = map[string]interface{}{}
-			}
-			upstreamRequest.Context["selected_option"] = actionRequest.SelectedOption
-		}
+		upstreamRequest.DataSource = cookie.DataSource
 
 		retain = cookie.RetainProps
 		remove = cookie.RemoveProps
@@ -112,7 +105,6 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId string, actionRequ
 		upstreamRequest.Type = action.Type
 		upstreamRequest.Context = action.Integration.Context
 		upstreamRequest.DataSource = action.DataSource
-		upstreamRequest.Context["selected_option"] = actionRequest.SelectedOption
 
 		retainPropKeys := []string{"override_username", "override_icon_url"}
 		for _, key := range retainPropKeys {
@@ -131,6 +123,13 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId string, actionRequ
 		}
 
 		upstreamURL = action.Integration.URL
+	}
+
+	if actionRequest.SelectedOption != "" {
+		if upstreamRequest.Context == nil {
+			upstreamRequest.Context = map[string]interface{}{}
+		}
+		upstreamRequest.Context["selected_option"] = actionRequest.SelectedOption
 	}
 
 	clientTriggerId, _, appErr := upstreamRequest.GenerateTriggerId(a.AsymmetricSigningKey())
