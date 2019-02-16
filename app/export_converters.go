@@ -29,6 +29,7 @@ func ImportLineFromChannel(channel *model.ChannelForExport) *LineImportData {
 			Team:        &channel.TeamName,
 			Name:        &channel.Name,
 			DisplayName: &channel.DisplayName,
+			Type:        &channel.Type,
 			Header:      &channel.Header,
 			Purpose:     &channel.Purpose,
 			Scheme:      channel.SchemeName,
