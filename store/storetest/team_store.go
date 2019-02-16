@@ -232,7 +232,7 @@ func testTeamStoreSearchOpen(t *testing.T, ss store.Store) {
 	o1.DisplayName = "ADisplayName" + model.NewId()
 	o1.Name = "zz" + model.NewId() + "a"
 	o1.Email = MakeEmail()
-	*o1.IsPublic = true
+	o1.IsPublic = model.NewBool(true)
 
 	if err := (<-ss.Team().Save(&o1)).Err; err != nil {
 		t.Fatal(err)
@@ -242,7 +242,7 @@ func testTeamStoreSearchOpen(t *testing.T, ss store.Store) {
 	o2.DisplayName = "ADisplayName" + model.NewId()
 	o2.Name = "zz" + model.NewId() + "a"
 	o2.Email = MakeEmail()
-	*o2.IsPublic = false
+	o2.IsPublic = model.NewBool(false)
 
 	if err := (<-ss.Team().Save(&o2)).Err; err != nil {
 		t.Fatal(err)
@@ -252,7 +252,7 @@ func testTeamStoreSearchOpen(t *testing.T, ss store.Store) {
 	p2.DisplayName = "BDisplayName" + model.NewId()
 	p2.Name = "b" + model.NewId() + "b"
 	p2.Email = MakeEmail()
-	*p2.IsPublic = true
+	p2.IsPublic = model.NewBool(false)
 
 	if err := (<-ss.Team().Save(&p2)).Err; err != nil {
 		t.Fatal(err)
@@ -388,7 +388,7 @@ func testGetAllTeamListing(t *testing.T, ss store.Store) {
 	o1.DisplayName = "DisplayName"
 	o1.Name = "z-z-z" + model.NewId() + "b"
 	o1.Email = MakeEmail()
-	*o1.IsPublic = true
+	o1.IsPublic = model.NewBool(true)
 	store.Must(ss.Team().Save(&o1))
 
 	o2 := model.Team{}
@@ -401,7 +401,7 @@ func testGetAllTeamListing(t *testing.T, ss store.Store) {
 	o3.DisplayName = "DisplayName"
 	o3.Name = "z-z-z" + model.NewId() + "b"
 	o3.Email = MakeEmail()
-	*o3.IsPublic = true
+	o3.IsPublic = model.NewBool(true)
 	store.Must(ss.Team().Save(&o3))
 
 	o4 := model.Team{}
@@ -432,28 +432,28 @@ func testGetAllTeamPageListing(t *testing.T, ss store.Store) {
 	o1.DisplayName = "DisplayName"
 	o1.Name = "z-z-z" + model.NewId() + "b"
 	o1.Email = MakeEmail()
-	*o1.IsPublic = true
+	o1.IsPublic = model.NewBool(true)
 	store.Must(ss.Team().Save(&o1))
 
 	o2 := model.Team{}
 	o2.DisplayName = "DisplayName"
 	o2.Name = "zz" + model.NewId() + "b"
 	o2.Email = MakeEmail()
-	*o2.IsPublic = false
+	o2.IsPublic = model.NewBool(false)
 	store.Must(ss.Team().Save(&o2))
 
 	o3 := model.Team{}
 	o3.DisplayName = "DisplayName"
 	o3.Name = "z-z-z" + model.NewId() + "b"
 	o3.Email = MakeEmail()
-	*o3.IsPublic = true
+	o3.IsPublic = model.NewBool(true)
 	store.Must(ss.Team().Save(&o3))
 
 	o4 := model.Team{}
 	o4.DisplayName = "DisplayName"
 	o4.Name = "zz" + model.NewId() + "b"
 	o4.Email = MakeEmail()
-	*o4.IsPublic = false
+	o4.IsPublic = model.NewBool(false)
 	store.Must(ss.Team().Save(&o4))
 
 	if r1 := <-ss.Team().GetAllTeamPageListing(0, 10); r1.Err != nil {
@@ -476,7 +476,7 @@ func testGetAllTeamPageListing(t *testing.T, ss store.Store) {
 	o5.DisplayName = "DisplayName"
 	o5.Name = "z-z-z" + model.NewId() + "b"
 	o5.Email = MakeEmail()
-	*o5.IsPublic = true
+	o5.IsPublic = model.NewBool(true)
 	store.Must(ss.Team().Save(&o5))
 
 	if r1 := <-ss.Team().GetAllTeamPageListing(0, 4); r1.Err != nil {
@@ -517,7 +517,7 @@ func testDelete(t *testing.T, ss store.Store) {
 	o1.DisplayName = "DisplayName"
 	o1.Name = "z-z-z" + model.NewId() + "b"
 	o1.Email = MakeEmail()
-	*o1.IsPublic = true
+	o1.IsPublic = model.NewBool(true)
 	store.Must(ss.Team().Save(&o1))
 
 	o2 := model.Team{}
@@ -536,7 +536,7 @@ func testTeamCount(t *testing.T, ss store.Store) {
 	o1.DisplayName = "DisplayName"
 	o1.Name = "z-z-z" + model.NewId() + "b"
 	o1.Email = MakeEmail()
-	*o1.IsPublic = true
+	o1.IsPublic = model.NewBool(true)
 	store.Must(ss.Team().Save(&o1))
 
 	if r1 := <-ss.Team().AnalyticsTeamCount(); r1.Err != nil {

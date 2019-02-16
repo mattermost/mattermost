@@ -103,6 +103,10 @@ func (api *PluginAPI) GetServerVersion() string {
 }
 
 func (api *PluginAPI) CreateTeam(team *model.Team) (*model.Team, *model.AppError) {
+	team, err := model.TeamIsPublicAllowOpenInviteBackwardCompatibilityLayer(team)
+	if err != nil {
+		return nil, err
+	}
 	return api.app.CreateTeam(team)
 }
 
@@ -131,6 +135,10 @@ func (api *PluginAPI) GetTeamsUnreadForUser(userId string) ([]*model.TeamUnread,
 }
 
 func (api *PluginAPI) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
+	team, err := model.TeamIsPublicAllowOpenInviteBackwardCompatibilityLayer(team)
+	if err != nil {
+		return nil, err
+	}
 	return api.app.UpdateTeam(team)
 }
 
