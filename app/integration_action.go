@@ -40,6 +40,7 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId string, actionRequ
 	// the prop values that we need to retain/clear in replacement message to match the original
 	remove := []string{"override_username", "override_icon_url"}
 	retain := map[string]interface{}{}
+	datasource := ""
 
 	upstreamURL := ""
 	rootPostId := ""
@@ -79,7 +80,7 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId string, actionRequ
 		upstreamRequest.ChannelId = cookie.ChannelId
 		upstreamRequest.Type = cookie.Type
 		upstreamRequest.Context = cookie.Integration.Context
-		upstreamRequest.DataSource = cookie.DataSource
+		datasource = cookie.DataSource
 
 		retain = cookie.RetainProps
 		remove = cookie.RemoveProps
@@ -104,7 +105,7 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId string, actionRequ
 		upstreamRequest.TeamId = channel.TeamId
 		upstreamRequest.Type = action.Type
 		upstreamRequest.Context = action.Integration.Context
-		upstreamRequest.DataSource = action.DataSource
+		datasource = action.DataSource
 
 		retainPropKeys := []string{"override_username", "override_icon_url"}
 		for _, key := range retainPropKeys {
@@ -125,11 +126,14 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId string, actionRequ
 		upstreamURL = action.Integration.URL
 	}
 
-	if actionRequest.SelectedOption != "" {
-		if upstreamRequest.Context == nil {
-			upstreamRequest.Context = map[string]interface{}{}
+	if upstreamRequest.Type == model.POST_ACTION_TYPE_SELECT {
+		if actionRequest.SelectedOption != "" {
+			if upstreamRequest.Context == nil {
+				upstreamRequest.Context = map[string]interface{}{}
+			}
+			upstreamRequest.DataSource = datasource
+			upstreamRequest.Context["selected_option"] = actionRequest.SelectedOption
 		}
-		upstreamRequest.Context["selected_option"] = actionRequest.SelectedOption
 	}
 
 	clientTriggerId, _, appErr := upstreamRequest.GenerateTriggerId(a.AsymmetricSigningKey())
