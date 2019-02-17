@@ -37,9 +37,9 @@ type testResourceDetails struct {
 var testResourcesToSetup = []testResourceDetails{
 	{"config/timezones.json", "config/timezones.json", resourceTypeFile, actionCopy},
 	{"i18n", "i18n", resourceTypeFolder, actionSymlink},
-	{"client", "client", resourceTypeFolder, actionSymlink},
 	{"templates", "templates", resourceTypeFolder, actionSymlink},
 	{"tests", "tests", resourceTypeFolder, actionSymlink},
+	{"fonts", "fonts", resourceTypeFolder, actionSymlink},
 	{"utils/policies-roles-mapping.json", "utils/policies-roles-mapping.json", resourceTypeFile, actionSymlink},
 }
 
@@ -77,6 +77,25 @@ func SetupTestResources() (string, error) {
 		return "", errors.Wrap(err, "failed to create temporary directory")
 	}
 
+	pluginsDir := path.Join(tempDir, "plugins")
+	err = os.Mkdir(pluginsDir, 0700)
+	if err != nil {
+		return "", errors.Wrapf(err, "failed to create plugins directory %s", pluginsDir)
+	}
+
+	// Symlinking cwd(package path) to temp for tests which need to run from that path.
+	// compileGo is mostly only function which needs this to be able to find packages while compiling code
+	pkgDir := path.Join(tempDir, "pkg")
+	cwd, err := os.Getwd()
+	if err != nil {
+		return "", errors.Wrapf(err, "Failed to get current working directory")
+	}
+
+	err = os.Symlink(cwd, pkgDir)
+	if err != nil {
+		return "", errors.Wrapf(err, "failed to symlink %s to %s", cwd, pkgDir)
+	}
+
 	err = setupConfig(path.Join(tempDir, "config"))
 	if err != nil {
 		return "", errors.Wrap(err, "failed to setup config")
@@ -86,7 +105,6 @@ func SetupTestResources() (string, error) {
 
 	// Setting up test resources in temp.
 	// Action in each resource tells whether it needs to be copied or just symlinked
-
 	for _, testResource := range testResourcesToSetup {
 		resourceDestInTemp = filepath.Join(tempDir, testResource.dest)
 

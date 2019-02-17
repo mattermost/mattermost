@@ -24,7 +24,8 @@ import (
 )
 
 func compileGo(t *testing.T, sourceCode, outputPath string) {
-	dir, err := ioutil.TempDir(".", "")
+	// Using ./pkg which is symlink to this package path
+	dir, err := ioutil.TempDir("./pkg", "")
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 	require.NoError(t, ioutil.WriteFile(filepath.Join(dir, "main.go"), []byte(sourceCode), 0600))
