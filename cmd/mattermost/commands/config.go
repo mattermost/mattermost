@@ -11,13 +11,12 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/pkg/errors"
-	"github.com/spf13/cobra"
-
 	"github.com/mattermost/mattermost-server/config"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/mattermost/mattermost-server/utils/fileutils"
+	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
 )
 
 var ConfigCmd = &cobra.Command{
@@ -68,6 +67,14 @@ var ConfigSetCmd = &cobra.Command{
 	RunE:    configSetCmdF,
 }
 
+var ConfigResetCmd = &cobra.Command{
+	Use:     "reset",
+	Short:   "Reset config setting",
+	Long:    "Resets the value of a config setting by its name in dot notation or a setting section. Accepts multiple values for array settings.",
+	Example: "config reset SqlSettings.DriverName LogSettings",
+	RunE:    configResetCmdF,
+}
+
 func init() {
 	ConfigSubpathCmd.Flags().String("path", "", "Optional subpath; defaults to value in SiteURL")
 
@@ -77,6 +84,7 @@ func init() {
 		ConfigGetCmd,
 		ConfigShowCmd,
 		ConfigSetCmd,
+		ConfigResetCmd,
 	)
 	RootCmd.AddCommand(ConfigCmd)
 }
@@ -197,6 +205,7 @@ func printConfigValues(configMap map[string]interface{}, configSetting []string,
 	value := reflect.ValueOf(res)
 	switch value.Kind() {
 	case reflect.Map:
+		fmt.Println("asd")
 		if len(configSetting) == 1 {
 			return printMap(value, 0), nil
 		}
@@ -341,6 +350,112 @@ func UpdateMap(configMap map[string]interface{}, configSettings []string, newVal
 	default:
 		return errors.New("type not supported yet")
 	}
+}
+
+func configResetCmdF(command *cobra.Command, args []string) error {
+	app, err := InitDBCommandContextCobra(command)
+	if err != nil {
+		return err
+	}
+
+	defer app.Shutdown()
+
+	oldConfig := app.Config()
+	newConfig := app.Config()
+	defaultConfig := &model.Config{}
+	defaultConfig.SetDefaults()
+
+	if len(args) == 0 {
+		var confirmResetAll string
+		CommandPrettyPrintln("Are you sure you want to reset all the configuration settings?(YES/NO): ")
+		fmt.Scanln(&confirmResetAll)
+		if confirmResetAll == "YES" {
+			oldConfigMap := configToMap(*oldConfig)
+			for key := range oldConfigMap {
+				f := resetConfigValue(key, defaultConfig, oldConfig, newConfig)
+				app.UpdateConfig(f)
+				if err := newConfig.IsValid(); err != nil {
+					return err
+				}
+				if changed := config.FixInvalidLocales(newConfig); changed {
+					return errors.New("Invalid locale configuration")
+				}
+			}
+		}
+	}
+
+	for _, arg := range args {
+		fmt.Println(arg)
+		f := resetConfigValue(arg, defaultConfig, oldConfig, newConfig)
+		app.UpdateConfig(f)
+		if err := newConfig.IsValid(); err != nil {
+			return err
+		}
+		if changed := config.FixInvalidLocales(newConfig); changed {
+			return errors.New("Invalid locale configuration")
+		}
+	}
+
+	app.PersistConfig()
+	return nil
+}
+
+func resetConfigValue(configSetting string, defaultConfig, oldConfig, newConfig *model.Config) func(*model.Config) {
+	return func(update *model.Config) {
+		oldConfigMap := configToMap(*oldConfig)
+		defaultConfigMap := configToMap(*defaultConfig)
+
+		err := resetMap(oldConfigMap, defaultConfigMap, strings.Split(configSetting, "."))
+		if err != nil {
+			fmt.Printf("%s\n", err)
+			os.Exit(1)
+		}
+
+		bs, err := json.Marshal(oldConfigMap)
+		if err != nil {
+			fmt.Printf("Error while marshalling map to json %s\n", err)
+			os.Exit(1)
+		}
+
+		err = json.Unmarshal(bs, newConfig)
+		if err != nil {
+			fmt.Printf("Error while unmarshalling json to struct %s\n", err)
+			os.Exit(1)
+		}
+
+		*update = *newConfig
+
+	}
+}
+
+func resetMap(oldConfigMap, defaultConfigMap map[string]interface{}, configSettings []string) error {
+	resOld, ok := oldConfigMap[configSettings[0]]
+	if !ok {
+		return fmt.Errorf("Unable to find a setting with that name %s", configSettings[0])
+	}
+	resDef := defaultConfigMap[configSettings[0]]
+	valueOld := reflect.ValueOf(resOld)
+
+	if valueOld.Kind() == reflect.Map {
+		if len(configSettings) == 1 {
+			return resetSection(resOld.(map[string]interface{}), resDef.(map[string]interface{}))
+		}
+		return resetMap(resOld.(map[string]interface{}), resDef.(map[string]interface{}), configSettings[1:])
+	} else {
+		if len(configSettings) == 1 {
+			oldConfigMap[configSettings[0]] = defaultConfigMap[configSettings[0]]
+			return nil
+		}
+		return fmt.Errorf("Unable to find a setting with that name %s", configSettings[0])
+	}
+}
+
+func resetSection(oldConfigMap, defaultConfigMap map[string]interface{}) error {
+	valueOld := reflect.ValueOf(oldConfigMap)
+	for _, key := range valueOld.MapKeys() {
+		oldConfigMap[key.String()] = defaultConfigMap[key.String()]
+	}
+	return nil
 }
 
 // configToMap converts our config into a map
