@@ -478,6 +478,18 @@ func TestUploadFiles(t *testing.T) {
 			expectedImageHasPreview:     []bool{true},
 			expectedCreatorId:           th.BasicUser.Id,
 		},
+		// TIFF preview test
+		{
+			title:                       "Happy image thumbnail/preview 9",
+			names:                       []string{"test.tiff"},
+			expectedImageThumbnailNames: []string{"test_expected_thumb.tiff"},
+			expectedImagePreviewNames:   []string{"test_expected_preview.tiff"},
+			expectImage:                 true,
+			expectedImageWidths:         []int{701},
+			expectedImageHeights:        []int{701},
+			expectedImageHasPreview:     []bool{true},
+			expectedCreatorId:           th.BasicUser.Id,
+		},
 		{
 			title:             "Happy admin",
 			client:            th.SystemAdminClient,
