@@ -34,7 +34,7 @@ type HelperOptions struct {
 
 func NewMainHelper() *MainHelper {
 	return NewMainHelperWithOptions(&HelperOptions{
-		EnableStore: true,
+		EnableStore:     true,
 		EnableResources: true,
 	})
 }
