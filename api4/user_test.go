@@ -1300,6 +1300,21 @@ func TestDeleteUser(t *testing.T) {
 
 	_, resp = th.Client.DeleteUser(testUser.Id)
 	CheckNoError(t, resp)
+
+	selfDeleteUser := th.CreateUser()
+	th.Client.Login(selfDeleteUser.Email, selfDeleteUser.Password)
+
+	th.App.UpdateConfig(func(c *model.Config){
+		*c.TeamSettings.EnableUserDeactivation = false
+	})
+	_, resp = th.Client.DeleteUser(selfDeleteUser.Id)
+	CheckUnauthorizedStatus(t, resp)
+
+	th.App.UpdateConfig(func(c *model.Config){
+		*c.TeamSettings.EnableUserDeactivation = true
+	})
+	_, resp = th.Client.DeleteUser(selfDeleteUser.Id)
+	CheckNoError(t, resp)
 }
 
 func TestUpdateUserRoles(t *testing.T) {
