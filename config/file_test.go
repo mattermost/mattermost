@@ -210,9 +210,9 @@ func TestFileStoreNew(t *testing.T) {
 	t.Run("relative path, file does not exist", func(t *testing.T) {
 		os.Clearenv()
 
-		err := os.MkdirAll("TestFileStoreNew/a/b/c", 0700)
+		err := os.MkdirAll("config/TestFileStoreNew/a/b/c", 0700)
 		require.NoError(t, err)
-		defer os.RemoveAll("TestFileStoreNew")
+		defer os.RemoveAll("config/TestFileStoreNew")
 
 		path := "TestFileStoreNew/a/b/c/config.json"
 		fs, err := config.NewFileStore(path, false)
@@ -220,7 +220,7 @@ func TestFileStoreNew(t *testing.T) {
 		defer fs.Close()
 
 		assert.Equal(t, model.SERVICE_SETTINGS_DEFAULT_SITE_URL, *fs.Get().ServiceSettings.SiteURL)
-		assertFileNotEqualsConfig(t, testConfig, path)
+		assertFileNotEqualsConfig(t, testConfig, filepath.Join("config", path))
 	})
 }
 
