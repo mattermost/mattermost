@@ -683,7 +683,7 @@ func testTeamMembersWithPagination(t *testing.T, ss store.Store) {
 	store.Must(ss.Team().SaveMember(m2, -1))
 	store.Must(ss.Team().SaveMember(m3, -1))
 
-	r1 = <-ss.Team().GetTeamsForUserWithPagination(m1.UserId, 1, 0)
+	r1 = <-ss.Team().GetTeamsForUserWithPagination(m1.UserId, 0, 1)
 	require.Nil(t, r1.Err)
 	ms := r1.Data.([]*model.TeamMember)
 
@@ -711,7 +711,7 @@ func testTeamMembersWithPagination(t *testing.T, ss store.Store) {
 	store.Must(ss.Team().SaveMember(m4, -1))
 	store.Must(ss.Team().SaveMember(m5, -1))
 
-	r1 = <-ss.Team().GetTeamsForUserWithPagination(uid, 1, 0)
+	r1 = <-ss.Team().GetTeamsForUserWithPagination(uid, 0, 1)
 	require.Nil(t, r1.Err)
 	ms = r1.Data.([]*model.TeamMember)
 	require.Len(t, ms, 1)
@@ -719,7 +719,7 @@ func testTeamMembersWithPagination(t *testing.T, ss store.Store) {
 	r1 = <-ss.Team().RemoveAllMembersByUser(uid)
 	require.Nil(t, r1.Err)
 
-	r1 = <-ss.Team().GetTeamsForUserWithPagination(uid, 1, 0)
+	r1 = <-ss.Team().GetTeamsForUserWithPagination(uid, 1, 1)
 	require.Nil(t, r1.Err)
 	ms = r1.Data.([]*model.TeamMember)
 	require.Len(t, ms, 0)
