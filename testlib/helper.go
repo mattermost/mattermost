@@ -32,7 +32,14 @@ type HelperOptions struct {
 	EnableResources bool
 }
 
-func newMainHelper() *MainHelper {
+func NewMainHelper() *MainHelper {
+	return NewMainHelperWithOptions(&HelperOptions{
+		EnableStore: true,
+		EnableResources: true,
+	})
+}
+
+func NewMainHelperWithOptions(options *HelperOptions) *MainHelper {
 	var mainHelper MainHelper
 	flag.Parse()
 
@@ -48,18 +55,6 @@ func newMainHelper() *MainHelper {
 
 	utils.TranslationsPreInit()
 
-	return &mainHelper
-}
-
-func NewMainHelper() *MainHelper {
-	mainHelper := newMainHelper()
-	mainHelper.setupStore()
-	return mainHelper
-}
-
-func NewMainHelperWithOptions(options *HelperOptions) *MainHelper {
-	mainHelper := newMainHelper()
-
 	if options != nil {
 		if options.EnableStore {
 			mainHelper.setupStore()
@@ -70,7 +65,7 @@ func NewMainHelperWithOptions(options *HelperOptions) *MainHelper {
 		}
 	}
 
-	return mainHelper
+	return &mainHelper
 }
 
 func (h *MainHelper) Main(m *testing.M) {

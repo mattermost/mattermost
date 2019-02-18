@@ -34,18 +34,18 @@ type testResourceDetails struct {
 	action  int8
 }
 
-var testResourcesToSetup = []testResourceDetails{
-	{"config/timezones.json", "config/timezones.json", resourceTypeFile, actionCopy},
-	{"i18n", "i18n", resourceTypeFolder, actionSymlink},
-	{"templates", "templates", resourceTypeFolder, actionSymlink},
-	{"tests", "tests", resourceTypeFolder, actionSymlink},
-	{"fonts", "fonts", resourceTypeFolder, actionSymlink},
-	{"utils/policies-roles-mapping.json", "utils/policies-roles-mapping.json", resourceTypeFile, actionSymlink},
-}
-
-func resolveResourcesPath() {
+func getTestResourcesToSetup() []testResourceDetails {
 	var srcPath string
 	var found bool
+
+	var testResourcesToSetup = []testResourceDetails{
+		{"config/timezones.json", "config/timezones.json", resourceTypeFile, actionCopy},
+		{"i18n", "i18n", resourceTypeFolder, actionSymlink},
+		{"templates", "templates", resourceTypeFolder, actionSymlink},
+		{"tests", "tests", resourceTypeFolder, actionSymlink},
+		{"fonts", "fonts", resourceTypeFolder, actionSymlink},
+		{"utils/policies-roles-mapping.json", "utils/policies-roles-mapping.json", resourceTypeFile, actionSymlink},
+	}
 
 	// Finding resources and setting full path to source to be used for further processing
 	for i, testResource := range testResourcesToSetup {
@@ -67,10 +67,12 @@ func resolveResourcesPath() {
 			panic(fmt.Sprintf("Invalid resource type: %d", testResource.resType))
 		}
 	}
+
+	return testResourcesToSetup
 }
 
 func SetupTestResources() (string, error) {
-	resolveResourcesPath()
+	testResourcesToSetup := getTestResourcesToSetup()
 
 	tempDir, err := ioutil.TempDir("", "testlib")
 	if err != nil {
@@ -81,19 +83,6 @@ func SetupTestResources() (string, error) {
 	err = os.Mkdir(pluginsDir, 0700)
 	if err != nil {
 		return "", errors.Wrapf(err, "failed to create plugins directory %s", pluginsDir)
-	}
-
-	// Symlinking cwd(package path) to temp for tests which need to run from that path.
-	// compileGo is mostly only function which needs this to be able to find packages while compiling code
-	pkgDir := path.Join(tempDir, "pkg")
-	cwd, err := os.Getwd()
-	if err != nil {
-		return "", errors.Wrapf(err, "Failed to get current working directory")
-	}
-
-	err = os.Symlink(cwd, pkgDir)
-	if err != nil {
-		return "", errors.Wrapf(err, "failed to symlink %s to %s", cwd, pkgDir)
 	}
 
 	err = setupConfig(path.Join(tempDir, "config"))

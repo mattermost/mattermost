@@ -24,8 +24,7 @@ import (
 )
 
 func compileGo(t *testing.T, sourceCode, outputPath string) {
-	// Using ./pkg which is symlink to this package path
-	dir, err := ioutil.TempDir("./pkg", "")
+	dir, err := ioutil.TempDir(".", "")
 	require.NoError(t, err)
 	defer os.RemoveAll(dir)
 	require.NoError(t, ioutil.WriteFile(filepath.Join(dir, "main.go"), []byte(sourceCode), 0600))
@@ -875,7 +874,7 @@ func TestErrorString(t *testing.T) {
 			package main
 
 			import (
-				"github.com/pkg/errors"
+				"errors"
 
 				"github.com/mattermost/mattermost-server/plugin"
 			)
