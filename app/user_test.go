@@ -286,6 +286,52 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 	})
 }
 
+func TestUpdateUserEmail(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	user := th.CreateUser()
+
+	t.Run("RequireVerification", func(t *testing.T){
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.EmailSettings.RequireEmailVerification = true
+		})
+
+		currentEmail := user.Email
+		newEmail := th.MakeEmail()
+
+		user.Email = newEmail
+		user, err := th.App.UpdateUser(user, false)
+		assert.Nil(t, err)
+		assert.Equal(t, currentEmail, user.Email)
+		assert.True(t, user.EmailVerified)
+
+		token, err := th.App.CreateVerifyEmailToken(user.Id, newEmail)
+		assert.Nil(t, err)
+
+		err = th.App.VerifyEmailFromToken(token.Token)
+		assert.Nil(t, err)
+
+		user, err = th.App.GetUser(user.Id)
+		assert.Nil(t, err)
+		assert.Equal(t, newEmail, user.Email)
+		assert.True(t, user.EmailVerified)
+	})
+
+	t.Run("NoVerification", func(t *testing.T){
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.EmailSettings.RequireEmailVerification = false
+		})
+
+		newEmail := th.MakeEmail()
+
+		user.Email = newEmail
+		user, err := th.App.UpdateUser(user, false)
+		assert.Nil(t, err)
+		assert.Equal(t, newEmail, user.Email)
+	})
+}
+
 func getUserFromDB(a *App, id string, t *testing.T) *model.User {
 	user, err := a.GetUser(id)
 	if err != nil {
