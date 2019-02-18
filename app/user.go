@@ -1010,10 +1010,16 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 	}
 
 	// Don't set new eMail on user account if email verification is required, this will be done as a post-verification action
-	// to avoid users being able to set non-controlled eMails as their acount email
+	// to avoid users being able to set non-controlled eMails as their account email
 	newEmail := ""
 	if *a.Config().EmailSettings.RequireEmailVerification && prev.Email != user.Email {
 		newEmail = user.Email
+
+		_, err := a.GetUserByEmail(newEmail)
+		if err == nil {
+			return nil, model.NewAppError("UpdateUser", "store.sql_user.update.email_taken.app_error", nil, "user_id="+user.Id, http.StatusBadRequest)
+		}
+
 		user.Email = prev.Email
 	}
 

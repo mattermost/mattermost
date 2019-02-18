@@ -318,6 +318,20 @@ func TestUpdateUserEmail(t *testing.T) {
 		assert.True(t, user2.EmailVerified)
 	})
 
+	t.Run("RequireVerificationAlreadyUsedEmail", func(t *testing.T){
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.EmailSettings.RequireEmailVerification = true
+		})
+
+		user2 := th.CreateUser()
+		newEmail := user2.Email
+
+		user.Email = newEmail
+		user3, err := th.App.UpdateUser(user, false)
+		assert.NotNil(t, err)
+		assert.Nil(t, user3)
+	})
+
 	t.Run("NoVerification", func(t *testing.T){
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.EmailSettings.RequireEmailVerification = false
