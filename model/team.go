@@ -264,10 +264,19 @@ func (t *Team) Patch(patch *TeamPatch) {
 
 	if patch.InviteId != nil {
 		t.InviteId = *patch.InviteId
+		if len(*patch.InviteId) == 0 {
+			t.Type = NewString("I")
+		} else {
+			t.Type = NewString("O")
+		}
 	}
 
 	if patch.IsPublic != nil {
 		t.IsPublic = patch.IsPublic
+	}
+
+	if patch.AllowOpenInvite != nil {
+		t.AllowOpenInvite = patch.AllowOpenInvite
 	}
 }
 
@@ -296,11 +305,12 @@ func TeamIsPublicAllowOpenInviteBackwardCompatibilityLayer(team *Team) (*Team, *
 		return nil, NewAppError("updateTeam", "api.team.update_team.invalid_api_usage.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if team.AllowOpenInvite != nil {
+	if team.IsPublic == nil && team.AllowOpenInvite == nil {
+		team.IsPublic = NewBool(false)
+		team.AllowOpenInvite = NewBool(false)
+	} else if team.AllowOpenInvite != nil {
 		team.IsPublic = team.AllowOpenInvite
-	}
-
-	if team.IsPublic != nil {
+	} else {
 		team.AllowOpenInvite = team.IsPublic
 	}
 
@@ -314,9 +324,7 @@ func TeamIsPublicAllowOpenInviteBackwardCompatibilityLayer(team *Team) (*Team, *
 		} else {
 			return nil, NewAppError("Team.IsValid", "model.team.is_valid.type.app_error", nil, "id="+team.Id, http.StatusBadRequest)
 		}
-	}
-
-	if team.Type == nil {
+	} else {
 		if len(team.InviteId) == 0 {
 			team.Type = NewString("I")
 		} else {
@@ -324,8 +332,5 @@ func TeamIsPublicAllowOpenInviteBackwardCompatibilityLayer(team *Team) (*Team, *
 		}
 	}
 
-	if team.IsPublic == nil {
-		team.IsPublic = NewBool(false)
-	}
 	return team, nil
 }

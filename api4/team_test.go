@@ -89,6 +89,161 @@ func TestCreateTeam(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 }
 
+func TestCreateTeamBackwardCompatibility(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+
+	tests := []struct {
+		Name                    string
+		Team                    model.Team
+		ExpectedFail            bool
+		ExpectedIsPublic        bool
+		ExpectedAllowOpenInvite bool
+		ExpectedType            string
+		ExpectedHasInviteId     bool
+	}{
+		{
+			Name:                    "Default values",
+			Team:                    model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team"},
+			ExpectedFail:            false,
+			ExpectedIsPublic:        false,
+			ExpectedAllowOpenInvite: false,
+			ExpectedType:            "I",
+			ExpectedHasInviteId:     false,
+		},
+		{
+			Name:                    "Using old api to set the allow open invite to true",
+			Team:                    model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team", AllowOpenInvite: model.NewBool(true)},
+			ExpectedFail:            false,
+			ExpectedIsPublic:        true,
+			ExpectedAllowOpenInvite: true,
+			ExpectedType:            "I",
+			ExpectedHasInviteId:     false,
+		},
+		{
+			Name:                    "Using old api to set the allow open invite to false",
+			Team:                    model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team", AllowOpenInvite: model.NewBool(false)},
+			ExpectedFail:            false,
+			ExpectedIsPublic:        false,
+			ExpectedAllowOpenInvite: false,
+			ExpectedType:            "I",
+			ExpectedHasInviteId:     false,
+		},
+		{
+			Name:                    "Using old api to set Type to I with InviteId",
+			Team:                    model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team", Type: model.NewString("I"), InviteId: "1234"},
+			ExpectedFail:            false,
+			ExpectedIsPublic:        false,
+			ExpectedAllowOpenInvite: false,
+			ExpectedType:            "I",
+			ExpectedHasInviteId:     false,
+		},
+		{
+			Name:                    "Using old api to set Type to I without InviteId",
+			Team:                    model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team", Type: model.NewString("I")},
+			ExpectedFail:            false,
+			ExpectedIsPublic:        false,
+			ExpectedAllowOpenInvite: false,
+			ExpectedType:            "I",
+			ExpectedHasInviteId:     false,
+		},
+		{
+			Name:                    "Using old api to set Type to O with InviteId",
+			Team:                    model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team", Type: model.NewString("O"), InviteId: "1234"},
+			ExpectedFail:            false,
+			ExpectedIsPublic:        false,
+			ExpectedAllowOpenInvite: false,
+			ExpectedType:            "O",
+			ExpectedHasInviteId:     true,
+		},
+		{
+			Name:                    "Using old api to set Type to O without InviteId",
+			Team:                    model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team", Type: model.NewString("O")},
+			ExpectedFail:            false,
+			ExpectedIsPublic:        false,
+			ExpectedAllowOpenInvite: false,
+			ExpectedType:            "O",
+			ExpectedHasInviteId:     true,
+		},
+		{
+			Name:                    "Using new api to set IsPublic to true",
+			Team:                    model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team", IsPublic: model.NewBool(true)},
+			ExpectedFail:            false,
+			ExpectedIsPublic:        true,
+			ExpectedAllowOpenInvite: true,
+			ExpectedType:            "I",
+			ExpectedHasInviteId:     false,
+		},
+		{
+			Name:                    "Using new api to set IsPublic to false",
+			Team:                    model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team", IsPublic: model.NewBool(false)},
+			ExpectedFail:            false,
+			ExpectedIsPublic:        false,
+			ExpectedAllowOpenInvite: false,
+			ExpectedType:            "I",
+			ExpectedHasInviteId:     false,
+		},
+		{
+			Name:                    "Using new api to enable the InviteId",
+			Team:                    model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team", InviteId: model.NewId()},
+			ExpectedFail:            false,
+			ExpectedIsPublic:        false,
+			ExpectedAllowOpenInvite: false,
+			ExpectedType:            "O",
+			ExpectedHasInviteId:     true,
+		},
+		{
+			Name:                    "Using new api to disable the InviteId",
+			Team:                    model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team", InviteId: ""},
+			ExpectedFail:            false,
+			ExpectedIsPublic:        false,
+			ExpectedAllowOpenInvite: false,
+			ExpectedType:            "I",
+			ExpectedHasInviteId:     false,
+		},
+		{
+			Name:                    "Mix old and new API without conflicts",
+			Team:                    model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team", IsPublic: model.NewBool(true), AllowOpenInvite: model.NewBool(true)},
+			ExpectedFail:            false,
+			ExpectedIsPublic:        true,
+			ExpectedAllowOpenInvite: true,
+			ExpectedType:            "I",
+			ExpectedHasInviteId:     false,
+		},
+		{
+			Name:                    "Mix old and new API with conflicts",
+			Team:                    model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team", IsPublic: model.NewBool(true), AllowOpenInvite: model.NewBool(false)},
+			ExpectedFail:            true,
+			ExpectedIsPublic:        false,
+			ExpectedAllowOpenInvite: false,
+			ExpectedType:            "I",
+			ExpectedHasInviteId:     false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.Name, func(t *testing.T) {
+			rteam, resp := Client.CreateTeam(&tc.Team)
+			if tc.ExpectedFail {
+				CheckBadRequestStatus(t, resp)
+			} else {
+				CheckNoError(t, resp)
+				CheckCreatedStatus(t, resp)
+
+				assert.Equal(t, tc.ExpectedIsPublic, *rteam.IsPublic)
+				assert.Equal(t, tc.ExpectedAllowOpenInvite, *rteam.AllowOpenInvite)
+				assert.Equal(t, tc.ExpectedType, *rteam.Type)
+				if tc.ExpectedHasInviteId {
+					assert.NotEqual(t, "", rteam.InviteId)
+				} else {
+					assert.Equal(t, "", rteam.InviteId)
+				}
+			}
+		})
+	}
+}
+
 func TestCreateTeamSanitization(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
@@ -345,6 +500,160 @@ func TestUpdateTeam(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestUpdateTeamBackwardCompatibility(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+
+	tests := []struct {
+		Name                    string
+		NewIsPublic             *bool
+		NewAllowOpenInvite      *bool
+		NewType                 *string
+		NewInviteId             *string
+		ExpectedFail            bool
+		ExpectedIsPublic        bool
+		ExpectedAllowOpenInvite bool
+		ExpectedType            string
+		ExpectedHasInviteId     bool
+	}{
+		{
+			Name:                    "Set the allow open invite and is public to true",
+			NewIsPublic:             model.NewBool(true),
+			NewAllowOpenInvite:      model.NewBool(true),
+			NewType:                 nil,
+			NewInviteId:             nil,
+			ExpectedFail:            false,
+			ExpectedIsPublic:        true,
+			ExpectedAllowOpenInvite: true,
+			ExpectedType:            "O",
+			ExpectedHasInviteId:     true,
+		},
+		{
+			Name:                    "Set the allow open invite and is public to false",
+			NewIsPublic:             model.NewBool(false),
+			NewAllowOpenInvite:      model.NewBool(false),
+			NewType:                 nil,
+			NewInviteId:             nil,
+			ExpectedFail:            false,
+			ExpectedIsPublic:        false,
+			ExpectedAllowOpenInvite: false,
+			ExpectedType:            "O",
+			ExpectedHasInviteId:     true,
+		},
+		{
+			Name:                    "Set Type to I with InviteId",
+			NewIsPublic:             nil,
+			NewAllowOpenInvite:      nil,
+			NewType:                 model.NewString("I"),
+			NewInviteId:             model.NewString("1234"),
+			ExpectedFail:            false,
+			ExpectedIsPublic:        false,
+			ExpectedAllowOpenInvite: false,
+			ExpectedType:            "I",
+			ExpectedHasInviteId:     false,
+		},
+		{
+			Name:                    "Set Type to I without InviteId",
+			NewIsPublic:             nil,
+			NewAllowOpenInvite:      nil,
+			NewType:                 model.NewString("I"),
+			NewInviteId:             model.NewString(""),
+			ExpectedFail:            false,
+			ExpectedIsPublic:        false,
+			ExpectedAllowOpenInvite: false,
+			ExpectedType:            "I",
+			ExpectedHasInviteId:     false,
+		},
+		{
+			Name:                    "Set Type to O with InviteId",
+			NewIsPublic:             nil,
+			NewAllowOpenInvite:      nil,
+			NewType:                 model.NewString("O"),
+			NewInviteId:             model.NewString("1234"),
+			ExpectedFail:            false,
+			ExpectedIsPublic:        false,
+			ExpectedAllowOpenInvite: false,
+			ExpectedType:            "O",
+			ExpectedHasInviteId:     true,
+		},
+		{
+			Name:                    "Set Type to O without InviteId",
+			NewIsPublic:             nil,
+			NewAllowOpenInvite:      nil,
+			NewType:                 model.NewString("O"),
+			NewInviteId:             model.NewString(""),
+			ExpectedFail:            false,
+			ExpectedIsPublic:        false,
+			ExpectedAllowOpenInvite: false,
+			ExpectedType:            "O",
+			ExpectedHasInviteId:     true,
+		},
+		{
+			Name:                    "You can't use the new api to disable the InviteId because Type is present on update and has precedence",
+			NewIsPublic:             nil,
+			NewAllowOpenInvite:      nil,
+			NewType:                 nil,
+			NewInviteId:             model.NewString(""),
+			ExpectedFail:            false,
+			ExpectedIsPublic:        false,
+			ExpectedAllowOpenInvite: false,
+			ExpectedType:            "O",
+			ExpectedHasInviteId:     true,
+		},
+		{
+			Name:                    "Mix old and new API with conflicts",
+			NewIsPublic:             model.NewBool(true),
+			NewAllowOpenInvite:      model.NewBool(false),
+			NewType:                 nil,
+			NewInviteId:             nil,
+			ExpectedFail:            true,
+			ExpectedIsPublic:        false,
+			ExpectedAllowOpenInvite: false,
+			ExpectedType:            "O",
+			ExpectedHasInviteId:     true,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.Name, func(t *testing.T) {
+			team := &model.Team{DisplayName: "Name", Description: "Some description", IsPublic: model.NewBool(false), InviteId: "inviteid0", Name: "z-z-" + model.NewId() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com"}
+			team, _ = Client.CreateTeam(team)
+
+			if tc.NewIsPublic != nil {
+				team.IsPublic = tc.NewIsPublic
+			}
+			if tc.NewAllowOpenInvite != nil {
+				team.AllowOpenInvite = tc.NewAllowOpenInvite
+			}
+			if tc.NewType != nil {
+				team.Type = tc.NewType
+			}
+
+			if tc.NewInviteId != nil {
+				team.InviteId = *tc.NewInviteId
+			}
+
+			rteam, resp := Client.UpdateTeam(team)
+			if tc.ExpectedFail {
+				CheckBadRequestStatus(t, resp)
+			} else {
+				CheckNoError(t, resp)
+				CheckOKStatus(t, resp)
+
+				assert.Equal(t, tc.ExpectedIsPublic, *rteam.IsPublic)
+				assert.Equal(t, tc.ExpectedAllowOpenInvite, *rteam.AllowOpenInvite)
+				assert.Equal(t, tc.ExpectedType, *rteam.Type)
+				if tc.ExpectedHasInviteId {
+					assert.NotEqual(t, "", rteam.InviteId)
+				} else {
+					assert.Equal(t, "", rteam.InviteId)
+				}
+			}
+		})
+	}
+}
+
 func TestUpdateTeamSanitization(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
@@ -441,6 +750,119 @@ func TestPatchTeam(t *testing.T) {
 
 	_, resp = th.SystemAdminClient.PatchTeam(team.Id, patch)
 	CheckNoError(t, resp)
+}
+
+func TestPatchTeamBackwardCompatibility(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+
+	tests := []struct {
+		Name                    string
+		TeamPatch               model.TeamPatch
+		ExpectedFail            bool
+		ExpectedIsPublic        bool
+		ExpectedAllowOpenInvite bool
+		ExpectedType            string
+		ExpectedHasInviteId     bool
+	}{
+		{
+			Name:                    "Using old api to set the allow open invite to true",
+			TeamPatch:               model.TeamPatch{AllowOpenInvite: model.NewBool(true)},
+			ExpectedFail:            false,
+			ExpectedIsPublic:        true,
+			ExpectedAllowOpenInvite: true,
+			ExpectedType:            "I",
+			ExpectedHasInviteId:     false,
+		},
+		{
+			Name:                    "Using old api to set the allow open invite to false",
+			TeamPatch:               model.TeamPatch{AllowOpenInvite: model.NewBool(false)},
+			ExpectedFail:            false,
+			ExpectedIsPublic:        false,
+			ExpectedAllowOpenInvite: false,
+			ExpectedType:            "I",
+			ExpectedHasInviteId:     false,
+		},
+		{
+			Name:                    "Using new api to set IsPublic to true",
+			TeamPatch:               model.TeamPatch{IsPublic: model.NewBool(true)},
+			ExpectedFail:            false,
+			ExpectedIsPublic:        true,
+			ExpectedAllowOpenInvite: true,
+			ExpectedType:            "I",
+			ExpectedHasInviteId:     false,
+		},
+		{
+			Name:                    "Using new api to set IsPublic to false",
+			TeamPatch:               model.TeamPatch{IsPublic: model.NewBool(false)},
+			ExpectedFail:            false,
+			ExpectedIsPublic:        false,
+			ExpectedAllowOpenInvite: false,
+			ExpectedType:            "I",
+			ExpectedHasInviteId:     false,
+		},
+		{
+			Name:                    "Using new api to enable the InviteId",
+			TeamPatch:               model.TeamPatch{InviteId: model.NewString(model.NewId())},
+			ExpectedFail:            false,
+			ExpectedIsPublic:        false,
+			ExpectedAllowOpenInvite: false,
+			ExpectedType:            "O",
+			ExpectedHasInviteId:     true,
+		},
+		{
+			Name:                    "Using new api to disable the InviteId",
+			TeamPatch:               model.TeamPatch{InviteId: model.NewString("")},
+			ExpectedFail:            false,
+			ExpectedIsPublic:        false,
+			ExpectedAllowOpenInvite: false,
+			ExpectedType:            "I",
+			ExpectedHasInviteId:     false,
+		},
+		{
+			Name:                    "Mix old and new API without conflicts",
+			TeamPatch:               model.TeamPatch{IsPublic: model.NewBool(true), AllowOpenInvite: model.NewBool(true)},
+			ExpectedFail:            false,
+			ExpectedIsPublic:        true,
+			ExpectedAllowOpenInvite: true,
+			ExpectedType:            "I",
+			ExpectedHasInviteId:     false,
+		},
+		{
+			Name:                    "Mix old and new API with conflicts",
+			TeamPatch:               model.TeamPatch{IsPublic: model.NewBool(true), AllowOpenInvite: model.NewBool(false)},
+			ExpectedFail:            true,
+			ExpectedIsPublic:        true,
+			ExpectedAllowOpenInvite: true,
+			ExpectedType:            "I",
+			ExpectedHasInviteId:     false,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.Name, func(t *testing.T) {
+			team := &model.Team{DisplayName: "Name", Description: "Some description", Name: "z-z-" + model.NewId() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com"}
+			team, _ = Client.CreateTeam(team)
+
+			rteam, resp := Client.PatchTeam(team.Id, &tc.TeamPatch)
+			if tc.ExpectedFail {
+				CheckBadRequestStatus(t, resp)
+			} else {
+				CheckNoError(t, resp)
+				CheckOKStatus(t, resp)
+
+				assert.Equal(t, tc.ExpectedIsPublic, *rteam.IsPublic)
+				assert.Equal(t, tc.ExpectedAllowOpenInvite, *rteam.AllowOpenInvite)
+				assert.Equal(t, tc.ExpectedType, *rteam.Type)
+				if tc.ExpectedHasInviteId {
+					assert.NotEqual(t, "", rteam.InviteId)
+				} else {
+					assert.Equal(t, "", rteam.InviteId)
+				}
+			}
+		})
+	}
 }
 
 func TestPatchTeamSanitization(t *testing.T) {

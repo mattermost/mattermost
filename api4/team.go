@@ -185,10 +185,10 @@ func patchTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("patchTeam", "api.team.patch_team.invalid_api_usage.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
+
 	if team.AllowOpenInvite != nil {
 		team.IsPublic = team.AllowOpenInvite
-	}
-	if team.IsPublic != nil {
+	} else if team.IsPublic != nil {
 		team.AllowOpenInvite = team.IsPublic
 	}
 
