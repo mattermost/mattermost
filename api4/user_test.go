@@ -2921,6 +2921,7 @@ func TestGetUsersByStatus(t *testing.T) {
 		DisplayName: "dn_" + model.NewId(),
 		Name:        GenerateTestTeamName(),
 		Email:       th.GenerateTestEmail(),
+		InviteId:    model.NewId(),
 	})
 	if err != nil {
 		t.Fatalf("failed to create team: %v", err)

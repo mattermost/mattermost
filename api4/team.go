@@ -100,7 +100,7 @@ func getTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if (!*team.IsPublic || len(team.InviteId) == 0) && !c.App.SessionHasPermissionToTeam(c.App.Session, team.Id, model.PERMISSION_VIEW_TEAM) {
+	if ((team.IsPublic != nil && !*team.IsPublic) || len(team.InviteId) == 0) && !c.App.SessionHasPermissionToTeam(c.App.Session, team.Id, model.PERMISSION_VIEW_TEAM) {
 		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
 		return
 	}
@@ -121,7 +121,7 @@ func getTeamByName(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if (!*team.IsPublic || len(team.InviteId) == 0) && !c.App.SessionHasPermissionToTeam(c.App.Session, team.Id, model.PERMISSION_VIEW_TEAM) {
+	if ((team.IsPublic != nil && !*team.IsPublic) || len(team.InviteId) == 0) && !c.App.SessionHasPermissionToTeam(c.App.Session, team.Id, model.PERMISSION_VIEW_TEAM) {
 		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
 		return
 	}
@@ -800,7 +800,7 @@ func getTeamIcon(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !c.App.SessionHasPermissionToTeam(c.App.Session, c.Params.TeamId, model.PERMISSION_VIEW_TEAM) &&
-		(len(team.InviteId) == 0 || *team.IsPublic) {
+		(len(team.InviteId) == 0 || (team.IsPublic != nil && *team.IsPublic)) {
 		c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
 		return
 	}

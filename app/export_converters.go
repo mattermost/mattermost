@@ -13,11 +13,13 @@ func ImportLineFromTeam(team *model.TeamForExport) *LineImportData {
 	return &LineImportData{
 		Type: "team",
 		Team: &TeamImportData{
-			Name:        &team.Name,
-			DisplayName: &team.DisplayName,
-			Description: &team.Description,
-			IsPublic:    team.IsPublic,
-			Scheme:      team.SchemeName,
+			Name:            &team.Name,
+			DisplayName:     &team.DisplayName,
+			Type:            team.Type,
+			Description:     &team.Description,
+			IsPublic:        team.IsPublic,
+			AllowOpenInvite: team.AllowOpenInvite,
+			Scheme:          team.SchemeName,
 		},
 	}
 }

@@ -334,16 +334,18 @@ func TestImportValidateTeamImportData(t *testing.T) {
 
 	// Test with all the combinations of optional parameters.
 	data = TeamImportData{
-		Name:        ptrStr("teamname"),
-		DisplayName: ptrStr("Display Name"),
-		Type:        ptrStr("O"),
-		Description: ptrStr("The team description."),
-		IsPublic:    ptrBool(true),
+		Name:            ptrStr("teamname"),
+		DisplayName:     ptrStr("Display Name"),
+		Type:            ptrStr("O"),
+		Description:     ptrStr("The team description."),
+		IsPublic:        ptrBool(true),
+		AllowOpenInvite: ptrBool(true),
 	}
 	if err := validateTeamImportData(&data); err != nil {
 		t.Fatal("Should have succeeded with valid optional properties.")
 	}
 
+	data.AllowOpenInvite = ptrBool(false)
 	data.IsPublic = ptrBool(false)
 	if err := validateTeamImportData(&data); err != nil {
 		t.Fatal("Should have succeeded with allow open invites false.")

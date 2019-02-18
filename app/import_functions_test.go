@@ -333,12 +333,13 @@ func TestImportImportTeam(t *testing.T) {
 	}
 
 	data := TeamImportData{
-		Name:        ptrStr(model.NewId()),
-		DisplayName: ptrStr("Display Name"),
-		Type:        ptrStr("XYZ"),
-		Description: ptrStr("The team description."),
-		IsPublic:    ptrBool(true),
-		Scheme:      &scheme1.Name,
+		Name:            ptrStr(model.NewId()),
+		DisplayName:     ptrStr("Display Name"),
+		Type:            ptrStr("XYZ"),
+		Description:     ptrStr("The team description."),
+		IsPublic:        ptrBool(true),
+		AllowOpenInvite: ptrBool(true),
+		Scheme:          &scheme1.Name,
 	}
 
 	// Try importing an invalid team in dryRun mode.
@@ -381,6 +382,7 @@ func TestImportImportTeam(t *testing.T) {
 		assert.Equal(t, *data.Type, *team.Type)
 		assert.Equal(t, *data.Description, team.Description)
 		assert.Equal(t, *data.IsPublic, *team.IsPublic)
+		assert.Equal(t, *data.AllowOpenInvite, *team.AllowOpenInvite)
 		assert.Equal(t, scheme1.Id, *team.SchemeId)
 	}
 
@@ -389,6 +391,7 @@ func TestImportImportTeam(t *testing.T) {
 	data.Type = ptrStr("P")
 	data.Description = ptrStr("The new description")
 	data.IsPublic = ptrBool(false)
+	data.AllowOpenInvite = ptrBool(false)
 	data.Scheme = &scheme2.Name
 
 	// Check that the original number of teams are again in the DB (because this query doesn't include deleted).
@@ -407,6 +410,7 @@ func TestImportImportTeam(t *testing.T) {
 		assert.Equal(t, *data.Type, *team.Type)
 		assert.Equal(t, *data.Description, team.Description)
 		assert.Equal(t, *data.IsPublic, *team.IsPublic)
+		assert.Equal(t, *data.AllowOpenInvite, *team.AllowOpenInvite)
 		assert.Equal(t, scheme2.Id, *team.SchemeId)
 	}
 }
@@ -1230,12 +1234,13 @@ func TestImportImportUser(t *testing.T) {
 	}
 
 	teamData := &TeamImportData{
-		Name:        ptrStr(model.NewId()),
-		DisplayName: ptrStr("Display Name"),
-		Type:        ptrStr("O"),
-		Description: ptrStr("The team description."),
-		IsPublic:    ptrBool(true),
-		Scheme:      &teamScheme.Name,
+		Name:            ptrStr(model.NewId()),
+		DisplayName:     ptrStr("Display Name"),
+		Type:            ptrStr("O"),
+		Description:     ptrStr("The team description."),
+		IsPublic:        ptrBool(true),
+		AllowOpenInvite: ptrBool(true),
+		Scheme:          &teamScheme.Name,
 	}
 	err = th.App.ImportTeam(teamData, false)
 	assert.Nil(t, err)
