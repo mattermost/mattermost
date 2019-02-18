@@ -1719,6 +1719,10 @@
     "translation": "Parameter required to add user to team."
   },
   {
+    "id": "api.team.add_user_to_team.private_team.app_error",
+    "translation": "Unable to join a private team."
+  },
+  {
     "id": "api.team.get_invite_info.not_open_team",
     "translation": "Invite is invalid because this is not an open team."
   },

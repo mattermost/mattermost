@@ -402,13 +402,28 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func addUserToTeamFromInvite(c *Context, w http.ResponseWriter, r *http.Request) {
+	teamId := r.URL.Query().Get("team_id")
 	tokenId := r.URL.Query().Get("token")
 	inviteId := r.URL.Query().Get("invite_id")
 
 	var member *model.TeamMember
 	var err *model.AppError
 
-	if len(tokenId) > 0 {
+	if len(teamId) > 0 {
+		var team *model.Team
+		team, err = c.App.GetTeam(teamId)
+		if err != nil {
+			c.Err = err
+			return
+		}
+
+		if (team.IsPublic == nil || !*team.IsPublic) && !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+			c.Err = model.NewAppError("addTeamMember", "api.team.add_user_to_team.private_team.app_error", nil, "", http.StatusBadRequest)
+			return
+		}
+
+		member, err = c.App.AddTeamMemberByTeamId(team.Id, c.App.Session.UserId)
+	} else if len(tokenId) > 0 {
 		member, err = c.App.AddTeamMemberByToken(c.App.Session.UserId, tokenId)
 	} else if len(inviteId) > 0 {
 		member, err = c.App.AddTeamMemberByInviteId(inviteId, c.App.Session.UserId)

@@ -663,6 +663,19 @@ func (a *App) AddTeamMemberByToken(userId, tokenId string) (*model.TeamMember, *
 	return teamMember, nil
 }
 
+func (a *App) AddTeamMemberByTeamId(teamId, userId string) (*model.TeamMember, *model.AppError) {
+	team, err := a.AddUserToTeam(teamId, userId, "")
+	if err != nil {
+		return nil, err
+	}
+
+	teamMember, err := a.GetTeamMember(team.Id, userId)
+	if err != nil {
+		return nil, err
+	}
+	return teamMember, nil
+}
+
 func (a *App) AddTeamMemberByInviteId(inviteId, userId string) (*model.TeamMember, *model.AppError) {
 	team, err := a.AddUserToTeamByInviteId(inviteId, userId)
 	if err != nil {
