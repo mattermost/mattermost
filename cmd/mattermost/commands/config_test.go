@@ -159,11 +159,11 @@ func TestConfigReset(t *testing.T) {
 	})
 
 	t.Run("No Error when a configuration section is given", func(t *testing.T) {
-		assert.Error(t, th.RunCommand(t, "config", "reset", "JobSettings"))
+		assert.NoError(t, th.RunCommand(t, "config", "reset", "JobSettings"))
 	})
 
 	t.Run("No Error when a configuration setting is given", func(t *testing.T) {
-		assert.Error(t, th.RunCommand(t, "config", "reset", "JobSettings.RunJobs"))
+		assert.NoError(t, th.RunCommand(t, "config", "reset", "JobSettings.RunJobs"))
 	})
 
 	t.Run("Error when the wrong configuration section is given", func(t *testing.T) {
