@@ -301,21 +301,21 @@ func TestUpdateUserEmail(t *testing.T) {
 		newEmail := th.MakeEmail()
 
 		user.Email = newEmail
-		user, err := th.App.UpdateUser(user, false)
+		user2, err := th.App.UpdateUser(user, false)
 		assert.Nil(t, err)
-		assert.Equal(t, currentEmail, user.Email)
-		assert.True(t, user.EmailVerified)
+		assert.Equal(t, currentEmail, user2.Email)
+		assert.True(t, user2.EmailVerified)
 
-		token, err := th.App.CreateVerifyEmailToken(user.Id, newEmail)
+		token, err := th.App.CreateVerifyEmailToken(user2.Id, newEmail)
 		assert.Nil(t, err)
 
 		err = th.App.VerifyEmailFromToken(token.Token)
 		assert.Nil(t, err)
 
-		user, err = th.App.GetUser(user.Id)
+		user2, err = th.App.GetUser(user2.Id)
 		assert.Nil(t, err)
-		assert.Equal(t, newEmail, user.Email)
-		assert.True(t, user.EmailVerified)
+		assert.Equal(t, newEmail, user2.Email)
+		assert.True(t, user2.EmailVerified)
 	})
 
 	t.Run("NoVerification", func(t *testing.T){
@@ -326,9 +326,9 @@ func TestUpdateUserEmail(t *testing.T) {
 		newEmail := th.MakeEmail()
 
 		user.Email = newEmail
-		user, err := th.App.UpdateUser(user, false)
+		user2, err := th.App.UpdateUser(user, false)
 		assert.Nil(t, err)
-		assert.Equal(t, newEmail, user.Email)
+		assert.Equal(t, newEmail, user2.Email)
 	})
 }
 
