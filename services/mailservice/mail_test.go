@@ -12,6 +12,7 @@ import (
 	"net/mail"
 	"net/smtp"
 
+	"github.com/mattermost/mattermost-server/config"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/services/filesstore"
 	"github.com/mattermost/mattermost-server/utils"
@@ -20,8 +21,10 @@ import (
 )
 
 func TestMailConnectionFromConfig(t *testing.T) {
-	cfg, _, _, err := utils.LoadConfig("config.json")
+	fs, err := config.NewFileStore("config.json", false)
 	require.Nil(t, err)
+
+	cfg := fs.Get()
 
 	if conn, err := ConnectToSMTPServer(cfg); err != nil {
 		t.Log(err)
@@ -43,8 +46,10 @@ func TestMailConnectionFromConfig(t *testing.T) {
 }
 
 func TestMailConnectionAdvanced(t *testing.T) {
-	cfg, _, _, err := utils.LoadConfig("config.json")
+	fs, err := config.NewFileStore("config.json", false)
 	require.Nil(t, err)
+
+	cfg := fs.Get()
 
 	if conn, err := ConnectToSMTPServerAdvanced(
 		&SmtpConnectionInfo{
@@ -93,9 +98,12 @@ func TestMailConnectionAdvanced(t *testing.T) {
 }
 
 func TestSendMailUsingConfig(t *testing.T) {
-	cfg, _, _, err := utils.LoadConfig("config.json")
-	require.Nil(t, err)
 	utils.T = utils.GetUserTranslations("en")
+
+	fs, err := config.NewFileStore("config.json", false)
+	require.Nil(t, err)
+
+	cfg := fs.Get()
 
 	var emailTo = "test@example.com"
 	var emailSubject = "Testing this email"
@@ -135,13 +143,17 @@ func TestSendMailUsingConfig(t *testing.T) {
 }
 
 func TestSendMailUsingConfigAdvanced(t *testing.T) {
-	cfg, _, _, err := utils.LoadConfig("config.json")
-	require.Nil(t, err)
 	utils.T = utils.GetUserTranslations("en")
+
+	fs, err := config.NewFileStore("config.json", false)
+	require.Nil(t, err)
+
+	cfg := fs.Get()
 
 	var mimeTo = "test@example.com"
 	var smtpTo = "test2@example.com"
 	var from = mail.Address{Name: "Nobody", Address: "nobody@mattermost.com"}
+	var replyTo = mail.Address{Name: "ReplyTo", Address: "reply_to@mattermost.com"}
 	var emailSubject = "Testing this email"
 	var emailBody = "This is a test from autobot"
 
@@ -177,7 +189,7 @@ func TestSendMailUsingConfigAdvanced(t *testing.T) {
 	headers := make(map[string]string)
 	headers["TestHeader"] = "TestValue"
 
-	if err := SendMailUsingConfigAdvanced(mimeTo, smtpTo, from, emailSubject, emailBody, attachments, headers, cfg, true); err != nil {
+	if err := SendMailUsingConfigAdvanced(mimeTo, smtpTo, from, replyTo, emailSubject, emailBody, attachments, headers, cfg, true); err != nil {
 		t.Log(err)
 		t.Fatal("Should connect to the STMP Server")
 	} else {

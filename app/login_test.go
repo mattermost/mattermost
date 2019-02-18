@@ -9,7 +9,7 @@ import (
 )
 
 func TestCheckForClientSideCert(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	var tests = []struct {

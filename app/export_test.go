@@ -13,7 +13,7 @@ import (
 )
 
 func TestReactionsOfPost(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	post := th.BasicPost
@@ -35,7 +35,7 @@ func TestReactionsOfPost(t *testing.T) {
 
 func TestExportUserNotifyProps(t *testing.T) {
 
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	userNotifyProps := model.StringMap{
@@ -62,7 +62,7 @@ func TestExportUserNotifyProps(t *testing.T) {
 }
 
 func TestExportUserChannels(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	channel := th.BasicChannel
 	user := th.BasicUser
@@ -101,7 +101,7 @@ func TestExportUserChannels(t *testing.T) {
 }
 
 func TestDirCreationForEmoji(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	pathToDir := th.App.createDirForEmoji("test.json", "exported_emoji_test")
@@ -112,7 +112,7 @@ func TestDirCreationForEmoji(t *testing.T) {
 }
 
 func TestCopyEmojiImages(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	emoji := &model.Emoji{
@@ -148,7 +148,7 @@ func TestCopyEmojiImages(t *testing.T) {
 }
 
 func TestExportCustomEmoji(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	filePath := "../demo.json"
@@ -167,14 +167,14 @@ func TestExportCustomEmoji(t *testing.T) {
 }
 
 func TestExportAllUsers(t *testing.T) {
-	th1 := Setup().InitBasic()
+	th1 := Setup(t).InitBasic()
 	defer th1.TearDown()
 
 	var b bytes.Buffer
 	err := th1.App.BulkExport(&b, "somefile", "somePath", "someDir")
 	require.Nil(t, err)
 
-	th2 := Setup()
+	th2 := Setup(t)
 	defer th2.TearDown()
 	err, i := th2.App.BulkImport(&b, false, 5)
 	assert.Nil(t, err)
