@@ -128,7 +128,7 @@ func (env *Environment) Statuses() (model.PluginStatuses, error) {
 	return pluginStatuses, nil
 }
 
-func (env *Environment) Activate(id string) (manifest *model.Manifest, activated bool, reterr error) {
+func (env *Environment) Activate(id string, config *model.Config) (manifest *model.Manifest, activated bool, reterr error) {
 	// Check if we are already active
 	if _, ok := env.activePlugins.Load(id); ok {
 		return nil, false, nil
@@ -169,6 +169,10 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 		if !fulfilled {
 			return nil, false, fmt.Errorf("plugin requires Mattermost %v: %v", pluginInfo.Manifest.MinServerVersion, id)
 		}
+	}
+
+	if err := pluginInfo.Manifest.ValidatePluginConfig(config.PluginSettings.Plugins[id]); err != nil {
+		return pluginInfo.Manifest, false, err
 	}
 
 	componentActivated := false

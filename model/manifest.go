@@ -52,6 +52,9 @@ type PluginSetting struct {
 	// "username" will result in a text setting that will autocomplete to a username.
 	Type string `json:"type" yaml:"type"`
 
+	// if this is true will result in an error if the setting is not set with a valid value on configuration change
+	Required bool `json:"required" yaml:"required"`
+
 	// The help text to display to the user.
 	HelpText string `json:"help_text" yaml:"help_text"`
 
@@ -189,6 +192,37 @@ type ManifestWebapp struct {
 	BundleHash []byte `json:"-"`
 }
 
+type ConfigError struct {
+	PluginId    string
+	MissingKeys []string
+}
+
+func (ce *ConfigError) Error() string {
+	if ce.MissingKeys != nil && len(ce.MissingKeys) > 0 {
+		var sb strings.Builder
+		sb.WriteString("Missing keys [")
+		maxItem := len(ce.MissingKeys)
+		for i := 0; i < maxItem; i++ {
+			sb.WriteString(ce.MissingKeys[i])
+			if i+1 < maxItem { // last item
+				sb.WriteString(",")
+			}
+		}
+		sb.WriteString("] within config for plugin [PluginSettings->Plugins->")
+		sb.WriteString(ce.PluginId)
+		sb.WriteString("]")
+		return sb.String()
+	}
+	return "Undefined missing keys within config for plugin[" + ce.PluginId + "]"
+}
+
+func NewConfigError(pluginId string, missingKeys []string) *ConfigError {
+	ce := &ConfigError{}
+	ce.PluginId = pluginId
+	ce.MissingKeys = missingKeys
+	return ce
+}
+
 func (m *Manifest) ToJson() string {
 	b, _ := json.Marshal(m)
 	return string(b)
@@ -282,6 +316,41 @@ func (m *Manifest) MeetMinServerVersion(serverVersion string) (bool, error) {
 		return false, nil
 	}
 	return true, nil
+}
+
+func (m *Manifest) ValidatePluginConfig(config map[string]interface{}) error {
+	if m.SettingsSchema == nil {
+		return fmt.Errorf(`Validation error could not find SettingsSchema for plugin manifest of [%s]`, m.Id)
+	}
+	if m.SettingsSchema.Settings == nil {
+		return nil // no Settings therefore no required Keys
+	}
+	if config == nil || len(config) < 1 {
+		ss := m.SettingsSchema.Settings
+		var keys []string
+		for _, s := range ss {
+			k := s.Key
+			if s.Required {
+				keys = append(keys, k)
+			}
+		}
+		if len(keys) > 0 {
+			return NewConfigError(m.Id, keys)
+		}
+		return nil // no config but no required keys either
+	}
+	ss := m.SettingsSchema.Settings
+	var keys []string
+	for _, s := range ss {
+		k := s.Key
+		if s.Required && config[k] == nil {
+			keys = append(keys, k)
+		}
+	}
+	if len(keys) > 0 {
+		return NewConfigError(m.Id, keys)
+	}
+	return nil
 }
 
 // FindManifest will find and parse the manifest in a given directory.

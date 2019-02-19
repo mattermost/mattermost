@@ -56,7 +56,7 @@ func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, a
 		compileGo(t, code, backend)
 
 		ioutil.WriteFile(filepath.Join(pluginDir, pluginId, "plugin.json"), []byte(`{"id": "`+pluginId+`", "backend": {"executable": "backend.exe"}}`), 0600)
-		_, _, activationErr := env.Activate(pluginId)
+		_, _, activationErr := env.Activate(pluginId, app.Config())
 		pluginIds = append(pluginIds, pluginId)
 		activationErrors = append(activationErrors, activationErr)
 	}

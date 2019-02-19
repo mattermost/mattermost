@@ -5,6 +5,7 @@ package model
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -672,6 +673,222 @@ func TestManifestMeetMinServerVersion(t *testing.T) {
 			}
 			assert.Nil(err)
 			assert.Equal(test.ShouldFulfill, fulfilled)
+		})
+	}
+}
+
+func TestValidatePluginConfig(t *testing.T) {
+	var ManifestString = `
+	{
+			"id": "com.mycompany.myplugin",
+			"name": "My Plugin",
+			"description": "This is my plugin",
+			"version": "0.1.0",
+			"min_server_version": "5.6.0",
+			"server": {
+				"executables": {
+					"linux-amd64": "server/dist/plugin-linux-amd64",
+					"darwin-amd64": "server/dist/plugin-darwin-amd64",
+					"windows-amd64": "server/dist/plugin-windows-amd64.exe"
+				}
+			},
+			"webapp": {
+					"bundle_path": "webapp/dist/main.js"
+			},
+			"settings_schema": {
+				"header": "Some header text",
+				"footer": "Some footer text",
+				"settings": [{
+					"key": "someKey",
+					"display_name": "Enable Extra Feature",
+					"type": "bool",
+					"required": true,
+					"help_text": "When true, an extra feature will be enabled!",
+					"default": "false"
+				},{
+				 "key": "someOtherKey",
+				 "display_name": "Enable Extra Feature",
+				 "type": "integer",
+				 "required": true,
+				 "help_text": "When greater then zero, an extra feature will be enabled!",
+				 "default": 0
+			 },{
+				 "key": "yetAnotherKey",
+				 "display_name": "Enable Extra Feature",
+				 "type": "integer",
+				 "required": false,
+				 "help_text": "When greater then zero, an extra feature will be enabled!",
+				 "default": 0
+			 }]
+			},
+			"props": {
+				"someKey": "someData"
+			}
+		}`
+	var manifest Manifest
+	r := strings.NewReader(ManifestString)
+	err := json.NewDecoder(r).Decode(&manifest)
+	require.Nil(t, err)
+	var ConfigString = `{
+ "someKey": true,
+ "someOtherKey": 5
+	}`
+	var configPass map[string]interface{}
+	r = strings.NewReader(ConfigString)
+	err = json.NewDecoder(r).Decode(&configPass)
+	require.Nil(t, err)
+	ConfigString = `{
+		"someKey": true
+		 }`
+	var configMissingKey map[string]interface{}
+	r = strings.NewReader(ConfigString)
+	err = json.NewDecoder(r).Decode(&configMissingKey)
+	require.Nil(t, err)
+	ManifestString = `
+	   {
+		     "id": "com.mycompany.myplugin",
+		     "name": "My Plugin",
+		     "description": "This is my plugin",
+		     "version": "0.1.0",
+		     "min_server_version": "5.6.0",
+		     "server": {
+		       "executables": {
+		         "linux-amd64": "server/dist/plugin-linux-amd64",
+		         "darwin-amd64": "server/dist/plugin-darwin-amd64",
+		         "windows-amd64": "server/dist/plugin-windows-amd64.exe"
+		       }
+		     },
+		     "webapp": {
+		         "bundle_path": "webapp/dist/main.js"
+		     },
+		     "settings_schema": {
+		       "header": "Some header text",
+		       "footer": "Some footer text"
+		     },
+		     "props": {
+					 "someKey": "someData"
+		     }
+		   }`
+	var manifestMissingSettings Manifest
+	r = strings.NewReader(ManifestString)
+	err = json.NewDecoder(r).Decode(&manifestMissingSettings)
+	require.Nil(t, err)
+	ManifestString = `
+	   {
+		     "id": "com.mycompany.myplugin",
+		     "name": "My Plugin",
+		     "description": "This is my plugin",
+		     "version": "0.1.0",
+		     "min_server_version": "5.6.0",
+		     "server": {
+		       "executables": {
+		         "linux-amd64": "server/dist/plugin-linux-amd64",
+		         "darwin-amd64": "server/dist/plugin-darwin-amd64",
+		         "windows-amd64": "server/dist/plugin-windows-amd64.exe"
+		       }
+		     },
+		     "webapp": {
+		         "bundle_path": "webapp/dist/main.js"
+		     },
+		     "props": {
+					 "someKey": "someData"
+		     }
+		   }`
+	var manifestMissingSettingsSchema Manifest
+	r = strings.NewReader(ManifestString)
+	err = json.NewDecoder(r).Decode(&manifestMissingSettingsSchema)
+	require.Nil(t, err)
+	ManifestString = `
+	{
+			"id": "com.mycompany.myplugin",
+			"name": "My Plugin",
+			"description": "This is my plugin",
+			"version": "0.1.0",
+			"min_server_version": "5.6.0",
+			"server": {
+				"executables": {
+					"linux-amd64": "server/dist/plugin-linux-amd64",
+					"darwin-amd64": "server/dist/plugin-darwin-amd64",
+					"windows-amd64": "server/dist/plugin-windows-amd64.exe"
+				}
+			},
+			"webapp": {
+					"bundle_path": "webapp/dist/main.js"
+			},
+			"settings_schema": {
+				"header": "Some header text",
+				"footer": "Some footer text",
+				"settings": [{
+					"key": "someKey",
+					"display_name": "Enable Extra Feature",
+					"type": "bool",
+					"required": false,
+					"help_text": "When true, an extra feature will be enabled!",
+					"default": "false"
+				},{
+				 "key": "someOtherKey",
+				 "display_name": "Enable Extra Feature",
+				 "type": "integer",
+				 "required": false,
+				 "help_text": "When greater then zero, an extra feature will be enabled!",
+				 "default": 0
+			 },{
+				 "key": "yetAnotherKey",
+				 "display_name": "Enable Extra Feature",
+				 "type": "integer",
+				 "required": false,
+				 "help_text": "When greater then zero, an extra feature will be enabled!",
+				 "default": 0
+			 }]
+			},
+			"props": {
+				"someKey": "someData"
+			}
+		}`
+	var manifestNoRequiredKeys Manifest
+	r = strings.NewReader(ManifestString)
+	err = json.NewDecoder(r).Decode(&manifestNoRequiredKeys)
+	require.Nil(t, err)
+	testCases := []struct {
+		Description string
+		Manifest    *Manifest
+		Config      map[string]interface{}
+		Expected    error
+	}{
+		{
+			"passing configuration with 2 required keys",
+			&manifest,
+			configPass,
+			nil,
+		},
+		{
+			"failing configuration with 2 required keys of which one is missing",
+			&manifest,
+			configMissingKey,
+			NewConfigError(manifest.Id, []string{"someOtherKey"}),
+		},
+		{
+			"passing with Settings within SettingsSchema of manifest is missing, therefore no required keys",
+			&manifestMissingSettings,
+			configPass,
+			nil,
+		},
+		{
+			"failing due to missing SettingsSchema of manifest is missing",
+			&manifestMissingSettingsSchema,
+			configPass,
+			fmt.Errorf(`Validation error could not find SettingsSchema for plugin manifest of [%s]`, manifestMissingSettings.Id),
+		},
+		{
+			"passing with missing plugin config where no required keys are configured in manifest",
+			&manifestNoRequiredKeys,
+			nil,
+			nil,
+		},
+	}
+	for _, testCase := range testCases {
+		t.Run(testCase.Description, func(t *testing.T) {
+			assert.Equal(t, testCase.Expected, testCase.Manifest.ValidatePluginConfig(testCase.Config))
 		})
 	}
 }

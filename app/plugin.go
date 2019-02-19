@@ -92,7 +92,7 @@ func (a *App) SyncPluginsActiveState() {
 
 			// Activate plugin if enabled
 			if pluginEnabled {
-				updatedManifest, activated, err := pluginsEnvironment.Activate(pluginId)
+				updatedManifest, activated, err := pluginsEnvironment.Activate(pluginId, a.Config())
 				if err != nil {
 					plugin.WrapLogger(a.Log).Error("Unable to activate plugin", mlog.Err(err))
 					continue
