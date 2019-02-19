@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 )
 
 type TestHelper struct {
@@ -31,9 +32,10 @@ type TestHelper struct {
 }
 
 func setupTestHelper(enterprise bool) *TestHelper {
-	mainHelper.Store.DropAllTables()
+	store := mainHelper.GetStore()
+	store.DropAllTables()
 
-	permConfig, err := os.Open(utils.FindConfigFile("config.json"))
+	permConfig, err := os.Open(fileutils.FindConfigFile("config.json"))
 	if err != nil {
 		panic(err)
 	}
@@ -48,8 +50,8 @@ func setupTestHelper(enterprise bool) *TestHelper {
 		panic(err)
 	}
 
-	options := []app.Option{app.ConfigFile(tempConfig.Name()), app.DisableConfigWatch}
-	options = append(options, app.StoreOverride(mainHelper.Store))
+	options := []app.Option{app.Config(tempConfig.Name(), false)}
+	options = append(options, app.StoreOverride(store))
 
 	s, err := app.NewServer(options...)
 	if err != nil {
@@ -67,7 +69,7 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	prevListenAddress := *th.App.Config().ServiceSettings.ListenAddress
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
 
-	serverErr := th.App.StartServer()
+	serverErr := th.Server.Start()
 	if serverErr != nil {
 		panic(serverErr)
 	}
@@ -267,13 +269,14 @@ func (me *TestHelper) TearDown() {
 }
 
 func (me *TestHelper) ResetRoleMigration() {
-	if _, err := mainHelper.SqlSupplier.GetMaster().Exec("DELETE from Roles"); err != nil {
+	sqlSupplier := mainHelper.GetSqlSupplier()
+	if _, err := sqlSupplier.GetMaster().Exec("DELETE from Roles"); err != nil {
 		panic(err)
 	}
 
-	mainHelper.ClusterInterface.SendClearRoleCacheMessage()
+	mainHelper.GetClusterInterface().SendClearRoleCacheMessage()
 
-	if _, err := mainHelper.SqlSupplier.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": app.ADVANCED_PERMISSIONS_MIGRATION_KEY}); err != nil {
+	if _, err := sqlSupplier.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": app.ADVANCED_PERMISSIONS_MIGRATION_KEY}); err != nil {
 		panic(err)
 	}
 }

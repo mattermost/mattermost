@@ -5,6 +5,7 @@ package api4
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -13,7 +14,12 @@ import (
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/services/filesstore"
+	"github.com/mattermost/mattermost-server/utils"
 )
+
+const REDIRECT_LOCATION_CACHE_SIZE = 10000
+
+var redirectLocationDataCache = utils.NewLru(REDIRECT_LOCATION_CACHE_SIZE)
 
 func (api *API) InitSystem() {
 	api.BaseRoutes.System.Handle("/ping", api.ApiHandler(getSystemPing)).Methods("GET")
@@ -97,7 +103,7 @@ func getConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cfg := c.App.GetConfig()
+	cfg := c.App.GetSanitizedConfig()
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	w.Write([]byte(cfg.ToJson()))
@@ -128,12 +134,12 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Do not allow plugin uploads to be toggled through the API
-	cfg.PluginSettings.EnableUploads = c.App.GetConfig().PluginSettings.EnableUploads
+	cfg.PluginSettings.EnableUploads = c.App.Config().PluginSettings.EnableUploads
 
 	// If the Message Export feature has been toggled in the System Console, rewrite the ExportFromTimestamp field to an
 	// appropriate value. The rewriting occurs here to ensure it doesn't affect values written to the config file
 	// directly and not through the System Console UI.
-	if *cfg.MessageExportSettings.EnableExport != *c.App.GetConfig().MessageExportSettings.EnableExport {
+	if *cfg.MessageExportSettings.EnableExport != *c.App.Config().MessageExportSettings.EnableExport {
 		if *cfg.MessageExportSettings.EnableExport && *cfg.MessageExportSettings.ExportFromTimestamp == int64(0) {
 			// When the feature is toggled on, use the current timestamp as the start time for future exports.
 			cfg.MessageExportSettings.ExportFromTimestamp = model.NewInt64(model.GetMillis())
@@ -152,7 +158,7 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("updateConfig")
 
-	cfg = c.App.GetConfig()
+	cfg = c.App.GetSanitizedConfig()
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 	w.Write([]byte(cfg.ToJson()))
@@ -419,15 +425,18 @@ func getAnalytics(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getSupportedTimezones(c *Context, w http.ResponseWriter, r *http.Request) {
-	supportedTimezones := c.App.Timezones()
-
-	if supportedTimezones != nil {
-		w.Write([]byte(model.TimezonesToJson(supportedTimezones)))
-		return
+	supportedTimezones := c.App.Timezones.GetSupported()
+	if supportedTimezones == nil {
+		supportedTimezones = make([]string, 0)
 	}
 
-	emptyTimezones := make([]string, 0)
-	w.Write([]byte(model.TimezonesToJson(emptyTimezones)))
+	b, err := json.Marshal(supportedTimezones)
+	if err != nil {
+		c.Log.Warn("Unable to marshal JSON in timezones.", mlog.Err(err))
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	w.Write(b)
 }
 
 func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -447,7 +456,7 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if cfg.FileSettings.AmazonS3SecretAccessKey == model.FAKE_SETTING {
+	if *cfg.FileSettings.AmazonS3SecretAccessKey == model.FAKE_SETTING {
 		cfg.FileSettings.AmazonS3SecretAccessKey = c.App.Config().FileSettings.AmazonS3SecretAccessKey
 	}
 
@@ -467,32 +476,41 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 	m := make(map[string]string)
 	m["location"] = ""
-	cfg := c.App.GetConfig()
-	if !*cfg.ServiceSettings.EnableLinkPreviews {
+
+	if !*c.App.Config().ServiceSettings.EnableLinkPreviews {
 		w.Write([]byte(model.MapToJson(m)))
 		return
 	}
+
 	url := r.URL.Query().Get("url")
 	if len(url) == 0 {
 		c.SetInvalidParam("url")
 		return
 	}
 
-	client := &http.Client{
-		CheckRedirect: func(req *http.Request, via []*http.Request) error {
-			return http.ErrUseLastResponse
-		},
-	}
-
-	res, err := client.Head(url)
-	if err != nil {
-		// Always return a success status and a JSON string to limit the amount of information returned to a
-		// hacker attempting to use Mattermost to probe a private network.
+	if location, ok := redirectLocationDataCache.Get(url); ok {
+		m["location"] = location.(string)
 		w.Write([]byte(model.MapToJson(m)))
 		return
 	}
 
-	m["location"] = res.Header.Get("Location")
+	client := c.App.HTTPService.MakeClient(false)
+	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		return http.ErrUseLastResponse
+	}
+
+	res, err := client.Head(url)
+	if err != nil {
+		// Cache failures to prevent retries.
+		redirectLocationDataCache.AddWithExpiresInSecs(url, "", 3600) // Expires after 1 hour
+		// Always return a success status and a JSON string to limit information returned to client.
+		w.Write([]byte(model.MapToJson(m)))
+		return
+	}
+
+	location := res.Header.Get("Location")
+	redirectLocationDataCache.AddWithExpiresInSecs(url, location, 3600) // Expires after 1 hour
+	m["location"] = location
 
 	w.Write([]byte(model.MapToJson(m)))
 	return

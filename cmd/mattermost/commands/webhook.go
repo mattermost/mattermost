@@ -5,6 +5,7 @@ package commands
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/pkg/errors"
@@ -22,6 +23,15 @@ var WebhookListCmd = &cobra.Command{
 	Long:    "list all webhooks",
 	Example: "  webhook list myteam",
 	RunE:    listWebhookCmdF,
+}
+
+var WebhookShowCmd = &cobra.Command{
+	Use:     "show [webhookId]",
+	Short:   "Show a webhook",
+	Long:    "Show the webhook specified by [webhookId]",
+	Args:    cobra.ExactArgs(1),
+	Example: "  webhook show w16zb5tu3n1zkqo18goqry1je",
+	RunE:    showWebhookCmdF,
 }
 
 var WebhookCreateIncomingCmd = &cobra.Command{
@@ -47,6 +57,14 @@ var WebhookCreateOutgoingCmd = &cobra.Command{
 	Example: `  webhook create-outgoing --team myteam --user myusername --display-name mywebhook --trigger-word "build" --trigger-word "test" --url http://localhost:8000/my-webhook-handler
 	webhook create-outgoing --team myteam --channel mychannel --user myusername --display-name mywebhook --description "My cool webhook" --trigger-when start --trigger-word build --trigger-word test --icon http://localhost:8000/my-slash-handler-bot-icon.png --url http://localhost:8000/my-webhook-handler --content-type "application/json"`,
 	RunE: createOutgoingWebhookCmdF,
+}
+
+var WebhookModifyOutgoingCmd = &cobra.Command{
+	Use:     "modify-outgoing",
+	Short:   "Modify outgoing webhook",
+	Long:    "Modify existing outgoing webhook by changing its title, description, channel, icon, url, content-type, and triggers",
+	Example: `  webhook modify-outgoing [webhookId] --channel [channelId] --display-name [displayName] --description "New webhook description" --icon http://localhost:8000/my-slash-handler-bot-icon.png --url http://localhost:8000/my-webhook-handler --content-type "application/json" --trigger-word test --trigger-when start`,
+	RunE:    modifyOutgoingWebhookCmdF,
 }
 
 var WebhookDeleteCmd = &cobra.Command{
@@ -147,9 +165,13 @@ func createIncomingWebhookCmdF(command *cobra.Command, args []string) error {
 		ChannelLocked: channelLocked,
 	}
 
-	if _, err := app.CreateIncomingWebhookForChannel(user.Id, channel, incomingWebhook); err != nil {
-		return err
+	createdIncoming, errIncomingWebhook := app.CreateIncomingWebhookForChannel(user.Id, channel, incomingWebhook)
+	if errIncomingWebhook != nil {
+		return errIncomingWebhook
 	}
+
+	CommandPrettyPrintln("Id: " + createdIncoming.Id)
+	CommandPrettyPrintln("Display Name: " + createdIncoming.DisplayName)
 
 	return nil
 }
@@ -278,8 +300,96 @@ func createOutgoingWebhookCmdF(command *cobra.Command, args []string) error {
 		}
 	}
 
-	if _, err := app.CreateOutgoingWebhook(outgoingWebhook); err != nil {
+	createdOutgoing, errOutgoing := app.CreateOutgoingWebhook(outgoingWebhook)
+	if errOutgoing != nil {
+		return errOutgoing
+	}
+
+	CommandPrettyPrintln("Id: " + createdOutgoing.Id)
+	CommandPrettyPrintln("Display Name: " + createdOutgoing.DisplayName)
+
+	return nil
+}
+
+func modifyOutgoingWebhookCmdF(command *cobra.Command, args []string) error {
+	app, err := InitDBCommandContextCobra(command)
+	if err != nil {
 		return err
+	}
+	defer app.Shutdown()
+
+	if len(args) < 1 {
+		return errors.New("WebhookID is not specified")
+	}
+
+	webhookArg := args[0]
+	oldHook, appErr := app.GetOutgoingWebhook(webhookArg)
+	if appErr != nil {
+		return fmt.Errorf("unable to find webhook '%s'", webhookArg)
+	}
+
+	updatedHook := model.OutgoingWebhookFromJson(strings.NewReader(oldHook.ToJson()))
+
+	channelArg, _ := command.Flags().GetString("channel")
+	if channelArg != "" {
+		channel := getChannelFromChannelArg(app, channelArg)
+		if channel == nil {
+			return fmt.Errorf("unable to find channel '%s'", channelArg)
+		}
+		updatedHook.ChannelId = channel.Id
+	}
+
+	displayName, _ := command.Flags().GetString("display-name")
+	if displayName != "" {
+		updatedHook.DisplayName = displayName
+	}
+
+	description, _ := command.Flags().GetString("description")
+	if description != "" {
+		updatedHook.Description = description
+	}
+
+	triggerWords, err := command.Flags().GetStringArray("trigger-word")
+	if err != nil {
+		return errors.Wrap(err, "invalid trigger-word parameter")
+	}
+	if len(triggerWords) > 0 {
+		updatedHook.TriggerWords = triggerWords
+	}
+
+	triggerWhenString, _ := command.Flags().GetString("trigger-when")
+	if triggerWhenString != "" {
+		var triggerWhen int
+		if triggerWhenString == "exact" {
+			triggerWhen = 0
+		} else if triggerWhenString == "start" {
+			triggerWhen = 1
+		} else {
+			return errors.New("invalid trigger-when parameter")
+		}
+		updatedHook.TriggerWhen = triggerWhen
+	}
+
+	iconURL, _ := command.Flags().GetString("icon")
+	if iconURL != "" {
+		updatedHook.IconURL = iconURL
+	}
+
+	contentType, _ := command.Flags().GetString("content-type")
+	if contentType != "" {
+		updatedHook.ContentType = contentType
+	}
+
+	callbackURLs, err := command.Flags().GetStringArray("url")
+	if err != nil {
+		return errors.Wrap(err, "invalid URL parameter")
+	}
+	if len(callbackURLs) > 0 {
+		updatedHook.CallbackURLs = callbackURLs
+	}
+
+	if _, appErr := app.UpdateOutgoingWebhook(oldHook, updatedHook); appErr != nil {
+		return appErr
 	}
 
 	return nil
@@ -307,6 +417,26 @@ func deleteWebhookCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
+func showWebhookCmdF(command *cobra.Command, args []string) error {
+	app, err := InitDBCommandContextCobra(command)
+	if err != nil {
+		return err
+	}
+	defer app.Shutdown()
+
+	webhookId := args[0]
+	if incomingWebhook, err := app.GetIncomingWebhook(webhookId); err == nil {
+		fmt.Printf("%s", prettyPrintStruct(*incomingWebhook))
+		return nil
+	}
+	if outgoingWebhook, err := app.GetOutgoingWebhook(webhookId); err == nil {
+		fmt.Printf("%s", prettyPrintStruct(*outgoingWebhook))
+		return nil
+	}
+
+	return errors.New("Webhook with id " + webhookId + " not found")
+}
+
 func init() {
 	WebhookCreateIncomingCmd.Flags().String("channel", "", "Channel ID (required)")
 	WebhookCreateIncomingCmd.Flags().String("user", "", "User ID (required)")
@@ -332,12 +462,23 @@ func init() {
 	WebhookCreateOutgoingCmd.Flags().StringArray("url", []string{}, "Callback URL (required)")
 	WebhookCreateOutgoingCmd.Flags().String("content-type", "", "Content-type")
 
+	WebhookModifyOutgoingCmd.Flags().String("channel", "", "Channel name or ID")
+	WebhookModifyOutgoingCmd.Flags().String("display-name", "", "Outgoing webhook display name")
+	WebhookModifyOutgoingCmd.Flags().String("description", "", "Outgoing webhook description")
+	WebhookModifyOutgoingCmd.Flags().StringArray("trigger-word", []string{}, "Word to trigger webhook")
+	WebhookModifyOutgoingCmd.Flags().String("trigger-when", "", "When to trigger webhook (exact: for first word matches a trigger word exactly, start: for first word starts with a trigger word)")
+	WebhookModifyOutgoingCmd.Flags().String("icon", "", "Icon URL")
+	WebhookModifyOutgoingCmd.Flags().StringArray("url", []string{}, "Callback URL")
+	WebhookModifyOutgoingCmd.Flags().String("content-type", "", "Content-type")
+
 	WebhookCmd.AddCommand(
 		WebhookListCmd,
 		WebhookCreateIncomingCmd,
 		WebhookModifyIncomingCmd,
 		WebhookCreateOutgoingCmd,
+		WebhookModifyOutgoingCmd,
 		WebhookDeleteCmd,
+		WebhookShowCmd,
 	)
 
 	RootCmd.AddCommand(WebhookCmd)

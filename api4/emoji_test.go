@@ -208,9 +208,9 @@ func TestGetEmojiList(t *testing.T) {
 	}
 
 	for idx, emoji := range emojis {
-		emoji, resp := Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+		newEmoji, resp := Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
 		CheckNoError(t, resp)
-		emojis[idx] = emoji
+		emojis[idx] = newEmoji
 	}
 
 	listEmoji, resp := Client.GetEmojiList(0, 100)
@@ -486,12 +486,6 @@ func TestGetEmojiImage(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	EnableCustomEmoji := *th.App.Config().ServiceSettings.EnableCustomEmoji
-	DriverName := *th.App.Config().FileSettings.DriverName
-	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = EnableCustomEmoji })
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.DriverName = DriverName })
-	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = true })
 
 	emoji1 := &model.Emoji{
@@ -508,14 +502,8 @@ func TestGetEmojiImage(t *testing.T) {
 	CheckNotImplementedStatus(t, resp)
 	CheckErrorMessage(t, resp, "api.emoji.disabled.app_error")
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.DriverName = "" })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = true })
-
-	_, resp = Client.GetEmojiImage(emoji1.Id)
-	CheckNotImplementedStatus(t, resp)
-	CheckErrorMessage(t, resp, "api.emoji.storage.app_error")
-
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.DriverName = DriverName })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.DriverName = "local" })
 
 	emojiImage, resp := Client.GetEmojiImage(emoji1.Id)
 	CheckNoError(t, resp)
@@ -622,9 +610,9 @@ func TestSearchEmoji(t *testing.T) {
 	}
 
 	for idx, emoji := range emojis {
-		emoji, resp := Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+		newEmoji, resp := Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
 		CheckNoError(t, resp)
-		emojis[idx] = emoji
+		emojis[idx] = newEmoji
 	}
 
 	search := &model.EmojiSearch{Term: searchTerm1}
@@ -700,9 +688,9 @@ func TestAutocompleteEmoji(t *testing.T) {
 	}
 
 	for idx, emoji := range emojis {
-		emoji, resp := Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
+		newEmoji, resp := Client.CreateEmoji(emoji, utils.CreateTestGif(t, 10, 10), "image.gif")
 		CheckNoError(t, resp)
-		emojis[idx] = emoji
+		emojis[idx] = newEmoji
 	}
 
 	remojis, resp := Client.AutocompleteEmoji(searchTerm1, "")

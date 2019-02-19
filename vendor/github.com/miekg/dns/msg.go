@@ -231,29 +231,21 @@ func (m compressionMap) find(s string) (int, bool) {
 // map needs to hold a mapping between domain names and offsets
 // pointing into msg.
 func PackDomainName(s string, msg []byte, off int, compression map[string]int, compress bool) (off1 int, err error) {
-	off1, _, err = packDomainName(s, msg, off, compressionMap{ext: compression}, compress)
-	return
+	return packDomainName(s, msg, off, compressionMap{ext: compression}, compress)
 }
 
-func packDomainName(s string, msg []byte, off int, compression compressionMap, compress bool) (off1 int, labels int, err error) {
-	// special case if msg == nil
-	lenmsg := 256
-	if msg != nil {
-		lenmsg = len(msg)
-	}
+func packDomainName(s string, msg []byte, off int, compression compressionMap, compress bool) (off1 int, err error) {
+	// XXX: A logical copy of this function exists in IsDomainName and
+	// should be kept in sync with this function.
 
 	ls := len(s)
 	if ls == 0 { // Ok, for instance when dealing with update RR without any rdata.
-		return off, 0, nil
+		return off, nil
 	}
 
-	// If not fully qualified, error out, but only if msg != nil #ugly
-	if s[ls-1] != '.' {
-		if msg != nil {
-			return lenmsg, 0, ErrFqdn
-		}
-		s += "."
-		ls++
+	// If not fully qualified, error out.
+	if !IsFqdn(s) {
+		return len(msg), ErrFqdn
 	}
 
 	// Each dot ends a segment of the name.
@@ -283,8 +275,8 @@ loop:
 
 		switch c {
 		case '\\':
-			if off+1 > lenmsg {
-				return lenmsg, labels, ErrBuf
+			if off+1 > len(msg) {
+				return len(msg), ErrBuf
 			}
 
 			if bs == nil {
@@ -307,19 +299,19 @@ loop:
 		case '.':
 			if wasDot {
 				// two dots back to back is not legal
-				return lenmsg, labels, ErrRdata
+				return len(msg), ErrRdata
 			}
 			wasDot = true
 
 			labelLen := i - begin
 			if labelLen >= 1<<6 { // top two bits of length must be clear
-				return lenmsg, labels, ErrRdata
+				return len(msg), ErrRdata
 			}
 
 			// off can already (we're in a loop) be bigger than len(msg)
 			// this happens when a name isn't fully qualified
-			if off+1+labelLen > lenmsg {
-				return lenmsg, labels, ErrBuf
+			if off+1+labelLen > len(msg) {
+				return len(msg), ErrBuf
 			}
 
 			// Don't try to compress '.'
@@ -344,18 +336,15 @@ loop:
 			}
 
 			// The following is covered by the length check above.
-			if msg != nil {
-				msg[off] = byte(labelLen)
+			msg[off] = byte(labelLen)
 
-				if bs == nil {
-					copy(msg[off+1:], s[begin:i])
-				} else {
-					copy(msg[off+1:], bs[begin:i])
-				}
+			if bs == nil {
+				copy(msg[off+1:], s[begin:i])
+			} else {
+				copy(msg[off+1:], bs[begin:i])
 			}
 			off += 1 + labelLen
 
-			labels++
 			begin = i + 1
 			compBegin = begin + compOff
 		default:
@@ -365,22 +354,21 @@ loop:
 
 	// Root label is special
 	if isRootLabel(s, bs, 0, ls) {
-		return off, labels, nil
+		return off, nil
 	}
 
 	// If we did compression and we find something add the pointer here
 	if pointer != -1 {
 		// We have two bytes (14 bits) to put the pointer in
-		// if msg == nil, we will never do compression
 		binary.BigEndian.PutUint16(msg[off:], uint16(pointer^0xC000))
-		return off + 2, labels, nil
+		return off + 2, nil
 	}
 
-	if msg != nil && off < lenmsg {
+	if off < len(msg) {
 		msg[off] = 0
 	}
 
-	return off + 1, labels, nil
+	return off + 1, nil
 }
 
 // isRootLabel returns whether s or bs, from off to end, is the root
@@ -633,7 +621,12 @@ func packRR(rr RR, msg []byte, off int, compression compressionMap, compress boo
 		return len(msg), len(msg), &Error{err: "nil rr"}
 	}
 
-	headerEnd, off1, err = rr.pack(msg, off, compression, compress)
+	headerEnd, err = rr.Header().packHeader(msg, off, compression, compress)
+	if err != nil {
+		return headerEnd, len(msg), err
+	}
+
+	off1, err = rr.pack(msg, headerEnd, compression, compress)
 	if err != nil {
 		return headerEnd, len(msg), err
 	}
@@ -661,17 +654,28 @@ func UnpackRR(msg []byte, off int) (rr RR, off1 int, err error) {
 // UnpackRRWithHeader unpacks the record type specific payload given an existing
 // RR_Header.
 func UnpackRRWithHeader(h RR_Header, msg []byte, off int) (rr RR, off1 int, err error) {
+	if newFn, ok := TypeToRR[h.Rrtype]; ok {
+		rr = newFn()
+		*rr.Header() = h
+	} else {
+		rr = &RFC3597{Hdr: h}
+	}
+
+	if noRdata(h) {
+		return rr, off, nil
+	}
+
 	end := off + int(h.Rdlength)
 
-	if fn, known := typeToUnpack[h.Rrtype]; !known {
-		rr, off, err = unpackRFC3597(h, msg, off)
-	} else {
-		rr, off, err = fn(h, msg, off)
+	off, err = rr.unpack(msg, off)
+	if err != nil {
+		return nil, end, err
 	}
 	if off != end {
 		return &h, end, &Error{err: "bad rdlength"}
 	}
-	return rr, off, err
+
+	return rr, off, nil
 }
 
 // unpackRRslice unpacks msg[off:] into an []RR.
@@ -984,7 +988,7 @@ func (dns *Msg) Len() int {
 }
 
 func msgLenWithCompressionMap(dns *Msg, compression map[string]struct{}) int {
-	l := 12 // Message header is always 12 bytes
+	l := headerSize
 
 	for _, r := range dns.Question {
 		l += r.len(l, compression)
@@ -1068,7 +1072,7 @@ func compressionLenSearch(c map[string]struct{}, s string, msgOff int) (int, boo
 }
 
 // Copy returns a new RR which is a deep-copy of r.
-func Copy(r RR) RR { r1 := r.copy(); return r1 }
+func Copy(r RR) RR { return r.copy() }
 
 // Len returns the length (in octets) of the uncompressed RR in wire format.
 func Len(r RR) int { return r.len(0, nil) }
@@ -1120,7 +1124,7 @@ func (dns *Msg) CopyTo(r1 *Msg) *Msg {
 }
 
 func (q *Question) pack(msg []byte, off int, compression compressionMap, compress bool) (int, error) {
-	off, _, err := packDomainName(q.Name, msg, off, compression, compress)
+	off, err := packDomainName(q.Name, msg, off, compression, compress)
 	if err != nil {
 		return off, err
 	}
@@ -1183,7 +1187,10 @@ func (dh *Header) pack(msg []byte, off int, compression compressionMap, compress
 		return off, err
 	}
 	off, err = packUint16(dh.Arcount, msg, off)
-	return off, err
+	if err != nil {
+		return off, err
+	}
+	return off, nil
 }
 
 func unpackMsgHdr(msg []byte, off int) (Header, int, error) {
@@ -1212,7 +1219,10 @@ func unpackMsgHdr(msg []byte, off int) (Header, int, error) {
 		return dh, off, err
 	}
 	dh.Arcount, off, err = unpackUint16(msg, off)
-	return dh, off, err
+	if err != nil {
+		return dh, off, err
+	}
+	return dh, off, nil
 }
 
 // setHdr set the header in the dns using the binary data in dh.

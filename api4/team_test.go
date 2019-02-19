@@ -1952,7 +1952,7 @@ func TestInviteUsersToTeam(t *testing.T) {
 		}
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.RestrictCreationToDomains = "@global.com,@common.com" })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.RestrictCreationToDomains = "@global.com,@common.com" })
 
 	t.Run("restricted domains", func(t *testing.T) {
 		err := th.App.InviteNewUsersToTeam(emailList, th.BasicTeam.Id, th.BasicUser.Id)
@@ -2203,7 +2203,6 @@ func TestUpdateTeamScheme(t *testing.T) {
 
 	// Test an invalid scheme scope.
 	_, resp = th.SystemAdminClient.UpdateTeamScheme(team.Id, channelScheme.Id)
-	fmt.Printf("resp: %+v\n", resp)
 	CheckBadRequestStatus(t, resp)
 
 	// Test that an unauthenticated user gets rejected.

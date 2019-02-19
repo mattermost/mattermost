@@ -15,6 +15,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/go-sql-driver/mysql"
 	"github.com/lib/pq"
 	"github.com/mattermost/gorp"
@@ -93,7 +94,9 @@ type SqlSupplierOldStores struct {
 	role                 store.RoleStore
 	scheme               store.SchemeStore
 	TermsOfService       store.TermsOfServiceStore
+	group                store.GroupStore
 	UserTermsOfService   store.UserTermsOfServiceStore
+	linkMetadata         store.LinkMetadataStore
 }
 
 type SqlSupplier struct {
@@ -144,10 +147,12 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.oldStores.plugin = NewSqlPluginStore(supplier)
 	supplier.oldStores.TermsOfService = NewSqlTermsOfServiceStore(supplier, metrics)
 	supplier.oldStores.UserTermsOfService = NewSqlUserTermsOfServiceStore(supplier)
+	supplier.oldStores.linkMetadata = NewSqlLinkMetadataStore(supplier)
 
 	initSqlSupplierReactions(supplier)
 	initSqlSupplierRoles(supplier)
 	initSqlSupplierSchemes(supplier)
+	initSqlSupplierGroups(supplier)
 
 	err := supplier.GetMaster().CreateTablesIfNotExists()
 	if err != nil {
@@ -181,6 +186,9 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.oldStores.plugin.(*SqlPluginStore).CreateIndexesIfNotExists()
 	supplier.oldStores.TermsOfService.(SqlTermsOfServiceStore).CreateIndexesIfNotExists()
 	supplier.oldStores.UserTermsOfService.(SqlUserTermsOfServiceStore).CreateIndexesIfNotExists()
+	supplier.oldStores.linkMetadata.(*SqlLinkMetadataStore).CreateIndexesIfNotExists()
+
+	supplier.CreateIndexesIfNotExistsGroups()
 
 	supplier.oldStores.preference.(*SqlPreferenceStore).DeleteUnusedFeatures()
 
@@ -242,7 +250,7 @@ func setupConnection(con_type string, dataSource string, settings *model.SqlSett
 		os.Exit(EXIT_NO_DRIVER)
 	}
 
-	if settings.Trace {
+	if settings.Trace != nil && *settings.Trace {
 		dbmap.TraceOn("", sqltrace.New(os.Stdout, "sql-trace:", sqltrace.Lmicroseconds))
 	}
 
@@ -1024,6 +1032,14 @@ func (ss *SqlSupplier) Scheme() store.SchemeStore {
 	return ss.oldStores.scheme
 }
 
+func (ss *SqlSupplier) Group() store.GroupStore {
+	return ss.oldStores.group
+}
+
+func (ss *SqlSupplier) LinkMetadata() store.LinkMetadataStore {
+	return ss.oldStores.linkMetadata
+}
+
 func (ss *SqlSupplier) DropAllTables() {
 	ss.master.TruncateTables()
 }
@@ -1043,6 +1059,10 @@ func (me mattermConverter) ToDb(val interface{}) (interface{}, error) {
 		return model.StringInterfaceToJson(t), nil
 	case map[string]interface{}:
 		return model.StringInterfaceToJson(model.StringInterface(t)), nil
+	case JSONSerializable:
+		return t.ToJson(), nil
+	case *opengraph.OpenGraph:
+		return json.Marshal(t)
 	}
 
 	return val, nil
@@ -1103,6 +1123,10 @@ func (me mattermConverter) FromDb(target interface{}) (gorp.CustomScanner, bool)
 	}
 
 	return gorp.CustomScanner{}, false
+}
+
+type JSONSerializable interface {
+	ToJson() string
 }
 
 func convertMySQLFullTextColumnsToPostgres(columnNames string) string {

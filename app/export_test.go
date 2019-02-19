@@ -1,17 +1,19 @@
 package app
 
 import (
+	"bytes"
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/stretchr/testify/require"
+	"github.com/mattermost/mattermost-server/store"
 )
 
 func TestReactionsOfPost(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	post := th.BasicPost
@@ -33,7 +35,7 @@ func TestReactionsOfPost(t *testing.T) {
 
 func TestExportUserNotifyProps(t *testing.T) {
 
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	userNotifyProps := model.StringMap{
@@ -60,7 +62,7 @@ func TestExportUserNotifyProps(t *testing.T) {
 }
 
 func TestExportUserChannels(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	channel := th.BasicChannel
 	user := th.BasicUser
@@ -78,12 +80,7 @@ func TestExportUserChannels(t *testing.T) {
 	}
 	var preferences model.Preferences
 	preferences = append(preferences, preference)
-	channelMember := model.ChannelMember{
-		ChannelId: channel.Id,
-		UserId:    user.Id,
-	}
-	th.App.Srv.Store.Channel().SaveMember(&channelMember)
-	th.App.Srv.Store.Preference().Save(&preferences)
+	store.Must(th.App.Srv.Store.Preference().Save(&preferences))
 	th.App.UpdateChannelMemberNotifyProps(notifyProps, channel.Id, user.Id)
 	exportData, err := th.App.buildUserChannelMemberships(user.Id, team.Id)
 	require.Nil(t, err)
@@ -104,7 +101,7 @@ func TestExportUserChannels(t *testing.T) {
 }
 
 func TestDirCreationForEmoji(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	pathToDir := th.App.createDirForEmoji("test.json", "exported_emoji_test")
@@ -115,7 +112,7 @@ func TestDirCreationForEmoji(t *testing.T) {
 }
 
 func TestCopyEmojiImages(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	emoji := &model.Emoji{
@@ -151,7 +148,7 @@ func TestCopyEmojiImages(t *testing.T) {
 }
 
 func TestExportCustomEmoji(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	filePath := "../demo.json"
@@ -167,4 +164,32 @@ func TestExportCustomEmoji(t *testing.T) {
 	if err := th.App.ExportCustomEmoji(fileWriter, filePath, pathToEmojiDir, dirNameToExportEmoji); err != nil {
 		t.Fatal(err)
 	}
+}
+
+func TestExportAllUsers(t *testing.T) {
+	th1 := Setup(t).InitBasic()
+	defer th1.TearDown()
+
+	var b bytes.Buffer
+	err := th1.App.BulkExport(&b, "somefile", "somePath", "someDir")
+	require.Nil(t, err)
+
+	th2 := Setup(t)
+	defer th2.TearDown()
+	err, i := th2.App.BulkImport(&b, false, 5)
+	assert.Nil(t, err)
+	assert.Equal(t, 0, i)
+
+	users1, err := th1.App.GetUsers(&model.UserGetOptions{
+		Page:    0,
+		PerPage: 10,
+	})
+	assert.Nil(t, err)
+	users2, err := th2.App.GetUsers(&model.UserGetOptions{
+		Page:    0,
+		PerPage: 10,
+	})
+	assert.Nil(t, err)
+	assert.Equal(t, len(users1), len(users2))
+	assert.ElementsMatch(t, users1, users2)
 }

@@ -79,11 +79,11 @@ func (a *App) sendPushNotificationSync(post *model.Post, user *model.User, chann
 		msg.ChannelName = channelName
 	}
 
-	if ou, ok := post.Props["override_username"].(string); ok && cfg.ServiceSettings.EnablePostUsernameOverride {
+	if ou, ok := post.Props["override_username"].(string); ok && *cfg.ServiceSettings.EnablePostUsernameOverride {
 		msg.OverrideUsername = ou
 	}
 
-	if oi, ok := post.Props["override_icon_url"].(string); ok && cfg.ServiceSettings.EnablePostIconOverride {
+	if oi, ok := post.Props["override_icon_url"].(string); ok && *cfg.ServiceSettings.EnablePostIconOverride {
 		msg.OverrideIconUrl = oi
 	}
 
@@ -130,7 +130,7 @@ func (a *App) sendPushNotification(notification *postNotification, user *model.U
 	}
 
 	channelName := notification.GetChannelName(nameFormat, user.Id)
-	senderName := notification.GetSenderName(nameFormat, cfg.ServiceSettings.EnablePostUsernameOverride)
+	senderName := notification.GetSenderName(nameFormat, *cfg.ServiceSettings.EnablePostUsernameOverride)
 
 	c := a.Srv.PushNotificationsHub.GetGoChannelFromUserId(user.Id)
 	c <- PushNotification{
@@ -273,7 +273,12 @@ func (a *App) StopPushNotificationsHubWorkers() {
 func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session) {
 	msg.ServerId = a.DiagnosticId()
 
-	request, _ := http.NewRequest("POST", strings.TrimRight(*a.Config().EmailSettings.PushNotificationServer, "/")+model.API_URL_SUFFIX_V1+"/send_push", strings.NewReader(msg.ToJson()))
+	request, err := http.NewRequest("POST", strings.TrimRight(*a.Config().EmailSettings.PushNotificationServer, "/")+model.API_URL_SUFFIX_V1+"/send_push", strings.NewReader(msg.ToJson()))
+	if err != nil {
+		mlog.Error(fmt.Sprintf("Error sending to push proxy: UserId=%v SessionId=%v message=%v",
+			session.UserId, session.Id, err.Error()), mlog.String("user_id", session.UserId))
+		return
+	}
 
 	resp, err := a.HTTPService.MakeClient(true).Do(request)
 	if err != nil {
@@ -281,10 +286,9 @@ func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session
 		return
 	}
 
+	defer resp.Body.Close()
+
 	pushResponse := model.PushResponseFromJson(resp.Body)
-	if resp.Body != nil {
-		consumeAndClose(resp)
-	}
 
 	if pushResponse[model.PUSH_STATUS] == model.PUSH_STATUS_REMOVE {
 		mlog.Info(fmt.Sprintf("Device was reported as removed for UserId=%v SessionId=%v removing push for this session", session.UserId, session.Id), mlog.String("user_id", session.UserId))
@@ -313,13 +317,14 @@ func ShouldSendPushNotification(user *model.User, channelNotifyProps model.Strin
 func DoesNotifyPropsAllowPushNotification(user *model.User, channelNotifyProps model.StringMap, post *model.Post, wasMentioned bool) bool {
 	userNotifyProps := user.NotifyProps
 	userNotify := userNotifyProps[model.PUSH_NOTIFY_PROP]
-	channelNotify, ok := channelNotifyProps[model.PUSH_NOTIFY_PROP]
+	channelNotify, _ := channelNotifyProps[model.PUSH_NOTIFY_PROP]
+	if channelNotify == "" {
+		channelNotify = model.CHANNEL_NOTIFY_DEFAULT
+	}
 
 	// If the channel is muted do not send push notifications
-	if channelMuted, ok := channelNotifyProps[model.MARK_UNREAD_NOTIFY_PROP]; ok {
-		if channelMuted == model.CHANNEL_MARK_UNREAD_MENTION {
-			return false
-		}
+	if channelNotifyProps[model.MARK_UNREAD_NOTIFY_PROP] == model.CHANNEL_MARK_UNREAD_MENTION {
+		return false
 	}
 
 	if post.IsSystemMessage() {
@@ -334,7 +339,7 @@ func DoesNotifyPropsAllowPushNotification(user *model.User, channelNotifyProps m
 		return false
 	}
 
-	if userNotify == model.USER_NOTIFY_MENTION && (!ok || channelNotify == model.CHANNEL_NOTIFY_DEFAULT) && !wasMentioned {
+	if userNotify == model.USER_NOTIFY_MENTION && channelNotify == model.CHANNEL_NOTIFY_DEFAULT && !wasMentioned {
 		return false
 	}
 
@@ -344,7 +349,7 @@ func DoesNotifyPropsAllowPushNotification(user *model.User, channelNotifyProps m
 	}
 
 	if userNotify == model.USER_NOTIFY_NONE &&
-		(!ok || channelNotify == model.CHANNEL_NOTIFY_DEFAULT) {
+		channelNotify == model.CHANNEL_NOTIFY_DEFAULT {
 		return false
 	}
 

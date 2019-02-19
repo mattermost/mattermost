@@ -14,21 +14,21 @@ import (
 	"github.com/mattermost/mattermost-server/mlog"
 )
 
+const MaxOpenGraphResponseSize = 1024 * 1024 * 50
+
 func (a *App) GetOpenGraphMetadata(requestURL string) *opengraph.OpenGraph {
 	res, err := a.HTTPService.MakeClient(false).Get(requestURL)
 	if err != nil {
 		mlog.Error("GetOpenGraphMetadata request failed", mlog.String("requestURL", requestURL), mlog.Any("err", err))
 		return nil
 	}
-	defer consumeAndClose(res)
-
+	defer res.Body.Close()
 	return a.ParseOpenGraphMetadata(requestURL, res.Body, res.Header.Get("Content-Type"))
 }
 
 func (a *App) ParseOpenGraphMetadata(requestURL string, body io.Reader, contentType string) *opengraph.OpenGraph {
 	og := opengraph.NewOpenGraph()
-
-	body = forceHTMLEncodingToUTF8(body, contentType)
+	body = forceHTMLEncodingToUTF8(io.LimitReader(body, MaxOpenGraphResponseSize), contentType)
 
 	if err := og.ProcessHTML(body); err != nil {
 		mlog.Error("ParseOpenGraphMetadata processing failed", mlog.String("requestURL", requestURL), mlog.Any("err", err))

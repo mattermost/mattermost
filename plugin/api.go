@@ -55,6 +55,11 @@ type API interface {
 	// DeleteUser deletes a user.
 	DeleteUser(userId string) *model.AppError
 
+	// GetUsers a list of users based on search options.
+	//
+	// Minimum server version: 5.10
+	GetUsers(*model.UserGetOptions) ([]*model.User, *model.AppError)
+
 	// GetUser gets a user.
 	GetUser(userId string) (*model.User, *model.AppError)
 
@@ -144,6 +149,11 @@ type API interface {
 	// UpdateTeam updates a team.
 	UpdateTeam(team *model.Team) (*model.Team, *model.AppError)
 
+	// SearchTeams search a team.
+	//
+	// Minimum server version: 5.8
+	SearchTeams(term string) ([]*model.Team, *model.AppError)
+
 	// GetTeamsForUser returns list of teams of given user ID.
 	//
 	// Minimum server version: 5.6
@@ -215,6 +225,11 @@ type API interface {
 	//
 	// Minimum server version: 5.6
 	SearchUsers(search *model.UserSearch) ([]*model.User, *model.AppError)
+
+	// SearchPostsInTeam returns a list of posts in a specific team that match the given params.
+	//
+	// Minimum server version: 5.10
+	SearchPostsInTeam(teamId string, paramsList []*model.SearchParams) ([]*model.Post, *model.AppError)
 
 	// AddChannelMember creates a channel membership for a user.
 	AddChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError)
@@ -293,6 +308,11 @@ type API interface {
 	// Minimum server version: 5.6
 	GetPostsForChannel(channelId string, page, perPage int) (*model.PostList, *model.AppError)
 
+	// GetTeamStats gets a team's statistics
+	//
+	// Minimum server version: 5.8
+	GetTeamStats(teamId string) (*model.TeamStats, *model.AppError)
+
 	// UpdatePost updates a post.
 	UpdatePost(post *model.Post) (*model.Post, *model.AppError)
 
@@ -335,6 +355,11 @@ type API interface {
 	//
 	// Minimum server version: 5.3
 	GetFileInfo(fileId string) (*model.FileInfo, *model.AppError)
+
+	// GetFile gets content of a file by it's ID
+	//
+	// Minimum Server version: 5.8
+	GetFile(fileId string) ([]byte, *model.AppError)
 
 	// GetFileLink gets the public link to a file by fileId.
 	//
@@ -417,9 +442,9 @@ type API interface {
 	KVList(page, perPage int) ([]string, *model.AppError)
 
 	// PublishWebSocketEvent sends an event to WebSocket connections.
-	// event is the type and will be prepended with "custom_<pluginid>_"
-	// payload is the data sent with the event. Interface values must be primitive Go types or mattermost-server/model types
-	// broadcast determines to which users to send the event
+	// event is the type and will be prepended with "custom_<pluginid>_".
+	// payload is the data sent with the event. Interface values must be primitive Go types or mattermost-server/model types.
+	// broadcast determines to which users to send the event.
 	PublishWebSocketEvent(event string, payload map[string]interface{}, broadcast *model.WebsocketBroadcast)
 
 	// HasPermissionTo check if the user has the permission at system scope.
@@ -460,6 +485,11 @@ type API interface {
 	// do not need to add that info.
 	// keyValuePairs should be primitive go types or other values that can be encoded by encoding/gob
 	LogWarn(msg string, keyValuePairs ...interface{})
+
+	// SendMail sends an email to a specific address
+	//
+	// Minimum server version: 5.7
+	SendMail(to, subject, htmlBody string) *model.AppError
 }
 
 var handshake = plugin.HandshakeConfig{

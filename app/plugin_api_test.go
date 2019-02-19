@@ -15,9 +15,11 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/mattermost/mattermost-server/services/mailservice"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -45,8 +47,95 @@ func setupPluginApiTest(t *testing.T, pluginCode string, pluginManifest string, 
 	app.SetPluginsEnvironment(env)
 }
 
+func TestPluginAPIGetUsers(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	user1, err := th.App.CreateUser(&model.User{
+		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
+		Password: "password",
+		Username: "user1" + model.NewId(),
+	})
+	require.Nil(t, err)
+	defer th.App.PermanentDeleteUser(user1)
+
+	user2, err := th.App.CreateUser(&model.User{
+		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
+		Password: "password",
+		Username: "user2" + model.NewId(),
+	})
+	require.Nil(t, err)
+	defer th.App.PermanentDeleteUser(user2)
+
+	user3, err := th.App.CreateUser(&model.User{
+		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
+		Password: "password",
+		Username: "user3" + model.NewId(),
+	})
+	require.Nil(t, err)
+	defer th.App.PermanentDeleteUser(user3)
+
+	user4, err := th.App.CreateUser(&model.User{
+		Email:    strings.ToLower(model.NewId()) + "success+test@example.com",
+		Password: "password",
+		Username: "user4" + model.NewId(),
+	})
+	require.Nil(t, err)
+	defer th.App.PermanentDeleteUser(user4)
+
+	testCases := []struct {
+		Description   string
+		Page          int
+		PerPage       int
+		ExpectedUsers []*model.User
+	}{
+		{
+			"page 0, perPage 0",
+			0,
+			0,
+			[]*model.User{},
+		},
+		{
+			"page 0, perPage 10",
+			0,
+			10,
+			[]*model.User{user1, user2, user3, user4},
+		},
+		{
+			"page 0, perPage 2",
+			0,
+			2,
+			[]*model.User{user1, user2},
+		},
+		{
+			"page 1, perPage 2",
+			1,
+			2,
+			[]*model.User{user3, user4},
+		},
+		{
+			"page 10, perPage 10",
+			10,
+			10,
+			[]*model.User{},
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.Description, func(t *testing.T) {
+			users, err := api.GetUsers(&model.UserGetOptions{
+				Page:    testCase.Page,
+				PerPage: testCase.PerPage,
+			})
+			assert.Nil(t, err)
+			assert.Equal(t, testCase.ExpectedUsers, users)
+		})
+	}
+}
+
 func TestPluginAPIGetUsersInTeam(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
@@ -155,7 +244,7 @@ func TestPluginAPIGetUsersInTeam(t *testing.T) {
 }
 
 func TestPluginAPIUpdateUserStatus(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
@@ -173,8 +262,33 @@ func TestPluginAPIUpdateUserStatus(t *testing.T) {
 	assert.Nil(t, status)
 }
 
+func TestPluginAPIGetFile(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	// check a valid file first
+	uploadTime := time.Date(2007, 2, 4, 1, 2, 3, 4, time.Local)
+	filename := "testGetFile"
+	fileData := []byte("Hello World")
+	info, err := th.App.DoUploadFile(uploadTime, th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, filename, fileData)
+	require.Nil(t, err)
+	defer func() {
+		<-th.App.Srv.Store.FileInfo().PermanentDelete(info.Id)
+		th.App.RemoveFile(info.Path)
+	}()
+
+	data, err1 := api.GetFile(info.Id)
+	require.Nil(t, err1)
+	assert.Equal(t, data, fileData)
+
+	// then checking invalid file
+	data, err = api.GetFile("../fake/testingApi")
+	require.NotNil(t, err)
+	require.Nil(t, data)
+}
 func TestPluginAPISavePluginConfig(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	manifest := &model.Manifest{
@@ -221,7 +335,7 @@ func TestPluginAPISavePluginConfig(t *testing.T) {
 }
 
 func TestPluginAPIGetPluginConfig(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	manifest := &model.Manifest{
@@ -252,7 +366,7 @@ func TestPluginAPIGetPluginConfig(t *testing.T) {
 }
 
 func TestPluginAPILoadPluginConfiguration(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	var pluginJson map[string]interface{}
@@ -323,7 +437,7 @@ func TestPluginAPILoadPluginConfiguration(t *testing.T) {
 }
 
 func TestPluginAPILoadPluginConfigurationDefaults(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	var pluginJson map[string]interface{}
@@ -397,7 +511,7 @@ func TestPluginAPILoadPluginConfigurationDefaults(t *testing.T) {
 }
 
 func TestPluginAPIGetProfileImage(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
@@ -413,7 +527,7 @@ func TestPluginAPIGetProfileImage(t *testing.T) {
 }
 
 func TestPluginAPISetProfileImage(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
@@ -443,7 +557,7 @@ func TestPluginAPISetProfileImage(t *testing.T) {
 }
 
 func TestPluginAPIGetPlugins(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
@@ -501,7 +615,7 @@ func TestPluginAPIGetPlugins(t *testing.T) {
 }
 
 func TestPluginAPIGetTeamIcon(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
@@ -532,7 +646,7 @@ func TestPluginAPIGetTeamIcon(t *testing.T) {
 }
 
 func TestPluginAPISetTeamIcon(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
@@ -562,7 +676,7 @@ func TestPluginAPISetTeamIcon(t *testing.T) {
 }
 
 func TestPluginAPISearchChannels(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
@@ -579,8 +693,54 @@ func TestPluginAPISearchChannels(t *testing.T) {
 	})
 }
 
+func TestPluginAPISearchPostsInTeam(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	testCases := []struct {
+		description      string
+		teamId           string
+		params           []*model.SearchParams
+		expectedPostsLen int
+	}{
+		{
+			"nil params",
+			th.BasicTeam.Id,
+			nil,
+			0,
+		},
+		{
+			"empty params",
+			th.BasicTeam.Id,
+			[]*model.SearchParams{},
+			0,
+		},
+		{
+			"doesn't match any posts",
+			th.BasicTeam.Id,
+			model.ParseSearchParams("bad message", 0),
+			0,
+		},
+		{
+			"matched posts",
+			th.BasicTeam.Id,
+			model.ParseSearchParams(th.BasicPost.Message, 0),
+			1,
+		},
+	}
+
+	for _, testCase := range testCases {
+		t.Run(testCase.description, func(t *testing.T) {
+			posts, err := api.SearchPostsInTeam(testCase.teamId, testCase.params)
+			assert.Nil(t, err)
+			assert.Equal(t, testCase.expectedPostsLen, len(posts))
+		})
+	}
+}
+
 func TestPluginAPIGetChannelsForTeamForUser(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
@@ -598,7 +758,7 @@ func TestPluginAPIGetChannelsForTeamForUser(t *testing.T) {
 }
 
 func TestPluginAPIRemoveTeamIcon(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
@@ -621,7 +781,7 @@ func TestPluginAPIRemoveTeamIcon(t *testing.T) {
 }
 
 func TestPluginAPIUpdateUserActive(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
@@ -648,7 +808,7 @@ func TestPluginAPIUpdateUserActive(t *testing.T) {
 }
 
 func TestPluginAPIGetDirectChannel(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
 
@@ -663,4 +823,61 @@ func TestPluginAPIGetDirectChannel(t *testing.T) {
 	dm3, err := api.GetDirectChannel(th.BasicUser.Id, model.NewId())
 	require.NotNil(t, err)
 	require.Empty(t, dm3)
+}
+
+func TestPluginAPISendMail(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	to := th.BasicUser.Email
+	subject := "testing plugin api sending email"
+	body := "this is a test."
+
+	err := api.SendMail(to, subject, body)
+	require.Nil(t, err)
+
+	// Check if we received the email
+	var resultsMailbox mailservice.JSONMessageHeaderInbucket
+	errMail := mailservice.RetryInbucket(5, func() error {
+		var err error
+		resultsMailbox, err = mailservice.GetMailBox(to)
+		return err
+	})
+	require.Nil(t, errMail)
+	require.NotZero(t, len(resultsMailbox))
+	require.True(t, strings.ContainsAny(resultsMailbox[len(resultsMailbox)-1].To[0], to))
+
+	resultsEmail, err1 := mailservice.GetMessageFromMailbox(to, resultsMailbox[len(resultsMailbox)-1].ID)
+	require.Nil(t, err1)
+	require.Equal(t, resultsEmail.Subject, subject)
+	require.Equal(t, resultsEmail.Body.Text, body)
+
+}
+
+func TestPluginAPI_SearchTeams(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	api := th.SetupPluginAPI()
+
+	t.Run("all fine", func(t *testing.T) {
+		teams, err := api.SearchTeams(th.BasicTeam.Name)
+		assert.Nil(t, err)
+		assert.Len(t, teams, 1)
+
+		teams, err = api.SearchTeams(th.BasicTeam.DisplayName)
+		assert.Nil(t, err)
+		assert.Len(t, teams, 1)
+
+		teams, err = api.SearchTeams(th.BasicTeam.Name[:3])
+		assert.Nil(t, err)
+		assert.Len(t, teams, 1)
+	})
+
+	t.Run("invalid team name", func(t *testing.T) {
+		teams, err := api.SearchTeams("not found")
+		assert.Nil(t, err)
+		assert.Empty(t, teams)
+	})
 }

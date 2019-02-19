@@ -15,7 +15,7 @@ import (
 )
 
 func TestCreateTeam(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -37,7 +37,7 @@ func TestCreateTeam(t *testing.T) {
 }
 
 func TestCreateTeamWithUser(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -58,7 +58,7 @@ func TestCreateTeamWithUser(t *testing.T) {
 }
 
 func TestUpdateTeam(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.BasicTeam.DisplayName = "Testing 123"
@@ -74,7 +74,7 @@ func TestUpdateTeam(t *testing.T) {
 }
 
 func TestAddUserToTeam(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	t.Run("add user", func(t *testing.T) {
@@ -113,12 +113,27 @@ func TestAddUserToTeam(t *testing.T) {
 		}
 
 		user := model.User{Email: strings.ToLower(model.NewId()) + "test@invalid.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
-		ruser, _ := th.App.CreateUser(&user)
+		ruser, err := th.App.CreateUser(&user)
+		if err != nil {
+			t.Fatalf("Error creating user: %s", err)
+		}
+		defer th.App.PermanentDeleteUser(&user)
+
+		if _, err = th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, ""); err == nil || err.Where != "JoinUserToTeam" {
+			t.Log(err)
+			t.Fatal("Should not add restricted user")
+		}
+
+		user = model.User{Email: strings.ToLower(model.NewId()) + "test@invalid.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), AuthService: "notnil", AuthData: model.NewString("notnil")}
+		ruser, err = th.App.CreateUser(&user)
+		if err != nil {
+			t.Fatalf("Error creating authservice user: %s", err)
+		}
 		defer th.App.PermanentDeleteUser(&user)
 
 		if _, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, ""); err == nil || err.Where != "JoinUserToTeam" {
 			t.Log(err)
-			t.Fatal("Should not add restricted user")
+			t.Fatal("Should not add authservice user")
 		}
 	})
 
@@ -173,7 +188,7 @@ func TestAddUserToTeam(t *testing.T) {
 }
 
 func TestAddUserToTeamByToken(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
@@ -274,7 +289,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 }
 
 func TestAddUserToTeamByTeamId(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	t.Run("add user", func(t *testing.T) {
@@ -307,7 +322,7 @@ func TestAddUserToTeamByTeamId(t *testing.T) {
 }
 
 func TestPermanentDeleteTeam(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	team, err := th.App.CreateTeam(&model.Team{
@@ -339,9 +354,8 @@ func TestPermanentDeleteTeam(t *testing.T) {
 		t.Fatal("unable to get new command")
 	}
 
-	if err := th.App.PermanentDeleteTeam(team); err != nil {
-		t.Fatal(err.Error())
-	}
+	err = th.App.PermanentDeleteTeam(team)
+	require.Nil(t, err)
 
 	if command, err = th.App.GetCommand(command.Id); command != nil || err == nil {
 		t.Fatal("command wasn't deleted")
@@ -369,7 +383,7 @@ func TestPermanentDeleteTeam(t *testing.T) {
 }
 
 func TestSanitizeTeam(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	team := &model.Team{
@@ -499,7 +513,7 @@ func TestSanitizeTeam(t *testing.T) {
 }
 
 func TestSanitizeTeams(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	t.Run("not a system admin", func(t *testing.T) {
@@ -583,7 +597,7 @@ func TestSanitizeTeams(t *testing.T) {
 }
 
 func TestJoinUserToTeam(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -671,7 +685,7 @@ func TestJoinUserToTeam(t *testing.T) {
 }
 
 func TestAppUpdateTeamScheme(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	team := th.BasicTeam
@@ -689,7 +703,7 @@ func TestAppUpdateTeamScheme(t *testing.T) {
 }
 
 func TestGetTeamMembers(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	var userIDs sort.StringSlice
@@ -728,4 +742,16 @@ func TestGetTeamMembers(t *testing.T) {
 	for i, member := range members {
 		assert.Equal(t, userIDs[i], member.UserId)
 	}
+}
+
+func TestGetTeamStats(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	teamStats, err := th.App.GetTeamStats(th.BasicTeam.Id)
+	require.Nil(t, err)
+	require.NotNil(t, teamStats)
+	members, err := th.App.GetTeamMembers(th.BasicTeam.Id, 0, 5)
+	require.Nil(t, err)
+	assert.Equal(t, int64(len(members)), teamStats.TotalMemberCount)
 }

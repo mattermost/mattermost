@@ -28,8 +28,10 @@ import (
 	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/services/mfa"
 	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 )
 
 const (
@@ -159,7 +161,7 @@ func (a *App) CreateUserFromSignup(user *model.User) (*model.User, *model.AppErr
 }
 
 func (a *App) IsUserSignUpAllowed() *model.AppError {
-	if !a.Config().EmailSettings.EnableSignUpWithEmail || !*a.Config().TeamSettings.EnableUserCreation {
+	if !*a.Config().EmailSettings.EnableSignUpWithEmail || !*a.Config().TeamSettings.EnableUserCreation {
 		err := model.NewAppError("IsUserSignUpAllowed", "api.user.create_user.signup_email_disabled.app_error", nil, "", http.StatusNotImplemented)
 		return err
 	}
@@ -181,8 +183,10 @@ func (a *App) IsFirstUserAccount() bool {
 	return false
 }
 
+// CreateUser creates a user and sets several fields of the returned User struct to
+// their zero values.
 func (a *App) CreateUser(user *model.User) (*model.User, *model.AppError) {
-	if !user.IsLDAPUser() && !user.IsSAMLUser() && !CheckUserDomain(user, a.Config().TeamSettings.RestrictCreationToDomains) {
+	if !user.IsLDAPUser() && !user.IsSAMLUser() && !CheckUserDomain(user, *a.Config().TeamSettings.RestrictCreationToDomains) {
 		return nil, model.NewAppError("CreateUser", "api.user.create_user.accepted_domain.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -210,6 +214,16 @@ func (a *App) CreateUser(user *model.User) (*model.User, *model.AppError) {
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_NEW_USER, "", "", "", nil)
 	message.Add("user_id", ruser.Id)
 	a.Publish(message)
+
+	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
+		a.Srv.Go(func() {
+			pluginContext := a.PluginContext()
+			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+				hooks.UserHasBeenCreated(pluginContext, user)
+				return true
+			}, plugin.UserHasBeenCreatedId)
+		})
+	}
 
 	return ruser, nil
 }
@@ -372,32 +386,16 @@ func (a *App) GetUserByAuth(authData *string, authService string) (*model.User, 
 	return result.Data.(*model.User), nil
 }
 
-func (a *App) GetUsers(offset int, limit int) ([]*model.User, *model.AppError) {
-	result := <-a.Srv.Store.User().GetAllProfiles(offset, limit)
+func (a *App) GetUsers(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
+	result := <-a.Srv.Store.User().GetAllProfiles(options)
 	if result.Err != nil {
 		return nil, result.Err
 	}
 	return result.Data.([]*model.User), nil
 }
 
-func (a *App) GetUsersMap(offset int, limit int, asAdmin bool) (map[string]*model.User, *model.AppError) {
-	users, err := a.GetUsers(offset, limit)
-	if err != nil {
-		return nil, err
-	}
-
-	userMap := make(map[string]*model.User, len(users))
-
-	for _, user := range users {
-		a.SanitizeProfile(user, asAdmin)
-		userMap[user.Id] = user
-	}
-
-	return userMap, nil
-}
-
-func (a *App) GetUsersPage(page int, perPage int, asAdmin bool) ([]*model.User, *model.AppError) {
-	users, err := a.GetUsers(page*perPage, perPage)
+func (a *App) GetUsersPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
+	users, err := a.GetUsers(options)
 	if err != nil {
 		return nil, err
 	}
@@ -409,8 +407,8 @@ func (a *App) GetUsersEtag() string {
 	return fmt.Sprintf("%v.%v.%v", (<-a.Srv.Store.User().GetEtagForAllProfiles()).Data.(string), a.Config().PrivacySettings.ShowFullName, a.Config().PrivacySettings.ShowEmailAddress)
 }
 
-func (a *App) GetUsersInTeam(teamId string, offset int, limit int) ([]*model.User, *model.AppError) {
-	result := <-a.Srv.Store.User().GetProfiles(teamId, offset, limit)
+func (a *App) GetUsersInTeam(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
+	result := <-a.Srv.Store.User().GetProfiles(options)
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -425,24 +423,8 @@ func (a *App) GetUsersNotInTeam(teamId string, offset int, limit int) ([]*model.
 	return result.Data.([]*model.User), nil
 }
 
-func (a *App) GetUsersInTeamMap(teamId string, offset int, limit int, asAdmin bool) (map[string]*model.User, *model.AppError) {
-	users, err := a.GetUsersInTeam(teamId, offset, limit)
-	if err != nil {
-		return nil, err
-	}
-
-	userMap := make(map[string]*model.User, len(users))
-
-	for _, user := range users {
-		a.SanitizeProfile(user, asAdmin)
-		userMap[user.Id] = user
-	}
-
-	return userMap, nil
-}
-
-func (a *App) GetUsersInTeamPage(teamId string, page int, perPage int, asAdmin bool) ([]*model.User, *model.AppError) {
-	users, err := a.GetUsersInTeam(teamId, page*perPage, perPage)
+func (a *App) GetUsersInTeamPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
+	users, err := a.GetUsersInTeam(options)
 	if err != nil {
 		return nil, err
 	}
@@ -707,7 +689,7 @@ func getFont(initialFont string) (*truetype.Font, error) {
 		initialFont = "nunito-bold.ttf"
 	}
 
-	fontDir, _ := utils.FindDir("fonts")
+	fontDir, _ := fileutils.FindDir("fonts")
 	fontBytes, err := ioutil.ReadFile(filepath.Join(fontDir, initialFont))
 	if err != nil {
 		return nil, err
@@ -718,7 +700,7 @@ func getFont(initialFont string) (*truetype.Font, error) {
 
 func (a *App) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) {
 	if len(*a.Config().FileSettings.DriverName) == 0 {
-		img, appErr := CreateProfileImage(user.Username, user.Id, a.Config().FileSettings.InitialFont)
+		img, appErr := CreateProfileImage(user.Username, user.Id, *a.Config().FileSettings.InitialFont)
 		if appErr != nil {
 			return nil, false, appErr
 		}
@@ -729,7 +711,7 @@ func (a *App) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) 
 
 	data, err := a.ReadFile(path)
 	if err != nil {
-		img, appErr := CreateProfileImage(user.Username, user.Id, a.Config().FileSettings.InitialFont)
+		img, appErr := CreateProfileImage(user.Username, user.Id, *a.Config().FileSettings.InitialFont)
 		if appErr != nil {
 			return nil, false, appErr
 		}
@@ -746,7 +728,7 @@ func (a *App) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) 
 }
 
 func (a *App) GetDefaultProfileImage(user *model.User) ([]byte, *model.AppError) {
-	img, appErr := CreateProfileImage(user.Username, user.Id, a.Config().FileSettings.InitialFont)
+	img, appErr := CreateProfileImage(user.Username, user.Id, *a.Config().FileSettings.InitialFont)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -754,7 +736,7 @@ func (a *App) GetDefaultProfileImage(user *model.User) ([]byte, *model.AppError)
 }
 
 func (a *App) SetDefaultProfileImage(user *model.User) *model.AppError {
-	img, appErr := CreateProfileImage(user.Username, user.Id, a.Config().FileSettings.InitialFont)
+	img, appErr := CreateProfileImage(user.Username, user.Id, *a.Config().FileSettings.InitialFont)
 	if appErr != nil {
 		return appErr
 	}
@@ -872,7 +854,7 @@ func (a *App) UpdatePasswordAsUser(userId, currentPassword, newPassword string) 
 		return err
 	}
 
-	if err := a.doubleCheckPassword(user, currentPassword); err != nil {
+	if err := a.DoubleCheckPassword(user, currentPassword); err != nil {
 		if err.Id == "api.user.check_user_password.invalid.app_error" {
 			err = model.NewAppError("updatePassword", "api.user.update_password.incorrect.app_error", nil, "", http.StatusBadRequest)
 		}
@@ -929,13 +911,19 @@ func (a *App) UpdateActive(user *model.User, active bool) (*model.User, *model.A
 	return ruser, nil
 }
 
-func (a *App) SanitizeProfile(user *model.User, asAdmin bool) {
+func (a *App) GetSanitizeOptions(asAdmin bool) map[string]bool {
 	options := a.Config().GetSanitizeOptions()
 	if asAdmin {
 		options["email"] = true
 		options["fullname"] = true
 		options["authservice"] = true
 	}
+	return options
+}
+
+func (a *App) SanitizeProfile(user *model.User, asAdmin bool) {
+	options := a.GetSanitizeOptions(asAdmin)
+
 	user.SanitizeProfile(options)
 }
 
@@ -1008,7 +996,7 @@ func (a *App) sendUpdatedUserEvent(user model.User) {
 }
 
 func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User, *model.AppError) {
-	if !CheckUserDomain(user, a.Config().TeamSettings.RestrictCreationToDomains) {
+	if !CheckUserDomain(user, *a.Config().TeamSettings.RestrictCreationToDomains) {
 		result := <-a.Srv.Store.User().Get(user.Id)
 		if result.Err != nil {
 			return nil, result.Err
@@ -1033,7 +1021,7 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 				}
 			})
 
-			if a.Config().EmailSettings.RequireEmailVerification {
+			if *a.Config().EmailSettings.RequireEmailVerification {
 				a.Srv.Go(func() {
 					if err := a.SendEmailVerification(rusers[0]); err != nil {
 						mlog.Error(err.Error())
