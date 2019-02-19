@@ -9,14 +9,16 @@ import (
 )
 
 func TestNewStore(t *testing.T) {
+	sqlSettings := mainHelper.GetSqlSettings()
+
 	t.Run("database dsn", func(t *testing.T) {
-		ds, err := config.NewStore(fmt.Sprintf("%s://%s", *mainHelper.Settings.DriverName, *mainHelper.Settings.DataSource), false)
+		ds, err := config.NewStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource), false)
 		require.NoError(t, err)
 		ds.Close()
 	})
 
 	t.Run("database dsn, watch ignored", func(t *testing.T) {
-		ds, err := config.NewStore(fmt.Sprintf("%s://%s", *mainHelper.Settings.DriverName, *mainHelper.Settings.DataSource), true)
+		ds, err := config.NewStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource), true)
 		require.NoError(t, err)
 		ds.Close()
 	})

@@ -874,7 +874,7 @@ func TestErrorString(t *testing.T) {
 			package main
 
 			import (
-				"github.com/pkg/errors"
+				"errors"
 
 				"github.com/mattermost/mattermost-server/plugin"
 			)
