@@ -26,8 +26,6 @@ func TestPlugin(t *testing.T) {
 
 	path, _ := fileutils.FindDir("tests")
 
-	os.Chdir(filepath.Join("..", "..", ".."))
-
 	th.CheckCommand(t, "plugin", "add", filepath.Join(path, "testplugin.tar.gz"))
 
 	th.CheckCommand(t, "plugin", "enable", "testplugin")
@@ -45,6 +43,4 @@ func TestPlugin(t *testing.T) {
 	th.CheckCommand(t, "plugin", "list")
 
 	th.CheckCommand(t, "plugin", "delete", "testplugin")
-
-	os.Chdir(filepath.Join("cmd", "mattermost", "commands"))
 }
