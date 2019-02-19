@@ -594,7 +594,7 @@ func TestPluginAPIGetPlugins(t *testing.T) {
 		compileGo(t, pluginCode, backend)
 
 		ioutil.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(fmt.Sprintf(`{"id": "%s", "server": {"executable": "backend.exe"}}`, pluginID)), 0600)
-		manifest, activated, reterr := env.Activate(pluginID, th.App.Config)
+		manifest, activated, reterr := env.Activate(pluginID, th.App.Config())
 
 		require.Nil(t, reterr)
 		require.NotNil(t, manifest)
