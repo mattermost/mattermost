@@ -244,7 +244,7 @@ type API interface {
 
 	// GetChannelMembers gets a channel membership for all users.
 	//
-	// Minimum server version: 5.8
+	// Minimum server version: 5.6
 	GetChannelMembers(channelId string, page, perPage int) (*model.ChannelMembers, *model.AppError)
 
 	// GetChannelMembersByIds gets a channel membership for a particular User
