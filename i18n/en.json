@@ -105,7 +105,7 @@
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
-    "translation": "An error occurred while deleting the certificate. Make sure the file config/{{.Filename}} exists."
+    "translation": "An error occurred while deleting the certificate."
   },
   {
     "id": "api.admin.saml.metadata.app_error",
