@@ -96,6 +96,7 @@ func UpgradeDatabase(sqlStore SqlStore) {
 	UpgradeDatabaseToVersion56(sqlStore)
 	UpgradeDatabaseToVersion57(sqlStore)
 	UpgradeDatabaseToVersion58(sqlStore)
+	UpgradeDatabaseToVersion59(sqlStore)
 
 	// If the SchemaVersion is empty this this is the first time it has ran
 	// so lets set it to the current version.
