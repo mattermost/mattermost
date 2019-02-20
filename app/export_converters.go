@@ -140,6 +140,18 @@ func ImportLineForPost(post *model.PostForExport) *LineImportData {
 	}
 }
 
+func ImportLineForDirectPost(post *model.DirectPostForExport) *LineImportData {
+	return &LineImportData{
+		Type: "direct_post",
+		DirectPost: &DirectPostImportData{
+			ChannelMembers: post.ChannelMembers,
+			User:           &post.Username,
+			Message:        &post.Message,
+			CreateAt:       &post.CreateAt,
+		},
+	}
+}
+
 func ImportReplyFromPost(post *model.ReplyForExport) *ReplyImportData {
 	return &ReplyImportData{
 		User:     &post.Username,

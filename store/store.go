@@ -227,6 +227,7 @@ type PostStore interface {
 	GetMaxPostSize() StoreChannel
 	GetParentsForExportAfter(limit int, afterId string) StoreChannel
 	GetRepliesForExport(parentId string) StoreChannel
+	GetDirectPostParentsForExportAfter(limit int, afterId string) StoreChannel
 }
 
 type UserStore interface {

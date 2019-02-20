@@ -1368,3 +1368,42 @@ func (s *SqlPostStore) GetRepliesForExport(parentId string) store.StoreChannel {
 		}
 	})
 }
+
+func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		var posts []*model.DirectPostForExport
+		_, err1 := s.GetSearchReplica().Select(&posts, `
+                SELECT
+                    p1.*,
+                    Users.Username as Username,
+				group_concat(
+                        (SELECT UserName from Users where Id = cm.UserId)
+                    ) as Usernames
+                FROM
+                    Posts p1
+                INNER JOIN
+                    Channels ON p1.ChannelId = Channels.Id AND Channels.Type in ('D','G')
+                INNER JOIN
+		    Users ON p1.UserId = Users.Id
+                INNER JOIN
+                    ChannelMembers cm ON cm.ChannelId = Channels.Id
+                WHERE
+                    p1.Id > :AfterId
+                    AND p1.ParentId = ''
+                    AND p1.DeleteAt = 0
+                    AND Channels.DeleteAt = 0
+                    AND Users.DeleteAt = 0
+                GROUP BY Channels.Id,p1.Id
+                ORDER BY
+                    p1.Id
+                LIMIT
+                    :Limit`,
+			map[string]interface{}{"Limit": limit, "AfterId": afterId})
+
+		if err1 != nil {
+			result.Err = model.NewAppError("SqlPostStore.GetDirectPostParentsForExportAfter", "store.sql_post.get_direct_posts.app_error", nil, err1.Error(), http.StatusInternalServerError)
+		} else {
+			result.Data = posts
+		}
+	})
+}

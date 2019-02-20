@@ -73,6 +73,9 @@ func (a *App) BulkExport(writer io.Writer, file string, pathToEmojiDir string, d
 	if err := a.ExportCustomEmoji(writer, file, pathToEmojiDir, dirNameToExportEmoji); err != nil {
 		return err
 	}
+	if err := a.ExportAllDirectPosts(writer); err != nil {
+		return err
+	}
 
 	return nil
 }
@@ -506,5 +509,53 @@ func (a *App) copyEmojiImages(emojiId string, emojiImagePath string, pathToDir s
 		return errors.New("Error copying emojis " + err.Error())
 	}
 
+	return nil
+}
+
+func (a *App) ExportAllDirectPosts(writer io.Writer) *model.AppError {
+	afterId := strings.Repeat("0", 26)
+	for {
+		result := <-a.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, afterId)
+
+		if result.Err != nil {
+			return result.Err
+		}
+
+		posts := result.Data.([]*model.DirectPostForExport)
+
+		if len(posts) == 0 {
+			break
+		}
+
+		for _, post := range posts {
+			afterId = post.Id
+
+			// Skip deleted.
+			if post.DeleteAt != 0 {
+				continue
+			}
+
+			postLine := ImportLineForDirectPost(post)
+
+			members := strings.Split(post.UserIds, ",")
+			postLine.DirectPost.ChannelMembers = &members
+
+			if len(members) == 1 {
+				continue
+			}
+
+			// Do the Replies.
+			replies, err := a.buildPostReplies(post.Id)
+			if err != nil {
+				return err
+			}
+
+			postLine.DirectPost.Replies = replies
+
+			if err := a.ExportWriteLine(writer, postLine); err != nil {
+				return err
+			}
+		}
+	}
 	return nil
 }
