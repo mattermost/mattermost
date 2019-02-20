@@ -176,7 +176,7 @@ type API interface {
 
 	// GetTeamMembersForUser returns all team memberships for a user.
 	//
-	// Minimum server version: 5.8
+	// Minimum server version: 5.10
 	GetTeamMembersForUser(userId string, page int, perPage int) ([]*model.TeamMember, *model.AppError)
 
 	// UpdateTeamMemberRoles updates the role for a team membership.
@@ -254,7 +254,7 @@ type API interface {
 
 	// GetChannelMembersForUser returns all channel memberships on a team for a user.
 	//
-	// Minimum server version: 5.6
+	// Minimum server version: 5.10
 	GetChannelMembersForUser(teamId, userId string, page, perPage int) (*model.ChannelMembers, *model.AppError)
 
 	// UpdateChannelMemberRoles updates a user's roles for a channel.
