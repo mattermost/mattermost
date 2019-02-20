@@ -6,6 +6,7 @@ package app
 import (
 	"bytes"
 	b64 "encoding/base64"
+	"encoding/json"
 	"fmt"
 	"hash/fnv"
 	"image"
@@ -243,7 +244,7 @@ func (a *App) createUser(user *model.User) (*model.User, *model.AppError) {
 	ruser := result.Data.(*model.User)
 
 	if user.EmailVerified {
-		if err := a.VerifyUserEmail(ruser.Id); err != nil {
+		if err := a.VerifyUserEmail(ruser.Id, user.Email); err != nil {
 			mlog.Error(fmt.Sprintf("Failed to set email verified err=%v", err))
 		}
 	}
@@ -996,34 +997,49 @@ func (a *App) sendUpdatedUserEvent(user model.User) {
 }
 
 func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User, *model.AppError) {
+	result := <-a.Srv.Store.User().Get(user.Id)
+	if result.Err != nil {
+		return nil, result.Err
+	}
+	prev := result.Data.(*model.User)
+
 	if !CheckUserDomain(user, *a.Config().TeamSettings.RestrictCreationToDomains) {
-		result := <-a.Srv.Store.User().Get(user.Id)
-		if result.Err != nil {
-			return nil, result.Err
-		}
-		prev := result.Data.(*model.User)
 		if !prev.IsLDAPUser() && !prev.IsSAMLUser() && user.Email != prev.Email {
 			return nil, model.NewAppError("UpdateUser", "api.user.create_user.accepted_domain.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
 
-	result := <-a.Srv.Store.User().Update(user, false)
+	// Don't set new eMail on user account if email verification is required, this will be done as a post-verification action
+	// to avoid users being able to set non-controlled eMails as their account email
+	newEmail := ""
+	if *a.Config().EmailSettings.RequireEmailVerification && prev.Email != user.Email {
+		newEmail = user.Email
+
+		_, err := a.GetUserByEmail(newEmail)
+		if err == nil {
+			return nil, model.NewAppError("UpdateUser", "store.sql_user.update.email_taken.app_error", nil, "user_id="+user.Id, http.StatusBadRequest)
+		}
+
+		user.Email = prev.Email
+	}
+
+	result = <-a.Srv.Store.User().Update(user, false)
 	if result.Err != nil {
 		return nil, result.Err
 	}
 	rusers := result.Data.([2]*model.User)
 
 	if sendNotifications {
-		if rusers[0].Email != rusers[1].Email {
-			a.Srv.Go(func() {
-				if err := a.SendEmailChangeEmail(rusers[1].Email, rusers[0].Email, rusers[0].Locale, a.GetSiteURL()); err != nil {
-					mlog.Error(err.Error())
-				}
-			})
-
+		if rusers[0].Email != rusers[1].Email || newEmail != "" {
 			if *a.Config().EmailSettings.RequireEmailVerification {
 				a.Srv.Go(func() {
-					if err := a.SendEmailVerification(rusers[0]); err != nil {
+					if err := a.SendEmailVerification(rusers[0], newEmail); err != nil {
+						mlog.Error(err.Error())
+					}
+				})
+			} else {
+				a.Srv.Go(func() {
+					if err := a.SendEmailChangeEmail(rusers[1].Email, rusers[0].Email, rusers[0].Locale, a.GetSiteURL()); err != nil {
 						mlog.Error(err.Error())
 					}
 				})
@@ -1366,16 +1382,16 @@ func (a *App) PermanentDeleteAllUsers() *model.AppError {
 	return nil
 }
 
-func (a *App) SendEmailVerification(user *model.User) *model.AppError {
-	token, err := a.CreateVerifyEmailToken(user.Id)
+func (a *App) SendEmailVerification(user *model.User, newEmail string) *model.AppError {
+	token, err := a.CreateVerifyEmailToken(user.Id, newEmail)
 	if err != nil {
 		return err
 	}
 
 	if _, err := a.GetStatus(user.Id); err != nil {
-		return a.SendVerifyEmail(user.Email, user.Locale, a.GetSiteURL(), token.Token)
+		return a.SendVerifyEmail(newEmail, user.Locale, a.GetSiteURL(), token.Token)
 	}
-	return a.SendEmailChangeVerifyEmail(user.Email, user.Locale, a.GetSiteURL(), token.Token)
+	return a.SendEmailChangeVerifyEmail(newEmail, user.Locale, a.GetSiteURL(), token.Token)
 }
 
 func (a *App) VerifyEmailFromToken(userSuppliedTokenString string) *model.AppError {
@@ -1384,11 +1400,36 @@ func (a *App) VerifyEmailFromToken(userSuppliedTokenString string) *model.AppErr
 		return err
 	}
 	if model.GetMillis()-token.CreateAt >= PASSWORD_RECOVER_EXPIRY_TIME {
-		return model.NewAppError("resetPassword", "api.user.reset_password.link_expired.app_error", nil, "", http.StatusBadRequest)
+		return model.NewAppError("VerifyEmailFromToken", "api.user.verify_email.link_expired.app_error", nil, "", http.StatusBadRequest)
 	}
-	if err := a.VerifyUserEmail(token.Extra); err != nil {
+
+	tokenData := struct {
+		UserId string
+		Email  string
+	}{}
+
+	err2 := json.Unmarshal([]byte(token.Extra), &tokenData)
+	if err2 != nil {
+		return model.NewAppError("VerifyEmailFromToken", "api.user.verify_email.token_parse.error", nil, "", http.StatusInternalServerError)
+	}
+
+	user, err := a.GetUser(tokenData.UserId)
+	if err != nil {
 		return err
 	}
+
+	if err := a.VerifyUserEmail(tokenData.UserId, tokenData.Email); err != nil {
+		return err
+	}
+
+	if user.Email != tokenData.Email {
+		a.Srv.Go(func() {
+			if err := a.SendEmailChangeEmail(user.Email, tokenData.Email, user.Locale, a.GetSiteURL()); err != nil {
+				mlog.Error(err.Error())
+			}
+		})
+	}
+
 	if err := a.DeleteToken(token); err != nil {
 		mlog.Error(err.Error())
 	}
@@ -1396,8 +1437,21 @@ func (a *App) VerifyEmailFromToken(userSuppliedTokenString string) *model.AppErr
 	return nil
 }
 
-func (a *App) CreateVerifyEmailToken(userId string) (*model.Token, *model.AppError) {
-	token := model.NewToken(TOKEN_TYPE_VERIFY_EMAIL, userId)
+func (a *App) CreateVerifyEmailToken(userId string, newEmail string) (*model.Token, *model.AppError) {
+	tokenExtra := struct {
+		UserId string
+		Email  string
+	}{
+		userId,
+		newEmail,
+	}
+	jsonData, err := json.Marshal(tokenExtra)
+
+	if err != nil {
+		return nil, model.NewAppError("CreateVerifyEmailToken", "api.user.create_email_token.error", nil, "", http.StatusInternalServerError)
+	}
+
+	token := model.NewToken(TOKEN_TYPE_VERIFY_EMAIL, string(jsonData))
 
 	if result := <-a.Srv.Store.Token().Save(token); result.Err != nil {
 		return nil, result.Err
@@ -1429,8 +1483,22 @@ func (a *App) GetTotalUsersStats() (*model.UsersStats, *model.AppError) {
 	return stats, nil
 }
 
-func (a *App) VerifyUserEmail(userId string) *model.AppError {
-	return (<-a.Srv.Store.User().VerifyEmail(userId)).Err
+func (a *App) VerifyUserEmail(userId, email string) *model.AppError {
+	err := (<-a.Srv.Store.User().VerifyEmail(userId, email)).Err
+
+	if err != nil {
+		return err
+	}
+
+	user, err := a.GetUser(userId)
+
+	if err != nil {
+		return err
+	}
+
+	a.sendUpdatedUserEvent(*user)
+
+	return nil
 }
 
 func (a *App) SearchUsers(props *model.UserSearch, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
