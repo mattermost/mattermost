@@ -345,11 +345,11 @@
   },
   {
     "id": "api.command.execute_command.failed.app_error",
-    "translation": "Comanda cu o declanşare de ' {{.Trigger}}' nu a reușit."
+    "translation": "Comanda cu o declanşare de '{{.Trigger}}' nu a reușit"
   },
   {
     "id": "api.command.execute_command.failed_empty.app_error",
-    "translation": "Comanda cu un declanşator de ' {{.Trigger}}' a returnat un răspuns gol."
+    "translation": "Comanda cu un declanşator de '{{.Trigger}}' a returnat un răspuns gol"
   },
   {
     "id": "api.command.execute_command.failed_resp.app_error",
@@ -357,7 +357,7 @@
   },
   {
     "id": "api.command.execute_command.not_found.app_error",
-    "translation": "Comanda cu un declanșator de ' {{.Trigger}}' nu a fost găsită. Pentru a trimite un mesaj începând cu \"/\", încercați să adăugați un spațiu gol la începutul mesajului."
+    "translation": "Comanda cu un declanșator de '{{.Trigger}}' nu a fost găsită. Pentru a trimite un mesaj începând cu \"/\", încercați să adăugați un spațiu gol la începutul mesajului."
   },
   {
     "id": "api.command.execute_command.start.app_error",
@@ -1186,7 +1186,7 @@
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
-    "translation": "Imposibil de a încărca fișier(e). Au {{.NumClientIds}} client_ids pentru {{.NumFiles}} fișiere."
+    "translation": "Imposibil de a încărca fișier(e). Aveți {{.NumClientIds}} client_ids pentru {{.NumFiles}} fișiere."
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_files.app_error",
@@ -1972,7 +1972,7 @@
   },
   {
     "id": "api.templates.mfa_change_subject",
-    "translation": "[{{ .SiteName }}] MAE a fost actualizat"
+    "translation": "[{{ .SiteName }}] MFA a fost actualizat"
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
@@ -2104,7 +2104,7 @@
   },
   {
     "id": "api.user.activate_mfa.email_and_ldap_only.app_error",
-    "translation": "Mae nu este disponibil pentru acest tip de cont"
+    "translation": "MFA nu este disponibil pentru acest tip de cont"
   },
   {
     "id": "api.user.add_direct_channels_and_forget.failed.error",
@@ -2152,7 +2152,7 @@
   },
   {
     "id": "api.user.check_user_mfa.bad_code.app_error",
-    "translation": "Simbol Mae invalidă."
+    "translation": "Simbol MFA invalidă."
   },
   {
     "id": "api.user.check_user_password.invalid.app_error",
@@ -2364,7 +2364,7 @@
   },
   {
     "id": "api.user.send_mfa_change_email.error",
-    "translation": "Imposibilitatea de a trimite e-mail de notificare pentru schimbare Mae."
+    "translation": "Imposibilitatea de a trimite e-mail de notificare pentru schimbare MFA."
   },
   {
     "id": "api.user.send_password_change_email_and_forget.error",
@@ -3772,7 +3772,7 @@
   },
   {
     "id": "mfa.activate.bad_token.app_error",
-    "translation": "Indicator nevalid pentru MAI"
+    "translation": "Indicator invalid MFA"
   },
   {
     "id": "mfa.activate.save_active.app_error",
@@ -4968,11 +4968,11 @@
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_number_symbol.app_error",
-    "translation": "Parola trebuie să conțină cel puțin {{.Min}} Caractere alcătuite din cel puțin o literă mică, cel puțin un număr și cel puțin un simbol (de exemplu \"~!@#$%^&*()\")."
+    "translation": "Parola trebuie să conțină cel puțin {{.Min}} caracterele alcătuite din cel puțin o literă mică, cel puțin un număr și cel puțin un simbol (de exemplu \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_symbol.app_error",
-    "translation": "Parola trebuie să conțină cel puțin {{.Min}} Caractere alcătuite din cel puțin o literă mică și cel puțin un simbol (de exemplu \"~!@#$%^&*()\")."
+    "translation": "Parola trebuie să conțină cel puțin {{.Min}} caracterele alcătuite din cel puțin o literă mică și cel puțin un simbol (de exemplu \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase.app_error",
@@ -4984,7 +4984,7 @@
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase_number_symbol.app_error",
-    "translation": "Parola trebuie să conțină cel puțin {{.Min}} Caractere alcătuite din cel puțin o literă mică, cel puțin o literă mare, cel puțin un număr și cel puțin un simbol (de exemplu \"~!@#$%^&()\")."
+    "translation": "Parola trebuie să conțină cel puțin {{.Min}} caracterele alcătuite din cel puțin o literă mică, cel puțin o literă mare, cel puțin un număr și cel puțin un simbol (de exemplu \"~!@#$%^&()\")."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase_symbol.app_error",
@@ -4996,11 +4996,11 @@
   },
   {
     "id": "model.user.is_valid.pwd_number_symbol.app_error",
-    "translation": "Parola dvs. trebuie să conțină cel puțin {{.Min}} Caractere alcătuite din cel puțin un număr și cel puțin un simbol (de exemplu \"~!@#$%^&*()\")."
+    "translation": "Parola ta trebuie să conțină cel puțin {{.Min}} Caractere alcătuite din cel puțin un număr și cel puțin un simbol (de exemplu \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.pwd_symbol.app_error",
-    "translation": "Parola dvs. trebuie să conțină cel puțin {{.Min}} Caractere alcătuite din cel puțin un simbol (de exemplu \"~!@#$%^&*()\")."
+    "translation": "Parola ta trebuie să conțină cel puțin {{.Min}} Caractere alcătuite din cel puțin un simbol (de exemplu \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.pwd_uppercase.app_error",
@@ -5012,11 +5012,11 @@
   },
   {
     "id": "model.user.is_valid.pwd_uppercase_number_symbol.app_error",
-    "translation": "Parola dvs. trebuie să conțină cel puțin {{.Min}} Caractere alcătuite din cel puțin o literă mare, cel puțin un număr și cel puțin un simbol (de exemplu \"~!@#$%^&*()\")."
+    "translation": "Parola ta trebuie să conțină cel puțin {{.Min}} Caractere alcătuite din cel puțin o literă mare, cel puțin un număr și cel puțin un simbol (de exemplu \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.pwd_uppercase_symbol.app_error",
-    "translation": "Parola dvs. trebuie să conțină cel puțin {{.Min}} Caractere alcătuite din cel puțin o literă majusculă și cel puțin un simbol (de exemplu \"~!@#$%^&*()\")."
+    "translation": "Parola ta trebuie să conțină cel puțin {{.Min}} caractere alcătuite din cel puțin o literă majusculă și cel puțin un simbol (de exemplu \"~!@#$%^&*()\")."
   },
   {
     "id": "model.user.is_valid.username.app_error",
@@ -5720,7 +5720,7 @@
   },
   {
     "id": "store.sql_license.get.missing.app_error",
-    "translation": "Nu a fost găsită o licență cu acel cod"
+    "translation": "Nu a fost găsită o licență cu acel ID"
   },
   {
     "id": "store.sql_license.save.app_error",
@@ -6632,11 +6632,11 @@
   },
   {
     "id": "store.sql_user.update_mfa_active.app_error",
-    "translation": "Am întâmpinat o eroare de actualizare a stării active a MAF-ului utilizatorului"
+    "translation": "Am întâmpinat o eroare de actualizare a stării active a MFA-ului utilizatorului"
   },
   {
     "id": "store.sql_user.update_mfa_secret.app_error",
-    "translation": "Am întâmpinat o eroare la actualizarea secretului MAI al utilizatorului"
+    "translation": "Am întâmpinat o eroare la actualizarea secretului MFA al utilizatorului"
   },
   {
     "id": "store.sql_user.update_password.app_error",
