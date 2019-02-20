@@ -724,17 +724,14 @@ func TestValidatePluginConfig(t *testing.T) {
 				"someKey": "someData"
 			}
 		}`
-	var manifest Manifest
-	r := strings.NewReader(ManifestString)
-	err := json.NewDecoder(r).Decode(&manifest)
-	require.Nil(t, err)
+	manifest := ManifestFromJson(strings.NewReader(ManifestString))
 	var ConfigString = `{
  "someKey": true,
  "someOtherKey": 5
 	}`
 	var configPass map[string]interface{}
-	r = strings.NewReader(ConfigString)
-	err = json.NewDecoder(r).Decode(&configPass)
+	r := strings.NewReader(ConfigString)
+	err := json.NewDecoder(r).Decode(&configPass)
 	require.Nil(t, err)
 	ConfigString = `{
 		"someKey": true
@@ -767,11 +764,8 @@ func TestValidatePluginConfig(t *testing.T) {
 		     "props": {
 					 "someKey": "someData"
 		     }
-		   }`
-	var manifestMissingSettings Manifest
-	r = strings.NewReader(ManifestString)
-	err = json.NewDecoder(r).Decode(&manifestMissingSettings)
-	require.Nil(t, err)
+			 }`
+	manifestMissingSettings := ManifestFromJson(strings.NewReader(ManifestString))
 	ManifestString = `
 	   {
 		     "id": "com.mycompany.myplugin",
@@ -792,11 +786,8 @@ func TestValidatePluginConfig(t *testing.T) {
 		     "props": {
 					 "someKey": "someData"
 		     }
-		   }`
-	var manifestMissingSettingsSchema Manifest
-	r = strings.NewReader(ManifestString)
-	err = json.NewDecoder(r).Decode(&manifestMissingSettingsSchema)
-	require.Nil(t, err)
+			 }`
+	manifestMissingSettingsSchema := ManifestFromJson(strings.NewReader(ManifestString))
 	ManifestString = `
 	{
 			"id": "com.mycompany.myplugin",
@@ -844,10 +835,7 @@ func TestValidatePluginConfig(t *testing.T) {
 				"someKey": "someData"
 			}
 		}`
-	var manifestNoRequiredKeys Manifest
-	r = strings.NewReader(ManifestString)
-	err = json.NewDecoder(r).Decode(&manifestNoRequiredKeys)
-	require.Nil(t, err)
+	manifestNoRequiredKeys := ManifestFromJson(strings.NewReader(ManifestString))
 	testCases := []struct {
 		Description string
 		Manifest    *Manifest
@@ -856,37 +844,37 @@ func TestValidatePluginConfig(t *testing.T) {
 	}{
 		{
 			"passing configuration with 2 required keys",
-			&manifest,
+			manifest,
 			configPass,
 			nil,
 		},
 		{
 			"failing configuration with 2 required keys of which one is missing",
-			&manifest,
+			manifest,
 			configMissingKey,
 			NewConfigError(manifest.Id, []string{"someOtherKey"}),
 		},
 		{
 			"passing with Settings within SettingsSchema of manifest is missing, therefore no required keys",
-			&manifestMissingSettings,
+			manifestMissingSettings,
 			configPass,
 			nil,
 		},
 		{
 			"passing when missing SettingsSchema of manifest since no keys are required",
-			&manifestMissingSettingsSchema,
+			manifestMissingSettingsSchema,
 			configPass,
 			nil,
 		},
 		{
 			"passing with missing plugin config where no required keys are configured in manifest",
-			&manifestNoRequiredKeys,
+			manifestNoRequiredKeys,
 			nil,
 			nil,
 		},
 		{
 			"failing with missing plugin config where 2 required keys are configured in manifest",
-			&manifest,
+			manifest,
 			nil,
 			NewConfigError(manifest.Id, []string{"someKey", "someOtherKey"}),
 		},
