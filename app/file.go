@@ -18,6 +18,7 @@ import (
 	"net/http"
 	"net/url"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -591,6 +592,19 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 	aerr = t.runPlugins()
 	if aerr != nil {
 		return t.fileinfo, aerr
+	}
+
+	// attempt to extract width & height out of svg
+	if !t.Raw && t.fileinfo.IsImage() && t.fileinfo.MimeType == "image/svg+xml" {
+		svgInfo := model.GetSVGInfoForBytes(t.buf.Bytes())
+		var svgViewBox = strings.Split(svgInfo.ViewBox, " ")
+		if len(svgViewBox) == 4 {
+			t.fileinfo.Width, _ = strconv.Atoi(svgViewBox[2])
+			t.fileinfo.Height, _ = strconv.Atoi(svgViewBox[3])
+		} else if len(svgInfo.Width) > 0 && len(svgInfo.Height) > 0 {
+			t.fileinfo.Width, _ = strconv.Atoi(strings.Replace(svgInfo.Width, "px", "", 1))
+			t.fileinfo.Height, _ = strconv.Atoi(strings.Replace(svgInfo.Height, "px", "", 1))
+		}
 	}
 
 	// Concurrently upload and update DB, and post-process the image.
