@@ -379,7 +379,7 @@ func (api *PluginAPI) GetChannelMembersByIds(channelId string, userIds []string)
 	return api.app.GetChannelMembersByIds(channelId, userIds)
 }
 
-func (api *PluginAPI) GetChannelMembersForUser(teamId, userId string, page, perPage int) (*model.ChannelMembers, *model.AppError) {
+func (api *PluginAPI) GetChannelMembersForUser(teamId, userId string, page, perPage int) ([]*model.ChannelMember, *model.AppError) {
 	return api.app.GetChannelMembersForUserWithPagination(teamId, userId, page, perPage)
 }
 

@@ -1207,12 +1207,12 @@ func (a *App) GetChannelMembersForUser(teamId string, userId string) (*model.Cha
 	return result.Data.(*model.ChannelMembers), nil
 }
 
-func (a *App) GetChannelMembersForUserWithPagination(teamId, userId string, page, perPage int) (*model.ChannelMembers, *model.AppError) {
+func (a *App) GetChannelMembersForUserWithPagination(teamId, userId string, page, perPage int) ([]*model.ChannelMember, *model.AppError) {
 	result := <-a.Srv.Store.Channel().GetMembersForUserWithPagination(teamId, userId, page, perPage)
 	if result.Err != nil {
 		return nil, result.Err
 	}
-	return result.Data.(*model.ChannelMembers), nil
+	return result.Data.([]*model.ChannelMember), nil
 }
 
 func (a *App) GetChannelMemberCount(channelId string) (int64, *model.AppError) {

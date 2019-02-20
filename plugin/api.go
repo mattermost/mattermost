@@ -255,7 +255,7 @@ type API interface {
 	// GetChannelMembersForUser returns all channel memberships on a team for a user.
 	//
 	// Minimum server version: 5.10
-	GetChannelMembersForUser(teamId, userId string, page, perPage int) (*model.ChannelMembers, *model.AppError)
+	GetChannelMembersForUser(teamId, userId string, page, perPage int) ([]*model.ChannelMember, *model.AppError)
 
 	// UpdateChannelMemberRoles updates a user's roles for a channel.
 	UpdateChannelMemberRoles(channelId, userId, newRoles string) (*model.ChannelMember, *model.AppError)

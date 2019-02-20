@@ -516,15 +516,15 @@ func (_m *API) GetChannelMembersByIds(channelId string, userIds []string) (*mode
 }
 
 // GetChannelMembersForUser provides a mock function with given fields: teamId, userId, page, perPage
-func (_m *API) GetChannelMembersForUser(teamId string, userId string, page int, perPage int) (*model.ChannelMembers, *model.AppError) {
+func (_m *API) GetChannelMembersForUser(teamId string, userId string, page int, perPage int) ([]*model.ChannelMember, *model.AppError) {
 	ret := _m.Called(teamId, userId, page, perPage)
 
-	var r0 *model.ChannelMembers
-	if rf, ok := ret.Get(0).(func(string, string, int, int) *model.ChannelMembers); ok {
+	var r0 []*model.ChannelMember
+	if rf, ok := ret.Get(0).(func(string, string, int, int) []*model.ChannelMember); ok {
 		r0 = rf(teamId, userId, page, perPage)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.ChannelMembers)
+			r0 = ret.Get(0).([]*model.ChannelMember)
 		}
 	}
 

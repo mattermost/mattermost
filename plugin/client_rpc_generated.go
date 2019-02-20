@@ -2243,11 +2243,11 @@ type Z_GetChannelMembersForUserArgs struct {
 }
 
 type Z_GetChannelMembersForUserReturns struct {
-	A *model.ChannelMembers
+	A []*model.ChannelMember
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetChannelMembersForUser(teamId, userId string, page, perPage int) (*model.ChannelMembers, *model.AppError) {
+func (g *apiRPCClient) GetChannelMembersForUser(teamId, userId string, page, perPage int) ([]*model.ChannelMember, *model.AppError) {
 	_args := &Z_GetChannelMembersForUserArgs{teamId, userId, page, perPage}
 	_returns := &Z_GetChannelMembersForUserReturns{}
 	if err := g.client.Call("Plugin.GetChannelMembersForUser", _args, _returns); err != nil {
@@ -2258,7 +2258,7 @@ func (g *apiRPCClient) GetChannelMembersForUser(teamId, userId string, page, per
 
 func (s *apiRPCServer) GetChannelMembersForUser(args *Z_GetChannelMembersForUserArgs, returns *Z_GetChannelMembersForUserReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetChannelMembersForUser(teamId, userId string, page, perPage int) (*model.ChannelMembers, *model.AppError)
+		GetChannelMembersForUser(teamId, userId string, page, perPage int) ([]*model.ChannelMember, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetChannelMembersForUser(args.A, args.B, args.C, args.D)
 	} else {
