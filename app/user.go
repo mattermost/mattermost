@@ -1161,9 +1161,23 @@ func (a *App) ResetPasswordFromToken(userSuppliedTokenString, newPassword string
 		return model.NewAppError("resetPassword", "api.user.reset_password.link_expired.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	user, err := a.GetUser(token.Extra)
+	tokenData := struct {
+		UserId string
+		Email  string
+	}{}
+
+	err2 := json.Unmarshal([]byte(token.Extra), &tokenData)
+	if err2 != nil {
+		return model.NewAppError("resetPassword", "api.user.reset_password.token_parse.error", nil, "", http.StatusInternalServerError)
+	}
+
+	user, err := a.GetUser(tokenData.UserId)
 	if err != nil {
 		return err
+	}
+
+	if user.Email != tokenData.Email {
+		return model.NewAppError("resetPassword", "api.user.reset_password.link_expired.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if user.IsSSOUser() {
@@ -1193,7 +1207,7 @@ func (a *App) SendPasswordReset(email string, siteURL string) (bool, *model.AppE
 		return false, model.NewAppError("SendPasswordReset", "api.user.send_password_reset.sso.app_error", nil, "userId="+user.Id, http.StatusBadRequest)
 	}
 
-	token, err := a.CreatePasswordRecoveryToken(user.Id)
+	token, err := a.CreatePasswordRecoveryToken(user.Id, user.Email)
 	if err != nil {
 		return false, err
 	}
@@ -1201,8 +1215,22 @@ func (a *App) SendPasswordReset(email string, siteURL string) (bool, *model.AppE
 	return a.SendPasswordResetEmail(user.Email, token, user.Locale, siteURL)
 }
 
-func (a *App) CreatePasswordRecoveryToken(userId string) (*model.Token, *model.AppError) {
-	token := model.NewToken(TOKEN_TYPE_PASSWORD_RECOVERY, userId)
+func (a *App) CreatePasswordRecoveryToken(userId, email string) (*model.Token, *model.AppError) {
+
+	tokenExtra := struct {
+		UserId string
+		Email  string
+	}{
+		userId,
+		email,
+	}
+	jsonData, err := json.Marshal(tokenExtra)
+
+	if err != nil {
+		return nil, model.NewAppError("CreatePasswordRecoveryToken", "api.user.create_password_token.error", nil, "", http.StatusInternalServerError)
+	}
+
+	token := model.NewToken(TOKEN_TYPE_PASSWORD_RECOVERY, string(jsonData))
 
 	if result := <-a.Srv.Store.Token().Save(token); result.Err != nil {
 		return nil, result.Err
