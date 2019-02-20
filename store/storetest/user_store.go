@@ -25,12 +25,14 @@ func TestUserStore(t *testing.T, ss store.Store) {
 		require.Nil(t, result.Err, "failed cleaning up test user %s", u.Username)
 	}
 
+	t.Run("Count", func(t *testing.T) { testCount(t, ss) })
+	t.Run("AnalyticsGetInactiveUsersCount", func(t *testing.T) { testUserStoreAnalyticsGetInactiveUsersCount(t, ss) })
+	t.Run("AnalyticsGetSystemAdminCount", func(t *testing.T) { testUserStoreAnalyticsGetSystemAdminCount(t, ss) })
 	t.Run("Save", func(t *testing.T) { testUserStoreSave(t, ss) })
 	t.Run("Update", func(t *testing.T) { testUserStoreUpdate(t, ss) })
 	t.Run("UpdateUpdateAt", func(t *testing.T) { testUserStoreUpdateUpdateAt(t, ss) })
 	t.Run("UpdateFailedPasswordAttempts", func(t *testing.T) { testUserStoreUpdateFailedPasswordAttempts(t, ss) })
 	t.Run("Get", func(t *testing.T) { testUserStoreGet(t, ss) })
-	t.Run("UserCount", func(t *testing.T) { testUserCount(t, ss) })
 	t.Run("GetAllUsingAuthService", func(t *testing.T) { testGetAllUsingAuthService(t, ss) })
 	t.Run("GetAllProfiles", func(t *testing.T) { testUserStoreGetAllProfiles(t, ss) })
 	t.Run("GetProfiles", func(t *testing.T) { testUserStoreGetProfiles(t, ss) })
@@ -59,8 +61,6 @@ func TestUserStore(t *testing.T, ss store.Store) {
 	t.Run("SearchInChannel", func(t *testing.T) { testUserStoreSearchInChannel(t, ss) })
 	t.Run("SearchNotInTeam", func(t *testing.T) { testUserStoreSearchNotInTeam(t, ss) })
 	t.Run("SearchWithoutTeam", func(t *testing.T) { testUserStoreSearchWithoutTeam(t, ss) })
-	t.Run("AnalyticsGetInactiveUsersCount", func(t *testing.T) { testUserStoreAnalyticsGetInactiveUsersCount(t, ss) })
-	t.Run("AnalyticsGetSystemAdminCount", func(t *testing.T) { testUserStoreAnalyticsGetSystemAdminCount(t, ss) })
 	t.Run("GetProfilesNotInTeam", func(t *testing.T) { testUserStoreGetProfilesNotInTeam(t, ss) })
 	t.Run("ClearAllCustomRoleAssignments", func(t *testing.T) { testUserStoreClearAllCustomRoleAssignments(t, ss) })
 	t.Run("GetAllAfter", func(t *testing.T) { testUserStoreGetAllAfter(t, ss) })
@@ -291,21 +291,6 @@ func testUserStoreGet(t *testing.T, ss store.Store) {
 		require.Equal(t, u2, actual)
 		require.True(t, actual.IsBot)
 	})
-}
-
-func testUserCount(t *testing.T, ss store.Store) {
-	u1 := &model.User{}
-	u1.Email = MakeEmail()
-	store.Must(ss.User().Save(u1))
-	defer func() { store.Must(ss.User().PermanentDelete(u1.Id)) }()
-	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1))
-
-	if result := <-ss.User().GetTotalUsersCount(); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		count := result.Data.(int64)
-		require.False(t, count <= 0, "expected count > 0, got %d", count)
-	}
 }
 
 func testGetAllUsingAuthService(t *testing.T, ss store.Store) {
@@ -2914,6 +2899,94 @@ func testUserStoreSearchWithoutTeam(t *testing.T, ss store.Store) {
 			assertUsers(t, testCase.Expected, result.Data.([]*model.User))
 		})
 	}
+}
+
+func testCount(t *testing.T, ss store.Store) {
+	// Regular
+	teamId := model.NewId()
+	u1 := &model.User{}
+	u1.Email = MakeEmail()
+	store.Must(ss.User().Save(u1))
+	defer func() { store.Must(ss.User().PermanentDelete(u1.Id)) }()
+	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1))
+
+	// Deleted
+	u2 := &model.User{}
+	u2.Email = MakeEmail()
+	u2.DeleteAt = model.GetMillis()
+	store.Must(ss.User().Save(u2))
+	defer func() { store.Must(ss.User().PermanentDelete(u2.Id)) }()
+
+	// Bot
+	u3 := store.Must(ss.User().Save(&model.User{
+		Email: MakeEmail(),
+	})).(*model.User)
+	defer func() { store.Must(ss.User().PermanentDelete(u3.Id)) }()
+	store.Must(ss.Bot().Save(&model.Bot{
+		UserId:   u3.Id,
+		Username: u3.Username,
+		OwnerId:  u1.Id,
+	}))
+	u3.IsBot = true
+	defer func() { store.Must(ss.Bot().PermanentDelete(u3.Id)) }()
+
+	result := <-ss.User().Count(model.UserCountOptions{
+		IncludeBotAccounts: false,
+		IncludeDeleted:     false,
+		TeamId:             "",
+	})
+	require.Nil(t, result.Err)
+	require.Equal(t, int64(1), result.Data.(int64))
+
+	result = <-ss.User().Count(model.UserCountOptions{
+		IncludeBotAccounts: true,
+		IncludeDeleted:     false,
+		TeamId:             "",
+	})
+	require.Nil(t, result.Err)
+	require.Equal(t, int64(2), result.Data.(int64))
+
+	result = <-ss.User().Count(model.UserCountOptions{
+		IncludeBotAccounts: false,
+		IncludeDeleted:     true,
+		TeamId:             "",
+	})
+	require.Nil(t, result.Err)
+	require.Equal(t, int64(2), result.Data.(int64))
+
+	result = <-ss.User().Count(model.UserCountOptions{
+		IncludeBotAccounts: true,
+		IncludeDeleted:     true,
+		TeamId:             "",
+	})
+	require.Nil(t, result.Err)
+	require.Equal(t, int64(3), result.Data.(int64))
+
+	result = <-ss.User().Count(model.UserCountOptions{
+		IncludeBotAccounts:  true,
+		IncludeDeleted:      true,
+		ExcludeRegularUsers: true,
+		TeamId:              "",
+	})
+	require.Nil(t, result.Err)
+	require.Equal(t, int64(1), result.Data.(int64))
+
+	result = <-ss.User().Count(model.UserCountOptions{
+		IncludeBotAccounts: true,
+		IncludeDeleted:     true,
+		TeamId:             teamId,
+	})
+	require.Nil(t, result.Err)
+	require.Equal(t, int64(1), result.Data.(int64))
+
+	result = <-ss.User().Count(model.UserCountOptions{
+		IncludeBotAccounts: true,
+		IncludeDeleted:     true,
+		TeamId:             model.NewId(),
+	})
+	require.Nil(t, result.Err)
+	require.Equal(t, int64(0), result.Data.(int64))
+
 }
 
 func testUserStoreAnalyticsGetInactiveUsersCount(t *testing.T, ss store.Store) {
