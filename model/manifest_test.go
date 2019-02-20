@@ -5,7 +5,6 @@ package model
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -874,10 +873,10 @@ func TestValidatePluginConfig(t *testing.T) {
 			nil,
 		},
 		{
-			"failing due to missing SettingsSchema of manifest is missing",
+			"passing when missing SettingsSchema of manifest since no keys are required",
 			&manifestMissingSettingsSchema,
 			configPass,
-			fmt.Errorf(`Validation error could not find SettingsSchema for plugin manifest of [%s]`, manifestMissingSettings.Id),
+			nil,
 		},
 		{
 			"passing with missing plugin config where no required keys are configured in manifest",

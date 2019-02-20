@@ -319,10 +319,7 @@ func (m *Manifest) MeetMinServerVersion(serverVersion string) (bool, error) {
 }
 
 func (m *Manifest) ValidatePluginConfig(config map[string]interface{}) error {
-	if m.SettingsSchema == nil {
-		return fmt.Errorf(`Validation error could not find SettingsSchema for plugin manifest of [%s]`, m.Id)
-	}
-	if m.SettingsSchema.Settings == nil {
+	if m.SettingsSchema == nil || m.SettingsSchema.Settings == nil {
 		return nil // no Settings therefore no required Keys
 	}
 	if config == nil || len(config) < 1 {
