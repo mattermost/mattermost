@@ -171,7 +171,10 @@ func (a *App) IsUserSignUpAllowed() *model.AppError {
 
 func (a *App) IsFirstUserAccount() bool {
 	if a.SessionCacheLength() == 0 {
-		cr := <-a.Srv.Store.User().GetTotalUsersCount()
+		cr := <-a.Srv.Store.User().Count(model.UserCountOptions{
+			IncludeBotAccounts: false,
+			IncludeDeleted:     true,
+		})
 		if cr.Err != nil {
 			mlog.Error(fmt.Sprint(cr.Err))
 			return false
@@ -195,7 +198,10 @@ func (a *App) CreateUser(user *model.User) (*model.User, *model.AppError) {
 
 	// Below is a special case where the first user in the entire
 	// system is granted the system_admin role
-	result := <-a.Srv.Store.User().GetTotalUsersCount()
+	result := <-a.Srv.Store.User().Count(model.UserCountOptions{
+		IncludeBotAccounts: false,
+		IncludeDeleted:     true,
+	})
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -1515,8 +1521,12 @@ func (a *App) GetVerifyEmailToken(token string) (*model.Token, *model.AppError) 
 	return rtoken, nil
 }
 
+// This function is used for the DM list total
 func (a *App) GetTotalUsersStats() (*model.UsersStats, *model.AppError) {
-	result := <-a.Srv.Store.User().GetTotalUsersCount()
+	result := <-a.Srv.Store.User().Count(model.UserCountOptions{
+		IncludeDeleted:     false,
+		IncludeBotAccounts: true,
+	})
 	if result.Err != nil {
 		return nil, result.Err
 	}

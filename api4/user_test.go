@@ -1028,7 +1028,10 @@ func TestGetTotalUsersStat(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	total := <-th.App.Srv.Store.User().GetTotalUsersCount()
+	total := <-th.Server.Store.User().Count(model.UserCountOptions{
+		IncludeDeleted:     false,
+		IncludeBotAccounts: true,
+	})
 
 	rstats, resp := th.Client.GetTotalUsersStats("")
 	CheckNoError(t, resp)
