@@ -31,12 +31,10 @@ import (
 )
 
 func (a *App) DoPostAction(postId, actionId, userId, selectedOption string) (string, *model.AppError) {
-	return a.DoPostActionWithCookie(postId, actionId, userId, &model.DoPostActionRequest{
-		SelectedOption: selectedOption,
-	})
+	return a.DoPostActionWithCookie(postId, actionId, userId, selectedOption, nil)
 }
 
-func (a *App) DoPostActionWithCookie(postId, actionId, userId string, actionRequest *model.DoPostActionRequest) (string, *model.AppError) {
+func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption string, cookie *model.PostActionCookie) (string, *model.AppError) {
 	// the prop values that we need to retain/clear in replacement message to match the original
 	remove := []string{"override_username", "override_icon_url"}
 	retain := map[string]interface{}{}
@@ -55,19 +53,8 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId string, actionRequ
 	cchan := a.Srv.Store.Channel().GetForPost(postId)
 	result := <-pchan
 	if result.Err != nil {
-		if actionRequest.Cookie == "" {
+		if cookie == nil {
 			return "", result.Err
-		}
-
-		// Get action metadata from the cookie
-		cookie := model.PostActionCookie{}
-		cookieStr, err := a.decryptActionCookie(actionRequest.Cookie)
-		if err != nil {
-			return "", model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
-		}
-		err = json.Unmarshal([]byte(cookieStr), &cookie)
-		if err != nil {
-			return "", model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
 		}
 		if cookie.Integration == nil {
 			return "", model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "no Integration in action cookie", http.StatusBadRequest)
@@ -127,12 +114,12 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId string, actionRequ
 	}
 
 	if upstreamRequest.Type == model.POST_ACTION_TYPE_SELECT {
-		if actionRequest.SelectedOption != "" {
+		if selectedOption != "" {
 			if upstreamRequest.Context == nil {
 				upstreamRequest.Context = map[string]interface{}{}
 			}
 			upstreamRequest.DataSource = datasource
-			upstreamRequest.Context["selected_option"] = actionRequest.SelectedOption
+			upstreamRequest.Context["selected_option"] = selectedOption
 		}
 	}
 

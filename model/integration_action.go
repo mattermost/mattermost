@@ -5,11 +5,15 @@ package model
 
 import (
 	"crypto"
+	"crypto/aes"
+	"crypto/cipher"
 	"crypto/ecdsa"
 	"crypto/rand"
 	"encoding/asn1"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"io"
 	"math/big"
 	"net/http"
@@ -318,6 +322,125 @@ func (o *Post) GenerateActionIds() {
 			}
 		}
 	}
+}
+
+func AddActionCookiesToPost(o *Post, secret string) *Post {
+	p := o.Clone()
+
+	// retainedProps carry over their value from the old post, including no value
+	retainPropKeys := []string{"override_username", "override_icon_url"}
+	retainProps := map[string]interface{}{}
+	removeProps := []string{}
+	for _, key := range retainPropKeys {
+		value, ok := p.Props[key]
+		if ok {
+			retainProps[key] = value
+		} else {
+			removeProps = append(removeProps, key)
+		}
+	}
+
+	attachments := p.Attachments()
+	for _, attachment := range attachments {
+		for _, action := range attachment.Actions {
+			c := &PostActionCookie{
+				Type:        action.Type,
+				ChannelId:   p.ChannelId,
+				DataSource:  action.DataSource,
+				Integration: action.Integration,
+				RetainProps: retainProps,
+				RemoveProps: removeProps,
+			}
+
+			c.PostId = p.Id
+			if p.RootId == "" {
+				c.RootPostId = p.Id
+			} else {
+				c.RootPostId = p.RootId
+			}
+
+			b, _ := json.Marshal(c)
+			action.Cookie, _ = encryptActionCookie(string(b), secret)
+		}
+	}
+
+	return p
+}
+
+func encryptActionCookie(plain, secret string) (string, error) {
+	if secret == "" {
+		return plain, nil
+	}
+
+	key, err := hex.DecodeString(secret)
+	if err != nil {
+		return "", err
+	}
+
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return "", err
+	}
+
+	aesgcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return "", err
+	}
+
+	nonce := make([]byte, aesgcm.NonceSize())
+	_, err = io.ReadFull(rand.Reader, nonce)
+	if err != nil {
+		return "", err
+	}
+
+	sealed := aesgcm.Seal(nil, nonce, []byte(plain), nil)
+
+	combined := append(nonce, sealed...)
+	encoded := make([]byte, base64.StdEncoding.EncodedLen(len(combined)))
+	base64.StdEncoding.Encode(encoded, combined)
+
+	return string(encoded), nil
+}
+
+func DecryptActionCookie(encoded, secret string) (string, error) {
+	if secret == "" {
+		return encoded, nil
+	}
+
+	key, err := hex.DecodeString(secret)
+	if err != nil {
+		return "", err
+	}
+
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return "", err
+	}
+
+	aesgcm, err := cipher.NewGCM(block)
+	if err != nil {
+		return "", err
+	}
+
+	decoded := make([]byte, base64.StdEncoding.DecodedLen(len(encoded)))
+	n, err := base64.StdEncoding.Decode(decoded, []byte(encoded))
+	if err != nil {
+		return "", err
+	}
+	decoded = decoded[:n]
+
+	nonceSize := aesgcm.NonceSize()
+	if len(decoded) < nonceSize {
+		return "", fmt.Errorf("cookie too short")
+	}
+
+	nonce, decoded := decoded[:nonceSize], decoded[nonceSize:]
+	plain, err := aesgcm.Open(nil, nonce, decoded, nil)
+	if err != nil {
+		return "", err
+	}
+
+	return string(plain), nil
 }
 
 func DoPostActionRequestFromJson(data io.Reader) *DoPostActionRequest {

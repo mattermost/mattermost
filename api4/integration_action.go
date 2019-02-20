@@ -23,22 +23,42 @@ func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannelByPost(c.App.Session, c.Params.PostId, model.PERMISSION_READ_CHANNEL) {
-		c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
-		return
-	}
-
 	actionRequest := model.DoPostActionRequestFromJson(r.Body)
 	if actionRequest == nil {
 		actionRequest = &model.DoPostActionRequest{}
 	}
 
-	var err *model.AppError
+	var cookie *model.PostActionCookie
+	if actionRequest.Cookie != "" {
+		cookie = &model.PostActionCookie{}
+		cookieStr, err := model.DecryptActionCookie(actionRequest.Cookie, *c.App.Config().ServiceSettings.ActionCookieSecret)
+		if err != nil {
+			c.Err = model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
+			return
+		}
+		err = json.Unmarshal([]byte(cookieStr), &cookie)
+		if err != nil {
+			c.Err = model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
+			return
+		}
+		if !c.App.SessionHasPermissionToChannel(c.App.Session, cookie.ChannelId, model.PERMISSION_READ_CHANNEL) {
+			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+			return
+		}
+	} else {
+		if !c.App.SessionHasPermissionToChannelByPost(c.App.Session, c.Params.PostId, model.PERMISSION_READ_CHANNEL) {
+			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
+			return
+		}
+	}
+
+	var appErr *model.AppError
 	resp := &model.PostActionAPIResponse{Status: "OK"}
 
-	resp.TriggerId, err = c.App.DoPostActionWithCookie(c.Params.PostId, c.Params.ActionId, c.App.Session.UserId, actionRequest)
-	if err != nil {
-		c.Err = err
+	resp.TriggerId, appErr = c.App.DoPostActionWithCookie(c.Params.PostId, c.Params.ActionId, c.App.Session.UserId,
+		actionRequest.SelectedOption, cookie)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 

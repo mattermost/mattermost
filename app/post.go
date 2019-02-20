@@ -4,14 +4,8 @@
 package app
 
 import (
-	"crypto/aes"
-	"crypto/cipher"
-	"crypto/rand"
-	"encoding/base64"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -413,7 +407,7 @@ func (a *App) SendEphemeralPost(userId string, post *model.Post) *model.Post {
 	post.GenerateActionIds()
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE, "", post.ChannelId, userId, nil)
 	post = a.PreparePostForClient(post, true)
-	post = a.AddActionCookiesToPost(post)
+	post = model.AddActionCookiesToPost(post, *a.Config().ServiceSettings.ActionCookieSecret)
 	message.Add("post", post.ToJson())
 	a.Publish(message)
 
@@ -430,12 +424,8 @@ func (a *App) UpdateEphemeralPost(userId string, post *model.Post) *model.Post {
 
 	post.GenerateActionIds()
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", post.ChannelId, userId, nil)
-
-	// TODO: why? but it doesn't work without clearing ChannelId, which is needed ^^.
-	post.ChannelId = ""
-
 	post = a.PreparePostForClient(post, true)
-	post = a.AddActionCookiesToPost(post)
+	post = model.AddActionCookiesToPost(post, *a.Config().ServiceSettings.ActionCookieSecret)
 	message.Add("post", post.ToJson())
 	a.Publish(message)
 
@@ -451,117 +441,6 @@ func (a *App) DeleteEphemeralPost(userId string, post *model.Post) *model.Post {
 	a.Publish(message)
 
 	return post
-}
-
-func (a *App) AddActionCookiesToPost(o *model.Post) *model.Post {
-	p := o.Clone()
-
-	// retainedProps carry over their value from the old post, including no value
-	retainPropKeys := []string{"override_username", "override_icon_url"}
-	retainProps := map[string]interface{}{}
-	removeProps := []string{}
-	for _, key := range retainPropKeys {
-		value, ok := p.Props[key]
-		if ok {
-			retainProps[key] = value
-		} else {
-			removeProps = append(removeProps, key)
-		}
-	}
-
-	attachments := p.Attachments()
-	for _, attachment := range attachments {
-		for _, action := range attachment.Actions {
-			c := &model.PostActionCookie{
-				Type:        action.Type,
-				ChannelId:   p.ChannelId,
-				DataSource:  action.DataSource,
-				Integration: action.Integration,
-				RetainProps: retainProps,
-				RemoveProps: removeProps,
-			}
-
-			c.PostId = p.Id
-			if p.RootId == "" {
-				c.RootPostId = p.Id
-			} else {
-				c.RootPostId = p.RootId
-			}
-
-			b, _ := json.Marshal(c)
-			action.Cookie, _ = a.encryptActionCookie(string(b))
-		}
-	}
-
-	return p
-}
-
-func (a *App) encryptActionCookie(plain string) (string, error) {
-	key, err := hex.DecodeString(*a.Config().ServiceSettings.ActionCookieSecret)
-	if err != nil {
-		return "", err
-	}
-
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return "", err
-	}
-
-	aesgcm, err := cipher.NewGCM(block)
-	if err != nil {
-		return "", err
-	}
-
-	nonce := make([]byte, aesgcm.NonceSize())
-	_, err = io.ReadFull(rand.Reader, nonce)
-	if err != nil {
-		return "", err
-	}
-
-	sealed := aesgcm.Seal(nil, nonce, []byte(plain), nil)
-
-	combined := append(nonce, sealed...)
-	encoded := make([]byte, base64.StdEncoding.EncodedLen(len(combined)))
-	base64.StdEncoding.Encode(encoded, combined)
-
-	return string(encoded), nil
-}
-
-func (a *App) decryptActionCookie(encoded string) (string, error) {
-	key, err := hex.DecodeString(*a.Config().ServiceSettings.ActionCookieSecret)
-	if err != nil {
-		return "", err
-	}
-
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return "", err
-	}
-
-	aesgcm, err := cipher.NewGCM(block)
-	if err != nil {
-		return "", err
-	}
-
-	decoded := make([]byte, base64.StdEncoding.DecodedLen(len(encoded)))
-	n, err := base64.StdEncoding.Decode(decoded, []byte(encoded))
-	if err != nil {
-		return "", err
-	}
-	decoded = decoded[:n]
-
-	nonceSize := aesgcm.NonceSize()
-	if len(decoded) < nonceSize {
-		return "", fmt.Errorf("cookie too short")
-	}
-
-	nonce, decoded := decoded[:nonceSize], decoded[nonceSize:]
-	plain, err := aesgcm.Open(nil, nonce, decoded, nil)
-	if err != nil {
-		return "", err
-	}
-
-	return string(plain), nil
 }
 
 func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
