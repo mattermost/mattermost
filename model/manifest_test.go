@@ -885,10 +885,83 @@ func TestValidatePluginConfig(t *testing.T) {
 			nil,
 			nil,
 		},
+		{
+			"failing with missing plugin config where 2 required keys are configured in manifest",
+			&manifest,
+			nil,
+			NewConfigError(manifest.Id, []string{"someKey", "someOtherKey"}),
+		},
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.Description, func(t *testing.T) {
 			assert.Equal(t, testCase.Expected, testCase.Manifest.ValidatePluginConfig(testCase.Config))
 		})
 	}
+}
+
+func TestValidatePluginConfigFullOutput(t *testing.T) {
+	var ManifestString = `
+	{
+			"id": "com.mycompany.myplugin",
+			"name": "My Plugin",
+			"description": "This is my plugin",
+			"version": "0.1.0",
+			"min_server_version": "5.6.0",
+			"server": {
+				"executables": {
+					"linux-amd64": "server/dist/plugin-linux-amd64",
+					"darwin-amd64": "server/dist/plugin-darwin-amd64",
+					"windows-amd64": "server/dist/plugin-windows-amd64.exe"
+				}
+			},
+			"webapp": {
+					"bundle_path": "webapp/dist/main.js"
+			},
+			"settings_schema": {
+				"header": "Some header text",
+				"footer": "Some footer text",
+				"settings": [{
+					"key": "someKey",
+					"display_name": "Enable Extra Feature",
+					"type": "bool",
+					"required": true,
+					"help_text": "When true, an extra feature will be enabled!",
+					"default": "false"
+				},{
+				 "key": "someOtherKey",
+				 "display_name": "Enable Extra Feature",
+				 "type": "integer",
+				 "required": true,
+				 "help_text": "When greater then zero, an extra feature will be enabled!",
+				 "default": 0
+			 },{
+				 "key": "yetAnotherKey",
+				 "display_name": "Enable Extra Feature",
+				 "type": "integer",
+				 "required": false,
+				 "help_text": "When greater then zero, an extra feature will be enabled!",
+				 "default": 0
+			 }]
+			},
+			"props": {
+				"someKey": "someData"
+			}
+		}`
+	var manifest Manifest
+	r := strings.NewReader(ManifestString)
+	err := json.NewDecoder(r).Decode(&manifest)
+	require.Nil(t, err)
+	var configFail map[string]interface{}
+	validationError := manifest.ValidatePluginConfig(configFail)
+	validationErrorString := validationError.Error()
+	assert.NotNil(t, validationError)
+	assert.Equal(t, NewConfigError(manifest.Id, []string{"someKey", "someOtherKey"}).Error(),
+		validationErrorString)
+}
+
+func TestConfigErrorNilKeys(t *testing.T) {
+	aPluginIDString := "aPluginId"
+	configError := NewConfigError(aPluginIDString, nil)
+	configErrorString := configError.Error()
+	assert.Equal(t, NewConfigError(aPluginIDString, nil).Error(), configErrorString)
 }
