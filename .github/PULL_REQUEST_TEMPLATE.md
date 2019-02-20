@@ -21,10 +21,9 @@ Otherwise, link the Jira ticket.
 
 #### Checklist
 <!--
-Please review each item, and remove those not relevant for your pull request
+Please review each item and check the ones applicable for your pull request
 -->
-- Tested related changes <!-- See https://developers.mattermost.com/contribute/server/developer-workflow/#running-only-specific-server-unit-tests how to run specific unit tests. -->
-- Added or updated unit tests
-- Added REST API documentation (required for all new REST API endpoints)
-- Added Enterprise changes (please link)
-- Included text changes and localization file ([.../i18n/en.json](https://github.com/mattermost/mattermost-server/blob/master/i18n/en.json)) updates
+- [ ] Tested related changes <!-- See https://developers.mattermost.com/contribute/server/developer-workflow/#running-only-specific-server-unit-tests how to run specific unit tests. -->
+- [ ] Added or updated unit tests <!-- This should be done for every change, if possible -->
+- [ ] Added REST API documentation (required for all new REST API endpoints)
+- [ ] Included text changes and localization file ([.../i18n/en.json](https://github.com/mattermost/mattermost-server/blob/master/i18n/en.json)) updates
