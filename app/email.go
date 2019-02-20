@@ -180,7 +180,7 @@ func (a *App) SendWelcomeEmail(userId string, email string, verified bool, local
 	}
 
 	if !verified {
-		token, err := a.CreateVerifyEmailToken(userId)
+		token, err := a.CreateVerifyEmailToken(userId, email)
 		if err != nil {
 			return err
 		}
