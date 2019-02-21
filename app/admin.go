@@ -140,6 +140,7 @@ func (a *App) InvalidateAllCachesSkipSend() {
 	mlog.Info("Purging all caches")
 	a.Srv.sessionCache.Purge()
 	ClearStatusCache()
+	a.Srv.Store.Team().ClearCaches()
 	a.Srv.Store.Channel().ClearCaches()
 	a.Srv.Store.User().ClearCaches()
 	a.Srv.Store.Post().ClearCaches()

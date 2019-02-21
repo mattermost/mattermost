@@ -10,16 +10,21 @@ import (
 	"strings"
 
 	"github.com/mattermost/gorp"
+	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 const (
-	TEAM_MEMBER_EXISTS_ERROR = "store.sql_team.save_member.exists.app_error"
+	TEAM_MEMBER_EXISTS_ERROR         = "store.sql_team.save_member.exists.app_error"
+	ALL_TEAM_IDS_FOR_USER_CACHE_SIZE = model.SESSION_CACHE_SIZE
+	ALL_TEAM_IDS_FOR_USER_CACHE_SEC  = 1800 // 30 mins
 )
 
 type SqlTeamStore struct {
 	SqlStore
+	metrics einterfaces.MetricsInterface
 }
 
 type teamMember struct {
@@ -132,8 +137,11 @@ func (db teamMemberWithSchemeRolesList) ToModel() []*model.TeamMember {
 	return tms
 }
 
-func NewSqlTeamStore(sqlStore SqlStore) store.TeamStore {
-	s := &SqlTeamStore{sqlStore}
+func NewSqlTeamStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) store.TeamStore {
+	s := &SqlTeamStore{
+		sqlStore,
+		metrics,
+	}
 
 	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.Team{}, "Teams").SetKeys(false, "Id")
@@ -225,6 +233,11 @@ func (s SqlTeamStore) Update(team *model.Team) store.StoreChannel {
 		if count != 1 {
 			result.Err = model.NewAppError("SqlTeamStore.Update", "store.sql_team.update.app_error", nil, "id="+team.Id, http.StatusInternalServerError)
 			return
+		}
+
+		if oldTeam.DeleteAt == 0 && team.DeleteAt != 0 {
+			// Invalidate this cache after any team deletion
+			allTeamIdsForUserCache.Purge()
 		}
 
 		result.Data = team
@@ -539,6 +552,7 @@ var TEAM_MEMBERS_WITH_SCHEME_SELECT_QUERY = `
 
 func (s SqlTeamStore) SaveMember(member *model.TeamMember, maxUsersPerTeam int) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
+		defer s.InvalidateAllTeamIdsForUser(member.UserId)
 		if result.Err = member.IsValid(); result.Err != nil {
 			return
 		}
@@ -912,6 +926,22 @@ func (s SqlTeamStore) ResetAllTeamSchemes() store.StoreChannel {
 	})
 }
 
+var allTeamIdsForUserCache = utils.NewLru(ALL_TEAM_IDS_FOR_USER_CACHE_SIZE)
+
+func (s SqlTeamStore) ClearCaches() {
+	allTeamIdsForUserCache.Purge()
+	if s.metrics != nil {
+		s.metrics.IncrementMemCacheInvalidationCounter("All Team Ids for User - Purge")
+	}
+}
+
+func (s SqlTeamStore) InvalidateAllTeamIdsForUser(userId string) {
+	allTeamIdsForUserCache.Remove(userId)
+	if s.metrics != nil {
+		s.metrics.IncrementMemCacheInvalidationCounter("All Team Ids for User - Remove by UserId")
+	}
+}
+
 func (s SqlTeamStore) ClearAllCustomRoleAssignments() store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		builtInRoles := model.MakeDefaultRoles()
@@ -1013,6 +1043,48 @@ func (s SqlTeamStore) GetAllForExportAfter(limit int, afterId string) store.Stor
 	})
 }
 
+func (s SqlTeamStore) GetUserTeamIds(userId string, allowFromCache bool) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		if allowFromCache {
+			if cacheItem, ok := allTeamIdsForUserCache.Get(userId); ok {
+				if s.metrics != nil {
+					s.metrics.IncrementMemCacheHitCounter("All Team Ids for User")
+				}
+				result.Data = cacheItem.([]string)
+				return
+			}
+		}
+
+		if s.metrics != nil {
+			s.metrics.IncrementMemCacheMissCounter("All Team Ids for User")
+		}
+
+		var teamIds []string
+		_, err := s.GetReplica().Select(&teamIds, `
+	SELECT
+		TeamId
+	FROM
+		TeamMembers
+	INNER JOIN
+		Teams ON TeamMembers.TeamId = Teams.Id
+	WHERE
+		TeamMembers.UserId = :UserId
+		AND TeamMembers.DeleteAt = 0
+		AND Teams.DeleteAt = 0`,
+			map[string]interface{}{"UserId": userId})
+		if err != nil {
+			result.Err = model.NewAppError("SqlTeamStore.GetUserTeamIds", "store.sql_team.get_user_team_ids.app_error", nil, "userId="+userId+" "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		result.Data = teamIds
+
+		if allowFromCache {
+			allTeamIdsForUserCache.AddWithExpiresInSecs(userId, teamIds, ALL_TEAM_IDS_FOR_USER_CACHE_SEC)
+		}
+	})
+}
+
 func (s SqlTeamStore) GetTeamMembersForExport(userId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var members []*model.TeamMemberForExport
@@ -1034,5 +1106,28 @@ func (s SqlTeamStore) GetTeamMembersForExport(userId string) store.StoreChannel 
 		}
 
 		result.Data = members
+	})
+}
+
+func (s SqlTeamStore) UserBelongsToTeams(userId string, teamIds []string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		props := make(map[string]interface{})
+		props["UserId"] = userId
+		idQuery := ""
+
+		for index, teamId := range teamIds {
+			if len(idQuery) > 0 {
+				idQuery += ", "
+			}
+
+			props["teamId"+strconv.Itoa(index)] = teamId
+			idQuery += ":teamId" + strconv.Itoa(index)
+		}
+		c, err := s.GetReplica().SelectInt("SELECT Count(*) FROM TeamMembers WHERE UserId = :UserId AND TeamId IN ("+idQuery+") AND DeleteAt = 0", props)
+		if err != nil {
+			result.Err = model.NewAppError("SqlTeamStore.UserBelongsToTeams", "store.sql_team.user_belongs_to_teams.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		result.Data = c > 0
 	})
 }

@@ -4,11 +4,13 @@
 package model
 
 import (
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"regexp"
+	"sort"
 	"strings"
 	"unicode/utf8"
 
@@ -113,8 +115,23 @@ type UserForIndexing struct {
 	LastName    string   `json:"last_name"`
 	CreateAt    int64    `json:"create_at"`
 	DeleteAt    int64    `json:"delete_at"`
-	TeamsIds    []string `json:"team_id"`
-	ChannelsIds []string `json:"channel_id"`
+	ChannelIds []string `json:"channel_id"`
+}
+
+type ViewUsersRestrictions struct {
+	Teams    []string
+	Channels []string
+}
+
+func (r *ViewUsersRestrictions) Hash() string {
+	if r == nil {
+		return ""
+	}
+	ids := append(r.Teams, r.Channels...)
+	sort.Strings(ids)
+	hash := sha256.New()
+	hash.Write([]byte(strings.Join(ids, "")))
+	return fmt.Sprintf("%x", hash.Sum(nil))
 }
 
 func (u *User) DeepCopy() *User {

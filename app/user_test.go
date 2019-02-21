@@ -704,3 +704,118 @@ func TestPasswordRecovery(t *testing.T) {
 	err = th.App.ResetPasswordFromToken(token.Token, "abcdefgh")
 	assert.NotNil(t, err)
 }
+
+func TestGetViewUsersRestrictions(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	team1 := th.CreateTeam()
+	team2 := th.CreateTeam()
+	th.CreateTeam() // Another team
+
+	user1 := th.CreateUser()
+
+	th.LinkUserToTeam(user1, team1)
+	th.LinkUserToTeam(user1, team2)
+
+	th.App.UpdateTeamMemberRoles(team1.Id, user1.Id, "team_user team_admin")
+
+	team1channel1 := th.CreateChannel(team1)
+	team1channel2 := th.CreateChannel(team1)
+	th.CreateChannel(team1) // Another channel
+	team1offtopic, err := th.App.GetChannelByName("off-topic", team1.Id, false)
+	require.Nil(t, err)
+	team1townsquare, err := th.App.GetChannelByName("town-square", team1.Id, false)
+	require.Nil(t, err)
+
+	team2channel1 := th.CreateChannel(team2)
+	th.CreateChannel(team2) // Another channel
+	team2offtopic, err := th.App.GetChannelByName("off-topic", team2.Id, false)
+	require.Nil(t, err)
+	team2townsquare, err := th.App.GetChannelByName("town-square", team2.Id, false)
+	require.Nil(t, err)
+
+	th.App.AddUserToChannel(user1, team1channel1)
+	th.App.AddUserToChannel(user1, team1channel2)
+	th.App.AddUserToChannel(user1, team2channel1)
+
+	addPermission := func(role *model.Role, permission string) *model.AppError {
+		newPermissions := append(role.Permissions, permission)
+		_, err := th.App.PatchRole(role, &model.RolePatch{Permissions: &newPermissions})
+		return err
+	}
+
+	removePermission := func(role *model.Role, permission string) *model.AppError {
+		newPermissions := []string{}
+		for _, oldPermission := range role.Permissions {
+			if permission != oldPermission {
+				newPermissions = append(newPermissions, oldPermission)
+			}
+		}
+		_, err := th.App.PatchRole(role, &model.RolePatch{Permissions: &newPermissions})
+		return err
+	}
+
+	t.Run("VIEW_MEMBERS permission granted at system level", func(t *testing.T) {
+		restrictions, err := th.App.GetViewUsersRestrictions(user1.Id)
+		require.Nil(t, err)
+
+		assert.Nil(t, restrictions)
+	})
+
+	t.Run("VIEW_MEMBERS permission granted at team level", func(t *testing.T) {
+		systemUserRole, err := th.App.GetRoleByName(model.SYSTEM_USER_ROLE_ID)
+		require.Nil(t, err)
+		teamUserRole, err := th.App.GetRoleByName(model.TEAM_USER_ROLE_ID)
+		require.Nil(t, err)
+
+		require.Nil(t, removePermission(systemUserRole, model.PERMISSION_VIEW_MEMBERS.Id))
+		defer addPermission(systemUserRole, model.PERMISSION_VIEW_MEMBERS.Id)
+		require.Nil(t, addPermission(teamUserRole, model.PERMISSION_VIEW_MEMBERS.Id))
+		defer removePermission(teamUserRole, model.PERMISSION_VIEW_MEMBERS.Id)
+
+		restrictions, err := th.App.GetViewUsersRestrictions(user1.Id)
+		require.Nil(t, err)
+
+		assert.NotNil(t, restrictions)
+		assert.NotNil(t, restrictions.Teams)
+		assert.Len(t, restrictions.Channels, 0)
+		assert.ElementsMatch(t, []string{team1.Id, team2.Id}, restrictions.Teams)
+	})
+
+	t.Run("VIEW_MEMBERS permission not granted at any level", func(t *testing.T) {
+		systemUserRole, err := th.App.GetRoleByName(model.SYSTEM_USER_ROLE_ID)
+		require.Nil(t, err)
+		require.Nil(t, removePermission(systemUserRole, model.PERMISSION_VIEW_MEMBERS.Id))
+		defer addPermission(systemUserRole, model.PERMISSION_VIEW_MEMBERS.Id)
+
+		restrictions, err := th.App.GetViewUsersRestrictions(user1.Id)
+		require.Nil(t, err)
+
+		assert.NotNil(t, restrictions)
+		assert.Len(t, restrictions.Teams, 0)
+		assert.NotNil(t, restrictions.Channels)
+		assert.ElementsMatch(t, []string{team1townsquare.Id, team1offtopic.Id, team1channel1.Id, team1channel2.Id, team2townsquare.Id, team2offtopic.Id, team2channel1.Id}, restrictions.Channels)
+	})
+
+	t.Run("VIEW_MEMBERS permission not for some teams not for others", func(t *testing.T) {
+		systemUserRole, err := th.App.GetRoleByName(model.SYSTEM_USER_ROLE_ID)
+		require.Nil(t, err)
+		teamAdminRole, err := th.App.GetRoleByName(model.TEAM_ADMIN_ROLE_ID)
+		require.Nil(t, err)
+
+		require.Nil(t, removePermission(systemUserRole, model.PERMISSION_VIEW_MEMBERS.Id))
+		defer addPermission(systemUserRole, model.PERMISSION_VIEW_MEMBERS.Id)
+		require.Nil(t, addPermission(teamAdminRole, model.PERMISSION_VIEW_MEMBERS.Id))
+		defer removePermission(teamAdminRole, model.PERMISSION_VIEW_MEMBERS.Id)
+
+		restrictions, err := th.App.GetViewUsersRestrictions(user1.Id)
+		require.Nil(t, err)
+
+		assert.NotNil(t, restrictions)
+		assert.NotNil(t, restrictions.Teams)
+		assert.NotNil(t, restrictions.Channels)
+		assert.ElementsMatch(t, restrictions.Teams, []string{team1.Id})
+		assert.ElementsMatch(t, []string{team1townsquare.Id, team1offtopic.Id, team1channel1.Id, team1channel2.Id, team2townsquare.Id, team2offtopic.Id, team2channel1.Id}, restrictions.Channels)
+	})
+}

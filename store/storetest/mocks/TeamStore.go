@@ -61,6 +61,11 @@ func (_m *TeamStore) ClearAllCustomRoleAssignments() store.StoreChannel {
 	return r0
 }
 
+// ClearCaches provides a mock function with given fields:
+func (_m *TeamStore) ClearCaches() {
+	_m.Called()
+}
+
 // Get provides a mock function with given fields: id
 func (_m *TeamStore) Get(id string) store.StoreChannel {
 	ret := _m.Called(id)
@@ -413,6 +418,22 @@ func (_m *TeamStore) GetTotalMemberCount(teamId string) store.StoreChannel {
 	return r0
 }
 
+// GetUserTeamIds provides a mock function with given fields: userId, allowFromCache
+func (_m *TeamStore) GetUserTeamIds(userId string, allowFromCache bool) store.StoreChannel {
+	ret := _m.Called(userId, allowFromCache)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string, bool) store.StoreChannel); ok {
+		r0 = rf(userId, allowFromCache)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // MigrateTeamMembers provides a mock function with given fields: fromTeamId, fromUserId
 func (_m *TeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) store.StoreChannel {
 	ret := _m.Called(fromTeamId, fromUserId)
@@ -660,6 +681,22 @@ func (_m *TeamStore) UpdateMember(member *model.TeamMember) store.StoreChannel {
 	var r0 store.StoreChannel
 	if rf, ok := ret.Get(0).(func(*model.TeamMember) store.StoreChannel); ok {
 		r0 = rf(member)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
+// UserBelongsToTeams provides a mock function with given fields: userId, teamIds
+func (_m *TeamStore) UserBelongsToTeams(userId string, teamIds []string) store.StoreChannel {
+	ret := _m.Called(userId, teamIds)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string, []string) store.StoreChannel); ok {
+		r0 = rf(userId, teamIds)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)

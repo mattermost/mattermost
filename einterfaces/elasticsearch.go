@@ -18,9 +18,9 @@ type ElasticsearchInterface interface {
 	IndexChannel(channel *model.Channel) *model.AppError
 	SearchChannels(teamId, term string) ([]string, *model.AppError)
 	DeleteChannel(channel *model.Channel) *model.AppError
-	IndexUser(user *model.User, teamsIds, channelsIds []string) *model.AppError
-	SearchUsersInChannel(teamId, channelId, term string, options *model.UserSearchOptions) ([]string, []string, *model.AppError)
-	SearchUsersInTeam(teamId, term string, options *model.UserSearchOptions) ([]string, *model.AppError)
+	IndexUser(user *model.User, channelsIds []string) *model.AppError
+	SearchUsersInChannelAndOutside(channelId string, outsideChannelIds []string, term string, options *model.UserSearchOptions) ([]string, []string, *model.AppError)
+	SearchUsersInChannels(channelIds []string, term string, options *model.UserSearchOptions) ([]string, *model.AppError)
 	DeleteUser(user *model.User) *model.AppError
 	TestConfig(cfg *model.Config) *model.AppError
 	PurgeIndexes() *model.AppError

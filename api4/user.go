@@ -111,11 +111,20 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// No permission check required
-
 	user, err := c.App.GetUser(c.Params.UserId)
 	if err != nil {
 		c.Err = err
+		return
+	}
+
+	canSee, err := c.App.UserCanSeeOtherUser(c.App.Session.UserId, c.Params.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if !canSee {
+		c.SetPermissionError(model.PERMISSION_VIEW_MEMBERS)
 		return
 	}
 
@@ -154,11 +163,20 @@ func getUserByUsername(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// No permission check required
-
 	user, err := c.App.GetUserByUsername(c.Params.Username)
 	if err != nil {
 		c.Err = err
+		return
+	}
+
+	canSee, err := c.App.UserCanSeeOtherUser(c.App.Session.UserId, user.Id)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if !canSee {
+		c.SetPermissionError(model.PERMISSION_VIEW_MEMBERS)
 		return
 	}
 
@@ -196,8 +214,6 @@ func getUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// No permission check required, but still prevent users who can't see another user's email address from using this
-
 	sanitizeOptions := c.App.GetSanitizeOptions(c.IsSystemAdmin())
 	if !sanitizeOptions["email"] {
 		c.Err = model.NewAppError("getUserByEmail", "api.user.get_user_by_email.permissions.app_error", nil, "userId="+c.App.Session.UserId, http.StatusForbidden)
@@ -207,6 +223,17 @@ func getUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	user, err := c.App.GetUserByEmail(c.Params.Email)
 	if err != nil {
 		c.Err = err
+		return
+	}
+
+	canSee, err := c.App.UserCanSeeOtherUser(c.App.Session.UserId, user.Id)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if !canSee {
+		c.SetPermissionError(model.PERMISSION_VIEW_MEMBERS)
 		return
 	}
 
@@ -227,18 +254,23 @@ func getDefaultProfileImage(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	users, err := c.App.GetUsersByIds([]string{c.Params.UserId}, c.IsSystemAdmin())
+	user, err := c.App.GetUser(c.Params.UserId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	if len(users) == 0 {
-		c.Err = model.NewAppError("getProfileImage", "api.user.get_profile_image.not_found.app_error", nil, "", http.StatusNotFound)
+	canSee, err := c.App.UserCanSeeOtherUser(c.App.Session.UserId, user.Id)
+	if err != nil {
+		c.Err = err
 		return
 	}
 
-	user := users[0]
+	if !canSee {
+		c.SetPermissionError(model.PERMISSION_VIEW_MEMBERS)
+		return
+	}
+
 	img, err := c.App.GetDefaultProfileImage(user)
 	if err != nil {
 		c.Err = err
@@ -256,18 +288,23 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	users, err := c.App.GetUsersByIds([]string{c.Params.UserId}, c.IsSystemAdmin())
+	user, err := c.App.GetUser(c.Params.UserId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	if len(users) == 0 {
-		c.Err = model.NewAppError("getProfileImage", "api.user.get_profile_image.not_found.app_error", nil, "", http.StatusNotFound)
+	canSee, err := c.App.UserCanSeeOtherUser(c.App.Session.UserId, user.Id)
+	if err != nil {
+		c.Err = err
 		return
 	}
 
-	user := users[0]
+	if !canSee {
+		c.SetPermissionError(model.PERMISSION_VIEW_MEMBERS)
+		return
+	}
+
 	etag := strconv.FormatInt(user.LastPictureUpdate, 10)
 	if c.HandleEtag(etag, "Get Profile Image", w, r) {
 		return
@@ -376,7 +413,13 @@ func getTotalUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	stats, err := c.App.GetTotalUsersStats()
+	restrictions, err := c.App.GetViewUsersRestrictions(c.App.Session.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	stats, err := c.App.GetTotalUsersStats(restrictions)
 	if err != nil {
 		c.Err = err
 		return
@@ -419,21 +462,27 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	withoutTeamBool, _ := strconv.ParseBool(withoutTeam)
 	inactiveBool, _ := strconv.ParseBool(inactive)
 
+	restrictions, err := c.App.GetViewUsersRestrictions(c.App.Session.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
 	userGetOptions := &model.UserGetOptions{
-		InTeamId:       inTeamId,
-		InChannelId:    inChannelId,
-		NotInTeamId:    notInTeamId,
-		NotInChannelId: notInChannelId,
-		WithoutTeam:    withoutTeamBool,
-		Inactive:       inactiveBool,
-		Role:           role,
-		Sort:           sort,
-		Page:           c.Params.Page,
-		PerPage:        c.Params.PerPage,
+		InTeamId:         inTeamId,
+		InChannelId:      inChannelId,
+		NotInTeamId:      notInTeamId,
+		NotInChannelId:   notInChannelId,
+		WithoutTeam:      withoutTeamBool,
+		Inactive:         inactiveBool,
+		Role:             role,
+		Sort:             sort,
+		Page:             c.Params.Page,
+		PerPage:          c.Params.PerPage,
+		ViewRestrictions: restrictions,
 	}
 
 	var profiles []*model.User
-	var err *model.AppError
 	etag := ""
 
 	if withoutTeamBool, _ := strconv.ParseBool(withoutTeam); withoutTeamBool {
@@ -443,26 +492,26 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		profiles, err = c.App.GetUsersWithoutTeamPage(c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
+		profiles, err = c.App.GetUsersWithoutTeamPage(c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
 	} else if len(notInChannelId) > 0 {
 		if !c.App.SessionHasPermissionToChannel(c.App.Session, notInChannelId, model.PERMISSION_READ_CHANNEL) {
 			c.SetPermissionError(model.PERMISSION_READ_CHANNEL)
 			return
 		}
 
-		profiles, err = c.App.GetUsersNotInChannelPage(inTeamId, notInChannelId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
+		profiles, err = c.App.GetUsersNotInChannelPage(inTeamId, notInChannelId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
 	} else if len(notInTeamId) > 0 {
 		if !c.App.SessionHasPermissionToTeam(c.App.Session, notInTeamId, model.PERMISSION_VIEW_TEAM) {
 			c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
 			return
 		}
 
-		etag = c.App.GetUsersNotInTeamEtag(inTeamId)
+		etag = c.App.GetUsersNotInTeamEtag(inTeamId, restrictions.Hash())
 		if c.HandleEtag(etag, "Get Users Not in Team", w, r) {
 			return
 		}
 
-		profiles, err = c.App.GetUsersNotInTeamPage(notInTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
+		profiles, err = c.App.GetUsersNotInTeamPage(notInTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
 	} else if len(inTeamId) > 0 {
 		if !c.App.SessionHasPermissionToTeam(c.App.Session, inTeamId, model.PERMISSION_VIEW_TEAM) {
 			c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
@@ -470,11 +519,11 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 
 		if sort == "last_activity_at" {
-			profiles, err = c.App.GetRecentlyActiveUsersForTeamPage(inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
+			profiles, err = c.App.GetRecentlyActiveUsersForTeamPage(inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
 		} else if sort == "create_at" {
-			profiles, err = c.App.GetNewUsersForTeamPage(inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
+			profiles, err = c.App.GetNewUsersForTeamPage(inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
 		} else {
-			etag = c.App.GetUsersInTeamEtag(inTeamId)
+			etag = c.App.GetUsersInTeamEtag(inTeamId, restrictions.Hash())
 			if c.HandleEtag(etag, "Get Users in Team", w, r) {
 				return
 			}
@@ -491,10 +540,14 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			profiles, err = c.App.GetUsersInChannelPage(inChannelId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
 		}
 	} else {
-		// No permission check required
-
-		etag = c.App.GetUsersEtag()
+		etag = c.App.GetUsersEtag(restrictions.Hash())
 		if c.HandleEtag(etag, "Get Users", w, r) {
+			return
+		}
+
+		userGetOptions, err = c.App.RestrictUsersGetByPermissions(c.App.Session.UserId, userGetOptions)
+		if err != nil {
+			c.Err = err
 			return
 		}
 		profiles, err = c.App.GetUsersPage(userGetOptions, c.IsSystemAdmin())
@@ -520,9 +573,13 @@ func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// No permission check required
+	restrictions, err := c.App.GetViewUsersRestrictions(c.App.Session.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
 
-	users, err := c.App.GetUsersByIds(userIds, c.IsSystemAdmin())
+	users, err := c.App.GetUsersByIds(userIds, c.IsSystemAdmin(), restrictions)
 	if err != nil {
 		c.Err = err
 		return
@@ -539,9 +596,13 @@ func getUsersByNames(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// No permission check required
+	restrictions, err := c.App.GetViewUsersRestrictions(c.App.Session.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
 
-	users, err := c.App.GetUsersByUsernames(usernames, c.IsSystemAdmin())
+	users, err := c.App.GetUsersByUsernames(usernames, c.IsSystemAdmin(), restrictions)
 	if err != nil {
 		c.Err = err
 		return
@@ -607,6 +668,12 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		options.AllowFullNames = *c.App.Config().PrivacySettings.ShowFullName
 	}
 
+	options, err := c.App.RestrictUsersSearchByPermissions(c.App.Session.UserId, options)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
 	profiles, err := c.App.SearchUsers(props, options)
 	if err != nil {
 		c.Err = err
@@ -670,6 +737,13 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		autocomplete.Users = result.InChannel
 		autocomplete.OutOfChannel = result.OutOfChannel
 	} else if len(teamId) > 0 {
+		var err *model.AppError
+		options, err = c.App.RestrictUsersSearchByPermissions(c.App.Session.UserId, options)
+		if err != nil {
+			c.Err = err
+			return
+		}
+
 		result, err := c.App.AutocompleteUsersInTeam(teamId, name, options)
 		if err != nil {
 			c.Err = err
@@ -678,6 +752,13 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		autocomplete.Users = result.InTeam
 	} else {
+		var err *model.AppError
+		options, err = c.App.RestrictUsersSearchByPermissions(c.App.Session.UserId, options)
+		if err != nil {
+			c.Err = err
+			return
+		}
+
 		// No permission check required
 		result, err := c.App.SearchUsersInTeam("", name, options)
 		if err != nil {
