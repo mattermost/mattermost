@@ -112,7 +112,7 @@ func TestSlackConvertChannelMentions(t *testing.T) {
 }
 
 func TestSlackParseChannels(t *testing.T) {
-	file, err := os.Open("../tests/slack-import-test-channels.json")
+	file, err := os.Open("tests/slack-import-test-channels.json")
 	require.NoError(t, err)
 	defer file.Close()
 
@@ -122,7 +122,7 @@ func TestSlackParseChannels(t *testing.T) {
 }
 
 func TestSlackParseUsers(t *testing.T) {
-	file, err := os.Open("../tests/slack-import-test-users.json")
+	file, err := os.Open("tests/slack-import-test-users.json")
 	require.NoError(t, err)
 	defer file.Close()
 
@@ -132,7 +132,7 @@ func TestSlackParseUsers(t *testing.T) {
 }
 
 func TestSlackParsePosts(t *testing.T) {
-	file, err := os.Open("../tests/slack-import-test-posts.json")
+	file, err := os.Open("tests/slack-import-test-posts.json")
 	require.NoError(t, err)
 	defer file.Close()
 

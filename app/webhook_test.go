@@ -20,7 +20,7 @@ import (
 )
 
 func TestCreateIncomingWebhookForChannel(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	type TestCase struct {
@@ -122,11 +122,11 @@ func TestCreateIncomingWebhookForChannel(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			assert := assert.New(t)
 
-			th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = tc.EnableIncomingHooks })
+			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = tc.EnableIncomingHooks })
 			th.App.UpdateConfig(func(cfg *model.Config) {
-				cfg.ServiceSettings.EnablePostUsernameOverride = tc.EnablePostUsernameOverride
+				*cfg.ServiceSettings.EnablePostUsernameOverride = tc.EnablePostUsernameOverride
 			})
-			th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostIconOverride = tc.EnablePostIconOverride })
+			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnablePostIconOverride = tc.EnablePostIconOverride })
 
 			createdHook, err := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &tc.IncomingWebhook)
 			if tc.ExpectedError && err == nil {
@@ -151,7 +151,7 @@ func TestCreateIncomingWebhookForChannel(t *testing.T) {
 }
 
 func TestUpdateIncomingWebhook(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	type TestCase struct {
@@ -253,7 +253,7 @@ func TestUpdateIncomingWebhook(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			assert := assert.New(t)
 
-			th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = true })
+			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
 
 			hook, err := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{
 				ChannelId: th.BasicChannel.Id,
@@ -263,11 +263,11 @@ func TestUpdateIncomingWebhook(t *testing.T) {
 			}
 			defer th.App.DeleteIncomingWebhook(hook.Id)
 
-			th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = tc.EnableIncomingHooks })
+			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = tc.EnableIncomingHooks })
 			th.App.UpdateConfig(func(cfg *model.Config) {
-				cfg.ServiceSettings.EnablePostUsernameOverride = tc.EnablePostUsernameOverride
+				*cfg.ServiceSettings.EnablePostUsernameOverride = tc.EnablePostUsernameOverride
 			})
-			th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnablePostIconOverride = tc.EnablePostIconOverride })
+			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnablePostIconOverride = tc.EnablePostIconOverride })
 
 			updatedHook, err := th.App.UpdateIncomingWebhook(hook, &tc.IncomingWebhook)
 			if tc.ExpectedError && err == nil {
@@ -289,10 +289,10 @@ func TestUpdateIncomingWebhook(t *testing.T) {
 }
 
 func TestCreateWebhookPost(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableIncomingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
 
 	hook, err := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
 	if err != nil {
@@ -478,7 +478,7 @@ func TestSplitWebhookPost(t *testing.T) {
 }
 
 func TestCreateOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	outgoingWebhook := model.OutgoingWebhook{
@@ -492,7 +492,7 @@ func TestCreateOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 		CreatorId:    th.BasicUser.Id,
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableOutgoingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
 
 	createdHook, err := th.App.CreateOutgoingWebhook(&outgoingWebhook)
 
@@ -597,7 +597,7 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 		return testCasesOutgoing
 	}
 
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -609,9 +609,9 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 
 			th.App.UpdateConfig(func(cfg *model.Config) {
-				cfg.ServiceSettings.EnableOutgoingWebhooks = true
-				cfg.ServiceSettings.EnablePostUsernameOverride = testCase.EnablePostUsernameOverride
-				cfg.ServiceSettings.EnablePostIconOverride = testCase.EnablePostIconOverride
+				*cfg.ServiceSettings.EnableOutgoingWebhooks = true
+				*cfg.ServiceSettings.EnablePostUsernameOverride = testCase.EnablePostUsernameOverride
+				*cfg.ServiceSettings.EnablePostIconOverride = testCase.EnablePostIconOverride
 			})
 
 			ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -668,12 +668,12 @@ func (r InfiniteReader) Read(p []byte) (n int, err error) {
 }
 
 func TestDoOutgoingWebhookRequest(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.ServiceSettings.AllowedUntrustedInternalConnections = model.NewString("127.0.0.1")
-		cfg.ServiceSettings.EnableOutgoingWebhooks = true
+		*cfg.ServiceSettings.EnableOutgoingWebhooks = true
 	})
 
 	t.Run("with a valid response", func(t *testing.T) {

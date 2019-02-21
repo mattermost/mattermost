@@ -356,7 +356,14 @@ func userCreateCmdF(command *cobra.Command, args []string) error {
 		}
 	}
 
-	CommandPrettyPrintln("Created User")
+	CommandPrettyPrintln("id: " + ruser.Id)
+	CommandPrettyPrintln("username: " + ruser.Username)
+	CommandPrettyPrintln("nickname: " + ruser.Nickname)
+	CommandPrettyPrintln("position: " + ruser.Position)
+	CommandPrettyPrintln("first_name: " + ruser.FirstName)
+	CommandPrettyPrintln("last_name: " + ruser.LastName)
+	CommandPrettyPrintln("email: " + ruser.Email)
+	CommandPrettyPrintln("auth_service: " + ruser.AuthService)
 
 	return nil
 }
@@ -686,7 +693,7 @@ func verifyUserCmdF(command *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to find user '" + args[i] + "'")
 			continue
 		}
-		if cresult := <-a.Srv.Store.User().VerifyEmail(user.Id); cresult.Err != nil {
+		if cresult := <-a.Srv.Store.User().VerifyEmail(user.Id, user.Email); cresult.Err != nil {
 			CommandPrintErrorln("Unable to verify '" + args[i] + "' email. Error: " + cresult.Err.Error())
 		}
 	}

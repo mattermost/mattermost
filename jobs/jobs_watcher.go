@@ -114,6 +114,13 @@ func (watcher *Watcher) PollAndNotify() {
 					default:
 					}
 				}
+			} else if job.Type == model.JOB_TYPE_PLUGINS {
+				if watcher.workers.Plugins != nil {
+					select {
+					case watcher.workers.Plugins.JobChannel() <- *job:
+					default:
+					}
+				}
 			}
 		}
 	}

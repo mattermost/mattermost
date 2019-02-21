@@ -119,7 +119,7 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	etag := user.Etag(c.App.Config().PrivacySettings.ShowFullName, c.App.Config().PrivacySettings.ShowEmailAddress)
+	etag := user.Etag(*c.App.Config().PrivacySettings.ShowFullName, *c.App.Config().PrivacySettings.ShowEmailAddress)
 
 	if c.HandleEtag(etag, "Get User", w, r) {
 		return
@@ -149,7 +149,7 @@ func getUserByUsername(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	etag := user.Etag(c.App.Config().PrivacySettings.ShowFullName, c.App.Config().PrivacySettings.ShowEmailAddress)
+	etag := user.Etag(*c.App.Config().PrivacySettings.ShowFullName, *c.App.Config().PrivacySettings.ShowEmailAddress)
 
 	if c.HandleEtag(etag, "Get User", w, r) {
 		return
@@ -184,7 +184,7 @@ func getUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	etag := user.Etag(c.App.Config().PrivacySettings.ShowFullName, c.App.Config().PrivacySettings.ShowEmailAddress)
+	etag := user.Etag(*c.App.Config().PrivacySettings.ShowFullName, *c.App.Config().PrivacySettings.ShowEmailAddress)
 
 	if c.HandleEtag(etag, "Get User", w, r) {
 		return
@@ -577,8 +577,8 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		options.AllowEmails = true
 		options.AllowFullNames = true
 	} else {
-		options.AllowEmails = c.App.Config().PrivacySettings.ShowEmailAddress
-		options.AllowFullNames = c.App.Config().PrivacySettings.ShowFullName
+		options.AllowEmails = *c.App.Config().PrivacySettings.ShowEmailAddress
+		options.AllowFullNames = *c.App.Config().PrivacySettings.ShowFullName
 	}
 
 	profiles, err := c.App.SearchUsers(props, options)
@@ -610,7 +610,7 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		options.AllowFullNames = true
 	} else {
-		options.AllowFullNames = c.App.Config().PrivacySettings.ShowFullName
+		options.AllowFullNames = *c.App.Config().PrivacySettings.ShowFullName
 	}
 
 	if len(channelId) > 0 {
@@ -685,16 +685,25 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if c.App.Session.IsOAuth {
-		ouser, err := c.App.GetUser(user.Id)
-		if err != nil {
-			c.Err = err
-			return
-		}
+	ouser, err := c.App.GetUser(user.Id)
+	if err != nil {
+		c.Err = err
+		return
+	}
 
+	if c.App.Session.IsOAuth {
 		if ouser.Email != user.Email {
 			c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 			c.Err.DetailedError += ", attempted email update by oauth app"
+			return
+		}
+	}
+
+	// If eMail update is attempted by the currently logged in user, check if correct password was provided
+	if user.Email != "" && ouser.Email != user.Email && c.App.Session.UserId == c.Params.UserId {
+		err = c.App.DoubleCheckPassword(ouser, user.Password)
+		if err != nil {
+			c.SetInvalidParam("password")
 			return
 		}
 	}
@@ -745,6 +754,19 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// If eMail update is attempted by the currently logged in user, check if correct password was provided
+	if patch.Email != nil && ouser.Email != *patch.Email && c.App.Session.UserId == c.Params.UserId {
+		if patch.Password == nil {
+			c.SetInvalidParam("password")
+			return
+		}
+
+		if err = c.App.DoubleCheckPassword(ouser, *patch.Password); err != nil {
+			c.Err = err
+			return
+		}
+	}
+
 	ruser, err := c.App.PatchUser(c.Params.UserId, patch, c.IsSystemAdmin())
 	if err != nil {
 		c.Err = err
@@ -766,6 +788,12 @@ func deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !c.App.SessionHasPermissionToUser(c.App.Session, userId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	// if EnableUserDeactivation flag is disabled the user cannot deactivate himself.
+	if c.Params.UserId == c.App.Session.UserId && !*c.App.Config().TeamSettings.EnableUserDeactivation && !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.Err = model.NewAppError("deleteUser", "api.user.update_active.not_enable.app_error", nil, "userId="+c.Params.UserId, http.StatusUnauthorized)
 		return
 	}
 
@@ -834,7 +862,7 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// if EnableUserDeactivation flag is disabled the user cannot deactivate himself.
-	if isSelfDeactive && !*c.App.GetConfig().TeamSettings.EnableUserDeactivation {
+	if isSelfDeactive && !*c.App.Config().TeamSettings.EnableUserDeactivation {
 		c.Err = model.NewAppError("updateUserActive", "api.user.update_active.not_enable.app_error", nil, "userId="+c.Params.UserId, http.StatusUnauthorized)
 		return
 	}
@@ -1333,7 +1361,7 @@ func sendVerificationEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = c.App.SendEmailVerification(user); err != nil {
+	if err = c.App.SendEmailVerification(user, user.Email); err != nil {
 		// Don't want to leak whether the email is valid or not
 		mlog.Error(err.Error())
 		ReturnStatusOK(w)

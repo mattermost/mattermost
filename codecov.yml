@@ -1,9 +1,16 @@
+codecov:
+  ci:
+    - build.mattermost.com
+  notify:
+    require_ci_to_pass: yes
+
 coverage:
   status:
     project:
       default:
-        threshold: 1%
+        threshold: 1
     patch: off
+    changes: off
 ignore:
   - store/storetest
 comment: false

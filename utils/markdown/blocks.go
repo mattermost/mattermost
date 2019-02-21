@@ -77,10 +77,10 @@ func ParseBlocks(markdown string, lines []Line) (*Document, []*ReferenceDefiniti
 				didAdd := false
 				for i := lastMatchIndex; i >= 0; i-- {
 					if container, ok := openBlocks[i].(ContainerBlock); ok {
-						if newBlocks := container.AddChild(newBlocks); newBlocks != nil {
+						if addedBlocks := container.AddChild(newBlocks); addedBlocks != nil {
 							closeBlocks(openBlocks[i+1:], &referenceDefinitions)
 							openBlocks = openBlocks[:i+1]
-							openBlocks = append(openBlocks, newBlocks...)
+							openBlocks = append(openBlocks, addedBlocks...)
 							didAdd = true
 							break
 						}

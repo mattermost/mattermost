@@ -325,7 +325,7 @@ func deauthorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.Config().ServiceSettings.EnableOAuthServiceProvider {
+	if !*c.App.Config().ServiceSettings.EnableOAuthServiceProvider {
 		err := model.NewAppError("authorizeOAuth", "api.oauth.authorize_oauth.disabled.app_error", nil, "", http.StatusNotImplemented)
 		utils.RenderWebAppError(c.App.Config(), w, r, err, c.App.AsymmetricSigningKey())
 		return

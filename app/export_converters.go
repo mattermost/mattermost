@@ -38,20 +38,36 @@ func ImportLineFromChannel(channel *model.ChannelForExport) *LineImportData {
 	}
 }
 
-func ImportLineFromUser(user *model.User) *LineImportData {
+func ImportLineFromUser(user *model.User, exportedPrefs map[string]*string) *LineImportData {
+	// Bulk Importer doesn't accept "empty string" for AuthService.
+	var authService *string
+	if user.AuthService != "" {
+		authService = &user.AuthService
+	}
+
 	return &LineImportData{
 		Type: "user",
 		User: &UserImportData{
-			Username:    &user.Username,
-			Email:       &user.Email,
-			AuthService: &user.AuthService,
-			AuthData:    user.AuthData,
-			Nickname:    &user.Nickname,
-			FirstName:   &user.FirstName,
-			LastName:    &user.LastName,
-			Position:    &user.Position,
-			Roles:       &user.Roles,
-			Locale:      &user.Locale,
+			Username:           &user.Username,
+			Email:              &user.Email,
+			AuthService:        authService,
+			AuthData:           user.AuthData,
+			Nickname:           &user.Nickname,
+			FirstName:          &user.FirstName,
+			LastName:           &user.LastName,
+			Position:           &user.Position,
+			Roles:              &user.Roles,
+			Locale:             &user.Locale,
+			UseMarkdownPreview: exportedPrefs["UseMarkdownPreview"],
+			UseFormatting:      exportedPrefs["UseFormatting"],
+			ShowUnreadSection:  exportedPrefs["ShowUnreadSection"],
+			Theme:              exportedPrefs["Theme"],
+			UseMilitaryTime:    exportedPrefs["UseMilitaryTime"],
+			CollapsePreviews:   exportedPrefs["CollapsePreviews"],
+			MessageDisplay:     exportedPrefs["MessageDisplay"],
+			ChannelDisplayMode: exportedPrefs["ChannelDisplayMode"],
+			TutorialStep:       exportedPrefs["TutorialStep"],
+			EmailInterval:      exportedPrefs["EmailInterval"],
 		},
 	}
 }

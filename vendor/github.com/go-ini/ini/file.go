@@ -314,7 +314,7 @@ func (f *File) writeToBuffer(indent string) (*bytes.Buffer, error) {
 				lines := strings.Split(key.Comment, LineBreak)
 				for i := range lines {
 					if lines[i][0] != '#' && lines[i][0] != ';' {
-						lines[i] = "; " + lines[i]
+						lines[i] = "; " + strings.TrimSpace(lines[i])
 					} else {
 						lines[i] = lines[i][:1] + " " + strings.TrimSpace(lines[i][1:])
 					}

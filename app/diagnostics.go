@@ -23,7 +23,6 @@ const (
 	TRACK_CONFIG_LOG                = "config_log"
 	TRACK_CONFIG_FILE               = "config_file"
 	TRACK_CONFIG_RATE               = "config_rate"
-	TRACK_CONFIG_EXTENSION          = "config_extension"
 	TRACK_CONFIG_EMAIL              = "config_email"
 	TRACK_CONFIG_PRIVACY            = "config_privacy"
 	TRACK_CONFIG_THEME              = "config_theme"
@@ -46,6 +45,7 @@ const (
 	TRACK_CONFIG_MESSAGE_EXPORT     = "config_message_export"
 	TRACK_CONFIG_DISPLAY            = "config_display"
 	TRACK_CONFIG_TIMEZONE           = "config_timezone"
+	TRACK_CONFIG_IMAGE_PROXY        = "config_image_proxy"
 	TRACK_PERMISSIONS_GENERAL       = "permissions_general"
 	TRACK_PERMISSIONS_SYSTEM_SCHEME = "permissions_system_scheme"
 	TRACK_PERMISSIONS_TEAM_SCHEMES  = "permissions_team_schemes"
@@ -133,6 +133,9 @@ func (a *App) trackActivity() {
 	var deletedPublicChannelCount int64
 	var deletedPrivateChannelCount int64
 	var postsCount int64
+	var slashCommandsCount int64
+	var incomingWebhooksCount int64
+	var outgoingWebhooksCount int64
 
 	dailyActiveChan := a.Srv.Store.User().AnalyticsActiveCount(DAY_MILLISECONDS)
 	monthlyActiveChan := a.Srv.Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS)
@@ -181,6 +184,18 @@ func (a *App) trackActivity() {
 		postsCount = pcr.Data.(int64)
 	}
 
+	if scc := <-a.Srv.Store.Command().AnalyticsCommandCount(""); scc.Err == nil {
+		slashCommandsCount = scc.Data.(int64)
+	}
+
+	if iwc := <-a.Srv.Store.Webhook().AnalyticsIncomingCount(""); iwc.Err == nil {
+		incomingWebhooksCount = iwc.Data.(int64)
+	}
+
+	if owc := <-a.Srv.Store.Webhook().AnalyticsOutgoingCount(""); owc.Err == nil {
+		outgoingWebhooksCount = owc.Data.(int64)
+	}
+
 	a.SendDiagnostic(TRACK_ACTIVITY, map[string]interface{}{
 		"registered_users":             userCount,
 		"active_users_daily":           activeUsersDailyCount,
@@ -193,6 +208,9 @@ func (a *App) trackActivity() {
 		"public_channels_deleted":      deletedPublicChannelCount,
 		"private_channels_deleted":     deletedPrivateChannelCount,
 		"posts":                        postsCount,
+		"slash_commands":               slashCommandsCount,
+		"incoming_webhooks":            incomingWebhooksCount,
+		"outgoing_webhooks":            outgoingWebhooksCount,
 	})
 }
 
@@ -222,6 +240,7 @@ func (a *App) trackConfig() {
 		"enforce_multifactor_authentication":                      *cfg.ServiceSettings.EnforceMultifactorAuthentication,
 		"enable_oauth_service_provider":                           cfg.ServiceSettings.EnableOAuthServiceProvider,
 		"connection_security":                                     *cfg.ServiceSettings.ConnectionSecurity,
+		"tls_strict_transport":                                    *cfg.ServiceSettings.TLSStrictTransport,
 		"uses_letsencrypt":                                        *cfg.ServiceSettings.UseLetsEncrypt,
 		"forward_80_to_443":                                       *cfg.ServiceSettings.Forward80To443,
 		"maximum_login_attempts":                                  *cfg.ServiceSettings.MaximumLoginAttempts,
@@ -255,13 +274,11 @@ func (a *App) trackConfig() {
 		"enable_tutorial":                                         *cfg.ServiceSettings.EnableTutorial,
 		"experimental_enable_default_channel_leave_join_messages": *cfg.ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages,
 		"experimental_group_unread_channels":                      *cfg.ServiceSettings.ExperimentalGroupUnreadChannels,
-		"isdefault_image_proxy_type":                              isDefault(*cfg.ServiceSettings.ImageProxyType, ""),
-		"isdefault_image_proxy_url":                               isDefault(*cfg.ServiceSettings.ImageProxyURL, ""),
-		"isdefault_image_proxy_options":                           isDefault(*cfg.ServiceSettings.ImageProxyOptions, ""),
 		"websocket_url":                                           isDefault(*cfg.ServiceSettings.WebsocketURL, ""),
 		"allow_cookies_for_subdomains":                            *cfg.ServiceSettings.AllowCookiesForSubdomains,
 		"enable_api_team_deletion":                                *cfg.ServiceSettings.EnableAPITeamDeletion,
 		"experimental_enable_hardened_mode":                       *cfg.ServiceSettings.ExperimentalEnableHardenedMode,
+		"experimental_strict_csrf_enforcement":                    *cfg.ServiceSettings.ExperimentalStrictCSRFEnforcement,
 		"enable_email_invitations":                                *cfg.ServiceSettings.EnableEmailInvitations,
 		"experimental_channel_organization":                       *cfg.ServiceSettings.ExperimentalChannelOrganization,
 		"experimental_ldap_group_sync":                            *cfg.ServiceSettings.ExperimentalLdapGroupSync,
@@ -342,8 +359,8 @@ func (a *App) trackConfig() {
 	a.SendDiagnostic(TRACK_CONFIG_FILE, map[string]interface{}{
 		"enable_public_links":     cfg.FileSettings.EnablePublicLink,
 		"driver_name":             *cfg.FileSettings.DriverName,
-		"isdefault_directory":     isDefault(cfg.FileSettings.Directory, model.FILE_SETTINGS_DEFAULT_DIRECTORY),
-		"isabsolute_directory":    filepath.IsAbs(cfg.FileSettings.Directory),
+		"isdefault_directory":     isDefault(*cfg.FileSettings.Directory, model.FILE_SETTINGS_DEFAULT_DIRECTORY),
+		"isabsolute_directory":    filepath.IsAbs(*cfg.FileSettings.Directory),
 		"amazon_s3_ssl":           *cfg.FileSettings.AmazonS3SSL,
 		"amazon_s3_sse":           *cfg.FileSettings.AmazonS3SSE,
 		"amazon_s3_signv2":        *cfg.FileSettings.AmazonS3SignV2,
@@ -372,6 +389,7 @@ func (a *App) trackConfig() {
 		"enable_preview_mode_banner":           *cfg.EmailSettings.EnablePreviewModeBanner,
 		"isdefault_feedback_name":              isDefault(cfg.EmailSettings.FeedbackName, ""),
 		"isdefault_feedback_email":             isDefault(cfg.EmailSettings.FeedbackEmail, ""),
+		"isdefault_reply_to_address":           isDefault(cfg.EmailSettings.ReplyToAddress, ""),
 		"isdefault_feedback_organization":      isDefault(*cfg.EmailSettings.FeedbackOrganization, model.EMAIL_SETTINGS_DEFAULT_FEEDBACK_ORGANIZATION),
 		"skip_server_certificate_verification": *cfg.EmailSettings.SkipServerCertificateVerification,
 		"isdefault_login_button_color":         isDefault(*cfg.EmailSettings.LoginButtonColor, ""),
@@ -495,9 +513,10 @@ func (a *App) trackConfig() {
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_EXPERIMENTAL, map[string]interface{}{
-		"client_side_cert_enable":          *cfg.ExperimentalSettings.ClientSideCertEnable,
-		"isdefault_client_side_cert_check": isDefault(*cfg.ExperimentalSettings.ClientSideCertCheck, model.CLIENT_SIDE_CERT_CHECK_PRIMARY_AUTH),
-		"enable_post_metadata":             *cfg.ExperimentalSettings.EnablePostMetadata,
+		"client_side_cert_enable":            *cfg.ExperimentalSettings.ClientSideCertEnable,
+		"isdefault_client_side_cert_check":   isDefault(*cfg.ExperimentalSettings.ClientSideCertCheck, model.CLIENT_SIDE_CERT_CHECK_PRIMARY_AUTH),
+		"enable_post_metadata":               !*cfg.ExperimentalSettings.DisablePostMetadata,
+		"link_metadata_timeout_milliseconds": *cfg.ExperimentalSettings.LinkMetadataTimeoutMilliseconds,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_ANALYTICS, map[string]interface{}{
@@ -560,6 +579,13 @@ func (a *App) trackConfig() {
 
 	a.SendDiagnostic(TRACK_CONFIG_TIMEZONE, map[string]interface{}{
 		"isdefault_supported_timezones_path": isDefault(*cfg.TimezoneSettings.SupportedTimezonesPath, model.TIMEZONE_SETTINGS_DEFAULT_SUPPORTED_TIMEZONES_PATH),
+	})
+
+	a.SendDiagnostic(TRACK_CONFIG_IMAGE_PROXY, map[string]interface{}{
+		"enable":                               *cfg.ImageProxySettings.Enable,
+		"image_proxy_type":                     *cfg.ImageProxySettings.ImageProxyType,
+		"isdefault_remote_image_proxy_url":     isDefault(*cfg.ImageProxySettings.RemoteImageProxyURL, ""),
+		"isdefault_remote_image_proxy_options": isDefault(*cfg.ImageProxySettings.RemoteImageProxyOptions, ""),
 	})
 }
 

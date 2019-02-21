@@ -32,7 +32,10 @@ package:
 	mkdir -p $(DIST_PATH)/prepackaged_plugins
 
 	@# Resource directories
-	cp -RL config $(DIST_PATH)
+	mkdir -p $(DIST_PATH)/config
+	cp -L config/README.md $(DIST_PATH)/config
+	cp -L config/config.json $(DIST_PATH)/config
+	cp -L config/timezones.json $(DIST_PATH)/config
 	cp -RL fonts $(DIST_PATH)
 	cp -RL templates $(DIST_PATH)
 	cp -RL i18n $(DIST_PATH)
@@ -44,6 +47,7 @@ package:
 	@# Reset email sending to original configuration
 	sed -i'' -e 's|"SendEmailNotifications": true,|"SendEmailNotifications": false,|g' $(DIST_PATH)/config/config.json
 	sed -i'' -e 's|"FeedbackEmail": "test@example.com",|"FeedbackEmail": "",|g' $(DIST_PATH)/config/config.json
+	sed -i'' -e 's|"ReplyToAddress": "test@example.com",|"ReplyToAddress": "",|g' $(DIST_PATH)/config/config.json
 	sed -i'' -e 's|"SMTPServer": "dockerhost",|"SMTPServer": "",|g' $(DIST_PATH)/config/config.json
 	sed -i'' -e 's|"SMTPPort": "2500",|"SMTPPort": "",|g' $(DIST_PATH)/config/config.json
 

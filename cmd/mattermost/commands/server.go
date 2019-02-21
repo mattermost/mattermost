@@ -43,14 +43,13 @@ func serverCmdF(command *cobra.Command, args []string) error {
 	return runServer(config, disableConfigWatch, usedPlatform, interruptChan)
 }
 
-func runServer(configFileLocation string, disableConfigWatch bool, usedPlatform bool, interruptChan chan os.Signal) error {
+func runServer(configDSN string, disableConfigWatch bool, usedPlatform bool, interruptChan chan os.Signal) error {
 	options := []app.Option{
-		app.ConfigFile(configFileLocation),
+		app.Config(configDSN, !disableConfigWatch),
 		app.RunJobs,
 		app.JoinCluster,
-	}
-	if disableConfigWatch {
-		options = append(options, app.DisableConfigWatch)
+		app.StartElasticsearch,
+		app.StartMetrics,
 	}
 	server, err := app.NewServer(options...)
 	if err != nil {
@@ -74,7 +73,7 @@ func runServer(configFileLocation string, disableConfigWatch bool, usedPlatform 
 	web.New(server, server.AppOptions, server.Router)
 
 	// If we allow testing then listen for manual testing URL hits
-	if server.Config().ServiceSettings.EnableTesting {
+	if *server.Config().ServiceSettings.EnableTesting {
 		manualtesting.Init(api)
 	}
 

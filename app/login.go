@@ -45,8 +45,7 @@ func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken string, l
 	}()
 
 	if len(password) == 0 {
-		err := model.NewAppError("AuthenticateUserForLogin", "api.user.login.blank_pwd.app_error", nil, "", http.StatusBadRequest)
-		return nil, err
+		return nil, model.NewAppError("AuthenticateUserForLogin", "api.user.login.blank_pwd.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	// Get the MM user we are trying to login
@@ -64,27 +63,6 @@ func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken string, l
 	// and then authenticate them
 	if user, err = a.authenticateUser(user, password, mfaToken); err != nil {
 		return nil, err
-	}
-
-	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-		var rejectionReason string
-		pluginContext := a.PluginContext()
-		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-			rejectionReason = hooks.UserWillLogIn(pluginContext, user)
-			return rejectionReason == ""
-		}, plugin.UserWillLogInId)
-
-		if rejectionReason != "" {
-			return nil, model.NewAppError("AuthenticateUserForLogin", "Login rejected by plugin: "+rejectionReason, nil, "", http.StatusBadRequest)
-		}
-
-		a.Srv.Go(func() {
-			pluginContext := a.PluginContext()
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				hooks.UserHasLoggedIn(pluginContext, user)
-				return true
-			}, plugin.UserHasLoggedInId)
-		})
 	}
 
 	return user, nil
@@ -127,6 +105,19 @@ func (a *App) GetUserForLogin(id, loginId string) (*model.User, *model.AppError)
 }
 
 func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, deviceId string) (*model.Session, *model.AppError) {
+	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
+		var rejectionReason string
+		pluginContext := a.PluginContext()
+		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			rejectionReason = hooks.UserWillLogIn(pluginContext, user)
+			return rejectionReason == ""
+		}, plugin.UserWillLogInId)
+
+		if rejectionReason != "" {
+			return nil, model.NewAppError("DoLogin", "Login rejected by plugin: "+rejectionReason, nil, "", http.StatusBadRequest)
+		}
+	}
+
 	session := &model.Session{UserId: user.Id, Roles: user.GetRawRoles(), DeviceId: deviceId, IsOAuth: false}
 	session.GenerateCSRF()
 	maxAge := *a.Config().ServiceSettings.SessionLengthWebInDays * 60 * 60 * 24
@@ -190,8 +181,29 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 		Secure:  secure,
 	}
 
+	csrfCookie := &http.Cookie{
+		Name:    model.SESSION_COOKIE_CSRF,
+		Value:   session.GetCSRF(),
+		Path:    "/",
+		MaxAge:  maxAge,
+		Expires: expiresAt,
+		Domain:  domain,
+		Secure:  secure,
+	}
+
 	http.SetCookie(w, sessionCookie)
 	http.SetCookie(w, userCookie)
+	http.SetCookie(w, csrfCookie)
+
+	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
+		a.Srv.Go(func() {
+			pluginContext := a.PluginContext()
+			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+				hooks.UserHasLoggedIn(pluginContext, user)
+				return true
+			}, plugin.UserHasLoggedInId)
+		})
+	}
 
 	return session, nil
 }

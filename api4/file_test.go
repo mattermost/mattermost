@@ -940,14 +940,8 @@ func TestGetFileLink(t *testing.T) {
 		t.Skip("skipping because no file driver is enabled")
 	}
 
-	enablePublicLink := th.App.Config().FileSettings.EnablePublicLink
-	publicLinkSalt := *th.App.Config().FileSettings.PublicLinkSalt
-	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FileSettings.EnablePublicLink = enablePublicLink })
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.PublicLinkSalt = publicLinkSalt })
-	}()
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FileSettings.EnablePublicLink = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.PublicLinkSalt = model.NewId() })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.PublicLinkSalt = model.NewRandomString(32) })
 
 	fileId := ""
 	if data, err := testutils.ReadTestFile("test.png"); err != nil {
@@ -963,16 +957,16 @@ func TestGetFileLink(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
-	store.Must(th.App.Srv.Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id))
+	store.Must(th.App.Srv.Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id, th.BasicUser.Id))
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FileSettings.EnablePublicLink = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = false })
 	_, resp = Client.GetFileLink(fileId)
 	CheckNotImplementedStatus(t, resp)
 
 	// Wait a bit for files to ready
 	time.Sleep(2 * time.Second)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FileSettings.EnablePublicLink = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = true })
 	link, resp := Client.GetFileLink(fileId)
 	CheckNoError(t, resp)
 
@@ -1131,18 +1125,8 @@ func TestGetPublicFile(t *testing.T) {
 	Client := th.Client
 	channel := th.BasicChannel
 
-	if *th.App.Config().FileSettings.DriverName == "" {
-		t.Skip("skipping because no file driver is enabled")
-	}
-
-	enablePublicLink := th.App.Config().FileSettings.EnablePublicLink
-	publicLinkSalt := *th.App.Config().FileSettings.PublicLinkSalt
-	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FileSettings.EnablePublicLink = enablePublicLink })
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.PublicLinkSalt = publicLinkSalt })
-	}()
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FileSettings.EnablePublicLink = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.PublicLinkSalt = GenerateTestId() })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.PublicLinkSalt = model.NewRandomString(32) })
 
 	fileId := ""
 	if data, err := testutils.ReadTestFile("test.png"); err != nil {
@@ -1155,7 +1139,7 @@ func TestGetPublicFile(t *testing.T) {
 	}
 
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
-	store.Must(th.App.Srv.Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id))
+	store.Must(th.App.Srv.Store.FileInfo().AttachToPost(fileId, th.BasicPost.Id, th.BasicUser.Id))
 
 	result := <-th.App.Srv.Store.FileInfo().Get(fileId)
 	info := result.Data.(*model.FileInfo)
@@ -1173,14 +1157,14 @@ func TestGetPublicFile(t *testing.T) {
 		t.Fatal("should've failed to get image with public link without hash", resp.Status)
 	}
 
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FileSettings.EnablePublicLink = false })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = false })
 	if resp, err := http.Get(link); err == nil && resp.StatusCode != http.StatusNotImplemented {
 		t.Fatal("should've failed to get image with disabled public link")
 	}
 
 	// test after the salt has changed
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.FileSettings.EnablePublicLink = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.PublicLinkSalt = GenerateTestId() })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.PublicLinkSalt = model.NewRandomString(32) })
 
 	if resp, err := http.Get(link); err == nil && resp.StatusCode != http.StatusBadRequest {
 		t.Fatal("should've failed to get image with public link after salt changed")

@@ -71,13 +71,11 @@
         "ExperimentalEnableDefaultChannelLeaveJoinMessages": true,
         "ExperimentalGroupUnreadChannels": "disabled",
         "ExperimentalChannelOrganization": false,
-        "ImageProxyType": "",
-        "ImageProxyOptions": "",
-        "ImageProxyURL": "",
         "EnableAPITeamDeletion": false,
         "ExperimentalEnableHardenedMode": false,
         "EnableEmailInvitations": false,
-        "ExperimentalLdapGroupSync": false
+        "ExperimentalLdapGroupSync": false,
+        "ExperimentalStrictCSRFEnforcement": false
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
@@ -183,6 +181,7 @@
         "RequireEmailVerification": false,
         "FeedbackName": "",
         "FeedbackEmail": "test@example.com",
+        "ReplyToAddress": "test@example.com",
         "FeedbackOrganization": "",
         "EnableSMTPAuth": false,
         "SMTPUsername": "",
@@ -200,9 +199,9 @@
         "EnablePreviewModeBanner": true,
         "SkipServerCertificateVerification": false,
         "EmailNotificationContentsType": "full",
-        "LoginButtonColor": "",
-        "LoginButtonBorderColor": "",
-        "LoginButtonTextColor": ""
+        "LoginButtonColor": "#0000",
+        "LoginButtonBorderColor": "#2389D7",
+        "LoginButtonTextColor": "#2389D7"
     },
     "RateLimitSettings": {
         "Enable": false,
@@ -361,7 +360,8 @@
     "ExperimentalSettings": {
         "ClientSideCertEnable": false,
         "ClientSideCertCheck": "secondary",
-        "EnablePostMetadata": false
+        "DisablePostMetadata": false,
+        "LinkMetadataTimeoutMilliseconds": 5000
     },
     "AnalyticsSettings": {
         "MaxUsersForStatistics": 2500
@@ -413,5 +413,11 @@
         "ClientDirectory": "./client/plugins",
         "Plugins": {},
         "PluginStates": {}
+    },
+    "ImageProxySettings": {
+        "Enable": true,
+        "ImageProxyType": "local",
+        "RemoteImageProxyURL": "",
+        "RemoteImageProxyOptions": ""
     }
 }

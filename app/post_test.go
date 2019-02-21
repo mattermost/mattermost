@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
-	"sync/atomic"
 	"testing"
 	"time"
 
@@ -20,7 +19,7 @@ import (
 )
 
 func TestCreatePostDeduplicate(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	t.Run("duplicate create post is idempotent", func(t *testing.T) {
@@ -187,8 +186,65 @@ func TestCreatePostDeduplicate(t *testing.T) {
 	})
 }
 
+func TestAttachFilesToPost(t *testing.T) {
+	t.Run("should attach files", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		info1 := store.Must(th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
+			CreatorId: th.BasicUser.Id,
+			Path:      "path.txt",
+		})).(*model.FileInfo)
+		info2 := store.Must(th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
+			CreatorId: th.BasicUser.Id,
+			Path:      "path.txt",
+		})).(*model.FileInfo)
+
+		post := th.BasicPost
+		post.FileIds = []string{info1.Id, info2.Id}
+
+		err := th.App.attachFilesToPost(post)
+		assert.Nil(t, err)
+
+		infos, err := th.App.GetFileInfosForPost(post.Id)
+		assert.Nil(t, err)
+		assert.Len(t, infos, 2)
+	})
+
+	t.Run("should update File.PostIds after failing to add files", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		info1 := store.Must(th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
+			CreatorId: th.BasicUser.Id,
+			Path:      "path.txt",
+			PostId:    model.NewId(),
+		})).(*model.FileInfo)
+		info2 := store.Must(th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
+			CreatorId: th.BasicUser.Id,
+			Path:      "path.txt",
+		})).(*model.FileInfo)
+
+		post := th.BasicPost
+		post.FileIds = []string{info1.Id, info2.Id}
+
+		err := th.App.attachFilesToPost(post)
+		assert.Nil(t, err)
+
+		infos, err := th.App.GetFileInfosForPost(post.Id)
+		assert.Nil(t, err)
+		assert.Len(t, infos, 1)
+		assert.Equal(t, info2.Id, infos[0].Id)
+
+		updated, err := th.App.GetSinglePost(post.Id)
+		require.Nil(t, err)
+		assert.Len(t, updated.FileIds, 1)
+		assert.Contains(t, updated.FileIds, info2.Id)
+	})
+}
+
 func TestUpdatePostEditAt(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	post := &model.Post{}
@@ -216,7 +272,7 @@ func TestUpdatePostEditAt(t *testing.T) {
 }
 
 func TestUpdatePostTimeLimit(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	post := &model.Post{}
@@ -255,7 +311,7 @@ func TestUpdatePostTimeLimit(t *testing.T) {
 func TestPostReplyToPostWhereRootPosterLeftChannel(t *testing.T) {
 	// This test ensures that when replying to a root post made by a user who has since left the channel, the reply
 	// post completes successfully. This is a regression test for PLT-6523.
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	channel := th.BasicChannel
@@ -287,7 +343,7 @@ func TestPostReplyToPostWhereRootPosterLeftChannel(t *testing.T) {
 }
 
 func TestPostChannelMentions(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	channel := th.BasicChannel
@@ -334,7 +390,7 @@ func TestPostChannelMentions(t *testing.T) {
 }
 
 func TestImageProxy(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -349,39 +405,60 @@ func TestImageProxy(t *testing.T) {
 		ProxiedImageURL string
 	}{
 		"atmos/camo": {
-			ProxyType:       "atmos/camo",
+			ProxyType:       model.IMAGE_PROXY_TYPE_ATMOS_CAMO,
 			ProxyURL:        "https://127.0.0.1",
 			ProxyOptions:    "foo",
 			ImageURL:        "http://mydomain.com/myimage",
 			ProxiedImageURL: "https://127.0.0.1/f8dace906d23689e8d5b12c3cefbedbf7b9b72f5/687474703a2f2f6d79646f6d61696e2e636f6d2f6d79696d616765",
 		},
 		"atmos/camo_SameSite": {
-			ProxyType:       "atmos/camo",
+			ProxyType:       model.IMAGE_PROXY_TYPE_ATMOS_CAMO,
 			ProxyURL:        "https://127.0.0.1",
 			ProxyOptions:    "foo",
 			ImageURL:        "http://mymattermost.com/myimage",
 			ProxiedImageURL: "http://mymattermost.com/myimage",
 		},
 		"atmos/camo_PathOnly": {
-			ProxyType:       "atmos/camo",
+			ProxyType:       model.IMAGE_PROXY_TYPE_ATMOS_CAMO,
 			ProxyURL:        "https://127.0.0.1",
 			ProxyOptions:    "foo",
 			ImageURL:        "/myimage",
 			ProxiedImageURL: "/myimage",
 		},
 		"atmos/camo_EmptyImageURL": {
-			ProxyType:       "atmos/camo",
+			ProxyType:       model.IMAGE_PROXY_TYPE_ATMOS_CAMO,
 			ProxyURL:        "https://127.0.0.1",
 			ProxyOptions:    "foo",
+			ImageURL:        "",
+			ProxiedImageURL: "",
+		},
+		"local": {
+			ProxyType:       model.IMAGE_PROXY_TYPE_LOCAL,
+			ImageURL:        "http://mydomain.com/myimage",
+			ProxiedImageURL: "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage",
+		},
+		"local_SameSite": {
+			ProxyType:       model.IMAGE_PROXY_TYPE_LOCAL,
+			ImageURL:        "http://mymattermost.com/myimage",
+			ProxiedImageURL: "http://mymattermost.com/myimage",
+		},
+		"local_PathOnly": {
+			ProxyType:       model.IMAGE_PROXY_TYPE_LOCAL,
+			ImageURL:        "/myimage",
+			ProxiedImageURL: "/myimage",
+		},
+		"local_EmptyImageURL": {
+			ProxyType:       model.IMAGE_PROXY_TYPE_LOCAL,
 			ImageURL:        "",
 			ProxiedImageURL: "",
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			th.App.UpdateConfig(func(cfg *model.Config) {
-				cfg.ServiceSettings.ImageProxyType = model.NewString(tc.ProxyType)
-				cfg.ServiceSettings.ImageProxyOptions = model.NewString(tc.ProxyOptions)
-				cfg.ServiceSettings.ImageProxyURL = model.NewString(tc.ProxyURL)
+				cfg.ImageProxySettings.Enable = model.NewBool(true)
+				cfg.ImageProxySettings.ImageProxyType = model.NewString(tc.ProxyType)
+				cfg.ImageProxySettings.RemoteImageProxyOptions = model.NewString(tc.ProxyOptions)
+				cfg.ImageProxySettings.RemoteImageProxyURL = model.NewString(tc.ProxyURL)
 			})
 
 			post := &model.Post{
@@ -455,8 +532,7 @@ func TestMaxPostSize(t *testing.T) {
 
 			app := App{
 				Srv: &Server{
-					Store:  mockStore,
-					config: atomic.Value{},
+					Store: mockStore,
 				},
 			}
 
@@ -466,7 +542,7 @@ func TestMaxPostSize(t *testing.T) {
 }
 
 func TestDeletePostWithFileAttachments(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	// Create a post with a file attachment.
@@ -512,14 +588,15 @@ func TestDeletePostWithFileAttachments(t *testing.T) {
 
 func TestCreatePost(t *testing.T) {
 	t.Run("call PreparePostForClient before returning", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ExperimentalSettings.EnablePostMetadata = false
-			*cfg.ServiceSettings.ImageProxyType = "atmos/camo"
-			*cfg.ServiceSettings.ImageProxyURL = "https://127.0.0.1"
-			*cfg.ServiceSettings.ImageProxyOptions = "foo"
+			*cfg.ExperimentalSettings.DisablePostMetadata = true
+			*cfg.ImageProxySettings.Enable = true
+			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
+			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
+			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
 		})
 
 		imageURL := "http://mydomain.com/myimage"
@@ -539,14 +616,15 @@ func TestCreatePost(t *testing.T) {
 
 func TestPatchPost(t *testing.T) {
 	t.Run("call PreparePostForClient before returning", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ExperimentalSettings.EnablePostMetadata = false
-			*cfg.ServiceSettings.ImageProxyType = "atmos/camo"
-			*cfg.ServiceSettings.ImageProxyURL = "https://127.0.0.1"
-			*cfg.ServiceSettings.ImageProxyOptions = "foo"
+			*cfg.ExperimentalSettings.DisablePostMetadata = true
+			*cfg.ImageProxySettings.Enable = true
+			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
+			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
+			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
 		})
 
 		imageURL := "http://mydomain.com/myimage"
@@ -574,14 +652,15 @@ func TestPatchPost(t *testing.T) {
 
 func TestUpdatePost(t *testing.T) {
 	t.Run("call PreparePostForClient before returning", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ExperimentalSettings.EnablePostMetadata = false
-			*cfg.ServiceSettings.ImageProxyType = "atmos/camo"
-			*cfg.ServiceSettings.ImageProxyURL = "https://127.0.0.1"
-			*cfg.ServiceSettings.ImageProxyOptions = "foo"
+			*cfg.ExperimentalSettings.DisablePostMetadata = true
+			*cfg.ImageProxySettings.Enable = true
+			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
+			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
+			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
 		})
 
 		imageURL := "http://mydomain.com/myimage"

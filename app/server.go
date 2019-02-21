@@ -24,16 +24,17 @@ import (
 	"github.com/throttled/throttled"
 	"golang.org/x/crypto/acme/autocert"
 
+	"github.com/mattermost/mattermost-server/config"
 	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/jobs"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/services/httpservice"
+	"github.com/mattermost/mattermost-server/services/imageproxy"
 	"github.com/mattermost/mattermost-server/services/timezones"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
-	"github.com/mattermost/mattermost-server/utils/fileutils"
 )
 
 var MaxNotificationsPerChannelDefault int64 = 1000000
@@ -73,10 +74,6 @@ type Server struct {
 	runjobs bool
 	Jobs    *jobs.JobServer
 
-	config                 atomic.Value
-	envConfig              map[string]interface{}
-	configFile             string
-	configListeners        map[string]func(*model.Config, *model.Config)
 	clusterLeaderListeners sync.Map
 
 	licenseValue       atomic.Value
@@ -94,8 +91,7 @@ type Server struct {
 	licenseListenerId       string
 	logListenerId           string
 	clusterLeaderListenerId string
-	disableConfigWatch      bool
-	configWatcher           *utils.ConfigWatcher
+	configStore             config.Store
 	asymmetricSigningKey    *ecdsa.PrivateKey
 
 	pluginCommands     []*PluginCommand
@@ -109,6 +105,8 @@ type Server struct {
 	phase2PermissionsMigrationComplete bool
 
 	HTTPService httpservice.HTTPService
+
+	ImageProxy *imageproxy.ImageProxy
 
 	Log *mlog.Logger
 
@@ -133,25 +131,29 @@ func NewServer(options ...Option) (*Server, error) {
 	s := &Server{
 		goroutineExitSignal:     make(chan struct{}, 1),
 		RootRouter:              rootRouter,
-		configFile:              "config.json",
-		configListeners:         make(map[string]func(*model.Config, *model.Config)),
 		licenseListeners:        map[string]func(){},
 		sessionCache:            utils.NewLru(model.SESSION_CACHE_SIZE),
 		seenPendingPostIdsCache: utils.NewLru(PENDING_POST_IDS_CACHE_SIZE),
 		clientConfig:            make(map[string]string),
 	}
 	for _, option := range options {
-		option(s)
+		if err := option(s); err != nil {
+			return nil, errors.Wrap(err, "failed to apply option")
+		}
 	}
 
-	if err := s.LoadConfig(s.configFile); err != nil {
-		return nil, err
+	if s.configStore == nil {
+		configStore, err := config.NewFileStore("config.json", true)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to load config")
+		}
+
+		s.configStore = configStore
 	}
 
-	s.EnableConfigWatch()
-
-	// Initalize logging
-	s.Log = mlog.NewLogger(utils.MloggerConfigFromLoggerConfig(&s.Config().LogSettings))
+	if s.Log == nil {
+		s.Log = mlog.NewLogger(utils.MloggerConfigFromLoggerConfig(&s.Config().LogSettings))
+	}
 
 	// Redirect default golang logger to this logger
 	mlog.RedirectStdLog(s.Log)
@@ -164,6 +166,8 @@ func NewServer(options ...Option) (*Server, error) {
 	})
 
 	s.HTTPService = httpservice.MakeHTTPService(s.FakeApp())
+
+	s.ImageProxy = imageproxy.MakeImageProxy(s, s.HTTPService)
 
 	if utils.T == nil {
 		if err := utils.TranslationsPreInit(); err != nil {
@@ -190,7 +194,7 @@ func NewServer(options ...Option) (*Server, error) {
 	mlog.Info(fmt.Sprintf("Enterprise Enabled: %v", model.BuildEnterpriseReady))
 	pwd, _ := os.Getwd()
 	mlog.Info(fmt.Sprintf("Current working directory is %v", pwd))
-	mlog.Info(fmt.Sprintf("Loaded config file from %v", fileutils.FindConfigFile(s.configFile)))
+	mlog.Info("Loaded config", mlog.String("source", s.configStore.String()))
 
 	license := s.License()
 
@@ -315,7 +319,7 @@ func (s *Server) Shutdown() error {
 	s.RemoveConfigListener(s.configListenerId)
 	s.RemoveConfigListener(s.logListenerId)
 
-	s.DisableConfigWatch()
+	s.configStore.Close()
 
 	if s.Cluster != nil {
 		s.Cluster.StopInterNodeCommunication()
