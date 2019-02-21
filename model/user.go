@@ -115,6 +115,11 @@ type UserForIndexing struct {
 	ChannelsIds []string `json:"channel_id"`
 }
 
+type ViewUsersRestrictions struct {
+	Teams    []string
+	Channels []string
+}
+
 func (u *User) DeepCopy() *User {
 	copyUser := *u
 	if u.AuthData != nil {

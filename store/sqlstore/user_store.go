@@ -409,6 +409,10 @@ func (us SqlUserStore) GetAllProfiles(options *model.UserGetOptions) store.Store
 	isPostgreSQL := us.DriverName() == model.DATABASE_DRIVER_POSTGRES
 	return store.Do(func(result *store.StoreResult) {
 		query := us.usersQuery.
+			Join("TeamMembers tm ON ( tm.UserId = u.Id AND tm.DeleteAt = 0 )").
+			Join("ChannelMembers cm ON ( cm.UserId = u.Id )").
+			Where(eqsFromList("tm.TeamId", append(options.InTeams, options.InTeamId))).
+			Where(eqsFromList("cm.ChannelId", append(options.InChannels, options.InChannelId))).
 			OrderBy("u.Username ASC").
 			Offset(uint64(options.Page * options.PerPage)).Limit(uint64(options.PerPage))
 
@@ -462,12 +466,24 @@ func (s SqlUserStore) GetEtagForProfiles(teamId string) store.StoreChannel {
 	})
 }
 
+func eqsFromList(field string, values []string) sq.Or {
+	eqs := sq.Or{}
+	for _, value := range values {
+		if value != "" {
+			eqs = append(eqs, sq.Eq{field: value})
+		}
+	}
+	return eqs
+}
+
 func (us SqlUserStore) GetProfiles(options *model.UserGetOptions) store.StoreChannel {
 	isPostgreSQL := us.DriverName() == model.DATABASE_DRIVER_POSTGRES
 	return store.Do(func(result *store.StoreResult) {
 		query := us.usersQuery.
 			Join("TeamMembers tm ON ( tm.UserId = u.Id AND tm.DeleteAt = 0 )").
-			Where("tm.TeamId = ?", options.InTeamId).
+			Join("ChannelMembers cm ON ( cm.UserId = u.Id )").
+			Where(eqsFromList("tm.TeamId", append(options.InTeams, options.InTeamId))).
+			Where(eqsFromList("cm.ChannelId", append(options.InChannels, options.InChannelId))).
 			OrderBy("u.Username ASC").
 			Offset(uint64(options.Page * options.PerPage)).Limit(uint64(options.PerPage))
 

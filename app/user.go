@@ -1846,23 +1846,63 @@ func (a *App) UpdateOAuthUserAttrs(userData io.Reader, user *model.User, provide
 	return nil
 }
 
+func (a *App) RestrictUsersGetByPermissions(userId string, options *model.UserGetOptions) (*model.UserGetOptions, *model.AppError) {
+	restrictions, err := a.GetViewUsersRestrictions(userId)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Printf("%v\n", restrictions)
+	if restrictions == nil {
+		return options, nil
+	}
+	fmt.Printf("%v\n", restrictions.Teams)
+	fmt.Printf("%v\n", restrictions.Channels)
+
+	options.InTeams = restrictions.Teams
+	options.InChannels = restrictions.Channels
+	return options, nil
+}
+
 func (a *App) GetViewUsersRestrictions(userId string) (*model.ViewUsersRestrictions, *model.AppError) {
 	if a.HasPermissionTo(userId, model.PERMISSION_VIEW_MEMBERS) {
 		return nil, nil
 	}
-	teamIdsWithPermission, teamIdsWithoutPermission, err := a.GetTeamsWithPermissionAndWithout(userId, model.PERMISSION_VIEW_MEMBERS)
+
+	teamMembers, err := a.GetTeamMembersForUser(userId)
 	if err != nil {
 		return nil, err
+	}
+
+	teamIdsWithPermission := []string{}
+	teamIdsWithoutPermission := []string{}
+
+	for _, teamMember := range teamMembers {
+		roles := teamMember.GetRoles()
+
+		if a.RolesGrantPermission(roles, model.PERMISSION_VIEW_MEMBERS.Id) {
+			teamIdsWithPermission = append(teamIdsWithPermission, teamMember.TeamId)
+		} else {
+			teamIdsWithoutPermission = append(teamIdsWithoutPermission, teamMember.TeamId)
+		}
 	}
 
 	if len(teamIdsWithoutPermission) == 0 {
-		return model.ViewUsersRestrictions{Teams: teamIdsWithPermission}, nil
+		return &model.ViewUsersRestrictions{Teams: teamIdsWithPermission}, nil
 	}
 
-	channelIds, err := a.GetChannelIdsInTeamsForUser(userId, teamIdsWithoutPermission)
-	if err != nil {
-		return nil, err
+	channelIds := []string{}
+	for _, teamId := range teamIdsWithoutPermission {
+		channelMembers, err := a.GetChannelMembersForUser(teamId, userId)
+		if err != nil {
+			return nil, err
+		}
+		if channelMembers != nil {
+			for _, channelMember := range *channelMembers {
+				channelIds = append(channelIds, channelMember.ChannelId)
+			}
+		}
 	}
 
-	return model.ViewUsersRestrictions{Teams: teamIdsWithPermission, Channels: channelIds}, nil
+	return &model.ViewUsersRestrictions{Teams: teamIdsWithPermission, Channels: channelIds}, nil
 }

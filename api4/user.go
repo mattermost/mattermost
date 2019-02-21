@@ -410,6 +410,12 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	var err *model.AppError
 	etag := ""
 
+	userGetOptions, err = c.App.RestrictUsersGetByPermissions(c.App.Session.UserId, userGetOptions)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
 	if withoutTeamBool, _ := strconv.ParseBool(withoutTeam); withoutTeamBool {
 		// Use a special permission for now
 		if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_USERS_WITHOUT_TEAM) {
@@ -430,7 +436,6 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
 			return
 		}
-
 		etag = c.App.GetUsersNotInTeamEtag(inTeamId)
 		if c.HandleEtag(etag, "Get Users Not in Team", w, r) {
 			return

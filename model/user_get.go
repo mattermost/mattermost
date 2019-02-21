@@ -20,6 +20,10 @@ type UserGetOptions struct {
 	Role string
 	// Sorting option
 	Sort string
+	// Restrict to search in a list of teams
+	InTeams []string
+	// Restrict to search in a list of channels
+	InChannels []string
 	// Page
 	Page int
 	// Page size
