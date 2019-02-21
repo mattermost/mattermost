@@ -16,7 +16,7 @@ import (
 )
 
 func TestConfigListener(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	originalSiteName := th.App.Config().TeamSettings.SiteName
@@ -51,14 +51,14 @@ func TestConfigListener(t *testing.T) {
 }
 
 func TestAsymmetricSigningKey(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	assert.NotNil(t, th.App.AsymmetricSigningKey())
 	assert.NotEmpty(t, th.App.ClientConfig()["AsymmetricSigningPublicKey"])
 }
 
 func TestClientConfigWithComputed(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	config := th.App.ClientConfigWithComputed()
@@ -71,7 +71,7 @@ func TestClientConfigWithComputed(t *testing.T) {
 }
 
 func TestEnsureInstallationDate(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	tt := []struct {

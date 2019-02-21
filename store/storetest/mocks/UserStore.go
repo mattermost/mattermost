@@ -833,13 +833,13 @@ func (_m *UserStore) UpdateUpdateAt(userId string) store.StoreChannel {
 	return r0
 }
 
-// VerifyEmail provides a mock function with given fields: userId
-func (_m *UserStore) VerifyEmail(userId string) store.StoreChannel {
-	ret := _m.Called(userId)
+// VerifyEmail provides a mock function with given fields: userId, email
+func (_m *UserStore) VerifyEmail(userId string, email string) store.StoreChannel {
+	ret := _m.Called(userId, email)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
-		r0 = rf(userId)
+	if rf, ok := ret.Get(0).(func(string, string) store.StoreChannel); ok {
+		r0 = rf(userId, email)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)

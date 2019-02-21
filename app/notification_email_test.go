@@ -16,7 +16,7 @@ import (
 )
 
 func TestGetDirectMessageNotificationEmailSubject(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	expectedPrefix := "[http://localhost:8065] New Direct Message from @sender on"
@@ -32,7 +32,7 @@ func TestGetDirectMessageNotificationEmailSubject(t *testing.T) {
 }
 
 func TestGetGroupMessageNotificationEmailSubjectFull(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	expectedPrefix := "[http://localhost:8065] New Group Message in sender on"
@@ -49,7 +49,7 @@ func TestGetGroupMessageNotificationEmailSubjectFull(t *testing.T) {
 }
 
 func TestGetGroupMessageNotificationEmailSubjectGeneric(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	expectedPrefix := "[http://localhost:8065] New Group Message on"
@@ -66,7 +66,7 @@ func TestGetGroupMessageNotificationEmailSubjectGeneric(t *testing.T) {
 }
 
 func TestGetNotificationEmailSubject(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	expectedPrefix := "[http://localhost:8065] Notification in team on"
@@ -82,7 +82,7 @@ func TestGetNotificationEmailSubject(t *testing.T) {
 }
 
 func TestGetNotificationEmailBodyFullNotificationPublicChannel(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	recipient := &model.User{}
@@ -119,7 +119,7 @@ func TestGetNotificationEmailBodyFullNotificationPublicChannel(t *testing.T) {
 }
 
 func TestGetNotificationEmailBodyFullNotificationGroupChannel(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	recipient := &model.User{}
@@ -156,7 +156,7 @@ func TestGetNotificationEmailBodyFullNotificationGroupChannel(t *testing.T) {
 }
 
 func TestGetNotificationEmailBodyFullNotificationPrivateChannel(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	recipient := &model.User{}
@@ -193,7 +193,7 @@ func TestGetNotificationEmailBodyFullNotificationPrivateChannel(t *testing.T) {
 }
 
 func TestGetNotificationEmailBodyFullNotificationDirectChannel(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	recipient := &model.User{}
@@ -227,7 +227,7 @@ func TestGetNotificationEmailBodyFullNotificationDirectChannel(t *testing.T) {
 }
 
 func TestGetNotificationEmailBodyFullNotificationLocaleTimeWithTimezone(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	recipient := &model.User{
@@ -258,7 +258,7 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTimeWithTimezone(t *testi
 }
 
 func TestGetNotificationEmailBodyFullNotificationLocaleTimeNoTimezone(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	recipient := &model.User{
@@ -300,7 +300,7 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTimeNoTimezone(t *testing
 }
 
 func TestGetNotificationEmailBodyFullNotificationLocaleTime12Hour(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	recipient := &model.User{
@@ -332,7 +332,7 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTime12Hour(t *testing.T) 
 }
 
 func TestGetNotificationEmailBodyFullNotificationLocaleTime24Hour(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	recipient := &model.User{
@@ -365,7 +365,7 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTime24Hour(t *testing.T) 
 
 // from here
 func TestGetNotificationEmailBodyGenericNotificationPublicChannel(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	recipient := &model.User{}
@@ -399,7 +399,7 @@ func TestGetNotificationEmailBodyGenericNotificationPublicChannel(t *testing.T) 
 }
 
 func TestGetNotificationEmailBodyGenericNotificationGroupChannel(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	recipient := &model.User{}
@@ -433,7 +433,7 @@ func TestGetNotificationEmailBodyGenericNotificationGroupChannel(t *testing.T) {
 }
 
 func TestGetNotificationEmailBodyGenericNotificationPrivateChannel(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	recipient := &model.User{}
@@ -467,7 +467,7 @@ func TestGetNotificationEmailBodyGenericNotificationPrivateChannel(t *testing.T)
 }
 
 func TestGetNotificationEmailBodyGenericNotificationDirectChannel(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	recipient := &model.User{}
