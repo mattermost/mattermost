@@ -1845,3 +1845,24 @@ func (a *App) UpdateOAuthUserAttrs(userData io.Reader, user *model.User, provide
 
 	return nil
 }
+
+func (a *App) GetViewUsersRestrictions(userId string) (*model.ViewUsersRestrictions, *model.AppError) {
+	if a.HasPermissionTo(userId, model.PERMISSION_VIEW_MEMBERS) {
+		return nil, nil
+	}
+	teamIdsWithPermission, teamIdsWithoutPermission, err := a.GetTeamsWithPermissionAndWithout(userId, model.PERMISSION_VIEW_MEMBERS)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(teamIdsWithoutPermission) == 0 {
+		return model.ViewUsersRestrictions{Teams: teamIdsWithPermission}, nil
+	}
+
+	channelIds, err := a.GetChannelIdsInTeamsForUser(userId, teamIdsWithoutPermission)
+	if err != nil {
+		return nil, err
+	}
+
+	return model.ViewUsersRestrictions{Teams: teamIdsWithPermission, Channels: channelIds}, nil
+}
