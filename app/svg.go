@@ -5,15 +5,14 @@ package app
 
 import (
 	"encoding/xml"
-	"fmt"
 	"regexp"
 	"strconv"
 
-	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/pkg/errors"
 )
 
-func parseSVGDimensions(fileInfo *model.FileInfo, svgData []byte) {
+func parseSVGDimensions(fileInfo *model.FileInfo, svgData []byte) error {
 	var svgInfo struct {
 		XMLName xml.Name `xml:"svg"`
 		Width   string   `xml:"width,attr,omitempty"`
@@ -22,8 +21,7 @@ func parseSVGDimensions(fileInfo *model.FileInfo, svgData []byte) {
 	}
 
 	if err := xml.Unmarshal(svgData, &svgInfo); err != nil {
-		mlog.Error(fmt.Sprintf("Unable to parse SVG data, err = %v", err))
-		return
+		return err
 	}
 
 	viewBoxPattern := regexp.MustCompile("^([0-9]+)[, ]+([0-9]+)[, ]+([0-9]+)[, ]+([0-9]+)$")
@@ -49,6 +47,7 @@ func parseSVGDimensions(fileInfo *model.FileInfo, svgData []byte) {
 		fileInfo.Width = width
 		fileInfo.Height = height
 	} else {
-		mlog.Error(fmt.Sprintf("Unable to extract SVG dimensions."))
+		return errors.New("unable to extract SVG dimensions")
 	}
+	return nil
 }

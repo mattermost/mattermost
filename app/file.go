@@ -595,7 +595,9 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 
 	// attempt to extract width & height out of svg
 	if !t.Raw && t.fileinfo.MimeType == "image/svg+xml" {
-		parseSVGDimensions(t.fileinfo, t.buf.Bytes())
+		if err := parseSVGDimensions(t.fileinfo, t.buf.Bytes()); err != nil {
+			mlog.Error(fmt.Sprintf("Unable to parse SVG, err = %v", err))
+		}
 	}
 
 	// Concurrently upload and update DB, and post-process the image.
