@@ -70,9 +70,11 @@ func (a *App) BulkExport(writer io.Writer, file string, pathToEmojiDir string, d
 	if err := a.ExportAllPosts(writer); err != nil {
 		return err
 	}
+
 	if err := a.ExportCustomEmoji(writer, file, pathToEmojiDir, dirNameToExportEmoji); err != nil {
 		return err
 	}
+
 	if err := a.ExportAllDirectPosts(writer); err != nil {
 		return err
 	}

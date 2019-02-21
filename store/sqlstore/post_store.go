@@ -1375,10 +1375,7 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 		_, err1 := s.GetSearchReplica().Select(&posts, `
                 SELECT
                     p1.*,
-                    Users.Username as Username,
-				group_concat(
-                        (SELECT UserName from Users where Id = cm.UserId)
-                    ) as Usernames
+                    Users.Username as Username
                 FROM
                     Posts p1
                 INNER JOIN
