@@ -101,10 +101,15 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			csrfHeader := r.Header.Get(model.HEADER_CSRF_TOKEN)
 			if csrfHeader == session.GetCSRF() {
 				csrfCheckPassed = true
-			} else if !*c.App.Config().ServiceSettings.ExperimentalStrictCSRFEnforcement && r.Header.Get(model.HEADER_REQUESTED_WITH) == model.HEADER_REQUESTED_WITH_XML {
+			} else if r.Header.Get(model.HEADER_REQUESTED_WITH) == model.HEADER_REQUESTED_WITH_XML {
 				// ToDo(DSchalla) 2019/01/04: Remove after deprecation period and only allow CSRF Header (MM-13657)
-				c.Log.Warn("CSRF Header check failed for request - Please upgrade your web application or custom app to set a CSRF Header")
-				csrfCheckPassed = true
+				csrfErrorMessage := "CSRF Header check failed for request - Please upgrade your web application or custom app to set a CSRF Header"
+				if *c.App.Config().ServiceSettings.ExperimentalStrictCSRFEnforcement {
+					c.Log.Warn(csrfErrorMessage)
+				} else {
+					c.Log.Debug(csrfErrorMessage)
+					csrfCheckPassed = true
+				}
 			}
 
 			if !csrfCheckPassed {

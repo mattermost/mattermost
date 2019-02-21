@@ -294,7 +294,7 @@ func (me *TestHelper) CreateUserWithClient(client *model.Client4) *model.User {
 	}
 
 	ruser.Password = "Password1"
-	store.Must(me.App.Srv.Store.User().VerifyEmail(ruser.Id))
+	store.Must(me.App.Srv.Store.User().VerifyEmail(ruser.Id, ruser.Email))
 	utils.EnableDebugLogForTest()
 	return ruser
 }
