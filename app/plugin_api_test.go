@@ -893,7 +893,6 @@ func TestPluginBots(t *testing.T) {
 		import (
 			"github.com/mattermost/mattermost-server/plugin"
 			"github.com/mattermost/mattermost-server/model"
-			"github.com/pkg/errors"
 		)
 
 		type MyPlugin struct {
@@ -906,12 +905,12 @@ func TestPluginBots(t *testing.T) {
 				Description: "a plugin bot",
 			})
 			if err != nil {
-				return nil, errors.Wrap(err, "failed to create bot").Error()
+				return nil, err.Error() + "failed to create bot"
 			}
 
 			fetchedBot, err := p.API.GetBot(createdBot.UserId, false)
 			if err != nil {
-				return nil, errors.Wrap(err, "failed to get bot").Error()
+				return nil, err.Error() + "failed to get bot"
 			}
 			if fetchedBot.Description != "a plugin bot" {
 				return nil, "GetBot did not return the expected bot Description"
@@ -925,12 +924,12 @@ func TestPluginBots(t *testing.T) {
 				Description: &updatedDescription,
 			})
 			if err != nil {
-				return nil, errors.Wrap(err, "failed to patch bot").Error()
+				return nil, err.Error() + "failed to patch bot"
 			}
 
 			fetchedBot, err = p.API.GetBot(patchedBot.UserId, false)
 			if err != nil {
-				return nil, errors.Wrap(err, "failed to get bot").Error()
+				return nil, err.Error() + "failed to get bot"
 			}
 
 			if fetchedBot.UserId != patchedBot.UserId {
@@ -947,7 +946,7 @@ func TestPluginBots(t *testing.T) {
 				IncludeDeleted: false,
 			})
 			if err != nil {
-				return nil, errors.Wrap(err, "failed to get bots").Error()
+				return nil, err.Error() + "failed to get bots"
 			}
 
 			if len(fetchedBots) != 1 {
@@ -959,7 +958,7 @@ func TestPluginBots(t *testing.T) {
 
 			_, err = p.API.UpdateBotActive(fetchedBot.UserId, false)
 			if err != nil {
-				return nil, errors.Wrap(err, "failed to disable bot").Error()
+				return nil, err.Error() + "failed to disable bot"
 			}
 
 			fetchedBot, err = p.API.GetBot(patchedBot.UserId, false)
@@ -969,12 +968,12 @@ func TestPluginBots(t *testing.T) {
 
 			_, err = p.API.UpdateBotActive(fetchedBot.UserId, true)
 			if err != nil {
-				return nil, errors.Wrap(err, "failed to disable bot").Error()
+				return nil, err.Error() + "failed to disable bot"
 			}
 
 			fetchedBot, err = p.API.GetBot(patchedBot.UserId, false)
 			if err != nil {
-				return nil, errors.Wrap(err, "failed to get bot after enabling").Error()
+				return nil, err.Error() + "failed to get bot after enabling"
 			}
 			if fetchedBot.UserId != patchedBot.UserId {
 				return nil, "GetBot did not return the expected bot after enabling"
@@ -982,12 +981,12 @@ func TestPluginBots(t *testing.T) {
 
 			err = p.API.PermanentDeleteBot(patchedBot.UserId)
 			if err != nil {
-				return nil, errors.Wrap(err, "failed to delete bot").Error()
+				return nil, err.Error() + "failed to delete bot"
 			}
 
 			_, err = p.API.GetBot(patchedBot.UserId, false)
 			if err == nil {
-				return nil, errors.Wrap(err, "found bot after permanently deleting").Error()
+				return nil, err.Error() + "found bot after permanently deleting"
 			}
 
 			createdBotWithOverriddenCreator, err := p.API.CreateBot(&model.Bot{
@@ -996,12 +995,12 @@ func TestPluginBots(t *testing.T) {
 				CreatorId: "abc123",
 			})
 			if err != nil {
-				return nil, errors.Wrap(err, "failed to create bot with overridden creator").Error()
+				return nil, err.Error() + "failed to create bot with overridden creator"
 			}
 
 			fetchedBot, err = p.API.GetBot(createdBotWithOverriddenCreator.UserId, false)
 			if err != nil {
-				return nil, errors.Wrap(err, "failed to get bot").Error()
+				return nil, err.Error() + "failed to get bot"
 			}
 			if fetchedBot.Description != "a plugin bot" {
 				return nil, "GetBot did not return the expected bot Description"
