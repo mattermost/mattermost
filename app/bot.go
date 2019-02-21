@@ -4,6 +4,7 @@
 package app
 
 import (
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -142,4 +143,38 @@ func (a *App) UpdateBotOwner(botUserId, newOwnerId string) (*model.Bot, *model.A
 	}
 
 	return result.Data.(*model.Bot), nil
+}
+
+// disableUserBots disables all bots owned by the given user
+func (a *App) disableUserBots(userId string) *model.AppError {
+	perPage := 20
+	for {
+		options := &model.BotGetOptions{
+			CreatorId:      userId,
+			IncludeDeleted: false,
+			OnlyOrphaned:   false,
+			Page:           0,
+			PerPage:        perPage,
+		}
+		userBots, err := a.GetBots(options)
+		if err != nil {
+			return err
+		}
+
+		for _, bot := range userBots {
+			_, err := a.UpdateBotActive(bot.UserId, false)
+			if err != nil {
+				mlog.Error("Unable to deactivate bot.", mlog.String("bot_user_id", bot.UserId), mlog.Err(err))
+			}
+		}
+
+		// Get next set of bots if we got the max number of bots
+		if len(userBots) == perPage {
+			options.Page += 1
+			continue
+		}
+		break
+	}
+
+	return nil
 }

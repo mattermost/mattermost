@@ -4,6 +4,7 @@
 package app
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -484,6 +485,63 @@ func TestPermanentDeleteBot(t *testing.T) {
 	_, err = th.App.GetBot(bot.UserId, false)
 	require.NotNil(t, err)
 	require.Equal(t, "store.sql_bot.get.missing.app_error", err.Id)
+}
+
+func TestDisableUserBots(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	creatorId1 := model.NewId()
+	creatorId2 := model.NewId()
+
+	bots := []*model.Bot{}
+	defer func() {
+		for _, bot := range bots {
+			th.App.PermanentDeleteBot(bot.UserId)
+		}
+	}()
+
+	for i := 0; i < 46; i++ {
+		bot, err := th.App.CreateBot(&model.Bot{
+			Username:    fmt.Sprintf("username%v", i),
+			Description: "a bot",
+			CreatorId:   creatorId1,
+		})
+		require.Nil(t, err)
+		bots = append(bots, bot)
+	}
+	require.Len(t, bots, 46)
+
+	u2bot1, err := th.App.CreateBot(&model.Bot{
+		Username:    "username_nodisable",
+		Description: "a bot",
+		CreatorId:   creatorId2,
+	})
+	require.Nil(t, err)
+	defer th.App.PermanentDeleteBot(u2bot1.UserId)
+
+	err = th.App.disableUserBots(creatorId1)
+	require.Nil(t, err)
+
+	// Check all bots and corrensponding users are disabled for creator 1
+	for _, bot := range bots {
+		retbot, err2 := th.App.GetBot(bot.UserId, true)
+		require.Nil(t, err2)
+		require.NotZero(t, retbot.DeleteAt, bot.Username)
+	}
+
+	// Check bots and corresponding user not disabled for creator 2
+	bot, err := th.App.GetBot(u2bot1.UserId, true)
+	require.Nil(t, err)
+	require.Zero(t, bot.DeleteAt)
+
+	user, err := th.App.GetUser(u2bot1.UserId)
+	require.Nil(t, err)
+	require.Zero(t, user.DeleteAt)
+
+	// Bad id doesn't do anything or break horribly
+	err = th.App.disableUserBots(model.NewId())
+	require.Nil(t, err)
 }
 
 func sToP(s string) *string {

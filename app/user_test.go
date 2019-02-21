@@ -18,7 +18,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/model/gitlab"
+	oauthgitlab "github.com/mattermost/mattermost-server/model/gitlab"
 )
 
 func TestIsUsernameTaken(t *testing.T) {
@@ -170,6 +170,51 @@ func TestUpdateUserActive(t *testing.T) {
 	})
 	err := th.App.UpdateUserActive(user.Id, false)
 	assert.Nil(t, err)
+}
+
+func TestUpdateActiveBotsSideEffect(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	bot, err := th.App.CreateBot(&model.Bot{
+		Username:    "username",
+		Description: "a bot",
+		CreatorId:   th.BasicUser.Id,
+	})
+	require.Nil(t, err)
+	defer th.App.PermanentDeleteBot(bot.UserId)
+
+	// Automatic deactivation disabled
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.DisableBotsWhenOwnerIsDeactivated = false
+	})
+
+	th.App.UpdateActive(th.BasicUser, false)
+
+	retbot1, err := th.App.GetBot(bot.UserId, true)
+	require.Nil(t, err)
+	require.Zero(t, retbot1.DeleteAt)
+	user1, err := th.App.GetUser(bot.UserId)
+	require.Nil(t, err)
+	require.Zero(t, user1.DeleteAt)
+
+	th.App.UpdateActive(th.BasicUser, true)
+
+	// Automatic deactivation enabled
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.DisableBotsWhenOwnerIsDeactivated = true
+	})
+
+	th.App.UpdateActive(th.BasicUser, false)
+
+	retbot2, err := th.App.GetBot(bot.UserId, true)
+	require.Nil(t, err)
+	require.NotZero(t, retbot2.DeleteAt)
+	user2, err := th.App.GetUser(bot.UserId)
+	require.Nil(t, err)
+	require.NotZero(t, user2.DeleteAt)
+
+	th.App.UpdateActive(th.BasicUser, true)
 }
 
 func TestUpdateOAuthUserAttrs(t *testing.T) {

@@ -866,6 +866,40 @@ func (a *App) UpdatePasswordAsUser(userId, currentPassword, newPassword string) 
 	return a.UpdatePasswordSendEmail(user, newPassword, T("api.user.update_password.menu"))
 }
 
+func (a *App) userDeactivated(user *model.User) *model.AppError {
+	if err := a.RevokeAllSessions(user.Id); err != nil {
+		return err
+	}
+
+	a.SetStatusOffline(user.Id, false)
+
+	if *a.Config().ServiceSettings.DisableBotsWhenOwnerIsDeactivated {
+		a.disableUserBots(user.Id)
+	}
+
+	return nil
+}
+
+func (a *App) invalidateUserChannelMembersCaches(user *model.User) *model.AppError {
+	teamsForUser, err := a.GetTeamsForUser(user.Id)
+	if err != nil {
+		return err
+	}
+
+	for _, team := range teamsForUser {
+		channelsForUser, err := a.GetChannelsForUser(team.Id, user.Id, false)
+		if err != nil {
+			return err
+		}
+
+		for _, channel := range *channelsForUser {
+			a.InvalidateCacheForChannelMembers(channel.Id)
+		}
+	}
+
+	return nil
+}
+
 func (a *App) UpdateActive(user *model.User, active bool) (*model.User, *model.AppError) {
 	if active {
 		user.DeleteAt = 0
@@ -877,34 +911,15 @@ func (a *App) UpdateActive(user *model.User, active bool) (*model.User, *model.A
 	if result.Err != nil {
 		return nil, result.Err
 	}
-
-	if user.DeleteAt > 0 {
-		if err := a.RevokeAllSessions(user.Id); err != nil {
-			return nil, err
-		}
-	}
-
 	ruser := result.Data.([2]*model.User)[0]
 
 	if !active {
-		a.SetStatusOffline(ruser.Id, false)
-	}
-
-	teamsForUser, err := a.GetTeamsForUser(user.Id)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, team := range teamsForUser {
-		channelsForUser, err := a.GetChannelsForUser(team.Id, user.Id, false)
-		if err != nil {
+		if err := a.userDeactivated(ruser); err != nil {
 			return nil, err
 		}
-
-		for _, channel := range *channelsForUser {
-			a.InvalidateCacheForChannelMembers(channel.Id)
-		}
 	}
+
+	a.invalidateUserChannelMembersCaches(user)
 
 	a.sendUpdatedUserEvent(*ruser)
 
