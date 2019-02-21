@@ -7,6 +7,7 @@ import (
 	"github.com/mattermost/mattermost-server/einterfaces"
 	ejobs "github.com/mattermost/mattermost-server/einterfaces/jobs"
 	tjobs "github.com/mattermost/mattermost-server/jobs/interfaces"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -128,7 +129,9 @@ func (s *Server) initEnterprise() {
 	if samlInterface != nil {
 		s.Saml = samlInterface(s.FakeApp())
 		s.AddConfigListener(func(_, cfg *model.Config) {
-			s.Saml.ConfigureSP()
+			if err := s.Saml.ConfigureSP(); err != nil {
+				mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
+			}
 		})
 	}
 	if dataRetentionInterface != nil {
