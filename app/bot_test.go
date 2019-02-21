@@ -17,7 +17,7 @@ import (
 func TestCreateBot(t *testing.T) {
 	t.Run("invalid bot", func(t *testing.T) {
 		t.Run("relative to user", func(t *testing.T) {
-			th := Setup().InitBasic()
+			th := Setup(t).InitBasic()
 			defer th.TearDown()
 
 			_, err := th.App.CreateBot(&model.Bot{
@@ -30,7 +30,7 @@ func TestCreateBot(t *testing.T) {
 		})
 
 		t.Run("relative to bot", func(t *testing.T) {
-			th := Setup().InitBasic()
+			th := Setup(t).InitBasic()
 			defer th.TearDown()
 
 			_, err := th.App.CreateBot(&model.Bot{
@@ -44,7 +44,7 @@ func TestCreateBot(t *testing.T) {
 	})
 
 	t.Run("create bot", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		bot, err := th.App.CreateBot(&model.Bot{
@@ -60,7 +60,7 @@ func TestCreateBot(t *testing.T) {
 	})
 
 	t.Run("create bot, username already used by a non-bot user", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		_, err := th.App.CreateBot(&model.Bot{
@@ -75,7 +75,7 @@ func TestCreateBot(t *testing.T) {
 
 func TestPatchBot(t *testing.T) {
 	t.Run("invalid patch for user", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		bot, err := th.App.CreateBot(&model.Bot{
@@ -98,7 +98,7 @@ func TestPatchBot(t *testing.T) {
 	})
 
 	t.Run("invalid patch for bot", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		bot, err := th.App.CreateBot(&model.Bot{
@@ -121,7 +121,7 @@ func TestPatchBot(t *testing.T) {
 	})
 
 	t.Run("patch bot", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		bot := &model.Bot{
@@ -152,7 +152,7 @@ func TestPatchBot(t *testing.T) {
 	})
 
 	t.Run("patch bot, username already used by a non-bot user", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		bot, err := th.App.CreateBot(&model.Bot{
@@ -175,7 +175,7 @@ func TestPatchBot(t *testing.T) {
 }
 
 func TestGetBot(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	bot1, err := th.App.CreateBot(&model.Bot{
@@ -236,7 +236,7 @@ func TestGetBot(t *testing.T) {
 }
 
 func TestGetBots(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	creatorId1 := model.NewId()
@@ -429,7 +429,7 @@ func TestGetBots(t *testing.T) {
 
 func TestUpdateBotActive(t *testing.T) {
 	t.Run("unknown bot", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		_, err := th.App.UpdateBotActive(model.NewId(), false)
@@ -438,7 +438,7 @@ func TestUpdateBotActive(t *testing.T) {
 	})
 
 	t.Run("disable/enable bot", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		bot, err := th.App.CreateBot(&model.Bot{
@@ -470,7 +470,7 @@ func TestUpdateBotActive(t *testing.T) {
 }
 
 func TestPermanentDeleteBot(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	bot, err := th.App.CreateBot(&model.Bot{
@@ -488,7 +488,7 @@ func TestPermanentDeleteBot(t *testing.T) {
 }
 
 func TestDisableUserBots(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	creatorId1 := model.NewId()

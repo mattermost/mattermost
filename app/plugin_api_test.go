@@ -883,7 +883,7 @@ func TestPluginAPI_SearchTeams(t *testing.T) {
 }
 
 func TestPluginBots(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	setupPluginApiTest(t,
