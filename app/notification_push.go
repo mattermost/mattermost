@@ -11,8 +11,10 @@ import (
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/nicksnyder/go-i18n/i18n"
+	"github.com/pkg/errors"
 )
 
 type NotificationType string
@@ -28,6 +30,7 @@ type PushNotificationsHub struct {
 }
 
 type PushNotification struct {
+	id                 string
 	notificationType   NotificationType
 	userId             string
 	channelId          string
@@ -48,7 +51,7 @@ func (hub *PushNotificationsHub) GetGoChannelFromUserId(userId string) chan Push
 	return hub.Channels[chanIdx]
 }
 
-func (a *App) sendPushNotificationSync(post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
+func (a *App) sendPushNotificationSync(id string, post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
 	explicitMention, channelWideMention bool, replyToThreadType string) *model.AppError {
 	cfg := a.Config()
 
@@ -65,6 +68,7 @@ func (a *App) sendPushNotificationSync(post *model.Post, user *model.User, chann
 		msg.Badge = int(badge.Data.(int64))
 	}
 
+	msg.Id = id
 	msg.Category = model.CATEGORY_CAN_REPLY
 	msg.Version = model.PUSH_MESSAGE_V2
 	msg.Type = model.PUSH_TYPE_MESSAGE
@@ -102,12 +106,16 @@ func (a *App) sendPushNotificationSync(post *model.Post, user *model.User, chann
 			continue
 		}
 
-		tmpMessage := *model.PushNotificationFromJson(strings.NewReader(msg.ToJson()))
+		tmpMessage := model.PushNotificationFromJson(strings.NewReader(msg.ToJson()))
 		tmpMessage.SetDeviceIdAndPlatform(session.DeviceId)
 
 		mlog.Debug(fmt.Sprintf("Sending push notification to device %v for user %v with msg of '%v'", tmpMessage.DeviceId, user.Id, msg.Message), mlog.String("user_id", user.Id))
 
-		a.sendToPushProxy(tmpMessage, session)
+		err := a.sendToPushProxy(*tmpMessage, session)
+		if err != nil {
+			mlog.Error(fmt.Sprintf("Error sending push notification: UserId=%v SessionId=%v message=%v", session.UserId, session.Id, err.Error()), mlog.String("user_id", session.UserId))
+			continue
+		}
 
 		if a.Metrics != nil {
 			a.Metrics.IncrementPostSentPush()
@@ -132,8 +140,19 @@ func (a *App) sendPushNotification(notification *postNotification, user *model.U
 	channelName := notification.GetChannelName(nameFormat, user.Id)
 	senderName := notification.GetSenderName(nameFormat, *cfg.ServiceSettings.EnablePostUsernameOverride)
 
+	notificationId := model.NewId()
+
+	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
+		pluginContext := a.PluginContext()
+		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			hooks.PushNotificationEnqueued(pluginContext, notificationId, string(NOTIFICATION_TYPE_MESSAGE), user.Id, channel.Id, post.Id)
+			return true
+		}, plugin.PushNotificationEnqueuedId)
+	}
+
 	c := a.Srv.PushNotificationsHub.GetGoChannelFromUserId(user.Id)
 	c <- PushNotification{
+		id:                 notificationId,
 		notificationType:   NOTIFICATION_TYPE_MESSAGE,
 		post:               post,
 		user:               user,
@@ -189,7 +208,7 @@ func (a *App) getPushNotificationMessage(postMessage string, explicitMention, ch
 	return "@" + senderName + userLocale("api.post.send_notifications_and_forget.push_general_message")
 }
 
-func (a *App) ClearPushNotificationSync(userId string, channelId string) {
+func (a *App) ClearPushNotificationSync(id string, userId string, channelId string) {
 	sessions, err := a.getMobileAppSessions(userId)
 	if err != nil {
 		mlog.Error(err.Error())
@@ -197,6 +216,7 @@ func (a *App) ClearPushNotificationSync(userId string, channelId string) {
 	}
 
 	msg := model.PushNotification{}
+	msg.Id = id
 	msg.Type = model.PUSH_TYPE_CLEAR
 	msg.ChannelId = channelId
 	msg.ContentAvailable = 0
@@ -212,13 +232,27 @@ func (a *App) ClearPushNotificationSync(userId string, channelId string) {
 	for _, session := range sessions {
 		tmpMessage := *model.PushNotificationFromJson(strings.NewReader(msg.ToJson()))
 		tmpMessage.SetDeviceIdAndPlatform(session.DeviceId)
-		a.sendToPushProxy(tmpMessage, session)
+		err := a.sendToPushProxy(tmpMessage, session)
+		if err != nil {
+			mlog.Error(fmt.Sprintf("Error sending push notification: UserId=%v SessionId=%v message=%v", session.UserId, session.Id, err.Error()), mlog.String("user_id", session.UserId))
+		}
 	}
 }
 
 func (a *App) ClearPushNotification(userId string, channelId string) {
+	notificationId := model.NewId()
+
+	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
+		pluginContext := a.PluginContext()
+		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			hooks.PushNotificationEnqueued(pluginContext, notificationId, string(NOTIFICATION_TYPE_CLEAR), userId, channelId, "")
+			return true
+		}, plugin.PushNotificationEnqueuedId)
+	}
+
 	channel := a.Srv.PushNotificationsHub.GetGoChannelFromUserId(userId)
 	channel <- PushNotification{
+		id:               notificationId,
 		notificationType: NOTIFICATION_TYPE_CLEAR,
 		userId:           userId,
 		channelId:        channelId,
@@ -239,9 +273,10 @@ func (a *App) pushNotificationWorker(notifications chan PushNotification) {
 	for notification := range notifications {
 		switch notification.notificationType {
 		case NOTIFICATION_TYPE_CLEAR:
-			a.ClearPushNotificationSync(notification.userId, notification.channelId)
+			a.ClearPushNotificationSync(notification.id, notification.userId, notification.channelId)
 		case NOTIFICATION_TYPE_MESSAGE:
 			a.sendPushNotificationSync(
+				notification.id,
 				notification.post,
 				notification.user,
 				notification.channel,
@@ -270,20 +305,31 @@ func (a *App) StopPushNotificationsHubWorkers() {
 	}
 }
 
-func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session) {
+func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session) error {
 	msg.ServerId = a.DiagnosticId()
 
-	request, err := http.NewRequest("POST", strings.TrimRight(*a.Config().EmailSettings.PushNotificationServer, "/")+model.API_URL_SUFFIX_V1+"/send_push", strings.NewReader(msg.ToJson()))
+	var updatedMsg *model.PushNotification
+
+	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
+		pluginContext := a.PluginContext()
+		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			updatedMsg = hooks.PushNotificationWillBeSent(pluginContext, &msg)
+			return true
+		}, plugin.PushNotificationWillBeSentId)
+	}
+
+	if updatedMsg == nil {
+		return nil
+	}
+
+	request, err := http.NewRequest("POST", strings.TrimRight(*a.Config().EmailSettings.PushNotificationServer, "/")+model.API_URL_SUFFIX_V1+"/send_push", strings.NewReader(updatedMsg.ToJson()))
 	if err != nil {
-		mlog.Error(fmt.Sprintf("Error sending to push proxy: UserId=%v SessionId=%v message=%v",
-			session.UserId, session.Id, err.Error()), mlog.String("user_id", session.UserId))
-		return
+		return err
 	}
 
 	resp, err := a.HTTPService.MakeClient(true).Do(request)
 	if err != nil {
-		mlog.Error(fmt.Sprintf("Device push reported as error for UserId=%v SessionId=%v message=%v", session.UserId, session.Id, err.Error()), mlog.String("user_id", session.UserId))
-		return
+		return err
 	}
 
 	defer resp.Body.Close()
@@ -294,11 +340,23 @@ func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session
 		mlog.Info(fmt.Sprintf("Device was reported as removed for UserId=%v SessionId=%v removing push for this session", session.UserId, session.Id), mlog.String("user_id", session.UserId))
 		a.AttachDeviceId(session.Id, "", session.ExpiresAt)
 		a.ClearSessionCacheForUser(session.UserId)
+		return errors.New("Device was reported as removed")
 	}
 
 	if pushResponse[model.PUSH_STATUS] == model.PUSH_STATUS_FAIL {
-		mlog.Error(fmt.Sprintf("Device push reported as error for UserId=%v SessionId=%v message=%v", session.UserId, session.Id, pushResponse[model.PUSH_STATUS_ERROR_MSG]), mlog.String("user_id", session.UserId))
+		return fmt.Errorf("Device push reported as error (%v)", pushResponse[model.PUSH_STATUS_ERROR_MSG])
 	}
+
+	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
+		a.Srv.Go(func() {
+			pluginContext := a.PluginContext()
+			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+				hooks.PushNotificationHasBeenSent(pluginContext, updatedMsg)
+				return true
+			}, plugin.PushNotificationHasBeenSentId)
+		})
+	}
+	return nil
 }
 
 func (a *App) getMobileAppSessions(userId string) ([]*model.Session, *model.AppError) {

@@ -189,6 +189,32 @@ func (_m *Hooks) OnDeactivate() error {
 	return r0
 }
 
+// PushNotificationEnqueued provides a mock function with given fields: c, notificationId, notificationType, userId, channelId, postId
+func (_m *Hooks) PushNotificationEnqueued(c *plugin.Context, notificationId string, notificationType string, userId string, channelId string, postId string) {
+	_m.Called(c, notificationId, notificationType, userId, channelId, postId)
+}
+
+// PushNotificationHasBeenSent provides a mock function with given fields: c, notification
+func (_m *Hooks) PushNotificationHasBeenSent(c *plugin.Context, notification *model.PushNotification) {
+	_m.Called(c, notification)
+}
+
+// PushNotificationWillBeSent provides a mock function with given fields: c, notification
+func (_m *Hooks) PushNotificationWillBeSent(c *plugin.Context, notification *model.PushNotification) *model.PushNotification {
+	ret := _m.Called(c, notification)
+
+	var r0 *model.PushNotification
+	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.PushNotification) *model.PushNotification); ok {
+		r0 = rf(c, notification)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PushNotification)
+		}
+	}
+
+	return r0
+}
+
 // ServeHTTP provides a mock function with given fields: c, w, r
 func (_m *Hooks) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
 	_m.Called(c, w, r)

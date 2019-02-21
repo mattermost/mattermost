@@ -475,6 +475,116 @@ func (s *hooksRPCServer) UserHasLeftTeam(args *Z_UserHasLeftTeamArgs, returns *Z
 	return nil
 }
 
+func init() {
+	hookNameToId["PushNotificationWillBeSent"] = PushNotificationWillBeSentId
+}
+
+type Z_PushNotificationWillBeSentArgs struct {
+	A *Context
+	B *model.PushNotification
+}
+
+type Z_PushNotificationWillBeSentReturns struct {
+	A *model.PushNotification
+}
+
+func (g *hooksRPCClient) PushNotificationWillBeSent(c *Context, notification *model.PushNotification) *model.PushNotification {
+	_args := &Z_PushNotificationWillBeSentArgs{c, notification}
+	_returns := &Z_PushNotificationWillBeSentReturns{}
+	if g.implemented[PushNotificationWillBeSentId] {
+		if err := g.client.Call("Plugin.PushNotificationWillBeSent", _args, _returns); err != nil {
+			g.log.Error("RPC call PushNotificationWillBeSent to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A
+}
+
+func (s *hooksRPCServer) PushNotificationWillBeSent(args *Z_PushNotificationWillBeSentArgs, returns *Z_PushNotificationWillBeSentReturns) error {
+	if hook, ok := s.impl.(interface {
+		PushNotificationWillBeSent(c *Context, notification *model.PushNotification) *model.PushNotification
+	}); ok {
+		returns.A = hook.PushNotificationWillBeSent(args.A, args.B)
+
+	} else {
+		return encodableError(fmt.Errorf("Hook PushNotificationWillBeSent called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
+	hookNameToId["PushNotificationHasBeenSent"] = PushNotificationHasBeenSentId
+}
+
+type Z_PushNotificationHasBeenSentArgs struct {
+	A *Context
+	B *model.PushNotification
+}
+
+type Z_PushNotificationHasBeenSentReturns struct {
+}
+
+func (g *hooksRPCClient) PushNotificationHasBeenSent(c *Context, notification *model.PushNotification) {
+	_args := &Z_PushNotificationHasBeenSentArgs{c, notification}
+	_returns := &Z_PushNotificationHasBeenSentReturns{}
+	if g.implemented[PushNotificationHasBeenSentId] {
+		if err := g.client.Call("Plugin.PushNotificationHasBeenSent", _args, _returns); err != nil {
+			g.log.Error("RPC call PushNotificationHasBeenSent to plugin failed.", mlog.Err(err))
+		}
+	}
+
+}
+
+func (s *hooksRPCServer) PushNotificationHasBeenSent(args *Z_PushNotificationHasBeenSentArgs, returns *Z_PushNotificationHasBeenSentReturns) error {
+	if hook, ok := s.impl.(interface {
+		PushNotificationHasBeenSent(c *Context, notification *model.PushNotification)
+	}); ok {
+		hook.PushNotificationHasBeenSent(args.A, args.B)
+
+	} else {
+		return encodableError(fmt.Errorf("Hook PushNotificationHasBeenSent called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
+	hookNameToId["PushNotificationEnqueued"] = PushNotificationEnqueuedId
+}
+
+type Z_PushNotificationEnqueuedArgs struct {
+	A *Context
+	B string
+	C string
+	D string
+	E string
+	F string
+}
+
+type Z_PushNotificationEnqueuedReturns struct {
+}
+
+func (g *hooksRPCClient) PushNotificationEnqueued(c *Context, notificationId, notificationType, userId, channelId, postId string) {
+	_args := &Z_PushNotificationEnqueuedArgs{c, notificationId, notificationType, userId, channelId, postId}
+	_returns := &Z_PushNotificationEnqueuedReturns{}
+	if g.implemented[PushNotificationEnqueuedId] {
+		if err := g.client.Call("Plugin.PushNotificationEnqueued", _args, _returns); err != nil {
+			g.log.Error("RPC call PushNotificationEnqueued to plugin failed.", mlog.Err(err))
+		}
+	}
+
+}
+
+func (s *hooksRPCServer) PushNotificationEnqueued(args *Z_PushNotificationEnqueuedArgs, returns *Z_PushNotificationEnqueuedReturns) error {
+	if hook, ok := s.impl.(interface {
+		PushNotificationEnqueued(c *Context, notificationId, notificationType, userId, channelId, postId string)
+	}); ok {
+		hook.PushNotificationEnqueued(args.A, args.B, args.C, args.D, args.E, args.F)
+
+	} else {
+		return encodableError(fmt.Errorf("Hook PushNotificationEnqueued called but not implemented."))
+	}
+	return nil
+}
+
 type Z_RegisterCommandArgs struct {
 	A *model.Command
 }

@@ -7037,5 +7037,9 @@
   {
     "id": "ent.ldap.app_error",
     "translation": "ldap interface was nil"
+  },
+  {
+    "id": "push_notification.send_to_push_proxy.app_error",
+    "translation": "Error sending notification to the push proxy"
   }
 ]

@@ -27,6 +27,7 @@ const (
 )
 
 type PushNotification struct {
+	Id               string `json:"id"`
 	Platform         string `json:"platform"`
 	ServerId         string `json:"server_id"`
 	DeviceId         string `json:"device_id"`
