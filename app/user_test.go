@@ -292,7 +292,7 @@ func TestUpdateUserEmail(t *testing.T) {
 
 	user := th.CreateUser()
 
-	t.Run("RequireVerification", func(t *testing.T){
+	t.Run("RequireVerification", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.EmailSettings.RequireEmailVerification = true
 		})
@@ -318,7 +318,7 @@ func TestUpdateUserEmail(t *testing.T) {
 		assert.True(t, user2.EmailVerified)
 	})
 
-	t.Run("RequireVerificationAlreadyUsedEmail", func(t *testing.T){
+	t.Run("RequireVerificationAlreadyUsedEmail", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.EmailSettings.RequireEmailVerification = true
 		})
@@ -332,7 +332,7 @@ func TestUpdateUserEmail(t *testing.T) {
 		assert.Nil(t, user3)
 	})
 
-	t.Run("NoVerification", func(t *testing.T){
+	t.Run("NoVerification", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.EmailSettings.RequireEmailVerification = false
 		})
@@ -624,7 +624,7 @@ func TestPermanentDeleteUser(t *testing.T) {
 }
 
 func TestPasswordRecovery(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 
 	token, err := th.App.CreatePasswordRecoveryToken(th.BasicUser.Id, th.BasicUser.Email)
@@ -648,8 +648,8 @@ func TestPasswordRecovery(t *testing.T) {
 	token, err = th.App.CreatePasswordRecoveryToken(th.BasicUser.Id, th.BasicUser.Email)
 	assert.Nil(t, err)
 
-	th.App.UpdateConfig(func (c *model.Config){
-		*c.EmailSettings.RequireEmailVerification = false
+	th.App.UpdateConfig(func(c *model.Config) {
+		c.EmailSettings.RequireEmailVerification = false
 	})
 
 	th.BasicUser.Email = th.MakeEmail()
@@ -659,4 +659,3 @@ func TestPasswordRecovery(t *testing.T) {
 	err = th.App.ResetPasswordFromToken(token.Token, "abcdefgh")
 	assert.NotNil(t, err)
 }
-
