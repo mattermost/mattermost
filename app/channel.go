@@ -1212,7 +1212,15 @@ func (a *App) GetChannelMembersForUserWithPagination(teamId, userId string, page
 	if result.Err != nil {
 		return nil, result.Err
 	}
-	return result.Data.([]*model.ChannelMember), nil
+
+	m := result.Data.(*model.ChannelMembers)
+	members := make([]*model.ChannelMember, 0)
+	if m != nil {
+		for _, member := range *m {
+			members = append(members, &member)
+		}
+	}
+	return members, nil
 }
 
 func (a *App) GetChannelMemberCount(channelId string) (int64, *model.AppError) {
