@@ -145,7 +145,7 @@ func (a *App) UpdateBotOwner(botUserId, newOwnerId string) (*model.Bot, *model.A
 	return result.Data.(*model.Bot), nil
 }
 
-// disableUserBots disables all bots owned by the user given
+// disableUserBots disables all bots owned by the given user
 func (a *App) disableUserBots(userId string) *model.AppError {
 	perPage := 20
 	for {
