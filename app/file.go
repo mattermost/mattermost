@@ -576,7 +576,7 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 	}
 
 	var aerr *model.AppError
-	if !t.Raw && t.fileinfo.IsImage() {
+	if !t.Raw && t.fileinfo.IsImage() && t.fileinfo.MimeType != "image/svg+xml" {
 		aerr = t.preprocessImage()
 		if aerr != nil {
 			return t.fileinfo, aerr
@@ -588,11 +588,6 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 		return t.fileinfo, aerr
 	}
 
-	aerr = t.runPlugins()
-	if aerr != nil {
-		return t.fileinfo, aerr
-	}
-
 	// attempt to extract width & height out of svg
 	if !t.Raw && t.fileinfo.MimeType == "image/svg+xml" {
 		if err := parseSVGDimensions(t.fileinfo, t.buf.Bytes()); err != nil {
@@ -600,10 +595,15 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 		}
 	}
 
+	aerr = t.runPlugins()
+	if aerr != nil {
+		return t.fileinfo, aerr
+	}
+
 	// Concurrently upload and update DB, and post-process the image.
 	wg := sync.WaitGroup{}
 
-	if !t.Raw && t.fileinfo.IsImage() {
+	if !t.Raw && t.fileinfo.IsImage() && t.fileinfo.MimeType != "image/svg+xml" {
 		wg.Add(1)
 		go func() {
 			t.postprocessImage()
