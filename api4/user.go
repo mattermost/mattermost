@@ -410,12 +410,6 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	var err *model.AppError
 	etag := ""
 
-	userGetOptions, err = c.App.RestrictUsersGetByPermissions(c.App.Session.UserId, userGetOptions)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
 	if withoutTeamBool, _ := strconv.ParseBool(withoutTeam); withoutTeamBool {
 		// Use a special permission for now
 		if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_USERS_WITHOUT_TEAM) {
@@ -430,6 +424,11 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		if !c.App.SessionHasPermissionToTeam(c.App.Session, inTeamId, model.PERMISSION_VIEW_MEMBERS) {
+			c.SetPermissionError(model.PERMISSION_VIEW_MEMBERS)
+			return
+		}
+
 		profiles, err = c.App.GetUsersNotInChannelPage(inTeamId, notInChannelId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
 	} else if len(notInTeamId) > 0 {
 		if !c.App.SessionHasPermissionToTeam(c.App.Session, notInTeamId, model.PERMISSION_VIEW_TEAM) {
@@ -441,10 +440,21 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		userGetOptions, err = c.App.RestrictUsersGetByPermissions(c.App.Session.UserId, userGetOptions)
+		if err != nil {
+			c.Err = err
+			return
+		}
+
 		profiles, err = c.App.GetUsersNotInTeamPage(notInTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
 	} else if len(inTeamId) > 0 {
 		if !c.App.SessionHasPermissionToTeam(c.App.Session, inTeamId, model.PERMISSION_VIEW_TEAM) {
 			c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
+			return
+		}
+
+		if !c.App.SessionHasPermissionToTeam(c.App.Session, inTeamId, model.PERMISSION_VIEW_MEMBERS) {
+			c.SetPermissionError(model.PERMISSION_VIEW_MEMBERS)
 			return
 		}
 
@@ -472,8 +482,14 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else {
 		// No permission check required
 
-		etag = c.App.GetUsersEtag()
-		if c.HandleEtag(etag, "Get Users", w, r) {
+		// TODO: GENERATE AN ETAG INCLUDING THE RESTRICTIONS TOO
+		// etag = c.App.GetUsersEtag()
+		// if c.HandleEtag(etag, "Get Users", w, r) {
+		// 	return
+		// }
+		userGetOptions, err = c.App.RestrictUsersGetByPermissions(c.App.Session.UserId, userGetOptions)
+		if err != nil {
+			c.Err = err
 			return
 		}
 		profiles, err = c.App.GetUsersPage(userGetOptions, c.IsSystemAdmin())

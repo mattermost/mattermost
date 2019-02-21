@@ -409,12 +409,13 @@ func (us SqlUserStore) GetAllProfiles(options *model.UserGetOptions) store.Store
 	isPostgreSQL := us.DriverName() == model.DATABASE_DRIVER_POSTGRES
 	return store.Do(func(result *store.StoreResult) {
 		query := us.usersQuery.
-			Join("TeamMembers tm ON ( tm.UserId = u.Id AND tm.DeleteAt = 0 )").
-			Join("ChannelMembers cm ON ( cm.UserId = u.Id )").
+			LeftJoin("TeamMembers tm ON ( tm.UserId = u.Id AND tm.DeleteAt = 0 )").
+			LeftJoin("ChannelMembers cm ON ( cm.UserId = u.Id )").
 			Where(eqsFromList("tm.TeamId", append(options.InTeams, options.InTeamId))).
 			Where(eqsFromList("cm.ChannelId", append(options.InChannels, options.InChannelId))).
 			OrderBy("u.Username ASC").
-			Offset(uint64(options.Page * options.PerPage)).Limit(uint64(options.PerPage))
+			Offset(uint64(options.Page * options.PerPage)).Limit(uint64(options.PerPage)).
+			Distinct()
 
 		query = applyRoleFilter(query, options.Role, isPostgreSQL)
 
@@ -423,6 +424,8 @@ func (us SqlUserStore) GetAllProfiles(options *model.UserGetOptions) store.Store
 		}
 
 		queryString, args, err := query.ToSql()
+		fmt.Println(queryString)
+		fmt.Println(args)
 		if err != nil {
 			result.Err = model.NewAppError("SqlUserStore.GetAllProfiles", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 			return
@@ -472,6 +475,9 @@ func eqsFromList(field string, values []string) sq.Or {
 		if value != "" {
 			eqs = append(eqs, sq.Eq{field: value})
 		}
+	}
+	if len(eqs) == 0 {
+		return sq.Or{sq.Eq{"1": "1"}}
 	}
 	return eqs
 }
