@@ -42,6 +42,7 @@ var MEDIA_CONTENT_TYPES = [...]string{
 	"image/png",
 	"image/bmp",
 	"image/gif",
+	"image/tiff",
 	"video/avi",
 	"video/mpeg",
 	"video/mp4",
