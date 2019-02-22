@@ -1070,6 +1070,10 @@ func (us SqlUserStore) Count(options model.UserCountOptions) store.StoreChannel 
 			query = query.From("TeamMembers, Users").Where("TeamMembers.TeamId = ? AND Users.Id = TeamMembers.UserId AND TeamMembers.DeleteAt = 0", options.TeamId)
 		}
 
+		if us.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+			query = query.PlaceholderFormat(sq.Dollar)
+		}
+
 		queryString, args, err := query.ToSql()
 		if err != nil {
 			result.Err = model.NewAppError("SqlUserStore.Get", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
