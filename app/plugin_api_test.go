@@ -891,7 +891,6 @@ func TestPluginAPI_GetTeamMembersForUser(t *testing.T) {
 	teamMembers, err := api.GetTeamMembersForUser(userId, 0, 10)
 	assert.Nil(t, err)
 	assert.Equal(t, len(teamMembers), 1)
-	fmt.Println(teamMembers[0])
 	assert.Equal(t, teamMembers[0].TeamId, th.BasicTeam.Id)
 	assert.Equal(t, teamMembers[0].UserId, th.BasicUser.Id)
 }
