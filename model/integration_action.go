@@ -323,7 +323,7 @@ func (o *Post) GenerateActionIds() {
 	}
 }
 
-func AddActionCookiesToPost(o *Post, secret []byte) *Post {
+func AddPostActionCookies(o *Post, secret []byte) *Post {
 	p := o.Clone()
 
 	// retainedProps carry over their value from the old post, including no value
@@ -359,14 +359,14 @@ func AddActionCookiesToPost(o *Post, secret []byte) *Post {
 			}
 
 			b, _ := json.Marshal(c)
-			action.Cookie, _ = encryptActionCookie(string(b), secret)
+			action.Cookie, _ = encryptPostActionCookie(string(b), secret)
 		}
 	}
 
 	return p
 }
 
-func encryptActionCookie(plain string, secret []byte) (string, error) {
+func encryptPostActionCookie(plain string, secret []byte) (string, error) {
 	if len(secret) == 0 {
 		return plain, nil
 	}
@@ -396,7 +396,7 @@ func encryptActionCookie(plain string, secret []byte) (string, error) {
 	return string(encoded), nil
 }
 
-func DecryptActionCookie(encoded string, secret []byte) (string, error) {
+func DecryptPostActionCookie(encoded string, secret []byte) (string, error) {
 	if len(secret) == 0 {
 		return encoded, nil
 	}

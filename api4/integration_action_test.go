@@ -82,7 +82,7 @@ func TestPostActionCookies(t *testing.T) {
 
 	post.GenerateActionIds()
 	assert.Equal(t, 32, len(th.App.PostActionCookieSecret()))
-	post = model.AddActionCookiesToPost(post, th.App.PostActionCookieSecret())
+	post = model.AddPostActionCookies(post, th.App.PostActionCookieSecret())
 
 	ok, resp := Client.DoPostActionWithCookie(post.Id, action.Id, "", action.Cookie)
 	assert.True(t, ok)
