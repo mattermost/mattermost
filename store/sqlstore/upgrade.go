@@ -16,6 +16,7 @@ import (
 )
 
 const (
+	VERSION_5_10_0           = "5.10.0"
 	VERSION_5_9_0            = "5.9.0"
 	VERSION_5_8_0            = "5.8.0"
 	VERSION_5_7_0            = "5.7.0"
@@ -575,8 +576,14 @@ func UpgradeDatabaseToVersion59(sqlStore SqlStore) {
 }
 
 func UpgradeDatabaseToVersion510(sqlStore SqlStore) {
-	// if shouldPerformUpgrade(sqlStore, VERSION_5_9_0, VERSION_5_10_0) {
-
-	// 	saveSchemaVersion(sqlStore, VERSION_5_10_0)
-	// }
+	if shouldPerformUpgrade(sqlStore, VERSION_5_9_0, VERSION_5_10_0) {
+		if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+			sqlStore.GetMaster().Exec("SELECT pg_sleep(1000)")
+			sqlStore.GetMaster().Exec("SET statement_timeout TO 0")
+		} else if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
+			sqlStore.GetMaster().Exec("SET SLEEP(1000)")
+			sqlStore.GetMaster().Exec("SET SESSION wait_timeout = 2147483")
+		}
+		saveSchemaVersion(sqlStore, VERSION_5_10_0)
+	}
 }
