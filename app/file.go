@@ -576,7 +576,7 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 	}
 
 	var aerr *model.AppError
-	if !t.Raw && t.fileinfo.IsImage() && t.fileinfo.MimeType != "image/svg+xml" {
+	if !t.Raw && t.fileinfo.IsImage() {
 		aerr = t.preprocessImage()
 		if aerr != nil {
 			return t.fileinfo, aerr
@@ -586,13 +586,6 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 	aerr = t.readAll()
 	if aerr != nil {
 		return t.fileinfo, aerr
-	}
-
-	// attempt to extract width & height out of svg
-	if !t.Raw && t.fileinfo.MimeType == "image/svg+xml" {
-		if err := parseSVGDimensions(t.fileinfo, t.buf.Bytes()); err != nil {
-			mlog.Error(fmt.Sprintf("Unable to parse SVG, err = %v", err))
-		}
 	}
 
 	aerr = t.runPlugins()
@@ -680,6 +673,20 @@ func (t *uploadFileTask) runPlugins() *model.AppError {
 }
 
 func (t *uploadFileTask) preprocessImage() *model.AppError {
+	// If SVG, attempt to extract dimensions and then return
+	if t.fileinfo.MimeType == "image/svg+xml" {
+		svgInfo, err := parseSVG(t.newReader())
+		if err != nil {
+			mlog.Error(fmt.Sprintf("Unable to parse SVG, err = %v", err))
+		}
+		if svgInfo.Width > 0 && svgInfo.Height > 0 {
+			t.fileinfo.Width = svgInfo.Width
+			t.fileinfo.Height = svgInfo.Height
+		}
+		t.fileinfo.HasPreviewImage = false
+		return nil
+	}
+
 	// If we fail to decode, return "as is".
 	config, _, err := image.DecodeConfig(t.newReader())
 	if err != nil {
