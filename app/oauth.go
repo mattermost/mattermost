@@ -18,7 +18,6 @@ import (
 	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -547,42 +546,21 @@ func (a *App) LoginByOAuth(service string, userData io.Reader, teamId string) (*
 	user, err := a.GetUserByAuth(&authData, service)
 	if err != nil {
 		if err.Id == store.MISSING_AUTH_ACCOUNT_ERROR {
-			return a.CreateOAuthUser(service, bytes.NewReader(buf.Bytes()), teamId)
+			user, err = a.CreateOAuthUser(service, bytes.NewReader(buf.Bytes()), teamId)
+		} else {
+			return nil, err
 		}
-		return nil, err
-	}
-
-	if err = a.UpdateOAuthUserAttrs(bytes.NewReader(buf.Bytes()), user, provider, service); err != nil {
-		return nil, err
-	}
-
-	if len(teamId) > 0 {
-		err = a.AddUserToTeamByTeamId(teamId, user)
+	} else {
+		if err = a.UpdateOAuthUserAttrs(bytes.NewReader(buf.Bytes()), user, provider, service); err != nil {
+			return nil, err
+		}
+		if len(teamId) > 0 {
+			err = a.AddUserToTeamByTeamId(teamId, user)
+		}
 	}
 
 	if err != nil {
 		return nil, err
-	}
-
-	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-		var rejectionReason string
-		pluginContext := a.PluginContext()
-		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-			rejectionReason = hooks.UserWillLogIn(pluginContext, user)
-			return rejectionReason == ""
-		}, plugin.UserWillLogInId)
-
-		if rejectionReason != "" {
-			return nil, model.NewAppError("LoginByOAuth", "Login rejected by plugin: "+rejectionReason, nil, "", http.StatusBadRequest)
-		}
-
-		a.Srv.Go(func() {
-			pluginContext := a.PluginContext()
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				hooks.UserHasLoggedIn(pluginContext, user)
-				return true
-			}, plugin.UserHasLoggedInId)
-		})
 	}
 
 	return user, nil

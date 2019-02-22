@@ -346,14 +346,14 @@ func TestUploadFiles(t *testing.T) {
 		// Upload a bunch of files, mixed images and non-images
 		{
 			title:             "Happy",
-			names:             []string{"test.png", "testgif.gif", "testplugin.tar.gz", "test-search.md"},
+			names:             []string{"test.png", "testgif.gif", "testplugin.tar.gz", "test-search.md", "test.tiff"},
 			expectedCreatorId: th.BasicUser.Id,
 		},
 		// Upload a bunch of files, with clientIds
 		{
 			title:             "Happy client_ids",
-			names:             []string{"test.png", "testgif.gif", "testplugin.tar.gz", "test-search.md"},
-			clientIds:         []string{"1", "2", "3", "4"},
+			names:             []string{"test.png", "testgif.gif", "testplugin.tar.gz", "test-search.md", "test.tiff"},
+			clientIds:         []string{"1", "2", "3", "4", "5"},
 			expectedCreatorId: th.BasicUser.Id,
 		},
 		// Upload a bunch of images. testgif.gif is an animated GIF,
@@ -475,6 +475,18 @@ func TestUploadFiles(t *testing.T) {
 			expectImage:                 true,
 			expectedImageWidths:         []int{2860},
 			expectedImageHeights:        []int{1578},
+			expectedImageHasPreview:     []bool{true},
+			expectedCreatorId:           th.BasicUser.Id,
+		},
+		// TIFF preview test
+		{
+			title:                       "Happy image thumbnail/preview 9",
+			names:                       []string{"test.tiff"},
+			expectedImageThumbnailNames: []string{"test_expected_thumb.tiff"},
+			expectedImagePreviewNames:   []string{"test_expected_preview.tiff"},
+			expectImage:                 true,
+			expectedImageWidths:         []int{701},
+			expectedImageHeights:        []int{701},
 			expectedImageHasPreview:     []bool{true},
 			expectedCreatorId:           th.BasicUser.Id,
 		},
@@ -928,14 +940,8 @@ func TestGetFileLink(t *testing.T) {
 		t.Skip("skipping because no file driver is enabled")
 	}
 
-	enablePublicLink := th.App.Config().FileSettings.EnablePublicLink
-	publicLinkSalt := *th.App.Config().FileSettings.PublicLinkSalt
-	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FileSettings.EnablePublicLink = enablePublicLink })
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.PublicLinkSalt = publicLinkSalt })
-	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.PublicLinkSalt = model.NewId() })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.PublicLinkSalt = model.NewRandomString(32) })
 
 	fileId := ""
 	if data, err := testutils.ReadTestFile("test.png"); err != nil {
@@ -1119,18 +1125,8 @@ func TestGetPublicFile(t *testing.T) {
 	Client := th.Client
 	channel := th.BasicChannel
 
-	if *th.App.Config().FileSettings.DriverName == "" {
-		t.Skip("skipping because no file driver is enabled")
-	}
-
-	enablePublicLink := th.App.Config().FileSettings.EnablePublicLink
-	publicLinkSalt := *th.App.Config().FileSettings.PublicLinkSalt
-	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FileSettings.EnablePublicLink = enablePublicLink })
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.PublicLinkSalt = publicLinkSalt })
-	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.PublicLinkSalt = GenerateTestId() })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.PublicLinkSalt = model.NewRandomString(32) })
 
 	fileId := ""
 	if data, err := testutils.ReadTestFile("test.png"); err != nil {
@@ -1168,7 +1164,7 @@ func TestGetPublicFile(t *testing.T) {
 
 	// test after the salt has changed
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.PublicLinkSalt = GenerateTestId() })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.PublicLinkSalt = model.NewRandomString(32) })
 
 	if resp, err := http.Get(link); err == nil && resp.StatusCode != http.StatusBadRequest {
 		t.Fatal("should've failed to get image with public link after salt changed")

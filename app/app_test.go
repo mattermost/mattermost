@@ -26,7 +26,7 @@ func TestAppRace(t *testing.T) {
 */
 
 func TestUpdateConfig(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	prev := *th.App.Config().ServiceSettings.SiteURL
@@ -42,12 +42,8 @@ func TestUpdateConfig(t *testing.T) {
 }
 
 func TestDoAdvancedPermissionsMigration(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
-
-	if mainHelper.SqlSupplier == nil {
-		t.Skip("This test requires a TestStore to be run.")
-	}
 
 	th.ResetRoleMigration()
 
@@ -405,7 +401,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 
 	th.App.DoAdvancedPermissionsMigration()
 
-	config := th.App.GetConfig()
+	config := th.App.Config()
 	assert.Equal(t, -1, *config.ServiceSettings.PostEditTimeLimit)
 
 	th.ResetRoleMigration()
@@ -416,17 +412,13 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 	})
 
 	th.App.DoAdvancedPermissionsMigration()
-	config = th.App.GetConfig()
+	config = th.App.Config()
 	assert.Equal(t, 300, *config.ServiceSettings.PostEditTimeLimit)
 }
 
 func TestDoEmojisPermissionsMigration(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
-
-	if mainHelper.SqlSupplier == nil {
-		t.Skip("This test requires a TestStore to be run.")
-	}
 
 	// Add a license and change the policy config.
 	restrictCustomEmojiCreation := *th.App.Config().ServiceSettings.DEPRECATED_DO_NOT_USE_RestrictCustomEmojiCreation

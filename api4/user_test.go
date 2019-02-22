@@ -1124,7 +1124,7 @@ func TestPatchUser(t *testing.T) {
 	if ruser.Username != user.Username {
 		t.Fatal("Username should not have updated")
 	}
-	if ruser.Password != ""{
+	if ruser.Password != "" {
 		t.Fatal("Password should not be returned")
 	}
 	if ruser.NotifyProps["comment"] != "somethingrandom" {
@@ -1220,7 +1220,7 @@ func TestUpdateUserAuth(t *testing.T) {
 	user := th.CreateUser()
 
 	th.LinkUserToTeam(user, team)
-	store.Must(th.App.Srv.Store.User().VerifyEmail(user.Id))
+	store.Must(th.App.Srv.Store.User().VerifyEmail(user.Id, user.Email))
 
 	userAuth := &model.UserAuth{}
 	userAuth.AuthData = user.AuthData
@@ -1260,7 +1260,7 @@ func TestUpdateUserAuth(t *testing.T) {
 	// Regular user can not use endpoint
 	user2 := th.CreateUser()
 	th.LinkUserToTeam(user2, team)
-	store.Must(th.App.Srv.Store.User().VerifyEmail(user2.Id))
+	store.Must(th.App.Srv.Store.User().VerifyEmail(user2.Id, user2.Email))
 
 	th.SystemAdminClient.Login(user2.Email, "passwd1")
 
@@ -1299,6 +1299,21 @@ func TestDeleteUser(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	_, resp = th.Client.DeleteUser(testUser.Id)
+	CheckNoError(t, resp)
+
+	selfDeleteUser := th.CreateUser()
+	th.Client.Login(selfDeleteUser.Email, selfDeleteUser.Password)
+
+	th.App.UpdateConfig(func(c *model.Config){
+		*c.TeamSettings.EnableUserDeactivation = false
+	})
+	_, resp = th.Client.DeleteUser(selfDeleteUser.Id)
+	CheckUnauthorizedStatus(t, resp)
+
+	th.App.UpdateConfig(func(c *model.Config){
+		*c.TeamSettings.EnableUserDeactivation = true
+	})
+	_, resp = th.Client.DeleteUser(selfDeleteUser.Id)
 	CheckNoError(t, resp)
 }
 
@@ -2220,11 +2235,12 @@ func TestVerifyUserEmail(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	user := model.User{Email: th.GenerateTestEmail(), Nickname: "Darth Vader", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
+	email := th.GenerateTestEmail()
+	user := model.User{Email: email, Nickname: "Darth Vader", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
 
 	ruser, _ := th.Client.CreateUser(&user)
 
-	token, err := th.App.CreateVerifyEmailToken(ruser.Id)
+	token, err := th.App.CreateVerifyEmailToken(ruser.Id, email)
 	if err != nil {
 		t.Fatal("Unable to create email verify token")
 	}
@@ -3099,4 +3115,41 @@ func TestGetUserTermsOfService(t *testing.T) {
 	assert.Equal(t, th.BasicUser.Id, userTermsOfService.UserId)
 	assert.Equal(t, termsOfService.Id, userTermsOfService.TermsOfServiceId)
 	assert.NotEmpty(t, userTermsOfService.CreateAt)
+}
+
+func TestLoginLockout(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	_, resp := th.Client.Logout()
+	CheckNoError(t, resp)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.MaximumLoginAttempts = 3 })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = true })
+
+	_, resp = th.Client.Login(th.BasicUser.Email, "wrong")
+	CheckErrorMessage(t, resp, "api.user.check_user_password.invalid.app_error")
+	_, resp = th.Client.Login(th.BasicUser.Email, "wrong")
+	CheckErrorMessage(t, resp, "api.user.check_user_password.invalid.app_error")
+	_, resp = th.Client.Login(th.BasicUser.Email, "wrong")
+	CheckErrorMessage(t, resp, "api.user.check_user_password.invalid.app_error")
+	_, resp = th.Client.Login(th.BasicUser.Email, "wrong")
+	CheckErrorMessage(t, resp, "api.user.check_user_login_attempts.too_many.app_error")
+	_, resp = th.Client.Login(th.BasicUser.Email, "wrong")
+	CheckErrorMessage(t, resp, "api.user.check_user_login_attempts.too_many.app_error")
+
+	// Fake user has MFA enabled
+	if result := <-th.Server.Store.User().UpdateMfaActive(th.BasicUser2.Id, true); result.Err != nil {
+		t.Fatal(result.Err)
+	}
+	_, resp = th.Client.LoginWithMFA(th.BasicUser2.Email, th.BasicUser2.Password, "000000")
+	CheckErrorMessage(t, resp, "api.user.check_user_mfa.bad_code.app_error")
+	_, resp = th.Client.LoginWithMFA(th.BasicUser2.Email, th.BasicUser2.Password, "000000")
+	CheckErrorMessage(t, resp, "api.user.check_user_mfa.bad_code.app_error")
+	_, resp = th.Client.LoginWithMFA(th.BasicUser2.Email, th.BasicUser2.Password, "000000")
+	CheckErrorMessage(t, resp, "api.user.check_user_mfa.bad_code.app_error")
+	_, resp = th.Client.LoginWithMFA(th.BasicUser2.Email, th.BasicUser2.Password, "000000")
+	CheckErrorMessage(t, resp, "api.user.check_user_login_attempts.too_many.app_error")
+	_, resp = th.Client.LoginWithMFA(th.BasicUser2.Email, th.BasicUser2.Password, "000000")
+	CheckErrorMessage(t, resp, "api.user.check_user_login_attempts.too_many.app_error")
 }

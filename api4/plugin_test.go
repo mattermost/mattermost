@@ -20,19 +20,9 @@ func TestPlugin(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	enablePlugins := *th.App.Config().PluginSettings.Enable
-	enableUploadPlugins := *th.App.Config().PluginSettings.EnableUploads
 	statesJson, _ := json.Marshal(th.App.Config().PluginSettings.PluginStates)
 	states := map[string]*model.PluginState{}
 	json.Unmarshal(statesJson, &states)
-	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.PluginSettings.Enable = enablePlugins
-			*cfg.PluginSettings.EnableUploads = enableUploadPlugins
-			cfg.PluginSettings.PluginStates = states
-		})
-		th.App.SaveConfig(th.App.Config(), false)
-	}()
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.PluginSettings.Enable = true
 		*cfg.PluginSettings.EnableUploads = true

@@ -622,6 +622,15 @@ func (c *Client4) LoginWithDevice(loginId string, password string, deviceId stri
 	return c.login(m)
 }
 
+// LoginWithMFA logs a user in with a MFA token
+func (c *Client4) LoginWithMFA(loginId, password, mfaToken string) (*User, *Response) {
+	m := make(map[string]string)
+	m["login_id"] = loginId
+	m["password"] = password
+	m["token"] = mfaToken
+	return c.login(m)
+}
+
 func (c *Client4) login(m map[string]string) (*User, *Response) {
 	r, err := c.DoApiPost("/users/login", MapToJson(m))
 	if err != nil {

@@ -7,8 +7,8 @@ import (
 	"github.com/mattermost/mattermost-server/einterfaces"
 	ejobs "github.com/mattermost/mattermost-server/einterfaces/jobs"
 	tjobs "github.com/mattermost/mattermost-server/jobs/interfaces"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
 var accountMigrationInterface func(*App) einterfaces.AccountMigrationInterface
@@ -77,6 +77,12 @@ func RegisterJobsMigrationsJobInterface(f func(*App) tjobs.MigrationsJobInterfac
 	jobsMigrationsInterface = f
 }
 
+var jobsPluginsInterface func(*App) tjobs.PluginsJobInterface
+
+func RegisterJobsPluginsJobInterface(f func(*App) tjobs.PluginsJobInterface) {
+	jobsPluginsInterface = f
+}
+
 var ldapInterface func(*App) einterfaces.LdapInterface
 
 func RegisterLdapInterface(f func(*App) einterfaces.LdapInterface) {
@@ -113,11 +119,6 @@ func (s *Server) initEnterprise() {
 	}
 	if ldapInterface != nil {
 		s.Ldap = ldapInterface(s.FakeApp())
-		s.AddConfigListener(func(_, cfg *model.Config) {
-			if err := utils.ValidateLdapFilter(cfg, s.Ldap); err != nil {
-				panic(utils.T(err.Id))
-			}
-		})
 	}
 	if messageExportInterface != nil {
 		s.MessageExport = messageExportInterface(s.FakeApp())
@@ -128,7 +129,9 @@ func (s *Server) initEnterprise() {
 	if samlInterface != nil {
 		s.Saml = samlInterface(s.FakeApp())
 		s.AddConfigListener(func(_, cfg *model.Config) {
-			s.Saml.ConfigureSP()
+			if err := s.Saml.ConfigureSP(); err != nil {
+				mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
+			}
 		})
 	}
 	if dataRetentionInterface != nil {
