@@ -915,7 +915,15 @@ func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(user.ToJson()))
 }
 
+// Deprecated: checkUserMfa is deprecated and should not be used anymore, starting with version 6.0 it will be disabled.
+//			   Clients should attempt a login without MFA and will receive a MFA error when it's required.
 func checkUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
+
+	if *c.App.Config().ServiceSettings.DisableLegacyMFA {
+		http.NotFound(w, r)
+		return
+	}
+
 	props := model.MapFromJson(r.Body)
 
 	loginId := props["login_id"]
