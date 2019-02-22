@@ -31,7 +31,7 @@ func doPostAction(c *Context, w http.ResponseWriter, r *http.Request) {
 	var cookie *model.PostActionCookie
 	if actionRequest.Cookie != "" {
 		cookie = &model.PostActionCookie{}
-		cookieStr, err := model.DecryptActionCookie(actionRequest.Cookie, *c.App.Config().ServiceSettings.ActionCookieSecret)
+		cookieStr, err := model.DecryptActionCookie(actionRequest.Cookie, c.App.PostActionCookieSecret())
 		if err != nil {
 			c.Err = model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "err="+err.Error(), http.StatusBadRequest)
 			return

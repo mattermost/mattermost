@@ -11,7 +11,6 @@ import (
 	"crypto/rand"
 	"encoding/asn1"
 	"encoding/base64"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -324,7 +323,7 @@ func (o *Post) GenerateActionIds() {
 	}
 }
 
-func AddActionCookiesToPost(o *Post, secret string) *Post {
+func AddActionCookiesToPost(o *Post, secret []byte) *Post {
 	p := o.Clone()
 
 	// retainedProps carry over their value from the old post, including no value
@@ -367,17 +366,12 @@ func AddActionCookiesToPost(o *Post, secret string) *Post {
 	return p
 }
 
-func encryptActionCookie(plain, secret string) (string, error) {
-	if secret == "" {
+func encryptActionCookie(plain string, secret []byte) (string, error) {
+	if len(secret) == 0 {
 		return plain, nil
 	}
 
-	key, err := hex.DecodeString(secret)
-	if err != nil {
-		return "", err
-	}
-
-	block, err := aes.NewCipher(key)
+	block, err := aes.NewCipher(secret)
 	if err != nil {
 		return "", err
 	}
@@ -402,17 +396,12 @@ func encryptActionCookie(plain, secret string) (string, error) {
 	return string(encoded), nil
 }
 
-func DecryptActionCookie(encoded, secret string) (string, error) {
-	if secret == "" {
+func DecryptActionCookie(encoded string, secret []byte) (string, error) {
+	if len(secret) == 0 {
 		return encoded, nil
 	}
 
-	key, err := hex.DecodeString(secret)
-	if err != nil {
-		return "", err
-	}
-
-	block, err := aes.NewCipher(key)
+	block, err := aes.NewCipher(secret)
 	if err != nil {
 		return "", err
 	}

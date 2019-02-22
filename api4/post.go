@@ -97,7 +97,7 @@ func createEphemeralPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	rp := c.App.SendEphemeralPost(ephRequest.UserID, c.App.PostWithProxyRemovedFromImageURLs(ephRequest.Post))
 
 	w.WriteHeader(http.StatusCreated)
-	rp = model.AddActionCookiesToPost(rp, *c.App.Config().ServiceSettings.ActionCookieSecret)
+	rp = model.AddActionCookiesToPost(rp, c.App.PostActionCookieSecret())
 	rp = c.App.PreparePostForClient(rp, true)
 	w.Write([]byte(rp.ToJson()))
 }

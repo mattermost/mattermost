@@ -407,7 +407,7 @@ func (a *App) SendEphemeralPost(userId string, post *model.Post) *model.Post {
 	post.GenerateActionIds()
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE, "", post.ChannelId, userId, nil)
 	post = a.PreparePostForClient(post, true)
-	post = model.AddActionCookiesToPost(post, *a.Config().ServiceSettings.ActionCookieSecret)
+	post = model.AddActionCookiesToPost(post, a.PostActionCookieSecret())
 	message.Add("post", post.ToJson())
 	a.Publish(message)
 
@@ -425,7 +425,7 @@ func (a *App) UpdateEphemeralPost(userId string, post *model.Post) *model.Post {
 	post.GenerateActionIds()
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", post.ChannelId, userId, nil)
 	post = a.PreparePostForClient(post, true)
-	post = model.AddActionCookiesToPost(post, *a.Config().ServiceSettings.ActionCookieSecret)
+	post = model.AddActionCookiesToPost(post, a.PostActionCookieSecret())
 	message.Add("post", post.ToJson())
 	a.Publish(message)
 

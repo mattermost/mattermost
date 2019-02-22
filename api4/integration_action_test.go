@@ -43,7 +43,6 @@ func TestPostActionCookies(t *testing.T) {
 	Client := th.Client
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.ActionCookieSecret = "00112233445566778899AABBCCDDEEFF000102030405060708090A0B0C0D0E0F"
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
 	})
 
@@ -82,7 +81,8 @@ func TestPostActionCookies(t *testing.T) {
 	}
 
 	post.GenerateActionIds()
-	post = model.AddActionCookiesToPost(post, *th.App.Config().ServiceSettings.ActionCookieSecret)
+	assert.Equal(t, 32, len(th.App.PostActionCookieSecret()))
+	post = model.AddActionCookiesToPost(post, th.App.PostActionCookieSecret())
 
 	ok, resp := Client.DoPostActionWithCookie(post.Id, action.Id, "", action.Cookie)
 	assert.True(t, ok)

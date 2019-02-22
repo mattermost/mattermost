@@ -4,9 +4,7 @@
 package model
 
 import (
-	"crypto/rand"
 	"crypto/tls"
-	"encoding/hex"
 	"encoding/json"
 	"io"
 	"math"
@@ -231,7 +229,6 @@ type ServiceSettings struct {
 	MaximumLoginAttempts                              *int
 	GoroutineHealthThreshold                          *int
 	GoogleDeveloperKey                                *string
-	ActionCookieSecret                                *string
 	EnableOAuthServiceProvider                        *bool
 	EnableIncomingWebhooks                            *bool
 	EnableOutgoingWebhooks                            *bool
@@ -319,12 +316,6 @@ func (s *ServiceSettings) SetDefaults() {
 		s.ListenAddress = NewString(SERVICE_SETTINGS_DEFAULT_LISTEN_AND_ADDRESS)
 	}
 
-	if s.ActionCookieSecret == nil {
-		secret := make([]byte, 32)
-		_, _ = rand.Reader.Read(secret)
-		s.ActionCookieSecret = NewString(hex.EncodeToString(secret))
-	}
-
 	if s.EnableLinkPreviews == nil {
 		s.EnableLinkPreviews = NewBool(false)
 	}
@@ -369,9 +360,6 @@ func (s *ServiceSettings) SetDefaults() {
 		s.GoogleDeveloperKey = NewString("")
 	}
 
-	if s.ActionCookieSecret == nil {
-		s.ActionCookieSecret = NewString("")
-	}
 	if s.EnableOAuthServiceProvider == nil {
 		s.EnableOAuthServiceProvider = NewBool(false)
 	}
