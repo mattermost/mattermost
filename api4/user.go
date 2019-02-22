@@ -835,7 +835,7 @@ func updateUserRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.LogAuditWithUserId(c.Params.UserId, "roles="+newRoles)
+	c.LogAudit(fmt.Sprintf("user=%s roles=%s", c.Params.UserId, newRoles))
 	ReturnStatusOK(w)
 }
 
@@ -911,7 +911,7 @@ func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.LogAuditWithUserId(c.Params.UserId, fmt.Sprintf("updated user auth to service=%v", user.AuthService))
+	c.LogAudit(fmt.Sprintf("updated user %s auth to service=%v", c.Params.UserId, user.AuthService))
 	w.Write([]byte(user.ToJson()))
 }
 
