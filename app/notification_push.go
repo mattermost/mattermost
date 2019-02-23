@@ -324,11 +324,25 @@ func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session
 
 	request, err := http.NewRequest("POST", strings.TrimRight(*a.Config().EmailSettings.PushNotificationServer, "/")+model.API_URL_SUFFIX_V1+"/send_push", strings.NewReader(updatedMsg.ToJson()))
 	if err != nil {
+		if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
+			pluginContext := a.PluginContext()
+			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+				hooks.PushNotificationHasFailed(pluginContext, updatedMsg, err)
+				return true
+			}, plugin.PushNotificationHasFailedId)
+		}
 		return err
 	}
 
 	resp, err := a.HTTPService.MakeClient(true).Do(request)
 	if err != nil {
+		if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
+			pluginContext := a.PluginContext()
+			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+				hooks.PushNotificationHasFailed(pluginContext, updatedMsg, err)
+				return true
+			}, plugin.PushNotificationHasFailedId)
+		}
 		return err
 	}
 
@@ -340,21 +354,35 @@ func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session
 		mlog.Info(fmt.Sprintf("Device was reported as removed for UserId=%v SessionId=%v removing push for this session", session.UserId, session.Id), mlog.String("user_id", session.UserId))
 		a.AttachDeviceId(session.Id, "", session.ExpiresAt)
 		a.ClearSessionCacheForUser(session.UserId)
-		return errors.New("Device was reported as removed")
+		err := errors.New("Device was reported as removed")
+		if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
+			pluginContext := a.PluginContext()
+			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+				hooks.PushNotificationHasFailed(pluginContext, updatedMsg, err)
+				return true
+			}, plugin.PushNotificationHasFailedId)
+		}
+		return err
 	}
 
 	if pushResponse[model.PUSH_STATUS] == model.PUSH_STATUS_FAIL {
-		return fmt.Errorf("Device push reported as error (%v)", pushResponse[model.PUSH_STATUS_ERROR_MSG])
+		err := fmt.Errorf("Device push reported as error (%v)", pushResponse[model.PUSH_STATUS_ERROR_MSG])
+		if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
+			pluginContext := a.PluginContext()
+			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+				hooks.PushNotificationHasFailed(pluginContext, updatedMsg, err)
+				return true
+			}, plugin.PushNotificationHasFailedId)
+		}
+		return err
 	}
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-		a.Srv.Go(func() {
-			pluginContext := a.PluginContext()
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				hooks.PushNotificationHasBeenSent(pluginContext, updatedMsg)
-				return true
-			}, plugin.PushNotificationHasBeenSentId)
-		})
+		pluginContext := a.PluginContext()
+		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			hooks.PushNotificationHasBeenSent(pluginContext, updatedMsg)
+			return true
+		}, plugin.PushNotificationHasBeenSentId)
 	}
 	return nil
 }

@@ -199,6 +199,11 @@ func (_m *Hooks) PushNotificationHasBeenSent(c *plugin.Context, notification *mo
 	_m.Called(c, notification)
 }
 
+// PushNotificationHasFailed provides a mock function with given fields: c, notification, err
+func (_m *Hooks) PushNotificationHasFailed(c *plugin.Context, notification *model.PushNotification, err error) {
+	_m.Called(c, notification, err)
+}
+
 // PushNotificationWillBeSent provides a mock function with given fields: c, notification
 func (_m *Hooks) PushNotificationWillBeSent(c *plugin.Context, notification *model.PushNotification) *model.PushNotification {
 	ret := _m.Called(c, notification)

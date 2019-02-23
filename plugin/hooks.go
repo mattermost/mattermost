@@ -36,6 +36,7 @@ const (
 	PushNotificationWillBeSentId  = 18
 	PushNotificationHasBeenSentId = 19
 	PushNotificationEnqueuedId    = 20
+	PushNotificationHasFailedId   = 21
 	TotalHooksId                  = iota
 )
 
@@ -158,6 +159,9 @@ type Hooks interface {
 
 	// PushNotificationHasBeenSent is invoked after the push notification has been sent to the push proxy server.
 	PushNotificationHasBeenSent(c *Context, notification *model.PushNotification)
+
+	// PushNotificationHasFailed is invoked after the push proxy server replies with an error.
+	PushNotificationHasFailed(c *Context, notification *model.PushNotification, err error)
 
 	// PushNotificationEnqueued is invoked just before the notification has been enqueued to be sent to the push proxy server.
 	PushNotificationEnqueued(c *Context, notificationId, notificationType, userId, channelId, postId string)
