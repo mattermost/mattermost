@@ -1636,6 +1636,37 @@ func (s *apiRPCServer) GetTeamMember(args *Z_GetTeamMemberArgs, returns *Z_GetTe
 	return nil
 }
 
+type Z_GetTeamMembersForUserArgs struct {
+	A string
+	B int
+	C int
+}
+
+type Z_GetTeamMembersForUserReturns struct {
+	A []*model.TeamMember
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetTeamMembersForUser(userId string, page int, perPage int) ([]*model.TeamMember, *model.AppError) {
+	_args := &Z_GetTeamMembersForUserArgs{userId, page, perPage}
+	_returns := &Z_GetTeamMembersForUserReturns{}
+	if err := g.client.Call("Plugin.GetTeamMembersForUser", _args, _returns); err != nil {
+		log.Printf("RPC call to GetTeamMembersForUser API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetTeamMembersForUser(args *Z_GetTeamMembersForUserArgs, returns *Z_GetTeamMembersForUserReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetTeamMembersForUser(userId string, page int, perPage int) ([]*model.TeamMember, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetTeamMembersForUser(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API GetTeamMembersForUser called but not implemented."))
+	}
+	return nil
+}
+
 type Z_UpdateTeamMemberRolesArgs struct {
 	A string
 	B string
@@ -2200,6 +2231,38 @@ func (s *apiRPCServer) GetChannelMembersByIds(args *Z_GetChannelMembersByIdsArgs
 		returns.A, returns.B = hook.GetChannelMembersByIds(args.A, args.B)
 	} else {
 		return encodableError(fmt.Errorf("API GetChannelMembersByIds called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetChannelMembersForUserArgs struct {
+	A string
+	B string
+	C int
+	D int
+}
+
+type Z_GetChannelMembersForUserReturns struct {
+	A []*model.ChannelMember
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetChannelMembersForUser(teamId, userId string, page, perPage int) ([]*model.ChannelMember, *model.AppError) {
+	_args := &Z_GetChannelMembersForUserArgs{teamId, userId, page, perPage}
+	_returns := &Z_GetChannelMembersForUserReturns{}
+	if err := g.client.Call("Plugin.GetChannelMembersForUser", _args, _returns); err != nil {
+		log.Printf("RPC call to GetChannelMembersForUser API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetChannelMembersForUser(args *Z_GetChannelMembersForUserArgs, returns *Z_GetChannelMembersForUserReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetChannelMembersForUser(teamId, userId string, page, perPage int) ([]*model.ChannelMember, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetChannelMembersForUser(args.A, args.B, args.C, args.D)
+	} else {
+		return encodableError(fmt.Errorf("API GetChannelMembersForUser called but not implemented."))
 	}
 	return nil
 }

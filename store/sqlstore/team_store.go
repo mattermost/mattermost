@@ -670,6 +670,20 @@ func (s SqlTeamStore) GetTeamsForUser(userId string) store.StoreChannel {
 	})
 }
 
+func (s SqlTeamStore) GetTeamsForUserWithPagination(userId string, page, perPage int) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		var dbMembers teamMemberWithSchemeRolesList
+		offset := page * perPage
+		_, err := s.GetReplica().Select(&dbMembers, TEAM_MEMBERS_WITH_SCHEME_SELECT_QUERY+"WHERE TeamMembers.UserId = :UserId Limit :Limit Offset :Offset", map[string]interface{}{"UserId": userId, "Limit": perPage, "Offset": offset})
+		if err != nil {
+			result.Err = model.NewAppError("SqlTeamStore.GetTeamsForUserWithPagination", "store.sql_team.get_members.app_error", nil, "userId="+userId+" "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		result.Data = dbMembers.ToModel()
+	})
+}
+
 func (s SqlTeamStore) GetChannelUnreadsForAllTeams(excludeTeamId, userId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var data []*model.ChannelUnread
