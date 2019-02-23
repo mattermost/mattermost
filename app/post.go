@@ -434,7 +434,7 @@ func (a *App) UpdateEphemeralPost(userId string, post *model.Post) *model.Post {
 
 func (a *App) DeleteEphemeralPost(userId string, post *model.Post) *model.Post {
 	post.Type = model.POST_EPHEMERAL
-	post.UpdateAt = model.GetMillis()
+	post.DeleteAt = model.GetMillis()
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_DELETED, "", post.ChannelId, userId, nil)
 
 	message.Add("post", post.ToJson())
