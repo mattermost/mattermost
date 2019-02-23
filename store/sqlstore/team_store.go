@@ -792,6 +792,7 @@ func (s SqlTeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) s
 			result.Err = model.NewAppError("SqlTeamStore.MigrateTeamMembers", "store.sql_team.migrate_team_members.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		defer finalizeTransaction(transaction)
 
 		var teamMembers []teamMember
 		if _, err := transaction.Select(&teamMembers, "SELECT * from TeamMembers WHERE (TeamId, UserId) > (:FromTeamId, :FromUserId) ORDER BY TeamId, UserId LIMIT 100", map[string]interface{}{"FromTeamId": fromTeamId, "FromUserId": fromUserId}); err != nil {
@@ -825,10 +826,6 @@ func (s SqlTeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) s
 			member.Roles = strings.Join(newRoles, " ")
 
 			if _, err := transaction.Update(&member); err != nil {
-				if err2 := transaction.Rollback(); err2 != nil {
-					result.Err = model.NewAppError("SqlTeamStore.MigrateTeamMembers", "store.sql_team.migrate_team_members.rollback_transaction.app_error", nil, err2.Error(), http.StatusInternalServerError)
-					return
-				}
 				result.Err = model.NewAppError("SqlTeamStore.MigrateTeamMembers", "store.sql_team.migrate_team_members.update.app_error", nil, err.Error(), http.StatusInternalServerError)
 				return
 			}
@@ -836,10 +833,6 @@ func (s SqlTeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) s
 		}
 
 		if err := transaction.Commit(); err != nil {
-			if err2 := transaction.Rollback(); err2 != nil {
-				result.Err = model.NewAppError("SqlTeamStore.MigrateTeamMembers", "store.sql_team.migrate_team_members.rollback_transaction.app_error", nil, err2.Error(), http.StatusInternalServerError)
-				return
-			}
 			result.Err = model.NewAppError("SqlTeamStore.MigrateTeamMembers", "store.sql_team.migrate_team_members.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -873,13 +866,10 @@ func (s SqlTeamStore) ClearAllCustomRoleAssignments() store.StoreChannel {
 				result.Err = model.NewAppError("SqlTeamStore.ClearAllCustomRoleAssignments", "store.sql_team.clear_all_custom_role_assignments.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 				return
 			}
+			defer finalizeTransaction(transaction)
 
 			var teamMembers []*teamMember
 			if _, err := transaction.Select(&teamMembers, "SELECT * from TeamMembers WHERE (TeamId, UserId) > (:TeamId, :UserId) ORDER BY TeamId, UserId LIMIT 1000", map[string]interface{}{"TeamId": lastTeamId, "UserId": lastUserId}); err != nil {
-				if err2 := transaction.Rollback(); err2 != nil {
-					result.Err = model.NewAppError("SqlTeamStore.ClearAllCustomRoleAssignments", "store.sql_team.clear_all_custom_role_assignments.rollback_transaction.app_error", nil, err2.Error(), http.StatusInternalServerError)
-					return
-				}
 				result.Err = model.NewAppError("SqlTeamStore.ClearAllCustomRoleAssignments", "store.sql_team.clear_all_custom_role_assignments.select.app_error", nil, err.Error(), http.StatusInternalServerError)
 				return
 			}
@@ -906,10 +896,6 @@ func (s SqlTeamStore) ClearAllCustomRoleAssignments() store.StoreChannel {
 				newRolesString := strings.Join(newRoles, " ")
 				if newRolesString != member.Roles {
 					if _, err := transaction.Exec("UPDATE TeamMembers SET Roles = :Roles WHERE UserId = :UserId AND TeamId = :TeamId", map[string]interface{}{"Roles": newRolesString, "TeamId": member.TeamId, "UserId": member.UserId}); err != nil {
-						if err2 := transaction.Rollback(); err2 != nil {
-							result.Err = model.NewAppError("SqlTeamStore.ClearAllCustomRoleAssignments", "store.sql_team.clear_all_custom_role_assignments.rollback_transaction.app_error", nil, err2.Error(), http.StatusInternalServerError)
-							return
-						}
 						result.Err = model.NewAppError("SqlTeamStore.ClearAllCustomRoleAssignments", "store.sql_team.clear_all_custom_role_assignments.update.app_error", nil, err.Error(), http.StatusInternalServerError)
 						return
 					}
@@ -917,10 +903,6 @@ func (s SqlTeamStore) ClearAllCustomRoleAssignments() store.StoreChannel {
 			}
 
 			if err := transaction.Commit(); err != nil {
-				if err2 := transaction.Rollback(); err2 != nil {
-					result.Err = model.NewAppError("SqlTeamStore.ClearAllCustomRoleAssignments", "store.sql_team.clear_all_custom_role_assignments.rollback_transaction.app_error", nil, err2.Error(), http.StatusInternalServerError)
-					return
-				}
 				result.Err = model.NewAppError("SqlTeamStore.ClearAllCustomRoleAssignments", "store.sql_team.clear_all_custom_role_assignments.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 				return
 			}
