@@ -170,8 +170,13 @@ func TestExportAllUsers(t *testing.T) {
 	th1 := Setup(t).InitBasic()
 	defer th1.TearDown()
 
+	// Adding a user and deactivating it to check whether it gets included in bulk export
+	user := th1.CreateUser()
+	_, err := th1.App.UpdateActive(user, false)
+	require.Nil(t, err)
+
 	var b bytes.Buffer
-	err := th1.App.BulkExport(&b, "somefile", "somePath", "someDir")
+	err = th1.App.BulkExport(&b, "somefile", "somePath", "someDir")
 	require.Nil(t, err)
 
 	th2 := Setup(t)
@@ -192,4 +197,20 @@ func TestExportAllUsers(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, len(users1), len(users2))
 	assert.ElementsMatch(t, users1, users2)
+
+	// Checking whether deactivated users were included in bulk export
+	deletedUsers1, err := th1.App.GetUsers(&model.UserGetOptions{
+		Inactive: true,
+		Page:    0,
+		PerPage: 10,
+	})
+	assert.Nil(t, err)
+	deletedUsers2, err := th1.App.GetUsers(&model.UserGetOptions{
+		Inactive: true,
+		Page:    0,
+		PerPage: 10,
+	})
+	assert.Nil(t, err)
+	assert.Equal(t, len(deletedUsers1), len(deletedUsers2))
+	assert.ElementsMatch(t, deletedUsers1, deletedUsers2)
 }

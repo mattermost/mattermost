@@ -1327,7 +1327,6 @@ func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string) store
                     AND p1.DeleteAt = 0
 					AND Channels.DeleteAt = 0
 					AND Teams.DeleteAt = 0
-					AND Users.DeleteAt = 0
                 ORDER BY
                     p1.Id
                 LIMIT
