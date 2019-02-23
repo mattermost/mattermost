@@ -155,6 +155,10 @@ const (
 	ELASTICSEARCH_SETTINGS_DEFAULT_PASSWORD                          = "changeme"
 	ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_REPLICAS               = 1
 	ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_SHARDS                 = 1
+	ELASTICSEARCH_SETTINGS_DEFAULT_CHANNEL_INDEX_REPLICAS            = 1
+	ELASTICSEARCH_SETTINGS_DEFAULT_CHANNEL_INDEX_SHARDS              = 1
+	ELASTICSEARCH_SETTINGS_DEFAULT_USER_INDEX_REPLICAS               = 1
+	ELASTICSEARCH_SETTINGS_DEFAULT_USER_INDEX_SHARDS                 = 1
 	ELASTICSEARCH_SETTINGS_DEFAULT_AGGREGATE_POSTS_AFTER_DAYS        = 365
 	ELASTICSEARCH_SETTINGS_DEFAULT_POSTS_AGGREGATOR_JOB_START_TIME   = "03:00"
 	ELASTICSEARCH_SETTINGS_DEFAULT_INDEX_PREFIX                      = ""
@@ -1922,9 +1926,14 @@ type ElasticsearchSettings struct {
 	Password                      *string
 	EnableIndexing                *bool
 	EnableSearching               *bool
+	EnableAutocomplete            *bool
 	Sniff                         *bool
 	PostIndexReplicas             *int
 	PostIndexShards               *int
+	ChannelIndexReplicas          *int
+	ChannelIndexShards            *int
+	UserIndexReplicas             *int
+	UserIndexShards               *int
 	AggregatePostsAfterDays       *int
 	PostsAggregatorJobStartTime   *string
 	IndexPrefix                   *string
@@ -1954,6 +1963,10 @@ func (s *ElasticsearchSettings) SetDefaults() {
 		s.EnableSearching = NewBool(false)
 	}
 
+	if s.EnableAutocomplete == nil {
+		s.EnableAutocomplete = NewBool(false)
+	}
+
 	if s.Sniff == nil {
 		s.Sniff = NewBool(true)
 	}
@@ -1964,6 +1977,22 @@ func (s *ElasticsearchSettings) SetDefaults() {
 
 	if s.PostIndexShards == nil {
 		s.PostIndexShards = NewInt(ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_SHARDS)
+	}
+
+	if s.ChannelIndexReplicas == nil {
+		s.ChannelIndexReplicas = NewInt(ELASTICSEARCH_SETTINGS_DEFAULT_CHANNEL_INDEX_REPLICAS)
+	}
+
+	if s.ChannelIndexShards == nil {
+		s.ChannelIndexShards = NewInt(ELASTICSEARCH_SETTINGS_DEFAULT_CHANNEL_INDEX_SHARDS)
+	}
+
+	if s.UserIndexReplicas == nil {
+		s.UserIndexReplicas = NewInt(ELASTICSEARCH_SETTINGS_DEFAULT_USER_INDEX_REPLICAS)
+	}
+
+	if s.UserIndexShards == nil {
+		s.UserIndexShards = NewInt(ELASTICSEARCH_SETTINGS_DEFAULT_USER_INDEX_SHARDS)
 	}
 
 	if s.AggregatePostsAfterDays == nil {
@@ -2687,6 +2716,10 @@ func (ess *ElasticsearchSettings) isValid() *AppError {
 
 	if *ess.EnableSearching && !*ess.EnableIndexing {
 		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.enable_searching.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *ess.EnableAutocomplete && !*ess.EnableIndexing {
+		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.enable_autocomplete.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if *ess.AggregatePostsAfterDays < 1 {
