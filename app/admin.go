@@ -179,7 +179,7 @@ func (a *App) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bo
 	}
 
 	if a.Cluster != nil {
-		err := a.Cluster.ConfigChanged(newCfg, oldCfg, sendConfigChangeClusterMessage)
+		err := a.Cluster.ConfigChanged(oldCfg, newCfg, sendConfigChangeClusterMessage)
 		if err != nil {
 			return err
 		}
