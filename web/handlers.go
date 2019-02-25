@@ -26,6 +26,13 @@ func (w *Web) NewHandler(h func(*Context, http.ResponseWriter, *http.Request)) h
 }
 
 func (w *Web) NewStaticHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	// Determine the CSP SHA directive needed for subpath support, if any. This value is fixed
+	// on server start and intentionally requires a restart to take effect.
+	app := app.New(
+		w.GetGlobalAppOptions()...,
+	)
+	subpath, _ := utils.GetSubpathFromConfig(app.Config())
+
 	return &Handler{
 		GetGlobalAppOptions: w.GetGlobalAppOptions,
 		HandleFunc:          h,
@@ -33,6 +40,8 @@ func (w *Web) NewStaticHandler(h func(*Context, http.ResponseWriter, *http.Reque
 		TrustRequester:      false,
 		RequireMfa:          false,
 		IsStatic:            true,
+
+		cspShaDirective: utils.GetSubpathScriptHash(subpath),
 	}
 }
 
@@ -43,6 +52,8 @@ type Handler struct {
 	TrustRequester      bool
 	RequireMfa          bool
 	IsStatic            bool
+
+	cspShaDirective string
 }
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -79,7 +90,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// Set content security policy. This is also specified in the root.html of the webapp in a meta tag.
 		w.Header().Set("Content-Security-Policy", fmt.Sprintf(
 			"frame-ancestors 'self'; script-src 'self' cdn.segment.com/analytics.js/%s",
-			utils.GetSubpathScriptHash(subpath),
+			h.cspShaDirective,
 		))
 	} else {
 		// All api response bodies will be JSON formatted by default
