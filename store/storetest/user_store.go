@@ -4,8 +4,6 @@
 package storetest
 
 import (
-	"fmt"
-	// "os"
 	"strings"
 	"testing"
 	"time"
@@ -27,45 +25,45 @@ func TestUserStore(t *testing.T, ss store.Store) {
 		require.Nil(t, result.Err, "failed cleaning up test user %s", u.Username)
 	}
 
-	// t.Run("Save", func(t *testing.T) { testUserStoreSave(t, ss) })
-	// t.Run("Update", func(t *testing.T) { testUserStoreUpdate(t, ss) })
-	// t.Run("UpdateUpdateAt", func(t *testing.T) { testUserStoreUpdateUpdateAt(t, ss) })
-	// t.Run("UpdateFailedPasswordAttempts", func(t *testing.T) { testUserStoreUpdateFailedPasswordAttempts(t, ss) })
-	// t.Run("Get", func(t *testing.T) { testUserStoreGet(t, ss) })
-	// t.Run("UserCount", func(t *testing.T) { testUserCount(t, ss) })
-	// t.Run("GetAllUsingAuthService", func(t *testing.T) { testGetAllUsingAuthService(t, ss) })
-	// t.Run("GetAllProfiles", func(t *testing.T) { testUserStoreGetAllProfiles(t, ss) })
-	// t.Run("GetProfiles", func(t *testing.T) { testUserStoreGetProfiles(t, ss) })
-	// t.Run("GetProfilesInChannel", func(t *testing.T) { testUserStoreGetProfilesInChannel(t, ss) })
-	// t.Run("GetProfilesInChannelByStatus", func(t *testing.T) { testUserStoreGetProfilesInChannelByStatus(t, ss) })
-	// t.Run("GetProfilesWithoutTeam", func(t *testing.T) { testUserStoreGetProfilesWithoutTeam(t, ss) })
-	// t.Run("GetAllProfilesInChannel", func(t *testing.T) { testUserStoreGetAllProfilesInChannel(t, ss) })
-	// t.Run("GetProfilesNotInChannel", func(t *testing.T) { testUserStoreGetProfilesNotInChannel(t, ss) })
-	// t.Run("GetProfilesByIds", func(t *testing.T) { testUserStoreGetProfilesByIds(t, ss) })
-	// t.Run("GetProfilesByUsernames", func(t *testing.T) { testUserStoreGetProfilesByUsernames(t, ss) })
-	// t.Run("GetSystemAdminProfiles", func(t *testing.T) { testUserStoreGetSystemAdminProfiles(t, ss) })
-	// t.Run("GetByEmail", func(t *testing.T) { testUserStoreGetByEmail(t, ss) })
-	// t.Run("GetByAuthData", func(t *testing.T) { testUserStoreGetByAuthData(t, ss) })
-	// t.Run("GetByUsername", func(t *testing.T) { testUserStoreGetByUsername(t, ss) })
-	// t.Run("GetForLogin", func(t *testing.T) { testUserStoreGetForLogin(t, ss) })
-	// t.Run("UpdatePassword", func(t *testing.T) { testUserStoreUpdatePassword(t, ss) })
-	// t.Run("Delete", func(t *testing.T) { testUserStoreDelete(t, ss) })
-	// t.Run("UpdateAuthData", func(t *testing.T) { testUserStoreUpdateAuthData(t, ss) })
-	// t.Run("UserUnreadCount", func(t *testing.T) { testUserUnreadCount(t, ss) })
-	// t.Run("UpdateMfaSecret", func(t *testing.T) { testUserStoreUpdateMfaSecret(t, ss) })
-	// t.Run("UpdateMfaActive", func(t *testing.T) { testUserStoreUpdateMfaActive(t, ss) })
-	// t.Run("GetRecentlyActiveUsersForTeam", func(t *testing.T) { testUserStoreGetRecentlyActiveUsersForTeam(t, ss) })
-	// t.Run("GetNewUsersForTeam", func(t *testing.T) { testUserStoreGetNewUsersForTeam(t, ss) })
-	// t.Run("Search", func(t *testing.T) { testUserStoreSearch(t, ss) })
-	// t.Run("SearchNotInChannel", func(t *testing.T) { testUserStoreSearchNotInChannel(t, ss) })
-	// t.Run("SearchInChannel", func(t *testing.T) { testUserStoreSearchInChannel(t, ss) })
-	// t.Run("SearchNotInTeam", func(t *testing.T) { testUserStoreSearchNotInTeam(t, ss) })
-	// t.Run("SearchWithoutTeam", func(t *testing.T) { testUserStoreSearchWithoutTeam(t, ss) })
-	// t.Run("AnalyticsGetInactiveUsersCount", func(t *testing.T) { testUserStoreAnalyticsGetInactiveUsersCount(t, ss) })
-	// t.Run("AnalyticsGetSystemAdminCount", func(t *testing.T) { testUserStoreAnalyticsGetSystemAdminCount(t, ss) })
+	t.Run("Save", func(t *testing.T) { testUserStoreSave(t, ss) })
+	t.Run("Update", func(t *testing.T) { testUserStoreUpdate(t, ss) })
+	t.Run("UpdateUpdateAt", func(t *testing.T) { testUserStoreUpdateUpdateAt(t, ss) })
+	t.Run("UpdateFailedPasswordAttempts", func(t *testing.T) { testUserStoreUpdateFailedPasswordAttempts(t, ss) })
+	t.Run("Get", func(t *testing.T) { testUserStoreGet(t, ss) })
+	t.Run("UserCount", func(t *testing.T) { testUserCount(t, ss) })
+	t.Run("GetAllUsingAuthService", func(t *testing.T) { testGetAllUsingAuthService(t, ss) })
+	t.Run("GetAllProfiles", func(t *testing.T) { testUserStoreGetAllProfiles(t, ss) })
+	t.Run("GetProfiles", func(t *testing.T) { testUserStoreGetProfiles(t, ss) })
+	t.Run("GetProfilesInChannel", func(t *testing.T) { testUserStoreGetProfilesInChannel(t, ss) })
+	t.Run("GetProfilesInChannelByStatus", func(t *testing.T) { testUserStoreGetProfilesInChannelByStatus(t, ss) })
+	t.Run("GetProfilesWithoutTeam", func(t *testing.T) { testUserStoreGetProfilesWithoutTeam(t, ss) })
+	t.Run("GetAllProfilesInChannel", func(t *testing.T) { testUserStoreGetAllProfilesInChannel(t, ss) })
+	t.Run("GetProfilesNotInChannel", func(t *testing.T) { testUserStoreGetProfilesNotInChannel(t, ss) })
+	t.Run("GetProfilesByIds", func(t *testing.T) { testUserStoreGetProfilesByIds(t, ss) })
+	t.Run("GetProfilesByUsernames", func(t *testing.T) { testUserStoreGetProfilesByUsernames(t, ss) })
+	t.Run("GetSystemAdminProfiles", func(t *testing.T) { testUserStoreGetSystemAdminProfiles(t, ss) })
+	t.Run("GetByEmail", func(t *testing.T) { testUserStoreGetByEmail(t, ss) })
+	t.Run("GetByAuthData", func(t *testing.T) { testUserStoreGetByAuthData(t, ss) })
+	t.Run("GetByUsername", func(t *testing.T) { testUserStoreGetByUsername(t, ss) })
+	t.Run("GetForLogin", func(t *testing.T) { testUserStoreGetForLogin(t, ss) })
+	t.Run("UpdatePassword", func(t *testing.T) { testUserStoreUpdatePassword(t, ss) })
+	t.Run("Delete", func(t *testing.T) { testUserStoreDelete(t, ss) })
+	t.Run("UpdateAuthData", func(t *testing.T) { testUserStoreUpdateAuthData(t, ss) })
+	t.Run("UserUnreadCount", func(t *testing.T) { testUserUnreadCount(t, ss) })
+	t.Run("UpdateMfaSecret", func(t *testing.T) { testUserStoreUpdateMfaSecret(t, ss) })
+	t.Run("UpdateMfaActive", func(t *testing.T) { testUserStoreUpdateMfaActive(t, ss) })
+	t.Run("GetRecentlyActiveUsersForTeam", func(t *testing.T) { testUserStoreGetRecentlyActiveUsersForTeam(t, ss) })
+	t.Run("GetNewUsersForTeam", func(t *testing.T) { testUserStoreGetNewUsersForTeam(t, ss) })
+	t.Run("Search", func(t *testing.T) { testUserStoreSearch(t, ss) })
+	t.Run("SearchNotInChannel", func(t *testing.T) { testUserStoreSearchNotInChannel(t, ss) })
+	t.Run("SearchInChannel", func(t *testing.T) { testUserStoreSearchInChannel(t, ss) })
+	t.Run("SearchNotInTeam", func(t *testing.T) { testUserStoreSearchNotInTeam(t, ss) })
+	t.Run("SearchWithoutTeam", func(t *testing.T) { testUserStoreSearchWithoutTeam(t, ss) })
+	t.Run("AnalyticsGetInactiveUsersCount", func(t *testing.T) { testUserStoreAnalyticsGetInactiveUsersCount(t, ss) })
+	t.Run("AnalyticsGetSystemAdminCount", func(t *testing.T) { testUserStoreAnalyticsGetSystemAdminCount(t, ss) })
 	t.Run("GetProfilesNotInTeam", func(t *testing.T) { testUserStoreGetProfilesNotInTeam(t, ss) })
-	// t.Run("ClearAllCustomRoleAssignments", func(t *testing.T) { testUserStoreClearAllCustomRoleAssignments(t, ss) })
-	// t.Run("GetAllAfter", func(t *testing.T) { testUserStoreGetAllAfter(t, ss) })
+	t.Run("ClearAllCustomRoleAssignments", func(t *testing.T) { testUserStoreClearAllCustomRoleAssignments(t, ss) })
+	t.Run("GetAllAfter", func(t *testing.T) { testUserStoreGetAllAfter(t, ss) })
 }
 
 func testUserStoreSave(t *testing.T, ss store.Store) {
@@ -2825,19 +2823,13 @@ func testUserStoreAnalyticsGetSystemAdminCount(t *testing.T, ss store.Store) {
 func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	teamId := model.NewId()
 	teamId2 := model.NewId()
-	teamId3 := model.NewId()
-	fmt.Println("teamId", teamId)
 
-	t.Run("current etag BEFORE u1 added", func(t *testing.T) { fmt.Println("current etag", <-ss.User().GetEtagForProfilesNotInTeam(teamId)) })
 	u1 := store.Must(ss.User().Save(&model.User{
 		Email:    MakeEmail(),
 		Username: "u1" + model.NewId(),
 	})).(*model.User)
-	t.Run("current etag AFTER u1 added", func(t *testing.T) { fmt.Println("current etag", <-ss.User().GetEtagForProfilesNotInTeam(teamId)) })
-
 	defer func() { store.Must(ss.User().PermanentDelete(u1.Id)) }()
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1))
-	t.Run("current etag AFTER u1 added to TeamId1", func(t *testing.T) { fmt.Println("current etag", <-ss.User().GetEtagForProfilesNotInTeam(teamId)) })
 
 	// Ensure update at timestamp changes
 	time.Sleep(time.Millisecond * 10)
@@ -2846,10 +2838,8 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: "u2" + model.NewId(),
 	})).(*model.User)
-	t.Run("current etag AFTER u2 added", func(t *testing.T) { fmt.Println("current etag", <-ss.User().GetEtagForProfilesNotInTeam(teamId)) })
 	defer func() { store.Must(ss.User().PermanentDelete(u2.Id)) }()
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId2, UserId: u2.Id}, -1))
-	t.Run("current etag AFTER u2 added to TeamId2", func(t *testing.T) { fmt.Println("current etag", <-ss.User().GetEtagForProfilesNotInTeam(teamId)) })
 
 	// Ensure update at timestamp changes
 	time.Sleep(time.Millisecond * 10)
@@ -2858,12 +2848,10 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: "u3" + model.NewId(),
 	})).(*model.User)
-	t.Run("current etag AFTER u3 added", func(t *testing.T) { fmt.Println("current etag", <-ss.User().GetEtagForProfilesNotInTeam(teamId)) })
 	defer func() { store.Must(ss.User().PermanentDelete(u3.Id)) }()
 
-	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId3, UserId: u2.Id}, -1))
-	u2.UpdateAt = store.Must(ss.User().UpdateUpdateAt(u2.Id)).(int64)
-	t.Run("current etag AFTER u2 added to teamId3", func(t *testing.T) { fmt.Println("current etag", <-ss.User().GetEtagForProfilesNotInTeam(teamId)) })
+	// store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId3, UserId: u2.Id}, -1))
+	// u2.UpdateAt = store.Must(ss.User().UpdateUpdateAt(u2.Id)).(int64)
 
 	var etag1, etag2, etag3 string
 
@@ -2872,8 +2860,6 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 		require.Nil(t, result.Err)
 		etag1 = result.Data.(string)
 	})
-
-	t.Run("current etag for profiles not in team 1", func(t *testing.T) { fmt.Println("current etag", <-ss.User().GetEtagForProfilesNotInTeam(teamId)) })
 
 	t.Run("get not in team 1, offset 0, limit 100000", func(t *testing.T) {
 		result := <-ss.User().GetProfilesNotInTeam(teamId, 0, 100000)
@@ -2905,23 +2891,16 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	time.Sleep(time.Millisecond * 10)
 
 	// Add u2 to team 1
-	t.Run("current etag BEFORE u2 added to TeamId", func(t *testing.T) { fmt.Println("current etag", <-ss.User().GetEtagForProfilesNotInTeam(teamId)) })
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1))
-	t.Run("current etag AFTER u2 added to TeamId", func(t *testing.T) { fmt.Println("current etag", <-ss.User().GetEtagForProfilesNotInTeam(teamId)) })
 	u2.UpdateAt = store.Must(ss.User().UpdateUpdateAt(u2.Id)).(int64)
-	t.Run("current etag AFTER u2.UpdatedAt Updated", func(t *testing.T) { fmt.Println("current etag", <-ss.User().GetEtagForProfilesNotInTeam(teamId)) })
 
 	// GetEtagForProfilesNotInTeam only works if the most recent user is added to the team,
 	// otherwise the timestamp simply never changes: see https://mattermost.atlassian.net/browse/MM-13721.
 	t.Run("etag for profiles not in team 1 after update", func(t *testing.T) {
-		// t.Skip()
+		t.Skip()
 		result := <-ss.User().GetEtagForProfilesNotInTeam(teamId)
-		fmt.Println("teamId", teamId)
-		fmt.Println("result:", result)
 		require.Nil(t, result.Err)
 		etag2 = result.Data.(string)
-		fmt.Println("etag1:", etag1)
-		fmt.Println("etag2:", etag2)
 		require.NotEqual(t, etag2, etag1, "etag should have changed")
 	})
 
@@ -2932,7 +2911,6 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 			sanitized(u3),
 		}, result.Data.([]*model.User))
 	})
-	// os.Exit(3)
 
 	// Ensure update at timestamp changes
 	time.Sleep(time.Millisecond * 10)
