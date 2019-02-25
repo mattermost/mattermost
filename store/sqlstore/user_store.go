@@ -1347,23 +1347,55 @@ func (us SqlUserStore) GetProfilesNotInTeam(teamId string, offset int, limit int
 
 func (us SqlUserStore) GetEtagForProfilesNotInTeam(teamId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		updateAt, err := us.GetReplica().SelectInt(`
-            SELECT
-                u.UpdateAt
-            FROM Users u
-            LEFT JOIN TeamMembers tm
-                ON tm.UserId = u.Id
-                AND tm.TeamId = :TeamId
-                AND tm.DeleteAt = 0
-            WHERE tm.UserId IS NULL
-            ORDER BY u.UpdateAt DESC
-            LIMIT 1
-            `, map[string]interface{}{"TeamId": teamId})
 
+		var querystr string
+		querystr = `
+				SELECT
+						CONCAT(newtable.UpdateAt,mynewtable.mytotcount) as etag
+				FROM
+				(
+						SELECT
+								u.UserName,
+								u.UpdateAt,
+								tm.TeamId
+						FROM Users as u
+						LEFT JOIN TeamMembers tm ON tm.UserId = u.Id AND tm.TeamId = :TeamId AND tm.DeleteAt = 0
+								WHERE tm.UserId IS NULL
+				) newtable
+				inner join
+				(
+						SELECT  count(*) as mytotcount
+								FROM (
+										SELECT u.UserName, u.UpdateAt, (Select count(*) from Users) as etag, tm.UserId
+										FROM Users u
+										LEFT JOIN TeamMembers tm ON tm.UserId = u.Id AND tm.TeamId = :TeamId AND tm.DeleteAt = 0
+												WHERE tm.UserId IS NULL ) s3
+				) mynewtable
+				ORDER BY UpdateAt DESC
+				LIMIT 1
+		`
+		// fmt.Println(querystr)
+		etag, err := us.GetReplica().SelectInt(querystr, map[string]interface{}{"TeamId": teamId})
+
+		// etag, err := us.GetReplica().SelectInt(`
+		// 				SELECT
+		// 						CONCAT(u.UpdateAt,00, COUNT(u.UpdateAt)) as new_etag
+		// 				FROM Users u
+		// 						LEFT JOIN TeamMembers tm
+		// 								ON tm.UserId = u.Id
+		// 								AND tm.TeamId = :TeamId
+		// 								AND tm.DeleteAt = 0
+		// 				WHERE tm.UserId is NULL
+		// 				GROUP by u.UserName, u.UpdateAt
+		//         `, map[string]interface{}{"TeamId": teamId})
+
+		// fmt.Println("RESULT", etag, err)
 		if err != nil {
 			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, model.GetMillis())
+			fmt.Println("result.GetMillis", result.Data)
 		} else {
-			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, updateAt)
+			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, etag)
+			// fmt.Println("result.updateAt", result.Data)
 		}
 	})
 }
