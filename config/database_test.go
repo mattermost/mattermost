@@ -58,18 +58,21 @@ func setupConfigDatabase(t *testing.T, cfg *model.Config, files map[string][]byt
 }
 
 // getActualDatabaseConfig returns the active configuration in the database without relying on a config store.
-func getActualDatabaseConfig(t *testing.T) *model.Config {
+func getActualDatabaseConfig(t *testing.T) (string, *model.Config) {
 	t.Helper()
 
-	var actualCfgData []byte
+	var actual struct {
+		Id    string `db:"Id"`
+		Value []byte `db:"Value"`
+	}
 	db := sqlx.NewDb(mainHelper.GetSqlSupplier().GetMaster().Db, *mainHelper.GetSqlSettings().DriverName)
-	err := db.Get(&actualCfgData, "SELECT Value FROM Configurations WHERE Active")
+	err := db.Get(&actual, "SELECT Id, Value FROM Configurations WHERE Active")
 	require.NoError(t, err)
 
-	actualCfg, _, err := config.UnmarshalConfig(bytes.NewReader(actualCfgData), false)
+	actualCfg, _, err := config.UnmarshalConfig(bytes.NewReader(actual.Value), false)
 	require.Nil(t, err)
 
-	return actualCfg
+	return actual.Id, actualCfg
 }
 
 // assertDatabaseEqualsConfig verifies the active in-database configuration equals the given config.
@@ -77,7 +80,7 @@ func assertDatabaseEqualsConfig(t *testing.T, expectedCfg *model.Config) {
 	t.Helper()
 
 	expectedCfg = prepareExpectedConfig(t, expectedCfg)
-	actualCfg := getActualDatabaseConfig(t)
+	_, actualCfg := getActualDatabaseConfig(t)
 	assert.Equal(t, expectedCfg, actualCfg)
 }
 
@@ -86,7 +89,7 @@ func assertDatabaseNotEqualsConfig(t *testing.T, expectedCfg *model.Config) {
 	t.Helper()
 
 	expectedCfg = prepareExpectedConfig(t, expectedCfg)
-	actualCfg := getActualDatabaseConfig(t)
+	_, actualCfg := getActualDatabaseConfig(t)
 	assert.NotEqual(t, expectedCfg, actualCfg)
 }
 
@@ -260,6 +263,21 @@ func TestDatabaseStoreSet(t *testing.T) {
 		assert.Equal(t, model.SERVICE_SETTINGS_DEFAULT_SITE_URL, *ds.Get().ServiceSettings.SiteURL)
 	})
 
+	t.Run("duplicate ignored", func(t *testing.T) {
+		activeId, tearDown := setupConfigDatabase(t, minimalConfig, nil)
+		defer tearDown()
+
+		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		require.NoError(t, err)
+		defer ds.Close()
+
+		_, err = ds.Set(minimalConfig)
+		require.NoError(t, err)
+
+		id, _ := getActualDatabaseConfig(t)
+		assert.Equal(t, activeId, id, "new record should not have been written")
+	})
+
 	t.Run("read-only ignored", func(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, readOnlyConfig, nil)
 		defer tearDown()
@@ -304,7 +322,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 	})
 
 	t.Run("listeners notified", func(t *testing.T) {
-		_, tearDown := setupConfigDatabase(t, emptyConfig, nil)
+		activeId, tearDown := setupConfigDatabase(t, emptyConfig, nil)
 		defer tearDown()
 
 		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
@@ -324,6 +342,9 @@ func TestDatabaseStoreSet(t *testing.T) {
 		retCfg, err := ds.Set(newCfg)
 		require.NoError(t, err)
 		assert.Equal(t, oldCfg, retCfg)
+
+		id, _ := getActualDatabaseConfig(t)
+		assert.NotEqual(t, activeId, id, "new record should have been written")
 
 		select {
 		case <-called:

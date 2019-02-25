@@ -157,6 +157,16 @@ func (ds *DatabaseStore) persist(cfg *model.Config) error {
 		"key":       "ConfigurationId",
 	}
 
+	// Skip the persist altogether if we're effectively writing the same configuration.
+	var oldValue []byte
+	row := ds.db.QueryRow("SELECT Value FROM Configurations WHERE Active")
+	if err := row.Scan(&oldValue); err != nil && err != sql.ErrNoRows {
+		return errors.Wrap(err, "failed to query active configuration")
+	}
+	if bytes.Equal(oldValue, b) {
+		return nil
+	}
+
 	if _, err := tx.Exec("UPDATE Configurations SET Active = NULL WHERE Active"); err != nil {
 		return errors.Wrap(err, "failed to deactivate current configuration")
 	}
