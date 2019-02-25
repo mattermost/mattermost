@@ -824,7 +824,7 @@
   },
   {
     "id": "api.command_mute.not_member.error",
-    "translation": "Could not mute channel {{.Channel}} as you are not a member."
+    "translation": "Nie można wyciszyć kanału {{.Channel}} jeśli nie jesteś jego członkiem."
   },
   {
     "id": "api.command_mute.success_mute",
@@ -1166,7 +1166,7 @@
   },
   {
     "id": "api.file.reader.s3.app_error",
-    "translation": "Napotkano błąd podczas odczytu z lokalnego magazynu"
+    "translation": "Napotkano błąd przy odczycie z magazynu S3"
   },
   {
     "id": "api.file.test_connection.local.connection.app_error",
@@ -1500,7 +1500,7 @@
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
-    "translation": " notified the channel."
+    "translation": " powiadomił kanał."
   },
   {
     "id": "api.post.send_notification_and_forget.push_comment_on_post",
@@ -1772,7 +1772,7 @@
   },
   {
     "id": "api.team.is_team_creation_allowed.disabled.app_error",
-    "translation": "Tworzenie zespołu zostało wyłączone. Proszę, skontaktuj się z administratorem systemu, aby poznać szczegóły."
+    "translation": "Tworzenie zespołów zostało wyłączone. Proszę, skontaktuj się z administratorem systemu, aby poznać szczegóły."
   },
   {
     "id": "api.team.is_team_creation_allowed.domain.app_error",
@@ -1792,7 +1792,7 @@
   },
   {
     "id": "api.team.move_channel.post.error",
-    "translation": "Nie udało się wysłać celu kanału"
+    "translation": "Nie udało się wysłać wiadomości o przeniesieniu."
   },
   {
     "id": "api.team.move_channel.success",
@@ -1800,7 +1800,7 @@
   },
   {
     "id": "api.team.remove_team_icon.get_team.app_error",
-    "translation": "An error occurred getting the team"
+    "translation": "Wystąpił błąd podczas pobierania zespołu"
   },
   {
     "id": "api.team.remove_user_from_team.missing.app_error",
@@ -1824,11 +1824,11 @@
   },
   {
     "id": "api.team.set_team_icon.encode.app_error",
-    "translation": "Nie można zapisać ikony zespołu"
+    "translation": "Nie można zakodować ikony zespołu"
   },
   {
     "id": "api.team.set_team_icon.get_team.app_error",
-    "translation": "An error occurred getting the team"
+    "translation": "Wystąpił błąd podczas pobierania zespołu"
   },
   {
     "id": "api.team.set_team_icon.no_file.app_error",
@@ -1856,7 +1856,7 @@
   },
   {
     "id": "api.team.team_icon.update.app_error",
-    "translation": "An error occurred updating the team icon"
+    "translation": "Wystąpił błąd podczas pobierania zespołu"
   },
   {
     "id": "api.team.update_member_roles.not_a_member",
@@ -2171,6 +2171,10 @@
     "translation": "{{.Service}} SSO za pomocą protokołu OAuth 2.0 nie jest dostępne na tym serwerze"
   },
   {
+    "id": "api.user.create_email_token.error",
+    "translation": "Failed to create token data for email verification"
+  },
+  {
     "id": "api.user.create_oauth_user.already_attached.app_error",
     "translation": "Istnieje już konto z takim adresem email używające innej metody logowania niż {{.Service}}. Zaloguj się używając {{.Auth}}."
   },
@@ -2477,6 +2481,14 @@
   {
     "id": "api.user.verify_email.broken_token.app_error",
     "translation": "Bad verify email token type."
+  },
+  {
+    "id": "api.user.verify_email.link_expired.app_error",
+    "translation": "The email verification link has expired."
+  },
+  {
+    "id": "api.user.verify_email.token_parse.error",
+    "translation": "Failed to parse token data from email verification"
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
@@ -3712,27 +3724,27 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed",
-    "translation": "Failed to decode base64 for trigger ID for interactive dialog."
+    "translation": "Nie udało się zdekodować base64 dla ID wywołania dla interaktywnego dialogu."
   },
   {
     "id": "interactive_message.decode_trigger_id.expired",
-    "translation": "Trigger ID for interactive dialog is expired. Trigger IDs live for a maximum of {{.Seconds}} seconds."
+    "translation": "ID wywołania dla interaktywnego dialogu wygasło. Maksymalny czas życia dla ID wywołania wynosi {{.Seconds.}} sekund."
   },
   {
     "id": "interactive_message.decode_trigger_id.missing_data",
-    "translation": "Trigger ID missing required data for interactive dialog."
+    "translation": "Brakuje wymaganych danych dla ID wywołania dla interaktywnego dialogu."
   },
   {
     "id": "interactive_message.decode_trigger_id.signature_decode_failed",
-    "translation": "Failed to decode base64 signature of trigger ID for interactive dialog."
+    "translation": "Nie powiodło się dekodowanie podpisu base64 dla ID wywołania dla interaktywnego dialogu."
   },
   {
     "id": "interactive_message.decode_trigger_id.verify_signature_failed",
-    "translation": "Signature verification failed of trigger ID for interactive dialog."
+    "translation": "Nie powiodła się weryfikacja sygnatury dla ID wywołania dla interaktywnego dialogu."
   },
   {
     "id": "interactive_message.generate_trigger_id.signing_failed",
-    "translation": "Failed to sign generated trigger ID for interactive dialog."
+    "translation": "Nie udało się podpisać wygenerowanego ID wywołania dla interaktywnego dialogu."
   },
   {
     "id": "jobs.do_job.batch_size.parse_error",

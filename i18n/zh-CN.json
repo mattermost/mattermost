@@ -2171,6 +2171,10 @@
     "translation": "本服务器不支持通过 OAuth 2.0 的 {{.Service}} SSO"
   },
   {
+    "id": "api.user.create_email_token.error",
+    "translation": "创建邮件验证令牌数据失败"
+  },
+  {
     "id": "api.user.create_oauth_user.already_attached.app_error",
     "translation": "已经有一个电子邮件帐号使用了不同于{{.Service}}的方法进行登录。请使用{{.Auth}}进行登录。"
   },
@@ -2477,6 +2481,14 @@
   {
     "id": "api.user.verify_email.broken_token.app_error",
     "translation": "无效的验证邮件令牌类型。"
+  },
+  {
+    "id": "api.user.verify_email.link_expired.app_error",
+    "translation": "邮件验证链接已超时。"
+  },
+  {
+    "id": "api.user.verify_email.token_parse.error",
+    "translation": "解析邮件验证令牌数据失败"
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",

@@ -2171,6 +2171,10 @@
     "translation": "本伺服器不支援經由 OAuth 2.0 的 {{.Service}} SSO"
   },
   {
+    "id": "api.user.create_email_token.error",
+    "translation": "Failed to create token data for email verification"
+  },
+  {
     "id": "api.user.create_oauth_user.already_attached.app_error",
     "translation": "此電子郵件位址已有帳號使用且設定使用{{.Service}}以外的登入方法。請用{{.Auth}}登入。"
   },
@@ -2477,6 +2481,14 @@
   {
     "id": "api.user.verify_email.broken_token.app_error",
     "translation": "無效的驗證郵件 Token 類型。"
+  },
+  {
+    "id": "api.user.verify_email.link_expired.app_error",
+    "translation": "The email verification link has expired."
+  },
+  {
+    "id": "api.user.verify_email.token_parse.error",
+    "translation": "Failed to parse token data from email verification"
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
