@@ -596,7 +596,7 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 	// Concurrently upload and update DB, and post-process the image.
 	wg := sync.WaitGroup{}
 
-	if !t.Raw && t.fileinfo.IsImage() && t.fileinfo.MimeType != "image/svg+xml" {
+	if !t.Raw && t.fileinfo.IsImage() {
 		wg.Add(1)
 		go func() {
 			t.postprocessImage()
@@ -677,7 +677,7 @@ func (t *uploadFileTask) preprocessImage() *model.AppError {
 	if t.fileinfo.MimeType == "image/svg+xml" {
 		svgInfo, err := parseSVG(t.newReader())
 		if err != nil {
-			mlog.Error(fmt.Sprintf("Unable to parse SVG, err = %v", err))
+			mlog.Error("Failed to parse SVG", mlog.Err(err))
 		}
 		if svgInfo.Width > 0 && svgInfo.Height > 0 {
 			t.fileinfo.Width = svgInfo.Width
@@ -737,6 +737,11 @@ func (t *uploadFileTask) preprocessImage() *model.AppError {
 }
 
 func (t *uploadFileTask) postprocessImage() {
+	// don't try to process SVG files
+	if t.fileinfo.MimeType != "image/svg+xml" {
+		return
+	}
+
 	decoded, typ := t.decoded, t.imageType
 	if decoded == nil {
 		var err error
