@@ -2850,9 +2850,6 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	})).(*model.User)
 	defer func() { store.Must(ss.User().PermanentDelete(u3.Id)) }()
 
-	// store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId3, UserId: u2.Id}, -1))
-	// u2.UpdateAt = store.Must(ss.User().UpdateUpdateAt(u2.Id)).(int64)
-
 	var etag1, etag2, etag3 string
 
 	t.Run("etag for profiles not in team 1", func(t *testing.T) {
@@ -2897,7 +2894,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	// GetEtagForProfilesNotInTeam only works if the most recent user is added to the team,
 	// otherwise the timestamp simply never changes: see https://mattermost.atlassian.net/browse/MM-13721.
 	t.Run("etag for profiles not in team 1 after update", func(t *testing.T) {
-		t.Skip()
+		// t.Skip()
 		result := <-ss.User().GetEtagForProfilesNotInTeam(teamId)
 		require.Nil(t, result.Err)
 		etag2 = result.Data.(string)

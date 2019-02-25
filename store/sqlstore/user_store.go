@@ -1350,7 +1350,6 @@ func (us SqlUserStore) GetEtagForProfilesNotInTeam(teamId string) store.StoreCha
 
 		var querystr string
 		querystr = `
-            x
             SELECT
               CONCAT(newtable.UpdateAt,mynewtable.mytotcount) as etag
             FROM
