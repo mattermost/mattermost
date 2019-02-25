@@ -1350,29 +1350,30 @@ func (us SqlUserStore) GetEtagForProfilesNotInTeam(teamId string) store.StoreCha
 
 		var querystr string
 		querystr = `
-    SELECT
-      CONCAT(newtable.UpdateAt,mynewtable.mytotcount) as etag
-    FROM
-    (
-      SELECT
-        u.UserName,
-        u.UpdateAt,
-        tm.TeamId
-      FROM Users as u
-      LEFT JOIN TeamMembers tm ON tm.UserId = u.Id AND tm.TeamId = :TeamId AND tm.DeleteAt = 0
-        WHERE tm.UserId IS NULL
-    ) newtable
-    inner join
-    (
-      SELECT  count(*) as mytotcount
-        FROM (
-          SELECT u.UserName, u.UpdateAt, (Select count(*) from Users) as etag, tm.UserId
-          FROM Users u
-          LEFT JOIN TeamMembers tm ON tm.UserId = u.Id AND tm.TeamId = :TeamId AND tm.DeleteAt = 0
-            WHERE tm.UserId IS NULL ) s3
-    ) mynewtable
-    ORDER BY UpdateAt DESC
-    LIMIT 1
+            x
+            SELECT
+              CONCAT(newtable.UpdateAt,mynewtable.mytotcount) as etag
+            FROM
+            (
+              SELECT
+                u.UserName,
+                u.UpdateAt,
+                tm.TeamId
+              FROM Users as u
+              LEFT JOIN TeamMembers tm ON tm.UserId = u.Id AND tm.TeamId = :TeamId AND tm.DeleteAt = 0
+                WHERE tm.UserId IS NULL
+            ) newtable
+            inner join
+            (
+              SELECT  count(*) as mytotcount
+                FROM (
+                  SELECT u.UserName, u.UpdateAt, (Select count(*) from Users) as etag, tm.UserId
+                  FROM Users u
+                  LEFT JOIN TeamMembers tm ON tm.UserId = u.Id AND tm.TeamId = :TeamId AND tm.DeleteAt = 0
+                    WHERE tm.UserId IS NULL ) s3
+            ) mynewtable
+            ORDER BY UpdateAt DESC
+            LIMIT 1
 		`
 		// fmt.Println(querystr)
 		etag, err := us.GetReplica().SelectInt(querystr, map[string]interface{}{"TeamId": teamId})
