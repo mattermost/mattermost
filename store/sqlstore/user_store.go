@@ -1375,7 +1375,6 @@ func (us SqlUserStore) GetEtagForProfilesNotInTeam(teamId string) store.StoreCha
 		 LIMIT 1
 		`
 		etag, err := us.GetReplica().SelectStr(querystr, map[string]interface{}{"TeamId": teamId})
-		fmt.Println("etag", etag)
 		if err != nil {
 			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, model.GetMillis())
 		} else {
