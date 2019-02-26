@@ -1055,7 +1055,7 @@ func (us SqlUserStore) Count(options model.UserCountOptions) store.StoreChannel 
 
 		if options.IncludeBotAccounts {
 			if options.ExcludeRegularUsers {
-				query = query.LeftJoin("Bots ON Users.Id = Bots.UserId").Where("Bots.UserId IS NOT NULL")
+				query = query.Join("Bots ON Users.Id = Bots.UserId")
 			}
 		} else {
 			query = query.LeftJoin("Bots ON Users.Id = Bots.UserId").Where("Bots.UserId IS NULL")
@@ -1067,7 +1067,7 @@ func (us SqlUserStore) Count(options model.UserCountOptions) store.StoreChannel 
 		}
 
 		if options.TeamId != "" {
-			query = query.From("TeamMembers, Users").Where("TeamMembers.TeamId = ? AND Users.Id = TeamMembers.UserId AND TeamMembers.DeleteAt = 0", options.TeamId)
+			query = query.LeftJoin("TeamMembers ON Users.Id = TeamMembers.UserId").Where("TeamMembers.TeamId = ? AND TeamMembers.DeleteAt = 0", options.TeamId)
 		}
 
 		if us.DriverName() == model.DATABASE_DRIVER_POSTGRES {
