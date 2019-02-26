@@ -1842,7 +1842,7 @@ func (s SqlChannelStore) GetChannelsByIds(channelIds []string) store.StoreChanne
 	return store.Do(func(result *store.StoreResult) {
 		keys, params := MapStringsToQueryParams(channelIds, "Channel")
 
-		query := `SELECT * FROM Channels WHERE Id IN ` + keys
+		query := `SELECT * FROM Channels WHERE Id IN ` + keys + ` ORDER BY Name`
 
 		var channels []*model.Channel
 		_, err := s.GetReplica().Select(&channels, query, params)
