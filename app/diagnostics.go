@@ -149,15 +149,13 @@ func (a *App) trackActivity() {
 	}
 
 	if ucr := <-a.Srv.Store.User().Count(model.UserCountOptions{
-		IncludeBotAccounts: false,
-		IncludeDeleted:     true,
+		IncludeDeleted: true,
 	}); ucr.Err == nil {
 		userCount = ucr.Data.(int64)
 	}
 
 	if bc := <-a.Srv.Store.User().Count(model.UserCountOptions{
 		IncludeBotAccounts:  true,
-		IncludeDeleted:      false,
 		ExcludeRegularUsers: true,
 	}); bc.Err == nil {
 		botAccountsCount = bc.Data.(int64)
