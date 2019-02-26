@@ -5,8 +5,12 @@ package sqlstore
 
 import (
 	"bytes"
+	"database/sql"
 	"fmt"
 	"strconv"
+
+	"github.com/mattermost/gorp"
+	"github.com/mattermost/mattermost-server/mlog"
 )
 
 // Converts a list of strings into a list of query parameters and a named parameter map that can
@@ -25,4 +29,12 @@ func MapStringsToQueryParams(list []string, paramPrefix string) (string, map[str
 	}
 
 	return fmt.Sprintf("(%v)", keys.String()), params
+}
+
+// finalizeTransaction ensures a transaction is closed after use, rolling back if not already committed.
+func finalizeTransaction(transaction *gorp.Transaction) {
+	// Rollback returns sql.ErrTxDone if the transaction was already closed.
+	if err := transaction.Rollback(); err != nil && err != sql.ErrTxDone {
+		mlog.Error("Failed to rollback transaction", mlog.Err(err))
+	}
 }

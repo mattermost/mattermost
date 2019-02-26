@@ -11,7 +11,6 @@ import (
 	"strings"
 
 	"github.com/mattermost/gorp"
-
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 )
@@ -94,6 +93,7 @@ func (s *SqlSupplier) RoleSave(ctx context.Context, role *model.Role, hints ...s
 			result.Err = model.NewAppError("SqlRoleStore.RoleSave", "store.sql_role.save.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 			return result
 		} else {
+			defer finalizeTransaction(transaction)
 			result = s.createRole(ctx, role, transaction, hints...)
 
 			if result.Err != nil {

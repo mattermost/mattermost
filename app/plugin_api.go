@@ -158,6 +158,10 @@ func (api *PluginAPI) GetTeamMember(teamId, userId string) (*model.TeamMember, *
 	return api.app.GetTeamMember(teamId, userId)
 }
 
+func (api *PluginAPI) GetTeamMembersForUser(userId string, page int, perPage int) ([]*model.TeamMember, *model.AppError) {
+	return api.app.GetTeamMembersForUserWithPagination(userId, page, perPage)
+}
+
 func (api *PluginAPI) UpdateTeamMemberRoles(teamId, userId, newRoles string) (*model.TeamMember, *model.AppError) {
 	return api.app.UpdateTeamMemberRoles(teamId, userId, newRoles)
 }
@@ -373,6 +377,10 @@ func (api *PluginAPI) GetChannelMembers(channelId string, page, perPage int) (*m
 
 func (api *PluginAPI) GetChannelMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError) {
 	return api.app.GetChannelMembersByIds(channelId, userIds)
+}
+
+func (api *PluginAPI) GetChannelMembersForUser(teamId, userId string, page, perPage int) ([]*model.ChannelMember, *model.AppError) {
+	return api.app.GetChannelMembersForUserWithPagination(teamId, userId, page, perPage)
 }
 
 func (api *PluginAPI) UpdateChannelMemberRoles(channelId, userId, newRoles string) (*model.ChannelMember, *model.AppError) {

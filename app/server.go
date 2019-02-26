@@ -182,7 +182,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	model.AppErrorInit(utils.T)
 
-	s.timezones = timezones.New("")
+	s.timezones = timezones.New()
 
 	// Start email batching because it's not like the other jobs
 	s.InitEmailBatching()

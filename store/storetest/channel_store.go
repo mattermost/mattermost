@@ -57,6 +57,7 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("GetPublicChannelsByIdsForTeam", func(t *testing.T) { testChannelStoreGetPublicChannelsByIdsForTeam(t, ss) })
 	t.Run("GetChannelCounts", func(t *testing.T) { testChannelStoreGetChannelCounts(t, ss) })
 	t.Run("GetMembersForUser", func(t *testing.T) { testChannelStoreGetMembersForUser(t, ss) })
+	t.Run("GetMembersForUserWithPagination", func(t *testing.T) { testChannelStoreGetMembersForUserWithPagination(t, ss) })
 	t.Run("UpdateLastViewedAt", func(t *testing.T) { testChannelStoreUpdateLastViewedAt(t, ss) })
 	t.Run("IncrementMentionCount", func(t *testing.T) { testChannelStoreIncrementMentionCount(t, ss) })
 	t.Run("UpdateChannelMember", func(t *testing.T) { testUpdateChannelMember(t, ss) })
@@ -1417,6 +1418,50 @@ func testChannelStoreGetMembersForUser(t *testing.T, ss store.Store) {
 	if len(*members) != 2 {
 		t.Fatal("wrong number of members")
 	}
+}
+
+func testChannelStoreGetMembersForUserWithPagination(t *testing.T, ss store.Store) {
+	t1 := model.Team{}
+	t1.DisplayName = "Name"
+	t1.Name = model.NewId()
+	t1.Email = MakeEmail()
+	t1.Type = model.TEAM_OPEN
+	store.Must(ss.Team().Save(&t1))
+
+	o1 := model.Channel{}
+	o1.TeamId = t1.Id
+	o1.DisplayName = "Channel1"
+	o1.Name = "zz" + model.NewId() + "b"
+	o1.Type = model.CHANNEL_OPEN
+	store.Must(ss.Channel().Save(&o1, -1))
+
+	o2 := model.Channel{}
+	o2.TeamId = o1.TeamId
+	o2.DisplayName = "Channel2"
+	o2.Name = "zz" + model.NewId() + "b"
+	o2.Type = model.CHANNEL_OPEN
+	store.Must(ss.Channel().Save(&o2, -1))
+
+	m1 := model.ChannelMember{}
+	m1.ChannelId = o1.Id
+	m1.UserId = model.NewId()
+	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
+	store.Must(ss.Channel().SaveMember(&m1))
+
+	m2 := model.ChannelMember{}
+	m2.ChannelId = o2.Id
+	m2.UserId = m1.UserId
+	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
+	store.Must(ss.Channel().SaveMember(&m2))
+
+	cresult := <-ss.Channel().GetMembersForUserWithPagination(o1.TeamId, m1.UserId, 0, 1)
+	members := cresult.Data.(*model.ChannelMembers)
+
+	assert.Len(t, *members, 1)
+
+	cresult = <-ss.Channel().GetMembersForUserWithPagination(o1.TeamId, m1.UserId, 1, 1)
+	members = cresult.Data.(*model.ChannelMembers)
+	assert.Len(t, *members, 1)
 }
 
 func testChannelStoreUpdateLastViewedAt(t *testing.T, ss store.Store) {

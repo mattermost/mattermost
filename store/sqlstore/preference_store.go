@@ -61,6 +61,7 @@ func (s SqlPreferenceStore) Save(preferences *model.Preferences) store.StoreChan
 		if err != nil {
 			result.Err = model.NewAppError("SqlPreferenceStore.Save", "store.sql_preference.save.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
+			defer finalizeTransaction(transaction)
 			for _, preference := range *preferences {
 				if upsertResult := s.save(transaction, &preference); upsertResult.Err != nil {
 					*result = upsertResult
@@ -74,10 +75,6 @@ func (s SqlPreferenceStore) Save(preferences *model.Preferences) store.StoreChan
 					result.Err = model.NewAppError("SqlPreferenceStore.Save", "store.sql_preference.save.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 				} else {
 					result.Data = len(*preferences)
-				}
-			} else {
-				if err := transaction.Rollback(); err != nil {
-					result.Err = model.NewAppError("SqlPreferenceStore.Save", "store.sql_preference.save.rollback_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 				}
 			}
 		}

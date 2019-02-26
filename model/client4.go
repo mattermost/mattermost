@@ -3051,6 +3051,7 @@ func samlFileToMultipart(data []byte, filename string) ([]byte, *multipart.Write
 }
 
 // UploadSamlIdpCertificate will upload an IDP certificate for SAML and set the config to use it.
+// The filename parameter is deprecated and ignored: the server will pick a hard-coded filename when writing to disk.
 func (c *Client4) UploadSamlIdpCertificate(data []byte, filename string) (bool, *Response) {
 	body, writer, err := samlFileToMultipart(data, filename)
 	if err != nil {
@@ -3062,6 +3063,7 @@ func (c *Client4) UploadSamlIdpCertificate(data []byte, filename string) (bool, 
 }
 
 // UploadSamlPublicCertificate will upload a public certificate for SAML and set the config to use it.
+// The filename parameter is deprecated and ignored: the server will pick a hard-coded filename when writing to disk.
 func (c *Client4) UploadSamlPublicCertificate(data []byte, filename string) (bool, *Response) {
 	body, writer, err := samlFileToMultipart(data, filename)
 	if err != nil {
@@ -3073,6 +3075,7 @@ func (c *Client4) UploadSamlPublicCertificate(data []byte, filename string) (boo
 }
 
 // UploadSamlPrivateCertificate will upload a private key for SAML and set the config to use it.
+// The filename parameter is deprecated and ignored: the server will pick a hard-coded filename when writing to disk.
 func (c *Client4) UploadSamlPrivateCertificate(data []byte, filename string) (bool, *Response) {
 	body, writer, err := samlFileToMultipart(data, filename)
 	if err != nil {
