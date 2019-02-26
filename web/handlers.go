@@ -28,10 +28,7 @@ func (w *Web) NewHandler(h func(*Context, http.ResponseWriter, *http.Request)) h
 func (w *Web) NewStaticHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	// Determine the CSP SHA directive needed for subpath support, if any. This value is fixed
 	// on server start and intentionally requires a restart to take effect.
-	app := app.New(
-		w.GetGlobalAppOptions()...,
-	)
-	subpath, _ := utils.GetSubpathFromConfig(app.Config())
+	subpath, _ := utils.GetSubpathFromConfig(w.ConfigService.Config())
 
 	return &Handler{
 		GetGlobalAppOptions: w.GetGlobalAppOptions,
