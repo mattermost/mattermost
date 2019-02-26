@@ -1519,7 +1519,7 @@ func (a *App) GetVerifyEmailToken(token string) (*model.Token, *model.AppError) 
 	return rtoken, nil
 }
 
-// This function is used for the DM list total
+// GetTotalUsersStats is used for the DM list total
 func (a *App) GetTotalUsersStats() (*model.UsersStats, *model.AppError) {
 	result := <-a.Srv.Store.User().Count(model.UserCountOptions{
 		IncludeBotAccounts: true,
