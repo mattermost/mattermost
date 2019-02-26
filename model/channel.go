@@ -73,6 +73,12 @@ type ChannelForExport struct {
 	SchemeName *string
 }
 
+type DirectChannelForExport struct {
+	Channel
+	Usernames string
+	Members   *[]string
+}
+
 func (o *Channel) DeepCopy() *Channel {
 	copy := *o
 	if copy.SchemeId != nil {

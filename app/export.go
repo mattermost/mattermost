@@ -75,6 +75,10 @@ func (a *App) BulkExport(writer io.Writer, file string, pathToEmojiDir string, d
 		return err
 	}
 
+	if err := a.ExportAllDirectChannels(writer); err != nil {
+		return err
+	}
+
 	if err := a.ExportAllDirectPosts(writer); err != nil {
 		return err
 	}
@@ -509,6 +513,46 @@ func (a *App) copyEmojiImages(emojiId string, emojiImagePath string, pathToDir s
 	_, err = io.Copy(toPath, fromPath)
 	if err != nil {
 		return errors.New("Error copying emojis " + err.Error())
+	}
+
+	return nil
+}
+
+func (a *App) ExportAllDirectChannels(writer io.Writer) *model.AppError {
+	afterId := strings.Repeat("0", 26)
+	for {
+		result := <-a.Srv.Store.Channel().GetAllDirectChannelsForExportAfter(1000, afterId)
+
+		if result.Err != nil {
+			return result.Err
+		}
+
+		channels := result.Data.([]*model.DirectChannelForExport)
+
+		if len(channels) == 0 {
+			break
+		}
+
+		for _, channel := range channels {
+			afterId = channel.Id
+
+			// Skip deleted.
+			if channel.DeleteAt != 0 {
+				continue
+			}
+
+			members := strings.Split(channel.Usernames, ",")
+			channel.Members = &members
+
+			if len(members) == 1 {
+				continue
+			}
+
+			channelLine := ImportLineFromDirectChannel(channel)
+			if err := a.ExportWriteLine(writer, channelLine); err != nil {
+				return err
+			}
+		}
 	}
 
 	return nil

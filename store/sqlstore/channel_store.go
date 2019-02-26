@@ -2541,3 +2541,32 @@ func (s SqlChannelStore) GetChannelMembersForExport(userId string, teamId string
 		result.Data = members
 	})
 }
+
+func (s SqlChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		var data []*model.DirectChannelForExport
+		if _, err := s.GetReplica().Select(&data, `
+			SELECT
+				Channels.*,
+				GROUP_CONCAT(Users.Username SEPARATOR ',') AS Usernames
+			FROM Channels
+			LEFT JOIN
+				ChannelMembers CM ON CM.ChannelId = Channels.Id
+			LEFT JOIN
+				Users ON Users.Id = CM.UserId
+			WHERE
+				Channels.Id > :AfterId
+				AND Channels.Type IN ('D', 'G')
+			GROUP BY
+				Id
+			ORDER BY
+				Id
+			LIMIT :Limit`,
+			map[string]interface{}{"AfterId": afterId, "Limit": limit}); err != nil {
+			result.Err = model.NewAppError("SqlTeamStore.GetAllDirectChannelsForExportAfter", "store.sql_channel.get_all_direct.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		result.Data = data
+	})
+}
