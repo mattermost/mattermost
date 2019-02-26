@@ -64,8 +64,7 @@ func (s *Server) DoSecurityUpdateCheck() {
 				}
 
 				if ucr := <-s.Store.User().Count(model.UserCountOptions{
-					IncludeBotAccounts: false,
-					IncludeDeleted:     true,
+					IncludeDeleted: true,
 				}); ucr.Err == nil {
 					v.Set(PROP_SECURITY_USER_COUNT, strconv.FormatInt(ucr.Data.(int64), 10))
 				}

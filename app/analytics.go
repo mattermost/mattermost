@@ -19,11 +19,7 @@ const (
 func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *model.AppError) {
 	skipIntensiveQueries := false
 	var systemUserCount int64
-	r := <-a.Srv.Store.User().Count(model.UserCountOptions{
-		IncludeDeleted:     false,
-		IncludeBotAccounts: false,
-		TeamId:             "",
-	})
+	r := <-a.Srv.Store.User().Count(model.UserCountOptions{})
 	if r.Err != nil {
 		return nil, r.Err
 	}
@@ -58,9 +54,7 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			userInactiveChan = a.Srv.Store.User().AnalyticsGetInactiveUsersCount()
 		} else {
 			userChan = a.Srv.Store.User().Count(model.UserCountOptions{
-				IncludeDeleted:     false,
-				IncludeBotAccounts: false,
-				TeamId:             teamId,
+				TeamId: teamId,
 			})
 		}
 
