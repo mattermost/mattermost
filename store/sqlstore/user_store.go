@@ -1349,33 +1349,33 @@ func (us SqlUserStore) GetEtagForProfilesNotInTeam(teamId string) store.StoreCha
 	return store.Do(func(result *store.StoreResult) {
 
 		var querystr string
+		// t1.UpdateAt,".",
 		querystr = `
-            SELECT
-              CONCAT(newtable.UpdateAt,mynewtable.mytotcount) as etag
-            FROM
-            (
-              SELECT
-                u.UserName,
-                u.UpdateAt,
-                tm.TeamId
-              FROM Users as u
-              LEFT JOIN TeamMembers tm ON tm.UserId = u.Id AND tm.TeamId = :TeamId AND tm.DeleteAt = 0
-                WHERE tm.UserId IS NULL
-            ) newtable
-            inner join
-            (
-              SELECT  count(*) as mytotcount
-                FROM (
-                  SELECT u.UserName, u.UpdateAt, (Select count(*) from Users) as etag, tm.UserId
-                  FROM Users u
-                  LEFT JOIN TeamMembers tm ON tm.UserId = u.Id AND tm.TeamId = :TeamId AND tm.DeleteAt = 0
-                    WHERE tm.UserId IS NULL ) s3
-            ) mynewtable
-            ORDER BY UpdateAt DESC
-            LIMIT 1
+		SELECT
+		   CONCAT(
+		       t1.UpdateAt,
+					 '.',
+		       (
+		         SELECT
+		           COUNT(*)
+		         from Users As u
+						 LEFT JOIN TeamMembers tm ON tm.UserId=u.Id AND tm.TeamId=:TeamId AND tm.DeleteAt=0
+		         WHERE tm.UserId IS NULL
+		       )
+		    ) as etag
+		 FROM
+		 (
+		    SELECT
+		      UpdateAt
+		    FROM Users as u
+				LEFT JOIN TeamMembers tm ON tm.UserId=u.Id AND tm.TeamId=:TeamId AND tm.DeleteAt=0
+		    WHERE tm.UserId IS NULL
+		 ) as t1
+		 ORDER BY UpdateAt DESC
+		 LIMIT 1
 		`
-		// fmt.Println(querystr)
-		etag, err := us.GetReplica().SelectInt(querystr, map[string]interface{}{"TeamId": teamId})
+		etag, err := us.GetReplica().SelectStr(querystr, map[string]interface{}{"TeamId": teamId})
+		fmt.Println("etag", etag)
 		if err != nil {
 			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, model.GetMillis())
 		} else {
