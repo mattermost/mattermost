@@ -206,7 +206,7 @@ func (a *App) indexUser(user *model.User) *model.AppError {
 	}
 
 	userChannelsIds := []string{}
-	for channelId, _ := range userChannelMembers.Data.(map[string]string) {
+	for channelId := range userChannelMembers.Data.(map[string]string) {
 		userChannelsIds = append(userChannelsIds, channelId)
 	}
 
@@ -1663,7 +1663,7 @@ func (a *App) SearchUsersInTeam(teamId string, term string, options *model.UserS
 	esInterface := a.Elasticsearch
 	license := a.License()
 	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableAutocomplete && license != nil && *license.Features.Elasticsearch {
-usersIds, err := a.Elasticsearch.SearchUsersInTeam(teamId, term, options)
+		usersIds, err := a.Elasticsearch.SearchUsersInTeam(teamId, term, options)
 		if err != nil {
 			return nil, err
 		}
