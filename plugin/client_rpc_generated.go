@@ -621,6 +621,45 @@ func (s *hooksRPCServer) PushNotificationEnqueued(args *Z_PushNotificationEnqueu
 	return nil
 }
 
+func init() {
+	hookNameToId["PushNotificationAck"] = PushNotificationAckId
+}
+
+type Z_PushNotificationAckArgs struct {
+	A *Context
+	B string
+	C int64
+	D int64
+}
+
+type Z_PushNotificationAckReturns struct {
+	A []byte
+	B *model.AppError
+}
+
+func (g *hooksRPCClient) PushNotificationAck(c *Context, notificationId string, recievedAt, ackAt int64) ([]byte, *model.AppError) {
+	_args := &Z_PushNotificationAckArgs{c, notificationId, recievedAt, ackAt}
+	_returns := &Z_PushNotificationAckReturns{}
+	if g.implemented[PushNotificationAckId] {
+		if err := g.client.Call("Plugin.PushNotificationAck", _args, _returns); err != nil {
+			g.log.Error("RPC call PushNotificationAck to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *hooksRPCServer) PushNotificationAck(args *Z_PushNotificationAckArgs, returns *Z_PushNotificationAckReturns) error {
+	if hook, ok := s.impl.(interface {
+		PushNotificationAck(c *Context, notificationId string, recievedAt, ackAt int64) ([]byte, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.PushNotificationAck(args.A, args.B, args.C, args.D)
+
+	} else {
+		return encodableError(fmt.Errorf("Hook PushNotificationAck called but not implemented."))
+	}
+	return nil
+}
+
 type Z_RegisterCommandArgs struct {
 	A *model.Command
 }

@@ -194,6 +194,7 @@
         "SendPushNotifications": true,
         "PushNotificationServer": "https://push-test.mattermost.com",
         "PushNotificationContents": "generic",
+        "PushNotificationsAck": false,
         "EnableEmailBatching": false,
         "EmailBatchingBufferSize": 256,
         "EmailBatchingInterval": 30,

@@ -394,6 +394,7 @@ func (a *App) trackConfig() {
 		"connection_security":                  cfg.EmailSettings.ConnectionSecurity,
 		"send_push_notifications":              *cfg.EmailSettings.SendPushNotifications,
 		"push_notification_contents":           *cfg.EmailSettings.PushNotificationContents,
+		"push_notifications_ack":               *cfg.EmailSettings.PushNotificationsAck,
 		"enable_email_batching":                *cfg.EmailSettings.EnableEmailBatching,
 		"email_batching_buffer_size":           *cfg.EmailSettings.EmailBatchingBufferSize,
 		"email_batching_interval":              *cfg.EmailSettings.EmailBatchingInterval,

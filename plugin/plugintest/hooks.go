@@ -189,6 +189,31 @@ func (_m *Hooks) OnDeactivate() error {
 	return r0
 }
 
+// PushNotificationAck provides a mock function with given fields: c, notificationId, recievedAt, ackAt
+func (_m *Hooks) PushNotificationAck(c *plugin.Context, notificationId string, recievedAt int64, ackAt int64) ([]byte, *model.AppError) {
+	ret := _m.Called(c, notificationId, recievedAt, ackAt)
+
+	var r0 []byte
+	if rf, ok := ret.Get(0).(func(*plugin.Context, string, int64, int64) []byte); ok {
+		r0 = rf(c, notificationId, recievedAt, ackAt)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]byte)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*plugin.Context, string, int64, int64) *model.AppError); ok {
+		r1 = rf(c, notificationId, recievedAt, ackAt)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // PushNotificationEnqueued provides a mock function with given fields: c, notificationId, notificationType, userId, channelId, postId
 func (_m *Hooks) PushNotificationEnqueued(c *plugin.Context, notificationId string, notificationType string, userId string, channelId string, postId string) {
 	_m.Called(c, notificationId, notificationType, userId, channelId, postId)

@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/services/filesstore"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -36,6 +37,7 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.ApiRoot.Handle("/analytics/old", api.ApiSessionRequired(getAnalytics)).Methods("GET")
 
 	api.BaseRoutes.ApiRoot.Handle("/redirect_location", api.ApiSessionRequiredTrustRequester(getRedirectLocation)).Methods("GET")
+	api.BaseRoutes.ApiRoot.Handle("/notifications/push_ack", api.ApiSessionRequired(pushNotificationsAck)).Methods("POST")
 }
 
 func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -315,5 +317,36 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 	m["location"] = location
 
 	w.Write([]byte(model.MapToJson(m)))
+	return
+}
+
+func pushNotificationsAck(c *Context, w http.ResponseWriter, r *http.Request) {
+	ack := model.PushNotificationAckFromJson(r.Body)
+
+	if !*c.App.Config().EmailSettings.PushNotificationsAck {
+		c.Err = model.NewAppError("pushNotificationAck", "api.push_notifications_ack.disabled.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
+	var err *model.AppError
+	var data []byte
+	ackAt := model.GetMillis()
+
+	if pluginsEnvironment := c.App.GetPluginsEnvironment(); pluginsEnvironment != nil {
+		pluginContext := c.App.PluginContext()
+		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+			data, err = hooks.PushNotificationAck(pluginContext, ack.Id, ack.ReceivedAt, ackAt)
+			return true
+		}, plugin.PushNotificationAckId)
+	}
+	if err != nil {
+		mlog.Debug(fmt.Sprintf("Push notification %s ack: message recived in the device at %d, and ack received at server at %d, but failed with the error %v", ack.Id, ack.ReceivedAt, ackAt, err))
+		c.Err = err
+		return
+	}
+
+	mlog.Debug(fmt.Sprintf("Push notification %s ack: message recived in the device at %d, and ack received at server at %d", ack.Id, ack.ReceivedAt, ackAt))
+
+	w.Write(data)
 	return
 }

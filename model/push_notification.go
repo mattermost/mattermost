@@ -26,6 +26,11 @@ const (
 	MHPNS = "https://push.mattermost.com"
 )
 
+type PushNotificationAck struct {
+	Id         string `json:"id"`
+	ReceivedAt int64  `json:"received_at"`
+}
+
 type PushNotification struct {
 	Id               string `json:"id"`
 	Platform         string `json:"platform"`
@@ -47,7 +52,6 @@ type PushNotification struct {
 	OverrideIconUrl  string `json:"override_icon_url"`
 	FromWebhook      string `json:"from_webhook"`
 	Version          string `json:"version"`
-	AckUrl           string `json:"ack_url"`
 }
 
 func (me *PushNotification) ToJson() string {
@@ -69,4 +73,15 @@ func PushNotificationFromJson(data io.Reader) *PushNotification {
 	var me *PushNotification
 	json.NewDecoder(data).Decode(&me)
 	return me
+}
+
+func PushNotificationAckFromJson(data io.Reader) *PushNotificationAck {
+	var ack *PushNotificationAck
+	json.NewDecoder(data).Decode(&ack)
+	return ack
+}
+
+func (ack *PushNotificationAck) ToJson() string {
+	b, _ := json.Marshal(ack)
+	return string(b)
 }

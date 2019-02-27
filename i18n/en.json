@@ -1579,6 +1579,10 @@
     "translation": "Unable to set user preferences."
   },
   {
+    "id": "api.push_notifications_ack.disabled.app_error",
+    "translation": "Push notifications ACK is disabled in this server."
+  },
+  {
     "id": "api.reaction.delete.archived_channel.app_error",
     "translation": "You cannot remove a reaction in an archived channel."
   },

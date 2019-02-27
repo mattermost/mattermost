@@ -149,6 +149,7 @@ func (a *App) sendPushNotification(notification *postNotification, user *model.U
 			return true
 		}, plugin.PushNotificationEnqueuedId)
 	}
+	mlog.Debug(fmt.Sprintf("Push notification %s enqueued", notificationId))
 
 	c := a.Srv.PushNotificationsHub.GetGoChannelFromUserId(user.Id)
 	c <- PushNotification{
@@ -317,6 +318,7 @@ func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session
 			return true
 		}, plugin.PushNotificationWillBeSentId)
 	}
+	mlog.Debug(fmt.Sprintf("Push notification %s will be sent", updatedMsg.Id))
 
 	if updatedMsg == nil {
 		return nil
@@ -331,6 +333,7 @@ func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session
 				return true
 			}, plugin.PushNotificationHasFailedId)
 		}
+		mlog.Debug(fmt.Sprintf("Push notification %s has failed", updatedMsg.Id))
 		return err
 	}
 
@@ -343,6 +346,7 @@ func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session
 				return true
 			}, plugin.PushNotificationHasFailedId)
 		}
+		mlog.Debug(fmt.Sprintf("Push notification %s has failed", updatedMsg.Id))
 		return err
 	}
 
@@ -362,6 +366,7 @@ func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session
 				return true
 			}, plugin.PushNotificationHasFailedId)
 		}
+		mlog.Debug(fmt.Sprintf("Push notification %s has failed", updatedMsg.Id))
 		return err
 	}
 
@@ -374,6 +379,7 @@ func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session
 				return true
 			}, plugin.PushNotificationHasFailedId)
 		}
+		mlog.Debug(fmt.Sprintf("Push notification %s has failed", updatedMsg.Id))
 		return err
 	}
 
@@ -384,6 +390,7 @@ func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session
 			return true
 		}, plugin.PushNotificationHasBeenSentId)
 	}
+	mlog.Debug(fmt.Sprintf("Push notification %s has been sent", updatedMsg.Id))
 	return nil
 }
 

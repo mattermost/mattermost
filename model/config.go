@@ -1047,6 +1047,7 @@ type EmailSettings struct {
 	SendPushNotifications             *bool
 	PushNotificationServer            *string
 	PushNotificationContents          *string
+	PushNotificationsAck              *bool
 	EnableEmailBatching               *bool
 	EmailBatchingBufferSize           *int
 	EmailBatchingInterval             *int
@@ -1141,6 +1142,10 @@ func (s *EmailSettings) SetDefaults() {
 
 	if s.PushNotificationContents == nil {
 		s.PushNotificationContents = NewString(GENERIC_NOTIFICATION)
+	}
+
+	if s.PushNotificationsAck == nil {
+		s.PushNotificationsAck = NewBool(false)
 	}
 
 	if s.EnableEmailBatching == nil {

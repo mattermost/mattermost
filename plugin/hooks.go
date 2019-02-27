@@ -37,6 +37,7 @@ const (
 	PushNotificationHasBeenSentId = 19
 	PushNotificationEnqueuedId    = 20
 	PushNotificationHasFailedId   = 21
+	PushNotificationAckId         = 22
 	TotalHooksId                  = iota
 )
 
@@ -155,14 +156,39 @@ type Hooks interface {
 	FileWillBeUploaded(c *Context, info *model.FileInfo, file io.Reader, output io.Writer) (*model.FileInfo, string)
 
 	// PushNotificationWillBeSent is invoked before the push notification has been sent to the push proxy server.
+	// You should return the notification that you want to be sent to the user (normally the same notification).
+	//
+	// You can reject the notification returning a nil notification.
+	//
+	// You can modify the notification, returning a changed version of the notification.
+	//
+	// Minimum server version: 5.10
 	PushNotificationWillBeSent(c *Context, notification *model.PushNotification) *model.PushNotification
 
 	// PushNotificationHasBeenSent is invoked after the push notification has been sent to the push proxy server.
+	//
+	// Minimum server version: 5.10
 	PushNotificationHasBeenSent(c *Context, notification *model.PushNotification)
 
-	// PushNotificationHasFailed is invoked after the push proxy server replies with an error.
+	// PushNotificationHasFailed is invoked after the push proxy server has replied with an error.
+	//
+	// Minimum server version: 5.10
 	PushNotificationHasFailed(c *Context, notification *model.PushNotification, err error)
 
 	// PushNotificationEnqueued is invoked just before the notification has been enqueued to be sent to the push proxy server.
+	//
+	// This is an internal API and it can change in the future.
+	//
+	// Minimum server version: 5.10
 	PushNotificationEnqueued(c *Context, notificationId, notificationType, userId, channelId, postId string)
+
+	// PushNotificationAck is invoked when the server receive the confirmation
+	// of the reception of the push notification from the mobile device.
+	//
+	// You can return data that will be return to the mobile device as response to the ACK.
+	//
+	// Or you can return an error that will be returned to the mobile device as response to the ACK.
+	//
+	// Minimum server version: 5.10
+	PushNotificationAck(c *Context, notificationId string, recievedAt, ackAt int64) ([]byte, *model.AppError)
 }
