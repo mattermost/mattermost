@@ -7,7 +7,7 @@ import "net/http"
 
 const (
 	TOKEN_SIZE            = 64
-	MAX_TOKEN_EXIPRY_TIME = 1000 * 60 * 60 * 24 // 24 hour
+	MAX_TOKEN_EXIPRY_TIME = 1000 * 60 * 60 * 48 // 48 hour
 	TOKEN_TYPE_OAUTH      = "oauth"
 )
 
