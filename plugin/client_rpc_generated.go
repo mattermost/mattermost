@@ -628,17 +628,18 @@ func init() {
 type Z_PushNotificationAckArgs struct {
 	A *Context
 	B string
-	C int64
+	C string
 	D int64
+	E int64
 }
 
 type Z_PushNotificationAckReturns struct {
-	A []byte
+	A *model.PushNotification
 	B *model.AppError
 }
 
-func (g *hooksRPCClient) PushNotificationAck(c *Context, notificationId string, recievedAt, ackAt int64) ([]byte, *model.AppError) {
-	_args := &Z_PushNotificationAckArgs{c, notificationId, recievedAt, ackAt}
+func (g *hooksRPCClient) PushNotificationAck(c *Context, notificationId, deviceId string, recievedAt, ackAt int64) (*model.PushNotification, *model.AppError) {
+	_args := &Z_PushNotificationAckArgs{c, notificationId, deviceId, recievedAt, ackAt}
 	_returns := &Z_PushNotificationAckReturns{}
 	if g.implemented[PushNotificationAckId] {
 		if err := g.client.Call("Plugin.PushNotificationAck", _args, _returns); err != nil {
@@ -650,9 +651,9 @@ func (g *hooksRPCClient) PushNotificationAck(c *Context, notificationId string, 
 
 func (s *hooksRPCServer) PushNotificationAck(args *Z_PushNotificationAckArgs, returns *Z_PushNotificationAckReturns) error {
 	if hook, ok := s.impl.(interface {
-		PushNotificationAck(c *Context, notificationId string, recievedAt, ackAt int64) ([]byte, *model.AppError)
+		PushNotificationAck(c *Context, notificationId, deviceId string, recievedAt, ackAt int64) (*model.PushNotification, *model.AppError)
 	}); ok {
-		returns.A, returns.B = hook.PushNotificationAck(args.A, args.B, args.C, args.D)
+		returns.A, returns.B = hook.PushNotificationAck(args.A, args.B, args.C, args.D, args.E)
 
 	} else {
 		return encodableError(fmt.Errorf("Hook PushNotificationAck called but not implemented."))

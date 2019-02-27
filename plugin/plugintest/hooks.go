@@ -189,22 +189,22 @@ func (_m *Hooks) OnDeactivate() error {
 	return r0
 }
 
-// PushNotificationAck provides a mock function with given fields: c, notificationId, recievedAt, ackAt
-func (_m *Hooks) PushNotificationAck(c *plugin.Context, notificationId string, recievedAt int64, ackAt int64) ([]byte, *model.AppError) {
-	ret := _m.Called(c, notificationId, recievedAt, ackAt)
+// PushNotificationAck provides a mock function with given fields: c, notificationId, deviceId, recievedAt, ackAt
+func (_m *Hooks) PushNotificationAck(c *plugin.Context, notificationId string, deviceId string, recievedAt int64, ackAt int64) (*model.PushNotification, *model.AppError) {
+	ret := _m.Called(c, notificationId, deviceId, recievedAt, ackAt)
 
-	var r0 []byte
-	if rf, ok := ret.Get(0).(func(*plugin.Context, string, int64, int64) []byte); ok {
-		r0 = rf(c, notificationId, recievedAt, ackAt)
+	var r0 *model.PushNotification
+	if rf, ok := ret.Get(0).(func(*plugin.Context, string, string, int64, int64) *model.PushNotification); ok {
+		r0 = rf(c, notificationId, deviceId, recievedAt, ackAt)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]byte)
+			r0 = ret.Get(0).(*model.PushNotification)
 		}
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*plugin.Context, string, int64, int64) *model.AppError); ok {
-		r1 = rf(c, notificationId, recievedAt, ackAt)
+	if rf, ok := ret.Get(1).(func(*plugin.Context, string, string, int64, int64) *model.AppError); ok {
+		r1 = rf(c, notificationId, deviceId, recievedAt, ackAt)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

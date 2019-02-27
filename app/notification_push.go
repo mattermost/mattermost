@@ -319,6 +319,7 @@ func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session
 		}, plugin.PushNotificationWillBeSentId)
 	}
 	mlog.Debug(fmt.Sprintf("Push notification %s will be sent", updatedMsg.Id))
+	mlog.Debug(fmt.Sprintf("Push notification %s will be sent to device %s", updatedMsg.Id, updatedMsg.DeviceId))
 
 	if updatedMsg == nil {
 		return nil
@@ -333,7 +334,7 @@ func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session
 				return true
 			}, plugin.PushNotificationHasFailedId)
 		}
-		mlog.Debug(fmt.Sprintf("Push notification %s has failed", updatedMsg.Id))
+		mlog.Debug(fmt.Sprintf("Push notification %s has failed (device: %s)", updatedMsg.Id, updatedMsg.DeviceId))
 		return err
 	}
 
@@ -346,7 +347,7 @@ func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session
 				return true
 			}, plugin.PushNotificationHasFailedId)
 		}
-		mlog.Debug(fmt.Sprintf("Push notification %s has failed", updatedMsg.Id))
+		mlog.Debug(fmt.Sprintf("Push notification %s has failed (device: %s)", updatedMsg.Id, updatedMsg.DeviceId))
 		return err
 	}
 
@@ -366,7 +367,7 @@ func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session
 				return true
 			}, plugin.PushNotificationHasFailedId)
 		}
-		mlog.Debug(fmt.Sprintf("Push notification %s has failed", updatedMsg.Id))
+		mlog.Debug(fmt.Sprintf("Push notification %s has failed (device: %s)", updatedMsg.Id, updatedMsg.DeviceId))
 		return err
 	}
 
@@ -379,7 +380,7 @@ func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session
 				return true
 			}, plugin.PushNotificationHasFailedId)
 		}
-		mlog.Debug(fmt.Sprintf("Push notification %s has failed", updatedMsg.Id))
+		mlog.Debug(fmt.Sprintf("Push notification %s has failed (device: %s)", updatedMsg.Id, updatedMsg.DeviceId))
 		return err
 	}
 
@@ -390,7 +391,7 @@ func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session
 			return true
 		}, plugin.PushNotificationHasBeenSentId)
 	}
-	mlog.Debug(fmt.Sprintf("Push notification %s has been sent", updatedMsg.Id))
+	mlog.Debug(fmt.Sprintf("Push notification %s has been sent to device %s", updatedMsg.Id, updatedMsg.DeviceId))
 	return nil
 }
 

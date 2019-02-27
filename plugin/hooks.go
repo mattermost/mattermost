@@ -177,7 +177,7 @@ type Hooks interface {
 
 	// PushNotificationEnqueued is invoked just before the notification has been enqueued to be sent to the push proxy server.
 	//
-	// This is an internal API and it can change in the future.
+	// This is an internal hook and it can change anytime in the future.
 	//
 	// Minimum server version: 5.10
 	PushNotificationEnqueued(c *Context, notificationId, notificationType, userId, channelId, postId string)
@@ -185,10 +185,12 @@ type Hooks interface {
 	// PushNotificationAck is invoked when the server receive the confirmation
 	// of the reception of the push notification from the mobile device.
 	//
-	// You can return data that will be return to the mobile device as response to the ACK.
+	// You can return a notification that will be return to the mobile device
+	// as response to the ACK, and the device will update the notification
+	// stored in the device.
 	//
 	// Or you can return an error that will be returned to the mobile device as response to the ACK.
 	//
 	// Minimum server version: 5.10
-	PushNotificationAck(c *Context, notificationId string, recievedAt, ackAt int64) ([]byte, *model.AppError)
+	PushNotificationAck(c *Context, notificationId, deviceId string, recievedAt, ackAt int64) (*model.PushNotification, *model.AppError)
 }

@@ -329,24 +329,28 @@ func pushNotificationsAck(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var err *model.AppError
-	var data []byte
+	var notification *model.PushNotification
 	ackAt := model.GetMillis()
 
 	if pluginsEnvironment := c.App.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		pluginContext := c.App.PluginContext()
 		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-			data, err = hooks.PushNotificationAck(pluginContext, ack.Id, ack.ReceivedAt, ackAt)
+			notification, err = hooks.PushNotificationAck(pluginContext, ack.Id, ack.DeviceId, ack.ReceivedAt, ackAt)
 			return true
 		}, plugin.PushNotificationAckId)
 	}
 	if err != nil {
-		mlog.Debug(fmt.Sprintf("Push notification %s ack: message recived in the device at %d, and ack received at server at %d, but failed with the error %v", ack.Id, ack.ReceivedAt, ackAt, err))
+		mlog.Debug(fmt.Sprintf("Push notification %s ack: message recived in the device %s at %d, and ack received at server at %d, but failed with the error %v", ack.Id, ack.DeviceId, ack.ReceivedAt, ackAt, err))
 		c.Err = err
 		return
 	}
 
-	mlog.Debug(fmt.Sprintf("Push notification %s ack: message recived in the device at %d, and ack received at server at %d", ack.Id, ack.ReceivedAt, ackAt))
+	mlog.Debug(fmt.Sprintf("Push notification %s ack: message recived in the device %s at %d, and ack received at server at %d", ack.Id, ack.DeviceId, ack.ReceivedAt, ackAt))
 
-	w.Write(data)
+	if notification != nil {
+		w.Write([]byte(notification.ToJson()))
+		return
+	}
+	ReturnStatusOK(w)
 	return
 }
