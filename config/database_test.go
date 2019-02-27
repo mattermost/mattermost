@@ -436,21 +436,8 @@ func TestDatabaseStoreSave(t *testing.T) {
 		},
 	}
 
-	t.Run("set without save", func(t *testing.T) {
+	t.Run("set with automatic save", func(t *testing.T) {
 		_, err = ds.Set(newCfg)
-		require.NoError(t, err)
-
-		err = ds.Load()
-		require.NoError(t, err)
-
-		assert.Equal(t, "http://minimal", *ds.Get().ServiceSettings.SiteURL)
-	})
-
-	t.Run("set with save", func(t *testing.T) {
-		_, err = ds.Set(newCfg)
-		require.NoError(t, err)
-
-		err = ds.Save()
 		require.NoError(t, err)
 
 		err = ds.Load()

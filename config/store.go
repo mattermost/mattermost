@@ -26,9 +26,6 @@ type Store interface {
 	// Load updates the current configuration from the backing store, possibly initializing.
 	Load() (err error)
 
-	// Save writes the current configuration to the backing store.
-	Save() error
-
 	// AddListener adds a callback function to invoke when the configuration is modified.
 	AddListener(listener Listener) string
 

@@ -56,12 +56,6 @@ func (a *App) UpdateConfig(f func(*model.Config)) {
 	a.Srv.UpdateConfig(f)
 }
 
-func (a *App) PersistConfig() {
-	if err := a.Srv.configStore.Save(); err != nil {
-		mlog.Error("Failed to persist config", mlog.Err(err))
-	}
-}
-
 func (s *Server) ReloadConfig() error {
 	debug.FreeOSMemory()
 	if err := s.configStore.Load(); err != nil {
