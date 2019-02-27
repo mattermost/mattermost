@@ -30,7 +30,7 @@ func IsReservedIP(ip net.IP) bool {
 	return false
 }
 
-func IsOwnIP(ip net.IP) (bool, error){
+func IsOwnIP(ip net.IP) (bool, error) {
 	interfaces, err := net.Interfaces()
 
 	if err != nil {

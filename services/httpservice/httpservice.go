@@ -76,7 +76,7 @@ func (h *HTTPServiceImpl) MakeTransport(trustURLs bool) http.RoundTripper {
 		}
 
 		// If it's not a reserved IP and it's not self-assigned IP, accept the IP
-		if !reservedIP && !ownIP{
+		if !reservedIP && !ownIP {
 			return true
 		}
 
