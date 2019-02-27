@@ -94,8 +94,7 @@ func (fs *FileStore) Set(newCfg *model.Config) (*model.Config, error) {
 		}
 
 		return nil
-	},
-		fs.persist)
+	}, fs.persist)
 }
 
 // persist writes the configuration to the configured file.
@@ -151,14 +150,6 @@ func (fs *FileStore) Load() (err error) {
 	}()
 
 	return fs.commonStore.load(f, needsSave, fs.persist)
-}
-
-// Save writes the current configuration to the backing store.
-func (fs *FileStore) Save() error {
-	fs.configLock.Lock()
-	defer fs.configLock.Unlock()
-
-	return fs.persist(fs.config)
 }
 
 // startWatcher starts a watcher to monitor for external config file changes.

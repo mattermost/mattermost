@@ -193,14 +193,6 @@ func (ds *DatabaseStore) Load() (err error) {
 	return ds.commonStore.load(ioutil.NopCloser(bytes.NewReader(configurationData)), needsSave, ds.persist)
 }
 
-// Save writes the current configuration to the backing store.
-func (ds *DatabaseStore) Save() error {
-	ds.configLock.RLock()
-	defer ds.configLock.RUnlock()
-
-	return ds.persist(ds.config)
-}
-
 // String returns the path to the database backing the config, masking the password.
 func (ds *DatabaseStore) String() string {
 	u, _ := url.Parse(ds.originalDsn)
