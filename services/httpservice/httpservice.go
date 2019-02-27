@@ -84,7 +84,7 @@ func (h *HTTPServiceImpl) MakeTransport(trustURLs bool) http.RoundTripper {
 			return false
 		}
 
-		// In the case it's the self-assigned IP, enforce that it needs to be explicitly added to the UntrustedInternalConnections
+		// In the case it's the self-assigned IP, enforce that it needs to be explicitly added to the AllowedUntrustedInternalConnections
 		for _, allowed := range strings.Fields(*h.configService.Config().ServiceSettings.AllowedUntrustedInternalConnections) {
 			if _, ipRange, err := net.ParseCIDR(allowed); err == nil && ipRange.Contains(ip) {
 				return true

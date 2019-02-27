@@ -152,10 +152,10 @@ func TestIsReservedIP(t *testing.T) {
 		ip net.IP
 		want bool
 	}{
-		{"127.0.0.1", net.IPv4(127, 0, 0, 1), true},
+		{"127.8.3.5", net.IPv4(127, 8, 3, 5), true},
 		{"192.168.0.1", net.IPv4(192, 168, 0, 1), true},
 		{"169.254.0.6", net.IPv4(169, 254, 0, 6), true},
-		{"127.0.0.1", net.IPv4(127, 0, 0, 1), true},
+		{"127.120.6.3", net.IPv4(127, 120, 6, 3), true},
 		{"8.8.8.8", net.IPv4(8, 8, 8, 8), false},
 		{"9.9.9.9", net.IPv4(9, 9, 9, 8), false},
 	}
