@@ -139,7 +139,7 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// The team being updated in the payload must be the same one as indicated in the URL.
 	if team.Id != c.Params.TeamId {
-		c.SetInvalidParam("team_id")
+		c.SetInvalidParam("id")
 		return
 	}
 
