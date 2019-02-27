@@ -5,6 +5,7 @@ package storetest
 
 import (
 	"sort"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -476,7 +477,7 @@ func testChannelStoreGetChannelsByIds(t *testing.T, ss store.Store) {
 	} else {
 		cl := r1.Data.([]*model.Channel)
 		if len(cl) != 2 {
-			t.Fatal("invalid returned channels, expected %v and got %v", 2, len(cl))
+			t.Fatal("invalid returned channels, expected 2 and got "+strconv.Itoa(len(cl)))
 		}
 		if cl[0].ToJson() != o1.ToJson() {
 			t.Fatal("invalid returned channel")
@@ -492,7 +493,7 @@ func testChannelStoreGetChannelsByIds(t *testing.T, ss store.Store) {
 	} else {
 		cl := r2.Data.([]*model.Channel)
 		if len(cl) != 1 {
-			t.Fatal("invalid returned channels, expected %v and got %v", 1, len(cl))
+			t.Fatal("invalid returned channels, expected 1 and got "+strconv.Itoa(len(cl)))
 		}
 		if cl[0].ToJson() != o1.ToJson() {
 			t.Fatal("invalid returned channel")
