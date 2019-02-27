@@ -673,6 +673,20 @@ func (t *uploadFileTask) runPlugins() *model.AppError {
 }
 
 func (t *uploadFileTask) preprocessImage() *model.AppError {
+	// If SVG, attempt to extract dimensions and then return
+	if t.fileinfo.MimeType == "image/svg+xml" {
+		svgInfo, err := parseSVG(t.newReader())
+		if err != nil {
+			mlog.Error("Failed to parse SVG", mlog.Err(err))
+		}
+		if svgInfo.Width > 0 && svgInfo.Height > 0 {
+			t.fileinfo.Width = svgInfo.Width
+			t.fileinfo.Height = svgInfo.Height
+		}
+		t.fileinfo.HasPreviewImage = false
+		return nil
+	}
+
 	// If we fail to decode, return "as is".
 	config, _, err := image.DecodeConfig(t.newReader())
 	if err != nil {
@@ -723,6 +737,11 @@ func (t *uploadFileTask) preprocessImage() *model.AppError {
 }
 
 func (t *uploadFileTask) postprocessImage() {
+	// don't try to process SVG files
+	if t.fileinfo.MimeType == "image/svg+xml" {
+		return
+	}
+
 	decoded, typ := t.decoded, t.imageType
 	if decoded == nil {
 		var err error
