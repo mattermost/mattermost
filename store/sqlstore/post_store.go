@@ -1355,7 +1355,6 @@ func (s *SqlPostStore) GetRepliesForExport(parentId string) store.StoreChannel {
                 WHERE
                     Posts.ParentId = :ParentId
                     AND Posts.DeleteAt = 0
-					AND Users.DeleteAt = 0
                 ORDER BY
                     Posts.Id`,
 			map[string]interface{}{"ParentId": parentId})
