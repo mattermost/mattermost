@@ -272,7 +272,6 @@ func TestDatabaseStoreSet(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, minimalConfig)
 		defer tearDown()
 
-		sqlSettings := mainHelper.GetSqlSettings()
 		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
