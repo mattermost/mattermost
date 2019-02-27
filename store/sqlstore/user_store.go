@@ -250,7 +250,7 @@ func (us SqlUserStore) UpdatePassword(userId, hashedPassword string) store.Store
 	return store.Do(func(result *store.StoreResult) {
 		updateAt := model.GetMillis()
 
-		if _, err := us.GetMaster().Exec("UPDATE Users SET Password = :Password, LastPasswordUpdate = :LastPasswordUpdate, UpdateAt = :UpdateAt, AuthData = NULL, AuthService = '', EmailVerified = true, FailedAttempts = 0 WHERE Id = :UserId", map[string]interface{}{"Password": hashedPassword, "LastPasswordUpdate": updateAt, "UpdateAt": updateAt, "UserId": userId}); err != nil {
+		if _, err := us.GetMaster().Exec("UPDATE Users SET Password = :Password, LastPasswordUpdate = :LastPasswordUpdate, UpdateAt = :UpdateAt, AuthData = NULL, AuthService = '', FailedAttempts = 0 WHERE Id = :UserId", map[string]interface{}{"Password": hashedPassword, "LastPasswordUpdate": updateAt, "UpdateAt": updateAt, "UserId": userId}); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.UpdatePassword", "store.sql_user.update_password.app_error", nil, "id="+userId+", "+err.Error(), http.StatusInternalServerError)
 		} else {
 			result.Data = userId
@@ -1025,9 +1025,10 @@ func (us SqlUserStore) GetForLogin(loginId string, allowSignInWithUsername, allo
 	})
 }
 
-func (us SqlUserStore) VerifyEmail(userId string) store.StoreChannel {
+func (us SqlUserStore) VerifyEmail(userId, email string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		if _, err := us.GetMaster().Exec("UPDATE Users SET EmailVerified = true WHERE Id = :UserId", map[string]interface{}{"UserId": userId}); err != nil {
+		curTime := model.GetMillis()
+		if _, err := us.GetMaster().Exec("UPDATE Users SET Email = :email, EmailVerified = true, UpdateAt = :Time WHERE Id = :UserId", map[string]interface{}{"email": email, "Time": curTime, "UserId": userId}); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.VerifyEmail", "store.sql_user.verify_email.app_error", nil, "userId="+userId+", "+err.Error(), http.StatusInternalServerError)
 		}
 
@@ -1383,13 +1384,10 @@ func (us SqlUserStore) ClearAllCustomRoleAssignments() store.StoreChannel {
 				result.Err = model.NewAppError("SqlUserStore.ClearAllCustomRoleAssignments", "store.sql_user.clear_all_custom_role_assignments.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 				return
 			}
+			defer finalizeTransaction(transaction)
 
 			var users []*model.User
 			if _, err := transaction.Select(&users, "SELECT * from Users WHERE Id > :Id ORDER BY Id LIMIT 1000", map[string]interface{}{"Id": lastUserId}); err != nil {
-				if err2 := transaction.Rollback(); err2 != nil {
-					result.Err = model.NewAppError("SqlUserStore.ClearAllCustomRoleAssignments", "store.sql_user.clear_all_custom_role_assignments.rollback_transaction.app_error", nil, err2.Error(), http.StatusInternalServerError)
-					return
-				}
 				result.Err = model.NewAppError("SqlUserStore.ClearAllCustomRoleAssignments", "store.sql_user.clear_all_custom_role_assignments.select.app_error", nil, err.Error(), http.StatusInternalServerError)
 				return
 			}
@@ -1415,10 +1413,6 @@ func (us SqlUserStore) ClearAllCustomRoleAssignments() store.StoreChannel {
 				newRolesString := strings.Join(newRoles, " ")
 				if newRolesString != user.Roles {
 					if _, err := transaction.Exec("UPDATE Users SET Roles = :Roles WHERE Id = :Id", map[string]interface{}{"Roles": newRolesString, "Id": user.Id}); err != nil {
-						if err2 := transaction.Rollback(); err2 != nil {
-							result.Err = model.NewAppError("SqlUserStore.ClearAllCustomRoleAssignments", "store.sql_user.clear_all_custom_role_assignments.rollback_transaction.app_error", nil, err2.Error(), http.StatusInternalServerError)
-							return
-						}
 						result.Err = model.NewAppError("SqlUserStore.ClearAllCustomRoleAssignments", "store.sql_user.clear_all_custom_role_assignments.update.app_error", nil, err.Error(), http.StatusInternalServerError)
 						return
 					}
@@ -1426,10 +1420,6 @@ func (us SqlUserStore) ClearAllCustomRoleAssignments() store.StoreChannel {
 			}
 
 			if err := transaction.Commit(); err != nil {
-				if err2 := transaction.Rollback(); err2 != nil {
-					result.Err = model.NewAppError("SqlUserStore.ClearAllCustomRoleAssignments", "store.sql_user.clear_all_custom_role_assignments.rollback_transaction.app_error", nil, err2.Error(), http.StatusInternalServerError)
-					return
-				}
 				result.Err = model.NewAppError("SqlUserStore.ClearAllCustomRoleAssignments", "store.sql_user.clear_all_custom_role_assignments.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 				return
 			}

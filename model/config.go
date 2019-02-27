@@ -16,6 +16,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/go-ldap/ldap"
 )
 
 const (
@@ -166,8 +168,6 @@ const (
 
 	PLUGIN_SETTINGS_DEFAULT_DIRECTORY        = "./plugins"
 	PLUGIN_SETTINGS_DEFAULT_CLIENT_DIRECTORY = "./client/plugins"
-
-	TIMEZONE_SETTINGS_DEFAULT_SUPPORTED_TIMEZONES_PATH = "timezones.json"
 
 	COMPLIANCE_EXPORT_TYPE_CSV         = "csv"
 	COMPLIANCE_EXPORT_TYPE_ACTIANCE    = "actiance"
@@ -2139,16 +2139,6 @@ func (s *DisplaySettings) SetDefaults() {
 	}
 }
 
-type TimezoneSettings struct {
-	SupportedTimezonesPath *string
-}
-
-func (s *TimezoneSettings) SetDefaults() {
-	if s.SupportedTimezonesPath == nil {
-		s.SupportedTimezonesPath = NewString(TIMEZONE_SETTINGS_DEFAULT_SUPPORTED_TIMEZONES_PATH)
-	}
-}
-
 type ImageProxySettings struct {
 	Enable                  *bool
 	ImageProxyType          *string
@@ -2220,7 +2210,6 @@ type Config struct {
 	JobSettings           JobSettings
 	PluginSettings        PluginSettings
 	DisplaySettings       DisplaySettings
-	TimezoneSettings      TimezoneSettings
 	ImageProxySettings    ImageProxySettings
 }
 
@@ -2295,7 +2284,6 @@ func (o *Config) SetDefaults() {
 	o.LogSettings.SetDefaults()
 	o.JobSettings.SetDefaults()
 	o.MessageExportSettings.SetDefaults()
-	o.TimezoneSettings.SetDefaults()
 	o.DisplaySettings.SetDefaults()
 	o.ImageProxySettings.SetDefaults(o.ServiceSettings)
 }
@@ -2528,6 +2516,12 @@ func (ls *LdapSettings) isValid() *AppError {
 
 		if *ls.LoginIdAttribute == "" {
 			return NewAppError("Config.IsValid", "model.config.is_valid.ldap_login_id", nil, "", http.StatusBadRequest)
+		}
+
+		if *ls.UserFilter != "" {
+			if _, err := ldap.CompileFilter(*ls.UserFilter); err != nil {
+				return NewAppError("ValidateFilter", "ent.ldap.validate_filter.app_error", nil, err.Error(), http.StatusBadRequest)
+			}
 		}
 	}
 

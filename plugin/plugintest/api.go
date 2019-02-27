@@ -515,6 +515,31 @@ func (_m *API) GetChannelMembersByIds(channelId string, userIds []string) (*mode
 	return r0, r1
 }
 
+// GetChannelMembersForUser provides a mock function with given fields: teamId, userId, page, perPage
+func (_m *API) GetChannelMembersForUser(teamId string, userId string, page int, perPage int) ([]*model.ChannelMember, *model.AppError) {
+	ret := _m.Called(teamId, userId, page, perPage)
+
+	var r0 []*model.ChannelMember
+	if rf, ok := ret.Get(0).(func(string, string, int, int) []*model.ChannelMember); ok {
+		r0 = rf(teamId, userId, page, perPage)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.ChannelMember)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string, int, int) *model.AppError); ok {
+		r1 = rf(teamId, userId, page, perPage)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetChannelStats provides a mock function with given fields: channelId
 func (_m *API) GetChannelStats(channelId string) (*model.ChannelStats, *model.AppError) {
 	ret := _m.Called(channelId)
@@ -1291,6 +1316,31 @@ func (_m *API) GetTeamMembers(teamId string, page int, perPage int) ([]*model.Te
 	return r0, r1
 }
 
+// GetTeamMembersForUser provides a mock function with given fields: userId, page, perPage
+func (_m *API) GetTeamMembersForUser(userId string, page int, perPage int) ([]*model.TeamMember, *model.AppError) {
+	ret := _m.Called(userId, page, perPage)
+
+	var r0 []*model.TeamMember
+	if rf, ok := ret.Get(0).(func(string, int, int) []*model.TeamMember); ok {
+		r0 = rf(userId, page, perPage)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.TeamMember)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
+		r1 = rf(userId, page, perPage)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetTeamStats provides a mock function with given fields: teamId
 func (_m *API) GetTeamStats(teamId string) (*model.TeamStats, *model.AppError) {
 	ret := _m.Called(teamId)
@@ -1974,6 +2024,31 @@ func (_m *API) SearchChannels(teamId string, term string) ([]*model.Channel, *mo
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
 		r1 = rf(teamId, term)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// SearchPostsInTeam provides a mock function with given fields: teamId, paramsList
+func (_m *API) SearchPostsInTeam(teamId string, paramsList []*model.SearchParams) ([]*model.Post, *model.AppError) {
+	ret := _m.Called(teamId, paramsList)
+
+	var r0 []*model.Post
+	if rf, ok := ret.Get(0).(func(string, []*model.SearchParams) []*model.Post); ok {
+		r0 = rf(teamId, paramsList)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Post)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, []*model.SearchParams) *model.AppError); ok {
+		r1 = rf(teamId, paramsList)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

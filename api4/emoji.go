@@ -37,11 +37,6 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(*c.App.Config().FileSettings.DriverName) == 0 {
-		c.Err = model.NewAppError("createEmoji", "api.emoji.storage.app_error", nil, "", http.StatusNotImplemented)
-		return
-	}
-
 	if r.ContentLength > app.MaxEmojiFileSize {
 		c.Err = model.NewAppError("createEmoji", "api.emoji.create.too_large.app_error", nil, "", http.StatusRequestEntityTooLarge)
 		return
@@ -221,11 +216,6 @@ func getEmojiImage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !*c.App.Config().ServiceSettings.EnableCustomEmoji {
 		c.Err = model.NewAppError("getEmojiImage", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
-		return
-	}
-
-	if len(*c.App.Config().FileSettings.DriverName) == 0 {
-		c.Err = model.NewAppError("getEmojiImage", "api.emoji.storage.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 

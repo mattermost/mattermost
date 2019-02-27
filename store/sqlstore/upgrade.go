@@ -97,6 +97,7 @@ func UpgradeDatabase(sqlStore SqlStore) {
 	UpgradeDatabaseToVersion57(sqlStore)
 	UpgradeDatabaseToVersion58(sqlStore)
 	UpgradeDatabaseToVersion59(sqlStore)
+	UpgradeDatabaseToVersion510(sqlStore)
 
 	// If the SchemaVersion is empty this this is the first time it has ran
 	// so lets set it to the current version.
@@ -172,15 +173,18 @@ func UpgradeDatabaseToVersion33(sqlStore SqlStore) {
 			if err != nil {
 				themeMigrationFailed(err)
 			}
+			defer finalizeTransaction(transaction)
 
 			// increase size of Value column of Preferences table to match the size of the ThemeProps column
 			if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 				if _, err := transaction.Exec("ALTER TABLE Preferences ALTER COLUMN Value TYPE varchar(2000)"); err != nil {
 					themeMigrationFailed(err)
+					return
 				}
 			} else if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
 				if _, err := transaction.Exec("ALTER TABLE Preferences MODIFY Value text"); err != nil {
 					themeMigrationFailed(err)
+					return
 				}
 			}
 
@@ -195,15 +199,18 @@ func UpgradeDatabaseToVersion33(sqlStore SqlStore) {
 				WHERE
 					Users.ThemeProps != 'null'`, params); err != nil {
 				themeMigrationFailed(err)
+				return
 			}
 
 			// delete old data
 			if _, err := transaction.Exec("ALTER TABLE Users DROP COLUMN ThemeProps"); err != nil {
 				themeMigrationFailed(err)
+				return
 			}
 
 			if err := transaction.Commit(); err != nil {
 				themeMigrationFailed(err)
+				return
 			}
 
 			// rename solarized_* code themes to solarized-* to match client changes in 3.0
@@ -568,9 +575,14 @@ func UpgradeDatabaseToVersion58(sqlStore SqlStore) {
 }
 
 func UpgradeDatabaseToVersion59(sqlStore SqlStore) {
-	// TODO: Uncomment following condition when version 5.9.0 is released
-	// if shouldPerformUpgrade(sqlStore, VERSION_5_8_0, VERSION_5_9_0) {
+	if shouldPerformUpgrade(sqlStore, VERSION_5_8_0, VERSION_5_9_0) {
+		saveSchemaVersion(sqlStore, VERSION_5_9_0)
+	}
+}
 
-	// 	saveSchemaVersion(sqlStore, VERSION_5_9_0)
+func UpgradeDatabaseToVersion510(sqlStore SqlStore) {
+	// if shouldPerformUpgrade(sqlStore, VERSION_5_9_0, VERSION_5_10_0) {
+
+	// 	saveSchemaVersion(sqlStore, VERSION_5_10_0)
 	// }
 }

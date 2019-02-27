@@ -33,8 +33,9 @@ type TestHelper struct {
 	tempWorkspace  string
 }
 
-func setupTestHelper(enterprise bool) *TestHelper {
-	mainHelper.Store.DropAllTables()
+func setupTestHelper(enterprise bool, tb testing.TB) *TestHelper {
+	store := mainHelper.GetStore()
+	store.DropAllTables()
 
 	permConfig, err := os.Open(fileutils.FindConfigFile("config.json"))
 	if err != nil {
@@ -51,8 +52,9 @@ func setupTestHelper(enterprise bool) *TestHelper {
 		panic(err)
 	}
 
-	options := []Option{ConfigFile(tempConfig.Name()), DisableConfigWatch}
-	options = append(options, StoreOverride(mainHelper.Store))
+	options := []Option{Config(tempConfig.Name(), false)}
+	options = append(options, StoreOverride(store))
+	options = append(options, SetLogger(mlog.NewTestingLogger(tb)))
 
 	s, err := NewServer(options...)
 	if err != nil {
@@ -102,12 +104,12 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	return th
 }
 
-func SetupEnterprise() *TestHelper {
-	return setupTestHelper(true)
+func SetupEnterprise(tb testing.TB) *TestHelper {
+	return setupTestHelper(true, tb)
 }
 
-func Setup() *TestHelper {
-	return setupTestHelper(false)
+func Setup(tb testing.TB) *TestHelper {
+	return setupTestHelper(false, tb)
 }
 
 func (me *TestHelper) InitBasic() *TestHelper {
@@ -426,25 +428,27 @@ func (me *TestHelper) TearDown() {
 }
 
 func (me *TestHelper) ResetRoleMigration() {
-	if _, err := mainHelper.SqlSupplier.GetMaster().Exec("DELETE from Roles"); err != nil {
+	sqlSupplier := mainHelper.GetSqlSupplier()
+	if _, err := sqlSupplier.GetMaster().Exec("DELETE from Roles"); err != nil {
 		panic(err)
 	}
 
-	mainHelper.ClusterInterface.SendClearRoleCacheMessage()
+	mainHelper.GetClusterInterface().SendClearRoleCacheMessage()
 
-	if _, err := mainHelper.SqlSupplier.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": ADVANCED_PERMISSIONS_MIGRATION_KEY}); err != nil {
+	if _, err := sqlSupplier.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": ADVANCED_PERMISSIONS_MIGRATION_KEY}); err != nil {
 		panic(err)
 	}
 }
 
 func (me *TestHelper) ResetEmojisMigration() {
-	if _, err := mainHelper.SqlSupplier.GetMaster().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ', manage_emojis', '') WHERE builtin=True"); err != nil {
+	sqlSupplier := mainHelper.GetSqlSupplier()
+	if _, err := sqlSupplier.GetMaster().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ', manage_emojis', '') WHERE builtin=True"); err != nil {
 		panic(err)
 	}
 
-	mainHelper.ClusterInterface.SendClearRoleCacheMessage()
+	mainHelper.GetClusterInterface().SendClearRoleCacheMessage()
 
-	if _, err := mainHelper.SqlSupplier.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": EMOJIS_PERMISSIONS_MIGRATION_KEY}); err != nil {
+	if _, err := sqlSupplier.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": EMOJIS_PERMISSIONS_MIGRATION_KEY}); err != nil {
 		panic(err)
 	}
 }

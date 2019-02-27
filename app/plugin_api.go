@@ -77,7 +77,7 @@ func (api *PluginAPI) GetSession(sessionId string) (*model.Session, *model.AppEr
 }
 
 func (api *PluginAPI) GetConfig() *model.Config {
-	return api.app.GetConfig()
+	return api.app.GetSanitizedConfig()
 }
 
 func (api *PluginAPI) SaveConfig(config *model.Config) *model.AppError {
@@ -85,7 +85,7 @@ func (api *PluginAPI) SaveConfig(config *model.Config) *model.AppError {
 }
 
 func (api *PluginAPI) GetPluginConfig() map[string]interface{} {
-	cfg := api.app.GetConfig()
+	cfg := api.app.GetSanitizedConfig()
 	if pluginConfig, isOk := cfg.PluginSettings.Plugins[api.manifest.Id]; isOk {
 		return pluginConfig
 	}
@@ -93,7 +93,7 @@ func (api *PluginAPI) GetPluginConfig() map[string]interface{} {
 }
 
 func (api *PluginAPI) SavePluginConfig(pluginConfig map[string]interface{}) *model.AppError {
-	cfg := api.app.GetConfig()
+	cfg := api.app.GetSanitizedConfig()
 	cfg.PluginSettings.Plugins[api.manifest.Id] = pluginConfig
 	return api.app.SaveConfig(cfg, true)
 }
@@ -156,6 +156,10 @@ func (api *PluginAPI) GetTeamMembers(teamId string, page, perPage int) ([]*model
 
 func (api *PluginAPI) GetTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError) {
 	return api.app.GetTeamMember(teamId, userId)
+}
+
+func (api *PluginAPI) GetTeamMembersForUser(userId string, page int, perPage int) ([]*model.TeamMember, *model.AppError) {
+	return api.app.GetTeamMembersForUserWithPagination(userId, page, perPage)
 }
 
 func (api *PluginAPI) UpdateTeamMemberRoles(teamId, userId, newRoles string) (*model.TeamMember, *model.AppError) {
@@ -342,6 +346,14 @@ func (api *PluginAPI) SearchUsers(search *model.UserSearch) ([]*model.User, *mod
 	return api.app.SearchUsers(search, pluginSearchUsersOptions)
 }
 
+func (api *PluginAPI) SearchPostsInTeam(teamId string, paramsList []*model.SearchParams) ([]*model.Post, *model.AppError) {
+	postList, err := api.app.SearchPostsInTeam(teamId, paramsList)
+	if err != nil {
+		return nil, err
+	}
+	return postList.ToSlice(), nil
+}
+
 func (api *PluginAPI) AddChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError) {
 	// For now, don't allow overriding these via the plugin API.
 	userRequestorId := ""
@@ -365,6 +377,10 @@ func (api *PluginAPI) GetChannelMembers(channelId string, page, perPage int) (*m
 
 func (api *PluginAPI) GetChannelMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError) {
 	return api.app.GetChannelMembersByIds(channelId, userIds)
+}
+
+func (api *PluginAPI) GetChannelMembersForUser(teamId, userId string, page, perPage int) ([]*model.ChannelMember, *model.AppError) {
+	return api.app.GetChannelMembersForUserWithPagination(teamId, userId, page, perPage)
 }
 
 func (api *PluginAPI) UpdateChannelMemberRoles(channelId, userId, newRoles string) (*model.ChannelMember, *model.AppError) {

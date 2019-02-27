@@ -237,9 +237,6 @@
         "AllowCustomThemes": true,
         "AllowedThemes": []
     },
-    "TimezoneSettings": {
-        "SupportedTimezonesPath": "timezones.json"
-    },
     "GitLabSettings": {
         "Enable": false,
         "Secret": "",

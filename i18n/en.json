@@ -105,7 +105,7 @@
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
-    "translation": "An error occurred while deleting the certificate. Make sure the file config/{{.Filename}} exists."
+    "translation": "An error occurred while deleting the certificate."
   },
   {
     "id": "api.admin.saml.metadata.app_error",
@@ -2363,6 +2363,18 @@
     "translation": "Failed to send email change verification email successfully"
   },
   {
+    "id": "api.user.verify_email.link_expired.app_error",
+    "translation": "The email verification link has expired."
+  },
+  {
+    "id": "api.user.verify_email.token_parse.error",
+    "translation": "Failed to parse token data from email verification"
+  },
+  {
+    "id": "api.user.create_email_token.error",
+    "translation": "Failed to create token data for email verification"
+  },
+  {
     "id": "api.user.send_mfa_change_email.error",
     "translation": "Unable to send email notification for MFA change."
   },
@@ -3183,6 +3195,10 @@
     "translation": "[{{ .SiteName }}] Notification in {{ .TeamName}} on {{.Month}} {{.Day}}, {{.Year}}"
   },
   {
+    "id": "app.save_config.app_error",
+    "translation": "An error occurred saving the configuration"
+  },
+  {
     "id": "app.plugin.cluster.save_config.app_error",
     "translation": "The plugin configuration in your config.json file must be updated manually when using ReadOnlyConfig with clustering enabled."
   },
@@ -3637,10 +3653,6 @@
   {
     "id": "ent.saml.build_request.encoding.app_error",
     "translation": "An error occurred while encoding the request for the Identity Provider. Please contact your System Administrator."
-  },
-  {
-    "id": "ent.saml.configure.app_error",
-    "translation": "An error occurred while configuring SAML Service Provider, err=%v"
   },
   {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
