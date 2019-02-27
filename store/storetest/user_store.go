@@ -2953,6 +2953,11 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId2, UserId: u3.Id}, -1))
 	u3.UpdateAt = store.Must(ss.User().UpdateUpdateAt(u3.Id)).(int64)
 
+	// GetEtagForProfilesNotInTeam produces a new etag every time a member, not
+	// in the team, gets a new UpdateAt value. In the case that an older member
+	// in the set joins a different team, their UpdateAt value changes, thus
+	// creating a new etag (even though the user set doesn't change). A hashing
+	// solution, which only uses UserIds, would solve this issue.
 	t.Run("etag for profiles not in team 1 after u3 added to team 2", func(t *testing.T) {
 		t.Skip()
 		result := <-ss.User().GetEtagForProfilesNotInTeam(teamId)
