@@ -30,6 +30,38 @@ func IsReservedIP(ip net.IP) bool {
 	return false
 }
 
+func IsOwnIP(ip net.IP) (bool, error){
+	interfaces, err := net.Interfaces()
+
+	if err != nil {
+		return false, err
+	}
+
+	for _, interf := range interfaces {
+		addresses, err := interf.Addrs()
+
+		if err != nil {
+			return false, err
+		}
+
+		for _, addr := range addresses {
+			var selfIP net.IP
+			switch v := addr.(type) {
+			case *net.IPNet:
+				selfIP = v.IP
+			case *net.IPAddr:
+				selfIP = v.IP
+			}
+
+			if ip.Equal(selfIP) {
+				return true, nil
+			}
+		}
+	}
+
+	return false, nil
+}
+
 var defaultUserAgent string
 
 func init() {
