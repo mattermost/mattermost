@@ -738,7 +738,7 @@ func (t *uploadFileTask) preprocessImage() *model.AppError {
 
 func (t *uploadFileTask) postprocessImage() {
 	// don't try to process SVG files
-	if t.fileinfo.MimeType != "image/svg+xml" {
+	if t.fileinfo.MimeType == "image/svg+xml" {
 		return
 	}
 
