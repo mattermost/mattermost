@@ -307,6 +307,17 @@ func (a *App) StopPushNotificationsHubWorkers() {
 }
 
 func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session) error {
+	pushNotificationFailed := func(notification *model.PushNotification, err error) {
+		if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
+			pluginContext := a.PluginContext()
+			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+				hooks.PushNotificationHasFailed(pluginContext, notification, err)
+				return true
+			}, plugin.PushNotificationHasFailedId)
+		}
+		mlog.Debug(fmt.Sprintf("Push notification %s has failed (device: %s)", notification.Id, notification.DeviceId))
+	}
+
 	msg.ServerId = a.DiagnosticId()
 
 	var updatedMsg *model.PushNotification
@@ -327,27 +338,13 @@ func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session
 
 	request, err := http.NewRequest("POST", strings.TrimRight(*a.Config().EmailSettings.PushNotificationServer, "/")+model.API_URL_SUFFIX_V1+"/send_push", strings.NewReader(updatedMsg.ToJson()))
 	if err != nil {
-		if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-			pluginContext := a.PluginContext()
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				hooks.PushNotificationHasFailed(pluginContext, updatedMsg, err)
-				return true
-			}, plugin.PushNotificationHasFailedId)
-		}
-		mlog.Debug(fmt.Sprintf("Push notification %s has failed (device: %s)", updatedMsg.Id, updatedMsg.DeviceId))
+		pushNotificationFailed(updatedMsg, err)
 		return err
 	}
 
 	resp, err := a.HTTPService.MakeClient(true).Do(request)
 	if err != nil {
-		if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-			pluginContext := a.PluginContext()
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				hooks.PushNotificationHasFailed(pluginContext, updatedMsg, err)
-				return true
-			}, plugin.PushNotificationHasFailedId)
-		}
-		mlog.Debug(fmt.Sprintf("Push notification %s has failed (device: %s)", updatedMsg.Id, updatedMsg.DeviceId))
+		pushNotificationFailed(updatedMsg, err)
 		return err
 	}
 
@@ -360,14 +357,7 @@ func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session
 		a.AttachDeviceId(session.Id, "", session.ExpiresAt)
 		a.ClearSessionCacheForUser(session.UserId)
 		err := errors.New("Device was reported as removed")
-		if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-			pluginContext := a.PluginContext()
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				hooks.PushNotificationHasFailed(pluginContext, updatedMsg, err)
-				return true
-			}, plugin.PushNotificationHasFailedId)
-		}
-		mlog.Debug(fmt.Sprintf("Push notification %s has failed (device: %s)", updatedMsg.Id, updatedMsg.DeviceId))
+		pushNotificationFailed(updatedMsg, err)
 		return err
 	}
 
