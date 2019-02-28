@@ -791,6 +791,12 @@ func deleteUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// if EnableUserDeactivation flag is disabled the user cannot deactivate himself.
+	if c.Params.UserId == c.App.Session.UserId && !*c.App.Config().TeamSettings.EnableUserDeactivation && !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.Err = model.NewAppError("deleteUser", "api.user.update_active.not_enable.app_error", nil, "userId="+c.Params.UserId, http.StatusUnauthorized)
+		return
+	}
+
 	user, err := c.App.GetUser(userId)
 	if err != nil {
 		c.Err = err
@@ -829,7 +835,7 @@ func updateUserRoles(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.LogAuditWithUserId(c.Params.UserId, "roles="+newRoles)
+	c.LogAudit(fmt.Sprintf("user=%s roles=%s", c.Params.UserId, newRoles))
 	ReturnStatusOK(w)
 }
 
@@ -905,7 +911,7 @@ func updateUserAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.LogAuditWithUserId(c.Params.UserId, fmt.Sprintf("updated user auth to service=%v", user.AuthService))
+	c.LogAudit(fmt.Sprintf("updated user %s auth to service=%v", c.Params.UserId, user.AuthService))
 	w.Write([]byte(user.ToJson()))
 }
 
@@ -1355,7 +1361,7 @@ func sendVerificationEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err = c.App.SendEmailVerification(user); err != nil {
+	if err = c.App.SendEmailVerification(user, user.Email); err != nil {
 		// Don't want to leak whether the email is valid or not
 		mlog.Error(err.Error())
 		ReturnStatusOK(w)

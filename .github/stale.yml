@@ -7,8 +7,11 @@ daysUntilStale: 14
 # Set to false to disable. If disabled, issues still need to be closed manually, but will remain marked as stale.
 daysUntilClose: false
 
-# Issues or Pull Requests with these labels will never be considered stale. Set to `[]` to disable
-exemptLabels: Lifecycle/frozen
+# Issues or Pull Requests with these labels will be ignored by the stale bot. Set to `[]` to disable.
+exemptLabels:
+  - Lifecycle/2:inactive
+  - Lifecycle/3:orphaned
+  - Lifecycle/frozen
 
 # Set to true to ignore issues in a project (defaults to false)
 exemptProjects: true

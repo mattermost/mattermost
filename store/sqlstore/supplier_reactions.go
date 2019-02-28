@@ -34,18 +34,16 @@ func (s *SqlSupplier) ReactionSave(ctx context.Context, reaction *model.Reaction
 	if transaction, err := s.GetMaster().Begin(); err != nil {
 		result.Err = model.NewAppError("SqlReactionStore.Save", "store.sql_reaction.save.begin.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else {
+		defer finalizeTransaction(transaction)
 		err := saveReactionAndUpdatePost(transaction, reaction)
 
 		if err != nil {
-			transaction.Rollback()
-
 			// We don't consider duplicated save calls as an error
 			if !IsUniqueConstraintError(err, []string{"reactions_pkey", "PRIMARY"}) {
 				result.Err = model.NewAppError("SqlPreferenceStore.Save", "store.sql_reaction.save.save.app_error", nil, err.Error(), http.StatusBadRequest)
 			}
 		} else {
 			if err := transaction.Commit(); err != nil {
-				// don't need to rollback here since the transaction is already closed
 				result.Err = model.NewAppError("SqlPreferenceStore.Save", "store.sql_reaction.save.commit.app_error", nil, err.Error(), http.StatusInternalServerError)
 			}
 		}
@@ -64,14 +62,12 @@ func (s *SqlSupplier) ReactionDelete(ctx context.Context, reaction *model.Reacti
 	if transaction, err := s.GetMaster().Begin(); err != nil {
 		result.Err = model.NewAppError("SqlReactionStore.Delete", "store.sql_reaction.delete.begin.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else {
+		defer finalizeTransaction(transaction)
 		err := deleteReactionAndUpdatePost(transaction, reaction)
 
 		if err != nil {
-			transaction.Rollback()
-
 			result.Err = model.NewAppError("SqlPreferenceStore.Delete", "store.sql_reaction.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else if err := transaction.Commit(); err != nil {
-			// don't need to rollback here since the transaction is already closed
 			result.Err = model.NewAppError("SqlPreferenceStore.Delete", "store.sql_reaction.delete.commit.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
 			result.Data = reaction

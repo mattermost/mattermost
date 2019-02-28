@@ -34,7 +34,8 @@ type TestHelper struct {
 }
 
 func setupTestHelper(enterprise bool, tb testing.TB) *TestHelper {
-	mainHelper.Store.DropAllTables()
+	store := mainHelper.GetStore()
+	store.DropAllTables()
 
 	permConfig, err := os.Open(fileutils.FindConfigFile("config.json"))
 	if err != nil {
@@ -52,7 +53,7 @@ func setupTestHelper(enterprise bool, tb testing.TB) *TestHelper {
 	}
 
 	options := []Option{Config(tempConfig.Name(), false)}
-	options = append(options, StoreOverride(mainHelper.Store))
+	options = append(options, StoreOverride(store))
 	options = append(options, SetLogger(mlog.NewTestingLogger(tb)))
 
 	s, err := NewServer(options...)
@@ -427,25 +428,27 @@ func (me *TestHelper) TearDown() {
 }
 
 func (me *TestHelper) ResetRoleMigration() {
-	if _, err := mainHelper.SqlSupplier.GetMaster().Exec("DELETE from Roles"); err != nil {
+	sqlSupplier := mainHelper.GetSqlSupplier()
+	if _, err := sqlSupplier.GetMaster().Exec("DELETE from Roles"); err != nil {
 		panic(err)
 	}
 
-	mainHelper.ClusterInterface.SendClearRoleCacheMessage()
+	mainHelper.GetClusterInterface().SendClearRoleCacheMessage()
 
-	if _, err := mainHelper.SqlSupplier.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": ADVANCED_PERMISSIONS_MIGRATION_KEY}); err != nil {
+	if _, err := sqlSupplier.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": ADVANCED_PERMISSIONS_MIGRATION_KEY}); err != nil {
 		panic(err)
 	}
 }
 
 func (me *TestHelper) ResetEmojisMigration() {
-	if _, err := mainHelper.SqlSupplier.GetMaster().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ', manage_emojis', '') WHERE builtin=True"); err != nil {
+	sqlSupplier := mainHelper.GetSqlSupplier()
+	if _, err := sqlSupplier.GetMaster().Exec("UPDATE Roles SET Permissions=REPLACE(Permissions, ', manage_emojis', '') WHERE builtin=True"); err != nil {
 		panic(err)
 	}
 
-	mainHelper.ClusterInterface.SendClearRoleCacheMessage()
+	mainHelper.GetClusterInterface().SendClearRoleCacheMessage()
 
-	if _, err := mainHelper.SqlSupplier.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": EMOJIS_PERMISSIONS_MIGRATION_KEY}); err != nil {
+	if _, err := sqlSupplier.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": EMOJIS_PERMISSIONS_MIGRATION_KEY}); err != nil {
 		panic(err)
 	}
 }
