@@ -264,18 +264,22 @@ func TestDatabaseStoreSet(t *testing.T) {
 	})
 
 	t.Run("duplicate ignored", func(t *testing.T) {
-		activeId, tearDown := setupConfigDatabase(t, minimalConfig, nil)
+		_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
 		defer tearDown()
 
 		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
 
-		_, err = ds.Set(minimalConfig)
+		_, err = ds.Set(ds.Get())
 		require.NoError(t, err)
 
-		id, _ := getActualDatabaseConfig(t)
-		assert.Equal(t, activeId, id, "new record should not have been written")
+		beforeId, _ := getActualDatabaseConfig(t)
+		_, err = ds.Set(ds.Get())
+		require.NoError(t, err)
+
+		afterId, _ := getActualDatabaseConfig(t)
+		assert.Equal(t, beforeId, afterId, "new record should not have been written")
 	})
 
 	t.Run("read-only ignored", func(t *testing.T) {
@@ -293,6 +297,29 @@ func TestDatabaseStoreSet(t *testing.T) {
 		}
 
 		_, err = ds.Set(newCfg)
+		require.NoError(t, err)
+
+		assert.Equal(t, "http://new", *ds.Get().ServiceSettings.SiteURL)
+	})
+
+	t.Run("set with automatic save", func(t *testing.T) {
+		_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
+		defer tearDown()
+
+		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		require.NoError(t, err)
+		defer ds.Close()
+
+		newCfg := &model.Config{
+			ServiceSettings: model.ServiceSettings{
+				SiteURL: sToP("http://new"),
+			},
+		}
+
+		_, err = ds.Set(newCfg)
+		require.NoError(t, err)
+
+		err = ds.Load()
 		require.NoError(t, err)
 
 		assert.Equal(t, "http://new", *ds.Get().ServiceSettings.SiteURL)
@@ -451,45 +478,6 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		case <-time.After(5 * time.Second):
 			t.Fatal("callback should have been called when config loaded")
 		}
-	})
-}
-
-func TestDatabaseStoreSave(t *testing.T) {
-	_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
-	defer tearDown()
-
-	sqlSettings := mainHelper.GetSqlSettings()
-	ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
-	require.NoError(t, err)
-	defer ds.Close()
-
-	newCfg := &model.Config{
-		ServiceSettings: model.ServiceSettings{
-			SiteURL: sToP("http://new"),
-		},
-	}
-
-	t.Run("set without save", func(t *testing.T) {
-		_, err = ds.Set(newCfg)
-		require.NoError(t, err)
-
-		err = ds.Load()
-		require.NoError(t, err)
-
-		assert.Equal(t, "http://minimal", *ds.Get().ServiceSettings.SiteURL)
-	})
-
-	t.Run("set with save", func(t *testing.T) {
-		_, err = ds.Set(newCfg)
-		require.NoError(t, err)
-
-		err = ds.Save()
-		require.NoError(t, err)
-
-		err = ds.Load()
-		require.NoError(t, err)
-
-		assert.Equal(t, "http://new", *ds.Get().ServiceSettings.SiteURL)
 	})
 }
 

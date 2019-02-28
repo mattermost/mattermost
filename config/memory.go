@@ -73,7 +73,7 @@ func (ms *memoryStore) Set(newCfg *model.Config) (*model.Config, error) {
 		validate = nil
 	}
 
-	return ms.commonStore.set(newCfg, validate)
+	return ms.commonStore.set(newCfg, validate, ms.persist)
 }
 
 // persist copies the active config to the saved config.
@@ -99,14 +99,6 @@ func (ms *memoryStore) Load() (err error) {
 	}
 
 	return ms.commonStore.load(f, false, validate, ms.persist)
-}
-
-// Save copies the active config to the saved config, simulating a backing store.
-func (ms *memoryStore) Save() error {
-	ms.configLock.Lock()
-	defer ms.configLock.Unlock()
-
-	return ms.persist(ms.config)
 }
 
 // GetFile fetches the contents of a previously persisted configuration file.

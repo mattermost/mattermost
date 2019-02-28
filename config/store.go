@@ -20,14 +20,11 @@ type Store interface {
 	// GetEnvironmentOverrides fetches the configuration fields overridden by environment variables.
 	GetEnvironmentOverrides() map[string]interface{}
 
-	// Set replaces the current configuration in its entirety, without updating the backing store.
+	// Set replaces the current configuration in its entirety and updates the backing store.
 	Set(*model.Config) (*model.Config, error)
 
 	// Load updates the current configuration from the backing store, possibly initializing.
 	Load() (err error)
-
-	// Save writes the current configuration to the backing store.
-	Save() error
 
 	// AddListener adds a callback function to invoke when the configuration is modified.
 	AddListener(listener Listener) string

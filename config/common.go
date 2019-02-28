@@ -36,10 +36,11 @@ func (cs *commonStore) GetEnvironmentOverrides() map[string]interface{} {
 	return cs.environmentOverrides
 }
 
-// set replaces the current configuration in its entirety, without updating the backing store.
+// set replaces the current configuration in its entirety, and updates the backing store
+// using the persist function argument.
 //
 // This function assumes no lock has been acquired, as it acquires a write lock itself.
-func (cs *commonStore) set(newCfg *model.Config, validate func(*model.Config) error) (*model.Config, error) {
+func (cs *commonStore) set(newCfg *model.Config, validate func(*model.Config) error, persist func(*model.Config) error) (*model.Config, error) {
 	cs.configLock.Lock()
 	var unlockOnce sync.Once
 	defer unlockOnce.Do(cs.configLock.Unlock)
@@ -66,12 +67,9 @@ func (cs *commonStore) set(newCfg *model.Config, validate func(*model.Config) er
 		}
 	}
 
-	// Ideally, Set would persist automatically and abstract this completely away from the
-	// client. Doing so requires a few upstream changes first, so for now an explicit Save()
-	// remains required.
-	// if err := cs.persist(newCfg); err != nil {
-	// 	return nil, errors.Wrap(err, "failed to persist")
-	// }
+	if err := persist(newCfg); err != nil {
+		return nil, errors.Wrap(err, "failed to persist")
+	}
 
 	cs.config = newCfg
 
@@ -95,8 +93,7 @@ func (cs *commonStore) load(f io.ReadCloser, needsSave bool, validate func(*mode
 	}
 
 	// SetDefaults generates various keys and salts if not previously configured. Determine if
-	// such a change will be made before invoking. This method will not effect the save: that
-	// remains the responsibility of the caller.
+	// such a change will be made before invoking.
 	needsSave = needsSave || loadedCfg.SqlSettings.AtRestEncryptKey == nil || len(*loadedCfg.SqlSettings.AtRestEncryptKey) == 0
 	needsSave = needsSave || loadedCfg.FileSettings.PublicLinkSalt == nil || len(*loadedCfg.FileSettings.PublicLinkSalt) == 0
 	needsSave = needsSave || loadedCfg.EmailSettings.InviteSalt == nil || len(*loadedCfg.EmailSettings.InviteSalt) == 0

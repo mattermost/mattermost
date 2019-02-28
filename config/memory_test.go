@@ -274,43 +274,6 @@ func TestMemoryStoreLoad(t *testing.T) {
 	})
 }
 
-func TestMemoryStoreSave(t *testing.T) {
-	setupConfigMemory(t)
-
-	ms, err := config.NewMemoryStoreWithOptions(&config.MemoryStoreOptions{InitialConfig: minimalConfig})
-	require.NoError(t, err)
-	defer ms.Close()
-
-	newCfg := &model.Config{
-		ServiceSettings: model.ServiceSettings{
-			SiteURL: sToP("http://new"),
-		},
-	}
-
-	t.Run("set without save", func(t *testing.T) {
-		_, err = ms.Set(newCfg)
-		require.NoError(t, err)
-
-		err = ms.Load()
-		require.NoError(t, err)
-
-		assert.Equal(t, "http://minimal", *ms.Get().ServiceSettings.SiteURL)
-	})
-
-	t.Run("set with save", func(t *testing.T) {
-		_, err = ms.Set(newCfg)
-		require.NoError(t, err)
-
-		err = ms.Save()
-		require.NoError(t, err)
-
-		err = ms.Load()
-		require.NoError(t, err)
-
-		assert.Equal(t, "http://new", *ms.Get().ServiceSettings.SiteURL)
-	})
-}
-
 func TestMemoryGetFile(t *testing.T) {
 	setupConfigMemory(t)
 

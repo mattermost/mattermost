@@ -92,7 +92,7 @@ func resolveConfigFilePath(path string) (string, error) {
 	return "", fmt.Errorf("failed to find config file %s", path)
 }
 
-// Set replaces the current configuration in its entirety, without updating the backing store.
+// Set replaces the current configuration in its entirety and updates the backing store.
 func (fs *FileStore) Set(newCfg *model.Config) (*model.Config, error) {
 	return fs.commonStore.set(newCfg, func(cfg *model.Config) error {
 		if *fs.config.ClusterSettings.Enable && *fs.config.ClusterSettings.ReadOnlyConfig {
@@ -100,7 +100,7 @@ func (fs *FileStore) Set(newCfg *model.Config) (*model.Config, error) {
 		}
 
 		return fs.commonStore.validate(cfg)
-	})
+	}, fs.persist)
 }
 
 // persist writes the configuration to the configured file.
@@ -156,14 +156,6 @@ func (fs *FileStore) Load() (err error) {
 	}()
 
 	return fs.commonStore.load(f, needsSave, fs.commonStore.validate, fs.persist)
-}
-
-// Save writes the current configuration to the backing store.
-func (fs *FileStore) Save() error {
-	fs.configLock.Lock()
-	defer fs.configLock.Unlock()
-
-	return fs.persist(fs.config)
 }
 
 // GetFile fetches the contents of a previously persisted configuration file.

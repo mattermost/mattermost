@@ -1348,23 +1348,25 @@ func (us SqlUserStore) GetProfilesNotInTeam(teamId string, offset int, limit int
 
 func (us SqlUserStore) GetEtagForProfilesNotInTeam(teamId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		updateAt, err := us.GetReplica().SelectInt(`
-            SELECT
-                u.UpdateAt
-            FROM Users u
-            LEFT JOIN TeamMembers tm
-                ON tm.UserId = u.Id
-                AND tm.TeamId = :TeamId
-                AND tm.DeleteAt = 0
-            WHERE tm.UserId IS NULL
-            ORDER BY u.UpdateAt DESC
-            LIMIT 1
-            `, map[string]interface{}{"TeamId": teamId})
 
+		var querystr string
+		querystr = `
+			SELECT 
+				CONCAT(MAX(UpdateAt), '.', COUNT(Id)) as etag
+			FROM 
+				Users as u
+			LEFT JOIN TeamMembers tm 
+				ON tm.UserId = u.Id 
+				AND tm.TeamId = :TeamId 
+				AND tm.DeleteAt = 0
+			WHERE 
+				tm.UserId IS NULL
+		`
+		etag, err := us.GetReplica().SelectStr(querystr, map[string]interface{}{"TeamId": teamId})
 		if err != nil {
 			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, model.GetMillis())
 		} else {
-			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, updateAt)
+			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, etag)
 		}
 	})
 }

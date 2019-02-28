@@ -63,7 +63,6 @@ func (a *App) AddSamlPublicCertificate(fileData *multipart.FileHeader) *model.Ap
 	}
 
 	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
-	a.PersistConfig()
 
 	return nil
 }
@@ -81,7 +80,6 @@ func (a *App) AddSamlPrivateCertificate(fileData *multipart.FileHeader) *model.A
 	}
 
 	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
-	a.PersistConfig()
 
 	return nil
 }
@@ -99,7 +97,6 @@ func (a *App) AddSamlIdpCertificate(fileData *multipart.FileHeader) *model.AppEr
 	}
 
 	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
-	a.PersistConfig()
 
 	return nil
 }
@@ -126,7 +123,6 @@ func (a *App) RemoveSamlPublicCertificate() *model.AppError {
 	}
 
 	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
-	a.PersistConfig()
 
 	return nil
 }
@@ -145,7 +141,6 @@ func (a *App) RemoveSamlPrivateCertificate() *model.AppError {
 	}
 
 	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
-	a.PersistConfig()
 
 	return nil
 }
@@ -164,7 +159,6 @@ func (a *App) RemoveSamlIdpCertificate() *model.AppError {
 	}
 
 	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
-	a.PersistConfig()
 
 	return nil
 }
