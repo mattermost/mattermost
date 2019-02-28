@@ -25,6 +25,14 @@ type PluginOption struct {
 	Value string `json:"value" yaml:"value"`
 }
 
+type ListEntry struct {
+	// The key for this entry in the list/array
+	Key string `json:"key" yaml:"key"`
+
+	// The value for this entry in the list/array
+	Value string `json:"value" yaml:"value"`
+}
+
 type PluginSetting struct {
 	// The key that the setting will be assigned to in the configuration file.
 	Key string `json:"key" yaml:"key"`
@@ -50,6 +58,8 @@ type PluginSetting struct {
 	// "longtext" will result in a multi line string that can be typed in manually.
 	//
 	// "username" will result in a text setting that will autocomplete to a username.
+	//
+	// "key_value_list" will result in an array or 'map' of key:value strings that can be edited by the user.
 	Type string `json:"type" yaml:"type"`
 
 	// The help text to display to the user.
@@ -67,6 +77,10 @@ type PluginSetting struct {
 	// For "radio" or "dropdown" settings, this is the list of pre-defined options that the user can choose
 	// from.
 	Options []*PluginOption `json:"options,omitempty" yaml:"options,omitempty"`
+
+	// For the "key_value_list" setting, this is the list of currently defined key:value pairs,
+	// which can be modified by the user.
+	KeyValueList []*ListEntry `json:"key_value_list,omitempty" yaml:"key_value_list,omitempty"`
 }
 
 type PluginSettingsSchema struct {

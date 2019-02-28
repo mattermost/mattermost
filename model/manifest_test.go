@@ -95,6 +95,25 @@ func TestManifestUnmarshal(t *testing.T) {
 					},
 					Default: "thedefault",
 				},
+				&PluginSetting{
+					Key:                "alistsetting",
+					DisplayName:        "Key:Value pairs",
+					Type:               "key_value_list",
+					HelpText:           "thehelptext",
+					RegenerateHelpText: "theregeneratehelptext",
+					Placeholder:        "theplaceholder",
+					KeyValueList: []*ListEntry{
+						&ListEntry{
+							Key:   "Key1",
+							Value: "Value1",
+						},
+						&ListEntry{
+							Key:   "Key2",
+							Value: "Value2 'with' \"quotes\"",
+						},
+					},
+					Default: "default not very relevant for list setting",
+				},
 			},
 		},
 	}
@@ -125,6 +144,19 @@ settings_schema:
               - display_name: theoptiondisplayname
                 value: thevalue
           default: thedefault
+        - key: alistsetting
+          display_name: Key:Value pairs
+          type: key_value_list
+          help_text: thehelptext
+          regenerate_help_text: theregeneratehelptext
+          placeholder: theplaceholder
+          key_value_list:
+              - key: Key1
+                value: Value1
+              - key: Key2
+                value: Value2 'with' "quotes"
+          default: default not very relevant for list setting
+        
 `), &yamlResult))
 	assert.Equal(t, expected, yamlResult)
 
@@ -161,6 +193,25 @@ settings_schema:
 					}
 				],
 				"default": "thedefault"
+			},
+			{
+				"key": "alistsetting",
+				"display_name": "Key:Value pairs",
+				"type": "key_value_list",
+				"help_text": "thehelptext",
+				"regenerate_help_text": "theregeneratehelptext",
+				"placeholder": "theplaceholder",
+				"key_value_list": [
+					{
+						"key": "Key1",
+						"value": "Value1"
+					},
+					{
+						"key": "Key2",
+						"value": "Value2 'with' \"quotes\""
+					}
+				],
+				"default": "default not very relevant for list setting"
 			}
 		]
     }
@@ -238,6 +289,24 @@ func TestManifestJson(t *testing.T) {
 					},
 					Default: "thedefault",
 				},
+				&PluginSetting{
+					Key:                "alistsetting",
+					DisplayName:        "Key:Value pairs",
+					Type:               "key_value_list",
+					HelpText:           "thehelptext",
+					RegenerateHelpText: "theregeneratehelptext",
+					Placeholder:        "theplaceholder",
+					KeyValueList: []*ListEntry{
+						&ListEntry{
+							Key:   "Key1",
+							Value: "Value1",
+						},
+						&ListEntry{
+							Key:   "Key2",
+							Value: "Value2",
+						},
+					},
+				},
 			},
 		},
 	}
@@ -304,6 +373,24 @@ func TestManifestClientManifest(t *testing.T) {
 						},
 					},
 					Default: "thedefault",
+				},
+				&PluginSetting{
+					Key:                "alistsetting",
+					DisplayName:        "Key:Value pairs",
+					Type:               "key_value_list",
+					HelpText:           "thehelptext",
+					RegenerateHelpText: "theregeneratehelptext",
+					Placeholder:        "theplaceholder",
+					KeyValueList: []*ListEntry{
+						&ListEntry{
+							Key:   "Key1",
+							Value: "Value1",
+						},
+						&ListEntry{
+							Key:   "Key2",
+							Value: "Value2",
+						},
+					},
 				},
 			},
 		},
