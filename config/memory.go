@@ -87,11 +87,6 @@ func (ms *memoryStore) Load() (err error) {
 	return nil
 }
 
-// Save does nothing, as there is no backing store.
-func (ms *memoryStore) Save() error {
-	return nil
-}
-
 // String returns a hard-coded description, as there is no backing store.
 func (ms *memoryStore) String() string {
 	return "mock://"

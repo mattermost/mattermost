@@ -168,7 +168,6 @@ func (a *App) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bo
 		return model.NewAppError("saveConfig", "app.save_config.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	a.PersistConfig()
 	if a.Metrics != nil {
 		if *a.Config().MetricsSettings.Enable {
 			a.Metrics.StartServer()
