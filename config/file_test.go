@@ -20,71 +20,6 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-var emptyConfig, readOnlyConfig, minimalConfig, invalidConfig, fixesRequiredConfig, ldapConfig, testConfig *model.Config
-
-func init() {
-	emptyConfig = &model.Config{}
-	readOnlyConfig = &model.Config{
-		ClusterSettings: model.ClusterSettings{
-			Enable:         bToP(true),
-			ReadOnlyConfig: bToP(true),
-		},
-	}
-	minimalConfig = &model.Config{
-		ServiceSettings: model.ServiceSettings{
-			SiteURL: sToP("http://minimal"),
-		},
-		SqlSettings: model.SqlSettings{
-			AtRestEncryptKey: sToP("abcdefghijklmnopqrstuvwxyz0123456789"),
-		},
-		FileSettings: model.FileSettings{
-			PublicLinkSalt: sToP("abcdefghijklmnopqrstuvwxyz0123456789"),
-		},
-		EmailSettings: model.EmailSettings{
-			InviteSalt: sToP("abcdefghijklmnopqrstuvwxyz0123456789"),
-		},
-		LocalizationSettings: model.LocalizationSettings{
-			DefaultServerLocale: sToP("en"),
-			DefaultClientLocale: sToP("en"),
-		},
-	}
-	invalidConfig = &model.Config{
-		ServiceSettings: model.ServiceSettings{
-			SiteURL: sToP("invalid"),
-		},
-	}
-	fixesRequiredConfig = &model.Config{
-		ServiceSettings: model.ServiceSettings{
-			SiteURL: sToP("http://trailingslash/"),
-		},
-		SqlSettings: model.SqlSettings{
-			AtRestEncryptKey: sToP("abcdefghijklmnopqrstuvwxyz0123456789"),
-		},
-		FileSettings: model.FileSettings{
-			DriverName:     sToP(model.IMAGE_DRIVER_LOCAL),
-			Directory:      sToP("/path/to/directory"),
-			PublicLinkSalt: sToP("abcdefghijklmnopqrstuvwxyz0123456789"),
-		},
-		EmailSettings: model.EmailSettings{
-			InviteSalt: sToP("abcdefghijklmnopqrstuvwxyz0123456789"),
-		},
-		LocalizationSettings: model.LocalizationSettings{
-			DefaultServerLocale: sToP("garbage"),
-			DefaultClientLocale: sToP("garbage"),
-		},
-	}
-	ldapConfig = &model.Config{
-		LdapSettings: model.LdapSettings{
-			BindPassword: sToP("password"),
-		},
-	}
-	testConfig = &model.Config{
-		ServiceSettings: model.ServiceSettings{
-			SiteURL: sToP("http://TestStoreNew"),
-		},
-	}
-}
-
 func setupConfigFile(t *testing.T, cfg *model.Config) (string, func()) {
 	os.Clearenv()
 	t.Helper()
@@ -129,6 +64,8 @@ func getActualFileConfig(t *testing.T, path string) *model.Config {
 
 // assertFileEqualsConfig verifies the on disk contents of the given path equal the given config.
 func assertFileEqualsConfig(t *testing.T, expectedCfg *model.Config, path string) {
+	t.Helper()
+
 	expectedCfg = prepareExpectedConfig(t, expectedCfg)
 	actualCfg := getActualFileConfig(t, path)
 
@@ -137,6 +74,8 @@ func assertFileEqualsConfig(t *testing.T, expectedCfg *model.Config, path string
 
 // assertFileNotEqualsConfig verifies the on disk contents of the given path does not equal the given config.
 func assertFileNotEqualsConfig(t *testing.T, expectedCfg *model.Config, path string) {
+	t.Helper()
+
 	expectedCfg = prepareExpectedConfig(t, expectedCfg)
 	actualCfg := getActualFileConfig(t, path)
 
