@@ -108,7 +108,7 @@ func testLinkMetadataStoreSave(t *testing.T, ss store.Store) {
 
 		result := <-ss.LinkMetadata().Save(metadata)
 		require.Nil(t, result.Err)
-		assert.Equal(t, result.Data.(*model.LinkMetadata).Data, &model.PostImage{})
+		assert.Equal(t, &model.PostImage{}, result.Data.(*model.LinkMetadata).Data)
 
 		metadata.Data = &model.PostImage{Height: 10, Width: 20}
 
@@ -119,7 +119,7 @@ func testLinkMetadataStoreSave(t *testing.T, ss store.Store) {
 		// Should return the original result, not the duplicate one
 		result = <-ss.LinkMetadata().Get(metadata.URL, metadata.Timestamp)
 		require.Nil(t, result.Err)
-		assert.Equal(t, result.Data.(*model.LinkMetadata).Data, &model.PostImage{})
+		assert.Equal(t, &model.PostImage{}, result.Data.(*model.LinkMetadata).Data)
 	})
 }
 
