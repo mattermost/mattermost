@@ -155,7 +155,6 @@ func (a *App) ensurePostActionCookieSecret() error {
 	}
 
 	a.Srv.postActionCookieSecret = secret.Secret
-	// a.regenerateClientConfig() -- not needed here?
 	return nil
 }
 
