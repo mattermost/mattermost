@@ -2171,6 +2171,10 @@
     "translation": "{{.Service}} SSO tramite OAuth 2.0 non è disponibile su questo server"
   },
   {
+    "id": "api.user.create_email_token.error",
+    "translation": "Errore nel creare i dati per l'email di verifica"
+  },
+  {
     "id": "api.user.create_oauth_user.already_attached.app_error",
     "translation": "E' già presente un account associato a questo indirizzo email per l'accesso con un altro servizio diverso da {{.Service}}. Effettua login via {{.Auth}}."
   },
@@ -2477,6 +2481,14 @@
   {
     "id": "api.user.verify_email.broken_token.app_error",
     "translation": "Tipo token non valido per la verifica email."
+  },
+  {
+    "id": "api.user.verify_email.link_expired.app_error",
+    "translation": "Il collegamento per verificare l'email è scaduto."
+  },
+  {
+    "id": "api.user.verify_email.token_parse.error",
+    "translation": "Errore nel convertire i dati dall'email di verifica"
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",

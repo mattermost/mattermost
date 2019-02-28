@@ -2171,6 +2171,10 @@
     "translation": "{{.Servicio}} SSO a través de OAuth 2.0 no está disponible en este servidor"
   },
   {
+    "id": "api.user.create_email_token.error",
+    "translation": "No se pudo crear el token de datos para la verificación de correo electrónico"
+  },
+  {
     "id": "api.user.create_oauth_user.already_attached.app_error",
     "translation": "Ya existe una cuenta asociada a esa dirección de correo electrónico utilizando un método de inicio de sesión diferente a {{.Service}}. Por favor inicia sesión utilizando {{.Auth}}."
   },
@@ -2477,6 +2481,14 @@
   {
     "id": "api.user.verify_email.broken_token.app_error",
     "translation": "Tipo de token de verificación de correo electrónico erróneo."
+  },
+  {
+    "id": "api.user.verify_email.link_expired.app_error",
+    "translation": "En enlace para verificar el corre electrónico ha expirado."
+  },
+  {
+    "id": "api.user.verify_email.token_parse.error",
+    "translation": "Error al analizar el token de datos de verificación del correo electrónico"
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",

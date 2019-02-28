@@ -2171,6 +2171,10 @@
     "translation": "{{.Service}} SSO prin OAuth 2.0 nu este disponibil pe acest server"
   },
   {
+    "id": "api.user.create_email_token.error",
+    "translation": "Failed to create token data for email verification"
+  },
+  {
     "id": "api.user.create_oauth_user.already_attached.app_error",
     "translation": "Există deja un cont asociat cu respectiva adresă de e-mail utilizând o metodă de conectare diferită de {{.Service}}. Conectați-vă folosind {{.Auth}}."
   },
@@ -2477,6 +2481,14 @@
   {
     "id": "api.user.verify_email.broken_token.app_error",
     "translation": "Bad verifica e-mail tip token."
+  },
+  {
+    "id": "api.user.verify_email.link_expired.app_error",
+    "translation": "The email verification link has expired."
+  },
+  {
+    "id": "api.user.verify_email.token_parse.error",
+    "translation": "Failed to parse token data from email verification"
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
