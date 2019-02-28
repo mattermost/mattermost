@@ -226,9 +226,6 @@ func configSetCmdF(command *cobra.Command, args []string) error {
 
 	f := updateConfigValue(configSetting, newVal, oldConfig, newConfig)
 	f(newConfig)
-	if _, err := configStore.Set(newConfig); err != nil {
-		return errors.Wrap(err, "failed to set config")
-	}
 
 	// UpdateConfig above would have already fixed these invalid locales, but we check again
 	// in the context of an explicit change to these parameters to avoid saving the fixed
@@ -237,7 +234,9 @@ func configSetCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Invalid locale configuration")
 	}
 
-	configStore.Save()
+	if _, err := configStore.Set(newConfig); err != nil {
+		return errors.Wrap(err, "failed to set config")
+	}
 
 	return nil
 }
