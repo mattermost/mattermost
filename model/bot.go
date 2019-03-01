@@ -24,8 +24,8 @@ const (
 type Bot struct {
 	UserId      string `json:"user_id"`
 	Username    string `json:"username"`
-	DisplayName string `json:"display_name"`
-	Description string `json:"description"`
+	DisplayName string `json:"display_name,omitempty"`
+	Description string `json:"description,omitempty"`
 	OwnerId     string `json:"creator_id"`
 	CreateAt    int64  `json:"create_at"`
 	UpdateAt    int64  `json:"update_at"`
@@ -165,9 +165,8 @@ func BotPatchFromJson(data io.Reader) *BotPatch {
 // UserFromBot returns a user model describing the bot fields stored in the User store.
 func UserFromBot(b *Bot) *User {
 	return &User{
-		Id:       b.UserId,
-		Username: b.Username,
-		// TODO: Allow users not to have an email.
+		Id:        b.UserId,
+		Username:  b.Username,
 		Email:     fmt.Sprintf("%s@localhost", strings.ToLower(b.Username)),
 		FirstName: b.DisplayName,
 	}

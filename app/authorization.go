@@ -237,9 +237,8 @@ func (a *App) SessionHasPermissionToManageBot(session model.Session, botUserId s
 				// If the user doesn't have permission to read bots, pretend as if
 				// the bot doesn't exist at all.
 				return model.MakeBotNotFoundError(botUserId)
-			} else {
-				return a.MakePermissionError(model.PERMISSION_MANAGE_BOTS)
 			}
+			return a.MakePermissionError(model.PERMISSION_MANAGE_BOTS)
 		}
 	} else {
 		if !a.SessionHasPermissionTo(session, model.PERMISSION_MANAGE_OTHERS_BOTS) {
@@ -247,9 +246,8 @@ func (a *App) SessionHasPermissionToManageBot(session model.Session, botUserId s
 				// If the user doesn't have permission to read others' bots,
 				// pretend as if the bot doesn't exist at all.
 				return model.MakeBotNotFoundError(botUserId)
-			} else {
-				return a.MakePermissionError(model.PERMISSION_MANAGE_OTHERS_BOTS)
 			}
+			return a.MakePermissionError(model.PERMISSION_MANAGE_OTHERS_BOTS)
 		}
 	}
 
