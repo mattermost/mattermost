@@ -44,8 +44,6 @@ func TestStartServerRateLimiterCriticalError(t *testing.T) {
 	*config.RateLimitSettings.MaxBurst = -100
 	_, err = ms.Set(config)
 	require.NoError(t, err)
-	err = ms.Save()
-	require.NoError(t, err)
 
 	s, err := NewServer(ConfigStore(ms))
 	require.NoError(t, err)
