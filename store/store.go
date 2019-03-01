@@ -104,6 +104,7 @@ type TeamStore interface {
 	GetTotalMemberCount(teamId string) StoreChannel
 	GetActiveMemberCount(teamId string) StoreChannel
 	GetTeamsForUser(userId string) StoreChannel
+	GetTeamsForUserWithPagination(userId string, page, perPage int) StoreChannel
 	GetChannelUnreadsForAllTeams(excludeTeamId, userId string) StoreChannel
 	GetChannelUnreadsForTeam(teamId, userId string) StoreChannel
 	RemoveMember(teamId string, userId string) StoreChannel
@@ -169,6 +170,7 @@ type ChannelStore interface {
 	IncrementMentionCount(channelId string, userId string) StoreChannel
 	AnalyticsTypeCount(teamId string, channelType string) StoreChannel
 	GetMembersForUser(teamId string, userId string) StoreChannel
+	GetMembersForUserWithPagination(teamId, userId string, page, perPage int) StoreChannel
 	AutocompleteInTeam(teamId string, term string, includeDeleted bool) StoreChannel
 	AutocompleteInTeamForSearch(teamId string, userId string, term string, includeDeleted bool) StoreChannel
 	SearchAllChannels(term string, includeDeleted bool) StoreChannel
@@ -259,7 +261,7 @@ type UserStore interface {
 	GetAllUsingAuthService(authService string) StoreChannel
 	GetByUsername(username string) StoreChannel
 	GetForLogin(loginId string, allowSignInWithUsername, allowSignInWithEmail bool) StoreChannel
-	VerifyEmail(userId string) StoreChannel
+	VerifyEmail(userId, email string) StoreChannel
 	GetEtagForAllProfiles() StoreChannel
 	GetEtagForProfiles(teamId string) StoreChannel
 	UpdateFailedPasswordAttempts(userId string, attempts int) StoreChannel

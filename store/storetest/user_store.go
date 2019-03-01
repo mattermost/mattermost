@@ -2891,10 +2891,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1))
 	u2.UpdateAt = store.Must(ss.User().UpdateUpdateAt(u2.Id)).(int64)
 
-	// GetEtagForProfilesNotInTeam only works if the most recent user is added to the team,
-	// otherwise the timestamp simply never changes: see https://mattermost.atlassian.net/browse/MM-13721.
 	t.Run("etag for profiles not in team 1 after update", func(t *testing.T) {
-		t.Skip()
 		result := <-ss.User().GetEtagForProfilesNotInTeam(teamId)
 		require.Nil(t, result.Err)
 		etag2 = result.Data.(string)
@@ -2938,13 +2935,31 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	// Ensure update at timestamp changes
 	time.Sleep(time.Millisecond * 10)
 
-	u4 := &model.User{}
-	u4.Email = MakeEmail()
-	store.Must(ss.User().Save(u4))
+	u4 := store.Must(ss.User().Save(&model.User{
+		Email:    MakeEmail(),
+		Username: "u4" + model.NewId(),
+	})).(*model.User)
 	defer func() { store.Must(ss.User().PermanentDelete(u4.Id)) }()
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u4.Id}, -1))
 
 	t.Run("etag for profiles not in team 1 after addition to team", func(t *testing.T) {
+		result := <-ss.User().GetEtagForProfilesNotInTeam(teamId)
+		require.Nil(t, result.Err)
+		etag4 := result.Data.(string)
+		require.Equal(t, etag3, etag4, "etag should not have changed")
+	})
+
+	// Add u3 to team 2
+	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId2, UserId: u3.Id}, -1))
+	u3.UpdateAt = store.Must(ss.User().UpdateUpdateAt(u3.Id)).(int64)
+
+	// GetEtagForProfilesNotInTeam produces a new etag every time a member, not
+	// in the team, gets a new UpdateAt value. In the case that an older member
+	// in the set joins a different team, their UpdateAt value changes, thus
+	// creating a new etag (even though the user set doesn't change). A hashing
+	// solution, which only uses UserIds, would solve this issue.
+	t.Run("etag for profiles not in team 1 after u3 added to team 2", func(t *testing.T) {
+		t.Skip()
 		result := <-ss.User().GetEtagForProfilesNotInTeam(teamId)
 		require.Nil(t, result.Err)
 		etag4 := result.Data.(string)

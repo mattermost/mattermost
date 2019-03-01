@@ -30,7 +30,8 @@ type TestHelper struct {
 }
 
 func Setup() *TestHelper {
-	mainHelper.Store.DropAllTables()
+	store := mainHelper.GetStore()
+	store.DropAllTables()
 
 	permConfig, err := os.Open(fileutils.FindConfigFile("config.json"))
 	if err != nil {
@@ -48,7 +49,7 @@ func Setup() *TestHelper {
 	}
 
 	options := []app.Option{app.Config(tempConfig.Name(), false)}
-	options = append(options, app.StoreOverride(mainHelper.Store))
+	options = append(options, app.StoreOverride(store))
 
 	s, err := app.NewServer(options...)
 	if err != nil {

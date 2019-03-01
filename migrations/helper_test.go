@@ -32,7 +32,8 @@ type TestHelper struct {
 }
 
 func setupTestHelper(enterprise bool) *TestHelper {
-	mainHelper.Store.DropAllTables()
+	store := mainHelper.GetStore()
+	store.DropAllTables()
 
 	permConfig, err := os.Open(fileutils.FindConfigFile("config.json"))
 	if err != nil {
@@ -50,7 +51,7 @@ func setupTestHelper(enterprise bool) *TestHelper {
 	}
 
 	options := []app.Option{app.Config(tempConfig.Name(), false)}
-	options = append(options, app.StoreOverride(mainHelper.Store))
+	options = append(options, app.StoreOverride(store))
 
 	s, err := app.NewServer(options...)
 	if err != nil {
@@ -268,13 +269,14 @@ func (me *TestHelper) TearDown() {
 }
 
 func (me *TestHelper) ResetRoleMigration() {
-	if _, err := mainHelper.SqlSupplier.GetMaster().Exec("DELETE from Roles"); err != nil {
+	sqlSupplier := mainHelper.GetSqlSupplier()
+	if _, err := sqlSupplier.GetMaster().Exec("DELETE from Roles"); err != nil {
 		panic(err)
 	}
 
-	mainHelper.ClusterInterface.SendClearRoleCacheMessage()
+	mainHelper.GetClusterInterface().SendClearRoleCacheMessage()
 
-	if _, err := mainHelper.SqlSupplier.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": app.ADVANCED_PERMISSIONS_MIGRATION_KEY}); err != nil {
+	if _, err := sqlSupplier.GetMaster().Exec("DELETE from Systems where Name = :Name", map[string]interface{}{"Name": app.ADVANCED_PERMISSIONS_MIGRATION_KEY}); err != nil {
 		panic(err)
 	}
 }

@@ -169,8 +169,6 @@ const (
 	PLUGIN_SETTINGS_DEFAULT_DIRECTORY        = "./plugins"
 	PLUGIN_SETTINGS_DEFAULT_CLIENT_DIRECTORY = "./client/plugins"
 
-	TIMEZONE_SETTINGS_DEFAULT_SUPPORTED_TIMEZONES_PATH = "timezones.json"
-
 	COMPLIANCE_EXPORT_TYPE_CSV         = "csv"
 	COMPLIANCE_EXPORT_TYPE_ACTIANCE    = "actiance"
 	COMPLIANCE_EXPORT_TYPE_GLOBALRELAY = "globalrelay"
@@ -2141,16 +2139,6 @@ func (s *DisplaySettings) SetDefaults() {
 	}
 }
 
-type TimezoneSettings struct {
-	SupportedTimezonesPath *string
-}
-
-func (s *TimezoneSettings) SetDefaults() {
-	if s.SupportedTimezonesPath == nil {
-		s.SupportedTimezonesPath = NewString(TIMEZONE_SETTINGS_DEFAULT_SUPPORTED_TIMEZONES_PATH)
-	}
-}
-
 type ImageProxySettings struct {
 	Enable                  *bool
 	ImageProxyType          *string
@@ -2222,7 +2210,6 @@ type Config struct {
 	JobSettings           JobSettings
 	PluginSettings        PluginSettings
 	DisplaySettings       DisplaySettings
-	TimezoneSettings      TimezoneSettings
 	ImageProxySettings    ImageProxySettings
 }
 
@@ -2297,7 +2284,6 @@ func (o *Config) SetDefaults() {
 	o.LogSettings.SetDefaults()
 	o.JobSettings.SetDefaults()
 	o.MessageExportSettings.SetDefaults()
-	o.TimezoneSettings.SetDefaults()
 	o.DisplaySettings.SetDefaults()
 	o.ImageProxySettings.SetDefaults(o.ServiceSettings)
 }

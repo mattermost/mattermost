@@ -18,7 +18,6 @@ import (
 	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
 )
@@ -562,27 +561,6 @@ func (a *App) LoginByOAuth(service string, userData io.Reader, teamId string) (*
 
 	if err != nil {
 		return nil, err
-	}
-
-	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-		var rejectionReason string
-		pluginContext := a.PluginContext()
-		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-			rejectionReason = hooks.UserWillLogIn(pluginContext, user)
-			return rejectionReason == ""
-		}, plugin.UserWillLogInId)
-
-		if rejectionReason != "" {
-			return nil, model.NewAppError("LoginByOAuth", "Login rejected by plugin: "+rejectionReason, nil, "", http.StatusBadRequest)
-		}
-
-		a.Srv.Go(func() {
-			pluginContext := a.PluginContext()
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				hooks.UserHasLoggedIn(pluginContext, user)
-				return true
-			}, plugin.UserHasLoggedInId)
-		})
 	}
 
 	return user, nil

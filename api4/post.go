@@ -431,7 +431,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// The post being updated in the payload must be the same one as indicated in the URL.
 	if post.Id != c.Params.PostId {
-		c.SetInvalidParam("post_id")
+		c.SetInvalidParam("id")
 		return
 	}
 
