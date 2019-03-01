@@ -1207,6 +1207,22 @@ func (a *App) GetChannelMembersForUser(teamId string, userId string) (*model.Cha
 	return result.Data.(*model.ChannelMembers), nil
 }
 
+func (a *App) GetChannelMembersForUserWithPagination(teamId, userId string, page, perPage int) ([]*model.ChannelMember, *model.AppError) {
+	result := <-a.Srv.Store.Channel().GetMembersForUserWithPagination(teamId, userId, page, perPage)
+	if result.Err != nil {
+		return nil, result.Err
+	}
+
+	m := result.Data.(*model.ChannelMembers)
+	members := make([]*model.ChannelMember, 0)
+	if m != nil {
+		for _, member := range *m {
+			members = append(members, &member)
+		}
+	}
+	return members, nil
+}
+
 func (a *App) GetChannelMemberCount(channelId string) (int64, *model.AppError) {
 	result := <-a.Srv.Store.Channel().GetMemberCount(channelId, true)
 	if result.Err != nil {

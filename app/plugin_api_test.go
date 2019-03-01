@@ -881,3 +881,30 @@ func TestPluginAPI_SearchTeams(t *testing.T) {
 		assert.Empty(t, teams)
 	})
 }
+
+func TestPluginAPI_GetTeamMembersForUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	userId := th.BasicUser.Id
+	teamMembers, err := api.GetTeamMembersForUser(userId, 0, 10)
+	assert.Nil(t, err)
+	assert.Equal(t, len(teamMembers), 1)
+	assert.Equal(t, teamMembers[0].TeamId, th.BasicTeam.Id)
+	assert.Equal(t, teamMembers[0].UserId, th.BasicUser.Id)
+}
+
+func TestPluginAPI_GetChannelMembersForUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	userId := th.BasicUser.Id
+	teamId := th.BasicTeam.Id
+	channelMembers, err := api.GetChannelMembersForUser(teamId, userId, 0, 10)
+
+	assert.Nil(t, err)
+	assert.Equal(t, len(channelMembers), 3)
+	assert.Equal(t, channelMembers[0].UserId, th.BasicUser.Id)
+}
