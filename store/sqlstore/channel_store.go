@@ -14,6 +14,7 @@ import (
 	"github.com/mattermost/gorp"
 	"github.com/pkg/errors"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -2545,26 +2546,56 @@ func (s SqlChannelStore) GetChannelMembersForExport(userId string, teamId string
 func (s SqlChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var data []*model.DirectChannelForExport
-		if _, err := s.GetReplica().Select(&data, `
-			SELECT
-				Channels.*,
-				GROUP_CONCAT(Users.Username SEPARATOR ',') AS Usernames
-			FROM Channels
-			LEFT JOIN
-				ChannelMembers CM ON CM.ChannelId = Channels.Id
-			LEFT JOIN
-				Users ON Users.Id = CM.UserId
-			WHERE
-				Channels.Id > :AfterId
-				AND Channels.Type IN ('D', 'G')
-			GROUP BY
-				Id
-			ORDER BY
-				Id
-			LIMIT :Limit`,
-			map[string]interface{}{"AfterId": afterId, "Limit": limit}); err != nil {
+		query := sq.Select("Channels.*").
+			From("Channels").
+			LeftJoin("ChannelMembers CM ON CM.ChannelId = Channels.Id").
+			LeftJoin("Users ON Users.Id = CM.UserId").
+			Where(sq.And{sq.Gt{"Channels.Id": afterId},
+				sq.Eq{"Channels.Type": []string{"D", "G"}}}).
+			GroupBy("Id").
+			OrderBy("Id").
+			Limit(uint64(limit))
+
+		queryString, args, err := query.ToSql()
+		if err != nil {
 			result.Err = model.NewAppError("SqlTeamStore.GetAllDirectChannelsForExportAfter", "store.sql_channel.get_all_direct.app_error", nil, err.Error(), http.StatusInternalServerError)
 			return
+		}
+
+		if _, err := s.GetReplica().Select(&data, queryString, args...); err != nil {
+			result.Err = model.NewAppError("SqlTeamStore.GetAllDirectChannelsForExportAfter", "store.sql_channel.get_all_direct.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		var channelIds []string
+		for _, channel := range data {
+			channelIds = append(channelIds, channel.Id)
+		}
+		query = sq.Select("*").
+			From("ChannelMembers cm").
+			Join("Users u ON ( u.Id = cm.UserId )").
+			Where(sq.Eq{"cm.ChannelId": channelIds})
+
+		queryString, args, err = query.ToSql()
+		if err != nil {
+			result.Err = model.NewAppError("SqlTeamStore.GetAllDirectChannelsForExportAfter", "store.sql_channel.get_all_direct.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		var channelMembers []*model.ChannelMemberForExport
+		if _, err := s.GetReplica().Select(&channelMembers, queryString, args...); err != nil {
+			result.Err = model.NewAppError("SqlTeamStore.GetAllDirectChannelsForExportAfter", "store.sql_channel.get_all_direct.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		// Populate each channel with its members
+		for _, channel := range data {
+			var members []string
+			for _, member := range channelMembers {
+				if channel.Id == member.ChannelId {
+					members = append(members, member.UserId)
+				}
+			}
+			channel.Members = &members
 		}
 
 		result.Data = data

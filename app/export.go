@@ -79,9 +79,9 @@ func (a *App) BulkExport(writer io.Writer, file string, pathToEmojiDir string, d
 		return err
 	}
 
-	if err := a.ExportAllDirectPosts(writer); err != nil {
-		return err
-	}
+	// if err := a.ExportAllDirectPosts(writer); err != nil {
+	// 	return err
+	// }
 
 	return nil
 }
@@ -541,13 +541,6 @@ func (a *App) ExportAllDirectChannels(writer io.Writer) *model.AppError {
 				continue
 			}
 
-			members := strings.Split(channel.Usernames, ",")
-			channel.Members = &members
-
-			if len(members) == 1 {
-				continue
-			}
-
 			channelLine := ImportLineFromDirectChannel(channel)
 			if err := a.ExportWriteLine(writer, channelLine); err != nil {
 				return err
@@ -583,12 +576,12 @@ func (a *App) ExportAllDirectPosts(writer io.Writer) *model.AppError {
 
 			postLine := ImportLineForDirectPost(post)
 
-			members := strings.Split(post.UserIds, ",")
-			postLine.DirectPost.ChannelMembers = &members
+			// members := strings.Split(post.UserIds, ",")
+			// postLine.DirectPost.ChannelMembers = &members
 
-			if len(members) == 1 {
-				continue
-			}
+			// if len(members) == 1 {
+			// 	continue
+			// }
 
 			// Do the Replies.
 			replies, err := a.buildPostReplies(post.Id)

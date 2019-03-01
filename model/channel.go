@@ -75,8 +75,7 @@ type ChannelForExport struct {
 
 type DirectChannelForExport struct {
 	Channel
-	Usernames string
-	Members   *[]string
+	Members *[]string
 }
 
 func (o *Channel) DeepCopy() *Channel {

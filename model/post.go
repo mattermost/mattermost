@@ -124,7 +124,6 @@ type PostForExport struct {
 
 type DirectPostForExport struct {
 	Post
-	UserIds        string
 	Username       string
 	ChannelMembers *[]string
 }
