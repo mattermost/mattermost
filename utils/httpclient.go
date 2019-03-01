@@ -19,6 +19,8 @@ const (
 
 var reservedIPRanges []*net.IPNet
 
+// IsReservedIP checks whether the target IP belongs to reserved IP address ranges to avoid SSRF attacks to the internal
+// network of the Mattermost server
 func IsReservedIP(ip net.IP) bool {
 	for _, ipRange := range reservedIPRanges {
 		if ipRange.Contains(ip) {
@@ -26,6 +28,39 @@ func IsReservedIP(ip net.IP) bool {
 		}
 	}
 	return false
+}
+
+
+// IsOwnIP handles the special case that a request might be made to the public IP of the host which on Linux is routed
+// directly via the loopback IP to any listening sockets, effectively bypassing host-based firewalls such as firewalld
+func IsOwnIP(ip net.IP) (bool, error) {
+	interfaces, err := net.Interfaces()
+	if err != nil {
+		return false, err
+	}
+
+	for _, interf := range interfaces {
+		addresses, err := interf.Addrs()
+		if err != nil {
+			return false, err
+		}
+
+		for _, addr := range addresses {
+			var selfIP net.IP
+			switch v := addr.(type) {
+			case *net.IPNet:
+				selfIP = v.IP
+			case *net.IPAddr:
+				selfIP = v.IP
+			}
+
+			if ip.Equal(selfIP) {
+				return true, nil
+			}
+		}
+	}
+
+	return false, nil
 }
 
 func init() {

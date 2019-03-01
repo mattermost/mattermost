@@ -492,12 +492,24 @@ func (a *App) HTTPClient(trustURLs bool) *http.Client {
 	}
 
 	allowIP := func(ip net.IP) bool {
-		if !utils.IsReservedIP(ip) {
+		reservedIP := utils.IsReservedIP(ip)
+		ownIP, err := utils.IsOwnIP(ip)
+
+		// If there is an error getting the self-assigned IPs, default to the secure option
+		if err != nil {
+			return false
+		}
+
+		// If it's not a reserved IP and it's not self-assigned IP, accept the IP
+		if !reservedIP && !ownIP {
 			return true
 		}
+
 		if a.Config().ServiceSettings.AllowedUntrustedInternalConnections == nil {
 			return false
 		}
+
+		// In the case it's the self-assigned IP, enforce that it needs to be explicitly added to the AllowedUntrustedInternalConnections
 		for _, allowed := range strings.Fields(*a.Config().ServiceSettings.AllowedUntrustedInternalConnections) {
 			if _, ipRange, err := net.ParseCIDR(allowed); err == nil && ipRange.Contains(ip) {
 				return true
