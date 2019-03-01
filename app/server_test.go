@@ -237,8 +237,12 @@ func TestPanicLog(t *testing.T) {
 	require.NoError(t, serverErr)
 
 	// Calling panic route
-	client := &http.Client{}
-	client.Get("http://localhost:" + strconv.Itoa(s.ListenAddr.Port) + "/panic")
+	tr := &http.Transport{
+		TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+	}
+
+	client := &http.Client{Transport: tr}
+	client.Get("https://localhost:" + strconv.Itoa(s.ListenAddr.Port) + "/panic")
 
 	err = s.Shutdown()
 	require.NoError(t, err)
