@@ -2124,6 +2124,35 @@ func (_m *API) SendEphemeralPost(userId string, post *model.Post) *model.Post {
 	return r0
 }
 
+// UpdateEphemeralPost provides a mock function with given fields: userId, post
+func (_m *API) UpdateEphemeralPost(userId string, post *model.Post) *model.Post {
+	ret := _m.Called(userId, post)
+
+	var r0 *model.Post
+	if rf, ok := ret.Get(0).(func(string, *model.Post) *model.Post); ok {
+		r0 = rf(userId, post)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Post)
+		}
+	}
+
+	return r0
+}
+
+// DeleteEphemeralPost provides a mock function with given fields: userId, post
+func (_m *API) DeleteEphemeralPost(userId string, post *model.Post) {
+	ret := _m.Called(userId, post)
+
+	if rf, ok := ret.Get(0).(func(string, *model.Post) *model.Post); ok {
+		_ = rf(userId, post)
+	} else {
+		if ret.Get(0) != nil {
+			_ = ret.Get(0).(*model.Post)
+		}
+	}
+}
+
 // SendMail provides a mock function with given fields: to, subject, htmlBody
 func (_m *API) SendMail(to string, subject string, htmlBody string) *model.AppError {
 	ret := _m.Called(to, subject, htmlBody)
