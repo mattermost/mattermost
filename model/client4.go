@@ -991,6 +991,7 @@ func (c *Client4) UpdateUserMfa(userId, code string, activate bool) (bool, *Resp
 
 // CheckUserMfa checks whether a user has MFA active on their account or not based on the
 // provided login id.
+// Deprecated: Clients should use Login method and check for MFA Error
 func (c *Client4) CheckUserMfa(loginId string) (bool, *Response) {
 	requestBody := make(map[string]interface{})
 	requestBody["login_id"] = loginId
