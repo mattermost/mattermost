@@ -424,8 +424,6 @@ func (us SqlUserStore) GetAllProfiles(options *model.UserGetOptions) store.Store
 		}
 
 		queryString, args, err := query.ToSql()
-		fmt.Println(queryString)
-		fmt.Println(args)
 		if err != nil {
 			result.Err = model.NewAppError("SqlUserStore.GetAllProfiles", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 			return
@@ -1311,6 +1309,13 @@ func (us SqlUserStore) performSearch(query sq.SelectBuilder, term string, option
 	if strings.TrimSpace(term) != "" {
 		query = generateSearchQuery(query, strings.Fields(term), searchType, isPostgreSQL)
 	}
+
+	query = query.
+		LeftJoin("TeamMembers tm ON ( tm.UserId = u.Id AND tm.DeleteAt = 0 )").
+		LeftJoin("ChannelMembers cm ON ( cm.UserId = u.Id )").
+		Where(eqsFromList("tm.TeamId", options.InTeams)).
+		Where(eqsFromList("cm.ChannelId", options.InChannels)).
+		Distinct()
 
 	queryString, args, err := query.ToSql()
 	if err != nil {

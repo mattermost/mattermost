@@ -1864,6 +1864,37 @@ func (a *App) RestrictUsersGetByPermissions(userId string, options *model.UserGe
 	return options, nil
 }
 
+func (a *App) RestrictUsersSearchByPermissions(userId string, options *model.UserSearchOptions) (*model.UserSearchOptions, *model.AppError) {
+	restrictions, err := a.GetViewUsersRestrictions(userId)
+	if err != nil {
+		return nil, err
+	}
+
+	if restrictions == nil {
+		return options, nil
+	}
+
+	options.InTeams = restrictions.Teams
+	options.InChannels = restrictions.Channels
+	return options, nil
+}
+
+func (a *App) UserCanSeeOtherUser(userId string, otherUserId string) (bool, *model.AppError) {
+	restrictions, err := a.GetViewUsersRestrictions(userId)
+	if err != nil {
+		return false, err
+	}
+
+	if restrictions == nil {
+		return true, nil
+	}
+
+	//TODO: Create UserBelongsToTeams and UserBelongsToChannels
+	result := a.UserBelongsToTeams(userId, restrictions.Teams) || a.UserBelongsToChannels(userId, restrictions.Channels)
+
+	return result, nil
+}
+
 func (a *App) GetViewUsersRestrictions(userId string) (*model.ViewUsersRestrictions, *model.AppError) {
 	if a.HasPermissionTo(userId, model.PERMISSION_VIEW_MEMBERS) {
 		return nil, nil

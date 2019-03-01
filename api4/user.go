@@ -111,7 +111,7 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// No permission check required
+	// TODO: Check my user visibility over this user
 
 	user, err := c.App.GetUser(c.Params.UserId)
 	if err != nil {
@@ -141,7 +141,7 @@ func getUserByUsername(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// No permission check required
+	// TODO: Check my user visibility over this user
 
 	user, err := c.App.GetUserByUsername(c.Params.Username)
 	if err != nil {
@@ -171,6 +171,7 @@ func getUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// No permission check required, but still prevent users who can't see another user's email address from using this
+	// TODO: Check my user visibility over this user
 
 	sanitizeOptions := c.App.GetSanitizeOptions(c.IsSystemAdmin())
 	if !sanitizeOptions["email"] {
@@ -350,6 +351,8 @@ func getTotalUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// TODO: Filter the users by my view_members restrictions
+
 	stats, err := c.App.GetTotalUsersStats()
 	if err != nil {
 		c.Err = err
@@ -515,6 +518,8 @@ func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// TODO: Filter the users by my view_members restrictions
+
 	// No permission check required
 
 	users, err := c.App.GetUsersByIds(userIds, c.IsSystemAdmin())
@@ -533,6 +538,8 @@ func getUsersByNames(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("usernames")
 		return
 	}
+
+	// TODO: Filter the users by my view_members restrictions
 
 	// No permission check required
 
@@ -602,6 +609,12 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		options.AllowFullNames = *c.App.Config().PrivacySettings.ShowFullName
 	}
 
+	options, err := c.App.RestrictUsersSearchByPermissions(c.App.Session.UserId, options)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
 	profiles, err := c.App.SearchUsers(props, options)
 	if err != nil {
 		c.Err = err
@@ -665,6 +678,12 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		autocomplete.Users = result.InChannel
 		autocomplete.OutOfChannel = result.OutOfChannel
 	} else if len(teamId) > 0 {
+		options, err := c.App.RestrictUsersSearchByPermissions(c.App.Session.UserId, options)
+		if err != nil {
+			c.Err = err
+			return
+		}
+
 		result, err := c.App.AutocompleteUsersInTeam(teamId, name, options)
 		if err != nil {
 			c.Err = err
@@ -673,6 +692,12 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		autocomplete.Users = result.InTeam
 	} else {
+		options, err := c.App.RestrictUsersSearchByPermissions(c.App.Session.UserId, options)
+		if err != nil {
+			c.Err = err
+			return
+		}
+
 		// No permission check required
 		result, err := c.App.SearchUsersInTeam("", name, options)
 		if err != nil {
