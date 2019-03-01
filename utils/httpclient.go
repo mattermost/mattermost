@@ -30,7 +30,6 @@ func IsReservedIP(ip net.IP) bool {
 	return false
 }
 
-
 // IsOwnIP handles the special case that a request might be made to the public IP of the host which on Linux is routed
 // directly via the loopback IP to any listening sockets, effectively bypassing host-based firewalls such as firewalld
 func IsOwnIP(ip net.IP) (bool, error) {
