@@ -397,8 +397,5 @@
     "DisplaySettings": {
         "CustomUrlSchemes": [],
         "ExperimentalTimezone": false
-    },
-    "TimezoneSettings": {
-        "SupportedTimezonesPath": "timezones.json"
     }
 }

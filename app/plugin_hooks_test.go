@@ -7,9 +7,12 @@ import (
 	"bytes"
 	"io"
 	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -706,14 +709,12 @@ func TestUserWillLogIn_Blocked(t *testing.T) {
 	`}, th.App, th.App.NewPluginAPI)
 	defer tearDown()
 
-	user, err := th.App.AuthenticateUserForLogin("", th.BasicUser.Email, "hunter2", "", false)
+	r := &http.Request{}
+	w := httptest.NewRecorder()
+	_, err = th.App.DoLogin(w, r, th.BasicUser, "")
 
-	if user != nil {
-		t.Errorf("Expected nil, got %+v", user)
-	}
-
-	if err == nil {
-		t.Errorf("Expected err, got nil")
+	if !strings.HasPrefix(err.Id, "Login rejected by plugin") {
+		t.Errorf("Expected Login rejected by plugin, got %s", err.Id)
 	}
 }
 
@@ -751,14 +752,16 @@ func TestUserWillLogInIn_Passed(t *testing.T) {
 	`}, th.App, th.App.NewPluginAPI)
 	defer tearDown()
 
-	user, err := th.App.AuthenticateUserForLogin("", th.BasicUser.Email, "hunter2", "", false)
-
-	if user == nil {
-		t.Errorf("Expected user object, got nil")
-	}
+	r := &http.Request{}
+	w := httptest.NewRecorder()
+	session, err := th.App.DoLogin(w, r, th.BasicUser, "")
 
 	if err != nil {
 		t.Errorf("Expected nil, got %s", err)
+	}
+
+	if session.UserId != th.BasicUser.Id {
+		t.Errorf("Expected %s, got %s", th.BasicUser.Id, session.UserId)
 	}
 }
 
@@ -797,11 +800,9 @@ func TestUserHasLoggedIn(t *testing.T) {
 	`}, th.App, th.App.NewPluginAPI)
 	defer tearDown()
 
-	user, err := th.App.AuthenticateUserForLogin("", th.BasicUser.Email, "hunter2", "", false)
-
-	if user == nil {
-		t.Errorf("Expected user object, got nil")
-	}
+	r := &http.Request{}
+	w := httptest.NewRecorder()
+	_, err = th.App.DoLogin(w, r, th.BasicUser, "")
 
 	if err != nil {
 		t.Errorf("Expected nil, got %s", err)
@@ -809,7 +810,7 @@ func TestUserHasLoggedIn(t *testing.T) {
 
 	time.Sleep(2 * time.Second)
 
-	user, _ = th.App.GetUser(th.BasicUser.Id)
+	user, _ := th.App.GetUser(th.BasicUser.Id)
 
 	if user.FirstName != "plugin-callback-success" {
 		t.Errorf("Expected firstname overwrite, got default")
@@ -874,7 +875,7 @@ func TestErrorString(t *testing.T) {
 			package main
 
 			import (
-				"github.com/pkg/errors"
+				"errors"
 
 				"github.com/mattermost/mattermost-server/plugin"
 			)

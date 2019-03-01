@@ -36,10 +36,11 @@ func (cs *commonStore) GetEnvironmentOverrides() map[string]interface{} {
 	return cs.environmentOverrides
 }
 
-// set replaces the current configuration in its entirety, without updating the backing store.
+// set replaces the current configuration in its entirety, and updates the backing store
+// using the persist function argument.
 //
 // This function assumes no lock has been acquired, as it acquires a write lock itself.
-func (cs *commonStore) set(newCfg *model.Config, isValid func(*model.Config) error) (*model.Config, error) {
+func (cs *commonStore) set(newCfg *model.Config, isValid func(*model.Config) error, persist func(*model.Config) error) (*model.Config, error) {
 	cs.configLock.Lock()
 	var unlockOnce sync.Once
 	defer unlockOnce.Do(cs.configLock.Unlock)
@@ -71,12 +72,9 @@ func (cs *commonStore) set(newCfg *model.Config, isValid func(*model.Config) err
 		}
 	}
 
-	// Ideally, Set would persist automatically and abstract this completely away from the
-	// client. Doing so requires a few upstream changes first, so for now an explicit Save()
-	// remains required.
-	// if err := cs.persist(newCfg); err != nil {
-	// 	return nil, errors.Wrap(err, "failed to persist")
-	// }
+	if err := persist(newCfg); err != nil {
+		return nil, errors.Wrap(err, "failed to persist")
+	}
 
 	cs.config = newCfg
 
