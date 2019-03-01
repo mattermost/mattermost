@@ -2333,6 +2333,23 @@ func (c *Client4) DoPostAction(postId, actionId string) (bool, *Response) {
 	return CheckStatusOK(r), BuildResponse(r)
 }
 
+// DoPostActionWithCookie performs a post action with extra arguments
+func (c *Client4) DoPostActionWithCookie(postId, actionId, selected, cookieStr string) (bool, *Response) {
+	var body []byte
+	if selected != "" || cookieStr != "" {
+		body, _ = json.Marshal(DoPostActionRequest{
+			SelectedOption: selected,
+			Cookie:         cookieStr,
+		})
+	}
+	r, err := c.DoApiPost(c.GetPostRoute(postId)+"/actions/"+actionId, string(body))
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
 // OpenInteractiveDialog sends a WebSocket event to a user's clients to
 // open interactive dialogs, based on the provided trigger ID and other
 // provided data. Used with interactive message buttons, menus and

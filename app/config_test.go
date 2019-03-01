@@ -57,6 +57,12 @@ func TestAsymmetricSigningKey(t *testing.T) {
 	assert.NotEmpty(t, th.App.ClientConfig()["AsymmetricSigningPublicKey"])
 }
 
+func TestPostActionCookieSecret(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	assert.Equal(t, 32, len(th.App.PostActionCookieSecret()))
+}
+
 func TestClientConfigWithComputed(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
