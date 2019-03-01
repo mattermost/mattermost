@@ -426,11 +426,17 @@ func (s *Server) Start() error {
 		handler = rateLimiter.RateLimitHandler(handler)
 	}
 
+	// Creating a logger for logging errors from http.Server at error level
+	errStdLog, err := s.Log.StdLogAt(mlog.LevelError, mlog.String("source", "httpserver"))
+	if err != nil {
+		return err
+	}
+
 	s.Server = &http.Server{
 		Handler:      handler,
 		ReadTimeout:  time.Duration(*s.Config().ServiceSettings.ReadTimeout) * time.Second,
 		WriteTimeout: time.Duration(*s.Config().ServiceSettings.WriteTimeout) * time.Second,
-		ErrorLog:     s.Log.StdLog(mlog.String("source", "httpserver")),
+		ErrorLog:     errStdLog,
 	}
 
 	addr := *s.Config().ServiceSettings.ListenAddress

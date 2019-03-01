@@ -4,9 +4,13 @@
 package app
 
 import (
+	"bufio"
 	"crypto/tls"
+	"github.com/mattermost/mattermost-server/mlog"
+	"io/ioutil"
 	"net"
 	"net/http"
+	"os"
 	"path"
 	"strconv"
 	"strings"
@@ -200,4 +204,60 @@ func checkEndpoint(t *testing.T, client *http.Client, url string, expectedStatus
 	}
 
 	return nil
+}
+
+func TestPanicLog(t *testing.T) {
+	// Creating a temp file to collect logs
+	tmpfile, err := ioutil.TempFile("", "mlog")
+	if err != nil {
+		require.NoError(t, err)
+	}
+
+	defer os.Remove(tmpfile.Name())
+
+	// Creating logger to log to console and temp file
+	logger := mlog.NewLogger(&mlog.LoggerConfiguration{
+		EnableConsole: true,
+		ConsoleJson:   true,
+		EnableFile:    true,
+		FileLocation:  tmpfile.Name(),
+	})
+
+	// Creating a server with logger
+	s, err := NewServer(SetLogger(logger))
+	require.NoError(t, err)
+
+	// Route for just panicing
+	s.Router.HandleFunc("/panic", func(writer http.ResponseWriter, request *http.Request) {
+		panic("log this panic")
+	})
+
+	s.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
+	serverErr := s.Start()
+	require.NoError(t, serverErr)
+
+	// Calling panic route
+	client := &http.Client{}
+	client.Get("http://localhost:" + strconv.Itoa(s.ListenAddr.Port) + "/panic")
+
+	err = s.Shutdown()
+	require.NoError(t, err)
+
+	// Checking whether panic was logged
+	var panicLogged = false
+
+	_, err = tmpfile.Seek(0, 0)
+	require.NoError(t, err)
+
+	scanner := bufio.NewScanner(tmpfile)
+	for scanner.Scan() {
+		if strings.Contains(scanner.Text(), "log this panic") {
+			panicLogged = true
+			break
+		}
+	}
+
+	if !panicLogged {
+		t.Error("Panic was supposed to be logged")
+	}
 }
