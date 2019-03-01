@@ -615,21 +615,8 @@ func TestFileStoreSave(t *testing.T) {
 		},
 	}
 
-	t.Run("set without save", func(t *testing.T) {
+	t.Run("set with automatic save", func(t *testing.T) {
 		_, err = fs.Set(newCfg)
-		require.NoError(t, err)
-
-		err = fs.Load()
-		require.NoError(t, err)
-
-		assert.Equal(t, "http://minimal", *fs.Get().ServiceSettings.SiteURL)
-	})
-
-	t.Run("set with save", func(t *testing.T) {
-		_, err = fs.Set(newCfg)
-		require.NoError(t, err)
-
-		err = fs.Save()
 		require.NoError(t, err)
 
 		err = fs.Load()
