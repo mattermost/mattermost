@@ -39,11 +39,11 @@ func TestLoggingAfterInitialized(t *testing.T) {
 				FileLevel:     mlog.LevelDebug,
 			},
 			[]string{
-				`{"level":"debug","ts":0,"caller":"mlog/global_test.go:0","msg":"real debug log"}`,
-				`{"level":"info","ts":0,"caller":"mlog/global_test.go:0","msg":"real info log"}`,
-				`{"level":"warn","ts":0,"caller":"mlog/global_test.go:0","msg":"real warning log"}`,
-				`{"level":"error","ts":0,"caller":"mlog/global_test.go:0","msg":"real error log"}`,
-				`{"level":"error","ts":0,"caller":"mlog/global_test.go:0","msg":"real critical log"}`,
+				`{"level":"debug","ts":0,"caller":"testing/testing.go:0","msg":"real debug log"}`,
+				`{"level":"info","ts":0,"caller":"testing/testing.go:0","msg":"real info log"}`,
+				`{"level":"warn","ts":0,"caller":"testing/testing.go:0","msg":"real warning log"}`,
+				`{"level":"error","ts":0,"caller":"testing/testing.go:0","msg":"real error log"}`,
+				`{"level":"error","ts":0,"caller":"testing/testing.go:0","msg":"real critical log"}`,
 			},
 		},
 		{
@@ -55,8 +55,8 @@ func TestLoggingAfterInitialized(t *testing.T) {
 				FileLevel:     mlog.LevelError,
 			},
 			[]string{
-				`{"level":"error","ts":0,"caller":"mlog/global_test.go:0","msg":"real error log"}`,
-				`{"level":"error","ts":0,"caller":"mlog/global_test.go:0","msg":"real critical log"}`,
+				`{"level":"error","ts":0,"caller":"testing/testing.go:0","msg":"real error log"}`,
+				`{"level":"error","ts":0,"caller":"testing/testing.go:0","msg":"real critical log"}`,
 			},
 		},
 		{
@@ -68,11 +68,11 @@ func TestLoggingAfterInitialized(t *testing.T) {
 				FileLevel:     mlog.LevelDebug,
 			},
 			[]string{
-				`TIME	debug	mlog/global_test.go:0	real debug log`,
-				`TIME	info	mlog/global_test.go:0	real info log`,
-				`TIME	warn	mlog/global_test.go:0	real warning log`,
-				`TIME	error	mlog/global_test.go:0	real error log`,
-				`TIME	error	mlog/global_test.go:0	real critical log`,
+				`TIME	debug	testing/testing.go:0	real debug log`,
+				`TIME	info	testing/testing.go:0	real info log`,
+				`TIME	warn	testing/testing.go:0	real warning log`,
+				`TIME	error	testing/testing.go:0	real error log`,
+				`TIME	error	testing/testing.go:0	real critical log`,
 			},
 		},
 		{
@@ -84,8 +84,8 @@ func TestLoggingAfterInitialized(t *testing.T) {
 				FileLevel:     mlog.LevelError,
 			},
 			[]string{
-				`TIME	error	mlog/global_test.go:0	real error log`,
-				`TIME	error	mlog/global_test.go:0	real critical log`,
+				`TIME	error	testing/testing.go:0	real error log`,
+				`TIME	error	testing/testing.go:0	real critical log`,
 			},
 		},
 	}
@@ -136,7 +136,7 @@ func TestLoggingAfterInitialized(t *testing.T) {
 
 					actual = strings.Join(actualRows, "\n")
 				}
-				require.Equal(t, testCase.ExpectedLogs, strings.Split(actual, "\n"))
+				require.ElementsMatch(t, testCase.ExpectedLogs, strings.Split(actual, "\n"))
 			}
 		})
 	}
