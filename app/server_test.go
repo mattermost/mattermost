@@ -213,7 +213,10 @@ func TestPanicLog(t *testing.T) {
 		require.NoError(t, err)
 	}
 
-	defer os.Remove(tmpfile.Name())
+	defer func() {
+		require.NoError(t, tmpfile.Close())
+		require.NoError(t, os.Remove(tmpfile.Name()))
+	}()
 
 	// Creating logger to log to console and temp file
 	logger := mlog.NewLogger(&mlog.LoggerConfiguration{
