@@ -290,10 +290,13 @@ clean-docker: ## Deletes the docker containers for local development.
 
 govet: ## Runs govet against all packages.
 	@echo Running GOVET
-	$(GO) vet -shadow $(GOFLAGS) $(TE_PACKAGES) || exit 1
+	$(GO) get -u golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow
+	$(GO) vet $(GOFLAGS) $(TE_PACKAGES) || exit 1
+	$(GO) vet -vettool=$(which shadow) $(GOFLAGS) $(TE_PACKAGES) || exit 1
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-	$(GO) vet $(GOFLAGS) $(EE_PACKAGES) || exit 1
+	$(GO) vet $(GOFLAGS) $(TE_PACKAGES) || exit 1
+	$(GO) vet -vettool=$(which shadow) $(GOFLAGS) $(EE_PACKAGES) || exit 1
 endif
 
 gofmt: ## Runs gofmt against all packages.

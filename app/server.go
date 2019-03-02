@@ -92,6 +92,7 @@ type Server struct {
 	clusterLeaderListenerId string
 	configStore             config.Store
 	asymmetricSigningKey    *ecdsa.PrivateKey
+	postActionCookieSecret  []byte
 
 	pluginCommands     []*PluginCommand
 	pluginCommandsLock sync.RWMutex
