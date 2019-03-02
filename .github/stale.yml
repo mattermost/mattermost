@@ -32,6 +32,10 @@ markComment: >
   Thank you for your contribution!
   /cc @hanzei @jasonblais
 
+# Comment to post when removing the stale label.
+unmarkComment: >
+  Please remove the stale label
+
 # Limit to only `issues` or `pulls`
 only: pulls
 
