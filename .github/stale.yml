@@ -34,7 +34,7 @@ markComment: >
 
 # Comment to post when removing the stale label.
 unmarkComment: >
-  Please remove the stale label
+  /active
 
 # Limit to only `issues` or `pulls`
 only: pulls
