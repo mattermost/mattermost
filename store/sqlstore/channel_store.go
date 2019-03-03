@@ -1960,8 +1960,7 @@ func (s SqlChannelStore) AutocompleteInTeam(teamId string, term string, includeD
 			    c.TeamId = :TeamId
 			    ` + deleteFilter + `
 			    %v
-			LIMIT 50
-		`
+			LIMIT ` + strconv.Itoa(model.CHANNEL_SEARCH_DEFAULT_LIMIT)
 
 		var channels model.ChannelList
 
