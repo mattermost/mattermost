@@ -184,7 +184,6 @@ type ChannelStore interface {
 	MigrateChannelMembers(fromChannelId string, fromUserId string) StoreChannel
 	ResetAllChannelSchemes() StoreChannel
 	ClearAllCustomRoleAssignments() StoreChannel
-	ResetLastPostAt() StoreChannel
 	MigratePublicChannels() error
 	GetAllChannelsForExportAfter(limit int, afterId string) StoreChannel
 	GetChannelMembersForExport(userId string, teamId string) StoreChannel

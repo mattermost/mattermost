@@ -93,6 +93,20 @@ func testPostStoreSaveChannelMsgCounts(t *testing.T, ss store.Store) {
 	require.Nil(t, res.Err)
 	c1 = res.Data.(*model.Channel)
 	assert.Equal(t, int64(1), c1.TotalMsgCount, "Message count should not update for team add/removed message")
+
+	oldLastPostAt := c1.LastPostAt
+
+	o2 := model.Post{}
+	o2.ChannelId = c1.Id
+	o2.UserId = model.NewId()
+	o2.Message = "zz" + model.NewId() + "b"
+	o2.CreateAt = int64(7)
+	require.Nil(t, (<-ss.Post().Save(&o2)).Err)
+
+	res = <-ss.Channel().Get(c1.Id, false)
+	require.Nil(t, res.Err)
+	c1 = res.Data.(*model.Channel)
+	assert.Equal(t, oldLastPostAt, c1.LastPostAt, "LastPostAt should not update for old message save")
 }
 
 func testPostStoreGet(t *testing.T, ss store.Store) {
