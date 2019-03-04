@@ -1811,6 +1811,10 @@ func TestCheckUserMfa(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
+	th.App.UpdateConfig(func(c *model.Config) {
+		*c.ServiceSettings.DisableLegacyMFA = false
+	})
+
 	required, resp := th.Client.CheckUserMfa(th.BasicUser.Email)
 	CheckNoError(t, resp)
 
