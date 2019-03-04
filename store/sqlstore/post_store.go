@@ -119,7 +119,7 @@ func (s *SqlPostStore) Save(post *model.Post) store.StoreChannel {
 				post.Type != model.POST_JOIN_TEAM && post.Type != model.POST_LEAVE_TEAM &&
 				post.Type != model.POST_ADD_TO_CHANNEL && post.Type != model.POST_REMOVE_FROM_CHANNEL &&
 				post.Type != model.POST_ADD_TO_TEAM && post.Type != model.POST_REMOVE_FROM_TEAM {
-				s.GetMaster().Exec("UPDATE Channels SET LastPostAt = (CASE WHEN :LastPostAt > LastPostAt THEN :LastPostAt ELSE LastPostAt END), TotalMsgCount = TotalMsgCount + 1 WHERE Id = :ChannelId", map[string]interface{}{"LastPostAt": time, "ChannelId": post.ChannelId})
+				s.GetMaster().Exec("UPDATE Channels SET LastPostAt = GREATEST(:LastPostAt, LastPostAt), TotalMsgCount = TotalMsgCount + 1 WHERE Id = :ChannelId", map[string]interface{}{"LastPostAt": time, "ChannelId": post.ChannelId})
 			} else {
 				// don't update TotalMsgCount for unimportant messages so that the channel isn't marked as unread
 				s.GetMaster().Exec("UPDATE Channels SET LastPostAt = :LastPostAt WHERE Id = :ChannelId AND LastPostAt < :LastPostAt", map[string]interface{}{"LastPostAt": time, "ChannelId": post.ChannelId})
