@@ -38,12 +38,13 @@ func (s *SqlSupplier) SchemeSave(ctx context.Context, scheme *model.Scheme, hint
 		if transaction, err := s.GetMaster().Begin(); err != nil {
 			result.Err = model.NewAppError("SqlSchemeStore.SaveScheme", "store.sql_scheme.save.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
+			defer finalizeTransaction(transaction)
 			result = s.createScheme(ctx, scheme, transaction, hints...)
 
-			if result.Err != nil {
-				transaction.Rollback()
-			} else if err := transaction.Commit(); err != nil {
-				result.Err = model.NewAppError("SqlSchemeStore.SchemeSave", "store.sql_scheme.save_scheme.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+			if result.Err == nil {
+				if err := transaction.Commit(); err != nil {
+					result.Err = model.NewAppError("SqlSchemeStore.SchemeSave", "store.sql_scheme.save_scheme.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+				}
 			}
 		}
 	} else {

@@ -255,7 +255,7 @@ func (p *parser) fosterParent(n *Node) {
 		}
 	}
 
-	if template != nil && (table == nil || j < i) {
+	if template != nil && (table == nil || j > i) {
 		template.AppendChild(n)
 		return
 	}
@@ -470,6 +470,10 @@ func (p *parser) resetInsertionMode() {
 		case a.Table:
 			p.im = inTableIM
 		case a.Template:
+			// TODO: remove this divergence from the HTML5 spec.
+			if n.Namespace != "" {
+				continue
+			}
 			p.im = p.templateStack.top()
 		case a.Head:
 			// TODO: remove this divergence from the HTML5 spec.
@@ -984,6 +988,14 @@ func inBodyIM(p *parser) bool {
 			p.acknowledgeSelfClosingTag()
 			p.popUntil(buttonScope, a.P)
 			p.parseImpliedToken(StartTagToken, a.Form, a.Form.String())
+			if p.form == nil {
+				// NOTE: The 'isindex' element has been removed,
+				// and the 'template' element has not been designed to be
+				// collaborative with the index element.
+				//
+				// Ignore the token.
+				return true
+			}
 			if action != "" {
 				p.form.Attr = []Attribute{{Key: "action", Val: action}}
 			}
@@ -1252,12 +1264,6 @@ func (p *parser) inBodyEndTagFormatting(tagAtom a.Atom) {
 		switch commonAncestor.DataAtom {
 		case a.Table, a.Tbody, a.Tfoot, a.Thead, a.Tr:
 			p.fosterParent(lastNode)
-		case a.Template:
-			// TODO: remove namespace checking
-			if commonAncestor.Namespace == "html" {
-				commonAncestor = commonAncestor.LastChild
-			}
-			fallthrough
 		default:
 			commonAncestor.AppendChild(lastNode)
 		}
@@ -2209,6 +2215,15 @@ func (p *parser) parse() error {
 }
 
 // Parse returns the parse tree for the HTML from the given Reader.
+//
+// It implements the HTML5 parsing algorithm
+// (https://html.spec.whatwg.org/multipage/syntax.html#tree-construction),
+// which is very complicated. The resultant tree can contain implicitly created
+// nodes that have no explicit <tag> listed in r's data, and nodes' parents can
+// differ from the nesting implied by a naive processing of start and end
+// <tag>s. Conversely, explicit <tag>s in r's data can be silently dropped,
+// with no corresponding node in the resulting tree.
+//
 // The input is assumed to be UTF-8 encoded.
 func Parse(r io.Reader) (*Node, error) {
 	p := &parser{
@@ -2230,6 +2245,8 @@ func Parse(r io.Reader) (*Node, error) {
 // ParseFragment parses a fragment of HTML and returns the nodes that were
 // found. If the fragment is the InnerHTML for an existing element, pass that
 // element in context.
+//
+// It has the same intricacies as Parse.
 func ParseFragment(r io.Reader, context *Node) ([]*Node, error) {
 	contextTag := ""
 	if context != nil {

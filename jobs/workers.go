@@ -8,11 +8,12 @@ import (
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/configservice"
 )
 
 type Workers struct {
 	startOnce     sync.Once
-	ConfigService ConfigService
+	ConfigService configservice.ConfigService
 	Watcher       *Watcher
 
 	DataRetention            model.Worker
@@ -21,6 +22,7 @@ type Workers struct {
 	ElasticsearchAggregation model.Worker
 	LdapSync                 model.Worker
 	Migrations               model.Worker
+	Plugins                  model.Worker
 
 	listenerId string
 }
@@ -55,6 +57,10 @@ func (srv *JobServer) InitWorkers() *Workers {
 		workers.Migrations = migrationsInterface.MakeWorker()
 	}
 
+	if pluginsInterface := srv.Plugins; pluginsInterface != nil {
+		workers.Plugins = pluginsInterface.MakeWorker()
+	}
+
 	return workers
 }
 
@@ -84,6 +90,10 @@ func (workers *Workers) Start() *Workers {
 
 		if workers.Migrations != nil {
 			go workers.Migrations.Run()
+		}
+
+		if workers.Plugins != nil {
+			go workers.Plugins.Run()
 		}
 
 		go workers.Watcher.Start()
@@ -165,6 +175,10 @@ func (workers *Workers) Stop() *Workers {
 
 	if workers.Migrations != nil {
 		workers.Migrations.Stop()
+	}
+
+	if workers.Plugins != nil {
+		workers.Plugins.Stop()
 	}
 
 	mlog.Info("Stopped workers")

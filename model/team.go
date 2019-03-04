@@ -52,6 +52,11 @@ type TeamPatch struct {
 	AllowOpenInvite *bool   `json:"allow_open_invite"`
 }
 
+type TeamForExport struct {
+	Team
+	SchemeName *string
+}
+
 type Invites struct {
 	Invites []map[string]string `json:"invites"`
 }

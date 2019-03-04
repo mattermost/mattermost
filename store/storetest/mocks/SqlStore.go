@@ -14,6 +14,20 @@ type SqlStore struct {
 	mock.Mock
 }
 
+// AlterColumnDefaultIfExists provides a mock function with given fields: tableName, columnName, mySqlColDefault, postgresColDefault
+func (_m *SqlStore) AlterColumnDefaultIfExists(tableName string, columnName string, mySqlColDefault *string, postgresColDefault *string) bool {
+	ret := _m.Called(tableName, columnName, mySqlColDefault, postgresColDefault)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(string, string, *string, *string) bool); ok {
+		r0 = rf(tableName, columnName, mySqlColDefault, postgresColDefault)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
 // AlterColumnTypeIfExists provides a mock function with given fields: tableName, columnName, mySqlColType, postgresColType
 func (_m *SqlStore) AlterColumnTypeIfExists(tableName string, columnName string, mySqlColType string, postgresColType string) bool {
 	ret := _m.Called(tableName, columnName, mySqlColType, postgresColType)
@@ -241,6 +255,20 @@ func (_m *SqlStore) DoesTableExist(tablename string) bool {
 	return r0
 }
 
+// DoesTriggerExist provides a mock function with given fields: triggerName
+func (_m *SqlStore) DoesTriggerExist(triggerName string) bool {
+	ret := _m.Called(triggerName)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(string) bool); ok {
+		r0 = rf(triggerName)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
 // DriverName provides a mock function with given fields:
 func (_m *SqlStore) DriverName() string {
 	ret := _m.Called()
@@ -405,6 +433,22 @@ func (_m *SqlStore) License() store.LicenseStore {
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.LicenseStore)
+		}
+	}
+
+	return r0
+}
+
+// LinkMetadata provides a mock function with given fields:
+func (_m *SqlStore) LinkMetadata() store.LinkMetadataStore {
+	ret := _m.Called()
+
+	var r0 store.LinkMetadataStore
+	if rf, ok := ret.Get(0).(func() store.LinkMetadataStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.LinkMetadataStore)
 		}
 	}
 
@@ -653,6 +697,22 @@ func (_m *SqlStore) Team() store.TeamStore {
 	return r0
 }
 
+// TermsOfService provides a mock function with given fields:
+func (_m *SqlStore) TermsOfService() store.TermsOfServiceStore {
+	ret := _m.Called()
+
+	var r0 store.TermsOfServiceStore
+	if rf, ok := ret.Get(0).(func() store.TermsOfServiceStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.TermsOfServiceStore)
+		}
+	}
+
+	return r0
+}
+
 // Token provides a mock function with given fields:
 func (_m *SqlStore) Token() store.TokenStore {
 	ret := _m.Called()
@@ -742,6 +802,22 @@ func (_m *SqlStore) UserAccessToken() store.UserAccessTokenStore {
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.UserAccessTokenStore)
+		}
+	}
+
+	return r0
+}
+
+// UserTermsOfService provides a mock function with given fields:
+func (_m *SqlStore) UserTermsOfService() store.UserTermsOfServiceStore {
+	ret := _m.Called()
+
+	var r0 store.UserTermsOfServiceStore
+	if rf, ok := ret.Get(0).(func() store.UserTermsOfServiceStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.UserTermsOfServiceStore)
 		}
 	}
 

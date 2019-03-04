@@ -68,7 +68,13 @@ func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(c.Session, c.Params.UserId) {
+	// The user being updated in the payload must be the same one as indicated in the URL.
+	if status.UserId != c.Params.UserId {
+		c.SetInvalidParam("user_id")
+		return
+	}
+
+	if !c.App.SessionHasPermissionToUser(c.App.Session, c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}

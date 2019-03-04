@@ -166,15 +166,15 @@ func (s *SearchShardsService) Do(ctx context.Context) (*SearchShardsResponse, er
 type SearchShardsResponse struct {
 	Nodes   map[string]interface{} `json:"nodes"`
 	Indices map[string]interface{} `json:"indices"`
-	Shards  [][]ShardsInfo         `json:"shards"`
+	Shards  [][]*SearchShardsResponseShardsInfo         `json:"shards"`
 }
 
-type ShardsInfo struct {
+type SearchShardsResponseShardsInfo struct {
 	Index          string      `json:"index"`
 	Node           string      `json:"node"`
 	Primary        bool        `json:"primary"`
 	Shard          uint        `json:"shard"`
 	State          string      `json:"state"`
 	AllocationId   interface{} `json:"allocation_id"`
-	RelocatingNode bool        `json:"relocating_node"`
+	RelocatingNode string      `json:"relocating_node"`
 }

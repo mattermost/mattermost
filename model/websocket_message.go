@@ -26,6 +26,7 @@ const (
 	WEBSOCKET_EVENT_LEAVE_TEAM              = "leave_team"
 	WEBSOCKET_EVENT_UPDATE_TEAM             = "update_team"
 	WEBSOCKET_EVENT_DELETE_TEAM             = "delete_team"
+	WEBSOCKET_EVENT_RESTORE_TEAM            = "restore_team"
 	WEBSOCKET_EVENT_USER_ADDED              = "user_added"
 	WEBSOCKET_EVENT_USER_UPDATED            = "user_updated"
 	WEBSOCKET_EVENT_USER_ROLE_UPDATED       = "user_role_updated"
@@ -37,7 +38,6 @@ const (
 	WEBSOCKET_EVENT_EPHEMERAL_MESSAGE       = "ephemeral_message"
 	WEBSOCKET_EVENT_STATUS_CHANGE           = "status_change"
 	WEBSOCKET_EVENT_HELLO                   = "hello"
-	WEBSOCKET_EVENT_WEBRTC                  = "webrtc"
 	WEBSOCKET_AUTHENTICATION_CHALLENGE      = "authentication_challenge"
 	WEBSOCKET_EVENT_REACTION_ADDED          = "reaction_added"
 	WEBSOCKET_EVENT_REACTION_REMOVED        = "reaction_removed"
@@ -50,6 +50,7 @@ const (
 	WEBSOCKET_EVENT_ROLE_UPDATED            = "role_updated"
 	WEBSOCKET_EVENT_LICENSE_CHANGED         = "license_changed"
 	WEBSOCKET_EVENT_CONFIG_CHANGED          = "config_changed"
+	WEBSOCKET_EVENT_OPEN_DIALOG             = "open_dialog"
 )
 
 type WebSocketMessage interface {

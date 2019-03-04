@@ -64,7 +64,7 @@
         "ImageProxyOptions": "",
         "EnableAPITeamDeletion": false,
         "ExperimentalEnableHardenedMode": false,
-        "ExperimentalLimitClientConfig": false
+        "ExperimentalLdapGroupSync": true
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
@@ -163,6 +163,7 @@
         "RequireEmailVerification": false,
         "FeedbackName": "",
         "FeedbackEmail": "test@example.com",
+        "ReplyToAddress": "test@example.com",
         "FeedbackOrganization": "",
         "EnableSMTPAuth": false,
         "SMTPUsername": "",
@@ -337,16 +338,6 @@
     "AnalyticsSettings": {
         "MaxUsersForStatistics": 2500
     },
-    "WebrtcSettings": {
-        "Enable": false,
-        "GatewayWebsocketUrl": "",
-        "GatewayAdminUrl": "",
-        "GatewayAdminSecret": "",
-        "StunURI": "",
-        "TurnURI": "",
-        "TurnUsername": "",
-        "TurnSharedKey": ""
-    },
     "ElasticsearchSettings": {
         "ConnectionUrl": "http://dockerhost:9200",
         "Username": "elastic",
@@ -405,8 +396,5 @@
     "DisplaySettings": {
         "CustomUrlSchemes": [],
         "ExperimentalTimezone": false
-    },
-    "TimezoneSettings": {
-        "SupportedTimezonesPath": "timezones.json"
     }
 }

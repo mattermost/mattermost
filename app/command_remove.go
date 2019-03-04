@@ -67,24 +67,39 @@ func (me *KickProvider) DoCommand(a *App, args *model.CommandArgs, message strin
 func doCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse {
 	channel, err := a.GetChannel(args.ChannelId)
 	if err != nil {
-		return &model.CommandResponse{Text: args.T("api.command_channel_rename.channel.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		return &model.CommandResponse{
+			Text:         args.T("api.command_channel_remove.channel.app_error"),
+			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+		}
 	}
 
 	switch channel.Type {
 	case model.CHANNEL_OPEN:
 		if !a.SessionHasPermissionToChannel(args.Session, args.ChannelId, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS) {
-			return &model.CommandResponse{Text: args.T("api.command_remove.permission.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+			return &model.CommandResponse{
+				Text:         args.T("api.command_remove.permission.app_error"),
+				ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+			}
 		}
 	case model.CHANNEL_PRIVATE:
 		if !a.SessionHasPermissionToChannel(args.Session, args.ChannelId, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS) {
-			return &model.CommandResponse{Text: args.T("api.command_remove.permission.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+			return &model.CommandResponse{
+				Text:         args.T("api.command_remove.permission.app_error"),
+				ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+			}
 		}
 	default:
-		return &model.CommandResponse{Text: args.T("api.command_remove.direct_group.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		return &model.CommandResponse{
+			Text:         args.T("api.command_remove.direct_group.app_error"),
+			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+		}
 	}
 
 	if len(message) == 0 {
-		return &model.CommandResponse{Text: args.T("api.command_remove.message.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		return &model.CommandResponse{
+			Text:         args.T("api.command_remove.message.app_error"),
+			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+		}
 	}
 
 	targetUsername := ""
@@ -92,22 +107,40 @@ func doCommand(a *App, args *model.CommandArgs, message string) *model.CommandRe
 	targetUsername = strings.SplitN(message, " ", 2)[0]
 	targetUsername = strings.TrimPrefix(targetUsername, "@")
 
-	var userProfile *model.User
-	if result := <-a.Srv.Store.User().GetByUsername(targetUsername); result.Err != nil {
+	result := <-a.Srv.Store.User().GetByUsername(targetUsername)
+	if result.Err != nil {
 		mlog.Error(result.Err.Error())
-		return &model.CommandResponse{Text: args.T("api.command_remove.missing.app_error"), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
-	} else {
-		userProfile = result.Data.(*model.User)
+		return &model.CommandResponse{
+			Text:         args.T("api.command_remove.missing.app_error"),
+			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+		}
+	}
+	userProfile := result.Data.(*model.User)
+	if userProfile.DeleteAt != 0 {
+		return &model.CommandResponse{
+			Text:         args.T("api.command_remove.missing.app_error"),
+			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+		}
 	}
 
 	_, err = a.GetChannelMember(args.ChannelId, userProfile.Id)
 	if err != nil {
 		nameFormat := *a.Config().TeamSettings.TeammateNameDisplay
-		return &model.CommandResponse{Text: args.T("api.command_remove.user_not_in_channel", map[string]interface{}{"Username": userProfile.GetDisplayName(nameFormat)}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		return &model.CommandResponse{
+			Text: args.T("api.command_remove.user_not_in_channel", map[string]interface{}{
+				"Username": userProfile.GetDisplayName(nameFormat),
+			}),
+			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+		}
 	}
 
 	if err = a.RemoveUserFromChannel(userProfile.Id, args.UserId, channel); err != nil {
-		return &model.CommandResponse{Text: args.T(err.Id, map[string]interface{}{"Channel": model.DEFAULT_CHANNEL}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+		return &model.CommandResponse{
+			Text: args.T(err.Id, map[string]interface{}{
+				"Channel": model.DEFAULT_CHANNEL,
+			}),
+			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
+		}
 	}
 
 	return &model.CommandResponse{}

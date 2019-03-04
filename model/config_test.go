@@ -59,7 +59,7 @@ func TestConfigDefaultFileSettingsDirectory(t *testing.T) {
 	c1 := Config{}
 	c1.SetDefaults()
 
-	if c1.FileSettings.Directory != "./data/" {
+	if *c1.FileSettings.Directory != "./data/" {
 		t.Fatal("FileSettings.Directory should default to './data/'")
 	}
 }
@@ -360,6 +360,7 @@ func TestMessageExportSetDefaults(t *testing.T) {
 }
 
 func TestMessageExportSetDefaultsExportEnabledExportFromTimestampNil(t *testing.T) {
+	// Test retained as protection against regression of MM-13185
 	mes := &MessageExportSettings{
 		EnableExport: NewBool(true),
 	}
@@ -367,12 +368,13 @@ func TestMessageExportSetDefaultsExportEnabledExportFromTimestampNil(t *testing.
 
 	require.True(t, *mes.EnableExport)
 	require.Equal(t, "01:00", *mes.DailyRunTime)
-	require.NotEqual(t, int64(0), *mes.ExportFromTimestamp)
+	require.Equal(t, int64(0), *mes.ExportFromTimestamp)
 	require.True(t, *mes.ExportFromTimestamp <= GetMillis())
 	require.Equal(t, 10000, *mes.BatchSize)
 }
 
 func TestMessageExportSetDefaultsExportEnabledExportFromTimestampZero(t *testing.T) {
+	// Test retained as protection against regression of MM-13185
 	mes := &MessageExportSettings{
 		EnableExport:        NewBool(true),
 		ExportFromTimestamp: NewInt64(0),
@@ -381,7 +383,7 @@ func TestMessageExportSetDefaultsExportEnabledExportFromTimestampZero(t *testing
 
 	require.True(t, *mes.EnableExport)
 	require.Equal(t, "01:00", *mes.DailyRunTime)
-	require.NotEqual(t, int64(0), *mes.ExportFromTimestamp)
+	require.Equal(t, int64(0), *mes.ExportFromTimestamp)
 	require.True(t, *mes.ExportFromTimestamp <= GetMillis())
 	require.Equal(t, 10000, *mes.BatchSize)
 }
@@ -425,6 +427,7 @@ func TestMessageExportSetDefaultsExportDisabledExportFromTimestampZero(t *testin
 }
 
 func TestMessageExportSetDefaultsExportDisabledExportFromTimestampNonZero(t *testing.T) {
+	// Test retained as protection against regression of MM-13185
 	mes := &MessageExportSettings{
 		EnableExport:        NewBool(false),
 		ExportFromTimestamp: NewInt64(12345),
@@ -433,7 +436,7 @@ func TestMessageExportSetDefaultsExportDisabledExportFromTimestampNonZero(t *tes
 
 	require.False(t, *mes.EnableExport)
 	require.Equal(t, "01:00", *mes.DailyRunTime)
-	require.Equal(t, int64(0), *mes.ExportFromTimestamp)
+	require.Equal(t, int64(12345), *mes.ExportFromTimestamp)
 	require.Equal(t, 10000, *mes.BatchSize)
 }
 
@@ -509,7 +512,7 @@ func TestDisplaySettingsIsValidCustomUrlSchemes(t *testing.T) {
 			ds := &DisplaySettings{}
 			ds.SetDefaults()
 
-			ds.CustomUrlSchemes = &test.value
+			ds.CustomUrlSchemes = test.value
 
 			if err := ds.isValid(); err != nil && test.valid {
 				t.Error("Expected CustomUrlSchemes to be valid but got error:", err)
@@ -560,4 +563,282 @@ func TestListenAddressIsValidated(t *testing.T) {
 		}
 	}
 
+}
+
+func TestImageProxySettingsSetDefaults(t *testing.T) {
+	ss := ServiceSettings{
+		DEPRECATED_DO_NOT_USE_ImageProxyType:    NewString(IMAGE_PROXY_TYPE_ATMOS_CAMO),
+		DEPRECATED_DO_NOT_USE_ImageProxyURL:     NewString("http://images.example.com"),
+		DEPRECATED_DO_NOT_USE_ImageProxyOptions: NewString("1234abcd"),
+	}
+
+	t.Run("default, no old settings", func(t *testing.T) {
+		ips := ImageProxySettings{}
+		ips.SetDefaults(ServiceSettings{})
+
+		assert.Equal(t, true, *ips.Enable)
+		assert.Equal(t, IMAGE_PROXY_TYPE_LOCAL, *ips.ImageProxyType)
+		assert.Equal(t, "", *ips.RemoteImageProxyURL)
+		assert.Equal(t, "", *ips.RemoteImageProxyOptions)
+	})
+
+	t.Run("default, old settings", func(t *testing.T) {
+		ips := ImageProxySettings{}
+		ips.SetDefaults(ss)
+
+		assert.Equal(t, true, *ips.Enable)
+		assert.Equal(t, *ss.DEPRECATED_DO_NOT_USE_ImageProxyType, *ips.ImageProxyType)
+		assert.Equal(t, *ss.DEPRECATED_DO_NOT_USE_ImageProxyURL, *ips.RemoteImageProxyURL)
+		assert.Equal(t, *ss.DEPRECATED_DO_NOT_USE_ImageProxyOptions, *ips.RemoteImageProxyOptions)
+	})
+
+	t.Run("not default, old settings", func(t *testing.T) {
+		url := "http://images.mattermost.com"
+		options := "aaaaaaaa"
+
+		ips := ImageProxySettings{
+			Enable:                  NewBool(false),
+			ImageProxyType:          NewString(IMAGE_PROXY_TYPE_LOCAL),
+			RemoteImageProxyURL:     &url,
+			RemoteImageProxyOptions: &options,
+		}
+		ips.SetDefaults(ss)
+
+		assert.Equal(t, false, *ips.Enable)
+		assert.Equal(t, IMAGE_PROXY_TYPE_LOCAL, *ips.ImageProxyType)
+		assert.Equal(t, url, *ips.RemoteImageProxyURL)
+		assert.Equal(t, options, *ips.RemoteImageProxyOptions)
+	})
+}
+
+func TestImageProxySettingsIsValid(t *testing.T) {
+	for _, test := range []struct {
+		Name                    string
+		Enable                  bool
+		ImageProxyType          string
+		RemoteImageProxyURL     string
+		RemoteImageProxyOptions string
+		ExpectError             bool
+	}{
+		{
+			Name:        "disabled",
+			Enable:      false,
+			ExpectError: false,
+		},
+		{
+			Name:                    "disabled with bad values",
+			Enable:                  false,
+			ImageProxyType:          "garbage",
+			RemoteImageProxyURL:     "garbage",
+			RemoteImageProxyOptions: "garbage",
+			ExpectError:             false,
+		},
+		{
+			Name:           "missing type",
+			Enable:         true,
+			ImageProxyType: "",
+			ExpectError:    true,
+		},
+		{
+			Name:                    "local",
+			Enable:                  true,
+			ImageProxyType:          "local",
+			RemoteImageProxyURL:     "garbage",
+			RemoteImageProxyOptions: "garbage",
+			ExpectError:             false,
+		},
+		{
+			Name:                    "atmos/camo",
+			Enable:                  true,
+			ImageProxyType:          IMAGE_PROXY_TYPE_ATMOS_CAMO,
+			RemoteImageProxyURL:     "someurl",
+			RemoteImageProxyOptions: "someoptions",
+			ExpectError:             false,
+		},
+		{
+			Name:                    "atmos/camo, missing url",
+			Enable:                  true,
+			ImageProxyType:          IMAGE_PROXY_TYPE_ATMOS_CAMO,
+			RemoteImageProxyURL:     "",
+			RemoteImageProxyOptions: "garbage",
+			ExpectError:             true,
+		},
+		{
+			Name:                    "atmos/camo, missing options",
+			Enable:                  true,
+			ImageProxyType:          IMAGE_PROXY_TYPE_ATMOS_CAMO,
+			RemoteImageProxyURL:     "someurl",
+			RemoteImageProxyOptions: "",
+			ExpectError:             true,
+		},
+	} {
+		t.Run(test.Name, func(t *testing.T) {
+			ips := &ImageProxySettings{
+				Enable:                  &test.Enable,
+				ImageProxyType:          &test.ImageProxyType,
+				RemoteImageProxyURL:     &test.RemoteImageProxyURL,
+				RemoteImageProxyOptions: &test.RemoteImageProxyOptions,
+			}
+
+			err := ips.isValid()
+			if test.ExpectError {
+				assert.NotNil(t, err)
+			} else {
+				assert.Nil(t, err)
+			}
+		})
+	}
+}
+
+func TestLdapSettingsIsValid(t *testing.T) {
+	for _, test := range []struct {
+		Name         string
+		LdapSettings LdapSettings
+		ExpectError  bool
+	}{
+		{
+			Name: "disabled",
+			LdapSettings: LdapSettings{
+				Enable: NewBool(false),
+			},
+			ExpectError: false,
+		},
+		{
+			Name: "missing server",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString(""),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				UserFilter:        NewString(""),
+			},
+			ExpectError: true,
+		},
+		{
+			Name: "empty user filter",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				UserFilter:        NewString(""),
+			},
+			ExpectError: false,
+		},
+		{
+			Name: "valid user filter #1",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				UserFilter:        NewString("(property=value)"),
+			},
+			ExpectError: false,
+		},
+		{
+			Name: "invalid user filter #1",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				UserFilter:        NewString("("),
+			},
+			ExpectError: true,
+		},
+		{
+			Name: "invalid user filter #2",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				UserFilter:        NewString("()"),
+			},
+			ExpectError: true,
+		},
+		{
+			Name: "valid user filter #2",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				UserFilter:        NewString("(&(property=value)(otherthing=othervalue))"),
+			},
+			ExpectError: false,
+		},
+		{
+			Name: "valid user filter #3",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				UserFilter:        NewString("(&(property=value)(|(otherthing=othervalue)(other=thing)))"),
+			},
+			ExpectError: false,
+		},
+		{
+			Name: "invalid user filter #3",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				UserFilter:        NewString("(&(property=value)(|(otherthing=othervalue)(other=thing))"),
+			},
+			ExpectError: true,
+		},
+		{
+			Name: "invalid user filter #4",
+			LdapSettings: LdapSettings{
+				Enable:            NewBool(true),
+				LdapServer:        NewString("server"),
+				BaseDN:            NewString("basedn"),
+				EmailAttribute:    NewString("email"),
+				UsernameAttribute: NewString("username"),
+				IdAttribute:       NewString("id"),
+				LoginIdAttribute:  NewString("loginid"),
+				UserFilter:        NewString("(&(property=value)((otherthing=othervalue)(other=thing)))"),
+			},
+			ExpectError: true,
+		},
+	} {
+		t.Run(test.Name, func(t *testing.T) {
+			test.LdapSettings.SetDefaults()
+
+			err := test.LdapSettings.isValid()
+			if test.ExpectError {
+				assert.NotNil(t, err)
+			} else {
+				assert.Nil(t, err)
+			}
+		})
+	}
 }

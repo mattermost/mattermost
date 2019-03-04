@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/configservice"
 	"github.com/mattermost/mattermost-server/web"
 
 	_ "github.com/nicksnyder/go-i18n/i18n"
@@ -106,18 +107,21 @@ type Routes struct {
 
 	ReactionByNameForPostForUser *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/posts/{post_id:[A-Za-z0-9]+}/reactions/{emoji_name:[A-Za-z0-9_-+]+}'
 
-	Webrtc *mux.Router // 'api/v4/webrtc'
+	TermsOfService *mux.Router // 'api/v4/terms_of_service
+	Groups         *mux.Router // 'api/v4/groups'
 }
 
 type API struct {
-	App        *app.App
-	BaseRoutes *Routes
+	ConfigService       configservice.ConfigService
+	GetGlobalAppOptions app.AppOptionCreator
+	BaseRoutes          *Routes
 }
 
-func Init(a *app.App, root *mux.Router) *API {
+func Init(configservice configservice.ConfigService, globalOptionsFunc app.AppOptionCreator, root *mux.Router) *API {
 	api := &API{
-		App:        a,
-		BaseRoutes: &Routes{},
+		ConfigService:       configservice,
+		GetGlobalAppOptions: globalOptionsFunc,
+		BaseRoutes:          &Routes{},
 	}
 
 	api.BaseRoutes.Root = root
@@ -194,14 +198,15 @@ func Init(a *app.App, root *mux.Router) *API {
 
 	api.BaseRoutes.ReactionByNameForPostForUser = api.BaseRoutes.PostForUser.PathPrefix("/reactions/{emoji_name:[A-Za-z0-9\\_\\-\\+]+}").Subrouter()
 
-	api.BaseRoutes.Webrtc = api.BaseRoutes.ApiRoot.PathPrefix("/webrtc").Subrouter()
-
 	api.BaseRoutes.OpenGraph = api.BaseRoutes.ApiRoot.PathPrefix("/opengraph").Subrouter()
 
 	api.BaseRoutes.Roles = api.BaseRoutes.ApiRoot.PathPrefix("/roles").Subrouter()
 	api.BaseRoutes.Schemes = api.BaseRoutes.ApiRoot.PathPrefix("/schemes").Subrouter()
 
 	api.BaseRoutes.Image = api.BaseRoutes.ApiRoot.PathPrefix("/image").Subrouter()
+
+	api.BaseRoutes.TermsOfService = api.BaseRoutes.ApiRoot.PathPrefix("/terms_of_service").Subrouter()
+	api.BaseRoutes.Groups = api.BaseRoutes.ApiRoot.PathPrefix("/groups").Subrouter()
 
 	api.InitUser()
 	api.InitTeam()
@@ -225,22 +230,22 @@ func Init(a *app.App, root *mux.Router) *API {
 	api.InitEmoji()
 	api.InitOAuth()
 	api.InitReaction()
-	api.InitWebrtc()
 	api.InitOpenGraph()
 	api.InitPlugin()
 	api.InitRole()
 	api.InitScheme()
 	api.InitImage()
+	api.InitTermsOfService()
+	api.InitGroup()
+	api.InitAction()
 
 	root.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
-
-	a.InitEmailBatching()
 
 	return api
 }
 
 func (api *API) Handle404(w http.ResponseWriter, r *http.Request) {
-	web.Handle404(api.App, w, r)
+	web.Handle404(api.ConfigService, w, r)
 }
 
 var ReturnStatusOK = web.ReturnStatusOK

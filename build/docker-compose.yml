@@ -1,0 +1,82 @@
+version: '3.4'
+services:
+  mysql:
+    image: "mysql:5.7"
+    restart: always
+    networks:
+      - mm-test
+    environment:
+      MYSQL_ROOT_HOST: "%"
+      MYSQL_ROOT_PASSWORD: mostest
+      MYSQL_PASSWORD: mostest
+      MYSQL_USER: mmuser
+      MYSQL_DATABASE: mattermost_test
+    tmpfs: /var/lib/mysql
+    volumes:
+     - "./docker/mysql.conf.d:/etc/mysql/conf.d"
+  postgres:
+    image: "postgres:9.4"
+    restart: always
+    networks:
+      - mm-test
+    environment:
+      POSTGRES_USER: mmuser
+      POSTGRES_PASSWORD: mostest
+      POSTGRES_DB: mattermost_test
+    tmpfs: /var/lib/postgresql/data
+  minio:
+    image: "minio/minio:RELEASE.2018-05-25T19-49-13Z"
+    command: "server /data"
+    networks:
+      - mm-test
+    environment:
+      MINIO_ACCESS_KEY: minioaccesskey
+      MINIO_SECRET_KEY: miniosecretkey
+  inbucket:
+    image: "jhillyerd/inbucket:release-1.2.0"
+    restart: always
+    networks:
+      - mm-test
+  openldap:
+    image: "osixia/openldap:1.2.2"
+    restart: always
+    networks:
+      - mm-test
+    environment:
+      LDAP_TLS_VERIFY_CLIENT: "never"
+      LDAP_ORGANISATION: "Mattermost Test"
+      LDAP_DOMAIN: "mm.test.com"
+      LDAP_ADMIN_PASSWORD: "mostest"
+    volumes:
+      - "../tests/add-users.ldif:/add-users.ldif"
+      - "../tests/add-groups.ldif:/add-groups.ldif"
+  elasticsearch:
+    image: "mattermost/mattermost-elasticsearch-docker:6.5.1"
+    networks:
+      - mm-test
+    environment:
+      http.host: "0.0.0.0"
+      transport.host: "127.0.0.1"
+      ES_JAVA_OPTS: "-Xms250m -Xmx250m"
+  redis:
+    image: redis
+    networks:
+      - mm-test
+
+  start_dependencies:
+    image: mattermost/mattermost-wait-for-dep:latest
+    networks:
+      - mm-test
+    depends_on:
+      - mysql
+      - postgres
+      - minio
+      - inbucket
+      - openldap
+      - elasticsearch
+      - redis
+    command: postgres:5432 mysql:3306 minio:9000 inbucket:10080 openldap:389 elasticsearch:9200 redis:6379
+
+networks:
+  mm-test:
+    driver: bridge

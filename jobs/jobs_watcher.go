@@ -20,15 +20,15 @@ type Watcher struct {
 	srv     *JobServer
 	workers *Workers
 
-	stop            chan bool
-	stopped         chan bool
+	stop            chan struct{}
+	stopped         chan struct{}
 	pollingInterval int
 }
 
 func (srv *JobServer) MakeWatcher(workers *Workers, pollingInterval int) *Watcher {
 	return &Watcher{
-		stop:            make(chan bool, 1),
-		stopped:         make(chan bool, 1),
+		stop:            make(chan struct{}),
+		stopped:         make(chan struct{}),
 		pollingInterval: pollingInterval,
 		workers:         workers,
 		srv:             srv,
@@ -45,7 +45,7 @@ func (watcher *Watcher) Start() {
 
 	defer func() {
 		mlog.Debug("Watcher Finished")
-		watcher.stopped <- true
+		close(watcher.stopped)
 	}()
 
 	for {
@@ -61,7 +61,7 @@ func (watcher *Watcher) Start() {
 
 func (watcher *Watcher) Stop() {
 	mlog.Debug("Watcher Stopping")
-	watcher.stop <- true
+	close(watcher.stop)
 	<-watcher.stopped
 }
 
@@ -111,6 +111,13 @@ func (watcher *Watcher) PollAndNotify() {
 				if watcher.workers.Migrations != nil {
 					select {
 					case watcher.workers.Migrations.JobChannel() <- *job:
+					default:
+					}
+				}
+			} else if job.Type == model.JOB_TYPE_PLUGINS {
+				if watcher.workers.Plugins != nil {
+					select {
+					case watcher.workers.Plugins.JobChannel() <- *job:
 					default:
 					}
 				}

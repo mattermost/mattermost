@@ -4,32 +4,22 @@
 package sqlstore
 
 import (
-	"os"
 	"sync"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/store/storetest"
-	"github.com/mattermost/mattermost-server/utils"
 )
 
-var storeTypes = []*struct {
-	Name      string
-	Func      func() (*storetest.RunningContainer, *model.SqlSettings, error)
-	Container *storetest.RunningContainer
-	Store     store.Store
-}{
-	{
-		Name: "MySQL",
-		Func: storetest.NewMySQLContainer,
-	},
-	{
-		Name: "PostgreSQL",
-		Func: storetest.NewPostgreSQLContainer,
-	},
+type storeType struct {
+	Name        string
+	SqlSettings *model.SqlSettings
+	SqlSupplier *SqlSupplier
+	Store       store.Store
 }
+
+var storeTypes []*storeType
 
 func StoreTest(t *testing.T, f func(*testing.T, store.Store)) {
 	defer func() {
@@ -44,7 +34,29 @@ func StoreTest(t *testing.T, f func(*testing.T, store.Store)) {
 	}
 }
 
+func StoreTestWithSqlSupplier(t *testing.T, f func(*testing.T, store.Store, storetest.SqlSupplier)) {
+	defer func() {
+		if err := recover(); err != nil {
+			tearDownStores()
+			panic(err)
+		}
+	}()
+	for _, st := range storeTypes {
+		st := st
+		t.Run(st.Name, func(t *testing.T) { f(t, st.Store, st.SqlSupplier) })
+	}
+}
+
 func initStores() {
+	storeTypes = append(storeTypes, &storeType{
+		Name:        "MySQL",
+		SqlSettings: storetest.MakeSqlSettings(model.DATABASE_DRIVER_MYSQL),
+	})
+	storeTypes = append(storeTypes, &storeType{
+		Name:        "PostgreSQL",
+		SqlSettings: storetest.MakeSqlSettings(model.DATABASE_DRIVER_POSTGRES),
+	})
+
 	defer func() {
 		if err := recover(); err != nil {
 			tearDownStores()
@@ -52,28 +64,18 @@ func initStores() {
 		}
 	}()
 	var wg sync.WaitGroup
-	errCh := make(chan error, len(storeTypes))
-	wg.Add(len(storeTypes))
 	for _, st := range storeTypes {
 		st := st
+		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			container, settings, err := st.Func()
-			if err != nil {
-				errCh <- err
-				return
-			}
-			st.Container = container
-			st.Store = store.NewLayeredStore(NewSqlSupplier(*settings, nil), nil, nil)
+			st.SqlSupplier = NewSqlSupplier(*st.SqlSettings, nil)
+			st.Store = store.NewLayeredStore(st.SqlSupplier, nil, nil)
+			st.Store.DropAllTables()
 			st.Store.MarkSystemRanUnitTests()
 		}()
 	}
 	wg.Wait()
-	select {
-	case err := <-errCh:
-		panic(err)
-	default:
-	}
 }
 
 var tearDownStoresOnce sync.Once
@@ -88,35 +90,9 @@ func tearDownStores() {
 				if st.Store != nil {
 					st.Store.Close()
 				}
-				if st.Container != nil {
-					st.Container.Stop()
-				}
 				wg.Done()
 			}()
 		}
 		wg.Wait()
 	})
-}
-
-func TestMain(m *testing.M) {
-	// Setup a global logger to catch tests logging outside of app context
-	// The global logger will be stomped by apps initalizing but that's fine for testing. Ideally this won't happen.
-	mlog.InitGlobalLogger(mlog.NewLogger(&mlog.LoggerConfiguration{
-		EnableConsole: true,
-		ConsoleJson:   true,
-		ConsoleLevel:  "error",
-		EnableFile:    false,
-	}))
-
-	utils.TranslationsPreInit()
-
-	status := 0
-
-	initStores()
-	defer func() {
-		tearDownStores()
-		os.Exit(status)
-	}()
-
-	status = m.Run()
 }

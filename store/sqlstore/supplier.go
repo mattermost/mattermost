@@ -15,6 +15,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/go-sql-driver/mysql"
 	"github.com/lib/pq"
 	"github.com/mattermost/gorp"
@@ -33,6 +34,7 @@ const (
 )
 
 const (
+	EXIT_GENERIC_FAILURE             = 1
 	EXIT_CREATE_TABLE                = 100
 	EXIT_DB_OPEN                     = 101
 	EXIT_PING                        = 102
@@ -91,6 +93,10 @@ type SqlSupplierOldStores struct {
 	channelMemberHistory store.ChannelMemberHistoryStore
 	role                 store.RoleStore
 	scheme               store.SchemeStore
+	TermsOfService       store.TermsOfServiceStore
+	group                store.GroupStore
+	UserTermsOfService   store.UserTermsOfServiceStore
+	linkMetadata         store.LinkMetadataStore
 }
 
 type SqlSupplier struct {
@@ -139,10 +145,14 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.oldStores.userAccessToken = NewSqlUserAccessTokenStore(supplier)
 	supplier.oldStores.channelMemberHistory = NewSqlChannelMemberHistoryStore(supplier)
 	supplier.oldStores.plugin = NewSqlPluginStore(supplier)
+	supplier.oldStores.TermsOfService = NewSqlTermsOfServiceStore(supplier, metrics)
+	supplier.oldStores.UserTermsOfService = NewSqlUserTermsOfServiceStore(supplier)
+	supplier.oldStores.linkMetadata = NewSqlLinkMetadataStore(supplier)
 
 	initSqlSupplierReactions(supplier)
 	initSqlSupplierRoles(supplier)
 	initSqlSupplierSchemes(supplier)
+	initSqlSupplierGroups(supplier)
 
 	err := supplier.GetMaster().CreateTablesIfNotExists()
 	if err != nil {
@@ -174,6 +184,11 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.oldStores.job.(*SqlJobStore).CreateIndexesIfNotExists()
 	supplier.oldStores.userAccessToken.(*SqlUserAccessTokenStore).CreateIndexesIfNotExists()
 	supplier.oldStores.plugin.(*SqlPluginStore).CreateIndexesIfNotExists()
+	supplier.oldStores.TermsOfService.(SqlTermsOfServiceStore).CreateIndexesIfNotExists()
+	supplier.oldStores.UserTermsOfService.(SqlUserTermsOfServiceStore).CreateIndexesIfNotExists()
+	supplier.oldStores.linkMetadata.(*SqlLinkMetadataStore).CreateIndexesIfNotExists()
+
+	supplier.CreateIndexesIfNotExistsGroups()
 
 	supplier.oldStores.preference.(*SqlPreferenceStore).DeleteUnusedFeatures()
 
@@ -235,7 +250,7 @@ func setupConnection(con_type string, dataSource string, settings *model.SqlSett
 		os.Exit(EXIT_NO_DRIVER)
 	}
 
-	if settings.Trace {
+	if settings.Trace != nil && *settings.Trace {
 		dbmap.TraceOn("", sqltrace.New(os.Stdout, "sql-trace:", sqltrace.Lmicroseconds))
 	}
 
@@ -461,6 +476,52 @@ func (ss *SqlSupplier) DoesColumnExist(tableName string, columnName string) bool
 	}
 }
 
+func (ss *SqlSupplier) DoesTriggerExist(triggerName string) bool {
+	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		count, err := ss.GetMaster().SelectInt(`
+			SELECT
+				COUNT(0)
+			FROM
+				pg_trigger
+			WHERE
+				tgname = $1
+		`, triggerName)
+
+		if err != nil {
+			mlog.Critical(fmt.Sprintf("Failed to check if trigger exists %v", err))
+			time.Sleep(time.Second)
+			os.Exit(EXIT_GENERIC_FAILURE)
+		}
+
+		return count > 0
+
+	} else if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		count, err := ss.GetMaster().SelectInt(`
+			SELECT
+				COUNT(0)
+			FROM
+				information_schema.triggers
+			WHERE
+				trigger_schema = DATABASE()
+			AND	trigger_name = ?
+		`, triggerName)
+
+		if err != nil {
+			mlog.Critical(fmt.Sprintf("Failed to check if trigger exists %v", err))
+			time.Sleep(time.Second)
+			os.Exit(EXIT_GENERIC_FAILURE)
+		}
+
+		return count > 0
+
+	} else {
+		mlog.Critical("Failed to check if column exists because of missing driver")
+		time.Sleep(time.Second)
+		os.Exit(EXIT_GENERIC_FAILURE)
+		return false
+	}
+}
+
 func (ss *SqlSupplier) CreateColumnIfNotExists(tableName string, columnName string, mySqlColType string, postgresColType string, defaultValue string) bool {
 
 	if ss.DoesColumnExist(tableName, columnName) {
@@ -619,6 +680,56 @@ func (ss *SqlSupplier) AlterColumnTypeIfExists(tableName string, columnName stri
 		mlog.Critical(fmt.Sprintf("Failed to alter column type %v", err))
 		time.Sleep(time.Second)
 		os.Exit(EXIT_ALTER_COLUMN)
+	}
+
+	return true
+}
+
+func (ss *SqlSupplier) AlterColumnDefaultIfExists(tableName string, columnName string, mySqlColDefault *string, postgresColDefault *string) bool {
+	if !ss.DoesColumnExist(tableName, columnName) {
+		return false
+	}
+
+	var defaultValue = ""
+	if ss.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		// Some column types in MySQL cannot have defaults, so don't try to configure anything.
+		if mySqlColDefault == nil {
+			return true
+		}
+
+		defaultValue = *mySqlColDefault
+	} else if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		// Postgres doesn't have the same limitation, but preserve the interface.
+		if postgresColDefault == nil {
+			return true
+		}
+
+		tableName = strings.ToLower(tableName)
+		columnName = strings.ToLower(columnName)
+		defaultValue = *postgresColDefault
+	} else if ss.DriverName() == model.DATABASE_DRIVER_SQLITE {
+		// SQLite doesn't support altering column defaults, but we don't use this in
+		// production so just ignore.
+		return true
+	} else {
+		mlog.Critical("Failed to alter column default because of missing driver")
+		time.Sleep(time.Second)
+		os.Exit(EXIT_GENERIC_FAILURE)
+		return false
+	}
+
+	var err error
+	if defaultValue == "" {
+		_, err = ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ALTER COLUMN " + columnName + " DROP DEFAULT")
+	} else {
+		_, err = ss.GetMaster().ExecNoTimeout("ALTER TABLE " + tableName + " ALTER COLUMN " + columnName + " SET DEFAULT " + defaultValue)
+	}
+
+	if err != nil {
+		mlog.Critical(fmt.Sprintf("Failed to alter column %s.%s default %s: %v", tableName, columnName, defaultValue, err))
+		time.Sleep(time.Second)
+		os.Exit(EXIT_GENERIC_FAILURE)
+		return false
 	}
 
 	return true
@@ -909,8 +1020,24 @@ func (ss *SqlSupplier) Role() store.RoleStore {
 	return ss.oldStores.role
 }
 
+func (ss *SqlSupplier) TermsOfService() store.TermsOfServiceStore {
+	return ss.oldStores.TermsOfService
+}
+
+func (ss *SqlSupplier) UserTermsOfService() store.UserTermsOfServiceStore {
+	return ss.oldStores.UserTermsOfService
+}
+
 func (ss *SqlSupplier) Scheme() store.SchemeStore {
 	return ss.oldStores.scheme
+}
+
+func (ss *SqlSupplier) Group() store.GroupStore {
+	return ss.oldStores.group
+}
+
+func (ss *SqlSupplier) LinkMetadata() store.LinkMetadataStore {
+	return ss.oldStores.linkMetadata
 }
 
 func (ss *SqlSupplier) DropAllTables() {
@@ -932,6 +1059,10 @@ func (me mattermConverter) ToDb(val interface{}) (interface{}, error) {
 		return model.StringInterfaceToJson(t), nil
 	case map[string]interface{}:
 		return model.StringInterfaceToJson(model.StringInterface(t)), nil
+	case JSONSerializable:
+		return t.ToJson(), nil
+	case *opengraph.OpenGraph:
+		return json.Marshal(t)
 	}
 
 	return val, nil
@@ -992,6 +1123,10 @@ func (me mattermConverter) FromDb(target interface{}) (gorp.CustomScanner, bool)
 	}
 
 	return gorp.CustomScanner{}, false
+}
+
+type JSONSerializable interface {
+	ToJson() string
 }
 
 func convertMySQLFullTextColumnsToPostgres(columnNames string) string {

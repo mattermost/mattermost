@@ -7,6 +7,10 @@
         "ConnectionSecurity": "",
         "TLSCertFile": "",
         "TLSKeyFile": "",
+        "TLSMinVer": "1.2",
+        "TLSStrictTransport": false,
+        "TLSStrictTransportMaxAge": 63072000,
+        "TLSOverwriteCiphers": [],
         "UseLetsEncrypt": false,
         "LetsEncryptCertificateCacheFile": "./config/letsencrypt.cache",
         "Forward80To443": false,
@@ -67,13 +71,12 @@
         "ExperimentalEnableDefaultChannelLeaveJoinMessages": true,
         "ExperimentalGroupUnreadChannels": "disabled",
         "ExperimentalChannelOrganization": false,
-        "ImageProxyType": "",
-        "ImageProxyOptions": "",
-        "ImageProxyURL": "",
         "EnableAPITeamDeletion": false,
         "ExperimentalEnableHardenedMode": false,
-        "ExperimentalLimitClientConfig": false,
-        "EnableEmailInvitations": false
+        "DisableLegacyMFA": true,
+        "EnableEmailInvitations": false,
+        "ExperimentalLdapGroupSync": false,
+        "ExperimentalStrictCSRFEnforcement": false
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
@@ -179,6 +182,7 @@
         "RequireEmailVerification": false,
         "FeedbackName": "",
         "FeedbackEmail": "test@example.com",
+        "ReplyToAddress": "test@example.com",
         "FeedbackOrganization": "",
         "EnableSMTPAuth": false,
         "SMTPUsername": "",
@@ -187,8 +191,8 @@
         "SMTPPort": "2500",
         "ConnectionSecurity": "",
         "InviteSalt": "",
-        "SendPushNotifications": false,
-        "PushNotificationServer": "",
+        "SendPushNotifications": true,
+        "PushNotificationServer": "https://push-test.mattermost.com",
         "PushNotificationContents": "generic",
         "EnableEmailBatching": false,
         "EmailBatchingBufferSize": 256,
@@ -196,13 +200,9 @@
         "EnablePreviewModeBanner": true,
         "SkipServerCertificateVerification": false,
         "EmailNotificationContentsType": "full",
-        "LoginButtonColor": "",
-        "LoginButtonBorderColor": "",
-        "LoginButtonTextColor": ""
-    },
-    "ExtensionSettings": {
-        "EnableExperimentalExtensions": false,
-        "AllowedExtensionsIDs": []
+        "LoginButtonColor": "#0000",
+        "LoginButtonBorderColor": "#2389D7",
+        "LoginButtonTextColor": "#2389D7"
     },
     "RateLimitSettings": {
         "Enable": false,
@@ -237,9 +237,6 @@
         "DefaultTheme": "default",
         "AllowCustomThemes": true,
         "AllowedThemes": []
-    },
-    "TimezoneSettings": {
-        "SupportedTimezonesPath": "timezones.json"
     },
     "GitLabSettings": {
         "Enable": false,
@@ -278,6 +275,9 @@
         "BindUsername": "",
         "BindPassword": "",
         "UserFilter": "",
+        "GroupFilter": "",
+        "GroupDisplayNameAttribute": "",
+        "GroupIdAttribute": "",
         "FirstNameAttribute": "",
         "LastNameAttribute": "",
         "EmailAttribute": "",
@@ -327,7 +327,7 @@
         "NicknameAttribute": "",
         "LocaleAttribute": "",
         "PositionAttribute": "",
-        "LoginButtonText": "With SAML",
+        "LoginButtonText": "SAML",
         "LoginButtonColor": "",
         "LoginButtonBorderColor": "",
         "LoginButtonTextColor": ""
@@ -357,20 +357,12 @@
     },
     "ExperimentalSettings": {
         "ClientSideCertEnable": false,
-        "ClientSideCertCheck": "secondary"
+        "ClientSideCertCheck": "secondary",
+        "DisablePostMetadata": false,
+        "LinkMetadataTimeoutMilliseconds": 5000
     },
     "AnalyticsSettings": {
         "MaxUsersForStatistics": 2500
-    },
-    "WebrtcSettings": {
-        "Enable": false,
-        "GatewayWebsocketUrl": "",
-        "GatewayAdminUrl": "",
-        "GatewayAdminSecret": "",
-        "StunURI": "",
-        "TurnURI": "",
-        "TurnUsername": "",
-        "TurnSharedKey": ""
     },
     "ElasticsearchSettings": {
         "ConnectionUrl": "http://dockerhost:9200",
@@ -419,5 +411,11 @@
         "ClientDirectory": "./client/plugins",
         "Plugins": {},
         "PluginStates": {}
+    },
+    "ImageProxySettings": {
+        "Enable": true,
+        "ImageProxyType": "local",
+        "RemoteImageProxyURL": "",
+        "RemoteImageProxyOptions": ""
     }
 }

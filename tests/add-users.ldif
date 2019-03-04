@@ -1,0 +1,130 @@
+dn: ou=testusers,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: organizationalunit
+
+# generic test users
+dn: uid=test.one,ou=testusers,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: iNetOrgPerson
+sn: User
+cn: Test1
+mail: success+testone@simulator.amazonses.com
+userPassword: Password1
+
+dn: uid=test.two,ou=testusers,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: iNetOrgPerson
+sn: User
+cn: Test2
+mail: success+testtwo@simulator.amazonses.com
+userPassword: Password1
+
+dn: uid=test.three,ou=testusers,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: iNetOrgPerson
+sn: User
+cn: Test3
+mail: success+testthree@simulator.amazonses.com
+userPassword: Password1
+
+dn: uid=test.four,ou=testusers,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: iNetOrgPerson
+sn: User
+cn: Test4
+mail: success+testfour@simulator.amazonses.com
+userPassword: Password1
+
+dn: uid=test.five,ou=testusers,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: iNetOrgPerson
+sn: User
+cn: Test5
+mail: success+testfive@simulator.amazonses.com
+userPassword: Password1
+
+
+# developers
+dn: uid=dev-ops.one,ou=testusers,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: iNetOrgPerson
+sn: User
+cn: Dev3
+mail: success+devopsone@simulator.amazonses.com
+userPassword: Password1
+
+dn: uid=dev.one,ou=testusers,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: iNetOrgPerson
+sn: User
+cn: Dev1
+mail: success+devone@simulator.amazonses.com
+userPassword: Password1
+
+dn: uid=dev.two,ou=testusers,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: iNetOrgPerson
+sn: User
+cn: Dev2
+mail: success+devtwo@simulator.amazonses.com
+userPassword: Password1
+
+dn: uid=dev.three,ou=testusers,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: iNetOrgPerson
+sn: User
+cn: Dev3
+mail: success+devthree@simulator.amazonses.com
+userPassword: Password1
+
+dn: uid=dev.four,ou=testusers,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: iNetOrgPerson
+sn: User
+cn: Dev4
+mail: success+devfour@simulator.amazonses.com
+userPassword: Password1
+
+
+# executive
+dn: uid=exec.one,ou=testusers,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: iNetOrgPerson
+sn: User
+cn: Exec1
+mail: success+execone@simulator.amazonses.com
+userPassword: Password1
+
+dn: uid=exec.two,ou=testusers,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: iNetOrgPerson
+sn: User
+cn: Exec2
+mail: success+exectwo@simulator.amazonses.com
+userPassword: Password1
+
+
+# board of directors
+dn: uid=board.one,ou=testusers,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: iNetOrgPerson
+sn: User
+cn: Board1
+mail: success+boardone@simulator.amazonses.com
+userPassword: Password1
+
+dn: uid=board.two,ou=testusers,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: iNetOrgPerson
+sn: User
+cn: Board2
+mail: success+boardtwo@simulator.amazonses.com
+userPassword: Password1
+
+dn: uid=board.three,ou=testusers,dc=mm,dc=test,dc=com
+changetype: add
+objectclass: iNetOrgPerson
+sn: User
+cn: Board3
+mail: success+boardthree@simulator.amazonses.com
+userPassword: Password1

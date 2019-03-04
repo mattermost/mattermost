@@ -32,6 +32,7 @@ const (
 	FileWillBeUploadedId    = 14
 	UserWillLogInId         = 15
 	UserHasLoggedInId       = 16
+	UserHasBeenCreatedId    = 17
 	TotalHooksId            = iota
 )
 
@@ -55,7 +56,9 @@ type Hooks interface {
 	// will stop receiving hooks just prior to this method being called.
 	OnDeactivate() error
 
-	// OnConfigurationChange is invoked when configuration changes may have been made.
+	// OnConfigurationChange is invoked when configuration changes may have been made. Any
+	// returned error is logged, but does not stop the plugin. You must be prepared to handle
+	// a configuration failure gracefully.
 	OnConfigurationChange() error
 
 	// ServeHTTP allows the plugin to implement the http.Handler interface. Requests destined for
@@ -68,6 +71,18 @@ type Hooks interface {
 	// ExecuteCommand executes a command that has been previously registered via the RegisterCommand
 	// API.
 	ExecuteCommand(c *Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError)
+
+	// UserHasBeenCreated is invoked after a user was created.
+	//
+	// Minimum server version: 5.10
+	UserHasBeenCreated(c *Context, user *model.User)
+
+	// UserWillLogIn before the login of the user is returned. Returning a non empty string will reject the login event.
+	// If you don't need to reject the login event, see UserHasLoggedIn
+	UserWillLogIn(c *Context, user *model.User) string
+
+	// UserHasLoggedIn is invoked after a user has logged in.
+	UserHasLoggedIn(c *Context, user *model.User)
 
 	// MessageWillBePosted is invoked when a message is posted by a user before it is committed
 	// to the database. If you also want to act on edited posts, see MessageWillBeUpdated.
@@ -123,13 +138,6 @@ type Hooks interface {
 	// UserHasLeftTeam is invoked after the membership has been removed from the database.
 	// If actor is not nil, the user was removed from the team by the actor.
 	UserHasLeftTeam(c *Context, teamMember *model.TeamMember, actor *model.User)
-
-	// UserWillLogIn before the login of the user is returned. Returning a non empty string will reject the login event.
-	// If you don't need to reject the login event, see UserHasLoggedIn
-	UserWillLogIn(c *Context, user *model.User) string
-
-	// UserHasLoggedIn is invoked after a user has logged in.
-	UserHasLoggedIn(c *Context, user *model.User)
 
 	// FileWillBeUploaded is invoked when a file is uploaded, but before it is committed to backing store.
 	// Read from file to retrieve the body of the uploaded file.

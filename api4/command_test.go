@@ -9,13 +9,14 @@ import (
 	"net/url"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
 )
 
 func TestCreateCommand(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -64,7 +65,7 @@ func TestCreateCommand(t *testing.T) {
 }
 
 func TestUpdateCommand(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.SystemAdminClient
 	user := th.SystemAdminUser
@@ -150,7 +151,7 @@ func TestUpdateCommand(t *testing.T) {
 }
 
 func TestDeleteCommand(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.SystemAdminClient
 	user := th.SystemAdminUser
@@ -213,20 +214,15 @@ func TestDeleteCommand(t *testing.T) {
 }
 
 func TestListCommands(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
 	enableCommands := *th.App.Config().ServiceSettings.EnableCommands
-	enableOnlyAdminIntegrations := *th.App.Config().ServiceSettings.EnableOnlyAdminIntegrations
 	defer func() {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableCommands = &enableCommands })
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.EnableOnlyAdminIntegrations = &enableOnlyAdminIntegrations
-		})
 	}()
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCommands = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOnlyAdminIntegrations = true })
 
 	newCmd := &model.Command{
 		CreatorId: th.BasicUser.Id,
@@ -301,7 +297,7 @@ func TestListCommands(t *testing.T) {
 }
 
 func TestListAutocompleteCommands(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -361,7 +357,7 @@ func TestListAutocompleteCommands(t *testing.T) {
 }
 
 func TestRegenToken(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -396,7 +392,7 @@ func TestRegenToken(t *testing.T) {
 }
 
 func TestExecuteInvalidCommand(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	channel := th.BasicChannel
@@ -459,7 +455,7 @@ func TestExecuteInvalidCommand(t *testing.T) {
 }
 
 func TestExecuteGetCommand(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	channel := th.BasicChannel
@@ -513,13 +509,15 @@ func TestExecuteGetCommand(t *testing.T) {
 
 	commandResponse, resp := Client.ExecuteCommand(channel.Id, "/getcommand")
 	CheckNoError(t, resp)
+	assert.True(t, len(commandResponse.TriggerId) == 26)
 
+	expectedCommandResponse.TriggerId = commandResponse.TriggerId
 	expectedCommandResponse.Props["from_webhook"] = "true"
 	require.Equal(t, expectedCommandResponse, commandResponse)
 }
 
 func TestExecutePostCommand(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 	channel := th.BasicChannel
@@ -571,7 +569,9 @@ func TestExecutePostCommand(t *testing.T) {
 
 	commandResponse, resp := Client.ExecuteCommand(channel.Id, "/postcommand")
 	CheckNoError(t, resp)
+	assert.True(t, len(commandResponse.TriggerId) == 26)
 
+	expectedCommandResponse.TriggerId = commandResponse.TriggerId
 	expectedCommandResponse.Props["from_webhook"] = "true"
 	require.Equal(t, expectedCommandResponse, commandResponse)
 

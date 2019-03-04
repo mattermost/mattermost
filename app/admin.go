@@ -6,15 +6,16 @@ package app
 import (
 	"io"
 	"os"
-	"strings"
 	"time"
 
 	"runtime/debug"
 
 	"net/http"
 
+	"github.com/mattermost/mattermost-server/config"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/mailservice"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
@@ -50,8 +51,8 @@ func (a *App) GetLogs(page, perPage int) ([]string, *model.AppError) {
 func (a *App) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) {
 	var lines []string
 
-	if a.Config().LogSettings.EnableFile {
-		file, err := os.Open(utils.GetLogFileLocation(a.Config().LogSettings.FileLocation))
+	if *a.Config().LogSettings.EnableFile {
+		file, err := os.Open(utils.GetLogFileLocation(*a.Config().LogSettings.FileLocation))
 		if err != nil {
 			return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, err.Error(), http.StatusInternalServerError)
 		}
@@ -138,7 +139,7 @@ func (a *App) InvalidateAllCaches() *model.AppError {
 
 func (a *App) InvalidateAllCachesSkipSend() {
 	mlog.Info("Purging all caches")
-	a.sessionCache.Purge()
+	a.Srv.sessionCache.Purge()
 	ClearStatusCache()
 	a.Srv.Store.Channel().ClearCaches()
 	a.Srv.Store.User().ClearCaches()
@@ -148,9 +149,8 @@ func (a *App) InvalidateAllCachesSkipSend() {
 	a.LoadLicense()
 }
 
-func (a *App) GetConfig() *model.Config {
-	json := a.Config().ToJson()
-	cfg := model.ConfigFromJson(strings.NewReader(json))
+func (a *App) GetSanitizedConfig() *model.Config {
+	cfg := a.Config().Clone()
 	cfg.Sanitize()
 
 	return cfg
@@ -160,30 +160,13 @@ func (a *App) GetEnvironmentConfig() map[string]interface{} {
 	return a.EnvironmentConfig()
 }
 
-func (a *App) SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool) *model.AppError {
-	oldCfg := a.Config()
-	cfg.SetDefaults()
-	a.Desanitize(cfg)
-
-	if err := cfg.IsValid(); err != nil {
-		return err
+func (a *App) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) *model.AppError {
+	oldCfg, err := a.Srv.configStore.Set(newCfg)
+	if err == config.ErrReadOnlyConfiguration {
+		return model.NewAppError("saveConfig", "ent.cluster.save_config.error", nil, err.Error(), http.StatusForbidden)
+	} else if err != nil {
+		return model.NewAppError("saveConfig", "app.save_config.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-
-	if err := utils.ValidateLdapFilter(cfg, a.Ldap); err != nil {
-		return err
-	}
-
-	if *a.Config().ClusterSettings.Enable && *a.Config().ClusterSettings.ReadOnlyConfig {
-		return model.NewAppError("saveConfig", "ent.cluster.save_config.error", nil, "", http.StatusForbidden)
-	}
-
-	a.DisableConfigWatch()
-	a.UpdateConfig(func(update *model.Config) {
-		*update = *cfg
-	})
-	a.PersistConfig()
-	a.ReloadConfig()
-	a.EnableConfigWatch()
 
 	if a.Metrics != nil {
 		if *a.Config().MetricsSettings.Enable {
@@ -194,14 +177,11 @@ func (a *App) SaveConfig(cfg *model.Config, sendConfigChangeClusterMessage bool)
 	}
 
 	if a.Cluster != nil {
-		err := a.Cluster.ConfigChanged(cfg, oldCfg, sendConfigChangeClusterMessage)
+		err := a.Cluster.ConfigChanged(newCfg, oldCfg, sendConfigChangeClusterMessage)
 		if err != nil {
 			return err
 		}
 	}
-
-	// start/restart email batching job if necessary
-	a.InitEmailBatching()
 
 	return nil
 }
@@ -210,8 +190,8 @@ func (a *App) RecycleDatabaseConnection() {
 	oldStore := a.Srv.Store
 
 	mlog.Warn("Attempting to recycle the database connection.")
-	a.Srv.Store = a.newStore()
-	a.Jobs.Store = a.Srv.Store
+	a.Srv.Store = a.Srv.newStore()
+	a.Srv.Jobs.Store = a.Srv.Store
 
 	if a.Srv.Store != oldStore {
 		time.Sleep(20 * time.Second)
@@ -222,29 +202,30 @@ func (a *App) RecycleDatabaseConnection() {
 }
 
 func (a *App) TestEmail(userId string, cfg *model.Config) *model.AppError {
-	if len(cfg.EmailSettings.SMTPServer) == 0 {
+	if len(*cfg.EmailSettings.SMTPServer) == 0 {
 		return model.NewAppError("testEmail", "api.admin.test_email.missing_server", nil, utils.T("api.context.invalid_param.app_error", map[string]interface{}{"Name": "SMTPServer"}), http.StatusBadRequest)
 	}
 
 	// if the user hasn't changed their email settings, fill in the actual SMTP password so that
 	// the user can verify an existing SMTP connection
-	if cfg.EmailSettings.SMTPPassword == model.FAKE_SETTING {
-		if cfg.EmailSettings.SMTPServer == a.Config().EmailSettings.SMTPServer &&
-			cfg.EmailSettings.SMTPPort == a.Config().EmailSettings.SMTPPort &&
-			cfg.EmailSettings.SMTPUsername == a.Config().EmailSettings.SMTPUsername {
-			cfg.EmailSettings.SMTPPassword = a.Config().EmailSettings.SMTPPassword
+	if *cfg.EmailSettings.SMTPPassword == model.FAKE_SETTING {
+		if *cfg.EmailSettings.SMTPServer == *a.Config().EmailSettings.SMTPServer &&
+			*cfg.EmailSettings.SMTPPort == *a.Config().EmailSettings.SMTPPort &&
+			*cfg.EmailSettings.SMTPUsername == *a.Config().EmailSettings.SMTPUsername {
+			*cfg.EmailSettings.SMTPPassword = *a.Config().EmailSettings.SMTPPassword
 		} else {
 			return model.NewAppError("testEmail", "api.admin.test_email.reenter_password", nil, "", http.StatusBadRequest)
 		}
 	}
-	if user, err := a.GetUser(userId); err != nil {
+	user, err := a.GetUser(userId)
+	if err != nil {
 		return err
-	} else {
-		T := utils.GetUserTranslations(user.Locale)
-		license := a.License()
-		if err := utils.SendMailUsingConfig(user.Email, T("api.admin.test_email.subject"), T("api.admin.test_email.body"), cfg, license != nil && *license.Features.Compliance); err != nil {
-			return model.NewAppError("testEmail", "app.admin.test_email.failure", map[string]interface{}{"Error": err.Error()}, "", http.StatusInternalServerError)
-		}
+	}
+
+	T := utils.GetUserTranslations(user.Locale)
+	license := a.License()
+	if err := mailservice.SendMailUsingConfig(user.Email, T("api.admin.test_email.subject"), T("api.admin.test_email.body"), cfg, license != nil && *license.Features.Compliance); err != nil {
+		return model.NewAppError("testEmail", "app.admin.test_email.failure", map[string]interface{}{"Error": err.Error()}, "", http.StatusInternalServerError)
 	}
 
 	return nil

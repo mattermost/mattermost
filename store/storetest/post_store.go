@@ -18,6 +18,7 @@ import (
 
 func TestPostStore(t *testing.T, ss store.Store) {
 	t.Run("Save", func(t *testing.T) { testPostStoreSave(t, ss) })
+	t.Run("SaveAndUpdateChannelMsgCounts", func(t *testing.T) { testPostStoreSaveChannelMsgCounts(t, ss) })
 	t.Run("Get", func(t *testing.T) { testPostStoreGet(t, ss) })
 	t.Run("GetSingle", func(t *testing.T) { testPostStoreGetSingle(t, ss) })
 	t.Run("GetEtagCache", func(t *testing.T) { testGetEtagCache(t, ss) })
@@ -44,6 +45,8 @@ func TestPostStore(t *testing.T, ss store.Store) {
 	t.Run("PermanentDeleteBatch", func(t *testing.T) { testPostStorePermanentDeleteBatch(t, ss) })
 	t.Run("GetOldest", func(t *testing.T) { testPostStoreGetOldest(t, ss) })
 	t.Run("TestGetMaxPostSize", func(t *testing.T) { testGetMaxPostSize(t, ss) })
+	t.Run("GetParentsForExportAfter", func(t *testing.T) { testPostStoreGetParentsForExportAfter(t, ss) })
+	t.Run("GetRepliesForExport", func(t *testing.T) { testPostStoreGetRepliesForExport(t, ss) })
 }
 
 func testPostStoreSave(t *testing.T, ss store.Store) {
@@ -59,6 +62,37 @@ func testPostStoreSave(t *testing.T, ss store.Store) {
 	if err := (<-ss.Post().Save(&o1)).Err; err == nil {
 		t.Fatal("shouldn't be able to update from save")
 	}
+}
+
+func testPostStoreSaveChannelMsgCounts(t *testing.T, ss store.Store) {
+	c1 := &model.Channel{Name: model.NewId(), DisplayName: "posttestchannel", Type: model.CHANNEL_OPEN}
+	res := <-ss.Channel().Save(c1, 1000000)
+	require.Nil(t, res.Err)
+
+	o1 := model.Post{}
+	o1.ChannelId = c1.Id
+	o1.UserId = model.NewId()
+	o1.Message = "zz" + model.NewId() + "b"
+
+	require.Nil(t, (<-ss.Post().Save(&o1)).Err)
+
+	res = <-ss.Channel().Get(c1.Id, false)
+	require.Nil(t, res.Err)
+	c1 = res.Data.(*model.Channel)
+	assert.Equal(t, int64(1), c1.TotalMsgCount, "Message count should update by 1")
+
+	o1.Id = ""
+	o1.Type = model.POST_ADD_TO_TEAM
+	require.Nil(t, (<-ss.Post().Save(&o1)).Err)
+
+	o1.Id = ""
+	o1.Type = model.POST_REMOVE_FROM_TEAM
+	require.Nil(t, (<-ss.Post().Save(&o1)).Err)
+
+	res = <-ss.Channel().Get(c1.Id, false)
+	require.Nil(t, res.Err)
+	c1 = res.Data.(*model.Channel)
+	assert.Equal(t, int64(1), c1.TotalMsgCount, "Message count should not update for team add/removed message")
 }
 
 func testPostStoreGet(t *testing.T, ss store.Store) {
@@ -1813,4 +1847,114 @@ func testPostStoreGetOldest(t *testing.T, ss store.Store) {
 func testGetMaxPostSize(t *testing.T, ss store.Store) {
 	assert.Equal(t, model.POST_MESSAGE_MAX_RUNES_V2, (<-ss.Post().GetMaxPostSize()).Data.(int))
 	assert.Equal(t, model.POST_MESSAGE_MAX_RUNES_V2, (<-ss.Post().GetMaxPostSize()).Data.(int))
+}
+
+func testPostStoreGetParentsForExportAfter(t *testing.T, ss store.Store) {
+	t1 := model.Team{}
+	t1.DisplayName = "Name"
+	t1.Name = model.NewId()
+	t1.Email = MakeEmail()
+	t1.Type = model.TEAM_OPEN
+	store.Must(ss.Team().Save(&t1))
+
+	c1 := model.Channel{}
+	c1.TeamId = t1.Id
+	c1.DisplayName = "Channel1"
+	c1.Name = "zz" + model.NewId() + "b"
+	c1.Type = model.CHANNEL_OPEN
+	store.Must(ss.Channel().Save(&c1, -1))
+
+	u1 := model.User{}
+	u1.Username = model.NewId()
+	u1.Email = MakeEmail()
+	u1.Nickname = model.NewId()
+	store.Must(ss.User().Save(&u1))
+
+	p1 := &model.Post{}
+	p1.ChannelId = c1.Id
+	p1.UserId = u1.Id
+	p1.Message = "zz" + model.NewId() + "AAAAAAAAAAA"
+	p1.CreateAt = 1000
+	p1 = (<-ss.Post().Save(p1)).Data.(*model.Post)
+
+	r1 := <-ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26))
+	assert.Nil(t, r1.Err)
+	d1 := r1.Data.([]*model.PostForExport)
+
+	found := false
+	for _, p := range d1 {
+		if p.Id == p1.Id {
+			found = true
+			assert.Equal(t, p.Id, p1.Id)
+			assert.Equal(t, p.Message, p1.Message)
+			assert.Equal(t, p.Username, u1.Username)
+			assert.Equal(t, p.TeamName, t1.Name)
+			assert.Equal(t, p.ChannelName, c1.Name)
+		}
+	}
+	assert.True(t, found)
+}
+
+func testPostStoreGetRepliesForExport(t *testing.T, ss store.Store) {
+	t1 := model.Team{}
+	t1.DisplayName = "Name"
+	t1.Name = model.NewId()
+	t1.Email = MakeEmail()
+	t1.Type = model.TEAM_OPEN
+	store.Must(ss.Team().Save(&t1))
+
+	c1 := model.Channel{}
+	c1.TeamId = t1.Id
+	c1.DisplayName = "Channel1"
+	c1.Name = "zz" + model.NewId() + "b"
+	c1.Type = model.CHANNEL_OPEN
+	store.Must(ss.Channel().Save(&c1, -1))
+
+	u1 := model.User{}
+	u1.Email = MakeEmail()
+	u1.Nickname = model.NewId()
+	store.Must(ss.User().Save(&u1))
+
+	p1 := &model.Post{}
+	p1.ChannelId = c1.Id
+	p1.UserId = u1.Id
+	p1.Message = "zz" + model.NewId() + "AAAAAAAAAAA"
+	p1.CreateAt = 1000
+	p1 = (<-ss.Post().Save(p1)).Data.(*model.Post)
+
+	p2 := &model.Post{}
+	p2.ChannelId = c1.Id
+	p2.UserId = u1.Id
+	p2.Message = "zz" + model.NewId() + "AAAAAAAAAAA"
+	p2.CreateAt = 1001
+	p2.ParentId = p1.Id
+	p2.RootId = p1.Id
+	p2 = (<-ss.Post().Save(p2)).Data.(*model.Post)
+
+	r1 := <-ss.Post().GetRepliesForExport(p1.Id)
+	assert.Nil(t, r1.Err)
+
+	d1 := r1.Data.([]*model.ReplyForExport)
+	assert.Len(t, d1, 1)
+
+	reply1 := d1[0]
+	assert.Equal(t, reply1.Id, p2.Id)
+	assert.Equal(t, reply1.Message, p2.Message)
+	assert.Equal(t, reply1.Username, u1.Username)
+
+	// Checking whether replies by deleted user are exported
+	u1.DeleteAt = 1002
+	store.Must(ss.User().Update(&u1, false))
+
+	r1 = <-ss.Post().GetRepliesForExport(p1.Id)
+	assert.Nil(t, r1.Err)
+
+	d1 = r1.Data.([]*model.ReplyForExport)
+	assert.Len(t, d1, 1)
+
+	reply1 = d1[0]
+	assert.Equal(t, reply1.Id, p2.Id)
+	assert.Equal(t, reply1.Message, p2.Message)
+	assert.Equal(t, reply1.Username, u1.Username)
+
 }

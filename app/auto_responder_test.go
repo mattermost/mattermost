@@ -12,7 +12,7 @@ import (
 )
 
 func TestSetAutoResponderStatus(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	user := th.CreateUser()
@@ -51,7 +51,7 @@ func TestSetAutoResponderStatus(t *testing.T) {
 }
 
 func TestDisableAutoResponder(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	user := th.CreateUser()
@@ -80,7 +80,7 @@ func TestDisableAutoResponder(t *testing.T) {
 }
 
 func TestSendAutoResponseSuccess(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	user := th.CreateUser()
@@ -94,33 +94,30 @@ func TestSendAutoResponseSuccess(t *testing.T) {
 	userUpdated1, err := th.App.PatchUser(user.Id, patch, true)
 	require.Nil(t, err)
 
-	firstPost, _ := th.App.CreatePost(&model.Post{
+	th.App.CreatePost(&model.Post{
 		ChannelId: th.BasicChannel.Id,
 		Message:   "zz" + model.NewId() + "a",
 		UserId:    th.BasicUser.Id},
 		th.BasicChannel,
 		false)
 
-	th.App.SendAutoResponse(th.BasicChannel, userUpdated1, firstPost.Id)
+	th.App.SendAutoResponse(th.BasicChannel, userUpdated1)
 
 	if list, err := th.App.GetPosts(th.BasicChannel.Id, 0, 1); err != nil {
 		require.Nil(t, err)
 	} else {
 		autoResponderPostFound := false
-		autoResponderIsComment := false
 		for _, post := range list.Posts {
 			if post.Type == model.POST_AUTO_RESPONDER {
-				autoResponderIsComment = post.RootId == firstPost.Id
 				autoResponderPostFound = true
 			}
 		}
 		assert.True(t, autoResponderPostFound)
-		assert.True(t, autoResponderIsComment)
 	}
 }
 
 func TestSendAutoResponseFailure(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	user := th.CreateUser()
@@ -134,27 +131,24 @@ func TestSendAutoResponseFailure(t *testing.T) {
 	userUpdated1, err := th.App.PatchUser(user.Id, patch, true)
 	require.Nil(t, err)
 
-	firstPost, _ := th.App.CreatePost(&model.Post{
+	th.App.CreatePost(&model.Post{
 		ChannelId: th.BasicChannel.Id,
 		Message:   "zz" + model.NewId() + "a",
 		UserId:    th.BasicUser.Id},
 		th.BasicChannel,
 		false)
 
-	th.App.SendAutoResponse(th.BasicChannel, userUpdated1, firstPost.Id)
+	th.App.SendAutoResponse(th.BasicChannel, userUpdated1)
 
 	if list, err := th.App.GetPosts(th.BasicChannel.Id, 0, 1); err != nil {
 		require.Nil(t, err)
 	} else {
 		autoResponderPostFound := false
-		autoResponderIsComment := false
 		for _, post := range list.Posts {
 			if post.Type == model.POST_AUTO_RESPONDER {
-				autoResponderIsComment = post.RootId == firstPost.Id
 				autoResponderPostFound = true
 			}
 		}
 		assert.False(t, autoResponderPostFound)
-		assert.False(t, autoResponderIsComment)
 	}
 }

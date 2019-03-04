@@ -12,26 +12,31 @@ import (
 	"strings"
 	"unicode/utf8"
 
+	"github.com/mattermost/mattermost-server/services/timezones"
 	"golang.org/x/crypto/bcrypt"
+	"golang.org/x/text/language"
 )
 
 const (
-	ME                           = "me"
-	USER_NOTIFY_ALL              = "all"
-	USER_NOTIFY_MENTION          = "mention"
-	USER_NOTIFY_NONE             = "none"
-	DESKTOP_NOTIFY_PROP          = "desktop"
-	DESKTOP_SOUND_NOTIFY_PROP    = "desktop_sound"
-	MARK_UNREAD_NOTIFY_PROP      = "mark_unread"
-	PUSH_NOTIFY_PROP             = "push"
-	PUSH_STATUS_NOTIFY_PROP      = "push_status"
-	EMAIL_NOTIFY_PROP            = "email"
-	CHANNEL_MENTIONS_NOTIFY_PROP = "channel"
-	COMMENTS_NOTIFY_PROP         = "comments"
-	MENTION_KEYS_NOTIFY_PROP     = "mention_keys"
-	COMMENTS_NOTIFY_NEVER        = "never"
-	COMMENTS_NOTIFY_ROOT         = "root"
-	COMMENTS_NOTIFY_ANY          = "any"
+	ME                                 = "me"
+	USER_NOTIFY_ALL                    = "all"
+	USER_NOTIFY_MENTION                = "mention"
+	USER_NOTIFY_NONE                   = "none"
+	DESKTOP_NOTIFY_PROP                = "desktop"
+	DESKTOP_SOUND_NOTIFY_PROP          = "desktop_sound"
+	MARK_UNREAD_NOTIFY_PROP            = "mark_unread"
+	PUSH_NOTIFY_PROP                   = "push"
+	PUSH_STATUS_NOTIFY_PROP            = "push_status"
+	EMAIL_NOTIFY_PROP                  = "email"
+	CHANNEL_MENTIONS_NOTIFY_PROP       = "channel"
+	COMMENTS_NOTIFY_PROP               = "comments"
+	MENTION_KEYS_NOTIFY_PROP           = "mention_keys"
+	COMMENTS_NOTIFY_NEVER              = "never"
+	COMMENTS_NOTIFY_ROOT               = "root"
+	COMMENTS_NOTIFY_ANY                = "any"
+	FIRST_NAME_NOTIFY_PROP             = "first_name"
+	AUTO_RESPONDER_ACTIVE_NOTIFY_PROP  = "auto_responder_active"
+	AUTO_RESPONDER_MESSAGE_NOTIFY_PROP = "auto_responder_message"
 
 	DEFAULT_LOCALE          = "en"
 	USER_AUTH_SERVICE_EMAIL = "email"
@@ -45,6 +50,7 @@ const (
 	USER_NAME_MAX_LENGTH      = 64
 	USER_NAME_MIN_LENGTH      = 1
 	USER_PASSWORD_MAX_LENGTH  = 72
+	USER_LOCALE_MAX_LENGTH    = 5
 )
 
 type User struct {
@@ -78,6 +84,7 @@ type User struct {
 
 type UserPatch struct {
 	Username    *string   `json:"username"`
+	Password    *string   `json:"password,omitempty"`
 	Nickname    *string   `json:"nickname"`
 	FirstName   *string   `json:"first_name"`
 	LastName    *string   `json:"last_name"`
@@ -168,6 +175,10 @@ func (u *User) IsValid() *AppError {
 		return InvalidUserError("password_limit", u.Id)
 	}
 
+	if !IsValidLocale(u.Locale) {
+		return InvalidUserError("locale", u.Id)
+	}
+
 	return nil
 }
 
@@ -227,7 +238,7 @@ func (u *User) PreSave() {
 	}
 
 	if u.Timezone == nil {
-		u.Timezone = DefaultUserTimezone()
+		u.Timezone = timezones.DefaultUserTimezone()
 	}
 
 	if len(u.Password) > 0 {
@@ -247,44 +258,44 @@ func (u *User) PreUpdate() {
 
 	if u.NotifyProps == nil || len(u.NotifyProps) == 0 {
 		u.SetDefaultNotifications()
-	} else if _, ok := u.NotifyProps["mention_keys"]; ok {
+	} else if _, ok := u.NotifyProps[MENTION_KEYS_NOTIFY_PROP]; ok {
 		// Remove any blank mention keys
-		splitKeys := strings.Split(u.NotifyProps["mention_keys"], ",")
+		splitKeys := strings.Split(u.NotifyProps[MENTION_KEYS_NOTIFY_PROP], ",")
 		goodKeys := []string{}
 		for _, key := range splitKeys {
 			if len(key) > 0 {
 				goodKeys = append(goodKeys, strings.ToLower(key))
 			}
 		}
-		u.NotifyProps["mention_keys"] = strings.Join(goodKeys, ",")
+		u.NotifyProps[MENTION_KEYS_NOTIFY_PROP] = strings.Join(goodKeys, ",")
 	}
 }
 
 func (u *User) SetDefaultNotifications() {
 	u.NotifyProps = make(map[string]string)
-	u.NotifyProps["email"] = "true"
-	u.NotifyProps["push"] = USER_NOTIFY_MENTION
-	u.NotifyProps["desktop"] = USER_NOTIFY_MENTION
-	u.NotifyProps["desktop_sound"] = "true"
-	u.NotifyProps["mention_keys"] = u.Username + ",@" + u.Username
-	u.NotifyProps["channel"] = "true"
-	u.NotifyProps["push_status"] = STATUS_AWAY
-	u.NotifyProps["comments"] = "never"
-	u.NotifyProps["first_name"] = "false"
+	u.NotifyProps[EMAIL_NOTIFY_PROP] = "true"
+	u.NotifyProps[PUSH_NOTIFY_PROP] = USER_NOTIFY_MENTION
+	u.NotifyProps[DESKTOP_NOTIFY_PROP] = USER_NOTIFY_MENTION
+	u.NotifyProps[DESKTOP_SOUND_NOTIFY_PROP] = "true"
+	u.NotifyProps[MENTION_KEYS_NOTIFY_PROP] = u.Username + ",@" + u.Username
+	u.NotifyProps[CHANNEL_MENTIONS_NOTIFY_PROP] = "true"
+	u.NotifyProps[PUSH_STATUS_NOTIFY_PROP] = STATUS_AWAY
+	u.NotifyProps[COMMENTS_NOTIFY_PROP] = COMMENTS_NOTIFY_NEVER
+	u.NotifyProps[FIRST_NAME_NOTIFY_PROP] = "false"
 }
 
 func (user *User) UpdateMentionKeysFromUsername(oldUsername string) {
 	nonUsernameKeys := []string{}
-	splitKeys := strings.Split(user.NotifyProps["mention_keys"], ",")
+	splitKeys := strings.Split(user.NotifyProps[MENTION_KEYS_NOTIFY_PROP], ",")
 	for _, key := range splitKeys {
 		if key != oldUsername && key != "@"+oldUsername {
 			nonUsernameKeys = append(nonUsernameKeys, key)
 		}
 	}
 
-	user.NotifyProps["mention_keys"] = user.Username + ",@" + user.Username
+	user.NotifyProps[MENTION_KEYS_NOTIFY_PROP] = user.Username + ",@" + user.Username
 	if len(nonUsernameKeys) > 0 {
-		user.NotifyProps["mention_keys"] += "," + strings.Join(nonUsernameKeys, ",")
+		user.NotifyProps[MENTION_KEYS_NOTIFY_PROP] += "," + strings.Join(nonUsernameKeys, ",")
 	}
 }
 
@@ -498,11 +509,7 @@ func (u *User) IsSAMLUser() bool {
 }
 
 func (u *User) GetPreferredTimezone() string {
-	if u.Timezone["useAutomaticTimezone"] == "true" {
-		return u.Timezone["automaticTimezone"]
-	}
-
-	return u.Timezone["manualTimezone"]
+	return GetPreferredTimezone(u.Timezone)
 }
 
 // UserFromJson will decode the input and return a User
@@ -637,4 +644,22 @@ func IsValidCommentsNotifyLevel(notifyLevel string) bool {
 	return notifyLevel == COMMENTS_NOTIFY_ANY ||
 		notifyLevel == COMMENTS_NOTIFY_ROOT ||
 		notifyLevel == COMMENTS_NOTIFY_NEVER
+}
+
+func IsValidEmailBatchingInterval(emailInterval string) bool {
+	return emailInterval == PREFERENCE_EMAIL_INTERVAL_IMMEDIATELY ||
+		emailInterval == PREFERENCE_EMAIL_INTERVAL_FIFTEEN ||
+		emailInterval == PREFERENCE_EMAIL_INTERVAL_HOUR
+}
+
+func IsValidLocale(locale string) bool {
+	if locale != "" {
+		if len(locale) > USER_LOCALE_MAX_LENGTH {
+			return false
+		} else if _, err := language.Parse(locale); err != nil {
+			return false
+		}
+	}
+
+	return true
 }

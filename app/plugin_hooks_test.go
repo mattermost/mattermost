@@ -7,11 +7,16 @@ import (
 	"bytes"
 	"io"
 	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
+
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
@@ -30,37 +35,44 @@ func compileGo(t *testing.T, sourceCode, outputPath string) {
 	cmd.Dir = dir
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	require.NoError(t, cmd.Run())
+	require.NoError(t, cmd.Run(), "failed to compile go")
 }
 
-func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, apiFunc func(*model.Manifest) plugin.API) {
+func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, apiFunc func(*model.Manifest) plugin.API) (func(), []string, []error) {
 	pluginDir, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 	webappPluginDir, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
-	defer os.RemoveAll(pluginDir)
-	defer os.RemoveAll(webappPluginDir)
 
 	env, err := plugin.NewEnvironment(apiFunc, pluginDir, webappPluginDir, app.Log)
 	require.NoError(t, err)
 
-	app.Plugins = env
+	app.SetPluginsEnvironment(env)
+	pluginIds := []string{}
+	activationErrors := []error{}
 	for _, code := range pluginCode {
 		pluginId := model.NewId()
 		backend := filepath.Join(pluginDir, pluginId, "backend.exe")
 		compileGo(t, code, backend)
 
 		ioutil.WriteFile(filepath.Join(pluginDir, pluginId, "plugin.json"), []byte(`{"id": "`+pluginId+`", "backend": {"executable": "backend.exe"}}`), 0600)
-		env.Activate(pluginId)
+		_, _, activationErr := env.Activate(pluginId)
+		pluginIds = append(pluginIds, pluginId)
+		activationErrors = append(activationErrors, activationErr)
 	}
+
+	return func() {
+		os.RemoveAll(pluginDir)
+		os.RemoveAll(webappPluginDir)
+	}, pluginIds, activationErrors
 }
 
 func TestHookMessageWillBePosted(t *testing.T) {
 	t.Run("rejected", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		SetAppEnvironmentWithPlugins(t, []string{
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
 			`
 			package main
 
@@ -82,6 +94,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			}
 			`,
 		}, th.App, th.App.NewPluginAPI)
+		defer tearDown()
 
 		post := &model.Post{
 			UserId:    th.BasicUser.Id,
@@ -96,10 +109,10 @@ func TestHookMessageWillBePosted(t *testing.T) {
 	})
 
 	t.Run("rejected, returned post ignored", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		SetAppEnvironmentWithPlugins(t, []string{
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
 			`
 			package main
 
@@ -122,6 +135,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			}
 			`,
 		}, th.App, th.App.NewPluginAPI)
+		defer tearDown()
 
 		post := &model.Post{
 			UserId:    th.BasicUser.Id,
@@ -136,10 +150,10 @@ func TestHookMessageWillBePosted(t *testing.T) {
 	})
 
 	t.Run("allowed", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		SetAppEnvironmentWithPlugins(t, []string{
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
 			`
 			package main
 
@@ -161,6 +175,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			}
 			`,
 		}, th.App, th.App.NewPluginAPI)
+		defer tearDown()
 
 		post := &model.Post{
 			UserId:    th.BasicUser.Id,
@@ -181,10 +196,10 @@ func TestHookMessageWillBePosted(t *testing.T) {
 	})
 
 	t.Run("updated", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		SetAppEnvironmentWithPlugins(t, []string{
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
 			`
 			package main
 
@@ -207,6 +222,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			}
 			`,
 		}, th.App, th.App.NewPluginAPI)
+		defer tearDown()
 
 		post := &model.Post{
 			UserId:    th.BasicUser.Id,
@@ -227,10 +243,10 @@ func TestHookMessageWillBePosted(t *testing.T) {
 	})
 
 	t.Run("multiple updated", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		SetAppEnvironmentWithPlugins(t, []string{
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
 			`
 			package main
 
@@ -275,6 +291,7 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			}
 			`,
 		}, th.App, th.App.NewPluginAPI)
+		defer tearDown()
 
 		post := &model.Post{
 			UserId:    th.BasicUser.Id,
@@ -291,14 +308,14 @@ func TestHookMessageWillBePosted(t *testing.T) {
 }
 
 func TestHookMessageHasBeenPosted(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	var mockAPI plugintest.API
 	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
 	mockAPI.On("LogDebug", "message").Return(nil)
 
-	SetAppEnvironmentWithPlugins(t,
+	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
 			`
 		package main
@@ -320,6 +337,7 @@ func TestHookMessageHasBeenPosted(t *testing.T) {
 			plugin.ClientMain(&MyPlugin{})
 		}
 	`}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+	defer tearDown()
 
 	post := &model.Post{
 		UserId:    th.BasicUser.Id,
@@ -334,10 +352,10 @@ func TestHookMessageHasBeenPosted(t *testing.T) {
 }
 
 func TestHookMessageWillBeUpdated(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	SetAppEnvironmentWithPlugins(t,
+	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
 			`
 		package main
@@ -360,6 +378,7 @@ func TestHookMessageWillBeUpdated(t *testing.T) {
 			plugin.ClientMain(&MyPlugin{})
 		}
 	`}, th.App, th.App.NewPluginAPI)
+	defer tearDown()
 
 	post := &model.Post{
 		UserId:    th.BasicUser.Id,
@@ -381,14 +400,14 @@ func TestHookMessageWillBeUpdated(t *testing.T) {
 }
 
 func TestHookMessageHasBeenUpdated(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	var mockAPI plugintest.API
 	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
 	mockAPI.On("LogDebug", "message_edited").Return(nil)
 	mockAPI.On("LogDebug", "message_").Return(nil)
-	SetAppEnvironmentWithPlugins(t,
+	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
 			`
 		package main
@@ -411,6 +430,7 @@ func TestHookMessageHasBeenUpdated(t *testing.T) {
 			plugin.ClientMain(&MyPlugin{})
 		}
 	`}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+	defer tearDown()
 
 	post := &model.Post{
 		UserId:    th.BasicUser.Id,
@@ -432,14 +452,14 @@ func TestHookMessageHasBeenUpdated(t *testing.T) {
 
 func TestHookFileWillBeUploaded(t *testing.T) {
 	t.Run("rejected", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		var mockAPI plugintest.API
 		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
 		mockAPI.On("LogDebug", "testhook.txt").Return(nil)
 		mockAPI.On("LogDebug", "inputfile").Return(nil)
-		SetAppEnvironmentWithPlugins(t, []string{
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
 			`
 			package main
 
@@ -462,6 +482,7 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 			}
 			`,
 		}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+		defer tearDown()
 
 		_, err := th.App.UploadFiles(
 			"noteam",
@@ -478,14 +499,14 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 	})
 
 	t.Run("rejected, returned file ignored", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		var mockAPI plugintest.API
 		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
 		mockAPI.On("LogDebug", "testhook.txt").Return(nil)
 		mockAPI.On("LogDebug", "inputfile").Return(nil)
-		SetAppEnvironmentWithPlugins(t, []string{
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
 			`
 			package main
 
@@ -510,6 +531,7 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 			}
 			`,
 		}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+		defer tearDown()
 
 		_, err := th.App.UploadFiles(
 			"noteam",
@@ -526,14 +548,14 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 	})
 
 	t.Run("allowed", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		var mockAPI plugintest.API
 		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
 		mockAPI.On("LogDebug", "testhook.txt").Return(nil)
 		mockAPI.On("LogDebug", "inputfile").Return(nil)
-		SetAppEnvironmentWithPlugins(t, []string{
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
 			`
 			package main
 
@@ -556,6 +578,7 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 			}
 			`,
 		}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+		defer tearDown()
 
 		response, err := th.App.UploadFiles(
 			"noteam",
@@ -584,14 +607,14 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 	})
 
 	t.Run("updated", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		var mockAPI plugintest.API
 		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
 		mockAPI.On("LogDebug", "testhook.txt").Return(nil)
 		mockAPI.On("LogDebug", "inputfile").Return(nil)
-		SetAppEnvironmentWithPlugins(t, []string{
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{
 			`
 			package main
 
@@ -623,6 +646,7 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 			}
 			`,
 		}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+		defer tearDown()
 
 		response, err := th.App.UploadFiles(
 			"noteam",
@@ -652,7 +676,7 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 }
 
 func TestUserWillLogIn_Blocked(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	err := th.App.UpdatePassword(th.BasicUser, "hunter2")
@@ -661,7 +685,7 @@ func TestUserWillLogIn_Blocked(t *testing.T) {
 		t.Errorf("Error updating user password: %s", err)
 	}
 
-	SetAppEnvironmentWithPlugins(t,
+	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
 			`
 		package main
@@ -683,20 +707,19 @@ func TestUserWillLogIn_Blocked(t *testing.T) {
 			plugin.ClientMain(&MyPlugin{})
 		}
 	`}, th.App, th.App.NewPluginAPI)
+	defer tearDown()
 
-	user, err := th.App.AuthenticateUserForLogin("", th.BasicUser.Email, "hunter2", "", false)
+	r := &http.Request{}
+	w := httptest.NewRecorder()
+	_, err = th.App.DoLogin(w, r, th.BasicUser, "")
 
-	if user != nil {
-		t.Errorf("Expected nil, got %+v", user)
-	}
-
-	if err == nil {
-		t.Errorf("Expected err, got nil")
+	if !strings.HasPrefix(err.Id, "Login rejected by plugin") {
+		t.Errorf("Expected Login rejected by plugin, got %s", err.Id)
 	}
 }
 
 func TestUserWillLogInIn_Passed(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	err := th.App.UpdatePassword(th.BasicUser, "hunter2")
@@ -705,7 +728,7 @@ func TestUserWillLogInIn_Passed(t *testing.T) {
 		t.Errorf("Error updating user password: %s", err)
 	}
 
-	SetAppEnvironmentWithPlugins(t,
+	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
 			`
 		package main
@@ -727,20 +750,23 @@ func TestUserWillLogInIn_Passed(t *testing.T) {
 			plugin.ClientMain(&MyPlugin{})
 		}
 	`}, th.App, th.App.NewPluginAPI)
+	defer tearDown()
 
-	user, err := th.App.AuthenticateUserForLogin("", th.BasicUser.Email, "hunter2", "", false)
-
-	if user == nil {
-		t.Errorf("Expected user object, got nil")
-	}
+	r := &http.Request{}
+	w := httptest.NewRecorder()
+	session, err := th.App.DoLogin(w, r, th.BasicUser, "")
 
 	if err != nil {
 		t.Errorf("Expected nil, got %s", err)
 	}
+
+	if session.UserId != th.BasicUser.Id {
+		t.Errorf("Expected %s, got %s", th.BasicUser.Id, session.UserId)
+	}
 }
 
 func TestUserHasLoggedIn(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	err := th.App.UpdatePassword(th.BasicUser, "hunter2")
@@ -749,7 +775,7 @@ func TestUserHasLoggedIn(t *testing.T) {
 		t.Errorf("Error updating user password: %s", err)
 	}
 
-	SetAppEnvironmentWithPlugins(t,
+	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
 			`
 		package main
@@ -772,12 +798,11 @@ func TestUserHasLoggedIn(t *testing.T) {
 			plugin.ClientMain(&MyPlugin{})
 		}
 	`}, th.App, th.App.NewPluginAPI)
+	defer tearDown()
 
-	user, err := th.App.AuthenticateUserForLogin("", th.BasicUser.Email, "hunter2", "", false)
-
-	if user == nil {
-		t.Errorf("Expected user object, got nil")
-	}
+	r := &http.Request{}
+	w := httptest.NewRecorder()
+	_, err = th.App.DoLogin(w, r, th.BasicUser, "")
 
 	if err != nil {
 		t.Errorf("Expected nil, got %s", err)
@@ -785,9 +810,187 @@ func TestUserHasLoggedIn(t *testing.T) {
 
 	time.Sleep(2 * time.Second)
 
-	user, _ = th.App.GetUser(th.BasicUser.Id)
+	user, _ := th.App.GetUser(th.BasicUser.Id)
 
 	if user.FirstName != "plugin-callback-success" {
 		t.Errorf("Expected firstname overwrite, got default")
+	}
+}
+
+func TestUserHasBeenCreated(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
+		[]string{
+			`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost-server/plugin"
+			"github.com/mattermost/mattermost-server/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) UserHasBeenCreated(c *plugin.Context, user *model.User) {
+			user.Nickname = "plugin-callback-success"
+			p.API.UpdateUser(user)
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, th.App.NewPluginAPI)
+	defer tearDown()
+
+	user := &model.User{
+		Email:       model.NewId() + "success+test@example.com",
+		Nickname:    "Darth Vader",
+		Username:    "vader" + model.NewId(),
+		Password:    "passwd1",
+		AuthService: "",
+	}
+	_, err := th.App.CreateUser(user)
+	require.Nil(t, err)
+
+	time.Sleep(1 * time.Second)
+
+	user, err = th.App.GetUser(user.Id)
+	require.Nil(t, err)
+
+	require.Equal(t, "plugin-callback-success", user.Nickname)
+}
+
+func TestErrorString(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("errors.New", func(t *testing.T) {
+		tearDown, _, activationErrors := SetAppEnvironmentWithPlugins(t,
+			[]string{
+				`
+			package main
+
+			import (
+				"errors"
+
+				"github.com/mattermost/mattermost-server/plugin"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) OnActivate() error {
+				return errors.New("simulate failure")
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+		`}, th.App, th.App.NewPluginAPI)
+		defer tearDown()
+
+		require.Len(t, activationErrors, 1)
+		require.NotNil(t, activationErrors[0])
+		require.Contains(t, activationErrors[0].Error(), "simulate failure")
+	})
+
+	t.Run("AppError", func(t *testing.T) {
+		tearDown, _, activationErrors := SetAppEnvironmentWithPlugins(t,
+			[]string{
+				`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost-server/plugin"
+				"github.com/mattermost/mattermost-server/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) OnActivate() error {
+				return model.NewAppError("where", "id", map[string]interface{}{"param": 1}, "details", 42)
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+		`}, th.App, th.App.NewPluginAPI)
+		defer tearDown()
+
+		require.Len(t, activationErrors, 1)
+		require.NotNil(t, activationErrors[0])
+
+		cause := errors.Cause(activationErrors[0])
+		require.IsType(t, &model.AppError{}, cause)
+
+		// params not expected, since not exported
+		expectedErr := model.NewAppError("where", "id", nil, "details", 42)
+		require.Equal(t, expectedErr, cause)
+	})
+}
+
+func TestHookContext(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	// We don't actually have a session, we are faking it so just set something arbitrarily
+	th.App.Session.Id = model.NewId()
+	th.App.RequestId = model.NewId()
+	th.App.IpAddress = model.NewId()
+	th.App.AcceptLanguage = model.NewId()
+	th.App.UserAgent = model.NewId()
+
+	var mockAPI plugintest.API
+	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
+	mockAPI.On("LogDebug", th.App.Session.Id).Return(nil)
+	mockAPI.On("LogInfo", th.App.RequestId).Return(nil)
+	mockAPI.On("LogError", th.App.IpAddress).Return(nil)
+	mockAPI.On("LogWarn", th.App.AcceptLanguage).Return(nil)
+	mockAPI.On("DeleteTeam", th.App.UserAgent).Return(nil)
+
+	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
+		[]string{
+			`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost-server/plugin"
+			"github.com/mattermost/mattermost-server/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) MessageHasBeenPosted(c *plugin.Context, post *model.Post) {
+			p.API.LogDebug(c.SessionId)
+			p.API.LogInfo(c.RequestId)
+			p.API.LogError(c.IpAddress)
+			p.API.LogWarn(c.AcceptLanguage)
+			p.API.DeleteTeam(c.UserAgent)
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+	defer tearDown()
+
+	post := &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+		Message:   "not this",
+		CreateAt:  model.GetMillis() - 10000,
+	}
+	_, err := th.App.CreatePost(post, th.BasicChannel, false)
+	if err != nil {
+		t.Fatal(err)
 	}
 }

@@ -74,7 +74,7 @@ func (me *LoadTestProvider) GetTrigger() string {
 }
 
 func (me *LoadTestProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Command {
-	if !a.Config().ServiceSettings.EnableTesting {
+	if !*a.Config().ServiceSettings.EnableTesting {
 		return nil
 	}
 	return &model.Command{
@@ -88,7 +88,7 @@ func (me *LoadTestProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Co
 
 func (me *LoadTestProvider) DoCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse {
 	//This command is only available when EnableTesting is true
-	if !a.Config().ServiceSettings.EnableTesting {
+	if !*a.Config().ServiceSettings.EnableTesting {
 		return &model.CommandResponse{}
 	}
 
@@ -288,7 +288,8 @@ func (me *LoadTestProvider) PostsCommand(a *App, args *model.CommandArgs, messag
 	}
 
 	var usernames []string
-	if result := <-a.Srv.Store.User().GetProfiles(args.TeamId, 0, 1000); result.Err == nil {
+	options := &model.UserGetOptions{InTeamId: args.TeamId, Page: 0, PerPage: 1000}
+	if result := <-a.Srv.Store.User().GetProfiles(options); result.Err == nil {
 		profileUsers := result.Data.([]*model.User)
 		usernames = make([]string, len(profileUsers))
 		i := 0

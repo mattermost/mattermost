@@ -8,13 +8,6 @@ import (
 	"github.com/go-redis/redis/internal"
 )
 
-func readTimeout(timeout time.Duration) time.Duration {
-	if timeout == 0 {
-		return 0
-	}
-	return timeout + 10*time.Second
-}
-
 func usePrecise(dur time.Duration) bool {
 	return dur < time.Second || dur%time.Second != 0
 }
@@ -173,6 +166,7 @@ type Cmdable interface {
 	SUnion(keys ...string) *StringSliceCmd
 	SUnionStore(destination string, keys ...string) *IntCmd
 	XAdd(a *XAddArgs) *StringCmd
+	XDel(stream string, ids ...string) *IntCmd
 	XLen(stream string) *IntCmd
 	XRange(stream, start, stop string) *XMessageSliceCmd
 	XRangeN(stream, start, stop string, count int64) *XMessageSliceCmd
@@ -181,6 +175,7 @@ type Cmdable interface {
 	XRead(a *XReadArgs) *XStreamSliceCmd
 	XReadStreams(streams ...string) *XStreamSliceCmd
 	XGroupCreate(stream, group, start string) *StatusCmd
+	XGroupCreateMkStream(stream, group, start string) *StatusCmd
 	XGroupSetID(stream, group, start string) *StatusCmd
 	XGroupDestroy(stream, group string) *IntCmd
 	XGroupDelConsumer(stream, group, consumer string) *IntCmd
@@ -192,6 +187,8 @@ type Cmdable interface {
 	XClaimJustID(a *XClaimArgs) *StringSliceCmd
 	XTrim(key string, maxLen int64) *IntCmd
 	XTrimApprox(key string, maxLen int64) *IntCmd
+	BZPopMax(timeout time.Duration, keys ...string) *ZWithKeyCmd
+	BZPopMin(timeout time.Duration, keys ...string) *ZWithKeyCmd
 	ZAdd(key string, members ...Z) *IntCmd
 	ZAddNX(key string, members ...Z) *IntCmd
 	ZAddXX(key string, members ...Z) *IntCmd
@@ -206,6 +203,8 @@ type Cmdable interface {
 	ZLexCount(key, min, max string) *IntCmd
 	ZIncrBy(key string, increment float64, member string) *FloatCmd
 	ZInterStore(destination string, store ZStore, keys ...string) *IntCmd
+	ZPopMax(key string, count ...int64) *ZSliceCmd
+	ZPopMin(key string, count ...int64) *ZSliceCmd
 	ZRange(key string, start, stop int64) *StringSliceCmd
 	ZRangeWithScores(key string, start, stop int64) *ZSliceCmd
 	ZRangeByScore(key string, opt ZRangeBy) *StringSliceCmd
@@ -233,6 +232,7 @@ type Cmdable interface {
 	ClientKillByFilter(keys ...string) *IntCmd
 	ClientList() *StringCmd
 	ClientPause(dur time.Duration) *BoolCmd
+	ClientID() *IntCmd
 	ConfigGet(parameter string) *SliceCmd
 	ConfigResetStat() *StatusCmd
 	ConfigSet(parameter, value string) *StatusCmd
@@ -1342,6 +1342,16 @@ func (c *cmdable) XAdd(a *XAddArgs) *StringCmd {
 	return cmd
 }
 
+func (c *cmdable) XDel(stream string, ids ...string) *IntCmd {
+	args := []interface{}{"xdel", stream}
+	for _, id := range ids {
+		args = append(args, id)
+	}
+	cmd := NewIntCmd(args...)
+	c.process(cmd)
+	return cmd
+}
+
 func (c *cmdable) XLen(stream string) *IntCmd {
 	cmd := NewIntCmd("xlen", stream)
 	c.process(cmd)
@@ -1395,6 +1405,9 @@ func (c *cmdable) XRead(a *XReadArgs) *XStreamSliceCmd {
 	}
 
 	cmd := NewXStreamSliceCmd(args...)
+	if a.Block >= 0 {
+		cmd.setReadTimeout(a.Block)
+	}
 	c.process(cmd)
 	return cmd
 }
@@ -1408,6 +1421,12 @@ func (c *cmdable) XReadStreams(streams ...string) *XStreamSliceCmd {
 
 func (c *cmdable) XGroupCreate(stream, group, start string) *StatusCmd {
 	cmd := NewStatusCmd("xgroup", "create", stream, group, start)
+	c.process(cmd)
+	return cmd
+}
+
+func (c *cmdable) XGroupCreateMkStream(stream, group, start string) *StatusCmd {
+	cmd := NewStatusCmd("xgroup", "create", stream, group, start, "mkstream")
 	c.process(cmd)
 	return cmd
 }
@@ -1436,6 +1455,7 @@ type XReadGroupArgs struct {
 	Streams  []string
 	Count    int64
 	Block    time.Duration
+	NoAck    bool
 }
 
 func (c *cmdable) XReadGroup(a *XReadGroupArgs) *XStreamSliceCmd {
@@ -1447,12 +1467,18 @@ func (c *cmdable) XReadGroup(a *XReadGroupArgs) *XStreamSliceCmd {
 	if a.Block >= 0 {
 		args = append(args, "block", int64(a.Block/time.Millisecond))
 	}
+	if a.NoAck {
+		args = append(args, "noack")
+	}
 	args = append(args, "streams")
 	for _, s := range a.Streams {
 		args = append(args, s)
 	}
 
 	cmd := NewXStreamSliceCmd(args...)
+	if a.Block >= 0 {
+		cmd.setReadTimeout(a.Block)
+	}
 	c.process(cmd)
 	return cmd
 }
@@ -1549,11 +1575,45 @@ type Z struct {
 	Member interface{}
 }
 
+// ZWithKey represents sorted set member including the name of the key where it was popped.
+type ZWithKey struct {
+	Z
+	Key string
+}
+
 // ZStore is used as an arg to ZInterStore and ZUnionStore.
 type ZStore struct {
 	Weights []float64
 	// Can be SUM, MIN or MAX.
 	Aggregate string
+}
+
+// Redis `BZPOPMAX key [key ...] timeout` command.
+func (c *cmdable) BZPopMax(timeout time.Duration, keys ...string) *ZWithKeyCmd {
+	args := make([]interface{}, 1+len(keys)+1)
+	args[0] = "bzpopmax"
+	for i, key := range keys {
+		args[1+i] = key
+	}
+	args[len(args)-1] = formatSec(timeout)
+	cmd := NewZWithKeyCmd(args...)
+	cmd.setReadTimeout(timeout)
+	c.process(cmd)
+	return cmd
+}
+
+// Redis `BZPOPMIN key [key ...] timeout` command.
+func (c *cmdable) BZPopMin(timeout time.Duration, keys ...string) *ZWithKeyCmd {
+	args := make([]interface{}, 1+len(keys)+1)
+	args[0] = "bzpopmin"
+	for i, key := range keys {
+		args[1+i] = key
+	}
+	args[len(args)-1] = formatSec(timeout)
+	cmd := NewZWithKeyCmd(args...)
+	cmd.setReadTimeout(timeout)
+	c.process(cmd)
+	return cmd
 }
 
 func (c *cmdable) zAdd(a []interface{}, n int, members ...Z) *IntCmd {
@@ -1690,6 +1750,46 @@ func (c *cmdable) ZInterStore(destination string, store ZStore, keys ...string) 
 		args = append(args, "aggregate", store.Aggregate)
 	}
 	cmd := NewIntCmd(args...)
+	c.process(cmd)
+	return cmd
+}
+
+func (c *cmdable) ZPopMax(key string, count ...int64) *ZSliceCmd {
+	args := []interface{}{
+		"zpopmax",
+		key,
+	}
+
+	switch len(count) {
+	case 0:
+		break
+	case 1:
+		args = append(args, count[0])
+	default:
+		panic("too many arguments")
+	}
+
+	cmd := NewZSliceCmd(args...)
+	c.process(cmd)
+	return cmd
+}
+
+func (c *cmdable) ZPopMin(key string, count ...int64) *ZSliceCmd {
+	args := []interface{}{
+		"zpopmin",
+		key,
+	}
+
+	switch len(count) {
+	case 0:
+		break
+	case 1:
+		args = append(args, count[0])
+	default:
+		panic("too many arguments")
+	}
+
+	cmd := NewZSliceCmd(args...)
 	c.process(cmd)
 	return cmd
 }
@@ -1965,6 +2065,24 @@ func (c *cmdable) ClientList() *StringCmd {
 
 func (c *cmdable) ClientPause(dur time.Duration) *BoolCmd {
 	cmd := NewBoolCmd("client", "pause", formatMs(dur))
+	c.process(cmd)
+	return cmd
+}
+
+func (c *cmdable) ClientID() *IntCmd {
+	cmd := NewIntCmd("client", "id")
+	c.process(cmd)
+	return cmd
+}
+
+func (c *cmdable) ClientUnblock(id int64) *IntCmd {
+	cmd := NewIntCmd("client", "unblock", id)
+	c.process(cmd)
+	return cmd
+}
+
+func (c *cmdable) ClientUnblockWithError(id int64) *IntCmd {
+	cmd := NewIntCmd("client", "unblock", id, "error")
 	c.process(cmd)
 	return cmd
 }

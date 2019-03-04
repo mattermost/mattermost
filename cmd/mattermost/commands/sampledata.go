@@ -202,14 +202,16 @@ func sampleDataCmdF(command *cobra.Command, args []string) error {
 	}
 	profileImages := []string{}
 	if profileImagesPath != "" {
-		profileImagesStat, err := os.Stat(profileImagesPath)
+		var profileImagesStat os.FileInfo
+		profileImagesStat, err = os.Stat(profileImagesPath)
 		if os.IsNotExist(err) {
 			return errors.New("Profile images folder doesn't exists.")
 		}
 		if !profileImagesStat.IsDir() {
 			return errors.New("profile-images parameters must be a folder path.")
 		}
-		profileImagesFiles, err := ioutil.ReadDir(profileImagesPath)
+		var profileImagesFiles []os.FileInfo
+		profileImagesFiles, err = ioutil.ReadDir(profileImagesPath)
 		if err != nil {
 			return errors.New("Invalid profile-images parameter")
 		}
@@ -397,15 +399,18 @@ func createUser(idx int, teamMemberships int, channelMemberships int, teamsAndCh
 		nickname = fake.Company()
 	}
 
-	// Half of users skip tutorial
+	// sysadmin, user-1 and user-2 users skip tutorial steps
+	// Other half of users also skip tutorial steps
 	tutorialStep := "999"
-	switch rand.Intn(6) {
-	case 1:
-		tutorialStep = "1"
-	case 2:
-		tutorialStep = "2"
-	case 3:
-		tutorialStep = "3"
+	if idx > 2 {
+		switch rand.Intn(6) {
+		case 1:
+			tutorialStep = "1"
+		case 2:
+			tutorialStep = "2"
+		case 3:
+			tutorialStep = "3"
+		}
 	}
 
 	teams := []app.UserTeamImportData{}

@@ -12,6 +12,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"github.com/nicksnyder/go-i18n/i18n"
 )
 
@@ -39,7 +40,7 @@ func InitTranslations(localizationSettings model.LocalizationSettings) error {
 }
 
 func InitTranslationsWithDir(dir string) error {
-	i18nDirectory, found := FindDir(dir)
+	i18nDirectory, found := fileutils.FindDir(dir)
 	if !found {
 		return fmt.Errorf("Unable to find i18n directory")
 	}

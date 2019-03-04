@@ -78,7 +78,7 @@ func (me *EchoProvider) DoCommand(a *App, args *model.CommandArgs, message strin
 	}
 
 	echoSem <- true
-	a.Go(func() {
+	a.Srv.Go(func() {
 		defer func() { <-echoSem }()
 		post := &model.Post{}
 		post.ChannelId = args.ChannelId

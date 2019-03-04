@@ -23,11 +23,17 @@ type SearchParams struct {
 	OrTerms                bool
 	IncludeDeletedChannels bool
 	TimeZoneOffset         int
+	// True if this search doesn't originate from a "current user".
+	SearchWithoutUserId bool
 }
 
 // Returns the epoch timestamp of the start of the day specified by SearchParams.AfterDate
 func (p *SearchParams) GetAfterDateMillis() int64 {
-	date := ParseDateFilterToTime(p.AfterDate)
+	date, err := time.Parse("2006-01-02", PadDateStringZeros(p.AfterDate))
+	if err != nil {
+		date = time.Now()
+	}
+
 	// travel forward 1 day
 	oneDay := time.Hour * 24
 	afterDate := date.Add(oneDay)
@@ -36,7 +42,11 @@ func (p *SearchParams) GetAfterDateMillis() int64 {
 
 // Returns the epoch timestamp of the end of the day specified by SearchParams.BeforeDate
 func (p *SearchParams) GetBeforeDateMillis() int64 {
-	date := ParseDateFilterToTime(p.BeforeDate)
+	date, err := time.Parse("2006-01-02", PadDateStringZeros(p.BeforeDate))
+	if err != nil {
+		return 0
+	}
+
 	// travel back 1 day
 	oneDay := time.Hour * -24
 	beforeDate := date.Add(oneDay)
@@ -45,7 +55,11 @@ func (p *SearchParams) GetBeforeDateMillis() int64 {
 
 // Returns the epoch timestamps of the start and end of the day specified by SearchParams.OnDate
 func (p *SearchParams) GetOnDateMillis() (int64, int64) {
-	date := ParseDateFilterToTime(p.OnDate)
+	date, err := time.Parse("2006-01-02", PadDateStringZeros(p.OnDate))
+	if err != nil {
+		return 0, 0
+	}
+
 	return GetStartOfDayMillis(date, p.TimeZoneOffset), GetEndOfDayMillis(date, p.TimeZoneOffset)
 }
 

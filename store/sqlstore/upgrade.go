@@ -12,9 +12,15 @@ import (
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/timezones"
 )
 
 const (
+	VERSION_5_9_0            = "5.9.0"
+	VERSION_5_8_0            = "5.8.0"
+	VERSION_5_7_0            = "5.7.0"
+	VERSION_5_6_0            = "5.6.0"
+	VERSION_5_5_0            = "5.5.0"
 	VERSION_5_4_0            = "5.4.0"
 	VERSION_5_3_0            = "5.3.0"
 	VERSION_5_2_0            = "5.2.0"
@@ -86,6 +92,12 @@ func UpgradeDatabase(sqlStore SqlStore) {
 	UpgradeDatabaseToVersion52(sqlStore)
 	UpgradeDatabaseToVersion53(sqlStore)
 	UpgradeDatabaseToVersion54(sqlStore)
+	UpgradeDatabaseToVersion55(sqlStore)
+	UpgradeDatabaseToVersion56(sqlStore)
+	UpgradeDatabaseToVersion57(sqlStore)
+	UpgradeDatabaseToVersion58(sqlStore)
+	UpgradeDatabaseToVersion59(sqlStore)
+	UpgradeDatabaseToVersion510(sqlStore)
 
 	// If the SchemaVersion is empty this this is the first time it has ran
 	// so lets set it to the current version.
@@ -161,15 +173,18 @@ func UpgradeDatabaseToVersion33(sqlStore SqlStore) {
 			if err != nil {
 				themeMigrationFailed(err)
 			}
+			defer finalizeTransaction(transaction)
 
 			// increase size of Value column of Preferences table to match the size of the ThemeProps column
 			if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 				if _, err := transaction.Exec("ALTER TABLE Preferences ALTER COLUMN Value TYPE varchar(2000)"); err != nil {
 					themeMigrationFailed(err)
+					return
 				}
 			} else if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
 				if _, err := transaction.Exec("ALTER TABLE Preferences MODIFY Value text"); err != nil {
 					themeMigrationFailed(err)
+					return
 				}
 			}
 
@@ -184,15 +199,18 @@ func UpgradeDatabaseToVersion33(sqlStore SqlStore) {
 				WHERE
 					Users.ThemeProps != 'null'`, params); err != nil {
 				themeMigrationFailed(err)
+				return
 			}
 
 			// delete old data
 			if _, err := transaction.Exec("ALTER TABLE Users DROP COLUMN ThemeProps"); err != nil {
 				themeMigrationFailed(err)
+				return
 			}
 
 			if err := transaction.Commit(); err != nil {
 				themeMigrationFailed(err)
+				return
 			}
 
 			// rename solarized_* code themes to solarized-* to match client changes in 3.0
@@ -409,7 +427,7 @@ func UpgradeDatabaseToVersion49(sqlStore SqlStore) {
 
 	if shouldPerformUpgrade(sqlStore, VERSION_4_8_1, VERSION_4_9_0) {
 		sqlStore.CreateColumnIfNotExists("Teams", "LastTeamIconUpdate", "bigint", "bigint", "0")
-		defaultTimezone := model.DefaultUserTimezone()
+		defaultTimezone := timezones.DefaultUserTimezone()
 		defaultTimezoneValue, err := json.Marshal(defaultTimezone)
 		if err != nil {
 			mlog.Critical(fmt.Sprint(err))
@@ -489,14 +507,82 @@ func UpgradeDatabaseToVersion53(sqlStore SqlStore) {
 	if shouldPerformUpgrade(sqlStore, VERSION_5_2_0, VERSION_5_3_0) {
 		saveSchemaVersion(sqlStore, VERSION_5_3_0)
 	}
-
 }
 
 func UpgradeDatabaseToVersion54(sqlStore SqlStore) {
-	// TODO: Uncomment following condition when version 5.4.0 is released
-	// if shouldPerformUpgrade(sqlStore, VERSION_5_3_0, VERSION_5_4_0) {
-	sqlStore.AlterColumnTypeIfExists("OutgoingWebhooks", "Description", "varchar(500)", "varchar(500)")
-	sqlStore.AlterColumnTypeIfExists("IncomingWebhooks", "Description", "varchar(500)", "varchar(500)")
-	// 	saveSchemaVersion(sqlStore, VERSION_5_4_0)
+	if shouldPerformUpgrade(sqlStore, VERSION_5_3_0, VERSION_5_4_0) {
+		sqlStore.AlterColumnTypeIfExists("OutgoingWebhooks", "Description", "varchar(500)", "varchar(500)")
+		sqlStore.AlterColumnTypeIfExists("IncomingWebhooks", "Description", "varchar(500)", "varchar(500)")
+		if err := sqlStore.Channel().MigratePublicChannels(); err != nil {
+			mlog.Critical("Failed to migrate PublicChannels table", mlog.Err(err))
+			time.Sleep(time.Second)
+			os.Exit(EXIT_GENERIC_FAILURE)
+		}
+		saveSchemaVersion(sqlStore, VERSION_5_4_0)
+	}
+}
+
+func UpgradeDatabaseToVersion55(sqlStore SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_5_4_0, VERSION_5_5_0) {
+		saveSchemaVersion(sqlStore, VERSION_5_5_0)
+	}
+}
+
+func UpgradeDatabaseToVersion56(sqlStore SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_5_5_0, VERSION_5_6_0) {
+		sqlStore.CreateColumnIfNotExists("PluginKeyValueStore", "ExpireAt", "bigint(20)", "bigint", "0")
+
+		// migrating user's accepted terms of service data into the new table
+		sqlStore.GetMaster().Exec("INSERT INTO UserTermsOfService SELECT Id, AcceptedTermsOfServiceId as TermsOfServiceId, :CreateAt FROM Users WHERE AcceptedTermsOfServiceId != \"\" AND AcceptedTermsOfServiceId IS NOT NULL", map[string]interface{}{"CreateAt": model.GetMillis()})
+
+		if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+			sqlStore.RemoveIndexIfExists("idx_users_email_lower", "lower(Email)")
+			sqlStore.RemoveIndexIfExists("idx_users_username_lower", "lower(Username)")
+			sqlStore.RemoveIndexIfExists("idx_users_nickname_lower", "lower(Nickname)")
+			sqlStore.RemoveIndexIfExists("idx_users_firstname_lower", "lower(FirstName)")
+			sqlStore.RemoveIndexIfExists("idx_users_lastname_lower", "lower(LastName)")
+		}
+
+		saveSchemaVersion(sqlStore, VERSION_5_6_0)
+	}
+
+}
+
+func UpgradeDatabaseToVersion57(sqlStore SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_5_6_0, VERSION_5_7_0) {
+		saveSchemaVersion(sqlStore, VERSION_5_7_0)
+	}
+}
+
+func UpgradeDatabaseToVersion58(sqlStore SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_5_7_0, VERSION_5_8_0) {
+		// idx_channels_txt was removed in `UpgradeDatabaseToVersion50`, but merged as part of
+		// v5.1, so the migration wouldn't apply to anyone upgrading from v5.0. Remove it again to
+		// bring the upgraded (from v5.0) and fresh install schemas back in sync.
+		sqlStore.RemoveIndexIfExists("idx_channels_txt", "Channels")
+
+		// Fix column types and defaults where gorp converged on a different schema value than the
+		// original migration.
+		sqlStore.AlterColumnTypeIfExists("OutgoingWebhooks", "Description", "text", "VARCHAR(500)")
+		sqlStore.AlterColumnTypeIfExists("IncomingWebhooks", "Description", "text", "VARCHAR(500)")
+		sqlStore.AlterColumnTypeIfExists("OutgoingWebhooks", "IconURL", "text", "VARCHAR(1024)")
+		sqlStore.AlterColumnDefaultIfExists("OutgoingWebhooks", "Username", model.NewString("NULL"), model.NewString(""))
+		sqlStore.AlterColumnDefaultIfExists("OutgoingWebhooks", "IconURL", nil, model.NewString(""))
+		sqlStore.AlterColumnDefaultIfExists("PluginKeyValueStore", "ExpireAt", model.NewString("NULL"), model.NewString("NULL"))
+
+		saveSchemaVersion(sqlStore, VERSION_5_8_0)
+	}
+}
+
+func UpgradeDatabaseToVersion59(sqlStore SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_5_8_0, VERSION_5_9_0) {
+		saveSchemaVersion(sqlStore, VERSION_5_9_0)
+	}
+}
+
+func UpgradeDatabaseToVersion510(sqlStore SqlStore) {
+	// if shouldPerformUpgrade(sqlStore, VERSION_5_9_0, VERSION_5_10_0) {
+
+	// 	saveSchemaVersion(sqlStore, VERSION_5_10_0)
 	// }
 }

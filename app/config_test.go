@@ -16,25 +16,17 @@ import (
 )
 
 func TestConfigListener(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	originalSiteName := th.App.Config().TeamSettings.SiteName
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.TeamSettings.SiteName = "test123"
-	})
 
 	listenerCalled := false
 	listener := func(oldConfig *model.Config, newConfig *model.Config) {
-		if listenerCalled {
-			t.Fatal("listener called twice")
-		}
+		assert.False(t, listenerCalled, "listener called twice")
 
-		if oldConfig.TeamSettings.SiteName != "test123" {
-			t.Fatal("old config contains incorrect site name")
-		} else if newConfig.TeamSettings.SiteName != originalSiteName {
-			t.Fatal("new config contains incorrect site name")
-		}
+		assert.Equal(t, *originalSiteName, *oldConfig.TeamSettings.SiteName, "old config contains incorrect site name")
+		assert.Equal(t, "test123", *newConfig.TeamSettings.SiteName, "new config contains incorrect site name")
 
 		listenerCalled = true
 	}
@@ -43,33 +35,36 @@ func TestConfigListener(t *testing.T) {
 
 	listener2Called := false
 	listener2 := func(oldConfig *model.Config, newConfig *model.Config) {
-		if listener2Called {
-			t.Fatal("listener2 called twice")
-		}
+		assert.False(t, listener2Called, "listener2 called twice")
 
 		listener2Called = true
 	}
 	listener2Id := th.App.AddConfigListener(listener2)
 	defer th.App.RemoveConfigListener(listener2Id)
 
-	th.App.ReloadConfig()
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.TeamSettings.SiteName = "test123"
+	})
 
-	if !listenerCalled {
-		t.Fatal("listener should've been called")
-	} else if !listener2Called {
-		t.Fatal("listener 2 should've been called")
-	}
+	assert.True(t, listenerCalled, "listener should've been called")
+	assert.True(t, listener2Called, "listener 2 should've been called")
 }
 
 func TestAsymmetricSigningKey(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	assert.NotNil(t, th.App.AsymmetricSigningKey())
 	assert.NotEmpty(t, th.App.ClientConfig()["AsymmetricSigningPublicKey"])
 }
 
+func TestPostActionCookieSecret(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	assert.Equal(t, 32, len(th.App.PostActionCookieSecret()))
+}
+
 func TestClientConfigWithComputed(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	config := th.App.ClientConfigWithComputed()
@@ -82,7 +77,7 @@ func TestClientConfigWithComputed(t *testing.T) {
 }
 
 func TestEnsureInstallationDate(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	tt := []struct {

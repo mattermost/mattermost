@@ -37,11 +37,6 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if len(*c.App.Config().FileSettings.DriverName) == 0 {
-		c.Err = model.NewAppError("createEmoji", "api.emoji.storage.app_error", nil, "", http.StatusNotImplemented)
-		return
-	}
-
 	if r.ContentLength > app.MaxEmojiFileSize {
 		c.Err = model.NewAppError("createEmoji", "api.emoji.create.too_large.app_error", nil, "", http.StatusRequestEntityTooLarge)
 		return
@@ -53,17 +48,17 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Allow any user with MANAGE_EMOJIS permission at Team level to manage emojis at system level
-	memberships, err := c.App.GetTeamMembersForUser(c.Session.UserId)
+	memberships, err := c.App.GetTeamMembersForUser(c.App.Session.UserId)
 
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_EMOJIS) {
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_EMOJIS) {
 		hasPermission := false
 		for _, membership := range memberships {
-			if c.App.SessionHasPermissionToTeam(c.Session, membership.TeamId, model.PERMISSION_MANAGE_EMOJIS) {
+			if c.App.SessionHasPermissionToTeam(c.App.Session, membership.TeamId, model.PERMISSION_MANAGE_EMOJIS) {
 				hasPermission = true
 				break
 			}
@@ -88,7 +83,7 @@ func createEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	newEmoji, err := c.App.CreateEmoji(c.Session.UserId, emoji, m)
+	newEmoji, err := c.App.CreateEmoji(c.App.Session.UserId, emoji, m)
 	if err != nil {
 		c.Err = err
 		return
@@ -131,17 +126,17 @@ func deleteEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Allow any user with MANAGE_EMOJIS permission at Team level to manage emojis at system level
-	memberships, err := c.App.GetTeamMembersForUser(c.Session.UserId)
+	memberships, err := c.App.GetTeamMembersForUser(c.App.Session.UserId)
 
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_EMOJIS) {
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_EMOJIS) {
 		hasPermission := false
 		for _, membership := range memberships {
-			if c.App.SessionHasPermissionToTeam(c.Session, membership.TeamId, model.PERMISSION_MANAGE_EMOJIS) {
+			if c.App.SessionHasPermissionToTeam(c.App.Session, membership.TeamId, model.PERMISSION_MANAGE_EMOJIS) {
 				hasPermission = true
 				break
 			}
@@ -152,11 +147,11 @@ func deleteEmoji(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if c.Session.UserId != emoji.CreatorId {
-		if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_OTHERS_EMOJIS) {
+	if c.App.Session.UserId != emoji.CreatorId {
+		if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_OTHERS_EMOJIS) {
 			hasPermission := false
 			for _, membership := range memberships {
-				if c.App.SessionHasPermissionToTeam(c.Session, membership.TeamId, model.PERMISSION_MANAGE_OTHERS_EMOJIS) {
+				if c.App.SessionHasPermissionToTeam(c.App.Session, membership.TeamId, model.PERMISSION_MANAGE_OTHERS_EMOJIS) {
 					hasPermission = true
 					break
 				}
@@ -221,11 +216,6 @@ func getEmojiImage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !*c.App.Config().ServiceSettings.EnableCustomEmoji {
 		c.Err = model.NewAppError("getEmojiImage", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
-		return
-	}
-
-	if len(*c.App.Config().FileSettings.DriverName) == 0 {
-		c.Err = model.NewAppError("getEmojiImage", "api.emoji.storage.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 

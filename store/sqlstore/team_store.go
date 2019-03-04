@@ -670,6 +670,20 @@ func (s SqlTeamStore) GetTeamsForUser(userId string) store.StoreChannel {
 	})
 }
 
+func (s SqlTeamStore) GetTeamsForUserWithPagination(userId string, page, perPage int) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		var dbMembers teamMemberWithSchemeRolesList
+		offset := page * perPage
+		_, err := s.GetReplica().Select(&dbMembers, TEAM_MEMBERS_WITH_SCHEME_SELECT_QUERY+"WHERE TeamMembers.UserId = :UserId Limit :Limit Offset :Offset", map[string]interface{}{"UserId": userId, "Limit": perPage, "Offset": offset})
+		if err != nil {
+			result.Err = model.NewAppError("SqlTeamStore.GetTeamsForUserWithPagination", "store.sql_team.get_members.app_error", nil, "userId="+userId+" "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		result.Data = dbMembers.ToModel()
+	})
+}
+
 func (s SqlTeamStore) GetChannelUnreadsForAllTeams(excludeTeamId, userId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var data []*model.ChannelUnread
@@ -778,6 +792,7 @@ func (s SqlTeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) s
 			result.Err = model.NewAppError("SqlTeamStore.MigrateTeamMembers", "store.sql_team.migrate_team_members.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		defer finalizeTransaction(transaction)
 
 		var teamMembers []teamMember
 		if _, err := transaction.Select(&teamMembers, "SELECT * from TeamMembers WHERE (TeamId, UserId) > (:FromTeamId, :FromUserId) ORDER BY TeamId, UserId LIMIT 100", map[string]interface{}{"FromTeamId": fromTeamId, "FromUserId": fromUserId}); err != nil {
@@ -811,10 +826,6 @@ func (s SqlTeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) s
 			member.Roles = strings.Join(newRoles, " ")
 
 			if _, err := transaction.Update(&member); err != nil {
-				if err2 := transaction.Rollback(); err2 != nil {
-					result.Err = model.NewAppError("SqlTeamStore.MigrateTeamMembers", "store.sql_team.migrate_team_members.rollback_transaction.app_error", nil, err2.Error(), http.StatusInternalServerError)
-					return
-				}
 				result.Err = model.NewAppError("SqlTeamStore.MigrateTeamMembers", "store.sql_team.migrate_team_members.update.app_error", nil, err.Error(), http.StatusInternalServerError)
 				return
 			}
@@ -822,10 +833,6 @@ func (s SqlTeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) s
 		}
 
 		if err := transaction.Commit(); err != nil {
-			if err2 := transaction.Rollback(); err2 != nil {
-				result.Err = model.NewAppError("SqlTeamStore.MigrateTeamMembers", "store.sql_team.migrate_team_members.rollback_transaction.app_error", nil, err2.Error(), http.StatusInternalServerError)
-				return
-			}
 			result.Err = model.NewAppError("SqlTeamStore.MigrateTeamMembers", "store.sql_team.migrate_team_members.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -859,13 +866,10 @@ func (s SqlTeamStore) ClearAllCustomRoleAssignments() store.StoreChannel {
 				result.Err = model.NewAppError("SqlTeamStore.ClearAllCustomRoleAssignments", "store.sql_team.clear_all_custom_role_assignments.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 				return
 			}
+			defer finalizeTransaction(transaction)
 
 			var teamMembers []*teamMember
 			if _, err := transaction.Select(&teamMembers, "SELECT * from TeamMembers WHERE (TeamId, UserId) > (:TeamId, :UserId) ORDER BY TeamId, UserId LIMIT 1000", map[string]interface{}{"TeamId": lastTeamId, "UserId": lastUserId}); err != nil {
-				if err2 := transaction.Rollback(); err2 != nil {
-					result.Err = model.NewAppError("SqlTeamStore.ClearAllCustomRoleAssignments", "store.sql_team.clear_all_custom_role_assignments.rollback_transaction.app_error", nil, err2.Error(), http.StatusInternalServerError)
-					return
-				}
 				result.Err = model.NewAppError("SqlTeamStore.ClearAllCustomRoleAssignments", "store.sql_team.clear_all_custom_role_assignments.select.app_error", nil, err.Error(), http.StatusInternalServerError)
 				return
 			}
@@ -892,10 +896,6 @@ func (s SqlTeamStore) ClearAllCustomRoleAssignments() store.StoreChannel {
 				newRolesString := strings.Join(newRoles, " ")
 				if newRolesString != member.Roles {
 					if _, err := transaction.Exec("UPDATE TeamMembers SET Roles = :Roles WHERE UserId = :UserId AND TeamId = :TeamId", map[string]interface{}{"Roles": newRolesString, "TeamId": member.TeamId, "UserId": member.UserId}); err != nil {
-						if err2 := transaction.Rollback(); err2 != nil {
-							result.Err = model.NewAppError("SqlTeamStore.ClearAllCustomRoleAssignments", "store.sql_team.clear_all_custom_role_assignments.rollback_transaction.app_error", nil, err2.Error(), http.StatusInternalServerError)
-							return
-						}
 						result.Err = model.NewAppError("SqlTeamStore.ClearAllCustomRoleAssignments", "store.sql_team.clear_all_custom_role_assignments.update.app_error", nil, err.Error(), http.StatusInternalServerError)
 						return
 					}
@@ -903,10 +903,6 @@ func (s SqlTeamStore) ClearAllCustomRoleAssignments() store.StoreChannel {
 			}
 
 			if err := transaction.Commit(); err != nil {
-				if err2 := transaction.Rollback(); err2 != nil {
-					result.Err = model.NewAppError("SqlTeamStore.ClearAllCustomRoleAssignments", "store.sql_team.clear_all_custom_role_assignments.rollback_transaction.app_error", nil, err2.Error(), http.StatusInternalServerError)
-					return
-				}
 				result.Err = model.NewAppError("SqlTeamStore.ClearAllCustomRoleAssignments", "store.sql_team.clear_all_custom_role_assignments.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 				return
 			}
@@ -922,5 +918,61 @@ func (s SqlTeamStore) AnalyticsGetTeamCountForScheme(schemeId string) store.Stor
 			return
 		}
 		result.Data = count
+	})
+}
+
+func (s SqlTeamStore) GetAllForExportAfter(limit int, afterId string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		var data []*model.TeamForExport
+		if _, err := s.GetReplica().Select(&data, `
+			SELECT
+				Teams.*,
+				Schemes.Name as SchemeName
+			FROM
+				Teams
+			LEFT JOIN
+				Schemes ON Teams.SchemeId = Schemes.Id
+			WHERE
+				Teams.Id > :AfterId
+			ORDER BY
+				Id
+			LIMIT
+				:Limit`,
+			map[string]interface{}{"AfterId": afterId, "Limit": limit}); err != nil {
+			result.Err = model.NewAppError("SqlTeamStore.GetAllTeams", "store.sql_team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		for _, team := range data {
+			if len(team.InviteId) == 0 {
+				team.InviteId = team.Id
+			}
+		}
+
+		result.Data = data
+	})
+}
+
+func (s SqlTeamStore) GetTeamMembersForExport(userId string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		var members []*model.TeamMemberForExport
+		_, err := s.GetReplica().Select(&members, `
+	SELECT
+		TeamMembers.*,
+		Teams.Name as TeamName
+	FROM
+		TeamMembers
+	INNER JOIN
+		Teams ON TeamMembers.TeamId = Teams.Id
+	WHERE
+		TeamMembers.UserId = :UserId
+		AND Teams.DeleteAt = 0`,
+			map[string]interface{}{"UserId": userId})
+		if err != nil {
+			result.Err = model.NewAppError("SqlTeamStore.GetTeamMembersForExport", "store.sql_team.get_members.app_error", nil, "userId="+userId+" "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		result.Data = members
 	})
 }

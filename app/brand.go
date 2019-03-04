@@ -36,7 +36,9 @@ func (a *App) SaveBrandImage(imageData *multipart.FileHeader) *model.AppError {
 	config, _, err := image.DecodeConfig(file)
 	if err != nil {
 		return model.NewAppError("SaveBrandImage", "brand.save_brand_image.decode_config.app_error", nil, err.Error(), http.StatusBadRequest)
-	} else if config.Width*config.Height > model.MaxImageSize {
+	}
+
+	if config.Width*config.Height > model.MaxImageSize {
 		return model.NewAppError("SaveBrandImage", "brand.save_brand_image.too_large.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
@@ -74,4 +76,20 @@ func (a *App) GetBrandImage() ([]byte, *model.AppError) {
 	}
 
 	return img, nil
+}
+
+func (a *App) DeleteBrandImage() *model.AppError {
+	filePath := BRAND_FILE_PATH + BRAND_FILE_NAME
+
+	fileExists, err := a.FileExists(filePath)
+
+	if err != nil {
+		return err
+	}
+
+	if !fileExists {
+		return model.NewAppError("DeleteBrandImage", "api.admin.delete_brand_image.storage.not_found", nil, "", http.StatusNotFound)
+	}
+
+	return a.RemoveFile(filePath)
 }

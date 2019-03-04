@@ -6,10 +6,12 @@ package api4
 import (
 	"net/http"
 	"testing"
+
+	"github.com/mattermost/mattermost-server/utils/testutils"
 )
 
 func TestGetBrandImage(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
@@ -25,11 +27,11 @@ func TestGetBrandImage(t *testing.T) {
 }
 
 func TestUploadBrandImage(t *testing.T) {
-	th := Setup().InitBasic().InitSystemAdmin()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 	Client := th.Client
 
-	data, err := readTestFile("test.png")
+	data, err := testutils.ReadTestFile("test.png")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -51,4 +53,31 @@ func TestUploadBrandImage(t *testing.T) {
 
 	_, resp = th.SystemAdminClient.UploadBrandImage(data)
 	CheckCreatedStatus(t, resp)
+}
+
+func TestDeleteBrandImage(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	data, err := testutils.ReadTestFile("test.png")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, resp := th.SystemAdminClient.UploadBrandImage(data)
+	CheckCreatedStatus(t, resp)
+
+	resp = th.Client.DeleteBrandImage()
+	CheckForbiddenStatus(t, resp)
+
+	th.Client.Logout()
+
+	resp = th.Client.DeleteBrandImage()
+	CheckUnauthorizedStatus(t, resp)
+
+	resp = th.SystemAdminClient.DeleteBrandImage()
+	CheckOKStatus(t, resp)
+
+	resp = th.SystemAdminClient.DeleteBrandImage()
+	CheckNotFoundStatus(t, resp)
 }

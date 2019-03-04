@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/jobs"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"github.com/stretchr/testify/require"
 )
 
@@ -36,7 +36,7 @@ func SetupServerTest() *ServerTestHelper {
 	jobs.DEFAULT_WATCHER_POLLING_INTERVAL = 200
 
 	th := &ServerTestHelper{
-		configPath:         utils.FindConfigFile("config.json"),
+		configPath:         fileutils.FindConfigFile("config.json"),
 		disableConfigWatch: true,
 		interruptChan:      interruptChan,
 		originalInterval:   originalInterval,
@@ -105,9 +105,9 @@ func TestRunServerSystemdNotification(t *testing.T) {
 	socketReader := make(chan string)
 	go func(ch chan string) {
 		buffer := make([]byte, 512)
-		count, err := connection.Read(buffer)
-		if err != nil {
-			panic(err)
+		count, readErr := connection.Read(buffer)
+		if readErr != nil {
+			panic(readErr)
 		}
 		data := buffer[0:count]
 		ch <- string(data)

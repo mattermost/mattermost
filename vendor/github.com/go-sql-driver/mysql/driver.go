@@ -23,6 +23,11 @@ import (
 	"sync"
 )
 
+// watcher interface is used for context support (From Go 1.8)
+type watcher interface {
+	startWatcher()
+}
+
 // MySQLDriver is exported to make the driver directly accessible.
 // In general the driver is used via the database/sql package.
 type MySQLDriver struct{}
@@ -91,7 +96,9 @@ func (d MySQLDriver) Open(dsn string) (driver.Conn, error) {
 	}
 
 	// Call startWatcher for context support (From Go 1.8)
-	mc.startWatcher()
+	if s, ok := interface{}(mc).(watcher); ok {
+		s.startWatcher()
+	}
 
 	mc.buf = newBuffer(mc.netConn)
 
@@ -110,18 +117,18 @@ func (d MySQLDriver) Open(dsn string) (driver.Conn, error) {
 	}
 
 	// Send Client Authentication Packet
-	authResp, addNUL, err := mc.auth(authData, plugin)
+	authResp, err := mc.auth(authData, plugin)
 	if err != nil {
 		// try the default auth plugin, if using the requested plugin failed
 		errLog.Print("could not use requested auth plugin '"+plugin+"': ", err.Error())
 		plugin = defaultAuthPlugin
-		authResp, addNUL, err = mc.auth(authData, plugin)
+		authResp, err = mc.auth(authData, plugin)
 		if err != nil {
 			mc.cleanup()
 			return nil, err
 		}
 	}
-	if err = mc.writeHandshakeResponsePacket(authResp, addNUL, plugin); err != nil {
+	if err = mc.writeHandshakeResponsePacket(authResp, plugin); err != nil {
 		mc.cleanup()
 		return nil, err
 	}

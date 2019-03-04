@@ -17,29 +17,31 @@ func InitDBCommandContextCobra(command *cobra.Command) (*app.App, error) {
 	}
 
 	a, err := InitDBCommandContext(config)
-	a.InitPlugins(*a.Config().PluginSettings.Directory, *a.Config().PluginSettings.ClientDirectory)
 
 	if err != nil {
 		// Returning an error just prints the usage message, so actually panic
 		panic(err)
 	}
 
+	a.InitPlugins(*a.Config().PluginSettings.Directory, *a.Config().PluginSettings.ClientDirectory)
 	a.DoAdvancedPermissionsMigration()
 	a.DoEmojisPermissionsMigration()
 
 	return a, nil
 }
 
-func InitDBCommandContext(configFileLocation string) (*app.App, error) {
+func InitDBCommandContext(configDSN string) (*app.App, error) {
 	if err := utils.TranslationsPreInit(); err != nil {
 		return nil, err
 	}
 	model.AppErrorInit(utils.T)
 
-	a, err := app.New(app.ConfigFile(configFileLocation))
+	s, err := app.NewServer(app.Config(configDSN, false))
 	if err != nil {
 		return nil, err
 	}
+
+	a := s.FakeApp()
 
 	if model.BuildEnterpriseReady == "true" {
 		a.LoadLicense()

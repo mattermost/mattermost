@@ -16,6 +16,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/mailservice"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
@@ -41,7 +42,7 @@ func (a *App) SetupInviteEmailRateLimiting() error {
 		return errors.Wrap(err, "Unable to setup email rate limiting GCRA rate limiter.")
 	}
 
-	a.EmailRateLimiter = rateLimiter
+	a.Srv.EmailRateLimiter = rateLimiter
 	return nil
 }
 
@@ -179,7 +180,7 @@ func (a *App) SendWelcomeEmail(userId string, email string, verified bool, local
 	}
 
 	if !verified {
-		token, err := a.CreateVerifyEmailToken(userId)
+		token, err := a.CreateVerifyEmailToken(userId, email)
 		if err != nil {
 			return err
 		}
@@ -285,20 +286,22 @@ func (a *App) SendMfaChangeEmail(email string, activated bool, locale, siteURL s
 }
 
 func (a *App) SendInviteEmails(team *model.Team, senderName string, senderUserId string, invites []string, siteURL string) {
-	if a.EmailRateLimiter == nil {
+	if a.Srv.EmailRateLimiter == nil {
 		a.Log.Error("Email invite not sent, rate limiting could not be setup.", mlog.String("user_id", senderUserId), mlog.String("team_id", team.Id))
 		return
 	}
-	rateLimited, result, err := a.EmailRateLimiter.RateLimit(senderUserId, len(invites))
+	rateLimited, result, err := a.Srv.EmailRateLimiter.RateLimit(senderUserId, len(invites))
+	if err != nil {
+		a.Log.Error("Error rate limiting invite email.", mlog.String("user_id", senderUserId), mlog.String("team_id", team.Id), mlog.Err(err))
+		return
+	}
+
 	if rateLimited {
 		a.Log.Error("Invite emails rate limited.",
 			mlog.String("user_id", senderUserId),
 			mlog.String("team_id", team.Id),
 			mlog.String("retry_after", result.RetryAfter.String()),
 			mlog.Err(err))
-		return
-	} else if err != nil {
-		a.Log.Error("Error rate limiting invite email.", mlog.String("user_id", senderUserId), mlog.String("team_id", team.Id), mlog.Err(err))
 		return
 	}
 
@@ -316,7 +319,6 @@ func (a *App) SendInviteEmails(team *model.Team, senderName string, senderUserId
 			bodyPage.Props["Title"] = utils.T("api.templates.invite_body.title")
 			bodyPage.Html["Info"] = utils.TranslateAsHtml(utils.T, "api.templates.invite_body.info",
 				map[string]interface{}{"SenderStatus": senderRole, "SenderName": senderName, "TeamDisplayName": team.DisplayName})
-			bodyPage.Props["Info"] = map[string]interface{}{}
 			bodyPage.Props["Button"] = utils.T("api.templates.invite_body.button")
 			bodyPage.Html["ExtraInfo"] = utils.TranslateAsHtml(utils.T, "api.templates.invite_body.extra_info",
 				map[string]interface{}{"TeamDisplayName": team.DisplayName})
@@ -339,7 +341,7 @@ func (a *App) SendInviteEmails(team *model.Team, senderName string, senderUserId
 			}
 			bodyPage.Props["Link"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s", siteURL, url.QueryEscape(data), url.QueryEscape(token.Token))
 
-			if !a.Config().EmailSettings.SendEmailNotifications {
+			if !*a.Config().EmailSettings.SendEmailNotifications {
 				mlog.Info(fmt.Sprintf("sending invitation to %v %v", invite, bodyPage.Props["Link"]))
 			}
 
@@ -402,5 +404,5 @@ func (a *App) SendDeactivateAccountEmail(email string, locale, siteURL string) *
 
 func (a *App) SendMail(to, subject, htmlBody string) *model.AppError {
 	license := a.License()
-	return utils.SendMailUsingConfig(to, subject, htmlBody, a.Config(), license != nil && *license.Features.Compliance)
+	return mailservice.SendMailUsingConfig(to, subject, htmlBody, a.Config(), license != nil && *license.Features.Compliance)
 }

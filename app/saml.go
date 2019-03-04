@@ -12,6 +12,13 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
+)
+
+const (
+	SamlPublicCertificateName = "saml-public.crt"
+	SamlPrivateKeyName        = "saml-private.key"
+	SamlIdpCertificateName    = "saml-idp.crt"
 )
 
 func (a *App) GetSamlMetadata() (string, *model.AppError) {
@@ -20,27 +27,21 @@ func (a *App) GetSamlMetadata() (string, *model.AppError) {
 		return "", err
 	}
 
-	if result, err := a.Saml.GetMetadata(); err != nil {
+	result, err := a.Saml.GetMetadata()
+	if err != nil {
 		return "", model.NewAppError("GetSamlMetadata", "api.admin.saml.metadata.app_error", nil, "err="+err.Message, err.StatusCode)
-	} else {
-		return result, nil
 	}
+	return result, nil
 }
 
-func WriteSamlFile(fileData *multipart.FileHeader) *model.AppError {
-	filename := filepath.Base(fileData.Filename)
-
-	if filename == "." || filename == string(filepath.Separator) {
-		return model.NewAppError("AddSamlCertificate", "api.admin.add_certificate.saving.app_error", nil, "", http.StatusBadRequest)
-	}
-
+func WriteSamlFile(filename string, fileData *multipart.FileHeader) *model.AppError {
 	file, err := fileData.Open()
 	if err != nil {
 		return model.NewAppError("AddSamlCertificate", "api.admin.add_certificate.open.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	defer file.Close()
 
-	configDir, _ := utils.FindDir("config")
+	configDir, _ := fileutils.FindDir("config")
 	out, err := os.Create(filepath.Join(configDir, filename))
 	if err != nil {
 		return model.NewAppError("AddSamlCertificate", "api.admin.add_certificate.saving.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -52,68 +53,59 @@ func WriteSamlFile(fileData *multipart.FileHeader) *model.AppError {
 }
 
 func (a *App) AddSamlPublicCertificate(fileData *multipart.FileHeader) *model.AppError {
-	if err := WriteSamlFile(fileData); err != nil {
+	if err := WriteSamlFile(SamlPublicCertificateName, fileData); err != nil {
 		return err
 	}
 
 	cfg := a.Config().Clone()
-	*cfg.SamlSettings.PublicCertificateFile = fileData.Filename
+	*cfg.SamlSettings.PublicCertificateFile = SamlPublicCertificateName
 
 	if err := cfg.IsValid(); err != nil {
 		return err
 	}
 
 	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
-	a.PersistConfig()
 
 	return nil
 }
 
 func (a *App) AddSamlPrivateCertificate(fileData *multipart.FileHeader) *model.AppError {
-	if err := WriteSamlFile(fileData); err != nil {
+	if err := WriteSamlFile(SamlPrivateKeyName, fileData); err != nil {
 		return err
 	}
 
 	cfg := a.Config().Clone()
-	*cfg.SamlSettings.PrivateKeyFile = fileData.Filename
+	*cfg.SamlSettings.PrivateKeyFile = SamlPrivateKeyName
 
 	if err := cfg.IsValid(); err != nil {
 		return err
 	}
 
 	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
-	a.PersistConfig()
 
 	return nil
 }
 
 func (a *App) AddSamlIdpCertificate(fileData *multipart.FileHeader) *model.AppError {
-	if err := WriteSamlFile(fileData); err != nil {
+	if err := WriteSamlFile(SamlIdpCertificateName, fileData); err != nil {
 		return err
 	}
 
 	cfg := a.Config().Clone()
-	*cfg.SamlSettings.IdpCertificateFile = fileData.Filename
+	*cfg.SamlSettings.IdpCertificateFile = SamlIdpCertificateName
 
 	if err := cfg.IsValid(); err != nil {
 		return err
 	}
 
 	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
-	a.PersistConfig()
 
 	return nil
 }
 
 func RemoveSamlFile(filename string) *model.AppError {
-	filename = filepath.Base(filename)
-
-	if filename == "." || filename == string(filepath.Separator) {
-		return model.NewAppError("AddSamlCertificate", "api.admin.remove_certificate.delete.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	if err := os.Remove(utils.FindConfigFile(filename)); err != nil {
-		return model.NewAppError("removeCertificate", "api.admin.remove_certificate.delete.app_error", map[string]interface{}{"Filename": filename}, err.Error(), http.StatusInternalServerError)
+	if err := os.Remove(fileutils.FindConfigFile(filename)); err != nil {
+		return model.NewAppError("removeCertificate", "api.admin.remove_certificate.delete.app_error", map[string]interface{}{"Filename": filename}, filename+": "+err.Error(), http.StatusInternalServerError)
 	}
 
 	return nil
@@ -133,7 +125,6 @@ func (a *App) RemoveSamlPublicCertificate() *model.AppError {
 	}
 
 	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
-	a.PersistConfig()
 
 	return nil
 }
@@ -152,7 +143,6 @@ func (a *App) RemoveSamlPrivateCertificate() *model.AppError {
 	}
 
 	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
-	a.PersistConfig()
 
 	return nil
 }
@@ -171,7 +161,6 @@ func (a *App) RemoveSamlIdpCertificate() *model.AppError {
 	}
 
 	a.UpdateConfig(func(dest *model.Config) { *dest = *cfg })
-	a.PersistConfig()
 
 	return nil
 }

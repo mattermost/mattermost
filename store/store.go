@@ -65,6 +65,10 @@ type Store interface {
 	UserAccessToken() UserAccessTokenStore
 	ChannelMemberHistory() ChannelMemberHistoryStore
 	Plugin() PluginStore
+	TermsOfService() TermsOfServiceStore
+	Group() GroupStore
+	UserTermsOfService() UserTermsOfServiceStore
+	LinkMetadata() LinkMetadataStore
 	MarkSystemRanUnitTests()
 	Close()
 	LockToMaster()
@@ -100,6 +104,7 @@ type TeamStore interface {
 	GetTotalMemberCount(teamId string) StoreChannel
 	GetActiveMemberCount(teamId string) StoreChannel
 	GetTeamsForUser(userId string) StoreChannel
+	GetTeamsForUserWithPagination(userId string, page, perPage int) StoreChannel
 	GetChannelUnreadsForAllTeams(excludeTeamId, userId string) StoreChannel
 	GetChannelUnreadsForTeam(teamId, userId string) StoreChannel
 	RemoveMember(teamId string, userId string) StoreChannel
@@ -111,6 +116,8 @@ type TeamStore interface {
 	ResetAllTeamSchemes() StoreChannel
 	ClearAllCustomRoleAssignments() StoreChannel
 	AnalyticsGetTeamCountForScheme(schemeId string) StoreChannel
+	GetAllForExportAfter(limit int, afterId string) StoreChannel
+	GetTeamMembersForExport(userId string) StoreChannel
 }
 
 type ChannelStore interface {
@@ -133,6 +140,7 @@ type ChannelStore interface {
 	GetDeletedByName(team_id string, name string) StoreChannel
 	GetDeleted(team_id string, offset int, limit int) StoreChannel
 	GetChannels(teamId string, userId string, includeDeleted bool) StoreChannel
+	GetAllChannels(page, perPage int, includeDeleted bool) StoreChannel
 	GetMoreChannels(teamId string, userId string, offset int, limit int) StoreChannel
 	GetPublicChannelsForTeam(teamId string, offset int, limit int) StoreChannel
 	GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) StoreChannel
@@ -144,6 +152,7 @@ type ChannelStore interface {
 	UpdateMember(member *model.ChannelMember) StoreChannel
 	GetMembers(channelId string, offset, limit int) StoreChannel
 	GetMember(channelId string, userId string) StoreChannel
+	GetChannelMembersTimezones(channelId string) StoreChannel
 	GetAllChannelMembersForUser(userId string, allowFromCache bool, includeDeleted bool) StoreChannel
 	InvalidateAllChannelMembersForUser(userId string)
 	IsUserInChannelUseCache(userId string, channelId string) bool
@@ -161,8 +170,10 @@ type ChannelStore interface {
 	IncrementMentionCount(channelId string, userId string) StoreChannel
 	AnalyticsTypeCount(teamId string, channelType string) StoreChannel
 	GetMembersForUser(teamId string, userId string) StoreChannel
+	GetMembersForUserWithPagination(teamId, userId string, page, perPage int) StoreChannel
 	AutocompleteInTeam(teamId string, term string, includeDeleted bool) StoreChannel
 	AutocompleteInTeamForSearch(teamId string, userId string, term string, includeDeleted bool) StoreChannel
+	SearchAllChannels(term string, includeDeleted bool) StoreChannel
 	SearchInTeam(teamId string, term string, includeDeleted bool) StoreChannel
 	SearchMore(userId string, teamId string, term string) StoreChannel
 	GetMembersByIds(channelId string, userIds []string) StoreChannel
@@ -174,6 +185,10 @@ type ChannelStore interface {
 	ResetAllChannelSchemes() StoreChannel
 	ClearAllCustomRoleAssignments() StoreChannel
 	ResetLastPostAt() StoreChannel
+	MigratePublicChannels() error
+	GetAllChannelsForExportAfter(limit int, afterId string) StoreChannel
+	GetChannelMembersForExport(userId string, teamId string) StoreChannel
+	RemoveAllDeactivatedMembers(channelId string) StoreChannel
 }
 
 type ChannelMemberHistoryStore interface {
@@ -212,12 +227,15 @@ type PostStore interface {
 	PermanentDeleteBatch(endTime int64, limit int64) StoreChannel
 	GetOldest() StoreChannel
 	GetMaxPostSize() StoreChannel
+	GetParentsForExportAfter(limit int, afterId string) StoreChannel
+	GetRepliesForExport(parentId string) StoreChannel
 }
 
 type UserStore interface {
 	Save(user *model.User) StoreChannel
 	Update(user *model.User, allowRoleUpdate bool) StoreChannel
 	UpdateLastPictureUpdate(userId string) StoreChannel
+	ResetLastPictureUpdate(userId string) StoreChannel
 	UpdateUpdateAt(userId string) StoreChannel
 	UpdatePassword(userId, newPassword string) StoreChannel
 	UpdateAuthData(userId string, service string, authData *string, email string, resetMfa bool) StoreChannel
@@ -234,8 +252,8 @@ type UserStore interface {
 	GetProfilesNotInChannel(teamId string, channelId string, offset int, limit int) StoreChannel
 	GetProfilesWithoutTeam(offset int, limit int) StoreChannel
 	GetProfilesByUsernames(usernames []string, teamId string) StoreChannel
-	GetAllProfiles(offset int, limit int) StoreChannel
-	GetProfiles(teamId string, offset int, limit int) StoreChannel
+	GetAllProfiles(options *model.UserGetOptions) StoreChannel
+	GetProfiles(options *model.UserGetOptions) StoreChannel
 	GetProfileByIds(userId []string, allowFromCache bool) StoreChannel
 	InvalidatProfileCacheForUser(userId string)
 	GetByEmail(email string) StoreChannel
@@ -243,7 +261,7 @@ type UserStore interface {
 	GetAllUsingAuthService(authService string) StoreChannel
 	GetByUsername(username string) StoreChannel
 	GetForLogin(loginId string, allowSignInWithUsername, allowSignInWithEmail bool) StoreChannel
-	VerifyEmail(userId string) StoreChannel
+	VerifyEmail(userId, email string) StoreChannel
 	GetEtagForAllProfiles() StoreChannel
 	GetEtagForProfiles(teamId string) StoreChannel
 	UpdateFailedPasswordAttempts(userId string, attempts int) StoreChannel
@@ -254,19 +272,21 @@ type UserStore interface {
 	AnalyticsActiveCount(time int64) StoreChannel
 	GetUnreadCount(userId string) StoreChannel
 	GetUnreadCountForChannel(userId string, channelId string) StoreChannel
+	GetAnyUnreadPostCountForChannel(userId string, channelId string) StoreChannel
 	GetRecentlyActiveUsersForTeam(teamId string, offset, limit int) StoreChannel
 	GetNewUsersForTeam(teamId string, offset, limit int) StoreChannel
-	Search(teamId string, term string, options map[string]bool) StoreChannel
-	SearchNotInTeam(notInTeamId string, term string, options map[string]bool) StoreChannel
-	SearchInChannel(channelId string, term string, options map[string]bool) StoreChannel
-	SearchNotInChannel(teamId string, channelId string, term string, options map[string]bool) StoreChannel
-	SearchWithoutTeam(term string, options map[string]bool) StoreChannel
+	Search(teamId string, term string, options *model.UserSearchOptions) StoreChannel
+	SearchNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) StoreChannel
+	SearchInChannel(channelId string, term string, options *model.UserSearchOptions) StoreChannel
+	SearchNotInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) StoreChannel
+	SearchWithoutTeam(term string, options *model.UserSearchOptions) StoreChannel
 	AnalyticsGetInactiveUsersCount() StoreChannel
 	AnalyticsGetSystemAdminCount() StoreChannel
 	GetProfilesNotInTeam(teamId string, offset int, limit int) StoreChannel
 	GetEtagForProfilesNotInTeam(teamId string) StoreChannel
 	ClearAllCustomRoleAssignments() StoreChannel
 	InferSystemInstallDate() StoreChannel
+	GetAllAfter(limit int, afterId string) StoreChannel
 }
 
 type SessionStore interface {
@@ -414,6 +434,7 @@ type EmojiStore interface {
 	Save(emoji *model.Emoji) StoreChannel
 	Get(id string, allowFromCache bool) StoreChannel
 	GetByName(name string) StoreChannel
+	GetMultipleByName(names []string) StoreChannel
 	GetList(offset, limit int, sort string) StoreChannel
 	Delete(id string, time int64) StoreChannel
 	Search(name string, prefixOnly bool, limit int) StoreChannel
@@ -438,7 +459,7 @@ type FileInfoStore interface {
 	GetForPost(postId string, readFromMaster bool, allowFromCache bool) StoreChannel
 	GetForUser(userId string) StoreChannel
 	InvalidateFileInfosForPostCache(postId string)
-	AttachToPost(fileId string, postId string) StoreChannel
+	AttachToPost(fileId string, postId string, creatorId string) StoreChannel
 	DeleteForPost(postId string) StoreChannel
 	PermanentDelete(fileId string) StoreChannel
 	PermanentDeleteBatch(endTime int64, limit int64) StoreChannel
@@ -452,6 +473,7 @@ type ReactionStore interface {
 	GetForPost(postId string, allowFromCache bool) StoreChannel
 	DeleteAllWithEmojiName(emojiName string) StoreChannel
 	PermanentDeleteBatch(endTime int64, limit int64) StoreChannel
+	BulkGetForPosts(postIds []string) StoreChannel
 }
 
 type JobStore interface {
@@ -486,6 +508,9 @@ type PluginStore interface {
 	SaveOrUpdate(keyVal *model.PluginKeyValue) StoreChannel
 	Get(pluginId, key string) StoreChannel
 	Delete(pluginId, key string) StoreChannel
+	DeleteAllForPlugin(PluginId string) StoreChannel
+	DeleteAllExpired() StoreChannel
+	List(pluginId string, page, perPage int) StoreChannel
 }
 
 type RoleStore interface {
@@ -504,4 +529,45 @@ type SchemeStore interface {
 	GetAllPage(scope string, offset int, limit int) StoreChannel
 	Delete(schemeId string) StoreChannel
 	PermanentDeleteAll() StoreChannel
+}
+
+type TermsOfServiceStore interface {
+	Save(termsOfService *model.TermsOfService) StoreChannel
+	GetLatest(allowFromCache bool) StoreChannel
+	Get(id string, allowFromCache bool) StoreChannel
+}
+
+type UserTermsOfServiceStore interface {
+	GetByUser(userId string) StoreChannel
+	Save(userTermsOfService *model.UserTermsOfService) StoreChannel
+	Delete(userId, termsOfServiceId string) StoreChannel
+}
+
+type GroupStore interface {
+	Create(group *model.Group) StoreChannel
+	Get(groupID string) StoreChannel
+	GetByRemoteID(remoteID string, groupSource model.GroupSource) StoreChannel
+	GetAllBySource(groupSource model.GroupSource) StoreChannel
+	Update(group *model.Group) StoreChannel
+	Delete(groupID string) StoreChannel
+
+	GetMemberUsers(groupID string) StoreChannel
+	GetMemberUsersPage(groupID string, offset int, limit int) StoreChannel
+	GetMemberCount(groupID string) StoreChannel
+	CreateOrRestoreMember(groupID string, userID string) StoreChannel
+	DeleteMember(groupID string, userID string) StoreChannel
+
+	CreateGroupSyncable(groupSyncable *model.GroupSyncable) StoreChannel
+	GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) StoreChannel
+	GetAllGroupSyncablesByGroupId(groupID string, syncableType model.GroupSyncableType) StoreChannel
+	UpdateGroupSyncable(groupSyncable *model.GroupSyncable) StoreChannel
+	DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) StoreChannel
+
+	PendingAutoAddTeamMembers(minGroupMembersCreateAt int64) StoreChannel
+	PendingAutoAddChannelMembers(minGroupMembersCreateAt int64) StoreChannel
+}
+
+type LinkMetadataStore interface {
+	Save(linkMetadata *model.LinkMetadata) StoreChannel
+	Get(url string, timestamp int64) StoreChannel
 }
