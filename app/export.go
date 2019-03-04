@@ -184,11 +184,6 @@ func (a *App) ExportAllUsers(writer io.Writer) *model.AppError {
 		for _, user := range users {
 			afterId = user.Id
 
-			// Skip deleted.
-			if user.DeleteAt != 0 {
-				continue
-			}
-
 			// Gathering here the exportable preferences to pass them on to ImportLineFromUser
 			exportedPrefs := make(map[string]*string)
 			allPrefs, err := a.GetPreferencesForUser(user.Id)

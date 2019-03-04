@@ -1003,6 +1003,7 @@ func (c *Client4) UpdateUserMfa(userId, code string, activate bool) (bool, *Resp
 
 // CheckUserMfa checks whether a user has MFA active on their account or not based on the
 // provided login id.
+// Deprecated: Clients should use Login method and check for MFA Error
 func (c *Client4) CheckUserMfa(loginId string) (bool, *Response) {
 	requestBody := make(map[string]interface{})
 	requestBody["login_id"] = loginId
@@ -2442,6 +2443,23 @@ func (c *Client4) SearchPostsWithMatches(teamId string, terms string, isOrSearch
 // DoPostAction performs a post action.
 func (c *Client4) DoPostAction(postId, actionId string) (bool, *Response) {
 	r, err := c.DoApiPost(c.GetPostRoute(postId)+"/actions/"+actionId, "")
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
+// DoPostActionWithCookie performs a post action with extra arguments
+func (c *Client4) DoPostActionWithCookie(postId, actionId, selected, cookieStr string) (bool, *Response) {
+	var body []byte
+	if selected != "" || cookieStr != "" {
+		body, _ = json.Marshal(DoPostActionRequest{
+			SelectedOption: selected,
+			Cookie:         cookieStr,
+		})
+	}
+	r, err := c.DoApiPost(c.GetPostRoute(postId)+"/actions/"+actionId, string(body))
 	if err != nil {
 		return false, BuildErrorResponse(r, err)
 	}

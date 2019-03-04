@@ -77,6 +77,10 @@ func (s *Server) RunOldAppInitalization() error {
 		return errors.Wrapf(err, "unable to ensure asymmetric signing key")
 	}
 
+	if err := s.FakeApp().ensurePostActionCookieSecret(); err != nil {
+		return errors.Wrapf(err, "unable to ensure PostAction cookie secret")
+	}
+
 	if err := s.FakeApp().ensureInstallationDate(); err != nil {
 		return errors.Wrapf(err, "unable to ensure installation date")
 	}

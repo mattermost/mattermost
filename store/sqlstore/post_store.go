@@ -119,10 +119,10 @@ func (s *SqlPostStore) Save(post *model.Post) store.StoreChannel {
 				post.Type != model.POST_JOIN_TEAM && post.Type != model.POST_LEAVE_TEAM &&
 				post.Type != model.POST_ADD_TO_CHANNEL && post.Type != model.POST_REMOVE_FROM_CHANNEL &&
 				post.Type != model.POST_ADD_TO_TEAM && post.Type != model.POST_REMOVE_FROM_TEAM {
-				s.GetMaster().Exec("UPDATE Channels SET LastPostAt = :LastPostAt, TotalMsgCount = TotalMsgCount + 1 WHERE Id = :ChannelId", map[string]interface{}{"LastPostAt": time, "ChannelId": post.ChannelId})
+				s.GetMaster().Exec("UPDATE Channels SET LastPostAt = GREATEST(:LastPostAt, LastPostAt), TotalMsgCount = TotalMsgCount + 1 WHERE Id = :ChannelId", map[string]interface{}{"LastPostAt": time, "ChannelId": post.ChannelId})
 			} else {
 				// don't update TotalMsgCount for unimportant messages so that the channel isn't marked as unread
-				s.GetMaster().Exec("UPDATE Channels SET LastPostAt = :LastPostAt WHERE Id = :ChannelId", map[string]interface{}{"LastPostAt": time, "ChannelId": post.ChannelId})
+				s.GetMaster().Exec("UPDATE Channels SET LastPostAt = :LastPostAt WHERE Id = :ChannelId AND LastPostAt < :LastPostAt", map[string]interface{}{"LastPostAt": time, "ChannelId": post.ChannelId})
 			}
 
 			if len(post.RootId) > 0 {
@@ -161,10 +161,10 @@ func (s *SqlPostStore) Update(newPost *model.Post, oldPost *model.Post) store.St
 			result.Err = model.NewAppError("SqlPostStore.Update", "store.sql_post.update.app_error", nil, "id="+newPost.Id+", "+err.Error(), http.StatusInternalServerError)
 		} else {
 			time := model.GetMillis()
-			s.GetMaster().Exec("UPDATE Channels SET LastPostAt = :LastPostAt  WHERE Id = :ChannelId", map[string]interface{}{"LastPostAt": time, "ChannelId": newPost.ChannelId})
+			s.GetMaster().Exec("UPDATE Channels SET LastPostAt = :LastPostAt  WHERE Id = :ChannelId AND LastPostAt < :LastPostAt", map[string]interface{}{"LastPostAt": time, "ChannelId": newPost.ChannelId})
 
 			if len(newPost.RootId) > 0 {
-				s.GetMaster().Exec("UPDATE Posts SET UpdateAt = :UpdateAt WHERE Id = :RootId", map[string]interface{}{"UpdateAt": time, "RootId": newPost.RootId})
+				s.GetMaster().Exec("UPDATE Posts SET UpdateAt = :UpdateAt WHERE Id = :RootId AND UpdateAt < :UpdateAt", map[string]interface{}{"UpdateAt": time, "RootId": newPost.RootId})
 			}
 
 			// mark the old post as deleted
@@ -1327,7 +1327,6 @@ func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string) store
                     AND p1.DeleteAt = 0
 					AND Channels.DeleteAt = 0
 					AND Teams.DeleteAt = 0
-					AND Users.DeleteAt = 0
                 ORDER BY
                     p1.Id
                 LIMIT
@@ -1356,7 +1355,6 @@ func (s *SqlPostStore) GetRepliesForExport(parentId string) store.StoreChannel {
                 WHERE
                     Posts.ParentId = :ParentId
                     AND Posts.DeleteAt = 0
-					AND Users.DeleteAt = 0
                 ORDER BY
                     Posts.Id`,
 			map[string]interface{}{"ParentId": parentId})

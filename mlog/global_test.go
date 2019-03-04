@@ -136,7 +136,7 @@ func TestLoggingAfterInitialized(t *testing.T) {
 
 					actual = strings.Join(actualRows, "\n")
 				}
-				require.Equal(t, testCase.ExpectedLogs, strings.Split(actual, "\n"))
+				require.ElementsMatch(t, testCase.ExpectedLogs, strings.Split(actual, "\n"))
 			}
 		})
 	}

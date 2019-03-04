@@ -415,6 +415,14 @@ func (api *PluginAPI) SendEphemeralPost(userId string, post *model.Post) *model.
 	return api.app.SendEphemeralPost(userId, post)
 }
 
+func (api *PluginAPI) UpdateEphemeralPost(userId string, post *model.Post) *model.Post {
+	return api.app.UpdateEphemeralPost(userId, post)
+}
+
+func (api *PluginAPI) DeleteEphemeralPost(userId string, post *model.Post) {
+	api.app.DeleteEphemeralPost(userId, post)
+}
+
 func (api *PluginAPI) DeletePost(postId string) *model.AppError {
 	_, err := api.app.DeletePost(postId, api.id)
 	return err

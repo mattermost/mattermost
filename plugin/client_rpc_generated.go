@@ -2502,6 +2502,63 @@ func (s *apiRPCServer) SendEphemeralPost(args *Z_SendEphemeralPostArgs, returns 
 	return nil
 }
 
+type Z_UpdateEphemeralPostArgs struct {
+	A string
+	B *model.Post
+}
+
+type Z_UpdateEphemeralPostReturns struct {
+	A *model.Post
+}
+
+func (g *apiRPCClient) UpdateEphemeralPost(userId string, post *model.Post) *model.Post {
+	_args := &Z_UpdateEphemeralPostArgs{userId, post}
+	_returns := &Z_UpdateEphemeralPostReturns{}
+	if err := g.client.Call("Plugin.UpdateEphemeralPost", _args, _returns); err != nil {
+		log.Printf("RPC call to UpdateEphemeralPost API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) UpdateEphemeralPost(args *Z_UpdateEphemeralPostArgs, returns *Z_UpdateEphemeralPostReturns) error {
+	if hook, ok := s.impl.(interface {
+		UpdateEphemeralPost(userId string, post *model.Post) *model.Post
+	}); ok {
+		returns.A = hook.UpdateEphemeralPost(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API UpdateEphemeralPost called but not implemented."))
+	}
+	return nil
+}
+
+type Z_DeleteEphemeralPostArgs struct {
+	A string
+	B *model.Post
+}
+
+type Z_DeleteEphemeralPostReturns struct {
+}
+
+func (g *apiRPCClient) DeleteEphemeralPost(userId string, post *model.Post) {
+	_args := &Z_DeleteEphemeralPostArgs{userId, post}
+	_returns := &Z_DeleteEphemeralPostReturns{}
+	if err := g.client.Call("Plugin.DeleteEphemeralPost", _args, _returns); err != nil {
+		log.Printf("RPC call to DeleteEphemeralPost API failed: %s", err.Error())
+	}
+
+}
+
+func (s *apiRPCServer) DeleteEphemeralPost(args *Z_DeleteEphemeralPostArgs, returns *Z_DeleteEphemeralPostReturns) error {
+	if hook, ok := s.impl.(interface {
+		DeleteEphemeralPost(userId string, post *model.Post)
+	}); ok {
+		hook.DeleteEphemeralPost(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API DeleteEphemeralPost called but not implemented."))
+	}
+	return nil
+}
+
 type Z_DeletePostArgs struct {
 	A string
 }
