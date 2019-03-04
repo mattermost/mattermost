@@ -2030,24 +2030,25 @@ func TestUserLoginMFAFlow(t *testing.T) {
 		*c.ServiceSettings.EnableMultifactorAuthentication = true
 	})
 
-	secret, err := th.App.GenerateMfaSecret(th.BasicUser.Id)
-	assert.Nil(t, err)
-
 	t.Run("WithoutMFA", func(t *testing.T) {
 		_, resp := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
 		CheckNoError(t, resp)
 	})
 
-	// Fake user has MFA enabled
-	if result := <-th.Server.Store.User().UpdateMfaActive(th.BasicUser.Id, true); result.Err != nil {
-		t.Fatal(result.Err)
-	}
-
-	if result := <-th.Server.Store.User().UpdateMfaSecret(th.BasicUser.Id, secret.Secret); result.Err != nil {
-		t.Fatal(result.Err)
-	}
-
 	t.Run("WithInvalidMFA", func(t *testing.T) {
+
+		secret, err := th.App.GenerateMfaSecret(th.BasicUser.Id)
+		assert.Nil(t, err)
+
+		// Fake user has MFA enabled
+		if result := <-th.Server.Store.User().UpdateMfaActive(th.BasicUser.Id, true); result.Err != nil {
+			t.Fatal(result.Err)
+		}
+
+		if result := <-th.Server.Store.User().UpdateMfaSecret(th.BasicUser.Id, secret.Secret); result.Err != nil {
+			t.Fatal(result.Err)
+		}
+
 		user, resp := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
 		CheckErrorMessage(t, resp, "mfa.validate_token.authenticate.app_error")
 		assert.Nil(t, user)
@@ -2068,8 +2069,19 @@ func TestUserLoginMFAFlow(t *testing.T) {
 	})
 
 	t.Run("WithCorrectMFA", func(t *testing.T) {
-		t.Skip("Skipping test that fails randomly.")
-		code := dgoogauth.ComputeCode(secret.Secret, time.Now().UTC().Unix()/30)
+		secret3, err := th.App.GenerateMfaSecret(th.BasicUser.Id)
+		assert.Nil(t, err)
+
+		// Fake user has MFA enabled
+		if result := <-th.Server.Store.User().UpdateMfaActive(th.BasicUser.Id, true); result.Err != nil {
+			t.Fatal(result.Err)
+		}
+
+		if result := <-th.Server.Store.User().UpdateMfaSecret(th.BasicUser.Id, secret3.Secret); result.Err != nil {
+			t.Fatal(result.Err)
+		}
+
+		code := dgoogauth.ComputeCode(secret3.Secret, time.Now().UTC().Unix()/30)
 
 		user, resp := th.Client.LoginWithMFA(th.BasicUser.Email, th.BasicUser.Password, strconv.Itoa(code))
 		CheckNoError(t, resp)
