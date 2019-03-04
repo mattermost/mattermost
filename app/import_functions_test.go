@@ -1300,6 +1300,51 @@ func TestImportImportUser(t *testing.T) {
 	assert.True(t, channelMember.SchemeUser)
 	assert.Equal(t, "", channelMember.ExplicitRoles)
 
+
+	// Test importing deleted user with a valid team & valid channel name in apply mode.
+	username = model.NewId()
+	deleteAt := model.GetMillis()
+	deletedUserData := &UserImportData{
+		Username: &username,
+		DeleteAt: &deleteAt,
+		Email:    ptrStr(model.NewId() + "@example.com"),
+		Teams: &[]UserTeamImportData{
+			{
+				Name:  &team.Name,
+				Roles: ptrStr("team_user"),
+				Channels: &[]UserChannelImportData{
+					{
+						Name:  &channel.Name,
+						Roles: ptrStr("channel_user"),
+					},
+				},
+			},
+		},
+	}
+	err = th.App.ImportUser(deletedUserData, false)
+	assert.Nil(t, err)
+
+	user, err = th.App.GetUserByUsername(*deletedUserData.Username)
+	if err != nil {
+		t.Fatalf("Failed to get user from database.")
+	}
+
+	teamMember, err = th.App.GetTeamMember(team.Id, user.Id)
+	if err != nil {
+		t.Fatalf("Failed to get the team member")
+	}
+
+	assert.True(t, teamMember.SchemeUser)
+	assert.Equal(t, "", teamMember.ExplicitRoles)
+
+	channelMember, err = th.App.GetChannelMember(channel.Id, user.Id)
+	if err != nil {
+		t.Fatalf("Failed to get the channel member")
+	}
+
+	assert.True(t, channelMember.SchemeUser)
+	assert.Equal(t, "", channelMember.ExplicitRoles)
+
 }
 
 func TestImportUserDefaultNotifyProps(t *testing.T) {

@@ -290,10 +290,13 @@ clean-docker: ## Deletes the docker containers for local development.
 
 govet: ## Runs govet against all packages.
 	@echo Running GOVET
-	$(GO) vet -shadow $(GOFLAGS) $(TE_PACKAGES) || exit 1
+	$(GO) get -u golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow
+	$(GO) vet $(GOFLAGS) $(TE_PACKAGES) || exit 1
+	$(GO) vet -vettool=$(which shadow) $(GOFLAGS) $(TE_PACKAGES) || exit 1
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-	$(GO) vet $(GOFLAGS) $(EE_PACKAGES) || exit 1
+	$(GO) vet $(GOFLAGS) $(TE_PACKAGES) || exit 1
+	$(GO) vet -vettool=$(which shadow) $(GOFLAGS) $(EE_PACKAGES) || exit 1
 endif
 
 gofmt: ## Runs gofmt against all packages.
@@ -439,7 +442,8 @@ run-server: start-docker ## Starts the server.
 	@echo Running mattermost for development
 
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files
-	$(GO) run $(GOFLAGS) $(GO_LINKER_FLAGS) $(PLATFORM_FILES) --disableconfigwatch &
+	$(GO) run $(GOFLAGS) $(GO_LINKER_FLAGS) $(PLATFORM_FILES) --disableconfigwatch | \
+	    $(GO) run $(GOFLAGS) $(GO_LINKER_FLAGS) $(PLATFORM_FILES) logs --logrus &
 
 debug-server: start-docker
 	mkdir -p $(BUILD_WEBAPP_DIR)/dist/files

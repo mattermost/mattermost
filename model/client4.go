@@ -991,6 +991,7 @@ func (c *Client4) UpdateUserMfa(userId, code string, activate bool) (bool, *Resp
 
 // CheckUserMfa checks whether a user has MFA active on their account or not based on the
 // provided login id.
+// Deprecated: Clients should use Login method and check for MFA Error
 func (c *Client4) CheckUserMfa(loginId string) (bool, *Response) {
 	requestBody := make(map[string]interface{})
 	requestBody["login_id"] = loginId
@@ -2332,6 +2333,23 @@ func (c *Client4) DoPostAction(postId, actionId string) (bool, *Response) {
 	return CheckStatusOK(r), BuildResponse(r)
 }
 
+// DoPostActionWithCookie performs a post action with extra arguments
+func (c *Client4) DoPostActionWithCookie(postId, actionId, selected, cookieStr string) (bool, *Response) {
+	var body []byte
+	if selected != "" || cookieStr != "" {
+		body, _ = json.Marshal(DoPostActionRequest{
+			SelectedOption: selected,
+			Cookie:         cookieStr,
+		})
+	}
+	r, err := c.DoApiPost(c.GetPostRoute(postId)+"/actions/"+actionId, string(body))
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
 // OpenInteractiveDialog sends a WebSocket event to a user's clients to
 // open interactive dialogs, based on the provided trigger ID and other
 // provided data. Used with interactive message buttons, menus and
@@ -2944,6 +2962,7 @@ func samlFileToMultipart(data []byte, filename string) ([]byte, *multipart.Write
 }
 
 // UploadSamlIdpCertificate will upload an IDP certificate for SAML and set the config to use it.
+// The filename parameter is deprecated and ignored: the server will pick a hard-coded filename when writing to disk.
 func (c *Client4) UploadSamlIdpCertificate(data []byte, filename string) (bool, *Response) {
 	body, writer, err := samlFileToMultipart(data, filename)
 	if err != nil {
@@ -2955,6 +2974,7 @@ func (c *Client4) UploadSamlIdpCertificate(data []byte, filename string) (bool, 
 }
 
 // UploadSamlPublicCertificate will upload a public certificate for SAML and set the config to use it.
+// The filename parameter is deprecated and ignored: the server will pick a hard-coded filename when writing to disk.
 func (c *Client4) UploadSamlPublicCertificate(data []byte, filename string) (bool, *Response) {
 	body, writer, err := samlFileToMultipart(data, filename)
 	if err != nil {
@@ -2966,6 +2986,7 @@ func (c *Client4) UploadSamlPublicCertificate(data []byte, filename string) (boo
 }
 
 // UploadSamlPrivateCertificate will upload a private key for SAML and set the config to use it.
+// The filename parameter is deprecated and ignored: the server will pick a hard-coded filename when writing to disk.
 func (c *Client4) UploadSamlPrivateCertificate(data []byte, filename string) (bool, *Response) {
 	body, writer, err := samlFileToMultipart(data, filename)
 	if err != nil {

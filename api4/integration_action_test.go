@@ -4,7 +4,9 @@
 package api4
 
 import (
+	"bytes"
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -14,6 +16,82 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/stretchr/testify/require"
 )
+
+type testHandler struct {
+	t *testing.T
+}
+
+func (th *testHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	bb, err := ioutil.ReadAll(r.Body)
+	assert.Nil(th.t, err)
+	assert.NotEmpty(th.t, string(bb))
+	poir := model.PostActionIntegrationRequestFromJson(bytes.NewReader(bb))
+	assert.NotEmpty(th.t, poir.UserId)
+	assert.NotEmpty(th.t, poir.ChannelId)
+	assert.Empty(th.t, poir.TeamId)
+	assert.NotEmpty(th.t, poir.PostId)
+	assert.NotEmpty(th.t, poir.TriggerId)
+	assert.Equal(th.t, "button", poir.Type)
+	assert.Equal(th.t, "test-value", poir.Context["test-key"])
+	w.Write([]byte("{}"))
+	w.WriteHeader(200)
+}
+
+func TestPostActionCookies(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
+	})
+
+	handler := &testHandler{t}
+	server := httptest.NewServer(handler)
+	action := model.PostAction{
+		Id:   model.NewId(),
+		Name: "Test-action",
+		Type: model.POST_ACTION_TYPE_BUTTON,
+		Integration: &model.PostActionIntegration{
+			URL: server.URL,
+			Context: map[string]interface{}{
+				"test-key": "test-value",
+			},
+		},
+	}
+
+	post := &model.Post{
+		Id:        model.NewId(),
+		Type:      model.POST_EPHEMERAL,
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+		CreateAt:  model.GetMillis(),
+		UpdateAt:  model.GetMillis(),
+		Props: map[string]interface{}{
+			"attachments": []*model.SlackAttachment{
+				{
+					Title:     "some-title",
+					TitleLink: "https://some-url.com",
+					Text:      "some-text",
+					ImageURL:  "https://some-other-url.com",
+					Actions:   []*model.PostAction{&action},
+				},
+			},
+		},
+	}
+
+	post.GenerateActionIds()
+	assert.Equal(t, 32, len(th.App.PostActionCookieSecret()))
+	post = model.AddPostActionCookies(post, th.App.PostActionCookieSecret())
+
+	ok, resp := Client.DoPostActionWithCookie(post.Id, action.Id, "", action.Cookie)
+	assert.True(t, ok)
+	assert.NotNil(t, resp)
+	assert.Equal(t, 200, resp.StatusCode)
+	assert.Nil(t, resp.Error)
+	assert.NotNil(t, resp.RequestId)
+	assert.NotNil(t, resp.ServerVersion)
+}
 
 func TestOpenDialog(t *testing.T) {
 	th := Setup().InitBasic()

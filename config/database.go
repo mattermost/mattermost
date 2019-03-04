@@ -111,9 +111,10 @@ func parseDSN(dsn string) (string, string, error) {
 	return scheme, dsn, nil
 }
 
-// Set replaces the current configuration in its entirety, without updating the backing store.
+// Set replaces the current configuration in its entirety and updates the backing store.
 func (ds *DatabaseStore) Set(newCfg *model.Config) (*model.Config, error) {
-	return ds.commonStore.set(newCfg, nil)
+	return ds.commonStore.set(newCfg, nil, ds.persist)
+
 }
 
 // persist writes the configuration to the configured database.
@@ -190,14 +191,6 @@ func (ds *DatabaseStore) Load() (err error) {
 	}
 
 	return ds.commonStore.load(ioutil.NopCloser(bytes.NewReader(configurationData)), needsSave, ds.persist)
-}
-
-// Save writes the current configuration to the backing store.
-func (ds *DatabaseStore) Save() error {
-	ds.configLock.RLock()
-	defer ds.configLock.RUnlock()
-
-	return ds.persist(ds.config)
 }
 
 // String returns the path to the database backing the config, masking the password.
