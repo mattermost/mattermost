@@ -2612,3 +2612,26 @@ func (s SqlChannelStore) GetChannelsBatchForIndexing(startTime, endTime int64, l
 		result.Data = channels
 	})
 }
+
+func (s SqlChannelStore) UserBelongsToChannels(userId string, channelIds []string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		props := make(map[string]interface{})
+		props["UserId"] = userId
+		idQuery := ""
+
+		for index, channelId := range channelIds {
+			if len(idQuery) > 0 {
+				idQuery += ", "
+			}
+
+			props["channelId"+strconv.Itoa(index)] = channelId
+			idQuery += ":channelId" + strconv.Itoa(index)
+		}
+		c, err := s.GetReplica().SelectInt("SELECT Count(*) FROM ChannelMembers WHERE UserId = :UserId AND ChannelId IN ("+idQuery+") AND DeleteAt = 0", props)
+		if err != nil {
+			result.Err = model.NewAppError("SqlChannelStore.UserBelongsToChannels", "store.sql_channel.user_belongs_to_channels.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		result.Data = c > 0
+	})
+}

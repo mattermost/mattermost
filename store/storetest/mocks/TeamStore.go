@@ -668,3 +668,19 @@ func (_m *TeamStore) UpdateMember(member *model.TeamMember) store.StoreChannel {
 
 	return r0
 }
+
+// UserBelongsToTeams provides a mock function with given fields: userId, teamIds
+func (_m *TeamStore) UserBelongsToTeams(userId string, teamIds []string) store.StoreChannel {
+	ret := _m.Called(userId, teamIds)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string, []string) store.StoreChannel); ok {
+		r0 = rf(userId, teamIds)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}

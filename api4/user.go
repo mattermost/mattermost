@@ -111,11 +111,20 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: Check my user visibility over this user
-
 	user, err := c.App.GetUser(c.Params.UserId)
 	if err != nil {
 		c.Err = err
+		return
+	}
+
+	canSee, err := c.App.UserCanSeeOtherUser(c.App.Session.UserId, c.Params.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if !canSee {
+		c.SetPermissionError(model.PERMISSION_VIEW_MEMBERS)
 		return
 	}
 
@@ -141,11 +150,20 @@ func getUserByUsername(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: Check my user visibility over this user
-
 	user, err := c.App.GetUserByUsername(c.Params.Username)
 	if err != nil {
 		c.Err = err
+		return
+	}
+
+	canSee, err := c.App.UserCanSeeOtherUser(c.App.Session.UserId, user.Id)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if !canSee {
+		c.SetPermissionError(model.PERMISSION_VIEW_MEMBERS)
 		return
 	}
 
@@ -170,9 +188,6 @@ func getUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// No permission check required, but still prevent users who can't see another user's email address from using this
-	// TODO: Check my user visibility over this user
-
 	sanitizeOptions := c.App.GetSanitizeOptions(c.IsSystemAdmin())
 	if !sanitizeOptions["email"] {
 		c.Err = model.NewAppError("getUserByEmail", "api.user.get_user_by_email.permissions.app_error", nil, "userId="+c.App.Session.UserId, http.StatusForbidden)
@@ -182,6 +197,17 @@ func getUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 	user, err := c.App.GetUserByEmail(c.Params.Email)
 	if err != nil {
 		c.Err = err
+		return
+	}
+
+	canSee, err := c.App.UserCanSeeOtherUser(c.App.Session.UserId, user.Id)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if !canSee {
+		c.SetPermissionError(model.PERMISSION_VIEW_MEMBERS)
 		return
 	}
 
@@ -678,7 +704,8 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		autocomplete.Users = result.InChannel
 		autocomplete.OutOfChannel = result.OutOfChannel
 	} else if len(teamId) > 0 {
-		options, err := c.App.RestrictUsersSearchByPermissions(c.App.Session.UserId, options)
+		var err *model.AppError
+		options, err = c.App.RestrictUsersSearchByPermissions(c.App.Session.UserId, options)
 		if err != nil {
 			c.Err = err
 			return
@@ -692,7 +719,8 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		autocomplete.Users = result.InTeam
 	} else {
-		options, err := c.App.RestrictUsersSearchByPermissions(c.App.Session.UserId, options)
+		var err *model.AppError
+		options, err = c.App.RestrictUsersSearchByPermissions(c.App.Session.UserId, options)
 		if err != nil {
 			c.Err = err
 			return

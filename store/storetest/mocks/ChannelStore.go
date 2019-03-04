@@ -1060,3 +1060,19 @@ func (_m *ChannelStore) UpdateMember(member *model.ChannelMember) store.StoreCha
 
 	return r0
 }
+
+// UserBelongsToChannels provides a mock function with given fields: userId, channelIds
+func (_m *ChannelStore) UserBelongsToChannels(userId string, channelIds []string) store.StoreChannel {
+	ret := _m.Called(userId, channelIds)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string, []string) store.StoreChannel); ok {
+		r0 = rf(userId, channelIds)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}

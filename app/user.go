@@ -1889,10 +1889,43 @@ func (a *App) UserCanSeeOtherUser(userId string, otherUserId string) (bool, *mod
 		return true, nil
 	}
 
-	//TODO: Create UserBelongsToTeams and UserBelongsToChannels
-	result := a.UserBelongsToTeams(userId, restrictions.Teams) || a.UserBelongsToChannels(userId, restrictions.Channels)
+	if len(restrictions.Teams) > 0 {
+		result, err := a.userBelongsToTeams(userId, restrictions.Teams)
+		if err != nil {
+			return false, err
+		}
+		if result {
+			return true, nil
+		}
+	}
 
-	return result, nil
+	if len(restrictions.Channels) > 0 {
+		result, err := a.userBelongsToChannels(userId, restrictions.Channels)
+		if err != nil {
+			return false, err
+		}
+		if result {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
+func (a *App) userBelongsToTeams(userId string, teamIds []string) (bool, *model.AppError) {
+	result := <-a.Srv.Store.Team().UserBelongsToTeams(userId, teamIds)
+	if result.Err != nil {
+		return false, result.Err
+	}
+	return result.Data.(bool), nil
+}
+
+func (a *App) userBelongsToChannels(userId string, channelIds []string) (bool, *model.AppError) {
+	result := <-a.Srv.Store.Channel().UserBelongsToChannels(userId, channelIds)
+	if result.Err != nil {
+		return false, result.Err
+	}
+	return result.Data.(bool), nil
 }
 
 func (a *App) GetViewUsersRestrictions(userId string) (*model.ViewUsersRestrictions, *model.AppError) {

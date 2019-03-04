@@ -122,6 +122,7 @@ type TeamStore interface {
 	AnalyticsGetTeamCountForScheme(schemeId string) StoreChannel
 	GetAllForExportAfter(limit int, afterId string) StoreChannel
 	GetTeamMembersForExport(userId string) StoreChannel
+	UserBelongsToTeams(userId string, teamIds []string) StoreChannel
 }
 
 type ChannelStore interface {
