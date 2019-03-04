@@ -224,6 +224,7 @@ func TestPanicLog(t *testing.T) {
 		ConsoleJson:   true,
 		EnableFile:    true,
 		FileLocation:  tmpfile.Name(),
+		FileLevel: mlog.LevelInfo,
 	})
 
 	// Creating a server with logger
@@ -232,6 +233,7 @@ func TestPanicLog(t *testing.T) {
 
 	// Route for just panicing
 	s.Router.HandleFunc("/panic", func(writer http.ResponseWriter, request *http.Request) {
+		s.Log.Info("inside panic handler")
 		panic("log this panic")
 	})
 
@@ -252,16 +254,24 @@ func TestPanicLog(t *testing.T) {
 
 	// Checking whether panic was logged
 	var panicLogged = false
+	var infoLogged = false
 
 	_, err = tmpfile.Seek(0, 0)
 	require.NoError(t, err)
 
 	scanner := bufio.NewScanner(tmpfile)
 	for scanner.Scan() {
+		if !infoLogged && strings.Contains(scanner.Text(), "inside panic handler") {
+			infoLogged = true
+		}
 		if strings.Contains(scanner.Text(), "log this panic") {
 			panicLogged = true
 			break
 		}
+	}
+
+	if !infoLogged {
+		t.Error("Info log line was supposed to be logged")
 	}
 
 	if !panicLogged {
