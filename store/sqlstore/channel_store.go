@@ -2449,45 +2449,6 @@ func (s SqlChannelStore) ClearAllCustomRoleAssignments() store.StoreChannel {
 	})
 }
 
-func (s SqlChannelStore) ResetLastPostAt() store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		transaction, err := s.GetMaster().Begin()
-		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.ResetLastPostAt", "store.sql_channel.reset_last_post_at.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		defer finalizeTransaction(transaction)
-
-		*result = s.resetLastPostAtT(transaction)
-		if result.Err != nil {
-			return
-		}
-
-		if err := transaction.Commit(); err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.ResetLastPostAt", "store.sql_channel.reset_last_post_at.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	})
-}
-
-func (s SqlChannelStore) resetLastPostAtT(transaction *gorp.Transaction) store.StoreResult {
-	result := store.StoreResult{}
-
-	var query string
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		query = "UPDATE Channels SET LastPostAt = COALESCE((SELECT UpdateAt FROM Posts WHERE ChannelId = Channels.Id ORDER BY UpdateAt DESC LIMIT 1), Channels.CreateAt);"
-	} else {
-		query = "UPDATE Channels SET LastPostAt = IFNULL((SELECT UpdateAt FROM Posts WHERE ChannelId = Channels.Id ORDER BY UpdateAt DESC LIMIT 1), Channels.CreateAt);"
-	}
-
-	if _, err := transaction.Exec(query); err != nil {
-		result.Err = model.NewAppError("SqlChannelStore.ResetLastPostAt", "store.sql_channel.reset_last_post_at.app_error", nil, err.Error(), http.StatusInternalServerError)
-		return result
-	}
-
-	return result
-}
-
 func (s SqlChannelStore) GetAllChannelsForExportAfter(limit int, afterId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var data []*model.ChannelForExport
