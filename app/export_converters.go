@@ -155,7 +155,7 @@ func ImportLineForDirectPost(post *model.DirectPostForExport) *LineImportData {
 		Type: "direct_post",
 		DirectPost: &DirectPostImportData{
 			ChannelMembers: post.ChannelMembers,
-			User:           &post.Username,
+			User:           &post.User,
 			Message:        &post.Message,
 			CreateAt:       &post.CreateAt,
 		},

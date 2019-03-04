@@ -11,6 +11,7 @@ import (
 	"strings"
 	"sync"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -1371,36 +1372,63 @@ func (s *SqlPostStore) GetRepliesForExport(parentId string) store.StoreChannel {
 
 func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		var posts []*model.DirectPostForExport
-		_, err1 := s.GetSearchReplica().Select(&posts, `
-                SELECT
-                    p1.*,
-                    Users.Username as Username
-                FROM
-                    Posts p1
-                INNER JOIN
-                    Channels ON p1.ChannelId = Channels.Id AND Channels.Type in ('D','G')
-                INNER JOIN
-		    Users ON p1.UserId = Users.Id
-                INNER JOIN
-                    ChannelMembers cm ON cm.ChannelId = Channels.Id
-                WHERE
-                    p1.Id > :AfterId
-                    AND p1.ParentId = ''
-                    AND p1.DeleteAt = 0
-                    AND Channels.DeleteAt = 0
-                    AND Users.DeleteAt = 0
-                GROUP BY Channels.Id,p1.Id
-                ORDER BY
-                    p1.Id
-                LIMIT
-                    :Limit`,
-			map[string]interface{}{"Limit": limit, "AfterId": afterId})
+		query := sq.Select("p.*", "Users.Username as User").
+			From("Posts p").
+			Join("Channels ON p.ChannelId = Channels.Id").
+			Join("Users ON p.UserId = Users.Id").
+			Join("ChannelMembers cm ON cm.ChannelId = Channels.Id").
+			Where(sq.And{sq.Gt{"p.Id": afterId},
+				sq.Eq{"p.ParentId": string("")},
+				sq.Eq{"p.DeleteAt": int(0)},
+				sq.Eq{"Channels.DeleteAt": int(0)},
+				sq.Eq{"Users.DeleteAt": int(0)},
+				sq.Eq{"Channels.Type": []string{"D", "G"}}}).
+			GroupBy("Channels.Id, p.Id").
+			OrderBy("p.Id").
+			Limit(uint64(limit))
 
-		if err1 != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetDirectPostParentsForExportAfter", "store.sql_post.get_direct_posts.app_error", nil, err1.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = posts
+		queryString, args, err := query.ToSql()
+		if err != nil {
+			result.Err = model.NewAppError("SqlPostStore.GetDirectPostParentsForExportAfter", "store.sql_post.get_direct_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
 		}
+
+		var posts []*model.DirectPostForExport
+		if _, err := s.GetReplica().Select(&posts, queryString, args...); err != nil {
+			result.Err = model.NewAppError("SqlPostStore.GetDirectPostParentsForExportAfter", "store.sql_post.get_direct_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		var channelIds []string
+		for _, post := range posts {
+			channelIds = append(channelIds, post.ChannelId)
+		}
+		query = sq.Select("*").
+			From("ChannelMembers cm").
+			Join("Users u ON ( u.Id = cm.UserId )").
+			Where(sq.Eq{"cm.ChannelId": channelIds})
+
+		queryString, args, err = query.ToSql()
+		if err != nil {
+			result.Err = model.NewAppError("SqlPostStore.GetDirectPostParentsForExportAfter", "store.sql_post.get_direct_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		var channelMembers []*model.ChannelMemberForExport
+		if _, err := s.GetReplica().Select(&channelMembers, queryString, args...); err != nil {
+			result.Err = model.NewAppError("SqlPostStore.GetDirectPostParentsForExportAfter", "store.sql_post.get_direct_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		// Populate each post with its members
+		for _, post := range posts {
+			var members []string
+			for _, member := range channelMembers {
+				if post.ChannelId == member.ChannelId {
+					members = append(members, member.UserId)
+				}
+			}
+			post.ChannelMembers = &members
+		}
+
+		result.Data = posts
 	})
 }
