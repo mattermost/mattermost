@@ -1550,7 +1550,7 @@ func (a *App) AutocompleteChannels(teamId string, term string) (*model.ChannelLi
 func (a *App) AutocompleteChannelsForSearch(teamId string, userId string, term string) (*model.ChannelList, *model.AppError) {
 	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 
-	result := <-a.Srv.Store.Channel().AutocompleteInTeamForSearch(teamId, userId, term, includeDeleted)
+	result := <-a.Srv.Store.Channel().AutocompleteInTeam(teamId, term, includeDeleted)
 	if result.Err != nil {
 		return nil, result.Err
 	}
