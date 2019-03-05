@@ -189,6 +189,11 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 			return nil, model.NewAppError("createPost", "api.post.create_post.channel_root_id.app_error", nil, "", http.StatusInternalServerError)
 		}
 
+		rootPost := parentPostList.Posts[post.RootId]
+		if len(rootPost.RootId) > 0 {
+			return nil, model.NewAppError("createPost", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest)
+		}
+
 		if post.ParentId == "" {
 			post.ParentId = post.RootId
 		}
