@@ -2259,6 +2259,10 @@
     "translation": "This user account does not use AD/LDAP"
   },
   {
+    "id": "api.user.login.bot_login_forbidden.app_error",
+    "translation": "Bot login is forbidden"
+  },
+  {
     "id": "api.user.login.blank_pwd.app_error",
     "translation": "Password field must not be blank"
   },
@@ -2285,6 +2289,10 @@
   {
     "id": "api.user.login.use_auth_service.app_error",
     "translation": "Please sign in using {{.AuthService}}"
+  },
+  {
+    "id": "api.user.login_by_oauth.bot_login_forbidden.app_error",
+    "translation": "Bot login is forbidden"
   },
   {
     "id": "api.user.login_by_oauth.not_available.app_error",
@@ -3831,6 +3839,30 @@
     "translation": "Invalid user id"
   },
   {
+    "id": "model.bot.is_valid.create_at.app_error",
+    "translation": "Invalid create at"
+  },
+  {
+    "id": "model.bot.is_valid.creator_id.app_error",
+    "translation": "Invalid creator id"
+  },
+  {
+    "id": "model.bot.is_valid.description.app_error",
+    "translation": "Invalid description"
+  },
+  {
+    "id": "model.bot.is_valid.update_at.app_error",
+    "translation": "Invalid update at"
+  },
+  {
+    "id": "model.bot.is_valid.user_id.app_error",
+    "translation": "Invalid user id"
+  },
+  {
+    "id": "model.bot.is_valid.username.app_error",
+    "translation": "Invalid username"
+  },
+  {
     "id": "model.channel.is_valid.2_or_more.app_error",
     "translation": "Name must be 2 or more lowercase alphanumeric characters"
   },
@@ -5025,6 +5057,34 @@
   {
     "id": "store.sql_audit.save.saving.app_error",
     "translation": "We encountered an error saving the audit"
+  },
+  {
+    "id": "store.sql_bot.delete.app_error",
+    "translation": "Unable to delete the bot"
+  },
+  {
+    "id": "store.sql_bot.get.app_error",
+    "translation": "Unable to get the bot"
+  },
+  {
+    "id": "store.sql_bot.get.missing.app_error",
+    "translation": "Bot does not exist"
+  },
+  {
+    "id": "store.sql_bot.get_all.app_error",
+    "translation": "Unable to get the bots"
+  },
+  {
+    "id": "store.sql_bot.save.app_error",
+    "translation": "Unable to save the bot"
+  },
+  {
+    "id": "store.sql_bot.update.app_error",
+    "translation": "Unable to update the bot"
+  },
+  {
+    "id": "store.sql_bot.update.updating.app_error",
+    "translation": "We encountered an error updating the bot"
   },
   {
     "id": "store.sql_channel.analytics_deleted_type_count.app_error",

@@ -143,6 +143,10 @@ func (a *App) CheckUserPreflightAuthenticationCriteria(user *model.User, mfaToke
 		return err
 	}
 
+	if err := checkUserNotBot(user); err != nil {
+		return err
+	}
+
 	if err := checkUserLoginAttempts(user, *a.Config().ServiceSettings.MaximumLoginAttempts); err != nil {
 		return err
 	}
@@ -187,6 +191,13 @@ func checkUserLoginAttempts(user *model.User, max int) *model.AppError {
 func checkUserNotDisabled(user *model.User) *model.AppError {
 	if user.DeleteAt > 0 {
 		return model.NewAppError("Login", "api.user.login.inactive.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
+	}
+	return nil
+}
+
+func checkUserNotBot(user *model.User) *model.AppError {
+	if user.IsBot {
+		return model.NewAppError("Login", "api.user.login.bot_login_forbidden.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
 	}
 	return nil
 }

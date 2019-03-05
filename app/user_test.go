@@ -172,6 +172,51 @@ func TestUpdateUserActive(t *testing.T) {
 	assert.Nil(t, err)
 }
 
+func TestUpdateActiveBotsSideEffect(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	bot, err := th.App.CreateBot(&model.Bot{
+		Username:    "username",
+		Description: "a bot",
+		OwnerId:     th.BasicUser.Id,
+	})
+	require.Nil(t, err)
+	defer th.App.PermanentDeleteBot(bot.UserId)
+
+	// Automatic deactivation disabled
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.DisableBotsWhenOwnerIsDeactivated = false
+	})
+
+	th.App.UpdateActive(th.BasicUser, false)
+
+	retbot1, err := th.App.GetBot(bot.UserId, true)
+	require.Nil(t, err)
+	require.Zero(t, retbot1.DeleteAt)
+	user1, err := th.App.GetUser(bot.UserId)
+	require.Nil(t, err)
+	require.Zero(t, user1.DeleteAt)
+
+	th.App.UpdateActive(th.BasicUser, true)
+
+	// Automatic deactivation enabled
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.DisableBotsWhenOwnerIsDeactivated = true
+	})
+
+	th.App.UpdateActive(th.BasicUser, false)
+
+	retbot2, err := th.App.GetBot(bot.UserId, true)
+	require.Nil(t, err)
+	require.NotZero(t, retbot2.DeleteAt)
+	user2, err := th.App.GetUser(bot.UserId)
+	require.Nil(t, err)
+	require.NotZero(t, user2.DeleteAt)
+
+	th.App.UpdateActive(th.BasicUser, true)
+}
+
 func TestUpdateOAuthUserAttrs(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
@@ -292,7 +337,7 @@ func TestUpdateUserEmail(t *testing.T) {
 
 	user := th.CreateUser()
 
-	t.Run("RequireVerification", func(t *testing.T){
+	t.Run("RequireVerification", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.EmailSettings.RequireEmailVerification = true
 		})
@@ -318,7 +363,7 @@ func TestUpdateUserEmail(t *testing.T) {
 		assert.True(t, user2.EmailVerified)
 	})
 
-	t.Run("RequireVerificationAlreadyUsedEmail", func(t *testing.T){
+	t.Run("RequireVerificationAlreadyUsedEmail", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.EmailSettings.RequireEmailVerification = true
 		})
@@ -332,7 +377,7 @@ func TestUpdateUserEmail(t *testing.T) {
 		assert.Nil(t, user3)
 	})
 
-	t.Run("NoVerification", func(t *testing.T){
+	t.Run("NoVerification", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.EmailSettings.RequireEmailVerification = false
 		})
@@ -648,7 +693,7 @@ func TestPasswordRecovery(t *testing.T) {
 	token, err = th.App.CreatePasswordRecoveryToken(th.BasicUser.Id, th.BasicUser.Email)
 	assert.Nil(t, err)
 
-	th.App.UpdateConfig(func (c *model.Config){
+	th.App.UpdateConfig(func(c *model.Config) {
 		*c.EmailSettings.RequireEmailVerification = false
 	})
 
@@ -659,4 +704,3 @@ func TestPasswordRecovery(t *testing.T) {
 	err = th.App.ResetPasswordFromToken(token.Token, "abcdefgh")
 	assert.NotNil(t, err)
 }
-
