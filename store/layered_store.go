@@ -87,6 +87,10 @@ func (s *LayeredStore) User() UserStore {
 	return s.DatabaseLayer.User()
 }
 
+func (s *LayeredStore) Bot() BotStore {
+	return s.DatabaseLayer.Bot()
+}
+
 func (s *LayeredStore) Audit() AuditStore {
 	return s.DatabaseLayer.Audit()
 }

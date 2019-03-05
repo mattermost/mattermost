@@ -57,6 +57,11 @@ func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken string, l
 	// then trust the proxy and cert that the correct user is supplied and allow
 	// them access
 	if *a.Config().ExperimentalSettings.ClientSideCertEnable && *a.Config().ExperimentalSettings.ClientSideCertCheck == model.CLIENT_SIDE_CERT_CHECK_PRIMARY_AUTH {
+		// Unless the user is a bot.
+		if err = checkUserNotBot(user); err != nil {
+			return nil, err
+		}
+
 		return user, nil
 	}
 

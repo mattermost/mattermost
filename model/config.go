@@ -287,6 +287,7 @@ type ServiceSettings struct {
 	ExperimentalStrictCSRFEnforcement                 *bool
 	EnableEmailInvitations                            *bool
 	ExperimentalLdapGroupSync                         *bool
+	DisableBotsWhenOwnerIsDeactivated                 *bool
 }
 
 func (s *ServiceSettings) SetDefaults() {
@@ -620,6 +621,10 @@ func (s *ServiceSettings) SetDefaults() {
 
 	if s.ExperimentalStrictCSRFEnforcement == nil {
 		s.ExperimentalStrictCSRFEnforcement = NewBool(false)
+	}
+
+	if s.DisableBotsWhenOwnerIsDeactivated == nil {
+		s.DisableBotsWhenOwnerIsDeactivated = NewBool(true)
 	}
 }
 
