@@ -436,6 +436,28 @@ func TestFileStoreLoad(t *testing.T) {
 		assert.Equal(t, map[string]interface{}{"ServiceSettings": map[string]interface{}{"SiteURL": true}}, fs.GetEnvironmentOverrides())
 	})
 
+	t.Run("do not persist environment variables", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, minimalConfig)
+		defer tearDown()
+
+		fs, err := config.NewFileStore(path, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://override")
+
+		err = fs.Load()
+		require.NoError(t, err)
+		_, err = fs.Set(fs.Get())
+		require.NoError(t, err)
+		err = fs.Load()
+		require.NoError(t, err)
+
+		assert.Equal(t, "http://override", *fs.Get().ServiceSettings.SiteURL)
+		assert.Equal(t, map[string]interface{}{"ServiceSettings": map[string]interface{}{"SiteURL": true}}, fs.GetEnvironmentOverrides())
+		assert.Equal(t, "http://minimal", *fs.GetWithoutEnvOverrides().ServiceSettings.SiteURL)
+	})
+
 	t.Run("invalid", func(t *testing.T) {
 		path, tearDown := setupConfigFile(t, emptyConfig)
 		defer tearDown()
@@ -451,7 +473,7 @@ func TestFileStoreLoad(t *testing.T) {
 
 		err = fs.Load()
 		if assert.Error(t, err) {
-			assert.EqualError(t, err, "invalid config: Config.IsValid: model.config.is_valid.site_url.app_error, ")
+			assert.EqualError(t, err, "invalid config with env overrides: Config.IsValid: model.config.is_valid.site_url.app_error, ")
 		}
 	})
 

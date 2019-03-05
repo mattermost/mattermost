@@ -415,6 +415,28 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		assert.Equal(t, map[string]interface{}{"ServiceSettings": map[string]interface{}{"SiteURL": true}}, ds.GetEnvironmentOverrides())
 	})
 
+	t.Run("do not persist environment variables", func(t *testing.T) {
+		_, tearDown := setupConfigDatabase(t, minimalConfig)
+		defer tearDown()
+
+		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		require.NoError(t, err)
+		defer ds.Close()
+
+		os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://override")
+
+		err = ds.Load()
+		require.NoError(t, err)
+		_, err = ds.Set(ds.Get())
+		require.NoError(t, err)
+		err = ds.Load()
+		require.NoError(t, err)
+
+		assert.Equal(t, "http://override", *ds.Get().ServiceSettings.SiteURL)
+		assert.Equal(t, map[string]interface{}{"ServiceSettings": map[string]interface{}{"SiteURL": true}}, ds.GetEnvironmentOverrides())
+		assert.Equal(t, "http://minimal", *ds.GetWithoutEnvOverrides().ServiceSettings.SiteURL)
+	})
+
 	t.Run("invalid", func(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, emptyConfig, nil)
 		defer tearDown()
@@ -438,7 +460,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 
 		err = ds.Load()
 		if assert.Error(t, err) {
-			assert.EqualError(t, err, "invalid config: Config.IsValid: model.config.is_valid.site_url.app_error, ")
+			assert.EqualError(t, err, "invalid config with env overrides: Config.IsValid: model.config.is_valid.site_url.app_error, ")
 		}
 	})
 
