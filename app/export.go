@@ -579,6 +579,11 @@ func (a *App) ExportAllDirectPosts(writer io.Writer) *model.AppError {
 				continue
 			}
 
+			// There's no import support for single member channels yet.
+			if len(*post.ChannelMembers) == 1 {
+				break
+			}
+
 			postLine := ImportLineForDirectPost(post)
 
 			// Do the Replies.

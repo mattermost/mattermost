@@ -2,7 +2,6 @@ package app
 
 import (
 	"bytes"
-	"fmt"
 	"os"
 	"testing"
 
@@ -199,7 +198,6 @@ func TestExportAllDirectChannel(t *testing.T) {
 	th1 := Setup(t).InitBasic()
 	defer th1.TearDown()
 	dmChannel1 := th1.CreateDmChannel(th1.BasicUser2)
-	fmt.Println(th1.BasicUser.Id, th1.BasicUser2.Id)
 
 	var b bytes.Buffer
 	err := th1.App.BulkExport(&b, "somefile", "somePath", "someDir")
@@ -207,10 +205,14 @@ func TestExportAllDirectChannel(t *testing.T) {
 
 	th2 := Setup(t)
 	defer th2.TearDown()
-	err, _ = th2.App.BulkImport(&b, false, 5)
+	err, i := th2.App.BulkImport(&b, false, 5)
+	assert.Nil(t, err)
+	assert.Equal(t, 0, i)
+
+	teams, err := th2.App.GetAllTeams()
 	assert.Nil(t, err)
 
-	dmChannel2, err := th2.App.GetOrCreateDirectChannel(th1.BasicUser.Id, th1.BasicUser2.Id)
+	dmChannel2, err := th2.App.GetChannelByName(dmChannel1.Name, teams[0].Id, true)
 	assert.Nil(t, err)
 
 	assert.ElementsMatch(t, dmChannel1, dmChannel2)

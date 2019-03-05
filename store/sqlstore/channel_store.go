@@ -2592,7 +2592,7 @@ func (s SqlChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId s
 			var members []string
 			for _, member := range channelMembers {
 				if channel.Id == member.ChannelId {
-					members = append(members, member.UserId)
+					members = append(members, member.Username)
 				}
 			}
 			channel.Members = &members

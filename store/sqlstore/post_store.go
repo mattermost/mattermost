@@ -1423,7 +1423,7 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 			var members []string
 			for _, member := range channelMembers {
 				if post.ChannelId == member.ChannelId {
-					members = append(members, member.UserId)
+					members = append(members, member.Username)
 				}
 			}
 			post.ChannelMembers = &members
