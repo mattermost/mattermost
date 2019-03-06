@@ -40,7 +40,7 @@ func (cs *commonStore) GetEnvironmentOverrides() map[string]interface{} {
 // using the persist function argument.
 //
 // This function assumes no lock has been acquired, as it acquires a write lock itself.
-func (cs *commonStore) set(newCfg *model.Config, isValid func(*model.Config) error, persist func(*model.Config) error) (*model.Config, error) {
+func (cs *commonStore) set(newCfg *model.Config, validate func(*model.Config) error, persist func(*model.Config) error) (*model.Config, error) {
 	cs.configLock.Lock()
 	var unlockOnce sync.Once
 	defer unlockOnce.Do(cs.configLock.Unlock)
@@ -57,18 +57,13 @@ func (cs *commonStore) set(newCfg *model.Config, isValid func(*model.Config) err
 	newCfg = newCfg.Clone()
 	newCfg.SetDefaults()
 
-	// Sometimes the config is received with "fake" data in sensitive fielcs. Apply the real
+	// Sometimes the config is received with "fake" data in sensitive fields. Apply the real
 	// data from the existing config as necessary.
 	desanitize(oldCfg, newCfg)
 
-	if err := newCfg.IsValid(); err != nil {
-		return nil, errors.Wrap(err, "new configuration is invalid")
-	}
-
-	// Allow backing-store specific checks.
-	if isValid != nil {
-		if err := isValid(newCfg); err != nil {
-			return nil, err
+	if validate != nil {
+		if err := validate(newCfg); err != nil {
+			return nil, errors.Wrap(err, "new configuration is invalid")
 		}
 	}
 
@@ -90,7 +85,7 @@ func (cs *commonStore) set(newCfg *model.Config, isValid func(*model.Config) err
 // load updates the current configuration from the given io.ReadCloser.
 //
 // This function assumes no lock has been acquired, as it acquires a write lock itself.
-func (cs *commonStore) load(f io.ReadCloser, needsSave bool, persist func(*model.Config) error) error {
+func (cs *commonStore) load(f io.ReadCloser, needsSave bool, validate func(*model.Config) error, persist func(*model.Config) error) error {
 	allowEnvironmentOverrides := true
 	loadedCfg, environmentOverrides, err := unmarshalConfig(f, allowEnvironmentOverrides)
 	if err != nil {
@@ -98,16 +93,17 @@ func (cs *commonStore) load(f io.ReadCloser, needsSave bool, persist func(*model
 	}
 
 	// SetDefaults generates various keys and salts if not previously configured. Determine if
-	// such a change will be made before invoking. This method will not effect the save: that
-	// remains the responsibility of the caller.
+	// such a change will be made before invoking.
 	needsSave = needsSave || loadedCfg.SqlSettings.AtRestEncryptKey == nil || len(*loadedCfg.SqlSettings.AtRestEncryptKey) == 0
 	needsSave = needsSave || loadedCfg.FileSettings.PublicLinkSalt == nil || len(*loadedCfg.FileSettings.PublicLinkSalt) == 0
 	needsSave = needsSave || loadedCfg.EmailSettings.InviteSalt == nil || len(*loadedCfg.EmailSettings.InviteSalt) == 0
 
 	loadedCfg.SetDefaults()
 
-	if err := loadedCfg.IsValid(); err != nil {
-		return errors.Wrap(err, "invalid config")
+	if validate != nil {
+		if err = validate(loadedCfg); err != nil {
+			return errors.Wrap(err, "invalid config")
+		}
 	}
 
 	if changed := fixConfig(loadedCfg); changed {
@@ -118,7 +114,7 @@ func (cs *commonStore) load(f io.ReadCloser, needsSave bool, persist func(*model
 	var unlockOnce sync.Once
 	defer unlockOnce.Do(cs.configLock.Unlock)
 
-	if needsSave {
+	if needsSave && persist != nil {
 		if err = persist(loadedCfg); err != nil {
 			return errors.Wrap(err, "failed to persist required changes after load")
 		}
@@ -133,6 +129,15 @@ func (cs *commonStore) load(f io.ReadCloser, needsSave bool, persist func(*model
 	// Notify listeners synchronously. Ideally, this would be asynchronous, but existing code
 	// assumes this and there would be increased complexity to avoid racing updates.
 	cs.invokeConfigListeners(oldCfg, loadedCfg)
+
+	return nil
+}
+
+// validate checks if the given configuration is valid
+func (cs *commonStore) validate(cfg *model.Config) error {
+	if err := cfg.IsValid(); err != nil {
+		return err
+	}
 
 	return nil
 }

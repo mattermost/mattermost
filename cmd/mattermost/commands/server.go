@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/api4"
 	"github.com/mattermost/mattermost-server/app"
+	"github.com/mattermost/mattermost-server/config"
 	"github.com/mattermost/mattermost-server/manualtesting"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/web"
@@ -31,7 +32,7 @@ func init() {
 }
 
 func serverCmdF(command *cobra.Command, args []string) error {
-	config, err := command.Flags().GetString("config")
+	configDSN, err := command.Flags().GetString("config")
 	if err != nil {
 		return err
 	}
@@ -40,12 +41,18 @@ func serverCmdF(command *cobra.Command, args []string) error {
 	usedPlatform, _ := command.Flags().GetBool("platform")
 
 	interruptChan := make(chan os.Signal, 1)
-	return runServer(config, disableConfigWatch, usedPlatform, interruptChan)
+
+	configStore, err := config.NewStore(configDSN, !disableConfigWatch)
+	if err != nil {
+		return err
+	}
+
+	return runServer(configStore, disableConfigWatch, usedPlatform, interruptChan)
 }
 
-func runServer(configDSN string, disableConfigWatch bool, usedPlatform bool, interruptChan chan os.Signal) error {
+func runServer(configStore config.Store, disableConfigWatch bool, usedPlatform bool, interruptChan chan os.Signal) error {
 	options := []app.Option{
-		app.Config(configDSN, !disableConfigWatch),
+		app.ConfigStore(configStore),
 		app.RunJobs,
 		app.JoinCluster,
 		app.StartElasticsearch,
