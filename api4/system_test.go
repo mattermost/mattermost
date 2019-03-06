@@ -93,27 +93,38 @@ func TestEmailTest(t *testing.T) {
 		},
 	}
 
-	_, resp := Client.TestEmail(&config)
-	CheckForbiddenStatus(t, resp)
+	t.Run("as system user", func(t *testing.T) {
+		_, resp := Client.TestEmail(&config)
+		CheckForbiddenStatus(t, resp)
+	})
 
-	_, resp = th.SystemAdminClient.TestEmail(&config)
-	CheckErrorMessage(t, resp, "api.admin.test_email.missing_server")
-	CheckBadRequestStatus(t, resp)
+	t.Run("as system admin", func(t *testing.T) {
+		_, resp := th.SystemAdminClient.TestEmail(&config)
+		CheckErrorMessage(t, resp, "api.admin.test_email.missing_server")
+		CheckBadRequestStatus(t, resp)
 
-	inbucket_host := os.Getenv("CI_INBUCKET_HOST")
-	if inbucket_host == "" {
-		inbucket_host = "dockerhost"
-	}
+		inbucket_host := os.Getenv("CI_INBUCKET_HOST")
+		if inbucket_host == "" {
+			inbucket_host = "dockerhost"
+		}
 
-	inbucket_port := os.Getenv("CI_INBUCKET_PORT")
-	if inbucket_port == "" {
-		inbucket_port = "9000"
-	}
+		inbucket_port := os.Getenv("CI_INBUCKET_PORT")
+		if inbucket_port == "" {
+			inbucket_port = "9000"
+		}
 
-	*config.EmailSettings.SMTPServer = inbucket_host
-	*config.EmailSettings.SMTPPort = inbucket_port
-	_, resp = th.SystemAdminClient.TestEmail(&config)
-	CheckOKStatus(t, resp)
+		*config.EmailSettings.SMTPServer = inbucket_host
+		*config.EmailSettings.SMTPPort = inbucket_port
+		_, resp = th.SystemAdminClient.TestEmail(&config)
+		CheckOKStatus(t, resp)
+	})
+
+	t.Run("as restricted system admin", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
+
+		_, resp := th.SystemAdminClient.TestEmail(&config)
+		CheckForbiddenStatus(t, resp)
+	})
 }
 
 func TestDatabaseRecycle(t *testing.T) {
@@ -121,11 +132,22 @@ func TestDatabaseRecycle(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	_, resp := Client.DatabaseRecycle()
-	CheckForbiddenStatus(t, resp)
+	t.Run("as system user", func(t *testing.T) {
+		_, resp := Client.DatabaseRecycle()
+		CheckForbiddenStatus(t, resp)
+	})
 
-	_, resp = th.SystemAdminClient.DatabaseRecycle()
-	CheckNoError(t, resp)
+	t.Run("as system admin", func(t *testing.T) {
+		_, resp := th.SystemAdminClient.DatabaseRecycle()
+		CheckNoError(t, resp)
+	})
+
+	t.Run("as restricted system admin", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
+
+		_, resp := th.SystemAdminClient.DatabaseRecycle()
+		CheckForbiddenStatus(t, resp)
+	})
 }
 
 func TestInvalidateCaches(t *testing.T) {
@@ -133,17 +155,31 @@ func TestInvalidateCaches(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	flag, resp := Client.InvalidateCaches()
-	CheckForbiddenStatus(t, resp)
-	if flag {
-		t.Fatal("should not clean the cache due no permission.")
-	}
+	t.Run("as system user", func(t *testing.T) {
+		ok, resp := Client.InvalidateCaches()
+		CheckForbiddenStatus(t, resp)
+		if ok {
+			t.Fatal("should not clean the cache due no permission.")
+		}
+	})
 
-	flag, resp = th.SystemAdminClient.InvalidateCaches()
-	CheckNoError(t, resp)
-	if !flag {
-		t.Fatal("should clean the cache")
-	}
+	t.Run("as system admin", func(t *testing.T) {
+		ok, resp := th.SystemAdminClient.InvalidateCaches()
+		CheckNoError(t, resp)
+		if !ok {
+			t.Fatal("should clean the cache")
+		}
+	})
+
+	t.Run("as restricted system admin", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
+
+		ok, resp := th.SystemAdminClient.InvalidateCaches()
+		CheckForbiddenStatus(t, resp)
+		if ok {
+			t.Fatal("should not clean the cache due no permission.")
+		}
+	})
 }
 
 func TestGetLogs(t *testing.T) {
@@ -322,34 +358,45 @@ func TestS3TestConnection(t *testing.T) {
 		},
 	}
 
-	_, resp := Client.TestS3Connection(&config)
-	CheckForbiddenStatus(t, resp)
+	t.Run("as system user", func(t *testing.T) {
+		_, resp := Client.TestS3Connection(&config)
+		CheckForbiddenStatus(t, resp)
+	})
 
-	_, resp = th.SystemAdminClient.TestS3Connection(&config)
-	CheckBadRequestStatus(t, resp)
-	if resp.Error.Message != "S3 Bucket is required" {
-		t.Fatal("should return error - missing s3 bucket")
-	}
+	t.Run("as system admin", func(t *testing.T) {
+		_, resp := th.SystemAdminClient.TestS3Connection(&config)
+		CheckBadRequestStatus(t, resp)
+		if resp.Error.Message != "S3 Bucket is required" {
+			t.Fatal("should return error - missing s3 bucket")
+		}
 
-	// If this fails, check the test configuration to ensure minio is setup with the
-	// `mattermost-test` bucket defined by model.MINIO_BUCKET.
-	*config.FileSettings.AmazonS3Bucket = model.MINIO_BUCKET
-	*config.FileSettings.AmazonS3Region = "us-east-1"
-	_, resp = th.SystemAdminClient.TestS3Connection(&config)
-	CheckOKStatus(t, resp)
+		// If this fails, check the test configuration to ensure minio is setup with the
+		// `mattermost-test` bucket defined by model.MINIO_BUCKET.
+		*config.FileSettings.AmazonS3Bucket = model.MINIO_BUCKET
+		*config.FileSettings.AmazonS3Region = "us-east-1"
+		_, resp = th.SystemAdminClient.TestS3Connection(&config)
+		CheckOKStatus(t, resp)
 
-	config.FileSettings.AmazonS3Region = model.NewString("")
-	_, resp = th.SystemAdminClient.TestS3Connection(&config)
-	CheckOKStatus(t, resp)
+		config.FileSettings.AmazonS3Region = model.NewString("")
+		_, resp = th.SystemAdminClient.TestS3Connection(&config)
+		CheckOKStatus(t, resp)
 
-	config.FileSettings.AmazonS3Bucket = model.NewString("Wrong_bucket")
-	_, resp = th.SystemAdminClient.TestS3Connection(&config)
-	CheckInternalErrorStatus(t, resp)
-	assert.Equal(t, "Unable to create bucket.", resp.Error.Message)
+		config.FileSettings.AmazonS3Bucket = model.NewString("Wrong_bucket")
+		_, resp = th.SystemAdminClient.TestS3Connection(&config)
+		CheckInternalErrorStatus(t, resp)
+		assert.Equal(t, "Unable to create bucket.", resp.Error.Message)
 
-	*config.FileSettings.AmazonS3Bucket = "shouldcreatenewbucket"
-	_, resp = th.SystemAdminClient.TestS3Connection(&config)
-	CheckOKStatus(t, resp)
+		*config.FileSettings.AmazonS3Bucket = "shouldcreatenewbucket"
+		_, resp = th.SystemAdminClient.TestS3Connection(&config)
+		CheckOKStatus(t, resp)
+	})
+
+	t.Run("as restricted system admin", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
+
+		_, resp := th.SystemAdminClient.TestS3Connection(&config)
+		CheckForbiddenStatus(t, resp)
+	})
 
 }
 

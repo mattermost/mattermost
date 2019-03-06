@@ -35,6 +35,11 @@ func configReload(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
+		c.Err = model.NewAppError("addLicense", "api.restricted_system_admin", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	c.App.ReloadConfig()
 
 	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")

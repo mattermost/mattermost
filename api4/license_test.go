@@ -3,6 +3,8 @@ package api4
 import (
 	"net/http"
 	"testing"
+
+	"github.com/mattermost/mattermost-server/model"
 )
 
 func TestGetOldClientLicense(t *testing.T) {
@@ -43,17 +45,31 @@ func TestUploadLicenseFile(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	ok, resp := Client.UploadLicenseFile([]byte{})
-	CheckForbiddenStatus(t, resp)
-	if ok {
-		t.Fatal("should fail")
-	}
+	t.Run("as system user", func(t *testing.T) {
+		ok, resp := Client.UploadLicenseFile([]byte{})
+		CheckForbiddenStatus(t, resp)
+		if ok {
+			t.Fatal("should fail")
+		}
+	})
 
-	ok, resp = th.SystemAdminClient.UploadLicenseFile([]byte{})
-	CheckBadRequestStatus(t, resp)
-	if ok {
-		t.Fatal("should fail")
-	}
+	t.Run("as system admin user", func(t *testing.T) {
+		ok, resp := th.SystemAdminClient.UploadLicenseFile([]byte{})
+		CheckBadRequestStatus(t, resp)
+		if ok {
+			t.Fatal("should fail")
+		}
+	})
+
+	t.Run("as restricted system admin user", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
+
+		ok, resp := th.SystemAdminClient.UploadLicenseFile([]byte{})
+		CheckForbiddenStatus(t, resp)
+		if ok {
+			t.Fatal("should fail")
+		}
+	})
 }
 
 func TestRemoveLicenseFile(t *testing.T) {
@@ -61,15 +77,29 @@ func TestRemoveLicenseFile(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	ok, resp := Client.RemoveLicenseFile()
-	CheckForbiddenStatus(t, resp)
-	if ok {
-		t.Fatal("should fail")
-	}
+	t.Run("as system user", func(t *testing.T) {
+		ok, resp := Client.RemoveLicenseFile()
+		CheckForbiddenStatus(t, resp)
+		if ok {
+			t.Fatal("should fail")
+		}
+	})
 
-	ok, resp = th.SystemAdminClient.RemoveLicenseFile()
-	CheckNoError(t, resp)
-	if !ok {
-		t.Fatal("should pass")
-	}
+	t.Run("as system admin user", func(t *testing.T) {
+		ok, resp := th.SystemAdminClient.RemoveLicenseFile()
+		CheckNoError(t, resp)
+		if !ok {
+			t.Fatal("should pass")
+		}
+	})
+
+	t.Run("as restricted system admin user", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
+
+		ok, resp := th.SystemAdminClient.RemoveLicenseFile()
+		CheckForbiddenStatus(t, resp)
+		if ok {
+			t.Fatal("should fail")
+		}
+	})
 }
