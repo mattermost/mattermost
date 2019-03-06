@@ -416,7 +416,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 	})
 
 	t.Run("do not persist environment variables", func(t *testing.T) {
-		_, tearDown := setupConfigDatabase(t, minimalConfig)
+		_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
 		defer tearDown()
 
 		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
