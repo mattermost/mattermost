@@ -175,6 +175,9 @@ func (cs *commonStore) validate(cfg *model.Config) error {
 	return nil
 }
 
+// removeEnvOverrides returns a new config without the current environment overrides.
+// If a config variable has an environment override, that variable is set to the value that was
+// read from the store.
 func (cs *commonStore) removeEnvOverrides(cfg *model.Config) *model.Config {
 	// When saving, iterate through the environmentOverrides map and check:
 	// foreach envOverrides, if config == loadedConfigNoEnv, then the environment override matched the original setting. No change
@@ -197,10 +200,12 @@ func (cs *commonStore) removeEnvOverrides(cfg *model.Config) *model.Config {
 	return newCfg
 }
 
+// getPaths is helper function for removeEnvOverrides
 func getPaths(m map[string]interface{}) [][]string {
 	return getPathsRec(m, nil, nil)
 }
 
+// getPathsRec is helper function for removeENvOverrides
 func getPathsRec(src interface{}, curPath []string, allPaths [][]string) [][]string {
 	if reflect.ValueOf(src).Kind() == reflect.Map {
 		for k, v := range src.(map[string]interface{}) {
@@ -212,6 +217,7 @@ func getPathsRec(src interface{}, curPath []string, allPaths [][]string) [][]str
 	return allPaths
 }
 
+// getVal is helper function for removeEnvOverrides
 func getVal(src interface{}, path []string) reflect.Value {
 	var val reflect.Value
 	if reflect.ValueOf(src).Kind() == reflect.Ptr {
@@ -228,6 +234,7 @@ func getVal(src interface{}, path []string) reflect.Value {
 	return val
 }
 
+// setVal is helper function for removeENvOverrides
 func setVal(tgt interface{}, path []string, newVal interface{}) {
 	val := getVal(tgt, path)
 	switch val.Kind() {
