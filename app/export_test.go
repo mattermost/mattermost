@@ -309,3 +309,46 @@ func TestExportGMandDMChannels(t *testing.T) {
 	assert.ElementsMatch(t, []string{th1.BasicUser.Username, user1.Username, user2.Username}, *channels[0].Members)
 	assert.ElementsMatch(t, []string{th1.BasicUser.Username, th1.BasicUser2.Username}, *channels[1].Members)
 }
+
+func TestDMandGMPostExport(t *testing.T) {
+	th1 := Setup(t).InitBasic()
+	defer th1.TearDown()
+
+	// DM Channel
+	dmChannel := th1.CreateDmChannel(th1.BasicUser2)
+
+	user1 := th1.CreateUser()
+	th1.LinkUserToTeam(user1, th1.BasicTeam)
+	user2 := th1.CreateUser()
+	th1.LinkUserToTeam(user2, th1.BasicTeam)
+
+	// GM Channel
+	gmChannel := th1.CreateGroupChannel(user1, user2)
+
+	th1.CreatePost(dmChannel)
+	th1.CreatePost(gmChannel)
+
+	result := <-th1.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
+	posts := result.Data.([]*model.DirectPostForExport)
+	assert.Equal(t, 2, len(posts))
+
+	var b bytes.Buffer
+	err := th1.App.BulkExport(&b, "somefile", "somePath", "someDir")
+	require.Nil(t, err)
+
+	th2 := Setup(t)
+	defer th2.TearDown()
+
+	result = <-th2.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
+	posts = result.Data.([]*model.DirectPostForExport)
+	assert.Equal(t, 0, len(posts))
+
+	// import the exported posts
+	err, i := th2.App.BulkImport(&b, false, 5)
+	assert.Nil(t, err)
+	assert.Equal(t, 0, i)
+
+	result = <-th2.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
+	posts = result.Data.([]*model.DirectPostForExport)
+	assert.Equal(t, 2, len(posts))
+}
