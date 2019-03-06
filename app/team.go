@@ -142,6 +142,34 @@ func (a *App) updateTeamUnsanitized(team *model.Team) (*model.Team, *model.AppEr
 	return result.Data.(*model.Team), nil
 }
 
+// RenameTeam is used to rename the team Name and the DisplayName fields
+func (a *App) RenameTeam(team *model.Team, newTeamName string, newDisplayName string) (*model.Team, *model.AppError) {
+
+	// check if name is occupied
+	_, errnf := a.GetTeamByName(newTeamName)
+
+	// "-" can be used as a newTeamName if only DisplayName change is wanted
+	if errnf == nil && newTeamName != "-" {
+		errbody := fmt.Sprintf("team with name %s already exists", newTeamName)
+		return nil, model.NewAppError("RenameTeam", "app.team.rename_team.name_occupied", nil, errbody, http.StatusBadRequest)
+	}
+
+	if newTeamName != "-" {
+		team.Name = newTeamName
+	}
+
+	if newDisplayName != "" {
+		team.DisplayName = newDisplayName
+	}
+
+	newTeam, err := a.updateTeamUnsanitized(team)
+	if err != nil {
+		return nil, err
+	}
+
+	return newTeam, nil
+}
+
 func (a *App) UpdateTeamScheme(team *model.Team) (*model.Team, *model.AppError) {
 	oldTeam, err := a.GetTeam(team.Id)
 	if err != nil {

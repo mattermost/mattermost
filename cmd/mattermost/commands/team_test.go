@@ -205,3 +205,70 @@ func TestRestoreTeams(t *testing.T) {
 
 	require.True(t, found)
 }
+
+func TestRenameTeam(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	team := th.CreateTeam()
+
+	newTeamName := "newteamnamex3"
+	newDisplayName := "New Display NameX"
+
+	th.CheckCommand(t, "team", "rename", team.Name, newTeamName, "--display_name", newDisplayName)
+
+	// Get the team from the DB
+	updatedTeam, _ := th.App.GetTeam(team.Id)
+
+	if updatedTeam.Name != newTeamName {
+		t.Fatal("failed renaming team")
+	}
+
+	if updatedTeam.DisplayName != newDisplayName {
+		t.Fatal("failed updating team display name")
+	}
+
+	// Try to rename to occupied name
+	team2 := th.CreateTeam()
+	n := team2.Name
+	dn := team2.DisplayName
+
+	th.CheckCommand(t, "team", "rename", team2.Name, newTeamName, "--display_name", newDisplayName)
+
+	// No renaming should have occured
+	if team2.Name != n {
+		t.Fatal("team was renamed when it should have not been")
+	}
+
+	if team2.DisplayName != dn {
+		t.Fatal("team display name was changed when it should have not been")
+	}
+
+	// Try to change only Display Name
+	team3 := th.CreateTeam()
+
+	// trying to change only Display Name (using "-" as a new team name)
+	th.CheckCommand(t, "team", "rename", team3.Name, "-", "--display_name", newDisplayName)
+
+	// Get the team from the DB
+	updatedTeam, _ = th.App.GetTeam(team3.Id)
+
+	if updatedTeam.Name == "-" {
+		t.Fatal("team was renamed to `-` but only display name should have been changed")
+	}
+
+	if updatedTeam.DisplayName != newDisplayName {
+		t.Fatal("team Display Name was not properly updated")
+	}
+
+	// now try to change Display Name using old team name
+	th.CheckCommand(t, "team", "rename", team3.Name, team3.Name, "--display_name", "Brand New DName")
+
+	// Get the team from the DB
+	updatedTeam, _ = th.App.GetTeam(team3.Id)
+
+	if updatedTeam.DisplayName != "Brand New DName" {
+		t.Fatal("team Display Name was not properly updated")
+	}
+
+}
