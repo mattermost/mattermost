@@ -4399,6 +4399,10 @@
     "translation": "Site name must be less than or equal to {{.MaxLength}} characters."
   },
   {
+    "id": "model.config.is_valid.sitename_empty.app_error",
+    "translation": "Site name cannot be empty."
+  },
+  {
     "id": "model.config.is_valid.sql_conn_max_lifetime_milliseconds.app_error",
     "translation": "Invalid connection maximum lifetime for SQL settings. Must be a non-negative number."
   },
