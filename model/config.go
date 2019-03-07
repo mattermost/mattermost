@@ -712,6 +712,7 @@ type ExperimentalSettings struct {
 	ClientSideCertEnable            *bool
 	ClientSideCertCheck             *string
 	DisablePostMetadata             *bool
+	EnableClickToReply              *bool
 	LinkMetadataTimeoutMilliseconds *int64
 	RestrictSystemAdmin             *bool
 }
@@ -727,6 +728,10 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.DisablePostMetadata == nil {
 		s.DisablePostMetadata = NewBool(false)
+	}
+
+	if s.EnableClickToReply == nil {
+		s.EnableClickToReply = NewBool(false)
 	}
 
 	if s.LinkMetadataTimeoutMilliseconds == nil {
