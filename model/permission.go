@@ -46,12 +46,15 @@ var PERMISSION_REMOVE_OTHERS_REACTIONS *Permission
 var PERMISSION_PERMANENT_DELETE_USER *Permission
 var PERMISSION_UPLOAD_FILE *Permission
 var PERMISSION_GET_PUBLIC_LINK *Permission
-var PERMISSION_MANAGE_WEBHOOKS *Permission
-var PERMISSION_MANAGE_OTHERS_WEBHOOKS *Permission
+var PERMISSION_MANAGE_INCOMING_WEBHOOKS *Permission
+var PERMISSION_MANAGE_OUTGOING_WEBHOOKS *Permission
+var PERMISSION_MANAGE_OTHERS_INCOMING_WEBHOOKS *Permission
+var PERMISSION_MANAGE_OTHERS_OUTGOING_WEBHOOKS *Permission
 var PERMISSION_MANAGE_OAUTH *Permission
 var PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH *Permission
-var PERMISSION_MANAGE_EMOJIS *Permission
-var PERMISSION_MANAGE_OTHERS_EMOJIS *Permission
+var PERMISSION_CREATE_EMOJIS *Permission
+var PERMISSION_DELETE_EMOJIS *Permission
+var PERMISSION_DELETE_OTHERS_EMOJIS *Permission
 var PERMISSION_CREATE_POST *Permission
 var PERMISSION_CREATE_POST_PUBLIC *Permission
 var PERMISSION_CREATE_POST_EPHEMERAL *Permission
@@ -269,16 +272,28 @@ func initializePermissions() {
 		"authentication.permissions.get_public_link.description",
 		PERMISSION_SCOPE_SYSTEM,
 	}
-	PERMISSION_MANAGE_WEBHOOKS = &Permission{
-		"manage_webhooks",
-		"authentication.permissions.manage_webhooks.name",
-		"authentication.permissions.manage_webhooks.description",
+	PERMISSION_MANAGE_INCOMING_WEBHOOKS = &Permission{
+		"manage_incoming_webhooks",
+		"authentication.permissions.manage_incoming_webhooks.name",
+		"authentication.permissions.manage_incoming_webhooks.description",
 		PERMISSION_SCOPE_TEAM,
 	}
-	PERMISSION_MANAGE_OTHERS_WEBHOOKS = &Permission{
-		"manage_others_webhooks",
-		"authentication.permissions.manage_others_webhooks.name",
-		"authentication.permissions.manage_others_webhooks.description",
+	PERMISSION_MANAGE_OUTGOING_WEBHOOKS = &Permission{
+		"manage_outgoing_webhooks",
+		"authentication.permissions.manage_outgoing_webhooks.name",
+		"authentication.permissions.manage_outgoing_webhooks.description",
+		PERMISSION_SCOPE_TEAM,
+	}
+	PERMISSION_MANAGE_OTHERS_INCOMING_WEBHOOKS = &Permission{
+		"manage_others_incoming_webhooks",
+		"authentication.permissions.manage_others_incoming_webhooks.name",
+		"authentication.permissions.manage_others_incoming_webhooks.description",
+		PERMISSION_SCOPE_TEAM,
+	}
+	PERMISSION_MANAGE_OTHERS_OUTGOING_WEBHOOKS = &Permission{
+		"manage_others_outgoing_webhooks",
+		"authentication.permissions.manage_others_outgoing_webhooks.name",
+		"authentication.permissions.manage_others_outgoing_webhooks.description",
 		PERMISSION_SCOPE_TEAM,
 	}
 	PERMISSION_MANAGE_OAUTH = &Permission{
@@ -293,16 +308,22 @@ func initializePermissions() {
 		"authentication.permissions.manage_system_wide_oauth.description",
 		PERMISSION_SCOPE_SYSTEM,
 	}
-	PERMISSION_MANAGE_EMOJIS = &Permission{
-		"manage_emojis",
-		"authentication.permissions.manage_emojis.name",
-		"authentication.permissions.manage_emojis.description",
+	PERMISSION_CREATE_EMOJIS = &Permission{
+		"create_emojis",
+		"authentication.permissions.create_emojis.name",
+		"authentication.permissions.create_emojis.description",
 		PERMISSION_SCOPE_TEAM,
 	}
-	PERMISSION_MANAGE_OTHERS_EMOJIS = &Permission{
-		"manage_others_emojis",
-		"authentication.permissions.manage_others_emojis.name",
-		"authentication.permissions.manage_others_emojis.description",
+	PERMISSION_DELETE_EMOJIS = &Permission{
+		"delete_emojis",
+		"authentication.permissions.delete_emojis.name",
+		"authentication.permissions.delete_emojis.description",
+		PERMISSION_SCOPE_TEAM,
+	}
+	PERMISSION_DELETE_OTHERS_EMOJIS = &Permission{
+		"delete_others_emojis",
+		"authentication.permissions.delete_others_emojis.name",
+		"authentication.permissions.delete_others_emojis.description",
 		PERMISSION_SCOPE_TEAM,
 	}
 	PERMISSION_CREATE_POST = &Permission{
@@ -469,12 +490,15 @@ func initializePermissions() {
 		PERMISSION_PERMANENT_DELETE_USER,
 		PERMISSION_UPLOAD_FILE,
 		PERMISSION_GET_PUBLIC_LINK,
-		PERMISSION_MANAGE_WEBHOOKS,
-		PERMISSION_MANAGE_OTHERS_WEBHOOKS,
+		PERMISSION_MANAGE_INCOMING_WEBHOOKS,
+		PERMISSION_MANAGE_OUTGOING_WEBHOOKS,
+		PERMISSION_MANAGE_OTHERS_INCOMING_WEBHOOKS,
+		PERMISSION_MANAGE_OTHERS_OUTGOING_WEBHOOKS,
 		PERMISSION_MANAGE_OAUTH,
 		PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH,
-		PERMISSION_MANAGE_EMOJIS,
-		PERMISSION_MANAGE_OTHERS_EMOJIS,
+		PERMISSION_CREATE_EMOJIS,
+		PERMISSION_DELETE_EMOJIS,
+		PERMISSION_DELETE_OTHERS_EMOJIS,
 		PERMISSION_CREATE_POST,
 		PERMISSION_CREATE_POST_PUBLIC,
 		PERMISSION_CREATE_POST_EPHEMERAL,
