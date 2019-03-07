@@ -2524,7 +2524,7 @@ func (s SqlChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId s
 			return
 		}
 
-		if _, err := s.GetReplica().Select(&data, queryString, args...); err != nil {
+		if _, err = s.GetReplica().Select(&data, queryString, args...); err != nil {
 			result.Err = model.NewAppError("SqlTeamStore.GetAllDirectChannelsForExportAfter", "store.sql_channel.get_all_direct.app_error", nil, err.Error(), http.StatusInternalServerError)
 			return
 		}

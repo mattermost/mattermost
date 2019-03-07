@@ -1393,7 +1393,7 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 		}
 
 		var posts []*model.DirectPostForExport
-		if _, err := s.GetReplica().Select(&posts, queryString, args...); err != nil {
+		if _, err = s.GetReplica().Select(&posts, queryString, args...); err != nil {
 			result.Err = model.NewAppError("SqlPostStore.GetDirectPostParentsForExportAfter", "store.sql_post.get_direct_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
