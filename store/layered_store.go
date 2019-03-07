@@ -284,6 +284,12 @@ func (s *LayeredRoleStore) Get(roleId string) StoreChannel {
 	})
 }
 
+func (s *LayeredRoleStore) GetAll() StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.RoleGetAll(s.TmpContext)
+	})
+}
+
 func (s *LayeredRoleStore) GetByName(name string) StoreChannel {
 	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
 		return supplier.RoleGetByName(s.TmpContext, name)
