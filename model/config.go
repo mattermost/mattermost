@@ -1394,7 +1394,7 @@ type TeamSettings struct {
 
 func (s *TeamSettings) SetDefaults() {
 
-	if s.SiteName == nil {
+	if s.SiteName == nil || *s.SiteName == "" {
 		s.SiteName = NewString(TEAM_SETTINGS_DEFAULT_SITE_NAME)
 	}
 
@@ -2393,6 +2393,10 @@ func (ts *TeamSettings) isValid() *AppError {
 
 	if !(*ts.TeammateNameDisplay == SHOW_FULLNAME || *ts.TeammateNameDisplay == SHOW_NICKNAME_FULLNAME || *ts.TeammateNameDisplay == SHOW_USERNAME) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.teammate_name_display.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(*ts.SiteName) == 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.sitename_empty.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if len(*ts.SiteName) > SITENAME_MAX_LENGTH {
