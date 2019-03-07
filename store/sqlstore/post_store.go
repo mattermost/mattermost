@@ -1372,7 +1372,8 @@ func (s *SqlPostStore) GetRepliesForExport(parentId string) store.StoreChannel {
 
 func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		query := sq.Select("p.*", "Users.Username as User").
+		query := getQueryBuilder(s).
+			Select("p.*", "Users.Username as User").
 			From("Posts p").
 			Join("Channels ON p.ChannelId = Channels.Id").
 			Join("Users ON p.UserId = Users.Id").
@@ -1383,7 +1384,7 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 				sq.Eq{"Channels.DeleteAt": int(0)},
 				sq.Eq{"Users.DeleteAt": int(0)},
 				sq.Eq{"Channels.Type": []string{"D", "G"}}}).
-			GroupBy("Channels.Id, p.Id").
+			GroupBy("Channels.Id, p.Id, Users.Username").
 			OrderBy("p.Id").
 			Limit(uint64(limit))
 
@@ -1402,7 +1403,8 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 		for _, post := range posts {
 			channelIds = append(channelIds, post.ChannelId)
 		}
-		query = sq.Select("*").
+		query = getQueryBuilder(s).
+			Select("*").
 			From("ChannelMembers cm").
 			Join("Users u ON ( u.Id = cm.UserId )").
 			Where(sq.Eq{"cm.ChannelId": channelIds})

@@ -47,6 +47,7 @@ func TestPostStore(t *testing.T, ss store.Store) {
 	t.Run("TestGetMaxPostSize", func(t *testing.T) { testGetMaxPostSize(t, ss) })
 	t.Run("GetParentsForExportAfter", func(t *testing.T) { testPostStoreGetParentsForExportAfter(t, ss) })
 	t.Run("GetRepliesForExport", func(t *testing.T) { testPostStoreGetRepliesForExport(t, ss) })
+	t.Run("GetDirectPostParentsForExportAfter", func(t *testing.T) { testPostStoreGetDirectPostParentsForExportAfter(t, ss) })
 }
 
 func testPostStoreSave(t *testing.T, ss store.Store) {
@@ -1941,4 +1942,57 @@ func testPostStoreGetRepliesForExport(t *testing.T, ss store.Store) {
 	assert.Equal(t, reply1.Id, p2.Id)
 	assert.Equal(t, reply1.Message, p2.Message)
 	assert.Equal(t, reply1.Username, u1.Username)
+}
+
+func testPostStoreGetDirectPostParentsForExportAfter(t *testing.T, ss store.Store) {
+	teamId := model.NewId()
+
+	o1 := model.Channel{}
+	o1.TeamId = teamId
+	o1.DisplayName = "Name"
+	o1.Name = "zz" + model.NewId() + "b"
+	o1.Type = model.CHANNEL_DIRECT
+
+	u1 := &model.User{}
+	u1.Email = MakeEmail()
+	u1.Nickname = model.NewId()
+	store.Must(ss.User().Save(u1))
+	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1))
+
+	u2 := &model.User{}
+	u2.Email = MakeEmail()
+	u2.Nickname = model.NewId()
+	store.Must(ss.User().Save(u2))
+	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1))
+
+	m1 := model.ChannelMember{}
+	m1.ChannelId = o1.Id
+	m1.UserId = u1.Id
+	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
+
+	m2 := model.ChannelMember{}
+	m2.ChannelId = o1.Id
+	m2.UserId = u2.Id
+	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
+
+	<-ss.Channel().SaveDirectChannel(&o1, &m1, &m2)
+
+	p1 := &model.Post{}
+	p1.ChannelId = o1.Id
+	p1.UserId = u1.Id
+	p1.Message = "zz" + model.NewId() + "AAAAAAAAAAA"
+	p1.CreateAt = 1000
+	p1 = (<-ss.Post().Save(p1)).Data.(*model.Post)
+
+	r1 := <-ss.Post().GetDirectPostParentsForExportAfter(10000, strings.Repeat("0", 26))
+	assert.Nil(t, r1.Err)
+	d1 := r1.Data.([]*model.DirectPostForExport)
+
+	found := false
+	for _, p := range d1 {
+		if p.Id == p1.Id {
+			found = true
+		}
+	}
+	assert.True(t, found)
 }
