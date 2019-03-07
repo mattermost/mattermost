@@ -52,7 +52,7 @@ func (a *App) SaveLicense(licenseBytes []byte) (*model.License, *model.AppError)
 	}
 	license := model.LicenseFromJson(strings.NewReader(licenseStr))
 
-	result := <-a.Srv.Store.User().AnalyticsUniqueUserCount("")
+	result := <-a.Srv.Store.User().Count(model.UserCountOptions{})
 	if result.Err != nil {
 		return nil, model.NewAppError("addLicense", "api.license.add_license.invalid_count.app_error", nil, result.Err.Error(), http.StatusBadRequest)
 	}

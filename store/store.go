@@ -43,6 +43,7 @@ type Store interface {
 	Channel() ChannelStore
 	Post() PostStore
 	User() UserStore
+	Bot() BotStore
 	Audit() AuditStore
 	ClusterDiscovery() ClusterDiscoveryStore
 	Compliance() ComplianceStore
@@ -184,7 +185,6 @@ type ChannelStore interface {
 	MigrateChannelMembers(fromChannelId string, fromUserId string) StoreChannel
 	ResetAllChannelSchemes() StoreChannel
 	ClearAllCustomRoleAssignments() StoreChannel
-	ResetLastPostAt() StoreChannel
 	MigratePublicChannels() error
 	GetAllChannelsForExportAfter(limit int, afterId string) StoreChannel
 	GetAllDirectChannelsForExportAfter(limit int, afterId string) StoreChannel
@@ -267,10 +267,8 @@ type UserStore interface {
 	GetEtagForAllProfiles() StoreChannel
 	GetEtagForProfiles(teamId string) StoreChannel
 	UpdateFailedPasswordAttempts(userId string, attempts int) StoreChannel
-	GetTotalUsersCount() StoreChannel
 	GetSystemAdminProfiles() StoreChannel
 	PermanentDelete(userId string) StoreChannel
-	AnalyticsUniqueUserCount(teamId string) StoreChannel
 	AnalyticsActiveCount(time int64) StoreChannel
 	GetUnreadCount(userId string) StoreChannel
 	GetUnreadCountForChannel(userId string, channelId string) StoreChannel
@@ -289,6 +287,15 @@ type UserStore interface {
 	ClearAllCustomRoleAssignments() StoreChannel
 	InferSystemInstallDate() StoreChannel
 	GetAllAfter(limit int, afterId string) StoreChannel
+	Count(options model.UserCountOptions) StoreChannel
+}
+
+type BotStore interface {
+	Get(userId string, includeDeleted bool) StoreChannel
+	GetAll(options *model.BotGetOptions) StoreChannel
+	Save(bot *model.Bot) StoreChannel
+	Update(bot *model.Bot) StoreChannel
+	PermanentDelete(userId string) StoreChannel
 }
 
 type SessionStore interface {
@@ -518,6 +525,7 @@ type PluginStore interface {
 type RoleStore interface {
 	Save(role *model.Role) StoreChannel
 	Get(roleId string) StoreChannel
+	GetAll() StoreChannel
 	GetByName(name string) StoreChannel
 	GetByNames(names []string) StoreChannel
 	Delete(roldId string) StoreChannel

@@ -72,6 +72,7 @@ type SqlStore interface {
 	Channel() store.ChannelStore
 	Post() store.PostStore
 	User() store.UserStore
+	Bot() store.BotStore
 	Audit() store.AuditStore
 	ClusterDiscovery() store.ClusterDiscoveryStore
 	Compliance() store.ComplianceStore

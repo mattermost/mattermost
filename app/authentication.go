@@ -53,8 +53,12 @@ func (a *App) CheckPasswordAndAllCriteria(user *model.User, password string, mfa
 	}
 
 	if err := a.CheckUserMfa(user, mfaToken); err != nil {
-		if result := <-a.Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); result.Err != nil {
-			return result.Err
+		// If the mfaToken is not set, we assume the client used this as a pre-flight request to query the server
+		// about the MFA state of the user in question
+		if mfaToken != "" {
+			if result := <-a.Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); result.Err != nil {
+				return result.Err
+			}
 		}
 		return err
 	}
@@ -139,6 +143,10 @@ func (a *App) CheckUserPreflightAuthenticationCriteria(user *model.User, mfaToke
 		return err
 	}
 
+	if err := checkUserNotBot(user); err != nil {
+		return err
+	}
+
 	if err := checkUserLoginAttempts(user, *a.Config().ServiceSettings.MaximumLoginAttempts); err != nil {
 		return err
 	}
@@ -183,6 +191,13 @@ func checkUserLoginAttempts(user *model.User, max int) *model.AppError {
 func checkUserNotDisabled(user *model.User) *model.AppError {
 	if user.DeleteAt > 0 {
 		return model.NewAppError("Login", "api.user.login.inactive.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
+	}
+	return nil
+}
+
+func checkUserNotBot(user *model.User) *model.AppError {
+	if user.IsBot {
+		return model.NewAppError("Login", "api.user.login.bot_login_forbidden.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
 	}
 	return nil
 }

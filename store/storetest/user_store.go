@@ -25,12 +25,14 @@ func TestUserStore(t *testing.T, ss store.Store) {
 		require.Nil(t, result.Err, "failed cleaning up test user %s", u.Username)
 	}
 
+	t.Run("Count", func(t *testing.T) { testCount(t, ss) })
+	t.Run("AnalyticsGetInactiveUsersCount", func(t *testing.T) { testUserStoreAnalyticsGetInactiveUsersCount(t, ss) })
+	t.Run("AnalyticsGetSystemAdminCount", func(t *testing.T) { testUserStoreAnalyticsGetSystemAdminCount(t, ss) })
 	t.Run("Save", func(t *testing.T) { testUserStoreSave(t, ss) })
 	t.Run("Update", func(t *testing.T) { testUserStoreUpdate(t, ss) })
 	t.Run("UpdateUpdateAt", func(t *testing.T) { testUserStoreUpdateUpdateAt(t, ss) })
 	t.Run("UpdateFailedPasswordAttempts", func(t *testing.T) { testUserStoreUpdateFailedPasswordAttempts(t, ss) })
 	t.Run("Get", func(t *testing.T) { testUserStoreGet(t, ss) })
-	t.Run("UserCount", func(t *testing.T) { testUserCount(t, ss) })
 	t.Run("GetAllUsingAuthService", func(t *testing.T) { testGetAllUsingAuthService(t, ss) })
 	t.Run("GetAllProfiles", func(t *testing.T) { testUserStoreGetAllProfiles(t, ss) })
 	t.Run("GetProfiles", func(t *testing.T) { testUserStoreGetProfiles(t, ss) })
@@ -59,8 +61,6 @@ func TestUserStore(t *testing.T, ss store.Store) {
 	t.Run("SearchInChannel", func(t *testing.T) { testUserStoreSearchInChannel(t, ss) })
 	t.Run("SearchNotInTeam", func(t *testing.T) { testUserStoreSearchNotInTeam(t, ss) })
 	t.Run("SearchWithoutTeam", func(t *testing.T) { testUserStoreSearchWithoutTeam(t, ss) })
-	t.Run("AnalyticsGetInactiveUsersCount", func(t *testing.T) { testUserStoreAnalyticsGetInactiveUsersCount(t, ss) })
-	t.Run("AnalyticsGetSystemAdminCount", func(t *testing.T) { testUserStoreAnalyticsGetSystemAdminCount(t, ss) })
 	t.Run("GetProfilesNotInTeam", func(t *testing.T) { testUserStoreGetProfilesNotInTeam(t, ss) })
 	t.Run("ClearAllCustomRoleAssignments", func(t *testing.T) { testUserStoreClearAllCustomRoleAssignments(t, ss) })
 	t.Run("GetAllAfter", func(t *testing.T) { testUserStoreGetAllAfter(t, ss) })
@@ -259,6 +259,13 @@ func testUserStoreGet(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	})).(*model.User)
+	store.Must(ss.Bot().Save(&model.Bot{
+		UserId:   u2.Id,
+		Username: u2.Username,
+		OwnerId:  u1.Id,
+	}))
+	u2.IsBot = true
+	defer func() { store.Must(ss.Bot().PermanentDelete(u2.Id)) }()
 	defer func() { store.Must(ss.User().PermanentDelete(u2.Id)) }()
 
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1))
@@ -273,30 +280,17 @@ func testUserStoreGet(t *testing.T, ss store.Store) {
 
 		actual := result.Data.(*model.User)
 		require.Equal(t, u1, actual)
+		require.False(t, actual.IsBot)
 	})
 
-	t.Run("fetch user 2", func(t *testing.T) {
+	t.Run("fetch user 2, also a bot", func(t *testing.T) {
 		result := <-ss.User().Get(u2.Id)
 		require.Nil(t, result.Err)
 
 		actual := result.Data.(*model.User)
 		require.Equal(t, u2, actual)
+		require.True(t, actual.IsBot)
 	})
-}
-
-func testUserCount(t *testing.T, ss store.Store) {
-	u1 := &model.User{}
-	u1.Email = MakeEmail()
-	store.Must(ss.User().Save(u1))
-	defer func() { store.Must(ss.User().PermanentDelete(u1.Id)) }()
-	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1))
-
-	if result := <-ss.User().GetTotalUsersCount(); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		count := result.Data.(int64)
-		require.False(t, count <= 0, "expected count > 0, got %d", count)
-	}
 }
 
 func testGetAllUsingAuthService(t *testing.T, ss store.Store) {
@@ -325,6 +319,13 @@ func testGetAllUsingAuthService(t *testing.T, ss store.Store) {
 	})).(*model.User)
 	defer func() { store.Must(ss.User().PermanentDelete(u3.Id)) }()
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1))
+	store.Must(ss.Bot().Save(&model.Bot{
+		UserId:   u3.Id,
+		Username: u3.Username,
+		OwnerId:  u1.Id,
+	}))
+	u3.IsBot = true
+	defer func() { store.Must(ss.Bot().PermanentDelete(u3.Id)) }()
 	defer func() { store.Must(ss.User().PermanentDelete(u3.Id)) }()
 
 	t.Run("get by unknown auth service", func(t *testing.T) {
@@ -372,6 +373,13 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: "u3" + model.NewId(),
 	})).(*model.User)
+	store.Must(ss.Bot().Save(&model.Bot{
+		UserId:   u3.Id,
+		Username: u3.Username,
+		OwnerId:  u1.Id,
+	}))
+	u3.IsBot = true
+	defer func() { store.Must(ss.Bot().PermanentDelete(u3.Id)) }()
 	defer func() { store.Must(ss.User().PermanentDelete(u3.Id)) }()
 
 	u4 := store.Must(ss.User().Save(&model.User{
@@ -529,6 +537,13 @@ func testUserStoreGetProfiles(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: "u3" + model.NewId(),
 	})).(*model.User)
+	store.Must(ss.Bot().Save(&model.Bot{
+		UserId:   u3.Id,
+		Username: u3.Username,
+		OwnerId:  u1.Id,
+	}))
+	u3.IsBot = true
+	defer func() { store.Must(ss.Bot().PermanentDelete(u3.Id)) }()
 	defer func() { store.Must(ss.User().PermanentDelete(u3.Id)) }()
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1))
 
@@ -660,6 +675,13 @@ func testUserStoreGetProfilesInChannel(t *testing.T, ss store.Store) {
 	})).(*model.User)
 	defer func() { store.Must(ss.User().PermanentDelete(u3.Id)) }()
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1))
+	store.Must(ss.Bot().Save(&model.Bot{
+		UserId:   u3.Id,
+		Username: u3.Username,
+		OwnerId:  u1.Id,
+	}))
+	u3.IsBot = true
+	defer func() { store.Must(ss.Bot().PermanentDelete(u3.Id)) }()
 
 	c1 := store.Must(ss.Channel().Save(&model.Channel{
 		TeamId:      teamId,
@@ -741,6 +763,13 @@ func testUserStoreGetProfilesInChannelByStatus(t *testing.T, ss store.Store) {
 	})).(*model.User)
 	defer func() { store.Must(ss.User().PermanentDelete(u3.Id)) }()
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1))
+	store.Must(ss.Bot().Save(&model.Bot{
+		UserId:   u3.Id,
+		Username: u3.Username,
+		OwnerId:  u1.Id,
+	}))
+	u3.IsBot = true
+	defer func() { store.Must(ss.Bot().PermanentDelete(u3.Id)) }()
 
 	c1 := store.Must(ss.Channel().Save(&model.Channel{
 		TeamId:      teamId,
@@ -827,6 +856,13 @@ func testUserStoreGetProfilesWithoutTeam(t *testing.T, ss store.Store) {
 		Username: "u3" + model.NewId(),
 	})).(*model.User)
 	defer func() { store.Must(ss.User().PermanentDelete(u3.Id)) }()
+	store.Must(ss.Bot().Save(&model.Bot{
+		UserId:   u3.Id,
+		Username: u3.Username,
+		OwnerId:  u1.Id,
+	}))
+	u3.IsBot = true
+	defer func() { store.Must(ss.Bot().PermanentDelete(u3.Id)) }()
 
 	t.Run("get, offset 0, limit 100", func(t *testing.T) {
 		result := <-ss.User().GetProfilesWithoutTeam(0, 100)
@@ -870,6 +906,13 @@ func testUserStoreGetAllProfilesInChannel(t *testing.T, ss store.Store) {
 	})).(*model.User)
 	defer func() { store.Must(ss.User().PermanentDelete(u3.Id)) }()
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1))
+	store.Must(ss.Bot().Save(&model.Bot{
+		UserId:   u3.Id,
+		Username: u3.Username,
+		OwnerId:  u1.Id,
+	}))
+	u3.IsBot = true
+	defer func() { store.Must(ss.Bot().PermanentDelete(u3.Id)) }()
 
 	c1 := store.Must(ss.Channel().Save(&model.Channel{
 		TeamId:      teamId,
@@ -970,6 +1013,13 @@ func testUserStoreGetProfilesNotInChannel(t *testing.T, ss store.Store) {
 	})).(*model.User)
 	defer func() { store.Must(ss.User().PermanentDelete(u3.Id)) }()
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1))
+	store.Must(ss.Bot().Save(&model.Bot{
+		UserId:   u3.Id,
+		Username: u3.Username,
+		OwnerId:  u1.Id,
+	}))
+	u3.IsBot = true
+	defer func() { store.Must(ss.Bot().PermanentDelete(u3.Id)) }()
 
 	c1 := store.Must(ss.Channel().Save(&model.Channel{
 		TeamId:      teamId,
@@ -1068,6 +1118,13 @@ func testUserStoreGetProfilesByIds(t *testing.T, ss store.Store) {
 	})).(*model.User)
 	defer func() { store.Must(ss.User().PermanentDelete(u3.Id)) }()
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1))
+	store.Must(ss.Bot().Save(&model.Bot{
+		UserId:   u3.Id,
+		Username: u3.Username,
+		OwnerId:  u1.Id,
+	}))
+	u3.IsBot = true
+	defer func() { store.Must(ss.Bot().PermanentDelete(u3.Id)) }()
 
 	t.Run("get u1 by id, no caching", func(t *testing.T) {
 		result := <-ss.User().GetProfileByIds([]string{u1.Id}, false)
@@ -1124,6 +1181,13 @@ func testUserStoreGetProfilesByUsernames(t *testing.T, ss store.Store) {
 	})).(*model.User)
 	defer func() { store.Must(ss.User().PermanentDelete(u3.Id)) }()
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: team2Id, UserId: u3.Id}, -1))
+	store.Must(ss.Bot().Save(&model.Bot{
+		UserId:   u3.Id,
+		Username: u3.Username,
+		OwnerId:  u1.Id,
+	}))
+	u3.IsBot = true
+	defer func() { store.Must(ss.Bot().PermanentDelete(u3.Id)) }()
 
 	t.Run("get by u1 and u2 usernames, team id 1", func(t *testing.T) {
 		result := <-ss.User().GetProfilesByUsernames([]string{u1.Username, u2.Username}, teamId)
@@ -1181,6 +1245,13 @@ func testUserStoreGetSystemAdminProfiles(t *testing.T, ss store.Store) {
 	})).(*model.User)
 	defer func() { store.Must(ss.User().PermanentDelete(u3.Id)) }()
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1))
+	store.Must(ss.Bot().Save(&model.Bot{
+		UserId:   u3.Id,
+		Username: u3.Username,
+		OwnerId:  u1.Id,
+	}))
+	u3.IsBot = true
+	defer func() { store.Must(ss.Bot().PermanentDelete(u3.Id)) }()
 
 	t.Run("all system admin profiles", func(t *testing.T) {
 		result := <-ss.User().GetSystemAdminProfiles()
@@ -1215,6 +1286,13 @@ func testUserStoreGetByEmail(t *testing.T, ss store.Store) {
 	})).(*model.User)
 	defer func() { store.Must(ss.User().PermanentDelete(u3.Id)) }()
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1))
+	store.Must(ss.Bot().Save(&model.Bot{
+		UserId:   u3.Id,
+		Username: u3.Username,
+		OwnerId:  u1.Id,
+	}))
+	u3.IsBot = true
+	defer func() { store.Must(ss.Bot().PermanentDelete(u3.Id)) }()
 
 	t.Run("get u1 by email", func(t *testing.T) {
 		result := <-ss.User().GetByEmail(u1.Email)
@@ -1276,6 +1354,13 @@ func testUserStoreGetByAuthData(t *testing.T, ss store.Store) {
 	})).(*model.User)
 	defer func() { store.Must(ss.User().PermanentDelete(u3.Id)) }()
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1))
+	store.Must(ss.Bot().Save(&model.Bot{
+		UserId:   u3.Id,
+		Username: u3.Username,
+		OwnerId:  u1.Id,
+	}))
+	u3.IsBot = true
+	defer func() { store.Must(ss.Bot().PermanentDelete(u3.Id)) }()
 
 	t.Run("get by u1 auth", func(t *testing.T) {
 		result := <-ss.User().GetByAuth(u1.AuthData, u1.AuthService)
@@ -1333,6 +1418,13 @@ func testUserStoreGetByUsername(t *testing.T, ss store.Store) {
 	})).(*model.User)
 	defer func() { store.Must(ss.User().PermanentDelete(u3.Id)) }()
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1))
+	store.Must(ss.Bot().Save(&model.Bot{
+		UserId:   u3.Id,
+		Username: u3.Username,
+		OwnerId:  u1.Id,
+	}))
+	u3.IsBot = true
+	defer func() { store.Must(ss.Bot().PermanentDelete(u3.Id)) }()
 
 	t.Run("get u1 by username", func(t *testing.T) {
 		result := <-ss.User().GetByUsername(u1.Username)
@@ -1397,6 +1489,13 @@ func testUserStoreGetForLogin(t *testing.T, ss store.Store) {
 	})).(*model.User)
 	defer func() { store.Must(ss.User().PermanentDelete(u3.Id)) }()
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1))
+	store.Must(ss.Bot().Save(&model.Bot{
+		UserId:   u3.Id,
+		Username: u3.Username,
+		OwnerId:  u1.Id,
+	}))
+	u3.IsBot = true
+	defer func() { store.Must(ss.Bot().PermanentDelete(u3.Id)) }()
 
 	t.Run("get u1 by username, allow both", func(t *testing.T) {
 		result := <-ss.User().GetForLogin(u1.Username, true, true)
@@ -1666,6 +1765,13 @@ func testUserStoreGetRecentlyActiveUsersForTeam(t *testing.T, ss store.Store) {
 	})).(*model.User)
 	defer func() { store.Must(ss.User().PermanentDelete(u3.Id)) }()
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1))
+	store.Must(ss.Bot().Save(&model.Bot{
+		UserId:   u3.Id,
+		Username: u3.Username,
+		OwnerId:  u1.Id,
+	}))
+	u3.IsBot = true
+	defer func() { store.Must(ss.Bot().PermanentDelete(u3.Id)) }()
 
 	millis := model.GetMillis()
 	u3.LastActivityAt = millis
@@ -1727,6 +1833,13 @@ func testUserStoreGetNewUsersForTeam(t *testing.T, ss store.Store) {
 	})).(*model.User)
 	defer func() { store.Must(ss.User().PermanentDelete(u3.Id)) }()
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1))
+	store.Must(ss.Bot().Save(&model.Bot{
+		UserId:   u3.Id,
+		Username: u3.Username,
+		OwnerId:  u1.Id,
+	}))
+	u3.IsBot = true
+	defer func() { store.Must(ss.Bot().PermanentDelete(u3.Id)) }()
 
 	u4 := store.Must(ss.User().Save(&model.User{
 		Email:    MakeEmail(),
@@ -1830,6 +1943,13 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 	}
 	store.Must(ss.User().Save(u3))
 	defer func() { store.Must(ss.User().PermanentDelete(u3.Id)) }()
+	store.Must(ss.Bot().Save(&model.Bot{
+		UserId:   u3.Id,
+		Username: u3.Username,
+		OwnerId:  u1.Id,
+	}))
+	u3.IsBot = true
+	defer func() { store.Must(ss.Bot().PermanentDelete(u3.Id)) }()
 
 	u5 := &model.User{
 		Username:  "yu" + model.NewId(),
@@ -2160,6 +2280,13 @@ func testUserStoreSearchNotInChannel(t *testing.T, ss store.Store) {
 	}
 	store.Must(ss.User().Save(u3))
 	defer func() { store.Must(ss.User().PermanentDelete(u3.Id)) }()
+	store.Must(ss.Bot().Save(&model.Bot{
+		UserId:   u3.Id,
+		Username: u3.Username,
+		OwnerId:  u1.Id,
+	}))
+	u3.IsBot = true
+	defer func() { store.Must(ss.Bot().PermanentDelete(u3.Id)) }()
 
 	tid := model.NewId()
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u1.Id}, -1))
@@ -2367,6 +2494,13 @@ func testUserStoreSearchInChannel(t *testing.T, ss store.Store) {
 	}
 	store.Must(ss.User().Save(u3))
 	defer func() { store.Must(ss.User().PermanentDelete(u3.Id)) }()
+	store.Must(ss.Bot().Save(&model.Bot{
+		UserId:   u3.Id,
+		Username: u3.Username,
+		OwnerId:  u1.Id,
+	}))
+	u3.IsBot = true
+	defer func() { store.Must(ss.Bot().PermanentDelete(u3.Id)) }()
 
 	tid := model.NewId()
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u1.Id}, -1))
@@ -2513,6 +2647,13 @@ func testUserStoreSearchNotInTeam(t *testing.T, ss store.Store) {
 	}
 	store.Must(ss.User().Save(u3))
 	defer func() { store.Must(ss.User().PermanentDelete(u3.Id)) }()
+	store.Must(ss.Bot().Save(&model.Bot{
+		UserId:   u3.Id,
+		Username: u3.Username,
+		OwnerId:  u1.Id,
+	}))
+	u3.IsBot = true
+	defer func() { store.Must(ss.Bot().PermanentDelete(u3.Id)) }()
 
 	u4 := &model.User{
 		Username: "simon" + model.NewId(),
@@ -2685,6 +2826,13 @@ func testUserStoreSearchWithoutTeam(t *testing.T, ss store.Store) {
 	}
 	store.Must(ss.User().Save(u3))
 	defer func() { store.Must(ss.User().PermanentDelete(u3.Id)) }()
+	store.Must(ss.Bot().Save(&model.Bot{
+		UserId:   u3.Id,
+		Username: u3.Username,
+		OwnerId:  u1.Id,
+	}))
+	u3.IsBot = true
+	defer func() { store.Must(ss.Bot().PermanentDelete(u3.Id)) }()
 
 	tid := model.NewId()
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u3.Id}, -1))
@@ -2751,6 +2899,94 @@ func testUserStoreSearchWithoutTeam(t *testing.T, ss store.Store) {
 			assertUsers(t, testCase.Expected, result.Data.([]*model.User))
 		})
 	}
+}
+
+func testCount(t *testing.T, ss store.Store) {
+	// Regular
+	teamId := model.NewId()
+	u1 := &model.User{}
+	u1.Email = MakeEmail()
+	store.Must(ss.User().Save(u1))
+	defer func() { store.Must(ss.User().PermanentDelete(u1.Id)) }()
+	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1))
+
+	// Deleted
+	u2 := &model.User{}
+	u2.Email = MakeEmail()
+	u2.DeleteAt = model.GetMillis()
+	store.Must(ss.User().Save(u2))
+	defer func() { store.Must(ss.User().PermanentDelete(u2.Id)) }()
+
+	// Bot
+	u3 := store.Must(ss.User().Save(&model.User{
+		Email: MakeEmail(),
+	})).(*model.User)
+	defer func() { store.Must(ss.User().PermanentDelete(u3.Id)) }()
+	store.Must(ss.Bot().Save(&model.Bot{
+		UserId:   u3.Id,
+		Username: u3.Username,
+		OwnerId:  u1.Id,
+	}))
+	u3.IsBot = true
+	defer func() { store.Must(ss.Bot().PermanentDelete(u3.Id)) }()
+
+	result := <-ss.User().Count(model.UserCountOptions{
+		IncludeBotAccounts: false,
+		IncludeDeleted:     false,
+		TeamId:             "",
+	})
+	require.Nil(t, result.Err)
+	require.Equal(t, int64(1), result.Data.(int64))
+
+	result = <-ss.User().Count(model.UserCountOptions{
+		IncludeBotAccounts: true,
+		IncludeDeleted:     false,
+		TeamId:             "",
+	})
+	require.Nil(t, result.Err)
+	require.Equal(t, int64(2), result.Data.(int64))
+
+	result = <-ss.User().Count(model.UserCountOptions{
+		IncludeBotAccounts: false,
+		IncludeDeleted:     true,
+		TeamId:             "",
+	})
+	require.Nil(t, result.Err)
+	require.Equal(t, int64(2), result.Data.(int64))
+
+	result = <-ss.User().Count(model.UserCountOptions{
+		IncludeBotAccounts: true,
+		IncludeDeleted:     true,
+		TeamId:             "",
+	})
+	require.Nil(t, result.Err)
+	require.Equal(t, int64(3), result.Data.(int64))
+
+	result = <-ss.User().Count(model.UserCountOptions{
+		IncludeBotAccounts:  true,
+		IncludeDeleted:      true,
+		ExcludeRegularUsers: true,
+		TeamId:              "",
+	})
+	require.Nil(t, result.Err)
+	require.Equal(t, int64(1), result.Data.(int64))
+
+	result = <-ss.User().Count(model.UserCountOptions{
+		IncludeBotAccounts: true,
+		IncludeDeleted:     true,
+		TeamId:             teamId,
+	})
+	require.Nil(t, result.Err)
+	require.Equal(t, int64(1), result.Data.(int64))
+
+	result = <-ss.User().Count(model.UserCountOptions{
+		IncludeBotAccounts: true,
+		IncludeDeleted:     true,
+		TeamId:             model.NewId(),
+	})
+	require.Nil(t, result.Err)
+	require.Equal(t, int64(0), result.Data.(int64))
+
 }
 
 func testUserStoreAnalyticsGetInactiveUsersCount(t *testing.T, ss store.Store) {
@@ -2849,6 +3085,13 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 		Username: "u3" + model.NewId(),
 	})).(*model.User)
 	defer func() { store.Must(ss.User().PermanentDelete(u3.Id)) }()
+	store.Must(ss.Bot().Save(&model.Bot{
+		UserId:   u3.Id,
+		Username: u3.Username,
+		OwnerId:  u1.Id,
+	}))
+	u3.IsBot = true
+	defer func() { store.Must(ss.Bot().PermanentDelete(u3.Id)) }()
 
 	var etag1, etag2, etag3 string
 
@@ -2891,10 +3134,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1))
 	u2.UpdateAt = store.Must(ss.User().UpdateUpdateAt(u2.Id)).(int64)
 
-	// GetEtagForProfilesNotInTeam only works if the most recent user is added to the team,
-	// otherwise the timestamp simply never changes: see https://mattermost.atlassian.net/browse/MM-13721.
 	t.Run("etag for profiles not in team 1 after update", func(t *testing.T) {
-		t.Skip()
 		result := <-ss.User().GetEtagForProfilesNotInTeam(teamId)
 		require.Nil(t, result.Err)
 		etag2 = result.Data.(string)
@@ -2938,13 +3178,31 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	// Ensure update at timestamp changes
 	time.Sleep(time.Millisecond * 10)
 
-	u4 := &model.User{}
-	u4.Email = MakeEmail()
-	store.Must(ss.User().Save(u4))
+	u4 := store.Must(ss.User().Save(&model.User{
+		Email:    MakeEmail(),
+		Username: "u4" + model.NewId(),
+	})).(*model.User)
 	defer func() { store.Must(ss.User().PermanentDelete(u4.Id)) }()
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u4.Id}, -1))
 
 	t.Run("etag for profiles not in team 1 after addition to team", func(t *testing.T) {
+		result := <-ss.User().GetEtagForProfilesNotInTeam(teamId)
+		require.Nil(t, result.Err)
+		etag4 := result.Data.(string)
+		require.Equal(t, etag3, etag4, "etag should not have changed")
+	})
+
+	// Add u3 to team 2
+	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId2, UserId: u3.Id}, -1))
+	u3.UpdateAt = store.Must(ss.User().UpdateUpdateAt(u3.Id)).(int64)
+
+	// GetEtagForProfilesNotInTeam produces a new etag every time a member, not
+	// in the team, gets a new UpdateAt value. In the case that an older member
+	// in the set joins a different team, their UpdateAt value changes, thus
+	// creating a new etag (even though the user set doesn't change). A hashing
+	// solution, which only uses UserIds, would solve this issue.
+	t.Run("etag for profiles not in team 1 after u3 added to team 2", func(t *testing.T) {
+		t.Skip()
 		result := <-ss.User().GetEtagForProfilesNotInTeam(teamId)
 		require.Nil(t, result.Err)
 		etag4 := result.Data.(string)
@@ -3015,6 +3273,13 @@ func testUserStoreGetAllAfter(t *testing.T, ss store.Store) {
 		Username: "u2" + model.NewId(),
 	})).(*model.User)
 	defer func() { store.Must(ss.User().PermanentDelete(u2.Id)) }()
+	store.Must(ss.Bot().Save(&model.Bot{
+		UserId:   u2.Id,
+		Username: u2.Username,
+		OwnerId:  u1.Id,
+	}))
+	u2.IsBot = true
+	defer func() { store.Must(ss.Bot().PermanentDelete(u2.Id)) }()
 
 	expected := []*model.User{u1, u2}
 	if strings.Compare(u2.Id, u1.Id) < 0 {

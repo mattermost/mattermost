@@ -20,20 +20,30 @@ type Store interface {
 	// GetEnvironmentOverrides fetches the configuration fields overridden by environment variables.
 	GetEnvironmentOverrides() map[string]interface{}
 
-	// Set replaces the current configuration in its entirety, without updating the backing store.
+	// Set replaces the current configuration in its entirety and updates the backing store.
 	Set(*model.Config) (*model.Config, error)
 
 	// Load updates the current configuration from the backing store, possibly initializing.
 	Load() (err error)
-
-	// Save writes the current configuration to the backing store.
-	Save() error
 
 	// AddListener adds a callback function to invoke when the configuration is modified.
 	AddListener(listener Listener) string
 
 	// RemoveListener removes a callback function using an id returned from AddListener.
 	RemoveListener(id string)
+
+	// GetFile fetches the contents of a previously persisted configuration file.
+	// If no such file exists, an empty byte array will be returned without error.
+	GetFile(name string) ([]byte, error)
+
+	// SetFile sets or replaces the contents of a configuration file.
+	SetFile(name string, data []byte) error
+
+	// HasFile returns true if the given file was previously persisted.
+	HasFile(name string) (bool, error)
+
+	// RemoveFile removes a previously persisted configuration file.
+	RemoveFile(name string) error
 
 	// String describes the backing store for the config.
 	String() string
