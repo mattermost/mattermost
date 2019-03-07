@@ -38,8 +38,6 @@ const (
 type SqlChannelStore struct {
 	SqlStore
 	metrics einterfaces.MetricsInterface
-
-	channelsQuery sq.SelectBuilder
 }
 
 type channelMember struct {
@@ -273,14 +271,6 @@ func NewSqlChannelStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface)
 	s := &SqlChannelStore{
 		SqlStore: sqlStore,
 		metrics:  metrics,
-	}
-
-	s.channelsQuery = sq.
-		Select("Channels.*").
-		From("Channels")
-
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		s.channelsQuery = s.channelsQuery.PlaceholderFormat(sq.Dollar)
 	}
 
 	for _, db := range sqlStore.GetAllConns() {
@@ -2555,9 +2545,10 @@ func (s SqlChannelStore) GetChannelMembersForExport(userId string, teamId string
 
 func (s SqlChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-
 		var data []*model.DirectChannelForExport
-		query := s.channelsQuery.
+		query := getQueryBuilder(s).
+			Select("Channels.*").
+			From("Channels").
 			LeftJoin("ChannelMembers CM ON CM.ChannelId = Channels.Id").
 			LeftJoin("Users ON Users.Id = CM.UserId").
 			Where(sq.And{sq.Gt{"Channels.Id": afterId},
@@ -2567,7 +2558,6 @@ func (s SqlChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId s
 			Limit(uint64(limit))
 
 		queryString, args, err := query.ToSql()
-
 		if err != nil {
 			result.Err = model.NewAppError("SqlTeamStore.GetAllDirectChannelsForExportAfter", "store.sql_channel.get_all_direct.app_error", nil, err.Error(), http.StatusInternalServerError)
 			return
@@ -2582,7 +2572,8 @@ func (s SqlChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId s
 		for _, channel := range data {
 			channelIds = append(channelIds, channel.Id)
 		}
-		query = sq.Select("*").
+		query = getQueryBuilder(s).
+			Select("*").
 			From("ChannelMembers cm").
 			Join("Users u ON ( u.Id = cm.UserId )").
 			Where(sq.Eq{"cm.ChannelId": channelIds})
