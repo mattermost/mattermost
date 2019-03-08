@@ -117,7 +117,7 @@ func removeLicense(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
-		c.Err = model.NewAppError("addLicense", "api.restricted_system_admin", nil, "", http.StatusForbidden)
+		c.Err = model.NewAppError("removeLicense", "api.restricted_system_admin", nil, "", http.StatusForbidden)
 		return
 	}
 
