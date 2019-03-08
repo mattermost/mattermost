@@ -8,6 +8,7 @@ import (
 	"sort"
 	"strings"
 	"unicode"
+	"unicode/utf8"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -468,6 +469,14 @@ func GetExplicitMentions(post *model.Post, keywords map[string][]string) *Explic
 
 		return isMention
 	}
+
+	var multibyteKeywords []string
+	for keyword := range keywords {
+		if len(keyword) != utf8.RuneCountInString(keyword) {
+			multibyteKeywords = append(multibyteKeywords, keyword)
+		}
+	}
+
 	processText := func(text string) {
 		for _, word := range strings.FieldsFunc(text, func(c rune) bool {
 			// Split on any whitespace or punctuation that can't be part of an at mention or emoji pattern
@@ -513,6 +522,17 @@ func GetExplicitMentions(post *model.Post, keywords map[string][]string) *Explic
 					}
 					if _, ok := systemMentions[splitWord]; !ok && strings.HasPrefix(splitWord, "@") {
 						ret.OtherPotentialMentions = append(ret.OtherPotentialMentions, splitWord[1:])
+					}
+				}
+			}
+
+			// If word contains a multibyte character, check if it contains a multibyte keyword
+			if len(word) != utf8.RuneCountInString(word) {
+				for _, key := range multibyteKeywords {
+					if strings.Contains(word, key) {
+						if ids, match := keywords[key]; match {
+							addMentionedUsers(ids)
+						}
 					}
 				}
 			}
