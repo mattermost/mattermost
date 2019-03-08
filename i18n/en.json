@@ -1449,11 +1449,11 @@
     "translation": "This channel is read-only. Only members with permission can post here."
   },
   {
-    "id": "api.post.patch_post.can_not_udpate_post_in_deleted.error",
+    "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Can not update a post in a deleted channel."
   },
   {
-    "id": "api.post.udpate_post.can_not_udpate_post_in_deleted.error",
+    "id": "api.post.update_post.can_not_update_post_in_deleted.error",
     "translation": "Can not update a post in a deleted channel."
   },
   {
