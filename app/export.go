@@ -539,7 +539,7 @@ func (a *App) ExportAllDirectChannels(writer io.Writer) *model.AppError {
 
 			// There's no import support for single member channels yet.
 			if len(*channel.Members) == 1 {
-				mlog.Info("Bulk export for direct channels containing a single member is not supported.")
+				mlog.Debug("Bulk export for direct channels containing a single member is not supported.")
 				continue
 			}
 
@@ -578,7 +578,7 @@ func (a *App) ExportAllDirectPosts(writer io.Writer) *model.AppError {
 
 			// There's no import support for single member channels yet.
 			if len(*post.ChannelMembers) == 1 {
-				mlog.Info("Bulk export for posts containing a single member is not supported.")
+				mlog.Debug("Bulk export for posts containing a single member is not supported.")
 				continue
 			}
 
