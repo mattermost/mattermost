@@ -470,7 +470,6 @@ func (s *SqlSupplier) getGroupSyncable(groupID string, syncableID string, syncab
 		groupTeam := result.(*groupTeam)
 		groupSyncable.SyncableId = groupTeam.TeamId
 		groupSyncable.GroupId = groupTeam.GroupId
-		groupSyncable.CanLeave = groupTeam.CanLeave
 		groupSyncable.AutoAdd = groupTeam.AutoAdd
 		groupSyncable.CreateAt = groupTeam.CreateAt
 		groupSyncable.DeleteAt = groupTeam.DeleteAt
@@ -480,7 +479,6 @@ func (s *SqlSupplier) getGroupSyncable(groupID string, syncableID string, syncab
 		groupChannel := result.(*groupChannel)
 		groupSyncable.SyncableId = groupChannel.ChannelId
 		groupSyncable.GroupId = groupChannel.GroupId
-		groupSyncable.CanLeave = groupChannel.CanLeave
 		groupSyncable.AutoAdd = groupChannel.AutoAdd
 		groupSyncable.CreateAt = groupChannel.CreateAt
 		groupSyncable.DeleteAt = groupChannel.DeleteAt
@@ -527,7 +525,6 @@ func (s *SqlSupplier) GroupGetAllGroupSyncablesByGroup(ctx context.Context, grou
 			groupSyncable := &model.GroupSyncable{
 				SyncableId:      result.TeamId,
 				GroupId:         result.GroupId,
-				CanLeave:        result.CanLeave,
 				AutoAdd:         result.AutoAdd,
 				CreateAt:        result.CreateAt,
 				DeleteAt:        result.DeleteAt,
@@ -564,7 +561,6 @@ func (s *SqlSupplier) GroupGetAllGroupSyncablesByGroup(ctx context.Context, grou
 			groupSyncable := &model.GroupSyncable{
 				SyncableId:         result.ChannelId,
 				GroupId:            result.GroupId,
-				CanLeave:           result.CanLeave,
 				AutoAdd:            result.AutoAdd,
 				CreateAt:           result.CreateAt,
 				DeleteAt:           result.DeleteAt,
