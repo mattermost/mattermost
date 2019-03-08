@@ -182,7 +182,7 @@ func NewInvalidUrlParamError(parameter string) *model.AppError {
 }
 
 func (c *Context) SetPermissionError(permission *model.Permission) {
-	c.Err = model.NewAppError("Permissions", "api.context.permissions.app_error", nil, "userId="+c.App.Session.UserId+", "+"permission="+permission.Id, http.StatusForbidden)
+	c.Err = c.App.MakePermissionError(permission)
 }
 
 func (c *Context) SetSiteURLHeader(url string) {
@@ -560,6 +560,17 @@ func (c *Context) RequireSyncableType() *Context {
 
 	if c.Params.SyncableType != model.GroupSyncableTypeTeam && c.Params.SyncableType != model.GroupSyncableTypeChannel {
 		c.SetInvalidUrlParam("syncable_type")
+	}
+	return c
+}
+
+func (c *Context) RequireBotUserId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.BotUserId) != 26 {
+		c.SetInvalidUrlParam("bot_user_id")
 	}
 	return c
 }

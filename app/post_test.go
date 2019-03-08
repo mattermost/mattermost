@@ -342,6 +342,59 @@ func TestPostReplyToPostWhereRootPosterLeftChannel(t *testing.T) {
 	}
 }
 
+func TestPostAttachPostToChildPost(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	channel := th.BasicChannel
+	user := th.BasicUser
+	rootPost := th.BasicPost
+
+	replyPost1 := model.Post{
+		Message:       "reply one",
+		ChannelId:     channel.Id,
+		RootId:        rootPost.Id,
+		ParentId:      rootPost.Id,
+		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+		UserId:        user.Id,
+		CreateAt:      0,
+	}
+
+	res1, err := th.App.CreatePostAsUser(&replyPost1, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	replyPost2 := model.Post{
+		Message:       "reply two",
+		ChannelId:     channel.Id,
+		RootId:        res1.Id,
+		ParentId:      res1.Id,
+		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+		UserId:        user.Id,
+		CreateAt:      0,
+	}
+
+	_, err = th.App.CreatePostAsUser(&replyPost2, false)
+	if err.StatusCode != http.StatusBadRequest {
+		t.Fatal(fmt.Sprintf("Expected BadRequest error, got %v", err))
+	}
+
+	replyPost3 := model.Post{
+		Message:       "reply three",
+		ChannelId:     channel.Id,
+		RootId:        rootPost.Id,
+		ParentId:      rootPost.Id,
+		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+		UserId:        user.Id,
+		CreateAt:      0,
+	}
+
+	if _, err := th.App.CreatePostAsUser(&replyPost3, false); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestPostChannelMentions(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()

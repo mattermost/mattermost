@@ -12,6 +12,10 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
+func (a *App) MakePermissionError(permission *model.Permission) *model.AppError {
+	return model.NewAppError("Permissions", "api.context.permissions.app_error", nil, "userId="+a.Session.UserId+", "+"permission="+permission.Id, http.StatusForbidden)
+}
+
 func (a *App) SessionHasPermissionTo(session model.Session, permission *model.Permission) bool {
 	return a.RolesGrantPermission(session.GetUserRoles(), permission.Id)
 }
@@ -92,6 +96,18 @@ func (a *App) SessionHasPermissionToUser(session model.Session, userId string) b
 	}
 
 	if a.SessionHasPermissionTo(session, model.PERMISSION_EDIT_OTHER_USERS) {
+		return true
+	}
+
+	return false
+}
+
+func (a *App) SessionHasPermissionToUserOrBot(session model.Session, userId string) bool {
+	if a.SessionHasPermissionToUser(session, userId) {
+		return true
+	}
+
+	if err := a.SessionHasPermissionToManageBot(session, userId); err == nil {
 		return true
 	}
 
@@ -204,4 +220,36 @@ func (a *App) RolesGrantPermission(roleNames []string, permissionId string) bool
 	}
 
 	return false
+}
+
+// SessionHasPermissionToManageBot returns nil if the session has access to manage the given bot.
+// This function deviates from other authorization checks in returning an error instead of just
+// a boolean, allowing the permission failure to be exposed with more granularity.
+func (a *App) SessionHasPermissionToManageBot(session model.Session, botUserId string) *model.AppError {
+	existingBot, err := a.GetBot(botUserId, true)
+	if err != nil {
+		return err
+	}
+
+	if existingBot.OwnerId == session.UserId {
+		if !a.SessionHasPermissionTo(session, model.PERMISSION_MANAGE_BOTS) {
+			if !a.SessionHasPermissionTo(session, model.PERMISSION_READ_BOTS) {
+				// If the user doesn't have permission to read bots, pretend as if
+				// the bot doesn't exist at all.
+				return model.MakeBotNotFoundError(botUserId)
+			}
+			return a.MakePermissionError(model.PERMISSION_MANAGE_BOTS)
+		}
+	} else {
+		if !a.SessionHasPermissionTo(session, model.PERMISSION_MANAGE_OTHERS_BOTS) {
+			if !a.SessionHasPermissionTo(session, model.PERMISSION_READ_OTHERS_BOTS) {
+				// If the user doesn't have permission to read others' bots,
+				// pretend as if the bot doesn't exist at all.
+				return model.MakeBotNotFoundError(botUserId)
+			}
+			return a.MakePermissionError(model.PERMISSION_MANAGE_OTHERS_BOTS)
+		}
+	}
+
+	return nil
 }

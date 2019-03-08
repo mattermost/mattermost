@@ -28,3 +28,6 @@ func (StaticConfigService) RemoveConfigListener(string) {
 func (StaticConfigService) AsymmetricSigningKey() *ecdsa.PrivateKey {
 	return &ecdsa.PrivateKey{}
 }
+func (StaticConfigService) PostActionCookieSecret() []byte {
+	return make([]byte, 32)
+}
