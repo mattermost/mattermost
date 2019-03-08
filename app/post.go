@@ -575,7 +575,7 @@ func (a *App) PatchPost(postId string, patch *model.PostPatch) (*model.Post, *mo
 	}
 
 	if channel.DeleteAt != 0 {
-		err := model.NewAppError("PatchPost", "api.post.patch_post.can_not_update_post_in_deleted.error", nil, "", http.StatusBadRequest)
+		err = model.NewAppError("PatchPost", "api.post.patch_post.can_not_update_post_in_deleted.error", nil, "", http.StatusBadRequest)
 		return nil, err
 	}
 
