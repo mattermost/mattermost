@@ -55,6 +55,9 @@ type PluginSetting struct {
 	// The help text to display to the user.
 	HelpText string `json:"help_text" yaml:"help_text"`
 
+	// Whether or not the help text includes markdown.
+	HelpTextMarkdown bool `json:"help_text_markdown" yaml:"help_text_markdown"`
+
 	// The help text to display alongside the "Regenerate" button for settings of the "generated" type.
 	RegenerateHelpText string `json:"regenerate_help_text,omitempty" yaml:"regenerate_help_text,omitempty"`
 
