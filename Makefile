@@ -397,7 +397,7 @@ test-compile:
 		$(GO) test $(GOFLAGS) -c $$package; \
 	done
 
-test-db-migration:
+test-db-migration: start-docker
 	./scripts/db-migration-test.sh
 
 test-server: start-docker go-junit-report do-cover-file ## Runs tests.
