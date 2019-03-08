@@ -7,11 +7,9 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils/fileutils"
 )
 
 func StringInSlice(a string, slice []string) bool {
@@ -38,17 +36,6 @@ func StringArrayIntersection(arr1, arr2 []string) []string {
 	}
 
 	return result
-}
-
-func FileExistsInConfigFolder(filename string) bool {
-	if len(filename) == 0 {
-		return false
-	}
-
-	if _, err := os.Stat(fileutils.FindConfigFile(filename)); err == nil {
-		return true
-	}
-	return false
 }
 
 func RemoveDuplicatesFromStringArray(arr []string) []string {

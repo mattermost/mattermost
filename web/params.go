@@ -62,6 +62,7 @@ type Params struct {
 	RemoteId       string
 	SyncableId     string
 	SyncableType   model.GroupSyncableType
+	BotUserId      string
 }
 
 func ParamsFromRequest(r *http.Request) *Params {
@@ -246,5 +247,10 @@ func ParamsFromRequest(r *http.Request) *Params {
 			params.SyncableType = model.GroupSyncableTypeChannel
 		}
 	}
+
+	if val, ok := props["bot_user_id"]; ok {
+		params.BotUserId = val
+	}
+
 	return params
 }

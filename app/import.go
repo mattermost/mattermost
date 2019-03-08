@@ -167,9 +167,5 @@ func (a *App) finalizeImport(dryRun bool) *model.AppError {
 	if dryRun {
 		return nil
 	}
-	result := <-a.Srv.Store.Channel().ResetLastPostAt()
-	if result.Err != nil {
-		return result.Err
-	}
 	return nil
 }

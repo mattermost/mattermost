@@ -55,6 +55,7 @@ type UserImportData struct {
 	UseMarkdownPreview *string `json:"feature_enabled_markdown_preview,omitempty"`
 	UseFormatting      *string `json:"formatting,omitempty"`
 	ShowUnreadSection  *string `json:"show_unread_section,omitempty"`
+	DeleteAt           *int64  `json:"delete_at,omitempty"`
 
 	Teams *[]UserTeamImportData `json:"teams,omitempty"`
 

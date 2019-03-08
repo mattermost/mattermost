@@ -399,15 +399,18 @@ func createUser(idx int, teamMemberships int, channelMemberships int, teamsAndCh
 		nickname = fake.Company()
 	}
 
-	// Half of users skip tutorial
+	// sysadmin, user-1 and user-2 users skip tutorial steps
+	// Other half of users also skip tutorial steps
 	tutorialStep := "999"
-	switch rand.Intn(6) {
-	case 1:
-		tutorialStep = "1"
-	case 2:
-		tutorialStep = "2"
-	case 3:
-		tutorialStep = "3"
+	if idx > 2 {
+		switch rand.Intn(6) {
+		case 1:
+			tutorialStep = "1"
+		case 2:
+			tutorialStep = "2"
+		case 3:
+			tutorialStep = "3"
+		}
 	}
 
 	teams := []app.UserTeamImportData{}

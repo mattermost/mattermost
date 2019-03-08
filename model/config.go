@@ -283,9 +283,11 @@ type ServiceSettings struct {
 	DEPRECATED_DO_NOT_USE_ImageProxyOptions           *string `json:"ImageProxyOptions" mapstructure:"ImageProxyOptions"` // This field is deprecated and must not be used.
 	EnableAPITeamDeletion                             *bool
 	ExperimentalEnableHardenedMode                    *bool
+	DisableLegacyMFA                                  *bool
 	ExperimentalStrictCSRFEnforcement                 *bool
 	EnableEmailInvitations                            *bool
 	ExperimentalLdapGroupSync                         *bool
+	DisableBotsWhenOwnerIsDeactivated                 *bool
 }
 
 func (s *ServiceSettings) SetDefaults() {
@@ -609,12 +611,20 @@ func (s *ServiceSettings) SetDefaults() {
 		s.ExperimentalEnableHardenedMode = NewBool(false)
 	}
 
+	if s.DisableLegacyMFA == nil {
+		s.DisableLegacyMFA = NewBool(false)
+	}
+
 	if s.ExperimentalLdapGroupSync == nil {
 		s.ExperimentalLdapGroupSync = NewBool(false)
 	}
 
 	if s.ExperimentalStrictCSRFEnforcement == nil {
 		s.ExperimentalStrictCSRFEnforcement = NewBool(false)
+	}
+
+	if s.DisableBotsWhenOwnerIsDeactivated == nil {
+		s.DisableBotsWhenOwnerIsDeactivated = NewBool(true)
 	}
 }
 
@@ -1384,7 +1394,7 @@ type TeamSettings struct {
 
 func (s *TeamSettings) SetDefaults() {
 
-	if s.SiteName == nil {
+	if s.SiteName == nil || *s.SiteName == "" {
 		s.SiteName = NewString(TEAM_SETTINGS_DEFAULT_SITE_NAME)
 	}
 
@@ -2383,6 +2393,10 @@ func (ts *TeamSettings) isValid() *AppError {
 
 	if !(*ts.TeammateNameDisplay == SHOW_FULLNAME || *ts.TeammateNameDisplay == SHOW_NICKNAME_FULLNAME || *ts.TeammateNameDisplay == SHOW_USERNAME) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.teammate_name_display.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(*ts.SiteName) == 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.sitename_empty.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if len(*ts.SiteName) > SITENAME_MAX_LENGTH {

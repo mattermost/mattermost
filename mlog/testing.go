@@ -35,7 +35,6 @@ func NewTestingLogger(tb testing.TB) *Logger {
 	logWriterCore := zapcore.NewCore(makeEncoder(true), logWriterSync, testingLogger.consoleLevel)
 
 	testingLogger.zap = zap.New(logWriterCore,
-		zap.AddCallerSkip(1),
 		zap.AddCaller(),
 	)
 	return testingLogger

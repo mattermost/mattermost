@@ -216,7 +216,6 @@ func (s SqlTeamStore) Update(team *model.Team) store.StoreChannel {
 		oldTeam := oldResult.(*model.Team)
 		team.CreateAt = oldTeam.CreateAt
 		team.UpdateAt = model.GetMillis()
-		team.Name = oldTeam.Name
 
 		count, err := s.GetMaster().Update(team)
 		if err != nil {
