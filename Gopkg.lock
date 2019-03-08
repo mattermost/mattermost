@@ -443,12 +443,12 @@
   revision = "60711f1a8329503b04e1c88535f419d0bb440bff"
 
 [[projects]]
-  branch = "master"
-  digest = "1:f44dea49cf8d9389516c537b7ef61bfb5836a9bf485e213673917258413f24c3"
+  branch = "mm-14140"
+  digest = "1:697ef923111e6b1a9fc09d4e799cb071469dbaccb371eb707832407cbde07413"
   name = "github.com/mattermost/gorp"
   packages = ["."]
   pruneopts = "UT"
-  revision = "520a119fe3536337cf8feeaf76afae0f5ae193f1"
+  revision = "a13faa4e058457a4e0e0c02268cd6561b55c9702"
 
 [[projects]]
   branch = "master"

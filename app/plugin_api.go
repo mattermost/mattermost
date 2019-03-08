@@ -415,6 +415,14 @@ func (api *PluginAPI) SendEphemeralPost(userId string, post *model.Post) *model.
 	return api.app.SendEphemeralPost(userId, post)
 }
 
+func (api *PluginAPI) UpdateEphemeralPost(userId string, post *model.Post) *model.Post {
+	return api.app.UpdateEphemeralPost(userId, post)
+}
+
+func (api *PluginAPI) DeleteEphemeralPost(userId string, post *model.Post) {
+	api.app.DeleteEphemeralPost(userId, post)
+}
+
 func (api *PluginAPI) DeletePost(postId string) *model.AppError {
 	_, err := api.app.DeletePost(postId, api.id)
 	return err
@@ -677,4 +685,36 @@ func (api *PluginAPI) LogError(msg string, keyValuePairs ...interface{}) {
 }
 func (api *PluginAPI) LogWarn(msg string, keyValuePairs ...interface{}) {
 	api.logger.Warn(msg, keyValuePairs...)
+}
+
+func (api *PluginAPI) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
+	// Bots created by a plugin should use the plugin's ID for the creator field, unless
+	// otherwise specified by the plugin.
+	if bot.OwnerId == "" {
+		bot.OwnerId = api.id
+	}
+
+	return api.app.CreateBot(bot)
+}
+
+func (api *PluginAPI) PatchBot(userId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError) {
+	return api.app.PatchBot(userId, botPatch)
+}
+
+func (api *PluginAPI) GetBot(userId string, includeDeleted bool) (*model.Bot, *model.AppError) {
+	return api.app.GetBot(userId, includeDeleted)
+}
+
+func (api *PluginAPI) GetBots(options *model.BotGetOptions) ([]*model.Bot, *model.AppError) {
+	bots, err := api.app.GetBots(options)
+
+	return []*model.Bot(bots), err
+}
+
+func (api *PluginAPI) UpdateBotActive(userId string, active bool) (*model.Bot, *model.AppError) {
+	return api.app.UpdateBotActive(userId, active)
+}
+
+func (api *PluginAPI) PermanentDeleteBot(userId string) *model.AppError {
+	return api.app.PermanentDeleteBot(userId)
 }

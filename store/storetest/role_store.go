@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
@@ -15,6 +16,7 @@ import (
 func TestRoleStore(t *testing.T, ss store.Store) {
 	t.Run("Save", func(t *testing.T) { testRoleStoreSave(t, ss) })
 	t.Run("Get", func(t *testing.T) { testRoleStoreGet(t, ss) })
+	t.Run("GetAll", func(t *testing.T) { testRoleStoreGetAll(t, ss) })
 	t.Run("GetByName", func(t *testing.T) { testRoleStoreGetByName(t, ss) })
 	t.Run("GetNames", func(t *testing.T) { testRoleStoreGetByNames(t, ss) })
 	t.Run("Delete", func(t *testing.T) { testRoleStoreDelete(t, ss) })
@@ -94,6 +96,47 @@ func testRoleStoreSave(t *testing.T, ss store.Store) {
 
 	res4 := <-ss.Role().Save(r4)
 	assert.NotNil(t, res4.Err)
+}
+
+func testRoleStoreGetAll(t *testing.T, ss store.Store) {
+	prev := <-ss.Role().GetAll()
+	require.Nil(t, prev.Err)
+	prevCount := len(prev.Data.([]*model.Role))
+
+	// Save a role to test with.
+	r1 := &model.Role{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Permissions: []string{
+			"invite_user",
+			"create_public_channel",
+			"add_user_to_team",
+		},
+		SchemeManaged: false,
+	}
+
+	res1 := <-ss.Role().Save(r1)
+	require.Nil(t, res1.Err)
+
+	r2 := &model.Role{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Description: model.NewId(),
+		Permissions: []string{
+			"invite_user",
+			"create_public_channel",
+			"add_user_to_team",
+		},
+		SchemeManaged: false,
+	}
+	res2 := <-ss.Role().Save(r2)
+	require.Nil(t, res2.Err)
+
+	res3 := <-ss.Role().GetAll()
+	require.Nil(t, res3.Err)
+	data := res3.Data.([]*model.Role)
+	assert.Len(t, data, prevCount+2)
 }
 
 func testRoleStoreGet(t *testing.T, ss store.Store) {

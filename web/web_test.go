@@ -5,14 +5,11 @@ package web
 
 import (
 	"fmt"
-	"io"
-	"io/ioutil"
-	"os"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/app"
+	"github.com/mattermost/mattermost-server/config"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils/fileutils"
 )
 
 var ApiClient *model.Client4
@@ -33,23 +30,14 @@ func Setup() *TestHelper {
 	store := mainHelper.GetStore()
 	store.DropAllTables()
 
-	permConfig, err := os.Open(fileutils.FindConfigFile("config.json"))
+	memoryStore, err := config.NewMemoryStore()
 	if err != nil {
-		panic(err)
-	}
-	defer permConfig.Close()
-	tempConfig, err := ioutil.TempFile("", "")
-	if err != nil {
-		panic(err)
-	}
-	_, err = io.Copy(tempConfig, permConfig)
-	tempConfig.Close()
-	if err != nil {
-		panic(err)
+		panic("failed to initialize memory store: " + err.Error())
 	}
 
-	options := []app.Option{app.Config(tempConfig.Name(), false)}
-	options = append(options, app.StoreOverride(store))
+	var options []app.Option
+	options = append(options, app.ConfigStore(memoryStore))
+	options = append(options, app.StoreOverride(mainHelper.Store))
 
 	s, err := app.NewServer(options...)
 	if err != nil {

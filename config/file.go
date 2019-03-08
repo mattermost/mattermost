@@ -23,6 +23,8 @@ var (
 )
 
 // FileStore is a config store backed by a file such as config/config.json.
+//
+// It also uses the folder containing the configuration file for storing other configuration files.
 type FileStore struct {
 	commonStore
 
@@ -67,11 +69,15 @@ func resolveConfigFilePath(path string) (string, error) {
 		return path, nil
 	}
 
-	// Search for the given relative path (or plain filename) in various directories,
-	// resolving to the corresponding absolute path if found. FindConfigFile takes into account
-	// various common search paths rooted both at the current working directory and relative
-	// to the executable.
-	if configFile := fileutils.FindConfigFile(path); configFile != "" {
+	// Search for the relative path to the file in the config folder, taking into account
+	// various common starting points.
+	if configFile := fileutils.FindFile(filepath.Join("config", path)); configFile != "" {
+		return configFile, nil
+	}
+
+	// Search for the relative path in the current working directory, also taking into account
+	// various common starting points.
+	if configFile := fileutils.FindPath(path, []string{"."}, nil); configFile != "" {
 		return configFile, nil
 	}
 
@@ -93,7 +99,7 @@ func (fs *FileStore) Set(newCfg *model.Config) (*model.Config, error) {
 			return ErrReadOnlyConfiguration
 		}
 
-		return nil
+		return fs.commonStore.validate(cfg)
 	}, fs.persist)
 }
 
@@ -128,11 +134,11 @@ func (fs *FileStore) Load() (err error) {
 	f, err = os.Open(fs.path)
 	if os.IsNotExist(err) {
 		needsSave = true
-		defaultCfg := model.Config{}
+		defaultCfg := &model.Config{}
 		defaultCfg.SetDefaults()
 
 		var defaultCfgBytes []byte
-		defaultCfgBytes, err = marshalConfig(&defaultCfg)
+		defaultCfgBytes, err = marshalConfig(defaultCfg)
 		if err != nil {
 			return errors.Wrap(err, "failed to serialize default config")
 		}
@@ -149,7 +155,60 @@ func (fs *FileStore) Load() (err error) {
 		}
 	}()
 
-	return fs.commonStore.load(f, needsSave, fs.persist)
+	return fs.commonStore.load(f, needsSave, fs.commonStore.validate, fs.persist)
+}
+
+// GetFile fetches the contents of a previously persisted configuration file.
+func (fs *FileStore) GetFile(name string) ([]byte, error) {
+	resolvedPath := filepath.Join(filepath.Dir(fs.path), name)
+
+	data, err := ioutil.ReadFile(resolvedPath)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to read file from %s", resolvedPath)
+	}
+
+	return data, nil
+}
+
+// SetFile sets or replaces the contents of a configuration file.
+func (fs *FileStore) SetFile(name string, data []byte) error {
+	resolvedPath := filepath.Join(filepath.Dir(fs.path), name)
+
+	err := ioutil.WriteFile(resolvedPath, data, 0777)
+	if err != nil {
+		return errors.Wrapf(err, "failed to write file to %s", resolvedPath)
+	}
+
+	return nil
+}
+
+// HasFile returns true if the given file was previously persisted.
+func (fs *FileStore) HasFile(name string) (bool, error) {
+	resolvedPath := filepath.Join(filepath.Dir(fs.path), name)
+
+	_, err := os.Stat(resolvedPath)
+	if err != nil && os.IsNotExist(err) {
+		return false, nil
+	} else if err != nil {
+		return false, errors.Wrap(err, "failed to check if file exists")
+	}
+
+	return true, nil
+}
+
+// RemoveFile removes a previously persisted configuration file.
+func (fs *FileStore) RemoveFile(name string) error {
+	resolvedPath := filepath.Join(filepath.Dir(fs.path), name)
+
+	err := os.Remove(resolvedPath)
+	if os.IsNotExist(err) {
+		return nil
+	}
+	if err != nil {
+		return errors.Wrap(err, "failed to remove file")
+	}
+
+	return err
 }
 
 // startWatcher starts a watcher to monitor for external config file changes.
