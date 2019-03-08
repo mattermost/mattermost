@@ -713,6 +713,7 @@ type ExperimentalSettings struct {
 	ClientSideCertCheck             *string
 	DisablePostMetadata             *bool
 	LinkMetadataTimeoutMilliseconds *int64
+	RestrictSystemAdmin             *bool
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -730,6 +731,10 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.LinkMetadataTimeoutMilliseconds == nil {
 		s.LinkMetadataTimeoutMilliseconds = NewInt64(EXPERIMENTAL_SETTINGS_DEFAULT_LINK_METADATA_TIMEOUT_MILLISECONDS)
+	}
+
+	if s.RestrictSystemAdmin == nil {
+		s.RestrictSystemAdmin = NewBool(false)
 	}
 }
 

@@ -56,6 +56,10 @@
     "translation": "No file under 'certificate' in request."
   },
   {
+    "id": "api.restricted_system_admin",
+    "translation": "This action is forbidden to a restricted system admin."
+  },
+  {
     "id": "app.submit_interactive_dialog.json_error",
     "translation": "Encountered an error encoding JSON for the interactive dialog."
   },
