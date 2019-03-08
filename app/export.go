@@ -538,7 +538,7 @@ func (a *App) ExportAllDirectChannels(writer io.Writer) *model.AppError {
 
 			// There's no import support for single member channels yet.
 			if len(*channel.Members) == 1 {
-				break
+				continue
 			}
 
 			channelLine := ImportLineFromDirectChannel(channel)
@@ -576,7 +576,7 @@ func (a *App) ExportAllDirectPosts(writer io.Writer) *model.AppError {
 
 			// There's no import support for single member channels yet.
 			if len(*post.ChannelMembers) == 1 {
-				break
+				continue
 			}
 
 			postLine := ImportLineForDirectPost(post)
