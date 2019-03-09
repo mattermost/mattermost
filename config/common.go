@@ -146,7 +146,7 @@ func (cs *commonStore) validate(cfg *model.Config) error {
 // mergeConfig merges two configs together. The receiver's values are overwritten with the patch's
 // values except when the patch's values are nil.
 func (cs *commonStore) mergeConfig(patch *model.Config) (*model.Config, error) {
-	ret, err := utils.Merge(cs, patch)
+	ret, err := utils.Merge(cs.config, patch)
 	if err != nil {
 		return nil, err
 	}
