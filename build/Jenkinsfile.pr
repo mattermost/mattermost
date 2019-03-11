@@ -63,7 +63,7 @@ pipeline {
 
                                 echo Webapp Commit: \${WEBAPP_GIT_COMMIT}
 
-                                curl -f -o ./dist.tar.gz https://releases.mattermost.com/mattermost-webapp/commit/\${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz && mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1 || make node_modules test build
+                                wget -qO ./dist.tar.gz https://releases.mattermost.com/mattermost-webapp/commit/\${WEBAPP_GIT_COMMIT}/mattermost-webapp.tar.gz && mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1 || make node_modules test build
                             """
                         }
                     }
@@ -137,7 +137,7 @@ pipeline {
                     withCredentials([string(credentialsId: 'CODECOV_TOKEN', variable: 'CODECOV')]) {
                         sh '''
                             cd /go/src/github.com/mattermost/mattermost-server
-                            curl -s https://codecov.io/bash | bash -s - -t $CODECOV || echo 'Codecov failed to upload'
+                            wget -qO- https://codecov.io/bash | bash -s - -t $CODECOV || echo 'Codecov failed to upload'
                         '''
                     }
                 }

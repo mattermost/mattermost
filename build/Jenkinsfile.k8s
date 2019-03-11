@@ -168,7 +168,7 @@ podTemplate(label: 'jenkins-slave',
             sh "cd /go/src/github.com/mattermost/mattermost-server && make build BUILD_NUMBER=${env.BUILD_NUMBER}"
         }
         container('mattermost-node') {
-            sh "cd mattermost-webapp && curl -f -o ./dist.tar.gz https://releases.mattermost.com/mattermost-webapp/commit/`git rev-parse HEAD`/mattermost-webapp.tar.gz && mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1 || make build"
+            sh "cd mattermost-webapp && wget -qO ./dist.tar.gz https://releases.mattermost.com/mattermost-webapp/commit/`git rev-parse HEAD`/mattermost-webapp.tar.gz && mkdir ./dist && tar -xvf ./dist.tar.gz -C ./dist --strip-components=1 || make build"
         }
         container('golang') {
             sh "cd /go/src/github.com/mattermost/mattermost-server && make package BUILD_NUMBER=${env.BUILD_NUMBER}"

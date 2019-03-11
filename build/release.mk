@@ -65,7 +65,7 @@ endif
 
 	@# Download prepackaged plugins
 	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
-		curl -s https://api.github.com/repos/mattermost/$$plugin_package/releases/latest | grep browser_download_url | cut -d '"' -f 4 | wget -qi - -P  $(DIST_PATH)/prepackaged_plugins/ ;\
+		wget -qO- https://api.github.com/repos/mattermost/$$plugin_package/releases/latest | awk -F\" '/browser_download_url/ { system("wget " $$4 " -P $(DIST_PATH)/prepackaged_plugins/") }';\
 	done
 
 	@# ----- PLATFORM SPECIFIC -----
