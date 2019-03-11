@@ -1375,13 +1375,14 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 			From("Posts p").
 			Join("Channels ON p.ChannelId = Channels.Id").
 			Join("Users ON p.UserId = Users.Id").
-			Join("ChannelMembers cm ON cm.ChannelId = Channels.Id").
-			Where(sq.And{sq.Gt{"p.Id": afterId},
+			Where(sq.And{
+				sq.Gt{"p.Id": afterId},
 				sq.Eq{"p.ParentId": string("")},
 				sq.Eq{"p.DeleteAt": int(0)},
 				sq.Eq{"Channels.DeleteAt": int(0)},
 				sq.Eq{"Users.DeleteAt": int(0)},
-				sq.Eq{"Channels.Type": []string{"D", "G"}}}).
+				sq.Eq{"Channels.Type": []string{"D", "G"}},
+			}).
 			GroupBy("Channels.Id, p.Id, Users.Username").
 			OrderBy("p.Id").
 			Limit(uint64(limit))
@@ -1405,7 +1406,9 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 			Select("*").
 			From("ChannelMembers cm").
 			Join("Users u ON ( u.Id = cm.UserId )").
-			Where(sq.Eq{"cm.ChannelId": channelIds})
+			Where(sq.Eq{
+				"cm.ChannelId": channelIds,
+			})
 
 		queryString, args, err = query.ToSql()
 		if err != nil {
@@ -1419,16 +1422,16 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 		}
 
 		// Populate each post with its members
+		postsMap := make(map[string]*model.DirectPostForExport)
 		for _, post := range posts {
-			var members []string
-			for _, member := range channelMembers {
-				if post.ChannelId == member.ChannelId {
-					members = append(members, member.Username)
-				}
-			}
-			post.ChannelMembers = &members
-		}
+			post.ChannelMembers = &[]string{}
+			postsMap[post.ChannelId] = post
 
+		}
+		for _, member := range channelMembers {
+			members := postsMap[member.ChannelId].ChannelMembers
+			*members = append(*members, member.Username)
+		}
 		result.Data = posts
 	})
 }
