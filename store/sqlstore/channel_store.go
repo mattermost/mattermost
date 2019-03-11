@@ -2506,15 +2506,14 @@ func (s SqlChannelStore) GetChannelMembersForExport(userId string, teamId string
 
 func (s SqlChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		var data []*model.DirectChannelForExport
+		var directChannelsForExport []*model.DirectChannelForExport
 		query := getQueryBuilder(s).
 			Select("Channels.*").
 			From("Channels").
-			LeftJoin("ChannelMembers CM ON CM.ChannelId = Channels.Id").
-			LeftJoin("Users ON Users.Id = CM.UserId").
-			Where(sq.And{sq.Gt{"Channels.Id": afterId},
-				sq.Eq{"Channels.Type": []string{"D", "G"}}}).
-			GroupBy("Channels.Id").
+			Where(sq.And{
+				sq.Gt{"Channels.Id": afterId},
+				sq.Eq{"Channels.Type": []string{"D", "G"}},
+			}).
 			OrderBy("Channels.Id").
 			Limit(uint64(limit))
 
@@ -2524,20 +2523,22 @@ func (s SqlChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId s
 			return
 		}
 
-		if _, err = s.GetReplica().Select(&data, queryString, args...); err != nil {
+		if _, err = s.GetReplica().Select(&directChannelsForExport, queryString, args...); err != nil {
 			result.Err = model.NewAppError("SqlTeamStore.GetAllDirectChannelsForExportAfter", "store.sql_channel.get_all_direct.app_error", nil, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
 		var channelIds []string
-		for _, channel := range data {
+		for _, channel := range directChannelsForExport {
 			channelIds = append(channelIds, channel.Id)
 		}
 		query = getQueryBuilder(s).
 			Select("*").
 			From("ChannelMembers cm").
 			Join("Users u ON ( u.Id = cm.UserId )").
-			Where(sq.Eq{"cm.ChannelId": channelIds})
+			Where(sq.Eq{
+				"cm.ChannelId": channelIds,
+			})
 
 		queryString, args, err = query.ToSql()
 		if err != nil {
@@ -2551,16 +2552,16 @@ func (s SqlChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId s
 		}
 
 		// Populate each channel with its members
-		for _, channel := range data {
-			var members []string
-			for _, member := range channelMembers {
-				if channel.Id == member.ChannelId {
-					members = append(members, member.Username)
-				}
-			}
-			channel.Members = &members
-		}
+		dmChannelsMap := make(map[string]*model.DirectChannelForExport)
+		for _, channel := range directChannelsForExport {
+			channel.Members = &[]string{}
+			dmChannelsMap[channel.Id] = channel
 
-		result.Data = data
+		}
+		for _, member := range channelMembers {
+			members := dmChannelsMap[member.ChannelId].Members
+			*members = append(*members, member.Username)
+		}
+		result.Data = directChannelsForExport
 	})
 }
