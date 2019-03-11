@@ -127,6 +127,11 @@ func (l *Logger) StdLog(fields ...Field) *log.Logger {
 	return zap.NewStdLog(l.With(fields...).zap.WithOptions(getStdLogOption()))
 }
 
+// StdLogAt returns *log.Logger which writes to supplied zap logger at required level.
+func (l *Logger) StdLogAt(level string, fields ...Field) (*log.Logger, error) {
+	return zap.NewStdLogAt(l.With(fields...).zap.WithOptions(getStdLogOption()), getZapLevel(level))
+}
+
 // StdLogWriter returns a writer that can be hooked up to the output of a golang standard logger
 // anything written will be interpreted as log entries accordingly
 func (l *Logger) StdLogWriter() io.Writer {
