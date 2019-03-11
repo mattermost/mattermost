@@ -1583,6 +1583,10 @@
     "translation": "Push notifications ACK is disabled in this server."
   },
   {
+    "id": "api.push_notifications_ack.forward.app_error",
+    "translation": "Failed to send the Push notifications ACK to the Push Proxy Server."
+  },
+  {
     "id": "api.reaction.delete.archived_channel.app_error",
     "translation": "You cannot remove a reaction in an archived channel."
   },

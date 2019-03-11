@@ -189,8 +189,6 @@ type Hooks interface {
 	// as response to the ACK, and the device will update the notification
 	// stored in the device.
 	//
-	// Or you can return an error that will be returned to the mobile device as response to the ACK.
-	//
 	// Minimum server version: 5.10
-	PushNotificationAck(c *Context, notificationId, deviceId string, recievedAt, ackAt int64) (*model.PushNotification, *model.AppError)
+	PushNotificationAck(c *Context, ackId string, recievedAt, ackAt int64) *model.PushNotification
 }

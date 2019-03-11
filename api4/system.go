@@ -328,24 +328,23 @@ func pushNotificationsAck(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var err *model.AppError
 	var notification *model.PushNotification
-	ackAt := model.GetMillis()
+	ack.AckAt = model.GetMillis()
+
+	if err := c.App.AckToPushProxy(ack); err != nil {
+		c.Err = model.NewAppError("pushNotificationAck", "api.push_notifications_ack.forward.app_error", nil, "", http.StatusInternalServerError)
+		return
+	}
 
 	if pluginsEnvironment := c.App.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		pluginContext := c.App.PluginContext()
 		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-			notification, err = hooks.PushNotificationAck(pluginContext, ack.Id, ack.DeviceId, ack.ReceivedAt, ackAt)
+			notification = hooks.PushNotificationAck(pluginContext, ack.Id, ack.ReceivedAt, ack.AckAt)
 			return true
 		}, plugin.PushNotificationAckId)
 	}
-	if err != nil {
-		mlog.Debug(fmt.Sprintf("Push notification %s ack: message recived in the device %s at %d, and ack received at server at %d, but failed with the error %v", ack.Id, ack.DeviceId, ack.ReceivedAt, ackAt, err))
-		c.Err = err
-		return
-	}
 
-	mlog.Debug(fmt.Sprintf("Push notification %s ack: message recived in the device %s at %d, and ack received at server at %d", ack.Id, ack.DeviceId, ack.ReceivedAt, ackAt))
+	mlog.Debug(fmt.Sprintf("Push notification with AckId %s: message recived at %d, and ack received at server at %d", ack.Id, ack.ReceivedAt, ack.AckAt))
 
 	if notification != nil {
 		w.Write([]byte(notification.ToJson()))

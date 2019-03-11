@@ -29,11 +29,12 @@ const (
 type PushNotificationAck struct {
 	Id         string `json:"id"`
 	ReceivedAt int64  `json:"received_at"`
-	DeviceId   string `json:"device_id"`
+	AckAt      int64  `json:"ack_at"`
 }
 
 type PushNotification struct {
 	Id               string `json:"id"`
+	AckId            string `json:"ack_id"`
 	Platform         string `json:"platform"`
 	ServerId         string `json:"server_id"`
 	DeviceId         string `json:"device_id"`
