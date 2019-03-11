@@ -721,12 +721,19 @@ func (us SqlUserStore) GetProfilesWithoutTeam(offset int, limit int) store.Store
 	})
 }
 
-func (us SqlUserStore) GetProfilesByUsernames(usernames []string, teamId string) store.StoreChannel {
+func (us SqlUserStore) GetProfilesByUsernames(usernames []string, teamIds []string, channelIds []string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		query := us.usersQuery
 
-		if teamId != "" {
-			query = query.Join("TeamMembers tm ON (tm.UserId = u.Id AND tm.TeamId = ?)", teamId)
+		if teamIds != nil {
+			query = query.
+				LeftJoin("TeamMembers tm ON ( tm.UserId = u.Id AND tm.DeleteAt = 0 )").
+				Where(eqsFromList("tm.TeamId", teamIds))
+		}
+		if channelIds != nil {
+			query = query.
+				LeftJoin("ChannelMembers cm ON ( cm.UserId = u.Id )").
+				Where(eqsFromList("cm.ChannelId", channelIds))
 		}
 
 		query = query.
@@ -819,7 +826,7 @@ func (us SqlUserStore) GetNewUsersForTeam(teamId string, offset, limit int) stor
 	})
 }
 
-func (us SqlUserStore) GetProfileByIds(userIds []string, allowFromCache bool) store.StoreChannel {
+func (us SqlUserStore) GetProfileByIds(userIds []string, allowFromCache bool, teamIds []string, channelIds []string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		users := []*model.User{}
 		remainingUserIds := make([]string, 0)
@@ -856,6 +863,17 @@ func (us SqlUserStore) GetProfileByIds(userIds []string, allowFromCache bool) st
 				"u.Id": remainingUserIds,
 			}).
 			OrderBy("u.Username ASC")
+
+		if teamIds != nil {
+			query = query.
+				LeftJoin("TeamMembers tm ON ( tm.UserId = u.Id AND tm.DeleteAt = 0 )").
+				Where(eqsFromList("tm.TeamId", teamIds))
+		}
+		if channelIds != nil {
+			query = query.
+				LeftJoin("ChannelMembers cm ON ( cm.UserId = u.Id )").
+				Where(eqsFromList("cm.ChannelId", channelIds))
+		}
 
 		queryString, args, err := query.ToSql()
 		if err != nil {
@@ -1083,8 +1101,13 @@ func (us SqlUserStore) Count(options model.UserCountOptions) store.StoreChannel 
 			}
 		}
 
-		if options.TeamId != "" {
-			query = query.LeftJoin("TeamMembers ON Users.Id = TeamMembers.UserId").Where("TeamMembers.TeamId = ? AND TeamMembers.DeleteAt = 0", options.TeamId)
+		if options.TeamId != "" || len(options.Teams) > 0 {
+			query = query.LeftJoin("TeamMembers AS tm ON Users.Id = TeamMembers.UserId")
+			query = query.Where(eqsFromList("tm.TeamId", append(options.Teams, options.TeamId)))
+		}
+		if len(options.Channels) > 0 {
+			query = query.LeftJoin("ChannelMembers AS cm ON Users.Id = ChannelMembers.UserId")
+			query = query.Where(eqsFromList("cm.ChannelId", append(options.Channels)))
 		}
 
 		if us.DriverName() == model.DATABASE_DRIVER_POSTGRES {

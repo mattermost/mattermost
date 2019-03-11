@@ -12,5 +12,7 @@ type UserCountOptions struct {
 	// Exclude regular users
 	ExcludeRegularUsers bool
 	// Only include users on a specific team. "" for any team.
-	TeamId string
+	TeamId   string
+	Teams    []string
+	Channels []string
 }

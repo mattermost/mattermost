@@ -779,7 +779,7 @@ func (a *App) DeletePostFiles(post *model.Post) {
 func (a *App) parseAndFetchChannelIdByNameFromInFilter(channelName, userId, teamId string, includeDeleted bool) (*model.Channel, error) {
 	if strings.HasPrefix(channelName, "@") && strings.Contains(channelName, ",") {
 		var userIds []string
-		users, err := a.GetUsersByUsernames(strings.Split(channelName[1:], ","), false)
+		users, err := a.GetUsersByUsernames(strings.Split(channelName[1:], ","), false, nil, nil)
 		if err != nil {
 			return nil, err
 		}

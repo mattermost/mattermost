@@ -259,10 +259,10 @@ type UserStore interface {
 	GetAllProfilesInChannel(channelId string, allowFromCache bool) StoreChannel
 	GetProfilesNotInChannel(teamId string, channelId string, offset int, limit int) StoreChannel
 	GetProfilesWithoutTeam(offset int, limit int) StoreChannel
-	GetProfilesByUsernames(usernames []string, teamId string) StoreChannel
+	GetProfilesByUsernames(usernames []string, teamIds []string, channelIds []string) StoreChannel
 	GetAllProfiles(options *model.UserGetOptions) StoreChannel
 	GetProfiles(options *model.UserGetOptions) StoreChannel
-	GetProfileByIds(userId []string, allowFromCache bool) StoreChannel
+	GetProfileByIds(userId []string, allowFromCache bool, teamIds []string, channelIds []string) StoreChannel
 	InvalidatProfileCacheForUser(userId string)
 	GetByEmail(email string) StoreChannel
 	GetByAuth(authData *string, authService string) StoreChannel

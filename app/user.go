@@ -596,16 +596,16 @@ func (a *App) GetUsersWithoutTeam(offset int, limit int) ([]*model.User, *model.
 	return result.Data.([]*model.User), nil
 }
 
-func (a *App) GetUsersByIds(userIds []string, asAdmin bool) ([]*model.User, *model.AppError) {
-	result := <-a.Srv.Store.User().GetProfileByIds(userIds, true)
+func (a *App) GetUsersByIds(userIds []string, asAdmin bool, teamIds []string, channelIds []string) ([]*model.User, *model.AppError) {
+	result := <-a.Srv.Store.User().GetProfileByIds(userIds, len(teamIds) == 0 && len(channelIds) == 0, teamIds, channelIds)
 	if result.Err != nil {
 		return nil, result.Err
 	}
 	return a.sanitizeProfiles(result.Data.([]*model.User), asAdmin), nil
 }
 
-func (a *App) GetUsersByUsernames(usernames []string, asAdmin bool) ([]*model.User, *model.AppError) {
-	result := <-a.Srv.Store.User().GetProfilesByUsernames(usernames, "")
+func (a *App) GetUsersByUsernames(usernames []string, asAdmin bool, teamIds []string, channelIds []string) ([]*model.User, *model.AppError) {
+	result := <-a.Srv.Store.User().GetProfilesByUsernames(usernames, teamIds, channelIds)
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -1582,9 +1582,11 @@ func (a *App) GetVerifyEmailToken(token string) (*model.Token, *model.AppError) 
 }
 
 // GetTotalUsersStats is used for the DM list total
-func (a *App) GetTotalUsersStats() (*model.UsersStats, *model.AppError) {
+func (a *App) GetTotalUsersStats(teamIds, channelIds []string) (*model.UsersStats, *model.AppError) {
 	result := <-a.Srv.Store.User().Count(model.UserCountOptions{
 		IncludeBotAccounts: true,
+		Teams:              teamIds,
+		Channels:           channelIds,
 	})
 	if result.Err != nil {
 		return nil, result.Err

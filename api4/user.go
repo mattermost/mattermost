@@ -228,7 +228,20 @@ func getDefaultProfileImage(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	users, err := c.App.GetUsersByIds([]string{c.Params.UserId}, c.IsSystemAdmin())
+	restrictions, err := c.App.GetViewUsersRestrictions(c.App.Session.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	var teams []string
+	var channels []string
+	if restrictions != nil {
+		teams = restrictions.Teams
+		channels = restrictions.Channels
+	}
+
+	users, err := c.App.GetUsersByIds([]string{c.Params.UserId}, c.IsSystemAdmin(), teams, channels)
 	if err != nil {
 		c.Err = err
 		return
@@ -257,7 +270,20 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	users, err := c.App.GetUsersByIds([]string{c.Params.UserId}, c.IsSystemAdmin())
+	restrictions, err := c.App.GetViewUsersRestrictions(c.App.Session.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	var teams []string
+	var channels []string
+	if restrictions != nil {
+		teams = restrictions.Teams
+		channels = restrictions.Channels
+	}
+
+	users, err := c.App.GetUsersByIds([]string{c.Params.UserId}, c.IsSystemAdmin(), teams, channels)
 	if err != nil {
 		c.Err = err
 		return
@@ -377,9 +403,20 @@ func getTotalUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: Filter the users by my view_members restrictions
+	restrictions, err := c.App.GetViewUsersRestrictions(c.App.Session.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
 
-	stats, err := c.App.GetTotalUsersStats()
+	var teams []string
+	var channels []string
+	if restrictions != nil {
+		teams = restrictions.Teams
+		channels = restrictions.Channels
+	}
+
+	stats, err := c.App.GetTotalUsersStats(teams, channels)
 	if err != nil {
 		c.Err = err
 		return
@@ -544,11 +581,20 @@ func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: Filter the users by my view_members restrictions
+	restrictions, err := c.App.GetViewUsersRestrictions(c.App.Session.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
 
-	// No permission check required
+	var teams []string
+	var channels []string
+	if restrictions != nil {
+		teams = restrictions.Teams
+		channels = restrictions.Channels
+	}
 
-	users, err := c.App.GetUsersByIds(userIds, c.IsSystemAdmin())
+	users, err := c.App.GetUsersByIds(userIds, c.IsSystemAdmin(), teams, channels)
 	if err != nil {
 		c.Err = err
 		return
@@ -565,11 +611,20 @@ func getUsersByNames(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: Filter the users by my view_members restrictions
+	restrictions, err := c.App.GetViewUsersRestrictions(c.App.Session.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
 
-	// No permission check required
+	var teams []string
+	var channels []string
+	if restrictions != nil {
+		teams = restrictions.Teams
+		channels = restrictions.Channels
+	}
 
-	users, err := c.App.GetUsersByUsernames(usernames, c.IsSystemAdmin())
+	users, err := c.App.GetUsersByUsernames(usernames, c.IsSystemAdmin(), teams, channels)
 	if err != nil {
 		c.Err = err
 		return

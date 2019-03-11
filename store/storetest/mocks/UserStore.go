@@ -338,13 +338,13 @@ func (_m *UserStore) GetNewUsersForTeam(teamId string, offset int, limit int) st
 	return r0
 }
 
-// GetProfileByIds provides a mock function with given fields: userId, allowFromCache
-func (_m *UserStore) GetProfileByIds(userId []string, allowFromCache bool) store.StoreChannel {
-	ret := _m.Called(userId, allowFromCache)
+// GetProfileByIds provides a mock function with given fields: userId, allowFromCache, teamIds, channelIds
+func (_m *UserStore) GetProfileByIds(userId []string, allowFromCache bool, teamIds []string, channelIds []string) store.StoreChannel {
+	ret := _m.Called(userId, allowFromCache, teamIds, channelIds)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func([]string, bool) store.StoreChannel); ok {
-		r0 = rf(userId, allowFromCache)
+	if rf, ok := ret.Get(0).(func([]string, bool, []string, []string) store.StoreChannel); ok {
+		r0 = rf(userId, allowFromCache, teamIds, channelIds)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)
@@ -370,13 +370,13 @@ func (_m *UserStore) GetProfiles(options *model.UserGetOptions) store.StoreChann
 	return r0
 }
 
-// GetProfilesByUsernames provides a mock function with given fields: usernames, teamId
-func (_m *UserStore) GetProfilesByUsernames(usernames []string, teamId string) store.StoreChannel {
-	ret := _m.Called(usernames, teamId)
+// GetProfilesByUsernames provides a mock function with given fields: usernames, teamIds, channelIds
+func (_m *UserStore) GetProfilesByUsernames(usernames []string, teamIds []string, channelIds []string) store.StoreChannel {
+	ret := _m.Called(usernames, teamIds, channelIds)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func([]string, string) store.StoreChannel); ok {
-		r0 = rf(usernames, teamId)
+	if rf, ok := ret.Get(0).(func([]string, []string, []string) store.StoreChannel); ok {
+		r0 = rf(usernames, teamIds, channelIds)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)
