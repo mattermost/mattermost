@@ -1383,7 +1383,6 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 				sq.Eq{"Users.DeleteAt": int(0)},
 				sq.Eq{"Channels.Type": []string{"D", "G"}},
 			}).
-			GroupBy("Channels.Id, p.Id, Users.Username").
 			OrderBy("p.Id").
 			Limit(uint64(limit))
 
