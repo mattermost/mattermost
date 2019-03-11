@@ -217,7 +217,6 @@ func TestExportAllUsers(t *testing.T) {
 
 func TestExportDMChannel(t *testing.T) {
 	th1 := Setup(t).InitBasic()
-	defer th1.TearDown()
 
 	// DM Channel
 	th1.CreateDmChannel(th1.BasicUser2)
@@ -229,6 +228,8 @@ func TestExportDMChannel(t *testing.T) {
 	result := <-th1.App.Srv.Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
 	channels := result.Data.([]*model.DirectChannelForExport)
 	assert.Equal(t, 1, len(channels))
+
+	th1.TearDown()
 
 	th2 := Setup(t)
 	defer th2.TearDown()
@@ -284,7 +285,6 @@ func TestExportDMChannelToSelf(t *testing.T) {
 
 func TestExportGMChannel(t *testing.T) {
 	th1 := Setup(t).InitBasic()
-	defer th1.TearDown()
 
 	user1 := th1.CreateUser()
 	th1.LinkUserToTeam(user1, th1.BasicTeam)
@@ -302,6 +302,8 @@ func TestExportGMChannel(t *testing.T) {
 	channels := result.Data.([]*model.DirectChannelForExport)
 	assert.Equal(t, 1, len(channels))
 
+	th1.TearDown()
+
 	th2 := Setup(t)
 	defer th2.TearDown()
 
@@ -312,7 +314,6 @@ func TestExportGMChannel(t *testing.T) {
 
 func TestExportGMandDMChannels(t *testing.T) {
 	th1 := Setup(t).InitBasic()
-	defer th1.TearDown()
 
 	// DM Channel
 	th1.CreateDmChannel(th1.BasicUser2)
@@ -332,6 +333,8 @@ func TestExportGMandDMChannels(t *testing.T) {
 	result := <-th1.App.Srv.Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
 	channels := result.Data.([]*model.DirectChannelForExport)
 	assert.Equal(t, 2, len(channels))
+
+	th1.TearDown()
 
 	th2 := Setup(t)
 	defer th2.TearDown()
@@ -355,7 +358,6 @@ func TestExportGMandDMChannels(t *testing.T) {
 
 func TestExportDMandGMPost(t *testing.T) {
 	th1 := Setup(t).InitBasic()
-	defer th1.TearDown()
 
 	// DM Channel
 	dmChannel := th1.CreateDmChannel(th1.BasicUser2)
@@ -379,6 +381,8 @@ func TestExportDMandGMPost(t *testing.T) {
 	err := th1.App.BulkExport(&b, "somefile", "somePath", "someDir")
 	require.Nil(t, err)
 
+	th1.TearDown()
+
 	th2 := Setup(t)
 	defer th2.TearDown()
 
@@ -398,7 +402,6 @@ func TestExportDMandGMPost(t *testing.T) {
 
 func TestExportDMPostWithSelf(t *testing.T) {
 	th1 := Setup(t).InitBasic()
-	defer th1.TearDown()
 
 	// DM Channel with self (me channel)
 	dmChannel := th1.CreateDmChannel(th1.BasicUser)
@@ -412,6 +415,8 @@ func TestExportDMPostWithSelf(t *testing.T) {
 	result := <-th1.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
 	posts := result.Data.([]*model.DirectPostForExport)
 	assert.Equal(t, 1, len(posts))
+
+	th1.TearDown()
 
 	th2 := Setup(t)
 	defer th2.TearDown()
