@@ -353,7 +353,7 @@ func TestExportGMandDMChannels(t *testing.T) {
 	assert.ElementsMatch(t, []string{th1.BasicUser.Username, th1.BasicUser2.Username}, *channels[1].Members)
 }
 
-func TestDMandGMPostExport(t *testing.T) {
+func TestExportDMandGMPost(t *testing.T) {
 	th1 := Setup(t).InitBasic()
 	defer th1.TearDown()
 

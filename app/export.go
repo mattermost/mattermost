@@ -518,13 +518,11 @@ func (a *App) ExportAllDirectChannels(writer io.Writer) *model.AppError {
 	afterId := strings.Repeat("0", 26)
 	for {
 		result := <-a.Srv.Store.Channel().GetAllDirectChannelsForExportAfter(1000, afterId)
-
 		if result.Err != nil {
 			return result.Err
 		}
 
 		channels := result.Data.([]*model.DirectChannelForExport)
-
 		if len(channels) == 0 {
 			break
 		}
@@ -557,13 +555,11 @@ func (a *App) ExportAllDirectPosts(writer io.Writer) *model.AppError {
 	afterId := strings.Repeat("0", 26)
 	for {
 		result := <-a.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, afterId)
-
 		if result.Err != nil {
 			return result.Err
 		}
 
 		posts := result.Data.([]*model.DirectPostForExport)
-
 		if len(posts) == 0 {
 			break
 		}
@@ -582,16 +578,14 @@ func (a *App) ExportAllDirectPosts(writer io.Writer) *model.AppError {
 				continue
 			}
 
-			postLine := ImportLineForDirectPost(post)
-
 			// Do the Replies.
 			replies, err := a.buildPostReplies(post.Id)
 			if err != nil {
 				return err
 			}
 
+			postLine := ImportLineForDirectPost(post)
 			postLine.DirectPost.Replies = replies
-
 			if err := a.ExportWriteLine(writer, postLine); err != nil {
 				return err
 			}
