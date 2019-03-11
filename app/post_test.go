@@ -310,7 +310,7 @@ func TestUpdatePostTimeLimit(t *testing.T) {
 }
 
 func TestUpdatePostInArchivedChannel(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 
 	archivedChannel := th.CreateChannel(th.BasicTeam)
@@ -602,7 +602,7 @@ func TestDeletePostWithFileAttachments(t *testing.T) {
 }
 
 func TestDeletePostInArchivedChannel(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 
 	archivedChannel := th.CreateChannel(th.BasicTeam)
@@ -679,7 +679,7 @@ func TestPatchPost(t *testing.T) {
 }
 
 func TestPatchPostInArchivedChannel(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup().InitBasic()
 	defer th.TearDown()
 
 	archivedChannel := th.CreateChannel(th.BasicTeam)
