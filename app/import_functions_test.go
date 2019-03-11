@@ -1443,7 +1443,7 @@ func TestImportUserDefaultNotifyProps(t *testing.T) {
 	assert.Equal(t, "false", val)
 
 	// Check all the other notify props are set to their default values.
-	comparisonUser := model.User{}
+	comparisonUser := model.User{Username: user.Username}
 	comparisonUser.SetDefaultNotifications()
 
 	for key, expectedValue := range comparisonUser.NotifyProps {
