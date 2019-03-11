@@ -446,6 +446,8 @@ func (a *App) ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 				user.AddNotifyProp(model.MENTION_KEYS_NOTIFY_PROP, *data.NotifyProps.MentionKeys)
 				hasNotifyPropsChanged = true
 			}
+		} else {
+			user.UpdateMentionKeysFromUsername("")
 		}
 	}
 
