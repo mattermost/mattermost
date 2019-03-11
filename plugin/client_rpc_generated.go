@@ -671,6 +671,33 @@ func (s *apiRPCServer) SavePluginConfig(args *Z_SavePluginConfigArgs, returns *Z
 	return nil
 }
 
+type Z_GetLicenseArgs struct {
+}
+
+type Z_GetLicenseReturns struct {
+	A *model.License
+}
+
+func (g *apiRPCClient) GetLicense() *model.License {
+	_args := &Z_GetLicenseArgs{}
+	_returns := &Z_GetLicenseReturns{}
+	if err := g.client.Call("Plugin.GetLicense", _args, _returns); err != nil {
+		log.Printf("RPC call to GetLicense API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) GetLicense(args *Z_GetLicenseArgs, returns *Z_GetLicenseReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetLicense() *model.License
+	}); ok {
+		returns.A = hook.GetLicense()
+	} else {
+		return encodableError(fmt.Errorf("API GetLicense called but not implemented."))
+	}
+	return nil
+}
+
 type Z_GetServerVersionArgs struct {
 }
 
@@ -694,6 +721,61 @@ func (s *apiRPCServer) GetServerVersion(args *Z_GetServerVersionArgs, returns *Z
 		returns.A = hook.GetServerVersion()
 	} else {
 		return encodableError(fmt.Errorf("API GetServerVersion called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetSystemInstallDateArgs struct {
+}
+
+type Z_GetSystemInstallDateReturns struct {
+	A int64
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetSystemInstallDate() (int64, *model.AppError) {
+	_args := &Z_GetSystemInstallDateArgs{}
+	_returns := &Z_GetSystemInstallDateReturns{}
+	if err := g.client.Call("Plugin.GetSystemInstallDate", _args, _returns); err != nil {
+		log.Printf("RPC call to GetSystemInstallDate API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetSystemInstallDate(args *Z_GetSystemInstallDateArgs, returns *Z_GetSystemInstallDateReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetSystemInstallDate() (int64, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetSystemInstallDate()
+	} else {
+		return encodableError(fmt.Errorf("API GetSystemInstallDate called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetDiagnosticIdArgs struct {
+}
+
+type Z_GetDiagnosticIdReturns struct {
+	A string
+}
+
+func (g *apiRPCClient) GetDiagnosticId() string {
+	_args := &Z_GetDiagnosticIdArgs{}
+	_returns := &Z_GetDiagnosticIdReturns{}
+	if err := g.client.Call("Plugin.GetDiagnosticId", _args, _returns); err != nil {
+		log.Printf("RPC call to GetDiagnosticId API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) GetDiagnosticId(args *Z_GetDiagnosticIdArgs, returns *Z_GetDiagnosticIdReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetDiagnosticId() string
+	}); ok {
+		returns.A = hook.GetDiagnosticId()
+	} else {
+		return encodableError(fmt.Errorf("API GetDiagnosticId called but not implemented."))
 	}
 	return nil
 }
