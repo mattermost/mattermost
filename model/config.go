@@ -267,6 +267,7 @@ type ServiceSettings struct {
 	PostEditTimeLimit                                 *int
 	TimeBetweenUserTypingUpdatesMilliseconds          *int64
 	EnablePostSearch                                  *bool
+	MinimumHashtagLength                              *int
 	EnableUserTypingMessages                          *bool
 	EnableChannelViewedMessages                       *bool
 	EnableUserStatuses                                *bool
@@ -434,6 +435,10 @@ func (s *ServiceSettings) SetDefaults() {
 
 	if s.EnablePostSearch == nil {
 		s.EnablePostSearch = NewBool(true)
+	}
+
+	if s.MinimumHashtagLength == nil {
+		s.MinimumHashtagLength = NewInt(3)
 	}
 
 	if s.EnableUserTypingMessages == nil {
