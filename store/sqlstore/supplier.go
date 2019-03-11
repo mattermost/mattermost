@@ -1052,6 +1052,14 @@ func (ss *SqlSupplier) DropAllTables() {
 	ss.master.TruncateTables()
 }
 
+func (ss *SqlSupplier) getQueryBuilder() sq.StatementBuilderType {
+	builder := sq.StatementBuilder.PlaceholderFormat(sq.Question)
+	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		builder = builder.PlaceholderFormat(sq.Dollar)
+	}
+	return builder
+}
+
 type mattermConverter struct{}
 
 func (me mattermConverter) ToDb(val interface{}) (interface{}, error) {
@@ -1148,12 +1156,4 @@ func convertMySQLFullTextColumnsToPostgres(columnNames string) string {
 	}
 
 	return concatenatedColumnNames
-}
-
-func getQueryBuilder(s SqlStore) sq.StatementBuilderType {
-	builder := sq.StatementBuilder.PlaceholderFormat(sq.Question)
-	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		builder = builder.PlaceholderFormat(sq.Dollar)
-	}
-	return builder
 }

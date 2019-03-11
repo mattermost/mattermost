@@ -67,7 +67,7 @@ func NewSqlUserStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) st
 		metrics:  metrics,
 	}
 
-	us.usersQuery = getQueryBuilder(us).
+	us.usersQuery = us.getQueryBuilder().
 		Select("u.*", "b.UserId IS NOT NULL AS IsBot").
 		From("Users u").
 		LeftJoin("Bots b ON ( b.UserId = u.Id )")

@@ -2507,7 +2507,7 @@ func (s SqlChannelStore) GetChannelMembersForExport(userId string, teamId string
 func (s SqlChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var directChannelsForExport []*model.DirectChannelForExport
-		query := getQueryBuilder(s).
+		query := s.getQueryBuilder().
 			Select("Channels.*").
 			From("Channels").
 			Where(sq.And{
@@ -2532,7 +2532,7 @@ func (s SqlChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId s
 		for _, channel := range directChannelsForExport {
 			channelIds = append(channelIds, channel.Id)
 		}
-		query = getQueryBuilder(s).
+		query = s.getQueryBuilder().
 			Select("*").
 			From("ChannelMembers cm").
 			Join("Users u ON ( u.Id = cm.UserId )").
