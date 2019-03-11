@@ -344,7 +344,7 @@ func pushNotificationsAck(c *Context, w http.ResponseWriter, r *http.Request) {
 		}, plugin.PushNotificationAckId)
 	}
 
-	mlog.Debug(fmt.Sprintf("Push notification with AckId %s: message recived at %d, and ack received at server at %d", ack.Id, ack.ReceivedAt, ack.AckAt))
+	mlog.Debug("Push notification ack received", mlog.String("ackId", ack.Id), mlog.Int64("receivedAt", ack.ReceivedAt), mlog.Int64("ackAt", ack.AckAt))
 
 	if notification != nil {
 		w.Write([]byte(notification.ToJson()))

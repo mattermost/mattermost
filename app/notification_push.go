@@ -110,14 +110,14 @@ func (a *App) sendPushNotificationSync(id string, post *model.Post, user *model.
 		tmpMessage.SetDeviceIdAndPlatform(session.DeviceId)
 		tmpMessage.AckId = model.NewId()
 
-		mlog.Debug(fmt.Sprintf(
-			"Sending push notification (%s, with AckId %s) to device %v for user %v with msg of '%v'",
-			tmpMessage.Id,
-			tmpMessage.AckId,
-			tmpMessage.DeviceId,
-			user.Id,
-			msg.Message,
-		), mlog.String("user_id", user.Id))
+		mlog.Debug(
+			"Sending push notification",
+			mlog.String("notificationId", tmpMessage.Id),
+			mlog.String("ackId", tmpMessage.AckId),
+			mlog.String("deviceId", tmpMessage.DeviceId),
+			mlog.String("userId", user.Id),
+			mlog.String("message", msg.Message),
+		)
 
 		err := a.sendToPushProxy(*tmpMessage, session)
 		if err != nil {
@@ -157,7 +157,7 @@ func (a *App) sendPushNotification(notification *postNotification, user *model.U
 			return true
 		}, plugin.PushNotificationEnqueuedId)
 	}
-	mlog.Debug(fmt.Sprintf("Push notification %s enqueued", notificationId))
+	mlog.Debug("Push notification enqueued", mlog.String("notificationId", notificationId))
 
 	c := a.Srv.PushNotificationsHub.GetGoChannelFromUserId(user.Id)
 	c <- PushNotification{
@@ -323,7 +323,7 @@ func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session
 				return true
 			}, plugin.PushNotificationHasFailedId)
 		}
-		mlog.Debug(fmt.Sprintf("Push notification %s (with AckId %s) has failed (device: %s)", notification.Id, notification.AckId, notification.DeviceId))
+		mlog.Debug("Failed to send Push notification", mlog.String("notificationId", notification.Id), mlog.String("ackId", notification.AckId), mlog.String("deviceId", notification.DeviceId))
 	}
 
 	msg.ServerId = a.DiagnosticId()
@@ -337,7 +337,7 @@ func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session
 			return true
 		}, plugin.PushNotificationWillBeSentId)
 	}
-	mlog.Debug(fmt.Sprintf("Push notification %s (with AckId %s) will be sent to device %s", updatedMsg.Id, updatedMsg.AckId, updatedMsg.DeviceId))
+	mlog.Debug("Push notification will be sent", mlog.String("notificationId", updatedMsg.Id), mlog.String("ackId", updatedMsg.AckId), mlog.String("deviceId", updatedMsg.DeviceId))
 
 	if updatedMsg == nil {
 		return nil
@@ -377,7 +377,7 @@ func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session
 				return true
 			}, plugin.PushNotificationHasFailedId)
 		}
-		mlog.Debug(fmt.Sprintf("Push notification %s (with AckId %s) has failed (device: %s)", updatedMsg.Id, updatedMsg.AckId, updatedMsg.DeviceId))
+		mlog.Debug("Failed to send Push notification", mlog.String("notificationId", updatedMsg.Id), mlog.String("ackId", updatedMsg.AckId), mlog.String("deviceId", updatedMsg.DeviceId))
 		return err
 	}
 
@@ -388,7 +388,7 @@ func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session
 			return true
 		}, plugin.PushNotificationHasBeenSentId)
 	}
-	mlog.Debug(fmt.Sprintf("Push notification %s (with AckId %s) has been sent to device %s", updatedMsg.Id, updatedMsg.AckId, updatedMsg.DeviceId))
+	mlog.Debug("Push notification has been sent", mlog.String("notificationId", updatedMsg.Id), mlog.String("ackId", updatedMsg.AckId), mlog.String("deviceId", updatedMsg.DeviceId))
 	return nil
 }
 
