@@ -29,6 +29,12 @@ func (s *RedisSupplier) RoleGet(ctx context.Context, roleId string, hints ...Lay
 	return s.Next().RoleGet(ctx, roleId, hints...)
 }
 
+func (s *RedisSupplier) RoleGetAll(ctx context.Context, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	// Roles are cached by name, as that is most commonly how they are looked up.
+	// This means that no caching is supported on roles being listed.
+	return s.Next().RoleGetAll(ctx, hints...)
+}
+
 func (s *RedisSupplier) RoleGetByName(ctx context.Context, name string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
 	key := buildRedisKeyForRoleName(name)
 

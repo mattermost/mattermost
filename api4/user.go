@@ -1446,7 +1446,7 @@ func createUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(c.App.Session, c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUserOrBot(c.App.Session, c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
@@ -1515,7 +1515,7 @@ func getUserAccessTokensForUser(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(c.App.Session, c.Params.UserId) {
+	if !c.App.SessionHasPermissionToUserOrBot(c.App.Session, c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
@@ -1546,7 +1546,7 @@ func getUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(c.App.Session, accessToken.UserId) {
+	if !c.App.SessionHasPermissionToUserOrBot(c.App.Session, accessToken.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
@@ -1575,7 +1575,7 @@ func revokeUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(c.App.Session, accessToken.UserId) {
+	if !c.App.SessionHasPermissionToUserOrBot(c.App.Session, accessToken.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
@@ -1611,7 +1611,7 @@ func disableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(c.App.Session, accessToken.UserId) {
+	if !c.App.SessionHasPermissionToUserOrBot(c.App.Session, accessToken.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}
@@ -1647,7 +1647,7 @@ func enableUserAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(c.App.Session, accessToken.UserId) {
+	if !c.App.SessionHasPermissionToUserOrBot(c.App.Session, accessToken.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
 		return
 	}

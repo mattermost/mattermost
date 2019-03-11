@@ -122,6 +122,7 @@ func pluginActivated(pluginStates map[string]*model.PluginState, pluginId string
 
 func (a *App) trackActivity() {
 	var userCount int64
+	var botAccountsCount int64
 	var activeUsersDailyCount int64
 	var activeUsersMonthlyCount int64
 	var inactiveUserCount int64
@@ -147,8 +148,17 @@ func (a *App) trackActivity() {
 		activeUsersMonthlyCount = r.Data.(int64)
 	}
 
-	if ucr := <-a.Srv.Store.User().GetTotalUsersCount(); ucr.Err == nil {
+	if ucr := <-a.Srv.Store.User().Count(model.UserCountOptions{
+		IncludeDeleted: true,
+	}); ucr.Err == nil {
 		userCount = ucr.Data.(int64)
+	}
+
+	if bc := <-a.Srv.Store.User().Count(model.UserCountOptions{
+		IncludeBotAccounts:  true,
+		ExcludeRegularUsers: true,
+	}); bc.Err == nil {
+		botAccountsCount = bc.Data.(int64)
 	}
 
 	if iucr := <-a.Srv.Store.User().AnalyticsGetInactiveUsersCount(); iucr.Err == nil {
@@ -197,6 +207,7 @@ func (a *App) trackActivity() {
 
 	a.SendDiagnostic(TRACK_ACTIVITY, map[string]interface{}{
 		"registered_users":             userCount,
+		"bot_accounts":                 botAccountsCount,
 		"active_users_daily":           activeUsersDailyCount,
 		"active_users_monthly":         activeUsersMonthlyCount,
 		"registered_deactivated_users": inactiveUserCount,
@@ -267,6 +278,7 @@ func (a *App) trackConfig() {
 		"time_between_user_typing_updates_milliseconds":           *cfg.ServiceSettings.TimeBetweenUserTypingUpdatesMilliseconds,
 		"cluster_log_timeout_milliseconds":                        *cfg.ServiceSettings.ClusterLogTimeoutMilliseconds,
 		"enable_post_search":                                      *cfg.ServiceSettings.EnablePostSearch,
+		"minimum_hashtag_length":                                  *cfg.ServiceSettings.MinimumHashtagLength,
 		"enable_user_statuses":                                    *cfg.ServiceSettings.EnableUserStatuses,
 		"close_unused_direct_messages":                            *cfg.ServiceSettings.CloseUnusedDirectMessages,
 		"enable_preview_features":                                 *cfg.ServiceSettings.EnablePreviewFeatures,
@@ -281,6 +293,7 @@ func (a *App) trackConfig() {
 		"enable_email_invitations":                                *cfg.ServiceSettings.EnableEmailInvitations,
 		"experimental_channel_organization":                       *cfg.ServiceSettings.ExperimentalChannelOrganization,
 		"experimental_ldap_group_sync":                            *cfg.ServiceSettings.ExperimentalLdapGroupSync,
+		"disable_bots_when_owner_is_deactivated":                  *cfg.ServiceSettings.DisableBotsWhenOwnerIsDeactivated,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_TEAM, map[string]interface{}{

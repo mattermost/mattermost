@@ -551,6 +551,13 @@ func (a *App) LoginByOAuth(service string, userData io.Reader, teamId string) (*
 			return nil, err
 		}
 	} else {
+		// OAuth doesn't run through CheckUserPreflightAuthenticationCriteria, so prevent bot login
+		// here manually. Technically, the auth data above will fail to match a bot in the first
+		// place, but explicit is always better.
+		if user.IsBot {
+			return nil, model.NewAppError("loginByOAuth", "api.user.login_by_oauth.bot_login_forbidden.app_error", nil, "", http.StatusForbidden)
+		}
+
 		if err = a.UpdateOAuthUserAttrs(bytes.NewReader(buf.Bytes()), user, provider, service); err != nil {
 			return nil, err
 		}

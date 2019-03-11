@@ -267,6 +267,7 @@ type ServiceSettings struct {
 	PostEditTimeLimit                                 *int
 	TimeBetweenUserTypingUpdatesMilliseconds          *int64
 	EnablePostSearch                                  *bool
+	MinimumHashtagLength                              *int
 	EnableUserTypingMessages                          *bool
 	EnableChannelViewedMessages                       *bool
 	EnableUserStatuses                                *bool
@@ -287,6 +288,7 @@ type ServiceSettings struct {
 	ExperimentalStrictCSRFEnforcement                 *bool
 	EnableEmailInvitations                            *bool
 	ExperimentalLdapGroupSync                         *bool
+	DisableBotsWhenOwnerIsDeactivated                 *bool
 }
 
 func (s *ServiceSettings) SetDefaults() {
@@ -433,6 +435,10 @@ func (s *ServiceSettings) SetDefaults() {
 
 	if s.EnablePostSearch == nil {
 		s.EnablePostSearch = NewBool(true)
+	}
+
+	if s.MinimumHashtagLength == nil {
+		s.MinimumHashtagLength = NewInt(3)
 	}
 
 	if s.EnableUserTypingMessages == nil {
@@ -621,6 +627,10 @@ func (s *ServiceSettings) SetDefaults() {
 	if s.ExperimentalStrictCSRFEnforcement == nil {
 		s.ExperimentalStrictCSRFEnforcement = NewBool(false)
 	}
+
+	if s.DisableBotsWhenOwnerIsDeactivated == nil {
+		s.DisableBotsWhenOwnerIsDeactivated = NewBool(true)
+	}
 }
 
 type ClusterSettings struct {
@@ -708,6 +718,7 @@ type ExperimentalSettings struct {
 	ClientSideCertCheck             *string
 	DisablePostMetadata             *bool
 	LinkMetadataTimeoutMilliseconds *int64
+	RestrictSystemAdmin             *bool
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -725,6 +736,10 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.LinkMetadataTimeoutMilliseconds == nil {
 		s.LinkMetadataTimeoutMilliseconds = NewInt64(EXPERIMENTAL_SETTINGS_DEFAULT_LINK_METADATA_TIMEOUT_MILLISECONDS)
+	}
+
+	if s.RestrictSystemAdmin == nil {
+		s.RestrictSystemAdmin = NewBool(false)
 	}
 }
 
@@ -1389,7 +1404,7 @@ type TeamSettings struct {
 
 func (s *TeamSettings) SetDefaults() {
 
-	if s.SiteName == nil {
+	if s.SiteName == nil || *s.SiteName == "" {
 		s.SiteName = NewString(TEAM_SETTINGS_DEFAULT_SITE_NAME)
 	}
 
@@ -2388,6 +2403,10 @@ func (ts *TeamSettings) isValid() *AppError {
 
 	if !(*ts.TeammateNameDisplay == SHOW_FULLNAME || *ts.TeammateNameDisplay == SHOW_NICKNAME_FULLNAME || *ts.TeammateNameDisplay == SHOW_USERNAME) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.teammate_name_display.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(*ts.SiteName) == 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.sitename_empty.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if len(*ts.SiteName) > SITENAME_MAX_LENGTH {

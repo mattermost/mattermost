@@ -30,6 +30,12 @@ func (s *LocalCacheSupplier) RoleGet(ctx context.Context, roleId string, hints .
 	return s.Next().RoleGet(ctx, roleId, hints...)
 }
 
+func (s *LocalCacheSupplier) RoleGetAll(ctx context.Context, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	// Roles are cached by name, as that is most commonly how they are looked up.
+	// This means that no caching is supported on roles being listed.
+	return s.Next().RoleGetAll(ctx, hints...)
+}
+
 func (s *LocalCacheSupplier) RoleGetByName(ctx context.Context, name string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
 	if result := s.doStandardReadCache(ctx, s.roleCache, name, hints...); result != nil {
 		return result
