@@ -17,7 +17,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
@@ -371,14 +370,6 @@ var corsAllowedMethods = []string{
 	"DELETE",
 }
 
-type RecoveryLogger struct {
-}
-
-func (rl *RecoveryLogger) Println(i ...interface{}) {
-	mlog.Error("Please check the std error output for the stack trace")
-	mlog.Error(fmt.Sprint(i...))
-}
-
 // golang.org/x/crypto/acme/autocert/autocert.go
 func handleHTTPRedirect(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" && r.Method != "HEAD" {
@@ -436,11 +427,17 @@ func (s *Server) Start() error {
 		handler = rateLimiter.RateLimitHandler(handler)
 	}
 
+	// Creating a logger for logging errors from http.Server at error level
+	errStdLog, err := s.Log.StdLogAt(mlog.LevelError, mlog.String("source", "httpserver"))
+	if err != nil {
+		return err
+	}
+
 	s.Server = &http.Server{
-		Handler:      handlers.RecoveryHandler(handlers.RecoveryLogger(&RecoveryLogger{}), handlers.PrintRecoveryStack(true))(handler),
+		Handler:      handler,
 		ReadTimeout:  time.Duration(*s.Config().ServiceSettings.ReadTimeout) * time.Second,
 		WriteTimeout: time.Duration(*s.Config().ServiceSettings.WriteTimeout) * time.Second,
-		ErrorLog:     s.Log.StdLog(mlog.String("source", "httpserver")),
+		ErrorLog:     errStdLog,
 	}
 
 	addr := *s.Config().ServiceSettings.ListenAddress
