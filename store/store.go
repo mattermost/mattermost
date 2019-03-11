@@ -191,6 +191,7 @@ type ChannelStore interface {
 	GetAllDirectChannelsForExportAfter(limit int, afterId string) StoreChannel
 	GetChannelMembersForExport(userId string, teamId string) StoreChannel
 	RemoveAllDeactivatedMembers(channelId string) StoreChannel
+	GetChannelsBatchForIndexing(startTime, endTime int64, limit int) StoreChannel
 }
 
 type ChannelMemberHistoryStore interface {
@@ -288,6 +289,7 @@ type UserStore interface {
 	ClearAllCustomRoleAssignments() StoreChannel
 	InferSystemInstallDate() StoreChannel
 	GetAllAfter(limit int, afterId string) StoreChannel
+	GetUsersBatchForIndexing(startTime, endTime int64, limit int) StoreChannel
 	Count(options model.UserCountOptions) StoreChannel
 }
 
