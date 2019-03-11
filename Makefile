@@ -53,7 +53,7 @@ GO_LINKER_FLAGS ?= -ldflags \
 				    -X 'github.com/mattermost/mattermost-server/model.BuildDate=$(BUILD_DATE)'\
 				    -X github.com/mattermost/mattermost-server/model.BuildHash=$(BUILD_HASH)\
 				    -X github.com/mattermost/mattermost-server/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)\
-				    -X github.com/mattermost/mattermost-server/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)"
+				    -X github.com/mattermost/mattermost-server/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY) $(LDFLAGS)"
 
 # GOOS/GOARCH of the build host, used to determine whether we're cross-compiling or not
 BUILDER_GOOS_GOARCH="$(shell $(GO) env GOOS)_$(shell $(GO) env GOARCH)"
