@@ -308,6 +308,19 @@ func TestUpdatePostTimeLimit(t *testing.T) {
 	})
 }
 
+func TestUpdatePostInArchivedChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	archivedChannel := th.CreateChannel(th.BasicTeam)
+	post := th.CreatePost(archivedChannel)
+	th.App.DeleteChannel(archivedChannel, "")
+
+	_, err := th.App.UpdatePost(post, true)
+	require.NotNil(t, err)
+	require.Equal(t, "api.post.update_post.can_not_update_post_in_deleted.error", err.Id)
+}
+
 func TestPostReplyToPostWhereRootPosterLeftChannel(t *testing.T) {
 	// This test ensures that when replying to a root post made by a user who has since left the channel, the reply
 	// post completes successfully. This is a regression test for PLT-6523.
@@ -639,6 +652,19 @@ func TestDeletePostWithFileAttachments(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
+func TestDeletePostInArchivedChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	archivedChannel := th.CreateChannel(th.BasicTeam)
+	post := th.CreatePost(archivedChannel)
+	th.App.DeleteChannel(archivedChannel, "")
+
+	_, err := th.App.DeletePost(post.Id, "")
+	require.NotNil(t, err)
+	require.Equal(t, "api.post.delete_post.can_not_delete_post_in_deleted.error", err.Id)
+}
+
 func TestCreatePost(t *testing.T) {
 	t.Run("call PreparePostForClient before returning", func(t *testing.T) {
 		th := Setup(t).InitBasic()
@@ -701,6 +727,19 @@ func TestPatchPost(t *testing.T) {
 		require.Nil(t, err)
 		assert.Equal(t, "![image]("+proxiedImageURL+")", rpost.Message)
 	})
+}
+
+func TestPatchPostInArchivedChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	archivedChannel := th.CreateChannel(th.BasicTeam)
+	post := th.CreatePost(archivedChannel)
+	th.App.DeleteChannel(archivedChannel, "")
+
+	_, err := th.App.PatchPost(post.Id, &model.PostPatch{IsPinned: model.NewBool(true)})
+	require.NotNil(t, err)
+	require.Equal(t, "api.post.patch_post.can_not_update_post_in_deleted.error", err.Id)
 }
 
 func TestUpdatePost(t *testing.T) {
