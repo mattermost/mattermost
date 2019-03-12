@@ -267,6 +267,7 @@ type ServiceSettings struct {
 	PostEditTimeLimit                                 *int
 	TimeBetweenUserTypingUpdatesMilliseconds          *int64
 	EnablePostSearch                                  *bool
+	MinimumHashtagLength                              *int
 	EnableUserTypingMessages                          *bool
 	EnableChannelViewedMessages                       *bool
 	EnableUserStatuses                                *bool
@@ -434,6 +435,10 @@ func (s *ServiceSettings) SetDefaults() {
 
 	if s.EnablePostSearch == nil {
 		s.EnablePostSearch = NewBool(true)
+	}
+
+	if s.MinimumHashtagLength == nil {
+		s.MinimumHashtagLength = NewInt(3)
 	}
 
 	if s.EnableUserTypingMessages == nil {
@@ -713,6 +718,7 @@ type ExperimentalSettings struct {
 	ClientSideCertCheck             *string
 	DisablePostMetadata             *bool
 	LinkMetadataTimeoutMilliseconds *int64
+	RestrictSystemAdmin             *bool
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -730,6 +736,10 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.LinkMetadataTimeoutMilliseconds == nil {
 		s.LinkMetadataTimeoutMilliseconds = NewInt64(EXPERIMENTAL_SETTINGS_DEFAULT_LINK_METADATA_TIMEOUT_MILLISECONDS)
+	}
+
+	if s.RestrictSystemAdmin == nil {
+		s.RestrictSystemAdmin = NewBool(false)
 	}
 }
 
