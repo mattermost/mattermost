@@ -475,6 +475,64 @@ func (s *hooksRPCServer) UserHasLeftTeam(args *Z_UserHasLeftTeamArgs, returns *Z
 	return nil
 }
 
+func init() {
+	hookNameToId["HealthCheck"] = HealthCheckId
+}
+
+type Z_HealthCheckArgs struct {
+}
+
+type Z_HealthCheckReturns struct {
+	A error
+}
+
+func (g *hooksRPCClient) OnActivateWithError() error {
+	muxId := g.muxBroker.NextId()
+	go g.muxBroker.AcceptAndServe(muxId, &apiRPCServer{
+		impl: g.apiImpl,
+	})
+
+	_args := &Z_OnActivateArgs{
+		APIMuxId: muxId,
+	}
+	_returns := &Z_OnActivateReturns{}
+
+	if err := g.client.Call("Plugin.OnActivate", _args, _returns); err != nil {
+		g.log.Error("RPC call to OnActivate plugin failed.", mlog.Err(err))
+		return err
+	}
+
+	return _returns.A
+}
+
+func (g *hooksRPCClient) HealthCheck() error {
+	_args := &Z_HealthCheckArgs{}
+	_returns := &Z_HealthCheckReturns{}
+	if g.implemented[HealthCheckId] {
+		fmt.Printf("Health check implemented\n")
+		if err := g.client.Call("Plugin.HealthCheck", _args, _returns); err != nil {
+			g.log.Error("RPC call to HealthCheck plugin failed.", mlog.Err(err))
+			return err
+		}
+	} else {
+		fmt.Printf("Health check not implemented. Using OnActivateWithError\n")
+		return g.OnActivateWithError()
+	}
+	return _returns.A
+}
+
+func (s *hooksRPCServer) HealthCheck(args *Z_HealthCheckArgs, returns *Z_HealthCheckReturns) error {
+	if hook, ok := s.impl.(interface {
+		HealthCheck() error
+	}); ok {
+		returns.A = hook.HealthCheck()
+		returns.A = encodableError(returns.A)
+	} else {
+		return encodableError(fmt.Errorf("Hook HealthCheck called but not implemented."))
+	}
+	return nil
+}
+
 type Z_RegisterCommandArgs struct {
 	A *model.Command
 }

@@ -33,6 +33,7 @@ const (
 	UserWillLogInId         = 15
 	UserHasLoggedInId       = 16
 	UserHasBeenCreatedId    = 17
+	HealthCheckId           = 18
 	TotalHooksId            = iota
 )
 
@@ -138,6 +139,11 @@ type Hooks interface {
 	// UserHasLeftTeam is invoked after the membership has been removed from the database.
 	// If actor is not nil, the user was removed from the team by the actor.
 	UserHasLeftTeam(c *Context, teamMember *model.TeamMember, actor *model.User)
+
+	// HealthCheck is invoked periodically to assert the plugin's current health.
+	// If the health check fails more than the configured number of times, the process will be destroyed and restarted.
+	//
+	HealthCheck() error
 
 	// FileWillBeUploaded is invoked when a file is uploaded, but before it is committed to backing store.
 	// Read from file to retrieve the body of the uploaded file.

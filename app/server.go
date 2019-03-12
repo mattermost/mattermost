@@ -96,6 +96,7 @@ type Server struct {
 
 	pluginCommands     []*PluginCommand
 	pluginCommandsLock sync.RWMutex
+	PluginHealthCheck  *PluginHealthCheckJob
 
 	clientConfig        map[string]string
 	clientConfigHash    string
@@ -186,6 +187,12 @@ func NewServer(options ...Option) (*Server, error) {
 	s.InitEmailBatching()
 	s.AddConfigListener(func(_, _ *model.Config) {
 		s.InitEmailBatching()
+	})
+
+	// Start plugin health check job
+	s.InitPluginHealthCheckJob()
+	s.AddConfigListener(func(_, _ *model.Config) {
+		s.InitPluginHealthCheckJob()
 	})
 
 	mlog.Info(fmt.Sprintf("Current version is %v (%v/%v/%v/%v)", model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash, model.BuildHashEnterprise))

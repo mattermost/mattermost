@@ -247,6 +247,12 @@ func (env *Environment) Deactivate(id string) bool {
 	return true
 }
 
+// Deactivates, then Activates, the plugin with the given id.
+func (env *Environment) RestartPlugin(id string) (manifest *model.Manifest, activated bool, reterr error) {
+	env.Deactivate(id)
+	return env.Activate(id)
+}
+
 // Shutdown deactivates all plugins and gracefully shuts down the environment.
 func (env *Environment) Shutdown() {
 	env.activePlugins.Range(func(key, value interface{}) bool {
