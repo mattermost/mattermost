@@ -9,6 +9,7 @@ import (
 	"syscall"
 
 	"github.com/mattermost/mattermost-server/mlog"
+	"github.com/mattermost/viper"
 	"github.com/spf13/cobra"
 )
 
@@ -30,10 +31,7 @@ func jobserverCmdF(command *cobra.Command, args []string) error {
 	noJobs, _ := command.Flags().GetBool("nojobs")
 	noSchedule, _ := command.Flags().GetBool("noschedule")
 
-	config, err := command.Flags().GetString("config")
-	if err != nil {
-		return err
-	}
+	config := viper.GetString("config")
 
 	// Initialize
 	a, err := InitDBCommandContext(config)
