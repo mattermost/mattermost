@@ -15,7 +15,7 @@ import (
 var JobserverCmd = &cobra.Command{
 	Use:   "jobserver",
 	Short: "Start the Mattermost job server",
-	Run:   jobserverCmdF,
+	RunE:  jobserverCmdF,
 }
 
 func init() {
@@ -25,15 +25,20 @@ func init() {
 	RootCmd.AddCommand(JobserverCmd)
 }
 
-func jobserverCmdF(command *cobra.Command, args []string) {
+func jobserverCmdF(command *cobra.Command, args []string) error {
 	// Options
 	noJobs, _ := command.Flags().GetBool("nojobs")
 	noSchedule, _ := command.Flags().GetBool("noschedule")
 
-	// Initialize
-	a, err := InitDBCommandContext("config.json")
+	config, err := command.Flags().GetString("config")
 	if err != nil {
-		panic(err.Error())
+		return err
+	}
+
+	// Initialize
+	a, err := InitDBCommandContext(config)
+	if err != nil {
+		return err
 	}
 	defer a.Shutdown()
 
@@ -58,4 +63,6 @@ func jobserverCmdF(command *cobra.Command, args []string) {
 
 	// Cleanup anything that isn't handled by a defer statement
 	mlog.Info("Stopping Mattermost job server")
+
+	return nil
 }
