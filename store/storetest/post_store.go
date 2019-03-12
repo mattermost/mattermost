@@ -5,6 +5,7 @@ package storetest
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -49,6 +50,7 @@ func TestPostStore(t *testing.T, ss store.Store) {
 	t.Run("GetRepliesForExport", func(t *testing.T) { testPostStoreGetRepliesForExport(t, ss) })
 	t.Run("GetDirectPostParentsForExportAfter", func(t *testing.T) { testPostStoreGetDirectPostParentsForExportAfter(t, ss) })
 	t.Run("GetDirectPostParentsForExportAfterDeleted", func(t *testing.T) { testPostStoreGetDirectPostParentsForExportAfterDeleted(t, ss) })
+	t.Run("GetDirectPostParentsForExportAfterBatched", func(t *testing.T) { testPostStoreGetDirectPostParentsForExportAfterBatched(t, ss) })
 }
 
 func testPostStoreSave(t *testing.T, ss store.Store) {
@@ -2084,4 +2086,79 @@ func testPostStoreGetDirectPostParentsForExportAfterDeleted(t *testing.T, ss sto
 	d1 := r1.Data.([]*model.DirectPostForExport)
 
 	assert.Equal(t, 0, len(d1))
+	// Manual cleanup to prevent test failures on post exports
+	<-ss.Post().PermanentDeleteByChannel(o1.Id)
+}
+
+func testPostStoreGetDirectPostParentsForExportAfterBatched(t *testing.T, ss store.Store) {
+	teamId := model.NewId()
+
+	o1 := model.Channel{}
+	o1.TeamId = teamId
+	o1.DisplayName = "Name"
+	o1.Name = "zz" + model.NewId() + "b"
+	o1.Type = model.CHANNEL_DIRECT
+
+	var postIds []string
+	for i := 0; i < 150; i++ {
+		u1 := &model.User{}
+		u1.Email = MakeEmail()
+		u1.Nickname = model.NewId()
+		store.Must(ss.User().Save(u1))
+		store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1))
+
+		u2 := &model.User{}
+		u2.Email = MakeEmail()
+		u2.Nickname = model.NewId()
+		store.Must(ss.User().Save(u2))
+		store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1))
+
+		m1 := model.ChannelMember{}
+		m1.ChannelId = o1.Id
+		m1.UserId = u1.Id
+		m1.NotifyProps = model.GetDefaultChannelNotifyProps()
+
+		m2 := model.ChannelMember{}
+		m2.ChannelId = o1.Id
+		m2.UserId = u2.Id
+		m2.NotifyProps = model.GetDefaultChannelNotifyProps()
+
+		<-ss.Channel().SaveDirectChannel(&o1, &m1, &m2)
+
+		p1 := &model.Post{}
+		p1.ChannelId = o1.Id
+		p1.UserId = u1.Id
+		p1.Message = "zz" + model.NewId() + "AAAAAAAAAAA"
+		p1.CreateAt = 1000
+		p1 = (<-ss.Post().Save(p1)).Data.(*model.Post)
+		postIds = append(postIds, p1.Id)
+	}
+	sort.Slice(postIds, func(i, j int) bool { return postIds[i] < postIds[j] })
+
+	// Get all posts
+	r1 := <-ss.Post().GetDirectPostParentsForExportAfter(10000, strings.Repeat("0", 26))
+	assert.Nil(t, r1.Err)
+	d1 := r1.Data.([]*model.DirectPostForExport)
+	assert.Equal(t, len(postIds), len(d1))
+	var exportedPostIds []string
+	for i := range d1 {
+		exportedPostIds = append(exportedPostIds, d1[i].Id)
+	}
+	sort.Slice(exportedPostIds, func(i, j int) bool { return exportedPostIds[i] < exportedPostIds[j] })
+	assert.ElementsMatch(t, postIds, exportedPostIds)
+
+	// Get 100
+	r1 = <-ss.Post().GetDirectPostParentsForExportAfter(100, strings.Repeat("0", 26))
+	assert.Nil(t, r1.Err)
+	d1 = r1.Data.([]*model.DirectPostForExport)
+	assert.Equal(t, 100, len(d1))
+	exportedPostIds = []string{}
+	for i := range d1 {
+		exportedPostIds = append(exportedPostIds, d1[i].Id)
+	}
+	sort.Slice(exportedPostIds, func(i, j int) bool { return exportedPostIds[i] < exportedPostIds[j] })
+	assert.ElementsMatch(t, postIds[:100], exportedPostIds)
+
+	// Manual cleanup to prevent test failures on post exports
+	<-ss.Post().PermanentDeleteByChannel(o1.Id)
 }

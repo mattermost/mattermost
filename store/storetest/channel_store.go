@@ -3163,6 +3163,8 @@ func testChannelStoreRemoveAllDeactivatedMembers(t *testing.T, ss store.Store) {
 }
 
 func testChannelStoreExportAllDirectChannels(t *testing.T, ss store.Store) {
+	cleanupChannels(t, ss)
+
 	teamId := model.NewId()
 
 	o1 := model.Channel{}
@@ -3170,6 +3172,15 @@ func testChannelStoreExportAllDirectChannels(t *testing.T, ss store.Store) {
 	o1.DisplayName = "Name"
 	o1.Name = "zz" + model.NewId() + "b"
 	o1.Type = model.CHANNEL_DIRECT
+
+	userIds := []string{model.NewId(), model.NewId(), model.NewId()}
+
+	o2 := model.Channel{}
+	o2.Name = model.GetGroupNameFromUserIds(userIds)
+	o2.DisplayName = "GroupChannel" + model.NewId()
+	o2.Name = "zz" + model.NewId() + "b"
+	o2.Type = model.CHANNEL_GROUP
+	store.Must(ss.Channel().Save(&o2, -1))
 
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
@@ -3193,23 +3204,18 @@ func testChannelStoreExportAllDirectChannels(t *testing.T, ss store.Store) {
 	m2.UserId = u2.Id
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 
-	result := <-ss.Channel().SaveDirectChannel(&o1, &m1, &m2)
-	c1 := result.Data.(*model.Channel)
+	<-ss.Channel().SaveDirectChannel(&o1, &m1, &m2)
 
 	r1 := <-ss.Channel().GetAllDirectChannelsForExportAfter(10000, strings.Repeat("0", 26))
 	assert.Nil(t, r1.Err)
 	d1 := r1.Data.([]*model.DirectChannelForExport)
 
-	found := false
-	for _, c := range d1 {
-		if c.Id == c1.Id {
-			found = true
-		}
-	}
-	assert.True(t, found)
+	assert.Equal(t, 2, len(d1))
 }
 
 func testChannelStoreExportAllDirectChannelsExcludePrivateAndPublic(t *testing.T, ss store.Store) {
+	cleanupChannels(t, ss)
+
 	teamId := model.NewId()
 
 	o1 := model.Channel{}
@@ -3259,16 +3265,18 @@ func testChannelStoreExportAllDirectChannelsExcludePrivateAndPublic(t *testing.T
 	r1 := <-ss.Channel().GetAllDirectChannelsForExportAfter(10000, strings.Repeat("0", 26))
 	assert.Nil(t, r1.Err)
 	d1 := r1.Data.([]*model.DirectChannelForExport)
-
+	assert.Equal(t, 1, len(d1))
 	assert.Equal(t, o1.DisplayName, d1[0].DisplayName)
 }
 
 func testChannelStoreExportAllDirectChannelsDeletedChannel(t *testing.T, ss store.Store) {
+	cleanupChannels(t, ss)
+
 	teamId := model.NewId()
 
 	o1 := model.Channel{}
 	o1.TeamId = teamId
-	o1.DisplayName = "Name"
+	o1.DisplayName = "Different Name"
 	o1.Name = "zz" + model.NewId() + "b"
 	o1.Type = model.CHANNEL_DIRECT
 
