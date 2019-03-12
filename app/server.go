@@ -169,10 +169,8 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.ImageProxy = imageproxy.MakeImageProxy(s, s.HTTPService)
 
-	if utils.T == nil {
-		if err := utils.TranslationsPreInit(); err != nil {
-			return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
-		}
+	if err := utils.TranslationsPreInit(); err != nil {
+		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
 	}
 
 	err := s.RunOldAppInitalization()
