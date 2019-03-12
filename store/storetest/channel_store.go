@@ -80,9 +80,9 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("GetAllChannelsForExportAfter", func(t *testing.T) { testChannelStoreGetAllChannelsForExportAfter(t, ss) })
 	t.Run("GetChannelMembersForExport", func(t *testing.T) { testChannelStoreGetChannelMembersForExport(t, ss) })
 	t.Run("RemoveAllDeactivatedMembers", func(t *testing.T) { testChannelStoreRemoveAllDeactivatedMembers(t, ss) })
-	t.Run("ExportAllDirectChannels", func(t *testing.T) { testChannelStoreExportAllDirectChannels(t, ss) })
-	t.Run("ExportAllDirectChannelsExcludePrivateAndPublic", func(t *testing.T) { testChannelStoreExportAllDirectChannelsExcludePrivateAndPublic(t, ss) })
-	t.Run("ExportAllDirectChannelsDeletedChannel", func(t *testing.T) { testChannelStoreExportAllDirectChannelsDeletedChannel(t, ss) })
+	t.Run("ExportAllDirectChannels", func(t *testing.T) { testChannelStoreExportAllDirectChannels(t, ss, s) })
+	t.Run("ExportAllDirectChannelsExcludePrivateAndPublic", func(t *testing.T) { testChannelStoreExportAllDirectChannelsExcludePrivateAndPublic(t, ss, s) })
+	t.Run("ExportAllDirectChannelsDeletedChannel", func(t *testing.T) { testChannelStoreExportAllDirectChannelsDeletedChannel(t, ss, s) })
 }
 
 func testChannelStoreSave(t *testing.T, ss store.Store) {
@@ -3170,10 +3170,9 @@ func testChannelStoreRemoveAllDeactivatedMembers(t *testing.T, ss store.Store) {
 	d2 := r2.Data.(*model.ChannelMembers)
 	assert.Len(t, *d2, 1)
 	assert.Equal(t, (*d2)[0].UserId, u3.Id)
-	cleanupChannels(t, ss)
 }
 
-func testChannelStoreExportAllDirectChannels(t *testing.T, ss store.Store) {
+func testChannelStoreExportAllDirectChannels(t *testing.T, ss store.Store, s SqlSupplier) {
 	teamId := model.NewId()
 
 	o1 := model.Channel{}
@@ -3220,13 +3219,13 @@ func testChannelStoreExportAllDirectChannels(t *testing.T, ss store.Store) {
 	d1 := r1.Data.([]*model.DirectChannelForExport)
 
 	assert.Equal(t, 2, len(d1))
+	assert.ElementsMatch(t, []string{o1.DisplayName, o2.DisplayName}, []string{d1[0].DisplayName, d1[1].DisplayName})
 
-	// Manual Channel cleanup
-	ss.Channel().PermanentDelete(o1.Id)
-	ss.Channel().PermanentDelete(o2.Id)
+	// Manually truncate Channels table until testlib can handle cleanups
+	s.GetMaster().Exec("TRUNCATE Channels")
 }
 
-func testChannelStoreExportAllDirectChannelsExcludePrivateAndPublic(t *testing.T, ss store.Store) {
+func testChannelStoreExportAllDirectChannelsExcludePrivateAndPublic(t *testing.T, ss store.Store, s SqlSupplier) {
 	teamId := model.NewId()
 
 	o1 := model.Channel{}
@@ -3279,13 +3278,11 @@ func testChannelStoreExportAllDirectChannelsExcludePrivateAndPublic(t *testing.T
 	assert.Equal(t, 1, len(d1))
 	assert.Equal(t, o1.DisplayName, d1[0].DisplayName)
 
-	// Manual Channel cleanup
-	ss.Channel().PermanentDelete(o1.Id)
-	ss.Channel().PermanentDelete(o2.Id)
-	ss.Channel().PermanentDelete(o3.Id)
+	// Manually truncate Channels table until testlib can handle cleanups
+	s.GetMaster().Exec("TRUNCATE Channels")
 }
 
-func testChannelStoreExportAllDirectChannelsDeletedChannel(t *testing.T, ss store.Store) {
+func testChannelStoreExportAllDirectChannelsDeletedChannel(t *testing.T, ss store.Store, s SqlSupplier) {
 	teamId := model.NewId()
 
 	o1 := model.Channel{}
@@ -3328,6 +3325,6 @@ func testChannelStoreExportAllDirectChannelsDeletedChannel(t *testing.T, ss stor
 
 	assert.Equal(t, 0, len(d1))
 
-	// Manual Channel cleanup
-	ss.Channel().PermanentDelete(o1.Id)
+	// Manually truncate Channels table until testlib can handle cleanups
+	s.GetMaster().Exec("TRUNCATE Channels")
 }
