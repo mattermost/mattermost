@@ -116,6 +116,17 @@ Channel can be specified by [team]:[channel]. ie. myteam:mychannel or by channel
 	RunE:    modifyChannelCmdF,
 }
 
+var SearchChannelCmd = &cobra.Command{
+	Use:   "search [channel]\n  mattermost search --team [team] [channel]",
+	Short: "Search a channel",
+	Long: `Search a channel by channel name.
+Channel can be specified by team. ie. --team myTeam myChannel or by team ID.`,
+	Example: `  channel search myChannel
+  channel search --team myTeam myChannel`,
+	Args: cobra.ExactArgs(1),
+	RunE: searchChannelCmdF,
+}
+
 func init() {
 	ChannelCreateCmd.Flags().String("name", "", "Channel Name")
 	ChannelCreateCmd.Flags().String("display_name", "", "Channel Display Name")
@@ -134,6 +145,7 @@ func init() {
 	ModifyChannelCmd.Flags().String("username", "", "Required. Username who changes the channel privacy.")
 
 	ChannelRenameCmd.Flags().String("display_name", "", "Channel Display Name")
+	SearchChannelCmd.Flags().String("team", "", "Team name or ID")
 
 	RemoveChannelUsersCmd.Flags().Bool("all-users", false, "Remove all users from the indicated channel.")
 
@@ -148,6 +160,7 @@ func init() {
 		RestoreChannelsCmd,
 		ModifyChannelCmd,
 		ChannelRenameCmd,
+		SearchChannelCmd,
 	)
 
 	RootCmd.AddCommand(ChannelCmd)
@@ -535,5 +548,55 @@ func renameChannelCmdF(command *cobra.Command, args []string) error {
 		return errors.Wrapf(errch, "Error in updating channel from %s to %s", channel.Name, newChannelName)
 	}
 
+	return nil
+}
+
+func searchChannelCmdF(command *cobra.Command, args []string) error {
+
+	a, err := InitDBCommandContextCobra(command)
+	if err != nil {
+		return errors.Wrap(err, "failed to InitDBCommandContextCobra")
+	}
+	defer a.Shutdown()
+
+	var channel *model.Channel
+
+	if teamArg, _ := command.Flags().GetString("team"); teamArg != "" {
+		team := getTeamFromTeamArg(a, teamArg)
+		if team == nil {
+			CommandPrettyPrintln(fmt.Sprintf("Team %s is not found", teamArg))
+			return nil
+		}
+
+		var aErr *model.AppError
+		channel, aErr = a.GetChannelByName(args[0], team.Id, true)
+		if aErr != nil || channel == nil {
+			CommandPrettyPrintln(fmt.Sprintf("Channel %s is not found in team %s", args[0], teamArg))
+			return nil
+		}
+	} else {
+		teams, aErr := a.GetAllTeams()
+		if aErr != nil {
+			return errors.Wrap(err, "failed to GetAllTeams")
+		}
+
+		for _, team := range teams {
+			channel, _ = a.GetChannelByName(args[0], team.Id, true)
+			if channel != nil && channel.Name == args[0] {
+				break
+			}
+		}
+
+		if channel == nil {
+			CommandPrettyPrintln(fmt.Sprintf("Channel %s is not found in any team", args[0]))
+			return nil
+		}
+	}
+
+	if channel.DeleteAt > 0 {
+		CommandPrettyPrintln(fmt.Sprintf(`Channel Name :%s, Display Name :%s, Channel ID :%s (archived)`, channel.Name, channel.DisplayName, channel.Id))
+	} else {
+		CommandPrettyPrintln(fmt.Sprintf(`Channel Name :%s, Display Name :%s, Channel ID :%s`, channel.Name, channel.DisplayName, channel.Id))
+	}
 	return nil
 }

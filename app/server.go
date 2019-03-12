@@ -93,6 +93,7 @@ type Server struct {
 	clusterLeaderListenerId string
 	configStore             config.Store
 	asymmetricSigningKey    *ecdsa.PrivateKey
+	postActionCookieSecret  []byte
 
 	pluginCommands     []*PluginCommand
 	pluginCommandsLock sync.RWMutex
@@ -182,7 +183,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	model.AppErrorInit(utils.T)
 
-	s.timezones = timezones.New("")
+	s.timezones = timezones.New()
 
 	// Start email batching because it's not like the other jobs
 	s.InitEmailBatching()

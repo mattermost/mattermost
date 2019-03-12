@@ -68,6 +68,7 @@ func ImportLineFromUser(user *model.User, exportedPrefs map[string]*string) *Lin
 			ChannelDisplayMode: exportedPrefs["ChannelDisplayMode"],
 			TutorialStep:       exportedPrefs["TutorialStep"],
 			EmailInterval:      exportedPrefs["EmailInterval"],
+			DeleteAt:           &user.DeleteAt,
 		},
 	}
 }

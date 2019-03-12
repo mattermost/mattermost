@@ -172,6 +172,51 @@ func TestUpdateUserActive(t *testing.T) {
 	assert.Nil(t, err)
 }
 
+func TestUpdateActiveBotsSideEffect(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	bot, err := th.App.CreateBot(&model.Bot{
+		Username:    "username",
+		Description: "a bot",
+		OwnerId:     th.BasicUser.Id,
+	})
+	require.Nil(t, err)
+	defer th.App.PermanentDeleteBot(bot.UserId)
+
+	// Automatic deactivation disabled
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.DisableBotsWhenOwnerIsDeactivated = false
+	})
+
+	th.App.UpdateActive(th.BasicUser, false)
+
+	retbot1, err := th.App.GetBot(bot.UserId, true)
+	require.Nil(t, err)
+	require.Zero(t, retbot1.DeleteAt)
+	user1, err := th.App.GetUser(bot.UserId)
+	require.Nil(t, err)
+	require.Zero(t, user1.DeleteAt)
+
+	th.App.UpdateActive(th.BasicUser, true)
+
+	// Automatic deactivation enabled
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.DisableBotsWhenOwnerIsDeactivated = true
+	})
+
+	th.App.UpdateActive(th.BasicUser, false)
+
+	retbot2, err := th.App.GetBot(bot.UserId, true)
+	require.Nil(t, err)
+	require.NotZero(t, retbot2.DeleteAt)
+	user2, err := th.App.GetUser(bot.UserId)
+	require.Nil(t, err)
+	require.NotZero(t, user2.DeleteAt)
+
+	th.App.UpdateActive(th.BasicUser, true)
+}
+
 func TestUpdateOAuthUserAttrs(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
@@ -283,6 +328,66 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 		if user.LastName != "Lastname" {
 			t.Fatal("user's last name is not updated")
 		}
+	})
+}
+
+func TestUpdateUserEmail(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	user := th.CreateUser()
+
+	t.Run("RequireVerification", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.EmailSettings.RequireEmailVerification = true
+		})
+
+		currentEmail := user.Email
+		newEmail := th.MakeEmail()
+
+		user.Email = newEmail
+		user2, err := th.App.UpdateUser(user, false)
+		assert.Nil(t, err)
+		assert.Equal(t, currentEmail, user2.Email)
+		assert.True(t, user2.EmailVerified)
+
+		token, err := th.App.CreateVerifyEmailToken(user2.Id, newEmail)
+		assert.Nil(t, err)
+
+		err = th.App.VerifyEmailFromToken(token.Token)
+		assert.Nil(t, err)
+
+		user2, err = th.App.GetUser(user2.Id)
+		assert.Nil(t, err)
+		assert.Equal(t, newEmail, user2.Email)
+		assert.True(t, user2.EmailVerified)
+	})
+
+	t.Run("RequireVerificationAlreadyUsedEmail", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.EmailSettings.RequireEmailVerification = true
+		})
+
+		user2 := th.CreateUser()
+		newEmail := user2.Email
+
+		user.Email = newEmail
+		user3, err := th.App.UpdateUser(user, false)
+		assert.NotNil(t, err)
+		assert.Nil(t, user3)
+	})
+
+	t.Run("NoVerification", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.EmailSettings.RequireEmailVerification = false
+		})
+
+		newEmail := th.MakeEmail()
+
+		user.Email = newEmail
+		user2, err := th.App.UpdateUser(user, false)
+		assert.Nil(t, err)
+		assert.Equal(t, newEmail, user2.Email)
 	})
 }
 
@@ -561,4 +666,41 @@ func TestPermanentDeleteUser(t *testing.T) {
 		t.Log(err)
 		t.Fatal("GetFileInfo after DeleteUser is nil")
 	}
+}
+
+func TestPasswordRecovery(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	token, err := th.App.CreatePasswordRecoveryToken(th.BasicUser.Id, th.BasicUser.Email)
+	assert.Nil(t, err)
+
+	tokenData := struct {
+		UserId string
+		Email  string
+	}{}
+
+	err2 := json.Unmarshal([]byte(token.Extra), &tokenData)
+	assert.Nil(t, err2)
+	assert.Equal(t, th.BasicUser.Id, tokenData.UserId)
+	assert.Equal(t, th.BasicUser.Email, tokenData.Email)
+
+	// Password token with same eMail as during creation
+	err = th.App.ResetPasswordFromToken(token.Token, "abcdefgh")
+	assert.Nil(t, err)
+
+	// Password token with modified eMail after creation
+	token, err = th.App.CreatePasswordRecoveryToken(th.BasicUser.Id, th.BasicUser.Email)
+	assert.Nil(t, err)
+
+	th.App.UpdateConfig(func(c *model.Config) {
+		*c.EmailSettings.RequireEmailVerification = false
+	})
+
+	th.BasicUser.Email = th.MakeEmail()
+	_, err = th.App.UpdateUser(th.BasicUser, false)
+	assert.Nil(t, err)
+
+	err = th.App.ResetPasswordFromToken(token.Token, "abcdefgh")
+	assert.NotNil(t, err)
 }

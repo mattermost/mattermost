@@ -174,6 +174,11 @@ type API interface {
 	// GetTeamMember returns a specific membership.
 	GetTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError)
 
+	// GetTeamMembersForUser returns all team memberships for a user.
+	//
+	// Minimum server version: 5.10
+	GetTeamMembersForUser(userId string, page int, perPage int) ([]*model.TeamMember, *model.AppError)
+
 	// UpdateTeamMemberRoles updates the role for a team membership.
 	UpdateTeamMemberRoles(teamId, userId, newRoles string) (*model.TeamMember, *model.AppError)
 
@@ -247,6 +252,11 @@ type API interface {
 	// Minimum server version: 5.6
 	GetChannelMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError)
 
+	// GetChannelMembersForUser returns all channel memberships on a team for a user.
+	//
+	// Minimum server version: 5.10
+	GetChannelMembersForUser(teamId, userId string, page, perPage int) ([]*model.ChannelMember, *model.AppError)
+
 	// UpdateChannelMemberRoles updates a user's roles for a channel.
 	UpdateChannelMemberRoles(channelId, userId, newRoles string) (*model.ChannelMember, *model.AppError)
 
@@ -276,6 +286,14 @@ type API interface {
 
 	// SendEphemeralPost creates an ephemeral post.
 	SendEphemeralPost(userId string, post *model.Post) *model.Post
+
+	// UpdateEphemeralPost updates an ephemeral message previously sent to the user.
+	// EXPERIMENTAL: This API is experimental and can be changed without advance notice.
+	UpdateEphemeralPost(userId string, post *model.Post) *model.Post
+
+	// DeleteEphemeralPost deletes an ephemeral message previously sent to the user.
+	// EXPERIMENTAL: This API is experimental and can be changed without advance notice.
+	DeleteEphemeralPost(userId string, post *model.Post)
 
 	// DeletePost deletes a post.
 	DeletePost(postId string) *model.AppError
@@ -490,6 +508,36 @@ type API interface {
 	//
 	// Minimum server version: 5.7
 	SendMail(to, subject, htmlBody string) *model.AppError
+
+	// CreateBot creates the given bot and corresponding user.
+	//
+	// Minimum server version: 5.10
+	CreateBot(bot *model.Bot) (*model.Bot, *model.AppError)
+
+	// PatchBot applies the given patch to the bot and corresponding user.
+	//
+	// Minimum server version: 5.10
+	PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError)
+
+	// GetBot returns the given bot.
+	//
+	// Minimum server version: 5.10
+	GetBot(botUserId string, includeDeleted bool) (*model.Bot, *model.AppError)
+
+	// GetBots returns the requested page of bots.
+	//
+	// Minimum server version: 5.10
+	GetBots(options *model.BotGetOptions) ([]*model.Bot, *model.AppError)
+
+	// UpdateBotActive marks a bot as active or inactive, along with its corresponding user.
+	//
+	// Minimum server version: 5.10
+	UpdateBotActive(botUserId string, active bool) (*model.Bot, *model.AppError)
+
+	// PermanentDeleteBot permanently deletes a bot and its corresponding user.
+	//
+	// Minimum server version: 5.10
+	PermanentDeleteBot(botUserId string) *model.AppError
 }
 
 var handshake = plugin.HandshakeConfig{

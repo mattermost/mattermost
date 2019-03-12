@@ -2,6 +2,9 @@ package config_test
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/config"
@@ -9,14 +12,24 @@ import (
 )
 
 func TestNewStore(t *testing.T) {
+	sqlSettings := mainHelper.GetSqlSettings()
+
+	tempDir, err := ioutil.TempDir("", "TestNewStore")
+	require.NoError(t, err)
+
+	err = os.Chdir(tempDir)
+	require.NoError(t, err)
+
+	require.NoError(t, os.Mkdir(filepath.Join(tempDir, "config"), 0700))
+
 	t.Run("database dsn", func(t *testing.T) {
-		ds, err := config.NewStore(fmt.Sprintf("%s://%s", *mainHelper.Settings.DriverName, *mainHelper.Settings.DataSource), false)
+		ds, err := config.NewStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource), false)
 		require.NoError(t, err)
 		ds.Close()
 	})
 
 	t.Run("database dsn, watch ignored", func(t *testing.T) {
-		ds, err := config.NewStore(fmt.Sprintf("%s://%s", *mainHelper.Settings.DriverName, *mainHelper.Settings.DataSource), true)
+		ds, err := config.NewStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource), true)
 		require.NoError(t, err)
 		ds.Close()
 	})

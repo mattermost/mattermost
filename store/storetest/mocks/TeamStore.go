@@ -349,6 +349,22 @@ func (_m *TeamStore) GetTeamsForUser(userId string) store.StoreChannel {
 	return r0
 }
 
+// GetTeamsForUserWithPagination provides a mock function with given fields: userId, page, perPage
+func (_m *TeamStore) GetTeamsForUserWithPagination(userId string, page int, perPage int) store.StoreChannel {
+	ret := _m.Called(userId, page, perPage)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string, int, int) store.StoreChannel); ok {
+		r0 = rf(userId, page, perPage)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // GetTotalMemberCount provides a mock function with given fields: teamId
 func (_m *TeamStore) GetTotalMemberCount(teamId string) store.StoreChannel {
 	ret := _m.Called(teamId)

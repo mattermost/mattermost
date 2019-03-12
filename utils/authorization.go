@@ -197,7 +197,8 @@ func SetRolePermissionsFromConfig(roles map[string]*model.Role, cfg *model.Confi
 	if !*cfg.ServiceSettings.DEPRECATED_DO_NOT_USE_EnableOnlyAdminIntegrations {
 		roles[model.TEAM_USER_ROLE_ID].Permissions = append(
 			roles[model.TEAM_USER_ROLE_ID].Permissions,
-			model.PERMISSION_MANAGE_WEBHOOKS.Id,
+			model.PERMISSION_MANAGE_INCOMING_WEBHOOKS.Id,
+			model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS.Id,
 			model.PERMISSION_MANAGE_SLASH_COMMANDS.Id,
 		)
 		roles[model.SYSTEM_USER_ROLE_ID].Permissions = append(

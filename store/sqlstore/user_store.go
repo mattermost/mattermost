@@ -68,8 +68,9 @@ func NewSqlUserStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) st
 	}
 
 	us.usersQuery = sq.
-		Select("u.*").
-		From("Users u")
+		Select("u.*", "b.UserId IS NOT NULL AS IsBot").
+		From("Users u").
+		LeftJoin("Bots b ON ( b.UserId = u.Id )")
 
 	if us.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		us.usersQuery = us.usersQuery.PlaceholderFormat(sq.Dollar)
@@ -1025,23 +1026,14 @@ func (us SqlUserStore) GetForLogin(loginId string, allowSignInWithUsername, allo
 	})
 }
 
-func (us SqlUserStore) VerifyEmail(userId string) store.StoreChannel {
+func (us SqlUserStore) VerifyEmail(userId, email string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		if _, err := us.GetMaster().Exec("UPDATE Users SET EmailVerified = true WHERE Id = :UserId", map[string]interface{}{"UserId": userId}); err != nil {
+		curTime := model.GetMillis()
+		if _, err := us.GetMaster().Exec("UPDATE Users SET Email = :email, EmailVerified = true, UpdateAt = :Time WHERE Id = :UserId", map[string]interface{}{"email": email, "Time": curTime, "UserId": userId}); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.VerifyEmail", "store.sql_user.verify_email.app_error", nil, "userId="+userId+", "+err.Error(), http.StatusInternalServerError)
 		}
 
 		result.Data = userId
-	})
-}
-
-func (us SqlUserStore) GetTotalUsersCount() store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if count, err := us.GetReplica().SelectInt("SELECT COUNT(Id) FROM Users"); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.GetTotalUsersCount", "store.sql_user.get_total_users_count.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = count
-		}
 	})
 }
 
@@ -1053,20 +1045,45 @@ func (us SqlUserStore) PermanentDelete(userId string) store.StoreChannel {
 	})
 }
 
-func (us SqlUserStore) AnalyticsUniqueUserCount(teamId string) store.StoreChannel {
+func (us SqlUserStore) Count(options model.UserCountOptions) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		query := ""
-		if len(teamId) > 0 {
-			query = "SELECT COUNT(DISTINCT Users.Email) From Users, TeamMembers WHERE TeamMembers.TeamId = :TeamId AND Users.Id = TeamMembers.UserId AND TeamMembers.DeleteAt = 0 AND Users.DeleteAt = 0"
-		} else {
-			query = "SELECT COUNT(DISTINCT Email) FROM Users WHERE DeleteAt = 0"
+		query := sq.Select("COUNT(Users.Id)").From("Users")
+
+		if !options.IncludeDeleted {
+			query = query.Where("Users.DeleteAt = 0")
 		}
 
-		v, err := us.GetReplica().SelectInt(query, map[string]interface{}{"TeamId": teamId})
-		if err != nil {
-			result.Err = model.NewAppError("SqlUserStore.AnalyticsUniqueUserCount", "store.sql_user.analytics_unique_user_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+		if options.IncludeBotAccounts {
+			if options.ExcludeRegularUsers {
+				query = query.Join("Bots ON Users.Id = Bots.UserId")
+			}
 		} else {
-			result.Data = v
+			query = query.LeftJoin("Bots ON Users.Id = Bots.UserId").Where("Bots.UserId IS NULL")
+			if options.ExcludeRegularUsers {
+				// Currenty this doesn't make sense because it will always return 0
+				result.Err = model.NewAppError("SqlUserStore.Count", "UserCountOptions don't make sense", nil, "", http.StatusInternalServerError)
+				return
+			}
+		}
+
+		if options.TeamId != "" {
+			query = query.LeftJoin("TeamMembers ON Users.Id = TeamMembers.UserId").Where("TeamMembers.TeamId = ? AND TeamMembers.DeleteAt = 0", options.TeamId)
+		}
+
+		if us.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+			query = query.PlaceholderFormat(sq.Dollar)
+		}
+
+		queryString, args, err := query.ToSql()
+		if err != nil {
+			result.Err = model.NewAppError("SqlUserStore.Get", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		if count, err := us.GetReplica().SelectInt(queryString, args...); err != nil {
+			result.Err = model.NewAppError("SqlUserStore.Count", "store.sql_user.get_total_users_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+		} else {
+			result.Data = count
 		}
 	})
 }
@@ -1347,23 +1364,25 @@ func (us SqlUserStore) GetProfilesNotInTeam(teamId string, offset int, limit int
 
 func (us SqlUserStore) GetEtagForProfilesNotInTeam(teamId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		updateAt, err := us.GetReplica().SelectInt(`
-            SELECT
-                u.UpdateAt
-            FROM Users u
-            LEFT JOIN TeamMembers tm
-                ON tm.UserId = u.Id
-                AND tm.TeamId = :TeamId
-                AND tm.DeleteAt = 0
-            WHERE tm.UserId IS NULL
-            ORDER BY u.UpdateAt DESC
-            LIMIT 1
-            `, map[string]interface{}{"TeamId": teamId})
 
+		var querystr string
+		querystr = `
+			SELECT 
+				CONCAT(MAX(UpdateAt), '.', COUNT(Id)) as etag
+			FROM 
+				Users as u
+			LEFT JOIN TeamMembers tm 
+				ON tm.UserId = u.Id 
+				AND tm.TeamId = :TeamId 
+				AND tm.DeleteAt = 0
+			WHERE 
+				tm.UserId IS NULL
+		`
+		etag, err := us.GetReplica().SelectStr(querystr, map[string]interface{}{"TeamId": teamId})
 		if err != nil {
 			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, model.GetMillis())
 		} else {
-			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, updateAt)
+			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, etag)
 		}
 	})
 }
@@ -1381,13 +1400,10 @@ func (us SqlUserStore) ClearAllCustomRoleAssignments() store.StoreChannel {
 				result.Err = model.NewAppError("SqlUserStore.ClearAllCustomRoleAssignments", "store.sql_user.clear_all_custom_role_assignments.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 				return
 			}
+			defer finalizeTransaction(transaction)
 
 			var users []*model.User
 			if _, err := transaction.Select(&users, "SELECT * from Users WHERE Id > :Id ORDER BY Id LIMIT 1000", map[string]interface{}{"Id": lastUserId}); err != nil {
-				if err2 := transaction.Rollback(); err2 != nil {
-					result.Err = model.NewAppError("SqlUserStore.ClearAllCustomRoleAssignments", "store.sql_user.clear_all_custom_role_assignments.rollback_transaction.app_error", nil, err2.Error(), http.StatusInternalServerError)
-					return
-				}
 				result.Err = model.NewAppError("SqlUserStore.ClearAllCustomRoleAssignments", "store.sql_user.clear_all_custom_role_assignments.select.app_error", nil, err.Error(), http.StatusInternalServerError)
 				return
 			}
@@ -1413,10 +1429,6 @@ func (us SqlUserStore) ClearAllCustomRoleAssignments() store.StoreChannel {
 				newRolesString := strings.Join(newRoles, " ")
 				if newRolesString != user.Roles {
 					if _, err := transaction.Exec("UPDATE Users SET Roles = :Roles WHERE Id = :Id", map[string]interface{}{"Roles": newRolesString, "Id": user.Id}); err != nil {
-						if err2 := transaction.Rollback(); err2 != nil {
-							result.Err = model.NewAppError("SqlUserStore.ClearAllCustomRoleAssignments", "store.sql_user.clear_all_custom_role_assignments.rollback_transaction.app_error", nil, err2.Error(), http.StatusInternalServerError)
-							return
-						}
 						result.Err = model.NewAppError("SqlUserStore.ClearAllCustomRoleAssignments", "store.sql_user.clear_all_custom_role_assignments.update.app_error", nil, err.Error(), http.StatusInternalServerError)
 						return
 					}
@@ -1424,10 +1436,6 @@ func (us SqlUserStore) ClearAllCustomRoleAssignments() store.StoreChannel {
 			}
 
 			if err := transaction.Commit(); err != nil {
-				if err2 := transaction.Rollback(); err2 != nil {
-					result.Err = model.NewAppError("SqlUserStore.ClearAllCustomRoleAssignments", "store.sql_user.clear_all_custom_role_assignments.rollback_transaction.app_error", nil, err2.Error(), http.StatusInternalServerError)
-					return
-				}
 				result.Err = model.NewAppError("SqlUserStore.ClearAllCustomRoleAssignments", "store.sql_user.clear_all_custom_role_assignments.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 				return
 			}

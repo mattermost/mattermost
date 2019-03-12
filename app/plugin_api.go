@@ -158,6 +158,10 @@ func (api *PluginAPI) GetTeamMember(teamId, userId string) (*model.TeamMember, *
 	return api.app.GetTeamMember(teamId, userId)
 }
 
+func (api *PluginAPI) GetTeamMembersForUser(userId string, page int, perPage int) ([]*model.TeamMember, *model.AppError) {
+	return api.app.GetTeamMembersForUserWithPagination(userId, page, perPage)
+}
+
 func (api *PluginAPI) UpdateTeamMemberRoles(teamId, userId, newRoles string) (*model.TeamMember, *model.AppError) {
 	return api.app.UpdateTeamMemberRoles(teamId, userId, newRoles)
 }
@@ -375,6 +379,10 @@ func (api *PluginAPI) GetChannelMembersByIds(channelId string, userIds []string)
 	return api.app.GetChannelMembersByIds(channelId, userIds)
 }
 
+func (api *PluginAPI) GetChannelMembersForUser(teamId, userId string, page, perPage int) ([]*model.ChannelMember, *model.AppError) {
+	return api.app.GetChannelMembersForUserWithPagination(teamId, userId, page, perPage)
+}
+
 func (api *PluginAPI) UpdateChannelMemberRoles(channelId, userId, newRoles string) (*model.ChannelMember, *model.AppError) {
 	return api.app.UpdateChannelMemberRoles(channelId, userId, newRoles)
 }
@@ -405,6 +413,14 @@ func (api *PluginAPI) GetReactions(postId string) ([]*model.Reaction, *model.App
 
 func (api *PluginAPI) SendEphemeralPost(userId string, post *model.Post) *model.Post {
 	return api.app.SendEphemeralPost(userId, post)
+}
+
+func (api *PluginAPI) UpdateEphemeralPost(userId string, post *model.Post) *model.Post {
+	return api.app.UpdateEphemeralPost(userId, post)
+}
+
+func (api *PluginAPI) DeleteEphemeralPost(userId string, post *model.Post) {
+	api.app.DeleteEphemeralPost(userId, post)
 }
 
 func (api *PluginAPI) DeletePost(postId string) *model.AppError {
@@ -669,4 +685,36 @@ func (api *PluginAPI) LogError(msg string, keyValuePairs ...interface{}) {
 }
 func (api *PluginAPI) LogWarn(msg string, keyValuePairs ...interface{}) {
 	api.logger.Warn(msg, keyValuePairs...)
+}
+
+func (api *PluginAPI) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
+	// Bots created by a plugin should use the plugin's ID for the creator field, unless
+	// otherwise specified by the plugin.
+	if bot.OwnerId == "" {
+		bot.OwnerId = api.id
+	}
+
+	return api.app.CreateBot(bot)
+}
+
+func (api *PluginAPI) PatchBot(userId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError) {
+	return api.app.PatchBot(userId, botPatch)
+}
+
+func (api *PluginAPI) GetBot(userId string, includeDeleted bool) (*model.Bot, *model.AppError) {
+	return api.app.GetBot(userId, includeDeleted)
+}
+
+func (api *PluginAPI) GetBots(options *model.BotGetOptions) ([]*model.Bot, *model.AppError) {
+	bots, err := api.app.GetBots(options)
+
+	return []*model.Bot(bots), err
+}
+
+func (api *PluginAPI) UpdateBotActive(userId string, active bool) (*model.Bot, *model.AppError) {
+	return api.app.UpdateBotActive(userId, active)
+}
+
+func (api *PluginAPI) PermanentDeleteBot(userId string) *model.AppError {
+	return api.app.PermanentDeleteBot(userId)
 }

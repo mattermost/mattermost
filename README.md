@@ -27,10 +27,10 @@ _Note: Heroku preview does not include email or persistent storage_
 
 ## Install on Your Own Machine
 
-- [One-line Docker Preview](http://docs.mattermost.com/install/docker-local-machine.html#one-line-docker-install) 
+- [One-line Docker Preview](http://docs.mattermost.com/install/docker-local-machine.html#one-line-docker-install)
 - [Developer Machine Setup](https://docs.mattermost.com/developer/dev-setup.html)
 - [Production Install Guides using Linux Binary](http://www.mattermost.org/installation/)
-- [Production Docker Install](https://docs.mattermost.com/install/prod-docker.html) 
+- [Production Docker Install](https://docs.mattermost.com/install/prod-docker.html)
 
 ## Native Mobile and Desktop Apps
 
@@ -41,7 +41,7 @@ In addition to the web interface, you can also download Mattermost clients for [
 ## Get Security Bulletins
 
 Receive notifications of critical security updates. The sophistication of online attackers is perpetually increasing. If you are deploying Mattermost it is highly recommended you subscribe to the Mattermost Security Bulletin mailing list for updates on critical security releases.
- 
+
 - [Subscribe here](https://about.mattermost.com/security-bulletin/)
 
 ## Get Involved
@@ -58,7 +58,7 @@ Receive notifications of critical security updates. The sophistication of online
 
 - [API Options - webhooks, slash commands, drivers and web service](https://api.mattermost.com/)
 - [See who's using Mattermost](https://about.mattermost.com/success-stories/)
-- [Browse over 700 Mattermost integrations](https://about.mattermost.com/community-applications/) 
+- [Browse over 700 Mattermost integrations](https://about.mattermost.com/community-applications/)
 
 ## Get the Latest News
 

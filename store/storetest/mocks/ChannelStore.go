@@ -544,6 +544,22 @@ func (_m *ChannelStore) GetMembersForUser(teamId string, userId string) store.St
 	return r0
 }
 
+// GetMembersForUserWithPagination provides a mock function with given fields: teamId, userId, page, perPage
+func (_m *ChannelStore) GetMembersForUserWithPagination(teamId string, userId string, page int, perPage int) store.StoreChannel {
+	ret := _m.Called(teamId, userId, page, perPage)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string, string, int, int) store.StoreChannel); ok {
+		r0 = rf(teamId, userId, page, perPage)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // GetMoreChannels provides a mock function with given fields: teamId, userId, offset, limit
 func (_m *ChannelStore) GetMoreChannels(teamId string, userId string, offset int, limit int) store.StoreChannel {
 	ret := _m.Called(teamId, userId, offset, limit)
@@ -807,22 +823,6 @@ func (_m *ChannelStore) RemoveMember(channelId string, userId string) store.Stor
 
 // ResetAllChannelSchemes provides a mock function with given fields:
 func (_m *ChannelStore) ResetAllChannelSchemes() store.StoreChannel {
-	ret := _m.Called()
-
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func() store.StoreChannel); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
-		}
-	}
-
-	return r0
-}
-
-// ResetLastPostAt provides a mock function with given fields:
-func (_m *ChannelStore) ResetLastPostAt() store.StoreChannel {
 	ret := _m.Called()
 
 	var r0 store.StoreChannel

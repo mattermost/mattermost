@@ -93,6 +93,20 @@ func testPostStoreSaveChannelMsgCounts(t *testing.T, ss store.Store) {
 	require.Nil(t, res.Err)
 	c1 = res.Data.(*model.Channel)
 	assert.Equal(t, int64(1), c1.TotalMsgCount, "Message count should not update for team add/removed message")
+
+	oldLastPostAt := c1.LastPostAt
+
+	o2 := model.Post{}
+	o2.ChannelId = c1.Id
+	o2.UserId = model.NewId()
+	o2.Message = "zz" + model.NewId() + "b"
+	o2.CreateAt = int64(7)
+	require.Nil(t, (<-ss.Post().Save(&o2)).Err)
+
+	res = <-ss.Channel().Get(c1.Id, false)
+	require.Nil(t, res.Err)
+	c1 = res.Data.(*model.Channel)
+	assert.Equal(t, oldLastPostAt, c1.LastPostAt, "LastPostAt should not update for old message save")
 }
 
 func testPostStoreGet(t *testing.T, ss store.Store) {
@@ -1941,4 +1955,20 @@ func testPostStoreGetRepliesForExport(t *testing.T, ss store.Store) {
 	assert.Equal(t, reply1.Id, p2.Id)
 	assert.Equal(t, reply1.Message, p2.Message)
 	assert.Equal(t, reply1.Username, u1.Username)
+
+	// Checking whether replies by deleted user are exported
+	u1.DeleteAt = 1002
+	store.Must(ss.User().Update(&u1, false))
+
+	r1 = <-ss.Post().GetRepliesForExport(p1.Id)
+	assert.Nil(t, r1.Err)
+
+	d1 = r1.Data.([]*model.ReplyForExport)
+	assert.Len(t, d1, 1)
+
+	reply1 = d1[0]
+	assert.Equal(t, reply1.Id, p2.Id)
+	assert.Equal(t, reply1.Message, p2.Message)
+	assert.Equal(t, reply1.Username, u1.Username)
+
 }

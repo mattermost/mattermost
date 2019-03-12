@@ -4,6 +4,8 @@
 package commands
 
 import (
+	"io/ioutil"
+	"os"
 	"reflect"
 	"sort"
 	"strings"
@@ -11,6 +13,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type TestConfig struct {
@@ -70,7 +73,11 @@ func TestConfigValidate(t *testing.T) {
 	th := Setup()
 	defer th.TearDown()
 
-	assert.Error(t, th.RunCommand(t, "--config", "foo.json", "config", "validate"))
+	tempFile, err := ioutil.TempFile("", "TestConfigValidate")
+	require.NoError(t, err)
+	defer os.Remove(tempFile.Name())
+
+	assert.Error(t, th.RunCommand(t, "--config", tempFile.Name(), "config", "validate"))
 	th.CheckCommand(t, "config", "validate")
 }
 

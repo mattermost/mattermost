@@ -164,7 +164,7 @@ func TestPatchRole(t *testing.T) {
 	defer th.App.Srv.Store.Job().Delete(role.Id)
 
 	patch := &model.RolePatch{
-		Permissions: &[]string{"manage_system", "create_public_channel", "manage_webhooks"},
+		Permissions: &[]string{"manage_system", "create_public_channel", "manage_incoming_webhooks", "manage_outgoing_webhooks"},
 	}
 
 	received, resp := th.SystemAdminClient.PatchRole(role.Id, patch)
@@ -174,7 +174,7 @@ func TestPatchRole(t *testing.T) {
 	assert.Equal(t, received.Name, role.Name)
 	assert.Equal(t, received.DisplayName, role.DisplayName)
 	assert.Equal(t, received.Description, role.Description)
-	assert.EqualValues(t, received.Permissions, []string{"manage_system", "create_public_channel", "manage_webhooks"})
+	assert.EqualValues(t, received.Permissions, []string{"manage_system", "create_public_channel", "manage_incoming_webhooks", "manage_outgoing_webhooks"})
 	assert.Equal(t, received.SchemeManaged, role.SchemeManaged)
 
 	// Check a no-op patch succeeds.
@@ -192,7 +192,7 @@ func TestPatchRole(t *testing.T) {
 
 	// Check a change that the license would not allow.
 	patch = &model.RolePatch{
-		Permissions: &[]string{"manage_system", "manage_webhooks"},
+		Permissions: &[]string{"manage_system", "manage_incoming_webhooks", "manage_outgoing_webhooks"},
 	}
 
 	_, resp = th.SystemAdminClient.PatchRole(role.Id, patch)
@@ -209,6 +209,6 @@ func TestPatchRole(t *testing.T) {
 	assert.Equal(t, received.Name, role.Name)
 	assert.Equal(t, received.DisplayName, role.DisplayName)
 	assert.Equal(t, received.Description, role.Description)
-	assert.EqualValues(t, received.Permissions, []string{"manage_system", "manage_webhooks"})
+	assert.EqualValues(t, received.Permissions, []string{"manage_system", "manage_incoming_webhooks", "manage_outgoing_webhooks"})
 	assert.Equal(t, received.SchemeManaged, role.SchemeManaged)
 }

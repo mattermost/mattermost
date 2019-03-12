@@ -14,7 +14,6 @@ import (
 	"github.com/mattermost/mattermost-server/config"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
-	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -92,31 +91,10 @@ func init() {
 func configValidateCmdF(command *cobra.Command, args []string) error {
 	utils.TranslationsPreInit()
 	model.AppErrorInit(utils.T)
-	filePath, err := command.Flags().GetString("config")
+
+	_, err := getConfigStore(command)
 	if err != nil {
 		return err
-	}
-
-	filePath = fileutils.FindConfigFile(filePath)
-
-	file, err := os.Open(filePath)
-	if err != nil {
-		return err
-	}
-
-	decoder := json.NewDecoder(file)
-	config := model.Config{}
-	err = decoder.Decode(&config)
-	if err != nil {
-		return err
-	}
-
-	if _, err := file.Stat(); err != nil {
-		return err
-	}
-
-	if err := config.IsValid(); err != nil {
-		return errors.New(utils.T(err.Id))
 	}
 
 	CommandPrettyPrintln("The document is valid")
@@ -234,9 +212,6 @@ func configSetCmdF(command *cobra.Command, args []string) error {
 
 	f := updateConfigValue(configSetting, newVal, oldConfig, newConfig)
 	f(newConfig)
-	if _, err := configStore.Set(newConfig); err != nil {
-		return errors.Wrap(err, "failed to set config")
-	}
 
 	// UpdateConfig above would have already fixed these invalid locales, but we check again
 	// in the context of an explicit change to these parameters to avoid saving the fixed
@@ -245,7 +220,9 @@ func configSetCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Invalid locale configuration")
 	}
 
-	configStore.Save()
+	if _, err := configStore.Set(newConfig); err != nil {
+		return errors.Wrap(err, "failed to set config")
+	}
 
 	return nil
 }
@@ -387,6 +364,7 @@ func configResetCmdF(command *cobra.Command, args []string) error {
 		f := resetConfigValue(arg, defaultConfig, currentConfig)
 		app.UpdateConfig(f)
 		newConfig := app.Config()
+		f(newConfig)
 		if err := newConfig.IsValid(); err != nil {
 			return err
 		}
@@ -395,7 +373,6 @@ func configResetCmdF(command *cobra.Command, args []string) error {
 		}
 	}
 
-	app.PersistConfig()
 	return nil
 }
 
