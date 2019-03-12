@@ -13,8 +13,10 @@ import (
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/manualtesting"
 	"github.com/mattermost/mattermost-server/mlog"
+	"github.com/mattermost/mattermost-server/utils"
 	"github.com/mattermost/mattermost-server/web"
 	"github.com/mattermost/mattermost-server/wsapi"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
 
@@ -40,6 +42,11 @@ func serverCmdF(command *cobra.Command, args []string) error {
 	usedPlatform, _ := command.Flags().GetBool("platform")
 
 	interruptChan := make(chan os.Signal, 1)
+
+	if err = utils.TranslationsPreInit(); err != nil {
+		return errors.Wrapf(err, "unable to load Mattermost translation files")
+	}
+
 	return runServer(config, disableConfigWatch, usedPlatform, interruptChan)
 }
 
