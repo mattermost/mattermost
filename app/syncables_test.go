@@ -71,7 +71,6 @@ func TestPopulateSyncablesSince(t *testing.T) {
 	}
 
 	_, err = th.App.CreateGroupSyncable(&model.GroupSyncable{
-		CanLeave:   true,
 		AutoAdd:    true,
 		GroupId:    gleeGroup.Id,
 		SyncableId: practiceChannel.Id,
@@ -82,7 +81,6 @@ func TestPopulateSyncablesSince(t *testing.T) {
 	}
 
 	scienceTeamGroupSyncable, err := th.App.CreateGroupSyncable(&model.GroupSyncable{
-		CanLeave:   true,
 		AutoAdd:    false,
 		GroupId:    scienceGroup.Id,
 		SyncableId: nerdsTeam.Id,
@@ -93,7 +91,6 @@ func TestPopulateSyncablesSince(t *testing.T) {
 	}
 
 	scienceChannelGroupSyncable, err := th.App.CreateGroupSyncable(&model.GroupSyncable{
-		CanLeave:   true,
 		AutoAdd:    false,
 		GroupId:    scienceGroup.Id,
 		SyncableId: experimentsChannel.Id,
@@ -290,7 +287,6 @@ func TestPopulateSyncablesSince(t *testing.T) {
 	}
 
 	// the channel syncable is updated
-	scienceChannelGroupSyncable.CanLeave = false
 	scienceChannelGroupSyncable, err = th.App.UpdateGroupSyncable(scienceChannelGroupSyncable)
 	if err != nil {
 		t.Errorf("error updating group syncable: %s", err.Error())
