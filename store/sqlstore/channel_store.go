@@ -2512,6 +2512,7 @@ func (s SqlChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId s
 			From("Channels").
 			Where(sq.And{
 				sq.Gt{"Channels.Id": afterId},
+				sq.Eq{"Channels.DeleteAt": int(0)},
 				sq.Eq{"Channels.Type": []string{"D", "G"}},
 			}).
 			OrderBy("Channels.Id").
@@ -2536,8 +2537,9 @@ func (s SqlChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId s
 			Select("*").
 			From("ChannelMembers cm").
 			Join("Users u ON ( u.Id = cm.UserId )").
-			Where(sq.Eq{
-				"cm.ChannelId": channelIds,
+			Where(sq.And{
+				sq.Eq{"cm.ChannelId": channelIds},
+				sq.Eq{"u.DeleteAt": int(0)},
 			})
 
 		queryString, args, err = query.ToSql()

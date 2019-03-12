@@ -1396,7 +1396,6 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 		if _, err = s.GetReplica().Select(&posts, queryString, args...); err != nil {
 			result.Err = model.NewAppError("SqlPostStore.GetDirectPostParentsForExportAfter", "store.sql_post.get_direct_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
-
 		var channelIds []string
 		for _, post := range posts {
 			channelIds = append(channelIds, post.ChannelId)
