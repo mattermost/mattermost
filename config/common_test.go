@@ -26,9 +26,6 @@ func init() {
 		FileSettings: model.FileSettings{
 			PublicLinkSalt: sToP("abcdefghijklmnopqrstuvwxyz0123456789"),
 		},
-		EmailSettings: model.EmailSettings{
-			InviteSalt: sToP("abcdefghijklmnopqrstuvwxyz0123456789"),
-		},
 		LocalizationSettings: model.LocalizationSettings{
 			DefaultServerLocale: sToP("en"),
 			DefaultClientLocale: sToP("en"),
@@ -50,9 +47,6 @@ func init() {
 			DriverName:     sToP(model.IMAGE_DRIVER_LOCAL),
 			Directory:      sToP("/path/to/directory"),
 			PublicLinkSalt: sToP("abcdefghijklmnopqrstuvwxyz0123456789"),
-		},
-		EmailSettings: model.EmailSettings{
-			InviteSalt: sToP("abcdefghijklmnopqrstuvwxyz0123456789"),
 		},
 		LocalizationSettings: model.LocalizationSettings{
 			DefaultServerLocale: sToP("garbage"),

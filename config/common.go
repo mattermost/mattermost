@@ -96,7 +96,6 @@ func (cs *commonStore) load(f io.ReadCloser, needsSave bool, validate func(*mode
 	// such a change will be made before invoking.
 	needsSave = needsSave || loadedCfg.SqlSettings.AtRestEncryptKey == nil || len(*loadedCfg.SqlSettings.AtRestEncryptKey) == 0
 	needsSave = needsSave || loadedCfg.FileSettings.PublicLinkSalt == nil || len(*loadedCfg.FileSettings.PublicLinkSalt) == 0
-	needsSave = needsSave || loadedCfg.EmailSettings.InviteSalt == nil || len(*loadedCfg.EmailSettings.InviteSalt) == 0
 
 	loadedCfg.SetDefaults()
 

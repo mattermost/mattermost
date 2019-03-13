@@ -191,7 +191,6 @@
         "SMTPServer": "dockerhost",
         "SMTPPort": "2500",
         "ConnectionSecurity": "",
-        "InviteSalt": "",
         "SendPushNotifications": true,
         "PushNotificationServer": "https://push-test.mattermost.com",
         "PushNotificationContents": "generic",
