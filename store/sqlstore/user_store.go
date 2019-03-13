@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"sort"
 	"strings"
 
 	sq "github.com/Masterminds/squirrel"
@@ -1453,11 +1454,10 @@ func (us SqlUserStore) InferSystemInstallDate() store.StoreChannel {
 func (us SqlUserStore) GetUsersBatchForIndexing(startTime, endTime int64, limit int) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var users []*model.User
-		usersQuery, args, _ := sq.Select("*").
-			From("Users").
-			Where(sq.GtOrEq{"CreateAt": startTime}).
-			Where(sq.Lt{"CreateAt": endTime}).
-			OrderBy("CreateAt").
+		usersQuery, args, _ := us.usersQuery.
+			Where(sq.GtOrEq{"u.CreateAt": startTime}).
+			Where(sq.Lt{"u.CreateAt": endTime}).
+			OrderBy("u.CreateAt").
 			Limit(uint64(limit)).
 			ToSql()
 		_, err1 := us.GetSearchReplica().Select(&users, usersQuery, args...)
@@ -1473,7 +1473,8 @@ func (us SqlUserStore) GetUsersBatchForIndexing(startTime, endTime int64, limit 
 		}
 
 		var channelMembers []*model.ChannelMember
-		channelMembersQuery, args, _ := sq.Select("cm.*").
+		channelMembersQuery, args, _ := us.getQueryBuilder().
+			Select("cm.*").
 			From("ChannelMembers cm").
 			Join("Channels c ON cm.ChannelId = c.Id").
 			Where(sq.Eq{"c.Type": "O", "cm.UserId": userIds}).
@@ -1486,7 +1487,8 @@ func (us SqlUserStore) GetUsersBatchForIndexing(startTime, endTime int64, limit 
 		}
 
 		var teamMembers []*model.TeamMember
-		teamMembersQuery, args, _ := sq.Select("*").
+		teamMembersQuery, args, _ := us.getQueryBuilder().
+			Select("*").
 			From("TeamMembers").
 			Where(sq.Eq{"UserId": userIds, "DeleteAt": 0}).
 			ToSql()
@@ -1527,6 +1529,9 @@ func (us SqlUserStore) GetUsersBatchForIndexing(startTime, endTime int64, limit 
 		for _, user := range userMap {
 			usersForIndexing = append(usersForIndexing, user)
 		}
+		sort.Slice(usersForIndexing, func(i, j int) bool {
+			return usersForIndexing[i].CreateAt < usersForIndexing[j].CreateAt
+		})
 
 		result.Data = usersForIndexing
 	})
