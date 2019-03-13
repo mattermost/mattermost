@@ -17,7 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestPostStore(t *testing.T, ss store.Store) {
+func TestPostStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("Save", func(t *testing.T) { testPostStoreSave(t, ss) })
 	t.Run("SaveAndUpdateChannelMsgCounts", func(t *testing.T) { testPostStoreSaveChannelMsgCounts(t, ss) })
 	t.Run("Get", func(t *testing.T) { testPostStoreGet(t, ss) })
@@ -36,7 +36,7 @@ func TestPostStore(t *testing.T, ss store.Store) {
 	t.Run("Search", func(t *testing.T) { testPostStoreSearch(t, ss) })
 	t.Run("UserCountsWithPostsByDay", func(t *testing.T) { testUserCountsWithPostsByDay(t, ss) })
 	t.Run("PostCountsByDay", func(t *testing.T) { testPostCountsByDay(t, ss) })
-	t.Run("GetFlaggedPostsForTeam", func(t *testing.T) { testPostStoreGetFlaggedPostsForTeam(t, ss) })
+	t.Run("GetFlaggedPostsForTeam", func(t *testing.T) { testPostStoreGetFlaggedPostsForTeam(t, ss, s) })
 	t.Run("GetFlaggedPosts", func(t *testing.T) { testPostStoreGetFlaggedPosts(t, ss) })
 	t.Run("GetFlaggedPostsForChannel", func(t *testing.T) { testPostStoreGetFlaggedPostsForChannel(t, ss) })
 	t.Run("GetPostsCreatedAt", func(t *testing.T) { testPostStoreGetPostsCreatedAt(t, ss) })
@@ -48,9 +48,9 @@ func TestPostStore(t *testing.T, ss store.Store) {
 	t.Run("TestGetMaxPostSize", func(t *testing.T) { testGetMaxPostSize(t, ss) })
 	t.Run("GetParentsForExportAfter", func(t *testing.T) { testPostStoreGetParentsForExportAfter(t, ss) })
 	t.Run("GetRepliesForExport", func(t *testing.T) { testPostStoreGetRepliesForExport(t, ss) })
-	t.Run("GetDirectPostParentsForExportAfter", func(t *testing.T) { testPostStoreGetDirectPostParentsForExportAfter(t, ss) })
-	t.Run("GetDirectPostParentsForExportAfterDeleted", func(t *testing.T) { testPostStoreGetDirectPostParentsForExportAfterDeleted(t, ss) })
-	t.Run("GetDirectPostParentsForExportAfterBatched", func(t *testing.T) { testPostStoreGetDirectPostParentsForExportAfterBatched(t, ss) })
+	t.Run("GetDirectPostParentsForExportAfter", func(t *testing.T) { testPostStoreGetDirectPostParentsForExportAfter(t, ss, s) })
+	t.Run("GetDirectPostParentsForExportAfterDeleted", func(t *testing.T) { testPostStoreGetDirectPostParentsForExportAfterDeleted(t, ss, s) })
+	t.Run("GetDirectPostParentsForExportAfterBatched", func(t *testing.T) { testPostStoreGetDirectPostParentsForExportAfterBatched(t, ss, s) })
 }
 
 func testPostStoreSave(t *testing.T, ss store.Store) {
@@ -1196,7 +1196,7 @@ func testPostCountsByDay(t *testing.T, ss store.Store) {
 	}
 }
 
-func testPostStoreGetFlaggedPostsForTeam(t *testing.T, ss store.Store) {
+func testPostStoreGetFlaggedPostsForTeam(t *testing.T, ss store.Store, s SqlSupplier) {
 	c1 := &model.Channel{}
 	c1.TeamId = model.NewId()
 	c1.DisplayName = "Channel1"
@@ -1369,6 +1369,9 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, ss store.Store) {
 	if len(r4.Order) != 3 {
 		t.Fatal("should have 3 posts")
 	}
+
+	// Manually truncate Channels table until testlib can handle cleanups
+	s.GetMaster().Exec("TRUNCATE Channels")
 }
 
 func testPostStoreGetFlaggedPosts(t *testing.T, ss store.Store) {
@@ -1977,7 +1980,7 @@ func testPostStoreGetRepliesForExport(t *testing.T, ss store.Store) {
 
 }
 
-func testPostStoreGetDirectPostParentsForExportAfter(t *testing.T, ss store.Store) {
+func testPostStoreGetDirectPostParentsForExportAfter(t *testing.T, ss store.Store, s SqlSupplier) {
 	teamId := model.NewId()
 
 	o1 := model.Channel{}
@@ -2023,11 +2026,11 @@ func testPostStoreGetDirectPostParentsForExportAfter(t *testing.T, ss store.Stor
 
 	assert.Equal(t, p1.Message, d1[0].Message)
 
-	// Manual cleanup to prevent test failures on post exports
-	<-ss.Post().PermanentDeleteByChannel(o1.Id)
+	// Manually truncate Channels table until testlib can handle cleanups
+	s.GetMaster().Exec("TRUNCATE Channels")
 }
 
-func testPostStoreGetDirectPostParentsForExportAfterDeleted(t *testing.T, ss store.Store) {
+func testPostStoreGetDirectPostParentsForExportAfterDeleted(t *testing.T, ss store.Store, s SqlSupplier) {
 	teamId := model.NewId()
 
 	o1 := model.Channel{}
@@ -2086,11 +2089,12 @@ func testPostStoreGetDirectPostParentsForExportAfterDeleted(t *testing.T, ss sto
 	d1 := r1.Data.([]*model.DirectPostForExport)
 
 	assert.Equal(t, 0, len(d1))
-	// Manual cleanup to prevent test failures on post exports
-	<-ss.Post().PermanentDeleteByChannel(o1.Id)
+
+	// Manually truncate Channels table until testlib can handle cleanups
+	s.GetMaster().Exec("TRUNCATE Channels")
 }
 
-func testPostStoreGetDirectPostParentsForExportAfterBatched(t *testing.T, ss store.Store) {
+func testPostStoreGetDirectPostParentsForExportAfterBatched(t *testing.T, ss store.Store, s SqlSupplier) {
 	teamId := model.NewId()
 
 	o1 := model.Channel{}
@@ -2159,6 +2163,6 @@ func testPostStoreGetDirectPostParentsForExportAfterBatched(t *testing.T, ss sto
 	sort.Slice(exportedPostIds, func(i, j int) bool { return exportedPostIds[i] < exportedPostIds[j] })
 	assert.ElementsMatch(t, postIds[:100], exportedPostIds)
 
-	// Manual cleanup to prevent test failures on post exports
-	<-ss.Post().PermanentDeleteByChannel(o1.Id)
+	// Manually truncate Channels table until testlib can handle cleanups
+	s.GetMaster().Exec("TRUNCATE Channels")
 }
