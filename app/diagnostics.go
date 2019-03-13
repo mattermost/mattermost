@@ -686,6 +686,7 @@ func (a *App) trackServer() {
 		"version":          model.CurrentVersion,
 		"database_type":    *a.Config().SqlSettings.DriverName,
 		"operating_system": runtime.GOOS,
+		"build_type":       *a.Config().ServiceSettings.BuildType,
 	}
 
 	if scr := <-a.Srv.Store.User().AnalyticsGetSystemAdminCount(); scr.Err == nil {

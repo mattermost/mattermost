@@ -96,6 +96,7 @@ const (
 	SERVICE_SETTINGS_DEFAULT_LISTEN_AND_ADDRESS = ":8065"
 	SERVICE_SETTINGS_DEFAULT_GFYCAT_API_KEY     = "2_KtH_W5"
 	SERVICE_SETTINGS_DEFAULT_GFYCAT_API_SECRET  = "3wLVZPiswc3DnaiaFoLkDvB4X0IV6CpMkj4tf2inJRsBY6-FnkT08zGmppWFgeof"
+	SERVICE_SETTINGS_DEFAULT_BUILD_TYPE         = "custom"
 
 	TEAM_SETTINGS_DEFAULT_SITE_NAME                = "Mattermost"
 	TEAM_SETTINGS_DEFAULT_MAX_USERS_PER_TEAM       = 50
@@ -243,6 +244,7 @@ type ServiceSettings struct {
 	EnableMultifactorAuthentication                   *bool
 	EnforceMultifactorAuthentication                  *bool
 	EnableUserAccessTokens                            *bool
+	BuildType                                         *string
 	AllowCorsFrom                                     *string
 	CorsExposedHeaders                                *string
 	CorsAllowCredentials                              *bool
@@ -507,6 +509,10 @@ func (s *ServiceSettings) SetDefaults() {
 
 	if s.WebsocketSecurePort == nil {
 		s.WebsocketSecurePort = NewInt(443)
+	}
+
+	if s.BuildType == nil {
+		s.BuildType = NewString(SERVICE_SETTINGS_DEFAULT_BUILD_TYPE)
 	}
 
 	if s.AllowCorsFrom == nil {
