@@ -1084,7 +1084,7 @@ func (us SqlUserStore) PermanentDelete(userId string) store.StoreChannel {
 
 func (us SqlUserStore) Count(options model.UserCountOptions) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		query := sq.Select("COUNT(Users.Id)").From("Users")
+		query := sq.Select("COUNT(DISTINCT Users.Id)").From("Users")
 
 		if !options.IncludeDeleted {
 			query = query.Where("Users.DeleteAt = 0")
@@ -1112,7 +1112,7 @@ func (us SqlUserStore) Count(options model.UserCountOptions) store.StoreChannel 
 			query = query.Where(sq.Or{
 				sq.Eq{"rtm.TeamId": options.Teams},
 				sq.Eq{"rcm.ChannelId": options.Channels},
-			}).GroupBy("Users.Id")
+			})
 		}
 
 		if us.DriverName() == model.DATABASE_DRIVER_POSTGRES {
@@ -1390,13 +1390,24 @@ func (us SqlUserStore) AnalyticsGetSystemAdminCount() store.StoreChannel {
 	})
 }
 
-func (us SqlUserStore) GetProfilesNotInTeam(teamId string, offset int, limit int) store.StoreChannel {
+func (us SqlUserStore) GetProfilesNotInTeam(teamId string, offset int, limit int, teamIds []string, channelIds []string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		query := us.usersQuery.
 			LeftJoin("TeamMembers tm ON ( tm.UserId = u.Id AND tm.DeleteAt = 0 AND tm.TeamId = ? )", teamId).
 			Where("tm.UserId IS NULL").
 			OrderBy("u.Username ASC").
 			Offset(uint64(offset)).Limit(uint64(limit))
+
+		if teamIds != nil || channelIds != nil {
+			query = query.
+				LeftJoin("TeamMembers rtm ON ( rtm.UserId = u.Id AND rtm.DeleteAt = 0 )").
+				LeftJoin("ChannelMembers rcm ON ( rcm.UserId = u.Id )").
+				Where(sq.Or{
+					sq.Eq{"rtm.TeamId": teamIds},
+					sq.Eq{"rcm.ChannelId": channelIds},
+				}).
+				Distinct()
+		}
 
 		queryString, args, err := query.ToSql()
 		if err != nil {

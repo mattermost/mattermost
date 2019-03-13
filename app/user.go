@@ -464,8 +464,8 @@ func (a *App) GetUsersInTeam(options *model.UserGetOptions) ([]*model.User, *mod
 	return result.Data.([]*model.User), nil
 }
 
-func (a *App) GetUsersNotInTeam(teamId string, offset int, limit int) ([]*model.User, *model.AppError) {
-	result := <-a.Srv.Store.User().GetProfilesNotInTeam(teamId, offset, limit)
+func (a *App) GetUsersNotInTeam(teamId string, offset int, limit int, teamIds []string, channelIds []string) ([]*model.User, *model.AppError) {
+	result := <-a.Srv.Store.User().GetProfilesNotInTeam(teamId, offset, limit, teamIds, channelIds)
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -481,8 +481,8 @@ func (a *App) GetUsersInTeamPage(options *model.UserGetOptions, asAdmin bool) ([
 	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
-func (a *App) GetUsersNotInTeamPage(teamId string, page int, perPage int, asAdmin bool) ([]*model.User, *model.AppError) {
-	users, err := a.GetUsersNotInTeam(teamId, page*perPage, perPage)
+func (a *App) GetUsersNotInTeamPage(teamId string, page int, perPage int, asAdmin bool, teamIds []string, channelIds []string) ([]*model.User, *model.AppError) {
+	users, err := a.GetUsersNotInTeam(teamId, page*perPage, perPage, teamIds, channelIds)
 	if err != nil {
 		return nil, err
 	}
@@ -597,7 +597,7 @@ func (a *App) GetUsersWithoutTeam(offset int, limit int) ([]*model.User, *model.
 }
 
 func (a *App) GetUsersByIds(userIds []string, asAdmin bool, teamIds []string, channelIds []string) ([]*model.User, *model.AppError) {
-	result := <-a.Srv.Store.User().GetProfileByIds(userIds, len(teamIds) == 0 && len(channelIds) == 0, teamIds, channelIds)
+	result := <-a.Srv.Store.User().GetProfileByIds(userIds, teamIds == nil && channelIds == nil, teamIds, channelIds)
 	if result.Err != nil {
 		return nil, result.Err
 	}

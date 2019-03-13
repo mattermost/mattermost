@@ -9,15 +9,8 @@ import (
 )
 
 func TestResctrictedViewMembers(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := Setup(t)
 	defer th.TearDown()
-
-	team1 := th.CreateTeam()
-	team2 := th.CreateTeam()
-
-	channel1 := th.CreateChannel(team1)
-	channel2 := th.CreateChannel(team1)
-	channel3 := th.CreateChannel(team2)
 
 	user1 := th.CreateUser()
 	user1.Nickname = "test user1"
@@ -31,6 +24,15 @@ func TestResctrictedViewMembers(t *testing.T) {
 	user3.Username = "test-user-3"
 	user3.Nickname = "test user3"
 	th.App.UpdateUser(user3, false)
+
+	th.BasicUser = user1
+
+	team1 := th.CreateTeam()
+	team2 := th.CreateTeam()
+
+	channel1 := th.CreateChannel(team1)
+	channel2 := th.CreateChannel(team1)
+	channel3 := th.CreateChannel(team2)
 
 	th.LinkUserToTeam(user1, team1)
 	th.LinkUserToTeam(user2, team1)
@@ -89,6 +91,15 @@ func TestResctrictedViewMembers(t *testing.T) {
 					Channels: []string{channel1.Id},
 				},
 				model.UserSearch{Term: "test", TeamId: team2.Id},
+				[]string{},
+			},
+			{
+				"with restricting everything",
+				&model.ViewUsersRestrictions{
+					Channels: []string{},
+					Teams:    []string{},
+				},
+				model.UserSearch{Term: "test", TeamId: team1.Id},
 				[]string{},
 			},
 		}
@@ -162,6 +173,15 @@ func TestResctrictedViewMembers(t *testing.T) {
 				team2.Id,
 				[]string{},
 			},
+			{
+				"with restricting everything",
+				&model.ViewUsersRestrictions{
+					Channels: []string{},
+					Teams:    []string{},
+				},
+				team1.Id,
+				[]string{},
+			},
 		}
 
 		for _, tc := range testCases {
@@ -206,6 +226,14 @@ func TestResctrictedViewMembers(t *testing.T) {
 					Channels: []string{channel1.Id},
 				},
 				[]string{user1.Id},
+			},
+			{
+				"with restricting everything",
+				&model.ViewUsersRestrictions{
+					Channels: []string{},
+					Teams:    []string{},
+				},
+				[]string{},
 			},
 		}
 
@@ -278,6 +306,15 @@ func TestResctrictedViewMembers(t *testing.T) {
 				team1.Id,
 				[]string{},
 			},
+			{
+				"with restricting everything",
+				&model.ViewUsersRestrictions{
+					Channels: []string{},
+					Teams:    []string{},
+				},
+				team2.Id,
+				[]string{},
+			},
 		}
 
 		for _, tc := range testCases {
@@ -287,7 +324,7 @@ func TestResctrictedViewMembers(t *testing.T) {
 					options.InTeams = tc.Restrictions.Teams
 					options.InChannels = tc.Restrictions.Channels
 				}
-				results, err := th.App.GetUsersNotInTeam(tc.TeamId, 0, 100)
+				results, err := th.App.GetUsersNotInTeam(tc.TeamId, 0, 100, options.InTeams, options.InChannels)
 				require.Nil(t, err)
 				ids := []string{}
 				for _, result := range results {
@@ -326,6 +363,15 @@ func TestResctrictedViewMembers(t *testing.T) {
 				},
 				[]string{user1.Id, user2.Id, user3.Id},
 				[]string{user1.Id},
+			},
+			{
+				"with restricting everything",
+				&model.ViewUsersRestrictions{
+					Channels: []string{},
+					Teams:    []string{},
+				},
+				[]string{user1.Id, user2.Id, user3.Id},
+				[]string{},
 			},
 		}
 
@@ -377,6 +423,15 @@ func TestResctrictedViewMembers(t *testing.T) {
 				[]string{user1.Username, user2.Username, user3.Username},
 				[]string{user1.Id},
 			},
+			{
+				"with restricting everything",
+				&model.ViewUsersRestrictions{
+					Channels: []string{},
+					Teams:    []string{},
+				},
+				[]string{user1.Username, user2.Username, user3.Username},
+				[]string{},
+			},
 		}
 
 		for _, tc := range testCases {
@@ -422,6 +477,14 @@ func TestResctrictedViewMembers(t *testing.T) {
 					Channels: []string{channel1.Id},
 				},
 				1,
+			},
+			{
+				"with restricting everything",
+				&model.ViewUsersRestrictions{
+					Channels: []string{},
+					Teams:    []string{},
+				},
+				0,
 			},
 		}
 

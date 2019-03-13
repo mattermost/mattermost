@@ -3103,7 +3103,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("get not in team 1, offset 0, limit 100000", func(t *testing.T) {
-		result := <-ss.User().GetProfilesNotInTeam(teamId, 0, 100000)
+		result := <-ss.User().GetProfilesNotInTeam(teamId, 0, 100000, nil, nil)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{
 			sanitized(u2),
@@ -3112,7 +3112,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("get not in team 1, offset 1, limit 1", func(t *testing.T) {
-		result := <-ss.User().GetProfilesNotInTeam(teamId, 1, 1)
+		result := <-ss.User().GetProfilesNotInTeam(teamId, 1, 1, nil, nil)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{
 			sanitized(u3),
@@ -3120,7 +3120,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("get not in team 2, offset 0, limit 100", func(t *testing.T) {
-		result := <-ss.User().GetProfilesNotInTeam(teamId2, 0, 100)
+		result := <-ss.User().GetProfilesNotInTeam(teamId2, 0, 100, nil, nil)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{
 			sanitized(u1),
@@ -3143,7 +3143,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("get not in team 1, offset 0, limit 100000 after update", func(t *testing.T) {
-		result := <-ss.User().GetProfilesNotInTeam(teamId, 0, 100000)
+		result := <-ss.User().GetProfilesNotInTeam(teamId, 0, 100000, nil, nil)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{
 			sanitized(u3),
@@ -3167,7 +3167,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("get not in team 1, offset 0, limit 100000 after second update", func(t *testing.T) {
-		result := <-ss.User().GetProfilesNotInTeam(teamId, 0, 100000)
+		result := <-ss.User().GetProfilesNotInTeam(teamId, 0, 100000, nil, nil)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{
 			sanitized(u1),

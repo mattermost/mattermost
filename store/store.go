@@ -288,7 +288,7 @@ type UserStore interface {
 	SearchWithoutTeam(term string, options *model.UserSearchOptions) StoreChannel
 	AnalyticsGetInactiveUsersCount() StoreChannel
 	AnalyticsGetSystemAdminCount() StoreChannel
-	GetProfilesNotInTeam(teamId string, offset int, limit int) StoreChannel
+	GetProfilesNotInTeam(teamId string, offset int, limit int, teamIds []string, channelIds []string) StoreChannel
 	GetEtagForProfilesNotInTeam(teamId string) StoreChannel
 	ClearAllCustomRoleAssignments() StoreChannel
 	InferSystemInstallDate() StoreChannel

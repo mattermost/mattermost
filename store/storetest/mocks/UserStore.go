@@ -434,13 +434,13 @@ func (_m *UserStore) GetProfilesNotInChannel(teamId string, channelId string, of
 	return r0
 }
 
-// GetProfilesNotInTeam provides a mock function with given fields: teamId, offset, limit
-func (_m *UserStore) GetProfilesNotInTeam(teamId string, offset int, limit int) store.StoreChannel {
-	ret := _m.Called(teamId, offset, limit)
+// GetProfilesNotInTeam provides a mock function with given fields: teamId, offset, limit, teamIds, channelIds
+func (_m *UserStore) GetProfilesNotInTeam(teamId string, offset int, limit int, teamIds []string, channelIds []string) store.StoreChannel {
+	ret := _m.Called(teamId, offset, limit, teamIds, channelIds)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, int, int) store.StoreChannel); ok {
-		r0 = rf(teamId, offset, limit)
+	if rf, ok := ret.Get(0).(func(string, int, int, []string, []string) store.StoreChannel); ok {
+		r0 = rf(teamId, offset, limit, teamIds, channelIds)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)
