@@ -1444,6 +1444,96 @@ func TestAddTeamMember(t *testing.T) {
 	}
 }
 
+func TestAddTeamMemberMyself(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+
+	// Check the appropriate permissions are enforced.
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+
+	th.LoginBasic()
+
+	testCases := []struct {
+		Name              string
+		Public            bool
+		PublicPermission  bool
+		PrivatePermission bool
+		ExpectedSuccess   bool
+	}{
+		{
+			Name:              "Try to join an open team without the permissions",
+			Public:            true,
+			PublicPermission:  false,
+			PrivatePermission: false,
+			ExpectedSuccess:   false,
+		},
+		{
+			Name:              "Try to join a private team without the permissions",
+			Public:            false,
+			PublicPermission:  false,
+			PrivatePermission: false,
+			ExpectedSuccess:   false,
+		},
+		{
+			Name:              "Try to join an open team without public permission but with private permissions",
+			Public:            true,
+			PublicPermission:  false,
+			PrivatePermission: true,
+			ExpectedSuccess:   false,
+		},
+		{
+			Name:              "Try to join a private team without private permission but with public permission",
+			Public:            false,
+			PublicPermission:  true,
+			PrivatePermission: false,
+			ExpectedSuccess:   false,
+		},
+		{
+			Name:              "Join an open team with the permissions",
+			Public:            true,
+			PublicPermission:  true,
+			PrivatePermission: false,
+			ExpectedSuccess:   true,
+		},
+		{
+			Name:              "Join a private team with the permissions",
+			Public:            false,
+			PublicPermission:  false,
+			PrivatePermission: true,
+			ExpectedSuccess:   true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			team := th.CreateTeam()
+			team.AllowOpenInvite = tc.Public
+			th.App.UpdateTeam(team)
+			if tc.PublicPermission {
+				th.AddPermissionToRole(model.PERMISSION_JOIN_PUBLIC_TEAMS.Id, model.SYSTEM_USER_ROLE_ID)
+			} else {
+				th.RemovePermissionFromRole(model.PERMISSION_JOIN_PUBLIC_TEAMS.Id, model.SYSTEM_USER_ROLE_ID)
+			}
+			if tc.PrivatePermission {
+				th.AddPermissionToRole(model.PERMISSION_JOIN_PRIVATE_TEAMS.Id, model.SYSTEM_USER_ROLE_ID)
+			} else {
+				th.RemovePermissionFromRole(model.PERMISSION_JOIN_PRIVATE_TEAMS.Id, model.SYSTEM_USER_ROLE_ID)
+			}
+			_, resp := Client.AddTeamMember(team.Id, th.BasicUser.Id)
+			if tc.ExpectedSuccess {
+				CheckNoError(t, resp)
+			} else {
+				CheckForbiddenStatus(t, resp)
+			}
+		})
+	}
+
+}
+
 func TestAddTeamMembers(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
