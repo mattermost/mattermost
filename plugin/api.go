@@ -44,10 +44,26 @@ type API interface {
 	// Minimum server version: 5.6
 	SavePluginConfig(config map[string]interface{}) *model.AppError
 
+	// GetLicense returns the current license used by the Mattermoset server. Returns nil if the
+	// the server does not have a license.
+	//
+	// Minimum server version: 5.10
+	GetLicense() *model.License
+
 	// GetServerVersion return the current Mattermost server version
 	//
 	// Minimum server version: 5.4
 	GetServerVersion() string
+
+	// GetSystemInstallDate returns the time that Mattermost was first installed and ran.
+	//
+	// Minimum server version: 5.10
+	GetSystemInstallDate() (int64, *model.AppError)
+
+	// GetDiagnosticId returns a unique identifier used by the server for diagnostic reports.
+	//
+	// Minimum server version: 5.10
+	GetDiagnosticId() string
 
 	// CreateUser creates a user.
 	CreateUser(user *model.User) (*model.User, *model.AppError)
