@@ -634,6 +634,9 @@ func UpgradeDatabaseToVersion510(sqlStore SqlStore) {
 		}
 	}
 
+	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "IsGroupConstrained", "tinyint(1)", "boolean")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Teams", "IsGroupConstrained", "tinyint(1)", "boolean")
+
 	// 	saveSchemaVersion(sqlStore, VERSION_5_10_0)
 	// }
 }
