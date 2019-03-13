@@ -51,7 +51,7 @@ type Channel struct {
 	CreatorId          string                 `json:"creator_id"`
 	SchemeId           *string                `json:"scheme_id"`
 	Props              map[string]interface{} `json:"props" db:"-"`
-	IsGroupConstrained bool                   `json:"is_group_constrained"`
+	GroupConstrained bool                   `json:"group_constrained"`
 }
 
 type ChannelWithTeamData struct {
@@ -66,7 +66,7 @@ type ChannelPatch struct {
 	Name               *string `json:"name"`
 	Header             *string `json:"header"`
 	Purpose            *string `json:"purpose"`
-	IsGroupConstrained *bool   `json:"is_group_constrained"`
+	GroupConstrained *bool   `json:"group_constrained"`
 }
 
 type ChannelForExport struct {
@@ -184,8 +184,8 @@ func (o *Channel) Patch(patch *ChannelPatch) {
 		o.Purpose = *patch.Purpose
 	}
 
-	if patch.IsGroupConstrained != nil {
-		o.IsGroupConstrained = *patch.IsGroupConstrained
+	if patch.GroupConstrained != nil {
+		o.GroupConstrained = *patch.GroupConstrained
 	}
 }
 

@@ -391,7 +391,7 @@ func TestPatchTeam(t *testing.T) {
 	patch.CompanyName = model.NewString("Other company name")
 	patch.InviteId = model.NewString("inviteid1")
 	patch.AllowOpenInvite = model.NewBool(true)
-	patch.IsGroupConstrained = model.NewBool(true)
+	patch.GroupConstrained = model.NewBool(true)
 
 	rteam, resp := Client.PatchTeam(team.Id, patch)
 	CheckNoError(t, resp)
@@ -411,8 +411,8 @@ func TestPatchTeam(t *testing.T) {
 	if !rteam.AllowOpenInvite {
 		t.Fatal("AllowOpenInvite did not update properly")
 	}
-	if !rteam.IsGroupConstrained {
-		t.Fatal("IsGroupConstrained did not update properly")
+	if !rteam.GroupConstrained {
+		t.Fatal("GroupConstrained did not update properly")
 	}
 
 	_, resp = Client.PatchTeam("junk", patch)

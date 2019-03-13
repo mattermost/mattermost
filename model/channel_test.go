@@ -42,7 +42,7 @@ func TestChannelPatch(t *testing.T) {
 	*p.DisplayName = NewId()
 	*p.Header = NewId()
 	*p.Purpose = NewId()
-	*p.IsGroupConstrained = true
+	*p.GroupConstrained = true
 
 	o := Channel{Id: NewId(), Name: NewId()}
 	o.Patch(p)
@@ -59,7 +59,7 @@ func TestChannelPatch(t *testing.T) {
 	if *p.Purpose != o.Purpose {
 		t.Fatal("do not match")
 	}
-	if *p.IsGroupConstrained != o.IsGroupConstrained {
+	if *p.GroupConstrained != o.GroupConstrained {
 		t.Fatal("do not match")
 	}
 }
