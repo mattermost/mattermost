@@ -361,6 +361,7 @@ func TestExportDMandGMPost(t *testing.T) {
 
 	// DM Channel
 	dmChannel := th1.CreateDmChannel(th1.BasicUser2)
+	dmMembers := []string{th1.BasicUser.Username, th1.BasicUser2.Username}
 
 	user1 := th1.CreateUser()
 	th1.LinkUserToTeam(user1, th1.BasicTeam)
@@ -369,6 +370,7 @@ func TestExportDMandGMPost(t *testing.T) {
 
 	// GM Channel
 	gmChannel := th1.CreateGroupChannel(user1, user2)
+	gmMembers := []string{th1.BasicUser.Username, user1.Username, user2.Username}
 
 	th1.CreatePost(dmChannel)
 	th1.CreatePost(gmChannel)
@@ -398,6 +400,8 @@ func TestExportDMandGMPost(t *testing.T) {
 	result = <-th2.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
 	posts = result.Data.([]*model.DirectPostForExport)
 	assert.Equal(t, 2, len(posts))
+	assert.ElementsMatch(t, dmMembers, *posts[0].ChannelMembers)
+	assert.ElementsMatch(t, gmMembers, *posts[1].ChannelMembers)
 }
 
 func TestExportDMPostWithSelf(t *testing.T) {
@@ -433,5 +437,4 @@ func TestExportDMPostWithSelf(t *testing.T) {
 	result = <-th2.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
 	posts = result.Data.([]*model.DirectPostForExport)
 	assert.Equal(t, 0, len(posts))
-
 }
