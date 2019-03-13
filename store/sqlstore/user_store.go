@@ -409,13 +409,19 @@ func (us SqlUserStore) GetAllProfiles(options *model.UserGetOptions) store.Store
 	isPostgreSQL := us.DriverName() == model.DATABASE_DRIVER_POSTGRES
 	return store.Do(func(result *store.StoreResult) {
 		query := us.usersQuery.
-			LeftJoin("TeamMembers tm ON ( tm.UserId = u.Id AND tm.DeleteAt = 0 )").
-			LeftJoin("ChannelMembers cm ON ( cm.UserId = u.Id )").
-			Where(eqsFromList("tm.TeamId", append(options.InTeams, options.InTeamId))).
-			Where(eqsFromList("cm.ChannelId", append(options.InChannels, options.InChannelId))).
 			OrderBy("u.Username ASC").
-			Offset(uint64(options.Page * options.PerPage)).Limit(uint64(options.PerPage)).
-			Distinct()
+			Offset(uint64(options.Page * options.PerPage)).Limit(uint64(options.PerPage))
+
+		if options.InTeams != nil || options.InChannels != nil {
+			query = query.
+				LeftJoin("TeamMembers tm ON ( tm.UserId = u.Id AND tm.DeleteAt = 0 )").
+				LeftJoin("ChannelMembers cm ON ( cm.UserId = u.Id )").
+				Where(sq.Or{
+					sq.Eq{"tm.TeamId": options.InTeams},
+					sq.Eq{"cm.ChannelId": options.InChannels},
+				}).
+				Distinct()
+		}
 
 		query = applyRoleFilter(query, options.Role, isPostgreSQL)
 
@@ -467,29 +473,25 @@ func (s SqlUserStore) GetEtagForProfiles(teamId string) store.StoreChannel {
 	})
 }
 
-func eqsFromList(field string, values []string) sq.Or {
-	eqs := sq.Or{}
-	for _, value := range values {
-		if value != "" {
-			eqs = append(eqs, sq.Eq{field: value})
-		}
-	}
-	if len(eqs) == 0 {
-		return sq.Or{sq.Eq{"1": "1"}}
-	}
-	return eqs
-}
-
 func (us SqlUserStore) GetProfiles(options *model.UserGetOptions) store.StoreChannel {
 	isPostgreSQL := us.DriverName() == model.DATABASE_DRIVER_POSTGRES
 	return store.Do(func(result *store.StoreResult) {
 		query := us.usersQuery.
 			Join("TeamMembers tm ON ( tm.UserId = u.Id AND tm.DeleteAt = 0 )").
-			Join("ChannelMembers cm ON ( cm.UserId = u.Id )").
-			Where(eqsFromList("tm.TeamId", append(options.InTeams, options.InTeamId))).
-			Where(eqsFromList("cm.ChannelId", append(options.InChannels, options.InChannelId))).
+			Where("tm.TeamId = ?", options.InTeamId).
 			OrderBy("u.Username ASC").
 			Offset(uint64(options.Page * options.PerPage)).Limit(uint64(options.PerPage))
+
+		if options.InTeams != nil || options.InChannels != nil {
+			query = query.
+				LeftJoin("TeamMembers rtm ON ( rtm.UserId = u.Id AND rtm.DeleteAt = 0 )").
+				LeftJoin("ChannelMembers rcm ON ( rcm.UserId = u.Id )").
+				Where(sq.Or{
+					sq.Eq{"rtm.TeamId": options.InTeams},
+					sq.Eq{"rcm.ChannelId": options.InChannels},
+				}).
+				Distinct()
+		}
 
 		query = applyRoleFilter(query, options.Role, isPostgreSQL)
 
@@ -725,15 +727,15 @@ func (us SqlUserStore) GetProfilesByUsernames(usernames []string, teamIds []stri
 	return store.Do(func(result *store.StoreResult) {
 		query := us.usersQuery
 
-		if teamIds != nil {
+		if teamIds != nil || channelIds != nil {
 			query = query.
 				LeftJoin("TeamMembers tm ON ( tm.UserId = u.Id AND tm.DeleteAt = 0 )").
-				Where(eqsFromList("tm.TeamId", teamIds))
-		}
-		if channelIds != nil {
-			query = query.
 				LeftJoin("ChannelMembers cm ON ( cm.UserId = u.Id )").
-				Where(eqsFromList("cm.ChannelId", channelIds))
+				Where(sq.Or{
+					sq.Eq{"tm.TeamId": teamIds},
+					sq.Eq{"cm.ChannelId": channelIds},
+				}).
+				Distinct()
 		}
 
 		query = query.
@@ -864,15 +866,15 @@ func (us SqlUserStore) GetProfileByIds(userIds []string, allowFromCache bool, te
 			}).
 			OrderBy("u.Username ASC")
 
-		if teamIds != nil {
+		if teamIds != nil || channelIds != nil {
 			query = query.
 				LeftJoin("TeamMembers tm ON ( tm.UserId = u.Id AND tm.DeleteAt = 0 )").
-				Where(eqsFromList("tm.TeamId", teamIds))
-		}
-		if channelIds != nil {
-			query = query.
 				LeftJoin("ChannelMembers cm ON ( cm.UserId = u.Id )").
-				Where(eqsFromList("cm.ChannelId", channelIds))
+				Where(sq.Or{
+					sq.Eq{"tm.TeamId": teamIds},
+					sq.Eq{"cm.ChannelId": channelIds},
+				}).
+				Distinct()
 		}
 
 		queryString, args, err := query.ToSql()
@@ -1101,13 +1103,16 @@ func (us SqlUserStore) Count(options model.UserCountOptions) store.StoreChannel 
 			}
 		}
 
-		if options.TeamId != "" || len(options.Teams) > 0 {
-			query = query.LeftJoin("TeamMembers AS tm ON Users.Id = TeamMembers.UserId")
-			query = query.Where(eqsFromList("tm.TeamId", append(options.Teams, options.TeamId)))
+		if options.TeamId != "" {
+			query = query.LeftJoin("TeamMembers AS tm ON Users.Id = tm.UserId").Where("tm.TeamId = ? AND tm.DeleteAt = 0", options.TeamId)
 		}
-		if len(options.Channels) > 0 {
-			query = query.LeftJoin("ChannelMembers AS cm ON Users.Id = ChannelMembers.UserId")
-			query = query.Where(eqsFromList("cm.ChannelId", append(options.Channels)))
+		if options.Teams != nil || options.Channels != nil {
+			query = query.LeftJoin("TeamMembers AS rtm ON Users.Id = rtm.UserId")
+			query = query.LeftJoin("ChannelMembers AS rcm ON Users.Id = rcm.UserId")
+			query = query.Where(sq.Or{
+				sq.Eq{"rtm.TeamId": options.Teams},
+				sq.Eq{"rcm.ChannelId": options.Channels},
+			}).GroupBy("Users.Id")
 		}
 
 		if us.DriverName() == model.DATABASE_DRIVER_POSTGRES {
@@ -1333,12 +1338,16 @@ func (us SqlUserStore) performSearch(query sq.SelectBuilder, term string, option
 		query = generateSearchQuery(query, strings.Fields(term), searchType, isPostgreSQL)
 	}
 
-	query = query.
-		LeftJoin("TeamMembers tm ON ( tm.UserId = u.Id AND tm.DeleteAt = 0 )").
-		LeftJoin("ChannelMembers cm ON ( cm.UserId = u.Id )").
-		Where(eqsFromList("tm.TeamId", options.InTeams)).
-		Where(eqsFromList("cm.ChannelId", options.InChannels)).
-		Distinct()
+	if options.InTeams != nil || options.InChannels != nil {
+		query = query.
+			LeftJoin("TeamMembers rtm ON ( rtm.UserId = u.Id AND rtm.DeleteAt = 0 )").
+			LeftJoin("ChannelMembers rcm ON ( rcm.UserId = u.Id )").
+			Where(sq.Or{
+				sq.Eq{"rtm.TeamId": options.InTeams},
+				sq.Eq{"rcm.ChannelId": options.InChannels},
+			}).
+			Distinct()
+	}
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
