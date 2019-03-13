@@ -2168,7 +2168,11 @@ type ImageProxySettings struct {
 
 func (ips *ImageProxySettings) SetDefaults(ss ServiceSettings) {
 	if ips.Enable == nil {
-		ips.Enable = NewBool(true)
+		if ss.DEPRECATED_DO_NOT_USE_ImageProxyType == nil || *ss.DEPRECATED_DO_NOT_USE_ImageProxyType == "" {
+			ips.Enable = NewBool(false)
+		} else {
+			ips.Enable = NewBool(true)
+		}
 	}
 
 	if ips.ImageProxyType == nil {
