@@ -1419,15 +1419,24 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 			result.Err = model.NewAppError("SqlPostStore.GetDirectPostParentsForExportAfter", "store.sql_post.get_direct_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
-		// Populate each post with its members
-		postsMap := make(map[string]*model.DirectPostForExport)
+		// Build a map of channels and their posts
+		postsChannelMap := make(map[string][]*model.DirectPostForExport)
 		for _, post := range posts {
 			post.ChannelMembers = &[]string{}
-			postsMap[post.ChannelId] = post
+			postsChannelMap[post.ChannelId] = append(postsChannelMap[post.ChannelId], post)
 		}
+
+		// Build a map of channels and their members
+		channelMembersMap := make(map[string][]string)
 		for _, member := range channelMembers {
-			members := postsMap[member.ChannelId].ChannelMembers
-			*members = append(*members, member.Username)
+			channelMembersMap[member.ChannelId] = append(channelMembersMap[member.ChannelId], member.Username)
+		}
+
+		// Populate each post ChannelMembers extracting it from the channelMembersMap
+		for channelId, _ := range channelMembersMap {
+			for _, post := range postsChannelMap[channelId] {
+				*post.ChannelMembers = channelMembersMap[channelId]
+			}
 		}
 		result.Data = posts
 	})

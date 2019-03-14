@@ -382,7 +382,7 @@ func TestExportDMandGMPost(t *testing.T) {
 
 	result := <-th1.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
 	posts := result.Data.([]*model.DirectPostForExport)
-	assert.Equal(t, 2, len(posts))
+	assert.Equal(t, 4, len(posts))
 
 	var b bytes.Buffer
 	err := th1.App.BulkExport(&b, "somefile", "somePath", "someDir")
@@ -407,9 +407,11 @@ func TestExportDMandGMPost(t *testing.T) {
 
 	// Adding some deteminism so its possible to assert on slice index
 	sort.Slice(posts, func(i, j int) bool { return posts[i].CreateAt > posts[j].CreateAt })
-	assert.Equal(t, 2, len(posts))
+	assert.Equal(t, 4, len(posts))
 	assert.ElementsMatch(t, gmMembers, *posts[0].ChannelMembers)
-	assert.ElementsMatch(t, dmMembers, *posts[1].ChannelMembers)
+	assert.ElementsMatch(t, gmMembers, *posts[1].ChannelMembers)
+	assert.ElementsMatch(t, dmMembers, *posts[2].ChannelMembers)
+	assert.ElementsMatch(t, dmMembers, *posts[3].ChannelMembers)
 }
 
 func TestExportDMPostWithSelf(t *testing.T) {
