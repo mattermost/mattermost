@@ -68,7 +68,17 @@ func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	groups, total, err := c.App.GetAllLdapGroupsPage(c.Params.Page, c.Params.PerPage)
+	opts := model.GroupSearchOpts{
+		Q: c.Params.Q,
+	}
+	if c.Params.IsLinked != nil {
+		opts.IsLinked = c.Params.IsLinked
+	}
+	if c.Params.IsConfigured != nil {
+		opts.IsConfigured = c.Params.IsConfigured
+	}
+
+	groups, total, err := c.App.GetAllLdapGroupsPage(c.Params.Page, c.Params.PerPage, opts)
 	if err != nil {
 		c.Err = err
 		return
