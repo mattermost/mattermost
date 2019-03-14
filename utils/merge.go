@@ -20,10 +20,10 @@ import (
 //   - if slices are different, this rule applies:
 //       - if patch is not nil, overwrite the base slice.
 //       - otherwise, keep the base slice
-//   - if maps are different, they will be merged according to the following rules:
-//       - keys in base are added first
-//       - keys in patch are added after, overwriting existing keys with values from patch
-//       - reference values (eg. slice/ptr/map) will be cloned
+//   - maps will be merged according to the following rules:
+//       - if patch is not nil, replace the base map completely
+//		 - otherwise, keep the base map
+//		 - reference values (eg. slice/ptr/map) will be cloned
 //   - channel values are not supported at the moment
 //
 // Usage: callers need to cast the returned interface back into the original type, eg:
