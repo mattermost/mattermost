@@ -73,7 +73,7 @@
         "ExperimentalChannelOrganization": false,
         "EnableAPITeamDeletion": false,
         "ExperimentalEnableHardenedMode": false,
-        "DisableLegacyMFA": true,
+        "DisableLegacyMFA": false,
         "EnableEmailInvitations": false,
         "ExperimentalLdapGroupSync": false
     },
