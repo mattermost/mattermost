@@ -497,7 +497,8 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		profiles, err = c.App.GetUsersNotInChannelPage(inTeamId, notInChannelId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
 	} else if len(notInTeamId) > 0 {
-		restrictions, err := c.App.GetViewUsersRestrictions(c.App.Session.UserId)
+		var restrictions *model.ViewUsersRestrictions
+		restrictions, err = c.App.GetViewUsersRestrictions(c.App.Session.UserId)
 		if err != nil {
 			c.Err = err
 			return
