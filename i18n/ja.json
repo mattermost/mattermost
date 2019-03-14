@@ -1457,6 +1457,10 @@
     "translation": "別のクライアントから同一リクエストが送信されたため、投稿は拒否されました。"
   },
   {
+    "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
+    "translation": "Can not delete a post in a deleted channel."
+  },
+  {
     "id": "api.post.disabled_all",
     "translation": "チャンネルに{{.Users}}以上のユーザーがいるため@allは無効化されています。"
   },
@@ -1495,6 +1499,10 @@
     "translation": "リンクプレビュー機能はシステム管理者によって無効にされています。"
   },
   {
+    "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
+    "translation": "Can not update a post in a deleted channel."
+  },
+  {
     "id": "api.post.save_is_pinned_post.town_square_read_only",
     "translation": "このチャンネルは読み取り専用です。権限のあるメンバーのみがこのチャンネルの投稿をピン留めできます。"
   },
@@ -1525,6 +1533,10 @@
   {
     "id": "api.post.send_notifications_and_forget.push_message",
     "translation": "あなたへメッセージを送信しました。"
+  },
+  {
+    "id": "api.post.update_post.can_not_update_post_in_deleted.error",
+    "translation": "Can not update a post in a deleted channel."
   },
   {
     "id": "api.post.update_post.find.app_error",
@@ -1776,7 +1788,7 @@
   },
   {
     "id": "api.team.is_team_creation_allowed.domain.app_error",
-    "translation": "電子メールは特定のドメイン(例えば、@example.com)から送信される必要があります。詳細はシステム管理者に問い合わせてください。"
+    "translation": "電子メールアドレスが特定のドメイン(例えば、@example.com)である必要があります。詳細はシステム管理者に問い合わせてください。"
   },
   {
     "id": "api.team.join_team.post_and_forget",
@@ -1784,7 +1796,7 @@
   },
   {
     "id": "api.team.join_user_to_team.allowed_domains.app_error",
-    "translation": "電子メールは特定のドメイン(例えば、@example.com)から送信される必要があります。詳細はチーム管理者かシステム管理者に問い合わせてください。"
+    "translation": "電子メールアドレスが特定のドメイン(例えば、@example.com)である必要があります。詳細はチーム管理者かシステム管理者に問い合わせてください。"
   },
   {
     "id": "api.team.leave.left",
@@ -2172,7 +2184,7 @@
   },
   {
     "id": "api.user.create_email_token.error",
-    "translation": "Failed to create token data for email verification"
+    "translation": "電子メール確認のトークンデータを生成できませんでした。"
   },
   {
     "id": "api.user.create_oauth_user.already_attached.app_error",
@@ -2484,11 +2496,11 @@
   },
   {
     "id": "api.user.verify_email.link_expired.app_error",
-    "translation": "The email verification link has expired."
+    "translation": "電子メール確認リンクは有効期限がきれています。"
   },
   {
     "id": "api.user.verify_email.token_parse.error",
-    "translation": "Failed to parse token data from email verification"
+    "translation": "電子メール確認のトークンデータを解析できませんでした。"
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",

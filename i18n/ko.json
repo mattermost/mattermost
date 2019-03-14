@@ -9,7 +9,7 @@
   },
   {
     "id": "December",
-    "translation": "10월"
+    "translation": "12월"
   },
   {
     "id": "February",
@@ -277,7 +277,7 @@
   },
   {
     "id": "api.channel.remove.default.app_error",
-    "translation": "기본 채널로부터는 사용자를 강퇴할 수 없음 {{.Channel}}"
+    "translation": "기본 채널로부터는 사용자를 제거할 수 없습니다 {{.Channel}}"
   },
   {
     "id": "api.channel.remove_channel_member.type.app_error",
@@ -401,7 +401,7 @@
   },
   {
     "id": "api.command.team_mismatch.app_error",
-    "translation": "팀들간의 명령어를 업데이트 할 수 없음"
+    "translation": "팀들간의 명령어를 업데이트 할 수 없습니다."
   },
   {
     "id": "api.command_away.desc",
@@ -1457,6 +1457,10 @@
     "translation": "Rejected post since another client is making the same request."
   },
   {
+    "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
+    "translation": "Can not delete a post in a deleted channel."
+  },
+  {
     "id": "api.post.disabled_all",
     "translation": "채널에 사용자가 {{.Users}}명이상 있기 때문에 @all이 비활성화 되었습니다."
   },
@@ -1495,6 +1499,10 @@
     "translation": "시스템 관리자 권한으로 Link previews를 활성화시키세요."
   },
   {
+    "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
+    "translation": "Can not update a post in a deleted channel."
+  },
+  {
     "id": "api.post.save_is_pinned_post.town_square_read_only",
     "translation": "이 채널은 읽기 전용입니다. 권한을 가진 사용자들만 게시할 수 있습니다."
   },
@@ -1527,8 +1535,12 @@
     "translation": "당신에게 메시지를 보냈습니다."
   },
   {
+    "id": "api.post.update_post.can_not_update_post_in_deleted.error",
+    "translation": "Can not update a post in a deleted channel."
+  },
+  {
     "id": "api.post.update_post.find.app_error",
-    "translation": "기존 글을 찾을 수 없습니다."
+    "translation": "기존 글 또는 댓글을 찾을 수 없습니다."
   },
   {
     "id": "api.post.update_post.permissions_details.app_error",
@@ -3732,7 +3744,7 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.missing_data",
-    "translation": "Trigger ID missing required data for interactive dialog."
+    "translation": "대화 상자에 필요한 트리거 ID 데이터가 누락 되었습니다."
   },
   {
     "id": "interactive_message.decode_trigger_id.signature_decode_failed",

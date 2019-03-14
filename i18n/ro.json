@@ -1457,6 +1457,10 @@
     "translation": "Postul respins deoarece un alt client face aceeași solicitare."
   },
   {
+    "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
+    "translation": "Can not delete a post in a deleted channel."
+  },
+  {
     "id": "api.post.disabled_all",
     "translation": "@all a fost dezactivat, deoarece canalul are mai mult de {{.Users}} utilizatori."
   },
@@ -1495,6 +1499,10 @@
     "translation": "Link-ul avanpremiera s-au dezactivat de către administratorul de sistem."
   },
   {
+    "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
+    "translation": "Can not update a post in a deleted channel."
+  },
+  {
     "id": "api.post.save_is_pinned_post.town_square_read_only",
     "translation": "Acest canal este numai pentru citire. Numai membrii cu permisiune pot fixa sau debloca posturile aici."
   },
@@ -1525,6 +1533,10 @@
   {
     "id": "api.post.send_notifications_and_forget.push_message",
     "translation": "te-a trimis un mesaj."
+  },
+  {
+    "id": "api.post.update_post.can_not_update_post_in_deleted.error",
+    "translation": "Can not update a post in a deleted channel."
   },
   {
     "id": "api.post.update_post.find.app_error",
@@ -2172,7 +2184,7 @@
   },
   {
     "id": "api.user.create_email_token.error",
-    "translation": "Failed to create token data for email verification"
+    "translation": "Nu a reușit să se creeze date jeton pentru verificarea e-mailului"
   },
   {
     "id": "api.user.create_oauth_user.already_attached.app_error",
@@ -2484,11 +2496,11 @@
   },
   {
     "id": "api.user.verify_email.link_expired.app_error",
-    "translation": "The email verification link has expired."
+    "translation": "Legătura de confirmare prin e-mail a expirat."
   },
   {
     "id": "api.user.verify_email.token_parse.error",
-    "translation": "Failed to parse token data from email verification"
+    "translation": "Parola nu a putut fi analizată din datele de confirmare prin e-mail"
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",

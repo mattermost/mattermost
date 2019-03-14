@@ -337,7 +337,7 @@
   },
   {
     "id": "api.command.execute_command.create_post_failed.app_error",
-    "translation": "Command '{{.Trigger}}' failed to post response. Please contact your System Administrator."
+    "translation": "指令 '{{.Trigger}}' 發布回應時失敗。請聯絡系統管理員。"
   },
   {
     "id": "api.command.execute_command.debug",
@@ -1186,7 +1186,7 @@
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
-    "translation": "Unable to upload file(s). Have {{.NumClientIds}} client_ids for {{.NumFiles}} files."
+    "translation": "無法上傳檔案。有{{.NumClientIds}}個 client_ids 與 {{.NumFiles}}個檔案。"
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_files.app_error",
@@ -1198,19 +1198,19 @@
   },
   {
     "id": "api.file.upload_file.large_image_detailed.app_error",
-    "translation": "{{.Filename}} dimensions ({{.Width}} by {{.Height}} pixels) exceed the limits"
+    "translation": "{{.Filename}} 尺寸超過限制 ({{.Width}}x{{.Height}} 像素)。"
   },
   {
     "id": "api.file.upload_file.multiple_channel_ids.app_error",
-    "translation": "Unable to upload file(s). Multiple conflicting channel_ids."
+    "translation": "無法上傳檔案。多個衝突的 channel_id。"
   },
   {
     "id": "api.file.upload_file.read_form_value.app_error",
-    "translation": "Unable to upload file(s). Error reading the value for {{.Formname}}."
+    "translation": "無法上傳檔案。讀取{{.Formname}}的值時錯誤。"
   },
   {
     "id": "api.file.upload_file.read_request.app_error",
-    "translation": "Unable to upload file(s). Error reading or parsing request data."
+    "translation": "無法上傳檔案。讀取或解析請求資料時錯誤。"
   },
   {
     "id": "api.file.upload_file.storage.app_error",
@@ -1222,7 +1222,7 @@
   },
   {
     "id": "api.file.upload_file.too_large_detailed.app_error",
-    "translation": "Unable to upload file {{.Filename}}. {{.Length}} bytes exceeds the maximum allowed {{.Limit}} bytes."
+    "translation": "無法上傳檔案 {{.Filename}}。{{.Length}} 位元組超過最大限制 {{.Limit}} 位元組。"
   },
   {
     "id": "api.file.write_file.s3.app_error",
@@ -1246,15 +1246,15 @@
   },
   {
     "id": "api.io_error",
-    "translation": "input/output error"
+    "translation": "輸出入錯誤"
   },
   {
     "id": "api.ldap_group.not_found",
-    "translation": "ldap group not found"
+    "translation": "找不到 LDAP 群組"
   },
   {
     "id": "api.ldap_groups.license_error",
-    "translation": "your license does not support ldap groups"
+    "translation": "授權不支援 LDAP 群組"
   },
   {
     "id": "api.license.add_license.array.app_error",
@@ -1298,7 +1298,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "marshal error"
+    "translation": "封送處理錯誤"
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
@@ -1450,11 +1450,15 @@
   },
   {
     "id": "api.post.deduplicate_create_post.failed_to_get",
-    "translation": "Failed to fetch original post after deduplicating a client repeating the same request."
+    "translation": "在去重複用戶端重複的請求後取得原始訊息失敗。"
   },
   {
     "id": "api.post.deduplicate_create_post.pending",
-    "translation": "Rejected post since another client is making the same request."
+    "translation": "由於另一用戶端正在發送同樣的請求，發訊被拒。"
+  },
+  {
+    "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
+    "translation": "Can not delete a post in a deleted channel."
   },
   {
     "id": "api.post.disabled_all",
@@ -1495,8 +1499,12 @@
     "translation": "連結預覽已被系統管理員停用"
   },
   {
+    "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
+    "translation": "Can not update a post in a deleted channel."
+  },
+  {
     "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "此頻道唯讀。只有具有權限的成員能在此發布訊息。"
+    "translation": "此頻道唯讀。只有具有權限的成員能在此釘選或取消釘選訊息。"
   },
   {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
@@ -1525,6 +1533,10 @@
   {
     "id": "api.post.send_notifications_and_forget.push_message",
     "translation": "送出一個訊息給您"
+  },
+  {
+    "id": "api.post.update_post.can_not_update_post_in_deleted.error",
+    "translation": "Can not update a post in a deleted channel."
   },
   {
     "id": "api.post.update_post.find.app_error",
@@ -2128,7 +2140,7 @@
   },
   {
     "id": "api.user.authorize_oauth_user.response.app_error",
-    "translation": "Received invalid response from OAuth service provider"
+    "translation": "收到來自 OAuth 服務提供者無效的回應"
   },
   {
     "id": "api.user.authorize_oauth_user.service.app_error",
@@ -2172,7 +2184,7 @@
   },
   {
     "id": "api.user.create_email_token.error",
-    "translation": "Failed to create token data for email verification"
+    "translation": "建立電子郵件驗證的 Token 資料失敗"
   },
   {
     "id": "api.user.create_oauth_user.already_attached.app_error",
@@ -2248,7 +2260,7 @@
   },
   {
     "id": "api.user.get_user_by_email.permissions.app_error",
-    "translation": "Unable to get user by email."
+    "translation": "無法根據電子郵件取得使用者。"
   },
   {
     "id": "api.user.ldap_to_email.not_available.app_error",
@@ -2484,11 +2496,11 @@
   },
   {
     "id": "api.user.verify_email.link_expired.app_error",
-    "translation": "The email verification link has expired."
+    "translation": "電子郵件驗證連結已過期。"
   },
   {
     "id": "api.user.verify_email.token_parse.error",
-    "translation": "Failed to parse token data from email verification"
+    "translation": "解析電子郵件驗證的 Token 資料失敗"
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
@@ -3508,7 +3520,7 @@
   },
   {
     "id": "ent.ldap.app_error",
-    "translation": "ldap interface was nil"
+    "translation": "LDAP 介面為 nil"
   },
   {
     "id": "ent.ldap.create_fail",
@@ -3556,11 +3568,11 @@
   },
   {
     "id": "ent.ldap.syncronize.get_all_groups.app_error",
-    "translation": "error retrieving groups"
+    "translation": "取得群組時錯誤"
   },
   {
     "id": "ent.ldap.syncronize.populate_syncables",
-    "translation": "error populating syncables"
+    "translation": "填入同步資料時錯誤"
   },
   {
     "id": "ent.ldap.syncronize.search_failure.app_error",
@@ -3572,23 +3584,23 @@
   },
   {
     "id": "ent.ldap_groups.group_search_error",
-    "translation": "error retrieving ldap group"
+    "translation": "取得 LDAP 群組時錯誤"
   },
   {
     "id": "ent.ldap_groups.groups_search_error",
-    "translation": "error retrieving ldap groups"
+    "translation": "取得 LDAP 群組時錯誤"
   },
   {
     "id": "ent.ldap_groups.members_of_group_error",
-    "translation": "error retrieving members of group"
+    "translation": "取得群組成員時錯誤"
   },
   {
     "id": "ent.ldap_groups.no_rows",
-    "translation": "no groups found with matching uid"
+    "translation": "找不到對應 UID 的群組"
   },
   {
     "id": "ent.ldap_groups.reachable_groups_error",
-    "translation": "error retrieving groups for user"
+    "translation": "取得使用者群組時錯誤"
   },
   {
     "id": "ent.message_export.global_relay.attach_file.app_error",
@@ -4148,11 +4160,11 @@
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
-    "translation": "Invalid RemoteImageProxyOptions for atmos/camo. Must be set to your shared key."
+    "translation": "atmos/camo 的 RemoteImageProxyOptions 無效。必須設成共享金鑰。"
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
-    "translation": "Invalid RemoteImageProxyURL for atmos/camo. Must be set to your shared key."
+    "translation": "atmos/camo 的 RemoteImageProxyURL 無效。必須設成共享金鑰。"
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
@@ -4240,7 +4252,7 @@
   },
   {
     "id": "model.config.is_valid.image_proxy_type.app_error",
-    "translation": "Invalid image proxy type. Must be 'local' or 'atmos/camo'."
+    "translation": "無效的圖像代理類別。必須為 '本地' 或 'atmos/camo'。"
   },
   {
     "id": "model.config.is_valid.ldap_basedn",
@@ -4520,63 +4532,63 @@
   },
   {
     "id": "model.group.create_at.app_error",
-    "translation": "invalid create at property for group"
+    "translation": "無效的群組建立時間"
   },
   {
     "id": "model.group.delete_at.app_error",
-    "translation": "invalid delete at property for group"
+    "translation": "無效的群組刪除時間"
   },
   {
     "id": "model.group.description.app_error",
-    "translation": "invalid description property for group"
+    "translation": "無效的群組描述"
   },
   {
     "id": "model.group.display_name.app_error",
-    "translation": "invalid display name property for group"
+    "translation": "無效的群組顯示名稱"
   },
   {
     "id": "model.group.id.app_error",
-    "translation": "invalid id property for group"
+    "translation": "無效的群組 ID"
   },
   {
     "id": "model.group.name.app_error",
-    "translation": "invalid name property for group"
+    "translation": "無效的群組名稱"
   },
   {
     "id": "model.group.remote_id.app_error",
-    "translation": "invalid remote id property for group"
+    "translation": "無效的群組遠端 ID"
   },
   {
     "id": "model.group.source.app_error",
-    "translation": "invalid source property for group"
+    "translation": "無效的群組來源"
   },
   {
     "id": "model.group.update_at.app_error",
-    "translation": "invalid update at property for group"
+    "translation": "無效的群組更新時間"
   },
   {
     "id": "model.group_member.group_id.app_error",
-    "translation": "invalid group id property for group member"
+    "translation": "群組成員的群組 ID 無效"
   },
   {
     "id": "model.group_member.user_id.app_error",
-    "translation": "invalid user id property for group member"
+    "translation": "群組成員的使用者 ID 無效"
   },
   {
     "id": "model.group_syncable.group_id.app_error",
-    "translation": "invalid group id property for group syncable"
+    "translation": "群組同步資料的群組 ID 無效"
   },
   {
     "id": "model.group_syncable.syncable_id.app_error",
-    "translation": "invalid syncable id for group syncable"
+    "translation": "群組同步資料的同步資料 ID 無效"
   },
   {
     "id": "model.group_syncable.type.app_error",
-    "translation": "invalid type property for group syncable"
+    "translation": "無效的群組同步資料類別"
   },
   {
     "id": "model.group_syncable.unmarshaljson.duplicate_type_identifier",
-    "translation": "type identifier already exists: perhaps json contains both 'team_id' and 'channel_id'"
+    "translation": "類別識別碼已存在：或許 JSON 資料同時包含 'team_id' 與 'channel_id'"
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -4648,27 +4660,27 @@
   },
   {
     "id": "model.link_metadata.is_valid.data.app_error",
-    "translation": "Link metadata data cannot be nil"
+    "translation": "連結中繼資料不能為 nil"
   },
   {
     "id": "model.link_metadata.is_valid.data_type.app_error",
-    "translation": "Link metadata data does not match the given type"
+    "translation": "連結中繼資料不符給定類別"
   },
   {
     "id": "model.link_metadata.is_valid.id.app_error",
-    "translation": "Link metadata id invalid"
+    "translation": "連結中繼資料 id 無效"
   },
   {
     "id": "model.link_metadata.is_valid.timestamp.app_error",
-    "translation": "Link metadata timestamp must be nonzero and rounded to the nearest hour"
+    "translation": "連結中繼資料時間戳記不能為零且必須捨入至最近的小時"
   },
   {
     "id": "model.link_metadata.is_valid.type.app_error",
-    "translation": "Invalid link metadata type"
+    "translation": "無效的連結中繼資料類別"
   },
   {
     "id": "model.link_metadata.is_valid.url.app_error",
-    "translation": "Link metadata URL must be set"
+    "translation": "必須設定連結中繼資料 URL"
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",
@@ -4796,7 +4808,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Invalid file ids. Note that uploads are limited to 5 files maximum. Please use additional posts for more files."
+    "translation": "無效的檔案 ID。上傳限制至多五個檔案。需要更多檔案時請使用額外的訊息。"
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -5088,23 +5100,23 @@
   },
   {
     "id": "plugin_api.send_mail.missing_htmlbody",
-    "translation": "Missing HTML Body."
+    "translation": "缺少 HTML Body。"
   },
   {
     "id": "plugin_api.send_mail.missing_subject",
-    "translation": "Missing email subject."
+    "translation": "缺少郵件主旨。"
   },
   {
     "id": "plugin_api.send_mail.missing_to",
-    "translation": "Missing TO address."
+    "translation": "缺少收件人位址。"
   },
   {
     "id": "store.insert_error",
-    "translation": "insert error"
+    "translation": "插入失敗"
   },
   {
     "id": "store.select_error",
-    "translation": "select error"
+    "translation": "選取失敗"
   },
   {
     "id": "store.sql.convert_string_array",
@@ -5676,19 +5688,19 @@
   },
   {
     "id": "store.sql_group.group_syncable_already_deleted",
-    "translation": "group syncable was already deleted"
+    "translation": "群組同步資料已被刪除"
   },
   {
     "id": "store.sql_group.no_rows",
-    "translation": "no matching group found"
+    "translation": "找不到對應的群組"
   },
   {
     "id": "store.sql_group.no_rows_changed",
-    "translation": "no rows changed"
+    "translation": "沒有資料列被變更"
   },
   {
     "id": "store.sql_group.nothing_to_update",
-    "translation": "nothing to update for group syncable"
+    "translation": "群組同步資料不需要更新"
   },
   {
     "id": "store.sql_group.unique_constraint",
@@ -5696,7 +5708,7 @@
   },
   {
     "id": "store.sql_group.uniqueness_error",
-    "translation": "group member already exists"
+    "translation": "群組成員已存在"
   },
   {
     "id": "store.sql_job.delete.app_error",
@@ -6796,7 +6808,7 @@
   },
   {
     "id": "store.update_error",
-    "translation": "update error"
+    "translation": "更新失敗"
   },
   {
     "id": "system.message.name",
