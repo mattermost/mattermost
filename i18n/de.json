@@ -365,7 +365,7 @@
   },
   {
     "id": "api.command.invite_people.desc",
-    "translation": "Eine E-Mail-Einladung zu Ihrem Mattermost-Team senden"
+    "translation": "Eine E-Mail-Einladung zu ihrem Mattermost-Team senden"
   },
   {
     "id": "api.command.invite_people.email_invitations_off",
@@ -405,7 +405,7 @@
   },
   {
     "id": "api.command_away.desc",
-    "translation": "Setzen Sie Ihren Status auf abwesend"
+    "translation": "Setzen Sie ihren Status auf abwesend"
   },
   {
     "id": "api.command_away.name",
@@ -844,7 +844,7 @@
   },
   {
     "id": "api.command_offline.desc",
-    "translation": "Setzen Sie Ihren Status auf offline"
+    "translation": "Setzen Sie ihren Status auf offline"
   },
   {
     "id": "api.command_offline.name",
@@ -856,7 +856,7 @@
   },
   {
     "id": "api.command_online.desc",
-    "translation": "Setzen Sie Ihren Status auf online"
+    "translation": "Setzen Sie ihren Status auf online"
   },
   {
     "id": "api.command_online.name",
@@ -916,7 +916,7 @@
   },
   {
     "id": "api.command_search.unsupported.app_error",
-    "translation": "Der Suchbefehl wird auf Ihrem Gerät nicht unterstützt."
+    "translation": "Der Suchbefehl wird auf ihrem Gerät nicht unterstützt."
   },
   {
     "id": "api.command_settings.desc",
@@ -928,7 +928,7 @@
   },
   {
     "id": "api.command_settings.unsupported.app_error",
-    "translation": "Der Einstellungen-Befehl wird auf Ihrem Gerät nicht unterstützt."
+    "translation": "Der Einstellungen-Befehl wird auf ihrem Gerät nicht unterstützt."
   },
   {
     "id": "api.command_shortcuts.desc",
@@ -940,11 +940,11 @@
   },
   {
     "id": "api.command_shortcuts.unsupported.app_error",
-    "translation": "Der Kurzbefehl wird auf Ihrem Gerät nicht unterstützt."
+    "translation": "Der Kurzbefehl wird auf ihrem Gerät nicht unterstützt."
   },
   {
     "id": "api.command_shrug.desc",
-    "translation": "Fügt ¯\\_(ツ)_/¯ zu Ihrer Nachricht hinzu"
+    "translation": "Fügt ¯\\_(ツ)_/¯ zu ihrer Nachricht hinzu"
   },
   {
     "id": "api.command_shrug.hint",
@@ -1457,6 +1457,10 @@
     "translation": "Nachricht zurückgewiesen, da ein anderer Client die selbe Anfrage durchführt."
   },
   {
+    "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
+    "translation": "Can not delete a post in a deleted channel."
+  },
+  {
     "id": "api.post.disabled_all",
     "translation": "@all wurde deaktiviert, da der Kanal mehr als {{.Users}} Benutzer hat."
   },
@@ -1495,6 +1499,10 @@
     "translation": "Link-Vorschauen wurden vom Systemadministrator deaktiviert."
   },
   {
+    "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
+    "translation": "Can not update a post in a deleted channel."
+  },
+  {
     "id": "api.post.save_is_pinned_post.town_square_read_only",
     "translation": "Der Kanal ist nur lesbar. Nur Mitglieder mit Berechtigung können hier Nachrichten an- oder abheften."
   },
@@ -1527,6 +1535,10 @@
     "translation": " hat ihnen eine Nachricht geschickt."
   },
   {
+    "id": "api.post.update_post.can_not_update_post_in_deleted.error",
+    "translation": "Can not update a post in a deleted channel."
+  },
+  {
     "id": "api.post.update_post.find.app_error",
     "translation": "Die bestehende Nachricht oder der bestehende Kommentar konnte nicht zur Aktualisierung gefunden werden."
   },
@@ -1536,7 +1548,7 @@
   },
   {
     "id": "api.post.update_post.permissions_time_limit.app_error",
-    "translation": "Nachrichtenbearbeitung ist nur für {{.timeLimit}} Sekunden erlaubt. Bitte fragen Sie Ihren Administrator, um Details zu erfahren."
+    "translation": "Nachrichtenbearbeitung ist nur für {{.timeLimit}} Sekunden erlaubt. Bitte fragen Sie ihren Administrator, um Details zu erfahren."
   },
   {
     "id": "api.post.update_post.system_message.app_error",
@@ -1772,11 +1784,11 @@
   },
   {
     "id": "api.team.is_team_creation_allowed.disabled.app_error",
-    "translation": "Teamerstellung wurde deaktiviert. Bitte fragen Sie Ihren Administrator, um Details zu erfahren."
+    "translation": "Teamerstellung wurde deaktiviert. Bitte fragen Sie ihren Administrator, um Details zu erfahren."
   },
   {
     "id": "api.team.is_team_creation_allowed.domain.app_error",
-    "translation": "Die E-Mail-Adresse muss von einer bestimmten Domain stammen (z.B. @example.com). Bitte wenden Sie sich an Ihren Systemadministrator."
+    "translation": "Die E-Mail-Adresse muss von einer bestimmten Domain stammen (z.B. @example.com). Bitte wenden Sie sich an ihren Systemadministrator."
   },
   {
     "id": "api.team.join_team.post_and_forget",
@@ -1908,11 +1920,11 @@
   },
   {
     "id": "api.templates.email_change_verify_body.info",
-    "translation": "Um Ihre E-Mail-Adresse für {{.TeamDisplayName}} zu ändern, klicken Sie bitte auf den unten stehenden Link, um zu bestätigen, dass dies die richtige Adresse ist."
+    "translation": "Um ihre E-Mail-Adresse für {{.TeamDisplayName}} zu ändern, klicken Sie bitte auf den unten stehenden Link, um zu bestätigen, dass dies die richtige Adresse ist."
   },
   {
     "id": "api.templates.email_change_verify_body.title",
-    "translation": "Sie haben Ihre E-Mail-Adresse geändert"
+    "translation": "Sie haben ihre E-Mail-Adresse geändert"
   },
   {
     "id": "api.templates.email_change_verify_subject",
@@ -1920,7 +1932,7 @@
   },
   {
     "id": "api.templates.email_footer",
-    "translation": "Um Ihre Benachrichtigungseinstellungen zu ändern, melden Sie sich an Ihrer Team-Site an und wählen dann Kontoeinstellungen > Benachrichtigungen."
+    "translation": "Um ihre Benachrichtigungseinstellungen zu ändern, melden Sie sich an ihrer Team-Site an und wählen dann Kontoeinstellungen > Benachrichtigungen."
   },
   {
     "id": "api.templates.email_info1",
@@ -1948,7 +1960,7 @@
   },
   {
     "id": "api.templates.invite_body.extra_info",
-    "translation": "Mattermost lässt Sie Nachrichten und Dateien von Ihrem PC oder Smartphone teilen, mit Sofortsuche und Archivierung. Nachdem Sie [[{{.TeamDisplayName}}]] beigetreten sind, können Sie sich bei Ihrem neuen Team anmelden und auf all diese Funktionen von folgender Webadresse aus zugreifen:"
+    "translation": "Mattermost lässt Sie Nachrichten und Dateien von Ihrem PC oder Smartphone teilen, mit Sofortsuche und Archivierung. Nachdem Sie [[{{.TeamDisplayName}}]] beigetreten sind, können Sie sich bei ihrem neuen Team anmelden und auf all diese Funktionen von folgender Webadresse aus zugreifen:"
   },
   {
     "id": "api.templates.invite_body.info",
@@ -2012,7 +2024,7 @@
   },
   {
     "id": "api.templates.reset_body.title",
-    "translation": "Sie haben eine Rücksetzung Ihres Passworts angefordert"
+    "translation": "Sie haben eine Rücksetzung ihres Passworts angefordert"
   },
   {
     "id": "api.templates.reset_subject",
@@ -2028,7 +2040,7 @@
   },
   {
     "id": "api.templates.signin_change_email.body.title",
-    "translation": "Sie haben Ihre Anmeldemethode geändert"
+    "translation": "Sie haben ihre Anmeldemethode geändert"
   },
   {
     "id": "api.templates.signin_change_email.subject",
@@ -2040,11 +2052,11 @@
   },
   {
     "id": "api.templates.user_access_token_body.title",
-    "translation": "Persönliches Zugriffs-Token zu Ihrem Konto hinzugefügt"
+    "translation": "Persönliches Zugriffs-Token zu ihrem Konto hinzugefügt"
   },
   {
     "id": "api.templates.user_access_token_subject",
-    "translation": "[{{ .SiteName }}] Persönliches Zugriffs-Token zu Ihrem Konto hinzugefügt"
+    "translation": "[{{ .SiteName }}] Persönliches Zugriffs-Token zu ihrem Konto hinzugefügt"
   },
   {
     "id": "api.templates.username_change_body.info",
@@ -2064,7 +2076,7 @@
   },
   {
     "id": "api.templates.verify_body.info",
-    "translation": "Bitte bestätigen Sie Ihre E-Mail-Adresse durch das Anklicken des folgenden Links."
+    "translation": "Bitte bestätigen Sie ihre E-Mail-Adresse durch das Anklicken des folgenden Links."
   },
   {
     "id": "api.templates.verify_body.title",
@@ -2084,7 +2096,7 @@
   },
   {
     "id": "api.templates.welcome_body.info",
-    "translation": "Bitte bestätigen Sie Ihre E-Mail-Adresse durch das Anklicken des folgenden Links."
+    "translation": "Bitte bestätigen Sie ihre E-Mail-Adresse durch das Anklicken des folgenden Links."
   },
   {
     "id": "api.templates.welcome_body.info2",
@@ -2092,7 +2104,7 @@
   },
   {
     "id": "api.templates.welcome_body.info3",
-    "translation": "Mit Mattermost können Sie Nachrichten und Dateien von Ihrem PC oder Telefon aus teilen, suchen und archivieren."
+    "translation": "Mit Mattermost können Sie Nachrichten und Dateien von ihrem PC oder Telefon aus teilen, suchen und archivieren."
   },
   {
     "id": "api.templates.welcome_body.title",
@@ -2148,7 +2160,7 @@
   },
   {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
-    "translation": "Ihr Konto ist gesperrt, da es zu viele fehlerhafte Passworteingaben gab. Bitte setzen Sie Ihr Passwort zurück."
+    "translation": "Ihr Konto ist gesperrt, da es zu viele fehlerhafte Passworteingaben gab. Bitte setzen Sie ihr Passwort zurück."
   },
   {
     "id": "api.user.check_user_mfa.bad_code.app_error",
@@ -2172,7 +2184,7 @@
   },
   {
     "id": "api.user.create_email_token.error",
-    "translation": "Failed to create token data for email verification"
+    "translation": "Token-Daten für die E-Mail-Bestätigung konnten nicht erstellt werden."
   },
   {
     "id": "api.user.create_oauth_user.already_attached.app_error",
@@ -2200,7 +2212,7 @@
   },
   {
     "id": "api.user.create_user.accepted_domain.app_error",
-    "translation": "Die angegebene E-Mail-Adresse gehört nicht zu den zugelassenen Domains. Bitte kontaktieren Sie Ihren Administrator oder registrieren Sie sich mit einer andere E-Mail-Adresse."
+    "translation": "Die angegebene E-Mail-Adresse gehört nicht zu den zugelassenen Domains. Bitte kontaktieren Sie ihren Administrator oder registrieren Sie sich mit einer andere E-Mail-Adresse."
   },
   {
     "id": "api.user.create_user.disabled.app_error",
@@ -2216,7 +2228,7 @@
   },
   {
     "id": "api.user.create_user.no_open_server",
-    "translation": "Dieser Server erlaubt keine offenen Registrierungen.  Bitte wenden Sie sich an Ihren Administrator, um eine Einladung zu erhalten."
+    "translation": "Dieser Server erlaubt keine offenen Registrierungen.  Bitte wenden Sie sich an ihren Administrator, um eine Einladung zu erhalten."
   },
   {
     "id": "api.user.create_user.signup_email_disabled.app_error",
@@ -2272,7 +2284,7 @@
   },
   {
     "id": "api.user.login.inactive.app_error",
-    "translation": "Anmeldung nicht möglich, weil Ihr Konto deaktiviert wurde.  Bitte wenden Sie sich an einen Administrator."
+    "translation": "Anmeldung nicht möglich, weil ihr Konto deaktiviert wurde.  Bitte wenden Sie sich an einen Administrator."
   },
   {
     "id": "api.user.login.invalid_credentials",
@@ -2484,11 +2496,11 @@
   },
   {
     "id": "api.user.verify_email.link_expired.app_error",
-    "translation": "The email verification link has expired."
+    "translation": "Der E-Mail-Bestätigungslink ist abgelaufen."
   },
   {
     "id": "api.user.verify_email.token_parse.error",
-    "translation": "Failed to parse token data from email verification"
+    "translation": "Token-Daten aus der E-Mail-Bestätigung konnten nicht analysiert werden."
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
@@ -3184,7 +3196,7 @@
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
-    "translation": "Die Plugin-Konfiguration in Ihrer config.json-Datei muss manuell aktualisiert werden, wenn ReadOnlyConfig mit aktiviertem Clustering verwendet wird."
+    "translation": "Die Plugin-Konfiguration in ihrer config.json-Datei muss manuell aktualisiert werden, wenn ReadOnlyConfig mit aktiviertem Clustering verwendet wird."
   },
   {
     "id": "app.plugin.config.app_error",
@@ -3196,7 +3208,7 @@
   },
   {
     "id": "app.plugin.disabled.app_error",
-    "translation": "Plugins wurden deaktiviert. Bitte prüfen Sie Ihre Logs für Details."
+    "translation": "Plugins wurden deaktiviert. Bitte prüfen Sie ihre Logs für Details."
   },
   {
     "id": "app.plugin.extract.app_error",
@@ -3272,7 +3284,7 @@
   },
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
-    "translation": "Dieses Team hat die maximale Anzahl erlaubter Konten erreicht. Kontaktieren Sie Ihren Systemadministrator, um eine höhere Begrenzung setzen zu lassen."
+    "translation": "Dieses Team hat die maximale Anzahl erlaubter Konten erreicht. Kontaktieren Sie ihren Systemadministrator, um eine höhere Begrenzung setzen zu lassen."
   },
   {
     "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
@@ -3380,7 +3392,7 @@
   },
   {
     "id": "ent.compliance.licence_disable.app_error",
-    "translation": "Compliance Funktionalität durch die aktuelle Lizenz deaktiviert. Bitte kontaktieren Sie Ihren Systemadministrator wegen eines Enterprise Lizenzupgrades."
+    "translation": "Compliance Funktionalität durch die aktuelle Lizenz deaktiviert. Bitte kontaktieren Sie ihren Systemadministrator wegen eines Enterprise Lizenzupgrades."
   },
   {
     "id": "ent.compliance.run_export.template_watcher.appError",
@@ -3544,7 +3556,7 @@
   },
   {
     "id": "ent.ldap.do_login.user_filtered.app_error",
-    "translation": "Ihr AD/LDAP-Konto hat keine Berechtigung diesen Mattermost-Server zu benutzen. Bitten Sie Ihren Systemadministrator den AD/LDAP-Benutzerfilter zu überprüfen."
+    "translation": "Ihr AD/LDAP-Konto hat keine Berechtigung diesen Mattermost-Server zu benutzen. Bitten Sie ihren Systemadministrator den AD/LDAP-Benutzerfilter zu überprüfen."
   },
   {
     "id": "ent.ldap.do_login.user_not_registered.app_error",
@@ -3664,15 +3676,15 @@
   },
   {
     "id": "ent.saml.attribute.app_error",
-    "translation": "SAML-Anmeldung war nicht erfolgreich, da eines der Attribute nicht korrekt ist. Bitte kontaktieren Sie Ihren Systemadministrator."
+    "translation": "SAML-Anmeldung war nicht erfolgreich, da eines der Attribute nicht korrekt ist. Bitte kontaktieren Sie ihren Systemadministrator."
   },
   {
     "id": "ent.saml.build_request.app_error",
-    "translation": "Bei der Verbindung zum Identitäten Anbieter trat ein Fehler auf. Bitte kontaktieren Sie Ihren Systemadministrator."
+    "translation": "Bei der Verbindung zum Identitäten Anbieter trat ein Fehler auf. Bitte kontaktieren Sie ihren Systemadministrator."
   },
   {
     "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "Beim Kodieren der Anfrage für den Identitäten Anbieter trat ein Fehler auf. Bitte kontaktieren Sie Ihren Systemadministrator."
+    "translation": "Beim Kodieren der Anfrage für den Identitäten Anbieter trat ein Fehler auf. Bitte kontaktieren Sie ihren Systemadministrator."
   },
   {
     "id": "ent.saml.configure.app_error",
@@ -3680,23 +3692,23 @@
   },
   {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
-    "translation": "SAML-Anmeldung war nicht erfolgreich, da Verschlüsselung nicht aktiviert ist. Bitte kontaktieren Sie Ihren Systemadministrator."
+    "translation": "SAML-Anmeldung war nicht erfolgreich, da Verschlüsselung nicht aktiviert ist. Bitte kontaktieren Sie ihren Systemadministrator."
   },
   {
     "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "Datei des öffentlichen Zertifikats des Identitätsproviders nicht gefunden. Bitte kontaktieren Sie Ihren Systemadministrator."
+    "translation": "Datei des öffentlichen Zertifikats des Identitätsproviders nicht gefunden. Bitte kontaktieren Sie ihren Systemadministrator."
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
-    "translation": "SAML-Anmeldung war nicht erfolgreich, da der private Schlüssel des Service-Providers nicht gefunden wurde. Bitte kontaktieren Sie Ihren Systemadministrator."
+    "translation": "SAML-Anmeldung war nicht erfolgreich, da der private Schlüssel des Service-Providers nicht gefunden wurde. Bitte kontaktieren Sie ihren Systemadministrator."
   },
   {
     "id": "ent.saml.configure.not_encrypted_response.app_error",
-    "translation": "SAML-Anmeldung war nicht erfolgreich, da die Antwort des Identitäts-Providers nicht verschlüsselt war. Bitte kontaktieren Sie Ihren Systemadministrator."
+    "translation": "SAML-Anmeldung war nicht erfolgreich, da die Antwort des Identitäts-Providers nicht verschlüsselt war. Bitte kontaktieren Sie ihren Systemadministrator."
   },
   {
     "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "SAML-Anmeldung war nicht erfolgreich, da ein Fehler beim entschlüsseln der Antwort des Identitäts-Providers auftrat. Bitte kontaktieren Sie Ihren Systemadministrator."
+    "translation": "SAML-Anmeldung war nicht erfolgreich, da ein Fehler beim entschlüsseln der Antwort des Identitäts-Providers auftrat. Bitte kontaktieren Sie ihren Systemadministrator."
   },
   {
     "id": "ent.saml.do_login.empty_response.app_error",
@@ -3704,11 +3716,11 @@
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
-    "translation": "Es trat ein Fehler beim Verarbeiten der Antwort des Identitätsproviders auf. Bitte kontaktieren Sie Ihren Systemadministrator."
+    "translation": "Es trat ein Fehler beim Verarbeiten der Antwort des Identitätsproviders auf. Bitte kontaktieren Sie ihren Systemadministrator."
   },
   {
     "id": "ent.saml.do_login.validate.app_error",
-    "translation": "Es trat ein Fehler beim Validieren der Antwort des Identitätsproviders auf. Bitte kontaktieren Sie Ihren Systemadministrator."
+    "translation": "Es trat ein Fehler beim Validieren der Antwort des Identitätsproviders auf. Bitte kontaktieren Sie ihren Systemadministrator."
   },
   {
     "id": "ent.saml.license_disable.app_error",
@@ -6496,7 +6508,7 @@
   },
   {
     "id": "store.sql_user.get_by_auth.missing_account.app_error",
-    "translation": "Konnte kein existierendes Konto entsprechend Ihres Authentifizierungstyps für dieses Team finden. Dieses Team erfordert eventuell eine Einladung vom Teambesitzer, um beizutreten."
+    "translation": "Konnte kein existierendes Konto entsprechend ihres Authentifizierungstyps für dieses Team finden. Dieses Team erfordert eventuell eine Einladung vom Teambesitzer, um beizutreten."
   },
   {
     "id": "store.sql_user.get_by_auth.other.app_error",
@@ -6504,7 +6516,7 @@
   },
   {
     "id": "store.sql_user.get_by_username.app_error",
-    "translation": "Konnte kein existierendes Konto entsprechend Ihres Benutzernamens für dieses Teams finden. Dieses Team erfordert eventuell eine Einladung vom Teambesitzer, um beizutreten."
+    "translation": "Konnte kein existierendes Konto entsprechend ihres Benutzernamens für dieses Teams finden. Dieses Team erfordert eventuell eine Einladung vom Teambesitzer, um beizutreten."
   },
   {
     "id": "store.sql_user.get_for_login.app_error",
@@ -6512,7 +6524,7 @@
   },
   {
     "id": "store.sql_user.get_for_login.multiple_users",
-    "translation": "Es wurden mehrere Benutzer entsprechend Ihrer Zugangsdaten gefunden und Sie konnten nicht angemeldet werden. Bitte kontaktieren Sie einen Administrator."
+    "translation": "Es wurden mehrere Benutzer entsprechend ihrer Zugangsdaten gefunden und Sie konnten nicht angemeldet werden. Bitte kontaktieren Sie einen Administrator."
   },
   {
     "id": "store.sql_user.get_new_users.app_error",
@@ -6576,7 +6588,7 @@
   },
   {
     "id": "store.sql_user.save.max_accounts.app_error",
-    "translation": "Dieses Team hat die maximale Anzahl erlaubter Konten erreicht. Kontaktieren Sie Ihren Systemadministrator, um eine höhere Begrenzung setzen zu lassen."
+    "translation": "Dieses Team hat die maximale Anzahl erlaubter Konten erreicht. Kontaktieren Sie ihren Systemadministrator, um eine höhere Begrenzung setzen zu lassen."
   },
   {
     "id": "store.sql_user.save.member_count.app_error",
@@ -6588,11 +6600,11 @@
   },
   {
     "id": "store.sql_user.save.username_exists.ldap_app_error",
-    "translation": "Ein Konto mit diesem Benutzernamen existiert bereits. Bitte kontaktieren Sie Ihren Administrator."
+    "translation": "Ein Konto mit diesem Benutzernamen existiert bereits. Bitte kontaktieren Sie ihren Administrator."
   },
   {
     "id": "store.sql_user.save.username_exists.saml_app_error",
-    "translation": "Ein Konto mit diesem Benutzernamen existiert bereits. Bitte kontaktieren Sie Ihren Administrator."
+    "translation": "Ein Konto mit diesem Benutzernamen existiert bereits. Bitte kontaktieren Sie ihren Administrator."
   },
   {
     "id": "store.sql_user.search.app_error",

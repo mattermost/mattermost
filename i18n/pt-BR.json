@@ -1457,6 +1457,10 @@
     "translation": "Publicação rejeitada, pois outro cliente está fazendo a mesma solicitação."
   },
   {
+    "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
+    "translation": "Can not delete a post in a deleted channel."
+  },
+  {
     "id": "api.post.disabled_all",
     "translation": "@all foi desabilitado devido ao canal ter mais de {{.Users}} usuários."
   },
@@ -1495,6 +1499,10 @@
     "translation": "Pré-visualizações de links foram desabilitados pelo administrador do sistema."
   },
   {
+    "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
+    "translation": "Can not update a post in a deleted channel."
+  },
+  {
     "id": "api.post.save_is_pinned_post.town_square_read_only",
     "translation": "Este canal é somente leitura. Somente membros com permissão podem fixar ou desafixar publicações aqui."
   },
@@ -1525,6 +1533,10 @@
   {
     "id": "api.post.send_notifications_and_forget.push_message",
     "translation": "enviou-lhe uma mensagem."
+  },
+  {
+    "id": "api.post.update_post.can_not_update_post_in_deleted.error",
+    "translation": "Can not update a post in a deleted channel."
   },
   {
     "id": "api.post.update_post.find.app_error",
@@ -2172,7 +2184,7 @@
   },
   {
     "id": "api.user.create_email_token.error",
-    "translation": "Failed to create token data for email verification"
+    "translation": "Falha ao criar os dados para o token de verificação de email"
   },
   {
     "id": "api.user.create_oauth_user.already_attached.app_error",
@@ -2484,11 +2496,11 @@
   },
   {
     "id": "api.user.verify_email.link_expired.app_error",
-    "translation": "The email verification link has expired."
+    "translation": "O link de verificação de email expirou."
   },
   {
     "id": "api.user.verify_email.token_parse.error",
-    "translation": "Failed to parse token data from email verification"
+    "translation": "Falha ao analisar os dados do token de verificação de email"
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",

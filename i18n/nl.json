@@ -1457,6 +1457,10 @@
     "translation": "Rejected post since another client is making the same request."
   },
   {
+    "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
+    "translation": "Can not delete a post in a deleted channel."
+  },
+  {
     "id": "api.post.disabled_all",
     "translation": "@all has been disabled because the channel has more than {{.Users}} users."
   },
@@ -1495,6 +1499,10 @@
     "translation": "Publieke links zijn uitgeschakeld door de systeembeheerder"
   },
   {
+    "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
+    "translation": "Can not update a post in a deleted channel."
+  },
+  {
     "id": "api.post.save_is_pinned_post.town_square_read_only",
     "translation": "This channel is read-only. Only members with permission can pin or unpin posts here."
   },
@@ -1525,6 +1533,10 @@
   {
     "id": "api.post.send_notifications_and_forget.push_message",
     "translation": "sent you a message."
+  },
+  {
+    "id": "api.post.update_post.can_not_update_post_in_deleted.error",
+    "translation": "Can not update a post in a deleted channel."
   },
   {
     "id": "api.post.update_post.find.app_error",
@@ -1792,7 +1804,7 @@
   },
   {
     "id": "api.team.move_channel.post.error",
-    "translation": "Plaatsen van bericht over binnenkomen/verlaten %v is mislukt"
+    "translation": "Plaatsen van kanaal verplaatsbericht is mislukt."
   },
   {
     "id": "api.team.move_channel.success",
@@ -1948,7 +1960,7 @@
   },
   {
     "id": "api.templates.invite_body.extra_info",
-    "translation": "Met Mattermost kunnen berichten en bestanden gedeeld worden via PC of mobiel, gecombineerd met instant zoeken en archiveren. Nadat U lid bent geworden van <strong>{{.TeamDisplayName}}</strong>, kun je inloggen bij het team en deze functies ieder moment benaderen via het internet adres:<br/><br/><a href='{{.TeamURL}}'>{{.teamURL}}</a>"
+    "translation": "Met Mattermost kun je berichten en bestanden delen via PC of mobiel. Je kunt ze onmiddellijk doorzoeken en in het archief bekijken. Nadat je lid bent geworden van [[{{.TeamDisplayName}}]], kun je inloggen bij het team en deze functies ieder moment gebruiken via dit webadres:"
   },
   {
     "id": "api.templates.invite_body.info",
@@ -2360,11 +2372,11 @@
   },
   {
     "id": "api.user.send_email_change_username_and_forget.error",
-    "translation": "De e-mail voor de gebuikersnaam aanpassing kon niet verstuurd worden, fout=%v"
+    "translation": "De e-mail voor het aanpassen van de gebruikersnaam kon niet verstuurd worden"
   },
   {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
-    "translation": "Email verificatie aanpassings mail kon niet verstuurd worden, fout=%v"
+    "translation": "De verificatie-e-mail voor het aanpassen van het e-mailadres kon niet verstuurd worden."
   },
   {
     "id": "api.user.send_mfa_change_email.error",
@@ -2372,7 +2384,7 @@
   },
   {
     "id": "api.user.send_password_change_email_and_forget.error",
-    "translation": "De e-mail voor het bijwerken van het wachtwoord kon niet verstuurd worden, fout=%v"
+    "translation": "De e-mail voor het bijwerken van het wachtwoord kon niet verstuurd worden"
   },
   {
     "id": "api.user.send_password_reset.send.app_error",
@@ -2384,7 +2396,7 @@
   },
   {
     "id": "api.user.send_sign_in_change_email_and_forget.error",
-    "translation": "De e-mail voor het bijwerken van het wachtwoord kon niet verstuurd worden, fout=%v"
+    "translation": "De e-mail voor het bijwerken van het wachtwoord kon niet verstuurd worden"
   },
   {
     "id": "api.user.send_user_access_token.error",
@@ -2392,11 +2404,11 @@
   },
   {
     "id": "api.user.send_verify_email_and_forget.failed.error",
-    "translation": "Verificatie mail kon niet verstuurd worden, fout=%v"
+    "translation": "Verificatie-e-mail kon niet verstuurd worden"
   },
   {
     "id": "api.user.send_welcome_email_and_forget.failed.error",
-    "translation": "Welkomst mail kon niet verstuurd worden, fout=%v"
+    "translation": "Welkomst-mail kon niet verstuurd worden"
   },
   {
     "id": "api.user.update_active.not_enable.app_error",
@@ -2484,7 +2496,7 @@
   },
   {
     "id": "api.user.verify_email.link_expired.app_error",
-    "translation": "The email verification link has expired."
+    "translation": "De e-mailverificatielink is verlopen."
   },
   {
     "id": "api.user.verify_email.token_parse.error",
@@ -2556,7 +2568,7 @@
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
-    "translation": "Plaatsen van bericht over binnenkomen/verlaten %v is mislukt"
+    "translation": "Plaatsen van kanaaldoelstelling is mislukt"
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.removed",
@@ -5528,7 +5540,7 @@
   },
   {
     "id": "store.sql_cluster_discovery.exists.app_error",
-    "translation": "Fout bij controle of de tabel bestaat %v"
+    "translation": "Fout bij controle of de tabel bestaat"
   },
   {
     "id": "store.sql_cluster_discovery.get_all.app_error",

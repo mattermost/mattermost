@@ -1457,6 +1457,10 @@
     "translation": "Le message a été rejeté, car un autre client faisait la même requête."
   },
   {
+    "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
+    "translation": "Can not delete a post in a deleted channel."
+  },
+  {
     "id": "api.post.disabled_all",
     "translation": "@all a été désactivé car le canal a plus de {{.Users}} utilisateurs."
   },
@@ -1495,6 +1499,10 @@
     "translation": "Les aperçus de liens ont été désactivées par l'administrateur système."
   },
   {
+    "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
+    "translation": "Can not update a post in a deleted channel."
+  },
+  {
     "id": "api.post.save_is_pinned_post.town_square_read_only",
     "translation": "Le canal est en lecture seule. Seuls les membres disposant de la permission peuvent épingler ou désépingler des messages au canal."
   },
@@ -1525,6 +1533,10 @@
   {
     "id": "api.post.send_notifications_and_forget.push_message",
     "translation": "vous a envoyé un message."
+  },
+  {
+    "id": "api.post.update_post.can_not_update_post_in_deleted.error",
+    "translation": "Can not update a post in a deleted channel."
   },
   {
     "id": "api.post.update_post.find.app_error",
@@ -2072,7 +2084,7 @@
   },
   {
     "id": "api.templates.verify_subject",
-    "translation": "Vérification de l'adresse e-mail pour [{{ .SiteName }}]"
+    "translation": "[{{ .SiteName }}] E-mail de vérification"
   },
   {
     "id": "api.templates.welcome_body.app_download_info",
@@ -2172,7 +2184,7 @@
   },
   {
     "id": "api.user.create_email_token.error",
-    "translation": "Failed to create token data for email verification"
+    "translation": "Impossible de créer les données du jeton pour l'e-mail de vérification"
   },
   {
     "id": "api.user.create_oauth_user.already_attached.app_error",
@@ -2484,11 +2496,11 @@
   },
   {
     "id": "api.user.verify_email.link_expired.app_error",
-    "translation": "The email verification link has expired."
+    "translation": "Le lien de l'e­-mail de vérification a expiré."
   },
   {
     "id": "api.user.verify_email.token_parse.error",
-    "translation": "Failed to parse token data from email verification"
+    "translation": "Impossible d'interpréter les données du jeton contenues dans l'e-mail de vérification"
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
