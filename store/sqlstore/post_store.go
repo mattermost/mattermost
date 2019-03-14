@@ -1433,7 +1433,7 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 		}
 
 		// Populate each post ChannelMembers extracting it from the channelMembersMap
-		for channelId, _ := range channelMembersMap {
+		for channelId := range channelMembersMap {
 			for _, post := range postsChannelMap[channelId] {
 				*post.ChannelMembers = channelMembersMap[channelId]
 			}
