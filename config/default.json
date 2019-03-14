@@ -61,6 +61,7 @@
         "ExperimentalEnableAuthenticationTransfer": true,
         "TimeBetweenUserTypingUpdatesMilliseconds": 5000,
         "EnablePostSearch": true,
+        "MinimumHashtagLength": 3,
         "EnableUserTypingMessages": true,
         "EnableChannelViewedMessages": true,
         "EnableUserStatuses": true,
@@ -73,7 +74,7 @@
         "ExperimentalChannelOrganization": false,
         "EnableAPITeamDeletion": false,
         "ExperimentalEnableHardenedMode": false,
-        "DisableLegacyMFA": true,
+        "DisableLegacyMFA": false,
         "EnableEmailInvitations": false,
         "ExperimentalLdapGroupSync": false,
         "ExperimentalStrictCSRFEnforcement": false
@@ -359,7 +360,9 @@
         "ClientSideCertEnable": false,
         "ClientSideCertCheck": "secondary",
         "DisablePostMetadata": false,
-        "LinkMetadataTimeoutMilliseconds": 5000
+        "LinkMetadataTimeoutMilliseconds": 5000,
+        "RestrictSystemAdmin": false,
+        "EnableClickToReply": false
     },
     "AnalyticsSettings": {
         "MaxUsersForStatistics": 2500
@@ -413,7 +416,7 @@
         "PluginStates": {}
     },
     "ImageProxySettings": {
-        "Enable": true,
+        "Enable": false,
         "ImageProxyType": "local",
         "RemoteImageProxyURL": "",
         "RemoteImageProxyOptions": ""

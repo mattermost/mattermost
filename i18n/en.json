@@ -56,6 +56,10 @@
     "translation": "No file under 'certificate' in request."
   },
   {
+    "id": "api.restricted_system_admin",
+    "translation": "This action is forbidden to a restricted system admin."
+  },
+  {
     "id": "app.submit_interactive_dialog.json_error",
     "translation": "Encountered an error encoding JSON for the interactive dialog."
   },
@@ -1447,6 +1451,18 @@
   {
     "id": "api.post.create_post.town_square_read_only",
     "translation": "This channel is read-only. Only members with permission can post here."
+  },
+  {
+    "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
+    "translation": "Can not update a post in a deleted channel."
+  },
+  {
+    "id": "api.post.update_post.can_not_update_post_in_deleted.error",
+    "translation": "Can not update a post in a deleted channel."
+  },
+  {
+    "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
+    "translation": "Can not delete a post in a deleted channel."
   },
   {
     "id": "api.post.save_is_pinned_post.town_square_read_only",
