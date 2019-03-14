@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -130,4 +131,71 @@ func TestRenameChannel(t *testing.T) {
 	updatedChannel, _ := th.App.GetChannel(channel.Id)
 	assert.Equal(t, "newchannelname10", updatedChannel.Name)
 	assert.Equal(t, "New Display Name", updatedChannel.DisplayName)
+}
+
+func Test_searchChannelCmdF(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	channel := th.CreatePublicChannel()
+	channel2 := th.CreatePublicChannel()
+	th.Client.DeleteChannel(channel2.Id)
+
+	tests := []struct {
+		Name     string
+		Args     []string
+		Expected string
+	}{
+		{
+			"Success find Channel in any team",
+			[]string{"channel", "search", channel.Name},
+			fmt.Sprintf("Channel Name :%s, Display Name :%s, Channel ID :%s", channel.Name, channel.DisplayName, channel.Id),
+		},
+		{
+			"Failed find Channel in any team",
+			[]string{"channel", "search", channel.Name + "404"},
+			fmt.Sprintf("Channel %s is not found in any team", channel.Name+"404"),
+		},
+		{
+			"Success find Channel with param team ID",
+			[]string{"channel", "search", "--team", channel.TeamId, channel.Name},
+			fmt.Sprintf("Channel Name :%s, Display Name :%s, Channel ID :%s", channel.Name, channel.DisplayName, channel.Id),
+		},
+		{
+			"Failed find Channel with param team ID",
+			[]string{"channel", "search", "--team", channel.TeamId, channel.Name + "404"},
+			fmt.Sprintf("Channel %s is not found in team %s", channel.Name+"404", channel.TeamId),
+		},
+		{
+			"Success find archived Channel in any team",
+			[]string{"channel", "search", channel2.Name},
+			fmt.Sprintf("Channel Name :%s, Display Name :%s, Channel ID :%s (archived)", channel2.Name, channel2.DisplayName, channel2.Id),
+		},
+		{
+			"Success find archived Channel with param team ID",
+			[]string{"channel", "search", "--team", channel2.TeamId, channel2.Name},
+			fmt.Sprintf("Channel Name :%s, Display Name :%s, Channel ID :%s (archived)", channel2.Name, channel2.DisplayName, channel2.Id),
+		},
+		{
+			"Failed find team",
+			[]string{"channel", "search", "--team", channel.TeamId + "404", channel.Name},
+			fmt.Sprintf("Team %s is not found", channel.TeamId+"404"),
+		},
+		{
+			"Success find Channel with param team ID",
+			[]string{"channel", "search", channel.Name, "--team", channel.TeamId},
+			fmt.Sprintf("Channel Name :%s, Display Name :%s, Channel ID :%s", channel.Name, channel.DisplayName, channel.Id),
+		},
+		{
+			"Success find Channel with param team ID",
+			[]string{"channel", "search", channel.Name, "--team=" + channel.TeamId},
+			fmt.Sprintf("Channel Name :%s, Display Name :%s, Channel ID :%s", channel.Name, channel.DisplayName, channel.Id),
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.Name, func(t *testing.T) {
+			assert.Contains(t, th.CheckCommand(t, test.Args...), test.Expected)
+		})
+	}
 }

@@ -10,7 +10,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"sync"
 
 	"github.com/pkg/errors"
 
@@ -24,15 +23,14 @@ var (
 )
 
 // FileStore is a config store backed by a file such as config/config.json.
+//
+// It also uses the folder containing the configuration file for storing other configuration files.
 type FileStore struct {
-	emitter
+	commonStore
 
-	config               *model.Config
-	environmentOverrides map[string]interface{}
-	configLock           sync.RWMutex
-	path                 string
-	watch                bool
-	watcher              *watcher
+	path    string
+	watch   bool
+	watcher *watcher
 }
 
 // NewFileStore creates a new instance of a config store backed by the given file path.
@@ -71,11 +69,15 @@ func resolveConfigFilePath(path string) (string, error) {
 		return path, nil
 	}
 
-	// Search for the given relative path (or plain filename) in various directories,
-	// resolving to the corresponding absolute path if found. FindConfigFile takes into account
-	// various common search paths rooted both at the current working directory and relative
-	// to the executable.
-	if configFile := fileutils.FindConfigFile(path); configFile != "" {
+	// Search for the relative path to the file in the config folder, taking into account
+	// various common starting points.
+	if configFile := fileutils.FindFile(filepath.Join("config", path)); configFile != "" {
+		return configFile, nil
+	}
+
+	// Search for the relative path in the current working directory, also taking into account
+	// various common starting points.
+	if configFile := fileutils.FindPath(path, []string{"."}, nil); configFile != "" {
 		return configFile, nil
 	}
 
@@ -90,68 +92,15 @@ func resolveConfigFilePath(path string) (string, error) {
 	return "", fmt.Errorf("failed to find config file %s", path)
 }
 
-// Get fetches the current, cached configuration.
-func (fs *FileStore) Get() *model.Config {
-	fs.configLock.RLock()
-	defer fs.configLock.RUnlock()
-
-	return fs.config
-}
-
-// GetEnvironmentOverrides fetches the configuration fields overridden by environment variables.
-func (fs *FileStore) GetEnvironmentOverrides() map[string]interface{} {
-	fs.configLock.RLock()
-	defer fs.configLock.RUnlock()
-
-	return fs.environmentOverrides
-}
-
-// Set replaces the current configuration in its entirety, without updating the backing store.
+// Set replaces the current configuration in its entirety and updates the backing store.
 func (fs *FileStore) Set(newCfg *model.Config) (*model.Config, error) {
-	fs.configLock.Lock()
-	var unlockOnce sync.Once
-	defer unlockOnce.Do(fs.configLock.Unlock)
+	return fs.commonStore.set(newCfg, func(cfg *model.Config) error {
+		if *fs.config.ClusterSettings.Enable && *fs.config.ClusterSettings.ReadOnlyConfig {
+			return ErrReadOnlyConfiguration
+		}
 
-	oldCfg := fs.config
-
-	// TODO: disallow attempting to save a directly modified config (comparing pointers). This
-	// wouldn't be an exhaustive check, given the use of pointers throughout the data
-	// structure, but might prevent common mistakes. Requires upstream changes first.
-	// if newCfg == oldCfg {
-	// 	return nil, errors.New("old configuration modified instead of cloning")
-	// }
-
-	newCfg = newCfg.Clone()
-	newCfg.SetDefaults()
-
-	// Sometimes the config is received with "fake" data in sensitive fields. Apply the real
-	// data from the existing config as necessary.
-	desanitize(oldCfg, newCfg)
-
-	if err := newCfg.IsValid(); err != nil {
-		return nil, errors.Wrap(err, "new configuration is invalid")
-	}
-
-	if *oldCfg.ClusterSettings.Enable && *oldCfg.ClusterSettings.ReadOnlyConfig {
-		return nil, ErrReadOnlyConfiguration
-	}
-
-	// Ideally, Set would persist automatically and abstract this completely away from the
-	// client. Doing so requires a few upstream changes first, so for now an explicit Save()
-	// remains required.
-	// if err := fs.persist(newCfg); err != nil {
-	// 	return nil, errors.Wrap(err, "failed to persist")
-	// }
-
-	fs.config = newCfg
-
-	unlockOnce.Do(fs.configLock.Unlock)
-
-	// Notify listeners synchronously. Ideally, this would be asynchronous, but existing code
-	// assumes this and there would be increased complexity to avoid racing updates.
-	fs.invokeConfigListeners(oldCfg, newCfg)
-
-	return oldCfg, nil
+		return fs.commonStore.validate(cfg)
+	}, fs.persist)
 }
 
 // persist writes the configuration to the configured file.
@@ -185,11 +134,11 @@ func (fs *FileStore) Load() (err error) {
 	f, err = os.Open(fs.path)
 	if os.IsNotExist(err) {
 		needsSave = true
-		defaultCfg := model.Config{}
+		defaultCfg := &model.Config{}
 		defaultCfg.SetDefaults()
 
 		var defaultCfgBytes []byte
-		defaultCfgBytes, err = marshalConfig(&defaultCfg)
+		defaultCfgBytes, err = marshalConfig(defaultCfg)
 		if err != nil {
 			return errors.Wrap(err, "failed to serialize default config")
 		}
@@ -206,58 +155,60 @@ func (fs *FileStore) Load() (err error) {
 		}
 	}()
 
-	allowEnvironmentOverrides := true
-	loadedCfg, environmentOverrides, err := unmarshalConfig(f, allowEnvironmentOverrides)
+	return fs.commonStore.load(f, needsSave, fs.commonStore.validate, fs.persist)
+}
+
+// GetFile fetches the contents of a previously persisted configuration file.
+func (fs *FileStore) GetFile(name string) ([]byte, error) {
+	resolvedPath := filepath.Join(filepath.Dir(fs.path), name)
+
+	data, err := ioutil.ReadFile(resolvedPath)
 	if err != nil {
-		return errors.Wrapf(err, "failed to unmarshal config from %s", fs.path)
+		return nil, errors.Wrapf(err, "failed to read file from %s", resolvedPath)
 	}
 
-	// SetDefaults generates various keys and salts if not previously configured. Determine if
-	// such a change will be made before invoking. This method will not effect the save: that
-	// remains the responsibility of the caller.
-	needsSave = needsSave || loadedCfg.SqlSettings.AtRestEncryptKey == nil || len(*loadedCfg.SqlSettings.AtRestEncryptKey) == 0
-	needsSave = needsSave || loadedCfg.FileSettings.PublicLinkSalt == nil || len(*loadedCfg.FileSettings.PublicLinkSalt) == 0
-	needsSave = needsSave || loadedCfg.EmailSettings.InviteSalt == nil || len(*loadedCfg.EmailSettings.InviteSalt) == 0
+	return data, nil
+}
 
-	loadedCfg.SetDefaults()
+// SetFile sets or replaces the contents of a configuration file.
+func (fs *FileStore) SetFile(name string, data []byte) error {
+	resolvedPath := filepath.Join(filepath.Dir(fs.path), name)
 
-	if err := loadedCfg.IsValid(); err != nil {
-		return errors.Wrap(err, "invalid config")
+	err := ioutil.WriteFile(resolvedPath, data, 0777)
+	if err != nil {
+		return errors.Wrapf(err, "failed to write file to %s", resolvedPath)
 	}
-
-	if changed := fixConfig(loadedCfg); changed {
-		needsSave = true
-	}
-
-	fs.configLock.Lock()
-	var unlockOnce sync.Once
-	defer unlockOnce.Do(fs.configLock.Unlock)
-
-	if needsSave {
-		if err = fs.persist(loadedCfg); err != nil {
-			return errors.Wrap(err, "failed to persist required changes after load")
-		}
-	}
-
-	oldCfg := fs.config
-	fs.config = loadedCfg
-	fs.environmentOverrides = environmentOverrides
-
-	unlockOnce.Do(fs.configLock.Unlock)
-
-	// Notify listeners synchronously. Ideally, this would be asynchronous, but existing code
-	// assumes this and there would be increased complexity to avoid racing updates.
-	fs.invokeConfigListeners(oldCfg, loadedCfg)
 
 	return nil
 }
 
-// Save writes the current configuration to the backing store.
-func (fs *FileStore) Save() error {
-	fs.configLock.Lock()
-	defer fs.configLock.Unlock()
+// HasFile returns true if the given file was previously persisted.
+func (fs *FileStore) HasFile(name string) (bool, error) {
+	resolvedPath := filepath.Join(filepath.Dir(fs.path), name)
 
-	return fs.persist(fs.config)
+	_, err := os.Stat(resolvedPath)
+	if err != nil && os.IsNotExist(err) {
+		return false, nil
+	} else if err != nil {
+		return false, errors.Wrap(err, "failed to check if file exists")
+	}
+
+	return true, nil
+}
+
+// RemoveFile removes a previously persisted configuration file.
+func (fs *FileStore) RemoveFile(name string) error {
+	resolvedPath := filepath.Join(filepath.Dir(fs.path), name)
+
+	err := os.Remove(resolvedPath)
+	if os.IsNotExist(err) {
+		return nil
+	}
+	if err != nil {
+		return errors.Wrap(err, "failed to remove file")
+	}
+
+	return err
 }
 
 // startWatcher starts a watcher to monitor for external config file changes.

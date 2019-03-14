@@ -97,7 +97,9 @@ func createEphemeralPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	rp := c.App.SendEphemeralPost(ephRequest.UserID, c.App.PostWithProxyRemovedFromImageURLs(ephRequest.Post))
 
 	w.WriteHeader(http.StatusCreated)
-	w.Write([]byte(c.App.PreparePostForClient(rp, true).ToJson()))
+	rp = model.AddPostActionCookies(rp, c.App.PostActionCookieSecret())
+	rp = c.App.PreparePostForClient(rp, true)
+	w.Write([]byte(rp.ToJson()))
 }
 
 func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -431,7 +433,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// The post being updated in the payload must be the same one as indicated in the URL.
 	if post.Id != c.Params.PostId {
-		c.SetInvalidParam("post_id")
+		c.SetInvalidParam("id")
 		return
 	}
 

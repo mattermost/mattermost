@@ -61,22 +61,6 @@ func (_m *UserStore) AnalyticsGetSystemAdminCount() store.StoreChannel {
 	return r0
 }
 
-// AnalyticsUniqueUserCount provides a mock function with given fields: teamId
-func (_m *UserStore) AnalyticsUniqueUserCount(teamId string) store.StoreChannel {
-	ret := _m.Called(teamId)
-
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
-		r0 = rf(teamId)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
-		}
-	}
-
-	return r0
-}
-
 // ClearAllCustomRoleAssignments provides a mock function with given fields:
 func (_m *UserStore) ClearAllCustomRoleAssignments() store.StoreChannel {
 	ret := _m.Called()
@@ -96,6 +80,22 @@ func (_m *UserStore) ClearAllCustomRoleAssignments() store.StoreChannel {
 // ClearCaches provides a mock function with given fields:
 func (_m *UserStore) ClearCaches() {
 	_m.Called()
+}
+
+// Count provides a mock function with given fields: options
+func (_m *UserStore) Count(options model.UserCountOptions) store.StoreChannel {
+	ret := _m.Called(options)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(model.UserCountOptions) store.StoreChannel); ok {
+		r0 = rf(options)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
 }
 
 // Get provides a mock function with given fields: id
@@ -498,22 +498,6 @@ func (_m *UserStore) GetSystemAdminProfiles() store.StoreChannel {
 	return r0
 }
 
-// GetTotalUsersCount provides a mock function with given fields:
-func (_m *UserStore) GetTotalUsersCount() store.StoreChannel {
-	ret := _m.Called()
-
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func() store.StoreChannel); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
-		}
-	}
-
-	return r0
-}
-
 // GetUnreadCount provides a mock function with given fields: userId
 func (_m *UserStore) GetUnreadCount(userId string) store.StoreChannel {
 	ret := _m.Called(userId)
@@ -833,13 +817,13 @@ func (_m *UserStore) UpdateUpdateAt(userId string) store.StoreChannel {
 	return r0
 }
 
-// VerifyEmail provides a mock function with given fields: userId
-func (_m *UserStore) VerifyEmail(userId string) store.StoreChannel {
-	ret := _m.Called(userId)
+// VerifyEmail provides a mock function with given fields: userId, email
+func (_m *UserStore) VerifyEmail(userId string, email string) store.StoreChannel {
+	ret := _m.Called(userId, email)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
-		r0 = rf(userId)
+	if rf, ok := ret.Get(0).(func(string, string) store.StoreChannel); ok {
+		r0 = rf(userId, email)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)

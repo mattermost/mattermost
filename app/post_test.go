@@ -19,7 +19,7 @@ import (
 )
 
 func TestCreatePostDeduplicate(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	t.Run("duplicate create post is idempotent", func(t *testing.T) {
@@ -188,7 +188,7 @@ func TestCreatePostDeduplicate(t *testing.T) {
 
 func TestAttachFilesToPost(t *testing.T) {
 	t.Run("should attach files", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		info1 := store.Must(th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
@@ -212,7 +212,7 @@ func TestAttachFilesToPost(t *testing.T) {
 	})
 
 	t.Run("should update File.PostIds after failing to add files", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		info1 := store.Must(th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
@@ -244,7 +244,7 @@ func TestAttachFilesToPost(t *testing.T) {
 }
 
 func TestUpdatePostEditAt(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	post := &model.Post{}
@@ -272,7 +272,7 @@ func TestUpdatePostEditAt(t *testing.T) {
 }
 
 func TestUpdatePostTimeLimit(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	post := &model.Post{}
@@ -308,10 +308,23 @@ func TestUpdatePostTimeLimit(t *testing.T) {
 	})
 }
 
+func TestUpdatePostInArchivedChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	archivedChannel := th.CreateChannel(th.BasicTeam)
+	post := th.CreatePost(archivedChannel)
+	th.App.DeleteChannel(archivedChannel, "")
+
+	_, err := th.App.UpdatePost(post, true)
+	require.NotNil(t, err)
+	require.Equal(t, "api.post.update_post.can_not_update_post_in_deleted.error", err.Id)
+}
+
 func TestPostReplyToPostWhereRootPosterLeftChannel(t *testing.T) {
 	// This test ensures that when replying to a root post made by a user who has since left the channel, the reply
 	// post completes successfully. This is a regression test for PLT-6523.
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	channel := th.BasicChannel
@@ -342,8 +355,61 @@ func TestPostReplyToPostWhereRootPosterLeftChannel(t *testing.T) {
 	}
 }
 
+func TestPostAttachPostToChildPost(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	channel := th.BasicChannel
+	user := th.BasicUser
+	rootPost := th.BasicPost
+
+	replyPost1 := model.Post{
+		Message:       "reply one",
+		ChannelId:     channel.Id,
+		RootId:        rootPost.Id,
+		ParentId:      rootPost.Id,
+		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+		UserId:        user.Id,
+		CreateAt:      0,
+	}
+
+	res1, err := th.App.CreatePostAsUser(&replyPost1, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	replyPost2 := model.Post{
+		Message:       "reply two",
+		ChannelId:     channel.Id,
+		RootId:        res1.Id,
+		ParentId:      res1.Id,
+		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+		UserId:        user.Id,
+		CreateAt:      0,
+	}
+
+	_, err = th.App.CreatePostAsUser(&replyPost2, false)
+	if err.StatusCode != http.StatusBadRequest {
+		t.Fatal(fmt.Sprintf("Expected BadRequest error, got %v", err))
+	}
+
+	replyPost3 := model.Post{
+		Message:       "reply three",
+		ChannelId:     channel.Id,
+		RootId:        rootPost.Id,
+		ParentId:      rootPost.Id,
+		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+		UserId:        user.Id,
+		CreateAt:      0,
+	}
+
+	if _, err := th.App.CreatePostAsUser(&replyPost3, false); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestPostChannelMentions(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	channel := th.BasicChannel
@@ -390,7 +456,7 @@ func TestPostChannelMentions(t *testing.T) {
 }
 
 func TestImageProxy(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -542,7 +608,7 @@ func TestMaxPostSize(t *testing.T) {
 }
 
 func TestDeletePostWithFileAttachments(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	// Create a post with a file attachment.
@@ -586,9 +652,22 @@ func TestDeletePostWithFileAttachments(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
+func TestDeletePostInArchivedChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	archivedChannel := th.CreateChannel(th.BasicTeam)
+	post := th.CreatePost(archivedChannel)
+	th.App.DeleteChannel(archivedChannel, "")
+
+	_, err := th.App.DeletePost(post.Id, "")
+	require.NotNil(t, err)
+	require.Equal(t, "api.post.delete_post.can_not_delete_post_in_deleted.error", err.Id)
+}
+
 func TestCreatePost(t *testing.T) {
 	t.Run("call PreparePostForClient before returning", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -616,7 +695,7 @@ func TestCreatePost(t *testing.T) {
 
 func TestPatchPost(t *testing.T) {
 	t.Run("call PreparePostForClient before returning", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -650,9 +729,22 @@ func TestPatchPost(t *testing.T) {
 	})
 }
 
+func TestPatchPostInArchivedChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	archivedChannel := th.CreateChannel(th.BasicTeam)
+	post := th.CreatePost(archivedChannel)
+	th.App.DeleteChannel(archivedChannel, "")
+
+	_, err := th.App.PatchPost(post.Id, &model.PostPatch{IsPinned: model.NewBool(true)})
+	require.NotNil(t, err)
+	require.Equal(t, "api.post.patch_post.can_not_update_post_in_deleted.error", err.Id)
+}
+
 func TestUpdatePost(t *testing.T) {
 	t.Run("call PreparePostForClient before returning", func(t *testing.T) {
-		th := Setup().InitBasic()
+		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {

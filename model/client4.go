@@ -150,6 +150,14 @@ func (c *Client4) GetUserByEmailRoute(email string) string {
 	return fmt.Sprintf(c.GetUsersRoute()+"/email/%v", email)
 }
 
+func (c *Client4) GetBotsRoute() string {
+	return fmt.Sprintf("/bots")
+}
+
+func (c *Client4) GetBotRoute(botUserId string) string {
+	return fmt.Sprintf("%s/%s", c.GetBotsRoute(), botUserId)
+}
+
 func (c *Client4) GetTeamsRoute() string {
 	return fmt.Sprintf("/teams")
 }
@@ -440,6 +448,10 @@ func (c *Client4) doApiPostBytes(url string, data []byte) (*http.Response, *AppE
 
 func (c *Client4) DoApiPut(url string, data string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodPut, c.ApiUrl+url, data, "")
+}
+
+func (c *Client4) doApiPutBytes(url string, data []byte) (*http.Response, *AppError) {
+	return c.doApiRequestBytes(http.MethodPut, c.ApiUrl+url, data, "")
 }
 
 func (c *Client4) DoApiDelete(url string) (*http.Response, *AppError) {
@@ -991,6 +1003,7 @@ func (c *Client4) UpdateUserMfa(userId, code string, activate bool) (bool, *Resp
 
 // CheckUserMfa checks whether a user has MFA active on their account or not based on the
 // provided login id.
+// Deprecated: Clients should use Login method and check for MFA Error
 func (c *Client4) CheckUserMfa(loginId string) (bool, *Response) {
 	requestBody := make(map[string]interface{})
 	requestBody["login_id"] = loginId
@@ -1332,6 +1345,111 @@ func (c *Client4) EnableUserAccessToken(tokenId string) (bool, *Response) {
 	}
 	defer closeBody(r)
 	return CheckStatusOK(r), BuildResponse(r)
+}
+
+// Bots section
+
+// CreateBot creates a bot in the system based on the provided bot struct.
+func (c *Client4) CreateBot(bot *Bot) (*Bot, *Response) {
+	r, err := c.doApiPostBytes(c.GetBotsRoute(), bot.ToJson())
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return BotFromJson(r.Body), BuildResponse(r)
+}
+
+// PatchBot partially updates a bot. Any missing fields are not updated.
+func (c *Client4) PatchBot(userId string, patch *BotPatch) (*Bot, *Response) {
+	r, err := c.doApiPutBytes(c.GetBotRoute(userId), patch.ToJson())
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return BotFromJson(r.Body), BuildResponse(r)
+}
+
+// GetBot fetches the given, undeleted bot.
+func (c *Client4) GetBot(userId string, etag string) (*Bot, *Response) {
+	r, err := c.DoApiGet(c.GetBotRoute(userId), etag)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return BotFromJson(r.Body), BuildResponse(r)
+}
+
+// GetBot fetches the given bot, even if it is deleted.
+func (c *Client4) GetBotIncludeDeleted(userId string, etag string) (*Bot, *Response) {
+	r, err := c.DoApiGet(c.GetBotRoute(userId)+"?include_deleted=true", etag)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return BotFromJson(r.Body), BuildResponse(r)
+}
+
+// GetBots fetches the given page of bots, excluding deleted.
+func (c *Client4) GetBots(page, perPage int, etag string) ([]*Bot, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
+	r, err := c.DoApiGet(c.GetBotsRoute()+query, etag)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return BotListFromJson(r.Body), BuildResponse(r)
+}
+
+// GetBotsIncludeDeleted fetches the given page of bots, including deleted.
+func (c *Client4) GetBotsIncludeDeleted(page, perPage int, etag string) ([]*Bot, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v&include_deleted=true", page, perPage)
+	r, err := c.DoApiGet(c.GetBotsRoute()+query, etag)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return BotListFromJson(r.Body), BuildResponse(r)
+}
+
+// GetBotsOrphaned fetches the given page of bots, only including orphanded bots.
+func (c *Client4) GetBotsOrphaned(page, perPage int, etag string) ([]*Bot, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v&only_orphaned=true", page, perPage)
+	r, err := c.DoApiGet(c.GetBotsRoute()+query, etag)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return BotListFromJson(r.Body), BuildResponse(r)
+}
+
+// DisableBot disables the given bot in the system.
+func (c *Client4) DisableBot(botUserId string) (*Bot, *Response) {
+	r, err := c.doApiPostBytes(c.GetBotRoute(botUserId)+"/disable", nil)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return BotFromJson(r.Body), BuildResponse(r)
+}
+
+// EnableBot disables the given bot in the system.
+func (c *Client4) EnableBot(botUserId string) (*Bot, *Response) {
+	r, err := c.doApiPostBytes(c.GetBotRoute(botUserId)+"/enable", nil)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return BotFromJson(r.Body), BuildResponse(r)
+}
+
+// AssignBot assigns the given bot to the given user
+func (c *Client4) AssignBot(botUserId, newOwnerId string) (*Bot, *Response) {
+	r, err := c.doApiPostBytes(c.GetBotRoute(botUserId)+"/assign/"+newOwnerId, nil)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return BotFromJson(r.Body), BuildResponse(r)
 }
 
 // Team Section
@@ -2332,6 +2450,23 @@ func (c *Client4) DoPostAction(postId, actionId string) (bool, *Response) {
 	return CheckStatusOK(r), BuildResponse(r)
 }
 
+// DoPostActionWithCookie performs a post action with extra arguments
+func (c *Client4) DoPostActionWithCookie(postId, actionId, selected, cookieStr string) (bool, *Response) {
+	var body []byte
+	if selected != "" || cookieStr != "" {
+		body, _ = json.Marshal(DoPostActionRequest{
+			SelectedOption: selected,
+			Cookie:         cookieStr,
+		})
+	}
+	r, err := c.DoApiPost(c.GetPostRoute(postId)+"/actions/"+actionId, string(body))
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
 // OpenInteractiveDialog sends a WebSocket event to a user's clients to
 // open interactive dialogs, based on the provided trigger ID and other
 // provided data. Used with interactive message buttons, menus and
@@ -2944,6 +3079,7 @@ func samlFileToMultipart(data []byte, filename string) ([]byte, *multipart.Write
 }
 
 // UploadSamlIdpCertificate will upload an IDP certificate for SAML and set the config to use it.
+// The filename parameter is deprecated and ignored: the server will pick a hard-coded filename when writing to disk.
 func (c *Client4) UploadSamlIdpCertificate(data []byte, filename string) (bool, *Response) {
 	body, writer, err := samlFileToMultipart(data, filename)
 	if err != nil {
@@ -2955,6 +3091,7 @@ func (c *Client4) UploadSamlIdpCertificate(data []byte, filename string) (bool, 
 }
 
 // UploadSamlPublicCertificate will upload a public certificate for SAML and set the config to use it.
+// The filename parameter is deprecated and ignored: the server will pick a hard-coded filename when writing to disk.
 func (c *Client4) UploadSamlPublicCertificate(data []byte, filename string) (bool, *Response) {
 	body, writer, err := samlFileToMultipart(data, filename)
 	if err != nil {
@@ -2966,6 +3103,7 @@ func (c *Client4) UploadSamlPublicCertificate(data []byte, filename string) (boo
 }
 
 // UploadSamlPrivateCertificate will upload a private key for SAML and set the config to use it.
+// The filename parameter is deprecated and ignored: the server will pick a hard-coded filename when writing to disk.
 func (c *Client4) UploadSamlPrivateCertificate(data []byte, filename string) (bool, *Response) {
 	body, writer, err := samlFileToMultipart(data, filename)
 	if err != nil {

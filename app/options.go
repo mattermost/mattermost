@@ -4,6 +4,7 @@
 package app
 
 import (
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/config"
@@ -37,11 +38,12 @@ func StoreOverride(override interface{}) Option {
 	}
 }
 
-func ConfigFile(file string, watch bool) Option {
+// Config applies the given config dsn, whether a path to config.json or a database connection string.
+func Config(dsn string, watch bool) Option {
 	return func(s *Server) error {
-		configStore, err := config.NewFileStore(file, watch)
+		configStore, err := config.NewStore(dsn, watch)
 		if err != nil {
-			return errors.Wrap(err, "failed to apply ConfigFile option")
+			return errors.Wrap(err, "failed to apply Config option")
 		}
 
 		s.configStore = configStore
@@ -49,6 +51,7 @@ func ConfigFile(file string, watch bool) Option {
 	}
 }
 
+// ConfigStore applies the given config store, typically to replace the traditional sources with a memory store for testing.
 func ConfigStore(configStore config.Store) Option {
 	return func(s *Server) error {
 		s.configStore = configStore
@@ -79,6 +82,13 @@ func StartElasticsearch(s *Server) error {
 	s.startElasticsearch = true
 
 	return nil
+}
+
+func SetLogger(logger *mlog.Logger) Option {
+	return func(s *Server) error {
+		s.Log = logger
+		return nil
+	}
 }
 
 type AppOption func(a *App)

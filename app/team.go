@@ -142,6 +142,34 @@ func (a *App) updateTeamUnsanitized(team *model.Team) (*model.Team, *model.AppEr
 	return result.Data.(*model.Team), nil
 }
 
+// RenameTeam is used to rename the team Name and the DisplayName fields
+func (a *App) RenameTeam(team *model.Team, newTeamName string, newDisplayName string) (*model.Team, *model.AppError) {
+
+	// check if name is occupied
+	_, errnf := a.GetTeamByName(newTeamName)
+
+	// "-" can be used as a newTeamName if only DisplayName change is wanted
+	if errnf == nil && newTeamName != "-" {
+		errbody := fmt.Sprintf("team with name %s already exists", newTeamName)
+		return nil, model.NewAppError("RenameTeam", "app.team.rename_team.name_occupied", nil, errbody, http.StatusBadRequest)
+	}
+
+	if newTeamName != "-" {
+		team.Name = newTeamName
+	}
+
+	if newDisplayName != "" {
+		team.DisplayName = newDisplayName
+	}
+
+	newTeam, err := a.updateTeamUnsanitized(team)
+	if err != nil {
+		return nil, err
+	}
+
+	return newTeam, nil
+}
+
 func (a *App) UpdateTeamScheme(team *model.Team) (*model.Team, *model.AppError) {
 	oldTeam, err := a.GetTeam(team.Id)
 	if err != nil {
@@ -584,6 +612,14 @@ func (a *App) GetTeamMember(teamId, userId string) (*model.TeamMember, *model.Ap
 
 func (a *App) GetTeamMembersForUser(userId string) ([]*model.TeamMember, *model.AppError) {
 	result := <-a.Srv.Store.Team().GetTeamsForUser(userId)
+	if result.Err != nil {
+		return nil, result.Err
+	}
+	return result.Data.([]*model.TeamMember), nil
+}
+
+func (a *App) GetTeamMembersForUserWithPagination(userId string, page, perPage int) ([]*model.TeamMember, *model.AppError) {
+	result := <-a.Srv.Store.Team().GetTeamsForUserWithPagination(userId, page, perPage)
 	if result.Err != nil {
 		return nil, result.Err
 	}

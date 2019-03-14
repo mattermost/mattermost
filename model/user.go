@@ -80,6 +80,7 @@ type User struct {
 	MfaActive          bool      `json:"mfa_active,omitempty"`
 	MfaSecret          string    `json:"mfa_secret,omitempty"`
 	LastActivityAt     int64     `db:"-" json:"last_activity_at,omitempty"`
+	IsBot              bool      `db:"-" json:"is_bot,omitempty"`
 }
 
 type UserPatch struct {

@@ -11,7 +11,7 @@ import (
 )
 
 func TestGetGroup(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	group := th.CreateGroup()
 
@@ -25,7 +25,7 @@ func TestGetGroup(t *testing.T) {
 }
 
 func TestGetGroupByRemoteID(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	group := th.CreateGroup()
 
@@ -39,7 +39,7 @@ func TestGetGroupByRemoteID(t *testing.T) {
 }
 
 func TestGetGroupsByType(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	th.CreateGroup()
 	th.CreateGroup()
@@ -55,7 +55,7 @@ func TestGetGroupsByType(t *testing.T) {
 }
 
 func TestCreateGroup(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -76,7 +76,7 @@ func TestCreateGroup(t *testing.T) {
 }
 
 func TestUpdateGroup(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	group := th.CreateGroup()
 	group.DisplayName = model.NewId()
@@ -87,7 +87,7 @@ func TestUpdateGroup(t *testing.T) {
 }
 
 func TestDeleteGroup(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	group := th.CreateGroup()
 
@@ -101,7 +101,7 @@ func TestDeleteGroup(t *testing.T) {
 }
 
 func TestCreateOrRestoreGroupMember(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	group := th.CreateGroup()
 
@@ -115,7 +115,7 @@ func TestCreateOrRestoreGroupMember(t *testing.T) {
 }
 
 func TestDeleteGroupMember(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	group := th.CreateGroup()
 	groupMember, err := th.App.CreateOrRestoreGroupMember(group.Id, th.BasicUser.Id)
@@ -132,12 +132,11 @@ func TestDeleteGroupMember(t *testing.T) {
 }
 
 func TestCreateGroupSyncable(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	group := th.CreateGroup()
 	groupSyncable := &model.GroupSyncable{
 		GroupId:    group.Id,
-		CanLeave:   true,
 		AutoAdd:    false,
 		SyncableId: th.BasicTeam.Id,
 		Type:       model.GroupSyncableTypeTeam,
@@ -153,12 +152,11 @@ func TestCreateGroupSyncable(t *testing.T) {
 }
 
 func TestGetGroupSyncable(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	group := th.CreateGroup()
 	groupSyncable := &model.GroupSyncable{
 		GroupId:    group.Id,
-		CanLeave:   true,
 		AutoAdd:    false,
 		SyncableId: th.BasicTeam.Id,
 		Type:       model.GroupSyncableTypeTeam,
@@ -174,14 +172,13 @@ func TestGetGroupSyncable(t *testing.T) {
 }
 
 func TestGetGroupSyncables(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	group := th.CreateGroup()
 
 	// Create a group team
 	groupSyncable := &model.GroupSyncable{
 		GroupId:    group.Id,
-		CanLeave:   true,
 		AutoAdd:    false,
 		SyncableId: th.BasicTeam.Id,
 		Type:       model.GroupSyncableTypeTeam,
@@ -198,12 +195,11 @@ func TestGetGroupSyncables(t *testing.T) {
 }
 
 func TestDeleteGroupSyncable(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	group := th.CreateGroup()
 	groupChannel := &model.GroupSyncable{
 		GroupId:    group.Id,
-		CanLeave:   true,
 		AutoAdd:    false,
 		SyncableId: th.BasicChannel.Id,
 		Type:       model.GroupSyncableTypeChannel,

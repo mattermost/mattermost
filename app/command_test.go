@@ -20,7 +20,7 @@ import (
 )
 
 func TestMoveCommand(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	sourceTeam := th.CreateTeam()
@@ -55,7 +55,7 @@ func TestMoveCommand(t *testing.T) {
 }
 
 func TestCreateCommandPost(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	post := &model.Post{
@@ -75,7 +75,7 @@ func TestCreateCommandPost(t *testing.T) {
 }
 
 func TestHandleCommandResponsePost(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	command := &model.Command{}
@@ -207,7 +207,7 @@ func TestHandleCommandResponsePost(t *testing.T) {
 	}
 }
 func TestHandleCommandResponse(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	command := &model.Command{}
@@ -267,7 +267,7 @@ func TestHandleCommandResponse(t *testing.T) {
 }
 
 func TestDoCommandRequest(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -343,15 +343,14 @@ func TestDoCommandRequest(t *testing.T) {
 	})
 
 	t.Run("with a slow response", func(t *testing.T) {
-		timeout := 100 * time.Millisecond
-
+		done := make(chan bool)
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			time.Sleep(timeout + time.Millisecond)
+			<-done
 			io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
 		}))
 		defer server.Close()
 
-		th.App.HTTPService.(*httpservice.HTTPServiceImpl).RequestTimeout = timeout
+		th.App.HTTPService.(*httpservice.HTTPServiceImpl).RequestTimeout = 100 * time.Millisecond
 		defer func() {
 			th.App.HTTPService.(*httpservice.HTTPServiceImpl).RequestTimeout = httpservice.RequestTimeout
 		}()
@@ -359,5 +358,6 @@ func TestDoCommandRequest(t *testing.T) {
 		_, _, err := th.App.doCommandRequest(&model.Command{URL: server.URL}, url.Values{})
 		require.NotNil(t, err)
 		require.Equal(t, "api.command.execute_command.failed.app_error", err.Id)
+		close(done)
 	})
 }

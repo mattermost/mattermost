@@ -189,6 +189,11 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 			return nil, model.NewAppError("createPost", "api.post.create_post.channel_root_id.app_error", nil, "", http.StatusInternalServerError)
 		}
 
+		rootPost := parentPostList.Posts[post.RootId]
+		if len(rootPost.RootId) > 0 {
+			return nil, model.NewAppError("createPost", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest)
+		}
+
 		if post.ParentId == "" {
 			post.ParentId = post.RootId
 		}
@@ -404,8 +409,41 @@ func (a *App) SendEphemeralPost(userId string, post *model.Post) *model.Post {
 		post.Props = model.StringInterface{}
 	}
 
+	post.GenerateActionIds()
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE, "", post.ChannelId, userId, nil)
-	message.Add("post", a.PreparePostForClient(post, true).ToJson())
+	post = a.PreparePostForClient(post, true)
+	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
+	message.Add("post", post.ToJson())
+	a.Publish(message)
+
+	return post
+}
+
+func (a *App) UpdateEphemeralPost(userId string, post *model.Post) *model.Post {
+	post.Type = model.POST_EPHEMERAL
+
+	post.UpdateAt = model.GetMillis()
+	if post.Props == nil {
+		post.Props = model.StringInterface{}
+	}
+
+	post.GenerateActionIds()
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", post.ChannelId, userId, nil)
+	post = a.PreparePostForClient(post, true)
+	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
+	message.Add("post", post.ToJson())
+	a.Publish(message)
+
+	return post
+}
+
+func (a *App) DeleteEphemeralPost(userId string, post *model.Post) *model.Post {
+	post.Type = model.POST_EPHEMERAL
+	post.DeleteAt = model.GetMillis()
+	post.UpdateAt = post.DeleteAt
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_DELETED, "", post.ChannelId, userId, nil)
+
+	message.Add("post", post.ToJson())
 	a.Publish(message)
 
 	return post
@@ -440,6 +478,16 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 			err := model.NewAppError("UpdatePost", "api.post.update_post.permissions_time_limit.app_error", map[string]interface{}{"timeLimit": *a.Config().ServiceSettings.PostEditTimeLimit}, "", http.StatusBadRequest)
 			return nil, err
 		}
+	}
+
+	channel, err := a.GetChannel(oldPost.ChannelId)
+	if err != nil {
+		return nil, err
+	}
+
+	if channel.DeleteAt != 0 {
+		err := model.NewAppError("UpdatePost", "api.post.update_post.can_not_update_post_in_deleted.error", nil, "", http.StatusBadRequest)
+		return nil, err
 	}
 
 	newPost := &model.Post{}
@@ -506,7 +554,9 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 
 	rpost = a.PreparePostForClient(rpost, false)
 
-	a.sendUpdatedPostEvent(rpost)
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", rpost.ChannelId, "", nil)
+	message.Add("post", rpost.ToJson())
+	a.Publish(message)
 
 	a.InvalidateCacheForChannelPosts(rpost.ChannelId)
 
@@ -519,6 +569,16 @@ func (a *App) PatchPost(postId string, patch *model.PostPatch) (*model.Post, *mo
 		return nil, err
 	}
 
+	channel, err := a.GetChannel(post.ChannelId)
+	if err != nil {
+		return nil, err
+	}
+
+	if channel.DeleteAt != 0 {
+		err = model.NewAppError("PatchPost", "api.post.patch_post.can_not_update_post_in_deleted.error", nil, "", http.StatusBadRequest)
+		return nil, err
+	}
+
 	post.Patch(patch)
 
 	updatedPost, err := a.UpdatePost(post, false)
@@ -527,12 +587,6 @@ func (a *App) PatchPost(postId string, patch *model.PostPatch) (*model.Post, *mo
 	}
 
 	return updatedPost, nil
-}
-
-func (a *App) sendUpdatedPostEvent(post *model.Post) {
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", post.ChannelId, "", nil)
-	message.Add("post", post.ToJson())
-	a.Publish(message)
 }
 
 func (a *App) GetPostsPage(channelId string, page int, perPage int) (*model.PostList, *model.AppError) {
@@ -665,6 +719,16 @@ func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppErro
 		return nil, result.Err
 	}
 	post := result.Data.(*model.Post)
+
+	channel, err := a.GetChannel(post.ChannelId)
+	if err != nil {
+		return nil, err
+	}
+
+	if channel.DeleteAt != 0 {
+		err := model.NewAppError("DeletePost", "api.post.delete_post.can_not_delete_post_in_deleted.error", nil, "", http.StatusBadRequest)
+		return nil, err
+	}
 
 	if result := <-a.Srv.Store.Post().Delete(postId, model.GetMillis(), deleteByID); result.Err != nil {
 		return nil, result.Err

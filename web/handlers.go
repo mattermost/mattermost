@@ -26,6 +26,10 @@ func (w *Web) NewHandler(h func(*Context, http.ResponseWriter, *http.Request)) h
 }
 
 func (w *Web) NewStaticHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	// Determine the CSP SHA directive needed for subpath support, if any. This value is fixed
+	// on server start and intentionally requires a restart to take effect.
+	subpath, _ := utils.GetSubpathFromConfig(w.ConfigService.Config())
+
 	return &Handler{
 		GetGlobalAppOptions: w.GetGlobalAppOptions,
 		HandleFunc:          h,
@@ -33,6 +37,8 @@ func (w *Web) NewStaticHandler(h func(*Context, http.ResponseWriter, *http.Reque
 		TrustRequester:      false,
 		RequireMfa:          false,
 		IsStatic:            true,
+
+		cspShaDirective: utils.GetSubpathScriptHash(subpath),
 	}
 }
 
@@ -43,6 +49,8 @@ type Handler struct {
 	TrustRequester      bool
 	RequireMfa          bool
 	IsStatic            bool
+
+	cspShaDirective string
 }
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -79,7 +87,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// Set content security policy. This is also specified in the root.html of the webapp in a meta tag.
 		w.Header().Set("Content-Security-Policy", fmt.Sprintf(
 			"frame-ancestors 'self'; script-src 'self' cdn.segment.com/analytics.js/%s",
-			utils.GetSubpathScriptHash(subpath),
+			h.cspShaDirective,
 		))
 	} else {
 		// All api response bodies will be JSON formatted by default
@@ -101,10 +109,15 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			csrfHeader := r.Header.Get(model.HEADER_CSRF_TOKEN)
 			if csrfHeader == session.GetCSRF() {
 				csrfCheckPassed = true
-			} else if !*c.App.Config().ServiceSettings.ExperimentalStrictCSRFEnforcement && r.Header.Get(model.HEADER_REQUESTED_WITH) == model.HEADER_REQUESTED_WITH_XML {
+			} else if r.Header.Get(model.HEADER_REQUESTED_WITH) == model.HEADER_REQUESTED_WITH_XML {
 				// ToDo(DSchalla) 2019/01/04: Remove after deprecation period and only allow CSRF Header (MM-13657)
-				c.Log.Warn("CSRF Header check failed for request - Please upgrade your web application or custom app to set a CSRF Header")
-				csrfCheckPassed = true
+				csrfErrorMessage := "CSRF Header check failed for request - Please upgrade your web application or custom app to set a CSRF Header"
+				if *c.App.Config().ServiceSettings.ExperimentalStrictCSRFEnforcement {
+					c.Log.Warn(csrfErrorMessage)
+				} else {
+					c.Log.Debug(csrfErrorMessage)
+					csrfCheckPassed = true
+				}
 			}
 
 			if !csrfCheckPassed {

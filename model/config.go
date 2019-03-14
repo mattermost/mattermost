@@ -169,8 +169,6 @@ const (
 	PLUGIN_SETTINGS_DEFAULT_DIRECTORY        = "./plugins"
 	PLUGIN_SETTINGS_DEFAULT_CLIENT_DIRECTORY = "./client/plugins"
 
-	TIMEZONE_SETTINGS_DEFAULT_SUPPORTED_TIMEZONES_PATH = "timezones.json"
-
 	COMPLIANCE_EXPORT_TYPE_CSV         = "csv"
 	COMPLIANCE_EXPORT_TYPE_ACTIANCE    = "actiance"
 	COMPLIANCE_EXPORT_TYPE_GLOBALRELAY = "globalrelay"
@@ -269,6 +267,7 @@ type ServiceSettings struct {
 	PostEditTimeLimit                                 *int
 	TimeBetweenUserTypingUpdatesMilliseconds          *int64
 	EnablePostSearch                                  *bool
+	MinimumHashtagLength                              *int
 	EnableUserTypingMessages                          *bool
 	EnableChannelViewedMessages                       *bool
 	EnableUserStatuses                                *bool
@@ -285,9 +284,11 @@ type ServiceSettings struct {
 	DEPRECATED_DO_NOT_USE_ImageProxyOptions           *string `json:"ImageProxyOptions" mapstructure:"ImageProxyOptions"` // This field is deprecated and must not be used.
 	EnableAPITeamDeletion                             *bool
 	ExperimentalEnableHardenedMode                    *bool
+	DisableLegacyMFA                                  *bool
 	ExperimentalStrictCSRFEnforcement                 *bool
 	EnableEmailInvitations                            *bool
 	ExperimentalLdapGroupSync                         *bool
+	DisableBotsWhenOwnerIsDeactivated                 *bool
 }
 
 func (s *ServiceSettings) SetDefaults() {
@@ -434,6 +435,10 @@ func (s *ServiceSettings) SetDefaults() {
 
 	if s.EnablePostSearch == nil {
 		s.EnablePostSearch = NewBool(true)
+	}
+
+	if s.MinimumHashtagLength == nil {
+		s.MinimumHashtagLength = NewInt(3)
 	}
 
 	if s.EnableUserTypingMessages == nil {
@@ -611,12 +616,20 @@ func (s *ServiceSettings) SetDefaults() {
 		s.ExperimentalEnableHardenedMode = NewBool(false)
 	}
 
+	if s.DisableLegacyMFA == nil {
+		s.DisableLegacyMFA = NewBool(false)
+	}
+
 	if s.ExperimentalLdapGroupSync == nil {
 		s.ExperimentalLdapGroupSync = NewBool(false)
 	}
 
 	if s.ExperimentalStrictCSRFEnforcement == nil {
 		s.ExperimentalStrictCSRFEnforcement = NewBool(false)
+	}
+
+	if s.DisableBotsWhenOwnerIsDeactivated == nil {
+		s.DisableBotsWhenOwnerIsDeactivated = NewBool(true)
 	}
 }
 
@@ -704,7 +717,9 @@ type ExperimentalSettings struct {
 	ClientSideCertEnable            *bool
 	ClientSideCertCheck             *string
 	DisablePostMetadata             *bool
+	EnableClickToReply              *bool
 	LinkMetadataTimeoutMilliseconds *int64
+	RestrictSystemAdmin             *bool
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -720,8 +735,16 @@ func (s *ExperimentalSettings) SetDefaults() {
 		s.DisablePostMetadata = NewBool(false)
 	}
 
+	if s.EnableClickToReply == nil {
+		s.EnableClickToReply = NewBool(false)
+	}
+
 	if s.LinkMetadataTimeoutMilliseconds == nil {
 		s.LinkMetadataTimeoutMilliseconds = NewInt64(EXPERIMENTAL_SETTINGS_DEFAULT_LINK_METADATA_TIMEOUT_MILLISECONDS)
+	}
+
+	if s.RestrictSystemAdmin == nil {
+		s.RestrictSystemAdmin = NewBool(false)
 	}
 }
 
@@ -1386,7 +1409,7 @@ type TeamSettings struct {
 
 func (s *TeamSettings) SetDefaults() {
 
-	if s.SiteName == nil {
+	if s.SiteName == nil || *s.SiteName == "" {
 		s.SiteName = NewString(TEAM_SETTINGS_DEFAULT_SITE_NAME)
 	}
 
@@ -2141,16 +2164,6 @@ func (s *DisplaySettings) SetDefaults() {
 	}
 }
 
-type TimezoneSettings struct {
-	SupportedTimezonesPath *string
-}
-
-func (s *TimezoneSettings) SetDefaults() {
-	if s.SupportedTimezonesPath == nil {
-		s.SupportedTimezonesPath = NewString(TIMEZONE_SETTINGS_DEFAULT_SUPPORTED_TIMEZONES_PATH)
-	}
-}
-
 type ImageProxySettings struct {
 	Enable                  *bool
 	ImageProxyType          *string
@@ -2160,7 +2173,11 @@ type ImageProxySettings struct {
 
 func (ips *ImageProxySettings) SetDefaults(ss ServiceSettings) {
 	if ips.Enable == nil {
-		ips.Enable = NewBool(true)
+		if ss.DEPRECATED_DO_NOT_USE_ImageProxyType == nil || *ss.DEPRECATED_DO_NOT_USE_ImageProxyType == "" {
+			ips.Enable = NewBool(false)
+		} else {
+			ips.Enable = NewBool(true)
+		}
 	}
 
 	if ips.ImageProxyType == nil {
@@ -2222,7 +2239,6 @@ type Config struct {
 	JobSettings           JobSettings
 	PluginSettings        PluginSettings
 	DisplaySettings       DisplaySettings
-	TimezoneSettings      TimezoneSettings
 	ImageProxySettings    ImageProxySettings
 }
 
@@ -2297,7 +2313,6 @@ func (o *Config) SetDefaults() {
 	o.LogSettings.SetDefaults()
 	o.JobSettings.SetDefaults()
 	o.MessageExportSettings.SetDefaults()
-	o.TimezoneSettings.SetDefaults()
 	o.DisplaySettings.SetDefaults()
 	o.ImageProxySettings.SetDefaults(o.ServiceSettings)
 }
@@ -2397,6 +2412,10 @@ func (ts *TeamSettings) isValid() *AppError {
 
 	if !(*ts.TeammateNameDisplay == SHOW_FULLNAME || *ts.TeammateNameDisplay == SHOW_NICKNAME_FULLNAME || *ts.TeammateNameDisplay == SHOW_USERNAME) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.teammate_name_display.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if len(*ts.SiteName) == 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.sitename_empty.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if len(*ts.SiteName) > SITENAME_MAX_LENGTH {
