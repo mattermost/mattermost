@@ -2558,7 +2558,6 @@ func (s SqlChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId s
 		for _, channel := range directChannelsForExport {
 			channel.Members = &[]string{}
 			dmChannelsMap[channel.Id] = channel
-
 		}
 		for _, member := range channelMembers {
 			members := dmChannelsMap[member.ChannelId].Members

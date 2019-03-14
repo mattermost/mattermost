@@ -3,6 +3,7 @@ package app
 import (
 	"bytes"
 	"os"
+	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -372,7 +373,11 @@ func TestExportDMandGMPost(t *testing.T) {
 	gmChannel := th1.CreateGroupChannel(user1, user2)
 	gmMembers := []string{th1.BasicUser.Username, user1.Username, user2.Username}
 
+	// DM posts
 	th1.CreatePost(dmChannel)
+	th1.CreatePost(dmChannel)
+	// GM posts
+	th1.CreatePost(gmChannel)
 	th1.CreatePost(gmChannel)
 
 	result := <-th1.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
@@ -399,9 +404,12 @@ func TestExportDMandGMPost(t *testing.T) {
 
 	result = <-th2.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
 	posts = result.Data.([]*model.DirectPostForExport)
+
+	// Adding some deteminism so its possible to assert on slice index
+	sort.Slice(posts, func(i, j int) bool { return posts[i].CreateAt > posts[j].CreateAt })
 	assert.Equal(t, 2, len(posts))
-	assert.ElementsMatch(t, dmMembers, *posts[0].ChannelMembers)
-	assert.ElementsMatch(t, gmMembers, *posts[1].ChannelMembers)
+	assert.ElementsMatch(t, gmMembers, *posts[0].ChannelMembers)
+	assert.ElementsMatch(t, dmMembers, *posts[1].ChannelMembers)
 }
 
 func TestExportDMPostWithSelf(t *testing.T) {
