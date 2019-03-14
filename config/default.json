@@ -361,7 +361,8 @@
         "ClientSideCertCheck": "secondary",
         "DisablePostMetadata": false,
         "LinkMetadataTimeoutMilliseconds": 5000,
-        "RestrictSystemAdmin": false
+        "RestrictSystemAdmin": false,
+        "EnableClickToReply": false
     },
     "AnalyticsSettings": {
         "MaxUsersForStatistics": 2500
