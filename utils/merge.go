@@ -10,18 +10,20 @@ import (
 
 // Merge will return a new struct/map/slice of the same type as base and patch, with patch merged into base.
 // Specifically, patch's values will be preferred except when patch's value is `nil`.
+// Note: a referenced value (eg. *bool) will only be `nil` if the pointer is nil. If the value is a zero value,
+//       then that is considered a legitimate value. Eg, *bool(false) will overwrite *bool(true).
+//
 // Restrictions/guarantees:
 //   - base and patch will not be modified
 //   - base and patch can be pointers or values
 //   - base and patch must be the same type
-//   - if slices are different, they will be merged according to the following rules:
-//       - start with elements from base (if any)
-//		 - then for each item, patch will overwrite if different
-//		 - and then add the extra items from patch (if any)
+//   - if slices are different, this rule applies:
+//       - if patch is not nil, overwrite the base slice.
+//       - otherwise, keep the base slice
 //   - if maps are different, they will be merged according to the following rules:
 //       - keys in base are added first
 //       - keys in patch are added after, overwriting existing keys with values from patch
-//       - reference values (eg. slice/ptr/map/chan) will not be cloned
+//       - reference values (eg. slice/ptr/map) will be cloned
 //   - channel values are not supported at the moment
 //
 // Usage: callers need to cast the returned interface back into the original type, eg:
@@ -39,16 +41,16 @@ func Merge(base interface{}, patch interface{}) (interface{}, error) {
 			reflect.TypeOf(base), reflect.TypeOf(patch))
 	}
 
-	baseType := reflect.TypeOf(base)
+	commonType := reflect.TypeOf(base)
 	baseVal := reflect.ValueOf(base)
 	patchVal := reflect.ValueOf(patch)
-	if baseType.Kind() == reflect.Ptr {
-		baseType = baseType.Elem()
+	if commonType.Kind() == reflect.Ptr {
+		commonType = commonType.Elem()
 		baseVal = baseVal.Elem()
 		patchVal = patchVal.Elem()
 	}
 
-	ret := reflect.New(baseType)
+	ret := reflect.New(commonType)
 
 	val, ok := merge(baseVal, patchVal)
 	if ok {
@@ -59,11 +61,11 @@ func Merge(base interface{}, patch interface{}) (interface{}, error) {
 
 // merge recursively merges patch into base and returns the new struct, ptr, slice/map, or value
 func merge(base, patch reflect.Value) (reflect.Value, bool) {
-	baseType := base.Type()
+	commonType := base.Type()
 
-	switch baseType.Kind() {
+	switch commonType.Kind() {
 	case reflect.Struct:
-		merged := reflect.New(baseType).Elem()
+		merged := reflect.New(commonType).Elem()
 		for i := 0; i < base.NumField(); i++ {
 			if !merged.Field(i).CanSet() {
 				continue
@@ -76,72 +78,88 @@ func merge(base, patch reflect.Value) (reflect.Value, bool) {
 		return merged, true
 
 	case reflect.Ptr:
-		mergedPtr := reflect.New(baseType.Elem())
+		mergedPtr := reflect.New(commonType.Elem())
 		if base.IsNil() && patch.IsNil() {
 			return mergedPtr, false
-		} else if base.IsNil() {
-			mergedPtr.Elem().Set(patch.Elem())
-			return mergedPtr, true
-		} else if patch.IsNil() {
-			mergedPtr.Elem().Set(base.Elem())
-			return mergedPtr, true
 		}
-		val, ok := merge(base.Elem(), patch.Elem())
-		if ok {
+
+		// clone reference values (if any)
+		if base.IsNil() {
+			val, _ := merge(patch.Elem(), patch.Elem())
+			mergedPtr.Elem().Set(val)
+		} else if patch.IsNil() {
+			val, _ := merge(base.Elem(), base.Elem())
+			mergedPtr.Elem().Set(val)
+		} else {
+			val, _ := merge(base.Elem(), patch.Elem())
 			mergedPtr.Elem().Set(val)
 		}
 		return mergedPtr, true
 
 	case reflect.Slice:
-		// merge with these rules:
-		// - start with elements from base (if any)
-		// - then for each item, patch will overwrite if different
-		// - and then add the extra items from patch (if any)
 		if base.IsNil() && patch.IsNil() {
-			return reflect.Zero(baseType), false
-		}
-		var maxLen int
-		if base.Len() > patch.Len() {
-			maxLen = base.Len()
-		} else {
-			maxLen = patch.Len()
-		}
-		merged := reflect.MakeSlice(baseType, maxLen, maxLen)
-		if !base.IsNil() {
-			reflect.Copy(merged, base)
+			return reflect.Zero(commonType), false
 		}
 		if !patch.IsNil() {
-			reflect.Copy(merged, patch)
+			// use patch
+			merged := reflect.MakeSlice(commonType, 0, patch.Len())
+			for i := 0; i < patch.Len(); i++ {
+				// recursively merge patch with itself. This will clone reference values.
+				val, _ := merge(patch.Index(i), patch.Index(i))
+				merged = reflect.Append(merged, val)
+			}
+			return merged, true
+		}
+		// use base
+		merged := reflect.MakeSlice(commonType, 0, base.Len())
+		for i := 0; i < base.Len(); i++ {
+
+			// recursively merge base with itself. This will clone reference values.
+			val, _ := merge(base.Index(i), base.Index(i))
+			merged = reflect.Append(merged, val)
 		}
 		return merged, true
 
 	case reflect.Map:
-		// for now, maps are merged in a very rudimentary way:
-		// - keys in base are added first
-		// - keys in patch are added after, overwriting existing keys with values from patch
-		// - reference values (eg. slice/ptr/map/chan) will not be cloned
+		// maps are merged according to these rules:
+		// - if patch is not nil, replace the base map completely
+		// - otherwise, keep the base map
+		// - reference values (eg. slice/ptr/map) will be cloned
 		if base.IsNil() && patch.IsNil() {
-			return reflect.Zero(baseType), false
+			return reflect.Zero(commonType), false
 		}
-		merged := reflect.MakeMap(baseType)
-		if !base.IsNil() {
-			for _, key := range base.MapKeys() {
-				merged.SetMapIndex(key, base.MapIndex(key))
-			}
-		}
+		merged := reflect.MakeMap(commonType)
+		mapPtr := base
 		if !patch.IsNil() {
-			for _, key := range patch.MapKeys() {
-				merged.SetMapIndex(key, patch.MapIndex(key))
+			mapPtr = patch
+		}
+		for _, key := range mapPtr.MapKeys() {
+			// clone reference values
+			val, ok := merge(mapPtr.MapIndex(key), mapPtr.MapIndex(key))
+			if !ok {
+				val = reflect.New(mapPtr.MapIndex(key).Type()).Elem()
 			}
+			merged.SetMapIndex(key, val)
 		}
 		return merged, true
 
-	// reflect.Chan not handled for now
+	case reflect.Interface:
+		var val reflect.Value
+		if base.IsNil() && patch.IsNil() {
+			return reflect.Zero(commonType), false
+		}
+
+		// clone reference values (if any)
+		if base.IsNil() {
+			val, _ = merge(patch.Elem(), patch.Elem())
+		} else if patch.IsNil() {
+			val, _ = merge(base.Elem(), base.Elem())
+		} else {
+			val, _ = merge(base.Elem(), patch.Elem())
+		}
+		return val, true
 
 	default:
-		if base != patch {
-			return patch, true
-		}
-		return base, true
+		return patch, true
 	}
 }
