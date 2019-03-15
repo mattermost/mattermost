@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/pkg/errors"
 )
@@ -70,7 +71,16 @@ func (a *App) BulkExport(writer io.Writer, file string, pathToEmojiDir string, d
 	if err := a.ExportAllPosts(writer); err != nil {
 		return err
 	}
+
 	if err := a.ExportCustomEmoji(writer, file, pathToEmojiDir, dirNameToExportEmoji); err != nil {
+		return err
+	}
+
+	if err := a.ExportAllDirectChannels(writer); err != nil {
+		return err
+	}
+
+	if err := a.ExportAllDirectPosts(writer); err != nil {
 		return err
 	}
 
@@ -501,5 +511,85 @@ func (a *App) copyEmojiImages(emojiId string, emojiImagePath string, pathToDir s
 		return errors.New("Error copying emojis " + err.Error())
 	}
 
+	return nil
+}
+
+func (a *App) ExportAllDirectChannels(writer io.Writer) *model.AppError {
+	afterId := strings.Repeat("0", 26)
+	for {
+		result := <-a.Srv.Store.Channel().GetAllDirectChannelsForExportAfter(1000, afterId)
+		if result.Err != nil {
+			return result.Err
+		}
+
+		channels := result.Data.([]*model.DirectChannelForExport)
+		if len(channels) == 0 {
+			break
+		}
+
+		for _, channel := range channels {
+			afterId = channel.Id
+
+			// Skip deleted.
+			if channel.DeleteAt != 0 {
+				continue
+			}
+
+			// There's no import support for single member channels yet.
+			if len(*channel.Members) == 1 {
+				mlog.Debug("Bulk export for direct channels containing a single member is not supported.")
+				continue
+			}
+
+			channelLine := ImportLineFromDirectChannel(channel)
+			if err := a.ExportWriteLine(writer, channelLine); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func (a *App) ExportAllDirectPosts(writer io.Writer) *model.AppError {
+	afterId := strings.Repeat("0", 26)
+	for {
+		result := <-a.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, afterId)
+		if result.Err != nil {
+			return result.Err
+		}
+
+		posts := result.Data.([]*model.DirectPostForExport)
+		if len(posts) == 0 {
+			break
+		}
+
+		for _, post := range posts {
+			afterId = post.Id
+
+			// Skip deleted.
+			if post.DeleteAt != 0 {
+				continue
+			}
+
+			// There's no import support for single member channels yet.
+			if len(*post.ChannelMembers) == 1 {
+				mlog.Debug("Bulk export for posts containing a single member is not supported.")
+				continue
+			}
+
+			// Do the Replies.
+			replies, err := a.buildPostReplies(post.Id)
+			if err != nil {
+				return err
+			}
+
+			postLine := ImportLineForDirectPost(post)
+			postLine.DirectPost.Replies = replies
+			if err := a.ExportWriteLine(writer, postLine); err != nil {
+				return err
+			}
+		}
+	}
 	return nil
 }

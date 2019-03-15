@@ -122,6 +122,12 @@ type PostForExport struct {
 	ReplyCount  int
 }
 
+type DirectPostForExport struct {
+	Post
+	User           string
+	ChannelMembers *[]string
+}
+
 type ReplyForExport struct {
 	Post
 	Username string
