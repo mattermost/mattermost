@@ -1053,7 +1053,6 @@ type EmailSettings struct {
 	SMTPServer                        *string
 	SMTPPort                          *string
 	ConnectionSecurity                *string
-	InviteSalt                        *string
 	SendPushNotifications             *bool
 	PushNotificationServer            *string
 	PushNotificationContents          *string
@@ -1135,10 +1134,6 @@ func (s *EmailSettings) SetDefaults() {
 
 	if s.ConnectionSecurity == nil || *s.ConnectionSecurity == CONN_SECURITY_PLAIN {
 		s.ConnectionSecurity = NewString(CONN_SECURITY_NONE)
-	}
-
-	if s.InviteSalt == nil || len(*s.InviteSalt) == 0 {
-		s.InviteSalt = NewString(NewRandomString(32))
 	}
 
 	if s.SendPushNotifications == nil {
@@ -2478,10 +2473,6 @@ func (es *EmailSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.email_security.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(*es.InviteSalt) < 32 {
-		return NewAppError("Config.IsValid", "model.config.is_valid.email_salt.app_error", nil, "", http.StatusBadRequest)
-	}
-
 	if *es.EmailBatchingBufferSize <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.email_batching_buffer_size.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -2840,11 +2831,6 @@ func (o *Config) Sanitize() {
 	*o.FileSettings.PublicLinkSalt = FAKE_SETTING
 	if len(*o.FileSettings.AmazonS3SecretAccessKey) > 0 {
 		*o.FileSettings.AmazonS3SecretAccessKey = FAKE_SETTING
-	}
-
-	*o.EmailSettings.InviteSalt = FAKE_SETTING
-	if len(*o.EmailSettings.SMTPPassword) > 0 {
-		*o.EmailSettings.SMTPPassword = FAKE_SETTING
 	}
 
 	if len(*o.GitLabSettings.Secret) > 0 {
