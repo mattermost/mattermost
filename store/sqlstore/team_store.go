@@ -332,8 +332,21 @@ func (s SqlTeamStore) SearchOpen(term string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var teams []*model.Team
 
-		if _, err := s.GetReplica().Select(&teams, "SELECT * FROM Teams WHERE Type = 'O' AND AllowOpenInvite = true AND (Name LIKE :Term OR DisplayName LIKE :Term)", map[string]interface{}{"Term": term + "%"}); err != nil {
+		if _, err := s.GetReplica().Select(&teams, "SELECT * FROM Teams WHERE AllowOpenInvite = true AND (Name LIKE :Term OR DisplayName LIKE :Term)", map[string]interface{}{"Term": term + "%"}); err != nil {
 			result.Err = model.NewAppError("SqlTeamStore.SearchOpen", "store.sql_team.search_open_team.app_error", nil, "term="+term+", "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		result.Data = teams
+	})
+}
+
+func (s SqlTeamStore) SearchPrivate(term string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		var teams []*model.Team
+
+		if _, err := s.GetReplica().Select(&teams, "SELECT * FROM Teams WHERE AllowOpenInvite = false AND (Name LIKE :Term OR DisplayName LIKE :Term)", map[string]interface{}{"Term": term + "%"}); err != nil {
+			result.Err = model.NewAppError("SqlTeamStore.SearchPrivate", "store.sql_team.search_private_team.app_error", nil, "term="+term+", "+err.Error(), http.StatusInternalServerError)
 			return
 		}
 

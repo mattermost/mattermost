@@ -89,6 +89,7 @@ type TeamStore interface {
 	SearchByName(name string) StoreChannel
 	SearchAll(term string) StoreChannel
 	SearchOpen(term string) StoreChannel
+	SearchPrivate(term string) StoreChannel
 	GetAll() StoreChannel
 	GetAllPage(offset int, limit int) StoreChannel
 	GetAllPrivateTeamListing() StoreChannel

@@ -622,10 +622,14 @@ func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	var teams []*model.Team
 	var err *model.AppError
 
-	if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PRIVATE_TEAMS) && c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PUBLIC_TEAMS) {
 		teams, err = c.App.SearchAllTeams(props.Term)
-	} else {
+	} else if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PRIVATE_TEAMS) {
+		teams, err = c.App.SearchPrivateTeams(props.Term)
+	} else if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PUBLIC_TEAMS) {
 		teams, err = c.App.SearchPublicTeams(props.Term)
+	} else {
+		teams = []*model.Team{}
 	}
 
 	if err != nil {

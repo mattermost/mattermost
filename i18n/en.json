@@ -6359,6 +6359,10 @@
     "translation": "We encountered an error searching open teams"
   },
   {
+    "id": "store.sql_team.search_private_team.app_error",
+    "translation": "We encountered an error searching private teams"
+  },
+  {
     "id": "store.sql_team.update.app_error",
     "translation": "Unable to update the team"
   },

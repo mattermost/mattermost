@@ -5,7 +5,6 @@ package model
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"strings"
 )
@@ -152,7 +151,6 @@ func (role *Role) IsValidWithoutId() bool {
 		}
 
 		if !permissionValidated {
-			fmt.Println("INVALID Permission:", permission)
 			return false
 		}
 	}

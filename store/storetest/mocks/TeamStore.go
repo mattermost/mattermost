@@ -589,6 +589,22 @@ func (_m *TeamStore) SearchOpen(term string) store.StoreChannel {
 	return r0
 }
 
+// SearchPrivate provides a mock function with given fields: term
+func (_m *TeamStore) SearchPrivate(term string) store.StoreChannel {
+	ret := _m.Called(term)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+		r0 = rf(term)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // Update provides a mock function with given fields: team
 func (_m *TeamStore) Update(team *model.Team) store.StoreChannel {
 	ret := _m.Called(team)
