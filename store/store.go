@@ -187,6 +187,7 @@ type ChannelStore interface {
 	ClearAllCustomRoleAssignments() StoreChannel
 	MigratePublicChannels() error
 	GetAllChannelsForExportAfter(limit int, afterId string) StoreChannel
+	GetAllDirectChannelsForExportAfter(limit int, afterId string) StoreChannel
 	GetChannelMembersForExport(userId string, teamId string) StoreChannel
 	RemoveAllDeactivatedMembers(channelId string) StoreChannel
 }
@@ -229,6 +230,7 @@ type PostStore interface {
 	GetMaxPostSize() StoreChannel
 	GetParentsForExportAfter(limit int, afterId string) StoreChannel
 	GetRepliesForExport(parentId string) StoreChannel
+	GetDirectPostParentsForExportAfter(limit int, afterId string) StoreChannel
 }
 
 type UserStore interface {

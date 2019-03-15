@@ -15,6 +15,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/go-sql-driver/mysql"
 	"github.com/lib/pq"
@@ -1049,6 +1050,14 @@ func (ss *SqlSupplier) LinkMetadata() store.LinkMetadataStore {
 
 func (ss *SqlSupplier) DropAllTables() {
 	ss.master.TruncateTables()
+}
+
+func (ss *SqlSupplier) getQueryBuilder() sq.StatementBuilderType {
+	builder := sq.StatementBuilder.PlaceholderFormat(sq.Question)
+	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		builder = builder.PlaceholderFormat(sq.Dollar)
+	}
+	return builder
 }
 
 type mattermConverter struct{}
