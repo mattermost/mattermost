@@ -598,6 +598,8 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	limit, _ := strconv.Atoi(limitStr)
 	if limitStr == "" {
 		limit = model.USER_SEARCH_DEFAULT_LIMIT
+	} else if limit > model.USER_SEARCH_MAX_LIMIT {
+		limit = model.USER_SEARCH_MAX_LIMIT
 	}
 
 	options := &model.UserSearchOptions{
