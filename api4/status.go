@@ -84,13 +84,19 @@ func updateUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.App.DisableAutoResponder(c.Params.UserId, c.IsSystemAdmin())
 	}
 
+	// allow overiding the manual status updates with 'manual' query string
+	manual := true
+	if r.FormValue("manual") == "false" {
+		manual = false
+	}
+
 	switch status.Status {
 	case "online":
-		c.App.SetStatusOnline(c.Params.UserId, true)
+		c.App.SetStatusOnline(c.Params.UserId, manual)
 	case "offline":
-		c.App.SetStatusOffline(c.Params.UserId, true)
+		c.App.SetStatusOffline(c.Params.UserId, manual)
 	case "away":
-		c.App.SetStatusAwayIfNeeded(c.Params.UserId, true)
+		c.App.SetStatusAwayIfNeeded(c.Params.UserId, manual)
 	case "dnd":
 		c.App.SetStatusDoNotDisturb(c.Params.UserId)
 	default:
