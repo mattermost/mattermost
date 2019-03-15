@@ -1882,6 +1882,10 @@ func (a *App) RestrictUsersSearchByPermissions(userId string, options *model.Use
 }
 
 func (a *App) UserCanSeeOtherUser(userId string, otherUserId string) (bool, *model.AppError) {
+	if userId == otherUserId {
+		return true, nil
+	}
+
 	restrictions, err := a.GetViewUsersRestrictions(userId)
 	if err != nil {
 		return false, err
