@@ -1670,7 +1670,7 @@ func (a *App) SearchUsersInTeam(teamId string, term string, options *model.UserS
 			return nil, err
 		}
 
-		result = <-a.Srv.Store.User().GetProfileByIds(usersIds, false)
+		result = <-a.Srv.Store.User().GetProfileByIds(usersIds, false, nil, nil)
 	} else {
 		result = <-a.Srv.Store.User().Search(teamId, term, options)
 	}
@@ -1725,8 +1725,8 @@ func (a *App) AutocompleteUsersInChannel(teamId string, channelId string, term s
 		if err != nil {
 			return nil, err
 		}
-		uchan = a.Srv.Store.User().GetProfileByIds(uchanIds, false)
-		nuchan = a.Srv.Store.User().GetProfileByIds(nuchanIds, false)
+		uchan = a.Srv.Store.User().GetProfileByIds(uchanIds, false, nil, nil)
+		nuchan = a.Srv.Store.User().GetProfileByIds(nuchanIds, false, nil, nil)
 	} else {
 		uchan = a.Srv.Store.User().SearchInChannel(channelId, term, options)
 		nuchan = a.Srv.Store.User().SearchNotInChannel(teamId, channelId, term, options)
@@ -1773,7 +1773,7 @@ func (a *App) AutocompleteUsersInTeam(teamId string, term string, options *model
 			return nil, err
 		}
 
-		result = <-a.Srv.Store.User().GetProfileByIds(usersIds, false)
+		result = <-a.Srv.Store.User().GetProfileByIds(usersIds, false, nil, nil)
 	} else {
 		result = <-a.Srv.Store.User().Search(teamId, term, options)
 	}
