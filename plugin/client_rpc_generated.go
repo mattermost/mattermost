@@ -846,8 +846,8 @@ type Z_GetUsersReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetUsers(*model.UserGetOptions) ([]*model.User, *model.AppError) {
-	_args := &Z_GetUsersArgs{}
+func (g *apiRPCClient) GetUsers(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
+	_args := &Z_GetUsersArgs{options}
 	_returns := &Z_GetUsersReturns{}
 	if err := g.client.Call("Plugin.GetUsers", _args, _returns); err != nil {
 		log.Printf("RPC call to GetUsers API failed: %s", err.Error())
@@ -857,7 +857,7 @@ func (g *apiRPCClient) GetUsers(*model.UserGetOptions) ([]*model.User, *model.Ap
 
 func (s *apiRPCServer) GetUsers(args *Z_GetUsersArgs, returns *Z_GetUsersReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetUsers(*model.UserGetOptions) ([]*model.User, *model.AppError)
+		GetUsers(options *model.UserGetOptions) ([]*model.User, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetUsers(args.A)
 	} else {
