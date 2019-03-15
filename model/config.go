@@ -466,11 +466,11 @@ func (s *ServiceSettings) SetDefaults() {
 	}
 
 	if s.SessionLengthWebInDays == nil {
-		s.SessionLengthWebInDays = NewInt(30)
+		s.SessionLengthWebInDays = NewInt(180)
 	}
 
 	if s.SessionLengthMobileInDays == nil {
-		s.SessionLengthMobileInDays = NewInt(30)
+		s.SessionLengthMobileInDays = NewInt(180)
 	}
 
 	if s.SessionLengthSSOInDays == nil {
@@ -482,7 +482,7 @@ func (s *ServiceSettings) SetDefaults() {
 	}
 
 	if s.SessionIdleTimeoutInMinutes == nil {
-		s.SessionIdleTimeoutInMinutes = NewInt(0)
+		s.SessionIdleTimeoutInMinutes = NewInt(43200)
 	}
 
 	if s.EnableCommands == nil {
