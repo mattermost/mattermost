@@ -452,6 +452,9 @@ func (h *Hub) Start() {
 				for _, webCon := range connections.ForUser(activity.UserId) {
 					if webCon.GetSessionToken() == activity.SessionToken {
 						webCon.LastUserActivityAt = activity.ActivityAt
+						h.app.Srv.Go(func() {
+							h.app.SetStatusLastActivityAt(webCon.UserId, activity.ActivityAt)
+						})
 					}
 				}
 			case msg := <-h.broadcast:
