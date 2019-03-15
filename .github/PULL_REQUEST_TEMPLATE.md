@@ -18,11 +18,3 @@ If this pull request addresses a Help Wanted ticket, please link the relevant Gi
 
 Otherwise, link the JIRA ticket.
 -->
-
-#### Checklist
-<!--
-Please review each item and check the ones applicable for your pull request
--->
-- [ ] Updated unit tests
-- [ ] Added REST API documentation <!-- Required for all new REST API endpoints. See https://github.com/mattermost/mattermost-api-reference for further informations. -->
-- [ ] Updated localizations ([.../i18n/en.json](https://github.com/mattermost/mattermost-server/blob/master/i18n/en.json))
