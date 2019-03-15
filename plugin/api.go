@@ -74,7 +74,7 @@ type API interface {
 	// GetUsers a list of users based on search options.
 	//
 	// Minimum server version: 5.10
-	GetUsers(*model.UserGetOptions) ([]*model.User, *model.AppError)
+	GetUsers(options *model.UserGetOptions) ([]*model.User, *model.AppError)
 
 	// GetUser gets a user.
 	GetUser(userId string) (*model.User, *model.AppError)
