@@ -5,6 +5,7 @@ package storetest
 
 import (
 	"sort"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -41,6 +42,7 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("Update", func(t *testing.T) { testChannelStoreUpdate(t, ss) })
 	t.Run("GetChannelUnread", func(t *testing.T) { testGetChannelUnread(t, ss) })
 	t.Run("Get", func(t *testing.T) { testChannelStoreGet(t, ss, s) })
+	t.Run("GetChannelsByIds", func(t *testing.T) { testChannelStoreGetChannelsByIds(t, ss) })
 	t.Run("GetForPost", func(t *testing.T) { testChannelStoreGetForPost(t, ss) })
 	t.Run("Restore", func(t *testing.T) { testChannelStoreRestore(t, ss) })
 	t.Run("Delete", func(t *testing.T) { testChannelStoreDelete(t, ss) })
@@ -430,6 +432,73 @@ func testChannelStoreGet(t *testing.T, ss store.Store, s SqlSupplier) {
 	}
 	// Manually truncate Channels table until testlib can handle cleanups
 	s.GetMaster().Exec("TRUNCATE Channels")
+}
+
+func testChannelStoreGetChannelsByIds(t *testing.T, ss store.Store) {
+	o1 := model.Channel{}
+	o1.TeamId = model.NewId()
+	o1.DisplayName = "Name"
+	o1.Name = "aa" + model.NewId() + "b"
+	o1.Type = model.CHANNEL_OPEN
+	store.Must(ss.Channel().Save(&o1, -1))
+
+	u1 := &model.User{}
+	u1.Email = MakeEmail()
+	u1.Nickname = model.NewId()
+	store.Must(ss.User().Save(u1))
+	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1))
+
+	u2 := model.User{}
+	u2.Email = MakeEmail()
+	u2.Nickname = model.NewId()
+	store.Must(ss.User().Save(&u2))
+	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1))
+
+	o2 := model.Channel{}
+	o2.TeamId = model.NewId()
+	o2.DisplayName = "Direct Name"
+	o2.Name = "bb" + model.NewId() + "b"
+	o2.Type = model.CHANNEL_DIRECT
+
+	m1 := model.ChannelMember{}
+	m1.ChannelId = o2.Id
+	m1.UserId = u1.Id
+	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
+
+	m2 := model.ChannelMember{}
+	m2.ChannelId = o2.Id
+	m2.UserId = u2.Id
+	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
+
+	store.Must(ss.Channel().SaveDirectChannel(&o2, &m1, &m2))
+
+	if r1 := <-ss.Channel().GetChannelsByIds([]string{o1.Id, o2.Id}); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		cl := r1.Data.([]*model.Channel)
+		if len(cl) != 2 {
+			t.Fatal("invalid returned channels, expected 2 and got " + strconv.Itoa(len(cl)))
+		}
+		if cl[0].ToJson() != o1.ToJson() {
+			t.Fatal("invalid returned channel")
+		}
+		if cl[1].ToJson() != o2.ToJson() {
+			t.Fatal("invalid returned channel")
+		}
+	}
+
+	nonexistentId := "abcd1234"
+	if r2 := <-ss.Channel().GetChannelsByIds([]string{o1.Id, nonexistentId}); r2.Err != nil {
+		t.Fatal(r2.Err)
+	} else {
+		cl := r2.Data.([]*model.Channel)
+		if len(cl) != 1 {
+			t.Fatal("invalid returned channels, expected 1 and got " + strconv.Itoa(len(cl)))
+		}
+		if cl[0].ToJson() != o1.ToJson() {
+			t.Fatal("invalid returned channel")
+		}
+	}
 }
 
 func testChannelStoreGetForPost(t *testing.T, ss store.Store) {

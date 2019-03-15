@@ -31,6 +31,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/services/mfa"
+	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/mattermost/mattermost-server/utils/fileutils"
 )
@@ -186,6 +187,40 @@ func (a *App) IsFirstUserAccount() bool {
 	return false
 }
 
+// indexUser fetches the required information to index a user from the database and
+// calls the elasticsearch interface method
+func (a *App) indexUser(user *model.User) *model.AppError {
+	userTeams := <-a.Srv.Store.Team().GetTeamsByUserId(user.Id)
+	if userTeams.Err != nil {
+		return userTeams.Err
+	}
+
+	userTeamsIds := []string{}
+	for _, team := range userTeams.Data.([]*model.Team) {
+		userTeamsIds = append(userTeamsIds, team.Id)
+	}
+
+	userChannelMembers := <-a.Srv.Store.Channel().GetAllChannelMembersForUser(user.Id, false, true)
+	if userChannelMembers.Err != nil {
+		return userChannelMembers.Err
+	}
+
+	userChannelsIds := []string{}
+	for channelId := range userChannelMembers.Data.(map[string]string) {
+		userChannelsIds = append(userChannelsIds, channelId)
+	}
+
+	return a.Elasticsearch.IndexUser(user, userTeamsIds, userChannelsIds)
+}
+
+func (a *App) indexUserFromId(userId string) *model.AppError {
+	user, err := a.GetUser(userId)
+	if err != nil {
+		return err
+	}
+	return a.indexUser(user)
+}
+
 // CreateUser creates a user and sets several fields of the returned User struct to
 // their zero values.
 func (a *App) CreateUser(user *model.User) (*model.User, *model.AppError) {
@@ -227,6 +262,15 @@ func (a *App) CreateUser(user *model.User) (*model.User, *model.AppError) {
 				hooks.UserHasBeenCreated(pluginContext, user)
 				return true
 			}, plugin.UserHasBeenCreatedId)
+		})
+	}
+
+	esInterface := a.Elasticsearch
+	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
+		a.Srv.Go(func() {
+			if err := a.indexUser(user); err != nil {
+				mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.Err(err))
+			}
 		})
 	}
 
@@ -1076,6 +1120,15 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 
 	a.InvalidateCacheForUser(user.Id)
 
+	esInterface := a.Elasticsearch
+	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
+		a.Srv.Go(func() {
+			if err := a.indexUser(user); err != nil {
+				mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.Err(err))
+			}
+		})
+	}
+
 	return rusers[0], nil
 }
 
@@ -1413,6 +1466,15 @@ func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 
 	mlog.Warn(fmt.Sprintf("Permanently deleted account %v id=%v", user.Email, user.Id), mlog.String("user_id", user.Id))
 
+	esInterface := a.Elasticsearch
+	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
+		a.Srv.Go(func() {
+			if err := a.Elasticsearch.DeleteUser(user); err != nil {
+				mlog.Error("Encountered error deleting user", mlog.String("user_id", user.Id), mlog.Err(err))
+			}
+		})
+	}
+
 	return nil
 }
 
@@ -1596,7 +1658,21 @@ func (a *App) SearchUsersNotInChannel(teamId string, channelId string, term stri
 }
 
 func (a *App) SearchUsersInTeam(teamId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
-	result := <-a.Srv.Store.User().Search(teamId, term, options)
+	var result store.StoreResult
+
+	esInterface := a.Elasticsearch
+	license := a.License()
+	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableAutocomplete && license != nil && *license.Features.Elasticsearch {
+		usersIds, err := a.Elasticsearch.SearchUsersInTeam(teamId, term, options)
+		if err != nil {
+			return nil, err
+		}
+
+		result = <-a.Srv.Store.User().GetProfileByIds(usersIds, false)
+	} else {
+		result = <-a.Srv.Store.User().Search(teamId, term, options)
+	}
+
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -1638,8 +1714,21 @@ func (a *App) SearchUsersWithoutTeam(term string, options *model.UserSearchOptio
 }
 
 func (a *App) AutocompleteUsersInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, *model.AppError) {
-	uchan := a.Srv.Store.User().SearchInChannel(channelId, term, options)
-	nuchan := a.Srv.Store.User().SearchNotInChannel(teamId, channelId, term, options)
+	var uchan, nuchan store.StoreChannel
+
+	esInterface := a.Elasticsearch
+	license := a.License()
+	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableAutocomplete && license != nil && *license.Features.Elasticsearch {
+		uchanIds, nuchanIds, err := a.Elasticsearch.SearchUsersInChannel(teamId, channelId, term, options)
+		if err != nil {
+			return nil, err
+		}
+		uchan = a.Srv.Store.User().GetProfileByIds(uchanIds, false)
+		nuchan = a.Srv.Store.User().GetProfileByIds(nuchanIds, false)
+	} else {
+		uchan = a.Srv.Store.User().SearchInChannel(channelId, term, options)
+		nuchan = a.Srv.Store.User().SearchNotInChannel(teamId, channelId, term, options)
+	}
 
 	autocomplete := &model.UserAutocompleteInChannel{}
 
@@ -1672,8 +1761,21 @@ func (a *App) AutocompleteUsersInChannel(teamId string, channelId string, term s
 
 func (a *App) AutocompleteUsersInTeam(teamId string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInTeam, *model.AppError) {
 	autocomplete := &model.UserAutocompleteInTeam{}
+	var result store.StoreResult
 
-	result := <-a.Srv.Store.User().Search(teamId, term, options)
+	esInterface := a.Elasticsearch
+	license := a.License()
+	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableAutocomplete && license != nil && *license.Features.Elasticsearch {
+		usersIds, err := a.Elasticsearch.SearchUsersInTeam(teamId, term, options)
+		if err != nil {
+			return nil, err
+		}
+
+		result = <-a.Srv.Store.User().GetProfileByIds(usersIds, false)
+	} else {
+		result = <-a.Srv.Store.User().Search(teamId, term, options)
+	}
+
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -1730,6 +1832,15 @@ func (a *App) UpdateOAuthUserAttrs(userData io.Reader, user *model.User, provide
 
 		user = result.Data.([2]*model.User)[0]
 		a.InvalidateCacheForUser(user.Id)
+
+		esInterface := a.Elasticsearch
+		if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
+			a.Srv.Go(func() {
+				if err := a.indexUser(user); err != nil {
+					mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.Err(err))
+				}
+			})
+		}
 	}
 
 	return nil

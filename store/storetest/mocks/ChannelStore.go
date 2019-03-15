@@ -418,6 +418,22 @@ func (_m *ChannelStore) GetDeletedByName(team_id string, name string) store.Stor
 	return r0
 }
 
+// GetChannelsByIds provides a mock funcion with given fields: channelIds
+func (_m *ChannelStore) GetChannelsByIds(channelIds []string) store.StoreChannel {
+	ret := _m.Called(channelIds)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func([]string) store.StoreChannel); ok {
+		r0 = rf(channelIds)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // GetForPost provides a mock function with given fields: postId
 func (_m *ChannelStore) GetForPost(postId string) store.StoreChannel {
 	ret := _m.Called(postId)
