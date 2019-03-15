@@ -17,10 +17,6 @@ type Store interface {
 	// Get fetches the current, cached configuration.
 	Get() *model.Config
 
-	// GetWithoutEnvOverrides fetches the current, cached configuration without environment variables
-	// At the moment this is used only for testing.
-	GetWithoutEnvOverrides() *model.Config
-
 	// GetEnvironmentOverrides fetches the configuration fields overridden by environment variables.
 	GetEnvironmentOverrides() map[string]interface{}
 

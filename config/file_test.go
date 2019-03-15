@@ -444,10 +444,10 @@ func TestFileStoreLoad(t *testing.T) {
 		require.NoError(t, err)
 		defer fs.Close()
 
+		assert.Equal(t, "http://minimal", *fs.Get().ServiceSettings.SiteURL)
+
 		os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://override")
 
-		err = fs.Load()
-		require.NoError(t, err)
 		_, err = fs.Set(fs.Get())
 		require.NoError(t, err)
 		err = fs.Load()
@@ -455,7 +455,10 @@ func TestFileStoreLoad(t *testing.T) {
 
 		assert.Equal(t, "http://override", *fs.Get().ServiceSettings.SiteURL)
 		assert.Equal(t, map[string]interface{}{"ServiceSettings": map[string]interface{}{"SiteURL": true}}, fs.GetEnvironmentOverrides())
-		assert.Equal(t, "http://minimal", *fs.GetWithoutEnvOverrides().ServiceSettings.SiteURL)
+		assert.Equal(t, "http://minimal", *config.GetConfigWithoutOverridesFS(fs).ServiceSettings.SiteURL)
+
+		// Doesn't work with the way Viper unmarshals empty slices, and how we handle initializing deprecated settings
+		//assertFileEqualsConfig(t, config.GetConfigWithoutOverridesFS(fs), path)
 	})
 
 	t.Run("invalid", func(t *testing.T) {
@@ -473,7 +476,7 @@ func TestFileStoreLoad(t *testing.T) {
 
 		err = fs.Load()
 		if assert.Error(t, err) {
-			assert.EqualError(t, err, "invalid config with env overrides: Config.IsValid: model.config.is_valid.site_url.app_error, ")
+			assert.EqualError(t, err, "invalid config: Config.IsValid: model.config.is_valid.site_url.app_error, ")
 		}
 	})
 

@@ -425,8 +425,6 @@ func TestDatabaseStoreLoad(t *testing.T) {
 
 		os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://override")
 
-		err = ds.Load()
-		require.NoError(t, err)
 		_, err = ds.Set(ds.Get())
 		require.NoError(t, err)
 		err = ds.Load()
@@ -434,7 +432,10 @@ func TestDatabaseStoreLoad(t *testing.T) {
 
 		assert.Equal(t, "http://override", *ds.Get().ServiceSettings.SiteURL)
 		assert.Equal(t, map[string]interface{}{"ServiceSettings": map[string]interface{}{"SiteURL": true}}, ds.GetEnvironmentOverrides())
-		assert.Equal(t, "http://minimal", *ds.GetWithoutEnvOverrides().ServiceSettings.SiteURL)
+		assert.Equal(t, "http://minimal", *config.GetConfigWithoutOverridesDS(ds).ServiceSettings.SiteURL)
+
+		// Doesn't work with the way Viper unmarshals empty slices, and how we handle initializing deprecated settings
+		//assertDatabaseEqualsConfig(t, config.GetConfigWithoutOverridesDS(ds))
 	})
 
 	t.Run("invalid", func(t *testing.T) {
@@ -460,7 +461,7 @@ func TestDatabaseStoreLoad(t *testing.T) {
 
 		err = ds.Load()
 		if assert.Error(t, err) {
-			assert.EqualError(t, err, "invalid config with env overrides: Config.IsValid: model.config.is_valid.site_url.app_error, ")
+			assert.EqualError(t, err, "invalid config: Config.IsValid: model.config.is_valid.site_url.app_error, ")
 		}
 	})
 
