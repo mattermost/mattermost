@@ -374,9 +374,6 @@ func TestGetUser(t *testing.T) {
 	assert.Equal(t, ruser.Props["testpropkey"], "testpropvalue")
 	require.False(t, ruser.IsBot)
 
-	ruser, resp = th.Client.GetUser(user.Id, resp.Etag)
-	CheckEtag(t, ruser, resp)
-
 	_, resp = th.Client.GetUser("junk", "")
 	CheckBadRequestStatus(t, resp)
 
@@ -1518,9 +1515,6 @@ func TestGetUsers(t *testing.T) {
 		CheckUserSanitization(t, u)
 	}
 
-	rusers, resp = th.Client.GetUsers(0, 60, resp.Etag)
-	CheckEtag(t, rusers, resp)
-
 	rusers, resp = th.Client.GetUsers(0, 1, "")
 	CheckNoError(t, resp)
 	if len(rusers) != 1 {
@@ -1664,9 +1658,6 @@ func TestGetUsersInTeam(t *testing.T) {
 		CheckUserSanitization(t, u)
 	}
 
-	rusers, resp = th.Client.GetUsersInTeam(teamId, 0, 60, resp.Etag)
-	CheckEtag(t, rusers, resp)
-
 	rusers, resp = th.Client.GetUsersInTeam(teamId, 0, 1, "")
 	CheckNoError(t, resp)
 	if len(rusers) != 1 {
@@ -1709,9 +1700,6 @@ func TestGetUsersNotInTeam(t *testing.T) {
 		CheckUserSanitization(t, u)
 	}
 	require.Len(t, rusers, 1, "should be 1 user in total")
-
-	rusers, resp = th.Client.GetUsersNotInTeam(teamId, 0, 60, resp.Etag)
-	CheckEtag(t, rusers, resp)
 
 	rusers, resp = th.Client.GetUsersNotInTeam(teamId, 0, 1, "")
 	CheckNoError(t, resp)

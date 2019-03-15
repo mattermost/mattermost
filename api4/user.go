@@ -497,6 +497,11 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		profiles, err = c.App.GetUsersNotInChannelPage(inTeamId, notInChannelId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
 	} else if len(notInTeamId) > 0 {
+		if !c.App.SessionHasPermissionToTeam(c.App.Session, notInTeamId, model.PERMISSION_VIEW_TEAM) {
+			c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
+			return
+		}
+
 		var restrictions *model.ViewUsersRestrictions
 		restrictions, err = c.App.GetViewUsersRestrictions(c.App.Session.UserId)
 		if err != nil {
@@ -504,7 +509,14 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		profiles, err = c.App.GetUsersNotInTeamPage(notInTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions.Teams, restrictions.Channels)
+		var teams []string
+		var channels []string
+		if restrictions != nil {
+			teams = restrictions.Teams
+			channels = restrictions.Channels
+		}
+
+		profiles, err = c.App.GetUsersNotInTeamPage(notInTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), teams, channels)
 	} else if len(inTeamId) > 0 {
 		if !c.App.SessionHasPermissionToTeam(c.App.Session, inTeamId, model.PERMISSION_VIEW_TEAM) {
 			c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
