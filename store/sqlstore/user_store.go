@@ -67,14 +67,10 @@ func NewSqlUserStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) st
 		metrics:  metrics,
 	}
 
-	us.usersQuery = sq.
+	us.usersQuery = us.getQueryBuilder().
 		Select("u.*", "b.UserId IS NOT NULL AS IsBot").
 		From("Users u").
 		LeftJoin("Bots b ON ( b.UserId = u.Id )")
-
-	if us.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-		us.usersQuery = us.usersQuery.PlaceholderFormat(sq.Dollar)
-	}
 
 	for _, db := range sqlStore.GetAllConns() {
 		table := db.AddTableWithName(model.User{}, "Users").SetKeys(false, "Id")

@@ -52,6 +52,22 @@ func RemoveDuplicatesFromStringArray(arr []string) []string {
 	return result
 }
 
+func StringSliceDiff(a, b []string) []string {
+	m := make(map[string]bool)
+	result := []string{}
+
+	for _, item := range b {
+		m[item] = true
+	}
+
+	for _, item := range a {
+		if !m[item] {
+			result = append(result, item)
+		}
+	}
+	return result
+}
+
 func GetIpAddress(r *http.Request) string {
 	address := ""
 

@@ -24,9 +24,6 @@ func desanitize(actual, target *model.Config) {
 		target.FileSettings.AmazonS3SecretAccessKey = actual.FileSettings.AmazonS3SecretAccessKey
 	}
 
-	if *target.EmailSettings.InviteSalt == model.FAKE_SETTING {
-		target.EmailSettings.InviteSalt = actual.EmailSettings.InviteSalt
-	}
 	if *target.EmailSettings.SMTPPassword == model.FAKE_SETTING {
 		target.EmailSettings.SMTPPassword = actual.EmailSettings.SMTPPassword
 	}

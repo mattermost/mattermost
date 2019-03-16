@@ -497,7 +497,12 @@
         "true": [
             {
                 "roleName": "team_user",
-                "permission": "manage_webhooks",
+                "permission": "manage_incoming_webhooks",
+                "shouldHave": false
+            },
+            {
+                "roleName": "team_user",
+                "permission": "manage_outgoing_webhooks",
                 "shouldHave": false
             },
             {
@@ -514,7 +519,12 @@
         "false": [
             {
                 "roleName": "team_user",
-                "permission": "manage_webhooks",
+                "permission": "manage_incoming_webhooks",
+                "shouldHave": true
+            },
+            {
+                "roleName": "team_user",
+                "permission": "manage_outgoing_webhooks",
                 "shouldHave": true
             },
             {

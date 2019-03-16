@@ -470,3 +470,18 @@ func (_m *PostStore) Update(newPost *model.Post, oldPost *model.Post) store.Stor
 
 	return r0
 }
+
+func (_m *PostStore) GetDirectPostParentsForExportAfter(limit int, afterId string) store.StoreChannel {
+	ret := _m.Called(limit, afterId)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(int, string) store.StoreChannel); ok {
+		r0 = rf(limit, afterId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}

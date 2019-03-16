@@ -137,6 +137,7 @@ func (s *Server) RunOldAppInitalization() error {
 
 	s.FakeApp().DoAdvancedPermissionsMigration()
 	s.FakeApp().DoEmojisPermissionsMigration()
+	s.FakeApp().DoPermissionsMigrations()
 
 	s.FakeApp().InitPostMetadata()
 
