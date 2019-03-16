@@ -29,6 +29,7 @@ type PushNotificationsHub struct {
 
 type PushNotification struct {
 	notificationType   NotificationType
+	currentSessionId   string
 	userId             string
 	channelId          string
 	post               *model.Post
@@ -189,7 +190,7 @@ func (a *App) getPushNotificationMessage(postMessage string, explicitMention, ch
 	return "@" + senderName + userLocale("api.post.send_notifications_and_forget.push_general_message")
 }
 
-func (a *App) ClearPushNotificationSync(userId string, channelId string) {
+func (a *App) ClearPushNotificationSync(currentSessionId, userId, channelId string) {
 	sessions, err := a.getMobileAppSessions(userId)
 	if err != nil {
 		mlog.Error(err.Error())
@@ -207,19 +208,21 @@ func (a *App) ClearPushNotificationSync(userId string, channelId string) {
 		msg.Badge = int(badge.Data.(int64))
 	}
 
-	mlog.Debug(fmt.Sprintf("Clearing push notification to %v with channel_id %v", msg.DeviceId, msg.ChannelId))
-
 	for _, session := range sessions {
-		tmpMessage := *model.PushNotificationFromJson(strings.NewReader(msg.ToJson()))
-		tmpMessage.SetDeviceIdAndPlatform(session.DeviceId)
-		a.sendToPushProxy(tmpMessage, session)
+		if currentSessionId != session.Id {
+			tmpMessage := *model.PushNotificationFromJson(strings.NewReader(msg.ToJson()))
+			tmpMessage.SetDeviceIdAndPlatform(session.DeviceId)
+			mlog.Debug(fmt.Sprintf("Clearing push notification to %v with channel_id %v", session.DeviceId, msg.ChannelId))
+			a.sendToPushProxy(tmpMessage, session)
+		}
 	}
 }
 
-func (a *App) ClearPushNotification(userId string, channelId string) {
+func (a *App) ClearPushNotification(currentSessionId, userId, channelId string) {
 	channel := a.Srv.PushNotificationsHub.GetGoChannelFromUserId(userId)
 	channel <- PushNotification{
 		notificationType: NOTIFICATION_TYPE_CLEAR,
+		currentSessionId: currentSessionId,
 		userId:           userId,
 		channelId:        channelId,
 	}
@@ -239,7 +242,7 @@ func (a *App) pushNotificationWorker(notifications chan PushNotification) {
 	for notification := range notifications {
 		switch notification.notificationType {
 		case NOTIFICATION_TYPE_CLEAR:
-			a.ClearPushNotificationSync(notification.userId, notification.channelId)
+			a.ClearPushNotificationSync(notification.currentSessionId, notification.userId, notification.channelId)
 		case NOTIFICATION_TYPE_MESSAGE:
 			a.sendPushNotificationSync(
 				notification.post,
