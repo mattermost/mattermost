@@ -3407,13 +3407,16 @@ func testChannelStoreGetChannelsBatchForIndexing(t *testing.T, ss store.Store) {
 	c1.Type = model.CHANNEL_OPEN
 	store.Must(ss.Channel().Save(c1, -1))
 
-	startTime := model.GetMillis()
+	time.Sleep(10 * time.Millisecond)
 
 	c2 := &model.Channel{}
 	c2.DisplayName = "Channel2"
 	c2.Name = "zz" + model.NewId() + "b"
 	c2.Type = model.CHANNEL_OPEN
 	store.Must(ss.Channel().Save(c2, -1))
+
+	time.Sleep(10 * time.Millisecond)
+	startTime := c2.CreateAt
 
 	c3 := &model.Channel{}
 	c3.DisplayName = "Channel3"
@@ -3433,13 +3436,15 @@ func testChannelStoreGetChannelsBatchForIndexing(t *testing.T, ss store.Store) {
 	c5.Type = model.CHANNEL_OPEN
 	store.Must(ss.Channel().Save(c5, -1))
 
-	endTime := model.GetMillis()
+	time.Sleep(10 * time.Millisecond)
 
 	c6 := &model.Channel{}
 	c6.DisplayName = "Channel6"
 	c6.Name = "zz" + model.NewId() + "b"
 	c6.Type = model.CHANNEL_OPEN
 	store.Must(ss.Channel().Save(c6, -1))
+
+	endTime := c6.CreateAt
 
 	// First and last channel should be outside the range
 	res1 := <-ss.Channel().GetChannelsBatchForIndexing(startTime, endTime, 1000)

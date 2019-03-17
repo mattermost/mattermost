@@ -3338,7 +3338,7 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
 		CreateAt: model.GetMillis(),
 	})).(*model.User)
 
-	startTime := model.GetMillis()
+	time.Sleep(10 * time.Millisecond)
 
 	u2 := store.Must(ss.User().Save(&model.User{
 		Email:    MakeEmail(),
@@ -3360,7 +3360,8 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	}))
 
-	endTime := model.GetMillis()
+	startTime := u2.CreateAt
+	time.Sleep(10 * time.Millisecond)
 
 	u3 := store.Must(ss.User().Save(&model.User{
 		Email:    MakeEmail(),
@@ -3382,6 +3383,8 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
 		ChannelId:   cPriv.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	}))
+
+	endTime := u3.CreateAt
 
 	// First and last user should be outside the range
 	res1 := <-ss.User().GetUsersBatchForIndexing(startTime, endTime, 100)
