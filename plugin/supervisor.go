@@ -5,10 +5,12 @@ package plugin
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
+	"syscall"
 	"time"
 
 	plugin "github.com/hashicorp/go-plugin"
@@ -17,9 +19,11 @@ import (
 )
 
 type supervisor struct {
-	client      *plugin.Client
-	hooks       Hooks
-	implemented [TotalHooksId]bool
+	client         *plugin.Client
+	clientProtocol plugin.ClientProtocol
+	hooks          Hooks
+	implemented    [TotalHooksId]bool
+	pid            int
 }
 
 func newSupervisor(pluginInfo *model.BundleInfo, parentLogger *mlog.Logger, apiImpl API) (retSupervisor *supervisor, retErr error) {
@@ -53,10 +57,12 @@ func newSupervisor(pluginInfo *model.BundleInfo, parentLogger *mlog.Logger, apiI
 	}
 	executable = filepath.Join(pluginInfo.Path, executable)
 
+	cmd := exec.Command(executable)
+
 	sup.client = plugin.NewClient(&plugin.ClientConfig{
 		HandshakeConfig: handshake,
 		Plugins:         pluginMap,
-		Cmd:             exec.Command(executable),
+		Cmd:             cmd,
 		SyncStdout:      wrappedLogger.With(mlog.String("source", "plugin_stdout")).StdLogWriter(),
 		SyncStderr:      wrappedLogger.With(mlog.String("source", "plugin_stderr")).StdLogWriter(),
 		Logger:          hclogAdaptedLogger,
@@ -67,6 +73,9 @@ func newSupervisor(pluginInfo *model.BundleInfo, parentLogger *mlog.Logger, apiI
 	if err != nil {
 		return nil, err
 	}
+
+	sup.pid = cmd.Process.Pid
+	sup.clientProtocol = rpcClient
 
 	raw, err := rpcClient.Dispense("hooks")
 	if err != nil {
@@ -101,6 +110,24 @@ func (sup *supervisor) Shutdown() {
 
 func (sup *supervisor) Hooks() Hooks {
 	return sup.hooks
+}
+
+// Pings the plugin through RPC
+func (sup *supervisor) Ping() error {
+	return sup.clientProtocol.Ping()
+}
+
+// Checks if the plugin's process is currently alive
+func (sup *supervisor) CheckProcess() error {
+	pid := sup.pid
+	process, err := os.FindProcess(pid)
+	if err != nil {
+		fmt.Printf("Failed to find process: %s\n", err)
+		return err
+	}
+
+	err = process.Signal(syscall.Signal(0))
+	return err
 }
 
 func (sup *supervisor) Implements(hookId int) bool {

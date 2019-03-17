@@ -15,6 +15,7 @@ const (
 	PluginStateFailedToStart       = 3
 	PluginStateFailedToStayRunning = 4 // unused by server
 	PluginStateStopping            = 5 // unused by server
+	PluginStateError               = 6
 )
 
 // PluginStatus provides a cluster-aware view of installed plugins.
@@ -26,6 +27,7 @@ type PluginStatus struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 	Version     string `json:"version"`
+	Error       string `json:"error"`
 }
 
 type PluginStatuses []*PluginStatus

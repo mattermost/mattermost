@@ -22,24 +22,25 @@ const (
 	PLUGIN_HEALTH_CHECK_TASK_NAME = "Plugin Health Check"
 	PLUGIN_HEALTH_CHECK_INTERVAL  = 5 // seconds
 	HEALTH_CHECK_FAIL_LIMIT       = 3
+	ENABLE_HEALTH_CHECK_JOB       = false
 )
 
-var timesFailed = 0
-
 func (s *Server) InitPluginHealthCheckJob() {
-	s.PluginsLock.RLock()
-	pluginsEnvironment := s.PluginsEnvironment
-	s.PluginsLock.RUnlock()
+	if ENABLE_HEALTH_CHECK_JOB {
+		s.PluginsLock.RLock()
+		pluginsEnvironment := s.PluginsEnvironment
+		s.PluginsLock.RUnlock()
 
-	if pluginsEnvironment == nil {
-		return
+		if pluginsEnvironment == nil {
+			return
+		}
+
+		if s.PluginHealthCheck == nil {
+			s.PluginHealthCheck = NewPluginHealthCheckJob(s)
+		}
+
+		s.PluginHealthCheck.Start()
 	}
-
-	if s.PluginHealthCheck == nil {
-		s.PluginHealthCheck = NewPluginHealthCheckJob(s)
-	}
-
-	s.PluginHealthCheck.Start()
 }
 
 func (job *PluginHealthCheckJob) Start() {
@@ -57,37 +58,31 @@ func (job *PluginHealthCheckJob) Start() {
 
 func (job *PluginHealthCheckJob) RunPluginHealthChecks() {
 	if pluginsEnvironment := job.server.PluginsEnvironment; pluginsEnvironment != nil {
-		id := "com.mattermost.health-check-test-plugin"
-
-		if timesFailed == HEALTH_CHECK_FAIL_LIMIT {
-			fmt.Println("Restarting Plugin")
-			pluginsEnvironment.RestartPlugin(id)
-			timesFailed++
-			return
-		}
-
-		defer func() {
-			if r := recover(); r != nil {
-				fmt.Println("Recovered in RunPluginHealthChecks", r)
-			}
-		}()
-
-		h, err := pluginsEnvironment.HooksForPlugin(id)
-		if err != nil {
-			fmt.Printf("Error loading hooks for plugin: %v\n", err)
-			return
-		}
-
-		err = h.HealthCheck()
-
-		if err != nil {
-			timesFailed++
-			fmt.Printf("Error with health check: %v\n", err)
-		} else {
-			timesFailed = 0
+		for _, ap := range pluginsEnvironment.Active() {
+			job.RunPluginHealthCheck(ap)
 		}
 	}
-	fmt.Printf("Num health check fails %v\n", timesFailed)
+}
+
+func (job *PluginHealthCheckJob) RunPluginHealthCheck(plugin *model.BundleInfo) {
+	if pluginsEnvironment := job.server.PluginsEnvironment; pluginsEnvironment != nil {
+		id := plugin.Manifest.Id
+
+		if plugin.HealthCheckFails == HEALTH_CHECK_FAIL_LIMIT {
+			mlog.Debug(fmt.Sprintf("Plugin `%v` exceeded health check failure threshold. Restarting Plugin.", id))
+			pluginsEnvironment.RestartPlugin(id)
+			plugin.HealthCheckFails++
+			return
+		}
+
+		err := pluginsEnvironment.GetPluginErrorStatus(id)
+
+		if err != nil {
+			plugin.HealthCheckFails++
+		} else {
+			plugin.HealthCheckFails = 0
+		}
+	}
 }
 
 func NewPluginHealthCheckJob(s *Server) *PluginHealthCheckJob {

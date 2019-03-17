@@ -486,37 +486,14 @@ type Z_HealthCheckReturns struct {
 	A error
 }
 
-func (g *hooksRPCClient) OnActivateWithError() error {
-	muxId := g.muxBroker.NextId()
-	go g.muxBroker.AcceptAndServe(muxId, &apiRPCServer{
-		impl: g.apiImpl,
-	})
-
-	_args := &Z_OnActivateArgs{
-		APIMuxId: muxId,
-	}
-	_returns := &Z_OnActivateReturns{}
-
-	if err := g.client.Call("Plugin.OnActivate", _args, _returns); err != nil {
-		g.log.Error("RPC call to OnActivate plugin failed.", mlog.Err(err))
-		return err
-	}
-
-	return _returns.A
-}
-
 func (g *hooksRPCClient) HealthCheck() error {
 	_args := &Z_HealthCheckArgs{}
 	_returns := &Z_HealthCheckReturns{}
 	if g.implemented[HealthCheckId] {
-		fmt.Printf("Health check implemented\n")
 		if err := g.client.Call("Plugin.HealthCheck", _args, _returns); err != nil {
-			g.log.Error("RPC call to HealthCheck plugin failed.", mlog.Err(err))
+			g.log.Error("RPC call HealthCheck to plugin failed.", mlog.Err(err))
 			return err
 		}
-	} else {
-		fmt.Printf("Health check not implemented. Using OnActivateWithError\n")
-		return g.OnActivateWithError()
 	}
 	return _returns.A
 }

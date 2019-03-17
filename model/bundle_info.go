@@ -11,6 +11,8 @@ type BundleInfo struct {
 	Manifest      *Manifest
 	ManifestPath  string
 	ManifestError error
+
+	HealthCheckFails int
 }
 
 func (b *BundleInfo) WrapLogger(logger *mlog.Logger) *mlog.Logger {
@@ -24,9 +26,10 @@ func (b *BundleInfo) WrapLogger(logger *mlog.Logger) *mlog.Logger {
 func BundleInfoForPath(path string) *BundleInfo {
 	m, mpath, err := FindManifest(path)
 	return &BundleInfo{
-		Path:          path,
-		Manifest:      m,
-		ManifestPath:  mpath,
-		ManifestError: err,
+		Path:             path,
+		Manifest:         m,
+		ManifestPath:     mpath,
+		ManifestError:    err,
+		HealthCheckFails: 0,
 	}
 }

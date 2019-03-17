@@ -295,6 +295,17 @@ func (a *App) DisablePlugin(id string) *model.AppError {
 	return nil
 }
 
+// RestartPlugin will deactivate and reactivate a plugin.
+func (a *App) RestartPlugin(id string) *model.AppError {
+	pluginsEnvironment := a.GetPluginsEnvironment()
+	if pluginsEnvironment == nil {
+		return model.NewAppError("RestartPlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	pluginsEnvironment.RestartPlugin(id)
+	return nil
+}
+
 func (a *App) GetPlugins() (*model.PluginsResponse, *model.AppError) {
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {

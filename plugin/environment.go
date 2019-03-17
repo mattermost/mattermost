@@ -113,6 +113,14 @@ func (env *Environment) Statuses() (model.PluginStatuses, error) {
 			pluginState = plugin.(activePlugin).State
 		}
 
+		var pluginErr string
+		if pluginState == model.PluginStateNotRunning {
+			pluginErr = ""
+		} else if err := env.GetPluginErrorStatus(plugin.Manifest.Id); err != nil {
+			pluginErr = err.Error()
+			pluginState = model.PluginStateError
+		}
+
 		status := &model.PluginStatus{
 			PluginId:    plugin.Manifest.Id,
 			PluginPath:  filepath.Dir(plugin.ManifestPath),
@@ -120,6 +128,7 @@ func (env *Environment) Statuses() (model.PluginStatuses, error) {
 			Name:        plugin.Manifest.Name,
 			Description: plugin.Manifest.Description,
 			Version:     plugin.Manifest.Version,
+			Error:       pluginErr,
 		}
 
 		pluginStatuses = append(pluginStatuses, status)
@@ -251,6 +260,46 @@ func (env *Environment) Deactivate(id string) bool {
 func (env *Environment) RestartPlugin(id string) (manifest *model.Manifest, activated bool, reterr error) {
 	env.Deactivate(id)
 	return env.Activate(id)
+}
+
+// Pings a plugin through go-plugin's Ping() method
+func (env *Environment) PingPluginRPC(id string) error {
+	if p, ok := env.activePlugins.Load(id); ok {
+		ap := p.(activePlugin)
+		if ap.supervisor != nil {
+			return ap.supervisor.Ping()
+		}
+	}
+
+	return fmt.Errorf("plugin not running: %v", id)
+}
+
+// Checks if the plugin process's PID exists and can respond to a signal.
+func (env *Environment) CheckPluginProcess(id string) error {
+	if p, ok := env.activePlugins.Load(id); ok {
+		ap := p.(activePlugin)
+		if ap.supervisor != nil {
+			return ap.supervisor.CheckProcess()
+		}
+	}
+
+	return fmt.Errorf("plugin not running: %v", id)
+}
+
+// Checks for plugin error status by using the two above functions, as well as the HealthCheck hook, if implemented.
+func (env *Environment) GetPluginErrorStatus(id string) error {
+	if err := env.PingPluginRPC(id); err != nil {
+		if err = env.CheckPluginProcess(id); err != nil {
+			return errors.New("Plugin process not found or not responding")
+		}
+		return errors.New("Ping to plugin RPC failed")
+	}
+
+	hooks, err := env.HooksForPlugin(id)
+	if err != nil {
+		return errors.New("Failed to load plugin hooks")
+	}
+	return hooks.HealthCheck()
 }
 
 // Shutdown deactivates all plugins and gracefully shuts down the environment.

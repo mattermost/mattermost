@@ -26,6 +26,7 @@ func (api *API) InitPlugin() {
 	api.BaseRoutes.Plugins.Handle("/statuses", api.ApiSessionRequired(getPluginStatuses)).Methods("GET")
 	api.BaseRoutes.Plugin.Handle("/enable", api.ApiSessionRequired(enablePlugin)).Methods("POST")
 	api.BaseRoutes.Plugin.Handle("/disable", api.ApiSessionRequired(disablePlugin)).Methods("POST")
+	api.BaseRoutes.Plugin.Handle("/restart", api.ApiSessionRequired(restartPlugin)).Methods("POST")
 
 	api.BaseRoutes.Plugins.Handle("/webapp", api.ApiHandler(getWebappPlugins)).Methods("GET")
 }
@@ -209,6 +210,30 @@ func disablePlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := c.App.DisablePlugin(c.Params.PluginId); err != nil {
+		c.Err = err
+		return
+	}
+
+	ReturnStatusOK(w)
+}
+
+func restartPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePluginId()
+	if c.Err != nil {
+		return
+	}
+
+	if !*c.App.Config().PluginSettings.Enable {
+		c.Err = model.NewAppError("deactivatePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	if err := c.App.RestartPlugin(c.Params.PluginId); err != nil {
 		c.Err = err
 		return
 	}
