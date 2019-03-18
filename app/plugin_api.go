@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"path/filepath"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/mlog"
@@ -96,6 +97,10 @@ func (api *PluginAPI) SavePluginConfig(pluginConfig map[string]interface{}) *mod
 	cfg := api.app.GetSanitizedConfig()
 	cfg.PluginSettings.Plugins[api.manifest.Id] = pluginConfig
 	return api.app.SaveConfig(cfg, true)
+}
+
+func (api *PluginAPI) GetBundlePath() string {
+	return filepath.Join(*api.GetConfig().PluginSettings.Directory, api.manifest.Id)
 }
 
 func (api *PluginAPI) GetLicense() *model.License {

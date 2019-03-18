@@ -44,6 +44,11 @@ type API interface {
 	// Minimum server version: 5.6
 	SavePluginConfig(config map[string]interface{}) *model.AppError
 
+	// GetBundlePath returns the path where the plugin's bundle was unpacked.
+	//
+	// Minimum server version: 5.10
+	GetBundlePath() string
+
 	// GetLicense returns the current license used by the Mattermost server. Returns nil if the
 	// the server does not have a license.
 	//
