@@ -510,6 +510,47 @@ func TestPluginAPILoadPluginConfigurationDefaults(t *testing.T) {
 	assert.Equal(t, "override35true", ret)
 }
 
+func TestPluginAPIGetBundlePath(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	setupPluginApiTest(t,
+		`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost-server/plugin"
+			"github.com/mattermost/mattermost-server/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
+			bundlePath, err := p.API.GetBundlePath()
+			if err != nil {
+				return nil, err.Error() + "failed get bundle path"
+			}
+
+			return nil, bundlePath
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+		`, `{"id": "testplugin", "backend": {"executable": "backend.exe"}}`, "testplugin", th.App)
+
+	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin("testplugin")
+	require.Nil(t, err)
+	require.NotNil(t, hooks)
+	bundlePath, err := filepath.Abs(filepath.Join(*th.App.Config().PluginSettings.Directory, "testplugin"))
+	require.Nil(t, err)
+
+	_, errString := hooks.MessageWillBePosted(nil, nil)
+	assert.Equal(t, bundlePath, errString)
+}
+
 func TestPluginAPIGetProfileImage(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
