@@ -99,8 +99,13 @@ func (api *PluginAPI) SavePluginConfig(pluginConfig map[string]interface{}) *mod
 	return api.app.SaveConfig(cfg, true)
 }
 
-func (api *PluginAPI) GetBundlePath() string {
-	return filepath.Join(*api.GetConfig().PluginSettings.Directory, api.manifest.Id)
+func (api *PluginAPI) GetBundlePath() (string, error) {
+	bundlePath, err := filepath.Abs(filepath.Join(*api.GetConfig().PluginSettings.Directory, api.manifest.Id))
+	if err != nil {
+		return "", err
+	}
+
+	return bundlePath, err
 }
 
 func (api *PluginAPI) GetLicense() *model.License {

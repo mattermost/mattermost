@@ -676,22 +676,23 @@ type Z_GetBundlePathArgs struct {
 
 type Z_GetBundlePathReturns struct {
 	A string
+	B error
 }
 
-func (g *apiRPCClient) GetBundlePath() string {
+func (g *apiRPCClient) GetBundlePath() (string, error) {
 	_args := &Z_GetBundlePathArgs{}
 	_returns := &Z_GetBundlePathReturns{}
 	if err := g.client.Call("Plugin.GetBundlePath", _args, _returns); err != nil {
 		log.Printf("RPC call to GetBundlePath API failed: %s", err.Error())
 	}
-	return _returns.A
+	return _returns.A, _returns.B
 }
 
 func (s *apiRPCServer) GetBundlePath(args *Z_GetBundlePathArgs, returns *Z_GetBundlePathReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetBundlePath() string
+		GetBundlePath() (string, error)
 	}); ok {
-		returns.A = hook.GetBundlePath()
+		returns.A, returns.B = hook.GetBundlePath()
 	} else {
 		return encodableError(fmt.Errorf("API GetBundlePath called but not implemented."))
 	}
