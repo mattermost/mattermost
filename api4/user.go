@@ -509,6 +509,11 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		etag = c.App.GetUsersNotInTeamEtag(inTeamId, restrictions.Hash())
+		if c.HandleEtag(etag, "Get Users Not in Team", w, r) {
+			return
+		}
+
 		var teams []string
 		var channels []string
 		if restrictions != nil {
@@ -523,17 +528,21 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if !c.App.SessionHasPermissionToTeam(c.App.Session, inTeamId, model.PERMISSION_VIEW_MEMBERS) {
-			c.SetPermissionError(model.PERMISSION_VIEW_MEMBERS)
-			return
-		}
+		// TODO: Apply restrictions here
 
 		if sort == "last_activity_at" {
 			profiles, err = c.App.GetRecentlyActiveUsersForTeamPage(inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
 		} else if sort == "create_at" {
 			profiles, err = c.App.GetNewUsersForTeamPage(inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
 		} else {
-			etag = c.App.GetUsersInTeamEtag(inTeamId)
+			var restrictions *model.ViewUsersRestrictions
+			restrictions, err = c.App.GetViewUsersRestrictions(c.App.Session.UserId)
+			if err != nil {
+				c.Err = err
+				return
+			}
+
+			etag = c.App.GetUsersInTeamEtag(inTeamId, restrictions.Hash())
 			if c.HandleEtag(etag, "Get Users in Team", w, r) {
 				return
 			}
@@ -550,13 +559,18 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			profiles, err = c.App.GetUsersInChannelPage(inChannelId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
 		}
 	} else {
-		// No permission check required
+		var restrictions *model.ViewUsersRestrictions
+		restrictions, err = c.App.GetViewUsersRestrictions(c.App.Session.UserId)
+		if err != nil {
+			c.Err = err
+			return
+		}
 
-		// TODO: GENERATE AN ETAG INCLUDING THE RESTRICTIONS TOO
-		// etag = c.App.GetUsersEtag()
-		// if c.HandleEtag(etag, "Get Users", w, r) {
-		// 	return
-		// }
+		etag = c.App.GetUsersEtag(restrictions.Hash())
+		if c.HandleEtag(etag, "Get Users", w, r) {
+			return
+		}
+
 		userGetOptions, err = c.App.RestrictUsersGetByPermissions(c.App.Session.UserId, userGetOptions)
 		if err != nil {
 			c.Err = err
