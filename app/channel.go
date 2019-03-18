@@ -91,6 +91,15 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, shouldBeAdmin
 		}
 	}
 
+	esInterface := a.Elasticsearch
+	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
+		a.Srv.Go(func() {
+			if err = a.indexUser(user); err != nil {
+				mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.Err(err))
+			}
+		})
+	}
+
 	return err
 }
 
@@ -160,6 +169,15 @@ func (a *App) CreateChannelWithUser(channel *model.Channel, userId string) (*mod
 	message.Add("team_id", channel.TeamId)
 	a.Publish(message)
 
+	esInterface := a.Elasticsearch
+	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
+		a.Srv.Go(func() {
+			if err := a.indexUser(user); err != nil {
+				mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.Err(err))
+			}
+		})
+	}
+
 	return rchannel, nil
 }
 
@@ -223,6 +241,24 @@ func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Chan
 		})
 	}
 
+	esInterface := a.Elasticsearch
+	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
+		if sc.Type == "O" {
+			a.Srv.Go(func() {
+				if err := esInterface.IndexChannel(sc); err != nil {
+					mlog.Error("Encountered error indexing channel", mlog.String("channel_id", sc.Id), mlog.Err(err))
+				}
+			})
+		}
+		if addMember {
+			a.Srv.Go(func() {
+				if err := a.indexUserFromId(channel.CreatorId); err != nil {
+					mlog.Error("Encountered error indexing user", mlog.String("user_id", channel.CreatorId), mlog.Err(err))
+				}
+			})
+		}
+	}
+
 	return sc, nil
 }
 
@@ -250,6 +286,17 @@ func (a *App) GetOrCreateDirectChannel(userId, otherUserId string) (*model.Chann
 						hooks.ChannelHasBeenCreated(pluginContext, channel)
 						return true
 					}, plugin.ChannelHasBeenCreatedId)
+				})
+			}
+
+			esInterface := a.Elasticsearch
+			if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
+				a.Srv.Go(func() {
+					for _, id := range []string{userId, otherUserId} {
+						if err := a.indexUserFromId(id); err != nil {
+							mlog.Error("Encountered error indexing user", mlog.String("user_id", id), mlog.Err(err))
+						}
+					}
 				})
 			}
 
@@ -344,6 +391,17 @@ func (a *App) CreateGroupChannel(userIds []string, creatorId string) (*model.Cha
 	message.Add("teammate_ids", model.ArrayToJson(userIds))
 	a.Publish(message)
 
+	esInterface := a.Elasticsearch
+	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
+		a.Srv.Go(func() {
+			for _, id := range userIds {
+				if err := a.indexUserFromId(id); err != nil {
+					mlog.Error("Encountered error indexing user", mlog.String("user_id", id), mlog.Err(err))
+				}
+			}
+		})
+	}
+
 	return channel, nil
 }
 
@@ -430,6 +488,15 @@ func (a *App) UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppE
 	messageWs := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_UPDATED, "", channel.Id, "", nil)
 	messageWs.Add("channel", channel.ToJson())
 	a.Publish(messageWs)
+
+	esInterface := a.Elasticsearch
+	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing && channel.Type == "O" {
+		a.Srv.Go(func() {
+			if err := esInterface.IndexChannel(channel); err != nil {
+				mlog.Error("Encountered error indexing channel", mlog.String("channel_id", channel.Id), mlog.Err(err))
+			}
+		})
+	}
 
 	return channel, nil
 }
@@ -836,7 +903,7 @@ func (a *App) AddUserToChannel(user *model.User, channel *model.Channel) (*model
 	return newMember, nil
 }
 
-func (a *App) AddChannelMember(userId string, channel *model.Channel, userRequestorId string, postRootId string, clearPushNotifications bool) (*model.ChannelMember, *model.AppError) {
+func (a *App) AddChannelMember(userId string, channel *model.Channel, userRequestorId string, postRootId string, currentSessionId string) (*model.ChannelMember, *model.AppError) {
 	if result := <-a.Srv.Store.Channel().GetMember(channel.Id, userId); result.Err != nil {
 		if result.Err.Id != store.MISSING_CHANNEL_MEMBER_ERROR {
 			return nil, result.Err
@@ -874,6 +941,15 @@ func (a *App) AddChannelMember(userId string, channel *model.Channel, userReques
 		})
 	}
 
+	esInterface := a.Elasticsearch
+	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
+		a.Srv.Go(func() {
+			if err := a.indexUser(user); err != nil {
+				mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.Err(err))
+			}
+		})
+	}
+
 	if userRequestorId == "" || userId == userRequestorId {
 		a.postJoinChannelMessage(user, channel)
 	} else {
@@ -883,7 +959,7 @@ func (a *App) AddChannelMember(userId string, channel *model.Channel, userReques
 	}
 
 	if userRequestor != nil {
-		a.MarkChannelsAsViewed([]string{channel.Id}, userRequestor.Id, clearPushNotifications)
+		a.MarkChannelsAsViewed([]string{channel.Id}, userRequestor.Id, currentSessionId)
 	}
 
 	return cm, nil
@@ -1289,6 +1365,15 @@ func (a *App) JoinChannel(channel *model.Channel, userId string) *model.AppError
 		})
 	}
 
+	esInterface := a.Elasticsearch
+	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
+		a.Srv.Go(func() {
+			if err := a.indexUser(user); err != nil {
+				mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.Err(err))
+			}
+		})
+	}
+
 	if err := a.postJoinChannelMessage(user, channel); err != nil {
 		return err
 	}
@@ -1495,6 +1580,15 @@ func (a *App) removeUserFromChannel(userIdToRemove string, removerUserId string,
 		})
 	}
 
+	esInterface := a.Elasticsearch
+	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
+		a.Srv.Go(func() {
+			if err := a.indexUserFromId(userIdToRemove); err != nil {
+				mlog.Error("Encountered error indexing user", mlog.String("user_id", userIdToRemove), mlog.Err(err))
+			}
+		})
+	}
+
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_REMOVED, "", channel.Id, "", nil)
 	message.Add("user_id", userIdToRemove)
 	message.Add("remover_id", removerUserId)
@@ -1585,6 +1679,31 @@ func (a *App) UpdateChannelLastViewedAt(channelIds []string, userId string) *mod
 func (a *App) AutocompleteChannels(teamId string, term string) (*model.ChannelList, *model.AppError) {
 	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 
+	esInterface := a.Elasticsearch
+	license := a.License()
+	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableAutocomplete && license != nil && *license.Features.Elasticsearch {
+		channelIds, err := a.Elasticsearch.SearchChannels(teamId, term)
+		if err != nil {
+			return nil, err
+		}
+
+		channelList := model.ChannelList{}
+		if len(channelIds) > 0 {
+			cresult := <-a.Srv.Store.Channel().GetChannelsByIds(channelIds)
+			if cresult.Err != nil {
+				return nil, cresult.Err
+			}
+			for _, c := range cresult.Data.([]*model.Channel) {
+				if c.DeleteAt > 0 && !includeDeleted {
+					continue
+				}
+				channelList = append(channelList, c)
+			}
+		}
+
+		return &channelList, nil
+	}
+
 	result := <-a.Srv.Store.Channel().AutocompleteInTeam(teamId, term, includeDeleted)
 	if result.Err != nil {
 		return nil, result.Err
@@ -1628,10 +1747,10 @@ func (a *App) SearchChannelsUserNotIn(teamId string, userId string, term string)
 	return result.Data.(*model.ChannelList), nil
 }
 
-func (a *App) MarkChannelsAsViewed(channelIds []string, userId string, clearPushNotifications bool) (map[string]int64, *model.AppError) {
+func (a *App) MarkChannelsAsViewed(channelIds []string, userId string, currentSessionId string) (map[string]int64, *model.AppError) {
 	// I start looking for channels with notifications before I mark it as read, to clear the push notifications if needed
 	channelsToClearPushNotifications := []string{}
-	if *a.Config().EmailSettings.SendPushNotifications && clearPushNotifications {
+	if *a.Config().EmailSettings.SendPushNotifications {
 		for _, channelId := range channelIds {
 			chanResult := <-a.Srv.Store.Channel().Get(channelId, true)
 			if chanResult.Err != nil {
@@ -1682,12 +1801,12 @@ func (a *App) MarkChannelsAsViewed(channelIds []string, userId string, clearPush
 		}
 	}
 	for _, channelId := range channelsToClearPushNotifications {
-		a.ClearPushNotification(userId, channelId)
+		a.ClearPushNotification(currentSessionId, userId, channelId)
 	}
 	return times, nil
 }
 
-func (a *App) ViewChannel(view *model.ChannelView, userId string, clearPushNotifications bool) (map[string]int64, *model.AppError) {
+func (a *App) ViewChannel(view *model.ChannelView, userId string, currentSessionId string) (map[string]int64, *model.AppError) {
 	if err := a.SetActiveChannel(userId, view.ChannelId); err != nil {
 		return nil, err
 	}
@@ -1706,10 +1825,15 @@ func (a *App) ViewChannel(view *model.ChannelView, userId string, clearPushNotif
 		return map[string]int64{}, nil
 	}
 
-	return a.MarkChannelsAsViewed(channelIds, userId, clearPushNotifications)
+	return a.MarkChannelsAsViewed(channelIds, userId, currentSessionId)
 }
 
 func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
+	channelUsers := <-a.Srv.Store.User().GetAllProfilesInChannel(channel.Id, false)
+	if channelUsers.Err != nil {
+		return channelUsers.Err
+	}
+
 	if result := <-a.Srv.Store.Post().PermanentDeleteByChannel(channel.Id); result.Err != nil {
 		return result.Err
 	}
@@ -1728,6 +1852,24 @@ func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
 
 	if result := <-a.Srv.Store.Channel().PermanentDelete(channel.Id); result.Err != nil {
 		return result.Err
+	}
+
+	esInterface := a.Elasticsearch
+	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
+		a.Srv.Go(func() {
+			for _, user := range channelUsers.Data.(map[string]*model.User) {
+				if err := a.indexUser(user); err != nil {
+					mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.Err(err))
+				}
+			}
+		})
+		if channel.Type == "O" {
+			a.Srv.Go(func() {
+				if err := esInterface.DeleteChannel(channel); err != nil {
+					mlog.Error("Encountered error deleting channel", mlog.String("channel_id", channel.Id), mlog.Err(err))
+				}
+			})
+		}
 	}
 
 	return nil

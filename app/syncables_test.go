@@ -71,7 +71,6 @@ func TestPopulateSyncablesSince(t *testing.T) {
 	}
 
 	_, err = th.App.CreateGroupSyncable(&model.GroupSyncable{
-		CanLeave:   true,
 		AutoAdd:    true,
 		GroupId:    gleeGroup.Id,
 		SyncableId: practiceChannel.Id,
@@ -82,7 +81,6 @@ func TestPopulateSyncablesSince(t *testing.T) {
 	}
 
 	scienceTeamGroupSyncable, err := th.App.CreateGroupSyncable(&model.GroupSyncable{
-		CanLeave:   true,
 		AutoAdd:    false,
 		GroupId:    scienceGroup.Id,
 		SyncableId: nerdsTeam.Id,
@@ -93,7 +91,6 @@ func TestPopulateSyncablesSince(t *testing.T) {
 	}
 
 	scienceChannelGroupSyncable, err := th.App.CreateGroupSyncable(&model.GroupSyncable{
-		CanLeave:   true,
 		AutoAdd:    false,
 		GroupId:    scienceGroup.Id,
 		SyncableId: experimentsChannel.Id,
@@ -274,7 +271,7 @@ func TestPopulateSyncablesSince(t *testing.T) {
 	}
 
 	// Ensure members are in channel
-	_, err = th.App.AddChannelMember(scientist1.Id, experimentsChannel, "", "", false)
+	_, err = th.App.AddChannelMember(scientist1.Id, experimentsChannel, "", "", "")
 	if err != nil {
 		t.Errorf("unable to add user to channel: %s", err.Error())
 	}
@@ -284,13 +281,12 @@ func TestPopulateSyncablesSince(t *testing.T) {
 	if err != nil {
 		t.Errorf("unable to add user to team: %s", err.Error())
 	}
-	_, err = th.App.AddChannelMember(singer1.Id, experimentsChannel, "", "", false)
+	_, err = th.App.AddChannelMember(singer1.Id, experimentsChannel, "", "", "")
 	if err != nil {
 		t.Errorf("unable to add user to channel: %s", err.Error())
 	}
 
 	// the channel syncable is updated
-	scienceChannelGroupSyncable.CanLeave = false
 	scienceChannelGroupSyncable, err = th.App.UpdateGroupSyncable(scienceChannelGroupSyncable)
 	if err != nil {
 		t.Errorf("error updating group syncable: %s", err.Error())

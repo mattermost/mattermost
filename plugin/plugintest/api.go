@@ -294,6 +294,11 @@ func (_m *API) DeleteChannelMember(channelId string, userId string) *model.AppEr
 	return r0
 }
 
+// DeleteEphemeralPost provides a mock function with given fields: userId, post
+func (_m *API) DeleteEphemeralPost(userId string, post *model.Post) {
+	_m.Called(userId, post)
+}
+
 // DeletePost provides a mock function with given fields: postId
 func (_m *API) DeletePost(postId string) *model.AppError {
 	ret := _m.Called(postId)
@@ -681,6 +686,20 @@ func (_m *API) GetConfig() *model.Config {
 	return r0
 }
 
+// GetDiagnosticId provides a mock function with given fields:
+func (_m *API) GetDiagnosticId() string {
+	ret := _m.Called()
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func() string); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
+}
+
 // GetDirectChannel provides a mock function with given fields: userId1, userId2
 func (_m *API) GetDirectChannel(userId1 string, userId2 string) (*model.Channel, *model.AppError) {
 	ret := _m.Called(userId1, userId2)
@@ -934,6 +953,22 @@ func (_m *API) GetLDAPUserAttributes(userId string, attributes []string) (map[st
 	}
 
 	return r0, r1
+}
+
+// GetLicense provides a mock function with given fields:
+func (_m *API) GetLicense() *model.License {
+	ret := _m.Called()
+
+	var r0 *model.License
+	if rf, ok := ret.Get(0).(func() *model.License); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.License)
+		}
+	}
+
+	return r0
 }
 
 // GetPluginConfig provides a mock function with given fields:
@@ -1257,6 +1292,29 @@ func (_m *API) GetSession(sessionId string) (*model.Session, *model.AppError) {
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
 		r1 = rf(sessionId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// GetSystemInstallDate provides a mock function with given fields:
+func (_m *API) GetSystemInstallDate() (int64, *model.AppError) {
+	ret := _m.Called()
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func() int64); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
+		r1 = rf()
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -2240,35 +2298,6 @@ func (_m *API) SendEphemeralPost(userId string, post *model.Post) *model.Post {
 	return r0
 }
 
-// UpdateEphemeralPost provides a mock function with given fields: userId, post
-func (_m *API) UpdateEphemeralPost(userId string, post *model.Post) *model.Post {
-	ret := _m.Called(userId, post)
-
-	var r0 *model.Post
-	if rf, ok := ret.Get(0).(func(string, *model.Post) *model.Post); ok {
-		r0 = rf(userId, post)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.Post)
-		}
-	}
-
-	return r0
-}
-
-// DeleteEphemeralPost provides a mock function with given fields: userId, post
-func (_m *API) DeleteEphemeralPost(userId string, post *model.Post) {
-	ret := _m.Called(userId, post)
-
-	if rf, ok := ret.Get(0).(func(string, *model.Post) *model.Post); ok {
-		_ = rf(userId, post)
-	} else {
-		if ret.Get(0) != nil {
-			_ = ret.Get(0).(*model.Post)
-		}
-	}
-}
-
 // SendMail provides a mock function with given fields: to, subject, htmlBody
 func (_m *API) SendMail(to string, subject string, htmlBody string) *model.AppError {
 	ret := _m.Called(to, subject, htmlBody)
@@ -2429,6 +2458,22 @@ func (_m *API) UpdateChannelMemberRoles(channelId string, userId string, newRole
 	}
 
 	return r0, r1
+}
+
+// UpdateEphemeralPost provides a mock function with given fields: userId, post
+func (_m *API) UpdateEphemeralPost(userId string, post *model.Post) *model.Post {
+	ret := _m.Called(userId, post)
+
+	var r0 *model.Post
+	if rf, ok := ret.Get(0).(func(string, *model.Post) *model.Post); ok {
+		r0 = rf(userId, post)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Post)
+		}
+	}
+
+	return r0
 }
 
 // UpdatePost provides a mock function with given fields: post

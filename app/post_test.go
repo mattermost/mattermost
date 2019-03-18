@@ -29,7 +29,7 @@ func TestCreatePostDeduplicate(t *testing.T) {
 			ChannelId:     th.BasicChannel.Id,
 			Message:       "message",
 			PendingPostId: pendingPostId,
-		}, false)
+		}, "")
 		require.Nil(t, err)
 		require.Equal(t, "message", post.Message)
 
@@ -38,7 +38,7 @@ func TestCreatePostDeduplicate(t *testing.T) {
 			ChannelId:     th.BasicChannel.Id,
 			Message:       "message",
 			PendingPostId: pendingPostId,
-		}, false)
+		}, "")
 		require.Nil(t, err)
 		require.Equal(t, post.Id, duplicatePost.Id, "should have returned previously created post id")
 		require.Equal(t, "message", duplicatePost.Message)
@@ -78,7 +78,7 @@ func TestCreatePostDeduplicate(t *testing.T) {
 			ChannelId:     th.BasicChannel.Id,
 			Message:       "message",
 			PendingPostId: pendingPostId,
-		}, false)
+		}, "")
 		require.NotNil(t, err)
 		require.Equal(t, "Post rejected by plugin. rejected", err.Id)
 		require.Nil(t, post)
@@ -88,7 +88,7 @@ func TestCreatePostDeduplicate(t *testing.T) {
 			ChannelId:     th.BasicChannel.Id,
 			Message:       "message",
 			PendingPostId: pendingPostId,
-		}, false)
+		}, "")
 		require.Nil(t, err)
 		require.Equal(t, "message", duplicatePost.Message)
 	})
@@ -138,7 +138,7 @@ func TestCreatePostDeduplicate(t *testing.T) {
 				ChannelId:     th.BasicChannel.Id,
 				Message:       "plugin delayed",
 				PendingPostId: pendingPostId,
-			}, false)
+			}, "")
 			require.Nil(t, err)
 			require.Equal(t, post.Message, "plugin delayed")
 		}()
@@ -152,7 +152,7 @@ func TestCreatePostDeduplicate(t *testing.T) {
 			ChannelId:     th.BasicChannel.Id,
 			Message:       "plugin delayed",
 			PendingPostId: pendingPostId,
-		}, false)
+		}, "")
 		require.NotNil(t, err)
 		require.Equal(t, "api.post.deduplicate_create_post.pending", err.Id)
 		require.Nil(t, duplicatePost)
@@ -168,7 +168,7 @@ func TestCreatePostDeduplicate(t *testing.T) {
 			ChannelId:     th.BasicChannel.Id,
 			Message:       "message",
 			PendingPostId: pendingPostId,
-		}, false)
+		}, "")
 		require.Nil(t, err)
 		require.Equal(t, "message", post.Message)
 
@@ -179,7 +179,7 @@ func TestCreatePostDeduplicate(t *testing.T) {
 			ChannelId:     th.BasicChannel.Id,
 			Message:       "message",
 			PendingPostId: pendingPostId,
-		}, false)
+		}, "")
 		require.Nil(t, err)
 		require.NotEqual(t, post.Id, duplicatePost.Id, "should have created new post id")
 		require.Equal(t, "message", duplicatePost.Message)
@@ -308,6 +308,19 @@ func TestUpdatePostTimeLimit(t *testing.T) {
 	})
 }
 
+func TestUpdatePostInArchivedChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	archivedChannel := th.CreateChannel(th.BasicTeam)
+	post := th.CreatePost(archivedChannel)
+	th.App.DeleteChannel(archivedChannel, "")
+
+	_, err := th.App.UpdatePost(post, true)
+	require.NotNil(t, err)
+	require.Equal(t, "api.post.update_post.can_not_update_post_in_deleted.error", err.Id)
+}
+
 func TestPostReplyToPostWhereRootPosterLeftChannel(t *testing.T) {
 	// This test ensures that when replying to a root post made by a user who has since left the channel, the reply
 	// post completes successfully. This is a regression test for PLT-6523.
@@ -337,7 +350,7 @@ func TestPostReplyToPostWhereRootPosterLeftChannel(t *testing.T) {
 		CreateAt:      0,
 	}
 
-	if _, err := th.App.CreatePostAsUser(&replyPost, false); err != nil {
+	if _, err := th.App.CreatePostAsUser(&replyPost, ""); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -360,7 +373,7 @@ func TestPostAttachPostToChildPost(t *testing.T) {
 		CreateAt:      0,
 	}
 
-	res1, err := th.App.CreatePostAsUser(&replyPost1, false)
+	res1, err := th.App.CreatePostAsUser(&replyPost1, "")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -375,7 +388,7 @@ func TestPostAttachPostToChildPost(t *testing.T) {
 		CreateAt:      0,
 	}
 
-	_, err = th.App.CreatePostAsUser(&replyPost2, false)
+	_, err = th.App.CreatePostAsUser(&replyPost2, "")
 	if err.StatusCode != http.StatusBadRequest {
 		t.Fatal(fmt.Sprintf("Expected BadRequest error, got %v", err))
 	}
@@ -390,7 +403,7 @@ func TestPostAttachPostToChildPost(t *testing.T) {
 		CreateAt:      0,
 	}
 
-	if _, err := th.App.CreatePostAsUser(&replyPost3, false); err != nil {
+	if _, err := th.App.CreatePostAsUser(&replyPost3, ""); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -424,7 +437,7 @@ func TestPostChannelMentions(t *testing.T) {
 		CreateAt:      0,
 	}
 
-	result, err := th.App.CreatePostAsUser(post, false)
+	result, err := th.App.CreatePostAsUser(post, "")
 	require.Nil(t, err)
 	assert.Equal(t, map[string]interface{}{
 		"mention-test": map[string]interface{}{
@@ -639,6 +652,19 @@ func TestDeletePostWithFileAttachments(t *testing.T) {
 	assert.NotNil(t, err)
 }
 
+func TestDeletePostInArchivedChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	archivedChannel := th.CreateChannel(th.BasicTeam)
+	post := th.CreatePost(archivedChannel)
+	th.App.DeleteChannel(archivedChannel, "")
+
+	_, err := th.App.DeletePost(post.Id, "")
+	require.NotNil(t, err)
+	require.Equal(t, "api.post.delete_post.can_not_delete_post_in_deleted.error", err.Id)
+}
+
 func TestCreatePost(t *testing.T) {
 	t.Run("call PreparePostForClient before returning", func(t *testing.T) {
 		th := Setup(t).InitBasic()
@@ -701,6 +727,19 @@ func TestPatchPost(t *testing.T) {
 		require.Nil(t, err)
 		assert.Equal(t, "![image]("+proxiedImageURL+")", rpost.Message)
 	})
+}
+
+func TestPatchPostInArchivedChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	archivedChannel := th.CreateChannel(th.BasicTeam)
+	post := th.CreatePost(archivedChannel)
+	th.App.DeleteChannel(archivedChannel, "")
+
+	_, err := th.App.PatchPost(post.Id, &model.PostPatch{IsPinned: model.NewBool(true)})
+	require.NotNil(t, err)
+	require.Equal(t, "api.post.patch_post.can_not_update_post_in_deleted.error", err.Id)
 }
 
 func TestUpdatePost(t *testing.T) {

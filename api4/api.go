@@ -221,6 +221,8 @@ func Init(configservice configservice.ConfigService, globalOptionsFunc app.AppOp
 	api.InitPost()
 	api.InitFile()
 	api.InitSystem()
+	api.InitLicense()
+	api.InitConfig()
 	api.InitWebhook()
 	api.InitPreference()
 	api.InitSaml()

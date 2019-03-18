@@ -601,7 +601,7 @@ func TestImageProxySettingsSetDefaults(t *testing.T) {
 		ips := ImageProxySettings{}
 		ips.SetDefaults(ServiceSettings{})
 
-		assert.Equal(t, true, *ips.Enable)
+		assert.Equal(t, false, *ips.Enable)
 		assert.Equal(t, IMAGE_PROXY_TYPE_LOCAL, *ips.ImageProxyType)
 		assert.Equal(t, "", *ips.RemoteImageProxyURL)
 		assert.Equal(t, "", *ips.RemoteImageProxyOptions)

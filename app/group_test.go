@@ -137,7 +137,6 @@ func TestCreateGroupSyncable(t *testing.T) {
 	group := th.CreateGroup()
 	groupSyncable := &model.GroupSyncable{
 		GroupId:    group.Id,
-		CanLeave:   true,
 		AutoAdd:    false,
 		SyncableId: th.BasicTeam.Id,
 		Type:       model.GroupSyncableTypeTeam,
@@ -158,7 +157,6 @@ func TestGetGroupSyncable(t *testing.T) {
 	group := th.CreateGroup()
 	groupSyncable := &model.GroupSyncable{
 		GroupId:    group.Id,
-		CanLeave:   true,
 		AutoAdd:    false,
 		SyncableId: th.BasicTeam.Id,
 		Type:       model.GroupSyncableTypeTeam,
@@ -181,7 +179,6 @@ func TestGetGroupSyncables(t *testing.T) {
 	// Create a group team
 	groupSyncable := &model.GroupSyncable{
 		GroupId:    group.Id,
-		CanLeave:   true,
 		AutoAdd:    false,
 		SyncableId: th.BasicTeam.Id,
 		Type:       model.GroupSyncableTypeTeam,
@@ -203,7 +200,6 @@ func TestDeleteGroupSyncable(t *testing.T) {
 	group := th.CreateGroup()
 	groupChannel := &model.GroupSyncable{
 		GroupId:    group.Id,
-		CanLeave:   true,
 		AutoAdd:    false,
 		SyncableId: th.BasicChannel.Id,
 		Type:       model.GroupSyncableTypeChannel,
