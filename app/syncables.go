@@ -48,7 +48,7 @@ func (a *App) PopulateSyncablesSince(groupMembersCreatedAfter int64) error {
 			mlog.String("team_id", channel.TeamId),
 		)
 
-		_, err = a.AddChannelMember(userChannel.UserID, channel, "", "", false)
+		_, err = a.AddChannelMember(userChannel.UserID, channel, "", "", "")
 		if err != nil {
 			return err
 		}

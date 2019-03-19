@@ -89,8 +89,11 @@ type TeamStore interface {
 	SearchByName(name string) StoreChannel
 	SearchAll(term string) StoreChannel
 	SearchOpen(term string) StoreChannel
+	SearchPrivate(term string) StoreChannel
 	GetAll() StoreChannel
 	GetAllPage(offset int, limit int) StoreChannel
+	GetAllPrivateTeamListing() StoreChannel
+	GetAllPrivateTeamPageListing(offset int, limit int) StoreChannel
 	GetAllTeamListing() StoreChannel
 	GetAllTeamPageListing(offset int, limit int) StoreChannel
 	GetTeamsByUserId(userId string) StoreChannel
@@ -148,6 +151,7 @@ type ChannelStore interface {
 	GetChannelCounts(teamId string, userId string) StoreChannel
 	GetTeamChannels(teamId string) StoreChannel
 	GetAll(teamId string) StoreChannel
+	GetChannelsByIds(channelIds []string) StoreChannel
 	GetForPost(postId string) StoreChannel
 	SaveMember(member *model.ChannelMember) StoreChannel
 	UpdateMember(member *model.ChannelMember) StoreChannel
@@ -187,8 +191,10 @@ type ChannelStore interface {
 	ClearAllCustomRoleAssignments() StoreChannel
 	MigratePublicChannels() error
 	GetAllChannelsForExportAfter(limit int, afterId string) StoreChannel
+	GetAllDirectChannelsForExportAfter(limit int, afterId string) StoreChannel
 	GetChannelMembersForExport(userId string, teamId string) StoreChannel
 	RemoveAllDeactivatedMembers(channelId string) StoreChannel
+	GetChannelsBatchForIndexing(startTime, endTime int64, limit int) StoreChannel
 }
 
 type ChannelMemberHistoryStore interface {
@@ -229,6 +235,7 @@ type PostStore interface {
 	GetMaxPostSize() StoreChannel
 	GetParentsForExportAfter(limit int, afterId string) StoreChannel
 	GetRepliesForExport(parentId string) StoreChannel
+	GetDirectPostParentsForExportAfter(limit int, afterId string) StoreChannel
 }
 
 type UserStore interface {
@@ -285,6 +292,7 @@ type UserStore interface {
 	ClearAllCustomRoleAssignments() StoreChannel
 	InferSystemInstallDate() StoreChannel
 	GetAllAfter(limit int, afterId string) StoreChannel
+	GetUsersBatchForIndexing(startTime, endTime int64, limit int) StoreChannel
 	Count(options model.UserCountOptions) StoreChannel
 }
 

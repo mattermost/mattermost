@@ -50,6 +50,7 @@ type ChannelMembers []ChannelMember
 type ChannelMemberForExport struct {
 	ChannelMember
 	ChannelName string
+	Username    string
 }
 
 func (o *ChannelMembers) ToJson() string {
