@@ -269,14 +269,14 @@ func (s *SqlPostStore) GetFlaggedPostsForChannel(userId, channelId string, offse
 
 		var posts []*model.Post
 		query := `
-			SELECT 
-				* 
-			FROM Posts 
-			WHERE 
-				Id IN (SELECT Name FROM Preferences WHERE UserId = :UserId AND Category = :Category) 
+			SELECT
+				*
+			FROM Posts
+			WHERE
+				Id IN (SELECT Name FROM Preferences WHERE UserId = :UserId AND Category = :Category)
 				AND ChannelId = :ChannelId
-				AND DeleteAt = 0 
-			ORDER BY CreateAt DESC 
+				AND DeleteAt = 0
+			ORDER BY CreateAt DESC
 			LIMIT :Limit OFFSET :Offset`
 
 		if _, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_FLAGGED_POST, "ChannelId": channelId, "Offset": offset, "Limit": limit}); err != nil {
@@ -835,7 +835,7 @@ func (s *SqlPostStore) Search(teamId string, userId string, params *model.Search
 							` + userIdPart + `
 							` + deletedQueryPart + `
 							CHANNEL_FILTER)
-				CREATEDATE_CLAUSE							
+				CREATEDATE_CLAUSE
 				SEARCH_CLAUSE
 				ORDER BY CreateAt DESC
 			LIMIT 100`
@@ -1264,11 +1264,11 @@ func (s *SqlPostStore) determineMaxPostSize() int {
 		// The Post.Message column in MySQL has historically been TEXT, with a maximum
 		// limit of 65535.
 		if err := s.GetReplica().SelectOne(&maxPostSizeBytes, `
-			SELECT 
+			SELECT
 				COALESCE(CHARACTER_MAXIMUM_LENGTH, 0)
-			FROM 
+			FROM
 				INFORMATION_SCHEMA.COLUMNS
-			WHERE 
+			WHERE
 				table_schema = DATABASE()
 			AND	table_name = 'Posts'
 			AND	column_name = 'Message'

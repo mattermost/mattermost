@@ -85,6 +85,7 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("ExportAllDirectChannels", func(t *testing.T) { testChannelStoreExportAllDirectChannels(t, ss, s) })
 	t.Run("ExportAllDirectChannelsExcludePrivateAndPublic", func(t *testing.T) { testChannelStoreExportAllDirectChannelsExcludePrivateAndPublic(t, ss, s) })
 	t.Run("ExportAllDirectChannelsDeletedChannel", func(t *testing.T) { testChannelStoreExportAllDirectChannelsDeletedChannel(t, ss, s) })
+	t.Run("GetChannelsBatchForIndexing", func(t *testing.T) { testChannelStoreGetChannelsBatchForIndexing(t, ss) })
 }
 
 func testChannelStoreSave(t *testing.T, ss store.Store) {
@@ -3396,4 +3397,68 @@ func testChannelStoreExportAllDirectChannelsDeletedChannel(t *testing.T, ss stor
 
 	// Manually truncate Channels table until testlib can handle cleanups
 	s.GetMaster().Exec("TRUNCATE Channels")
+}
+
+func testChannelStoreGetChannelsBatchForIndexing(t *testing.T, ss store.Store) {
+	// Set up all the objects needed
+	c1 := &model.Channel{}
+	c1.DisplayName = "Channel1"
+	c1.Name = "zz" + model.NewId() + "b"
+	c1.Type = model.CHANNEL_OPEN
+	store.Must(ss.Channel().Save(c1, -1))
+
+	time.Sleep(10 * time.Millisecond)
+
+	c2 := &model.Channel{}
+	c2.DisplayName = "Channel2"
+	c2.Name = "zz" + model.NewId() + "b"
+	c2.Type = model.CHANNEL_OPEN
+	store.Must(ss.Channel().Save(c2, -1))
+
+	time.Sleep(10 * time.Millisecond)
+	startTime := c2.CreateAt
+
+	c3 := &model.Channel{}
+	c3.DisplayName = "Channel3"
+	c3.Name = "zz" + model.NewId() + "b"
+	c3.Type = model.CHANNEL_OPEN
+	store.Must(ss.Channel().Save(c3, -1))
+
+	c4 := &model.Channel{}
+	c4.DisplayName = "Channel4"
+	c4.Name = "zz" + model.NewId() + "b"
+	c4.Type = model.CHANNEL_PRIVATE
+	store.Must(ss.Channel().Save(c4, -1))
+
+	c5 := &model.Channel{}
+	c5.DisplayName = "Channel5"
+	c5.Name = "zz" + model.NewId() + "b"
+	c5.Type = model.CHANNEL_OPEN
+	store.Must(ss.Channel().Save(c5, -1))
+
+	time.Sleep(10 * time.Millisecond)
+
+	c6 := &model.Channel{}
+	c6.DisplayName = "Channel6"
+	c6.Name = "zz" + model.NewId() + "b"
+	c6.Type = model.CHANNEL_OPEN
+	store.Must(ss.Channel().Save(c6, -1))
+
+	endTime := c6.CreateAt
+
+	// First and last channel should be outside the range
+	res1 := <-ss.Channel().GetChannelsBatchForIndexing(startTime, endTime, 1000)
+	assert.Nil(t, res1.Err)
+	assert.ElementsMatch(t, []*model.Channel{c2, c3, c5}, res1.Data)
+
+	// Update the endTime, last channel should be in
+	endTime = model.GetMillis()
+	res2 := <-ss.Channel().GetChannelsBatchForIndexing(startTime, endTime, 1000)
+	assert.Nil(t, res2.Err)
+	assert.ElementsMatch(t, []*model.Channel{c2, c3, c5, c6}, res2.Data)
+
+	// Testing the limit
+	res3 := <-ss.Channel().GetChannelsBatchForIndexing(startTime, endTime, 2)
+	assert.Nil(t, res3.Err)
+	assert.ElementsMatch(t, []*model.Channel{c2, c3}, res3.Data)
 }
