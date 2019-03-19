@@ -11,6 +11,7 @@ import (
 	"strings"
 	"sync"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -1364,5 +1365,79 @@ func (s *SqlPostStore) GetRepliesForExport(parentId string) store.StoreChannel {
 		} else {
 			result.Data = posts
 		}
+	})
+}
+
+func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		query := s.getQueryBuilder().
+			Select("p.*", "Users.Username as User").
+			From("Posts p").
+			Join("Channels ON p.ChannelId = Channels.Id").
+			Join("Users ON p.UserId = Users.Id").
+			Where(sq.And{
+				sq.Gt{"p.Id": afterId},
+				sq.Eq{"p.ParentId": string("")},
+				sq.Eq{"p.DeleteAt": int(0)},
+				sq.Eq{"Channels.DeleteAt": int(0)},
+				sq.Eq{"Users.DeleteAt": int(0)},
+				sq.Eq{"Channels.Type": []string{"D", "G"}},
+			}).
+			OrderBy("p.Id").
+			Limit(uint64(limit))
+
+		queryString, args, err := query.ToSql()
+		if err != nil {
+			result.Err = model.NewAppError("SqlPostStore.GetDirectPostParentsForExportAfter", "store.sql_post.get_direct_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		var posts []*model.DirectPostForExport
+		if _, err = s.GetReplica().Select(&posts, queryString, args...); err != nil {
+			result.Err = model.NewAppError("SqlPostStore.GetDirectPostParentsForExportAfter", "store.sql_post.get_direct_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+		var channelIds []string
+		for _, post := range posts {
+			channelIds = append(channelIds, post.ChannelId)
+		}
+		query = s.getQueryBuilder().
+			Select("*").
+			From("ChannelMembers cm").
+			Join("Users u ON ( u.Id = cm.UserId )").
+			Where(sq.Eq{
+				"cm.ChannelId": channelIds,
+			})
+
+		queryString, args, err = query.ToSql()
+		if err != nil {
+			result.Err = model.NewAppError("SqlPostStore.GetDirectPostParentsForExportAfter", "store.sql_post.get_direct_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		var channelMembers []*model.ChannelMemberForExport
+		if _, err := s.GetReplica().Select(&channelMembers, queryString, args...); err != nil {
+			result.Err = model.NewAppError("SqlPostStore.GetDirectPostParentsForExportAfter", "store.sql_post.get_direct_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		// Build a map of channels and their posts
+		postsChannelMap := make(map[string][]*model.DirectPostForExport)
+		for _, post := range posts {
+			post.ChannelMembers = &[]string{}
+			postsChannelMap[post.ChannelId] = append(postsChannelMap[post.ChannelId], post)
+		}
+
+		// Build a map of channels and their members
+		channelMembersMap := make(map[string][]string)
+		for _, member := range channelMembers {
+			channelMembersMap[member.ChannelId] = append(channelMembersMap[member.ChannelId], member.Username)
+		}
+
+		// Populate each post ChannelMembers extracting it from the channelMembersMap
+		for channelId := range channelMembersMap {
+			for _, post := range postsChannelMap[channelId] {
+				*post.ChannelMembers = channelMembersMap[channelId]
+			}
+		}
+		result.Data = posts
 	})
 }

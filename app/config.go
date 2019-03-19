@@ -12,6 +12,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"net/url"
 	"runtime/debug"
 	"strconv"
@@ -357,4 +358,44 @@ func (a *App) GetConfigFile(name string) ([]byte, error) {
 	}
 
 	return data, nil
+}
+
+// GetSanitizedConfig gets the configuration for a system admin without any secrets.
+func (a *App) GetSanitizedConfig() *model.Config {
+	cfg := a.Config().Clone()
+	cfg.Sanitize()
+
+	return cfg
+}
+
+// GetEnvironmentConfig returns a map of configuration keys whose values have been overridden by an environment variable.
+func (a *App) GetEnvironmentConfig() map[string]interface{} {
+	return a.EnvironmentConfig()
+}
+
+// SaveConfig replaces the active configuration, optionally notifying cluster peers.
+func (a *App) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) *model.AppError {
+	oldCfg, err := a.Srv.configStore.Set(newCfg)
+	if errors.Cause(err) == config.ErrReadOnlyConfiguration {
+		return model.NewAppError("saveConfig", "ent.cluster.save_config.error", nil, err.Error(), http.StatusForbidden)
+	} else if err != nil {
+		return model.NewAppError("saveConfig", "app.save_config.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if a.Metrics != nil {
+		if *a.Config().MetricsSettings.Enable {
+			a.Metrics.StartServer()
+		} else {
+			a.Metrics.StopServer()
+		}
+	}
+
+	if a.Cluster != nil {
+		err := a.Cluster.ConfigChanged(oldCfg, newCfg, sendConfigChangeClusterMessage)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

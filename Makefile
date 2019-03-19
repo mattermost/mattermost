@@ -171,7 +171,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 
 	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-elasticsearch$$ | wc -l) -eq 0 ]; then \
 		echo starting mattermost-elasticsearch; \
-		docker run --name mattermost-elasticsearch -p 9200:9200 -e "http.host=0.0.0.0" -e "transport.host=127.0.0.1" -e "ES_JAVA_OPTS=-Xms250m -Xmx250m" -d grundleborg/elasticsearch:latest > /dev/null; \
+		docker run --name mattermost-elasticsearch -p 9200:9200 -e "http.host=0.0.0.0" -e "transport.host=127.0.0.1" -e "ES_JAVA_OPTS=-Xms250m -Xmx250m" -d mattermost/mattermost-elasticsearch-docker:6.5.1 > /dev/null; \
 	elif [ $(shell docker ps --no-trunc --quiet --filter name=^/mattermost-elasticsearch$$ | wc -l) -eq 0 ]; then \
 		echo restarting mattermost-elasticsearch; \
 		docker start mattermost-elasticsearch> /dev/null; \

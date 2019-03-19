@@ -22,7 +22,7 @@ const (
 	PENDING_POST_IDS_CACHE_TTL  = 30 * time.Second
 )
 
-func (a *App) CreatePostAsUser(post *model.Post, clearPushNotifications bool) (*model.Post, *model.AppError) {
+func (a *App) CreatePostAsUser(post *model.Post, currentSessionId string) (*model.Post, *model.AppError) {
 	// Check that channel has not been deleted
 	result := <-a.Srv.Store.Channel().Get(post.ChannelId, true)
 	if result.Err != nil {
@@ -74,7 +74,7 @@ func (a *App) CreatePostAsUser(post *model.Post, clearPushNotifications bool) (*
 
 	// Update the LastViewAt only if the post does not have from_webhook prop set (eg. Zapier app)
 	if _, ok := post.Props["from_webhook"]; !ok {
-		if _, err := a.MarkChannelsAsViewed([]string{post.ChannelId}, post.UserId, clearPushNotifications); err != nil {
+		if _, err := a.MarkChannelsAsViewed([]string{post.ChannelId}, post.UserId, currentSessionId); err != nil {
 			mlog.Error(fmt.Sprintf("Encountered error updating last viewed, channel_id=%s, user_id=%s, err=%v", post.ChannelId, post.UserId, err))
 		}
 	}
@@ -480,6 +480,16 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 		}
 	}
 
+	channel, err := a.GetChannel(oldPost.ChannelId)
+	if err != nil {
+		return nil, err
+	}
+
+	if channel.DeleteAt != 0 {
+		err := model.NewAppError("UpdatePost", "api.post.update_post.can_not_update_post_in_deleted.error", nil, "", http.StatusBadRequest)
+		return nil, err
+	}
+
 	newPost := &model.Post{}
 	*newPost = *oldPost
 
@@ -556,6 +566,16 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 func (a *App) PatchPost(postId string, patch *model.PostPatch) (*model.Post, *model.AppError) {
 	post, err := a.GetSinglePost(postId)
 	if err != nil {
+		return nil, err
+	}
+
+	channel, err := a.GetChannel(post.ChannelId)
+	if err != nil {
+		return nil, err
+	}
+
+	if channel.DeleteAt != 0 {
+		err = model.NewAppError("PatchPost", "api.post.patch_post.can_not_update_post_in_deleted.error", nil, "", http.StatusBadRequest)
 		return nil, err
 	}
 
@@ -699,6 +719,16 @@ func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppErro
 		return nil, result.Err
 	}
 	post := result.Data.(*model.Post)
+
+	channel, err := a.GetChannel(post.ChannelId)
+	if err != nil {
+		return nil, err
+	}
+
+	if channel.DeleteAt != 0 {
+		err := model.NewAppError("DeletePost", "api.post.delete_post.can_not_delete_post_in_deleted.error", nil, "", http.StatusBadRequest)
+		return nil, err
+	}
 
 	if result := <-a.Srv.Store.Post().Delete(postId, model.GetMillis(), deleteByID); result.Err != nil {
 		return nil, result.Err

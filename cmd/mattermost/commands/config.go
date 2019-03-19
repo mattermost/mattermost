@@ -17,6 +17,7 @@ import (
 	"github.com/mattermost/mattermost-server/config"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/viper"
 )
 
 var ConfigCmd = &cobra.Command{
@@ -121,10 +122,7 @@ func getConfigStore(command *cobra.Command) (config.Store, error) {
 		return nil, errors.Wrap(err, "failed to initialize i18n")
 	}
 
-	configDSN, err := command.Flags().GetString("config")
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to parse --config flag")
-	}
+	configDSN := viper.GetString("config")
 
 	configStore, err := config.NewStore(configDSN, false)
 	if err != nil {
