@@ -5,11 +5,20 @@ package web
 
 import (
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"os/exec"
+	"path/filepath"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/config"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var ApiClient *model.Client4
@@ -18,12 +27,15 @@ var URL string
 type TestHelper struct {
 	App    *app.App
 	Server *app.Server
+	Web    *Web
 
 	BasicUser    *model.User
 	BasicChannel *model.Channel
 	BasicTeam    *model.Team
 
 	SystemAdminUser *model.User
+
+	tempWorkspace string
 }
 
 func Setup() *TestHelper {
@@ -52,7 +64,7 @@ func Setup() *TestHelper {
 	}
 	a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 
-	New(s, s.AppOptions, s.Router)
+	web := New(s, s.AppOptions, s.Router)
 	URL = fmt.Sprintf("http://localhost:%v", a.Srv.ListenAddr.Port)
 	ApiClient = model.NewAPIv4Client(URL)
 
@@ -68,7 +80,21 @@ func Setup() *TestHelper {
 	th := &TestHelper{
 		App:    a,
 		Server: s,
+		Web:    web,
 	}
+
+	if th.tempWorkspace == "" {
+		dir, err := ioutil.TempDir("", "apptest")
+		if err != nil {
+			panic(err)
+		}
+		th.tempWorkspace = dir
+	}
+
+	pluginDir := filepath.Join(th.tempWorkspace, "plugins")
+	webappDir := filepath.Join(th.tempWorkspace, "webapp")
+
+	th.App.InitPlugins(pluginDir, webappDir)
 
 	return th
 }
@@ -96,6 +122,69 @@ func (th *TestHelper) TearDown() {
 	if err := recover(); err != nil {
 		panic(err)
 	}
+}
+
+func TestStaticFilesFolderRequest(t *testing.T) {
+	th := Setup()
+	defer th.TearDown()
+
+	pluginDir, err := ioutil.TempDir("", "")
+	require.NoError(t, err)
+	webappPluginDir, err := ioutil.TempDir("", "")
+	require.NoError(t, err)
+	//defer os.RemoveAll(pluginDir)
+	//defer os.RemoveAll(webappPluginDir)
+
+	env, err := plugin.NewEnvironment(th.App.NewPluginAPI, pluginDir, webappPluginDir, th.App.Log)
+	require.NoError(t, err)
+
+	pluginID := "com.mattermost.sample"
+	pluginCode :=
+		`
+	package main
+
+	import (
+		"github.com/mattermost/mattermost-server/plugin"
+	)
+
+	type MyPlugin struct {
+		plugin.MattermostPlugin
+	}
+
+	func main() {
+		plugin.ClientMain(&MyPlugin{})
+	}
+	
+	`
+	// Compile and write the plugin
+	backend := filepath.Join(pluginDir, pluginID, "backend.exe")
+	compileGo(t, pluginCode, backend)
+
+	// Write the plugin.json manifest
+	pluginManifest := `{"id": "com.mattermost.sample", "server": {"executable": "backend.exe", "static_files": "server/dist/public"}, "settings_schema": {"settings": []}}`
+	ioutil.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(pluginManifest), 0600)
+
+	// Write the test public file
+	helloHTML := `Hello from the static files public folder for the com.mattermost.sample plugin!`
+
+	htmlFolderPath := filepath.Join(pluginDir, pluginID, "server/dist/public")
+	os.MkdirAll(htmlFolderPath, os.ModePerm)
+	htmlFilePath := filepath.Join(htmlFolderPath, "hello.html")
+
+	htmlFileErr := ioutil.WriteFile(htmlFilePath, []byte(helloHTML), 0600)
+	assert.NoError(t, htmlFileErr)
+
+	manifest, activated, reterr := env.Activate(pluginID)
+	require.Nil(t, reterr)
+	require.NotNil(t, manifest)
+	require.True(t, activated)
+
+	th.App.SetPluginsEnvironment(env)
+
+	req, _ := http.NewRequest("GET", "/plugin/com.mattermost.sample/public/hello.html", nil)
+	res := httptest.NewRecorder()
+	th.Web.MainRouter.ServeHTTP(res, req)
+	assert.Equal(t, helloHTML, res.Body.String())
 }
 
 /* Test disabled for now so we don't requrie the client to build. Maybe re-enable after client gets moved out.
@@ -146,4 +235,16 @@ func TestCheckClientCompatability(t *testing.T) {
 			}
 		})
 	}
+}
+
+func compileGo(t *testing.T, sourceCode, outputPath string) {
+	dir, err := ioutil.TempDir(".", "")
+	require.NoError(t, err)
+	defer os.RemoveAll(dir)
+	require.NoError(t, ioutil.WriteFile(filepath.Join(dir, "main.go"), []byte(sourceCode), 0600))
+	cmd := exec.Command("go", "build", "-o", outputPath, "main.go")
+	cmd.Dir = dir
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	require.NoError(t, cmd.Run(), "failed to compile go")
 }

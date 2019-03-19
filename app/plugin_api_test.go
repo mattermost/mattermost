@@ -24,7 +24,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func setupPluginApiTest(t *testing.T, pluginCode string, pluginManifest string, pluginId string, app *App) {
+func setupPluginApiTest(t *testing.T, pluginCode string, pluginManifest string, pluginId string, app *App) (pluginDir string) {
 	pluginDir, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 	webappPluginDir, err := ioutil.TempDir("", "")
@@ -45,8 +45,41 @@ func setupPluginApiTest(t *testing.T, pluginCode string, pluginManifest string, 
 	require.True(t, activated)
 
 	app.SetPluginsEnvironment(env)
+
+	return pluginDir
 }
 
+func TestStaticFilesFolderConfiguration(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	pluginID := "com.mattermost.sample"
+
+	pluginDir := setupPluginApiTest(t,
+		`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost-server/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`,
+		`{"id": "com.mattermost.sample", "server": {"executable": "backend.exe", "static_files": "server/dist/public"}, "settings_schema": {"settings": []}}`, pluginID, th.App)
+
+	staticFilesFolderInTest := filepath.Join(pluginDir, pluginID, "server/dist/public")
+
+	staticFilesFolder, isOK := th.App.GetPluginsEnvironment().StaticFilesPath(pluginID)
+	assert.True(t, isOK)
+	assert.Equal(t, staticFilesFolder, staticFilesFolderInTest)
+
+}
 func TestPluginAPIGetUsers(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
