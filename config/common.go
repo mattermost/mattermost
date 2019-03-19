@@ -4,6 +4,7 @@
 package config
 
 import (
+	"github.com/mattermost/mattermost-server/utils"
 	"io"
 	"sync"
 
@@ -96,7 +97,6 @@ func (cs *commonStore) load(f io.ReadCloser, needsSave bool, validate func(*mode
 	// such a change will be made before invoking.
 	needsSave = needsSave || loadedCfg.SqlSettings.AtRestEncryptKey == nil || len(*loadedCfg.SqlSettings.AtRestEncryptKey) == 0
 	needsSave = needsSave || loadedCfg.FileSettings.PublicLinkSalt == nil || len(*loadedCfg.FileSettings.PublicLinkSalt) == 0
-	needsSave = needsSave || loadedCfg.EmailSettings.InviteSalt == nil || len(*loadedCfg.EmailSettings.InviteSalt) == 0
 
 	loadedCfg.SetDefaults()
 
@@ -140,4 +140,15 @@ func (cs *commonStore) validate(cfg *model.Config) error {
 	}
 
 	return nil
+}
+
+// mergeConfig merges two configs together. The receiver's values are overwritten with the patch's
+// values except when the patch's values are nil.
+func (cs *commonStore) mergeConfig(patch *model.Config) (*model.Config, error) {
+	ret, err := utils.Merge(cs.config, patch)
+	if err != nil {
+		return nil, err
+	}
+	retC := ret.(model.Config)
+	return &retC, nil
 }

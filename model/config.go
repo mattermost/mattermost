@@ -155,6 +155,10 @@ const (
 	ELASTICSEARCH_SETTINGS_DEFAULT_PASSWORD                          = "changeme"
 	ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_REPLICAS               = 1
 	ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_SHARDS                 = 1
+	ELASTICSEARCH_SETTINGS_DEFAULT_CHANNEL_INDEX_REPLICAS            = 1
+	ELASTICSEARCH_SETTINGS_DEFAULT_CHANNEL_INDEX_SHARDS              = 1
+	ELASTICSEARCH_SETTINGS_DEFAULT_USER_INDEX_REPLICAS               = 1
+	ELASTICSEARCH_SETTINGS_DEFAULT_USER_INDEX_SHARDS                 = 1
 	ELASTICSEARCH_SETTINGS_DEFAULT_AGGREGATE_POSTS_AFTER_DAYS        = 365
 	ELASTICSEARCH_SETTINGS_DEFAULT_POSTS_AGGREGATOR_JOB_START_TIME   = "03:00"
 	ELASTICSEARCH_SETTINGS_DEFAULT_INDEX_PREFIX                      = ""
@@ -466,11 +470,11 @@ func (s *ServiceSettings) SetDefaults() {
 	}
 
 	if s.SessionLengthWebInDays == nil {
-		s.SessionLengthWebInDays = NewInt(30)
+		s.SessionLengthWebInDays = NewInt(180)
 	}
 
 	if s.SessionLengthMobileInDays == nil {
-		s.SessionLengthMobileInDays = NewInt(30)
+		s.SessionLengthMobileInDays = NewInt(180)
 	}
 
 	if s.SessionLengthSSOInDays == nil {
@@ -482,7 +486,7 @@ func (s *ServiceSettings) SetDefaults() {
 	}
 
 	if s.SessionIdleTimeoutInMinutes == nil {
-		s.SessionIdleTimeoutInMinutes = NewInt(0)
+		s.SessionIdleTimeoutInMinutes = NewInt(43200)
 	}
 
 	if s.EnableCommands == nil {
@@ -717,6 +721,7 @@ type ExperimentalSettings struct {
 	ClientSideCertEnable            *bool
 	ClientSideCertCheck             *string
 	DisablePostMetadata             *bool
+	EnableClickToReply              *bool
 	LinkMetadataTimeoutMilliseconds *int64
 	RestrictSystemAdmin             *bool
 }
@@ -732,6 +737,10 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.DisablePostMetadata == nil {
 		s.DisablePostMetadata = NewBool(false)
+	}
+
+	if s.EnableClickToReply == nil {
+		s.EnableClickToReply = NewBool(false)
 	}
 
 	if s.LinkMetadataTimeoutMilliseconds == nil {
@@ -1048,7 +1057,6 @@ type EmailSettings struct {
 	SMTPServer                        *string
 	SMTPPort                          *string
 	ConnectionSecurity                *string
-	InviteSalt                        *string
 	SendPushNotifications             *bool
 	PushNotificationServer            *string
 	PushNotificationContents          *string
@@ -1130,10 +1138,6 @@ func (s *EmailSettings) SetDefaults() {
 
 	if s.ConnectionSecurity == nil || *s.ConnectionSecurity == CONN_SECURITY_PLAIN {
 		s.ConnectionSecurity = NewString(CONN_SECURITY_NONE)
-	}
-
-	if s.InviteSalt == nil || len(*s.InviteSalt) == 0 {
-		s.InviteSalt = NewString(NewRandomString(32))
 	}
 
 	if s.SendPushNotifications == nil {
@@ -1922,9 +1926,14 @@ type ElasticsearchSettings struct {
 	Password                      *string
 	EnableIndexing                *bool
 	EnableSearching               *bool
+	EnableAutocomplete            *bool
 	Sniff                         *bool
 	PostIndexReplicas             *int
 	PostIndexShards               *int
+	ChannelIndexReplicas          *int
+	ChannelIndexShards            *int
+	UserIndexReplicas             *int
+	UserIndexShards               *int
 	AggregatePostsAfterDays       *int
 	PostsAggregatorJobStartTime   *string
 	IndexPrefix                   *string
@@ -1954,6 +1963,10 @@ func (s *ElasticsearchSettings) SetDefaults() {
 		s.EnableSearching = NewBool(false)
 	}
 
+	if s.EnableAutocomplete == nil {
+		s.EnableAutocomplete = NewBool(false)
+	}
+
 	if s.Sniff == nil {
 		s.Sniff = NewBool(true)
 	}
@@ -1964,6 +1977,22 @@ func (s *ElasticsearchSettings) SetDefaults() {
 
 	if s.PostIndexShards == nil {
 		s.PostIndexShards = NewInt(ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_SHARDS)
+	}
+
+	if s.ChannelIndexReplicas == nil {
+		s.ChannelIndexReplicas = NewInt(ELASTICSEARCH_SETTINGS_DEFAULT_CHANNEL_INDEX_REPLICAS)
+	}
+
+	if s.ChannelIndexShards == nil {
+		s.ChannelIndexShards = NewInt(ELASTICSEARCH_SETTINGS_DEFAULT_CHANNEL_INDEX_SHARDS)
+	}
+
+	if s.UserIndexReplicas == nil {
+		s.UserIndexReplicas = NewInt(ELASTICSEARCH_SETTINGS_DEFAULT_USER_INDEX_REPLICAS)
+	}
+
+	if s.UserIndexShards == nil {
+		s.UserIndexShards = NewInt(ELASTICSEARCH_SETTINGS_DEFAULT_USER_INDEX_SHARDS)
 	}
 
 	if s.AggregatePostsAfterDays == nil {
@@ -2168,7 +2197,11 @@ type ImageProxySettings struct {
 
 func (ips *ImageProxySettings) SetDefaults(ss ServiceSettings) {
 	if ips.Enable == nil {
-		ips.Enable = NewBool(true)
+		if ss.DEPRECATED_DO_NOT_USE_ImageProxyType == nil || *ss.DEPRECATED_DO_NOT_USE_ImageProxyType == "" {
+			ips.Enable = NewBool(false)
+		} else {
+			ips.Enable = NewBool(true)
+		}
 	}
 
 	if ips.ImageProxyType == nil {
@@ -2469,10 +2502,6 @@ func (es *EmailSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.email_security.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(*es.InviteSalt) < 32 {
-		return NewAppError("Config.IsValid", "model.config.is_valid.email_salt.app_error", nil, "", http.StatusBadRequest)
-	}
-
 	if *es.EmailBatchingBufferSize <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.email_batching_buffer_size.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -2689,6 +2718,10 @@ func (ess *ElasticsearchSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.enable_searching.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if *ess.EnableAutocomplete && !*ess.EnableIndexing {
+		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.enable_autocomplete.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if *ess.AggregatePostsAfterDays < 1 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -2831,11 +2864,6 @@ func (o *Config) Sanitize() {
 	*o.FileSettings.PublicLinkSalt = FAKE_SETTING
 	if len(*o.FileSettings.AmazonS3SecretAccessKey) > 0 {
 		*o.FileSettings.AmazonS3SecretAccessKey = FAKE_SETTING
-	}
-
-	*o.EmailSettings.InviteSalt = FAKE_SETTING
-	if len(*o.EmailSettings.SMTPPassword) > 0 {
-		*o.EmailSettings.SMTPPassword = FAKE_SETTING
 	}
 
 	if len(*o.GitLabSettings.Secret) > 0 {

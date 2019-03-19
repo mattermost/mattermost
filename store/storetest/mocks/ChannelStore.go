@@ -226,6 +226,22 @@ func (_m *ChannelStore) GetAllChannelsForExportAfter(limit int, afterId string) 
 	return r0
 }
 
+// GetAllDirectChannelsForExportAfter provides a mock function with given fields: limit, afterId
+func (_m *ChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId string) store.StoreChannel {
+	ret := _m.Called(limit, afterId)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(int, string) store.StoreChannel); ok {
+		r0 = rf(limit, afterId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // GetByName provides a mock function with given fields: team_id, name, allowFromCache
 func (_m *ChannelStore) GetByName(team_id string, name string, allowFromCache bool) store.StoreChannel {
 	ret := _m.Called(team_id, name, allowFromCache)
@@ -345,6 +361,38 @@ func (_m *ChannelStore) GetChannels(teamId string, userId string, includeDeleted
 	var r0 store.StoreChannel
 	if rf, ok := ret.Get(0).(func(string, string, bool) store.StoreChannel); ok {
 		r0 = rf(teamId, userId, includeDeleted)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
+// GetChannelsBatchForIndexing provides a mock function with given fields: startTime, endTime, limit
+func (_m *ChannelStore) GetChannelsBatchForIndexing(startTime int64, endTime int64, limit int) store.StoreChannel {
+	ret := _m.Called(startTime, endTime, limit)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(int64, int64, int) store.StoreChannel); ok {
+		r0 = rf(startTime, endTime, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
+// GetChannelsByIds provides a mock function with given fields: channelIds
+func (_m *ChannelStore) GetChannelsByIds(channelIds []string) store.StoreChannel {
+	ret := _m.Called(channelIds)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func([]string) store.StoreChannel); ok {
+		r0 = rf(channelIds)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)

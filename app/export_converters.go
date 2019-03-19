@@ -38,6 +38,16 @@ func ImportLineFromChannel(channel *model.ChannelForExport) *LineImportData {
 	}
 }
 
+func ImportLineFromDirectChannel(channel *model.DirectChannelForExport) *LineImportData {
+	return &LineImportData{
+		Type: "direct_channel",
+		DirectChannel: &DirectChannelImportData{
+			Header:  &channel.Header,
+			Members: channel.Members,
+		},
+	}
+}
+
 func ImportLineFromUser(user *model.User, exportedPrefs map[string]*string) *LineImportData {
 	// Bulk Importer doesn't accept "empty string" for AuthService.
 	var authService *string
@@ -137,6 +147,18 @@ func ImportLineForPost(post *model.PostForExport) *LineImportData {
 			User:     &post.Username,
 			Message:  &post.Message,
 			CreateAt: &post.CreateAt,
+		},
+	}
+}
+
+func ImportLineForDirectPost(post *model.DirectPostForExport) *LineImportData {
+	return &LineImportData{
+		Type: "direct_post",
+		DirectPost: &DirectPostImportData{
+			ChannelMembers: post.ChannelMembers,
+			User:           &post.User,
+			Message:        &post.Message,
+			CreateAt:       &post.CreateAt,
 		},
 	}
 }
