@@ -341,10 +341,23 @@ func (s SqlTeamStore) SearchOpen(term string) store.StoreChannel {
 	})
 }
 
+func (s SqlTeamStore) SearchPrivate(term string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		var teams []*model.Team
+
+		if _, err := s.GetReplica().Select(&teams, "SELECT * FROM Teams WHERE (Type != 'O' OR AllowOpenInvite = false) AND (Name LIKE :Term OR DisplayName LIKE :Term)", map[string]interface{}{"Term": term + "%"}); err != nil {
+			result.Err = model.NewAppError("SqlTeamStore.SearchPrivate", "store.sql_team.search_private_team.app_error", nil, "term="+term+", "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		result.Data = teams
+	})
+}
+
 func (s SqlTeamStore) GetAll() store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var data []*model.Team
-		if _, err := s.GetReplica().Select(&data, "SELECT * FROM Teams"); err != nil {
+		if _, err := s.GetReplica().Select(&data, "SELECT * FROM Teams ORDER BY DisplayName"); err != nil {
 			result.Err = model.NewAppError("SqlTeamStore.GetAllTeams", "store.sql_team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -395,12 +408,60 @@ func (s SqlTeamStore) GetTeamsByUserId(userId string) store.StoreChannel {
 	})
 }
 
-func (s SqlTeamStore) GetAllTeamListing() store.StoreChannel {
+func (s SqlTeamStore) GetAllPrivateTeamListing() store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		query := "SELECT * FROM Teams WHERE AllowOpenInvite = 1"
+		query := "SELECT * FROM Teams WHERE AllowOpenInvite = 0 ORDER BY DisplayName"
 
 		if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-			query = "SELECT * FROM Teams WHERE AllowOpenInvite = true"
+			query = "SELECT * FROM Teams WHERE AllowOpenInvite = false ORDER BY DisplayName"
+		}
+
+		var data []*model.Team
+		if _, err := s.GetReplica().Select(&data, query); err != nil {
+			result.Err = model.NewAppError("SqlTeamStore.GetAllPrivateTeamListing", "store.sql_team.get_all_private_team_listing.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		for _, team := range data {
+			if len(team.InviteId) == 0 {
+				team.InviteId = team.Id
+			}
+		}
+
+		result.Data = data
+	})
+}
+
+func (s SqlTeamStore) GetAllPrivateTeamPageListing(offset int, limit int) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		query := "SELECT * FROM Teams WHERE AllowOpenInvite = 0 ORDER BY DisplayName LIMIT :Limit OFFSET :Offset"
+
+		if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+			query = "SELECT * FROM Teams WHERE AllowOpenInvite = false ORDER BY DisplayName LIMIT :Limit OFFSET :Offset"
+		}
+
+		var data []*model.Team
+		if _, err := s.GetReplica().Select(&data, query, map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
+			result.Err = model.NewAppError("SqlTeamStore.GetAllPrivateTeamListing", "store.sql_team.get_all_private_team_listing.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		for _, team := range data {
+			if len(team.InviteId) == 0 {
+				team.InviteId = team.Id
+			}
+		}
+
+		result.Data = data
+	})
+}
+
+func (s SqlTeamStore) GetAllTeamListing() store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		query := "SELECT * FROM Teams WHERE AllowOpenInvite = 1 ORDER BY DisplayName"
+
+		if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+			query = "SELECT * FROM Teams WHERE AllowOpenInvite = true ORDER BY DisplayName"
 		}
 
 		var data []*model.Team
@@ -421,10 +482,10 @@ func (s SqlTeamStore) GetAllTeamListing() store.StoreChannel {
 
 func (s SqlTeamStore) GetAllTeamPageListing(offset int, limit int) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		query := "SELECT * FROM Teams WHERE AllowOpenInvite = 1 LIMIT :Limit OFFSET :Offset"
+		query := "SELECT * FROM Teams WHERE AllowOpenInvite = 1 ORDER BY DisplayName LIMIT :Limit OFFSET :Offset"
 
 		if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-			query = "SELECT * FROM Teams WHERE AllowOpenInvite = true LIMIT :Limit OFFSET :Offset"
+			query = "SELECT * FROM Teams WHERE AllowOpenInvite = true ORDER BY DisplayName LIMIT :Limit OFFSET :Offset"
 		}
 
 		var data []*model.Team
