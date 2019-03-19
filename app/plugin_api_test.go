@@ -1071,26 +1071,88 @@ func TestPluginBots(t *testing.T) {
 func TestPluginAPI_GetTeamMembersForUser(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	api := th.SetupPluginAPI()
 
-	userId := th.BasicUser.Id
-	teamMembers, err := api.GetTeamMembersForUser(userId, 0, 10)
-	assert.Nil(t, err)
-	assert.Equal(t, len(teamMembers), 1)
-	assert.Equal(t, teamMembers[0].TeamId, th.BasicTeam.Id)
-	assert.Equal(t, teamMembers[0].UserId, th.BasicUser.Id)
+	code := strings.Replace(`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost-server/plugin"
+			"github.com/mattermost/mattermost-server/model"
+			"fmt"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+	
+		func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
+            teamMembers, err := p.API.GetTeamMembersForUser("USER_ID", 0, 10)
+			if err != nil {
+				return nil, err.Error() + "failed to get team members"
+			}
+			if len(teamMembers) != 1 {
+				return nil, "Invalid number of team members"
+			}
+			return nil, fmt.Sprintf("%v:%v", teamMembers[0].TeamId, teamMembers[0].UserId)
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`, "USER_ID", th.BasicUser.Id, 1)
+
+	setupPluginApiTest(t, code,
+		`{"id": "test_members", "backend": {"executable": "backend.exe"}, "settings_schema": {"settings": [ ]	}}`,
+		"test_members", th.App)
+	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin("test_members")
+	assert.NoError(t, err)
+	_, ret := hooks.MessageWillBePosted(nil, nil)
+	assert.Equal(t, fmt.Sprintf("%v:%v", th.BasicTeam.Id, th.BasicUser.Id), ret)
 }
 
 func TestPluginAPI_GetChannelMembersForUser(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	api := th.SetupPluginAPI()
 
-	userId := th.BasicUser.Id
-	teamId := th.BasicTeam.Id
-	channelMembers, err := api.GetChannelMembersForUser(teamId, userId, 0, 10)
+	code := `
+		package main
 
-	assert.Nil(t, err)
-	assert.Equal(t, len(channelMembers), 3)
-	assert.Equal(t, channelMembers[0].UserId, th.BasicUser.Id)
+		import (
+			"github.com/mattermost/mattermost-server/plugin"
+			"github.com/mattermost/mattermost-server/model"
+			"fmt"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+	
+		func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
+        	channelMembers, err := p.API.GetChannelMembersForUser("TEAM_ID", "USER_ID", 0, 10)
+
+			if err != nil {
+				return nil, err.Error() + "failed to get channel members"
+			}
+			if len(channelMembers) != 3 {
+				return nil, "Invalid number of channel members"
+			}
+			return nil, fmt.Sprintf("%v", channelMembers[0].UserId)
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`
+	code = strings.Replace(code, "USER_ID", th.BasicUser.Id, 1)
+	code = strings.Replace(code, "TEAM_ID", th.BasicTeam.Id, 1)
+	setupPluginApiTest(t, code,
+		`{"id": "test_member_channels", "backend": {"executable": "backend.exe"}, "settings_schema": {	"settings": [] }}`,
+		"test_member_channels", th.App)
+	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin("test_member_channels")
+	assert.NoError(t, err)
+	_, ret := hooks.MessageWillBePosted(nil, nil)
+	assert.Equal(t, fmt.Sprintf("%v", th.BasicUser.Id), ret)
+
 }
