@@ -370,6 +370,38 @@ func (_m *ChannelStore) GetChannels(teamId string, userId string, includeDeleted
 	return r0
 }
 
+// GetChannelsBatchForIndexing provides a mock function with given fields: startTime, endTime, limit
+func (_m *ChannelStore) GetChannelsBatchForIndexing(startTime int64, endTime int64, limit int) store.StoreChannel {
+	ret := _m.Called(startTime, endTime, limit)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(int64, int64, int) store.StoreChannel); ok {
+		r0 = rf(startTime, endTime, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
+// GetChannelsByIds provides a mock function with given fields: channelIds
+func (_m *ChannelStore) GetChannelsByIds(channelIds []string) store.StoreChannel {
+	ret := _m.Called(channelIds)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func([]string) store.StoreChannel); ok {
+		r0 = rf(channelIds)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // GetChannelsByScheme provides a mock function with given fields: schemeId, offset, limit
 func (_m *ChannelStore) GetChannelsByScheme(schemeId string, offset int, limit int) store.StoreChannel {
 	ret := _m.Called(schemeId, offset, limit)
@@ -409,22 +441,6 @@ func (_m *ChannelStore) GetDeletedByName(team_id string, name string) store.Stor
 	var r0 store.StoreChannel
 	if rf, ok := ret.Get(0).(func(string, string) store.StoreChannel); ok {
 		r0 = rf(team_id, name)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
-		}
-	}
-
-	return r0
-}
-
-// GetChannelsByIds provides a mock funcion with given fields: channelIds
-func (_m *ChannelStore) GetChannelsByIds(channelIds []string) store.StoreChannel {
-	ret := _m.Called(channelIds)
-
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func([]string) store.StoreChannel); ok {
-		r0 = rf(channelIds)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)
