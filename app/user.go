@@ -464,8 +464,8 @@ func (a *App) GetUsersInTeam(options *model.UserGetOptions) ([]*model.User, *mod
 	return result.Data.([]*model.User), nil
 }
 
-func (a *App) GetUsersNotInTeam(teamId string, offset int, limit int, teamIds []string, channelIds []string) ([]*model.User, *model.AppError) {
-	result := <-a.Srv.Store.User().GetProfilesNotInTeam(teamId, offset, limit, teamIds, channelIds)
+func (a *App) GetUsersNotInTeam(teamId string, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+	result := <-a.Srv.Store.User().GetProfilesNotInTeam(teamId, offset, limit, viewRestrictions)
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -481,8 +481,8 @@ func (a *App) GetUsersInTeamPage(options *model.UserGetOptions, asAdmin bool) ([
 	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
-func (a *App) GetUsersNotInTeamPage(teamId string, page int, perPage int, asAdmin bool, teamIds []string, channelIds []string) ([]*model.User, *model.AppError) {
-	users, err := a.GetUsersNotInTeam(teamId, page*perPage, perPage, teamIds, channelIds)
+func (a *App) GetUsersNotInTeamPage(teamId string, page int, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+	users, err := a.GetUsersNotInTeam(teamId, page*perPage, perPage, viewRestrictions)
 	if err != nil {
 		return nil, err
 	}
@@ -596,16 +596,16 @@ func (a *App) GetUsersWithoutTeam(offset int, limit int) ([]*model.User, *model.
 	return result.Data.([]*model.User), nil
 }
 
-func (a *App) GetUsersByIds(userIds []string, asAdmin bool, teamIds []string, channelIds []string) ([]*model.User, *model.AppError) {
-	result := <-a.Srv.Store.User().GetProfileByIds(userIds, teamIds == nil && channelIds == nil, teamIds, channelIds)
+func (a *App) GetUsersByIds(userIds []string, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+	result := <-a.Srv.Store.User().GetProfileByIds(userIds, viewRestrictions != nil, viewRestrictions)
 	if result.Err != nil {
 		return nil, result.Err
 	}
 	return a.sanitizeProfiles(result.Data.([]*model.User), asAdmin), nil
 }
 
-func (a *App) GetUsersByUsernames(usernames []string, asAdmin bool, teamIds []string, channelIds []string) ([]*model.User, *model.AppError) {
-	result := <-a.Srv.Store.User().GetProfilesByUsernames(usernames, teamIds, channelIds)
+func (a *App) GetUsersByUsernames(usernames []string, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+	result := <-a.Srv.Store.User().GetProfilesByUsernames(usernames, viewRestrictions)
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -1582,11 +1582,10 @@ func (a *App) GetVerifyEmailToken(token string) (*model.Token, *model.AppError) 
 }
 
 // GetTotalUsersStats is used for the DM list total
-func (a *App) GetTotalUsersStats(teamIds, channelIds []string) (*model.UsersStats, *model.AppError) {
+func (a *App) GetTotalUsersStats(viewRestrictions *model.ViewUsersRestrictions) (*model.UsersStats, *model.AppError) {
 	result := <-a.Srv.Store.User().Count(model.UserCountOptions{
 		IncludeBotAccounts: true,
-		Teams:              teamIds,
-		Channels:           channelIds,
+		ViewRestrictions:   viewRestrictions,
 	})
 	if result.Err != nil {
 		return nil, result.Err
@@ -1670,7 +1669,7 @@ func (a *App) SearchUsersInTeam(teamId string, term string, options *model.UserS
 			return nil, err
 		}
 
-		result = <-a.Srv.Store.User().GetProfileByIds(usersIds, false, nil, nil)
+		result = <-a.Srv.Store.User().GetProfileByIds(usersIds, false, nil)
 	} else {
 		result = <-a.Srv.Store.User().Search(teamId, term, options)
 	}
@@ -1725,8 +1724,8 @@ func (a *App) AutocompleteUsersInChannel(teamId string, channelId string, term s
 		if err != nil {
 			return nil, err
 		}
-		uchan = a.Srv.Store.User().GetProfileByIds(uchanIds, false, nil, nil)
-		nuchan = a.Srv.Store.User().GetProfileByIds(nuchanIds, false, nil, nil)
+		uchan = a.Srv.Store.User().GetProfileByIds(uchanIds, false, nil)
+		nuchan = a.Srv.Store.User().GetProfileByIds(nuchanIds, false, nil)
 	} else {
 		uchan = a.Srv.Store.User().SearchInChannel(channelId, term, options)
 		nuchan = a.Srv.Store.User().SearchNotInChannel(teamId, channelId, term, options)
@@ -1773,7 +1772,7 @@ func (a *App) AutocompleteUsersInTeam(teamId string, term string, options *model
 			return nil, err
 		}
 
-		result = <-a.Srv.Store.User().GetProfileByIds(usersIds, false, nil, nil)
+		result = <-a.Srv.Store.User().GetProfileByIds(usersIds, false, nil)
 	} else {
 		result = <-a.Srv.Store.User().Search(teamId, term, options)
 	}
@@ -1854,12 +1853,9 @@ func (a *App) RestrictUsersGetByPermissions(userId string, options *model.UserGe
 		return nil, err
 	}
 
-	fmt.Printf("%v\n", restrictions)
 	if restrictions == nil {
 		return options, nil
 	}
-	fmt.Printf("%v\n", restrictions.Teams)
-	fmt.Printf("%v\n", restrictions.Channels)
 
 	options.InTeams = restrictions.Teams
 	options.InChannels = restrictions.Channels

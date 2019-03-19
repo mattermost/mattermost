@@ -259,10 +259,10 @@ type UserStore interface {
 	GetAllProfilesInChannel(channelId string, allowFromCache bool) StoreChannel
 	GetProfilesNotInChannel(teamId string, channelId string, offset int, limit int) StoreChannel
 	GetProfilesWithoutTeam(offset int, limit int) StoreChannel
-	GetProfilesByUsernames(usernames []string, teamIds []string, channelIds []string) StoreChannel
+	GetProfilesByUsernames(usernames []string, viewRestrictions *model.ViewUsersRestrictions) StoreChannel
 	GetAllProfiles(options *model.UserGetOptions) StoreChannel
 	GetProfiles(options *model.UserGetOptions) StoreChannel
-	GetProfileByIds(userId []string, allowFromCache bool, teamIds []string, channelIds []string) StoreChannel
+	GetProfileByIds(userId []string, allowFromCache bool, viewRestrictions *model.ViewUsersRestrictions) StoreChannel
 	InvalidatProfileCacheForUser(userId string)
 	GetByEmail(email string) StoreChannel
 	GetByAuth(authData *string, authService string) StoreChannel
@@ -288,7 +288,7 @@ type UserStore interface {
 	SearchWithoutTeam(term string, options *model.UserSearchOptions) StoreChannel
 	AnalyticsGetInactiveUsersCount() StoreChannel
 	AnalyticsGetSystemAdminCount() StoreChannel
-	GetProfilesNotInTeam(teamId string, offset int, limit int, teamIds []string, channelIds []string) StoreChannel
+	GetProfilesNotInTeam(teamId string, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) StoreChannel
 	GetEtagForProfilesNotInTeam(teamId string) StoreChannel
 	ClearAllCustomRoleAssignments() StoreChannel
 	InferSystemInstallDate() StoreChannel

@@ -393,14 +393,7 @@ func getTotalUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var teams []string
-	var channels []string
-	if restrictions != nil {
-		teams = restrictions.Teams
-		channels = restrictions.Channels
-	}
-
-	stats, err := c.App.GetTotalUsersStats(teams, channels)
+	stats, err := c.App.GetTotalUsersStats(restrictions)
 	if err != nil {
 		c.Err = err
 		return
@@ -498,14 +491,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		var teams []string
-		var channels []string
-		if restrictions != nil {
-			teams = restrictions.Teams
-			channels = restrictions.Channels
-		}
-
-		profiles, err = c.App.GetUsersNotInTeamPage(notInTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), teams, channels)
+		profiles, err = c.App.GetUsersNotInTeamPage(notInTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
 	} else if len(inTeamId) > 0 {
 		if !c.App.SessionHasPermissionToTeam(c.App.Session, inTeamId, model.PERMISSION_VIEW_TEAM) {
 			c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
@@ -589,14 +575,7 @@ func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var teams []string
-	var channels []string
-	if restrictions != nil {
-		teams = restrictions.Teams
-		channels = restrictions.Channels
-	}
-
-	users, err := c.App.GetUsersByIds(userIds, c.IsSystemAdmin(), teams, channels)
+	users, err := c.App.GetUsersByIds(userIds, c.IsSystemAdmin(), restrictions)
 	if err != nil {
 		c.Err = err
 		return
@@ -619,14 +598,7 @@ func getUsersByNames(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var teams []string
-	var channels []string
-	if restrictions != nil {
-		teams = restrictions.Teams
-		channels = restrictions.Channels
-	}
-
-	users, err := c.App.GetUsersByUsernames(usernames, c.IsSystemAdmin(), teams, channels)
+	users, err := c.App.GetUsersByUsernames(usernames, c.IsSystemAdmin(), restrictions)
 	if err != nil {
 		c.Err = err
 		return

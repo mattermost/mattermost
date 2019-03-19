@@ -338,13 +338,13 @@ func (_m *UserStore) GetNewUsersForTeam(teamId string, offset int, limit int) st
 	return r0
 }
 
-// GetProfileByIds provides a mock function with given fields: userId, allowFromCache, teamIds, channelIds
-func (_m *UserStore) GetProfileByIds(userId []string, allowFromCache bool, teamIds []string, channelIds []string) store.StoreChannel {
-	ret := _m.Called(userId, allowFromCache, teamIds, channelIds)
+// GetProfileByIds provides a mock function with given fields: userId, allowFromCache, viewRestrictions
+func (_m *UserStore) GetProfileByIds(userId []string, allowFromCache bool, viewRestrictions *model.ViewUsersRestrictions) store.StoreChannel {
+	ret := _m.Called(userId, allowFromCache, viewRestrictions)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func([]string, bool, []string, []string) store.StoreChannel); ok {
-		r0 = rf(userId, allowFromCache, teamIds, channelIds)
+	if rf, ok := ret.Get(0).(func([]string, bool, *model.ViewUsersRestrictions) store.StoreChannel); ok {
+		r0 = rf(userId, allowFromCache, viewRestrictions)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)
@@ -370,13 +370,13 @@ func (_m *UserStore) GetProfiles(options *model.UserGetOptions) store.StoreChann
 	return r0
 }
 
-// GetProfilesByUsernames provides a mock function with given fields: usernames, teamIds, channelIds
-func (_m *UserStore) GetProfilesByUsernames(usernames []string, teamIds []string, channelIds []string) store.StoreChannel {
-	ret := _m.Called(usernames, teamIds, channelIds)
+// GetProfilesByUsernames provides a mock function with given fields: usernames, viewRestrictions
+func (_m *UserStore) GetProfilesByUsernames(usernames []string, viewRestrictions *model.ViewUsersRestrictions) store.StoreChannel {
+	ret := _m.Called(usernames, viewRestrictions)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func([]string, []string, []string) store.StoreChannel); ok {
-		r0 = rf(usernames, teamIds, channelIds)
+	if rf, ok := ret.Get(0).(func([]string, *model.ViewUsersRestrictions) store.StoreChannel); ok {
+		r0 = rf(usernames, viewRestrictions)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)
@@ -434,13 +434,13 @@ func (_m *UserStore) GetProfilesNotInChannel(teamId string, channelId string, of
 	return r0
 }
 
-// GetProfilesNotInTeam provides a mock function with given fields: teamId, offset, limit, teamIds, channelIds
-func (_m *UserStore) GetProfilesNotInTeam(teamId string, offset int, limit int, teamIds []string, channelIds []string) store.StoreChannel {
-	ret := _m.Called(teamId, offset, limit, teamIds, channelIds)
+// GetProfilesNotInTeam provides a mock function with given fields: teamId, offset, limit, viewRestrictions
+func (_m *UserStore) GetProfilesNotInTeam(teamId string, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) store.StoreChannel {
+	ret := _m.Called(teamId, offset, limit, viewRestrictions)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, int, int, []string, []string) store.StoreChannel); ok {
-		r0 = rf(teamId, offset, limit, teamIds, channelIds)
+	if rf, ok := ret.Get(0).(func(string, int, int, *model.ViewUsersRestrictions) store.StoreChannel); ok {
+		r0 = rf(teamId, offset, limit, viewRestrictions)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)
