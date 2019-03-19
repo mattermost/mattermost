@@ -398,7 +398,8 @@ test-compile:
 	done
 
 test-db-migration: start-docker
-	./scripts/db-migration-test.sh
+	./scripts/mysql-migration-test.sh
+	./scripts/psql-migration-test.sh
 
 test-server: start-docker go-junit-report do-cover-file ## Runs tests.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
