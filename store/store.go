@@ -196,6 +196,7 @@ type ChannelStore interface {
 	GetChannelMembersForExport(userId string, teamId string) StoreChannel
 	RemoveAllDeactivatedMembers(channelId string) StoreChannel
 	GetChannelsBatchForIndexing(startTime, endTime int64, limit int) StoreChannel
+	UserBelongsToChannels(userId string, channelIds []string) StoreChannel
 }
 
 type ChannelMemberHistoryStore interface {
