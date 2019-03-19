@@ -57,8 +57,6 @@ type UserSearchOptions struct {
 	Limit int
 	// Filters for the given role
 	Role string
-	// Restrict to search in a list of teams
-	InTeams []string
-	// Restrict to search in a list of channels
-	InChannels []string
+	// Restrict to search in a list of teams and channels
+	ViewRestrictions *ViewUsersRestrictions
 }

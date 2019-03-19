@@ -1853,12 +1853,7 @@ func (a *App) RestrictUsersGetByPermissions(userId string, options *model.UserGe
 		return nil, err
 	}
 
-	if restrictions == nil {
-		return options, nil
-	}
-
-	options.InTeams = restrictions.Teams
-	options.InChannels = restrictions.Channels
+	options.ViewRestrictions = restrictions
 	return options, nil
 }
 
@@ -1868,12 +1863,7 @@ func (a *App) RestrictUsersSearchByPermissions(userId string, options *model.Use
 		return nil, err
 	}
 
-	if restrictions == nil {
-		return options, nil
-	}
-
-	options.InTeams = restrictions.Teams
-	options.InChannels = restrictions.Channels
+	options.ViewRestrictions = restrictions
 	return options, nil
 }
 

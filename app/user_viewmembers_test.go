@@ -106,11 +106,7 @@ func TestResctrictedViewMembers(t *testing.T) {
 
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {
-				options := model.UserSearchOptions{Limit: 100}
-				if tc.Restrictions != nil {
-					options.InTeams = tc.Restrictions.Teams
-					options.InChannels = tc.Restrictions.Channels
-				}
+				options := model.UserSearchOptions{Limit: 100, ViewRestrictions: tc.Restrictions}
 				results, err := th.App.SearchUsers(&tc.Search, &options)
 				require.Nil(t, err)
 				ids := []string{}
@@ -186,11 +182,7 @@ func TestResctrictedViewMembers(t *testing.T) {
 
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {
-				options := model.UserSearchOptions{Limit: 100}
-				if tc.Restrictions != nil {
-					options.InTeams = tc.Restrictions.Teams
-					options.InChannels = tc.Restrictions.Channels
-				}
+				options := model.UserSearchOptions{Limit: 100, ViewRestrictions: tc.restrictions}
 				results, err := th.App.SearchUsersInTeam(tc.TeamId, "test", &options)
 				require.Nil(t, err)
 				ids := []string{}
@@ -239,11 +231,7 @@ func TestResctrictedViewMembers(t *testing.T) {
 
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {
-				options := model.UserGetOptions{Page: 0, PerPage: 100}
-				if tc.Restrictions != nil {
-					options.InTeams = tc.Restrictions.Teams
-					options.InChannels = tc.Restrictions.Channels
-				}
+				options := model.UserGetOptions{Page: 0, PerPage: 100, ViewRestrictions: tc.Restrictions}
 				results, err := th.App.GetUsers(&options)
 				require.Nil(t, err)
 				ids := []string{}
@@ -319,11 +307,7 @@ func TestResctrictedViewMembers(t *testing.T) {
 
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {
-				options := model.UserGetOptions{Page: 0, PerPage: 100}
-				if tc.Restrictions != nil {
-					options.InTeams = tc.Restrictions.Teams
-					options.InChannels = tc.Restrictions.Channels
-				}
+				options := model.UserGetOptions{Page: 0, PerPage: 100, ViewRestrictions: tc.Restrictions}
 				results, err := th.App.GetUsersNotInTeam(tc.TeamId, 0, 100, options.InTeams, options.InChannels)
 				require.Nil(t, err)
 				ids := []string{}

@@ -412,13 +412,13 @@ func (us SqlUserStore) GetAllProfiles(options *model.UserGetOptions) store.Store
 			OrderBy("u.Username ASC").
 			Offset(uint64(options.Page * options.PerPage)).Limit(uint64(options.PerPage))
 
-		if options.InTeams != nil || options.InChannels != nil {
+		if options.ViewRestrictions != nil {
 			query = query.
 				LeftJoin("TeamMembers tm ON ( tm.UserId = u.Id AND tm.DeleteAt = 0 )").
 				LeftJoin("ChannelMembers cm ON ( cm.UserId = u.Id )").
 				Where(sq.Or{
-					sq.Eq{"tm.TeamId": options.InTeams},
-					sq.Eq{"cm.ChannelId": options.InChannels},
+					sq.Eq{"tm.TeamId": options.ViewRestrictions.Teams},
+					sq.Eq{"cm.ChannelId": options.ViewRestrictions.Channels},
 				}).
 				Distinct()
 		}
@@ -482,13 +482,13 @@ func (us SqlUserStore) GetProfiles(options *model.UserGetOptions) store.StoreCha
 			OrderBy("u.Username ASC").
 			Offset(uint64(options.Page * options.PerPage)).Limit(uint64(options.PerPage))
 
-		if options.InTeams != nil || options.InChannels != nil {
+		if options.ViewRestrictions != nil {
 			query = query.
 				LeftJoin("TeamMembers rtm ON ( rtm.UserId = u.Id AND rtm.DeleteAt = 0 )").
 				LeftJoin("ChannelMembers rcm ON ( rcm.UserId = u.Id )").
 				Where(sq.Or{
-					sq.Eq{"rtm.TeamId": options.InTeams},
-					sq.Eq{"rcm.ChannelId": options.InChannels},
+					sq.Eq{"rtm.TeamId": options.ViewRestrictions.Teams},
+					sq.Eq{"rcm.ChannelId": options.ViewRestrictions.Channels},
 				}).
 				Distinct()
 		}
@@ -1338,13 +1338,13 @@ func (us SqlUserStore) performSearch(query sq.SelectBuilder, term string, option
 		query = generateSearchQuery(query, strings.Fields(term), searchType, isPostgreSQL)
 	}
 
-	if options.InTeams != nil || options.InChannels != nil {
+	if options.ViewRestrictions != nil {
 		query = query.
 			LeftJoin("TeamMembers rtm ON ( rtm.UserId = u.Id AND rtm.DeleteAt = 0 )").
 			LeftJoin("ChannelMembers rcm ON ( rcm.UserId = u.Id )").
 			Where(sq.Or{
-				sq.Eq{"rtm.TeamId": options.InTeams},
-				sq.Eq{"rcm.ChannelId": options.InChannels},
+				sq.Eq{"rtm.TeamId": options.ViewRestrictions.Teams},
+				sq.Eq{"rcm.ChannelId": options.ViewRestrictions.Channels},
 			}).
 			Distinct()
 	}
