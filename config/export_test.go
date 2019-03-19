@@ -26,3 +26,8 @@ func InitializeConfigurationsTable(db *sqlx.DB) error {
 func ResolveConfigFilePath(path string) (string, error) {
 	return resolveConfigFilePath(path)
 }
+
+// GetCommonStore exposes the internal commonStore to test only.
+func (ms *memoryStore) MergeConfig(patch *model.Config) (*model.Config, error) {
+	return ms.mergeConfig(patch)
+}

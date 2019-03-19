@@ -4,6 +4,7 @@
 package config
 
 import (
+	"github.com/mattermost/mattermost-server/utils"
 	"io"
 	"sync"
 
@@ -139,4 +140,15 @@ func (cs *commonStore) validate(cfg *model.Config) error {
 	}
 
 	return nil
+}
+
+// mergeConfig merges two configs together. The receiver's values are overwritten with the patch's
+// values except when the patch's values are nil.
+func (cs *commonStore) mergeConfig(patch *model.Config) (*model.Config, error) {
+	ret, err := utils.Merge(cs.config, patch)
+	if err != nil {
+		return nil, err
+	}
+	retC := ret.(model.Config)
+	return &retC, nil
 }
