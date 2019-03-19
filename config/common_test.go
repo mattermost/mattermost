@@ -1,6 +1,9 @@
 package config_test
 
 import (
+	"github.com/mattermost/mattermost-server/config"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -74,3 +77,61 @@ func prepareExpectedConfig(t *testing.T, expectedCfg *model.Config) *model.Confi
 
 	return expectedCfg
 }
+
+func TestMergeConfigs(t *testing.T) {
+	t.Run("merge two default configs with different salts/keys", func(t *testing.T) {
+		base, err := config.NewMemoryStore()
+		require.NoError(t, err)
+		patch, err := config.NewMemoryStore()
+		require.NoError(t, err)
+
+		merged, err := base.MergeConfig(patch.Get())
+		require.NoError(t, err)
+
+		assert.Equal(t, patch.Get(), merged)
+	})
+	t.Run("merge identical configs", func(t *testing.T) {
+		base, err := config.NewMemoryStore()
+		require.NoError(t, err)
+		patch := base.Get().Clone()
+
+		merged, err := base.MergeConfig(patch)
+		require.NoError(t, err)
+
+		assert.Equal(t, base.Get(), merged)
+		assert.Equal(t, patch, merged)
+	})
+	t.Run("merge configs with a different setting", func(t *testing.T) {
+		base, err := config.NewMemoryStore()
+		require.NoError(t, err)
+		patch := base.Get().Clone()
+		patch.ServiceSettings.SiteURL = newString("http://newhost.ca")
+
+		merged, err := base.MergeConfig(patch)
+		require.NoError(t, err)
+
+		assert.NotEqual(t, base.Get(), merged)
+		assert.Equal(t, patch, merged)
+	})
+	t.Run("merge default config with changes from a mostly nil patch", func(t *testing.T) {
+		base, err := config.NewMemoryStore()
+		require.NoError(t, err)
+		patch := &model.Config{}
+		patch.ServiceSettings.SiteURL = newString("http://newhost.ca")
+		patch.GoogleSettings.Enable = newBool(true)
+
+		expected := base.Get().Clone()
+		expected.ServiceSettings.SiteURL = newString("http://newhost.ca")
+		expected.GoogleSettings.Enable = newBool(true)
+
+		merged, err := base.MergeConfig(patch)
+		require.NoError(t, err)
+
+		assert.NotEqual(t, base.Get(), merged)
+		assert.NotEqual(t, patch, merged)
+		assert.Equal(t, expected, merged)
+	})
+}
+
+func newBool(b bool) *bool       { return &b }
+func newString(s string) *string { return &s }
