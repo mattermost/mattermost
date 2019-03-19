@@ -6,7 +6,7 @@ cp config/config.json $TMPDIR
 echo "Creating databases"
 docker exec mattermost-postgres sh -c 'exec echo "CREATE DATABASE migrated; CREATE DATABASE latest;" | exec psql -U mmuser mattermost_test'
 
-echo "Importing mysql dump from version 5.0"
+echo "Importing postgres dump from version 5.0"
 docker exec -i mattermost-postgres psql -U mmuser -d migrated < $(pwd)/tests/mm5.0-dump.psql
 
 echo "Setting up config for db migration"
