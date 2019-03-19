@@ -228,31 +228,23 @@ func getDefaultProfileImage(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	restrictions, err := c.App.GetViewUsersRestrictions(c.App.Session.UserId)
+	user, err := c.App.GetUser(c.Params.UserId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	var teams []string
-	var channels []string
-	if restrictions != nil {
-		teams = restrictions.Teams
-		channels = restrictions.Channels
-	}
-
-	users, err := c.App.GetUsersByIds([]string{c.Params.UserId}, c.IsSystemAdmin(), teams, channels)
+	canSee, err := c.App.UserCanSeeOtherUser(c.App.Session.UserId, user.Id)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	if len(users) == 0 {
-		c.Err = model.NewAppError("getProfileImage", "api.user.get_profile_image.not_found.app_error", nil, "", http.StatusNotFound)
+	if !canSee {
+		c.SetPermissionError(model.PERMISSION_VIEW_MEMBERS)
 		return
 	}
 
-	user := users[0]
 	img, err := c.App.GetDefaultProfileImage(user)
 	if err != nil {
 		c.Err = err
@@ -270,31 +262,23 @@ func getProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	restrictions, err := c.App.GetViewUsersRestrictions(c.App.Session.UserId)
+	user, err := c.App.GetUser(c.Params.UserId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	var teams []string
-	var channels []string
-	if restrictions != nil {
-		teams = restrictions.Teams
-		channels = restrictions.Channels
-	}
-
-	users, err := c.App.GetUsersByIds([]string{c.Params.UserId}, c.IsSystemAdmin(), teams, channels)
+	canSee, err := c.App.UserCanSeeOtherUser(c.App.Session.UserId, user.Id)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	if len(users) == 0 {
-		c.Err = model.NewAppError("getProfileImage", "api.user.get_profile_image.not_found.app_error", nil, "", http.StatusNotFound)
+	if !canSee {
+		c.SetPermissionError(model.PERMISSION_VIEW_MEMBERS)
 		return
 	}
 
-	user := users[0]
 	etag := strconv.FormatInt(user.LastPictureUpdate, 10)
 	if c.HandleEtag(etag, "Get Profile Image", w, r) {
 		return
