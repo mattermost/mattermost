@@ -6251,6 +6251,10 @@
     "translation": "We could not get all teams"
   },
   {
+    "id": "store.sql_team.get_all_private_team_listing.app_error",
+    "translation": "We could not get all private teams"
+  },
+  {
     "id": "store.sql_team.get_all_team_listing.app_error",
     "translation": "We could not get all teams"
   },
@@ -6353,6 +6357,10 @@
   {
     "id": "store.sql_team.search_open_team.app_error",
     "translation": "We encountered an error searching open teams"
+  },
+  {
+    "id": "store.sql_team.search_private_team.app_error",
+    "translation": "We encountered an error searching private teams"
   },
   {
     "id": "store.sql_team.update.app_error",
