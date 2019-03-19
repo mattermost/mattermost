@@ -7,7 +7,7 @@ echo "Creating databases"
 docker exec mattermost-mysql mysql -uroot -pmostest -e "CREATE DATABASE migrated; CREATE DATABASE latest; GRANT ALL PRIVILEGES ON migrated.* TO mmuser; GRANT ALL PRIVILEGES ON latest.* TO mmuser"
 
 echo "Importing mysql dump from version 5.0"
-docker exec -i mattermost-mysql mysql -D migrated -uroot -pmostest < $(pwd)/tests/mm5.0-dump.sql
+docker exec -i mattermost-mysql mysql -D migrated -uroot -pmostest < $(pwd)/scripts/mattermost-mysql-5.0.sql
 
 echo "Setting up config for db migration"
 make ARGS="config set SqlSettings.DataSource 'mmuser:mostest@tcp(dockerhost:3306)/migrated?charset=utf8mb4,utf8&readTimeout=30s&writeTimeout=30s' --config $TMPDIR/config.json" run-cli
@@ -26,11 +26,14 @@ echo "Generating dump"
 docker exec mattermost-mysql mysqldump --skip-opt --no-data --compact -u root -pmostest migrated > $DUMPDIR/migrated.sql
 docker exec mattermost-mysql mysqldump --skip-opt --no-data --compact -u root -pmostest latest > $DUMPDIR/latest.sql
 
-echo "Generating diff"
-diff $DUMPDIR/migrated.sql $DUMPDIR/latest.sql > $DUMPDIR/diff.txt
-
 echo "Removing databases created for db comparison"
 docker exec mattermost-mysql mysql -uroot -pmostest -e "DROP DATABASE migrated; DROP DATABASE latest"
 
-if [ ! -s $DUMPDIR/diff.txt ]; then echo "Both schemas are same";else echo "Schema differs, here is the diff:" && cat $DUMPDIR/diff.txt ;fi
+echo "Generating diff"
+diff $DUMPDIR/migrated.sql $DUMPDIR/latest.sql > $DUMPDIR/diff.txt
+diffErrorCode=$?
+
+if [ $diffErrorCode -eq 0 ]; then echo "Both schemas are same";else cat $DUMPDIR/diff.txt; fi
 rm -rf $TMPDIR $DUMPDIR
+
+exit $diffErrorCode
