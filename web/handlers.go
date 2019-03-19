@@ -55,7 +55,6 @@ type Handler struct {
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	now := time.Now()
-	mlog.Debug(fmt.Sprintf("%v - %v", r.Method, r.URL.Path))
 
 	c := &Context{}
 	c.App = app.New(
@@ -69,6 +68,9 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	c.Params = ParamsFromRequest(r)
 	c.App.Path = r.URL.Path
 	c.Log = c.App.Log
+
+	mlog.Debug(fmt.Sprintf("%v - %v", r.Method, r.URL.Path), mlog.String("request_id", c.App.RequestId))
+
 
 	subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
 	siteURLHeader := app.GetProtocol(r) + "://" + r.Host + subpath
