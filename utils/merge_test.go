@@ -1,4 +1,4 @@
-package utils
+package utils_test
 
 import (
 	"fmt"
@@ -6,6 +6,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 // Test merging maps alone. This isolates the complexity of merging maps from merging maps recursively in
@@ -1508,7 +1510,7 @@ func setupStructs(t *testing.T) {
 }
 
 func mergeSimple(base, patch simple) (*simple, error) {
-	ret, err := Merge(base, patch)
+	ret, err := utils.Merge(base, patch)
 	if err != nil {
 		return nil, err
 	}
@@ -1517,7 +1519,7 @@ func mergeSimple(base, patch simple) (*simple, error) {
 }
 
 func mergeEvenSimpler(base, patch evenSimpler) (*evenSimpler, error) {
-	ret, err := Merge(base, patch)
+	ret, err := utils.Merge(base, patch)
 	if err != nil {
 		return nil, err
 	}
@@ -1526,7 +1528,7 @@ func mergeEvenSimpler(base, patch evenSimpler) (*evenSimpler, error) {
 }
 
 func mergeSliceStruct(base, patch sliceStruct) (*sliceStruct, error) {
-	ret, err := Merge(base, patch)
+	ret, err := utils.Merge(base, patch)
 	if err != nil {
 		return nil, err
 	}
@@ -1535,7 +1537,7 @@ func mergeSliceStruct(base, patch sliceStruct) (*sliceStruct, error) {
 }
 
 func mergeMapPtr(base, patch mapPtr) (*mapPtr, error) {
-	ret, err := Merge(base, patch)
+	ret, err := utils.Merge(base, patch)
 	if err != nil {
 		return nil, err
 	}
@@ -1544,7 +1546,7 @@ func mergeMapPtr(base, patch mapPtr) (*mapPtr, error) {
 }
 
 func mergeMapPtrState(base, patch mapPtrState) (*mapPtrState, error) {
-	ret, err := Merge(base, patch)
+	ret, err := utils.Merge(base, patch)
 	if err != nil {
 		return nil, err
 	}
@@ -1553,7 +1555,7 @@ func mergeMapPtrState(base, patch mapPtrState) (*mapPtrState, error) {
 }
 
 func mergeMapPtrState2(base, patch mapPtrState2) (*mapPtrState2, error) {
-	ret, err := Merge(base, patch)
+	ret, err := utils.Merge(base, patch)
 	if err != nil {
 		return nil, err
 	}
@@ -1562,7 +1564,7 @@ func mergeMapPtrState2(base, patch mapPtrState2) (*mapPtrState2, error) {
 }
 
 func mergeTestStructs(base, patch testStruct) (*testStruct, error) {
-	ret, err := Merge(base, patch)
+	ret, err := utils.Merge(base, patch)
 	if err != nil {
 		return nil, err
 	}
@@ -1571,7 +1573,7 @@ func mergeTestStructs(base, patch testStruct) (*testStruct, error) {
 }
 
 func mergeStringIntMap(base, patch map[string]int) (map[string]int, error) {
-	ret, err := Merge(base, patch)
+	ret, err := utils.Merge(base, patch)
 	if err != nil {
 		return nil, err
 	}
@@ -1580,7 +1582,7 @@ func mergeStringIntMap(base, patch map[string]int) (map[string]int, error) {
 }
 
 func mergeStringPtrIntMap(base, patch map[string]*int) (map[string]*int, error) {
-	ret, err := Merge(base, patch)
+	ret, err := utils.Merge(base, patch)
 	if err != nil {
 		return nil, err
 	}
@@ -1589,7 +1591,7 @@ func mergeStringPtrIntMap(base, patch map[string]*int) (map[string]*int, error) 
 }
 
 func mergeStringSliceIntMap(base, patch map[string][]int) (map[string][]int, error) {
-	ret, err := Merge(base, patch)
+	ret, err := utils.Merge(base, patch)
 	if err != nil {
 		return nil, err
 	}
@@ -1598,7 +1600,7 @@ func mergeStringSliceIntMap(base, patch map[string][]int) (map[string][]int, err
 }
 
 func mergeMapOfMap(base, patch map[string]map[string]*int) (map[string]map[string]*int, error) {
-	ret, err := Merge(base, patch)
+	ret, err := utils.Merge(base, patch)
 	if err != nil {
 		return nil, err
 	}
@@ -1607,7 +1609,7 @@ func mergeMapOfMap(base, patch map[string]map[string]*int) (map[string]map[strin
 }
 
 func mergeInterfaceMap(base, patch map[string]interface{}) (map[string]interface{}, error) {
-	ret, err := Merge(base, patch)
+	ret, err := utils.Merge(base, patch)
 	if err != nil {
 		return nil, err
 	}
@@ -1616,7 +1618,7 @@ func mergeInterfaceMap(base, patch map[string]interface{}) (map[string]interface
 }
 
 func mergeStringSlices(base, patch []string) ([]string, error) {
-	ret, err := Merge(base, patch)
+	ret, err := utils.Merge(base, patch)
 	if err != nil {
 		return nil, err
 	}
@@ -1625,7 +1627,7 @@ func mergeStringSlices(base, patch []string) ([]string, error) {
 }
 
 func mergeTestStructsPtrs(base, patch *testStruct) (*testStruct, error) {
-	ret, err := Merge(base, patch)
+	ret, err := utils.Merge(base, patch)
 	if err != nil {
 		return nil, err
 	}
