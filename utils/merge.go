@@ -8,37 +8,32 @@ import (
 	"reflect"
 )
 
-// Merge will return a new struct/map/slice of the same type as base and patch, with patch merged into base.
-// Specifically, patch's values will be preferred except when patch's value is `nil`.
-// Note: a referenced value (eg. *bool) will only be `nil` if the pointer is nil. If the value is a zero value,
-//       then that is considered a legitimate value. Eg, *bool(false) will overwrite *bool(true).
+// Merge will return a new value of the same type as base and patch, recursively merging non-nil values from patch on top of base.
 //
 // Restrictions/guarantees:
-//   - base and patch will not be modified
-//   - base and patch can be pointers or values
 //   - base and patch must be the same type
-//   - if slices are different, this rule applies:
-//       - if patch is not nil, overwrite the base slice.
-//       - otherwise, keep the base slice
-//   - maps will be merged according to the following rules:
-//       - if patch is not nil, replace the base map completely
-//		 - otherwise, keep the base map
-//		 - reference values (eg. slice/ptr/map) will be cloned
-//   - channel values are not supported at the moment
+//   - base and patch will never be modified
+//   - values from patch are always selected when non-nil
+//   - structs are merged recursively
+//   - maps and slices are treated as pointers, and merged as a single value
 //
-// Usage: callers need to cast the returned interface back into the original type, eg:
+// Note that callers need to cast the returned interface back into the original type:
 // func mergeTestStruct(base, patch *testStruct) (*testStruct, error) {
 //     ret, err := merge(base, patch)
 //     if err != nil {
 //         return nil, err
 //     }
+//
 //     retTS := ret.(testStruct)
 //     return &retTS, nil
 // }
 func Merge(base interface{}, patch interface{}) (interface{}, error) {
 	if reflect.TypeOf(base) != reflect.TypeOf(patch) {
-		return nil, fmt.Errorf("cannot merge different types. base type: %s, patch type: %s",
-			reflect.TypeOf(base), reflect.TypeOf(patch))
+		return nil, fmt.Errorf(
+			"cannot merge different types. base type: %s, patch type: %s",
+			reflect.TypeOf(base),
+			reflect.TypeOf(patch),
+		)
 	}
 
 	commonType := reflect.TypeOf(base)
