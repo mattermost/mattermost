@@ -418,13 +418,13 @@ func (_m *UserStore) GetProfilesInChannelByStatus(channelId string, offset int, 
 	return r0
 }
 
-// GetProfilesNotInChannel provides a mock function with given fields: teamId, channelId, offset, limit
-func (_m *UserStore) GetProfilesNotInChannel(teamId string, channelId string, offset int, limit int) store.StoreChannel {
-	ret := _m.Called(teamId, channelId, offset, limit)
+// GetProfilesNotInChannel provides a mock function with given fields: teamId, channelId, offset, limit, viewRestrictions
+func (_m *UserStore) GetProfilesNotInChannel(teamId string, channelId string, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) store.StoreChannel {
+	ret := _m.Called(teamId, channelId, offset, limit, viewRestrictions)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, string, int, int) store.StoreChannel); ok {
-		r0 = rf(teamId, channelId, offset, limit)
+	if rf, ok := ret.Get(0).(func(string, string, int, int, *model.ViewUsersRestrictions) store.StoreChannel); ok {
+		r0 = rf(teamId, channelId, offset, limit, viewRestrictions)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)
@@ -450,13 +450,13 @@ func (_m *UserStore) GetProfilesNotInTeam(teamId string, offset int, limit int, 
 	return r0
 }
 
-// GetProfilesWithoutTeam provides a mock function with given fields: offset, limit
-func (_m *UserStore) GetProfilesWithoutTeam(offset int, limit int) store.StoreChannel {
-	ret := _m.Called(offset, limit)
+// GetProfilesWithoutTeam provides a mock function with given fields: offset, limit, viewRestrictions
+func (_m *UserStore) GetProfilesWithoutTeam(offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) store.StoreChannel {
+	ret := _m.Called(offset, limit, viewRestrictions)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(int, int) store.StoreChannel); ok {
-		r0 = rf(offset, limit)
+	if rf, ok := ret.Get(0).(func(int, int, *model.ViewUsersRestrictions) store.StoreChannel); ok {
+		r0 = rf(offset, limit, viewRestrictions)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)

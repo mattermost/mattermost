@@ -866,19 +866,19 @@ func testUserStoreGetProfilesWithoutTeam(t *testing.T, ss store.Store) {
 	defer func() { store.Must(ss.Bot().PermanentDelete(u3.Id)) }()
 
 	t.Run("get, offset 0, limit 100", func(t *testing.T) {
-		result := <-ss.User().GetProfilesWithoutTeam(0, 100)
+		result := <-ss.User().GetProfilesWithoutTeam(0, 100, nil)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{sanitized(u2), sanitized(u3)}, result.Data.([]*model.User))
 	})
 
 	t.Run("get, offset 1, limit 1", func(t *testing.T) {
-		result := <-ss.User().GetProfilesWithoutTeam(1, 1)
+		result := <-ss.User().GetProfilesWithoutTeam(1, 1, nil)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{sanitized(u3)}, result.Data.([]*model.User))
 	})
 
 	t.Run("get, offset 2, limit 1", func(t *testing.T) {
-		result := <-ss.User().GetProfilesWithoutTeam(2, 1)
+		result := <-ss.User().GetProfilesWithoutTeam(2, 1, nil)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{}, result.Data.([]*model.User))
 	})
@@ -1037,7 +1037,7 @@ func testUserStoreGetProfilesNotInChannel(t *testing.T, ss store.Store) {
 	}, -1)).(*model.Channel)
 
 	t.Run("get team 1, channel 1, offset 0, limit 100", func(t *testing.T) {
-		result := <-ss.User().GetProfilesNotInChannel(teamId, c1.Id, 0, 100)
+		result := <-ss.User().GetProfilesNotInChannel(teamId, c1.Id, 0, 100, nil)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{
 			sanitized(u1),
@@ -1047,7 +1047,7 @@ func testUserStoreGetProfilesNotInChannel(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("get team 1, channel 2, offset 0, limit 100", func(t *testing.T) {
-		result := <-ss.User().GetProfilesNotInChannel(teamId, c2.Id, 0, 100)
+		result := <-ss.User().GetProfilesNotInChannel(teamId, c2.Id, 0, 100, nil)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{
 			sanitized(u1),
@@ -1081,13 +1081,13 @@ func testUserStoreGetProfilesNotInChannel(t *testing.T, ss store.Store) {
 	}))
 
 	t.Run("get team 1, channel 1, offset 0, limit 100, after update", func(t *testing.T) {
-		result := <-ss.User().GetProfilesNotInChannel(teamId, c1.Id, 0, 100)
+		result := <-ss.User().GetProfilesNotInChannel(teamId, c1.Id, 0, 100, nil)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{}, result.Data.([]*model.User))
 	})
 
 	t.Run("get team 1, channel 2, offset 0, limit 100, after update", func(t *testing.T) {
-		result := <-ss.User().GetProfilesNotInChannel(teamId, c2.Id, 0, 100)
+		result := <-ss.User().GetProfilesNotInChannel(teamId, c2.Id, 0, 100, nil)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{
 			sanitized(u2),

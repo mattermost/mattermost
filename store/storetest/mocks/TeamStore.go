@@ -413,6 +413,22 @@ func (_m *TeamStore) GetTotalMemberCount(teamId string) store.StoreChannel {
 	return r0
 }
 
+// GetUserTeamIds provides a mock function with given fields: userId, allowFromCache
+func (_m *TeamStore) GetUserTeamIds(userId string, allowFromCache bool) store.StoreChannel {
+	ret := _m.Called(userId, allowFromCache)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string, bool) store.StoreChannel); ok {
+		r0 = rf(userId, allowFromCache)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // MigrateTeamMembers provides a mock function with given fields: fromTeamId, fromUserId
 func (_m *TeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) store.StoreChannel {
 	ret := _m.Called(fromTeamId, fromUserId)

@@ -123,6 +123,7 @@ type TeamStore interface {
 	GetAllForExportAfter(limit int, afterId string) StoreChannel
 	GetTeamMembersForExport(userId string) StoreChannel
 	UserBelongsToTeams(userId string, teamIds []string) StoreChannel
+	GetUserTeamIds(userId string, allowFromCache bool) StoreChannel
 }
 
 type ChannelStore interface {
@@ -258,8 +259,8 @@ type UserStore interface {
 	GetProfilesInChannel(channelId string, offset int, limit int) StoreChannel
 	GetProfilesInChannelByStatus(channelId string, offset int, limit int) StoreChannel
 	GetAllProfilesInChannel(channelId string, allowFromCache bool) StoreChannel
-	GetProfilesNotInChannel(teamId string, channelId string, offset int, limit int) StoreChannel
-	GetProfilesWithoutTeam(offset int, limit int) StoreChannel
+	GetProfilesNotInChannel(teamId string, channelId string, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) StoreChannel
+	GetProfilesWithoutTeam(offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) StoreChannel
 	GetProfilesByUsernames(usernames []string, viewRestrictions *model.ViewUsersRestrictions) StoreChannel
 	GetAllProfiles(options *model.UserGetOptions) StoreChannel
 	GetProfiles(options *model.UserGetOptions) StoreChannel

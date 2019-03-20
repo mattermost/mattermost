@@ -546,16 +546,16 @@ func (a *App) GetUsersInChannelPageByStatus(channelId string, page int, perPage 
 	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
-func (a *App) GetUsersNotInChannel(teamId string, channelId string, offset int, limit int) ([]*model.User, *model.AppError) {
-	result := <-a.Srv.Store.User().GetProfilesNotInChannel(teamId, channelId, offset, limit)
+func (a *App) GetUsersNotInChannel(teamId string, channelId string, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+	result := <-a.Srv.Store.User().GetProfilesNotInChannel(teamId, channelId, offset, limit, viewRestrictions)
 	if result.Err != nil {
 		return nil, result.Err
 	}
 	return result.Data.([]*model.User), nil
 }
 
-func (a *App) GetUsersNotInChannelMap(teamId string, channelId string, offset int, limit int, asAdmin bool) (map[string]*model.User, *model.AppError) {
-	users, err := a.GetUsersNotInChannel(teamId, channelId, offset, limit)
+func (a *App) GetUsersNotInChannelMap(teamId string, channelId string, offset int, limit int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) (map[string]*model.User, *model.AppError) {
+	users, err := a.GetUsersNotInChannel(teamId, channelId, offset, limit, viewRestrictions)
 	if err != nil {
 		return nil, err
 	}
@@ -570,8 +570,8 @@ func (a *App) GetUsersNotInChannelMap(teamId string, channelId string, offset in
 	return userMap, nil
 }
 
-func (a *App) GetUsersNotInChannelPage(teamId string, channelId string, page int, perPage int, asAdmin bool) ([]*model.User, *model.AppError) {
-	users, err := a.GetUsersNotInChannel(teamId, channelId, page*perPage, perPage)
+func (a *App) GetUsersNotInChannelPage(teamId string, channelId string, page int, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+	users, err := a.GetUsersNotInChannel(teamId, channelId, page*perPage, perPage, viewRestrictions)
 	if err != nil {
 		return nil, err
 	}
@@ -579,8 +579,8 @@ func (a *App) GetUsersNotInChannelPage(teamId string, channelId string, page int
 	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
-func (a *App) GetUsersWithoutTeamPage(page int, perPage int, asAdmin bool) ([]*model.User, *model.AppError) {
-	users, err := a.GetUsersWithoutTeam(page*perPage, perPage)
+func (a *App) GetUsersWithoutTeamPage(page int, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+	users, err := a.GetUsersWithoutTeam(page*perPage, perPage, viewRestrictions)
 	if err != nil {
 		return nil, err
 	}
@@ -588,8 +588,8 @@ func (a *App) GetUsersWithoutTeamPage(page int, perPage int, asAdmin bool) ([]*m
 	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
-func (a *App) GetUsersWithoutTeam(offset int, limit int) ([]*model.User, *model.AppError) {
-	result := <-a.Srv.Store.User().GetProfilesWithoutTeam(offset, limit)
+func (a *App) GetUsersWithoutTeam(offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+	result := <-a.Srv.Store.User().GetProfilesWithoutTeam(offset, limit, viewRestrictions)
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -1664,7 +1664,12 @@ func (a *App) SearchUsersInTeam(teamId string, term string, options *model.UserS
 	esInterface := a.Elasticsearch
 	license := a.License()
 	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableAutocomplete && license != nil && *license.Features.Elasticsearch {
-		usersIds, err := a.Elasticsearch.SearchUsersInTeam(teamId, term, options)
+		listOfAllowedChannels, err := a.getListOfAllowedChannelsForTeam(teamId, options.ViewRestrictions)
+		if err != nil {
+			return nil, err
+		}
+
+		usersIds, err := a.Elasticsearch.SearchUsersInTeam(teamId, term, options, listOfAllowedChannels)
 		if err != nil {
 			return nil, err
 		}
@@ -1720,7 +1725,12 @@ func (a *App) AutocompleteUsersInChannel(teamId string, channelId string, term s
 	esInterface := a.Elasticsearch
 	license := a.License()
 	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableAutocomplete && license != nil && *license.Features.Elasticsearch {
-		uchanIds, nuchanIds, err := a.Elasticsearch.SearchUsersInChannel(teamId, channelId, term, options)
+		listOfAllowedChannels, err := a.getListOfAllowedChannelsForTeam(teamId, options.ViewRestrictions)
+		if err != nil {
+			return nil, err
+		}
+
+		uchanIds, nuchanIds, err := a.Elasticsearch.SearchUsersInChannel(teamId, channelId, term, options, listOfAllowedChannels)
 		if err != nil {
 			return nil, err
 		}
@@ -1767,7 +1777,12 @@ func (a *App) AutocompleteUsersInTeam(teamId string, term string, options *model
 	esInterface := a.Elasticsearch
 	license := a.License()
 	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableAutocomplete && license != nil && *license.Features.Elasticsearch {
-		usersIds, err := a.Elasticsearch.SearchUsersInTeam(teamId, term, options)
+		listOfAllowedChannels, err := a.getListOfAllowedChannelsForTeam(teamId, options.ViewRestrictions)
+		if err != nil {
+			return nil, err
+		}
+
+		usersIds, err := a.Elasticsearch.SearchUsersInTeam(teamId, term, options, listOfAllowedChannels)
 		if err != nil {
 			return nil, err
 		}
@@ -1925,21 +1940,19 @@ func (a *App) GetViewUsersRestrictions(userId string) (*model.ViewUsersRestricti
 		return nil, nil
 	}
 
-	teamMembers, err := a.GetTeamMembersForUser(userId)
-	if err != nil {
-		return nil, err
+	result := <-a.Srv.Store.Team().GetUserTeamIds(userId, true)
+	if result.Err != nil {
+		return nil, result.Err
 	}
+	teamIds := result.Data.([]string)
 
 	teamIdsWithPermission := []string{}
 	teamIdsWithoutPermission := []string{}
-
-	for _, teamMember := range teamMembers {
-		roles := teamMember.GetRoles()
-
-		if a.RolesGrantPermission(roles, model.PERMISSION_VIEW_MEMBERS.Id) {
-			teamIdsWithPermission = append(teamIdsWithPermission, teamMember.TeamId)
+	for _, teamId := range teamIds {
+		if a.HasPermissionToTeam(userId, teamId, model.PERMISSION_VIEW_MEMBERS) {
+			teamIdsWithPermission = append(teamIdsWithPermission, teamId)
 		} else {
-			teamIdsWithoutPermission = append(teamIdsWithoutPermission, teamMember.TeamId)
+			teamIdsWithoutPermission = append(teamIdsWithoutPermission, teamId)
 		}
 	}
 
@@ -1947,18 +1960,37 @@ func (a *App) GetViewUsersRestrictions(userId string) (*model.ViewUsersRestricti
 		return &model.ViewUsersRestrictions{Teams: teamIdsWithPermission}, nil
 	}
 
+	userChannelMembers := <-a.Srv.Store.Channel().GetAllChannelMembersForUser(userId, true, true)
+	if userChannelMembers.Err != nil {
+		return nil, userChannelMembers.Err
+	}
+
 	channelIds := []string{}
-	for _, teamId := range teamIdsWithoutPermission {
-		channelMembers, err := a.GetChannelMembersForUser(teamId, userId)
-		if err != nil {
-			return nil, err
-		}
-		if channelMembers != nil {
-			for _, channelMember := range *channelMembers {
-				channelIds = append(channelIds, channelMember.ChannelId)
-			}
-		}
+	for channelId := range userChannelMembers.Data.(map[string]string) {
+		channelIds = append(channelIds, channelId)
 	}
 
 	return &model.ViewUsersRestrictions{Teams: teamIdsWithPermission, Channels: channelIds}, nil
+}
+
+func (a *App) getListOfAllowedChannelsForTeam(teamId string, viewRestrictions *model.ViewUsersRestrictions) ([]string, *model.AppError) {
+	var listOfAllowedChannels []string
+	if viewRestrictions == nil {
+		return nil, nil
+	}
+	if strings.Contains(strings.Join(viewRestrictions.Teams, "."), teamId) {
+		return nil, nil
+	}
+
+	cresult := <-a.Srv.Store.Channel().GetChannelsByIds(viewRestrictions.Channels)
+	if cresult.Err != nil {
+		return nil, cresult.Err
+	}
+	for _, c := range cresult.Data.([]*model.Channel) {
+		if c.TeamId == teamId {
+			listOfAllowedChannels = append(listOfAllowedChannels, c.Id)
+		}
+	}
+
+	return listOfAllowedChannels, nil
 }
