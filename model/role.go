@@ -211,7 +211,6 @@ func MakeDefaultRoles() map[string]*Role {
 			PERMISSION_JOIN_PUBLIC_CHANNELS.Id,
 			PERMISSION_READ_PUBLIC_CHANNEL.Id,
 			PERMISSION_VIEW_TEAM.Id,
-			PERMISSION_VIEW_MEMBERS.Id,
 		},
 		SchemeManaged: true,
 		BuiltIn:       true,
