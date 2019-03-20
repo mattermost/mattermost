@@ -6,15 +6,18 @@ package app
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"image"
 	"image/color"
 	"image/png"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"testing"
+	"text/template"
 	"time"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -447,45 +450,8 @@ func TestPluginAPILoadPluginConfigurationDefaults(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.PluginSettings.Plugins["testloadpluginconfig"] = pluginJson
 	})
-	setupPluginApiTest(t,
-		`
-		package main
 
-		import (
-			"github.com/mattermost/mattermost-server/plugin"
-			"github.com/mattermost/mattermost-server/model"
-			"fmt"
-		)
-
-		type configuration struct {
-			MyStringSetting string
-			MyIntSetting int
-			MyBoolSetting bool
-		}
-
-		type MyPlugin struct {
-			plugin.MattermostPlugin
-
-			configuration configuration
-		}
-
-		func (p *MyPlugin) OnConfigurationChange() error {
-			if err := p.API.LoadPluginConfiguration(&p.configuration); err != nil {
-				return err
-			}
-
-			return nil
-		}
-
-		func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
-			return nil, fmt.Sprintf("%v%v%v", p.configuration.MyStringSetting, p.configuration.MyIntSetting, p.configuration.MyBoolSetting)
-		}
-
-		func main() {
-			plugin.ClientMain(&MyPlugin{})
-		}
-	`,
-		`{"id": "testloadpluginconfig", "backend": {"executable": "backend.exe"}, "settings_schema": {
+	result, err := pluginApiHookTest(t, th, "test_load_configuration_defaults_plugin.go", "testloadpluginconfig", nil, `{
 		"settings": [
 			{
 				"key": "MyStringSetting",
@@ -503,52 +469,24 @@ func TestPluginAPILoadPluginConfigurationDefaults(t *testing.T) {
 				"default": true
 			}
 		]
-	}}`, "testloadpluginconfig", th.App)
-	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin("testloadpluginconfig")
+	}`)
+
 	assert.NoError(t, err)
-	_, ret := hooks.MessageWillBePosted(nil, nil)
-	assert.Equal(t, "override35true", ret)
+	assert.Equal(t, "override", result["MyStringSetting"])
+	assert.Equal(t, float64(35), result["MyIntSetting"])
+	assert.Equal(t, true, result["MyBoolSetting"])
 }
 
 func TestPluginAPIGetBundlePath(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+	result, err := pluginApiHookTest(t, th, "test_get_bundle_path_plugin.go", "test_get_bundle_path", nil, "")
+	assert.NoError(t, err)
 
-	setupPluginApiTest(t,
-		`
-		package main
-
-		import (
-			"github.com/mattermost/mattermost-server/plugin"
-			"github.com/mattermost/mattermost-server/model"
-		)
-
-		type MyPlugin struct {
-			plugin.MattermostPlugin
-		}
-
-		func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
-			bundlePath, err := p.API.GetBundlePath()
-			if err != nil {
-				return nil, err.Error() + "failed get bundle path"
-			}
-
-			return nil, bundlePath
-		}
-
-		func main() {
-			plugin.ClientMain(&MyPlugin{})
-		}
-		`, `{"id": "testplugin", "backend": {"executable": "backend.exe"}}`, "testplugin", th.App)
-
-	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin("testplugin")
-	require.Nil(t, err)
-	require.NotNil(t, hooks)
-	bundlePath, err := filepath.Abs(filepath.Join(*th.App.Config().PluginSettings.Directory, "testplugin"))
+	bundlePath, err := filepath.Abs(filepath.Join(*th.App.Config().PluginSettings.Directory, "test_get_bundle_path"))
 	require.Nil(t, err)
 
-	_, errString := hooks.MessageWillBePosted(nil, nil)
-	assert.Equal(t, bundlePath, errString)
+	assert.Equal(t, bundlePath, result["BundlePath"])
 }
 
 func TestPluginAPIGetProfileImage(t *testing.T) {
@@ -926,233 +864,58 @@ func TestPluginAPI_SearchTeams(t *testing.T) {
 func TestPluginBots(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-
-	setupPluginApiTest(t,
-		`
-		package main
-
-		import (
-			"github.com/mattermost/mattermost-server/plugin"
-			"github.com/mattermost/mattermost-server/model"
-		)
-
-		type MyPlugin struct {
-			plugin.MattermostPlugin
-		}
-
-		func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
-			createdBot, err := p.API.CreateBot(&model.Bot{
-				Username: "bot",
-				Description: "a plugin bot",
-			})
-			if err != nil {
-				return nil, err.Error() + "failed to create bot"
-			}
-
-			fetchedBot, err := p.API.GetBot(createdBot.UserId, false)
-			if err != nil {
-				return nil, err.Error() + "failed to get bot"
-			}
-			if fetchedBot.Description != "a plugin bot" {
-				return nil, "GetBot did not return the expected bot Description"
-			}
-			if fetchedBot.OwnerId != "testpluginbots" {
-				return nil, "GetBot did not return the expected bot OwnerId"
-			}
-
-			updatedDescription := createdBot.Description + ", updated"
-			patchedBot, err := p.API.PatchBot(createdBot.UserId, &model.BotPatch{
-				Description: &updatedDescription,
-			})
-			if err != nil {
-				return nil, err.Error() + "failed to patch bot"
-			}
-
-			fetchedBot, err = p.API.GetBot(patchedBot.UserId, false)
-			if err != nil {
-				return nil, err.Error() + "failed to get bot"
-			}
-
-			if fetchedBot.UserId != patchedBot.UserId {
-				return nil, "GetBot did not return the expected bot"
-			}
-			if fetchedBot.Description != "a plugin bot, updated" {
-				return nil, "GetBot did not return the updated bot Description"
-			}
-
-			fetchedBots, err := p.API.GetBots(&model.BotGetOptions{
-				Page: 0,
-				PerPage: 1,
-				OwnerId: "",
-				IncludeDeleted: false,
-			})
-			if err != nil {
-				return nil, err.Error() + "failed to get bots"
-			}
-
-			if len(fetchedBots) != 1 {
-				return nil, "GetBots did not return a single bot"
-			}
-			if fetchedBot.UserId != fetchedBots[0].UserId {
-				return nil, "GetBots did not return the expected bot"
-			}
-
-			_, err = p.API.UpdateBotActive(fetchedBot.UserId, false)
-			if err != nil {
-				return nil, err.Error() + "failed to disable bot"
-			}
-
-			fetchedBot, err = p.API.GetBot(patchedBot.UserId, false)
-			if err == nil {
-				return nil, "expected not to find disabled bot"
-			}
-
-			_, err = p.API.UpdateBotActive(fetchedBot.UserId, true)
-			if err != nil {
-				return nil, err.Error() + "failed to disable bot"
-			}
-
-			fetchedBot, err = p.API.GetBot(patchedBot.UserId, false)
-			if err != nil {
-				return nil, err.Error() + "failed to get bot after enabling"
-			}
-			if fetchedBot.UserId != patchedBot.UserId {
-				return nil, "GetBot did not return the expected bot after enabling"
-			}
-
-			err = p.API.PermanentDeleteBot(patchedBot.UserId)
-			if err != nil {
-				return nil, err.Error() + "failed to delete bot"
-			}
-
-			_, err = p.API.GetBot(patchedBot.UserId, false)
-			if err == nil {
-				return nil, err.Error() + "found bot after permanently deleting"
-			}
-
-			createdBotWithOverriddenCreator, err := p.API.CreateBot(&model.Bot{
-				Username: "bot",
-				Description: "a plugin bot",
-				OwnerId: "abc123",
-			})
-			if err != nil {
-				return nil, err.Error() + "failed to create bot with overridden creator"
-			}
-
-			fetchedBot, err = p.API.GetBot(createdBotWithOverriddenCreator.UserId, false)
-			if err != nil {
-				return nil, err.Error() + "failed to get bot"
-			}
-			if fetchedBot.Description != "a plugin bot" {
-				return nil, "GetBot did not return the expected bot Description"
-			}
-			if fetchedBot.OwnerId != "abc123" {
-				return nil, "GetBot did not return the expected bot OwnerId"
-			}
-
-			return nil, ""
-		}
-
-		func main() {
-			plugin.ClientMain(&MyPlugin{})
-		}
-		`,
-		`{"id": "testpluginbots", "backend": {"executable": "backend.exe"}}`,
-		"testpluginbots",
-		th.App,
-	)
-
-	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin("testpluginbots")
+	_, err := pluginApiHookTest(t, th, "test_bots_plugin.go", "testpluginbots", nil, "")
 	assert.NoError(t, err)
-	_, errString := hooks.MessageWillBePosted(nil, nil)
-	assert.Empty(t, errString)
+
+}
+
+func pluginApiHookTest(t *testing.T, th *TestHelper, fileName string, id string, params map[string]interface{}, settingsSchema string) (map[string]interface{}, error) {
+	pwd, _ := os.Getwd()
+
+	tpl := template.Must(template.ParseFiles(path.Join(pwd, "tests", "plugin_tests", fileName)))
+	builder := &strings.Builder{}
+	if err := tpl.Execute(builder, params); err != nil {
+		panic(err)
+	}
+	code := builder.String()
+	schema := `{"settings": [ ]	}`
+	if settingsSchema != "" {
+		schema = settingsSchema
+	}
+	setupPluginApiTest(t, code,
+		fmt.Sprintf(`{"id": "%v", "backend": {"executable": "backend.exe"}, "settings_schema": %v}`, id, schema),
+		id, th.App)
+	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin(id)
+	assert.NoError(t, err)
+	require.NotNil(t, hooks)
+	_, ret := hooks.MessageWillBePosted(nil, nil)
+	var result map[string]interface{}
+	json.Unmarshal([]byte(ret), &result)
+	if result["Error"] != nil {
+		return nil, errors.New(result["Error"].(string))
+	}
+	return result, nil
 }
 
 func TestPluginAPI_GetTeamMembersForUser(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-
-	code := strings.Replace(`
-		package main
-
-		import (
-			"github.com/mattermost/mattermost-server/plugin"
-			"github.com/mattermost/mattermost-server/model"
-			"fmt"
-		)
-
-		type MyPlugin struct {
-			plugin.MattermostPlugin
-		}
-
-	
-		func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
-            teamMembers, err := p.API.GetTeamMembersForUser("USER_ID", 0, 10)
-			if err != nil {
-				return nil, err.Error() + "failed to get team members"
-			}
-			if len(teamMembers) != 1 {
-				return nil, "Invalid number of team members"
-			}
-			return nil, fmt.Sprintf("%v:%v", teamMembers[0].TeamId, teamMembers[0].UserId)
-		}
-
-		func main() {
-			plugin.ClientMain(&MyPlugin{})
-		}
-	`, "USER_ID", th.BasicUser.Id, 1)
-
-	setupPluginApiTest(t, code,
-		`{"id": "test_members", "backend": {"executable": "backend.exe"}, "settings_schema": {"settings": [ ]	}}`,
-		"test_members", th.App)
-	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin("test_members")
+	result, err := pluginApiHookTest(t, th, "test_members_plugin.go", "test_members", map[string]interface{}{
+		"UserId": th.BasicUser.Id,
+	}, "")
 	assert.NoError(t, err)
-	_, ret := hooks.MessageWillBePosted(nil, nil)
-	assert.Equal(t, fmt.Sprintf("%v:%v", th.BasicTeam.Id, th.BasicUser.Id), ret)
+	assert.Equal(t, result["UserId"], th.BasicUser.Id)
+	assert.Equal(t, result["TeamId"], th.BasicTeam.Id)
 }
 
 func TestPluginAPI_GetChannelMembersForUser(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+	result, err := pluginApiHookTest(t, th, "test_member_channels_plugin.go", "test_member_channels", map[string]interface{}{
+		"UserId": th.BasicUser.Id,
+		"TeamId": th.BasicTeam.Id,
+	}, "")
 
-	code := `
-		package main
-
-		import (
-			"github.com/mattermost/mattermost-server/plugin"
-			"github.com/mattermost/mattermost-server/model"
-			"fmt"
-		)
-
-		type MyPlugin struct {
-			plugin.MattermostPlugin
-		}
-
-	
-		func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
-        	channelMembers, err := p.API.GetChannelMembersForUser("TEAM_ID", "USER_ID", 0, 10)
-
-			if err != nil {
-				return nil, err.Error() + "failed to get channel members"
-			}
-			if len(channelMembers) != 3 {
-				return nil, "Invalid number of channel members"
-			}
-			return nil, fmt.Sprintf("%v", channelMembers[0].UserId)
-		}
-
-		func main() {
-			plugin.ClientMain(&MyPlugin{})
-		}
-	`
-	code = strings.Replace(code, "USER_ID", th.BasicUser.Id, 1)
-	code = strings.Replace(code, "TEAM_ID", th.BasicTeam.Id, 1)
-	setupPluginApiTest(t, code,
-		`{"id": "test_member_channels", "backend": {"executable": "backend.exe"}, "settings_schema": {	"settings": [] }}`,
-		"test_member_channels", th.App)
-	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin("test_member_channels")
 	assert.NoError(t, err)
-	_, ret := hooks.MessageWillBePosted(nil, nil)
-	assert.Equal(t, fmt.Sprintf("%v", th.BasicUser.Id), ret)
-
+	assert.Equal(t, result["UserId"], th.BasicUser.Id)
 }
