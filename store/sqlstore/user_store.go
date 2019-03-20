@@ -738,7 +738,7 @@ type UserWithLastActivityAt struct {
 	LastActivityAt int64
 }
 
-func (us SqlUserStore) GetRecentlyActiveUsersForTeam(teamId string, offset, limit int) store.StoreChannel {
+func (us SqlUserStore) GetRecentlyActiveUsersForTeam(teamId string, offset, limit int, viewRestrictions *model.ViewUsersRestrictions) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		query := us.usersQuery.
 			Column("s.LastActivityAt").
@@ -747,6 +747,8 @@ func (us SqlUserStore) GetRecentlyActiveUsersForTeam(teamId string, offset, limi
 			OrderBy("s.LastActivityAt DESC").
 			OrderBy("u.Username ASC").
 			Offset(uint64(offset)).Limit(uint64(limit))
+
+		query = applyViewRestrictionsFilter(query, viewRestrictions, true)
 
 		queryString, args, err := query.ToSql()
 		if err != nil {
@@ -773,13 +775,15 @@ func (us SqlUserStore) GetRecentlyActiveUsersForTeam(teamId string, offset, limi
 	})
 }
 
-func (us SqlUserStore) GetNewUsersForTeam(teamId string, offset, limit int) store.StoreChannel {
+func (us SqlUserStore) GetNewUsersForTeam(teamId string, offset, limit int, viewRestrictions *model.ViewUsersRestrictions) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		query := us.usersQuery.
 			Join("TeamMembers tm ON (tm.UserId = u.Id AND tm.TeamId = ?)", teamId).
 			OrderBy("u.CreateAt DESC").
 			OrderBy("u.Username ASC").
 			Offset(uint64(offset)).Limit(uint64(limit))
+
+		query = applyViewRestrictionsFilter(query, viewRestrictions, true)
 
 		queryString, args, err := query.ToSql()
 		if err != nil {

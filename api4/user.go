@@ -436,21 +436,27 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	withoutTeamBool, _ := strconv.ParseBool(withoutTeam)
 	inactiveBool, _ := strconv.ParseBool(inactive)
 
+	restrictions, err := c.App.GetViewUsersRestrictions(c.App.Session.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
 	userGetOptions := &model.UserGetOptions{
-		InTeamId:       inTeamId,
-		InChannelId:    inChannelId,
-		NotInTeamId:    notInTeamId,
-		NotInChannelId: notInChannelId,
-		WithoutTeam:    withoutTeamBool,
-		Inactive:       inactiveBool,
-		Role:           role,
-		Sort:           sort,
-		Page:           c.Params.Page,
-		PerPage:        c.Params.PerPage,
+		InTeamId:         inTeamId,
+		InChannelId:      inChannelId,
+		NotInTeamId:      notInTeamId,
+		NotInChannelId:   notInChannelId,
+		WithoutTeam:      withoutTeamBool,
+		Inactive:         inactiveBool,
+		Role:             role,
+		Sort:             sort,
+		Page:             c.Params.Page,
+		PerPage:          c.Params.PerPage,
+		ViewRestrictions: restrictions,
 	}
 
 	var profiles []*model.User
-	var err *model.AppError
 	etag := ""
 
 	if withoutTeamBool, _ := strconv.ParseBool(withoutTeam); withoutTeamBool {
@@ -467,22 +473,10 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if !c.App.SessionHasPermissionToTeam(c.App.Session, inTeamId, model.PERMISSION_VIEW_MEMBERS) {
-			c.SetPermissionError(model.PERMISSION_VIEW_MEMBERS)
-			return
-		}
-
-		profiles, err = c.App.GetUsersNotInChannelPage(inTeamId, notInChannelId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
+		profiles, err = c.App.GetUsersNotInChannelPage(inTeamId, notInChannelId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
 	} else if len(notInTeamId) > 0 {
 		if !c.App.SessionHasPermissionToTeam(c.App.Session, notInTeamId, model.PERMISSION_VIEW_TEAM) {
 			c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
-			return
-		}
-
-		var restrictions *model.ViewUsersRestrictions
-		restrictions, err = c.App.GetViewUsersRestrictions(c.App.Session.UserId)
-		if err != nil {
-			c.Err = err
 			return
 		}
 
@@ -498,20 +492,11 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// TODO: Apply restrictions here
-
 		if sort == "last_activity_at" {
-			profiles, err = c.App.GetRecentlyActiveUsersForTeamPage(inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
+			profiles, err = c.App.GetRecentlyActiveUsersForTeamPage(inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
 		} else if sort == "create_at" {
-			profiles, err = c.App.GetNewUsersForTeamPage(inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
+			profiles, err = c.App.GetNewUsersForTeamPage(inTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
 		} else {
-			var restrictions *model.ViewUsersRestrictions
-			restrictions, err = c.App.GetViewUsersRestrictions(c.App.Session.UserId)
-			if err != nil {
-				c.Err = err
-				return
-			}
-
 			etag = c.App.GetUsersInTeamEtag(inTeamId, restrictions.Hash())
 			if c.HandleEtag(etag, "Get Users in Team", w, r) {
 				return
@@ -529,13 +514,6 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			profiles, err = c.App.GetUsersInChannelPage(inChannelId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin())
 		}
 	} else {
-		var restrictions *model.ViewUsersRestrictions
-		restrictions, err = c.App.GetViewUsersRestrictions(c.App.Session.UserId)
-		if err != nil {
-			c.Err = err
-			return
-		}
-
 		etag = c.App.GetUsersEtag(restrictions.Hash())
 		if c.HandleEtag(etag, "Get Users", w, r) {
 			return
