@@ -597,7 +597,7 @@ func (a *App) GetUsersWithoutTeam(offset int, limit int) ([]*model.User, *model.
 }
 
 func (a *App) GetUsersByIds(userIds []string, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
-	result := <-a.Srv.Store.User().GetProfileByIds(userIds, viewRestrictions != nil, viewRestrictions)
+	result := <-a.Srv.Store.User().GetProfileByIds(userIds, viewRestrictions == nil, viewRestrictions)
 	if result.Err != nil {
 		return nil, result.Err
 	}
