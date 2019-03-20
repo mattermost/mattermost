@@ -73,7 +73,7 @@ TESTFLAGSEE ?= -short
 TE_PACKAGES=$(shell go list ./...)
 
 # Plugins Packages
-PLUGIN_PACKAGES=mattermost-plugin-zoom mattermost-plugin-jira
+PLUGIN_PACKAGES=mattermost-plugin-zoom mattermost-plugin-jira mattermost-plugin-nps
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
