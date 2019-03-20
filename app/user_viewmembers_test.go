@@ -182,7 +182,7 @@ func TestResctrictedViewMembers(t *testing.T) {
 
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {
-				options := model.UserSearchOptions{Limit: 100, ViewRestrictions: tc.restrictions}
+				options := model.UserSearchOptions{Limit: 100, ViewRestrictions: tc.Restrictions}
 				results, err := th.App.SearchUsersInTeam(tc.TeamId, "test", &options)
 				require.Nil(t, err)
 				ids := []string{}
@@ -307,8 +307,7 @@ func TestResctrictedViewMembers(t *testing.T) {
 
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {
-				options := model.UserGetOptions{Page: 0, PerPage: 100, ViewRestrictions: tc.Restrictions}
-				results, err := th.App.GetUsersNotInTeam(tc.TeamId, 0, 100, options.InTeams, options.InChannels)
+				results, err := th.App.GetUsersNotInTeam(tc.TeamId, 0, 100, tc.Restrictions)
 				require.Nil(t, err)
 				ids := []string{}
 				for _, result := range results {
@@ -361,13 +360,7 @@ func TestResctrictedViewMembers(t *testing.T) {
 
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {
-				var teamIds []string
-				var channelIds []string
-				if tc.Restrictions != nil {
-					teamIds = tc.Restrictions.Teams
-					channelIds = tc.Restrictions.Channels
-				}
-				results, err := th.App.GetUsersByIds(tc.UserIds, false, teamIds, channelIds)
+				results, err := th.App.GetUsersByIds(tc.UserIds, false, tc.Restrictions)
 				require.Nil(t, err)
 				ids := []string{}
 				for _, result := range results {
@@ -420,13 +413,7 @@ func TestResctrictedViewMembers(t *testing.T) {
 
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {
-				var teamIds []string
-				var channelIds []string
-				if tc.Restrictions != nil {
-					teamIds = tc.Restrictions.Teams
-					channelIds = tc.Restrictions.Channels
-				}
-				results, err := th.App.GetUsersByUsernames(tc.Usernames, false, teamIds, channelIds)
+				results, err := th.App.GetUsersByUsernames(tc.Usernames, false, tc.Restrictions)
 				require.Nil(t, err)
 				ids := []string{}
 				for _, result := range results {
@@ -474,13 +461,7 @@ func TestResctrictedViewMembers(t *testing.T) {
 
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {
-				var teamIds []string
-				var channelIds []string
-				if tc.Restrictions != nil {
-					teamIds = tc.Restrictions.Teams
-					channelIds = tc.Restrictions.Channels
-				}
-				result, err := th.App.GetTotalUsersStats(teamIds, channelIds)
+				result, err := th.App.GetTotalUsersStats(tc.Restrictions)
 				require.Nil(t, err)
 				assert.Equal(t, tc.ExpectedResult, result.TotalUsersCount)
 			})
