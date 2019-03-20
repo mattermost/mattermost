@@ -94,6 +94,9 @@ func staticFilesHandler(handler http.Handler) http.Handler {
 }
 
 func pluginPublicFiles(c *Context, w http.ResponseWriter, r *http.Request) {
+	// Static files rarely change and may be cached indefinitely. Though,
+	// it is recommended that it's not more than one year...
+	// RFC 7234 5.3 https://tools.ietf.org/html/rfc7234#section-5.3
 	w.Header().Set("Cache-Control", "max-age=31556926, public")
 	if strings.HasSuffix(r.URL.Path, "/") {
 		http.NotFound(w, r)
