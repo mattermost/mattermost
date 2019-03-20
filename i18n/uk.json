@@ -77,7 +77,7 @@
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
-    "translation": "Виникла проблема при видаленні файлу сертифіката. Переконайтеся, що файл config/{{.Filename}} існує."
+    "translation": "Під час видалення додатка OAuth2 сталася помилка"
   },
   {
     "id": "api.admin.saml.metadata.app_error",
@@ -1457,6 +1457,10 @@
     "translation": "Rejected post since another client is making the same request."
   },
   {
+    "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
+    "translation": "Can not delete a post in a deleted channel."
+  },
+  {
     "id": "api.post.disabled_all",
     "translation": "@all вимкнено, оскільки в каналі більше ніж {{.Users}} користувачів."
   },
@@ -1495,6 +1499,14 @@
     "translation": "Громадські посилання відключені системним адміністратором "
   },
   {
+    "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
+    "translation": "Can not update a post in a deleted channel."
+  },
+  {
+    "id": "api.post.save_is_pinned_post.town_square_read_only",
+    "translation": "Цей канал доступний лише для читання. Тут можуть публікувати лише користувачі з дозволом."
+  },
+  {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
     "translation": "повідомив про канал."
   },
@@ -1521,6 +1533,10 @@
   {
     "id": "api.post.send_notifications_and_forget.push_message",
     "translation": "надіслав вам повідомлення."
+  },
+  {
+    "id": "api.post.update_post.can_not_update_post_in_deleted.error",
+    "translation": "Can not update a post in a deleted channel."
   },
   {
     "id": "api.post.update_post.find.app_error",
@@ -1573,6 +1589,10 @@
   {
     "id": "api.reaction.town_square_read_only",
     "translation": "Реагування на повідомлення неможливе у каналах лише для читання."
+  },
+  {
+    "id": "api.restricted_system_admin",
+    "translation": "This action is forbidden to a restricted system admin."
   },
   {
     "id": "api.roles.patch_roles.license.error",
@@ -2167,6 +2187,10 @@
     "translation": "{{.Service}} SSO через OAuth 2.0 недоступний на цьому сервері"
   },
   {
+    "id": "api.user.create_email_token.error",
+    "translation": "Failed to create token data for email verification"
+  },
+  {
     "id": "api.user.create_oauth_user.already_attached.app_error",
     "translation": "Існує вже обліковий запис, пов'язаний з цією електронною адресою, використовуючи метод входу, відмінний від {{.Service}}. Увійдіть, використовуючи {{.Auth}}."
   },
@@ -2255,6 +2279,10 @@
     "translation": "Поле пароля не повинно бути порожнім"
   },
   {
+    "id": "api.user.login.bot_login_forbidden.app_error",
+    "translation": "Bot login is forbidden"
+  },
+  {
     "id": "api.user.login.client_side_cert.certificate.app_error",
     "translation": "Спроба увійти з використанням експериментальної можливості ClientSideCert без надання дійсного сертифікату"
   },
@@ -2277,6 +2305,10 @@
   {
     "id": "api.user.login.use_auth_service.app_error",
     "translation": "Будь-ласка увійдіть, використовуючи {{.AuthService}}"
+  },
+  {
+    "id": "api.user.login_by_oauth.bot_login_forbidden.app_error",
+    "translation": "Bot login is forbidden"
   },
   {
     "id": "api.user.login_by_oauth.not_available.app_error",
@@ -2473,6 +2505,14 @@
   {
     "id": "api.user.verify_email.broken_token.app_error",
     "translation": "Поганий тип токена перевірки email."
+  },
+  {
+    "id": "api.user.verify_email.link_expired.app_error",
+    "translation": "The email verification link has expired."
+  },
+  {
+    "id": "api.user.verify_email.token_parse.error",
+    "translation": "Failed to parse token data from email verification"
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
@@ -3243,6 +3283,10 @@
     "translation": "Надана роль не існує"
   },
   {
+    "id": "app.save_config.app_error",
+    "translation": "An error occurred saving the configuration"
+  },
+  {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
     "translation": "Ця кінцева точка API недоступна, оскільки необхідна міграція ще не завершена."
   },
@@ -3659,10 +3703,6 @@
     "translation": "Під час кодування запиту до провайдера ідентифікації сталася помилка. Будь ласка, зверніться до системного адміністратора."
   },
   {
-    "id": "ent.saml.configure.app_error",
-    "translation": "Виникла помилка під час налаштування постачальника служби SAML, err =%v  "
-  },
-  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "Спроба входу з використанням SAML не вдалася через відключеного шифрування. Будь ласка, зверніться до системного адміністратора."
   },
@@ -3861,6 +3901,30 @@
   {
     "id": "model.authorize.is_valid.user_id.app_error",
     "translation": "Невірний ідентифікатор користувача"
+  },
+  {
+    "id": "model.bot.is_valid.create_at.app_error",
+    "translation": "Неприпустимий ідентифікатор автора"
+  },
+  {
+    "id": "model.bot.is_valid.creator_id.app_error",
+    "translation": "Неприпустимий ідентифікатор автора"
+  },
+  {
+    "id": "model.bot.is_valid.description.app_error",
+    "translation": "Не правильний опис"
+  },
+  {
+    "id": "model.bot.is_valid.update_at.app_error",
+    "translation": "Invalid update at"
+  },
+  {
+    "id": "model.bot.is_valid.user_id.app_error",
+    "translation": "Недійсний ідентифікатор користувача "
+  },
+  {
+    "id": "model.bot.is_valid.username.app_error",
+    "translation": "Невірне ім'я користувача."
   },
   {
     "id": "model.channel.is_valid.2_or_more.app_error",
@@ -4132,7 +4196,11 @@
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
-    "translation": "Недійсні параметри проксі-картинок atmos / camo для налаштувань сервісу. Необхідно встановити ваш загальний ключ."
+    "translation": "Invalid RemoteImageProxyOptions for atmos/camo. Must be set to your shared key."
+  },
+  {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
+    "translation": "Invalid RemoteImageProxyURL for atmos/camo. Must be set to your shared key."
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
@@ -4220,7 +4288,7 @@
   },
   {
     "id": "model.config.is_valid.image_proxy_type.app_error",
-    "translation": "Недійсний тип проксі-зображення для налаштувань сервісу."
+    "translation": "Invalid image proxy type. Must be 'local' or 'atmos/camo'."
   },
   {
     "id": "model.config.is_valid.ldap_basedn",
@@ -4389,6 +4457,10 @@
   {
     "id": "model.config.is_valid.site_url_email_batching.app_error",
     "translation": "Неможливо включити поштові об'єднання, якщо не заданий SiteURL."
+  },
+  {
+    "id": "model.config.is_valid.sitename_empty.app_error",
+    "translation": "Site name cannot be empty."
   },
   {
     "id": "model.config.is_valid.sitename_length.app_error",
@@ -4625,6 +4697,30 @@
   {
     "id": "model.license_record.is_valid.id.app_error",
     "translation": "Недійсне значення ідентифікатора під час завантаження ліцензії."
+  },
+  {
+    "id": "model.link_metadata.is_valid.data.app_error",
+    "translation": "Link metadata data cannot be nil"
+  },
+  {
+    "id": "model.link_metadata.is_valid.data_type.app_error",
+    "translation": "Link metadata data does not match the given type"
+  },
+  {
+    "id": "model.link_metadata.is_valid.id.app_error",
+    "translation": "Link metadata id invalid"
+  },
+  {
+    "id": "model.link_metadata.is_valid.timestamp.app_error",
+    "translation": "Link metadata timestamp must be nonzero and rounded to the nearest hour"
+  },
+  {
+    "id": "model.link_metadata.is_valid.type.app_error",
+    "translation": "Invalid link metadata type"
+  },
+  {
+    "id": "model.link_metadata.is_valid.url.app_error",
+    "translation": "Link metadata URL must be set"
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",
@@ -5093,6 +5189,34 @@
   {
     "id": "store.sql_audit.save.saving.app_error",
     "translation": "Виникла помилка при спробі прочитати файл"
+  },
+  {
+    "id": "store.sql_bot.delete.app_error",
+    "translation": "Неможливо видалити публікацію"
+  },
+  {
+    "id": "store.sql_bot.get.app_error",
+    "translation": "Не вдається отримати повідомлення"
+  },
+  {
+    "id": "store.sql_bot.get.missing.app_error",
+    "translation": "Bot does not exist"
+  },
+  {
+    "id": "store.sql_bot.get_all.app_error",
+    "translation": "Не вдається отримати повідомлення"
+  },
+  {
+    "id": "store.sql_bot.save.app_error",
+    "translation": "Не вдається зберегти публікацію"
+  },
+  {
+    "id": "store.sql_bot.update.app_error",
+    "translation": "Не вдається оновити повідомлення"
+  },
+  {
+    "id": "store.sql_bot.update.updating.app_error",
+    "translation": "Виникла помилка під час оновлення додатка"
   },
   {
     "id": "store.sql_channel.analytics_deleted_type_count.app_error",
@@ -6425,6 +6549,10 @@
   {
     "id": "store.sql_user.analytics_unique_user_count.app_error",
     "translation": "Не вдається отримати унікальний номер користувача"
+  },
+  {
+    "id": "store.sql_user.app_error",
+    "translation": "Failed to build query"
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.commit_transaction.app_error",
