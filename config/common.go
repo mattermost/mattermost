@@ -4,11 +4,11 @@
 package config
 
 import (
-	"github.com/mattermost/mattermost-server/utils"
 	"io"
 	"sync"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
 	"github.com/pkg/errors"
 )
 
