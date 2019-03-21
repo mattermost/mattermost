@@ -68,11 +68,6 @@ endif
 		curl -s https://api.github.com/repos/mattermost/$$plugin_package/releases/latest | grep browser_download_url | cut -d '"' -f 4 | wget -qi - -P  $(DIST_PATH)/prepackaged_plugins/ ;\
 	done
 
-	@# Enable NPS plugin if prepackaged
-ifneq ($(filter mattermost-plugin-nps,$(PLUGIN_PACKAGES)),)
-	sed -i'' -e 's|"PluginStates": {}|"PluginStates": {"com.mattermost.nps": {"Enable": true}}|g' $(DIST_PATH)/config/config.json
-endif
-
 	@# ----- PLATFORM SPECIFIC -----
 
 	@# Make osx package
