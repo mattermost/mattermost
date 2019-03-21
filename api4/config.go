@@ -5,8 +5,11 @@ package api4
 
 import (
 	"net/http"
+	"reflect"
 
+	"github.com/mattermost/mattermost-server/config"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 func (api *API) InitConfig() {
@@ -58,13 +61,30 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	appCfg := c.App.Config()
+	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
+		// Start with the current configuration, and only merge values not marked as being
+		// restricted.
+		var err error
+		cfg, err = config.Merge(appCfg, cfg, &utils.MergeConfig{
+			StructFieldFilter: func(structField reflect.StructField, base, patch reflect.Value) bool {
+				restricted := structField.Tag.Get("restricted") == "true"
+
+				return !restricted
+			},
+		})
+		if err != nil {
+			c.Err = model.NewAppError("updateConfig", "api.config.update_config.restricted_merge.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
 	// Do not allow plugin uploads to be toggled through the API
-	cfg.PluginSettings.EnableUploads = c.App.Config().PluginSettings.EnableUploads
+	cfg.PluginSettings.EnableUploads = appCfg.PluginSettings.EnableUploads
 
 	// If the Message Export feature has been toggled in the System Console, rewrite the ExportFromTimestamp field to an
 	// appropriate value. The rewriting occurs here to ensure it doesn't affect values written to the config file
 	// directly and not through the System Console UI.
-	if *cfg.MessageExportSettings.EnableExport != *c.App.Config().MessageExportSettings.EnableExport {
+	if *cfg.MessageExportSettings.EnableExport != *appCfg.MessageExportSettings.EnableExport {
 		if *cfg.MessageExportSettings.EnableExport && *cfg.MessageExportSettings.ExportFromTimestamp == int64(0) {
 			// When the feature is toggled on, use the current timestamp as the start time for future exports.
 			cfg.MessageExportSettings.ExportFromTimestamp = model.NewInt64(model.GetMillis())
