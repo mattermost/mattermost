@@ -77,11 +77,29 @@ func TestApplyPermissionsMap(t *testing.T) {
 			}},
 			[]string{"test1", "test2", "test3"},
 		},
+		{
+			"When the role matches",
+			[]string{"test1", "test2", "test3"},
+			permissionsMap{permissionTransformation{
+				On:  isRole("system_admin"),
+				Add: []string{"test4"},
+			}},
+			[]string{"test1", "test2", "test3", "test4"},
+		},
+		{
+			"When the role doesn't match",
+			[]string{"test1", "test2", "test3"},
+			permissionsMap{permissionTransformation{
+				On:  isRole("system_user"),
+				Add: []string{"test4"},
+			}},
+			[]string{"test1", "test2", "test3"},
+		},
 	}
 
 	for _, tc := range tt {
 		t.Run(tc.Name, func(t *testing.T) {
-			result := applyPermissionsMap(tc.Permissions, tc.TranslationMap)
+			result := applyPermissionsMap("system_admin", tc.Permissions, tc.TranslationMap)
 			sort.Strings(result)
 			assert.Equal(t, tc.ExpectedResult, result)
 		})

@@ -559,72 +559,105 @@ func TestGetAllTeams(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	team := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TEAM_OPEN, AllowOpenInvite: true}
-	_, resp := Client.CreateTeam(team)
+	team1 := &model.Team{DisplayName: "Name", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TEAM_OPEN, AllowOpenInvite: true}
+	team1, resp := Client.CreateTeam(team1)
 	CheckNoError(t, resp)
 
 	team2 := &model.Team{DisplayName: "Name2", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TEAM_OPEN, AllowOpenInvite: true}
-	_, resp = Client.CreateTeam(team2)
+	team2, resp = Client.CreateTeam(team2)
 	CheckNoError(t, resp)
 
-	rrteams, resp := Client.GetAllTeams("", 0, 1)
+	team3 := &model.Team{DisplayName: "Name3", Name: GenerateTestTeamName(), Email: th.GenerateTestEmail(), Type: model.TEAM_OPEN, AllowOpenInvite: false}
+	team3, resp = Client.CreateTeam(team3)
 	CheckNoError(t, resp)
 
-	if len(rrteams) != 1 {
-		t.Log(len(rrteams))
-		t.Fatal("wrong number of teams - should be 1")
+	testCases := []struct {
+		Name          string
+		Page          int
+		PerPage       int
+		Permissions   []string
+		ExpectedTeams []string
+	}{
+		{
+			Name:          "Get 1 team per page",
+			Page:          0,
+			PerPage:       1,
+			Permissions:   []string{model.PERMISSION_LIST_PUBLIC_TEAMS.Id},
+			ExpectedTeams: []string{team1.Id},
+		},
+		{
+			Name:          "Get second page with 1 team per page",
+			Page:          1,
+			PerPage:       1,
+			Permissions:   []string{model.PERMISSION_LIST_PUBLIC_TEAMS.Id},
+			ExpectedTeams: []string{team2.Id},
+		},
+		{
+			Name:          "Get no items per page",
+			Page:          1,
+			PerPage:       0,
+			Permissions:   []string{model.PERMISSION_LIST_PUBLIC_TEAMS.Id},
+			ExpectedTeams: []string{},
+		},
+		{
+			Name:          "Get all open teams",
+			Page:          0,
+			PerPage:       10,
+			Permissions:   []string{model.PERMISSION_LIST_PUBLIC_TEAMS.Id},
+			ExpectedTeams: []string{team1.Id, team2.Id},
+		},
+		{
+			Name:          "Get all private teams",
+			Page:          0,
+			PerPage:       10,
+			Permissions:   []string{model.PERMISSION_LIST_PRIVATE_TEAMS.Id},
+			ExpectedTeams: []string{th.BasicTeam.Id, team3.Id},
+		},
+		{
+			Name:          "Get all teams",
+			Page:          0,
+			PerPage:       10,
+			Permissions:   []string{model.PERMISSION_LIST_PUBLIC_TEAMS.Id, model.PERMISSION_LIST_PRIVATE_TEAMS.Id},
+			ExpectedTeams: []string{th.BasicTeam.Id, team1.Id, team2.Id, team3.Id},
+		},
+		{
+			Name:          "Get no teams because permissions",
+			Page:          0,
+			PerPage:       10,
+			Permissions:   []string{},
+			ExpectedTeams: []string{},
+		},
 	}
 
-	for _, rt := range rrteams {
-		if !rt.AllowOpenInvite {
-			t.Fatal("not all teams are open")
-		}
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			defaultRolePermissions := th.SaveDefaultRolePermissions()
+			defer func() {
+				th.RestoreDefaultRolePermissions(defaultRolePermissions)
+			}()
+			th.RemovePermissionFromRole(model.PERMISSION_LIST_PUBLIC_TEAMS.Id, model.SYSTEM_USER_ROLE_ID)
+			th.RemovePermissionFromRole(model.PERMISSION_JOIN_PUBLIC_TEAMS.Id, model.SYSTEM_USER_ROLE_ID)
+			th.RemovePermissionFromRole(model.PERMISSION_LIST_PRIVATE_TEAMS.Id, model.SYSTEM_USER_ROLE_ID)
+			th.RemovePermissionFromRole(model.PERMISSION_JOIN_PRIVATE_TEAMS.Id, model.SYSTEM_USER_ROLE_ID)
+			for _, permission := range tc.Permissions {
+				th.AddPermissionToRole(permission, model.SYSTEM_USER_ROLE_ID)
+			}
+
+			var teams []*model.Team
+			teams, resp = Client.GetAllTeams("", tc.Page, tc.PerPage)
+			CheckNoError(t, resp)
+			require.Equal(t, len(tc.ExpectedTeams), len(teams))
+			for idx, team := range teams {
+				assert.Equal(t, tc.ExpectedTeams[idx], team.Id)
+			}
+		})
 	}
 
-	rrteams, resp = Client.GetAllTeams("", 0, 10)
-	CheckNoError(t, resp)
-
-	for _, rt := range rrteams {
-		if !rt.AllowOpenInvite {
-			t.Fatal("not all teams are open")
-		}
-	}
-
-	rrteams1, resp := Client.GetAllTeams("", 1, 0)
-	CheckNoError(t, resp)
-
-	if len(rrteams1) != 0 {
-		t.Fatal("wrong number of teams - should be 0")
-	}
-
-	rrteams2, resp := th.SystemAdminClient.GetAllTeams("", 1, 1)
-	CheckNoError(t, resp)
-
-	if len(rrteams2) != 1 {
-		t.Fatal("wrong number of teams - should be 1")
-	}
-
-	rrteams2, resp = Client.GetAllTeams("", 1, 0)
-	CheckNoError(t, resp)
-
-	if len(rrteams2) != 0 {
-		t.Fatal("wrong number of teams - should be 0")
-	}
-
-	rrteams, resp = Client.GetAllTeams("", 0, 2)
-	CheckNoError(t, resp)
-	rrteams2, resp = Client.GetAllTeams("", 1, 2)
-	CheckNoError(t, resp)
-
-	for _, t1 := range rrteams {
-		for _, t2 := range rrteams2 {
-			assert.NotEqual(t, t1.Id, t2.Id, "different pages should not have the same teams")
-		}
-	}
-
-	Client.Logout()
-	_, resp = Client.GetAllTeams("", 1, 10)
-	CheckUnauthorizedStatus(t, resp)
+	t.Run("Unauthorized", func(t *testing.T) {
+		Client.Logout()
+		_, resp = Client.GetAllTeams("", 1, 10)
+		CheckUnauthorizedStatus(t, resp)
+	})
 }
 
 func TestGetAllTeamsSanitization(t *testing.T) {
@@ -1409,6 +1442,96 @@ func TestAddTeamMember(t *testing.T) {
 	if tm != nil {
 		t.Fatal("should have not returned team member")
 	}
+}
+
+func TestAddTeamMemberMyself(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+
+	// Check the appropriate permissions are enforced.
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+
+	th.LoginBasic()
+
+	testCases := []struct {
+		Name              string
+		Public            bool
+		PublicPermission  bool
+		PrivatePermission bool
+		ExpectedSuccess   bool
+	}{
+		{
+			Name:              "Try to join an open team without the permissions",
+			Public:            true,
+			PublicPermission:  false,
+			PrivatePermission: false,
+			ExpectedSuccess:   false,
+		},
+		{
+			Name:              "Try to join a private team without the permissions",
+			Public:            false,
+			PublicPermission:  false,
+			PrivatePermission: false,
+			ExpectedSuccess:   false,
+		},
+		{
+			Name:              "Try to join an open team without public permission but with private permissions",
+			Public:            true,
+			PublicPermission:  false,
+			PrivatePermission: true,
+			ExpectedSuccess:   false,
+		},
+		{
+			Name:              "Try to join a private team without private permission but with public permission",
+			Public:            false,
+			PublicPermission:  true,
+			PrivatePermission: false,
+			ExpectedSuccess:   false,
+		},
+		{
+			Name:              "Join an open team with the permissions",
+			Public:            true,
+			PublicPermission:  true,
+			PrivatePermission: false,
+			ExpectedSuccess:   true,
+		},
+		{
+			Name:              "Join a private team with the permissions",
+			Public:            false,
+			PublicPermission:  false,
+			PrivatePermission: true,
+			ExpectedSuccess:   true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			team := th.CreateTeam()
+			team.AllowOpenInvite = tc.Public
+			th.App.UpdateTeam(team)
+			if tc.PublicPermission {
+				th.AddPermissionToRole(model.PERMISSION_JOIN_PUBLIC_TEAMS.Id, model.SYSTEM_USER_ROLE_ID)
+			} else {
+				th.RemovePermissionFromRole(model.PERMISSION_JOIN_PUBLIC_TEAMS.Id, model.SYSTEM_USER_ROLE_ID)
+			}
+			if tc.PrivatePermission {
+				th.AddPermissionToRole(model.PERMISSION_JOIN_PRIVATE_TEAMS.Id, model.SYSTEM_USER_ROLE_ID)
+			} else {
+				th.RemovePermissionFromRole(model.PERMISSION_JOIN_PRIVATE_TEAMS.Id, model.SYSTEM_USER_ROLE_ID)
+			}
+			_, resp := Client.AddTeamMember(team.Id, th.BasicUser.Id)
+			if tc.ExpectedSuccess {
+				CheckNoError(t, resp)
+			} else {
+				CheckForbiddenStatus(t, resp)
+			}
+		})
+	}
+
 }
 
 func TestAddTeamMembers(t *testing.T) {

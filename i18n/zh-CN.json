@@ -77,7 +77,7 @@
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
-    "translation": "删除证书时发生错误。请确定config/{{.Filename}}文件已存在。"
+    "translation": "删除 OAuth2 应用时遇到错误"
   },
   {
     "id": "api.admin.saml.metadata.app_error",
@@ -325,7 +325,7 @@
   },
   {
     "id": "api.command.command_post.forbidden.app_error",
-    "translation": "指定的用户不属于指定的团队。"
+    "translation": "指定的用户不属于指定的频道。"
   },
   {
     "id": "api.command.disabled.app_error",
@@ -337,7 +337,7 @@
   },
   {
     "id": "api.command.execute_command.create_post_failed.app_error",
-    "translation": "Command '{{.Trigger}}' failed to post response. Please contact your System Administrator."
+    "translation": "指令 '{{.Trigger}}' 回应失败。请联系您的系统管理员。"
   },
   {
     "id": "api.command.execute_command.debug",
@@ -1186,7 +1186,7 @@
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
-    "translation": "Unable to upload file(s). Have {{.NumClientIds}} client_ids for {{.NumFiles}} files."
+    "translation": "无法上传文件。{{.NumFiles}} 个文件拥有 {{.NumClientIds}} 个 client_ids。"
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_files.app_error",
@@ -1198,19 +1198,19 @@
   },
   {
     "id": "api.file.upload_file.large_image_detailed.app_error",
-    "translation": "{{.Filename}} dimensions ({{.Width}} by {{.Height}} pixels) exceed the limits"
+    "translation": "{{.Filename}} 的尺寸 ({{.Width}}x{{.Height}} 像素) 超过了限制"
   },
   {
     "id": "api.file.upload_file.multiple_channel_ids.app_error",
-    "translation": "Unable to upload file(s). Multiple conflicting channel_ids."
+    "translation": "无法上传文件。多个冲突的 channel_ids。"
   },
   {
     "id": "api.file.upload_file.read_form_value.app_error",
-    "translation": "Unable to upload file(s). Error reading the value for {{.Formname}}."
+    "translation": "无法上传文件。读取或解析 {{.Formname}} 时出错。"
   },
   {
     "id": "api.file.upload_file.read_request.app_error",
-    "translation": "Unable to upload file(s). Error reading or parsing request data."
+    "translation": "无法上传文件。读取或解析请求数据时出错。"
   },
   {
     "id": "api.file.upload_file.storage.app_error",
@@ -1222,7 +1222,7 @@
   },
   {
     "id": "api.file.upload_file.too_large_detailed.app_error",
-    "translation": "Unable to upload file {{.Filename}}. {{.Length}} bytes exceeds the maximum allowed {{.Limit}} bytes."
+    "translation": "无法上传文件 {{.Filename}}。{{.Length}} 字节超过最大允许的 {{.Limit}} 字节。"
   },
   {
     "id": "api.file.write_file.s3.app_error",
@@ -1246,15 +1246,15 @@
   },
   {
     "id": "api.io_error",
-    "translation": "input/output error"
+    "translation": "输入/输出错误"
   },
   {
     "id": "api.ldap_group.not_found",
-    "translation": "ldap group not found"
+    "translation": "未找到 ldap 组"
   },
   {
     "id": "api.ldap_groups.license_error",
-    "translation": "your license does not support ldap groups"
+    "translation": "您的许可证不支持 ldap 组"
   },
   {
     "id": "api.license.add_license.array.app_error",
@@ -1298,7 +1298,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "marshal error"
+    "translation": "编码错误"
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
@@ -1450,11 +1450,15 @@
   },
   {
     "id": "api.post.deduplicate_create_post.failed_to_get",
-    "translation": "Failed to fetch original post after deduplicating a client repeating the same request."
+    "translation": "处理客户端发送同样请求时获取原始消息失败。"
   },
   {
     "id": "api.post.deduplicate_create_post.pending",
-    "translation": "Rejected post since another client is making the same request."
+    "translation": "由于另一个客户端发送同样的请求而拒绝消息。"
+  },
+  {
+    "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
+    "translation": "Can not delete a post in a deleted channel."
   },
   {
     "id": "api.post.disabled_all",
@@ -1495,6 +1499,14 @@
     "translation": "链接预览已被系统管理员禁用。"
   },
   {
+    "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
+    "translation": "Can not update a post in a deleted channel."
+  },
+  {
+    "id": "api.post.save_is_pinned_post.town_square_read_only",
+    "translation": "此频道为只读。只有拥有权限的成员可以置顶或取消置顶消息。"
+  },
+  {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
     "translation": " 通知了频道。"
   },
@@ -1521,6 +1533,10 @@
   {
     "id": "api.post.send_notifications_and_forget.push_message",
     "translation": "给您发送了消息。"
+  },
+  {
+    "id": "api.post.update_post.can_not_update_post_in_deleted.error",
+    "translation": "Can not update a post in a deleted channel."
   },
   {
     "id": "api.post.update_post.find.app_error",
@@ -1573,6 +1589,10 @@
   {
     "id": "api.reaction.town_square_read_only",
     "translation": "只读频道无法发互动。"
+  },
+  {
+    "id": "api.restricted_system_admin",
+    "translation": "This action is forbidden to a restricted system admin."
   },
   {
     "id": "api.roles.patch_roles.license.error",
@@ -2167,6 +2187,10 @@
     "translation": "本服务器不支持通过 OAuth 2.0 的 {{.Service}} SSO"
   },
   {
+    "id": "api.user.create_email_token.error",
+    "translation": "创建邮件验证令牌数据失败"
+  },
+  {
     "id": "api.user.create_oauth_user.already_attached.app_error",
     "translation": "已经有一个电子邮件帐号使用了不同于{{.Service}}的方法进行登录。请使用{{.Auth}}进行登录。"
   },
@@ -2255,6 +2279,10 @@
     "translation": "密码字段不能为空白"
   },
   {
+    "id": "api.user.login.bot_login_forbidden.app_error",
+    "translation": "Bot login is forbidden"
+  },
+  {
     "id": "api.user.login.client_side_cert.certificate.app_error",
     "translation": "尝试使用实验功能 ClientSideCert 登入但未提供有效的证书"
   },
@@ -2277,6 +2305,10 @@
   {
     "id": "api.user.login.use_auth_service.app_error",
     "translation": "请使用 {{.AuthService}} 登录"
+  },
+  {
+    "id": "api.user.login_by_oauth.bot_login_forbidden.app_error",
+    "translation": "Bot login is forbidden"
   },
   {
     "id": "api.user.login_by_oauth.not_available.app_error",
@@ -2473,6 +2505,14 @@
   {
     "id": "api.user.verify_email.broken_token.app_error",
     "translation": "无效的验证邮件令牌类型。"
+  },
+  {
+    "id": "api.user.verify_email.link_expired.app_error",
+    "translation": "邮件验证链接已超时。"
+  },
+  {
+    "id": "api.user.verify_email.token_parse.error",
+    "translation": "解析邮件验证令牌数据失败"
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
@@ -3243,6 +3283,10 @@
     "translation": "提供的角色不存在"
   },
   {
+    "id": "app.save_config.app_error",
+    "translation": "An error occurred saving the configuration"
+  },
+  {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
     "translation": "API 无法访问因为需要的数据转移未完成。"
   },
@@ -3492,7 +3536,7 @@
   },
   {
     "id": "ent.ldap.app_error",
-    "translation": "ldap interface was nil"
+    "translation": "ldap 接口为 nil"
   },
   {
     "id": "ent.ldap.create_fail",
@@ -3540,11 +3584,11 @@
   },
   {
     "id": "ent.ldap.syncronize.get_all_groups.app_error",
-    "translation": "error retrieving groups"
+    "translation": "获取用户组出错"
   },
   {
     "id": "ent.ldap.syncronize.populate_syncables",
-    "translation": "error populating syncables"
+    "translation": "填充可同步数据出错"
   },
   {
     "id": "ent.ldap.syncronize.search_failure.app_error",
@@ -3556,23 +3600,23 @@
   },
   {
     "id": "ent.ldap_groups.group_search_error",
-    "translation": "error retrieving ldap group"
+    "translation": "获取 ldap 用户组出错"
   },
   {
     "id": "ent.ldap_groups.groups_search_error",
-    "translation": "error retrieving ldap groups"
+    "translation": "获取 ldap 用户组出错"
   },
   {
     "id": "ent.ldap_groups.members_of_group_error",
-    "translation": "error retrieving members of group"
+    "translation": "获取用户组成员出错"
   },
   {
     "id": "ent.ldap_groups.no_rows",
-    "translation": "no groups found with matching uid"
+    "translation": "为找到拥有此 uid 的组"
   },
   {
     "id": "ent.ldap_groups.reachable_groups_error",
-    "translation": "error retrieving groups for user"
+    "translation": "获取用户的组失败"
   },
   {
     "id": "ent.message_export.global_relay.attach_file.app_error",
@@ -3657,10 +3701,6 @@
   {
     "id": "ent.saml.build_request.encoding.app_error",
     "translation": "尝试编码身份提供商请求时发生错误。请联系您的系统管理员。"
-  },
-  {
-    "id": "ent.saml.configure.app_error",
-    "translation": "设置SAML服务提供商时发生错误，err=%v"
   },
   {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
@@ -3792,7 +3832,7 @@
   },
   {
     "id": "mfa.mfa_disabled.app_error",
-    "translation": "此服务器要求多重验证。"
+    "translation": "多重验证已在此服务器停用。"
   },
   {
     "id": "mfa.validate_token.authenticate.app_error",
@@ -3861,6 +3901,30 @@
   {
     "id": "model.authorize.is_valid.user_id.app_error",
     "translation": "无效用户id"
+  },
+  {
+    "id": "model.bot.is_valid.create_at.app_error",
+    "translation": "无效创建者id"
+  },
+  {
+    "id": "model.bot.is_valid.creator_id.app_error",
+    "translation": "无效创建者id"
+  },
+  {
+    "id": "model.bot.is_valid.description.app_error",
+    "translation": "无效的描述"
+  },
+  {
+    "id": "model.bot.is_valid.update_at.app_error",
+    "translation": "Invalid update at"
+  },
+  {
+    "id": "model.bot.is_valid.user_id.app_error",
+    "translation": "无效用户 id"
+  },
+  {
+    "id": "model.bot.is_valid.username.app_error",
+    "translation": "无效用户名"
   },
   {
     "id": "model.channel.is_valid.2_or_more.app_error",
@@ -4132,7 +4196,11 @@
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
-    "translation": "无效的 atmos/camo 图片代理设定。必须设为您的共享密钥。"
+    "translation": "无效的 atmos/camo 设置 RemoteImageProxyOptions。必须设为您的共享密钥。"
+  },
+  {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
+    "translation": "无效的 atmos/camo 设置 RemoteImageProxyURL。必须设为您的共享密钥。"
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
@@ -4220,7 +4288,7 @@
   },
   {
     "id": "model.config.is_valid.image_proxy_type.app_error",
-    "translation": "无效的图片代理类型服务设定。"
+    "translation": "无效的图片代理类型。必须为 'local' 或 'atmos/camo'。"
   },
   {
     "id": "model.config.is_valid.ldap_basedn",
@@ -4391,6 +4459,10 @@
     "translation": "当SiteURL未设置时没法启动批量电子邮件。"
   },
   {
+    "id": "model.config.is_valid.sitename_empty.app_error",
+    "translation": "Site name cannot be empty."
+  },
+  {
     "id": "model.config.is_valid.sitename_length.app_error",
     "translation": "站点名必须小于或等于 {{.MaxLength}} 个字符。"
   },
@@ -4500,63 +4572,63 @@
   },
   {
     "id": "model.group.create_at.app_error",
-    "translation": "invalid create at property for group"
+    "translation": "无效的组创建日期属性"
   },
   {
     "id": "model.group.delete_at.app_error",
-    "translation": "invalid delete at property for group"
+    "translation": "无效的组删除日期属性"
   },
   {
     "id": "model.group.description.app_error",
-    "translation": "invalid description property for group"
+    "translation": "无效的组描述属性"
   },
   {
     "id": "model.group.display_name.app_error",
-    "translation": "invalid display name property for group"
+    "translation": "无效的组显示名属性"
   },
   {
     "id": "model.group.id.app_error",
-    "translation": "invalid id property for group"
+    "translation": "无效的组 id 属性"
   },
   {
     "id": "model.group.name.app_error",
-    "translation": "invalid name property for group"
+    "translation": "无效的组名称属性"
   },
   {
     "id": "model.group.remote_id.app_error",
-    "translation": "invalid remote id property for group"
+    "translation": "无效的组远程 id 属性"
   },
   {
     "id": "model.group.source.app_error",
-    "translation": "invalid source property for group"
+    "translation": "无效的组来源属性"
   },
   {
     "id": "model.group.update_at.app_error",
-    "translation": "invalid update at property for group"
+    "translation": "无效的组更新日期属性"
   },
   {
     "id": "model.group_member.group_id.app_error",
-    "translation": "invalid group id property for group member"
+    "translation": "无效的组成员的组 id 属性"
   },
   {
     "id": "model.group_member.user_id.app_error",
-    "translation": "invalid user id property for group member"
+    "translation": "无效的组成员用户 id 属性"
   },
   {
     "id": "model.group_syncable.group_id.app_error",
-    "translation": "invalid group id property for group syncable"
+    "translation": "无效的可同步组组 id 属性"
   },
   {
     "id": "model.group_syncable.syncable_id.app_error",
-    "translation": "invalid syncable id for group syncable"
+    "translation": "无效的可同步组 id"
   },
   {
     "id": "model.group_syncable.type.app_error",
-    "translation": "invalid type property for group syncable"
+    "translation": "无效的可同步组类型属性"
   },
   {
     "id": "model.group_syncable.unmarshaljson.duplicate_type_identifier",
-    "translation": "type identifier already exists: perhaps json contains both 'team_id' and 'channel_id'"
+    "translation": "类型已存在：也许 json 同时拥有 'team_id' 以及 'channel_id'"
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -4625,6 +4697,30 @@
   {
     "id": "model.license_record.is_valid.id.app_error",
     "translation": "上传许可证时错误的 id 值。"
+  },
+  {
+    "id": "model.link_metadata.is_valid.data.app_error",
+    "translation": "连接元数据不能为 nil"
+  },
+  {
+    "id": "model.link_metadata.is_valid.data_type.app_error",
+    "translation": "连接元数据不复合置顶的类型"
+  },
+  {
+    "id": "model.link_metadata.is_valid.id.app_error",
+    "translation": "无效的连接元数据 id"
+  },
+  {
+    "id": "model.link_metadata.is_valid.timestamp.app_error",
+    "translation": "连接元数据日期必须有效并且精确到小时"
+  },
+  {
+    "id": "model.link_metadata.is_valid.type.app_error",
+    "translation": "无效的连接元数据类型"
+  },
+  {
+    "id": "model.link_metadata.is_valid.url.app_error",
+    "translation": "必须设定连接元数据网址"
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",
@@ -4752,7 +4848,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Invalid file ids. Note that uploads are limited to 5 files maximum. Please use additional posts for more files."
+    "translation": "无效的文件 id。上传只允许最多 5 个文件。请考虑创建新的消息以上传更多文件。"
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -5056,11 +5152,11 @@
   },
   {
     "id": "store.insert_error",
-    "translation": "insert error"
+    "translation": "插入错误"
   },
   {
     "id": "store.select_error",
-    "translation": "select error"
+    "translation": "选择错误"
   },
   {
     "id": "store.sql.convert_string_array",
@@ -5093,6 +5189,34 @@
   {
     "id": "store.sql_audit.save.saving.app_error",
     "translation": "我们保存审计时遇到错误"
+  },
+  {
+    "id": "store.sql_bot.delete.app_error",
+    "translation": "无法删除消息"
+  },
+  {
+    "id": "store.sql_bot.get.app_error",
+    "translation": "无法获取消息"
+  },
+  {
+    "id": "store.sql_bot.get.missing.app_error",
+    "translation": "Bot does not exist"
+  },
+  {
+    "id": "store.sql_bot.get_all.app_error",
+    "translation": "无法获取消息"
+  },
+  {
+    "id": "store.sql_bot.save.app_error",
+    "translation": "无法保存消息"
+  },
+  {
+    "id": "store.sql_bot.update.app_error",
+    "translation": "无法更新消息"
+  },
+  {
+    "id": "store.sql_bot.update.updating.app_error",
+    "translation": "我们更新这个app出现一个错误"
   },
   {
     "id": "store.sql_channel.analytics_deleted_type_count.app_error",
@@ -5632,27 +5756,27 @@
   },
   {
     "id": "store.sql_group.group_syncable_already_deleted",
-    "translation": "group syncable was already deleted"
+    "translation": "可同步组已被删除"
   },
   {
     "id": "store.sql_group.no_rows",
-    "translation": "no matching group found"
+    "translation": "未找到符合的组"
   },
   {
     "id": "store.sql_group.no_rows_changed",
-    "translation": "no rows changed"
+    "translation": "无数据更新"
   },
   {
     "id": "store.sql_group.nothing_to_update",
-    "translation": "nothing to update for group syncable"
+    "translation": "没有可更新的可同步组"
   },
   {
     "id": "store.sql_group.unique_constraint",
-    "translation": "已有团队拥有此名称"
+    "translation": "已有用户组拥有此名称"
   },
   {
     "id": "store.sql_group.uniqueness_error",
-    "translation": "group member already exists"
+    "translation": "用户组成员已存在"
   },
   {
     "id": "store.sql_job.delete.app_error",
@@ -6427,6 +6551,10 @@
     "translation": "无法获取使用者数"
   },
   {
+    "id": "store.sql_user.app_error",
+    "translation": "Failed to build query"
+  },
+  {
     "id": "store.sql_user.clear_all_custom_role_assignments.commit_transaction.app_error",
     "translation": "提交数据库事务失败"
   },
@@ -6656,7 +6784,7 @@
   },
   {
     "id": "store.sql_user_terms_of_service.delete.app_error",
-    "translation": "无法删除用户服务条款。"
+    "translation": "无法删除服务条款。"
   },
   {
     "id": "store.sql_user_terms_of_service.get_by_user.app_error",
@@ -6752,7 +6880,7 @@
   },
   {
     "id": "store.update_error",
-    "translation": "update error"
+    "translation": "更新错误"
   },
   {
     "id": "system.message.name",

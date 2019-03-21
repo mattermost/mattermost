@@ -264,6 +264,8 @@ func MakeDefaultRoles() map[string]*Role {
 		DisplayName: "authentication.roles.global_user.name",
 		Description: "authentication.roles.global_user.description",
 		Permissions: []string{
+			PERMISSION_LIST_PUBLIC_TEAMS.Id,
+			PERMISSION_JOIN_PUBLIC_TEAMS.Id,
 			PERMISSION_CREATE_DIRECT_CHANNEL.Id,
 			PERMISSION_CREATE_GROUP_CHANNEL.Id,
 			PERMISSION_PERMANENT_DELETE_USER.Id,
@@ -354,6 +356,8 @@ func MakeDefaultRoles() map[string]*Role {
 							PERMISSION_MANAGE_BOTS.Id,
 							PERMISSION_MANAGE_OTHERS_BOTS.Id,
 							PERMISSION_REMOVE_OTHERS_REACTIONS.Id,
+							PERMISSION_LIST_PRIVATE_TEAMS.Id,
+							PERMISSION_JOIN_PRIVATE_TEAMS.Id,
 						},
 						roles[TEAM_USER_ROLE_ID].Permissions...,
 					),

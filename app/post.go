@@ -22,7 +22,7 @@ const (
 	PENDING_POST_IDS_CACHE_TTL  = 30 * time.Second
 )
 
-func (a *App) CreatePostAsUser(post *model.Post, clearPushNotifications bool) (*model.Post, *model.AppError) {
+func (a *App) CreatePostAsUser(post *model.Post, currentSessionId string) (*model.Post, *model.AppError) {
 	// Check that channel has not been deleted
 	result := <-a.Srv.Store.Channel().Get(post.ChannelId, true)
 	if result.Err != nil {
@@ -74,7 +74,7 @@ func (a *App) CreatePostAsUser(post *model.Post, clearPushNotifications bool) (*
 
 	// Update the LastViewAt only if the post does not have from_webhook prop set (eg. Zapier app)
 	if _, ok := post.Props["from_webhook"]; !ok {
-		if _, err := a.MarkChannelsAsViewed([]string{post.ChannelId}, post.UserId, clearPushNotifications); err != nil {
+		if _, err := a.MarkChannelsAsViewed([]string{post.ChannelId}, post.UserId, currentSessionId); err != nil {
 			mlog.Error(fmt.Sprintf("Encountered error updating last viewed, channel_id=%s, user_id=%s, err=%v", post.ChannelId, post.UserId, err))
 		}
 	}

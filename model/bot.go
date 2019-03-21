@@ -26,7 +26,7 @@ type Bot struct {
 	Username    string `json:"username"`
 	DisplayName string `json:"display_name,omitempty"`
 	Description string `json:"description,omitempty"`
-	OwnerId     string `json:"creator_id"`
+	OwnerId     string `json:"owner_id"`
 	CreateAt    int64  `json:"create_at"`
 	UpdateAt    int64  `json:"update_at"`
 	DeleteAt    int64  `json:"delete_at"`

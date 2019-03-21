@@ -141,6 +141,38 @@ func (_m *TeamStore) GetAllPage(offset int, limit int) store.StoreChannel {
 	return r0
 }
 
+// GetAllPrivateTeamListing provides a mock function with given fields:
+func (_m *TeamStore) GetAllPrivateTeamListing() store.StoreChannel {
+	ret := _m.Called()
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func() store.StoreChannel); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
+// GetAllPrivateTeamPageListing provides a mock function with given fields: offset, limit
+func (_m *TeamStore) GetAllPrivateTeamPageListing(offset int, limit int) store.StoreChannel {
+	ret := _m.Called(offset, limit)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(int, int) store.StoreChannel); ok {
+		r0 = rf(offset, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // GetAllTeamListing provides a mock function with given fields:
 func (_m *TeamStore) GetAllTeamListing() store.StoreChannel {
 	ret := _m.Called()
@@ -543,6 +575,22 @@ func (_m *TeamStore) SearchByName(name string) store.StoreChannel {
 
 // SearchOpen provides a mock function with given fields: term
 func (_m *TeamStore) SearchOpen(term string) store.StoreChannel {
+	ret := _m.Called(term)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+		r0 = rf(term)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
+// SearchPrivate provides a mock function with given fields: term
+func (_m *TeamStore) SearchPrivate(term string) store.StoreChannel {
 	ret := _m.Called(term)
 
 	var r0 store.StoreChannel

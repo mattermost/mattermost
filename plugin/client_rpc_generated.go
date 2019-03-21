@@ -671,6 +671,34 @@ func (s *apiRPCServer) SavePluginConfig(args *Z_SavePluginConfigArgs, returns *Z
 	return nil
 }
 
+type Z_GetBundlePathArgs struct {
+}
+
+type Z_GetBundlePathReturns struct {
+	A string
+	B error
+}
+
+func (g *apiRPCClient) GetBundlePath() (string, error) {
+	_args := &Z_GetBundlePathArgs{}
+	_returns := &Z_GetBundlePathReturns{}
+	if err := g.client.Call("Plugin.GetBundlePath", _args, _returns); err != nil {
+		log.Printf("RPC call to GetBundlePath API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetBundlePath(args *Z_GetBundlePathArgs, returns *Z_GetBundlePathReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetBundlePath() (string, error)
+	}); ok {
+		returns.A, returns.B = hook.GetBundlePath()
+	} else {
+		return encodableError(fmt.Errorf("API GetBundlePath called but not implemented."))
+	}
+	return nil
+}
+
 type Z_GetLicenseArgs struct {
 }
 
@@ -846,8 +874,8 @@ type Z_GetUsersReturns struct {
 	B *model.AppError
 }
 
-func (g *apiRPCClient) GetUsers(*model.UserGetOptions) ([]*model.User, *model.AppError) {
-	_args := &Z_GetUsersArgs{}
+func (g *apiRPCClient) GetUsers(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
+	_args := &Z_GetUsersArgs{options}
 	_returns := &Z_GetUsersReturns{}
 	if err := g.client.Call("Plugin.GetUsers", _args, _returns); err != nil {
 		log.Printf("RPC call to GetUsers API failed: %s", err.Error())
@@ -857,7 +885,7 @@ func (g *apiRPCClient) GetUsers(*model.UserGetOptions) ([]*model.User, *model.Ap
 
 func (s *apiRPCServer) GetUsers(args *Z_GetUsersArgs, returns *Z_GetUsersReturns) error {
 	if hook, ok := s.impl.(interface {
-		GetUsers(*model.UserGetOptions) ([]*model.User, *model.AppError)
+		GetUsers(options *model.UserGetOptions) ([]*model.User, *model.AppError)
 	}); ok {
 		returns.A, returns.B = hook.GetUsers(args.A)
 	} else {

@@ -35,7 +35,10 @@ func InitDBCommandContext(configDSN string) (*app.App, error) {
 	}
 	model.AppErrorInit(utils.T)
 
-	s, err := app.NewServer(app.Config(configDSN, false))
+	s, err := app.NewServer(
+		app.Config(configDSN, false),
+		app.StartElasticsearch,
+	)
 	if err != nil {
 		return nil, err
 	}
