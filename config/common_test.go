@@ -1,10 +1,11 @@
 package config_test
 
 import (
+	"testing"
+
 	"github.com/mattermost/mattermost-server/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
 )
@@ -85,7 +86,7 @@ func TestMergeConfigs(t *testing.T) {
 		patch, err := config.NewMemoryStore()
 		require.NoError(t, err)
 
-		merged, err := base.MergeConfig(patch.Get())
+		merged, err := config.Merge(base.Get(), patch.Get(), nil)
 		require.NoError(t, err)
 
 		assert.Equal(t, patch.Get(), merged)
@@ -95,7 +96,7 @@ func TestMergeConfigs(t *testing.T) {
 		require.NoError(t, err)
 		patch := base.Get().Clone()
 
-		merged, err := base.MergeConfig(patch)
+		merged, err := config.Merge(base.Get(), patch, nil)
 		require.NoError(t, err)
 
 		assert.Equal(t, base.Get(), merged)
@@ -107,7 +108,7 @@ func TestMergeConfigs(t *testing.T) {
 		patch := base.Get().Clone()
 		patch.ServiceSettings.SiteURL = newString("http://newhost.ca")
 
-		merged, err := base.MergeConfig(patch)
+		merged, err := config.Merge(base.Get(), patch, nil)
 		require.NoError(t, err)
 
 		assert.NotEqual(t, base.Get(), merged)
@@ -124,7 +125,7 @@ func TestMergeConfigs(t *testing.T) {
 		expected.ServiceSettings.SiteURL = newString("http://newhost.ca")
 		expected.GoogleSettings.Enable = newBool(true)
 
-		merged, err := base.MergeConfig(patch)
+		merged, err := config.Merge(base.Get(), patch, nil)
 		require.NoError(t, err)
 
 		assert.NotEqual(t, base.Get(), merged)
