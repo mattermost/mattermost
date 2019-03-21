@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
 	"github.com/pkg/errors"
 )
 
@@ -70,7 +71,6 @@ func (cs *commonStore) set(newCfg *model.Config, validate func(*model.Config) er
 		}
 	}
 
-	//if err := persist(cs.removeEnvOverrides(newCfg)); err != nil {
 	if err := persist(cs.removeEnvOverrides(newCfg)); err != nil {
 		return nil, errors.Wrap(err, "failed to persist")
 	}
@@ -90,7 +90,7 @@ func (cs *commonStore) set(newCfg *model.Config, validate func(*model.Config) er
 //
 // This function assumes no lock has been acquired, as it acquires a write lock itself.
 func (cs *commonStore) load(f io.ReadCloser, needsSave bool, validate func(*model.Config) error, persist func(*model.Config) error) error {
-	// Split f into two so that we can have a configuration that does not have environment overrides
+	// Duplicate f so that we can read a configuration without applying environment overrides
 	f2 := new(bytes.Buffer)
 	tee := io.TeeReader(f, f2)
 
@@ -155,6 +155,17 @@ func (cs *commonStore) validate(cfg *model.Config) error {
 	}
 
 	return nil
+}
+
+// mergeConfig merges two configs together. The receiver's values are overwritten with the patch's
+// values except when the patch's values are nil.
+func (cs *commonStore) mergeConfig(patch *model.Config) (*model.Config, error) {
+	ret, err := utils.Merge(cs.config, patch)
+	if err != nil {
+		return nil, err
+	}
+	retC := ret.(model.Config)
+	return &retC, nil
 }
 
 // removeEnvOverrides takes the newCfg provided and adds information stored in the commonStore,

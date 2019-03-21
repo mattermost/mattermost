@@ -271,7 +271,7 @@ func TestPopulateSyncablesSince(t *testing.T) {
 	}
 
 	// Ensure members are in channel
-	_, err = th.App.AddChannelMember(scientist1.Id, experimentsChannel, "", "", false)
+	_, err = th.App.AddChannelMember(scientist1.Id, experimentsChannel, "", "", "")
 	if err != nil {
 		t.Errorf("unable to add user to channel: %s", err.Error())
 	}
@@ -281,7 +281,7 @@ func TestPopulateSyncablesSince(t *testing.T) {
 	if err != nil {
 		t.Errorf("unable to add user to team: %s", err.Error())
 	}
-	_, err = th.App.AddChannelMember(singer1.Id, experimentsChannel, "", "", false)
+	_, err = th.App.AddChannelMember(singer1.Id, experimentsChannel, "", "", "")
 	if err != nil {
 		t.Errorf("unable to add user to channel: %s", err.Error())
 	}

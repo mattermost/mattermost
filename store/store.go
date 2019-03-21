@@ -89,8 +89,11 @@ type TeamStore interface {
 	SearchByName(name string) StoreChannel
 	SearchAll(term string) StoreChannel
 	SearchOpen(term string) StoreChannel
+	SearchPrivate(term string) StoreChannel
 	GetAll() StoreChannel
 	GetAllPage(offset int, limit int) StoreChannel
+	GetAllPrivateTeamListing() StoreChannel
+	GetAllPrivateTeamPageListing(offset int, limit int) StoreChannel
 	GetAllTeamListing() StoreChannel
 	GetAllTeamPageListing(offset int, limit int) StoreChannel
 	GetTeamsByUserId(userId string) StoreChannel
@@ -191,6 +194,7 @@ type ChannelStore interface {
 	GetAllDirectChannelsForExportAfter(limit int, afterId string) StoreChannel
 	GetChannelMembersForExport(userId string, teamId string) StoreChannel
 	RemoveAllDeactivatedMembers(channelId string) StoreChannel
+	GetChannelsBatchForIndexing(startTime, endTime int64, limit int) StoreChannel
 }
 
 type ChannelMemberHistoryStore interface {
@@ -288,6 +292,7 @@ type UserStore interface {
 	ClearAllCustomRoleAssignments() StoreChannel
 	InferSystemInstallDate() StoreChannel
 	GetAllAfter(limit int, afterId string) StoreChannel
+	GetUsersBatchForIndexing(startTime, endTime int64, limit int) StoreChannel
 	Count(options model.UserCountOptions) StoreChannel
 }
 

@@ -445,6 +445,27 @@ func (_m *API) GetBots(options *model.BotGetOptions) ([]*model.Bot, *model.AppEr
 	return r0, r1
 }
 
+// GetBundlePath provides a mock function with given fields:
+func (_m *API) GetBundlePath() (string, error) {
+	ret := _m.Called()
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func() string); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 error
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetChannel provides a mock function with given fields: channelId
 func (_m *API) GetChannel(channelId string) (*model.Channel, *model.AppError) {
 	ret := _m.Called(channelId)
@@ -1699,13 +1720,13 @@ func (_m *API) GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.A
 	return r0, r1
 }
 
-// GetUsers provides a mock function with given fields: _a0
-func (_m *API) GetUsers(_a0 *model.UserGetOptions) ([]*model.User, *model.AppError) {
-	ret := _m.Called(_a0)
+// GetUsers provides a mock function with given fields: options
+func (_m *API) GetUsers(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
+	ret := _m.Called(options)
 
 	var r0 []*model.User
 	if rf, ok := ret.Get(0).(func(*model.UserGetOptions) []*model.User); ok {
-		r0 = rf(_a0)
+		r0 = rf(options)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.User)
@@ -1714,7 +1735,7 @@ func (_m *API) GetUsers(_a0 *model.UserGetOptions) ([]*model.User, *model.AppErr
 
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(*model.UserGetOptions) *model.AppError); ok {
-		r1 = rf(_a0)
+		r1 = rf(options)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
