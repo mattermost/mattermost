@@ -36,15 +36,12 @@ func (w *Web) InitStatic() {
 
 		staticHandler := staticFilesHandler(http.StripPrefix(path.Join(subpath, "static"), http.FileServer(http.Dir(staticDir))))
 		pluginHandler := staticFilesHandler(http.StripPrefix(path.Join(subpath, "static", "plugins"), http.FileServer(http.Dir(*w.ConfigService.Config().PluginSettings.ClientDirectory))))
-		pluginPublicHandler := http.StripPrefix(path.Join(subpath, "plugin"), w.NewStaticHandler(pluginPublicFiles))
 
 		if *w.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
 			staticHandler = gziphandler.GzipHandler(staticHandler)
 			pluginHandler = gziphandler.GzipHandler(pluginHandler)
-			pluginPublicHandler = gziphandler.GzipHandler(pluginPublicHandler)
 		}
 
-		w.MainRouter.PathPrefix("/plugin/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}/public/").Handler(pluginPublicHandler) //http://$SITE_URL/plugin/$PLUGIN_ID/public/{anything}
 		w.MainRouter.PathPrefix("/static/plugins/").Handler(pluginHandler)
 		w.MainRouter.PathPrefix("/static/").Handler(staticHandler)
 		w.MainRouter.Handle("/robots.txt", http.HandlerFunc(robotsHandler))
@@ -91,40 +88,6 @@ func staticFilesHandler(handler http.Handler) http.Handler {
 		}
 		handler.ServeHTTP(w, r)
 	})
-}
-
-func pluginPublicFiles(c *Context, w http.ResponseWriter, r *http.Request) {
-	// Static files rarely change and may be cached indefinitely. Though,
-	// it is recommended that it's not more than one year...
-	// RFC 7234 5.3 https://tools.ietf.org/html/rfc7234#section-5.3
-	w.Header().Set("Cache-Control", "max-age=31556926, public")
-	if strings.HasSuffix(r.URL.Path, "/") {
-		http.NotFound(w, r)
-		return
-	}
-
-	publicPathStartIndex := strings.Index(r.URL.Path, "/public/")
-
-	if publicPathStartIndex < 0 {
-		http.NotFound(w, r)
-		return
-	}
-
-	publicPathStartIndex += 8
-
-	// Should be in the form of /$PLUGIN_ID/public/{anything} by the timne we get here
-	pluginID := strings.Split(r.URL.Path, "/")[1]
-
-	staticFiles, isOk := c.App.GetPluginsEnvironment().StaticFilesPath(pluginID)
-
-	if !isOk {
-		http.NotFound(w, r)
-		return
-	}
-
-	requestedPublicFile := string([]rune(r.URL.Path)[publicPathStartIndex:])
-
-	http.ServeFile(w, r, filepath.Join(staticFiles, requestedPublicFile))
 }
 
 func robotsHandler(w http.ResponseWriter, r *http.Request) {

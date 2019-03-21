@@ -181,7 +181,7 @@ func TestStaticFilesFolderRequest(t *testing.T) {
 
 	th.App.SetPluginsEnvironment(env)
 
-	req, _ := http.NewRequest("GET", "/plugin/com.mattermost.sample/public/hello.html", nil)
+	req, _ := http.NewRequest("GET", "/plugins/com.mattermost.sample/public/hello.html", nil)
 	res := httptest.NewRecorder()
 	th.Web.MainRouter.ServeHTTP(res, req)
 	assert.Equal(t, helloHTML, res.Body.String())

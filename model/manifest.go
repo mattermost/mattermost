@@ -170,7 +170,7 @@ type ManifestServer struct {
 	// and using the Executables field instead.
 	Executable string `json:"executable" yaml:"executable"`
 
-	// Static files to be served at http://$SITE_URL/plugin/$PLUGIN_ID/public/{anything}
+	// Static files to be served at http://$SITE_URL/plugins/$PLUGIN_ID/public/{anything}
 	// This should be relative to the root of your bundle and the location of public files
 	StaticFiles string `json:"static_files" yaml:"static_files"`
 }
