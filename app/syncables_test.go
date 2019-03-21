@@ -1,12 +1,14 @@
 package app
 
 import (
+	"database/sql"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/stretchr/testify/require"
 )
 
-func TestPopulateSyncablesSince(t *testing.T) {
+func TestCreateDefaultMemberships(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -113,7 +115,7 @@ func TestPopulateSyncablesSince(t *testing.T) {
 		t.Errorf("test groupmember not created: %s", err.Error())
 	}
 
-	pErr := th.App.PopulateSyncablesSince(0)
+	pErr := th.App.CreateDefaultMemberships(0)
 	if pErr != nil {
 		t.Errorf("faild to populate syncables: %s", pErr.Error())
 	}
@@ -183,7 +185,7 @@ func TestPopulateSyncablesSince(t *testing.T) {
 	}
 
 	// Sync everything after syncable was created (proving that team updates trigger re-sync)
-	pErr = th.App.PopulateSyncablesSince(scientistGroupMember.CreateAt + 1)
+	pErr = th.App.CreateDefaultMemberships(scientistGroupMember.CreateAt + 1)
 	if pErr != nil {
 		t.Errorf("faild to populate syncables: %s", pErr.Error())
 	}
@@ -226,7 +228,7 @@ func TestPopulateSyncablesSince(t *testing.T) {
 	}
 
 	// Sync everything after syncable was created (proving that channel updates trigger re-sync)
-	pErr = th.App.PopulateSyncablesSince(scientistGroupMember.CreateAt + 1)
+	pErr = th.App.CreateDefaultMemberships(scientistGroupMember.CreateAt + 1)
 	if pErr != nil {
 		t.Errorf("faild to populate syncables: %s", pErr.Error())
 	}
@@ -251,7 +253,7 @@ func TestPopulateSyncablesSince(t *testing.T) {
 	}
 
 	// Even re-syncing from the beginning doesn't re-add to channel or team
-	pErr = th.App.PopulateSyncablesSince(0)
+	pErr = th.App.CreateDefaultMemberships(0)
 	if pErr != nil {
 		t.Errorf("faild to populate syncables: %s", pErr.Error())
 	}
@@ -292,7 +294,7 @@ func TestPopulateSyncablesSince(t *testing.T) {
 		t.Errorf("error updating group syncable: %s", err.Error())
 	}
 
-	pErr = th.App.PopulateSyncablesSince(0)
+	pErr = th.App.CreateDefaultMemberships(0)
 	if pErr != nil {
 		t.Errorf("faild to populate syncables: %s", pErr.Error())
 	}
@@ -313,7 +315,7 @@ func TestPopulateSyncablesSince(t *testing.T) {
 		t.Errorf("error permanently deleting channelmemberhistory: %s", result.Err.Error())
 	}
 
-	pErr = th.App.PopulateSyncablesSince(scienceChannelGroupSyncable.UpdateAt)
+	pErr = th.App.CreateDefaultMemberships(scienceChannelGroupSyncable.UpdateAt)
 	if pErr != nil {
 		t.Errorf("failed to populate syncables: %s", pErr.Error())
 	}
@@ -329,7 +331,7 @@ func TestPopulateSyncablesSince(t *testing.T) {
 		t.Errorf("error permanently deleting channelmemberhistory: %s", result.Err.Error())
 	}
 
-	pErr = th.App.PopulateSyncablesSince(scienceChannelGroupSyncable.UpdateAt)
+	pErr = th.App.CreateDefaultMemberships(scienceChannelGroupSyncable.UpdateAt)
 	if pErr != nil {
 		t.Errorf("failed to populate syncables: %s", pErr.Error())
 	}
@@ -339,4 +341,71 @@ func TestPopulateSyncablesSince(t *testing.T) {
 	if err != nil {
 		t.Errorf("expected channel member: %s", err.Error())
 	}
+}
+
+func TestDeleteGroupMemberships(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	group := th.CreateGroup()
+
+	userIDs := []string{th.BasicUser.Id, th.BasicUser2.Id, th.SystemAdminUser.Id}
+
+	var err *model.AppError
+	// add users to teams and channels
+	for _, userID := range userIDs {
+		_, err = th.App.AddTeamMember(th.BasicTeam.Id, userID)
+		require.Nil(t, err)
+
+		_, err = th.App.AddChannelMember(userID, th.BasicChannel, "", "", "")
+		require.Nil(t, err)
+	}
+
+	// make team group-constrained
+	team := th.BasicTeam
+	team.GroupConstrained = sql.NullBool{Valid: true, Bool: true}
+	team, err = th.App.UpdateTeam(team)
+	require.Nil(t, err)
+	require.True(t, team.GroupConstrained.Bool)
+
+	// make channel group-constrained
+	channel := th.BasicChannel
+	channel.GroupConstrained = sql.NullBool{Valid: true, Bool: true}
+	channel, err = th.App.UpdateChannel(channel)
+	require.Nil(t, err)
+	require.True(t, channel.GroupConstrained.Bool)
+
+	// create groupteam and groupchannel
+	_, err = th.App.CreateGroupSyncable(model.NewGroupTeam(group.Id, team.Id, true))
+	require.Nil(t, err)
+	_, err = th.App.CreateGroupSyncable(model.NewGroupChannel(group.Id, channel.Id, true))
+	require.Nil(t, err)
+
+	// verify the member count
+	tmembers, err := th.App.GetTeamMembers(th.BasicTeam.Id, 0, 100)
+	require.Nil(t, err)
+	require.Len(t, tmembers, 3)
+
+	cmemberCount, err := th.App.GetChannelMemberCount(th.BasicChannel.Id)
+	require.Nil(t, err)
+	require.Equal(t, 3, int(cmemberCount))
+
+	// add a user to the group
+	_, err = th.App.CreateOrRestoreGroupMember(group.Id, th.SystemAdminUser.Id)
+	require.Nil(t, err)
+
+	// run the delete
+	appErr := th.App.DeleteGroupConstrainedMemberships()
+	require.Nil(t, appErr)
+
+	// verify the new member counts
+	tmembers, err = th.App.GetTeamMembers(th.BasicTeam.Id, 0, 100)
+	require.Nil(t, err)
+	require.Len(t, tmembers, 1)
+	require.Equal(t, th.SystemAdminUser.Id, tmembers[0].UserId)
+
+	cmembers, err := th.App.GetChannelMembersPage(channel.Id, 0, 99)
+	require.Nil(t, err)
+	require.Len(t, (*cmembers), 1)
+	require.Equal(t, th.SystemAdminUser.Id, (*cmembers)[0].UserId)
 }

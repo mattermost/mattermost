@@ -237,13 +237,13 @@ func (_m *GroupStore) GetMemberUsersPage(groupID string, offset int, limit int) 
 	return r0
 }
 
-// PendingAutoAddChannelMembers provides a mock function with given fields: minGroupMembersCreateAt
-func (_m *GroupStore) PendingAutoAddChannelMembers(minGroupMembersCreateAt int64) store.StoreChannel {
-	ret := _m.Called(minGroupMembersCreateAt)
+// ChannelMembersToAdd provides a mock function with given fields: since
+func (_m *GroupStore) ChannelMembersToAdd(since int64) store.StoreChannel {
+	ret := _m.Called(since)
 
 	var r0 store.StoreChannel
 	if rf, ok := ret.Get(0).(func(int64) store.StoreChannel); ok {
-		r0 = rf(minGroupMembersCreateAt)
+		r0 = rf(since)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)
@@ -253,13 +253,45 @@ func (_m *GroupStore) PendingAutoAddChannelMembers(minGroupMembersCreateAt int64
 	return r0
 }
 
-// PendingAutoAddTeamMembers provides a mock function with given fields: minGroupMembersCreateAt
-func (_m *GroupStore) PendingAutoAddTeamMembers(minGroupMembersCreateAt int64) store.StoreChannel {
-	ret := _m.Called(minGroupMembersCreateAt)
+// TeamMembersToAdd provides a mock function with given fields: since
+func (_m *GroupStore) TeamMembersToAdd(since int64) store.StoreChannel {
+	ret := _m.Called(since)
 
 	var r0 store.StoreChannel
 	if rf, ok := ret.Get(0).(func(int64) store.StoreChannel); ok {
-		r0 = rf(minGroupMembersCreateAt)
+		r0 = rf(since)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
+// ChannelMembersToRemove provides a mock function with given fields:
+func (_m *GroupStore) ChannelMembersToRemove() store.StoreChannel {
+	ret := _m.Called()
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func() store.StoreChannel); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
+// TeamMembersToRemove provides a mock function with given fields:
+func (_m *GroupStore) TeamMembersToRemove() store.StoreChannel {
+	ret := _m.Called()
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func() store.StoreChannel); ok {
+		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)

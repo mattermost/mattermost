@@ -6979,6 +6979,10 @@
     "translation": "error populating syncables"
   },
   {
+    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
+    "translation": "error deleting team or channel memberships"
+  },
+  {
     "id": "model.group.create_at.app_error",
     "translation": "invalid create at property for group"
   },

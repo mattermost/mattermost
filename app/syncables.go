@@ -7,15 +7,15 @@ import (
 	"github.com/mattermost/mattermost-server/mlog"
 )
 
-// PopulateSyncablesSince adds users to teams and channels based on their group memberships and how those groups are
+// CreateDefaultMemberships adds users to teams and channels based on their group memberships and how those groups are
 // configured to sync with teams and channels for group members on or after the given timestamp.
-func (a *App) PopulateSyncablesSince(groupMembersCreatedAfter int64) error {
-	userTeamIDs, appErr := a.PendingAutoAddTeamMembers(groupMembersCreatedAfter)
+func (a *App) CreateDefaultMemberships(since int64) error {
+	teamMembers, appErr := a.TeamMembersToAdd(since)
 	if appErr != nil {
 		return appErr
 	}
 
-	for _, userTeam := range userTeamIDs {
+	for _, userTeam := range teamMembers {
 		_, err := a.AddTeamMember(userTeam.TeamID, userTeam.UserID)
 		if err != nil {
 			return err
@@ -27,12 +27,12 @@ func (a *App) PopulateSyncablesSince(groupMembersCreatedAfter int64) error {
 		)
 	}
 
-	userChannelIDs, appErr := a.PendingAutoAddChannelMembers(groupMembersCreatedAfter)
+	channelMembers, appErr := a.ChannelMembersToAdd(since)
 	if appErr != nil {
 		return appErr
 	}
 
-	for _, userChannel := range userChannelIDs {
+	for _, userChannel := range channelMembers {
 		channel, err := a.GetChannel(userChannel.ChannelID)
 		if err != nil {
 			return err
@@ -56,6 +56,51 @@ func (a *App) PopulateSyncablesSince(groupMembersCreatedAfter int64) error {
 		a.Log.Info("added channelmember",
 			mlog.String("user_id", userChannel.UserID),
 			mlog.String("channel_id", userChannel.ChannelID),
+		)
+	}
+
+	return nil
+}
+
+// DeleteGroupConstrainedMemberships deletes team and channel memberships of users who aren't members of the allowed
+// groups of all group-constrained teams and channels.
+func (a *App) DeleteGroupConstrainedMemberships() error {
+	channelMembers, appErr := a.ChannelMembersToRemove()
+	if appErr != nil {
+		return appErr
+	}
+
+	for _, userChannel := range channelMembers {
+		channel, err := a.GetChannel(userChannel.ChannelId)
+		if err != nil {
+			return err
+		}
+
+		err = a.RemoveUserFromChannel(userChannel.UserId, "", channel)
+		if err != nil {
+			return err
+		}
+
+		a.Log.Info("removed channelmember",
+			mlog.String("user_id", userChannel.UserId),
+			mlog.String("channel_id", channel.Id),
+		)
+	}
+
+	teamMembers, appErr := a.TeamMembersToRemove()
+	if appErr != nil {
+		return appErr
+	}
+
+	for _, userTeam := range teamMembers {
+		err := a.RemoveUserFromTeam(userTeam.TeamId, userTeam.UserId, "")
+		if err != nil {
+			return err
+		}
+
+		a.Log.Info("removed teammember",
+			mlog.String("user_id", userTeam.UserId),
+			mlog.String("team_id", userTeam.TeamId),
 		)
 	}
 
