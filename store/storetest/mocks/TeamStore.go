@@ -61,6 +61,11 @@ func (_m *TeamStore) ClearAllCustomRoleAssignments() store.StoreChannel {
 	return r0
 }
 
+// ClearCaches provides a mock function with given fields:
+func (_m *TeamStore) ClearCaches() {
+	_m.Called()
+}
+
 // Get provides a mock function with given fields: id
 func (_m *TeamStore) Get(id string) store.StoreChannel {
 	ret := _m.Called(id)

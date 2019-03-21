@@ -235,6 +235,11 @@ func (s SqlTeamStore) Update(team *model.Team) store.StoreChannel {
 			return
 		}
 
+		if oldTeam.DeleteAt == 0 && team.DeleteAt != 0 {
+			// Invalidate this cache after any team deletion
+			allTeamIdsForUserCache.Purge()
+		}
+
 		result.Data = team
 	})
 }
@@ -1060,8 +1065,11 @@ func (s SqlTeamStore) GetUserTeamIds(userId string, allowFromCache bool) store.S
 		TeamId
 	FROM
 		TeamMembers
+	INNER JOIN
+		Teams ON TeamMembers.TeamId = Teams.Id
 	WHERE
 		TeamMembers.UserId = :UserId
+		AND TeamMembers.DeleteAt = 0
 		AND Teams.DeleteAt = 0`,
 			map[string]interface{}{"UserId": userId})
 		if err != nil {
