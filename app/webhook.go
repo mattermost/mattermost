@@ -570,6 +570,26 @@ func (a *App) DeleteOutgoingWebhook(hookId string) *model.AppError {
 	return nil
 }
 
+func (a *App) MoveOutgoingWebhook(hookId string, newTeamId string) (*model.OutgoingWebhook, *model.AppError) {
+	oldHook, hookErr := a.GetOutgoingWebhook(hookId)
+	if hookErr != nil {
+		return nil, hookErr
+	}
+
+	oldHook.TeamId = newTeamId
+
+	newHook, err := a.CreateOutgoingWebhook(oldHook)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := a.DeleteOutgoingWebhook(hookId); err != nil {
+		return nil, err
+	}
+
+	return newHook, nil
+}
+
 func (a *App) RegenOutgoingWebhookToken(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableOutgoingWebhooks {
 		return nil, model.NewAppError("RegenOutgoingWebhookToken", "api.outgoing_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)

@@ -34,6 +34,15 @@ var WebhookShowCmd = &cobra.Command{
 	RunE:    showWebhookCmdF,
 }
 
+var WebhookMoveCmd = &cobra.Command{
+	Use:     "move [newteam] [oldteam]:[webhookId]",
+	Short:   "Move a webhook from one team to another",
+	Long:    "Move webhook with given identifier from old team to new team",
+	Args:    cobra.ExactArgs(2),
+	Example: "  webhook move newteam oldteam:w16zb5tu3n1zkqo18goqry1je",
+	RunE:    moveWebhookCmdF,
+}
+
 var WebhookCreateIncomingCmd = &cobra.Command{
 	Use:     "create-incoming",
 	Short:   "Create incoming webhook",
@@ -437,6 +446,35 @@ func showWebhookCmdF(command *cobra.Command, args []string) error {
 	return errors.New("Webhook with id " + webhookId + " not found")
 }
 
+func moveWebhookCmdF(command *cobra.Command, args []string) error {
+	app, err := InitDBCommandContextCobra(command)
+	if err != nil {
+		return err
+	}
+	defer app.Shutdown()
+
+	newTeamName := args[0]
+	newTeam, err := app.GetTeamByName(newTeamName)
+	if err != nil {
+		return err
+	}
+
+	parts := strings.Split(args[1], ":")
+	if len(parts) < 2 {
+		return errors.New("invalid arguments for identifying existing webhook")
+	}
+	hookId := parts[1]
+
+	// TODO: Figure out MoveIncomingWebhook also.
+	newHook, err := app.MoveOutgoingWebhook(hookId, newTeam.Id)
+	if err == nil {
+		fmt.Printf("%s", prettyPrintStruct(*newHook))
+		return nil
+	}
+
+	return errors.New("Unable to move webhook '" + hookId + "'")
+}
+
 func init() {
 	WebhookCreateIncomingCmd.Flags().String("channel", "", "Channel ID (required)")
 	WebhookCreateIncomingCmd.Flags().String("user", "", "User ID (required)")
@@ -479,6 +517,7 @@ func init() {
 		WebhookModifyOutgoingCmd,
 		WebhookDeleteCmd,
 		WebhookShowCmd,
+		WebhookMoveCmd,
 	)
 
 	RootCmd.AddCommand(WebhookCmd)
