@@ -529,6 +529,7 @@ func (a *App) JoinUserToTeam(team *model.Team, user *model.User, userRequestorId
 
 	a.ClearSessionCacheForUser(user.Id)
 	a.InvalidateCacheForUser(user.Id)
+	a.InvalidateCacheForUserTeams(user.Id)
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_ADDED_TO_TEAM, "", "", user.Id, nil)
 	message.Add("team_id", team.Id)
@@ -896,6 +897,7 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 
 	a.ClearSessionCacheForUser(user.Id)
 	a.InvalidateCacheForUser(user.Id)
+	a.InvalidateCacheForUserTeams(user.Id)
 
 	return nil
 }

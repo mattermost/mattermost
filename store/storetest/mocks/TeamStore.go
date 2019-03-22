@@ -434,6 +434,11 @@ func (_m *TeamStore) GetUserTeamIds(userId string, allowFromCache bool) store.St
 	return r0
 }
 
+// InvalidateAllTeamIdsForUser provides a mock function with given fields: userId
+func (_m *TeamStore) InvalidateAllTeamIdsForUser(userId string) {
+	_m.Called(userId)
+}
+
 // MigrateTeamMembers provides a mock function with given fields: fromTeamId, fromUserId
 func (_m *TeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) store.StoreChannel {
 	ret := _m.Called(fromTeamId, fromUserId)

@@ -124,6 +124,7 @@ type TeamStore interface {
 	GetTeamMembersForExport(userId string) StoreChannel
 	UserBelongsToTeams(userId string, teamIds []string) StoreChannel
 	GetUserTeamIds(userId string, allowFromCache bool) StoreChannel
+	InvalidateAllTeamIdsForUser(userId string)
 	ClearCaches()
 }
 
