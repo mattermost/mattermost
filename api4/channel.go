@@ -411,7 +411,7 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if channel.Type == model.CHANNEL_OPEN {
-		if !c.App.SessionHasPermissionToTeam(c.App.Session, channel.TeamId, model.PERMISSION_READ_PUBLIC_CHANNEL) {
+		if !c.App.SessionHasPermissionToTeam(c.App.Session, channel.TeamId, model.PERMISSION_READ_PUBLIC_CHANNEL) && !c.App.SessionHasPermissionToChannel(c.App.Session, c.Params.ChannelId, model.PERMISSION_READ_CHANNEL) {
 			c.SetPermissionError(model.PERMISSION_READ_PUBLIC_CHANNEL)
 			return
 		}
@@ -800,7 +800,7 @@ func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if channel.Type == model.CHANNEL_OPEN {
-		if !c.App.SessionHasPermissionToTeam(c.App.Session, channel.TeamId, model.PERMISSION_READ_PUBLIC_CHANNEL) {
+		if !c.App.SessionHasPermissionToTeam(c.App.Session, channel.TeamId, model.PERMISSION_READ_PUBLIC_CHANNEL) && !c.App.SessionHasPermissionToChannel(c.App.Session, channel.Id, model.PERMISSION_READ_CHANNEL) {
 			c.SetPermissionError(model.PERMISSION_READ_PUBLIC_CHANNEL)
 			return
 		}
@@ -1124,24 +1124,27 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check join permission if adding yourself, otherwise check manage permission
-	if channel.Type == model.CHANNEL_OPEN {
-		if member.UserId == c.App.Session.UserId {
-			if !c.App.SessionHasPermissionToChannel(c.App.Session, channel.Id, model.PERMISSION_JOIN_PUBLIC_CHANNELS) {
-				c.SetPermissionError(model.PERMISSION_JOIN_PUBLIC_CHANNELS)
-				return
-			}
-		} else {
-			if !c.App.SessionHasPermissionToChannel(c.App.Session, channel.Id, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS) {
-				c.SetPermissionError(model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS)
-				return
+	// Bypass permissions check if you are already joined to the channel
+	if _, err = c.App.GetChannelMember(member.ChannelId, member.UserId); err != nil {
+		// Check join permission if adding yourself, otherwise check manage permission
+		if channel.Type == model.CHANNEL_OPEN {
+			if member.UserId == c.App.Session.UserId {
+				if !c.App.SessionHasPermissionToTeam(c.App.Session, channel.TeamId, model.PERMISSION_JOIN_PUBLIC_CHANNELS) {
+					c.SetPermissionError(model.PERMISSION_JOIN_PUBLIC_CHANNELS)
+					return
+				}
+			} else {
+				if !c.App.SessionHasPermissionToChannel(c.App.Session, channel.Id, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS) {
+					c.SetPermissionError(model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS)
+					return
+				}
 			}
 		}
-	}
 
-	if channel.Type == model.CHANNEL_PRIVATE && !c.App.SessionHasPermissionToChannel(c.App.Session, channel.Id, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS)
-		return
+		if channel.Type == model.CHANNEL_PRIVATE && !c.App.SessionHasPermissionToChannel(c.App.Session, channel.Id, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS) {
+			c.SetPermissionError(model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS)
+			return
+		}
 	}
 
 	if channel.Type == model.CHANNEL_DIRECT || channel.Type == model.CHANNEL_GROUP {
