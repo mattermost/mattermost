@@ -1750,12 +1750,13 @@ func (a *App) AutocompleteUsersInChannel(teamId string, channelId string, term s
 		if len(listOfAllowedChannels) == 0 {
 			return &model.UserAutocompleteInChannel{}, nil
 		}
-		searchChannelId := channelId
+		uchanIds := []string{}
+		nuchanIds := []string{}
 		if !strings.Contains(strings.Join(listOfAllowedChannels, "."), channelId) {
-			searchChannelId = "INVALID-CHANNEL-ID"
+			nuchanIds, err = a.Elasticsearch.SearchUsersInChannels(listOfAllowedChannels, term, options)
+		} else {
+			uchanIds, nuchanIds, err = a.Elasticsearch.SearchUsersInChannelAndOutside(channelId, listOfAllowedChannels, term, options)
 		}
-
-		uchanIds, nuchanIds, err := a.Elasticsearch.SearchUsersInChannelAndOutside(searchChannelId, listOfAllowedChannels, term, options)
 		if err != nil {
 			return nil, err
 		}
