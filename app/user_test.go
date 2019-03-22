@@ -798,7 +798,7 @@ func TestGetViewUsersRestrictions(t *testing.T) {
 		assert.ElementsMatch(t, []string{team1townsquare.Id, team1offtopic.Id, team1channel1.Id, team1channel2.Id, team2townsquare.Id, team2offtopic.Id, team2channel1.Id}, restrictions.Channels)
 	})
 
-	t.Run("VIEW_MEMBERS permission not for some teams not for others", func(t *testing.T) {
+	t.Run("VIEW_MEMBERS permission for some teams but not for others", func(t *testing.T) {
 		systemUserRole, err := th.App.GetRoleByName(model.SYSTEM_USER_ROLE_ID)
 		require.Nil(t, err)
 		teamAdminRole, err := th.App.GetRoleByName(model.TEAM_ADMIN_ROLE_ID)

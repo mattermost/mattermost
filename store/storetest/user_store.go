@@ -2982,6 +2982,23 @@ func testCount(t *testing.T, ss store.Store) {
 	require.Nil(t, result.Err)
 	require.Equal(t, int64(0), result.Data.(int64))
 
+	result = <-ss.User().Count(model.UserCountOptions{
+		IncludeBotAccounts: true,
+		IncludeDeleted:     true,
+		TeamId:             teamId,
+		ViewRestrictions:   &model.ViewUsersRestrictions{Teams: []string{teamId}},
+	})
+	require.Nil(t, result.Err)
+	require.Equal(t, int64(1), result.Data.(int64))
+
+	result = <-ss.User().Count(model.UserCountOptions{
+		IncludeBotAccounts: true,
+		IncludeDeleted:     true,
+		TeamId:             teamId,
+		ViewRestrictions:   &model.ViewUsersRestrictions{Teams: []string{model.NewId()}},
+	})
+	require.Nil(t, result.Err)
+	require.Equal(t, int64(0), result.Data.(int64))
 }
 
 func testUserStoreAnalyticsGetInactiveUsersCount(t *testing.T, ss store.Store) {
