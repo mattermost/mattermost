@@ -196,6 +196,30 @@ func TestUpdateConfigMessageExportSpecialHandling(t *testing.T) {
 	assert.Equal(t, int64(0), *th.App.Config().MessageExportSettings.ExportFromTimestamp)
 }
 
+func TestUpdateConfigRestrictSystemAdmin(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
+
+	originalCfg, resp := th.SystemAdminClient.GetConfig()
+	CheckNoError(t, resp)
+
+	cfg := originalCfg.Clone()
+	*cfg.TeamSettings.SiteName = "MyFancyName"          // Allowed
+	*cfg.ServiceSettings.SiteURL = "http://example.com" // Ignored
+
+	returnedCfg, resp := th.SystemAdminClient.UpdateConfig(cfg)
+	CheckNoError(t, resp)
+
+	require.Equal(t, "MyFancyName", *returnedCfg.TeamSettings.SiteName)
+	require.Equal(t, *originalCfg.ServiceSettings.SiteURL, *returnedCfg.ServiceSettings.SiteURL)
+
+	actualCfg, resp := th.SystemAdminClient.GetConfig()
+	CheckNoError(t, resp)
+
+	require.Equal(t, returnedCfg, actualCfg)
+}
+
 func TestGetEnvironmentConfig(t *testing.T) {
 	os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://example.mattermost.com")
 	os.Setenv("MM_SERVICESETTINGS_ENABLECUSTOMEMOJI", "true")
