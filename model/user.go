@@ -108,13 +108,13 @@ type UserAuth struct {
 }
 
 type UserForIndexing struct {
-	Id          string   `json:"id"`
-	Username    string   `json:"username"`
-	Nickname    string   `json:"nickname"`
-	FirstName   string   `json:"first_name"`
-	LastName    string   `json:"last_name"`
-	CreateAt    int64    `json:"create_at"`
-	DeleteAt    int64    `json:"delete_at"`
+	Id         string   `json:"id"`
+	Username   string   `json:"username"`
+	Nickname   string   `json:"nickname"`
+	FirstName  string   `json:"first_name"`
+	LastName   string   `json:"last_name"`
+	CreateAt   int64    `json:"create_at"`
+	DeleteAt   int64    `json:"delete_at"`
 	ChannelIds []string `json:"channel_id"`
 }
 
