@@ -358,6 +358,7 @@ func MakeDefaultRoles() map[string]*Role {
 							PERMISSION_REMOVE_OTHERS_REACTIONS.Id,
 							PERMISSION_LIST_PRIVATE_TEAMS.Id,
 							PERMISSION_JOIN_PRIVATE_TEAMS.Id,
+							PERMISSION_VIEW_MEMBERS.Id,
 						},
 						roles[TEAM_USER_ROLE_ID].Permissions...,
 					),

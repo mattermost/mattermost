@@ -2623,7 +2623,7 @@ func (s SqlChannelStore) UserBelongsToChannels(userId string, channelIds []strin
 			props["channelId"+strconv.Itoa(index)] = channelId
 			idQuery += ":channelId" + strconv.Itoa(index)
 		}
-		c, err := s.GetReplica().SelectInt("SELECT Count(*) FROM ChannelMembers WHERE UserId = :UserId AND ChannelId IN ("+idQuery+") AND DeleteAt = 0", props)
+		c, err := s.GetReplica().SelectInt("SELECT Count(*) FROM ChannelMembers WHERE UserId = :UserId AND ChannelId IN ("+idQuery+")", props)
 		if err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.UserBelongsToChannels", "store.sql_channel.user_belongs_to_channels.app_error", nil, err.Error(), http.StatusInternalServerError)
 			return

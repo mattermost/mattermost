@@ -537,6 +537,7 @@ func TestGetBotUser(t *testing.T) {
 	defer th.App.PermanentDeleteBot(createdBot.UserId)
 
 	botUser, resp := th.Client.GetUser(createdBot.UserId, "")
+	CheckNoError(t, resp)
 	require.Equal(t, bot.Username, botUser.Username)
 	require.True(t, botUser.IsBot)
 }
