@@ -72,7 +72,6 @@ func TestManifestUnmarshal(t *testing.T) {
 				DarwinAmd64:  "theexecutable-darwin-amd64",
 				WindowsAmd64: "theexecutable-windows-amd64",
 			},
-			StaticFiles: "pathtostaticfiles",
 		},
 		Webapp: &ManifestWebapp{
 			BundlePath: "thebundlepath",
@@ -110,7 +109,6 @@ server:
           linux-amd64: theexecutable-linux-amd64
           darwin-amd64: theexecutable-darwin-amd64
           windows-amd64: theexecutable-windows-amd64
-    static_files: pathtostaticfiles
 webapp:
     bundle_path: thebundlepath
 settings_schema:
@@ -140,8 +138,7 @@ settings_schema:
 			"linux-amd64": "theexecutable-linux-amd64",
 			"darwin-amd64": "theexecutable-darwin-amd64",
 			"windows-amd64": "theexecutable-windows-amd64"
-		},
-		"static_files": "pathtostaticfiles"
+		}
 	},
 	"webapp": {
 		"bundle_path": "thebundlepath"
