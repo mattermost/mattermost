@@ -161,7 +161,7 @@ func TestStaticFilesFolderRequest(t *testing.T) {
 	compileGo(t, pluginCode, backend)
 
 	// Write the plugin.json manifest
-	pluginManifest := `{"id": "com.mattermost.sample", "server": {"executable": "backend.exe", "static_files": "server/dist/public"}, "settings_schema": {"settings": []}}`
+	pluginManifest := `{"id": "com.mattermost.sample", "server": {"executable": "backend.exe"}, "settings_schema": {"settings": []}}`
 	ioutil.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(pluginManifest), 0600)
 
 	// Write the test public file

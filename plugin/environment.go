@@ -9,7 +9,6 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strings"
 	"sync"
 
 	"github.com/mattermost/mattermost-server/mlog"
@@ -98,16 +97,10 @@ func (env *Environment) IsActive(id string) bool {
 // StaticFilesPath returns a path and true if the plugin with the given id is active.
 // It returns an empty string and false if the path is not set or invalid
 func (env *Environment) StaticFilesPath(id string) (string, bool) {
-	if staticFilePlugin, ok := env.activePlugins.Load(id); !ok {
+	if _, ok := env.activePlugins.Load(id); !ok {
 		return "", ok
-	} else {
-		staticFolder := staticFilePlugin.(activePlugin).BundleInfo.Manifest.Server.StaticFiles
-		if staticFolder == "" || strings.HasPrefix(staticFolder, "..") {
-			return "", false
-		}
-
-		return filepath.Join(env.pluginDir, id, staticFolder), true
 	}
+	return filepath.Join(env.pluginDir, id, "server/dist/public"), true
 }
 
 // Statuses returns a list of plugin statuses representing the state of every plugin
