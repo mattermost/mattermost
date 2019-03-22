@@ -975,7 +975,7 @@ func viewChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	times, err := c.App.ViewChannel(view, c.Params.UserId, !c.App.Session.IsMobileApp())
+	times, err := c.App.ViewChannel(view, c.Params.UserId, c.App.Session.Id)
 	if err != nil {
 		c.Err = err
 		return
@@ -1137,7 +1137,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cm, err := c.App.AddChannelMember(member.UserId, channel, c.App.Session.UserId, postRootId, !c.App.Session.IsMobileApp())
+	cm, err := c.App.AddChannelMember(member.UserId, channel, c.App.Session.UserId, postRootId, c.App.Session.Id)
 	if err != nil {
 		c.Err = err
 		return

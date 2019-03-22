@@ -7,14 +7,12 @@ import (
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/viper"
 	"github.com/spf13/cobra"
 )
 
 func InitDBCommandContextCobra(command *cobra.Command) (*app.App, error) {
-	config, err := command.Flags().GetString("config")
-	if err != nil {
-		return nil, err
-	}
+	config := viper.GetString("config")
 
 	a, err := InitDBCommandContext(config)
 
@@ -37,7 +35,10 @@ func InitDBCommandContext(configDSN string) (*app.App, error) {
 	}
 	model.AppErrorInit(utils.T)
 
-	s, err := app.NewServer(app.Config(configDSN, false))
+	s, err := app.NewServer(
+		app.Config(configDSN, false),
+		app.StartElasticsearch,
+	)
 	if err != nil {
 		return nil, err
 	}
