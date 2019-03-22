@@ -157,17 +157,6 @@ func (cs *commonStore) validate(cfg *model.Config) error {
 	return nil
 }
 
-// mergeConfig merges two configs together. The receiver's values are overwritten with the patch's
-// values except when the patch's values are nil.
-func (cs *commonStore) mergeConfig(patch *model.Config) (*model.Config, error) {
-	ret, err := utils.Merge(cs.config, patch)
-	if err != nil {
-		return nil, err
-	}
-	retC := ret.(model.Config)
-	return &retC, nil
-}
-
 // removeEnvOverrides takes the newCfg provided and adds information stored in the commonStore,
 // then delegates the task to the removeEnvOverrides function
 func (cs *commonStore) removeEnvOverrides(newCfg *model.Config) *model.Config {

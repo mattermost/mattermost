@@ -8,37 +8,40 @@ import (
 	"reflect"
 )
 
-// Merge will return a new struct/map/slice of the same type as base and patch, with patch merged into base.
-// Specifically, patch's values will be preferred except when patch's value is `nil`.
-// Note: a referenced value (eg. *bool) will only be `nil` if the pointer is nil. If the value is a zero value,
-//       then that is considered a legitimate value. Eg, *bool(false) will overwrite *bool(true).
+// StructFieldFilter defines a callback function used to decide if a patch value should be applied.
+type StructFieldFilter func(structField reflect.StructField, base reflect.Value, patch reflect.Value) bool
+
+// MergeConfig allows for optional merge customizations.
+type MergeConfig struct {
+	StructFieldFilter StructFieldFilter
+}
+
+// Merge will return a new value of the same type as base and patch, recursively merging non-nil values from patch on top of base.
 //
 // Restrictions/guarantees:
-//   - base and patch will not be modified
-//   - base and patch can be pointers or values
 //   - base and patch must be the same type
-//   - if slices are different, this rule applies:
-//       - if patch is not nil, overwrite the base slice.
-//       - otherwise, keep the base slice
-//   - maps will be merged according to the following rules:
-//       - if patch is not nil, replace the base map completely
-//		 - otherwise, keep the base map
-//		 - reference values (eg. slice/ptr/map) will be cloned
-//   - channel values are not supported at the moment
+//   - base and patch will never be modified
+//   - values from patch are always selected when non-nil
+//   - structs are merged recursively
+//   - maps and slices are treated as pointers, and merged as a single value
 //
-// Usage: callers need to cast the returned interface back into the original type, eg:
+// Note that callers need to cast the returned interface back into the original type:
 // func mergeTestStruct(base, patch *testStruct) (*testStruct, error) {
 //     ret, err := merge(base, patch)
 //     if err != nil {
 //         return nil, err
 //     }
+//
 //     retTS := ret.(testStruct)
 //     return &retTS, nil
 // }
-func Merge(base interface{}, patch interface{}) (interface{}, error) {
+func Merge(base interface{}, patch interface{}, mergeConfig *MergeConfig) (interface{}, error) {
 	if reflect.TypeOf(base) != reflect.TypeOf(patch) {
-		return nil, fmt.Errorf("cannot merge different types. base type: %s, patch type: %s",
-			reflect.TypeOf(base), reflect.TypeOf(patch))
+		return nil, fmt.Errorf(
+			"cannot merge different types. base type: %s, patch type: %s",
+			reflect.TypeOf(base),
+			reflect.TypeOf(patch),
+		)
 	}
 
 	commonType := reflect.TypeOf(base)
@@ -52,7 +55,7 @@ func Merge(base interface{}, patch interface{}) (interface{}, error) {
 
 	ret := reflect.New(commonType)
 
-	val, ok := merge(baseVal, patchVal)
+	val, ok := merge(baseVal, patchVal, mergeConfig)
 	if ok {
 		ret.Elem().Set(val)
 	}
@@ -60,7 +63,7 @@ func Merge(base interface{}, patch interface{}) (interface{}, error) {
 }
 
 // merge recursively merges patch into base and returns the new struct, ptr, slice/map, or value
-func merge(base, patch reflect.Value) (reflect.Value, bool) {
+func merge(base, patch reflect.Value, mergeConfig *MergeConfig) (reflect.Value, bool) {
 	commonType := base.Type()
 
 	switch commonType.Kind() {
@@ -70,7 +73,13 @@ func merge(base, patch reflect.Value) (reflect.Value, bool) {
 			if !merged.Field(i).CanSet() {
 				continue
 			}
-			val, ok := merge(base.Field(i), patch.Field(i))
+			if mergeConfig != nil && mergeConfig.StructFieldFilter != nil {
+				if !mergeConfig.StructFieldFilter(commonType.Field(i), base.Field(i), patch.Field(i)) {
+					merged.Field(i).Set(base.Field(i))
+					continue
+				}
+			}
+			val, ok := merge(base.Field(i), patch.Field(i), mergeConfig)
 			if ok {
 				merged.Field(i).Set(val)
 			}
@@ -85,13 +94,13 @@ func merge(base, patch reflect.Value) (reflect.Value, bool) {
 
 		// clone reference values (if any)
 		if base.IsNil() {
-			val, _ := merge(patch.Elem(), patch.Elem())
+			val, _ := merge(patch.Elem(), patch.Elem(), mergeConfig)
 			mergedPtr.Elem().Set(val)
 		} else if patch.IsNil() {
-			val, _ := merge(base.Elem(), base.Elem())
+			val, _ := merge(base.Elem(), base.Elem(), mergeConfig)
 			mergedPtr.Elem().Set(val)
 		} else {
-			val, _ := merge(base.Elem(), patch.Elem())
+			val, _ := merge(base.Elem(), patch.Elem(), mergeConfig)
 			mergedPtr.Elem().Set(val)
 		}
 		return mergedPtr, true
@@ -105,7 +114,7 @@ func merge(base, patch reflect.Value) (reflect.Value, bool) {
 			merged := reflect.MakeSlice(commonType, 0, patch.Len())
 			for i := 0; i < patch.Len(); i++ {
 				// recursively merge patch with itself. This will clone reference values.
-				val, _ := merge(patch.Index(i), patch.Index(i))
+				val, _ := merge(patch.Index(i), patch.Index(i), mergeConfig)
 				merged = reflect.Append(merged, val)
 			}
 			return merged, true
@@ -115,7 +124,7 @@ func merge(base, patch reflect.Value) (reflect.Value, bool) {
 		for i := 0; i < base.Len(); i++ {
 
 			// recursively merge base with itself. This will clone reference values.
-			val, _ := merge(base.Index(i), base.Index(i))
+			val, _ := merge(base.Index(i), base.Index(i), mergeConfig)
 			merged = reflect.Append(merged, val)
 		}
 		return merged, true
@@ -135,7 +144,7 @@ func merge(base, patch reflect.Value) (reflect.Value, bool) {
 		}
 		for _, key := range mapPtr.MapKeys() {
 			// clone reference values
-			val, ok := merge(mapPtr.MapIndex(key), mapPtr.MapIndex(key))
+			val, ok := merge(mapPtr.MapIndex(key), mapPtr.MapIndex(key), mergeConfig)
 			if !ok {
 				val = reflect.New(mapPtr.MapIndex(key).Type()).Elem()
 			}
@@ -151,11 +160,11 @@ func merge(base, patch reflect.Value) (reflect.Value, bool) {
 
 		// clone reference values (if any)
 		if base.IsNil() {
-			val, _ = merge(patch.Elem(), patch.Elem())
+			val, _ = merge(patch.Elem(), patch.Elem(), mergeConfig)
 		} else if patch.IsNil() {
-			val, _ = merge(base.Elem(), base.Elem())
+			val, _ = merge(base.Elem(), base.Elem(), mergeConfig)
 		} else {
-			val, _ = merge(base.Elem(), patch.Elem())
+			val, _ = merge(base.Elem(), patch.Elem(), mergeConfig)
 		}
 		return val, true
 

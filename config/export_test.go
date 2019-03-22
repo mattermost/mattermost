@@ -27,11 +27,6 @@ func ResolveConfigFilePath(path string) (string, error) {
 	return resolveConfigFilePath(path)
 }
 
-// GetCommonStore exposes the internal commonStore to test only.
-func (ms *memoryStore) MergeConfig(patch *model.Config) (*model.Config, error) {
-	return ms.mergeConfig(patch)
-}
-
 // GetWithoutEnvOverrides exposes the internal
 func GetConfigWithoutOverridesDS(ds *DatabaseStore) *model.Config {
 	return ds.commonStore.removeEnvOverrides(ds.config)
