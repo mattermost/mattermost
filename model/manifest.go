@@ -98,8 +98,7 @@ type PluginSettingsSchema struct {
 //          "linux-amd64": "server/dist/plugin-linux-amd64",
 //          "darwin-amd64": "server/dist/plugin-darwin-amd64",
 //          "windows-amd64": "server/dist/plugin-windows-amd64.exe"
-//        },
-//			"static_files": "server/dist/public"
+//        }
 //      },
 //      "webapp": {
 //          "bundle_path": "webapp/dist/main.js"
@@ -169,10 +168,6 @@ type ManifestServer struct {
 	// If your plugin is compiled for multiple platforms, consider bundling them together
 	// and using the Executables field instead.
 	Executable string `json:"executable" yaml:"executable"`
-
-	// Static files to be served at http://$SITE_URL/plugins/$PLUGIN_ID/public/{anything}
-	// This should be relative to the root of your bundle and the location of public files
-	StaticFiles string `json:"static_files" yaml:"static_files"`
 }
 
 type ManifestExecutables struct {
