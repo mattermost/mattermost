@@ -387,6 +387,57 @@ func (a *App) GetIncomingWebhook(hookId string) (*model.IncomingWebhook, *model.
 	}
 }
 
+func (a *App) CreateIncomingWebhook(hook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError) {
+	if !*a.Config().ServiceSettings.EnableIncomingWebhooks {
+		return nil, model.NewAppError("CreateIncomingWebhook", "api.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	if len(hook.ChannelId) != 0 {
+		cchan := a.Srv.Store.Channel().Get(hook.ChannelId, true)
+
+		var channel *model.Channel
+		if result := <-cchan; result.Err != nil {
+			return nil, result.Err
+		} else {
+			channel = result.Data.(*model.Channel)
+		}
+
+		if channel.Type != model.CHANNEL_OPEN {
+			return nil, model.NewAppError("CreateIncomingWebhook", "api.incoming_webhook.disabled.app_error", nil, "", http.StatusForbidden)
+		}
+
+		if channel.Type != model.CHANNEL_OPEN || channel.TeamId != hook.TeamId {
+			return nil, model.NewAppError("CreateIncomingWebhook", "api.webhook.create_incoming.permissions.app_error", nil, "", http.StatusForbidden)
+		}
+	}
+
+	if result := <-a.Srv.Store.Webhook().SaveIncoming(hook); result.Err != nil {
+		return nil, result.Err
+	} else {
+		return result.Data.(*model.IncomingWebhook), nil
+	}
+}
+
+func (a *App) MoveIncomingWebhook(hookId string, newTeamId string) (*model.IncomingWebhook, *model.AppError) {
+	oldHook, hookErr := a.GetIncomingWebhook(hookId)
+	if hookErr != nil {
+		return nil, hookErr
+	}
+
+	oldHook.TeamId = newTeamId
+
+	newHook, err := a.CreateIncomingWebhook(oldHook)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := a.DeleteIncomingWebhook(hookId); err != nil {
+		return nil, err
+	}
+
+	return newHook, nil
+}
+
 func (a *App) GetIncomingWebhooksForTeamPage(teamId string, page, perPage int) ([]*model.IncomingWebhook, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableIncomingWebhooks {
 		return nil, model.NewAppError("GetIncomingWebhooksForTeamPage", "api.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
