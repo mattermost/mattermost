@@ -44,10 +44,6 @@ func (a *App) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
 // ServePluginStaticRequest serves static plugin files
 // at the URL http(s)://$SITE_URL/plugins/$PLUGIN_ID/public/{anything}
 func (a *App) ServePluginStaticRequest(w http.ResponseWriter, r *http.Request) {
-	// Static files rarely change and may be cached indefinitely. Though,
-	// it is recommended that it's not more than one year...
-	// RFC 7234 5.3 https://tools.ietf.org/html/rfc7234#section-5.3
-	w.Header().Set("Cache-Control", "max-age=31556926, public")
 	if strings.HasSuffix(r.URL.Path, "/") {
 		http.NotFound(w, r)
 		return
