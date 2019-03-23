@@ -465,13 +465,14 @@ func moveWebhookCmdF(command *cobra.Command, args []string) error {
 	}
 	hookId := parts[1]
 
-	if outHook, outErr := app.MoveOutgoingWebhook(hookId, newTeam.Id); outErr != nil {
-		inHook, inErr := app.MoveIncomingWebhook(hookId, newTeam.Id); inErr != nil {
-			fmt.Printf("%s", prettyPrintStruct(*inHook))
-			return nil
-		}
-	} else {
+	// Assume given webhook is an outgoing webhook and try to move it to new team.
+	if outHook, outErr := app.MoveOutgoingWebhook(hookId, newTeam.Id); outErr == nil {
 		fmt.Printf("%s", prettyPrintStruct(*outHook))
+		return nil
+	}
+
+	if inHook, inErr := app.MoveIncomingWebhook(hookId, newTeam.Id); inErr == nil {
+		fmt.Printf("%s", prettyPrintStruct(*inHook))
 		return nil
 	}
 

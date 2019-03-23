@@ -252,6 +252,104 @@ func TestModifyIncomingWebhook(t *testing.T) {
 	}
 }
 
+func TestMoveWebhook(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	config := th.Config()
+	*config.ServiceSettings.EnableCommands = true
+	*config.ServiceSettings.EnableIncomingWebhooks = true
+	*config.ServiceSettings.EnableOutgoingWebhooks = true
+	*config.ServiceSettings.EnablePostUsernameOverride = true
+	*config.ServiceSettings.EnablePostIconOverride = true
+	th.SetConfig(config)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnablePostUsernameOverride = true })
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnablePostIconOverride = true })
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_INCOMING_WEBHOOKS.Id, model.TEAM_ADMIN_ROLE_ID)
+	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_INCOMING_WEBHOOKS.Id, model.TEAM_USER_ROLE_ID)
+
+	// Create old and new teams
+	oldTeamId := model.NewId()
+	oldTeam := &model.Team{
+		DisplayName: "dn_" + oldTeamId,
+		Name:        "name" + oldTeamId,
+		Email:       "success+" + oldTeamId + "@simulator.amazonses.com",
+		Type:        model.TEAM_OPEN,
+	}
+
+	newTeamId := model.NewId()
+	newTeam := &model.Team{
+		DisplayName: "dn_" + newTeamId,
+		Name:        "name" + newTeamId,
+		Email:       "success+" + newTeamId + "@simulator.amazonses.com",
+		Type:        model.TEAM_OPEN,
+	}
+
+	if _, err := th.App.CreateTeam(oldTeam); err != nil {
+		t.Log(err)
+		t.Fatal("Should create old team")
+	}
+	defer th.App.PermanentDeleteTeam(oldTeam)
+
+	if _, err := th.App.CreateTeam(newTeam); err != nil {
+		t.Log(err)
+		t.Fatal("Should create new team")
+	}
+	defer th.App.PermanentDeleteTeam(newTeam)
+
+	// Create incoming webhook
+	oldHook, err := th.App.CreateIncomingWebhook(&model.IncomingWebhook{
+		TeamId:      oldTeam.Id,
+		DisplayName: "dn_oldHook",
+	})
+	if err != nil {
+		t.Fatal("unable to create incoming webhook")
+	}
+
+	// should fail because you need to specify valid old team name
+	require.Error(t, th.RunCommand(t, "webhook", "move", "invalid", newTeam.Name))
+
+	// should fail because you need to specify valid new team name
+	require.Error(t, th.RunCommand(t, "webhook", "move", oldTeam.Name, "invalid"))
+
+	// should fail because you need to specify an incoming webhook ID
+	require.Error(t, th.RunCommand(t, "webhook", "move", oldTeam.Name, newTeam.Name))
+
+	// should fail because you need to specify valid incoming webhook ID
+	require.Error(t, th.RunCommand(t, "webhook", "move", oldTeam.Name, newTeam.Name+":invalid"))
+
+	th.CheckCommand(t, "webhook", "move", oldTeam.Name, newTeam.Name+":"+oldHook.Id)
+
+	inHook, err := th.App.GetIncomingWebhook(oldHook.Id)
+	if err == nil {
+		t.Fatal("Failed to delete old incoming webhook")
+	}
+
+	inHooks, err := th.App.GetIncomingWebhooksForTeamPage(newTeam.Id, 0, 1000)
+	if err != nil {
+		t.Fatal("Failed to fetch incoming webhooks for new team")
+	}
+
+	found := false
+	for _, webhook := range inHooks {
+		if webhook.DisplayName == inHook.DisplayName {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatal("Failed to move incoming webhook")
+	}
+}
+
 func TestCreateOutgoingWebhook(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
