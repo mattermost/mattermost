@@ -100,7 +100,7 @@ func (env *Environment) StaticFilesPath(id string) (string, bool) {
 	if _, ok := env.activePlugins.Load(id); !ok {
 		return "", ok
 	}
-	return filepath.Join(env.pluginDir, id, "server/dist/public"), true
+	return filepath.Join(env.pluginDir, id, "public"), true
 }
 
 // Statuses returns a list of plugin statuses representing the state of every plugin
