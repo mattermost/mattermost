@@ -274,7 +274,9 @@ func TestMoveWebhook(t *testing.T) {
 		th.RestoreDefaultRolePermissions(defaultRolePermissions)
 	}()
 	th.AddPermissionToRole(model.PERMISSION_MANAGE_INCOMING_WEBHOOKS.Id, model.TEAM_ADMIN_ROLE_ID)
+	th.AddPermissionToRole(model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS.Id, model.TEAM_ADMIN_ROLE_ID)
 	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_INCOMING_WEBHOOKS.Id, model.TEAM_USER_ROLE_ID)
+	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS.Id, model.TEAM_USER_ROLE_ID)
 
 	// Create old and new teams
 	oldTeamId := model.NewId()
@@ -305,13 +307,20 @@ func TestMoveWebhook(t *testing.T) {
 	}
 	defer th.App.PermanentDeleteTeam(newTeam)
 
-	// Create incoming webhook
-	oldHook, err := th.App.CreateIncomingWebhook(&model.IncomingWebhook{
+	oldInHook, err := th.App.CreateIncomingWebhook(&model.IncomingWebhook{
 		TeamId:      oldTeam.Id,
-		DisplayName: "dn_oldHook",
+		DisplayName: "dn_oldInHook",
 	})
 	if err != nil {
 		t.Fatal("unable to create incoming webhook")
+	}
+
+	oldOutHook, err := th.App.CreateOutgoingWebhook(&model.OutgoingWebhook{
+		TeamId:      oldTeam.Id,
+		DisplayName: "dn_oldOutHook",
+	})
+	if err != nil {
+		t.Fatal("unable to create outgoing webhook")
 	}
 
 	// should fail because you need to specify valid old team name
@@ -326,9 +335,10 @@ func TestMoveWebhook(t *testing.T) {
 	// should fail because you need to specify valid incoming webhook ID
 	require.Error(t, th.RunCommand(t, "webhook", "move", oldTeam.Name, newTeam.Name+":invalid"))
 
-	th.CheckCommand(t, "webhook", "move", oldTeam.Name, newTeam.Name+":"+oldHook.Id)
+	// Test moving incoming webhook
+	th.CheckCommand(t, "webhook", "move", oldTeam.Name, newTeam.Name+":"+oldInHook.Id)
 
-	inHook, err := th.App.GetIncomingWebhook(oldHook.Id)
+	inHook, err := th.App.GetIncomingWebhook(oldInHook.Id)
 	if err == nil {
 		t.Fatal("Failed to delete old incoming webhook")
 	}
@@ -347,6 +357,30 @@ func TestMoveWebhook(t *testing.T) {
 	}
 	if !found {
 		t.Fatal("Failed to move incoming webhook")
+	}
+
+	// Test moving outgoing webhook
+	th.CheckCommand(t, "webhook", "move", oldTeam.Name, newTeam.Name+":"+oldOutHook.Id)
+
+	outHook, err := th.App.GetOutgoingWebhook(oldOutHook.Id)
+	if err == nil {
+		t.Fatal("Failed to delete old outgoing webhook")
+	}
+
+	outHooks, err := th.App.GetOutgoingWebhooksForTeamPage(newTeam.Id, 0, 1000)
+	if err != nil {
+		t.Fatal("Failed to fetch outgoing webhooks for new team")
+	}
+
+	found = false
+	for _, webhook := range outHooks {
+		if webhook.DisplayName == outHook.DisplayName {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatal("Failed to move outgoing webhook")
 	}
 }
 
