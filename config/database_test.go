@@ -407,6 +407,8 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		require.NoError(t, err)
 		defer ds.Close()
 
+		assert.Equal(t, "http://minimal", *ds.Get().ServiceSettings.SiteURL)
+
 		os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://override")
 
 		err = ds.Load()
@@ -419,23 +421,18 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
 		defer tearDown()
 
+		os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://overridePersistEnvVariables")
+
 		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
 		require.NoError(t, err)
 		defer ds.Close()
 
-		os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://override")
-
 		_, err = ds.Set(ds.Get())
 		require.NoError(t, err)
-		err = ds.Load()
-		require.NoError(t, err)
 
-		assert.Equal(t, "http://override", *ds.Get().ServiceSettings.SiteURL)
+		assert.Equal(t, "http://overridePersistEnvVariables", *ds.Get().ServiceSettings.SiteURL)
 		assert.Equal(t, map[string]interface{}{"ServiceSettings": map[string]interface{}{"SiteURL": true}}, ds.GetEnvironmentOverrides())
 		assert.Equal(t, "http://minimal", *config.GetConfigWithoutOverridesDS(ds).ServiceSettings.SiteURL)
-
-		// Doesn't work with the way Viper unmarshals empty slices, and how we handle initializing deprecated settings
-		//assertDatabaseEqualsConfig(t, config.GetConfigWithoutOverridesDS(ds))
 	})
 
 	t.Run("invalid", func(t *testing.T) {
