@@ -167,7 +167,7 @@ func TestStaticFilesFolderRequest(t *testing.T) {
 	// Write the test public file
 	helloHTML := `Hello from the static files public folder for the com.mattermost.sample plugin!`
 
-	htmlFolderPath := filepath.Join(pluginDir, pluginID, "server/dist/public")
+	htmlFolderPath := filepath.Join(pluginDir, pluginID, "public")
 	os.MkdirAll(htmlFolderPath, os.ModePerm)
 	htmlFilePath := filepath.Join(htmlFolderPath, "hello.html")
 

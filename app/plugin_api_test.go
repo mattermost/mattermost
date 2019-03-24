@@ -73,7 +73,7 @@ func TestStaticFilesFolderConfiguration(t *testing.T) {
 	`,
 		`{"id": "com.mattermost.sample", "server": {"executable": "backend.exe", "static_files": "server/dist/public"}, "settings_schema": {"settings": []}}`, pluginID, th.App)
 
-	staticFilesFolderInTest := filepath.Join(pluginDir, pluginID, "server/dist/public")
+	staticFilesFolderInTest := filepath.Join(pluginDir, pluginID, "public")
 
 	staticFilesFolder, isOK := th.App.GetPluginsEnvironment().StaticFilesPath(pluginID)
 	assert.True(t, isOK)
