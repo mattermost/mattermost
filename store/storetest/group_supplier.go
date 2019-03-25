@@ -1530,12 +1530,12 @@ func pendingMemberRemovalsDataSetup(t *testing.T, ss store.Store) *removalsData 
 
 	// add users to teams
 	userIDTeamIDs := [][]string{
-		[]string{userA.Id, teamConstrained.Id},
-		[]string{userB.Id, teamConstrained.Id},
-		[]string{userC.Id, teamConstrained.Id},
-		[]string{userA.Id, teamUnconstrained.Id},
-		[]string{userB.Id, teamUnconstrained.Id},
-		[]string{userC.Id, teamUnconstrained.Id},
+		{userA.Id, teamConstrained.Id},
+		{userB.Id, teamConstrained.Id},
+		{userC.Id, teamConstrained.Id},
+		{userA.Id, teamUnconstrained.Id},
+		{userB.Id, teamUnconstrained.Id},
+		{userC.Id, teamUnconstrained.Id},
 	}
 
 	for _, item := range userIDTeamIDs {
@@ -1548,12 +1548,12 @@ func pendingMemberRemovalsDataSetup(t *testing.T, ss store.Store) *removalsData 
 
 	// add users to channels
 	userIDChannelIDs := [][]string{
-		[]string{userA.Id, channelConstrained.Id},
-		[]string{userB.Id, channelConstrained.Id},
-		[]string{userC.Id, channelConstrained.Id},
-		[]string{userA.Id, channelUnconstrained.Id},
-		[]string{userB.Id, channelUnconstrained.Id},
-		[]string{userC.Id, channelUnconstrained.Id},
+		{userA.Id, channelConstrained.Id},
+		{userB.Id, channelConstrained.Id},
+		{userC.Id, channelConstrained.Id},
+		{userA.Id, channelUnconstrained.Id},
+		{userB.Id, channelUnconstrained.Id},
+		{userC.Id, channelUnconstrained.Id},
 	}
 
 	for _, item := range userIDChannelIDs {
