@@ -959,6 +959,10 @@
     "translation": "Le nouveau format pour la configuration du client n'est pas encore supporté. Veuillez spécifier format=old dans la chaîne de requête (query string)"
   },
   {
+    "id": "api.config.update_config.restricted_merge.app_error",
+    "translation": "Failed to merge given config."
+  },
+  {
     "id": "api.context.404.app_error",
     "translation": "Désolé, impossible de trouver cette page."
   },
@@ -3479,6 +3483,10 @@
     "translation": "Le système d’agrégation Elasticsearch n'a pas pu interpréter l'heure de début"
   },
   {
+    "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
+    "translation": "Trying to index a new batch when all the entities are completed."
+  },
+  {
     "id": "ent.elasticsearch.not_started.error",
     "translation": "Elasticsearch n'est pas démarré"
   },
@@ -3916,7 +3924,7 @@
   },
   {
     "id": "model.bot.is_valid.update_at.app_error",
-    "translation": "Invalid update at"
+    "translation": "Id créateur invalide"
   },
   {
     "id": "model.bot.is_valid.user_id.app_error",
@@ -5287,6 +5295,10 @@
     "translation": "Aucun canal n'a pu être trouvé"
   },
   {
+    "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
+    "translation": "Impossible de récupérer le lot de messages à indexer"
+  },
+  {
     "id": "store.sql_channel.get_channels_by_ids.get.app_error",
     "translation": "Impossible de récupérer les canaux"
   },
@@ -6391,6 +6403,10 @@
     "translation": "Impossible d'obtenir toutes les équipes"
   },
   {
+    "id": "store.sql_team.get_all_private_team_listing.app_error",
+    "translation": "Impossible d'obtenir toutes les équipes"
+  },
+  {
     "id": "store.sql_team.get_all_team_listing.app_error",
     "translation": "Impossible d'obtenir toutes les équipes"
   },
@@ -6492,6 +6508,10 @@
   },
   {
     "id": "store.sql_team.search_open_team.app_error",
+    "translation": "Une erreur s'est produite lors de la recherche des équipes ouvertes"
+  },
+  {
+    "id": "store.sql_team.search_private_team.app_error",
     "translation": "Une erreur s'est produite lors de la recherche des équipes ouvertes"
   },
   {
@@ -6629,6 +6649,18 @@
   {
     "id": "store.sql_user.get_unread_count_for_channel.app_error",
     "translation": "Impossible de compter le nombre de messages non lus pour l'utilisateur et le canal"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_channel_members.app_error",
+    "translation": "Unable to get the channel members for the users batch for indexing"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_team_members.app_error",
+    "translation": "Unable to get the team members for the users batch for indexing"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
+    "translation": "Impossible de récupérer le lot de messages à indexer"
   },
   {
     "id": "store.sql_user.missing_account.const",

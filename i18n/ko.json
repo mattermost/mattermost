@@ -959,6 +959,10 @@
     "translation": "사용자 설정을 위한 새로운 형식은 아직 지원되지 않습니다. 명령문에서 format=old 를 명시해 주세요."
   },
   {
+    "id": "api.config.update_config.restricted_merge.app_error",
+    "translation": "Failed to merge given config."
+  },
+  {
     "id": "api.context.404.app_error",
     "translation": "죄송합니다, 페이지를 찾을 수 없습니다."
   },
@@ -3479,6 +3483,10 @@
     "translation": "Elasticsearch indexing worker failed to parse the start time"
   },
   {
+    "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
+    "translation": "Trying to index a new batch when all the entities are completed."
+  },
+  {
     "id": "ent.elasticsearch.not_started.error",
     "translation": "Elasticsearch is not started"
   },
@@ -3916,7 +3924,7 @@
   },
   {
     "id": "model.bot.is_valid.update_at.app_error",
-    "translation": "Invalid update at"
+    "translation": "잘못된 제출자 ID"
   },
   {
     "id": "model.bot.is_valid.user_id.app_error",
@@ -5287,6 +5295,10 @@
     "translation": "No channels were found"
   },
   {
+    "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
+    "translation": "Unable to get the channels batch for indexing"
+  },
+  {
     "id": "store.sql_channel.get_channels_by_ids.get.app_error",
     "translation": "채널을 불러올 수 없습니다."
   },
@@ -6391,6 +6403,10 @@
     "translation": "We could not get all teams"
   },
   {
+    "id": "store.sql_team.get_all_private_team_listing.app_error",
+    "translation": "We could not get all teams"
+  },
+  {
     "id": "store.sql_team.get_all_team_listing.app_error",
     "translation": "We could not get all teams"
   },
@@ -6492,6 +6508,10 @@
   },
   {
     "id": "store.sql_team.search_open_team.app_error",
+    "translation": "We encountered an error updating the channel"
+  },
+  {
+    "id": "store.sql_team.search_private_team.app_error",
     "translation": "We encountered an error updating the channel"
   },
   {
@@ -6629,6 +6649,18 @@
   {
     "id": "store.sql_user.get_unread_count_for_channel.app_error",
     "translation": "We could not get the unread message count for the user"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_channel_members.app_error",
+    "translation": "Unable to get the channel members for the users batch for indexing"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_team_members.app_error",
+    "translation": "Unable to get the team members for the users batch for indexing"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
+    "translation": "Unable to get the users batch for indexing"
   },
   {
     "id": "store.sql_user.missing_account.const",

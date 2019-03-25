@@ -959,6 +959,10 @@
     "translation": "Das neue Format für die Clientkonfiguration wird noch nicht unterstützt. Bitte geben Sie format=old in der Anfrage an."
   },
   {
+    "id": "api.config.update_config.restricted_merge.app_error",
+    "translation": "Failed to merge given config."
+  },
+  {
     "id": "api.context.404.app_error",
     "translation": "Entschuldigung, wir konnten die Seite nicht finden."
   },
@@ -3479,6 +3483,10 @@
     "translation": "Elasticsearch-Aggregator-Worker konnte die Startzeit nicht verarbeiten"
   },
   {
+    "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
+    "translation": "Trying to index a new batch when all the entities are completed."
+  },
+  {
     "id": "ent.elasticsearch.not_started.error",
     "translation": "Elasticsearch ist nicht gestartet"
   },
@@ -3916,7 +3924,7 @@
   },
   {
     "id": "model.bot.is_valid.update_at.app_error",
-    "translation": "Invalid update at"
+    "translation": "Ungültige Ersteller-ID"
   },
   {
     "id": "model.bot.is_valid.user_id.app_error",
@@ -5287,6 +5295,10 @@
     "translation": "Es wurden keine Kanäle gefunden"
   },
   {
+    "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
+    "translation": "Konnte die Nachrichten-Gruppe nicht zur Indizierung abrufen."
+  },
+  {
     "id": "store.sql_channel.get_channels_by_ids.get.app_error",
     "translation": "Konnte die Kanäle nicht abrufen."
   },
@@ -6391,6 +6403,10 @@
     "translation": "Konnte nicht alle Teams abrufen"
   },
   {
+    "id": "store.sql_team.get_all_private_team_listing.app_error",
+    "translation": "Konnte nicht alle Teams abrufen"
+  },
+  {
     "id": "store.sql_team.get_all_team_listing.app_error",
     "translation": "Konnte nicht alle Teams abrufen"
   },
@@ -6492,6 +6508,10 @@
   },
   {
     "id": "store.sql_team.search_open_team.app_error",
+    "translation": "Es trat ein Fehler beim Suchen nach offenen Teams auf"
+  },
+  {
+    "id": "store.sql_team.search_private_team.app_error",
     "translation": "Es trat ein Fehler beim Suchen nach offenen Teams auf"
   },
   {
@@ -6629,6 +6649,18 @@
   {
     "id": "store.sql_user.get_unread_count_for_channel.app_error",
     "translation": "Die Anzahl der ungelesenen Nachrichten für den Benutzer konnte nicht abgerufen werden"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_channel_members.app_error",
+    "translation": "Unable to get the channel members for the users batch for indexing"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_team_members.app_error",
+    "translation": "Unable to get the team members for the users batch for indexing"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
+    "translation": "Konnte die Nachrichten-Gruppe nicht zur Indizierung abrufen."
   },
   {
     "id": "store.sql_user.missing_account.const",

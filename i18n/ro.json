@@ -77,7 +77,7 @@
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
-    "translation": "Eroare în timpul ștergerii OAuth2 App"
+    "translation": "A apărut o eroare la ștergerea certificatului."
   },
   {
     "id": "api.admin.saml.metadata.app_error",
@@ -959,6 +959,10 @@
     "translation": "Noul format pentru configurare client nu supported încă. Vă rugăm să specificaţi formatul = vechi în şirul de interogare."
   },
   {
+    "id": "api.config.update_config.restricted_merge.app_error",
+    "translation": "Failed to merge given config."
+  },
+  {
     "id": "api.context.404.app_error",
     "translation": "Ne pare rau, nu am putut găsi pagina."
   },
@@ -1458,7 +1462,7 @@
   },
   {
     "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
-    "translation": "Can not delete a post in a deleted channel."
+    "translation": "Nu se poate șterge o postare într-un canal șters."
   },
   {
     "id": "api.post.disabled_all",
@@ -1500,7 +1504,7 @@
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
-    "translation": "Can not update a post in a deleted channel."
+    "translation": "Nu se poate actualiza o postare într-un canal șters."
   },
   {
     "id": "api.post.save_is_pinned_post.town_square_read_only",
@@ -1536,7 +1540,7 @@
   },
   {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
-    "translation": "Can not update a post in a deleted channel."
+    "translation": "Nu se poate actualiza o postare într-un canal șters."
   },
   {
     "id": "api.post.update_post.find.app_error",
@@ -1592,7 +1596,7 @@
   },
   {
     "id": "api.restricted_system_admin",
-    "translation": "This action is forbidden to a restricted system admin."
+    "translation": "Această acțiune este interzisă unui administrator de sistem restricționat."
   },
   {
     "id": "api.roles.patch_roles.license.error",
@@ -2280,7 +2284,7 @@
   },
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
-    "translation": "Bot login is forbidden"
+    "translation": "Bot login-ul este interzis"
   },
   {
     "id": "api.user.login.client_side_cert.certificate.app_error",
@@ -2308,7 +2312,7 @@
   },
   {
     "id": "api.user.login_by_oauth.bot_login_forbidden.app_error",
-    "translation": "Bot login is forbidden"
+    "translation": "Bot login-ul este interzis"
   },
   {
     "id": "api.user.login_by_oauth.not_available.app_error",
@@ -3284,7 +3288,7 @@
   },
   {
     "id": "app.save_config.app_error",
-    "translation": "An error occurred saving the configuration"
+    "translation": "A apărut o eroare la salvarea configurației"
   },
   {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
@@ -3477,6 +3481,10 @@
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
     "translation": "Elasticsearch lucrător de indexare nu a analizat ora de începere"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
+    "translation": "Trying to index a new batch when all the entities are completed."
   },
   {
     "id": "ent.elasticsearch.not_started.error",
@@ -3904,7 +3912,7 @@
   },
   {
     "id": "model.bot.is_valid.create_at.app_error",
-    "translation": "Identitate creatorului invalidă"
+    "translation": "Crearea invalidă la"
   },
   {
     "id": "model.bot.is_valid.creator_id.app_error",
@@ -3916,7 +3924,7 @@
   },
   {
     "id": "model.bot.is_valid.update_at.app_error",
-    "translation": "Invalid update at"
+    "translation": "Actualizare invalidă la"
   },
   {
     "id": "model.bot.is_valid.user_id.app_error",
@@ -4460,7 +4468,7 @@
   },
   {
     "id": "model.config.is_valid.sitename_empty.app_error",
-    "translation": "Site name cannot be empty."
+    "translation": "Numele site-ului nu poate fi gol."
   },
   {
     "id": "model.config.is_valid.sitename_length.app_error",
@@ -5192,31 +5200,31 @@
   },
   {
     "id": "store.sql_bot.delete.app_error",
-    "translation": "Nu se poate șterge postarea"
+    "translation": "Imposibil de șters botul"
   },
   {
     "id": "store.sql_bot.get.app_error",
-    "translation": "Nu se poate obține postarea"
+    "translation": "Nu pot să-l conectez la bot"
   },
   {
     "id": "store.sql_bot.get.missing.app_error",
-    "translation": "Bot does not exist"
+    "translation": "Botul nu exista"
   },
   {
     "id": "store.sql_bot.get_all.app_error",
-    "translation": "Nu se pot obține postările"
+    "translation": "Imposibilitatea de a obține roboții"
   },
   {
     "id": "store.sql_bot.save.app_error",
-    "translation": "Imposibil de salvat postarea"
+    "translation": "Nu am putut salva botul"
   },
   {
     "id": "store.sql_bot.update.app_error",
-    "translation": "Imposibil de actualizat Postarea"
+    "translation": "Imposibil de actualizat botul"
   },
   {
     "id": "store.sql_bot.update.updating.app_error",
-    "translation": "Am întâlnit o eroare la actualizarea app"
+    "translation": "Am întâmpinat o eroare la actualizarea botului"
   },
   {
     "id": "store.sql_channel.analytics_deleted_type_count.app_error",
@@ -5285,6 +5293,10 @@
   {
     "id": "store.sql_channel.get_channels.not_found.app_error",
     "translation": "Nu au fost găsite canale"
+  },
+  {
+    "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
+    "translation": "Imposibil de obținut loturile pentru indexare"
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.get.app_error",
@@ -6391,6 +6403,10 @@
     "translation": "Nu am putut obţine toate echipele"
   },
   {
+    "id": "store.sql_team.get_all_private_team_listing.app_error",
+    "translation": "Nu am putut obţine toate echipele"
+  },
+  {
     "id": "store.sql_team.get_all_team_listing.app_error",
     "translation": "Nu am putut obţine toate echipele"
   },
@@ -6495,6 +6511,10 @@
     "translation": "Am intalnit o eroare căutarea deschis echipe"
   },
   {
+    "id": "store.sql_team.search_private_team.app_error",
+    "translation": "Am intalnit o eroare căutarea deschis echipe"
+  },
+  {
     "id": "store.sql_team.update.app_error",
     "translation": "Imposibilitatea de a actualiza echipa"
   },
@@ -6552,7 +6572,7 @@
   },
   {
     "id": "store.sql_user.app_error",
-    "translation": "Failed to build query"
+    "translation": "Nu sa reușit construirea interogării"
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.commit_transaction.app_error",
@@ -6629,6 +6649,18 @@
   {
     "id": "store.sql_user.get_unread_count_for_channel.app_error",
     "translation": "Nu am putut obţine numărul de mesaj necitit pentru utilizator şi canal"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_channel_members.app_error",
+    "translation": "Unable to get the channel members for the users batch for indexing"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_team_members.app_error",
+    "translation": "Unable to get the team members for the users batch for indexing"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
+    "translation": "Imposibil de obținut loturile pentru indexare"
   },
   {
     "id": "store.sql_user.missing_account.const",

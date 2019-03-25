@@ -959,6 +959,10 @@
     "translation": "New format for the client configuration is not supported yet. Please specify format=old in the query string."
   },
   {
+    "id": "api.config.update_config.restricted_merge.app_error",
+    "translation": "Failed to merge given config."
+  },
+  {
     "id": "api.context.404.app_error",
     "translation": "Sorry, we kunnen de pagina niet vinden."
   },
@@ -3479,6 +3483,10 @@
     "translation": "Elasticsearch indexing worker failed to parse the start time"
   },
   {
+    "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
+    "translation": "Trying to index a new batch when all the entities are completed."
+  },
+  {
     "id": "ent.elasticsearch.not_started.error",
     "translation": "Elasticsearch is not started"
   },
@@ -3916,7 +3924,7 @@
   },
   {
     "id": "model.bot.is_valid.update_at.app_error",
-    "translation": "Invalid update at"
+    "translation": "Ongeldig aanmaak id"
   },
   {
     "id": "model.bot.is_valid.user_id.app_error",
@@ -5287,6 +5295,10 @@
     "translation": "Geen kanaal gevonden"
   },
   {
+    "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
+    "translation": "Unable to get the channels batch for indexing"
+  },
+  {
     "id": "store.sql_channel.get_channels_by_ids.get.app_error",
     "translation": "Kan de kanalen niet ophalen"
   },
@@ -6391,6 +6403,10 @@
     "translation": "Niet alle teams kunnen opgehaald worden"
   },
   {
+    "id": "store.sql_team.get_all_private_team_listing.app_error",
+    "translation": "Niet alle teams kunnen opgehaald worden"
+  },
+  {
     "id": "store.sql_team.get_all_team_listing.app_error",
     "translation": "Niet alle teams kunnen opgehaald worden"
   },
@@ -6492,6 +6508,10 @@
   },
   {
     "id": "store.sql_team.search_open_team.app_error",
+    "translation": "Er is een fout opgetreden tijdens het bijwerken van het kanaal"
+  },
+  {
+    "id": "store.sql_team.search_private_team.app_error",
     "translation": "Er is een fout opgetreden tijdens het bijwerken van het kanaal"
   },
   {
@@ -6629,6 +6649,18 @@
   {
     "id": "store.sql_user.get_unread_count_for_channel.app_error",
     "translation": "Het aantal ongelezen berichten voor de gebruiker en kanaal kan niet geteld worden"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_channel_members.app_error",
+    "translation": "Unable to get the channel members for the users batch for indexing"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_team_members.app_error",
+    "translation": "Unable to get the team members for the users batch for indexing"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
+    "translation": "Unable to get the users batch for indexing"
   },
   {
     "id": "store.sql_user.missing_account.const",
