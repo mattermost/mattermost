@@ -731,10 +731,10 @@ func TestGetTeamMembers(t *testing.T) {
 	sort.Sort(userIDs)
 
 	// Fetch team members multipile times
-	members, err := th.App.GetTeamMembers(th.BasicTeam.Id, 0, 5)
+	members, err := th.App.GetTeamMembers(th.BasicTeam.Id, 0, 5, nil)
 	require.Nil(t, err)
 	// This should return 5 members
-	members2, err := th.App.GetTeamMembers(th.BasicTeam.Id, 5, 6)
+	members2, err := th.App.GetTeamMembers(th.BasicTeam.Id, 5, 6, nil)
 	require.Nil(t, err)
 	members = append(members, members2...)
 
@@ -751,7 +751,7 @@ func TestGetTeamStats(t *testing.T) {
 	teamStats, err := th.App.GetTeamStats(th.BasicTeam.Id)
 	require.Nil(t, err)
 	require.NotNil(t, teamStats)
-	members, err := th.App.GetTeamMembers(th.BasicTeam.Id, 0, 5)
+	members, err := th.App.GetTeamMembers(th.BasicTeam.Id, 0, 5, nil)
 	require.Nil(t, err)
 	assert.Equal(t, int64(len(members)), teamStats.TotalMemberCount)
 }
