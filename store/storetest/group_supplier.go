@@ -742,7 +742,7 @@ func testGetAllGroupSyncablesByGroup(t *testing.T, ss store.Store) {
 		team := res2.Data.(*model.Team)
 
 		// create groupteam
-		res3 := <-ss.Group().CreateGroupSyncable(model.NewGroupTeam(group.id, team.Id, false))
+		res3 := <-ss.Group().CreateGroupSyncable(model.NewGroupTeam(group.Id, team.Id, false))
 		require.Nil(t, res3.Err)
 		groupTeam := res3.Data.(*model.GroupSyncable)
 		groupTeams = append(groupTeams, groupTeam)
