@@ -49,17 +49,10 @@ func (a *App) ServePluginStaticRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	publicPathStartIndex := strings.Index(r.URL.Path, "/public/")
-
-	if publicPathStartIndex < 0 {
-		http.NotFound(w, r)
-		return
-	}
-
-	publicPathStartIndex += 8
-
 	// Should be in the form of /$PLUGIN_ID/public/{anything} by the timne we get here
-	pluginID := strings.Split(r.URL.Path, "/")[2]
+	vars := mux.Vars(r)
+	pluginID := vars["plugin_id"]
+	staticfile := vars["static_file"]
 
 	staticFiles, isOk := a.GetPluginsEnvironment().StaticFilesPath(pluginID)
 
@@ -68,9 +61,7 @@ func (a *App) ServePluginStaticRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	requestedPublicFile := string([]rune(r.URL.Path)[publicPathStartIndex:])
-
-	http.ServeFile(w, r, filepath.Join(staticFiles, requestedPublicFile))
+	http.ServeFile(w, r, filepath.Join(staticFiles, staticfile))
 }
 
 func (a *App) servePluginRequest(w http.ResponseWriter, r *http.Request, handler func(*plugin.Context, http.ResponseWriter, *http.Request)) {

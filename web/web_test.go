@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"testing"
 
@@ -17,6 +16,7 @@ import (
 	"github.com/mattermost/mattermost-server/config"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/mattermost/mattermost-server/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -132,8 +132,8 @@ func TestStaticFilesFolderRequest(t *testing.T) {
 	require.NoError(t, err)
 	webappPluginDir, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
-	//defer os.RemoveAll(pluginDir)
-	//defer os.RemoveAll(webappPluginDir)
+	defer os.RemoveAll(pluginDir)
+	defer os.RemoveAll(webappPluginDir)
 
 	env, err := plugin.NewEnvironment(th.App.NewPluginAPI, pluginDir, webappPluginDir, th.App.Log)
 	require.NoError(t, err)
@@ -158,7 +158,7 @@ func TestStaticFilesFolderRequest(t *testing.T) {
 	`
 	// Compile and write the plugin
 	backend := filepath.Join(pluginDir, pluginID, "backend.exe")
-	compileGo(t, pluginCode, backend)
+	utils.CompileGo(t, pluginCode, backend)
 
 	// Write the plugin.json manifest
 	pluginManifest := `{"id": "com.mattermost.sample", "server": {"executable": "backend.exe"}, "settings_schema": {"settings": []}}`
@@ -235,16 +235,4 @@ func TestCheckClientCompatability(t *testing.T) {
 			}
 		})
 	}
-}
-
-func compileGo(t *testing.T, sourceCode, outputPath string) {
-	dir, err := ioutil.TempDir(".", "")
-	require.NoError(t, err)
-	defer os.RemoveAll(dir)
-	require.NoError(t, ioutil.WriteFile(filepath.Join(dir, "main.go"), []byte(sourceCode), 0600))
-	cmd := exec.Command("go", "build", "-o", outputPath, "main.go")
-	cmd.Dir = dir
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	require.NoError(t, cmd.Run(), "failed to compile go")
 }

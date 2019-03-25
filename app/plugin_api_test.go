@@ -20,6 +20,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/services/mailservice"
+	"github.com/mattermost/mattermost-server/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -36,7 +37,7 @@ func setupPluginApiTest(t *testing.T, pluginCode string, pluginManifest string, 
 	require.NoError(t, err)
 
 	backend := filepath.Join(pluginDir, pluginId, "backend.exe")
-	compileGo(t, pluginCode, backend)
+	utils.CompileGo(t, pluginCode, backend)
 
 	ioutil.WriteFile(filepath.Join(pluginDir, pluginId, "plugin.json"), []byte(pluginManifest), 0600)
 	manifest, activated, reterr := env.Activate(pluginId)
@@ -665,7 +666,7 @@ func TestPluginAPIGetPlugins(t *testing.T) {
 	var pluginManifests []*model.Manifest
 	for _, pluginID := range pluginIDs {
 		backend := filepath.Join(pluginDir, pluginID, "backend.exe")
-		compileGo(t, pluginCode, backend)
+		utils.CompileGo(t, pluginCode, backend)
 
 		ioutil.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(fmt.Sprintf(`{"id": "%s", "server": {"executable": "backend.exe"}}`, pluginID)), 0600)
 		manifest, activated, reterr := env.Activate(pluginID)
