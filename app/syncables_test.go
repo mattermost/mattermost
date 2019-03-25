@@ -72,32 +72,17 @@ func TestCreateDefaultMemberships(t *testing.T) {
 		t.Errorf("test group not created: %s", err.Error())
 	}
 
-	_, err = th.App.CreateGroupSyncable(&model.GroupSyncable{
-		AutoAdd:    true,
-		GroupId:    gleeGroup.Id,
-		SyncableId: practiceChannel.Id,
-		Type:       model.GroupSyncableTypeChannel,
-	})
+	_, err = th.App.CreateGroupSyncable(model.NewGroupChannel(gleeGroup.Id, practiceChannel.Id, true))
 	if err != nil {
 		t.Errorf("test groupchannel not created: %s", err.Error())
 	}
 
-	scienceTeamGroupSyncable, err := th.App.CreateGroupSyncable(&model.GroupSyncable{
-		AutoAdd:    false,
-		GroupId:    scienceGroup.Id,
-		SyncableId: nerdsTeam.Id,
-		Type:       model.GroupSyncableTypeTeam,
-	})
+	scienceTeamGroupSyncable, err := th.App.CreateGroupSyncable(model.NewGroupTeam(scienceGroup.Id, nerdsTeam.Id, false))
 	if err != nil {
 		t.Errorf("test groupteam not created: %s", err.Error())
 	}
 
-	scienceChannelGroupSyncable, err := th.App.CreateGroupSyncable(&model.GroupSyncable{
-		AutoAdd:    false,
-		GroupId:    scienceGroup.Id,
-		SyncableId: experimentsChannel.Id,
-		Type:       model.GroupSyncableTypeChannel,
-	})
+	scienceChannelGroupSyncable, err := th.App.CreateGroupSyncable(model.NewGroupChannel(scienceGroup.Id, experimentsChannel.Id, false))
 	if err != nil {
 		t.Errorf("test groupchannel not created: %s", err.Error())
 	}

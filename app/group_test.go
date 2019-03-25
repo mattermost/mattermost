@@ -135,12 +135,7 @@ func TestCreateGroupSyncable(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	group := th.CreateGroup()
-	groupSyncable := &model.GroupSyncable{
-		GroupId:    group.Id,
-		AutoAdd:    false,
-		SyncableId: th.BasicTeam.Id,
-		Type:       model.GroupSyncableTypeTeam,
-	}
+	groupSyncable := model.NewGroupTeam(group.Id, th.BasicTeam.Id, false)
 
 	gs, err := th.App.CreateGroupSyncable(groupSyncable)
 	require.Nil(t, err)
@@ -155,12 +150,7 @@ func TestGetGroupSyncable(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	group := th.CreateGroup()
-	groupSyncable := &model.GroupSyncable{
-		GroupId:    group.Id,
-		AutoAdd:    false,
-		SyncableId: th.BasicTeam.Id,
-		Type:       model.GroupSyncableTypeTeam,
-	}
+	groupSyncable := model.NewGroupTeam(group.Id, th.BasicTeam.Id, false)
 
 	gs, err := th.App.CreateGroupSyncable(groupSyncable)
 	require.Nil(t, err)
@@ -177,12 +167,7 @@ func TestGetGroupSyncables(t *testing.T) {
 	group := th.CreateGroup()
 
 	// Create a group team
-	groupSyncable := &model.GroupSyncable{
-		GroupId:    group.Id,
-		AutoAdd:    false,
-		SyncableId: th.BasicTeam.Id,
-		Type:       model.GroupSyncableTypeTeam,
-	}
+	groupSyncable := model.NewGroupTeam(group.Id, th.BasicTeam.Id, false)
 
 	gs, err := th.App.CreateGroupSyncable(groupSyncable)
 	require.Nil(t, err)
@@ -198,12 +183,7 @@ func TestDeleteGroupSyncable(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	group := th.CreateGroup()
-	groupChannel := &model.GroupSyncable{
-		GroupId:    group.Id,
-		AutoAdd:    false,
-		SyncableId: th.BasicChannel.Id,
-		Type:       model.GroupSyncableTypeChannel,
-	}
+	groupChannel := model.NewGroupChannel(group.Id, th.BasicChannel.Id, false)
 
 	gs, err := th.App.CreateGroupSyncable(groupChannel)
 	require.Nil(t, err)
