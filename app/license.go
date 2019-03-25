@@ -62,6 +62,10 @@ func (a *App) SaveLicense(licenseBytes []byte) (*model.License, *model.AppError)
 		return nil, model.NewAppError("addLicense", "api.license.add_license.unique_users.app_error", map[string]interface{}{"Users": *license.Features.Users, "Count": uniqueUserCount}, "", http.StatusBadRequest)
 	}
 
+	if license != nil && license.IsExpired() {
+		return nil, model.NewAppError("addLicense", model.EXPIRED_LICENSE_ERROR, nil, "", http.StatusBadRequest)
+	}
+
 	if ok := a.SetLicense(license); !ok {
 		return nil, model.NewAppError("addLicense", model.EXPIRED_LICENSE_ERROR, nil, "", http.StatusBadRequest)
 	}
@@ -117,11 +121,9 @@ func (a *App) SetLicense(license *model.License) bool {
 	if license != nil {
 		license.Features.SetDefaults()
 
-		if !license.IsExpired() {
-			a.Srv.licenseValue.Store(license)
-			a.Srv.clientLicenseValue.Store(utils.GetClientLicense(license))
-			return true
-		}
+		a.Srv.licenseValue.Store(license)
+		a.Srv.clientLicenseValue.Store(utils.GetClientLicense(license))
+		return true
 	}
 
 	a.Srv.licenseValue.Store((*model.License)(nil))
