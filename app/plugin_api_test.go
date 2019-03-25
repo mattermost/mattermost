@@ -451,7 +451,7 @@ func TestPluginAPILoadPluginConfigurationDefaults(t *testing.T) {
 		cfg.PluginSettings.Plugins["testloadpluginconfig"] = pluginJson
 	})
 
-	result, err := pluginApiHookTest(t, th, "test_load_configuration_defaults_plugin.go", "testloadpluginconfig", nil, `{
+	result, err := pluginAPIHookTest(t, th, "test_load_configuration_defaults_plugin/test_load_configuration_defaults_plugin.go", "testloadpluginconfig", nil, `{
 		"settings": [
 			{
 				"key": "MyStringSetting",
@@ -480,7 +480,7 @@ func TestPluginAPILoadPluginConfigurationDefaults(t *testing.T) {
 func TestPluginAPIGetBundlePath(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	result, err := pluginApiHookTest(t, th, "test_get_bundle_path_plugin.go", "test_get_bundle_path", nil, "")
+	result, err := pluginAPIHookTest(t, th, "test_get_bundle_path_plugin/test_get_bundle_path_plugin.go", "test_get_bundle_path", nil, "")
 	assert.NoError(t, err)
 
 	bundlePath, err := filepath.Abs(filepath.Join(*th.App.Config().PluginSettings.Directory, "test_get_bundle_path"))
@@ -864,12 +864,12 @@ func TestPluginAPI_SearchTeams(t *testing.T) {
 func TestPluginBots(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	_, err := pluginApiHookTest(t, th, "test_bots_plugin.go", "testpluginbots", nil, "")
+	_, err := pluginAPIHookTest(t, th, "test_bots_plugin/test_bots_plugin.go", "testpluginbots", nil, "")
 	assert.NoError(t, err)
 
 }
 
-func pluginApiHookTest(t *testing.T, th *TestHelper, fileName string, id string, params map[string]interface{}, settingsSchema string) (map[string]interface{}, error) {
+func pluginAPIHookTest(t *testing.T, th *TestHelper, fileName string, id string, params map[string]interface{}, settingsSchema string) (map[string]interface{}, error) {
 	pwd, _ := os.Getwd()
 
 	tpl := template.Must(template.ParseFiles(path.Join(pwd, "tests", "plugin_tests", fileName)))
@@ -900,7 +900,7 @@ func pluginApiHookTest(t *testing.T, th *TestHelper, fileName string, id string,
 func TestPluginAPI_GetTeamMembersForUser(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	result, err := pluginApiHookTest(t, th, "test_members_plugin.go", "test_members", map[string]interface{}{
+	result, err := pluginAPIHookTest(t, th, "test_members_plugin/test_members_plugin.go", "test_members", map[string]interface{}{
 		"UserId": th.BasicUser.Id,
 	}, "")
 	assert.NoError(t, err)
@@ -911,7 +911,7 @@ func TestPluginAPI_GetTeamMembersForUser(t *testing.T) {
 func TestPluginAPI_GetChannelMembersForUser(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	result, err := pluginApiHookTest(t, th, "test_member_channels_plugin.go", "test_member_channels", map[string]interface{}{
+	result, err := pluginAPIHookTest(t, th, "test_member_channels_plugin/test_member_channels_plugin.go", "test_member_channels", map[string]interface{}{
 		"UserId": th.BasicUser.Id,
 		"TeamId": th.BasicTeam.Id,
 	}, "")
