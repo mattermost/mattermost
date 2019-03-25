@@ -668,16 +668,16 @@ func (a *App) GetTeamMembersForUserWithPagination(userId string, page, perPage i
 	return result.Data.([]*model.TeamMember), nil
 }
 
-func (a *App) GetTeamMembers(teamId string, offset int, limit int) ([]*model.TeamMember, *model.AppError) {
-	result := <-a.Srv.Store.Team().GetMembers(teamId, offset, limit)
+func (a *App) GetTeamMembers(teamId string, offset int, limit int, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError) {
+	result := <-a.Srv.Store.Team().GetMembers(teamId, offset, limit, restrictions)
 	if result.Err != nil {
 		return nil, result.Err
 	}
 	return result.Data.([]*model.TeamMember), nil
 }
 
-func (a *App) GetTeamMembersByIds(teamId string, userIds []string) ([]*model.TeamMember, *model.AppError) {
-	result := <-a.Srv.Store.Team().GetMembersByIds(teamId, userIds)
+func (a *App) GetTeamMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError) {
+	result := <-a.Srv.Store.Team().GetMembersByIds(teamId, userIds, restrictions)
 	if result.Err != nil {
 		return nil, result.Err
 	}

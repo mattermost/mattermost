@@ -1901,7 +1901,7 @@ func (a *App) MoveChannel(team *model.Team, channel *model.Channel, user *model.
 	}
 
 	if len(channelMemberIds) > 0 {
-		teamMembers, err2 := a.GetTeamMembersByIds(team.Id, channelMemberIds)
+		teamMembers, err2 := a.GetTeamMembersByIds(team.Id, channelMemberIds, nil)
 		if err2 != nil {
 			return err2
 		}

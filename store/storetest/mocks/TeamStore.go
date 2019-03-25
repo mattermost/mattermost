@@ -290,13 +290,13 @@ func (_m *TeamStore) GetMember(teamId string, userId string) store.StoreChannel 
 	return r0
 }
 
-// GetMembers provides a mock function with given fields: teamId, offset, limit
-func (_m *TeamStore) GetMembers(teamId string, offset int, limit int) store.StoreChannel {
-	ret := _m.Called(teamId, offset, limit)
+// GetMembers provides a mock function with given fields: teamId, offset, limit, restrictions
+func (_m *TeamStore) GetMembers(teamId string, offset int, limit int, restrictions *model.ViewUsersRestrictions) store.StoreChannel {
+	ret := _m.Called(teamId, offset, limit, restrictions)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, int, int) store.StoreChannel); ok {
-		r0 = rf(teamId, offset, limit)
+	if rf, ok := ret.Get(0).(func(string, int, int, *model.ViewUsersRestrictions) store.StoreChannel); ok {
+		r0 = rf(teamId, offset, limit, restrictions)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)
@@ -306,13 +306,13 @@ func (_m *TeamStore) GetMembers(teamId string, offset int, limit int) store.Stor
 	return r0
 }
 
-// GetMembersByIds provides a mock function with given fields: teamId, userIds
-func (_m *TeamStore) GetMembersByIds(teamId string, userIds []string) store.StoreChannel {
-	ret := _m.Called(teamId, userIds)
+// GetMembersByIds provides a mock function with given fields: teamId, userIds, restrictions
+func (_m *TeamStore) GetMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) store.StoreChannel {
+	ret := _m.Called(teamId, userIds, restrictions)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, []string) store.StoreChannel); ok {
-		r0 = rf(teamId, userIds)
+	if rf, ok := ret.Get(0).(func(string, []string, *model.ViewUsersRestrictions) store.StoreChannel); ok {
+		r0 = rf(teamId, userIds, restrictions)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)
