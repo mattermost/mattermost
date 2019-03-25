@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 )
@@ -11,12 +12,15 @@ type MyPlugin struct {
 }
 
 func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
-	bundlePath, err := p.API.GetBundlePath()
+	channelMembers, err := p.API.GetChannelMembersForUser("{{.TeamId}}", "{{.UserId}}", 0, 10)
+
 	result := map[string]interface{}{}
 	if err != nil {
-		result["Error"] = err.Error() + "failed get bundle path"
+		result["Error"] = err.Error() + "failed to get channel members"
+	} else if len(channelMembers) != 3 {
+		result["Error"] = "Invalid number of channel members"
 	} else {
-		result["BundlePath"] = bundlePath
+		result["UserId"] = channelMembers[0].UserId
 	}
 
 	b, _ := json.Marshal(result)
