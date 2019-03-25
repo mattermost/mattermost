@@ -991,6 +991,10 @@
     "translation": "New format for the client configuration is not supported yet. Please specify format=old in the query string."
   },
   {
+    "id": "api.config.update_config.restricted_merge.app_error",
+    "translation": "Failed to merge given config."
+  },
+  {
     "id": "api.context.404.app_error",
     "translation": "Sorry, we could not find the page."
   },
@@ -3487,6 +3491,10 @@
     "translation": "Elasticsearch indexing worker failed to parse the start time"
   },
   {
+    "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
+    "translation": "Trying to index a new batch when all the entities are completed."
+  },
+  {
     "id": "ent.elasticsearch.not_started.error",
     "translation": "Elasticsearch is not started"
   },
@@ -5043,6 +5051,10 @@
     "translation": "Missing email subject."
   },
   {
+    "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
+    "translation": "Unable to get the channels batch for indexing"
+  },
+  {
     "id": "store.sql_channel.remove_all_deactivated_members.app_error",
     "translation": "We could not remove the deactivated users from the channel"
   },
@@ -6251,6 +6263,10 @@
     "translation": "We could not get all teams"
   },
   {
+    "id": "store.sql_team.get_all_private_team_listing.app_error",
+    "translation": "We could not get all private teams"
+  },
+  {
     "id": "store.sql_team.get_all_team_listing.app_error",
     "translation": "We could not get all teams"
   },
@@ -6353,6 +6369,10 @@
   {
     "id": "store.sql_team.search_open_team.app_error",
     "translation": "We encountered an error searching open teams"
+  },
+  {
+    "id": "store.sql_team.search_private_team.app_error",
+    "translation": "We encountered an error searching private teams"
   },
   {
     "id": "store.sql_team.update.app_error",
@@ -6473,6 +6493,18 @@
   {
     "id": "store.sql_user.get_unread_count_for_channel.app_error",
     "translation": "We could not get the unread message count for the user and channel"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_channel_members.app_error",
+    "translation": "Unable to get the channel members for the users batch for indexing"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_team_members.app_error",
+    "translation": "Unable to get the team members for the users batch for indexing"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
+    "translation": "Unable to get the users batch for indexing"
   },
   {
     "id": "store.sql_user.missing_account.const",

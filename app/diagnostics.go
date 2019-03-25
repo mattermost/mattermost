@@ -548,9 +548,14 @@ func (a *App) trackConfig() {
 		"isdefault_password":                isDefault(*cfg.ElasticsearchSettings.Password, model.ELASTICSEARCH_SETTINGS_DEFAULT_PASSWORD),
 		"enable_indexing":                   *cfg.ElasticsearchSettings.EnableIndexing,
 		"enable_searching":                  *cfg.ElasticsearchSettings.EnableSearching,
+		"enable_autocomplete":               *cfg.ElasticsearchSettings.EnableAutocomplete,
 		"sniff":                             *cfg.ElasticsearchSettings.Sniff,
 		"post_index_replicas":               *cfg.ElasticsearchSettings.PostIndexReplicas,
 		"post_index_shards":                 *cfg.ElasticsearchSettings.PostIndexShards,
+		"channel_index_replicas":            *cfg.ElasticsearchSettings.ChannelIndexReplicas,
+		"channel_index_shards":              *cfg.ElasticsearchSettings.ChannelIndexShards,
+		"user_index_replicas":               *cfg.ElasticsearchSettings.UserIndexReplicas,
+		"user_index_shards":                 *cfg.ElasticsearchSettings.UserIndexShards,
 		"isdefault_index_prefix":            isDefault(*cfg.ElasticsearchSettings.IndexPrefix, model.ELASTICSEARCH_SETTINGS_DEFAULT_INDEX_PREFIX),
 		"live_indexing_batch_size":          *cfg.ElasticsearchSettings.LiveIndexingBatchSize,
 		"bulk_indexing_time_window_seconds": *cfg.ElasticsearchSettings.BulkIndexingTimeWindowSeconds,
@@ -558,10 +563,12 @@ func (a *App) trackConfig() {
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_PLUGIN, map[string]interface{}{
-		"enable_jira":    pluginSetting(&cfg.PluginSettings, "jira", "enabled", false),
-		"enable_zoom":    pluginActivated(cfg.PluginSettings.PluginStates, "zoom"),
-		"enable":         *cfg.PluginSettings.Enable,
-		"enable_uploads": *cfg.PluginSettings.EnableUploads,
+		"enable_jira":       pluginSetting(&cfg.PluginSettings, "jira", "enabled", false),
+		"enable_nps":        pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.nps"),
+		"enable_nps_survey": pluginSetting(&cfg.PluginSettings, "com.mattermost.nps", "enablesurvey", false),
+		"enable_zoom":       pluginActivated(cfg.PluginSettings.PluginStates, "zoom"),
+		"enable":            *cfg.PluginSettings.Enable,
+		"enable_uploads":    *cfg.PluginSettings.EnableUploads,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_DATA_RETENTION, map[string]interface{}{

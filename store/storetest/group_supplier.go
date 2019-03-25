@@ -618,22 +618,10 @@ func testCreateGroupSyncable(t *testing.T, ss store.Store) {
 	// Invalid GroupID
 	res2 := <-ss.Group().CreateGroupSyncable(&model.GroupSyncable{
 		GroupId:    "x",
-		CanLeave:   true,
 		SyncableId: string(model.NewId()),
 		Type:       model.GroupSyncableTypeTeam,
 	})
 	assert.Equal(t, res2.Err.Id, "model.group_syncable.group_id.app_error")
-
-	// TODO: Add this validation test in phase 2 of LDAP groups sync.
-	// Invalid CanLeave/AutoAdd combo (both false)
-	// res3 := <-ss.Group().CreateGroupSyncable(&model.GroupSyncable{
-	// 	GroupId:    model.NewId(),
-	// 	CanLeave:   false,
-	// 	AutoAdd:    false,
-	// 	SyncableId: string(model.NewId()),
-	// 	Type:       model.GroupSyncableTypeTeam,
-	// })
-	// assert.Equal(t, res3.Err.Id, "model.group_syncable.invalid_state")
 
 	// Create Group
 	g1 := &model.Group{
@@ -664,7 +652,6 @@ func testCreateGroupSyncable(t *testing.T, ss store.Store) {
 	// New GroupSyncable, happy path
 	gt1 := &model.GroupSyncable{
 		GroupId:    group.Id,
-		CanLeave:   true,
 		AutoAdd:    false,
 		SyncableId: string(team.Id),
 		Type:       model.GroupSyncableTypeTeam,
@@ -674,7 +661,6 @@ func testCreateGroupSyncable(t *testing.T, ss store.Store) {
 	d1 := res6.Data.(*model.GroupSyncable)
 	assert.Equal(t, gt1.SyncableId, d1.SyncableId)
 	assert.Equal(t, gt1.GroupId, d1.GroupId)
-	assert.Equal(t, gt1.CanLeave, d1.CanLeave)
 	assert.Equal(t, gt1.AutoAdd, d1.AutoAdd)
 	assert.NotZero(t, d1.CreateAt)
 	assert.Zero(t, d1.DeleteAt)
@@ -711,7 +697,6 @@ func testGetGroupSyncable(t *testing.T, ss store.Store) {
 	// Create GroupSyncable
 	gt1 := &model.GroupSyncable{
 		GroupId:    group.Id,
-		CanLeave:   true,
 		AutoAdd:    false,
 		SyncableId: string(team.Id),
 		Type:       model.GroupSyncableTypeTeam,
@@ -726,7 +711,6 @@ func testGetGroupSyncable(t *testing.T, ss store.Store) {
 	dgt := res4.Data.(*model.GroupSyncable)
 	assert.Equal(t, gt1.GroupId, dgt.GroupId)
 	assert.Equal(t, gt1.SyncableId, dgt.SyncableId)
-	// assert.Equal(t, gt1.CanLeave, dgt.CanLeave) // TODO: Re-add this test in phase 2 of LDAP groups sync.
 	assert.Equal(t, gt1.AutoAdd, dgt.AutoAdd)
 	assert.NotZero(t, gt1.CreateAt)
 	assert.NotZero(t, gt1.UpdateAt)
@@ -770,7 +754,6 @@ func testGetAllGroupSyncablesByGroup(t *testing.T, ss store.Store) {
 		// create groupteam
 		res3 := <-ss.Group().CreateGroupSyncable(&model.GroupSyncable{
 			GroupId:    group.Id,
-			CanLeave:   true,
 			SyncableId: string(team.Id),
 			Type:       model.GroupSyncableTypeTeam,
 		})
@@ -825,7 +808,6 @@ func testUpdateGroupSyncable(t *testing.T, ss store.Store) {
 	// New GroupSyncable, happy path
 	gt1 := &model.GroupSyncable{
 		GroupId:    group.Id,
-		CanLeave:   true,
 		AutoAdd:    false,
 		SyncableId: string(team.Id),
 		Type:       model.GroupSyncableTypeTeam,
@@ -835,25 +817,15 @@ func testUpdateGroupSyncable(t *testing.T, ss store.Store) {
 	d1 := res6.Data.(*model.GroupSyncable)
 
 	// Update existing group team
-	gt1.CanLeave = false
 	gt1.AutoAdd = true
 	res7 := <-ss.Group().UpdateGroupSyncable(gt1)
 	assert.Nil(t, res7.Err)
 	d2 := res7.Data.(*model.GroupSyncable)
-	assert.False(t, d2.CanLeave)
 	assert.True(t, d2.AutoAdd)
-
-	// TODO: Add this validation check test in phase 2 of LDAP groups sync.
-	// Update to invalid state
-	// gt1.AutoAdd = false
-	// gt1.CanLeave = false
-	// res8 := <-ss.Group().UpdateGroupSyncable(gt1)
-	// assert.Equal(t, res8.Err.Id, "model.group_syncable.invalid_state")
 
 	// Non-existent Group
 	gt2 := &model.GroupSyncable{
 		GroupId:    model.NewId(),
-		CanLeave:   true,
 		AutoAdd:    false,
 		SyncableId: string(team.Id),
 		Type:       model.GroupSyncableTypeTeam,
@@ -864,7 +836,6 @@ func testUpdateGroupSyncable(t *testing.T, ss store.Store) {
 	// Non-existent Team
 	gt3 := &model.GroupSyncable{
 		GroupId:    group.Id,
-		CanLeave:   true,
 		AutoAdd:    false,
 		SyncableId: string(model.NewId()),
 		Type:       model.GroupSyncableTypeTeam,
@@ -876,7 +847,6 @@ func testUpdateGroupSyncable(t *testing.T, ss store.Store) {
 	origCreateAt := d1.CreateAt
 	d1.CreateAt = model.GetMillis()
 	d1.AutoAdd = true
-	d1.CanLeave = true
 	res11 := <-ss.Group().UpdateGroupSyncable(d1)
 	assert.Nil(t, res11.Err)
 	d3 := res11.Data.(*model.GroupSyncable)
@@ -925,7 +895,6 @@ func testDeleteGroupSyncable(t *testing.T, ss store.Store) {
 	// Create GroupSyncable
 	gt1 := &model.GroupSyncable{
 		GroupId:    group.Id,
-		CanLeave:   true,
 		AutoAdd:    false,
 		SyncableId: string(team.Id),
 		Type:       model.GroupSyncableTypeTeam,
@@ -949,7 +918,6 @@ func testDeleteGroupSyncable(t *testing.T, ss store.Store) {
 	assert.NotZero(t, d1.DeleteAt)
 	assert.Equal(t, d1.GroupId, groupTeam.GroupId)
 	assert.Equal(t, d1.SyncableId, groupTeam.SyncableId)
-	// assert.Equal(t, d1.CanLeave, groupTeam.CanLeave) // TODO: Re-add this test in phase 2 of LDAP groups sync.
 	assert.Equal(t, d1.AutoAdd, groupTeam.AutoAdd)
 	assert.Equal(t, d1.CreateAt, groupTeam.CreateAt)
 	assert.Condition(t, func() bool { return d1.UpdateAt > groupTeam.UpdateAt })
@@ -1002,7 +970,6 @@ func testPendingAutoAddTeamMembers(t *testing.T, ss store.Store) {
 	// Create GroupTeam
 	res = <-ss.Group().CreateGroupSyncable(&model.GroupSyncable{
 		AutoAdd:    true,
-		CanLeave:   true,
 		SyncableId: team.Id,
 		Type:       model.GroupSyncableTypeTeam,
 		GroupId:    group.Id,
@@ -1034,7 +1001,6 @@ func testPendingAutoAddTeamMembers(t *testing.T, ss store.Store) {
 
 	pristineSyncable := *syncable
 
-	syncable.CanLeave = false
 	res = <-ss.Group().UpdateGroupSyncable(syncable)
 	assert.Nil(t, res.Err)
 
@@ -1053,7 +1019,6 @@ func testPendingAutoAddTeamMembers(t *testing.T, ss store.Store) {
 
 	// Only includes if auto-add
 	syncable.AutoAdd = false
-	syncable.CanLeave = true // have to update this or the model isn't valid
 	res = <-ss.Group().UpdateGroupSyncable(syncable)
 	assert.Nil(t, res.Err)
 	res = <-ss.Group().PendingAutoAddTeamMembers(0)
@@ -1173,7 +1138,6 @@ func testPendingAutoAddChannelMembers(t *testing.T, ss store.Store) {
 	// Create GroupChannel
 	res = <-ss.Group().CreateGroupSyncable(&model.GroupSyncable{
 		AutoAdd:    true,
-		CanLeave:   true,
 		SyncableId: channel.Id,
 		Type:       model.GroupSyncableTypeChannel,
 		GroupId:    group.Id,
@@ -1205,7 +1169,6 @@ func testPendingAutoAddChannelMembers(t *testing.T, ss store.Store) {
 
 	pristineSyncable := *syncable
 
-	syncable.CanLeave = false
 	res = <-ss.Group().UpdateGroupSyncable(syncable)
 	assert.Nil(t, res.Err)
 
@@ -1224,7 +1187,6 @@ func testPendingAutoAddChannelMembers(t *testing.T, ss store.Store) {
 
 	// Only includes if auto-add
 	syncable.AutoAdd = false
-	syncable.CanLeave = true // have to update this or the model isn't valid
 	res = <-ss.Group().UpdateGroupSyncable(syncable)
 	assert.Nil(t, res.Err)
 	res = <-ss.Group().PendingAutoAddChannelMembers(0)

@@ -598,6 +598,8 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	limit, _ := strconv.Atoi(limitStr)
 	if limitStr == "" {
 		limit = model.USER_SEARCH_DEFAULT_LIMIT
+	} else if limit > model.USER_SEARCH_MAX_LIMIT {
+		limit = model.USER_SEARCH_MAX_LIMIT
 	}
 
 	options := &model.UserSearchOptions{
@@ -1109,9 +1111,10 @@ func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func login(c *Context, w http.ResponseWriter, r *http.Request) {
-	// For hardened mode, translate all login errors to generic.
+	// For hardened mode, translate all login errors to generic. MFA error being an exception, since it's required for
+	// the login flow itself.
 	defer func() {
-		if *c.App.Config().ServiceSettings.ExperimentalEnableHardenedMode && c.Err != nil {
+		if *c.App.Config().ServiceSettings.ExperimentalEnableHardenedMode && c.Err != nil && c.Err.Id != "mfa.validate_token.authenticate.app_error" {
 			c.Err = model.NewAppError("login", "api.user.login.invalid_credentials", nil, "", http.StatusUnauthorized)
 		}
 	}()

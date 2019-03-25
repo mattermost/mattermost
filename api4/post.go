@@ -57,7 +57,7 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		post.CreateAt = 0
 	}
 
-	rp, err := c.App.CreatePostAsUser(c.App.PostWithProxyRemovedFromImageURLs(post), !c.App.Session.IsMobileApp())
+	rp, err := c.App.CreatePostAsUser(c.App.PostWithProxyRemovedFromImageURLs(post), c.App.Session.Id)
 	if err != nil {
 		c.Err = err
 		return

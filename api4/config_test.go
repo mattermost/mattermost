@@ -33,9 +33,6 @@ func TestGetConfig(t *testing.T) {
 	if *cfg.FileSettings.AmazonS3SecretAccessKey != model.FAKE_SETTING && len(*cfg.FileSettings.AmazonS3SecretAccessKey) != 0 {
 		t.Fatal("did not sanitize properly")
 	}
-	if *cfg.EmailSettings.InviteSalt != model.FAKE_SETTING {
-		t.Fatal("did not sanitize properly")
-	}
 	if *cfg.EmailSettings.SMTPPassword != model.FAKE_SETTING && len(*cfg.EmailSettings.SMTPPassword) != 0 {
 		t.Fatal("did not sanitize properly")
 	}
@@ -197,6 +194,30 @@ func TestUpdateConfigMessageExportSpecialHandling(t *testing.T) {
 
 	assert.False(t, *th.App.Config().MessageExportSettings.EnableExport)
 	assert.Equal(t, int64(0), *th.App.Config().MessageExportSettings.ExportFromTimestamp)
+}
+
+func TestUpdateConfigRestrictSystemAdmin(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
+
+	originalCfg, resp := th.SystemAdminClient.GetConfig()
+	CheckNoError(t, resp)
+
+	cfg := originalCfg.Clone()
+	*cfg.TeamSettings.SiteName = "MyFancyName"          // Allowed
+	*cfg.ServiceSettings.SiteURL = "http://example.com" // Ignored
+
+	returnedCfg, resp := th.SystemAdminClient.UpdateConfig(cfg)
+	CheckNoError(t, resp)
+
+	require.Equal(t, "MyFancyName", *returnedCfg.TeamSettings.SiteName)
+	require.Equal(t, *originalCfg.ServiceSettings.SiteURL, *returnedCfg.ServiceSettings.SiteURL)
+
+	actualCfg, resp := th.SystemAdminClient.GetConfig()
+	CheckNoError(t, resp)
+
+	require.Equal(t, returnedCfg, actualCfg)
 }
 
 func TestGetEnvironmentConfig(t *testing.T) {
