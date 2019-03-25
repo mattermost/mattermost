@@ -35,7 +35,7 @@ func (a *App) SendEphemeralPostWrapper(userId string, postDetails interface{}, p
 // AddMentionedUsers will add the mentioned user id in the struct's list for mentioned users
 func (e *ExplicitMentions) AddMentionedUsers(ids []string) {
 	for _, id := range ids {
-		(*e).MentionedUserIds[id] = true
+		e.MentionedUserIds[id] = true
 	}
 }
 
@@ -46,21 +46,21 @@ func (e *ExplicitMentions) CheckForMention(word string, keywords map[string][]st
 
 	switch strings.ToLower(word) {
 	case "@here":
-		(*e).HereMentioned = true
+		e.HereMentioned = true
 	case "@channel":
-		(*e).ChannelMentioned = true
+		e.ChannelMentioned = true
 	case "@all":
-		(*e).AllMentioned = true
+		e.AllMentioned = true
 	}
 
 	if ids, match := keywords[strings.ToLower(word)]; match {
-		(*e).AddMentionedUsers(ids)
+		e.AddMentionedUsers(ids)
 		isMention = true
 	}
 
 	// Case-sensitive check for first name
 	if ids, match := keywords[word]; match {
-		(*e).AddMentionedUsers(ids)
+		e.AddMentionedUsers(ids)
 		isMention = true
 	}
 
@@ -69,8 +69,8 @@ func (e *ExplicitMentions) CheckForMention(word string, keywords map[string][]st
 
 // isKeywordMultibyte if the word contains a multibyte character, check if it contains a multibyte keyword
 func isKeywordMultibyte(keywords map[string][]string, word string) ([]string, bool) {
-	listOfIds := []string{}
-	keyWordFound := false
+	ids := []string{}
+	match := false
 	var multibyteKeywords []string
 	for keyword := range keywords {
 		if len(keyword) != utf8.RuneCountInString(keyword) {
@@ -81,13 +81,11 @@ func isKeywordMultibyte(keywords map[string][]string, word string) ([]string, bo
 	if len(word) != utf8.RuneCountInString(word) {
 		for _, key := range multibyteKeywords {
 			if strings.Contains(word, key) {
-				if listOfIds, keyWordFound := keywords[key]; !keyWordFound {
-					listOfIds = append(listOfIds, "")
-				}
+				ids, match = keywords[key]
 			}
 		}
 	}
-	return listOfIds, keyWordFound
+	return ids, match
 }
 
 func (e *ExplicitMentions) ProcessText(text string, keywords map[string][]string) {
@@ -105,7 +103,7 @@ func (e *ExplicitMentions) ProcessText(text string, keywords map[string][]string
 
 		word = strings.TrimLeft(word, ":.-_")
 
-		if (*e).CheckForMention(word, keywords) {
+		if e.CheckForMention(word, keywords) {
 			continue
 		}
 
@@ -114,7 +112,7 @@ func (e *ExplicitMentions) ProcessText(text string, keywords map[string][]string
 		for len(wordWithoutSuffix) > 0 && strings.LastIndexAny(wordWithoutSuffix, ".-:_") == (len(wordWithoutSuffix)-1) {
 			wordWithoutSuffix = wordWithoutSuffix[0 : len(wordWithoutSuffix)-1]
 
-			if (*e).CheckForMention(wordWithoutSuffix, keywords) {
+			if e.CheckForMention(wordWithoutSuffix, keywords) {
 				foundWithoutSuffix = true
 				break
 			}
@@ -125,7 +123,7 @@ func (e *ExplicitMentions) ProcessText(text string, keywords map[string][]string
 		}
 
 		if _, ok := systemMentions[word]; !ok && strings.HasPrefix(word, "@") {
-			(*e).OtherPotentialMentions = append((*e).OtherPotentialMentions, word[1:])
+			e.OtherPotentialMentions = append(e.OtherPotentialMentions, word[1:])
 		} else if strings.ContainsAny(word, ".-:") {
 			// This word contains a character that may be the end of a sentence, so split further
 			splitWords := strings.FieldsFunc(word, func(c rune) bool {
@@ -133,16 +131,16 @@ func (e *ExplicitMentions) ProcessText(text string, keywords map[string][]string
 			})
 
 			for _, splitWord := range splitWords {
-				if (*e).CheckForMention(splitWord, keywords) {
+				if e.CheckForMention(splitWord, keywords) {
 					continue
 				}
 				if _, ok := systemMentions[splitWord]; !ok && strings.HasPrefix(splitWord, "@") {
-					(*e).OtherPotentialMentions = append((*e).OtherPotentialMentions, splitWord[1:])
+					e.OtherPotentialMentions = append(e.OtherPotentialMentions, splitWord[1:])
 				}
 			}
 		}
 		if ids, match := isKeywordMultibyte(keywords, word); match {
-			(*e).AddMentionedUsers(ids)
+			e.AddMentionedUsers(ids)
 		}
 	}
 }
