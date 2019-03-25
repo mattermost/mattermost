@@ -83,6 +83,11 @@ func Setup() *TestHelper {
 		Web:    web,
 	}
 
+	return th
+}
+
+func (th *TestHelper) InitPlugins() *TestHelper {
+
 	if th.tempWorkspace == "" {
 		dir, err := ioutil.TempDir("", "apptest")
 		if err != nil {
@@ -125,7 +130,7 @@ func (th *TestHelper) TearDown() {
 }
 
 func TestStaticFilesFolderRequest(t *testing.T) {
-	th := Setup()
+	th := Setup().InitPlugins()
 	defer th.TearDown()
 
 	pluginDir, err := ioutil.TempDir("", "")
