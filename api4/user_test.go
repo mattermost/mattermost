@@ -417,7 +417,7 @@ func TestGetUser(t *testing.T) {
 	}
 }
 
-func TestGetUserWithAcceptedTermsOfService(t *testing.T) {
+func TestGetUserWithAcceptedTermsOfServiceForOtherUser(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
@@ -447,6 +447,72 @@ func TestGetUserWithAcceptedTermsOfService(t *testing.T) {
 		t.Fatal("emails did not match")
 	}
 
+	// user TOS data cannot be fetched for other users by non-admin users
+	assert.Empty(t, ruser.TermsOfServiceId)
+}
+
+func TestGetUserWithAcceptedTermsOfService(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	user := th.BasicUser
+
+	tos, _ := th.App.CreateTermsOfService("Dummy TOS", user.Id)
+
+	ruser, resp := th.Client.GetUser(user.Id, "")
+	CheckNoError(t, resp)
+	CheckUserSanitization(t, ruser)
+
+	if ruser.Email != user.Email {
+		t.Fatal("emails did not match")
+	}
+
+	assert.Empty(t, ruser.TermsOfServiceId)
+
+	th.App.SaveUserTermsOfService(user.Id, tos.Id, true)
+
+	ruser, resp = th.Client.GetUser(user.Id, "")
+	CheckNoError(t, resp)
+	CheckUserSanitization(t, ruser)
+
+	if ruser.Email != user.Email {
+		t.Fatal("emails did not match")
+	}
+
+	// a user can view their own TOS details
+	assert.Equal(t, tos.Id, ruser.TermsOfServiceId)
+}
+
+func TestGetUserWithAcceptedTermsOfServiceWithAdminUser(t *testing.T) {
+	th := Setup().InitBasic()
+	th.LoginSystemAdmin()
+	defer th.TearDown()
+
+	user := th.BasicUser
+
+	tos, _ := th.App.CreateTermsOfService("Dummy TOS", user.Id)
+
+	ruser, resp := th.SystemAdminClient.GetUser(user.Id, "")
+	CheckNoError(t, resp)
+	CheckUserSanitization(t, ruser)
+
+	if ruser.Email != user.Email {
+		t.Fatal("emails did not match")
+	}
+
+	assert.Empty(t, ruser.TermsOfServiceId)
+
+	th.App.SaveUserTermsOfService(user.Id, tos.Id, true)
+
+	ruser, resp = th.SystemAdminClient.GetUser(user.Id, "")
+	CheckNoError(t, resp)
+	CheckUserSanitization(t, ruser)
+
+	if ruser.Email != user.Email {
+		t.Fatal("emails did not match")
+	}
+
+	// admin can view anyone's TOS details
 	assert.Equal(t, tos.Id, ruser.TermsOfServiceId)
 }
 
