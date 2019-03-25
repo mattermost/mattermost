@@ -474,52 +474,6 @@ func TestGetExplicitMentions(t *testing.T) {
 				ChannelMentioned: true,
 			},
 		},
-		"MultibyteCharacter": {
-			Message:  "My name is 萌",
-			Keywords: map[string][]string{"萌": {id1}},
-			Expected: &ExplicitMentions{
-				MentionedUserIds: map[string]bool{
-					id1: true,
-				},
-			},
-		},
-		"MultibyteCharacterAtBeginningOfSentence": {
-			Message:  "이메일을 보내다.",
-			Keywords: map[string][]string{"이메일": {id1}},
-			Expected: &ExplicitMentions{
-				MentionedUserIds: map[string]bool{
-					id1: true,
-				},
-			},
-		},
-		"MultibyteCharacterInPartOfSentence": {
-			Message:  "我爱吃番茄炒饭",
-			Keywords: map[string][]string{"番茄": {id1}},
-			Expected: &ExplicitMentions{
-				MentionedUserIds: map[string]bool{
-					id1: true,
-				},
-			},
-		},
-		"MultibyteCharacterAtEndOfSentence": {
-			Message:  "こんにちは、世界",
-			Keywords: map[string][]string{"世界": {id1}},
-			Expected: &ExplicitMentions{
-				MentionedUserIds: map[string]bool{
-					id1: true,
-				},
-			},
-		},
-		"MultibyteCharacterTwiceInSentence": {
-			Message:  "石橋さんが石橋を渡る",
-			Keywords: map[string][]string{"石橋": {id1}},
-			Expected: &ExplicitMentions{
-				MentionedUserIds: map[string]bool{
-					id1: true,
-				},
-			},
-		},
-
 		// The following tests cover cases where the message mentions @user.name, so we shouldn't assume that
 		// the user might be intending to mention some @user that isn't in the channel.
 		"Don't include potential mention that's part of an actual mention (without trailing period)": {
@@ -1133,6 +1087,113 @@ func TestPostNotificationGetSenderName(t *testing.T) {
 			}
 
 			assert.Equal(t, testCase.expected, notification.GetSenderName(testCase.nameFormat, testCase.allowOverrides))
+		})
+	}
+}
+
+func TestIsKeywordMultibyte(t *testing.T) {
+	// t.Parallel()
+	id1 := model.NewId()
+
+	for name, tc := range map[string]struct {
+		Message     string
+		Attachments []*model.SlackAttachment
+		Keywords    map[string][]string
+		Expected    *ExplicitMentions
+	}{
+		"MultibyteCharacter": {
+			Message:  "My name is 萌",
+			Keywords: map[string][]string{"萌": {id1}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
+		"MultibyteCharacterWithNoUser": {
+			Message:  "My name is 萌",
+			Keywords: map[string][]string{"萌": {}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{},
+			},
+		},
+		"MultibyteCharacterAtBeginningOfSentence": {
+			Message:  "이메일을 보내다.",
+			Keywords: map[string][]string{"이메일": {id1}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
+		"MultibyteCharacterAtBeginningOfSentenceWithNoUser": {
+			Message:  "이메일을 보내다.",
+			Keywords: map[string][]string{"이메일": {}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{},
+			},
+		},
+		"MultibyteCharacterInPartOfSentence": {
+			Message:  "我爱吃番茄炒饭",
+			Keywords: map[string][]string{"番茄": {id1}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
+		"MultibyteCharacterInPartOfSentenceWithNoUser": {
+			Message:  "我爱吃番茄炒饭",
+			Keywords: map[string][]string{"番茄": {}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{},
+			},
+		},
+		"MultibyteCharacterAtEndOfSentence": {
+			Message:  "こんにちは、世界",
+			Keywords: map[string][]string{"世界": {id1}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
+		"MultibyteCharacterAtEndOfSentenceWithNoUser": {
+			Message:  "こんにちは、世界",
+			Keywords: map[string][]string{"世界": {}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{},
+			},
+		},
+		"MultibyteCharacterTwiceInSentence": {
+			Message:  "石橋さんが石橋を渡る",
+			Keywords: map[string][]string{"石橋": {id1}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
+		"MultibyteCharacterTwiceInSentenceWithNoUser": {
+			Message:  "石橋さんが石橋を渡る",
+			Keywords: map[string][]string{"石橋": {}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{},
+			},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+
+			post := &model.Post{Message: tc.Message, Props: model.StringInterface{
+				"attachments": tc.Attachments,
+			},
+			}
+
+			m := GetExplicitMentions(post, tc.Keywords)
+			if tc.Expected.MentionedUserIds == nil {
+				tc.Expected.MentionedUserIds = make(map[string]bool)
+			}
+			assert.EqualValues(t, tc.Expected, m)
 		})
 	}
 }
