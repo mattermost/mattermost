@@ -4,7 +4,8 @@
 package main
 
 import (
-	"encoding/json"
+	"fmt"
+	"path/filepath"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
@@ -16,15 +17,13 @@ type MyPlugin struct {
 
 func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
 	bundlePath, err := p.API.GetBundlePath()
-	result := map[string]interface{}{}
 	if err != nil {
-		result["Error"] = err.Error() + "failed get bundle path"
-	} else {
-		result["BundlePath"] = bundlePath
+		return nil, err.Error() + "failed get bundle path"
+	} else if bundlePathFromConfig, _ := filepath.Abs(filepath.Join(*p.API.GetConfig().PluginSettings.Directory, "test_get_bundle_path_plugin")); bundlePathFromConfig != bundlePath {
+		return nil, fmt.Sprintf("Invalid bundle path returned: %v vs %v", bundlePathFromConfig, bundlePath)
 	}
 
-	b, _ := json.Marshal(result)
-	return nil, string(b)
+	return nil, ""
 }
 
 func main() {

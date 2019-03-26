@@ -4,7 +4,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -18,7 +17,7 @@ type MyPlugin struct {
 func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
 
 	test := func() string {
-		teams, err := p.API.SearchTeams("{{.Name}}")
+		teams, err := p.API.SearchTeams("{{.BasicTeam.Name}}")
 		if err != nil {
 			return "search failed: " + err.Message
 		}
@@ -26,7 +25,7 @@ func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*mo
 			return fmt.Sprintf("search failed, wrong number of teams: %v", len(teams))
 		}
 
-		teams, err = p.API.SearchTeams("{{.DisplayName}}")
+		teams, err = p.API.SearchTeams("{{.BasicTeam.DisplayName}}")
 		if err != nil {
 			return "search failed: " + err.Message
 		}
@@ -34,7 +33,7 @@ func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*mo
 			return fmt.Sprintf("search failed, wrong number of teams: %v", len(teams))
 		}
 
-		teams, err = p.API.SearchTeams("{{.Name}}"[:3])
+		teams, err = p.API.SearchTeams("{{.BasicTeam.Name}}"[:3])
 
 		if err != nil {
 			return "search failed: " + err.Message
@@ -53,13 +52,7 @@ func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*mo
 		return ""
 	}
 
-	result := map[string]interface{}{}
-	err := test()
-	if err != "" {
-		result["Error"] = err
-	}
-	b, _ := json.Marshal(result)
-	return nil, string(b)
+	return nil, test()
 }
 
 func main() {

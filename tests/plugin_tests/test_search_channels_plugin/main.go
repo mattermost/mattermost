@@ -4,8 +4,6 @@
 package main
 
 import (
-	"encoding/json"
-
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 )
@@ -15,19 +13,24 @@ type MyPlugin struct {
 }
 
 func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
-	teamMembers, err := p.API.GetTeamMembersForUser("{{.UserId}}", 0, 10)
-	result := map[string]interface{}{}
+
+	channels, err := p.API.SearchChannels("{{.BasicTeam.Id}}", "{{.BasicChannel.Name}}")
 	if err != nil {
-		result["Error"] = err.Error() + "failed to get team members"
-	} else if len(teamMembers) != 1 {
-		result["Error"] = "Invalid number of team members"
-	} else {
-		result["UserId"] = teamMembers[0].UserId
-		result["TeamId"] = teamMembers[0].TeamId
+		return nil, err.Error()
+	}
+	if len(channels) != 1 {
+		return nil, "Returned invalid number of channels"
 	}
 
-	b, _ := json.Marshal(result)
-	return nil, string(b)
+	channels, err = p.API.SearchChannels("invalidid", "{{.BasicChannel.Name}}")
+	if err != nil {
+		return nil, err.Error()
+	}
+	if len(channels) != 0 {
+		return nil, "Returned invalid number of channels"
+	}
+
+	return nil, ""
 }
 
 func main() {

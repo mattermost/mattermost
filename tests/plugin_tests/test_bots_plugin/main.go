@@ -4,8 +4,6 @@
 package main
 
 import (
-	"encoding/json"
-
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 )
@@ -15,25 +13,25 @@ type MyPlugin struct {
 }
 
 func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
-	test := func() (bool, string) {
+	test := func() string {
 		createdBot, err := p.API.CreateBot(&model.Bot{
 			Username:    "bot",
 			Description: "a plugin bot",
 		})
 
 		if err != nil {
-			return false, err.Error() + "failed to create bot"
+			return err.Error() + "failed to create bot"
 		}
 
 		fetchedBot, err := p.API.GetBot(createdBot.UserId, false)
 		if err != nil {
-			return false, err.Error() + "failed to get bot"
+			return err.Error() + "failed to get bot"
 		}
 		if fetchedBot.Description != "a plugin bot" {
-			return false, "GetBot did not return the expected bot Description"
+			return "GetBot did not return the expected bot Description"
 		}
-		if fetchedBot.OwnerId != "testpluginbots" {
-			return false, "GetBot did not return the expected bot OwnerId"
+		if fetchedBot.OwnerId != "test_bots_plugin" {
+			return "GetBot did not return the expected bot OwnerId"
 		}
 
 		updatedDescription := createdBot.Description + ", updated"
@@ -41,19 +39,19 @@ func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*mo
 			Description: &updatedDescription,
 		})
 		if err != nil {
-			return false, err.Error() + "failed to patch bot"
+			return err.Error() + "failed to patch bot"
 		}
 
 		fetchedBot, err = p.API.GetBot(patchedBot.UserId, false)
 		if err != nil {
-			return false, err.Error() + "failed to get bot"
+			return err.Error() + "failed to get bot"
 		}
 
 		if fetchedBot.UserId != patchedBot.UserId {
-			return false, "GetBot did not return the expected bot"
+			return "GetBot did not return the expected bot"
 		}
 		if fetchedBot.Description != "a plugin bot, updated" {
-			return false, "GetBot did not return the updated bot Description"
+			return "GetBot did not return the updated bot Description"
 		}
 
 		fetchedBots, err := p.API.GetBots(&model.BotGetOptions{
@@ -63,43 +61,43 @@ func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*mo
 			IncludeDeleted: false,
 		})
 		if err != nil {
-			return false, err.Error() + "failed to get bots"
+			return err.Error() + "failed to get bots"
 		}
 
 		if len(fetchedBots) != 1 {
-			return false, "GetBots did not return a single bot"
+			return "GetBots did not return a single bot"
 		}
 
 		if fetchedBot.UserId != fetchedBots[0].UserId {
-			return false, "GetBots did not return the expected bot"
+			return "GetBots did not return the expected bot"
 		}
 		_, err = p.API.UpdateBotActive(fetchedBot.UserId, false)
 		if err != nil {
-			return false, err.Error() + "failed to disable bot"
+			return err.Error() + "failed to disable bot"
 		}
 		fetchedBot, err = p.API.GetBot(patchedBot.UserId, false)
 		if err == nil {
-			return false, "expected not to find disabled bot"
+			return "expected not to find disabled bot"
 		}
 		_, err = p.API.UpdateBotActive(fetchedBot.UserId, true)
 		if err != nil {
-			return false, err.Error() + "failed to disable bot"
+			return err.Error() + "failed to disable bot"
 		}
 		fetchedBot, err = p.API.GetBot(patchedBot.UserId, false)
 		if err != nil {
-			return false, err.Error() + "failed to get bot after enabling"
+			return err.Error() + "failed to get bot after enabling"
 		}
 		if fetchedBot.UserId != patchedBot.UserId {
-			return false, "GetBot did not return the expected bot after enabling"
+			return "GetBot did not return the expected bot after enabling"
 		}
 		err = p.API.PermanentDeleteBot(patchedBot.UserId)
 		if err != nil {
-			return false, err.Error() + "failed to delete bot"
+			return err.Error() + "failed to delete bot"
 		}
 
 		_, err = p.API.GetBot(patchedBot.UserId, false)
 		if err == nil {
-			return false, err.Error() + "found bot after permanently deleting"
+			return err.Error() + "found bot after permanently deleting"
 		}
 		createdBotWithOverriddenCreator, err := p.API.CreateBot(&model.Bot{
 			Username:    "bot",
@@ -107,27 +105,21 @@ func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*mo
 			OwnerId:     "abc123",
 		})
 		if err != nil {
-			return false, err.Error() + "failed to create bot with overridden creator"
+			return err.Error() + "failed to create bot with overridden creator"
 		}
 		fetchedBot, err = p.API.GetBot(createdBotWithOverriddenCreator.UserId, false)
 		if err != nil {
-			return false, err.Error() + "failed to get bot"
+			return err.Error() + "failed to get bot"
 		}
 		if fetchedBot.Description != "a plugin bot" {
-			return false, "GetBot did not return the expected bot Description"
+			return "GetBot did not return the expected bot Description"
 		}
 		if fetchedBot.OwnerId != "abc123" {
-			return false, "GetBot did not return the expected bot OwnerId"
+			return "GetBot did not return the expected bot OwnerId"
 		}
-		return true, ""
+		return ""
 	}
-	result := map[string]interface{}{}
-	ok, e := test()
-	if !ok {
-		result["Error"] = e
-	}
-	b, _ := json.Marshal(result)
-	return nil, string(b)
+	return nil, test()
 }
 
 func main() {

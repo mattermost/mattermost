@@ -4,8 +4,6 @@
 package main
 
 import (
-	"encoding/json"
-
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 )
@@ -31,13 +29,16 @@ func (p *MyPlugin) OnConfigurationChange() error {
 }
 
 func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
-	b, _ := json.Marshal(map[string]interface{}{
-		"MyStringSetting": p.configuration.MyStringSetting,
-		"MyIntSetting":    p.configuration.MyIntSetting,
-		"MyBoolSetting":   p.configuration.MyBoolSetting,
-	})
-
-	return nil, string(b)
+	if p.configuration.MyStringSetting != "override" {
+		return nil, "MyStringSetting has invalid value"
+	}
+	if p.configuration.MyIntSetting != 35 {
+		return nil, "MyIntSetting has invalid value"
+	}
+	if p.configuration.MyBoolSetting != true {
+		return nil, "MyBoolSetting has invalid value"
+	}
+	return nil, ""
 }
 
 func main() {
