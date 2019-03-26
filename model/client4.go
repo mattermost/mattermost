@@ -3290,6 +3290,30 @@ func (c *Client4) UnlinkLdapGroup(dn string) (*Group, *Response) {
 	return GroupFromJson(r.Body), BuildResponse(r)
 }
 
+// GetLdapGroupsByChannel retrieves the Mattermost Groups associated with a given channel
+func (c *Client4) GetGroupsByChannel(channelId string, page, perPage int) ([]*Group, *Response) {
+	path := fmt.Sprintf("%s/groups?page=%v&per_page=%v", c.GetChannelRoute(channelId), page, perPage)
+	r, appErr := c.DoApiGet(path, "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	return GroupsFromJson(r.Body), BuildResponse(r)
+}
+
+// GetLdapGroupsByTeam retrieves the Mattermost Groups associated with a given team
+func (c *Client4) GetGroupsByTeam(teamId string, page, perPage int) ([]*Group, *Response) {
+	path := fmt.Sprintf("%s/groups?page=%v&per_page=%v", c.GetTeamRoute(teamId), page, perPage)
+	r, appErr := c.DoApiGet(path, "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	return GroupsFromJson(r.Body), BuildResponse(r)
+}
+
 // Audits Section
 
 // GetAudits returns a list of audits for the whole system.
