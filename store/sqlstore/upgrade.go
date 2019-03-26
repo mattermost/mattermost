@@ -19,6 +19,7 @@ import (
 )
 
 const (
+	VERSION_5_10_0           = "5.10.0"
 	VERSION_5_9_0            = "5.9.0"
 	VERSION_5_8_0            = "5.8.0"
 	VERSION_5_7_0            = "5.7.0"
@@ -612,31 +613,31 @@ func UpgradeDatabaseToVersion59(sqlStore SqlStore) {
 }
 
 func UpgradeDatabaseToVersion510(sqlStore SqlStore) {
-	// if shouldPerformUpgrade(sqlStore, VERSION_5_9_0, VERSION_5_10_0) {
+	if shouldPerformUpgrade(sqlStore, VERSION_5_9_0, VERSION_5_10_0) {
 
-	// Grant new bot permissions to the system admin. Ideally we'd use the RoleStore directly,
-	// but it uses the new supplier model, which isn't initialized in the UpgradeDatabase code
-	// path. Also, the role won't exist for new servers, so don't fail on fetch, and don't
-	// bother inserting since it will be created with the new permissions anyway.
-	if role, err := getRole(sqlStore, model.SYSTEM_ADMIN_ROLE_ID); err != nil {
-		mlog.Warn("Failed to find role " + model.SYSTEM_ADMIN_ROLE_ID + " for upgrade: " + err.Error())
-	} else {
-		role.Permissions = append(role.Permissions, model.PERMISSION_CREATE_BOT.Id)
-		role.Permissions = append(role.Permissions, model.PERMISSION_READ_BOTS.Id)
-		role.Permissions = append(role.Permissions, model.PERMISSION_READ_OTHERS_BOTS.Id)
-		role.Permissions = append(role.Permissions, model.PERMISSION_MANAGE_BOTS.Id)
-		role.Permissions = append(role.Permissions, model.PERMISSION_MANAGE_OTHERS_BOTS.Id)
+		// Grant new bot permissions to the system admin. Ideally we'd use the RoleStore directly,
+		// but it uses the new supplier model, which isn't initialized in the UpgradeDatabase code
+		// path. Also, the role won't exist for new servers, so don't fail on fetch, and don't
+		// bother inserting since it will be created with the new permissions anyway.
+		if role, err := getRole(sqlStore, model.SYSTEM_ADMIN_ROLE_ID); err != nil {
+			mlog.Warn("Failed to find role " + model.SYSTEM_ADMIN_ROLE_ID + " for upgrade: " + err.Error())
+		} else {
+			role.Permissions = append(role.Permissions, model.PERMISSION_CREATE_BOT.Id)
+			role.Permissions = append(role.Permissions, model.PERMISSION_READ_BOTS.Id)
+			role.Permissions = append(role.Permissions, model.PERMISSION_READ_OTHERS_BOTS.Id)
+			role.Permissions = append(role.Permissions, model.PERMISSION_MANAGE_BOTS.Id)
+			role.Permissions = append(role.Permissions, model.PERMISSION_MANAGE_OTHERS_BOTS.Id)
 
-		if err := saveRole(sqlStore, role); err != nil {
-			mlog.Critical(err.Error())
-			time.Sleep(time.Second)
-			os.Exit(EXIT_ROLE_MIGRATION_FAILED)
+			if err := saveRole(sqlStore, role); err != nil {
+				mlog.Critical(err.Error())
+				time.Sleep(time.Second)
+				os.Exit(EXIT_ROLE_MIGRATION_FAILED)
+			}
 		}
+
+		sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "GroupConstrained", "tinyint(4)", "boolean")
+		sqlStore.CreateColumnIfNotExistsNoDefault("Teams", "GroupConstrained", "tinyint(4)", "boolean")
+
+		saveSchemaVersion(sqlStore, VERSION_5_10_0)
 	}
-
-	sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "GroupConstrained", "tinyint(4)", "boolean")
-	sqlStore.CreateColumnIfNotExistsNoDefault("Teams", "GroupConstrained", "tinyint(4)", "boolean")
-
-	// 	saveSchemaVersion(sqlStore, VERSION_5_10_0)
-	// }
 }
