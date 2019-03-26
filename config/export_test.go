@@ -26,13 +26,3 @@ func InitializeConfigurationsTable(db *sqlx.DB) error {
 func ResolveConfigFilePath(path string) (string, error) {
 	return resolveConfigFilePath(path)
 }
-
-// GetWithoutEnvOverrides exposes the internal
-func GetConfigWithoutOverridesDS(ds *DatabaseStore) *model.Config {
-	return ds.commonStore.removeEnvOverrides(ds.config)
-}
-
-// GetWithoutEnvOverrides exposes the internal
-func GetConfigWithoutOverridesFS(fs *FileStore) *model.Config {
-	return fs.commonStore.removeEnvOverrides(fs.config)
-}
