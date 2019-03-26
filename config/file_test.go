@@ -455,7 +455,11 @@ func TestFileStoreLoad(t *testing.T) {
 
 		assert.Equal(t, "http://overridePersistEnvVariables", *fs.Get().ServiceSettings.SiteURL)
 		assert.Equal(t, map[string]interface{}{"ServiceSettings": map[string]interface{}{"SiteURL": true}}, fs.GetEnvironmentOverrides())
+		// check that in memory configWithoutOverrides does not include overwritten variable
 		assert.Equal(t, "http://minimal", *config.GetConfigWithoutOverridesFS(fs).ServiceSettings.SiteURL)
+		// check that on disk config does not include overwritten variable
+		actualConfig := getActualFileConfig(t, path)
+		assert.Equal(t, "http://minimal", *actualConfig.ServiceSettings.SiteURL)
 	})
 
 	t.Run("invalid", func(t *testing.T) {

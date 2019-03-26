@@ -432,7 +432,11 @@ func TestDatabaseStoreLoad(t *testing.T) {
 
 		assert.Equal(t, "http://overridePersistEnvVariables", *ds.Get().ServiceSettings.SiteURL)
 		assert.Equal(t, map[string]interface{}{"ServiceSettings": map[string]interface{}{"SiteURL": true}}, ds.GetEnvironmentOverrides())
+		// check that in memory configWithoutOverrides does not include overwritten variable
 		assert.Equal(t, "http://minimal", *config.GetConfigWithoutOverridesDS(ds).ServiceSettings.SiteURL)
+		// check that in DB config does not include overwritten variable
+		_, actualConfig := getActualDatabaseConfig(t)
+		assert.Equal(t, "http://minimal", *actualConfig.ServiceSettings.SiteURL)
 	})
 
 	t.Run("invalid", func(t *testing.T) {
