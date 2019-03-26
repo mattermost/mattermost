@@ -98,6 +98,22 @@ func (_m *PostStore) Get(id string) store.StoreChannel {
 	return r0
 }
 
+// GetDirectPostParentsForExportAfter provides a mock function with given fields: limit, afterId
+func (_m *PostStore) GetDirectPostParentsForExportAfter(limit int, afterId string) store.StoreChannel {
+	ret := _m.Called(limit, afterId)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(int, string) store.StoreChannel); ok {
+		r0 = rf(limit, afterId)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // GetEtag provides a mock function with given fields: channelId, allowFromCache
 func (_m *PostStore) GetEtag(channelId string, allowFromCache bool) store.StoreChannel {
 	ret := _m.Called(channelId, allowFromCache)
@@ -462,21 +478,6 @@ func (_m *PostStore) Update(newPost *model.Post, oldPost *model.Post) store.Stor
 	var r0 store.StoreChannel
 	if rf, ok := ret.Get(0).(func(*model.Post, *model.Post) store.StoreChannel); ok {
 		r0 = rf(newPost, oldPost)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
-		}
-	}
-
-	return r0
-}
-
-func (_m *PostStore) GetDirectPostParentsForExportAfter(limit int, afterId string) store.StoreChannel {
-	ret := _m.Called(limit, afterId)
-
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(int, string) store.StoreChannel); ok {
-		r0 = rf(limit, afterId)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)

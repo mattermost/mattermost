@@ -443,6 +443,7 @@ type TokenStore interface {
 	Delete(token string) StoreChannel
 	GetByToken(token string) StoreChannel
 	Cleanup()
+	RemoveAllTokensByType(tokenType string) StoreChannel
 }
 
 type EmojiStore interface {
