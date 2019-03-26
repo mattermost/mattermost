@@ -110,11 +110,9 @@ func (s *LocalCacheSupplier) ChannelMembersToRemove(ctx context.Context, hints .
 }
 
 func (s *LocalCacheSupplier) GetGroupsByChannel(ctx context.Context, channelId string, page, perPage int, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	// TODO: Redis caching.
 	return s.Next().GetGroupsByChannel(ctx, channelId, page, perPage, hints...)
 }
 
 func (s *LocalCacheSupplier) GetGroupsByTeam(ctx context.Context, teamId string, page, perPage int, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	// TODO: Redis caching.
 	return s.Next().GetGroupsByTeam(ctx, teamId, page, perPage, hints...)
 }
