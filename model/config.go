@@ -2110,6 +2110,10 @@ func (s *PluginSettings) SetDefaults() {
 	if s.PluginStates == nil {
 		s.PluginStates = make(map[string]*PluginState)
 	}
+
+	if s.PluginStates["com.mattermost.nps"] == nil {
+		s.PluginStates["com.mattermost.nps"] = &PluginState{Enable: true}
+	}
 }
 
 type GlobalRelayMessageExportSettings struct {
