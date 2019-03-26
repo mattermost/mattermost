@@ -742,3 +742,64 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		require.IsType(t, &url.Error{}, err)
 	})
 }
+
+func TestMoveOutgoingWebhook(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	oldTeamId := model.NewId()
+	oldTeam := &model.Team{
+		DisplayName: "dn_" + oldTeamId,
+		Name:        "name" + oldTeamId,
+		Email:       "success+" + oldTeamId + "@simulator.amazonses.com",
+		Type:        model.TEAM_OPEN,
+	}
+
+	if _, err := th.App.CreateTeam(oldTeam); err != nil {
+		t.Log(err)
+		t.Fatal("Should create old team")
+	}
+
+	newTeamId := model.NewId()
+	newTeam := &model.Team{
+		DisplayName: "dn_" + newTeamId,
+		Name:        "name" + newTeamId,
+		Email:       "success+" + newTeamId + "@simulator.amazonses.com",
+		Type:        model.TEAM_OPEN,
+	}
+
+	if _, err := th.App.CreateTeam(newTeam); err != nil {
+		t.Log(err)
+		t.Fatal("Should create new team")
+	}
+
+	outgoingWebhook := model.OutgoingWebhook{
+		ChannelId:    th.BasicChannel.Id,
+		TeamId:       oldTeamId,
+		CallbackURLs: []string{"http://nowhere.com"},
+		Username:     "some-user-name",
+		IconURL:      "http://some-icon/",
+		DisplayName:  "some-display-name",
+		Description:  "some-description",
+		CreatorId:    th.BasicUser.Id,
+	}
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
+
+	createdHook, err := th.App.CreateOutgoingWebhook(&outgoingWebhook)
+	if err != nil {
+		t.Fatalf("should not have failed: %v", err.Error())
+	}
+
+	movedHook, err := th.App.MoveOutgoingWebhook(createdHook.Id, newTeamId)
+	if err != nil {
+		t.Fatalf("should not have failed: %v", err.Error())
+	}
+
+	assert.NotNil(t, movedHook, "should not be null")
+	assert.Equal(t, movedHook.TeamId, newTeamId)
+
+	if _, err := th.App.GetOutgoingWebhook(createdHook.Id); err == nil {
+		t.Fatal("Failed to delete old outgoing webhook")
+	}
+}

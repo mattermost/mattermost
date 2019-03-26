@@ -34,13 +34,13 @@ var WebhookShowCmd = &cobra.Command{
 	RunE:    showWebhookCmdF,
 }
 
-var WebhookMoveCmd = &cobra.Command{
-	Use:     "move [newteam] [oldteam]:[webhookId]",
-	Short:   "Move a webhook from one team to another",
-	Long:    "Move webhook with given identifier from old team to new team",
+var WebhookMoveOutgoingCmd = &cobra.Command{
+	Use:     "move-outgoing [newteam] [oldteam]:[webhookId]",
+	Short:   "Move an outgoing webhook from one team to another",
+	Long:    "Move outgoing webhook with given identifier from old team to new team",
 	Args:    cobra.ExactArgs(2),
-	Example: "  webhook move newteam oldteam:w16zb5tu3n1zkqo18goqry1je",
-	RunE:    moveWebhookCmdF,
+	Example: "  webhook move-outgoing newteam oldteam:w16zb5tu3n1zkqo18goqry1je",
+	RunE:    moveWebhookOutgoingCmdF,
 }
 
 var WebhookCreateIncomingCmd = &cobra.Command{
@@ -446,7 +446,7 @@ func showWebhookCmdF(command *cobra.Command, args []string) error {
 	return errors.New("Webhook with id " + webhookId + " not found")
 }
 
-func moveWebhookCmdF(command *cobra.Command, args []string) error {
+func moveWebhookOutgoingCmdF(command *cobra.Command, args []string) error {
 	app, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
@@ -465,18 +465,12 @@ func moveWebhookCmdF(command *cobra.Command, args []string) error {
 	}
 	hookId := parts[1]
 
-	// Assume given webhook is an outgoing webhook and try to move it to new team.
 	if outHook, outErr := app.MoveOutgoingWebhook(hookId, newTeam.Id); outErr == nil {
 		fmt.Printf("%s", prettyPrintStruct(*outHook))
 		return nil
 	}
 
-	if inHook, inErr := app.MoveIncomingWebhook(hookId, newTeam.Id); inErr == nil {
-		fmt.Printf("%s", prettyPrintStruct(*inHook))
-		return nil
-	}
-
-	return errors.New("Unable to move webhook '" + hookId + "'")
+	return errors.New("Unable to move outgoing webhook '" + hookId + "'")
 }
 
 func init() {
@@ -521,7 +515,7 @@ func init() {
 		WebhookModifyOutgoingCmd,
 		WebhookDeleteCmd,
 		WebhookShowCmd,
-		WebhookMoveCmd,
+		WebhookMoveOutgoingCmd,
 	)
 
 	RootCmd.AddCommand(WebhookCmd)

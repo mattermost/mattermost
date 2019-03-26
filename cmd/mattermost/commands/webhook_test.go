@@ -252,118 +252,75 @@ func TestModifyIncomingWebhook(t *testing.T) {
 	}
 }
 
-func TestMoveWebhook(t *testing.T) {
+func TestMoveOutgoingWebhook(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
 	config := th.Config()
 	*config.ServiceSettings.EnableCommands = true
-	*config.ServiceSettings.EnableIncomingWebhooks = true
 	*config.ServiceSettings.EnableOutgoingWebhooks = true
-	*config.ServiceSettings.EnablePostUsernameOverride = true
-	*config.ServiceSettings.EnablePostIconOverride = true
 	th.SetConfig(config)
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnablePostUsernameOverride = true })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnablePostIconOverride = true })
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	defer func() {
 		th.RestoreDefaultRolePermissions(defaultRolePermissions)
 	}()
-	th.AddPermissionToRole(model.PERMISSION_MANAGE_INCOMING_WEBHOOKS.Id, model.TEAM_ADMIN_ROLE_ID)
 	th.AddPermissionToRole(model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS.Id, model.TEAM_ADMIN_ROLE_ID)
-	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_INCOMING_WEBHOOKS.Id, model.TEAM_USER_ROLE_ID)
 	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS.Id, model.TEAM_USER_ROLE_ID)
 
-	// Create old and new teams
-	oldTeamId := model.NewId()
-	oldTeam := &model.Team{
-		DisplayName: "dn_" + oldTeamId,
-		Name:        "name" + oldTeamId,
-		Email:       "success+" + oldTeamId + "@simulator.amazonses.com",
+	// Create new team
+	newTeamModel := &model.Team{
+		DisplayName: "dn_newteam",
+		Name:        "newteam",
+		Email:       "success+newteam@simulator.amazonses.com",
 		Type:        model.TEAM_OPEN,
 	}
-
-	newTeamId := model.NewId()
-	newTeam := &model.Team{
-		DisplayName: "dn_" + newTeamId,
-		Name:        "name" + newTeamId,
-		Email:       "success+" + newTeamId + "@simulator.amazonses.com",
-		Type:        model.TEAM_OPEN,
-	}
-
-	if _, err := th.App.CreateTeam(oldTeam); err != nil {
-		t.Log(err)
-		t.Fatal("Should create old team")
-	}
-	defer th.App.PermanentDeleteTeam(oldTeam)
-
-	if _, err := th.App.CreateTeam(newTeam); err != nil {
-		t.Log(err)
+	newTeam, teamErr := th.App.CreateTeam(newTeamModel)
+	if teamErr != nil {
+		t.Log(teamErr)
 		t.Fatal("Should create new team")
 	}
 	defer th.App.PermanentDeleteTeam(newTeam)
 
-	oldInHook, err := th.App.CreateIncomingWebhook(&model.IncomingWebhook{
-		TeamId:      oldTeam.Id,
-		DisplayName: "dn_oldInHook",
-	})
-	if err != nil {
-		t.Fatal("unable to create incoming webhook")
+	outgoingWebhook := &model.OutgoingWebhook{
+		CreatorId:    th.BasicUser.Id,
+		Username:     th.BasicUser.Username,
+		TeamId:       th.BasicTeam.Id,
+		ChannelId:    th.BasicChannel.Id,
+		DisplayName:  "myhookoutname",
+		Description:  "myhookoutdesc",
+		TriggerWords: model.StringArray{"myhookoutword1"},
+		TriggerWhen:  0,
+		CallbackURLs: model.StringArray{"http://myhookouturl1"},
+		IconURL:      "myhookicon1",
+		ContentType:  "myhookcontent1",
 	}
 
-	oldOutHook, err := th.App.CreateOutgoingWebhook(&model.OutgoingWebhook{
-		TeamId:      oldTeam.Id,
-		DisplayName: "dn_oldOutHook",
-	})
-	if err != nil {
-		t.Fatal("unable to create outgoing webhook")
+	oldOutHook, createErr := th.App.CreateOutgoingWebhook(outgoingWebhook)
+	if createErr != nil {
+		t.Fatal("unable to create outgoing webhook: " + createErr.Error())
 	}
+	defer func() {
+		th.App.DeleteOutgoingWebhook(oldOutHook.Id)
+	}()
 
 	// should fail because you need to specify valid old team name
-	require.Error(t, th.RunCommand(t, "webhook", "move", "invalid", newTeam.Name))
+	require.Error(t, th.RunCommand(t, "webhook", "move-outgoing", "invalid", newTeam.Name))
 
 	// should fail because you need to specify valid new team name
-	require.Error(t, th.RunCommand(t, "webhook", "move", oldTeam.Name, "invalid"))
+	require.Error(t, th.RunCommand(t, "webhook", "move-outgoing", th.BasicTeam.Name, "invalid"))
 
-	// should fail because you need to specify an incoming webhook ID
-	require.Error(t, th.RunCommand(t, "webhook", "move", oldTeam.Name, newTeam.Name))
+	// should fail because you need to specify an outgoing webhook ID
+	require.Error(t, th.RunCommand(t, "webhook", "move-outgoing", th.BasicTeam.Name, newTeam.Name))
 
-	// should fail because you need to specify valid incoming webhook ID
-	require.Error(t, th.RunCommand(t, "webhook", "move", oldTeam.Name, newTeam.Name+":invalid"))
+	// should fail because you need to specify valid outgoing webhook ID
+	require.Error(t, th.RunCommand(t, "webhook", "move-outgoing", th.BasicTeam.Name, newTeam.Name+":invalid"))
 
-	// Test moving incoming webhook
-	th.CheckCommand(t, "webhook", "move", oldTeam.Name, newTeam.Name+":"+oldInHook.Id)
+	th.CheckCommand(t, "webhook", "move-outgoing", th.BasicTeam.Name, newTeam.Name+":"+oldOutHook.Id)
 
-	inHook, err := th.App.GetIncomingWebhook(oldInHook.Id)
-	if err == nil {
-		t.Fatal("Failed to delete old incoming webhook")
-	}
-
-	inHooks, err := th.App.GetIncomingWebhooksForTeamPage(newTeam.Id, 0, 1000)
-	if err != nil {
-		t.Fatal("Failed to fetch incoming webhooks for new team")
-	}
-
-	found := false
-	for _, webhook := range inHooks {
-		if webhook.DisplayName == inHook.DisplayName {
-			found = true
-			break
-		}
-	}
-	if !found {
-		t.Fatal("Failed to move incoming webhook")
-	}
-
-	// Test moving outgoing webhook
-	th.CheckCommand(t, "webhook", "move", oldTeam.Name, newTeam.Name+":"+oldOutHook.Id)
-
-	outHook, err := th.App.GetOutgoingWebhook(oldOutHook.Id)
-	if err == nil {
+	if _, err := th.App.GetOutgoingWebhook(oldOutHook.Id); err == nil {
 		t.Fatal("Failed to delete old outgoing webhook")
 	}
 
@@ -372,9 +329,9 @@ func TestMoveWebhook(t *testing.T) {
 		t.Fatal("Failed to fetch outgoing webhooks for new team")
 	}
 
-	found = false
+	found := false
 	for _, webhook := range outHooks {
-		if webhook.DisplayName == outHook.DisplayName {
+		if webhook.DisplayName == oldOutHook.DisplayName {
 			found = true
 			break
 		}
