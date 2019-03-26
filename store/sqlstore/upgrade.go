@@ -19,6 +19,7 @@ import (
 )
 
 const (
+	VERSION_5_11_0           = "5.11.0"
 	VERSION_5_10_0           = "5.10.0"
 	VERSION_5_9_0            = "5.9.0"
 	VERSION_5_8_0            = "5.8.0"
@@ -103,6 +104,7 @@ func UpgradeDatabase(sqlStore SqlStore) {
 	UpgradeDatabaseToVersion58(sqlStore)
 	UpgradeDatabaseToVersion59(sqlStore)
 	UpgradeDatabaseToVersion510(sqlStore)
+	UpgradeDatabaseToVersion511(sqlStore)
 
 	// If the SchemaVersion is empty this this is the first time it has ran
 	// so lets set it to the current version.
@@ -640,4 +642,12 @@ func UpgradeDatabaseToVersion510(sqlStore SqlStore) {
 
 		saveSchemaVersion(sqlStore, VERSION_5_10_0)
 	}
+}
+
+func UpgradeDatabaseToVersion511(sqlStore SqlStore) {
+	// TODO: Uncomment following condition when version 5.11.0 is released
+	// if shouldPerformUpgrade(sqlStore, VERSION_5_10_0, VERSION_5_11_0) {
+
+	// 	saveSchemaVersion(sqlStore, VERSION_5_11_0)
+	// }
 }
