@@ -62,12 +62,12 @@ func getUserStatusesByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if len(userIds) == 0 {
+	if len(visibleUserIds) == 0 {
 		c.SetPermissionError(model.PERMISSION_VIEW_MEMBERS)
 		return
 	}
 
-	statusMap, err := c.App.GetUserStatusesByIds(userIds)
+	statusMap, err := c.App.GetUserStatusesByIds(visibleUserIds)
 	if err != nil {
 		c.Err = err
 		return
