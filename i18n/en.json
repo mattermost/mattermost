@@ -1779,6 +1779,10 @@
     "translation": "Malformed request: filesize field is not present."
   },
   {
+    "id": "api.team.invalidate_all_email_invites.app_error",
+    "translation": "Error invalidating email invites."
+  },
+  {
     "id": "api.team.invite_members.disabled.app_error",
     "translation": "Email invitations are disabled."
   },
@@ -6021,6 +6025,10 @@
   {
     "id": "store.sql_recover.delete.app_error",
     "translation": "Unable to delete token"
+  },
+  {
+    "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
+    "translation": "Unable to remove all the tokens of a type"
   },
   {
     "id": "store.sql_recover.get_by_code.app_error",
