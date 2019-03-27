@@ -270,6 +270,7 @@ type Cmdable interface {
 	ClusterResetHard() *StatusCmd
 	ClusterInfo() *StringCmd
 	ClusterKeySlot(key string) *IntCmd
+	ClusterGetKeysInSlot(slot int, count int) *StringSliceCmd
 	ClusterCountFailureReports(nodeID string) *IntCmd
 	ClusterCountKeysInSlot(slot int) *IntCmd
 	ClusterDelSlots(slots ...int) *StatusCmd
@@ -1452,10 +1453,11 @@ func (c *cmdable) XGroupDelConsumer(stream, group, consumer string) *IntCmd {
 type XReadGroupArgs struct {
 	Group    string
 	Consumer string
-	Streams  []string
-	Count    int64
-	Block    time.Duration
-	NoAck    bool
+	// List of streams and ids.
+	Streams []string
+	Count   int64
+	Block   time.Duration
+	NoAck   bool
 }
 
 func (c *cmdable) XReadGroup(a *XReadGroupArgs) *XStreamSliceCmd {
@@ -2398,6 +2400,12 @@ func (c *cmdable) ClusterInfo() *StringCmd {
 
 func (c *cmdable) ClusterKeySlot(key string) *IntCmd {
 	cmd := NewIntCmd("cluster", "keyslot", key)
+	c.process(cmd)
+	return cmd
+}
+
+func (c *cmdable) ClusterGetKeysInSlot(slot int, count int) *StringSliceCmd {
+	cmd := NewStringSliceCmd("cluster", "getkeysinslot", slot, count)
 	c.process(cmd)
 	return cmd
 }
