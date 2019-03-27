@@ -94,13 +94,13 @@ func (env *Environment) IsActive(id string) bool {
 	return ok
 }
 
-// StaticFilesPath returns a path and true if the plugin with the given id is active.
+// PublicFilesPath returns a path and true if the plugin with the given id is active.
 // It returns an empty string and false if the path is not set or invalid
-func (env *Environment) StaticFilesPath(id string) (string, bool) {
+func (env *Environment) PublicFilesPath(id string) (string, error) {
 	if _, ok := env.activePlugins.Load(id); !ok {
-		return "", ok
+		return "", fmt.Errorf("plugin not found: %v", id)
 	}
-	return filepath.Join(env.pluginDir, id, "public"), true
+	return filepath.Join(env.pluginDir, id, "public"), nil
 }
 
 // Statuses returns a list of plugin statuses representing the state of every plugin

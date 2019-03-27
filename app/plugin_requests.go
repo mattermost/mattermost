@@ -4,6 +4,7 @@
 package app
 
 import (
+	"fmt"
 	"net/http"
 	"path"
 	"path/filepath"
@@ -41,9 +42,9 @@ func (a *App) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
 	a.servePluginRequest(w, r, hooks.ServeHTTP)
 }
 
-// ServePluginStaticRequest serves static plugin files
+// ServePluginPublicRequest serves public plugin files
 // at the URL http(s)://$SITE_URL/plugins/$PLUGIN_ID/public/{anything}
-func (a *App) ServePluginStaticRequest(w http.ResponseWriter, r *http.Request) {
+func (a *App) ServePluginPublicRequest(w http.ResponseWriter, r *http.Request) {
 	if strings.HasSuffix(r.URL.Path, "/") {
 		http.NotFound(w, r)
 		return
@@ -52,16 +53,22 @@ func (a *App) ServePluginStaticRequest(w http.ResponseWriter, r *http.Request) {
 	// Should be in the form of /$PLUGIN_ID/public/{anything} by the timne we get here
 	vars := mux.Vars(r)
 	pluginID := vars["plugin_id"]
-	staticfile := vars["static_file"]
 
-	staticFiles, isOk := a.GetPluginsEnvironment().StaticFilesPath(pluginID)
+	publicFilesPath, err := a.GetPluginsEnvironment().PublicFilesPath(pluginID)
 
-	if !isOk {
+	if err != nil {
 		http.NotFound(w, r)
 		return
 	}
 
-	http.ServeFile(w, r, filepath.Join(staticFiles, staticfile))
+	publicFilePath := path.Clean(r.URL.Path)
+	prefix := fmt.Sprintf("/plugins/%s/public/", pluginID)
+	if !strings.HasPrefix(publicFilePath, prefix) {
+		http.NotFound(w, r)
+		return
+	}
+	publicFile := filepath.Join(publicFilesPath, strings.TrimPrefix(publicFilePath, prefix))
+	http.ServeFile(w, r, publicFile)
 }
 
 func (a *App) servePluginRequest(w http.ResponseWriter, r *http.Request, handler func(*plugin.Context, http.ResponseWriter, *http.Request)) {

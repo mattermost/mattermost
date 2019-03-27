@@ -12,6 +12,8 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/mattermost/mattermost-server/testlib"
+
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/config"
 	"github.com/mattermost/mattermost-server/model"
@@ -89,11 +91,7 @@ func Setup() *TestHelper {
 func (th *TestHelper) InitPlugins() *TestHelper {
 
 	if th.tempWorkspace == "" {
-		dir, err := ioutil.TempDir("", "apptest")
-		if err != nil {
-			panic(err)
-		}
-		th.tempWorkspace = dir
+		th.tempWorkspace, _ = testlib.SetupTestResources()
 	}
 
 	pluginDir := filepath.Join(th.tempWorkspace, "plugins")
@@ -129,7 +127,7 @@ func (th *TestHelper) TearDown() {
 	}
 }
 
-func TestStaticFilesFolderRequest(t *testing.T) {
+func TestPublicFilesRequest(t *testing.T) {
 	th := Setup().InitPlugins()
 	defer th.TearDown()
 
