@@ -18,6 +18,7 @@ const (
 	MIGRATION_KEY_EMOJI_PERMISSIONS_SPLIT        = "emoji_permissions_split"
 	MIGRATION_KEY_WEBHOOK_PERMISSIONS_SPLIT      = "webhook_permissions_split"
 	MIGRATION_KEY_LIST_JOIN_PUBLIC_PRIVATE_TEAMS = "list_join_public_private_teams"
+	MIGRATION_KEY_REMOVE_PERMANENT_DELETE_USER   = "remove_permanent_delete_user"
 
 	PERMISSION_MANAGE_SYSTEM                   = "manage_system"
 	PERMISSION_MANAGE_EMOJIS                   = "manage_emojis"
@@ -35,6 +36,7 @@ const (
 	PERMISSION_LIST_PRIVATE_TEAMS              = "list_private_teams"
 	PERMISSION_JOIN_PUBLIC_TEAMS               = "join_public_teams"
 	PERMISSION_JOIN_PRIVATE_TEAMS              = "join_private_teams"
+	PERMISSION_PERMANENT_DELETE_USER           = "permanent_delete_user"
 )
 
 func isRole(role string) func(string, map[string]bool) bool {
@@ -173,6 +175,15 @@ func getListJoinPublicPrivateTeamsPermissionsMigration() permissionsMap {
 	}
 }
 
+func removePermanentDeleteUserMigration() permissionsMap {
+	return permissionsMap{
+		permissionTransformation{
+			On:     permissionExists(PERMISSION_PERMANENT_DELETE_USER),
+			Remove: []string{PERMISSION_PERMANENT_DELETE_USER},
+		},
+	}
+}
+
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
 func (a *App) DoPermissionsMigrations() *model.AppError {
 	PermissionsMigrations := []struct {
@@ -182,6 +193,7 @@ func (a *App) DoPermissionsMigrations() *model.AppError {
 		{Key: MIGRATION_KEY_EMOJI_PERMISSIONS_SPLIT, Migration: getEmojisPermissionsSplitMigration},
 		{Key: MIGRATION_KEY_WEBHOOK_PERMISSIONS_SPLIT, Migration: getWebhooksPermissionsSplitMigration},
 		{Key: MIGRATION_KEY_LIST_JOIN_PUBLIC_PRIVATE_TEAMS, Migration: getListJoinPublicPrivateTeamsPermissionsMigration},
+		{Key: MIGRATION_KEY_REMOVE_PERMANENT_DELETE_USER, Migration: removePermanentDeleteUserMigration},
 	}
 
 	for _, migration := range PermissionsMigrations {
