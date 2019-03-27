@@ -738,7 +738,13 @@ func TestNullBoolMarshal(t *testing.T) {
 			Name: "Not valid and value true",
 			Valid: false,
 			Bool: true,
-			Result: "null",
+			Result: "false",
+		},
+		{
+			Name: "Not valid and value false",
+			Valid: false,
+			Bool: false,
+			Result: "false",
 		},
 		{
 			Name: "Valid and value true",
@@ -818,13 +824,13 @@ func TestNullBoolMarshalType(t *testing.T) {
 			Name: "Not valid and value false",
 			Valid: false,
 			Bool: false,
-			Result: "{\"active\":null}",
+			Result: "{\"active\":false}",
 		},
 		{
 			Name: "Not valid and value true",
 			Valid: false,
 			Bool: true,
-			Result: "{\"active\":null}",
+			Result: "{\"active\":false}",
 		},
 		{
 			Name: "Valid and value true",

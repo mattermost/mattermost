@@ -597,7 +597,7 @@ func (nb NullBool) MarshalJSON() ([]byte, error) {
 	if nb.Valid {
 		return json.Marshal(nb.Bool)
 	} else {
-		return json.Marshal(nil)
+		return json.Marshal(false)
 	}
 }
 
