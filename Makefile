@@ -566,9 +566,6 @@ update-dependencies: ## Uses go get -u to update all the dependencies while hold
 	# Update all dependencies (does not update across major versions)
 	go get -u
 
-	# Fork for adding our own method to viper EnvSettings
-	go get -u github.com/mattermost/viper@mattermost
-
 	# Keep back because of breaking API changes
 	go get -u github.com/segmentio/analytics-go@2.1.1
 

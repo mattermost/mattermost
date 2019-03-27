@@ -128,7 +128,7 @@ github.com/mattermost/gorp
 github.com/mattermost/rsc/qr
 github.com/mattermost/rsc/qr/coding
 github.com/mattermost/rsc/gf256
-# github.com/mattermost/viper v1.0.1-0.20181112161711-f99c30686b86
+# github.com/mattermost/viper v1.0.4
 github.com/mattermost/viper
 # github.com/mattn/go-runewidth v0.0.4
 github.com/mattn/go-runewidth
