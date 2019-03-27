@@ -6,6 +6,7 @@ package model
 import (
 	"bytes"
 	"crypto/rand"
+	"database/sql"
 	"encoding/base32"
 	"encoding/json"
 	"fmt"
@@ -586,4 +587,30 @@ func GetPreferredTimezone(timezone StringMap) string {
 	}
 
 	return timezone["manualTimezone"]
+}
+
+type JsonNullBool struct {
+	sql.NullBool
+}
+
+func (jnb *JsonNullBool) MarshalJSON() ([]byte, error) {
+	if jnb.Valid {
+		return json.Marshal(jnb.Bool)
+	} else {
+		return json.Marshal(nil)
+	}
+}
+
+func (jnb *JsonNullBool) UnmarshalJSON(data []byte) error {
+	var b *bool
+	if err := json.Unmarshal(data, &b); err != nil {
+		return err
+	}
+	if b != nil {
+		jnb.Valid = true
+		jnb.Bool = *b
+	} else {
+		jnb.Valid = false
+	}
+	return nil
 }

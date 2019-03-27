@@ -724,3 +724,83 @@ func checkNowhereNil(t *testing.T, name string, value interface{}) bool {
 		return true
 	}
 }
+
+func TestJsonNullBoolMarshaler(t *testing.T) {
+	testCases := []struct{
+		Name   string
+		Valid  bool
+		Bool   bool
+		Result string
+	}{
+		{
+			Name: "Not valid and value true",
+			Valid: false,
+			Bool: true,
+			Result: "null",
+		},
+		{
+			Name: "Valid and value true",
+			Valid: true,
+			Bool: true,
+			Result: "true",
+		},
+		{
+			Name: "Valid and value false",
+			Valid: true,
+			Bool: false,
+			Result: "false",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			jnb := JsonNullBool{}
+			jnb.Valid = tc.Valid
+			jnb.Bool = tc.Bool
+			res, err := jnb.MarshalJSON()
+			require.Nil(t, err)
+			require.Equal(t, tc.Result, string(res))
+		})
+	}
+}
+
+func TestJsonNullBoolUnmarshal(t *testing.T) {
+	testCases := []struct{
+		Name      string
+		JsonInput string
+		Valid     bool
+		Bool      bool
+	}{
+		{
+			Name: "Null input",
+			JsonInput: "null",
+			Valid: false,
+			Bool: false,
+		},
+		{
+			Name: "True input",
+			JsonInput: "true",
+			Valid: true,
+			Bool: true,
+		},
+		{
+			Name: "False input",
+			JsonInput: "false",
+			Valid: true,
+			Bool: false,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			expectedJnb := JsonNullBool{}
+			expectedJnb.Valid = tc.Valid
+			expectedJnb.Bool = tc.Bool
+
+			jnb := JsonNullBool{}
+			err := jnb.UnmarshalJSON([]byte(tc.JsonInput))
+			require.Nil(t, err)
+			require.Equal(t, expectedJnb, jnb)
+		})
+	}
+}

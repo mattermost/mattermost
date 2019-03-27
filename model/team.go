@@ -4,7 +4,6 @@
 package model
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -42,7 +41,7 @@ type Team struct {
 	AllowOpenInvite    bool         `json:"allow_open_invite"`
 	LastTeamIconUpdate int64        `json:"last_team_icon_update,omitempty"`
 	SchemeId           *string      `json:"scheme_id"`
-	GroupConstrained   sql.NullBool `json:"group_constrained"`
+	GroupConstrained   JsonNullBool `json:"group_constrained"`
 }
 
 type TeamPatch struct {
