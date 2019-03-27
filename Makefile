@@ -569,9 +569,6 @@ update-dependencies: ## Uses go get -u to update all the dependencies while hold
 	# Keep back because of breaking API changes
 	go get -u github.com/segmentio/analytics-go@2.1.1
 
-	# Lock to control when plugins use new versions
-	go get -u github.com/hashicorp/go-hclog@e45cbeb79f0411b1cfedd3f226ff69d5d433c762
-
 	# Tidy up
 	go mod tidy
 

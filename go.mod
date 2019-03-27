@@ -27,7 +27,7 @@ require (
 	github.com/gorilla/schema v1.1.0
 	github.com/gorilla/websocket v1.4.0
 	github.com/hako/durafmt v0.0.0-20180520121703-7b7ae1e72ead
-	github.com/hashicorp/go-hclog v0.0.0-20180910232447-e45cbeb79f04
+	github.com/hashicorp/go-hclog v0.8.0
 	github.com/hashicorp/go-plugin v1.0.0
 	github.com/hashicorp/go-sockaddr v1.0.2 // indirect
 	github.com/hashicorp/go-uuid v1.0.1 // indirect
