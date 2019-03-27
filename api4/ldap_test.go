@@ -5,11 +5,15 @@ package api4
 
 import (
 	"testing"
+
+	"github.com/mattermost/mattermost-server/model"
 )
 
 func TestTestLdap(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
+
+	th.App.SetLicense(model.NewTestLicense("ldap_groups"))
 
 	_, resp := th.Client.TestLdap()
 	CheckForbiddenStatus(t, resp)
@@ -21,6 +25,8 @@ func TestTestLdap(t *testing.T) {
 func TestSyncLdap(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
+
+	th.App.SetLicense(model.NewTestLicense("ldap_groups"))
 
 	_, resp := th.SystemAdminClient.SyncLdap()
 	CheckNoError(t, resp)
