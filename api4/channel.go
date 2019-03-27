@@ -8,6 +8,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/store"
 )
 
 func (api *API) InitChannel() {
@@ -1124,32 +1125,46 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Bypass permissions check if you are already joined to the channel
-	if _, err = c.App.GetChannelMember(member.ChannelId, member.UserId); err != nil {
-		// Check join permission if adding yourself, otherwise check manage permission
-		if channel.Type == model.CHANNEL_OPEN {
-			if member.UserId == c.App.Session.UserId {
-				if !c.App.SessionHasPermissionToTeam(c.App.Session, channel.TeamId, model.PERMISSION_JOIN_PUBLIC_CHANNELS) {
-					c.SetPermissionError(model.PERMISSION_JOIN_PUBLIC_CHANNELS)
-					return
-				}
-			} else {
-				if !c.App.SessionHasPermissionToChannel(c.App.Session, channel.Id, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS) {
-					c.SetPermissionError(model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS)
-					return
-				}
-			}
-		}
+	if channel.Type == model.CHANNEL_DIRECT || channel.Type == model.CHANNEL_GROUP {
+		c.Err = model.NewAppError("addUserToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
 
-		if channel.Type == model.CHANNEL_PRIVATE && !c.App.SessionHasPermissionToChannel(c.App.Session, channel.Id, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS) {
-			c.SetPermissionError(model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS)
+	isNewMembership := false
+	if _, err = c.App.GetChannelMember(member.ChannelId, member.UserId); err != nil {
+		if err.Id == store.MISSING_CHANNEL_ERROR {
+			isNewMembership = true
+		} else {
+			c.Err = err
 			return
 		}
 	}
 
-	if channel.Type == model.CHANNEL_DIRECT || channel.Type == model.CHANNEL_GROUP {
-		c.Err = model.NewAppError("addUserToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusBadRequest)
-		return
+	isSelfAdd := member.UserId == c.App.Session.UserId
+
+	if channel.Type == model.CHANNEL_OPEN {
+		if !isSelfAdd {
+			if !c.App.SessionHasPermissionToChannel(c.App.Session, channel.Id, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS) {
+				c.SetPermissionError(model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS)
+				return
+			}
+		} else if isNewMembership {
+			if !c.App.SessionHasPermissionToTeam(c.App.Session, channel.TeamId, model.PERMISSION_JOIN_PUBLIC_CHANNELS) {
+				c.SetPermissionError(model.PERMISSION_JOIN_PUBLIC_CHANNELS)
+				return
+			}
+		}
+		// If it is a self add and I'm already in the channel, do not check any permission
+	}
+
+	if channel.Type == model.CHANNEL_PRIVATE {
+		if !isSelfAdd || isNewMembership {
+			if !c.App.SessionHasPermissionToChannel(c.App.Session, channel.Id, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS) {
+				c.SetPermissionError(model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS)
+				return
+			}
+		}
+		// If it is a self add and I'm already in the channel, do not check any permission
 	}
 
 	cm, err := c.App.AddChannelMember(member.UserId, channel, c.App.Session.UserId, postRootId, c.App.Session.Id)
