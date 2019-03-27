@@ -1256,3 +1256,10 @@ func (a *App) RemoveTeamIcon(teamId string) *model.AppError {
 
 	return nil
 }
+
+func (a *App) InvalidateAllEmailInvites() *model.AppError {
+	if result := <-a.Srv.Store.Token().RemoveAllTokensByType(TOKEN_TYPE_TEAM_INVITATION); result.Err != nil {
+		return model.NewAppError("InvalidateAllEmailInvites", "api.team.invalidate_all_email_invites.app_error", nil, result.Err.Error(), http.StatusBadRequest)
+	}
+	return nil
+}

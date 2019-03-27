@@ -3,15 +3,15 @@ dist: | check-style test package
 
 build-linux:
 	@echo Build Linux amd64
-	env GOOS=linux GOARCH=amd64 $(GO) install -i $(GOFLAGS) $(GO_LINKER_FLAGS) ./...
+	env GOOS=linux GOARCH=amd64 $(GO) install -i $(GOFLAGS) -ldflags '$(LDFLAGS)' ./...
 
 build-osx:
 	@echo Build OSX amd64
-	env GOOS=darwin GOARCH=amd64 $(GO) install -i $(GOFLAGS) $(GO_LINKER_FLAGS) ./...
+	env GOOS=darwin GOARCH=amd64 $(GO) install -i $(GOFLAGS) -ldflags '$(LDFLAGS)' ./...
 
 build-windows:
 	@echo Build Windows amd64
-	env GOOS=windows GOARCH=amd64 $(GO) install -i $(GOFLAGS) $(GO_LINKER_FLAGS) ./...
+	env GOOS=windows GOARCH=amd64 $(GO) install -i $(GOFLAGS) -ldflags '$(LDFLAGS)' ./...
 
 build: build-linux build-windows build-osx
 
@@ -65,7 +65,7 @@ endif
 
 	@# Download prepackaged plugins
 	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
-		curl -s https://api.github.com/repos/mattermost/$$plugin_package/releases/latest | grep browser_download_url | cut -d '"' -f 4 | wget -qi - -P  $(DIST_PATH)/prepackaged_plugins/ ;\
+		curl -s https://api.github.com/repos/mattermost/$$plugin_package/releases/latest | awk -F\" '/browser_download_url/ { system("cd $(DIST_PATH)/prepackaged_plugins; curl -O " $$4) }';\
 	done
 
 	@# ----- PLATFORM SPECIFIC -----
