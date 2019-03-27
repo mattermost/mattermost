@@ -75,7 +75,6 @@ func TestPublicFilesPathConfiguration(t *testing.T) {
 		`{"id": "com.mattermost.sample", "server": {"executable": "backend.exe"}, "settings_schema": {"settings": []}}`, pluginID, th.App)
 
 	publicFilesFolderInTest := filepath.Join(pluginDir, pluginID, "public")
-
 	publicFilesPath, err := th.App.GetPluginsEnvironment().PublicFilesPath(pluginID)
 	assert.NoError(t, err)
 	assert.Equal(t, publicFilesPath, publicFilesFolderInTest)
