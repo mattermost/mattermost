@@ -51,7 +51,7 @@ type Channel struct {
 	CreatorId        string                 `json:"creator_id"`
 	SchemeId         *string                `json:"scheme_id"`
 	Props            map[string]interface{} `json:"props" db:"-"`
-	GroupConstrained JsonNullBool           `json:"group_constrained"`
+	GroupConstrained NullBool               `json:"group_constrained"`
 }
 
 type ChannelWithTeamData struct {

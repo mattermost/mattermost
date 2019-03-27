@@ -5,6 +5,8 @@ package model
 
 import (
 	"fmt"
+	"database/sql"
+	"encoding/json"
 	"net/http"
 	"reflect"
 	"strings"
@@ -725,7 +727,7 @@ func checkNowhereNil(t *testing.T, name string, value interface{}) bool {
 	}
 }
 
-func TestJsonNullBoolMarshaler(t *testing.T) {
+func TestNullBoolMarshal(t *testing.T) {
 	testCases := []struct{
 		Name   string
 		Valid  bool
@@ -754,17 +756,17 @@ func TestJsonNullBoolMarshaler(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			jnb := JsonNullBool{}
-			jnb.Valid = tc.Valid
-			jnb.Bool = tc.Bool
-			res, err := jnb.MarshalJSON()
+			nb := NullBool{}
+			nb.Valid = tc.Valid
+			nb.Bool = tc.Bool
+			res, err := nb.MarshalJSON()
 			require.Nil(t, err)
 			require.Equal(t, tc.Result, string(res))
 		})
 	}
 }
 
-func TestJsonNullBoolUnmarshal(t *testing.T) {
+func TestNullBoolUnmarshal(t *testing.T) {
 	testCases := []struct{
 		Name      string
 		JsonInput string
@@ -793,14 +795,101 @@ func TestJsonNullBoolUnmarshal(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			expectedJnb := JsonNullBool{}
-			expectedJnb.Valid = tc.Valid
-			expectedJnb.Bool = tc.Bool
+			expectedNb := NullBool{sql.NullBool{Valid: tc.Valid, Bool: tc.Bool}}
+			nb := NullBool{}
+			err := nb.UnmarshalJSON([]byte(tc.JsonInput))
 
-			jnb := JsonNullBool{}
-			err := jnb.UnmarshalJSON([]byte(tc.JsonInput))
 			require.Nil(t, err)
-			require.Equal(t, expectedJnb, jnb)
+			require.Equal(t, expectedNb, nb)
+		})
+	}
+}
+
+func TestNullBoolMarshalType(t *testing.T) {
+	type Button struct { Active *NullBool `json:"active"` }
+
+	testCases := []struct{
+		Name   string
+		Valid  bool
+		Bool   bool
+		Result string
+	}{
+		{
+			Name: "Not valid and value false",
+			Valid: false,
+			Bool: false,
+			Result: "{\"active\":null}",
+		},
+		{
+			Name: "Not valid and value true",
+			Valid: false,
+			Bool: true,
+			Result: "{\"active\":null}",
+		},
+		{
+			Name: "Valid and value true",
+			Valid: true,
+			Bool: true,
+			Result: "{\"active\":true}",
+		},
+		{
+			Name: "Valid and value false",
+			Valid: true,
+			Bool: false,
+			Result: "{\"active\":false}",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			nb := NullBool{}
+			nb.Valid = tc.Valid
+			nb.Bool = tc.Bool
+			b := Button{Active: &nb}
+			res, err := json.Marshal(b)
+			require.Nil(t, err)
+			require.Equal(t, tc.Result, string(res))
+		})
+	}
+}
+
+func TestNullBoolUnmarshalType(t *testing.T) {
+	type Button struct { Active *NullBool `json:"active"` }
+
+	testCases := []struct{
+		Name      string
+		JsonInput string
+		Expected  *NullBool
+	}{
+		{
+			Name: "Empty object",
+			JsonInput: "{}",
+			Expected: nil,
+		},
+		{
+			Name: "Null input",
+			JsonInput: "{\"active\": null}",
+			Expected: nil,
+		},
+		{
+			Name: "True input",
+			JsonInput: "{\"active\": true}",
+			Expected: &NullBool{sql.NullBool{Valid: true, Bool: true}},
+		},
+		{
+			Name: "False input",
+			JsonInput: "{\"active\": false}",
+			Expected: &NullBool{sql.NullBool{Valid: true, Bool: false}},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			b := Button{}
+			err := json.Unmarshal([]byte(tc.JsonInput), &b)
+
+			require.Nil(t, err)
+			require.Equal(t, tc.Expected, b.Active)
 		})
 	}
 }

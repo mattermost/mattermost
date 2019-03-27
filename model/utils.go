@@ -589,28 +589,28 @@ func GetPreferredTimezone(timezone StringMap) string {
 	return timezone["manualTimezone"]
 }
 
-type JsonNullBool struct {
+type NullBool struct {
 	sql.NullBool
 }
 
-func (jnb *JsonNullBool) MarshalJSON() ([]byte, error) {
-	if jnb.Valid {
-		return json.Marshal(jnb.Bool)
+func (nb NullBool) MarshalJSON() ([]byte, error) {
+	if nb.Valid {
+		return json.Marshal(nb.Bool)
 	} else {
 		return json.Marshal(nil)
 	}
 }
 
-func (jnb *JsonNullBool) UnmarshalJSON(data []byte) error {
+func (nb *NullBool) UnmarshalJSON(data []byte) error {
 	var b *bool
 	if err := json.Unmarshal(data, &b); err != nil {
 		return err
 	}
 	if b != nil {
-		jnb.Valid = true
-		jnb.Bool = *b
+		nb.Valid = true
+		nb.Bool = *b
 	} else {
-		jnb.Valid = false
+		nb.Valid = false
 	}
 	return nil
 }
