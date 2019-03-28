@@ -74,6 +74,9 @@ func (a *App) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartIma
 	defer imageFile.Close()
 
 	imageBytes, err := ioutil.ReadAll(imageFile)
+	if err != nil {
+		return nil, model.NewAppError("createEmoji", "api.emoji.create.read.app_error", nil, "", http.StatusBadRequest)
+	}
 	_, imageType, err := image.DecodeConfig(bytes.NewReader(imageBytes))
 	if err != nil {
 		return nil, model.NewAppError("createEmoji", "api.emoji.create.decode.app_error", nil, err.Error(), http.StatusBadRequest)
