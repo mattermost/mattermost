@@ -15,21 +15,11 @@ indent_style = tab
 indent_style = space
 indent_size = 4
 
-[webapp/package.json]
-indent_size = 2
-
 [i18n/**.json]
-indent_size = 2
-
-[webapp/i18n/**.json]
 indent_size = 2
 
 [Makefile,*.mk]
 indent_style = tab
-
-[*.scss]
-indent_style = space
-indent_size = 4
 
 [*.md]
 indent_style = space
