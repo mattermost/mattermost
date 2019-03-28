@@ -18,6 +18,7 @@ func TestEmojiIsValid(t *testing.T) {
 		DeleteAt:  0,
 		CreatorId: NewId(),
 		Name:      "name",
+		MimeType:  "image/png",
 	}
 
 	if err := emoji.IsValid(); err != nil {
@@ -60,4 +61,17 @@ func TestEmojiIsValid(t *testing.T) {
 
 	emoji.Name = "croissant"
 	require.NotNil(t, emoji.IsValid())
+
+	emoji.Name = "name-"
+	emoji.MimeType = ""
+	require.NotNil(t, emoji.IsValid())
+
+	emoji.MimeType = "application/octet-stream"
+	require.NotNil(t, emoji.IsValid())
+
+	emoji.MimeType = "image/gif"
+	require.Nil(t, emoji.IsValid())
+
+	emoji.MimeType = "image/jpeg"
+	require.Nil(t, emoji.IsValid())
 }

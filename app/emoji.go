@@ -12,6 +12,7 @@ import (
 	_ "image/jpeg"
 	"image/png"
 	"io"
+	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 
@@ -42,6 +43,9 @@ func (a *App) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartIma
 	// wipe the emoji id so that existing emojis can't get overwritten
 	emoji.Id = ""
 
+	// set a temporary valid MIME type so that the validation below succeeds
+	emoji.MimeType = "image/png"
+
 	// do our best to validate the emoji before committing anything to the DB so that we don't have to clean up
 	// orphaned files left over when validation fails later on
 	emoji.PreSave()
@@ -62,6 +66,19 @@ func (a *App) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartIma
 		err := model.NewAppError("Context", "api.context.invalid_body_param.app_error", map[string]interface{}{"Name": "createEmoji"}, "", http.StatusBadRequest)
 		return nil, err
 	}
+
+	imageFile, err := imageData[0].Open()
+	if err != nil {
+		return nil, model.NewAppError("createEmoji", "api.emoji.create.open.app_error", nil, "", http.StatusBadRequest)
+	}
+	defer imageFile.Close()
+
+	imageBytes, err := ioutil.ReadAll(imageFile)
+	_, imageType, err := image.DecodeConfig(bytes.NewReader(imageBytes))
+	if err != nil {
+		return nil, model.NewAppError("createEmoji", "api.emoji.create.decode.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
+	emoji.MimeType = "image/" + imageType
 
 	if err := a.UploadEmojiImage(emoji.Id, imageData[0]); err != nil {
 		return nil, err

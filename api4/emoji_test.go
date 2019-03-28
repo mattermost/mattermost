@@ -147,7 +147,7 @@ func TestCreateEmoji(t *testing.T) {
 
 	_, resp = Client.CreateEmoji(emoji, make([]byte, 100), "image.gif")
 	CheckBadRequestStatus(t, resp)
-	CheckErrorMessage(t, resp, "api.emoji.upload.image.app_error")
+	CheckErrorMessage(t, resp, "api.emoji.create.decode.app_error")
 
 	// try to create an emoji as another user
 	emoji = &model.Emoji{

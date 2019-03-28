@@ -37,6 +37,7 @@ func NewSqlEmojiStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) s
 		table.ColMap("Id").SetMaxSize(26)
 		table.ColMap("CreatorId").SetMaxSize(26)
 		table.ColMap("Name").SetMaxSize(64)
+		table.ColMap("MimeType").SetMaxSize(256)
 
 		table.SetUniqueTogether("Name", "DeleteAt")
 	}

@@ -16,6 +16,7 @@ const (
 )
 
 var EMOJI_PATTERN = regexp.MustCompile(`:[a-zA-Z0-9_-]+:`)
+var EMOJI_VALID_MIME_TYPES = [3]string{"image/jpeg", "image/png", "image/gif"}
 
 type Emoji struct {
 	Id        string `json:"id"`
@@ -24,6 +25,7 @@ type Emoji struct {
 	DeleteAt  int64  `json:"delete_at"`
 	CreatorId string `json:"creator_id"`
 	Name      string `json:"name"`
+	MimeType  string `json:"mime_type"`
 }
 
 func inSystemEmoji(emojiName string) bool {
@@ -48,7 +50,15 @@ func (emoji *Emoji) IsValid() *AppError {
 		return NewAppError("Emoji.IsValid", "model.emoji.user_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	return IsValidEmojiName(emoji.Name)
+	if appErr := IsValidEmojiName(emoji.Name); appErr != nil {
+		return appErr
+	}
+
+	if appErr := IsValidMimeType(emoji.MimeType); appErr != nil {
+		return appErr
+	}
+
+	return nil
 }
 
 func IsValidEmojiName(name string) *AppError {
@@ -57,6 +67,16 @@ func IsValidEmojiName(name string) *AppError {
 	}
 
 	return nil
+}
+
+func IsValidMimeType(mimeType string) *AppError {
+	for _, validMimeType := range EMOJI_VALID_MIME_TYPES {
+		if mimeType == validMimeType {
+			return nil
+		}
+	}
+
+	return NewAppError("Emoji.IsValid", "model.emoji.mime_type.app_error", nil, "", http.StatusBadRequest)
 }
 
 func (emoji *Emoji) PreSave() {
