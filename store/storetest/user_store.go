@@ -65,6 +65,8 @@ func TestUserStore(t *testing.T, ss store.Store) {
 	t.Run("ClearAllCustomRoleAssignments", func(t *testing.T) { testUserStoreClearAllCustomRoleAssignments(t, ss) })
 	t.Run("GetAllAfter", func(t *testing.T) { testUserStoreGetAllAfter(t, ss) })
 	t.Run("GetUsersBatchForIndexing", func(t *testing.T) { testUserStoreGetUsersBatchForIndexing(t, ss) })
+	t.Run("GetUsersPermittedToTeam", func(t *testing.T) { testUserStoreGetUsersPermittedToTeam(t, ss) })
+	t.Run("GetUsersPermittedToChannel", func(t *testing.T) { testUserStoreGetUsersPermittedToChannel(t, ss) })
 }
 
 func testUserStoreSave(t *testing.T, ss store.Store) {
@@ -3429,4 +3431,257 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
 	assert.Len(t, res4List, 2)
 	assert.Equal(t, res4List[0].Username, u1.Username)
 	assert.Equal(t, res4List[1].Username, u2.Username)
+}
+
+func testUserStoreGetUsersPermittedToTeam(t *testing.T, ss store.Store) {
+	// create team
+	id := model.NewId()
+	res := <-ss.Team().Save(&model.Team{
+		DisplayName: "dn_" + id,
+		Name:        "n-" + id,
+		Email:       id + "@test.com",
+		Type:        model.TEAM_INVITE,
+	})
+	require.Nil(t, res.Err)
+	team := res.Data.(*model.Team)
+	require.NotNil(t, team)
+
+	// create users
+	var testUsers []*model.User
+	for i := 0; i < 3; i++ {
+		id = model.NewId()
+		res = <-ss.User().Save(&model.User{
+			Email:     id + "@test.com",
+			Username:  "un_" + id,
+			Nickname:  "nn_" + id,
+			FirstName: "f_" + id,
+			LastName:  "l_" + id,
+			Password:  "Password1",
+		})
+		require.Nil(t, res.Err)
+		user := res.Data.(*model.User)
+		require.NotNil(t, user)
+		testUsers = append(testUsers, user)
+	}
+	userGroupA := testUsers[0]
+	userGroupB := testUsers[1]
+	userNoGroup := testUsers[2]
+
+	// add non-group-member to the team (to prove that the query isn't just returning all members)
+	res = <-ss.Team().SaveMember(&model.TeamMember{
+		TeamId: team.Id,
+		UserId: userNoGroup.Id,
+	}, 999)
+	require.Nil(t, res.Err)
+
+	// create groups
+	var testGroups []*model.Group
+	for i := 0; i < 2; i++ {
+		id = model.NewId()
+		res = <-ss.Group().Create(&model.Group{
+			Name:        "n_" + id,
+			DisplayName: "dn_" + id,
+			Source:      model.GroupSourceLdap,
+			RemoteId:    "ri_" + id,
+		})
+		require.Nil(t, res.Err)
+		group := res.Data.(*model.Group)
+		require.NotNil(t, group)
+		testGroups = append(testGroups, group)
+	}
+	groupA := testGroups[0]
+	groupB := testGroups[1]
+
+	// add members to groups
+	res = <-ss.Group().CreateOrRestoreMember(groupA.Id, userGroupA.Id)
+	require.Nil(t, res.Err)
+	res = <-ss.Group().CreateOrRestoreMember(groupB.Id, userGroupB.Id)
+	require.Nil(t, res.Err)
+
+	// association one group to team
+	res = <-ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+		GroupId:    groupA.Id,
+		SyncableId: team.Id,
+		Type:       model.GroupSyncableTypeTeam,
+	})
+	require.Nil(t, res.Err)
+
+	// team not group constrained returns no users
+	res = <-ss.User().GetUsersPermittedToTeam(team.Id)
+	require.Nil(t, res.Err)
+	users := res.Data.([]*model.User)
+	require.NotNil(t, users)
+	require.Empty(t, users)
+
+	// update team to be group-constrained
+	team.GroupConstrained = model.NewBool(true)
+	res = <-ss.Team().Update(team)
+	require.Nil(t, res.Err)
+
+	requireNUsers := func(n int) {
+		res = <-ss.User().GetUsersPermittedToTeam(team.Id)
+		require.Nil(t, res.Err)
+		users = res.Data.([]*model.User)
+		require.NotNil(t, users)
+		require.Len(t, users, n)
+	}
+
+	// only 1 user because only 1 group has been associated to the team
+	requireNUsers(1)
+
+	// associate other group to team
+	res = <-ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+		GroupId:    groupB.Id,
+		SyncableId: team.Id,
+		Type:       model.GroupSyncableTypeTeam,
+	})
+	require.Nil(t, res.Err)
+
+	// should return users from all groups
+	// 2 users now that both groups have been associated to the team
+	requireNUsers(2)
+
+	// add team membership of allowed user
+	res = <-ss.Team().SaveMember(&model.TeamMember{
+		TeamId: team.Id,
+		UserId: userGroupA.Id,
+	}, 999)
+	require.Nil(t, res.Err)
+
+	// ensure allowed member still returned by query
+	requireNUsers(2)
+
+	// delete team membership of allowed user
+	res = <-ss.Team().RemoveMember(team.Id, userGroupA.Id)
+	require.Nil(t, res.Err)
+
+	// ensure removed allowed member still returned by query
+	requireNUsers(2)
+}
+
+func testUserStoreGetUsersPermittedToChannel(t *testing.T, ss store.Store) {
+	// create channel
+	id := model.NewId()
+	res := <-ss.Channel().Save(&model.Channel{
+		DisplayName: "dn_" + id,
+		Name:        "n-" + id,
+		Type:        model.CHANNEL_PRIVATE,
+	}, 999)
+	require.Nil(t, res.Err)
+	channel := res.Data.(*model.Channel)
+	require.NotNil(t, channel)
+
+	// create users
+	var testUsers []*model.User
+	for i := 0; i < 3; i++ {
+		id = model.NewId()
+		res = <-ss.User().Save(&model.User{
+			Email:     id + "@test.com",
+			Username:  "un_" + id,
+			Nickname:  "nn_" + id,
+			FirstName: "f_" + id,
+			LastName:  "l_" + id,
+			Password:  "Password1",
+		})
+		require.Nil(t, res.Err)
+		user := res.Data.(*model.User)
+		require.NotNil(t, user)
+		testUsers = append(testUsers, user)
+	}
+	userGroupA := testUsers[0]
+	userGroupB := testUsers[1]
+	userNoGroup := testUsers[2]
+
+	// add non-group-member to the channel (to prove that the query isn't just returning all members)
+	res = <-ss.Channel().SaveMember(&model.ChannelMember{
+		ChannelId:   channel.Id,
+		UserId:      userNoGroup.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	})
+	require.Nil(t, res.Err)
+
+	// create groups
+	var testGroups []*model.Group
+	for i := 0; i < 2; i++ {
+		id = model.NewId()
+		res = <-ss.Group().Create(&model.Group{
+			Name:        "n_" + id,
+			DisplayName: "dn_" + id,
+			Source:      model.GroupSourceLdap,
+			RemoteId:    "ri_" + id,
+		})
+		require.Nil(t, res.Err)
+		group := res.Data.(*model.Group)
+		require.NotNil(t, group)
+		testGroups = append(testGroups, group)
+	}
+	groupA := testGroups[0]
+	groupB := testGroups[1]
+
+	// add members to groups
+	res = <-ss.Group().CreateOrRestoreMember(groupA.Id, userGroupA.Id)
+	require.Nil(t, res.Err)
+	res = <-ss.Group().CreateOrRestoreMember(groupB.Id, userGroupB.Id)
+	require.Nil(t, res.Err)
+
+	// association one group to channel
+	res = <-ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+		GroupId:    groupA.Id,
+		SyncableId: channel.Id,
+		Type:       model.GroupSyncableTypeChannel,
+	})
+	require.Nil(t, res.Err)
+
+	// channel not group constrained returns no users
+	res = <-ss.User().GetUsersPermittedToChannel(channel.Id)
+	require.Nil(t, res.Err)
+	users := res.Data.([]*model.User)
+	require.NotNil(t, users)
+	require.Empty(t, users)
+
+	// update team to be group-constrained
+	channel.GroupConstrained = model.NewBool(true)
+	res = <-ss.Channel().Update(channel)
+	require.Nil(t, res.Err)
+
+	requireNUsers := func(n int) {
+		res = <-ss.User().GetUsersPermittedToChannel(channel.Id)
+		require.Nil(t, res.Err)
+		users = res.Data.([]*model.User)
+		require.NotNil(t, users)
+		require.Len(t, users, n)
+	}
+
+	// only 1 user because only 1 group has been associated to the team
+	requireNUsers(1)
+
+	// associate other group to team
+	res = <-ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+		GroupId:    groupB.Id,
+		SyncableId: channel.Id,
+		Type:       model.GroupSyncableTypeChannel,
+	})
+	require.Nil(t, res.Err)
+
+	// should return users from all groups
+	// 2 users now that both groups have been associated to the team
+	requireNUsers(2)
+
+	// add team membership of allowed user
+	res = <-ss.Channel().SaveMember(&model.ChannelMember{
+		ChannelId:   channel.Id,
+		UserId:      userGroupA.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	})
+	require.Nil(t, res.Err)
+
+	// ensure allowed member still returned by query
+	requireNUsers(2)
+
+	// delete team membership of allowed user
+	res = <-ss.Channel().RemoveMember(channel.Id, userGroupA.Id)
+	require.Nil(t, res.Err)
+
+	// ensure removed allowed member still returned by query
+	requireNUsers(2)
 }

@@ -388,6 +388,23 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	team, err := c.App.GetTeam(member.TeamId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	jerr := c.App.UsersCanJoinTeam([]string{member.UserId}, team)
+	if jerr != nil {
+		if v, ok := jerr.(*model.InvalidTeamMembersError); ok {
+			c.Err = model.NewAppError("addTeamMember", "api.team.add_members.user_denied", map[string]interface{}{"UserIDs": v.UserIDs}, "", http.StatusBadRequest)
+		}
+		if v, ok := jerr.(*model.AppError); ok {
+			c.Err = v
+		}
+		return
+	}
+
 	member, err = c.App.AddTeamMember(member.TeamId, member.UserId)
 
 	if err != nil {
@@ -432,8 +449,35 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	var err *model.AppError
 	members := model.TeamMembersFromJson(r.Body)
 
-	if len(members) > MAX_ADD_MEMBERS_BATCH || len(members) == 0 {
+	if len(members) > MAX_ADD_MEMBERS_BATCH {
 		c.SetInvalidParam("too many members in batch")
+		return
+	}
+
+	if len(members) == 0 {
+		c.SetInvalidParam("no members in batch")
+		return
+	}
+
+	var memberIDs []string
+	for _, member := range members {
+		memberIDs = append(memberIDs, member.UserId)
+	}
+
+	team, err := c.App.GetTeam(c.Params.TeamId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	jerr := c.App.UsersCanJoinTeam(memberIDs, team)
+	if jerr != nil {
+		if v, ok := jerr.(*model.InvalidTeamMembersError); ok {
+			c.Err = model.NewAppError("addTeamMembers", "api.team.add_members.user_denied", map[string]interface{}{"UserIDs": v.UserIDs}, "", http.StatusBadRequest)
+		}
+		if v, ok := jerr.(*model.AppError); ok {
+			c.Err = v
+		}
 		return
 	}
 

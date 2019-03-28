@@ -596,6 +596,26 @@ func (a *App) GetUsersWithoutTeam(offset int, limit int) ([]*model.User, *model.
 	return result.Data.([]*model.User), nil
 }
 
+// GetUsersPermittedToTeam returns the users who are permitted to join a team based on group constraints. If the
+// given team is not group-constrained then an empty slice will be returned.
+func (a *App) GetUsersPermittedToTeam(teamID string) ([]*model.User, *model.AppError) {
+	result := <-a.Srv.Store.User().GetUsersPermittedToTeam(teamID)
+	if result.Err != nil {
+		return nil, result.Err
+	}
+	return result.Data.([]*model.User), nil
+}
+
+// GetUsersPermittedToChannel returns the users who are permitted to join a channel based on group constraints. If
+// the given channel is not group-constrained then an empty slice will be returned.
+func (a *App) GetUsersPermittedToChannel(channelID string) ([]*model.User, *model.AppError) {
+	result := <-a.Srv.Store.User().GetUsersPermittedToChannel(channelID)
+	if result.Err != nil {
+		return nil, result.Err
+	}
+	return result.Data.([]*model.User), nil
+}
+
 func (a *App) GetUsersByIds(userIds []string, asAdmin bool) ([]*model.User, *model.AppError) {
 	result := <-a.Srv.Store.User().GetProfileByIds(userIds, true)
 	if result.Err != nil {
@@ -1849,6 +1869,90 @@ func (a *App) UpdateOAuthUserAttrs(userData io.Reader, user *model.User, provide
 				}
 			})
 		}
+	}
+
+	return nil
+}
+
+// UsersCanJoinTeam verifies that users can join a team based on group-constraints. If one or more users cannot join
+// the team a model.InvalidTeamMembersError is returned containing the user ids of the denied users.
+func (a *App) UsersCanJoinTeam(userIDs []string, team *model.Team) error {
+	// all users are permitted in non-group-constrained teams, return without error
+	if team.GroupConstrained == nil || !*team.GroupConstrained {
+		return nil
+	}
+
+	permittedUsers, err := a.GetUsersPermittedToTeam(team.Id)
+	if err != nil {
+		return err
+	}
+
+	// possible if no groups associated or no group members in any of the associated groups
+	if len(permittedUsers) == 0 {
+		return &model.InvalidTeamMembersError{UserIDs: userIDs, Team: team}
+	}
+
+	var invalidMemberIDs []string
+
+	for _, userID := range userIDs {
+		userIsPermitted := false
+
+		for _, pu := range permittedUsers {
+			if pu.Id == userID {
+				userIsPermitted = true
+				break
+			}
+		}
+
+		if !userIsPermitted {
+			invalidMemberIDs = append(invalidMemberIDs, userID)
+		}
+	}
+
+	if len(invalidMemberIDs) > 0 {
+		return &model.InvalidTeamMembersError{UserIDs: invalidMemberIDs, Team: team}
+	}
+
+	return nil
+}
+
+// UsersCanJoinChannel verifies that users can join a channel based on group-constraints. If one or more users
+// cannot join the channel a model.InvalidChannelMembersError is returned containing the user ids of the denied users.
+func (a *App) UsersCanJoinChannel(userIDs []string, channel *model.Channel) error {
+	// all users are permitted in non-group-constrained channel, return without error
+	if channel.GroupConstrained == nil || !*channel.GroupConstrained {
+		return nil
+	}
+
+	permittedUsers, err := a.GetUsersPermittedToChannel(channel.Id)
+	if err != nil {
+		return err
+	}
+
+	// possible if no groups associated or no group members in any of the associated groups
+	if len(permittedUsers) == 0 {
+		return &model.InvalidChannelMembersError{UserIDs: userIDs, Channel: channel}
+	}
+
+	var invalidMemberIDs []string
+
+	for _, userID := range userIDs {
+		userIsPermitted := false
+
+		for _, pu := range permittedUsers {
+			if pu.Id == userID {
+				userIsPermitted = true
+				break
+			}
+		}
+
+		if !userIsPermitted {
+			invalidMemberIDs = append(invalidMemberIDs, userID)
+		}
+	}
+
+	if len(invalidMemberIDs) > 0 {
+		return &model.InvalidChannelMembersError{UserIDs: invalidMemberIDs, Channel: channel}
 	}
 
 	return nil
