@@ -169,7 +169,7 @@
   },
   {
     "id": "api.channel.create_channel.max_channel_limit.app_error",
-    "translation": "無法為當前團隊建立超過 {{.MaxChannelsPerTeam}} 個頻道"
+    "translation": "無法為目前團隊建立超過 {{.MaxChannelsPerTeam}} 個頻道"
   },
   {
     "id": "api.channel.create_default_channels.off_topic",
@@ -417,7 +417,7 @@
   },
   {
     "id": "api.command_channel_header.channel.app_error",
-    "translation": "取得當前頻道時錯誤。"
+    "translation": "取得目前頻道時錯誤。"
   },
   {
     "id": "api.command_channel_header.desc",
@@ -441,11 +441,11 @@
   },
   {
     "id": "api.command_channel_header.update_channel.app_error",
-    "translation": "更新當前頻道時錯誤。"
+    "translation": "更新目前頻道時錯誤。"
   },
   {
     "id": "api.command_channel_purpose.channel.app_error",
-    "translation": "取得當前頻道時錯誤。"
+    "translation": "取得目前頻道時錯誤。"
   },
   {
     "id": "api.command_channel_purpose.desc",
@@ -473,15 +473,15 @@
   },
   {
     "id": "api.command_channel_purpose.update_channel.app_error",
-    "translation": "更新當前頻道時錯誤。"
+    "translation": "更新目前頻道時錯誤。"
   },
   {
     "id": "api.command_channel_remove.channel.app_error",
-    "translation": "取得當前頻道時錯誤。"
+    "translation": "取得目前頻道時錯誤。"
   },
   {
     "id": "api.command_channel_rename.channel.app_error",
-    "translation": "取得當前頻道時錯誤。"
+    "translation": "取得目前頻道時錯誤。"
   },
   {
     "id": "api.command_channel_rename.desc",
@@ -517,7 +517,7 @@
   },
   {
     "id": "api.command_channel_rename.update_channel.app_error",
-    "translation": "更新當前頻道時錯誤。"
+    "translation": "更新目前頻道時錯誤。"
   },
   {
     "id": "api.command_code.desc",
@@ -656,7 +656,7 @@
   },
   {
     "id": "api.command_invite.channel.app_error",
-    "translation": "取得當前頻道時錯誤。"
+    "translation": "取得目前頻道時錯誤。"
   },
   {
     "id": "api.command_invite.channel.error",
@@ -740,7 +740,7 @@
   },
   {
     "id": "api.command_leave.desc",
-    "translation": "離開當前頻道"
+    "translation": "離開目前頻道"
   },
   {
     "id": "api.command_leave.fail.app_error",
@@ -804,7 +804,7 @@
   },
   {
     "id": "api.command_mute.desc",
-    "translation": "對當前或指定的[頻道]關閉桌面、郵件及推播通知。"
+    "translation": "對目前或指定的[頻道]關閉桌面、郵件及推播通知。"
   },
   {
     "id": "api.command_mute.error",
@@ -912,11 +912,11 @@
   },
   {
     "id": "api.command_search.name",
-    "translation": "search"
+    "translation": "搜尋"
   },
   {
     "id": "api.command_search.unsupported.app_error",
-    "translation": "當前裝置不支援搜尋命令"
+    "translation": "目前裝置不支援搜尋命令"
   },
   {
     "id": "api.command_settings.desc",
@@ -924,11 +924,11 @@
   },
   {
     "id": "api.command_settings.name",
-    "translation": "settings"
+    "translation": "設定"
   },
   {
     "id": "api.command_settings.unsupported.app_error",
-    "translation": "當前裝置不支援設定命令"
+    "translation": "目前裝置不支援設定命令"
   },
   {
     "id": "api.command_shortcuts.desc",
@@ -940,7 +940,7 @@
   },
   {
     "id": "api.command_shortcuts.unsupported.app_error",
-    "translation": "當前裝置不支援快捷鍵命令"
+    "translation": "您的裝置不支援快捷鍵命令"
   },
   {
     "id": "api.command_shrug.desc",
@@ -1134,7 +1134,7 @@
   },
   {
     "id": "api.file.get_public_link.no_post.app_error",
-    "translation": "無法取得檔案公開連結。檔案必須附加在可以被當前使用者讀取的發文。"
+    "translation": "無法取得檔案公開連結。檔案必須附加在可以被目前使用者讀取的發文。"
   },
   {
     "id": "api.file.move_file.copy_within_s3.app_error",
@@ -1458,7 +1458,7 @@
   },
   {
     "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
-    "translation": "Can not delete a post in a deleted channel."
+    "translation": "無法在已經刪除的頻道中刪除訊息"
   },
   {
     "id": "api.post.disabled_all",
@@ -1500,7 +1500,7 @@
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
-    "translation": "Can not update a post in a deleted channel."
+    "translation": "無法在已刪除的頻道中編輯訊息"
   },
   {
     "id": "api.post.save_is_pinned_post.town_square_read_only",
@@ -1536,7 +1536,7 @@
   },
   {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
-    "translation": "Can not update a post in a deleted channel."
+    "translation": "無法在已刪除的頻道中編輯訊息"
   },
   {
     "id": "api.post.update_post.find.app_error",
@@ -1660,7 +1660,7 @@
   },
   {
     "id": "api.slackimport.slack_add_channels.merge",
-    "translation": "Slack 頻道 {{.DisplayName}} 以存在於現行 Mattermost 中。已合併兩邊頻道。\r\n"
+    "translation": "Slack 頻道 {{.DisplayName}} 已存在於現行 Mattermost 中。已合併兩邊頻道。\r\n"
   },
   {
     "id": "api.slackimport.slack_add_users.created",
@@ -3284,7 +3284,7 @@
   },
   {
     "id": "app.save_config.app_error",
-    "translation": "An error occurred saving the configuration"
+    "translation": "儲存設定時發生錯誤"
   },
   {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
@@ -4460,7 +4460,7 @@
   },
   {
     "id": "model.config.is_valid.sitename_empty.app_error",
-    "translation": "Site name cannot be empty."
+    "translation": "站台名稱不可為空"
   },
   {
     "id": "model.config.is_valid.sitename_length.app_error",
@@ -5136,7 +5136,7 @@
   },
   {
     "id": "plugin_api.get_file_link.no_post.app_error",
-    "translation": "無法取得檔案公開連結。檔案必須附加在可以被當前使用者讀取的發文。"
+    "translation": "無法取得檔案公開連結。檔案必須附加在可以被目前使用者讀取的發文。"
   },
   {
     "id": "plugin_api.send_mail.missing_htmlbody",
@@ -6992,7 +6992,7 @@
   },
   {
     "id": "web.error.unsupported_browser.message",
-    "translation": "當前的瀏覽器不被支援。請升級至下列瀏覽器之一："
+    "translation": "目前的瀏覽器不被支援。請升級至下列瀏覽器之一："
   },
   {
     "id": "web.error.unsupported_browser.title",
