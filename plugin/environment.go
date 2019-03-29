@@ -31,11 +31,13 @@ type activePlugin struct {
 // It is meant for use by the Mattermost server to manipulate, interact with and report on the set
 // of active plugins.
 type Environment struct {
-	activePlugins   sync.Map
-	logger          *mlog.Logger
-	newAPIImpl      apiImplCreatorFunc
-	pluginDir       string
-	webappPluginDir string
+	activePlugins        sync.Map
+	pluginHealthStatuses sync.Map
+	pluginHealthCheckJob *PluginHealthCheckJob
+	logger               *mlog.Logger
+	newAPIImpl           apiImplCreatorFunc
+	pluginDir            string
+	webappPluginDir      string
 }
 
 func NewEnvironment(newAPIImpl apiImplCreatorFunc, pluginDir string, webappPluginDir string, logger *mlog.Logger) (*Environment, error) {
@@ -113,12 +115,12 @@ func (env *Environment) Statuses() (model.PluginStatuses, error) {
 			pluginState = plugin.(activePlugin).State
 		}
 
-		var pluginErr string
+		pluginErr := ""
 		if pluginState == model.PluginStateNotRunning {
-			pluginErr = ""
-		} else if err := env.GetPluginErrorStatus(plugin.Manifest.Id); err != nil {
-			pluginErr = err.Error()
-			pluginState = model.PluginStateError
+			if err := env.CheckPluginHealthStatus(plugin.Manifest.Id); err != nil {
+				pluginErr = err.Error()
+				pluginState = model.PluginStateError
+			}
 		}
 
 		status := &model.PluginStatus{
@@ -256,14 +258,14 @@ func (env *Environment) Deactivate(id string) bool {
 	return true
 }
 
-// Deactivates, then Activates, the plugin with the given id.
+// RestartPlugin deactivates, then activates the plugin with the given id.
 func (env *Environment) RestartPlugin(id string) (manifest *model.Manifest, activated bool, reterr error) {
 	env.Deactivate(id)
 	return env.Activate(id)
 }
 
-// Pings a plugin through go-plugin's Ping() method
-func (env *Environment) PingPluginRPC(id string) error {
+// CheckPluginPing checks the RPC connection status of the plugin.
+func (env *Environment) CheckPluginPing(id string) error {
 	if p, ok := env.activePlugins.Load(id); ok {
 		ap := p.(activePlugin)
 		if ap.supervisor != nil {
@@ -274,7 +276,7 @@ func (env *Environment) PingPluginRPC(id string) error {
 	return fmt.Errorf("plugin not running: %v", id)
 }
 
-// Checks if the plugin process's PID exists and can respond to a signal.
+// CheckPluginProcess checks if the plugin's process is currently alive.
 func (env *Environment) CheckPluginProcess(id string) error {
 	if p, ok := env.activePlugins.Load(id); ok {
 		ap := p.(activePlugin)
@@ -286,20 +288,14 @@ func (env *Environment) CheckPluginProcess(id string) error {
 	return fmt.Errorf("plugin not running: %v", id)
 }
 
-// Checks for plugin error status by using the two above functions, as well as the HealthCheck hook, if implemented.
-func (env *Environment) GetPluginErrorStatus(id string) error {
-	if err := env.PingPluginRPC(id); err != nil {
-		if err = env.CheckPluginProcess(id); err != nil {
-			return errors.New("Plugin process not found or not responding")
+// CheckPluginHealthStatus checks if the plugin is in a failed state, based on information gathered from previous health checks.
+func (env *Environment) CheckPluginHealthStatus(id string) error {
+	if health, ok := env.pluginHealthStatuses.Load(id); ok {
+		if health.(*pluginHealthStatus).crashed {
+			return health.(*pluginHealthStatus).lastError
 		}
-		return errors.New("Ping to plugin RPC failed")
 	}
-
-	hooks, err := env.HooksForPlugin(id)
-	if err != nil {
-		return errors.New("Failed to load plugin hooks")
-	}
-	return hooks.HealthCheck()
+	return nil
 }
 
 // Shutdown deactivates all plugins and gracefully shuts down the environment.

@@ -19,11 +19,10 @@ import (
 )
 
 type supervisor struct {
-	client         *plugin.Client
-	clientProtocol plugin.ClientProtocol
-	hooks          Hooks
-	implemented    [TotalHooksId]bool
-	pid            int
+	client      *plugin.Client
+	hooks       Hooks
+	implemented [TotalHooksId]bool
+	pid         int
 }
 
 func newSupervisor(pluginInfo *model.BundleInfo, parentLogger *mlog.Logger, apiImpl API) (retSupervisor *supervisor, retErr error) {
@@ -75,7 +74,6 @@ func newSupervisor(pluginInfo *model.BundleInfo, parentLogger *mlog.Logger, apiI
 	}
 
 	sup.pid = cmd.Process.Pid
-	sup.clientProtocol = rpcClient
 
 	raw, err := rpcClient.Dispense("hooks")
 	if err != nil {
@@ -112,22 +110,30 @@ func (sup *supervisor) Hooks() Hooks {
 	return sup.hooks
 }
 
-// Pings the plugin through RPC
+// Ping checks that the RPC connection with the plugin is alive and healthy.
 func (sup *supervisor) Ping() error {
-	return sup.clientProtocol.Ping()
-}
+	client, err := sup.client.Client()
 
-// Checks if the plugin's process is currently alive
-func (sup *supervisor) CheckProcess() error {
-	pid := sup.pid
-	process, err := os.FindProcess(pid)
 	if err != nil {
-		fmt.Printf("Failed to find process: %s\n", err)
 		return err
 	}
 
+	return client.Ping()
+}
+
+// CheckProcess checks if the plugin process's PID exists and can respond to a signal.
+func (sup *supervisor) CheckProcess() error {
+	process, err := os.FindProcess(sup.pid)
+	if err != nil {
+		return fmt.Errorf("Process was not found while checking health of plugin")
+	}
+
 	err = process.Signal(syscall.Signal(0))
-	return err
+	if err != nil {
+		return fmt.Errorf("Process was not found while checking health of plugin")
+	}
+
+	return nil
 }
 
 func (sup *supervisor) Implements(hookId int) bool {
