@@ -16,43 +16,39 @@ type MyPlugin struct {
 
 func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
 
-	test := func() string {
-		teams, err := p.API.SearchTeams("{{.BasicTeam.Name}}")
-		if err != nil {
-			return "search failed: " + err.Message
-		}
-		if len(teams) != 1 {
-			return fmt.Sprintf("search failed, wrong number of teams: %v", len(teams))
-		}
-
-		teams, err = p.API.SearchTeams("{{.BasicTeam.DisplayName}}")
-		if err != nil {
-			return "search failed: " + err.Message
-		}
-		if len(teams) != 1 {
-			return fmt.Sprintf("search failed, wrong number of teams: %v", len(teams))
-		}
-
-		teams, err = p.API.SearchTeams("{{.BasicTeam.Name}}"[:3])
-
-		if err != nil {
-			return "search failed: " + err.Message
-		}
-		if len(teams) != 1 {
-			return fmt.Sprintf("search failed, wrong number of teams: %v", len(teams))
-		}
-
-		teams, err = p.API.SearchTeams("not found")
-		if err != nil {
-			return "search failed: " + err.Message
-		}
-		if len(teams) != 0 {
-			return fmt.Sprintf("search failed, wrong number of teams: %v", len(teams))
-		}
-		return ""
+	teams, err := p.API.SearchTeams("{{.BasicTeam.Name}}")
+	if err != nil {
+		return nil, "search failed: " + err.Message
+	}
+	if len(teams) != 1 {
+		return nil, fmt.Sprintf("search failed, wrong number of teams: %v", len(teams))
 	}
 
-	return nil, test()
+	teams, err = p.API.SearchTeams("{{.BasicTeam.DisplayName}}")
+	if err != nil {
+		return nil, "search failed: " + err.Message
+	}
+	if len(teams) != 1 {
+		return nil, fmt.Sprintf("search failed, wrong number of teams: %v", len(teams))
+	}
+
+	teams, err = p.API.SearchTeams("{{.BasicTeam.Name}}"[:3])
+
+	if err != nil {
+		return nil, "search failed: " + err.Message
+	}
+	if len(teams) != 1 {
+		return nil, fmt.Sprintf("search failed, wrong number of teams: %v", len(teams))
+	}
+
+	teams, err = p.API.SearchTeams("not found")
+	if err != nil {
+		return nil, "search failed: " + err.Message
+	}
+	if len(teams) != 0 {
+		return nil, fmt.Sprintf("search failed, wrong number of teams: %v", len(teams))
+	}
+	return nil, ""
 }
 
 func main() {

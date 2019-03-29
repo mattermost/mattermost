@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"image"
 	"image/color"
 	"image/png"
@@ -359,8 +360,10 @@ func TestPluginAPILoadPluginConfiguration(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.PluginSettings.Plugins["testloadpluginconfig"] = pluginJson
 	})
-	pwd, _ := os.Getwd()
-	fullPath := path.Join(pwd, "tests", "plugin_tests", "manual.test_load_configuration_plugin", "main.go")
+
+	testFolder, found := fileutils.FindDir("tests")
+	require.True(t, found, "Cannot find tests folder")
+	fullPath := path.Join(testFolder, "plugin_tests", "manual.test_load_configuration_plugin", "main.go")
 
 	err := pluginAPIHookTest(t, th, fullPath, "testloadpluginconfig", nil, `{"id": "testloadpluginconfig", "backend": {"executable": "backend.exe"}, "settings_schema": {
 		"settings": [
@@ -393,8 +396,10 @@ func TestPluginAPILoadPluginConfigurationDefaults(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.PluginSettings.Plugins["testloadpluginconfig"] = pluginJson
 	})
-	pwd, _ := os.Getwd()
-	fullPath := path.Join(pwd, "tests", "plugin_tests", "manual.test_load_configuration_defaults_plugin", "main.go")
+
+	testFolder, found := fileutils.FindDir("tests")
+	require.True(t, found, "Cannot find tests folder")
+	fullPath := path.Join(testFolder, "plugin_tests", "manual.test_load_configuration_defaults_plugin", "main.go")
 
 	err := pluginAPIHookTest(t, th, fullPath, "testloadpluginconfig", nil, `{
 		"settings": [
@@ -593,10 +598,11 @@ func pluginAPIHookTest(t *testing.T, th *TestHelper, fileName string, id string,
 // 4. Before compiling the main.go file is passed through templating and the following values are available in the template: BasicUser, BasicUser2, BasicChannel, BasicTeam, BasicPost
 
 func TestBasicAPIPlugins(t *testing.T) {
-	pwd, _ := os.Getwd()
-	fullPath := path.Join(pwd, "tests", "plugin_tests")
+	testFolder, found := fileutils.FindDir("tests")
+	require.True(t, found, "Cannot read find test folder")
+	fullPath := path.Join(testFolder, "plugin_tests")
 	dirs, err := ioutil.ReadDir(fullPath)
-	assert.NoError(t, err, "Cannot read test folder %v", fullPath)
+	require.NoError(t, err, "Cannot read test folder %v", fullPath)
 	for _, dir := range dirs {
 		d := dir.Name()
 		if dir.IsDir() && !strings.HasPrefix(d, "manual.") {
