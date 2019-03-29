@@ -4,7 +4,6 @@
 package storetest
 
 import (
-	"database/sql"
 	"strings"
 	"testing"
 
@@ -1400,7 +1399,7 @@ func pendingMemberRemovalsDataSetup(t *testing.T, ss store.Store) *removalsData 
 		DisplayName:      "A Name",
 		Name:             model.NewId(),
 		Type:             model.CHANNEL_PRIVATE,
-		GroupConstrained: sql.NullBool{Valid: true, Bool: true},
+		GroupConstrained: model.NewBool(true),
 	}
 	res = <-ss.Channel().Save(channelConstrained, 9999)
 	require.Nil(t, res.Err)
@@ -1426,7 +1425,7 @@ func pendingMemberRemovalsDataSetup(t *testing.T, ss store.Store) *removalsData 
 		Name:             "z-z-" + model.NewId() + "a",
 		Email:            "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:             model.TEAM_INVITE,
-		GroupConstrained: sql.NullBool{Valid: true, Bool: true},
+		GroupConstrained: model.NewBool(true),
 	}
 	res = <-ss.Team().Save(teamConstrained)
 	require.Nil(t, res.Err)

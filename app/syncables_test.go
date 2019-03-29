@@ -1,7 +1,6 @@
 package app
 
 import (
-	"database/sql"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -348,17 +347,17 @@ func TestDeleteGroupMemberships(t *testing.T) {
 
 	// make team group-constrained
 	team := th.BasicTeam
-	team.GroupConstrained = sql.NullBool{Valid: true, Bool: true}
+	team.GroupConstrained = model.NewBool(true)
 	team, err = th.App.UpdateTeam(team)
 	require.Nil(t, err)
-	require.True(t, team.GroupConstrained.Bool)
+	require.True(t, *team.GroupConstrained)
 
 	// make channel group-constrained
 	channel := th.BasicChannel
-	channel.GroupConstrained = sql.NullBool{Valid: true, Bool: true}
+	channel.GroupConstrained = model.NewBool(true)
 	channel, err = th.App.UpdateChannel(channel)
 	require.Nil(t, err)
-	require.True(t, channel.GroupConstrained.Bool)
+	require.True(t, *channel.GroupConstrained)
 
 	// create groupteam and groupchannel
 	_, err = th.App.CreateGroupSyncable(model.NewGroupTeam(group.Id, team.Id, true))
