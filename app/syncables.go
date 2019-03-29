@@ -38,15 +38,22 @@ func (a *App) CreateDefaultMemberships(since int64) error {
 			return err
 		}
 
-		// First add user to team
-		_, err = a.AddTeamMember(channel.TeamId, userChannel.UserID)
-		if err != nil {
+		tmem, err := a.GetTeamMember(channel.TeamId, userChannel.UserID)
+		if err != nil && err.Id != "store.sql_team.get_member.missing.app_error" {
 			return err
 		}
-		a.Log.Info("added teammember",
-			mlog.String("user_id", userChannel.UserID),
-			mlog.String("team_id", channel.TeamId),
-		)
+
+		// First add user to team
+		if tmem == nil {
+			_, err = a.AddTeamMember(channel.TeamId, userChannel.UserID)
+			if err != nil {
+				return err
+			}
+			a.Log.Info("added teammember",
+				mlog.String("user_id", userChannel.UserID),
+				mlog.String("team_id", channel.TeamId),
+			)
+		}
 
 		_, err = a.AddChannelMember(userChannel.UserID, channel, "", "", "")
 		if err != nil {
