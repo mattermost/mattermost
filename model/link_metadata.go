@@ -6,9 +6,11 @@ package model
 import (
 	"encoding/binary"
 	"encoding/json"
+	"fmt"
 	"hash/fnv"
 	"net/http"
 	"time"
+	"unicode/utf8"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
 )
@@ -20,6 +22,30 @@ const (
 )
 
 type LinkMetadataType string
+
+// checks if original string has more than 300 characters long, if so
+// it'll truncate it and add an ellipsis (it will be stripped within
+// the client, but in case it isn't we might as well add it so it is
+// properly understood)
+func truncateText(original string) string {
+	if utf8.RuneCountInString(original) > 300 {
+		return fmt.Sprintf("%.300s[...]", original)
+	}
+	return original
+}
+
+// TruncateOpenGraph modifies a OG into a smaller version to ensure it
+// doesn't grow too big, as that much text won't be displayed by the
+// clients anyway.
+func TruncateOpenGraph(ogdata *opengraph.OpenGraph) *opengraph.OpenGraph {
+	if ogdata != nil {
+		// we might want to truncate url too, but that can have unintended effect
+		ogdata.Title = truncateText(ogdata.Title)
+		ogdata.Description = truncateText(ogdata.Description)
+		ogdata.SiteName = truncateText(ogdata.SiteName)
+	}
+	return ogdata
+}
 
 // LinkMetadata stores arbitrary data about a link posted in a message. This includes dimensions of linked images
 // and OpenGraph metadata.

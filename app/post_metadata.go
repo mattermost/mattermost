@@ -140,7 +140,7 @@ func (a *App) getEmbedForPost(post *model.Post, firstLink string, isNewPost bool
 		return &model.PostEmbed{
 			Type: model.POST_EMBED_OPENGRAPH,
 			URL:  firstLink,
-			Data: og,
+			Data: model.TruncateOpenGraph(og),
 		}, nil
 	}
 
@@ -386,6 +386,7 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 		// Parse the data
 		og, image, err = a.parseLinkMetadata(requestURL, body, contentType)
 	}
+	og = model.TruncateOpenGraph(og) // remove unwanted lenght of texts
 
 	// Write back to cache and database, even if there was an error and the results are nil
 	cacheLinkMetadata(requestURL, timestamp, og, image)
