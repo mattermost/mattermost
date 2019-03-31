@@ -1553,7 +1553,6 @@ func (us SqlUserStore) GetUsersPermittedToTeam(teamID string) store.StoreChannel
 					AND Teams.GroupConstrained = TRUE
 					AND GroupTeams.DeleteAt = 0
 					AND UserGroups.DeleteAt = 0
-					AND Teams.DeleteAt = 0
 					AND GroupMembers.DeleteAt = 0
 				GROUP BY
 					GroupMembers.UserId
@@ -1595,7 +1594,6 @@ func (us SqlUserStore) GetUsersPermittedToChannel(channelID string) store.StoreC
 					AND Channels.GroupConstrained = TRUE
 					AND GroupChannels.DeleteAt = 0
 					AND UserGroups.DeleteAt = 0
-					AND Channels.DeleteAt = 0
 					AND GroupMembers.DeleteAt = 0
 				GROUP BY
 					GroupMembers.UserId
