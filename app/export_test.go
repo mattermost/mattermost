@@ -377,32 +377,34 @@ func TestExportDMandGMPost(t *testing.T) {
 	gmMembers := []string{th1.BasicUser.Username, user1.Username, user2.Username}
 
 	// DM posts
-	th1.App.CreatePost(&model.Post{
+	p1 := &model.Post{
 		ChannelId: dmChannel.Id,
 		Message:   "aa" + model.NewId() + "a",
-		UserId:    th1.BasicUser.Id},
-		dmChannel,
-		false)
-	th1.App.CreatePost(&model.Post{
+		UserId:    th1.BasicUser.Id,
+	}
+	th1.App.CreatePost(p1, dmChannel, false)
+
+	p2 := &model.Post{
 		ChannelId: dmChannel.Id,
 		Message:   "bb" + model.NewId() + "a",
-		UserId:    th1.BasicUser.Id},
-		dmChannel,
-		false)
+		UserId:    th1.BasicUser.Id,
+	}
+	th1.App.CreatePost(p2, dmChannel, false)
 
 	// GM posts
-	th1.App.CreatePost(&model.Post{
+	p3 := &model.Post{
 		ChannelId: gmChannel.Id,
 		Message:   "cc" + model.NewId() + "a",
-		UserId:    th1.BasicUser.Id},
-		gmChannel,
-		false)
-	th1.App.CreatePost(&model.Post{
+		UserId:    th1.BasicUser.Id,
+	}
+	th1.App.CreatePost(p3, gmChannel, false)
+
+	p4 := &model.Post{
 		ChannelId: gmChannel.Id,
 		Message:   "dd" + model.NewId() + "a",
-		UserId:    th1.BasicUser.Id},
-		gmChannel,
-		false)
+		UserId:    th1.BasicUser.Id,
+	}
+	th1.App.CreatePost(p4, gmChannel, false)
 
 	result := <-th1.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
 	posts := result.Data.([]*model.DirectPostForExport)
