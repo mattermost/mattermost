@@ -344,7 +344,6 @@ check-licenses: ## Checks license status.
 	./scripts/license-check.sh $(TE_PACKAGES) $(EE_PACKAGES)
 
 check-prereqs: ## Checks prerequisite software status.
-	go generate ./config
 	./scripts/prereq-check.sh
 
 check-style: govet gofmt check-licenses ## Runs govet and gofmt against all packages.
@@ -526,6 +525,7 @@ config-ldap: ## Configures LDAP.
 config-reset: ## Resets the config/config.json file to the default.
 	@echo Resetting configuration to default
 	rm -f config/config.json
+	go generate ./config
 	cp config/default.json config/config.json
 
 clean: stop-docker ## Clean up everything except persistant server data.
