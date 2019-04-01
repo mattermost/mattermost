@@ -648,8 +648,8 @@ func (t *uploadFileTask) runPlugins() *model.AppError {
 		replacementInfo, rejectionReason := hooks.FileWillBeUploaded(pluginContext,
 			t.fileinfo, t.newReader(), buf)
 		if rejectionReason != "" {
-			rejectionError = t.newAppError("api.file.upload_file.read_request.app_error",
-				rejectionReason, http.StatusBadRequest)
+			rejectionError = t.newAppError("api.file.upload_file.rejected_by_plugin.app_error",
+				rejectionReason, http.StatusForbidden, "Reason", rejectionReason)
 			return false
 		}
 		if replacementInfo != nil {
