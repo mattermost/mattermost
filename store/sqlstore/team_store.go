@@ -264,7 +264,7 @@ func (s SqlTeamStore) GetByInviteId(inviteId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		team := model.Team{}
 
-		if err := s.GetReplica().SelectOne(&team, "SELECT * FROM Teams WHERE Id = :InviteId OR InviteId = :InviteId", map[string]interface{}{"InviteId": inviteId}); err != nil {
+		if err := s.GetReplica().SelectOne(&team, "SELECT * FROM Teams WHERE InviteId = :InviteId", map[string]interface{}{"InviteId": inviteId}); err != nil {
 			result.Err = model.NewAppError("SqlTeamStore.GetByInviteId", "store.sql_team.get_by_invite_id.finding.app_error", nil, "inviteId="+inviteId+", "+err.Error(), http.StatusNotFound)
 			return
 		}

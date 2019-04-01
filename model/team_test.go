@@ -59,6 +59,7 @@ func TestTeamIsValid(t *testing.T) {
 
 	o.Name = "zzzzz"
 	o.Type = TEAM_OPEN
+	o.InviteId = NewId()
 	if err := o.IsValid(); err != nil {
 		t.Fatal(err)
 	}

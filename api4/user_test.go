@@ -282,8 +282,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 
 		inviteId := th.BasicTeam.InviteId
 
-		th.BasicTeam.InviteId = model.NewId()
-		_, resp := th.SystemAdminClient.UpdateTeam(th.BasicTeam)
+		_, resp := th.SystemAdminClient.RegenerateTeamInviteId(th.BasicTeam.Id)
 		CheckNoError(t, resp)
 
 		_, resp = th.Client.CreateUserWithInviteId(&user, inviteId)
@@ -318,7 +317,9 @@ func TestCreateUserWithInviteId(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = false })
 
-		inviteId := th.BasicTeam.InviteId
+		team, res := th.SystemAdminClient.RegenerateTeamInviteId(th.BasicTeam.Id)
+		assert.Nil(t, res.Error)
+		inviteId := team.InviteId
 
 		ruser, resp := th.Client.CreateUserWithInviteId(&user, inviteId)
 		CheckNoError(t, resp)

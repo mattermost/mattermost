@@ -393,7 +393,9 @@ func testTeamStoreGetByIniviteId(t *testing.T, ss store.Store) {
 	o1.Type = model.TEAM_OPEN
 	o1.InviteId = model.NewId()
 
-	if err := (<-ss.Team().Save(&o1)).Err; err != nil {
+	save1 := <-ss.Team().Save(&o1)
+
+	if err := save1.Err; err != nil {
 		t.Fatal(err)
 	}
 
@@ -403,25 +405,10 @@ func testTeamStoreGetByIniviteId(t *testing.T, ss store.Store) {
 	o2.Email = MakeEmail()
 	o2.Type = model.TEAM_OPEN
 
-	if err := (<-ss.Team().Save(&o2)).Err; err != nil {
-		t.Fatal(err)
-	}
-
-	if r1 := <-ss.Team().GetByInviteId(o1.InviteId); r1.Err != nil {
+	if r1 := <-ss.Team().GetByInviteId(save1.Data.(*model.Team).InviteId); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		if r1.Data.(*model.Team).ToJson() != o1.ToJson() {
-			t.Fatal("invalid returned team")
-		}
-	}
-
-	o2.InviteId = ""
-	<-ss.Team().Update(&o2)
-
-	if r1 := <-ss.Team().GetByInviteId(o2.Id); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		if r1.Data.(*model.Team).Id != o2.Id {
 			t.Fatal("invalid returned team")
 		}
 	}
