@@ -354,7 +354,7 @@ func TestExportGMandDMChannels(t *testing.T) {
 	channels = result.Data.([]*model.DirectChannelForExport)
 
 	// Adding some deteminism so its possible to assert on slice index
-	sort.Slice(channels, func(i, j int) bool { return channels[i].CreateAt > channels[j].CreateAt })
+	sort.Slice(channels, func(i, j int) bool { return channels[i].Type > channels[j].Type })
 	assert.Equal(t, 2, len(channels))
 	assert.ElementsMatch(t, []string{th1.BasicUser.Username, user1.Username, user2.Username}, *channels[0].Members)
 	assert.ElementsMatch(t, []string{th1.BasicUser.Username, th1.BasicUser2.Username}, *channels[1].Members)
