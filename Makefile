@@ -70,7 +70,7 @@ TESTFLAGS ?= -short
 TESTFLAGSEE ?= -short
 
 # Packages lists
-TE_PACKAGES=$(shell go list ./...)
+TE_PACKAGES=$(shell go list ./...|grep -v plugin_tests)
 
 # Plugins Packages
 PLUGIN_PACKAGES=mattermost-plugin-zoom mattermost-plugin-jira
