@@ -165,8 +165,8 @@ func TestTeamPatch(t *testing.T) {
 	if *p.AllowedDomains != o.AllowedDomains {
 		t.Fatal("AllowedDomains did not update")
 	}
-	if *p.InviteId != o.InviteId {
-		t.Fatal("InviteId did not update")
+	if *p.InviteId == o.InviteId {
+		t.Fatal("InviteId should not update")
 	}
 	if *p.AllowOpenInvite != o.AllowOpenInvite {
 		t.Fatal("AllowOpenInvite did not update")

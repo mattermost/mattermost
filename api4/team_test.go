@@ -285,8 +285,8 @@ func TestUpdateTeam(t *testing.T) {
 	uteam, resp = Client.UpdateTeam(team)
 	CheckNoError(t, resp)
 
-	if uteam.InviteId != "inviteid1" {
-		t.Fatal("Update failed")
+	if uteam.InviteId == "inviteid1" {
+		t.Fatal("InviteID should not be updated")
 	}
 
 	team.AllowedDomains = "domain"
@@ -404,8 +404,8 @@ func TestPatchTeam(t *testing.T) {
 	if rteam.CompanyName != "Other company name" {
 		t.Fatal("CompanyName did not update properly")
 	}
-	if rteam.InviteId != "inviteid1" {
-		t.Fatal("InviteId did not update properly")
+	if rteam.InviteId == "inviteid1" {
+		t.Fatal("InviteId should not update")
 	}
 	if !rteam.AllowOpenInvite {
 		t.Fatal("AllowOpenInvite did not update properly")
@@ -469,6 +469,24 @@ func TestPatchTeamSanitization(t *testing.T) {
 			t.Fatal("should not have sanitized email for admin")
 		}
 	})
+}
+
+func TestRegenerateTeamInviteId(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+
+	team := &model.Team{DisplayName: "Name", Description: "Some description", CompanyName: "Some company name", AllowOpenInvite: false, InviteId: "inviteid0", Name: "z-z-" + model.NewId() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TEAM_OPEN}
+	team, _ = Client.CreateTeam(team)
+
+	assert.NotEqual(t, team.InviteId, "")
+	assert.NotEqual(t, team.InviteId, "inviteid0")
+
+	rteam, resp := Client.RegenerateTeamInviteId(team.Id)
+	CheckNoError(t, resp)
+
+	assert.NotEqual(t, team.InviteId, rteam.InviteId)
+	assert.NotEqual(t, team.InviteId, "")
 }
 
 func TestSoftDeleteTeam(t *testing.T) {

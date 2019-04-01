@@ -153,6 +153,10 @@ func (o *Team) IsValid() *AppError {
 		return NewAppError("Team.IsValid", "model.team.is_valid.description.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
+	if len(o.InviteId) == 0 {
+		return NewAppError("Team.IsValid", "model.team.is_valid.invite_id.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+	}
+
 	if IsReservedTeamName(o.Name) {
 		return NewAppError("Team.IsValid", "model.team.is_valid.reserved.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
@@ -266,10 +270,6 @@ func (t *Team) Patch(patch *TeamPatch) {
 
 	if patch.AllowedDomains != nil {
 		t.AllowedDomains = *patch.AllowedDomains
-	}
-
-	if patch.InviteId != nil {
-		t.InviteId = *patch.InviteId
 	}
 
 	if patch.AllowOpenInvite != nil {
