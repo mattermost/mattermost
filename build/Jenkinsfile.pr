@@ -81,6 +81,7 @@ pipeline {
                     ansiColor('xterm') {
                         sh """
                             cd /go/src/github.com/mattermost/mattermost-server
+                            go generate ./config
                             mv config/default.json config/config.json || echo ""
                             make check-style BUILD_NUMBER='${BRANCH_NAME}-${BUILD_NUMBER}'
                             make build BUILD_NUMBER='${BRANCH_NAME}-${BUILD_NUMBER}'
