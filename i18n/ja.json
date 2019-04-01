@@ -77,7 +77,7 @@
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
-    "translation": "OAuth2アプリケーションを削除中にエラーが発生しました"
+    "translation": "証明書を削除中にエラーが発生しました。"
   },
   {
     "id": "api.admin.saml.metadata.app_error",
@@ -959,6 +959,10 @@
     "translation": "クライアントの設定で新しい形式がまだサポートされていません。クエリー文字列に format=old を指定してください。"
   },
   {
+    "id": "api.config.update_config.restricted_merge.app_error",
+    "translation": "設定をマージできませんでした。"
+  },
+  {
     "id": "api.context.404.app_error",
     "translation": "申し訳ありません。ページが見付かりません。"
   },
@@ -1458,7 +1462,7 @@
   },
   {
     "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
-    "translation": "Can not delete a post in a deleted channel."
+    "translation": "削除されたチャンネルの投稿は削除できません。"
   },
   {
     "id": "api.post.disabled_all",
@@ -1500,7 +1504,7 @@
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
-    "translation": "Can not update a post in a deleted channel."
+    "translation": "削除されたチャンネルの投稿は更新できません。"
   },
   {
     "id": "api.post.save_is_pinned_post.town_square_read_only",
@@ -1536,7 +1540,7 @@
   },
   {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
-    "translation": "Can not update a post in a deleted channel."
+    "translation": "削除されたチャンネルの投稿は更新できません。"
   },
   {
     "id": "api.post.update_post.find.app_error",
@@ -1592,7 +1596,7 @@
   },
   {
     "id": "api.restricted_system_admin",
-    "translation": "This action is forbidden to a restricted system admin."
+    "translation": "この操作は制限付きシステム管理者に対して禁止されています。"
   },
   {
     "id": "api.roles.patch_roles.license.error",
@@ -1769,6 +1773,10 @@
   {
     "id": "api.team.import_team.unavailable.app_error",
     "translation": "不正なリクエスト: ファイルサイズ項目が存在しません。"
+  },
+  {
+    "id": "api.team.invalidate_all_email_invites.app_error",
+    "translation": "電子メール招待の無効化でエラーが発生しました"
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
@@ -2280,7 +2288,7 @@
   },
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
-    "translation": "Bot login is forbidden"
+    "translation": "ボットログインは禁止されています"
   },
   {
     "id": "api.user.login.client_side_cert.certificate.app_error",
@@ -2308,7 +2316,7 @@
   },
   {
     "id": "api.user.login_by_oauth.bot_login_forbidden.app_error",
-    "translation": "Bot login is forbidden"
+    "translation": "ボットログインは禁止されています"
   },
   {
     "id": "api.user.login_by_oauth.not_available.app_error",
@@ -3284,7 +3292,7 @@
   },
   {
     "id": "app.save_config.app_error",
-    "translation": "An error occurred saving the configuration"
+    "translation": "設定を保存する際にエラーが発生しました"
   },
   {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
@@ -3477,6 +3485,10 @@
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
     "translation": "Elasticsearchインデックス付与ワーカーが開始時刻を解析できませんでした"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
+    "translation": "すべてのエンティティが完了した際に、新しいバッチへのインデックス付与が行われます。"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
@@ -3904,7 +3916,7 @@
   },
   {
     "id": "model.bot.is_valid.create_at.app_error",
-    "translation": "不正なcreator idです"
+    "translation": "不正なcreate atです"
   },
   {
     "id": "model.bot.is_valid.creator_id.app_error",
@@ -3916,7 +3928,7 @@
   },
   {
     "id": "model.bot.is_valid.update_at.app_error",
-    "translation": "Invalid update at"
+    "translation": "不正なupdate atです"
   },
   {
     "id": "model.bot.is_valid.user_id.app_error",
@@ -3924,7 +3936,7 @@
   },
   {
     "id": "model.bot.is_valid.username.app_error",
-    "translation": "不正なユーザー名です。"
+    "translation": "不正なユーザー名です"
   },
   {
     "id": "model.channel.is_valid.2_or_more.app_error",
@@ -4460,7 +4472,7 @@
   },
   {
     "id": "model.config.is_valid.sitename_empty.app_error",
-    "translation": "Site name cannot be empty."
+    "translation": "サイト名を空にすることはできません。"
   },
   {
     "id": "model.config.is_valid.sitename_length.app_error",
@@ -5192,31 +5204,31 @@
   },
   {
     "id": "store.sql_bot.delete.app_error",
-    "translation": "投稿を削除できませんでした"
+    "translation": "ボットを削除できませんでした"
   },
   {
     "id": "store.sql_bot.get.app_error",
-    "translation": "投稿を取得できませんでした"
+    "translation": "ボットを取得できませんでした"
   },
   {
     "id": "store.sql_bot.get.missing.app_error",
-    "translation": "Bot does not exist"
+    "translation": "ボットが存在しません"
   },
   {
     "id": "store.sql_bot.get_all.app_error",
-    "translation": "投稿を取得できませんでした"
+    "translation": "ボットを取得できませんでした"
   },
   {
     "id": "store.sql_bot.save.app_error",
-    "translation": "投稿を保存できませんでした"
+    "translation": "ボットを保存できませんでした"
   },
   {
     "id": "store.sql_bot.update.app_error",
-    "translation": "投稿を更新できませんでした"
+    "translation": "ボットを更新できませんでした"
   },
   {
     "id": "store.sql_bot.update.updating.app_error",
-    "translation": "アプリケーションを更新する際にエラーが発生しました"
+    "translation": "ボットを更新する際にエラーが発生しました"
   },
   {
     "id": "store.sql_channel.analytics_deleted_type_count.app_error",
@@ -5285,6 +5297,10 @@
   {
     "id": "store.sql_channel.get_channels.not_found.app_error",
     "translation": "チャンネルが見付かりませんでした"
+  },
+  {
+    "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
+    "translation": "インデックス付与のためのチャンネルのバッチ処理を取得できませんでした"
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.get.app_error",
@@ -6155,6 +6171,10 @@
     "translation": "このコードのトークンを取得できません"
   },
   {
+    "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
+    "translation": "そのタイプのすべてのトークンを削除できませんでした"
+  },
+  {
     "id": "store.sql_recover.save.app_error",
     "translation": "トークンを保存できません"
   },
@@ -6391,6 +6411,10 @@
     "translation": "全てのチームを取得できませんでした"
   },
   {
+    "id": "store.sql_team.get_all_private_team_listing.app_error",
+    "translation": "全ての非公開チームを取得できませんでした"
+  },
+  {
     "id": "store.sql_team.get_all_team_listing.app_error",
     "translation": "全てのチームを取得できませんでした"
   },
@@ -6495,6 +6519,10 @@
     "translation": "公開されているチームを検索する際にエラーが発生しました"
   },
   {
+    "id": "store.sql_team.search_private_team.app_error",
+    "translation": "非公開チームを検索する際にエラーが発生しました"
+  },
+  {
     "id": "store.sql_team.update.app_error",
     "translation": "チームを更新できませんでした"
   },
@@ -6552,7 +6580,7 @@
   },
   {
     "id": "store.sql_user.app_error",
-    "translation": "Failed to build query"
+    "translation": "クエリーを構築できませんでした"
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.commit_transaction.app_error",
@@ -6629,6 +6657,18 @@
   {
     "id": "store.sql_user.get_unread_count_for_channel.app_error",
     "translation": "ユーザーとチャンネルの未読のメッセージ数を取得できませんでした"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_channel_members.app_error",
+    "translation": "インデックス付与のためのユーザーバッチ処理においてチャンネルメンバーを取得できませんでした"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_team_members.app_error",
+    "translation": "インデックス付与のためのユーザーバッチ処理においてチームメンバーを取得できませんでした"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
+    "translation": "インデックス付与のためのユーザーのバッチ処理を取得できませんでした"
   },
   {
     "id": "store.sql_user.missing_account.const",

@@ -959,6 +959,10 @@
     "translation": "尚未支援新格式的用戶端設定。請在查詢字串中指定 format=old 。"
   },
   {
+    "id": "api.config.update_config.restricted_merge.app_error",
+    "translation": "Failed to merge given config."
+  },
+  {
     "id": "api.context.404.app_error",
     "translation": "抱歉，無法找到頁面。"
   },
@@ -1769,6 +1773,10 @@
   {
     "id": "api.team.import_team.unavailable.app_error",
     "translation": "要求格式錯誤：沒有檔案大小欄位。"
+  },
+  {
+    "id": "api.team.invalidate_all_email_invites.app_error",
+    "translation": "Error invalidating email invites."
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
@@ -3479,6 +3487,10 @@
     "translation": "Elasticsearch 彙總工作者解析開始時間時失敗"
   },
   {
+    "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
+    "translation": "Trying to index a new batch when all the entities are completed."
+  },
+  {
     "id": "ent.elasticsearch.not_started.error",
     "translation": "Elasticsearch 沒有啟動"
   },
@@ -3916,7 +3928,7 @@
   },
   {
     "id": "model.bot.is_valid.update_at.app_error",
-    "translation": "Invalid update at"
+    "translation": "無效的建立者 ID"
   },
   {
     "id": "model.bot.is_valid.user_id.app_error",
@@ -5287,6 +5299,10 @@
     "translation": "找不到頻道"
   },
   {
+    "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
+    "translation": "無法取得文章以建立索引"
+  },
+  {
     "id": "store.sql_channel.get_channels_by_ids.get.app_error",
     "translation": "無法取得頻道"
   },
@@ -6155,6 +6171,10 @@
     "translation": "無法根據此代碼取得 Token"
   },
   {
+    "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
+    "translation": "Unable to remove all the tokens of a type"
+  },
+  {
     "id": "store.sql_recover.save.app_error",
     "translation": "無法儲存 Token"
   },
@@ -6391,6 +6411,10 @@
     "translation": "無法取得全部的團隊"
   },
   {
+    "id": "store.sql_team.get_all_private_team_listing.app_error",
+    "translation": "無法取得全部的團隊"
+  },
+  {
     "id": "store.sql_team.get_all_team_listing.app_error",
     "translation": "無法取得全部的團隊"
   },
@@ -6492,6 +6516,10 @@
   },
   {
     "id": "store.sql_team.search_open_team.app_error",
+    "translation": "搜尋開放團隊時遇到錯誤"
+  },
+  {
+    "id": "store.sql_team.search_private_team.app_error",
     "translation": "搜尋開放團隊時遇到錯誤"
   },
   {
@@ -6629,6 +6657,18 @@
   {
     "id": "store.sql_user.get_unread_count_for_channel.app_error",
     "translation": "無法取得使用者跟頻道的未讀訊息數量"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_channel_members.app_error",
+    "translation": "Unable to get the channel members for the users batch for indexing"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_team_members.app_error",
+    "translation": "Unable to get the team members for the users batch for indexing"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
+    "translation": "無法取得文章以建立索引"
   },
   {
     "id": "store.sql_user.missing_account.const",
