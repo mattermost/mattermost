@@ -377,11 +377,32 @@ func TestExportDMandGMPost(t *testing.T) {
 	gmMembers := []string{th1.BasicUser.Username, user1.Username, user2.Username}
 
 	// DM posts
-	th1.CreatePost(dmChannel)
-	th1.CreatePost(dmChannel)
+	th1.App.CreatePost(&model.Post{
+		ChannelId: dmChannel.Id,
+		Message:   "aa" + model.NewId() + "a",
+		UserId:    th1.BasicUser.Id},
+		dmChannel,
+		false)
+	th1.App.CreatePost(&model.Post{
+		ChannelId: dmChannel.Id,
+		Message:   "bb" + model.NewId() + "a",
+		UserId:    th1.BasicUser.Id},
+		dmChannel,
+		false)
+
 	// GM posts
-	th1.CreatePost(gmChannel)
-	th1.CreatePost(gmChannel)
+	th1.App.CreatePost(&model.Post{
+		ChannelId: gmChannel.Id,
+		Message:   "cc" + model.NewId() + "a",
+		UserId:    th1.BasicUser.Id},
+		gmChannel,
+		false)
+	th1.App.CreatePost(&model.Post{
+		ChannelId: gmChannel.Id,
+		Message:   "dd" + model.NewId() + "a",
+		UserId:    th1.BasicUser.Id},
+		gmChannel,
+		false)
 
 	result := <-th1.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
 	posts := result.Data.([]*model.DirectPostForExport)
@@ -409,7 +430,7 @@ func TestExportDMandGMPost(t *testing.T) {
 	posts = result.Data.([]*model.DirectPostForExport)
 
 	// Adding some deteminism so its possible to assert on slice index
-	sort.Slice(posts, func(i, j int) bool { return posts[i].CreateAt > posts[j].CreateAt })
+	sort.Slice(posts, func(i, j int) bool { return posts[i].Message > posts[j].Message })
 	assert.Equal(t, 4, len(posts))
 	assert.ElementsMatch(t, gmMembers, *posts[0].ChannelMembers)
 	assert.ElementsMatch(t, gmMembers, *posts[1].ChannelMembers)
