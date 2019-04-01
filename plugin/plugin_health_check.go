@@ -15,21 +15,7 @@ const (
 	HEALTH_CHECK_PING_FAIL_LIMIT  = 3
 	HEALTH_CHECK_RESTART_LIMIT    = 3
 	HEALTH_CHECK_DISABLE_DURATION = 60 // minutes
-	ENABLE_HEALTH_CHECK_JOB       = true
 )
-
-func (env *Environment) InitPluginHealthCheckJob() {
-	if env.pluginHealthCheckJob != nil {
-		env.pluginHealthCheckJob.Cancel()
-		env.pluginHealthCheckJob = nil
-	}
-
-	if ENABLE_HEALTH_CHECK_JOB {
-		job := newPluginHealthCheckJob()
-		env.pluginHealthCheckJob = job
-		job.runPluginHealthCheckJob(env)
-	}
-}
 
 type PluginHealthCheckJob struct {
 	cancel    chan struct{}
@@ -37,27 +23,49 @@ type PluginHealthCheckJob struct {
 	env       *Environment
 }
 
-type pluginHealthStatus struct {
+type PluginHealthStatus struct {
+	Crashed        bool
 	failTimeStamps []time.Time
 	lastError      error
-	crashed        bool
 }
 
-// runPluginHealthCheckJob checks the health status of all active plugins.
-//
-// It will either restart or disable a plugin given certain criteria is met.
-func (job *PluginHealthCheckJob) runPluginHealthCheckJob(env *Environment) {
+// InitPluginHealthCheckJob starts a new job if one is not running and is set to enabled, or kills an existing one if set to disabled.
+func (env *Environment) InitPluginHealthCheckJob(enableJob *bool) {
+	var enable bool
+	if enableJob != nil {
+		enable = *enableJob
+	} else {
+		enable = true
+	}
+
+	// Config is set to enable. No job exists, start a new job.
+	if enable && env.pluginHealthCheckJob == nil {
+		job := newPluginHealthCheckJob(env)
+		env.pluginHealthCheckJob = job
+		job.Start()
+	}
+
+	// Config is set to disable. Job exists, kill existing job.
+	if !enable && env.pluginHealthCheckJob != nil {
+		env.pluginHealthCheckJob.Cancel()
+		env.pluginHealthCheckJob = nil
+	}
+}
+
+// Start continuously runs health checks on all active plugins, on a timer.
+func (job *PluginHealthCheckJob) Start() {
 	interval := time.Duration(PLUGIN_HEALTH_CHECK_INTERVAL) * time.Minute
 	mlog.Debug(fmt.Sprintf("Plugin health check job starting. Sending health check pings every %v minutes.", interval))
 
 	go func() {
 		defer close(job.cancelled)
 
+		env := job.env
 		activePlugins := env.Active()
 
 		for _, plugin := range activePlugins {
 			if _, ok := env.pluginHealthStatuses.Load(plugin.Manifest.Id); !ok {
-				env.pluginHealthStatuses.Store(plugin.Manifest.Id, newPluginHealth())
+				env.pluginHealthStatuses.Store(plugin.Manifest.Id, newPluginHealthStatus())
 			}
 		}
 
@@ -71,58 +79,7 @@ func (job *PluginHealthCheckJob) runPluginHealthCheckJob(env *Environment) {
 			case <-ticker.C:
 				activePlugins := env.Active()
 				for _, plugin := range activePlugins {
-					id := plugin.Manifest.Id
-
-					var health *pluginHealthStatus
-					if existingHealth, ok := env.pluginHealthStatuses.Load(id); ok {
-						health = existingHealth.(*pluginHealthStatus)
-					} else {
-						health = newPluginHealth()
-						env.pluginHealthStatuses.Store(id, health)
-					}
-
-					var err error
-					if err = env.CheckPluginProcess(id); err != nil {
-						mlog.Debug(fmt.Sprintf("Error checking plugin process `%s`, error: %s", id, err.Error()))
-					} else if err = env.CheckPluginPing(id); err != nil {
-						for pingFails := 1; pingFails < HEALTH_CHECK_PING_FAIL_LIMIT; pingFails++ {
-							err = env.CheckPluginPing(id)
-							if err == nil {
-								break
-							}
-						}
-						if err != nil {
-							mlog.Debug(fmt.Sprintf("Error pinging plugin `%s`, error: %s", id, err.Error()))
-						}
-					}
-
-					if err == nil {
-						hooks, hooksErr := env.HooksForPlugin(id)
-						if hooksErr != nil {
-							mlog.Debug(fmt.Sprintf("Error loading hooks for plugin `%s`, error: %s", id, hooksErr.Error()))
-						} else if err = hooks.HealthCheck(); err != nil {
-							mlog.Debug(fmt.Sprintf("Error retrieved from HealthCheck hook for plugin `%s`, error: %s", id, err.Error()))
-						}
-					}
-
-					if err != nil {
-						mlog.Debug(fmt.Sprintf("Health check failed for plugin %s, error: %s", id, err.Error()))
-						t := time.Now()
-						health.failTimeStamps = append(health.failTimeStamps, t)
-						health.lastError = err
-
-						if shouldDisablePlugin(health) {
-							health.failTimeStamps = []time.Time{}
-							health.crashed = true
-							mlog.Debug(fmt.Sprintf("Deactivating plugin due to multiple crashes `%s`", id))
-							env.Deactivate(id)
-						} else {
-							mlog.Debug(fmt.Sprintf("Restarting plugin due to failed health check `%s`", id))
-							env.RestartPlugin(id)
-						}
-					} else {
-						health.crashed = false
-					}
+					job.checkPlugin(plugin.Manifest.Id)
 				}
 			case <-job.cancel:
 				return
@@ -131,10 +88,71 @@ func (job *PluginHealthCheckJob) runPluginHealthCheckJob(env *Environment) {
 	}()
 }
 
-func newPluginHealthCheckJob() *PluginHealthCheckJob {
+// checkPlugin determines the plugin's health status, then handles the error or success case.
+func (job *PluginHealthCheckJob) checkPlugin(id string) {
+	var ap activePlugin
+	if p, ok := job.env.activePlugins.Load(id); ok {
+		ap = p.(activePlugin)
+	} else {
+		return
+	}
+
+	if _, ok := job.env.pluginHealthStatuses.Load(id); !ok {
+		job.env.pluginHealthStatuses.Store(id, newPluginHealthStatus())
+	}
+
+	supervisor := ap.supervisor
+
+	pluginErr := supervisor.PerformHealthCheck()
+
+	if pluginErr != nil {
+		mlog.Debug(fmt.Sprintf("Health check failed for plugin %s, error: %s", id, pluginErr.Error()))
+		job.handleHealthCheckFail(id, pluginErr)
+	} else {
+		job.handleHealthCheckSuccess(id)
+	}
+}
+
+// handleHealthCheckFail restarts or deactivates the plugin based on how many times it has failed in a configured amount of time.
+func (job *PluginHealthCheckJob) handleHealthCheckFail(id string, err error) {
+	var health *PluginHealthStatus
+	if h, ok := job.env.pluginHealthStatuses.Load(id); ok {
+		health = h.(*PluginHealthStatus)
+	} else {
+		return
+	}
+
+	t := time.Now()
+	job.env.UpdatePluginHealthStatus(id, func(health *PluginHealthStatus) {
+		health.failTimeStamps = append(health.failTimeStamps, t)
+		health.lastError = err
+	})
+
+	if shouldDeactivatePlugin(health) {
+		job.env.UpdatePluginHealthStatus(id, func(health *PluginHealthStatus) {
+			health.failTimeStamps = []time.Time{}
+			health.Crashed = true
+		})
+		mlog.Debug(fmt.Sprintf("Deactivating plugin due to multiple crashes `%s`", id))
+		job.env.Deactivate(id)
+	} else {
+		mlog.Debug(fmt.Sprintf("Restarting plugin due to failed health check `%s`", id))
+		job.env.RestartPlugin(id)
+	}
+}
+
+// handleHealthCheckSuccess marks the plugin as healthy.
+func (job *PluginHealthCheckJob) handleHealthCheckSuccess(id string) {
+	job.env.UpdatePluginHealthStatus(id, func(health *PluginHealthStatus) {
+		health.Crashed = false
+	})
+}
+
+func newPluginHealthCheckJob(env *Environment) *PluginHealthCheckJob {
 	return &PluginHealthCheckJob{
 		cancel:    make(chan struct{}),
 		cancelled: make(chan struct{}),
+		env:       env,
 	}
 }
 
@@ -143,14 +161,14 @@ func (job *PluginHealthCheckJob) Cancel() {
 	<-job.cancelled
 }
 
-func newPluginHealth() *pluginHealthStatus {
-	return &pluginHealthStatus{failTimeStamps: []time.Time{}, crashed: false}
+func newPluginHealthStatus() *PluginHealthStatus {
+	return &PluginHealthStatus{failTimeStamps: []time.Time{}, Crashed: false}
 }
 
-// shouldDisablePlugin determines if a plugin needs to be disabled after certain criteria is met.
+// shouldDeactivatePlugin determines if a plugin needs to be deactivated after certain criteria is met.
 //
 // The criteria is based on if the plugin has consistently failed during the configured number of restarts, within the configured time window.
-func shouldDisablePlugin(health *pluginHealthStatus) bool {
+func shouldDeactivatePlugin(health *PluginHealthStatus) bool {
 	if len(health.failTimeStamps) >= HEALTH_CHECK_RESTART_LIMIT {
 		index := len(health.failTimeStamps) - HEALTH_CHECK_RESTART_LIMIT
 		t := health.failTimeStamps[index]

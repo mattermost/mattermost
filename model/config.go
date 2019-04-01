@@ -2070,12 +2070,13 @@ type PluginState struct {
 }
 
 type PluginSettings struct {
-	Enable          *bool
-	EnableUploads   *bool
-	Directory       *string
-	ClientDirectory *string
-	Plugins         map[string]map[string]interface{}
-	PluginStates    map[string]*PluginState
+	Enable            *bool
+	EnableUploads     *bool
+	EnableHealthCheck *bool
+	Directory         *string
+	ClientDirectory   *string
+	Plugins           map[string]map[string]interface{}
+	PluginStates      map[string]*PluginState
 }
 
 func (s *PluginSettings) SetDefaults() {

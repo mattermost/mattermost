@@ -110,6 +110,37 @@ func (sup *supervisor) Hooks() Hooks {
 	return sup.hooks
 }
 
+// PerformHealthCheck checks the plugin through a process check, an RPC ping, and a HealthCheck hook call.
+func (sup *supervisor) PerformHealthCheck() error {
+	if err := sup.CheckProcess(); err != nil {
+		mlog.Debug(fmt.Sprintf("Error checking plugin process, error: %s", err.Error()))
+		return fmt.Errorf("Plugin process not found, or not responding")
+	}
+
+	if err := sup.Ping(); err != nil {
+		for pingFails := 1; pingFails < HEALTH_CHECK_PING_FAIL_LIMIT; pingFails++ {
+			err = sup.Ping()
+			if err == nil {
+				break
+			}
+		}
+		if err != nil {
+			mlog.Debug(fmt.Sprintf("Error pinging plugin, error: %s", err.Error()))
+			return fmt.Errorf("Plugin RPC connection is not responding")
+		}
+	}
+
+	if sup.Implements(HealthCheckId) {
+		hooks := sup.Hooks()
+		if err := hooks.HealthCheck(); err != nil {
+			mlog.Debug(fmt.Sprintf("Error retrieved from HealthCheck hook, error: %s", err.Error()))
+			return err
+		}
+	}
+
+	return nil
+}
+
 // Ping checks that the RPC connection with the plugin is alive and healthy.
 func (sup *supervisor) Ping() error {
 	client, err := sup.client.Client()
@@ -125,12 +156,12 @@ func (sup *supervisor) Ping() error {
 func (sup *supervisor) CheckProcess() error {
 	process, err := os.FindProcess(sup.pid)
 	if err != nil {
-		return fmt.Errorf("Process was not found while checking health of plugin")
+		return err
 	}
 
 	err = process.Signal(syscall.Signal(0))
 	if err != nil {
-		return fmt.Errorf("Process was not found while checking health of plugin")
+		return err
 	}
 
 	return nil

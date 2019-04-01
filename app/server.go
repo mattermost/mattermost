@@ -191,12 +191,12 @@ func NewServer(options ...Option) (*Server, error) {
 	// Start plugin health check job
 	pluginsEnvironment := s.PluginsEnvironment
 	if pluginsEnvironment != nil {
-		pluginsEnvironment.InitPluginHealthCheckJob()
+		pluginsEnvironment.InitPluginHealthCheckJob(s.Config().PluginSettings.EnableHealthCheck)
 	}
-	s.AddConfigListener(func(_, _ *model.Config) {
+	s.AddConfigListener(func(_, c *model.Config) {
 		pluginsEnvironment := s.PluginsEnvironment
 		if pluginsEnvironment != nil {
-			pluginsEnvironment.InitPluginHealthCheckJob()
+			pluginsEnvironment.InitPluginHealthCheckJob(c.PluginSettings.EnableHealthCheck)
 		}
 	})
 

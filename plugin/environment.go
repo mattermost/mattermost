@@ -264,35 +264,18 @@ func (env *Environment) RestartPlugin(id string) (manifest *model.Manifest, acti
 	return env.Activate(id)
 }
 
-// CheckPluginPing checks the RPC connection status of the plugin.
-func (env *Environment) CheckPluginPing(id string) error {
-	if p, ok := env.activePlugins.Load(id); ok {
-		ap := p.(activePlugin)
-		if ap.supervisor != nil {
-			return ap.supervisor.Ping()
-		}
+// CheckPluginHealthStatus checks if the plugin is in a failed state, based on information gathered from previous health checks.
+func (env *Environment) UpdatePluginHealthStatus(id string, function func(*PluginHealthStatus)) {
+	if health, ok := env.pluginHealthStatuses.Load(id); ok {
+		function(health.(*PluginHealthStatus))
 	}
-
-	return fmt.Errorf("plugin not running: %v", id)
-}
-
-// CheckPluginProcess checks if the plugin's process is currently alive.
-func (env *Environment) CheckPluginProcess(id string) error {
-	if p, ok := env.activePlugins.Load(id); ok {
-		ap := p.(activePlugin)
-		if ap.supervisor != nil {
-			return ap.supervisor.CheckProcess()
-		}
-	}
-
-	return fmt.Errorf("plugin not running: %v", id)
 }
 
 // CheckPluginHealthStatus checks if the plugin is in a failed state, based on information gathered from previous health checks.
 func (env *Environment) CheckPluginHealthStatus(id string) error {
 	if health, ok := env.pluginHealthStatuses.Load(id); ok {
-		if health.(*pluginHealthStatus).crashed {
-			return health.(*pluginHealthStatus).lastError
+		if health.(*PluginHealthStatus).Crashed {
+			return health.(*PluginHealthStatus).lastError
 		}
 	}
 	return nil

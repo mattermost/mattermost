@@ -414,6 +414,7 @@
     "PluginSettings": {
         "Enable": true,
         "EnableUploads": false,
+        "EnableHealthCheck": true,
         "Directory": "./plugins",
         "ClientDirectory": "./client/plugins",
         "Plugins": {},
