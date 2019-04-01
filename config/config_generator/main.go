@@ -11,7 +11,7 @@ import (
 )
 
 func usage() {
-	fmt.Fprintf(os.Stderr, "usage: myprog [inputfile]\n")
+	fmt.Fprintf(os.Stderr, "usage: config_generator [output_file]\n")
 	flag.PrintDefaults()
 	os.Exit(2)
 }
