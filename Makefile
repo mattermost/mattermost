@@ -340,11 +340,11 @@ plugin-mocks: ## Creates mock files for plugins.
 
 pluginapi: ## Generates api and hooks glue code for plugins
 	go generate ./plugin
-
 check-licenses: ## Checks license status.
 	./scripts/license-check.sh $(TE_PACKAGES) $(EE_PACKAGES)
 
 check-prereqs: ## Checks prerequisite software status.
+	go generate ./config
 	./scripts/prereq-check.sh
 
 check-style: govet gofmt check-licenses ## Runs govet and gofmt against all packages.

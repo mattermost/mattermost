@@ -1,4 +1,4 @@
-//go:generate go run config_generator/main.go default2.json
+//go:generate go run config_generator/main.go default.json
 
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
