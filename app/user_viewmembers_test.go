@@ -24,7 +24,12 @@ func TestResctrictedViewMembers(t *testing.T) {
 	user3.Username = "test-user-3"
 	user3.Nickname = "test user3"
 	th.App.UpdateUser(user3, false)
+	user4 := th.CreateUser()
+	user4.Username = "test-user-3"
+	user4.Nickname = "test user3"
+	th.App.UpdateUser(user4, false)
 
+	// user1 is member of all the channels and teams because is the creator
 	th.BasicUser = user1
 
 	team1 := th.CreateTeam()
@@ -37,10 +42,14 @@ func TestResctrictedViewMembers(t *testing.T) {
 	th.LinkUserToTeam(user1, team1)
 	th.LinkUserToTeam(user2, team1)
 	th.LinkUserToTeam(user3, team2)
+	th.LinkUserToTeam(user4, team1)
+	th.LinkUserToTeam(user4, team2)
 
 	th.AddUserToChannel(user1, channel1)
 	th.AddUserToChannel(user2, channel2)
 	th.AddUserToChannel(user3, channel3)
+	th.AddUserToChannel(user4, channel1)
+	th.AddUserToChannel(user4, channel3)
 
 	t.Run("SearchUsers", func(t *testing.T) {
 		testCases := []struct {
@@ -203,21 +212,21 @@ func TestResctrictedViewMembers(t *testing.T) {
 			{
 				"without restrictions",
 				nil,
-				[]string{user1.Id, user2.Id, user3.Id},
+				[]string{user1.Id, user2.Id, user3.Id, user4.Id},
 			},
 			{
 				"with team restrictions",
 				&model.ViewUsersRestrictions{
 					Teams: []string{team1.Id},
 				},
-				[]string{user1.Id, user2.Id},
+				[]string{user1.Id, user2.Id, user4.Id},
 			},
 			{
 				"with channel restrictions",
 				&model.ViewUsersRestrictions{
 					Channels: []string{channel1.Id},
 				},
-				[]string{user1.Id},
+				[]string{user1.Id, user4.Id},
 			},
 			{
 				"with restricting everything",
@@ -308,6 +317,89 @@ func TestResctrictedViewMembers(t *testing.T) {
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {
 				results, err := th.App.GetUsersNotInTeam(tc.TeamId, 0, 100, tc.Restrictions)
+				require.Nil(t, err)
+				ids := []string{}
+				for _, result := range results {
+					ids = append(ids, result.Id)
+				}
+				assert.ElementsMatch(t, tc.ExpectedResults, ids)
+			})
+		}
+	})
+
+	t.Run("GetUsersNotInChannel", func(t *testing.T) {
+		testCases := []struct {
+			Name            string
+			Restrictions    *model.ViewUsersRestrictions
+			TeamId          string
+			ChannelId       string
+			ExpectedResults []string
+		}{
+			{
+				"without restrictions channel1",
+				nil,
+				team1.Id,
+				channel1.Id,
+				[]string{user2.Id},
+			},
+			{
+				"without restrictions channel2",
+				nil,
+				team1.Id,
+				channel2.Id,
+				[]string{user4.Id},
+			},
+			{
+				"with team restrictions with valid team",
+				&model.ViewUsersRestrictions{
+					Teams: []string{team1.Id},
+				},
+				team1.Id,
+				channel1.Id,
+				[]string{user2.Id},
+			},
+			{
+				"with team restrictions with invalid team",
+				&model.ViewUsersRestrictions{
+					Teams: []string{team2.Id},
+				},
+				team1.Id,
+				channel1.Id,
+				[]string{},
+			},
+			{
+				"with channel restrictions with valid team",
+				&model.ViewUsersRestrictions{
+					Channels: []string{channel2.Id},
+				},
+				team1.Id,
+				channel1.Id,
+				[]string{user2.Id},
+			},
+			{
+				"with channel restrictions with invalid team",
+				&model.ViewUsersRestrictions{
+					Channels: []string{channel2.Id},
+				},
+				team1.Id,
+				channel2.Id,
+				[]string{},
+			},
+			{
+				"with restricting everything",
+				&model.ViewUsersRestrictions{
+					Channels: []string{},
+					Teams:    []string{},
+				},
+				team1.Id,
+				channel1.Id,
+				[]string{},
+			},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.Name, func(t *testing.T) {
+				results, err := th.App.GetUsersNotInChannel(tc.TeamId, tc.ChannelId, 0, 100, tc.Restrictions)
 				require.Nil(t, err)
 				ids := []string{}
 				for _, result := range results {
@@ -433,21 +525,21 @@ func TestResctrictedViewMembers(t *testing.T) {
 			{
 				"without restrictions",
 				nil,
-				3,
+				4,
 			},
 			{
 				"with team restrictions",
 				&model.ViewUsersRestrictions{
 					Teams: []string{team1.Id},
 				},
-				2,
+				3,
 			},
 			{
 				"with channel restrictions",
 				&model.ViewUsersRestrictions{
 					Channels: []string{channel1.Id},
 				},
-				1,
+				2,
 			},
 			{
 				"with restricting everything",
