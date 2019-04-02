@@ -155,3 +155,21 @@ func GroupSyncablesFromJson(data io.Reader) []*GroupSyncable {
 	json.Unmarshal(bodyBytes, &groupSyncables)
 	return groupSyncables
 }
+
+func NewGroupTeam(groupID, teamID string, autoAdd bool) *GroupSyncable {
+	return &GroupSyncable{
+		GroupId:    groupID,
+		SyncableId: teamID,
+		Type:       GroupSyncableTypeTeam,
+		AutoAdd:    autoAdd,
+	}
+}
+
+func NewGroupChannel(groupID, channelID string, autoAdd bool) *GroupSyncable {
+	return &GroupSyncable{
+		GroupId:    groupID,
+		SyncableId: channelID,
+		Type:       GroupSyncableTypeChannel,
+		AutoAdd:    autoAdd,
+	}
+}
