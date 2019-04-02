@@ -113,7 +113,7 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	canSee, err := c.App.UserCanSeeOtherUser(c.App.Session.UserId, c.Params.UserId)
 	if err != nil {
-		c.Err = err
+		c.SetPermissionError(model.PERMISSION_VIEW_MEMBERS)
 		return
 	}
 
