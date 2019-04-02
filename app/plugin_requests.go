@@ -50,7 +50,7 @@ func (a *App) ServePluginPublicRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Should be in the form of /$PLUGIN_ID/public/{anything} by the timne we get here
+	// Should be in the form of /$PLUGIN_ID/public/{anything} by the time we get here
 	vars := mux.Vars(r)
 	pluginID := vars["plugin_id"]
 
