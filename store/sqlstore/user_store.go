@@ -1614,15 +1614,31 @@ func applyViewRestrictionsFilter(query sq.SelectBuilder, restrictions *model.Vie
 	if restrictions == nil {
 		return query
 	}
-	resultQuery := query.
-		LeftJoin("TeamMembers rtm ON ( rtm.UserId = u.Id AND rtm.DeleteAt = 0 )").
-		LeftJoin("ChannelMembers rcm ON ( rcm.UserId = u.Id )").
-		Where(sq.Or{
-			sq.Eq{"rtm.TeamId": restrictions.Teams},
-			sq.Eq{"rcm.ChannelId": restrictions.Channels},
-		})
+
+	// If you have no access to teams or channels, return and empty result.
+	if restrictions.Teams != nil && len(restrictions.Teams) == 0 && restrictions.Channels != nil && len(restrictions.Channels) == 0 {
+		return query.Where("1 = 0")
+	}
+
+	teams := make([]interface{}, len(restrictions.Teams))
+	for i, v := range restrictions.Teams {
+		teams[i] = v
+	}
+	channels := make([]interface{}, len(restrictions.Channels))
+	for i, v := range restrictions.Channels {
+		channels[i] = v
+	}
+	resultQuery := query
+	if restrictions.Teams != nil && len(restrictions.Teams) > 0 {
+		resultQuery = resultQuery.Join(fmt.Sprintf("TeamMembers rtm ON ( rtm.UserId = u.Id AND rtm.DeleteAt = 0 AND rtm.TeamId IN (%s))", sq.Placeholders(len(teams))), teams...)
+	}
+	if restrictions.Channels != nil && len(restrictions.Channels) > 0 {
+		resultQuery = resultQuery.Join(fmt.Sprintf("ChannelMembers rcm ON ( rcm.UserId = u.Id AND rcm.ChannelId IN (%s))", sq.Placeholders(len(channels))), channels...)
+	}
+
 	if distinct {
 		return resultQuery.Distinct()
 	}
+
 	return resultQuery
 }

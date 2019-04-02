@@ -777,7 +777,6 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// No permission check required
 		result, err := c.App.SearchUsersInTeam("", name, options)
 		if err != nil {
 			c.Err = err
