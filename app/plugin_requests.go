@@ -55,7 +55,6 @@ func (a *App) ServePluginPublicRequest(w http.ResponseWriter, r *http.Request) {
 	pluginID := vars["plugin_id"]
 
 	publicFilesPath, err := a.GetPluginsEnvironment().PublicFilesPath(pluginID)
-
 	if err != nil {
 		http.NotFound(w, r)
 		return
