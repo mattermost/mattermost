@@ -291,7 +291,10 @@ func TestPatchChannel(t *testing.T) {
 	_, resp = th.SystemAdminClient.PatchChannel(th.BasicChannel.Id, patch)
 	CheckNoError(t, resp)
 
-	_, resp = th.SystemAdminClient.PatchChannel(th.BasicPrivateChannel.Id, patch)
+	Client.Logout()
+	Client.Login(th.BasicUser.Username, th.BasicUser.Password)
+
+	_, resp = th.Client.PatchChannel(th.BasicPrivateChannel.Id, patch)
 	CheckNoError(t, resp)
 
 	// Test updating the header of someone else's GM channel.
