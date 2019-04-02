@@ -36,6 +36,8 @@ func (a *App) DoPostAction(postId, actionId, userId, selectedOption string) (str
 
 func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption string, cookie *model.PostActionCookie) (string, *model.AppError) {
 	// the prop values that we need to retain/clear in replacement message to match the original
+	var originalProps map[string]interface{}
+	// TODO  extend this list?
 	remove := []string{"override_username", "override_icon_url"}
 	retain := map[string]interface{}{}
 	datasource := ""
@@ -103,6 +105,7 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 				remove = append(remove, key)
 			}
 		}
+		originalProps = post.Props
 
 		if post.RootId == "" {
 			rootPostId = post.Id
@@ -141,15 +144,18 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 
 	if response.Update != nil {
 		response.Update.Id = postId
-		response.Update.AddProp("from_webhook", "true")
-		for key, value := range retain {
-			response.Update.AddProp(key, value)
-		}
-		for _, key := range remove {
-			delete(response.Update.Props, key)
-		}
-		if _, appErr = a.UpdatePost(response.Update, false); appErr != nil {
-			return "", appErr
+		if response.Update.Props == nil {
+			response.Update.Props = originalProps
+		} else {
+			for key, value := range retain {
+				response.Update.AddProp(key, value)
+			}
+			for _, key := range remove {
+				delete(response.Update.Props, key)
+			}
+			if _, appErr = a.UpdatePost(response.Update, false); appErr != nil {
+				return "", appErr
+			}
 		}
 	}
 
@@ -160,7 +166,6 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 			RootId:    rootPostId,
 			UserId:    userId,
 		}
-		ephemeralPost.AddProp("from_webhook", "true")
 		for key, value := range retain {
 			ephemeralPost.AddProp(key, value)
 		}
