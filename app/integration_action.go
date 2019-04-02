@@ -36,7 +36,7 @@ func (a *App) DoPostAction(postId, actionId, userId, selectedOption string) (str
 
 func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption string, cookie *model.PostActionCookie) (string, *model.AppError) {
 	// the prop values that we need to retain/clear in replacement message to match the original
-	remove := []string{"override_username", "override_icon_url"}
+	remove := []string{}
 	retain := map[string]interface{}{}
 	datasource := ""
 
@@ -94,8 +94,8 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 		upstreamRequest.Context = action.Integration.Context
 		datasource = action.DataSource
 
-		retainPropKeys := []string{"override_username", "override_icon_url"}
-		for _, key := range retainPropKeys {
+		// Set override_username, override_icon_ur to what they were before.
+		for _, key := range model.PostActionRetainPropKeys {
 			value, ok := post.Props[key]
 			if ok {
 				retain[key] = value
