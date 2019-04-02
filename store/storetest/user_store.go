@@ -65,8 +65,8 @@ func TestUserStore(t *testing.T, ss store.Store) {
 	t.Run("ClearAllCustomRoleAssignments", func(t *testing.T) { testUserStoreClearAllCustomRoleAssignments(t, ss) })
 	t.Run("GetAllAfter", func(t *testing.T) { testUserStoreGetAllAfter(t, ss) })
 	t.Run("GetUsersBatchForIndexing", func(t *testing.T) { testUserStoreGetUsersBatchForIndexing(t, ss) })
-	t.Run("GetUsersPermittedToTeam", func(t *testing.T) { testUserStoreGetUsersPermittedToTeam(t, ss) })
-	t.Run("GetUsersPermittedToChannel", func(t *testing.T) { testUserStoreGetUsersPermittedToChannel(t, ss) })
+	t.Run("GetTeamGroupUsers", func(t *testing.T) { testUserStoreGetUsersPermittedToTeam(t, ss) })
+	t.Run("GetChannelGroupUsers", func(t *testing.T) { testUserStoreGetUsersPermittedToChannel(t, ss) })
 }
 
 func testUserStoreSave(t *testing.T, ss store.Store) {
@@ -3506,27 +3506,25 @@ func testUserStoreGetUsersPermittedToTeam(t *testing.T, ss store.Store) {
 	})
 	require.Nil(t, res.Err)
 
-	// team not group constrained returns no users
-	res = <-ss.User().GetUsersPermittedToTeam(team.Id)
-	require.Nil(t, res.Err)
-	users := res.Data.([]*model.User)
-	require.NotNil(t, users)
-	require.Empty(t, users)
-
-	// update team to be group-constrained
-	team.GroupConstrained = model.NewBool(true)
-	res = <-ss.Team().Update(team)
-	require.Nil(t, res.Err)
+	var users []*model.User
 
 	requireNUsers := func(n int) {
-		res = <-ss.User().GetUsersPermittedToTeam(team.Id)
+		res = <-ss.User().GetTeamGroupUsers(team.Id)
 		require.Nil(t, res.Err)
 		users = res.Data.([]*model.User)
 		require.NotNil(t, users)
 		require.Len(t, users, n)
 	}
 
-	// only 1 user because only 1 group has been associated to the team
+	// team not group constrained returns users
+	requireNUsers(1)
+
+	// update team to be group-constrained
+	team.GroupConstrained = model.NewBool(true)
+	res = <-ss.Team().Update(team)
+	require.Nil(t, res.Err)
+
+	// still returns user (being group-constrained has no effect)
 	requireNUsers(1)
 
 	// associate other group to team
@@ -3632,27 +3630,25 @@ func testUserStoreGetUsersPermittedToChannel(t *testing.T, ss store.Store) {
 	})
 	require.Nil(t, res.Err)
 
-	// channel not group constrained returns no users
-	res = <-ss.User().GetUsersPermittedToChannel(channel.Id)
-	require.Nil(t, res.Err)
-	users := res.Data.([]*model.User)
-	require.NotNil(t, users)
-	require.Empty(t, users)
-
-	// update team to be group-constrained
-	channel.GroupConstrained = model.NewBool(true)
-	res = <-ss.Channel().Update(channel)
-	require.Nil(t, res.Err)
+	var users []*model.User
 
 	requireNUsers := func(n int) {
-		res = <-ss.User().GetUsersPermittedToChannel(channel.Id)
+		res = <-ss.User().GetChannelGroupUsers(channel.Id)
 		require.Nil(t, res.Err)
 		users = res.Data.([]*model.User)
 		require.NotNil(t, users)
 		require.Len(t, users, n)
 	}
 
-	// only 1 user because only 1 group has been associated to the team
+	// channel not group constrained returns users
+	requireNUsers(1)
+
+	// update team to be group-constrained
+	channel.GroupConstrained = model.NewBool(true)
+	res = <-ss.Channel().Update(channel)
+	require.Nil(t, res.Err)
+
+	// still returns user (being group-constrained has no effect)
 	requireNUsers(1)
 
 	// associate other group to team

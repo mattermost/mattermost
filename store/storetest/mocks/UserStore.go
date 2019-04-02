@@ -849,8 +849,8 @@ func (_m *UserStore) VerifyEmail(userId string, email string) store.StoreChannel
 	return r0
 }
 
-// GetUsersPermittedToTeam provides a mock function with given fields: userId, email
-func (_m *UserStore) GetUsersPermittedToTeam(teamID string) store.StoreChannel {
+// GetTeamGroupUsers provides a mock function with given fields: userId, email
+func (_m *UserStore) GetTeamGroupUsers(teamID string) store.StoreChannel {
 	ret := _m.Called(teamID)
 
 	var r0 store.StoreChannel
@@ -865,8 +865,8 @@ func (_m *UserStore) GetUsersPermittedToTeam(teamID string) store.StoreChannel {
 	return r0
 }
 
-// GetUsersPermittedToChannel provides a mock function with given fields: userId, email
-func (_m *UserStore) GetUsersPermittedToChannel(teamID string) store.StoreChannel {
+// GetChannelGroupUsers provides a mock function with given fields: userId, email
+func (_m *UserStore) GetChannelGroupUsers(teamID string) store.StoreChannel {
 	ret := _m.Called(teamID)
 
 	var r0 store.StoreChannel

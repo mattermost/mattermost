@@ -1537,7 +1537,7 @@ func (us SqlUserStore) GetUsersBatchForIndexing(startTime, endTime int64, limit 
 	})
 }
 
-func (us SqlUserStore) GetUsersPermittedToTeam(teamID string) store.StoreChannel {
+func (us SqlUserStore) GetTeamGroupUsers(teamID string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		query := us.usersQuery.
 			Where(`Id IN (
@@ -1550,7 +1550,6 @@ func (us SqlUserStore) GetUsersPermittedToTeam(teamID string) store.StoreChannel
 					JOIN GroupMembers ON GroupMembers.GroupId = UserGroups.Id
 				WHERE
 					Teams.Id = ?
-					AND Teams.GroupConstrained = TRUE
 					AND GroupTeams.DeleteAt = 0
 					AND UserGroups.DeleteAt = 0
 					AND GroupMembers.DeleteAt = 0
@@ -1578,7 +1577,7 @@ func (us SqlUserStore) GetUsersPermittedToTeam(teamID string) store.StoreChannel
 	})
 }
 
-func (us SqlUserStore) GetUsersPermittedToChannel(channelID string) store.StoreChannel {
+func (us SqlUserStore) GetChannelGroupUsers(channelID string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		query := us.usersQuery.
 			Where(`Id IN (
@@ -1591,7 +1590,6 @@ func (us SqlUserStore) GetUsersPermittedToChannel(channelID string) store.StoreC
 					JOIN GroupMembers ON GroupMembers.GroupId = UserGroups.Id
 				WHERE
 					Channels.Id = ?
-					AND Channels.GroupConstrained = TRUE
 					AND GroupChannels.DeleteAt = 0
 					AND UserGroups.DeleteAt = 0
 					AND GroupMembers.DeleteAt = 0
@@ -1601,13 +1599,13 @@ func (us SqlUserStore) GetUsersPermittedToChannel(channelID string) store.StoreC
 
 		queryString, args, err := query.ToSql()
 		if err != nil {
-			result.Err = model.NewAppError("SqlUserStore.GetUsersPermittedToChannel", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+			result.Err = model.NewAppError("SqlUserStore.GetChannelGroupUsers", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
 		var users []*model.User
 		if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.GetUsersPermittedToChannel", "store.sql_user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
+			result.Err = model.NewAppError("SqlUserStore.GetChannelGroupUsers", "store.sql_user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
