@@ -189,6 +189,38 @@ func (_m *GroupStore) GetGroupSyncable(groupID string, syncableID string, syncab
 	return r0
 }
 
+// GetGroupsByChannel provides a mock function with given fields: channelId, page, perPage
+func (_m *GroupStore) GetGroupsByChannel(channelId string, page int, perPage int) store.StoreChannel {
+	ret := _m.Called(channelId, page, perPage)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string, int, int) store.StoreChannel); ok {
+		r0 = rf(channelId, page, perPage)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
+// GetGroupsByTeam provides a mock function with given fields: teamId, page, perPage
+func (_m *GroupStore) GetGroupsByTeam(teamId string, page int, perPage int) store.StoreChannel {
+	ret := _m.Called(teamId, page, perPage)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string, int, int) store.StoreChannel); ok {
+		r0 = rf(teamId, page, perPage)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // GetMemberCount provides a mock function with given fields: groupID
 func (_m *GroupStore) GetMemberCount(groupID string) store.StoreChannel {
 	ret := _m.Called(groupID)

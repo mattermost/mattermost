@@ -108,3 +108,11 @@ func (s *LocalCacheSupplier) TeamMembersToRemove(ctx context.Context, hints ...L
 func (s *LocalCacheSupplier) ChannelMembersToRemove(ctx context.Context, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
 	return s.Next().ChannelMembersToRemove(ctx, hints...)
 }
+
+func (s *LocalCacheSupplier) GetGroupsByChannel(ctx context.Context, channelId string, page, perPage int, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	return s.Next().GetGroupsByChannel(ctx, channelId, page, perPage, hints...)
+}
+
+func (s *LocalCacheSupplier) GetGroupsByTeam(ctx context.Context, teamId string, page, perPage int, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	return s.Next().GetGroupsByTeam(ctx, teamId, page, perPage, hints...)
+}
