@@ -26,6 +26,8 @@ const (
 	INTERACTIVE_DIALOG_TRIGGER_TIMEOUT_MILLISECONDS = 3000
 )
 
+var PostActionRetainPropKeys = []string{"override_username", "override_icon_url"}
+
 type DoPostActionRequest struct {
 	SelectedOption string `json:"selected_option,omitempty"`
 	Cookie         string `json:"cookie,omitempty"`
@@ -327,10 +329,9 @@ func AddPostActionCookies(o *Post, secret []byte) *Post {
 	p := o.Clone()
 
 	// retainedProps carry over their value from the old post, including no value
-	retainPropKeys := []string{"override_username", "override_icon_url"}
 	retainProps := map[string]interface{}{}
 	removeProps := []string{}
-	for _, key := range retainPropKeys {
+	for _, key := range PostActionRetainPropKeys {
 		value, ok := p.Props[key]
 		if ok {
 			retainProps[key] = value
