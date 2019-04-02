@@ -1525,7 +1525,7 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 
 	// Create Groups 1 and 2
 	res = <-ss.Group().Create(&model.Group{
-		Name:        "Group1",
+		Name:        model.NewId(),
 		DisplayName: "group-1",
 		RemoteId:    model.NewId(),
 		Source:      model.GroupSourceLdap,
@@ -1534,7 +1534,7 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 	group1 := res.Data.(*model.Group)
 
 	res = <-ss.Group().Create(&model.Group{
-		Name:        "Group2",
+		Name:        model.NewId(),
 		DisplayName: "group-2",
 		RemoteId:    model.NewId(),
 		Source:      model.GroupSourceLdap,
@@ -1566,7 +1566,7 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 
 	// Create Group3
 	res = <-ss.Group().Create(&model.Group{
-		Name:        "Group3",
+		Name:        model.NewId(),
 		DisplayName: "group-3",
 		RemoteId:    model.NewId(),
 		Source:      model.GroupSourceLdap,
@@ -1654,7 +1654,7 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 
 	// Create Groups 1 and 2
 	res = <-ss.Group().Create(&model.Group{
-		Name:        "Group1",
+		Name:        model.NewId(),
 		DisplayName: "group-1",
 		RemoteId:    model.NewId(),
 		Source:      model.GroupSourceLdap,
@@ -1663,7 +1663,7 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 	group1 := res.Data.(*model.Group)
 
 	res = <-ss.Group().Create(&model.Group{
-		Name:        "Group2",
+		Name:        model.NewId(),
 		DisplayName: "group-2",
 		RemoteId:    model.NewId(),
 		Source:      model.GroupSourceLdap,
@@ -1699,7 +1699,7 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 
 	// Create Group3
 	res = <-ss.Group().Create(&model.Group{
-		Name:        "Group3",
+		Name:        model.NewId(),
 		DisplayName: "group-3",
 		RemoteId:    model.NewId(),
 		Source:      model.GroupSourceLdap,
