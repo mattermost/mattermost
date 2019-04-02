@@ -1143,28 +1143,35 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	isSelfAdd := member.UserId == c.App.Session.UserId
 
 	if channel.Type == model.CHANNEL_OPEN {
-		if !isSelfAdd {
-			if !c.App.SessionHasPermissionToChannel(c.App.Session, channel.Id, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS) {
-				c.SetPermissionError(model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS)
-				return
-			}
-		} else if isNewMembership {
+		if isSelfAdd && isNewMembership {
 			if !c.App.SessionHasPermissionToTeam(c.App.Session, channel.TeamId, model.PERMISSION_JOIN_PUBLIC_CHANNELS) {
 				c.SetPermissionError(model.PERMISSION_JOIN_PUBLIC_CHANNELS)
 				return
 			}
+		} else if isSelfAdd && !isNewMembership {
+			// nothing to do, since already in the channel
+		} else if !isSelfAdd {
+			if !c.App.SessionHasPermissionToChannel(c.App.Session, channel.Id, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS) {
+				c.SetPermissionError(model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS)
+				return
+			}
 		}
-		// If it is a self add and I'm already in the channel, do not check any permission
 	}
 
 	if channel.Type == model.CHANNEL_PRIVATE {
-		if !isSelfAdd || isNewMembership {
+		if isSelfAdd && isNewMembership {
+			if !c.App.SessionHasPermissionToChannel(c.App.Session, channel.Id, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS) {
+				c.SetPermissionError(model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS)
+				return
+			}
+		} else if isSelfAdd && !isNewMembership {
+			// nothing to do, since already in the channel
+		} else if !isSelfAdd {
 			if !c.App.SessionHasPermissionToChannel(c.App.Session, channel.Id, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS) {
 				c.SetPermissionError(model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS)
 				return
 			}
 		}
-		// If it is a self add and I'm already in the channel, do not check any permission
 	}
 
 	cm, err := c.App.AddChannelMember(member.UserId, channel, c.App.Session.UserId, postRootId, c.App.Session.Id)
