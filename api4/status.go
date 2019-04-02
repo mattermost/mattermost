@@ -21,16 +21,7 @@ func getUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	canSee, err := c.App.UserCanSeeOtherUser(c.App.Session.UserId, c.Params.UserId)
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	if !canSee {
-		c.SetPermissionError(model.PERMISSION_VIEW_MEMBERS)
-		return
-	}
+	// No permission check required
 
 	statusMap, err := c.App.GetUserStatusesByIds([]string{c.Params.UserId})
 	if err != nil {
@@ -54,20 +45,9 @@ func getUserStatusesByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	visibleUserIds := []string{}
-	for _, userId := range userIds {
-		canSee, err := c.App.UserCanSeeOtherUser(c.App.Session.UserId, c.Params.UserId)
-		if err == nil && canSee {
-			visibleUserIds = append(visibleUserIds, userId)
-		}
-	}
+	// No permission check required
 
-	if len(visibleUserIds) == 0 {
-		c.SetPermissionError(model.PERMISSION_VIEW_MEMBERS)
-		return
-	}
-
-	statusMap, err := c.App.GetUserStatusesByIds(visibleUserIds)
+	statusMap, err := c.App.GetUserStatusesByIds(userIds)
 	if err != nil {
 		c.Err = err
 		return
