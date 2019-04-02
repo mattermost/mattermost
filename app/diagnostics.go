@@ -529,6 +529,8 @@ func (a *App) trackConfig() {
 		"isdefault_client_side_cert_check":   isDefault(*cfg.ExperimentalSettings.ClientSideCertCheck, model.CLIENT_SIDE_CERT_CHECK_PRIMARY_AUTH),
 		"enable_post_metadata":               !*cfg.ExperimentalSettings.DisablePostMetadata,
 		"link_metadata_timeout_milliseconds": *cfg.ExperimentalSettings.LinkMetadataTimeoutMilliseconds,
+		"enable_click_to_reply":              *cfg.ExperimentalSettings.EnableClickToReply,
+		"restrict_system_admin":              *cfg.ExperimentalSettings.RestrictSystemAdmin,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_ANALYTICS, map[string]interface{}{

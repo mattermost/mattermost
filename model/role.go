@@ -268,7 +268,6 @@ func MakeDefaultRoles() map[string]*Role {
 			PERMISSION_JOIN_PUBLIC_TEAMS.Id,
 			PERMISSION_CREATE_DIRECT_CHANNEL.Id,
 			PERMISSION_CREATE_GROUP_CHANNEL.Id,
-			PERMISSION_PERMANENT_DELETE_USER.Id,
 		},
 		SchemeManaged: true,
 		BuiltIn:       true,

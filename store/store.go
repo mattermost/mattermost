@@ -580,8 +580,14 @@ type GroupStore interface {
 	UpdateGroupSyncable(groupSyncable *model.GroupSyncable) StoreChannel
 	DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) StoreChannel
 
-	PendingAutoAddTeamMembers(minGroupMembersCreateAt int64) StoreChannel
-	PendingAutoAddChannelMembers(minGroupMembersCreateAt int64) StoreChannel
+	TeamMembersToAdd(since int64) StoreChannel
+	ChannelMembersToAdd(since int64) StoreChannel
+
+	TeamMembersToRemove() StoreChannel
+	ChannelMembersToRemove() StoreChannel
+
+	GetGroupsByChannel(channelId string, page, perPage int) StoreChannel
+	GetGroupsByTeam(teamId string, page, perPage int) StoreChannel
 }
 
 type LinkMetadataStore interface {

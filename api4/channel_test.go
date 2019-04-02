@@ -193,6 +193,10 @@ func TestUpdateChannel(t *testing.T) {
 		t.Fatal("Update failed for Purpose in private channel")
 	}
 
+	// Updating a private channel requires permission *and* membership, so this should fail.
+	_, resp = th.SystemAdminClient.UpdateChannel(private)
+	CheckForbiddenStatus(t, resp)
+
 	//Non existing channel
 	channel1 := &model.Channel{DisplayName: "Test API Name for apiv4", Name: GenerateTestChannelName(), Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	_, resp = Client.UpdateChannel(channel1)
@@ -291,8 +295,15 @@ func TestPatchChannel(t *testing.T) {
 	_, resp = th.SystemAdminClient.PatchChannel(th.BasicChannel.Id, patch)
 	CheckNoError(t, resp)
 
-	_, resp = th.SystemAdminClient.PatchChannel(th.BasicPrivateChannel.Id, patch)
+	Client.Logout()
+	Client.Login(th.BasicUser.Username, th.BasicUser.Password)
+
+	_, resp = th.Client.PatchChannel(th.BasicPrivateChannel.Id, patch)
 	CheckNoError(t, resp)
+
+	// Patching a private channel requires permission *and* membership, so this should fail.
+	_, resp = th.SystemAdminClient.PatchChannel(th.BasicPrivateChannel.Id, patch)
+	CheckForbiddenStatus(t, resp)
 
 	// Test updating the header of someone else's GM channel.
 	user1 := th.CreateUser()
