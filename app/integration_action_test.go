@@ -90,7 +90,7 @@ func TestPostAction(t *testing.T) {
 		}
 		assert.Equal(t, "foo", request.Context["s"])
 		assert.EqualValues(t, 3, request.Context["n"])
-		fmt.Fprintf(w, `{"update": {"message": "updated"}, "ephemeral_text": "foo"}`)
+		fmt.Fprintf(w, `{"post": {"message": "updated"}, "ephemeral_text": "foo"}`)
 	}))
 	defer ts.Close()
 
