@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"reflect"
 	"strings"
 	"time"
 
@@ -504,6 +505,11 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 		newPost.HasReactions = post.HasReactions
 		newPost.FileIds = post.FileIds
 		newPost.Props = post.Props
+	}
+
+	// Avoid deep-equal checks if EditAt was already modified through message change
+	if newPost.EditAt == oldPost.EditAt && (!reflect.DeepEqual(oldPost.FileIds, newPost.FileIds) || !reflect.DeepEqual(oldPost.Attachments(), newPost.Attachments())) {
+		newPost.EditAt = model.GetMillis()
 	}
 
 	if err := a.FillInPostProps(post, nil); err != nil {
