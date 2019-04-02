@@ -71,6 +71,11 @@ func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if team.GroupConstrained != nil && (c.App.License() == nil || !*c.App.License().Features.LDAPGroups) {
+		c.Err = model.NewAppError("Api4.createTeam", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
 	rteam, err := c.App.CreateTeamWithUser(team, c.App.Session.UserId)
 	if err != nil {
 		c.Err = err
@@ -149,6 +154,11 @@ func updateTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if team.GroupConstrained != nil && (c.App.License() == nil || !*c.App.License().Features.LDAPGroups) {
+		c.Err = model.NewAppError("Api4.updateTeam", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
 	updatedTeam, err := c.App.UpdateTeam(team)
 	if err != nil {
 		c.Err = err
@@ -174,6 +184,11 @@ func patchTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !c.App.SessionHasPermissionToTeam(c.App.Session, c.Params.TeamId, model.PERMISSION_MANAGE_TEAM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_TEAM)
+		return
+	}
+
+	if team.GroupConstrained != nil && (c.App.License() == nil || !*c.App.License().Features.LDAPGroups) {
+		c.Err = model.NewAppError("Api4.patchTeam", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 

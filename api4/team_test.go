@@ -72,6 +72,21 @@ func TestCreateTeam(t *testing.T) {
 	_, resp = Client.CreateTeam(rteam)
 	CheckUnauthorizedStatus(t, resp)
 
+	th.LoginBasic()
+
+	// Test GroupConstrained flag
+	groupConstrainedTeam := &model.Team{Name: GenerateTestUsername(), DisplayName: "Some Team", Type: model.TEAM_OPEN, GroupConstrained: model.NewBool(true)}
+	_, resp = Client.CreateTeam(groupConstrainedTeam)
+	CheckNotImplementedStatus(t, resp)
+
+	th.App.SetLicense(model.NewTestLicense("ldap"))
+
+	_, resp = Client.CreateTeam(groupConstrainedTeam)
+	CheckNoError(t, resp)
+	CheckCreatedStatus(t, resp)
+
+	th.App.SetLicense(nil)
+
 	// Check the appropriate permissions are enforced.
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	defer func() {
@@ -81,7 +96,6 @@ func TestCreateTeam(t *testing.T) {
 	th.RemovePermissionFromRole(model.PERMISSION_CREATE_TEAM.Id, model.SYSTEM_USER_ROLE_ID)
 	th.AddPermissionToRole(model.PERMISSION_CREATE_TEAM.Id, model.SYSTEM_ADMIN_ROLE_ID)
 
-	th.LoginBasic()
 	_, resp = Client.CreateTeam(team)
 	CheckForbiddenStatus(t, resp)
 }
@@ -273,6 +287,20 @@ func TestUpdateTeam(t *testing.T) {
 		t.Fatal("Update failed")
 	}
 
+	// Test GroupConstrained flag
+	team.GroupConstrained = model.NewBool(true)
+	_, resp = Client.UpdateTeam(team)
+	CheckNotImplementedStatus(t, resp)
+
+	th.App.SetLicense(model.NewTestLicense("ldap"))
+
+	_, resp = Client.UpdateTeam(team)
+	CheckNoError(t, resp)
+	CheckOKStatus(t, resp)
+
+	th.App.SetLicense(nil)
+	team.GroupConstrained = nil
+
 	team.AllowOpenInvite = true
 	uteam, resp = Client.UpdateTeam(team)
 	CheckNoError(t, resp)
@@ -410,6 +438,20 @@ func TestPatchTeam(t *testing.T) {
 	if !rteam.AllowOpenInvite {
 		t.Fatal("AllowOpenInvite did not update properly")
 	}
+
+	// Test GroupConstrained flag
+	patch.GroupConstrained = model.NewBool(true)
+	_, resp = Client.PatchTeam(team.Id, patch)
+	CheckNotImplementedStatus(t, resp)
+
+	th.App.SetLicense(model.NewTestLicense("ldap"))
+
+	_, resp = Client.PatchTeam(team.Id, patch)
+	CheckNoError(t, resp)
+	CheckOKStatus(t, resp)
+
+	th.App.SetLicense(nil)
+	patch.GroupConstrained = nil
 
 	_, resp = Client.PatchTeam("junk", patch)
 	CheckBadRequestStatus(t, resp)

@@ -139,6 +139,17 @@ func TestCreateChannel(t *testing.T) {
 			t.Fatal("wrong status code")
 		}
 	}
+
+	// Test GroupConstrained flag
+	groupConstrainedChannel := &model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.CHANNEL_OPEN, TeamId: team.Id, GroupConstrained: model.NewBool(true)}
+	_, resp = Client.CreateChannel(groupConstrainedChannel)
+	CheckNotImplementedStatus(t, resp)
+
+	th.App.SetLicense(model.NewTestLicense("ldap"))
+
+	_, resp = Client.CreateChannel(groupConstrainedChannel)
+	CheckNoError(t, resp)
+	CheckCreatedStatus(t, resp)
 }
 
 func TestUpdateChannel(t *testing.T) {
@@ -172,6 +183,19 @@ func TestUpdateChannel(t *testing.T) {
 	if newChannel.Purpose != channel.Purpose {
 		t.Fatal("Update failed for Purpose")
 	}
+
+	// Test GroupConstrained flag
+	channel.GroupConstrained = model.NewBool(true)
+	_, resp = Client.UpdateChannel(channel)
+	CheckNotImplementedStatus(t, resp)
+
+	th.App.SetLicense(model.NewTestLicense("ldap"))
+
+	_, resp = Client.UpdateChannel(channel)
+	CheckNoError(t, resp)
+	CheckOKStatus(t, resp)
+
+	th.App.SetLicense(nil)
 
 	//Update a private channel
 	private.DisplayName = "My new display name for private channel"
@@ -276,6 +300,20 @@ func TestPatchChannel(t *testing.T) {
 	if channel.Name != oldName {
 		t.Fatal("should not have updated")
 	}
+
+	// Test GroupConstrained flag
+	patch.GroupConstrained = model.NewBool(true)
+	_, resp = Client.PatchChannel(th.BasicChannel.Id, patch)
+	CheckNotImplementedStatus(t, resp)
+
+	th.App.SetLicense(model.NewTestLicense("ldap"))
+
+	_, resp = Client.PatchChannel(th.BasicChannel.Id, patch)
+	CheckNoError(t, resp)
+	CheckOKStatus(t, resp)
+
+	th.App.SetLicense(nil)
+	patch.GroupConstrained = nil
 
 	_, resp = Client.PatchChannel("junk", patch)
 	CheckBadRequestStatus(t, resp)

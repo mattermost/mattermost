@@ -69,6 +69,11 @@ func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if channel.GroupConstrained != nil && (c.App.License() == nil || !*c.App.License().Features.LDAPGroups) {
+		c.Err = model.NewAppError("Api4.createChannel", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
 	sc, err := c.App.CreateChannelWithUser(channel, c.App.Session.UserId)
 	if err != nil {
 		c.Err = err
@@ -141,6 +146,11 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("updateChannel", "api.channel.update_channel.tried.app_error", map[string]interface{}{"Channel": model.DEFAULT_CHANNEL}, "", http.StatusBadRequest)
 			return
 		}
+	}
+
+	if channel.GroupConstrained != nil && (c.App.License() == nil || !*c.App.License().Features.LDAPGroups) {
+		c.Err = model.NewAppError("Api4.updateChannel", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+		return
 	}
 
 	oldChannel.Header = channel.Header
@@ -261,6 +271,11 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	default:
 		c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.forbidden.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
+	if patch.GroupConstrained != nil && (c.App.License() == nil || !*c.App.License().Features.LDAPGroups) {
+		c.Err = model.NewAppError("Api4.patchChannel", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
