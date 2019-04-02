@@ -122,6 +122,12 @@ func getUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	user, err := c.App.GetUser(c.Params.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
 	if c.IsSystemAdmin() || c.App.Session.UserId == user.Id {
 		userTermsOfService, err := c.App.GetUserTermsOfService(user.Id)
 		if err != nil && err.StatusCode != http.StatusNotFound {
@@ -246,12 +252,6 @@ func getUserByEmail(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !canSee {
 		c.SetPermissionError(model.PERMISSION_VIEW_MEMBERS)
-		return
-	}
-
-	user, err := c.App.GetUser(c.Params.UserId)
-	if err != nil {
-		c.Err = err
 		return
 	}
 
