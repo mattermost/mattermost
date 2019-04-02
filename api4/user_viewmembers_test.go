@@ -140,4 +140,332 @@ func TestApiResctrictedViewMembers(t *testing.T) {
 			})
 		}
 	})
+
+	t.Run("getUserByUsername", func(t *testing.T) {
+		testCases := []struct {
+			Name          string
+			RestrictedTo  string
+			Username      string
+			ExpectedError string
+		}{
+			{
+				"Get visible user without restrictions",
+				"",
+				user5.Username,
+				"",
+			},
+			{
+				"Get not existing user without restrictions",
+				"",
+				model.NewId(),
+				"store.sql_user.get_by_username.app_error",
+			},
+			{
+				"Get not existing user with restrictions to teams",
+				"teams",
+				model.NewId(),
+				"api.context.permissions.app_error",
+			},
+			{
+				"Get visible user with restrictions to teams",
+				"teams",
+				user2.Username,
+				"",
+			},
+			{
+				"Get not visible user with restrictions to teams",
+				"teams",
+				user5.Username,
+				"api.context.permissions.app_error",
+			},
+			{
+				"Get not existing user with restrictions to channels",
+				"channels",
+				model.NewId(),
+				"api.context.permissions.app_error",
+			},
+			{
+				"Get visible user with restrictions to channels",
+				"channels",
+				user4.Username,
+				"",
+			},
+			{
+				"Get not visible user with restrictions to channels",
+				"channels",
+				user3.Username,
+				"api.context.permissions.app_error",
+			},
+		}
+		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+
+		for _, tc := range testCases {
+			t.Run(tc.Name, func(t *testing.T) {
+				if tc.RestrictedTo == "channels" {
+					th.RemovePermissionFromRole(model.PERMISSION_VIEW_MEMBERS.Id, model.SYSTEM_USER_ROLE_ID)
+					th.RemovePermissionFromRole(model.PERMISSION_VIEW_MEMBERS.Id, model.TEAM_USER_ROLE_ID)
+				} else if tc.RestrictedTo == "teams" {
+					th.RemovePermissionFromRole(model.PERMISSION_VIEW_MEMBERS.Id, model.SYSTEM_USER_ROLE_ID)
+					th.AddPermissionToRole(model.PERMISSION_VIEW_MEMBERS.Id, model.TEAM_USER_ROLE_ID)
+				} else {
+					th.RemovePermissionFromRole(model.PERMISSION_VIEW_MEMBERS.Id, model.TEAM_USER_ROLE_ID)
+					th.AddPermissionToRole(model.PERMISSION_VIEW_MEMBERS.Id, model.SYSTEM_USER_ROLE_ID)
+				}
+
+				_, resp := th.Client.GetUserByUsername(tc.Username, "")
+				require.Nil(t, err)
+				if tc.ExpectedError != "" {
+					CheckErrorMessage(t, resp, tc.ExpectedError)
+				} else {
+					CheckNoError(t, resp)
+				}
+			})
+		}
+	})
+
+	t.Run("getUserByEmail", func(t *testing.T) {
+		testCases := []struct {
+			Name          string
+			RestrictedTo  string
+			Email         string
+			ExpectedError string
+		}{
+			{
+				"Get visible user without restrictions",
+				"",
+				user5.Email,
+				"",
+			},
+			{
+				"Get not existing user without restrictions",
+				"",
+				th.GenerateTestEmail(),
+				"store.sql_user.missing_account.const",
+			},
+			{
+				"Get not existing user with restrictions to teams",
+				"teams",
+				th.GenerateTestEmail(),
+				"api.context.permissions.app_error",
+			},
+			{
+				"Get visible user with restrictions to teams",
+				"teams",
+				user2.Email,
+				"",
+			},
+			{
+				"Get not visible user with restrictions to teams",
+				"teams",
+				user5.Email,
+				"api.context.permissions.app_error",
+			},
+			{
+				"Get not existing user with restrictions to channels",
+				"channels",
+				th.GenerateTestEmail(),
+				"api.context.permissions.app_error",
+			},
+			{
+				"Get visible user with restrictions to channels",
+				"channels",
+				user4.Email,
+				"",
+			},
+			{
+				"Get not visible user with restrictions to channels",
+				"channels",
+				user3.Email,
+				"api.context.permissions.app_error",
+			},
+		}
+		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+
+		for _, tc := range testCases {
+			t.Run(tc.Name, func(t *testing.T) {
+				if tc.RestrictedTo == "channels" {
+					th.RemovePermissionFromRole(model.PERMISSION_VIEW_MEMBERS.Id, model.SYSTEM_USER_ROLE_ID)
+					th.RemovePermissionFromRole(model.PERMISSION_VIEW_MEMBERS.Id, model.TEAM_USER_ROLE_ID)
+				} else if tc.RestrictedTo == "teams" {
+					th.RemovePermissionFromRole(model.PERMISSION_VIEW_MEMBERS.Id, model.SYSTEM_USER_ROLE_ID)
+					th.AddPermissionToRole(model.PERMISSION_VIEW_MEMBERS.Id, model.TEAM_USER_ROLE_ID)
+				} else {
+					th.RemovePermissionFromRole(model.PERMISSION_VIEW_MEMBERS.Id, model.TEAM_USER_ROLE_ID)
+					th.AddPermissionToRole(model.PERMISSION_VIEW_MEMBERS.Id, model.SYSTEM_USER_ROLE_ID)
+				}
+
+				_, resp := th.Client.GetUserByEmail(tc.Email, "")
+				require.Nil(t, err)
+				if tc.ExpectedError != "" {
+					CheckErrorMessage(t, resp, tc.ExpectedError)
+				} else {
+					CheckNoError(t, resp)
+				}
+			})
+		}
+	})
+
+	t.Run("getDefaultProfileImage", func(t *testing.T) {
+		testCases := []struct {
+			Name          string
+			RestrictedTo  string
+			UserId        string
+			ExpectedError string
+		}{
+			{
+				"Get visible user without restrictions",
+				"",
+				user5.Id,
+				"",
+			},
+			{
+				"Get not existing user without restrictions",
+				"",
+				model.NewId(),
+				"store.sql_user.missing_account.const",
+			},
+			{
+				"Get not existing user with restrictions to teams",
+				"teams",
+				model.NewId(),
+				"api.context.permissions.app_error",
+			},
+			{
+				"Get visible user with restrictions to teams",
+				"teams",
+				user2.Id,
+				"",
+			},
+			{
+				"Get not visible user with restrictions to teams",
+				"teams",
+				user5.Id,
+				"api.context.permissions.app_error",
+			},
+			{
+				"Get not existing user with restrictions to channels",
+				"channels",
+				model.NewId(),
+				"api.context.permissions.app_error",
+			},
+			{
+				"Get visible user with restrictions to channels",
+				"channels",
+				user4.Id,
+				"",
+			},
+			{
+				"Get not visible user with restrictions to channels",
+				"channels",
+				user3.Id,
+				"api.context.permissions.app_error",
+			},
+		}
+		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+
+		for _, tc := range testCases {
+			t.Run(tc.Name, func(t *testing.T) {
+				if tc.RestrictedTo == "channels" {
+					th.RemovePermissionFromRole(model.PERMISSION_VIEW_MEMBERS.Id, model.SYSTEM_USER_ROLE_ID)
+					th.RemovePermissionFromRole(model.PERMISSION_VIEW_MEMBERS.Id, model.TEAM_USER_ROLE_ID)
+				} else if tc.RestrictedTo == "teams" {
+					th.RemovePermissionFromRole(model.PERMISSION_VIEW_MEMBERS.Id, model.SYSTEM_USER_ROLE_ID)
+					th.AddPermissionToRole(model.PERMISSION_VIEW_MEMBERS.Id, model.TEAM_USER_ROLE_ID)
+				} else {
+					th.RemovePermissionFromRole(model.PERMISSION_VIEW_MEMBERS.Id, model.TEAM_USER_ROLE_ID)
+					th.AddPermissionToRole(model.PERMISSION_VIEW_MEMBERS.Id, model.SYSTEM_USER_ROLE_ID)
+				}
+
+				_, resp := th.Client.GetDefaultProfileImage(tc.UserId)
+				require.Nil(t, err)
+				if tc.ExpectedError != "" {
+					CheckErrorMessage(t, resp, tc.ExpectedError)
+				} else {
+					CheckNoError(t, resp)
+				}
+			})
+		}
+	})
+
+	t.Run("getProfileImage", func(t *testing.T) {
+		testCases := []struct {
+			Name          string
+			RestrictedTo  string
+			UserId        string
+			ExpectedError string
+		}{
+			{
+				"Get visible user without restrictions",
+				"",
+				user5.Id,
+				"",
+			},
+			{
+				"Get not existing user without restrictions",
+				"",
+				model.NewId(),
+				"store.sql_user.missing_account.const",
+			},
+			{
+				"Get not existing user with restrictions to teams",
+				"teams",
+				model.NewId(),
+				"api.context.permissions.app_error",
+			},
+			{
+				"Get visible user with restrictions to teams",
+				"teams",
+				user2.Id,
+				"",
+			},
+			{
+				"Get not visible user with restrictions to teams",
+				"teams",
+				user5.Id,
+				"api.context.permissions.app_error",
+			},
+			{
+				"Get not existing user with restrictions to channels",
+				"channels",
+				model.NewId(),
+				"api.context.permissions.app_error",
+			},
+			{
+				"Get visible user with restrictions to channels",
+				"channels",
+				user4.Id,
+				"",
+			},
+			{
+				"Get not visible user with restrictions to channels",
+				"channels",
+				user3.Id,
+				"api.context.permissions.app_error",
+			},
+		}
+		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+
+		for _, tc := range testCases {
+			t.Run(tc.Name, func(t *testing.T) {
+				if tc.RestrictedTo == "channels" {
+					th.RemovePermissionFromRole(model.PERMISSION_VIEW_MEMBERS.Id, model.SYSTEM_USER_ROLE_ID)
+					th.RemovePermissionFromRole(model.PERMISSION_VIEW_MEMBERS.Id, model.TEAM_USER_ROLE_ID)
+				} else if tc.RestrictedTo == "teams" {
+					th.RemovePermissionFromRole(model.PERMISSION_VIEW_MEMBERS.Id, model.SYSTEM_USER_ROLE_ID)
+					th.AddPermissionToRole(model.PERMISSION_VIEW_MEMBERS.Id, model.TEAM_USER_ROLE_ID)
+				} else {
+					th.RemovePermissionFromRole(model.PERMISSION_VIEW_MEMBERS.Id, model.TEAM_USER_ROLE_ID)
+					th.AddPermissionToRole(model.PERMISSION_VIEW_MEMBERS.Id, model.SYSTEM_USER_ROLE_ID)
+				}
+
+				_, resp := th.Client.GetProfileImage(tc.UserId, "")
+				require.Nil(t, err)
+				if tc.ExpectedError != "" {
+					CheckErrorMessage(t, resp, tc.ExpectedError)
+				} else {
+					CheckNoError(t, resp)
+				}
+			})
+		}
+	})
 }
