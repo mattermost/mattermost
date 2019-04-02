@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -1203,16 +1204,27 @@ func applyTeamMemberViewRestrictionsFilter(query sq.SelectBuilder, teamId string
 		return query
 	}
 
-	if strings.Contains(strings.Join(restrictions.Teams, "."), teamId) {
-		return query
+	// If you have no access to teams or channels, return and empty result.
+	if restrictions.Teams != nil && len(restrictions.Teams) == 0 && restrictions.Channels != nil && len(restrictions.Channels) == 0 {
+		return query.Where("1 = 0")
 	}
 
-	resultQuery := query.
-		LeftJoin("Users ru ON (TeamMembers.UserId = ru.Id)").
-		LeftJoin("ChannelMembers rcm ON (rcm.UserId = ru.Id)").
-		Where(sq.Or{
-			sq.Eq{"rcm.ChannelId": restrictions.Channels},
-		}).
-		Distinct()
-	return resultQuery
+	teams := make([]interface{}, len(restrictions.Teams))
+	for i, v := range restrictions.Teams {
+		teams[i] = v
+	}
+	channels := make([]interface{}, len(restrictions.Channels))
+	for i, v := range restrictions.Channels {
+		channels[i] = v
+	}
+
+	resultQuery := query.Join("Users ru ON (TeamMembers.UserId = ru.Id)")
+	if restrictions.Teams != nil && len(restrictions.Teams) > 0 {
+		resultQuery = resultQuery.Join(fmt.Sprintf("TeamMembers rtm ON ( rtm.UserId = ru.Id AND rtm.DeleteAt = 0 AND rtm.TeamId IN (%s))", sq.Placeholders(len(teams))), teams...)
+	}
+	if restrictions.Channels != nil && len(restrictions.Channels) > 0 {
+		resultQuery = resultQuery.Join(fmt.Sprintf("ChannelMembers rcm ON ( rcm.UserId = ru.Id AND rcm.ChannelId IN (%s))", sq.Placeholders(len(channels))), channels...)
+	}
+
+	return resultQuery.Distinct()
 }
