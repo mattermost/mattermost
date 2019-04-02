@@ -1174,7 +1174,10 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	jerr := c.App.UsersAreChannelGroupMembers([]string{member.UserId}, channel)
+	var jerr error
+	if channel.GroupConstrained != nil && *channel.GroupConstrained {
+		jerr = c.App.UsersAreChannelGroupMembers([]string{member.UserId}, channel)
+	}
 	if jerr != nil {
 		if v, ok := jerr.(*model.InvalidChannelMembersError); ok {
 			c.Err = model.NewAppError("addChannelMember", "api.channel.add_members.user_denied", map[string]interface{}{"UserIDs": v.UserIDs}, "", http.StatusBadRequest)
