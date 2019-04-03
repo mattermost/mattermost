@@ -288,7 +288,7 @@ func TestStringArray_Equal(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			assert.Equal(t, tc.Expected, tc.Array1.Equal(tc.Array2))
+			assert.Equal(t, tc.Expected, tc.Array1.Equals(tc.Array2))
 		})
 	}
 }

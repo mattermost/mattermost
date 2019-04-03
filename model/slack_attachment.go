@@ -95,7 +95,7 @@ func (s *SlackAttachment) Equals(input *SlackAttachment) bool {
 	}
 
 	for j := range s.Fields {
-		if !s.Fields[j].Equal(input.Fields[j]) {
+		if !s.Fields[j].Equals(input.Fields[j]) {
 			return false
 		}
 	}
@@ -124,7 +124,7 @@ type SlackAttachmentField struct {
 	Short SlackCompatibleBool `json:"short"`
 }
 
-func (s *SlackAttachmentField) Equal(input *SlackAttachmentField) bool {
+func (s *SlackAttachmentField) Equals(input *SlackAttachmentField) bool {
 	if s.Title != input.Title {
 		return false
 	}
