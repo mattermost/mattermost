@@ -36,7 +36,7 @@ type StringInterface map[string]interface{}
 type StringMap map[string]string
 type StringArray []string
 
-func (sa StringArray) Equal(input StringArray) bool{
+func (sa StringArray) Equal(input StringArray) bool {
 
 	if len(sa) != len(input) {
 		return false

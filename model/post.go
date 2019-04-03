@@ -491,7 +491,6 @@ func (o *Post) AttachmentsEqual(input *Post) bool {
 			}
 		}
 
-
 		// Compare length & slice values of actions
 
 		if len(attachments[i].Actions) != len(inputAttachments[i].Actions) {
