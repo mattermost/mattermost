@@ -77,7 +77,7 @@
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
-    "translation": "OAuth2 uygulaması silinirken bir sorun çıktı"
+    "translation": "Sertifika silinirken bir sorun çıktı."
   },
   {
     "id": "api.admin.saml.metadata.app_error",
@@ -959,6 +959,10 @@
     "translation": "İstemci yapılandırması için yeni biçim henüz desteklenmiyor. Lütfen sorgu dizgesini format=old olarak yazın."
   },
   {
+    "id": "api.config.update_config.restricted_merge.app_error",
+    "translation": "Belirtilen yapılandırma aktarılamadı."
+  },
+  {
     "id": "api.context.404.app_error",
     "translation": "Maalesef sayfa bulunamadı."
   },
@@ -1592,7 +1596,7 @@
   },
   {
     "id": "api.restricted_system_admin",
-    "translation": "This action is forbidden to a restricted system admin."
+    "translation": "Bu işlemi kısıtlı yetkileri olan bir sistem yöneticisi yapamaz."
   },
   {
     "id": "api.roles.patch_roles.license.error",
@@ -1769,6 +1773,10 @@
   {
     "id": "api.team.import_team.unavailable.app_error",
     "translation": "İstek biçimi bozuk: Dosya boyutu alanı bulunamadı."
+  },
+  {
+    "id": "api.team.invalidate_all_email_invites.app_error",
+    "translation": "Error invalidating email invites."
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
@@ -2280,15 +2288,15 @@
   },
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
-    "translation": "Bot login is forbidden"
+    "translation": "Bot oturumu açılmasına izin verilmiyor"
   },
   {
     "id": "api.user.login.client_side_cert.certificate.app_error",
-    "translation": "Geçerli bir sertifika belirtmeden deneysel İstemci Tarafı Sertifikası özelliği kullanılarak oturum açılmaya çalışıldı"
+    "translation": "Geçerli bir sertifika belirtmeden deneme aşamasındaki İstemci Tarafı Sertifikası özelliği kullanılarak oturum açılmaya çalışıldı"
   },
   {
     "id": "api.user.login.client_side_cert.license.app_error",
-    "translation": "Geçerli bir kurumsal lisans olmadan deneysel İstemci Tarafı Sertifikası özelliği kullanılmaya çalışıldı"
+    "translation": "Geçerli bir kurumsal lisans olmadan deneme aşamasındaki İstemci Tarafı Sertifikası özelliği kullanılmaya çalışıldı"
   },
   {
     "id": "api.user.login.inactive.app_error",
@@ -2308,7 +2316,7 @@
   },
   {
     "id": "api.user.login_by_oauth.bot_login_forbidden.app_error",
-    "translation": "Bot login is forbidden"
+    "translation": "Bot oturumu açılmasına izin verilmiyor"
   },
   {
     "id": "api.user.login_by_oauth.not_available.app_error",
@@ -3284,7 +3292,7 @@
   },
   {
     "id": "app.save_config.app_error",
-    "translation": "An error occurred saving the configuration"
+    "translation": "Yapılandırma kaydedilirken bir sorun çıktı"
   },
   {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
@@ -3477,6 +3485,10 @@
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
     "translation": "Elasticsearch toplayıcı işlemi başlangıç zamanını işleyemedi"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
+    "translation": "Tüm varlıklar tamamlandığında yeni bir toplu dizine ekleme işlemi yapılacak."
   },
   {
     "id": "ent.elasticsearch.not_started.error",
@@ -3904,7 +3916,7 @@
   },
   {
     "id": "model.bot.is_valid.create_at.app_error",
-    "translation": "Ekleyen kodu geçersiz"
+    "translation": "Eklenme zamanı geçersiz"
   },
   {
     "id": "model.bot.is_valid.creator_id.app_error",
@@ -3916,7 +3928,7 @@
   },
   {
     "id": "model.bot.is_valid.update_at.app_error",
-    "translation": "Invalid update at"
+    "translation": "Güncelleme zamanı geçersiz"
   },
   {
     "id": "model.bot.is_valid.user_id.app_error",
@@ -4460,7 +4472,7 @@
   },
   {
     "id": "model.config.is_valid.sitename_empty.app_error",
-    "translation": "Site name cannot be empty."
+    "translation": "Site adı boş olamaz."
   },
   {
     "id": "model.config.is_valid.sitename_length.app_error",
@@ -5192,31 +5204,31 @@
   },
   {
     "id": "store.sql_bot.delete.app_error",
-    "translation": "İleti silinemedi"
+    "translation": "Bot silinemedi"
   },
   {
     "id": "store.sql_bot.get.app_error",
-    "translation": "İleti alınamadı"
+    "translation": "Bot alınamadı"
   },
   {
     "id": "store.sql_bot.get.missing.app_error",
-    "translation": "Bot does not exist"
+    "translation": "Bot bulunamadı"
   },
   {
     "id": "store.sql_bot.get_all.app_error",
-    "translation": "İletiler alınamadı"
+    "translation": "Botlar alınamadı"
   },
   {
     "id": "store.sql_bot.save.app_error",
-    "translation": "İleti kaydedilemedi"
+    "translation": "Bot kaydedilemedi"
   },
   {
     "id": "store.sql_bot.update.app_error",
-    "translation": "İleti güncellenemedi"
+    "translation": "Bot güncellenemedi"
   },
   {
     "id": "store.sql_bot.update.updating.app_error",
-    "translation": "Uygulama güncellenirken bir sorun çıktı"
+    "translation": "Bot güncellenirken bir sorun çıktı"
   },
   {
     "id": "store.sql_channel.analytics_deleted_type_count.app_error",
@@ -5285,6 +5297,10 @@
   {
     "id": "store.sql_channel.get_channels.not_found.app_error",
     "translation": "Herhangi bir kanal bulunamadı"
+  },
+  {
+    "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
+    "translation": "Dizine eklenecek kanal yığını alınamadı"
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.get.app_error",
@@ -6155,6 +6171,10 @@
     "translation": "Bu koda uyan bir kod alınamadı"
   },
   {
+    "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
+    "translation": "Unable to remove all the tokens of a type"
+  },
+  {
     "id": "store.sql_recover.save.app_error",
     "translation": "Kod kaydedilemedi"
   },
@@ -6391,6 +6411,10 @@
     "translation": "Tüm takımlar alınamadı"
   },
   {
+    "id": "store.sql_team.get_all_private_team_listing.app_error",
+    "translation": "Tüm özel takımlar alınamadı"
+  },
+  {
     "id": "store.sql_team.get_all_team_listing.app_error",
     "translation": "Tüm takımlar alınamadı"
   },
@@ -6495,6 +6519,10 @@
     "translation": "Açık takımlar aranırken bir sorun çıktı"
   },
   {
+    "id": "store.sql_team.search_private_team.app_error",
+    "translation": "Özel takımlar aranırken bir sorun çıktı"
+  },
+  {
     "id": "store.sql_team.update.app_error",
     "translation": "Takım güncellenemedi"
   },
@@ -6552,7 +6580,7 @@
   },
   {
     "id": "store.sql_user.app_error",
-    "translation": "Failed to build query"
+    "translation": "Sorgu oluşturulamadı"
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.commit_transaction.app_error",
@@ -6629,6 +6657,18 @@
   {
     "id": "store.sql_user.get_unread_count_for_channel.app_error",
     "translation": "Kullanıcı ve kanalın okunmamış ileti sayısı alınamadı"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_channel_members.app_error",
+    "translation": "Kullanıcıların toplu olarak dizine eklenmesi için kanal üyeleri alınamadı"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_team_members.app_error",
+    "translation": "Kullanıcıların toplu olarak dizine eklenmesi için takım üyeleri alınamadı"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
+    "translation": "Dizine eklenecek kullanıcı yığını alınamadı"
   },
   {
     "id": "store.sql_user.missing_account.const",

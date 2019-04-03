@@ -77,7 +77,7 @@
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
-    "translation": "Podczas usuwania aplikacji OAuth2 wystąpił błąd"
+    "translation": "Wystąpił błąd podczas usuwania certyfikatu."
   },
   {
     "id": "api.admin.saml.metadata.app_error",
@@ -959,6 +959,10 @@
     "translation": "Nowy format konfiguracji klienta nie jest jeszcze wspierany. Proszę podać format=old w ciągu znaków zapytania."
   },
   {
+    "id": "api.config.update_config.restricted_merge.app_error",
+    "translation": "Failed to merge given config."
+  },
+  {
     "id": "api.context.404.app_error",
     "translation": "Przepraszamy, nie odnaleziono strony."
   },
@@ -1458,7 +1462,7 @@
   },
   {
     "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
-    "translation": "Can not delete a post in a deleted channel."
+    "translation": "Nie można usunąć wiadomości w usuniętym kanale."
   },
   {
     "id": "api.post.disabled_all",
@@ -1500,7 +1504,7 @@
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
-    "translation": "Can not update a post in a deleted channel."
+    "translation": "Nie można zaktualizować wiadomości w usuniętym kanale"
   },
   {
     "id": "api.post.save_is_pinned_post.town_square_read_only",
@@ -1536,7 +1540,7 @@
   },
   {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
-    "translation": "Can not update a post in a deleted channel."
+    "translation": "Nie można zaktualizować wiadomości w usuniętym kanale."
   },
   {
     "id": "api.post.update_post.find.app_error",
@@ -1592,7 +1596,7 @@
   },
   {
     "id": "api.restricted_system_admin",
-    "translation": "This action is forbidden to a restricted system admin."
+    "translation": "Ta akcja jest zabroniona u administratora systemu z ograniczeniami."
   },
   {
     "id": "api.roles.patch_roles.license.error",
@@ -1769,6 +1773,10 @@
   {
     "id": "api.team.import_team.unavailable.app_error",
     "translation": "Nieprawidłowe zapytanie: pole rozmiaru pliku nie istnieje."
+  },
+  {
+    "id": "api.team.invalidate_all_email_invites.app_error",
+    "translation": "Error invalidating email invites."
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
@@ -2280,7 +2288,7 @@
   },
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
-    "translation": "Bot login is forbidden"
+    "translation": "Logowanie bota jest zabronione"
   },
   {
     "id": "api.user.login.client_side_cert.certificate.app_error",
@@ -2308,7 +2316,7 @@
   },
   {
     "id": "api.user.login_by_oauth.bot_login_forbidden.app_error",
-    "translation": "Bot login is forbidden"
+    "translation": "Logowanie bota jest zabronione"
   },
   {
     "id": "api.user.login_by_oauth.not_available.app_error",
@@ -3284,7 +3292,7 @@
   },
   {
     "id": "app.save_config.app_error",
-    "translation": "An error occurred saving the configuration"
+    "translation": "Wystąpił błąd podczas zapisywania konfiguracji"
   },
   {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
@@ -3477,6 +3485,10 @@
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
     "translation": "Pracownik indeksujący Elasticsearch nie przeanalizował czasu rozpoczęcia"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
+    "translation": "Trying to index a new batch when all the entities are completed."
   },
   {
     "id": "ent.elasticsearch.not_started.error",
@@ -3904,27 +3916,27 @@
   },
   {
     "id": "model.bot.is_valid.create_at.app_error",
-    "translation": "Nieprawidłowy identyfikator autora"
+    "translation": "Nieprawidłowy parametr create at"
   },
   {
     "id": "model.bot.is_valid.creator_id.app_error",
-    "translation": "Nieprawidłowy identyfikator autora"
+    "translation": "Nieprawidłowy parametr creator id"
   },
   {
     "id": "model.bot.is_valid.description.app_error",
-    "translation": "Nieprawidłowy opis"
+    "translation": "Nieprawidłowy parametr description"
   },
   {
     "id": "model.bot.is_valid.update_at.app_error",
-    "translation": "Invalid update at"
+    "translation": "Nieprawidłowy parametr update at"
   },
   {
     "id": "model.bot.is_valid.user_id.app_error",
-    "translation": "Nieprawidłowy identyfikator użytkownika"
+    "translation": "Nieprawidłowy parametr user id"
   },
   {
     "id": "model.bot.is_valid.username.app_error",
-    "translation": "Niepoprawna nazwa użytkownika"
+    "translation": "Nieprawidłowy parametr username"
   },
   {
     "id": "model.channel.is_valid.2_or_more.app_error",
@@ -4460,7 +4472,7 @@
   },
   {
     "id": "model.config.is_valid.sitename_empty.app_error",
-    "translation": "Site name cannot be empty."
+    "translation": "Nazwa strony nie może być pusta."
   },
   {
     "id": "model.config.is_valid.sitename_length.app_error",
@@ -5192,31 +5204,31 @@
   },
   {
     "id": "store.sql_bot.delete.app_error",
-    "translation": "Nie można usunąć wpisu"
+    "translation": "Nie można usunąć bota"
   },
   {
     "id": "store.sql_bot.get.app_error",
-    "translation": "Nie można uzyskać wpisu"
+    "translation": "Nie można uzyskać bota"
   },
   {
     "id": "store.sql_bot.get.missing.app_error",
-    "translation": "Bot does not exist"
+    "translation": "Bot nie istnieje"
   },
   {
     "id": "store.sql_bot.get_all.app_error",
-    "translation": "Nie można pobrać wiadomości"
+    "translation": "Nie można uzyskać botów"
   },
   {
     "id": "store.sql_bot.save.app_error",
-    "translation": "Nie można zapisać wpisu"
+    "translation": "Nie można zapisać bota"
   },
   {
     "id": "store.sql_bot.update.app_error",
-    "translation": "Nie można zaktualizować wpisu"
+    "translation": "Nie można zaktualizować bota"
   },
   {
     "id": "store.sql_bot.update.updating.app_error",
-    "translation": "Wystąpił błąd podczas aktualizowania aplikacji"
+    "translation": "Wystąpił błąd podczas aktualizowania bota"
   },
   {
     "id": "store.sql_channel.analytics_deleted_type_count.app_error",
@@ -5285,6 +5297,10 @@
   {
     "id": "store.sql_channel.get_channels.not_found.app_error",
     "translation": "Nie odnaleziono kanałów."
+  },
+  {
+    "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
+    "translation": "Nie można uzyskać wielu wpisów do indeksowania"
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.get.app_error",
@@ -6155,6 +6171,10 @@
     "translation": "Nie można uzyskać tokena z tym kodem"
   },
   {
+    "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
+    "translation": "Unable to remove all the tokens of a type"
+  },
+  {
     "id": "store.sql_recover.save.app_error",
     "translation": "Nie można zapisać tokena"
   },
@@ -6391,6 +6411,10 @@
     "translation": "Nie mogliśmy pobrać wszystkich zespołów"
   },
   {
+    "id": "store.sql_team.get_all_private_team_listing.app_error",
+    "translation": "Nie mogliśmy pobrać wszystkich zespołów"
+  },
+  {
     "id": "store.sql_team.get_all_team_listing.app_error",
     "translation": "Nie mogliśmy pobrać wszystkich zespołów"
   },
@@ -6495,6 +6519,10 @@
     "translation": "Napotkaliśmy błąd szukając otwartych zespołów"
   },
   {
+    "id": "store.sql_team.search_private_team.app_error",
+    "translation": "Napotkaliśmy błąd szukając otwartych zespołów"
+  },
+  {
     "id": "store.sql_team.update.app_error",
     "translation": "Nie można zaktualizować zespołu"
   },
@@ -6552,7 +6580,7 @@
   },
   {
     "id": "store.sql_user.app_error",
-    "translation": "Failed to build query"
+    "translation": "Nie udało się zbudować zapytania"
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.commit_transaction.app_error",
@@ -6629,6 +6657,18 @@
   {
     "id": "store.sql_user.get_unread_count_for_channel.app_error",
     "translation": "Nie mogliśmy uzyskać nieprzeczytanych wiadomości do użytkownika i kanału"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_channel_members.app_error",
+    "translation": "Unable to get the channel members for the users batch for indexing"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_team_members.app_error",
+    "translation": "Unable to get the team members for the users batch for indexing"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
+    "translation": "Nie można uzyskać wielu wpisów do indeksowania"
   },
   {
     "id": "store.sql_user.missing_account.const",

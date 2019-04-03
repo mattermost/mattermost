@@ -77,7 +77,7 @@
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
-    "translation": "Si è verificato un errore durante l'eliminazione dell'App OAuth2"
+    "translation": "Si è verificato un errore durante l'eliminazione del certificato."
   },
   {
     "id": "api.admin.saml.metadata.app_error",
@@ -959,6 +959,10 @@
     "translation": "Il nuovo formato per la configurazione del client non è ancora supportato. Specificare format=old nella query."
   },
   {
+    "id": "api.config.update_config.restricted_merge.app_error",
+    "translation": "Impossibile unire la configurazione fornita."
+  },
+  {
     "id": "api.context.404.app_error",
     "translation": "Spiacente, impossibile trovare la pagina."
   },
@@ -1458,7 +1462,7 @@
   },
   {
     "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
-    "translation": "Can not delete a post in a deleted channel."
+    "translation": "Impossibile eliminare una pubblicazione in un canale eliminato."
   },
   {
     "id": "api.post.disabled_all",
@@ -1500,7 +1504,7 @@
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
-    "translation": "Can not update a post in a deleted channel."
+    "translation": "Impossibile aggiornare un pubblicazione in un canale eliminato."
   },
   {
     "id": "api.post.save_is_pinned_post.town_square_read_only",
@@ -1536,7 +1540,7 @@
   },
   {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
-    "translation": "Can not update a post in a deleted channel."
+    "translation": "Impossibile aggiornare una pubblicazione in un canale eliminato."
   },
   {
     "id": "api.post.update_post.find.app_error",
@@ -1592,7 +1596,7 @@
   },
   {
     "id": "api.restricted_system_admin",
-    "translation": "This action is forbidden to a restricted system admin."
+    "translation": "Questa operazione è permessa solo ad un amministratore di sistema."
   },
   {
     "id": "api.roles.patch_roles.license.error",
@@ -1769,6 +1773,10 @@
   {
     "id": "api.team.import_team.unavailable.app_error",
     "translation": "Richiesta mal formata: campo filesize non presente."
+  },
+  {
+    "id": "api.team.invalidate_all_email_invites.app_error",
+    "translation": "Errore invalidando gli inviti email."
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
@@ -2280,7 +2288,7 @@
   },
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
-    "translation": "Bot login is forbidden"
+    "translation": "L'accesso bot è proibito"
   },
   {
     "id": "api.user.login.client_side_cert.certificate.app_error",
@@ -2308,7 +2316,7 @@
   },
   {
     "id": "api.user.login_by_oauth.bot_login_forbidden.app_error",
-    "translation": "Bot login is forbidden"
+    "translation": "L'accesso bot è proibito"
   },
   {
     "id": "api.user.login_by_oauth.not_available.app_error",
@@ -3284,7 +3292,7 @@
   },
   {
     "id": "app.save_config.app_error",
-    "translation": "An error occurred saving the configuration"
+    "translation": "Si è verificato un errore salvando la configurazione"
   },
   {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
@@ -3477,6 +3485,10 @@
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
     "translation": "Il lavoro di indicizzazione di Elasticsearch non è riuscito a calcolare l'ora d'inizio"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
+    "translation": "Tentativo di indicizzare un nuovo gruppo quando tutti gli elementi erano completati."
   },
   {
     "id": "ent.elasticsearch.not_started.error",
@@ -3904,7 +3916,7 @@
   },
   {
     "id": "model.bot.is_valid.create_at.app_error",
-    "translation": "Id creatore non valido"
+    "translation": "Create at non valido"
   },
   {
     "id": "model.bot.is_valid.creator_id.app_error",
@@ -3916,7 +3928,7 @@
   },
   {
     "id": "model.bot.is_valid.update_at.app_error",
-    "translation": "Invalid update at"
+    "translation": "Update at non valido"
   },
   {
     "id": "model.bot.is_valid.user_id.app_error",
@@ -4460,7 +4472,7 @@
   },
   {
     "id": "model.config.is_valid.sitename_empty.app_error",
-    "translation": "Site name cannot be empty."
+    "translation": "Il nome del sito non può essere vuoto."
   },
   {
     "id": "model.config.is_valid.sitename_length.app_error",
@@ -5192,31 +5204,31 @@
   },
   {
     "id": "store.sql_bot.delete.app_error",
-    "translation": "Impossibile cancellare la pubblicazione"
+    "translation": "Impossibile cancellare il bot"
   },
   {
     "id": "store.sql_bot.get.app_error",
-    "translation": "Impossibile recuperare la pubblicazione"
+    "translation": "Impossibile recuperare il bot"
   },
   {
     "id": "store.sql_bot.get.missing.app_error",
-    "translation": "Bot does not exist"
+    "translation": "Il bot non esiste"
   },
   {
     "id": "store.sql_bot.get_all.app_error",
-    "translation": "Impossibile recuperare le pubblicazioni"
+    "translation": "Impossibile recuperare i bot"
   },
   {
     "id": "store.sql_bot.save.app_error",
-    "translation": "Impossibile salvare la pubblicazione"
+    "translation": "Impossibile salvare il bot"
   },
   {
     "id": "store.sql_bot.update.app_error",
-    "translation": "Impossibile aggiornare la pubblicazione"
+    "translation": "Impossibile aggiornare il bot"
   },
   {
     "id": "store.sql_bot.update.updating.app_error",
-    "translation": "Riscontrato un errore nel aggiornamento dell'app"
+    "translation": "Riscontrato un errore nel aggiornamento del bot"
   },
   {
     "id": "store.sql_channel.analytics_deleted_type_count.app_error",
@@ -5285,6 +5297,10 @@
   {
     "id": "store.sql_channel.get_channels.not_found.app_error",
     "translation": "Nessun canale trovato"
+  },
+  {
+    "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
+    "translation": "Impossibile trovare il gruppo di canali da indicizzare"
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.get.app_error",
@@ -6155,6 +6171,10 @@
     "translation": "Impossibile trovare un token con questo codice"
   },
   {
+    "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
+    "translation": "Impossibile rimuovere tutti i token di un tipo"
+  },
+  {
     "id": "store.sql_recover.save.app_error",
     "translation": "Impossibile salvare il token"
   },
@@ -6391,6 +6411,10 @@
     "translation": "Non è stato possibile recuperare tutti i gruppi"
   },
   {
+    "id": "store.sql_team.get_all_private_team_listing.app_error",
+    "translation": "Non è stato possibile recuperare tutti i gruppi privati"
+  },
+  {
     "id": "store.sql_team.get_all_team_listing.app_error",
     "translation": "Non è stato possibile recuperare tutti i gruppi"
   },
@@ -6495,6 +6519,10 @@
     "translation": "Riscontrato un errore nella ricerca dei gruppi aperti"
   },
   {
+    "id": "store.sql_team.search_private_team.app_error",
+    "translation": "Riscontrato un errore nella ricerca dei gruppi privati"
+  },
+  {
     "id": "store.sql_team.update.app_error",
     "translation": "Impossibile aggiornare il gruppo"
   },
@@ -6552,7 +6580,7 @@
   },
   {
     "id": "store.sql_user.app_error",
-    "translation": "Failed to build query"
+    "translation": "Errore nella costruzione della query"
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.commit_transaction.app_error",
@@ -6629,6 +6657,18 @@
   {
     "id": "store.sql_user.get_unread_count_for_channel.app_error",
     "translation": "Non è stato possibile ottenere il numero di messaggi per l'utente ed il canale"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_channel_members.app_error",
+    "translation": "Non è stato possibile ottenere i membri del canale per il gruppo di utenti da indicizzare"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_team_members.app_error",
+    "translation": "Non è stato possibile ottenere i membri del gruppo per il gruppo di utenti da incicizzare"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
+    "translation": "Impossibile trovare il gruppo di utenti da indicizzare"
   },
   {
     "id": "store.sql_user.missing_account.const",

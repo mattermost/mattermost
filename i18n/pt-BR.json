@@ -77,7 +77,7 @@
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
-    "translation": "Ocorreu um erro ao deletar o App OAuth2"
+    "translation": "Ocorreu um erro ao deletar o certificado."
   },
   {
     "id": "api.admin.saml.metadata.app_error",
@@ -959,6 +959,10 @@
     "translation": "O novo formato para a configuração do cliente não é suportado ainda. Por favor, especifique na query string format=old."
   },
   {
+    "id": "api.config.update_config.restricted_merge.app_error",
+    "translation": "Failed to merge given config."
+  },
+  {
     "id": "api.context.404.app_error",
     "translation": "Desculpe, não conseguimos encontrar a página."
   },
@@ -1202,7 +1206,7 @@
   },
   {
     "id": "api.file.upload_file.multiple_channel_ids.app_error",
-    "translation": "Não foi possível enviar o(s) arquivo(s)"
+    "translation": "Não foi possível enviar o(s) arquivo(s). Múltiplos channel_ids conflitantes."
   },
   {
     "id": "api.file.upload_file.read_form_value.app_error",
@@ -1769,6 +1773,10 @@
   {
     "id": "api.team.import_team.unavailable.app_error",
     "translation": "Requisição mal formada: campo filesize não está presente."
+  },
+  {
+    "id": "api.team.invalidate_all_email_invites.app_error",
+    "translation": "Error invalidating email invites."
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
@@ -3240,7 +3248,7 @@
   },
   {
     "id": "app.plugin.get_statuses.app_error",
-    "translation": "Não foi possível obter os status dos plugins."
+    "translation": "Não foi possível obter os status dos plugins"
   },
   {
     "id": "app.plugin.install.app_error",
@@ -3479,6 +3487,10 @@
     "translation": "Agregador do Elastisearch falhou em transformar a data de início"
   },
   {
+    "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
+    "translation": "Trying to index a new batch when all the entities are completed."
+  },
+  {
     "id": "ent.elasticsearch.not_started.error",
     "translation": "Elasticsearch não foi iniciado"
   },
@@ -3660,7 +3672,7 @@
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_get_file_info.app_error",
-    "translation": "Não foi possível obter a informação do arquivo temporário de exportação."
+    "translation": "Não foi possível obter a informação do arquivo temporário de exportação"
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.unable_to_open_email_file.app_error",
@@ -3904,11 +3916,11 @@
   },
   {
     "id": "model.bot.is_valid.create_at.app_error",
-    "translation": "Id de criador inválido"
+    "translation": "Inválido create at"
   },
   {
     "id": "model.bot.is_valid.creator_id.app_error",
-    "translation": "Id de criador inválido"
+    "translation": "Inválido creator id"
   },
   {
     "id": "model.bot.is_valid.description.app_error",
@@ -3916,15 +3928,15 @@
   },
   {
     "id": "model.bot.is_valid.update_at.app_error",
-    "translation": "Invalid update at"
+    "translation": "Inválido update at"
   },
   {
     "id": "model.bot.is_valid.user_id.app_error",
-    "translation": "Id do usuário inválido"
+    "translation": "Inválido user id"
   },
   {
     "id": "model.bot.is_valid.username.app_error",
-    "translation": "Nome do usuário inválido"
+    "translation": "Inválido username"
   },
   {
     "id": "model.channel.is_valid.2_or_more.app_error",
@@ -4200,7 +4212,7 @@
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
-    "translation": "Inválido RemoteImageProxyURL para atmos/camo. Deve ser definido para sua chave compartilhada"
+    "translation": "Inválido RemoteImageProxyURL para atmos/camo. Deve ser definido para sua chave compartilhada."
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
@@ -4460,7 +4472,7 @@
   },
   {
     "id": "model.config.is_valid.sitename_empty.app_error",
-    "translation": "Site name cannot be empty."
+    "translation": "Nome do site não pode estar em branco."
   },
   {
     "id": "model.config.is_valid.sitename_length.app_error",
@@ -5192,31 +5204,31 @@
   },
   {
     "id": "store.sql_bot.delete.app_error",
-    "translation": "Não foi possível excluir a publicação"
+    "translation": "Não foi possível excluir o bot"
   },
   {
     "id": "store.sql_bot.get.app_error",
-    "translation": "Não foi possível obter a publicação"
+    "translation": "Não foi possível obter o bot"
   },
   {
     "id": "store.sql_bot.get.missing.app_error",
-    "translation": "Bot does not exist"
+    "translation": "O bot não existe"
   },
   {
     "id": "store.sql_bot.get_all.app_error",
-    "translation": "Não foi possível obter as publicações"
+    "translation": "Não foi possível obter os bots"
   },
   {
     "id": "store.sql_bot.save.app_error",
-    "translation": "Não foi possível salvar a Publicação"
+    "translation": "Não foi possível salvar o bot"
   },
   {
     "id": "store.sql_bot.update.app_error",
-    "translation": "Não foi possível atualizar a Publicação"
+    "translation": "Não foi possível atualizar o bot"
   },
   {
     "id": "store.sql_bot.update.updating.app_error",
-    "translation": "Encontramos um erro ao atualizar o app"
+    "translation": "Encontramos um erro ao atualizar o bot"
   },
   {
     "id": "store.sql_channel.analytics_deleted_type_count.app_error",
@@ -5285,6 +5297,10 @@
   {
     "id": "store.sql_channel.get_channels.not_found.app_error",
     "translation": "Nenhum canal foi encontrado"
+  },
+  {
+    "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
+    "translation": "Não foi possível obter o lote de canais para indexação"
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.get.app_error",
@@ -6155,6 +6171,10 @@
     "translation": "Não foi possível pegar o token com este código"
   },
   {
+    "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
+    "translation": "Não foi possível remover todos os tokens de um tipo"
+  },
+  {
     "id": "store.sql_recover.save.app_error",
     "translation": "Não foi possível salvar o token"
   },
@@ -6336,7 +6356,7 @@
   },
   {
     "id": "store.sql_system.get_by_name.app_error",
-    "translation": "Não foi possível encontrar a variável do sistema"
+    "translation": "Não foi possível encontrar a variável do sistema."
   },
   {
     "id": "store.sql_system.permanent_delete_by_name.app_error",
@@ -6389,6 +6409,10 @@
   {
     "id": "store.sql_team.get_all.app_error",
     "translation": "Não foi possível obter todas as equipes"
+  },
+  {
+    "id": "store.sql_team.get_all_private_team_listing.app_error",
+    "translation": "Não foi possível obter todas as equipes privadas"
   },
   {
     "id": "store.sql_team.get_all_team_listing.app_error",
@@ -6495,6 +6519,10 @@
     "translation": "Encontramos um erro ao procurar por equipes abertas"
   },
   {
+    "id": "store.sql_team.search_private_team.app_error",
+    "translation": "Encontramos um erro ao procurar por equipes privadas"
+  },
+  {
     "id": "store.sql_team.update.app_error",
     "translation": "Não foi possível atualizar a equipe"
   },
@@ -6552,7 +6580,7 @@
   },
   {
     "id": "store.sql_user.app_error",
-    "translation": "Failed to build query"
+    "translation": "Falha ao construir a consulta"
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.commit_transaction.app_error",
@@ -6629,6 +6657,18 @@
   {
     "id": "store.sql_user.get_unread_count_for_channel.app_error",
     "translation": "Não foi possível obter o número de mensagens não lidas para o usuário e canal"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_channel_members.app_error",
+    "translation": "Unable to get the channel members for the users batch for indexing"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_team_members.app_error",
+    "translation": "Unable to get the team members for the users batch for indexing"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
+    "translation": "Não foi possível obter o lote de usuários para indexação"
   },
   {
     "id": "store.sql_user.missing_account.const",

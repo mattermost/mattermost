@@ -959,6 +959,10 @@
     "translation": "Nuevo formato para la configuración del cliente no es compatible todavía. Por favor utiliza format=old en la cadena de consulta."
   },
   {
+    "id": "api.config.update_config.restricted_merge.app_error",
+    "translation": "Falla al combinar la configuración suministrada."
+  },
+  {
     "id": "api.context.404.app_error",
     "translation": "Lo sentimos, pero no pudimos encontrar la página."
   },
@@ -1592,7 +1596,7 @@
   },
   {
     "id": "api.restricted_system_admin",
-    "translation": "This action is forbidden to a restricted system admin."
+    "translation": "Está acción está prohibida y a sido restringida a administradores del sistema."
   },
   {
     "id": "api.roles.patch_roles.license.error",
@@ -1769,6 +1773,10 @@
   {
     "id": "api.team.import_team.unavailable.app_error",
     "translation": "Solicitud con formato incorrecto: campo con el tamaño del archivo no está presente."
+  },
+  {
+    "id": "api.team.invalidate_all_email_invites.app_error",
+    "translation": "Error al invalidar las invitaciones por correo electrónico."
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
@@ -3477,6 +3485,10 @@
   {
     "id": "ent.elasticsearch.indexer.do_job.parse_start_time.error",
     "translation": "El trabajo de Elasticsearch falló al analizar la hora de inicio"
+  },
+  {
+    "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
+    "translation": "Tratando de indexar un nuevo lote cuando todas las entidades se han completado."
   },
   {
     "id": "ent.elasticsearch.not_started.error",
@@ -5287,6 +5299,10 @@
     "translation": "No se encontró ningún canal"
   },
   {
+    "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
+    "translation": "No se puede obtener los canales en lote para la indexación"
+  },
+  {
     "id": "store.sql_channel.get_channels_by_ids.get.app_error",
     "translation": "No se pudo obtener los canales"
   },
@@ -6155,6 +6171,10 @@
     "translation": "No se puede obtener un token con el código suministrado"
   },
   {
+    "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
+    "translation": "No se pudo borrar todos los tokens del tipo"
+  },
+  {
     "id": "store.sql_recover.save.app_error",
     "translation": "No se pudo guardar token"
   },
@@ -6391,6 +6411,10 @@
     "translation": "No pudimos obtener todos los equipos"
   },
   {
+    "id": "store.sql_team.get_all_private_team_listing.app_error",
+    "translation": "No pudimos obtener todos los equipos privados"
+  },
+  {
     "id": "store.sql_team.get_all_team_listing.app_error",
     "translation": "No pudimos obtener todos los equipos"
   },
@@ -6493,6 +6517,10 @@
   {
     "id": "store.sql_team.search_open_team.app_error",
     "translation": "Encontramos un error buscando los equipos abiertos"
+  },
+  {
+    "id": "store.sql_team.search_private_team.app_error",
+    "translation": "Encontramos un error buscando los equipos privados"
   },
   {
     "id": "store.sql_team.update.app_error",
@@ -6629,6 +6657,18 @@
   {
     "id": "store.sql_user.get_unread_count_for_channel.app_error",
     "translation": "No pudimos obtener la cantidad de mensajes sin leer del usuario y canal"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_channel_members.app_error",
+    "translation": "No se puede obtener los miembros del canal para los usuarios ha ser indexados por lotes"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_team_members.app_error",
+    "translation": "No se puede obtener los miembros del equipo para los usuarios ha ser indexados por lotes"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
+    "translation": "No se puede obtener los usuarios en lote para la indexación"
   },
   {
     "id": "store.sql_user.missing_account.const",
