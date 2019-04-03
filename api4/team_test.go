@@ -1712,6 +1712,13 @@ func TestRemoveTeamMember(t *testing.T) {
 
 	_, resp = th.SystemAdminClient.RemoveTeamMember(th.BasicTeam.Id, th.BasicUser.Id)
 	CheckNoError(t, resp)
+
+	// If the team is group-constrained the user cannot be removed
+	th.BasicTeam.GroupConstrained = model.NewBool(true)
+	_, err := th.App.UpdateTeam(th.BasicTeam)
+	require.Nil(t, err)
+	_, resp = th.SystemAdminClient.RemoveTeamMember(th.BasicTeam.Id, th.BasicUser.Id)
+	require.Equal(t, "api.team.remove_member.group_constrained.app_error", resp.Error.Id)
 }
 
 func TestGetTeamStats(t *testing.T) {
