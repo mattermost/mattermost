@@ -23,6 +23,32 @@ const (
 	THREAD_ROOT = "root"
 )
 
+type ExplicitMentions struct {
+	// MentionedUserIds contains a key for each user mentioned by keyword.
+	MentionedUserIds map[string]bool
+
+	// OtherPotentialMentions contains a list of strings that looked like mentions, but didn't have
+	// a corresponding keyword.
+	OtherPotentialMentions []string
+
+	// HereMentioned is true if the message contained @here.
+	HereMentioned bool
+
+	// AllMentioned is true if the message contained @all.
+	AllMentioned bool
+
+	// ChannelMentioned is true if the message contained @channel.
+	ChannelMentioned bool
+}
+
+// Represents either an email or push notification and contains the fields required to send it to any user.
+type postNotification struct {
+	channel    *model.Channel
+	post       *model.Post
+	profileMap map[string]*model.User
+	sender     *model.User
+}
+
 // TODO : Comment
 func (a *App) SendEphemeralPostWrapper(userId string, postDetails interface{}, post model.Post) {
 	err := mapstructure.Decode(postDetails, &post)
@@ -32,15 +58,15 @@ func (a *App) SendEphemeralPostWrapper(userId string, postDetails interface{}, p
 	a.SendEphemeralPost(userId, &post)
 }
 
-// AddMentionedUsers will add the mentioned user id in the struct's list for mentioned users
-func (e *ExplicitMentions) AddMentionedUsers(ids []string) {
+// addMentionedUsers will add the mentioned user id in the struct's list for mentioned users
+func (e *ExplicitMentions) addMentionedUsers(ids []string) {
 	for _, id := range ids {
 		e.MentionedUserIds[id] = true
 	}
 }
 
-// CheckForMention checks if there is a mention to a specific user or to the keywords here / channel / all
-func (e *ExplicitMentions) CheckForMention(word string, keywords map[string][]string) bool {
+// checkForMention checks if there is a mention to a specific user or to the keywords here / channel / all
+func (e *ExplicitMentions) checkForMention(word string, keywords map[string][]string) bool {
 
 	isMention := false
 
@@ -54,13 +80,13 @@ func (e *ExplicitMentions) CheckForMention(word string, keywords map[string][]st
 	}
 
 	if ids, match := keywords[strings.ToLower(word)]; match {
-		e.AddMentionedUsers(ids)
+		e.addMentionedUsers(ids)
 		isMention = true
 	}
 
 	// Case-sensitive check for first name
 	if ids, match := keywords[word]; match {
-		e.AddMentionedUsers(ids)
+		e.addMentionedUsers(ids)
 		isMention = true
 	}
 
@@ -88,7 +114,7 @@ func isKeywordMultibyte(keywords map[string][]string, word string) ([]string, bo
 	return ids, match
 }
 
-func (e *ExplicitMentions) ProcessText(text string, keywords map[string][]string) {
+func (e *ExplicitMentions) processText(text string, keywords map[string][]string) {
 
 	systemMentions := map[string]bool{"@here": true, "@channel": true, "@all": true}
 
@@ -103,7 +129,7 @@ func (e *ExplicitMentions) ProcessText(text string, keywords map[string][]string
 
 		word = strings.TrimLeft(word, ":.-_")
 
-		if e.CheckForMention(word, keywords) {
+		if e.checkForMention(word, keywords) {
 			continue
 		}
 
@@ -112,7 +138,7 @@ func (e *ExplicitMentions) ProcessText(text string, keywords map[string][]string
 		for len(wordWithoutSuffix) > 0 && strings.LastIndexAny(wordWithoutSuffix, ".-:_") == (len(wordWithoutSuffix)-1) {
 			wordWithoutSuffix = wordWithoutSuffix[0 : len(wordWithoutSuffix)-1]
 
-			if e.CheckForMention(wordWithoutSuffix, keywords) {
+			if e.checkForMention(wordWithoutSuffix, keywords) {
 				foundWithoutSuffix = true
 				break
 			}
@@ -131,7 +157,7 @@ func (e *ExplicitMentions) ProcessText(text string, keywords map[string][]string
 			})
 
 			for _, splitWord := range splitWords {
-				if e.CheckForMention(splitWord, keywords) {
+				if e.checkForMention(splitWord, keywords) {
 					continue
 				}
 				if _, ok := systemMentions[splitWord]; !ok && strings.HasPrefix(splitWord, "@") {
@@ -140,7 +166,7 @@ func (e *ExplicitMentions) ProcessText(text string, keywords map[string][]string
 			}
 		}
 		if ids, match := isKeywordMultibyte(keywords, word); match {
-			e.AddMentionedUsers(ids)
+			e.addMentionedUsers(ids)
 		}
 	}
 }
@@ -208,9 +234,9 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		}
 
 	} else {
-		keywords := a.GetMentionKeywordsInChannel(profileMap, post.Type != model.POST_HEADER_CHANGE && post.Type != model.POST_PURPOSE_CHANGE, channelMemberNotifyPropsMap)
+		keywords := a.getMentionKeywordsInChannel(profileMap, post.Type != model.POST_HEADER_CHANGE && post.Type != model.POST_PURPOSE_CHANGE, channelMemberNotifyPropsMap)
 
-		m := GetExplicitMentions(post, keywords)
+		m := getExplicitMentions(post, keywords)
 
 		// Add an implicit mention when a user is added to a channel
 		// even if the user has set 'username mentions' to false in account settings.
@@ -523,38 +549,20 @@ func (a *App) sendOutOfChannelMentions(sender *model.User, post *model.Post, use
 	return nil
 }
 
-type ExplicitMentions struct {
-	// MentionedUserIds contains a key for each user mentioned by keyword.
-	MentionedUserIds map[string]bool
-
-	// OtherPotentialMentions contains a list of strings that looked like mentions, but didn't have
-	// a corresponding keyword.
-	OtherPotentialMentions []string
-
-	// HereMentioned is true if the message contained @here.
-	HereMentioned bool
-
-	// AllMentioned is true if the message contained @all.
-	AllMentioned bool
-
-	// ChannelMentioned is true if the message contained @channel.
-	ChannelMentioned bool
-}
-
 // Given a message and a map mapping mention keywords to the users who use them, returns a map of mentioned
 // users and a slice of potential mention users not in the channel and whether or not @here was mentioned.
-func GetExplicitMentions(post *model.Post, keywords map[string][]string) *ExplicitMentions {
+func getExplicitMentions(post *model.Post, keywords map[string][]string) *ExplicitMentions {
 	ret := &ExplicitMentions{
 		MentionedUserIds: make(map[string]bool),
 	}
 
 	buf := ""
-	mentionsEnabledFields := GetMentionsEnabledFields(post)
+	mentionsEnabledFields := getMentionsEnabledFields(post)
 	for _, message := range mentionsEnabledFields {
 		markdown.Inspect(message, func(node interface{}) bool {
 			text, ok := node.(*markdown.Text)
 			if !ok {
-				ret.ProcessText(buf, keywords)
+				ret.processText(buf, keywords)
 				buf = ""
 				return true
 			}
@@ -562,14 +570,14 @@ func GetExplicitMentions(post *model.Post, keywords map[string][]string) *Explic
 			return false
 		})
 	}
-	ret.ProcessText(buf, keywords)
+	ret.processText(buf, keywords)
 
 	return ret
 }
 
 // Given a post returns the values of the fields in which mentions are possible.
 // post.message, preText and text in the attachment are enabled.
-func GetMentionsEnabledFields(post *model.Post) model.StringArray {
+func getMentionsEnabledFields(post *model.Post) model.StringArray {
 	ret := []string{}
 
 	ret = append(ret, post.Message)
@@ -587,7 +595,7 @@ func GetMentionsEnabledFields(post *model.Post) model.StringArray {
 
 // Given a map of user IDs to profiles, returns a list of mention
 // keywords for all users in the channel.
-func (a *App) GetMentionKeywordsInChannel(profiles map[string]*model.User, lookForSpecialMentions bool, channelMemberNotifyPropsMap map[string]model.StringMap) map[string][]string {
+func (a *App) getMentionKeywordsInChannel(profiles map[string]*model.User, lookForSpecialMentions bool, channelMemberNotifyPropsMap map[string]model.StringMap) map[string][]string {
 	keywords := make(map[string][]string)
 
 	for id, profile := range profiles {
@@ -631,14 +639,6 @@ func (a *App) GetMentionKeywordsInChannel(profiles map[string]*model.User, lookF
 	}
 
 	return keywords
-}
-
-// Represents either an email or push notification and contains the fields required to send it to any user.
-type postNotification struct {
-	channel    *model.Channel
-	post       *model.Post
-	profileMap map[string]*model.User
-	sender     *model.User
 }
 
 // Returns the name of the channel for this notification. For direct messages, this is the sender's name

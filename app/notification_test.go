@@ -551,7 +551,7 @@ func TestGetExplicitMentions(t *testing.T) {
 			},
 			}
 
-			m := GetExplicitMentions(post, tc.Keywords)
+			m := getExplicitMentions(post, tc.Keywords)
 			if tc.Expected.MentionedUserIds == nil {
 				tc.Expected.MentionedUserIds = make(map[string]bool)
 			}
@@ -606,7 +606,7 @@ func TestGetExplicitMentionsAtHere(t *testing.T) {
 
 	for message, shouldMention := range cases {
 		post := &model.Post{Message: message}
-		if m := GetExplicitMentions(post, nil); m.HereMentioned && !shouldMention {
+		if m := getExplicitMentions(post, nil); m.HereMentioned && !shouldMention {
 			t.Fatalf("shouldn't have mentioned @here with \"%v\"", message)
 		} else if !m.HereMentioned && shouldMention {
 			t.Fatalf("should've mentioned @here with \"%v\"", message)
@@ -615,7 +615,7 @@ func TestGetExplicitMentionsAtHere(t *testing.T) {
 
 	// mentioning @here and someone
 	id := model.NewId()
-	if m := GetExplicitMentions(&model.Post{Message: "@here @user @potential"}, map[string][]string{"@user": {id}}); !m.HereMentioned {
+	if m := getExplicitMentions(&model.Post{Message: "@here @user @potential"}, map[string][]string{"@user": {id}}); !m.HereMentioned {
 		t.Fatal("should've mentioned @here with \"@here @user\"")
 	} else if len(m.MentionedUserIds) != 1 || !m.MentionedUserIds[id] {
 		t.Fatal("should've mentioned @user with \"@here @user\"")
@@ -645,7 +645,7 @@ func TestGetMentionKeywords(t *testing.T) {
 	}
 
 	profiles := map[string]*model.User{user1.Id: user1}
-	mentions := th.App.GetMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap1Off)
+	mentions := th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap1Off)
 	if len(mentions) != 3 {
 		t.Fatal("should've returned three mention keywords")
 	} else if ids, ok := mentions["user"]; !ok || ids[0] != user1.Id {
@@ -673,7 +673,7 @@ func TestGetMentionKeywords(t *testing.T) {
 	}
 
 	profiles = map[string]*model.User{user2.Id: user2}
-	mentions = th.App.GetMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap2Off)
+	mentions = th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap2Off)
 	if len(mentions) != 2 {
 		t.Fatal("should've returned two mention keyword")
 	} else if ids, ok := mentions["First"]; !ok || ids[0] != user2.Id {
@@ -697,7 +697,7 @@ func TestGetMentionKeywords(t *testing.T) {
 		},
 	}
 	profiles = map[string]*model.User{user3.Id: user3}
-	mentions = th.App.GetMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap3Off)
+	mentions = th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap3Off)
 	if len(mentions) != 3 {
 		t.Fatal("should've returned three mention keywords")
 	} else if ids, ok := mentions["@channel"]; !ok || ids[0] != user3.Id {
@@ -713,7 +713,7 @@ func TestGetMentionKeywords(t *testing.T) {
 		},
 	}
 	profiles = map[string]*model.User{user3.Id: user3}
-	mentions = th.App.GetMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMapDefault)
+	mentions = th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMapDefault)
 	if len(mentions) != 3 {
 		t.Fatal("should've returned three mention keywords")
 	} else if ids, ok := mentions["@channel"]; !ok || ids[0] != user3.Id {
@@ -725,7 +725,7 @@ func TestGetMentionKeywords(t *testing.T) {
 	// Channel member notify props is empty
 	channelMemberNotifyPropsMapEmpty := map[string]model.StringMap{}
 	profiles = map[string]*model.User{user3.Id: user3}
-	mentions = th.App.GetMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMapEmpty)
+	mentions = th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMapEmpty)
 	if len(mentions) != 3 {
 		t.Fatal("should've returned three mention keywords")
 	} else if ids, ok := mentions["@channel"]; !ok || ids[0] != user3.Id {
@@ -740,7 +740,7 @@ func TestGetMentionKeywords(t *testing.T) {
 			"ignore_channel_mentions": model.IGNORE_CHANNEL_MENTIONS_ON,
 		},
 	}
-	mentions = th.App.GetMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap3On)
+	mentions = th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap3On)
 	if len(mentions) == 0 {
 		t.Fatal("should've not returned any keywords")
 	}
@@ -765,7 +765,7 @@ func TestGetMentionKeywords(t *testing.T) {
 	}
 
 	profiles = map[string]*model.User{user4.Id: user4}
-	mentions = th.App.GetMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap4Off)
+	mentions = th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap4Off)
 	if len(mentions) != 6 {
 		t.Fatal("should've returned six mention keywords")
 	} else if ids, ok := mentions["user"]; !ok || ids[0] != user4.Id {
@@ -788,7 +788,7 @@ func TestGetMentionKeywords(t *testing.T) {
 			"ignore_channel_mentions": model.IGNORE_CHANNEL_MENTIONS_ON,
 		},
 	}
-	mentions = th.App.GetMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap4On)
+	mentions = th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap4On)
 	if len(mentions) != 4 {
 		t.Fatal("should've returned four mention keywords")
 	} else if ids, ok := mentions["user"]; !ok || ids[0] != user4.Id {
@@ -842,7 +842,7 @@ func TestGetMentionKeywords(t *testing.T) {
 			"ignore_channel_mentions": model.IGNORE_CHANNEL_MENTIONS_OFF,
 		},
 	}
-	mentions = th.App.GetMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap5Off)
+	mentions = th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap5Off)
 	if len(mentions) != 6 {
 		t.Fatal("should've returned six mention keywords")
 	} else if ids, ok := mentions["user"]; !ok || len(ids) != 2 || (ids[0] != user1.Id && ids[1] != user1.Id) || (ids[0] != user4.Id && ids[1] != user4.Id) {
@@ -861,7 +861,7 @@ func TestGetMentionKeywords(t *testing.T) {
 
 	// multiple users and more than MaxNotificationsPerChannel
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxNotificationsPerChannel = 3 })
-	mentions = th.App.GetMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap4Off)
+	mentions = th.App.getMentionKeywordsInChannel(profiles, true, channelMemberNotifyPropsMap4Off)
 	if len(mentions) != 4 {
 		t.Fatal("should've returned four mention keywords")
 	} else if _, ok := mentions["@channel"]; ok {
@@ -876,7 +876,7 @@ func TestGetMentionKeywords(t *testing.T) {
 	profiles = map[string]*model.User{
 		user1.Id: user1,
 	}
-	mentions = th.App.GetMentionKeywordsInChannel(profiles, false, channelMemberNotifyPropsMap4Off)
+	mentions = th.App.getMentionKeywordsInChannel(profiles, false, channelMemberNotifyPropsMap4Off)
 	if len(mentions) != 3 {
 		t.Fatal("should've returned three mention keywords")
 	} else if ids, ok := mentions["user"]; !ok || len(ids) != 1 || ids[0] != user1.Id {
@@ -923,7 +923,7 @@ func TestGetMentionsEnabledFields(t *testing.T) {
 		"@here with mentions",
 		"some text"}
 
-	mentionEnabledFields := GetMentionsEnabledFields(post)
+	mentionEnabledFields := getMentionsEnabledFields(post)
 
 	assert.EqualValues(t, 4, len(mentionEnabledFields))
 	assert.EqualValues(t, expectedFields, mentionEnabledFields)
@@ -1189,11 +1189,105 @@ func TestIsKeywordMultibyte(t *testing.T) {
 			},
 			}
 
-			m := GetExplicitMentions(post, tc.Keywords)
+			m := getExplicitMentions(post, tc.Keywords)
 			if tc.Expected.MentionedUserIds == nil {
 				tc.Expected.MentionedUserIds = make(map[string]bool)
 			}
 			assert.EqualValues(t, tc.Expected, m)
+		})
+	}
+}
+
+func TestAddMentionedUsers(t *testing.T) {
+
+	id1 := model.NewId()
+	id2 := model.NewId()
+	id3 := model.NewId()
+	id4 := model.NewId()
+	id5 := model.NewId()
+	id6 := model.NewId()
+	id7 := model.NewId()
+	id8 := model.NewId()
+	id9 := model.NewId()
+
+	for name, tc := range map[string]struct {
+		Mentions         []string
+		ExplicitMentions *ExplicitMentions
+		Expected         *ExplicitMentions
+	}{
+		"test": {
+			Mentions: []string{id1},
+			ExplicitMentions: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{},
+			},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
+		"two users": {
+			Mentions: []string{id1, id2},
+			ExplicitMentions: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{},
+			},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+					id2: true,
+				},
+			},
+		},
+		"no users": {
+			Mentions: []string{},
+			ExplicitMentions: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{},
+			},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{},
+			},
+		},
+		"five users": {
+			Mentions: []string{id1, id5, id4, id8, id9},
+			ExplicitMentions: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{},
+			},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+					id4: true,
+					id5: true,
+					id8: true,
+					id9: true,
+				},
+			},
+		},
+		"nine users": {
+			Mentions: []string{id1, id2, id3, id4, id5, id6, id7, id8, id9},
+			ExplicitMentions: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{},
+			},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+					id2: true,
+					id3: true,
+					id4: true,
+					id5: true,
+					id6: true,
+					id7: true,
+					id8: true,
+					id9: true,
+				},
+			},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			tc.ExplicitMentions.addMentionedUsers(tc.Mentions)
+			if tc.ExplicitMentions.MentionedUserIds == nil {
+				tc.ExplicitMentions.MentionedUserIds = make(map[string]bool)
+			}
+			assert.EqualValues(t, tc.Expected.MentionedUserIds, tc.ExplicitMentions.MentionedUserIds)
 		})
 	}
 }
