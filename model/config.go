@@ -295,7 +295,7 @@ type ServiceSettings struct {
 	DisableBotsWhenOwnerIsDeactivated                 *bool `restricted:"true"`
 }
 
-func (s *ServiceSettings) SetDefaults() {
+func (s *ServiceSettings) SetDefaults(isNew bool) {
 	if s.EnableEmailInvitations == nil {
 		// If the site URL is also not present then assume this is a clean install
 		if s.SiteURL == nil {
@@ -621,7 +621,7 @@ func (s *ServiceSettings) SetDefaults() {
 	}
 
 	if s.DisableLegacyMFA == nil {
-		s.DisableLegacyMFA = NewBool(false)
+		s.DisableLegacyMFA = NewBool(isNew)
 	}
 
 	if s.ExperimentalLdapGroupSync == nil {
@@ -2302,6 +2302,10 @@ func ConfigFromJson(data io.Reader) *Config {
 	return o
 }
 
+func (o *Config) isNew() bool {
+	return *(o.ServiceSettings.SiteURL) == SERVICE_SETTINGS_DEFAULT_SITE_URL
+}
+
 func (o *Config) SetDefaults() {
 	o.LdapSettings.SetDefaults()
 	o.SamlSettings.SetDefaults()
@@ -2314,6 +2318,7 @@ func (o *Config) SetDefaults() {
 		}
 	}
 
+	isNew := o.isNew()
 	o.SqlSettings.SetDefaults()
 	o.FileSettings.SetDefaults()
 	o.EmailSettings.SetDefaults()
@@ -2321,7 +2326,7 @@ func (o *Config) SetDefaults() {
 	o.Office365Settings.setDefaults()
 	o.GitLabSettings.setDefaults()
 	o.GoogleSettings.setDefaults()
-	o.ServiceSettings.SetDefaults()
+	o.ServiceSettings.SetDefaults(isNew)
 	o.PasswordSettings.SetDefaults()
 	o.TeamSettings.SetDefaults()
 	o.MetricsSettings.SetDefaults()
