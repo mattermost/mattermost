@@ -138,7 +138,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 					csrfCheckPassed = true
 				}
 			}
-			
+
 			if !csrfCheckPassed {
 				token = ""
 				c.App.Session = model.Session{}
