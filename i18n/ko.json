@@ -337,7 +337,7 @@
   },
   {
     "id": "api.command.execute_command.create_post_failed.app_error",
-    "translation": "명령 '{{.Trigger}'이(가) 응답을 게시하지 못하였습니다. 시스템 관리자에게 문의하십시오."
+    "translation": "명령 '{{.Trigger}}'이(가) 응답을 게시하지 못하였습니다. 시스템 관리자에게 문의하십시오."
   },
   {
     "id": "api.command.execute_command.debug",
