@@ -65,8 +65,8 @@ func TestUserStore(t *testing.T, ss store.Store) {
 	t.Run("ClearAllCustomRoleAssignments", func(t *testing.T) { testUserStoreClearAllCustomRoleAssignments(t, ss) })
 	t.Run("GetAllAfter", func(t *testing.T) { testUserStoreGetAllAfter(t, ss) })
 	t.Run("GetUsersBatchForIndexing", func(t *testing.T) { testUserStoreGetUsersBatchForIndexing(t, ss) })
-	t.Run("GetTeamGroupUsers", func(t *testing.T) { testUserStoreGetUsersPermittedToTeam(t, ss) })
-	t.Run("GetChannelGroupUsers", func(t *testing.T) { testUserStoreGetUsersPermittedToChannel(t, ss) })
+	t.Run("GetTeamGroupUsers", func(t *testing.T) { testUserStoreGetTeamGroupUsers(t, ss) })
+	t.Run("GetChannelGroupUsers", func(t *testing.T) { testUserStoreGetChannelGroupUsers(t, ss) })
 }
 
 func testUserStoreSave(t *testing.T, ss store.Store) {
@@ -3433,7 +3433,7 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
 	assert.Equal(t, res4List[1].Username, u2.Username)
 }
 
-func testUserStoreGetUsersPermittedToTeam(t *testing.T, ss store.Store) {
+func testUserStoreGetTeamGroupUsers(t *testing.T, ss store.Store) {
 	// create team
 	id := model.NewId()
 	res := <-ss.Team().Save(&model.Team{
@@ -3557,7 +3557,7 @@ func testUserStoreGetUsersPermittedToTeam(t *testing.T, ss store.Store) {
 	requireNUsers(2)
 }
 
-func testUserStoreGetUsersPermittedToChannel(t *testing.T, ss store.Store) {
+func testUserStoreGetChannelGroupUsers(t *testing.T, ss store.Store) {
 	// create channel
 	id := model.NewId()
 	res := <-ss.Channel().Save(&model.Channel{
