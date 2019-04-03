@@ -125,22 +125,20 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		// CSRF Check
 		if c.Err == nil && tokenLocation == app.TokenLocationCookie && h.RequireSession && !h.TrustRequester && r.Method != "GET" {
-			if session != nil {
-				csrfHeader := r.Header.Get(model.HEADER_CSRF_TOKEN)
-				if csrfHeader == session.GetCSRF() {
+			csrfHeader := r.Header.Get(model.HEADER_CSRF_TOKEN)
+			if csrfHeader == session.GetCSRF() {
+				csrfCheckPassed = true
+			} else if r.Header.Get(model.HEADER_REQUESTED_WITH) == model.HEADER_REQUESTED_WITH_XML {
+				// ToDo(DSchalla) 2019/01/04: Remove after deprecation period and only allow CSRF Header (MM-13657)
+				csrfErrorMessage := "CSRF Header check failed for request - Please upgrade your web application or custom app to set a CSRF Header"
+				if *c.App.Config().ServiceSettings.ExperimentalStrictCSRFEnforcement {
+					c.Log.Warn(csrfErrorMessage)
+				} else {
+					c.Log.Debug(csrfErrorMessage)
 					csrfCheckPassed = true
-				} else if r.Header.Get(model.HEADER_REQUESTED_WITH) == model.HEADER_REQUESTED_WITH_XML {
-					// ToDo(DSchalla) 2019/01/04: Remove after deprecation period and only allow CSRF Header (MM-13657)
-					csrfErrorMessage := "CSRF Header check failed for request - Please upgrade your web application or custom app to set a CSRF Header"
-					if *c.App.Config().ServiceSettings.ExperimentalStrictCSRFEnforcement {
-						c.Log.Warn(csrfErrorMessage)
-					} else {
-						c.Log.Debug(csrfErrorMessage)
-						csrfCheckPassed = true
-					}
 				}
 			}
-
+			
 			if !csrfCheckPassed {
 				token = ""
 				c.App.Session = model.Session{}
