@@ -3,7 +3,6 @@
 
 package web
 
-import "C"
 import (
 	"fmt"
 	"net/http"
