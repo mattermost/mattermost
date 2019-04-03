@@ -250,6 +250,49 @@ var hashtags = map[string]string{
 	"foo#bar":         "",
 }
 
+func TestStringArray_Equal(t *testing.T) {
+	for name, tc := range map[string]struct {
+		Array1 StringArray
+		Array2 StringArray
+		Expected bool
+	}{
+		"Empty": {
+			nil,
+			nil,
+			true,
+		},
+		"EqualLength_EqualValue": {
+			StringArray{"123"},
+			StringArray{"123"},
+			true,
+		},
+		"DifferentLength": {
+			StringArray{"123"},
+			StringArray{"123", "abc"},
+			false,
+		},
+		"DifferentValues_EqualLength": {
+			StringArray{"123"},
+			StringArray{"abc"},
+			false,
+		},
+		"EqualLength_EqualValues": {
+			StringArray{"123", "abc"},
+			StringArray{"123", "abc"},
+			true,
+		},
+		"EqualLength_EqualValues_DifferentOrder": {
+			StringArray{"abc", "123"},
+			StringArray{"123", "abc"},
+			false,
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			assert.Equal(t, tc.Expected, tc.Array1.Equal(tc.Array2))
+		})
+	}
+}
+
 func TestParseHashtags(t *testing.T) {
 	for input, output := range hashtags {
 		if o, _ := ParseHashtags(input); o != output {

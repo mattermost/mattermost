@@ -403,6 +403,167 @@ func (o *Post) Attachments() []*SlackAttachment {
 	return ret
 }
 
+func (o *Post) AttachmentsEqual(input *Post) bool {
+	attachments := o.Attachments()
+	inputAttachments := input.Attachments()
+
+	if len(attachments) != len(inputAttachments) {
+		return false
+	}
+
+	for i := range attachments {
+
+		// Direct comparison of simple types
+
+		if attachments[i].Id != inputAttachments[i].Id {
+			return false
+		}
+
+		if attachments[i].Fallback != inputAttachments[i].Fallback {
+			return false
+		}
+
+		if attachments[i].Color != inputAttachments[i].Color {
+			return false
+		}
+
+		if attachments[i].Pretext != inputAttachments[i].Pretext {
+			return false
+		}
+
+		if attachments[i].AuthorName != inputAttachments[i].AuthorName {
+			return false
+		}
+
+		if attachments[i].AuthorLink != inputAttachments[i].AuthorLink {
+			return false
+		}
+
+		if attachments[i].AuthorIcon != inputAttachments[i].AuthorIcon {
+			return false
+		}
+
+		if attachments[i].Title != inputAttachments[i].Title {
+			return false
+		}
+
+		if attachments[i].TitleLink != inputAttachments[i].TitleLink {
+			return false
+		}
+
+		if attachments[i].Text != inputAttachments[i].Text {
+			return false
+		}
+
+		if attachments[i].ImageURL != inputAttachments[i].ImageURL {
+			return false
+		}
+
+		if attachments[i].ThumbURL != inputAttachments[i].ThumbURL {
+			return false
+		}
+
+		if attachments[i].Footer != inputAttachments[i].Footer {
+			return false
+		}
+
+		if attachments[i].FooterIcon != inputAttachments[i].FooterIcon {
+			return false
+		}
+
+		// Compare length & slice values of fields
+
+		if len(attachments[i].Fields) != len(inputAttachments[i].Fields) {
+			return false
+		}
+
+		for j := range attachments[i].Fields {
+			if attachments[i].Fields[j].Title != inputAttachments[i].Fields[j].Title {
+				return false
+			}
+
+			if attachments[i].Fields[j].Value != inputAttachments[i].Fields[j].Value {
+				return false
+			}
+
+			if attachments[i].Fields[j].Short != inputAttachments[i].Fields[j].Short {
+				return false
+			}
+		}
+
+
+		// Compare length & slice values of actions
+
+		if len(attachments[i].Actions) != len(inputAttachments[i].Actions) {
+			return false
+		}
+
+		for j := range attachments[i].Actions {
+			if attachments[i].Actions[j].Id != inputAttachments[i].Actions[j].Id {
+				return false
+			}
+
+			if attachments[i].Actions[j].Type != inputAttachments[i].Actions[j].Type {
+				return false
+			}
+
+			if attachments[i].Actions[j].Name != inputAttachments[i].Actions[j].Name {
+				return false
+			}
+
+			if attachments[i].Actions[j].DataSource != inputAttachments[i].Actions[j].DataSource {
+				return false
+			}
+
+			if attachments[i].Actions[j].Cookie != inputAttachments[i].Actions[j].Cookie {
+				return false
+			}
+
+			// Compare PostActionOptions
+			if len(attachments[i].Actions[j].Options) != len(inputAttachments[i].Actions[j].Options) {
+				return false
+			}
+
+			for k := range attachments[i].Actions[j].Options {
+				if attachments[i].Actions[j].Options[k].Text != inputAttachments[i].Actions[j].Options[k].Text {
+					return false
+				}
+
+				if attachments[i].Actions[j].Options[k].Value != inputAttachments[i].Actions[j].Options[k].Value {
+					return false
+				}
+			}
+
+			// Compare PostActionIntegration
+			if attachments[i].Actions[j].Integration.URL != inputAttachments[i].Actions[j].Integration.URL {
+				return false
+			}
+
+			if len(attachments[i].Actions[j].Integration.Context) != len(inputAttachments[i].Actions[j].Integration.Context) {
+				return false
+			}
+
+			for key, value := range attachments[i].Actions[j].Integration.Context {
+				inputValue, ok := inputAttachments[i].Actions[j].Integration.Context[key]
+
+				if !ok {
+					return false
+				}
+
+				if value != inputValue {
+					return false
+				}
+			}
+		}
+
+		if attachments[i].Timestamp != inputAttachments[i].Timestamp {
+			return false
+		}
+	}
+
+	return true
+}
+
 var markdownDestinationEscaper = strings.NewReplacer(
 	`\`, `\\`,
 	`<`, `\<`,
