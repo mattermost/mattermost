@@ -58,6 +58,66 @@ type PostAction struct {
 	Cookie      string                 `json:"cookie,omitempty" db:"-"`
 }
 
+func (p *PostAction) Equals(input *PostAction) bool {
+	if p.Id != input.Id {
+		return false
+	}
+
+	if p.Type != input.Type {
+		return false
+	}
+
+	if p.Name != input.Name {
+		return false
+	}
+
+	if p.DataSource != input.DataSource {
+		return false
+	}
+
+	if p.Cookie != input.Cookie {
+		return false
+	}
+
+	// Compare PostActionOptions
+	if len(p.Options) != len(input.Options) {
+		return false
+	}
+
+	for k := range p.Options {
+		if p.Options[k].Text != input.Options[k].Text {
+			return false
+		}
+
+		if p.Options[k].Value != input.Options[k].Value {
+			return false
+		}
+	}
+
+	// Compare PostActionIntegration
+	if p.Integration.URL != input.Integration.URL {
+		return false
+	}
+
+	if len(p.Integration.Context) != len(input.Integration.Context) {
+		return false
+	}
+
+	for key, value := range p.Integration.Context {
+		inputValue, ok := input.Integration.Context[key]
+
+		if !ok {
+			return false
+		}
+
+		if value != inputValue {
+			return false
+		}
+	}
+
+	return true
+}
+
 // PostActionCookie is set by the server, serialized and encrypted into
 // PostAction.Cookie. The clients should hold on to it, and include it with
 // subsequent DoPostAction requests.  This allows the server to access the

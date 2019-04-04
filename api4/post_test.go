@@ -580,6 +580,29 @@ func TestUpdatePost(t *testing.T) {
 	_, resp = Client.UpdatePost(rpost2.Id, up2)
 	CheckBadRequestStatus(t, resp)
 
+	rpost3, err := th.App.CreatePost(&model.Post{ChannelId: channel.Id, Message: "zz" + model.NewId() + "a", UserId: th.BasicUser.Id}, channel, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fileIds := model.StringArray{"abcdef", "geh"}
+	up3 := &model.Post{Id: rpost3.Id, ChannelId: channel.Id, Message: "zz" + model.NewId() + " update post 3", FileIds: fileIds}
+	rrupost3, resp := Client.UpdatePost(rpost3.Id, up3)
+	CheckNoError(t, resp)
+	assert.Empty(t, rrupost3.FileIds)
+
+	up4 := &model.Post{Id: rpost3.Id, ChannelId: channel.Id, Message: "zz" + model.NewId() + " update post 3"}
+	up4.AddProp("attachments", []model.SlackAttachment{
+		{
+			Text: "Hello World",
+		},
+	})
+	rrupost3, resp = Client.UpdatePost(rpost3.Id, up4)
+	CheckNoError(t, resp)
+	assert.NotEqual(t, rpost3.EditAt, rrupost3.EditAt)
+	assert.NotEqual(t, rpost3.Attachments(), rrupost3.Attachments())
+
+
 	Client.Logout()
 	_, resp = Client.UpdatePost(rpost.Id, rpost)
 	CheckUnauthorizedStatus(t, resp)
@@ -671,15 +694,29 @@ func TestPatchPost(t *testing.T) {
 	if rpost.Hashtags != "#otherhashtag" {
 		t.Fatal("Message did not update properly")
 	}
-	if len(rpost.FileIds) != 3 {
-		t.Fatal("FileIds did not update properly")
+	if len(rpost.FileIds) == 3 {
+		t.Fatal("FileIds should not update properly")
 	}
-	if !reflect.DeepEqual(rpost.FileIds, *patch.FileIds) {
-		t.Fatal("FileIds did not update properly")
+	if reflect.DeepEqual(rpost.FileIds, *patch.FileIds) {
+		t.Fatal("FileIds should not update")
 	}
 	if rpost.HasReactions {
 		t.Fatal("HasReactions did not update properly")
 	}
+
+	patch2 := &model.PostPatch{}
+	attachments := []model.SlackAttachment{
+		{
+			Text: "Hello World",
+		},
+	}
+	patch2.Props = new(model.StringInterface)
+	*patch2.Props = model.StringInterface{"attachments": attachments}
+
+	rpost2, resp := Client.PatchPost(post.Id, patch2)
+	CheckNoError(t, resp)
+	assert.NotEmpty(t, rpost2.Props["attachments"])
+	assert.NotEqual(t, rpost.EditAt, rpost2.EditAt)
 
 	if r, err := Client.DoApiPut("/posts/"+post.Id+"/patch", "garbage"); err == nil {
 		t.Fatal("should have errored")
