@@ -180,6 +180,233 @@ func TestPostSanitizeProps(t *testing.T) {
 	}
 }
 
+func TestPost_AttachmentsEqual(t *testing.T) {
+	post1 := &Post {
+	}
+	post2 := &Post {
+	}
+	for name, tc := range map[string]struct {
+		Attachments1 []*SlackAttachment
+		Attachments2 []*SlackAttachment
+		Expected bool
+	}{
+		"Empty": {
+			nil,
+			nil,
+			true,
+		},
+		"DifferentLength": {
+			[]*SlackAttachment{
+				{
+					Text: "Hello World",
+				},
+			},
+			nil,
+			false,
+		},
+		"EqualText": {
+			[]*SlackAttachment{
+				{
+					Text: "Hello World",
+				},
+			},
+			[]*SlackAttachment{
+				{
+					Text: "Hello World",
+				},
+			},
+			true,
+		},
+		"DifferentText": {
+			[]*SlackAttachment{
+				{
+					Text: "Hello World",
+				},
+			},
+			[]*SlackAttachment{
+				{
+					Text: "Hello World 2",
+				},
+			},
+			false,
+		},
+		"DifferentColor": {
+			[]*SlackAttachment{
+				{
+					Text: "Hello World",
+					Color: "#152313",
+				},
+			},
+			[]*SlackAttachment{
+				{
+					Text: "Hello World 2",
+				},
+			},
+			false,
+		},
+		"EqualFields": {
+			[]*SlackAttachment{
+				{
+					Fields: []*SlackAttachmentField {
+						{
+							Title: "Hello World",
+							Value: "FooBar",
+						},
+						{
+							Title: "Hello World2",
+							Value: "FooBar2",
+						},
+					},
+				},
+			},
+			[]*SlackAttachment{
+				{
+					Fields: []*SlackAttachmentField {
+						{
+							Title: "Hello World",
+							Value: "FooBar",
+						},
+						{
+							Title: "Hello World2",
+							Value: "FooBar2",
+						},
+					},
+				},
+			},
+			true,
+		},
+		"DifferentFields": {
+			[]*SlackAttachment{
+				{
+					Fields: []*SlackAttachmentField {
+						{
+							Title: "Hello World",
+							Value: "FooBar",
+						},
+					},
+				},
+			},
+			[]*SlackAttachment{
+				{
+					Fields: []*SlackAttachmentField {
+						{
+							Title: "Hello World",
+							Value: "FooBar",
+							Short: false,
+						},
+						{
+							Title: "Hello World2",
+							Value: "FooBar2",
+							Short: true,
+						},
+					},
+				},
+			},
+			false,
+		},
+		"EqualActions": {
+			[]*SlackAttachment{
+				{
+					Actions: []*PostAction{
+						{
+							Name: "FooBar",
+							Options: []*PostActionOptions {
+								{
+									Text: "abcdef",
+									Value: "abcdef",
+								},
+							},
+							Integration: &PostActionIntegration{
+								URL: "http://localhost",
+								Context: map[string]interface{}{
+									"context": "foobar",
+									"test": 123,
+								},
+							},
+						},
+					},
+				},
+			},
+			[]*SlackAttachment{
+				{
+					Actions: []*PostAction{
+						{
+							Name: "FooBar",
+							Options: []*PostActionOptions {
+								{
+									Text: "abcdef",
+									Value: "abcdef",
+								},
+							},
+							Integration: &PostActionIntegration{
+								URL: "http://localhost",
+								Context: map[string]interface{}{
+									"context": "foobar",
+									"test": 123,
+								},
+							},
+						},
+					},
+				},
+			},
+			true,
+		},
+		"DifferentActions": {
+			[]*SlackAttachment{
+				{
+					Actions: []*PostAction{
+						{
+							Name: "FooBar",
+							Options: []*PostActionOptions {
+								{
+									Text: "abcdef",
+									Value: "abcdef",
+								},
+							},
+							Integration: &PostActionIntegration{
+								URL: "http://localhost",
+								Context: map[string]interface{}{
+									"context": "foobar",
+									"test": "mattermost",
+								},
+							},
+						},
+					},
+				},
+			},
+			[]*SlackAttachment{
+				{
+					Actions: []*PostAction{
+						{
+							Name: "FooBar",
+							Options: []*PostActionOptions {
+								{
+									Text: "abcdef",
+									Value: "abcdef",
+								},
+							},
+							Integration: &PostActionIntegration{
+								URL: "http://localhost",
+								Context: map[string]interface{}{
+									"context": "foobar",
+									"test": 123,
+								},
+							},
+						},
+					},
+				},
+			},
+			false,
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			post1.AddProp("attachments", tc.Attachments1)
+			post2.AddProp("attachments", tc.Attachments2)
+			assert.Equal(t, tc.Expected, post1.AttachmentsEqual(post2))
+		})
+	}
+}
+
 var markdownSample, markdownSampleWithRewrittenImageURLs string
 
 func init() {
