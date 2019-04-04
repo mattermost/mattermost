@@ -4,6 +4,8 @@
 package commands
 
 import (
+	"fmt"
+	"github.com/mattermost/mattermost-server/config"
 	"io/ioutil"
 	"os"
 	"reflect"
@@ -433,6 +435,43 @@ func TestUpdateMap(t *testing.T) {
 		})
 	}
 
+}
+
+func TestConfigMigrate(t *testing.T) {
+	th := Setup()
+	defer th.TearDown()
+
+	sqlSettings := mainHelper.GetSqlSettings()
+	sqlDSN := fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource)
+	fileDSN := "config.json"
+
+	ds, err := config.NewStore(sqlDSN, false)
+	require.NoError(t, err)
+	fs, err := config.NewStore(fileDSN, false)
+	require.NoError(t, err)
+
+	defer ds.Close()
+	defer fs.Close()
+
+	t.Run("Should error without --to parameter", func(t *testing.T) {
+		assert.Error(t, th.RunCommand(t, "config", "migrate", "--from", fileDSN))
+	})
+
+	t.Run("Should work passing the --to and the --from", func(t *testing.T) {
+		assert.NoError(t, th.RunCommand(t, "config", "migrate", "--from", fileDSN, "--to", sqlDSN))
+	})
+
+	t.Run("Should work passing --to and no --from (taking the default config file)", func(t *testing.T) {
+		assert.NoError(t, th.RunCommand(t, "config", "migrate", "--to", sqlDSN))
+	})
+
+	t.Run("Should fail passing an invalid --to", func(t *testing.T) {
+		assert.Error(t, th.RunCommand(t, "config", "migrate", "--from", fileDSN, "--to", "mysql://asd"))
+	})
+
+	t.Run("Should fail passing an invalid --from", func(t *testing.T) {
+		assert.Error(t, th.RunCommand(t, "config", "migrate", "--from", "invalid/path", "--to", sqlDSN))
+	})
 }
 
 func contains(configMap map[string]interface{}, v interface{}, configSettings []string) bool {
