@@ -240,7 +240,7 @@ func configMigrateCmdF(command *cobra.Command, args []string) error {
 	}
 
 	// Parse destination config store - MarkFlagRequired handles errors here
-	to, err := command.Flags().GetString("to")
+	to, _ := command.Flags().GetString("to")
 
 	// Get source config store - invalid config will throw error here
 	fromConfigStore, err := config.NewStore(from, false)
