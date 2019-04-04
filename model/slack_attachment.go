@@ -114,7 +114,7 @@ func (s *SlackAttachment) Equals(input *SlackAttachment) bool {
 	if s.Timestamp != input.Timestamp {
 		return false
 	}
-	
+
 	return true
 }
 
