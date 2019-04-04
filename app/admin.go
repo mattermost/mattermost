@@ -61,7 +61,7 @@ func (a *App) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) {
 		var newLine = []byte{'\n'}
 		var lineCount int
 		const searchPos = -1
-		lineEndPos, err := file.Seek(0, io.SeekEnd)
+		lineEndPos, err := file.Seek(-1, io.SeekEnd) // we skip the last byte of the file, since it's \n
 		if err != nil {
 			return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, err.Error(), http.StatusInternalServerError)
 		}
