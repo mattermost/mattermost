@@ -3832,7 +3832,7 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
-    "translation": ""
+    "translation": "Failed to decode base64 signature of trigger ID for interactive dialog."
   },
   {
     "id": "interactive_message.decode_trigger_id.expired",
@@ -5096,7 +5096,7 @@
   },
   {
     "id": "plugin.api.get_users_in_channel",
-    "translation": ""
+    "translation": "Unable to get the users, invalid sorting criteria"
   },
   {
     "id": "plugin.api.update_user_status.bad_status",
@@ -5232,11 +5232,11 @@
   },
   {
     "id": "store.sql_channel.get_all_channels.get.app_error",
-    "translation": ""
+    "translation": "Unable to get all the channels"
   },
   {
     "id": "store.sql_channel.get_all_direct.app_error",
-    "translation": ""
+    "translation": "Unable to get all the direct channels"
   },
   {
     "id": "store.sql_channel.get_by_name.existing.app_error",
@@ -5780,11 +5780,11 @@
   },
   {
     "id": "store.sql_link_metadata.get.app_error",
-    "translation": ""
+    "translation": "Unable to get the link metadata"
   },
   {
     "id": "store.sql_link_metadata.save.app_error",
-    "translation": ""
+    "translation": "Unable to save the link metadata"
   },
   {
     "id": "store.sql_oauth.delete.commit_transaction.app_error",
@@ -5892,7 +5892,7 @@
   },
   {
     "id": "store.sql_plugin_store.list.app_error",
-    "translation": ""
+    "translation": "Unable to list all the plugin keys"
   },
   {
     "id": "store.sql_plugin_store.save.app_error",
@@ -5924,7 +5924,7 @@
   },
   {
     "id": "store.sql_post.get_direct_posts.app_error",
-    "translation": ""
+    "translation": "Unable to get direct posts"
   },
   {
     "id": "store.sql_post.get_flagged_posts.app_error",
@@ -6140,7 +6140,7 @@
   },
   {
     "id": "store.sql_role.get_all.app_error",
-    "translation": ""
+    "translation": "Unable to get all the roles"
   },
   {
     "id": "store.sql_role.get_by_name.app_error",
