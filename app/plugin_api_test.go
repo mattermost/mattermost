@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"image"
 	"image/color"
 	"image/png"
@@ -21,13 +20,16 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/mattermost/mattermost-server/utils/fileutils"
+
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/mattermost/mattermost-server/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func setupPluginApiTest(t *testing.T, pluginCode string, pluginManifest string, pluginId string, app *App) {
+func setupPluginApiTest(t *testing.T, pluginCode string, pluginManifest string, pluginId string, app *App) string {
 	pluginDir, err := ioutil.TempDir("", "")
 	require.NoError(t, err)
 	webappPluginDir, err := ioutil.TempDir("", "")
@@ -39,7 +41,7 @@ func setupPluginApiTest(t *testing.T, pluginCode string, pluginManifest string, 
 	require.NoError(t, err)
 
 	backend := filepath.Join(pluginDir, pluginId, "backend.exe")
-	compileGo(t, pluginCode, backend)
+	utils.CompileGo(t, pluginCode, backend)
 
 	ioutil.WriteFile(filepath.Join(pluginDir, pluginId, "plugin.json"), []byte(pluginManifest), 0600)
 	manifest, activated, reterr := env.Activate(pluginId)
@@ -48,8 +50,39 @@ func setupPluginApiTest(t *testing.T, pluginCode string, pluginManifest string, 
 	require.True(t, activated)
 
 	app.SetPluginsEnvironment(env)
+
+	return pluginDir
 }
 
+func TestPublicFilesPathConfiguration(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	pluginID := "com.mattermost.sample"
+
+	pluginDir := setupPluginApiTest(t,
+		`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost-server/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`,
+		`{"id": "com.mattermost.sample", "server": {"executable": "backend.exe"}, "settings_schema": {"settings": []}}`, pluginID, th.App)
+
+	publicFilesFolderInTest := filepath.Join(pluginDir, pluginID, "public")
+	publicFilesPath, err := th.App.GetPluginsEnvironment().PublicFilesPath(pluginID)
+	assert.NoError(t, err)
+	assert.Equal(t, publicFilesPath, publicFilesFolderInTest)
+}
 func TestPluginAPIGetUsers(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
@@ -460,7 +493,7 @@ func TestPluginAPIGetPlugins(t *testing.T) {
 	var pluginManifests []*model.Manifest
 	for _, pluginID := range pluginIDs {
 		backend := filepath.Join(pluginDir, pluginID, "backend.exe")
-		compileGo(t, pluginCode, backend)
+		utils.CompileGo(t, pluginCode, backend)
 
 		ioutil.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(fmt.Sprintf(`{"id": "%s", "server": {"executable": "backend.exe"}}`, pluginID)), 0600)
 		manifest, activated, reterr := env.Activate(pluginID)

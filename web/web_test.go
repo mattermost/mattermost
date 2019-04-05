@@ -5,11 +5,22 @@ package web
 
 import (
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"testing"
+
+	"github.com/mattermost/mattermost-server/testlib"
 
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/config"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/mattermost/mattermost-server/utils"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var ApiClient *model.Client4
@@ -18,12 +29,15 @@ var URL string
 type TestHelper struct {
 	App    *app.App
 	Server *app.Server
+	Web    *Web
 
 	BasicUser    *model.User
 	BasicChannel *model.Channel
 	BasicTeam    *model.Team
 
 	SystemAdminUser *model.User
+
+	tempWorkspace string
 }
 
 func Setup() *TestHelper {
@@ -52,7 +66,7 @@ func Setup() *TestHelper {
 	}
 	a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 
-	New(s, s.AppOptions, s.Router)
+	web := New(s, s.AppOptions, s.Router)
 	URL = fmt.Sprintf("http://localhost:%v", a.Srv.ListenAddr.Port)
 	ApiClient = model.NewAPIv4Client(URL)
 
@@ -68,7 +82,22 @@ func Setup() *TestHelper {
 	th := &TestHelper{
 		App:    a,
 		Server: s,
+		Web:    web,
 	}
+
+	return th
+}
+
+func (th *TestHelper) InitPlugins() *TestHelper {
+
+	if th.tempWorkspace == "" {
+		th.tempWorkspace, _ = testlib.SetupTestResources()
+	}
+
+	pluginDir := filepath.Join(th.tempWorkspace, "plugins")
+	webappDir := filepath.Join(th.tempWorkspace, "webapp")
+
+	th.App.InitPlugins(pluginDir, webappDir)
 
 	return th
 }
@@ -96,6 +125,82 @@ func (th *TestHelper) TearDown() {
 	if err := recover(); err != nil {
 		panic(err)
 	}
+}
+
+func TestPublicFilesRequest(t *testing.T) {
+	th := Setup().InitPlugins()
+	defer th.TearDown()
+
+	pluginDir, err := ioutil.TempDir("", "")
+	require.NoError(t, err)
+	webappPluginDir, err := ioutil.TempDir("", "")
+	require.NoError(t, err)
+	defer os.RemoveAll(pluginDir)
+	defer os.RemoveAll(webappPluginDir)
+
+	env, err := plugin.NewEnvironment(th.App.NewPluginAPI, pluginDir, webappPluginDir, th.App.Log)
+	require.NoError(t, err)
+
+	pluginID := "com.mattermost.sample"
+	pluginCode :=
+		`
+	package main
+
+	import (
+		"github.com/mattermost/mattermost-server/plugin"
+	)
+
+	type MyPlugin struct {
+		plugin.MattermostPlugin
+	}
+
+	func main() {
+		plugin.ClientMain(&MyPlugin{})
+	}
+	
+	`
+	// Compile and write the plugin
+	backend := filepath.Join(pluginDir, pluginID, "backend.exe")
+	utils.CompileGo(t, pluginCode, backend)
+
+	// Write the plugin.json manifest
+	pluginManifest := `{"id": "com.mattermost.sample", "server": {"executable": "backend.exe"}, "settings_schema": {"settings": []}}`
+	ioutil.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(pluginManifest), 0600)
+
+	// Write the test public file
+	helloHTML := `Hello from the static files public folder for the com.mattermost.sample plugin!`
+	htmlFolderPath := filepath.Join(pluginDir, pluginID, "public")
+	os.MkdirAll(htmlFolderPath, os.ModePerm)
+	htmlFilePath := filepath.Join(htmlFolderPath, "hello.html")
+
+	htmlFileErr := ioutil.WriteFile(htmlFilePath, []byte(helloHTML), 0600)
+	assert.NoError(t, htmlFileErr)
+
+	nefariousHTML := `You shouldn't be able to get here!`
+	htmlFileErr = ioutil.WriteFile(filepath.Join(pluginDir, pluginID, "nefarious-file-access.html"), []byte(nefariousHTML), 0600)
+	assert.NoError(t, htmlFileErr)
+
+	manifest, activated, reterr := env.Activate(pluginID)
+	require.Nil(t, reterr)
+	require.NotNil(t, manifest)
+	require.True(t, activated)
+
+	th.App.SetPluginsEnvironment(env)
+
+	req, _ := http.NewRequest("GET", "/plugins/com.mattermost.sample/public/hello.html", nil)
+	res := httptest.NewRecorder()
+	th.Web.MainRouter.ServeHTTP(res, req)
+	assert.Equal(t, helloHTML, res.Body.String())
+
+	req, _ = http.NewRequest("GET", "/plugins/com.mattermost.sample/nefarious-file-access.html", nil)
+	res = httptest.NewRecorder()
+	th.Web.MainRouter.ServeHTTP(res, req)
+	assert.Equal(t, 404, res.Code)
+
+	req, _ = http.NewRequest("GET", "/plugins/com.mattermost.sample/public/../nefarious-file-access.html", nil)
+	res = httptest.NewRecorder()
+	th.Web.MainRouter.ServeHTTP(res, req)
+	assert.Equal(t, 301, res.Code)
 }
 
 /* Test disabled for now so we don't requrie the client to build. Maybe re-enable after client gets moved out.

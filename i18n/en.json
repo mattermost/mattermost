@@ -56,38 +56,6 @@
     "translation": "No file under 'certificate' in request."
   },
   {
-    "id": "api.restricted_system_admin",
-    "translation": "This action is forbidden to a restricted system admin."
-  },
-  {
-    "id": "app.submit_interactive_dialog.json_error",
-    "translation": "Encountered an error encoding JSON for the interactive dialog."
-  },
-  {
-    "id": "interactive_message.generate_trigger_id.signing_failed",
-    "translation": "Failed to sign generated trigger ID for interactive dialog."
-  },
-  {
-    "id": "interactive_message.decode_trigger_id.base64_decode_failed",
-    "translation": "Failed to decode base64 for trigger ID for interactive dialog."
-  },
-  {
-    "id": "interactive_message.decode_trigger_id.missing_data",
-    "translation": "Trigger ID missing required data for interactive dialog."
-  },
-  {
-    "id": "interactive_message.decode_trigger_id.expired",
-    "translation": "Trigger ID for interactive dialog is expired. Trigger IDs live for a maximum of {{.Seconds}} seconds."
-  },
-  {
-    "id": "interactive_message.decode_trigger_id.signature_decode_failed",
-    "translation": "Failed to decode base64 signature of trigger ID for interactive dialog."
-  },
-  {
-    "id": "interactive_message.decode_trigger_id.verify_signature_failed",
-    "translation": "Signature verification failed of trigger ID for interactive dialog."
-  },
-  {
     "id": "api.admin.add_certificate.no_file.app_error",
     "translation": "No file under 'certificate' in request."
   },
@@ -98,6 +66,10 @@
   {
     "id": "api.admin.add_certificate.saving.app_error",
     "translation": "Could not save certificate file."
+  },
+  {
+    "id": "api.admin.delete_brand_image.storage.not_found",
+    "translation": "Unable to delete brand image, not found."
   },
   {
     "id": "api.admin.file_read_error",
@@ -356,6 +328,10 @@
     "translation": "Integrations have been limited to admins only."
   },
   {
+    "id": "api.command.command_post.forbidden.app_error",
+    "translation": "Specified user is not a member of specified channel."
+  },
+  {
     "id": "api.command.disabled.app_error",
     "translation": "Commands have been disabled by the system admin."
   },
@@ -390,10 +366,6 @@
   {
     "id": "api.command.execute_command.start.app_error",
     "translation": "No command trigger found"
-  },
-  {
-    "id": "api.command.command_post.forbidden.app_error",
-    "translation": "Specified user is not a member of specified channel."
   },
   {
     "id": "api.command.invite_people.desc",
@@ -1031,6 +1003,14 @@
     "translation": "Session is not OAuth but token was provided in the query string"
   },
   {
+    "id": "api.create_terms_of_service.custom_terms_of_service_disabled.app_error",
+    "translation": "Custom terms of service feature is disabled"
+  },
+  {
+    "id": "api.create_terms_of_service.empty_text.app_error",
+    "translation": "Please enter text for your Custom Terms of Service."
+  },
+  {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
     "translation": "Email batching job's receiving channel was full. Please increase the EmailBatchingBufferSize."
   },
@@ -1213,18 +1193,6 @@
     "translation": "Bad connection to S3 or minio."
   },
   {
-    "id": "api.file.upload_file.read_request.app_error",
-    "translation": "Unable to upload file(s). Error reading or parsing request data."
-  },
-  {
-    "id": "api.file.upload_file.read_form_value.app_error",
-    "translation": "Unable to upload file(s). Error reading the value for {{.Formname}}."
-  },
-  {
-    "id": "api.file.upload_file.multiple_channel_ids.app_error",
-    "translation": "Unable to upload file(s). Multiple conflicting channel_ids."
-  },
-  {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
     "translation": "Unable to upload file(s). Have {{.NumClientIds}} client_ids for {{.NumFiles}} files."
   },
@@ -1233,12 +1201,28 @@
     "translation": "Unable to upload files. Incorrect number of files specified."
   },
   {
+    "id": "api.file.upload_file.large_image.app_error",
+    "translation": "File above maximum dimensions could not be uploaded: {{.Filename}}"
+  },
+  {
     "id": "api.file.upload_file.large_image_detailed.app_error",
     "translation": "{{.Filename}} dimensions ({{.Width}} by {{.Height}} pixels) exceed the limits"
   },
   {
-    "id": "api.file.upload_file.large_image.app_error",
-    "translation": "File above maximum dimensions could not be uploaded: {{.Filename}}"
+    "id": "api.file.upload_file.multiple_channel_ids.app_error",
+    "translation": "Unable to upload file(s). Multiple conflicting channel_ids."
+  },
+  {
+    "id": "api.file.upload_file.read_form_value.app_error",
+    "translation": "Unable to upload file(s). Error reading the value for {{.Formname}}."
+  },
+  {
+    "id": "api.file.upload_file.read_request.app_error",
+    "translation": "Unable to upload file(s). Error reading or parsing request data."
+  },
+  {
+    "id": "api.file.upload_file.rejected_by_plugin.app_error",
+    "translation": "Unable to upload file {{.Filename}}. Rejected by plugin: {{.Reason}}"
   },
   {
     "id": "api.file.upload_file.storage.app_error",
@@ -1251,10 +1235,6 @@
   {
     "id": "api.file.upload_file.too_large_detailed.app_error",
     "translation": "Unable to upload file {{.Filename}}. {{.Length}} bytes exceeds the maximum allowed {{.Limit}} bytes."
-  },
-  {
-    "id": "api.file.upload_file.rejected_by_plugin.app_error",
-    "translation": "Unable to upload file {{.Filename}}. Rejected by plugin: {{.Reason}}"
   },
   {
     "id": "api.file.write_file.s3.app_error",
@@ -1275,6 +1255,18 @@
   {
     "id": "api.incoming_webhook.invalid_username.app_error",
     "translation": "Invalid username."
+  },
+  {
+    "id": "api.io_error",
+    "translation": "input/output error"
+  },
+  {
+    "id": "api.ldap_group.not_found",
+    "translation": "ldap group not found"
+  },
+  {
+    "id": "api.ldap_groups.license_error",
+    "translation": "your license does not support ldap groups"
   },
   {
     "id": "api.license.add_license.array.app_error",
@@ -1315,6 +1307,10 @@
   {
     "id": "api.license.client.old_format.app_error",
     "translation": "New format for the client license is not supported yet. Please specify format=old in the query string."
+  },
+  {
+    "id": "api.marshal_error",
+    "translation": "marshal error"
   },
   {
     "id": "api.oauth.allow_oauth.redirect_callback.app_error",
@@ -1461,22 +1457,6 @@
     "translation": "This channel is read-only. Only members with permission can post here."
   },
   {
-    "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
-    "translation": "Can not update a post in a deleted channel."
-  },
-  {
-    "id": "api.post.update_post.can_not_update_post_in_deleted.error",
-    "translation": "Can not update a post in a deleted channel."
-  },
-  {
-    "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
-    "translation": "Can not delete a post in a deleted channel."
-  },
-  {
-    "id": "api.post.save_is_pinned_post.town_square_read_only",
-    "translation": "This channel is read-only. Only members with permission can pin or unpin posts here."
-  },
-  {
     "id": "api.post.create_webhook_post.creating.app_error",
     "translation": "Error creating post"
   },
@@ -1487,6 +1467,10 @@
   {
     "id": "api.post.deduplicate_create_post.pending",
     "translation": "Rejected post since another client is making the same request."
+  },
+  {
+    "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
+    "translation": "Can not delete a post in a deleted channel."
   },
   {
     "id": "api.post.disabled_all",
@@ -1527,6 +1511,14 @@
     "translation": "Link previews have been disabled by the system administrator."
   },
   {
+    "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
+    "translation": "Can not update a post in a deleted channel."
+  },
+  {
+    "id": "api.post.save_is_pinned_post.town_square_read_only",
+    "translation": "This channel is read-only. Only members with permission can pin or unpin posts here."
+  },
+  {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
     "translation": " notified the channel."
   },
@@ -1553,6 +1545,10 @@
   {
     "id": "api.post.send_notifications_and_forget.push_message",
     "translation": "sent you a message."
+  },
+  {
+    "id": "api.post.update_post.can_not_update_post_in_deleted.error",
+    "translation": "Can not update a post in a deleted channel."
   },
   {
     "id": "api.post.update_post.find.app_error",
@@ -1605,6 +1601,10 @@
   {
     "id": "api.reaction.town_square_read_only",
     "translation": "Reacting to posts is not possible in read-only channels."
+  },
+  {
+    "id": "api.restricted_system_admin",
+    "translation": "This action is forbidden to a restricted system admin."
   },
   {
     "id": "api.roles.patch_roles.license.error",
@@ -2175,10 +2175,6 @@
     "translation": "Unsupported OAuth service provider"
   },
   {
-    "id": "api.user.autocomplete_users.invalid_team_id",
-    "translation": "Invalid team id"
-  },
-  {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
     "translation": "Your account is locked because of too many failed password attempts. Please reset your password."
   },
@@ -2203,6 +2199,10 @@
     "translation": "{{.Service}} SSO through OAuth 2.0 not available on this server"
   },
   {
+    "id": "api.user.create_email_token.error",
+    "translation": "Failed to create token data for email verification"
+  },
+  {
     "id": "api.user.create_oauth_user.already_attached.app_error",
     "translation": "There is already an account associated with that email address using a sign in method other than {{.Service}}. Please sign in using {{.Auth}}."
   },
@@ -2213,6 +2213,10 @@
   {
     "id": "api.user.create_oauth_user.not_available.app_error",
     "translation": "{{.Service}} SSO through OAuth 2.0 not available on this server"
+  },
+  {
+    "id": "api.user.create_password_token.error",
+    "translation": "Unable to create password recovery token"
   },
   {
     "id": "api.user.create_profile_image.default_font.app_error",
@@ -2233,14 +2237,6 @@
   {
     "id": "api.user.create_user.disabled.app_error",
     "translation": "User creation is disabled."
-  },
-  {
-    "id": "api.user.create_user.missing_invite_id.app_error",
-    "translation": "Missing Invite Id."
-  },
-  {
-    "id": "api.user.create_user.missing_token.app_error",
-    "translation": "Missing Token."
   },
   {
     "id": "api.user.create_user.no_open_server",
@@ -2287,12 +2283,12 @@
     "translation": "This user account does not use AD/LDAP"
   },
   {
-    "id": "api.user.login.bot_login_forbidden.app_error",
-    "translation": "Bot login is forbidden"
-  },
-  {
     "id": "api.user.login.blank_pwd.app_error",
     "translation": "Password field must not be blank"
+  },
+  {
+    "id": "api.user.login.bot_login_forbidden.app_error",
+    "translation": "Bot login is forbidden"
   },
   {
     "id": "api.user.login.client_side_cert.certificate.app_error",
@@ -2363,20 +2359,8 @@
     "translation": "Unable to reset password for SSO accounts"
   },
   {
-    "id": "api.user.saml.app_error",
-    "translation": "Unable to process SAML login request."
-  },
-  {
-    "id": "api.user.saml.extension_id.app_error",
-    "translation": "Invalid extension id"
-  },
-  {
-    "id": "api.user.saml.extension_unsupported",
-    "translation": "Extensions are not supported."
-  },
-  {
-    "id": "api.user.saml.invalid_extension",
-    "translation": "Extension with extension_id={{.ExtensionId}} is not supported."
+    "id": "api.user.reset_password.token_parse.error",
+    "translation": "Unable to parse the reset password token"
   },
   {
     "id": "api.user.saml.not_available.app_error",
@@ -2397,18 +2381,6 @@
   {
     "id": "api.user.send_email_change_verify_email_and_forget.error",
     "translation": "Failed to send email change verification email successfully"
-  },
-  {
-    "id": "api.user.verify_email.link_expired.app_error",
-    "translation": "The email verification link has expired."
-  },
-  {
-    "id": "api.user.verify_email.token_parse.error",
-    "translation": "Failed to parse token data from email verification"
-  },
-  {
-    "id": "api.user.create_email_token.error",
-    "translation": "Failed to create token data for email verification"
   },
   {
     "id": "api.user.send_mfa_change_email.error",
@@ -2527,8 +2499,12 @@
     "translation": "Bad verify email token type."
   },
   {
-    "id": "api.user.register_terms_of_service_action.bad_value.app_error",
-    "translation": "Bad accepted value"
+    "id": "api.user.verify_email.link_expired.app_error",
+    "translation": "The email verification link has expired."
+  },
+  {
+    "id": "api.user.verify_email.token_parse.error",
+    "translation": "Failed to parse token data from email verification"
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
@@ -2583,14 +2559,6 @@
     "translation": "Invalid {{.Name}} parameter"
   },
   {
-    "id": "api.create_terms_of_service.empty_text.app_error",
-    "translation": "Please enter text for your Custom Terms of Service."
-  },
-  {
-    "id": "api.create_terms_of_service.custom_terms_of_service_disabled.app_error",
-    "translation": "Custom terms of service feature is disabled"
-  },
-  {
     "id": "app.admin.test_email.failure",
     "translation": "Connection unsuccessful: {{.Error}}"
   },
@@ -2625,6 +2593,10 @@
   {
     "id": "app.cluster.404.app_error",
     "translation": "Cluster API endpoint not found."
+  },
+  {
+    "id": "app.export.export_custom_emoji.copy_emoji_images.error",
+    "translation": "Unable to copy custom emoji images"
   },
   {
     "id": "app.export.export_write_line.io_writer.error",
@@ -2777,6 +2749,10 @@
   {
     "id": "app.import.import_user_channels.save_preferences.error",
     "translation": "Error importing user channel memberships. Failed to save preferences."
+  },
+  {
+    "id": "app.import.import_user_teams.save_preferences.error",
+    "translation": "Unable to save the team theme preferences"
   },
   {
     "id": "app.import.process_import_data_file_version_line.invalid_version.error",
@@ -3071,6 +3047,22 @@
     "translation": "Invalid roles for User's Channel Membership."
   },
   {
+    "id": "app.import.validate_user_import_data.advanced_props_email_interval.error",
+    "translation": "Invalid email batching interval setting for User"
+  },
+  {
+    "id": "app.import.validate_user_import_data.advanced_props_feature_markdown_preview.error",
+    "translation": "Invalid markdown preview setting for User"
+  },
+  {
+    "id": "app.import.validate_user_import_data.advanced_props_formatting.error",
+    "translation": "Invalid post formatting setting for User"
+  },
+  {
+    "id": "app.import.validate_user_import_data.advanced_props_show_unread_section.error",
+    "translation": "Invalid show unread section setting for User"
+  },
+  {
     "id": "app.import.validate_user_import_data.auth_data_and_password.error",
     "translation": "User AuthData and Password are mutually exclusive."
   },
@@ -3155,6 +3147,10 @@
     "translation": "Invalid roles for User's Team Membership."
   },
   {
+    "id": "app.import.validate_user_teams_import_data.invalid_team_theme.error",
+    "translation": "Invalid team theme for the User"
+  },
+  {
     "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
     "translation": "Team name missing from User's Team Membership."
   },
@@ -3229,10 +3225,6 @@
   {
     "id": "app.notification.subject.notification.full",
     "translation": "[{{ .SiteName }}] Notification in {{ .TeamName}} on {{.Month}} {{.Day}}, {{.Year}}"
-  },
-  {
-    "id": "app.save_config.app_error",
-    "translation": "An error occurred saving the configuration"
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
@@ -3311,8 +3303,16 @@
     "translation": "The provided role does not exist"
   },
   {
+    "id": "app.save_config.app_error",
+    "translation": "An error occurred saving the configuration"
+  },
+  {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
     "translation": "This API endpoint is not accessible as required migrations have not yet completed."
+  },
+  {
+    "id": "app.submit_interactive_dialog.json_error",
+    "translation": "Encountered an error encoding JSON for the interactive dialog."
   },
   {
     "id": "app.system_install_date.parse_int.app_error",
@@ -3321,6 +3321,10 @@
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
     "translation": "This team has reached the maximum number of allowed accounts. Contact your System Administrator to set a higher limit."
+  },
+  {
+    "id": "app.team.rename_team.name_occupied",
+    "translation": "Unable to rename the team, the name is already in use"
   },
   {
     "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
@@ -3463,8 +3467,16 @@
     "translation": "Setting up Elasticsearch Client Failed"
   },
   {
-    "id": "ent.elasticsearch.create_index_if_not_exists.index_create_failed",
-    "translation": "Failed to create Elasticsearch index"
+    "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
+    "translation": "Failed to create Elasticsearch template for channels"
+  },
+  {
+    "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
+    "translation": "Failed to create Elasticsearch template for posts"
+  },
+  {
+    "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
+    "translation": "Failed to create Elasticsearch template for users"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
@@ -3475,16 +3487,32 @@
     "translation": "Failed to get Elasticsearch indexes"
   },
   {
+    "id": "ent.elasticsearch.delete_channel.error",
+    "translation": "Failed to delete the channel"
+  },
+  {
     "id": "ent.elasticsearch.delete_post.error",
     "translation": "Failed to delete the post"
+  },
+  {
+    "id": "ent.elasticsearch.delete_user.error",
+    "translation": "Failed to delete the user"
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
     "translation": "Elasticsearch search is not enabled on this server"
   },
   {
+    "id": "ent.elasticsearch.index_channel.error",
+    "translation": "Failed to index the channel"
+  },
+  {
     "id": "ent.elasticsearch.index_post.error",
     "translation": "Failed to index the post"
+  },
+  {
+    "id": "ent.elasticsearch.index_user.error",
+    "translation": "Failed to index the user"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
@@ -3511,6 +3539,18 @@
     "translation": "Failed to delete Elasticsearch index"
   },
   {
+    "id": "ent.elasticsearch.search_channels.disabled",
+    "translation": "Elasticsearch searching is disabled on this server"
+  },
+  {
+    "id": "ent.elasticsearch.search_channels.search_failed",
+    "translation": "Search failed to complete"
+  },
+  {
+    "id": "ent.elasticsearch.search_channels.unmarshall_channel_failed",
+    "translation": "Failed to decode search results"
+  },
+  {
     "id": "ent.elasticsearch.search_posts.disabled",
     "translation": "Elasticsearch searching is disabled on this server"
   },
@@ -3524,6 +3564,18 @@
   },
   {
     "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
+    "translation": "Failed to decode search results"
+  },
+  {
+    "id": "ent.elasticsearch.search_users.disabled",
+    "translation": "Elasticsearch searching is disabled on this server"
+  },
+  {
+    "id": "ent.elasticsearch.search_users.search_failed",
+    "translation": "Search failed to complete"
+  },
+  {
+    "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
     "translation": "Failed to decode search results"
   },
   {
@@ -3557,6 +3609,10 @@
   {
     "id": "ent.elasticsearch.test_config.reenter_password",
     "translation": "The Elasticsearch Server URL or Username has changed. Please re-enter the Elasticsearch password to test connection."
+  },
+  {
+    "id": "ent.ldap.app_error",
+    "translation": "ldap interface was nil"
   },
   {
     "id": "ent.ldap.create_fail",
@@ -3599,8 +3655,20 @@
     "translation": "User not registered on AD/LDAP server"
   },
   {
+    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
+    "translation": "error deleting team or channel memberships"
+  },
+  {
     "id": "ent.ldap.syncronize.get_all.app_error",
     "translation": "Unable to get all users using AD/LDAP"
+  },
+  {
+    "id": "ent.ldap.syncronize.get_all_groups.app_error",
+    "translation": "error retrieving groups"
+  },
+  {
+    "id": "ent.ldap.syncronize.populate_syncables",
+    "translation": "error populating syncables"
   },
   {
     "id": "ent.ldap.syncronize.search_failure.app_error",
@@ -3609,6 +3677,26 @@
   {
     "id": "ent.ldap.validate_filter.app_error",
     "translation": "Invalid AD/LDAP Filter"
+  },
+  {
+    "id": "ent.ldap_groups.group_search_error",
+    "translation": "error retrieving ldap group"
+  },
+  {
+    "id": "ent.ldap_groups.groups_search_error",
+    "translation": "error retrieving ldap groups"
+  },
+  {
+    "id": "ent.ldap_groups.members_of_group_error",
+    "translation": "error retrieving members of group"
+  },
+  {
+    "id": "ent.ldap_groups.no_rows",
+    "translation": "no groups found with matching uid"
+  },
+  {
+    "id": "ent.ldap_groups.reachable_groups_error",
+    "translation": "error retrieving groups for user"
   },
   {
     "id": "ent.message_export.global_relay.attach_file.app_error",
@@ -3737,6 +3825,34 @@
   {
     "id": "ent.saml.service_disable.app_error",
     "translation": "SAML 2.0 is not configured or supported on this server."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.base64_decode_failed",
+    "translation": "Failed to decode base64 for trigger ID for interactive dialog."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
+    "translation": "Failed to decode base64 signature of trigger ID for interactive dialog."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.expired",
+    "translation": "Trigger ID for interactive dialog is expired. Trigger IDs live for a maximum of {{.Seconds}} seconds."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.missing_data",
+    "translation": "Trigger ID missing required data for interactive dialog."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.signature_decode_failed",
+    "translation": "Failed to decode base64 signature of trigger ID for interactive dialog."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.verify_signature_failed",
+    "translation": "Signature verification failed of trigger ID for interactive dialog."
+  },
+  {
+    "id": "interactive_message.generate_trigger_id.signing_failed",
+    "translation": "Failed to sign generated trigger ID for interactive dialog."
   },
   {
     "id": "jobs.do_job.batch_size.parse_error",
@@ -3963,78 +4079,6 @@
     "translation": "We encountered an error while connecting to the server"
   },
   {
-    "id": "model.client.create_emoji.emoji.app_error",
-    "translation": "Unable to attach emoji data to request"
-  },
-  {
-    "id": "model.client.create_emoji.image.app_error",
-    "translation": "Unable to attach image to request"
-  },
-  {
-    "id": "model.client.create_emoji.writer.app_error",
-    "translation": "Unable to write request"
-  },
-  {
-    "id": "model.client.get_flagged_posts_in_channel.missing_parameter.app_error",
-    "translation": "Missing channel parameter"
-  },
-  {
-    "id": "model.client.get_flagged_posts_in_team.missing_parameter.app_error",
-    "translation": "Missing team parameter"
-  },
-  {
-    "id": "model.client.get_team_icon.app_error",
-    "translation": "Unable to read the team icon from the body response."
-  },
-  {
-    "id": "model.client.read_file.app_error",
-    "translation": "We encountered an error while reading the file"
-  },
-  {
-    "id": "model.client.set_profile_user.no_file.app_error",
-    "translation": "No file under 'image' in request"
-  },
-  {
-    "id": "model.client.set_profile_user.writer.app_error",
-    "translation": "Unable to write request"
-  },
-  {
-    "id": "model.client.set_team_icon.no_file.app_error",
-    "translation": "No file under 'image' in request."
-  },
-  {
-    "id": "model.client.set_team_icon.writer.app_error",
-    "translation": "Unable to write the request."
-  },
-  {
-    "id": "model.client.upload_post_attachment.channel_id.app_error",
-    "translation": "Error writing channel id to multipart form"
-  },
-  {
-    "id": "model.client.upload_post_attachment.file.app_error",
-    "translation": "Error writing file to multipart form"
-  },
-  {
-    "id": "model.client.upload_post_attachment.file_size.app_error",
-    "translation": "Error writing fileSize to multipart form"
-  },
-  {
-    "id": "model.client.upload_post_attachment.import_from.app_error",
-    "translation": "Error writing importFrom to multipart form"
-  },
-  {
-    "id": "model.client.upload_post_attachment.writer.app_error",
-    "translation": "Error closing multipart writer"
-  },
-  {
-    "id": "model.client.upload_saml_cert.app_error",
-    "translation": "Error creating SAML certificate multipart form request"
-  },
-  {
-    "id": "model.client.writer.app_error",
-    "translation": "Unable to build multipart request"
-  },
-  {
     "id": "model.cluster.is_valid.create_at.app_error",
     "translation": "CreateAt must be set"
   },
@@ -4203,6 +4247,10 @@
     "translation": "Elastic Search ConnectionUrl setting must be provided when Elastic Search indexing is enabled."
   },
   {
+    "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
+    "translation": "Elastic Search IndexingEnabled setting must be set to true when Elastic Search AutocompleteEnabled is set to true."
+  },
+  {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
     "translation": "Elastic Search IndexingEnabled setting must be set to true when Elastic Search SearchEnabled is set to true."
   },
@@ -4229,10 +4277,6 @@
   {
     "id": "model.config.is_valid.email_notification_contents_type.app_error",
     "translation": "Invalid email notification contents type for email settings. Must be one of either 'full' or 'generic'."
-  },
-  {
-    "id": "model.config.is_valid.email_salt.app_error",
-    "translation": "Invalid invite salt for email settings. Must be 32 chars or more."
   },
   {
     "id": "model.config.is_valid.email_security.app_error",
@@ -4427,12 +4471,12 @@
     "translation": "Unable to enable email batching when SiteURL isn't set."
   },
   {
-    "id": "model.config.is_valid.sitename_length.app_error",
-    "translation": "Site name must be less than or equal to {{.MaxLength}} characters."
-  },
-  {
     "id": "model.config.is_valid.sitename_empty.app_error",
     "translation": "Site name cannot be empty."
+  },
+  {
+    "id": "model.config.is_valid.sitename_length.app_error",
+    "translation": "Site name must be less than or equal to {{.MaxLength}} characters."
   },
   {
     "id": "model.config.is_valid.sql_conn_max_lifetime_milliseconds.app_error",
@@ -4467,10 +4511,6 @@
     "translation": "Time between user typing updates should not be set to less than 1000 milliseconds."
   },
   {
-    "id": "model.config.is_valid.webserver_security.app_error",
-    "translation": "Invalid value for webserver connection security."
-  },
-  {
     "id": "model.config.is_valid.tls_cert_file.app_error",
     "translation": "Invalid value for TLS certificate file - Either use LetsEncrypt or set path to existing certificate file"
   },
@@ -4481,6 +4521,10 @@
   {
     "id": "model.config.is_valid.tls_overwrite_cipher.app_error",
     "translation": "Invalid value passed for TLS overwrite cipher - Please refer to the documentation for valid values"
+  },
+  {
+    "id": "model.config.is_valid.webserver_security.app_error",
+    "translation": "Invalid value for webserver connection security."
   },
   {
     "id": "model.config.is_valid.websocket_url.app_error",
@@ -4537,6 +4581,62 @@
   {
     "id": "model.file_info.is_valid.user_id.app_error",
     "translation": "Invalid value for user_id."
+  },
+  {
+    "id": "model.group.create_at.app_error",
+    "translation": "invalid create at property for group"
+  },
+  {
+    "id": "model.group.delete_at.app_error",
+    "translation": "invalid delete at property for group"
+  },
+  {
+    "id": "model.group.description.app_error",
+    "translation": "invalid description property for group"
+  },
+  {
+    "id": "model.group.display_name.app_error",
+    "translation": "invalid display name property for group"
+  },
+  {
+    "id": "model.group.id.app_error",
+    "translation": "invalid id property for group"
+  },
+  {
+    "id": "model.group.name.app_error",
+    "translation": "invalid name property for group"
+  },
+  {
+    "id": "model.group.remote_id.app_error",
+    "translation": "invalid remote id property for group"
+  },
+  {
+    "id": "model.group.source.app_error",
+    "translation": "invalid source property for group"
+  },
+  {
+    "id": "model.group.update_at.app_error",
+    "translation": "invalid update at property for group"
+  },
+  {
+    "id": "model.group_member.group_id.app_error",
+    "translation": "invalid group id property for group member"
+  },
+  {
+    "id": "model.group_member.user_id.app_error",
+    "translation": "invalid user id property for group member"
+  },
+  {
+    "id": "model.group_syncable.group_id.app_error",
+    "translation": "invalid group id property for group syncable"
+  },
+  {
+    "id": "model.group_syncable.syncable_id.app_error",
+    "translation": "invalid syncable id for group syncable"
+  },
+  {
+    "id": "model.group_syncable.type.app_error",
+    "translation": "invalid type property for group syncable"
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -4613,10 +4713,6 @@
   {
     "id": "model.link_metadata.is_valid.data_type.app_error",
     "translation": "Link metadata data does not match the given type"
-  },
-  {
-    "id": "model.link_metadata.is_valid.id.app_error",
-    "translation": "Link metadata id invalid"
   },
   {
     "id": "model.link_metadata.is_valid.timestamp.app_error",
@@ -4987,14 +5083,6 @@
     "translation": "Invalid user id"
   },
   {
-    "id": "model.user.is_valid.email.app_error",
-    "translation": "Please enter a valid email address."
-  },
-  {
-    "id": "model.user.is_valid.username.app_error",
-    "translation": "Username must begin with a letter and contain between 3 and 22 characters including numbers, lowercase letters, and the symbols \".\", \"-\", and \"_\"."
-  },
-  {
     "id": "model.utils.decode_json.app_error",
     "translation": "could not decode"
   },
@@ -5003,36 +5091,16 @@
     "translation": "Unable to connect to the WebSocket server."
   },
   {
-    "id": "model.terms_of_service.is_valid.id.app_error",
-    "translation": "Invalid term of service id."
-  },
-  {
-    "id": "model.terms_of_service.is_valid.create_at.app_error",
-    "translation": "Missing required term of service property: create_at."
-  },
-  {
-    "id": "model.terms_of_service.is_valid.user_id.app_error",
-    "translation": "Missing required terms of service property: user_id."
-  },
-  {
-    "id": "model.terms_of_service.is_valid.text.app_error",
-    "translation": "Custom terms of service text is too long. Maximum {{.MaxLength}} characters allowed."
-  },
-  {
-    "id": "model.user_terms_of_service.is_valid.user_id.app_error",
-    "translation": "Missing required terms of service property: user_id."
-  },
-  {
-    "id": "model.user_terms_of_service.is_valid.service_terms_id.app_error",
-    "translation": "Missing required terms of service property: service_terms_id."
-  },
-  {
-    "id": "model.user_terms_of_service.is_valid.create_at.app_error",
-    "translation": "Missing required terms of service property: create_at."
-  },
-  {
     "id": "oauth.gitlab.tos.error",
     "translation": "GitLab's Terms of Service have updated. Please go to gitlab.com to accept them and then try logging into Mattermost again."
+  },
+  {
+    "id": "plugin.api.get_users_in_channel",
+    "translation": "Unable to get the users, invalid sorting criteria"
+  },
+  {
+    "id": "plugin.api.update_user_status.bad_status",
+    "translation": "Unable to set the user status. Unknown user status."
   },
   {
     "id": "plugin_api.get_file_link.disabled.app_error",
@@ -5043,28 +5111,24 @@
     "translation": "Unable to get public link for file. File must be attached to a post that can be read."
   },
   {
-    "id": "plugin.api.update_user_status.bad_status",
-    "translation": "Unable to set the user status. Unknown user status."
-  },
-  {
     "id": "plugin_api.send_mail.missing_htmlbody",
     "translation": "Missing HTML Body."
-  },
-  {
-    "id": "plugin_api.send_mail.missing_to",
-    "translation": "Missing TO address."
   },
   {
     "id": "plugin_api.send_mail.missing_subject",
     "translation": "Missing email subject."
   },
   {
-    "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "Unable to get the channels batch for indexing"
+    "id": "plugin_api.send_mail.missing_to",
+    "translation": "Missing TO address."
   },
   {
-    "id": "store.sql_channel.remove_all_deactivated_members.app_error",
-    "translation": "We could not remove the deactivated users from the channel"
+    "id": "store.insert_error",
+    "translation": "insert error"
+  },
+  {
+    "id": "store.select_error",
+    "translation": "select error"
   },
   {
     "id": "store.sql.convert_string_array",
@@ -5143,10 +5207,6 @@
     "translation": "Failed to begin the database transaction"
   },
   {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.rollback_transaction.app_error",
-    "translation": "Failed to rollback the database transaction"
-  },
-  {
     "id": "store.sql_channel.clear_all_custom_role_assignments.select.app_error",
     "translation": "Failed to retrieve the channel members"
   },
@@ -5171,6 +5231,14 @@
     "translation": "Unable to get all the channels"
   },
   {
+    "id": "store.sql_channel.get_all_channels.get.app_error",
+    "translation": "Unable to get all the channels"
+  },
+  {
+    "id": "store.sql_channel.get_all_direct.app_error",
+    "translation": "Unable to get all the direct channels"
+  },
+  {
     "id": "store.sql_channel.get_by_name.existing.app_error",
     "translation": "Unable to find the existing channel"
   },
@@ -5193,6 +5261,14 @@
   {
     "id": "store.sql_channel.get_channels.not_found.app_error",
     "translation": "No channels were found"
+  },
+  {
+    "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
+    "translation": "Unable to get the channels batch for indexing"
+  },
+  {
+    "id": "store.sql_channel.get_channels_by_ids.app_error",
+    "translation": "Unable to get channels by ids"
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.get.app_error",
@@ -5243,10 +5319,6 @@
     "translation": "Unable to get the channel members"
   },
   {
-    "id": "store.sql_channel.get_timezone.app_error",
-    "translation": "We couldn't get the channel members timezones"
-  },
-  {
     "id": "store.sql_channel.get_members_by_ids.app_error",
     "translation": "Unable to get the channel members"
   },
@@ -5273,10 +5345,6 @@
   {
     "id": "store.sql_channel.migrate_channel_members.open_transaction.app_error",
     "translation": "Failed to open the database transaction"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.rollback_transaction.app_error",
-    "translation": "Failed to roll back the database transaction"
   },
   {
     "id": "store.sql_channel.migrate_channel_members.select.app_error",
@@ -5327,6 +5395,10 @@
     "translation": "Unable to find the pinned posts"
   },
   {
+    "id": "store.sql_channel.remove_all_deactivated_members.app_error",
+    "translation": "We could not remove the deactivated users from the channel"
+  },
+  {
     "id": "store.sql_channel.remove_member.app_error",
     "translation": "Unable to remove the channel member"
   },
@@ -5340,18 +5412,6 @@
   },
   {
     "id": "store.sql_channel.reset_all_channel_schemes.open_transaction.app_error",
-    "translation": "Unable to open transaction"
-  },
-  {
-    "id": "store.sql_channel.reset_last_post_at.app_error",
-    "translation": "We could not reset the channel last post at date"
-  },
-  {
-    "id": "store.sql_channel.reset_last_post_at.commit_transaction.app_error",
-    "translation": "Unable to commit transaction"
-  },
-  {
-    "id": "store.sql_channel.reset_last_post_at.open_transaction.app_error",
     "translation": "Unable to open transaction"
   },
   {
@@ -5659,6 +5719,26 @@
     "translation": "Unable to save the file info"
   },
   {
+    "id": "store.sql_group.group_syncable_already_deleted",
+    "translation": "group syncable was already deleted"
+  },
+  {
+    "id": "store.sql_group.no_rows",
+    "translation": "no matching group found"
+  },
+  {
+    "id": "store.sql_group.no_rows_changed",
+    "translation": "no rows changed"
+  },
+  {
+    "id": "store.sql_group.unique_constraint",
+    "translation": "a group with that name already exists"
+  },
+  {
+    "id": "store.sql_group.uniqueness_error",
+    "translation": "group member already exists"
+  },
+  {
     "id": "store.sql_job.delete.app_error",
     "translation": "Unable to delete the job"
   },
@@ -5699,16 +5779,20 @@
     "translation": "We encountered an error saving the license"
   },
   {
+    "id": "store.sql_link_metadata.get.app_error",
+    "translation": "Unable to get the link metadata"
+  },
+  {
+    "id": "store.sql_link_metadata.save.app_error",
+    "translation": "Unable to save the link metadata"
+  },
+  {
     "id": "store.sql_oauth.delete.commit_transaction.app_error",
     "translation": "Unable to commit transaction"
   },
   {
     "id": "store.sql_oauth.delete.open_transaction.app_error",
     "translation": "Unable to open transaction to delete the OAuth2 app"
-  },
-  {
-    "id": "store.sql_oauth.delete.rollback_transaction.app_error",
-    "translation": "Unable to rollback transaction to delete the OAuth2 App"
   },
   {
     "id": "store.sql_oauth.delete_app.app_error",
@@ -5807,6 +5891,10 @@
     "translation": "Could not get plugin key value"
   },
   {
+    "id": "store.sql_plugin_store.list.app_error",
+    "translation": "Unable to list all the plugin keys"
+  },
+  {
     "id": "store.sql_plugin_store.save.app_error",
     "translation": "Could not save or update plugin key value"
   },
@@ -5833,6 +5921,10 @@
   {
     "id": "store.sql_post.get.app_error",
     "translation": "Unable to get the post"
+  },
+  {
+    "id": "store.sql_post.get_direct_posts.app_error",
+    "translation": "Unable to get direct posts"
   },
   {
     "id": "store.sql_post.get_flagged_posts.app_error",
@@ -5971,16 +6063,16 @@
     "translation": "Unable to open transaction to save preferences"
   },
   {
-    "id": "store.sql_preference.save.rollback_transaction.app_error",
-    "translation": "Unable to rollback transaction to save preferences"
-  },
-  {
     "id": "store.sql_preference.save.updating.app_error",
     "translation": "We encountered an error while updating preferences"
   },
   {
     "id": "store.sql_preference.update.app_error",
     "translation": "Unable to update the preference"
+  },
+  {
+    "id": "store.sql_reaction.bulk_get_for_post_ids.app_error",
+    "translation": "Unable to get reactions for post"
   },
   {
     "id": "store.sql_reaction.delete.app_error",
@@ -6007,10 +6099,6 @@
     "translation": "Unable to get reactions for post"
   },
   {
-    "id": "store.sql_reaction.bulk_get_for_post_ids.app_error",
-    "translation": "Unable to get reactions for post"
-  },
-  {
     "id": "store.sql_reaction.permanent_delete_batch.app_error",
     "translation": "We encountered an error permanently deleting the batch of reactions"
   },
@@ -6031,12 +6119,12 @@
     "translation": "Unable to delete token"
   },
   {
-    "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
-    "translation": "Unable to remove all the tokens of a type"
-  },
-  {
     "id": "store.sql_recover.get_by_code.app_error",
     "translation": "Unable to get a token with this code"
+  },
+  {
+    "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
+    "translation": "Unable to remove all the tokens of a type"
   },
   {
     "id": "store.sql_recover.save.app_error",
@@ -6049,6 +6137,10 @@
   {
     "id": "store.sql_role.get.app_error",
     "translation": "Unable to get role"
+  },
+  {
+    "id": "store.sql_role.get_all.app_error",
+    "translation": "Unable to get all the roles"
   },
   {
     "id": "store.sql_role.get_by_name.app_error",
@@ -6251,10 +6343,6 @@
     "translation": "Failed to begin the database transaction"
   },
   {
-    "id": "store.sql_team.clear_all_custom_role_assignments.rollback_transaction.app_error",
-    "translation": "Failed to rollback the database transaction"
-  },
-  {
     "id": "store.sql_team.clear_all_custom_role_assignments.select.app_error",
     "translation": "Failed to retrieve the team members"
   },
@@ -6329,10 +6417,6 @@
   {
     "id": "store.sql_team.migrate_team_members.open_transaction.app_error",
     "translation": "Failed to open the database transaction"
-  },
-  {
-    "id": "store.sql_team.migrate_team_members.rollback_transaction.app_error",
-    "translation": "Failed to roll back the database transaction"
   },
   {
     "id": "store.sql_team.migrate_team_members.select.app_error",
@@ -6411,8 +6495,20 @@
     "translation": "Unable to update the date of the last team icon update"
   },
   {
-    "id": "store.sql_user.app_error",
-    "translation": "Failed to build query"
+    "id": "store.sql_terms_of_service.save.app_error",
+    "translation": "Unable to save terms of service."
+  },
+  {
+    "id": "store.sql_terms_of_service_store.get.app_error",
+    "translation": "Unable to fetch terms of service."
+  },
+  {
+    "id": "store.sql_terms_of_service_store.get.no_rows.app_error",
+    "translation": "No terms of service found."
+  },
+  {
+    "id": "store.sql_terms_of_service_store.save.existing.app_error",
+    "translation": "Must not call save for existing terms of service."
   },
   {
     "id": "store.sql_user.analytics_daily_active_users.app_error",
@@ -6427,8 +6523,8 @@
     "translation": "Unable to get the system admin count"
   },
   {
-    "id": "store.sql_user.analytics_unique_user_count.app_error",
-    "translation": "Unable to get the unique user count"
+    "id": "store.sql_user.app_error",
+    "translation": "Failed to build query"
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.commit_transaction.app_error",
@@ -6439,16 +6535,16 @@
     "translation": "Failed to begin the database transaction"
   },
   {
-    "id": "store.sql_user.clear_all_custom_role_assignments.rollback_transaction.app_error",
-    "translation": "Failed to rollback the database transaction"
-  },
-  {
     "id": "store.sql_user.clear_all_custom_role_assignments.select.app_error",
     "translation": "Failed to retrieve the users"
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.update.app_error",
     "translation": "Failed to update the user"
+  },
+  {
+    "id": "store.sql_user.count.app_error",
+    "translation": "UserCountOptions don't make sense"
   },
   {
     "id": "store.sql_user.get.app_error",
@@ -6671,6 +6767,22 @@
     "translation": "Unable to enable the access token"
   },
   {
+    "id": "store.sql_user_terms_of_service.delete.app_error",
+    "translation": "Unable to delete terms of service."
+  },
+  {
+    "id": "store.sql_user_terms_of_service.get_by_user.app_error",
+    "translation": "Unable to fetch terms of service."
+  },
+  {
+    "id": "store.sql_user_terms_of_service.get_by_user.no_rows.app_error",
+    "translation": "No terms of service found."
+  },
+  {
+    "id": "store.sql_user_terms_of_service.save.app_error",
+    "translation": "Unable to save terms of service."
+  },
+  {
     "id": "store.sql_webhooks.analytics_incoming_count.app_error",
     "translation": "Unable to count the incoming webhooks"
   },
@@ -6751,68 +6863,12 @@
     "translation": "Unable to update the webhook"
   },
   {
-    "id": "store.sql_terms_of_service_store.save.existing.app_error",
-    "translation": "Must not call save for existing terms of service."
-  },
-  {
-    "id": "store.sql_terms_of_service.save.app_error",
-    "translation": "Unable to save terms of service."
-  },
-  {
-    "id": "store.sql_terms_of_service_store.get.app_error",
-    "translation": "Unable to fetch terms of service."
-  },
-  {
-    "id": "store.sql_terms_of_service_store.get.no_rows.app_error",
-    "translation": "No terms of service found."
-  },
-  {
-    "id": "store.sql_user_terms_of_service.get_by_user.no_rows.app_error",
-    "translation": "No terms of service found."
-  },
-  {
-    "id": "store.sql_user_terms_of_service.get_by_user.app_error",
-    "translation": "Unable to fetch terms of service."
-  },
-  {
-    "id": "store.sql_user_terms_of_service.save.app_error",
-    "translation": "Unable to save terms of service."
-  },
-  {
-    "id": "store.sql_user_terms_of_service.delete.app_error",
-    "translation": "Unable to delete terms of service."
+    "id": "store.update_error",
+    "translation": "update error"
   },
   {
     "id": "system.message.name",
     "translation": "System"
-  },
-  {
-    "id": "utils.config.add_client_locale.app_error",
-    "translation": "Unable to load mattermost configuration file: Adding DefaultClientLocale to AvailableLocales."
-  },
-  {
-    "id": "utils.config.load_config.decoding.panic",
-    "translation": "Error decoding config file={{.Filename}}, err={{.Error}}"
-  },
-  {
-    "id": "utils.config.load_config.opening.panic",
-    "translation": "Error opening config file={{.Filename}}, err={{.Error}}"
-  },
-  {
-    "id": "utils.config.save_config.saving.app_error",
-    "translation": "An error occurred while saving the file to {{.Filename}}"
-  },
-  {
-    "id": "utils.config.supported_available_locales.app_error",
-    "translation": "Unable to load mattermost configuration file: AvailableLocales must include DefaultClientLocale. Setting AvailableLocales to all locales as default value."
-  },
-  {
-    "id": "utils.config.supported_client_locale.app_error",
-    "translation": "Unable to load mattermost configuration file: DefaultClientLocale must be one of the supported locales. Setting DefaultClientLocale to en as default value."
-  },
-  {
-    "id": "utils.config.supported_server_locale.app_error",
-    "translation": "Unable to load mattermost configuration file: DefaultServerLocale must be one of the supported locales. Setting DefaultServerLocale to en as default value."
   },
   {
     "id": "utils.file.list_directory.local.app_error",
@@ -6937,153 +6993,5 @@
   {
     "id": "web.incoming_webhook.user.app_error",
     "translation": "Couldn't find the user"
-  },
-  {
-    "id": "api.io_error",
-    "translation": "input/output error"
-  },
-  {
-    "id": "api.marshal_error",
-    "translation": "marshal error"
-  },
-  {
-    "id": "api.ldap_groups.license_error",
-    "translation": "your license does not support ldap groups"
-  },
-  {
-    "id": "api.ldap_group.not_found",
-    "translation": "ldap group not found"
-  },
-  {
-    "id": "ent.ldap_groups.reachable_groups_error",
-    "translation": "error retrieving groups for user"
-  },
-  {
-    "id": "ent.ldap_groups.no_rows",
-    "translation": "no groups found with matching uid"
-  },
-  {
-    "id": "ent.ldap_groups.members_of_group_error",
-    "translation": "error retrieving members of group"
-  },
-  {
-    "id": "ent.ldap_groups.group_search_error",
-    "translation": "error retrieving ldap group"
-  },
-  {
-    "id": "ent.ldap_groups.groups_search_error",
-    "translation": "error retrieving ldap groups"
-  },
-  {
-    "id": "ent.ldap.syncronize.get_all_groups.app_error",
-    "translation": "error retrieving groups"
-  },
-  {
-    "id": "ent.ldap.syncronize.populate_syncables",
-    "translation": "error populating syncables"
-  },
-  {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "error deleting team or channel memberships"
-  },
-  {
-    "id": "model.group.create_at.app_error",
-    "translation": "invalid create at property for group"
-  },
-  {
-    "id": "model.group.description.app_error",
-    "translation": "invalid description property for group"
-  },
-  {
-    "id": "model.group.display_name.app_error",
-    "translation": "invalid display name property for group"
-  },
-  {
-    "id": "model.group.id.app_error",
-    "translation": "invalid id property for group"
-  },
-  {
-    "id": "model.group.name.app_error",
-    "translation": "invalid name property for group"
-  },
-  {
-    "id": "model.group.remote_id.app_error",
-    "translation": "invalid remote id property for group"
-  },
-  {
-    "id": "model.group.source.app_error",
-    "translation": "invalid source property for group"
-  },
-  {
-    "id": "model.group_syncable.type.app_error",
-    "translation": "invalid type property for group syncable"
-  },
-  {
-    "id": "model.group_syncable.unmarshaljson.duplicate_type_identifier",
-    "translation": "type identifier already exists: perhaps json contains both 'team_id' and 'channel_id'"
-  },
-  {
-    "id": "model.group.update_at.app_error",
-    "translation": "invalid update at property for group"
-  },
-  {
-    "id": "model.group_member.group_id.app_error",
-    "translation": "invalid group id property for group member"
-  },
-  {
-    "id": "model.group_member.user_id.app_error",
-    "translation": "invalid user id property for group member"
-  },
-  {
-    "id": "model.group_syncable.group_id.app_error",
-    "translation": "invalid group id property for group syncable"
-  },
-  {
-    "id": "model.group_syncable.syncable_id.app_error",
-    "translation": "invalid syncable id for group syncable"
-  },
-  {
-    "id": "store.sql_group.group_syncable_already_deleted",
-    "translation": "group syncable was already deleted"
-  },
-  {
-    "id": "store.insert_error",
-    "translation": "insert error"
-  },
-  {
-    "id": "model.group.delete_at.app_error",
-    "translation": "invalid delete at property for group"
-  },
-  {
-    "id": "store.sql_group.no_rows",
-    "translation": "no matching group found"
-  },
-  {
-    "id": "store.sql_group.no_rows_changed",
-    "translation": "no rows changed"
-  },
-  {
-    "id": "store.sql_group.nothing_to_update",
-    "translation": "nothing to update for group syncable"
-  },
-  {
-    "id": "store.select_error",
-    "translation": "select error"
-  },
-  {
-    "id": "store.sql_group.unique_constraint",
-    "translation": "a group with that name already exists"
-  },
-  {
-    "id": "store.sql_group.uniqueness_error",
-    "translation": "group member already exists"
-  },
-  {
-    "id": "store.update_error",
-    "translation": "update error"
-  },
-  {
-    "id": "ent.ldap.app_error",
-    "translation": "ldap interface was nil"
   }
 ]
