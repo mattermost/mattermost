@@ -329,27 +329,22 @@ func (us SqlUserStore) UpdateMfaActive(userId string, active bool) store.StoreCh
 	})
 }
 
-func (us SqlUserStore) Get(id string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		query := us.usersQuery.Where("Id = ?", id)
+func (us SqlUserStore) Get(id string) (*model.User, *model.AppError) {
+	query := us.usersQuery.Where("Id = ?", id)
 
-		queryString, args, err := query.ToSql()
-		if err != nil {
-			result.Err = model.NewAppError("SqlUserStore.Get", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlUserStore.Get", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		user := &model.User{}
-		if err := us.GetReplica().SelectOne(user, queryString, args...); err == sql.ErrNoRows {
-			result.Err = model.NewAppError("SqlUserStore.Get", store.MISSING_ACCOUNT_ERROR, nil, "user_id="+id, http.StatusNotFound)
-			return
-		} else if err != nil {
-			result.Err = model.NewAppError("SqlUserStore.Get", "store.sql_user.get.app_error", nil, "user_id="+id+", "+err.Error(), http.StatusInternalServerError)
-			return
-		}
+	user := &model.User{}
+	if err := us.GetReplica().SelectOne(user, queryString, args...); err == sql.ErrNoRows {
+		return nil, model.NewAppError("SqlUserStore.Get", store.MISSING_ACCOUNT_ERROR, nil, "user_id="+id, http.StatusNotFound)
+	} else if err != nil {
+		return nil, model.NewAppError("SqlUserStore.Get", "store.sql_user.get.app_error", nil, "user_id="+id+", "+err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = user
-	})
+	return user, nil
 }
 
 func (us SqlUserStore) GetAll() store.StoreChannel {
