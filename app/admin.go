@@ -51,7 +51,8 @@ func (a *App) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) {
 	var lines []string
 
 	if *a.Config().LogSettings.EnableFile {
-		file, err := os.Open(utils.GetLogFileLocation(*a.Config().LogSettings.FileLocation))
+		logFile := utils.GetLogFileLocation(*a.Config().LogSettings.FileLocation)
+		file, err := os.Open(logFile)
 		if err != nil {
 			return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, err.Error(), http.StatusInternalServerError)
 		}
@@ -61,7 +62,16 @@ func (a *App) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) {
 		var newLine = []byte{'\n'}
 		var lineCount int
 		const searchPos = -1
-		lineEndPos, err := file.Seek(-1, io.SeekEnd) // we skip the last byte of the file, since it's \n
+		b := make([]byte, 1)
+		var endOffset int64 = 0
+
+		// if the file exists and it's last byte is '\n' - skip it
+		if stat, err := os.Stat(logFile); err == nil && stat != nil {
+			if _, err = file.ReadAt(b, stat.Size()-1); err == nil && b[0] == newLine[0] {
+				endOffset = -1
+			}
+		}
+		lineEndPos, err := file.Seek(endOffset, io.SeekEnd)
 		if err != nil {
 			return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, err.Error(), http.StatusInternalServerError)
 		}
@@ -71,7 +81,6 @@ func (a *App) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) {
 				return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, err.Error(), http.StatusInternalServerError)
 			}
 
-			b := make([]byte, 1)
 			_, err = file.ReadAt(b, pos)
 			if err != nil {
 				return nil, model.NewAppError("getLogs", "api.admin.file_read_error", nil, err.Error(), http.StatusInternalServerError)
