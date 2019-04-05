@@ -530,6 +530,22 @@ func (_m *UserStore) GetUnreadCountForChannel(userId string, channelId string) s
 	return r0
 }
 
+// GetUsersBatchForIndexing provides a mock function with given fields: startTime, endTime, limit
+func (_m *UserStore) GetUsersBatchForIndexing(startTime int64, endTime int64, limit int) store.StoreChannel {
+	ret := _m.Called(startTime, endTime, limit)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(int64, int64, int) store.StoreChannel); ok {
+		r0 = rf(startTime, endTime, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // InferSystemInstallDate provides a mock function with given fields:
 func (_m *UserStore) InferSystemInstallDate() store.StoreChannel {
 	ret := _m.Called()

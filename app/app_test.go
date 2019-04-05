@@ -121,9 +121,10 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_DELETE_OTHERS_POSTS.Id,
 		},
 		"system_user": []string{
+			model.PERMISSION_LIST_PUBLIC_TEAMS.Id,
+			model.PERMISSION_JOIN_PUBLIC_TEAMS.Id,
 			model.PERMISSION_CREATE_DIRECT_CHANNEL.Id,
 			model.PERMISSION_CREATE_GROUP_CHANNEL.Id,
-			model.PERMISSION_PERMANENT_DELETE_USER.Id,
 			model.PERMISSION_CREATE_TEAM.Id,
 		},
 		"system_post_all": []string{
@@ -173,6 +174,8 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_MANAGE_BOTS.Id,
 			model.PERMISSION_MANAGE_OTHERS_BOTS.Id,
 			model.PERMISSION_REMOVE_OTHERS_REACTIONS.Id,
+			model.PERMISSION_LIST_PRIVATE_TEAMS.Id,
+			model.PERMISSION_JOIN_PRIVATE_TEAMS.Id,
 			model.PERMISSION_LIST_TEAM_CHANNELS.Id,
 			model.PERMISSION_JOIN_PUBLIC_CHANNELS.Id,
 			model.PERMISSION_READ_PUBLIC_CHANNEL.Id,
@@ -298,9 +301,10 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_DELETE_OTHERS_POSTS.Id,
 		},
 		"system_user": []string{
+			model.PERMISSION_LIST_PUBLIC_TEAMS.Id,
+			model.PERMISSION_JOIN_PUBLIC_TEAMS.Id,
 			model.PERMISSION_CREATE_DIRECT_CHANNEL.Id,
 			model.PERMISSION_CREATE_GROUP_CHANNEL.Id,
-			model.PERMISSION_PERMANENT_DELETE_USER.Id,
 			model.PERMISSION_CREATE_TEAM.Id,
 		},
 		"system_post_all": []string{
@@ -350,6 +354,8 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_MANAGE_BOTS.Id,
 			model.PERMISSION_MANAGE_OTHERS_BOTS.Id,
 			model.PERMISSION_REMOVE_OTHERS_REACTIONS.Id,
+			model.PERMISSION_LIST_PRIVATE_TEAMS.Id,
+			model.PERMISSION_JOIN_PRIVATE_TEAMS.Id,
 			model.PERMISSION_LIST_TEAM_CHANNELS.Id,
 			model.PERMISSION_JOIN_PUBLIC_CHANNELS.Id,
 			model.PERMISSION_READ_PUBLIC_CHANNEL.Id,
@@ -491,6 +497,8 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 		model.PERMISSION_MANAGE_BOTS.Id,
 		model.PERMISSION_MANAGE_OTHERS_BOTS.Id,
 		model.PERMISSION_REMOVE_OTHERS_REACTIONS.Id,
+		model.PERMISSION_LIST_PRIVATE_TEAMS.Id,
+		model.PERMISSION_JOIN_PRIVATE_TEAMS.Id,
 		model.PERMISSION_LIST_TEAM_CHANNELS.Id,
 		model.PERMISSION_JOIN_PUBLIC_CHANNELS.Id,
 		model.PERMISSION_READ_PUBLIC_CHANNEL.Id,
@@ -568,9 +576,10 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 	role3, err3 := th.App.GetRoleByName(model.SYSTEM_USER_ROLE_ID)
 	assert.Nil(t, err3)
 	expected3 := []string{
+		model.PERMISSION_LIST_PUBLIC_TEAMS.Id,
+		model.PERMISSION_JOIN_PUBLIC_TEAMS.Id,
 		model.PERMISSION_CREATE_DIRECT_CHANNEL.Id,
 		model.PERMISSION_CREATE_GROUP_CHANNEL.Id,
-		model.PERMISSION_PERMANENT_DELETE_USER.Id,
 		model.PERMISSION_CREATE_TEAM.Id,
 		model.PERMISSION_CREATE_EMOJIS.Id,
 		model.PERMISSION_DELETE_EMOJIS.Id,

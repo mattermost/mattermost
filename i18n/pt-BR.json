@@ -77,7 +77,7 @@
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
-    "translation": "Um erro aconteceu ao apagar o certificado. Verifique se o arquivo config/{{.Filename}} existe."
+    "translation": "Ocorreu um erro ao deletar o App OAuth2"
   },
   {
     "id": "api.admin.saml.metadata.app_error",
@@ -325,7 +325,7 @@
   },
   {
     "id": "api.command.command_post.forbidden.app_error",
-    "translation": "Usuário especificado não é um membro da equipe especificada."
+    "translation": "Usuário especificado não é um membro do canal especificado."
   },
   {
     "id": "api.command.disabled.app_error",
@@ -337,7 +337,7 @@
   },
   {
     "id": "api.command.execute_command.create_post_failed.app_error",
-    "translation": "Command '{{.Trigger}}' failed to post response. Please contact your System Administrator."
+    "translation": "Commando '{{.Trigger}}' falhou ao publicar a resposta. Entre em contato com o Administrador do Sistema."
   },
   {
     "id": "api.command.execute_command.debug",
@@ -1102,7 +1102,7 @@
   },
   {
     "id": "api.emoji.upload.open.app_error",
-    "translation": "Não foi possível criar o emoji. Um erro ocorreu enquanto tentava abrir a imagem."
+    "translation": "Não foi possível criar o emoji. Um erro ocorreu enquanto tentava abrir a imagem anexada."
   },
   {
     "id": "api.file.attachments.disabled.app_error",
@@ -1186,7 +1186,7 @@
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
-    "translation": "Unable to upload file(s). Have {{.NumClientIds}} client_ids for {{.NumFiles}} files."
+    "translation": "Não foi possível enviar o(s) arquivo(s). Existem {{.NumClientIds}} client_ids para {{.NumFiles}} arquivos."
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_files.app_error",
@@ -1198,19 +1198,19 @@
   },
   {
     "id": "api.file.upload_file.large_image_detailed.app_error",
-    "translation": "{{.Filename}} dimensions ({{.Width}} by {{.Height}} pixels) exceed the limits"
+    "translation": "{{.Filename}} dimensão ({{.Width}} por {{.Height}} pixels) excede os limites"
   },
   {
     "id": "api.file.upload_file.multiple_channel_ids.app_error",
-    "translation": "Unable to upload file(s). Multiple conflicting channel_ids."
+    "translation": "Não foi possível enviar o(s) arquivo(s)"
   },
   {
     "id": "api.file.upload_file.read_form_value.app_error",
-    "translation": "Unable to upload file(s). Error reading the value for {{.Formname}}."
+    "translation": "Não foi possível enviar o(s) arquivos(s). Erro ao ler o valor {{.Formname}}."
   },
   {
     "id": "api.file.upload_file.read_request.app_error",
-    "translation": "Unable to upload file(s). Error reading or parsing request data."
+    "translation": "Não foi possível enviar o(s) arquivo(s). Erro ao ler ou decodificar a requisição."
   },
   {
     "id": "api.file.upload_file.storage.app_error",
@@ -1222,7 +1222,7 @@
   },
   {
     "id": "api.file.upload_file.too_large_detailed.app_error",
-    "translation": "Unable to upload file {{.Filename}}. {{.Length}} bytes exceeds the maximum allowed {{.Limit}} bytes."
+    "translation": "Não foi possível enviar o arquivo {{.Filename}}. {{.Length}} bytes excede o máximo permitido de {{.Limit}} bytes."
   },
   {
     "id": "api.file.write_file.s3.app_error",
@@ -1246,15 +1246,15 @@
   },
   {
     "id": "api.io_error",
-    "translation": "input/output error"
+    "translation": "erro entrada/saída"
   },
   {
     "id": "api.ldap_group.not_found",
-    "translation": "ldap group not found"
+    "translation": "grupo ldap não encontrado"
   },
   {
     "id": "api.ldap_groups.license_error",
-    "translation": "your license does not support ldap groups"
+    "translation": "sua licença não suporta grupos ldap"
   },
   {
     "id": "api.license.add_license.array.app_error",
@@ -1450,11 +1450,15 @@
   },
   {
     "id": "api.post.deduplicate_create_post.failed_to_get",
-    "translation": "Failed to fetch original post after deduplicating a client repeating the same request."
+    "translation": "Falha ao buscar a postagem original após deduplicar um cliente repetindo a mesma solicitação."
   },
   {
     "id": "api.post.deduplicate_create_post.pending",
-    "translation": "Rejected post since another client is making the same request."
+    "translation": "Publicação rejeitada, pois outro cliente está fazendo a mesma solicitação."
+  },
+  {
+    "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
+    "translation": "Can not delete a post in a deleted channel."
   },
   {
     "id": "api.post.disabled_all",
@@ -1495,6 +1499,14 @@
     "translation": "Pré-visualizações de links foram desabilitados pelo administrador do sistema."
   },
   {
+    "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
+    "translation": "Can not update a post in a deleted channel."
+  },
+  {
+    "id": "api.post.save_is_pinned_post.town_square_read_only",
+    "translation": "Este canal é somente leitura. Somente membros com permissão podem fixar ou desafixar publicações aqui."
+  },
+  {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
     "translation": " notificou o canal."
   },
@@ -1523,6 +1535,10 @@
     "translation": "enviou-lhe uma mensagem."
   },
   {
+    "id": "api.post.update_post.can_not_update_post_in_deleted.error",
+    "translation": "Can not update a post in a deleted channel."
+  },
+  {
     "id": "api.post.update_post.find.app_error",
     "translation": "Não foi possível encontrar a publicação ou comentário para atualizar."
   },
@@ -1532,7 +1548,7 @@
   },
   {
     "id": "api.post.update_post.permissions_time_limit.app_error",
-    "translation": "Edição de publicações só são permitidas por {{.timeLimit}} segundos. Por favor peça ao administrador do sistema por detalhes."
+    "translation": "Edição de publicações só são permitidas por {{.timeLimit}} segundos. Por favor pergunte ao Administrador do Sistema por detalhes."
   },
   {
     "id": "api.post.update_post.system_message.app_error",
@@ -1573,6 +1589,10 @@
   {
     "id": "api.reaction.town_square_read_only",
     "translation": "Não é possível reagir a publicações em canais somente leitura."
+  },
+  {
+    "id": "api.restricted_system_admin",
+    "translation": "This action is forbidden to a restricted system admin."
   },
   {
     "id": "api.roles.patch_roles.license.error",
@@ -1768,11 +1788,11 @@
   },
   {
     "id": "api.team.is_team_creation_allowed.disabled.app_error",
-    "translation": "Criação de equipe foi desativada. Por favor, pergunte ao administrador do sistema para obter detalhes."
+    "translation": "Criação de equipe foi desativada. Por favor, pergunte ao Administrador do Sistema para obter detalhes."
   },
   {
     "id": "api.team.is_team_creation_allowed.domain.app_error",
-    "translation": "Email precisa ser de um domínio específico (ex. @example.com). Por favor pergunte ao administrador do sistema por detalhes."
+    "translation": "Email precisa ser de um domínio específico (ex. @example.com). Por favor pergunte ao Administrador do Sistema por detalhes."
   },
   {
     "id": "api.team.join_team.post_and_forget",
@@ -2167,6 +2187,10 @@
     "translation": "{{.Service}} SSO através OAuth 2.0 não está disponível neste servidor"
   },
   {
+    "id": "api.user.create_email_token.error",
+    "translation": "Falha ao criar os dados para o token de verificação de email"
+  },
+  {
     "id": "api.user.create_oauth_user.already_attached.app_error",
     "translation": "Já existe uma conta associada a esse endereço de e-mail usando um método de login diferente de {{.Service}}. Por favor faça login usando {{.Auth}}."
   },
@@ -2255,6 +2279,10 @@
     "translation": "Campo senha não pode estar em branco"
   },
   {
+    "id": "api.user.login.bot_login_forbidden.app_error",
+    "translation": "Bot login is forbidden"
+  },
+  {
     "id": "api.user.login.client_side_cert.certificate.app_error",
     "translation": "Tentou entrar usando o recurso experimental ClientSideCert sem fornecer um certificado válido"
   },
@@ -2277,6 +2305,10 @@
   {
     "id": "api.user.login.use_auth_service.app_error",
     "translation": "Por favor logue usando {{.AuthService}}"
+  },
+  {
+    "id": "api.user.login_by_oauth.bot_login_forbidden.app_error",
+    "translation": "Bot login is forbidden"
   },
   {
     "id": "api.user.login_by_oauth.not_available.app_error",
@@ -2473,6 +2505,14 @@
   {
     "id": "api.user.verify_email.broken_token.app_error",
     "translation": "Falha ao verificar o token de email."
+  },
+  {
+    "id": "api.user.verify_email.link_expired.app_error",
+    "translation": "O link de verificação de email expirou."
+  },
+  {
+    "id": "api.user.verify_email.token_parse.error",
+    "translation": "Falha ao analisar os dados do token de verificação de email"
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
@@ -3243,6 +3283,10 @@
     "translation": "A função fornecida não existe"
   },
   {
+    "id": "app.save_config.app_error",
+    "translation": "An error occurred saving the configuration"
+  },
+  {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
     "translation": "Este endpoint da API não está acessível, pois as migrações exigidas ainda não foram concluídas."
   },
@@ -3256,7 +3300,7 @@
   },
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
-    "translation": "Esta equipe alcançou o número máximo de contas permitidas. Contate o administrador do sistema para ajustar um limite maior."
+    "translation": "Esta equipe alcançou o número máximo de contas permitidas. Contate o Administrador do Sistema para ajustar um limite maior."
   },
   {
     "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
@@ -3492,7 +3536,7 @@
   },
   {
     "id": "ent.ldap.app_error",
-    "translation": "ldap interface was nil"
+    "translation": "interface ldap era nula"
   },
   {
     "id": "ent.ldap.create_fail",
@@ -3540,11 +3584,11 @@
   },
   {
     "id": "ent.ldap.syncronize.get_all_groups.app_error",
-    "translation": "error retrieving groups"
+    "translation": "erro ao obter os grupos"
   },
   {
     "id": "ent.ldap.syncronize.populate_syncables",
-    "translation": "error populating syncables"
+    "translation": "erro ao preencher sincronizáveis"
   },
   {
     "id": "ent.ldap.syncronize.search_failure.app_error",
@@ -3556,23 +3600,23 @@
   },
   {
     "id": "ent.ldap_groups.group_search_error",
-    "translation": "error retrieving ldap group"
+    "translation": "erro ao obter o grupo ldap"
   },
   {
     "id": "ent.ldap_groups.groups_search_error",
-    "translation": "error retrieving ldap groups"
+    "translation": "erro ao obter os grupos ldap"
   },
   {
     "id": "ent.ldap_groups.members_of_group_error",
-    "translation": "error retrieving members of group"
+    "translation": "erro ao obter os membros do grupo"
   },
   {
     "id": "ent.ldap_groups.no_rows",
-    "translation": "no groups found with matching uid"
+    "translation": "nenhum grupo encontrado correspondente ao uid"
   },
   {
     "id": "ent.ldap_groups.reachable_groups_error",
-    "translation": "error retrieving groups for user"
+    "translation": "erro ao obter os grupos para o usuário"
   },
   {
     "id": "ent.message_export.global_relay.attach_file.app_error",
@@ -3657,10 +3701,6 @@
   {
     "id": "ent.saml.build_request.encoding.app_error",
     "translation": "Ocorreu um erro durante a codificação do pedido para o Provedor de Identidade. Entre em contato com o Administrador do Sistema."
-  },
-  {
-    "id": "ent.saml.configure.app_error",
-    "translation": "Ocorreu um erro durante a configuração do Provedor de Serviço SAML, err=%v"
   },
   {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
@@ -3792,7 +3832,7 @@
   },
   {
     "id": "mfa.mfa_disabled.app_error",
-    "translation": "Autenticação multi-fator é obrigatória neste servidor."
+    "translation": "Autenticação multi-fator foi desativada neste servidor."
   },
   {
     "id": "mfa.validate_token.authenticate.app_error",
@@ -3861,6 +3901,30 @@
   {
     "id": "model.authorize.is_valid.user_id.app_error",
     "translation": "Id de usuário inválido"
+  },
+  {
+    "id": "model.bot.is_valid.create_at.app_error",
+    "translation": "Id de criador inválido"
+  },
+  {
+    "id": "model.bot.is_valid.creator_id.app_error",
+    "translation": "Id de criador inválido"
+  },
+  {
+    "id": "model.bot.is_valid.description.app_error",
+    "translation": "Descrição inválida"
+  },
+  {
+    "id": "model.bot.is_valid.update_at.app_error",
+    "translation": "Invalid update at"
+  },
+  {
+    "id": "model.bot.is_valid.user_id.app_error",
+    "translation": "Id do usuário inválido"
+  },
+  {
+    "id": "model.bot.is_valid.username.app_error",
+    "translation": "Nome do usuário inválido"
   },
   {
     "id": "model.channel.is_valid.2_or_more.app_error",
@@ -4132,7 +4196,11 @@
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
-    "translation": "Opções inválidas de proxy de imagem atmos/camo nas configurações de serviço. Deve ser configurado para sua chave compartilhada."
+    "translation": "Inválido RemoteImageProxyOptions para atmos/camo. Deve ser definido para sua chave compartilhada."
+  },
+  {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
+    "translation": "Inválido RemoteImageProxyURL para atmos/camo. Deve ser definido para sua chave compartilhada"
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
@@ -4220,7 +4288,7 @@
   },
   {
     "id": "model.config.is_valid.image_proxy_type.app_error",
-    "translation": "Tipo de proxy de imagem inválido nas configurações de serviços."
+    "translation": "Tipo de proxy de imagem inválido. Deve ser 'local'ou 'atmos/camo'."
   },
   {
     "id": "model.config.is_valid.ldap_basedn",
@@ -4391,6 +4459,10 @@
     "translation": "Não é possível ativar o email em lote quando SiteURL não está definido."
   },
   {
+    "id": "model.config.is_valid.sitename_empty.app_error",
+    "translation": "Site name cannot be empty."
+  },
+  {
     "id": "model.config.is_valid.sitename_length.app_error",
     "translation": "O nome do site deve ser menor ou igual à {{.MaxLength}} caracteres."
   },
@@ -4500,63 +4572,63 @@
   },
   {
     "id": "model.group.create_at.app_error",
-    "translation": "invalid create at property for group"
+    "translation": "create inválido na propriedade do grupo"
   },
   {
     "id": "model.group.delete_at.app_error",
-    "translation": "invalid delete at property for group"
+    "translation": "delete at inválido na propriedade do grupo"
   },
   {
     "id": "model.group.description.app_error",
-    "translation": "invalid description property for group"
+    "translation": "description inválido na propriedade do grupo"
   },
   {
     "id": "model.group.display_name.app_error",
-    "translation": "invalid display name property for group"
+    "translation": "display name inválido na propriedade do grupo"
   },
   {
     "id": "model.group.id.app_error",
-    "translation": "invalid id property for group"
+    "translation": "id inválido na propriedade do grupo"
   },
   {
     "id": "model.group.name.app_error",
-    "translation": "invalid name property for group"
+    "translation": "name inválido na propriedade do grupo"
   },
   {
     "id": "model.group.remote_id.app_error",
-    "translation": "invalid remote id property for group"
+    "translation": "remote id inválido na propriedade do grupo"
   },
   {
     "id": "model.group.source.app_error",
-    "translation": "invalid source property for group"
+    "translation": "source inválido na propriedade do grupo"
   },
   {
     "id": "model.group.update_at.app_error",
-    "translation": "invalid update at property for group"
+    "translation": "update inválido na propriedade do grupo"
   },
   {
     "id": "model.group_member.group_id.app_error",
-    "translation": "invalid group id property for group member"
+    "translation": "group id inválido na propriedade para membro do grupo"
   },
   {
     "id": "model.group_member.user_id.app_error",
-    "translation": "invalid user id property for group member"
+    "translation": "user id inválido na propriedade para membro do grupo"
   },
   {
     "id": "model.group_syncable.group_id.app_error",
-    "translation": "invalid group id property for group syncable"
+    "translation": "group id inválido na propriedade do grupo sincronizável"
   },
   {
     "id": "model.group_syncable.syncable_id.app_error",
-    "translation": "invalid syncable id for group syncable"
+    "translation": "syncable id inválido na propriedade do grupo sincronizável"
   },
   {
     "id": "model.group_syncable.type.app_error",
-    "translation": "invalid type property for group syncable"
+    "translation": "type inválido na propriedade do grupo sincronizável"
   },
   {
     "id": "model.group_syncable.unmarshaljson.duplicate_type_identifier",
-    "translation": "type identifier already exists: perhaps json contains both 'team_id' and 'channel_id'"
+    "translation": "O identificador de tipo já existe: talvez json contenha 'team_id' e 'channel_id'"
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",
@@ -4625,6 +4697,30 @@
   {
     "id": "model.license_record.is_valid.id.app_error",
     "translation": "Valor inválido para o id durante o upload da licença."
+  },
+  {
+    "id": "model.link_metadata.is_valid.data.app_error",
+    "translation": "Os dados de metadados do link não podem ser nulos"
+  },
+  {
+    "id": "model.link_metadata.is_valid.data_type.app_error",
+    "translation": "Os dados de metadados do link não correspondem ao tipo fornecido"
+  },
+  {
+    "id": "model.link_metadata.is_valid.id.app_error",
+    "translation": "Link metadata id inválido"
+  },
+  {
+    "id": "model.link_metadata.is_valid.timestamp.app_error",
+    "translation": "Link metadata data e hora deve ser diferente de zero e arredondado para a hora mais próxima"
+  },
+  {
+    "id": "model.link_metadata.is_valid.type.app_error",
+    "translation": "Tipo de link metadata inválido"
+  },
+  {
+    "id": "model.link_metadata.is_valid.url.app_error",
+    "translation": "URL link metadata deve ser definido"
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",
@@ -4752,7 +4848,7 @@
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
-    "translation": "Invalid file ids. Note that uploads are limited to 5 files maximum. Please use additional posts for more files."
+    "translation": "Ids do arquivo inválido. Observe que os uploads estão limitados a cinco arquivos no máximo. Por favor, use publicações adicionais para mais arquivos."
   },
   {
     "id": "model.post.is_valid.filenames.app_error",
@@ -5056,11 +5152,11 @@
   },
   {
     "id": "store.insert_error",
-    "translation": "insert error"
+    "translation": "erro ao inserir"
   },
   {
     "id": "store.select_error",
-    "translation": "select error"
+    "translation": "erro ao selecionar"
   },
   {
     "id": "store.sql.convert_string_array",
@@ -5093,6 +5189,34 @@
   {
     "id": "store.sql_audit.save.saving.app_error",
     "translation": "Encontramos um erro ao salvar o audits"
+  },
+  {
+    "id": "store.sql_bot.delete.app_error",
+    "translation": "Não foi possível excluir a publicação"
+  },
+  {
+    "id": "store.sql_bot.get.app_error",
+    "translation": "Não foi possível obter a publicação"
+  },
+  {
+    "id": "store.sql_bot.get.missing.app_error",
+    "translation": "Bot does not exist"
+  },
+  {
+    "id": "store.sql_bot.get_all.app_error",
+    "translation": "Não foi possível obter as publicações"
+  },
+  {
+    "id": "store.sql_bot.save.app_error",
+    "translation": "Não foi possível salvar a Publicação"
+  },
+  {
+    "id": "store.sql_bot.update.app_error",
+    "translation": "Não foi possível atualizar a Publicação"
+  },
+  {
+    "id": "store.sql_bot.update.updating.app_error",
+    "translation": "Encontramos um erro ao atualizar o app"
   },
   {
     "id": "store.sql_channel.analytics_deleted_type_count.app_error",
@@ -5632,27 +5756,27 @@
   },
   {
     "id": "store.sql_group.group_syncable_already_deleted",
-    "translation": "group syncable was already deleted"
+    "translation": "grupo sincronizável já foi excluído"
   },
   {
     "id": "store.sql_group.no_rows",
-    "translation": "no matching group found"
+    "translation": "nenhum grupo correspondente encontrado"
   },
   {
     "id": "store.sql_group.no_rows_changed",
-    "translation": "no rows changed"
+    "translation": "nenhuma linha alterada"
   },
   {
     "id": "store.sql_group.nothing_to_update",
-    "translation": "nothing to update for group syncable"
+    "translation": "nada para atualizar para o grupo sincronizável"
   },
   {
     "id": "store.sql_group.unique_constraint",
-    "translation": "Já existe uma equipe com este nome"
+    "translation": "Já existe um grupo com este nome"
   },
   {
     "id": "store.sql_group.uniqueness_error",
-    "translation": "group member already exists"
+    "translation": "membro do grupo já existe"
   },
   {
     "id": "store.sql_job.delete.app_error",
@@ -6427,6 +6551,10 @@
     "translation": "Não foi possível obter a contagem de usuários únicos"
   },
   {
+    "id": "store.sql_user.app_error",
+    "translation": "Failed to build query"
+  },
+  {
     "id": "store.sql_user.clear_all_custom_role_assignments.commit_transaction.app_error",
     "translation": "Falha ao confirmar a transação do banco de dados"
   },
@@ -6532,7 +6660,7 @@
   },
   {
     "id": "store.sql_user.save.max_accounts.app_error",
-    "translation": "Esta equipe alcançou o número máximo de contas permitidas. Contate o administrador do sistema para ajustar um limite maior."
+    "translation": "Esta equipe alcançou o número máximo de contas permitidas. Contate o Administrador do Sistema para ajustar um limite maior."
   },
   {
     "id": "store.sql_user.save.member_count.app_error",
@@ -6656,7 +6784,7 @@
   },
   {
     "id": "store.sql_user_terms_of_service.delete.app_error",
-    "translation": "Não foi possível excluir os termos de serviço de usuário."
+    "translation": "Não foi possível excluir os termos de serviço."
   },
   {
     "id": "store.sql_user_terms_of_service.get_by_user.app_error",
@@ -6752,7 +6880,7 @@
   },
   {
     "id": "store.update_error",
-    "translation": "update error"
+    "translation": "erro ao atualizar"
   },
   {
     "id": "system.message.name",

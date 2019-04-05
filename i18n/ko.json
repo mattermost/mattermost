@@ -9,7 +9,7 @@
   },
   {
     "id": "December",
-    "translation": "10월"
+    "translation": "12월"
   },
   {
     "id": "February",
@@ -77,7 +77,7 @@
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
-    "translation": "증명서 폐기 중 오류가 발생했습니다. config/{{.Filename}} 파일이 있는지 확인하세요."
+    "translation": "An error occurred while deleting the OAuth2 App"
   },
   {
     "id": "api.admin.saml.metadata.app_error",
@@ -277,7 +277,7 @@
   },
   {
     "id": "api.channel.remove.default.app_error",
-    "translation": "기본 채널로부터는 사용자를 강퇴할 수 없음 {{.Channel}}"
+    "translation": "기본 채널로부터는 사용자를 제거할 수 없습니다 {{.Channel}}"
   },
   {
     "id": "api.channel.remove_channel_member.type.app_error",
@@ -401,7 +401,7 @@
   },
   {
     "id": "api.command.team_mismatch.app_error",
-    "translation": "팀들간의 명령어를 업데이트 할 수 없음"
+    "translation": "팀들간의 명령어를 업데이트 할 수 없습니다."
   },
   {
     "id": "api.command_away.desc",
@@ -1457,6 +1457,10 @@
     "translation": "Rejected post since another client is making the same request."
   },
   {
+    "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
+    "translation": "Can not delete a post in a deleted channel."
+  },
+  {
     "id": "api.post.disabled_all",
     "translation": "채널에 사용자가 {{.Users}}명이상 있기 때문에 @all이 비활성화 되었습니다."
   },
@@ -1495,6 +1499,14 @@
     "translation": "시스템 관리자 권한으로 Link previews를 활성화시키세요."
   },
   {
+    "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
+    "translation": "Can not update a post in a deleted channel."
+  },
+  {
+    "id": "api.post.save_is_pinned_post.town_square_read_only",
+    "translation": "이 채널은 읽기 전용입니다. 권한을 가진 사용자들만 게시할 수 있습니다."
+  },
+  {
     "id": "api.post.send_notification_and_forget.push_channel_mention",
     "translation": "채널에 알림을 보냈습니다."
   },
@@ -1523,8 +1535,12 @@
     "translation": "당신에게 메시지를 보냈습니다."
   },
   {
+    "id": "api.post.update_post.can_not_update_post_in_deleted.error",
+    "translation": "Can not update a post in a deleted channel."
+  },
+  {
     "id": "api.post.update_post.find.app_error",
-    "translation": "기존 글을 찾을 수 없습니다."
+    "translation": "기존 글 또는 댓글을 찾을 수 없습니다."
   },
   {
     "id": "api.post.update_post.permissions_details.app_error",
@@ -1573,6 +1589,10 @@
   {
     "id": "api.reaction.town_square_read_only",
     "translation": "읽기 전용 채널에서는 메시지에 응답할 수 없습니다."
+  },
+  {
+    "id": "api.restricted_system_admin",
+    "translation": "This action is forbidden to a restricted system admin."
   },
   {
     "id": "api.roles.patch_roles.license.error",
@@ -2167,6 +2187,10 @@
     "translation": "{{.Service}} SSO through OAuth 2.0 not available on this server"
   },
   {
+    "id": "api.user.create_email_token.error",
+    "translation": "Failed to create token data for email verification"
+  },
+  {
     "id": "api.user.create_oauth_user.already_attached.app_error",
     "translation": "There is already an account associated with that email address using a sign in method other than {{.Service}}. Please sign in using {{.Auth}}."
   },
@@ -2255,6 +2279,10 @@
     "translation": "비밀번호를 입력하세요."
   },
   {
+    "id": "api.user.login.bot_login_forbidden.app_error",
+    "translation": "Bot login is forbidden"
+  },
+  {
     "id": "api.user.login.client_side_cert.certificate.app_error",
     "translation": "Attempted to sign in using the experimental feature ClientSideCert without providing a valid certificate"
   },
@@ -2277,6 +2305,10 @@
   {
     "id": "api.user.login.use_auth_service.app_error",
     "translation": "Please sign in using {{.AuthService}}"
+  },
+  {
+    "id": "api.user.login_by_oauth.bot_login_forbidden.app_error",
+    "translation": "Bot login is forbidden"
   },
   {
     "id": "api.user.login_by_oauth.not_available.app_error",
@@ -2473,6 +2505,14 @@
   {
     "id": "api.user.verify_email.broken_token.app_error",
     "translation": "Bad verify email token type."
+  },
+  {
+    "id": "api.user.verify_email.link_expired.app_error",
+    "translation": "The email verification link has expired."
+  },
+  {
+    "id": "api.user.verify_email.token_parse.error",
+    "translation": "Failed to parse token data from email verification"
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
@@ -3243,6 +3283,10 @@
     "translation": "The provided role does not exist"
   },
   {
+    "id": "app.save_config.app_error",
+    "translation": "An error occurred saving the configuration"
+  },
+  {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
     "translation": "This API endpoint is not accessible as required migrations have not yet completed."
   },
@@ -3659,10 +3703,6 @@
     "translation": "An error occurred while encoding the request for the Identity Provider. Please contact your System Administrator."
   },
   {
-    "id": "ent.saml.configure.app_error",
-    "translation": "An error occurred while configuring SAML Service Provider, err=%v"
-  },
-  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "SAML login was unsuccessful because encryption is not enabled. Please contact your System Administrator."
   },
@@ -3716,7 +3756,7 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.missing_data",
-    "translation": "Trigger ID missing required data for interactive dialog."
+    "translation": "대화 상자에 필요한 트리거 ID 데이터가 누락 되었습니다."
   },
   {
     "id": "interactive_message.decode_trigger_id.signature_decode_failed",
@@ -3861,6 +3901,30 @@
   {
     "id": "model.authorize.is_valid.user_id.app_error",
     "translation": "잘못된 사용자 ID"
+  },
+  {
+    "id": "model.bot.is_valid.create_at.app_error",
+    "translation": "잘못된 제출자 ID"
+  },
+  {
+    "id": "model.bot.is_valid.creator_id.app_error",
+    "translation": "잘못된 제출자 ID"
+  },
+  {
+    "id": "model.bot.is_valid.description.app_error",
+    "translation": "잘못된 설명"
+  },
+  {
+    "id": "model.bot.is_valid.update_at.app_error",
+    "translation": "Invalid update at"
+  },
+  {
+    "id": "model.bot.is_valid.user_id.app_error",
+    "translation": "잘못된 사용자 ID입니다."
+  },
+  {
+    "id": "model.bot.is_valid.username.app_error",
+    "translation": "잘못된 유저이름입니다."
   },
   {
     "id": "model.channel.is_valid.2_or_more.app_error",
@@ -4132,7 +4196,11 @@
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
-    "translation": "Invalid atmos/camo image proxy options for service settings. Must be set to your shared key."
+    "translation": "Invalid RemoteImageProxyOptions for atmos/camo. Must be set to your shared key."
+  },
+  {
+    "id": "model.config.is_valid.atmos_camo_image_proxy_url.app_error",
+    "translation": "Invalid RemoteImageProxyURL for atmos/camo. Must be set to your shared key."
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
@@ -4220,7 +4288,7 @@
   },
   {
     "id": "model.config.is_valid.image_proxy_type.app_error",
-    "translation": "Invalid image proxy type for service settings."
+    "translation": "Invalid image proxy type. Must be 'local' or 'atmos/camo'."
   },
   {
     "id": "model.config.is_valid.ldap_basedn",
@@ -4389,6 +4457,10 @@
   {
     "id": "model.config.is_valid.site_url_email_batching.app_error",
     "translation": "Unable to enable email batching when SiteURL isn't set."
+  },
+  {
+    "id": "model.config.is_valid.sitename_empty.app_error",
+    "translation": "Site name cannot be empty."
   },
   {
     "id": "model.config.is_valid.sitename_length.app_error",
@@ -4625,6 +4697,30 @@
   {
     "id": "model.license_record.is_valid.id.app_error",
     "translation": "Invalid value for id when uploading a license."
+  },
+  {
+    "id": "model.link_metadata.is_valid.data.app_error",
+    "translation": "Link metadata data cannot be nil"
+  },
+  {
+    "id": "model.link_metadata.is_valid.data_type.app_error",
+    "translation": "Link metadata data does not match the given type"
+  },
+  {
+    "id": "model.link_metadata.is_valid.id.app_error",
+    "translation": "Link metadata id invalid"
+  },
+  {
+    "id": "model.link_metadata.is_valid.timestamp.app_error",
+    "translation": "Link metadata timestamp must be nonzero and rounded to the nearest hour"
+  },
+  {
+    "id": "model.link_metadata.is_valid.type.app_error",
+    "translation": "Invalid link metadata type"
+  },
+  {
+    "id": "model.link_metadata.is_valid.url.app_error",
+    "translation": "Link metadata URL must be set"
   },
   {
     "id": "model.oauth.is_valid.app_id.app_error",
@@ -5093,6 +5189,34 @@
   {
     "id": "store.sql_audit.save.saving.app_error",
     "translation": "We encountered an error saving the audit"
+  },
+  {
+    "id": "store.sql_bot.delete.app_error",
+    "translation": "내용을 가져올수 없습니다."
+  },
+  {
+    "id": "store.sql_bot.get.app_error",
+    "translation": "내용을 가져올수 없습니다."
+  },
+  {
+    "id": "store.sql_bot.get.missing.app_error",
+    "translation": "Bot does not exist"
+  },
+  {
+    "id": "store.sql_bot.get_all.app_error",
+    "translation": "내용을 가져올수 없습니다."
+  },
+  {
+    "id": "store.sql_bot.save.app_error",
+    "translation": "내용을 가져올수 없습니다."
+  },
+  {
+    "id": "store.sql_bot.update.app_error",
+    "translation": "내용을 가져올수 없습니다."
+  },
+  {
+    "id": "store.sql_bot.update.updating.app_error",
+    "translation": "We encountered an error updating the app"
   },
   {
     "id": "store.sql_channel.analytics_deleted_type_count.app_error",
@@ -6425,6 +6549,10 @@
   {
     "id": "store.sql_user.analytics_unique_user_count.app_error",
     "translation": "Unable to get the unique user count"
+  },
+  {
+    "id": "store.sql_user.app_error",
+    "translation": "Failed to build query"
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.commit_transaction.app_error",

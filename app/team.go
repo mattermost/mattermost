@@ -122,6 +122,7 @@ func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 	oldTeam.CompanyName = team.CompanyName
 	oldTeam.AllowedDomains = team.AllowedDomains
 	oldTeam.LastTeamIconUpdate = team.LastTeamIconUpdate
+	oldTeam.GroupConstrained = team.GroupConstrained
 
 	oldTeam, err = a.updateTeamUnsanitized(oldTeam)
 	if err != nil {
@@ -562,8 +563,32 @@ func (a *App) GetAllTeamsPage(offset int, limit int) ([]*model.Team, *model.AppE
 	return result.Data.([]*model.Team), nil
 }
 
-func (a *App) GetAllOpenTeams() ([]*model.Team, *model.AppError) {
+func (a *App) GetAllPrivateTeams() ([]*model.Team, *model.AppError) {
+	result := <-a.Srv.Store.Team().GetAllPrivateTeamListing()
+	if result.Err != nil {
+		return nil, result.Err
+	}
+	return result.Data.([]*model.Team), nil
+}
+
+func (a *App) GetAllPrivateTeamsPage(offset int, limit int) ([]*model.Team, *model.AppError) {
+	result := <-a.Srv.Store.Team().GetAllPrivateTeamPageListing(offset, limit)
+	if result.Err != nil {
+		return nil, result.Err
+	}
+	return result.Data.([]*model.Team), nil
+}
+
+func (a *App) GetAllPublicTeams() ([]*model.Team, *model.AppError) {
 	result := <-a.Srv.Store.Team().GetAllTeamListing()
+	if result.Err != nil {
+		return nil, result.Err
+	}
+	return result.Data.([]*model.Team), nil
+}
+
+func (a *App) GetAllPublicTeamsPage(offset int, limit int) ([]*model.Team, *model.AppError) {
+	result := <-a.Srv.Store.Team().GetAllTeamPageListing(offset, limit)
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -578,7 +603,7 @@ func (a *App) SearchAllTeams(term string) ([]*model.Team, *model.AppError) {
 	return result.Data.([]*model.Team), nil
 }
 
-func (a *App) SearchOpenTeams(term string) ([]*model.Team, *model.AppError) {
+func (a *App) SearchPublicTeams(term string) ([]*model.Team, *model.AppError) {
 	result := <-a.Srv.Store.Team().SearchOpen(term)
 	if result.Err != nil {
 		return nil, result.Err
@@ -586,8 +611,8 @@ func (a *App) SearchOpenTeams(term string) ([]*model.Team, *model.AppError) {
 	return result.Data.([]*model.Team), nil
 }
 
-func (a *App) GetAllOpenTeamsPage(offset int, limit int) ([]*model.Team, *model.AppError) {
-	result := <-a.Srv.Store.Team().GetAllTeamPageListing(offset, limit)
+func (a *App) SearchPrivateTeams(term string) ([]*model.Team, *model.AppError) {
+	result := <-a.Srv.Store.Team().SearchPrivate(term)
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -1230,5 +1255,12 @@ func (a *App) RemoveTeamIcon(teamId string) *model.AppError {
 
 	a.sendTeamEvent(team, model.WEBSOCKET_EVENT_UPDATE_TEAM)
 
+	return nil
+}
+
+func (a *App) InvalidateAllEmailInvites() *model.AppError {
+	if result := <-a.Srv.Store.Token().RemoveAllTokensByType(TOKEN_TYPE_TEAM_INVITATION); result.Err != nil {
+		return model.NewAppError("InvalidateAllEmailInvites", "api.team.invalidate_all_email_invites.app_error", nil, result.Err.Error(), http.StatusBadRequest)
+	}
 	return nil
 }

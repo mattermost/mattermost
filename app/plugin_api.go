@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"path/filepath"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/mlog"
@@ -96,6 +97,15 @@ func (api *PluginAPI) SavePluginConfig(pluginConfig map[string]interface{}) *mod
 	cfg := api.app.GetSanitizedConfig()
 	cfg.PluginSettings.Plugins[api.manifest.Id] = pluginConfig
 	return api.app.SaveConfig(cfg, true)
+}
+
+func (api *PluginAPI) GetBundlePath() (string, error) {
+	bundlePath, err := filepath.Abs(filepath.Join(*api.GetConfig().PluginSettings.Directory, api.manifest.Id))
+	if err != nil {
+		return "", err
+	}
+
+	return bundlePath, err
 }
 
 func (api *PluginAPI) GetLicense() *model.License {
@@ -274,11 +284,17 @@ func (api *PluginAPI) GetLDAPUserAttributes(userId string, attributes []string) 
 		return nil, err
 	}
 
-	if user.AuthService != model.USER_AUTH_SERVICE_LDAP || user.AuthData == nil {
+	if user.AuthData == nil {
 		return map[string]string{}, nil
 	}
 
-	return api.app.Ldap.GetUserAttributes(*user.AuthData, attributes)
+	// Only bother running the query if the user's auth service is LDAP or it's SAML and sync is enabled.
+	if user.AuthService == model.USER_AUTH_SERVICE_LDAP ||
+		(user.AuthService == model.USER_AUTH_SERVICE_SAML && *api.app.Config().SamlSettings.EnableSyncWithLdap) {
+		return api.app.Ldap.GetUserAttributes(*user.AuthData, attributes)
+	}
+
+	return map[string]string{}, nil
 }
 
 func (api *PluginAPI) CreateChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
@@ -376,7 +392,7 @@ func (api *PluginAPI) AddChannelMember(channelId, userId string) (*model.Channel
 		return nil, err
 	}
 
-	return api.app.AddChannelMember(userId, channel, userRequestorId, postRootId, false)
+	return api.app.AddChannelMember(userId, channel, userRequestorId, postRootId, "")
 }
 
 func (api *PluginAPI) GetChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError) {

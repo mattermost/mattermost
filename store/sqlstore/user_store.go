@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"sort"
 	"strings"
 
 	sq "github.com/Masterminds/squirrel"
@@ -1057,7 +1058,7 @@ func (us SqlUserStore) Count(options model.UserCountOptions) store.StoreChannel 
 			query = query.LeftJoin("Bots ON Users.Id = Bots.UserId").Where("Bots.UserId IS NULL")
 			if options.ExcludeRegularUsers {
 				// Currenty this doesn't make sense because it will always return 0
-				result.Err = model.NewAppError("SqlUserStore.Count", "UserCountOptions don't make sense", nil, "", http.StatusInternalServerError)
+				result.Err = model.NewAppError("SqlUserStore.Count", "store.sql_user.count.app_error", nil, "", http.StatusInternalServerError)
 				return
 			}
 		}
@@ -1117,7 +1118,7 @@ func (us SqlUserStore) GetUnreadCount(userId string) store.StoreChannel {
 
 func (us SqlUserStore) GetUnreadCountForChannel(userId string, channelId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		if count, err := us.GetReplica().SelectInt("SELECT SUM(CASE WHEN c.Type = 'D' THEN (c.TotalMsgCount - cm.MsgCount) ELSE cm.MentionCount END) FROM Channels c INNER JOIN ChannelMembers cm ON c.Id = :ChannelId AND cm.ChannelId = :ChannelId AND cm.UserId = :UserId", map[string]interface{}{"ChannelId": channelId, "UserId": userId}); err != nil {
+		if count, err := us.GetReplica().SelectInt("SELECT SUM(CASE WHEN c.Type = 'D' THEN (c.TotalMsgCount - cm.MsgCount) ELSE cm.MentionCount END) FROM Channels c INNER JOIN ChannelMembers cm ON c.Id = cm.ChannelId AND cm.ChannelId = :ChannelId AND cm.UserId = :UserId", map[string]interface{}{"ChannelId": channelId, "UserId": userId}); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.GetMentionCountForChannel", "store.sql_user.get_unread_count_for_channel.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
 			result.Data = count
@@ -1127,7 +1128,7 @@ func (us SqlUserStore) GetUnreadCountForChannel(userId string, channelId string)
 
 func (us SqlUserStore) GetAnyUnreadPostCountForChannel(userId string, channelId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		if count, err := us.GetReplica().SelectInt("SELECT SUM(c.TotalMsgCount - cm.MsgCount) FROM Channels c INNER JOIN ChannelMembers cm ON c.Id = :ChannelId AND cm.ChannelId = :ChannelId AND cm.UserId = :UserId", map[string]interface{}{"ChannelId": channelId, "UserId": userId}); err != nil {
+		if count, err := us.GetReplica().SelectInt("SELECT SUM(c.TotalMsgCount - cm.MsgCount) FROM Channels c INNER JOIN ChannelMembers cm ON c.Id = cm.ChannelId AND cm.ChannelId = :ChannelId AND cm.UserId = :UserId", map[string]interface{}{"ChannelId": channelId, "UserId": userId}); err != nil {
 			result.Err = model.NewAppError("SqlUserStore.GetMentionCountForChannel", "store.sql_user.get_unread_count_for_channel.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
 			result.Data = count
@@ -1363,15 +1364,15 @@ func (us SqlUserStore) GetEtagForProfilesNotInTeam(teamId string) store.StoreCha
 
 		var querystr string
 		querystr = `
-			SELECT 
+			SELECT
 				CONCAT(MAX(UpdateAt), '.', COUNT(Id)) as etag
-			FROM 
+			FROM
 				Users as u
-			LEFT JOIN TeamMembers tm 
-				ON tm.UserId = u.Id 
-				AND tm.TeamId = :TeamId 
+			LEFT JOIN TeamMembers tm
+				ON tm.UserId = u.Id
+				AND tm.TeamId = :TeamId
 				AND tm.DeleteAt = 0
-			WHERE 
+			WHERE
 				tm.UserId IS NULL
 		`
 		etag, err := us.GetReplica().SelectStr(querystr, map[string]interface{}{"TeamId": teamId})
@@ -1447,5 +1448,91 @@ func (us SqlUserStore) InferSystemInstallDate() store.StoreChannel {
 			return
 		}
 		result.Data = createAt
+	})
+}
+
+func (us SqlUserStore) GetUsersBatchForIndexing(startTime, endTime int64, limit int) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		var users []*model.User
+		usersQuery, args, _ := us.usersQuery.
+			Where(sq.GtOrEq{"u.CreateAt": startTime}).
+			Where(sq.Lt{"u.CreateAt": endTime}).
+			OrderBy("u.CreateAt").
+			Limit(uint64(limit)).
+			ToSql()
+		_, err1 := us.GetSearchReplica().Select(&users, usersQuery, args...)
+
+		if err1 != nil {
+			result.Err = model.NewAppError("SqlUserStore.GetUsersBatchForIndexing", "store.sql_user.get_users_batch_for_indexing.get_users.app_error", nil, err1.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		userIds := []string{}
+		for _, user := range users {
+			userIds = append(userIds, user.Id)
+		}
+
+		var channelMembers []*model.ChannelMember
+		channelMembersQuery, args, _ := us.getQueryBuilder().
+			Select("cm.*").
+			From("ChannelMembers cm").
+			Join("Channels c ON cm.ChannelId = c.Id").
+			Where(sq.Eq{"c.Type": "O", "cm.UserId": userIds}).
+			ToSql()
+		_, err2 := us.GetSearchReplica().Select(&channelMembers, channelMembersQuery, args...)
+
+		if err2 != nil {
+			result.Err = model.NewAppError("SqlUserStore.GetUsersBatchForIndexing", "store.sql_user.get_users_batch_for_indexing.get_channel_members.app_error", nil, err2.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		var teamMembers []*model.TeamMember
+		teamMembersQuery, args, _ := us.getQueryBuilder().
+			Select("*").
+			From("TeamMembers").
+			Where(sq.Eq{"UserId": userIds, "DeleteAt": 0}).
+			ToSql()
+		_, err3 := us.GetSearchReplica().Select(&teamMembers, teamMembersQuery, args...)
+
+		if err3 != nil {
+			result.Err = model.NewAppError("SqlUserStore.GetUsersBatchForIndexing", "store.sql_user.get_users_batch_for_indexing.get_team_members.app_error", nil, err3.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		userMap := map[string]*model.UserForIndexing{}
+		for _, user := range users {
+			userMap[user.Id] = &model.UserForIndexing{
+				Id:          user.Id,
+				Username:    user.Username,
+				Nickname:    user.Nickname,
+				FirstName:   user.FirstName,
+				LastName:    user.LastName,
+				CreateAt:    user.CreateAt,
+				DeleteAt:    user.DeleteAt,
+				TeamsIds:    []string{},
+				ChannelsIds: []string{},
+			}
+		}
+
+		for _, c := range channelMembers {
+			if userMap[c.UserId] != nil {
+				userMap[c.UserId].ChannelsIds = append(userMap[c.UserId].ChannelsIds, c.ChannelId)
+			}
+		}
+		for _, t := range teamMembers {
+			if userMap[t.UserId] != nil {
+				userMap[t.UserId].TeamsIds = append(userMap[t.UserId].TeamsIds, t.TeamId)
+			}
+		}
+
+		usersForIndexing := []*model.UserForIndexing{}
+		for _, user := range userMap {
+			usersForIndexing = append(usersForIndexing, user)
+		}
+		sort.Slice(usersForIndexing, func(i, j int) bool {
+			return usersForIndexing[i].CreateAt < usersForIndexing[j].CreateAt
+		})
+
+		result.Data = usersForIndexing
 	})
 }
