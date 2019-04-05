@@ -585,6 +585,9 @@ type GroupStore interface {
 
 	TeamMembersToRemove() StoreChannel
 	ChannelMembersToRemove() StoreChannel
+
+	GetGroupsByChannel(channelId string, page, perPage int) StoreChannel
+	GetGroupsByTeam(teamId string, page, perPage int) StoreChannel
 }
 
 type LinkMetadataStore interface {

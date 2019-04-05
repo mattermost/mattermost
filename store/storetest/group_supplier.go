@@ -36,6 +36,9 @@ func TestGroupStore(t *testing.T, ss store.Store) {
 
 	t.Run("TeamMembersToRemove", func(t *testing.T) { testPendingTeamMemberRemovals(t, ss) })
 	t.Run("ChannelMembersToRemove", func(t *testing.T) { testPendingChannelMemberRemovals(t, ss) })
+
+	t.Run("GetGroupsByChannel", func(t *testing.T) { testGetGroupsByChannel(t, ss) })
+	t.Run("GetGroupsByTeam", func(t *testing.T) { testGetGroupsByTeam(t, ss) })
 }
 
 func testGroupStoreCreate(t *testing.T, ss store.Store) {
@@ -1505,5 +1508,263 @@ func pendingMemberRemovalsDataSetup(t *testing.T, ss store.Store) *removalsData 
 		ConstrainedTeam:      teamConstrained,
 		UnconstrainedTeam:    teamUnconstrained,
 		Group:                group,
+	}
+}
+
+func testGetGroupsByChannel(t *testing.T, ss store.Store) {
+	// Create Channel1
+	channel1 := &model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "Channel1",
+		Name:        model.NewId(),
+		Type:        model.CHANNEL_OPEN,
+	}
+	res := <-ss.Channel().Save(channel1, 9999)
+	require.Nil(t, res.Err)
+	channel1 = res.Data.(*model.Channel)
+
+	// Create Groups 1 and 2
+	res = <-ss.Group().Create(&model.Group{
+		Name:        model.NewId(),
+		DisplayName: "group-1",
+		RemoteId:    model.NewId(),
+		Source:      model.GroupSourceLdap,
+	})
+	require.Nil(t, res.Err)
+	group1 := res.Data.(*model.Group)
+
+	res = <-ss.Group().Create(&model.Group{
+		Name:        model.NewId(),
+		DisplayName: "group-2",
+		RemoteId:    model.NewId(),
+		Source:      model.GroupSourceLdap,
+	})
+	require.Nil(t, res.Err)
+	group2 := res.Data.(*model.Group)
+
+	// And associate them with Channel1
+	for _, g := range []*model.Group{group1, group2} {
+		res = <-ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+			AutoAdd:    true,
+			SyncableId: channel1.Id,
+			Type:       model.GroupSyncableTypeChannel,
+			GroupId:    g.Id,
+		})
+		require.Nil(t, res.Err)
+	}
+
+	// Create Channel2
+	channel2 := &model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "Channel2",
+		Name:        model.NewId(),
+		Type:        model.CHANNEL_OPEN,
+	}
+	res = <-ss.Channel().Save(channel2, 9999)
+	require.Nil(t, res.Err)
+	channel2 = res.Data.(*model.Channel)
+
+	// Create Group3
+	res = <-ss.Group().Create(&model.Group{
+		Name:        model.NewId(),
+		DisplayName: "group-3",
+		RemoteId:    model.NewId(),
+		Source:      model.GroupSourceLdap,
+	})
+	require.Nil(t, res.Err)
+	group3 := res.Data.(*model.Group)
+
+	// And associate it to Channel2
+	res = <-ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+		AutoAdd:    true,
+		SyncableId: channel2.Id,
+		Type:       model.GroupSyncableTypeChannel,
+		GroupId:    group3.Id,
+	})
+	require.Nil(t, res.Err)
+
+	testCases := []struct {
+		Name      string
+		ChannelId string
+		Page      int
+		PerPage   int
+		Result    []*model.Group
+	}{
+		{
+			Name:      "Get the two Groups for Channel1",
+			ChannelId: channel1.Id,
+			Page:      0,
+			PerPage:   60,
+			Result:    []*model.Group{group1, group2},
+		},
+		{
+			Name:      "Get first Group for Channel1 with page 0 with 1 element",
+			ChannelId: channel1.Id,
+			Page:      0,
+			PerPage:   1,
+			Result:    []*model.Group{group1},
+		},
+		{
+			Name:      "Get second Group for Channel1 with page 1 with 1 element",
+			ChannelId: channel1.Id,
+			Page:      1,
+			PerPage:   1,
+			Result:    []*model.Group{group2},
+		},
+		{
+			Name:      "Get third Group for Channel2",
+			ChannelId: channel2.Id,
+			Page:      0,
+			PerPage:   60,
+			Result:    []*model.Group{group3},
+		},
+		{
+			Name:      "Get empty Groups for a fake id",
+			ChannelId: model.NewId(),
+			Page:      0,
+			PerPage:   60,
+			Result:    []*model.Group{},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			res := <-ss.Group().GetGroupsByChannel(tc.ChannelId, tc.Page, tc.PerPage)
+			require.Nil(t, res.Err)
+			require.ElementsMatch(t, tc.Result, res.Data.([]*model.Group))
+		})
+	}
+}
+
+func testGetGroupsByTeam(t *testing.T, ss store.Store) {
+	// Create Team1
+	team1 := &model.Team{
+		DisplayName:     "Team1",
+		Description:     model.NewId(),
+		CompanyName:     model.NewId(),
+		AllowOpenInvite: false,
+		InviteId:        model.NewId(),
+		Name:            model.NewId(),
+		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
+		Type:            model.TEAM_OPEN,
+	}
+	res := <-ss.Team().Save(team1)
+	require.Nil(t, res.Err)
+	team1 = res.Data.(*model.Team)
+
+	// Create Groups 1 and 2
+	res = <-ss.Group().Create(&model.Group{
+		Name:        model.NewId(),
+		DisplayName: "group-1",
+		RemoteId:    model.NewId(),
+		Source:      model.GroupSourceLdap,
+	})
+	require.Nil(t, res.Err)
+	group1 := res.Data.(*model.Group)
+
+	res = <-ss.Group().Create(&model.Group{
+		Name:        model.NewId(),
+		DisplayName: "group-2",
+		RemoteId:    model.NewId(),
+		Source:      model.GroupSourceLdap,
+	})
+	require.Nil(t, res.Err)
+	group2 := res.Data.(*model.Group)
+
+	// And associate them with Team1
+	for _, g := range []*model.Group{group1, group2} {
+		res = <-ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+			AutoAdd:    true,
+			SyncableId: team1.Id,
+			Type:       model.GroupSyncableTypeTeam,
+			GroupId:    g.Id,
+		})
+		require.Nil(t, res.Err)
+	}
+
+	// Create Team2
+	team2 := &model.Team{
+		DisplayName:     "Team2",
+		Description:     model.NewId(),
+		CompanyName:     model.NewId(),
+		AllowOpenInvite: false,
+		InviteId:        model.NewId(),
+		Name:            model.NewId(),
+		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
+		Type:            model.TEAM_INVITE,
+	}
+	res = <-ss.Team().Save(team2)
+	require.Nil(t, res.Err)
+	team2 = res.Data.(*model.Team)
+
+	// Create Group3
+	res = <-ss.Group().Create(&model.Group{
+		Name:        model.NewId(),
+		DisplayName: "group-3",
+		RemoteId:    model.NewId(),
+		Source:      model.GroupSourceLdap,
+	})
+	require.Nil(t, res.Err)
+	group3 := res.Data.(*model.Group)
+
+	// And associate it to Team2
+	res = <-ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+		AutoAdd:    true,
+		SyncableId: team2.Id,
+		Type:       model.GroupSyncableTypeTeam,
+		GroupId:    group3.Id,
+	})
+	require.Nil(t, res.Err)
+
+	testCases := []struct {
+		Name    string
+		TeamId  string
+		Page    int
+		PerPage int
+		Result  []*model.Group
+	}{
+		{
+			Name:    "Get the two Groups for Team1",
+			TeamId:  team1.Id,
+			Page:    0,
+			PerPage: 60,
+			Result:  []*model.Group{group1, group2},
+		},
+		{
+			Name:    "Get first Group for Team1 with page 0 with 1 element",
+			TeamId:  team1.Id,
+			Page:    0,
+			PerPage: 1,
+			Result:  []*model.Group{group1},
+		},
+		{
+			Name:    "Get second Group for Team1 with page 1 with 1 element",
+			TeamId:  team1.Id,
+			Page:    1,
+			PerPage: 1,
+			Result:  []*model.Group{group2},
+		},
+		{
+			Name:    "Get third Group for Team2",
+			TeamId:  team2.Id,
+			Page:    0,
+			PerPage: 60,
+			Result:  []*model.Group{group3},
+		},
+		{
+			Name:    "Get empty Groups for a fake id",
+			TeamId:  model.NewId(),
+			Page:    0,
+			PerPage: 60,
+			Result:  []*model.Group{},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			res := <-ss.Group().GetGroupsByTeam(tc.TeamId, tc.Page, tc.PerPage)
+			require.Nil(t, res.Err)
+			require.ElementsMatch(t, tc.Result, res.Data.([]*model.Group))
+		})
 	}
 }

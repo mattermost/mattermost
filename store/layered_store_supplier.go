@@ -73,4 +73,7 @@ type LayeredStoreSupplier interface {
 
 	TeamMembersToRemove(ctx context.Context, hints ...LayeredStoreHint) *LayeredStoreSupplierResult
 	ChannelMembersToRemove(ctx context.Context, hints ...LayeredStoreHint) *LayeredStoreSupplierResult
+
+	GetGroupsByChannel(ctx context.Context, channelId string, page, perPage int, hints ...LayeredStoreHint) *LayeredStoreSupplierResult
+	GetGroupsByTeam(ctx context.Context, teamId string, page, perPage int, hints ...LayeredStoreHint) *LayeredStoreSupplierResult
 }
