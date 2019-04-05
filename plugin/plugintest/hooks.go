@@ -68,6 +68,20 @@ func (_m *Hooks) FileWillBeUploaded(c *plugin.Context, info *model.FileInfo, fil
 	return r0, r1
 }
 
+// HealthCheck provides a mock function with given fields:
+func (_m *Hooks) HealthCheck() error {
+	ret := _m.Called()
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Implemented provides a mock function with given fields:
 func (_m *Hooks) Implemented() ([]string, error) {
 	ret := _m.Called()

@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	PLUGIN_HEALTH_CHECK_INTERVAL  = 5 // minutes
+	PLUGIN_HEALTH_CHECK_INTERVAL  = 30 // seconds
 	HEALTH_CHECK_PING_FAIL_LIMIT  = 3
 	HEALTH_CHECK_RESTART_LIMIT    = 3
 	HEALTH_CHECK_DISABLE_DURATION = 60 // minutes
@@ -54,20 +54,20 @@ func (env *Environment) InitPluginHealthCheckJob(enableJob *bool) {
 
 // Start continuously runs health checks on all active plugins, on a timer.
 func (job *PluginHealthCheckJob) Start() {
-	interval := time.Duration(PLUGIN_HEALTH_CHECK_INTERVAL) * time.Minute
+	interval := time.Duration(PLUGIN_HEALTH_CHECK_INTERVAL) * time.Second
 	mlog.Debug(fmt.Sprintf("Plugin health check job starting. Sending health check pings every %v minutes.", interval))
+
+	env := job.env
+	activePlugins := env.Active()
+
+	for _, plugin := range activePlugins {
+		if _, ok := env.pluginHealthStatuses.Load(plugin.Manifest.Id); !ok {
+			env.pluginHealthStatuses.Store(plugin.Manifest.Id, newPluginHealthStatus())
+		}
+	}
 
 	go func() {
 		defer close(job.cancelled)
-
-		env := job.env
-		activePlugins := env.Active()
-
-		for _, plugin := range activePlugins {
-			if _, ok := env.pluginHealthStatuses.Load(plugin.Manifest.Id); !ok {
-				env.pluginHealthStatuses.Store(plugin.Manifest.Id, newPluginHealthStatus())
-			}
-		}
 
 		ticker := time.NewTicker(interval)
 		defer func() {
