@@ -3468,15 +3468,15 @@
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": ""
+    "translation": "Failed to create Elasticsearch template for channels"
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": ""
+    "translation": "Failed to create Elasticsearch template for posts"
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": ""
+    "translation": "Failed to create Elasticsearch template for users"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
@@ -3488,7 +3488,7 @@
   },
   {
     "id": "ent.elasticsearch.delete_channel.error",
-    "translation": ""
+    "translation": "Failed to delete the channel"
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
@@ -3496,7 +3496,7 @@
   },
   {
     "id": "ent.elasticsearch.delete_user.error",
-    "translation": ""
+    "translation": "Failed to delete the user"
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
@@ -3504,7 +3504,7 @@
   },
   {
     "id": "ent.elasticsearch.index_channel.error",
-    "translation": ""
+    "translation": "Failed to index the channel"
   },
   {
     "id": "ent.elasticsearch.index_post.error",
@@ -3512,7 +3512,7 @@
   },
   {
     "id": "ent.elasticsearch.index_user.error",
-    "translation": ""
+    "translation": "Failed to index the user"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
@@ -3540,15 +3540,15 @@
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": ""
+    "translation": "Elasticsearch searching is disabled on this server"
   },
   {
     "id": "ent.elasticsearch.search_channels.search_failed",
-    "translation": ""
+    "translation": "Search failed to complete"
   },
   {
     "id": "ent.elasticsearch.search_channels.unmarshall_channel_failed",
-    "translation": ""
+    "translation": "Failed to decode search results"
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
@@ -3568,15 +3568,15 @@
   },
   {
     "id": "ent.elasticsearch.search_users.disabled",
-    "translation": ""
+    "translation": "Elasticsearch searching is disabled on this server"
   },
   {
     "id": "ent.elasticsearch.search_users.search_failed",
-    "translation": ""
+    "translation": "Search failed to complete"
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
-    "translation": ""
+    "translation": "Failed to decode search results"
   },
   {
     "id": "ent.elasticsearch.start.already_started.app_error",
@@ -4248,7 +4248,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": ""
+    "translation": "Elastic Search IndexingEnabled setting must be set to true when Elastic Search AutocompleteEnabled is set to true."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
@@ -5268,7 +5268,7 @@
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.app_error",
-    "translation": ""
+    "translation": "Unable to get channels by ids"
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.get.app_error",
