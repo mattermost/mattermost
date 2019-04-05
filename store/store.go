@@ -27,6 +27,19 @@ func Do(f func(result *StoreResult)) StoreChannel {
 	return storeChannel
 }
 
+func Async(f func() (interface{}, *model.AppError)) StoreChannel {
+	storeChannel := make(StoreChannel, 1)
+	go func() {
+		result := StoreResult{}
+		data, err := f()
+		result.Data = data
+		result.Err = err
+		storeChannel <- result
+		close(storeChannel)
+	}()
+	return storeChannel
+}
+
 func Must(sc StoreChannel) interface{} {
 	r := <-sc
 	if r.Err != nil {
@@ -156,7 +169,7 @@ type ChannelStore interface {
 	SaveMember(member *model.ChannelMember) StoreChannel
 	UpdateMember(member *model.ChannelMember) StoreChannel
 	GetMembers(channelId string, offset, limit int) StoreChannel
-	GetMember(channelId string, userId string) StoreChannel
+	GetMember(channelId string, userId string) (*model.ChannelMember, *model.AppError)
 	GetChannelMembersTimezones(channelId string) StoreChannel
 	GetAllChannelMembersForUser(userId string, allowFromCache bool, includeDeleted bool) StoreChannel
 	InvalidateAllChannelMembersForUser(userId string)
@@ -248,7 +261,7 @@ type UserStore interface {
 	UpdateAuthData(userId string, service string, authData *string, email string, resetMfa bool) StoreChannel
 	UpdateMfaSecret(userId, secret string) StoreChannel
 	UpdateMfaActive(userId string, active bool) StoreChannel
-	Get(id string) StoreChannel
+	Get(id string) (*model.User, *model.AppError)
 	GetAll() StoreChannel
 	ClearCaches()
 	InvalidateProfilesInChannelCacheByUser(userId string)

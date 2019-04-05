@@ -36,11 +36,10 @@ func (a *App) CreateDefaultChannels(teamId string) ([]*model.Channel, *model.App
 func (a *App) JoinDefaultChannels(teamId string, user *model.User, shouldBeAdmin bool, userRequestorId string) *model.AppError {
 	var requestor *model.User
 	if userRequestorId != "" {
-		u := <-a.Srv.Store.User().Get(userRequestorId)
-		if u.Err != nil {
-			return u.Err
+		requestor, err := <-a.Srv.Store.User().Get(userRequestorId)
+		if err != nil {
+			return err
 		}
-		requestor = u.Data.(*model.User)
 	}
 
 	defaultChannelList := []string{"town-square"}
@@ -1330,8 +1329,13 @@ func (a *App) GetChannelUnread(channelId, userId string) (*model.ChannelUnread, 
 }
 
 func (a *App) JoinChannel(channel *model.Channel, userId string) *model.AppError {
-	userChan := a.Srv.Store.User().Get(userId)
-	memberChan := a.Srv.Store.Channel().GetMember(channel.Id, userId)
+	userChan := a.Srv.Store.Async(func(interface{}, *model.AppError) {
+		return a.Srv.Store.User().Get(userId)
+	})
+
+	memberChan := a.Srv.Store.Async(func(interface{}, *model.AppError) {
+		return a.Srv.Store.Channel().GetMember(channel.Id, userId)
+	})
 
 	uresult := <-userChan
 	if uresult.Err != nil {
