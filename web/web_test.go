@@ -196,6 +196,11 @@ func TestPublicFilesRequest(t *testing.T) {
 	res = httptest.NewRecorder()
 	th.Web.MainRouter.ServeHTTP(res, req)
 	assert.Equal(t, 404, res.Code)
+
+	req, _ = http.NewRequest("GET", "/plugins/com.mattermost.sample/public/../nefarious-file-access.html", nil)
+	res = httptest.NewRecorder()
+	th.Web.MainRouter.ServeHTTP(res, req)
+	assert.Equal(t, 301, res.Code)
 }
 
 /* Test disabled for now so we don't requrie the client to build. Maybe re-enable after client gets moved out.
