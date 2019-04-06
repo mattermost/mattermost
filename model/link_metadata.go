@@ -34,15 +34,31 @@ func truncateText(original string) string {
 	return original
 }
 
+func firstImage(images []*opengraph.Image) []*opengraph.Image {
+	if len(images) > 1 {
+		return []*opengraph.Image{images[0]}
+	}
+	return images
+}
+
 // TruncateOpenGraph modifies a OG into a smaller version to ensure it
 // doesn't grow too big, as that much text won't be displayed by the
-// clients anyway.
+// clients anyway. Also remove unwanted fields
 func TruncateOpenGraph(ogdata *opengraph.OpenGraph) *opengraph.OpenGraph {
 	if ogdata != nil {
 		// we might want to truncate url too, but that can have unintended effect
 		ogdata.Title = truncateText(ogdata.Title)
 		ogdata.Description = truncateText(ogdata.Description)
 		ogdata.SiteName = truncateText(ogdata.SiteName)
+		ogdata.Article = nil
+		ogdata.Book = nil
+		ogdata.Profile = nil
+		ogdata.Determiner = ""
+		ogdata.Locale = ""
+		ogdata.LocalesAlternate = make([]string, 0)
+		ogdata.Images = firstImage(ogdata.Images)
+		ogdata.Audios = make([]*opengraph.Audio, 0)
+		ogdata.Videos = make([]*opengraph.Video, 0)
 	}
 	return ogdata
 }
