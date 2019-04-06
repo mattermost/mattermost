@@ -271,3 +271,34 @@ func TestFirstImage(t *testing.T) {
 	})
 
 }
+
+func TestTruncateOpenGraph(t *testing.T) {
+	og := opengraph.OpenGraph{
+		Type:             "something",
+		URL:              "http://myawesomesite.com",
+		Title:            BigText,
+		Description:      BigText,
+		Determiner:       BigText,
+		SiteName:         BigText,
+		Locale:           "[EN-en]",
+		LocalesAlternate: []string{"[EN-ca]", "[ES-es]"},
+		Images:           []*opengraph.Image{sampleImage("image.png"), sampleImage("notme.png")},
+		Audios:           []*opengraph.Audio{&opengraph.Audio{}},
+		Videos:           []*opengraph.Video{&opengraph.Video{}},
+		Article:          &opengraph.Article{},
+		Book:             &opengraph.Book{},
+		Profile:          &opengraph.Profile{},
+	}
+	result := TruncateOpenGraph(&og)
+	assert.Nil(t, result.Article, "No article stored")
+	assert.Nil(t, result.Book, "No book stored")
+	assert.Nil(t, result.Profile, "No profile stored")
+	assert.Len(t, result.Images, 1, "Only the first image")
+	assert.Len(t, result.Audios, 0, "No audios stored")
+	assert.Len(t, result.Videos, 0, "No videos stored")
+	assert.Len(t, result.LocalesAlternate, 0, "No alternate locales stored")
+	assert.Equal(t, result.Determiner, "", "No determiner stored")
+	assert.Equal(t, utf8.RuneCountInString(result.Title), 305, "Title text is truncated")
+	assert.Equal(t, utf8.RuneCountInString(result.Description), 305, "Description text is truncated")
+	assert.Equal(t, utf8.RuneCountInString(result.SiteName), 305, "SiteName text is truncated")
+}
