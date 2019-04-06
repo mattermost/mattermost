@@ -5,12 +5,27 @@ package model
 
 import (
 	"encoding/json"
+	"fmt"
+	"strings"
 	"testing"
+	"unicode/utf8"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+const BigText = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus maximus faucibus ex, vitae placerat neque feugiat ac. Nam tempus libero quis pellentesque feugiat. Cras tristique diam vel condimentum viverra. Proin molestie posuere leo. Nam pulvinar, ex quis tristique cursus, turpis ante commodo elit, a dapibus est ipsum id eros. Mauris tortor dolor, posuere ac velit vitae, faucibus viverra fusce."
+
+func sampleImage(imageName string) *opengraph.Image {
+	return &opengraph.Image{
+		URL:       fmt.Sprintf("http://example.com/%s", imageName),
+		SecureURL: fmt.Sprintf("https://example.com/%s", imageName),
+		Type:      "png",
+		Width:     32,
+		Height:    32,
+	}
+}
 
 func TestLinkMetadataIsValid(t *testing.T) {
 	for _, test := range []struct {
@@ -224,4 +239,35 @@ func TestLinkMetadataDeserializeDataToConcreteType(t *testing.T) {
 
 func TestFloorToNearestHour(t *testing.T) {
 	assert.True(t, isRoundedToNearestHour(FloorToNearestHour(1546346096000)))
+}
+
+func TestTruncateText(t *testing.T) {
+	t.Run("Shouldn't affect strings smaller than 300 characters", func(t *testing.T) {
+		assert.Equal(t, utf8.RuneCountInString(truncateText("abc")), 3, "should be 3")
+	})
+	t.Run("Shouldn't affect empty strings", func(t *testing.T) {
+		assert.Equal(t, utf8.RuneCountInString(truncateText("")), 0, "should be empty")
+	})
+	t.Run("Truncates string to 300 + 5", func(t *testing.T) {
+		assert.Equal(t, utf8.RuneCountInString(truncateText(BigText)), 305, "should be 300 chars + 5")
+	})
+	t.Run("Truncated text ends in elipsis", func(t *testing.T) {
+		assert.True(t, strings.HasSuffix(truncateText(BigText), "[...]"))
+	})
+}
+
+func TestFirstImage(t *testing.T) {
+	t.Run("when empty, return an empty one", func(t *testing.T) {
+		empty := make([]*opengraph.Image, 0)
+		assert.Exactly(t, firstImage(empty), empty, "Should be the same element")
+	})
+	t.Run("when it contains one element, return the same array", func(t *testing.T) {
+		one := []*opengraph.Image{sampleImage("image.png")}
+		assert.Exactly(t, firstImage(one), one, "Should be the same element")
+	})
+	t.Run("when it contains more than one element, return the first one", func(t *testing.T) {
+		two := []*opengraph.Image{sampleImage("image.png"), sampleImage("notme.png")}
+		assert.True(t, strings.HasSuffix(firstImage(two)[0].URL, "image.png"), "Should be the image element")
+	})
+
 }
