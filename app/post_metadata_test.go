@@ -229,7 +229,7 @@ func TestPreparePostForClient(t *testing.T) {
 
 		clientPost := th.App.PreparePostForClient(post, false)
 
-		t.Run("pupulates emojis", func(t *testing.T) {
+		t.Run("populates emojis", func(t *testing.T) {
 			assert.ElementsMatch(t, []*model.Emoji{emoji1, emoji2, emoji3, emoji4}, clientPost.Metadata.Emojis, "should've populated post.Emojis")
 		})
 
