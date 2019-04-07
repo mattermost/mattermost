@@ -427,6 +427,67 @@ func TestGetBots(t *testing.T) {
 	})
 }
 
+func TestGetByNameBot(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	bot1, err := th.App.CreateBot(&model.Bot{
+		Username:    "username",
+		Description: "a bot",
+		OwnerId:     th.BasicUser.Id,
+	})
+	require.Nil(t, err)
+	defer th.App.PermanentDeleteBot(bot1.UserId)
+
+	bot2, err := th.App.CreateBot(&model.Bot{
+		Username:    "username2",
+		Description: "a second bot",
+		OwnerId:     th.BasicUser.Id,
+	})
+	require.Nil(t, err)
+	defer th.App.PermanentDeleteBot(bot2.UserId)
+
+	deletedBot, err := th.App.CreateBot(&model.Bot{
+		Username:    "username3",
+		Description: "a deleted bot",
+		OwnerId:     th.BasicUser.Id,
+	})
+	require.Nil(t, err)
+	deletedBot, err = th.App.UpdateBotActive(deletedBot.UserId, false)
+	require.Nil(t, err)
+	defer th.App.PermanentDeleteBot(deletedBot.UserId)
+
+	t.Run("get unknown bot", func(t *testing.T) {
+		_, err := th.App.GetBotByName("unknow", false)
+		require.NotNil(t, err)
+		require.Equal(t, "store.sql_bot.get.missing.app_error", err.Id)
+	})
+
+	t.Run("get bot1", func(t *testing.T) {
+		bot, err := th.App.GetBotByName(bot1.Username, false)
+		require.Nil(t, err)
+		assert.Equal(t, bot1, bot)
+	})
+
+	t.Run("get bot2", func(t *testing.T) {
+		bot, err := th.App.GetBotByName(bot2.Username, false)
+		require.Nil(t, err)
+		assert.Equal(t, bot2, bot)
+	})
+
+	t.Run("get deleted bot", func(t *testing.T) {
+		_, err := th.App.GetBotByName(deletedBot.Username, false)
+		require.NotNil(t, err)
+		require.Equal(t, "store.sql_bot.get.missing.app_error", err.Id)
+	})
+
+	t.Run("get deleted bot, include deleted", func(t *testing.T) {
+		bot, err := th.App.GetBotByName(deletedBot.Username, true)
+		require.Nil(t, err)
+		assert.Equal(t, deletedBot, bot)
+	})
+}
+
 func TestUpdateBotActive(t *testing.T) {
 	t.Run("unknown bot", func(t *testing.T) {
 		th := Setup(t).InitBasic()

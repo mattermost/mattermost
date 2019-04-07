@@ -59,6 +59,7 @@ type Params struct {
 	SyncableId     string
 	SyncableType   model.GroupSyncableType
 	BotUserId      string
+	BotUserName    string
 	Q              string
 	IsLinked       *bool
 	IsConfigured   *bool
@@ -233,6 +234,10 @@ func ParamsFromRequest(r *http.Request) *Params {
 
 	if val, ok := props["bot_user_id"]; ok {
 		params.BotUserId = val
+	}
+
+	if val, ok := props["bot_user_name"]; ok {
+		params.BotUserName = val
 	}
 
 	params.Q = query.Get("q")

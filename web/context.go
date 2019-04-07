@@ -579,3 +579,14 @@ func (c *Context) RequireBotUserId() *Context {
 	}
 	return c
 }
+
+func (c *Context) RequireBotUserName() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.BotUserName) == 0 {
+		c.SetInvalidUrlParam("bot_user_name")
+	}
+	return c
+}

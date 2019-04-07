@@ -645,6 +645,125 @@ func TestGetBots(t *testing.T) {
 	})
 }
 
+func TestGetBotByName(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	bot1, resp := th.SystemAdminClient.CreateBot(&model.Bot{
+		Username:    GenerateTestUsername(),
+		DisplayName: "a bot",
+		Description: "the first bot",
+	})
+	CheckCreatedStatus(t, resp)
+	defer th.App.PermanentDeleteBot(bot1.UserId)
+
+	bot2, resp := th.SystemAdminClient.CreateBot(&model.Bot{
+		Username:    GenerateTestUsername(),
+		DisplayName: "another bot",
+		Description: "the second bot",
+	})
+	CheckCreatedStatus(t, resp)
+	defer th.App.PermanentDeleteBot(bot2.UserId)
+
+	deletedBot, resp := th.SystemAdminClient.CreateBot(&model.Bot{
+		Username:    GenerateTestUsername(),
+		Description: "a deleted bot",
+	})
+	CheckCreatedStatus(t, resp)
+	defer th.App.PermanentDeleteBot(deletedBot.UserId)
+	deletedBot, resp = th.SystemAdminClient.DisableBot(deletedBot.UserId)
+	CheckOKStatus(t, resp)
+
+	th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
+	th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+	myBot, resp := th.Client.CreateBot(&model.Bot{
+		Username:    GenerateTestUsername(),
+		DisplayName: "my bot",
+		Description: "a bot created by non-admin",
+	})
+	CheckCreatedStatus(t, resp)
+	defer th.App.PermanentDeleteBot(myBot.UserId)
+	th.RemovePermissionFromRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
+
+	t.Run("get unknown bot", func(t *testing.T) {
+		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+
+		th.AddPermissionToRole(model.PERMISSION_READ_BOTS.Id, model.TEAM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_READ_OTHERS_BOTS.Id, model.TEAM_USER_ROLE_ID)
+		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+
+		_, resp := th.Client.GetBotByName("unknow", "")
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("get bot1", func(t *testing.T) {
+		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+
+		th.AddPermissionToRole(model.PERMISSION_READ_BOTS.Id, model.TEAM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_READ_OTHERS_BOTS.Id, model.TEAM_USER_ROLE_ID)
+		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+
+		bot, resp := th.Client.GetBotByName(bot1.Username, "")
+		CheckOKStatus(t, resp)
+		require.Equal(t, bot1, bot)
+
+		bot, resp = th.Client.GetBotByName(bot1.Username, bot.Etag())
+		CheckEtag(t, bot, resp)
+	})
+
+	t.Run("get bot2", func(t *testing.T) {
+		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+
+		th.AddPermissionToRole(model.PERMISSION_READ_BOTS.Id, model.TEAM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_READ_OTHERS_BOTS.Id, model.TEAM_USER_ROLE_ID)
+		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+
+		bot, resp := th.Client.GetBotByName(bot2.Username, "")
+		CheckOKStatus(t, resp)
+		require.Equal(t, bot2, bot)
+
+		bot, resp = th.Client.GetBotByName(bot2.Username, bot.Etag())
+		CheckEtag(t, bot, resp)
+	})
+
+	t.Run("get bot1 without READ_OTHERS_BOTS permission", func(t *testing.T) {
+		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+
+		th.AddPermissionToRole(model.PERMISSION_READ_BOTS.Id, model.TEAM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_MANAGE_BOTS.Id, model.TEAM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_MANAGE_OTHERS_BOTS.Id, model.TEAM_USER_ROLE_ID)
+		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+
+		_, resp := th.Client.GetBotByName(bot1.Username, "")
+		CheckErrorMessage(t, resp, "store.sql_bot.get.missing.app_error")
+	})
+
+	t.Run("get myBot without READ_BOTS OR READ_OTHERS_BOTS permissions", func(t *testing.T) {
+		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+
+		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_MANAGE_BOTS.Id, model.TEAM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_MANAGE_OTHERS_BOTS.Id, model.TEAM_USER_ROLE_ID)
+		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+
+		_, resp := th.Client.GetBotByName(myBot.Username, "")
+		CheckErrorMessage(t, resp, "store.sql_bot.get.missing.app_error")
+	})
+
+	t.Run("get deleted bot", func(t *testing.T) {
+		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+
+		th.AddPermissionToRole(model.PERMISSION_READ_BOTS.Id, model.TEAM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_READ_OTHERS_BOTS.Id, model.TEAM_USER_ROLE_ID)
+		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+
+		_, resp := th.Client.GetBotByName(deletedBot.Username, "")
+		CheckNotFoundStatus(t, resp)
+	})
+
+}
+
 func TestDisableBot(t *testing.T) {
 	t.Run("disable non-existent bot", func(t *testing.T) {
 		th := Setup().InitBasic()

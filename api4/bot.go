@@ -14,6 +14,7 @@ func (api *API) InitBot() {
 	api.BaseRoutes.Bot.Handle("", api.ApiSessionRequired(patchBot)).Methods("PUT")
 	api.BaseRoutes.Bot.Handle("", api.ApiSessionRequired(getBot)).Methods("GET")
 	api.BaseRoutes.Bots.Handle("", api.ApiSessionRequired(getBots)).Methods("GET")
+	api.BaseRoutes.BotByUsername.Handle("", api.ApiSessionRequired(getBotByName)).Methods("GET")
 	api.BaseRoutes.Bot.Handle("/disable", api.ApiSessionRequired(disableBot)).Methods("POST")
 	api.BaseRoutes.Bot.Handle("/enable", api.ApiSessionRequired(enableBot)).Methods("POST")
 	api.BaseRoutes.Bot.Handle("/assign/{user_id:[A-Za-z0-9]+}", api.ApiSessionRequired(assignBot)).Methods("POST")
@@ -145,6 +146,45 @@ func getBots(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write(bots.ToJson())
+}
+
+func getBotByName(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireBotUserName()
+	if c.Err != nil {
+		return
+	}
+	botUserName := c.Params.BotUserName
+
+	includeDeleted := r.URL.Query().Get("include_deleted") == "true"
+
+	bot, err := c.App.GetBotByName(botUserName, includeDeleted)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_READ_OTHERS_BOTS) {
+		// Allow access to any bot.
+	} else if bot.OwnerId == c.App.Session.UserId {
+		if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_READ_BOTS) {
+			// Pretend like the bot doesn't exist at all to avoid revealing that the
+			// user is a bot. It's kind of silly in this case, sine we created the bot,
+			// but we don't have read bot permissions.
+			c.Err = model.MakeBotNotFoundError(botUserName)
+			return
+		}
+	} else {
+		// Pretend like the bot doesn't exist at all, to avoid revealing that the
+		// user is a bot.
+		c.Err = model.MakeBotNotFoundError(botUserName)
+		return
+	}
+
+	if c.HandleEtag(bot.Etag(), "Get Bot By Name", w, r) {
+		return
+	}
+
+	w.Write(bot.ToJson())
 }
 
 func disableBot(c *Context, w http.ResponseWriter, r *http.Request) {

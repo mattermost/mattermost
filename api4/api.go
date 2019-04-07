@@ -24,8 +24,9 @@ type Routes struct {
 	UserByUsername *mux.Router // 'api/v4/users/username/{username:[A-Za-z0-9_-\.]+}'
 	UserByEmail    *mux.Router // 'api/v4/users/email/{email}'
 
-	Bots *mux.Router // 'api/v4/bots'
-	Bot  *mux.Router // 'api/v4/bots/{bot_user_id:[A-Za-z0-9]+}'
+	Bots          *mux.Router // 'api/v4/bots'
+	Bot           *mux.Router // 'api/v4/bots/{bot_user_id:[A-Za-z0-9]+}'
+	BotByUsername *mux.Router // 'api/v4/bots/username/{bot_user_name:[A-Za-z0-9_-\.]+}'
 
 	Teams              *mux.Router // 'api/v4/teams'
 	TeamsForUser       *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}/teams'
@@ -137,6 +138,7 @@ func Init(configservice configservice.ConfigService, globalOptionsFunc app.AppOp
 
 	api.BaseRoutes.Bots = api.BaseRoutes.ApiRoot.PathPrefix("/bots").Subrouter()
 	api.BaseRoutes.Bot = api.BaseRoutes.ApiRoot.PathPrefix("/bots/{bot_user_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.BotByUsername = api.BaseRoutes.Bots.PathPrefix("/username/{bot_user_name:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
 
 	api.BaseRoutes.Teams = api.BaseRoutes.ApiRoot.PathPrefix("/teams").Subrouter()
 	api.BaseRoutes.TeamsForUser = api.BaseRoutes.User.PathPrefix("/teams").Subrouter()

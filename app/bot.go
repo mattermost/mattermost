@@ -67,6 +67,16 @@ func (a *App) GetBot(botUserId string, includeDeleted bool) (*model.Bot, *model.
 	return result.Data.(*model.Bot), nil
 }
 
+// GetBot returns the given bot.
+func (a *App) GetBotByName(botUserName string, includeDeleted bool) (*model.Bot, *model.AppError) {
+	result := <-a.Srv.Store.Bot().GetByName(botUserName, includeDeleted)
+	if result.Err != nil {
+		return nil, result.Err
+	}
+
+	return result.Data.(*model.Bot), nil
+}
+
 // GetBots returns the requested page of bots.
 func (a *App) GetBots(options *model.BotGetOptions) (model.BotList, *model.AppError) {
 	result := <-a.Srv.Store.Bot().GetAll(options)

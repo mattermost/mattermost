@@ -158,6 +158,10 @@ func (c *Client4) GetBotRoute(botUserId string) string {
 	return fmt.Sprintf("%s/%s", c.GetBotsRoute(), botUserId)
 }
 
+func (c *Client4) GetBotByUsernameRoute(userName string) string {
+	return fmt.Sprintf(c.GetBotsRoute()+"/username/%v", userName)
+}
+
 func (c *Client4) GetTeamsRoute() string {
 	return fmt.Sprintf("/teams")
 }
@@ -1398,6 +1402,16 @@ func (c *Client4) GetBots(page, perPage int, etag string) ([]*Bot, *Response) {
 	}
 	defer closeBody(r)
 	return BotListFromJson(r.Body), BuildResponse(r)
+}
+
+// GetBot fetches the given, undeleted bot.
+func (c *Client4) GetBotByName(userName string, etag string) (*Bot, *Response) {
+	r, err := c.DoApiGet(c.GetBotByUsernameRoute(userName), etag)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return BotFromJson(r.Body), BuildResponse(r)
 }
 
 // GetBotsIncludeDeleted fetches the given page of bots, including deleted.
