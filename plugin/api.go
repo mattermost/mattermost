@@ -550,6 +550,11 @@ type API interface {
 	// Minimum server version: 5.10
 	GetBots(options *model.BotGetOptions) ([]*model.Bot, *model.AppError)
 
+	// GetBotByName returns the given bot searching by bot name.
+	//
+	// Minimum server version: 5.10
+	GetBotByName(botUserName string, includeDeleted bool) (*model.Bot, *model.AppError)
+
 	// UpdateBotActive marks a bot as active or inactive, along with its corresponding user.
 	//
 	// Minimum server version: 5.10

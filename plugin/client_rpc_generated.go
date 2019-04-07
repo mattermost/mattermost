@@ -4012,6 +4012,36 @@ func (s *apiRPCServer) GetBots(args *Z_GetBotsArgs, returns *Z_GetBotsReturns) e
 	return nil
 }
 
+type Z_GetBotByNameArgs struct {
+	A string
+	B bool
+}
+
+type Z_GetBotByNameReturns struct {
+	A *model.Bot
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetBotByName(botUserName string, includeDeleted bool) (*model.Bot, *model.AppError) {
+	_args := &Z_GetBotByNameArgs{botUserName, includeDeleted}
+	_returns := &Z_GetBotByNameReturns{}
+	if err := g.client.Call("Plugin.GetBotByName", _args, _returns); err != nil {
+		log.Printf("RPC call to GetBotByName API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetBotByName(args *Z_GetBotByNameArgs, returns *Z_GetBotByNameReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetBotByName(botUserName string, includeDeleted bool) (*model.Bot, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetBotByName(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API GetBotByName called but not implemented."))
+	}
+	return nil
+}
+
 type Z_UpdateBotActiveArgs struct {
 	A string
 	B bool

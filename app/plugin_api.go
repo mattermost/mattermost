@@ -733,6 +733,10 @@ func (api *PluginAPI) GetBot(userId string, includeDeleted bool) (*model.Bot, *m
 	return api.app.GetBot(userId, includeDeleted)
 }
 
+func (api *PluginAPI) GetBotByName(userName string, includeDeleted bool) (*model.Bot, *model.AppError) {
+	return api.app.GetBotByName(userName, includeDeleted)
+}
+
 func (api *PluginAPI) GetBots(options *model.BotGetOptions) ([]*model.Bot, *model.AppError) {
 	bots, err := api.app.GetBots(options)
 
