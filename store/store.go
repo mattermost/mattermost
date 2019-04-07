@@ -298,6 +298,7 @@ type UserStore interface {
 
 type BotStore interface {
 	Get(userId string, includeDeleted bool) StoreChannel
+	GetByName(userName string, includeDeleted bool) StoreChannel
 	GetAll(options *model.BotGetOptions) StoreChannel
 	Save(bot *model.Bot) StoreChannel
 	Update(bot *model.Bot) StoreChannel

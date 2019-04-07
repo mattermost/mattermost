@@ -45,6 +45,22 @@ func (_m *BotStore) GetAll(options *model.BotGetOptions) store.StoreChannel {
 	return r0
 }
 
+// GetByName provides a mock function with given fields: userName, includeDeleted
+func (_m *BotStore) GetByName(userName string, includeDeleted bool) store.StoreChannel {
+	ret := _m.Called(userName, includeDeleted)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string, bool) store.StoreChannel); ok {
+		r0 = rf(userName, includeDeleted)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // PermanentDelete provides a mock function with given fields: userId
 func (_m *BotStore) PermanentDelete(userId string) store.StoreChannel {
 	ret := _m.Called(userId)

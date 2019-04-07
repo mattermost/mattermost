@@ -24,6 +24,7 @@ func makeBotWithUser(ss store.Store, bot *model.Bot) (*model.Bot, *model.User) {
 
 func TestBotStore(t *testing.T, ss store.Store) {
 	t.Run("Get", func(t *testing.T) { testBotStoreGet(t, ss) })
+	t.Run("GetByName", func(t *testing.T) { testBotStoreGetByName(t, ss) })
 	t.Run("GetAll", func(t *testing.T) { testBotStoreGetAll(t, ss) })
 	t.Run("Save", func(t *testing.T) { testBotStoreSave(t, ss) })
 	t.Run("Update", func(t *testing.T) { testBotStoreUpdate(t, ss) })
@@ -97,6 +98,78 @@ func testBotStoreGet(t *testing.T, ss store.Store) {
 
 	t.Run("get bot 2", func(t *testing.T) {
 		result := <-ss.Bot().Get(b2.UserId, false)
+		require.Nil(t, result.Err)
+		require.Equal(t, b2, result.Data.(*model.Bot))
+	})
+}
+
+func testBotStoreGetByName(t *testing.T, ss store.Store) {
+	deletedBot, _ := makeBotWithUser(ss, &model.Bot{
+		Username:    "deleted_bot",
+		Description: "A deleted bot",
+		OwnerId:     model.NewId(),
+	})
+	deletedBot.DeleteAt = 1
+	deletedBot = store.Must(ss.Bot().Update(deletedBot)).(*model.Bot)
+	defer func() { store.Must(ss.Bot().PermanentDelete(deletedBot.UserId)) }()
+	defer func() { store.Must(ss.User().PermanentDelete(deletedBot.UserId)) }()
+
+	permanentlyDeletedBot, _ := makeBotWithUser(ss, &model.Bot{
+		Username:    "permanently_deleted_bot",
+		Description: "A permanently deleted bot",
+		OwnerId:     model.NewId(),
+		DeleteAt:    0,
+	})
+	store.Must(ss.Bot().PermanentDelete(permanentlyDeletedBot.UserId))
+
+	b1, _ := makeBotWithUser(ss, &model.Bot{
+		Username:    "b1",
+		Description: "The first bot",
+		OwnerId:     model.NewId(),
+	})
+	defer func() { store.Must(ss.Bot().PermanentDelete(b1.UserId)) }()
+	defer func() { store.Must(ss.User().PermanentDelete(b1.UserId)) }()
+
+	b2, _ := makeBotWithUser(ss, &model.Bot{
+		Username:    "b2",
+		Description: "The second bot",
+		OwnerId:     model.NewId(),
+	})
+	defer func() { store.Must(ss.Bot().PermanentDelete(b2.UserId)) }()
+	defer func() { store.Must(ss.User().PermanentDelete(b2.UserId)) }()
+
+	t.Run("get non-existent bot", func(t *testing.T) {
+		result := <-ss.Bot().GetByName("unknown", false)
+		require.NotNil(t, result.Err)
+		require.Equal(t, http.StatusNotFound, result.Err.StatusCode)
+	})
+
+	t.Run("get deleted bot", func(t *testing.T) {
+		result := <-ss.Bot().GetByName(deletedBot.Username, false)
+		require.NotNil(t, result.Err)
+		require.Equal(t, http.StatusNotFound, result.Err.StatusCode)
+	})
+
+	t.Run("get deleted bot, include deleted", func(t *testing.T) {
+		result := <-ss.Bot().GetByName(deletedBot.Username, true)
+		require.Nil(t, result.Err)
+		require.Equal(t, deletedBot, result.Data.(*model.Bot))
+	})
+
+	t.Run("get permanently deleted bot", func(t *testing.T) {
+		result := <-ss.Bot().GetByName(permanentlyDeletedBot.Username, false)
+		require.NotNil(t, result.Err)
+		require.Equal(t, http.StatusNotFound, result.Err.StatusCode)
+	})
+
+	t.Run("get bot 1", func(t *testing.T) {
+		result := <-ss.Bot().GetByName(b1.Username, false)
+		require.Nil(t, result.Err)
+		require.Equal(t, b1, result.Data.(*model.Bot))
+	})
+
+	t.Run("get bot 2", func(t *testing.T) {
+		result := <-ss.Bot().GetByName(b2.Username, false)
 		require.Nil(t, result.Err)
 		require.Equal(t, b2, result.Data.(*model.Bot))
 	})

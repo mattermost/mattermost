@@ -5171,6 +5171,10 @@
     "translation": "Unable to get the bot"
   },
   {
+    "id": "store.sql_bot.get_by_name.app_error",
+    "translation": "Unable to get {{.UserName}} bot"
+  },
+  {
     "id": "store.sql_bot.get.missing.app_error",
     "translation": "Bot does not exist"
   },

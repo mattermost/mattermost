@@ -113,6 +113,44 @@ func (us SqlBotStore) Get(botUserId string, includeDeleted bool) store.StoreChan
 	})
 }
 
+// GetByName fetches the given bot in the database using the bot name.
+func (us SqlBotStore) GetByName(botUserName string, includeDeleted bool) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		var excludeDeletedSql = "AND b.DeleteAt = 0"
+		if includeDeleted {
+			excludeDeletedSql = ""
+		}
+
+		var bot *model.Bot
+		if err := us.GetReplica().SelectOne(&bot, `
+			SELECT
+			    b.UserId,
+			    u.Username,
+			    u.FirstName AS DisplayName,
+			    b.Description,
+			    b.OwnerId,
+			    b.CreateAt,
+			    b.UpdateAt,
+			    b.DeleteAt
+			FROM
+			    Bots b
+			JOIN
+			    Users u ON (u.Username = :user_name)
+			WHERE
+			    b.UserId = u.Id
+			    `+excludeDeletedSql+`
+		`, map[string]interface{}{
+			"user_name": botUserName,
+		}); err == sql.ErrNoRows {
+			result.Err = model.MakeBotNotFoundError(botUserName)
+		} else if err != nil {
+			result.Err = model.NewAppError("SqlBotStore.Get", "store.sql_bot.get_by_name.app_error", map[string]interface{}{"UserName": botUserName}, err.Error(), http.StatusInternalServerError)
+		} else {
+			result.Data = bot
+		}
+	})
+}
+
 // GetAll fetches from all bots in the database.
 func (us SqlBotStore) GetAll(options *model.BotGetOptions) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
