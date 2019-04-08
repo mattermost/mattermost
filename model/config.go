@@ -2088,6 +2088,10 @@ func (s *PluginSettings) SetDefaults() {
 		s.EnableUploads = NewBool(false)
 	}
 
+	if s.EnableHealthCheck == nil {
+		s.EnableHealthCheck = NewBool(true)
+	}
+
 	if s.Directory == nil {
 		s.Directory = NewString(PLUGIN_SETTINGS_DEFAULT_DIRECTORY)
 	}
