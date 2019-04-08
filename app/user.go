@@ -1872,9 +1872,9 @@ func (a *App) UpdateOAuthUserAttrs(userData io.Reader, user *model.User, provide
 	return nil
 }
 
-// FilterNonTeamGroupMembers returns the subset of the given user IDs of the users who are not members of groups
+// FilterNonGroupTeamMembers returns the subset of the given user IDs of the users who are not members of groups
 // associated to the team.
-func (a *App) FilterNonTeamGroupMembers(userIDs []string, team *model.Team) ([]string, error) {
+func (a *App) FilterNonGroupTeamMembers(userIDs []string, team *model.Team) ([]string, error) {
 	teamGroupUsers, err := a.GetTeamGroupUsers(team.Id)
 	if err != nil {
 		return nil, err
@@ -1905,9 +1905,9 @@ func (a *App) FilterNonTeamGroupMembers(userIDs []string, team *model.Team) ([]s
 	return nonMemberIDs, nil
 }
 
-// FilterNonChannelGroupMembers returns the subset of the given user IDs of the users who are not members of groups
+// FilterNonGroupChannelMembers returns the subset of the given user IDs of the users who are not members of groups
 // associated to the channel.
-func (a *App) FilterNonChannelGroupMembers(userIDs []string, channel *model.Channel) ([]string, error) {
+func (a *App) FilterNonGroupChannelMembers(userIDs []string, channel *model.Channel) ([]string, error) {
 	channelGroupUsers, err := a.GetChannelGroupUsers(channel.Id)
 	if err != nil {
 		return nil, err
