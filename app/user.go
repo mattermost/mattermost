@@ -1872,81 +1872,76 @@ func (a *App) UpdateOAuthUserAttrs(userData io.Reader, user *model.User, provide
 	return nil
 }
 
-// UsersAreTeamGroupMembers verifies that all of the users are members of groups associated to the team. If one or
-// more users are not associated then a model.InvalidTeamMembersError is returned containing the user ids.
-func (a *App) UsersAreTeamGroupMembers(userIDs []string, team *model.Team) error {
-	permittedUsers, err := a.GetTeamGroupUsers(team.Id)
+// GetNonTeamGroupMembers returns the subset of the given user IDs of the users who are not members of groups
+// associated to the team.
+func (a *App) GetNonTeamGroupMembers(userIDs []string, team *model.Team) ([]string, error) {
+	teamGroupUsers, err := a.GetTeamGroupUsers(team.Id)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// possible if no groups associated or no group members in any of the associated groups
-	if len(permittedUsers) == 0 {
-		return &model.InvalidTeamMembersError{UserIDs: userIDs, Team: team}
+	if len(teamGroupUsers) == 0 {
+		return userIDs, nil
 	}
 
-	var invalidMemberIDs []string
+	var nonMemberIDs []string
 
 	for _, userID := range userIDs {
-		userIsPermitted := false
+		userIsMember := false
 
-		for _, pu := range permittedUsers {
+		for _, pu := range teamGroupUsers {
 			if pu.Id == userID {
-				userIsPermitted = true
+				userIsMember = true
 				break
 			}
 		}
 
-		if !userIsPermitted {
-			invalidMemberIDs = append(invalidMemberIDs, userID)
+		if !userIsMember {
+			nonMemberIDs = append(nonMemberIDs, userID)
 		}
 	}
 
-	if len(invalidMemberIDs) > 0 {
-		return &model.InvalidTeamMembersError{UserIDs: invalidMemberIDs, Team: team}
+	if len(nonMemberIDs) > 0 {
+		return nonMemberIDs, nil
 	}
 
-	return nil
+	return []string{}, nil
 }
 
-// UsersAreChannelGroupMembers verifies that all of the users are members of groups associated to the channel. If
-// one or more users are not associated then a model.InvalidChannelMembersError is returned containing the user ids.
-func (a *App) UsersAreChannelGroupMembers(userIDs []string, channel *model.Channel) error {
-	// all users are permitted in non-group-constrained channel, return without error
-	if channel.GroupConstrained == nil || !*channel.GroupConstrained {
-		return nil
-	}
-
-	permittedUsers, err := a.GetChannelGroupUsers(channel.Id)
+// GetNonChannelGroupMembers returns the subset of the given user IDs of the users who are not members of groups
+// associated to the channel.
+func (a *App) GetNonChannelGroupMembers(userIDs []string, channel *model.Channel) ([]string, error) {
+	channelGroupUsers, err := a.GetChannelGroupUsers(channel.Id)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// possible if no groups associated or no group members in any of the associated groups
-	if len(permittedUsers) == 0 {
-		return &model.InvalidChannelMembersError{UserIDs: userIDs, Channel: channel}
+	if len(channelGroupUsers) == 0 {
+		return userIDs, nil
 	}
 
-	var invalidMemberIDs []string
+	var nonMemberIDs []string
 
 	for _, userID := range userIDs {
-		userIsPermitted := false
+		userIsMember := false
 
-		for _, pu := range permittedUsers {
+		for _, pu := range channelGroupUsers {
 			if pu.Id == userID {
-				userIsPermitted = true
+				userIsMember = true
 				break
 			}
 		}
 
-		if !userIsPermitted {
-			invalidMemberIDs = append(invalidMemberIDs, userID)
+		if !userIsMember {
+			nonMemberIDs = append(nonMemberIDs, userID)
 		}
 	}
 
-	if len(invalidMemberIDs) > 0 {
-		return &model.InvalidChannelMembersError{UserIDs: invalidMemberIDs, Channel: channel}
+	if len(nonMemberIDs) > 0 {
+		return nonMemberIDs, nil
 	}
 
-	return nil
+	return []string{}, nil
 }
