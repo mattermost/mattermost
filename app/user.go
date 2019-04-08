@@ -1885,7 +1885,7 @@ func (a *App) GetNonTeamGroupMembers(userIDs []string, team *model.Team) ([]stri
 		return userIDs, nil
 	}
 
-	var nonMemberIDs []string
+	nonMemberIDs := []string{}
 
 	for _, userID := range userIDs {
 		userIsMember := false
@@ -1902,11 +1902,7 @@ func (a *App) GetNonTeamGroupMembers(userIDs []string, team *model.Team) ([]stri
 		}
 	}
 
-	if len(nonMemberIDs) > 0 {
-		return nonMemberIDs, nil
-	}
-
-	return []string{}, nil
+	return nonMemberIDs, nil
 }
 
 // GetNonChannelGroupMembers returns the subset of the given user IDs of the users who are not members of groups
@@ -1922,7 +1918,7 @@ func (a *App) GetNonChannelGroupMembers(userIDs []string, channel *model.Channel
 		return userIDs, nil
 	}
 
-	var nonMemberIDs []string
+	nonMemberIDs := []string{}
 
 	for _, userID := range userIDs {
 		userIsMember := false
@@ -1939,9 +1935,5 @@ func (a *App) GetNonChannelGroupMembers(userIDs []string, channel *model.Channel
 		}
 	}
 
-	if len(nonMemberIDs) > 0 {
-		return nonMemberIDs, nil
-	}
-
-	return []string{}, nil
+	return nonMemberIDs, nil
 }

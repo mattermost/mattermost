@@ -394,19 +394,18 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var jerr error
-	var nonMembers []string
 	if team.GroupConstrained != nil && *team.GroupConstrained {
-		nonMembers, jerr = c.App.GetNonTeamGroupMembers([]string{member.UserId}, team)
-	}
-	if jerr != nil {
-		if v, ok := jerr.(*model.AppError); ok {
-			c.Err = v
+		nonMembers, jerr := c.App.GetNonTeamGroupMembers([]string{member.UserId}, team)
+		if jerr != nil {
+			if v, ok := jerr.(*model.AppError); ok {
+				c.Err = v
+			}
+			return
 		}
-		return
-	}
-	if len(nonMembers) > 0 {
-		c.Err = model.NewAppError("addTeamMember", "api.team.add_members.user_denied", map[string]interface{}{"UserIDs": nonMembers}, "", http.StatusBadRequest)
+		if len(nonMembers) > 0 {
+			c.Err = model.NewAppError("addTeamMember", "api.team.add_members.user_denied", map[string]interface{}{"UserIDs": nonMembers}, "", http.StatusBadRequest)
+			return
+		}
 	}
 
 	member, err = c.App.AddTeamMember(member.TeamId, member.UserId)
@@ -474,19 +473,18 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var jerr error
-	var nonMembers []string
 	if team.GroupConstrained != nil && *team.GroupConstrained {
-		nonMembers, jerr = c.App.GetNonTeamGroupMembers(memberIDs, team)
-	}
-	if jerr != nil {
-		if v, ok := jerr.(*model.AppError); ok {
-			c.Err = v
+		nonMembers, jerr := c.App.GetNonTeamGroupMembers(memberIDs, team)
+		if jerr != nil {
+			if v, ok := jerr.(*model.AppError); ok {
+				c.Err = v
+			}
+			return
 		}
-		return
-	}
-	if len(nonMembers) > 0 {
-		c.Err = model.NewAppError("addTeamMembers", "api.team.add_members.user_denied", map[string]interface{}{"UserIDs": nonMembers}, "", http.StatusBadRequest)
+		if len(nonMembers) > 0 {
+			c.Err = model.NewAppError("addTeamMembers", "api.team.add_members.user_denied", map[string]interface{}{"UserIDs": nonMembers}, "", http.StatusBadRequest)
+			return
+		}
 	}
 
 	var userIds []string
