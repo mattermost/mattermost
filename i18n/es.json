@@ -1217,6 +1217,10 @@
     "translation": "No se pueden cargar los archivos. Error al leer los datos."
   },
   {
+    "id": "api.file.upload_file.rejected_by_plugin.app_error",
+    "translation": "No se puede cargar el archivo {{.Filename}}. Rechazado por el complemento: {{.Reason}}"
+  },
+  {
     "id": "api.file.upload_file.storage.app_error",
     "translation": "No se puede cargar el archivo. El almacenamiento de imágenes no está configurado."
   },

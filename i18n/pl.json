@@ -960,7 +960,7 @@
   },
   {
     "id": "api.config.update_config.restricted_merge.app_error",
-    "translation": "Failed to merge given config."
+    "translation": "Nie udało się połączyć podanego pliku konfiguracyjnego."
   },
   {
     "id": "api.context.404.app_error",
@@ -1215,6 +1215,10 @@
   {
     "id": "api.file.upload_file.read_request.app_error",
     "translation": "Nie można załadować pliku (plików). Błąd podczas odczytu lub przetwarzania danych żądania."
+  },
+  {
+    "id": "api.file.upload_file.rejected_by_plugin.app_error",
+    "translation": "Nie można wrzucić pliku {{.Filename}}. Odrzucony przez wtyczkę: {{.Reason}}"
   },
   {
     "id": "api.file.upload_file.storage.app_error",
@@ -1776,7 +1780,7 @@
   },
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
-    "translation": "Error invalidating email invites."
+    "translation": "Błąd unieważniania zaproszenia E-Mail"
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
@@ -3488,7 +3492,7 @@
   },
   {
     "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "Trying to index a new batch when all the entities are completed."
+    "translation": "Próbuje za indeksować nową serię, jeśli wszystkie wystąpienia zostaną zakończone."
   },
   {
     "id": "ent.elasticsearch.not_started.error",
@@ -5300,7 +5304,7 @@
   },
   {
     "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "Nie można uzyskać wielu wpisów do indeksowania"
+    "translation": "Nie można uzyskać wielu kanałów do indeksowania"
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.get.app_error",
@@ -6172,7 +6176,7 @@
   },
   {
     "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
-    "translation": "Unable to remove all the tokens of a type"
+    "translation": "Niemożna usunąć wszystkich tokenów tego typu"
   },
   {
     "id": "store.sql_recover.save.app_error",
@@ -6412,7 +6416,7 @@
   },
   {
     "id": "store.sql_team.get_all_private_team_listing.app_error",
-    "translation": "Nie mogliśmy pobrać wszystkich zespołów"
+    "translation": "Nie mogliśmy pobrać wszystkich prywatnych zespołów"
   },
   {
     "id": "store.sql_team.get_all_team_listing.app_error",
@@ -6520,7 +6524,7 @@
   },
   {
     "id": "store.sql_team.search_private_team.app_error",
-    "translation": "Napotkaliśmy błąd szukając otwartych zespołów"
+    "translation": "Napotkaliśmy błąd szukając prywatnych zespołów"
   },
   {
     "id": "store.sql_team.update.app_error",
@@ -6660,15 +6664,15 @@
   },
   {
     "id": "store.sql_user.get_users_batch_for_indexing.get_channel_members.app_error",
-    "translation": "Unable to get the channel members for the users batch for indexing"
+    "translation": "Nie można uzyskać członków kanału dla użytkowników pakietu dla indeksowania"
   },
   {
     "id": "store.sql_user.get_users_batch_for_indexing.get_team_members.app_error",
-    "translation": "Unable to get the team members for the users batch for indexing"
+    "translation": "Nie można uzyskać członków zespołu dla użytkowników pakietu dla indeksowania"
   },
   {
     "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
-    "translation": "Nie można uzyskać wielu wpisów do indeksowania"
+    "translation": "Nie można uzyskać wielu użytkowników do indeksowania"
   },
   {
     "id": "store.sql_user.missing_account.const",

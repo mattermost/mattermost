@@ -1217,6 +1217,10 @@
     "translation": "Dosyalar yüklenemedi. İstenilen veri okunurken ya da işlenirken sorun çıktı."
   },
   {
+    "id": "api.file.upload_file.rejected_by_plugin.app_error",
+    "translation": "{{.Filename}} dosyası yüklenemedi. Uygulama eki tarafından reddedildi: {{.Reason}}"
+  },
+  {
     "id": "api.file.upload_file.storage.app_error",
     "translation": "Dosya yüklenemedi. Görsel deposu ayarları yapılmamış."
   },
@@ -1776,7 +1780,7 @@
   },
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
-    "translation": "Error invalidating email invites."
+    "translation": "E-posta çağrıları geçersiz kılınırken sorun çıktı."
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
@@ -6172,7 +6176,7 @@
   },
   {
     "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
-    "translation": "Unable to remove all the tokens of a type"
+    "translation": "Bir türdeki tüm kodlar silinemez"
   },
   {
     "id": "store.sql_recover.save.app_error",

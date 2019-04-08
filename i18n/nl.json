@@ -1217,6 +1217,10 @@
     "translation": "Unable to upload file(s). Error reading or parsing request data."
   },
   {
+    "id": "api.file.upload_file.rejected_by_plugin.app_error",
+    "translation": "Unable to upload file {{.Filename}}. Rejected by plugin: {{.Reason}}"
+  },
+  {
     "id": "api.file.upload_file.storage.app_error",
     "translation": "Kan bestand niet uploaden. Afbeeldings opslag is niet geconfigureerd."
   },

@@ -1217,6 +1217,10 @@
     "translation": "无法上传文件。读取或解析请求数据时出错。"
   },
   {
+    "id": "api.file.upload_file.rejected_by_plugin.app_error",
+    "translation": "无法上传文件 {{.Filename}}。被插件拒绝：{{.Reason}}"
+  },
+  {
     "id": "api.file.upload_file.storage.app_error",
     "translation": "不能上传文件。图片存储没有配置。"
   },

@@ -960,7 +960,7 @@
   },
   {
     "id": "api.config.update_config.restricted_merge.app_error",
-    "translation": "Failed to merge given config."
+    "translation": "Fehler beim Zusammenführen der angegebenen Konfiguration."
   },
   {
     "id": "api.context.404.app_error",
@@ -1217,6 +1217,10 @@
     "translation": "Konnte Datei(en) nicht hochladen. Fehler beim verarbeiten der Anfrage-Daten."
   },
   {
+    "id": "api.file.upload_file.rejected_by_plugin.app_error",
+    "translation": "Konnte Datei {{.Filename}} nicht hochladen. Zurückgewiesen durch Plugin: {{.Reason}}"
+  },
+  {
     "id": "api.file.upload_file.storage.app_error",
     "translation": "Die Datei kann nicht hochgeladen werden. Ein Foto Speicherort ist nicht eingerichtet."
   },
@@ -1462,7 +1466,7 @@
   },
   {
     "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
-    "translation": "Can not delete a post in a deleted channel."
+    "translation": "Kann eine Nachricht in einem gelöschten Kanal nicht löschen."
   },
   {
     "id": "api.post.disabled_all",
@@ -1504,7 +1508,7 @@
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
-    "translation": "Can not update a post in a deleted channel."
+    "translation": "Kann eine Nachricht in einem gelöschten Kanal nicht aktualisieren."
   },
   {
     "id": "api.post.save_is_pinned_post.town_square_read_only",
@@ -1540,7 +1544,7 @@
   },
   {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
-    "translation": "Can not update a post in a deleted channel."
+    "translation": "Kann eine Nachricht in einem gelöschten Kanal nicht aktualisieren."
   },
   {
     "id": "api.post.update_post.find.app_error",
@@ -1596,7 +1600,7 @@
   },
   {
     "id": "api.restricted_system_admin",
-    "translation": "This action is forbidden to a restricted system admin."
+    "translation": "Diese Aktion ist Administratoren mit eingeschränkten Rechten nicht erlaubt."
   },
   {
     "id": "api.roles.patch_roles.license.error",
@@ -1776,7 +1780,7 @@
   },
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
-    "translation": "Error invalidating email invites."
+    "translation": "Fehler beim Annulieren von E-Mail-Einladungen."
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
@@ -2288,7 +2292,7 @@
   },
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
-    "translation": "Bot login is forbidden"
+    "translation": "Bot-Anmeldung ist verboten."
   },
   {
     "id": "api.user.login.client_side_cert.certificate.app_error",
@@ -2316,7 +2320,7 @@
   },
   {
     "id": "api.user.login_by_oauth.bot_login_forbidden.app_error",
-    "translation": "Bot login is forbidden"
+    "translation": "Bot-Anmeldung ist verboten."
   },
   {
     "id": "api.user.login_by_oauth.not_available.app_error",
@@ -3292,7 +3296,7 @@
   },
   {
     "id": "app.save_config.app_error",
-    "translation": "An error occurred saving the configuration"
+    "translation": "Es ist ein Fehler beim Speichern der Konfiguration aufgetreten."
   },
   {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
@@ -3488,7 +3492,7 @@
   },
   {
     "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "Trying to index a new batch when all the entities are completed."
+    "translation": "Versuche einen neunen Stapel zu indizieren, wenn alle Entitäten vollständig sind."
   },
   {
     "id": "ent.elasticsearch.not_started.error",
@@ -3920,23 +3924,23 @@
   },
   {
     "id": "model.bot.is_valid.creator_id.app_error",
-    "translation": "Ungültige Ersteller-ID"
+    "translation": "Ungültige Eigenschaft \"creator id\"."
   },
   {
     "id": "model.bot.is_valid.description.app_error",
-    "translation": "Ungültige Beschreibung"
+    "translation": "Ungültige Eigenschaft \"description\"."
   },
   {
     "id": "model.bot.is_valid.update_at.app_error",
-    "translation": "Ungültige Ersteller-ID"
+    "translation": "Ungültige Eigenschaft \"update at\""
   },
   {
     "id": "model.bot.is_valid.user_id.app_error",
-    "translation": "Ungültige Benutzer-ID."
+    "translation": "Ungültige Eigenschaft \"user id\"."
   },
   {
     "id": "model.bot.is_valid.username.app_error",
-    "translation": "Ungültiger Benutzername"
+    "translation": "Ungültige Eigenschaft \"username\"."
   },
   {
     "id": "model.channel.is_valid.2_or_more.app_error",
@@ -4472,7 +4476,7 @@
   },
   {
     "id": "model.config.is_valid.sitename_empty.app_error",
-    "translation": "Site name cannot be empty."
+    "translation": "Der Name der Seite darf nicht leer sein."
   },
   {
     "id": "model.config.is_valid.sitename_length.app_error",
@@ -5204,31 +5208,31 @@
   },
   {
     "id": "store.sql_bot.delete.app_error",
-    "translation": "Konnte die Nachricht nicht löschen."
+    "translation": "Konnte den Bot nicht löschen."
   },
   {
     "id": "store.sql_bot.get.app_error",
-    "translation": "Konnte die Nachricht nicht abrufen."
+    "translation": "Konnte den Bot nicht abrufen."
   },
   {
     "id": "store.sql_bot.get.missing.app_error",
-    "translation": "Bot does not exist"
+    "translation": "Bot existiert nicht."
   },
   {
     "id": "store.sql_bot.get_all.app_error",
-    "translation": "Konnte die Nachrichten nicht abrufen."
+    "translation": "Konnte die Bots nicht abrufen."
   },
   {
     "id": "store.sql_bot.save.app_error",
-    "translation": "Konnte die Nachricht nicht speichern."
+    "translation": "Konnte den Bot nicht speichern."
   },
   {
     "id": "store.sql_bot.update.app_error",
-    "translation": "Konnte die Nachricht nicht aktualisieren."
+    "translation": "Konnte den Bot nicht aktualisieren."
   },
   {
     "id": "store.sql_bot.update.updating.app_error",
-    "translation": "Es trat ein Fehler beim Aktualisieren der App auf"
+    "translation": "Es trat ein Fehler beim Aktualisieren des Bots auf."
   },
   {
     "id": "store.sql_channel.analytics_deleted_type_count.app_error",
@@ -5300,7 +5304,7 @@
   },
   {
     "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "Konnte die Nachrichten-Gruppe nicht zur Indizierung abrufen."
+    "translation": "Konnte den Kanal-Stapel nicht zur Indizierung abrufen."
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.get.app_error",
@@ -6172,7 +6176,7 @@
   },
   {
     "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
-    "translation": "Unable to remove all the tokens of a type"
+    "translation": "Konnte nicht alle Token eines Typs entfernen."
   },
   {
     "id": "store.sql_recover.save.app_error",
@@ -6412,7 +6416,7 @@
   },
   {
     "id": "store.sql_team.get_all_private_team_listing.app_error",
-    "translation": "Konnte nicht alle Teams abrufen"
+    "translation": "Konnte nicht alle privaten Teams abrufen."
   },
   {
     "id": "store.sql_team.get_all_team_listing.app_error",
@@ -6520,7 +6524,7 @@
   },
   {
     "id": "store.sql_team.search_private_team.app_error",
-    "translation": "Es trat ein Fehler beim Suchen nach offenen Teams auf"
+    "translation": "Es trat ein Fehler beim Suchen nach privaten Teams auf."
   },
   {
     "id": "store.sql_team.update.app_error",
@@ -6580,7 +6584,7 @@
   },
   {
     "id": "store.sql_user.app_error",
-    "translation": "Failed to build query"
+    "translation": "Fehler beim Erstellen der Abfrage."
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.commit_transaction.app_error",
@@ -6660,15 +6664,15 @@
   },
   {
     "id": "store.sql_user.get_users_batch_for_indexing.get_channel_members.app_error",
-    "translation": "Unable to get the channel members for the users batch for indexing"
+    "translation": "Konnte die Kanalmitglieder nicht zur Indizierung abrufen."
   },
   {
     "id": "store.sql_user.get_users_batch_for_indexing.get_team_members.app_error",
-    "translation": "Unable to get the team members for the users batch for indexing"
+    "translation": "Konnte die Teammitglieder nicht zur Indizierung abrufen."
   },
   {
     "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
-    "translation": "Konnte die Nachrichten-Gruppe nicht zur Indizierung abrufen."
+    "translation": "Konnte die Benutzer-Stapel nicht zur Indizierung abrufen."
   },
   {
     "id": "store.sql_user.missing_account.const",

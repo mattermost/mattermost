@@ -1217,6 +1217,10 @@
     "translation": "파일 업로드 실패했습니다. 파일을 읽을 수 없습니다"
   },
   {
+    "id": "api.file.upload_file.rejected_by_plugin.app_error",
+    "translation": "Unable to upload file {{.Filename}}. Rejected by plugin: {{.Reason}}"
+  },
+  {
     "id": "api.file.upload_file.storage.app_error",
     "translation": "파일을 업로드할 수 없습니다. 이미지 저장소가 설정되지 않았습니다."
   },
