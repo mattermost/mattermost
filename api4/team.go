@@ -395,9 +395,9 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if team.GroupConstrained != nil && *team.GroupConstrained {
-		nonMembers, jerr := c.App.FilterNonTeamGroupMembers([]string{member.UserId}, team)
-		if jerr != nil {
-			if v, ok := jerr.(*model.AppError); ok {
+		nonMembers, err := c.App.FilterNonTeamGroupMembers([]string{member.UserId}, team)
+		if err != nil {
+			if v, ok := err.(*model.AppError); ok {
 				c.Err = v
 			}
 			return
@@ -474,9 +474,9 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if team.GroupConstrained != nil && *team.GroupConstrained {
-		nonMembers, jerr := c.App.FilterNonTeamGroupMembers(memberIDs, team)
-		if jerr != nil {
-			if v, ok := jerr.(*model.AppError); ok {
+		nonMembers, err := c.App.FilterNonTeamGroupMembers(memberIDs, team)
+		if err != nil {
+			if v, ok := err.(*model.AppError); ok {
 				c.Err = v
 			}
 			return
