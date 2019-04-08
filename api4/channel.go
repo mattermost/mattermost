@@ -1179,6 +1179,8 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			if v, ok := err.(*model.AppError); ok {
 				c.Err = v
+			} else {
+				c.Err = model.NewAppError("addChannelMember", "api.channel.add_members.error", nil, err.Error(), http.StatusBadRequest)
 			}
 			return
 		}

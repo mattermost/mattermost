@@ -5,7 +5,6 @@ package model
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -100,13 +99,4 @@ func (o *TeamMember) PreUpdate() {
 
 func (o *TeamMember) GetRoles() []string {
 	return strings.Fields(o.Roles)
-}
-
-type InvalidTeamMembersError struct {
-	UserIDs []string
-	Team    *Team
-}
-
-func (e InvalidTeamMembersError) Error() string {
-	return fmt.Sprintf("invalid team members for team_id %q: %v", e.Team.Id, e.UserIDs)
 }

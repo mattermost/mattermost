@@ -5,7 +5,6 @@ package model
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -170,13 +169,4 @@ func GetDefaultChannelNotifyProps() StringMap {
 		EMAIL_NOTIFY_PROP:                   CHANNEL_NOTIFY_DEFAULT,
 		IGNORE_CHANNEL_MENTIONS_NOTIFY_PROP: IGNORE_CHANNEL_MENTIONS_DEFAULT,
 	}
-}
-
-type InvalidChannelMembersError struct {
-	UserIDs []string
-	Channel *Channel
-}
-
-func (e InvalidChannelMembersError) Error() string {
-	return fmt.Sprintf("invalid channel members for channel_id %q: %v", e.Channel.Id, e.UserIDs)
 }

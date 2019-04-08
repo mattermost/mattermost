@@ -399,6 +399,8 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			if v, ok := err.(*model.AppError); ok {
 				c.Err = v
+			} else {
+				c.Err = model.NewAppError("addTeamMember", "api.team.add_members.error", nil, err.Error(), http.StatusBadRequest)
 			}
 			return
 		}
@@ -478,6 +480,8 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			if v, ok := err.(*model.AppError); ok {
 				c.Err = v
+			} else {
+				c.Err = model.NewAppError("addTeamMembers", "api.team.add_members.error", nil, err.Error(), http.StatusBadRequest)
 			}
 			return
 		}
