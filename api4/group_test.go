@@ -594,3 +594,91 @@ func TestPatchGroupChannel(t *testing.T) {
 	_, response = th.SystemAdminClient.PatchGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
 	CheckUnauthorizedStatus(t, response)
 }
+
+func TestGetGroupsByChannel(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	id := model.NewId()
+	group, err := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn_" + id,
+		Name:        "name" + id,
+		Source:      model.GroupSourceLdap,
+		Description: "description_" + id,
+		RemoteId:    model.NewId(),
+	})
+	assert.Nil(t, err)
+
+	_, err = th.App.CreateGroupSyncable(&model.GroupSyncable{
+		AutoAdd:    true,
+		SyncableId: th.BasicChannel.Id,
+		Type:       model.GroupSyncableTypeChannel,
+		GroupId:    group.Id,
+	})
+	assert.Nil(t, err)
+
+	_, response := th.SystemAdminClient.GetGroupsByChannel("asdfasdf", 0, 60)
+	CheckBadRequestStatus(t, response)
+
+	th.App.SetLicense(nil)
+
+	_, response = th.SystemAdminClient.GetGroupsByChannel(th.BasicChannel.Id, 0, 60)
+	CheckNotImplementedStatus(t, response)
+
+	th.App.SetLicense(model.NewTestLicense("ldap"))
+
+	_, response = th.Client.GetGroupsByChannel(th.BasicChannel.Id, 0, 60)
+	CheckForbiddenStatus(t, response)
+
+	groups, response := th.SystemAdminClient.GetGroupsByChannel(th.BasicChannel.Id, 0, 60)
+	assert.Nil(t, response.Error)
+	assert.ElementsMatch(t, []*model.Group{group}, groups)
+
+	groups, response = th.SystemAdminClient.GetGroupsByChannel(model.NewId(), 0, 60)
+	assert.Nil(t, response.Error)
+	assert.Empty(t, groups)
+}
+
+func TestGetGroupsByTeam(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	id := model.NewId()
+	group, err := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn_" + id,
+		Name:        "name" + id,
+		Source:      model.GroupSourceLdap,
+		Description: "description_" + id,
+		RemoteId:    model.NewId(),
+	})
+	assert.Nil(t, err)
+
+	_, err = th.App.CreateGroupSyncable(&model.GroupSyncable{
+		AutoAdd:    true,
+		SyncableId: th.BasicTeam.Id,
+		Type:       model.GroupSyncableTypeTeam,
+		GroupId:    group.Id,
+	})
+	assert.Nil(t, err)
+
+	_, response := th.SystemAdminClient.GetGroupsByTeam("asdfasdf", 0, 60)
+	CheckBadRequestStatus(t, response)
+
+	th.App.SetLicense(nil)
+
+	_, response = th.SystemAdminClient.GetGroupsByTeam(th.BasicTeam.Id, 0, 60)
+	CheckNotImplementedStatus(t, response)
+
+	th.App.SetLicense(model.NewTestLicense("ldap"))
+
+	_, response = th.Client.GetGroupsByTeam(th.BasicTeam.Id, 0, 60)
+	CheckForbiddenStatus(t, response)
+
+	groups, response := th.SystemAdminClient.GetGroupsByTeam(th.BasicTeam.Id, 0, 60)
+	assert.Nil(t, response.Error)
+	assert.ElementsMatch(t, []*model.Group{group}, groups)
+
+	groups, response = th.SystemAdminClient.GetGroupsByTeam(model.NewId(), 0, 60)
+	assert.Nil(t, response.Error)
+	assert.Empty(t, groups)
+}

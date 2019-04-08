@@ -171,7 +171,7 @@ func TestTeamPatch(t *testing.T) {
 	if *p.AllowOpenInvite != o.AllowOpenInvite {
 		t.Fatal("AllowOpenInvite did not update")
 	}
-	if *p.GroupConstrained != o.GroupConstrained.Bool {
-		t.Fatalf("expected %v got %v", *p.GroupConstrained, o.GroupConstrained.Bool)
+	if *p.GroupConstrained != *o.GroupConstrained {
+		t.Fatalf("expected %v got %v", *p.GroupConstrained, *o.GroupConstrained)
 	}
 }

@@ -122,6 +122,7 @@ func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 	oldTeam.CompanyName = team.CompanyName
 	oldTeam.AllowedDomains = team.AllowedDomains
 	oldTeam.LastTeamIconUpdate = team.LastTeamIconUpdate
+	oldTeam.GroupConstrained = team.GroupConstrained
 
 	oldTeam, err = a.updateTeamUnsanitized(oldTeam)
 	if err != nil {

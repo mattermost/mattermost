@@ -55,6 +55,14 @@ func (api *API) InitGroup() {
 	// GET /api/v4/groups/:group_id/members?page=0&per_page=100
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/members",
 		api.ApiSessionRequired(getGroupMembers)).Methods("GET")
+
+	// GET /api/v4/channels/:channel_id/groups?page=0&per_page=100
+	api.BaseRoutes.Channels.Handle("/{channel_id:[A-Za-z0-9]+}/groups",
+		api.ApiSessionRequired(getGroupsByChannel)).Methods("GET")
+
+	// GET /api/v4/teams/:team_id/groups?page=0&per_page=100
+	api.BaseRoutes.Teams.Handle("/{team_id:[A-Za-z0-9]+}/groups",
+		api.ApiSessionRequired(getGroupsByTeam)).Methods("GET")
 }
 
 func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -426,6 +434,68 @@ func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	})
 	if marshalErr != nil {
 		c.Err = model.NewAppError("Api4.getGroupMembers", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(b)
+}
+
+func getGroupsByChannel(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
+		c.Err = model.NewAppError("Api4.getGroupsByChannel", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	groups, err := c.App.GetGroupsByChannel(c.Params.ChannelId, c.Params.Page, c.Params.PerPage)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	b, marshalErr := json.Marshal(groups)
+	if marshalErr != nil {
+		c.Err = model.NewAppError("Api4.getGroupsByChannel", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(b)
+}
+
+func getGroupsByTeam(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
+		c.Err = model.NewAppError("Api4.getGroupsByTeam", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	groups, err := c.App.GetGroupsByTeam(c.Params.TeamId, c.Params.Page, c.Params.PerPage)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	b, marshalErr := json.Marshal(groups)
+	if marshalErr != nil {
+		c.Err = model.NewAppError("Api4.getGroupsByTeam", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
 		return
 	}
 

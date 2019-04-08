@@ -193,6 +193,10 @@ func TestUpdateChannel(t *testing.T) {
 		t.Fatal("Update failed for Purpose in private channel")
 	}
 
+	// Updating a private channel requires permission *and* membership, so this should fail.
+	_, resp = th.SystemAdminClient.UpdateChannel(private)
+	CheckForbiddenStatus(t, resp)
+
 	//Non existing channel
 	channel1 := &model.Channel{DisplayName: "Test API Name for apiv4", Name: GenerateTestChannelName(), Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	_, resp = Client.UpdateChannel(channel1)
@@ -291,8 +295,15 @@ func TestPatchChannel(t *testing.T) {
 	_, resp = th.SystemAdminClient.PatchChannel(th.BasicChannel.Id, patch)
 	CheckNoError(t, resp)
 
-	_, resp = th.SystemAdminClient.PatchChannel(th.BasicPrivateChannel.Id, patch)
+	Client.Logout()
+	Client.Login(th.BasicUser.Username, th.BasicUser.Password)
+
+	_, resp = th.Client.PatchChannel(th.BasicPrivateChannel.Id, patch)
 	CheckNoError(t, resp)
+
+	// Patching a private channel requires permission *and* membership, so this should fail.
+	_, resp = th.SystemAdminClient.PatchChannel(th.BasicPrivateChannel.Id, patch)
+	CheckForbiddenStatus(t, resp)
 
 	// Test updating the header of someone else's GM channel.
 	user1 := th.CreateUser()
@@ -2010,6 +2021,82 @@ func TestAddChannelMember(t *testing.T) {
 	_, resp = Client.AddChannelMember(privateChannel.Id, user3.Id)
 	CheckNoError(t, resp)
 	Client.Logout()
+}
+
+func TestAddChannelMemberAddMyself(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+	user := th.CreateUser()
+	th.LinkUserToTeam(user, th.BasicTeam)
+	notMemberPublicChannel1 := th.CreatePublicChannel()
+	notMemberPublicChannel2 := th.CreatePublicChannel()
+	notMemberPrivateChannel := th.CreatePrivateChannel()
+
+	memberPublicChannel := th.CreatePublicChannel()
+	memberPrivateChannel := th.CreatePrivateChannel()
+	th.AddUserToChannel(user, memberPublicChannel)
+	th.AddUserToChannel(user, memberPrivateChannel)
+
+	testCases := []struct {
+		Name                     string
+		Channel                  *model.Channel
+		WithJoinPublicPermission bool
+		ExpectedError            string
+	}{
+		{
+			"Add myself to a public channel with JOIN_PUBLIC_CHANNEL permission",
+			notMemberPublicChannel1,
+			true,
+			"",
+		},
+		{
+			"Try to add myself to a private channel with the JOIN_PUBLIC_CHANNEL permission",
+			notMemberPrivateChannel,
+			true,
+			"api.context.permissions.app_error",
+		},
+		{
+			"Try to add myself to a public channel without the JOIN_PUBLIC_CHANNEL permission",
+			notMemberPublicChannel2,
+			false,
+			"api.context.permissions.app_error",
+		},
+		{
+			"Add myself a public channel where I'm already a member, not having JOIN_PUBLIC_CHANNEL or MANAGE MEMBERS permission",
+			memberPublicChannel,
+			false,
+			"",
+		},
+		{
+			"Add myself a private channel where I'm already a member, not having JOIN_PUBLIC_CHANNEL or MANAGE MEMBERS permission",
+			memberPrivateChannel,
+			false,
+			"",
+		},
+	}
+	Client.Login(user.Email, user.Password)
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+
+			// Check the appropriate permissions are enforced.
+			defaultRolePermissions := th.SaveDefaultRolePermissions()
+			defer func() {
+				th.RestoreDefaultRolePermissions(defaultRolePermissions)
+			}()
+
+			if !tc.WithJoinPublicPermission {
+				th.RemovePermissionFromRole(model.PERMISSION_JOIN_PUBLIC_CHANNELS.Id, model.TEAM_USER_ROLE_ID)
+			}
+
+			_, resp := Client.AddChannelMember(tc.Channel.Id, user.Id)
+			if tc.ExpectedError == "" {
+				CheckNoError(t, resp)
+			} else {
+				CheckErrorMessage(t, resp, tc.ExpectedError)
+			}
+		})
+	}
 }
 
 func TestRemoveChannelMember(t *testing.T) {

@@ -4,7 +4,6 @@
 package model
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -27,22 +26,22 @@ const (
 )
 
 type Team struct {
-	Id                 string       `json:"id"`
-	CreateAt           int64        `json:"create_at"`
-	UpdateAt           int64        `json:"update_at"`
-	DeleteAt           int64        `json:"delete_at"`
-	DisplayName        string       `json:"display_name"`
-	Name               string       `json:"name"`
-	Description        string       `json:"description"`
-	Email              string       `json:"email"`
-	Type               string       `json:"type"`
-	CompanyName        string       `json:"company_name"`
-	AllowedDomains     string       `json:"allowed_domains"`
-	InviteId           string       `json:"invite_id"`
-	AllowOpenInvite    bool         `json:"allow_open_invite"`
-	LastTeamIconUpdate int64        `json:"last_team_icon_update,omitempty"`
-	SchemeId           *string      `json:"scheme_id"`
-	GroupConstrained   sql.NullBool `json:"group_constrained"`
+	Id                 string  `json:"id"`
+	CreateAt           int64   `json:"create_at"`
+	UpdateAt           int64   `json:"update_at"`
+	DeleteAt           int64   `json:"delete_at"`
+	DisplayName        string  `json:"display_name"`
+	Name               string  `json:"name"`
+	Description        string  `json:"description"`
+	Email              string  `json:"email"`
+	Type               string  `json:"type"`
+	CompanyName        string  `json:"company_name"`
+	AllowedDomains     string  `json:"allowed_domains"`
+	InviteId           string  `json:"invite_id"`
+	AllowOpenInvite    bool    `json:"allow_open_invite"`
+	LastTeamIconUpdate int64   `json:"last_team_icon_update,omitempty"`
+	SchemeId           *string `json:"scheme_id"`
+	GroupConstrained   *bool   `json:"group_constrained"`
 }
 
 type TeamPatch struct {
@@ -278,7 +277,7 @@ func (t *Team) Patch(patch *TeamPatch) {
 	}
 
 	if patch.GroupConstrained != nil {
-		t.GroupConstrained.Bool = *patch.GroupConstrained
+		t.GroupConstrained = patch.GroupConstrained
 	}
 }
 

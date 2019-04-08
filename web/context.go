@@ -125,6 +125,11 @@ func (c *Context) MfaRequired() {
 			return
 		}
 
+		// Bots are exempt
+		if user.IsBot {
+			return
+		}
+
 		if !user.MfaActive {
 			c.Err = model.NewAppError("", "api.context.mfa_required.app_error", nil, "MfaRequired", http.StatusForbidden)
 			return

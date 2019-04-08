@@ -506,6 +506,11 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 		newPost.Props = post.Props
 	}
 
+	// Avoid deep-equal checks if EditAt was already modified through message change
+	if newPost.EditAt == oldPost.EditAt && (!oldPost.FileIds.Equals(newPost.FileIds) || !oldPost.AttachmentsEqual(newPost)) {
+		newPost.EditAt = model.GetMillis()
+	}
+
 	if err := a.FillInPostProps(post, nil); err != nil {
 		return nil, err
 	}
