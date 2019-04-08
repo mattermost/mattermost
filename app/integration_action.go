@@ -37,6 +37,8 @@ func (a *App) DoPostAction(postId, actionId, userId, selectedOption string) (str
 func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption string, cookie *model.PostActionCookie) (string, *model.AppError) {
 	// the prop values that we need to retain/clear in replacement message to match the original
 	var originalProps map[string]interface{}
+	isPinned := false
+	hasReactions := false
 	remove := []string{}
 	retain := map[string]interface{}{}
 	datasource := ""
@@ -105,6 +107,8 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 			}
 		}
 		originalProps = post.Props
+		isPinned = post.IsPinned
+		hasReactions = post.HasReactions
 
 		if post.RootId == "" {
 			rootPostId = post.Id
@@ -152,9 +156,13 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 			for _, key := range remove {
 				delete(response.Update.Props, key)
 			}
-			if _, appErr = a.UpdatePost(response.Update, false); appErr != nil {
-				return "", appErr
-			}
+		}
+
+		response.Update.IsPinned = isPinned
+		response.Update.HasReactions = hasReactions
+
+		if _, appErr = a.UpdatePost(response.Update, false); appErr != nil {
+			return "", appErr
 		}
 	}
 
