@@ -1916,7 +1916,7 @@
   },
   {
     "id": "api.team.add_members.error",
-    "translation": "Error adding channel member(s)."
+    "translation": "Error adding team member(s)."
   },
   {
     "id": "api.channel.add_members.error",
