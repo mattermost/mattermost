@@ -1175,7 +1175,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if channel.GroupConstrained != nil && *channel.GroupConstrained {
-		nonMembers, jerr := c.App.GetNonChannelGroupMembers([]string{member.UserId}, channel)
+		nonMembers, jerr := c.App.FilterNonChannelGroupMembers([]string{member.UserId}, channel)
 		if jerr != nil {
 			if v, ok := jerr.(*model.AppError); ok {
 				c.Err = v
