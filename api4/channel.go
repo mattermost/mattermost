@@ -1218,7 +1218,7 @@ func removeChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if channel.GroupConstrained != nil && *channel.GroupConstrained {
+	if channel.GroupConstrained != nil && *channel.GroupConstrained && (c.Params.UserId != c.App.Session.UserId) {
 		c.Err = model.NewAppError("removeChannelMember", "api.channel.remove_member.group_constrained.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
