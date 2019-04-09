@@ -864,7 +864,6 @@ type LogSettings struct {
 	EnableFile             *bool   `restricted:"true"`
 	FileLevel              *string `restricted:"true"`
 	FileJson               *bool   `restricted:"true"`
-	FileFormat             *string `restricted:"true"`
 	FileLocation           *string `restricted:"true"`
 	EnableWebhookDebugging *bool   `restricted:"true"`
 	EnableDiagnostics      *bool   `restricted:"true"`
@@ -885,10 +884,6 @@ func (s *LogSettings) SetDefaults() {
 
 	if s.FileLevel == nil {
 		s.FileLevel = NewString("INFO")
-	}
-
-	if s.FileFormat == nil {
-		s.FileFormat = NewString("")
 	}
 
 	if s.FileLocation == nil {
