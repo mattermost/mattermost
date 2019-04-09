@@ -1217,6 +1217,10 @@
     "translation": "Imposibil de încărcat fișier(e). Eroare la citirea sau parsarea datelor din solicitare."
   },
   {
+    "id": "api.file.upload_file.rejected_by_plugin.app_error",
+    "translation": "Imposibil de încărcat fișierul {{.Filename}}. Respins de plugin: {{.Reason}}"
+  },
+  {
     "id": "api.file.upload_file.storage.app_error",
     "translation": "Imposibil de încărcat imaginea. Stocarea imaginilor nu este configurată."
   },

@@ -77,7 +77,7 @@
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
-    "translation": "刪除 OAuth2 應用程式時發生錯誤"
+    "translation": "刪除憑證時發生錯誤"
   },
   {
     "id": "api.admin.saml.metadata.app_error",
@@ -960,7 +960,7 @@
   },
   {
     "id": "api.config.update_config.restricted_merge.app_error",
-    "translation": "Failed to merge given config."
+    "translation": "合併設定時失敗。"
   },
   {
     "id": "api.context.404.app_error",
@@ -1217,6 +1217,10 @@
     "translation": "無法上傳檔案。讀取或解析請求資料時錯誤。"
   },
   {
+    "id": "api.file.upload_file.rejected_by_plugin.app_error",
+    "translation": "無法上傳檔案 {{.Filename}}。被模組拒絕：{{.Reason}}"
+  },
+  {
     "id": "api.file.upload_file.storage.app_error",
     "translation": "無法上傳檔案。尚未設定圖片儲存位置。"
   },
@@ -1462,7 +1466,7 @@
   },
   {
     "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
-    "translation": "Can not delete a post in a deleted channel."
+    "translation": "無法刪除已刪除頻道的訊息。"
   },
   {
     "id": "api.post.disabled_all",
@@ -1504,7 +1508,7 @@
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
-    "translation": "Can not update a post in a deleted channel."
+    "translation": "無法更新已刪除頻道的訊息。"
   },
   {
     "id": "api.post.save_is_pinned_post.town_square_read_only",
@@ -1540,7 +1544,7 @@
   },
   {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
-    "translation": "Can not update a post in a deleted channel."
+    "translation": "無法更新已刪除頻道的訊息。"
   },
   {
     "id": "api.post.update_post.find.app_error",
@@ -1596,7 +1600,7 @@
   },
   {
     "id": "api.restricted_system_admin",
-    "translation": "This action is forbidden to a restricted system admin."
+    "translation": "受限的系統管理員無法執行此動作。"
   },
   {
     "id": "api.roles.patch_roles.license.error",
@@ -1776,7 +1780,7 @@
   },
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
-    "translation": "Error invalidating email invites."
+    "translation": "使電子郵件邀請無效時失敗。"
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
@@ -2288,7 +2292,7 @@
   },
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
-    "translation": "Bot login is forbidden"
+    "translation": "禁止機器人登入"
   },
   {
     "id": "api.user.login.client_side_cert.certificate.app_error",
@@ -2316,7 +2320,7 @@
   },
   {
     "id": "api.user.login_by_oauth.bot_login_forbidden.app_error",
-    "translation": "Bot login is forbidden"
+    "translation": "禁止機器人登入"
   },
   {
     "id": "api.user.login_by_oauth.not_available.app_error",
@@ -3292,7 +3296,7 @@
   },
   {
     "id": "app.save_config.app_error",
-    "translation": "An error occurred saving the configuration"
+    "translation": "儲存設定時發生錯誤"
   },
   {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
@@ -3488,7 +3492,7 @@
   },
   {
     "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "Trying to index a new batch when all the entities are completed."
+    "translation": "在全部實體已完成時嘗試索引新批次。"
   },
   {
     "id": "ent.elasticsearch.not_started.error",
@@ -3916,7 +3920,7 @@
   },
   {
     "id": "model.bot.is_valid.create_at.app_error",
-    "translation": "無效的建立者 ID"
+    "translation": "無效的建立時間"
   },
   {
     "id": "model.bot.is_valid.creator_id.app_error",
@@ -3928,7 +3932,7 @@
   },
   {
     "id": "model.bot.is_valid.update_at.app_error",
-    "translation": "無效的建立者 ID"
+    "translation": "無效的更新時間"
   },
   {
     "id": "model.bot.is_valid.user_id.app_error",
@@ -4472,7 +4476,7 @@
   },
   {
     "id": "model.config.is_valid.sitename_empty.app_error",
-    "translation": "Site name cannot be empty."
+    "translation": "站台名稱不能為空"
   },
   {
     "id": "model.config.is_valid.sitename_length.app_error",
@@ -5204,31 +5208,31 @@
   },
   {
     "id": "store.sql_bot.delete.app_error",
-    "translation": "無法刪除訊息"
+    "translation": "無法刪除機器人"
   },
   {
     "id": "store.sql_bot.get.app_error",
-    "translation": "無法取得訊息"
+    "translation": "無法取得機器人"
   },
   {
     "id": "store.sql_bot.get.missing.app_error",
-    "translation": "Bot does not exist"
+    "translation": "機器人不存在"
   },
   {
     "id": "store.sql_bot.get_all.app_error",
-    "translation": "無法取得訊息"
+    "translation": "無法取得機器人"
   },
   {
     "id": "store.sql_bot.save.app_error",
-    "translation": "無法儲存訊息"
+    "translation": "無法儲存機器人"
   },
   {
     "id": "store.sql_bot.update.app_error",
-    "translation": "無法更新訊息"
+    "translation": "無法更新機器人"
   },
   {
     "id": "store.sql_bot.update.updating.app_error",
-    "translation": "更新應用程式時遇到錯誤"
+    "translation": "更新機器人時遇到錯誤"
   },
   {
     "id": "store.sql_channel.analytics_deleted_type_count.app_error",
@@ -5300,7 +5304,7 @@
   },
   {
     "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
-    "translation": "無法取得文章以建立索引"
+    "translation": "無法取得頻道批次以建立索引"
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.get.app_error",
@@ -6172,7 +6176,7 @@
   },
   {
     "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
-    "translation": "Unable to remove all the tokens of a type"
+    "translation": "無法移除特定類型的全部 Token"
   },
   {
     "id": "store.sql_recover.save.app_error",
@@ -6412,7 +6416,7 @@
   },
   {
     "id": "store.sql_team.get_all_private_team_listing.app_error",
-    "translation": "無法取得全部的團隊"
+    "translation": "無法取得全部的私人團隊"
   },
   {
     "id": "store.sql_team.get_all_team_listing.app_error",
@@ -6520,7 +6524,7 @@
   },
   {
     "id": "store.sql_team.search_private_team.app_error",
-    "translation": "搜尋開放團隊時遇到錯誤"
+    "translation": "搜尋私人團隊時遇到錯誤"
   },
   {
     "id": "store.sql_team.update.app_error",
@@ -6580,7 +6584,7 @@
   },
   {
     "id": "store.sql_user.app_error",
-    "translation": "Failed to build query"
+    "translation": "建立查詢時失敗"
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.commit_transaction.app_error",
@@ -6660,15 +6664,15 @@
   },
   {
     "id": "store.sql_user.get_users_batch_for_indexing.get_channel_members.app_error",
-    "translation": "Unable to get the channel members for the users batch for indexing"
+    "translation": "在使用者批次索引時無法取得頻道成員"
   },
   {
     "id": "store.sql_user.get_users_batch_for_indexing.get_team_members.app_error",
-    "translation": "Unable to get the team members for the users batch for indexing"
+    "translation": "在使用者批次索引時無法取得團隊成員"
   },
   {
     "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
-    "translation": "無法取得文章以建立索引"
+    "translation": "無法取得使用者批次用以索引"
   },
   {
     "id": "store.sql_user.missing_account.const",

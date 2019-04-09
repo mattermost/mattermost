@@ -1217,6 +1217,10 @@
     "translation": "Impossible d'envoyer les fichiers. Une erreur s'est produite lors de l'interprétation des données de la requête."
   },
   {
+    "id": "api.file.upload_file.rejected_by_plugin.app_error",
+    "translation": "Unable to upload file {{.Filename}}. Rejected by plugin: {{.Reason}}"
+  },
+  {
     "id": "api.file.upload_file.storage.app_error",
     "translation": "Impossible d'envoyer le fichier. Le stockage d'images n'est pas configuré."
   },

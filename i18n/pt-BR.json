@@ -960,7 +960,7 @@
   },
   {
     "id": "api.config.update_config.restricted_merge.app_error",
-    "translation": "Failed to merge given config."
+    "translation": "Falha ao mesclar a configuração fornecida."
   },
   {
     "id": "api.context.404.app_error",
@@ -1217,6 +1217,10 @@
     "translation": "Não foi possível enviar o(s) arquivo(s). Erro ao ler ou decodificar a requisição."
   },
   {
+    "id": "api.file.upload_file.rejected_by_plugin.app_error",
+    "translation": "Não foi possível enviar o arquivo {{.Filename}}. Rejeitado pelo plugin: {{.Reason}}"
+  },
+  {
     "id": "api.file.upload_file.storage.app_error",
     "translation": "Não é possível fazer upload do arquivo. Armazenamento de imagem não está configurado."
   },
@@ -1462,7 +1466,7 @@
   },
   {
     "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
-    "translation": "Can not delete a post in a deleted channel."
+    "translation": "Não é possível excluir uma publicação em um canal excluído."
   },
   {
     "id": "api.post.disabled_all",
@@ -1504,7 +1508,7 @@
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
-    "translation": "Can not update a post in a deleted channel."
+    "translation": "Não é possível atualizar uma publicação em um canal excluído."
   },
   {
     "id": "api.post.save_is_pinned_post.town_square_read_only",
@@ -1540,7 +1544,7 @@
   },
   {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
-    "translation": "Can not update a post in a deleted channel."
+    "translation": "Não é possível atualizar uma publicação em um canal excluído."
   },
   {
     "id": "api.post.update_post.find.app_error",
@@ -1596,7 +1600,7 @@
   },
   {
     "id": "api.restricted_system_admin",
-    "translation": "This action is forbidden to a restricted system admin."
+    "translation": "Esta ação é proibida para um administrador do sistema restrito."
   },
   {
     "id": "api.roles.patch_roles.license.error",
@@ -1776,7 +1780,7 @@
   },
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
-    "translation": "Error invalidating email invites."
+    "translation": "Erro ao invalidar convites por email."
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
@@ -2288,7 +2292,7 @@
   },
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
-    "translation": "Bot login is forbidden"
+    "translation": "O login do bot é proibido"
   },
   {
     "id": "api.user.login.client_side_cert.certificate.app_error",
@@ -2316,7 +2320,7 @@
   },
   {
     "id": "api.user.login_by_oauth.bot_login_forbidden.app_error",
-    "translation": "Bot login is forbidden"
+    "translation": "O login do bot é proibido"
   },
   {
     "id": "api.user.login_by_oauth.not_available.app_error",
@@ -3292,7 +3296,7 @@
   },
   {
     "id": "app.save_config.app_error",
-    "translation": "An error occurred saving the configuration"
+    "translation": "Um erro ocorreu salvando a configuração"
   },
   {
     "id": "app.schemes.is_phase_2_migration_completed.not_completed.app_error",
@@ -3488,7 +3492,7 @@
   },
   {
     "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
-    "translation": "Trying to index a new batch when all the entities are completed."
+    "translation": "Tentando indexar um novo lote quando todas as entidades estão completas."
   },
   {
     "id": "ent.elasticsearch.not_started.error",
@@ -6660,11 +6664,11 @@
   },
   {
     "id": "store.sql_user.get_users_batch_for_indexing.get_channel_members.app_error",
-    "translation": "Unable to get the channel members for the users batch for indexing"
+    "translation": "Não foi possível obter os membros do canal para o lote de usuários para indexação"
   },
   {
     "id": "store.sql_user.get_users_batch_for_indexing.get_team_members.app_error",
-    "translation": "Unable to get the team members for the users batch for indexing"
+    "translation": "Não foi possível obter os membros da equipe para o lote de usuários para indexação"
   },
   {
     "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",

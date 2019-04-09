@@ -1217,6 +1217,10 @@
     "translation": "Impossibile caricare i file. Errore leggendo o interpretando i dati della richiesta."
   },
   {
+    "id": "api.file.upload_file.rejected_by_plugin.app_error",
+    "translation": "Impossibile caricare il file {{.Filename}}. Rifiutato dal plugin: {{.Reason}}"
+  },
+  {
     "id": "api.file.upload_file.storage.app_error",
     "translation": "Impossibile caricare il file. Lo storage delle immagini non è configurato."
   },

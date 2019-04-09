@@ -1217,6 +1217,10 @@
     "translation": "ファイルをアップロードできませんでした。リクエストデータを読み込み、もしくは解析する際にエラーが発生しました。"
   },
   {
+    "id": "api.file.upload_file.rejected_by_plugin.app_error",
+    "translation": "ファイル {{.FIlename}} をアップロードできませんでした。プラグインによって拒否されました: {{.Reason}}"
+  },
+  {
     "id": "api.file.upload_file.storage.app_error",
     "translation": "画像ファイルをアップロードできません。画像ストレージが設定されていません。"
   },
