@@ -106,32 +106,32 @@ ifeq ($(IS_CI),false)
 
 	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-mysql$$ | wc -l) -eq 0 ]; then \
 		echo starting mattermost-mysql; \
-		docker run --name mattermost-mysql -p 3306:3306 \
-			-e MYSQL_ROOT_PASSWORD=mostest \
+		docker run --name mattermost-mysql -p 3308:3306 \
+			-e MYSQL_ROOT_PASSWORD=minimumToMASSIVE \
 			-e MYSQL_USER=mmuser \
-			-e MYSQL_PASSWORD=mostest \
-			-e MYSQL_DATABASE=mattermost_test \
+			-e MYSQL_PASSWORD=minimumToMASSIVE \
+			-e MYSQL_DATABASE=mimas_chat \
 			-d mysql:5.7 > /dev/null; \
 	elif [ $(shell docker ps --no-trunc --quiet --filter name=^/mattermost-mysql$$ | wc -l) -eq 0 ]; then \
 		echo restarting mattermost-mysql; \
 		docker start mattermost-mysql > /dev/null; \
 	fi
 
-	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-postgres$$ | wc -l) -eq 0 ]; then \
-		echo starting mattermost-postgres; \
-		docker run --name mattermost-postgres -p 5432:5432 \
-			-e POSTGRES_USER=mmuser \
-			-e POSTGRES_PASSWORD=mostest \
-			-e POSTGRES_DB=mattermost_test \
-			-d postgres:9.4 > /dev/null; \
-	elif [ $(shell docker ps --no-trunc --quiet --filter name=^/mattermost-postgres$$ | wc -l) -eq 0 ]; then \
-		echo restarting mattermost-postgres; \
-		docker start mattermost-postgres > /dev/null; \
-	fi
+#	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-postgres$$ | wc -l) -eq 0 ]; then \
+#		echo starting mattermost-postgres; \
+#		docker run --name mattermost-postgres -p 5432:5432 \
+#			-e POSTGRES_USER=mmuser \
+#			-e POSTGRES_PASSWORD=minimumToMASSIVE \
+#			-e POSTGRES_DB=mimas_chat \
+#			-d postgres:9.4 > /dev/null; \
+#	elif [ $(shell docker ps --no-trunc --quiet --filter name=^/mattermost-postgres$$ | wc -l) -eq 0 ]; then \
+#		echo restarting mattermost-postgres; \
+#		docker start mattermost-postgres > /dev/null; \
+#	fi
 
 	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-inbucket$$ | wc -l) -eq 0 ]; then \
 		echo starting mattermost-inbucket; \
-		docker run --name mattermost-inbucket -p 9000:10080 -p 2500:10025 -d jhillyerd/inbucket:release-1.2.0 > /dev/null; \
+		docker run --name mattermost-inbucket -p 9002:10080 -p 2500:10025 -d jhillyerd/inbucket:release-1.2.0 > /dev/null; \
 	elif [ $(shell docker ps --no-trunc --quiet --filter name=^/mattermost-inbucket$$ | wc -l) -eq 0 ]; then \
 		echo restarting mattermost-inbucket; \
 		docker start mattermost-inbucket > /dev/null; \
@@ -139,7 +139,7 @@ ifeq ($(IS_CI),false)
 
 	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-minio$$ | wc -l) -eq 0 ]; then \
 		echo starting mattermost-minio; \
-		docker run --name mattermost-minio -p 9001:9000 -e "MINIO_ACCESS_KEY=minioaccesskey" \
+		docker run --name mattermost-minio -p 9003:9000 -e "MINIO_ACCESS_KEY=minioaccesskey" \
 		-e "MINIO_SECRET_KEY=miniosecretkey" -d minio/minio:RELEASE.2018-05-25T19-49-13Z server /data > /dev/null; \
 		docker exec -it mattermost-minio /bin/sh -c "mkdir -p /data/mattermost-test" > /dev/null; \
 	elif [ $(shell docker ps --no-trunc --quiet --filter name=^/mattermost-minio$$ | wc -l) -eq 0 ]; then \
@@ -155,12 +155,12 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 			-e LDAP_TLS_VERIFY_CLIENT="never" \
 			-e LDAP_ORGANISATION="Mattermost Test" \
 			-e LDAP_DOMAIN="mm.test.com" \
-			-e LDAP_ADMIN_PASSWORD="mostest" \
+			-e LDAP_ADMIN_PASSWORD="minimumToMASSIVE" \
 			-d osixia/openldap:1.2.2 > /dev/null;\
 		sleep 10; \
 		docker cp tests/test-data.ldif mattermost-openldap:/test-data.ldif;\
 		docker cp tests/qa-data.ldif mattermost-openldap:/qa-data.ldif;\
-		docker exec -ti mattermost-openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest -f /$(LDAP_DATA)-data.ldif';\
+		docker exec -ti mattermost-openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w minimumToMASSIVE -f /$(LDAP_DATA)-data.ldif';\
 	elif [ $(shell docker ps | grep -ci mattermost-openldap) -eq 0 ]; then \
 		echo restarting mattermost-openldap; \
 		docker start mattermost-openldap > /dev/null; \
@@ -169,7 +169,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 
 	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-elasticsearch$$ | wc -l) -eq 0 ]; then \
 		echo starting mattermost-elasticsearch; \
-		docker run --name mattermost-elasticsearch -p 9200:9200 -e "http.host=0.0.0.0" -e "transport.host=127.0.0.1" -e "ES_JAVA_OPTS=-Xms250m -Xmx250m" -d mattermost/mattermost-elasticsearch-docker:6.5.1 > /dev/null; \
+		docker run --name mattermost-elasticsearch -p 9202:9200 -e "http.host=0.0.0.0" -e "transport.host=127.0.0.1" -e "ES_JAVA_OPTS=-Xms250m -Xmx250m" -d mattermost/mattermost-elasticsearch-docker:6.5.1 > /dev/null; \
 	elif [ $(shell docker ps --no-trunc --quiet --filter name=^/mattermost-elasticsearch$$ | wc -l) -eq 0 ]; then \
 		echo restarting mattermost-elasticsearch; \
 		docker start mattermost-elasticsearch> /dev/null; \
@@ -177,7 +177,7 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 
 	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-redis$$ | wc -l) -eq 0 ]; then \
 		echo starting mattermost-redis; \
-		docker run --name mattermost-redis -p 6379:6379 -d redis > /dev/null; \
+		docker run --name mattermost-redis -p 6381:6379 -d redis > /dev/null; \
 	elif [ $(shell docker ps --no-trunc --quiet --filter name=^/mattermost-redis$$ | wc -l) -eq 0 ]; then \
 		echo restarting mattermost-redis; \
 		docker start mattermost-redis > /dev/null; \
@@ -512,7 +512,7 @@ config-ldap: ## Configures LDAP.
 	@sed -i'' -e 's|"LdapServer": ".*"|"LdapServer": "dockerhost"|g' config/config.json
 	@sed -i'' -e 's|"BaseDN": ".*"|"BaseDN": "dc=mm,dc=test,dc=com"|g' config/config.json
 	@sed -i'' -e 's|"BindUsername": ".*"|"BindUsername": "cn=admin,dc=mm,dc=test,dc=com"|g' config/config.json
-	@sed -i'' -e 's|"BindPassword": ".*"|"BindPassword": "mostest"|g' config/config.json
+	@sed -i'' -e 's|"BindPassword": ".*"|"BindPassword": "minimumToMASSIVE"|g' config/config.json
 	@sed -i'' -e 's|"FirstNameAttribute": ".*"|"FirstNameAttribute": "cn"|g' config/config.json
 	@sed -i'' -e 's|"LastNameAttribute": ".*"|"LastNameAttribute": "sn"|g' config/config.json
 	@sed -i'' -e 's|"NicknameAttribute": ".*"|"NicknameAttribute": "cn"|g' config/config.json
