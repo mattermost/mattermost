@@ -1771,6 +1771,16 @@ func (c *Client4) InviteUsersToTeam(teamId string, userEmails []string) (bool, *
 	return CheckStatusOK(r), BuildResponse(r)
 }
 
+// InvalidateEmailInvites will invalidate active email invitations that have not been accepted by the user.
+func (c *Client4) InvalidateEmailInvites() (bool, *Response) {
+	r, err := c.DoApiDelete(c.GetTeamsRoute() + "/invites/email")
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
 // GetTeamInviteInfo returns a team object from an invite id containing sanitized information.
 func (c *Client4) GetTeamInviteInfo(inviteId string) (*Team, *Response) {
 	r, err := c.DoApiGet(c.GetTeamsRoute()+"/invite/"+inviteId, "")
