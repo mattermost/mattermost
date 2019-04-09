@@ -89,9 +89,9 @@ func (p *MattermostPlugin) EnsureBot(bot *model.Bot) (retBotId string, retErr er
 
 	// Check for an existing bot user with that username. If one exists, then use that.
 	if user, err := p.API.GetUserByUsername(bot.Username); err == nil && user != nil {
-		if retrievedBot, err := p.API.GetBot(user.Id, true); err == nil && retrievedBot != nil {
-			p.API.KVSet(BOT_USER_KEY, []byte(retrievedBot.UserId))
-			return retrievedBot.UserId, nil
+		if user.IsBot {
+			p.API.KVSet(BOT_USER_KEY, []byte(user.Id))
+			return user.Id, nil
 		}
 	}
 
