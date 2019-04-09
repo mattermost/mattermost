@@ -8,6 +8,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/store"
 )
 
 func (api *API) InitChannel() {
@@ -411,7 +412,7 @@ func getChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if channel.Type == model.CHANNEL_OPEN {
-		if !c.App.SessionHasPermissionToTeam(c.App.Session, channel.TeamId, model.PERMISSION_READ_PUBLIC_CHANNEL) {
+		if !c.App.SessionHasPermissionToTeam(c.App.Session, channel.TeamId, model.PERMISSION_READ_PUBLIC_CHANNEL) && !c.App.SessionHasPermissionToChannel(c.App.Session, c.Params.ChannelId, model.PERMISSION_READ_CHANNEL) {
 			c.SetPermissionError(model.PERMISSION_READ_PUBLIC_CHANNEL)
 			return
 		}
@@ -800,7 +801,7 @@ func getChannelByName(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if channel.Type == model.CHANNEL_OPEN {
-		if !c.App.SessionHasPermissionToTeam(c.App.Session, channel.TeamId, model.PERMISSION_READ_PUBLIC_CHANNEL) {
+		if !c.App.SessionHasPermissionToTeam(c.App.Session, channel.TeamId, model.PERMISSION_READ_PUBLIC_CHANNEL) && !c.App.SessionHasPermissionToChannel(c.App.Session, channel.Id, model.PERMISSION_READ_CHANNEL) {
 			c.SetPermissionError(model.PERMISSION_READ_PUBLIC_CHANNEL)
 			return
 		}
@@ -1124,14 +1125,32 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check join permission if adding yourself, otherwise check manage permission
+	if channel.Type == model.CHANNEL_DIRECT || channel.Type == model.CHANNEL_GROUP {
+		c.Err = model.NewAppError("addUserToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	isNewMembership := false
+	if _, err = c.App.GetChannelMember(member.ChannelId, member.UserId); err != nil {
+		if err.Id == store.MISSING_CHANNEL_MEMBER_ERROR {
+			isNewMembership = true
+		} else {
+			c.Err = err
+			return
+		}
+	}
+
+	isSelfAdd := member.UserId == c.App.Session.UserId
+
 	if channel.Type == model.CHANNEL_OPEN {
-		if member.UserId == c.App.Session.UserId {
-			if !c.App.SessionHasPermissionToChannel(c.App.Session, channel.Id, model.PERMISSION_JOIN_PUBLIC_CHANNELS) {
+		if isSelfAdd && isNewMembership {
+			if !c.App.SessionHasPermissionToTeam(c.App.Session, channel.TeamId, model.PERMISSION_JOIN_PUBLIC_CHANNELS) {
 				c.SetPermissionError(model.PERMISSION_JOIN_PUBLIC_CHANNELS)
 				return
 			}
-		} else {
+		} else if isSelfAdd && !isNewMembership {
+			// nothing to do, since already in the channel
+		} else if !isSelfAdd {
 			if !c.App.SessionHasPermissionToChannel(c.App.Session, channel.Id, model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS) {
 				c.SetPermissionError(model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS)
 				return
@@ -1139,14 +1158,20 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if channel.Type == model.CHANNEL_PRIVATE && !c.App.SessionHasPermissionToChannel(c.App.Session, channel.Id, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS)
-		return
-	}
-
-	if channel.Type == model.CHANNEL_DIRECT || channel.Type == model.CHANNEL_GROUP {
-		c.Err = model.NewAppError("addUserToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusBadRequest)
-		return
+	if channel.Type == model.CHANNEL_PRIVATE {
+		if isSelfAdd && isNewMembership {
+			if !c.App.SessionHasPermissionToChannel(c.App.Session, channel.Id, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS) {
+				c.SetPermissionError(model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS)
+				return
+			}
+		} else if isSelfAdd && !isNewMembership {
+			// nothing to do, since already in the channel
+		} else if !isSelfAdd {
+			if !c.App.SessionHasPermissionToChannel(c.App.Session, channel.Id, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS) {
+				c.SetPermissionError(model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS)
+				return
+			}
+		}
 	}
 
 	cm, err := c.App.AddChannelMember(member.UserId, channel, c.App.Session.UserId, postRootId, c.App.Session.Id)
