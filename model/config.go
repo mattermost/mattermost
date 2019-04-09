@@ -1792,6 +1792,7 @@ func (s *ComplianceSettings) SetDefaults() {
 	}
 }
 
+// Used directly in plugin system
 type LocalizationSettings struct {
 	DefaultServerLocale *string
 	DefaultClientLocale *string
