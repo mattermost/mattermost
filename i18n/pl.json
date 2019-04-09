@@ -627,6 +627,8 @@
     "id": "api.command_groupmsg.invalid_user.app_error",
     "translation": {
       "one": "Nie można znaleźć użytkownika: {{.Users}}",
+      "few": "Nie można znaleźć użytkowników: {{.Users}}",
+      "many": "Nie można znaleźć użytkowników: {{.Users}}",
       "other": "Nie można znaleźć użytkowników: {{.Users}}"
     }
   },
@@ -1034,6 +1036,8 @@
     "id": "api.email_batching.send_batched_email_notification.body_text",
     "translation": {
       "one": "Masz nowe powiadomienie.",
+      "few": "Masz {{.Count}} nowe powiadomienia.",
+      "many": "Masz {{.Count}} nowe powiadomienia.",
       "other": "Masz {{.Count}} nowe powiadomienia."
     }
   },
@@ -1041,6 +1045,8 @@
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
       "one": "Nowe powiadomienie [{{.SiteName}}] z {{.Month}} {{.Day}}, {{.Year}}",
+      "few": "Nowe powiadomienia [{{.SiteName}}] z {{.Month}} {{.Day}}, {{.Year}}",
+      "many": "Nowe powiadomienia [{{.SiteName}}] z {{.Month}} {{.Day}}, {{.Year}}",
       "other": "Nowe powiadomienia [{{.SiteName}}] z {{.Month}} {{.Day}}, {{.Year}}"
     }
   },
@@ -1484,6 +1490,8 @@
     "id": "api.post.get_message_for_notification.files_sent",
     "translation": {
       "one": "{{.Count}} plik wysłany: {{.Filenames}}",
+      "few": "Wysłano {{.Count}} pliki: {{.Filenames}}",
+      "many": "Wysłano {{.Count}} pliki: {{.Filenames}}",
       "other": "Wysłano {{.Count}} pliki: {{.Filenames}}"
     }
   },
@@ -1491,6 +1499,8 @@
     "id": "api.post.get_message_for_notification.images_sent",
     "translation": {
       "one": "{{.Count}} plik wysłany: {{.Filenames}}",
+      "few": "Wysłano {{.Count}} plików: {{.Filenames}}",
+      "many": "Wysłano {{.Count}} plików: {{.Filenames}}",
       "other": "Wysłano {{.Count}} plików: {{.Filenames}}"
     }
   },

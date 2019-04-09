@@ -627,7 +627,9 @@
     "id": "api.command_groupmsg.invalid_user.app_error",
     "translation": {
       "one": "Не вдалося знайти користувача: {{.Users}}Не вдалося знайти користувачів: {{.Users}}",
-      "other": ""
+      "few": "Не вдалося знайти користувача: {{.Users}}Не вдалося знайти користувачів: {{.Users}}",
+      "many": "Не вдалося знайти користувача: {{.Users}}Не вдалося знайти користувачів: {{.Users}}",
+      "other": "Не вдалося знайти користувача: {{.Users}}Не вдалося знайти користувачів: {{.Users}}"
     }
   },
   {
@@ -1034,6 +1036,8 @@
     "id": "api.email_batching.send_batched_email_notification.body_text",
     "translation": {
       "one": "Ви отримали нове повідомлення.У вас є {{.Count}} нові сповіщення.",
+      "few": "У вас є {{.Count}} нові сповіщення.",
+      "many": "У вас є {{.Count}} нові сповіщення.",
       "other": "У вас є {{.Count}} нові сповіщення."
     }
   },
@@ -1041,6 +1045,8 @@
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
       "one": "[{{.SiteName}}] Нове повідомлення для {{.Month}} {{.Day}}, {{.Year}}",
+      "few": "[{{.SiteName}}] Нові сповіщення для {{.Month}} {{.Day}}, {{.Year}}",
+      "many": "[{{.SiteName}}] Нові сповіщення для {{.Month}} {{.Day}}, {{.Year}}",
       "other": "[{{.SiteName}}] Нові сповіщення для {{.Month}} {{.Day}}, {{.Year}}"
     }
   },
@@ -1484,6 +1490,8 @@
     "id": "api.post.get_message_for_notification.files_sent",
     "translation": {
       "one": "Файл {{.Count}} відправлений: {{.Filenames}}Файли {{.Count}} відправлені: {{.Filenames}}",
+      "few": "Файл {{.Count}} відправлений: {{.Filenames}}Файли {{.Count}} відправлені: {{.Filenames}}",
+      "many": "Файл {{.Count}} відправлений: {{.Filenames}}Файли {{.Count}} відправлені: {{.Filenames}}",
       "other": "Файл {{.Count}} відправлений: {{.Filenames}}Файли {{.Count}} відправлені: {{.Filenames}}"
     }
   },
@@ -1491,6 +1499,8 @@
     "id": "api.post.get_message_for_notification.images_sent",
     "translation": {
       "one": "{{.Count}} зображення надіслано: {{.Filenames}}{{.Count}} відправлені зображення: {{.Filenames}}",
+      "few": "{{.Count}} зображення надіслано: {{.Filenames}}{{.Count}} відправлені зображення: {{.Filenames}}",
+      "many": "{{.Count}} зображення надіслано: {{.Filenames}}{{.Count}} відправлені зображення: {{.Filenames}}",
       "other": "{{.Count}} зображення надіслано: {{.Filenames}}{{.Count}} відправлені зображення: {{.Filenames}}"
     }
   },

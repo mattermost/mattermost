@@ -627,6 +627,8 @@
     "id": "api.command_groupmsg.invalid_user.app_error",
     "translation": {
       "one": "Не удалось найти пользователя: {{.Users}}",
+      "few": "Не удалось найти пользователей: {{.Users}}",
+      "many": "Не удалось найти пользователей: {{.Users}}",
       "other": "Не удалось найти пользователей: {{.Users}}"
     }
   },
@@ -1034,6 +1036,8 @@
     "id": "api.email_batching.send_batched_email_notification.body_text",
     "translation": {
       "one": "У вас есть новое уведомление.",
+      "few": "У вас есть {{.Count}} уведомление.",
+      "many": "У вас есть {{.Count}} уведомление.",
       "other": "У вас есть {{.Count}} уведомление."
     }
   },
@@ -1041,6 +1045,8 @@
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
       "one": "[{{.SiteName}}] Новое уведомление за {{.Day}} {{.Month}}, {{.Year}}",
+      "few": "[{{.SiteName}}] Новые уведомления за {{.Day}} {{.Month}}, {{.Year}}",
+      "many": "[{{.SiteName}}] Новые уведомления за {{.Day}} {{.Month}}, {{.Year}}",
       "other": "[{{.SiteName}}] Новые уведомления за {{.Day}} {{.Month}}, {{.Year}}"
     }
   },
@@ -1484,14 +1490,18 @@
     "id": "api.post.get_message_for_notification.files_sent",
     "translation": {
       "one": "{{.Count}} файл отправлен: {{.Filenames}}{{.Count}} файлов отправлено: {{.Filenames}}",
-      "other": ""
+      "few": "{{.Count}} файл отправлен: {{.Filenames}}{{.Count}} файлов отправлено: {{.Filenames}}",
+      "many": "{{.Count}} файл отправлен: {{.Filenames}}{{.Count}} файлов отправлено: {{.Filenames}}",
+      "other": "{{.Count}} файл отправлен: {{.Filenames}}{{.Count}} файлов отправлено: {{.Filenames}}"
     }
   },
   {
     "id": "api.post.get_message_for_notification.images_sent",
     "translation": {
       "one": "{{.Count}} изображение отправлено: {{.Filenames}}{{.Count}} изображений отправлено: {{.Filenames}}",
-      "other": ""
+      "few": "{{.Count}} изображение отправлено: {{.Filenames}}{{.Count}} изображений отправлено: {{.Filenames}}",
+      "many": "{{.Count}} изображение отправлено: {{.Filenames}}{{.Count}} изображений отправлено: {{.Filenames}}",
+      "other": "{{.Count}} изображение отправлено: {{.Filenames}}{{.Count}} изображений отправлено: {{.Filenames}}"
     }
   },
   {
