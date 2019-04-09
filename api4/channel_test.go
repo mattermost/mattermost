@@ -2021,6 +2021,30 @@ func TestAddChannelMember(t *testing.T) {
 	_, resp = Client.AddChannelMember(privateChannel.Id, user3.Id)
 	CheckNoError(t, resp)
 	Client.Logout()
+
+	// Set a channel to group-constrained
+	privateChannel.GroupConstrained = model.NewBool(true)
+	_, appErr := th.App.UpdateChannel(privateChannel)
+	require.Nil(t, appErr)
+
+	// User is not in associated groups so shouldn't be allowed
+	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user.Id)
+	CheckErrorMessage(t, resp, "api.channel.add_members.user_denied")
+
+	// Associate group to team
+	_, appErr = th.App.CreateGroupSyncable(&model.GroupSyncable{
+		GroupId:    th.Group.Id,
+		SyncableId: privateChannel.Id,
+		Type:       model.GroupSyncableTypeChannel,
+	})
+	require.Nil(t, appErr)
+
+	// Add user to group
+	_, appErr = th.App.CreateOrRestoreGroupMember(th.Group.Id, user.Id)
+	require.Nil(t, appErr)
+
+	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user.Id)
+	CheckNoError(t, resp)
 }
 
 func TestAddChannelMemberAddMyself(t *testing.T) {

@@ -294,6 +294,8 @@ type UserStore interface {
 	GetAllAfter(limit int, afterId string) StoreChannel
 	GetUsersBatchForIndexing(startTime, endTime int64, limit int) StoreChannel
 	Count(options model.UserCountOptions) StoreChannel
+	GetTeamGroupUsers(teamID string) StoreChannel
+	GetChannelGroupUsers(channelID string) StoreChannel
 }
 
 type BotStore interface {
