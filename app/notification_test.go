@@ -1291,3 +1291,106 @@ func TestAddMentionedUsers(t *testing.T) {
 		})
 	}
 }
+
+func TestCheckForMentionUsers(t *testing.T) {
+
+	id1 := model.NewId()
+	id2 := model.NewId()
+
+	for name, tc := range map[string]struct {
+		Word        string
+		Attachments []*model.SlackAttachment
+		Keywords    map[string][]string
+		Expected    *ExplicitMentions
+	}{
+		"Nobody": {
+			Word:     "nothing",
+			Keywords: map[string][]string{},
+			Expected: &ExplicitMentions{},
+		},
+		"UppercaseUser1": {
+			Word:     "@User",
+			Keywords: map[string][]string{"@user": {id1}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
+		"LowercaseUser1": {
+			Word:     "@user",
+			Keywords: map[string][]string{"@user": {id1}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
+		"LowercaseUser2": {
+			Word:     "@user2",
+			Keywords: map[string][]string{"@user2": {id2}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id2: true,
+				},
+			},
+		},
+		"UppercaseUser2": {
+			Word:     "@UsEr2",
+			Keywords: map[string][]string{"@user2": {id2}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id2: true,
+				},
+			},
+		},
+		"HereMention": {
+			Word: "@here",
+			Expected: &ExplicitMentions{
+				HereMentioned: true,
+			},
+		},
+		"ChannelMention": {
+			Word: "@channel",
+			Expected: &ExplicitMentions{
+				ChannelMentioned: true,
+			},
+		},
+		"AllMention": {
+			Word: "@all",
+			Expected: &ExplicitMentions{
+				AllMentioned: true,
+			},
+		},
+		"UppercaseHere": {
+			Word: "@HeRe",
+			Expected: &ExplicitMentions{
+				HereMentioned: true,
+			},
+		},
+		"UppercaseChannel": {
+			Word: "@ChaNNel",
+			Expected: &ExplicitMentions{
+				ChannelMentioned: true,
+			},
+		},
+		"UppercaseAll": {
+			Word: "@ALL",
+			Expected: &ExplicitMentions{
+				AllMentioned: true,
+			},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+
+			e := &ExplicitMentions{
+				MentionedUserIds: make(map[string]bool),
+			}
+			e.checkForMention(tc.Word, tc.Keywords)
+			if tc.Expected.MentionedUserIds == nil {
+				tc.Expected.MentionedUserIds = make(map[string]bool)
+			}
+			assert.EqualValues(t, tc.Expected, e)
+		})
+	}
+}
