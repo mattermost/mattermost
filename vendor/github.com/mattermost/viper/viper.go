@@ -187,6 +187,7 @@ type Viper struct {
 
 	automaticEnvApplied bool
 	envKeyReplacer      *strings.Replacer
+	allowEmptyEnv       bool
 
 	config         map[string]interface{}
 	override       map[string]interface{}
@@ -373,18 +374,29 @@ func (v *Viper) mergeWithEnvPrefix(in string) string {
 	return strings.ToUpper(in)
 }
 
+// AllowEmptyEnv tells Viper to consider set,
+// but empty environment variables as valid values instead of falling back.
+// For backward compatibility reasons this is false by default.
+func AllowEmptyEnv(allowEmptyEnv bool) { v.AllowEmptyEnv(allowEmptyEnv) }
+func (v *Viper) AllowEmptyEnv(allowEmptyEnv bool) {
+	v.allowEmptyEnv = allowEmptyEnv
+}
+
 // TODO: should getEnv logic be moved into find(). Can generalize the use of
 // rewriting keys many things, Ex: Get('someKey') -> some_key
 // (camel case to snake case for JSON keys perhaps)
 
-// getEnv is a wrapper around os.LookupEnv which replaces characters in the original
+// getEnv is a wrapper around os.Getenv which replaces characters in the original
 // key. This allows env vars which have different keys than the config object
 // keys.
 func (v *Viper) getEnv(key string) (string, bool) {
 	if v.envKeyReplacer != nil {
 		key = v.envKeyReplacer.Replace(key)
 	}
-	return os.LookupEnv(key)
+
+	val, ok := os.LookupEnv(key)
+
+	return val, ok && (v.allowEmptyEnv || val != "")
 }
 
 // ConfigFileUsed returns the file used to populate the config registry.
@@ -611,10 +623,9 @@ func (v *Viper) isPathShadowedInFlatMap(path []string, mi interface{}) string {
 //       "foo.bar.baz" in a lower-priority map
 func (v *Viper) isPathShadowedInAutoEnv(path []string) string {
 	var parentKey string
-	var ok bool
 	for i := 1; i < len(path); i++ {
 		parentKey = strings.Join(path[0:i], v.keyDelim)
-		if _, ok = v.getEnv(v.mergeWithEnvPrefix(parentKey)); ok {
+		if _, ok := v.getEnv(v.mergeWithEnvPrefix(parentKey)); ok {
 			return parentKey
 		}
 	}
@@ -800,8 +811,6 @@ func (v *Viper) UnmarshalKey(key string, rawVal interface{}, opts ...DecoderConf
 		return err
 	}
 
-	v.insensitiviseMaps()
-
 	return nil
 }
 
@@ -816,8 +825,6 @@ func (v *Viper) Unmarshal(rawVal interface{}, opts ...DecoderConfigOption) error
 	if err != nil {
 		return err
 	}
-
-	v.insensitiviseMaps()
 
 	return nil
 }
@@ -860,8 +867,6 @@ func (v *Viper) UnmarshalExact(rawVal interface{}) error {
 	if err != nil {
 		return err
 	}
-
-	v.insensitiviseMaps()
 
 	return nil
 }
@@ -1248,13 +1253,21 @@ func (v *Viper) ReadConfig(in io.Reader) error {
 // MergeConfig merges a new configuration with an existing config.
 func MergeConfig(in io.Reader) error { return v.MergeConfig(in) }
 func (v *Viper) MergeConfig(in io.Reader) error {
-	if v.config == nil {
-		v.config = make(map[string]interface{})
-	}
 	cfg := make(map[string]interface{})
 	if err := v.unmarshalReader(in, cfg); err != nil {
 		return err
 	}
+	return v.MergeConfigMap(cfg)
+}
+
+// MergeConfigMap merges the configuration from the map given with an existing config.
+// Note that the map given may be modified.
+func MergeConfigMap(cfg map[string]interface{}) error { return v.MergeConfigMap(cfg) }
+func (v *Viper) MergeConfigMap(cfg map[string]interface{}) error {
+	if v.config == nil {
+		v.config = make(map[string]interface{})
+	}
+	insensitiviseMap(cfg)
 	mergeMaps(cfg, v.config, nil)
 	return nil
 }
@@ -1558,13 +1571,6 @@ func (v *Viper) WatchRemoteConfig() error {
 
 func (v *Viper) WatchRemoteConfigOnChannel() error {
 	return v.watchKeyValueConfigOnChannel()
-}
-
-func (v *Viper) insensitiviseMaps() {
-	insensitiviseMap(v.config)
-	insensitiviseMap(v.defaults)
-	insensitiviseMap(v.override)
-	insensitiviseMap(v.kvstore)
 }
 
 // Retrieve the first found remote configuration.
