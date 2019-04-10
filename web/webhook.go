@@ -4,7 +4,6 @@
 package web
 
 import (
-	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -56,9 +55,13 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if *c.App.Config().LogSettings.EnableWebhookDebugging {
-		defer mlog.Debug(fmt.Sprintf("Incoming webhook received. Id=%s Request_Id=%s Content=%s", id, c.App.RequestId, incomingWebhookPayload.ToJson()))
-	}
+	defer func() {
+		if *c.App.Config().LogSettings.EnableWebhookDebugging {
+			if err != nil {
+				mlog.Debug("Incoming webhook received", mlog.String("Id", id), mlog.String("Request ID", c.App.RequestId), mlog.String("Payload", incomingWebhookPayload.ToJson()))
+			}
+		}
+	}()
 
 	err = c.App.HandleIncomingWebhook(id, incomingWebhookPayload)
 	if err != nil {
