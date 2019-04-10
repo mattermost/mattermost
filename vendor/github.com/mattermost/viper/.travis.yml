@@ -1,8 +1,12 @@
 go_import_path: github.com/spf13/viper
 
 language: go
+
+env:
+  global:
+  - GO111MODULE="on"
+
 go:
-  - 1.10.x
   - 1.11.x
   - tip
 

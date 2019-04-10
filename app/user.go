@@ -596,6 +596,24 @@ func (a *App) GetUsersWithoutTeam(offset int, limit int) ([]*model.User, *model.
 	return result.Data.([]*model.User), nil
 }
 
+// GetTeamGroupUsers returns the users who are associated to the team via GroupTeams and GroupMembers.
+func (a *App) GetTeamGroupUsers(teamID string) ([]*model.User, *model.AppError) {
+	result := <-a.Srv.Store.User().GetTeamGroupUsers(teamID)
+	if result.Err != nil {
+		return nil, result.Err
+	}
+	return result.Data.([]*model.User), nil
+}
+
+// GetChannelGroupUsers returns the users who are associated to the channel via GroupChannels and GroupMembers.
+func (a *App) GetChannelGroupUsers(channelID string) ([]*model.User, *model.AppError) {
+	result := <-a.Srv.Store.User().GetChannelGroupUsers(channelID)
+	if result.Err != nil {
+		return nil, result.Err
+	}
+	return result.Data.([]*model.User), nil
+}
+
 func (a *App) GetUsersByIds(userIds []string, asAdmin bool) ([]*model.User, *model.AppError) {
 	result := <-a.Srv.Store.User().GetProfileByIds(userIds, true)
 	if result.Err != nil {
@@ -1852,4 +1870,70 @@ func (a *App) UpdateOAuthUserAttrs(userData io.Reader, user *model.User, provide
 	}
 
 	return nil
+}
+
+// FilterNonGroupTeamMembers returns the subset of the given user IDs of the users who are not members of groups
+// associated to the team.
+func (a *App) FilterNonGroupTeamMembers(userIDs []string, team *model.Team) ([]string, error) {
+	teamGroupUsers, err := a.GetTeamGroupUsers(team.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	// possible if no groups associated or no group members in any of the associated groups
+	if len(teamGroupUsers) == 0 {
+		return userIDs, nil
+	}
+
+	nonMemberIDs := []string{}
+
+	for _, userID := range userIDs {
+		userIsMember := false
+
+		for _, pu := range teamGroupUsers {
+			if pu.Id == userID {
+				userIsMember = true
+				break
+			}
+		}
+
+		if !userIsMember {
+			nonMemberIDs = append(nonMemberIDs, userID)
+		}
+	}
+
+	return nonMemberIDs, nil
+}
+
+// FilterNonGroupChannelMembers returns the subset of the given user IDs of the users who are not members of groups
+// associated to the channel.
+func (a *App) FilterNonGroupChannelMembers(userIDs []string, channel *model.Channel) ([]string, error) {
+	channelGroupUsers, err := a.GetChannelGroupUsers(channel.Id)
+	if err != nil {
+		return nil, err
+	}
+
+	// possible if no groups associated or no group members in any of the associated groups
+	if len(channelGroupUsers) == 0 {
+		return userIDs, nil
+	}
+
+	nonMemberIDs := []string{}
+
+	for _, userID := range userIDs {
+		userIsMember := false
+
+		for _, pu := range channelGroupUsers {
+			if pu.Id == userID {
+				userIsMember = true
+				break
+			}
+		}
+
+		if !userIsMember {
+			nonMemberIDs = append(nonMemberIDs, userID)
+		}
+	}
+
+	return nonMemberIDs, nil
 }
