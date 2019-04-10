@@ -41,11 +41,6 @@ func (p *MattermostPlugin) EnsureBot(bot *model.Bot) (retBotId string, retErr er
 	// If the bot has already been created, there is nothing to do.
 	if botIdBytes != nil {
 		botId := string(botIdBytes)
-		p.API.PatchBot(botId, &model.BotPatch{
-			Username:    &bot.Username,
-			DisplayName: &bot.DisplayName,
-			Description: &bot.Description,
-		})
 		return botId, nil
 	}
 
