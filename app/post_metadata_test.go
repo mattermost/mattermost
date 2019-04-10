@@ -66,6 +66,7 @@ func TestPreparePostForClient(t *testing.T) {
 		th := Setup(t).InitBasic()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableLinkPreviews = true
 			*cfg.ImageProxySettings.Enable = false
 			*cfg.ExperimentalSettings.DisablePostMetadata = false
 		})
@@ -420,6 +421,7 @@ func TestPreparePostForClientWithImageProxy(t *testing.T) {
 		th := Setup(t).InitBasic()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableLinkPreviews = true
 			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
 			*cfg.ImageProxySettings.Enable = true
 			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
@@ -518,6 +520,7 @@ func TestGetEmbedForPost(t *testing.T) {
 			t.Fatal("Invalid path", r.URL.Path)
 		}
 	}))
+	defer server.Close()
 
 	ogURL := server.URL + "/index.html"
 	imageURL := server.URL + "/image.png"
