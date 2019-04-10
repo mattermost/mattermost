@@ -127,7 +127,7 @@ func (a *App) getEmbedForPost(post *model.Post, firstLink string, isNewPost bool
 		}, nil
 	}
 
-	if firstLink == "" {
+	if firstLink == "" || !*a.Config().ServiceSettings.EnableLinkPreviews {
 		return nil, nil
 	}
 
@@ -145,7 +145,7 @@ func (a *App) getEmbedForPost(post *model.Post, firstLink string, isNewPost bool
 	}
 
 	if image != nil {
-		// Note that we're not passing the image info here since they'll be part of the PostMetadata.Images field
+		// Note that we're not passing the image info here since it'll be part of the PostMetadata.Images field
 		return &model.PostEmbed{
 			Type: model.POST_EMBED_IMAGE,
 			URL:  firstLink,
