@@ -4,7 +4,6 @@
 package plugin
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -17,7 +16,7 @@ import (
 func (p *MattermostPlugin) EnsureBot(bot *model.Bot) (retBotId string, retErr error) {
 	// Must provide a bot with a username
 	if bot == nil || len(bot.Username) < 1 {
-		return "", fmt.Errorf("EnsureBot was passed a bad bot")
+		return "", errors.New("EnsureBot was passed a bad bot")
 	}
 
 	// If we fail for any reason, this could be a race between creation of bot and
@@ -26,7 +25,7 @@ func (p *MattermostPlugin) EnsureBot(bot *model.Bot) (retBotId string, retErr er
 		if retBotId == "" || retErr != nil {
 			time.Sleep(time.Second)
 			botIdBytes, err := p.API.KVGet(BOT_USER_KEY)
-			if err == nil {
+			if err == nil && botIdBytes != nil {
 				retBotId = string(botIdBytes)
 				retErr = nil
 			}
@@ -49,6 +48,8 @@ func (p *MattermostPlugin) EnsureBot(bot *model.Bot) (retBotId string, retErr er
 		if user.IsBot {
 			p.API.KVSet(BOT_USER_KEY, []byte(user.Id))
 			return user.Id, nil
+		} else {
+			return "", errors.New("Unable to create bot because user exists with the same name.")
 		}
 	}
 
