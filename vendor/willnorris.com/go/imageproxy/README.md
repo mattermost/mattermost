@@ -2,7 +2,7 @@
 
 [![GoDoc](https://godoc.org/willnorris.com/go/imageproxy?status.svg)](https://godoc.org/willnorris.com/go/imageproxy)
 [![Build Status](https://travis-ci.org/willnorris/imageproxy.svg?branch=master)](https://travis-ci.org/willnorris/imageproxy)
-[![Apache 2.0 License](https://img.shields.io/badge/license-Apache%202.0-blue.svg?style=flat)](LICENSE)
+[![Test Coverage](https://codecov.io/gh/willnorris/imageproxy/branch/master/graph/badge.svg)](https://codecov.io/gh/willnorris/imageproxy)
 
 imageproxy is a caching image proxy server written in go.  It features:
 
@@ -68,17 +68,23 @@ x0.15   | 15% original height, proportional width  | <a href="https://willnorris
 200x,png | 200px wide, converted to PNG format | <a href="https://willnorris.com/api/imageproxy/200x,png/https://willnorris.com/2013/12/small-things.jpg"><img src="https://willnorris.com/api/imageproxy/200x,png/https://willnorris.com/2013/12/small-things.jpg" alt="200x,png"></a>
 cx175,cw400,ch300,100x | crop to 400x300px starting at (175,0), scale to 100px wide | <a href="https://willnorris.com/api/imageproxy/cx175,cw400,ch300,100x/https://willnorris.com/2013/12/small-things.jpg"><img src="https://willnorris.com/api/imageproxy/cx175,cw400,ch300,100x/https://willnorris.com/2013/12/small-things.jpg" alt="cx175,cw400,ch300,100x"></a>
 
+The [smart crop feature](https://godoc.org/willnorris.com/go/imageproxy#hdr-Smart_Crop)
+can best be seen by comparing crops of [this source image][judah-sheets], with
+and without smart crop enabled.
+
+Options | Meaning                                  | Image
+--------|------------------------------------------|------
+150x300 | 150x300px, standard crop | <a href="https://willnorris.com/api/imageproxy/150x300/https://judahnorris.com/images/judah-sheets.jpg"><img src="https://willnorris.com/api/imageproxy/150x300/https://judahnorris.com/images/judah-sheets.jpg" alt="200x400,sc"></a>
+150x300,sc | 150x300px, smart crop          | <a href="https://willnorris.com/api/imageproxy/150x300,sc/https://judahnorris.com/images/judah-sheets.jpg"><img src="https://willnorris.com/api/imageproxy/150x300,sc/https://judahnorris.com/images/judah-sheets.jpg" alt="200x400"></a>
+
+[judah-sheets]: https://judahnorris.com/images/judah-sheets.jpg
+
 Transformation also works on animated gifs.  Here is [this source
 image][material-animation] resized to 200px square and rotated 270 degrees:
 
 [material-animation]: https://willnorris.com/2015/05/material-animations.gif
 
 <a href="https://willnorris.com/api/imageproxy/200,r270/https://willnorris.com/2015/05/material-animations.gif"><img src="https://willnorris.com/api/imageproxy/200,r270/https://willnorris.com/2015/05/material-animations.gif" alt="200,r270"></a>
-
-The smart crop feature can best be seen by comparing the following images, with and without smart crop.
-
-<a href="https://willnorris.com/api/imageproxy/150x300,sc/https://judahnorris.com/images/judah-sheets.jpg"><img src="https://willnorris.com/api/imageproxy/150x300,sc/https://judahnorris.com/images/judah-sheets.jpg" alt="200x400,sc"></a>
-<a href="https://willnorris.com/api/imageproxy/150x300/https://judahnorris.com/images/judah-sheets.jpg"><img src="https://willnorris.com/api/imageproxy/150x300/https://judahnorris.com/images/judah-sheets.jpg" alt="200x400"></a>
 
 ## Getting Started ##
 
@@ -108,12 +114,28 @@ enabled using the `-cache` flag.  It supports the following values:
    cache items no longer than 4 hours.
  - directory on local disk (e.g. `/tmp/imageproxy`) - will cache images
    on disk
+
  - s3 URL (e.g. `s3://region/bucket-name/optional-path-prefix`) - will cache
    images on Amazon S3.  This requires either an IAM role and instance profile
    with access to your your bucket or `AWS_ACCESS_KEY_ID` and `AWS_SECRET_KEY`
    environmental variables be set. (Additional methods of loading credentials
    are documented in the [aws-sdk-go session
    package](https://docs.aws.amazon.com/sdk-for-go/api/aws/session/)).
+
+   Additional configuration options ([further documented here][aws-options])
+   may be specified as URL query string parameters, which are mostly useful
+   when working with s3-compatible services:
+   - "endpoint" - specify an alternate API endpoint
+   - "disableSSL" - set to "1" to disable SSL when calling the API
+   - "s3ForcePathStyle" - set to "1" to force the request to use path-style addressing
+
+   For example, when working with [minio](https://minio.io), which doesn't use
+   regions, provide a dummy region value and custom endpoint value:
+
+       s3://fake-region/bucket/folder?endpoint=minio:9000&disableSSL=1&s3ForcePathStyle=1
+
+   [aws-options]: https://docs.aws.amazon.com/sdk-for-go/api/aws/#Config
+
  - gcs URL (e.g. `gcs://bucket-name/optional-path-prefix`) - will cache images
    on Google Cloud Storage. Authentication is documented in Google's
    [Application Default Credentials
@@ -161,19 +183,28 @@ Reload the [codercat URL][], and you should now get an error message.  You can
 specify multiple hosts as a comma separated list, or prefix a host value with
 `*.` to allow all sub-domains as well.
 
-### Allowed Hosts List ###
+### Allowed and Denied Hosts List ###
 
 You can limit the remote hosts that the proxy will fetch images from using the
-`remoteHosts` flag.  This is useful, for example, for locking the proxy down to
-your own hosts to prevent others from abusing it.  Of course if you want to
-support fetching from any host, leave off the remoteHosts flag.  Try it out by
-running:
+`allowHosts` and `denyHosts` flags.  This is useful, for example, for locking
+the proxy down to your own hosts to prevent others from abusing it.  Of course
+if you want to support fetching from any host, leave off these flags.
 
-    imageproxy -remoteHosts example.com
+Try it out by running:
 
-Reload the [codercat URL][], and you should now get an error message.  You can
-specify multiple hosts as a comma separated list, or prefix a host value with
-`*.` to allow all sub-domains as well.
+    imageproxy -allowHosts example.com
+
+Reload the [codercat URL][], and you should now get an error message.
+Alternately, try running:
+
+    imageproxy -denyHosts octodex.github.com
+
+Reloading the [codercat URL][] will still return an error message.
+
+You can specify multiple hosts as a comma separated list to either flag, or
+prefix a host value with `*.` to allow or deny all sub-domains as well.
+
+If a host matches both an allowed an a denied host, the request will be denied.
 
 ### Allowed Content-Type List ###
 
@@ -201,12 +232,14 @@ Try it out by running:
     imageproxy -signatureKey "secret key"
 
 Reload the [codercat URL][], and you should see an error message.  Now load a
-[signed codercat URL][] and verify that it loads properly.
+[signed codercat URL][] (which contains the [signature option][]) and verify
+that it loads properly.
 
 [signed codercat URL]: http://localhost:8080/500,sXyMwWKIC5JPCtlYOQ2f4yMBTqpjtUsfI67Sp7huXIYY=/https://octodex.github.com/images/codercat.jpg
+[signature option]: https://godoc.org/willnorris.com/go/imageproxy#hdr-Signature
 
 Some simple code samples for generating signatures in various languages can be
-found in [URL Signing](https://github.com/willnorris/imageproxy/wiki/URL-signing).
+found in [docs/url-signing.md](/docs/url-signing.md).
 
 If both a whiltelist and signatureKey are specified, requests can match either.
 In other words, requests that match one of the allowed hosts don't necessarily
