@@ -60,11 +60,12 @@ const (
 )
 
 const (
-	EXIT_VERSION_SAVE_MISSING  = 1001
-	EXIT_TOO_OLD               = 1002
-	EXIT_VERSION_SAVE          = 1003
-	EXIT_THEME_MIGRATION       = 1004
-	EXIT_ROLE_MIGRATION_FAILED = 1005
+	EXIT_VERSION_SAVE_MISSING           = 1001
+	EXIT_TOO_OLD                        = 1002
+	EXIT_VERSION_SAVE                   = 1003
+	EXIT_THEME_MIGRATION                = 1004
+	EXIT_ROLE_MIGRATION_FAILED          = 1005
+	EXIT_TEAM_INVITEID_MIGRATION_FAILED = 1006
 )
 
 func UpgradeDatabase(sqlStore SqlStore) {
@@ -650,6 +651,29 @@ func UpgradeDatabaseToVersion510(sqlStore SqlStore) {
 func UpgradeDatabaseToVersion511(sqlStore SqlStore) {
 	// TODO: Uncomment following condition when version 5.11.0 is released
 	// if shouldPerformUpgrade(sqlStore, VERSION_5_10_0, VERSION_5_11_0) {
+
+	// Enforce all teams have an InviteID set
+	res := <-sqlStore.Team().GetAll()
+	if res.Err != nil {
+		mlog.Critical(res.Err.Error())
+		time.Sleep(time.Second)
+		os.Exit(EXIT_TEAM_INVITEID_MIGRATION_FAILED)
+	}
+
+	teams := res.Data.([]*model.Team)
+
+	for _, team := range teams {
+		if len(team.InviteId) > 0 {
+			continue
+		}
+
+		team.InviteId = model.NewId()
+		if res = <-sqlStore.Team().Update(team); res.Err != nil {
+			mlog.Critical(res.Err.Error())
+			time.Sleep(time.Second)
+			os.Exit(EXIT_TEAM_INVITEID_MIGRATION_FAILED)
+		}
+	}
 
 	// 	saveSchemaVersion(sqlStore, VERSION_5_11_0)
 	// }
