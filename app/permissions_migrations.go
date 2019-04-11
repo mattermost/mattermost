@@ -45,6 +45,10 @@ const (
 	PERMISSION_READ_OTHERS_BOTS                = "read_others_bots"
 	PERMISSION_MANAGE_BOTS                     = "manage_bots"
 	PERMISSION_MANAGE_OTHERS_BOTS              = "manage_others_bots"
+	PERMISSION_DELETE_PUBLIC_CHANNEL             = "delete_public_channel"
+	PERMISSION_DELETE_PRIVATE_CHANNEL            = "delete_private_channel"
+	PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES  = "manage_public_channel_properties"
+	PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES = "manage_private_channel_properties"
 )
 
 func isRole(role string) func(string, map[string]map[string]bool) bool {
@@ -215,20 +219,20 @@ func getAddBotPermissionsMigration() permissionsMap {
 func applyChannelManageDeleteToChannelUser() permissionsMap {
 	return permissionsMap{
 		permissionTransformation{
-			On:  permissionAnd(isRole(model.CHANNEL_USER_ROLE_ID), onOtherRole(model.TEAM_USER_ROLE_ID, permissionExists(model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES.Id))),
-			Add: []string{model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES.Id},
+			On:  permissionAnd(isRole(model.CHANNEL_USER_ROLE_ID), onOtherRole(model.TEAM_USER_ROLE_ID, permissionExists(PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES))),
+			Add: []string{PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES},
 		},
 		permissionTransformation{
-			On:  permissionAnd(isRole(model.CHANNEL_USER_ROLE_ID), onOtherRole(model.TEAM_USER_ROLE_ID, permissionExists(model.PERMISSION_DELETE_PRIVATE_CHANNEL.Id))),
-			Add: []string{model.PERMISSION_DELETE_PRIVATE_CHANNEL.Id},
+			On:  permissionAnd(isRole(model.CHANNEL_USER_ROLE_ID), onOtherRole(model.TEAM_USER_ROLE_ID, permissionExists(PERMISSION_DELETE_PRIVATE_CHANNEL))),
+			Add: []string{PERMISSION_DELETE_PRIVATE_CHANNEL},
 		},
 		permissionTransformation{
-			On:  permissionAnd(isRole(model.CHANNEL_USER_ROLE_ID), onOtherRole(model.TEAM_USER_ROLE_ID, permissionExists(model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES.Id))),
-			Add: []string{model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES.Id},
+			On:  permissionAnd(isRole(model.CHANNEL_USER_ROLE_ID), onOtherRole(model.TEAM_USER_ROLE_ID, permissionExists(PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES))),
+			Add: []string{PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES},
 		},
 		permissionTransformation{
-			On:  permissionAnd(isRole(model.CHANNEL_USER_ROLE_ID), onOtherRole(model.TEAM_USER_ROLE_ID, permissionExists(model.PERMISSION_DELETE_PUBLIC_CHANNEL.Id))),
-			Add: []string{model.PERMISSION_DELETE_PUBLIC_CHANNEL.Id},
+			On:  permissionAnd(isRole(model.CHANNEL_USER_ROLE_ID), onOtherRole(model.TEAM_USER_ROLE_ID, permissionExists(PERMISSION_DELETE_PUBLIC_CHANNEL))),
+			Add: []string{PERMISSION_DELETE_PUBLIC_CHANNEL},
 		},
 	}
 }
@@ -236,20 +240,20 @@ func applyChannelManageDeleteToChannelUser() permissionsMap {
 func removeChannelManageDeleteFromTeamUser() permissionsMap {
 	return permissionsMap{
 		permissionTransformation{
-			On:     permissionAnd(isRole(model.TEAM_USER_ROLE_ID), permissionExists(model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES.Id)),
-			Remove: []string{model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES.Id},
+			On:     permissionAnd(isRole(model.TEAM_USER_ROLE_ID), permissionExists(PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES)),
+			Remove: []string{PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES},
 		},
 		permissionTransformation{
-			On:     permissionAnd(isRole(model.TEAM_USER_ROLE_ID), permissionExists(model.PERMISSION_DELETE_PRIVATE_CHANNEL.Id)),
+			On:     permissionAnd(isRole(model.TEAM_USER_ROLE_ID), permissionExists(PERMISSION_DELETE_PRIVATE_CHANNEL)),
 			Remove: []string{model.PERMISSION_DELETE_PRIVATE_CHANNEL.Id},
 		},
 		permissionTransformation{
-			On:     permissionAnd(isRole(model.TEAM_USER_ROLE_ID), permissionExists(model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES.Id)),
-			Remove: []string{model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES.Id},
+			On:     permissionAnd(isRole(model.TEAM_USER_ROLE_ID), permissionExists(PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES)),
+			Remove: []string{PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES},
 		},
 		permissionTransformation{
-			On:     permissionAnd(isRole(model.TEAM_USER_ROLE_ID), permissionExists(model.PERMISSION_DELETE_PUBLIC_CHANNEL.Id)),
-			Remove: []string{model.PERMISSION_DELETE_PUBLIC_CHANNEL.Id},
+			On:     permissionAnd(isRole(model.TEAM_USER_ROLE_ID), permissionExists(PERMISSION_DELETE_PUBLIC_CHANNEL)),
+			Remove: []string{PERMISSION_DELETE_PUBLIC_CHANNEL},
 		},
 	}
 }
