@@ -27,19 +27,6 @@ func Do(f func(result *StoreResult)) StoreChannel {
 	return storeChannel
 }
 
-func Async(f func() (interface{}, *model.AppError)) StoreChannel {
-	storeChannel := make(StoreChannel, 1)
-	go func() {
-		result := StoreResult{}
-		data, err := f()
-		result.Data = data
-		result.Err = err
-		storeChannel <- result
-		close(storeChannel)
-	}()
-	return storeChannel
-}
-
 func Must(sc StoreChannel) interface{} {
 	r := <-sc
 	if r.Err != nil {

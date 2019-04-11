@@ -328,9 +328,12 @@ func (a *App) sendUpdatedMemberRoleEvent(userId string, member *model.TeamMember
 
 func (a *App) AddUserToTeam(teamId string, userId string, userRequestorId string) (*model.Team, *model.AppError) {
 	tchan := a.Srv.Store.Team().Get(teamId)
-	uchan := store.Async(func() (interface{}, *model.AppError) {
-		return a.Srv.Store.User().Get(userId)
-	})
+	uchan := make(chan store.StoreResult, 1)
+	go func() {
+		user, err := a.Srv.Store.User().Get(userId)
+		uchan <- store.StoreResult{user, err}
+		close(uchan)
+	}()
 
 	result := <-tchan
 	if result.Err != nil {
@@ -378,9 +381,12 @@ func (a *App) AddUserToTeamByToken(userId string, tokenId string) (*model.Team, 
 	tokenData := model.MapFromJson(strings.NewReader(token.Extra))
 
 	tchan := a.Srv.Store.Team().Get(tokenData["teamId"])
-	uchan := store.Async(func() (interface{}, *model.AppError) {
-		return a.Srv.Store.User().Get(userId)
-	})
+	uchan := make(chan store.StoreResult, 1)
+	go func() {
+		user, err := a.Srv.Store.User().Get(userId)
+		uchan <- store.StoreResult{user, err}
+		close(uchan)
+	}()
 
 	result = <-tchan
 	if result.Err != nil {
@@ -407,9 +413,12 @@ func (a *App) AddUserToTeamByToken(userId string, tokenId string) (*model.Team, 
 
 func (a *App) AddUserToTeamByInviteId(inviteId string, userId string) (*model.Team, *model.AppError) {
 	tchan := a.Srv.Store.Team().GetByInviteId(inviteId)
-	uchan := store.Async(func() (interface{}, *model.AppError) {
-		return a.Srv.Store.User().Get(userId)
-	})
+	uchan := make(chan store.StoreResult, 1)
+	go func() {
+		user, err := a.Srv.Store.User().Get(userId)
+		uchan <- store.StoreResult{user, err}
+		close(uchan)
+	}()
 
 	result := <-tchan
 	if result.Err != nil {
@@ -768,9 +777,12 @@ func (a *App) GetTeamUnread(teamId, userId string) (*model.TeamUnread, *model.Ap
 
 func (a *App) RemoveUserFromTeam(teamId string, userId string, requestorId string) *model.AppError {
 	tchan := a.Srv.Store.Team().Get(teamId)
-	uchan := store.Async(func() (interface{}, *model.AppError) {
-		return a.Srv.Store.User().Get(userId)
-	})
+	uchan := make(chan store.StoreResult, 1)
+	go func() {
+		user, err := a.Srv.Store.User().Get(userId)
+		uchan <- store.StoreResult{user, err}
+		close(uchan)
+	}()
 
 	result := <-tchan
 	if result.Err != nil {
@@ -935,9 +947,12 @@ func (a *App) InviteNewUsersToTeam(emailList []string, teamId, senderId string) 
 	}
 
 	tchan := a.Srv.Store.Team().Get(teamId)
-	uchan := store.Async(func() (interface{}, *model.AppError) {
-		return a.Srv.Store.User().Get(senderId)
-	})
+	uchan := make(chan store.StoreResult, 1)
+	go func() {
+		user, err := a.Srv.Store.User().Get(senderId)
+		uchan <- store.StoreResult{user, err}
+		close(uchan)
+	}()
 
 	result := <-tchan
 	if result.Err != nil {
