@@ -326,6 +326,7 @@ func TestPostActionProps(t *testing.T) {
 			"update": {
 				"message": "updated",
 				"props": {
+					"from_webhook":true,
 					"override_username":"new_override_user",
 					"override_icon_url":"new_override_icon",
 					"A":"AA"
@@ -362,6 +363,7 @@ func TestPostActionProps(t *testing.T) {
 				},
 			},
 			"override_icon_url": "old_override_icon",
+			"from_webhook":      false,
 			"B":                 "BB",
 		},
 	}
@@ -384,6 +386,7 @@ func TestPostActionProps(t *testing.T) {
 	assert.Nil(t, newPost.Props["override_username"])
 	assert.Equal(t, "AA", newPost.Props["A"])
 	assert.Equal(t, "old_override_icon", newPost.Props["override_icon_url"])
+	assert.Equal(t, false, newPost.Props["from_webhook"])
 }
 
 func TestSubmitInteractiveDialog(t *testing.T) {
