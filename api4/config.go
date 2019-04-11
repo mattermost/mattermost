@@ -95,7 +95,13 @@ func updateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	err := c.App.SaveConfig(cfg, true)
+	err := cfg.IsValid()
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	err = c.App.SaveConfig(cfg, true)
 	if err != nil {
 		c.Err = err
 		return

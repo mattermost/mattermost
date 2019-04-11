@@ -111,6 +111,16 @@ func TestUpdateConfig(t *testing.T) {
 
 	require.Equal(t, SiteName, cfg.TeamSettings.SiteName, "It should update the SiteName")
 
+	t.Run("Should fail with validation error if invalid config setting is passed", func(t *testing.T) {
+		//Revert the change
+		badcfg := cfg.Clone()
+		badcfg.PasswordSettings.MinimumLength = model.NewInt(4)
+		badcfg.PasswordSettings.MinimumLength = model.NewInt(4)
+		_, resp = th.SystemAdminClient.UpdateConfig(badcfg)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorMessage(t, resp, "model.config.is_valid.password_length.app_error")
+	})
+
 	t.Run("Should not be able to modify PluginSettings.EnableUploads", func(t *testing.T) {
 		oldEnableUploads := *th.App.Config().PluginSettings.EnableUploads
 		*cfg.PluginSettings.EnableUploads = !oldEnableUploads
