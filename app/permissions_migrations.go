@@ -19,6 +19,7 @@ const (
 	MIGRATION_KEY_WEBHOOK_PERMISSIONS_SPLIT      = "webhook_permissions_split"
 	MIGRATION_KEY_LIST_JOIN_PUBLIC_PRIVATE_TEAMS = "list_join_public_private_teams"
 	MIGRATION_KEY_REMOVE_PERMANENT_DELETE_USER   = "remove_permanent_delete_user"
+	MIGRATION_KEY_ADD_BOT_PERMISSIONS            = "add_bot_permissions"
 
 	PERMISSION_MANAGE_SYSTEM                   = "manage_system"
 	PERMISSION_MANAGE_EMOJIS                   = "manage_emojis"
@@ -37,6 +38,11 @@ const (
 	PERMISSION_JOIN_PUBLIC_TEAMS               = "join_public_teams"
 	PERMISSION_JOIN_PRIVATE_TEAMS              = "join_private_teams"
 	PERMISSION_PERMANENT_DELETE_USER           = "permanent_delete_user"
+	PERMISSION_CREATE_BOT                      = "create_bot"
+	PERMISSION_READ_BOTS                       = "read_bots"
+	PERMISSION_READ_OTHERS_BOTS                = "read_others_bots"
+	PERMISSION_MANAGE_BOTS                     = "manage_bots"
+	PERMISSION_MANAGE_OTHERS_BOTS              = "manage_others_bots"
 )
 
 func isRole(role string) func(string, map[string]bool) bool {
@@ -184,6 +190,16 @@ func removePermanentDeleteUserMigration() permissionsMap {
 	}
 }
 
+func getAddBotPermissionsMigration() permissionsMap {
+	return permissionsMap{
+		permissionTransformation{
+			On:     isRole(model.SYSTEM_ADMIN_ROLE_ID),
+			Add:    []string{PERMISSION_CREATE_BOT, PERMISSION_READ_BOTS, PERMISSION_READ_OTHERS_BOTS, PERMISSION_MANAGE_BOTS, PERMISSION_MANAGE_OTHERS_BOTS},
+			Remove: []string{},
+		},
+	}
+}
+
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
 func (a *App) DoPermissionsMigrations() *model.AppError {
 	PermissionsMigrations := []struct {
@@ -194,6 +210,7 @@ func (a *App) DoPermissionsMigrations() *model.AppError {
 		{Key: MIGRATION_KEY_WEBHOOK_PERMISSIONS_SPLIT, Migration: getWebhooksPermissionsSplitMigration},
 		{Key: MIGRATION_KEY_LIST_JOIN_PUBLIC_PRIVATE_TEAMS, Migration: getListJoinPublicPrivateTeamsPermissionsMigration},
 		{Key: MIGRATION_KEY_REMOVE_PERMANENT_DELETE_USER, Migration: removePermanentDeleteUserMigration},
+		{Key: MIGRATION_KEY_ADD_BOT_PERMISSIONS, Migration: getAddBotPermissionsMigration},
 	}
 
 	for _, migration := range PermissionsMigrations {
