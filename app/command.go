@@ -220,9 +220,12 @@ func (a *App) tryExecuteCustomCommand(args *model.CommandArgs, trigger string, m
 
 	chanChan := a.Srv.Store.Channel().Get(args.ChannelId, true)
 	teamChan := a.Srv.Store.Team().Get(args.TeamId)
-	userChan := store.Async(func() (interface{}, *model.AppError) {
-		return a.Srv.Store.User().Get(args.UserId)
-	})
+	userChan := make(chan store.StoreResult, 1)
+	go func() {
+		user, err := a.Srv.Store.User().Get(args.UserId)
+		userChan <- store.StoreResult{user, err}
+		close(userChan)
+	}()
 
 	result := <-a.Srv.Store.Command().GetByTeam(args.TeamId)
 	if result.Err != nil {
