@@ -26,7 +26,7 @@ const (
 	INTERACTIVE_DIALOG_TRIGGER_TIMEOUT_MILLISECONDS = 3000
 )
 
-var PostActionRetainPropKeys = []string{"override_username", "override_icon_url"}
+var PostActionRetainPropKeys = []string{"from_webhook", "override_username", "override_icon_url"}
 
 type DoPostActionRequest struct {
 	SelectedOption string `json:"selected_option,omitempty"`
