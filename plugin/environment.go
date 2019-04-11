@@ -273,10 +273,10 @@ func (env *Environment) RestartPlugin(id string) (manifest *model.Manifest, acti
 	return env.Activate(id)
 }
 
-// CheckPluginHealthStatus checks if the plugin is in a failed state, based on information gathered from previous health checks.
-func (env *Environment) UpdatePluginHealthStatus(id string, function func(*PluginHealthStatus)) {
+// UpdatePluginHealthStatus accepts a callback to edit the stored health status of the plugin.
+func (env *Environment) UpdatePluginHealthStatus(id string, callback func(*PluginHealthStatus)) {
 	if health, ok := env.pluginHealthStatuses.Load(id); ok {
-		function(health.(*PluginHealthStatus))
+		callback(health.(*PluginHealthStatus))
 	}
 }
 

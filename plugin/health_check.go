@@ -30,16 +30,16 @@ type PluginHealthStatus struct {
 }
 
 // InitPluginHealthCheckJob starts a new job if one is not running and is set to enabled, or kills an existing one if set to disabled.
-func (env *Environment) InitPluginHealthCheckJob(enable *bool) {
+func (env *Environment) InitPluginHealthCheckJob(enable bool) {
 	// Config is set to enable. No job exists, start a new job.
-	if *enable && env.pluginHealthCheckJob == nil {
+	if enable && env.pluginHealthCheckJob == nil {
 		job := newPluginHealthCheckJob(env)
 		env.pluginHealthCheckJob = job
 		job.Start()
 	}
 
 	// Config is set to disable. Job exists, kill existing job.
-	if !*enable && env.pluginHealthCheckJob != nil {
+	if !enable && env.pluginHealthCheckJob != nil {
 		env.pluginHealthCheckJob.Cancel()
 		env.pluginHealthCheckJob = nil
 	}
@@ -94,9 +94,7 @@ func (job *PluginHealthCheckJob) checkPlugin(id string) {
 		job.env.pluginHealthStatuses.Store(id, newPluginHealthStatus())
 	}
 
-	supervisor := ap.supervisor
-
-	pluginErr := supervisor.PerformHealthCheck()
+	pluginErr := ap.supervisor.PerformHealthCheck()
 
 	if pluginErr != nil {
 		mlog.Debug(fmt.Sprintf("Health check failed for plugin %s, error: %s", id, pluginErr.Error()))
@@ -117,6 +115,7 @@ func (job *PluginHealthCheckJob) handleHealthCheckFail(id string, err error) {
 
 	t := time.Now()
 	job.env.UpdatePluginHealthStatus(id, func(health *PluginHealthStatus) {
+		// Append current failure before checking for deactivate vs restart action
 		health.failTimeStamps = append(health.failTimeStamps, t)
 		health.lastError = err
 	})
