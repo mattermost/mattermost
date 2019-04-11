@@ -223,7 +223,7 @@ func (a *App) tryExecuteCustomCommand(args *model.CommandArgs, trigger string, m
 	userChan := make(chan store.StoreResult, 1)
 	go func() {
 		user, err := a.Srv.Store.User().Get(args.UserId)
-		userChan <- store.StoreResult{user, err}
+		userChan <- store.StoreResult{Data: user, Err: err}
 		close(userChan)
 	}()
 

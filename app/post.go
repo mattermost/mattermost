@@ -50,9 +50,9 @@ func (a *App) CreatePostAsUser(post *model.Post, currentSessionId string) (*mode
 		}
 
 		if err.Id == "api.post.create_post.town_square_read_only" {
-			user, err := a.Srv.Store.User().Get(post.UserId)
-			if err != nil {
-				return nil, err
+			user, userErr := a.Srv.Store.User().Get(post.UserId)
+			if userErr != nil {
+				return nil, userErr
 			}
 
 			T := utils.GetUserTranslations(user.Locale)

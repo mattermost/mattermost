@@ -316,12 +316,12 @@ func (a *App) createDirectChannel(userId string, otherUserId string) (*model.Cha
 	uc2 := make(chan store.StoreResult, 1)
 	go func() {
 		user, err := a.Srv.Store.User().Get(userId)
-		uc1 <- store.StoreResult{user, err}
+		uc1 <- store.StoreResult{Data: user, Err: err}
 		close(uc1)
 	}()
 	go func() {
 		user, err := a.Srv.Store.User().Get(otherUserId)
-		uc2 <- store.StoreResult{user, err}
+		uc2 <- store.StoreResult{Data: user, Err: err}
 		close(uc2)
 	}()
 
@@ -1325,12 +1325,12 @@ func (a *App) JoinChannel(channel *model.Channel, userId string) *model.AppError
 	memberChan := make(chan store.StoreResult, 1)
 	go func() {
 		user, err := a.Srv.Store.User().Get(userId)
-		userChan <- store.StoreResult{user, err}
+		userChan <- store.StoreResult{Data: user, Err: err}
 		close(userChan)
 	}()
 	go func() {
 		member, err := a.Srv.Store.Channel().GetMember(channel.Id, userId)
-		memberChan <- store.StoreResult{member, err}
+		memberChan <- store.StoreResult{Data: member, Err: err}
 		close(memberChan)
 	}()
 
@@ -1423,7 +1423,7 @@ func (a *App) LeaveChannel(channelId string, userId string) *model.AppError {
 	uc := make(chan store.StoreResult, 1)
 	go func() {
 		user, err := a.Srv.Store.User().Get(userId)
-		uc <- store.StoreResult{user, err}
+		uc <- store.StoreResult{Data: user, Err: err}
 		close(uc)
 	}()
 	ccm := a.Srv.Store.Channel().GetMemberCount(channelId, false)

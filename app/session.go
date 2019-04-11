@@ -251,7 +251,7 @@ func (a *App) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAc
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
 		user, err := a.Srv.Store.User().Get(token.UserId)
-		uchan <- store.StoreResult{user, err}
+		uchan <- store.StoreResult{Data: user, Err: err}
 		close(uchan)
 	}()
 

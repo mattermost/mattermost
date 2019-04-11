@@ -331,7 +331,7 @@ func (a *App) AddUserToTeam(teamId string, userId string, userRequestorId string
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
 		user, err := a.Srv.Store.User().Get(userId)
-		uchan <- store.StoreResult{user, err}
+		uchan <- store.StoreResult{Data: user, Err: err}
 		close(uchan)
 	}()
 
@@ -384,7 +384,7 @@ func (a *App) AddUserToTeamByToken(userId string, tokenId string) (*model.Team, 
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
 		user, err := a.Srv.Store.User().Get(userId)
-		uchan <- store.StoreResult{user, err}
+		uchan <- store.StoreResult{Data: user, Err: err}
 		close(uchan)
 	}()
 
@@ -416,7 +416,7 @@ func (a *App) AddUserToTeamByInviteId(inviteId string, userId string) (*model.Te
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
 		user, err := a.Srv.Store.User().Get(userId)
-		uchan <- store.StoreResult{user, err}
+		uchan <- store.StoreResult{Data: user, Err: err}
 		close(uchan)
 	}()
 
@@ -780,7 +780,7 @@ func (a *App) RemoveUserFromTeam(teamId string, userId string, requestorId strin
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
 		user, err := a.Srv.Store.User().Get(userId)
-		uchan <- store.StoreResult{user, err}
+		uchan <- store.StoreResult{Data: user, Err: err}
 		close(uchan)
 	}()
 
@@ -950,7 +950,7 @@ func (a *App) InviteNewUsersToTeam(emailList []string, teamId, senderId string) 
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
 		user, err := a.Srv.Store.User().Get(senderId)
-		uchan <- store.StoreResult{user, err}
+		uchan <- store.StoreResult{Data: user, Err: err}
 		close(uchan)
 	}()
 
