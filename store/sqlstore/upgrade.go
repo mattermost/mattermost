@@ -19,6 +19,7 @@ import (
 )
 
 const (
+	VERSION_5_12_0           = "5.12.0"
 	VERSION_5_11_0           = "5.11.0"
 	VERSION_5_10_0           = "5.10.0"
 	VERSION_5_9_0            = "5.9.0"
@@ -632,4 +633,15 @@ func UpgradeDatabaseToVersion511(sqlStore SqlStore) {
 
 	// 	saveSchemaVersion(sqlStore, VERSION_5_11_0)
 	// }
+}
+
+func UpgradeDatabaseToVersion512(sqlStore SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_5_11_0, VERSION_5_12_0) {
+		sqlStore.CreateColumnIfNotExistsNoDefault("TeamMembers", "SchemeGuest", "boolean", "boolean")
+		sqlStore.CreateColumnIfNotExistsNoDefault("ChannelMembers", "SchemeGuest", "boolean", "boolean")
+		sqlStore.CreateColumnIfNotExistsNoDefault("Schemes", "DefaultTeamGuestRole", "text", "VARCHAR(64)")
+		sqlStore.CreateColumnIfNotExistsNoDefault("Schemes", "DefaultChannelGuestRole", "text", "VARCHAR(64)")
+
+		saveSchemaVersion(sqlStore, VERSION_5_12_0)
+	}
 }

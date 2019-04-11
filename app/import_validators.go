@@ -21,11 +21,11 @@ func validateSchemeImportData(data *SchemeImportData) *model.AppError {
 
 	switch *data.Scope {
 	case model.SCHEME_SCOPE_TEAM:
-		if data.DefaultTeamAdminRole == nil || data.DefaultTeamUserRole == nil || data.DefaultChannelAdminRole == nil || data.DefaultChannelUserRole == nil {
+		if data.DefaultTeamAdminRole == nil || data.DefaultTeamUserRole == nil || data.DefaultTeamGuestRole == nil || data.DefaultChannelAdminRole == nil || data.DefaultChannelUserRole == nil || data.DefaultChannelGuestRole == nil {
 			return model.NewAppError("BulkImport", "app.import.validate_scheme_import_data.wrong_roles_for_scope.error", nil, "", http.StatusBadRequest)
 		}
 	case model.SCHEME_SCOPE_CHANNEL:
-		if data.DefaultTeamAdminRole != nil || data.DefaultTeamUserRole != nil || data.DefaultChannelAdminRole == nil || data.DefaultChannelUserRole == nil {
+		if data.DefaultTeamAdminRole != nil || data.DefaultTeamUserRole != nil || data.DefaultTeamGuestRole != nil || data.DefaultChannelAdminRole == nil || data.DefaultChannelUserRole == nil || data.DefaultChannelGuestRole == nil {
 			return model.NewAppError("BulkImport", "app.import.validate_scheme_import_data.wrong_roles_for_scope.error", nil, "", http.StatusBadRequest)
 		}
 	default:
@@ -56,6 +56,12 @@ func validateSchemeImportData(data *SchemeImportData) *model.AppError {
 		}
 	}
 
+	if data.DefaultTeamGuestRole != nil {
+		if err := validateRoleImportData(data.DefaultTeamGuestRole); err != nil {
+			return err
+		}
+	}
+
 	if data.DefaultChannelAdminRole != nil {
 		if err := validateRoleImportData(data.DefaultChannelAdminRole); err != nil {
 			return err
@@ -64,6 +70,12 @@ func validateSchemeImportData(data *SchemeImportData) *model.AppError {
 
 	if data.DefaultChannelUserRole != nil {
 		if err := validateRoleImportData(data.DefaultChannelUserRole); err != nil {
+			return err
+		}
+	}
+
+	if data.DefaultChannelGuestRole != nil {
+		if err := validateRoleImportData(data.DefaultChannelGuestRole); err != nil {
 			return err
 		}
 	}

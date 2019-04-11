@@ -27,6 +27,7 @@ type teamMember struct {
 	UserId      string
 	Roles       string
 	DeleteAt    int64
+	SchemeGuest sql.NullBool
 	SchemeUser  sql.NullBool
 	SchemeAdmin sql.NullBool
 }
@@ -37,6 +38,7 @@ func NewTeamMemberFromModel(tm *model.TeamMember) *teamMember {
 		UserId:      tm.UserId,
 		Roles:       tm.ExplicitRoles,
 		DeleteAt:    tm.DeleteAt,
+		SchemeGuest: sql.NullBool{Valid: true, Bool: tm.SchemeGuest},
 		SchemeUser:  sql.NullBool{Valid: true, Bool: tm.SchemeUser},
 		SchemeAdmin: sql.NullBool{Valid: true, Bool: tm.SchemeAdmin},
 	}
@@ -47,8 +49,10 @@ type teamMemberWithSchemeRoles struct {
 	UserId                     string
 	Roles                      string
 	DeleteAt                   int64
+	SchemeGuest                sql.NullBool
 	SchemeUser                 sql.NullBool
 	SchemeAdmin                sql.NullBool
+	TeamSchemeDefaultGuestRole sql.NullString
 	TeamSchemeDefaultUserRole  sql.NullString
 	TeamSchemeDefaultAdminRole sql.NullString
 }
@@ -61,11 +65,16 @@ func (db teamMemberWithSchemeRoles) ToModel() *model.TeamMember {
 
 	// Identify any scheme derived roles that are in "Roles" field due to not yet being migrated, and exclude
 	// them from ExplicitRoles field.
+	schemeGuest := db.SchemeGuest.Valid && db.SchemeGuest.Bool
 	schemeUser := db.SchemeUser.Valid && db.SchemeUser.Bool
 	schemeAdmin := db.SchemeAdmin.Valid && db.SchemeAdmin.Bool
 	for _, role := range strings.Fields(db.Roles) {
 		isImplicit := false
-		if role == model.TEAM_USER_ROLE_ID {
+		if role == model.TEAM_GUEST_ROLE_ID {
+			// We have an implicit role via the system scheme.
+			schemeGuest = true
+			isImplicit = true
+		} else if role == model.TEAM_USER_ROLE_ID {
 			// We have an implicit role via the system scheme. Override the "schemeUser" field to true.
 			schemeUser = true
 			isImplicit = true
@@ -84,6 +93,13 @@ func (db teamMemberWithSchemeRoles) ToModel() *model.TeamMember {
 	// Add any scheme derived roles that are not in the Roles field due to being Implicit from the Scheme, and add
 	// them to the Roles field for backwards compatibility reasons.
 	var schemeImpliedRoles []string
+	if db.SchemeGuest.Valid && db.SchemeGuest.Bool {
+		if db.TeamSchemeDefaultGuestRole.Valid && db.TeamSchemeDefaultGuestRole.String != "" {
+			schemeImpliedRoles = append(schemeImpliedRoles, db.TeamSchemeDefaultGuestRole.String)
+		} else {
+			schemeImpliedRoles = append(schemeImpliedRoles, model.TEAM_GUEST_ROLE_ID)
+		}
+	}
 	if db.SchemeUser.Valid && db.SchemeUser.Bool {
 		if db.TeamSchemeDefaultUserRole.Valid && db.TeamSchemeDefaultUserRole.String != "" {
 			schemeImpliedRoles = append(schemeImpliedRoles, db.TeamSchemeDefaultUserRole.String)
@@ -115,6 +131,7 @@ func (db teamMemberWithSchemeRoles) ToModel() *model.TeamMember {
 		UserId:        db.UserId,
 		Roles:         strings.Join(roles, " "),
 		DeleteAt:      db.DeleteAt,
+		SchemeGuest:   schemeGuest,
 		SchemeUser:    schemeUser,
 		SchemeAdmin:   schemeAdmin,
 		ExplicitRoles: strings.Join(explicitRoles, " "),
@@ -527,6 +544,7 @@ func (s SqlTeamStore) AnalyticsTeamCount() store.StoreChannel {
 var TEAM_MEMBERS_WITH_SCHEME_SELECT_QUERY = `
 	SELECT
 		TeamMembers.*,
+		TeamScheme.DefaultTeamGuestRole TeamSchemeDefaultGuestRole,
 		TeamScheme.DefaultTeamUserRole TeamSchemeDefaultUserRole,
 		TeamScheme.DefaultTeamAdminRole TeamSchemeDefaultAdminRole
 	FROM
@@ -874,11 +892,16 @@ func (s SqlTeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) s
 			if !member.SchemeUser.Valid {
 				member.SchemeUser = sql.NullBool{Bool: false, Valid: true}
 			}
+			if !member.SchemeGuest.Valid {
+				member.SchemeGuest = sql.NullBool{Bool: false, Valid: true}
+			}
 			for _, role := range roles {
 				if role == model.TEAM_ADMIN_ROLE_ID {
 					member.SchemeAdmin = sql.NullBool{Bool: true, Valid: true}
 				} else if role == model.TEAM_USER_ROLE_ID {
 					member.SchemeUser = sql.NullBool{Bool: true, Valid: true}
+				} else if role == model.TEAM_GUEST_ROLE_ID {
+					member.SchemeGuest = sql.NullBool{Bool: true, Valid: true}
 				} else {
 					newRoles = append(newRoles, role)
 				}

@@ -68,6 +68,11 @@ func (a *App) ImportScheme(data *SchemeImportData, dryRun bool) *model.AppError 
 		if err := a.ImportRole(data.DefaultTeamUserRole, dryRun, true); err != nil {
 			return err
 		}
+
+		data.DefaultTeamGuestRole.Name = &scheme.DefaultTeamGuestRole
+		if err := a.ImportRole(data.DefaultTeamGuestRole, dryRun, true); err != nil {
+			return err
+		}
 	}
 
 	if scheme.Scope == model.SCHEME_SCOPE_TEAM || scheme.Scope == model.SCHEME_SCOPE_CHANNEL {
@@ -78,6 +83,11 @@ func (a *App) ImportScheme(data *SchemeImportData, dryRun bool) *model.AppError 
 
 		data.DefaultChannelUserRole.Name = &scheme.DefaultChannelUserRole
 		if err := a.ImportRole(data.DefaultChannelUserRole, dryRun, true); err != nil {
+			return err
+		}
+
+		data.DefaultChannelGuestRole.Name = &scheme.DefaultChannelGuestRole
+		if err := a.ImportRole(data.DefaultChannelGuestRole, dryRun, true); err != nil {
 			return err
 		}
 	}
@@ -647,6 +657,7 @@ func (a *App) ImportUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 		}
 
 		var roles string
+		isSchemeGuest := false
 		isSchemeUser := true
 		isSchemeAdmin := false
 
@@ -656,7 +667,9 @@ func (a *App) ImportUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 			rawRoles := *tdata.Roles
 			explicitRoles := []string{}
 			for _, role := range strings.Fields(rawRoles) {
-				if role == model.TEAM_USER_ROLE_ID {
+				if role == model.TEAM_GUEST_ROLE_ID {
+					isSchemeGuest = true
+				} else if role == model.TEAM_USER_ROLE_ID {
 					isSchemeUser = true
 				} else if role == model.TEAM_ADMIN_ROLE_ID {
 					isSchemeAdmin = true
@@ -678,8 +691,8 @@ func (a *App) ImportUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 			}
 		}
 
-		if member.SchemeAdmin != isSchemeAdmin || member.SchemeUser != isSchemeUser {
-			a.UpdateTeamMemberSchemeRoles(team.Id, user.Id, isSchemeUser, isSchemeAdmin)
+		if member.SchemeAdmin != isSchemeAdmin || member.SchemeUser != isSchemeUser || member.SchemeGuest != isSchemeGuest {
+			a.UpdateTeamMemberSchemeRoles(team.Id, user.Id, isSchemeGuest, isSchemeUser, isSchemeAdmin)
 		}
 
 		defaultChannel, err := a.GetChannelByName(model.DEFAULT_CHANNEL, team.Id, true)
@@ -720,6 +733,7 @@ func (a *App) ImportUserChannels(user *model.User, team *model.Team, teamMember 
 		}
 
 		var roles string
+		isSchemeGuest := false
 		isSchemeUser := true
 		isSchemeAdmin := false
 
@@ -729,7 +743,9 @@ func (a *App) ImportUserChannels(user *model.User, team *model.Team, teamMember 
 			rawRoles := *cdata.Roles
 			explicitRoles := []string{}
 			for _, role := range strings.Fields(rawRoles) {
-				if role == model.CHANNEL_USER_ROLE_ID {
+				if role == model.CHANNEL_GUEST_ROLE_ID {
+					isSchemeGuest = true
+				} else if role == model.CHANNEL_USER_ROLE_ID {
 					isSchemeUser = true
 				} else if role == model.CHANNEL_ADMIN_ROLE_ID {
 					isSchemeAdmin = true
@@ -755,8 +771,8 @@ func (a *App) ImportUserChannels(user *model.User, team *model.Team, teamMember 
 			}
 		}
 
-		if member.SchemeAdmin != isSchemeAdmin || member.SchemeUser != isSchemeUser {
-			a.UpdateChannelMemberSchemeRoles(channel.Id, user.Id, isSchemeUser, isSchemeAdmin)
+		if member.SchemeAdmin != isSchemeAdmin || member.SchemeUser != isSchemeUser || member.SchemeGuest != isSchemeGuest {
+			a.UpdateChannelMemberSchemeRoles(channel.Id, user.Id, isSchemeGuest, isSchemeUser, isSchemeAdmin)
 		}
 
 		if cdata.NotifyProps != nil {
