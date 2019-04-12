@@ -106,6 +106,7 @@ func UpgradeDatabase(sqlStore SqlStore) {
 	UpgradeDatabaseToVersion59(sqlStore)
 	UpgradeDatabaseToVersion510(sqlStore)
 	UpgradeDatabaseToVersion511(sqlStore)
+	UpgradeDatabaseToVersion512(sqlStore)
 
 	// If the SchemaVersion is empty this this is the first time it has ran
 	// so lets set it to the current version.
@@ -628,11 +629,10 @@ func UpgradeDatabaseToVersion510(sqlStore SqlStore) {
 }
 
 func UpgradeDatabaseToVersion511(sqlStore SqlStore) {
-	// TODO: Uncomment following condition when version 5.11.0 is released
-	// if shouldPerformUpgrade(sqlStore, VERSION_5_10_0, VERSION_5_11_0) {
+	if shouldPerformUpgrade(sqlStore, VERSION_5_10_0, VERSION_5_11_0) {
 
-	// 	saveSchemaVersion(sqlStore, VERSION_5_11_0)
-	// }
+		saveSchemaVersion(sqlStore, VERSION_5_11_0)
+	}
 }
 
 func UpgradeDatabaseToVersion512(sqlStore SqlStore) {
