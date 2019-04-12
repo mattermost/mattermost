@@ -3591,10 +3591,6 @@
     "translation": "Failed to decode search results"
   },
   {
-    "id": "ent.elasticsearch.search_users.disabled",
-    "translation": "Elasticsearch searching is disabled on this server"
-  },
-  {
     "id": "ent.elasticsearch.search_users.search_failed",
     "translation": "Search failed to complete"
   },
