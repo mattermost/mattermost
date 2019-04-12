@@ -669,6 +669,7 @@ func (a *App) ImportUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 			for _, role := range strings.Fields(rawRoles) {
 				if role == model.TEAM_GUEST_ROLE_ID {
 					isSchemeGuest = true
+					isSchemeUser = false
 				} else if role == model.TEAM_USER_ROLE_ID {
 					isSchemeUser = true
 				} else if role == model.TEAM_ADMIN_ROLE_ID {
@@ -745,6 +746,7 @@ func (a *App) ImportUserChannels(user *model.User, team *model.Team, teamMember 
 			for _, role := range strings.Fields(rawRoles) {
 				if role == model.CHANNEL_GUEST_ROLE_ID {
 					isSchemeGuest = true
+					isSchemeUser = false
 				} else if role == model.CHANNEL_USER_ROLE_ID {
 					isSchemeUser = true
 				} else if role == model.CHANNEL_ADMIN_ROLE_ID {
