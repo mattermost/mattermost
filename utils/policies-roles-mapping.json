@@ -341,14 +341,14 @@
     "restrictPrivateChannelDeletion": {
         "all": [
             {
-                "roleName": "team_user",
+                "roleName": "channel_user",
                 "permission": "delete_private_channel",
                 "shouldHave": true
             }
         ],
         "channel_admin": [
             {
-                "roleName": "team_user",
+                "roleName": "channel_user",
                 "permission": "delete_private_channel",
                 "shouldHave": false
             },
@@ -365,7 +365,7 @@
         ],
         "team_admin": [
             {
-                "roleName": "team_user",
+                "roleName": "channel_user",
                 "permission": "delete_private_channel",
                 "shouldHave": false
             },
@@ -382,7 +382,7 @@
         ],
         "system_admin": [
             {
-                "roleName": "team_user",
+                "roleName": "channel_user",
                 "permission": "delete_private_channel",
                 "shouldHave": false
             },
