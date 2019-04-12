@@ -50,15 +50,6 @@ func (job *PluginHealthCheckJob) Start() {
 	interval := time.Duration(PLUGIN_HEALTH_CHECK_INTERVAL) * time.Second
 	mlog.Debug(fmt.Sprintf("Plugin health check job starting. Sending health check pings every %v minutes.", interval))
 
-	env := job.env
-	activePlugins := env.Active()
-
-	for _, plugin := range activePlugins {
-		if _, ok := env.pluginHealthStatuses.Load(plugin.Manifest.Id); !ok {
-			env.pluginHealthStatuses.Store(plugin.Manifest.Id, newPluginHealthStatus())
-		}
-	}
-
 	go func() {
 		defer close(job.cancelled)
 
@@ -70,7 +61,7 @@ func (job *PluginHealthCheckJob) Start() {
 		for {
 			select {
 			case <-ticker.C:
-				activePlugins := env.Active()
+				activePlugins := job.env.Active()
 				for _, plugin := range activePlugins {
 					job.checkPlugin(plugin.Manifest.Id)
 				}
@@ -114,17 +105,13 @@ func (job *PluginHealthCheckJob) handleHealthCheckFail(id string, err error) {
 	}
 
 	t := time.Now()
-	job.env.UpdatePluginHealthStatus(id, func(health *PluginHealthStatus) {
-		// Append current failure before checking for deactivate vs restart action
-		health.failTimeStamps = append(health.failTimeStamps, t)
-		health.lastError = err
-	})
+	// Append current failure before checking for deactivate vs restart action
+	health.failTimeStamps = append(health.failTimeStamps, t)
+	health.lastError = err
 
 	if shouldDeactivatePlugin(health) {
-		job.env.UpdatePluginHealthStatus(id, func(health *PluginHealthStatus) {
-			health.failTimeStamps = []time.Time{}
-			health.Crashed = true
-		})
+		health.failTimeStamps = []time.Time{}
+		health.Crashed = true
 		mlog.Debug(fmt.Sprintf("Deactivating plugin due to multiple crashes `%s`", id))
 		job.env.Deactivate(id)
 	} else {

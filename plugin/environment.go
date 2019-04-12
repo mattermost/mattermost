@@ -238,6 +238,9 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 		ap.supervisor = sup
 
 		componentActivated = true
+		if _, ok := env.pluginHealthStatuses.Load(id); !ok {
+			env.pluginHealthStatuses.Store(id, newPluginHealthStatus())
+		}
 	}
 
 	if !componentActivated {

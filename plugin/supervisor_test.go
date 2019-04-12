@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -21,6 +22,10 @@ func TestSupervisor(t *testing.T) {
 		"Supervisor_InvalidExecutablePath":     testSupervisor_InvalidExecutablePath,
 		"Supervisor_NonExistentExecutablePath": testSupervisor_NonExistentExecutablePath,
 		"Supervisor_StartTimeout":              testSupervisor_StartTimeout,
+		"Supervisor_HealthCheckSuccess":        testSupervisor_HealthCheckSuccess,
+		"Supervisor_ProcessKilled":             testSupervisor_ProcessKilled,
+		"Supervisor_RPCPingFailed":             testSupervisor_RPCPingFailed,
+		"Supervisor_HealthCheckHookError":      testSupervisor_HealthCheckHookError,
 	} {
 		t.Run(name, f)
 	}
@@ -92,4 +97,200 @@ func testSupervisor_StartTimeout(t *testing.T) {
 	supervisor, err := newSupervisor(bundle, log, nil)
 	require.Error(t, err)
 	require.Nil(t, supervisor)
+}
+
+func testSupervisor_HealthCheckSuccess(t *testing.T) {
+	dir, err := ioutil.TempDir("", "")
+	require.NoError(t, err)
+	defer os.RemoveAll(dir)
+
+	backend := filepath.Join(dir, "backend.exe")
+	utils.CompileGo(t, `
+		package main
+
+		import (
+			"github.com/mattermost/mattermost-server/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) HealthCheck() error {
+			return nil
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`, backend)
+
+	ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "backend": {"executable": "backend.exe"}}`), 0600)
+
+	bundle := model.BundleInfoForPath(dir)
+	log := mlog.NewLogger(&mlog.LoggerConfiguration{
+		EnableConsole: true,
+		ConsoleJson:   true,
+		ConsoleLevel:  "error",
+		EnableFile:    false,
+	})
+
+	supervisor, err := newSupervisor(bundle, log, nil)
+	require.Nil(t, err)
+	require.NotNil(t, supervisor)
+
+	err = supervisor.PerformHealthCheck()
+	require.Nil(t, err)
+}
+
+func testSupervisor_ProcessKilled(t *testing.T) {
+	dir, err := ioutil.TempDir("", "")
+	require.NoError(t, err)
+	defer os.RemoveAll(dir)
+
+	backend := filepath.Join(dir, "backend.exe")
+	utils.CompileGo(t, `
+		package main
+
+		import (
+			"github.com/mattermost/mattermost-server/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) HealthCheck() error {
+			return nil
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`, backend)
+
+	ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "backend": {"executable": "backend.exe"}}`), 0600)
+
+	bundle := model.BundleInfoForPath(dir)
+	log := mlog.NewLogger(&mlog.LoggerConfiguration{
+		EnableConsole: true,
+		ConsoleJson:   true,
+		ConsoleLevel:  "error",
+		EnableFile:    false,
+	})
+
+	supervisor, err := newSupervisor(bundle, log, nil)
+	require.Nil(t, err)
+	require.NotNil(t, supervisor)
+
+	err = supervisor.PerformHealthCheck()
+	require.Nil(t, err)
+
+	process, err := os.FindProcess(supervisor.pid)
+	process.Kill()
+	time.Sleep(10 * time.Millisecond)
+
+	err = supervisor.PerformHealthCheck()
+	require.NotNil(t, err)
+	require.Equal(t, "Plugin process not found, or not responding", err.Error())
+}
+
+func testSupervisor_RPCPingFailed(t *testing.T) {
+	dir, err := ioutil.TempDir("", "")
+	require.NoError(t, err)
+	defer os.RemoveAll(dir)
+
+	backend := filepath.Join(dir, "backend.exe")
+	utils.CompileGo(t, `
+		package main
+
+		import (
+			"github.com/mattermost/mattermost-server/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) HealthCheck() error {
+			return nil
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`, backend)
+
+	ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "backend": {"executable": "backend.exe"}}`), 0600)
+
+	bundle := model.BundleInfoForPath(dir)
+	log := mlog.NewLogger(&mlog.LoggerConfiguration{
+		EnableConsole: true,
+		ConsoleJson:   true,
+		ConsoleLevel:  "error",
+		EnableFile:    false,
+	})
+
+	supervisor, err := newSupervisor(bundle, log, nil)
+	require.Nil(t, err)
+	require.NotNil(t, supervisor)
+
+	err = supervisor.PerformHealthCheck()
+	require.Nil(t, err)
+
+	c, err := supervisor.client.Client()
+	require.Nil(t, err)
+	err = c.Close()
+	require.Nil(t, err)
+
+	err = supervisor.PerformHealthCheck()
+	require.NotNil(t, err)
+	require.Equal(t, "Plugin RPC connection is not responding", err.Error())
+}
+
+func testSupervisor_HealthCheckHookError(t *testing.T) {
+	dir, err := ioutil.TempDir("", "")
+	require.NoError(t, err)
+	defer os.RemoveAll(dir)
+
+	backend := filepath.Join(dir, "backend.exe")
+	utils.CompileGo(t, `
+		package main
+
+		import (
+			"errors"
+
+			"github.com/mattermost/mattermost-server/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) HealthCheck() error {
+			return errors.New("I am not healthy!")
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`, backend)
+
+	ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "backend": {"executable": "backend.exe"}}`), 0600)
+
+	bundle := model.BundleInfoForPath(dir)
+	log := mlog.NewLogger(&mlog.LoggerConfiguration{
+		EnableConsole: true,
+		ConsoleJson:   true,
+		ConsoleLevel:  "error",
+		EnableFile:    false,
+	})
+
+	supervisor, err := newSupervisor(bundle, log, nil)
+	require.Nil(t, err)
+	require.NotNil(t, supervisor)
+
+	err = supervisor.PerformHealthCheck()
+	require.NotNil(t, err)
+	require.Equal(t, "I am not healthy!", err.Error())
 }
