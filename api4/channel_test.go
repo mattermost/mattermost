@@ -2021,6 +2021,106 @@ func TestAddChannelMember(t *testing.T) {
 	_, resp = Client.AddChannelMember(privateChannel.Id, user3.Id)
 	CheckNoError(t, resp)
 	Client.Logout()
+
+	// Set a channel to group-constrained
+	privateChannel.GroupConstrained = model.NewBool(true)
+	_, appErr := th.App.UpdateChannel(privateChannel)
+	require.Nil(t, appErr)
+
+	// User is not in associated groups so shouldn't be allowed
+	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user.Id)
+	CheckErrorMessage(t, resp, "api.channel.add_members.user_denied")
+
+	// Associate group to team
+	_, appErr = th.App.CreateGroupSyncable(&model.GroupSyncable{
+		GroupId:    th.Group.Id,
+		SyncableId: privateChannel.Id,
+		Type:       model.GroupSyncableTypeChannel,
+	})
+	require.Nil(t, appErr)
+
+	// Add user to group
+	_, appErr = th.App.CreateOrRestoreGroupMember(th.Group.Id, user.Id)
+	require.Nil(t, appErr)
+
+	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user.Id)
+	CheckNoError(t, resp)
+}
+
+func TestAddChannelMemberAddMyself(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+	user := th.CreateUser()
+	th.LinkUserToTeam(user, th.BasicTeam)
+	notMemberPublicChannel1 := th.CreatePublicChannel()
+	notMemberPublicChannel2 := th.CreatePublicChannel()
+	notMemberPrivateChannel := th.CreatePrivateChannel()
+
+	memberPublicChannel := th.CreatePublicChannel()
+	memberPrivateChannel := th.CreatePrivateChannel()
+	th.AddUserToChannel(user, memberPublicChannel)
+	th.AddUserToChannel(user, memberPrivateChannel)
+
+	testCases := []struct {
+		Name                     string
+		Channel                  *model.Channel
+		WithJoinPublicPermission bool
+		ExpectedError            string
+	}{
+		{
+			"Add myself to a public channel with JOIN_PUBLIC_CHANNEL permission",
+			notMemberPublicChannel1,
+			true,
+			"",
+		},
+		{
+			"Try to add myself to a private channel with the JOIN_PUBLIC_CHANNEL permission",
+			notMemberPrivateChannel,
+			true,
+			"api.context.permissions.app_error",
+		},
+		{
+			"Try to add myself to a public channel without the JOIN_PUBLIC_CHANNEL permission",
+			notMemberPublicChannel2,
+			false,
+			"api.context.permissions.app_error",
+		},
+		{
+			"Add myself a public channel where I'm already a member, not having JOIN_PUBLIC_CHANNEL or MANAGE MEMBERS permission",
+			memberPublicChannel,
+			false,
+			"",
+		},
+		{
+			"Add myself a private channel where I'm already a member, not having JOIN_PUBLIC_CHANNEL or MANAGE MEMBERS permission",
+			memberPrivateChannel,
+			false,
+			"",
+		},
+	}
+	Client.Login(user.Email, user.Password)
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+
+			// Check the appropriate permissions are enforced.
+			defaultRolePermissions := th.SaveDefaultRolePermissions()
+			defer func() {
+				th.RestoreDefaultRolePermissions(defaultRolePermissions)
+			}()
+
+			if !tc.WithJoinPublicPermission {
+				th.RemovePermissionFromRole(model.PERMISSION_JOIN_PUBLIC_CHANNELS.Id, model.TEAM_USER_ROLE_ID)
+			}
+
+			_, resp := Client.AddChannelMember(tc.Channel.Id, user.Id)
+			if tc.ExpectedError == "" {
+				CheckNoError(t, resp)
+			} else {
+				CheckErrorMessage(t, resp, tc.ExpectedError)
+			}
+		})
+	}
 }
 
 func TestRemoveChannelMember(t *testing.T) {

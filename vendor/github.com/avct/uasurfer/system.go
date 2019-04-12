@@ -11,7 +11,6 @@ var (
 )
 
 func (u *UserAgent) evalOS(ua string) bool {
-
 	s := strings.IndexRune(ua, '(')
 	e := strings.IndexRune(ua, ')')
 	if s > e {
@@ -102,23 +101,18 @@ func (u *UserAgent) evalOS(ua string) bool {
 		}
 	}
 
-	return u.isBot()
+	return u.maybeBot()
 }
 
-func (u *UserAgent) isBot() bool {
-
-	if u.OS.Platform == PlatformBot || u.OS.Name == OSBot {
-		u.DeviceType = DeviceComputer
-		return true
-	}
-
-	if u.Browser.Name >= BrowserBot && u.Browser.Name <= BrowserYahooBot {
+// maybeBot checks if the UserAgent is a bot and sets
+// all bot related fields if it is
+func (u *UserAgent) maybeBot() bool {
+	if u.IsBot() {
 		u.OS.Platform = PlatformBot
 		u.OS.Name = OSBot
 		u.DeviceType = DeviceComputer
 		return true
 	}
-
 	return false
 }
 

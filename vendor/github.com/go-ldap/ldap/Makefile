@@ -1,13 +1,44 @@
 .PHONY: default install build test quicktest fmt vet lint 
 
-GO_VERSION := $(shell go version | cut -d' ' -f3 | cut -d. -f2)
+# List of all release tags "supported" by our current Go version
+# E.g. ":go1.1:go1.2:go1.3:go1.4:go1.5:go1.6:go1.7:go1.8:go1.9:go1.10:go1.11:go1.12:"
+GO_RELEASE_TAGS := $(shell go list -f ':{{join (context.ReleaseTags) ":"}}:' runtime)
 
-# Only use the `-race` flag on newer versions of Go
-IS_OLD_GO := $(shell test $(GO_VERSION) -le 2 && echo true)
-ifeq ($(IS_OLD_GO),true)
+# Only use the `-race` flag on newer versions of Go (version 1.3 and newer)
+ifeq (,$(findstring :go1.3:,$(GO_RELEASE_TAGS)))
 	RACE_FLAG :=
 else
 	RACE_FLAG := -race -cpu 1,2,4
+endif
+
+# Run `go vet` on Go 1.12 and newer. For Go 1.5-1.11, use `go tool vet`
+ifneq (,$(findstring :go1.12:,$(GO_RELEASE_TAGS)))
+	GO_VET := go vet \
+		-atomic \
+		-bool \
+		-copylocks \
+		-nilfunc \
+		-printf \
+		-rangeloops \
+		-unreachable \
+		-unsafeptr \
+		-unusedresult \
+		.
+else ifneq (,$(findstring :go1.5:,$(GO_RELEASE_TAGS)))
+	GO_VET := go tool vet \
+		-atomic \
+		-bool \
+		-copylocks \
+		-nilfunc \
+		-printf \
+		-shadow \
+		-rangeloops \
+		-unreachable \
+		-unsafeptr \
+		-unusedresult \
+		.
+else
+	GO_VET := @echo "go vet skipped -- not supported on this version of Go"
 endif
 
 default: fmt vet lint build quicktest
@@ -34,25 +65,8 @@ fmt:
 		exit 1; \
 	fi
 
-# Only run on go1.5+
 vet:
-	@go tool -n vet >/dev/null 2>&1; \
-		if [ $$? -eq 0 ]; then \
-			echo "go vet" ; \
-			go tool vet \
-				-atomic \
-				-bool \
-				-copylocks \
-				-nilfunc \
-				-printf \
-				-shadow \
-				-rangeloops \
-				-unreachable \
-				-unsafeptr \
-				-unusedresult \
-				. ; \
-		fi ;
-
+	$(GO_VET)
 
 # https://github.com/golang/lint
 # go get github.com/golang/lint/golint

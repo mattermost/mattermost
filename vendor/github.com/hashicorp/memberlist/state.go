@@ -850,11 +850,26 @@ func (m *Memberlist) aliveNode(a *alive, notify chan struct{}, bootstrap bool) {
 		return
 	}
 
+	if len(a.Vsn) >= 3 {
+		pMin := a.Vsn[0]
+		pMax := a.Vsn[1]
+		pCur := a.Vsn[2]
+		if pMin == 0 || pMax == 0 || pMin > pMax {
+			m.logger.Printf("[WARN] memberlist: Ignoring an alive message for '%s' (%v:%d) because protocol version(s) are wrong: %d <= %d <= %d should be >0", a.Node, net.IP(a.Addr), a.Port, pMin, pCur, pMax)
+			return
+		}
+	}
+
 	// Invoke the Alive delegate if any. This can be used to filter out
 	// alive messages based on custom logic. For example, using a cluster name.
 	// Using a merge delegate is not enough, as it is possible for passive
 	// cluster merging to still occur.
 	if m.config.Alive != nil {
+		if len(a.Vsn) < 6 {
+			m.logger.Printf("[WARN] memberlist: ignoring alive message for '%s' (%v:%d) because Vsn is not present",
+				a.Node, net.IP(a.Addr), a.Port)
+			return
+		}
 		node := &Node{
 			Name: a.Node,
 			Addr: a.Addr,
@@ -885,6 +900,14 @@ func (m *Memberlist) aliveNode(a *alive, notify chan struct{}, bootstrap bool) {
 				Meta: a.Meta,
 			},
 			State: stateDead,
+		}
+		if len(a.Vsn) > 5 {
+			state.PMin = a.Vsn[0]
+			state.PMax = a.Vsn[1]
+			state.PCur = a.Vsn[2]
+			state.DMin = a.Vsn[3]
+			state.DMax = a.Vsn[4]
+			state.DCur = a.Vsn[5]
 		}
 
 		// Add to map
@@ -965,9 +988,8 @@ func (m *Memberlist) aliveNode(a *alive, notify chan struct{}, bootstrap bool) {
 			bytes.Equal(a.Vsn, versions) {
 			return
 		}
-
 		m.refute(state, a.Incarnation)
-		m.logger.Printf("[WARN] memberlist: Refuting an alive message")
+		m.logger.Printf("[WARN] memberlist: Refuting an alive message for '%s' (%v:%d) meta:(%v VS %v), vsn:(%v VS %v)", a.Node, net.IP(a.Addr), a.Port, a.Meta, state.Meta, a.Vsn, versions)
 	} else {
 		m.encodeBroadcastNotify(a.Node, aliveMsg, a, notify)
 

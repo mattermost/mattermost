@@ -325,7 +325,10 @@ func TestPostActionProps(t *testing.T) {
 		fmt.Fprintf(w, `{
 			"update": {
 				"message": "updated",
+				"has_reactions": true,
+				"is_pinned": false,
 				"props": {
+					"from_webhook":true,
 					"override_username":"new_override_user",
 					"override_icon_url":"new_override_icon",
 					"A":"AA"
@@ -341,6 +344,8 @@ func TestPostActionProps(t *testing.T) {
 		ChannelId:     th.BasicChannel.Id,
 		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
 		UserId:        th.BasicUser.Id,
+		HasReactions:  false,
+		IsPinned:      true,
 		Props: model.StringInterface{
 			"attachments": []*model.SlackAttachment{
 				{
@@ -362,6 +367,7 @@ func TestPostActionProps(t *testing.T) {
 				},
 			},
 			"override_icon_url": "old_override_icon",
+			"from_webhook":      false,
 			"B":                 "BB",
 		},
 	}
@@ -380,10 +386,13 @@ func TestPostActionProps(t *testing.T) {
 	require.Nil(t, result.Err)
 	newPost := result.Data.(*model.Post)
 
+	assert.True(t, newPost.IsPinned)
+	assert.False(t, newPost.HasReactions)
 	assert.Nil(t, newPost.Props["B"])
 	assert.Nil(t, newPost.Props["override_username"])
 	assert.Equal(t, "AA", newPost.Props["A"])
 	assert.Equal(t, "old_override_icon", newPost.Props["override_icon_url"])
+	assert.Equal(t, false, newPost.Props["from_webhook"])
 }
 
 func TestSubmitInteractiveDialog(t *testing.T) {
