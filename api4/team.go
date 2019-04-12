@@ -535,6 +535,17 @@ func removeTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	team, err := c.App.GetTeam(c.Params.TeamId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if team.GroupConstrained != nil && *team.GroupConstrained && (c.Params.UserId != c.App.Session.UserId) {
+		c.Err = model.NewAppError("removeTeamMember", "api.team.remove_member.group_constrained.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
 	if err := c.App.RemoveUserFromTeam(c.Params.TeamId, c.Params.UserId, c.App.Session.UserId); err != nil {
 		c.Err = err
 		return

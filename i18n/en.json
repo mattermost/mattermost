@@ -296,6 +296,10 @@
     "translation": "Unable to remove user from a channel."
   },
   {
+    "id": "api.channel.remove_member.group_constrained.app_error",
+    "translation": "Unable to remove a user from a group-constrained channel."
+  },
+  {
     "id": "api.channel.remove_member.removed",
     "translation": "%v removed from the channel."
   },
@@ -1845,6 +1849,10 @@
   {
     "id": "api.team.move_channel.success",
     "translation": "This channel has been moved to this team from %v."
+  },
+  {
+    "id": "api.team.remove_member.group_constrained.app_error",
+    "translation": "Unable to remove a user from a group-constrained team."
   },
   {
     "id": "api.team.remove_team_icon.get_team.app_error",

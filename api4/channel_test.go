@@ -2228,6 +2228,20 @@ func TestRemoveChannelMember(t *testing.T) {
 	_, resp = Client.RemoveUserFromChannel(privateChannel.Id, user2.Id)
 	CheckNoError(t, resp)
 
+	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, th.SystemAdminUser.Id)
+	CheckNoError(t, resp)
+
+	// If the channel is group-constrained the user cannot be removed
+	privateChannel.GroupConstrained = model.NewBool(true)
+	_, err := th.App.UpdateChannel(privateChannel)
+	require.Nil(t, err)
+	_, resp = Client.RemoveUserFromChannel(privateChannel.Id, user2.Id)
+	require.Equal(t, "api.channel.remove_member.group_constrained.app_error", resp.Error.Id)
+
+	// If the channel is group-constrained user can remove self
+	_, resp = th.SystemAdminClient.RemoveUserFromChannel(privateChannel.Id, th.SystemAdminUser.Id)
+	CheckNoError(t, resp)
+
 	// Test on preventing removal of user from a direct channel
 	directChannel, resp := Client.CreateDirectChannel(user1.Id, user2.Id)
 	CheckNoError(t, resp)
