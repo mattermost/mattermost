@@ -259,9 +259,9 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_CREATE_POST.Id,
 			model.PERMISSION_USE_SLASH_COMMANDS.Id,
 			model.PERMISSION_DELETE_PUBLIC_CHANNEL.Id,
+			model.PERMISSION_DELETE_PRIVATE_CHANNEL.Id,
 			model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS.Id,
 			model.PERMISSION_DELETE_POST.Id,
-			model.PERMISSION_DELETE_PRIVATE_CHANNEL.Id,
 			model.PERMISSION_EDIT_POST.Id,
 		},
 		"channel_admin": []string{
