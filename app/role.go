@@ -35,6 +35,14 @@ func (a *App) GetRolesByNames(names []string) ([]*model.Role, *model.AppError) {
 	}
 }
 
+func (a *App) GetAllRoles() ([]*model.Role, *model.AppError) {
+	result := <-a.Srv.Store.Role().GetAll()
+	if result.Err != nil {
+		return nil, result.Err
+	}
+	return result.Data.([]*model.Role), nil
+}
+
 func (a *App) PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, *model.AppError) {
 	// If patch is a no-op then short-circuit the store.
 	if patch.Permissions != nil && reflect.DeepEqual(*patch.Permissions, role.Permissions) {

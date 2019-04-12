@@ -20,6 +20,7 @@ func (a *App) ResetPermissionsSystem() *model.AppError {
 
 	// Now that the permissions system has been reset, re-run the migration to reinitialise it.
 	a.DoAdvancedPermissionsMigration()
+	a.DoPermissionsMigrations()
 
 	return nil
 }

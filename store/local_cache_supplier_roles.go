@@ -69,6 +69,12 @@ func (s *LocalCacheSupplier) RoleGetByNames(ctx context.Context, roleNames []str
 	return result
 }
 
+func (s *LocalCacheSupplier) RoleGetAll(ctx context.Context, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	// Roles are cached by name, as that is most commonly how they are looked up.
+	// This means that no caching is supported on roles being listed.
+	return s.Next().RoleGetAll(ctx, hints...)
+}
+
 func (s *LocalCacheSupplier) RolePermanentDeleteAll(ctx context.Context, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
 	defer s.roleCache.Purge()
 	defer s.doClearCacheCluster(s.roleCache)

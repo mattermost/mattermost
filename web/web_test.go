@@ -57,6 +57,7 @@ func Setup() *app.App {
 	ApiClient = model.NewClient(URL)
 
 	a.DoAdvancedPermissionsMigration()
+	a.DoPermissionsMigrations()
 
 	a.Srv.Store.MarkSystemRanUnitTests()
 
