@@ -1,16 +1,24 @@
 language: go
-sudo: false
 
-matrix:
-  include:
-    - go: "1.10.x"
-      script: go test -v ./...
-    - go: "1.11.x"
-      script: go test -v -mod=vendor ./...
+go:
+  - "1.x"
+  - "1.11.x"
 
 go_import_path: willnorris.com/go/imageproxy
 
-env:
-  - GO111MODULE=on
+cache:
+  directories:
+    - $HOME/.cache/go-build
+    - $HOME/gopath/pkg/mod
 
-install: true
+env:
+  global:
+    - GO111MODULE=on
+
+script:
+  - diff -u <(echo -n) <(gofmt -d -s .)
+  - go vet ./...
+  - go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
+
+after_success:
+    - bash <(curl -s https://codecov.io/bash)

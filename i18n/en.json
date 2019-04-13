@@ -136,6 +136,14 @@
     "translation": "%v added to the channel by %v."
   },
   {
+    "id": "api.channel.add_members.error",
+    "translation": "Error adding channel member(s)."
+  },
+  {
+    "id": "api.channel.add_members.user_denied",
+    "translation": "Channel membership denied to the following users because of group constraints: {{ .UserIDs }}"
+  },
+  {
     "id": "api.channel.add_user.to.channel.failed.app_error",
     "translation": "Failed to add user to channel"
   },
@@ -286,6 +294,10 @@
   {
     "id": "api.channel.remove_channel_member.type.app_error",
     "translation": "Unable to remove user from a channel."
+  },
+  {
+    "id": "api.channel.remove_member.group_constrained.app_error",
+    "translation": "Unable to remove a user from a group-constrained channel."
   },
   {
     "id": "api.channel.remove_member.removed",
@@ -1735,6 +1747,14 @@
     "translation": "User not found"
   },
   {
+    "id": "api.team.add_members.error",
+    "translation": "Error adding team member(s)."
+  },
+  {
+    "id": "api.team.add_members.user_denied",
+    "translation": "Team membership denied to the following users because of group constraints: {{ .UserIDs }}"
+  },
+  {
     "id": "api.team.add_user_to_team.added",
     "translation": "%v added to the team by %v."
   },
@@ -1829,6 +1849,10 @@
   {
     "id": "api.team.move_channel.success",
     "translation": "This channel has been moved to this team from %v."
+  },
+  {
+    "id": "api.team.remove_member.group_constrained.app_error",
+    "translation": "Unable to remove a user from a group-constrained team."
   },
   {
     "id": "api.team.remove_team_icon.get_team.app_error",
@@ -3565,10 +3589,6 @@
   {
     "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
     "translation": "Failed to decode search results"
-  },
-  {
-    "id": "ent.elasticsearch.search_users.disabled",
-    "translation": "Elasticsearch searching is disabled on this server"
   },
   {
     "id": "ent.elasticsearch.search_users.search_failed",

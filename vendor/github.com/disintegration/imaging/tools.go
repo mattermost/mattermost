@@ -169,7 +169,7 @@ func PasteCenter(background, img image.Image) *image.NRGBA {
 // and returns the combined image. Opacity parameter is the opacity of the img
 // image layer, used to compose the images, it must be from 0.0 to 1.0.
 //
-// Usage examples:
+// Examples:
 //
 //	// Draw spriteImage over backgroundImage at the given position (x=50, y=50).
 //	dstImage := imaging.Overlay(backgroundImage, spriteImage, image.Pt(50, 50), 1.0)
@@ -198,15 +198,17 @@ func Overlay(background, img image.Image, pos image.Point, opacity float64) *ima
 			i := y*dst.Stride + interRect.Min.X*4
 			j := 0
 			for x := interRect.Min.X; x < interRect.Max.X; x++ {
-				r1 := float64(dst.Pix[i+0])
-				g1 := float64(dst.Pix[i+1])
-				b1 := float64(dst.Pix[i+2])
-				a1 := float64(dst.Pix[i+3])
+				d := dst.Pix[i : i+4 : i+4]
+				r1 := float64(d[0])
+				g1 := float64(d[1])
+				b1 := float64(d[2])
+				a1 := float64(d[3])
 
-				r2 := float64(scanLine[j+0])
-				g2 := float64(scanLine[j+1])
-				b2 := float64(scanLine[j+2])
-				a2 := float64(scanLine[j+3])
+				s := scanLine[j : j+4 : j+4]
+				r2 := float64(s[0])
+				g2 := float64(s[1])
+				b2 := float64(s[2])
+				a2 := float64(s[3])
 
 				coef2 := opacity * a2 / 255
 				coef1 := (1 - coef2) * a1 / 255
@@ -214,10 +216,10 @@ func Overlay(background, img image.Image, pos image.Point, opacity float64) *ima
 				coef1 /= coefSum
 				coef2 /= coefSum
 
-				dst.Pix[i+0] = uint8(r1*coef1 + r2*coef2)
-				dst.Pix[i+1] = uint8(g1*coef1 + g2*coef2)
-				dst.Pix[i+2] = uint8(b1*coef1 + b2*coef2)
-				dst.Pix[i+3] = uint8(math.Min(a1+a2*opacity*(255-a1)/255, 255))
+				d[0] = uint8(r1*coef1 + r2*coef2)
+				d[1] = uint8(g1*coef1 + g2*coef2)
+				d[2] = uint8(b1*coef1 + b2*coef2)
+				d[3] = uint8(math.Min(a1+a2*opacity*(255-a1)/255, 255))
 
 				i += 4
 				j += 4
