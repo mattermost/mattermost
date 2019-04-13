@@ -140,7 +140,7 @@ func (a *App) getEmbedForPost(post *model.Post, firstLink string, isNewPost bool
 		return &model.PostEmbed{
 			Type: model.POST_EMBED_OPENGRAPH,
 			URL:  firstLink,
-			Data: model.TruncateOpenGraph(og),
+			Data: og,
 		}, nil
 	}
 
