@@ -2083,7 +2083,7 @@ func TestUserLoginMFAFlow(t *testing.T) {
 
 		code := dgoogauth.ComputeCode(secret3.Secret, time.Now().UTC().Unix()/30)
 
-		user, resp := th.Client.LoginWithMFA(th.BasicUser.Email, th.BasicUser.Password, strconv.Itoa(code))
+		user, resp := th.Client.LoginWithMFA(th.BasicUser.Email, th.BasicUser.Password, fmt.Sprintf("%06d", code))
 		CheckNoError(t, resp)
 		assert.NotNil(t, user)
 	})
