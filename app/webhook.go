@@ -610,7 +610,12 @@ func (a *App) HandleIncomingWebhook(hookId string, req *model.IncomingWebhookReq
 		hook = result.Data.(*model.IncomingWebhook)
 	}
 
-	uchan := a.Srv.Store.User().Get(hook.UserId)
+	uchan := make(chan store.StoreResult, 1)
+	go func() {
+		user, err := a.Srv.Store.User().Get(hook.UserId)
+		uchan <- store.StoreResult{Data: user, Err: err}
+		close(uchan)
+	}()
 
 	if len(req.Props) == 0 {
 		req.Props = make(model.StringInterface)

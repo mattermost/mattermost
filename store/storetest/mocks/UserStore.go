@@ -99,19 +99,28 @@ func (_m *UserStore) Count(options model.UserCountOptions) store.StoreChannel {
 }
 
 // Get provides a mock function with given fields: id
-func (_m *UserStore) Get(id string) store.StoreChannel {
+func (_m *UserStore) Get(id string) (*model.User, *model.AppError) {
 	ret := _m.Called(id)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+	var r0 *model.User
+	if rf, ok := ret.Get(0).(func(string) *model.User); ok {
 		r0 = rf(id)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.User)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(id)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetAll provides a mock function with given fields:
