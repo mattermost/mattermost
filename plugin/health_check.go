@@ -85,7 +85,12 @@ func (job *PluginHealthCheckJob) checkPlugin(id string) {
 		job.env.pluginHealthStatuses.Store(id, newPluginHealthStatus())
 	}
 
-	pluginErr := ap.supervisor.PerformHealthCheck()
+	sup := ap.supervisor
+	if sup == nil {
+		return
+	}
+
+	pluginErr := sup.PerformHealthCheck()
 
 	if pluginErr != nil {
 		mlog.Debug(fmt.Sprintf("Health check failed for plugin %s, error: %s", id, pluginErr.Error()))
