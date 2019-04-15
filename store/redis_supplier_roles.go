@@ -102,6 +102,12 @@ func (s *RedisSupplier) RoleDelete(ctx context.Context, roleId string, hints ...
 	return s.Next().RoleDelete(ctx, roleId, hints...)
 }
 
+func (s *RedisSupplier) RoleGetAll(ctx context.Context, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	// Roles are cached by name, as that is most commonly how they are looked up.
+	// This means that no caching is supported on roles being listed.
+	return s.Next().RoleGetAll(ctx, hints...)
+}
+
 func (s *RedisSupplier) RolePermanentDeleteAll(ctx context.Context, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
 	defer func() {
 		if keys, err := s.client.Keys("roles:*").Result(); err != nil {
