@@ -167,6 +167,10 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		oldChannel.Type = channel.Type
 	}
 
+	if channel.GroupConstrained != nil {
+		oldChannel.GroupConstrained = channel.GroupConstrained
+	}
+
 	if _, err := c.App.UpdateChannel(oldChannel); err != nil {
 		c.Err = err
 		return
