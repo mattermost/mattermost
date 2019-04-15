@@ -175,6 +175,27 @@ func (s *SqlSupplier) RoleGetByNames(ctx context.Context, names []string, hints 
 	return result
 }
 
+func (s *SqlSupplier) RoleGetAll(ctx context.Context, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+	result := store.NewSupplierResult()
+
+	var dbRoles []Role
+	if _, err := s.GetReplica().Select(&dbRoles, "SELECT * from Roles", map[string]interface{}{}); err != nil {
+		if err == sql.ErrNoRows {
+			result.Err = model.NewAppError("SqlRoleStore.GetAll", "store.sql_role.get_all.app_error", nil, err.Error(), http.StatusNotFound)
+		} else {
+			result.Err = model.NewAppError("SqlRoleStore.GetAll", "store.sql_role.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	}
+
+	var roles []*model.Role
+	for _, dbRole := range dbRoles {
+		roles = append(roles, dbRole.ToModel())
+	}
+	result.Data = roles
+
+	return result
+}
+
 func (s *SqlSupplier) RolePermanentDeleteAll(ctx context.Context, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	result := store.NewSupplierResult()
 

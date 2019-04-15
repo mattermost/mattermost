@@ -88,6 +88,7 @@ func runServer(configFileLocation string, disableConfigWatch bool, interruptChan
 	}
 
 	a.DoAdvancedPermissionsMigration()
+	a.DoPermissionsMigrations()
 
 	a.InitPlugins(*a.Config().PluginSettings.Directory, *a.Config().PluginSettings.ClientDirectory, nil)
 	a.AddConfigListener(func(prevCfg, cfg *model.Config) {
