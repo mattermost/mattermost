@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -2036,7 +2037,6 @@ func TestUserLoginMFAFlow(t *testing.T) {
 	})
 
 	t.Run("WithInvalidMFA", func(t *testing.T) {
-
 		secret, err := th.App.GenerateMfaSecret(th.BasicUser.Id)
 		assert.Nil(t, err)
 
@@ -2069,7 +2069,7 @@ func TestUserLoginMFAFlow(t *testing.T) {
 	})
 
 	t.Run("WithCorrectMFA", func(t *testing.T) {
-		secret3, err := th.App.GenerateMfaSecret(th.BasicUser.Id)
+		secret, err := th.App.GenerateMfaSecret(th.BasicUser.Id)
 		assert.Nil(t, err)
 
 		// Fake user has MFA enabled
@@ -2077,11 +2077,11 @@ func TestUserLoginMFAFlow(t *testing.T) {
 			t.Fatal(result.Err)
 		}
 
-		if result := <-th.Server.Store.User().UpdateMfaSecret(th.BasicUser.Id, secret3.Secret); result.Err != nil {
+		if result := <-th.Server.Store.User().UpdateMfaSecret(th.BasicUser.Id, secret.Secret); result.Err != nil {
 			t.Fatal(result.Err)
 		}
 
-		code := dgoogauth.ComputeCode(secret3.Secret, time.Now().UTC().Unix()/30)
+		code := dgoogauth.ComputeCode(secret.Secret, time.Now().UTC().Unix()/30)
 
 		user, resp := th.Client.LoginWithMFA(th.BasicUser.Email, th.BasicUser.Password, fmt.Sprintf("%06d", code))
 		CheckNoError(t, resp)
