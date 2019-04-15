@@ -18,6 +18,7 @@ import (
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
@@ -327,7 +328,12 @@ func (a *App) sendUpdatedMemberRoleEvent(userId string, member *model.TeamMember
 
 func (a *App) AddUserToTeam(teamId string, userId string, userRequestorId string) (*model.Team, *model.AppError) {
 	tchan := a.Srv.Store.Team().Get(teamId)
-	uchan := a.Srv.Store.User().Get(userId)
+	uchan := make(chan store.StoreResult, 1)
+	go func() {
+		user, err := a.Srv.Store.User().Get(userId)
+		uchan <- store.StoreResult{Data: user, Err: err}
+		close(uchan)
+	}()
 
 	result := <-tchan
 	if result.Err != nil {
@@ -375,7 +381,12 @@ func (a *App) AddUserToTeamByToken(userId string, tokenId string) (*model.Team, 
 	tokenData := model.MapFromJson(strings.NewReader(token.Extra))
 
 	tchan := a.Srv.Store.Team().Get(tokenData["teamId"])
-	uchan := a.Srv.Store.User().Get(userId)
+	uchan := make(chan store.StoreResult, 1)
+	go func() {
+		user, err := a.Srv.Store.User().Get(userId)
+		uchan <- store.StoreResult{Data: user, Err: err}
+		close(uchan)
+	}()
 
 	result = <-tchan
 	if result.Err != nil {
@@ -402,7 +413,12 @@ func (a *App) AddUserToTeamByToken(userId string, tokenId string) (*model.Team, 
 
 func (a *App) AddUserToTeamByInviteId(inviteId string, userId string) (*model.Team, *model.AppError) {
 	tchan := a.Srv.Store.Team().GetByInviteId(inviteId)
-	uchan := a.Srv.Store.User().Get(userId)
+	uchan := make(chan store.StoreResult, 1)
+	go func() {
+		user, err := a.Srv.Store.User().Get(userId)
+		uchan <- store.StoreResult{Data: user, Err: err}
+		close(uchan)
+	}()
 
 	result := <-tchan
 	if result.Err != nil {
@@ -761,7 +777,12 @@ func (a *App) GetTeamUnread(teamId, userId string) (*model.TeamUnread, *model.Ap
 
 func (a *App) RemoveUserFromTeam(teamId string, userId string, requestorId string) *model.AppError {
 	tchan := a.Srv.Store.Team().Get(teamId)
-	uchan := a.Srv.Store.User().Get(userId)
+	uchan := make(chan store.StoreResult, 1)
+	go func() {
+		user, err := a.Srv.Store.User().Get(userId)
+		uchan <- store.StoreResult{Data: user, Err: err}
+		close(uchan)
+	}()
 
 	result := <-tchan
 	if result.Err != nil {
@@ -926,7 +947,12 @@ func (a *App) InviteNewUsersToTeam(emailList []string, teamId, senderId string) 
 	}
 
 	tchan := a.Srv.Store.Team().Get(teamId)
-	uchan := a.Srv.Store.User().Get(senderId)
+	uchan := make(chan store.StoreResult, 1)
+	go func() {
+		user, err := a.Srv.Store.User().Get(senderId)
+		uchan <- store.StoreResult{Data: user, Err: err}
+		close(uchan)
+	}()
 
 	result := <-tchan
 	if result.Err != nil {

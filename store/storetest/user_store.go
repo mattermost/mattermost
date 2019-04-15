@@ -220,12 +220,10 @@ func testUserStoreUpdateUpdateAt(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	if r1 := <-ss.User().Get(u1.Id); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		if r1.Data.(*model.User).UpdateAt <= u1.UpdateAt {
-			t.Fatal("UpdateAt not updated correctly")
-		}
+	user, err := ss.User().Get(u1.Id)
+	require.Nil(t, err)
+	if user.UpdateAt <= u1.UpdateAt {
+		t.Fatal("UpdateAt not updated correctly")
 	}
 
 }
@@ -241,14 +239,11 @@ func testUserStoreUpdateFailedPasswordAttempts(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	if r1 := <-ss.User().Get(u1.Id); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		if r1.Data.(*model.User).FailedAttempts != 3 {
-			t.Fatal("FailedAttempts not updated correctly")
-		}
+	user, err := ss.User().Get(u1.Id)
+	require.Nil(t, err)
+	if user.FailedAttempts != 3 {
+		t.Fatal("FailedAttempts not updated correctly")
 	}
-
 }
 
 func testUserStoreGet(t *testing.T, ss store.Store) {
@@ -274,23 +269,20 @@ func testUserStoreGet(t *testing.T, ss store.Store) {
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1))
 
 	t.Run("fetch empty id", func(t *testing.T) {
-		require.NotNil(t, (<-ss.User().Get("")).Err)
+		_, err := ss.User().Get("")
+		require.NotNil(t, err)
 	})
 
 	t.Run("fetch user 1", func(t *testing.T) {
-		result := <-ss.User().Get(u1.Id)
-		require.Nil(t, result.Err)
-
-		actual := result.Data.(*model.User)
+		actual, err := ss.User().Get(u1.Id)
+		require.Nil(t, err)
 		require.Equal(t, u1, actual)
 		require.False(t, actual.IsBot)
 	})
 
 	t.Run("fetch user 2, also a bot", func(t *testing.T) {
-		result := <-ss.User().Get(u2.Id)
-		require.Nil(t, result.Err)
-
-		actual := result.Data.(*model.User)
+		actual, err := ss.User().Get(u2.Id)
+		require.Nil(t, err)
 		require.Equal(t, u2, actual)
 		require.True(t, actual.IsBot)
 	})

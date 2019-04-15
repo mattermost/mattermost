@@ -13,6 +13,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
 	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
@@ -219,7 +220,12 @@ func (a *App) tryExecuteCustomCommand(args *model.CommandArgs, trigger string, m
 
 	chanChan := a.Srv.Store.Channel().Get(args.ChannelId, true)
 	teamChan := a.Srv.Store.Team().Get(args.TeamId)
-	userChan := a.Srv.Store.User().Get(args.UserId)
+	userChan := make(chan store.StoreResult, 1)
+	go func() {
+		user, err := a.Srv.Store.User().Get(args.UserId)
+		userChan <- store.StoreResult{Data: user, Err: err}
+		close(userChan)
+	}()
 
 	result := <-a.Srv.Store.Command().GetByTeam(args.TeamId)
 	if result.Err != nil {

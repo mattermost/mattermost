@@ -156,7 +156,7 @@ type ChannelStore interface {
 	SaveMember(member *model.ChannelMember) StoreChannel
 	UpdateMember(member *model.ChannelMember) StoreChannel
 	GetMembers(channelId string, offset, limit int) StoreChannel
-	GetMember(channelId string, userId string) StoreChannel
+	GetMember(channelId string, userId string) (*model.ChannelMember, *model.AppError)
 	GetChannelMembersTimezones(channelId string) StoreChannel
 	GetAllChannelMembersForUser(userId string, allowFromCache bool, includeDeleted bool) StoreChannel
 	InvalidateAllChannelMembersForUser(userId string)
@@ -248,7 +248,7 @@ type UserStore interface {
 	UpdateAuthData(userId string, service string, authData *string, email string, resetMfa bool) StoreChannel
 	UpdateMfaSecret(userId, secret string) StoreChannel
 	UpdateMfaActive(userId string, active bool) StoreChannel
-	Get(id string) StoreChannel
+	Get(id string) (*model.User, *model.AppError)
 	GetAll() StoreChannel
 	ClearCaches()
 	InvalidateProfilesInChannelCacheByUser(userId string)
@@ -322,10 +322,10 @@ type SessionStore interface {
 }
 
 type AuditStore interface {
-	Save(audit *model.Audit) StoreChannel
-	Get(user_id string, offset int, limit int) StoreChannel
-	PermanentDeleteByUser(userId string) StoreChannel
-	PermanentDeleteBatch(endTime int64, limit int64) StoreChannel
+	Save(audit *model.Audit) *model.AppError
+	Get(user_id string, offset int, limit int) (model.Audits, *model.AppError)
+	PermanentDeleteByUser(userId string) *model.AppError
+	PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError)
 }
 
 type ClusterDiscoveryStore interface {

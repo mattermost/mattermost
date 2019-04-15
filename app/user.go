@@ -398,11 +398,7 @@ func (a *App) IsUsernameTaken(name string) bool {
 }
 
 func (a *App) GetUser(userId string) (*model.User, *model.AppError) {
-	result := <-a.Srv.Store.User().Get(userId)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.User), nil
+	return a.Srv.Store.User().Get(userId)
 }
 
 func (a *App) GetUserByUsername(username string) (*model.User, *model.AppError) {
@@ -655,11 +651,10 @@ func (a *App) GenerateMfaSecret(userId string) (*model.MfaSecret, *model.AppErro
 }
 
 func (a *App) ActivateMfa(userId, token string) *model.AppError {
-	result := <-a.Srv.Store.User().Get(userId)
-	if result.Err != nil {
-		return result.Err
+	user, err := a.Srv.Store.User().Get(userId)
+	if err != nil {
+		return err
 	}
-	user := result.Data.(*model.User)
 
 	if len(user.AuthService) > 0 && user.AuthService != model.USER_AUTH_SERVICE_LDAP {
 		return model.NewAppError("ActivateMfa", "api.user.activate_mfa.email_and_ldap_only.app_error", nil, "", http.StatusBadRequest)
@@ -1086,11 +1081,10 @@ func (a *App) sendUpdatedUserEvent(user model.User) {
 }
 
 func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User, *model.AppError) {
-	result := <-a.Srv.Store.User().Get(user.Id)
-	if result.Err != nil {
-		return nil, result.Err
+	prev, err := a.Srv.Store.User().Get(user.Id)
+	if err != nil {
+		return nil, err
 	}
-	prev := result.Data.(*model.User)
 
 	if !CheckUserDomain(user, *a.Config().TeamSettings.RestrictCreationToDomains) {
 		if !prev.IsLDAPUser() && !prev.IsSAMLUser() && user.Email != prev.Email {
@@ -1112,7 +1106,7 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 		user.Email = prev.Email
 	}
 
-	result = <-a.Srv.Store.User().Update(user, false)
+	result := <-a.Srv.Store.User().Update(user, false)
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -1482,8 +1476,8 @@ func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 		return result.Err
 	}
 
-	if result := <-a.Srv.Store.Audit().PermanentDeleteByUser(user.Id); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.Audit().PermanentDeleteByUser(user.Id); err != nil {
+		return err
 	}
 
 	if result := <-a.Srv.Store.Team().RemoveAllMembersByUser(user.Id); result.Err != nil {

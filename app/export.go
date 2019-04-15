@@ -415,11 +415,10 @@ func (a *App) BuildPostReactions(postId string) (*[]ReactionImportData, *model.A
 	reactions := result.Data.([]*model.Reaction)
 
 	for _, reaction := range reactions {
-		result := <-a.Srv.Store.User().Get(reaction.UserId)
-		if result.Err != nil {
-			return nil, result.Err
+		user, err := a.Srv.Store.User().Get(reaction.UserId)
+		if err != nil {
+			return nil, err
 		}
-		user := result.Data.(*model.User)
 		reactionsOfPost = append(reactionsOfPost, *ImportReactionFromPost(user, reaction))
 	}
 
