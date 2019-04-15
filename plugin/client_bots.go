@@ -32,9 +32,9 @@ func (p *MattermostPlugin) EnsureBot(bot *model.Bot) (retBotId string, retErr er
 		}
 	}()
 
-	botIdBytes, err := p.API.KVGet(BOT_USER_KEY)
-	if err != nil {
-		return "", errors.Wrap(err, "Failed to get bot in EnsureBot")
+	botIdBytes, kvGetErr := p.API.KVGet(BOT_USER_KEY)
+	if kvGetErr != nil {
+		return "", errors.Wrap(kvGetErr, "Failed to get bot in EnsureBot")
 	}
 
 	// If the bot has already been created, there is nothing to do.
@@ -44,7 +44,7 @@ func (p *MattermostPlugin) EnsureBot(bot *model.Bot) (retBotId string, retErr er
 	}
 
 	// Check for an existing bot user with that username. If one exists, then use that.
-	if user, err := p.API.GetUserByUsername(bot.Username); err == nil && user != nil {
+	if user, userGetErr := p.API.GetUserByUsername(bot.Username); userGetErr == nil && user != nil {
 		if user.IsBot {
 			p.API.KVSet(BOT_USER_KEY, []byte(user.Id))
 			return user.Id, nil
@@ -54,9 +54,9 @@ func (p *MattermostPlugin) EnsureBot(bot *model.Bot) (retBotId string, retErr er
 	}
 
 	// Create a new bot user for the plugin
-	createdBot, err := p.API.CreateBot(bot)
-	if err != nil {
-		return "", errors.Wrap(err, "Failed to create bot in EnsureBot")
+	createdBot, createBotErr := p.API.CreateBot(bot)
+	if createBotErr != nil {
+		return "", errors.Wrap(createBotErr, "Failed to create bot in EnsureBot")
 	}
 
 	p.API.KVSet(BOT_USER_KEY, []byte(createdBot.UserId))
