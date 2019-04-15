@@ -369,6 +369,8 @@ func (a *App) sendOutOfChannelMentions(sender *model.User, post *model.Post, out
 		return nil
 	}
 
+	allUsers := model.UserSlice(append(outOfChannelUsers, outOfGroupsUsers...))
+
 	ocUsers := model.UserSlice(outOfChannelUsers)
 	ocUsernames := ocUsers.Usernames()
 	ocUserIDs := ocUsers.IDs()
@@ -418,10 +420,11 @@ func (a *App) sendOutOfChannelMentions(sender *model.User, post *model.Post, out
 		model.PROPS_ADD_CHANNEL_MEMBER: model.StringInterface{
 			"post_id": ephemeralPostId,
 
-			"usernames":                ocUsernames, // Kept for backwards compatibility of mobile app.
+			"usernames":                allUsers.Usernames(), // Kept for backwards compatibility of mobile app.
 			"not_in_channel_usernames": ocUsernames,
-			"user_ids":                 ocUserIDs, // Kept for backwards compatibility of mobile app.
-			"not_in_channel_user_ids":  ocUserIDs,
+
+			"user_ids":                allUsers.IDs(), // Kept for backwards compatibility of mobile app.
+			"not_in_channel_user_ids": ocUserIDs,
 
 			"not_in_groups_usernames": ogUsernames,
 			"not_in_groups_user_ids":  ogUsers.IDs(),
