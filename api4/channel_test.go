@@ -139,6 +139,15 @@ func TestCreateChannel(t *testing.T) {
 			t.Fatal("wrong status code")
 		}
 	}
+
+	// Test GroupConstrained flag
+	groupConstrainedChannel := &model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.CHANNEL_OPEN, TeamId: team.Id, GroupConstrained: model.NewBool(true)}
+	rchannel, resp = Client.CreateChannel(groupConstrainedChannel)
+	CheckNoError(t, resp)
+
+	if *rchannel.GroupConstrained != *groupConstrainedChannel.GroupConstrained {
+		t.Fatal("GroupConstrained flags do not match")
+	}
 }
 
 func TestUpdateChannel(t *testing.T) {
@@ -171,6 +180,16 @@ func TestUpdateChannel(t *testing.T) {
 
 	if newChannel.Purpose != channel.Purpose {
 		t.Fatal("Update failed for Purpose")
+	}
+
+	// Test GroupConstrained flag
+	channel.GroupConstrained = model.NewBool(true)
+	rchannel, resp := Client.UpdateChannel(channel)
+	CheckNoError(t, resp)
+	CheckOKStatus(t, resp)
+
+	if *rchannel.GroupConstrained != *channel.GroupConstrained {
+		t.Fatal("GroupConstrained flags do not match")
 	}
 
 	//Update a private channel
@@ -280,6 +299,17 @@ func TestPatchChannel(t *testing.T) {
 	if channel.Name != oldName {
 		t.Fatal("should not have updated")
 	}
+
+	// Test GroupConstrained flag
+	patch.GroupConstrained = model.NewBool(true)
+	rchannel, resp := Client.PatchChannel(th.BasicChannel.Id, patch)
+	CheckNoError(t, resp)
+	CheckOKStatus(t, resp)
+
+	if *rchannel.GroupConstrained != *patch.GroupConstrained {
+		t.Fatal("GroupConstrained flags do not match")
+	}
+	patch.GroupConstrained = nil
 
 	_, resp = Client.PatchChannel("junk", patch)
 	CheckBadRequestStatus(t, resp)
