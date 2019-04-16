@@ -36,13 +36,14 @@ func (a *App) LoadLicense() {
 		}
 	}
 
-	if result := <-a.Srv.Store.License().Get(licenseId); result.Err == nil {
-		record := result.Data.(*model.LicenseRecord)
-		a.ValidateAndSetLicenseBytes([]byte(record.Bytes))
-		mlog.Info("License key valid unlocking enterprise features.")
-	} else {
+	record, err := a.Srv.Store.License().Get(licenseId)
+	if err != nil {
 		mlog.Info("License key from https://mattermost.com required to unlock enterprise features.")
+		return
 	}
+
+	a.ValidateAndSetLicenseBytes([]byte(record.Bytes))
+	mlog.Info("License key valid unlocking enterprise features.")
 }
 
 func (a *App) SaveLicense(licenseBytes []byte) (*model.License, *model.AppError) {
@@ -73,11 +74,11 @@ func (a *App) SaveLicense(licenseBytes []byte) (*model.License, *model.AppError)
 	record := &model.LicenseRecord{}
 	record.Id = license.Id
 	record.Bytes = string(licenseBytes)
-	rchan := a.Srv.Store.License().Save(record)
 
-	if result := <-rchan; result.Err != nil {
+	_, err := a.Srv.Store.License().Save(record)
+	if err != nil {
 		a.RemoveLicense()
-		return nil, model.NewAppError("addLicense", "api.license.add_license.save.app_error", nil, "err="+result.Err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("addLicense", "api.license.add_license.save.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
 	}
 
 	sysVar := &model.System{}
