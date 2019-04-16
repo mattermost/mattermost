@@ -214,11 +214,10 @@ func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Chan
 	sc := result.Data.(*model.Channel)
 
 	if addMember {
-		uresult := <-a.Srv.Store.User().Get(channel.CreatorId)
-		if uresult.Err != nil {
-			return nil, uresult.Err
+		user, err := a.Srv.Store.User().Get(channel.CreatorId)
+		if err != nil {
+			return nil, err
 		}
-		user := uresult.Data.(*model.User)
 
 		cm := &model.ChannelMember{
 			ChannelId:   sc.Id,
@@ -668,6 +667,8 @@ func (a *App) UpdateChannelMemberRoles(channelId string, userId string, newRoles
 		return nil, err
 	}
 
+	prevSchemeGuestValue := member.SchemeGuest
+
 	var newExplicitRoles []string
 	member.SchemeGuest = false
 	member.SchemeUser = false
@@ -696,11 +697,15 @@ func (a *App) UpdateChannelMemberRoles(channelId string, userId string, newRoles
 				// If not part of the scheme for this channel, then it is not allowed to apply it as an explicit role.
 				return nil, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.scheme_role.app_error", nil, "role_name="+roleName, http.StatusBadRequest)
 			}
-
-			if member.SchemeUser && member.SchemeGuest {
-				return nil, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.guest_and_user.app_error", nil, "", http.StatusBadRequest)
-			}
 		}
+	}
+
+	if member.SchemeUser && member.SchemeGuest {
+		return nil, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.guest_and_user.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if prevSchemeGuestValue != member.SchemeGuest {
+		return nil, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.changing_guest_role.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	member.ExplicitRoles = strings.Join(newExplicitRoles, " ")

@@ -251,6 +251,8 @@ func (a *App) UpdateTeamMemberRoles(teamId string, userId string, newRoles strin
 		return nil, err
 	}
 
+	prevSchemeGuestValue := member.SchemeGuest
+
 	var newExplicitRoles []string
 	member.SchemeGuest = false
 	member.SchemeUser = false
@@ -275,14 +277,18 @@ func (a *App) UpdateTeamMemberRoles(teamId string, userId string, newRoles strin
 			case schemeGuestRole:
 				member.SchemeGuest = true
 			default:
-				// If not part of the scheme for this channel, then it is not allowed to apply it as an explicit role.
+				// If not part of the scheme for this team, then it is not allowed to apply it as an explicit role.
 				return nil, model.NewAppError("UpdateTeamMemberRoles", "api.channel.update_team_member_roles.scheme_role.app_error", nil, "role_name="+roleName, http.StatusBadRequest)
 			}
-
-			if member.SchemeUser && member.SchemeGuest {
-				return nil, model.NewAppError("UpdateTeamMemberRoles", "api.team.update_team_member_roles.guest_and_user.app_error", nil, "", http.StatusBadRequest)
-			}
 		}
+	}
+
+	if member.SchemeGuest && member.SchemeUser {
+		return nil, model.NewAppError("UpdateTeamMemberRoles", "api.team.update_team_member_roles.guest_and_user.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if prevSchemeGuestValue != member.SchemeGuest {
+		return nil, model.NewAppError("UpdateTeamMemberRoles", "api.channel.update_team_member_roles.changing_guest_role.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	member.ExplicitRoles = strings.Join(newExplicitRoles, " ")
