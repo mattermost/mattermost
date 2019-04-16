@@ -115,6 +115,7 @@ func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHel
 	th.App.Srv.Store.MarkSystemRanUnitTests()
 	th.App.DoAdvancedPermissionsMigration()
 	th.App.DoEmojisPermissionsMigration()
+	th.App.DoPermissionsMigrations()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
 
