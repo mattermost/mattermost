@@ -121,38 +121,30 @@ func (s SqlWebhookStore) UpdateIncoming(hook *model.IncomingWebhook) store.Store
 	})
 }
 
-func (s SqlWebhookStore) GetIncoming(id string, allowFromCache bool) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if allowFromCache {
-			if cacheItem, ok := webhookCache.Get(id); ok {
-				if s.metrics != nil {
-					s.metrics.IncrementMemCacheHitCounter("Webhook")
-				}
-				result.Data = cacheItem.(*model.IncomingWebhook)
-				return
-			} else {
-				if s.metrics != nil {
-					s.metrics.IncrementMemCacheMissCounter("Webhook")
-				}
+func (s SqlWebhookStore) GetIncoming(id string, allowFromCache bool) (*model.IncomingWebhook, *model.AppError) {
+	if allowFromCache {
+		if cacheItem, ok := webhookCache.Get(id); ok {
+			if s.metrics != nil {
+				s.metrics.IncrementMemCacheHitCounter("Webhook")
 			}
+			return cacheItem.(*model.IncomingWebhook), nil
 		}
-
-		var webhook model.IncomingWebhook
-
-		if err := s.GetReplica().SelectOne(&webhook, "SELECT * FROM IncomingWebhooks WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": id}); err != nil {
-			if err == sql.ErrNoRows {
-				result.Err = model.NewAppError("SqlWebhookStore.GetIncoming", "store.sql_webhooks.get_incoming.app_error", nil, "id="+id+", err="+err.Error(), http.StatusNotFound)
-			} else {
-				result.Err = model.NewAppError("SqlWebhookStore.GetIncoming", "store.sql_webhooks.get_incoming.app_error", nil, "id="+id+", err="+err.Error(), http.StatusInternalServerError)
-			}
+		if s.metrics != nil {
+			s.metrics.IncrementMemCacheMissCounter("Webhook")
 		}
+	}
 
-		if result.Err == nil {
-			webhookCache.AddWithExpiresInSecs(id, &webhook, WEBHOOK_CACHE_SEC)
+	var webhook model.IncomingWebhook
+	if err := s.GetReplica().SelectOne(&webhook, "SELECT * FROM IncomingWebhooks WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": id}); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, model.NewAppError("SqlWebhookStore.GetIncoming", "store.sql_webhooks.get_incoming.app_error", nil, "id="+id+", err="+err.Error(), http.StatusNotFound)
 		}
+		return nil, model.NewAppError("SqlWebhookStore.GetIncoming", "store.sql_webhooks.get_incoming.app_error", nil, "id="+id+", err="+err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = &webhook
-	})
+	webhookCache.AddWithExpiresInSecs(id, &webhook, WEBHOOK_CACHE_SEC)
+
+	return &webhook, nil
 }
 
 func (s SqlWebhookStore) DeleteIncoming(webhookId string, time int64) store.StoreChannel {
