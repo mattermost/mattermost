@@ -124,14 +124,6 @@ func (env *Environment) Statuses() (model.PluginStatuses, error) {
 			pluginState = plugin.(activePlugin).State
 		}
 
-		pluginErr := ""
-		if pluginState == model.PluginStateNotRunning {
-			if err := env.CheckPluginHealthStatus(plugin.Manifest.Id); err != nil {
-				pluginErr = err.Error()
-				pluginState = model.PluginStateError
-			}
-		}
-
 		status := &model.PluginStatus{
 			PluginId:    plugin.Manifest.Id,
 			PluginPath:  filepath.Dir(plugin.ManifestPath),
@@ -139,7 +131,6 @@ func (env *Environment) Statuses() (model.PluginStatuses, error) {
 			Name:        plugin.Manifest.Name,
 			Description: plugin.Manifest.Description,
 			Version:     plugin.Manifest.Version,
-			Error:       pluginErr,
 		}
 
 		pluginStatuses = append(pluginStatuses, status)
@@ -238,9 +229,15 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 		ap.supervisor = sup
 
 		componentActivated = true
-		if _, ok := env.pluginHealthStatuses.Load(id); !ok {
-			env.pluginHealthStatuses.Store(id, newPluginHealthStatus())
+
+		var h *PluginHealthStatus
+		if health, ok := env.pluginHealthStatuses.Load(id); ok {
+			h = health.(*PluginHealthStatus)
+		} else {
+			h = newPluginHealthStatus()
+			env.pluginHealthStatuses.Store(id, h)
 		}
+		h.Crashed = false
 	}
 
 	if !componentActivated {
@@ -271,9 +268,10 @@ func (env *Environment) Deactivate(id string) bool {
 }
 
 // RestartPlugin deactivates, then activates the plugin with the given id.
-func (env *Environment) RestartPlugin(id string) (manifest *model.Manifest, activated bool, reterr error) {
+func (env *Environment) RestartPlugin(id string) error {
 	env.Deactivate(id)
-	return env.Activate(id)
+	_, _, err := env.Activate(id)
+	return err
 }
 
 // UpdatePluginHealthStatus accepts a callback to edit the stored health status of the plugin.
