@@ -276,16 +276,16 @@ func (env *Environment) RestartPlugin(id string) error {
 
 // UpdatePluginHealthStatus accepts a callback to edit the stored health status of the plugin.
 func (env *Environment) UpdatePluginHealthStatus(id string, callback func(*PluginHealthStatus)) {
-	if health, ok := env.pluginHealthStatuses.Load(id); ok {
-		callback(health.(*PluginHealthStatus))
+	if h, ok := env.pluginHealthStatuses.Load(id); ok {
+		callback(h.(*PluginHealthStatus))
 	}
 }
 
 // CheckPluginHealthStatus checks if the plugin is in a failed state, based on information gathered from previous health checks.
 func (env *Environment) CheckPluginHealthStatus(id string) error {
-	if health, ok := env.pluginHealthStatuses.Load(id); ok {
-		if health.(*PluginHealthStatus).Crashed {
-			return health.(*PluginHealthStatus).lastError
+	if h, ok := env.pluginHealthStatuses.Load(id); ok {
+		if h.(*PluginHealthStatus).Crashed {
+			return h.(*PluginHealthStatus).lastError
 		}
 	}
 	return nil

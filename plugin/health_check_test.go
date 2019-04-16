@@ -269,38 +269,38 @@ func testPluginHealthCheck_HealthCheckHookError(t *testing.T) {
 }
 
 func testShouldDeactivatePlugin(t *testing.T) {
-	health := newPluginHealthStatus()
-	require.NotNil(t, health)
+	h := newPluginHealthStatus()
+	require.NotNil(t, h)
 
 	// No failures, don't restart
-	result := shouldDeactivatePlugin(health)
+	result := shouldDeactivatePlugin(h)
 	require.Equal(t, false, result)
 
 	now := time.Now()
 
 	// Failures are recent enough to restart
-	health = newPluginHealthStatus()
-	health.failTimeStamps = append(health.failTimeStamps, now.Add(-HEALTH_CHECK_DISABLE_DURATION*0.2*time.Minute))
-	health.failTimeStamps = append(health.failTimeStamps, now.Add(-HEALTH_CHECK_DISABLE_DURATION*0.1*time.Minute))
-	health.failTimeStamps = append(health.failTimeStamps, now)
+	h = newPluginHealthStatus()
+	h.failTimeStamps = append(h.failTimeStamps, now.Add(-HEALTH_CHECK_DISABLE_DURATION*0.2*time.Minute))
+	h.failTimeStamps = append(h.failTimeStamps, now.Add(-HEALTH_CHECK_DISABLE_DURATION*0.1*time.Minute))
+	h.failTimeStamps = append(h.failTimeStamps, now)
 
-	result = shouldDeactivatePlugin(health)
+	result = shouldDeactivatePlugin(h)
 	require.Equal(t, true, result)
 
 	// Failures are too spaced out to warrant a restart
-	health = newPluginHealthStatus()
-	health.failTimeStamps = append(health.failTimeStamps, now.Add(-HEALTH_CHECK_DISABLE_DURATION*2*time.Minute))
-	health.failTimeStamps = append(health.failTimeStamps, now.Add(-HEALTH_CHECK_DISABLE_DURATION*1*time.Minute))
-	health.failTimeStamps = append(health.failTimeStamps, now)
+	h = newPluginHealthStatus()
+	h.failTimeStamps = append(h.failTimeStamps, now.Add(-HEALTH_CHECK_DISABLE_DURATION*2*time.Minute))
+	h.failTimeStamps = append(h.failTimeStamps, now.Add(-HEALTH_CHECK_DISABLE_DURATION*1*time.Minute))
+	h.failTimeStamps = append(h.failTimeStamps, now)
 
-	result = shouldDeactivatePlugin(health)
+	result = shouldDeactivatePlugin(h)
 	require.Equal(t, false, result)
 
 	// Not enough failures are present to warrant a restart
-	health = newPluginHealthStatus()
-	health.failTimeStamps = append(health.failTimeStamps, now.Add(-HEALTH_CHECK_DISABLE_DURATION*0.1*time.Minute))
-	health.failTimeStamps = append(health.failTimeStamps, now)
+	h = newPluginHealthStatus()
+	h.failTimeStamps = append(h.failTimeStamps, now.Add(-HEALTH_CHECK_DISABLE_DURATION*0.1*time.Minute))
+	h.failTimeStamps = append(h.failTimeStamps, now)
 
-	result = shouldDeactivatePlugin(health)
+	result = shouldDeactivatePlugin(h)
 	require.Equal(t, false, result)
 }

@@ -286,8 +286,8 @@ func (a *App) DisablePlugin(id string) *model.AppError {
 	a.UpdateConfig(func(cfg *model.Config) {
 		cfg.PluginSettings.PluginStates[id] = &model.PluginState{Enable: false}
 	})
-	pluginsEnvironment.UpdatePluginHealthStatus(id, func(health *plugin.PluginHealthStatus) {
-		health.Crashed = false
+	pluginsEnvironment.UpdatePluginHealthStatus(id, func(h *plugin.PluginHealthStatus) {
+		h.Crashed = false
 	})
 	a.UnregisterPluginCommands(id)
 
