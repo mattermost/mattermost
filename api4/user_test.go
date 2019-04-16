@@ -2649,6 +2649,26 @@ func TestLogin(t *testing.T) {
 		_, resp = th.Client.Login(botUser.Email, "password")
 		CheckErrorMessage(t, resp, "api.user.login.bot_login_forbidden.app_error")
 	})
+
+	t.Run("login with terms_of_service set", func(t *testing.T) {
+		termsOfService, err := th.App.CreateTermsOfService("terms of service", th.BasicUser.Id)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		success, resp := th.Client.RegisterTermsOfServiceAction(th.BasicUser.Id, termsOfService.Id, true)
+		CheckNoError(t, resp)
+		assert.True(t, *success)
+
+		userTermsOfService, resp := th.Client.GetUserTermsOfService(th.BasicUser.Id, "")
+		CheckNoError(t, resp)
+
+		user, resp := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+		CheckNoError(t, resp)
+		assert.Equal(t, user.Id, th.BasicUser.Id)
+		assert.Equal(t, user.TermsOfServiceId, userTermsOfService.TermsOfServiceId)
+		assert.Equal(t, user.TermsOfServiceCreateAt, userTermsOfService.CreateAt)
+	})
 }
 
 func TestCBALogin(t *testing.T) {
