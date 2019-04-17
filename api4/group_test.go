@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/stretchr/testify/assert"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -661,24 +663,85 @@ func TestGetGroupsByTeam(t *testing.T) {
 	})
 	assert.Nil(t, err)
 
-	_, response := th.SystemAdminClient.GetGroupsByTeam("asdfasdf", 0, 60)
+	opts := model.GroupSearchOpts{
+		PageOpts: &model.PageOpts{
+			Page:    0,
+			PerPage: 60,
+		},
+	}
+
+	_, _, response := th.SystemAdminClient.GetGroupsByTeam("asdfasdf", opts)
 	CheckBadRequestStatus(t, response)
 
 	th.App.SetLicense(nil)
 
-	_, response = th.SystemAdminClient.GetGroupsByTeam(th.BasicTeam.Id, 0, 60)
+	_, _, response = th.SystemAdminClient.GetGroupsByTeam(th.BasicTeam.Id, opts)
 	CheckNotImplementedStatus(t, response)
 
 	th.App.SetLicense(model.NewTestLicense("ldap"))
 
-	_, response = th.Client.GetGroupsByTeam(th.BasicTeam.Id, 0, 60)
+	_, _, response = th.Client.GetGroupsByTeam(th.BasicTeam.Id, opts)
 	CheckForbiddenStatus(t, response)
 
-	groups, response := th.SystemAdminClient.GetGroupsByTeam(th.BasicTeam.Id, 0, 60)
+	groups, _, response := th.SystemAdminClient.GetGroupsByTeam(th.BasicTeam.Id, opts)
 	assert.Nil(t, response.Error)
 	assert.ElementsMatch(t, []*model.Group{group}, groups)
 
-	groups, response = th.SystemAdminClient.GetGroupsByTeam(model.NewId(), 0, 60)
+	groups, _, response = th.SystemAdminClient.GetGroupsByTeam(model.NewId(), opts)
 	assert.Nil(t, response.Error)
 	assert.Empty(t, groups)
+}
+
+func TestGetGroups(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	id := model.NewId()
+	group, err := th.App.CreateGroup(&model.Group{
+		DisplayName: "dn-foo_" + id,
+		Name:        "name" + id,
+		Source:      model.GroupSourceLdap,
+		Description: "description_" + id,
+		RemoteId:    model.NewId(),
+	})
+	assert.Nil(t, err)
+
+	opts := model.GroupSearchOpts{
+		PageOpts: &model.PageOpts{
+			Page:    0,
+			PerPage: 60,
+		},
+	}
+
+	th.App.SetLicense(nil)
+
+	_, response := th.SystemAdminClient.GetGroups(opts)
+	CheckNotImplementedStatus(t, response)
+
+	th.App.SetLicense(model.NewTestLicense("ldap"))
+
+	groups, response := th.SystemAdminClient.GetGroups(opts)
+	assert.Nil(t, response.Error)
+	assert.ElementsMatch(t, []*model.Group{group, th.Group}, groups)
+	assert.Nil(t, groups[0].MemberCount)
+
+	opts.IncludeMemberCount = true
+	groups, _ = th.SystemAdminClient.GetGroups(opts)
+	assert.NotNil(t, groups[0].MemberCount)
+	opts.IncludeMemberCount = false
+
+	opts.Q = "-fOo"
+	groups, _ = th.SystemAdminClient.GetGroups(opts)
+	assert.Len(t, groups, 1)
+	opts.Q = ""
+
+	opts.NotAssociatedToTeam = th.BasicTeam.Id
+	_, response = th.Client.GetGroups(opts)
+	CheckForbiddenStatus(t, response)
+
+	_, response = th.SystemAdminClient.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, "team_admin")
+	require.Nil(t, response.Error)
+
+	_, response = th.Client.GetGroups(opts)
+	assert.Nil(t, response.Error)
 }

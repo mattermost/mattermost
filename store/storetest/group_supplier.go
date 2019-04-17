@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -39,6 +40,8 @@ func TestGroupStore(t *testing.T, ss store.Store) {
 
 	t.Run("GetGroupsByChannel", func(t *testing.T) { testGetGroupsByChannel(t, ss) })
 	t.Run("GetGroupsByTeam", func(t *testing.T) { testGetGroupsByTeam(t, ss) })
+
+	t.Run("GetGroups", func(t *testing.T) { testGetGroups(t, ss) })
 }
 
 func testGroupStoreCreate(t *testing.T, ss store.Store) {
@@ -1762,11 +1765,28 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 	})
 	require.Nil(t, res.Err)
 
+	// add members
+	u1 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	res = <-ss.User().Save(u1)
+	require.Nil(t, res.Err)
+	user1 := res.Data.(*model.User)
+	<-ss.Group().CreateOrRestoreMember(group1.Id, user1.Id)
+
+	group1WithMemberCount := model.Group(*group1)
+	group1WithMemberCount.MemberCount = model.NewInt(1)
+
+	group2WithMemberCount := model.Group(*group2)
+	group2WithMemberCount.MemberCount = model.NewInt(0)
+
 	testCases := []struct {
 		Name    string
 		TeamId  string
 		Page    int
 		PerPage int
+		Opts    model.GroupSearchOpts
 		Result  []*model.Group
 	}{
 		{
@@ -1804,13 +1824,229 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 			PerPage: 60,
 			Result:  []*model.Group{},
 		},
+		{
+			Name:    "Get group matching name",
+			TeamId:  team1.Id,
+			Opts:    model.GroupSearchOpts{Q: string([]rune(group1.Name)[2:10])}, // very low change of a name collision
+			Page:    0,
+			PerPage: 100,
+			Result:  []*model.Group{group1},
+		},
+		{
+			Name:    "Get group matching display name",
+			TeamId:  team1.Id,
+			Opts:    model.GroupSearchOpts{Q: "rouP-1"},
+			Page:    0,
+			PerPage: 100,
+			Result:  []*model.Group{group1},
+		},
+		{
+			Name:    "Get group matching multiple display names",
+			TeamId:  team1.Id,
+			Opts:    model.GroupSearchOpts{Q: "roUp-"},
+			Page:    0,
+			PerPage: 100,
+			Result:  []*model.Group{group1, group2},
+		},
+		{
+			Name:    "Include member counts",
+			TeamId:  team1.Id,
+			Opts:    model.GroupSearchOpts{IncludeMemberCount: true},
+			Page:    0,
+			PerPage: 2,
+			Result:  []*model.Group{&group1WithMemberCount, &group2WithMemberCount},
+		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			res := <-ss.Group().GetGroupsByTeam(tc.TeamId, tc.Page, tc.PerPage)
+			if tc.Opts.PageOpts != nil {
+				tc.Opts.PageOpts.Page = tc.Page
+				tc.Opts.PageOpts.PerPage = tc.PerPage
+			}
+			res := <-ss.Group().GetGroupsByTeam(tc.TeamId, tc.Opts)
 			require.Nil(t, res.Err)
-			require.ElementsMatch(t, tc.Result, res.Data.([]*model.Group))
+			groups := res.Data.([]*model.Group)
+			require.ElementsMatch(t, tc.Result, groups, fmt.Sprintf("Test %q failed", tc.Name))
+		})
+	}
+}
+
+func testGetGroups(t *testing.T, ss store.Store) {
+	// Create Team1
+	team1 := &model.Team{
+		DisplayName:     "Team1",
+		Description:     model.NewId(),
+		CompanyName:     model.NewId(),
+		AllowOpenInvite: false,
+		InviteId:        model.NewId(),
+		Name:            model.NewId(),
+		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
+		Type:            model.TEAM_OPEN,
+	}
+	team1, err := ss.Team().Save(team1)
+	require.Nil(t, err)
+
+	// Create Groups 1 and 2
+	res := <-ss.Group().Create(&model.Group{
+		Name:        model.NewId(),
+		DisplayName: "group-1",
+		RemoteId:    model.NewId(),
+		Source:      model.GroupSourceLdap,
+	})
+	require.Nil(t, res.Err)
+	group1 := res.Data.(*model.Group)
+
+	res = <-ss.Group().Create(&model.Group{
+		Name:        model.NewId(),
+		DisplayName: "group-2",
+		RemoteId:    model.NewId(),
+		Source:      model.GroupSourceLdap,
+	})
+	require.Nil(t, res.Err)
+	group2 := res.Data.(*model.Group)
+
+	// And associate them with Team1
+	for _, g := range []*model.Group{group1, group2} {
+		res = <-ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+			AutoAdd:    true,
+			SyncableId: team1.Id,
+			Type:       model.GroupSyncableTypeTeam,
+			GroupId:    g.Id,
+		})
+		require.Nil(t, res.Err)
+	}
+
+	// Create Team2
+	team2 := &model.Team{
+		DisplayName:     "Team2",
+		Description:     model.NewId(),
+		CompanyName:     model.NewId(),
+		AllowOpenInvite: false,
+		InviteId:        model.NewId(),
+		Name:            model.NewId(),
+		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
+		Type:            model.TEAM_INVITE,
+	}
+	team2, err = ss.Team().Save(team2)
+	require.Nil(t, err)
+
+	// Create Group3
+	res = <-ss.Group().Create(&model.Group{
+		Name:        model.NewId(),
+		DisplayName: "group-3",
+		RemoteId:    model.NewId(),
+		Source:      model.GroupSourceLdap,
+	})
+	require.Nil(t, res.Err)
+	group3 := res.Data.(*model.Group)
+
+	// And associate it to Team2
+	res = <-ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+		AutoAdd:    true,
+		SyncableId: team2.Id,
+		Type:       model.GroupSyncableTypeTeam,
+		GroupId:    group3.Id,
+	})
+	require.Nil(t, res.Err)
+
+	// add members
+	u1 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	res = <-ss.User().Save(u1)
+	require.Nil(t, res.Err)
+	user1 := res.Data.(*model.User)
+	<-ss.Group().CreateOrRestoreMember(group1.Id, user1.Id)
+
+	group1WithMemberCount := model.Group(*group1)
+	group1WithMemberCount.MemberCount = model.NewInt(1)
+
+	group2WithMemberCount := model.Group(*group2)
+	group2WithMemberCount.MemberCount = model.NewInt(0)
+
+	testCases := []struct {
+		Name    string
+		Page    int
+		PerPage int
+		Opts    model.GroupSearchOpts
+		Result  []*model.Group
+	}{
+		{
+			Name:    "Get all the Groups",
+			Page:    0,
+			PerPage: 60,
+			Result:  []*model.Group{group1, group2, group3},
+		},
+		{
+			Name:    "Get first Group with page 0 with 1 element",
+			Page:    0,
+			PerPage: 1,
+			Result:  []*model.Group{group1},
+		},
+		{
+			Name:    "Get second Group with page 1 with 1 element",
+			Page:    1,
+			PerPage: 1,
+			Result:  []*model.Group{group2},
+		},
+		{
+			Name:    "Get third Group",
+			Page:    1,
+			PerPage: 2,
+			Result:  []*model.Group{group3},
+		},
+		{
+			Name:    "Get group matching name",
+			Opts:    model.GroupSearchOpts{Q: string([]rune(group2.Name)[2:20])}, // very low change of a name collision
+			Page:    0,
+			PerPage: 100,
+			Result:  []*model.Group{group2},
+		},
+		{
+			Name:    "Get group matching display name",
+			Opts:    model.GroupSearchOpts{Q: "rouP-3"},
+			Page:    0,
+			PerPage: 100,
+			Result:  []*model.Group{group3},
+		},
+		{
+			Name:    "Get group matching multiple display names",
+			Opts:    model.GroupSearchOpts{Q: "groUp"},
+			Page:    0,
+			PerPage: 100,
+			Result:  []*model.Group{group1, group2, group3},
+		},
+		{
+			Name:    "Include member counts",
+			Opts:    model.GroupSearchOpts{IncludeMemberCount: true},
+			Page:    0,
+			PerPage: 2,
+			Result:  []*model.Group{&group1WithMemberCount, &group2WithMemberCount},
+		},
+		{
+			Name:    "Not associated to team",
+			Opts:    model.GroupSearchOpts{NotAssociatedToTeam: team2.Id},
+			Page:    0,
+			PerPage: 100,
+			Result:  []*model.Group{group1, group2},
+		},
+		{
+			Name:    "Not associated to other team",
+			Opts:    model.GroupSearchOpts{NotAssociatedToTeam: team1.Id},
+			Page:    0,
+			PerPage: 100,
+			Result:  []*model.Group{group3},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			res := <-ss.Group().GetGroups(tc.Page, tc.PerPage, tc.Opts)
+			require.Nil(t, res.Err)
+			groups := res.Data.([]*model.Group)
+			require.ElementsMatch(t, tc.Result, groups, fmt.Sprintf("Test %q failed", tc.Name))
 		})
 	}
 }

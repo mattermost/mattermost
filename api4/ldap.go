@@ -78,7 +78,7 @@ func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	opts := model.GroupSearchOpts{
+	opts := model.LdapGroupSearchOpts{
 		Q: c.Params.Q,
 	}
 	if c.Params.IsLinked != nil {
