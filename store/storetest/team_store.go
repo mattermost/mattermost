@@ -1012,7 +1012,8 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 	}
 
 	// Deactivating a user should make them stop counting against max members
-	user2 := store.Must(ss.User().Get(userIds[1])).(*model.User)
+	user2, err := ss.User().Get(userIds[1])
+	require.Nil(t, err)
 	user2.DeleteAt = 1234
 	store.Must(ss.User().Update(user2, true))
 

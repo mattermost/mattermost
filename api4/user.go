@@ -1192,6 +1192,17 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAuditWithUserId(user.Id, "success")
 
+	userTermsOfService, err := c.App.GetUserTermsOfService(user.Id)
+	if err != nil && err.StatusCode != http.StatusNotFound {
+		c.Err = err
+		return
+	}
+
+	if userTermsOfService != nil {
+		user.TermsOfServiceId = userTermsOfService.TermsOfServiceId
+		user.TermsOfServiceCreateAt = userTermsOfService.CreateAt
+	}
+
 	c.App.Session = *session
 
 	user.Sanitize(map[string]bool{})

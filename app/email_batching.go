@@ -199,26 +199,24 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 }
 
 func (s *Server) sendBatchedEmailNotification(userId string, notifications []*batchedNotification) {
-	result := <-s.Store.User().Get(userId)
-	if result.Err != nil {
+	user, err := s.Store.User().Get(userId)
+	if err != nil {
 		mlog.Warn("Unable to find recipient for batched email notification")
 		return
 	}
-	user := result.Data.(*model.User)
 
 	translateFunc := utils.GetUserTranslations(user.Locale)
 	displayNameFormat := *s.Config().TeamSettings.TeammateNameDisplay
 
 	var contents string
 	for _, notification := range notifications {
-		result := <-s.Store.User().Get(notification.post.UserId)
-		if result.Err != nil {
+		sender, err := s.Store.User().Get(notification.post.UserId)
+		if err != nil {
 			mlog.Warn("Unable to find sender of post for batched email notification")
 			continue
 		}
-		sender := result.Data.(*model.User)
 
-		result = <-s.Store.Channel().Get(notification.post.ChannelId, true)
+		result := <-s.Store.Channel().Get(notification.post.ChannelId, true)
 		if result.Err != nil {
 			mlog.Warn("Unable to find channel of post for batched email notification")
 			continue

@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"testing"
@@ -502,4 +503,63 @@ func (me *TestHelper) SetupPluginAPI() *PluginAPI {
 	}
 
 	return NewPluginAPI(me.App, manifest)
+}
+
+func (me *TestHelper) RemovePermissionFromRole(permission string, roleName string) {
+	utils.DisableDebugLogForTest()
+
+	role, err1 := me.App.GetRoleByName(roleName)
+	if err1 != nil {
+		utils.EnableDebugLogForTest()
+		panic(err1)
+	}
+
+	var newPermissions []string
+	for _, p := range role.Permissions {
+		if p != permission {
+			newPermissions = append(newPermissions, p)
+		}
+	}
+
+	if strings.Join(role.Permissions, " ") == strings.Join(newPermissions, " ") {
+		utils.EnableDebugLogForTest()
+		return
+	}
+
+	role.Permissions = newPermissions
+
+	_, err2 := me.App.UpdateRole(role)
+	if err2 != nil {
+		utils.EnableDebugLogForTest()
+		panic(err2)
+	}
+
+	utils.EnableDebugLogForTest()
+}
+
+func (me *TestHelper) AddPermissionToRole(permission string, roleName string) {
+	utils.DisableDebugLogForTest()
+
+	role, err1 := me.App.GetRoleByName(roleName)
+	if err1 != nil {
+		utils.EnableDebugLogForTest()
+		panic(err1)
+	}
+
+	for _, existingPermission := range role.Permissions {
+		if existingPermission == permission {
+			utils.EnableDebugLogForTest()
+			return
+		}
+	}
+
+	role.Permissions = append(role.Permissions, permission)
+
+	_, err2 := me.App.UpdateRole(role)
+	if err2 != nil {
+		utils.EnableDebugLogForTest()
+		panic(err2)
+	}
+
+	utils.EnableDebugLogForTest()
 }

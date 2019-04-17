@@ -167,6 +167,10 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		oldChannel.Type = channel.Type
 	}
 
+	if channel.GroupConstrained != nil {
+		oldChannel.GroupConstrained = channel.GroupConstrained
+	}
+
 	if _, err := c.App.UpdateChannel(oldChannel); err != nil {
 		c.Err = err
 		return
@@ -1174,6 +1178,22 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if channel.GroupConstrained != nil && *channel.GroupConstrained {
+		nonMembers, err := c.App.FilterNonGroupChannelMembers([]string{member.UserId}, channel)
+		if err != nil {
+			if v, ok := err.(*model.AppError); ok {
+				c.Err = v
+			} else {
+				c.Err = model.NewAppError("addChannelMember", "api.channel.add_members.error", nil, err.Error(), http.StatusBadRequest)
+			}
+			return
+		}
+		if len(nonMembers) > 0 {
+			c.Err = model.NewAppError("addChannelMember", "api.channel.add_members.user_denied", map[string]interface{}{"UserIDs": nonMembers}, "", http.StatusBadRequest)
+			return
+		}
+	}
+
 	cm, err := c.App.AddChannelMember(member.UserId, channel, c.App.Session.UserId, postRootId, c.App.Session.Id)
 	if err != nil {
 		c.Err = err
@@ -1199,6 +1219,11 @@ func removeChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !(channel.Type == model.CHANNEL_OPEN || channel.Type == model.CHANNEL_PRIVATE) {
 		c.Err = model.NewAppError("removeChannelMember", "api.channel.remove_channel_member.type.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if channel.GroupConstrained != nil && *channel.GroupConstrained && (c.Params.UserId != c.App.Session.UserId) {
+		c.Err = model.NewAppError("removeChannelMember", "api.channel.remove_member.group_constrained.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 

@@ -139,6 +139,15 @@ func TestCreateChannel(t *testing.T) {
 			t.Fatal("wrong status code")
 		}
 	}
+
+	// Test GroupConstrained flag
+	groupConstrainedChannel := &model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.CHANNEL_OPEN, TeamId: team.Id, GroupConstrained: model.NewBool(true)}
+	rchannel, resp = Client.CreateChannel(groupConstrainedChannel)
+	CheckNoError(t, resp)
+
+	if *rchannel.GroupConstrained != *groupConstrainedChannel.GroupConstrained {
+		t.Fatal("GroupConstrained flags do not match")
+	}
 }
 
 func TestUpdateChannel(t *testing.T) {
@@ -171,6 +180,16 @@ func TestUpdateChannel(t *testing.T) {
 
 	if newChannel.Purpose != channel.Purpose {
 		t.Fatal("Update failed for Purpose")
+	}
+
+	// Test GroupConstrained flag
+	channel.GroupConstrained = model.NewBool(true)
+	rchannel, resp := Client.UpdateChannel(channel)
+	CheckNoError(t, resp)
+	CheckOKStatus(t, resp)
+
+	if *rchannel.GroupConstrained != *channel.GroupConstrained {
+		t.Fatal("GroupConstrained flags do not match")
 	}
 
 	//Update a private channel
@@ -280,6 +299,17 @@ func TestPatchChannel(t *testing.T) {
 	if channel.Name != oldName {
 		t.Fatal("should not have updated")
 	}
+
+	// Test GroupConstrained flag
+	patch.GroupConstrained = model.NewBool(true)
+	rchannel, resp := Client.PatchChannel(th.BasicChannel.Id, patch)
+	CheckNoError(t, resp)
+	CheckOKStatus(t, resp)
+
+	if *rchannel.GroupConstrained != *patch.GroupConstrained {
+		t.Fatal("GroupConstrained flags do not match")
+	}
+	patch.GroupConstrained = nil
 
 	_, resp = Client.PatchChannel("junk", patch)
 	CheckBadRequestStatus(t, resp)
@@ -1001,8 +1031,8 @@ func TestDeleteChannel2(t *testing.T) {
 		th.RestoreDefaultRolePermissions(defaultRolePermissions)
 	}()
 
-	th.AddPermissionToRole(model.PERMISSION_DELETE_PUBLIC_CHANNEL.Id, model.TEAM_USER_ROLE_ID)
-	th.AddPermissionToRole(model.PERMISSION_DELETE_PRIVATE_CHANNEL.Id, model.TEAM_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PERMISSION_DELETE_PUBLIC_CHANNEL.Id, model.CHANNEL_USER_ROLE_ID)
+	th.AddPermissionToRole(model.PERMISSION_DELETE_PRIVATE_CHANNEL.Id, model.CHANNEL_USER_ROLE_ID)
 
 	// channels created by SystemAdmin
 	publicChannel6 := th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_OPEN)
@@ -1019,8 +1049,8 @@ func TestDeleteChannel2(t *testing.T) {
 	CheckNoError(t, resp)
 
 	// Restrict permissions to Channel Admins
-	th.RemovePermissionFromRole(model.PERMISSION_DELETE_PUBLIC_CHANNEL.Id, model.TEAM_USER_ROLE_ID)
-	th.RemovePermissionFromRole(model.PERMISSION_DELETE_PRIVATE_CHANNEL.Id, model.TEAM_USER_ROLE_ID)
+	th.RemovePermissionFromRole(model.PERMISSION_DELETE_PUBLIC_CHANNEL.Id, model.CHANNEL_USER_ROLE_ID)
+	th.RemovePermissionFromRole(model.PERMISSION_DELETE_PRIVATE_CHANNEL.Id, model.CHANNEL_USER_ROLE_ID)
 	th.AddPermissionToRole(model.PERMISSION_DELETE_PUBLIC_CHANNEL.Id, model.CHANNEL_ADMIN_ROLE_ID)
 	th.AddPermissionToRole(model.PERMISSION_DELETE_PRIVATE_CHANNEL.Id, model.CHANNEL_ADMIN_ROLE_ID)
 
@@ -2021,6 +2051,30 @@ func TestAddChannelMember(t *testing.T) {
 	_, resp = Client.AddChannelMember(privateChannel.Id, user3.Id)
 	CheckNoError(t, resp)
 	Client.Logout()
+
+	// Set a channel to group-constrained
+	privateChannel.GroupConstrained = model.NewBool(true)
+	_, appErr := th.App.UpdateChannel(privateChannel)
+	require.Nil(t, appErr)
+
+	// User is not in associated groups so shouldn't be allowed
+	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user.Id)
+	CheckErrorMessage(t, resp, "api.channel.add_members.user_denied")
+
+	// Associate group to team
+	_, appErr = th.App.CreateGroupSyncable(&model.GroupSyncable{
+		GroupId:    th.Group.Id,
+		SyncableId: privateChannel.Id,
+		Type:       model.GroupSyncableTypeChannel,
+	})
+	require.Nil(t, appErr)
+
+	// Add user to group
+	_, appErr = th.App.CreateOrRestoreGroupMember(th.Group.Id, user.Id)
+	require.Nil(t, appErr)
+
+	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user.Id)
+	CheckNoError(t, resp)
 }
 
 func TestAddChannelMemberAddMyself(t *testing.T) {
@@ -2202,6 +2256,20 @@ func TestRemoveChannelMember(t *testing.T) {
 	th.App.InvalidateAllCaches()
 
 	_, resp = Client.RemoveUserFromChannel(privateChannel.Id, user2.Id)
+	CheckNoError(t, resp)
+
+	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, th.SystemAdminUser.Id)
+	CheckNoError(t, resp)
+
+	// If the channel is group-constrained the user cannot be removed
+	privateChannel.GroupConstrained = model.NewBool(true)
+	_, err := th.App.UpdateChannel(privateChannel)
+	require.Nil(t, err)
+	_, resp = Client.RemoveUserFromChannel(privateChannel.Id, user2.Id)
+	require.Equal(t, "api.channel.remove_member.group_constrained.app_error", resp.Error.Id)
+
+	// If the channel is group-constrained user can remove self
+	_, resp = th.SystemAdminClient.RemoveUserFromChannel(privateChannel.Id, th.SystemAdminUser.Id)
 	CheckNoError(t, resp)
 
 	// Test on preventing removal of user from a direct channel

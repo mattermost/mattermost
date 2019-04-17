@@ -560,6 +560,21 @@ nuke: clean clean-docker ## Clean plus removes persistant server data.
 setup-mac: ## Adds macOS hosts entries for Docker.
 	echo $$(boot2docker ip 2> /dev/null) dockerhost | sudo tee -a /etc/hosts
 
+update-dependencies: ## Uses go get -u to update all the dependencies while holding back any that require it. 
+	@echo Updating Dependencies
+
+	# Update all dependencies (does not update across major versions)
+	go get -u
+
+	# Keep back because of breaking API changes
+	go get -u github.com/segmentio/analytics-go@2.1.1
+
+	# Tidy up
+	go mod tidy
+
+	# Copy everything to vendor directory
+	go mod vendor
+
 
 todo: ## Display TODO and FIXME items in the source code.
 	@! ag --ignore Makefile --ignore-dir vendor --ignore-dir runtime TODO
