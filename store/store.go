@@ -524,6 +524,7 @@ type UserAccessTokenStore interface {
 
 type PluginStore interface {
 	SaveOrUpdate(keyVal *model.PluginKeyValue) StoreChannel
+	CompareAndUpdate(keyVal *model.PluginKeyValue, oldValue []byte) StoreChannel
 	Get(pluginId, key string) StoreChannel
 	Delete(pluginId, key string) StoreChannel
 	DeleteAllForPlugin(PluginId string) StoreChannel

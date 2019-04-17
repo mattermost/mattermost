@@ -125,6 +125,34 @@ func TestPluginKeyValueStore(t *testing.T) {
 	assert.Equal(t, []string{"key", "key3", "key4", hashedKey2}, list)
 }
 
+func TestPluginKeyValueStoreCompareAndUpdate(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	pluginId := "testpluginid"
+
+	defer func() {
+		assert.Nil(t, th.App.DeletePluginKey(pluginId, "key"))
+	}()
+
+	assert.Nil(t, th.App.SetPluginKey(pluginId, "key", []byte("test")))
+	ret, err := th.App.GetPluginKey(pluginId, "key")
+	assert.Nil(t, err)
+	assert.Equal(t, []byte("test"), ret)
+
+	// Test updating using correct old value
+	assert.Nil(t, th.App.CompareAndSetPluginKey(pluginId, "key", []byte("test"), []byte("test2")))
+	ret, err = th.App.GetPluginKey(pluginId, "key")
+	assert.Nil(t, err)
+	assert.Equal(t, []byte("test2"), ret)
+
+	// Test updating using incorrect old value
+	assert.NotNil(t, th.App.CompareAndSetPluginKey(pluginId, "key", []byte("oldvalue"), []byte("test3")))
+	ret, err = th.App.GetPluginKey(pluginId, "key")
+	assert.Nil(t, err)
+	assert.Equal(t, []byte("test2"), ret)
+}
+
 func TestServePluginRequest(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()

@@ -3490,6 +3490,36 @@ func (s *apiRPCServer) KVSet(args *Z_KVSetArgs, returns *Z_KVSetReturns) error {
 	return nil
 }
 
+type Z_KVCompareAndSetArgs struct {
+	A string
+	B []byte
+	C []byte
+}
+
+type Z_KVCompareAndSetReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) KVCompareAndSet(key string, oldValue, newValue []byte) *model.AppError {
+	_args := &Z_KVCompareAndSetArgs{key, oldValue, newValue}
+	_returns := &Z_KVCompareAndSetReturns{}
+	if err := g.client.Call("Plugin.KVCompareAndSet", _args, _returns); err != nil {
+		log.Printf("RPC call to KVCompareAndSet API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) KVCompareAndSet(args *Z_KVCompareAndSetArgs, returns *Z_KVCompareAndSetReturns) error {
+	if hook, ok := s.impl.(interface {
+		KVCompareAndSet(key string, oldValue, newValue []byte) *model.AppError
+	}); ok {
+		returns.A = hook.KVCompareAndSet(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API KVCompareAndSet called but not implemented."))
+	}
+	return nil
+}
+
 type Z_KVSetWithExpiryArgs struct {
 	A string
 	B []byte

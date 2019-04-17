@@ -12,6 +12,7 @@ import (
 	"image/color"
 	"image/png"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"path"
 	"path/filepath"
@@ -657,5 +658,82 @@ func TestBasicAPIPlugins(t *testing.T) {
 				assert.NoError(t, err)
 			})
 		}
+	}
+}
+
+func TestPluginAPIKVCompareAndSet(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	testCases := []struct {
+		Description   string
+		ExpectedValue []byte
+	}{
+		{
+			Description:   "Testing non-nil, non-empty value",
+			ExpectedValue: []byte("value1"),
+		},
+		{
+			Description:   "Testing empty value",
+			ExpectedValue: []byte(""),
+		},
+	}
+
+	for i, testCase := range testCases {
+		t.Run(testCase.Description, func(t *testing.T) {
+			expectedKey := fmt.Sprintf("Key%d", i)
+			expectedValueEmpty := []byte("")
+			expectedValue1 := testCase.ExpectedValue
+			expectedValue2 := []byte("value2")
+			expectedValue3 := []byte("value3")
+
+			// Make sure no key is already created
+			value, err := api.KVGet(expectedKey)
+			require.Nil(t, err)
+			require.Nil(t, value)
+
+			require.Nil(t, api.KVSet(expectedKey, expectedValue1))
+			value, err = api.KVGet(expectedKey)
+			require.Nil(t, err)
+			require.Equal(t, expectedValue1, value)
+
+			// Update using correct old value
+			require.Nil(t, api.KVCompareAndSet(expectedKey, expectedValue1, expectedValue2))
+
+			value, err = api.KVGet(expectedKey)
+			require.Nil(t, err)
+			require.Equal(t, expectedValue2, value)
+
+			// Update using incorrect old value
+			err = api.KVCompareAndSet(expectedKey, []byte("incorrect"), expectedValue3)
+			require.NotNil(t, err)
+			require.Contains(t, err.Error(), "no rows were affected")
+			require.Equal(t, err.StatusCode, http.StatusNotModified)
+
+			value, err = api.KVGet(expectedKey)
+			require.Nil(t, err)
+			require.Equal(t, expectedValue2, value)
+
+			// Update using nil old value
+			err = api.KVCompareAndSet(expectedKey, nil, expectedValue3)
+			require.NotNil(t, err)
+			require.Contains(t, err.Error(), "no rows were affected")
+			require.Equal(t, err.StatusCode, http.StatusNotModified)
+
+			value, err = api.KVGet(expectedKey)
+			require.Nil(t, err)
+			require.Equal(t, expectedValue2, value)
+
+			// Update using empty old value
+			err = api.KVCompareAndSet(expectedKey, expectedValueEmpty, expectedValue3)
+			require.NotNil(t, err)
+			require.Contains(t, err.Error(), "no rows were affected")
+			require.Equal(t, err.StatusCode, http.StatusNotModified)
+
+			value, err = api.KVGet(expectedKey)
+			require.Nil(t, err)
+			require.Equal(t, expectedValue2, value)
+		})
 	}
 }

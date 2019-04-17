@@ -13,6 +13,22 @@ type PluginStore struct {
 	mock.Mock
 }
 
+// CompareAndUpdate provides a mock function with given fields: keyVal, oldValue
+func (_m *PluginStore) CompareAndUpdate(keyVal *model.PluginKeyValue, oldValue []byte) store.StoreChannel {
+	ret := _m.Called(keyVal, oldValue)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(*model.PluginKeyValue, []byte) store.StoreChannel); ok {
+		r0 = rf(keyVal, oldValue)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // Delete provides a mock function with given fields: pluginId, key
 func (_m *PluginStore) Delete(pluginId string, key string) store.StoreChannel {
 	ret := _m.Called(pluginId, key)
