@@ -17,7 +17,7 @@ import (
 	"github.com/mattermost/mattermost-server/config"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
-	"github.com/mattermost/mattermost-server/utils/fileutils"
+	"github.com/mattermost/viper"
 )
 
 var ConfigCmd = &cobra.Command{
@@ -68,8 +68,19 @@ var ConfigSetCmd = &cobra.Command{
 	RunE:    configSetCmdF,
 }
 
+var MigrateConfigCmd = &cobra.Command{
+	Use:     "migrate",
+	Short:   "Migrate existing config between backends",
+	Long:    "Migrate a file-based configuration to (or from) a database-based configuration. Point the Mattermost server at the target configuration to start using it",
+	Example: `config migrate --from=path/to/config.json --to="postgres://mmuser:mostest@dockerhost:5432/mattermost_test?sslmode=disable&connect_timeout=10"`,
+	RunE:    configMigrateCmdF,
+}
+
 func init() {
 	ConfigSubpathCmd.Flags().String("path", "", "Optional subpath; defaults to value in SiteURL")
+	MigrateConfigCmd.Flags().String("from", "", "Config from which to migrate")
+	MigrateConfigCmd.Flags().String("to", "", "Config to which to migrate")
+	MigrateConfigCmd.MarkFlagRequired("to")
 
 	ConfigCmd.AddCommand(
 		ValidateConfigCmd,
@@ -77,6 +88,7 @@ func init() {
 		ConfigGetCmd,
 		ConfigShowCmd,
 		ConfigSetCmd,
+		MigrateConfigCmd,
 	)
 	RootCmd.AddCommand(ConfigCmd)
 }
@@ -84,31 +96,10 @@ func init() {
 func configValidateCmdF(command *cobra.Command, args []string) error {
 	utils.TranslationsPreInit()
 	model.AppErrorInit(utils.T)
-	filePath, err := command.Flags().GetString("config")
+
+	_, err := getConfigStore(command)
 	if err != nil {
 		return err
-	}
-
-	filePath = fileutils.FindConfigFile(filePath)
-
-	file, err := os.Open(filePath)
-	if err != nil {
-		return err
-	}
-
-	decoder := json.NewDecoder(file)
-	config := model.Config{}
-	err = decoder.Decode(&config)
-	if err != nil {
-		return err
-	}
-
-	if _, err := file.Stat(); err != nil {
-		return err
-	}
-
-	if err := config.IsValid(); err != nil {
-		return errors.New(utils.T(err.Id))
 	}
 
 	CommandPrettyPrintln("The document is valid")
@@ -143,10 +134,7 @@ func getConfigStore(command *cobra.Command) (config.Store, error) {
 		return nil, errors.Wrap(err, "failed to initialize i18n")
 	}
 
-	configDSN, err := command.Flags().GetString("config")
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to parse --config flag")
-	}
+	configDSN := viper.GetString("config")
 
 	configStore, err := config.NewStore(configDSN, false)
 	if err != nil {
@@ -226,9 +214,6 @@ func configSetCmdF(command *cobra.Command, args []string) error {
 
 	f := updateConfigValue(configSetting, newVal, oldConfig, newConfig)
 	f(newConfig)
-	if _, err := configStore.Set(newConfig); err != nil {
-		return errors.Wrap(err, "failed to set config")
-	}
 
 	// UpdateConfig above would have already fixed these invalid locales, but we check again
 	// in the context of an explicit change to these parameters to avoid saving the fixed
@@ -237,7 +222,43 @@ func configSetCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Invalid locale configuration")
 	}
 
-	configStore.Save()
+	if _, err := configStore.Set(newConfig); err != nil {
+		return errors.Wrap(err, "failed to set config")
+	}
+
+	return nil
+}
+
+func configMigrateCmdF(command *cobra.Command, args []string) error {
+	// Parse source config; defaults to global --config unless overwritten by --from
+	from, err := command.Flags().GetString("from")
+	if err != nil {
+		return errors.Wrap(err, "failed reading source config parameter")
+	}
+	if from == "" {
+		from = viper.GetString("config")
+	}
+
+	// Parse destination config store - MarkFlagRequired handles errors here
+	to, _ := command.Flags().GetString("to")
+
+	// Get source config store - invalid config will throw error here
+	fromConfigStore, err := config.NewStore(from, false)
+	if err != nil {
+		return errors.Wrap(err, "failed to read --from config")
+	}
+
+	// Get destination config store
+	toConfigStore, err := config.NewStore(to, false)
+	if err != nil {
+		return errors.Wrap(err, "failed to read --to config")
+	}
+
+	// Copy config from source to destination
+	_, err = toConfigStore.Set(fromConfigStore.Get())
+	if err != nil {
+		return errors.Wrap(err, "failed to migrate config")
+	}
 
 	return nil
 }

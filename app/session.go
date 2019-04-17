@@ -9,6 +9,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/store"
 )
 
 func (a *App) CreateSession(session *model.Session) (*model.Session, *model.AppError) {
@@ -76,14 +77,13 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 		return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]interface{}{"Token": token}, "", http.StatusUnauthorized)
 	}
 
-	license := a.License()
-	if *a.Config().ServiceSettings.SessionIdleTimeoutInMinutes > 0 &&
-		license != nil && *license.Features.Compliance &&
-		session != nil && !session.IsOAuth && !session.IsMobileApp() &&
+	if session != nil &&
+		*a.Config().ServiceSettings.SessionIdleTimeoutInMinutes > 0 &&
+		!session.IsOAuth &&
 		session.Props[model.SESSION_PROP_TYPE] != model.SESSION_TYPE_USER_ACCESS_TOKEN {
 
 		timeout := int64(*a.Config().ServiceSettings.SessionIdleTimeoutInMinutes) * 1000 * 60
-		if model.GetMillis()-session.LastActivityAt > timeout {
+		if (model.GetMillis() - session.LastActivityAt) > timeout {
 			a.RevokeSessionById(session.Id)
 			return nil, model.NewAppError("GetSession", "api.context.invalid_token.error", map[string]interface{}{"Token": token}, "idle timeout", http.StatusUnauthorized)
 		}
@@ -248,7 +248,12 @@ func (a *App) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAc
 
 	token.Token = model.NewId()
 
-	uchan := a.Srv.Store.User().Get(token.UserId)
+	uchan := make(chan store.StoreResult, 1)
+	go func() {
+		user, err := a.Srv.Store.User().Get(token.UserId)
+		uchan <- store.StoreResult{Data: user, Err: err}
+		close(uchan)
+	}()
 
 	result := <-a.Srv.Store.UserAccessToken().Save(token)
 	if result.Err != nil {
@@ -285,12 +290,10 @@ func (a *App) createSessionForUserAccessToken(tokenString string) (*model.Sessio
 		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, "inactive_token", http.StatusUnauthorized)
 	}
 
-	var user *model.User
-	result = <-a.Srv.Store.User().Get(token.UserId)
-	if result.Err != nil {
-		return nil, result.Err
+	user, err := a.Srv.Store.User().Get(token.UserId)
+	if err != nil {
+		return nil, err
 	}
-	user = result.Data.(*model.User)
 
 	if user.DeleteAt != 0 {
 		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, "inactive_user_id="+user.Id, http.StatusUnauthorized)

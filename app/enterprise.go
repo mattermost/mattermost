@@ -7,12 +7,13 @@ import (
 	"github.com/mattermost/mattermost-server/einterfaces"
 	ejobs "github.com/mattermost/mattermost-server/einterfaces/jobs"
 	tjobs "github.com/mattermost/mattermost-server/jobs/interfaces"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
 
-var accountMigrationInterface func(*App) einterfaces.AccountMigrationInterface
+var accountMigrationInterface func(*Server) einterfaces.AccountMigrationInterface
 
-func RegisterAccountMigrationInterface(f func(*App) einterfaces.AccountMigrationInterface) {
+func RegisterAccountMigrationInterface(f func(*Server) einterfaces.AccountMigrationInterface) {
 	accountMigrationInterface = f
 }
 
@@ -108,7 +109,7 @@ func RegisterSamlInterface(f func(*App) einterfaces.SamlInterface) {
 
 func (s *Server) initEnterprise() {
 	if accountMigrationInterface != nil {
-		s.AccountMigration = accountMigrationInterface(s.FakeApp())
+		s.AccountMigration = accountMigrationInterface(s)
 	}
 	if complianceInterface != nil {
 		s.Compliance = complianceInterface(s.FakeApp())
@@ -128,7 +129,9 @@ func (s *Server) initEnterprise() {
 	if samlInterface != nil {
 		s.Saml = samlInterface(s.FakeApp())
 		s.AddConfigListener(func(_, cfg *model.Config) {
-			s.Saml.ConfigureSP()
+			if err := s.Saml.ConfigureSP(); err != nil {
+				mlog.Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
+			}
 		})
 	}
 	if dataRetentionInterface != nil {

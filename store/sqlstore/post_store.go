@@ -11,6 +11,7 @@ import (
 	"strings"
 	"sync"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -119,10 +120,10 @@ func (s *SqlPostStore) Save(post *model.Post) store.StoreChannel {
 				post.Type != model.POST_JOIN_TEAM && post.Type != model.POST_LEAVE_TEAM &&
 				post.Type != model.POST_ADD_TO_CHANNEL && post.Type != model.POST_REMOVE_FROM_CHANNEL &&
 				post.Type != model.POST_ADD_TO_TEAM && post.Type != model.POST_REMOVE_FROM_TEAM {
-				s.GetMaster().Exec("UPDATE Channels SET LastPostAt = :LastPostAt, TotalMsgCount = TotalMsgCount + 1 WHERE Id = :ChannelId", map[string]interface{}{"LastPostAt": time, "ChannelId": post.ChannelId})
+				s.GetMaster().Exec("UPDATE Channels SET LastPostAt = GREATEST(:LastPostAt, LastPostAt), TotalMsgCount = TotalMsgCount + 1 WHERE Id = :ChannelId", map[string]interface{}{"LastPostAt": time, "ChannelId": post.ChannelId})
 			} else {
 				// don't update TotalMsgCount for unimportant messages so that the channel isn't marked as unread
-				s.GetMaster().Exec("UPDATE Channels SET LastPostAt = :LastPostAt WHERE Id = :ChannelId", map[string]interface{}{"LastPostAt": time, "ChannelId": post.ChannelId})
+				s.GetMaster().Exec("UPDATE Channels SET LastPostAt = :LastPostAt WHERE Id = :ChannelId AND LastPostAt < :LastPostAt", map[string]interface{}{"LastPostAt": time, "ChannelId": post.ChannelId})
 			}
 
 			if len(post.RootId) > 0 {
@@ -161,10 +162,10 @@ func (s *SqlPostStore) Update(newPost *model.Post, oldPost *model.Post) store.St
 			result.Err = model.NewAppError("SqlPostStore.Update", "store.sql_post.update.app_error", nil, "id="+newPost.Id+", "+err.Error(), http.StatusInternalServerError)
 		} else {
 			time := model.GetMillis()
-			s.GetMaster().Exec("UPDATE Channels SET LastPostAt = :LastPostAt  WHERE Id = :ChannelId", map[string]interface{}{"LastPostAt": time, "ChannelId": newPost.ChannelId})
+			s.GetMaster().Exec("UPDATE Channels SET LastPostAt = :LastPostAt  WHERE Id = :ChannelId AND LastPostAt < :LastPostAt", map[string]interface{}{"LastPostAt": time, "ChannelId": newPost.ChannelId})
 
 			if len(newPost.RootId) > 0 {
-				s.GetMaster().Exec("UPDATE Posts SET UpdateAt = :UpdateAt WHERE Id = :RootId", map[string]interface{}{"UpdateAt": time, "RootId": newPost.RootId})
+				s.GetMaster().Exec("UPDATE Posts SET UpdateAt = :UpdateAt WHERE Id = :RootId AND UpdateAt < :UpdateAt", map[string]interface{}{"UpdateAt": time, "RootId": newPost.RootId})
 			}
 
 			// mark the old post as deleted
@@ -268,14 +269,14 @@ func (s *SqlPostStore) GetFlaggedPostsForChannel(userId, channelId string, offse
 
 		var posts []*model.Post
 		query := `
-			SELECT 
-				* 
-			FROM Posts 
-			WHERE 
-				Id IN (SELECT Name FROM Preferences WHERE UserId = :UserId AND Category = :Category) 
+			SELECT
+				*
+			FROM Posts
+			WHERE
+				Id IN (SELECT Name FROM Preferences WHERE UserId = :UserId AND Category = :Category)
 				AND ChannelId = :ChannelId
-				AND DeleteAt = 0 
-			ORDER BY CreateAt DESC 
+				AND DeleteAt = 0
+			ORDER BY CreateAt DESC
 			LIMIT :Limit OFFSET :Offset`
 
 		if _, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_FLAGGED_POST, "ChannelId": channelId, "Offset": offset, "Limit": limit}); err != nil {
@@ -834,7 +835,7 @@ func (s *SqlPostStore) Search(teamId string, userId string, params *model.Search
 							` + userIdPart + `
 							` + deletedQueryPart + `
 							CHANNEL_FILTER)
-				CREATEDATE_CLAUSE							
+				CREATEDATE_CLAUSE
 				SEARCH_CLAUSE
 				ORDER BY CreateAt DESC
 			LIMIT 100`
@@ -1263,11 +1264,11 @@ func (s *SqlPostStore) determineMaxPostSize() int {
 		// The Post.Message column in MySQL has historically been TEXT, with a maximum
 		// limit of 65535.
 		if err := s.GetReplica().SelectOne(&maxPostSizeBytes, `
-			SELECT 
+			SELECT
 				COALESCE(CHARACTER_MAXIMUM_LENGTH, 0)
-			FROM 
+			FROM
 				INFORMATION_SCHEMA.COLUMNS
-			WHERE 
+			WHERE
 				table_schema = DATABASE()
 			AND	table_name = 'Posts'
 			AND	column_name = 'Message'
@@ -1327,7 +1328,6 @@ func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string) store
                     AND p1.DeleteAt = 0
 					AND Channels.DeleteAt = 0
 					AND Teams.DeleteAt = 0
-					AND Users.DeleteAt = 0
                 ORDER BY
                     p1.Id
                 LIMIT
@@ -1356,7 +1356,6 @@ func (s *SqlPostStore) GetRepliesForExport(parentId string) store.StoreChannel {
                 WHERE
                     Posts.ParentId = :ParentId
                     AND Posts.DeleteAt = 0
-					AND Users.DeleteAt = 0
                 ORDER BY
                     Posts.Id`,
 			map[string]interface{}{"ParentId": parentId})
@@ -1366,5 +1365,79 @@ func (s *SqlPostStore) GetRepliesForExport(parentId string) store.StoreChannel {
 		} else {
 			result.Data = posts
 		}
+	})
+}
+
+func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		query := s.getQueryBuilder().
+			Select("p.*", "Users.Username as User").
+			From("Posts p").
+			Join("Channels ON p.ChannelId = Channels.Id").
+			Join("Users ON p.UserId = Users.Id").
+			Where(sq.And{
+				sq.Gt{"p.Id": afterId},
+				sq.Eq{"p.ParentId": string("")},
+				sq.Eq{"p.DeleteAt": int(0)},
+				sq.Eq{"Channels.DeleteAt": int(0)},
+				sq.Eq{"Users.DeleteAt": int(0)},
+				sq.Eq{"Channels.Type": []string{"D", "G"}},
+			}).
+			OrderBy("p.Id").
+			Limit(uint64(limit))
+
+		queryString, args, err := query.ToSql()
+		if err != nil {
+			result.Err = model.NewAppError("SqlPostStore.GetDirectPostParentsForExportAfter", "store.sql_post.get_direct_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		var posts []*model.DirectPostForExport
+		if _, err = s.GetReplica().Select(&posts, queryString, args...); err != nil {
+			result.Err = model.NewAppError("SqlPostStore.GetDirectPostParentsForExportAfter", "store.sql_post.get_direct_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+		var channelIds []string
+		for _, post := range posts {
+			channelIds = append(channelIds, post.ChannelId)
+		}
+		query = s.getQueryBuilder().
+			Select("*").
+			From("ChannelMembers cm").
+			Join("Users u ON ( u.Id = cm.UserId )").
+			Where(sq.Eq{
+				"cm.ChannelId": channelIds,
+			})
+
+		queryString, args, err = query.ToSql()
+		if err != nil {
+			result.Err = model.NewAppError("SqlPostStore.GetDirectPostParentsForExportAfter", "store.sql_post.get_direct_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		var channelMembers []*model.ChannelMemberForExport
+		if _, err := s.GetReplica().Select(&channelMembers, queryString, args...); err != nil {
+			result.Err = model.NewAppError("SqlPostStore.GetDirectPostParentsForExportAfter", "store.sql_post.get_direct_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+
+		// Build a map of channels and their posts
+		postsChannelMap := make(map[string][]*model.DirectPostForExport)
+		for _, post := range posts {
+			post.ChannelMembers = &[]string{}
+			postsChannelMap[post.ChannelId] = append(postsChannelMap[post.ChannelId], post)
+		}
+
+		// Build a map of channels and their members
+		channelMembersMap := make(map[string][]string)
+		for _, member := range channelMembers {
+			channelMembersMap[member.ChannelId] = append(channelMembersMap[member.ChannelId], member.Username)
+		}
+
+		// Populate each post ChannelMembers extracting it from the channelMembersMap
+		for channelId := range channelMembersMap {
+			for _, post := range postsChannelMap[channelId] {
+				*post.ChannelMembers = channelMembersMap[channelId]
+			}
+		}
+		result.Data = posts
 	})
 }

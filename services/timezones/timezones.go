@@ -3,46 +3,20 @@
 
 package timezones
 
-import (
-	"encoding/json"
-	"io/ioutil"
-	"sync/atomic"
-
-	"github.com/mattermost/mattermost-server/utils/fileutils"
-)
-
 type Timezones struct {
-	supportedZones atomic.Value
+	supportedZones []string
 }
 
-func New(timezonesConfigFile string) *Timezones {
+func New() *Timezones {
 	timezones := Timezones{}
 
-	if len(timezonesConfigFile) == 0 {
-		timezonesConfigFile = "timezones.json"
-	}
-
-	var supportedTimezones []string
-
-	// Attempt to get timezones from config. Failure results in defaults.
-	if timezoneFile := fileutils.FindConfigFile(timezonesConfigFile); timezoneFile == "" {
-		supportedTimezones = DefaultSupportedTimezones
-	} else if raw, err := ioutil.ReadFile(timezoneFile); err != nil {
-		supportedTimezones = DefaultSupportedTimezones
-	} else if err := json.Unmarshal(raw, &supportedTimezones); err != nil {
-		supportedTimezones = DefaultSupportedTimezones
-	}
-
-	timezones.supportedZones.Store(supportedTimezones)
+	timezones.supportedZones = DefaultSupportedTimezones
 
 	return &timezones
 }
 
 func (t *Timezones) GetSupported() []string {
-	if supportedZonesValue := t.supportedZones.Load(); supportedZonesValue != nil {
-		return supportedZonesValue.([]string)
-	}
-	return []string{}
+	return t.supportedZones
 }
 
 func DefaultUserTimezone() map[string]string {

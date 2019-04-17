@@ -4,9 +4,12 @@
 package utils
 
 import (
+	"io/ioutil"
+	"os"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/utils/fileutils"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestValidateLicense(t *testing.T) {
@@ -34,17 +37,21 @@ func TestGetLicenseFileLocation(t *testing.T) {
 }
 
 func TestGetLicenseFileFromDisk(t *testing.T) {
-	fileBytes := GetLicenseFileFromDisk("thisfileshouldnotexist.mattermost-license")
-	if len(fileBytes) > 0 {
-		t.Fatal("invalid bytes")
-	}
+	t.Run("missing file", func(t *testing.T) {
+		fileBytes := GetLicenseFileFromDisk("thisfileshouldnotexist.mattermost-license")
+		assert.Empty(t, fileBytes, "invalid bytes")
+	})
 
-	fileBytes = GetLicenseFileFromDisk(fileutils.FindConfigFile("config.json"))
-	if len(fileBytes) == 0 { // a valid bytes but should be a fail license
-		t.Fatal("invalid bytes")
-	}
+	t.Run("not a license file", func(t *testing.T) {
+		f, err := ioutil.TempFile("", "TestGetLicenseFileFromDisk")
+		require.NoError(t, err)
+		defer os.Remove(f.Name())
+		ioutil.WriteFile(f.Name(), []byte("not a license"), 0777)
 
-	if success, _ := ValidateLicense(fileBytes); success {
-		t.Fatal("should have been an invalid file")
-	}
+		fileBytes := GetLicenseFileFromDisk(f.Name())
+		require.NotEmpty(t, fileBytes, "should have read the file")
+
+		success, _ := ValidateLicense(fileBytes)
+		assert.False(t, success, "should have been an invalid file")
+	})
 }

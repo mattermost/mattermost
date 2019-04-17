@@ -3,6 +3,7 @@ package app
 import (
 	"bytes"
 	"os"
+	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -170,8 +171,13 @@ func TestExportAllUsers(t *testing.T) {
 	th1 := Setup(t).InitBasic()
 	defer th1.TearDown()
 
+	// Adding a user and deactivating it to check whether it gets included in bulk export
+	user := th1.CreateUser()
+	_, err := th1.App.UpdateActive(user, false)
+	require.Nil(t, err)
+
 	var b bytes.Buffer
-	err := th1.App.BulkExport(&b, "somefile", "somePath", "someDir")
+	err = th1.App.BulkExport(&b, "somefile", "somePath", "someDir")
 	require.Nil(t, err)
 
 	th2 := Setup(t)
@@ -192,4 +198,279 @@ func TestExportAllUsers(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, len(users1), len(users2))
 	assert.ElementsMatch(t, users1, users2)
+
+	// Checking whether deactivated users were included in bulk export
+	deletedUsers1, err := th1.App.GetUsers(&model.UserGetOptions{
+		Inactive: true,
+		Page:     0,
+		PerPage:  10,
+	})
+	assert.Nil(t, err)
+	deletedUsers2, err := th1.App.GetUsers(&model.UserGetOptions{
+		Inactive: true,
+		Page:     0,
+		PerPage:  10,
+	})
+	assert.Nil(t, err)
+	assert.Equal(t, len(deletedUsers1), len(deletedUsers2))
+	assert.ElementsMatch(t, deletedUsers1, deletedUsers2)
+}
+
+func TestExportDMChannel(t *testing.T) {
+	th1 := Setup(t).InitBasic()
+
+	// DM Channel
+	th1.CreateDmChannel(th1.BasicUser2)
+
+	var b bytes.Buffer
+	err := th1.App.BulkExport(&b, "somefile", "somePath", "someDir")
+	require.Nil(t, err)
+
+	result := <-th1.App.Srv.Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+	channels := result.Data.([]*model.DirectChannelForExport)
+	assert.Equal(t, 1, len(channels))
+
+	th1.TearDown()
+
+	th2 := Setup(t)
+	defer th2.TearDown()
+
+	result = <-th2.App.Srv.Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+	channels = result.Data.([]*model.DirectChannelForExport)
+	assert.Equal(t, 0, len(channels))
+
+	// import the exported channel
+	err, i := th2.App.BulkImport(&b, false, 5)
+	assert.Nil(t, err)
+	assert.Equal(t, 0, i)
+
+	// Ensure the Members of the imported DM channel is the same was from the exported
+	result = <-th2.App.Srv.Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+	channels = result.Data.([]*model.DirectChannelForExport)
+	assert.Equal(t, 1, len(channels))
+	assert.ElementsMatch(t, []string{th1.BasicUser.Username, th1.BasicUser2.Username}, *channels[0].Members)
+}
+
+func TestExportDMChannelToSelf(t *testing.T) {
+	th1 := Setup(t).InitBasic()
+	defer th1.TearDown()
+
+	// DM Channel with self (me channel)
+	th1.CreateDmChannel(th1.BasicUser)
+
+	var b bytes.Buffer
+	err := th1.App.BulkExport(&b, "somefile", "somePath", "someDir")
+	require.Nil(t, err)
+
+	result := <-th1.App.Srv.Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+	channels := result.Data.([]*model.DirectChannelForExport)
+	assert.Equal(t, 1, len(channels))
+
+	th2 := Setup(t)
+	defer th2.TearDown()
+
+	result = <-th2.App.Srv.Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+	channels = result.Data.([]*model.DirectChannelForExport)
+	assert.Equal(t, 0, len(channels))
+
+	// import the exported channel
+	err, i := th2.App.BulkImport(&b, false, 5)
+	assert.Nil(t, err)
+	assert.Equal(t, 0, i)
+
+	// Ensure no channels were imported
+	result = <-th2.App.Srv.Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+	channels = result.Data.([]*model.DirectChannelForExport)
+	assert.Equal(t, 0, len(channels))
+}
+
+func TestExportGMChannel(t *testing.T) {
+	th1 := Setup(t).InitBasic()
+
+	user1 := th1.CreateUser()
+	th1.LinkUserToTeam(user1, th1.BasicTeam)
+	user2 := th1.CreateUser()
+	th1.LinkUserToTeam(user2, th1.BasicTeam)
+
+	// GM Channel
+	th1.CreateGroupChannel(user1, user2)
+
+	var b bytes.Buffer
+	err := th1.App.BulkExport(&b, "somefile", "somePath", "someDir")
+	require.Nil(t, err)
+
+	result := <-th1.App.Srv.Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+	channels := result.Data.([]*model.DirectChannelForExport)
+	assert.Equal(t, 1, len(channels))
+
+	th1.TearDown()
+
+	th2 := Setup(t)
+	defer th2.TearDown()
+
+	result = <-th2.App.Srv.Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+	channels = result.Data.([]*model.DirectChannelForExport)
+	assert.Equal(t, 0, len(channels))
+}
+
+func TestExportGMandDMChannels(t *testing.T) {
+	th1 := Setup(t).InitBasic()
+
+	// DM Channel
+	th1.CreateDmChannel(th1.BasicUser2)
+
+	user1 := th1.CreateUser()
+	th1.LinkUserToTeam(user1, th1.BasicTeam)
+	user2 := th1.CreateUser()
+	th1.LinkUserToTeam(user2, th1.BasicTeam)
+
+	// GM Channel
+	th1.CreateGroupChannel(user1, user2)
+
+	var b bytes.Buffer
+	err := th1.App.BulkExport(&b, "somefile", "somePath", "someDir")
+	require.Nil(t, err)
+
+	result := <-th1.App.Srv.Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+	channels := result.Data.([]*model.DirectChannelForExport)
+	assert.Equal(t, 2, len(channels))
+
+	th1.TearDown()
+
+	th2 := Setup(t)
+	defer th2.TearDown()
+
+	result = <-th2.App.Srv.Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+	channels = result.Data.([]*model.DirectChannelForExport)
+	assert.Equal(t, 0, len(channels))
+
+	// import the exported channel
+	err, i := th2.App.BulkImport(&b, false, 5)
+	assert.Nil(t, err)
+	assert.Equal(t, 0, i)
+
+	// Ensure the Members of the imported GM channel is the same was from the exported
+	result = <-th2.App.Srv.Store.Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+	channels = result.Data.([]*model.DirectChannelForExport)
+
+	// Adding some deteminism so its possible to assert on slice index
+	sort.Slice(channels, func(i, j int) bool { return channels[i].Type > channels[j].Type })
+	assert.Equal(t, 2, len(channels))
+	assert.ElementsMatch(t, []string{th1.BasicUser.Username, user1.Username, user2.Username}, *channels[0].Members)
+	assert.ElementsMatch(t, []string{th1.BasicUser.Username, th1.BasicUser2.Username}, *channels[1].Members)
+}
+
+func TestExportDMandGMPost(t *testing.T) {
+	th1 := Setup(t).InitBasic()
+
+	// DM Channel
+	dmChannel := th1.CreateDmChannel(th1.BasicUser2)
+	dmMembers := []string{th1.BasicUser.Username, th1.BasicUser2.Username}
+
+	user1 := th1.CreateUser()
+	th1.LinkUserToTeam(user1, th1.BasicTeam)
+	user2 := th1.CreateUser()
+	th1.LinkUserToTeam(user2, th1.BasicTeam)
+
+	// GM Channel
+	gmChannel := th1.CreateGroupChannel(user1, user2)
+	gmMembers := []string{th1.BasicUser.Username, user1.Username, user2.Username}
+
+	// DM posts
+	p1 := &model.Post{
+		ChannelId: dmChannel.Id,
+		Message:   "aa" + model.NewId() + "a",
+		UserId:    th1.BasicUser.Id,
+	}
+	th1.App.CreatePost(p1, dmChannel, false)
+
+	p2 := &model.Post{
+		ChannelId: dmChannel.Id,
+		Message:   "bb" + model.NewId() + "a",
+		UserId:    th1.BasicUser.Id,
+	}
+	th1.App.CreatePost(p2, dmChannel, false)
+
+	// GM posts
+	p3 := &model.Post{
+		ChannelId: gmChannel.Id,
+		Message:   "cc" + model.NewId() + "a",
+		UserId:    th1.BasicUser.Id,
+	}
+	th1.App.CreatePost(p3, gmChannel, false)
+
+	p4 := &model.Post{
+		ChannelId: gmChannel.Id,
+		Message:   "dd" + model.NewId() + "a",
+		UserId:    th1.BasicUser.Id,
+	}
+	th1.App.CreatePost(p4, gmChannel, false)
+
+	result := <-th1.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
+	posts := result.Data.([]*model.DirectPostForExport)
+	assert.Equal(t, 4, len(posts))
+
+	var b bytes.Buffer
+	err := th1.App.BulkExport(&b, "somefile", "somePath", "someDir")
+	require.Nil(t, err)
+
+	th1.TearDown()
+
+	th2 := Setup(t)
+	defer th2.TearDown()
+
+	result = <-th2.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
+	posts = result.Data.([]*model.DirectPostForExport)
+	assert.Equal(t, 0, len(posts))
+
+	// import the exported posts
+	err, i := th2.App.BulkImport(&b, false, 5)
+	assert.Nil(t, err)
+	assert.Equal(t, 0, i)
+
+	result = <-th2.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
+	posts = result.Data.([]*model.DirectPostForExport)
+
+	// Adding some deteminism so its possible to assert on slice index
+	sort.Slice(posts, func(i, j int) bool { return posts[i].Message > posts[j].Message })
+	assert.Equal(t, 4, len(posts))
+	assert.ElementsMatch(t, gmMembers, *posts[0].ChannelMembers)
+	assert.ElementsMatch(t, gmMembers, *posts[1].ChannelMembers)
+	assert.ElementsMatch(t, dmMembers, *posts[2].ChannelMembers)
+	assert.ElementsMatch(t, dmMembers, *posts[3].ChannelMembers)
+}
+
+func TestExportDMPostWithSelf(t *testing.T) {
+	th1 := Setup(t).InitBasic()
+
+	// DM Channel with self (me channel)
+	dmChannel := th1.CreateDmChannel(th1.BasicUser)
+
+	th1.CreatePost(dmChannel)
+
+	var b bytes.Buffer
+	err := th1.App.BulkExport(&b, "somefile", "somePath", "someDir")
+	require.Nil(t, err)
+
+	result := <-th1.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
+	posts := result.Data.([]*model.DirectPostForExport)
+	assert.Equal(t, 1, len(posts))
+
+	th1.TearDown()
+
+	th2 := Setup(t)
+	defer th2.TearDown()
+
+	result = <-th2.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
+	posts = result.Data.([]*model.DirectPostForExport)
+	assert.Equal(t, 0, len(posts))
+
+	// import the exported posts
+	err, i := th2.App.BulkImport(&b, false, 5)
+	assert.Nil(t, err)
+	assert.Equal(t, 0, i)
+
+	result = <-th2.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
+	posts = result.Data.([]*model.DirectPostForExport)
+	assert.Equal(t, 0, len(posts))
 }

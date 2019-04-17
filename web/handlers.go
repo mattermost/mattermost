@@ -26,6 +26,10 @@ func (w *Web) NewHandler(h func(*Context, http.ResponseWriter, *http.Request)) h
 }
 
 func (w *Web) NewStaticHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	// Determine the CSP SHA directive needed for subpath support, if any. This value is fixed
+	// on server start and intentionally requires a restart to take effect.
+	subpath, _ := utils.GetSubpathFromConfig(w.ConfigService.Config())
+
 	return &Handler{
 		GetGlobalAppOptions: w.GetGlobalAppOptions,
 		HandleFunc:          h,
@@ -33,6 +37,8 @@ func (w *Web) NewStaticHandler(h func(*Context, http.ResponseWriter, *http.Reque
 		TrustRequester:      false,
 		RequireMfa:          false,
 		IsStatic:            true,
+
+		cspShaDirective: utils.GetSubpathScriptHash(subpath),
 	}
 }
 
@@ -43,6 +49,8 @@ type Handler struct {
 	TrustRequester      bool
 	RequireMfa          bool
 	IsStatic            bool
+
+	cspShaDirective string
 }
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -79,7 +87,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// Set content security policy. This is also specified in the root.html of the webapp in a meta tag.
 		w.Header().Set("Content-Security-Policy", fmt.Sprintf(
 			"frame-ancestors 'self'; script-src 'self' cdn.segment.com/analytics.js/%s",
-			utils.GetSubpathScriptHash(subpath),
+			h.cspShaDirective,
 		))
 	} else {
 		// All api response bodies will be JSON formatted by default
@@ -94,46 +102,47 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if len(token) != 0 {
 		session, err := c.App.GetSession(token)
+		if err != nil {
+			c.Log.Info("Invalid session", mlog.Err(err))
+			if err.StatusCode == http.StatusInternalServerError {
+				c.Err = err
+			} else if h.RequireSession {
+				c.RemoveSessionCookie(w, r)
+				c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token, http.StatusUnauthorized)
+			}
+		} else if !session.IsOAuth && tokenLocation == app.TokenLocationQueryString {
+			c.Err = model.NewAppError("ServeHTTP", "api.context.token_provided.app_error", nil, "token="+token, http.StatusUnauthorized)
+		} else {
+			c.App.Session = *session
+		}
+
+		// Rate limit by UserID
+		if c.App.Srv.RateLimiter != nil && c.App.Srv.RateLimiter.UserIdRateLimit(c.App.Session.UserId, w) {
+			return
+		}
+
 		csrfCheckPassed := false
 
 		// CSRF Check
-		if tokenLocation == app.TokenLocationCookie && h.RequireSession && !h.TrustRequester && r.Method != "GET" {
+		if c.Err == nil && tokenLocation == app.TokenLocationCookie && h.RequireSession && !h.TrustRequester && r.Method != "GET" {
 			csrfHeader := r.Header.Get(model.HEADER_CSRF_TOKEN)
 			if csrfHeader == session.GetCSRF() {
 				csrfCheckPassed = true
-			} else if !*c.App.Config().ServiceSettings.ExperimentalStrictCSRFEnforcement && r.Header.Get(model.HEADER_REQUESTED_WITH) == model.HEADER_REQUESTED_WITH_XML {
+			} else if r.Header.Get(model.HEADER_REQUESTED_WITH) == model.HEADER_REQUESTED_WITH_XML {
 				// ToDo(DSchalla) 2019/01/04: Remove after deprecation period and only allow CSRF Header (MM-13657)
-				c.Log.Warn("CSRF Header check failed for request - Please upgrade your web application or custom app to set a CSRF Header")
-				csrfCheckPassed = true
+				csrfErrorMessage := "CSRF Header check failed for request - Please upgrade your web application or custom app to set a CSRF Header"
+				if *c.App.Config().ServiceSettings.ExperimentalStrictCSRFEnforcement {
+					c.Log.Warn(csrfErrorMessage)
+				} else {
+					c.Log.Debug(csrfErrorMessage)
+					csrfCheckPassed = true
+				}
 			}
 
 			if !csrfCheckPassed {
 				token = ""
-				session = nil
+				c.App.Session = model.Session{}
 				c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token+" Appears to be a CSRF attempt", http.StatusUnauthorized)
-			}
-		} else {
-			csrfCheckPassed = true
-		}
-
-		if csrfCheckPassed {
-			if err != nil {
-				c.Log.Info("Invalid session", mlog.Err(err))
-				if err.StatusCode == http.StatusInternalServerError {
-					c.Err = err
-				} else if h.RequireSession {
-					c.RemoveSessionCookie(w, r)
-					c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token, http.StatusUnauthorized)
-				}
-			} else if !session.IsOAuth && tokenLocation == app.TokenLocationQueryString {
-				c.Err = model.NewAppError("ServeHTTP", "api.context.token_provided.app_error", nil, "token="+token, http.StatusUnauthorized)
-			} else {
-				c.App.Session = *session
-			}
-
-			// Rate limit by UserID
-			if c.App.Srv.RateLimiter != nil && c.App.Srv.RateLimiter.UserIdRateLimit(c.App.Session.UserId, w) {
-				return
 			}
 		}
 	}

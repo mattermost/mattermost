@@ -44,7 +44,6 @@ const (
 	TRACK_CONFIG_DATA_RETENTION     = "config_data_retention"
 	TRACK_CONFIG_MESSAGE_EXPORT     = "config_message_export"
 	TRACK_CONFIG_DISPLAY            = "config_display"
-	TRACK_CONFIG_TIMEZONE           = "config_timezone"
 	TRACK_CONFIG_IMAGE_PROXY        = "config_image_proxy"
 	TRACK_PERMISSIONS_GENERAL       = "permissions_general"
 	TRACK_PERMISSIONS_SYSTEM_SCHEME = "permissions_system_scheme"
@@ -123,6 +122,7 @@ func pluginActivated(pluginStates map[string]*model.PluginState, pluginId string
 
 func (a *App) trackActivity() {
 	var userCount int64
+	var botAccountsCount int64
 	var activeUsersDailyCount int64
 	var activeUsersMonthlyCount int64
 	var inactiveUserCount int64
@@ -148,8 +148,17 @@ func (a *App) trackActivity() {
 		activeUsersMonthlyCount = r.Data.(int64)
 	}
 
-	if ucr := <-a.Srv.Store.User().GetTotalUsersCount(); ucr.Err == nil {
+	if ucr := <-a.Srv.Store.User().Count(model.UserCountOptions{
+		IncludeDeleted: true,
+	}); ucr.Err == nil {
 		userCount = ucr.Data.(int64)
+	}
+
+	if bc := <-a.Srv.Store.User().Count(model.UserCountOptions{
+		IncludeBotAccounts:  true,
+		ExcludeRegularUsers: true,
+	}); bc.Err == nil {
+		botAccountsCount = bc.Data.(int64)
 	}
 
 	if iucr := <-a.Srv.Store.User().AnalyticsGetInactiveUsersCount(); iucr.Err == nil {
@@ -198,6 +207,7 @@ func (a *App) trackActivity() {
 
 	a.SendDiagnostic(TRACK_ACTIVITY, map[string]interface{}{
 		"registered_users":             userCount,
+		"bot_accounts":                 botAccountsCount,
 		"active_users_daily":           activeUsersDailyCount,
 		"active_users_monthly":         activeUsersMonthlyCount,
 		"registered_deactivated_users": inactiveUserCount,
@@ -268,6 +278,7 @@ func (a *App) trackConfig() {
 		"time_between_user_typing_updates_milliseconds":           *cfg.ServiceSettings.TimeBetweenUserTypingUpdatesMilliseconds,
 		"cluster_log_timeout_milliseconds":                        *cfg.ServiceSettings.ClusterLogTimeoutMilliseconds,
 		"enable_post_search":                                      *cfg.ServiceSettings.EnablePostSearch,
+		"minimum_hashtag_length":                                  *cfg.ServiceSettings.MinimumHashtagLength,
 		"enable_user_statuses":                                    *cfg.ServiceSettings.EnableUserStatuses,
 		"close_unused_direct_messages":                            *cfg.ServiceSettings.CloseUnusedDirectMessages,
 		"enable_preview_features":                                 *cfg.ServiceSettings.EnablePreviewFeatures,
@@ -282,6 +293,7 @@ func (a *App) trackConfig() {
 		"enable_email_invitations":                                *cfg.ServiceSettings.EnableEmailInvitations,
 		"experimental_channel_organization":                       *cfg.ServiceSettings.ExperimentalChannelOrganization,
 		"experimental_ldap_group_sync":                            *cfg.ServiceSettings.ExperimentalLdapGroupSync,
+		"disable_bots_when_owner_is_deactivated":                  *cfg.ServiceSettings.DisableBotsWhenOwnerIsDeactivated,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_TEAM, map[string]interface{}{
@@ -517,6 +529,8 @@ func (a *App) trackConfig() {
 		"isdefault_client_side_cert_check":   isDefault(*cfg.ExperimentalSettings.ClientSideCertCheck, model.CLIENT_SIDE_CERT_CHECK_PRIMARY_AUTH),
 		"enable_post_metadata":               !*cfg.ExperimentalSettings.DisablePostMetadata,
 		"link_metadata_timeout_milliseconds": *cfg.ExperimentalSettings.LinkMetadataTimeoutMilliseconds,
+		"enable_click_to_reply":              *cfg.ExperimentalSettings.EnableClickToReply,
+		"restrict_system_admin":              *cfg.ExperimentalSettings.RestrictSystemAdmin,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_ANALYTICS, map[string]interface{}{
@@ -536,9 +550,14 @@ func (a *App) trackConfig() {
 		"isdefault_password":                isDefault(*cfg.ElasticsearchSettings.Password, model.ELASTICSEARCH_SETTINGS_DEFAULT_PASSWORD),
 		"enable_indexing":                   *cfg.ElasticsearchSettings.EnableIndexing,
 		"enable_searching":                  *cfg.ElasticsearchSettings.EnableSearching,
+		"enable_autocomplete":               *cfg.ElasticsearchSettings.EnableAutocomplete,
 		"sniff":                             *cfg.ElasticsearchSettings.Sniff,
 		"post_index_replicas":               *cfg.ElasticsearchSettings.PostIndexReplicas,
 		"post_index_shards":                 *cfg.ElasticsearchSettings.PostIndexShards,
+		"channel_index_replicas":            *cfg.ElasticsearchSettings.ChannelIndexReplicas,
+		"channel_index_shards":              *cfg.ElasticsearchSettings.ChannelIndexShards,
+		"user_index_replicas":               *cfg.ElasticsearchSettings.UserIndexReplicas,
+		"user_index_shards":                 *cfg.ElasticsearchSettings.UserIndexShards,
 		"isdefault_index_prefix":            isDefault(*cfg.ElasticsearchSettings.IndexPrefix, model.ELASTICSEARCH_SETTINGS_DEFAULT_INDEX_PREFIX),
 		"live_indexing_batch_size":          *cfg.ElasticsearchSettings.LiveIndexingBatchSize,
 		"bulk_indexing_time_window_seconds": *cfg.ElasticsearchSettings.BulkIndexingTimeWindowSeconds,
@@ -546,10 +565,12 @@ func (a *App) trackConfig() {
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_PLUGIN, map[string]interface{}{
-		"enable_jira":    pluginSetting(&cfg.PluginSettings, "jira", "enabled", false),
-		"enable_zoom":    pluginActivated(cfg.PluginSettings.PluginStates, "zoom"),
-		"enable":         *cfg.PluginSettings.Enable,
-		"enable_uploads": *cfg.PluginSettings.EnableUploads,
+		"enable_jira":       pluginSetting(&cfg.PluginSettings, "jira", "enabled", false),
+		"enable_nps":        pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.nps"),
+		"enable_nps_survey": pluginSetting(&cfg.PluginSettings, "com.mattermost.nps", "enablesurvey", false),
+		"enable_zoom":       pluginActivated(cfg.PluginSettings.PluginStates, "zoom"),
+		"enable":            *cfg.PluginSettings.Enable,
+		"enable_uploads":    *cfg.PluginSettings.EnableUploads,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_DATA_RETENTION, map[string]interface{}{
@@ -575,10 +596,6 @@ func (a *App) trackConfig() {
 	a.SendDiagnostic(TRACK_CONFIG_DISPLAY, map[string]interface{}{
 		"experimental_timezone":        *cfg.DisplaySettings.ExperimentalTimezone,
 		"isdefault_custom_url_schemes": len(cfg.DisplaySettings.CustomUrlSchemes) != 0,
-	})
-
-	a.SendDiagnostic(TRACK_CONFIG_TIMEZONE, map[string]interface{}{
-		"isdefault_supported_timezones_path": isDefault(*cfg.TimezoneSettings.SupportedTimezonesPath, model.TIMEZONE_SETTINGS_DEFAULT_SUPPORTED_TIMEZONES_PATH),
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_IMAGE_PROXY, map[string]interface{}{

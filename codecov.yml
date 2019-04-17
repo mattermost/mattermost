@@ -1,9 +1,3 @@
-codecov:
-  ci:
-    - build.mattermost.com
-  notify:
-    require_ci_to_pass: yes
-
 coverage:
   status:
     project:

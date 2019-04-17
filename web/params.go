@@ -58,6 +58,10 @@ type Params struct {
 	RemoteId       string
 	SyncableId     string
 	SyncableType   model.GroupSyncableType
+	BotUserId      string
+	Q              string
+	IsLinked       *bool
+	IsConfigured   *bool
 }
 
 func ParamsFromRequest(r *http.Request) *Params {
@@ -226,5 +230,20 @@ func ParamsFromRequest(r *http.Request) *Params {
 			params.SyncableType = model.GroupSyncableTypeChannel
 		}
 	}
+
+	if val, ok := props["bot_user_id"]; ok {
+		params.BotUserId = val
+	}
+
+	params.Q = query.Get("q")
+
+	if val, err := strconv.ParseBool(query.Get("is_linked")); err == nil {
+		params.IsLinked = &val
+	}
+
+	if val, err := strconv.ParseBool(query.Get("is_configured")); err == nil {
+		params.IsConfigured = &val
+	}
+
 	return params
 }

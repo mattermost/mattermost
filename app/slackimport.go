@@ -746,7 +746,7 @@ func (a *App) OldImportUser(team *model.Team, user *model.User) *model.User {
 	}
 	ruser := result.Data.(*model.User)
 
-	if cresult := <-a.Srv.Store.User().VerifyEmail(ruser.Id); cresult.Err != nil {
+	if cresult := <-a.Srv.Store.User().VerifyEmail(ruser.Id, ruser.Email); cresult.Err != nil {
 		mlog.Error(fmt.Sprintf("Failed to set email verified err=%v", cresult.Err))
 	}
 

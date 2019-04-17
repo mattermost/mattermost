@@ -22,7 +22,7 @@ const (
 	PENDING_POST_IDS_CACHE_TTL  = 30 * time.Second
 )
 
-func (a *App) CreatePostAsUser(post *model.Post, clearPushNotifications bool) (*model.Post, *model.AppError) {
+func (a *App) CreatePostAsUser(post *model.Post, currentSessionId string) (*model.Post, *model.AppError) {
 	// Check that channel has not been deleted
 	result := <-a.Srv.Store.Channel().Get(post.ChannelId, true)
 	if result.Err != nil {
@@ -50,11 +50,10 @@ func (a *App) CreatePostAsUser(post *model.Post, clearPushNotifications bool) (*
 		}
 
 		if err.Id == "api.post.create_post.town_square_read_only" {
-			result := <-a.Srv.Store.User().Get(post.UserId)
-			if result.Err != nil {
-				return nil, result.Err
+			user, userErr := a.Srv.Store.User().Get(post.UserId)
+			if userErr != nil {
+				return nil, userErr
 			}
-			user := result.Data.(*model.User)
 
 			T := utils.GetUserTranslations(user.Locale)
 			a.SendEphemeralPost(
@@ -74,7 +73,7 @@ func (a *App) CreatePostAsUser(post *model.Post, clearPushNotifications bool) (*
 
 	// Update the LastViewAt only if the post does not have from_webhook prop set (eg. Zapier app)
 	if _, ok := post.Props["from_webhook"]; !ok {
-		if _, err := a.MarkChannelsAsViewed([]string{post.ChannelId}, post.UserId, clearPushNotifications); err != nil {
+		if _, err := a.MarkChannelsAsViewed([]string{post.ChannelId}, post.UserId, currentSessionId); err != nil {
 			mlog.Error(fmt.Sprintf("Encountered error updating last viewed, channel_id=%s, user_id=%s, err=%v", post.ChannelId, post.UserId, err))
 		}
 	}
@@ -164,11 +163,10 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		pchan = a.Srv.Store.Post().Get(post.RootId)
 	}
 
-	result := <-a.Srv.Store.User().Get(post.UserId)
-	if result.Err != nil {
-		return nil, result.Err
+	user, err := a.Srv.Store.User().Get(post.UserId)
+	if err != nil {
+		return nil, err
 	}
-	user := result.Data.(*model.User)
 
 	if a.License() != nil && *a.Config().TeamSettings.ExperimentalTownSquareIsReadOnly &&
 		!post.IsSystemMessage() &&
@@ -180,13 +178,18 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 	// Verify the parent/child relationships are correct
 	var parentPostList *model.PostList
 	if pchan != nil {
-		result = <-pchan
+		result := <-pchan
 		if result.Err != nil {
 			return nil, model.NewAppError("createPost", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest)
 		}
 		parentPostList = result.Data.(*model.PostList)
 		if len(parentPostList.Posts) == 0 || !parentPostList.IsChannelId(post.ChannelId) {
 			return nil, model.NewAppError("createPost", "api.post.create_post.channel_root_id.app_error", nil, "", http.StatusInternalServerError)
+		}
+
+		rootPost := parentPostList.Posts[post.RootId]
+		if len(rootPost.RootId) > 0 {
+			return nil, model.NewAppError("createPost", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest)
 		}
 
 		if post.ParentId == "" {
@@ -240,7 +243,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		}
 	}
 
-	result = <-a.Srv.Store.Post().Save(post)
+	result := <-a.Srv.Store.Post().Save(post)
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -404,8 +407,41 @@ func (a *App) SendEphemeralPost(userId string, post *model.Post) *model.Post {
 		post.Props = model.StringInterface{}
 	}
 
+	post.GenerateActionIds()
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE, "", post.ChannelId, userId, nil)
-	message.Add("post", a.PreparePostForClient(post, true).ToJson())
+	post = a.PreparePostForClient(post, true)
+	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
+	message.Add("post", post.ToJson())
+	a.Publish(message)
+
+	return post
+}
+
+func (a *App) UpdateEphemeralPost(userId string, post *model.Post) *model.Post {
+	post.Type = model.POST_EPHEMERAL
+
+	post.UpdateAt = model.GetMillis()
+	if post.Props == nil {
+		post.Props = model.StringInterface{}
+	}
+
+	post.GenerateActionIds()
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", post.ChannelId, userId, nil)
+	post = a.PreparePostForClient(post, true)
+	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
+	message.Add("post", post.ToJson())
+	a.Publish(message)
+
+	return post
+}
+
+func (a *App) DeleteEphemeralPost(userId string, post *model.Post) *model.Post {
+	post.Type = model.POST_EPHEMERAL
+	post.DeleteAt = model.GetMillis()
+	post.UpdateAt = post.DeleteAt
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_DELETED, "", post.ChannelId, userId, nil)
+
+	message.Add("post", post.ToJson())
 	a.Publish(message)
 
 	return post
@@ -442,6 +478,16 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 		}
 	}
 
+	channel, err := a.GetChannel(oldPost.ChannelId)
+	if err != nil {
+		return nil, err
+	}
+
+	if channel.DeleteAt != 0 {
+		err := model.NewAppError("UpdatePost", "api.post.update_post.can_not_update_post_in_deleted.error", nil, "", http.StatusBadRequest)
+		return nil, err
+	}
+
 	newPost := &model.Post{}
 	*newPost = *oldPost
 
@@ -456,6 +502,11 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 		newPost.HasReactions = post.HasReactions
 		newPost.FileIds = post.FileIds
 		newPost.Props = post.Props
+	}
+
+	// Avoid deep-equal checks if EditAt was already modified through message change
+	if newPost.EditAt == oldPost.EditAt && (!oldPost.FileIds.Equals(newPost.FileIds) || !oldPost.AttachmentsEqual(newPost)) {
+		newPost.EditAt = model.GetMillis()
 	}
 
 	if err := a.FillInPostProps(post, nil); err != nil {
@@ -506,7 +557,9 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 
 	rpost = a.PreparePostForClient(rpost, false)
 
-	a.sendUpdatedPostEvent(rpost)
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", rpost.ChannelId, "", nil)
+	message.Add("post", rpost.ToJson())
+	a.Publish(message)
 
 	a.InvalidateCacheForChannelPosts(rpost.ChannelId)
 
@@ -519,6 +572,16 @@ func (a *App) PatchPost(postId string, patch *model.PostPatch) (*model.Post, *mo
 		return nil, err
 	}
 
+	channel, err := a.GetChannel(post.ChannelId)
+	if err != nil {
+		return nil, err
+	}
+
+	if channel.DeleteAt != 0 {
+		err = model.NewAppError("PatchPost", "api.post.patch_post.can_not_update_post_in_deleted.error", nil, "", http.StatusBadRequest)
+		return nil, err
+	}
+
 	post.Patch(patch)
 
 	updatedPost, err := a.UpdatePost(post, false)
@@ -527,12 +590,6 @@ func (a *App) PatchPost(postId string, patch *model.PostPatch) (*model.Post, *mo
 	}
 
 	return updatedPost, nil
-}
-
-func (a *App) sendUpdatedPostEvent(post *model.Post) {
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", post.ChannelId, "", nil)
-	message.Add("post", post.ToJson())
-	a.Publish(message)
 }
 
 func (a *App) GetPostsPage(channelId string, page int, perPage int) (*model.PostList, *model.AppError) {
@@ -665,6 +722,16 @@ func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppErro
 		return nil, result.Err
 	}
 	post := result.Data.(*model.Post)
+
+	channel, err := a.GetChannel(post.ChannelId)
+	if err != nil {
+		return nil, err
+	}
+
+	if channel.DeleteAt != 0 {
+		err := model.NewAppError("DeletePost", "api.post.delete_post.can_not_delete_post_in_deleted.error", nil, "", http.StatusBadRequest)
+		return nil, err
+	}
 
 	if result := <-a.Srv.Store.Post().Delete(postId, model.GetMillis(), deleteByID); result.Err != nil {
 		return nil, result.Err

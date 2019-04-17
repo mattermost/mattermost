@@ -4,6 +4,7 @@
 package config
 
 import (
+	"bytes"
 	"io"
 	"sync"
 
@@ -15,9 +16,10 @@ import (
 type commonStore struct {
 	emitter
 
-	configLock           sync.RWMutex
-	config               *model.Config
-	environmentOverrides map[string]interface{}
+	configLock             sync.RWMutex
+	config                 *model.Config
+	configWithoutOverrides *model.Config
+	environmentOverrides   map[string]interface{}
 }
 
 // Get fetches the current, cached configuration.
@@ -36,10 +38,11 @@ func (cs *commonStore) GetEnvironmentOverrides() map[string]interface{} {
 	return cs.environmentOverrides
 }
 
-// set replaces the current configuration in its entirety, without updating the backing store.
+// set replaces the current configuration in its entirety, and updates the backing store
+// using the persist function argument.
 //
 // This function assumes no lock has been acquired, as it acquires a write lock itself.
-func (cs *commonStore) set(newCfg *model.Config, isValid func(*model.Config) error) (*model.Config, error) {
+func (cs *commonStore) set(newCfg *model.Config, validate func(*model.Config) error, persist func(*model.Config) error) (*model.Config, error) {
 	cs.configLock.Lock()
 	var unlockOnce sync.Once
 	defer unlockOnce.Do(cs.configLock.Unlock)
@@ -56,27 +59,19 @@ func (cs *commonStore) set(newCfg *model.Config, isValid func(*model.Config) err
 	newCfg = newCfg.Clone()
 	newCfg.SetDefaults()
 
-	// Sometimes the config is received with "fake" data in sensitive fielcs. Apply the real
+	// Sometimes the config is received with "fake" data in sensitive fields. Apply the real
 	// data from the existing config as necessary.
 	desanitize(oldCfg, newCfg)
 
-	if err := newCfg.IsValid(); err != nil {
-		return nil, errors.Wrap(err, "new configuration is invalid")
-	}
-
-	// Allow backing-store specific checks.
-	if isValid != nil {
-		if err := isValid(newCfg); err != nil {
-			return nil, err
+	if validate != nil {
+		if err := validate(newCfg); err != nil {
+			return nil, errors.Wrap(err, "new configuration is invalid")
 		}
 	}
 
-	// Ideally, Set would persist automatically and abstract this completely away from the
-	// client. Doing so requires a few upstream changes first, so for now an explicit Save()
-	// remains required.
-	// if err := cs.persist(newCfg); err != nil {
-	// 	return nil, errors.Wrap(err, "failed to persist")
-	// }
+	if err := persist(cs.removeEnvOverrides(newCfg)); err != nil {
+		return nil, errors.Wrap(err, "failed to persist")
+	}
 
 	cs.config = newCfg
 
@@ -92,24 +87,34 @@ func (cs *commonStore) set(newCfg *model.Config, isValid func(*model.Config) err
 // load updates the current configuration from the given io.ReadCloser.
 //
 // This function assumes no lock has been acquired, as it acquires a write lock itself.
-func (cs *commonStore) load(f io.ReadCloser, needsSave bool, persist func(*model.Config) error) error {
+func (cs *commonStore) load(f io.ReadCloser, needsSave bool, validate func(*model.Config) error, persist func(*model.Config) error) error {
+	// Duplicate f so that we can read a configuration without applying environment overrides
+	f2 := new(bytes.Buffer)
+	tee := io.TeeReader(f, f2)
+
 	allowEnvironmentOverrides := true
-	loadedCfg, environmentOverrides, err := unmarshalConfig(f, allowEnvironmentOverrides)
+	loadedCfg, environmentOverrides, err := unmarshalConfig(tee, allowEnvironmentOverrides)
 	if err != nil {
-		return errors.Wrapf(err, "failed to unmarshal config")
+		return errors.Wrapf(err, "failed to unmarshal config with env overrides")
+	}
+
+	// Keep track of the original values that the Environment settings overrode
+	loadedCfgWithoutEnvOverrides, _, err := unmarshalConfig(f2, false)
+	if err != nil {
+		return errors.Wrapf(err, "failed to unmarshal config without env overrides")
 	}
 
 	// SetDefaults generates various keys and salts if not previously configured. Determine if
-	// such a change will be made before invoking. This method will not effect the save: that
-	// remains the responsibility of the caller.
+	// such a change will be made before invoking.
 	needsSave = needsSave || loadedCfg.SqlSettings.AtRestEncryptKey == nil || len(*loadedCfg.SqlSettings.AtRestEncryptKey) == 0
 	needsSave = needsSave || loadedCfg.FileSettings.PublicLinkSalt == nil || len(*loadedCfg.FileSettings.PublicLinkSalt) == 0
-	needsSave = needsSave || loadedCfg.EmailSettings.InviteSalt == nil || len(*loadedCfg.EmailSettings.InviteSalt) == 0
 
 	loadedCfg.SetDefaults()
 
-	if err := loadedCfg.IsValid(); err != nil {
-		return errors.Wrap(err, "invalid config")
+	if validate != nil {
+		if err = validate(loadedCfg); err != nil {
+			return errors.Wrap(err, "invalid config")
+		}
 	}
 
 	if changed := fixConfig(loadedCfg); changed {
@@ -120,14 +125,16 @@ func (cs *commonStore) load(f io.ReadCloser, needsSave bool, persist func(*model
 	var unlockOnce sync.Once
 	defer unlockOnce.Do(cs.configLock.Unlock)
 
-	if needsSave {
-		if err = persist(loadedCfg); err != nil {
+	if needsSave && persist != nil {
+		cfgWithoutEnvOverrides := removeEnvOverrides(loadedCfg, loadedCfgWithoutEnvOverrides, environmentOverrides)
+		if err = persist(cfgWithoutEnvOverrides); err != nil {
 			return errors.Wrap(err, "failed to persist required changes after load")
 		}
 	}
 
 	oldCfg := cs.config
 	cs.config = loadedCfg
+	cs.configWithoutOverrides = loadedCfgWithoutEnvOverrides
 	cs.environmentOverrides = environmentOverrides
 
 	unlockOnce.Do(cs.configLock.Unlock)
@@ -137,4 +144,18 @@ func (cs *commonStore) load(f io.ReadCloser, needsSave bool, persist func(*model
 	cs.invokeConfigListeners(oldCfg, loadedCfg)
 
 	return nil
+}
+
+// validate checks if the given configuration is valid
+func (cs *commonStore) validate(cfg *model.Config) error {
+	if err := cfg.IsValid(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// removeEnvOverrides returns a new config without the given environment overrides.
+func (cs *commonStore) removeEnvOverrides(cfg *model.Config) *model.Config {
+	return removeEnvOverrides(cfg, cs.configWithoutOverrides, cs.environmentOverrides)
 }

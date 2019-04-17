@@ -4,11 +4,14 @@
 package sqlstore
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
 	"time"
+
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -16,6 +19,8 @@ import (
 )
 
 const (
+	VERSION_5_11_0           = "5.11.0"
+	VERSION_5_10_0           = "5.10.0"
 	VERSION_5_9_0            = "5.9.0"
 	VERSION_5_8_0            = "5.8.0"
 	VERSION_5_7_0            = "5.7.0"
@@ -55,10 +60,11 @@ const (
 )
 
 const (
-	EXIT_VERSION_SAVE_MISSING = 1001
-	EXIT_TOO_OLD              = 1002
-	EXIT_VERSION_SAVE         = 1003
-	EXIT_THEME_MIGRATION      = 1004
+	EXIT_VERSION_SAVE_MISSING  = 1001
+	EXIT_TOO_OLD               = 1002
+	EXIT_VERSION_SAVE          = 1003
+	EXIT_THEME_MIGRATION       = 1004
+	EXIT_ROLE_MIGRATION_FAILED = 1005
 )
 
 func UpgradeDatabase(sqlStore SqlStore) {
@@ -97,6 +103,8 @@ func UpgradeDatabase(sqlStore SqlStore) {
 	UpgradeDatabaseToVersion57(sqlStore)
 	UpgradeDatabaseToVersion58(sqlStore)
 	UpgradeDatabaseToVersion59(sqlStore)
+	UpgradeDatabaseToVersion510(sqlStore)
+	UpgradeDatabaseToVersion511(sqlStore)
 
 	// If the SchemaVersion is empty this this is the first time it has ran
 	// so lets set it to the current version.
@@ -172,15 +180,18 @@ func UpgradeDatabaseToVersion33(sqlStore SqlStore) {
 			if err != nil {
 				themeMigrationFailed(err)
 			}
+			defer finalizeTransaction(transaction)
 
 			// increase size of Value column of Preferences table to match the size of the ThemeProps column
 			if sqlStore.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 				if _, err := transaction.Exec("ALTER TABLE Preferences ALTER COLUMN Value TYPE varchar(2000)"); err != nil {
 					themeMigrationFailed(err)
+					return
 				}
 			} else if sqlStore.DriverName() == model.DATABASE_DRIVER_MYSQL {
 				if _, err := transaction.Exec("ALTER TABLE Preferences MODIFY Value text"); err != nil {
 					themeMigrationFailed(err)
+					return
 				}
 			}
 
@@ -195,15 +206,18 @@ func UpgradeDatabaseToVersion33(sqlStore SqlStore) {
 				WHERE
 					Users.ThemeProps != 'null'`, params); err != nil {
 				themeMigrationFailed(err)
+				return
 			}
 
 			// delete old data
 			if _, err := transaction.Exec("ALTER TABLE Users DROP COLUMN ThemeProps"); err != nil {
 				themeMigrationFailed(err)
+				return
 			}
 
 			if err := transaction.Commit(); err != nil {
 				themeMigrationFailed(err)
+				return
 			}
 
 			// rename solarized_* code themes to solarized-* to match client changes in 3.0
@@ -547,6 +561,33 @@ func UpgradeDatabaseToVersion57(sqlStore SqlStore) {
 	}
 }
 
+func getRole(sqlStore SqlStore, name string) (*model.Role, error) {
+	var dbRole Role
+
+	if err := sqlStore.GetReplica().SelectOne(&dbRole, "SELECT * from Roles WHERE Name = :Name", map[string]interface{}{"Name": name}); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.Wrapf(err, "failed to find role %s", name)
+		} else {
+			return nil, errors.Wrapf(err, "failed to query role %s", name)
+		}
+	}
+
+	return dbRole.ToModel(), nil
+}
+
+func saveRole(sqlStore SqlStore, role *model.Role) error {
+	dbRole := NewRoleFromModel(role)
+
+	dbRole.UpdateAt = model.GetMillis()
+	if rowsChanged, err := sqlStore.GetMaster().Update(dbRole); err != nil {
+		return errors.Wrap(err, "failed to update role")
+	} else if rowsChanged != 1 {
+		return errors.New("found no role to update")
+	}
+
+	return nil
+}
+
 func UpgradeDatabaseToVersion58(sqlStore SqlStore) {
 	if shouldPerformUpgrade(sqlStore, VERSION_5_7_0, VERSION_5_8_0) {
 		// idx_channels_txt was removed in `UpgradeDatabaseToVersion50`, but merged as part of
@@ -568,9 +609,27 @@ func UpgradeDatabaseToVersion58(sqlStore SqlStore) {
 }
 
 func UpgradeDatabaseToVersion59(sqlStore SqlStore) {
-	// TODO: Uncomment following condition when version 5.9.0 is released
-	// if shouldPerformUpgrade(sqlStore, VERSION_5_8_0, VERSION_5_9_0) {
+	if shouldPerformUpgrade(sqlStore, VERSION_5_8_0, VERSION_5_9_0) {
+		saveSchemaVersion(sqlStore, VERSION_5_9_0)
+	}
+}
 
-	// 	saveSchemaVersion(sqlStore, VERSION_5_9_0)
+func UpgradeDatabaseToVersion510(sqlStore SqlStore) {
+	if shouldPerformUpgrade(sqlStore, VERSION_5_9_0, VERSION_5_10_0) {
+		sqlStore.CreateColumnIfNotExistsNoDefault("Channels", "GroupConstrained", "tinyint(4)", "boolean")
+		sqlStore.CreateColumnIfNotExistsNoDefault("Teams", "GroupConstrained", "tinyint(4)", "boolean")
+
+		sqlStore.CreateIndexIfNotExists("idx_groupteams_teamid", "GroupTeams", "TeamId")
+		sqlStore.CreateIndexIfNotExists("idx_groupchannels_channelid", "GroupChannels", "ChannelId")
+
+		saveSchemaVersion(sqlStore, VERSION_5_10_0)
+	}
+}
+
+func UpgradeDatabaseToVersion511(sqlStore SqlStore) {
+	// TODO: Uncomment following condition when version 5.11.0 is released
+	// if shouldPerformUpgrade(sqlStore, VERSION_5_10_0, VERSION_5_11_0) {
+
+	// 	saveSchemaVersion(sqlStore, VERSION_5_11_0)
 	// }
 }

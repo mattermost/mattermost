@@ -5,7 +5,6 @@ package api4
 
 import (
 	"fmt"
-	"io"
 	"io/ioutil"
 	"net"
 	"net/http"
@@ -18,11 +17,11 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/app"
+	"github.com/mattermost/mattermost-server/config"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
-	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"github.com/mattermost/mattermost-server/web"
 	"github.com/mattermost/mattermost-server/wsapi"
 
@@ -31,9 +30,9 @@ import (
 )
 
 type TestHelper struct {
-	App            *app.App
-	Server         *app.Server
-	tempConfigPath string
+	App         *app.App
+	Server      *app.Server
+	ConfigStore config.Store
 
 	Client              *model.Client4
 	BasicUser           *model.User
@@ -45,6 +44,7 @@ type TestHelper struct {
 	BasicDeletedChannel *model.Channel
 	BasicChannel2       *model.Channel
 	BasicPost           *model.Post
+	Group               *model.Group
 
 	SystemAdminClient *model.Client4
 	SystemAdminUser   *model.User
@@ -64,22 +64,13 @@ func UseTestStore(store store.Store) {
 func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHelper {
 	testStore.DropAllTables()
 
-	permConfig, err := os.Open(fileutils.FindConfigFile("config.json"))
+	memoryStore, err := config.NewMemoryStore()
 	if err != nil {
-		panic(err)
-	}
-	defer permConfig.Close()
-	tempConfig, err := ioutil.TempFile("", "")
-	if err != nil {
-		panic(err)
-	}
-	_, err = io.Copy(tempConfig, permConfig)
-	tempConfig.Close()
-	if err != nil {
-		panic(err)
+		panic("failed to initialize memory store: " + err.Error())
 	}
 
-	options := []app.Option{app.Config(tempConfig.Name(), false)}
+	var options []app.Option
+	options = append(options, app.ConfigStore(memoryStore))
 	options = append(options, app.StoreOverride(testStore))
 
 	s, err := app.NewServer(options...)
@@ -88,9 +79,9 @@ func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHel
 	}
 
 	th := &TestHelper{
-		App:            s.FakeApp(),
-		Server:         s,
-		tempConfigPath: tempConfig.Name(),
+		App:         s.FakeApp(),
+		Server:      s,
+		ConfigStore: memoryStore,
 	}
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -180,7 +171,6 @@ func (me *TestHelper) TearDown() {
 	utils.DisableDebugLogForTest()
 
 	me.ShutdownApp()
-	os.Remove(me.tempConfigPath)
 
 	utils.EnableDebugLogForTest()
 
@@ -221,6 +211,7 @@ func (me *TestHelper) InitBasic() *TestHelper {
 	me.App.UpdateUserRoles(me.BasicUser.Id, model.SYSTEM_USER_ROLE_ID, false)
 	me.Client.DeleteChannel(me.BasicDeletedChannel.Id)
 	me.LoginBasic()
+	me.Group = me.CreateGroup()
 
 	return me
 }
@@ -294,7 +285,7 @@ func (me *TestHelper) CreateUserWithClient(client *model.Client4) *model.User {
 	}
 
 	ruser.Password = "Password1"
-	store.Must(me.App.Srv.Store.User().VerifyEmail(ruser.Id))
+	store.Must(me.App.Srv.Store.User().VerifyEmail(ruser.Id, ruser.Email))
 	utils.EnableDebugLogForTest()
 	return ruser
 }
@@ -520,6 +511,24 @@ func (me *TestHelper) GenerateTestEmail() string {
 	return strings.ToLower(model.NewId() + "@dockerhost")
 }
 
+func (me *TestHelper) CreateGroup() *model.Group {
+	id := model.NewId()
+	group := &model.Group{
+		Name:        "n-" + id,
+		DisplayName: "dn_" + id,
+		Source:      model.GroupSourceLdap,
+		RemoteId:    "ri_" + id,
+	}
+
+	utils.DisableDebugLogForTest()
+	group, err := me.App.CreateGroup(group)
+	if err != nil {
+		panic(err)
+	}
+	utils.EnableDebugLogForTest()
+	return group
+}
+
 func GenerateTestUsername() string {
 	return "fakeuser" + model.NewRandomString(10)
 }
@@ -724,8 +733,7 @@ func (me *TestHelper) cleanupTestFile(info *model.FileInfo) error {
 func (me *TestHelper) MakeUserChannelAdmin(user *model.User, channel *model.Channel) {
 	utils.DisableDebugLogForTest()
 
-	if cmr := <-me.App.Srv.Store.Channel().GetMember(channel.Id, user.Id); cmr.Err == nil {
-		cm := cmr.Data.(*model.ChannelMember)
+	if cm, err := me.App.Srv.Store.Channel().GetMember(channel.Id, user.Id); err == nil {
 		cm.SchemeAdmin = true
 		if sr := <-me.App.Srv.Store.Channel().UpdateMember(cm); sr.Err != nil {
 			utils.EnableDebugLogForTest()
@@ -733,7 +741,7 @@ func (me *TestHelper) MakeUserChannelAdmin(user *model.User, channel *model.Chan
 		}
 	} else {
 		utils.EnableDebugLogForTest()
-		panic(cmr.Err)
+		panic(err)
 	}
 
 	utils.EnableDebugLogForTest()

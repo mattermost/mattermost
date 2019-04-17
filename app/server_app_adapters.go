@@ -77,6 +77,10 @@ func (s *Server) RunOldAppInitalization() error {
 		return errors.Wrapf(err, "unable to ensure asymmetric signing key")
 	}
 
+	if err := s.FakeApp().ensurePostActionCookieSecret(); err != nil {
+		return errors.Wrapf(err, "unable to ensure PostAction cookie secret")
+	}
+
 	if err := s.FakeApp().ensureInstallationDate(); err != nil {
 		return errors.Wrapf(err, "unable to ensure installation date")
 	}
@@ -96,8 +100,10 @@ func (s *Server) RunOldAppInitalization() error {
 		return errors.Wrap(err, "failed to parse SiteURL subpath")
 	}
 	s.FakeApp().Srv.Router = s.FakeApp().Srv.RootRouter.PathPrefix(subpath).Subrouter()
-	s.FakeApp().Srv.Router.HandleFunc("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}", s.FakeApp().ServePluginRequest)
-	s.FakeApp().Srv.Router.HandleFunc("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}/{anything:.*}", s.FakeApp().ServePluginRequest)
+	pluginsRoute := s.FakeApp().Srv.Router.PathPrefix("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
+	pluginsRoute.HandleFunc("", s.FakeApp().ServePluginRequest)
+	pluginsRoute.HandleFunc("/public/{public_file:.*}", s.FakeApp().ServePluginPublicRequest)
+	pluginsRoute.HandleFunc("/{anything:.*}", s.FakeApp().ServePluginRequest)
 
 	// If configured with a subpath, redirect 404s at the root back into the subpath.
 	if subpath != "/" {
@@ -133,6 +139,7 @@ func (s *Server) RunOldAppInitalization() error {
 
 	s.FakeApp().DoAdvancedPermissionsMigration()
 	s.FakeApp().DoEmojisPermissionsMigration()
+	s.FakeApp().DoPermissionsMigrations()
 
 	s.FakeApp().InitPostMetadata()
 

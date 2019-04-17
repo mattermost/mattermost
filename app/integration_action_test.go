@@ -55,7 +55,7 @@ func TestPostActionInvalidURL(t *testing.T) {
 		},
 	}
 
-	post, err := th.App.CreatePostAsUser(&interactivePost, false)
+	post, err := th.App.CreatePostAsUser(&interactivePost, "")
 	require.Nil(t, err)
 	attachments, ok := post.Props["attachments"].([]*model.SlackAttachment)
 	require.True(t, ok)
@@ -122,7 +122,7 @@ func TestPostAction(t *testing.T) {
 		},
 	}
 
-	post, err := th.App.CreatePostAsUser(&interactivePost, false)
+	post, err := th.App.CreatePostAsUser(&interactivePost, "")
 	require.Nil(t, err)
 
 	attachments, ok := post.Props["attachments"].([]*model.SlackAttachment)
@@ -159,7 +159,7 @@ func TestPostAction(t *testing.T) {
 		},
 	}
 
-	post2, err := th.App.CreatePostAsUser(&menuPost, false)
+	post2, err := th.App.CreatePostAsUser(&menuPost, "")
 	require.Nil(t, err)
 
 	attachments2, ok := post2.Props["attachments"].([]*model.SlackAttachment)
@@ -217,7 +217,7 @@ func TestPostAction(t *testing.T) {
 		},
 	}
 
-	postplugin, err := th.App.CreatePostAsUser(&interactivePostPlugin, false)
+	postplugin, err := th.App.CreatePostAsUser(&interactivePostPlugin, "")
 	require.Nil(t, err)
 
 	attachmentsPlugin, ok := postplugin.Props["attachments"].([]*model.SlackAttachment)
@@ -258,7 +258,7 @@ func TestPostAction(t *testing.T) {
 		},
 	}
 
-	postSiteURL, err := th.App.CreatePostAsUser(&interactivePostSiteURL, false)
+	postSiteURL, err := th.App.CreatePostAsUser(&interactivePostSiteURL, "")
 	require.Nil(t, err)
 
 	attachmentsSiteURL, ok := postSiteURL.Props["attachments"].([]*model.SlackAttachment)
@@ -300,7 +300,7 @@ func TestPostAction(t *testing.T) {
 		},
 	}
 
-	postSubpath, err := th.App.CreatePostAsUser(&interactivePostSubpath, false)
+	postSubpath, err := th.App.CreatePostAsUser(&interactivePostSubpath, "")
 	require.Nil(t, err)
 
 	attachmentsSubpath, ok := postSubpath.Props["attachments"].([]*model.SlackAttachment)
@@ -308,6 +308,91 @@ func TestPostAction(t *testing.T) {
 
 	_, err = th.App.DoPostAction(postSubpath.Id, attachmentsSubpath[0].Actions[0].Id, th.BasicUser.Id, "")
 	require.Nil(t, err)
+}
+
+func TestPostActionProps(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
+	})
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		request := model.PostActionIntegrationRequestFromJson(r.Body)
+		assert.NotNil(t, request)
+
+		fmt.Fprintf(w, `{
+			"update": {
+				"message": "updated",
+				"has_reactions": true,
+				"is_pinned": false,
+				"props": {
+					"from_webhook":true,
+					"override_username":"new_override_user",
+					"override_icon_url":"new_override_icon",
+					"A":"AA"
+				}
+			},
+			"ephemeral_text": "foo"
+		}`)
+	}))
+	defer ts.Close()
+
+	interactivePost := model.Post{
+		Message:       "Interactive post",
+		ChannelId:     th.BasicChannel.Id,
+		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+		UserId:        th.BasicUser.Id,
+		HasReactions:  false,
+		IsPinned:      true,
+		Props: model.StringInterface{
+			"attachments": []*model.SlackAttachment{
+				{
+					Text: "hello",
+					Actions: []*model.PostAction{
+						{
+							Integration: &model.PostActionIntegration{
+								Context: model.StringInterface{
+									"s": "foo",
+									"n": 3,
+								},
+								URL: ts.URL,
+							},
+							Name:       "action",
+							Type:       "some_type",
+							DataSource: "some_source",
+						},
+					},
+				},
+			},
+			"override_icon_url": "old_override_icon",
+			"from_webhook":      false,
+			"B":                 "BB",
+		},
+	}
+
+	post, err := th.App.CreatePostAsUser(&interactivePost, "")
+	require.Nil(t, err)
+	attachments, ok := post.Props["attachments"].([]*model.SlackAttachment)
+	require.True(t, ok)
+
+	clientTriggerId, err := th.App.DoPostAction(post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
+	require.Nil(t, err)
+	assert.True(t, len(clientTriggerId) == 26)
+
+	pchan := th.App.Srv.Store.Post().GetSingle(post.Id)
+	result := <-pchan
+	require.Nil(t, result.Err)
+	newPost := result.Data.(*model.Post)
+
+	assert.True(t, newPost.IsPinned)
+	assert.False(t, newPost.HasReactions)
+	assert.Nil(t, newPost.Props["B"])
+	assert.Nil(t, newPost.Props["override_username"])
+	assert.Equal(t, "AA", newPost.Props["A"])
+	assert.Equal(t, "old_override_icon", newPost.Props["override_icon_url"])
+	assert.Equal(t, false, newPost.Props["from_webhook"])
 }
 
 func TestSubmitInteractiveDialog(t *testing.T) {

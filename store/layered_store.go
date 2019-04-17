@@ -87,6 +87,10 @@ func (s *LayeredStore) User() UserStore {
 	return s.DatabaseLayer.User()
 }
 
+func (s *LayeredStore) Bot() BotStore {
+	return s.DatabaseLayer.Bot()
+}
+
 func (s *LayeredStore) Audit() AuditStore {
 	return s.DatabaseLayer.Audit()
 }
@@ -280,6 +284,12 @@ func (s *LayeredRoleStore) Get(roleId string) StoreChannel {
 	})
 }
 
+func (s *LayeredRoleStore) GetAll() StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.RoleGetAll(s.TmpContext)
+	})
+}
+
 func (s *LayeredRoleStore) GetByName(name string) StoreChannel {
 	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
 		return supplier.RoleGetByName(s.TmpContext, name)
@@ -444,14 +454,38 @@ func (s *LayeredGroupStore) DeleteGroupSyncable(groupID string, syncableID strin
 	})
 }
 
-func (s *LayeredGroupStore) PendingAutoAddTeamMembers(minGroupMembersCreateAt int64) StoreChannel {
+func (s *LayeredGroupStore) TeamMembersToAdd(since int64) StoreChannel {
 	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.PendingAutoAddTeamMembers(s.TmpContext, minGroupMembersCreateAt)
+		return supplier.TeamMembersToAdd(s.TmpContext, since)
 	})
 }
 
-func (s *LayeredGroupStore) PendingAutoAddChannelMembers(minGroupMembersCreateAt int64) StoreChannel {
+func (s *LayeredGroupStore) ChannelMembersToAdd(since int64) StoreChannel {
 	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.PendingAutoAddChannelMembers(s.TmpContext, minGroupMembersCreateAt)
+		return supplier.ChannelMembersToAdd(s.TmpContext, since)
+	})
+}
+
+func (s *LayeredGroupStore) TeamMembersToRemove() StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.TeamMembersToRemove(s.TmpContext)
+	})
+}
+
+func (s *LayeredGroupStore) ChannelMembersToRemove() StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.ChannelMembersToRemove(s.TmpContext)
+	})
+}
+
+func (s *LayeredGroupStore) GetGroupsByChannel(channelId string, page, perPage int) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.GetGroupsByChannel(s.TmpContext, channelId, page, perPage)
+	})
+}
+
+func (s *LayeredGroupStore) GetGroupsByTeam(teamId string, page, perPage int) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.GetGroupsByTeam(s.TmpContext, teamId, page, perPage)
 	})
 }

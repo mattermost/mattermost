@@ -48,6 +48,12 @@ type GroupPatch struct {
 	Description *string `json:"description"`
 }
 
+type GroupSearchOpts struct {
+	Q            string
+	IsLinked     *bool
+	IsConfigured *bool
+}
+
 func (group *Group) Patch(patch *GroupPatch) {
 	if patch.Name != nil {
 		group.Name = *patch.Name

@@ -82,7 +82,7 @@ func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost bool) *mo
 	firstLink, images := getFirstLinkAndImages(post.Message)
 
 	if embed, err := a.getEmbedForPost(post, firstLink, isNewPost); err != nil {
-		mlog.Warn("Failed to get embedded content for a post", mlog.String("post_id", post.Id), mlog.Any("err", err))
+		mlog.Debug("Failed to get embedded content for a post", mlog.String("post_id", post.Id), mlog.Any("err", err))
 	} else if embed == nil {
 		post.Metadata.Embeds = []*model.PostEmbed{}
 	} else {
@@ -127,7 +127,7 @@ func (a *App) getEmbedForPost(post *model.Post, firstLink string, isNewPost bool
 		}, nil
 	}
 
-	if firstLink == "" {
+	if firstLink == "" || !*a.Config().ServiceSettings.EnableLinkPreviews {
 		return nil, nil
 	}
 
@@ -145,7 +145,7 @@ func (a *App) getEmbedForPost(post *model.Post, firstLink string, isNewPost bool
 	}
 
 	if image != nil {
-		// Note that we're not passing the image info here since they'll be part of the PostMetadata.Images field
+		// Note that we're not passing the image info here since it'll be part of the PostMetadata.Images field
 		return &model.PostEmbed{
 			Type: model.POST_EMBED_IMAGE,
 			URL:  firstLink,
@@ -201,7 +201,7 @@ func (a *App) getImagesForPost(post *model.Post, imageURLs []string, isNewPost b
 
 	for _, imageURL := range imageURLs {
 		if _, image, err := a.getLinkMetadata(imageURL, post.CreateAt, isNewPost); err != nil {
-			mlog.Warn("Failed to get dimensions of an image in a post",
+			mlog.Debug("Failed to get dimensions of an image in a post",
 				mlog.String("post_id", post.Id), mlog.String("image_url", imageURL), mlog.Any("err", err))
 		} else if image != nil {
 			images[imageURL] = image

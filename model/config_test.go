@@ -55,6 +55,19 @@ func TestConfigDefaults(t *testing.T) {
 	})
 }
 
+func TestConfigEmptySiteName(t *testing.T) {
+	c1 := Config{
+		TeamSettings: TeamSettings{
+			SiteName: NewString(""),
+		},
+	}
+	c1.SetDefaults()
+
+	if *c1.TeamSettings.SiteName != TEAM_SETTINGS_DEFAULT_SITE_NAME {
+		t.Fatal("TeamSettings.SiteName should default to " + TEAM_SETTINGS_DEFAULT_SITE_NAME)
+	}
+}
+
 func TestConfigDefaultFileSettingsDirectory(t *testing.T) {
 	c1 := Config{}
 	c1.SetDefaults()
@@ -111,6 +124,33 @@ func TestConfigDefaultServiceSettingsExperimentalGroupUnreadChannels(t *testing.
 
 	if *c1.ServiceSettings.ExperimentalGroupUnreadChannels != GROUP_UNREAD_CHANNELS_DISABLED {
 		t.Fatal("ServiceSettings.ExperimentalGroupUnreadChannels should set false to 'disabled'")
+	}
+}
+
+func TestConfigDefaultNPSPluginState(t *testing.T) {
+	c1 := Config{}
+	c1.SetDefaults()
+
+	if c1.PluginSettings.PluginStates["com.mattermost.nps"].Enable != true {
+		t.Fatal("PluginSettings.PluginStates[\"com.mattermost.nps\"].Enable should default to true")
+	}
+
+	c1.PluginSettings.PluginStates["com.mattermost.nps"].Enable = false
+	c1.SetDefaults()
+	if c1.PluginSettings.PluginStates["com.mattermost.nps"].Enable != false {
+		t.Fatal("PluginSettings.PluginStates[\"com.mattermost.nps\"].Enable should remain false")
+	}
+}
+
+func TestTeamSettingsIsValidSiteNameEmpty(t *testing.T) {
+	c1 := Config{}
+	c1.SetDefaults()
+	c1.TeamSettings.SiteName = NewString("")
+
+	// should fail fast because ts.SiteName is not set
+	err := c1.TeamSettings.isValid()
+	if err == nil {
+		t.Fatal("TeamSettings validation should fail with an empty SiteName")
 	}
 }
 
@@ -576,7 +616,7 @@ func TestImageProxySettingsSetDefaults(t *testing.T) {
 		ips := ImageProxySettings{}
 		ips.SetDefaults(ServiceSettings{})
 
-		assert.Equal(t, true, *ips.Enable)
+		assert.Equal(t, false, *ips.Enable)
 		assert.Equal(t, IMAGE_PROXY_TYPE_LOCAL, *ips.ImageProxyType)
 		assert.Equal(t, "", *ips.RemoteImageProxyURL)
 		assert.Equal(t, "", *ips.RemoteImageProxyOptions)

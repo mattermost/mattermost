@@ -15,6 +15,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/dyatlov/go-opengraph/opengraph"
 	"github.com/go-sql-driver/mysql"
 	"github.com/lib/pq"
@@ -71,6 +72,7 @@ type SqlSupplierOldStores struct {
 	channel              store.ChannelStore
 	post                 store.PostStore
 	user                 store.UserStore
+	bot                  store.BotStore
 	audit                store.AuditStore
 	cluster              store.ClusterDiscoveryStore
 	compliance           store.ComplianceStore
@@ -126,6 +128,7 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.oldStores.channel = NewSqlChannelStore(supplier, metrics)
 	supplier.oldStores.post = NewSqlPostStore(supplier, metrics)
 	supplier.oldStores.user = NewSqlUserStore(supplier, metrics)
+	supplier.oldStores.bot = NewSqlBotStore(supplier, metrics)
 	supplier.oldStores.audit = NewSqlAuditStore(supplier)
 	supplier.oldStores.cluster = NewSqlClusterDiscoveryStore(supplier)
 	supplier.oldStores.compliance = NewSqlComplianceStore(supplier)
@@ -167,6 +170,7 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.oldStores.channel.(*SqlChannelStore).CreateIndexesIfNotExists()
 	supplier.oldStores.post.(*SqlPostStore).CreateIndexesIfNotExists()
 	supplier.oldStores.user.(*SqlUserStore).CreateIndexesIfNotExists()
+	supplier.oldStores.bot.(*SqlBotStore).CreateIndexesIfNotExists()
 	supplier.oldStores.audit.(*SqlAuditStore).CreateIndexesIfNotExists()
 	supplier.oldStores.compliance.(*SqlComplianceStore).CreateIndexesIfNotExists()
 	supplier.oldStores.session.(*SqlSessionStore).CreateIndexesIfNotExists()
@@ -936,6 +940,10 @@ func (ss *SqlSupplier) User() store.UserStore {
 	return ss.oldStores.user
 }
 
+func (ss *SqlSupplier) Bot() store.BotStore {
+	return ss.oldStores.bot
+}
+
 func (ss *SqlSupplier) Session() store.SessionStore {
 	return ss.oldStores.session
 }
@@ -1042,6 +1050,14 @@ func (ss *SqlSupplier) LinkMetadata() store.LinkMetadataStore {
 
 func (ss *SqlSupplier) DropAllTables() {
 	ss.master.TruncateTables()
+}
+
+func (ss *SqlSupplier) getQueryBuilder() sq.StatementBuilderType {
+	builder := sq.StatementBuilder.PlaceholderFormat(sq.Question)
+	if ss.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		builder = builder.PlaceholderFormat(sq.Dollar)
+	}
+	return builder
 }
 
 type mattermConverter struct{}

@@ -26,10 +26,13 @@ func TestTeamStore(t *testing.T, ss store.Store) {
 	t.Run("SearchByName", func(t *testing.T) { testTeamStoreSearchByName(t, ss) })
 	t.Run("SearchAll", func(t *testing.T) { testTeamStoreSearchAll(t, ss) })
 	t.Run("SearchOpen", func(t *testing.T) { testTeamStoreSearchOpen(t, ss) })
+	t.Run("SearchPrivate", func(t *testing.T) { testTeamStoreSearchPrivate(t, ss) })
 	t.Run("GetByIniviteId", func(t *testing.T) { testTeamStoreGetByIniviteId(t, ss) })
 	t.Run("ByUserId", func(t *testing.T) { testTeamStoreByUserId(t, ss) })
 	t.Run("GetAllTeamListing", func(t *testing.T) { testGetAllTeamListing(t, ss) })
 	t.Run("GetAllTeamPageListing", func(t *testing.T) { testGetAllTeamPageListing(t, ss) })
+	t.Run("GetAllPrivateTeamListing", func(t *testing.T) { testGetAllPrivateTeamListing(t, ss) })
+	t.Run("GetAllPrivateTeamPageListing", func(t *testing.T) { testGetAllPrivateTeamPageListing(t, ss) })
 	t.Run("Delete", func(t *testing.T) { testDelete(t, ss) })
 	t.Run("TeamCount", func(t *testing.T) { testTeamCount(t, ss) })
 	t.Run("TeamMembers", func(t *testing.T) { testTeamMembers(t, ss) })
@@ -47,6 +50,7 @@ func TestTeamStore(t *testing.T, ss store.Store) {
 	t.Run("AnalyticsGetTeamCountForScheme", func(t *testing.T) { testTeamStoreAnalyticsGetTeamCountForScheme(t, ss) })
 	t.Run("GetAllForExportAfter", func(t *testing.T) { testTeamStoreGetAllForExportAfter(t, ss) })
 	t.Run("GetTeamMembersForExport", func(t *testing.T) { testTeamStoreGetTeamMembersForExport(t, ss) })
+	t.Run("GetTeamsForUserWithPagination", func(t *testing.T) { testTeamMembersWithPagination(t, ss) })
 }
 
 func testTeamStoreSave(t *testing.T, ss store.Store) {
@@ -184,143 +188,200 @@ func testTeamStoreSearchByName(t *testing.T, ss store.Store) {
 }
 
 func testTeamStoreSearchAll(t *testing.T, ss store.Store) {
-	o1 := model.Team{}
-	o1.DisplayName = "ADisplayName" + model.NewId()
-	o1.Name = "zz" + model.NewId() + "a"
-	o1.Email = MakeEmail()
-	o1.Type = model.TEAM_OPEN
+	o := model.Team{}
+	o.DisplayName = "ADisplayName" + model.NewId()
+	o.Name = "zzzzzz-" + model.NewId() + "a"
+	o.Email = MakeEmail()
+	o.Type = model.TEAM_OPEN
+	o.AllowOpenInvite = true
 
-	if err := (<-ss.Team().Save(&o1)).Err; err != nil {
-		t.Fatal(err)
+	require.Nil(t, (<-ss.Team().Save(&o)).Err)
+
+	p := model.Team{}
+	p.DisplayName = "ADisplayName" + model.NewId()
+	p.Name = "zzzzzz-" + model.NewId() + "a"
+	p.Email = MakeEmail()
+	p.Type = model.TEAM_OPEN
+	p.AllowOpenInvite = false
+
+	require.Nil(t, (<-ss.Team().Save(&p)).Err)
+
+	testCases := []struct {
+		Name            string
+		Term            string
+		ExpectedLenth   int
+		ExpectedFirstId string
+	}{
+		{
+			"Search for open team name",
+			o.Name,
+			1,
+			o.Id,
+		},
+		{
+			"Search for open team displayName",
+			o.DisplayName,
+			1,
+			o.Id,
+		},
+		{
+			"Search for open team without results",
+			"junk",
+			0,
+			"",
+		},
+		{
+			"Search for private team",
+			p.DisplayName,
+			1,
+			p.Id,
+		},
+		{
+			"Search for both teams",
+			"zzzzzz",
+			2,
+			"",
+		},
 	}
 
-	p2 := model.Team{}
-	p2.DisplayName = "BDisplayName" + model.NewId()
-	p2.Name = "b" + model.NewId() + "b"
-	p2.Email = MakeEmail()
-	p2.Type = model.TEAM_INVITE
-
-	if err := (<-ss.Team().Save(&p2)).Err; err != nil {
-		t.Fatal(err)
-	}
-
-	r1 := <-ss.Team().SearchAll(o1.Name)
-	if r1.Err != nil {
-		t.Fatal(r1.Err)
-	}
-	if len(r1.Data.([]*model.Team)) != 1 {
-		t.Fatal("should have returned 1 team")
-	}
-	if r1.Data.([]*model.Team)[0].ToJson() != o1.ToJson() {
-		t.Fatal("invalid returned team")
-	}
-
-	r1 = <-ss.Team().SearchAll(p2.DisplayName)
-	if r1.Err != nil {
-		t.Fatal(r1.Err)
-	}
-	if len(r1.Data.([]*model.Team)) != 1 {
-		t.Fatal("should have returned 1 team")
-	}
-	if r1.Data.([]*model.Team)[0].ToJson() != p2.ToJson() {
-		t.Fatal("invalid returned team")
-	}
-
-	r1 = <-ss.Team().SearchAll("junk")
-	if r1.Err != nil {
-		t.Fatal(r1.Err)
-	}
-	if len(r1.Data.([]*model.Team)) != 0 {
-		t.Fatal("should have not returned a team")
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			r1 := <-ss.Team().SearchAll(tc.Term)
+			require.Nil(t, r1.Err)
+			results := r1.Data.([]*model.Team)
+			require.Equal(t, tc.ExpectedLenth, len(results))
+			if tc.ExpectedFirstId != "" {
+				assert.Equal(t, tc.ExpectedFirstId, results[0].Id)
+			}
+		})
 	}
 }
 
 func testTeamStoreSearchOpen(t *testing.T, ss store.Store) {
-	o1 := model.Team{}
-	o1.DisplayName = "ADisplayName" + model.NewId()
-	o1.Name = "zz" + model.NewId() + "a"
-	o1.Email = MakeEmail()
-	o1.Type = model.TEAM_OPEN
-	o1.AllowOpenInvite = true
+	o := model.Team{}
+	o.DisplayName = "ADisplayName" + model.NewId()
+	o.Name = "zz" + model.NewId() + "a"
+	o.Email = MakeEmail()
+	o.Type = model.TEAM_OPEN
+	o.AllowOpenInvite = true
 
-	if err := (<-ss.Team().Save(&o1)).Err; err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, (<-ss.Team().Save(&o)).Err)
 
-	o2 := model.Team{}
-	o2.DisplayName = "ADisplayName" + model.NewId()
-	o2.Name = "zz" + model.NewId() + "a"
-	o2.Email = MakeEmail()
-	o2.Type = model.TEAM_OPEN
-	o2.AllowOpenInvite = false
+	p := model.Team{}
+	p.DisplayName = "ADisplayName" + model.NewId()
+	p.Name = "zz" + model.NewId() + "a"
+	p.Email = MakeEmail()
+	p.Type = model.TEAM_OPEN
+	p.AllowOpenInvite = false
 
-	if err := (<-ss.Team().Save(&o2)).Err; err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, (<-ss.Team().Save(&p)).Err)
 
-	p2 := model.Team{}
-	p2.DisplayName = "BDisplayName" + model.NewId()
-	p2.Name = "b" + model.NewId() + "b"
-	p2.Email = MakeEmail()
-	p2.Type = model.TEAM_INVITE
-	p2.AllowOpenInvite = true
-
-	if err := (<-ss.Team().Save(&p2)).Err; err != nil {
-		t.Fatal(err)
-	}
-
-	r1 := <-ss.Team().SearchOpen(o1.Name)
-	if r1.Err != nil {
-		t.Fatal(r1.Err)
-	}
-	if len(r1.Data.([]*model.Team)) != 1 {
-		t.Fatal("should have returned 1 team")
-	}
-	if r1.Data.([]*model.Team)[0].ToJson() != o1.ToJson() {
-		t.Fatal("invalid returned team")
-	}
-
-	r1 = <-ss.Team().SearchOpen(o1.DisplayName)
-	if r1.Err != nil {
-		t.Fatal(r1.Err)
-	}
-	if len(r1.Data.([]*model.Team)) != 1 {
-		t.Fatal("should have returned 1 team")
-	}
-	if r1.Data.([]*model.Team)[0].ToJson() != o1.ToJson() {
-		t.Fatal("invalid returned team")
+	testCases := []struct {
+		Name            string
+		Term            string
+		ExpectedLenth   int
+		ExpectedFirstId string
+	}{
+		{
+			"Search for open team name",
+			o.Name,
+			1,
+			o.Id,
+		},
+		{
+			"Search for open team displayName",
+			o.DisplayName,
+			1,
+			o.Id,
+		},
+		{
+			"Search for open team without results",
+			"junk",
+			0,
+			"",
+		},
+		{
+			"Search for a private team (expected no results)",
+			p.DisplayName,
+			0,
+			"",
+		},
 	}
 
-	r1 = <-ss.Team().SearchOpen(p2.Name)
-	if r1.Err != nil {
-		t.Fatal(r1.Err)
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			r1 := <-ss.Team().SearchOpen(tc.Term)
+			require.Nil(t, r1.Err)
+			results := r1.Data.([]*model.Team)
+			require.Equal(t, tc.ExpectedLenth, len(results))
+			if tc.ExpectedFirstId != "" {
+				assert.Equal(t, tc.ExpectedFirstId, results[0].Id)
+			}
+		})
 	}
-	if len(r1.Data.([]*model.Team)) != 0 {
-		t.Fatal("should have not returned a team")
+}
+
+func testTeamStoreSearchPrivate(t *testing.T, ss store.Store) {
+	o := model.Team{}
+	o.DisplayName = "ADisplayName" + model.NewId()
+	o.Name = "zz" + model.NewId() + "a"
+	o.Email = MakeEmail()
+	o.Type = model.TEAM_OPEN
+	o.AllowOpenInvite = true
+
+	require.Nil(t, (<-ss.Team().Save(&o)).Err)
+
+	p := model.Team{}
+	p.DisplayName = "ADisplayName" + model.NewId()
+	p.Name = "zz" + model.NewId() + "a"
+	p.Email = MakeEmail()
+	p.Type = model.TEAM_OPEN
+	p.AllowOpenInvite = false
+
+	require.Nil(t, (<-ss.Team().Save(&p)).Err)
+
+	testCases := []struct {
+		Name            string
+		Term            string
+		ExpectedLenth   int
+		ExpectedFirstId string
+	}{
+		{
+			"Search for private team name",
+			p.Name,
+			1,
+			p.Id,
+		},
+		{
+			"Search for private team displayName",
+			p.DisplayName,
+			1,
+			p.Id,
+		},
+		{
+			"Search for private team without results",
+			"junk",
+			0,
+			"",
+		},
+		{
+			"Search for a open team (expected no results)",
+			o.DisplayName,
+			0,
+			"",
+		},
 	}
 
-	r1 = <-ss.Team().SearchOpen(p2.DisplayName)
-	if r1.Err != nil {
-		t.Fatal(r1.Err)
-	}
-	if len(r1.Data.([]*model.Team)) != 0 {
-		t.Fatal("should have not returned a team")
-	}
-
-	r1 = <-ss.Team().SearchOpen("junk")
-	if r1.Err != nil {
-		t.Fatal(r1.Err)
-	}
-	if len(r1.Data.([]*model.Team)) != 0 {
-		t.Fatal("should have not returned a team")
-	}
-
-	r1 = <-ss.Team().SearchOpen(o2.DisplayName)
-	if r1.Err != nil {
-		t.Fatal(r1.Err)
-	}
-	if len(r1.Data.([]*model.Team)) != 0 {
-		t.Fatal("should have not returned a team")
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			r1 := <-ss.Team().SearchPrivate(tc.Term)
+			require.Nil(t, r1.Err)
+			results := r1.Data.([]*model.Team)
+			require.Equal(t, tc.ExpectedLenth, len(results))
+			if tc.ExpectedFirstId != "" {
+				assert.Equal(t, tc.ExpectedFirstId, results[0].Id)
+			}
+		})
 	}
 }
 
@@ -535,6 +596,144 @@ func testGetAllTeamPageListing(t *testing.T, ss store.Store) {
 	}
 }
 
+func testGetAllPrivateTeamListing(t *testing.T, ss store.Store) {
+	o1 := model.Team{}
+	o1.DisplayName = "DisplayName"
+	o1.Name = "z-z-z" + model.NewId() + "b"
+	o1.Email = MakeEmail()
+	o1.Type = model.TEAM_OPEN
+	o1.AllowOpenInvite = true
+	store.Must(ss.Team().Save(&o1))
+
+	o2 := model.Team{}
+	o2.DisplayName = "DisplayName"
+	o2.Name = "zz" + model.NewId() + "b"
+	o2.Email = MakeEmail()
+	o2.Type = model.TEAM_OPEN
+	store.Must(ss.Team().Save(&o2))
+
+	o3 := model.Team{}
+	o3.DisplayName = "DisplayName"
+	o3.Name = "z-z-z" + model.NewId() + "b"
+	o3.Email = MakeEmail()
+	o3.Type = model.TEAM_INVITE
+	o3.AllowOpenInvite = true
+	store.Must(ss.Team().Save(&o3))
+
+	o4 := model.Team{}
+	o4.DisplayName = "DisplayName"
+	o4.Name = "zz" + model.NewId() + "b"
+	o4.Email = MakeEmail()
+	o4.Type = model.TEAM_INVITE
+	store.Must(ss.Team().Save(&o4))
+
+	if r1 := <-ss.Team().GetAllPrivateTeamListing(); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		teams := r1.Data.([]*model.Team)
+
+		for _, team := range teams {
+			if team.AllowOpenInvite {
+				t.Fatal("should have returned team with AllowOpenInvite as false")
+			}
+		}
+
+		if len(teams) == 0 {
+			t.Fatal("failed team listing")
+		}
+	}
+}
+
+func testGetAllPrivateTeamPageListing(t *testing.T, ss store.Store) {
+	o1 := model.Team{}
+	o1.DisplayName = "DisplayName"
+	o1.Name = "z-z-z" + model.NewId() + "b"
+	o1.Email = MakeEmail()
+	o1.Type = model.TEAM_OPEN
+	o1.AllowOpenInvite = true
+	store.Must(ss.Team().Save(&o1))
+
+	o2 := model.Team{}
+	o2.DisplayName = "DisplayName"
+	o2.Name = "zz" + model.NewId() + "b"
+	o2.Email = MakeEmail()
+	o2.Type = model.TEAM_OPEN
+	o2.AllowOpenInvite = false
+	store.Must(ss.Team().Save(&o2))
+
+	o3 := model.Team{}
+	o3.DisplayName = "DisplayName"
+	o3.Name = "z-z-z" + model.NewId() + "b"
+	o3.Email = MakeEmail()
+	o3.Type = model.TEAM_INVITE
+	o3.AllowOpenInvite = true
+	store.Must(ss.Team().Save(&o3))
+
+	o4 := model.Team{}
+	o4.DisplayName = "DisplayName"
+	o4.Name = "zz" + model.NewId() + "b"
+	o4.Email = MakeEmail()
+	o4.Type = model.TEAM_INVITE
+	o4.AllowOpenInvite = false
+	store.Must(ss.Team().Save(&o4))
+
+	if r1 := <-ss.Team().GetAllPrivateTeamPageListing(0, 10); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		teams := r1.Data.([]*model.Team)
+
+		for _, team := range teams {
+			if team.AllowOpenInvite {
+				t.Fatal("should have returned team with AllowOpenInvite as false")
+			}
+		}
+
+		if len(teams) > 10 {
+			t.Fatal("should have returned max of 10 teams")
+		}
+	}
+
+	o5 := model.Team{}
+	o5.DisplayName = "DisplayName"
+	o5.Name = "z-z-z" + model.NewId() + "b"
+	o5.Email = MakeEmail()
+	o5.Type = model.TEAM_OPEN
+	o5.AllowOpenInvite = true
+	store.Must(ss.Team().Save(&o5))
+
+	if r1 := <-ss.Team().GetAllPrivateTeamPageListing(0, 4); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		teams := r1.Data.([]*model.Team)
+
+		for _, team := range teams {
+			if team.AllowOpenInvite {
+				t.Fatal("should have returned team with AllowOpenInvite as false")
+			}
+		}
+
+		if len(teams) > 4 {
+			t.Fatal("should have returned max of 4 teams")
+		}
+	}
+
+	if r1 := <-ss.Team().GetAllPrivateTeamPageListing(1, 1); r1.Err != nil {
+		t.Fatal(r1.Err)
+	} else {
+		teams := r1.Data.([]*model.Team)
+
+		for _, team := range teams {
+			if team.AllowOpenInvite {
+				t.Fatal("should have returned team with AllowOpenInvite as false")
+			}
+		}
+
+		if len(teams) > 1 {
+			t.Fatal("should have returned max of 1 team")
+		}
+	}
+}
+
 func testDelete(t *testing.T, ss store.Store) {
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName"
@@ -668,6 +867,62 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	}
 }
 
+func testTeamMembersWithPagination(t *testing.T, ss store.Store) {
+	teamId1 := model.NewId()
+	teamId2 := model.NewId()
+
+	m1 := &model.TeamMember{TeamId: teamId1, UserId: model.NewId()}
+	m2 := &model.TeamMember{TeamId: teamId1, UserId: model.NewId()}
+	m3 := &model.TeamMember{TeamId: teamId2, UserId: model.NewId()}
+
+	r1 := <-ss.Team().SaveMember(m1, -1)
+	require.Nil(t, r1.Err)
+
+	store.Must(ss.Team().SaveMember(m2, -1))
+	store.Must(ss.Team().SaveMember(m3, -1))
+
+	r1 = <-ss.Team().GetTeamsForUserWithPagination(m1.UserId, 0, 1)
+	require.Nil(t, r1.Err)
+	ms := r1.Data.([]*model.TeamMember)
+
+	require.Len(t, ms, 1)
+	require.Equal(t, m1.TeamId, ms[0].TeamId)
+
+	r1 = <-ss.Team().RemoveMember(teamId1, m1.UserId)
+	require.Nil(t, r1.Err)
+
+	r1 = <-ss.Team().GetMembers(teamId1, 0, 100)
+	require.Nil(t, r1.Err)
+
+	ms = r1.Data.([]*model.TeamMember)
+	require.Len(t, ms, 1)
+	require.Equal(t, m2.UserId, ms[0].UserId)
+
+	store.Must(ss.Team().SaveMember(m1, -1))
+
+	r1 = <-ss.Team().RemoveAllMembersByTeam(teamId1)
+	require.Nil(t, r1.Err)
+
+	uid := model.NewId()
+	m4 := &model.TeamMember{TeamId: teamId1, UserId: uid}
+	m5 := &model.TeamMember{TeamId: teamId2, UserId: uid}
+	store.Must(ss.Team().SaveMember(m4, -1))
+	store.Must(ss.Team().SaveMember(m5, -1))
+
+	r1 = <-ss.Team().GetTeamsForUserWithPagination(uid, 0, 1)
+	require.Nil(t, r1.Err)
+	ms = r1.Data.([]*model.TeamMember)
+	require.Len(t, ms, 1)
+
+	r1 = <-ss.Team().RemoveAllMembersByUser(uid)
+	require.Nil(t, r1.Err)
+
+	r1 = <-ss.Team().GetTeamsForUserWithPagination(uid, 1, 1)
+	require.Nil(t, r1.Err)
+	ms = r1.Data.([]*model.TeamMember)
+	require.Len(t, ms, 0)
+}
+
 func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 	maxUsersPerTeam := 5
 
@@ -757,7 +1012,8 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 	}
 
 	// Deactivating a user should make them stop counting against max members
-	user2 := store.Must(ss.User().Get(userIds[1])).(*model.User)
+	user2, err := ss.User().Get(userIds[1])
+	require.Nil(t, err)
 	user2.DeleteAt = 1234
 	store.Must(ss.User().Update(user2, true))
 

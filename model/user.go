@@ -54,32 +54,35 @@ const (
 )
 
 type User struct {
-	Id                 string    `json:"id"`
-	CreateAt           int64     `json:"create_at,omitempty"`
-	UpdateAt           int64     `json:"update_at,omitempty"`
-	DeleteAt           int64     `json:"delete_at"`
-	Username           string    `json:"username"`
-	Password           string    `json:"password,omitempty"`
-	AuthData           *string   `json:"auth_data,omitempty"`
-	AuthService        string    `json:"auth_service"`
-	Email              string    `json:"email"`
-	EmailVerified      bool      `json:"email_verified,omitempty"`
-	Nickname           string    `json:"nickname"`
-	FirstName          string    `json:"first_name"`
-	LastName           string    `json:"last_name"`
-	Position           string    `json:"position"`
-	Roles              string    `json:"roles"`
-	AllowMarketing     bool      `json:"allow_marketing,omitempty"`
-	Props              StringMap `json:"props,omitempty"`
-	NotifyProps        StringMap `json:"notify_props,omitempty"`
-	LastPasswordUpdate int64     `json:"last_password_update,omitempty"`
-	LastPictureUpdate  int64     `json:"last_picture_update,omitempty"`
-	FailedAttempts     int       `json:"failed_attempts,omitempty"`
-	Locale             string    `json:"locale"`
-	Timezone           StringMap `json:"timezone"`
-	MfaActive          bool      `json:"mfa_active,omitempty"`
-	MfaSecret          string    `json:"mfa_secret,omitempty"`
-	LastActivityAt     int64     `db:"-" json:"last_activity_at,omitempty"`
+	Id                     string    `json:"id"`
+	CreateAt               int64     `json:"create_at,omitempty"`
+	UpdateAt               int64     `json:"update_at,omitempty"`
+	DeleteAt               int64     `json:"delete_at"`
+	Username               string    `json:"username"`
+	Password               string    `json:"password,omitempty"`
+	AuthData               *string   `json:"auth_data,omitempty"`
+	AuthService            string    `json:"auth_service"`
+	Email                  string    `json:"email"`
+	EmailVerified          bool      `json:"email_verified,omitempty"`
+	Nickname               string    `json:"nickname"`
+	FirstName              string    `json:"first_name"`
+	LastName               string    `json:"last_name"`
+	Position               string    `json:"position"`
+	Roles                  string    `json:"roles"`
+	AllowMarketing         bool      `json:"allow_marketing,omitempty"`
+	Props                  StringMap `json:"props,omitempty"`
+	NotifyProps            StringMap `json:"notify_props,omitempty"`
+	LastPasswordUpdate     int64     `json:"last_password_update,omitempty"`
+	LastPictureUpdate      int64     `json:"last_picture_update,omitempty"`
+	FailedAttempts         int       `json:"failed_attempts,omitempty"`
+	Locale                 string    `json:"locale"`
+	Timezone               StringMap `json:"timezone"`
+	MfaActive              bool      `json:"mfa_active,omitempty"`
+	MfaSecret              string    `json:"mfa_secret,omitempty"`
+	LastActivityAt         int64     `db:"-" json:"last_activity_at,omitempty"`
+	IsBot                  bool      `db:"-" json:"is_bot,omitempty"`
+	TermsOfServiceId       string    `db:"-" json:"terms_of_service_id,omitempty"`
+	TermsOfServiceCreateAt int64     `db:"-" json:"terms_of_service_create_at,omitempty"`
 }
 
 type UserPatch struct {
@@ -100,6 +103,18 @@ type UserAuth struct {
 	Password    string  `json:"password,omitempty"`
 	AuthData    *string `json:"auth_data,omitempty"`
 	AuthService string  `json:"auth_service,omitempty"`
+}
+
+type UserForIndexing struct {
+	Id          string   `json:"id"`
+	Username    string   `json:"username"`
+	Nickname    string   `json:"nickname"`
+	FirstName   string   `json:"first_name"`
+	LastName    string   `json:"last_name"`
+	CreateAt    int64    `json:"create_at"`
+	DeleteAt    int64    `json:"delete_at"`
+	TeamsIds    []string `json:"team_id"`
+	ChannelsIds []string `json:"channel_id"`
 }
 
 func (u *User) DeepCopy() *User {
@@ -359,7 +374,7 @@ func (u *UserAuth) ToJson() string {
 
 // Generate a valid strong etag so the browser can cache the results
 func (u *User) Etag(showFullName, showEmail bool) string {
-	return Etag(u.Id, u.UpdateAt, showFullName, showEmail)
+	return Etag(u.Id, u.UpdateAt, u.TermsOfServiceId, u.TermsOfServiceCreateAt, showFullName, showEmail)
 }
 
 // Remove any private data from the user object

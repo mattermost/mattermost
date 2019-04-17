@@ -122,6 +122,12 @@ type PostForExport struct {
 	ReplyCount  int
 }
 
+type DirectPostForExport struct {
+	Post
+	User           string
+	ChannelMembers *[]string
+}
+
 type ReplyForExport struct {
 	Post
 	Username string
@@ -395,6 +401,23 @@ func (o *Post) Attachments() []*SlackAttachment {
 		}
 	}
 	return ret
+}
+
+func (o *Post) AttachmentsEqual(input *Post) bool {
+	attachments := o.Attachments()
+	inputAttachments := input.Attachments()
+
+	if len(attachments) != len(inputAttachments) {
+		return false
+	}
+
+	for i := range attachments {
+		if !attachments[i].Equals(inputAttachments[i]) {
+			return false
+		}
+	}
+
+	return true
 }
 
 var markdownDestinationEscaper = strings.NewReplacer(

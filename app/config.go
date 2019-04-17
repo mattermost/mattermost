@@ -12,10 +12,13 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"net/url"
 	"runtime/debug"
 	"strconv"
 	"time"
+
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/config"
 	"github.com/mattermost/mattermost-server/mlog"
@@ -54,12 +57,6 @@ func (s *Server) UpdateConfig(f func(*model.Config)) {
 
 func (a *App) UpdateConfig(f func(*model.Config)) {
 	a.Srv.UpdateConfig(f)
-}
-
-func (a *App) PersistConfig() {
-	if err := a.Srv.configStore.Save(); err != nil {
-		mlog.Error("Failed to persist config", mlog.Err(err))
-	}
 }
 
 func (s *Server) ReloadConfig() error {
@@ -104,6 +101,64 @@ func (s *Server) RemoveConfigListener(id string) {
 
 func (a *App) RemoveConfigListener(id string) {
 	a.Srv.RemoveConfigListener(id)
+}
+
+// ensurePostActionCookieSecret ensures that the key for encrypting PostActionCookie exists
+// and future calls to PostAcrionCookieSecret will always return a valid key, same on all
+// servers in the cluster
+func (a *App) ensurePostActionCookieSecret() error {
+	if a.Srv.postActionCookieSecret != nil {
+		return nil
+	}
+
+	var secret *model.SystemPostActionCookieSecret
+
+	result := <-a.Srv.Store.System().GetByName(model.SYSTEM_POST_ACTION_COOKIE_SECRET)
+	if result.Err == nil {
+		if err := json.Unmarshal([]byte(result.Data.(*model.System).Value), &secret); err != nil {
+			return err
+		}
+	}
+
+	// If we don't already have a key, try to generate one.
+	if secret == nil {
+		newSecret := &model.SystemPostActionCookieSecret{
+			Secret: make([]byte, 32),
+		}
+		_, err := rand.Reader.Read(newSecret.Secret)
+		if err != nil {
+			return err
+		}
+
+		system := &model.System{
+			Name: model.SYSTEM_POST_ACTION_COOKIE_SECRET,
+		}
+		v, err := json.Marshal(newSecret)
+		if err != nil {
+			return err
+		}
+		system.Value = string(v)
+		if result = <-a.Srv.Store.System().Save(system); result.Err == nil {
+			// If we were able to save the key, use it, otherwise ignore the error.
+			secret = newSecret
+		}
+	}
+
+	// If we weren't able to save a new key above, another server must have beat us to it. Get the
+	// key from the database, and if that fails, error out.
+	if secret == nil {
+		result := <-a.Srv.Store.System().GetByName(model.SYSTEM_POST_ACTION_COOKIE_SECRET)
+		if result.Err != nil {
+			return result.Err
+		}
+
+		if err := json.Unmarshal([]byte(result.Data.(*model.System).Value), &secret); err != nil {
+			return err
+		}
+	}
+
+	a.Srv.postActionCookieSecret = secret.Secret
+	return nil
 }
 
 // EnsureAsymmetricSigningKey ensures that an asymmetric signing key exists and future calls to
@@ -215,6 +270,14 @@ func (a *App) AsymmetricSigningKey() *ecdsa.PrivateKey {
 	return a.Srv.AsymmetricSigningKey()
 }
 
+func (s *Server) PostActionCookieSecret() []byte {
+	return s.postActionCookieSecret
+}
+
+func (a *App) PostActionCookieSecret() []byte {
+	return a.Srv.PostActionCookieSecret()
+}
+
 func (a *App) regenerateClientConfig() {
 	clientConfig := config.GenerateClientConfig(a.Config(), a.DiagnosticId(), a.License())
 	limitedClientConfig := config.GenerateLimitedClientConfig(a.Config(), a.DiagnosticId(), a.License())
@@ -285,4 +348,54 @@ func (a *App) LimitedClientConfigWithComputed() map[string]string {
 	respCfg["NoAccounts"] = strconv.FormatBool(a.IsFirstUserAccount())
 
 	return respCfg
+}
+
+// GetConfigFile proxies access to the given configuration file to the underlying config store.
+func (a *App) GetConfigFile(name string) ([]byte, error) {
+	data, err := a.Srv.configStore.GetFile(name)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed to get config file %s", name)
+	}
+
+	return data, nil
+}
+
+// GetSanitizedConfig gets the configuration for a system admin without any secrets.
+func (a *App) GetSanitizedConfig() *model.Config {
+	cfg := a.Config().Clone()
+	cfg.Sanitize()
+
+	return cfg
+}
+
+// GetEnvironmentConfig returns a map of configuration keys whose values have been overridden by an environment variable.
+func (a *App) GetEnvironmentConfig() map[string]interface{} {
+	return a.EnvironmentConfig()
+}
+
+// SaveConfig replaces the active configuration, optionally notifying cluster peers.
+func (a *App) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) *model.AppError {
+	oldCfg, err := a.Srv.configStore.Set(newCfg)
+	if errors.Cause(err) == config.ErrReadOnlyConfiguration {
+		return model.NewAppError("saveConfig", "ent.cluster.save_config.error", nil, err.Error(), http.StatusForbidden)
+	} else if err != nil {
+		return model.NewAppError("saveConfig", "app.save_config.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if a.Metrics != nil {
+		if *a.Config().MetricsSettings.Enable {
+			a.Metrics.StartServer()
+		} else {
+			a.Metrics.StopServer()
+		}
+	}
+
+	if a.Cluster != nil {
+		err := a.Cluster.ConfigChanged(oldCfg, newCfg, sendConfigChangeClusterMessage)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

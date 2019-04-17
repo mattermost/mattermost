@@ -4,6 +4,7 @@
 package app
 
 import (
+	"fmt"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -553,7 +554,10 @@ func TestImportImportUser(t *testing.T) {
 
 	// Check how many users are in the database.
 	var userCount int64
-	if r := <-th.App.Srv.Store.User().GetTotalUsersCount(); r.Err == nil {
+	if r := <-th.App.Srv.Store.User().Count(model.UserCountOptions{
+		IncludeDeleted:     true,
+		IncludeBotAccounts: false,
+	}); r.Err == nil {
 		userCount = r.Data.(int64)
 	} else {
 		t.Fatalf("Failed to get user count.")
@@ -568,7 +572,10 @@ func TestImportImportUser(t *testing.T) {
 	}
 
 	// Check that no more users are in the DB.
-	if r := <-th.App.Srv.Store.User().GetTotalUsersCount(); r.Err == nil {
+	if r := <-th.App.Srv.Store.User().Count(model.UserCountOptions{
+		IncludeDeleted:     true,
+		IncludeBotAccounts: false,
+	}); r.Err == nil {
 		if r.Data.(int64) != userCount {
 			t.Fatalf("Unexpected number of users")
 		}
@@ -586,7 +593,10 @@ func TestImportImportUser(t *testing.T) {
 	}
 
 	// Check that no more users are in the DB.
-	if r := <-th.App.Srv.Store.User().GetTotalUsersCount(); r.Err == nil {
+	if r := <-th.App.Srv.Store.User().Count(model.UserCountOptions{
+		IncludeDeleted:     true,
+		IncludeBotAccounts: false,
+	}); r.Err == nil {
 		if r.Data.(int64) != userCount {
 			t.Fatalf("Unexpected number of users")
 		}
@@ -603,7 +613,10 @@ func TestImportImportUser(t *testing.T) {
 	}
 
 	// Check that no more users are in the DB.
-	if r := <-th.App.Srv.Store.User().GetTotalUsersCount(); r.Err == nil {
+	if r := <-th.App.Srv.Store.User().Count(model.UserCountOptions{
+		IncludeDeleted:     true,
+		IncludeBotAccounts: false,
+	}); r.Err == nil {
 		if r.Data.(int64) != userCount {
 			t.Fatalf("Unexpected number of users")
 		}
@@ -628,7 +641,10 @@ func TestImportImportUser(t *testing.T) {
 	}
 
 	// Check that one more user is in the DB.
-	if r := <-th.App.Srv.Store.User().GetTotalUsersCount(); r.Err == nil {
+	if r := <-th.App.Srv.Store.User().Count(model.UserCountOptions{
+		IncludeDeleted:     true,
+		IncludeBotAccounts: false,
+	}); r.Err == nil {
 		if r.Data.(int64) != userCount+1 {
 			t.Fatalf("Unexpected number of users")
 		}
@@ -685,7 +701,10 @@ func TestImportImportUser(t *testing.T) {
 	}
 
 	// Check user count the same.
-	if r := <-th.App.Srv.Store.User().GetTotalUsersCount(); r.Err == nil {
+	if r := <-th.App.Srv.Store.User().Count(model.UserCountOptions{
+		IncludeDeleted:     true,
+		IncludeBotAccounts: false,
+	}); r.Err == nil {
 		if r.Data.(int64) != userCount+1 {
 			t.Fatalf("Unexpected number of users")
 		}
@@ -1095,7 +1114,34 @@ func TestImportImportUser(t *testing.T) {
 	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, user.Id, *data.TutorialStep)
 	checkPreference(t, th.App, user.Id, model.PREFERENCE_CATEGORY_NOTIFICATIONS, model.PREFERENCE_NAME_EMAIL_INTERVAL, "3600")
 
-	// Set Notify Props
+	// Set Notify Without mention keys
+	data.NotifyProps = &UserNotifyPropsImportData{
+		Desktop:          ptrStr(model.USER_NOTIFY_ALL),
+		DesktopSound:     ptrStr("true"),
+		Email:            ptrStr("true"),
+		Mobile:           ptrStr(model.USER_NOTIFY_ALL),
+		MobilePushStatus: ptrStr(model.STATUS_ONLINE),
+		ChannelTrigger:   ptrStr("true"),
+		CommentsTrigger:  ptrStr(model.COMMENTS_NOTIFY_ROOT),
+	}
+	err = th.App.ImportUser(&data, false)
+	assert.Nil(t, err)
+
+	user, err = th.App.GetUserByUsername(username)
+	if err != nil {
+		t.Fatalf("Failed to get user from database.")
+	}
+
+	checkNotifyProp(t, user, model.DESKTOP_NOTIFY_PROP, model.USER_NOTIFY_ALL)
+	checkNotifyProp(t, user, model.DESKTOP_SOUND_NOTIFY_PROP, "true")
+	checkNotifyProp(t, user, model.EMAIL_NOTIFY_PROP, "true")
+	checkNotifyProp(t, user, model.PUSH_NOTIFY_PROP, model.USER_NOTIFY_ALL)
+	checkNotifyProp(t, user, model.PUSH_STATUS_NOTIFY_PROP, model.STATUS_ONLINE)
+	checkNotifyProp(t, user, model.CHANNEL_MENTIONS_NOTIFY_PROP, "true")
+	checkNotifyProp(t, user, model.COMMENTS_NOTIFY_PROP, model.COMMENTS_NOTIFY_ROOT)
+	checkNotifyProp(t, user, model.MENTION_KEYS_NOTIFY_PROP, fmt.Sprintf("%s,@%s", username, username))
+
+	// Set Notify Props with Mention keys
 	data.NotifyProps = &UserNotifyPropsImportData{
 		Desktop:          ptrStr(model.USER_NOTIFY_ALL),
 		DesktopSound:     ptrStr("true"),
@@ -1123,7 +1169,7 @@ func TestImportImportUser(t *testing.T) {
 	checkNotifyProp(t, user, model.COMMENTS_NOTIFY_PROP, model.COMMENTS_NOTIFY_ROOT)
 	checkNotifyProp(t, user, model.MENTION_KEYS_NOTIFY_PROP, "valid,misc")
 
-	// Change Notify Props
+	// Change Notify Props with mention keys
 	data.NotifyProps = &UserNotifyPropsImportData{
 		Desktop:          ptrStr(model.USER_NOTIFY_MENTION),
 		DesktopSound:     ptrStr("false"),
@@ -1133,6 +1179,33 @@ func TestImportImportUser(t *testing.T) {
 		ChannelTrigger:   ptrStr("false"),
 		CommentsTrigger:  ptrStr(model.COMMENTS_NOTIFY_ANY),
 		MentionKeys:      ptrStr("misc"),
+	}
+	err = th.App.ImportUser(&data, false)
+	assert.Nil(t, err)
+
+	user, err = th.App.GetUserByUsername(username)
+	if err != nil {
+		t.Fatalf("Failed to get user from database.")
+	}
+
+	checkNotifyProp(t, user, model.DESKTOP_NOTIFY_PROP, model.USER_NOTIFY_MENTION)
+	checkNotifyProp(t, user, model.DESKTOP_SOUND_NOTIFY_PROP, "false")
+	checkNotifyProp(t, user, model.EMAIL_NOTIFY_PROP, "false")
+	checkNotifyProp(t, user, model.PUSH_NOTIFY_PROP, model.USER_NOTIFY_NONE)
+	checkNotifyProp(t, user, model.PUSH_STATUS_NOTIFY_PROP, model.STATUS_AWAY)
+	checkNotifyProp(t, user, model.CHANNEL_MENTIONS_NOTIFY_PROP, "false")
+	checkNotifyProp(t, user, model.COMMENTS_NOTIFY_PROP, model.COMMENTS_NOTIFY_ANY)
+	checkNotifyProp(t, user, model.MENTION_KEYS_NOTIFY_PROP, "misc")
+
+	// Change Notify Props without mention keys
+	data.NotifyProps = &UserNotifyPropsImportData{
+		Desktop:          ptrStr(model.USER_NOTIFY_MENTION),
+		DesktopSound:     ptrStr("false"),
+		Email:            ptrStr("false"),
+		Mobile:           ptrStr(model.USER_NOTIFY_NONE),
+		MobilePushStatus: ptrStr(model.STATUS_AWAY),
+		ChannelTrigger:   ptrStr("false"),
+		CommentsTrigger:  ptrStr(model.COMMENTS_NOTIFY_ANY),
 	}
 	err = th.App.ImportUser(&data, false)
 	assert.Nil(t, err)
@@ -1300,6 +1373,50 @@ func TestImportImportUser(t *testing.T) {
 	assert.True(t, channelMember.SchemeUser)
 	assert.Equal(t, "", channelMember.ExplicitRoles)
 
+	// Test importing deleted user with a valid team & valid channel name in apply mode.
+	username = model.NewId()
+	deleteAt := model.GetMillis()
+	deletedUserData := &UserImportData{
+		Username: &username,
+		DeleteAt: &deleteAt,
+		Email:    ptrStr(model.NewId() + "@example.com"),
+		Teams: &[]UserTeamImportData{
+			{
+				Name:  &team.Name,
+				Roles: ptrStr("team_user"),
+				Channels: &[]UserChannelImportData{
+					{
+						Name:  &channel.Name,
+						Roles: ptrStr("channel_user"),
+					},
+				},
+			},
+		},
+	}
+	err = th.App.ImportUser(deletedUserData, false)
+	assert.Nil(t, err)
+
+	user, err = th.App.GetUserByUsername(*deletedUserData.Username)
+	if err != nil {
+		t.Fatalf("Failed to get user from database.")
+	}
+
+	teamMember, err = th.App.GetTeamMember(team.Id, user.Id)
+	if err != nil {
+		t.Fatalf("Failed to get the team member")
+	}
+
+	assert.True(t, teamMember.SchemeUser)
+	assert.Equal(t, "", teamMember.ExplicitRoles)
+
+	channelMember, err = th.App.GetChannelMember(channel.Id, user.Id)
+	if err != nil {
+		t.Fatalf("Failed to get the channel member")
+	}
+
+	assert.True(t, channelMember.SchemeUser)
+	assert.Equal(t, "", channelMember.ExplicitRoles)
+
 }
 
 func TestImportUserDefaultNotifyProps(t *testing.T) {
@@ -1326,7 +1443,7 @@ func TestImportUserDefaultNotifyProps(t *testing.T) {
 	assert.Equal(t, "false", val)
 
 	// Check all the other notify props are set to their default values.
-	comparisonUser := model.User{}
+	comparisonUser := model.User{Username: user.Username}
 	comparisonUser.SetDefaultNotifications()
 
 	for key, expectedValue := range comparisonUser.NotifyProps {

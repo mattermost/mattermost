@@ -155,6 +155,10 @@ const (
 	ELASTICSEARCH_SETTINGS_DEFAULT_PASSWORD                          = "changeme"
 	ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_REPLICAS               = 1
 	ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_SHARDS                 = 1
+	ELASTICSEARCH_SETTINGS_DEFAULT_CHANNEL_INDEX_REPLICAS            = 1
+	ELASTICSEARCH_SETTINGS_DEFAULT_CHANNEL_INDEX_SHARDS              = 1
+	ELASTICSEARCH_SETTINGS_DEFAULT_USER_INDEX_REPLICAS               = 1
+	ELASTICSEARCH_SETTINGS_DEFAULT_USER_INDEX_SHARDS                 = 1
 	ELASTICSEARCH_SETTINGS_DEFAULT_AGGREGATE_POSTS_AFTER_DAYS        = 365
 	ELASTICSEARCH_SETTINGS_DEFAULT_POSTS_AGGREGATOR_JOB_START_TIME   = "03:00"
 	ELASTICSEARCH_SETTINGS_DEFAULT_INDEX_PREFIX                      = ""
@@ -168,8 +172,6 @@ const (
 
 	PLUGIN_SETTINGS_DEFAULT_DIRECTORY        = "./plugins"
 	PLUGIN_SETTINGS_DEFAULT_CLIENT_DIRECTORY = "./client/plugins"
-
-	TIMEZONE_SETTINGS_DEFAULT_SUPPORTED_TIMEZONES_PATH = "timezones.json"
 
 	COMPLIANCE_EXPORT_TYPE_CSV         = "csv"
 	COMPLIANCE_EXPORT_TYPE_ACTIANCE    = "actiance"
@@ -210,25 +212,25 @@ var ServerTLSSupportedCiphers = map[string]uint16{
 }
 
 type ServiceSettings struct {
-	SiteURL                                           *string
-	WebsocketURL                                      *string
-	LicenseFileLocation                               *string
-	ListenAddress                                     *string
-	ConnectionSecurity                                *string
-	TLSCertFile                                       *string
-	TLSKeyFile                                        *string
-	TLSMinVer                                         *string
-	TLSStrictTransport                                *bool
-	TLSStrictTransportMaxAge                          *int64
-	TLSOverwriteCiphers                               []string
-	UseLetsEncrypt                                    *bool
-	LetsEncryptCertificateCacheFile                   *string
-	Forward80To443                                    *bool
-	ReadTimeout                                       *int
-	WriteTimeout                                      *int
-	MaximumLoginAttempts                              *int
-	GoroutineHealthThreshold                          *int
-	GoogleDeveloperKey                                *string
+	SiteURL                                           *string  `restricted:"true"`
+	WebsocketURL                                      *string  `restricted:"true"`
+	LicenseFileLocation                               *string  `restricted:"true"`
+	ListenAddress                                     *string  `restricted:"true"`
+	ConnectionSecurity                                *string  `restricted:"true"`
+	TLSCertFile                                       *string  `restricted:"true"`
+	TLSKeyFile                                        *string  `restricted:"true"`
+	TLSMinVer                                         *string  `restricted:"true"`
+	TLSStrictTransport                                *bool    `restricted:"true"`
+	TLSStrictTransportMaxAge                          *int64   `restricted:"true"`
+	TLSOverwriteCiphers                               []string `restricted:"true"`
+	UseLetsEncrypt                                    *bool    `restricted:"true"`
+	LetsEncryptCertificateCacheFile                   *string  `restricted:"true"`
+	Forward80To443                                    *bool    `restricted:"true"`
+	ReadTimeout                                       *int     `restricted:"true"`
+	WriteTimeout                                      *int     `restricted:"true"`
+	MaximumLoginAttempts                              *int     `restricted:"true"`
+	GoroutineHealthThreshold                          *int     `restricted:"true"`
+	GoogleDeveloperKey                                *string  `restricted:"true"`
 	EnableOAuthServiceProvider                        *bool
 	EnableIncomingWebhooks                            *bool
 	EnableOutgoingWebhooks                            *bool
@@ -237,27 +239,27 @@ type ServiceSettings struct {
 	EnablePostUsernameOverride                        *bool
 	EnablePostIconOverride                            *bool
 	EnableLinkPreviews                                *bool
-	EnableTesting                                     *bool
-	EnableDeveloper                                   *bool
-	EnableSecurityFixAlert                            *bool
-	EnableInsecureOutgoingConnections                 *bool
-	AllowedUntrustedInternalConnections               *string
+	EnableTesting                                     *bool   `restricted:"true"`
+	EnableDeveloper                                   *bool   `restricted:"true"`
+	EnableSecurityFixAlert                            *bool   `restricted:"true"`
+	EnableInsecureOutgoingConnections                 *bool   `restricted:"true"`
+	AllowedUntrustedInternalConnections               *string `restricted:"true"`
 	EnableMultifactorAuthentication                   *bool
 	EnforceMultifactorAuthentication                  *bool
 	EnableUserAccessTokens                            *bool
-	AllowCorsFrom                                     *string
-	CorsExposedHeaders                                *string
-	CorsAllowCredentials                              *bool
-	CorsDebug                                         *bool
-	AllowCookiesForSubdomains                         *bool
-	SessionLengthWebInDays                            *int
-	SessionLengthMobileInDays                         *int
-	SessionLengthSSOInDays                            *int
-	SessionCacheInMinutes                             *int
-	SessionIdleTimeoutInMinutes                       *int
-	WebsocketSecurePort                               *int
-	WebsocketPort                                     *int
-	WebserverMode                                     *string
+	AllowCorsFrom                                     *string `restricted:"true"`
+	CorsExposedHeaders                                *string `restricted:"true"`
+	CorsAllowCredentials                              *bool   `restricted:"true"`
+	CorsDebug                                         *bool   `restricted:"true"`
+	AllowCookiesForSubdomains                         *bool   `restricted:"true"`
+	SessionLengthWebInDays                            *int    `restricted:"true"`
+	SessionLengthMobileInDays                         *int    `restricted:"true"`
+	SessionLengthSSOInDays                            *int    `restricted:"true"`
+	SessionCacheInMinutes                             *int    `restricted:"true"`
+	SessionIdleTimeoutInMinutes                       *int    `restricted:"true"`
+	WebsocketSecurePort                               *int    `restricted:"true"`
+	WebsocketPort                                     *int    `restricted:"true"`
+	WebserverMode                                     *string `restricted:"true"`
 	EnableCustomEmoji                                 *bool
 	EnableEmojiPicker                                 *bool
 	EnableGifPicker                                   *bool
@@ -267,13 +269,14 @@ type ServiceSettings struct {
 	DEPRECATED_DO_NOT_USE_RestrictPostDelete          *string `json:"RestrictPostDelete"`          // This field is deprecated and must not be used.
 	DEPRECATED_DO_NOT_USE_AllowEditPost               *string `json:"AllowEditPost"`               // This field is deprecated and must not be used.
 	PostEditTimeLimit                                 *int
-	TimeBetweenUserTypingUpdatesMilliseconds          *int64
-	EnablePostSearch                                  *bool
-	EnableUserTypingMessages                          *bool
-	EnableChannelViewedMessages                       *bool
-	EnableUserStatuses                                *bool
-	ExperimentalEnableAuthenticationTransfer          *bool
-	ClusterLogTimeoutMilliseconds                     *int
+	TimeBetweenUserTypingUpdatesMilliseconds          *int64 `restricted:"true"`
+	EnablePostSearch                                  *bool  `restricted:"true"`
+	MinimumHashtagLength                              *int   `restricted:"true"`
+	EnableUserTypingMessages                          *bool  `restricted:"true"`
+	EnableChannelViewedMessages                       *bool  `restricted:"true"`
+	EnableUserStatuses                                *bool  `restricted:"true"`
+	ExperimentalEnableAuthenticationTransfer          *bool  `restricted:"true"`
+	ClusterLogTimeoutMilliseconds                     *int   `restricted:"true"`
 	CloseUnusedDirectMessages                         *bool
 	EnablePreviewFeatures                             *bool
 	EnableTutorial                                    *bool
@@ -285,9 +288,11 @@ type ServiceSettings struct {
 	DEPRECATED_DO_NOT_USE_ImageProxyOptions           *string `json:"ImageProxyOptions" mapstructure:"ImageProxyOptions"` // This field is deprecated and must not be used.
 	EnableAPITeamDeletion                             *bool
 	ExperimentalEnableHardenedMode                    *bool
-	ExperimentalStrictCSRFEnforcement                 *bool
+	DisableLegacyMFA                                  *bool `restricted:"true"`
+	ExperimentalStrictCSRFEnforcement                 *bool `restricted:"true"`
 	EnableEmailInvitations                            *bool
 	ExperimentalLdapGroupSync                         *bool
+	DisableBotsWhenOwnerIsDeactivated                 *bool `restricted:"true"`
 }
 
 func (s *ServiceSettings) SetDefaults() {
@@ -436,6 +441,10 @@ func (s *ServiceSettings) SetDefaults() {
 		s.EnablePostSearch = NewBool(true)
 	}
 
+	if s.MinimumHashtagLength == nil {
+		s.MinimumHashtagLength = NewInt(3)
+	}
+
 	if s.EnableUserTypingMessages == nil {
 		s.EnableUserTypingMessages = NewBool(true)
 	}
@@ -461,11 +470,11 @@ func (s *ServiceSettings) SetDefaults() {
 	}
 
 	if s.SessionLengthWebInDays == nil {
-		s.SessionLengthWebInDays = NewInt(30)
+		s.SessionLengthWebInDays = NewInt(180)
 	}
 
 	if s.SessionLengthMobileInDays == nil {
-		s.SessionLengthMobileInDays = NewInt(30)
+		s.SessionLengthMobileInDays = NewInt(180)
 	}
 
 	if s.SessionLengthSSOInDays == nil {
@@ -477,7 +486,7 @@ func (s *ServiceSettings) SetDefaults() {
 	}
 
 	if s.SessionIdleTimeoutInMinutes == nil {
-		s.SessionIdleTimeoutInMinutes = NewInt(0)
+		s.SessionIdleTimeoutInMinutes = NewInt(43200)
 	}
 
 	if s.EnableCommands == nil {
@@ -611,6 +620,10 @@ func (s *ServiceSettings) SetDefaults() {
 		s.ExperimentalEnableHardenedMode = NewBool(false)
 	}
 
+	if s.DisableLegacyMFA == nil {
+		s.DisableLegacyMFA = NewBool(false)
+	}
+
 	if s.ExperimentalLdapGroupSync == nil {
 		s.ExperimentalLdapGroupSync = NewBool(false)
 	}
@@ -618,20 +631,24 @@ func (s *ServiceSettings) SetDefaults() {
 	if s.ExperimentalStrictCSRFEnforcement == nil {
 		s.ExperimentalStrictCSRFEnforcement = NewBool(false)
 	}
+
+	if s.DisableBotsWhenOwnerIsDeactivated == nil {
+		s.DisableBotsWhenOwnerIsDeactivated = NewBool(true)
+	}
 }
 
 type ClusterSettings struct {
-	Enable                      *bool
-	ClusterName                 *string
-	OverrideHostname            *string
-	UseIpAddress                *bool
-	UseExperimentalGossip       *bool
-	ReadOnlyConfig              *bool
-	GossipPort                  *int
-	StreamingPort               *int
-	MaxIdleConns                *int
-	MaxIdleConnsPerHost         *int
-	IdleConnTimeoutMilliseconds *int
+	Enable                      *bool   `restricted:"true"`
+	ClusterName                 *string `restricted:"true"`
+	OverrideHostname            *string `restricted:"true"`
+	UseIpAddress                *bool   `restricted:"true"`
+	UseExperimentalGossip       *bool   `restricted:"true"`
+	ReadOnlyConfig              *bool   `restricted:"true"`
+	GossipPort                  *int    `restricted:"true"`
+	StreamingPort               *int    `restricted:"true"`
+	MaxIdleConns                *int    `restricted:"true"`
+	MaxIdleConnsPerHost         *int    `restricted:"true"`
+	IdleConnTimeoutMilliseconds *int    `restricted:"true"`
 }
 
 func (s *ClusterSettings) SetDefaults() {
@@ -681,9 +698,9 @@ func (s *ClusterSettings) SetDefaults() {
 }
 
 type MetricsSettings struct {
-	Enable           *bool
-	BlockProfileRate *int
-	ListenAddress    *string
+	Enable           *bool   `restricted:"true"`
+	BlockProfileRate *int    `restricted:"true"`
+	ListenAddress    *string `restricted:"true"`
 }
 
 func (s *MetricsSettings) SetDefaults() {
@@ -703,8 +720,10 @@ func (s *MetricsSettings) SetDefaults() {
 type ExperimentalSettings struct {
 	ClientSideCertEnable            *bool
 	ClientSideCertCheck             *string
-	DisablePostMetadata             *bool
-	LinkMetadataTimeoutMilliseconds *int64
+	DisablePostMetadata             *bool  `restricted:"true"`
+	EnableClickToReply              *bool  `restricted:"true"`
+	LinkMetadataTimeoutMilliseconds *int64 `restricted:"true"`
+	RestrictSystemAdmin             *bool  `restricted:"true"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
@@ -720,13 +739,21 @@ func (s *ExperimentalSettings) SetDefaults() {
 		s.DisablePostMetadata = NewBool(false)
 	}
 
+	if s.EnableClickToReply == nil {
+		s.EnableClickToReply = NewBool(false)
+	}
+
 	if s.LinkMetadataTimeoutMilliseconds == nil {
 		s.LinkMetadataTimeoutMilliseconds = NewInt64(EXPERIMENTAL_SETTINGS_DEFAULT_LINK_METADATA_TIMEOUT_MILLISECONDS)
+	}
+
+	if s.RestrictSystemAdmin == nil {
+		s.RestrictSystemAdmin = NewBool(false)
 	}
 }
 
 type AnalyticsSettings struct {
-	MaxUsersForStatistics *int
+	MaxUsersForStatistics *int `restricted:"true"`
 }
 
 func (s *AnalyticsSettings) SetDefaults() {
@@ -776,16 +803,16 @@ func (s *SSOSettings) setDefaults() {
 }
 
 type SqlSettings struct {
-	DriverName                  *string
-	DataSource                  *string
-	DataSourceReplicas          []string
-	DataSourceSearchReplicas    []string
-	MaxIdleConns                *int
-	ConnMaxLifetimeMilliseconds *int
-	MaxOpenConns                *int
-	Trace                       *bool
-	AtRestEncryptKey            *string
-	QueryTimeout                *int
+	DriverName                  *string  `restricted:"true"`
+	DataSource                  *string  `restricted:"true"`
+	DataSourceReplicas          []string `restricted:"true"`
+	DataSourceSearchReplicas    []string `restricted:"true"`
+	MaxIdleConns                *int     `restricted:"true"`
+	ConnMaxLifetimeMilliseconds *int     `restricted:"true"`
+	MaxOpenConns                *int     `restricted:"true"`
+	Trace                       *bool    `restricted:"true"`
+	AtRestEncryptKey            *string  `restricted:"true"`
+	QueryTimeout                *int     `restricted:"true"`
 }
 
 func (s *SqlSettings) SetDefaults() {
@@ -831,16 +858,15 @@ func (s *SqlSettings) SetDefaults() {
 }
 
 type LogSettings struct {
-	EnableConsole          *bool
-	ConsoleLevel           *string
-	ConsoleJson            *bool
-	EnableFile             *bool
-	FileLevel              *string
-	FileJson               *bool
-	FileFormat             *string
-	FileLocation           *string
-	EnableWebhookDebugging *bool
-	EnableDiagnostics      *bool
+	EnableConsole          *bool   `restricted:"true"`
+	ConsoleLevel           *string `restricted:"true"`
+	ConsoleJson            *bool   `restricted:"true"`
+	EnableFile             *bool   `restricted:"true"`
+	FileLevel              *string `restricted:"true"`
+	FileJson               *bool   `restricted:"true"`
+	FileLocation           *string `restricted:"true"`
+	EnableWebhookDebugging *bool   `restricted:"true"`
+	EnableDiagnostics      *bool   `restricted:"true"`
 }
 
 func (s *LogSettings) SetDefaults() {
@@ -858,10 +884,6 @@ func (s *LogSettings) SetDefaults() {
 
 	if s.FileLevel == nil {
 		s.FileLevel = NewString("INFO")
-	}
-
-	if s.FileFormat == nil {
-		s.FileFormat = NewString("")
 	}
 
 	if s.FileLocation == nil {
@@ -920,20 +942,20 @@ type FileSettings struct {
 	EnableMobileUpload      *bool
 	EnableMobileDownload    *bool
 	MaxFileSize             *int64
-	DriverName              *string
-	Directory               *string
+	DriverName              *string `restricted:"true"`
+	Directory               *string `restricted:"true"`
 	EnablePublicLink        *bool
 	PublicLinkSalt          *string
 	InitialFont             *string
-	AmazonS3AccessKeyId     *string
-	AmazonS3SecretAccessKey *string
-	AmazonS3Bucket          *string
-	AmazonS3Region          *string
-	AmazonS3Endpoint        *string
-	AmazonS3SSL             *bool
-	AmazonS3SignV2          *bool
-	AmazonS3SSE             *bool
-	AmazonS3Trace           *bool
+	AmazonS3AccessKeyId     *string `restricted:"true"`
+	AmazonS3SecretAccessKey *string `restricted:"true"`
+	AmazonS3Bucket          *string `restricted:"true"`
+	AmazonS3Region          *string `restricted:"true"`
+	AmazonS3Endpoint        *string `restricted:"true"`
+	AmazonS3SSL             *bool   `restricted:"true"`
+	AmazonS3SignV2          *bool   `restricted:"true"`
+	AmazonS3SSE             *bool   `restricted:"true"`
+	AmazonS3Trace           *bool   `restricted:"true"`
 }
 
 func (s *FileSettings) SetDefaults() {
@@ -1024,13 +1046,12 @@ type EmailSettings struct {
 	FeedbackEmail                     *string
 	ReplyToAddress                    *string
 	FeedbackOrganization              *string
-	EnableSMTPAuth                    *bool
-	SMTPUsername                      *string
-	SMTPPassword                      *string
-	SMTPServer                        *string
-	SMTPPort                          *string
-	ConnectionSecurity                *string
-	InviteSalt                        *string
+	EnableSMTPAuth                    *bool   `restricted:"true"`
+	SMTPUsername                      *string `restricted:"true"`
+	SMTPPassword                      *string `restricted:"true"`
+	SMTPServer                        *string `restricted:"true"`
+	SMTPPort                          *string `restricted:"true"`
+	ConnectionSecurity                *string `restricted:"true"`
 	SendPushNotifications             *bool
 	PushNotificationServer            *string
 	PushNotificationContents          *string
@@ -1038,7 +1059,7 @@ type EmailSettings struct {
 	EmailBatchingBufferSize           *int
 	EmailBatchingInterval             *int
 	EnablePreviewModeBanner           *bool
-	SkipServerCertificateVerification *bool
+	SkipServerCertificateVerification *bool `restricted:"true"`
 	EmailNotificationContentsType     *string
 	LoginButtonColor                  *string
 	LoginButtonBorderColor            *string
@@ -1114,10 +1135,6 @@ func (s *EmailSettings) SetDefaults() {
 		s.ConnectionSecurity = NewString(CONN_SECURITY_NONE)
 	}
 
-	if s.InviteSalt == nil || len(*s.InviteSalt) == 0 {
-		s.InviteSalt = NewString(NewRandomString(32))
-	}
-
 	if s.SendPushNotifications == nil {
 		s.SendPushNotifications = NewBool(false)
 	}
@@ -1180,13 +1197,13 @@ func (s *EmailSettings) SetDefaults() {
 }
 
 type RateLimitSettings struct {
-	Enable           *bool
-	PerSec           *int
-	MaxBurst         *int
-	MemoryStoreSize  *int
-	VaryByRemoteAddr *bool
-	VaryByUser       *bool
-	VaryByHeader     string
+	Enable           *bool  `restricted:"true"`
+	PerSec           *int   `restricted:"true"`
+	MaxBurst         *int   `restricted:"true"`
+	MemoryStoreSize  *int   `restricted:"true"`
+	VaryByRemoteAddr *bool  `restricted:"true"`
+	VaryByUser       *bool  `restricted:"true"`
+	VaryByHeader     string `restricted:"true"`
 }
 
 func (s *RateLimitSettings) SetDefaults() {
@@ -1231,11 +1248,11 @@ func (s *PrivacySettings) setDefaults() {
 }
 
 type SupportSettings struct {
-	TermsOfServiceLink                     *string
-	PrivacyPolicyLink                      *string
-	AboutLink                              *string
-	HelpLink                               *string
-	ReportAProblemLink                     *string
+	TermsOfServiceLink                     *string `restricted:"true"`
+	PrivacyPolicyLink                      *string `restricted:"true"`
+	AboutLink                              *string `restricted:"true"`
+	HelpLink                               *string `restricted:"true"`
+	ReportAProblemLink                     *string `restricted:"true"`
 	SupportEmail                           *string
 	CustomTermsOfServiceEnabled            *bool
 	CustomTermsOfServiceReAcceptancePeriod *int
@@ -1386,7 +1403,7 @@ type TeamSettings struct {
 
 func (s *TeamSettings) SetDefaults() {
 
-	if s.SiteName == nil {
+	if s.SiteName == nil || *s.SiteName == "" {
 		s.SiteName = NewString(TEAM_SETTINGS_DEFAULT_SITE_NAME)
 	}
 
@@ -1529,12 +1546,12 @@ func (s *TeamSettings) SetDefaults() {
 }
 
 type ClientRequirements struct {
-	AndroidLatestVersion string
-	AndroidMinVersion    string
-	DesktopLatestVersion string
-	DesktopMinVersion    string
-	IosLatestVersion     string
-	IosMinVersion        string
+	AndroidLatestVersion string `restricted:"true"`
+	AndroidMinVersion    string `restricted:"true"`
+	DesktopLatestVersion string `restricted:"true"`
+	DesktopMinVersion    string `restricted:"true"`
+	IosLatestVersion     string `restricted:"true"`
+	IosMinVersion        string `restricted:"true"`
 }
 
 type LdapSettings struct {
@@ -1879,9 +1896,9 @@ func (s *SamlSettings) SetDefaults() {
 }
 
 type NativeAppSettings struct {
-	AppDownloadLink        *string
-	AndroidAppDownloadLink *string
-	IosAppDownloadLink     *string
+	AppDownloadLink        *string `restricted:"true"`
+	AndroidAppDownloadLink *string `restricted:"true"`
+	IosAppDownloadLink     *string `restricted:"true"`
 }
 
 func (s *NativeAppSettings) SetDefaults() {
@@ -1899,20 +1916,25 @@ func (s *NativeAppSettings) SetDefaults() {
 }
 
 type ElasticsearchSettings struct {
-	ConnectionUrl                 *string
-	Username                      *string
-	Password                      *string
-	EnableIndexing                *bool
-	EnableSearching               *bool
-	Sniff                         *bool
-	PostIndexReplicas             *int
-	PostIndexShards               *int
-	AggregatePostsAfterDays       *int
-	PostsAggregatorJobStartTime   *string
-	IndexPrefix                   *string
-	LiveIndexingBatchSize         *int
-	BulkIndexingTimeWindowSeconds *int
-	RequestTimeoutSeconds         *int
+	ConnectionUrl                 *string `restricted:"true"`
+	Username                      *string `restricted:"true"`
+	Password                      *string `restricted:"true"`
+	EnableIndexing                *bool   `restricted:"true"`
+	EnableSearching               *bool   `restricted:"true"`
+	EnableAutocomplete            *bool   `restricted:"true"`
+	Sniff                         *bool   `restricted:"true"`
+	PostIndexReplicas             *int    `restricted:"true"`
+	PostIndexShards               *int    `restricted:"true"`
+	ChannelIndexReplicas          *int    `restricted:"true"`
+	ChannelIndexShards            *int    `restricted:"true"`
+	UserIndexReplicas             *int    `restricted:"true"`
+	UserIndexShards               *int    `restricted:"true"`
+	AggregatePostsAfterDays       *int    `restricted:"true"`
+	PostsAggregatorJobStartTime   *string `restricted:"true"`
+	IndexPrefix                   *string `restricted:"true"`
+	LiveIndexingBatchSize         *int    `restricted:"true"`
+	BulkIndexingTimeWindowSeconds *int    `restricted:"true"`
+	RequestTimeoutSeconds         *int    `restricted:"true"`
 }
 
 func (s *ElasticsearchSettings) SetDefaults() {
@@ -1936,6 +1958,10 @@ func (s *ElasticsearchSettings) SetDefaults() {
 		s.EnableSearching = NewBool(false)
 	}
 
+	if s.EnableAutocomplete == nil {
+		s.EnableAutocomplete = NewBool(false)
+	}
+
 	if s.Sniff == nil {
 		s.Sniff = NewBool(true)
 	}
@@ -1946,6 +1972,22 @@ func (s *ElasticsearchSettings) SetDefaults() {
 
 	if s.PostIndexShards == nil {
 		s.PostIndexShards = NewInt(ELASTICSEARCH_SETTINGS_DEFAULT_POST_INDEX_SHARDS)
+	}
+
+	if s.ChannelIndexReplicas == nil {
+		s.ChannelIndexReplicas = NewInt(ELASTICSEARCH_SETTINGS_DEFAULT_CHANNEL_INDEX_REPLICAS)
+	}
+
+	if s.ChannelIndexShards == nil {
+		s.ChannelIndexShards = NewInt(ELASTICSEARCH_SETTINGS_DEFAULT_CHANNEL_INDEX_SHARDS)
+	}
+
+	if s.UserIndexReplicas == nil {
+		s.UserIndexReplicas = NewInt(ELASTICSEARCH_SETTINGS_DEFAULT_USER_INDEX_REPLICAS)
+	}
+
+	if s.UserIndexShards == nil {
+		s.UserIndexShards = NewInt(ELASTICSEARCH_SETTINGS_DEFAULT_USER_INDEX_SHARDS)
 	}
 
 	if s.AggregatePostsAfterDays == nil {
@@ -2004,8 +2046,8 @@ func (s *DataRetentionSettings) SetDefaults() {
 }
 
 type JobSettings struct {
-	RunJobs      *bool
-	RunScheduler *bool
+	RunJobs      *bool `restricted:"true"`
+	RunScheduler *bool `restricted:"true"`
 }
 
 func (s *JobSettings) SetDefaults() {
@@ -2024,9 +2066,9 @@ type PluginState struct {
 
 type PluginSettings struct {
 	Enable          *bool
-	EnableUploads   *bool
-	Directory       *string
-	ClientDirectory *string
+	EnableUploads   *bool   `restricted:"true"`
+	Directory       *string `restricted:"true"`
+	ClientDirectory *string `restricted:"true"`
 	Plugins         map[string]map[string]interface{}
 	PluginStates    map[string]*PluginState
 }
@@ -2062,6 +2104,10 @@ func (s *PluginSettings) SetDefaults() {
 
 	if s.PluginStates == nil {
 		s.PluginStates = make(map[string]*PluginState)
+	}
+
+	if s.PluginStates["com.mattermost.nps"] == nil {
+		s.PluginStates["com.mattermost.nps"] = &PluginState{Enable: true}
 	}
 }
 
@@ -2141,16 +2187,6 @@ func (s *DisplaySettings) SetDefaults() {
 	}
 }
 
-type TimezoneSettings struct {
-	SupportedTimezonesPath *string
-}
-
-func (s *TimezoneSettings) SetDefaults() {
-	if s.SupportedTimezonesPath == nil {
-		s.SupportedTimezonesPath = NewString(TIMEZONE_SETTINGS_DEFAULT_SUPPORTED_TIMEZONES_PATH)
-	}
-}
-
 type ImageProxySettings struct {
 	Enable                  *bool
 	ImageProxyType          *string
@@ -2160,7 +2196,11 @@ type ImageProxySettings struct {
 
 func (ips *ImageProxySettings) SetDefaults(ss ServiceSettings) {
 	if ips.Enable == nil {
-		ips.Enable = NewBool(true)
+		if ss.DEPRECATED_DO_NOT_USE_ImageProxyType == nil || *ss.DEPRECATED_DO_NOT_USE_ImageProxyType == "" {
+			ips.Enable = NewBool(false)
+		} else {
+			ips.Enable = NewBool(true)
+		}
 	}
 
 	if ips.ImageProxyType == nil {
@@ -2222,7 +2262,6 @@ type Config struct {
 	JobSettings           JobSettings
 	PluginSettings        PluginSettings
 	DisplaySettings       DisplaySettings
-	TimezoneSettings      TimezoneSettings
 	ImageProxySettings    ImageProxySettings
 }
 
@@ -2297,7 +2336,6 @@ func (o *Config) SetDefaults() {
 	o.LogSettings.SetDefaults()
 	o.JobSettings.SetDefaults()
 	o.MessageExportSettings.SetDefaults()
-	o.TimezoneSettings.SetDefaults()
 	o.DisplaySettings.SetDefaults()
 	o.ImageProxySettings.SetDefaults(o.ServiceSettings)
 }
@@ -2399,6 +2437,10 @@ func (ts *TeamSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.teammate_name_display.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if len(*ts.SiteName) == 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.sitename_empty.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if len(*ts.SiteName) > SITENAME_MAX_LENGTH {
 		return NewAppError("Config.IsValid", "model.config.is_valid.sitename_length.app_error", map[string]interface{}{"MaxLength": SITENAME_MAX_LENGTH}, "", http.StatusBadRequest)
 	}
@@ -2457,10 +2499,6 @@ func (fs *FileSettings) isValid() *AppError {
 func (es *EmailSettings) isValid() *AppError {
 	if !(*es.ConnectionSecurity == CONN_SECURITY_NONE || *es.ConnectionSecurity == CONN_SECURITY_TLS || *es.ConnectionSecurity == CONN_SECURITY_STARTTLS || *es.ConnectionSecurity == CONN_SECURITY_PLAIN) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.email_security.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	if len(*es.InviteSalt) < 32 {
-		return NewAppError("Config.IsValid", "model.config.is_valid.email_salt.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if *es.EmailBatchingBufferSize <= 0 {
@@ -2679,6 +2717,10 @@ func (ess *ElasticsearchSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.enable_searching.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if *ess.EnableAutocomplete && !*ess.EnableIndexing {
+		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.enable_autocomplete.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if *ess.AggregatePostsAfterDays < 1 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.elastic_search.aggregate_posts_after_days.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -2821,11 +2863,6 @@ func (o *Config) Sanitize() {
 	*o.FileSettings.PublicLinkSalt = FAKE_SETTING
 	if len(*o.FileSettings.AmazonS3SecretAccessKey) > 0 {
 		*o.FileSettings.AmazonS3SecretAccessKey = FAKE_SETTING
-	}
-
-	*o.EmailSettings.InviteSalt = FAKE_SETTING
-	if len(*o.EmailSettings.SMTPPassword) > 0 {
-		*o.EmailSettings.SMTPPassword = FAKE_SETTING
 	}
 
 	if len(*o.GitLabSettings.Secret) > 0 {

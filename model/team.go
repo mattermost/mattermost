@@ -41,15 +41,17 @@ type Team struct {
 	AllowOpenInvite    bool    `json:"allow_open_invite"`
 	LastTeamIconUpdate int64   `json:"last_team_icon_update,omitempty"`
 	SchemeId           *string `json:"scheme_id"`
+	GroupConstrained   *bool   `json:"group_constrained"`
 }
 
 type TeamPatch struct {
-	DisplayName     *string `json:"display_name"`
-	Description     *string `json:"description"`
-	CompanyName     *string `json:"company_name"`
-	AllowedDomains  *string `json:"allowed_domains"`
-	InviteId        *string `json:"invite_id"`
-	AllowOpenInvite *bool   `json:"allow_open_invite"`
+	DisplayName      *string `json:"display_name"`
+	Description      *string `json:"description"`
+	CompanyName      *string `json:"company_name"`
+	AllowedDomains   *string `json:"allowed_domains"`
+	InviteId         *string `json:"invite_id"`
+	AllowOpenInvite  *bool   `json:"allow_open_invite"`
+	GroupConstrained *bool   `json:"group_constrained"`
 }
 
 type TeamForExport struct {
@@ -272,6 +274,10 @@ func (t *Team) Patch(patch *TeamPatch) {
 
 	if patch.AllowOpenInvite != nil {
 		t.AllowOpenInvite = *patch.AllowOpenInvite
+	}
+
+	if patch.GroupConstrained != nil {
+		t.GroupConstrained = patch.GroupConstrained
 	}
 }
 

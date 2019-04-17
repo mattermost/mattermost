@@ -33,6 +33,10 @@ var PERMISSION_CREATE_DIRECT_CHANNEL *Permission
 var PERMISSION_CREATE_GROUP_CHANNEL *Permission
 var PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES *Permission
 var PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES *Permission
+var PERMISSION_LIST_PUBLIC_TEAMS *Permission
+var PERMISSION_JOIN_PUBLIC_TEAMS *Permission
+var PERMISSION_LIST_PRIVATE_TEAMS *Permission
+var PERMISSION_JOIN_PRIVATE_TEAMS *Permission
 var PERMISSION_LIST_TEAM_CHANNELS *Permission
 var PERMISSION_JOIN_PUBLIC_CHANNELS *Permission
 var PERMISSION_DELETE_PUBLIC_CHANNEL *Permission
@@ -48,10 +52,17 @@ var PERMISSION_UPLOAD_FILE *Permission
 var PERMISSION_GET_PUBLIC_LINK *Permission
 var PERMISSION_MANAGE_WEBHOOKS *Permission
 var PERMISSION_MANAGE_OTHERS_WEBHOOKS *Permission
+var PERMISSION_MANAGE_INCOMING_WEBHOOKS *Permission
+var PERMISSION_MANAGE_OUTGOING_WEBHOOKS *Permission
+var PERMISSION_MANAGE_OTHERS_INCOMING_WEBHOOKS *Permission
+var PERMISSION_MANAGE_OTHERS_OUTGOING_WEBHOOKS *Permission
 var PERMISSION_MANAGE_OAUTH *Permission
 var PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH *Permission
 var PERMISSION_MANAGE_EMOJIS *Permission
 var PERMISSION_MANAGE_OTHERS_EMOJIS *Permission
+var PERMISSION_CREATE_EMOJIS *Permission
+var PERMISSION_DELETE_EMOJIS *Permission
+var PERMISSION_DELETE_OTHERS_EMOJIS *Permission
 var PERMISSION_CREATE_POST *Permission
 var PERMISSION_CREATE_POST_PUBLIC *Permission
 var PERMISSION_CREATE_POST_EPHEMERAL *Permission
@@ -69,6 +80,11 @@ var PERMISSION_MANAGE_JOBS *Permission
 var PERMISSION_CREATE_USER_ACCESS_TOKEN *Permission
 var PERMISSION_READ_USER_ACCESS_TOKEN *Permission
 var PERMISSION_REVOKE_USER_ACCESS_TOKEN *Permission
+var PERMISSION_CREATE_BOT *Permission
+var PERMISSION_READ_BOTS *Permission
+var PERMISSION_READ_OTHERS_BOTS *Permission
+var PERMISSION_MANAGE_BOTS *Permission
+var PERMISSION_MANAGE_OTHERS_BOTS *Permission
 
 // General permission that encompasses all system admin functions
 // in the future this could be broken up to allow access to some
@@ -186,6 +202,30 @@ func initializePermissions() {
 		"authentication.permissions.manage_private_channel_properties.description",
 		PERMISSION_SCOPE_CHANNEL,
 	}
+	PERMISSION_LIST_PUBLIC_TEAMS = &Permission{
+		"list_public_teams",
+		"authentication.permissions.list_public_teams.name",
+		"authentication.permissions.list_public_teams.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
+	PERMISSION_JOIN_PUBLIC_TEAMS = &Permission{
+		"join_public_teams",
+		"authentication.permissions.join_public_teams.name",
+		"authentication.permissions.join_public_teams.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
+	PERMISSION_LIST_PRIVATE_TEAMS = &Permission{
+		"list_private_teams",
+		"authentication.permissions.list_private_teams.name",
+		"authentication.permissions.list_private_teams.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
+	PERMISSION_JOIN_PRIVATE_TEAMS = &Permission{
+		"join_private_teams",
+		"authentication.permissions.join_private_teams.name",
+		"authentication.permissions.join_private_teams.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
 	PERMISSION_LIST_TEAM_CHANNELS = &Permission{
 		"list_team_channels",
 		"authentication.permissions.list_team_channels.name",
@@ -246,6 +286,7 @@ func initializePermissions() {
 		"authentication.permissions.remove_others_reactions.description",
 		PERMISSION_SCOPE_CHANNEL,
 	}
+	// DEPRECATED
 	PERMISSION_PERMANENT_DELETE_USER = &Permission{
 		"permanent_delete_user",
 		"authentication.permissions.permanent_delete_user.name",
@@ -264,16 +305,42 @@ func initializePermissions() {
 		"authentication.permissions.get_public_link.description",
 		PERMISSION_SCOPE_SYSTEM,
 	}
+	// DEPRECATED
 	PERMISSION_MANAGE_WEBHOOKS = &Permission{
 		"manage_webhooks",
 		"authentication.permissions.manage_webhooks.name",
 		"authentication.permissions.manage_webhooks.description",
 		PERMISSION_SCOPE_TEAM,
 	}
+	// DEPRECATED
 	PERMISSION_MANAGE_OTHERS_WEBHOOKS = &Permission{
 		"manage_others_webhooks",
 		"authentication.permissions.manage_others_webhooks.name",
 		"authentication.permissions.manage_others_webhooks.description",
+		PERMISSION_SCOPE_TEAM,
+	}
+	PERMISSION_MANAGE_INCOMING_WEBHOOKS = &Permission{
+		"manage_incoming_webhooks",
+		"authentication.permissions.manage_incoming_webhooks.name",
+		"authentication.permissions.manage_incoming_webhooks.description",
+		PERMISSION_SCOPE_TEAM,
+	}
+	PERMISSION_MANAGE_OUTGOING_WEBHOOKS = &Permission{
+		"manage_outgoing_webhooks",
+		"authentication.permissions.manage_outgoing_webhooks.name",
+		"authentication.permissions.manage_outgoing_webhooks.description",
+		PERMISSION_SCOPE_TEAM,
+	}
+	PERMISSION_MANAGE_OTHERS_INCOMING_WEBHOOKS = &Permission{
+		"manage_others_incoming_webhooks",
+		"authentication.permissions.manage_others_incoming_webhooks.name",
+		"authentication.permissions.manage_others_incoming_webhooks.description",
+		PERMISSION_SCOPE_TEAM,
+	}
+	PERMISSION_MANAGE_OTHERS_OUTGOING_WEBHOOKS = &Permission{
+		"manage_others_outgoing_webhooks",
+		"authentication.permissions.manage_others_outgoing_webhooks.name",
+		"authentication.permissions.manage_others_outgoing_webhooks.description",
 		PERMISSION_SCOPE_TEAM,
 	}
 	PERMISSION_MANAGE_OAUTH = &Permission{
@@ -288,16 +355,36 @@ func initializePermissions() {
 		"authentication.permissions.manage_system_wide_oauth.description",
 		PERMISSION_SCOPE_SYSTEM,
 	}
+	// DEPRECATED
 	PERMISSION_MANAGE_EMOJIS = &Permission{
 		"manage_emojis",
 		"authentication.permissions.manage_emojis.name",
 		"authentication.permissions.manage_emojis.description",
 		PERMISSION_SCOPE_TEAM,
 	}
+	// DEPRECATED
 	PERMISSION_MANAGE_OTHERS_EMOJIS = &Permission{
 		"manage_others_emojis",
 		"authentication.permissions.manage_others_emojis.name",
 		"authentication.permissions.manage_others_emojis.description",
+		PERMISSION_SCOPE_TEAM,
+	}
+	PERMISSION_CREATE_EMOJIS = &Permission{
+		"create_emojis",
+		"authentication.permissions.create_emojis.name",
+		"authentication.permissions.create_emojis.description",
+		PERMISSION_SCOPE_TEAM,
+	}
+	PERMISSION_DELETE_EMOJIS = &Permission{
+		"delete_emojis",
+		"authentication.permissions.delete_emojis.name",
+		"authentication.permissions.delete_emojis.description",
+		PERMISSION_SCOPE_TEAM,
+	}
+	PERMISSION_DELETE_OTHERS_EMOJIS = &Permission{
+		"delete_others_emojis",
+		"authentication.permissions.delete_others_emojis.name",
+		"authentication.permissions.delete_others_emojis.description",
 		PERMISSION_SCOPE_TEAM,
 	}
 	PERMISSION_CREATE_POST = &Permission{
@@ -396,6 +483,36 @@ func initializePermissions() {
 		"authentication.permissions.revoke_user_access_token.description",
 		PERMISSION_SCOPE_SYSTEM,
 	}
+	PERMISSION_CREATE_BOT = &Permission{
+		"create_bot",
+		"authentication.permissions.create_bot.name",
+		"authentication.permissions.create_bot.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
+	PERMISSION_READ_BOTS = &Permission{
+		"read_bots",
+		"authentication.permissions.read_bots.name",
+		"authentication.permissions.read_bots.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
+	PERMISSION_READ_OTHERS_BOTS = &Permission{
+		"read_others_bots",
+		"authentication.permissions.read_others_bots.name",
+		"authentication.permissions.read_others_bots.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
+	PERMISSION_MANAGE_BOTS = &Permission{
+		"manage_bots",
+		"authentication.permissions.manage_bots.name",
+		"authentication.permissions.manage_bots.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
+	PERMISSION_MANAGE_OTHERS_BOTS = &Permission{
+		"manage_others_bots",
+		"authentication.permissions.manage_others_bots.name",
+		"authentication.permissions.manage_others_bots.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
 	PERMISSION_MANAGE_JOBS = &Permission{
 		"manage_jobs",
 		"authentication.permisssions.manage_jobs.name",
@@ -421,6 +538,10 @@ func initializePermissions() {
 		PERMISSION_CREATE_GROUP_CHANNEL,
 		PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES,
 		PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES,
+		PERMISSION_LIST_PUBLIC_TEAMS,
+		PERMISSION_JOIN_PUBLIC_TEAMS,
+		PERMISSION_LIST_PRIVATE_TEAMS,
+		PERMISSION_JOIN_PRIVATE_TEAMS,
 		PERMISSION_LIST_TEAM_CHANNELS,
 		PERMISSION_JOIN_PUBLIC_CHANNELS,
 		PERMISSION_DELETE_PUBLIC_CHANNEL,
@@ -436,10 +557,17 @@ func initializePermissions() {
 		PERMISSION_GET_PUBLIC_LINK,
 		PERMISSION_MANAGE_WEBHOOKS,
 		PERMISSION_MANAGE_OTHERS_WEBHOOKS,
+		PERMISSION_MANAGE_INCOMING_WEBHOOKS,
+		PERMISSION_MANAGE_OUTGOING_WEBHOOKS,
+		PERMISSION_MANAGE_OTHERS_INCOMING_WEBHOOKS,
+		PERMISSION_MANAGE_OTHERS_OUTGOING_WEBHOOKS,
 		PERMISSION_MANAGE_OAUTH,
 		PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH,
 		PERMISSION_MANAGE_EMOJIS,
 		PERMISSION_MANAGE_OTHERS_EMOJIS,
+		PERMISSION_CREATE_EMOJIS,
+		PERMISSION_DELETE_EMOJIS,
+		PERMISSION_DELETE_OTHERS_EMOJIS,
 		PERMISSION_CREATE_POST,
 		PERMISSION_CREATE_POST_PUBLIC,
 		PERMISSION_CREATE_POST_EPHEMERAL,
@@ -457,6 +585,11 @@ func initializePermissions() {
 		PERMISSION_CREATE_USER_ACCESS_TOKEN,
 		PERMISSION_READ_USER_ACCESS_TOKEN,
 		PERMISSION_REVOKE_USER_ACCESS_TOKEN,
+		PERMISSION_CREATE_BOT,
+		PERMISSION_READ_BOTS,
+		PERMISSION_READ_OTHERS_BOTS,
+		PERMISSION_MANAGE_BOTS,
+		PERMISSION_MANAGE_OTHERS_BOTS,
 		PERMISSION_MANAGE_SYSTEM,
 	}
 }
