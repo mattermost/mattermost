@@ -84,18 +84,24 @@ func TestSaveSchemaVersion(t *testing.T) {
 	StoreTest(t, func(t *testing.T, ss store.Store) {
 		sqlStore := ss.(*store.LayeredStore).DatabaseLayer.(SqlStore)
 
-		saveSchemaVersion(sqlStore, VERSION_3_0_0)
-		result := <-ss.System().Get()
-		require.Nil(t, result.Err)
+		t.Run("set earliest version", func(t *testing.T) {
+			saveSchemaVersion(sqlStore, VERSION_3_0_0)
+			result := <-ss.System().Get()
+			require.Nil(t, result.Err)
 
-		props := result.Data.(model.StringMap)
-		require.Equal(t, VERSION_3_0_0, props["Version"])
-		require.Equal(t, VERSION_3_0_0, sqlStore.GetCurrentSchemaVersion())
+			props := result.Data.(model.StringMap)
+			require.Equal(t, VERSION_3_0_0, props["Version"])
+			require.Equal(t, VERSION_3_0_0, sqlStore.GetCurrentSchemaVersion())
+		})
 
-		saveSchemaVersion(sqlStore, model.CurrentVersion)
+		t.Run("set current version", func(t *testing.T) {
+			saveSchemaVersion(sqlStore, model.CurrentVersion)
+			result := <-ss.System().Get()
+			require.Nil(t, result.Err)
 
-		props = result.Data.(model.StringMap)
-		require.Equal(t, model.CurrentVersion, props["Version"])
-		require.Equal(t, model.CurrentVersion, sqlStore.GetCurrentSchemaVersion())
+			props := result.Data.(model.StringMap)
+			require.Equal(t, model.CurrentVersion, props["Version"])
+			require.Equal(t, model.CurrentVersion, sqlStore.GetCurrentSchemaVersion())
+		})
 	})
 }
