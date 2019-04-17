@@ -2104,6 +2104,38 @@ func testGetGroups(t *testing.T, ss store.Store) {
 				return true
 			},
 		},
+		{
+			Name:    "Get group matching name",
+			TeamId:  team1.Id,
+			Opts:    model.GroupSearchOpts{Q: string([]rune(group1.Name)[2:10])}, // very low change of a name collision
+			Page:    0,
+			PerPage: 100,
+			Result:  []*model.Group{group1},
+		},
+		{
+			Name:    "Get group matching display name",
+			TeamId:  team1.Id,
+			Opts:    model.GroupSearchOpts{Q: "rouP-1"},
+			Page:    0,
+			PerPage: 100,
+			Result:  []*model.Group{group1},
+		},
+		{
+			Name:    "Get group matching multiple display names",
+			TeamId:  team1.Id,
+			Opts:    model.GroupSearchOpts{Q: "roUp-"},
+			Page:    0,
+			PerPage: 100,
+			Result:  []*model.Group{group1, group2},
+		},
+		{
+			Name:    "Include member counts",
+			TeamId:  team1.Id,
+			Opts:    model.GroupSearchOpts{IncludeMemberCount: true},
+			Page:    0,
+			PerPage: 2,
+			Result:  []*model.Group{&group1WithMemberCount, &group2WithMemberCount},
+		},
 	}
 
 	for _, tc := range testCases {
