@@ -4,10 +4,9 @@
 package storetest
 
 import (
+	"net/http"
 	"testing"
 	"time"
-
-	"net/http"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
@@ -147,6 +146,26 @@ func testWebhookStoreGetIncomingByTeam(t *testing.T, ss store.Store) {
 		t.Fatal(result.Err)
 	} else {
 		if len(result.Data.([]*model.IncomingWebhook)) != 0 {
+			t.Fatal("no webhooks should have returned")
+		}
+	}
+}
+
+func testWebhookStoreGetIncomingByChannel(t *testing.T, ss store.Store) {
+	o1 := buildIncomingWebhook()
+
+	o1 = (<-ss.Webhook().SaveIncoming(o1)).Data.(*model.IncomingWebhook)
+
+	webhooks, err := ss.Webhook().GetIncomingByChannel(o1.ChannelId)
+	require.Nil(t, err)
+	if webhooks[0].CreateAt != o1.CreateAt {
+		t.Fatal("invalid returned webhook")
+	}
+
+	if webhooks, err = ss.Webhook().GetIncomingByChannel("123"); err != nil {
+		t.Fatal(err)
+	} else {
+		if len(webhooks) != 0 {
 			t.Fatal("no webhooks should have returned")
 		}
 	}
