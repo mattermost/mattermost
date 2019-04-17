@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"regexp"
+	"sort"
 	"strings"
 	"unicode/utf8"
 
@@ -115,6 +116,53 @@ type UserForIndexing struct {
 	DeleteAt    int64    `json:"delete_at"`
 	TeamsIds    []string `json:"team_id"`
 	ChannelsIds []string `json:"channel_id"`
+}
+
+type UserSlice []*User
+
+func (u UserSlice) Usernames() []string {
+	usernames := []string{}
+	for _, user := range u {
+		usernames = append(usernames, user.Username)
+	}
+	sort.Strings(usernames)
+	return usernames
+}
+
+func (u UserSlice) IDs() []string {
+	ids := []string{}
+	for _, user := range u {
+		ids = append(ids, user.Id)
+	}
+	return ids
+}
+
+func (u UserSlice) FilterByID(ids []string) UserSlice {
+	var matches []*User
+	for _, user := range u {
+		for _, id := range ids {
+			if id == user.Id {
+				matches = append(matches, user)
+			}
+		}
+	}
+	return UserSlice(matches)
+}
+
+func (u UserSlice) FilterWithoutID(ids []string) UserSlice {
+	var keep []*User
+	for _, user := range u {
+		present := false
+		for _, id := range ids {
+			if id == user.Id {
+				present = true
+			}
+		}
+		if !present {
+			keep = append(keep, user)
+		}
+	}
+	return UserSlice(keep)
 }
 
 func (u *User) DeepCopy() *User {
