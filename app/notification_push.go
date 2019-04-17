@@ -133,6 +133,10 @@ func (a *App) sendPushNotification(notification *postNotification, user *model.U
 	channelName := notification.GetChannelName(nameFormat, user.Id)
 	senderName := notification.GetSenderName(nameFormat, *cfg.ServiceSettings.EnablePostUsernameOverride)
 
+	if senderName == notification.sender.Username {
+		senderName = "@" + senderName
+	}
+
 	c := a.Srv.PushNotificationsHub.GetGoChannelFromUserId(user.Id)
 	c <- PushNotification{
 		notificationType:   NOTIFICATION_TYPE_MESSAGE,
@@ -160,12 +164,6 @@ func (a *App) getPushNotificationMessage(postMessage string, explicitMention, ch
 
 	contentsConfig := *a.Config().EmailSettings.PushNotificationContents
 	teammateNameDisplay := *a.Config().TeamSettings.TeammateNameDisplay
-
-	if teammateNameDisplay == model.SHOW_USERNAME {
-		teammateNameDisplay = "@"
-	} else {
-		teammateNameDisplay = ""
-	}
 
 	if contentsConfig == model.FULL_NOTIFICATION {
 		if channelType == model.CHANNEL_DIRECT {
