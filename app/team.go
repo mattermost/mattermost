@@ -394,6 +394,10 @@ func (a *App) AddUserToTeamByToken(userId string, tokenId string) (*model.Team, 
 	}
 	team := result.Data.(*model.Team)
 
+	if team.GroupConstrained != nil && *team.GroupConstrained {
+		return nil, model.NewAppError("AddUserToTeamByToken", "app.team.invite_token.group_constrained.error", nil, "", http.StatusForbidden)
+	}
+
 	result = <-uchan
 	if result.Err != nil {
 		return nil, result.Err
@@ -742,6 +746,10 @@ func (a *App) AddTeamMemberByInviteId(inviteId, userId string) (*model.TeamMembe
 	team, err := a.AddUserToTeamByInviteId(inviteId, userId)
 	if err != nil {
 		return nil, err
+	}
+
+	if team.GroupConstrained != nil && *team.GroupConstrained {
+		return nil, model.NewAppError("AddTeamMemberByInviteId", "app.team.invite_id.group_constrained.error", nil, "", http.StatusForbidden)
 	}
 
 	teamMember, err := a.GetTeamMember(team.Id, userId)
