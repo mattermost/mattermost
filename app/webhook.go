@@ -395,11 +395,14 @@ func (a *App) GetIncomingWebhooksForTeamPage(teamId string, page, perPage int) (
 }
 
 func (a *App) GetIncomingWebhooksPage(page, perPage int) ([]*model.IncomingWebhook, *model.AppError) {
+	var webhooks []*model.IncomingWebhook
+	var err *model.AppError
+
 	if !*a.Config().ServiceSettings.EnableIncomingWebhooks {
 		return nil, model.NewAppError("GetIncomingWebhooksPage", "api.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if webhooks, err := a.Srv.Store.Webhook().GetIncomingList(page*perPage, perPage); err != nil {
+	if webhooks, err = a.Srv.Store.Webhook().GetIncomingList(page*perPage, perPage); err != nil {
 		return nil, err
 	}
 	return webhooks, nil
