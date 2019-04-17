@@ -526,7 +526,7 @@ func TestGetEmbedForPost(t *testing.T) {
 	imageURL := server.URL + "/image.png"
 
 	t.Run("with link previews enabled", func(t *testing.T) {
-		th := Setup(t)
+		th := Setup()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -576,7 +576,7 @@ func TestGetEmbedForPost(t *testing.T) {
 	})
 
 	t.Run("with link previews disabled", func(t *testing.T) {
-		th := Setup(t)
+		th := Setup()
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
