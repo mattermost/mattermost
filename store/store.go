@@ -379,7 +379,7 @@ type SystemStore interface {
 type WebhookStore interface {
 	SaveIncoming(webhook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError)
 	GetIncoming(id string, allowFromCache bool) (*model.IncomingWebhook, *model.AppError)
-	GetIncomingList(offset, limit int) StoreChannel
+	GetIncomingList(offset, limit int) ([]*model.IncomingWebhook, *model.AppError)
 	GetIncomingByTeam(teamId string, offset, limit int) StoreChannel
 	UpdateIncoming(webhook *model.IncomingWebhook) StoreChannel
 	GetIncomingByChannel(channelId string) StoreChannel
