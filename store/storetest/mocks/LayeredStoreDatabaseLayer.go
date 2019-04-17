@@ -254,19 +254,19 @@ func (_m *LayeredStoreDatabaseLayer) GetGroupsByChannel(ctx context.Context, cha
 }
 
 // GetGroupsByTeam provides a mock function with given fields: ctx, teamId, page, perPage, hints
-func (_m *LayeredStoreDatabaseLayer) GetGroupsByTeam(ctx context.Context, teamId string, page int, perPage int, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+func (_m *LayeredStoreDatabaseLayer) GetGroupsByTeam(ctx context.Context, teamId string, opts model.GroupSearchOpts, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	_va := make([]interface{}, len(hints))
 	for _i := range hints {
 		_va[_i] = hints[_i]
 	}
 	var _ca []interface{}
-	_ca = append(_ca, ctx, teamId, page, perPage)
+	_ca = append(_ca, ctx, teamId, opts)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
 	var r0 *store.LayeredStoreSupplierResult
-	if rf, ok := ret.Get(0).(func(context.Context, string, int, int, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
-		r0 = rf(ctx, teamId, page, perPage, hints...)
+	if rf, ok := ret.Get(0).(func(context.Context, string, model.GroupSearchOpts, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
+		r0 = rf(ctx, teamId, opts, hints...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*store.LayeredStoreSupplierResult)
