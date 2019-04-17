@@ -16,9 +16,8 @@ func TestStoreUpgrade(t *testing.T) {
 		sqlStore := ss.(*store.LayeredStore).DatabaseLayer.(SqlStore)
 
 		t.Run("invalid currentModelVersion", func(t *testing.T) {
-			require.Panics(t, func() {
-				UpgradeDatabase(sqlStore, "notaversion")
-			})
+			err := UpgradeDatabase(sqlStore, "notaversion")
+			require.EqualError(t, err, "failed to parse current model version notaversion: No Major.Minor.Patch elements found")
 		})
 
 		t.Run("upgrade from invalid version", func(t *testing.T) {

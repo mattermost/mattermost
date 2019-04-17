@@ -69,15 +69,22 @@ const (
 // The value of model.CurrentVersion is accepted as a parameter for unit testing, but it is not
 // used to stop migrations at that version.
 func UpgradeDatabase(sqlStore SqlStore, currentModelVersionString string) error {
-	currentModelVersion := semver.MustParse(currentModelVersionString)
+	currentModelVersion, err := semver.Parse(currentModelVersionString)
+	if err != nil {
+		return errors.Wrapf(err, "failed to parse current model version %s", currentModelVersionString)
+	}
+
 	nextUnsupportedMajorVersion := semver.Version{
 		Major: currentModelVersion.Major + 1,
 	}
-	oldestSupportedVersion := semver.MustParse(OLDEST_SUPPORTED_VERSION)
-	currentSchemaVersionString := sqlStore.GetCurrentSchemaVersion()
+
+	oldestSupportedVersion, err := semver.Parse(OLDEST_SUPPORTED_VERSION)
+	if err != nil {
+		return errors.Wrapf(err, "failed to parse oldest supported version %s", OLDEST_SUPPORTED_VERSION)
+	}
 
 	var currentSchemaVersion *semver.Version
-	var err error
+	currentSchemaVersionString := sqlStore.GetCurrentSchemaVersion()
 	if currentSchemaVersionString != "" {
 		currentSchemaVersion, err = semver.New(currentSchemaVersionString)
 		if err != nil {
