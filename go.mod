@@ -42,6 +42,7 @@ require (
 	github.com/lib/pq v1.0.0
 	github.com/mailru/easyjson v0.0.0-20190312143242-1de009706dbe // indirect
 	github.com/mattermost/gorp v2.0.1-0.20190301154413-3b31e9a39d05+incompatible
+	github.com/mattermost/imageproxy v0.8.1-0.20190417225038-3525694ae0f1
 	github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
 	github.com/mattermost/viper v1.0.4
 	github.com/mattn/go-runewidth v0.0.4 // indirect
@@ -90,7 +91,7 @@ require (
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	gopkg.in/olivere/elastic.v5 v5.0.79
 	gopkg.in/yaml.v2 v2.2.2
-	willnorris.com/go/imageproxy v0.8.1-0.20190326225038-cf54b2cf2c9e
+	willnorris.com/go/imageproxy v0.8.0 // indirect
 )
 
 // Workaround for https://github.com/golang/go/issues/30831 and fallout.

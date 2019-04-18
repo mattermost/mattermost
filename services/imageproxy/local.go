@@ -13,9 +13,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mattermost/imageproxy"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/services/httpservice"
-	"willnorris.com/go/imageproxy"
 )
 
 var imageContentTypes = []string{
