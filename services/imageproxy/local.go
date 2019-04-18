@@ -43,6 +43,15 @@ type LocalBackend struct {
 func makeLocalBackend(proxy *ImageProxy) *LocalBackend {
 	impl := imageproxy.NewProxy(proxy.HTTPService.MakeTransport(false), nil)
 
+	if proxy.Logger != nil {
+		logger, err := proxy.Logger.StdLogAt(mlog.LevelDebug, mlog.String("image_proxy", "local"))
+		if err != nil {
+			mlog.Error("Failed to initialize logger for image proxy", mlog.Err(err))
+		}
+
+		impl.Logger = logger
+	}
+
 	baseURL, err := url.Parse(*proxy.ConfigService.Config().ServiceSettings.SiteURL)
 	if err != nil {
 		mlog.Error("Failed to set base URL for image proxy. Relative image links may not work.", mlog.Err(err))
