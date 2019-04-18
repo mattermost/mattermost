@@ -66,7 +66,8 @@ func (a *App) GetLogsSkipSend(page, perPage int) ([]string, *model.AppError) {
 		var endOffset int64 = 0
 
 		// if the file exists and it's last byte is '\n' - skip it
-		if stat, err := os.Stat(logFile); err == nil && stat != nil {
+		var stat os.FileInfo
+		if stat, err = os.Stat(logFile); err == nil {
 			if _, err = file.ReadAt(b, stat.Size()-1); err == nil && b[0] == newLine[0] {
 				endOffset = -1
 			}
