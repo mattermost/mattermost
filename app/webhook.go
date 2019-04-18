@@ -323,11 +323,8 @@ func (a *App) CreateIncomingWebhookForChannel(creatorId string, channel *model.C
 		return nil, model.NewAppError("CreateIncomingWebhookForChannel", "api.incoming_webhook.invalid_username.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if webhook, err := a.Srv.Store.Webhook().SaveIncoming(hook); err != nil {
-		return nil, err
-	} else {
-		return webhook, nil
-	}
+	return a.Srv.Store.Webhook().SaveIncoming(hook)
+
 }
 func (a *App) UpdateIncomingWebhook(oldHook, updatedHook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableIncomingWebhooks {
@@ -395,17 +392,12 @@ func (a *App) GetIncomingWebhooksForTeamPage(teamId string, page, perPage int) (
 }
 
 func (a *App) GetIncomingWebhooksPage(page, perPage int) ([]*model.IncomingWebhook, *model.AppError) {
-	var webhooks []*model.IncomingWebhook
-	var err *model.AppError
 
 	if !*a.Config().ServiceSettings.EnableIncomingWebhooks {
 		return nil, model.NewAppError("GetIncomingWebhooksPage", "api.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if webhooks, err = a.Srv.Store.Webhook().GetIncomingList(page*perPage, perPage); err != nil {
-		return nil, err
-	}
-	return webhooks, nil
+	return a.Srv.Store.Webhook().GetIncomingList(page*perPage, perPage)
 }
 
 func (a *App) CreateOutgoingWebhook(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError) {
