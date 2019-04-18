@@ -242,7 +242,10 @@ func (a *App) UpdateLastActivityAtIfNeeded(session model.Session) {
 }
 
 func (a *App) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError) {
-	if !*a.Config().ServiceSettings.EnableUserAccessTokens {
+
+	user, err := a.Srv.Store.User().Get(token.UserId)
+
+	if !*a.Config().ServiceSettings.EnableUserAccessTokens && !user.IsBot {
 		return nil, model.NewAppError("CreateUserAccessToken", "app.user_access_token.disabled", nil, "", http.StatusNotImplemented)
 	}
 
@@ -250,7 +253,6 @@ func (a *App) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAc
 
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
-		user, err := a.Srv.Store.User().Get(token.UserId)
 		uchan <- store.StoreResult{Data: user, Err: err}
 		close(uchan)
 	}()
