@@ -338,12 +338,12 @@ type ClusterDiscoveryStore interface {
 }
 
 type ComplianceStore interface {
-	Save(compliance *model.Compliance) StoreChannel
-	Update(compliance *model.Compliance) StoreChannel
-	Get(id string) StoreChannel
-	GetAll(offset, limit int) StoreChannel
-	ComplianceExport(compliance *model.Compliance) StoreChannel
-	MessageExport(after int64, limit int) StoreChannel
+	Save(compliance *model.Compliance) (*model.Compliance, *model.AppError)
+	Update(compliance *model.Compliance) (*model.Compliance, *model.AppError)
+	Get(id string) (*model.Compliance, *model.AppError)
+	GetAll(offset, limit int) (model.Compliances, *model.AppError)
+	ComplianceExport(compliance *model.Compliance) ([]*model.CompliancePost, *model.AppError)
+	MessageExport(after int64, limit int) ([]*model.MessageExport, *model.AppError)
 }
 
 type OAuthStore interface {
