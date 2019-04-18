@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
+	"github.com/stretchr/testify/require"
 )
 
 func TestWebhookStore(t *testing.T, ss store.Store) {
@@ -72,31 +73,27 @@ func testWebhookStoreGetIncoming(t *testing.T, ss store.Store) {
 	o1 := buildIncomingWebhook()
 	o1 = (<-ss.Webhook().SaveIncoming(o1)).Data.(*model.IncomingWebhook)
 
-	if r1 := <-ss.Webhook().GetIncoming(o1.Id, false); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		if r1.Data.(*model.IncomingWebhook).CreateAt != o1.CreateAt {
-			t.Fatal("invalid returned webhook")
-		}
+	webhook, err := ss.Webhook().GetIncoming(o1.Id, false)
+	require.Nil(t, err)
+	if webhook.CreateAt != o1.CreateAt {
+		t.Fatal("invalid returned webhook")
 	}
 
-	if r1 := <-ss.Webhook().GetIncoming(o1.Id, true); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		if r1.Data.(*model.IncomingWebhook).CreateAt != o1.CreateAt {
-			t.Fatal("invalid returned webhook")
-		}
+	webhook, err = ss.Webhook().GetIncoming(o1.Id, true)
+	require.Nil(t, err)
+	if webhook.CreateAt != o1.CreateAt {
+		t.Fatal("invalid returned webhook")
 	}
 
-	if err := (<-ss.Webhook().GetIncoming("123", false)).Err; err == nil {
+	if _, err = ss.Webhook().GetIncoming("123", false); err == nil {
 		t.Fatal("Missing id should have failed")
 	}
 
-	if err := (<-ss.Webhook().GetIncoming("123", true)).Err; err == nil {
+	if _, err = ss.Webhook().GetIncoming("123", true); err == nil {
 		t.Fatal("Missing id should have failed")
 	}
 
-	if err := (<-ss.Webhook().GetIncoming("123", true)).Err; err.StatusCode != http.StatusNotFound {
+	if _, err = ss.Webhook().GetIncoming("123", true); err.StatusCode != http.StatusNotFound {
 		t.Fatal("Should have set the status as not found for missing id")
 	}
 }
@@ -160,22 +157,18 @@ func testWebhookStoreDeleteIncoming(t *testing.T, ss store.Store) {
 
 	o1 = (<-ss.Webhook().SaveIncoming(o1)).Data.(*model.IncomingWebhook)
 
-	if r1 := <-ss.Webhook().GetIncoming(o1.Id, true); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		if r1.Data.(*model.IncomingWebhook).CreateAt != o1.CreateAt {
-			t.Fatal("invalid returned webhook")
-		}
+	webhook, err := ss.Webhook().GetIncoming(o1.Id, true)
+	require.Nil(t, err)
+	if webhook.CreateAt != o1.CreateAt {
+		t.Fatal("invalid returned webhook")
 	}
 
 	if r2 := <-ss.Webhook().DeleteIncoming(o1.Id, model.GetMillis()); r2.Err != nil {
 		t.Fatal(r2.Err)
 	}
 
-	if r3 := (<-ss.Webhook().GetIncoming(o1.Id, true)); r3.Err == nil {
-		t.Log(r3.Data)
-		t.Fatal("Missing id should have failed")
-	}
+	webhook, err = ss.Webhook().GetIncoming(o1.Id, true)
+	require.NotNil(t, err)
 }
 
 func testWebhookStoreDeleteIncomingByChannel(t *testing.T, ss store.Store) {
@@ -183,20 +176,17 @@ func testWebhookStoreDeleteIncomingByChannel(t *testing.T, ss store.Store) {
 
 	o1 = (<-ss.Webhook().SaveIncoming(o1)).Data.(*model.IncomingWebhook)
 
-	if r1 := <-ss.Webhook().GetIncoming(o1.Id, true); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		if r1.Data.(*model.IncomingWebhook).CreateAt != o1.CreateAt {
-			t.Fatal("invalid returned webhook")
-		}
+	webhook, err := ss.Webhook().GetIncoming(o1.Id, true)
+	require.Nil(t, err)
+	if webhook.CreateAt != o1.CreateAt {
+		t.Fatal("invalid returned webhook")
 	}
 
 	if r2 := <-ss.Webhook().PermanentDeleteIncomingByChannel(o1.ChannelId); r2.Err != nil {
 		t.Fatal(r2.Err)
 	}
 
-	if r3 := (<-ss.Webhook().GetIncoming(o1.Id, true)); r3.Err == nil {
-		t.Log(r3.Data)
+	if _, err = ss.Webhook().GetIncoming(o1.Id, true); err == nil {
 		t.Fatal("Missing id should have failed")
 	}
 }
@@ -206,20 +196,17 @@ func testWebhookStoreDeleteIncomingByUser(t *testing.T, ss store.Store) {
 
 	o1 = (<-ss.Webhook().SaveIncoming(o1)).Data.(*model.IncomingWebhook)
 
-	if r1 := <-ss.Webhook().GetIncoming(o1.Id, true); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		if r1.Data.(*model.IncomingWebhook).CreateAt != o1.CreateAt {
-			t.Fatal("invalid returned webhook")
-		}
+	webhook, err := ss.Webhook().GetIncoming(o1.Id, true)
+	require.Nil(t, err)
+	if webhook.CreateAt != o1.CreateAt {
+		t.Fatal("invalid returned webhook")
 	}
 
 	if r2 := <-ss.Webhook().PermanentDeleteIncomingByUser(o1.UserId); r2.Err != nil {
 		t.Fatal(r2.Err)
 	}
 
-	if r3 := (<-ss.Webhook().GetIncoming(o1.Id, true)); r3.Err == nil {
-		t.Log(r3.Data)
+	if _, err = ss.Webhook().GetIncoming(o1.Id, true); err == nil {
 		t.Fatal("Missing id should have failed")
 	}
 }

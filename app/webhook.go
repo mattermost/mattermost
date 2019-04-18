@@ -380,11 +380,7 @@ func (a *App) GetIncomingWebhook(hookId string) (*model.IncomingWebhook, *model.
 		return nil, model.NewAppError("GetIncomingWebhook", "api.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if result := <-a.Srv.Store.Webhook().GetIncoming(hookId, true); result.Err != nil {
-		return nil, result.Err
-	} else {
-		return result.Data.(*model.IncomingWebhook), nil
-	}
+	return a.Srv.Store.Webhook().GetIncoming(hookId, true)
 }
 
 func (a *App) GetIncomingWebhooksForTeamPage(teamId string, page, perPage int) ([]*model.IncomingWebhook, *model.AppError) {
@@ -589,7 +585,12 @@ func (a *App) HandleIncomingWebhook(hookId string, req *model.IncomingWebhookReq
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	hchan := a.Srv.Store.Webhook().GetIncoming(hookId, true)
+	hchan := make(chan store.StoreResult, 1)
+	go func() {
+		webhook, err := a.Srv.Store.Webhook().GetIncoming(hookId, true)
+		hchan <- store.StoreResult{Data: webhook, Err: err}
+		close(hchan)
+	}()
 
 	if req == nil {
 		return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.parse.app_error", nil, "", http.StatusBadRequest)
