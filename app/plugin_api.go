@@ -662,7 +662,7 @@ func (api *PluginAPI) KVSet(key string, value []byte) *model.AppError {
 	return api.app.SetPluginKey(api.id, key, value)
 }
 
-func (api *PluginAPI) KVCompareAndSet(key string, oldValue, newValue []byte) *model.AppError {
+func (api *PluginAPI) KVCompareAndSet(key string, oldValue, newValue []byte) (bool, *model.AppError) {
 	return api.app.CompareAndSetPluginKey(api.id, key, oldValue, newValue)
 }
 

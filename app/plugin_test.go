@@ -141,13 +141,17 @@ func TestPluginKeyValueStoreCompareAndUpdate(t *testing.T) {
 	assert.Equal(t, []byte("test"), ret)
 
 	// Test updating using correct old value
-	assert.Nil(t, th.App.CompareAndSetPluginKey(pluginId, "key", []byte("test"), []byte("test2")))
+	updated, err := th.App.CompareAndSetPluginKey(pluginId, "key", []byte("test"), []byte("test2"))
+	assert.Nil(t, err)
+	assert.True(t, updated)
 	ret, err = th.App.GetPluginKey(pluginId, "key")
 	assert.Nil(t, err)
 	assert.Equal(t, []byte("test2"), ret)
 
 	// Test updating using incorrect old value
-	assert.NotNil(t, th.App.CompareAndSetPluginKey(pluginId, "key", []byte("oldvalue"), []byte("test3")))
+	updated, err = th.App.CompareAndSetPluginKey(pluginId, "key", []byte("oldvalue"), []byte("test3"))
+	assert.Nil(t, err)
+	assert.False(t, updated)
 	ret, err = th.App.GetPluginKey(pluginId, "key")
 	assert.Nil(t, err)
 	assert.Equal(t, []byte("test2"), ret)

@@ -461,9 +461,12 @@ type API interface {
 
 	// KVCompareAndSet will update a key-value pair, unique per plugin,
 	// to the given new value if the current value == the old value.
+	// Returns (false, err) if DB error occurred
+	// Returns (false, nil) if current value != old value
+	// Returns (true, nil) if current value == old value
 	//
 	// Minimum server version: 5.12
-	KVCompareAndSet(key string, oldValue, newValue []byte) *model.AppError
+	KVCompareAndSet(key string, oldValue, newValue []byte) (bool, *model.AppError)
 
 	// KVSet will store a key-value pair, unique per plugin with an expiry time
 	//

@@ -14,19 +14,26 @@ type PluginStore struct {
 }
 
 // CompareAndUpdate provides a mock function with given fields: keyVal, oldValue
-func (_m *PluginStore) CompareAndUpdate(keyVal *model.PluginKeyValue, oldValue []byte) store.StoreChannel {
+func (_m *PluginStore) CompareAndUpdate(keyVal *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError) {
 	ret := _m.Called(keyVal, oldValue)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(*model.PluginKeyValue, []byte) store.StoreChannel); ok {
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(*model.PluginKeyValue, []byte) bool); ok {
 		r0 = rf(keyVal, oldValue)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+		r0 = ret.Get(0).(bool)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.PluginKeyValue, []byte) *model.AppError); ok {
+		r1 = rf(keyVal, oldValue)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
 		}
 	}
 
-	return r0
+	return r0, r1
 }
 
 // Delete provides a mock function with given fields: pluginId, key

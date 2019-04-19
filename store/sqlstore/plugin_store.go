@@ -71,41 +71,34 @@ func (ps SqlPluginStore) SaveOrUpdate(kv *model.PluginKeyValue) store.StoreChann
 	})
 }
 
-func (ps SqlPluginStore) CompareAndUpdate(kv *model.PluginKeyValue, oldValue []byte) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if result.Err = kv.IsValid(); result.Err != nil {
-			return
-		}
+func (ps SqlPluginStore) CompareAndUpdate(kv *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError) {
+	if err := kv.IsValid(); err != nil {
+		return false, err
+	}
 
-		if ps.DriverName() == model.DATABASE_DRIVER_POSTGRES || ps.DriverName() == model.DATABASE_DRIVER_MYSQL {
-			updateResult, err := ps.GetMaster().Exec(
-				`UPDATE PluginKeyValueStore SET PValue = :New WHERE PluginId = :PluginId AND PKey = :Key AND PValue = :Old`,
-				map[string]interface{}{
-					"PluginId": kv.PluginId,
-					"Key":      kv.Key,
-					"Old":      oldValue,
-					"New":      kv.Value,
-				})
-			if err != nil {
-				result.Err = model.NewAppError("SqlPluginStore.CompareAndUpdate", "store.sql_plugin_store.save.app_error", nil, err.Error(), http.StatusInternalServerError)
-				return
-			}
+	updateResult, err := ps.GetMaster().Exec(
+		`UPDATE PluginKeyValueStore SET PValue = :New WHERE PluginId = :PluginId AND PKey = :Key AND PValue = :Old`,
+		map[string]interface{}{
+			"PluginId": kv.PluginId,
+			"Key":      kv.Key,
+			"Old":      oldValue,
+			"New":      kv.Value,
+		},
+	)
+	if err != nil {
+		return false, model.NewAppError("SqlPluginStore.CompareAndUpdate", "store.sql_plugin_store.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-			rowsAffect, err := updateResult.RowsAffected()
-			if err != nil {
-				// Failed to update
-				result.Err = model.NewAppError("SqlPluginStore.CompareAndUpdate", "store.sql_plugin_store.save.app_error", nil, err.Error(), http.StatusInternalServerError)
-				return
-			} else if rowsAffect == 0 {
-				// No rows were affected by the update, where condition was not satisfied,
-				// return an error
-				result.Err = model.NewAppError("SqlPluginStore.CompareAndUpdate", "store.sql_plugin_store.save.app_error", nil, "no rows were affected", http.StatusNotModified)
-				return
-			}
-		}
+	if rowsAffected, err := updateResult.RowsAffected(); err != nil {
+		// Failed to update
+		return false, model.NewAppError("SqlPluginStore.CompareAndUpdate", "store.sql_plugin_store.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+	} else if rowsAffected == 0 {
+		// No rows were affected by the update, where condition was not satisfied,
+		// return false, but no error.
+		return false, nil
+	}
 
-		result.Data = kv
-	})
+	return true, nil
 }
 
 func (ps SqlPluginStore) Get(pluginId, key string) store.StoreChannel {

@@ -12,7 +12,6 @@ import (
 	"image/color"
 	"image/png"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"path"
 	"path/filepath"
@@ -699,37 +698,36 @@ func TestPluginAPIKVCompareAndSet(t *testing.T) {
 			require.Equal(t, expectedValue1, value)
 
 			// Update using correct old value
-			require.Nil(t, api.KVCompareAndSet(expectedKey, expectedValue1, expectedValue2))
+			updated, err := api.KVCompareAndSet(expectedKey, expectedValue1, expectedValue2)
+			require.Nil(t, err)
+			require.True(t, updated)
 
 			value, err = api.KVGet(expectedKey)
 			require.Nil(t, err)
 			require.Equal(t, expectedValue2, value)
 
 			// Update using incorrect old value
-			err = api.KVCompareAndSet(expectedKey, []byte("incorrect"), expectedValue3)
-			require.NotNil(t, err)
-			require.Contains(t, err.Error(), "no rows were affected")
-			require.Equal(t, err.StatusCode, http.StatusNotModified)
+			updated, err = api.KVCompareAndSet(expectedKey, []byte("incorrect"), expectedValue3)
+			require.Nil(t, err)
+			require.False(t, updated)
 
 			value, err = api.KVGet(expectedKey)
 			require.Nil(t, err)
 			require.Equal(t, expectedValue2, value)
 
 			// Update using nil old value
-			err = api.KVCompareAndSet(expectedKey, nil, expectedValue3)
-			require.NotNil(t, err)
-			require.Contains(t, err.Error(), "no rows were affected")
-			require.Equal(t, err.StatusCode, http.StatusNotModified)
+			updated, err = api.KVCompareAndSet(expectedKey, nil, expectedValue3)
+			require.Nil(t, err)
+			require.False(t, updated)
 
 			value, err = api.KVGet(expectedKey)
 			require.Nil(t, err)
 			require.Equal(t, expectedValue2, value)
 
 			// Update using empty old value
-			err = api.KVCompareAndSet(expectedKey, expectedValueEmpty, expectedValue3)
-			require.NotNil(t, err)
-			require.Contains(t, err.Error(), "no rows were affected")
-			require.Equal(t, err.StatusCode, http.StatusNotModified)
+			updated, err = api.KVCompareAndSet(expectedKey, expectedValueEmpty, expectedValue3)
+			require.Nil(t, err)
+			require.False(t, updated)
 
 			value, err = api.KVGet(expectedKey)
 			require.Nil(t, err)

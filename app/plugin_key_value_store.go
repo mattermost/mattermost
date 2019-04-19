@@ -10,6 +10,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/store"
 )
 
 func getKeyHash(key string) string {
@@ -47,16 +48,25 @@ func (a *App) SetPluginKeyWithExpiry(pluginId string, key string, value []byte, 
 	return nil
 }
 
-func (a *App) CompareAndSetPluginKey(pluginId string, key string, oldValue, newValue []byte) *model.AppError {
+func (a *App) CompareAndSetPluginKey(pluginId string, key string, oldValue, newValue []byte) (bool, *model.AppError) {
 	kv := &model.PluginKeyValue{
 		PluginId: pluginId,
 		Key:      key,
 		Value:    newValue,
 	}
 
-	if result := <-a.Srv.Store.Plugin().CompareAndUpdate(kv, oldValue); result.Err != nil {
+	resultChan := make(chan store.StoreResult, 1)
+	go func() {
+		updated, err := a.Srv.Store.Plugin().CompareAndUpdate(kv, oldValue)
+		resultChan <- store.StoreResult{Data: updated, Err: err}
+		close(resultChan)
+	}()
+
+	result := <-resultChan
+	updated := result.Data.(bool)
+	if result.Err != nil {
 		mlog.Error("Failed to update plugin key value", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(result.Err))
-		return result.Err
+		return updated, result.Err
 	}
 
 	// Clean up a previous entry using the hashed key, if it exists.
@@ -64,7 +74,7 @@ func (a *App) CompareAndSetPluginKey(pluginId string, key string, oldValue, newV
 		mlog.Error("Failed to clean up previously hashed plugin key value", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(result.Err))
 	}
 
-	return nil
+	return updated, nil
 }
 
 func (a *App) GetPluginKey(pluginId string, key string) ([]byte, *model.AppError) {
