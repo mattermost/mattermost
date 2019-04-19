@@ -10,7 +10,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
 )
 
 func getKeyHash(key string) string {
@@ -55,18 +54,10 @@ func (a *App) CompareAndSetPluginKey(pluginId string, key string, oldValue, newV
 		Value:    newValue,
 	}
 
-	resultChan := make(chan store.StoreResult, 1)
-	go func() {
-		updated, err := a.Srv.Store.Plugin().CompareAndUpdate(kv, oldValue)
-		resultChan <- store.StoreResult{Data: updated, Err: err}
-		close(resultChan)
-	}()
-
-	result := <-resultChan
-	updated := result.Data.(bool)
-	if result.Err != nil {
-		mlog.Error("Failed to update plugin key value", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(result.Err))
-		return updated, result.Err
+	updated, err := a.Srv.Store.Plugin().CompareAndUpdate(kv, oldValue)
+	if err != nil {
+		mlog.Error("Failed to update plugin key value", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(err))
+		return updated, err
 	}
 
 	// Clean up a previous entry using the hashed key, if it exists.
