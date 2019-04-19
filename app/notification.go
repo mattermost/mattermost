@@ -22,7 +22,7 @@ const (
 	THREAD_ROOT = "root"
 )
 
-func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList) ([]string, *model.AppError) {
+func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList) ([]string, error) {
 	// Do not send notifications in archived channels
 	if channel.DeleteAt > 0 {
 		return []string{}, nil
@@ -126,10 +126,19 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 		if len(m.OtherPotentialMentions) > 0 && !post.IsSystemMessage() {
 			if result := <-a.Srv.Store.User().GetProfilesByUsernames(m.OtherPotentialMentions, team.Id); result.Err == nil {
-				outOfChannelMentions := result.Data.([]*model.User)
+				channelMentions := model.UserSlice(result.Data.([]*model.User))
+
+				nonMemberIDs, err := a.FilterNonGroupChannelMembers(channelMentions.IDs(), channel)
+				if err != nil {
+					return nil, err
+				}
+
+				outOfChannelMentions := channelMentions.FilterWithoutID(nonMemberIDs)
+				outOfGroupsMentions := channelMentions.FilterByID(nonMemberIDs)
+
 				if channel.Type != model.CHANNEL_GROUP {
 					a.Srv.Go(func() {
-						a.sendOutOfChannelMentions(sender, post, outOfChannelMentions)
+						a.sendOutOfChannelMentions(sender, post, outOfChannelMentions, outOfGroupsMentions)
 					})
 				}
 			}
@@ -355,42 +364,70 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	return mentionedUsersList, nil
 }
 
-func (a *App) sendOutOfChannelMentions(sender *model.User, post *model.Post, users []*model.User) *model.AppError {
-	if len(users) == 0 {
+func (a *App) sendOutOfChannelMentions(sender *model.User, post *model.Post, outOfChannelUsers, outOfGroupsUsers []*model.User) *model.AppError {
+	if len(outOfChannelUsers) == 0 && len(outOfGroupsUsers) == 0 {
 		return nil
 	}
 
-	var usernames []string
-	for _, user := range users {
-		usernames = append(usernames, user.Username)
-	}
-	sort.Strings(usernames)
+	allUsers := model.UserSlice(append(outOfChannelUsers, outOfGroupsUsers...))
 
-	var userIds []string
-	for _, user := range users {
-		userIds = append(userIds, user.Id)
-	}
+	ocUsers := model.UserSlice(outOfChannelUsers)
+	ocUsernames := ocUsers.Usernames()
+	ocUserIDs := ocUsers.IDs()
+
+	ogUsers := model.UserSlice(outOfGroupsUsers)
+	ogUsernames := ogUsers.Usernames()
 
 	T := utils.GetUserTranslations(sender.Locale)
 
 	ephemeralPostId := model.NewId()
 	var message string
-	if len(users) == 1 {
+	if len(outOfChannelUsers) == 1 {
 		message = T("api.post.check_for_out_of_channel_mentions.message.one", map[string]interface{}{
-			"Username": usernames[0],
+			"Username": ocUsernames[0],
 		})
-	} else {
+	} else if len(outOfChannelUsers) > 1 {
+		preliminary, final := splitAtFinal(ocUsernames)
+
 		message = T("api.post.check_for_out_of_channel_mentions.message.multiple", map[string]interface{}{
-			"Usernames":    strings.Join(usernames[:len(usernames)-1], ", @"),
-			"LastUsername": usernames[len(usernames)-1],
+			"Usernames":    strings.Join(preliminary, ", @"),
+			"LastUsername": final,
+		})
+	}
+
+	if len(outOfGroupsUsers) == 1 {
+		if len(message) > 0 {
+			message += "\n"
+		}
+
+		message += T("api.post.check_for_out_of_channel_groups_mentions.message.one", map[string]interface{}{
+			"Username": ogUsernames[0],
+		})
+	} else if len(outOfGroupsUsers) > 1 {
+		preliminary, final := splitAtFinal(ogUsernames)
+
+		if len(message) > 0 {
+			message += "\n"
+		}
+
+		message += T("api.post.check_for_out_of_channel_groups_mentions.message.multiple", map[string]interface{}{
+			"Usernames":    strings.Join(preliminary, ", @"),
+			"LastUsername": final,
 		})
 	}
 
 	props := model.StringInterface{
 		model.PROPS_ADD_CHANNEL_MEMBER: model.StringInterface{
-			"post_id":   ephemeralPostId,
-			"usernames": usernames,
-			"user_ids":  userIds,
+			"post_id": ephemeralPostId,
+
+			"usernames":                allUsers.Usernames(), // Kept for backwards compatibility of mobile app.
+			"not_in_channel_usernames": ocUsernames,
+
+			"user_ids":                allUsers.IDs(), // Kept for backwards compatibility of mobile app.
+			"not_in_channel_user_ids": ocUserIDs,
+
+			"not_in_groups_usernames": ogUsernames,
+			"not_in_groups_user_ids":  ogUsers.IDs(),
 		},
 	}
 
@@ -407,6 +444,15 @@ func (a *App) sendOutOfChannelMentions(sender *model.User, post *model.Post, use
 	)
 
 	return nil
+}
+
+func splitAtFinal(items []string) (preliminary []string, final string) {
+	if len(items) == 0 {
+		return
+	}
+	preliminary = items[:len(items)-1]
+	final = items[len(items)-1]
+	return
 }
 
 type ExplicitMentions struct {
