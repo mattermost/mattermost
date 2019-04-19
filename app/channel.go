@@ -1419,10 +1419,13 @@ func (a *App) postJoinTeamMessage(user *model.User, channel *model.Channel) *mod
 }
 
 func (a *App) LeaveChannel(channelId string, userId string) *model.AppError {
-	channel, errCh := a.Srv.Store.Channel().Get(channelId, true)
-	if errCh != nil {
-		return errCh
-	}
+	sc := make(chan store.StoreResult, 1)
+	go func() {
+		channel, err := a.Srv.Store.Channel().Get(userId, true)
+		sc <- store.StoreResult{Data: channel, Err: err}
+		close(sc)
+	}()
+
 	uc := make(chan store.StoreResult, 1)
 	go func() {
 		user, err := a.Srv.Store.User().Get(userId)
@@ -1433,13 +1436,19 @@ func (a *App) LeaveChannel(channelId string, userId string) *model.AppError {
 
 	uresult := <-uc
 	if uresult.Err != nil {
-		return errCh
+		return uresult.Err
 	}
 	ccmresult := <-ccm
 	if ccmresult.Err != nil {
 		return ccmresult.Err
 	}
 
+	cresult := <-sc
+	if cresult.Err != nil {
+		return cresult.Err
+	}
+
+	channel := cresult.Data.(*model.Channel)
 	user := uresult.Data.(*model.User)
 	membersCount := ccmresult.Data.(int64)
 

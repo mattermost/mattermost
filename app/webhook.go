@@ -324,7 +324,6 @@ func (a *App) CreateIncomingWebhookForChannel(creatorId string, channel *model.C
 	}
 
 	return a.Srv.Store.Webhook().SaveIncoming(hook)
-
 }
 func (a *App) UpdateIncomingWebhook(oldHook, updatedHook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableIncomingWebhooks {
@@ -392,7 +391,6 @@ func (a *App) GetIncomingWebhooksForTeamPage(teamId string, page, perPage int) (
 }
 
 func (a *App) GetIncomingWebhooksPage(page, perPage int) ([]*model.IncomingWebhook, *model.AppError) {
-
 	if !*a.Config().ServiceSettings.EnableIncomingWebhooks {
 		return nil, model.NewAppError("GetIncomingWebhooksPage", "api.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
