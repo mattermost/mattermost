@@ -109,16 +109,13 @@ func (s SqlWebhookStore) SaveIncoming(webhook *model.IncomingWebhook) store.Stor
 	})
 }
 
-func (s SqlWebhookStore) UpdateIncoming(hook *model.IncomingWebhook) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		hook.UpdateAt = model.GetMillis()
+func (s SqlWebhookStore) UpdateIncoming(hook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError) {
+	hook.UpdateAt = model.GetMillis()
 
-		if _, err := s.GetMaster().Update(hook); err != nil {
-			result.Err = model.NewAppError("SqlWebhookStore.UpdateIncoming", "store.sql_webhooks.update_incoming.app_error", nil, "id="+hook.Id+", "+err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = hook
-		}
-	})
+	if _, err := s.GetMaster().Update(hook); err != nil {
+		return nil, model.NewAppError("SqlWebhookStore.UpdateIncoming", "store.sql_webhooks.update_incoming.app_error", nil, "id="+hook.Id+", "+err.Error(), http.StatusInternalServerError)
+	}
+	return hook, nil
 }
 
 func (s SqlWebhookStore) GetIncoming(id string, allowFromCache bool) (*model.IncomingWebhook, *model.AppError) {

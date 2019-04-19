@@ -56,17 +56,17 @@ func testWebhookStoreUpdateIncoming(t *testing.T, ss store.Store) {
 	o1.DisplayName = "TestHook"
 	time.Sleep(10 * time.Millisecond)
 
-	if result := (<-ss.Webhook().UpdateIncoming(o1)); result.Err != nil {
-		t.Fatal("updation of incoming hook failed", result.Err)
-	} else {
-		if result.Data.(*model.IncomingWebhook).UpdateAt == previousUpdatedAt {
-			t.Fatal("should have updated the UpdatedAt of the hook")
-		}
+	webhook, err := ss.Webhook().UpdateIncoming(o1)
+	require.Nil(t, err)
 
-		if result.Data.(*model.IncomingWebhook).DisplayName != "TestHook" {
-			t.Fatal("display name is not updated")
-		}
+	if webhook.UpdateAt == previousUpdatedAt {
+		t.Fatal("should have updated the UpdatedAt of the hook")
 	}
+
+	if webhook.DisplayName != "TestHook" {
+		t.Fatal("display name is not updated")
+	}
+
 }
 
 func testWebhookStoreGetIncoming(t *testing.T, ss store.Store) {

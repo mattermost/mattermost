@@ -30,9 +30,9 @@ func TestSendNotifications(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	mentions, err := th.App.SendNotifications(post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil)
-	if err != nil {
-		t.Fatal(err)
+	mentions, err2 := th.App.SendNotifications(post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil)
+	if err2 != nil {
+		t.Fatal(err2)
 	} else if mentions == nil {
 		t.Log(mentions)
 		t.Fatal("user should have been mentioned")
@@ -56,9 +56,9 @@ func TestSendNotifications(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = th.App.SendNotifications(post2, th.BasicTeam, dm, th.BasicUser, nil)
-	if err != nil {
-		t.Fatal(err)
+	_, err2 = th.App.SendNotifications(post2, th.BasicTeam, dm, th.BasicUser, nil)
+	if err2 != nil {
+		t.Fatal(err2)
 	}
 
 	th.App.UpdateActive(th.BasicUser2, false)
@@ -74,14 +74,14 @@ func TestSendNotifications(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = th.App.SendNotifications(post3, th.BasicTeam, dm, th.BasicUser, nil)
-	if err != nil {
-		t.Fatal(err)
+	_, err2 = th.App.SendNotifications(post3, th.BasicTeam, dm, th.BasicUser, nil)
+	if err2 != nil {
+		t.Fatal(err2)
 	}
 
 	th.BasicChannel.DeleteAt = 1
-	mentions, err = th.App.SendNotifications(post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil)
-	assert.Nil(t, err)
+	mentions, err2 = th.App.SendNotifications(post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil)
+	assert.Nil(t, err2)
 	assert.Len(t, mentions, 0)
 }
 

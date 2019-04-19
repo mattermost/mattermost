@@ -353,12 +353,12 @@ func (a *App) UpdateIncomingWebhook(oldHook, updatedHook *model.IncomingWebhook)
 	updatedHook.TeamId = oldHook.TeamId
 	updatedHook.DeleteAt = oldHook.DeleteAt
 
-	if result := <-a.Srv.Store.Webhook().UpdateIncoming(updatedHook); result.Err != nil {
-		return nil, result.Err
-	} else {
-		a.InvalidateCacheForWebhook(oldHook.Id)
-		return result.Data.(*model.IncomingWebhook), nil
+	newWebhook, err := a.Srv.Store.Webhook().UpdateIncoming(updatedHook)
+	if err != nil {
+		return nil, err
 	}
+	a.InvalidateCacheForWebhook(oldHook.Id)
+	return newWebhook, nil
 }
 
 func (a *App) DeleteIncomingWebhook(hookId string) *model.AppError {
