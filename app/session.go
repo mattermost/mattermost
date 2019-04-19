@@ -9,7 +9,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
 )
 
 func (a *App) CreateSession(session *model.Session) (*model.Session, *model.AppError) {
@@ -251,22 +250,15 @@ func (a *App) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAc
 
 	token.Token = model.NewId()
 
-	uchan := make(chan store.StoreResult, 1)
-	go func() {
-		uchan <- store.StoreResult{Data: user, Err: err}
-		close(uchan)
-	}()
-
 	result := <-a.Srv.Store.UserAccessToken().Save(token)
 	if result.Err != nil {
 		return nil, result.Err
 	}
 	token = result.Data.(*model.UserAccessToken)
 
-	if result := <-uchan; result.Err != nil {
-		mlog.Error(result.Err.Error())
+	if err != nil {
+		mlog.Error(err.Error())
 	} else {
-		user := result.Data.(*model.User)
 		if err := a.SendUserAccessTokenAddedEmail(user.Email, user.Locale, a.GetSiteURL()); err != nil {
 			mlog.Error(err.Error())
 		}
