@@ -1104,16 +1104,16 @@ func (a *App) PostUpdateChannelDisplayNameMessage(userId string, channel *model.
 }
 
 func (a *App) GetChannel(channelId string) (*model.Channel, *model.AppError) {
-	result := <-a.Srv.Store.Channel().Get(channelId, true)
-	if result.Err != nil {
-		if result.Err.Id == "store.sql_channel.get.existing.app_error" {
-			result.Err.StatusCode = http.StatusNotFound
-			return nil, result.Err
+	channel, errCh := a.Srv.Store.Channel().Get(channelId, true)
+	if errCh != nil {
+		if errCh.Id == "store.sql_channel.get.existing.app_error" {
+			errCh.StatusCode = http.StatusNotFound
+			return nil, errCh
 		}
-		result.Err.StatusCode = http.StatusBadRequest
-		return nil, result.Err
+		errCh.StatusCode = http.StatusBadRequest
+		return nil, errCh
 	}
-	return result.Data.(*model.Channel), nil
+	return channel, nil
 }
 
 func (a *App) GetChannelByName(channelName, teamId string, includeDeleted bool) (*model.Channel, *model.AppError) {
@@ -1419,7 +1419,10 @@ func (a *App) postJoinTeamMessage(user *model.User, channel *model.Channel) *mod
 }
 
 func (a *App) LeaveChannel(channelId string, userId string) *model.AppError {
-	sc := a.Srv.Store.Channel().Get(channelId, true)
+	channel, errCh := a.Srv.Store.Channel().Get(channelId, true)
+	if errCh != nil {
+		return errCh
+	}
 	uc := make(chan store.StoreResult, 1)
 	go func() {
 		user, err := a.Srv.Store.User().Get(userId)
@@ -1428,20 +1431,15 @@ func (a *App) LeaveChannel(channelId string, userId string) *model.AppError {
 	}()
 	ccm := a.Srv.Store.Channel().GetMemberCount(channelId, false)
 
-	cresult := <-sc
-	if cresult.Err != nil {
-		return cresult.Err
-	}
 	uresult := <-uc
 	if uresult.Err != nil {
-		return cresult.Err
+		return errCh
 	}
 	ccmresult := <-ccm
 	if ccmresult.Err != nil {
 		return ccmresult.Err
 	}
 
-	channel := cresult.Data.(*model.Channel)
 	user := uresult.Data.(*model.User)
 	membersCount := ccmresult.Data.(int64)
 
@@ -1758,12 +1756,11 @@ func (a *App) MarkChannelsAsViewed(channelIds []string, userId string, currentSe
 	channelsToClearPushNotifications := []string{}
 	if *a.Config().EmailSettings.SendPushNotifications {
 		for _, channelId := range channelIds {
-			chanResult := <-a.Srv.Store.Channel().Get(channelId, true)
-			if chanResult.Err != nil {
-				mlog.Warn(fmt.Sprintf("Failed to get channel %v", chanResult.Err))
+			channel, errCh := a.Srv.Store.Channel().Get(channelId, true)
+			if errCh != nil {
+				mlog.Warn(fmt.Sprintf("Failed to get channel %v", errCh))
 				continue
 			}
-			channel := chanResult.Data.(*model.Channel)
 
 			member, err := a.Srv.Store.Channel().GetMember(channelId, userId)
 			if err != nil {

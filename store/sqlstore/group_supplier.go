@@ -406,9 +406,9 @@ func (s *SqlSupplier) GroupCreateGroupSyncable(ctx context.Context, groupSyncabl
 
 		err = s.GetMaster().Insert(groupSyncableToGroupTeam(groupSyncable))
 	case model.GroupSyncableTypeChannel:
-		channelResult := <-s.Channel().Get(groupSyncable.SyncableId, false)
-		if channelResult.Err != nil {
-			result.Err = channelResult.Err
+		_, errCh := s.Channel().Get(groupSyncable.SyncableId, false)
+		if errCh != nil {
+			result.Err = errCh
 			return result
 		}
 
