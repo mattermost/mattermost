@@ -151,9 +151,7 @@ func testWebhookStoreGetIncomingByTeam(t *testing.T, ss store.Store) {
 
 	o1 := buildIncomingWebhook()
 	o1, err = ss.Webhook().SaveIncoming(o1)
-	if err != nil {
-		t.Fatal("unable to save webhook", err)
-	}
+	require.Nil(t, err)
 
 	if r1 := <-ss.Webhook().GetIncomingByTeam(o1.TeamId, 0, 100); r1.Err != nil {
 		t.Fatal(r1.Err)
