@@ -163,13 +163,12 @@ func (a *App) getPushNotificationMessage(postMessage string, explicitMention, ch
 	}
 
 	contentsConfig := *a.Config().EmailSettings.PushNotificationContents
-	teammateNameDisplay := *a.Config().TeamSettings.TeammateNameDisplay
 
 	if contentsConfig == model.FULL_NOTIFICATION {
 		if channelType == model.CHANNEL_DIRECT {
 			return model.ClearMentionTags(postMessage)
 		}
-		return teammateNameDisplay + senderName + ": " + model.ClearMentionTags(postMessage)
+		return senderName + ": " + model.ClearMentionTags(postMessage)
 	}
 
 	if channelType == model.CHANNEL_DIRECT {
@@ -177,22 +176,22 @@ func (a *App) getPushNotificationMessage(postMessage string, explicitMention, ch
 	}
 
 	if channelWideMention {
-		return teammateNameDisplay + senderName + userLocale("api.post.send_notification_and_forget.push_channel_mention")
+		return senderName + userLocale("api.post.send_notification_and_forget.push_channel_mention")
 	}
 
 	if explicitMention {
-		return teammateNameDisplay + senderName + userLocale("api.post.send_notifications_and_forget.push_explicit_mention")
+		return senderName + userLocale("api.post.send_notifications_and_forget.push_explicit_mention")
 	}
 
 	if replyToThreadType == THREAD_ROOT {
-		return teammateNameDisplay + senderName + userLocale("api.post.send_notification_and_forget.push_comment_on_post")
+		return senderName + userLocale("api.post.send_notification_and_forget.push_comment_on_post")
 	}
 
 	if replyToThreadType == THREAD_ANY {
-		return teammateNameDisplay + senderName + userLocale("api.post.send_notification_and_forget.push_comment_on_thread")
+		return senderName + userLocale("api.post.send_notification_and_forget.push_comment_on_thread")
 	}
 
-	return teammateNameDisplay + senderName + userLocale("api.post.send_notifications_and_forget.push_general_message")
+	return senderName + userLocale("api.post.send_notifications_and_forget.push_general_message")
 }
 
 func (a *App) ClearPushNotificationSync(currentSessionId, userId, channelId string) {
