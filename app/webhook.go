@@ -325,6 +325,7 @@ func (a *App) CreateIncomingWebhookForChannel(creatorId string, channel *model.C
 
 	return a.Srv.Store.Webhook().SaveIncoming(hook)
 }
+
 func (a *App) UpdateIncomingWebhook(oldHook, updatedHook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableIncomingWebhooks {
 		return nil, model.NewAppError("UpdateIncomingWebhook", "api.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
