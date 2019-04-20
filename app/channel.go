@@ -1421,7 +1421,7 @@ func (a *App) postJoinTeamMessage(user *model.User, channel *model.Channel) *mod
 func (a *App) LeaveChannel(channelId string, userId string) *model.AppError {
 	sc := make(chan store.StoreResult, 1)
 	go func() {
-		channel, err := a.Srv.Store.Channel().Get(userId, true)
+		channel, err := a.Srv.Store.Channel().Get(channelId, true)
 		sc <- store.StoreResult{Data: channel, Err: err}
 		close(sc)
 	}()
