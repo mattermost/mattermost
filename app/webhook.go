@@ -399,10 +399,7 @@ func (a *App) GetIncomingWebhooksPage(page, perPage int) ([]*model.IncomingWebho
 		return nil, model.NewAppError("GetIncomingWebhooksPage", "api.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if webhooks, err := a.Srv.Store.Webhook().GetIncomingList(page*perPage, perPage); err != nil {
-		return nil, err
-	}
-	return webhooks, nil
+	return a.Srv.Store.Webhook().GetIncomingList(page*perPage, perPage)
 }
 
 func (a *App) CreateOutgoingWebhook(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError) {
