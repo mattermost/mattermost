@@ -39,25 +39,18 @@ func TestWebhookStore(t *testing.T, ss store.Store) {
 func testWebhookStoreSaveIncoming(t *testing.T, ss store.Store) {
 	o1 := buildIncomingWebhook()
 
-	if _, err := ss.Webhook().SaveIncoming(o1); err != nil {
+	if err := (<-ss.Webhook().SaveIncoming(o1)).Err; err != nil {
 		t.Fatal("couldn't save item", err)
 	}
 
-	if _, err := ss.Webhook().SaveIncoming(o1); err == nil {
+	if err := (<-ss.Webhook().SaveIncoming(o1)).Err; err == nil {
 		t.Fatal("shouldn't be able to update from save")
 	}
 }
 
 func testWebhookStoreUpdateIncoming(t *testing.T, ss store.Store) {
-
-	var err *model.AppError
-
 	o1 := buildIncomingWebhook()
-	o1, err = ss.Webhook().SaveIncoming(o1)
-	if err != nil {
-		t.Fatal("unable to save webhook", err)
-	}
-
+	o1 = (<-ss.Webhook().SaveIncoming(o1)).Data.(*model.IncomingWebhook)
 	previousUpdatedAt := o1.UpdateAt
 
 	o1.DisplayName = "TestHook"
@@ -77,13 +70,8 @@ func testWebhookStoreUpdateIncoming(t *testing.T, ss store.Store) {
 }
 
 func testWebhookStoreGetIncoming(t *testing.T, ss store.Store) {
-	var err *model.AppError
-
 	o1 := buildIncomingWebhook()
-	o1, err = ss.Webhook().SaveIncoming(o1)
-	if err != nil {
-		t.Fatal("unable to save webhook", err)
-	}
+	o1 = (<-ss.Webhook().SaveIncoming(o1)).Data.(*model.IncomingWebhook)
 
 	webhook, err := ss.Webhook().GetIncoming(o1.Id, false)
 	require.Nil(t, err)
@@ -116,11 +104,7 @@ func testWebhookStoreGetIncomingList(t *testing.T, ss store.Store) {
 	o1.UserId = model.NewId()
 	o1.TeamId = model.NewId()
 
-	var err *model.AppError
-	o1, err = ss.Webhook().SaveIncoming(o1)
-	if err != nil {
-		t.Fatal("unable to save webhook", err)
-	}
+	o1 = (<-ss.Webhook().SaveIncoming(o1)).Data.(*model.IncomingWebhook)
 
 	if hooks, err := ss.Webhook().GetIncomingList(0, 1000); err != nil {
 		t.Fatal(err)
@@ -146,13 +130,9 @@ func testWebhookStoreGetIncomingList(t *testing.T, ss store.Store) {
 }
 
 func testWebhookStoreGetIncomingByTeam(t *testing.T, ss store.Store) {
-	var err *model.AppError
-
 	o1 := buildIncomingWebhook()
-	o1, err = ss.Webhook().SaveIncoming(o1)
-	if err != nil {
-		t.Fatal("unable to save webhook", err)
-	}
+
+	o1 = (<-ss.Webhook().SaveIncoming(o1)).Data.(*model.IncomingWebhook)
 
 	if r1 := <-ss.Webhook().GetIncomingByTeam(o1.TeamId, 0, 100); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -172,13 +152,9 @@ func testWebhookStoreGetIncomingByTeam(t *testing.T, ss store.Store) {
 }
 
 func testWebhookStoreDeleteIncoming(t *testing.T, ss store.Store) {
-	var err *model.AppError
-
 	o1 := buildIncomingWebhook()
-	o1, err = ss.Webhook().SaveIncoming(o1)
-	if err != nil {
-		t.Fatal("unable to save webhook", err)
-	}
+
+	o1 = (<-ss.Webhook().SaveIncoming(o1)).Data.(*model.IncomingWebhook)
 
 	webhook, err := ss.Webhook().GetIncoming(o1.Id, true)
 	require.Nil(t, err)
@@ -195,13 +171,9 @@ func testWebhookStoreDeleteIncoming(t *testing.T, ss store.Store) {
 }
 
 func testWebhookStoreDeleteIncomingByChannel(t *testing.T, ss store.Store) {
-	var err *model.AppError
-
 	o1 := buildIncomingWebhook()
-	o1, err = ss.Webhook().SaveIncoming(o1)
-	if err != nil {
-		t.Fatal("unable to save webhook", err)
-	}
+
+	o1 = (<-ss.Webhook().SaveIncoming(o1)).Data.(*model.IncomingWebhook)
 
 	webhook, err := ss.Webhook().GetIncoming(o1.Id, true)
 	require.Nil(t, err)
@@ -219,13 +191,9 @@ func testWebhookStoreDeleteIncomingByChannel(t *testing.T, ss store.Store) {
 }
 
 func testWebhookStoreDeleteIncomingByUser(t *testing.T, ss store.Store) {
-	var err *model.AppError
-
 	o1 := buildIncomingWebhook()
-	o1, err = ss.Webhook().SaveIncoming(o1)
-	if err != nil {
-		t.Fatal("unable to save webhook", err)
-	}
+
+	o1 = (<-ss.Webhook().SaveIncoming(o1)).Data.(*model.IncomingWebhook)
 
 	webhook, err := ss.Webhook().GetIncoming(o1.Id, true)
 	require.Nil(t, err)
@@ -502,7 +470,7 @@ func testWebhookStoreCountIncoming(t *testing.T, ss store.Store) {
 	o1.UserId = model.NewId()
 	o1.TeamId = model.NewId()
 
-	_, _ = ss.Webhook().SaveIncoming(o1)
+	_ = (<-ss.Webhook().SaveIncoming(o1)).Data.(*model.IncomingWebhook)
 
 	if r := <-ss.Webhook().AnalyticsIncomingCount(""); r.Err != nil {
 		t.Fatal(r.Err)

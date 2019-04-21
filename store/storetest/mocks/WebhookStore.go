@@ -298,28 +298,19 @@ func (_m *WebhookStore) PermanentDeleteOutgoingByUser(userId string) store.Store
 }
 
 // SaveIncoming provides a mock function with given fields: webhook
-func (_m *WebhookStore) SaveIncoming(webhook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError) {
+func (_m *WebhookStore) SaveIncoming(webhook *model.IncomingWebhook) store.StoreChannel {
 	ret := _m.Called(webhook)
 
-	var r0 *model.IncomingWebhook
-	if rf, ok := ret.Get(0).(func(*model.IncomingWebhook) *model.IncomingWebhook); ok {
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(*model.IncomingWebhook) store.StoreChannel); ok {
 		r0 = rf(webhook)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.IncomingWebhook)
+			r0 = ret.Get(0).(store.StoreChannel)
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.IncomingWebhook) *model.AppError); ok {
-		r1 = rf(webhook)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
-	}
-
-	return r0, r1
+	return r0
 }
 
 // SaveOutgoing provides a mock function with given fields: webhook
