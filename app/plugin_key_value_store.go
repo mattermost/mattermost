@@ -54,9 +54,9 @@ func (a *App) CompareAndSetPluginKey(pluginId string, key string, oldValue, newV
 		Value:    newValue,
 	}
 
-	updated, err := a.Srv.Store.Plugin().CompareAndUpdate(kv, oldValue)
+	updated, err := a.Srv.Store.Plugin().CompareAndSet(kv, oldValue)
 	if err != nil {
-		mlog.Error("Failed to update plugin key value", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(err))
+		mlog.Error("Failed to compare and set plugin key value", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(err))
 		return updated, err
 	}
 

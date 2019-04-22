@@ -13,8 +13,8 @@ type PluginStore struct {
 	mock.Mock
 }
 
-// CompareAndUpdate provides a mock function with given fields: keyVal, oldValue
-func (_m *PluginStore) CompareAndUpdate(keyVal *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError) {
+// CompareAndSet provides a mock function with given fields: keyVal, oldValue
+func (_m *PluginStore) CompareAndSet(keyVal *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError) {
 	ret := _m.Called(keyVal, oldValue)
 
 	var r0 bool

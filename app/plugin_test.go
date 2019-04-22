@@ -125,7 +125,7 @@ func TestPluginKeyValueStore(t *testing.T) {
 	assert.Equal(t, []string{"key", "key3", "key4", hashedKey2}, list)
 }
 
-func TestPluginKeyValueStoreCompareAndUpdate(t *testing.T) {
+func TestPluginKeyValueStoreCompareAndSet(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -135,23 +135,48 @@ func TestPluginKeyValueStoreCompareAndUpdate(t *testing.T) {
 		assert.Nil(t, th.App.DeletePluginKey(pluginId, "key"))
 	}()
 
-	assert.Nil(t, th.App.SetPluginKey(pluginId, "key", []byte("test")))
-	ret, err := th.App.GetPluginKey(pluginId, "key")
+	// Set using Set api for key2
+	assert.Nil(t, th.App.SetPluginKey(pluginId, "key2", []byte("test")))
+	ret, err := th.App.GetPluginKey(pluginId, "key2")
 	assert.Nil(t, err)
 	assert.Equal(t, []byte("test"), ret)
 
-	// Test updating using correct old value
-	updated, err := th.App.CompareAndSetPluginKey(pluginId, "key", []byte("test"), []byte("test2"))
+	// Attempt to insert value for key2
+	updated, err := th.App.CompareAndSetPluginKey(pluginId, "key2", nil, []byte("test2"))
+	assert.Nil(t, err)
+	assert.False(t, updated)
+	ret, err = th.App.GetPluginKey(pluginId, "key2")
+	assert.Nil(t, err)
+	assert.Equal(t, []byte("test"), ret)
+
+	// Insert new value for key
+	updated, err = th.App.CompareAndSetPluginKey(pluginId, "key", nil, []byte("test"))
 	assert.Nil(t, err)
 	assert.True(t, updated)
 	ret, err = th.App.GetPluginKey(pluginId, "key")
 	assert.Nil(t, err)
-	assert.Equal(t, []byte("test2"), ret)
+	assert.Equal(t, []byte("test"), ret)
+
+	// Should fail to insert again
+	updated, err = th.App.CompareAndSetPluginKey(pluginId, "key", nil, []byte("test3"))
+	assert.Nil(t, err)
+	assert.False(t, updated)
+	ret, err = th.App.GetPluginKey(pluginId, "key")
+	assert.Nil(t, err)
+	assert.Equal(t, []byte("test"), ret)
 
 	// Test updating using incorrect old value
 	updated, err = th.App.CompareAndSetPluginKey(pluginId, "key", []byte("oldvalue"), []byte("test3"))
 	assert.Nil(t, err)
 	assert.False(t, updated)
+	ret, err = th.App.GetPluginKey(pluginId, "key")
+	assert.Nil(t, err)
+	assert.Equal(t, []byte("test"), ret)
+
+	// Test updating using correct old value
+	updated, err = th.App.CompareAndSetPluginKey(pluginId, "key", []byte("test"), []byte("test2"))
+	assert.Nil(t, err)
+	assert.True(t, updated)
 	ret, err = th.App.GetPluginKey(pluginId, "key")
 	assert.Nil(t, err)
 	assert.Equal(t, []byte("test2"), ret)

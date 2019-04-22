@@ -687,18 +687,38 @@ func TestPluginAPIKVCompareAndSet(t *testing.T) {
 			expectedValue2 := []byte("value2")
 			expectedValue3 := []byte("value3")
 
+			// Attempt update using an incorrect old value
+			updated, err := api.KVCompareAndSet(expectedKey, expectedValue2, expectedValue1)
+			require.Nil(t, err)
+			require.False(t, updated)
+
 			// Make sure no key is already created
 			value, err := api.KVGet(expectedKey)
 			require.Nil(t, err)
 			require.Nil(t, value)
 
-			require.Nil(t, api.KVSet(expectedKey, expectedValue1))
+			// Insert using nil old value
+			updated, err = api.KVCompareAndSet(expectedKey, nil, expectedValue1)
+			require.Nil(t, err)
+			require.True(t, updated)
+
+			// Get inserted value
+			value, err = api.KVGet(expectedKey)
+			require.Nil(t, err)
+			require.Equal(t, expectedValue1, value)
+
+			// Attempt to insert again using nil old value
+			updated, err = api.KVCompareAndSet(expectedKey, nil, expectedValue2)
+			require.Nil(t, err)
+			require.False(t, updated)
+
+			// Get old value to assert nothing has changed
 			value, err = api.KVGet(expectedKey)
 			require.Nil(t, err)
 			require.Equal(t, expectedValue1, value)
 
 			// Update using correct old value
-			updated, err := api.KVCompareAndSet(expectedKey, expectedValue1, expectedValue2)
+			updated, err = api.KVCompareAndSet(expectedKey, expectedValue1, expectedValue2)
 			require.Nil(t, err)
 			require.True(t, updated)
 
