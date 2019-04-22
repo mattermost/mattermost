@@ -134,18 +134,18 @@ func testWebhookStoreGetIncomingByTeam(t *testing.T, ss store.Store) {
 
 	o1 = (<-ss.Webhook().SaveIncoming(o1)).Data.(*model.IncomingWebhook)
 
-	if r1 := <-ss.Webhook().GetIncomingByTeam(o1.TeamId, 0, 100); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if hooks, err := ss.Webhook().GetIncomingByTeam(o1.TeamId, 0, 100); err != nil {
+		t.Fatal(err)
 	} else {
-		if r1.Data.([]*model.IncomingWebhook)[0].CreateAt != o1.CreateAt {
+		if hooks[0].CreateAt != o1.CreateAt {
 			t.Fatal("invalid returned webhook")
 		}
 	}
 
-	if result := <-ss.Webhook().GetIncomingByTeam("123", 0, 100); result.Err != nil {
-		t.Fatal(result.Err)
+	if hooks, err := ss.Webhook().GetIncomingByTeam("123", 0, 100); err != nil {
+		t.Fatal(err)
 	} else {
-		if len(result.Data.([]*model.IncomingWebhook)) != 0 {
+		if len(hooks) != 0 {
 			t.Fatal("no webhooks should have returned")
 		}
 	}
