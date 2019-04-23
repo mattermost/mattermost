@@ -85,7 +85,7 @@ func (ps SqlPluginStore) CompareAndSet(kv *model.PluginKeyValue, oldValue []byte
 			if IsUniqueConstraintError(err, []string{"PRIMARY", "PluginId", "Key", "PKey"}) {
 				return false, nil
 			} else {
-				return false, model.NewAppError("SqlPluginStore.CompareAndUpdate", "store.sql_plugin_store.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+				return false, model.NewAppError("SqlPluginStore.CompareAndSet", "store.sql_plugin_store.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 			}
 		}
 	} else {
@@ -100,12 +100,12 @@ func (ps SqlPluginStore) CompareAndSet(kv *model.PluginKeyValue, oldValue []byte
 			},
 		)
 		if err != nil {
-			return false, model.NewAppError("SqlPluginStore.CompareAndUpdate", "store.sql_plugin_store.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return false, model.NewAppError("SqlPluginStore.CompareAndSet", "store.sql_plugin_store.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
 		if rowsAffected, err := updateResult.RowsAffected(); err != nil {
 			// Failed to update
-			return false, model.NewAppError("SqlPluginStore.CompareAndUpdate", "store.sql_plugin_store.save.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return false, model.NewAppError("SqlPluginStore.CompareAndSet", "store.sql_plugin_store.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else if rowsAffected == 0 {
 			// No rows were affected by the update, where condition was not satisfied,
 			// return false, but no error.
