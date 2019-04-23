@@ -172,7 +172,10 @@ func testWebhookStoreGetIncomingByTeam(t *testing.T, ss store.Store) {
 func testWebhookStoreGetIncomingByChannel(t *testing.T, ss store.Store) {
 	o1 := buildIncomingWebhook()
 
-	o1 = (<-ss.Webhook().SaveIncoming(o1)).Data.(*model.IncomingWebhook)
+	o1, err := ss.Webhook().SaveIncoming(o1)
+	if err != nil {
+		t.Fatal("unable to save webhook")
+	}
 
 	webhooks, err := ss.Webhook().GetIncomingByChannel(o1.ChannelId)
 	require.Nil(t, err)
