@@ -124,8 +124,6 @@ github.com/mailru/easyjson/jwriter
 github.com/mailru/easyjson/buffer
 # github.com/mattermost/gorp v2.0.1-0.20190301154413-3b31e9a39d05+incompatible
 github.com/mattermost/gorp
-# github.com/mattermost/imageproxy v0.8.1-0.20190417225038-3525694ae0f1
-github.com/mattermost/imageproxy
 # github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0
 github.com/mattermost/rsc/qr
 github.com/mattermost/rsc/qr/coding
@@ -361,5 +359,6 @@ gopkg.in/olivere/elastic.v5/uritemplates
 gopkg.in/yaml.v2
 # willnorris.com/go/gifresize v1.0.0
 willnorris.com/go/gifresize
-# willnorris.com/go/imageproxy v0.8.0
+# willnorris.com/go/imageproxy v0.8.1-0.20190326225038-cf54b2cf2c9e
+willnorris.com/go/imageproxy
 willnorris.com/go/imageproxy/third_party/http

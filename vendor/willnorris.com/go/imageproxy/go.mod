@@ -1,4 +1,4 @@
-module github.com/mattermost/imageproxy
+module willnorris.com/go/imageproxy
 
 require (
 	cloud.google.com/go v0.37.1
