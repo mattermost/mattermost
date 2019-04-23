@@ -12,7 +12,7 @@ import (
 	"github.com/mattermost/mattermost-server/services/configservice"
 	"github.com/mattermost/mattermost-server/web"
 
-	_ "github.com/nicksnyder/go-i18n/i18n"
+	_ "github.com/mattermost/go-i18n/i18n"
 )
 
 type Routes struct {
