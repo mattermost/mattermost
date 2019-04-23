@@ -25,13 +25,13 @@ func TestEnsureBot(t *testing.T) {
 
 	t.Run("bad parameters", func(t *testing.T) {
 		t.Run("no bot", func(t *testing.T) {
-			p := &plugin.MattermostPlugin{}
+			p := &plugin.HelpersImpl{}
 			botId, err := p.EnsureBot(nil)
 			assert.Equal(t, "", botId)
 			assert.NotNil(t, err)
 		})
 		t.Run("bad username", func(t *testing.T) {
-			p := &plugin.MattermostPlugin{}
+			p := &plugin.HelpersImpl{}
 			botId, err := p.EnsureBot(&model.Bot{
 				Username: "",
 			})
@@ -48,7 +48,7 @@ func TestEnsureBot(t *testing.T) {
 			api.On("KVGet", plugin.BOT_USER_KEY).Return([]byte(expectedBotId), nil)
 			defer api.AssertExpectations(t)
 
-			p := &plugin.MattermostPlugin{}
+			p := &plugin.HelpersImpl{}
 			p.API = api
 
 			botId, err := p.EnsureBot(testbot)
@@ -62,7 +62,7 @@ func TestEnsureBot(t *testing.T) {
 			api.On("KVGet", plugin.BOT_USER_KEY).Return(nil, &model.AppError{})
 			defer api.AssertExpectations(t)
 
-			p := &plugin.MattermostPlugin{}
+			p := &plugin.HelpersImpl{}
 			p.API = api
 
 			botId, err := p.EnsureBot(testbot)
@@ -85,7 +85,7 @@ func TestEnsureBot(t *testing.T) {
 			api.On("KVSet", plugin.BOT_USER_KEY, []byte(expectedBotId)).Return(nil)
 			defer api.AssertExpectations(t)
 
-			p := &plugin.MattermostPlugin{}
+			p := &plugin.HelpersImpl{}
 			p.API = api
 
 			botId, err := p.EnsureBot(testbot)
@@ -106,7 +106,7 @@ func TestEnsureBot(t *testing.T) {
 			api.On("KVSet", plugin.BOT_USER_KEY, []byte(expectedBotId)).Return(nil)
 			defer api.AssertExpectations(t)
 
-			p := &plugin.MattermostPlugin{}
+			p := &plugin.HelpersImpl{}
 			p.API = api
 
 			botId, err := p.EnsureBot(testbot)
@@ -124,7 +124,7 @@ func TestEnsureBot(t *testing.T) {
 			}, nil)
 			defer api.AssertExpectations(t)
 
-			p := &plugin.MattermostPlugin{}
+			p := &plugin.HelpersImpl{}
 			p.API = api
 
 			botId, err := p.EnsureBot(testbot)
@@ -142,7 +142,7 @@ func TestEnsureBot(t *testing.T) {
 			api.On("CreateBot", testbot).Return(nil, &model.AppError{})
 			defer api.AssertExpectations(t)
 
-			p := &plugin.MattermostPlugin{}
+			p := &plugin.HelpersImpl{}
 			p.API = api
 
 			botId, err := p.EnsureBot(testbot)

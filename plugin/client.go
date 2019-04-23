@@ -17,11 +17,11 @@ const (
 // Call this when your plugin is ready to start.
 func ClientMain(pluginImplementation interface{}) {
 	if impl, ok := pluginImplementation.(interface {
-		SetAPI(api API)
+		SetAPI(api API, helpers Helpers)
 	}); !ok {
 		panic("Plugin implementation given must embed plugin.MattermostPlugin")
 	} else {
-		impl.SetAPI(nil)
+		impl.SetAPI(nil, nil)
 	}
 
 	pluginMap := map[string]plugin.Plugin{
@@ -36,11 +36,13 @@ func ClientMain(pluginImplementation interface{}) {
 
 type MattermostPlugin struct {
 	// API exposes the plugin api, and becomes available just prior to the OnActive hook.
-	API API
+	API     API
+	Helpers Helpers
 }
 
 // SetAPI persists the given API interface to the plugin. It is invoked just prior to the
 // OnActivate hook, exposing the API for use by the plugin.
-func (p *MattermostPlugin) SetAPI(api API) {
+func (p *MattermostPlugin) SetAPI(api API, helpers Helpers) {
 	p.API = api
+	p.Helpers = helpers
 }

@@ -42,8 +42,11 @@ func Example() {
 	api.On("GetUser", user.Id).Return(user, nil)
 	defer api.AssertExpectations(t)
 
+	helpers := &plugintest.Helpers{}
+	defer api.AssertExpectations(t)
+
 	p := &HelloUserPlugin{}
-	p.SetAPI(api)
+	p.SetAPI(api, helpers)
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("GET", "/", nil)

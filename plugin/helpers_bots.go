@@ -10,10 +10,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// EnsureBot ether returns an existing bot user or creates a bot user with
-// the specifications of the passed bot.
-// Returns the id of the bot created or existing.
-func (p *MattermostPlugin) EnsureBot(bot *model.Bot) (retBotId string, retErr error) {
+func (p *HelpersImpl) EnsureBot(bot *model.Bot) (retBotId string, retErr error) {
 	// Must provide a bot with a username
 	if bot == nil || len(bot.Username) < 1 {
 		return "", errors.New("EnsureBot was passed a bad bot")
