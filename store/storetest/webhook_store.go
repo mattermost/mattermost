@@ -428,8 +428,8 @@ func testWebhookStoreDeleteOutgoingByChannel(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if r2 := <-ss.Webhook().PermanentDeleteOutgoingByChannel(o1.ChannelId); r2.Err != nil {
-		t.Fatal(r2.Err)
+	if err := ss.Webhook().PermanentDeleteOutgoingByChannel(o1.ChannelId); err != nil {
+		t.Fatal(err)
 	}
 
 	if r3 := (<-ss.Webhook().GetOutgoing(o1.Id)); r3.Err == nil {

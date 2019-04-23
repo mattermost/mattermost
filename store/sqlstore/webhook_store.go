@@ -305,15 +305,15 @@ func (s SqlWebhookStore) PermanentDeleteOutgoingByUser(userId string) store.Stor
 	})
 }
 
-func (s SqlWebhookStore) PermanentDeleteOutgoingByChannel(channelId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		_, err := s.GetMaster().Exec("DELETE FROM OutgoingWebhooks WHERE ChannelId = :ChannelId", map[string]interface{}{"ChannelId": channelId})
-		if err != nil {
-			result.Err = model.NewAppError("SqlWebhookStore.DeleteOutgoingByChannel", "store.sql_webhooks.permanent_delete_outgoing_by_channel.app_error", nil, "id="+channelId+", err="+err.Error(), http.StatusInternalServerError)
-		}
+func (s SqlWebhookStore) PermanentDeleteOutgoingByChannel(channelId string) *model.AppError {
+	_, err := s.GetMaster().Exec("DELETE FROM OutgoingWebhooks WHERE ChannelId = :ChannelId", map[string]interface{}{"ChannelId": channelId})
+	if err != nil {
+		return model.NewAppError("SqlWebhookStore.DeleteOutgoingByChannel", "store.sql_webhooks.permanent_delete_outgoing_by_channel.app_error", nil, "id="+channelId+", err="+err.Error(), http.StatusInternalServerError)
+	}
 
-		s.ClearCaches()
-	})
+	s.ClearCaches()
+
+	return nil
 }
 
 func (s SqlWebhookStore) UpdateOutgoing(hook *model.OutgoingWebhook) store.StoreChannel {
