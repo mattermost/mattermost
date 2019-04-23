@@ -2211,6 +2211,17 @@ func (c *Client4) AddChannelMemberWithRootId(channelId, userId, postRootId strin
 	return ChannelMemberFromJson(r.Body), BuildResponse(r)
 }
 
+// AddChannelMemberWithMarkChannelAsViewed adds user to channel and mark the channel as viewed or not.
+func (c *Client4) AddChannelMemberWithMarkChannelAsViewed(channelId, userId string, viewed bool) (*ChannelMember, *Response) {
+	requestBody := map[string]interface{}{"user_id": userId, "viewed": viewed}
+	r, err := c.DoApiPost(c.GetChannelMembersRoute(channelId)+"", StringInterfaceToJson(requestBody))
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ChannelMemberFromJson(r.Body), BuildResponse(r)
+}
+
 // RemoveUserFromChannel will delete the channel member object for a user, effectively removing the user from a channel.
 func (c *Client4) RemoveUserFromChannel(channelId, userId string) (bool, *Response) {
 	r, err := c.DoApiDelete(c.GetChannelMemberRoute(channelId, userId))
