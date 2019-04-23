@@ -45,6 +45,14 @@ var UserCreateCmd = &cobra.Command{
 	RunE:    userCreateCmdF,
 }
 
+var UserModifyCmd = &cobra.Command{
+	Use:     "modify [emails, usernames, userIds] --bot",
+	Short:   "Convert users to bots",
+	Long:    "Convert users to bots",
+	Example: `  user modify user@example.com anotherUser --bot`,
+	RunE:    userModifyCmdF,
+}
+
 var UserInviteCmd = &cobra.Command{
 	Use:   "invite [email] [teams]",
 	Short: "Send user an email invite to a team.",
@@ -162,6 +170,8 @@ func init() {
 	UserCreateCmd.Flags().String("locale", "", "Optional. The locale (ex: en, fr) for the new user account.")
 	UserCreateCmd.Flags().Bool("system_admin", false, "Optional. If supplied, the new user will be a system administrator. Defaults to false.")
 
+	UserModifyCmd.Flags().Bool("bot", false, "If supplied, convert users to bots.")
+
 	DeleteUserCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the user and a DB backup has been performed.")
 
 	DeleteAllUsersCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the user and a DB backup has been performed.")
@@ -234,6 +244,7 @@ Global Flags:
 		UserActivateCmd,
 		UserDeactivateCmd,
 		UserCreateCmd,
+		UserModifyCmd,
 		UserInviteCmd,
 		ResetUserPasswordCmd,
 		updateUserEmailCmd,
@@ -366,6 +377,57 @@ func userCreateCmdF(command *cobra.Command, args []string) error {
 	CommandPrettyPrintln("auth_service: " + ruser.AuthService)
 
 	return nil
+}
+
+func usersToBots(command *cobra.Command, args []string, a *app.App) error {
+	if len(args) < 1 {
+		return errors.New("Expected at least one argument. See help text for details.")
+	}
+
+	users := getUsersFromUserArgs(a, args)
+	for i, user := range users {
+		if user == nil {
+			CommandPrintErrorln(fmt.Errorf("Unable to find user \"%s\"", args[i]))
+		}
+
+		bot := &model.Bot{
+			OwnerId:     user.Id,
+			UserId:      user.Id,
+			Username:    user.Username,
+			DisplayName: user.GetDisplayName(model.SHOW_USERNAME),
+		}
+
+		result := <-a.Srv.Store.Bot().Save(bot)
+		if result.Err != nil {
+			CommandPrintErrorln(result.Err.Error())
+		}
+
+		CommandPrettyPrintln("ownerId: " + bot.OwnerId)
+		CommandPrettyPrintln("userId: " + bot.UserId)
+		CommandPrettyPrintln("username: " + bot.Username)
+		CommandPrettyPrintln("displayName: " + bot.DisplayName)
+	}
+
+	return nil
+}
+
+func userModifyCmdF(command *cobra.Command, args []string) error {
+	a, err := InitDBCommandContextCobra(command)
+	if err != nil {
+		return err
+	}
+	defer a.Shutdown()
+
+	toBot, err := command.Flags().GetBool("bot")
+	if err != nil {
+		return errors.New("Invalid command. See help text for details.")
+	}
+
+	if toBot {
+		return usersToBots(command, args, a)
+	}
+
+	return errors.New("Expect \"bot\" flag to be set. See help text for details.")
 }
 
 func userInviteCmdF(command *cobra.Command, args []string) error {
