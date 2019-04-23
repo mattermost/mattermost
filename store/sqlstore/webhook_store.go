@@ -208,24 +208,21 @@ func (s SqlWebhookStore) GetIncomingByChannel(channelId string) ([]*model.Incomi
 	return webhooks, nil
 }
 
-func (s SqlWebhookStore) SaveOutgoing(webhook *model.OutgoingWebhook) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if len(webhook.Id) > 0 {
-			result.Err = model.NewAppError("SqlWebhookStore.SaveOutgoing", "store.sql_webhooks.save_outgoing.override.app_error", nil, "id="+webhook.Id, http.StatusBadRequest)
-			return
-		}
+func (s SqlWebhookStore) SaveOutgoing(webhook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError) {
+	if len(webhook.Id) > 0 {
+		return nil, model.NewAppError("SqlWebhookStore.SaveOutgoing", "store.sql_webhooks.save_outgoing.override.app_error", nil, "id="+webhook.Id, http.StatusBadRequest)
+	}
 
-		webhook.PreSave()
-		if result.Err = webhook.IsValid(); result.Err != nil {
-			return
-		}
+	webhook.PreSave()
+	if err := webhook.IsValid(); err != nil {
+		return nil, err
+	}
 
-		if err := s.GetMaster().Insert(webhook); err != nil {
-			result.Err = model.NewAppError("SqlWebhookStore.SaveOutgoing", "store.sql_webhooks.save_outgoing.app_error", nil, "id="+webhook.Id+", "+err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = webhook
-		}
-	})
+	if err := s.GetMaster().Insert(webhook); err != nil {
+		return nil, model.NewAppError("SqlWebhookStore.SaveOutgoing", "store.sql_webhooks.save_outgoing.app_error", nil, "id="+webhook.Id+", "+err.Error(), http.StatusInternalServerError)
+	}
+
+	return webhook, nil
 }
 
 func (s SqlWebhookStore) GetOutgoing(id string) store.StoreChannel {

@@ -444,11 +444,12 @@ func (a *App) CreateOutgoingWebhook(hook *model.OutgoingWebhook) (*model.Outgoin
 		}
 	}
 
-	if result := <-a.Srv.Store.Webhook().SaveOutgoing(hook); result.Err != nil {
-		return nil, result.Err
-	} else {
-		return result.Data.(*model.OutgoingWebhook), nil
+	webhook, err := a.Srv.Store.Webhook().SaveOutgoing(hook)
+	if err != nil {
+		return nil, err
 	}
+
+	return webhook, nil
 }
 
 func (a *App) UpdateOutgoingWebhook(oldHook, updatedHook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError) {

@@ -248,11 +248,11 @@ func testWebhookStoreSaveOutgoing(t *testing.T, ss store.Store) {
 	o1.Username = "test-user-name"
 	o1.IconURL = "http://nowhere.com/icon"
 
-	if err := (<-ss.Webhook().SaveOutgoing(&o1)).Err; err != nil {
+	if _, err := ss.Webhook().SaveOutgoing(&o1); err != nil {
 		t.Fatal("couldn't save item", err)
 	}
 
-	if err := (<-ss.Webhook().SaveOutgoing(&o1)).Err; err == nil {
+	if _, err := ss.Webhook().SaveOutgoing(&o1); err == nil {
 		t.Fatal("shouldn't be able to update from save")
 	}
 }
@@ -266,7 +266,7 @@ func testWebhookStoreGetOutgoing(t *testing.T, ss store.Store) {
 	o1.Username = "test-user-name"
 	o1.IconURL = "http://nowhere.com/icon"
 
-	o1 = (<-ss.Webhook().SaveOutgoing(o1)).Data.(*model.OutgoingWebhook)
+	o1, _ = ss.Webhook().SaveOutgoing(o1)
 
 	if r1 := <-ss.Webhook().GetOutgoing(o1.Id); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -288,7 +288,7 @@ func testWebhookStoreGetOutgoingList(t *testing.T, ss store.Store) {
 	o1.TeamId = model.NewId()
 	o1.CallbackURLs = []string{"http://nowhere.com/"}
 
-	o1 = (<-ss.Webhook().SaveOutgoing(o1)).Data.(*model.OutgoingWebhook)
+	o1, _ = ss.Webhook().SaveOutgoing(o1)
 
 	o2 := &model.OutgoingWebhook{}
 	o2.ChannelId = model.NewId()
@@ -296,7 +296,7 @@ func testWebhookStoreGetOutgoingList(t *testing.T, ss store.Store) {
 	o2.TeamId = model.NewId()
 	o2.CallbackURLs = []string{"http://nowhere.com/"}
 
-	o2 = (<-ss.Webhook().SaveOutgoing(o2)).Data.(*model.OutgoingWebhook)
+	o2, _ = ss.Webhook().SaveOutgoing(o2)
 
 	if r1 := <-ss.Webhook().GetOutgoingList(0, 1000); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -339,7 +339,7 @@ func testWebhookStoreGetOutgoingByChannel(t *testing.T, ss store.Store) {
 	o1.TeamId = model.NewId()
 	o1.CallbackURLs = []string{"http://nowhere.com/"}
 
-	o1 = (<-ss.Webhook().SaveOutgoing(o1)).Data.(*model.OutgoingWebhook)
+	o1, _ = ss.Webhook().SaveOutgoing(o1)
 
 	if r1 := <-ss.Webhook().GetOutgoingByChannel(o1.ChannelId, 0, 100); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -365,7 +365,7 @@ func testWebhookStoreGetOutgoingByTeam(t *testing.T, ss store.Store) {
 	o1.TeamId = model.NewId()
 	o1.CallbackURLs = []string{"http://nowhere.com/"}
 
-	o1 = (<-ss.Webhook().SaveOutgoing(o1)).Data.(*model.OutgoingWebhook)
+	o1, _ = ss.Webhook().SaveOutgoing(o1)
 
 	if r1 := <-ss.Webhook().GetOutgoingByTeam(o1.TeamId, 0, 100); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -391,7 +391,7 @@ func testWebhookStoreDeleteOutgoing(t *testing.T, ss store.Store) {
 	o1.TeamId = model.NewId()
 	o1.CallbackURLs = []string{"http://nowhere.com/"}
 
-	o1 = (<-ss.Webhook().SaveOutgoing(o1)).Data.(*model.OutgoingWebhook)
+	o1, _ = ss.Webhook().SaveOutgoing(o1)
 
 	if r1 := <-ss.Webhook().GetOutgoing(o1.Id); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -418,7 +418,7 @@ func testWebhookStoreDeleteOutgoingByChannel(t *testing.T, ss store.Store) {
 	o1.TeamId = model.NewId()
 	o1.CallbackURLs = []string{"http://nowhere.com/"}
 
-	o1 = (<-ss.Webhook().SaveOutgoing(o1)).Data.(*model.OutgoingWebhook)
+	o1, _ = ss.Webhook().SaveOutgoing(o1)
 
 	if r1 := <-ss.Webhook().GetOutgoing(o1.Id); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -445,7 +445,7 @@ func testWebhookStoreDeleteOutgoingByUser(t *testing.T, ss store.Store) {
 	o1.TeamId = model.NewId()
 	o1.CallbackURLs = []string{"http://nowhere.com/"}
 
-	o1 = (<-ss.Webhook().SaveOutgoing(o1)).Data.(*model.OutgoingWebhook)
+	o1, _ = ss.Webhook().SaveOutgoing(o1)
 
 	if r1 := <-ss.Webhook().GetOutgoing(o1.Id); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -474,7 +474,7 @@ func testWebhookStoreUpdateOutgoing(t *testing.T, ss store.Store) {
 	o1.Username = "test-user-name"
 	o1.IconURL = "http://nowhere.com/icon"
 
-	o1 = (<-ss.Webhook().SaveOutgoing(o1)).Data.(*model.OutgoingWebhook)
+	o1, _ = ss.Webhook().SaveOutgoing(o1)
 
 	o1.Token = model.NewId()
 	o1.Username = "another-test-user-name"
@@ -508,7 +508,7 @@ func testWebhookStoreCountOutgoing(t *testing.T, ss store.Store) {
 	o1.TeamId = model.NewId()
 	o1.CallbackURLs = []string{"http://nowhere.com/"}
 
-	_ = (<-ss.Webhook().SaveOutgoing(o1)).Data.(*model.OutgoingWebhook)
+	ss.Webhook().SaveOutgoing(o1)
 
 	if r := <-ss.Webhook().AnalyticsOutgoingCount(""); r.Err != nil {
 		t.Fatal(r.Err)
