@@ -4,10 +4,9 @@
 package storetest
 
 import (
+	"net/http"
 	"testing"
 	"time"
-
-	"net/http"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
@@ -63,17 +62,17 @@ func testWebhookStoreUpdateIncoming(t *testing.T, ss store.Store) {
 	o1.DisplayName = "TestHook"
 	time.Sleep(10 * time.Millisecond)
 
-	if result := (<-ss.Webhook().UpdateIncoming(o1)); result.Err != nil {
-		t.Fatal("updation of incoming hook failed", result.Err)
-	} else {
-		if result.Data.(*model.IncomingWebhook).UpdateAt == previousUpdatedAt {
-			t.Fatal("should have updated the UpdatedAt of the hook")
-		}
+	webhook, err := ss.Webhook().UpdateIncoming(o1)
+	require.Nil(t, err)
 
-		if result.Data.(*model.IncomingWebhook).DisplayName != "TestHook" {
-			t.Fatal("display name is not updated")
-		}
+	if webhook.UpdateAt == previousUpdatedAt {
+		t.Fatal("should have updated the UpdatedAt of the hook")
 	}
+
+	if webhook.DisplayName != "TestHook" {
+		t.Fatal("display name is not updated")
+	}
+
 }
 
 func testWebhookStoreGetIncoming(t *testing.T, ss store.Store) {
@@ -153,18 +152,38 @@ func testWebhookStoreGetIncomingByTeam(t *testing.T, ss store.Store) {
 	o1, err = ss.Webhook().SaveIncoming(o1)
 	require.Nil(t, err)
 
-	if r1 := <-ss.Webhook().GetIncomingByTeam(o1.TeamId, 0, 100); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if hooks, err := ss.Webhook().GetIncomingByTeam(o1.TeamId, 0, 100); err != nil {
+		t.Fatal(err)
 	} else {
-		if r1.Data.([]*model.IncomingWebhook)[0].CreateAt != o1.CreateAt {
+		if hooks[0].CreateAt != o1.CreateAt {
 			t.Fatal("invalid returned webhook")
 		}
 	}
 
-	if result := <-ss.Webhook().GetIncomingByTeam("123", 0, 100); result.Err != nil {
-		t.Fatal(result.Err)
+	if hooks, err := ss.Webhook().GetIncomingByTeam("123", 0, 100); err != nil {
+		t.Fatal(err)
 	} else {
-		if len(result.Data.([]*model.IncomingWebhook)) != 0 {
+		if len(hooks) != 0 {
+			t.Fatal("no webhooks should have returned")
+		}
+	}
+}
+
+func testWebhookStoreGetIncomingByChannel(t *testing.T, ss store.Store) {
+	o1 := buildIncomingWebhook()
+
+	o1 = (<-ss.Webhook().SaveIncoming(o1)).Data.(*model.IncomingWebhook)
+
+	webhooks, err := ss.Webhook().GetIncomingByChannel(o1.ChannelId)
+	require.Nil(t, err)
+	if webhooks[0].CreateAt != o1.CreateAt {
+		t.Fatal("invalid returned webhook")
+	}
+
+	if webhooks, err = ss.Webhook().GetIncomingByChannel("123"); err != nil {
+		t.Fatal(err)
+	} else {
+		if len(webhooks) != 0 {
 			t.Fatal("no webhooks should have returned")
 		}
 	}
