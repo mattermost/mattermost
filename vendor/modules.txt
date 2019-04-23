@@ -359,6 +359,6 @@ gopkg.in/olivere/elastic.v5/uritemplates
 gopkg.in/yaml.v2
 # willnorris.com/go/gifresize v1.0.0
 willnorris.com/go/gifresize
-# willnorris.com/go/imageproxy v0.8.1-0.20190326225038-cf54b2cf2c9e
+# willnorris.com/go/imageproxy v0.8.1-0.20190326225038-d4246a08fdec
 willnorris.com/go/imageproxy
 willnorris.com/go/imageproxy/third_party/http
