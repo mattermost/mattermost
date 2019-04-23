@@ -334,11 +334,11 @@ func (s SqlWebhookStore) UpdateOutgoing(hook *model.OutgoingWebhook) store.Store
 func (s SqlWebhookStore) AnalyticsIncomingCount(teamId string) (int64, *model.AppError) {
 	query :=
 		`SELECT 
-			    COUNT(*)
-			FROM
-			    IncomingWebhooks
-			WHERE
-                DeleteAt = 0`
+			COUNT(*)
+		FROM
+			IncomingWebhooks
+		WHERE
+	DeleteAt = 0`
 
 	if len(teamId) > 0 {
 		query += " AND TeamId = :TeamId"
