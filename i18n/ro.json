@@ -776,7 +776,7 @@
   },
   {
     "id": "api.command_msg.desc",
-    "translation": "Trimite mesaj Direct pentru un utilizator"
+    "translation": "Trimiteți un Mesaj Direct unui utilizator"
   },
   {
     "id": "api.command_msg.dm_fail.app_error",
@@ -3796,7 +3796,7 @@
   },
   {
     "id": "jobs.request_cancellation.status.error",
-    "translation": "Putea solicita anularea pentru locuri de muncă care nu este în stare revocabil."
+    "translation": "Nu s-a putut solicita anularea pentru o lucrare care nu se află într-o stare anulată."
   },
   {
     "id": "jobs.set_job_error.update.error",

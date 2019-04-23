@@ -77,7 +77,7 @@
   },
   {
     "id": "api.admin.remove_certificate.delete.app_error",
-    "translation": "Возникла ошибка при удалении приложения OAuth2"
+    "translation": "Возникла ошибка при удалении сертификата"
   },
   {
     "id": "api.admin.saml.metadata.app_error",
@@ -337,7 +337,7 @@
   },
   {
     "id": "api.command.execute_command.create_post_failed.app_error",
-    "translation": "Command '{{.Trigger}}' failed to post response. Please contact your System Administrator."
+    "translation": "Команда '{{.Trigger}}' не отправила ответ. Пожалуйста, обратитесь к вашему системному администратору."
   },
   {
     "id": "api.command.execute_command.debug",
@@ -960,7 +960,7 @@
   },
   {
     "id": "api.config.update_config.restricted_merge.app_error",
-    "translation": "Failed to merge given config."
+    "translation": "Ошибка при внедрении переданной конфигурации."
   },
   {
     "id": "api.context.404.app_error",
@@ -1190,7 +1190,7 @@
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_client_ids.app_error",
-    "translation": "Unable to upload file(s). Have {{.NumClientIds}} client_ids for {{.NumFiles}} files."
+    "translation": "Не удалось загрузить файл(ы). Есть {{.NumClientIds}} client_id для {{.NumFiles}} файлов."
   },
   {
     "id": "api.file.upload_file.incorrect_number_of_files.app_error",
@@ -1202,15 +1202,15 @@
   },
   {
     "id": "api.file.upload_file.large_image_detailed.app_error",
-    "translation": "{{.Filename}} dimensions ({{.Width}} by {{.Height}} pixels) exceed the limits"
+    "translation": "Размер файла {{.Filename}} (({{.Width}} на {{.Height}} пикселей) превышает лимиты"
   },
   {
     "id": "api.file.upload_file.multiple_channel_ids.app_error",
-    "translation": "Unable to upload file(s). Multiple conflicting channel_ids."
+    "translation": "Не удалось загрузить файл(ы). Несколько конфликтующих channel_ids."
   },
   {
     "id": "api.file.upload_file.read_form_value.app_error",
-    "translation": "Unable to upload file(s). Error reading the value for {{.Formname}}."
+    "translation": "Не удалось загрузить файл(ы). Ошибка в значении {{.Formname}}."
   },
   {
     "id": "api.file.upload_file.read_request.app_error",
@@ -1218,7 +1218,7 @@
   },
   {
     "id": "api.file.upload_file.rejected_by_plugin.app_error",
-    "translation": "Unable to upload file {{.Filename}}. Rejected by plugin: {{.Reason}}"
+    "translation": "Не удалось загрузить файл {{.Filename}}. Отказ плагина: {{.Reason}}"
   },
   {
     "id": "api.file.upload_file.storage.app_error",
@@ -1230,7 +1230,7 @@
   },
   {
     "id": "api.file.upload_file.too_large_detailed.app_error",
-    "translation": "Unable to upload file {{.Filename}}. {{.Length}} bytes exceeds the maximum allowed {{.Limit}} bytes."
+    "translation": "Не удалось загрузить файл {{.Filename}}. Превышено максимальное кол-во байт. Лимит {{.Limit}} байт."
   },
   {
     "id": "api.file.write_file.s3.app_error",
@@ -1458,15 +1458,15 @@
   },
   {
     "id": "api.post.deduplicate_create_post.failed_to_get",
-    "translation": "Failed to fetch original post after deduplicating a client repeating the same request."
+    "translation": "Не удалось получить оригинальный пост. Клиент создал дублирующий запрос."
   },
   {
     "id": "api.post.deduplicate_create_post.pending",
-    "translation": "Rejected post since another client is making the same request."
+    "translation": "Отправка сообщения отклонена, т.к. другой клиент сделал такой же запрос."
   },
   {
     "id": "api.post.delete_post.can_not_delete_post_in_deleted.error",
-    "translation": "Нельзя обновить пост в удаленном канале."
+    "translation": "Нельзя удалить пост в удаленном канале."
   },
   {
     "id": "api.post.disabled_all",
@@ -1780,7 +1780,7 @@
   },
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
-    "translation": "Error invalidating email invites."
+    "translation": "Ошибка аннулирования e-mail приглашений."
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
@@ -2200,7 +2200,7 @@
   },
   {
     "id": "api.user.create_email_token.error",
-    "translation": "Failed to create token data for email verification"
+    "translation": "Ошибка создания токена для e-mail проверки"
   },
   {
     "id": "api.user.create_oauth_user.already_attached.app_error",
@@ -2292,7 +2292,7 @@
   },
   {
     "id": "api.user.login.bot_login_forbidden.app_error",
-    "translation": "Bot login is forbidden"
+    "translation": "Логин Бота запрещен"
   },
   {
     "id": "api.user.login.client_side_cert.certificate.app_error",
@@ -2320,7 +2320,7 @@
   },
   {
     "id": "api.user.login_by_oauth.bot_login_forbidden.app_error",
-    "translation": "Bot login is forbidden"
+    "translation": "Вход бота запрещен"
   },
   {
     "id": "api.user.login_by_oauth.not_available.app_error",
@@ -2520,11 +2520,11 @@
   },
   {
     "id": "api.user.verify_email.link_expired.app_error",
-    "translation": "The email verification link has expired."
+    "translation": "Ссылка для подтверждения по e-mail не действительна."
   },
   {
     "id": "api.user.verify_email.token_parse.error",
-    "translation": "Failed to parse token data from email verification"
+    "translation": "Ошибка разбора данных токена из проверки e-mail"
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
@@ -2620,7 +2620,7 @@
   },
   {
     "id": "app.export.export_write_line.json_marshall.error",
-    "translation": "Произошла ошибка при сортировке JSON-данных для экспорта."
+    "translation": "Произошла ошибка при сериализации JSON-данных для экспорта."
   },
   {
     "id": "app.import.attachment.bad_file.error",
@@ -2988,11 +2988,11 @@
   },
   {
     "id": "app.import.validate_scheme_import_data.null_scope.error",
-    "translation": "Scheme scope is required."
+    "translation": "Требуется область видимости схемы"
   },
   {
     "id": "app.import.validate_scheme_import_data.unknown_scheme.error",
-    "translation": "Unknown scheme scope."
+    "translation": "Неизвестная область видимости схемы"
   },
   {
     "id": "app.import.validate_scheme_import_data.wrong_roles_for_scope.error",
@@ -6600,7 +6600,7 @@
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.select.app_error",
-    "translation": "Failed to retrieve the users"
+    "translation": "Не удалось удалить плагин"
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.update.app_error",

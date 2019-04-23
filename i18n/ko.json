@@ -217,7 +217,7 @@
   },
   {
     "id": "api.channel.leave.default.app_error",
-    "translation": "기본 채널은 삭제할 수 없습니다 {{.Channel}}"
+    "translation": "기본채널은 나갈 수 없습니다 {{.Channel}}"
   },
   {
     "id": "api.channel.leave.direct.app_error",
@@ -289,7 +289,7 @@
   },
   {
     "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
-    "translation": "단체 메세지 채널 이름을 바꿀 수 없습니다."
+    "translation": "개인메시지 채널의 이름을 바꿀 수 없습니다"
   },
   {
     "id": "api.channel.rename_channel.cant_rename_group_messages.app_error",
@@ -6600,7 +6600,7 @@
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.select.app_error",
-    "translation": "Failed to retrieve the users"
+    "translation": "내용을 가져올수 없습니다."
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.update.app_error",
