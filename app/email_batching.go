@@ -16,7 +16,7 @@ import (
 
 	"net/http"
 
-	"github.com/nicksnyder/go-i18n/i18n"
+	"github.com/mattermost/go-i18n/i18n"
 )
 
 const (

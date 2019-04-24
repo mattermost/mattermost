@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/blang/semver"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/mlog"
@@ -60,15 +61,62 @@ const (
 )
 
 const (
-	EXIT_VERSION_SAVE_MISSING  = 1001
-	EXIT_TOO_OLD               = 1002
-	EXIT_VERSION_SAVE          = 1003
-	EXIT_THEME_MIGRATION       = 1004
-	EXIT_ROLE_MIGRATION_FAILED = 1005
+	EXIT_VERSION_SAVE    = 1003
+	EXIT_THEME_MIGRATION = 1004
 )
 
-func UpgradeDatabase(sqlStore SqlStore) {
+// UpgradeDatabase attempts to migrate the schema to the latest supported version.
+// The value of model.CurrentVersion is accepted as a parameter for unit testing, but it is not
+// used to stop migrations at that version.
+func UpgradeDatabase(sqlStore SqlStore, currentModelVersionString string) error {
+	currentModelVersion, err := semver.Parse(currentModelVersionString)
+	if err != nil {
+		return errors.Wrapf(err, "failed to parse current model version %s", currentModelVersionString)
+	}
 
+	nextUnsupportedMajorVersion := semver.Version{
+		Major: currentModelVersion.Major + 1,
+	}
+
+	oldestSupportedVersion, err := semver.Parse(OLDEST_SUPPORTED_VERSION)
+	if err != nil {
+		return errors.Wrapf(err, "failed to parse oldest supported version %s", OLDEST_SUPPORTED_VERSION)
+	}
+
+	var currentSchemaVersion *semver.Version
+	currentSchemaVersionString := sqlStore.GetCurrentSchemaVersion()
+	if currentSchemaVersionString != "" {
+		currentSchemaVersion, err = semver.New(currentSchemaVersionString)
+		if err != nil {
+			return errors.Wrapf(err, "failed to parse database schema version %s", currentSchemaVersionString)
+		}
+	}
+
+	// Assume a fresh database if no schema version has been recorded.
+	if currentSchemaVersion == nil {
+		if result := <-sqlStore.System().SaveOrUpdate(&model.System{Name: "Version", Value: currentModelVersion.String()}); result.Err != nil {
+			return errors.Wrap(err, "failed to initialize schema version for fresh database")
+		}
+
+		currentSchemaVersion = &currentModelVersion
+		mlog.Info(fmt.Sprintf("The database schema has been set to version %s", *currentSchemaVersion))
+		return nil
+	}
+
+	// Upgrades prior to the oldest supported version are not supported.
+	if currentSchemaVersion.LT(oldestSupportedVersion) {
+		return errors.Errorf("Database schema version %s is no longer supported. This Mattermost server supports automatic upgrades from schema version %s through schema version %s. Please manually upgrade to at least version %s before continuing.", *currentSchemaVersion, oldestSupportedVersion, currentModelVersion, oldestSupportedVersion)
+	}
+
+	// Allow forwards compatibility only within the same major version.
+	if currentSchemaVersion.GTE(nextUnsupportedMajorVersion) {
+		return errors.Errorf("Database schema version %s is not supported. This Mattermost server supports only >=%s, <%s. Please upgrade to at least version %s before continuing.", *currentSchemaVersion, currentModelVersion, nextUnsupportedMajorVersion, nextUnsupportedMajorVersion)
+	} else if currentSchemaVersion.GT(currentModelVersion) {
+		mlog.Warn(fmt.Sprintf("The database schema with version %s is newer than Mattermost version %s.", currentSchemaVersion, currentModelVersion))
+	}
+
+	// Otherwise, apply any necessary migrations. Note that these methods currently invoke
+	// os.Exit instead of returning an error.
 	UpgradeDatabaseToVersion31(sqlStore)
 	UpgradeDatabaseToVersion32(sqlStore)
 	UpgradeDatabaseToVersion33(sqlStore)
@@ -106,28 +154,11 @@ func UpgradeDatabase(sqlStore SqlStore) {
 	UpgradeDatabaseToVersion510(sqlStore)
 	UpgradeDatabaseToVersion511(sqlStore)
 
-	// If the SchemaVersion is empty this this is the first time it has ran
-	// so lets set it to the current version.
-	if sqlStore.GetCurrentSchemaVersion() == "" {
-		if result := <-sqlStore.System().SaveOrUpdate(&model.System{Name: "Version", Value: model.CurrentVersion}); result.Err != nil {
-			mlog.Critical(result.Err.Error())
-			time.Sleep(time.Second)
-			os.Exit(EXIT_VERSION_SAVE_MISSING)
-		}
-
-		mlog.Info(fmt.Sprintf("The database schema has been set to version %v", model.CurrentVersion))
-	}
-
-	// If we're not on the current version then it's too old to be upgraded
-	if sqlStore.GetCurrentSchemaVersion() != model.CurrentVersion {
-		mlog.Critical(fmt.Sprintf("Database schema version %v is no longer supported. This Mattermost server supports automatic upgrades from schema version %v through schema version %v. Downgrades are not supported. Please manually upgrade to at least version %v before continuing", sqlStore.GetCurrentSchemaVersion(), OLDEST_SUPPORTED_VERSION, model.CurrentVersion, OLDEST_SUPPORTED_VERSION))
-		time.Sleep(time.Second)
-		os.Exit(EXIT_TOO_OLD)
-	}
+	return nil
 }
 
 func saveSchemaVersion(sqlStore SqlStore, version string) {
-	if result := <-sqlStore.System().Update(&model.System{Name: "Version", Value: version}); result.Err != nil {
+	if result := <-sqlStore.System().SaveOrUpdate(&model.System{Name: "Version", Value: version}); result.Err != nil {
 		mlog.Critical(result.Err.Error())
 		time.Sleep(time.Second)
 		os.Exit(EXIT_VERSION_SAVE)
@@ -138,8 +169,7 @@ func saveSchemaVersion(sqlStore SqlStore, version string) {
 
 func shouldPerformUpgrade(sqlStore SqlStore, currentSchemaVersion string, expectedSchemaVersion string) bool {
 	if sqlStore.GetCurrentSchemaVersion() == currentSchemaVersion {
-		mlog.Warn(fmt.Sprintf("The database schema version of %v appears to be out of date", currentSchemaVersion))
-		mlog.Warn(fmt.Sprintf("Attempting to upgrade the database schema version to %v", expectedSchemaVersion))
+		mlog.Warn(fmt.Sprintf("Attempting to upgrade the database schema version from %s to %v", currentSchemaVersion, expectedSchemaVersion))
 
 		return true
 	}

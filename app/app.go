@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strconv"
 
+	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/jobs"
 	"github.com/mattermost/mattermost-server/mlog"
@@ -17,7 +18,6 @@ import (
 	"github.com/mattermost/mattermost-server/services/imageproxy"
 	"github.com/mattermost/mattermost-server/services/timezones"
 	"github.com/mattermost/mattermost-server/utils"
-	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 type App struct {
