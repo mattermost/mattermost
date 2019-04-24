@@ -388,18 +388,13 @@ func usersToBots(command *cobra.Command, args []string, a *app.App) error {
 	for i, user := range users {
 		if user == nil {
 			CommandPrintErrorln(fmt.Errorf("Unable to find user \"%s\"", args[i]))
+			continue
 		}
 
-		bot := &model.Bot{
-			OwnerId:     user.Id,
-			UserId:      user.Id,
-			Username:    user.Username,
-			DisplayName: user.GetDisplayName(model.SHOW_USERNAME),
-		}
-
-		result := <-a.Srv.Store.Bot().Save(bot)
-		if result.Err != nil {
-			CommandPrintErrorln(result.Err.Error())
+		bot, err := a.ConvertUserToBot(user)
+		if err != nil {
+			CommandPrintErrorln(err.Error())
+			continue
 		}
 
 		CommandPrettyPrintln("ownerId: " + bot.OwnerId)

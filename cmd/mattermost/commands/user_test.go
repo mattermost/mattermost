@@ -121,9 +121,7 @@ func TestModifyUserToBot(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	require.Error(t, th.RunCommand(t, "user", "email", th.BasicUser.Username, "wrong$email.com"))
-
-	th.CheckCommand(t, "user", "modify", th.BasicUser.Username, "--bot")
+	th.CheckCommand(t, "user", "modify", th.BasicUser.Username, "anotherinvaliduser", "--bot")
 	if result := <-th.App.Srv.Store.Bot().Get(th.BasicUser.Id, false); result.Err != nil {
 		t.Fatal(result.Err)
 	}
