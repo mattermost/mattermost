@@ -93,7 +93,7 @@ func testPostStoreSaveChannelMsgCounts(t *testing.T, ss store.Store) {
 	require.Nil(t, (<-ss.Post().Save(&o1)).Err)
 
 	c1, err = ss.Channel().Get(c1.Id, false)
-	require.Nil(t, res.Err)
+	require.Nil(t, err)
 	assert.Equal(t, int64(1), c1.TotalMsgCount, "Message count should not update for team add/removed message")
 
 	oldLastPostAt := c1.LastPostAt
