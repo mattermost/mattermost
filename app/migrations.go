@@ -208,5 +208,7 @@ func (a *App) DoAppMigrations() {
 	a.DoAdvancedPermissionsMigration()
 	a.DoEmojisPermissionsMigration()
 	a.DoGuestRolesCreationMigration()
+	// This migration always must be the last, because can be based on previous
+	// migrations. For example, it needs the guest roles migration.
 	a.DoPermissionsMigrations()
 }
