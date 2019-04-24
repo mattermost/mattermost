@@ -25,45 +25,40 @@ func TestComplianceStore(t *testing.T, ss store.Store) {
 
 func testComplianceStore(t *testing.T, ss store.Store) {
 	compliance1 := &model.Compliance{Desc: "Audit for federal subpoena case #22443", UserId: model.NewId(), Status: model.COMPLIANCE_STATUS_FAILED, StartAt: model.GetMillis() - 1, EndAt: model.GetMillis() + 1, Type: model.COMPLIANCE_TYPE_ADHOC}
-	store.Must(ss.Compliance().Save(compliance1))
+	_, err := ss.Compliance().Save(compliance1)
+	require.Nil(t, err)
 	time.Sleep(100 * time.Millisecond)
 
 	compliance2 := &model.Compliance{Desc: "Audit for federal subpoena case #11458", UserId: model.NewId(), Status: model.COMPLIANCE_STATUS_RUNNING, StartAt: model.GetMillis() - 1, EndAt: model.GetMillis() + 1, Type: model.COMPLIANCE_TYPE_ADHOC}
-	store.Must(ss.Compliance().Save(compliance2))
+	_, err = ss.Compliance().Save(compliance2)
+	require.Nil(t, err)
 	time.Sleep(100 * time.Millisecond)
 
-	c := ss.Compliance().GetAll(0, 1000)
-	result := <-c
-	compliances := result.Data.(model.Compliances)
+	compliances, _ := ss.Compliance().GetAll(0, 1000)
 
 	require.Equal(t, model.COMPLIANCE_STATUS_RUNNING, compliances[0].Status)
 	require.Equal(t, compliance2.Id, compliances[0].Id)
 
 	compliance2.Status = model.COMPLIANCE_STATUS_FAILED
-	store.Must(ss.Compliance().Update(compliance2))
+	_, err = ss.Compliance().Update(compliance2)
+	require.Nil(t, err)
 
-	c = ss.Compliance().GetAll(0, 1000)
-	result = <-c
-	compliances = result.Data.(model.Compliances)
+	compliances, _ = ss.Compliance().GetAll(0, 1000)
 
 	require.Equal(t, model.COMPLIANCE_STATUS_FAILED, compliances[0].Status)
 	require.Equal(t, compliance2.Id, compliances[0].Id)
 
-	c = ss.Compliance().GetAll(0, 1)
-	result = <-c
-	compliances = result.Data.(model.Compliances)
+	compliances, _ = ss.Compliance().GetAll(0, 1)
 
 	require.Len(t, compliances, 1)
 
-	c = ss.Compliance().GetAll(1, 1)
-	result = <-c
-	compliances = result.Data.(model.Compliances)
+	compliances, _ = ss.Compliance().GetAll(1, 1)
 
 	if len(compliances) != 1 {
 		t.Fatal("should only have returned 1")
 	}
 
-	rc2 := (<-ss.Compliance().Get(compliance2.Id)).Data.(*model.Compliance)
+	rc2, _ := ss.Compliance().Get(compliance2.Id)
 	require.Equal(t, compliance2.Status, rc2.Status)
 }
 
@@ -127,106 +122,43 @@ func testComplianceExport(t *testing.T, ss store.Store) {
 	time.Sleep(100 * time.Millisecond)
 
 	cr1 := &model.Compliance{Desc: "test" + model.NewId(), StartAt: o1.CreateAt - 1, EndAt: o2a.CreateAt + 1}
-	if r1 := <-ss.Compliance().ComplianceExport(cr1); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		cposts := r1.Data.([]*model.CompliancePost)
-
-		if len(cposts) != 4 {
-			t.Fatal("return wrong results length")
-		}
-
-		if cposts[0].PostId != o1.Id {
-			t.Fatal("Wrong sort")
-		}
-
-		if cposts[3].PostId != o2a.Id {
-			t.Fatal("Wrong sort")
-		}
-	}
+	cposts, err := ss.Compliance().ComplianceExport(cr1)
+	require.Nil(t, err)
+	assert.Len(t, cposts, 4)
+	assert.Equal(t, cposts[0].PostId, o1.Id)
+	assert.Equal(t, cposts[3].PostId, o2a.Id)
 
 	cr2 := &model.Compliance{Desc: "test" + model.NewId(), StartAt: o1.CreateAt - 1, EndAt: o2a.CreateAt + 1, Emails: u2.Email}
-	if r1 := <-ss.Compliance().ComplianceExport(cr2); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		cposts := r1.Data.([]*model.CompliancePost)
-
-		if len(cposts) != 1 {
-			t.Fatal("return wrong results length")
-		}
-
-		if cposts[0].PostId != o2a.Id {
-			t.Fatal("Wrong sort")
-		}
-	}
+	cposts, err = ss.Compliance().ComplianceExport(cr2)
+	require.Nil(t, err)
+	assert.Len(t, cposts, 1)
+	assert.Equal(t, cposts[0].PostId, o2a.Id)
 
 	cr3 := &model.Compliance{Desc: "test" + model.NewId(), StartAt: o1.CreateAt - 1, EndAt: o2a.CreateAt + 1, Emails: u2.Email + ", " + u1.Email}
-	if r1 := <-ss.Compliance().ComplianceExport(cr3); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		cposts := r1.Data.([]*model.CompliancePost)
-
-		if len(cposts) != 4 {
-			t.Fatal("return wrong results length")
-		}
-
-		if cposts[0].PostId != o1.Id {
-			t.Fatal("Wrong sort")
-		}
-
-		if cposts[3].PostId != o2a.Id {
-			t.Fatal("Wrong sort")
-		}
-	}
+	cposts, err = ss.Compliance().ComplianceExport(cr3)
+	require.Nil(t, err)
+	assert.Len(t, cposts, 4)
+	assert.Equal(t, cposts[0].PostId, o1.Id)
+	assert.Equal(t, cposts[3].PostId, o2a.Id)
 
 	cr4 := &model.Compliance{Desc: "test" + model.NewId(), StartAt: o1.CreateAt - 1, EndAt: o2a.CreateAt + 1, Keywords: o2a.Message}
-	if r1 := <-ss.Compliance().ComplianceExport(cr4); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		cposts := r1.Data.([]*model.CompliancePost)
-
-		if len(cposts) != 1 {
-			t.Fatal("return wrong results length")
-		}
-
-		if cposts[0].PostId != o2a.Id {
-			t.Fatal("Wrong sort")
-		}
-	}
+	cposts, err = ss.Compliance().ComplianceExport(cr4)
+	require.Nil(t, err)
+	assert.Len(t, cposts, 1)
+	assert.Equal(t, cposts[0].PostId, o2a.Id)
 
 	cr5 := &model.Compliance{Desc: "test" + model.NewId(), StartAt: o1.CreateAt - 1, EndAt: o2a.CreateAt + 1, Keywords: o2a.Message + " " + o1.Message}
-	if r1 := <-ss.Compliance().ComplianceExport(cr5); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		cposts := r1.Data.([]*model.CompliancePost)
-
-		if len(cposts) != 2 {
-			t.Fatal("return wrong results length")
-		}
-
-		if cposts[0].PostId != o1.Id {
-			t.Fatal("Wrong sort")
-		}
-	}
+	cposts, err = ss.Compliance().ComplianceExport(cr5)
+	require.Nil(t, err)
+	assert.Len(t, cposts, 2)
+	assert.Equal(t, cposts[0].PostId, o1.Id)
 
 	cr6 := &model.Compliance{Desc: "test" + model.NewId(), StartAt: o1.CreateAt - 1, EndAt: o2a.CreateAt + 1, Emails: u2.Email + ", " + u1.Email, Keywords: o2a.Message + " " + o1.Message}
-	if r1 := <-ss.Compliance().ComplianceExport(cr6); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		cposts := r1.Data.([]*model.CompliancePost)
-
-		if len(cposts) != 2 {
-			t.Fatal("return wrong results length")
-		}
-
-		if cposts[0].PostId != o1.Id {
-			t.Fatal("Wrong sort")
-		}
-
-		if cposts[1].PostId != o2a.Id {
-			t.Fatal("Wrong sort")
-		}
-	}
+	cposts, err = ss.Compliance().ComplianceExport(cr6)
+	require.Nil(t, err)
+	assert.Len(t, cposts, 2)
+	assert.Equal(t, cposts[0].PostId, o1.Id)
+	assert.Equal(t, cposts[1].PostId, o2a.Id)
 }
 
 func testComplianceExportDirectMessages(t *testing.T, ss store.Store) {
@@ -298,35 +230,19 @@ func testComplianceExportDirectMessages(t *testing.T, ss store.Store) {
 	time.Sleep(100 * time.Millisecond)
 
 	cr1 := &model.Compliance{Desc: "test" + model.NewId(), StartAt: o1.CreateAt - 1, EndAt: o3.CreateAt + 1, Emails: u1.Email}
-	if r1 := <-ss.Compliance().ComplianceExport(cr1); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		cposts := r1.Data.([]*model.CompliancePost)
-
-		if len(cposts) != 4 {
-			t.Fatal("return wrong results length")
-		}
-
-		if cposts[0].PostId != o1.Id {
-			t.Fatal("Wrong sort")
-		}
-
-		if cposts[len(cposts)-1].PostId != o3.Id {
-			t.Fatal("Wrong sort")
-		}
-	}
+	cposts, err := ss.Compliance().ComplianceExport(cr1)
+	require.Nil(t, err)
+	assert.Len(t, cposts, 4)
+	assert.Equal(t, cposts[0].PostId, o1.Id)
+	assert.Equal(t, cposts[len(cposts)-1].PostId, o3.Id)
 }
 
 func testMessageExportPublicChannel(t *testing.T, ss store.Store) {
 	// get the starting number of message export entries
 	startTime := model.GetMillis()
-	var numMessageExports = 0
-	if r1 := <-ss.Compliance().MessageExport(startTime-10, 10); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		messages := r1.Data.([]*model.MessageExport)
-		numMessageExports = len(messages)
-	}
+	messages, err := ss.Compliance().MessageExport(startTime-10, 10)
+	require.Nil(t, err)
+	numMessageExports := len(messages)
 
 	// need a team
 	team := &model.Team{
@@ -386,15 +302,12 @@ func testMessageExportPublicChannel(t *testing.T, ss store.Store) {
 
 	// fetch the message exports for both posts that user1 sent
 	messageExportMap := map[string]model.MessageExport{}
-	if r1 := <-ss.Compliance().MessageExport(startTime-10, 10); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		messages := r1.Data.([]*model.MessageExport)
-		assert.Equal(t, numMessageExports+2, len(messages))
+	messages, err = ss.Compliance().MessageExport(startTime-10, 10)
+	require.Nil(t, err)
+	assert.Equal(t, numMessageExports+2, len(messages))
 
-		for _, v := range messages {
-			messageExportMap[*v.PostId] = *v
-		}
+	for _, v := range messages {
+		messageExportMap[*v.PostId] = *v
 	}
 
 	// post1 was made by user1 in channel1 and team1
@@ -421,13 +334,9 @@ func testMessageExportPublicChannel(t *testing.T, ss store.Store) {
 func testMessageExportPrivateChannel(t *testing.T, ss store.Store) {
 	// get the starting number of message export entries
 	startTime := model.GetMillis()
-	var numMessageExports = 0
-	if r1 := <-ss.Compliance().MessageExport(startTime-10, 10); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		messages := r1.Data.([]*model.MessageExport)
-		numMessageExports = len(messages)
-	}
+	messages, err := ss.Compliance().MessageExport(startTime-10, 10)
+	require.Nil(t, err)
+	numMessageExports := len(messages)
 
 	// need a team
 	team := &model.Team{
@@ -487,15 +396,12 @@ func testMessageExportPrivateChannel(t *testing.T, ss store.Store) {
 
 	// fetch the message exports for both posts that user1 sent
 	messageExportMap := map[string]model.MessageExport{}
-	if r1 := <-ss.Compliance().MessageExport(startTime-10, 10); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		messages := r1.Data.([]*model.MessageExport)
-		assert.Equal(t, numMessageExports+2, len(messages))
+	messages, err = ss.Compliance().MessageExport(startTime-10, 10)
+	require.Nil(t, err)
+	assert.Equal(t, numMessageExports+2, len(messages))
 
-		for _, v := range messages {
-			messageExportMap[*v.PostId] = *v
-		}
+	for _, v := range messages {
+		messageExportMap[*v.PostId] = *v
 	}
 
 	// post1 was made by user1 in channel1 and team1
@@ -524,13 +430,9 @@ func testMessageExportPrivateChannel(t *testing.T, ss store.Store) {
 func testMessageExportDirectMessageChannel(t *testing.T, ss store.Store) {
 	// get the starting number of message export entries
 	startTime := model.GetMillis()
-	var numMessageExports = 0
-	if r1 := <-ss.Compliance().MessageExport(startTime-10, 10); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		messages := r1.Data.([]*model.MessageExport)
-		numMessageExports = len(messages)
-	}
+	messages, err := ss.Compliance().MessageExport(startTime-10, 10)
+	require.Nil(t, err)
+	numMessageExports := len(messages)
 
 	// need a team
 	team := &model.Team{
@@ -576,15 +478,13 @@ func testMessageExportDirectMessageChannel(t *testing.T, ss store.Store) {
 
 	// fetch the message export for the post that user1 sent
 	messageExportMap := map[string]model.MessageExport{}
-	if r1 := <-ss.Compliance().MessageExport(startTime-10, 10); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		messages := r1.Data.([]*model.MessageExport)
-		assert.Equal(t, numMessageExports+1, len(messages))
+	messages, err = ss.Compliance().MessageExport(startTime-10, 10)
+	require.Nil(t, err)
 
-		for _, v := range messages {
-			messageExportMap[*v.PostId] = *v
-		}
+	assert.Equal(t, numMessageExports+1, len(messages))
+
+	for _, v := range messages {
+		messageExportMap[*v.PostId] = *v
 	}
 
 	// post is a DM between user1 and user2
@@ -602,13 +502,9 @@ func testMessageExportDirectMessageChannel(t *testing.T, ss store.Store) {
 func testMessageExportGroupMessageChannel(t *testing.T, ss store.Store) {
 	// get the starting number of message export entries
 	startTime := model.GetMillis()
-	var numMessageExports = 0
-	if r1 := <-ss.Compliance().MessageExport(startTime-10, 10); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		messages := r1.Data.([]*model.MessageExport)
-		numMessageExports = len(messages)
-	}
+	messages, err := ss.Compliance().MessageExport(startTime-10, 10)
+	require.Nil(t, err)
+	numMessageExports := len(messages)
 
 	// need a team
 	team := &model.Team{
@@ -669,15 +565,12 @@ func testMessageExportGroupMessageChannel(t *testing.T, ss store.Store) {
 
 	// fetch the message export for the post that user1 sent
 	messageExportMap := map[string]model.MessageExport{}
-	if r1 := <-ss.Compliance().MessageExport(startTime-10, 10); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		messages := r1.Data.([]*model.MessageExport)
-		assert.Equal(t, numMessageExports+1, len(messages))
+	messages, err = ss.Compliance().MessageExport(startTime-10, 10)
+	require.Nil(t, err)
+	assert.Equal(t, numMessageExports+1, len(messages))
 
-		for _, v := range messages {
-			messageExportMap[*v.PostId] = *v
-		}
+	for _, v := range messages {
+		messageExportMap[*v.PostId] = *v
 	}
 
 	// post is a DM between user1 and user2
