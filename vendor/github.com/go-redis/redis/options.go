@@ -101,6 +101,9 @@ func (opt *Options) init() {
 	if opt.Network == "" {
 		opt.Network = "tcp"
 	}
+	if opt.Addr == "" {
+		opt.Addr = "localhost:6379"
+	}
 	if opt.Dialer == nil {
 		opt.Dialer = func() (net.Conn, error) {
 			netDialer := &net.Dialer{

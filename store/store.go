@@ -156,7 +156,7 @@ type ChannelStore interface {
 	SaveMember(member *model.ChannelMember) StoreChannel
 	UpdateMember(member *model.ChannelMember) StoreChannel
 	GetMembers(channelId string, offset, limit int) StoreChannel
-	GetMember(channelId string, userId string) StoreChannel
+	GetMember(channelId string, userId string) (*model.ChannelMember, *model.AppError)
 	GetChannelMembersTimezones(channelId string) StoreChannel
 	GetAllChannelMembersForUser(userId string, allowFromCache bool, includeDeleted bool) StoreChannel
 	InvalidateAllChannelMembersForUser(userId string)
@@ -248,7 +248,7 @@ type UserStore interface {
 	UpdateAuthData(userId string, service string, authData *string, email string, resetMfa bool) StoreChannel
 	UpdateMfaSecret(userId, secret string) StoreChannel
 	UpdateMfaActive(userId string, active bool) StoreChannel
-	Get(id string) StoreChannel
+	Get(id string) (*model.User, *model.AppError)
 	GetAll() StoreChannel
 	ClearCaches()
 	InvalidateProfilesInChannelCacheByUser(userId string)
@@ -294,6 +294,8 @@ type UserStore interface {
 	GetAllAfter(limit int, afterId string) StoreChannel
 	GetUsersBatchForIndexing(startTime, endTime int64, limit int) StoreChannel
 	Count(options model.UserCountOptions) StoreChannel
+	GetTeamGroupUsers(teamID string) StoreChannel
+	GetChannelGroupUsers(channelID string) StoreChannel
 }
 
 type BotStore interface {
@@ -320,10 +322,10 @@ type SessionStore interface {
 }
 
 type AuditStore interface {
-	Save(audit *model.Audit) StoreChannel
-	Get(user_id string, offset int, limit int) StoreChannel
-	PermanentDeleteByUser(userId string) StoreChannel
-	PermanentDeleteBatch(endTime int64, limit int64) StoreChannel
+	Save(audit *model.Audit) *model.AppError
+	Get(user_id string, offset int, limit int) (model.Audits, *model.AppError)
+	PermanentDeleteByUser(userId string) *model.AppError
+	PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError)
 }
 
 type ClusterDiscoveryStore interface {
@@ -375,23 +377,23 @@ type SystemStore interface {
 }
 
 type WebhookStore interface {
-	SaveIncoming(webhook *model.IncomingWebhook) StoreChannel
-	GetIncoming(id string, allowFromCache bool) StoreChannel
-	GetIncomingList(offset, limit int) StoreChannel
-	GetIncomingByTeam(teamId string, offset, limit int) StoreChannel
-	UpdateIncoming(webhook *model.IncomingWebhook) StoreChannel
-	GetIncomingByChannel(channelId string) StoreChannel
+	SaveIncoming(webhook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError)
+	GetIncoming(id string, allowFromCache bool) (*model.IncomingWebhook, *model.AppError)
+	GetIncomingList(offset, limit int) ([]*model.IncomingWebhook, *model.AppError)
+	GetIncomingByTeam(teamId string, offset, limit int) ([]*model.IncomingWebhook, *model.AppError)
+	UpdateIncoming(webhook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError)
+	GetIncomingByChannel(channelId string) ([]*model.IncomingWebhook, *model.AppError)
 	DeleteIncoming(webhookId string, time int64) StoreChannel
 	PermanentDeleteIncomingByChannel(channelId string) StoreChannel
 	PermanentDeleteIncomingByUser(userId string) StoreChannel
 
-	SaveOutgoing(webhook *model.OutgoingWebhook) StoreChannel
+	SaveOutgoing(webhook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError)
 	GetOutgoing(id string) StoreChannel
 	GetOutgoingList(offset, limit int) StoreChannel
 	GetOutgoingByChannel(channelId string, offset, limit int) StoreChannel
 	GetOutgoingByTeam(teamId string, offset, limit int) StoreChannel
 	DeleteOutgoing(webhookId string, time int64) StoreChannel
-	PermanentDeleteOutgoingByChannel(channelId string) StoreChannel
+	PermanentDeleteOutgoingByChannel(channelId string) *model.AppError
 	PermanentDeleteOutgoingByUser(userId string) StoreChannel
 	UpdateOutgoing(hook *model.OutgoingWebhook) StoreChannel
 
@@ -522,6 +524,7 @@ type UserAccessTokenStore interface {
 
 type PluginStore interface {
 	SaveOrUpdate(keyVal *model.PluginKeyValue) StoreChannel
+	CompareAndSet(keyVal *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError)
 	Get(pluginId, key string) StoreChannel
 	Delete(pluginId, key string) StoreChannel
 	DeleteAllForPlugin(PluginId string) StoreChannel

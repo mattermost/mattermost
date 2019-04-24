@@ -66,6 +66,7 @@ func TestPreparePostForClient(t *testing.T) {
 		th := Setup(t).InitBasic()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableLinkPreviews = true
 			*cfg.ImageProxySettings.Enable = false
 			*cfg.ExperimentalSettings.DisablePostMetadata = false
 		})
@@ -420,6 +421,7 @@ func TestPreparePostForClientWithImageProxy(t *testing.T) {
 		th := Setup(t).InitBasic()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableLinkPreviews = true
 			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
 			*cfg.ImageProxySettings.Enable = true
 			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
@@ -496,6 +498,123 @@ func testProxyOpenGraphImage(t *testing.T, th *TestHelper, shouldProxy bool) {
 		assert.Equal(t, "https://avatars1.githubusercontent.com/u/3277310?s=400&v=4", image.URL, "image URL should be set")
 		assert.Equal(t, "", image.SecureURL, "secure image URL should not be set")
 	}
+}
+
+func TestGetEmbedForPost(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/index.html" {
+			w.Header().Set("Content-Type", "text/html")
+			w.Write([]byte(`
+			<html>
+			<head>
+			<meta property="og:title" content="Title" />
+			</head>
+			</html>`))
+		} else if r.URL.Path == "/image.png" {
+			file, err := testutils.ReadTestFile("test.png")
+			require.Nil(t, err)
+
+			w.Header().Set("Content-Type", "image/png")
+			w.Write(file)
+		} else {
+			t.Fatal("Invalid path", r.URL.Path)
+		}
+	}))
+	defer server.Close()
+
+	ogURL := server.URL + "/index.html"
+	imageURL := server.URL + "/image.png"
+
+	t.Run("with link previews enabled", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.1"
+			*cfg.ServiceSettings.EnableLinkPreviews = true
+		})
+
+		t.Run("should return a message attachment when the post has one", func(t *testing.T) {
+			embed, err := th.App.getEmbedForPost(&model.Post{
+				Props: model.StringInterface{
+					"attachments": []*model.SlackAttachment{
+						{
+							Text: "test",
+						},
+					},
+				},
+			}, "", false)
+
+			assert.Equal(t, &model.PostEmbed{
+				Type: model.POST_EMBED_MESSAGE_ATTACHMENT,
+			}, embed)
+			assert.Nil(t, err)
+		})
+
+		t.Run("should return an image embed when the first link is an image", func(t *testing.T) {
+			embed, err := th.App.getEmbedForPost(&model.Post{}, imageURL, false)
+
+			assert.Equal(t, &model.PostEmbed{
+				Type: model.POST_EMBED_IMAGE,
+				URL:  imageURL,
+			}, embed)
+			assert.Nil(t, err)
+		})
+
+		t.Run("should return an image embed when the first link is an image", func(t *testing.T) {
+			embed, err := th.App.getEmbedForPost(&model.Post{}, ogURL, false)
+
+			assert.Equal(t, &model.PostEmbed{
+				Type: model.POST_EMBED_OPENGRAPH,
+				URL:  ogURL,
+				Data: &opengraph.OpenGraph{
+					Title: "Title",
+				},
+			}, embed)
+			assert.Nil(t, err)
+		})
+	})
+
+	t.Run("with link previews disabled", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.1"
+			*cfg.ServiceSettings.EnableLinkPreviews = false
+		})
+
+		t.Run("should return an embedded message attachment", func(t *testing.T) {
+			embed, err := th.App.getEmbedForPost(&model.Post{
+				Props: model.StringInterface{
+					"attachments": []*model.SlackAttachment{
+						{
+							Text: "test",
+						},
+					},
+				},
+			}, "", false)
+
+			assert.Equal(t, &model.PostEmbed{
+				Type: model.POST_EMBED_MESSAGE_ATTACHMENT,
+			}, embed)
+			assert.Nil(t, err)
+		})
+
+		t.Run("should not return an opengraph embed", func(t *testing.T) {
+			embed, err := th.App.getEmbedForPost(&model.Post{}, ogURL, false)
+
+			assert.Nil(t, embed)
+			assert.Nil(t, err)
+		})
+
+		t.Run("should not return an image embed", func(t *testing.T) {
+			embed, err := th.App.getEmbedForPost(&model.Post{}, imageURL, false)
+
+			assert.Nil(t, embed)
+			assert.Nil(t, err)
+		})
+	})
 }
 
 func TestGetImagesForPost(t *testing.T) {

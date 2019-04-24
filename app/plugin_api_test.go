@@ -659,3 +659,99 @@ func TestBasicAPIPlugins(t *testing.T) {
 		}
 	}
 }
+
+func TestPluginAPIKVCompareAndSet(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	testCases := []struct {
+		Description   string
+		ExpectedValue []byte
+	}{
+		{
+			Description:   "Testing non-nil, non-empty value",
+			ExpectedValue: []byte("value1"),
+		},
+		{
+			Description:   "Testing empty value",
+			ExpectedValue: []byte(""),
+		},
+	}
+
+	for i, testCase := range testCases {
+		t.Run(testCase.Description, func(t *testing.T) {
+			expectedKey := fmt.Sprintf("Key%d", i)
+			expectedValueEmpty := []byte("")
+			expectedValue1 := testCase.ExpectedValue
+			expectedValue2 := []byte("value2")
+			expectedValue3 := []byte("value3")
+
+			// Attempt update using an incorrect old value
+			updated, err := api.KVCompareAndSet(expectedKey, expectedValue2, expectedValue1)
+			require.Nil(t, err)
+			require.False(t, updated)
+
+			// Make sure no key is already created
+			value, err := api.KVGet(expectedKey)
+			require.Nil(t, err)
+			require.Nil(t, value)
+
+			// Insert using nil old value
+			updated, err = api.KVCompareAndSet(expectedKey, nil, expectedValue1)
+			require.Nil(t, err)
+			require.True(t, updated)
+
+			// Get inserted value
+			value, err = api.KVGet(expectedKey)
+			require.Nil(t, err)
+			require.Equal(t, expectedValue1, value)
+
+			// Attempt to insert again using nil old value
+			updated, err = api.KVCompareAndSet(expectedKey, nil, expectedValue2)
+			require.Nil(t, err)
+			require.False(t, updated)
+
+			// Get old value to assert nothing has changed
+			value, err = api.KVGet(expectedKey)
+			require.Nil(t, err)
+			require.Equal(t, expectedValue1, value)
+
+			// Update using correct old value
+			updated, err = api.KVCompareAndSet(expectedKey, expectedValue1, expectedValue2)
+			require.Nil(t, err)
+			require.True(t, updated)
+
+			value, err = api.KVGet(expectedKey)
+			require.Nil(t, err)
+			require.Equal(t, expectedValue2, value)
+
+			// Update using incorrect old value
+			updated, err = api.KVCompareAndSet(expectedKey, []byte("incorrect"), expectedValue3)
+			require.Nil(t, err)
+			require.False(t, updated)
+
+			value, err = api.KVGet(expectedKey)
+			require.Nil(t, err)
+			require.Equal(t, expectedValue2, value)
+
+			// Update using nil old value
+			updated, err = api.KVCompareAndSet(expectedKey, nil, expectedValue3)
+			require.Nil(t, err)
+			require.False(t, updated)
+
+			value, err = api.KVGet(expectedKey)
+			require.Nil(t, err)
+			require.Equal(t, expectedValue2, value)
+
+			// Update using empty old value
+			updated, err = api.KVCompareAndSet(expectedKey, expectedValueEmpty, expectedValue3)
+			require.Nil(t, err)
+			require.False(t, updated)
+
+			value, err = api.KVGet(expectedKey)
+			require.Nil(t, err)
+			require.Equal(t, expectedValue2, value)
+		})
+	}
+}

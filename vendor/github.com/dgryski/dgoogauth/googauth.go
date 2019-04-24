@@ -181,7 +181,7 @@ func (c *OTPConfig) ProvisionURI(user string) string {
 // to configure a Google Authenticator mobile app. It respects the recommendations
 // on how to avoid conflicting accounts.
 //
-// See https://code.google.com/p/google-authenticator/wiki/ConflictingAccounts
+// See https://github.com/google/google-authenticator/wiki/Conflicting-Accounts
 func (c *OTPConfig) ProvisionURIWithIssuer(user string, issuer string) string {
 	auth := "totp/"
 	q := make(url.Values)

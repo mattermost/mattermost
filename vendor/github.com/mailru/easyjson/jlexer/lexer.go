@@ -521,11 +521,12 @@ func (r *Lexer) SkipRecursive() {
 	r.scanToken()
 	var start, end byte
 
-	if r.token.delimValue == '{' {
+	switch r.token.delimValue {
+	case '{':
 		start, end = '{', '}'
-	} else if r.token.delimValue == '[' {
+	case '[':
 		start, end = '[', ']'
-	} else {
+	default:
 		r.consume()
 		return
 	}

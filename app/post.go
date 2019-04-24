@@ -50,11 +50,10 @@ func (a *App) CreatePostAsUser(post *model.Post, currentSessionId string) (*mode
 		}
 
 		if err.Id == "api.post.create_post.town_square_read_only" {
-			result := <-a.Srv.Store.User().Get(post.UserId)
-			if result.Err != nil {
-				return nil, result.Err
+			user, userErr := a.Srv.Store.User().Get(post.UserId)
+			if userErr != nil {
+				return nil, userErr
 			}
-			user := result.Data.(*model.User)
 
 			T := utils.GetUserTranslations(user.Locale)
 			a.SendEphemeralPost(
@@ -164,11 +163,10 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		pchan = a.Srv.Store.Post().Get(post.RootId)
 	}
 
-	result := <-a.Srv.Store.User().Get(post.UserId)
-	if result.Err != nil {
-		return nil, result.Err
+	user, err := a.Srv.Store.User().Get(post.UserId)
+	if err != nil {
+		return nil, err
 	}
-	user := result.Data.(*model.User)
 
 	if a.License() != nil && *a.Config().TeamSettings.ExperimentalTownSquareIsReadOnly &&
 		!post.IsSystemMessage() &&
@@ -180,7 +178,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 	// Verify the parent/child relationships are correct
 	var parentPostList *model.PostList
 	if pchan != nil {
-		result = <-pchan
+		result := <-pchan
 		if result.Err != nil {
 			return nil, model.NewAppError("createPost", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest)
 		}
@@ -245,7 +243,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		}
 	}
 
-	result = <-a.Srv.Store.Post().Save(post)
+	result := <-a.Srv.Store.Post().Save(post)
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -364,7 +362,7 @@ func (a *App) FillInPostProps(post *model.Post, channel *model.Channel) *model.A
 	return nil
 }
 
-func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *model.Channel, triggerWebhooks bool, parentPostList *model.PostList) *model.AppError {
+func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *model.Channel, triggerWebhooks bool, parentPostList *model.PostList) error {
 	var team *model.Team
 	if len(channel.TeamId) > 0 {
 		result := <-a.Srv.Store.Team().Get(channel.TeamId)
