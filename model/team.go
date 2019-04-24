@@ -49,7 +49,6 @@ type TeamPatch struct {
 	Description      *string `json:"description"`
 	CompanyName      *string `json:"company_name"`
 	AllowedDomains   *string `json:"allowed_domains"`
-	InviteId         *string `json:"invite_id"`
 	AllowOpenInvite  *bool   `json:"allow_open_invite"`
 	GroupConstrained *bool   `json:"group_constrained"`
 }

@@ -411,7 +411,6 @@ func TestPatchTeam(t *testing.T) {
 	patch.DisplayName = model.NewString("Other name")
 	patch.Description = model.NewString("Other description")
 	patch.CompanyName = model.NewString("Other company name")
-	patch.InviteId = model.NewString("inviteid1")
 	patch.AllowOpenInvite = model.NewBool(true)
 
 	rteam, resp := Client.PatchTeam(team.Id, patch)
