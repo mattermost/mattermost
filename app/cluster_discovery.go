@@ -32,8 +32,10 @@ func (a *App) NewClusterDiscoveryService() *ClusterDiscoveryService {
 }
 
 func (me *ClusterDiscoveryService) Start() {
-
-	me.app.Srv.Store.ClusterDiscovery().Cleanup()
+	err := me.app.Srv.Store.ClusterDiscovery().Cleanup()
+	if err != nil {
+		mlog.Error(fmt.Sprintf("ClusterDiscoveryService failed to cleanup the outdated cluster discovery information err=%v", err))
+	}
 
 	exists, err := me.app.Srv.Store.ClusterDiscovery().Exists(&me.ClusterDiscovery)
 	if err != nil {
