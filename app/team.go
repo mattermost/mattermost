@@ -136,12 +136,12 @@ func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 }
 
 func (a *App) updateTeamUnsanitized(team *model.Team) (*model.Team, *model.AppError) {
-	result := <-a.Srv.Store.Team().Update(team)
-	if result.Err != nil {
-		return nil, result.Err
+	err := a.Srv.Store.Team().Update(team)
+	if err != nil {
+		return nil, err
 	}
 
-	return result.Data.(*model.Team), nil
+	return team, nil
 }
 
 // RenameTeam is used to rename the team Name and the DisplayName fields
@@ -180,8 +180,8 @@ func (a *App) UpdateTeamScheme(team *model.Team) (*model.Team, *model.AppError) 
 
 	oldTeam.SchemeId = team.SchemeId
 
-	if result := <-a.Srv.Store.Team().Update(oldTeam); result.Err != nil {
-		return nil, result.Err
+	if err := a.Srv.Store.Team().Update(oldTeam); err != nil {
+		return nil, err
 	}
 
 	a.sendTeamEvent(oldTeam, model.WEBSOCKET_EVENT_UPDATE_TEAM)
@@ -1051,8 +1051,8 @@ func (a *App) PermanentDeleteTeamId(teamId string) *model.AppError {
 
 func (a *App) PermanentDeleteTeam(team *model.Team) *model.AppError {
 	team.DeleteAt = model.GetMillis()
-	if result := <-a.Srv.Store.Team().Update(team); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.Team().Update(team); err != nil {
+		return err
 	}
 
 	if result := <-a.Srv.Store.Channel().GetTeamChannels(team.Id); result.Err != nil {
@@ -1090,8 +1090,8 @@ func (a *App) SoftDeleteTeam(teamId string) *model.AppError {
 	}
 
 	team.DeleteAt = model.GetMillis()
-	if result := <-a.Srv.Store.Team().Update(team); result.Err != nil {
-		return result.Err
+	if err = a.Srv.Store.Team().Update(team); err != nil {
+		return err
 	}
 
 	a.sendTeamEvent(team, model.WEBSOCKET_EVENT_DELETE_TEAM)
@@ -1104,11 +1104,12 @@ func (a *App) RestoreTeam(teamId string) *model.AppError {
 	if err != nil {
 		return err
 	}
+
 	team.DeleteAt = 0
-	result := <-a.Srv.Store.Team().Update(team)
-	if result.Err != nil {
-		return result.Err
+	if err = a.Srv.Store.Team().Update(team); err != nil {
+		return err
 	}
+
 	a.sendTeamEvent(team, model.WEBSOCKET_EVENT_RESTORE_TEAM)
 	return nil
 }

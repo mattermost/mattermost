@@ -606,15 +606,15 @@ func (_m *TeamStore) SearchPrivate(term string) store.StoreChannel {
 }
 
 // Update provides a mock function with given fields: team
-func (_m *TeamStore) Update(team *model.Team) store.StoreChannel {
+func (_m *TeamStore) Update(team *model.Team) *model.AppError {
 	ret := _m.Called(team)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(*model.Team) store.StoreChannel); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(*model.Team) *model.AppError); ok {
 		r0 = rf(team)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
