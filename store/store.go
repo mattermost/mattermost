@@ -436,8 +436,8 @@ type PreferenceStore interface {
 }
 
 type LicenseStore interface {
-	Save(license *model.LicenseRecord) StoreChannel
-	Get(id string) StoreChannel
+	Save(license *model.LicenseRecord) (*model.LicenseRecord, *model.AppError)
+	Get(id string) (*model.LicenseRecord, *model.AppError)
 }
 
 type TokenStore interface {
