@@ -201,7 +201,7 @@ func testWebhookStoreDeleteIncomingByChannel(t *testing.T, ss store.Store) {
 		t.Fatal("invalid returned webhook")
 	}
 
-	if err := ss.Webhook().PermanentDeleteIncomingByChannel(o1.ChannelId); err != nil {
+	if err = ss.Webhook().PermanentDeleteIncomingByChannel(o1.ChannelId); err != nil {
 		t.Fatal(err)
 	}
 
