@@ -225,21 +225,17 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 		return []*model.FileInfo{}
 	}
 
-	cchan := a.Srv.Store.Channel().Get(post.ChannelId, true)
-
+	channel, errCh := a.Srv.Store.Channel().Get(post.ChannelId, true)
 	// There's a weird bug that rarely happens where a post ends up with duplicate Filenames so remove those
 	filenames := utils.RemoveDuplicatesFromStringArray(post.Filenames)
-
-	result := <-cchan
-	if result.Err != nil {
+	if errCh != nil {
 		mlog.Error(
-			fmt.Sprintf("Unable to get channel when migrating post to use FileInfos, err=%v", result.Err),
+			fmt.Sprintf("Unable to get channel when migrating post to use FileInfos, err=%v", errCh),
 			mlog.String("post_id", post.Id),
 			mlog.String("channel_id", post.ChannelId),
 		)
 		return []*model.FileInfo{}
 	}
-	channel := result.Data.(*model.Channel)
 
 	// Find the team that was used to make this post since its part of the file path that isn't saved in the Filename
 	var teamId string
@@ -272,7 +268,7 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	fileMigrationLock.Lock()
 	defer fileMigrationLock.Unlock()
 
-	result = <-a.Srv.Store.Post().Get(post.Id)
+	result := <-a.Srv.Store.Post().Get(post.Id)
 	if result.Err != nil {
 		mlog.Error(fmt.Sprintf("Unable to get post when migrating post to use FileInfos, err=%v", result.Err), mlog.String("post_id", post.Id))
 		return []*model.FileInfo{}
