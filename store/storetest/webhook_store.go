@@ -38,18 +38,25 @@ func TestWebhookStore(t *testing.T, ss store.Store) {
 func testWebhookStoreSaveIncoming(t *testing.T, ss store.Store) {
 	o1 := buildIncomingWebhook()
 
-	if err := (<-ss.Webhook().SaveIncoming(o1)).Err; err != nil {
+	if _, err := ss.Webhook().SaveIncoming(o1); err != nil {
 		t.Fatal("couldn't save item", err)
 	}
 
-	if err := (<-ss.Webhook().SaveIncoming(o1)).Err; err == nil {
+	if _, err := ss.Webhook().SaveIncoming(o1); err == nil {
 		t.Fatal("shouldn't be able to update from save")
 	}
 }
 
 func testWebhookStoreUpdateIncoming(t *testing.T, ss store.Store) {
+
+	var err *model.AppError
+
 	o1 := buildIncomingWebhook()
-	o1 = (<-ss.Webhook().SaveIncoming(o1)).Data.(*model.IncomingWebhook)
+	o1, err = ss.Webhook().SaveIncoming(o1)
+	if err != nil {
+		t.Fatal("unable to save webhook", err)
+	}
+
 	previousUpdatedAt := o1.UpdateAt
 
 	o1.DisplayName = "TestHook"
@@ -69,8 +76,13 @@ func testWebhookStoreUpdateIncoming(t *testing.T, ss store.Store) {
 }
 
 func testWebhookStoreGetIncoming(t *testing.T, ss store.Store) {
+	var err *model.AppError
+
 	o1 := buildIncomingWebhook()
-	o1 = (<-ss.Webhook().SaveIncoming(o1)).Data.(*model.IncomingWebhook)
+	o1, err = ss.Webhook().SaveIncoming(o1)
+	if err != nil {
+		t.Fatal("unable to save webhook", err)
+	}
 
 	webhook, err := ss.Webhook().GetIncoming(o1.Id, false)
 	require.Nil(t, err)
@@ -103,7 +115,11 @@ func testWebhookStoreGetIncomingList(t *testing.T, ss store.Store) {
 	o1.UserId = model.NewId()
 	o1.TeamId = model.NewId()
 
-	o1 = (<-ss.Webhook().SaveIncoming(o1)).Data.(*model.IncomingWebhook)
+	var err *model.AppError
+	o1, err = ss.Webhook().SaveIncoming(o1)
+	if err != nil {
+		t.Fatal("unable to save webhook", err)
+	}
 
 	if r1 := <-ss.Webhook().GetIncomingList(0, 1000); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -130,9 +146,11 @@ func testWebhookStoreGetIncomingList(t *testing.T, ss store.Store) {
 }
 
 func testWebhookStoreGetIncomingByTeam(t *testing.T, ss store.Store) {
-	o1 := buildIncomingWebhook()
+	var err *model.AppError
 
-	o1 = (<-ss.Webhook().SaveIncoming(o1)).Data.(*model.IncomingWebhook)
+	o1 := buildIncomingWebhook()
+	o1, err = ss.Webhook().SaveIncoming(o1)
+	require.Nil(t, err)
 
 	if hooks, err := ss.Webhook().GetIncomingByTeam(o1.TeamId, 0, 100); err != nil {
 		t.Fatal(err)
@@ -154,7 +172,10 @@ func testWebhookStoreGetIncomingByTeam(t *testing.T, ss store.Store) {
 func testWebhookStoreGetIncomingByChannel(t *testing.T, ss store.Store) {
 	o1 := buildIncomingWebhook()
 
-	o1 = (<-ss.Webhook().SaveIncoming(o1)).Data.(*model.IncomingWebhook)
+	o1, err := ss.Webhook().SaveIncoming(o1)
+	if err != nil {
+		t.Fatal("unable to save webhook")
+	}
 
 	webhooks, err := ss.Webhook().GetIncomingByChannel(o1.ChannelId)
 	require.Nil(t, err)
@@ -172,9 +193,13 @@ func testWebhookStoreGetIncomingByChannel(t *testing.T, ss store.Store) {
 }
 
 func testWebhookStoreDeleteIncoming(t *testing.T, ss store.Store) {
-	o1 := buildIncomingWebhook()
+	var err *model.AppError
 
-	o1 = (<-ss.Webhook().SaveIncoming(o1)).Data.(*model.IncomingWebhook)
+	o1 := buildIncomingWebhook()
+	o1, err = ss.Webhook().SaveIncoming(o1)
+	if err != nil {
+		t.Fatal("unable to save webhook", err)
+	}
 
 	webhook, err := ss.Webhook().GetIncoming(o1.Id, true)
 	require.Nil(t, err)
@@ -191,9 +216,13 @@ func testWebhookStoreDeleteIncoming(t *testing.T, ss store.Store) {
 }
 
 func testWebhookStoreDeleteIncomingByChannel(t *testing.T, ss store.Store) {
-	o1 := buildIncomingWebhook()
+	var err *model.AppError
 
-	o1 = (<-ss.Webhook().SaveIncoming(o1)).Data.(*model.IncomingWebhook)
+	o1 := buildIncomingWebhook()
+	o1, err = ss.Webhook().SaveIncoming(o1)
+	if err != nil {
+		t.Fatal("unable to save webhook", err)
+	}
 
 	webhook, err := ss.Webhook().GetIncoming(o1.Id, true)
 	require.Nil(t, err)
@@ -211,9 +240,13 @@ func testWebhookStoreDeleteIncomingByChannel(t *testing.T, ss store.Store) {
 }
 
 func testWebhookStoreDeleteIncomingByUser(t *testing.T, ss store.Store) {
-	o1 := buildIncomingWebhook()
+	var err *model.AppError
 
-	o1 = (<-ss.Webhook().SaveIncoming(o1)).Data.(*model.IncomingWebhook)
+	o1 := buildIncomingWebhook()
+	o1, err = ss.Webhook().SaveIncoming(o1)
+	if err != nil {
+		t.Fatal("unable to save webhook", err)
+	}
 
 	webhook, err := ss.Webhook().GetIncoming(o1.Id, true)
 	require.Nil(t, err)
@@ -490,7 +523,7 @@ func testWebhookStoreCountIncoming(t *testing.T, ss store.Store) {
 	o1.UserId = model.NewId()
 	o1.TeamId = model.NewId()
 
-	_ = (<-ss.Webhook().SaveIncoming(o1)).Data.(*model.IncomingWebhook)
+	_, _ = ss.Webhook().SaveIncoming(o1)
 
 	if r := <-ss.Webhook().AnalyticsIncomingCount(""); r.Err != nil {
 		t.Fatal(r.Err)
