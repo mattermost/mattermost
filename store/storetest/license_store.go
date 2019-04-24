@@ -8,6 +8,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
+	"github.com/stretchr/testify/require"
 )
 
 func TestLicenseStore(t *testing.T, ss store.Store) {
@@ -20,17 +21,17 @@ func testLicenseStoreSave(t *testing.T, ss store.Store) {
 	l1.Id = model.NewId()
 	l1.Bytes = "junk"
 
-	if err := (<-ss.License().Save(&l1)).Err; err != nil {
+	if _, err := ss.License().Save(&l1); err != nil {
 		t.Fatal("couldn't save license record", err)
 	}
 
-	if err := (<-ss.License().Save(&l1)).Err; err != nil {
+	if _, err := ss.License().Save(&l1); err != nil {
 		t.Fatal("shouldn't fail on trying to save existing license record", err)
 	}
 
 	l1.Id = ""
 
-	if err := (<-ss.License().Save(&l1)).Err; err == nil {
+	if _, err := ss.License().Save(&l1); err == nil {
 		t.Fatal("should fail on invalid license", err)
 	}
 }
@@ -40,17 +41,18 @@ func testLicenseStoreGet(t *testing.T, ss store.Store) {
 	l1.Id = model.NewId()
 	l1.Bytes = "junk"
 
-	store.Must(ss.License().Save(&l1))
+	_, err := ss.License().Save(&l1)
+	require.Nil(t, err)
 
-	if r := <-ss.License().Get(l1.Id); r.Err != nil {
-		t.Fatal("couldn't get license", r.Err)
+	if record, err := ss.License().Get(l1.Id); err != nil {
+		t.Fatal("couldn't get license", err)
 	} else {
-		if r.Data.(*model.LicenseRecord).Bytes != l1.Bytes {
+		if record.Bytes != l1.Bytes {
 			t.Fatal("license bytes didn't match")
 		}
 	}
 
-	if err := (<-ss.License().Get("missing")).Err; err == nil {
+	if _, err := ss.License().Get("missing"); err == nil {
 		t.Fatal("should fail on get license", err)
 	}
 }
