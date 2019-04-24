@@ -121,11 +121,10 @@ func testWebhookStoreGetIncomingList(t *testing.T, ss store.Store) {
 		t.Fatal("unable to save webhook", err)
 	}
 
-	if r1 := <-ss.Webhook().GetIncomingList(0, 1000); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if hooks, err := ss.Webhook().GetIncomingList(0, 1000); err != nil {
+		t.Fatal(err)
 	} else {
 		found := false
-		hooks := r1.Data.([]*model.IncomingWebhook)
 		for _, hook := range hooks {
 			if hook.Id == o1.Id {
 				found = true
@@ -136,10 +135,10 @@ func testWebhookStoreGetIncomingList(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if result := <-ss.Webhook().GetIncomingList(0, 1); result.Err != nil {
-		t.Fatal(result.Err)
+	if hooks, err := ss.Webhook().GetIncomingList(0, 1); err != nil {
+		t.Fatal(err)
 	} else {
-		if len(result.Data.([]*model.IncomingWebhook)) != 1 {
+		if len(hooks) != 1 {
 			t.Fatal("only 1 should be returned")
 		}
 	}
