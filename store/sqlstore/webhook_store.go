@@ -338,7 +338,7 @@ func (s SqlWebhookStore) AnalyticsIncomingCount(teamId string) (int64, *model.Ap
 		FROM
 			IncomingWebhooks
 		WHERE
-	DeleteAt = 0`
+			DeleteAt = 0`
 
 	if len(teamId) > 0 {
 		query += " AND TeamId = :TeamId"
