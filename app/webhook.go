@@ -323,11 +323,7 @@ func (a *App) CreateIncomingWebhookForChannel(creatorId string, channel *model.C
 		return nil, model.NewAppError("CreateIncomingWebhookForChannel", "api.incoming_webhook.invalid_username.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if result := <-a.Srv.Store.Webhook().SaveIncoming(hook); result.Err != nil {
-		return nil, result.Err
-	} else {
-		return result.Data.(*model.IncomingWebhook), nil
-	}
+	return a.Srv.Store.Webhook().SaveIncoming(hook)
 }
 
 func (a *App) UpdateIncomingWebhook(oldHook, updatedHook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError) {
