@@ -91,7 +91,7 @@ require (
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	gopkg.in/olivere/elastic.v5 v5.0.79
 	gopkg.in/yaml.v2 v2.2.2
-	willnorris.com/go/imageproxy v0.8.1-0.20190326225038-cf54b2cf2c9e
+	willnorris.com/go/imageproxy v0.8.1-0.20190326225038-d4246a08fdec
 )
 
 // Workaround for https://github.com/golang/go/issues/30831 and fallout.
