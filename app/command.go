@@ -218,7 +218,12 @@ func (a *App) tryExecuteCustomCommand(args *model.CommandArgs, trigger string, m
 		return nil, nil, model.NewAppError("ExecuteCommand", "api.command.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	chanChan := a.Srv.Store.Channel().Get(args.ChannelId, true)
+	chanChan := make(chan store.StoreResult, 1)
+	go func() {
+		channel, err := a.Srv.Store.Channel().Get(args.ChannelId, true)
+		chanChan <- store.StoreResult{Data: channel, Err: err}
+		close(chanChan)
+	}()
 	teamChan := a.Srv.Store.Team().Get(args.TeamId)
 	userChan := make(chan store.StoreResult, 1)
 	go func() {
