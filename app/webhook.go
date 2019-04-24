@@ -353,12 +353,12 @@ func (a *App) UpdateIncomingWebhook(oldHook, updatedHook *model.IncomingWebhook)
 	updatedHook.TeamId = oldHook.TeamId
 	updatedHook.DeleteAt = oldHook.DeleteAt
 
-	if result := <-a.Srv.Store.Webhook().UpdateIncoming(updatedHook); result.Err != nil {
-		return nil, result.Err
-	} else {
-		a.InvalidateCacheForWebhook(oldHook.Id)
-		return result.Data.(*model.IncomingWebhook), nil
+	newWebhook, err := a.Srv.Store.Webhook().UpdateIncoming(updatedHook)
+	if err != nil {
+		return nil, err
 	}
+	a.InvalidateCacheForWebhook(oldHook.Id)
+	return newWebhook, nil
 }
 
 func (a *App) DeleteIncomingWebhook(hookId string) *model.AppError {
@@ -388,11 +388,7 @@ func (a *App) GetIncomingWebhooksForTeamPage(teamId string, page, perPage int) (
 		return nil, model.NewAppError("GetIncomingWebhooksForTeamPage", "api.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if result := <-a.Srv.Store.Webhook().GetIncomingByTeam(teamId, page*perPage, perPage); result.Err != nil {
-		return nil, result.Err
-	} else {
-		return result.Data.([]*model.IncomingWebhook), nil
-	}
+	return a.Srv.Store.Webhook().GetIncomingByTeam(teamId, page*perPage, perPage)
 }
 
 func (a *App) GetIncomingWebhooksPage(page, perPage int) ([]*model.IncomingWebhook, *model.AppError) {
@@ -448,11 +444,12 @@ func (a *App) CreateOutgoingWebhook(hook *model.OutgoingWebhook) (*model.Outgoin
 		}
 	}
 
-	if result := <-a.Srv.Store.Webhook().SaveOutgoing(hook); result.Err != nil {
-		return nil, result.Err
-	} else {
-		return result.Data.(*model.OutgoingWebhook), nil
+	webhook, err := a.Srv.Store.Webhook().SaveOutgoing(hook)
+	if err != nil {
+		return nil, err
 	}
+
+	return webhook, nil
 }
 
 func (a *App) UpdateOutgoingWebhook(oldHook, updatedHook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError) {

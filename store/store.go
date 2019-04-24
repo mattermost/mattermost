@@ -380,20 +380,20 @@ type WebhookStore interface {
 	SaveIncoming(webhook *model.IncomingWebhook) StoreChannel
 	GetIncoming(id string, allowFromCache bool) (*model.IncomingWebhook, *model.AppError)
 	GetIncomingList(offset, limit int) StoreChannel
-	GetIncomingByTeam(teamId string, offset, limit int) StoreChannel
-	UpdateIncoming(webhook *model.IncomingWebhook) StoreChannel
-	GetIncomingByChannel(channelId string) StoreChannel
+	GetIncomingByTeam(teamId string, offset, limit int) ([]*model.IncomingWebhook, *model.AppError)
+	UpdateIncoming(webhook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError)
+	GetIncomingByChannel(channelId string) ([]*model.IncomingWebhook, *model.AppError)
 	DeleteIncoming(webhookId string, time int64) StoreChannel
 	PermanentDeleteIncomingByChannel(channelId string) StoreChannel
 	PermanentDeleteIncomingByUser(userId string) StoreChannel
 
-	SaveOutgoing(webhook *model.OutgoingWebhook) StoreChannel
+	SaveOutgoing(webhook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError)
 	GetOutgoing(id string) (*model.OutgoingWebhook, *model.AppError)
 	GetOutgoingList(offset, limit int) StoreChannel
 	GetOutgoingByChannel(channelId string, offset, limit int) StoreChannel
 	GetOutgoingByTeam(teamId string, offset, limit int) StoreChannel
 	DeleteOutgoing(webhookId string, time int64) StoreChannel
-	PermanentDeleteOutgoingByChannel(channelId string) StoreChannel
+	PermanentDeleteOutgoingByChannel(channelId string) *model.AppError
 	PermanentDeleteOutgoingByUser(userId string) StoreChannel
 	UpdateOutgoing(hook *model.OutgoingWebhook) StoreChannel
 
@@ -524,6 +524,7 @@ type UserAccessTokenStore interface {
 
 type PluginStore interface {
 	SaveOrUpdate(keyVal *model.PluginKeyValue) StoreChannel
+	CompareAndSet(keyVal *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError)
 	Get(pluginId, key string) StoreChannel
 	Delete(pluginId, key string) StoreChannel
 	DeleteAllForPlugin(PluginId string) StoreChannel
