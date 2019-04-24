@@ -70,14 +70,14 @@ func (s SqlComplianceStore) GetAll(offset, limit int) (model.Compliances, *model
 }
 
 func (us SqlComplianceStore) Get(id string) (*model.Compliance, *model.AppError) {
-	compliance, err := us.GetReplica().Get(model.Compliance{}, id)
+	obj, err := us.GetReplica().Get(model.Compliance{}, id)
 	if err != nil {
 		return nil, model.NewAppError("SqlComplianceStore.Get", "store.sql_compliance.get.finding.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	if compliance == nil {
+	if obj == nil {
 		return nil, model.NewAppError("SqlComplianceStore.Get", "store.sql_compliance.get.finding.app_error", nil, err.Error(), http.StatusNotFound)
 	}
-	return compliance.(*model.Compliance), nil
+	return obj.(*model.Compliance), nil
 }
 
 func (s SqlComplianceStore) ComplianceExport(job *model.Compliance) ([]*model.CompliancePost, *model.AppError) {
