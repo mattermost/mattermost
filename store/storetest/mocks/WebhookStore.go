@@ -158,19 +158,28 @@ func (_m *WebhookStore) GetIncomingByTeam(teamId string, offset int, limit int) 
 }
 
 // GetIncomingList provides a mock function with given fields: offset, limit
-func (_m *WebhookStore) GetIncomingList(offset int, limit int) store.StoreChannel {
+func (_m *WebhookStore) GetIncomingList(offset int, limit int) ([]*model.IncomingWebhook, *model.AppError) {
 	ret := _m.Called(offset, limit)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(int, int) store.StoreChannel); ok {
+	var r0 []*model.IncomingWebhook
+	if rf, ok := ret.Get(0).(func(int, int) []*model.IncomingWebhook); ok {
 		r0 = rf(offset, limit)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]*model.IncomingWebhook)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(int, int) *model.AppError); ok {
+		r1 = rf(offset, limit)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetOutgoing provides a mock function with given fields: id
@@ -307,19 +316,28 @@ func (_m *WebhookStore) PermanentDeleteOutgoingByUser(userId string) store.Store
 }
 
 // SaveIncoming provides a mock function with given fields: webhook
-func (_m *WebhookStore) SaveIncoming(webhook *model.IncomingWebhook) store.StoreChannel {
+func (_m *WebhookStore) SaveIncoming(webhook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError) {
 	ret := _m.Called(webhook)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(*model.IncomingWebhook) store.StoreChannel); ok {
+	var r0 *model.IncomingWebhook
+	if rf, ok := ret.Get(0).(func(*model.IncomingWebhook) *model.IncomingWebhook); ok {
 		r0 = rf(webhook)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.IncomingWebhook)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.IncomingWebhook) *model.AppError); ok {
+		r1 = rf(webhook)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // SaveOutgoing provides a mock function with given fields: webhook

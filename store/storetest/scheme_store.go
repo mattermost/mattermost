@@ -422,9 +422,8 @@ func testSchemeStoreDelete(t *testing.T, ss store.Store) {
 	sres5 := <-ss.Scheme().Delete(d5.Id)
 	assert.Nil(t, sres5.Err)
 
-	cres6 := <-ss.Channel().Get(c5.Id, true)
-	assert.Nil(t, cres6.Err)
-	c6 := cres6.Data.(*model.Channel)
+	c6, err := ss.Channel().Get(c5.Id, true)
+	assert.Nil(t, err)
 	assert.Equal(t, "", *c6.SchemeId)
 }
 
