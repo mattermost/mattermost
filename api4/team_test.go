@@ -1481,6 +1481,19 @@ func TestAddTeamMember(t *testing.T) {
 	_, err := th.App.UpdateTeam(team)
 	require.Nil(t, err)
 
+	// Attempt to use a token on a group-constrained team
+	token = model.NewToken(
+		app.TOKEN_TYPE_TEAM_INVITATION,
+		model.MapToJson(map[string]string{"teamId": team.Id}),
+	)
+	<-th.App.Srv.Store.Token().Save(token)
+	tm, resp = Client.AddTeamMemberFromInvite(token.Token, "")
+	require.Equal(t, "app.team.invite_token.group_constrained.error", resp.Error.Id)
+
+	// Attempt to use an invite id
+	tm, resp = Client.AddTeamMemberFromInvite("", team.InviteId)
+	require.Equal(t, "app.team.invite_id.group_constrained.error", resp.Error.Id)
+
 	// User is not in associated groups so shouldn't be allowed
 	_, resp = th.SystemAdminClient.AddTeamMember(team.Id, otherUser.Id)
 	CheckErrorMessage(t, resp, "api.team.add_members.user_denied")

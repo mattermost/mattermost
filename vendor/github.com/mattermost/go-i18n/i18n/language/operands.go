@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-// http://unicode.org/reports/tr35/tr35-numbers.html#Operands
+// Operands is a representation of http://unicode.org/reports/tr35/tr35-numbers.html#Operands
 type Operands struct {
 	N float64 // absolute value of the source number (integer and decimals)
 	I int64   // integer digits of n
@@ -16,7 +16,7 @@ type Operands struct {
 	T int64   // visible fractional digits in n, without trailing zeros
 }
 
-// NmodEqualAny returns true if o represents an integer equal to any of the arguments.
+// NequalsAny returns true if o represents an integer equal to any of the arguments.
 func (o *Operands) NequalsAny(any ...int64) bool {
 	for _, i := range any {
 		if o.I == i && o.T == 0 {
@@ -26,7 +26,7 @@ func (o *Operands) NequalsAny(any ...int64) bool {
 	return false
 }
 
-// NmodEqualAny returns true if o represents an integer equal to any of the arguments modulo mod.
+// NmodEqualsAny returns true if o represents an integer equal to any of the arguments modulo mod.
 func (o *Operands) NmodEqualsAny(mod int64, any ...int64) bool {
 	modI := o.I % mod
 	for _, i := range any {
@@ -37,7 +37,7 @@ func (o *Operands) NmodEqualsAny(mod int64, any ...int64) bool {
 	return false
 }
 
-// NmodInRange returns true if o represents an integer in the closed interval [from, to].
+// NinRange returns true if o represents an integer in the closed interval [from, to].
 func (o *Operands) NinRange(from, to int64) bool {
 	return o.T == 0 && from <= o.I && o.I <= to
 }

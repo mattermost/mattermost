@@ -198,6 +198,9 @@ func TestGetLogs(t *testing.T) {
 		t.Log(len(logs))
 		t.Fatal("wrong length")
 	}
+	for i := 10; i < 20; i++ {
+		assert.Containsf(t, logs[i-10], fmt.Sprintf(`"msg":"%d"`, i), "Log line doesn't contain correct message")
+	}
 
 	logs, resp = th.SystemAdminClient.GetLogs(1, 10)
 	CheckNoError(t, resp)

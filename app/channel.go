@@ -792,8 +792,13 @@ func (a *App) UpdateChannelMemberNotifyProps(data map[string]string, channelId s
 }
 
 func (a *App) DeleteChannel(channel *model.Channel, userId string) *model.AppError {
-	ihc := a.Srv.Store.Webhook().GetIncomingByChannel(channel.Id)
+	ihc := make(chan store.StoreResult, 1)
 	ohc := a.Srv.Store.Webhook().GetOutgoingByChannel(channel.Id, -1, -1)
+	go func() {
+		webhooks, err := a.Srv.Store.Webhook().GetIncomingByChannel(channel.Id)
+		ihc <- store.StoreResult{Data: webhooks, Err: err}
+		close(ihc)
+	}()
 
 	var user *model.User
 	if userId != "" {
@@ -1878,8 +1883,8 @@ func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
 		return result.Err
 	}
 
-	if result := <-a.Srv.Store.Webhook().PermanentDeleteOutgoingByChannel(channel.Id); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.Webhook().PermanentDeleteOutgoingByChannel(channel.Id); err != nil {
+		return err
 	}
 
 	if result := <-a.Srv.Store.Channel().PermanentDelete(channel.Id); result.Err != nil {

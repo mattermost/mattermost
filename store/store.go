@@ -329,12 +329,12 @@ type AuditStore interface {
 }
 
 type ClusterDiscoveryStore interface {
-	Save(discovery *model.ClusterDiscovery) StoreChannel
-	Delete(discovery *model.ClusterDiscovery) StoreChannel
-	Exists(discovery *model.ClusterDiscovery) StoreChannel
-	GetAll(discoveryType, clusterName string) StoreChannel
-	SetLastPingAt(discovery *model.ClusterDiscovery) StoreChannel
-	Cleanup() StoreChannel
+	Save(discovery *model.ClusterDiscovery) *model.AppError
+	Delete(discovery *model.ClusterDiscovery) (bool, *model.AppError)
+	Exists(discovery *model.ClusterDiscovery) (bool, *model.AppError)
+	GetAll(discoveryType, clusterName string) ([]*model.ClusterDiscovery, *model.AppError)
+	SetLastPingAt(discovery *model.ClusterDiscovery) *model.AppError
+	Cleanup() *model.AppError
 }
 
 type ComplianceStore interface {
@@ -377,23 +377,23 @@ type SystemStore interface {
 }
 
 type WebhookStore interface {
-	SaveIncoming(webhook *model.IncomingWebhook) StoreChannel
+	SaveIncoming(webhook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError)
 	GetIncoming(id string, allowFromCache bool) (*model.IncomingWebhook, *model.AppError)
-	GetIncomingList(offset, limit int) StoreChannel
-	GetIncomingByTeam(teamId string, offset, limit int) StoreChannel
-	UpdateIncoming(webhook *model.IncomingWebhook) StoreChannel
-	GetIncomingByChannel(channelId string) StoreChannel
+	GetIncomingList(offset, limit int) ([]*model.IncomingWebhook, *model.AppError)
+	GetIncomingByTeam(teamId string, offset, limit int) ([]*model.IncomingWebhook, *model.AppError)
+	UpdateIncoming(webhook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError)
+	GetIncomingByChannel(channelId string) ([]*model.IncomingWebhook, *model.AppError)
 	DeleteIncoming(webhookId string, time int64) StoreChannel
 	PermanentDeleteIncomingByChannel(channelId string) StoreChannel
 	PermanentDeleteIncomingByUser(userId string) StoreChannel
 
-	SaveOutgoing(webhook *model.OutgoingWebhook) StoreChannel
+	SaveOutgoing(webhook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError)
 	GetOutgoing(id string) StoreChannel
 	GetOutgoingList(offset, limit int) StoreChannel
 	GetOutgoingByChannel(channelId string, offset, limit int) StoreChannel
 	GetOutgoingByTeam(teamId string, offset, limit int) StoreChannel
 	DeleteOutgoing(webhookId string, time int64) StoreChannel
-	PermanentDeleteOutgoingByChannel(channelId string) StoreChannel
+	PermanentDeleteOutgoingByChannel(channelId string) *model.AppError
 	PermanentDeleteOutgoingByUser(userId string) StoreChannel
 	UpdateOutgoing(hook *model.OutgoingWebhook) StoreChannel
 
@@ -524,6 +524,7 @@ type UserAccessTokenStore interface {
 
 type PluginStore interface {
 	SaveOrUpdate(keyVal *model.PluginKeyValue) StoreChannel
+	CompareAndSet(keyVal *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError)
 	Get(pluginId, key string) StoreChannel
 	Delete(pluginId, key string) StoreChannel
 	DeleteAllForPlugin(PluginId string) StoreChannel
