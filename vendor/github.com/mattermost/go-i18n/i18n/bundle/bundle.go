@@ -11,8 +11,8 @@ import (
 	"sync"
 	"unicode"
 
-	"github.com/nicksnyder/go-i18n/i18n/language"
-	"github.com/nicksnyder/go-i18n/i18n/translation"
+	"github.com/mattermost/go-i18n/i18n/language"
+	"github.com/mattermost/go-i18n/i18n/translation"
 	toml "github.com/pelletier/go-toml"
 	"gopkg.in/yaml.v2"
 )
@@ -110,13 +110,12 @@ func parseTranslations(filename string, buf []byte) ([]translation.Translation, 
 			return nil, fmt.Errorf("failed to unmarshal %v: %v", filename, err)
 		}
 		return parseStandardFormat(standardFormat)
-	} else {
-		var flatFormat map[string]map[string]interface{}
-		if err := unmarshal(ext, buf, &flatFormat); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal %v: %v", filename, err)
-		}
-		return parseFlatFormat(flatFormat)
 	}
+	var flatFormat map[string]map[string]interface{}
+	if err := unmarshal(ext, buf, &flatFormat); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal %v: %v", filename, err)
+	}
+	return parseFlatFormat(flatFormat)
 }
 
 func isStandardFormat(ext string, buf []byte) bool {
@@ -381,7 +380,16 @@ func (b *Bundle) translate(lang *language.Language, translationID string, args .
 	p, _ := lang.Plural(count)
 	template := translation.Template(p)
 	if template == nil {
-		return translationID
+		if p == language.Other {
+			return translationID
+		}
+		countInt, ok := count.(int)
+		if ok && countInt > 1 {
+			template = translation.Template(language.Other)
+			if template == nil {
+				return translationID
+			}
+		}
 	}
 
 	s := template.Execute(data)
