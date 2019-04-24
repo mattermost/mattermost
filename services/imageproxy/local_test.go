@@ -31,7 +31,7 @@ func makeTestLocalProxy() *ImageProxy {
 		},
 	}
 
-	return MakeImageProxy(configService, httpservice.MakeHTTPService(configService))
+	return MakeImageProxy(configService, httpservice.MakeHTTPService(configService), nil)
 }
 
 func TestLocalBackend_GetImage(t *testing.T) {
