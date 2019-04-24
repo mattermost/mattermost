@@ -662,6 +662,10 @@ func (api *PluginAPI) KVSet(key string, value []byte) *model.AppError {
 	return api.app.SetPluginKey(api.id, key, value)
 }
 
+func (api *PluginAPI) KVCompareAndSet(key string, oldValue, newValue []byte) (bool, *model.AppError) {
+	return api.app.CompareAndSetPluginKey(api.id, key, oldValue, newValue)
+}
+
 func (api *PluginAPI) KVSetWithExpiry(key string, value []byte, expireInSeconds int64) *model.AppError {
 	return api.app.SetPluginKeyWithExpiry(api.id, key, value, expireInSeconds)
 }

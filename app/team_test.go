@@ -264,6 +264,31 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		}
 	})
 
+	t.Run("group-constrained team", func(t *testing.T) {
+		th.BasicTeam.GroupConstrained = model.NewBool(true)
+		if _, err := th.App.UpdateTeam(th.BasicTeam); err != nil {
+			t.Log(err)
+			t.Fatal("Should update the team")
+		}
+
+		token := model.NewToken(
+			TOKEN_TYPE_TEAM_INVITATION,
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id}),
+		)
+		<-th.App.Srv.Store.Token().Save(token)
+		if _, err := th.App.AddUserToTeamByToken(ruser.Id, token.Token); err == nil {
+			t.Fatal("Should return an error when trying to join a group-constrained team.")
+		} else {
+			require.Equal(t, "app.team.invite_token.group_constrained.error", err.Id)
+		}
+
+		th.BasicTeam.GroupConstrained = model.NewBool(false)
+		if _, err := th.App.UpdateTeam(th.BasicTeam); err != nil {
+			t.Log(err)
+			t.Fatal("Should update the team")
+		}
+	})
+
 	t.Run("block user", func(t *testing.T) {
 		th.BasicTeam.AllowedDomains = "example.com"
 		if _, err := th.App.UpdateTeam(th.BasicTeam); err != nil {

@@ -267,6 +267,22 @@ func (_m *UserStore) GetByUsername(username string) store.StoreChannel {
 	return r0
 }
 
+// GetChannelGroupUsers provides a mock function with given fields: channelID
+func (_m *UserStore) GetChannelGroupUsers(channelID string) store.StoreChannel {
+	ret := _m.Called(channelID)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+		r0 = rf(channelID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // GetEtagForAllProfiles provides a mock function with given fields:
 func (_m *UserStore) GetEtagForAllProfiles() store.StoreChannel {
 	ret := _m.Called()
@@ -498,6 +514,22 @@ func (_m *UserStore) GetSystemAdminProfiles() store.StoreChannel {
 	var r0 store.StoreChannel
 	if rf, ok := ret.Get(0).(func() store.StoreChannel); ok {
 		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
+// GetTeamGroupUsers provides a mock function with given fields: teamID
+func (_m *UserStore) GetTeamGroupUsers(teamID string) store.StoreChannel {
+	ret := _m.Called(teamID)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+		r0 = rf(teamID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)
@@ -849,38 +881,6 @@ func (_m *UserStore) VerifyEmail(userId string, email string) store.StoreChannel
 	var r0 store.StoreChannel
 	if rf, ok := ret.Get(0).(func(string, string) store.StoreChannel); ok {
 		r0 = rf(userId, email)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
-		}
-	}
-
-	return r0
-}
-
-// GetTeamGroupUsers provides a mock function with given fields: userId, email
-func (_m *UserStore) GetTeamGroupUsers(teamID string) store.StoreChannel {
-	ret := _m.Called(teamID)
-
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
-		r0 = rf(teamID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
-		}
-	}
-
-	return r0
-}
-
-// GetChannelGroupUsers provides a mock function with given fields: userId, email
-func (_m *UserStore) GetChannelGroupUsers(teamID string) store.StoreChannel {
-	ret := _m.Called(teamID)
-
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
-		r0 = rf(teamID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)
