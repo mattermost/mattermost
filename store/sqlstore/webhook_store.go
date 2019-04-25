@@ -333,8 +333,7 @@ func (s SqlWebhookStore) AnalyticsIncomingCount(teamId string) (int64, *model.Ap
 		}
 }
 
-func (s SqlWebhookStore) AnalyticsOutgoingCount(teamId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
+func (s SqlWebhookStore) AnalyticsOutgoingCount(teamId string) (int64, *model.AppError) {
 		query :=
 			`SELECT 
 			    COUNT(*)
@@ -348,9 +347,8 @@ func (s SqlWebhookStore) AnalyticsOutgoingCount(teamId string) store.StoreChanne
 		}
 
 		if v, err := s.GetReplica().SelectInt(query, map[string]interface{}{"TeamId": teamId}); err != nil {
-			result.Err = model.NewAppError("SqlWebhookStore.AnalyticsOutgoingCount", "store.sql_webhooks.analytics_outgoing_count.app_error", nil, "team_id="+teamId+", err="+err.Error(), http.StatusInternalServerError)
+			return 0, model.NewAppError("SqlWebhookStore.AnalyticsOutgoingCount", "store.sql_webhooks.analytics_outgoing_count.app_error", nil, "team_id="+teamId+", err="+err.Error(), http.StatusInternalServerError)
 		} else {
-			result.Data = v
+			return v, nil
 		}
-	})
 }
