@@ -371,18 +371,18 @@ func testWebhookStoreGetOutgoingByChannel(t *testing.T, ss store.Store) {
 
 	o1, _ = ss.Webhook().SaveOutgoing(o1)
 
-	if r1 := <-ss.Webhook().GetOutgoingByChannel(o1.ChannelId, 0, 100); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if r1, err := ss.Webhook().GetOutgoingByChannel(o1.ChannelId, 0, 100); err != nil {
+		t.Fatal(err)
 	} else {
-		if r1.Data.([]*model.OutgoingWebhook)[0].CreateAt != o1.CreateAt {
+		if r1[0].CreateAt != o1.CreateAt {
 			t.Fatal("invalid returned webhook")
 		}
 	}
 
-	if result := <-ss.Webhook().GetOutgoingByChannel("123", -1, -1); result.Err != nil {
-		t.Fatal(result.Err)
+	if result, err := ss.Webhook().GetOutgoingByChannel("123", -1, -1); err != nil {
+		t.Fatal(err)
 	} else {
-		if len(result.Data.([]*model.OutgoingWebhook)) != 0 {
+		if len(result) != 0 {
 			t.Fatal("no webhooks should have returned")
 		}
 	}

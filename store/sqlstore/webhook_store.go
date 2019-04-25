@@ -246,8 +246,7 @@ func (s SqlWebhookStore) GetOutgoingList(offset, limit int) store.StoreChannel {
 	})
 }
 
-func (s SqlWebhookStore) GetOutgoingByChannel(channelId string, offset, limit int) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
+func (s SqlWebhookStore) GetOutgoingByChannel(channelId string, offset, limit int) ([]*model.OutgoingWebhook, *model.AppError) {
 		var webhooks []*model.OutgoingWebhook
 
 		query := ""
@@ -258,11 +257,10 @@ func (s SqlWebhookStore) GetOutgoingByChannel(channelId string, offset, limit in
 		}
 
 		if _, err := s.GetReplica().Select(&webhooks, query, map[string]interface{}{"ChannelId": channelId, "Offset": offset, "Limit": limit}); err != nil {
-			result.Err = model.NewAppError("SqlWebhookStore.GetOutgoingByChannel", "store.sql_webhooks.get_outgoing_by_channel.app_error", nil, "channelId="+channelId+", err="+err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("SqlWebhookStore.GetOutgoingByChannel", "store.sql_webhooks.get_outgoing_by_channel.app_error", nil, "channelId="+channelId+", err="+err.Error(), http.StatusInternalServerError)
 		}
 
-		result.Data = webhooks
-	})
+		return webhooks, nil
 }
 
 func (s SqlWebhookStore) GetOutgoingByTeam(teamId string, offset, limit int) store.StoreChannel {
