@@ -384,11 +384,11 @@ type WebhookStore interface {
 	UpdateIncoming(webhook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError)
 	GetIncomingByChannel(channelId string) ([]*model.IncomingWebhook, *model.AppError)
 	DeleteIncoming(webhookId string, time int64) StoreChannel
-	PermanentDeleteIncomingByChannel(channelId string) StoreChannel
+	PermanentDeleteIncomingByChannel(channelId string) *model.AppError
 	PermanentDeleteIncomingByUser(userId string) StoreChannel
 
 	SaveOutgoing(webhook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError)
-	GetOutgoing(id string) StoreChannel
+	GetOutgoing(id string) (*model.OutgoingWebhook, *model.AppError)
 	GetOutgoingList(offset, limit int) StoreChannel
 	GetOutgoingByChannel(channelId string, offset, limit int) StoreChannel
 	GetOutgoingByTeam(teamId string, offset, limit int) StoreChannel
@@ -397,7 +397,7 @@ type WebhookStore interface {
 	PermanentDeleteOutgoingByUser(userId string) StoreChannel
 	UpdateOutgoing(hook *model.OutgoingWebhook) StoreChannel
 
-	AnalyticsIncomingCount(teamId string) StoreChannel
+	AnalyticsIncomingCount(teamId string) (int64, *model.AppError)
 	AnalyticsOutgoingCount(teamId string) StoreChannel
 	InvalidateWebhookCache(webhook string)
 	ClearCaches()

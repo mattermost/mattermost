@@ -14,19 +14,26 @@ type WebhookStore struct {
 }
 
 // AnalyticsIncomingCount provides a mock function with given fields: teamId
-func (_m *WebhookStore) AnalyticsIncomingCount(teamId string) store.StoreChannel {
+func (_m *WebhookStore) AnalyticsIncomingCount(teamId string) (int64, *model.AppError) {
 	ret := _m.Called(teamId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(string) int64); ok {
 		r0 = rf(teamId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(teamId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
 		}
 	}
 
-	return r0
+	return r0, r1
 }
 
 // AnalyticsOutgoingCount provides a mock function with given fields: teamId
@@ -183,19 +190,28 @@ func (_m *WebhookStore) GetIncomingList(offset int, limit int) ([]*model.Incomin
 }
 
 // GetOutgoing provides a mock function with given fields: id
-func (_m *WebhookStore) GetOutgoing(id string) store.StoreChannel {
+func (_m *WebhookStore) GetOutgoing(id string) (*model.OutgoingWebhook, *model.AppError) {
 	ret := _m.Called(id)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+	var r0 *model.OutgoingWebhook
+	if rf, ok := ret.Get(0).(func(string) *model.OutgoingWebhook); ok {
 		r0 = rf(id)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.OutgoingWebhook)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(id)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetOutgoingByChannel provides a mock function with given fields: channelId, offset, limit
@@ -252,15 +268,15 @@ func (_m *WebhookStore) InvalidateWebhookCache(webhook string) {
 }
 
 // PermanentDeleteIncomingByChannel provides a mock function with given fields: channelId
-func (_m *WebhookStore) PermanentDeleteIncomingByChannel(channelId string) store.StoreChannel {
+func (_m *WebhookStore) PermanentDeleteIncomingByChannel(channelId string) *model.AppError {
 	ret := _m.Called(channelId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
 		r0 = rf(channelId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
