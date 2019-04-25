@@ -433,8 +433,8 @@ func testWebhookStoreDeleteOutgoing(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if r2 := <-ss.Webhook().DeleteOutgoing(o1.Id, model.GetMillis()); r2.Err != nil {
-		t.Fatal(r2.Err)
+	if err := ss.Webhook().DeleteOutgoing(o1.Id, model.GetMillis()); err != nil {
+		t.Fatal(err)
 	}
 
 	if r3,err := ss.Webhook().GetOutgoing(o1.Id); err == nil {
