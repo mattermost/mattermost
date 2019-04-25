@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -102,33 +101,27 @@ func listWebhookCmdF(command *cobra.Command, args []string) error {
 		}
 
 		// Fetch all hooks with a very large limit so we get them all.
-		incomingResult := make(chan store.StoreResult, 1)
-		go func() {
-			incomingHooks, err := app.Srv.Store.Webhook().GetIncomingByTeam(team.Id, 0, 100000000)
-			incomingResult <- store.StoreResult{Data: incomingHooks, Err: err}
-			close(incomingResult)
-		}()
-		outgoingResult := app.Srv.Store.Webhook().GetOutgoingByTeam(team.Id, 0, 100000000)
-
-		if result := <-incomingResult; result.Err == nil {
-			CommandPrettyPrintln(fmt.Sprintf("Incoming webhooks for %s (%s):", team.DisplayName, team.Name))
-			hooks := result.Data.([]*model.IncomingWebhook)
-			for _, hook := range hooks {
-				CommandPrettyPrintln("\t" + hook.DisplayName + " (" + hook.Id + ")")
-			}
-		} else {
+		incomingHooks, err := app.Srv.Store.Webhook().GetIncomingByTeam(team.Id, 0, 100000000)
+		if err != nil {
 			CommandPrintErrorln("Unable to list incoming webhooks for '" + args[i] + "'")
-		}
-
-		if result := <-outgoingResult; result.Err == nil {
-			hooks := result.Data.([]*model.OutgoingWebhook)
-			CommandPrettyPrintln(fmt.Sprintf("Outgoing webhooks for %s (%s):", team.DisplayName, team.Name))
-			for _, hook := range hooks {
+		}else{
+			CommandPrettyPrintln(fmt.Sprintf("Incoming webhooks for %s (%s):", team.DisplayName, team.Name))
+			for _, hook := range incomingHooks {
 				CommandPrettyPrintln("\t" + hook.DisplayName + " (" + hook.Id + ")")
 			}
-		} else {
-			CommandPrintErrorln("Unable to list outgoing webhooks for '" + args[i] + "'")
 		}
+
+
+		outgoingHooks, err := app.Srv.Store.Webhook().GetOutgoingByTeam(team.Id, 0, 100000000)
+		if err != nil {
+			CommandPrintErrorln("Unable to list outgoing webhooks for '" + args[i] + "'")
+		}else{
+			CommandPrettyPrintln(fmt.Sprintf("Outgoing webhooks for %s (%s):", team.DisplayName, team.Name))
+			for _, hook := range outgoingHooks {
+				CommandPrettyPrintln("\t" + hook.DisplayName + " (" + hook.Id + ")")
+			}
+		}
+
 	}
 	return nil
 }
