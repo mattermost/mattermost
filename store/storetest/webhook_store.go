@@ -206,7 +206,7 @@ func testWebhookStoreDeleteIncoming(t *testing.T, ss store.Store) {
 		t.Fatal("invalid returned webhook")
 	}
 
-	if err := ss.Webhook().DeleteIncoming(o1.Id, model.GetMillis()); err != nil {
+	if err = ss.Webhook().DeleteIncoming(o1.Id, model.GetMillis()); err != nil {
 		t.Fatal(err)
 	}
 
