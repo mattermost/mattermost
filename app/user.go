@@ -1897,29 +1897,8 @@ func (a *App) RestrictUsersGetByPermissions(userId string, options *model.UserGe
 		return nil, err
 	}
 
-	// possible if no groups associated or no group members in any of the associated groups
-	if len(teamGroupUsers) == 0 {
-		return userIDs, nil
-	}
-
-	nonMemberIDs := []string{}
-
-	for _, userID := range userIDs {
-		userIsMember := false
-
-		for _, pu := range teamGroupUsers {
-			if pu.Id == userID {
-				userIsMember = true
-				break
-			}
-		}
-
-		if !userIsMember {
-			nonMemberIDs = append(nonMemberIDs, userID)
-		}
-	}
-
-	return nonMemberIDs, nil
+	options.ViewRestrictions = restrictions
+	return options, nil
 }
 
 // FilterNonGroupTeamMembers returns the subset of the given user IDs of the users who are not members of groups
@@ -2087,6 +2066,28 @@ func (a *App) GetViewUsersRestrictions(userId string) (*model.ViewUsersRestricti
 	}
 
 	return &model.ViewUsersRestrictions{Teams: teamIdsWithPermission, Channels: channelIds}, nil
+}
+
+func (a *App) GetViewUsersRestrictionsForTeam(userId string, teamId string) ([]string, *model.AppError) {
+	if a.HasPermissionTo(userId, model.PERMISSION_VIEW_MEMBERS) {
+		return nil, nil
+	}
+
+	if a.HasPermissionToTeam(userId, teamId, model.PERMISSION_VIEW_MEMBERS) {
+		return nil, nil
+	}
+
+	result := <-a.Srv.Store.Channel().GetMembersForUser(teamId, userId)
+	if result.Err != nil {
+		return nil, result.Err
+	}
+
+	channelIds := []string{}
+	for _, membership := range *result.Data.(*model.ChannelMembers) {
+		channelIds = append(channelIds, membership.ChannelId)
+	}
+
+	return channelIds, nil
 }
 
 func (a *App) getListOfAllowedChannelsForTeam(teamId string, viewRestrictions *model.ViewUsersRestrictions) ([]string, *model.AppError) {
