@@ -4,6 +4,8 @@
 package plugin
 
 import (
+	"io"
+
 	plugin "github.com/hashicorp/go-plugin"
 	"github.com/mattermost/mattermost-server/model"
 )
@@ -428,6 +430,11 @@ type API interface {
 	OpenInteractiveDialog(dialog model.OpenDialogRequest) *model.AppError
 
 	// Plugin Section
+
+	// UploadPlugin uploads a plugin compressed in a .tar.gz file.
+	//
+	// Minimum server version: 5.12
+	UploadPlugin(file io.Reader, replace bool) (*model.Manifest, *model.AppError)
 
 	// GetPlugins will return a list of plugin manifests for currently active plugins.
 	//

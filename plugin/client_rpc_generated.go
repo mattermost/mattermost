@@ -8,6 +8,7 @@ package plugin
 
 import (
 	"fmt"
+	"io"
 	"log"
 
 	"github.com/mattermost/mattermost-server/mlog"
@@ -3316,6 +3317,36 @@ func (s *apiRPCServer) OpenInteractiveDialog(args *Z_OpenInteractiveDialogArgs, 
 		returns.A = hook.OpenInteractiveDialog(args.A)
 	} else {
 		return encodableError(fmt.Errorf("API OpenInteractiveDialog called but not implemented."))
+	}
+	return nil
+}
+
+type Z_UploadPluginArgs struct {
+	A io.Reader
+	B bool
+}
+
+type Z_UploadPluginReturns struct {
+	A *model.Manifest
+	B *model.AppError
+}
+
+func (g *apiRPCClient) UploadPlugin(file io.Reader, replace bool) (*model.Manifest, *model.AppError) {
+	_args := &Z_UploadPluginArgs{file, replace}
+	_returns := &Z_UploadPluginReturns{}
+	if err := g.client.Call("Plugin.UploadPlugin", _args, _returns); err != nil {
+		log.Printf("RPC call to UploadPlugin API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) UploadPlugin(args *Z_UploadPluginArgs, returns *Z_UploadPluginReturns) error {
+	if hook, ok := s.impl.(interface {
+		UploadPlugin(file io.Reader, replace bool) (*model.Manifest, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.UploadPlugin(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API UploadPlugin called but not implemented."))
 	}
 	return nil
 }

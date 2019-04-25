@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -624,6 +625,10 @@ func (api *PluginAPI) SendMail(to, subject, htmlBody string) *model.AppError {
 }
 
 // Plugin Section
+
+func (api *PluginAPI) UploadPlugin(file io.Reader, replace bool) (*model.Manifest, *model.AppError) {
+	return nil, api.app.InstallPlugin(file, replace)
+}
 
 func (api *PluginAPI) GetPlugins() ([]*model.Manifest, *model.AppError) {
 	plugins, err := api.app.GetPlugins()
