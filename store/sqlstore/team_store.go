@@ -143,7 +143,7 @@ func NewSqlTeamStore(sqlStore SqlStore) store.TeamStore {
 		table.ColMap("Description").SetMaxSize(255)
 		table.ColMap("Email").SetMaxSize(128)
 		table.ColMap("CompanyName").SetMaxSize(64)
-		table.ColMap("AllowedDomains").SetMaxSize(500)
+		table.ColMap("AllowedDomains").SetMaxSize(1000)
 		table.ColMap("InviteId").SetMaxSize(32)
 
 		tablem := db.AddTableWithName(teamMember{}, "TeamMembers").SetKeys(false, "TeamId", "UserId")
