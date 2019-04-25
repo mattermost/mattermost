@@ -384,7 +384,7 @@ type WebhookStore interface {
 	UpdateIncoming(webhook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError)
 	GetIncomingByChannel(channelId string) ([]*model.IncomingWebhook, *model.AppError)
 	DeleteIncoming(webhookId string, time int64) StoreChannel
-	PermanentDeleteIncomingByChannel(channelId string) StoreChannel
+	PermanentDeleteIncomingByChannel(channelId string) *model.AppError
 	PermanentDeleteIncomingByUser(userId string) StoreChannel
 
 	SaveOutgoing(webhook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError)
