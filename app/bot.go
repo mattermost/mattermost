@@ -179,9 +179,7 @@ func (a *App) disableUserBots(userId string) *model.AppError {
 
 // ConvertUserToBot converts a user to bot
 func (a *App) ConvertUserToBot(user *model.User) (*model.Bot, *model.AppError) {
-
 	result := <-a.Srv.Store.Bot().Save(model.BotFromUser(user))
-
 	if result.Err != nil {
 		return nil, result.Err
 	}

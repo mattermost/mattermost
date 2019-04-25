@@ -45,12 +45,13 @@ var UserCreateCmd = &cobra.Command{
 	RunE:    userCreateCmdF,
 }
 
-var UserModifyCmd = &cobra.Command{
-	Use:     "modify [emails, usernames, userIds] --bot",
+var UserConvertCmd = &cobra.Command{
+	Use:     "convert [emails, usernames, userIds] --bot",
 	Short:   "Convert users to bots",
 	Long:    "Convert users to bots",
-	Example: `  user modify user@example.com anotherUser --bot`,
-	RunE:    userModifyCmdF,
+	Example: `  user convert user@example.com anotherUser --bot`,
+	Args:    cobra.MinimumNArgs(1),
+	RunE:    userConvertCmdF,
 }
 
 var UserInviteCmd = &cobra.Command{
@@ -170,7 +171,7 @@ func init() {
 	UserCreateCmd.Flags().String("locale", "", "Optional. The locale (ex: en, fr) for the new user account.")
 	UserCreateCmd.Flags().Bool("system_admin", false, "Optional. If supplied, the new user will be a system administrator. Defaults to false.")
 
-	UserModifyCmd.Flags().Bool("bot", false, "If supplied, convert users to bots.")
+	UserConvertCmd.Flags().Bool("bot", false, "If supplied, convert users to bots.")
 
 	DeleteUserCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the user and a DB backup has been performed.")
 
@@ -244,7 +245,7 @@ Global Flags:
 		UserActivateCmd,
 		UserDeactivateCmd,
 		UserCreateCmd,
-		UserModifyCmd,
+		UserConvertCmd,
 		UserInviteCmd,
 		ResetUserPasswordCmd,
 		updateUserEmailCmd,
@@ -379,11 +380,7 @@ func userCreateCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func usersToBots(command *cobra.Command, args []string, a *app.App) error {
-	if len(args) < 1 {
-		return errors.New("Expected at least one argument. See help text for details.")
-	}
-
+func usersToBots(args []string, a *app.App) error {
 	users := getUsersFromUserArgs(a, args)
 	for i, user := range users {
 		if user == nil {
@@ -406,7 +403,7 @@ func usersToBots(command *cobra.Command, args []string, a *app.App) error {
 	return nil
 }
 
-func userModifyCmdF(command *cobra.Command, args []string) error {
+func userConvertCmdF(command *cobra.Command, args []string) error {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
 		return err
@@ -418,11 +415,11 @@ func userModifyCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Invalid command. See help text for details.")
 	}
 
-	if toBot {
-		return usersToBots(command, args, a)
+	if !toBot {
+		return errors.New("Expect \"bot\" flag to be set. See help text for details.")
 	}
 
-	return errors.New("Expect \"bot\" flag to be set. See help text for details.")
+	return usersToBots(args, a)
 }
 
 func userInviteCmdF(command *cobra.Command, args []string) error {
