@@ -459,7 +459,6 @@ func (a *App) UpdateOutgoingWebhook(oldHook, updatedHook *model.OutgoingWebhook)
 		return nil, model.NewAppError("UpdateOutgoingWebhook", "api.webhook.create_outgoing.triggers.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	var result store.StoreResult
 	allHooks, err := a.Srv.Store.Webhook().GetOutgoingByTeam(oldHook.TeamId, -1, -1);
 	if err != nil {
 		return nil, err
@@ -480,10 +479,10 @@ func (a *App) UpdateOutgoingWebhook(oldHook, updatedHook *model.OutgoingWebhook)
 	updatedHook.TeamId = oldHook.TeamId
 	updatedHook.UpdateAt = model.GetMillis()
 
-	if result = <-a.Srv.Store.Webhook().UpdateOutgoing(updatedHook); result.Err != nil {
-		return nil, result.Err
+	if err = a.Srv.Store.Webhook().UpdateOutgoing(updatedHook); err != nil {
+		return nil, err
 	} else {
-		return result.Data.(*model.OutgoingWebhook), nil
+		return updatedHook, nil
 	}
 }
 
@@ -534,10 +533,10 @@ func (a *App) RegenOutgoingWebhookToken(hook *model.OutgoingWebhook) (*model.Out
 
 	hook.Token = model.NewId()
 
-	if result := <-a.Srv.Store.Webhook().UpdateOutgoing(hook); result.Err != nil {
-		return nil, result.Err
+	if err := a.Srv.Store.Webhook().UpdateOutgoing(hook); err != nil {
+		return nil, err
 	} else {
-		return result.Data.(*model.OutgoingWebhook), nil
+		return hook, nil
 	}
 }
 

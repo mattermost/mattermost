@@ -303,16 +303,14 @@ func (s SqlWebhookStore) PermanentDeleteOutgoingByChannel(channelId string) *mod
 	return nil
 }
 
-func (s SqlWebhookStore) UpdateOutgoing(hook *model.OutgoingWebhook) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
+func (s SqlWebhookStore) UpdateOutgoing(hook *model.OutgoingWebhook) *model.AppError {
 		hook.UpdateAt = model.GetMillis()
 
 		if _, err := s.GetMaster().Update(hook); err != nil {
-			result.Err = model.NewAppError("SqlWebhookStore.UpdateOutgoing", "store.sql_webhooks.update_outgoing.app_error", nil, "id="+hook.Id+", "+err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = hook
+			return model.NewAppError("SqlWebhookStore.UpdateOutgoing", "store.sql_webhooks.update_outgoing.app_error", nil, "id="+hook.Id+", "+err.Error(), http.StatusInternalServerError)
 		}
-	})
+
+		return nil
 }
 
 func (s SqlWebhookStore) AnalyticsIncomingCount(teamId string) store.StoreChannel {
