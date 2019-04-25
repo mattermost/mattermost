@@ -306,6 +306,18 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 					(channelNotification || hereNotification || allNotification),
 					replyToThreadType,
 				)
+			} else {
+				// register that a notification was not sent
+				notificationRegistry := model.NotificationRegistry{
+					UserId:     id,
+					PostId:     post.Id,
+					SendStatus: model.PUSH_NOT_SENT,
+					Type:       model.PUSH_TYPE_MESSAGE,
+				}
+				_, appErr := a.Srv.Store.NotificationRegistry().Save(&notificationRegistry)
+				if appErr != nil {
+					mlog.Debug(appErr.Error())
+				}
 			}
 		}
 
@@ -329,6 +341,18 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 						false,
 						"",
 					)
+				} else {
+					// register that a notification was not sent
+					notificationRegistry := model.NotificationRegistry{
+						UserId:     id,
+						PostId:     post.Id,
+						SendStatus: model.PUSH_NOT_SENT,
+						Type:       model.PUSH_TYPE_MESSAGE,
+					}
+					_, appErr := a.Srv.Store.NotificationRegistry().Save(&notificationRegistry)
+					if appErr != nil {
+						mlog.Debug(appErr.Error())
+					}
 				}
 			}
 		}
