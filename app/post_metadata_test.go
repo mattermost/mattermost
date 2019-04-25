@@ -1991,20 +1991,34 @@ func TestParseLinkMetadata(t *testing.T) {
 
 func TestParseImages(t *testing.T) {
 	for name, testCase := range map[string]struct {
-		FileName       string
-		ExpectedWidth  int
-		ExpectedHeight int
-		ExpectError    bool
+		FileName    string
+		Expected    *model.PostImage
+		ExpectError bool
 	}{
 		"png": {
-			FileName:       "test.png",
-			ExpectedWidth:  408,
-			ExpectedHeight: 336,
+			FileName: "test.png",
+			Expected: &model.PostImage{
+				Width:  408,
+				Height: 336,
+				Format: "png",
+			},
 		},
 		"animated gif": {
-			FileName:       "testgif.gif",
-			ExpectedWidth:  118,
-			ExpectedHeight: 118,
+			FileName: "testgif.gif",
+			Expected: &model.PostImage{
+				Width:      118,
+				Height:     118,
+				Format:     "gif",
+				FrameCount: 4,
+			},
+		},
+		"tiff": {
+			FileName: "test.tiff",
+			Expected: &model.PostImage{
+				Width:  701,
+				Height: 701,
+				Format: "tiff",
+			},
 		},
 		"not an image": {
 			FileName:    "README.md",
@@ -2015,15 +2029,12 @@ func TestParseImages(t *testing.T) {
 			file, err := testutils.ReadTestFile(testCase.FileName)
 			require.Nil(t, err)
 
-			dimensions, err := parseImages(bytes.NewReader(file))
+			result, err := parseImages(bytes.NewReader(file))
 			if testCase.ExpectError {
-				require.NotNil(t, err)
+				assert.NotNil(t, err)
 			} else {
-				require.Nil(t, err)
-
-				require.NotNil(t, dimensions)
-				require.Equal(t, testCase.ExpectedWidth, dimensions.Width)
-				require.Equal(t, testCase.ExpectedHeight, dimensions.Height)
+				assert.Nil(t, err)
+				assert.Equal(t, testCase.Expected, result)
 			}
 		})
 	}
