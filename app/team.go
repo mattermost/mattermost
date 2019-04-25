@@ -136,12 +136,7 @@ func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 }
 
 func (a *App) updateTeamUnsanitized(team *model.Team) (*model.Team, *model.AppError) {
-	team, err := a.Srv.Store.Team().Update(team)
-	if err != nil {
-		return nil, err
-	}
-
-	return team, nil
+	return a.Srv.Store.Team().Update(team)
 }
 
 // RenameTeam is used to rename the team Name and the DisplayName fields
