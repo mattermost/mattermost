@@ -394,7 +394,7 @@ type WebhookStore interface {
 	GetOutgoingByTeam(teamId string, offset, limit int) ([]*model.OutgoingWebhook, *model.AppError)
 	DeleteOutgoing(webhookId string, time int64) *model.AppError
 	PermanentDeleteOutgoingByChannel(channelId string) *model.AppError
-	PermanentDeleteOutgoingByUser(userId string) StoreChannel
+	PermanentDeleteOutgoingByUser(userId string) *model.AppError
 	UpdateOutgoing(hook *model.OutgoingWebhook) StoreChannel
 
 	AnalyticsIncomingCount(teamId string) StoreChannel

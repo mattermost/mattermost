@@ -487,8 +487,8 @@ func testWebhookStoreDeleteOutgoingByUser(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if r2 := <-ss.Webhook().PermanentDeleteOutgoingByUser(o1.CreatorId); r2.Err != nil {
-		t.Fatal(r2.Err)
+	if err := ss.Webhook().PermanentDeleteOutgoingByUser(o1.CreatorId); err != nil {
+		t.Fatal(err)
 	}
 
 	if r3,err := ss.Webhook().GetOutgoing(o1.Id); err == nil {
