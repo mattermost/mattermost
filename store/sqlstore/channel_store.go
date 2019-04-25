@@ -690,7 +690,7 @@ func (s SqlChannelStore) InvalidateChannelByName(teamId, name string) {
 	}
 }
 
-func (s SqlChannelStore) Get(id string, allowFromCache bool) store.StoreChannel {
+func (s SqlChannelStore) Get(id string, allowFromCache bool) (*model.Channel, *model.AppError) {
 	return s.get(id, false, allowFromCache)
 }
 
@@ -712,47 +712,45 @@ func (s SqlChannelStore) GetPinnedPosts(channelId string) store.StoreChannel {
 	})
 }
 
-func (s SqlChannelStore) GetFromMaster(id string) store.StoreChannel {
+func (s SqlChannelStore) GetFromMaster(id string) (*model.Channel, *model.AppError) {
 	return s.get(id, true, false)
 }
 
-func (s SqlChannelStore) get(id string, master bool, allowFromCache bool) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var db *gorp.DbMap
-		if master {
-			db = s.GetMaster()
-		} else {
-			db = s.GetReplica()
-		}
+func (s SqlChannelStore) get(id string, master bool, allowFromCache bool) (*model.Channel, *model.AppError) {
+	var db *gorp.DbMap
 
-		if allowFromCache {
-			if cacheItem, ok := channelCache.Get(id); ok {
-				if s.metrics != nil {
-					s.metrics.IncrementMemCacheHitCounter("Channel")
-				}
-				result.Data = (cacheItem.(*model.Channel)).DeepCopy()
-				return
+	if master {
+		db = s.GetMaster()
+	} else {
+		db = s.GetReplica()
+	}
+
+	if allowFromCache {
+		if cacheItem, ok := channelCache.Get(id); ok {
+			if s.metrics != nil {
+				s.metrics.IncrementMemCacheHitCounter("Channel")
 			}
+			ch := cacheItem.(*model.Channel).DeepCopy()
+			return ch, nil
 		}
+	}
 
-		if s.metrics != nil {
-			s.metrics.IncrementMemCacheMissCounter("Channel")
-		}
+	if s.metrics != nil {
+		s.metrics.IncrementMemCacheMissCounter("Channel")
+	}
 
-		obj, err := db.Get(model.Channel{}, id)
-		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.Get", "store.sql_channel.get.find.app_error", nil, "id="+id+", "+err.Error(), http.StatusInternalServerError)
-			return
-		}
+	obj, err := db.Get(model.Channel{}, id)
+	if err != nil {
+		return nil, model.NewAppError("SqlChannelStore.Get", "store.sql_channel.get.find.app_error", nil, "id="+id+", "+err.Error(), http.StatusInternalServerError)
+	}
 
-		if obj == nil {
-			result.Err = model.NewAppError("SqlChannelStore.Get", "store.sql_channel.get.existing.app_error", nil, "id="+id, http.StatusNotFound)
-			return
-		}
+	if obj == nil {
+		return nil, model.NewAppError("SqlChannelStore.Get", "store.sql_channel.get.existing.app_error", nil, "id="+id, http.StatusNotFound)
+	}
 
-		result.Data = obj.(*model.Channel)
-		channelCache.AddWithExpiresInSecs(id, obj.(*model.Channel), CHANNEL_CACHE_SEC)
-	})
+	ch := obj.(*model.Channel)
+	channelCache.AddWithExpiresInSecs(id, ch, CHANNEL_CACHE_SEC)
+	return ch, nil
 }
 
 // Delete records the given deleted timestamp to the channel in question.
@@ -1289,13 +1287,11 @@ func (s SqlChannelStore) SaveMember(member *model.ChannelMember) store.StoreChan
 		defer s.InvalidateAllChannelMembersForUser(member.UserId)
 
 		// Grab the channel we are saving this member to
-		cr := <-s.GetFromMaster(member.ChannelId)
-		if cr.Err != nil {
-			result.Err = cr.Err
+		channel, errCh := s.GetFromMaster(member.ChannelId)
+		if errCh != nil {
+			result.Err = errCh
 			return
 		}
-
-		channel := cr.Data.(*model.Channel)
 
 		transaction, err := s.GetMaster().Begin()
 		if err != nil {
