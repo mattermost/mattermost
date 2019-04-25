@@ -769,7 +769,7 @@ func (a *App) DeleteChannel(channel *model.Channel, userId string) *model.AppErr
 	ihc := make(chan store.StoreResult, 1)
 	outgoingHooks, err := a.Srv.Store.Webhook().GetOutgoingByChannel(channel.Id, -1, -1)
 	if err != nil{
-		return nil
+		return err
 	}
 
 	go func() {
