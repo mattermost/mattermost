@@ -194,22 +194,22 @@ func (s SqlTeamStore) Save(team *model.Team) store.StoreChannel {
 	})
 }
 
-func (s SqlTeamStore) Update(team *model.Team) *model.AppError {
+func (s SqlTeamStore) Update(team *model.Team) (*model.Team, *model.AppError) {
 
 	team.PreUpdate()
 
 	if err := team.IsValid(); err != nil {
-		return err
+		return team, err
 	}
 
 	oldResult, err := s.GetMaster().Get(model.Team{}, team.Id)
 	if err != nil {
-		return model.NewAppError("SqlTeamStore.Update", "store.sql_team.update.finding.app_error", nil, "id="+team.Id+", "+err.Error(), http.StatusInternalServerError)
+		return team, model.NewAppError("SqlTeamStore.Update", "store.sql_team.update.finding.app_error", nil, "id="+team.Id+", "+err.Error(), http.StatusInternalServerError)
 
 	}
 
 	if oldResult == nil {
-		return model.NewAppError("SqlTeamStore.Update", "store.sql_team.update.find.app_error", nil, "id="+team.Id, http.StatusBadRequest)
+		return team, model.NewAppError("SqlTeamStore.Update", "store.sql_team.update.find.app_error", nil, "id="+team.Id, http.StatusBadRequest)
 	}
 
 	oldTeam := oldResult.(*model.Team)
@@ -218,13 +218,13 @@ func (s SqlTeamStore) Update(team *model.Team) *model.AppError {
 
 	count, err := s.GetMaster().Update(team)
 	if err != nil {
-		return model.NewAppError("SqlTeamStore.Update", "store.sql_team.update.updating.app_error", nil, "id="+team.Id+", "+err.Error(), http.StatusInternalServerError)
+		return team, model.NewAppError("SqlTeamStore.Update", "store.sql_team.update.updating.app_error", nil, "id="+team.Id+", "+err.Error(), http.StatusInternalServerError)
 	}
 	if count != 1 {
-		return model.NewAppError("SqlTeamStore.Update", "store.sql_team.update.app_error", nil, "id="+team.Id, http.StatusInternalServerError)
+		return team, model.NewAppError("SqlTeamStore.Update", "store.sql_team.update.app_error", nil, "id="+team.Id, http.StatusInternalServerError)
 	}
 
-	return nil
+	return team, nil
 }
 
 func (s SqlTeamStore) UpdateDisplayName(name string, teamId string) store.StoreChannel {

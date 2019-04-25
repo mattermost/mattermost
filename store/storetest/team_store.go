@@ -86,17 +86,17 @@ func testTeamStoreUpdate(t *testing.T, ss store.Store) {
 
 	time.Sleep(100 * time.Millisecond)
 
-	if err := ss.Team().Update(&o1); err != nil {
+	if _, err := ss.Team().Update(&o1); err != nil {
 		t.Fatal(err)
 	}
 
 	o1.Id = "missing"
-	if err := ss.Team().Update(&o1); err == nil {
+	if _, err := ss.Team().Update(&o1); err == nil {
 		t.Fatal("Update should have failed because of missing key")
 	}
 
 	o1.Id = model.NewId()
-	if err := ss.Team().Update(&o1); err == nil {
+	if _, err := ss.Team().Update(&o1); err == nil {
 		t.Fatal("Update should have faile because id change")
 	}
 }
@@ -416,9 +416,8 @@ func testTeamStoreGetByInviteId(t *testing.T, ss store.Store) {
 	}
 
 	o2.InviteId = ""
-	if err := ss.Team().Update(&o2); err != nil {
-		t.Fatal(err)
-	}
+	_, err := ss.Team().Update(&o2)
+	require.Nil(t, err)
 
 	if r1 := <-ss.Team().GetByInviteId(o2.Id); r1.Err != nil {
 		t.Fatal(r1.Err)

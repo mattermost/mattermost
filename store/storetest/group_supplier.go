@@ -1011,7 +1011,7 @@ func testPendingAutoAddTeamMembers(t *testing.T, ss store.Store) {
 
 	// No result if Team deleted
 	team.DeleteAt = model.GetMillis()
-	err := ss.Team().Update(team)
+	team, err := ss.Team().Update(team)
 	require.Nil(t, err)
 	res = <-ss.Group().TeamMembersToAdd(0)
 	require.Nil(t, res.Err)
@@ -1019,7 +1019,7 @@ func testPendingAutoAddTeamMembers(t *testing.T, ss store.Store) {
 
 	// reset state of team and verify
 	team.DeleteAt = 0
-	err = ss.Team().Update(team)
+	team, err = ss.Team().Update(team)
 	require.Nil(t, err)
 	res = <-ss.Group().TeamMembersToAdd(0)
 	require.Nil(t, res.Err)

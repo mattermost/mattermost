@@ -136,7 +136,7 @@ func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 }
 
 func (a *App) updateTeamUnsanitized(team *model.Team) (*model.Team, *model.AppError) {
-	err := a.Srv.Store.Team().Update(team)
+	team, err := a.Srv.Store.Team().Update(team)
 	if err != nil {
 		return nil, err
 	}
@@ -180,7 +180,7 @@ func (a *App) UpdateTeamScheme(team *model.Team) (*model.Team, *model.AppError) 
 
 	oldTeam.SchemeId = team.SchemeId
 
-	if err := a.Srv.Store.Team().Update(oldTeam); err != nil {
+	if oldTeam, err = a.Srv.Store.Team().Update(oldTeam); err != nil {
 		return nil, err
 	}
 
@@ -1051,7 +1051,7 @@ func (a *App) PermanentDeleteTeamId(teamId string) *model.AppError {
 
 func (a *App) PermanentDeleteTeam(team *model.Team) *model.AppError {
 	team.DeleteAt = model.GetMillis()
-	if err := a.Srv.Store.Team().Update(team); err != nil {
+	if _, err := a.Srv.Store.Team().Update(team); err != nil {
 		return err
 	}
 
@@ -1090,7 +1090,7 @@ func (a *App) SoftDeleteTeam(teamId string) *model.AppError {
 	}
 
 	team.DeleteAt = model.GetMillis()
-	if err = a.Srv.Store.Team().Update(team); err != nil {
+	if team, err = a.Srv.Store.Team().Update(team); err != nil {
 		return err
 	}
 
@@ -1106,7 +1106,7 @@ func (a *App) RestoreTeam(teamId string) *model.AppError {
 	}
 
 	team.DeleteAt = 0
-	if err = a.Srv.Store.Team().Update(team); err != nil {
+	if team, err = a.Srv.Store.Team().Update(team); err != nil {
 		return err
 	}
 
