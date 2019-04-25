@@ -768,7 +768,7 @@ func (a *App) UpdateChannelMemberNotifyProps(data map[string]string, channelId s
 func (a *App) DeleteChannel(channel *model.Channel, userId string) *model.AppError {
 	ihc := make(chan store.StoreResult, 1)
 	outgoingHooks, err := a.Srv.Store.Webhook().GetOutgoingByChannel(channel.Id, -1, -1)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
@@ -791,7 +791,6 @@ func (a *App) DeleteChannel(channel *model.Channel, userId string) *model.AppErr
 	if ihcresult.Err != nil {
 		return ihcresult.Err
 	}
-
 
 	incomingHooks := ihcresult.Data.([]*model.IncomingWebhook)
 
