@@ -668,8 +668,8 @@ func UpgradeDatabaseToVersion511(sqlStore SqlStore) {
 	} else {
 		for _, team := range teams {
 			team.InviteId = model.NewId()
-			if res := <-sqlStore.Team().Update(team); res.Err != nil {
-				mlog.Error("Error updating Team InviteIDs: " + res.Err.Error())
+			if _, err := sqlStore.Team().Update(team); err != nil {
+				mlog.Error("Error updating Team InviteIDs: " + err.Error())
 			}
 		}
 	}

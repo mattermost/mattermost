@@ -210,12 +210,10 @@ func (a *App) RegenerateTeamInviteId(teamId string) (*model.Team, *model.AppErro
 
 	team.InviteId = model.NewId()
 
-	result := <-a.Srv.Store.Team().Update(team)
-	if result.Err != nil {
-		return nil, result.Err
+	updatedTeam, err := a.Srv.Store.Team().Update(team)
+	if err != nil {
+		return nil, err
 	}
-
-	updatedTeam := result.Data.(*model.Team)
 
 	a.sendTeamEvent(updatedTeam, model.WEBSOCKET_EVENT_UPDATE_TEAM)
 
