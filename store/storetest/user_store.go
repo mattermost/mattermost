@@ -3404,7 +3404,8 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
 
 	assert.Len(t, res1List, 1)
 	assert.Equal(t, res1List[0].Username, u2.Username)
-	assert.ElementsMatch(t, res1List[0].ChannelIds, []string{cPub1.Id, cPub2.Id})
+	assert.ElementsMatch(t, res1List[0].TeamsIds, []string{t1.Id})
+	assert.ElementsMatch(t, res1List[0].ChannelsIds, []string{cPub1.Id, cPub2.Id})
 
 	// Update startTime to include first user
 	startTime = u1.CreateAt
@@ -3414,7 +3415,8 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
 
 	assert.Len(t, res2List, 2)
 	assert.Equal(t, res2List[0].Username, u1.Username)
-	assert.Equal(t, res2List[0].ChannelIds, []string{})
+	assert.Equal(t, res2List[0].ChannelsIds, []string{})
+	assert.Equal(t, res2List[0].TeamsIds, []string{})
 	assert.Equal(t, res2List[1].Username, u2.Username)
 
 	// Update endTime to include last user
@@ -3427,7 +3429,8 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
 	assert.Equal(t, res3List[0].Username, u1.Username)
 	assert.Equal(t, res3List[1].Username, u2.Username)
 	assert.Equal(t, res3List[2].Username, u3.Username)
-	assert.ElementsMatch(t, res3List[2].ChannelIds, []string{cPub2.Id, cPriv.Id})
+	assert.ElementsMatch(t, res3List[2].TeamsIds, []string{})
+	assert.ElementsMatch(t, res3List[2].ChannelsIds, []string{cPub2.Id})
 
 	// Testing the limit
 	res4 := <-ss.User().GetUsersBatchForIndexing(startTime, endTime, 2)

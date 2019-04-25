@@ -195,6 +195,11 @@ func (a *App) indexUser(user *model.User) *model.AppError {
 		return userTeams.Err
 	}
 
+	userTeamsIds := []string{}
+	for _, team := range userTeams.Data.([]*model.Team) {
+		userTeamsIds = append(userTeamsIds, team.Id)
+	}
+
 	userChannelMembers := <-a.Srv.Store.Channel().GetAllChannelMembersForUser(user.Id, false, true)
 	if userChannelMembers.Err != nil {
 		return userChannelMembers.Err
@@ -205,7 +210,7 @@ func (a *App) indexUser(user *model.User) *model.AppError {
 		userChannelsIds = append(userChannelsIds, channelId)
 	}
 
-	return a.Elasticsearch.IndexUser(user, userChannelsIds)
+	return a.Elasticsearch.IndexUser(user, userTeamsIds, userChannelsIds)
 }
 
 func (a *App) indexUserFromId(userId string) *model.AppError {
@@ -1679,7 +1684,7 @@ func (a *App) SearchUsersInTeam(teamId string, term string, options *model.UserS
 	esInterface := a.Elasticsearch
 	license := a.License()
 	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableAutocomplete && license != nil && *license.Features.Elasticsearch {
-		listOfAllowedChannels, err := a.getListOfAllowedChannelsForTeam(teamId, options.ViewRestrictions)
+		listOfAllowedChannels, err := a.GetViewUsersRestrictionsForTeam(a.Session.UserId, teamId)
 		if err != nil {
 			return nil, err
 		}
@@ -1687,7 +1692,7 @@ func (a *App) SearchUsersInTeam(teamId string, term string, options *model.UserS
 			return []*model.User{}, nil
 		}
 
-		usersIds, err := a.Elasticsearch.SearchUsersInChannels(listOfAllowedChannels, term, options)
+		usersIds, err := a.Elasticsearch.SearchUsersInTeam(teamId, listOfAllowedChannels, term, options)
 		if err != nil {
 			return nil, err
 		}
@@ -1753,9 +1758,10 @@ func (a *App) AutocompleteUsersInChannel(teamId string, channelId string, term s
 		uchanIds := []string{}
 		nuchanIds := []string{}
 		if !strings.Contains(strings.Join(listOfAllowedChannels, "."), channelId) {
-			nuchanIds, err = a.Elasticsearch.SearchUsersInChannels(listOfAllowedChannels, term, options)
+			// ToDo: if the user cannot perform a search in channelId, shouldn't we return an error?
+			nuchanIds, err = a.Elasticsearch.SearchUsersInTeam(teamId, listOfAllowedChannels, term, options)
 		} else {
-			uchanIds, nuchanIds, err = a.Elasticsearch.SearchUsersInChannelAndOutside(channelId, listOfAllowedChannels, term, options)
+			uchanIds, nuchanIds, err = a.Elasticsearch.SearchUsersInChannel(teamId, channelId, listOfAllowedChannels, term, options)
 		}
 		if err != nil {
 			return nil, err
@@ -1811,7 +1817,7 @@ func (a *App) AutocompleteUsersInTeam(teamId string, term string, options *model
 			return &model.UserAutocompleteInTeam{}, nil
 		}
 
-		usersIds, err := a.Elasticsearch.SearchUsersInChannels(listOfAllowedChannels, term, options)
+		usersIds, err := a.Elasticsearch.SearchUsersInTeam(teamId, listOfAllowedChannels, term, options)
 		if err != nil {
 			return nil, err
 		}

@@ -1489,7 +1489,7 @@ func (us SqlUserStore) GetUsersBatchForIndexing(startTime, endTime int64, limit 
 			Select("cm.*").
 			From("ChannelMembers cm").
 			Join("Channels c ON cm.ChannelId = c.Id").
-			Where(sq.Eq{"cm.UserId": userIds}).
+			Where(sq.Eq{"c.Type": "O", "cm.UserId": userIds}).
 			ToSql()
 		_, err2 := us.GetSearchReplica().Select(&channelMembers, channelMembersQuery, args...)
 
@@ -1498,23 +1498,42 @@ func (us SqlUserStore) GetUsersBatchForIndexing(startTime, endTime int64, limit 
 			return
 		}
 
+		var teamMembers []*model.TeamMember
+		teamMembersQuery, args, _ := us.getQueryBuilder().
+			Select("*").
+			From("TeamMembers").
+			Where(sq.Eq{"UserId": userIds, "DeleteAt": 0}).
+			ToSql()
+		_, err3 := us.GetSearchReplica().Select(&teamMembers, teamMembersQuery, args...)
+
+		if err3 != nil {
+			result.Err = model.NewAppError("SqlUserStore.GetUsersBatchForIndexing", "store.sql_user.get_users_batch_for_indexing.get_team_members.app_error", nil, err3.Error(), http.StatusInternalServerError)
+			return
+		}
+
 		userMap := map[string]*model.UserForIndexing{}
 		for _, user := range users {
 			userMap[user.Id] = &model.UserForIndexing{
-				Id:         user.Id,
-				Username:   user.Username,
-				Nickname:   user.Nickname,
-				FirstName:  user.FirstName,
-				LastName:   user.LastName,
-				CreateAt:   user.CreateAt,
-				DeleteAt:   user.DeleteAt,
-				ChannelIds: []string{},
+				Id:          user.Id,
+				Username:    user.Username,
+				Nickname:    user.Nickname,
+				FirstName:   user.FirstName,
+				LastName:    user.LastName,
+				CreateAt:    user.CreateAt,
+				DeleteAt:    user.DeleteAt,
+				TeamsIds:    []string{},
+				ChannelsIds: []string{},
 			}
 		}
 
 		for _, c := range channelMembers {
 			if userMap[c.UserId] != nil {
-				userMap[c.UserId].ChannelIds = append(userMap[c.UserId].ChannelIds, c.ChannelId)
+				userMap[c.UserId].ChannelsIds = append(userMap[c.UserId].ChannelsIds, c.ChannelId)
+			}
+		}
+		for _, t := range teamMembers {
+			if userMap[t.UserId] != nil {
+				userMap[t.UserId].TeamsIds = append(userMap[t.UserId].TeamsIds, t.TeamId)
 			}
 		}
 
