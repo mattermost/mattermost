@@ -500,8 +500,8 @@ func testWebhookStoreUpdateOutgoing(t *testing.T, ss store.Store) {
 	o1.Token = model.NewId()
 	o1.Username = "another-test-user-name"
 
-	if r2 := <-ss.Webhook().UpdateOutgoing(o1); r2.Err != nil {
-		t.Fatal(r2.Err)
+	if _, err := ss.Webhook().UpdateOutgoing(o1); err != nil {
+		t.Fatal(err)
 	}
 }
 
