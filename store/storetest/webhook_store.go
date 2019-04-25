@@ -253,8 +253,8 @@ func testWebhookStoreDeleteIncomingByUser(t *testing.T, ss store.Store) {
 		t.Fatal("invalid returned webhook")
 	}
 
-	if r2 := <-ss.Webhook().PermanentDeleteIncomingByUser(o1.UserId); r2.Err != nil {
-		t.Fatal(r2.Err)
+	if err = ss.Webhook().PermanentDeleteIncomingByUser(o1.UserId); err != nil {
+		t.Fatal(err)
 	}
 
 	if _, err = ss.Webhook().GetIncoming(o1.Id, true); err == nil {
