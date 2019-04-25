@@ -224,7 +224,7 @@ func (a *App) tryExecuteCustomCommand(args *model.CommandArgs, trigger string, m
 		chanChan <- store.StoreResult{Data: channel, Err: err}
 		close(chanChan)
 	}()
- 
+
 	teamChan := make(chan store.StoreResult, 1)
 	go func() {
 		team, err := a.Srv.Store.Team().Get(args.TeamId)
