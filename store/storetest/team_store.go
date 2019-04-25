@@ -115,7 +115,10 @@ func testTeamStoreUpdateDisplayName(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	ro1 := (<-ss.Team().Get(o1.Id)).Data.(*model.Team)
+	ro1, err := ss.Team().Get(o1.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
 	if ro1.DisplayName != newDisplayName {
 		t.Fatal("DisplayName not updated")
 	}
@@ -129,15 +132,16 @@ func testTeamStoreGet(t *testing.T, ss store.Store) {
 	o1.Type = model.TEAM_OPEN
 	store.Must(ss.Team().Save(&o1))
 
-	if r1 := <-ss.Team().Get(o1.Id); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		if r1.Data.(*model.Team).ToJson() != o1.ToJson() {
-			t.Fatal("invalid returned team")
-		}
+	r1, err := ss.Team().Get(o1.Id)
+	if err != nil {
+		t.Fatal(err)
 	}
 
-	if err := (<-ss.Team().Get("")).Err; err == nil {
+	if r1.ToJson() != o1.ToJson() {
+		t.Fatal("invalid returned team")
+	}
+
+	if _, err := ss.Team().Get(""); err == nil {
 		t.Fatal("Missing id should have failed")
 	}
 }
@@ -1297,7 +1301,11 @@ func testUpdateLastTeamIconUpdate(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	ro1 := (<-ss.Team().Get(o1.Id)).Data.(*model.Team)
+	ro1, err := ss.Team().Get(o1.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	if ro1.LastTeamIconUpdate <= lastTeamIconUpdateInitial {
 		t.Fatal("LastTeamIconUpdate not updated")
 	}
@@ -1472,8 +1480,8 @@ func testResetAllTeamSchemes(t *testing.T, ss store.Store) {
 	res := <-ss.Team().ResetAllTeamSchemes()
 	assert.Nil(t, res.Err)
 
-	t1 = (<-ss.Team().Get(t1.Id)).Data.(*model.Team)
-	t2 = (<-ss.Team().Get(t2.Id)).Data.(*model.Team)
+	t1, _ = ss.Team().Get(t1.Id)
+	t2, _ = ss.Team().Get(t2.Id)
 
 	assert.Equal(t, "", *t1.SchemeId)
 	assert.Equal(t, "", *t2.SchemeId)

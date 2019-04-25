@@ -67,11 +67,10 @@ func (a *App) CreateUserWithToken(user *model.User, tokenId string) (*model.User
 
 	tokenData := model.MapFromJson(strings.NewReader(token.Extra))
 
-	result = <-a.Srv.Store.Team().Get(tokenData["teamId"])
-	if result.Err != nil {
-		return nil, result.Err
+	team, err := a.Srv.Store.Team().Get(tokenData["teamId"])
+	if err != nil {
+		return nil, err
 	}
-	team := result.Data.(*model.Team)
 
 	user.Email = tokenData["email"]
 	user.EmailVerified = true

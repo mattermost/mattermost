@@ -327,7 +327,13 @@ func (a *App) sendUpdatedMemberRoleEvent(userId string, member *model.TeamMember
 }
 
 func (a *App) AddUserToTeam(teamId string, userId string, userRequestorId string) (*model.Team, *model.AppError) {
-	tchan := a.Srv.Store.Team().Get(teamId)
+	tchan := make(chan store.StoreResult, 1)
+	go func() {
+		team, err := a.Srv.Store.Team().Get(teamId)
+		tchan <- store.StoreResult{Data: team, Err: err}
+		close(tchan)
+	}()
+
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
 		user, err := a.Srv.Store.User().Get(userId)
@@ -355,11 +361,12 @@ func (a *App) AddUserToTeam(teamId string, userId string, userRequestorId string
 }
 
 func (a *App) AddUserToTeamByTeamId(teamId string, user *model.User) *model.AppError {
-	result := <-a.Srv.Store.Team().Get(teamId)
-	if result.Err != nil {
-		return result.Err
+	team, err := a.Srv.Store.Team().Get(teamId)
+	if err != nil {
+		return err
 	}
-	return a.JoinUserToTeam(result.Data.(*model.Team), user, "")
+
+	return a.JoinUserToTeam(team, user, "")
 }
 
 func (a *App) AddUserToTeamByToken(userId string, tokenId string) (*model.Team, *model.AppError) {
@@ -380,7 +387,13 @@ func (a *App) AddUserToTeamByToken(userId string, tokenId string) (*model.Team, 
 
 	tokenData := model.MapFromJson(strings.NewReader(token.Extra))
 
-	tchan := a.Srv.Store.Team().Get(tokenData["teamId"])
+	tchan := make(chan store.StoreResult, 1)
+	go func() {
+		team, err := a.Srv.Store.Team().Get(tokenData["teamId"])
+		tchan <- store.StoreResult{Data: team, Err: err}
+		close(tchan)
+	}()
+
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
 		user, err := a.Srv.Store.User().Get(userId)
@@ -543,11 +556,11 @@ func (a *App) JoinUserToTeam(team *model.Team, user *model.User, userRequestorId
 }
 
 func (a *App) GetTeam(teamId string) (*model.Team, *model.AppError) {
-	result := <-a.Srv.Store.Team().Get(teamId)
-	if result.Err != nil {
-		return nil, result.Err
+	team, err := a.Srv.Store.Team().Get(teamId)
+	if err != nil {
+		return nil, err
 	}
-	return result.Data.(*model.Team), nil
+	return team, nil
 }
 
 func (a *App) GetTeamByName(name string) (*model.Team, *model.AppError) {
@@ -784,7 +797,13 @@ func (a *App) GetTeamUnread(teamId, userId string) (*model.TeamUnread, *model.Ap
 }
 
 func (a *App) RemoveUserFromTeam(teamId string, userId string, requestorId string) *model.AppError {
-	tchan := a.Srv.Store.Team().Get(teamId)
+	tchan := make(chan store.StoreResult, 1)
+	go func() {
+		team, err := a.Srv.Store.Team().Get(teamId)
+		tchan <- store.StoreResult{Data: team, Err: err}
+		close(tchan)
+	}()
+
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
 		user, err := a.Srv.Store.User().Get(userId)
@@ -954,7 +973,13 @@ func (a *App) InviteNewUsersToTeam(emailList []string, teamId, senderId string) 
 		return err
 	}
 
-	tchan := a.Srv.Store.Team().Get(teamId)
+	tchan := make(chan store.StoreResult, 1)
+	go func() {
+		team, err := a.Srv.Store.Team().Get(teamId)
+		tchan <- store.StoreResult{Data: team, Err: err}
+		close(tchan)
+	}()
+
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
 		user, err := a.Srv.Store.User().Get(senderId)

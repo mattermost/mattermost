@@ -184,12 +184,9 @@ func (me *LoadTestProvider) SetupCommand(a *App, args *model.CommandArgs, messag
 			}
 		}
 	} else {
-
-		var team *model.Team
-		if tr := <-a.Srv.Store.Team().Get(args.TeamId); tr.Err != nil {
+		team, err := a.Srv.Store.Team().Get(args.TeamId)
+		if err != nil {
 			return &model.CommandResponse{Text: "Failed to create testing environment", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
-		} else {
-			team = tr.Data.(*model.Team)
 		}
 
 		client.MockSession(args.Session.Token)
@@ -220,11 +217,9 @@ func (me *LoadTestProvider) UsersCommand(a *App, args *model.CommandArgs, messag
 		usersr = utils.Range{Begin: 2, End: 5}
 	}
 
-	var team *model.Team
-	if tr := <-a.Srv.Store.Team().Get(args.TeamId); tr.Err != nil {
+	team, err := a.Srv.Store.Team().Get(args.TeamId)
+	if err != nil {
 		return &model.CommandResponse{Text: "Failed to create testing environment", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
-	} else {
-		team = tr.Data.(*model.Team)
 	}
 
 	client := model.NewAPIv4Client(args.SiteURL)
@@ -249,11 +244,9 @@ func (me *LoadTestProvider) ChannelsCommand(a *App, args *model.CommandArgs, mes
 		channelsr = utils.Range{Begin: 2, End: 5}
 	}
 
-	var team *model.Team
-	if tr := <-a.Srv.Store.Team().Get(args.TeamId); tr.Err != nil {
+	team, err := a.Srv.Store.Team().Get(args.TeamId)
+	if err != nil {
 		return &model.CommandResponse{Text: "Failed to create testing environment", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
-	} else {
-		team = tr.Data.(*model.Team)
 	}
 
 	client := model.NewAPIv4Client(args.SiteURL)
