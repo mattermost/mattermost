@@ -608,18 +608,26 @@ func (_m *TeamStore) SearchPrivate(term string) store.StoreChannel {
 // Update provides a mock function with given fields: team
 func (_m *TeamStore) Update(team *model.Team) (*model.Team, *model.AppError) {
 	ret := _m.Called(team)
-	var r1 *model.Team
 
-	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(*model.Team) *model.AppError); ok {
+	var r0 *model.Team
+	if rf, ok := ret.Get(0).(func(*model.Team) *model.Team); ok {
 		r0 = rf(team)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.AppError)
+			r0 = ret.Get(0).(*model.Team)
 		}
 	}
 
-	return r1, r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.Team) *model.AppError); ok {
+		r1 = rf(team)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // UpdateDisplayName provides a mock function with given fields: name, teamId
