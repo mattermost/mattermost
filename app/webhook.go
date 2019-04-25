@@ -459,7 +459,7 @@ func (a *App) UpdateOutgoingWebhook(oldHook, updatedHook *model.OutgoingWebhook)
 		return nil, model.NewAppError("UpdateOutgoingWebhook", "api.webhook.create_outgoing.triggers.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	allHooks, err := a.Srv.Store.Webhook().GetOutgoingByTeam(oldHook.TeamId, -1, -1);
+	allHooks, err := a.Srv.Store.Webhook().GetOutgoingByTeam(oldHook.TeamId, -1, -1)
 	if err != nil {
 		return nil, err
 	}

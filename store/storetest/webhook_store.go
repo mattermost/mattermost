@@ -300,7 +300,7 @@ func testWebhookStoreGetOutgoing(t *testing.T, ss store.Store) {
 
 	o1, _ = ss.Webhook().SaveOutgoing(o1)
 
-	if r1,err := ss.Webhook().GetOutgoing(o1.Id); err != nil {
+	if r1, err := ss.Webhook().GetOutgoing(o1.Id); err != nil {
 		t.Fatal(err)
 	} else {
 		if r1.CreateAt != o1.CreateAt {
@@ -308,7 +308,7 @@ func testWebhookStoreGetOutgoing(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if _,err := ss.Webhook().GetOutgoing("123"); err == nil {
+	if _, err := ss.Webhook().GetOutgoing("123"); err == nil {
 		t.Fatal("Missing id should have failed")
 	}
 }
@@ -425,7 +425,7 @@ func testWebhookStoreDeleteOutgoing(t *testing.T, ss store.Store) {
 
 	o1, _ = ss.Webhook().SaveOutgoing(o1)
 
-	if r1,err := ss.Webhook().GetOutgoing(o1.Id); err != nil {
+	if r1, err := ss.Webhook().GetOutgoing(o1.Id); err != nil {
 		t.Fatal(err)
 	} else {
 		if r1.CreateAt != o1.CreateAt {
@@ -437,7 +437,7 @@ func testWebhookStoreDeleteOutgoing(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	if r3,err := ss.Webhook().GetOutgoing(o1.Id); err == nil {
+	if r3, err := ss.Webhook().GetOutgoing(o1.Id); err == nil {
 		t.Log(r3)
 		t.Fatal("Missing id should have failed")
 	}
@@ -452,7 +452,7 @@ func testWebhookStoreDeleteOutgoingByChannel(t *testing.T, ss store.Store) {
 
 	o1, _ = ss.Webhook().SaveOutgoing(o1)
 
-	if r1,err := ss.Webhook().GetOutgoing(o1.Id); err != nil {
+	if r1, err := ss.Webhook().GetOutgoing(o1.Id); err != nil {
 		t.Fatal(err)
 	} else {
 		if r1.CreateAt != o1.CreateAt {
@@ -464,7 +464,7 @@ func testWebhookStoreDeleteOutgoingByChannel(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	if r3,err := ss.Webhook().GetOutgoing(o1.Id); err == nil {
+	if r3, err := ss.Webhook().GetOutgoing(o1.Id); err == nil {
 		t.Log(r3)
 		t.Fatal("Missing id should have failed")
 	}
@@ -479,7 +479,7 @@ func testWebhookStoreDeleteOutgoingByUser(t *testing.T, ss store.Store) {
 
 	o1, _ = ss.Webhook().SaveOutgoing(o1)
 
-	if r1,err := ss.Webhook().GetOutgoing(o1.Id); err != nil {
+	if r1, err := ss.Webhook().GetOutgoing(o1.Id); err != nil {
 		t.Fatal(err)
 	} else {
 		if r1.CreateAt != o1.CreateAt {
@@ -491,7 +491,7 @@ func testWebhookStoreDeleteOutgoingByUser(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	if r3,err := ss.Webhook().GetOutgoing(o1.Id); err == nil {
+	if r3, err := ss.Webhook().GetOutgoing(o1.Id); err == nil {
 		t.Log(r3)
 		t.Fatal("Missing id should have failed")
 	}

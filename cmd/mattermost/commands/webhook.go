@@ -104,18 +104,17 @@ func listWebhookCmdF(command *cobra.Command, args []string) error {
 		incomingHooks, err := app.Srv.Store.Webhook().GetIncomingByTeam(team.Id, 0, 100000000)
 		if err != nil {
 			CommandPrintErrorln("Unable to list incoming webhooks for '" + args[i] + "'")
-		}else{
+		} else {
 			CommandPrettyPrintln(fmt.Sprintf("Incoming webhooks for %s (%s):", team.DisplayName, team.Name))
 			for _, hook := range incomingHooks {
 				CommandPrettyPrintln("\t" + hook.DisplayName + " (" + hook.Id + ")")
 			}
 		}
 
-
 		outgoingHooks, err := app.Srv.Store.Webhook().GetOutgoingByTeam(team.Id, 0, 100000000)
 		if err != nil {
 			CommandPrintErrorln("Unable to list outgoing webhooks for '" + args[i] + "'")
-		}else{
+		} else {
 			CommandPrettyPrintln(fmt.Sprintf("Outgoing webhooks for %s (%s):", team.DisplayName, team.Name))
 			for _, hook := range outgoingHooks {
 				CommandPrettyPrintln("\t" + hook.DisplayName + " (" + hook.Id + ")")
