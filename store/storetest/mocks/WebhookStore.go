@@ -247,19 +247,28 @@ func (_m *WebhookStore) GetOutgoingByTeam(teamId string, offset int, limit int) 
 }
 
 // GetOutgoingList provides a mock function with given fields: offset, limit
-func (_m *WebhookStore) GetOutgoingList(offset int, limit int) store.StoreChannel {
+func (_m *WebhookStore) GetOutgoingList(offset int, limit int) ([]*model.OutgoingWebhook, *model.AppError) {
 	ret := _m.Called(offset, limit)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(int, int) store.StoreChannel); ok {
+	var r0 []*model.OutgoingWebhook
+	if rf, ok := ret.Get(0).(func(int, int) []*model.OutgoingWebhook); ok {
 		r0 = rf(offset, limit)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]*model.OutgoingWebhook)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(int, int) *model.AppError); ok {
+		r1 = rf(offset, limit)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // InvalidateWebhookCache provides a mock function with given fields: webhook
