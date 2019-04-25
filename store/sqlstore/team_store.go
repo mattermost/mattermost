@@ -194,41 +194,37 @@ func (s SqlTeamStore) Save(team *model.Team) store.StoreChannel {
 	})
 }
 
-func (s SqlTeamStore) Update(team *model.Team) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		team.PreUpdate()
+func (s SqlTeamStore) Update(team *model.Team) (*model.Team, *model.AppError) {
 
-		if result.Err = team.IsValid(); result.Err != nil {
-			return
-		}
+	team.PreUpdate()
 
-		oldResult, err := s.GetMaster().Get(model.Team{}, team.Id)
-		if err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.Update", "store.sql_team.update.finding.app_error", nil, "id="+team.Id+", "+err.Error(), http.StatusInternalServerError)
-			return
-		}
+	if err := team.IsValid(); err != nil {
+		return nil, err
+	}
 
-		if oldResult == nil {
-			result.Err = model.NewAppError("SqlTeamStore.Update", "store.sql_team.update.find.app_error", nil, "id="+team.Id, http.StatusBadRequest)
-			return
-		}
+	oldResult, err := s.GetMaster().Get(model.Team{}, team.Id)
+	if err != nil {
+		return nil, model.NewAppError("SqlTeamStore.Update", "store.sql_team.update.finding.app_error", nil, "id="+team.Id+", "+err.Error(), http.StatusInternalServerError)
 
-		oldTeam := oldResult.(*model.Team)
-		team.CreateAt = oldTeam.CreateAt
-		team.UpdateAt = model.GetMillis()
+	}
 
-		count, err := s.GetMaster().Update(team)
-		if err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.Update", "store.sql_team.update.updating.app_error", nil, "id="+team.Id+", "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-		if count != 1 {
-			result.Err = model.NewAppError("SqlTeamStore.Update", "store.sql_team.update.app_error", nil, "id="+team.Id, http.StatusInternalServerError)
-			return
-		}
+	if oldResult == nil {
+		return nil, model.NewAppError("SqlTeamStore.Update", "store.sql_team.update.find.app_error", nil, "id="+team.Id, http.StatusBadRequest)
+	}
 
-		result.Data = team
-	})
+	oldTeam := oldResult.(*model.Team)
+	team.CreateAt = oldTeam.CreateAt
+	team.UpdateAt = model.GetMillis()
+
+	count, err := s.GetMaster().Update(team)
+	if err != nil {
+		return nil, model.NewAppError("SqlTeamStore.Update", "store.sql_team.update.updating.app_error", nil, "id="+team.Id+", "+err.Error(), http.StatusInternalServerError)
+	}
+	if count != 1 {
+		return nil, model.NewAppError("SqlTeamStore.Update", "store.sql_team.update.app_error", nil, "id="+team.Id, http.StatusInternalServerError)
+	}
+
+	return team, nil
 }
 
 func (s SqlTeamStore) UpdateDisplayName(name string, teamId string) store.StoreChannel {

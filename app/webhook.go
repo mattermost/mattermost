@@ -401,13 +401,9 @@ func (a *App) CreateOutgoingWebhook(hook *model.OutgoingWebhook) (*model.Outgoin
 	}
 
 	if len(hook.ChannelId) != 0 {
-		cchan := a.Srv.Store.Channel().Get(hook.ChannelId, true)
-
-		var channel *model.Channel
-		if result := <-cchan; result.Err != nil {
-			return nil, result.Err
-		} else {
-			channel = result.Data.(*model.Channel)
+		channel, errCh := a.Srv.Store.Channel().Get(hook.ChannelId, true)
+		if errCh != nil {
+			return nil, errCh
 		}
 
 		if channel.Type != model.CHANNEL_OPEN {
@@ -500,11 +496,7 @@ func (a *App) GetOutgoingWebhook(hookId string) (*model.OutgoingWebhook, *model.
 		return nil, model.NewAppError("GetOutgoingWebhook", "api.outgoing_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if result := <-a.Srv.Store.Webhook().GetOutgoing(hookId); result.Err != nil {
-		return nil, result.Err
-	} else {
-		return result.Data.(*model.OutgoingWebhook), nil
-	}
+	return a.Srv.Store.Webhook().GetOutgoing(hookId)
 }
 
 func (a *App) GetOutgoingWebhooksPage(page, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
@@ -641,7 +633,11 @@ func (a *App) HandleIncomingWebhook(hookId string, req *model.IncomingWebhookReq
 			cchan = a.Srv.Store.Channel().GetByName(hook.TeamId, channelName, true)
 		}
 	} else {
-		cchan = a.Srv.Store.Channel().Get(hook.ChannelId, true)
+		var err *model.AppError
+		channel, err = a.Srv.Store.Channel().Get(hook.ChannelId, true)
+		if err != nil {
+			return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.channel.app_error", nil, "err="+err.Message, err.StatusCode)
+		}
 	}
 
 	if channel == nil {
