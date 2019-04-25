@@ -212,8 +212,8 @@ func (me *LoadTestProvider) UsersCommand(a *App, args *model.CommandArgs, messag
 		cmd = strings.TrimSpace(strings.TrimPrefix(cmd, "fuzz"))
 	}
 
-	usersr, err := parseRange(cmd, "")
-	if !err {
+	usersr, ok := parseRange(cmd, "")
+	if !ok {
 		usersr = utils.Range{Begin: 2, End: 5}
 	}
 
@@ -239,8 +239,8 @@ func (me *LoadTestProvider) ChannelsCommand(a *App, args *model.CommandArgs, mes
 		cmd = strings.TrimSpace(strings.TrimPrefix(cmd, "fuzz"))
 	}
 
-	channelsr, err := parseRange(cmd, "")
-	if !err {
+	channelsr, ok := parseRange(cmd, "")
+	if !ok {
 		channelsr = utils.Range{Begin: 2, End: 5}
 	}
 
@@ -267,8 +267,8 @@ func (me *LoadTestProvider) PostsCommand(a *App, args *model.CommandArgs, messag
 		cmd = strings.TrimSpace(strings.TrimPrefix(cmd, "fuzz"))
 	}
 
-	postsr, err := parseRange(cmd, "")
-	if !err {
+	postsr, ok := parseRange(cmd, "")
+	if !ok {
 		postsr = utils.Range{Begin: 20, End: 30}
 	}
 
