@@ -397,7 +397,7 @@ type WebhookStore interface {
 	PermanentDeleteOutgoingByUser(userId string) *model.AppError
 	UpdateOutgoing(hook *model.OutgoingWebhook) *model.AppError
 
-	AnalyticsIncomingCount(teamId string) StoreChannel
+	AnalyticsIncomingCount(teamId string) (int64, *model.AppError)
 	AnalyticsOutgoingCount(teamId string) StoreChannel
 	InvalidateWebhookCache(webhook string)
 	ClearCaches()

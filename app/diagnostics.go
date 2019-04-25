@@ -197,9 +197,7 @@ func (a *App) trackActivity() {
 		slashCommandsCount = scc.Data.(int64)
 	}
 
-	if iwc := <-a.Srv.Store.Webhook().AnalyticsIncomingCount(""); iwc.Err == nil {
-		incomingWebhooksCount = iwc.Data.(int64)
-	}
+	 incomingWebhooksCount, _ = a.Srv.Store.Webhook().AnalyticsIncomingCount("")
 
 	if owc := <-a.Srv.Store.Webhook().AnalyticsOutgoingCount(""); owc.Err == nil {
 		outgoingWebhooksCount = owc.Data.(int64)

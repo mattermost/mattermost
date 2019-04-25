@@ -185,7 +185,11 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 		rows[4] = &model.AnalyticsRow{Name: "command_count", Value: 0}
 		rows[5] = &model.AnalyticsRow{Name: "session_count", Value: 0}
 
-		iHookChan := a.Srv.Store.Webhook().AnalyticsIncomingCount(teamId)
+		iHook, err := a.Srv.Store.Webhook().AnalyticsIncomingCount(teamId)
+		if err != nil {
+			return nil, err
+		}
+		rows[2].Value = float64(iHook)
 		oHookChan := a.Srv.Store.Webhook().AnalyticsOutgoingCount(teamId)
 		commandChan := a.Srv.Store.Command().AnalyticsCommandCount(teamId)
 		sessionChan := a.Srv.Store.Session().AnalyticsSessionCount()
@@ -217,13 +221,7 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			rows[1].Value = float64(r.Data.(int64))
 		}
 
-		r := <-iHookChan
-		if r.Err != nil {
-			return nil, r.Err
-		}
-		rows[2].Value = float64(r.Data.(int64))
-
-		r = <-oHookChan
+		r := <-oHookChan
 		if r.Err != nil {
 			return nil, r.Err
 		}

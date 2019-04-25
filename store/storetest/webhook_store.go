@@ -524,10 +524,10 @@ func testWebhookStoreCountIncoming(t *testing.T, ss store.Store) {
 
 	_, _ = ss.Webhook().SaveIncoming(o1)
 
-	if r := <-ss.Webhook().AnalyticsIncomingCount(""); r.Err != nil {
-		t.Fatal(r.Err)
+	if r, err := ss.Webhook().AnalyticsIncomingCount(""); err != nil {
+		t.Fatal(err)
 	} else {
-		if r.Data.(int64) == 0 {
+		if r == 0 {
 			t.Fatal("should have at least 1 incoming hook")
 		}
 	}
