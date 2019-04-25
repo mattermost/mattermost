@@ -602,7 +602,6 @@ func TestUpdatePost(t *testing.T) {
 	assert.NotEqual(t, rpost3.EditAt, rrupost3.EditAt)
 	assert.NotEqual(t, rpost3.Attachments(), rrupost3.Attachments())
 
-
 	Client.Logout()
 	_, resp = Client.UpdatePost(rpost.Id, rpost)
 	CheckUnauthorizedStatus(t, resp)
