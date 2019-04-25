@@ -265,8 +265,7 @@ func (s SqlWebhookStore) GetOutgoingByChannel(channelId string, offset, limit in
 	})
 }
 
-func (s SqlWebhookStore) GetOutgoingByTeam(teamId string, offset, limit int) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
+func (s SqlWebhookStore) GetOutgoingByTeam(teamId string, offset, limit int) ([]*model.OutgoingWebhook, *model.AppError) {
 		var webhooks []*model.OutgoingWebhook
 
 		query := ""
@@ -277,11 +276,10 @@ func (s SqlWebhookStore) GetOutgoingByTeam(teamId string, offset, limit int) sto
 		}
 
 		if _, err := s.GetReplica().Select(&webhooks, query, map[string]interface{}{"TeamId": teamId, "Offset": offset, "Limit": limit}); err != nil {
-			result.Err = model.NewAppError("SqlWebhookStore.GetOutgoingByTeam", "store.sql_webhooks.get_outgoing_by_team.app_error", nil, "teamId="+teamId+", err="+err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("SqlWebhookStore.GetOutgoingByTeam", "store.sql_webhooks.get_outgoing_by_team.app_error", nil, "teamId="+teamId+", err="+err.Error(), http.StatusInternalServerError)
 		}
 
-		result.Data = webhooks
-	})
+		return webhooks, nil
 }
 
 func (s SqlWebhookStore) DeleteOutgoing(webhookId string, time int64) store.StoreChannel {
