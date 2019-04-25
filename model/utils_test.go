@@ -252,8 +252,8 @@ var hashtags = map[string]string{
 
 func TestStringArray_Equal(t *testing.T) {
 	for name, tc := range map[string]struct {
-		Array1 StringArray
-		Array2 StringArray
+		Array1   StringArray
+		Array2   StringArray
 		Expected bool
 	}{
 		"Empty": {
