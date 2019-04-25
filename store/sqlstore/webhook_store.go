@@ -152,15 +152,14 @@ func (s SqlWebhookStore) DeleteIncoming(webhookId string, time int64) *model.App
 		return nil
 }
 
-func (s SqlWebhookStore) PermanentDeleteIncomingByUser(userId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
+func (s SqlWebhookStore) PermanentDeleteIncomingByUser(userId string) *model.AppError {
 		_, err := s.GetMaster().Exec("DELETE FROM IncomingWebhooks WHERE UserId = :UserId", map[string]interface{}{"UserId": userId})
 		if err != nil {
-			result.Err = model.NewAppError("SqlWebhookStore.DeleteIncomingByUser", "store.sql_webhooks.permanent_delete_incoming_by_user.app_error", nil, "id="+userId+", err="+err.Error(), http.StatusInternalServerError)
+			return model.NewAppError("SqlWebhookStore.DeleteIncomingByUser", "store.sql_webhooks.permanent_delete_incoming_by_user.app_error", nil, "id="+userId+", err="+err.Error(), http.StatusInternalServerError)
 		}
 
 		s.ClearCaches()
-	})
+		return nil
 }
 
 func (s SqlWebhookStore) PermanentDeleteIncomingByChannel(channelId string) store.StoreChannel {
