@@ -496,11 +496,7 @@ func (a *App) GetOutgoingWebhook(hookId string) (*model.OutgoingWebhook, *model.
 		return nil, model.NewAppError("GetOutgoingWebhook", "api.outgoing_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if result := <-a.Srv.Store.Webhook().GetOutgoing(hookId); result.Err != nil {
-		return nil, result.Err
-	} else {
-		return result.Data.(*model.OutgoingWebhook), nil
-	}
+	return a.Srv.Store.Webhook().GetOutgoing(hookId)
 }
 
 func (a *App) GetOutgoingWebhooksPage(page, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {

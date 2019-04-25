@@ -220,16 +220,14 @@ func (s SqlWebhookStore) SaveOutgoing(webhook *model.OutgoingWebhook) (*model.Ou
 	return webhook, nil
 }
 
-func (s SqlWebhookStore) GetOutgoing(id string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
+func (s SqlWebhookStore) GetOutgoing(id string) (*model.OutgoingWebhook, *model.AppError) {
 		var webhook model.OutgoingWebhook
 
 		if err := s.GetReplica().SelectOne(&webhook, "SELECT * FROM OutgoingWebhooks WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": id}); err != nil {
-			result.Err = model.NewAppError("SqlWebhookStore.GetOutgoing", "store.sql_webhooks.get_outgoing.app_error", nil, "id="+id+", err="+err.Error(), http.StatusInternalServerError)
+			return nil,model.NewAppError("SqlWebhookStore.GetOutgoing", "store.sql_webhooks.get_outgoing.app_error", nil, "id="+id+", err="+err.Error(), http.StatusInternalServerError)
 		}
 
-		result.Data = &webhook
-	})
+		return &webhook,nil
 }
 
 func (s SqlWebhookStore) GetOutgoingList(offset, limit int) store.StoreChannel {
