@@ -412,7 +412,7 @@ func testTeamStoreGetByInviteId(t *testing.T, ss store.Store) {
 			t.Fatal("invalid returned team")
 		}
 	}
-	
+
 	if err := (<-ss.Team().GetByInviteId("")).Err; err == nil {
 		t.Fatal("Missing id should have failed")
 	}
