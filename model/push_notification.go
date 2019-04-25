@@ -66,6 +66,7 @@ type PushNotification struct {
 	ChannelName      string `json:"channel_name"`
 	Type             string `json:"type"`
 	SenderId         string `json:"sender_id"`
+	SenderName       string `json:"sender_name"`
 	OverrideUsername string `json:"override_username"`
 	OverrideIconUrl  string `json:"override_icon_url"`
 	FromWebhook      string `json:"from_webhook"`

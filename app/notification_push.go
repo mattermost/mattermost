@@ -83,8 +83,10 @@ func (a *App) sendPushNotificationSync(post *model.Post, user *model.User, chann
 		msg.ChannelName = channelName
 	}
 
+	msg.SenderName = senderName
 	if ou, ok := post.Props["override_username"].(string); ok && *cfg.ServiceSettings.EnablePostUsernameOverride {
 		msg.OverrideUsername = ou
+		msg.SenderName = ou
 	}
 
 	if oi, ok := post.Props["override_icon_url"].(string); ok && *cfg.ServiceSettings.EnablePostIconOverride {
@@ -98,7 +100,7 @@ func (a *App) sendPushNotificationSync(post *model.Post, user *model.User, chann
 	userLocale := utils.GetUserTranslations(user.Locale)
 	hasFiles := post.FileIds != nil && len(post.FileIds) > 0
 
-	msg.Message = a.getPushNotificationMessage(post.Message, explicitMention, channelWideMention, hasFiles, senderName, channelName, channel.Type, replyToThreadType, userLocale)
+	msg.Message = a.getPushNotificationMessage(post.Message, explicitMention, channelWideMention, hasFiles, msg.SenderName, channelName, channel.Type, replyToThreadType, userLocale)
 
 	for _, session := range sessions {
 
