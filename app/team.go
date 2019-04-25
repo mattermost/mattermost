@@ -22,6 +22,7 @@ import (
 )
 
 func (a *App) CreateTeam(team *model.Team) (*model.Team, *model.AppError) {
+	team.InviteId = ""
 	result := <-a.Srv.Store.Team().Save(team)
 	if result.Err != nil {
 		return nil, result.Err
@@ -117,7 +118,6 @@ func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 
 	oldTeam.DisplayName = team.DisplayName
 	oldTeam.Description = team.Description
-	oldTeam.InviteId = team.InviteId
 	oldTeam.AllowOpenInvite = team.AllowOpenInvite
 	oldTeam.CompanyName = team.CompanyName
 	oldTeam.AllowedDomains = team.AllowedDomains
@@ -199,6 +199,25 @@ func (a *App) PatchTeam(teamId string, patch *model.TeamPatch) (*model.Team, *mo
 	if err != nil {
 		return nil, err
 	}
+
+	a.sendTeamEvent(updatedTeam, model.WEBSOCKET_EVENT_UPDATE_TEAM)
+
+	return updatedTeam, nil
+}
+
+func (a *App) RegenerateTeamInviteId(teamId string) (*model.Team, *model.AppError) {
+	team, err := a.GetTeam(teamId)
+	if err != nil {
+		return nil, err
+	}
+
+	team.InviteId = model.NewId()
+
+	res := <-a.Srv.Store.Team().Update(team)
+	if res.Err != nil {
+		return nil, res.Err
+	}
+	updatedTeam := res.Data.(*model.Team)
 
 	a.sendTeamEvent(updatedTeam, model.WEBSOCKET_EVENT_UPDATE_TEAM)
 
