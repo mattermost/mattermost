@@ -294,12 +294,12 @@ func (s SqlWebhookStore) DeleteOutgoing(webhookId string, time int64) store.Stor
 }
 
 func (s SqlWebhookStore) PermanentDeleteOutgoingByUser(userId string) *model.AppError {
-		_, err := s.GetMaster().Exec("DELETE FROM OutgoingWebhooks WHERE CreatorId = :UserId", map[string]interface{}{"UserId": userId})
-		if err != nil {
-			return model.NewAppError("SqlWebhookStore.DeleteOutgoingByUser", "store.sql_webhooks.permanent_delete_outgoing_by_user.app_error", nil, "id="+userId+", err="+err.Error(), http.StatusInternalServerError)
-		}
+	_, err := s.GetMaster().Exec("DELETE FROM OutgoingWebhooks WHERE CreatorId = :UserId", map[string]interface{}{"UserId": userId})
+	if err != nil {
+		return model.NewAppError("SqlWebhookStore.DeleteOutgoingByUser", "store.sql_webhooks.permanent_delete_outgoing_by_user.app_error", nil, "id="+userId+", err="+err.Error(), http.StatusInternalServerError)
+	}
 
-		return nil
+	return nil
 }
 
 func (s SqlWebhookStore) PermanentDeleteOutgoingByChannel(channelId string) *model.AppError {
