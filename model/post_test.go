@@ -181,14 +181,12 @@ func TestPostSanitizeProps(t *testing.T) {
 }
 
 func TestPost_AttachmentsEqual(t *testing.T) {
-	post1 := &Post {
-	}
-	post2 := &Post {
-	}
+	post1 := &Post{}
+	post2 := &Post{}
 	for name, tc := range map[string]struct {
 		Attachments1 []*SlackAttachment
 		Attachments2 []*SlackAttachment
-		Expected bool
+		Expected     bool
 	}{
 		"Empty": {
 			nil,
@@ -233,7 +231,7 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 		"DifferentColor": {
 			[]*SlackAttachment{
 				{
-					Text: "Hello World",
+					Text:  "Hello World",
 					Color: "#152313",
 				},
 			},
@@ -247,7 +245,7 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 		"EqualFields": {
 			[]*SlackAttachment{
 				{
-					Fields: []*SlackAttachmentField {
+					Fields: []*SlackAttachmentField{
 						{
 							Title: "Hello World",
 							Value: "FooBar",
@@ -261,7 +259,7 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 			},
 			[]*SlackAttachment{
 				{
-					Fields: []*SlackAttachmentField {
+					Fields: []*SlackAttachmentField{
 						{
 							Title: "Hello World",
 							Value: "FooBar",
@@ -278,7 +276,7 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 		"DifferentFields": {
 			[]*SlackAttachment{
 				{
-					Fields: []*SlackAttachmentField {
+					Fields: []*SlackAttachmentField{
 						{
 							Title: "Hello World",
 							Value: "FooBar",
@@ -288,7 +286,7 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 			},
 			[]*SlackAttachment{
 				{
-					Fields: []*SlackAttachmentField {
+					Fields: []*SlackAttachmentField{
 						{
 							Title: "Hello World",
 							Value: "FooBar",
@@ -310,9 +308,9 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 					Actions: []*PostAction{
 						{
 							Name: "FooBar",
-							Options: []*PostActionOptions {
+							Options: []*PostActionOptions{
 								{
-									Text: "abcdef",
+									Text:  "abcdef",
 									Value: "abcdef",
 								},
 							},
@@ -320,7 +318,7 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 								URL: "http://localhost",
 								Context: map[string]interface{}{
 									"context": "foobar",
-									"test": 123,
+									"test":    123,
 								},
 							},
 						},
@@ -332,9 +330,9 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 					Actions: []*PostAction{
 						{
 							Name: "FooBar",
-							Options: []*PostActionOptions {
+							Options: []*PostActionOptions{
 								{
-									Text: "abcdef",
+									Text:  "abcdef",
 									Value: "abcdef",
 								},
 							},
@@ -342,7 +340,7 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 								URL: "http://localhost",
 								Context: map[string]interface{}{
 									"context": "foobar",
-									"test": 123,
+									"test":    123,
 								},
 							},
 						},
@@ -357,9 +355,9 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 					Actions: []*PostAction{
 						{
 							Name: "FooBar",
-							Options: []*PostActionOptions {
+							Options: []*PostActionOptions{
 								{
-									Text: "abcdef",
+									Text:  "abcdef",
 									Value: "abcdef",
 								},
 							},
@@ -367,7 +365,7 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 								URL: "http://localhost",
 								Context: map[string]interface{}{
 									"context": "foobar",
-									"test": "mattermost",
+									"test":    "mattermost",
 								},
 							},
 						},
@@ -379,9 +377,9 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 					Actions: []*PostAction{
 						{
 							Name: "FooBar",
-							Options: []*PostActionOptions {
+							Options: []*PostActionOptions{
 								{
-									Text: "abcdef",
+									Text:  "abcdef",
 									Value: "abcdef",
 								},
 							},
@@ -389,7 +387,7 @@ func TestPost_AttachmentsEqual(t *testing.T) {
 								URL: "http://localhost",
 								Context: map[string]interface{}{
 									"context": "foobar",
-									"test": 123,
+									"test":    123,
 								},
 							},
 						},
