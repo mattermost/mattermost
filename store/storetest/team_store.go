@@ -415,7 +415,7 @@ func testTeamStoreGetByInviteId(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	if r1 := <-ss.Team().GetByInviteId(save1.Data.(*model.Team).InviteId); r1.Err != nil {
+	if r1 := <-ss.Team().GetByInviteId(o1.InviteId); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		if r1.Data.(*model.Team).ToJson() != o1.ToJson() {

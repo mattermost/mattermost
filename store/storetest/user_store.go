@@ -3513,7 +3513,7 @@ func testUserStoreGetTeamGroupUsers(t *testing.T, ss store.Store) {
 
 	// update team to be group-constrained
 	team.GroupConstrained = model.NewBool(true)
-	team, err := ss.Team().Update(team)
+	team, err = ss.Team().Update(team)
 	require.Nil(t, err)
 
 	// still returns user (being group-constrained has no effect)
