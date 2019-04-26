@@ -715,7 +715,7 @@ type postNotification struct {
 func (n *postNotification) GetChannelName(userNameFormat string, excludeId string) string {
 	switch n.channel.Type {
 	case model.CHANNEL_DIRECT:
-		return fmt.Sprintf("@%s", n.sender.GetDisplayName(userNameFormat))
+		return n.sender.GetDisplayName(userNameFormat)
 	case model.CHANNEL_GROUP:
 		names := []string{}
 		for _, user := range n.profileMap {
