@@ -13,7 +13,7 @@ var mainHelper *testlib.MainHelper
 
 func TestMain(m *testing.M) {
 	var options = testlib.HelperOptions{
-		EnableStore: true,
+		EnableStore:     true,
 		EnableResources: true,
 	}
 

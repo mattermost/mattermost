@@ -388,3 +388,25 @@ func TestIsValidLocale(t *testing.T) {
 		})
 	}
 }
+
+func TestUserSlice(t *testing.T) {
+	t.Run("FilterByActive", func(t *testing.T) {
+		user0 := &User{Id: "user0", DeleteAt: 0}
+		user1 := &User{Id: "user1", DeleteAt: 0}
+		user2 := &User{Id: "user2", DeleteAt: 1}
+
+		slice := UserSlice([]*User{user0, user1, user2})
+
+		activeUsers := slice.FilterByActive(true)
+		assert.Equal(t, 2, len(activeUsers))
+		for _, user := range activeUsers {
+			assert.True(t, user.DeleteAt == 0)
+		}
+
+		inactiveUsers := slice.FilterByActive(false)
+		assert.Equal(t, 1, len(inactiveUsers))
+		for _, user := range inactiveUsers {
+			assert.True(t, user.DeleteAt != 0)
+		}
+	})
+}

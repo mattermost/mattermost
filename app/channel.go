@@ -833,7 +833,7 @@ func (a *App) DeleteChannel(channel *model.Channel, userId string) *model.AppErr
 	}
 
 	for _, hook := range outgoingHooks {
-		if result := <-a.Srv.Store.Webhook().DeleteOutgoing(hook.Id, now); result.Err != nil {
+		if err := a.Srv.Store.Webhook().DeleteOutgoing(hook.Id, now); err != nil {
 			mlog.Error(fmt.Sprintf("Encountered error deleting outgoing webhook, id=%v", hook.Id))
 		}
 	}
@@ -1857,8 +1857,8 @@ func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
 		return result.Err
 	}
 
-	if result := <-a.Srv.Store.Webhook().PermanentDeleteIncomingByChannel(channel.Id); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.Webhook().PermanentDeleteIncomingByChannel(channel.Id); err != nil {
+		return err
 	}
 
 	if err := a.Srv.Store.Webhook().PermanentDeleteOutgoingByChannel(channel.Id); err != nil {
