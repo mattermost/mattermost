@@ -131,19 +131,28 @@ func (_m *ChannelStore) Delete(channelId string, time int64) store.StoreChannel 
 }
 
 // Get provides a mock function with given fields: id, allowFromCache
-func (_m *ChannelStore) Get(id string, allowFromCache bool) store.StoreChannel {
+func (_m *ChannelStore) Get(id string, allowFromCache bool) (*model.Channel, *model.AppError) {
 	ret := _m.Called(id, allowFromCache)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, bool) store.StoreChannel); ok {
+	var r0 *model.Channel
+	if rf, ok := ret.Get(0).(func(string, bool) *model.Channel); ok {
 		r0 = rf(id, allowFromCache)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.Channel)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, bool) *model.AppError); ok {
+		r1 = rf(id, allowFromCache)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetAll provides a mock function with given fields: teamId
@@ -467,19 +476,28 @@ func (_m *ChannelStore) GetForPost(postId string) store.StoreChannel {
 }
 
 // GetFromMaster provides a mock function with given fields: id
-func (_m *ChannelStore) GetFromMaster(id string) store.StoreChannel {
+func (_m *ChannelStore) GetFromMaster(id string) (*model.Channel, *model.AppError) {
 	ret := _m.Called(id)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+	var r0 *model.Channel
+	if rf, ok := ret.Get(0).(func(string) *model.Channel); ok {
 		r0 = rf(id)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.Channel)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(id)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetMember provides a mock function with given fields: channelId, userId

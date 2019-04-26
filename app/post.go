@@ -24,12 +24,11 @@ const (
 
 func (a *App) CreatePostAsUser(post *model.Post, currentSessionId string) (*model.Post, *model.AppError) {
 	// Check that channel has not been deleted
-	result := <-a.Srv.Store.Channel().Get(post.ChannelId, true)
-	if result.Err != nil {
-		err := model.NewAppError("CreatePostAsUser", "api.context.invalid_param.app_error", map[string]interface{}{"Name": "post.channel_id"}, result.Err.Error(), http.StatusBadRequest)
+	channel, errCh := a.Srv.Store.Channel().Get(post.ChannelId, true)
+	if errCh != nil {
+		err := model.NewAppError("CreatePostAsUser", "api.context.invalid_param.app_error", map[string]interface{}{"Name": "post.channel_id"}, errCh.Error(), http.StatusBadRequest)
 		return nil, err
 	}
-	channel := result.Data.(*model.Channel)
 
 	if strings.HasPrefix(post.Type, model.POST_SYSTEM_MESSAGE_PREFIX) {
 		err := model.NewAppError("CreatePostAsUser", "api.context.invalid_param.app_error", map[string]interface{}{"Name": "post.type"}, "", http.StatusBadRequest)
@@ -82,11 +81,10 @@ func (a *App) CreatePostAsUser(post *model.Post, currentSessionId string) (*mode
 }
 
 func (a *App) CreatePostMissingChannel(post *model.Post, triggerWebhooks bool) (*model.Post, *model.AppError) {
-	result := <-a.Srv.Store.Channel().Get(post.ChannelId, true)
-	if result.Err != nil {
-		return nil, result.Err
+	channel, err := a.Srv.Store.Channel().Get(post.ChannelId, true)
+	if err != nil {
+		return nil, err
 	}
-	channel := result.Data.(*model.Channel)
 
 	return a.CreatePost(post, channel, triggerWebhooks)
 }

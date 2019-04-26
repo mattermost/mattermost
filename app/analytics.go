@@ -185,7 +185,13 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 		rows[4] = &model.AnalyticsRow{Name: "command_count", Value: 0}
 		rows[5] = &model.AnalyticsRow{Name: "session_count", Value: 0}
 
-		iHookChan := a.Srv.Store.Webhook().AnalyticsIncomingCount(teamId)
+		iHookChan := make(chan store.StoreResult, 1)
+		go func() {
+			c, err := a.Srv.Store.Webhook().AnalyticsIncomingCount(teamId)
+			iHookChan <- store.StoreResult{Data: c, Err: err}
+			close(iHookChan)
+		}()
+
 		oHookChan := a.Srv.Store.Webhook().AnalyticsOutgoingCount(teamId)
 		commandChan := a.Srv.Store.Command().AnalyticsCommandCount(teamId)
 		sessionChan := a.Srv.Store.Session().AnalyticsSessionCount()

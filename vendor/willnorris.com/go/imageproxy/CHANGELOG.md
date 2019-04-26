@@ -10,6 +10,16 @@ adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Changed
  - updated docker image to use go1.12 compiler and build imageproxy as a go module.
 
+ - options are now sorted when converting to string.  This is a breaking change
+   for anyone relying on the option order, and will additionally invalidate
+   most cached values, since the option string is part of the cache key.
+
+   Both the original remote image, as well as any transformations on that image
+   are cached, but only the transformed images will be impacted by this change.
+   This will result in imageproxy having to re-perform the transformations, but
+   should not result in re-fetching the remote image, unless it has already
+   otherwise expired.
+
 ### Removed
  - removed deprecated `whitelist` flag and `Proxy.Whitelist` struct field. Use
    `allowHosts` and `Proxy.AllowHosts` instead.
