@@ -304,9 +304,8 @@ func TestGetTeamsForScheme(t *testing.T) {
 	assert.Zero(t, len(l2))
 
 	team1.SchemeId = &scheme1.Id
-	result2 := <-th.App.Srv.Store.Team().Update(team1)
-	assert.Nil(t, result2.Err)
-	team1 = result2.Data.(*model.Team)
+	team1, err := th.App.Srv.Store.Team().Update(team1)
+	assert.Nil(t, err)
 
 	l3, r3 := th.SystemAdminClient.GetTeamsForScheme(scheme1.Id, 0, 100)
 	CheckNoError(t, r3)

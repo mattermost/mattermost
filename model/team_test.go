@@ -59,6 +59,7 @@ func TestTeamIsValid(t *testing.T) {
 
 	o.Name = "zzzzz"
 	o.Type = TEAM_OPEN
+	o.InviteId = NewId()
 	if err := o.IsValid(); err != nil {
 		t.Fatal(err)
 	}
@@ -137,7 +138,6 @@ func TestTeamPatch(t *testing.T) {
 		Description:      new(string),
 		CompanyName:      new(string),
 		AllowedDomains:   new(string),
-		InviteId:         new(string),
 		AllowOpenInvite:  new(bool),
 		GroupConstrained: new(bool),
 	}
@@ -146,7 +146,6 @@ func TestTeamPatch(t *testing.T) {
 	*p.Description = NewId()
 	*p.CompanyName = NewId()
 	*p.AllowedDomains = NewId()
-	*p.InviteId = NewId()
 	*p.AllowOpenInvite = true
 	*p.GroupConstrained = true
 
@@ -164,9 +163,6 @@ func TestTeamPatch(t *testing.T) {
 	}
 	if *p.AllowedDomains != o.AllowedDomains {
 		t.Fatal("AllowedDomains did not update")
-	}
-	if *p.InviteId != o.InviteId {
-		t.Fatal("InviteId did not update")
 	}
 	if *p.AllowOpenInvite != o.AllowOpenInvite {
 		t.Fatal("AllowOpenInvite did not update")
