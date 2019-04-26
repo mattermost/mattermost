@@ -116,12 +116,8 @@ func testTeamStoreUpdateDisplayName(t *testing.T, ss store.Store) {
 	}
 
 	ro1, err := ss.Team().Get(o1.Id)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if ro1.DisplayName != newDisplayName {
-		t.Fatal("DisplayName not updated")
-	}
+	require.Nil(t, err)
+	require.Equal(t, newDisplayName, ro1.DisplayName, "DisplayName not updated")
 }
 
 func testTeamStoreGet(t *testing.T, ss store.Store) {
@@ -133,17 +129,11 @@ func testTeamStoreGet(t *testing.T, ss store.Store) {
 	store.Must(ss.Team().Save(&o1))
 
 	r1, err := ss.Team().Get(o1.Id)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
+	require.Equal(t, r1.ToJson(), o1.ToJson())
 
-	if r1.ToJson() != o1.ToJson() {
-		t.Fatal("invalid returned team")
-	}
-
-	if _, err := ss.Team().Get(""); err == nil {
-		t.Fatal("Missing id should have failed")
-	}
+	_, err = ss.Team().Get("")
+	require.NotNil(t, err, "Missing id should have failed")
 }
 
 func testTeamStoreGetByName(t *testing.T, ss store.Store) {
@@ -1302,9 +1292,7 @@ func testUpdateLastTeamIconUpdate(t *testing.T, ss store.Store) {
 	}
 
 	ro1, err := ss.Team().Get(o1.Id)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 
 	if ro1.LastTeamIconUpdate <= lastTeamIconUpdateInitial {
 		t.Fatal("LastTeamIconUpdate not updated")
@@ -1480,8 +1468,11 @@ func testResetAllTeamSchemes(t *testing.T, ss store.Store) {
 	res := <-ss.Team().ResetAllTeamSchemes()
 	assert.Nil(t, res.Err)
 
-	t1, _ = ss.Team().Get(t1.Id)
-	t2, _ = ss.Team().Get(t2.Id)
+	t1, err := ss.Team().Get(t1.Id)
+	require.Nil(t, err)
+
+	t2, err = ss.Team().Get(t2.Id)
+	require.Nil(t, err)
 
 	assert.Equal(t, "", *t1.SchemeId)
 	assert.Equal(t, "", *t2.SchemeId)
