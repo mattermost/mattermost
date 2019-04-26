@@ -836,7 +836,7 @@ func (a *App) AddUserToChannel(user *model.User, channel *model.Channel) (*model
 	return newMember, nil
 }
 
-func (a *App) AddChannelMember(userId string, channel *model.Channel, userRequestorId string, postRootId string, currentSessionId string) (*model.ChannelMember, *model.AppError) {
+func (a *App) AddChannelMember(userId string, channel *model.Channel, userRequestorId string, postRootId string) (*model.ChannelMember, *model.AppError) {
 	if result := <-a.Srv.Store.Channel().GetMember(channel.Id, userId); result.Err != nil {
 		if result.Err.Id != store.MISSING_CHANNEL_MEMBER_ERROR {
 			return nil, result.Err
@@ -880,10 +880,6 @@ func (a *App) AddChannelMember(userId string, channel *model.Channel, userReques
 		a.Srv.Go(func() {
 			a.PostAddToChannelMessage(userRequestor, user, channel, postRootId)
 		})
-	}
-
-	if userRequestor != nil {
-		a.MarkChannelsAsViewed([]string{channel.Id}, userRequestor.Id, currentSessionId)
 	}
 
 	return cm, nil

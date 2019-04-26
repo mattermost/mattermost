@@ -1149,7 +1149,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cm, err := c.App.AddChannelMember(member.UserId, channel, c.App.Session.UserId, postRootId, c.App.Session.Id)
+	cm, err := c.App.AddChannelMember(member.UserId, channel, c.App.Session.UserId, postRootId)
 	if err != nil {
 		c.Err = err
 		return
