@@ -6655,6 +6655,10 @@
     "translation": "Unable to get the channel members for the users batch for indexing"
   },
   {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_team_members.app_error",
+    "translation": "Unable to get the team members for the users batch for indexing"
+  },
+  {
     "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
     "translation": "Unable to get the users batch for indexing"
   },
