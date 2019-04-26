@@ -775,7 +775,7 @@ func (a *App) DeleteChannel(channel *model.Channel, userId string) *model.AppErr
 		close(ihc)
 	}()
 
-	go func(){
+	go func() {
 		outgoingHooks, err := a.Srv.Store.Webhook().GetOutgoingByChannel(channel.Id, -1, -1)
 		ohc <- store.StoreResult{Data: outgoingHooks, Err: err}
 		close(ohc)
