@@ -84,7 +84,7 @@ type TeamStore interface {
 	Save(team *model.Team) StoreChannel
 	Update(team *model.Team) (*model.Team, *model.AppError)
 	UpdateDisplayName(name string, teamId string) StoreChannel
-	Get(id string) StoreChannel
+	Get(id string) (*model.Team, *model.AppError)
 	GetByName(name string) StoreChannel
 	SearchByName(name string) StoreChannel
 	SearchAll(term string) StoreChannel

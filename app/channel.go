@@ -1922,12 +1922,10 @@ func (a *App) MoveChannel(team *model.Team, channel *model.Channel, user *model.
 	}
 
 	// keep instance of the previous team
-	var previousTeam *model.Team
-	result := <-a.Srv.Store.Team().Get(channel.TeamId)
-	if result.Err != nil {
-		return result.Err
+	previousTeam, err := a.Srv.Store.Team().Get(channel.TeamId)
+	if err != nil {
+		return err
 	}
-	previousTeam = result.Data.(*model.Team)
 
 	channel.TeamId = team.Id
 	if result := <-a.Srv.Store.Channel().Update(channel); result.Err != nil {
