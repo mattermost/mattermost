@@ -536,11 +536,7 @@ func (a *App) DeleteOutgoingWebhook(hookId string) *model.AppError {
 		return model.NewAppError("DeleteOutgoingWebhook", "api.outgoing_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if result := <-a.Srv.Store.Webhook().DeleteOutgoing(hookId, model.GetMillis()); result.Err != nil {
-		return result.Err
-	}
-
-	return nil
+	return a.Srv.Store.Webhook().DeleteOutgoing(hookId, model.GetMillis())
 }
 
 func (a *App) RegenOutgoingWebhookToken(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError) {

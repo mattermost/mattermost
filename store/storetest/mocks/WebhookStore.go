@@ -74,15 +74,15 @@ func (_m *WebhookStore) DeleteIncoming(webhookId string, time int64) store.Store
 }
 
 // DeleteOutgoing provides a mock function with given fields: webhookId, time
-func (_m *WebhookStore) DeleteOutgoing(webhookId string, time int64) store.StoreChannel {
+func (_m *WebhookStore) DeleteOutgoing(webhookId string, time int64) *model.AppError {
 	ret := _m.Called(webhookId, time)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, int64) store.StoreChannel); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, int64) *model.AppError); ok {
 		r0 = rf(webhookId, time)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
