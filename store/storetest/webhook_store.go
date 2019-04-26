@@ -328,10 +328,10 @@ func testWebhookStoreGetOutgoingList(t *testing.T, ss store.Store) {
 
 	o2, _ = ss.Webhook().SaveOutgoing(o2)
 
-	if r1 := <-ss.Webhook().GetOutgoingList(0, 1000); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if r1, err := ss.Webhook().GetOutgoingList(0, 1000); err != nil {
+		t.Fatal(err)
 	} else {
-		hooks := r1.Data.([]*model.OutgoingWebhook)
+		hooks := r1
 		found1 := false
 		found2 := false
 
@@ -353,10 +353,10 @@ func testWebhookStoreGetOutgoingList(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if result := <-ss.Webhook().GetOutgoingList(0, 2); result.Err != nil {
-		t.Fatal(result.Err)
+	if result, err := ss.Webhook().GetOutgoingList(0, 2); err != nil {
+		t.Fatal(err)
 	} else {
-		if len(result.Data.([]*model.OutgoingWebhook)) != 2 {
+		if len(result) != 2 {
 			t.Fatal("wrong number of hooks returned")
 		}
 	}
