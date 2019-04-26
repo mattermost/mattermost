@@ -250,6 +250,231 @@ func TestImportImportScheme(t *testing.T) {
 	}
 }
 
+func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	// Mark the phase 2 permissions migration as completed.
+	<-th.App.Srv.Store.System().Save(&model.System{Name: model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2, Value: "true"})
+
+	defer func() {
+		<-th.App.Srv.Store.System().PermanentDeleteByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2)
+	}()
+
+	// Try importing an invalid scheme in dryRun mode.
+	data := SchemeImportData{
+		Name:  ptrStr(model.NewId()),
+		Scope: ptrStr("team"),
+		DefaultTeamUserRole: &RoleImportData{
+			Name:        ptrStr(model.NewId()),
+			DisplayName: ptrStr(model.NewId()),
+		},
+		DefaultTeamAdminRole: &RoleImportData{
+			Name:        ptrStr(model.NewId()),
+			DisplayName: ptrStr(model.NewId()),
+		},
+		DefaultChannelUserRole: &RoleImportData{
+			Name:        ptrStr(model.NewId()),
+			DisplayName: ptrStr(model.NewId()),
+		},
+		DefaultChannelAdminRole: &RoleImportData{
+			Name:        ptrStr(model.NewId()),
+			DisplayName: ptrStr(model.NewId()),
+		},
+		Description: ptrStr("description"),
+	}
+
+	if err := th.App.ImportScheme(&data, true); err == nil {
+		t.Fatalf("Should have failed to import.")
+	}
+
+	if res := <-th.App.Srv.Store.Scheme().GetByName(*data.Name); res.Err == nil {
+		t.Fatalf("Scheme should not have imported.")
+	}
+
+	// Try importing a valid scheme in dryRun mode.
+	data.DisplayName = ptrStr("display name")
+
+	if err := th.App.ImportScheme(&data, true); err != nil {
+		t.Fatalf("Should have succeeded.")
+	}
+
+	if res := <-th.App.Srv.Store.Scheme().GetByName(*data.Name); res.Err == nil {
+		t.Fatalf("Scheme should not have imported.")
+	}
+
+	// Try importing an invalid scheme.
+	data.DisplayName = nil
+
+	if err := th.App.ImportScheme(&data, false); err == nil {
+		t.Fatalf("Should have failed to import.")
+	}
+
+	if res := <-th.App.Srv.Store.Scheme().GetByName(*data.Name); res.Err == nil {
+		t.Fatalf("Scheme should not have imported.")
+	}
+
+	// Try importing a valid scheme with all params set.
+	data.DisplayName = ptrStr("display name")
+
+	if err := th.App.ImportScheme(&data, false); err != nil {
+		t.Fatalf("Should have succeeded.")
+	}
+
+	if res := <-th.App.Srv.Store.Scheme().GetByName(*data.Name); res.Err != nil {
+		t.Fatalf("Failed to import scheme: %v", res.Err)
+	} else {
+		scheme := res.Data.(*model.Scheme)
+		assert.Equal(t, *data.Name, scheme.Name)
+		assert.Equal(t, *data.DisplayName, scheme.DisplayName)
+		assert.Equal(t, *data.Description, scheme.Description)
+		assert.Equal(t, *data.Scope, scheme.Scope)
+
+		if res := <-th.App.Srv.Store.Role().GetByName(scheme.DefaultTeamAdminRole); res.Err != nil {
+			t.Fatalf("Should have found the imported role.")
+		} else {
+			role := res.Data.(*model.Role)
+			assert.Equal(t, *data.DefaultTeamAdminRole.DisplayName, role.DisplayName)
+			assert.False(t, role.BuiltIn)
+			assert.True(t, role.SchemeManaged)
+		}
+
+		if res := <-th.App.Srv.Store.Role().GetByName(scheme.DefaultTeamUserRole); res.Err != nil {
+			t.Fatalf("Should have found the imported role.")
+		} else {
+			role := res.Data.(*model.Role)
+			assert.Equal(t, *data.DefaultTeamUserRole.DisplayName, role.DisplayName)
+			assert.False(t, role.BuiltIn)
+			assert.True(t, role.SchemeManaged)
+		}
+
+		if res := <-th.App.Srv.Store.Role().GetByName(scheme.DefaultTeamGuestRole); res.Err != nil {
+			t.Fatalf("Should have found the imported role.")
+		} else {
+			role := res.Data.(*model.Role)
+			assert.Equal(t, *data.DefaultTeamGuestRole.DisplayName, role.DisplayName)
+			assert.False(t, role.BuiltIn)
+			assert.True(t, role.SchemeManaged)
+		}
+
+		if res := <-th.App.Srv.Store.Role().GetByName(scheme.DefaultChannelAdminRole); res.Err != nil {
+			t.Fatalf("Should have found the imported role.")
+		} else {
+			role := res.Data.(*model.Role)
+			assert.Equal(t, *data.DefaultChannelAdminRole.DisplayName, role.DisplayName)
+			assert.False(t, role.BuiltIn)
+			assert.True(t, role.SchemeManaged)
+		}
+
+		if res := <-th.App.Srv.Store.Role().GetByName(scheme.DefaultChannelUserRole); res.Err != nil {
+			t.Fatalf("Should have found the imported role.")
+		} else {
+			role := res.Data.(*model.Role)
+			assert.Equal(t, *data.DefaultChannelUserRole.DisplayName, role.DisplayName)
+			assert.False(t, role.BuiltIn)
+			assert.True(t, role.SchemeManaged)
+		}
+
+		if res := <-th.App.Srv.Store.Role().GetByName(scheme.DefaultChannelGuestRole); res.Err != nil {
+			t.Fatalf("Should have found the imported role.")
+		} else {
+			role := res.Data.(*model.Role)
+			assert.Equal(t, *data.DefaultChannelGuestRole.DisplayName, role.DisplayName)
+			assert.False(t, role.BuiltIn)
+			assert.True(t, role.SchemeManaged)
+		}
+	}
+
+	// Try modifying all the fields and re-importing.
+	data.DisplayName = ptrStr("new display name")
+	data.Description = ptrStr("new description")
+
+	if err := th.App.ImportScheme(&data, false); err != nil {
+		t.Fatalf("Should have succeeded: %v", err)
+	}
+
+	if res := <-th.App.Srv.Store.Scheme().GetByName(*data.Name); res.Err != nil {
+		t.Fatalf("Failed to import scheme: %v", res.Err)
+	} else {
+		scheme := res.Data.(*model.Scheme)
+		assert.Equal(t, *data.Name, scheme.Name)
+		assert.Equal(t, *data.DisplayName, scheme.DisplayName)
+		assert.Equal(t, *data.Description, scheme.Description)
+		assert.Equal(t, *data.Scope, scheme.Scope)
+
+		if res := <-th.App.Srv.Store.Role().GetByName(scheme.DefaultTeamAdminRole); res.Err != nil {
+			t.Fatalf("Should have found the imported role.")
+		} else {
+			role := res.Data.(*model.Role)
+			assert.Equal(t, *data.DefaultTeamAdminRole.DisplayName, role.DisplayName)
+			assert.False(t, role.BuiltIn)
+			assert.True(t, role.SchemeManaged)
+		}
+
+		if res := <-th.App.Srv.Store.Role().GetByName(scheme.DefaultTeamUserRole); res.Err != nil {
+			t.Fatalf("Should have found the imported role.")
+		} else {
+			role := res.Data.(*model.Role)
+			assert.Equal(t, *data.DefaultTeamUserRole.DisplayName, role.DisplayName)
+			assert.False(t, role.BuiltIn)
+			assert.True(t, role.SchemeManaged)
+		}
+
+		if res := <-th.App.Srv.Store.Role().GetByName(scheme.DefaultTeamGuestRole); res.Err != nil {
+			t.Fatalf("Should have found the imported role.")
+		} else {
+			role := res.Data.(*model.Role)
+			assert.Equal(t, *data.DefaultTeamGuestRole.DisplayName, role.DisplayName)
+			assert.False(t, role.BuiltIn)
+			assert.True(t, role.SchemeManaged)
+		}
+
+		if res := <-th.App.Srv.Store.Role().GetByName(scheme.DefaultChannelAdminRole); res.Err != nil {
+			t.Fatalf("Should have found the imported role.")
+		} else {
+			role := res.Data.(*model.Role)
+			assert.Equal(t, *data.DefaultChannelAdminRole.DisplayName, role.DisplayName)
+			assert.False(t, role.BuiltIn)
+			assert.True(t, role.SchemeManaged)
+		}
+
+		if res := <-th.App.Srv.Store.Role().GetByName(scheme.DefaultChannelUserRole); res.Err != nil {
+			t.Fatalf("Should have found the imported role.")
+		} else {
+			role := res.Data.(*model.Role)
+			assert.Equal(t, *data.DefaultChannelUserRole.DisplayName, role.DisplayName)
+			assert.False(t, role.BuiltIn)
+			assert.True(t, role.SchemeManaged)
+		}
+
+		if res := <-th.App.Srv.Store.Role().GetByName(scheme.DefaultChannelGuestRole); res.Err != nil {
+			t.Fatalf("Should have found the imported role.")
+		} else {
+			role := res.Data.(*model.Role)
+			assert.Equal(t, *data.DefaultChannelGuestRole.DisplayName, role.DisplayName)
+			assert.False(t, role.BuiltIn)
+			assert.True(t, role.SchemeManaged)
+		}
+	}
+
+	// Try changing the scope of the scheme and reimporting.
+	data.Scope = ptrStr("channel")
+
+	if err := th.App.ImportScheme(&data, false); err == nil {
+		t.Fatalf("Should have failed to import.")
+	}
+
+	if res := <-th.App.Srv.Store.Scheme().GetByName(*data.Name); res.Err != nil {
+		t.Fatalf("Failed to import scheme: %v", res.Err)
+	} else {
+		scheme := res.Data.(*model.Scheme)
+		assert.Equal(t, *data.Name, scheme.Name)
+		assert.Equal(t, *data.DisplayName, scheme.DisplayName)
+		assert.Equal(t, *data.Description, scheme.Description)
+		assert.Equal(t, "team", scheme.Scope)
+	}
+}
+
 func TestImportImportRole(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()

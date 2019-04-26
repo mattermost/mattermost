@@ -2536,7 +2536,17 @@ func (s SqlChannelStore) GetChannelMembersForExport(userId string, teamId string
 		var members []*model.ChannelMemberForExport
 		_, err := s.GetReplica().Select(&members, `
             SELECT
-                ChannelMembers.*,
+                ChannelMembers.ChannelId,
+                ChannelMembers.UserId,
+                ChannelMembers.Roles,
+                ChannelMembers.LastViewedAt,
+                ChannelMembers.MsgCount,
+                ChannelMembers.MentionCount,
+                ChannelMembers.NotifyProps,
+                ChannelMembers.LastUpdateAt,
+                ChannelMembers.SchemeUser,
+                ChannelMembers.SchemeAdmin,
+                (ChannelMembers.SchemeGuest IS NOT NULL AND ChannelMembers.SchemeGuest) as SchemeGuest,
                 Channels.Name as ChannelName
             FROM
                 ChannelMembers
@@ -2587,7 +2597,7 @@ func (s SqlChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId s
 			channelIds = append(channelIds, channel.Id)
 		}
 		query = s.getQueryBuilder().
-			Select("*").
+			Select("ChannelId, UserId, cm.Roles as Roles, LastViewedAt, MsgCount, MentionCount, cm.NotifyProps as NotifyProps, LastUpdateAt, SchemeUser, SchemeAdmin, (SchemeGuest IS NOT NULL AND SchemeGuest) as SchemeGuest").
 			From("ChannelMembers cm").
 			Join("Users u ON ( u.Id = cm.UserId )").
 			Where(sq.And{

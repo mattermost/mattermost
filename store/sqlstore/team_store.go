@@ -977,16 +977,22 @@ func (s SqlTeamStore) GetTeamMembersForExport(userId string) store.StoreChannel 
 	return store.Do(func(result *store.StoreResult) {
 		var members []*model.TeamMemberForExport
 		_, err := s.GetReplica().Select(&members, `
-	SELECT
-		TeamMembers.*,
-		Teams.Name as TeamName
-	FROM
-		TeamMembers
-	INNER JOIN
-		Teams ON TeamMembers.TeamId = Teams.Id
-	WHERE
-		TeamMembers.UserId = :UserId
-		AND Teams.DeleteAt = 0`,
+            SELECT
+                TeamMembers.TeamId,
+                TeamMembers.UserId,
+                TeamMembers.Roles,
+                TeamMembers.DeleteAt,
+                (TeamMembers.SchemeGuest IS NOT NULL AND TeamMembers.SchemeGuest) as SchemeGuest,
+                TeamMembers.SchemeUser,
+                TeamMembers.SchemeAdmin,
+                Teams.Name as TeamName
+            FROM
+                TeamMembers
+            INNER JOIN
+                Teams ON TeamMembers.TeamId = Teams.Id
+            WHERE
+                TeamMembers.UserId = :UserId
+                AND Teams.DeleteAt = 0`,
 			map[string]interface{}{"UserId": userId})
 		if err != nil {
 			result.Err = model.NewAppError("SqlTeamStore.GetTeamMembersForExport", "store.sql_team.get_members.app_error", nil, "userId="+userId+" "+err.Error(), http.StatusInternalServerError)

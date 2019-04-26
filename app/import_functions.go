@@ -69,6 +69,11 @@ func (a *App) ImportScheme(data *SchemeImportData, dryRun bool) *model.AppError 
 			return err
 		}
 
+		if data.DefaultTeamGuestRole == nil {
+			data.DefaultTeamGuestRole = &RoleImportData{
+				DisplayName: model.NewString("Team Guest Role for Scheme"),
+			}
+		}
 		data.DefaultTeamGuestRole.Name = &scheme.DefaultTeamGuestRole
 		if err := a.ImportRole(data.DefaultTeamGuestRole, dryRun, true); err != nil {
 			return err
@@ -86,6 +91,11 @@ func (a *App) ImportScheme(data *SchemeImportData, dryRun bool) *model.AppError 
 			return err
 		}
 
+		if data.DefaultChannelGuestRole == nil {
+			data.DefaultChannelGuestRole = &RoleImportData{
+				DisplayName: model.NewString("Channel Guest Role for Scheme"),
+			}
+		}
 		data.DefaultChannelGuestRole.Name = &scheme.DefaultChannelGuestRole
 		if err := a.ImportRole(data.DefaultChannelGuestRole, dryRun, true); err != nil {
 			return err
