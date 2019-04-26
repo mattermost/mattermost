@@ -5,6 +5,7 @@ package commands
 
 import (
 	"fmt"
+	"github.com/mattermost/mattermost-server/store"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -101,24 +102,37 @@ func listWebhookCmdF(command *cobra.Command, args []string) error {
 		}
 
 		// Fetch all hooks with a very large limit so we get them all.
-		incomingHooks, err := app.Srv.Store.Webhook().GetIncomingByTeam(team.Id, 0, 100000000)
-		if err != nil {
-			CommandPrintErrorln("Unable to list incoming webhooks for '" + args[i] + "'")
-		} else {
+		incomingResult := make(chan store.StoreResult, 1)
+		go func() {
+			incomingHooks, err := app.Srv.Store.Webhook().GetIncomingByTeam(team.Id, 0, 100000000)
+			incomingResult <- store.StoreResult{Data: incomingHooks, Err: err}
+			close(incomingResult)
+		}()
+		outgoingResult := make(chan store.StoreResult, 1)
+		go func() {
+			outgoingHooks, err := app.Srv.Store.Webhook().GetOutgoingByTeam(team.Id, 0, 100000000)
+			outgoingResult <- store.StoreResult{Data: outgoingHooks, Err: err}
+			close(incomingResult)
+		}()
+
+		if result := <-incomingResult; result.Err == nil {
 			CommandPrettyPrintln(fmt.Sprintf("Incoming webhooks for %s (%s):", team.DisplayName, team.Name))
-			for _, hook := range incomingHooks {
+			hooks := result.Data.([]*model.IncomingWebhook)
+			for _, hook := range hooks {
 				CommandPrettyPrintln("\t" + hook.DisplayName + " (" + hook.Id + ")")
 			}
+		} else {
+			CommandPrintErrorln("Unable to list incoming webhooks for '" + args[i] + "'")
 		}
 
-		outgoingHooks, err := app.Srv.Store.Webhook().GetOutgoingByTeam(team.Id, 0, 100000000)
-		if err != nil {
-			CommandPrintErrorln("Unable to list outgoing webhooks for '" + args[i] + "'")
-		} else {
+		if result := <-outgoingResult; result.Err == nil {
+			hooks := result.Data.([]*model.OutgoingWebhook)
 			CommandPrettyPrintln(fmt.Sprintf("Outgoing webhooks for %s (%s):", team.DisplayName, team.Name))
-			for _, hook := range outgoingHooks {
+			for _, hook := range hooks {
 				CommandPrettyPrintln("\t" + hook.DisplayName + " (" + hook.Id + ")")
 			}
+		} else {
+			CommandPrintErrorln("Unable to list outgoing webhooks for '" + args[i] + "'")
 		}
 
 	}
