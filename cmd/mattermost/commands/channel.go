@@ -421,7 +421,7 @@ func moveChannel(a *app.App, team *model.Team, channel *model.Channel, user *mod
 		for _, webhook := range outgoingWebhooks {
 			if webhook.ChannelId == channel.Id {
 				webhook.TeamId = team.Id
-				if result := <-a.Srv.Store.Webhook().UpdateOutgoing(webhook); result.Err != nil {
+				if _, err := a.Srv.Store.Webhook().UpdateOutgoing(webhook); err != nil {
 					CommandPrintErrorln("Failed to move outgoing webhook '" + webhook.Id + "' to new team.")
 				}
 			}
