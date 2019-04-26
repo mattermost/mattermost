@@ -5,10 +5,10 @@ package commands
 
 import (
 	"fmt"
-	"github.com/mattermost/mattermost-server/store"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/store"
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 )
@@ -134,7 +134,6 @@ func listWebhookCmdF(command *cobra.Command, args []string) error {
 		} else {
 			CommandPrintErrorln("Unable to list outgoing webhooks for '" + args[i] + "'")
 		}
-
 	}
 	return nil
 }
