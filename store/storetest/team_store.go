@@ -401,13 +401,7 @@ func testTeamStoreGetByInviteId(t *testing.T, ss store.Store) {
 	o1.Type = model.TEAM_OPEN
 	o1.InviteId = model.NewId()
 
-<<<<<<< HEAD
 	if _, err := ss.Team().Save(&o1); err != nil {
-=======
-	save1 := <-ss.Team().Save(&o1)
-
-	if err := save1.Err; err != nil {
->>>>>>> f7982216e4759f86f9602829467973efb31fb12b
 		t.Fatal(err)
 	}
 
