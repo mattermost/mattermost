@@ -122,7 +122,6 @@ func TestConvertUserToBot(t *testing.T) {
 	defer th.TearDown()
 
 	th.CheckCommand(t, "user", "convert", th.BasicUser.Username, "anotherinvaliduser", "--bot")
-	if result := <-th.App.Srv.Store.Bot().Get(th.BasicUser.Id, false); result.Err != nil {
-		t.Fatal(result.Err)
-	}
+	result := <-th.App.Srv.Store.Bot().Get(th.BasicUser.Id, false)
+	require.Nil(t, result.Err)
 }

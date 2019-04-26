@@ -380,7 +380,7 @@ func userCreateCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
-func usersToBots(args []string, a *app.App) error {
+func usersToBots(args []string, a *app.App) {
 	users := getUsersFromUserArgs(a, args)
 	for i, user := range users {
 		if user == nil {
@@ -394,13 +394,8 @@ func usersToBots(args []string, a *app.App) error {
 			continue
 		}
 
-		CommandPrettyPrintln("ownerId: " + bot.OwnerId)
-		CommandPrettyPrintln("userId: " + bot.UserId)
-		CommandPrettyPrintln("username: " + bot.Username)
-		CommandPrettyPrintln("displayName: " + bot.DisplayName)
+		CommandPrettyPrintln(fmt.Sprintf("User %s is converted to bot successfully", bot.UserId))
 	}
-
-	return nil
 }
 
 func userConvertCmdF(command *cobra.Command, args []string) error {
@@ -419,7 +414,8 @@ func userConvertCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Expect \"bot\" flag to be set. See help text for details.")
 	}
 
-	return usersToBots(args, a)
+	usersToBots(args, a)
+	return nil
 }
 
 func userInviteCmdF(command *cobra.Command, args []string) error {
