@@ -67,11 +67,10 @@ func (a *App) CreateUserWithToken(user *model.User, tokenId string) (*model.User
 
 	tokenData := model.MapFromJson(strings.NewReader(token.Extra))
 
-	result = <-a.Srv.Store.Team().Get(tokenData["teamId"])
-	if result.Err != nil {
-		return nil, result.Err
+	team, err := a.Srv.Store.Team().Get(tokenData["teamId"])
+	if err != nil {
+		return nil, err
 	}
-	team := result.Data.(*model.Team)
 
 	user.Email = tokenData["email"]
 	user.EmailVerified = true
@@ -1424,8 +1423,8 @@ func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 		return result.Err
 	}
 
-	if result := <-a.Srv.Store.Webhook().PermanentDeleteIncomingByUser(user.Id); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.Webhook().PermanentDeleteIncomingByUser(user.Id); err != nil {
+		return err
 	}
 
 	if result := <-a.Srv.Store.Webhook().PermanentDeleteOutgoingByUser(user.Id); result.Err != nil {
