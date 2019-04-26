@@ -137,6 +137,19 @@ func (u UserSlice) IDs() []string {
 	return ids
 }
 
+func (u UserSlice) FilterByActive(active bool) UserSlice {
+	var matches []*User
+
+	for _, user := range u {
+		if user.DeleteAt == 0 && active {
+			matches = append(matches, user)
+		} else if user.DeleteAt != 0 && !active {
+			matches = append(matches, user)
+		}
+	}
+	return UserSlice(matches)
+}
+
 func (u UserSlice) FilterByID(ids []string) UserSlice {
 	var matches []*User
 	for _, user := range u {

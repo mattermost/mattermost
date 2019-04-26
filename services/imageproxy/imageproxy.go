@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"sync"
 
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/services/configservice"
 	"github.com/mattermost/mattermost-server/services/httpservice"
@@ -23,6 +24,8 @@ type ImageProxy struct {
 	configListenerId string
 
 	HTTPService httpservice.HTTPService
+
+	Logger *mlog.Logger
 
 	lock    sync.RWMutex
 	backend ImageProxyBackend
@@ -45,10 +48,11 @@ type ImageProxyBackend interface {
 	GetUnproxiedImageURL(proxiedURL string) string
 }
 
-func MakeImageProxy(configService configservice.ConfigService, httpService httpservice.HTTPService) *ImageProxy {
+func MakeImageProxy(configService configservice.ConfigService, httpService httpservice.HTTPService, logger *mlog.Logger) *ImageProxy {
 	proxy := &ImageProxy{
 		ConfigService: configService,
 		HTTPService:   httpService,
+		Logger:        logger,
 	}
 
 	proxy.configListenerId = proxy.ConfigService.AddConfigListener(proxy.OnConfigChange)

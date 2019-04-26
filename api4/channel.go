@@ -120,12 +120,6 @@ func updateChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Since the `team_user` role can have PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES out of the box, we must additionally check membership for private channels.
-		if _, memberErr := c.App.GetChannelMember(channel.Id, c.App.Session.UserId); memberErr != nil {
-			c.Err = model.NewAppError("updateChannel", "api.channel.patch_update_channel.forbidden.app_error", nil, "", http.StatusForbidden)
-			return
-		}
-
 	case model.CHANNEL_GROUP, model.CHANNEL_DIRECT:
 		// Modifying the header is not linked to any specific permission for group/dm channels, so just check for membership.
 		if _, err := c.App.GetChannelMember(channel.Id, c.App.Session.UserId); err != nil {
@@ -260,12 +254,6 @@ func patchChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	case model.CHANNEL_PRIVATE:
 		if !c.App.SessionHasPermissionToChannel(c.App.Session, c.Params.ChannelId, model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES) {
 			c.SetPermissionError(model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES)
-			return
-		}
-
-		// Since the `team_user` role can have PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES out of the box, we must additionally check membership for private channels.
-		if _, memberErr := c.App.GetChannelMember(c.Params.ChannelId, c.App.Session.UserId); memberErr != nil {
-			c.Err = model.NewAppError("patchChannel", "api.channel.patch_update_channel.forbidden.app_error", nil, "", http.StatusForbidden)
 			return
 		}
 

@@ -62,8 +62,9 @@ const (
 )
 
 const (
-	EXIT_VERSION_SAVE    = 1003
-	EXIT_THEME_MIGRATION = 1004
+	EXIT_VERSION_SAVE                   = 1003
+	EXIT_THEME_MIGRATION                = 1004
+	EXIT_TEAM_INVITEID_MIGRATION_FAILED = 1006
 )
 
 // UpgradeDatabase attempts to migrate the schema to the latest supported version.
@@ -659,19 +660,31 @@ func UpgradeDatabaseToVersion510(sqlStore SqlStore) {
 }
 
 func UpgradeDatabaseToVersion511(sqlStore SqlStore) {
-	if shouldPerformUpgrade(sqlStore, VERSION_5_10_0, VERSION_5_11_0) {
-
-		saveSchemaVersion(sqlStore, VERSION_5_11_0)
+	//if shouldPerformUpgrade(sqlStore, VERSION_5_10_0, VERSION_5_11_0) {
+	// Enforce all teams have an InviteID set
+	var teams []*model.Team
+	if _, err := sqlStore.GetReplica().Select(&teams, "SELECT * FROM Teams WHERE InviteId = ''"); err != nil {
+		mlog.Error("Error fetching Teams without InviteID: " + err.Error())
+	} else {
+		for _, team := range teams {
+			team.InviteId = model.NewId()
+			if _, err := sqlStore.Team().Update(team); err != nil {
+				mlog.Error("Error updating Team InviteIDs: " + err.Error())
+			}
+		}
 	}
+
+	// 	saveSchemaVersion(sqlStore, VERSION_5_11_0)
+	// }
 }
 
 func UpgradeDatabaseToVersion512(sqlStore SqlStore) {
-	if shouldPerformUpgrade(sqlStore, VERSION_5_11_0, VERSION_5_12_0) {
-		sqlStore.CreateColumnIfNotExistsNoDefault("TeamMembers", "SchemeGuest", "boolean", "boolean")
-		sqlStore.CreateColumnIfNotExistsNoDefault("ChannelMembers", "SchemeGuest", "boolean", "boolean")
-		sqlStore.CreateColumnIfNotExistsNoDefault("Schemes", "DefaultTeamGuestRole", "text", "VARCHAR(64)")
-		sqlStore.CreateColumnIfNotExistsNoDefault("Schemes", "DefaultChannelGuestRole", "text", "VARCHAR(64)")
+	// if shouldPerformUpgrade(sqlStore, VERSION_5_11_0, VERSION_5_12_0) {
+	sqlStore.CreateColumnIfNotExistsNoDefault("TeamMembers", "SchemeGuest", "boolean", "boolean")
+	sqlStore.CreateColumnIfNotExistsNoDefault("ChannelMembers", "SchemeGuest", "boolean", "boolean")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Schemes", "DefaultTeamGuestRole", "text", "VARCHAR(64)")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Schemes", "DefaultChannelGuestRole", "text", "VARCHAR(64)")
 
-		saveSchemaVersion(sqlStore, VERSION_5_12_0)
-	}
+	// saveSchemaVersion(sqlStore, VERSION_5_12_0)
+	// }
 }

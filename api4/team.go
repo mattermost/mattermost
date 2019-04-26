@@ -33,6 +33,7 @@ func (api *API) InitTeam() {
 	api.BaseRoutes.Team.Handle("", api.ApiSessionRequired(deleteTeam)).Methods("DELETE")
 	api.BaseRoutes.Team.Handle("/patch", api.ApiSessionRequired(patchTeam)).Methods("PUT")
 	api.BaseRoutes.Team.Handle("/stats", api.ApiSessionRequired(getTeamStats)).Methods("GET")
+	api.BaseRoutes.Team.Handle("/regenerate_invite_id", api.ApiSessionRequired(regenerateTeamInviteId)).Methods("POST")
 
 	api.BaseRoutes.Team.Handle("/image", api.ApiSessionRequiredTrustRequester(getTeamIcon)).Methods("GET")
 	api.BaseRoutes.Team.Handle("/image", api.ApiSessionRequired(setTeamIcon)).Methods("POST")
@@ -179,6 +180,29 @@ func patchTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	patchedTeam, err := c.App.PatchTeam(c.Params.TeamId, team)
 
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	c.App.SanitizeTeam(c.App.Session, patchedTeam)
+
+	c.LogAudit("")
+	w.Write([]byte(patchedTeam.ToJson()))
+}
+
+func regenerateTeamInviteId(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToTeam(c.App.Session, c.Params.TeamId, model.PERMISSION_MANAGE_TEAM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_TEAM)
+		return
+	}
+
+	patchedTeam, err := c.App.RegenerateTeamInviteId(c.Params.TeamId)
 	if err != nil {
 		c.Err = err
 		return
