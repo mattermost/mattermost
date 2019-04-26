@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"github.com/stretchr/testify/require"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -393,7 +394,7 @@ func testSchemeStoreDelete(t *testing.T, ss store.Store) {
 	assert.Nil(t, sres4.Err)
 
 	t5, err := ss.Team().Get(t4.Id)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 	assert.Equal(t, "", *t5.SchemeId)
 
 	// Try deleting a channel scheme that's in use.
