@@ -112,7 +112,7 @@ func listWebhookCmdF(command *cobra.Command, args []string) error {
 		go func() {
 			outgoingHooks, err := app.Srv.Store.Webhook().GetOutgoingByTeam(team.Id, 0, 100000000)
 			outgoingResult <- store.StoreResult{Data: outgoingHooks, Err: err}
-			close(incomingResult)
+			close(outgoingResult)
 		}()
 
 		if result := <-incomingResult; result.Err == nil {
