@@ -1758,7 +1758,6 @@ func (a *App) AutocompleteUsersInChannel(teamId string, channelId string, term s
 		uchanIds := []string{}
 		nuchanIds := []string{}
 		if !strings.Contains(strings.Join(listOfAllowedChannels, "."), channelId) {
-			// ToDo: if the user cannot perform a search in channelId, shouldn't we return an error?
 			nuchanIds, err = a.Elasticsearch.SearchUsersInTeam(teamId, listOfAllowedChannels, term, options)
 		} else {
 			uchanIds, nuchanIds, err = a.Elasticsearch.SearchUsersInChannel(teamId, channelId, listOfAllowedChannels, term, options)
