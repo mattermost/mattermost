@@ -189,6 +189,26 @@ func (a *App) DoGuestRolesCreationMigration() {
 		}
 	}
 
+	resultSchemes := <-a.Srv.Store.Scheme().GetAllPage("", 0, 1000000)
+	if resultSchemes.Err != nil {
+		mlog.Critical("Failed to get all schemes.")
+		mlog.Critical(fmt.Sprint(resultSchemes.Err))
+		allSucceeded = false
+	}
+	schemes := resultSchemes.Data.([]*model.Scheme)
+	for _, scheme := range schemes {
+		if scheme.DefaultTeamGuestRole == "" || scheme.DefaultChannelGuestRole == "" {
+			scheme.DefaultTeamGuestRole = model.TEAM_GUEST_ROLE_ID
+			scheme.DefaultChannelGuestRole = model.CHANNEL_GUEST_ROLE_ID
+			result := <-a.Srv.Store.Scheme().Save(scheme)
+			if result.Err != nil {
+				mlog.Critical("Failed to update custom scheme.")
+				mlog.Critical(fmt.Sprint(result.Err))
+				allSucceeded = false
+			}
+		}
+	}
+
 	if !allSucceeded {
 		return
 	}
