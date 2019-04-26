@@ -1194,9 +1194,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	markChannelAsViewed, _ := props["viewed"].(bool)
-
-	cm, err := c.App.AddChannelMember(member.UserId, channel, c.App.Session.UserId, postRootId, c.App.Session.Id, markChannelAsViewed)
+	cm, err := c.App.AddChannelMember(member.UserId, channel, c.App.Session.UserId, postRootId)
 	if err != nil {
 		c.Err = err
 		return

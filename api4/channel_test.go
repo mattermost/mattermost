@@ -1960,33 +1960,6 @@ func TestAddChannelMember(t *testing.T) {
 		t.Fatal("should return nothing")
 	}
 
-	cmUser, appErr := th.App.Srv.Store.Channel().GetMember(publicChannel.Id, user.Id)
-	require.Nil(t, appErr)
-	if cmUser.LastViewedAt != 0 {
-		t.Fatal("LastViewedAt for user should initially return 0")
-	}
-
-	cm, resp = Client.AddChannelMemberWithMarkChannelAsViewed(publicChannel.Id, user2.Id, false)
-	CheckNoError(t, resp)
-	CheckCreatedStatus(t, resp)
-
-	cmUser, appErr = th.App.Srv.Store.Channel().GetMember(publicChannel.Id, user.Id)
-	require.Nil(t, appErr)
-	if cmUser.LastViewedAt != 0 {
-		t.Fatal("LastViewedAt for user should still return 0")
-	}
-
-	Client.RemoveUserFromChannel(publicChannel.Id, user2.Id)
-	cm, resp = Client.AddChannelMemberWithMarkChannelAsViewed(publicChannel.Id, user2.Id, true)
-	CheckNoError(t, resp)
-	CheckCreatedStatus(t, resp)
-
-	cmUser, appErr = th.App.Srv.Store.Channel().GetMember(publicChannel.Id, user.Id)
-	require.Nil(t, appErr)
-	if cmUser.LastViewedAt == 0 {
-		t.Fatal("LastViewedAt for user should return greater than 0")
-	}
-
 	_, resp = Client.AddChannelMember(publicChannel.Id, GenerateTestId())
 	CheckNotFoundStatus(t, resp)
 
@@ -2081,7 +2054,7 @@ func TestAddChannelMember(t *testing.T) {
 
 	// Set a channel to group-constrained
 	privateChannel.GroupConstrained = model.NewBool(true)
-	_, appErr = th.App.UpdateChannel(privateChannel)
+	_, appErr := th.App.UpdateChannel(privateChannel)
 	require.Nil(t, appErr)
 
 	// User is not in associated groups so shouldn't be allowed
