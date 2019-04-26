@@ -356,15 +356,15 @@ func testChannelStoreGet(t *testing.T, ss store.Store, s SqlSupplier) {
 	o1.Type = model.CHANNEL_OPEN
 	store.Must(ss.Channel().Save(&o1, -1))
 
-	if r1 := <-ss.Channel().Get(o1.Id, false); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if c1, err := ss.Channel().Get(o1.Id, false); err != nil {
+		t.Fatal(err)
 	} else {
-		if r1.Data.(*model.Channel).ToJson() != o1.ToJson() {
+		if c1.ToJson() != o1.ToJson() {
 			t.Fatal("invalid returned channel")
 		}
 	}
 
-	if err := (<-ss.Channel().Get("", false)).Err; err == nil {
+	if _, err := ss.Channel().Get("", false); err == nil {
 		t.Fatal("Missing id should have failed")
 	}
 
@@ -398,18 +398,18 @@ func testChannelStoreGet(t *testing.T, ss store.Store, s SqlSupplier) {
 
 	store.Must(ss.Channel().SaveDirectChannel(&o2, &m1, &m2))
 
-	if r2 := <-ss.Channel().Get(o2.Id, false); r2.Err != nil {
-		t.Fatal(r2.Err)
+	if c2, err := ss.Channel().Get(o2.Id, false); err != nil {
+		t.Fatal(err)
 	} else {
-		if r2.Data.(*model.Channel).ToJson() != o2.ToJson() {
+		if c2.ToJson() != o2.ToJson() {
 			t.Fatal("invalid returned channel")
 		}
 	}
 
-	if r4 := <-ss.Channel().Get(o2.Id, true); r4.Err != nil {
-		t.Fatal(r4.Err)
+	if c4, err := ss.Channel().Get(o2.Id, true); err != nil {
+		t.Fatal(err)
 	} else {
-		if r4.Data.(*model.Channel).ToJson() != o2.ToJson() {
+		if c4.ToJson() != o2.ToJson() {
 			t.Fatal("invalid returned channel")
 		}
 	}
@@ -535,7 +535,7 @@ func testChannelStoreRestore(t *testing.T, ss store.Store) {
 		t.Fatal(r.Err)
 	}
 
-	if r := <-ss.Channel().Get(o1.Id, false); r.Data.(*model.Channel).DeleteAt == 0 {
+	if c, _ := ss.Channel().Get(o1.Id, false); c.DeleteAt == 0 {
 		t.Fatal("should have been deleted")
 	}
 
@@ -543,7 +543,7 @@ func testChannelStoreRestore(t *testing.T, ss store.Store) {
 		t.Fatal(r.Err)
 	}
 
-	if r := <-ss.Channel().Get(o1.Id, false); r.Data.(*model.Channel).DeleteAt != 0 {
+	if c, _ := ss.Channel().Get(o1.Id, false); c.DeleteAt != 0 {
 		t.Fatal("should have been restored")
 	}
 
@@ -594,7 +594,7 @@ func testChannelStoreDelete(t *testing.T, ss store.Store) {
 		t.Fatal(r.Err)
 	}
 
-	if r := <-ss.Channel().Get(o1.Id, false); r.Data.(*model.Channel).DeleteAt == 0 {
+	if c, _ := ss.Channel().Get(o1.Id, false); c.DeleteAt == 0 {
 		t.Fatal("should have been deleted")
 	}
 
@@ -826,7 +826,7 @@ func testChannelMemberStore(t *testing.T, ss store.Store) {
 	c1.Type = model.CHANNEL_OPEN
 	c1 = *store.Must(ss.Channel().Save(&c1, -1)).(*model.Channel)
 
-	c1t1 := (<-ss.Channel().Get(c1.Id, false)).Data.(*model.Channel)
+	c1t1, _ := ss.Channel().Get(c1.Id, false)
 	assert.EqualValues(t, 0, c1t1.ExtraUpdateAt, "ExtraUpdateAt should be 0")
 
 	u1 := model.User{}
@@ -853,7 +853,7 @@ func testChannelMemberStore(t *testing.T, ss store.Store) {
 	o2.NotifyProps = model.GetDefaultChannelNotifyProps()
 	store.Must(ss.Channel().SaveMember(&o2))
 
-	c1t2 := (<-ss.Channel().Get(c1.Id, false)).Data.(*model.Channel)
+	c1t2, _ := ss.Channel().Get(c1.Id, false)
 	assert.EqualValues(t, 0, c1t2.ExtraUpdateAt, "ExtraUpdateAt should be 0")
 
 	count := (<-ss.Channel().GetMemberCount(o1.ChannelId, true)).Data.(int64)
@@ -886,7 +886,7 @@ func testChannelMemberStore(t *testing.T, ss store.Store) {
 		t.Fatal("should have removed 1 member")
 	}
 
-	c1t3 := (<-ss.Channel().Get(c1.Id, false)).Data.(*model.Channel)
+	c1t3, _ := ss.Channel().Get(c1.Id, false)
 	assert.EqualValues(t, 0, c1t3.ExtraUpdateAt, "ExtraUpdateAt should be 0")
 
 	member, _ := ss.Channel().GetMember(o1.ChannelId, o1.UserId)
@@ -898,7 +898,7 @@ func testChannelMemberStore(t *testing.T, ss store.Store) {
 		t.Fatal("Should have been a duplicate")
 	}
 
-	c1t4 := (<-ss.Channel().Get(c1.Id, false)).Data.(*model.Channel)
+	c1t4, _ := ss.Channel().Get(c1.Id, false)
 	assert.EqualValues(t, 0, c1t4.ExtraUpdateAt, "ExtraUpdateAt should be 0")
 }
 
@@ -910,7 +910,7 @@ func testChannelDeleteMemberStore(t *testing.T, ss store.Store) {
 	c1.Type = model.CHANNEL_OPEN
 	c1 = *store.Must(ss.Channel().Save(&c1, -1)).(*model.Channel)
 
-	c1t1 := (<-ss.Channel().Get(c1.Id, false)).Data.(*model.Channel)
+	c1t1, _ := ss.Channel().Get(c1.Id, false)
 	assert.EqualValues(t, 0, c1t1.ExtraUpdateAt, "ExtraUpdateAt should be 0")
 
 	u1 := model.User{}
@@ -937,7 +937,7 @@ func testChannelDeleteMemberStore(t *testing.T, ss store.Store) {
 	o2.NotifyProps = model.GetDefaultChannelNotifyProps()
 	store.Must(ss.Channel().SaveMember(&o2))
 
-	c1t2 := (<-ss.Channel().Get(c1.Id, false)).Data.(*model.Channel)
+	c1t2, _ := ss.Channel().Get(c1.Id, false)
 	assert.EqualValues(t, 0, c1t2.ExtraUpdateAt, "ExtraUpdateAt should be 0")
 
 	count := (<-ss.Channel().GetMemberCount(o1.ChannelId, false)).Data.(int64)
@@ -2870,8 +2870,8 @@ func testResetAllChannelSchemes(t *testing.T, ss store.Store) {
 	res := <-ss.Channel().ResetAllChannelSchemes()
 	assert.Nil(t, res.Err)
 
-	c1 = (<-ss.Channel().Get(c1.Id, true)).Data.(*model.Channel)
-	c2 = (<-ss.Channel().Get(c2.Id, true)).Data.(*model.Channel)
+	c1, _ = ss.Channel().Get(c1.Id, true)
+	c2, _ = ss.Channel().Get(c2.Id, true)
 
 	assert.Equal(t, "", *c1.SchemeId)
 	assert.Equal(t, "", *c2.SchemeId)

@@ -27,7 +27,7 @@ func TestTeamStore(t *testing.T, ss store.Store) {
 	t.Run("SearchAll", func(t *testing.T) { testTeamStoreSearchAll(t, ss) })
 	t.Run("SearchOpen", func(t *testing.T) { testTeamStoreSearchOpen(t, ss) })
 	t.Run("SearchPrivate", func(t *testing.T) { testTeamStoreSearchPrivate(t, ss) })
-	t.Run("GetByIniviteId", func(t *testing.T) { testTeamStoreGetByIniviteId(t, ss) })
+	t.Run("GetByInviteId", func(t *testing.T) { testTeamStoreGetByInviteId(t, ss) })
 	t.Run("ByUserId", func(t *testing.T) { testTeamStoreByUserId(t, ss) })
 	t.Run("GetAllTeamListing", func(t *testing.T) { testGetAllTeamListing(t, ss) })
 	t.Run("GetAllTeamPageListing", func(t *testing.T) { testGetAllTeamPageListing(t, ss) })
@@ -86,17 +86,17 @@ func testTeamStoreUpdate(t *testing.T, ss store.Store) {
 
 	time.Sleep(100 * time.Millisecond)
 
-	if err := (<-ss.Team().Update(&o1)).Err; err != nil {
+	if _, err := ss.Team().Update(&o1); err != nil {
 		t.Fatal(err)
 	}
 
 	o1.Id = "missing"
-	if err := (<-ss.Team().Update(&o1)).Err; err == nil {
+	if _, err := ss.Team().Update(&o1); err == nil {
 		t.Fatal("Update should have failed because of missing key")
 	}
 
 	o1.Id = model.NewId()
-	if err := (<-ss.Team().Update(&o1)).Err; err == nil {
+	if _, err := ss.Team().Update(&o1); err == nil {
 		t.Fatal("Update should have faile because id change")
 	}
 }
@@ -385,7 +385,7 @@ func testTeamStoreSearchPrivate(t *testing.T, ss store.Store) {
 	}
 }
 
-func testTeamStoreGetByIniviteId(t *testing.T, ss store.Store) {
+func testTeamStoreGetByInviteId(t *testing.T, ss store.Store) {
 	o1 := model.Team{}
 	o1.DisplayName = "DisplayName"
 	o1.Name = "z-z-z" + model.NewId() + "b"
@@ -393,7 +393,9 @@ func testTeamStoreGetByIniviteId(t *testing.T, ss store.Store) {
 	o1.Type = model.TEAM_OPEN
 	o1.InviteId = model.NewId()
 
-	if err := (<-ss.Team().Save(&o1)).Err; err != nil {
+	save1 := <-ss.Team().Save(&o1)
+
+	if err := save1.Err; err != nil {
 		t.Fatal(err)
 	}
 
@@ -403,25 +405,10 @@ func testTeamStoreGetByIniviteId(t *testing.T, ss store.Store) {
 	o2.Email = MakeEmail()
 	o2.Type = model.TEAM_OPEN
 
-	if err := (<-ss.Team().Save(&o2)).Err; err != nil {
-		t.Fatal(err)
-	}
-
-	if r1 := <-ss.Team().GetByInviteId(o1.InviteId); r1.Err != nil {
+	if r1 := <-ss.Team().GetByInviteId(save1.Data.(*model.Team).InviteId); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		if r1.Data.(*model.Team).ToJson() != o1.ToJson() {
-			t.Fatal("invalid returned team")
-		}
-	}
-
-	o2.InviteId = ""
-	<-ss.Team().Update(&o2)
-
-	if r1 := <-ss.Team().GetByInviteId(o2.Id); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		if r1.Data.(*model.Team).Id != o2.Id {
 			t.Fatal("invalid returned team")
 		}
 	}

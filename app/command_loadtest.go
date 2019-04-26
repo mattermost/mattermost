@@ -10,10 +10,10 @@ import (
 	"strconv"
 	"strings"
 
+	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
-	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 var usage = `Mattermost testing commands to help configure the system

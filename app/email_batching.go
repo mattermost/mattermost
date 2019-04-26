@@ -16,7 +16,7 @@ import (
 
 	"net/http"
 
-	"github.com/nicksnyder/go-i18n/i18n"
+	"github.com/mattermost/go-i18n/i18n"
 )
 
 const (
@@ -216,12 +216,11 @@ func (s *Server) sendBatchedEmailNotification(userId string, notifications []*ba
 			continue
 		}
 
-		result := <-s.Store.Channel().Get(notification.post.ChannelId, true)
-		if result.Err != nil {
+		channel, errCh := s.Store.Channel().Get(notification.post.ChannelId, true)
+		if errCh != nil {
 			mlog.Warn("Unable to find channel of post for batched email notification")
 			continue
 		}
-		channel := result.Data.(*model.Channel)
 
 		emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
 		if license := s.License(); license != nil && *license.Features.EmailNotificationContents {
