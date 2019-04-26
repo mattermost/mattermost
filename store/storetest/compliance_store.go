@@ -71,7 +71,7 @@ func testComplianceExport(t *testing.T, ss store.Store) {
 	t1.Email = MakeEmail()
 	t1.Type = model.TEAM_OPEN
 	t1, err := ss.Team().Save(t1)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
@@ -171,7 +171,7 @@ func testComplianceExportDirectMessages(t *testing.T, ss store.Store) {
 	t1.Email = MakeEmail()
 	t1.Type = model.TEAM_OPEN
 	t1, err := ss.Team().Save(t1)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
@@ -254,7 +254,7 @@ func testMessageExportPublicChannel(t *testing.T, ss store.Store) {
 		Type:        model.TEAM_OPEN,
 	}
 	team, err = ss.Team().Save(team)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	// and two users that are a part of that team
 	user1 := &model.User{
@@ -349,7 +349,7 @@ func testMessageExportPrivateChannel(t *testing.T, ss store.Store) {
 		Type:        model.TEAM_OPEN,
 	}
 	team, err = ss.Team().Save(team)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	// and two users that are a part of that team
 	user1 := &model.User{
@@ -446,7 +446,7 @@ func testMessageExportDirectMessageChannel(t *testing.T, ss store.Store) {
 		Type:        model.TEAM_OPEN,
 	}
 	team, err = ss.Team().Save(team)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	// and two users that are a part of that team
 	user1 := &model.User{
@@ -519,7 +519,7 @@ func testMessageExportGroupMessageChannel(t *testing.T, ss store.Store) {
 		Type:        model.TEAM_OPEN,
 	}
 	team, err = ss.Team().Save(team)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	// and three users that are a part of that team
 	user1 := &model.User{

@@ -1048,7 +1048,7 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlSupplier)
 	t1.Email = MakeEmail()
 	t1.Type = model.TEAM_OPEN
 	_, err := ss.Team().Save(&t1)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	t2 := model.Team{}
 	t2.DisplayName = "Name2"
@@ -1056,7 +1056,7 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlSupplier)
 	t2.Email = MakeEmail()
 	t2.Type = model.TEAM_OPEN
 	_, err = ss.Team().Save(&t2)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	c1 := model.Channel{}
 	c1.TeamId = t1.Id
@@ -1466,7 +1466,7 @@ func testChannelStoreGetMembersForUser(t *testing.T, ss store.Store) {
 	t1.Email = MakeEmail()
 	t1.Type = model.TEAM_OPEN
 	_, err := ss.Team().Save(&t1)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	o1 := model.Channel{}
 	o1.TeamId = t1.Id
@@ -1510,7 +1510,7 @@ func testChannelStoreGetMembersForUserWithPagination(t *testing.T, ss store.Stor
 	t1.Email = MakeEmail()
 	t1.Type = model.TEAM_OPEN
 	_, err := ss.Team().Save(&t1)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	o1 := model.Channel{}
 	o1.TeamId = t1.Id
@@ -2223,7 +2223,7 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 	t1.Email = MakeEmail()
 	t1.Type = model.TEAM_OPEN
 	_, err := ss.Team().Save(&t1)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	t2 := model.Team{}
 	t2.DisplayName = "Name2"
@@ -2231,7 +2231,7 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 	t2.Email = MakeEmail()
 	t2.Type = model.TEAM_OPEN
 	_, err = ss.Team().Save(&t2)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	o1 := model.Channel{
 		TeamId:      t1.Id,
@@ -3100,7 +3100,7 @@ func testChannelStoreGetAllChannelsForExportAfter(t *testing.T, ss store.Store) 
 	t1.Email = MakeEmail()
 	t1.Type = model.TEAM_OPEN
 	_, err := ss.Team().Save(&t1)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	c1 := model.Channel{}
 	c1.TeamId = t1.Id
@@ -3132,7 +3132,7 @@ func testChannelStoreGetChannelMembersForExport(t *testing.T, ss store.Store) {
 	t1.Email = MakeEmail()
 	t1.Type = model.TEAM_OPEN
 	_, err := ss.Team().Save(&t1)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	c1 := model.Channel{}
 	c1.TeamId = t1.Id
@@ -3185,7 +3185,7 @@ func testChannelStoreRemoveAllDeactivatedMembers(t *testing.T, ss store.Store) {
 	t1.Email = MakeEmail()
 	t1.Type = model.TEAM_OPEN
 	_, err := ss.Team().Save(&t1)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	c1 := model.Channel{}
 	c1.TeamId = t1.Id

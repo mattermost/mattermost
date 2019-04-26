@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
 )
@@ -296,7 +297,7 @@ func TestGetTeamsForScheme(t *testing.T) {
 	}
 
 	team1, err := th.App.Srv.Store.Team().Save(team1)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	l2, r2 := th.SystemAdminClient.GetTeamsForScheme(scheme1.Id, 0, 100)
 	CheckNoError(t, r2)
@@ -319,7 +320,7 @@ func TestGetTeamsForScheme(t *testing.T) {
 		SchemeId:    &scheme1.Id,
 	}
 	team2, err = th.App.Srv.Store.Team().Save(team2)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	l4, r4 := th.SystemAdminClient.GetTeamsForScheme(scheme1.Id, 0, 100)
 	CheckNoError(t, r4)
@@ -610,7 +611,7 @@ func TestDeleteScheme(t *testing.T) {
 			Type:        model.TEAM_OPEN,
 			SchemeId:    &s1.Id,
 		})
-		assert.Nil(t, err)
+		require.Nil(t, err)
 
 		// Delete the Scheme.
 		_, r3 := th.SystemAdminClient.DeleteScheme(s1.Id)

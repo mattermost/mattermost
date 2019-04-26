@@ -3313,7 +3313,7 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
 		Name:        model.NewId(),
 		Type:        model.TEAM_OPEN,
 	})
-	assert.Nil(t, err)
+	require.Nil(t, err)
 	cPub1 := store.Must(ss.Channel().Save(&model.Channel{
 		Name: model.NewId(),
 		Type: model.CHANNEL_OPEN,

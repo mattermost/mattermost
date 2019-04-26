@@ -107,7 +107,8 @@ func testTeamStoreUpdateDisplayName(t *testing.T, ss store.Store) {
 	o1.Name = "z-z-z" + model.NewId() + "b"
 	o1.Email = MakeEmail()
 	o1.Type = model.TEAM_OPEN
-	o1, _ = ss.Team().Save(o1)
+	o1, err := ss.Team().Save(o1)
+	require.Nil(t, err)
 
 	newDisplayName := "NewDisplayName"
 
@@ -128,7 +129,7 @@ func testTeamStoreGet(t *testing.T, ss store.Store) {
 	o1.Email = MakeEmail()
 	o1.Type = model.TEAM_OPEN
 	_, err := ss.Team().Save(&o1)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	if r1 := <-ss.Team().Get(o1.Id); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -446,7 +447,7 @@ func testTeamStoreByUserId(t *testing.T, ss store.Store) {
 	o1.Type = model.TEAM_OPEN
 	o1.InviteId = model.NewId()
 	o1, err := ss.Team().Save(o1)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	m1 := &model.TeamMember{TeamId: o1.Id, UserId: model.NewId()}
 	store.Must(ss.Team().SaveMember(m1, -1))
@@ -474,7 +475,7 @@ func testGetAllTeamListing(t *testing.T, ss store.Store) {
 	o1.Type = model.TEAM_OPEN
 	o1.AllowOpenInvite = true
 	_, err := ss.Team().Save(&o1)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	o2 := model.Team{}
 	o2.DisplayName = "DisplayName"
@@ -482,7 +483,7 @@ func testGetAllTeamListing(t *testing.T, ss store.Store) {
 	o2.Email = MakeEmail()
 	o2.Type = model.TEAM_OPEN
 	_, err = ss.Team().Save(&o2)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	o3 := model.Team{}
 	o3.DisplayName = "DisplayName"
@@ -491,7 +492,7 @@ func testGetAllTeamListing(t *testing.T, ss store.Store) {
 	o3.Type = model.TEAM_INVITE
 	o3.AllowOpenInvite = true
 	_, err = ss.Team().Save(&o3)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	o4 := model.Team{}
 	o4.DisplayName = "DisplayName"
@@ -499,7 +500,7 @@ func testGetAllTeamListing(t *testing.T, ss store.Store) {
 	o4.Email = MakeEmail()
 	o4.Type = model.TEAM_INVITE
 	_, err = ss.Team().Save(&o4)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	if r1 := <-ss.Team().GetAllTeamListing(); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -526,7 +527,7 @@ func testGetAllTeamPageListing(t *testing.T, ss store.Store) {
 	o1.Type = model.TEAM_OPEN
 	o1.AllowOpenInvite = true
 	_, err := ss.Team().Save(&o1)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	o2 := model.Team{}
 	o2.DisplayName = "DisplayName"
@@ -535,7 +536,7 @@ func testGetAllTeamPageListing(t *testing.T, ss store.Store) {
 	o2.Type = model.TEAM_OPEN
 	o2.AllowOpenInvite = false
 	_, err = ss.Team().Save(&o2)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	o3 := model.Team{}
 	o3.DisplayName = "DisplayName"
@@ -544,7 +545,7 @@ func testGetAllTeamPageListing(t *testing.T, ss store.Store) {
 	o3.Type = model.TEAM_INVITE
 	o3.AllowOpenInvite = true
 	_, err = ss.Team().Save(&o3)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	o4 := model.Team{}
 	o4.DisplayName = "DisplayName"
@@ -553,7 +554,7 @@ func testGetAllTeamPageListing(t *testing.T, ss store.Store) {
 	o4.Type = model.TEAM_INVITE
 	o4.AllowOpenInvite = false
 	_, err = ss.Team().Save(&o4)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	if r1 := <-ss.Team().GetAllTeamPageListing(0, 10); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -578,7 +579,7 @@ func testGetAllTeamPageListing(t *testing.T, ss store.Store) {
 	o5.Type = model.TEAM_OPEN
 	o5.AllowOpenInvite = true
 	_, err = ss.Team().Save(&o5)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	if r1 := <-ss.Team().GetAllTeamPageListing(0, 4); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -621,7 +622,7 @@ func testGetAllPrivateTeamListing(t *testing.T, ss store.Store) {
 	o1.Type = model.TEAM_OPEN
 	o1.AllowOpenInvite = true
 	_, err := ss.Team().Save(&o1)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	o2 := model.Team{}
 	o2.DisplayName = "DisplayName"
@@ -629,7 +630,7 @@ func testGetAllPrivateTeamListing(t *testing.T, ss store.Store) {
 	o2.Email = MakeEmail()
 	o2.Type = model.TEAM_OPEN
 	_, err = ss.Team().Save(&o2)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	o3 := model.Team{}
 	o3.DisplayName = "DisplayName"
@@ -638,7 +639,7 @@ func testGetAllPrivateTeamListing(t *testing.T, ss store.Store) {
 	o3.Type = model.TEAM_INVITE
 	o3.AllowOpenInvite = true
 	_, err = ss.Team().Save(&o3)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	o4 := model.Team{}
 	o4.DisplayName = "DisplayName"
@@ -646,7 +647,7 @@ func testGetAllPrivateTeamListing(t *testing.T, ss store.Store) {
 	o4.Email = MakeEmail()
 	o4.Type = model.TEAM_INVITE
 	_, err = ss.Team().Save(&o4)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	if r1 := <-ss.Team().GetAllPrivateTeamListing(); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -673,7 +674,7 @@ func testGetAllPrivateTeamPageListing(t *testing.T, ss store.Store) {
 	o1.Type = model.TEAM_OPEN
 	o1.AllowOpenInvite = true
 	_, err := ss.Team().Save(&o1)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	o2 := model.Team{}
 	o2.DisplayName = "DisplayName"
@@ -682,7 +683,7 @@ func testGetAllPrivateTeamPageListing(t *testing.T, ss store.Store) {
 	o2.Type = model.TEAM_OPEN
 	o2.AllowOpenInvite = false
 	_, err = ss.Team().Save(&o2)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	o3 := model.Team{}
 	o3.DisplayName = "DisplayName"
@@ -691,7 +692,7 @@ func testGetAllPrivateTeamPageListing(t *testing.T, ss store.Store) {
 	o3.Type = model.TEAM_INVITE
 	o3.AllowOpenInvite = true
 	_, err = ss.Team().Save(&o3)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	o4 := model.Team{}
 	o4.DisplayName = "DisplayName"
@@ -700,7 +701,7 @@ func testGetAllPrivateTeamPageListing(t *testing.T, ss store.Store) {
 	o4.Type = model.TEAM_INVITE
 	o4.AllowOpenInvite = false
 	_, err = ss.Team().Save(&o4)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	if r1 := <-ss.Team().GetAllPrivateTeamPageListing(0, 10); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -725,7 +726,7 @@ func testGetAllPrivateTeamPageListing(t *testing.T, ss store.Store) {
 	o5.Type = model.TEAM_OPEN
 	o5.AllowOpenInvite = true
 	_, err = ss.Team().Save(&o5)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	if r1 := <-ss.Team().GetAllPrivateTeamPageListing(0, 4); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -768,7 +769,7 @@ func testDelete(t *testing.T, ss store.Store) {
 	o1.Type = model.TEAM_OPEN
 	o1.AllowOpenInvite = true
 	_, err := ss.Team().Save(&o1)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	o2 := model.Team{}
 	o2.DisplayName = "DisplayName"
@@ -776,7 +777,7 @@ func testDelete(t *testing.T, ss store.Store) {
 	o2.Email = MakeEmail()
 	o2.Type = model.TEAM_OPEN
 	_, err = ss.Team().Save(&o2)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	if r1 := <-ss.Team().PermanentDelete(o1.Id); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -791,7 +792,7 @@ func testTeamCount(t *testing.T, ss store.Store) {
 	o1.Type = model.TEAM_OPEN
 	o1.AllowOpenInvite = true
 	_, err := ss.Team().Save(&o1)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	if r1 := <-ss.Team().AnalyticsTeamCount(); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -960,7 +961,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 		Name:        "z-z-z" + model.NewId() + "b",
 		Type:        model.TEAM_OPEN,
 	})
-	assert.Nil(t, err)
+	require.Nil(t, err)
 	defer func() {
 		<-ss.Team().PermanentDelete(team.Id)
 	}()
@@ -1104,7 +1105,7 @@ func testGetTeamMember(t *testing.T, ss store.Store) {
 		Type:        model.TEAM_OPEN,
 		SchemeId:    &s2.Id,
 	})
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	defer func() {
 		<-ss.Team().PermanentDelete(t2.Id)
@@ -1320,7 +1321,8 @@ func testUpdateLastTeamIconUpdate(t *testing.T, ss store.Store) {
 	o1.Email = MakeEmail()
 	o1.Type = model.TEAM_OPEN
 	o1.LastTeamIconUpdate = lastTeamIconUpdateInitial
-	o1, _ = ss.Team().Save(o1)
+	o1, err := ss.Team().Save(o1)
+	require.Nil(t, err)
 
 	curTime := model.GetMillis()
 
@@ -1411,7 +1413,7 @@ func testTeamStoreMigrateTeamMembers(t *testing.T, ss store.Store) {
 		SchemeId:    &s1,
 	}
 	t1, err := ss.Team().Save(t1)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	tm1 := &model.TeamMember{
 		TeamId:        t1.Id,
@@ -1495,8 +1497,10 @@ func testResetAllTeamSchemes(t *testing.T, ss store.Store) {
 		SchemeId:    &s1.Id,
 	}
 
-	t1, _ = ss.Team().Save(t1)
-	t2, _ = ss.Team().Save(t2)
+	t1, err := ss.Team().Save(t1)
+	require.Nil(t, err)
+	t2, err = ss.Team().Save(t2)
+	require.Nil(t, err)
 
 	assert.Equal(t, s1.Id, *t1.SchemeId)
 	assert.Equal(t, s1.Id, *t2.SchemeId)
@@ -1576,7 +1580,8 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
 		Type:        model.TEAM_OPEN,
 		SchemeId:    &s1.Id,
 	}
-	ss.Team().Save(t1)
+	_, err := ss.Team().Save(t1)
+	require.Nil(t, err)
 
 	count2 := (<-ss.Team().AnalyticsGetTeamCountForScheme(s1.Id)).Data.(int64)
 	assert.Equal(t, int64(1), count2)
@@ -1588,7 +1593,8 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
 		Type:        model.TEAM_OPEN,
 		SchemeId:    &s1.Id,
 	}
-	ss.Team().Save(t2)
+	_, err = ss.Team().Save(t2)
+	require.Nil(t, err)
 
 	count3 := (<-ss.Team().AnalyticsGetTeamCountForScheme(s1.Id)).Data.(int64)
 	assert.Equal(t, int64(2), count3)
@@ -1599,7 +1605,8 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
 		Email:       MakeEmail(),
 		Type:        model.TEAM_OPEN,
 	}
-	ss.Team().Save(t3)
+	_, err = ss.Team().Save(t3)
+	require.Nil(t, err)
 
 	count4 := (<-ss.Team().AnalyticsGetTeamCountForScheme(s1.Id)).Data.(int64)
 	assert.Equal(t, int64(2), count4)
@@ -1612,7 +1619,8 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
 		SchemeId:    &s1.Id,
 		DeleteAt:    model.GetMillis(),
 	}
-	ss.Team().Save(t4)
+	_, err = ss.Team().Save(t4)
+	require.Nil(t, err)
 
 	count5 := (<-ss.Team().AnalyticsGetTeamCountForScheme(s1.Id)).Data.(int64)
 	assert.Equal(t, int64(2), count5)
@@ -1625,7 +1633,7 @@ func testTeamStoreGetAllForExportAfter(t *testing.T, ss store.Store) {
 	t1.Email = MakeEmail()
 	t1.Type = model.TEAM_OPEN
 	t1, err := ss.Team().Save(t1)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	r1 := <-ss.Team().GetAllForExportAfter(10000, strings.Repeat("0", 26))
 	assert.Nil(t, r1.Err)
@@ -1650,7 +1658,7 @@ func testTeamStoreGetTeamMembersForExport(t *testing.T, ss store.Store) {
 	t1.Email = MakeEmail()
 	t1.Type = model.TEAM_OPEN
 	t1, err := ss.Team().Save(t1)
-	assert.Nil(t, err)
+	require.Nil(t, err)
 
 	u1 := model.User{}
 	u1.Email = MakeEmail()
