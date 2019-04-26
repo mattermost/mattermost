@@ -416,17 +416,26 @@ func (_m *WebhookStore) UpdateIncoming(webhook *model.IncomingWebhook) (*model.I
 }
 
 // UpdateOutgoing provides a mock function with given fields: hook
-func (_m *WebhookStore) UpdateOutgoing(hook *model.OutgoingWebhook) store.StoreChannel {
+func (_m *WebhookStore) UpdateOutgoing(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError) {
 	ret := _m.Called(hook)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(*model.OutgoingWebhook) store.StoreChannel); ok {
+	var r0 *model.OutgoingWebhook
+	if rf, ok := ret.Get(0).(func(*model.OutgoingWebhook) *model.OutgoingWebhook); ok {
 		r0 = rf(hook)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.OutgoingWebhook)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.OutgoingWebhook) *model.AppError); ok {
+		r1 = rf(hook)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }

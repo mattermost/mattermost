@@ -484,11 +484,7 @@ func (a *App) UpdateOutgoingWebhook(oldHook, updatedHook *model.OutgoingWebhook)
 	updatedHook.TeamId = oldHook.TeamId
 	updatedHook.UpdateAt = model.GetMillis()
 
-	if result = <-a.Srv.Store.Webhook().UpdateOutgoing(updatedHook); result.Err != nil {
-		return nil, result.Err
-	} else {
-		return result.Data.(*model.OutgoingWebhook), nil
-	}
+	return a.Srv.Store.Webhook().UpdateOutgoing(updatedHook)
 }
 
 func (a *App) GetOutgoingWebhook(hookId string) (*model.OutgoingWebhook, *model.AppError) {
@@ -546,11 +542,7 @@ func (a *App) RegenOutgoingWebhookToken(hook *model.OutgoingWebhook) (*model.Out
 
 	hook.Token = model.NewId()
 
-	if result := <-a.Srv.Store.Webhook().UpdateOutgoing(hook); result.Err != nil {
-		return nil, result.Err
-	} else {
-		return result.Data.(*model.OutgoingWebhook), nil
-	}
+	return a.Srv.Store.Webhook().UpdateOutgoing(hook)
 }
 
 func (a *App) HandleIncomingWebhook(hookId string, req *model.IncomingWebhookRequest) *model.AppError {
