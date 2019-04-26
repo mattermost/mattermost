@@ -556,11 +556,7 @@ func (a *App) JoinUserToTeam(team *model.Team, user *model.User, userRequestorId
 }
 
 func (a *App) GetTeam(teamId string) (*model.Team, *model.AppError) {
-	team, err := a.Srv.Store.Team().Get(teamId)
-	if err != nil {
-		return nil, err
-	}
-	return team, nil
+	return a.Srv.Store.Team().Get(teamId)
 }
 
 func (a *App) GetTeamByName(name string) (*model.Team, *model.AppError) {
