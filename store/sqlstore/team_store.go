@@ -238,22 +238,16 @@ func (s SqlTeamStore) UpdateDisplayName(name string, teamId string) store.StoreC
 	})
 }
 
-func (s SqlTeamStore) Get(id string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		obj, err := s.GetReplica().Get(model.Team{}, id)
-		if err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.Get", "store.sql_team.get.finding.app_error", nil, "id="+id+", "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-		if obj == nil {
-			result.Err = model.NewAppError("SqlTeamStore.Get", "store.sql_team.get.find.app_error", nil, "id="+id, http.StatusNotFound)
-			return
-		}
+func (s SqlTeamStore) Get(id string) (*model.Team, *model.AppError) {
+	obj, err := s.GetReplica().Get(model.Team{}, id)
+	if err != nil {
+		return nil, model.NewAppError("SqlTeamStore.Get", "store.sql_team.get.finding.app_error", nil, "id="+id+", "+err.Error(), http.StatusInternalServerError)
+	}
+	if obj == nil {
+		return nil, model.NewAppError("SqlTeamStore.Get", "store.sql_team.get.find.app_error", nil, "id="+id, http.StatusNotFound)
+	}
 
-		team := obj.(*model.Team)
-
-		result.Data = team
-	})
+	return obj.(*model.Team), nil
 }
 
 func (s SqlTeamStore) GetByInviteId(inviteId string) store.StoreChannel {
