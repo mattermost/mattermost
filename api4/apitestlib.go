@@ -44,6 +44,7 @@ type TestHelper struct {
 	BasicDeletedChannel *model.Channel
 	BasicChannel2       *model.Channel
 	BasicPost           *model.Post
+	Group               *model.Group
 
 	SystemAdminClient *model.Client4
 	SystemAdminUser   *model.User
@@ -210,6 +211,7 @@ func (me *TestHelper) InitBasic() *TestHelper {
 	me.App.UpdateUserRoles(me.BasicUser.Id, model.SYSTEM_USER_ROLE_ID, false)
 	me.Client.DeleteChannel(me.BasicDeletedChannel.Id)
 	me.LoginBasic()
+	me.Group = me.CreateGroup()
 
 	return me
 }
@@ -507,6 +509,24 @@ func (me *TestHelper) GenerateTestEmail() string {
 		return strings.ToLower("success+" + model.NewId() + "@simulator.amazonses.com")
 	}
 	return strings.ToLower(model.NewId() + "@dockerhost")
+}
+
+func (me *TestHelper) CreateGroup() *model.Group {
+	id := model.NewId()
+	group := &model.Group{
+		Name:        "n-" + id,
+		DisplayName: "dn_" + id,
+		Source:      model.GroupSourceLdap,
+		RemoteId:    "ri_" + id,
+	}
+
+	utils.DisableDebugLogForTest()
+	group, err := me.App.CreateGroup(group)
+	if err != nil {
+		panic(err)
+	}
+	utils.EnableDebugLogForTest()
+	return group
 }
 
 func GenerateTestUsername() string {

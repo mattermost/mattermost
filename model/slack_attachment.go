@@ -30,10 +30,114 @@ type SlackAttachment struct {
 	Actions    []*PostAction           `json:"actions,omitempty"`
 }
 
+func (s *SlackAttachment) Equals(input *SlackAttachment) bool {
+	// Direct comparison of simple types
+
+	if s.Id != input.Id {
+		return false
+	}
+
+	if s.Fallback != input.Fallback {
+		return false
+	}
+
+	if s.Color != input.Color {
+		return false
+	}
+
+	if s.Pretext != input.Pretext {
+		return false
+	}
+
+	if s.AuthorName != input.AuthorName {
+		return false
+	}
+
+	if s.AuthorLink != input.AuthorLink {
+		return false
+	}
+
+	if s.AuthorIcon != input.AuthorIcon {
+		return false
+	}
+
+	if s.Title != input.Title {
+		return false
+	}
+
+	if s.TitleLink != input.TitleLink {
+		return false
+	}
+
+	if s.Text != input.Text {
+		return false
+	}
+
+	if s.ImageURL != input.ImageURL {
+		return false
+	}
+
+	if s.ThumbURL != input.ThumbURL {
+		return false
+	}
+
+	if s.Footer != input.Footer {
+		return false
+	}
+
+	if s.FooterIcon != input.FooterIcon {
+		return false
+	}
+
+	// Compare length & slice values of fields
+	if len(s.Fields) != len(input.Fields) {
+		return false
+	}
+
+	for j := range s.Fields {
+		if !s.Fields[j].Equals(input.Fields[j]) {
+			return false
+		}
+	}
+
+	// Compare length & slice values of actions
+	if len(s.Actions) != len(input.Actions) {
+		return false
+	}
+
+	for j := range s.Actions {
+		if !s.Actions[j].Equals(input.Actions[j]) {
+			return false
+		}
+	}
+
+	if s.Timestamp != input.Timestamp {
+		return false
+	}
+
+	return true
+}
+
 type SlackAttachmentField struct {
 	Title string              `json:"title"`
 	Value interface{}         `json:"value"`
 	Short SlackCompatibleBool `json:"short"`
+}
+
+func (s *SlackAttachmentField) Equals(input *SlackAttachmentField) bool {
+	if s.Title != input.Title {
+		return false
+	}
+
+	if s.Value != input.Value {
+		return false
+	}
+
+	if s.Short != input.Short {
+		return false
+	}
+
+	return true
 }
 
 func StringifySlackFieldValue(a []*SlackAttachment) []*SlackAttachment {

@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"reflect"
@@ -11,6 +12,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/mattermost/mattermost-server/config"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -181,21 +183,37 @@ func TestConfigReset(t *testing.T) {
 		assert.Error(t, th.RunCommand(t, "config", "reset", "JobSettings.InvalidConfiguration"))
 	})
 
-	t.Run("Success when a configuration section is given", func(t *testing.T) {
+	t.Run("Success when the confirm boolean flag is given", func(t *testing.T) {
 		assert.NoError(t, th.RunCommand(t, "config", "set", "JobSettings.RunJobs", "false"))
-		assert.NoError(t, th.RunCommand(t, "config", "set", "JobSettings.RunScheduler", "false"))
-		assert.NoError(t, th.RunCommand(t, "config", "reset", "JobSettings"))
+		assert.NoError(t, th.RunCommand(t, "config", "set", "PrivacySettings.ShowFullName", "false"))
+		assert.NoError(t, th.RunCommand(t, "config", "reset", "--confirm"))
 		output1 := th.CheckCommand(t, "config", "get", "JobSettings.RunJobs")
-		output2 := th.CheckCommand(t, "config", "get", "JobSettings.RunScheduler")
+		output2 := th.CheckCommand(t, "config", "get", "PrivacySettings.ShowFullName")
 		assert.Contains(t, string(output1), "true")
 		assert.Contains(t, string(output2), "true")
 	})
 
+	t.Run("Success when a configuration section is given", func(t *testing.T) {
+		assert.NoError(t, th.RunCommand(t, "config", "set", "JobSettings.RunJobs", "false"))
+		assert.NoError(t, th.RunCommand(t, "config", "set", "JobSettings.RunScheduler", "false"))
+		assert.NoError(t, th.RunCommand(t, "config", "set", "PrivacySettings.ShowFullName", "false"))
+		assert.NoError(t, th.RunCommand(t, "config", "reset", "JobSettings"))
+		output1 := th.CheckCommand(t, "config", "get", "JobSettings.RunJobs")
+		output2 := th.CheckCommand(t, "config", "get", "JobSettings.RunScheduler")
+		output3 := th.CheckCommand(t, "config", "get", "PrivacySettings.ShowFullName")
+		assert.Contains(t, string(output1), "true")
+		assert.Contains(t, string(output2), "true")
+		assert.Contains(t, string(output3), "false")
+	})
+
 	t.Run("Success when a configuration setting is given", func(t *testing.T) {
 		assert.NoError(t, th.RunCommand(t, "config", "set", "JobSettings.RunJobs", "false"))
+		assert.NoError(t, th.RunCommand(t, "config", "set", "JobSettings.RunScheduler", "false"))
 		assert.NoError(t, th.RunCommand(t, "config", "reset", "JobSettings.RunJobs"))
-		output := th.CheckCommand(t, "config", "get", "JobSettings.RunJobs")
-		assert.Contains(t, string(output), "true")
+		output1 := th.CheckCommand(t, "config", "get", "JobSettings.RunJobs")
+		output2 := th.CheckCommand(t, "config", "get", "JobSettings.Scheduler")
+		assert.Contains(t, string(output1), "true")
+		assert.Contains(t, string(output2), "false")
 	})
 }
 
@@ -474,6 +492,43 @@ func TestUpdateMap(t *testing.T) {
 		})
 	}
 
+}
+
+func TestConfigMigrate(t *testing.T) {
+	th := Setup()
+	defer th.TearDown()
+
+	sqlSettings := mainHelper.GetSqlSettings()
+	sqlDSN := fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource)
+	fileDSN := "config.json"
+
+	ds, err := config.NewStore(sqlDSN, false)
+	require.NoError(t, err)
+	fs, err := config.NewStore(fileDSN, false)
+	require.NoError(t, err)
+
+	defer ds.Close()
+	defer fs.Close()
+
+	t.Run("Should error without --to parameter", func(t *testing.T) {
+		assert.Error(t, th.RunCommand(t, "config", "migrate", "--from", fileDSN))
+	})
+
+	t.Run("Should work passing the --to and the --from", func(t *testing.T) {
+		assert.NoError(t, th.RunCommand(t, "config", "migrate", "--from", fileDSN, "--to", sqlDSN))
+	})
+
+	t.Run("Should work passing --to and no --from (taking the default config file)", func(t *testing.T) {
+		assert.NoError(t, th.RunCommand(t, "config", "migrate", "--to", sqlDSN))
+	})
+
+	t.Run("Should fail passing an invalid --to", func(t *testing.T) {
+		assert.Error(t, th.RunCommand(t, "config", "migrate", "--from", fileDSN, "--to", "mysql://asd"))
+	})
+
+	t.Run("Should fail passing an invalid --from", func(t *testing.T) {
+		assert.Error(t, th.RunCommand(t, "config", "migrate", "--from", "invalid/path", "--to", sqlDSN))
+	})
 }
 
 func contains(configMap map[string]interface{}, v interface{}, configSettings []string) bool {

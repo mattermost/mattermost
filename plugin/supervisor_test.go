@@ -6,12 +6,12 @@ package plugin
 import (
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -24,18 +24,6 @@ func TestSupervisor(t *testing.T) {
 	} {
 		t.Run(name, f)
 	}
-}
-
-func compileGo(t *testing.T, sourceCode, outputPath string) {
-	dir, err := ioutil.TempDir(".", "")
-	require.NoError(t, err)
-	defer os.RemoveAll(dir)
-	require.NoError(t, ioutil.WriteFile(filepath.Join(dir, "main.go"), []byte(sourceCode), 0600))
-	cmd := exec.Command("go", "build", "-o", outputPath, "main.go")
-	cmd.Dir = dir
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	require.NoError(t, cmd.Run())
 }
 
 func testSupervisor_InvalidExecutablePath(t *testing.T) {
@@ -83,7 +71,7 @@ func testSupervisor_StartTimeout(t *testing.T) {
 	defer os.RemoveAll(dir)
 
 	backend := filepath.Join(dir, "backend.exe")
-	compileGo(t, `
+	utils.CompileGo(t, `
 		package main
 
 		func main() {

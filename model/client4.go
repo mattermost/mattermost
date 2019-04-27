@@ -1771,6 +1771,16 @@ func (c *Client4) InviteUsersToTeam(teamId string, userEmails []string) (bool, *
 	return CheckStatusOK(r), BuildResponse(r)
 }
 
+// InvalidateEmailInvites will invalidate active email invitations that have not been accepted by the user.
+func (c *Client4) InvalidateEmailInvites() (bool, *Response) {
+	r, err := c.DoApiDelete(c.GetTeamsRoute() + "/invites/email")
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
 // GetTeamInviteInfo returns a team object from an invite id containing sanitized information.
 func (c *Client4) GetTeamInviteInfo(inviteId string) (*Team, *Response) {
 	r, err := c.DoApiGet(c.GetTeamsRoute()+"/invite/"+inviteId, "")
@@ -3288,6 +3298,30 @@ func (c *Client4) UnlinkLdapGroup(dn string) (*Group, *Response) {
 	defer closeBody(r)
 
 	return GroupFromJson(r.Body), BuildResponse(r)
+}
+
+// GetLdapGroupsByChannel retrieves the Mattermost Groups associated with a given channel
+func (c *Client4) GetGroupsByChannel(channelId string, page, perPage int) ([]*Group, *Response) {
+	path := fmt.Sprintf("%s/groups?page=%v&per_page=%v", c.GetChannelRoute(channelId), page, perPage)
+	r, appErr := c.DoApiGet(path, "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	return GroupsFromJson(r.Body), BuildResponse(r)
+}
+
+// GetLdapGroupsByTeam retrieves the Mattermost Groups associated with a given team
+func (c *Client4) GetGroupsByTeam(teamId string, page, perPage int) ([]*Group, *Response) {
+	path := fmt.Sprintf("%s/groups?page=%v&per_page=%v", c.GetTeamRoute(teamId), page, perPage)
+	r, appErr := c.DoApiGet(path, "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	return GroupsFromJson(r.Body), BuildResponse(r)
 }
 
 // Audits Section

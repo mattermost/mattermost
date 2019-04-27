@@ -1442,6 +1442,30 @@ func TestAddTeamMember(t *testing.T) {
 	if tm != nil {
 		t.Fatal("should have not returned team member")
 	}
+
+	// Set a team to group-constrained
+	team.GroupConstrained = model.NewBool(true)
+	_, err := th.App.UpdateTeam(team)
+	require.Nil(t, err)
+
+	// User is not in associated groups so shouldn't be allowed
+	_, resp = th.SystemAdminClient.AddTeamMember(team.Id, otherUser.Id)
+	CheckErrorMessage(t, resp, "api.team.add_members.user_denied")
+
+	// Associate group to team
+	_, err = th.App.CreateGroupSyncable(&model.GroupSyncable{
+		GroupId:    th.Group.Id,
+		SyncableId: team.Id,
+		Type:       model.GroupSyncableTypeTeam,
+	})
+	require.Nil(t, err)
+
+	// Add user to group
+	_, err = th.App.CreateOrRestoreGroupMember(th.Group.Id, otherUser.Id)
+	require.Nil(t, err)
+
+	_, resp = th.SystemAdminClient.AddTeamMember(team.Id, otherUser.Id)
+	CheckNoError(t, resp)
 }
 
 func TestAddTeamMemberMyself(t *testing.T) {
@@ -1578,7 +1602,7 @@ func TestAddTeamMembers(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	_, resp = Client.AddTeamMembers(GenerateTestId(), userList)
-	CheckForbiddenStatus(t, resp)
+	CheckNotFoundStatus(t, resp)
 
 	testUserList := append(userList, GenerateTestId())
 	_, resp = Client.AddTeamMembers(team.Id, testUserList)
@@ -1633,6 +1657,30 @@ func TestAddTeamMembers(t *testing.T) {
 	// Should work as a regular user.
 	_, resp = Client.AddTeamMembers(team.Id, userList)
 	CheckNoError(t, resp)
+
+	// Set a team to group-constrained
+	team.GroupConstrained = model.NewBool(true)
+	_, err := th.App.UpdateTeam(team)
+	require.Nil(t, err)
+
+	// User is not in associated groups so shouldn't be allowed
+	_, resp = Client.AddTeamMembers(team.Id, userList)
+	CheckErrorMessage(t, resp, "api.team.add_members.user_denied")
+
+	// Associate group to team
+	_, err = th.App.CreateGroupSyncable(&model.GroupSyncable{
+		GroupId:    th.Group.Id,
+		SyncableId: team.Id,
+		Type:       model.GroupSyncableTypeTeam,
+	})
+	require.Nil(t, err)
+
+	// Add user to group
+	_, err = th.App.CreateOrRestoreGroupMember(th.Group.Id, userList[0])
+	require.Nil(t, err)
+
+	_, resp = Client.AddTeamMembers(team.Id, userList)
+	CheckNoError(t, resp)
 }
 
 func TestRemoveTeamMember(t *testing.T) {
@@ -1663,6 +1711,20 @@ func TestRemoveTeamMember(t *testing.T) {
 	CheckNotFoundStatus(t, resp)
 
 	_, resp = th.SystemAdminClient.RemoveTeamMember(th.BasicTeam.Id, th.BasicUser.Id)
+	CheckNoError(t, resp)
+
+	_, resp = th.SystemAdminClient.AddTeamMember(th.BasicTeam.Id, th.SystemAdminUser.Id)
+	CheckNoError(t, resp)
+
+	// If the team is group-constrained the user cannot be removed
+	th.BasicTeam.GroupConstrained = model.NewBool(true)
+	_, err := th.App.UpdateTeam(th.BasicTeam)
+	require.Nil(t, err)
+	_, resp = th.SystemAdminClient.RemoveTeamMember(th.BasicTeam.Id, th.BasicUser.Id)
+	require.Equal(t, "api.team.remove_member.group_constrained.app_error", resp.Error.Id)
+
+	// Can remove self even if team is group-constrained
+	_, resp = th.SystemAdminClient.RemoveTeamMember(th.BasicTeam.Id, th.SystemAdminUser.Id)
 	CheckNoError(t, resp)
 }
 

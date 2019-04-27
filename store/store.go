@@ -294,6 +294,8 @@ type UserStore interface {
 	GetAllAfter(limit int, afterId string) StoreChannel
 	GetUsersBatchForIndexing(startTime, endTime int64, limit int) StoreChannel
 	Count(options model.UserCountOptions) StoreChannel
+	GetTeamGroupUsers(teamID string) StoreChannel
+	GetChannelGroupUsers(channelID string) StoreChannel
 }
 
 type BotStore interface {
@@ -443,6 +445,7 @@ type TokenStore interface {
 	Delete(token string) StoreChannel
 	GetByToken(token string) StoreChannel
 	Cleanup()
+	RemoveAllTokensByType(tokenType string) StoreChannel
 }
 
 type EmojiStore interface {
@@ -579,8 +582,14 @@ type GroupStore interface {
 	UpdateGroupSyncable(groupSyncable *model.GroupSyncable) StoreChannel
 	DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) StoreChannel
 
-	PendingAutoAddTeamMembers(minGroupMembersCreateAt int64) StoreChannel
-	PendingAutoAddChannelMembers(minGroupMembersCreateAt int64) StoreChannel
+	TeamMembersToAdd(since int64) StoreChannel
+	ChannelMembersToAdd(since int64) StoreChannel
+
+	TeamMembersToRemove() StoreChannel
+	ChannelMembersToRemove() StoreChannel
+
+	GetGroupsByChannel(channelId string, page, perPage int) StoreChannel
+	GetGroupsByTeam(teamId string, page, perPage int) StoreChannel
 }
 
 type LinkMetadataStore interface {

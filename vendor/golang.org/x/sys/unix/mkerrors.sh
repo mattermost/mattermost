@@ -192,6 +192,7 @@ struct ltchars {
 #include <linux/if_packet.h>
 #include <linux/if_addr.h>
 #include <linux/falloc.h>
+#include <linux/fanotify.h>
 #include <linux/filter.h>
 #include <linux/fs.h>
 #include <linux/kexec.h>
@@ -259,16 +260,6 @@ struct ltchars {
 #define FS_KEY_DESC_PREFIX              "fscrypt:"
 #define FS_KEY_DESC_PREFIX_SIZE         8
 #define FS_MAX_KEY_SIZE                 64
-
-// XDP socket constants do not appear to be picked up otherwise.
-// Copied from samples/bpf/xdpsock_user.c.
-#ifndef SOL_XDP
-#define SOL_XDP 283
-#endif
-
-#ifndef AF_XDP
-#define AF_XDP 44
-#endif
 '
 
 includes_NetBSD='
@@ -482,6 +473,7 @@ ccflags="$@"
 		$2 ~ /^ALG_/ ||
 		$2 ~ /^FS_(POLICY_FLAGS|KEY_DESC|ENCRYPTION_MODE|[A-Z0-9_]+_KEY_SIZE|IOC_(GET|SET)_ENCRYPTION)/ ||
 		$2 ~ /^GRND_/ ||
+		$2 ~ /^RND/ ||
 		$2 ~ /^KEY_(SPEC|REQKEY_DEFL)_/ ||
 		$2 ~ /^KEYCTL_/ ||
 		$2 ~ /^PERF_EVENT_IOC_/ ||
@@ -510,6 +502,7 @@ ccflags="$@"
 		$2 !~ "WMESGLEN" &&
 		$2 ~ /^W[A-Z0-9]+$/ ||
 		$2 ~/^PPPIOC/ ||
+		$2 ~ /^FAN_|FANOTIFY_/ ||
 		$2 ~ /^BLK[A-Z]*(GET$|SET$|BUF$|PART$|SIZE)/ {printf("\t%s = C.%s\n", $2, $2)}
 		$2 ~ /^__WCOREFLAG$/ {next}
 		$2 ~ /^__W[A-Z0-9]+$/ {printf("\t%s = C.%s\n", substr($2,3), $2)}

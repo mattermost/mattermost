@@ -5,7 +5,6 @@ package model
 
 import (
 	"crypto/sha1"
-	"database/sql"
 	"encoding/hex"
 	"encoding/json"
 	"io"
@@ -52,7 +51,7 @@ type Channel struct {
 	CreatorId        string                 `json:"creator_id"`
 	SchemeId         *string                `json:"scheme_id"`
 	Props            map[string]interface{} `json:"props" db:"-"`
-	GroupConstrained sql.NullBool           `json:"group_constrained"`
+	GroupConstrained *bool                  `json:"group_constrained"`
 }
 
 type ChannelWithTeamData struct {
@@ -191,7 +190,7 @@ func (o *Channel) Patch(patch *ChannelPatch) {
 	}
 
 	if patch.GroupConstrained != nil {
-		o.GroupConstrained.Bool = *patch.GroupConstrained
+		o.GroupConstrained = patch.GroupConstrained
 	}
 }
 

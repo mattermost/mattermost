@@ -284,11 +284,17 @@ func (api *PluginAPI) GetLDAPUserAttributes(userId string, attributes []string) 
 		return nil, err
 	}
 
-	if user.AuthService != model.USER_AUTH_SERVICE_LDAP || user.AuthData == nil {
+	if user.AuthData == nil {
 		return map[string]string{}, nil
 	}
 
-	return api.app.Ldap.GetUserAttributes(*user.AuthData, attributes)
+	// Only bother running the query if the user's auth service is LDAP or it's SAML and sync is enabled.
+	if user.AuthService == model.USER_AUTH_SERVICE_LDAP ||
+		(user.AuthService == model.USER_AUTH_SERVICE_SAML && *api.app.Config().SamlSettings.EnableSyncWithLdap) {
+		return api.app.Ldap.GetUserAttributes(*user.AuthData, attributes)
+	}
+
+	return map[string]string{}, nil
 }
 
 func (api *PluginAPI) CreateChannel(channel *model.Channel) (*model.Channel, *model.AppError) {

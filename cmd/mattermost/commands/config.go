@@ -67,6 +67,14 @@ var ConfigSetCmd = &cobra.Command{
 	RunE:    configSetCmdF,
 }
 
+var MigrateConfigCmd = &cobra.Command{
+	Use:     "migrate",
+	Short:   "Migrate existing config between backends",
+	Long:    "Migrate a file-based configuration to (or from) a database-based configuration. Point the Mattermost server at the target configuration to start using it",
+	Example: `config migrate --from=path/to/config.json --to="postgres://mmuser:mostest@dockerhost:5432/mattermost_test?sslmode=disable&connect_timeout=10"`,
+	RunE:    configMigrateCmdF,
+}
+
 var ConfigResetCmd = &cobra.Command{
 	Use:     "reset",
 	Short:   "Reset config setting",
@@ -77,6 +85,10 @@ var ConfigResetCmd = &cobra.Command{
 
 func init() {
 	ConfigSubpathCmd.Flags().String("path", "", "Optional subpath; defaults to value in SiteURL")
+	MigrateConfigCmd.Flags().String("from", "", "Config from which to migrate")
+	MigrateConfigCmd.Flags().String("to", "", "Config to which to migrate")
+	MigrateConfigCmd.MarkFlagRequired("to")
+	ConfigResetCmd.Flags().Bool("confirm", false, "Confirm you really want to reset all configuration settings to its default value")
 
 	ConfigCmd.AddCommand(
 		ValidateConfigCmd,
@@ -84,6 +96,7 @@ func init() {
 		ConfigGetCmd,
 		ConfigShowCmd,
 		ConfigSetCmd,
+		MigrateConfigCmd,
 		ConfigResetCmd,
 	)
 	RootCmd.AddCommand(ConfigCmd)
@@ -225,6 +238,40 @@ func configSetCmdF(command *cobra.Command, args []string) error {
 	return nil
 }
 
+func configMigrateCmdF(command *cobra.Command, args []string) error {
+	// Parse source config; defaults to global --config unless overwritten by --from
+	from, err := command.Flags().GetString("from")
+	if err != nil {
+		return errors.Wrap(err, "failed reading source config parameter")
+	}
+	if from == "" {
+		from = viper.GetString("config")
+	}
+
+	// Parse destination config store - MarkFlagRequired handles errors here
+	to, _ := command.Flags().GetString("to")
+
+	// Get source config store - invalid config will throw error here
+	fromConfigStore, err := config.NewStore(from, false)
+	if err != nil {
+		return errors.Wrap(err, "failed to read --from config")
+	}
+
+	// Get destination config store
+	toConfigStore, err := config.NewStore(to, false)
+	if err != nil {
+		return errors.Wrap(err, "failed to read --to config")
+	}
+
+	// Copy config from source to destination
+	_, err = toConfigStore.Set(fromConfigStore.Get())
+	if err != nil {
+		return errors.Wrap(err, "failed to migrate config")
+	}
+
+	return nil
+}
+
 func updateConfigValue(configSetting string, newVal []string, oldConfig, newConfig *model.Config) func(*model.Config) {
 	return func(update *model.Config) {
 
@@ -337,44 +384,40 @@ func configResetCmdF(command *cobra.Command, args []string) error {
 	defaultConfig := &model.Config{}
 	defaultConfig.SetDefaults()
 
-	if len(args) == 0 {
+	confirmFlag, _ := command.Flags().GetBool("confirm")
+	if !confirmFlag && len(args) == 0 {
 		var confirmResetAll string
 		CommandPrettyPrintln("Are you sure you want to reset all the configuration settings?(YES/NO): ")
 		fmt.Scanln(&confirmResetAll)
 		if confirmResetAll == "YES" {
 			app.SaveConfig(defaultConfig, false)
-
+			return nil
 		}
-	} else {
-		tempConfig := app.Config()
-		tempConfigMap := configToMap(*tempConfig)
-		defaultConfigMap := configToMap(*defaultConfig)
-		for _, arg := range args {
-			err := changeMap(tempConfigMap, defaultConfigMap, strings.Split(arg, "."))
-			if err != nil {
-				return errors.Wrap(err, "Failed to reset config")
-			}
-		}
-		bs, err := json.Marshal(tempConfigMap)
-		if err != nil {
-			fmt.Printf("Error while marshalling map to json %s\n", err)
-			os.Exit(1)
-		}
-		err = json.Unmarshal(bs, tempConfig)
-		if err != nil {
-			fmt.Printf("Error while unmarshalling json to struct %s\n", err)
-			os.Exit(1)
-		}
-		app.SaveConfig(tempConfig, false)
 	}
 
-	newConfig := app.Config()
-	if err := newConfig.IsValid(); err != nil {
-		return err
+	tempConfig := app.Config()
+	tempConfigMap := configToMap(*tempConfig)
+	defaultConfigMap := configToMap(*defaultConfig)
+	for _, arg := range args {
+		err := changeMap(tempConfigMap, defaultConfigMap, strings.Split(arg, "."))
+		if err != nil {
+			return errors.Wrap(err, "Failed to reset config")
+		}
 	}
-	if changed := config.FixInvalidLocales(newConfig); changed {
+	bs, err := json.Marshal(tempConfigMap)
+	if err != nil {
+		fmt.Printf("Error while marshalling map to json %s\n", err)
+		os.Exit(1)
+	}
+	err = json.Unmarshal(bs, tempConfig)
+	if err != nil {
+		fmt.Printf("Error while unmarshalling json to struct %s\n", err)
+		os.Exit(1)
+	}
+	if changed := config.FixInvalidLocales(tempConfig); changed {
 		return errors.New("Invalid locale configuration")
 	}
+	app.SaveConfig(tempConfig, false)
 
 	return nil
 }
