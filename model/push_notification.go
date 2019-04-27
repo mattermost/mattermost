@@ -108,31 +108,31 @@ func (ack *PushNotificationAck) ToJson() string {
 func (o *NotificationRegistry) IsValid() *AppError {
 
 	if len(o.AckId) != 26 {
-		return NewAppError("NotificationRegistry.IsValid", "Invalid Acknowledge Id", nil, "", http.StatusBadRequest)
+		return NewAppError("NotificationRegistry.IsValid", "model.notification_registry.ack_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if o.CreateAt == 0 {
-		return NewAppError("NotificationRegistry.IsValid", "Create at must be a valid time", nil, "AckId="+o.AckId, http.StatusBadRequest)
+		return NewAppError("NotificationRegistry.IsValid", "model.notification_registry.create_at.app_error", nil, "AckId="+o.AckId, http.StatusBadRequest)
 	}
 
 	if len(o.UserId) != 26 {
-		return NewAppError("NotificationRegistry.IsValid", "Invalid User Id", nil, "", http.StatusBadRequest)
+		return NewAppError("NotificationRegistry.IsValid", "model.notification_registry.user_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if len(o.PostId) != 26 {
-		return NewAppError("NotificationRegistry.IsValid", "Invalid Post Id", nil, "", http.StatusBadRequest)
+		return NewAppError("NotificationRegistry.IsValid", "model.notification_registry.post_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if len(o.DeviceId) > 512 {
-		return NewAppError("NotificationRegistry.IsValid", "Invalid Device Id", nil, "", http.StatusBadRequest)
+		return NewAppError("NotificationRegistry.IsValid", "model.notification_registry.device_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if len(o.SendStatus) > 4096 {
-		return NewAppError("NotificationRegistry.IsValid", "Invalid Send Status string length", nil, "", http.StatusBadRequest)
+		return NewAppError("NotificationRegistry.IsValid", "model.notification_registry.status.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if o.Type != PUSH_TYPE_CLEAR && o.Type != PUSH_TYPE_MESSAGE {
-		return NewAppError("NotificationRegistry.IsValid", "Invalid push type, must be \"clear\" or \"message\"", nil, "", http.StatusBadRequest)
+		return NewAppError("NotificationRegistry.IsValid", "model.notification_registry.type.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil

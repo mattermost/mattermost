@@ -49,7 +49,7 @@ func (s *SqlNotificationRegistryStore) Save(notification *model.NotificationRegi
 
 	err := s.GetMaster().Insert(notification)
 	if err != nil {
-		appErr = model.NewAppError("SqlNotificationRegistryStore.Save", "An error occurred while saving the notification registry", nil, "id="+notification.AckId+", "+err.Error(), http.StatusInternalServerError)
+		appErr = model.NewAppError("SqlNotificationRegistryStore.Save", "store.sql_notification.save.app_error", nil, "id="+notification.AckId+", "+err.Error(), http.StatusInternalServerError)
 		return nil, appErr
 	}
 
@@ -59,14 +59,14 @@ func (s *SqlNotificationRegistryStore) Save(notification *model.NotificationRegi
 func (s *SqlNotificationRegistryStore) MarkAsReceived(ackId string, time int64) *model.AppError {
 	result, err := s.GetMaster().Exec("UPDATE NotificationRegistry SET ReceiveAt = :ReceiveAt WHERE AckId = :AckId AND ReceiveAt = 0", map[string]interface{}{"AckId": ackId, "ReceiveAt": time})
 	if err != nil {
-		return model.NewAppError("SqlNotificationRegistryStore.Save", "An error occurred marking the notification as received", nil, "id="+ackId+", "+err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SqlNotificationRegistryStore.Save", "store.sql_notification.mark_as_received.app_error", nil, "id="+ackId+", "+err.Error(), http.StatusInternalServerError)
 	}
 
 	affected, err := result.RowsAffected()
 	if err != nil {
-		return model.NewAppError("SqlNotificationRegistryStore.Save", "An error occurred marking the notification as received", nil, "id="+ackId+", "+err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SqlNotificationRegistryStore.Save", "store.sql_notification.mark_as_received.app_error", nil, "id="+ackId+", "+err.Error(), http.StatusInternalServerError)
 	} else if affected != 1 {
-		return model.NewAppError("SqlNotificationRegistryStore.Save", "An error occurred marking the notification as received", nil, "id="+ackId+", Message already received", http.StatusInternalServerError)
+		return model.NewAppError("SqlNotificationRegistryStore.Save", "store.sql_notification.mark_as_received.app_error", nil, "id="+ackId+", Message already received", http.StatusInternalServerError)
 	}
 
 	return nil
@@ -75,7 +75,7 @@ func (s *SqlNotificationRegistryStore) MarkAsReceived(ackId string, time int64) 
 func (s *SqlNotificationRegistryStore) UpdateSendStatus(ackId, status string) *model.AppError {
 	_, err := s.GetMaster().Exec("UPDATE NotificationRegistry SET SendStatus = :Status WHERE AckId = :AckId", map[string]interface{}{"AckId": ackId, "Status": status})
 	if err != nil {
-		return model.NewAppError("SqlNotificationRegistryStore.Save", "An error occurred while updating the notification status", nil, "id="+ackId+", "+err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SqlNotificationRegistryStore.Save", "store.sql_notification.update_status.app_error", nil, "id="+ackId+", "+err.Error(), http.StatusInternalServerError)
 	}
 	return nil
 }
