@@ -512,7 +512,7 @@ func TestRegenerateTeamInviteId(t *testing.T) {
 	team, _ = Client.CreateTeam(team)
 
 	assert.NotEqual(t, team.InviteId, "")
-	assert.NotEqual(t, team.InviteId, "inviteid0")
+	assert.Equal(t, team.InviteId, "inviteid0")
 
 	rteam, resp := Client.RegenerateTeamInviteId(team.Id)
 	CheckNoError(t, resp)
