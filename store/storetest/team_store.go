@@ -1493,7 +1493,7 @@ func testResetAllTeamSchemes(t *testing.T, ss store.Store) {
 	res := <-ss.Team().ResetAllTeamSchemes()
 	assert.Nil(t, res.Err)
 
-	t1, err := ss.Team().Get(t1.Id)
+	t1, err = ss.Team().Get(t1.Id)
 	require.Nil(t, err)
 
 	t2, err = ss.Team().Get(t2.Id)
