@@ -399,7 +399,7 @@ func configResetCmdF(command *cobra.Command, args []string) error {
 	tempConfigMap := configToMap(*tempConfig)
 	defaultConfigMap := configToMap(*defaultConfig)
 	for _, arg := range args {
-		err := changeMap(tempConfigMap, defaultConfigMap, strings.Split(arg, "."))
+		err = changeMap(tempConfigMap, defaultConfigMap, strings.Split(arg, "."))
 		if err != nil {
 			return errors.Wrap(err, "Failed to reset config")
 		}
