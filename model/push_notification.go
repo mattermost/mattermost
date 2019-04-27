@@ -44,7 +44,7 @@ type NotificationRegistry struct {
 
 type PushNotificationAck struct {
 	Id               string `json:"id"`
-	ClientReceivedAt int64  `json:"received_at""`
+	ClientReceivedAt int64  `json:"received_at"`
 	ClientPlatform   string `json:"platform"`
 	NotificationType string `json:"type"`
 }
