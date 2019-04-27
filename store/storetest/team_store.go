@@ -112,7 +112,7 @@ func testTeamStoreUpdateDisplayName(t *testing.T, ss store.Store) {
 
 	newDisplayName := "NewDisplayName"
 
-	if err := (<-ss.Team().UpdateDisplayName(newDisplayName, o1.Id)).Err; err != nil {
+	if err = (<-ss.Team().UpdateDisplayName(newDisplayName, o1.Id)).Err; err != nil {
 		t.Fatal(err)
 	}
 
@@ -1309,7 +1309,7 @@ func testUpdateLastTeamIconUpdate(t *testing.T, ss store.Store) {
 
 	curTime := model.GetMillis()
 
-	if err := (<-ss.Team().UpdateLastTeamIconUpdate(o1.Id, curTime)).Err; err != nil {
+	if err = (<-ss.Team().UpdateLastTeamIconUpdate(o1.Id, curTime)).Err; err != nil {
 		t.Fatal(err)
 	}
 
