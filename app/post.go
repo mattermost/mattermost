@@ -363,11 +363,11 @@ func (a *App) FillInPostProps(post *model.Post, channel *model.Channel) *model.A
 func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *model.Channel, triggerWebhooks bool, parentPostList *model.PostList) error {
 	var team *model.Team
 	if len(channel.TeamId) > 0 {
-		result := <-a.Srv.Store.Team().Get(channel.TeamId)
-		if result.Err != nil {
-			return result.Err
+		t, err := a.Srv.Store.Team().Get(channel.TeamId)
+		if err != nil {
+			return err
 		}
-		team = result.Data.(*model.Team)
+		team = t
 	} else {
 		// Blank team for DMs
 		team = &model.Team{}

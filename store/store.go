@@ -84,7 +84,7 @@ type TeamStore interface {
 	Save(team *model.Team) (*model.Team, *model.AppError)
 	Update(team *model.Team) (*model.Team, *model.AppError)
 	UpdateDisplayName(name string, teamId string) StoreChannel
-	Get(id string) StoreChannel
+	Get(id string) (*model.Team, *model.AppError)
 	GetByName(name string) StoreChannel
 	SearchByName(name string) StoreChannel
 	SearchAll(term string) StoreChannel
@@ -385,17 +385,17 @@ type WebhookStore interface {
 	GetIncomingByChannel(channelId string) ([]*model.IncomingWebhook, *model.AppError)
 	DeleteIncoming(webhookId string, time int64) StoreChannel
 	PermanentDeleteIncomingByChannel(channelId string) *model.AppError
-	PermanentDeleteIncomingByUser(userId string) StoreChannel
+	PermanentDeleteIncomingByUser(userId string) *model.AppError
 
 	SaveOutgoing(webhook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError)
 	GetOutgoing(id string) (*model.OutgoingWebhook, *model.AppError)
-	GetOutgoingList(offset, limit int) StoreChannel
+	GetOutgoingList(offset, limit int) ([]*model.OutgoingWebhook, *model.AppError)
 	GetOutgoingByChannel(channelId string, offset, limit int) StoreChannel
-	GetOutgoingByTeam(teamId string, offset, limit int) StoreChannel
-	DeleteOutgoing(webhookId string, time int64) StoreChannel
+	GetOutgoingByTeam(teamId string, offset, limit int) ([]*model.OutgoingWebhook, *model.AppError)
+	DeleteOutgoing(webhookId string, time int64) *model.AppError
 	PermanentDeleteOutgoingByChannel(channelId string) *model.AppError
-	PermanentDeleteOutgoingByUser(userId string) StoreChannel
-	UpdateOutgoing(hook *model.OutgoingWebhook) StoreChannel
+	PermanentDeleteOutgoingByUser(userId string) *model.AppError
+	UpdateOutgoing(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError)
 
 	AnalyticsIncomingCount(teamId string) (int64, *model.AppError)
 	AnalyticsOutgoingCount(teamId string) StoreChannel

@@ -253,8 +253,8 @@ func testWebhookStoreDeleteIncomingByUser(t *testing.T, ss store.Store) {
 		t.Fatal("invalid returned webhook")
 	}
 
-	if r2 := <-ss.Webhook().PermanentDeleteIncomingByUser(o1.UserId); r2.Err != nil {
-		t.Fatal(r2.Err)
+	if err = ss.Webhook().PermanentDeleteIncomingByUser(o1.UserId); err != nil {
+		t.Fatal(err)
 	}
 
 	if _, err = ss.Webhook().GetIncoming(o1.Id, true); err == nil {
@@ -328,10 +328,10 @@ func testWebhookStoreGetOutgoingList(t *testing.T, ss store.Store) {
 
 	o2, _ = ss.Webhook().SaveOutgoing(o2)
 
-	if r1 := <-ss.Webhook().GetOutgoingList(0, 1000); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if r1, err := ss.Webhook().GetOutgoingList(0, 1000); err != nil {
+		t.Fatal(err)
 	} else {
-		hooks := r1.Data.([]*model.OutgoingWebhook)
+		hooks := r1
 		found1 := false
 		found2 := false
 
@@ -353,10 +353,10 @@ func testWebhookStoreGetOutgoingList(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if result := <-ss.Webhook().GetOutgoingList(0, 2); result.Err != nil {
-		t.Fatal(result.Err)
+	if result, err := ss.Webhook().GetOutgoingList(0, 2); err != nil {
+		t.Fatal(err)
 	} else {
-		if len(result.Data.([]*model.OutgoingWebhook)) != 2 {
+		if len(result) != 2 {
 			t.Fatal("wrong number of hooks returned")
 		}
 	}
@@ -397,18 +397,18 @@ func testWebhookStoreGetOutgoingByTeam(t *testing.T, ss store.Store) {
 
 	o1, _ = ss.Webhook().SaveOutgoing(o1)
 
-	if r1 := <-ss.Webhook().GetOutgoingByTeam(o1.TeamId, 0, 100); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if r1, err := ss.Webhook().GetOutgoingByTeam(o1.TeamId, 0, 100); err != nil {
+		t.Fatal(err)
 	} else {
-		if r1.Data.([]*model.OutgoingWebhook)[0].CreateAt != o1.CreateAt {
+		if r1[0].CreateAt != o1.CreateAt {
 			t.Fatal("invalid returned webhook")
 		}
 	}
 
-	if result := <-ss.Webhook().GetOutgoingByTeam("123", -1, -1); result.Err != nil {
-		t.Fatal(result.Err)
+	if result, err := ss.Webhook().GetOutgoingByTeam("123", -1, -1); err != nil {
+		t.Fatal(err)
 	} else {
-		if len(result.Data.([]*model.OutgoingWebhook)) != 0 {
+		if len(result) != 0 {
 			t.Fatal("no webhooks should have returned")
 		}
 	}
@@ -429,8 +429,8 @@ func testWebhookStoreDeleteOutgoing(t *testing.T, ss store.Store) {
 		t.Fatal("invalid returned webhook")
 	}
 
-	if r2 := <-ss.Webhook().DeleteOutgoing(o1.Id, model.GetMillis()); r2.Err != nil {
-		t.Fatal(r2.Err)
+	if err := ss.Webhook().DeleteOutgoing(o1.Id, model.GetMillis()); err != nil {
+		t.Fatal(err)
 	}
 
 	if _, err := ss.Webhook().GetOutgoing(o1.Id); err == nil {
@@ -477,8 +477,8 @@ func testWebhookStoreDeleteOutgoingByUser(t *testing.T, ss store.Store) {
 		t.Fatal("invalid returned webhook")
 	}
 
-	if r2 := <-ss.Webhook().PermanentDeleteOutgoingByUser(o1.CreatorId); r2.Err != nil {
-		t.Fatal(r2.Err)
+	if err := ss.Webhook().PermanentDeleteOutgoingByUser(o1.CreatorId); err != nil {
+		t.Fatal(err)
 	}
 
 	if _, err := ss.Webhook().GetOutgoing(o1.Id); err == nil {
@@ -500,8 +500,8 @@ func testWebhookStoreUpdateOutgoing(t *testing.T, ss store.Store) {
 	o1.Token = model.NewId()
 	o1.Username = "another-test-user-name"
 
-	if r2 := <-ss.Webhook().UpdateOutgoing(o1); r2.Err != nil {
-		t.Fatal(r2.Err)
+	if _, err := ss.Webhook().UpdateOutgoing(o1); err != nil {
+		t.Fatal(err)
 	}
 }
 
