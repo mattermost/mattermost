@@ -4,6 +4,7 @@
 package config
 
 import (
+	"github.com/pkg/errors"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -59,4 +60,48 @@ func NewStore(dsn string, watch bool) (Store, error) {
 	}
 
 	return NewFileStore(dsn, watch)
+}
+
+func MigrateStore(sourceStore, destinationStore Store) error {
+	// Copy config from source to destination
+	sourceStoreConfig := sourceStore.Get()
+
+	_, err := destinationStore.Set(sourceStoreConfig)
+	if err != nil {
+		return errors.Wrap(err, "failed to migrate config")
+	}
+
+	//get the certificate files from sourceStore
+	idpCertificateFile, err := sourceStore.GetFile(*sourceStoreConfig.SamlSettings.IdpCertificateFile)
+	if err != nil {
+		return errors.Wrap(err, "failed to migrate config")
+	}
+
+	publicCertificateFile, err := sourceStore.GetFile(*sourceStoreConfig.SamlSettings.PublicCertificateFile)
+	if err != nil {
+		return errors.Wrap(err, "failed to migrate config")
+	}
+
+	privateKeyFile, err := sourceStore.GetFile(*sourceStoreConfig.SamlSettings.PrivateKeyFile)
+	if err != nil {
+		return errors.Wrap(err, "failed to migrate config")
+	}
+
+	//copy files to destinationStore
+	err = destinationStore.SetFile(*sourceStoreConfig.SamlSettings.IdpCertificateFile, idpCertificateFile)
+	if err != nil {
+		return errors.Wrap(err, "failed to migrate config")
+	}
+
+	err = destinationStore.SetFile(*sourceStoreConfig.SamlSettings.PublicCertificateFile, publicCertificateFile)
+	if err != nil {
+		return errors.Wrap(err, "failed to migrate config")
+	}
+
+	err = destinationStore.SetFile(*sourceStoreConfig.SamlSettings.PrivateKeyFile, privateKeyFile)
+	if err != nil {
+		return errors.Wrap(err, "failed to migrate config")
+	}
+
+	return nil
 }

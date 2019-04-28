@@ -254,10 +254,9 @@ func configMigrateCmdF(command *cobra.Command, args []string) error {
 		return errors.Wrap(err, "failed to read --to config")
 	}
 
-	// Copy config from source to destination
-	_, err = toConfigStore.Set(fromConfigStore.Get())
+	err = config.MigrateStore(fromConfigStore, toConfigStore)
 	if err != nil {
-		return errors.Wrap(err, "failed to migrate config")
+		return err
 	}
 
 	return nil
