@@ -407,17 +407,15 @@ func (a *App) buildPostReplies(postId string) (*[]ReplyImportData, *model.AppErr
 func (a *App) BuildPostReactions(postId string) (*[]ReactionImportData, *model.AppError) {
 	var reactionsOfPost []ReactionImportData
 
-	result := <-a.Srv.Store.Reaction().GetForPost(postId, true)
-	if result.Err != nil {
-		return nil, result.Err
+	reactions, err := a.Srv.Store.Reaction().GetForPost(postId, true)
+	if err != nil {
+		return nil, err
 	}
 
-	reactions := result.Data.([]*model.Reaction)
-
 	for _, reaction := range reactions {
-		user, err := a.Srv.Store.User().Get(reaction.UserId)
-		if err != nil {
-			return nil, err
+		user, err2 := a.Srv.Store.User().Get(reaction.UserId)
+		if err2 != nil {
+			return nil, err2
 		}
 		reactionsOfPost = append(reactionsOfPost, *ImportReactionFromPost(user, reaction))
 	}
