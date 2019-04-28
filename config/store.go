@@ -62,7 +62,7 @@ func NewStore(dsn string, watch bool) (Store, error) {
 	return NewFileStore(dsn, watch)
 }
 
-func MigrateStore(sourceStore, destinationStore Store) error {
+func MigrateConfig(sourceStore, destinationStore Store) error {
 	// Copy config from source to destination
 	sourceStoreConfig := sourceStore.Get()
 
