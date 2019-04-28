@@ -405,7 +405,7 @@ type WebhookStore interface {
 
 type CommandStore interface {
 	Save(webhook *model.Command) StoreChannel
-	Get(id string) StoreChannel
+	Get(id string) (*model.Command, *model.AppError)
 	GetByTeam(teamId string) StoreChannel
 	GetByTrigger(teamId string, trigger string) StoreChannel
 	Delete(commandId string, time int64) StoreChannel
