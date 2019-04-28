@@ -107,17 +107,17 @@ func testCommandStoreGetByTrigger(t *testing.T, ss store.Store) {
 	o1 = (<-ss.Command().Save(o1)).Data.(*model.Command)
 	_ = (<-ss.Command().Save(o2)).Data.(*model.Command)
 
-	if r1 := <-ss.Command().GetByTrigger(o1.TeamId, o1.Trigger); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if r1, err := ss.Command().GetByTrigger(o1.TeamId, o1.Trigger); err != nil {
+		t.Fatal(err)
 	} else {
-		if r1.Data.(*model.Command).Id != o1.Id {
+		if r1.Id != o1.Id {
 			t.Fatal("invalid returned command")
 		}
 	}
 
 	store.Must(ss.Command().Delete(o1.Id, model.GetMillis()))
 
-	if result := <-ss.Command().GetByTrigger(o1.TeamId, o1.Trigger); result.Err == nil {
+	if _, err := ss.Command().GetByTrigger(o1.TeamId, o1.Trigger); err == nil {
 		t.Fatal("no commands should have returned")
 	}
 }
