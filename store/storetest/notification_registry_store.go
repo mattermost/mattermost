@@ -84,17 +84,6 @@ func testNotificationRegistryStoreMarkAsReceived(t *testing.T, ss store.Store) {
 
 		assert.Nil(t, err)
 	})
-
-	t.Run("should NOT update when the notification was received", func(t *testing.T) {
-		_, err := ss.NotificationRegistry().Save(notificationRegistry)
-		if err != nil {
-			t.Fatal("Notification should have been saved")
-		}
-
-		err = ss.NotificationRegistry().MarkAsReceived("invalidId", model.GetMillis())
-
-		assert.NotNil(t, err)
-	})
 }
 
 func testNotificationRegistryStoreUpdateSendStatus(t *testing.T, ss store.Store) {
@@ -105,7 +94,7 @@ func testNotificationRegistryStoreUpdateSendStatus(t *testing.T, ss store.Store)
 		Type:     model.PUSH_TYPE_MESSAGE,
 	}
 
-	t.Run("should update when the notification was received", func(t *testing.T) {
+	t.Run("should update when the notification send status", func(t *testing.T) {
 		result, err := ss.NotificationRegistry().Save(notificationRegistry)
 		if err != nil {
 			t.Fatal("Notification should have been saved")
@@ -114,16 +103,5 @@ func testNotificationRegistryStoreUpdateSendStatus(t *testing.T, ss store.Store)
 		err = ss.NotificationRegistry().UpdateSendStatus(result.AckId, "Some Status")
 
 		assert.Nil(t, err)
-	})
-
-	t.Run("should NOT update when the notification was received", func(t *testing.T) {
-		_, err := ss.NotificationRegistry().Save(notificationRegistry)
-		if err != nil {
-			t.Fatal("Notification should have been saved")
-		}
-
-		err = ss.NotificationRegistry().UpdateSendStatus("invalidId", "Some Status")
-
-		assert.NotNil(t, err)
 	})
 }
