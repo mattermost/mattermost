@@ -218,13 +218,13 @@ func testCommandStoreUpdate(t *testing.T, ss store.Store) {
 
 	o1.Token = model.NewId()
 
-	if r2 := <-ss.Command().Update(o1); r2.Err != nil {
-		t.Fatal(r2.Err)
+	if _, err := ss.Command().Update(o1); err != nil {
+		t.Fatal(err)
 	}
 
 	o1.URL = "junk"
 
-	if r2 := <-ss.Command().Update(o1); r2.Err == nil {
+	if _, err := ss.Command().Update(o1); err == nil {
 		t.Fatal("should have failed - bad URL")
 	}
 }
