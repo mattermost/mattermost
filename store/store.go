@@ -412,7 +412,7 @@ type CommandStore interface {
 	PermanentDeleteByTeam(teamId string) StoreChannel
 	PermanentDeleteByUser(userId string) StoreChannel
 	Update(hook *model.Command) StoreChannel
-	AnalyticsCommandCount(teamId string) StoreChannel
+	AnalyticsCommandCount(teamId string) (int64, *model.AppError)
 }
 
 type CommandWebhookStore interface {
