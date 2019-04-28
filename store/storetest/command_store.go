@@ -196,8 +196,8 @@ func testCommandStoreDeleteByUser(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if r2 := <-ss.Command().PermanentDeleteByUser(o1.CreatorId); r2.Err != nil {
-		t.Fatal(r2.Err)
+	if err := ss.Command().PermanentDeleteByUser(o1.CreatorId); err != nil {
+		t.Fatal(err)
 	}
 
 	if r3 := (<-ss.Command().Get(o1.Id)); r3.Err == nil {
