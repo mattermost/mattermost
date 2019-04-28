@@ -129,7 +129,7 @@ func (a *App) sendPushNotificationSync(post *model.Post, user *model.User, chann
 				mlog.String("deviceId", msg.DeviceId),
 				mlog.String("ackId", msg.AckId),
 			)
-			appErr := a.Srv.Store.NotificationRegistry().UpdateSendStatus(tmpMessage.AckId, model.PUSH_SEND_ERROR+" "+err.Error())
+			appErr := a.Srv.Store.NotificationRegistry().UpdateSendStatus(tmpMessage.AckId, model.PUSH_SEND_ERROR+": "+err.Error())
 			if appErr != nil {
 				mlog.Debug(appErr.Error())
 			}
@@ -266,7 +266,7 @@ func (a *App) ClearPushNotificationSync(currentSessionId, userId, channelId stri
 					mlog.String("deviceId", msg.DeviceId),
 					mlog.String("ackId", msg.AckId),
 				)
-				appErr := a.Srv.Store.NotificationRegistry().UpdateSendStatus(tmpMessage.AckId, model.PUSH_SEND_ERROR+" "+err.Error())
+				appErr := a.Srv.Store.NotificationRegistry().UpdateSendStatus(tmpMessage.AckId, model.PUSH_SEND_ERROR+": "+err.Error())
 				if appErr != nil {
 					mlog.Debug(appErr.Error())
 				}

@@ -27,7 +27,7 @@ const (
 	MHPNS = "https://push.mattermost.com"
 
 	PUSH_SEND_SUCCESS = "Successful"
-	PUSH_SEND_ERROR   = "Error:"
+	PUSH_SEND_ERROR   = "Error"
 	PUSH_NOT_SENT     = "Not Sent due to preferences"
 )
 
