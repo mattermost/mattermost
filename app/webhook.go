@@ -686,7 +686,6 @@ func (a *App) HandleCommandWebhook(hookId string, response *model.CommandRespons
 		hook = result.Data.(*model.CommandWebhook)
 	}
 
-	var cmd *model.Command
 	cmd, err := a.Srv.Store.Command().Get(hook.CommandId)
 	if err != nil {
 		return model.NewAppError("HandleCommandWebhook", "web.command_webhook.command.app_error", nil, "err="+err.Message, http.StatusBadRequest)
