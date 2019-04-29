@@ -54,8 +54,7 @@ func (s SqlCommandStore) Save(command *model.Command) (*model.Command, *model.Ap
 		return nil, err
 	}
 
-	err := s.GetMaster().Insert(command)
-	if err != nil {
+	if err := s.GetMaster().Insert(command); err != nil {
 		return nil, model.NewAppError("SqlCommandStore.Save", "store.sql_command.save.saving.app_error", nil, "id="+command.Id+", "+err.Error(), http.StatusInternalServerError)
 	}
 
