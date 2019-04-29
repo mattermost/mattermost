@@ -33,13 +33,11 @@ func (a *App) handleWebhookEvents(post *model.Post, team *model.Team, channel *m
 		return nil
 	}
 
-	hchan := a.Srv.Store.Webhook().GetOutgoingByTeam(team.Id, -1, -1)
-	result := <-hchan
-	if result.Err != nil {
-		return result.Err
+	hooks, err := a.Srv.Store.Webhook().GetOutgoingByTeam(team.Id, -1, -1)
+	if err != nil {
+		return err
 	}
 
-	hooks := result.Data.([]*model.OutgoingWebhook)
 	if len(hooks) == 0 {
 		return nil
 	}
@@ -417,10 +415,9 @@ func (a *App) CreateOutgoingWebhook(hook *model.OutgoingWebhook) (*model.Outgoin
 		return nil, model.NewAppError("CreateOutgoingWebhook", "api.webhook.create_outgoing.triggers.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if result := <-a.Srv.Store.Webhook().GetOutgoingByTeam(hook.TeamId, -1, -1); result.Err != nil {
-		return nil, result.Err
+	if allHooks, err := a.Srv.Store.Webhook().GetOutgoingByTeam(hook.TeamId, -1, -1); err != nil {
+		return nil, err
 	} else {
-		allHooks := result.Data.([]*model.OutgoingWebhook)
 
 		for _, existingOutHook := range allHooks {
 			urlIntersect := utils.StringArrayIntersection(existingOutHook.CallbackURLs, hook.CallbackURLs)
@@ -462,12 +459,10 @@ func (a *App) UpdateOutgoingWebhook(oldHook, updatedHook *model.OutgoingWebhook)
 		return nil, model.NewAppError("UpdateOutgoingWebhook", "api.webhook.create_outgoing.triggers.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	var result store.StoreResult
-	if result = <-a.Srv.Store.Webhook().GetOutgoingByTeam(oldHook.TeamId, -1, -1); result.Err != nil {
-		return nil, result.Err
+	allHooks, err := a.Srv.Store.Webhook().GetOutgoingByTeam(oldHook.TeamId, -1, -1)
+	if err != nil {
+		return nil, err
 	}
-
-	allHooks := result.Data.([]*model.OutgoingWebhook)
 
 	for _, existingOutHook := range allHooks {
 		urlIntersect := utils.StringArrayIntersection(existingOutHook.CallbackURLs, updatedHook.CallbackURLs)
@@ -520,11 +515,7 @@ func (a *App) GetOutgoingWebhooksForTeamPage(teamId string, page, perPage int) (
 		return nil, model.NewAppError("GetOutgoingWebhooksForTeamPage", "api.outgoing_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if result := <-a.Srv.Store.Webhook().GetOutgoingByTeam(teamId, page*perPage, perPage); result.Err != nil {
-		return nil, result.Err
-	} else {
-		return result.Data.([]*model.OutgoingWebhook), nil
-	}
+	return a.Srv.Store.Webhook().GetOutgoingByTeam(teamId, page*perPage, perPage)
 }
 
 func (a *App) DeleteOutgoingWebhook(hookId string) *model.AppError {

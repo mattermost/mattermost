@@ -915,7 +915,7 @@ func (a *App) AddUserToChannel(user *model.User, channel *model.Channel) (*model
 	return newMember, nil
 }
 
-func (a *App) AddChannelMember(userId string, channel *model.Channel, userRequestorId string, postRootId string, currentSessionId string) (*model.ChannelMember, *model.AppError) {
+func (a *App) AddChannelMember(userId string, channel *model.Channel, userRequestorId string, postRootId string) (*model.ChannelMember, *model.AppError) {
 	if member, err := a.Srv.Store.Channel().GetMember(channel.Id, userId); err != nil {
 		if err.Id != store.MISSING_CHANNEL_MEMBER_ERROR {
 			return nil, err
@@ -968,10 +968,6 @@ func (a *App) AddChannelMember(userId string, channel *model.Channel, userReques
 		a.Srv.Go(func() {
 			a.PostAddToChannelMessage(userRequestor, user, channel, postRootId)
 		})
-	}
-
-	if userRequestor != nil {
-		a.MarkChannelsAsViewed([]string{channel.Id}, userRequestor.Id, currentSessionId)
 	}
 
 	return cm, nil
@@ -1922,12 +1918,10 @@ func (a *App) MoveChannel(team *model.Team, channel *model.Channel, user *model.
 	}
 
 	// keep instance of the previous team
-	var previousTeam *model.Team
-	result := <-a.Srv.Store.Team().Get(channel.TeamId)
-	if result.Err != nil {
-		return result.Err
+	previousTeam, err := a.Srv.Store.Team().Get(channel.TeamId)
+	if err != nil {
+		return err
 	}
-	previousTeam = result.Data.(*model.Team)
 
 	channel.TeamId = team.Id
 	if result := <-a.Srv.Store.Channel().Update(channel); result.Err != nil {

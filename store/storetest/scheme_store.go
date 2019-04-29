@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"github.com/stretchr/testify/require"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -392,9 +393,8 @@ func testSchemeStoreDelete(t *testing.T, ss store.Store) {
 	sres4 := <-ss.Scheme().Delete(d4.Id)
 	assert.Nil(t, sres4.Err)
 
-	tres5 := <-ss.Team().Get(t4.Id)
-	assert.Nil(t, tres5.Err)
-	t5 := tres5.Data.(*model.Team)
+	t5, err := ss.Team().Get(t4.Id)
+	require.Nil(t, err)
 	assert.Equal(t, "", *t5.SchemeId)
 
 	// Try deleting a channel scheme that's in use.

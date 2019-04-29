@@ -231,19 +231,28 @@ func (_m *WebhookStore) GetOutgoingByChannel(channelId string, offset int, limit
 }
 
 // GetOutgoingByTeam provides a mock function with given fields: teamId, offset, limit
-func (_m *WebhookStore) GetOutgoingByTeam(teamId string, offset int, limit int) store.StoreChannel {
+func (_m *WebhookStore) GetOutgoingByTeam(teamId string, offset int, limit int) ([]*model.OutgoingWebhook, *model.AppError) {
 	ret := _m.Called(teamId, offset, limit)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, int, int) store.StoreChannel); ok {
+	var r0 []*model.OutgoingWebhook
+	if rf, ok := ret.Get(0).(func(string, int, int) []*model.OutgoingWebhook); ok {
 		r0 = rf(teamId, offset, limit)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]*model.OutgoingWebhook)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
+		r1 = rf(teamId, offset, limit)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetOutgoingList provides a mock function with given fields: offset, limit
@@ -293,15 +302,15 @@ func (_m *WebhookStore) PermanentDeleteIncomingByChannel(channelId string) *mode
 }
 
 // PermanentDeleteIncomingByUser provides a mock function with given fields: userId
-func (_m *WebhookStore) PermanentDeleteIncomingByUser(userId string) store.StoreChannel {
+func (_m *WebhookStore) PermanentDeleteIncomingByUser(userId string) *model.AppError {
 	ret := _m.Called(userId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
 		r0 = rf(userId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
@@ -325,15 +334,15 @@ func (_m *WebhookStore) PermanentDeleteOutgoingByChannel(channelId string) *mode
 }
 
 // PermanentDeleteOutgoingByUser provides a mock function with given fields: userId
-func (_m *WebhookStore) PermanentDeleteOutgoingByUser(userId string) store.StoreChannel {
+func (_m *WebhookStore) PermanentDeleteOutgoingByUser(userId string) *model.AppError {
 	ret := _m.Called(userId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
 		r0 = rf(userId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 

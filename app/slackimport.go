@@ -141,12 +141,11 @@ func (a *App) SlackAddUsers(teamId string, slackusers []SlackUser, importerLog *
 	addedUsers := make(map[string]*model.User)
 
 	// Need the team
-	result := <-a.Srv.Store.Team().Get(teamId)
-	if result.Err != nil {
+	team, err := a.Srv.Store.Team().Get(teamId)
+	if err != nil {
 		importerLog.WriteString(utils.T("api.slackimport.slack_import.team_fail"))
 		return addedUsers
 	}
-	team := result.Data.(*model.Team)
 
 	for _, sUser := range slackusers {
 		firstName := sUser.Profile.FirstName
@@ -193,12 +192,11 @@ func (a *App) SlackAddUsers(teamId string, slackusers []SlackUser, importerLog *
 }
 
 func (a *App) SlackAddBotUser(teamId string, log *bytes.Buffer) *model.User {
-	result := <-a.Srv.Store.Team().Get(teamId)
-	if result.Err != nil {
+	team, err := a.Srv.Store.Team().Get(teamId)
+	if err != nil {
 		log.WriteString(utils.T("api.slackimport.slack_import.team_fail"))
 		return nil
 	}
-	team := result.Data.(*model.Team)
 
 	password := model.NewId()
 	username := "slackimportuser_" + model.NewId()
