@@ -4979,6 +4979,10 @@
     "translation": "Ungültige Id"
   },
   {
+    "id": "model.team.is_valid.invite_id.app_error",
+    "translation": "Ungültige Einladungs-ID"
+  },
+  {
     "id": "model.team.is_valid.name.app_error",
     "translation": "Ungültiger Name"
   },

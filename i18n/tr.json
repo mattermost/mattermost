@@ -365,7 +365,7 @@
   },
   {
     "id": "api.command.invite_people.desc",
-    "translation": "Mattermost takımına bir e-posta çağrısı gönderin"
+    "translation": "Mattermost takımınıza bir e-posta çağrısı gönderir"
   },
   {
     "id": "api.command.invite_people.email_invitations_off",
@@ -405,7 +405,7 @@
   },
   {
     "id": "api.command_away.desc",
-    "translation": "Durumunuzu uzakta yapın"
+    "translation": "Durumunuzu uzakta yapar"
   },
   {
     "id": "api.command_away.name",
@@ -421,7 +421,7 @@
   },
   {
     "id": "api.command_channel_header.desc",
-    "translation": "Kanal başlığını düzenle"
+    "translation": "Kanal başlığını düzenler"
   },
   {
     "id": "api.command_channel_header.hint",
@@ -449,7 +449,7 @@
   },
   {
     "id": "api.command_channel_purpose.desc",
-    "translation": "Kanal amacını düzenle"
+    "translation": "Kanal amacını düzenler"
   },
   {
     "id": "api.command_channel_purpose.direct_group.app_error",
@@ -485,7 +485,7 @@
   },
   {
     "id": "api.command_channel_rename.desc",
-    "translation": "Kanalı yeniden adlandır"
+    "translation": "Kanalı yeniden adlandırır"
   },
   {
     "id": "api.command_channel_rename.direct_group.app_error",
@@ -521,7 +521,7 @@
   },
   {
     "id": "api.command_code.desc",
-    "translation": "Metin kod bloğu olarak görüntülensin"
+    "translation": "Metni kod bloğu olarak görüntüler"
   },
   {
     "id": "api.command_code.hint",
@@ -537,7 +537,7 @@
   },
   {
     "id": "api.command_collapse.desc",
-    "translation": "Görsel ön izlemeleri otomatik daraltılsın"
+    "translation": "Görsel ön izlemelerinin otomatik olarak daraltılmasını etkinleştirir"
   },
   {
     "id": "api.command_collapse.name",
@@ -549,7 +549,7 @@
   },
   {
     "id": "api.command_dnd.desc",
-    "translation": "Rahatsız Etmeyin kipi masaüstü ve mobil uygulamalardaki anında bildirimleri devre dışı bırakır."
+    "translation": "Rahatsız etmeyin kipini etkinleştirerek masaüstü ve mobil uygulamalarda anında bildirimleri devre dışı bırakır."
   },
   {
     "id": "api.command_dnd.disabled",
@@ -573,7 +573,7 @@
   },
   {
     "id": "api.command_echo.desc",
-    "translation": "Echo ile hesabınızdan metin yansıtın"
+    "translation": "Hesabınızdan metin yansıtır"
   },
   {
     "id": "api.command_echo.high_volume.app_error",
@@ -593,7 +593,7 @@
   },
   {
     "id": "api.command_expand.desc",
-    "translation": "Görsel ön izlemeleri otomatik daraltılmasın"
+    "translation": "Görsel ön izlemelerinin otomatik olarak daraltılmasını devre dışı bırakır"
   },
   {
     "id": "api.command_expand.name",
@@ -648,7 +648,7 @@
   },
   {
     "id": "api.command_help.desc",
-    "translation": "Mattermost yardım sayfasını aç"
+    "translation": "Mattermost yardım sayfasını açar"
   },
   {
     "id": "api.command_help.name",
@@ -664,7 +664,7 @@
   },
   {
     "id": "api.command_invite.desc",
-    "translation": "Bir kanala bir kullanıcı çağır"
+    "translation": "Bir kullanıcıyı bir kanala çağırır"
   },
   {
     "id": "api.command_invite.directchannel.app_error",
@@ -712,7 +712,7 @@
   },
   {
     "id": "api.command_join.desc",
-    "translation": "Açık kanala katılın"
+    "translation": "Açık kanala katılır"
   },
   {
     "id": "api.command_join.fail.app_error",
@@ -740,7 +740,7 @@
   },
   {
     "id": "api.command_leave.desc",
-    "translation": "Geçerli kanaldan ayrıl"
+    "translation": "Geçerli kanaldan ayrılmanızı sağlar"
   },
   {
     "id": "api.command_leave.fail.app_error",
@@ -752,7 +752,7 @@
   },
   {
     "id": "api.command_logout.desc",
-    "translation": "Mattermost Oturumunu Kapat"
+    "translation": "Mattermost oturumunu kapatır"
   },
   {
     "id": "api.command_logout.fail_message",
@@ -764,7 +764,7 @@
   },
   {
     "id": "api.command_me.desc",
-    "translation": "Bir işlem yapın"
+    "translation": "Bir işlem yapar"
   },
   {
     "id": "api.command_me.hint",
@@ -776,7 +776,7 @@
   },
   {
     "id": "api.command_msg.desc",
-    "translation": "Bir kullanıcıya doğrudan ileti gönder"
+    "translation": "Bir kullanıcıya doğrudan ileti gönderir"
   },
   {
     "id": "api.command_msg.dm_fail.app_error",
@@ -844,7 +844,7 @@
   },
   {
     "id": "api.command_offline.desc",
-    "translation": "Durumunuzu çevrimdışı yapın"
+    "translation": "Durumunuzu çevrimdışı yapar"
   },
   {
     "id": "api.command_offline.name",
@@ -856,7 +856,7 @@
   },
   {
     "id": "api.command_online.desc",
-    "translation": "Durumunuzu çevrimiçi yapın"
+    "translation": "Durumunuzu çevrimiçi yapar"
   },
   {
     "id": "api.command_online.name",
@@ -872,7 +872,7 @@
   },
   {
     "id": "api.command_remove.desc",
-    "translation": "Kanaldan bir üyeyi çıkar"
+    "translation": "Bir üyeyi kanaldan çıkarır"
   },
   {
     "id": "api.command_remove.direct_group.app_error",
@@ -904,7 +904,7 @@
   },
   {
     "id": "api.command_search.desc",
-    "translation": "İletilerde aranacak metin"
+    "translation": "İletilerde bir metni arar"
   },
   {
     "id": "api.command_search.hint",
@@ -920,7 +920,7 @@
   },
   {
     "id": "api.command_settings.desc",
-    "translation": "Hesap Ayarları Penceresini Aç"
+    "translation": "Hesap ayarları penceresini açar"
   },
   {
     "id": "api.command_settings.name",
@@ -3352,7 +3352,7 @@
   },
   {
     "id": "cli.license.critical",
-    "translation": "Bu özellik bir Enterprise Sürüm lisans anahtarı ile birlikte kullanılabilir. Lütfen sistem yöneticiniz ile görüşün."
+    "translation": "Bu özellik bir Enterprise Sürümü lisans anahtarı ile birlikte kullanılabilir. Lütfen sistem yöneticiniz ile görüşün."
   },
   {
     "id": "ent.account_migration.get_all_failed",
@@ -4977,6 +4977,10 @@
   {
     "id": "model.team.is_valid.id.app_error",
     "translation": "Kod geçersiz"
+  },
+  {
+    "id": "model.team.is_valid.invite_id.app_error",
+    "translation": "Çağrı kodu geçersiz"
   },
   {
     "id": "model.team.is_valid.name.app_error",
