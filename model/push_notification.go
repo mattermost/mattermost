@@ -119,7 +119,7 @@ func (o *NotificationRegistry) IsValid() *AppError {
 		return NewAppError("NotificationRegistry.IsValid", "model.notification_registry.user_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if len(o.PostId) != 26 {
+	if len(o.PostId) > 0 && len(o.PostId) != 26 {
 		return NewAppError("NotificationRegistry.IsValid", "model.notification_registry.post_id.app_error", nil, "", http.StatusBadRequest)
 	}
 

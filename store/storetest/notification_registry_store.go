@@ -89,9 +89,8 @@ func testNotificationRegistryStoreMarkAsReceived(t *testing.T, ss store.Store) {
 func testNotificationRegistryStoreUpdateSendStatus(t *testing.T, ss store.Store) {
 	notificationRegistry := &model.NotificationRegistry{
 		DeviceId: "apple_or_android_device_identifier",
-		PostId:   model.NewId(),
 		UserId:   model.NewId(),
-		Type:     model.PUSH_TYPE_MESSAGE,
+		Type:     model.PUSH_TYPE_CLEAR,
 	}
 
 	t.Run("should update when the notification send status", func(t *testing.T) {
