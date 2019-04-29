@@ -193,9 +193,7 @@ func (a *App) trackActivity() {
 		postsCount = pcr.Data.(int64)
 	}
 
-	if c, err := a.Srv.Store.Command().AnalyticsCommandCount(""); err == nil {
-		slashCommandsCount = c
-	}
+	slashCommandsCount, _ = a.Srv.Store.Command().AnalyticsCommandCount("")
 
 	if c, err := a.Srv.Store.Webhook().AnalyticsIncomingCount(""); err == nil {
 		incomingWebhooksCount = c
