@@ -182,16 +182,7 @@ func (a *App) getImagesForPost(post *model.Post, imageURLs []string, isNewPost b
 					continue
 				}
 
-				if image.Width != 0 || image.Height != 0 {
-					// The site has already told us the image dimensions
-					images[imageURL] = &model.PostImage{
-						Width:  int(image.Width),
-						Height: int(image.Height),
-					}
-				} else {
-					// The site did not specify its image dimensions
-					imageURLs = append(imageURLs, imageURL)
-				}
+				imageURLs = append(imageURLs, imageURL)
 			}
 		}
 	}
