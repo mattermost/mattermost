@@ -198,8 +198,38 @@ func (a *App) DoGuestRolesCreationMigration() {
 	schemes := resultSchemes.Data.([]*model.Scheme)
 	for _, scheme := range schemes {
 		if scheme.DefaultTeamGuestRole == "" || scheme.DefaultChannelGuestRole == "" {
-			scheme.DefaultTeamGuestRole = model.TEAM_GUEST_ROLE_ID
-			scheme.DefaultChannelGuestRole = model.CHANNEL_GUEST_ROLE_ID
+			// Team Guest Role
+			teamGuestRole := &model.Role{
+				Name:          model.NewId(),
+				DisplayName:   fmt.Sprintf("Team Guest Role for Scheme %s", scheme.Name),
+				Permissions:   roles[model.TEAM_GUEST_ROLE_ID].Permissions,
+				SchemeManaged: true,
+			}
+
+			if saveRoleResult := <-a.Srv.Store.Role().Save(teamGuestRole); saveRoleResult.Err != nil {
+				mlog.Critical("Failed to create new guest role for custom scheme.")
+				mlog.Critical(fmt.Sprint(saveRoleResult.Err))
+				allSucceeded = false
+			} else {
+				scheme.DefaultTeamGuestRole = saveRoleResult.Data.(*model.Role).Name
+			}
+
+			// Channel Guest Role
+			channelGuestRole := &model.Role{
+				Name:          model.NewId(),
+				DisplayName:   fmt.Sprintf("Channel Guest Role for Scheme %s", scheme.Name),
+				Permissions:   roles[model.CHANNEL_GUEST_ROLE_ID].Permissions,
+				SchemeManaged: true,
+			}
+
+			if saveRoleResult := <-a.Srv.Store.Role().Save(channelGuestRole); saveRoleResult.Err != nil {
+				mlog.Critical("Failed to create new guest role for custom scheme.")
+				mlog.Critical(fmt.Sprint(saveRoleResult.Err))
+				allSucceeded = false
+			} else {
+				scheme.DefaultChannelGuestRole = saveRoleResult.Data.(*model.Role).Name
+			}
+
 			result := <-a.Srv.Store.Scheme().Save(scheme)
 			if result.Err != nil {
 				mlog.Critical("Failed to update custom scheme.")

@@ -104,7 +104,7 @@ func (db channelMemberWithSchemeRoles) ToModel() *model.ChannelMember {
 	for _, role := range strings.Fields(db.Roles) {
 		isImplicit := false
 		if role == model.CHANNEL_GUEST_ROLE_ID {
-			// We have an implicit role via the system scheme. Override the "schemeUser" field to true.
+			// We have an implicit role via the system scheme. Override the "schemeGuest" field to true.
 			schemeGuest = true
 			isImplicit = true
 		} else if role == model.CHANNEL_USER_ROLE_ID {

@@ -71,7 +71,7 @@ func (db teamMemberWithSchemeRoles) ToModel() *model.TeamMember {
 	for _, role := range strings.Fields(db.Roles) {
 		isImplicit := false
 		if role == model.TEAM_GUEST_ROLE_ID {
-			// We have an implicit role via the system scheme.
+			// We have an implicit role via the system scheme. Override the "schemeGuest" field to true.
 			schemeGuest = true
 			isImplicit = true
 		} else if role == model.TEAM_USER_ROLE_ID {
