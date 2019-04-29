@@ -427,7 +427,7 @@ func (a *App) createGroupChannel(userIds []string, creatorId string) (*model.Cha
 		return nil, model.NewAppError("CreateGroupChannel", "api.channel.create_group.bad_size.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	result := <-a.Srv.Store.User().GetProfileByIds(userIds, true)
+	result := <-a.Srv.Store.User().GetProfileByIds(userIds, true, nil)
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -477,7 +477,7 @@ func (a *App) GetGroupChannel(userIds []string) (*model.Channel, *model.AppError
 		return nil, model.NewAppError("GetGroupChannel", "api.channel.create_group.bad_size.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	result := <-a.Srv.Store.User().GetProfileByIds(userIds, true)
+	result := <-a.Srv.Store.User().GetProfileByIds(userIds, true, nil)
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -942,7 +942,7 @@ func (a *App) AddUserToChannel(user *model.User, channel *model.Channel) (*model
 	return newMember, nil
 }
 
-func (a *App) AddChannelMember(userId string, channel *model.Channel, userRequestorId string, postRootId string, currentSessionId string) (*model.ChannelMember, *model.AppError) {
+func (a *App) AddChannelMember(userId string, channel *model.Channel, userRequestorId string, postRootId string) (*model.ChannelMember, *model.AppError) {
 	if member, err := a.Srv.Store.Channel().GetMember(channel.Id, userId); err != nil {
 		if err.Id != store.MISSING_CHANNEL_MEMBER_ERROR {
 			return nil, err
@@ -995,10 +995,6 @@ func (a *App) AddChannelMember(userId string, channel *model.Channel, userReques
 		a.Srv.Go(func() {
 			a.PostAddToChannelMessage(userRequestor, user, channel, postRootId)
 		})
-	}
-
-	if userRequestor != nil {
-		a.MarkChannelsAsViewed([]string{channel.Id}, userRequestor.Id, currentSessionId)
 	}
 
 	return cm, nil
@@ -1938,7 +1934,7 @@ func (a *App) MoveChannel(team *model.Team, channel *model.Channel, user *model.
 	}
 
 	if len(channelMemberIds) > 0 {
-		teamMembers, err2 := a.GetTeamMembersByIds(team.Id, channelMemberIds)
+		teamMembers, err2 := a.GetTeamMembersByIds(team.Id, channelMemberIds, nil)
 		if err2 != nil {
 			return err2
 		}

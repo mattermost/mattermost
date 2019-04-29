@@ -295,6 +295,17 @@ func getTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	canSee, err := c.App.UserCanSeeOtherUser(c.App.Session.UserId, c.Params.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if !canSee {
+		c.SetPermissionError(model.PERMISSION_VIEW_MEMBERS)
+		return
+	}
+
 	team, err := c.App.GetTeamMember(c.Params.TeamId, c.Params.UserId)
 	if err != nil {
 		c.Err = err
@@ -315,7 +326,13 @@ func getTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	members, err := c.App.GetTeamMembers(c.Params.TeamId, c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+	restrictions, err := c.App.GetViewUsersRestrictions(c.App.Session.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	members, err := c.App.GetTeamMembers(c.Params.TeamId, c.Params.Page*c.Params.PerPage, c.Params.PerPage, restrictions)
 	if err != nil {
 		c.Err = err
 		return
@@ -332,6 +349,17 @@ func getTeamMembersForUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	if !c.App.SessionHasPermissionToUser(c.App.Session, c.Params.UserId) {
 		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	canSee, err := c.App.UserCanSeeOtherUser(c.App.Session.UserId, c.Params.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if !canSee {
+		c.SetPermissionError(model.PERMISSION_VIEW_MEMBERS)
 		return
 	}
 
@@ -362,7 +390,13 @@ func getTeamMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	members, err := c.App.GetTeamMembersByIds(c.Params.TeamId, userIds)
+	restrictions, err := c.App.GetViewUsersRestrictions(c.App.Session.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	members, err := c.App.GetTeamMembersByIds(c.Params.TeamId, userIds, restrictions)
 	if err != nil {
 		c.Err = err
 		return

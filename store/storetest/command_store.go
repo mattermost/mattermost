@@ -72,18 +72,18 @@ func testCommandStoreGetByTeam(t *testing.T, ss store.Store) {
 
 	o1 = (<-ss.Command().Save(o1)).Data.(*model.Command)
 
-	if r1 := <-ss.Command().GetByTeam(o1.TeamId); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if r1, err := ss.Command().GetByTeam(o1.TeamId); err != nil {
+		t.Fatal(err)
 	} else {
-		if r1.Data.([]*model.Command)[0].CreateAt != o1.CreateAt {
+		if r1[0].CreateAt != o1.CreateAt {
 			t.Fatal("invalid returned command")
 		}
 	}
 
-	if result := <-ss.Command().GetByTeam("123"); result.Err != nil {
-		t.Fatal(result.Err)
+	if result, err := ss.Command().GetByTeam("123"); err != nil {
+		t.Fatal(err)
 	} else {
-		if len(result.Data.([]*model.Command)) != 0 {
+		if len(result) != 0 {
 			t.Fatal("no commands should have returned")
 		}
 	}
@@ -196,8 +196,8 @@ func testCommandStoreDeleteByUser(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if r2 := <-ss.Command().PermanentDeleteByUser(o1.CreatorId); r2.Err != nil {
-		t.Fatal(r2.Err)
+	if err := ss.Command().PermanentDeleteByUser(o1.CreatorId); err != nil {
+		t.Fatal(err)
 	}
 
 	if r3 := (<-ss.Command().Get(o1.Id)); r3.Err == nil {
@@ -218,13 +218,13 @@ func testCommandStoreUpdate(t *testing.T, ss store.Store) {
 
 	o1.Token = model.NewId()
 
-	if r2 := <-ss.Command().Update(o1); r2.Err != nil {
-		t.Fatal(r2.Err)
+	if _, err := ss.Command().Update(o1); err != nil {
+		t.Fatal(err)
 	}
 
 	o1.URL = "junk"
 
-	if r2 := <-ss.Command().Update(o1); r2.Err == nil {
+	if _, err := ss.Command().Update(o1); err == nil {
 		t.Fatal("should have failed - bad URL")
 	}
 }

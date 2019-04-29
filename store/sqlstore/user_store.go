@@ -407,6 +407,8 @@ func (us SqlUserStore) GetAllProfiles(options *model.UserGetOptions) store.Store
 			OrderBy("u.Username ASC").
 			Offset(uint64(options.Page * options.PerPage)).Limit(uint64(options.PerPage))
 
+		query = applyViewRestrictionsFilter(query, options.ViewRestrictions, true)
+
 		query = applyRoleFilter(query, options.Role, isPostgreSQL)
 
 		if options.Inactive {
@@ -465,6 +467,8 @@ func (us SqlUserStore) GetProfiles(options *model.UserGetOptions) store.StoreCha
 			Where("tm.TeamId = ?", options.InTeamId).
 			OrderBy("u.Username ASC").
 			Offset(uint64(options.Page * options.PerPage)).Limit(uint64(options.PerPage))
+
+		query = applyViewRestrictionsFilter(query, options.ViewRestrictions, true)
 
 		query = applyRoleFilter(query, options.Role, isPostgreSQL)
 
@@ -632,7 +636,7 @@ func (us SqlUserStore) GetAllProfilesInChannel(channelId string, allowFromCache 
 	})
 }
 
-func (us SqlUserStore) GetProfilesNotInChannel(teamId string, channelId string, offset int, limit int) store.StoreChannel {
+func (us SqlUserStore) GetProfilesNotInChannel(teamId string, channelId string, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		query := us.usersQuery.
 			Join("TeamMembers tm ON ( tm.UserId = u.Id AND tm.DeleteAt = 0 AND tm.TeamId = ? )", teamId).
@@ -640,6 +644,8 @@ func (us SqlUserStore) GetProfilesNotInChannel(teamId string, channelId string, 
 			Where("cm.UserId IS NULL").
 			OrderBy("u.Username ASC").
 			Offset(uint64(offset)).Limit(uint64(limit))
+
+		query = applyViewRestrictionsFilter(query, viewRestrictions, true)
 
 		queryString, args, err := query.ToSql()
 		if err != nil {
@@ -661,7 +667,7 @@ func (us SqlUserStore) GetProfilesNotInChannel(teamId string, channelId string, 
 	})
 }
 
-func (us SqlUserStore) GetProfilesWithoutTeam(offset int, limit int) store.StoreChannel {
+func (us SqlUserStore) GetProfilesWithoutTeam(offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		query := us.usersQuery.
 			Where(`(
@@ -675,6 +681,8 @@ func (us SqlUserStore) GetProfilesWithoutTeam(offset int, limit int) store.Store
 			) = 0`).
 			OrderBy("u.Username ASC").
 			Offset(uint64(offset)).Limit(uint64(limit))
+
+		query = applyViewRestrictionsFilter(query, viewRestrictions, true)
 
 		queryString, args, err := query.ToSql()
 		if err != nil {
@@ -696,13 +704,11 @@ func (us SqlUserStore) GetProfilesWithoutTeam(offset int, limit int) store.Store
 	})
 }
 
-func (us SqlUserStore) GetProfilesByUsernames(usernames []string, teamId string) store.StoreChannel {
+func (us SqlUserStore) GetProfilesByUsernames(usernames []string, viewRestrictions *model.ViewUsersRestrictions) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		query := us.usersQuery
 
-		if teamId != "" {
-			query = query.Join("TeamMembers tm ON (tm.UserId = u.Id AND tm.TeamId = ?)", teamId)
-		}
+		query = applyViewRestrictionsFilter(query, viewRestrictions, true)
 
 		query = query.
 			Where(map[string]interface{}{
@@ -731,7 +737,7 @@ type UserWithLastActivityAt struct {
 	LastActivityAt int64
 }
 
-func (us SqlUserStore) GetRecentlyActiveUsersForTeam(teamId string, offset, limit int) store.StoreChannel {
+func (us SqlUserStore) GetRecentlyActiveUsersForTeam(teamId string, offset, limit int, viewRestrictions *model.ViewUsersRestrictions) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		query := us.usersQuery.
 			Column("s.LastActivityAt").
@@ -740,6 +746,8 @@ func (us SqlUserStore) GetRecentlyActiveUsersForTeam(teamId string, offset, limi
 			OrderBy("s.LastActivityAt DESC").
 			OrderBy("u.Username ASC").
 			Offset(uint64(offset)).Limit(uint64(limit))
+
+		query = applyViewRestrictionsFilter(query, viewRestrictions, true)
 
 		queryString, args, err := query.ToSql()
 		if err != nil {
@@ -766,13 +774,15 @@ func (us SqlUserStore) GetRecentlyActiveUsersForTeam(teamId string, offset, limi
 	})
 }
 
-func (us SqlUserStore) GetNewUsersForTeam(teamId string, offset, limit int) store.StoreChannel {
+func (us SqlUserStore) GetNewUsersForTeam(teamId string, offset, limit int, viewRestrictions *model.ViewUsersRestrictions) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		query := us.usersQuery.
 			Join("TeamMembers tm ON (tm.UserId = u.Id AND tm.TeamId = ?)", teamId).
 			OrderBy("u.CreateAt DESC").
 			OrderBy("u.Username ASC").
 			Offset(uint64(offset)).Limit(uint64(limit))
+
+		query = applyViewRestrictionsFilter(query, viewRestrictions, true)
 
 		queryString, args, err := query.ToSql()
 		if err != nil {
@@ -794,7 +804,7 @@ func (us SqlUserStore) GetNewUsersForTeam(teamId string, offset, limit int) stor
 	})
 }
 
-func (us SqlUserStore) GetProfileByIds(userIds []string, allowFromCache bool) store.StoreChannel {
+func (us SqlUserStore) GetProfileByIds(userIds []string, allowFromCache bool, viewRestrictions *model.ViewUsersRestrictions) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		users := []*model.User{}
 		remainingUserIds := make([]string, 0)
@@ -831,6 +841,8 @@ func (us SqlUserStore) GetProfileByIds(userIds []string, allowFromCache bool) st
 				"u.Id": remainingUserIds,
 			}).
 			OrderBy("u.Username ASC")
+
+		query = applyViewRestrictionsFilter(query, viewRestrictions, true)
 
 		queryString, args, err := query.ToSql()
 		if err != nil {
@@ -1039,18 +1051,18 @@ func (us SqlUserStore) PermanentDelete(userId string) store.StoreChannel {
 
 func (us SqlUserStore) Count(options model.UserCountOptions) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		query := sq.Select("COUNT(Users.Id)").From("Users")
+		query := sq.Select("COUNT(DISTINCT u.Id)").From("Users AS u")
 
 		if !options.IncludeDeleted {
-			query = query.Where("Users.DeleteAt = 0")
+			query = query.Where("u.DeleteAt = 0")
 		}
 
 		if options.IncludeBotAccounts {
 			if options.ExcludeRegularUsers {
-				query = query.Join("Bots ON Users.Id = Bots.UserId")
+				query = query.Join("Bots ON u.Id = Bots.UserId")
 			}
 		} else {
-			query = query.LeftJoin("Bots ON Users.Id = Bots.UserId").Where("Bots.UserId IS NULL")
+			query = query.LeftJoin("Bots ON u.Id = Bots.UserId").Where("Bots.UserId IS NULL")
 			if options.ExcludeRegularUsers {
 				// Currenty this doesn't make sense because it will always return 0
 				result.Err = model.NewAppError("SqlUserStore.Count", "store.sql_user.count.app_error", nil, "", http.StatusInternalServerError)
@@ -1059,8 +1071,9 @@ func (us SqlUserStore) Count(options model.UserCountOptions) store.StoreChannel 
 		}
 
 		if options.TeamId != "" {
-			query = query.LeftJoin("TeamMembers ON Users.Id = TeamMembers.UserId").Where("TeamMembers.TeamId = ? AND TeamMembers.DeleteAt = 0", options.TeamId)
+			query = query.LeftJoin("TeamMembers AS tm ON u.Id = tm.UserId").Where("tm.TeamId = ? AND tm.DeleteAt = 0", options.TeamId)
 		}
+		query = applyViewRestrictionsFilter(query, options.ViewRestrictions, false)
 
 		if us.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 			query = query.PlaceholderFormat(sq.Dollar)
@@ -1285,6 +1298,8 @@ func (us SqlUserStore) performSearch(query sq.SelectBuilder, term string, option
 		query = generateSearchQuery(query, strings.Fields(term), searchType, isPostgreSQL)
 	}
 
+	query = applyViewRestrictionsFilter(query, options.ViewRestrictions, true)
+
 	queryString, args, err := query.ToSql()
 	if err != nil {
 		result.Err = model.NewAppError("SqlUserStore.Search", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -1326,13 +1341,15 @@ func (us SqlUserStore) AnalyticsGetSystemAdminCount() store.StoreChannel {
 	})
 }
 
-func (us SqlUserStore) GetProfilesNotInTeam(teamId string, offset int, limit int) store.StoreChannel {
+func (us SqlUserStore) GetProfilesNotInTeam(teamId string, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		query := us.usersQuery.
 			LeftJoin("TeamMembers tm ON ( tm.UserId = u.Id AND tm.DeleteAt = 0 AND tm.TeamId = ? )", teamId).
 			Where("tm.UserId IS NULL").
 			OrderBy("u.Username ASC").
 			Offset(uint64(offset)).Limit(uint64(limit))
+
+		query = applyViewRestrictionsFilter(query, viewRestrictions, true)
 
 		queryString, args, err := query.ToSql()
 		if err != nil {
@@ -1610,4 +1627,37 @@ func (us SqlUserStore) GetChannelGroupUsers(channelID string) store.StoreChannel
 
 		result.Data = users
 	})
+}
+
+func applyViewRestrictionsFilter(query sq.SelectBuilder, restrictions *model.ViewUsersRestrictions, distinct bool) sq.SelectBuilder {
+	if restrictions == nil {
+		return query
+	}
+
+	// If you have no access to teams or channels, return and empty result.
+	if restrictions.Teams != nil && len(restrictions.Teams) == 0 && restrictions.Channels != nil && len(restrictions.Channels) == 0 {
+		return query.Where("1 = 0")
+	}
+
+	teams := make([]interface{}, len(restrictions.Teams))
+	for i, v := range restrictions.Teams {
+		teams[i] = v
+	}
+	channels := make([]interface{}, len(restrictions.Channels))
+	for i, v := range restrictions.Channels {
+		channels[i] = v
+	}
+	resultQuery := query
+	if restrictions.Teams != nil && len(restrictions.Teams) > 0 {
+		resultQuery = resultQuery.Join(fmt.Sprintf("TeamMembers rtm ON ( rtm.UserId = u.Id AND rtm.DeleteAt = 0 AND rtm.TeamId IN (%s))", sq.Placeholders(len(teams))), teams...)
+	}
+	if restrictions.Channels != nil && len(restrictions.Channels) > 0 {
+		resultQuery = resultQuery.Join(fmt.Sprintf("ChannelMembers rcm ON ( rcm.UserId = u.Id AND rcm.ChannelId IN (%s))", sq.Placeholders(len(channels))), channels...)
+	}
+
+	if distinct {
+		return resultQuery.Distinct()
+	}
+
+	return resultQuery
 }

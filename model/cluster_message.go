@@ -20,6 +20,7 @@ const (
 	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_BY_NAME              = "inv_channel_name"
 	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL                      = "inv_channel"
 	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_USER                         = "inv_user"
+	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_USER_TEAMS                   = "inv_user_teams"
 	CLUSTER_EVENT_CLEAR_SESSION_CACHE_FOR_USER                      = "clear_session_user"
 	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_ROLES                        = "inv_roles"
 	CLUSTER_EVENT_INVALIDATE_CACHE_FOR_SCHEMES                      = "inv_schemes"
