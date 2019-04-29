@@ -2299,10 +2299,6 @@
     "translation": "Unsupported OAuth service provider"
   },
   {
-    "id": "api.user.get_profile_image.not_found.app_error",
-    "translation": "Unable to get profile image, user not found."
-  },
-  {
     "id": "api.user.get_user_by_email.permissions.app_error",
     "translation": "Unable to get user by email."
   },
@@ -5587,6 +5583,10 @@
     "translation": "We encountered an error updating the channel member"
   },
   {
+    "id": "store.sql_channel.user_belongs_to_channels.app_error",
+    "translation": "Unable to determine if the user belongs to a list of channels"
+  },
+  {
     "id": "store.sql_channel_member_history.get_users_in_channel_during.app_error",
     "translation": "Failed to get users in channel during specified time period"
   },
@@ -6451,6 +6451,10 @@
     "translation": "Unable to get the teams unread messages"
   },
   {
+    "id": "store.sql_team.get_user_team_ids.app_error",
+    "translation": "Unable to get the list of teams of a user"
+  },
+  {
     "id": "store.sql_team.migrate_team_members.commit_transaction.app_error",
     "translation": "Failed to commit the database transaction"
   },
@@ -6533,6 +6537,10 @@
   {
     "id": "store.sql_team.update_last_team_icon_update.app_error",
     "translation": "Unable to update the date of the last team icon update"
+  },
+  {
+    "id": "store.sql_team.user_belongs_to_teams.app_error",
+    "translation": "Unable to determine if the user belongs to a list of teams"
   },
   {
     "id": "store.sql_terms_of_service.save.app_error",

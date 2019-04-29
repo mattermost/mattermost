@@ -420,7 +420,7 @@ func (a *App) createGroupChannel(userIds []string, creatorId string) (*model.Cha
 		return nil, model.NewAppError("CreateGroupChannel", "api.channel.create_group.bad_size.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	result := <-a.Srv.Store.User().GetProfileByIds(userIds, true)
+	result := <-a.Srv.Store.User().GetProfileByIds(userIds, true, nil)
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -469,7 +469,7 @@ func (a *App) GetGroupChannel(userIds []string) (*model.Channel, *model.AppError
 		return nil, model.NewAppError("GetGroupChannel", "api.channel.create_group.bad_size.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	result := <-a.Srv.Store.User().GetProfileByIds(userIds, true)
+	result := <-a.Srv.Store.User().GetProfileByIds(userIds, true, nil)
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -1907,7 +1907,7 @@ func (a *App) MoveChannel(team *model.Team, channel *model.Channel, user *model.
 	}
 
 	if len(channelMemberIds) > 0 {
-		teamMembers, err2 := a.GetTeamMembersByIds(team.Id, channelMemberIds)
+		teamMembers, err2 := a.GetTeamMembersByIds(team.Id, channelMemberIds, nil)
 		if err2 != nil {
 			return err2
 		}

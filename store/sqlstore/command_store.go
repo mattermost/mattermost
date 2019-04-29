@@ -44,24 +44,21 @@ func (s SqlCommandStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_command_delete_at", "Commands", "DeleteAt")
 }
 
-func (s SqlCommandStore) Save(command *model.Command) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if len(command.Id) > 0 {
-			result.Err = model.NewAppError("SqlCommandStore.Save", "store.sql_command.save.saving_overwrite.app_error", nil, "id="+command.Id, http.StatusBadRequest)
-			return
-		}
+func (s SqlCommandStore) Save(command *model.Command) (*model.Command, *model.AppError) {
+	if len(command.Id) > 0 {
+		return nil, model.NewAppError("SqlCommandStore.Save", "store.sql_command.save.saving_overwrite.app_error", nil, "id="+command.Id, http.StatusBadRequest)
+	}
 
-		command.PreSave()
-		if result.Err = command.IsValid(); result.Err != nil {
-			return
-		}
+	command.PreSave()
+	if err := command.IsValid(); err != nil {
+		return nil, err
+	}
 
-		if err := s.GetMaster().Insert(command); err != nil {
-			result.Err = model.NewAppError("SqlCommandStore.Save", "store.sql_command.save.saving.app_error", nil, "id="+command.Id+", "+err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = command
-		}
-	})
+	if err := s.GetMaster().Insert(command); err != nil {
+		return nil, model.NewAppError("SqlCommandStore.Save", "store.sql_command.save.saving.app_error", nil, "id="+command.Id+", "+err.Error(), http.StatusInternalServerError)
+	}
+
+	return command, nil
 }
 
 func (s SqlCommandStore) Get(id string) store.StoreChannel {
@@ -132,20 +129,18 @@ func (s SqlCommandStore) PermanentDeleteByUser(userId string) *model.AppError {
 	return nil
 }
 
-func (s SqlCommandStore) Update(cmd *model.Command) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		cmd.UpdateAt = model.GetMillis()
+func (s SqlCommandStore) Update(cmd *model.Command) (*model.Command, *model.AppError) {
+	cmd.UpdateAt = model.GetMillis()
 
-		if result.Err = cmd.IsValid(); result.Err != nil {
-			return
-		}
+	if err := cmd.IsValid(); err != nil {
+		return nil, err
+	}
 
-		if _, err := s.GetMaster().Update(cmd); err != nil {
-			result.Err = model.NewAppError("SqlCommandStore.Update", "store.sql_command.save.update.app_error", nil, "id="+cmd.Id+", "+err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = cmd
-		}
-	})
+	if _, err := s.GetMaster().Update(cmd); err != nil {
+		return nil, model.NewAppError("SqlCommandStore.Update", "store.sql_command.save.update.app_error", nil, "id="+cmd.Id+", "+err.Error(), http.StatusInternalServerError)
+	}
+
+	return cmd, nil
 }
 
 func (s SqlCommandStore) AnalyticsCommandCount(teamId string) store.StoreChannel {
