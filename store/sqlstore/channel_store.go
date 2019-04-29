@@ -2604,3 +2604,27 @@ func (s SqlChannelStore) GetChannelsBatchForIndexing(startTime, endTime int64, l
 		result.Data = channels
 	})
 }
+
+func (s SqlChannelStore) UserBelongsToChannels(userId string, channelIds []string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		query := s.getQueryBuilder().
+			Select("Count(*)").
+			From("ChannelMembers").
+			Where(sq.And{
+				sq.Eq{"UserId": userId},
+				sq.Eq{"ChannelId": channelIds},
+			})
+
+		queryString, args, err := query.ToSql()
+		if err != nil {
+			result.Err = model.NewAppError("SqlChannelStore.UserBelongsToChannels", "store.sql_channel.user_belongs_to_channels.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		c, err := s.GetReplica().SelectInt(queryString, args...)
+		if err != nil {
+			result.Err = model.NewAppError("SqlChannelStore.UserBelongsToChannels", "store.sql_channel.user_belongs_to_channels.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		result.Data = c > 0
+	})
+}
