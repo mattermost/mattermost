@@ -30,11 +30,11 @@ func testCommandStoreSave(t *testing.T, ss store.Store) {
 	o1.URL = "http://nowhere.com/"
 	o1.Trigger = "trigger"
 
-	if err := (<-ss.Command().Save(&o1)).Err; err != nil {
+	if _, err := ss.Command().Save(&o1); err != nil {
 		t.Fatal("couldn't save item", err)
 	}
 
-	if err := (<-ss.Command().Save(&o1)).Err; err == nil {
+	if _, err := ss.Command().Save(&o1); err == nil {
 		t.Fatal("shouldn't be able to update from save")
 	}
 }
@@ -47,7 +47,10 @@ func testCommandStoreGet(t *testing.T, ss store.Store) {
 	o1.URL = "http://nowhere.com/"
 	o1.Trigger = "trigger"
 
-	o1 = (<-ss.Command().Save(o1)).Data.(*model.Command)
+	o1, err := ss.Command().Save(o1)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	if r1 := <-ss.Command().Get(o1.Id); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -70,7 +73,10 @@ func testCommandStoreGetByTeam(t *testing.T, ss store.Store) {
 	o1.URL = "http://nowhere.com/"
 	o1.Trigger = "trigger"
 
-	o1 = (<-ss.Command().Save(o1)).Data.(*model.Command)
+	o1, err := ss.Command().Save(o1)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	if r1, err := ss.Command().GetByTeam(o1.TeamId); err != nil {
 		t.Fatal(err)
@@ -104,8 +110,14 @@ func testCommandStoreGetByTrigger(t *testing.T, ss store.Store) {
 	o2.URL = "http://nowhere.com/"
 	o2.Trigger = "trigger1"
 
-	o1 = (<-ss.Command().Save(o1)).Data.(*model.Command)
-	_ = (<-ss.Command().Save(o2)).Data.(*model.Command)
+	o1, err := ss.Command().Save(o1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = ss.Command().Save(o2)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	if r1 := <-ss.Command().GetByTrigger(o1.TeamId, o1.Trigger); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -130,7 +142,10 @@ func testCommandStoreDelete(t *testing.T, ss store.Store) {
 	o1.URL = "http://nowhere.com/"
 	o1.Trigger = "trigger"
 
-	o1 = (<-ss.Command().Save(o1)).Data.(*model.Command)
+	o1, err := ss.Command().Save(o1)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	if r1 := <-ss.Command().Get(o1.Id); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -158,7 +173,10 @@ func testCommandStoreDeleteByTeam(t *testing.T, ss store.Store) {
 	o1.URL = "http://nowhere.com/"
 	o1.Trigger = "trigger"
 
-	o1 = (<-ss.Command().Save(o1)).Data.(*model.Command)
+	o1, err := ss.Command().Save(o1)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	if r1 := <-ss.Command().Get(o1.Id); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -186,7 +204,10 @@ func testCommandStoreDeleteByUser(t *testing.T, ss store.Store) {
 	o1.URL = "http://nowhere.com/"
 	o1.Trigger = "trigger"
 
-	o1 = (<-ss.Command().Save(o1)).Data.(*model.Command)
+	o1, err := ss.Command().Save(o1)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	if r1 := <-ss.Command().Get(o1.Id); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -214,7 +235,10 @@ func testCommandStoreUpdate(t *testing.T, ss store.Store) {
 	o1.URL = "http://nowhere.com/"
 	o1.Trigger = "trigger"
 
-	o1 = (<-ss.Command().Save(o1)).Data.(*model.Command)
+	o1, err := ss.Command().Save(o1)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	o1.Token = model.NewId()
 
@@ -237,7 +261,10 @@ func testCommandCount(t *testing.T, ss store.Store) {
 	o1.URL = "http://nowhere.com/"
 	o1.Trigger = "trigger"
 
-	o1 = (<-ss.Command().Save(o1)).Data.(*model.Command)
+	o1, err := ss.Command().Save(o1)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	if r1 := <-ss.Command().AnalyticsCommandCount(""); r1.Err != nil {
 		t.Fatal(r1.Err)

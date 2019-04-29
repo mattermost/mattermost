@@ -466,12 +466,7 @@ func (a *App) CreateCommand(cmd *model.Command) (*model.Command, *model.AppError
 		}
 	}
 
-	result := <-a.Srv.Store.Command().Save(cmd)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-
-	return result.Data.(*model.Command), nil
+	return a.Srv.Store.Command().Save(cmd)
 }
 
 func (a *App) GetCommand(commandId string) (*model.Command, *model.AppError) {
