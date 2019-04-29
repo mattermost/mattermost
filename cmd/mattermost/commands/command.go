@@ -257,12 +257,11 @@ func listCommandCmdF(command *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to find team '" + args[i] + "'")
 			continue
 		}
-		result := <-a.Srv.Store.Command().GetByTeam(team.Id)
-		if result.Err != nil {
+		commands, err := a.Srv.Store.Command().GetByTeam(team.Id)
+		if err != nil {
 			CommandPrintErrorln("Unable to list commands for '" + args[i] + "'")
 			continue
 		}
-		commands := result.Data.([]*model.Command)
 		for _, command := range commands {
 			commandListItem := fmt.Sprintf("%s: %s (team: %s)", command.Id, command.DisplayName, team.Name)
 			CommandPrettyPrintln(commandListItem)
