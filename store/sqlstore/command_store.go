@@ -139,8 +139,7 @@ func (s SqlCommandStore) Update(cmd *model.Command) (*model.Command, *model.AppE
 		return nil, err
 	}
 
-	_, err := s.GetMaster().Update(cmd)
-	if err != nil {
+	if _, err := s.GetMaster().Update(cmd); err != nil {
 		return nil, model.NewAppError("SqlCommandStore.Update", "store.sql_command.save.update.app_error", nil, "id="+cmd.Id+", "+err.Error(), http.StatusInternalServerError)
 	}
 
