@@ -132,20 +132,18 @@ func (s SqlCommandStore) PermanentDeleteByUser(userId string) *model.AppError {
 	return nil
 }
 
-func (s SqlCommandStore) Update(cmd *model.Command) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		cmd.UpdateAt = model.GetMillis()
+func (s SqlCommandStore) Update(cmd *model.Command) (*model.Command, *model.AppError) {
+	cmd.UpdateAt = model.GetMillis()
 
-		if result.Err = cmd.IsValid(); result.Err != nil {
-			return
-		}
+	if err := cmd.IsValid(); err != nil {
+		return nil, err
+	}
 
-		if _, err := s.GetMaster().Update(cmd); err != nil {
-			result.Err = model.NewAppError("SqlCommandStore.Update", "store.sql_command.save.update.app_error", nil, "id="+cmd.Id+", "+err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = cmd
-		}
-	})
+	if _, err := s.GetMaster().Update(cmd); err != nil {
+		return nil, model.NewAppError("SqlCommandStore.Update", "store.sql_command.save.update.app_error", nil, "id="+cmd.Id+", "+err.Error(), http.StatusInternalServerError)
+	}
+
+	return cmd, nil
 }
 
 func (s SqlCommandStore) AnalyticsCommandCount(teamId string) store.StoreChannel {
