@@ -135,19 +135,28 @@ func (_m *CommandStore) PermanentDeleteByUser(userId string) *model.AppError {
 }
 
 // Save provides a mock function with given fields: webhook
-func (_m *CommandStore) Save(webhook *model.Command) store.StoreChannel {
+func (_m *CommandStore) Save(webhook *model.Command) (*model.Command, *model.AppError) {
 	ret := _m.Called(webhook)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(*model.Command) store.StoreChannel); ok {
+	var r0 *model.Command
+	if rf, ok := ret.Get(0).(func(*model.Command) *model.Command); ok {
 		r0 = rf(webhook)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.Command)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.Command) *model.AppError); ok {
+		r1 = rf(webhook)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // Update provides a mock function with given fields: hook
