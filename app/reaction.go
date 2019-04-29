@@ -25,7 +25,8 @@ func (a *App) SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *m
 	}
 
 	if a.License() != nil && *a.Config().TeamSettings.ExperimentalTownSquareIsReadOnly && channel.Name == model.DEFAULT_CHANNEL {
-		user, err := a.GetUser(reaction.UserId)
+		var user *model.User
+		user, err = a.GetUser(reaction.UserId)
 		if err != nil {
 			return nil, err
 		}
