@@ -37,7 +37,7 @@ func (s *SqlSupplier) ReactionSave(ctx context.Context, reaction *model.Reaction
 	appErr := saveReactionAndUpdatePost(transaction, reaction)
 	if appErr != nil {
 		// We don't consider duplicated save calls as an error
-		if !IsUniqueConstraintError(err, []string{"reactions_pkey", "PRIMARY"}) {
+		if !IsUniqueConstraintError(appErr, []string{"reactions_pkey", "PRIMARY"}) {
 			return nil, model.NewAppError("SqlPreferenceStore.Save", "store.sql_reaction.save.save.app_error", nil, appErr.Error(), http.StatusBadRequest)
 		}
 	} else {
