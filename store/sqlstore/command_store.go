@@ -153,11 +153,11 @@ func (s SqlCommandStore) Update(cmd *model.Command) store.StoreChannel {
 func (s SqlCommandStore) AnalyticsCommandCount(teamId string) (int64, *model.AppError) {
 	query :=
 		`SELECT
-			    COUNT(*)
-			FROM
-			    Commands
-			WHERE
-			    DeleteAt = 0`
+			COUNT(*)
+		FROM
+			Commands
+		WHERE
+			DeleteAt = 0`
 
 	if len(teamId) > 0 {
 		query += " AND TeamId = :TeamId"
