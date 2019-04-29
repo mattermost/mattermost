@@ -266,6 +266,10 @@ func getViewMembersPermissionMigration() permissionsMap {
 			On:  isRole(model.SYSTEM_USER_ROLE_ID),
 			Add: []string{PERMISSION_VIEW_MEMBERS},
 		},
+		permissionTransformation{
+			On:  isRole(model.SYSTEM_ADMIN_ROLE_ID),
+			Add: []string{PERMISSION_VIEW_MEMBERS},
+		},
 	}
 }
 
