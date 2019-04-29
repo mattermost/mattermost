@@ -406,11 +406,11 @@ type WebhookStore interface {
 type CommandStore interface {
 	Save(webhook *model.Command) StoreChannel
 	Get(id string) (*model.Command, *model.AppError)
-	GetByTeam(teamId string) StoreChannel
+	GetByTeam(teamId string) ([]*model.Command, *model.AppError)
 	GetByTrigger(teamId string, trigger string) StoreChannel
 	Delete(commandId string, time int64) StoreChannel
 	PermanentDeleteByTeam(teamId string) StoreChannel
-	PermanentDeleteByUser(userId string) StoreChannel
+	PermanentDeleteByUser(userId string) *model.AppError
 	Update(hook *model.Command) StoreChannel
 	AnalyticsCommandCount(teamId string) StoreChannel
 }
