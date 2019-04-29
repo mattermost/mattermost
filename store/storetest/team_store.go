@@ -395,7 +395,8 @@ func testTeamStoreGetByInviteId(t *testing.T, ss store.Store) {
 	o1.Type = model.TEAM_OPEN
 	o1.InviteId = model.NewId()
 
-	if _, err := ss.Team().Save(&o1); err != nil {
+	save1, err := ss.Team().Save(&o1)
+	if err != nil {
 		t.Fatal(err)
 	}
 
@@ -405,11 +406,7 @@ func testTeamStoreGetByInviteId(t *testing.T, ss store.Store) {
 	o2.Email = MakeEmail()
 	o2.Type = model.TEAM_OPEN
 
-	if _, err := ss.Team().Save(&o2); err != nil {
-		t.Fatal(err)
-	}
-
-	if r1 := <-ss.Team().GetByInviteId(o1.InviteId); r1.Err != nil {
+	if r1 := <-ss.Team().GetByInviteId(save1.InviteId); r1.Err != nil {
 		t.Fatal(r1.Err)
 	} else {
 		if r1.Data.(*model.Team).ToJson() != o1.ToJson() {
@@ -1364,9 +1361,14 @@ func testGetTeamsByScheme(t *testing.T, ss store.Store) {
 		Type:        model.TEAM_OPEN,
 	}
 
-	ss.Team().Save(t1)
-	ss.Team().Save(t2)
-	ss.Team().Save(t3)
+	_, err := ss.Team().Save(t1)
+	require.Nil(t, err)
+
+	_, err = ss.Team().Save(t2)
+	require.Nil(t, err)
+
+	_, err = ss.Team().Save(t3)
+	require.Nil(t, err)
 
 	// Get the teams by a valid Scheme ID.
 	res1 := <-ss.Team().GetTeamsByScheme(s1.Id, 0, 100)
@@ -1640,12 +1642,12 @@ func testTeamStoreGetAllForExportAfter(t *testing.T, ss store.Store) {
 }
 
 func testTeamStoreGetTeamMembersForExport(t *testing.T, ss store.Store) {
-	t1 := &model.Team{}
+	t1 := model.Team{}
 	t1.DisplayName = "Name"
 	t1.Name = model.NewId()
 	t1.Email = MakeEmail()
 	t1.Type = model.TEAM_OPEN
-	t1, err := ss.Team().Save(t1)
+	_, err := ss.Team().Save(&t1)
 	require.Nil(t, err)
 
 	u1 := model.User{}

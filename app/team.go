@@ -23,6 +23,7 @@ import (
 )
 
 func (a *App) CreateTeam(team *model.Team) (*model.Team, *model.AppError) {
+	team.InviteId = ""
 	rteam, err := a.Srv.Store.Team().Save(team)
 	if err != nil {
 		return nil, err
