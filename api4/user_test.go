@@ -525,7 +525,7 @@ func TestGetBotUser(t *testing.T) {
 	defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
 	th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
-	th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+	th.App.UpdateUserRoles(th.BasicUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.TEAM_USER_ROLE_ID, false)
 
 	bot := &model.Bot{
 		Username:    GenerateTestUsername(),
@@ -538,6 +538,7 @@ func TestGetBotUser(t *testing.T) {
 	defer th.App.PermanentDeleteBot(createdBot.UserId)
 
 	botUser, resp := th.Client.GetUser(createdBot.UserId, "")
+	CheckNoError(t, resp)
 	require.Equal(t, bot.Username, botUser.Username)
 	require.True(t, botUser.IsBot)
 }
