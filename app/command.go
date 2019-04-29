@@ -87,12 +87,11 @@ func (a *App) ListAutocompleteCommands(teamId string, T goi18n.TranslateFunc) ([
 	}
 
 	if *a.Config().ServiceSettings.EnableCommands {
-		result := <-a.Srv.Store.Command().GetByTeam(teamId)
-		if result.Err != nil {
-			return nil, result.Err
+		teamCmds, err := a.Srv.Store.Command().GetByTeam(teamId)
+		if err != nil {
+			return nil, err
 		}
 
-		teamCmds := result.Data.([]*model.Command)
 		for _, cmd := range teamCmds {
 			if cmd.AutoComplete && !seen[cmd.Id] {
 				cmd.Sanitize()
@@ -110,12 +109,7 @@ func (a *App) ListTeamCommands(teamId string) ([]*model.Command, *model.AppError
 		return nil, model.NewAppError("ListTeamCommands", "api.command.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	result := <-a.Srv.Store.Command().GetByTeam(teamId)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-
-	return result.Data.([]*model.Command), nil
+	return a.Srv.Store.Command().GetByTeam(teamId)
 }
 
 func (a *App) ListAllCommands(teamId string, T goi18n.TranslateFunc) ([]*model.Command, *model.AppError) {
@@ -140,11 +134,10 @@ func (a *App) ListAllCommands(teamId string, T goi18n.TranslateFunc) ([]*model.C
 	}
 
 	if *a.Config().ServiceSettings.EnableCommands {
-		result := <-a.Srv.Store.Command().GetByTeam(teamId)
-		if result.Err != nil {
-			return nil, result.Err
+		teamCmds, err := a.Srv.Store.Command().GetByTeam(teamId)
+		if err != nil {
+			return nil, err
 		}
-		teamCmds := result.Data.([]*model.Command)
 		for _, cmd := range teamCmds {
 			if !seen[cmd.Trigger] {
 				cmd.Sanitize()
@@ -239,9 +232,9 @@ func (a *App) tryExecuteCustomCommand(args *model.CommandArgs, trigger string, m
 		close(userChan)
 	}()
 
-	result := <-a.Srv.Store.Command().GetByTeam(args.TeamId)
-	if result.Err != nil {
-		return nil, nil, result.Err
+	teamCmds, err := a.Srv.Store.Command().GetByTeam(args.TeamId)
+	if err != nil {
+		return nil, nil, err
 	}
 
 	tr := <-teamChan
@@ -264,7 +257,6 @@ func (a *App) tryExecuteCustomCommand(args *model.CommandArgs, trigger string, m
 
 	var cmd *model.Command
 
-	teamCmds := result.Data.([]*model.Command)
 	for _, teamCmd := range teamCmds {
 		if trigger == teamCmd.Trigger {
 			cmd = teamCmd
@@ -456,12 +448,11 @@ func (a *App) CreateCommand(cmd *model.Command) (*model.Command, *model.AppError
 
 	cmd.Trigger = strings.ToLower(cmd.Trigger)
 
-	result := <-a.Srv.Store.Command().GetByTeam(cmd.TeamId)
-	if result.Err != nil {
-		return nil, result.Err
+	teamCmds, err := a.Srv.Store.Command().GetByTeam(cmd.TeamId)
+	if err != nil {
+		return nil, err
 	}
 
-	teamCmds := result.Data.([]*model.Command)
 	for _, existingCommand := range teamCmds {
 		if cmd.Trigger == existingCommand.Trigger {
 			return nil, model.NewAppError("CreateCommand", "api.command.duplicate_trigger.app_error", nil, "", http.StatusBadRequest)
@@ -475,7 +466,7 @@ func (a *App) CreateCommand(cmd *model.Command) (*model.Command, *model.AppError
 		}
 	}
 
-	result = <-a.Srv.Store.Command().Save(cmd)
+	result := <-a.Srv.Store.Command().Save(cmd)
 	if result.Err != nil {
 		return nil, result.Err
 	}
