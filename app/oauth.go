@@ -654,10 +654,7 @@ func (a *App) GetAuthorizationCode(w http.ResponseWriter, r *http.Request, servi
 	}
 
 	cookieValue := model.NewId()
-	subpath := "/"
-	if *a.Config().ServiceSettings.AllowCookiesForSubdomains {
-		subpath, _ = utils.GetSubpathFromConfig(a.Config())
-	}
+	subpath, _ := utils.GetSubpathFromConfig(a.Config())
 
 	expiresAt := time.Unix(model.GetMillis()/1000+int64(OAUTH_COOKIE_MAX_AGE_SECONDS), 0)
 	oauthCookie := &http.Cookie{
@@ -746,10 +743,7 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 		mlog.Error(appErr.Error())
 	}
 
-	subpath := "/"
-	if *a.Config().ServiceSettings.AllowCookiesForSubdomains {
-		subpath, _ = utils.GetSubpathFromConfig(a.Config())
-	}
+	subpath, _ := utils.GetSubpathFromConfig(a.Config())
 
 	httpCookie := &http.Cookie{
 		Name:     COOKIE_OAUTH,

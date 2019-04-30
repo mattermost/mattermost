@@ -1431,10 +1431,7 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 		secure = true
 	}
 
-	subpath := "/"
-	if *c.App.Config().ServiceSettings.AllowCookiesForSubdomains {
-		subpath, _ = utils.GetSubpathFromConfig(c.App.Config())
-	}
+	subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
 
 	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAge), 0)
 	sessionCookie := &http.Cookie{

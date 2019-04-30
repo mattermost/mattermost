@@ -165,10 +165,7 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 	}
 
 	domain := a.GetCookieDomain()
-	subpath := "/"
-	if *a.Config().ServiceSettings.AllowCookiesForSubdomains {
-		subpath, _ = utils.GetSubpathFromConfig(a.Config())
-	}
+	subpath, _ := utils.GetSubpathFromConfig(a.Config())
 
 	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAge), 0)
 	sessionCookie := &http.Cookie{
