@@ -659,7 +659,9 @@ func UpgradeDatabaseToVersion510(sqlStore SqlStore) {
 }
 
 func UpgradeDatabaseToVersion511(sqlStore SqlStore) {
-	//if shouldPerformUpgrade(sqlStore, VERSION_5_10_0, VERSION_5_11_0) {
+	// TODO: Uncomment following condition when version 5.11.0 is released
+	// if shouldPerformUpgrade(sqlStore, VERSION_5_10_0, VERSION_5_11_0) {
+
 	// Enforce all teams have an InviteID set
 	var teams []*model.Team
 	if _, err := sqlStore.GetReplica().Select(&teams, "SELECT * FROM Teams WHERE InviteId = ''"); err != nil {
@@ -678,6 +680,7 @@ func UpgradeDatabaseToVersion511(sqlStore SqlStore) {
 }
 
 func UpgradeDatabaseToVersion512(sqlStore SqlStore) {
+	// TODO: Uncomment following condition when version 5.12.0 is released
 	// if shouldPerformUpgrade(sqlStore, VERSION_5_11_0, VERSION_5_12_0) {
 	sqlStore.CreateColumnIfNotExistsNoDefault("TeamMembers", "SchemeGuest", "boolean", "boolean")
 	sqlStore.CreateColumnIfNotExistsNoDefault("ChannelMembers", "SchemeGuest", "boolean", "boolean")
