@@ -142,24 +142,22 @@ func (s SqlCommandStore) Update(cmd *model.Command) (*model.Command, *model.AppE
 	return cmd, nil
 }
 
-func (s SqlCommandStore) AnalyticsCommandCount(teamId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		query :=
-			`SELECT
-			    COUNT(*)
-			FROM
-			    Commands
-			WHERE
-			    DeleteAt = 0`
+func (s SqlCommandStore) AnalyticsCommandCount(teamId string) (int64, *model.AppError) {
+	query :=
+		`SELECT
+			COUNT(*)
+		FROM
+			Commands
+		WHERE
+			DeleteAt = 0`
 
-		if len(teamId) > 0 {
-			query += " AND TeamId = :TeamId"
-		}
+	if len(teamId) > 0 {
+		query += " AND TeamId = :TeamId"
+	}
 
-		if c, err := s.GetReplica().SelectInt(query, map[string]interface{}{"TeamId": teamId}); err != nil {
-			result.Err = model.NewAppError("SqlCommandStore.AnalyticsCommandCount", "store.sql_command.analytics_command_count.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = c
-		}
-	})
+	c, err := s.GetReplica().SelectInt(query, map[string]interface{}{"TeamId": teamId})
+	if err != nil {
+		return 0, model.NewAppError("SqlCommandStore.AnalyticsCommandCount", "store.sql_command.analytics_command_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return c, nil
 }

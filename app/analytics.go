@@ -193,7 +193,14 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 		}()
 
 		oHookChan := a.Srv.Store.Webhook().AnalyticsOutgoingCount(teamId)
-		commandChan := a.Srv.Store.Command().AnalyticsCommandCount(teamId)
+
+		commandChan := make(chan store.StoreResult, 1)
+		go func() {
+			c, err := a.Srv.Store.Command().AnalyticsCommandCount(teamId)
+			commandChan <- store.StoreResult{Data: c, Err: err}
+			close(commandChan)
+		}()
+
 		sessionChan := a.Srv.Store.Session().AnalyticsSessionCount()
 
 		var fileChan store.StoreChannel
