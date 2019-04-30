@@ -81,7 +81,7 @@ type Store interface {
 }
 
 type TeamStore interface {
-	Save(team *model.Team) StoreChannel
+	Save(team *model.Team) (*model.Team, *model.AppError)
 	Update(team *model.Team) (*model.Team, *model.AppError)
 	UpdateDisplayName(name string, teamId string) StoreChannel
 	Get(id string) (*model.Team, *model.AppError)
@@ -103,8 +103,8 @@ type TeamStore interface {
 	SaveMember(member *model.TeamMember, maxUsersPerTeam int) StoreChannel
 	UpdateMember(member *model.TeamMember) StoreChannel
 	GetMember(teamId string, userId string) StoreChannel
-	GetMembers(teamId string, offset int, limit int) StoreChannel
-	GetMembersByIds(teamId string, userIds []string) StoreChannel
+	GetMembers(teamId string, offset int, limit int, restrictions *model.ViewUsersRestrictions) StoreChannel
+	GetMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) StoreChannel
 	GetTotalMemberCount(teamId string) StoreChannel
 	GetActiveMemberCount(teamId string) StoreChannel
 	GetTeamsForUser(userId string) StoreChannel
@@ -122,6 +122,10 @@ type TeamStore interface {
 	AnalyticsGetTeamCountForScheme(schemeId string) StoreChannel
 	GetAllForExportAfter(limit int, afterId string) StoreChannel
 	GetTeamMembersForExport(userId string) StoreChannel
+	UserBelongsToTeams(userId string, teamIds []string) StoreChannel
+	GetUserTeamIds(userId string, allowFromCache bool) StoreChannel
+	InvalidateAllTeamIdsForUser(userId string)
+	ClearCaches()
 }
 
 type ChannelStore interface {
@@ -195,6 +199,7 @@ type ChannelStore interface {
 	GetChannelMembersForExport(userId string, teamId string) StoreChannel
 	RemoveAllDeactivatedMembers(channelId string) StoreChannel
 	GetChannelsBatchForIndexing(startTime, endTime int64, limit int) StoreChannel
+	UserBelongsToChannels(userId string, channelIds []string) StoreChannel
 }
 
 type ChannelMemberHistoryStore interface {
@@ -256,12 +261,12 @@ type UserStore interface {
 	GetProfilesInChannel(channelId string, offset int, limit int) StoreChannel
 	GetProfilesInChannelByStatus(channelId string, offset int, limit int) StoreChannel
 	GetAllProfilesInChannel(channelId string, allowFromCache bool) StoreChannel
-	GetProfilesNotInChannel(teamId string, channelId string, offset int, limit int) StoreChannel
-	GetProfilesWithoutTeam(offset int, limit int) StoreChannel
-	GetProfilesByUsernames(usernames []string, teamId string) StoreChannel
+	GetProfilesNotInChannel(teamId string, channelId string, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) StoreChannel
+	GetProfilesWithoutTeam(offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) StoreChannel
+	GetProfilesByUsernames(usernames []string, viewRestrictions *model.ViewUsersRestrictions) StoreChannel
 	GetAllProfiles(options *model.UserGetOptions) StoreChannel
 	GetProfiles(options *model.UserGetOptions) StoreChannel
-	GetProfileByIds(userId []string, allowFromCache bool) StoreChannel
+	GetProfileByIds(userId []string, allowFromCache bool, viewRestrictions *model.ViewUsersRestrictions) StoreChannel
 	InvalidatProfileCacheForUser(userId string)
 	GetByEmail(email string) StoreChannel
 	GetByAuth(authData *string, authService string) StoreChannel
@@ -278,8 +283,8 @@ type UserStore interface {
 	GetUnreadCount(userId string) StoreChannel
 	GetUnreadCountForChannel(userId string, channelId string) StoreChannel
 	GetAnyUnreadPostCountForChannel(userId string, channelId string) StoreChannel
-	GetRecentlyActiveUsersForTeam(teamId string, offset, limit int) StoreChannel
-	GetNewUsersForTeam(teamId string, offset, limit int) StoreChannel
+	GetRecentlyActiveUsersForTeam(teamId string, offset, limit int, viewRestrictions *model.ViewUsersRestrictions) StoreChannel
+	GetNewUsersForTeam(teamId string, offset, limit int, viewRestrictions *model.ViewUsersRestrictions) StoreChannel
 	Search(teamId string, term string, options *model.UserSearchOptions) StoreChannel
 	SearchNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) StoreChannel
 	SearchInChannel(channelId string, term string, options *model.UserSearchOptions) StoreChannel
@@ -287,7 +292,7 @@ type UserStore interface {
 	SearchWithoutTeam(term string, options *model.UserSearchOptions) StoreChannel
 	AnalyticsGetInactiveUsersCount() StoreChannel
 	AnalyticsGetSystemAdminCount() StoreChannel
-	GetProfilesNotInTeam(teamId string, offset int, limit int) StoreChannel
+	GetProfilesNotInTeam(teamId string, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) StoreChannel
 	GetEtagForProfilesNotInTeam(teamId string) StoreChannel
 	ClearAllCustomRoleAssignments() StoreChannel
 	InferSystemInstallDate() StoreChannel
@@ -383,7 +388,7 @@ type WebhookStore interface {
 	GetIncomingByTeam(teamId string, offset, limit int) ([]*model.IncomingWebhook, *model.AppError)
 	UpdateIncoming(webhook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError)
 	GetIncomingByChannel(channelId string) ([]*model.IncomingWebhook, *model.AppError)
-	DeleteIncoming(webhookId string, time int64) StoreChannel
+	DeleteIncoming(webhookId string, time int64) *model.AppError
 	PermanentDeleteIncomingByChannel(channelId string) *model.AppError
 	PermanentDeleteIncomingByUser(userId string) *model.AppError
 
@@ -404,15 +409,15 @@ type WebhookStore interface {
 }
 
 type CommandStore interface {
-	Save(webhook *model.Command) StoreChannel
+	Save(webhook *model.Command) (*model.Command, *model.AppError)
 	Get(id string) StoreChannel
-	GetByTeam(teamId string) StoreChannel
+	GetByTeam(teamId string) ([]*model.Command, *model.AppError)
 	GetByTrigger(teamId string, trigger string) StoreChannel
 	Delete(commandId string, time int64) *model.AppError
-	PermanentDeleteByTeam(teamId string) StoreChannel
-	PermanentDeleteByUser(userId string) StoreChannel
-	Update(hook *model.Command) StoreChannel
-	AnalyticsCommandCount(teamId string) StoreChannel
+	PermanentDeleteByTeam(teamId string) *model.AppError
+	PermanentDeleteByUser(userId string) *model.AppError
+	Update(hook *model.Command) (*model.Command, *model.AppError)
+	AnalyticsCommandCount(teamId string) (int64, *model.AppError)
 }
 
 type CommandWebhookStore interface {
