@@ -43,7 +43,7 @@ func Example() {
 	defer api.AssertExpectations(t)
 
 	helpers := &plugintest.Helpers{}
-	defer api.AssertExpectations(t)
+	defer helpers.AssertExpectations(t)
 
 	p := &HelloUserPlugin{}
 	p.SetAPI(api, helpers)

@@ -457,6 +457,7 @@ type API interface {
 	// KV Store Section
 
 	// KVSet will store a key-value pair, unique per plugin.
+	// Provided helper functions and internal plugin code will use the prefix `mmi_` before keys. Do not use this prefix.
 	KVSet(key string, value []byte) *model.AppError
 
 	// KVCompareAndSet will update a key-value pair,
