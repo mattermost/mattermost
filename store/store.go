@@ -388,7 +388,7 @@ type WebhookStore interface {
 	GetIncomingByTeam(teamId string, offset, limit int) ([]*model.IncomingWebhook, *model.AppError)
 	UpdateIncoming(webhook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError)
 	GetIncomingByChannel(channelId string) ([]*model.IncomingWebhook, *model.AppError)
-	DeleteIncoming(webhookId string, time int64) StoreChannel
+	DeleteIncoming(webhookId string, time int64) *model.AppError
 	PermanentDeleteIncomingByChannel(channelId string) *model.AppError
 	PermanentDeleteIncomingByUser(userId string) *model.AppError
 
