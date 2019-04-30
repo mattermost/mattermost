@@ -2089,9 +2089,9 @@ func TestImportImportPost(t *testing.T) {
 			t.Fatal("Post properties not as expected")
 		}
 
-		if result := <-th.App.Srv.Store.Reaction().GetForPost(post.Id, false); result.Err != nil {
+		if reactions, err := th.App.Srv.Store.Reaction().GetForPost(post.Id, false); err != nil {
 			t.Fatal("Can't get reaction")
-		} else if len(result.Data.([]*model.Reaction)) != 1 {
+		} else if len(reactions) != 1 {
 			t.Fatal("Invalid number of reactions")
 		}
 	}

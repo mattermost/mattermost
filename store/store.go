@@ -491,12 +491,12 @@ type FileInfoStore interface {
 }
 
 type ReactionStore interface {
-	Save(reaction *model.Reaction) StoreChannel
-	Delete(reaction *model.Reaction) StoreChannel
-	GetForPost(postId string, allowFromCache bool) StoreChannel
-	DeleteAllWithEmojiName(emojiName string) StoreChannel
-	PermanentDeleteBatch(endTime int64, limit int64) StoreChannel
-	BulkGetForPosts(postIds []string) StoreChannel
+	Save(reaction *model.Reaction) (*model.Reaction, *model.AppError)
+	Delete(reaction *model.Reaction) (*model.Reaction, *model.AppError)
+	GetForPost(postId string, allowFromCache bool) ([]*model.Reaction, *model.AppError)
+	DeleteAllWithEmojiName(emojiName string) *model.AppError
+	PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError)
+	BulkGetForPosts(postIds []string) ([]*model.Reaction, *model.AppError)
 }
 
 type JobStore interface {
