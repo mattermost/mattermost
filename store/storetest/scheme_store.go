@@ -4,10 +4,10 @@
 package storetest
 
 import (
-	"github.com/stretchr/testify/require"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
@@ -386,9 +386,8 @@ func testSchemeStoreDelete(t *testing.T, ss store.Store) {
 		Type:        model.TEAM_OPEN,
 		SchemeId:    &d4.Id,
 	}
-	tres4 := <-ss.Team().Save(t4)
-	assert.Nil(t, tres4.Err)
-	t4 = tres4.Data.(*model.Team)
+	t4, err := ss.Team().Save(t4)
+	require.Nil(t, err)
 
 	sres4 := <-ss.Scheme().Delete(d4.Id)
 	assert.Nil(t, sres4.Err)

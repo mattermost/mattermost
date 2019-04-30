@@ -62,19 +62,28 @@ func (_m *CommandStore) Get(id string) store.StoreChannel {
 }
 
 // GetByTeam provides a mock function with given fields: teamId
-func (_m *CommandStore) GetByTeam(teamId string) store.StoreChannel {
+func (_m *CommandStore) GetByTeam(teamId string) ([]*model.Command, *model.AppError) {
 	ret := _m.Called(teamId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+	var r0 []*model.Command
+	if rf, ok := ret.Get(0).(func(string) []*model.Command); ok {
 		r0 = rf(teamId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]*model.Command)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(teamId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetByTrigger provides a mock function with given fields: teamId, trigger
@@ -110,15 +119,15 @@ func (_m *CommandStore) PermanentDeleteByTeam(teamId string) *model.AppError {
 }
 
 // PermanentDeleteByUser provides a mock function with given fields: userId
-func (_m *CommandStore) PermanentDeleteByUser(userId string) store.StoreChannel {
+func (_m *CommandStore) PermanentDeleteByUser(userId string) *model.AppError {
 	ret := _m.Called(userId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
 		r0 = rf(userId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
@@ -126,33 +135,51 @@ func (_m *CommandStore) PermanentDeleteByUser(userId string) store.StoreChannel 
 }
 
 // Save provides a mock function with given fields: webhook
-func (_m *CommandStore) Save(webhook *model.Command) store.StoreChannel {
+func (_m *CommandStore) Save(webhook *model.Command) (*model.Command, *model.AppError) {
 	ret := _m.Called(webhook)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(*model.Command) store.StoreChannel); ok {
+	var r0 *model.Command
+	if rf, ok := ret.Get(0).(func(*model.Command) *model.Command); ok {
 		r0 = rf(webhook)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.Command)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.Command) *model.AppError); ok {
+		r1 = rf(webhook)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // Update provides a mock function with given fields: hook
-func (_m *CommandStore) Update(hook *model.Command) store.StoreChannel {
+func (_m *CommandStore) Update(hook *model.Command) (*model.Command, *model.AppError) {
 	ret := _m.Called(hook)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(*model.Command) store.StoreChannel); ok {
+	var r0 *model.Command
+	if rf, ok := ret.Get(0).(func(*model.Command) *model.Command); ok {
 		r0 = rf(hook)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.Command)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.Command) *model.AppError); ok {
+		r1 = rf(hook)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
