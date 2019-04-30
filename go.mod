@@ -15,13 +15,12 @@ require (
 	github.com/fortytw2/leaktest v1.3.0 // indirect
 	github.com/fsnotify/fsnotify v1.4.7
 	github.com/go-gorp/gorp v2.0.0+incompatible // indirect
-	github.com/go-ini/ini v1.42.0 // indirect
 	github.com/go-ldap/ldap v3.0.2+incompatible
 	github.com/go-redis/redis v6.15.2+incompatible
 	github.com/go-sql-driver/mysql v1.4.1
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
 	github.com/google/uuid v1.1.1 // indirect
-	github.com/gopherjs/gopherjs v0.0.0-20190309154008-847fc94819f9 // indirect
+	github.com/gopherjs/gopherjs v0.0.0-20190411002643-bd77b112433e // indirect
 	github.com/gorilla/handlers v1.4.0
 	github.com/gorilla/mux v1.7.0
 	github.com/gorilla/schema v1.1.0
@@ -48,8 +47,7 @@ require (
 	github.com/mattn/go-runewidth v0.0.4 // indirect
 	github.com/mattn/go-sqlite3 v1.10.0
 	github.com/miekg/dns v1.1.6 // indirect
-	github.com/minio/minio-go v6.0.14+incompatible
-	github.com/mitchellh/go-homedir v1.1.0 // indirect
+	github.com/minio/minio-go v0.0.0-20190422205105-a8704b60278f
 	github.com/mitchellh/go-testing-interface v1.0.0 // indirect
 	github.com/olekukonko/tablewriter v0.0.1 // indirect
 	github.com/onsi/ginkgo v1.8.0 // indirect
@@ -66,8 +64,8 @@ require (
 	github.com/segmentio/analytics-go v2.0.1-0.20160426181448-2d840d861c32+incompatible
 	github.com/segmentio/backo-go v0.0.0-20160424052352-204274ad699c // indirect
 	github.com/sirupsen/logrus v1.4.0
-	github.com/smartystreets/assertions v0.0.0-20190215210624-980c5ac6f3ac // indirect
-	github.com/smartystreets/goconvey v0.0.0-20190306220146-200a235640ff // indirect
+	github.com/smartystreets/assertions v0.0.0-20190401211740-f487f9de1cd3 // indirect
+	github.com/smartystreets/goconvey v0.0.0-20190330032615-68dc04aab96a // indirect
 	github.com/spf13/afero v1.2.2 // indirect
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
@@ -80,10 +78,12 @@ require (
 	go.uber.org/atomic v1.3.2 // indirect
 	go.uber.org/multierr v1.1.0 // indirect
 	go.uber.org/zap v1.9.1
-	golang.org/x/crypto v0.0.0-20190325154230-a5d413f7728c
+	golang.org/x/crypto v0.0.0-20190426145343-a29dc8fdc734
 	golang.org/x/image v0.0.0-20190321063152-3fc05d484e9f
-	golang.org/x/net v0.0.0-20190326090315-15845e8f865b
-	golang.org/x/text v0.3.1-0.20180807135948-17ff2d5776d2
+	golang.org/x/net v0.0.0-20190424112056-4829fb13d2c6
+	golang.org/x/sync v0.0.0-20190423024810-112230192c58 // indirect
+	golang.org/x/sys v0.0.0-20190429190828-d89cdac9e872 // indirect
+	golang.org/x/text v0.3.2
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/asn1-ber.v1 v1.0.0-20181015200546-f715ec2f112d // indirect
 	gopkg.in/ini.v1 v1.42.0 // indirect

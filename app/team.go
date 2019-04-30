@@ -24,11 +24,10 @@ import (
 
 func (a *App) CreateTeam(team *model.Team) (*model.Team, *model.AppError) {
 	team.InviteId = ""
-	result := <-a.Srv.Store.Team().Save(team)
-	if result.Err != nil {
-		return nil, result.Err
+	rteam, err := a.Srv.Store.Team().Save(team)
+	if err != nil {
+		return nil, err
 	}
-	rteam := result.Data.(*model.Team)
 
 	if _, err := a.CreateDefaultChannels(rteam.Id); err != nil {
 		return nil, err
@@ -1125,8 +1124,8 @@ func (a *App) PermanentDeleteTeam(team *model.Team) *model.AppError {
 		return result.Err
 	}
 
-	if result := <-a.Srv.Store.Command().PermanentDeleteByTeam(team.Id); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.Command().PermanentDeleteByTeam(team.Id); err != nil {
+		return err
 	}
 
 	if result := <-a.Srv.Store.Team().PermanentDelete(team.Id); result.Err != nil {

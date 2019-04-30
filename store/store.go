@@ -81,7 +81,7 @@ type Store interface {
 }
 
 type TeamStore interface {
-	Save(team *model.Team) StoreChannel
+	Save(team *model.Team) (*model.Team, *model.AppError)
 	Update(team *model.Team) (*model.Team, *model.AppError)
 	UpdateDisplayName(name string, teamId string) StoreChannel
 	Get(id string) (*model.Team, *model.AppError)
@@ -388,7 +388,7 @@ type WebhookStore interface {
 	GetIncomingByTeam(teamId string, offset, limit int) ([]*model.IncomingWebhook, *model.AppError)
 	UpdateIncoming(webhook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError)
 	GetIncomingByChannel(channelId string) ([]*model.IncomingWebhook, *model.AppError)
-	DeleteIncoming(webhookId string, time int64) StoreChannel
+	DeleteIncoming(webhookId string, time int64) *model.AppError
 	PermanentDeleteIncomingByChannel(channelId string) *model.AppError
 	PermanentDeleteIncomingByUser(userId string) *model.AppError
 
@@ -409,15 +409,15 @@ type WebhookStore interface {
 }
 
 type CommandStore interface {
-	Save(webhook *model.Command) StoreChannel
+	Save(webhook *model.Command) (*model.Command, *model.AppError)
 	Get(id string) StoreChannel
 	GetByTeam(teamId string) ([]*model.Command, *model.AppError)
 	GetByTrigger(teamId string, trigger string) StoreChannel
 	Delete(commandId string, time int64) StoreChannel
-	PermanentDeleteByTeam(teamId string) StoreChannel
+	PermanentDeleteByTeam(teamId string) *model.AppError
 	PermanentDeleteByUser(userId string) *model.AppError
 	Update(hook *model.Command) (*model.Command, *model.AppError)
-	AnalyticsCommandCount(teamId string) StoreChannel
+	AnalyticsCommandCount(teamId string) (int64, *model.AppError)
 }
 
 type CommandWebhookStore interface {
