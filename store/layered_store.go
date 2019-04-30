@@ -195,6 +195,10 @@ func (s *LayeredStore) LinkMetadata() LinkMetadataStore {
 	return s.DatabaseLayer.LinkMetadata()
 }
 
+func (s *LayeredStore) NotificationRegistry() NotificationRegistryStore {
+	return s.DatabaseLayer.NotificationRegistry()
+}
+
 func (s *LayeredStore) MarkSystemRanUnitTests() {
 	s.DatabaseLayer.MarkSystemRanUnitTests()
 }
