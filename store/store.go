@@ -81,7 +81,7 @@ type Store interface {
 }
 
 type TeamStore interface {
-	Save(team *model.Team) StoreChannel
+	Save(team *model.Team) (*model.Team, *model.AppError)
 	Update(team *model.Team) (*model.Team, *model.AppError)
 	UpdateDisplayName(name string, teamId string) StoreChannel
 	Get(id string) (*model.Team, *model.AppError)

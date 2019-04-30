@@ -3325,11 +3325,12 @@ func testUserStoreGetAllAfter(t *testing.T, ss store.Store) {
 
 func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
 	// Set up all the objects needed
-	t1 := store.Must(ss.Team().Save(&model.Team{
+	t1, err := ss.Team().Save(&model.Team{
 		DisplayName: "Team1",
 		Name:        model.NewId(),
 		Type:        model.TEAM_OPEN,
-	})).(*model.Team)
+	})
+	require.Nil(t, err)
 	cPub1 := store.Must(ss.Channel().Save(&model.Channel{
 		Name: model.NewId(),
 		Type: model.CHANNEL_OPEN,
@@ -3445,21 +3446,20 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
 func testUserStoreGetTeamGroupUsers(t *testing.T, ss store.Store) {
 	// create team
 	id := model.NewId()
-	res := <-ss.Team().Save(&model.Team{
+	team, err := ss.Team().Save(&model.Team{
 		DisplayName: "dn_" + id,
 		Name:        "n-" + id,
 		Email:       id + "@test.com",
 		Type:        model.TEAM_INVITE,
 	})
-	require.Nil(t, res.Err)
-	team := res.Data.(*model.Team)
+	require.Nil(t, err)
 	require.NotNil(t, team)
 
 	// create users
 	var testUsers []*model.User
 	for i := 0; i < 3; i++ {
 		id = model.NewId()
-		res = <-ss.User().Save(&model.User{
+		res := <-ss.User().Save(&model.User{
 			Email:     id + "@test.com",
 			Username:  "un_" + id,
 			Nickname:  "nn_" + id,
@@ -3477,7 +3477,7 @@ func testUserStoreGetTeamGroupUsers(t *testing.T, ss store.Store) {
 	userNoGroup := testUsers[2]
 
 	// add non-group-member to the team (to prove that the query isn't just returning all members)
-	res = <-ss.Team().SaveMember(&model.TeamMember{
+	res := <-ss.Team().SaveMember(&model.TeamMember{
 		TeamId: team.Id,
 		UserId: userNoGroup.Id,
 	}, 999)
@@ -3530,7 +3530,7 @@ func testUserStoreGetTeamGroupUsers(t *testing.T, ss store.Store) {
 
 	// update team to be group-constrained
 	team.GroupConstrained = model.NewBool(true)
-	team, err := ss.Team().Update(team)
+	team, err = ss.Team().Update(team)
 	require.Nil(t, err)
 
 	// still returns user (being group-constrained has no effect)
