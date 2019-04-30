@@ -266,18 +266,18 @@ func testCommandCount(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	if r1 := <-ss.Command().AnalyticsCommandCount(""); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if r1, err := ss.Command().AnalyticsCommandCount(""); err != nil {
+		t.Fatal(err)
 	} else {
-		if r1.Data.(int64) == 0 {
+		if r1 == 0 {
 			t.Fatal("should be at least 1 command")
 		}
 	}
 
-	if r2 := <-ss.Command().AnalyticsCommandCount(o1.TeamId); r2.Err != nil {
-		t.Fatal(r2.Err)
+	if r2, err := ss.Command().AnalyticsCommandCount(o1.TeamId); err != nil {
+		t.Fatal(err)
 	} else {
-		if r2.Data.(int64) != 1 {
+		if r2 != 1 {
 			t.Fatal("should be 1 command")
 		}
 	}

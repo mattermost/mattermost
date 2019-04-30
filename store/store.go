@@ -417,7 +417,7 @@ type CommandStore interface {
 	PermanentDeleteByTeam(teamId string) *model.AppError
 	PermanentDeleteByUser(userId string) *model.AppError
 	Update(hook *model.Command) (*model.Command, *model.AppError)
-	AnalyticsCommandCount(teamId string) StoreChannel
+	AnalyticsCommandCount(teamId string) (int64, *model.AppError)
 }
 
 type CommandWebhookStore interface {
