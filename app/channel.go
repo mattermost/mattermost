@@ -826,7 +826,7 @@ func (a *App) DeleteChannel(channel *model.Channel, userId string) *model.AppErr
 
 	now := model.GetMillis()
 	for _, hook := range incomingHooks {
-		if result := <-a.Srv.Store.Webhook().DeleteIncoming(hook.Id, now); result.Err != nil {
+		if err := a.Srv.Store.Webhook().DeleteIncoming(hook.Id, now); err != nil {
 			mlog.Error(fmt.Sprintf("Encountered error deleting incoming webhook, id=%v", hook.Id))
 		}
 		a.InvalidateCacheForWebhook(hook.Id)
