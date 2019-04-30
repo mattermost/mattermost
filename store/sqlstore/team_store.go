@@ -34,6 +34,7 @@ type teamMember struct {
 	UserId      string
 	Roles       string
 	DeleteAt    int64
+	SchemeGuest sql.NullBool
 	SchemeUser  sql.NullBool
 	SchemeAdmin sql.NullBool
 }
@@ -44,6 +45,7 @@ func NewTeamMemberFromModel(tm *model.TeamMember) *teamMember {
 		UserId:      tm.UserId,
 		Roles:       tm.ExplicitRoles,
 		DeleteAt:    tm.DeleteAt,
+		SchemeGuest: sql.NullBool{Valid: true, Bool: tm.SchemeGuest},
 		SchemeUser:  sql.NullBool{Valid: true, Bool: tm.SchemeUser},
 		SchemeAdmin: sql.NullBool{Valid: true, Bool: tm.SchemeAdmin},
 	}
@@ -54,8 +56,10 @@ type teamMemberWithSchemeRoles struct {
 	UserId                     string
 	Roles                      string
 	DeleteAt                   int64
+	SchemeGuest                sql.NullBool
 	SchemeUser                 sql.NullBool
 	SchemeAdmin                sql.NullBool
+	TeamSchemeDefaultGuestRole sql.NullString
 	TeamSchemeDefaultUserRole  sql.NullString
 	TeamSchemeDefaultAdminRole sql.NullString
 }
@@ -68,11 +72,16 @@ func (db teamMemberWithSchemeRoles) ToModel() *model.TeamMember {
 
 	// Identify any scheme derived roles that are in "Roles" field due to not yet being migrated, and exclude
 	// them from ExplicitRoles field.
+	schemeGuest := db.SchemeGuest.Valid && db.SchemeGuest.Bool
 	schemeUser := db.SchemeUser.Valid && db.SchemeUser.Bool
 	schemeAdmin := db.SchemeAdmin.Valid && db.SchemeAdmin.Bool
 	for _, role := range strings.Fields(db.Roles) {
 		isImplicit := false
-		if role == model.TEAM_USER_ROLE_ID {
+		if role == model.TEAM_GUEST_ROLE_ID {
+			// We have an implicit role via the system scheme. Override the "schemeGuest" field to true.
+			schemeGuest = true
+			isImplicit = true
+		} else if role == model.TEAM_USER_ROLE_ID {
 			// We have an implicit role via the system scheme. Override the "schemeUser" field to true.
 			schemeUser = true
 			isImplicit = true
@@ -91,6 +100,13 @@ func (db teamMemberWithSchemeRoles) ToModel() *model.TeamMember {
 	// Add any scheme derived roles that are not in the Roles field due to being Implicit from the Scheme, and add
 	// them to the Roles field for backwards compatibility reasons.
 	var schemeImpliedRoles []string
+	if db.SchemeGuest.Valid && db.SchemeGuest.Bool {
+		if db.TeamSchemeDefaultGuestRole.Valid && db.TeamSchemeDefaultGuestRole.String != "" {
+			schemeImpliedRoles = append(schemeImpliedRoles, db.TeamSchemeDefaultGuestRole.String)
+		} else {
+			schemeImpliedRoles = append(schemeImpliedRoles, model.TEAM_GUEST_ROLE_ID)
+		}
+	}
 	if db.SchemeUser.Valid && db.SchemeUser.Bool {
 		if db.TeamSchemeDefaultUserRole.Valid && db.TeamSchemeDefaultUserRole.String != "" {
 			schemeImpliedRoles = append(schemeImpliedRoles, db.TeamSchemeDefaultUserRole.String)
@@ -122,6 +138,7 @@ func (db teamMemberWithSchemeRoles) ToModel() *model.TeamMember {
 		UserId:        db.UserId,
 		Roles:         strings.Join(roles, " "),
 		DeleteAt:      db.DeleteAt,
+		SchemeGuest:   schemeGuest,
 		SchemeUser:    schemeUser,
 		SchemeAdmin:   schemeAdmin,
 		ExplicitRoles: strings.Join(explicitRoles, " "),
@@ -475,6 +492,7 @@ func (s SqlTeamStore) getTeamMembersWithSchemeSelectQuery() sq.SelectBuilder {
 	return s.getQueryBuilder().
 		Select(
 			"TeamMembers.*",
+			"TeamScheme.DefaultTeamGuestRole TeamSchemeDefaultGuestRole",
 			"TeamScheme.DefaultTeamUserRole TeamSchemeDefaultUserRole",
 			"TeamScheme.DefaultTeamAdminRole TeamSchemeDefaultAdminRole",
 		).
@@ -887,11 +905,16 @@ func (s SqlTeamStore) MigrateTeamMembers(fromTeamId string, fromUserId string) s
 			if !member.SchemeUser.Valid {
 				member.SchemeUser = sql.NullBool{Bool: false, Valid: true}
 			}
+			if !member.SchemeGuest.Valid {
+				member.SchemeGuest = sql.NullBool{Bool: false, Valid: true}
+			}
 			for _, role := range roles {
 				if role == model.TEAM_ADMIN_ROLE_ID {
 					member.SchemeAdmin = sql.NullBool{Bool: true, Valid: true}
 				} else if role == model.TEAM_USER_ROLE_ID {
 					member.SchemeUser = sql.NullBool{Bool: true, Valid: true}
+				} else if role == model.TEAM_GUEST_ROLE_ID {
+					member.SchemeGuest = sql.NullBool{Bool: true, Valid: true}
 				} else {
 					newRoles = append(newRoles, role)
 				}
@@ -1082,16 +1105,22 @@ func (s SqlTeamStore) GetTeamMembersForExport(userId string) store.StoreChannel 
 	return store.Do(func(result *store.StoreResult) {
 		var members []*model.TeamMemberForExport
 		_, err := s.GetReplica().Select(&members, `
-	SELECT
-		TeamMembers.*,
-		Teams.Name as TeamName
-	FROM
-		TeamMembers
-	INNER JOIN
-		Teams ON TeamMembers.TeamId = Teams.Id
-	WHERE
-		TeamMembers.UserId = :UserId
-		AND Teams.DeleteAt = 0`,
+            SELECT
+                TeamMembers.TeamId,
+                TeamMembers.UserId,
+                TeamMembers.Roles,
+                TeamMembers.DeleteAt,
+                (TeamMembers.SchemeGuest IS NOT NULL AND TeamMembers.SchemeGuest) as SchemeGuest,
+                TeamMembers.SchemeUser,
+                TeamMembers.SchemeAdmin,
+                Teams.Name as TeamName
+            FROM
+                TeamMembers
+            INNER JOIN
+                Teams ON TeamMembers.TeamId = Teams.Id
+            WHERE
+                TeamMembers.UserId = :UserId
+                AND Teams.DeleteAt = 0`,
 			map[string]interface{}{"UserId": userId})
 		if err != nil {
 			result.Err = model.NewAppError("SqlTeamStore.GetTeamMembersForExport", "store.sql_team.get_members.app_error", nil, "userId="+userId+" "+err.Error(), http.StatusInternalServerError)

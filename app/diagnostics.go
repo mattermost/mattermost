@@ -739,6 +739,11 @@ func (a *App) trackPermissions() {
 		teamUserPermissions = strings.Join(role.Permissions, " ")
 	}
 
+	teamGuestPermissions := ""
+	if role, err := a.GetRoleByName(model.TEAM_GUEST_ROLE_ID); err == nil {
+		teamGuestPermissions = strings.Join(role.Permissions, " ")
+	}
+
 	channelAdminPermissions := ""
 	if role, err := a.GetRoleByName(model.CHANNEL_ADMIN_ROLE_ID); err == nil {
 		channelAdminPermissions = strings.Join(role.Permissions, " ")
@@ -746,7 +751,12 @@ func (a *App) trackPermissions() {
 
 	channelUserPermissions := ""
 	if role, err := a.GetRoleByName(model.CHANNEL_USER_ROLE_ID); err == nil {
-		systemAdminPermissions = strings.Join(role.Permissions, " ")
+		channelUserPermissions = strings.Join(role.Permissions, " ")
+	}
+
+	channelGuestPermissions := ""
+	if role, err := a.GetRoleByName(model.CHANNEL_GUEST_ROLE_ID); err == nil {
+		channelGuestPermissions = strings.Join(role.Permissions, " ")
 	}
 
 	a.SendDiagnostic(TRACK_PERMISSIONS_SYSTEM_SCHEME, map[string]interface{}{
@@ -754,8 +764,10 @@ func (a *App) trackPermissions() {
 		"system_user_permissions":   systemUserPermissions,
 		"team_admin_permissions":    teamAdminPermissions,
 		"team_user_permissions":     teamUserPermissions,
+		"team_guest_permissions":    teamGuestPermissions,
 		"channel_admin_permissions": channelAdminPermissions,
 		"channel_user_permissions":  channelUserPermissions,
+		"channel_guest_permissions": channelGuestPermissions,
 	})
 
 	if schemes, err := a.GetSchemes(model.SCHEME_SCOPE_TEAM, 0, 100); err == nil {
@@ -770,6 +782,11 @@ func (a *App) trackPermissions() {
 				teamUserPermissions = strings.Join(role.Permissions, " ")
 			}
 
+			teamGuestPermissions := ""
+			if role, err := a.GetRoleByName(scheme.DefaultTeamGuestRole); err == nil {
+				teamGuestPermissions = strings.Join(role.Permissions, " ")
+			}
+
 			channelAdminPermissions := ""
 			if role, err := a.GetRoleByName(scheme.DefaultChannelAdminRole); err == nil {
 				channelAdminPermissions = strings.Join(role.Permissions, " ")
@@ -777,7 +794,12 @@ func (a *App) trackPermissions() {
 
 			channelUserPermissions := ""
 			if role, err := a.GetRoleByName(scheme.DefaultChannelUserRole); err == nil {
-				systemAdminPermissions = strings.Join(role.Permissions, " ")
+				channelUserPermissions = strings.Join(role.Permissions, " ")
+			}
+
+			channelGuestPermissions := ""
+			if role, err := a.GetRoleByName(scheme.DefaultChannelGuestRole); err == nil {
+				channelGuestPermissions = strings.Join(role.Permissions, " ")
 			}
 
 			var count int64 = 0
@@ -789,8 +811,10 @@ func (a *App) trackPermissions() {
 				"scheme_id":                 scheme.Id,
 				"team_admin_permissions":    teamAdminPermissions,
 				"team_user_permissions":     teamUserPermissions,
+				"team_guest_permissions":    teamGuestPermissions,
 				"channel_admin_permissions": channelAdminPermissions,
 				"channel_user_permissions":  channelUserPermissions,
+				"channel_guest_permissions": channelGuestPermissions,
 				"team_count":                count,
 			})
 		}

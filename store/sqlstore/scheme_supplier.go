@@ -26,8 +26,10 @@ func initSqlSupplierSchemes(sqlStore SqlStore) {
 		table.ColMap("Scope").SetMaxSize(32)
 		table.ColMap("DefaultTeamAdminRole").SetMaxSize(64)
 		table.ColMap("DefaultTeamUserRole").SetMaxSize(64)
+		table.ColMap("DefaultTeamGuestRole").SetMaxSize(64)
 		table.ColMap("DefaultChannelAdminRole").SetMaxSize(64)
 		table.ColMap("DefaultChannelUserRole").SetMaxSize(64)
+		table.ColMap("DefaultChannelGuestRole").SetMaxSize(64)
 	}
 }
 
@@ -71,7 +73,7 @@ func (s *SqlSupplier) createScheme(ctx context.Context, scheme *model.Scheme, tr
 	result := store.NewSupplierResult()
 
 	// Fetch the default system scheme roles to populate default permissions.
-	defaultRoleNames := []string{model.TEAM_ADMIN_ROLE_ID, model.TEAM_USER_ROLE_ID, model.CHANNEL_ADMIN_ROLE_ID, model.CHANNEL_USER_ROLE_ID}
+	defaultRoleNames := []string{model.TEAM_ADMIN_ROLE_ID, model.TEAM_USER_ROLE_ID, model.TEAM_GUEST_ROLE_ID, model.CHANNEL_ADMIN_ROLE_ID, model.CHANNEL_USER_ROLE_ID, model.CHANNEL_GUEST_ROLE_ID}
 	defaultRoles := make(map[string]*model.Role)
 	if rolesResult := s.RoleGetByNames(ctx, defaultRoleNames); rolesResult.Err != nil {
 		result.Err = rolesResult.Err
@@ -83,14 +85,18 @@ func (s *SqlSupplier) createScheme(ctx context.Context, scheme *model.Scheme, tr
 				defaultRoles[model.TEAM_ADMIN_ROLE_ID] = role
 			case model.TEAM_USER_ROLE_ID:
 				defaultRoles[model.TEAM_USER_ROLE_ID] = role
+			case model.TEAM_GUEST_ROLE_ID:
+				defaultRoles[model.TEAM_GUEST_ROLE_ID] = role
 			case model.CHANNEL_ADMIN_ROLE_ID:
 				defaultRoles[model.CHANNEL_ADMIN_ROLE_ID] = role
 			case model.CHANNEL_USER_ROLE_ID:
 				defaultRoles[model.CHANNEL_USER_ROLE_ID] = role
+			case model.CHANNEL_GUEST_ROLE_ID:
+				defaultRoles[model.CHANNEL_GUEST_ROLE_ID] = role
 			}
 		}
 
-		if len(defaultRoles) != 4 {
+		if len(defaultRoles) != 6 {
 			result.Err = model.NewAppError("SqlSchemeStore.SaveScheme", "store.sql_scheme.save.retrieve_default_scheme_roles.app_error", nil, "", http.StatusInternalServerError)
 			return result
 		}
@@ -127,6 +133,21 @@ func (s *SqlSupplier) createScheme(ctx context.Context, scheme *model.Scheme, tr
 		} else {
 			scheme.DefaultTeamUserRole = saveRoleResult.Data.(*model.Role).Name
 		}
+
+		// Team Guest Role
+		teamGuestRole := &model.Role{
+			Name:          model.NewId(),
+			DisplayName:   fmt.Sprintf("Team Guest Role for Scheme %s", scheme.Name),
+			Permissions:   defaultRoles[model.TEAM_GUEST_ROLE_ID].Permissions,
+			SchemeManaged: true,
+		}
+
+		if saveRoleResult := s.createRole(ctx, teamGuestRole, transaction); saveRoleResult.Err != nil {
+			result.Err = saveRoleResult.Err
+			return result
+		} else {
+			scheme.DefaultTeamGuestRole = saveRoleResult.Data.(*model.Role).Name
+		}
 	}
 	if scheme.Scope == model.SCHEME_SCOPE_TEAM || scheme.Scope == model.SCHEME_SCOPE_CHANNEL {
 		// Channel Admin Role
@@ -157,6 +178,21 @@ func (s *SqlSupplier) createScheme(ctx context.Context, scheme *model.Scheme, tr
 			return result
 		} else {
 			scheme.DefaultChannelUserRole = saveRoleResult.Data.(*model.Role).Name
+		}
+
+		// Channel Guest Role
+		channelGuestRole := &model.Role{
+			Name:          model.NewId(),
+			DisplayName:   fmt.Sprintf("Channel Guest Role for Scheme %s", scheme.Name),
+			Permissions:   defaultRoles[model.CHANNEL_GUEST_ROLE_ID].Permissions,
+			SchemeManaged: true,
+		}
+
+		if saveRoleResult := s.createRole(ctx, channelGuestRole, transaction); saveRoleResult.Err != nil {
+			result.Err = saveRoleResult.Err
+			return result
+		} else {
+			scheme.DefaultChannelGuestRole = saveRoleResult.Data.(*model.Role).Name
 		}
 	}
 
@@ -250,9 +286,9 @@ func (s *SqlSupplier) SchemeDelete(ctx context.Context, schemeId string, hints .
 	}
 
 	// Delete the roles belonging to the scheme.
-	roleNames := []string{scheme.DefaultChannelUserRole, scheme.DefaultChannelAdminRole}
+	roleNames := []string{scheme.DefaultChannelGuestRole, scheme.DefaultChannelUserRole, scheme.DefaultChannelAdminRole}
 	if scheme.Scope == model.SCHEME_SCOPE_TEAM {
-		roleNames = append(roleNames, scheme.DefaultTeamUserRole, scheme.DefaultTeamAdminRole)
+		roleNames = append(roleNames, scheme.DefaultTeamGuestRole, scheme.DefaultTeamUserRole, scheme.DefaultTeamAdminRole)
 	}
 
 	var inQueryList []string

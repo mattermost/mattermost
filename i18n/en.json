@@ -320,6 +320,14 @@
     "translation": "Tried to perform an invalid update of the default channel {{.Channel}}"
   },
   {
+    "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
+    "translation": "Invalid channel member update: You can't add or remove the guest role manually"
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
+    "translation": "Invalid channel member update: A user must be a guest or a user but not both."
+  },
+  {
     "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
     "translation": "The provided role is managed by a Scheme and therefore cannot be applied directly to a Channel Member"
   },
@@ -330,6 +338,10 @@
   {
     "id": "api.channel.update_channel_scheme.scheme_scope.error",
     "translation": "Unable to set the scheme to the channel because the supplied scheme is not a channel scheme."
+  },
+  {
+    "id": "api.channel.update_team_member_roles.changing_guest_role.app_error",
+    "translation": "Invalid team member update: You can't add or remove the guest role manually"
   },
   {
     "id": "api.channel.update_team_member_roles.scheme_role.app_error",
@@ -1929,6 +1941,10 @@
   {
     "id": "api.team.update_restricted_domains.mismatch.app_error",
     "translation": "Restricting team to {{ .Domain }} is not allowed by the system config. Please contact your system administrator."
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest_and_user.app_error",
+    "translation": "Invalid team member update: A user must be a guest or a user but not both."
   },
   {
     "id": "api.team.update_team_scheme.license.error",

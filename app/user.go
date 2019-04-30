@@ -223,11 +223,24 @@ func (a *App) indexUserFromId(userId string) *model.AppError {
 // CreateUser creates a user and sets several fields of the returned User struct to
 // their zero values.
 func (a *App) CreateUser(user *model.User) (*model.User, *model.AppError) {
+	return a.createUserOrGuest(user, false)
+}
+
+// CreateGuest creates a guest and sets several fields of the returned User struct to
+// their zero values.
+func (a *App) CreateGuest(user *model.User) (*model.User, *model.AppError) {
+	return a.createUserOrGuest(user, true)
+}
+
+func (a *App) createUserOrGuest(user *model.User, guest bool) (*model.User, *model.AppError) {
 	if !user.IsLDAPUser() && !user.IsSAMLUser() && !CheckUserDomain(user, *a.Config().TeamSettings.RestrictCreationToDomains) {
 		return nil, model.NewAppError("CreateUser", "api.user.create_user.accepted_domain.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	user.Roles = model.SYSTEM_USER_ROLE_ID
+	if guest {
+		user.Roles = model.SYSTEM_GUEST_ROLE_ID
+	}
 
 	// Below is a special case where the first user in the entire
 	// system is granted the system_admin role

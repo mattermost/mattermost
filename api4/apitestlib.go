@@ -104,8 +104,7 @@ func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHel
 	web.New(th.Server, th.Server.AppOptions, th.App.Srv.Router)
 	wsapi.Init(th.App, th.App.Srv.WebSocketRouter)
 	th.App.Srv.Store.MarkSystemRanUnitTests()
-	th.App.DoAdvancedPermissionsMigration()
-	th.App.DoEmojisPermissionsMigration()
+	th.App.DoAppMigrations()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
 
