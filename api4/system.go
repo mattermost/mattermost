@@ -324,7 +324,7 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 	ack := model.PushNotificationAckFromJson(r.Body)
 
 	if !*c.App.Config().EmailSettings.SendPushNotifications {
-		c.Err = model.NewAppError("pushNotificationAck", "api.push_notification.disabled.app_error", nil, "", http.StatusForbidden)
+		c.Err = model.NewAppError("pushNotificationAck", "api.push_notification.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
