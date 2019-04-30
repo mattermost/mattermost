@@ -4,6 +4,7 @@
 package app
 
 import (
+	"bytes"
 	"image"
 	"io"
 	"net/http"
@@ -15,6 +16,7 @@ import (
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/utils/imgutils"
 	"github.com/mattermost/mattermost-server/utils/markdown"
 )
 
@@ -180,16 +182,7 @@ func (a *App) getImagesForPost(post *model.Post, imageURLs []string, isNewPost b
 					continue
 				}
 
-				if image.Width != 0 || image.Height != 0 {
-					// The site has already told us the image dimensions
-					images[imageURL] = &model.PostImage{
-						Width:  int(image.Width),
-						Height: int(image.Height),
-					}
-				} else {
-					// The site did not specify its image dimensions
-					imageURLs = append(imageURLs, imageURL)
-				}
+				imageURLs = append(imageURLs, imageURL)
 			}
 		}
 	}
@@ -498,7 +491,12 @@ func (a *App) parseLinkMetadata(requestURL string, body io.Reader, contentType s
 }
 
 func parseImages(body io.Reader) (*model.PostImage, error) {
-	config, _, err := image.DecodeConfig(body)
+	// Store any data that is read for the config for any further processing
+	buf := &bytes.Buffer{}
+	t := io.TeeReader(body, buf)
+
+	// Read the image config to get the format and dimensions
+	config, format, err := image.DecodeConfig(t)
 	if err != nil {
 		return nil, err
 	}
@@ -506,6 +504,17 @@ func parseImages(body io.Reader) (*model.PostImage, error) {
 	image := &model.PostImage{
 		Width:  config.Width,
 		Height: config.Height,
+		Format: format,
+	}
+
+	if format == "gif" {
+		// Decoding the config may have read some of the image data, so re-read the data that has already been read first
+		frameCount, err := imgutils.CountFrames(io.MultiReader(buf, body))
+		if err != nil {
+			return nil, err
+		}
+
+		image.FrameCount = frameCount
 	}
 
 	return image, nil
