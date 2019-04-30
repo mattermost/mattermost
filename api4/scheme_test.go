@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
 )
@@ -295,16 +296,15 @@ func TestGetTeamsForScheme(t *testing.T) {
 		Type:        model.TEAM_OPEN,
 	}
 
-	result1 := <-th.App.Srv.Store.Team().Save(team1)
-	assert.Nil(t, result1.Err)
-	team1 = result1.Data.(*model.Team)
+	team1, err := th.App.Srv.Store.Team().Save(team1)
+	require.Nil(t, err)
 
 	l2, r2 := th.SystemAdminClient.GetTeamsForScheme(scheme1.Id, 0, 100)
 	CheckNoError(t, r2)
 	assert.Zero(t, len(l2))
 
 	team1.SchemeId = &scheme1.Id
-	team1, err := th.App.Srv.Store.Team().Update(team1)
+	team1, err = th.App.Srv.Store.Team().Update(team1)
 	assert.Nil(t, err)
 
 	l3, r3 := th.SystemAdminClient.GetTeamsForScheme(scheme1.Id, 0, 100)
@@ -318,9 +318,8 @@ func TestGetTeamsForScheme(t *testing.T) {
 		Type:        model.TEAM_OPEN,
 		SchemeId:    &scheme1.Id,
 	}
-	result3 := <-th.App.Srv.Store.Team().Save(team2)
-	assert.Nil(t, result3.Err)
-	team2 = result3.Data.(*model.Team)
+	team2, err = th.App.Srv.Store.Team().Save(team2)
+	require.Nil(t, err)
 
 	l4, r4 := th.SystemAdminClient.GetTeamsForScheme(scheme1.Id, 0, 100)
 	CheckNoError(t, r4)
@@ -604,15 +603,14 @@ func TestDeleteScheme(t *testing.T) {
 		assert.Zero(t, role4.DeleteAt)
 
 		// Make sure this scheme is in use by a team.
-		res := <-th.App.Srv.Store.Team().Save(&model.Team{
+		team, err := th.App.Srv.Store.Team().Save(&model.Team{
 			Name:        model.NewId(),
 			DisplayName: model.NewId(),
 			Email:       model.NewId() + "@nowhere.com",
 			Type:        model.TEAM_OPEN,
 			SchemeId:    &s1.Id,
 		})
-		assert.Nil(t, res.Err)
-		team := res.Data.(*model.Team)
+		require.Nil(t, err)
 
 		// Delete the Scheme.
 		_, r3 := th.SystemAdminClient.DeleteScheme(s1.Id)
