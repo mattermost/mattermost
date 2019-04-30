@@ -1100,6 +1100,15 @@ func testGetTeamMember(t *testing.T, ss store.Store) {
 	t.Log(m3)
 
 	assert.Equal(t, s2.DefaultTeamUserRole, m3.Roles)
+
+	m4 := &model.TeamMember{TeamId: t2.Id, UserId: model.NewId(), SchemeGuest: true}
+	store.Must(ss.Team().SaveMember(m4, -1))
+
+	r3 := <-ss.Team().GetMember(m4.TeamId, m4.UserId)
+	require.Nil(t, r3.Err)
+	m5 := r3.Data.(*model.TeamMember)
+
+	assert.Equal(t, s2.DefaultTeamGuestRole, m5.Roles)
 }
 
 func testGetTeamMembersByIds(t *testing.T, ss store.Store) {
