@@ -438,7 +438,7 @@ func TestAddChannelMemberNoUserRequestor(t *testing.T) {
 	channel := th.createChannel(th.BasicTeam, model.CHANNEL_OPEN)
 	userRequestorId := ""
 	postRootId := ""
-	if _, err := th.App.AddChannelMember(user.Id, channel, userRequestorId, postRootId, ""); err != nil {
+	if _, err := th.App.AddChannelMember(user.Id, channel, userRequestorId, postRootId); err != nil {
 		t.Fatal("Failed to add user to channel. Error: " + err.Message)
 	}
 
@@ -738,7 +738,7 @@ func TestGetChannelMembersTimezones(t *testing.T) {
 
 	userRequestorId := ""
 	postRootId := ""
-	if _, err := th.App.AddChannelMember(th.BasicUser2.Id, th.BasicChannel, userRequestorId, postRootId, ""); err != nil {
+	if _, err := th.App.AddChannelMember(th.BasicUser2.Id, th.BasicChannel, userRequestorId, postRootId); err != nil {
 		t.Fatal("Failed to add user to channel. Error: " + err.Message)
 	}
 
@@ -811,4 +811,87 @@ func TestGetPublicChannelsForTeam(t *testing.T) {
 
 	channels := append(*channelList, *channelList2...)
 	assert.ElementsMatch(t, expectedChannels, channels)
+}
+
+func TestUpdateChannelMemberRolesChangingGuest(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("from guest to user", func(t *testing.T) {
+		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser, _ := th.App.CreateGuest(&user)
+
+		_, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, "")
+		require.Nil(t, err)
+
+		_, err = th.App.AddUserToChannel(ruser, th.BasicChannel)
+		require.Nil(t, err)
+
+		if _, err := th.App.UpdateChannelMemberRoles(th.BasicChannel.Id, ruser.Id, "channel_user"); err == nil {
+			t.Fatal("Should fail when try to modify the guest role")
+		}
+	})
+
+	t.Run("from user to guest", func(t *testing.T) {
+		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser, _ := th.App.CreateUser(&user)
+
+		_, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, "")
+		require.Nil(t, err)
+
+		_, err = th.App.AddUserToChannel(ruser, th.BasicChannel)
+		require.Nil(t, err)
+
+		if _, err := th.App.UpdateChannelMemberRoles(th.BasicChannel.Id, ruser.Id, "channel_guest"); err == nil {
+			t.Fatal("Should fail when try to modify the guest role")
+		}
+	})
+
+	t.Run("from user to admin", func(t *testing.T) {
+		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser, _ := th.App.CreateUser(&user)
+
+		_, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, "")
+		require.Nil(t, err)
+
+		_, err = th.App.AddUserToChannel(ruser, th.BasicChannel)
+		require.Nil(t, err)
+
+		if _, err := th.App.UpdateChannelMemberRoles(th.BasicChannel.Id, ruser.Id, "channel_user channel_admin"); err != nil {
+			t.Fatal("Should work when you not modify guest role")
+		}
+	})
+
+	t.Run("from guest to guest plus custom", func(t *testing.T) {
+		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser, _ := th.App.CreateGuest(&user)
+
+		_, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, "")
+		require.Nil(t, err)
+
+		_, err = th.App.AddUserToChannel(ruser, th.BasicChannel)
+		require.Nil(t, err)
+
+		_, err = th.App.CreateRole(&model.Role{Name: "custom", DisplayName: "custom", Description: "custom"})
+		require.Nil(t, err)
+
+		if _, err := th.App.UpdateChannelMemberRoles(th.BasicChannel.Id, ruser.Id, "channel_guest custom"); err != nil {
+			t.Fatal("Should work when you not modify guest role")
+		}
+	})
+
+	t.Run("a guest cant have user role", func(t *testing.T) {
+		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser, _ := th.App.CreateGuest(&user)
+
+		_, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, "")
+		require.Nil(t, err)
+
+		_, err = th.App.AddUserToChannel(ruser, th.BasicChannel)
+		require.Nil(t, err)
+
+		if _, err := th.App.UpdateChannelMemberRoles(th.BasicChannel.Id, ruser.Id, "channel_guest channel_user"); err == nil {
+			t.Fatal("Should work when you not modify guest role")
+		}
+	})
 }

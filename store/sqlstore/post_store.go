@@ -1401,7 +1401,7 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 			channelIds = append(channelIds, post.ChannelId)
 		}
 		query = s.getQueryBuilder().
-			Select("*").
+			Select("u.Username as Username, ChannelId, UserId, cm.Roles as Roles, LastViewedAt, MsgCount, MentionCount, cm.NotifyProps as NotifyProps, LastUpdateAt, SchemeUser, SchemeAdmin, (SchemeGuest IS NOT NULL AND SchemeGuest) as SchemeGuest").
 			From("ChannelMembers cm").
 			Join("Users u ON ( u.Id = cm.UserId )").
 			Where(sq.Eq{

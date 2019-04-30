@@ -32,7 +32,7 @@ func makeTestAtmosCamoProxy() *ImageProxy {
 		},
 	}
 
-	return MakeImageProxy(configService, httpservice.MakeHTTPService(configService))
+	return MakeImageProxy(configService, httpservice.MakeHTTPService(configService), nil)
 }
 
 func TestAtmosCamoBackend_GetImage(t *testing.T) {

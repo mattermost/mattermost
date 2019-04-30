@@ -127,6 +127,21 @@ func TestConfigDefaultServiceSettingsExperimentalGroupUnreadChannels(t *testing.
 	}
 }
 
+func TestConfigDefaultNPSPluginState(t *testing.T) {
+	c1 := Config{}
+	c1.SetDefaults()
+
+	if c1.PluginSettings.PluginStates["com.mattermost.nps"].Enable != true {
+		t.Fatal("PluginSettings.PluginStates[\"com.mattermost.nps\"].Enable should default to true")
+	}
+
+	c1.PluginSettings.PluginStates["com.mattermost.nps"].Enable = false
+	c1.SetDefaults()
+	if c1.PluginSettings.PluginStates["com.mattermost.nps"].Enable != false {
+		t.Fatal("PluginSettings.PluginStates[\"com.mattermost.nps\"].Enable should remain false")
+	}
+}
+
 func TestTeamSettingsIsValidSiteNameEmpty(t *testing.T) {
 	c1 := Config{}
 	c1.SetDefaults()

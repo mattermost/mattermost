@@ -85,6 +85,7 @@ var PERMISSION_READ_BOTS *Permission
 var PERMISSION_READ_OTHERS_BOTS *Permission
 var PERMISSION_MANAGE_BOTS *Permission
 var PERMISSION_MANAGE_OTHERS_BOTS *Permission
+var PERMISSION_VIEW_MEMBERS *Permission
 
 // General permission that encompasses all system admin functions
 // in the future this could be broken up to allow access to some
@@ -286,6 +287,7 @@ func initializePermissions() {
 		"authentication.permissions.remove_others_reactions.description",
 		PERMISSION_SCOPE_CHANNEL,
 	}
+	// DEPRECATED
 	PERMISSION_PERMANENT_DELETE_USER = &Permission{
 		"permanent_delete_user",
 		"authentication.permissions.permanent_delete_user.name",
@@ -304,12 +306,14 @@ func initializePermissions() {
 		"authentication.permissions.get_public_link.description",
 		PERMISSION_SCOPE_SYSTEM,
 	}
+	// DEPRECATED
 	PERMISSION_MANAGE_WEBHOOKS = &Permission{
 		"manage_webhooks",
 		"authentication.permissions.manage_webhooks.name",
 		"authentication.permissions.manage_webhooks.description",
 		PERMISSION_SCOPE_TEAM,
 	}
+	// DEPRECATED
 	PERMISSION_MANAGE_OTHERS_WEBHOOKS = &Permission{
 		"manage_others_webhooks",
 		"authentication.permissions.manage_others_webhooks.name",
@@ -352,12 +356,14 @@ func initializePermissions() {
 		"authentication.permissions.manage_system_wide_oauth.description",
 		PERMISSION_SCOPE_SYSTEM,
 	}
+	// DEPRECATED
 	PERMISSION_MANAGE_EMOJIS = &Permission{
 		"manage_emojis",
 		"authentication.permissions.manage_emojis.name",
 		"authentication.permissions.manage_emojis.description",
 		PERMISSION_SCOPE_TEAM,
 	}
+	// DEPRECATED
 	PERMISSION_MANAGE_OTHERS_EMOJIS = &Permission{
 		"manage_others_emojis",
 		"authentication.permissions.manage_others_emojis.name",
@@ -514,6 +520,12 @@ func initializePermissions() {
 		"authentication.permisssions.manage_jobs.description",
 		PERMISSION_SCOPE_SYSTEM,
 	}
+	PERMISSION_VIEW_MEMBERS = &Permission{
+		"view_members",
+		"authentication.permisssions.view_members.name",
+		"authentication.permisssions.view_members.description",
+		PERMISSION_SCOPE_TEAM,
+	}
 
 	ALL_PERMISSIONS = []*Permission{
 		PERMISSION_INVITE_USER,
@@ -586,6 +598,7 @@ func initializePermissions() {
 		PERMISSION_MANAGE_BOTS,
 		PERMISSION_MANAGE_OTHERS_BOTS,
 		PERMISSION_MANAGE_SYSTEM,
+		PERMISSION_VIEW_MEMBERS,
 	}
 }
 

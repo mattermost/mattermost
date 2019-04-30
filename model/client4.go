@@ -1577,6 +1577,16 @@ func (c *Client4) PatchTeam(teamId string, patch *TeamPatch) (*Team, *Response) 
 	return TeamFromJson(r.Body), BuildResponse(r)
 }
 
+// RegenerateTeamInviteId requests a new invite ID to be generated.
+func (c *Client4) RegenerateTeamInviteId(teamId string) (*Team, *Response) {
+	r, err := c.DoApiPost(c.GetTeamRoute(teamId)+"/regenerate_invite_id", "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return TeamFromJson(r.Body), BuildResponse(r)
+}
+
 // SoftDeleteTeam deletes the team softly (archive only, not permanent delete).
 func (c *Client4) SoftDeleteTeam(teamId string) (bool, *Response) {
 	r, err := c.DoApiDelete(c.GetTeamRoute(teamId))
@@ -1764,6 +1774,16 @@ func (c *Client4) ImportTeam(data []byte, filesize int, importFrom, filename, te
 // InviteUsersToTeam invite users by email to the team.
 func (c *Client4) InviteUsersToTeam(teamId string, userEmails []string) (bool, *Response) {
 	r, err := c.DoApiPost(c.GetTeamRoute(teamId)+"/invite/email", ArrayToJson(userEmails))
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
+// InvalidateEmailInvites will invalidate active email invitations that have not been accepted by the user.
+func (c *Client4) InvalidateEmailInvites() (bool, *Response) {
+	r, err := c.DoApiDelete(c.GetTeamsRoute() + "/invites/email")
 	if err != nil {
 		return false, BuildErrorResponse(r, err)
 	}
@@ -3288,6 +3308,30 @@ func (c *Client4) UnlinkLdapGroup(dn string) (*Group, *Response) {
 	defer closeBody(r)
 
 	return GroupFromJson(r.Body), BuildResponse(r)
+}
+
+// GetLdapGroupsByChannel retrieves the Mattermost Groups associated with a given channel
+func (c *Client4) GetGroupsByChannel(channelId string, page, perPage int) ([]*Group, *Response) {
+	path := fmt.Sprintf("%s/groups?page=%v&per_page=%v", c.GetChannelRoute(channelId), page, perPage)
+	r, appErr := c.DoApiGet(path, "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	return GroupsFromJson(r.Body), BuildResponse(r)
+}
+
+// GetLdapGroupsByTeam retrieves the Mattermost Groups associated with a given team
+func (c *Client4) GetGroupsByTeam(teamId string, page, perPage int) ([]*Group, *Response) {
+	path := fmt.Sprintf("%s/groups?page=%v&per_page=%v", c.GetTeamRoute(teamId), page, perPage)
+	r, appErr := c.DoApiGet(path, "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	return GroupsFromJson(r.Body), BuildResponse(r)
 }
 
 // Audits Section

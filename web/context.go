@@ -25,8 +25,8 @@ type Context struct {
 
 func (c *Context) LogAudit(extraInfo string) {
 	audit := &model.Audit{UserId: c.App.Session.UserId, IpAddress: c.App.IpAddress, Action: c.App.Path, ExtraInfo: extraInfo, SessionId: c.App.Session.Id}
-	if r := <-c.App.Srv.Store.Audit().Save(audit); r.Err != nil {
-		c.LogError(r.Err)
+	if err := c.App.Srv.Store.Audit().Save(audit); err != nil {
+		c.LogError(err)
 	}
 }
 
@@ -37,8 +37,8 @@ func (c *Context) LogAuditWithUserId(userId, extraInfo string) {
 	}
 
 	audit := &model.Audit{UserId: userId, IpAddress: c.App.IpAddress, Action: c.App.Path, ExtraInfo: extraInfo, SessionId: c.App.Session.Id}
-	if r := <-c.App.Srv.Store.Audit().Save(audit); r.Err != nil {
-		c.LogError(r.Err)
+	if err := c.App.Srv.Store.Audit().Save(audit); err != nil {
+		c.LogError(err)
 	}
 }
 
@@ -122,6 +122,11 @@ func (c *Context) MfaRequired() {
 		// Special case to let user get themself
 		subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
 		if c.App.Path == path.Join(subpath, "/api/v4/users/me") {
+			return
+		}
+
+		// Bots are exempt
+		if user.IsBot {
 			return
 		}
 

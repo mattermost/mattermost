@@ -407,12 +407,34 @@ func TestDatabaseStoreLoad(t *testing.T) {
 		require.NoError(t, err)
 		defer ds.Close()
 
+		assert.Equal(t, "http://minimal", *ds.Get().ServiceSettings.SiteURL)
+
 		os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://override")
 
 		err = ds.Load()
 		require.NoError(t, err)
 		assert.Equal(t, "http://override", *ds.Get().ServiceSettings.SiteURL)
 		assert.Equal(t, map[string]interface{}{"ServiceSettings": map[string]interface{}{"SiteURL": true}}, ds.GetEnvironmentOverrides())
+	})
+
+	t.Run("do not persist environment variables", func(t *testing.T) {
+		_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
+		defer tearDown()
+
+		os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://overridePersistEnvVariables")
+
+		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *sqlSettings.DriverName, *sqlSettings.DataSource))
+		require.NoError(t, err)
+		defer ds.Close()
+
+		_, err = ds.Set(ds.Get())
+		require.NoError(t, err)
+
+		assert.Equal(t, "http://overridePersistEnvVariables", *ds.Get().ServiceSettings.SiteURL)
+		assert.Equal(t, map[string]interface{}{"ServiceSettings": map[string]interface{}{"SiteURL": true}}, ds.GetEnvironmentOverrides())
+		// check that in DB config does not include overwritten variable
+		_, actualConfig := getActualDatabaseConfig(t)
+		assert.Equal(t, "http://minimal", *actualConfig.ServiceSettings.SiteURL)
 	})
 
 	t.Run("invalid", func(t *testing.T) {
