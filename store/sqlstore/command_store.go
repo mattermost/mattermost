@@ -111,13 +111,12 @@ func (s SqlCommandStore) Delete(commandId string, time int64) store.StoreChannel
 	})
 }
 
-func (s SqlCommandStore) PermanentDeleteByTeam(teamId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		_, err := s.GetMaster().Exec("DELETE FROM Commands WHERE TeamId = :TeamId", map[string]interface{}{"TeamId": teamId})
-		if err != nil {
-			result.Err = model.NewAppError("SqlCommandStore.DeleteByTeam", "store.sql_command.save.delete_perm.app_error", nil, "id="+teamId+", err="+err.Error(), http.StatusInternalServerError)
-		}
-	})
+func (s SqlCommandStore) PermanentDeleteByTeam(teamId string) *model.AppError {
+	_, err := s.GetMaster().Exec("DELETE FROM Commands WHERE TeamId = :TeamId", map[string]interface{}{"TeamId": teamId})
+	if err != nil {
+		return model.NewAppError("SqlCommandStore.DeleteByTeam", "store.sql_command.save.delete_perm.app_error", nil, "id="+teamId+", err="+err.Error(), http.StatusInternalServerError)
+	}
+	return nil
 }
 
 func (s SqlCommandStore) PermanentDeleteByUser(userId string) *model.AppError {

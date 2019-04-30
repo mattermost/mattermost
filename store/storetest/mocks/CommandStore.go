@@ -103,15 +103,15 @@ func (_m *CommandStore) GetByTrigger(teamId string, trigger string) store.StoreC
 }
 
 // PermanentDeleteByTeam provides a mock function with given fields: teamId
-func (_m *CommandStore) PermanentDeleteByTeam(teamId string) store.StoreChannel {
+func (_m *CommandStore) PermanentDeleteByTeam(teamId string) *model.AppError {
 	ret := _m.Called(teamId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
 		r0 = rf(teamId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 

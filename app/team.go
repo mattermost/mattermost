@@ -1105,8 +1105,8 @@ func (a *App) PermanentDeleteTeam(team *model.Team) *model.AppError {
 		return result.Err
 	}
 
-	if result := <-a.Srv.Store.Command().PermanentDeleteByTeam(team.Id); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.Command().PermanentDeleteByTeam(team.Id); err != nil {
+		return err
 	}
 
 	if result := <-a.Srv.Store.Team().PermanentDelete(team.Id); result.Err != nil {
