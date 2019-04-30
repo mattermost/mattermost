@@ -178,30 +178,25 @@ func (s SqlTeamStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_teammembers_delete_at", "TeamMembers", "DeleteAt")
 }
 
-func (s SqlTeamStore) Save(team *model.Team) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if len(team.Id) > 0 {
-			result.Err = model.NewAppError("SqlTeamStore.Save",
-				"store.sql_team.save.existing.app_error", nil, "id="+team.Id, http.StatusBadRequest)
-			return
-		}
+func (s SqlTeamStore) Save(team *model.Team) (*model.Team, *model.AppError) {
+	if len(team.Id) > 0 {
+		return nil, model.NewAppError("SqlTeamStore.Save",
+			"store.sql_team.save.existing.app_error", nil, "id="+team.Id, http.StatusBadRequest)
+	}
 
-		team.PreSave()
+	team.PreSave()
 
-		if result.Err = team.IsValid(); result.Err != nil {
-			return
-		}
+	if err := team.IsValid(); err != nil {
+		return nil, err
+	}
 
-		if err := s.GetMaster().Insert(team); err != nil {
-			if IsUniqueConstraintError(err, []string{"Name", "teams_name_key"}) {
-				result.Err = model.NewAppError("SqlTeamStore.Save", "store.sql_team.save.domain_exists.app_error", nil, "id="+team.Id+", "+err.Error(), http.StatusBadRequest)
-				return
-			}
-			result.Err = model.NewAppError("SqlTeamStore.Save", "store.sql_team.save.app_error", nil, "id="+team.Id+", "+err.Error(), http.StatusInternalServerError)
-			return
+	if err := s.GetMaster().Insert(team); err != nil {
+		if IsUniqueConstraintError(err, []string{"Name", "teams_name_key"}) {
+			return nil, model.NewAppError("SqlTeamStore.Save", "store.sql_team.save.domain_exists.app_error", nil, "id="+team.Id+", "+err.Error(), http.StatusBadRequest)
 		}
-		result.Data = team
-	})
+		return nil, model.NewAppError("SqlTeamStore.Save", "store.sql_team.save.app_error", nil, "id="+team.Id+", "+err.Error(), http.StatusInternalServerError)
+	}
+	return team, nil
 }
 
 func (s SqlTeamStore) Update(team *model.Team) (*model.Team, *model.AppError) {

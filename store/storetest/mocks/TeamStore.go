@@ -545,19 +545,28 @@ func (_m *TeamStore) ResetAllTeamSchemes() store.StoreChannel {
 }
 
 // Save provides a mock function with given fields: team
-func (_m *TeamStore) Save(team *model.Team) store.StoreChannel {
+func (_m *TeamStore) Save(team *model.Team) (*model.Team, *model.AppError) {
 	ret := _m.Called(team)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(*model.Team) store.StoreChannel); ok {
+	var r0 *model.Team
+	if rf, ok := ret.Get(0).(func(*model.Team) *model.Team); ok {
 		r0 = rf(team)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.Team)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.Team) *model.AppError); ok {
+		r1 = rf(team)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // SaveMember provides a mock function with given fields: member, maxUsersPerTeam
