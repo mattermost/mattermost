@@ -1617,12 +1617,12 @@ func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
 }
 
 func testTeamStoreGetAllForExportAfter(t *testing.T, ss store.Store) {
-	t1 := &model.Team{}
+	t1 := model.Team{}
 	t1.DisplayName = "Name"
 	t1.Name = model.NewId()
 	t1.Email = MakeEmail()
 	t1.Type = model.TEAM_OPEN
-	t1, err := ss.Team().Save(t1)
+	_, err := ss.Team().Save(&t1)
 	require.Nil(t, err)
 
 	r1 := <-ss.Team().GetAllForExportAfter(10000, strings.Repeat("0", 26))
