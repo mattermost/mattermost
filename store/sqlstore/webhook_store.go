@@ -142,15 +142,14 @@ func (s SqlWebhookStore) GetIncoming(id string, allowFromCache bool) (*model.Inc
 	return &webhook, nil
 }
 
-func (s SqlWebhookStore) DeleteIncoming(webhookId string, time int64) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		_, err := s.GetMaster().Exec("Update IncomingWebhooks SET DeleteAt = :DeleteAt, UpdateAt = :UpdateAt WHERE Id = :Id", map[string]interface{}{"DeleteAt": time, "UpdateAt": time, "Id": webhookId})
-		if err != nil {
-			result.Err = model.NewAppError("SqlWebhookStore.DeleteIncoming", "store.sql_webhooks.delete_incoming.app_error", nil, "id="+webhookId+", err="+err.Error(), http.StatusInternalServerError)
-		}
+func (s SqlWebhookStore) DeleteIncoming(webhookId string, time int64) *model.AppError {
+	_, err := s.GetMaster().Exec("Update IncomingWebhooks SET DeleteAt = :DeleteAt, UpdateAt = :UpdateAt WHERE Id = :Id", map[string]interface{}{"DeleteAt": time, "UpdateAt": time, "Id": webhookId})
+	if err != nil {
+		return model.NewAppError("SqlWebhookStore.DeleteIncoming", "store.sql_webhooks.delete_incoming.app_error", nil, "id="+webhookId+", err="+err.Error(), http.StatusInternalServerError)
+	}
 
-		s.InvalidateWebhookCache(webhookId)
-	})
+	s.InvalidateWebhookCache(webhookId)
+	return nil
 }
 
 func (s SqlWebhookStore) PermanentDeleteIncomingByUser(userId string) *model.AppError {

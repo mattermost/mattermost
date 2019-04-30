@@ -320,6 +320,14 @@
     "translation": "Tried to perform an invalid update of the default channel {{.Channel}}"
   },
   {
+    "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
+    "translation": "Invalid channel member update: You can't add or remove the guest role manually"
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
+    "translation": "Invalid channel member update: A user must be a guest or a user but not both."
+  },
+  {
     "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
     "translation": "The provided role is managed by a Scheme and therefore cannot be applied directly to a Channel Member"
   },
@@ -330,6 +338,10 @@
   {
     "id": "api.channel.update_channel_scheme.scheme_scope.error",
     "translation": "Unable to set the scheme to the channel because the supplied scheme is not a channel scheme."
+  },
+  {
+    "id": "api.channel.update_team_member_roles.changing_guest_role.app_error",
+    "translation": "Invalid team member update: You can't add or remove the guest role manually"
   },
   {
     "id": "api.channel.update_team_member_roles.scheme_role.app_error",
@@ -1939,6 +1951,10 @@
     "translation": "Restricting team to {{ .Domain }} is not allowed by the system config. Please contact your system administrator."
   },
   {
+    "id": "api.team.update_team_member_roles.guest_and_user.app_error",
+    "translation": "Invalid team member update: A user must be a guest or a user but not both."
+  },
+  {
     "id": "api.team.update_team_scheme.license.error",
     "translation": "Your license does not support updating a team's scheme"
   },
@@ -2305,10 +2321,6 @@
   {
     "id": "api.user.get_authorization_code.unsupported.app_error",
     "translation": "Unsupported OAuth service provider"
-  },
-  {
-    "id": "api.user.get_profile_image.not_found.app_error",
-    "translation": "Unable to get profile image, user not found."
   },
   {
     "id": "api.user.get_user_by_email.permissions.app_error",
@@ -5623,6 +5635,10 @@
     "translation": "We encountered an error updating the channel member"
   },
   {
+    "id": "store.sql_channel.user_belongs_to_channels.app_error",
+    "translation": "Unable to determine if the user belongs to a list of channels"
+  },
+  {
     "id": "store.sql_channel_member_history.get_users_in_channel_during.app_error",
     "translation": "Failed to get users in channel during specified time period"
   },
@@ -6499,6 +6515,10 @@
     "translation": "Unable to get the teams unread messages"
   },
   {
+    "id": "store.sql_team.get_user_team_ids.app_error",
+    "translation": "Unable to get the list of teams of a user"
+  },
+  {
     "id": "store.sql_team.migrate_team_members.commit_transaction.app_error",
     "translation": "Failed to commit the database transaction"
   },
@@ -6581,6 +6601,10 @@
   {
     "id": "store.sql_team.update_last_team_icon_update.app_error",
     "translation": "Unable to update the date of the last team icon update"
+  },
+  {
+    "id": "store.sql_team.user_belongs_to_teams.app_error",
+    "translation": "Unable to determine if the user belongs to a list of teams"
   },
   {
     "id": "store.sql_terms_of_service.save.app_error",

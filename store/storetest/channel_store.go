@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"fmt"
 	"sort"
 	"strconv"
 	"strings"
@@ -1047,14 +1048,16 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlSupplier)
 	t1.Name = model.NewId()
 	t1.Email = MakeEmail()
 	t1.Type = model.TEAM_OPEN
-	store.Must(ss.Team().Save(&t1))
+	_, err := ss.Team().Save(&t1)
+	require.Nil(t, err)
 
 	t2 := model.Team{}
 	t2.DisplayName = "Name2"
 	t2.Name = model.NewId()
 	t2.Email = MakeEmail()
 	t2.Type = model.TEAM_OPEN
-	store.Must(ss.Team().Save(&t2))
+	_, err = ss.Team().Save(&t2)
+	require.Nil(t, err)
 
 	c1 := model.Channel{}
 	c1.TeamId = t1.Id
@@ -1463,7 +1466,8 @@ func testChannelStoreGetMembersForUser(t *testing.T, ss store.Store) {
 	t1.Name = model.NewId()
 	t1.Email = MakeEmail()
 	t1.Type = model.TEAM_OPEN
-	store.Must(ss.Team().Save(&t1))
+	_, err := ss.Team().Save(&t1)
+	require.Nil(t, err)
 
 	o1 := model.Channel{}
 	o1.TeamId = t1.Id
@@ -1506,7 +1510,8 @@ func testChannelStoreGetMembersForUserWithPagination(t *testing.T, ss store.Stor
 	t1.Name = model.NewId()
 	t1.Email = MakeEmail()
 	t1.Type = model.TEAM_OPEN
-	store.Must(ss.Team().Save(&t1))
+	_, err := ss.Team().Save(&t1)
+	require.Nil(t, err)
 
 	o1 := model.Channel{}
 	o1.TeamId = t1.Id
@@ -2218,14 +2223,16 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 	t1.Name = model.NewId()
 	t1.Email = MakeEmail()
 	t1.Type = model.TEAM_OPEN
-	store.Must(ss.Team().Save(&t1))
+	_, err := ss.Team().Save(&t1)
+	require.Nil(t, err)
 
 	t2 := model.Team{}
 	t2.DisplayName = "Name2"
 	t2.Name = model.NewId()
 	t2.Email = MakeEmail()
 	t2.Type = model.TEAM_OPEN
-	store.Must(ss.Team().Save(&t2))
+	_, err = ss.Team().Save(&t2)
+	require.Nil(t, err)
 
 	o1 := model.Channel{
 		TeamId:      t1.Id,
@@ -2716,6 +2723,9 @@ func testChannelStoreGetChannelsByScheme(t *testing.T, ss store.Store) {
 		Scope:       model.SCHEME_SCOPE_CHANNEL,
 	}
 
+	result := <-ss.Scheme().Save(s1)
+	fmt.Println(result.Err)
+	s1 = result.Data.(*model.Scheme)
 	s1 = (<-ss.Scheme().Save(s1)).Data.(*model.Scheme)
 	s2 = (<-ss.Scheme().Save(s2)).Data.(*model.Scheme)
 
@@ -2820,18 +2830,21 @@ func testChannelStoreMigrateChannelMembers(t *testing.T, ss store.Store) {
 	cm1b, err := ss.Channel().GetMember(cm1.ChannelId, cm1.UserId)
 	assert.Nil(t, err)
 	assert.Equal(t, "", cm1b.ExplicitRoles)
+	assert.False(t, cm1b.SchemeGuest)
 	assert.True(t, cm1b.SchemeUser)
 	assert.True(t, cm1b.SchemeAdmin)
 
 	cm2b, err := ss.Channel().GetMember(cm2.ChannelId, cm2.UserId)
 	assert.Nil(t, err)
 	assert.Equal(t, "", cm2b.ExplicitRoles)
+	assert.False(t, cm1b.SchemeGuest)
 	assert.True(t, cm2b.SchemeUser)
 	assert.False(t, cm2b.SchemeAdmin)
 
 	cm3b, err := ss.Channel().GetMember(cm3.ChannelId, cm3.UserId)
 	assert.Nil(t, err)
 	assert.Equal(t, "something_else", cm3b.ExplicitRoles)
+	assert.False(t, cm1b.SchemeGuest)
 	assert.False(t, cm3b.SchemeUser)
 	assert.False(t, cm3b.SchemeAdmin)
 }
@@ -3093,7 +3106,8 @@ func testChannelStoreGetAllChannelsForExportAfter(t *testing.T, ss store.Store) 
 	t1.Name = model.NewId()
 	t1.Email = MakeEmail()
 	t1.Type = model.TEAM_OPEN
-	store.Must(ss.Team().Save(&t1))
+	_, err := ss.Team().Save(&t1)
+	require.Nil(t, err)
 
 	c1 := model.Channel{}
 	c1.TeamId = t1.Id
@@ -3124,7 +3138,8 @@ func testChannelStoreGetChannelMembersForExport(t *testing.T, ss store.Store) {
 	t1.Name = model.NewId()
 	t1.Email = MakeEmail()
 	t1.Type = model.TEAM_OPEN
-	store.Must(ss.Team().Save(&t1))
+	_, err := ss.Team().Save(&t1)
+	require.Nil(t, err)
 
 	c1 := model.Channel{}
 	c1.TeamId = t1.Id
@@ -3176,7 +3191,8 @@ func testChannelStoreRemoveAllDeactivatedMembers(t *testing.T, ss store.Store) {
 	t1.Name = model.NewId()
 	t1.Email = MakeEmail()
 	t1.Type = model.TEAM_OPEN
-	store.Must(ss.Team().Save(&t1))
+	_, err := ss.Team().Save(&t1)
+	require.Nil(t, err)
 
 	c1 := model.Channel{}
 	c1.TeamId = t1.Id
