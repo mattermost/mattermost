@@ -24,12 +24,11 @@ const (
 
 func (a *App) CreatePostAsUser(post *model.Post, currentSessionId string) (*model.Post, *model.AppError) {
 	// Check that channel has not been deleted
-	result := <-a.Srv.Store.Channel().Get(post.ChannelId, true)
-	if result.Err != nil {
-		err := model.NewAppError("CreatePostAsUser", "api.context.invalid_param.app_error", map[string]interface{}{"Name": "post.channel_id"}, result.Err.Error(), http.StatusBadRequest)
+	channel, errCh := a.Srv.Store.Channel().Get(post.ChannelId, true)
+	if errCh != nil {
+		err := model.NewAppError("CreatePostAsUser", "api.context.invalid_param.app_error", map[string]interface{}{"Name": "post.channel_id"}, errCh.Error(), http.StatusBadRequest)
 		return nil, err
 	}
-	channel := result.Data.(*model.Channel)
 
 	if strings.HasPrefix(post.Type, model.POST_SYSTEM_MESSAGE_PREFIX) {
 		err := model.NewAppError("CreatePostAsUser", "api.context.invalid_param.app_error", map[string]interface{}{"Name": "post.type"}, "", http.StatusBadRequest)
@@ -50,11 +49,10 @@ func (a *App) CreatePostAsUser(post *model.Post, currentSessionId string) (*mode
 		}
 
 		if err.Id == "api.post.create_post.town_square_read_only" {
-			result := <-a.Srv.Store.User().Get(post.UserId)
-			if result.Err != nil {
-				return nil, result.Err
+			user, userErr := a.Srv.Store.User().Get(post.UserId)
+			if userErr != nil {
+				return nil, userErr
 			}
-			user := result.Data.(*model.User)
 
 			T := utils.GetUserTranslations(user.Locale)
 			a.SendEphemeralPost(
@@ -83,11 +81,10 @@ func (a *App) CreatePostAsUser(post *model.Post, currentSessionId string) (*mode
 }
 
 func (a *App) CreatePostMissingChannel(post *model.Post, triggerWebhooks bool) (*model.Post, *model.AppError) {
-	result := <-a.Srv.Store.Channel().Get(post.ChannelId, true)
-	if result.Err != nil {
-		return nil, result.Err
+	channel, err := a.Srv.Store.Channel().Get(post.ChannelId, true)
+	if err != nil {
+		return nil, err
 	}
-	channel := result.Data.(*model.Channel)
 
 	return a.CreatePost(post, channel, triggerWebhooks)
 }
@@ -164,11 +161,10 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		pchan = a.Srv.Store.Post().Get(post.RootId)
 	}
 
-	result := <-a.Srv.Store.User().Get(post.UserId)
-	if result.Err != nil {
-		return nil, result.Err
+	user, err := a.Srv.Store.User().Get(post.UserId)
+	if err != nil {
+		return nil, err
 	}
-	user := result.Data.(*model.User)
 
 	if a.License() != nil && *a.Config().TeamSettings.ExperimentalTownSquareIsReadOnly &&
 		!post.IsSystemMessage() &&
@@ -180,7 +176,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 	// Verify the parent/child relationships are correct
 	var parentPostList *model.PostList
 	if pchan != nil {
-		result = <-pchan
+		result := <-pchan
 		if result.Err != nil {
 			return nil, model.NewAppError("createPost", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest)
 		}
@@ -245,7 +241,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		}
 	}
 
-	result = <-a.Srv.Store.Post().Save(post)
+	result := <-a.Srv.Store.Post().Save(post)
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -364,14 +360,14 @@ func (a *App) FillInPostProps(post *model.Post, channel *model.Channel) *model.A
 	return nil
 }
 
-func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *model.Channel, triggerWebhooks bool, parentPostList *model.PostList) *model.AppError {
+func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *model.Channel, triggerWebhooks bool, parentPostList *model.PostList) error {
 	var team *model.Team
 	if len(channel.TeamId) > 0 {
-		result := <-a.Srv.Store.Team().Get(channel.TeamId)
-		if result.Err != nil {
-			return result.Err
+		t, err := a.Srv.Store.Team().Get(channel.TeamId)
+		if err != nil {
+			return err
 		}
-		team = result.Data.(*model.Team)
+		team = t
 	} else {
 		// Blank team for DMs
 		team = &model.Team{}
@@ -504,6 +500,11 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 		newPost.HasReactions = post.HasReactions
 		newPost.FileIds = post.FileIds
 		newPost.Props = post.Props
+	}
+
+	// Avoid deep-equal checks if EditAt was already modified through message change
+	if newPost.EditAt == oldPost.EditAt && (!oldPost.FileIds.Equals(newPost.FileIds) || !oldPost.AttachmentsEqual(newPost)) {
+		newPost.EditAt = model.GetMillis()
 	}
 
 	if err := a.FillInPostProps(post, nil); err != nil {
@@ -779,7 +780,7 @@ func (a *App) DeletePostFiles(post *model.Post) {
 func (a *App) parseAndFetchChannelIdByNameFromInFilter(channelName, userId, teamId string, includeDeleted bool) (*model.Channel, error) {
 	if strings.HasPrefix(channelName, "@") && strings.Contains(channelName, ",") {
 		var userIds []string
-		users, err := a.GetUsersByUsernames(strings.Split(channelName[1:], ","), false)
+		users, err := a.GetUsersByUsernames(strings.Split(channelName[1:], ","), false, nil)
 		if err != nil {
 			return nil, err
 		}

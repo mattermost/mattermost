@@ -99,4 +99,5 @@ type SqlStore interface {
 	UserTermsOfService() store.UserTermsOfServiceStore
 	LinkMetadata() store.LinkMetadataStore
 	getQueryBuilder() sq.StatementBuilderType
+	NotificationRegistry() store.NotificationRegistryStore
 }

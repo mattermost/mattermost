@@ -25,6 +25,8 @@ func newViper(allowEnvironmentOverrides bool) *viper.Viper {
 
 	v.SetConfigType("json")
 
+	v.AllowEmptyEnv(true)
+
 	if allowEnvironmentOverrides {
 		v.SetEnvPrefix("mm")
 		v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
