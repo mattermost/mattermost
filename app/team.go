@@ -24,11 +24,10 @@ import (
 
 func (a *App) CreateTeam(team *model.Team) (*model.Team, *model.AppError) {
 	team.InviteId = ""
-	result := <-a.Srv.Store.Team().Save(team)
-	if result.Err != nil {
-		return nil, result.Err
+	rteam, err := a.Srv.Store.Team().Save(team)
+	if err != nil {
+		return nil, err
 	}
-	rteam := result.Data.(*model.Team)
 
 	if _, err := a.CreateDefaultChannels(rteam.Id); err != nil {
 		return nil, err
@@ -230,21 +229,21 @@ func (a *App) sendTeamEvent(team *model.Team, event string) {
 	a.Publish(message)
 }
 
-func (a *App) GetSchemeRolesForTeam(teamId string) (string, string, *model.AppError) {
+func (a *App) GetSchemeRolesForTeam(teamId string) (string, string, string, *model.AppError) {
 	team, err := a.GetTeam(teamId)
 	if err != nil {
-		return "", "", err
+		return "", "", "", err
 	}
 
 	if team.SchemeId != nil && len(*team.SchemeId) != 0 {
 		scheme, err := a.GetScheme(*team.SchemeId)
 		if err != nil {
-			return "", "", err
+			return "", "", "", err
 		}
-		return scheme.DefaultTeamUserRole, scheme.DefaultTeamAdminRole, nil
+		return scheme.DefaultTeamGuestRole, scheme.DefaultTeamUserRole, scheme.DefaultTeamAdminRole, nil
 	}
 
-	return model.TEAM_USER_ROLE_ID, model.TEAM_ADMIN_ROLE_ID, nil
+	return model.TEAM_GUEST_ROLE_ID, model.TEAM_USER_ROLE_ID, model.TEAM_ADMIN_ROLE_ID, nil
 }
 
 func (a *App) UpdateTeamMemberRoles(teamId string, userId string, newRoles string) (*model.TeamMember, *model.AppError) {
@@ -259,12 +258,15 @@ func (a *App) UpdateTeamMemberRoles(teamId string, userId string, newRoles strin
 		return nil, err
 	}
 
-	schemeUserRole, schemeAdminRole, err := a.GetSchemeRolesForTeam(teamId)
+	schemeGuestRole, schemeUserRole, schemeAdminRole, err := a.GetSchemeRolesForTeam(teamId)
 	if err != nil {
 		return nil, err
 	}
 
+	prevSchemeGuestValue := member.SchemeGuest
+
 	var newExplicitRoles []string
+	member.SchemeGuest = false
 	member.SchemeUser = false
 	member.SchemeAdmin = false
 
@@ -284,11 +286,21 @@ func (a *App) UpdateTeamMemberRoles(teamId string, userId string, newRoles strin
 				member.SchemeAdmin = true
 			case schemeUserRole:
 				member.SchemeUser = true
+			case schemeGuestRole:
+				member.SchemeGuest = true
 			default:
-				// If not part of the scheme for this channel, then it is not allowed to apply it as an explicit role.
+				// If not part of the scheme for this team, then it is not allowed to apply it as an explicit role.
 				return nil, model.NewAppError("UpdateTeamMemberRoles", "api.channel.update_team_member_roles.scheme_role.app_error", nil, "role_name="+roleName, http.StatusBadRequest)
 			}
 		}
+	}
+
+	if member.SchemeGuest && member.SchemeUser {
+		return nil, model.NewAppError("UpdateTeamMemberRoles", "api.team.update_team_member_roles.guest_and_user.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if prevSchemeGuestValue != member.SchemeGuest {
+		return nil, model.NewAppError("UpdateTeamMemberRoles", "api.channel.update_team_member_roles.changing_guest_role.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	member.ExplicitRoles = strings.Join(newExplicitRoles, " ")
@@ -306,7 +318,7 @@ func (a *App) UpdateTeamMemberRoles(teamId string, userId string, newRoles strin
 	return member, nil
 }
 
-func (a *App) UpdateTeamMemberSchemeRoles(teamId string, userId string, isSchemeUser bool, isSchemeAdmin bool) (*model.TeamMember, *model.AppError) {
+func (a *App) UpdateTeamMemberSchemeRoles(teamId string, userId string, isSchemeGuest bool, isSchemeUser bool, isSchemeAdmin bool) (*model.TeamMember, *model.AppError) {
 	member, err := a.GetTeamMember(teamId, userId)
 	if err != nil {
 		return nil, err
@@ -314,10 +326,15 @@ func (a *App) UpdateTeamMemberSchemeRoles(teamId string, userId string, isScheme
 
 	member.SchemeAdmin = isSchemeAdmin
 	member.SchemeUser = isSchemeUser
+	member.SchemeGuest = isSchemeGuest
+
+	if member.SchemeUser && member.SchemeGuest {
+		return nil, model.NewAppError("UpdateTeamMemberSchemeRoles", "api.team.update_team_member_roles.guest_and_user.app_error", nil, "", http.StatusBadRequest)
+	}
 
 	// If the migration is not completed, we also need to check the default team_admin/team_user roles are not present in the roles field.
 	if err = a.IsPhase2MigrationCompleted(); err != nil {
-		member.ExplicitRoles = RemoveRoles([]string{model.TEAM_USER_ROLE_ID, model.TEAM_ADMIN_ROLE_ID}, member.ExplicitRoles)
+		member.ExplicitRoles = RemoveRoles([]string{model.TEAM_GUEST_ROLE_ID, model.TEAM_USER_ROLE_ID, model.TEAM_ADMIN_ROLE_ID}, member.ExplicitRoles)
 	}
 
 	result := <-a.Srv.Store.Team().UpdateMember(member)
@@ -475,9 +492,10 @@ func (a *App) AddUserToTeamByInviteId(inviteId string, userId string) (*model.Te
 // 3. a pointer to an AppError if something went wrong.
 func (a *App) joinUserToTeam(team *model.Team, user *model.User) (*model.TeamMember, bool, *model.AppError) {
 	tm := &model.TeamMember{
-		TeamId:     team.Id,
-		UserId:     user.Id,
-		SchemeUser: true,
+		TeamId:      team.Id,
+		UserId:      user.Id,
+		SchemeGuest: user.IsGuest(),
+		SchemeUser:  !user.IsGuest(),
 	}
 
 	if team.Email == user.Email {
@@ -559,6 +577,7 @@ func (a *App) JoinUserToTeam(team *model.Team, user *model.User, userRequestorId
 
 	a.ClearSessionCacheForUser(user.Id)
 	a.InvalidateCacheForUser(user.Id)
+	a.InvalidateCacheForUserTeams(user.Id)
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_ADDED_TO_TEAM, "", "", user.Id, nil)
 	message.Add("team_id", team.Id)
@@ -693,16 +712,16 @@ func (a *App) GetTeamMembersForUserWithPagination(userId string, page, perPage i
 	return result.Data.([]*model.TeamMember), nil
 }
 
-func (a *App) GetTeamMembers(teamId string, offset int, limit int) ([]*model.TeamMember, *model.AppError) {
-	result := <-a.Srv.Store.Team().GetMembers(teamId, offset, limit)
+func (a *App) GetTeamMembers(teamId string, offset int, limit int, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError) {
+	result := <-a.Srv.Store.Team().GetMembers(teamId, offset, limit, restrictions)
 	if result.Err != nil {
 		return nil, result.Err
 	}
 	return result.Data.([]*model.TeamMember), nil
 }
 
-func (a *App) GetTeamMembersByIds(teamId string, userIds []string) ([]*model.TeamMember, *model.AppError) {
-	result := <-a.Srv.Store.Team().GetMembersByIds(teamId, userIds)
+func (a *App) GetTeamMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError) {
+	result := <-a.Srv.Store.Team().GetMembersByIds(teamId, userIds, restrictions)
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -932,6 +951,7 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 
 	a.ClearSessionCacheForUser(user.Id)
 	a.InvalidateCacheForUser(user.Id)
+	a.InvalidateCacheForUserTeams(user.Id)
 
 	return nil
 }
@@ -1104,8 +1124,8 @@ func (a *App) PermanentDeleteTeam(team *model.Team) *model.AppError {
 		return result.Err
 	}
 
-	if result := <-a.Srv.Store.Command().PermanentDeleteByTeam(team.Id); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.Command().PermanentDeleteByTeam(team.Id); err != nil {
+		return err
 	}
 
 	if result := <-a.Srv.Store.Team().PermanentDelete(team.Id); result.Err != nil {

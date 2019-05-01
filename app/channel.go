@@ -71,7 +71,8 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, shouldBeAdmin
 			cm := &model.ChannelMember{
 				ChannelId:   channel.Id,
 				UserId:      user.Id,
-				SchemeUser:  true,
+				SchemeGuest: user.IsGuest(),
+				SchemeUser:  !user.IsGuest(),
 				SchemeAdmin: shouldBeAdmin,
 				NotifyProps: model.GetDefaultChannelNotifyProps(),
 			}
@@ -213,10 +214,16 @@ func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Chan
 	sc := result.Data.(*model.Channel)
 
 	if addMember {
+		user, err := a.Srv.Store.User().Get(channel.CreatorId)
+		if err != nil {
+			return nil, err
+		}
+
 		cm := &model.ChannelMember{
 			ChannelId:   sc.Id,
-			UserId:      channel.CreatorId,
-			SchemeUser:  true,
+			UserId:      user.Id,
+			SchemeGuest: user.IsGuest(),
+			SchemeUser:  !user.IsGuest(),
 			SchemeAdmin: true,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		}
@@ -420,7 +427,7 @@ func (a *App) createGroupChannel(userIds []string, creatorId string) (*model.Cha
 		return nil, model.NewAppError("CreateGroupChannel", "api.channel.create_group.bad_size.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	result := <-a.Srv.Store.User().GetProfileByIds(userIds, true)
+	result := <-a.Srv.Store.User().GetProfileByIds(userIds, true, nil)
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -450,7 +457,8 @@ func (a *App) createGroupChannel(userIds []string, creatorId string) (*model.Cha
 			UserId:      user.Id,
 			ChannelId:   group.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
-			SchemeUser:  true,
+			SchemeGuest: user.IsGuest(),
+			SchemeUser:  !user.IsGuest(),
 		}
 
 		if result := <-a.Srv.Store.Channel().SaveMember(cm); result.Err != nil {
@@ -469,7 +477,7 @@ func (a *App) GetGroupChannel(userIds []string) (*model.Channel, *model.AppError
 		return nil, model.NewAppError("GetGroupChannel", "api.channel.create_group.bad_size.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	result := <-a.Srv.Store.User().GetProfileByIds(userIds, true)
+	result := <-a.Srv.Store.User().GetProfileByIds(userIds, true, nil)
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -616,35 +624,35 @@ func (a *App) PatchChannel(channel *model.Channel, patch *model.ChannelPatch, us
 	return channel, nil
 }
 
-func (a *App) GetSchemeRolesForChannel(channelId string) (string, string, *model.AppError) {
+func (a *App) GetSchemeRolesForChannel(channelId string) (string, string, string, *model.AppError) {
 	channel, err := a.GetChannel(channelId)
 	if err != nil {
-		return "", "", err
+		return "", "", "", err
 	}
 
 	if channel.SchemeId != nil && len(*channel.SchemeId) != 0 {
 		var scheme *model.Scheme
 		scheme, err = a.GetScheme(*channel.SchemeId)
 		if err != nil {
-			return "", "", err
+			return "", "", "", err
 		}
-		return scheme.DefaultChannelUserRole, scheme.DefaultChannelAdminRole, nil
+		return scheme.DefaultChannelGuestRole, scheme.DefaultChannelUserRole, scheme.DefaultChannelAdminRole, nil
 	}
 
 	team, err := a.GetTeam(channel.TeamId)
 	if err != nil {
-		return "", "", err
+		return "", "", "", err
 	}
 
 	if team.SchemeId != nil && len(*team.SchemeId) != 0 {
 		scheme, err := a.GetScheme(*team.SchemeId)
 		if err != nil {
-			return "", "", err
+			return "", "", "", err
 		}
-		return scheme.DefaultChannelUserRole, scheme.DefaultChannelAdminRole, nil
+		return scheme.DefaultChannelGuestRole, scheme.DefaultChannelUserRole, scheme.DefaultChannelAdminRole, nil
 	}
 
-	return model.CHANNEL_USER_ROLE_ID, model.CHANNEL_ADMIN_ROLE_ID, nil
+	return model.CHANNEL_GUEST_ROLE_ID, model.CHANNEL_USER_ROLE_ID, model.CHANNEL_ADMIN_ROLE_ID, nil
 }
 
 func (a *App) UpdateChannelMemberRoles(channelId string, userId string, newRoles string) (*model.ChannelMember, *model.AppError) {
@@ -654,12 +662,15 @@ func (a *App) UpdateChannelMemberRoles(channelId string, userId string, newRoles
 		return nil, err
 	}
 
-	schemeUserRole, schemeAdminRole, err := a.GetSchemeRolesForChannel(channelId)
+	schemeGuestRole, schemeUserRole, schemeAdminRole, err := a.GetSchemeRolesForChannel(channelId)
 	if err != nil {
 		return nil, err
 	}
 
+	prevSchemeGuestValue := member.SchemeGuest
+
 	var newExplicitRoles []string
+	member.SchemeGuest = false
 	member.SchemeUser = false
 	member.SchemeAdmin = false
 
@@ -680,11 +691,21 @@ func (a *App) UpdateChannelMemberRoles(channelId string, userId string, newRoles
 				member.SchemeAdmin = true
 			case schemeUserRole:
 				member.SchemeUser = true
+			case schemeGuestRole:
+				member.SchemeGuest = true
 			default:
 				// If not part of the scheme for this channel, then it is not allowed to apply it as an explicit role.
 				return nil, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.scheme_role.app_error", nil, "role_name="+roleName, http.StatusBadRequest)
 			}
 		}
+	}
+
+	if member.SchemeUser && member.SchemeGuest {
+		return nil, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.guest_and_user.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if prevSchemeGuestValue != member.SchemeGuest {
+		return nil, model.NewAppError("UpdateChannelMemberRoles", "api.channel.update_channel_member_roles.changing_guest_role.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	member.ExplicitRoles = strings.Join(newExplicitRoles, " ")
@@ -699,7 +720,7 @@ func (a *App) UpdateChannelMemberRoles(channelId string, userId string, newRoles
 	return member, nil
 }
 
-func (a *App) UpdateChannelMemberSchemeRoles(channelId string, userId string, isSchemeUser bool, isSchemeAdmin bool) (*model.ChannelMember, *model.AppError) {
+func (a *App) UpdateChannelMemberSchemeRoles(channelId string, userId string, isSchemeGuest bool, isSchemeUser bool, isSchemeAdmin bool) (*model.ChannelMember, *model.AppError) {
 	member, err := a.GetChannelMember(channelId, userId)
 	if err != nil {
 		return nil, err
@@ -707,10 +728,15 @@ func (a *App) UpdateChannelMemberSchemeRoles(channelId string, userId string, is
 
 	member.SchemeAdmin = isSchemeAdmin
 	member.SchemeUser = isSchemeUser
+	member.SchemeGuest = isSchemeGuest
+
+	if member.SchemeUser && member.SchemeGuest {
+		return nil, model.NewAppError("UpdateChannelMemberSchemeRoles", "api.channel.update_channel_member_roles.guest_and_user.app_error", nil, "", http.StatusBadRequest)
+	}
 
 	// If the migration is not completed, we also need to check the default channel_admin/channel_user roles are not present in the roles field.
 	if err = a.IsPhase2MigrationCompleted(); err != nil {
-		member.ExplicitRoles = RemoveRoles([]string{model.CHANNEL_USER_ROLE_ID, model.CHANNEL_ADMIN_ROLE_ID}, member.ExplicitRoles)
+		member.ExplicitRoles = RemoveRoles([]string{model.CHANNEL_GUEST_ROLE_ID, model.CHANNEL_USER_ROLE_ID, model.CHANNEL_ADMIN_ROLE_ID}, member.ExplicitRoles)
 	}
 
 	result := <-a.Srv.Store.Channel().UpdateMember(member)
@@ -826,7 +852,7 @@ func (a *App) DeleteChannel(channel *model.Channel, userId string) *model.AppErr
 
 	now := model.GetMillis()
 	for _, hook := range incomingHooks {
-		if result := <-a.Srv.Store.Webhook().DeleteIncoming(hook.Id, now); result.Err != nil {
+		if err := a.Srv.Store.Webhook().DeleteIncoming(hook.Id, now); err != nil {
 			mlog.Error(fmt.Sprintf("Encountered error deleting incoming webhook, id=%v", hook.Id))
 		}
 		a.InvalidateCacheForWebhook(hook.Id)
@@ -871,7 +897,8 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel, teamMem
 		ChannelId:   channel.Id,
 		UserId:      user.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
-		SchemeUser:  true,
+		SchemeGuest: user.IsGuest(),
+		SchemeUser:  !user.IsGuest(),
 	}
 	if result := <-a.Srv.Store.Channel().SaveMember(newMember); result.Err != nil {
 		mlog.Error(fmt.Sprintf("Failed to add member user_id=%v channel_id=%v err=%v", user.Id, channel.Id, result.Err), mlog.String("user_id", user.Id))
@@ -1907,7 +1934,7 @@ func (a *App) MoveChannel(team *model.Team, channel *model.Channel, user *model.
 	}
 
 	if len(channelMemberIds) > 0 {
-		teamMembers, err2 := a.GetTeamMembersByIds(team.Id, channelMemberIds)
+		teamMembers, err2 := a.GetTeamMembersByIds(team.Id, channelMemberIds, nil)
 		if err2 != nil {
 			return err2
 		}

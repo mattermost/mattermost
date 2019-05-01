@@ -466,12 +466,7 @@ func (a *App) CreateCommand(cmd *model.Command) (*model.Command, *model.AppError
 		}
 	}
 
-	result := <-a.Srv.Store.Command().Save(cmd)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-
-	return result.Data.(*model.Command), nil
+	return a.Srv.Store.Command().Save(cmd)
 }
 
 func (a *App) GetCommand(commandId string) (*model.Command, *model.AppError) {
@@ -502,19 +497,15 @@ func (a *App) UpdateCommand(oldCmd, updatedCmd *model.Command) (*model.Command, 
 	updatedCmd.CreatorId = oldCmd.CreatorId
 	updatedCmd.TeamId = oldCmd.TeamId
 
-	result := <-a.Srv.Store.Command().Update(updatedCmd)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.Command), nil
+	return a.Srv.Store.Command().Update(updatedCmd)
 }
 
 func (a *App) MoveCommand(team *model.Team, command *model.Command) *model.AppError {
 	command.TeamId = team.Id
 
-	result := <-a.Srv.Store.Command().Update(command)
-	if result.Err != nil {
-		return result.Err
+	_, err := a.Srv.Store.Command().Update(command)
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -527,21 +518,13 @@ func (a *App) RegenCommandToken(cmd *model.Command) (*model.Command, *model.AppE
 
 	cmd.Token = model.NewId()
 
-	result := <-a.Srv.Store.Command().Update(cmd)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-
-	return result.Data.(*model.Command), nil
+	return a.Srv.Store.Command().Update(cmd)
 }
 
 func (a *App) DeleteCommand(commandId string) *model.AppError {
 	if !*a.Config().ServiceSettings.EnableCommands {
 		return model.NewAppError("DeleteCommand", "api.command.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
-	result := <-a.Srv.Store.Command().Delete(commandId, model.GetMillis())
-	if result.Err != nil {
-		return result.Err
-	}
-	return nil
+
+	return a.Srv.Store.Command().Delete(commandId, model.GetMillis())
 }

@@ -10,17 +10,20 @@ import (
 )
 
 const (
+	SYSTEM_GUEST_ROLE_ID             = "system_guest"
 	SYSTEM_USER_ROLE_ID              = "system_user"
 	SYSTEM_ADMIN_ROLE_ID             = "system_admin"
 	SYSTEM_POST_ALL_ROLE_ID          = "system_post_all"
 	SYSTEM_POST_ALL_PUBLIC_ROLE_ID   = "system_post_all_public"
 	SYSTEM_USER_ACCESS_TOKEN_ROLE_ID = "system_user_access_token"
 
+	TEAM_GUEST_ROLE_ID           = "team_guest"
 	TEAM_USER_ROLE_ID            = "team_user"
 	TEAM_ADMIN_ROLE_ID           = "team_admin"
 	TEAM_POST_ALL_ROLE_ID        = "team_post_all"
 	TEAM_POST_ALL_PUBLIC_ROLE_ID = "team_post_all_public"
 
+	CHANNEL_GUEST_ROLE_ID = "channel_guest"
 	CHANNEL_USER_ROLE_ID  = "channel_user"
 	CHANNEL_ADMIN_ROLE_ID = "channel_admin"
 
@@ -173,6 +176,23 @@ func IsValidRoleName(roleName string) bool {
 func MakeDefaultRoles() map[string]*Role {
 	roles := make(map[string]*Role)
 
+	roles[CHANNEL_GUEST_ROLE_ID] = &Role{
+		Name:        "channel_guest",
+		DisplayName: "authentication.roles.channel_guest.name",
+		Description: "authentication.roles.channel_guest.description",
+		Permissions: []string{
+			PERMISSION_READ_CHANNEL.Id,
+			PERMISSION_ADD_REACTION.Id,
+			PERMISSION_REMOVE_REACTION.Id,
+			PERMISSION_UPLOAD_FILE.Id,
+			PERMISSION_EDIT_POST.Id,
+			PERMISSION_CREATE_POST.Id,
+			PERMISSION_USE_SLASH_COMMANDS.Id,
+		},
+		SchemeManaged: true,
+		BuiltIn:       true,
+	}
+
 	roles[CHANNEL_USER_ROLE_ID] = &Role{
 		Name:        "channel_user",
 		DisplayName: "authentication.roles.channel_user.name",
@@ -197,6 +217,17 @@ func MakeDefaultRoles() map[string]*Role {
 		Description: "authentication.roles.channel_admin.description",
 		Permissions: []string{
 			PERMISSION_MANAGE_CHANNEL_ROLES.Id,
+		},
+		SchemeManaged: true,
+		BuiltIn:       true,
+	}
+
+	roles[TEAM_GUEST_ROLE_ID] = &Role{
+		Name:        "team_guest",
+		DisplayName: "authentication.roles.team_guest.name",
+		Description: "authentication.roles.team_guest.description",
+		Permissions: []string{
+			PERMISSION_VIEW_TEAM.Id,
 		},
 		SchemeManaged: true,
 		BuiltIn:       true,
@@ -259,6 +290,18 @@ func MakeDefaultRoles() map[string]*Role {
 		BuiltIn:       true,
 	}
 
+	roles[SYSTEM_GUEST_ROLE_ID] = &Role{
+		Name:        "system_guest",
+		DisplayName: "authentication.roles.global_guest.name",
+		Description: "authentication.roles.global_guest.description",
+		Permissions: []string{
+			PERMISSION_CREATE_DIRECT_CHANNEL.Id,
+			PERMISSION_CREATE_GROUP_CHANNEL.Id,
+		},
+		SchemeManaged: true,
+		BuiltIn:       true,
+	}
+
 	roles[SYSTEM_USER_ROLE_ID] = &Role{
 		Name:        "system_user",
 		DisplayName: "authentication.roles.global_user.name",
@@ -268,6 +311,7 @@ func MakeDefaultRoles() map[string]*Role {
 			PERMISSION_JOIN_PUBLIC_TEAMS.Id,
 			PERMISSION_CREATE_DIRECT_CHANNEL.Id,
 			PERMISSION_CREATE_GROUP_CHANNEL.Id,
+			PERMISSION_VIEW_MEMBERS.Id,
 		},
 		SchemeManaged: true,
 		BuiltIn:       true,
@@ -357,6 +401,7 @@ func MakeDefaultRoles() map[string]*Role {
 							PERMISSION_REMOVE_OTHERS_REACTIONS.Id,
 							PERMISSION_LIST_PRIVATE_TEAMS.Id,
 							PERMISSION_JOIN_PRIVATE_TEAMS.Id,
+							PERMISSION_VIEW_MEMBERS.Id,
 						},
 						roles[TEAM_USER_ROLE_ID].Permissions...,
 					),
