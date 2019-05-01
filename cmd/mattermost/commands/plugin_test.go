@@ -5,38 +5,42 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/mattermost/mattermost-server/api4"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/config"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestPlugin(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	cfg := th.Config()
+	*cfg.PluginSettings.EnableUploads = true
+	*cfg.PluginSettings.Directory = "./test-plugins"
+	*cfg.PluginSettings.ClientDirectory = "./test-client-plugins"
+	th.SetConfig(cfg)
+
 	os.MkdirAll("./test-plugins", os.ModePerm)
 	os.MkdirAll("./test-client-plugins", os.ModePerm)
 
-	th := api4.Setup().InitBasic()
-	defer th.TearDown()
+	path, _ := fileutils.FindDir("tests")
 
-	path, _ := utils.FindDir("tests")
+	th.CheckCommand(t, "plugin", "add", filepath.Join(path, "testplugin.tar.gz"))
 
-	os.Chdir(filepath.Join("..", "..", ".."))
-
-	CheckCommand(t, "--config", filepath.Join(path, "test-config.json"), "plugin", "add", filepath.Join(path, "testplugin.tar.gz"))
-
-	CheckCommand(t, "--config", filepath.Join(path, "test-config.json"), "plugin", "enable", "testplugin")
-	cfg, _, _, err := utils.LoadConfig(filepath.Join(path, "test-config.json"))
+	th.CheckCommand(t, "plugin", "enable", "testplugin")
+	fs, err := config.NewFileStore(th.ConfigPath(), false)
 	require.Nil(t, err)
-	assert.Equal(t, cfg.PluginSettings.PluginStates["testplugin"].Enable, true)
+	assert.True(t, fs.Get().PluginSettings.PluginStates["testplugin"].Enable)
+	fs.Close()
 
-	CheckCommand(t, "--config", filepath.Join(path, "test-config.json"), "plugin", "disable", "testplugin")
-	cfg, _, _, err = utils.LoadConfig(filepath.Join(path, "test-config.json"))
+	th.CheckCommand(t, "plugin", "disable", "testplugin")
+	fs, err = config.NewFileStore(th.ConfigPath(), false)
 	require.Nil(t, err)
-	assert.Equal(t, cfg.PluginSettings.PluginStates["testplugin"].Enable, false)
+	assert.False(t, fs.Get().PluginSettings.PluginStates["testplugin"].Enable)
+	fs.Close()
 
-	CheckCommand(t, "--config", filepath.Join(path, "test-config.json"), "plugin", "list")
+	th.CheckCommand(t, "plugin", "list")
 
-	CheckCommand(t, "--config", filepath.Join(path, "test-config.json"), "plugin", "delete", "testplugin")
-
-	os.Chdir(filepath.Join("cmd", "mattermost", "commands"))
+	th.CheckCommand(t, "plugin", "delete", "testplugin")
 }

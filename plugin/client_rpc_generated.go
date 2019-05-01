@@ -120,76 +120,107 @@ func (s *hooksRPCServer) ExecuteCommand(args *Z_ExecuteCommandArgs, returns *Z_E
 }
 
 func init() {
-	hookNameToId["MessageWillBePosted"] = MessageWillBePostedId
+	hookNameToId["UserHasBeenCreated"] = UserHasBeenCreatedId
 }
 
-type Z_MessageWillBePostedArgs struct {
+type Z_UserHasBeenCreatedArgs struct {
 	A *Context
-	B *model.Post
+	B *model.User
 }
 
-type Z_MessageWillBePostedReturns struct {
-	A *model.Post
-	B string
+type Z_UserHasBeenCreatedReturns struct {
 }
 
-func (g *hooksRPCClient) MessageWillBePosted(c *Context, post *model.Post) (*model.Post, string) {
-	_args := &Z_MessageWillBePostedArgs{c, post}
-	_returns := &Z_MessageWillBePostedReturns{}
-	if g.implemented[MessageWillBePostedId] {
-		if err := g.client.Call("Plugin.MessageWillBePosted", _args, _returns); err != nil {
-			g.log.Error("RPC call MessageWillBePosted to plugin failed.", mlog.Err(err))
+func (g *hooksRPCClient) UserHasBeenCreated(c *Context, user *model.User) {
+	_args := &Z_UserHasBeenCreatedArgs{c, user}
+	_returns := &Z_UserHasBeenCreatedReturns{}
+	if g.implemented[UserHasBeenCreatedId] {
+		if err := g.client.Call("Plugin.UserHasBeenCreated", _args, _returns); err != nil {
+			g.log.Error("RPC call UserHasBeenCreated to plugin failed.", mlog.Err(err))
 		}
 	}
-	return _returns.A, _returns.B
+
 }
 
-func (s *hooksRPCServer) MessageWillBePosted(args *Z_MessageWillBePostedArgs, returns *Z_MessageWillBePostedReturns) error {
+func (s *hooksRPCServer) UserHasBeenCreated(args *Z_UserHasBeenCreatedArgs, returns *Z_UserHasBeenCreatedReturns) error {
 	if hook, ok := s.impl.(interface {
-		MessageWillBePosted(c *Context, post *model.Post) (*model.Post, string)
+		UserHasBeenCreated(c *Context, user *model.User)
 	}); ok {
-		returns.A, returns.B = hook.MessageWillBePosted(args.A, args.B)
+		hook.UserHasBeenCreated(args.A, args.B)
 
 	} else {
-		return encodableError(fmt.Errorf("Hook MessageWillBePosted called but not implemented."))
+		return encodableError(fmt.Errorf("Hook UserHasBeenCreated called but not implemented."))
 	}
 	return nil
 }
 
 func init() {
-	hookNameToId["MessageWillBeUpdated"] = MessageWillBeUpdatedId
+	hookNameToId["UserWillLogIn"] = UserWillLogInId
 }
 
-type Z_MessageWillBeUpdatedArgs struct {
+type Z_UserWillLogInArgs struct {
 	A *Context
-	B *model.Post
-	C *model.Post
+	B *model.User
 }
 
-type Z_MessageWillBeUpdatedReturns struct {
-	A *model.Post
-	B string
+type Z_UserWillLogInReturns struct {
+	A string
 }
 
-func (g *hooksRPCClient) MessageWillBeUpdated(c *Context, newPost, oldPost *model.Post) (*model.Post, string) {
-	_args := &Z_MessageWillBeUpdatedArgs{c, newPost, oldPost}
-	_returns := &Z_MessageWillBeUpdatedReturns{}
-	if g.implemented[MessageWillBeUpdatedId] {
-		if err := g.client.Call("Plugin.MessageWillBeUpdated", _args, _returns); err != nil {
-			g.log.Error("RPC call MessageWillBeUpdated to plugin failed.", mlog.Err(err))
+func (g *hooksRPCClient) UserWillLogIn(c *Context, user *model.User) string {
+	_args := &Z_UserWillLogInArgs{c, user}
+	_returns := &Z_UserWillLogInReturns{}
+	if g.implemented[UserWillLogInId] {
+		if err := g.client.Call("Plugin.UserWillLogIn", _args, _returns); err != nil {
+			g.log.Error("RPC call UserWillLogIn to plugin failed.", mlog.Err(err))
 		}
 	}
-	return _returns.A, _returns.B
+	return _returns.A
 }
 
-func (s *hooksRPCServer) MessageWillBeUpdated(args *Z_MessageWillBeUpdatedArgs, returns *Z_MessageWillBeUpdatedReturns) error {
+func (s *hooksRPCServer) UserWillLogIn(args *Z_UserWillLogInArgs, returns *Z_UserWillLogInReturns) error {
 	if hook, ok := s.impl.(interface {
-		MessageWillBeUpdated(c *Context, newPost, oldPost *model.Post) (*model.Post, string)
+		UserWillLogIn(c *Context, user *model.User) string
 	}); ok {
-		returns.A, returns.B = hook.MessageWillBeUpdated(args.A, args.B, args.C)
+		returns.A = hook.UserWillLogIn(args.A, args.B)
 
 	} else {
-		return encodableError(fmt.Errorf("Hook MessageWillBeUpdated called but not implemented."))
+		return encodableError(fmt.Errorf("Hook UserWillLogIn called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
+	hookNameToId["UserHasLoggedIn"] = UserHasLoggedInId
+}
+
+type Z_UserHasLoggedInArgs struct {
+	A *Context
+	B *model.User
+}
+
+type Z_UserHasLoggedInReturns struct {
+}
+
+func (g *hooksRPCClient) UserHasLoggedIn(c *Context, user *model.User) {
+	_args := &Z_UserHasLoggedInArgs{c, user}
+	_returns := &Z_UserHasLoggedInReturns{}
+	if g.implemented[UserHasLoggedInId] {
+		if err := g.client.Call("Plugin.UserHasLoggedIn", _args, _returns); err != nil {
+			g.log.Error("RPC call UserHasLoggedIn to plugin failed.", mlog.Err(err))
+		}
+	}
+
+}
+
+func (s *hooksRPCServer) UserHasLoggedIn(args *Z_UserHasLoggedInArgs, returns *Z_UserHasLoggedInReturns) error {
+	if hook, ok := s.impl.(interface {
+		UserHasLoggedIn(c *Context, user *model.User)
+	}); ok {
+		hook.UserHasLoggedIn(args.A, args.B)
+
+	} else {
+		return encodableError(fmt.Errorf("Hook UserHasLoggedIn called but not implemented."))
 	}
 	return nil
 }
@@ -444,77 +475,6 @@ func (s *hooksRPCServer) UserHasLeftTeam(args *Z_UserHasLeftTeamArgs, returns *Z
 	return nil
 }
 
-func init() {
-	hookNameToId["UserWillLogIn"] = UserWillLogInId
-}
-
-type Z_UserWillLogInArgs struct {
-	A *Context
-	B *model.User
-}
-
-type Z_UserWillLogInReturns struct {
-	A string
-}
-
-func (g *hooksRPCClient) UserWillLogIn(c *Context, user *model.User) string {
-	_args := &Z_UserWillLogInArgs{c, user}
-	_returns := &Z_UserWillLogInReturns{}
-	if g.implemented[UserWillLogInId] {
-		if err := g.client.Call("Plugin.UserWillLogIn", _args, _returns); err != nil {
-			g.log.Error("RPC call UserWillLogIn to plugin failed.", mlog.Err(err))
-		}
-	}
-	return _returns.A
-}
-
-func (s *hooksRPCServer) UserWillLogIn(args *Z_UserWillLogInArgs, returns *Z_UserWillLogInReturns) error {
-	if hook, ok := s.impl.(interface {
-		UserWillLogIn(c *Context, user *model.User) string
-	}); ok {
-		returns.A = hook.UserWillLogIn(args.A, args.B)
-
-	} else {
-		return encodableError(fmt.Errorf("Hook UserWillLogIn called but not implemented."))
-	}
-	return nil
-}
-
-func init() {
-	hookNameToId["UserHasLoggedIn"] = UserHasLoggedInId
-}
-
-type Z_UserHasLoggedInArgs struct {
-	A *Context
-	B *model.User
-}
-
-type Z_UserHasLoggedInReturns struct {
-}
-
-func (g *hooksRPCClient) UserHasLoggedIn(c *Context, user *model.User) {
-	_args := &Z_UserHasLoggedInArgs{c, user}
-	_returns := &Z_UserHasLoggedInReturns{}
-	if g.implemented[UserHasLoggedInId] {
-		if err := g.client.Call("Plugin.UserHasLoggedIn", _args, _returns); err != nil {
-			g.log.Error("RPC call UserHasLoggedIn to plugin failed.", mlog.Err(err))
-		}
-	}
-
-}
-
-func (s *hooksRPCServer) UserHasLoggedIn(args *Z_UserHasLoggedInArgs, returns *Z_UserHasLoggedInReturns) error {
-	if hook, ok := s.impl.(interface {
-		UserHasLoggedIn(c *Context, user *model.User)
-	}); ok {
-		hook.UserHasLoggedIn(args.A, args.B)
-
-	} else {
-		return encodableError(fmt.Errorf("Hook UserHasLoggedIn called but not implemented."))
-	}
-	return nil
-}
-
 type Z_RegisterCommandArgs struct {
 	A *model.Command
 }
@@ -711,6 +671,61 @@ func (s *apiRPCServer) SavePluginConfig(args *Z_SavePluginConfigArgs, returns *Z
 	return nil
 }
 
+type Z_GetBundlePathArgs struct {
+}
+
+type Z_GetBundlePathReturns struct {
+	A string
+	B error
+}
+
+func (g *apiRPCClient) GetBundlePath() (string, error) {
+	_args := &Z_GetBundlePathArgs{}
+	_returns := &Z_GetBundlePathReturns{}
+	if err := g.client.Call("Plugin.GetBundlePath", _args, _returns); err != nil {
+		log.Printf("RPC call to GetBundlePath API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetBundlePath(args *Z_GetBundlePathArgs, returns *Z_GetBundlePathReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetBundlePath() (string, error)
+	}); ok {
+		returns.A, returns.B = hook.GetBundlePath()
+	} else {
+		return encodableError(fmt.Errorf("API GetBundlePath called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetLicenseArgs struct {
+}
+
+type Z_GetLicenseReturns struct {
+	A *model.License
+}
+
+func (g *apiRPCClient) GetLicense() *model.License {
+	_args := &Z_GetLicenseArgs{}
+	_returns := &Z_GetLicenseReturns{}
+	if err := g.client.Call("Plugin.GetLicense", _args, _returns); err != nil {
+		log.Printf("RPC call to GetLicense API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) GetLicense(args *Z_GetLicenseArgs, returns *Z_GetLicenseReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetLicense() *model.License
+	}); ok {
+		returns.A = hook.GetLicense()
+	} else {
+		return encodableError(fmt.Errorf("API GetLicense called but not implemented."))
+	}
+	return nil
+}
+
 type Z_GetServerVersionArgs struct {
 }
 
@@ -734,6 +749,61 @@ func (s *apiRPCServer) GetServerVersion(args *Z_GetServerVersionArgs, returns *Z
 		returns.A = hook.GetServerVersion()
 	} else {
 		return encodableError(fmt.Errorf("API GetServerVersion called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetSystemInstallDateArgs struct {
+}
+
+type Z_GetSystemInstallDateReturns struct {
+	A int64
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetSystemInstallDate() (int64, *model.AppError) {
+	_args := &Z_GetSystemInstallDateArgs{}
+	_returns := &Z_GetSystemInstallDateReturns{}
+	if err := g.client.Call("Plugin.GetSystemInstallDate", _args, _returns); err != nil {
+		log.Printf("RPC call to GetSystemInstallDate API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetSystemInstallDate(args *Z_GetSystemInstallDateArgs, returns *Z_GetSystemInstallDateReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetSystemInstallDate() (int64, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetSystemInstallDate()
+	} else {
+		return encodableError(fmt.Errorf("API GetSystemInstallDate called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetDiagnosticIdArgs struct {
+}
+
+type Z_GetDiagnosticIdReturns struct {
+	A string
+}
+
+func (g *apiRPCClient) GetDiagnosticId() string {
+	_args := &Z_GetDiagnosticIdArgs{}
+	_returns := &Z_GetDiagnosticIdReturns{}
+	if err := g.client.Call("Plugin.GetDiagnosticId", _args, _returns); err != nil {
+		log.Printf("RPC call to GetDiagnosticId API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) GetDiagnosticId(args *Z_GetDiagnosticIdArgs, returns *Z_GetDiagnosticIdReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetDiagnosticId() string
+	}); ok {
+		returns.A = hook.GetDiagnosticId()
+	} else {
+		return encodableError(fmt.Errorf("API GetDiagnosticId called but not implemented."))
 	}
 	return nil
 }
@@ -767,36 +837,6 @@ func (s *apiRPCServer) CreateUser(args *Z_CreateUserArgs, returns *Z_CreateUserR
 	return nil
 }
 
-type Z_CreateDirectChannelArgs struct {
-	A string
-	B string
-}
-
-type Z_CreateDirectChannelReturns struct {
-	A *model.Channel
-	B *model.AppError
-}
-
-func (g *apiRPCClient) CreateDirectChannel(userId1 string, userId2 string) (*model.Channel, *model.AppError) {
-	_args := &Z_CreateDirectChannelArgs{userId1, userId2}
-	_returns := &Z_CreateDirectChannelReturns{}
-	if err := g.client.Call("Plugin.CreateDirectChannel", _args, _returns); err != nil {
-		log.Printf("RPC call to CreateDirectChannel API failed: %s", err.Error())
-	}
-	return _returns.A, _returns.B
-}
-
-func (s *apiRPCServer) CreateDirectChannel(args *Z_CreateDirectChannelArgs, returns *Z_CreateDirectChannelReturns) error {
-	if hook, ok := s.impl.(interface {
-		CreateDirectChannel(userId1 string, userId2 string) (*model.Channel, *model.AppError)
-	}); ok {
-		returns.A, returns.B = hook.CreateDirectChannel(args.A, args.B)
-	} else {
-		return encodableError(fmt.Errorf("API CreateDirectChannel called but not implemented."))
-	}
-	return nil
-}
-
 type Z_DeleteUserArgs struct {
 	A string
 }
@@ -821,6 +861,35 @@ func (s *apiRPCServer) DeleteUser(args *Z_DeleteUserArgs, returns *Z_DeleteUserR
 		returns.A = hook.DeleteUser(args.A)
 	} else {
 		return encodableError(fmt.Errorf("API DeleteUser called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetUsersArgs struct {
+	A *model.UserGetOptions
+}
+
+type Z_GetUsersReturns struct {
+	A []*model.User
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetUsers(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
+	_args := &Z_GetUsersArgs{options}
+	_returns := &Z_GetUsersReturns{}
+	if err := g.client.Call("Plugin.GetUsers", _args, _returns); err != nil {
+		log.Printf("RPC call to GetUsers API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetUsers(args *Z_GetUsersArgs, returns *Z_GetUsersReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetUsers(options *model.UserGetOptions) ([]*model.User, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetUsers(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetUsers called but not implemented."))
 	}
 	return nil
 }
@@ -1175,6 +1244,35 @@ func (s *apiRPCServer) UpdateUserStatus(args *Z_UpdateUserStatusArgs, returns *Z
 	return nil
 }
 
+type Z_UpdateUserActiveArgs struct {
+	A string
+	B bool
+}
+
+type Z_UpdateUserActiveReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) UpdateUserActive(userId string, active bool) *model.AppError {
+	_args := &Z_UpdateUserActiveArgs{userId, active}
+	_returns := &Z_UpdateUserActiveReturns{}
+	if err := g.client.Call("Plugin.UpdateUserActive", _args, _returns); err != nil {
+		log.Printf("RPC call to UpdateUserActive API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) UpdateUserActive(args *Z_UpdateUserActiveArgs, returns *Z_UpdateUserActiveReturns) error {
+	if hook, ok := s.impl.(interface {
+		UpdateUserActive(userId string, active bool) *model.AppError
+	}); ok {
+		returns.A = hook.UpdateUserActive(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API UpdateUserActive called but not implemented."))
+	}
+	return nil
+}
+
 type Z_GetUsersInChannelArgs struct {
 	A string
 	B string
@@ -1438,6 +1536,35 @@ func (s *apiRPCServer) UpdateTeam(args *Z_UpdateTeamArgs, returns *Z_UpdateTeamR
 	return nil
 }
 
+type Z_SearchTeamsArgs struct {
+	A string
+}
+
+type Z_SearchTeamsReturns struct {
+	A []*model.Team
+	B *model.AppError
+}
+
+func (g *apiRPCClient) SearchTeams(term string) ([]*model.Team, *model.AppError) {
+	_args := &Z_SearchTeamsArgs{term}
+	_returns := &Z_SearchTeamsReturns{}
+	if err := g.client.Call("Plugin.SearchTeams", _args, _returns); err != nil {
+		log.Printf("RPC call to SearchTeams API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) SearchTeams(args *Z_SearchTeamsArgs, returns *Z_SearchTeamsReturns) error {
+	if hook, ok := s.impl.(interface {
+		SearchTeams(term string) ([]*model.Team, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.SearchTeams(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API SearchTeams called but not implemented."))
+	}
+	return nil
+}
+
 type Z_GetTeamsForUserArgs struct {
 	A string
 }
@@ -1615,6 +1742,37 @@ func (s *apiRPCServer) GetTeamMember(args *Z_GetTeamMemberArgs, returns *Z_GetTe
 		returns.A, returns.B = hook.GetTeamMember(args.A, args.B)
 	} else {
 		return encodableError(fmt.Errorf("API GetTeamMember called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetTeamMembersForUserArgs struct {
+	A string
+	B int
+	C int
+}
+
+type Z_GetTeamMembersForUserReturns struct {
+	A []*model.TeamMember
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetTeamMembersForUser(userId string, page int, perPage int) ([]*model.TeamMember, *model.AppError) {
+	_args := &Z_GetTeamMembersForUserArgs{userId, page, perPage}
+	_returns := &Z_GetTeamMembersForUserReturns{}
+	if err := g.client.Call("Plugin.GetTeamMembersForUser", _args, _returns); err != nil {
+		log.Printf("RPC call to GetTeamMembersForUser API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetTeamMembersForUser(args *Z_GetTeamMembersForUserArgs, returns *Z_GetTeamMembersForUserReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetTeamMembersForUser(userId string, page int, perPage int) ([]*model.TeamMember, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetTeamMembersForUser(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API GetTeamMembersForUser called but not implemented."))
 	}
 	return nil
 }
@@ -2007,6 +2165,65 @@ func (s *apiRPCServer) SearchChannels(args *Z_SearchChannelsArgs, returns *Z_Sea
 	return nil
 }
 
+type Z_SearchUsersArgs struct {
+	A *model.UserSearch
+}
+
+type Z_SearchUsersReturns struct {
+	A []*model.User
+	B *model.AppError
+}
+
+func (g *apiRPCClient) SearchUsers(search *model.UserSearch) ([]*model.User, *model.AppError) {
+	_args := &Z_SearchUsersArgs{search}
+	_returns := &Z_SearchUsersReturns{}
+	if err := g.client.Call("Plugin.SearchUsers", _args, _returns); err != nil {
+		log.Printf("RPC call to SearchUsers API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) SearchUsers(args *Z_SearchUsersArgs, returns *Z_SearchUsersReturns) error {
+	if hook, ok := s.impl.(interface {
+		SearchUsers(search *model.UserSearch) ([]*model.User, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.SearchUsers(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API SearchUsers called but not implemented."))
+	}
+	return nil
+}
+
+type Z_SearchPostsInTeamArgs struct {
+	A string
+	B []*model.SearchParams
+}
+
+type Z_SearchPostsInTeamReturns struct {
+	A []*model.Post
+	B *model.AppError
+}
+
+func (g *apiRPCClient) SearchPostsInTeam(teamId string, paramsList []*model.SearchParams) ([]*model.Post, *model.AppError) {
+	_args := &Z_SearchPostsInTeamArgs{teamId, paramsList}
+	_returns := &Z_SearchPostsInTeamReturns{}
+	if err := g.client.Call("Plugin.SearchPostsInTeam", _args, _returns); err != nil {
+		log.Printf("RPC call to SearchPostsInTeam API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) SearchPostsInTeam(args *Z_SearchPostsInTeamArgs, returns *Z_SearchPostsInTeamReturns) error {
+	if hook, ok := s.impl.(interface {
+		SearchPostsInTeam(teamId string, paramsList []*model.SearchParams) ([]*model.Post, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.SearchPostsInTeam(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API SearchPostsInTeam called but not implemented."))
+	}
+	return nil
+}
+
 type Z_AddChannelMemberArgs struct {
 	A string
 	B string
@@ -2124,6 +2341,38 @@ func (s *apiRPCServer) GetChannelMembersByIds(args *Z_GetChannelMembersByIdsArgs
 		returns.A, returns.B = hook.GetChannelMembersByIds(args.A, args.B)
 	} else {
 		return encodableError(fmt.Errorf("API GetChannelMembersByIds called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetChannelMembersForUserArgs struct {
+	A string
+	B string
+	C int
+	D int
+}
+
+type Z_GetChannelMembersForUserReturns struct {
+	A []*model.ChannelMember
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetChannelMembersForUser(teamId, userId string, page, perPage int) ([]*model.ChannelMember, *model.AppError) {
+	_args := &Z_GetChannelMembersForUserArgs{teamId, userId, page, perPage}
+	_returns := &Z_GetChannelMembersForUserReturns{}
+	if err := g.client.Call("Plugin.GetChannelMembersForUser", _args, _returns); err != nil {
+		log.Printf("RPC call to GetChannelMembersForUser API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetChannelMembersForUser(args *Z_GetChannelMembersForUserArgs, returns *Z_GetChannelMembersForUserReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetChannelMembersForUser(teamId, userId string, page, perPage int) ([]*model.ChannelMember, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetChannelMembersForUser(args.A, args.B, args.C, args.D)
+	} else {
+		return encodableError(fmt.Errorf("API GetChannelMembersForUser called but not implemented."))
 	}
 	return nil
 }
@@ -2363,6 +2612,63 @@ func (s *apiRPCServer) SendEphemeralPost(args *Z_SendEphemeralPostArgs, returns 
 	return nil
 }
 
+type Z_UpdateEphemeralPostArgs struct {
+	A string
+	B *model.Post
+}
+
+type Z_UpdateEphemeralPostReturns struct {
+	A *model.Post
+}
+
+func (g *apiRPCClient) UpdateEphemeralPost(userId string, post *model.Post) *model.Post {
+	_args := &Z_UpdateEphemeralPostArgs{userId, post}
+	_returns := &Z_UpdateEphemeralPostReturns{}
+	if err := g.client.Call("Plugin.UpdateEphemeralPost", _args, _returns); err != nil {
+		log.Printf("RPC call to UpdateEphemeralPost API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) UpdateEphemeralPost(args *Z_UpdateEphemeralPostArgs, returns *Z_UpdateEphemeralPostReturns) error {
+	if hook, ok := s.impl.(interface {
+		UpdateEphemeralPost(userId string, post *model.Post) *model.Post
+	}); ok {
+		returns.A = hook.UpdateEphemeralPost(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API UpdateEphemeralPost called but not implemented."))
+	}
+	return nil
+}
+
+type Z_DeleteEphemeralPostArgs struct {
+	A string
+	B *model.Post
+}
+
+type Z_DeleteEphemeralPostReturns struct {
+}
+
+func (g *apiRPCClient) DeleteEphemeralPost(userId string, post *model.Post) {
+	_args := &Z_DeleteEphemeralPostArgs{userId, post}
+	_returns := &Z_DeleteEphemeralPostReturns{}
+	if err := g.client.Call("Plugin.DeleteEphemeralPost", _args, _returns); err != nil {
+		log.Printf("RPC call to DeleteEphemeralPost API failed: %s", err.Error())
+	}
+
+}
+
+func (s *apiRPCServer) DeleteEphemeralPost(args *Z_DeleteEphemeralPostArgs, returns *Z_DeleteEphemeralPostReturns) error {
+	if hook, ok := s.impl.(interface {
+		DeleteEphemeralPost(userId string, post *model.Post)
+	}); ok {
+		hook.DeleteEphemeralPost(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API DeleteEphemeralPost called but not implemented."))
+	}
+	return nil
+}
+
 type Z_DeletePostArgs struct {
 	A string
 }
@@ -2570,6 +2876,35 @@ func (s *apiRPCServer) GetPostsForChannel(args *Z_GetPostsForChannelArgs, return
 		returns.A, returns.B = hook.GetPostsForChannel(args.A, args.B, args.C)
 	} else {
 		return encodableError(fmt.Errorf("API GetPostsForChannel called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetTeamStatsArgs struct {
+	A string
+}
+
+type Z_GetTeamStatsReturns struct {
+	A *model.TeamStats
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetTeamStats(teamId string) (*model.TeamStats, *model.AppError) {
+	_args := &Z_GetTeamStatsArgs{teamId}
+	_returns := &Z_GetTeamStatsReturns{}
+	if err := g.client.Call("Plugin.GetTeamStats", _args, _returns); err != nil {
+		log.Printf("RPC call to GetTeamStats API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetTeamStats(args *Z_GetTeamStatsArgs, returns *Z_GetTeamStatsReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetTeamStats(teamId string) (*model.TeamStats, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetTeamStats(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetTeamStats called but not implemented."))
 	}
 	return nil
 }
@@ -2805,6 +3140,35 @@ func (s *apiRPCServer) GetFileInfo(args *Z_GetFileInfoArgs, returns *Z_GetFileIn
 		returns.A, returns.B = hook.GetFileInfo(args.A)
 	} else {
 		return encodableError(fmt.Errorf("API GetFileInfo called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetFileArgs struct {
+	A string
+}
+
+type Z_GetFileReturns struct {
+	A []byte
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetFile(fileId string) ([]byte, *model.AppError) {
+	_args := &Z_GetFileArgs{fileId}
+	_returns := &Z_GetFileReturns{}
+	if err := g.client.Call("Plugin.GetFile", _args, _returns); err != nil {
+		log.Printf("RPC call to GetFile API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetFile(args *Z_GetFileArgs, returns *Z_GetFileReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetFile(fileId string) ([]byte, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetFile(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetFile called but not implemented."))
 	}
 	return nil
 }
@@ -3122,6 +3486,37 @@ func (s *apiRPCServer) KVSet(args *Z_KVSetArgs, returns *Z_KVSetReturns) error {
 		returns.A = hook.KVSet(args.A, args.B)
 	} else {
 		return encodableError(fmt.Errorf("API KVSet called but not implemented."))
+	}
+	return nil
+}
+
+type Z_KVCompareAndSetArgs struct {
+	A string
+	B []byte
+	C []byte
+}
+
+type Z_KVCompareAndSetReturns struct {
+	A bool
+	B *model.AppError
+}
+
+func (g *apiRPCClient) KVCompareAndSet(key string, oldValue, newValue []byte) (bool, *model.AppError) {
+	_args := &Z_KVCompareAndSetArgs{key, oldValue, newValue}
+	_returns := &Z_KVCompareAndSetReturns{}
+	if err := g.client.Call("Plugin.KVCompareAndSet", _args, _returns); err != nil {
+		log.Printf("RPC call to KVCompareAndSet API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) KVCompareAndSet(args *Z_KVCompareAndSetArgs, returns *Z_KVCompareAndSetReturns) error {
+	if hook, ok := s.impl.(interface {
+		KVCompareAndSet(key string, oldValue, newValue []byte) (bool, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.KVCompareAndSet(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API KVCompareAndSet called but not implemented."))
 	}
 	return nil
 }
@@ -3496,6 +3891,212 @@ func (s *apiRPCServer) LogWarn(args *Z_LogWarnArgs, returns *Z_LogWarnReturns) e
 		hook.LogWarn(args.A, args.B...)
 	} else {
 		return encodableError(fmt.Errorf("API LogWarn called but not implemented."))
+	}
+	return nil
+}
+
+type Z_SendMailArgs struct {
+	A string
+	B string
+	C string
+}
+
+type Z_SendMailReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) SendMail(to, subject, htmlBody string) *model.AppError {
+	_args := &Z_SendMailArgs{to, subject, htmlBody}
+	_returns := &Z_SendMailReturns{}
+	if err := g.client.Call("Plugin.SendMail", _args, _returns); err != nil {
+		log.Printf("RPC call to SendMail API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) SendMail(args *Z_SendMailArgs, returns *Z_SendMailReturns) error {
+	if hook, ok := s.impl.(interface {
+		SendMail(to, subject, htmlBody string) *model.AppError
+	}); ok {
+		returns.A = hook.SendMail(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API SendMail called but not implemented."))
+	}
+	return nil
+}
+
+type Z_CreateBotArgs struct {
+	A *model.Bot
+}
+
+type Z_CreateBotReturns struct {
+	A *model.Bot
+	B *model.AppError
+}
+
+func (g *apiRPCClient) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
+	_args := &Z_CreateBotArgs{bot}
+	_returns := &Z_CreateBotReturns{}
+	if err := g.client.Call("Plugin.CreateBot", _args, _returns); err != nil {
+		log.Printf("RPC call to CreateBot API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) CreateBot(args *Z_CreateBotArgs, returns *Z_CreateBotReturns) error {
+	if hook, ok := s.impl.(interface {
+		CreateBot(bot *model.Bot) (*model.Bot, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.CreateBot(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API CreateBot called but not implemented."))
+	}
+	return nil
+}
+
+type Z_PatchBotArgs struct {
+	A string
+	B *model.BotPatch
+}
+
+type Z_PatchBotReturns struct {
+	A *model.Bot
+	B *model.AppError
+}
+
+func (g *apiRPCClient) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError) {
+	_args := &Z_PatchBotArgs{botUserId, botPatch}
+	_returns := &Z_PatchBotReturns{}
+	if err := g.client.Call("Plugin.PatchBot", _args, _returns); err != nil {
+		log.Printf("RPC call to PatchBot API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) PatchBot(args *Z_PatchBotArgs, returns *Z_PatchBotReturns) error {
+	if hook, ok := s.impl.(interface {
+		PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.PatchBot(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API PatchBot called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetBotArgs struct {
+	A string
+	B bool
+}
+
+type Z_GetBotReturns struct {
+	A *model.Bot
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetBot(botUserId string, includeDeleted bool) (*model.Bot, *model.AppError) {
+	_args := &Z_GetBotArgs{botUserId, includeDeleted}
+	_returns := &Z_GetBotReturns{}
+	if err := g.client.Call("Plugin.GetBot", _args, _returns); err != nil {
+		log.Printf("RPC call to GetBot API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetBot(args *Z_GetBotArgs, returns *Z_GetBotReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetBot(botUserId string, includeDeleted bool) (*model.Bot, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetBot(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API GetBot called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetBotsArgs struct {
+	A *model.BotGetOptions
+}
+
+type Z_GetBotsReturns struct {
+	A []*model.Bot
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetBots(options *model.BotGetOptions) ([]*model.Bot, *model.AppError) {
+	_args := &Z_GetBotsArgs{options}
+	_returns := &Z_GetBotsReturns{}
+	if err := g.client.Call("Plugin.GetBots", _args, _returns); err != nil {
+		log.Printf("RPC call to GetBots API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetBots(args *Z_GetBotsArgs, returns *Z_GetBotsReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetBots(options *model.BotGetOptions) ([]*model.Bot, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetBots(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API GetBots called but not implemented."))
+	}
+	return nil
+}
+
+type Z_UpdateBotActiveArgs struct {
+	A string
+	B bool
+}
+
+type Z_UpdateBotActiveReturns struct {
+	A *model.Bot
+	B *model.AppError
+}
+
+func (g *apiRPCClient) UpdateBotActive(botUserId string, active bool) (*model.Bot, *model.AppError) {
+	_args := &Z_UpdateBotActiveArgs{botUserId, active}
+	_returns := &Z_UpdateBotActiveReturns{}
+	if err := g.client.Call("Plugin.UpdateBotActive", _args, _returns); err != nil {
+		log.Printf("RPC call to UpdateBotActive API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) UpdateBotActive(args *Z_UpdateBotActiveArgs, returns *Z_UpdateBotActiveReturns) error {
+	if hook, ok := s.impl.(interface {
+		UpdateBotActive(botUserId string, active bool) (*model.Bot, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.UpdateBotActive(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API UpdateBotActive called but not implemented."))
+	}
+	return nil
+}
+
+type Z_PermanentDeleteBotArgs struct {
+	A string
+}
+
+type Z_PermanentDeleteBotReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) PermanentDeleteBot(botUserId string) *model.AppError {
+	_args := &Z_PermanentDeleteBotArgs{botUserId}
+	_returns := &Z_PermanentDeleteBotReturns{}
+	if err := g.client.Call("Plugin.PermanentDeleteBot", _args, _returns); err != nil {
+		log.Printf("RPC call to PermanentDeleteBot API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) PermanentDeleteBot(args *Z_PermanentDeleteBotArgs, returns *Z_PermanentDeleteBotReturns) error {
+	if hook, ok := s.impl.(interface {
+		PermanentDeleteBot(botUserId string) *model.AppError
+	}); ok {
+		returns.A = hook.PermanentDeleteBot(args.A)
+	} else {
+		return encodableError(fmt.Errorf("API PermanentDeleteBot called but not implemented."))
 	}
 	return nil
 }

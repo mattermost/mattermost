@@ -18,11 +18,11 @@ import (
 
 	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/model/gitlab"
+	oauthgitlab "github.com/mattermost/mattermost-server/model/gitlab"
 )
 
 func TestIsUsernameTaken(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	user := th.BasicUser
@@ -43,7 +43,7 @@ func TestIsUsernameTaken(t *testing.T) {
 }
 
 func TestCheckUserDomain(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	user := th.BasicUser
@@ -71,7 +71,7 @@ func TestCheckUserDomain(t *testing.T) {
 }
 
 func TestCreateOAuthUser(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
@@ -117,7 +117,7 @@ func TestCreateProfileImage(t *testing.T) {
 }
 
 func TestSetDefaultProfileImage(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	err := th.App.SetDefaultProfileImage(&model.User{
@@ -136,14 +136,14 @@ func TestSetDefaultProfileImage(t *testing.T) {
 }
 
 func TestUpdateUserToRestrictedDomain(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	user := th.CreateUser()
 	defer th.App.PermanentDeleteUser(user)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.TeamSettings.RestrictCreationToDomains = "foo.com"
+		*cfg.TeamSettings.RestrictCreationToDomains = "foo.com"
 	})
 
 	_, err := th.App.UpdateUser(user, false)
@@ -154,8 +154,71 @@ func TestUpdateUserToRestrictedDomain(t *testing.T) {
 	assert.False(t, err == nil)
 }
 
+func TestUpdateUserActive(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	user := th.CreateUser()
+
+	EnableUserDeactivation := th.App.Config().TeamSettings.EnableUserDeactivation
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.EnableUserDeactivation = EnableUserDeactivation })
+	}()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.TeamSettings.EnableUserDeactivation = true
+	})
+	err := th.App.UpdateUserActive(user.Id, false)
+	assert.Nil(t, err)
+}
+
+func TestUpdateActiveBotsSideEffect(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	bot, err := th.App.CreateBot(&model.Bot{
+		Username:    "username",
+		Description: "a bot",
+		OwnerId:     th.BasicUser.Id,
+	})
+	require.Nil(t, err)
+	defer th.App.PermanentDeleteBot(bot.UserId)
+
+	// Automatic deactivation disabled
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.DisableBotsWhenOwnerIsDeactivated = false
+	})
+
+	th.App.UpdateActive(th.BasicUser, false)
+
+	retbot1, err := th.App.GetBot(bot.UserId, true)
+	require.Nil(t, err)
+	require.Zero(t, retbot1.DeleteAt)
+	user1, err := th.App.GetUser(bot.UserId)
+	require.Nil(t, err)
+	require.Zero(t, user1.DeleteAt)
+
+	th.App.UpdateActive(th.BasicUser, true)
+
+	// Automatic deactivation enabled
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.DisableBotsWhenOwnerIsDeactivated = true
+	})
+
+	th.App.UpdateActive(th.BasicUser, false)
+
+	retbot2, err := th.App.GetBot(bot.UserId, true)
+	require.Nil(t, err)
+	require.NotZero(t, retbot2.DeleteAt)
+	user2, err := th.App.GetUser(bot.UserId)
+	require.Nil(t, err)
+	require.NotZero(t, user2.DeleteAt)
+
+	th.App.UpdateActive(th.BasicUser, true)
+}
+
 func TestUpdateOAuthUserAttrs(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	id := model.NewId()
@@ -268,6 +331,66 @@ func TestUpdateOAuthUserAttrs(t *testing.T) {
 	})
 }
 
+func TestUpdateUserEmail(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	user := th.CreateUser()
+
+	t.Run("RequireVerification", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.EmailSettings.RequireEmailVerification = true
+		})
+
+		currentEmail := user.Email
+		newEmail := th.MakeEmail()
+
+		user.Email = newEmail
+		user2, err := th.App.UpdateUser(user, false)
+		assert.Nil(t, err)
+		assert.Equal(t, currentEmail, user2.Email)
+		assert.True(t, user2.EmailVerified)
+
+		token, err := th.App.CreateVerifyEmailToken(user2.Id, newEmail)
+		assert.Nil(t, err)
+
+		err = th.App.VerifyEmailFromToken(token.Token)
+		assert.Nil(t, err)
+
+		user2, err = th.App.GetUser(user2.Id)
+		assert.Nil(t, err)
+		assert.Equal(t, newEmail, user2.Email)
+		assert.True(t, user2.EmailVerified)
+	})
+
+	t.Run("RequireVerificationAlreadyUsedEmail", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.EmailSettings.RequireEmailVerification = true
+		})
+
+		user2 := th.CreateUser()
+		newEmail := user2.Email
+
+		user.Email = newEmail
+		user3, err := th.App.UpdateUser(user, false)
+		assert.NotNil(t, err)
+		assert.Nil(t, user3)
+	})
+
+	t.Run("NoVerification", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.EmailSettings.RequireEmailVerification = false
+		})
+
+		newEmail := th.MakeEmail()
+
+		user.Email = newEmail
+		user2, err := th.App.UpdateUser(user, false)
+		assert.Nil(t, err)
+		assert.Equal(t, newEmail, user2.Email)
+	})
+}
+
 func getUserFromDB(a *App, id string, t *testing.T) *model.User {
 	user, err := a.GetUser(id)
 	if err != nil {
@@ -303,7 +426,7 @@ func createGitlabUser(t *testing.T, a *App, username string, email string) (*mod
 }
 
 func TestGetUsersByStatus(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	team := th.CreateTeam()
@@ -432,7 +555,7 @@ func TestGetUsersByStatus(t *testing.T) {
 }
 
 func TestCreateUserWithToken(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
@@ -502,7 +625,7 @@ func TestCreateUserWithToken(t *testing.T) {
 }
 
 func TestPermanentDeleteUser(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	b := []byte("testimage")
@@ -543,4 +666,244 @@ func TestPermanentDeleteUser(t *testing.T) {
 		t.Log(err)
 		t.Fatal("GetFileInfo after DeleteUser is nil")
 	}
+}
+
+func TestPasswordRecovery(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	token, err := th.App.CreatePasswordRecoveryToken(th.BasicUser.Id, th.BasicUser.Email)
+	assert.Nil(t, err)
+
+	tokenData := struct {
+		UserId string
+		Email  string
+	}{}
+
+	err2 := json.Unmarshal([]byte(token.Extra), &tokenData)
+	assert.Nil(t, err2)
+	assert.Equal(t, th.BasicUser.Id, tokenData.UserId)
+	assert.Equal(t, th.BasicUser.Email, tokenData.Email)
+
+	// Password token with same eMail as during creation
+	err = th.App.ResetPasswordFromToken(token.Token, "abcdefgh")
+	assert.Nil(t, err)
+
+	// Password token with modified eMail after creation
+	token, err = th.App.CreatePasswordRecoveryToken(th.BasicUser.Id, th.BasicUser.Email)
+	assert.Nil(t, err)
+
+	th.App.UpdateConfig(func(c *model.Config) {
+		*c.EmailSettings.RequireEmailVerification = false
+	})
+
+	th.BasicUser.Email = th.MakeEmail()
+	_, err = th.App.UpdateUser(th.BasicUser, false)
+	assert.Nil(t, err)
+
+	err = th.App.ResetPasswordFromToken(token.Token, "abcdefgh")
+	assert.NotNil(t, err)
+}
+
+func TestGetViewUsersRestrictions(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	team1 := th.CreateTeam()
+	team2 := th.CreateTeam()
+	th.CreateTeam() // Another team
+
+	user1 := th.CreateUser()
+
+	th.LinkUserToTeam(user1, team1)
+	th.LinkUserToTeam(user1, team2)
+
+	th.App.UpdateTeamMemberRoles(team1.Id, user1.Id, "team_user team_admin")
+
+	team1channel1 := th.CreateChannel(team1)
+	team1channel2 := th.CreateChannel(team1)
+	th.CreateChannel(team1) // Another channel
+	team1offtopic, err := th.App.GetChannelByName("off-topic", team1.Id, false)
+	require.Nil(t, err)
+	team1townsquare, err := th.App.GetChannelByName("town-square", team1.Id, false)
+	require.Nil(t, err)
+
+	team2channel1 := th.CreateChannel(team2)
+	th.CreateChannel(team2) // Another channel
+	team2offtopic, err := th.App.GetChannelByName("off-topic", team2.Id, false)
+	require.Nil(t, err)
+	team2townsquare, err := th.App.GetChannelByName("town-square", team2.Id, false)
+	require.Nil(t, err)
+
+	th.App.AddUserToChannel(user1, team1channel1)
+	th.App.AddUserToChannel(user1, team1channel2)
+	th.App.AddUserToChannel(user1, team2channel1)
+
+	addPermission := func(role *model.Role, permission string) *model.AppError {
+		newPermissions := append(role.Permissions, permission)
+		_, err := th.App.PatchRole(role, &model.RolePatch{Permissions: &newPermissions})
+		return err
+	}
+
+	removePermission := func(role *model.Role, permission string) *model.AppError {
+		newPermissions := []string{}
+		for _, oldPermission := range role.Permissions {
+			if permission != oldPermission {
+				newPermissions = append(newPermissions, oldPermission)
+			}
+		}
+		_, err := th.App.PatchRole(role, &model.RolePatch{Permissions: &newPermissions})
+		return err
+	}
+
+	t.Run("VIEW_MEMBERS permission granted at system level", func(t *testing.T) {
+		restrictions, err := th.App.GetViewUsersRestrictions(user1.Id)
+		require.Nil(t, err)
+
+		assert.Nil(t, restrictions)
+	})
+
+	t.Run("VIEW_MEMBERS permission granted at team level", func(t *testing.T) {
+		systemUserRole, err := th.App.GetRoleByName(model.SYSTEM_USER_ROLE_ID)
+		require.Nil(t, err)
+		teamUserRole, err := th.App.GetRoleByName(model.TEAM_USER_ROLE_ID)
+		require.Nil(t, err)
+
+		require.Nil(t, removePermission(systemUserRole, model.PERMISSION_VIEW_MEMBERS.Id))
+		defer addPermission(systemUserRole, model.PERMISSION_VIEW_MEMBERS.Id)
+		require.Nil(t, addPermission(teamUserRole, model.PERMISSION_VIEW_MEMBERS.Id))
+		defer removePermission(teamUserRole, model.PERMISSION_VIEW_MEMBERS.Id)
+
+		restrictions, err := th.App.GetViewUsersRestrictions(user1.Id)
+		require.Nil(t, err)
+
+		assert.NotNil(t, restrictions)
+		assert.NotNil(t, restrictions.Teams)
+		assert.Len(t, restrictions.Channels, 0)
+		assert.ElementsMatch(t, []string{team1.Id, team2.Id}, restrictions.Teams)
+	})
+
+	t.Run("VIEW_MEMBERS permission not granted at any level", func(t *testing.T) {
+		systemUserRole, err := th.App.GetRoleByName(model.SYSTEM_USER_ROLE_ID)
+		require.Nil(t, err)
+		require.Nil(t, removePermission(systemUserRole, model.PERMISSION_VIEW_MEMBERS.Id))
+		defer addPermission(systemUserRole, model.PERMISSION_VIEW_MEMBERS.Id)
+
+		restrictions, err := th.App.GetViewUsersRestrictions(user1.Id)
+		require.Nil(t, err)
+
+		assert.NotNil(t, restrictions)
+		assert.Len(t, restrictions.Teams, 0)
+		assert.NotNil(t, restrictions.Channels)
+		assert.ElementsMatch(t, []string{team1townsquare.Id, team1offtopic.Id, team1channel1.Id, team1channel2.Id, team2townsquare.Id, team2offtopic.Id, team2channel1.Id}, restrictions.Channels)
+	})
+
+	t.Run("VIEW_MEMBERS permission for some teams but not for others", func(t *testing.T) {
+		systemUserRole, err := th.App.GetRoleByName(model.SYSTEM_USER_ROLE_ID)
+		require.Nil(t, err)
+		teamAdminRole, err := th.App.GetRoleByName(model.TEAM_ADMIN_ROLE_ID)
+		require.Nil(t, err)
+
+		require.Nil(t, removePermission(systemUserRole, model.PERMISSION_VIEW_MEMBERS.Id))
+		defer addPermission(systemUserRole, model.PERMISSION_VIEW_MEMBERS.Id)
+		require.Nil(t, addPermission(teamAdminRole, model.PERMISSION_VIEW_MEMBERS.Id))
+		defer removePermission(teamAdminRole, model.PERMISSION_VIEW_MEMBERS.Id)
+
+		restrictions, err := th.App.GetViewUsersRestrictions(user1.Id)
+		require.Nil(t, err)
+
+		assert.NotNil(t, restrictions)
+		assert.NotNil(t, restrictions.Teams)
+		assert.NotNil(t, restrictions.Channels)
+		assert.ElementsMatch(t, restrictions.Teams, []string{team1.Id})
+		assert.ElementsMatch(t, []string{team1townsquare.Id, team1offtopic.Id, team1channel1.Id, team1channel2.Id, team2townsquare.Id, team2offtopic.Id, team2channel1.Id}, restrictions.Channels)
+	})
+}
+
+func TestGetViewUsersRestrictionsForTeam(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	team1 := th.CreateTeam()
+	team2 := th.CreateTeam()
+	th.CreateTeam() // Another team
+
+	user1 := th.CreateUser()
+
+	th.LinkUserToTeam(user1, team1)
+	th.LinkUserToTeam(user1, team2)
+
+	th.App.UpdateTeamMemberRoles(team1.Id, user1.Id, "team_user team_admin")
+
+	team1channel1 := th.CreateChannel(team1)
+	team1channel2 := th.CreateChannel(team1)
+	th.CreateChannel(team1) // Another channel
+	team1offtopic, err := th.App.GetChannelByName("off-topic", team1.Id, false)
+	require.Nil(t, err)
+	team1townsquare, err := th.App.GetChannelByName("town-square", team1.Id, false)
+	require.Nil(t, err)
+
+	team2channel1 := th.CreateChannel(team2)
+	th.CreateChannel(team2) // Another channel
+	team2offtopic, err := th.App.GetChannelByName("off-topic", team2.Id, false)
+	require.Nil(t, err)
+	team2townsquare, err := th.App.GetChannelByName("town-square", team2.Id, false)
+	require.Nil(t, err)
+
+	th.App.AddUserToChannel(user1, team1channel1)
+	th.App.AddUserToChannel(user1, team1channel2)
+	th.App.AddUserToChannel(user1, team2channel1)
+
+	addPermission := func(role *model.Role, permission string) *model.AppError {
+		newPermissions := append(role.Permissions, permission)
+		_, err := th.App.PatchRole(role, &model.RolePatch{Permissions: &newPermissions})
+		return err
+	}
+
+	removePermission := func(role *model.Role, permission string) *model.AppError {
+		newPermissions := []string{}
+		for _, oldPermission := range role.Permissions {
+			if permission != oldPermission {
+				newPermissions = append(newPermissions, oldPermission)
+			}
+		}
+		_, err := th.App.PatchRole(role, &model.RolePatch{Permissions: &newPermissions})
+		return err
+	}
+
+	t.Run("VIEW_MEMBERS permission granted at system level", func(t *testing.T) {
+		restrictions, err := th.App.GetViewUsersRestrictionsForTeam(user1.Id, team1.Id)
+		require.Nil(t, err)
+
+		assert.Nil(t, restrictions)
+	})
+
+	t.Run("VIEW_MEMBERS permission granted at team level", func(t *testing.T) {
+		systemUserRole, err := th.App.GetRoleByName(model.SYSTEM_USER_ROLE_ID)
+		require.Nil(t, err)
+		teamUserRole, err := th.App.GetRoleByName(model.TEAM_USER_ROLE_ID)
+		require.Nil(t, err)
+
+		require.Nil(t, removePermission(systemUserRole, model.PERMISSION_VIEW_MEMBERS.Id))
+		defer addPermission(systemUserRole, model.PERMISSION_VIEW_MEMBERS.Id)
+		require.Nil(t, addPermission(teamUserRole, model.PERMISSION_VIEW_MEMBERS.Id))
+		defer removePermission(teamUserRole, model.PERMISSION_VIEW_MEMBERS.Id)
+
+		restrictions, err := th.App.GetViewUsersRestrictionsForTeam(user1.Id, team1.Id)
+		require.Nil(t, err)
+		assert.Nil(t, restrictions)
+	})
+
+	t.Run("VIEW_MEMBERS permission not granted at any level", func(t *testing.T) {
+		systemUserRole, err := th.App.GetRoleByName(model.SYSTEM_USER_ROLE_ID)
+		require.Nil(t, err)
+		require.Nil(t, removePermission(systemUserRole, model.PERMISSION_VIEW_MEMBERS.Id))
+		defer addPermission(systemUserRole, model.PERMISSION_VIEW_MEMBERS.Id)
+
+		restrictions, err := th.App.GetViewUsersRestrictionsForTeam(user1.Id, team1.Id)
+		require.Nil(t, err)
+
+		assert.NotNil(t, restrictions)
+		assert.ElementsMatch(t, []string{team1townsquare.Id, team1offtopic.Id, team1channel1.Id, team1channel2.Id, team2townsquare.Id, team2offtopic.Id, team2channel1.Id}, restrictions)
+	})
 }

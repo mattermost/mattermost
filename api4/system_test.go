@@ -5,13 +5,11 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 )
 
 func TestGetPing(t *testing.T) {
@@ -35,274 +33,6 @@ func TestGetPing(t *testing.T) {
 	CheckInternalErrorStatus(t, resp)
 	if status != "unhealthy" {
 		t.Fatal("should return unhealthy")
-	}
-}
-
-func TestGetConfig(t *testing.T) {
-	th := Setup().InitBasic()
-	defer th.TearDown()
-	Client := th.Client
-
-	_, resp := Client.GetConfig()
-	CheckForbiddenStatus(t, resp)
-
-	cfg, resp := th.SystemAdminClient.GetConfig()
-	CheckNoError(t, resp)
-
-	require.NotEqual(t, "", cfg.TeamSettings.SiteName)
-
-	if *cfg.LdapSettings.BindPassword != model.FAKE_SETTING && len(*cfg.LdapSettings.BindPassword) != 0 {
-		t.Fatal("did not sanitize properly")
-	}
-	if *cfg.FileSettings.PublicLinkSalt != model.FAKE_SETTING {
-		t.Fatal("did not sanitize properly")
-	}
-	if cfg.FileSettings.AmazonS3SecretAccessKey != model.FAKE_SETTING && len(cfg.FileSettings.AmazonS3SecretAccessKey) != 0 {
-		t.Fatal("did not sanitize properly")
-	}
-	if cfg.EmailSettings.InviteSalt != model.FAKE_SETTING {
-		t.Fatal("did not sanitize properly")
-	}
-	if cfg.EmailSettings.SMTPPassword != model.FAKE_SETTING && len(cfg.EmailSettings.SMTPPassword) != 0 {
-		t.Fatal("did not sanitize properly")
-	}
-	if cfg.GitLabSettings.Secret != model.FAKE_SETTING && len(cfg.GitLabSettings.Secret) != 0 {
-		t.Fatal("did not sanitize properly")
-	}
-	if *cfg.SqlSettings.DataSource != model.FAKE_SETTING {
-		t.Fatal("did not sanitize properly")
-	}
-	if cfg.SqlSettings.AtRestEncryptKey != model.FAKE_SETTING {
-		t.Fatal("did not sanitize properly")
-	}
-	if !strings.Contains(strings.Join(cfg.SqlSettings.DataSourceReplicas, " "), model.FAKE_SETTING) && len(cfg.SqlSettings.DataSourceReplicas) != 0 {
-		t.Fatal("did not sanitize properly")
-	}
-	if !strings.Contains(strings.Join(cfg.SqlSettings.DataSourceSearchReplicas, " "), model.FAKE_SETTING) && len(cfg.SqlSettings.DataSourceSearchReplicas) != 0 {
-		t.Fatal("did not sanitize properly")
-	}
-}
-
-func TestReloadConfig(t *testing.T) {
-	th := Setup().InitBasic()
-	defer th.TearDown()
-	Client := th.Client
-
-	flag, resp := Client.ReloadConfig()
-	CheckForbiddenStatus(t, resp)
-	if flag {
-		t.Fatal("should not Reload the config due no permission.")
-	}
-
-	flag, resp = th.SystemAdminClient.ReloadConfig()
-	CheckNoError(t, resp)
-	if !flag {
-		t.Fatal("should Reload the config")
-	}
-
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam = 50 })
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
-}
-
-func TestUpdateConfig(t *testing.T) {
-	th := Setup().InitBasic()
-	defer th.TearDown()
-	Client := th.Client
-
-	cfg, resp := th.SystemAdminClient.GetConfig()
-	CheckNoError(t, resp)
-
-	_, resp = Client.UpdateConfig(cfg)
-	CheckForbiddenStatus(t, resp)
-
-	SiteName := th.App.Config().TeamSettings.SiteName
-
-	cfg.TeamSettings.SiteName = "MyFancyName"
-	cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
-	CheckNoError(t, resp)
-
-	require.Equal(t, "MyFancyName", cfg.TeamSettings.SiteName, "It should update the SiteName")
-
-	//Revert the change
-	cfg.TeamSettings.SiteName = SiteName
-	cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
-	CheckNoError(t, resp)
-
-	require.Equal(t, SiteName, cfg.TeamSettings.SiteName, "It should update the SiteName")
-
-	t.Run("Should not be able to modify PluginSettings.EnableUploads", func(t *testing.T) {
-		oldEnableUploads := *th.App.GetConfig().PluginSettings.EnableUploads
-		*cfg.PluginSettings.EnableUploads = !oldEnableUploads
-
-		cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
-		CheckNoError(t, resp)
-		assert.Equal(t, oldEnableUploads, *cfg.PluginSettings.EnableUploads)
-		assert.Equal(t, oldEnableUploads, *th.App.GetConfig().PluginSettings.EnableUploads)
-
-		cfg.PluginSettings.EnableUploads = nil
-		cfg, resp = th.SystemAdminClient.UpdateConfig(cfg)
-		CheckNoError(t, resp)
-		assert.Equal(t, oldEnableUploads, *cfg.PluginSettings.EnableUploads)
-		assert.Equal(t, oldEnableUploads, *th.App.GetConfig().PluginSettings.EnableUploads)
-	})
-}
-
-func TestGetEnvironmentConfig(t *testing.T) {
-	os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://example.mattermost.com")
-	os.Setenv("MM_SERVICESETTINGS_ENABLECUSTOMEMOJI", "true")
-	defer os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
-
-	th := Setup().InitBasic()
-	defer th.TearDown()
-
-	t.Run("as system admin", func(t *testing.T) {
-		SystemAdminClient := th.SystemAdminClient
-
-		envConfig, resp := SystemAdminClient.GetEnvironmentConfig()
-		CheckNoError(t, resp)
-
-		if serviceSettings, ok := envConfig["ServiceSettings"]; !ok {
-			t.Fatal("should've returned ServiceSettings")
-		} else if serviceSettingsAsMap, ok := serviceSettings.(map[string]interface{}); !ok {
-			t.Fatal("should've returned ServiceSettings as a map")
-		} else {
-			if siteURL, ok := serviceSettingsAsMap["SiteURL"]; !ok {
-				t.Fatal("should've returned ServiceSettings.SiteURL")
-			} else if siteURLAsBool, ok := siteURL.(bool); !ok {
-				t.Fatal("should've returned ServiceSettings.SiteURL as a boolean")
-			} else if !siteURLAsBool {
-				t.Fatal("should've returned ServiceSettings.SiteURL as true")
-			}
-
-			if enableCustomEmoji, ok := serviceSettingsAsMap["EnableCustomEmoji"]; !ok {
-				t.Fatal("should've returned ServiceSettings.EnableCustomEmoji")
-			} else if enableCustomEmojiAsBool, ok := enableCustomEmoji.(bool); !ok {
-				t.Fatal("should've returned ServiceSettings.EnableCustomEmoji as a boolean")
-			} else if !enableCustomEmojiAsBool {
-				t.Fatal("should've returned ServiceSettings.EnableCustomEmoji as true")
-			}
-		}
-
-		if _, ok := envConfig["TeamSettings"]; ok {
-			t.Fatal("should not have returned TeamSettings")
-		}
-	})
-
-	t.Run("as team admin", func(t *testing.T) {
-		TeamAdminClient := th.CreateClient()
-		th.LoginTeamAdminWithClient(TeamAdminClient)
-
-		_, resp := TeamAdminClient.GetEnvironmentConfig()
-		CheckForbiddenStatus(t, resp)
-	})
-
-	t.Run("as regular user", func(t *testing.T) {
-		Client := th.Client
-
-		_, resp := Client.GetEnvironmentConfig()
-		CheckForbiddenStatus(t, resp)
-	})
-
-	t.Run("as not-regular user", func(t *testing.T) {
-		Client := th.CreateClient()
-
-		_, resp := Client.GetEnvironmentConfig()
-		CheckUnauthorizedStatus(t, resp)
-	})
-}
-
-func TestGetOldClientConfig(t *testing.T) {
-	th := Setup().InitBasic()
-	defer th.TearDown()
-
-	testKey := "supersecretkey"
-	th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.GoogleDeveloperKey = testKey })
-
-	t.Run("with session", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.GoogleDeveloperKey = testKey
-		})
-
-		Client := th.Client
-
-		config, resp := Client.GetOldClientConfig("")
-		CheckNoError(t, resp)
-
-		if len(config["Version"]) == 0 {
-			t.Fatal("config not returned correctly")
-		}
-
-		if config["GoogleDeveloperKey"] != testKey {
-			t.Fatal("config missing developer key")
-		}
-	})
-
-	t.Run("without session", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			cfg.ServiceSettings.GoogleDeveloperKey = testKey
-		})
-
-		Client := th.CreateClient()
-
-		config, resp := Client.GetOldClientConfig("")
-		CheckNoError(t, resp)
-
-		if len(config["Version"]) == 0 {
-			t.Fatal("config not returned correctly")
-		}
-
-		if _, ok := config["GoogleDeveloperKey"]; ok {
-			t.Fatal("config should be missing developer key")
-		}
-	})
-
-	t.Run("missing format", func(t *testing.T) {
-		Client := th.Client
-
-		if _, err := Client.DoApiGet("/config/client", ""); err == nil || err.StatusCode != http.StatusNotImplemented {
-			t.Fatal("should have errored with 501")
-		}
-	})
-
-	t.Run("invalid format", func(t *testing.T) {
-		Client := th.Client
-
-		if _, err := Client.DoApiGet("/config/client?format=junk", ""); err == nil || err.StatusCode != http.StatusBadRequest {
-			t.Fatal("should have errored with 400")
-		}
-	})
-}
-
-func TestGetOldClientLicense(t *testing.T) {
-	th := Setup().InitBasic()
-	defer th.TearDown()
-	Client := th.Client
-
-	license, resp := Client.GetOldClientLicense("")
-	CheckNoError(t, resp)
-
-	if len(license["IsLicensed"]) == 0 {
-		t.Fatal("license not returned correctly")
-	}
-
-	Client.Logout()
-
-	_, resp = Client.GetOldClientLicense("")
-	CheckNoError(t, resp)
-
-	if _, err := Client.DoApiGet("/license/client", ""); err == nil || err.StatusCode != http.StatusNotImplemented {
-		t.Fatal("should have errored with 501")
-	}
-
-	if _, err := Client.DoApiGet("/license/client?format=junk", ""); err == nil || err.StatusCode != http.StatusBadRequest {
-		t.Fatal("should have errored with 400")
-	}
-
-	license, resp = th.SystemAdminClient.GetOldClientLicense("")
-	CheckNoError(t, resp)
-
-	if len(license["IsLicensed"]) == 0 {
-		t.Fatal("license not returned correctly")
 	}
 }
 
@@ -349,33 +79,52 @@ func TestEmailTest(t *testing.T) {
 	Client := th.Client
 
 	config := model.Config{
+		ServiceSettings: model.ServiceSettings{
+			SiteURL: model.NewString(""),
+		},
 		EmailSettings: model.EmailSettings{
-			SMTPServer: "",
-			SMTPPort:   "",
+			SMTPServer:             model.NewString(""),
+			SMTPPort:               model.NewString(""),
+			SMTPPassword:           model.NewString(""),
+			FeedbackName:           model.NewString(""),
+			FeedbackEmail:          model.NewString(""),
+			ReplyToAddress:         model.NewString(""),
+			SendEmailNotifications: model.NewBool(false),
 		},
 	}
 
-	_, resp := Client.TestEmail(&config)
-	CheckForbiddenStatus(t, resp)
+	t.Run("as system user", func(t *testing.T) {
+		_, resp := Client.TestEmail(&config)
+		CheckForbiddenStatus(t, resp)
+	})
 
-	_, resp = th.SystemAdminClient.TestEmail(&config)
-	CheckErrorMessage(t, resp, "api.admin.test_email.missing_server")
-	CheckBadRequestStatus(t, resp)
+	t.Run("as system admin", func(t *testing.T) {
+		_, resp := th.SystemAdminClient.TestEmail(&config)
+		CheckErrorMessage(t, resp, "api.admin.test_email.missing_server")
+		CheckBadRequestStatus(t, resp)
 
-	inbucket_host := os.Getenv("CI_HOST")
-	if inbucket_host == "" {
-		inbucket_host = "dockerhost"
-	}
+		inbucket_host := os.Getenv("CI_INBUCKET_HOST")
+		if inbucket_host == "" {
+			inbucket_host = "dockerhost"
+		}
 
-	inbucket_port := os.Getenv("CI_INBUCKET_PORT")
-	if inbucket_port == "" {
-		inbucket_port = "9000"
-	}
+		inbucket_port := os.Getenv("CI_INBUCKET_PORT")
+		if inbucket_port == "" {
+			inbucket_port = "9000"
+		}
 
-	config.EmailSettings.SMTPServer = inbucket_host
-	config.EmailSettings.SMTPPort = inbucket_port
-	_, resp = th.SystemAdminClient.TestEmail(&config)
-	CheckOKStatus(t, resp)
+		*config.EmailSettings.SMTPServer = inbucket_host
+		*config.EmailSettings.SMTPPort = inbucket_port
+		_, resp = th.SystemAdminClient.TestEmail(&config)
+		CheckOKStatus(t, resp)
+	})
+
+	t.Run("as restricted system admin", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
+
+		_, resp := th.SystemAdminClient.TestEmail(&config)
+		CheckForbiddenStatus(t, resp)
+	})
 }
 
 func TestDatabaseRecycle(t *testing.T) {
@@ -383,11 +132,22 @@ func TestDatabaseRecycle(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	_, resp := Client.DatabaseRecycle()
-	CheckForbiddenStatus(t, resp)
+	t.Run("as system user", func(t *testing.T) {
+		_, resp := Client.DatabaseRecycle()
+		CheckForbiddenStatus(t, resp)
+	})
 
-	_, resp = th.SystemAdminClient.DatabaseRecycle()
-	CheckNoError(t, resp)
+	t.Run("as system admin", func(t *testing.T) {
+		_, resp := th.SystemAdminClient.DatabaseRecycle()
+		CheckNoError(t, resp)
+	})
+
+	t.Run("as restricted system admin", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
+
+		_, resp := th.SystemAdminClient.DatabaseRecycle()
+		CheckForbiddenStatus(t, resp)
+	})
 }
 
 func TestInvalidateCaches(t *testing.T) {
@@ -395,17 +155,31 @@ func TestInvalidateCaches(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	flag, resp := Client.InvalidateCaches()
-	CheckForbiddenStatus(t, resp)
-	if flag {
-		t.Fatal("should not clean the cache due no permission.")
-	}
+	t.Run("as system user", func(t *testing.T) {
+		ok, resp := Client.InvalidateCaches()
+		CheckForbiddenStatus(t, resp)
+		if ok {
+			t.Fatal("should not clean the cache due no permission.")
+		}
+	})
 
-	flag, resp = th.SystemAdminClient.InvalidateCaches()
-	CheckNoError(t, resp)
-	if !flag {
-		t.Fatal("should clean the cache")
-	}
+	t.Run("as system admin", func(t *testing.T) {
+		ok, resp := th.SystemAdminClient.InvalidateCaches()
+		CheckNoError(t, resp)
+		if !ok {
+			t.Fatal("should clean the cache")
+		}
+	})
+
+	t.Run("as restricted system admin", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
+
+		ok, resp := th.SystemAdminClient.InvalidateCaches()
+		CheckForbiddenStatus(t, resp)
+		if ok {
+			t.Fatal("should not clean the cache due no permission.")
+		}
+	})
 }
 
 func TestGetLogs(t *testing.T) {
@@ -423,6 +197,9 @@ func TestGetLogs(t *testing.T) {
 	if len(logs) != 10 {
 		t.Log(len(logs))
 		t.Fatal("wrong length")
+	}
+	for i := 10; i < 20; i++ {
+		assert.Containsf(t, logs[i-10], fmt.Sprintf(`"msg":"%d"`, i), "Log line doesn't contain correct message")
 	}
 
 	logs, resp = th.SystemAdminClient.GetLogs(1, 10)
@@ -480,42 +257,6 @@ func TestPostLog(t *testing.T) {
 	CheckNoError(t, resp)
 	if len(logMessage) == 0 {
 		t.Fatal("should return the log message")
-	}
-}
-
-func TestUploadLicenseFile(t *testing.T) {
-	th := Setup().InitBasic()
-	defer th.TearDown()
-	Client := th.Client
-
-	ok, resp := Client.UploadLicenseFile([]byte{})
-	CheckForbiddenStatus(t, resp)
-	if ok {
-		t.Fatal("should fail")
-	}
-
-	ok, resp = th.SystemAdminClient.UploadLicenseFile([]byte{})
-	CheckBadRequestStatus(t, resp)
-	if ok {
-		t.Fatal("should fail")
-	}
-}
-
-func TestRemoveLicenseFile(t *testing.T) {
-	th := Setup().InitBasic()
-	defer th.TearDown()
-	Client := th.Client
-
-	ok, resp := Client.RemoveLicenseFile()
-	CheckForbiddenStatus(t, resp)
-	if ok {
-		t.Fatal("should fail")
-	}
-
-	ok, resp = th.SystemAdminClient.RemoveLicenseFile()
-	CheckNoError(t, resp)
-	if !ok {
-		t.Fatal("should pass")
 	}
 }
 
@@ -597,7 +338,7 @@ func TestS3TestConnection(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	s3Host := os.Getenv("CI_HOST")
+	s3Host := os.Getenv("CI_MINIO_HOST")
 	if s3Host == "" {
 		s3Host = "dockerhost"
 	}
@@ -611,40 +352,54 @@ func TestS3TestConnection(t *testing.T) {
 	config := model.Config{
 		FileSettings: model.FileSettings{
 			DriverName:              model.NewString(model.IMAGE_DRIVER_S3),
-			AmazonS3AccessKeyId:     model.MINIO_ACCESS_KEY,
-			AmazonS3SecretAccessKey: model.MINIO_SECRET_KEY,
-			AmazonS3Bucket:          "",
-			AmazonS3Endpoint:        s3Endpoint,
+			AmazonS3AccessKeyId:     model.NewString(model.MINIO_ACCESS_KEY),
+			AmazonS3SecretAccessKey: model.NewString(model.MINIO_SECRET_KEY),
+			AmazonS3Bucket:          model.NewString(""),
+			AmazonS3Endpoint:        model.NewString(s3Endpoint),
+			AmazonS3Region:          model.NewString(""),
 			AmazonS3SSL:             model.NewBool(false),
 		},
 	}
 
-	_, resp := Client.TestS3Connection(&config)
-	CheckForbiddenStatus(t, resp)
+	t.Run("as system user", func(t *testing.T) {
+		_, resp := Client.TestS3Connection(&config)
+		CheckForbiddenStatus(t, resp)
+	})
 
-	_, resp = th.SystemAdminClient.TestS3Connection(&config)
-	CheckBadRequestStatus(t, resp)
-	if resp.Error.Message != "S3 Bucket is required" {
-		t.Fatal("should return error - missing s3 bucket")
-	}
+	t.Run("as system admin", func(t *testing.T) {
+		_, resp := th.SystemAdminClient.TestS3Connection(&config)
+		CheckBadRequestStatus(t, resp)
+		if resp.Error.Message != "S3 Bucket is required" {
+			t.Fatal("should return error - missing s3 bucket")
+		}
 
-	config.FileSettings.AmazonS3Bucket = model.MINIO_BUCKET
-	config.FileSettings.AmazonS3Region = "us-east-1"
-	_, resp = th.SystemAdminClient.TestS3Connection(&config)
-	CheckOKStatus(t, resp)
+		// If this fails, check the test configuration to ensure minio is setup with the
+		// `mattermost-test` bucket defined by model.MINIO_BUCKET.
+		*config.FileSettings.AmazonS3Bucket = model.MINIO_BUCKET
+		*config.FileSettings.AmazonS3Region = "us-east-1"
+		_, resp = th.SystemAdminClient.TestS3Connection(&config)
+		CheckOKStatus(t, resp)
 
-	config.FileSettings.AmazonS3Region = ""
-	_, resp = th.SystemAdminClient.TestS3Connection(&config)
-	CheckOKStatus(t, resp)
+		config.FileSettings.AmazonS3Region = model.NewString("")
+		_, resp = th.SystemAdminClient.TestS3Connection(&config)
+		CheckOKStatus(t, resp)
 
-	config.FileSettings.AmazonS3Bucket = "Wrong_bucket"
-	_, resp = th.SystemAdminClient.TestS3Connection(&config)
-	CheckInternalErrorStatus(t, resp)
-	assert.Equal(t, "Unable to create bucket.", resp.Error.Message)
+		config.FileSettings.AmazonS3Bucket = model.NewString("Wrong_bucket")
+		_, resp = th.SystemAdminClient.TestS3Connection(&config)
+		CheckInternalErrorStatus(t, resp)
+		assert.Equal(t, "Unable to create bucket.", resp.Error.Message)
 
-	config.FileSettings.AmazonS3Bucket = "shouldcreatenewbucket"
-	_, resp = th.SystemAdminClient.TestS3Connection(&config)
-	CheckOKStatus(t, resp)
+		*config.FileSettings.AmazonS3Bucket = "shouldcreatenewbucket"
+		_, resp = th.SystemAdminClient.TestS3Connection(&config)
+		CheckOKStatus(t, resp)
+	})
+
+	t.Run("as restricted system admin", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
+
+		_, resp := th.SystemAdminClient.TestS3Connection(&config)
+		CheckForbiddenStatus(t, resp)
+	})
 
 }
 
@@ -653,7 +408,7 @@ func TestSupportedTimezones(t *testing.T) {
 	defer th.TearDown()
 	Client := th.Client
 
-	supportedTimezonesFromConfig := th.App.Timezones()
+	supportedTimezonesFromConfig := th.App.Timezones.GetSupported()
 	supportedTimezones, resp := Client.GetSupportedTimezone()
 
 	CheckNoError(t, resp)
@@ -681,6 +436,7 @@ func TestRedirectLocation(t *testing.T) {
 	}()
 
 	*th.App.Config().ServiceSettings.EnableLinkPreviews = true
+	*th.App.Config().ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.1"
 
 	_, resp := th.SystemAdminClient.GetRedirectLocation("https://mattermost.com/", "")
 	CheckNoError(t, resp)
@@ -690,9 +446,12 @@ func TestRedirectLocation(t *testing.T) {
 
 	actual, resp := th.SystemAdminClient.GetRedirectLocation(mockBitlyLink, "")
 	CheckNoError(t, resp)
-	if actual != expected {
-		t.Errorf("Expected %v but got %v.", expected, actual)
-	}
+	assert.Equal(t, expected, actual)
+
+	// Check cached value
+	actual, resp = th.SystemAdminClient.GetRedirectLocation(mockBitlyLink, "")
+	CheckNoError(t, resp)
+	assert.Equal(t, expected, actual)
 
 	*th.App.Config().ServiceSettings.EnableLinkPreviews = false
 	actual, resp = th.SystemAdminClient.GetRedirectLocation("https://mattermost.com/", "")

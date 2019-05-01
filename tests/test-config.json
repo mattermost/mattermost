@@ -49,6 +49,7 @@
         "PostEditTimeLimit": -1,
         "TimeBetweenUserTypingUpdatesMilliseconds": 5000,
         "EnablePostSearch": true,
+        "MinimumHashtagLength": 3,
         "EnableUserTypingMessages": true,
         "EnableChannelViewedMessages": true,
         "EnableUserStatuses": true,
@@ -63,7 +64,8 @@
         "ImageProxyURL": "",
         "ImageProxyOptions": "",
         "EnableAPITeamDeletion": false,
-        "ExperimentalEnableHardenedMode": false
+        "ExperimentalEnableHardenedMode": false,
+        "ExperimentalLdapGroupSync": true
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
@@ -162,6 +164,7 @@
         "RequireEmailVerification": false,
         "FeedbackName": "",
         "FeedbackEmail": "test@example.com",
+        "ReplyToAddress": "test@example.com",
         "FeedbackOrganization": "",
         "EnableSMTPAuth": false,
         "SMTPUsername": "",
@@ -169,7 +172,6 @@
         "SMTPServer": "dockerhost",
         "SMTPPort": "2500",
         "ConnectionSecurity": "",
-        "InviteSalt": "n3mceqsek4j5ichs5hw9sudwx3cfbtqa",
         "SendPushNotifications": false,
         "PushNotificationServer": "",
         "PushNotificationContents": "generic",
@@ -342,9 +344,14 @@
         "Password": "changeme",
         "EnableIndexing": false,
         "EnableSearching": false,
+        "EnableAutocomplete": false,
         "Sniff": true,
         "PostIndexReplicas": 1,
         "PostIndexShards": 1,
+        "ChannelIndexReplicas": 1,
+        "ChannelIndexShards": 1,
+        "UserIndexReplicas": 1,
+        "UserIndexShards": 1,
         "AggregatePostsAfterDays": 365,
         "PostsAggregatorJobStartTime": "03:00",
         "IndexPrefix": "",
@@ -394,8 +401,5 @@
     "DisplaySettings": {
         "CustomUrlSchemes": [],
         "ExperimentalTimezone": false
-    },
-    "TimezoneSettings": {
-        "SupportedTimezonesPath": "timezones.json"
     }
 }

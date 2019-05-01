@@ -74,13 +74,10 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 			Type:        model.TEAM_OPEN,
 		}
 
-		if result := <-c.App.Srv.Store.Team().Save(team); result.Err != nil {
-			c.Err = result.Err
+		if createdTeam, err := c.App.Srv.Store.Team().Save(team); err != nil {
+			c.Err = err
 			return
 		} else {
-
-			createdTeam := result.Data.(*model.Team)
-
 			channel := &model.Channel{DisplayName: "Town Square", Name: "town-square", Type: model.CHANNEL_OPEN, TeamId: createdTeam.Id}
 			if _, err := c.App.CreateChannel(channel, false); err != nil {
 				c.Err = err
@@ -102,7 +99,7 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		<-c.App.Srv.Store.User().VerifyEmail(user.Id)
+		<-c.App.Srv.Store.User().VerifyEmail(user.Id, user.Email)
 		<-c.App.Srv.Store.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: user.Id}, *c.App.Config().TeamSettings.MaxUsersPerTeam)
 
 		userID = user.Id

@@ -179,13 +179,14 @@ viper.GetBool("verbose") // true
 ### Working with Environment Variables
 
 Viper has full support for environment variables. This enables 12 factor
-applications out of the box. There are four methods that exist to aid working
+applications out of the box. There are five methods that exist to aid working
 with ENV:
 
  * `AutomaticEnv()`
  * `BindEnv(string...) : error`
  * `SetEnvPrefix(string)`
  * `SetEnvKeyReplacer(string...) *strings.Replacer`
+  * `AllowEmptyEnvVar(bool)`
 
 _When working with ENV variables, it’s important to recognize that Viper
 treats ENV variables as case sensitive._
@@ -216,6 +217,10 @@ prefixed with the `EnvPrefix` if set.
 keys to an extent. This is useful if you want to use `-` or something in your
 `Get()` calls, but want your environmental variables to use `_` delimiters. An
 example of using it can be found in `viper_test.go`.
+
+By default empty environment variables are considered unset and will fall back to
+the next configuration source. To treat empty environment variables as set, use
+the `AllowEmptyEnv` method.
 
 #### Env example
 

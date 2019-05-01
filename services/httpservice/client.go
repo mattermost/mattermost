@@ -15,12 +15,14 @@ import (
 )
 
 const (
-	connectTimeout = 3 * time.Second
-	requestTimeout = 30 * time.Second
+	ConnectTimeout = 3 * time.Second
+	RequestTimeout = 30 * time.Second
 )
 
 var reservedIPRanges []*net.IPNet
 
+// IsReservedIP checks whether the target IP belongs to reserved IP address ranges to avoid SSRF attacks to the internal
+// network of the Mattermost server
 func IsReservedIP(ip net.IP) bool {
 	for _, ipRange := range reservedIPRanges {
 		if ipRange.Contains(ip) {
@@ -28,6 +30,38 @@ func IsReservedIP(ip net.IP) bool {
 		}
 	}
 	return false
+}
+
+// IsOwnIP handles the special case that a request might be made to the public IP of the host which on Linux is routed
+// directly via the loopback IP to any listening sockets, effectively bypassing host-based firewalls such as firewalld
+func IsOwnIP(ip net.IP) (bool, error) {
+	interfaces, err := net.Interfaces()
+	if err != nil {
+		return false, err
+	}
+
+	for _, interf := range interfaces {
+		addresses, err := interf.Addrs()
+		if err != nil {
+			return false, err
+		}
+
+		for _, addr := range addresses {
+			var selfIP net.IP
+			switch v := addr.(type) {
+			case *net.IPNet:
+				selfIP = v.IP
+			case *net.IPAddr:
+				selfIP = v.IP
+			}
+
+			if ip.Equal(selfIP) {
+				return true, nil
+			}
+		}
+	}
+
+	return false, nil
 }
 
 var defaultUserAgent string
@@ -102,25 +136,9 @@ func dialContextFilter(dial DialContextFunction, allowHost func(host string) boo
 	}
 }
 
-type Client struct {
-	*http.Client
-}
-
-func (c *Client) Do(req *http.Request) (*http.Response, error) {
-	req.Header.Set("User-Agent", defaultUserAgent)
-	return c.Client.Do(req)
-}
-
-// NewHTTPClient returns a variation the default implementation of Client.
-// It uses a Transport with the same settings as the default Transport
-// but with the following modifications:
-// - shorter timeout for dial and TLS handshake (defined as constant
-//   "connectTimeout")
-// - timeout for the end-to-end request (defined as constant
-//   "requestTimeout")
-func NewHTTPClient(enableInsecureConnections bool, allowHost func(host string) bool, allowIP func(ip net.IP) bool) *Client {
+func NewTransport(enableInsecureConnections bool, allowHost func(host string) bool, allowIP func(ip net.IP) bool) http.RoundTripper {
 	dialContext := (&net.Dialer{
-		Timeout:   connectTimeout,
+		Timeout:   ConnectTimeout,
 		KeepAlive: 30 * time.Second,
 	}).DialContext
 
@@ -128,20 +146,17 @@ func NewHTTPClient(enableInsecureConnections bool, allowHost func(host string) b
 		dialContext = dialContextFilter(dialContext, allowHost, allowIP)
 	}
 
-	client := &http.Client{
-		Transport: &http.Transport{
+	return &MattermostTransport{
+		&http.Transport{
 			Proxy:                 http.ProxyFromEnvironment,
 			DialContext:           dialContext,
 			MaxIdleConns:          100,
 			IdleConnTimeout:       90 * time.Second,
-			TLSHandshakeTimeout:   connectTimeout,
+			TLSHandshakeTimeout:   ConnectTimeout,
 			ExpectContinueTimeout: 1 * time.Second,
 			TLSClientConfig: &tls.Config{
 				InsecureSkipVerify: enableInsecureConnections,
 			},
 		},
-		Timeout: requestTimeout,
 	}
-
-	return &Client{Client: client}
 }

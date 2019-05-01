@@ -4,12 +4,11 @@
 package app
 
 import (
-	"crypto/hmac"
-	"crypto/sha1"
-	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -18,14 +17,18 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-func (a *App) CreatePostAsUser(post *model.Post, clearPushNotifications bool) (*model.Post, *model.AppError) {
+const (
+	PENDING_POST_IDS_CACHE_SIZE = 25000
+	PENDING_POST_IDS_CACHE_TTL  = 30 * time.Second
+)
+
+func (a *App) CreatePostAsUser(post *model.Post, currentSessionId string) (*model.Post, *model.AppError) {
 	// Check that channel has not been deleted
-	result := <-a.Srv.Store.Channel().Get(post.ChannelId, true)
-	if result.Err != nil {
-		err := model.NewAppError("CreatePostAsUser", "api.context.invalid_param.app_error", map[string]interface{}{"Name": "post.channel_id"}, result.Err.Error(), http.StatusBadRequest)
+	channel, errCh := a.Srv.Store.Channel().Get(post.ChannelId, true)
+	if errCh != nil {
+		err := model.NewAppError("CreatePostAsUser", "api.context.invalid_param.app_error", map[string]interface{}{"Name": "post.channel_id"}, errCh.Error(), http.StatusBadRequest)
 		return nil, err
 	}
-	channel := result.Data.(*model.Channel)
 
 	if strings.HasPrefix(post.Type, model.POST_SYSTEM_MESSAGE_PREFIX) {
 		err := model.NewAppError("CreatePostAsUser", "api.context.invalid_param.app_error", map[string]interface{}{"Name": "post.type"}, "", http.StatusBadRequest)
@@ -46,11 +49,10 @@ func (a *App) CreatePostAsUser(post *model.Post, clearPushNotifications bool) (*
 		}
 
 		if err.Id == "api.post.create_post.town_square_read_only" {
-			result := <-a.Srv.Store.User().Get(post.UserId)
-			if result.Err != nil {
-				return nil, result.Err
+			user, userErr := a.Srv.Store.User().Get(post.UserId)
+			if userErr != nil {
+				return nil, userErr
 			}
-			user := result.Data.(*model.User)
 
 			T := utils.GetUserTranslations(user.Locale)
 			a.SendEphemeralPost(
@@ -70,7 +72,7 @@ func (a *App) CreatePostAsUser(post *model.Post, clearPushNotifications bool) (*
 
 	// Update the LastViewAt only if the post does not have from_webhook prop set (eg. Zapier app)
 	if _, ok := post.Props["from_webhook"]; !ok {
-		if _, err := a.MarkChannelsAsViewed([]string{post.ChannelId}, post.UserId, clearPushNotifications); err != nil {
+		if _, err := a.MarkChannelsAsViewed([]string{post.ChannelId}, post.UserId, currentSessionId); err != nil {
 			mlog.Error(fmt.Sprintf("Encountered error updating last viewed, channel_id=%s, user_id=%s, err=%v", post.ChannelId, post.UserId, err))
 		}
 	}
@@ -79,16 +81,79 @@ func (a *App) CreatePostAsUser(post *model.Post, clearPushNotifications bool) (*
 }
 
 func (a *App) CreatePostMissingChannel(post *model.Post, triggerWebhooks bool) (*model.Post, *model.AppError) {
-	result := <-a.Srv.Store.Channel().Get(post.ChannelId, true)
-	if result.Err != nil {
-		return nil, result.Err
+	channel, err := a.Srv.Store.Channel().Get(post.ChannelId, true)
+	if err != nil {
+		return nil, err
 	}
-	channel := result.Data.(*model.Channel)
 
 	return a.CreatePost(post, channel, triggerWebhooks)
 }
 
-func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhooks bool) (*model.Post, *model.AppError) {
+// deduplicateCreatePost attempts to make posting idempotent within a caching window.
+func (a *App) deduplicateCreatePost(post *model.Post) (foundPost *model.Post, err *model.AppError) {
+	// We rely on the client sending the pending post id across "duplicate" requests. If there
+	// isn't one, we can't deduplicate, so allow creation normally.
+	if post.PendingPostId == "" {
+		return nil, nil
+	}
+
+	const unknownPostId = ""
+
+	// Query the cache atomically for the given pending post id, saving a record if
+	// it hasn't previously been seen.
+	value, loaded := a.Srv.seenPendingPostIdsCache.GetOrAdd(post.PendingPostId, unknownPostId, PENDING_POST_IDS_CACHE_TTL)
+
+	// If we were the first thread to save this pending post id into the cache,
+	// proceed with create post normally.
+	if !loaded {
+		return nil, nil
+	}
+
+	postId := value.(string)
+
+	// If another thread saved the cache record, but hasn't yet updated it with the actual post
+	// id (because it's still saving), notify the client with an error. Ideally, we'd wait
+	// for the other thread, but coordinating that adds complexity to the happy path.
+	if postId == unknownPostId {
+		return nil, model.NewAppError("deduplicateCreatePost", "api.post.deduplicate_create_post.pending", nil, "", http.StatusInternalServerError)
+	}
+
+	// If the other thread finished creating the post, return the created post back to the
+	// client, making the API call feel idempotent.
+	actualPost, err := a.GetSinglePost(postId)
+	if err != nil {
+		return nil, model.NewAppError("deduplicateCreatePost", "api.post.deduplicate_create_post.failed_to_get", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	mlog.Debug("Deduplicated create post", mlog.String("post_id", actualPost.Id), mlog.String("pending_post_id", post.PendingPostId))
+
+	return actualPost, nil
+}
+
+func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhooks bool) (savedPost *model.Post, err *model.AppError) {
+	foundPost, err := a.deduplicateCreatePost(post)
+	if err != nil {
+		return nil, err
+	}
+	if foundPost != nil {
+		return foundPost, nil
+	}
+
+	// If we get this far, we've recorded the client-provided pending post id to the cache.
+	// Remove it if we fail below, allowing a proper retry by the client.
+	defer func() {
+		if post.PendingPostId == "" {
+			return
+		}
+
+		if err != nil {
+			a.Srv.seenPendingPostIdsCache.Remove(post.PendingPostId)
+			return
+		}
+
+		a.Srv.seenPendingPostIdsCache.AddWithExpiresInSecs(post.PendingPostId, savedPost.Id, int64(PENDING_POST_IDS_CACHE_TTL.Seconds()))
+	}()
+
 	post.SanitizeProps()
 
 	var pchan store.StoreChannel
@@ -96,11 +161,10 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		pchan = a.Srv.Store.Post().Get(post.RootId)
 	}
 
-	result := <-a.Srv.Store.User().Get(post.UserId)
-	if result.Err != nil {
-		return nil, result.Err
+	user, err := a.Srv.Store.User().Get(post.UserId)
+	if err != nil {
+		return nil, err
 	}
-	user := result.Data.(*model.User)
 
 	if a.License() != nil && *a.Config().TeamSettings.ExperimentalTownSquareIsReadOnly &&
 		!post.IsSystemMessage() &&
@@ -112,13 +176,18 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 	// Verify the parent/child relationships are correct
 	var parentPostList *model.PostList
 	if pchan != nil {
-		result = <-pchan
+		result := <-pchan
 		if result.Err != nil {
 			return nil, model.NewAppError("createPost", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest)
 		}
 		parentPostList = result.Data.(*model.PostList)
 		if len(parentPostList.Posts) == 0 || !parentPostList.IsChannelId(post.ChannelId) {
 			return nil, model.NewAppError("createPost", "api.post.create_post.channel_root_id.app_error", nil, "", http.StatusInternalServerError)
+		}
+
+		rootPost := parentPostList.Posts[post.RootId]
+		if len(rootPost.RootId) > 0 {
+			return nil, model.NewAppError("createPost", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest)
 		}
 
 		if post.ParentId == "" {
@@ -139,9 +208,22 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		return nil, err
 	}
 
+	// Temporary fix so old plugins don't clobber new fields in SlackAttachment struct, see MM-13088
+	if attachments, ok := post.Props["attachments"].([]*model.SlackAttachment); ok {
+		jsonAttachments, err := json.Marshal(attachments)
+		if err == nil {
+			attachmentsInterface := []interface{}{}
+			err = json.Unmarshal(jsonAttachments, &attachmentsInterface)
+			post.Props["attachments"] = attachmentsInterface
+		}
+		if err != nil {
+			mlog.Error("Could not convert post attachments to map interface, err=%s" + err.Error())
+		}
+	}
+
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		var rejectionError *model.AppError
-		pluginContext := &plugin.Context{}
+		pluginContext := a.PluginContext()
 		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 			replacementPost, rejectionReason := hooks.MessageWillBePosted(pluginContext, post)
 			if rejectionReason != "" {
@@ -159,15 +241,19 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		}
 	}
 
-	result = <-a.Srv.Store.Post().Save(post)
+	result := <-a.Srv.Store.Post().Save(post)
 	if result.Err != nil {
 		return nil, result.Err
 	}
 	rpost := result.Data.(*model.Post)
 
+	// Update the mapping from pending post id to the actual post id, for any clients that
+	// might be duplicating requests.
+	a.Srv.seenPendingPostIdsCache.AddWithExpiresInSecs(post.PendingPostId, rpost.Id, int64(PENDING_POST_IDS_CACHE_TTL.Seconds()))
+
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv.Go(func() {
-			pluginContext := &plugin.Context{}
+			pluginContext := a.PluginContext()
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.MessageHasBeenPosted(pluginContext, rpost)
 				return true
@@ -178,7 +264,9 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 	esInterface := a.Elasticsearch
 	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
 		a.Srv.Go(func() {
-			esInterface.IndexPost(rpost, channel.TeamId)
+			if err := esInterface.IndexPost(rpost, channel.TeamId); err != nil {
+				mlog.Error("Encountered error indexing post", mlog.String("post_id", post.Id), mlog.Err(err))
+			}
 		})
 	}
 
@@ -187,13 +275,8 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 	}
 
 	if len(post.FileIds) > 0 {
-		// There's a rare bug where the client sends up duplicate FileIds so protect against that
-		post.FileIds = utils.RemoveDuplicatesFromStringArray(post.FileIds)
-
-		for _, fileId := range post.FileIds {
-			if result := <-a.Srv.Store.FileInfo().AttachToPost(fileId, post.Id); result.Err != nil {
-				mlog.Error(fmt.Sprintf("Encountered error attaching files to post, post_id=%s, user_id=%s, file_ids=%v, err=%v", post.Id, post.FileIds, post.UserId, result.Err), mlog.String("post_id", post.Id))
-			}
+		if err := a.attachFilesToPost(post); err != nil {
+			mlog.Error("Encountered error attaching files to post", mlog.String("post_id", post.Id), mlog.Any("file_ids", post.FileIds), mlog.Err(result.Err))
 		}
 
 		if a.Metrics != nil {
@@ -203,13 +286,38 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 
 	// Normally, we would let the API layer call PreparePostForClient, but we do it here since it also needs
 	// to be done when we send the post over the websocket in handlePostEvents
-	rpost = a.PreparePostForClient(rpost)
+	rpost = a.PreparePostForClient(rpost, true)
 
 	if err := a.handlePostEvents(rpost, user, channel, triggerWebhooks, parentPostList); err != nil {
-		return nil, err
+		mlog.Error("Failed to handle post events", mlog.Err(err))
 	}
 
 	return rpost, nil
+}
+
+func (a *App) attachFilesToPost(post *model.Post) *model.AppError {
+	var attachedIds []string
+	for _, fileId := range post.FileIds {
+		result := <-a.Srv.Store.FileInfo().AttachToPost(fileId, post.Id, post.UserId)
+		if result.Err != nil {
+			mlog.Warn("Failed to attach file to post", mlog.String("file_id", fileId), mlog.String("post_id", post.Id), mlog.Err(result.Err))
+			continue
+		}
+
+		attachedIds = append(attachedIds, fileId)
+	}
+
+	if len(post.FileIds) != len(attachedIds) {
+		// We couldn't attach all files to the post, so ensure that post.FileIds reflects what was actually attached
+		post.FileIds = attachedIds
+
+		result := <-a.Srv.Store.Post().Overwrite(post)
+		if result.Err != nil {
+			return result.Err
+		}
+	}
+
+	return nil
 }
 
 // FillInPostProps should be invoked before saving posts to fill in properties such as
@@ -252,14 +360,14 @@ func (a *App) FillInPostProps(post *model.Post, channel *model.Channel) *model.A
 	return nil
 }
 
-func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *model.Channel, triggerWebhooks bool, parentPostList *model.PostList) *model.AppError {
+func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *model.Channel, triggerWebhooks bool, parentPostList *model.PostList) error {
 	var team *model.Team
 	if len(channel.TeamId) > 0 {
-		result := <-a.Srv.Store.Team().Get(channel.TeamId)
-		if result.Err != nil {
-			return result.Err
+		t, err := a.Srv.Store.Team().Get(channel.TeamId)
+		if err != nil {
+			return err
 		}
-		team = result.Data.(*model.Team)
+		team = t
 	} else {
 		// Blank team for DMs
 		team = &model.Team{}
@@ -297,8 +405,41 @@ func (a *App) SendEphemeralPost(userId string, post *model.Post) *model.Post {
 		post.Props = model.StringInterface{}
 	}
 
+	post.GenerateActionIds()
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE, "", post.ChannelId, userId, nil)
-	message.Add("post", a.PreparePostForClient(post).ToJson())
+	post = a.PreparePostForClient(post, true)
+	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
+	message.Add("post", post.ToJson())
+	a.Publish(message)
+
+	return post
+}
+
+func (a *App) UpdateEphemeralPost(userId string, post *model.Post) *model.Post {
+	post.Type = model.POST_EPHEMERAL
+
+	post.UpdateAt = model.GetMillis()
+	if post.Props == nil {
+		post.Props = model.StringInterface{}
+	}
+
+	post.GenerateActionIds()
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", post.ChannelId, userId, nil)
+	post = a.PreparePostForClient(post, true)
+	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
+	message.Add("post", post.ToJson())
+	a.Publish(message)
+
+	return post
+}
+
+func (a *App) DeleteEphemeralPost(userId string, post *model.Post) *model.Post {
+	post.Type = model.POST_EPHEMERAL
+	post.DeleteAt = model.GetMillis()
+	post.UpdateAt = post.DeleteAt
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_DELETED, "", post.ChannelId, userId, nil)
+
+	message.Add("post", post.ToJson())
 	a.Publish(message)
 
 	return post
@@ -335,6 +476,16 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 		}
 	}
 
+	channel, err := a.GetChannel(oldPost.ChannelId)
+	if err != nil {
+		return nil, err
+	}
+
+	if channel.DeleteAt != 0 {
+		err := model.NewAppError("UpdatePost", "api.post.update_post.can_not_update_post_in_deleted.error", nil, "", http.StatusBadRequest)
+		return nil, err
+	}
+
 	newPost := &model.Post{}
 	*newPost = *oldPost
 
@@ -351,13 +502,18 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 		newPost.Props = post.Props
 	}
 
+	// Avoid deep-equal checks if EditAt was already modified through message change
+	if newPost.EditAt == oldPost.EditAt && (!oldPost.FileIds.Equals(newPost.FileIds) || !oldPost.AttachmentsEqual(newPost)) {
+		newPost.EditAt = model.GetMillis()
+	}
+
 	if err := a.FillInPostProps(post, nil); err != nil {
 		return nil, err
 	}
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		var rejectionReason string
-		pluginContext := &plugin.Context{}
+		pluginContext := a.PluginContext()
 		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 			newPost, rejectionReason = hooks.MessageWillBeUpdated(pluginContext, newPost, oldPost)
 			return post != nil
@@ -375,7 +531,7 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv.Go(func() {
-			pluginContext := &plugin.Context{}
+			pluginContext := a.PluginContext()
 			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 				hooks.MessageHasBeenUpdated(pluginContext, newPost, oldPost)
 				return true
@@ -391,11 +547,17 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 				mlog.Error(fmt.Sprintf("Couldn't get channel %v for post %v for Elasticsearch indexing.", rpost.ChannelId, rpost.Id))
 				return
 			}
-			esInterface.IndexPost(rpost, rchannel.Data.(*model.Channel).TeamId)
+			if err := esInterface.IndexPost(rpost, rchannel.Data.(*model.Channel).TeamId); err != nil {
+				mlog.Error("Encountered error indexing post", mlog.String("post_id", post.Id), mlog.Err(err))
+			}
 		})
 	}
 
-	a.sendUpdatedPostEvent(rpost)
+	rpost = a.PreparePostForClient(rpost, false)
+
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", rpost.ChannelId, "", nil)
+	message.Add("post", rpost.ToJson())
+	a.Publish(message)
 
 	a.InvalidateCacheForChannelPosts(rpost.ChannelId)
 
@@ -408,6 +570,16 @@ func (a *App) PatchPost(postId string, patch *model.PostPatch) (*model.Post, *mo
 		return nil, err
 	}
 
+	channel, err := a.GetChannel(post.ChannelId)
+	if err != nil {
+		return nil, err
+	}
+
+	if channel.DeleteAt != 0 {
+		err = model.NewAppError("PatchPost", "api.post.patch_post.can_not_update_post_in_deleted.error", nil, "", http.StatusBadRequest)
+		return nil, err
+	}
+
 	post.Patch(patch)
 
 	updatedPost, err := a.UpdatePost(post, false)
@@ -416,12 +588,6 @@ func (a *App) PatchPost(postId string, patch *model.PostPatch) (*model.Post, *mo
 	}
 
 	return updatedPost, nil
-}
-
-func (a *App) sendUpdatedPostEvent(post *model.Post) {
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", post.ChannelId, "", nil)
-	message.Add("post", a.PreparePostForClient(post).ToJson())
-	a.Publish(message)
 }
 
 func (a *App) GetPostsPage(channelId string, page int, perPage int) (*model.PostList, *model.AppError) {
@@ -555,12 +721,22 @@ func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppErro
 	}
 	post := result.Data.(*model.Post)
 
+	channel, err := a.GetChannel(post.ChannelId)
+	if err != nil {
+		return nil, err
+	}
+
+	if channel.DeleteAt != 0 {
+		err := model.NewAppError("DeletePost", "api.post.delete_post.can_not_delete_post_in_deleted.error", nil, "", http.StatusBadRequest)
+		return nil, err
+	}
+
 	if result := <-a.Srv.Store.Post().Delete(postId, model.GetMillis(), deleteByID); result.Err != nil {
 		return nil, result.Err
 	}
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_DELETED, "", post.ChannelId, "", nil)
-	message.Add("post", a.PreparePostForClient(post).ToJson())
+	message.Add("post", a.PreparePostForClient(post, false).ToJson())
 	a.Publish(message)
 
 	a.Srv.Go(func() {
@@ -573,7 +749,9 @@ func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppErro
 	esInterface := a.Elasticsearch
 	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
 		a.Srv.Go(func() {
-			esInterface.DeletePost(post)
+			if err := esInterface.DeletePost(post); err != nil {
+				mlog.Error("Encountered error deleting post", mlog.String("post_id", post.Id), mlog.Err(err))
+			}
 		})
 	}
 
@@ -602,7 +780,7 @@ func (a *App) DeletePostFiles(post *model.Post) {
 func (a *App) parseAndFetchChannelIdByNameFromInFilter(channelName, userId, teamId string, includeDeleted bool) (*model.Channel, error) {
 	if strings.HasPrefix(channelName, "@") && strings.Contains(channelName, ",") {
 		var userIds []string
-		users, err := a.GetUsersByUsernames(strings.Split(channelName[1:], ","), false)
+		users, err := a.GetUsersByUsernames(strings.Split(channelName[1:], ","), false, nil)
 		if err != nil {
 			return nil, err
 		}
@@ -622,7 +800,7 @@ func (a *App) parseAndFetchChannelIdByNameFromInFilter(channelName, userId, team
 		if err != nil {
 			return nil, err
 		}
-		channel, err := a.GetDirectChannel(userId, user.Id)
+		channel, err := a.GetOrCreateDirectChannel(userId, user.Id)
 		if err != nil {
 			return nil, err
 		}
@@ -636,7 +814,42 @@ func (a *App) parseAndFetchChannelIdByNameFromInFilter(channelName, userId, team
 	return channel, nil
 }
 
-func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.PostSearchResults, *model.AppError) {
+func (a *App) searchPostsInTeam(teamId string, userId string, paramsList []*model.SearchParams, modifierFun func(*model.SearchParams)) (*model.PostList, *model.AppError) {
+	channels := []store.StoreChannel{}
+
+	for _, params := range paramsList {
+		// Don't allow users to search for everything.
+		if params.Terms == "*" {
+			continue
+		}
+		modifierFun(params)
+		channels = append(channels, a.Srv.Store.Post().Search(teamId, userId, params))
+	}
+
+	posts := model.NewPostList()
+	for _, channel := range channels {
+		result := <-channel
+		if result.Err != nil {
+			return nil, result.Err
+		}
+		data := result.Data.(*model.PostList)
+		posts.Extend(data)
+	}
+
+	posts.SortByCreateAt()
+	return posts, nil
+}
+
+func (a *App) SearchPostsInTeam(teamId string, paramsList []*model.SearchParams) (*model.PostList, *model.AppError) {
+	if !*a.Config().ServiceSettings.EnablePostSearch {
+		return nil, model.NewAppError("SearchPostsInTeam", "store.sql_post.search.disabled", nil, fmt.Sprintf("teamId=%v", teamId), http.StatusNotImplemented)
+	}
+	return a.searchPostsInTeam(teamId, "", paramsList, func(params *model.SearchParams) {
+		params.SearchWithoutUserId = true
+	})
+}
+
+func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.PostSearchResults, *model.AppError) {
 	paramsList := model.ParseSearchParams(terms, timeZoneOffset)
 	includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 
@@ -708,7 +921,7 @@ func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOr
 	}
 
 	if !*a.Config().ServiceSettings.EnablePostSearch {
-		return nil, model.NewAppError("SearchPostsInTeam", "store.sql_post.search.disabled", nil, fmt.Sprintf("teamId=%v userId=%v", teamId, userId), http.StatusNotImplemented)
+		return nil, model.NewAppError("SearchPostsInTeamForUser", "store.sql_post.search.disabled", nil, fmt.Sprintf("teamId=%v userId=%v", teamId, userId), http.StatusNotImplemented)
 	}
 
 	// Since we don't support paging we just return nothing for later pages
@@ -716,39 +929,23 @@ func (a *App) SearchPostsInTeam(terms string, userId string, teamId string, isOr
 		return model.MakePostSearchResults(model.NewPostList(), nil), nil
 	}
 
-	channels := []store.StoreChannel{}
-
-	for _, params := range paramsList {
+	posts, err := a.searchPostsInTeam(teamId, userId, paramsList, func(params *model.SearchParams) {
 		params.IncludeDeletedChannels = includeDeleted
 		params.OrTerms = isOrSearch
-		// don't allow users to search for everything
-		if params.Terms != "*" {
-			for idx, channelName := range params.InChannels {
-				if strings.HasPrefix(channelName, "@") {
-					channel, err := a.parseAndFetchChannelIdByNameFromInFilter(channelName, userId, teamId, includeDeletedChannels)
-					if err != nil {
-						mlog.Error(fmt.Sprint(err))
-						continue
-					}
-					params.InChannels[idx] = channel.Name
+		for idx, channelName := range params.InChannels {
+			if strings.HasPrefix(channelName, "@") {
+				channel, err := a.parseAndFetchChannelIdByNameFromInFilter(channelName, userId, teamId, includeDeletedChannels)
+				if err != nil {
+					mlog.Error(fmt.Sprint(err))
+					continue
 				}
+				params.InChannels[idx] = channel.Name
 			}
-			channels = append(channels, a.Srv.Store.Post().Search(teamId, userId, params))
 		}
+	})
+	if err != nil {
+		return nil, err
 	}
-
-	posts := model.NewPostList()
-	for _, channel := range channels {
-		result := <-channel
-		if result.Err != nil {
-			return nil, result.Err
-		}
-		data := result.Data.(*model.PostList)
-		posts.Extend(data)
-	}
-
-	posts.SortByCreateAt()
-
 	return model.MakePostSearchResults(posts, nil), nil
 }
 
@@ -808,78 +1005,23 @@ func (a *App) PostPatchWithProxyRemovedFromImageURLs(patch *model.PostPatch) *mo
 	return patch
 }
 
-func (a *App) imageProxyConfig() (proxyType, proxyURL, options, siteURL string) {
-	cfg := a.Config()
-
-	if cfg.ServiceSettings.ImageProxyURL == nil || cfg.ServiceSettings.ImageProxyType == nil || cfg.ServiceSettings.SiteURL == nil {
-		return
-	}
-
-	proxyURL = *cfg.ServiceSettings.ImageProxyURL
-	proxyType = *cfg.ServiceSettings.ImageProxyType
-	siteURL = *cfg.ServiceSettings.SiteURL
-
-	if proxyURL == "" || proxyType == "" {
-		return "", "", "", ""
-	}
-
-	if proxyURL[len(proxyURL)-1] != '/' {
-		proxyURL += "/"
-	}
-
-	if siteURL == "" || siteURL[len(siteURL)-1] != '/' {
-		siteURL += "/"
-	}
-
-	if cfg.ServiceSettings.ImageProxyOptions != nil {
-		options = *cfg.ServiceSettings.ImageProxyOptions
-	}
-
-	return
-}
-
 func (a *App) ImageProxyAdder() func(string) string {
-	proxyType, proxyURL, options, siteURL := a.imageProxyConfig()
-	if proxyType == "" {
+	if !*a.Config().ImageProxySettings.Enable {
 		return nil
 	}
 
 	return func(url string) string {
-		if url == "" || url[0] == '/' || strings.HasPrefix(url, siteURL) || strings.HasPrefix(url, proxyURL) {
-			return url
-		}
-
-		switch proxyType {
-		case "atmos/camo":
-			mac := hmac.New(sha1.New, []byte(options))
-			mac.Write([]byte(url))
-			digest := hex.EncodeToString(mac.Sum(nil))
-			return proxyURL + digest + "/" + hex.EncodeToString([]byte(url))
-		}
-
-		return url
+		return a.Srv.ImageProxy.GetProxiedImageURL(url)
 	}
 }
 
 func (a *App) ImageProxyRemover() (f func(string) string) {
-	proxyType, proxyURL, _, _ := a.imageProxyConfig()
-	if proxyType == "" {
+	if !*a.Config().ImageProxySettings.Enable {
 		return nil
 	}
 
 	return func(url string) string {
-		switch proxyType {
-		case "atmos/camo":
-			if strings.HasPrefix(url, proxyURL) {
-				if slash := strings.IndexByte(url[len(proxyURL):], '/'); slash >= 0 {
-					if decoded, err := hex.DecodeString(url[len(proxyURL)+slash+1:]); err == nil {
-						return string(decoded)
-					}
-				}
-			}
-		}
-
-		return url
+		return a.Srv.ImageProxy.GetUnproxiedImageURL(url)
 	}
 }
 

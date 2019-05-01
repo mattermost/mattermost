@@ -9,51 +9,43 @@ import (
 	"regexp"
 	"strings"
 
-	goi18n "github.com/nicksnyder/go-i18n/i18n"
-
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
 type Context struct {
 	App           *app.App
 	Log           *mlog.Logger
-	Session       model.Session
 	Params        *Params
 	Err           *model.AppError
-	T             goi18n.TranslateFunc
-	RequestId     string
-	IpAddress     string
-	Path          string
 	siteURLHeader string
 }
 
 func (c *Context) LogAudit(extraInfo string) {
-	audit := &model.Audit{UserId: c.Session.UserId, IpAddress: c.IpAddress, Action: c.Path, ExtraInfo: extraInfo, SessionId: c.Session.Id}
-	if r := <-c.App.Srv.Store.Audit().Save(audit); r.Err != nil {
-		c.LogError(r.Err)
+	audit := &model.Audit{UserId: c.App.Session.UserId, IpAddress: c.App.IpAddress, Action: c.App.Path, ExtraInfo: extraInfo, SessionId: c.App.Session.Id}
+	if err := c.App.Srv.Store.Audit().Save(audit); err != nil {
+		c.LogError(err)
 	}
 }
 
 func (c *Context) LogAuditWithUserId(userId, extraInfo string) {
 
-	if len(c.Session.UserId) > 0 {
-		extraInfo = strings.TrimSpace(extraInfo + " session_user=" + c.Session.UserId)
+	if len(c.App.Session.UserId) > 0 {
+		extraInfo = strings.TrimSpace(extraInfo + " session_user=" + c.App.Session.UserId)
 	}
 
-	audit := &model.Audit{UserId: userId, IpAddress: c.IpAddress, Action: c.Path, ExtraInfo: extraInfo, SessionId: c.Session.Id}
-	if r := <-c.App.Srv.Store.Audit().Save(audit); r.Err != nil {
-		c.LogError(r.Err)
+	audit := &model.Audit{UserId: userId, IpAddress: c.App.IpAddress, Action: c.App.Path, ExtraInfo: extraInfo, SessionId: c.App.Session.Id}
+	if err := c.App.Srv.Store.Audit().Save(audit); err != nil {
+		c.LogError(err)
 	}
 }
 
 func (c *Context) LogError(err *model.AppError) {
 	// Filter out 404s, endless reconnects and browser compatibility errors
 	if err.StatusCode == http.StatusNotFound ||
-		(c.Path == "/api/v3/users/websocket" && err.StatusCode == http.StatusUnauthorized) ||
+		(c.App.Path == "/api/v3/users/websocket" && err.StatusCode == http.StatusUnauthorized) ||
 		err.Id == "web.check_browser_compatibility.app_error" {
 		c.LogDebug(err)
 	} else {
@@ -90,16 +82,16 @@ func (c *Context) LogDebug(err *model.AppError) {
 }
 
 func (c *Context) IsSystemAdmin() bool {
-	return c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM)
+	return c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM)
 }
 
 func (c *Context) SessionRequired() {
-	if !*c.App.Config().ServiceSettings.EnableUserAccessTokens && c.Session.Props[model.SESSION_PROP_TYPE] == model.SESSION_TYPE_USER_ACCESS_TOKEN {
+	if !*c.App.Config().ServiceSettings.EnableUserAccessTokens && c.App.Session.Props[model.SESSION_PROP_TYPE] == model.SESSION_TYPE_USER_ACCESS_TOKEN {
 		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "UserAccessToken", http.StatusUnauthorized)
 		return
 	}
 
-	if len(c.Session.UserId) == 0 {
+	if len(c.App.Session.UserId) == 0 {
 		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "UserRequired", http.StatusUnauthorized)
 		return
 	}
@@ -112,11 +104,11 @@ func (c *Context) MfaRequired() {
 	}
 
 	// OAuth integrations are excepted
-	if c.Session.IsOAuth {
+	if c.App.Session.IsOAuth {
 		return
 	}
 
-	if user, err := c.App.GetUser(c.Session.UserId); err != nil {
+	if user, err := c.App.GetUser(c.App.Session.UserId); err != nil {
 		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "MfaRequired", http.StatusUnauthorized)
 		return
 	} else {
@@ -129,7 +121,12 @@ func (c *Context) MfaRequired() {
 
 		// Special case to let user get themself
 		subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
-		if c.Path == path.Join(subpath, "/api/v4/users/me") {
+		if c.App.Path == path.Join(subpath, "/api/v4/users/me") {
+			return
+		}
+
+		// Bots are exempt
+		if user.IsBot {
 			return
 		}
 
@@ -190,7 +187,7 @@ func NewInvalidUrlParamError(parameter string) *model.AppError {
 }
 
 func (c *Context) SetPermissionError(permission *model.Permission) {
-	c.Err = model.NewAppError("Permissions", "api.context.permissions.app_error", nil, "userId="+c.Session.UserId+", "+"permission="+permission.Id, http.StatusForbidden)
+	c.Err = c.App.MakePermissionError(permission)
 }
 
 func (c *Context) SetSiteURLHeader(url string) {
@@ -207,7 +204,7 @@ func (c *Context) RequireUserId() *Context {
 	}
 
 	if c.Params.UserId == model.ME {
-		c.Params.UserId = c.Session.UserId
+		c.Params.UserId = c.App.Session.UserId
 	}
 
 	if len(c.Params.UserId) != 26 {
@@ -528,10 +525,57 @@ func (c *Context) RequireRoleName() *Context {
 	return c
 }
 
-func (c *Context) ToPluginContext() *plugin.Context {
-	return &plugin.Context{
-		//sessionId: c.Session.Id,
-		//requestId: c.RequestId,
-		//userIp: c.IpAddress,
+func (c *Context) RequireGroupId() *Context {
+	if c.Err != nil {
+		return c
 	}
+
+	if len(c.Params.GroupId) != 26 {
+		c.SetInvalidUrlParam("group_id")
+	}
+	return c
+}
+
+func (c *Context) RequireRemoteId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.RemoteId) == 0 {
+		c.SetInvalidUrlParam("remote_id")
+	}
+	return c
+}
+
+func (c *Context) RequireSyncableId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.SyncableId) != 26 {
+		c.SetInvalidUrlParam("syncable_id")
+	}
+	return c
+}
+
+func (c *Context) RequireSyncableType() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if c.Params.SyncableType != model.GroupSyncableTypeTeam && c.Params.SyncableType != model.GroupSyncableTypeChannel {
+		c.SetInvalidUrlParam("syncable_type")
+	}
+	return c
+}
+
+func (c *Context) RequireBotUserId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if len(c.Params.BotUserId) != 26 {
+		c.SetInvalidUrlParam("bot_user_id")
+	}
+	return c
 }

@@ -4,10 +4,10 @@
 package sqlstore
 
 import (
+	sq "github.com/Masterminds/squirrel"
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/lib/pq"
 	"github.com/mattermost/gorp"
-
 	"github.com/mattermost/mattermost-server/store"
 )
 
@@ -59,6 +59,7 @@ type SqlStore interface {
 	RenameColumnIfExists(tableName string, oldColumnName string, newColumnName string, colType string) bool
 	GetMaxLengthOfColumnIfExists(tableName string, columnName string) string
 	AlterColumnTypeIfExists(tableName string, columnName string, mySqlColType string, postgresColType string) bool
+	AlterColumnDefaultIfExists(tableName string, columnName string, mySqlColDefault *string, postgresColDefault *string) bool
 	CreateUniqueIndexIfNotExists(indexName string, tableName string, columnName string) bool
 	CreateIndexIfNotExists(indexName string, tableName string, columnName string) bool
 	CreateCompositeIndexIfNotExists(indexName string, tableName string, columnNames []string) bool
@@ -72,6 +73,7 @@ type SqlStore interface {
 	Channel() store.ChannelStore
 	Post() store.PostStore
 	User() store.UserStore
+	Bot() store.BotStore
 	Audit() store.AuditStore
 	ClusterDiscovery() store.ClusterDiscoveryStore
 	Compliance() store.ComplianceStore
@@ -95,4 +97,7 @@ type SqlStore interface {
 	Scheme() store.SchemeStore
 	TermsOfService() store.TermsOfServiceStore
 	UserTermsOfService() store.UserTermsOfServiceStore
+	LinkMetadata() store.LinkMetadataStore
+	getQueryBuilder() sq.StatementBuilderType
+	NotificationRegistry() store.NotificationRegistryStore
 }

@@ -1,6 +1,6 @@
 /*
- * Minio Go Library for Amazon S3 Compatible Cloud Storage
- * Copyright 2015-2017 Minio, Inc.
+ * MinIO Go Library for Amazon S3 Compatible Cloud Storage
+ * Copyright 2015-2017 MinIO, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -194,6 +194,28 @@ func (p *PostPolicy) SetUserMetadata(key string, value string) error {
 		return ErrInvalidArgument("Value is empty")
 	}
 	headerName := fmt.Sprintf("x-amz-meta-%s", key)
+	policyCond := policyCondition{
+		matchType: "eq",
+		condition: fmt.Sprintf("$%s", headerName),
+		value:     value,
+	}
+	if err := p.addNewPolicy(policyCond); err != nil {
+		return err
+	}
+	p.formData[headerName] = value
+	return nil
+}
+
+// SetUserData - Set user data as a key/value couple.
+// Can be retrieved through a HEAD request or an event.
+func (p *PostPolicy) SetUserData(key string, value string) error {
+	if key == "" {
+		return ErrInvalidArgument("Key is empty")
+	}
+	if value == "" {
+		return ErrInvalidArgument("Value is empty")
+	}
+	headerName := fmt.Sprintf("x-amz-%s", key)
 	policyCond := policyCondition{
 		matchType: "eq",
 		condition: fmt.Sprintf("$%s", headerName),

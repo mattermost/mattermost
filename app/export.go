@@ -5,15 +5,51 @@ package app
 
 import (
 	"encoding/json"
-	"errors"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/pkg/errors"
 )
+
+// We use this map to identify the exportable preferences.
+// Here we link the preference category and name, to the name of the relevant filed in the import struct.
+var exportablePreferences = map[ComparablePreference]string{{
+	Category: model.PREFERENCE_CATEGORY_THEME,
+	Name:     "",
+}: "Theme", {
+	Category: model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS,
+	Name:     "feature_enabled_markdown_preview",
+}: "UseMarkdownPreview", {
+	Category: model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS,
+	Name:     "formatting",
+}: "UseFormatting", {
+	Category: model.PREFERENCE_CATEGORY_SIDEBAR_SETTINGS,
+	Name:     "show_unread_section",
+}: "ShowUnreadSection", {
+	Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
+	Name:     model.PREFERENCE_NAME_USE_MILITARY_TIME,
+}: "UseMilitaryTime", {
+	Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
+	Name:     model.PREFERENCE_NAME_COLLAPSE_SETTING,
+}: "CollapsePreviews", {
+	Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
+	Name:     model.PREFERENCE_NAME_MESSAGE_DISPLAY,
+}: "MessageDisplay", {
+	Category: model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS,
+	Name:     "channel_display_mode",
+}: "ChannelDisplayMode", {
+	Category: model.PREFERENCE_CATEGORY_TUTORIAL_STEPS,
+	Name:     "",
+}: "TutorialStep", {
+	Category: model.PREFERENCE_CATEGORY_NOTIFICATIONS,
+	Name:     model.PREFERENCE_NAME_EMAIL_INTERVAL,
+}: "EmailInterval",
+}
 
 func (a *App) BulkExport(writer io.Writer, file string, pathToEmojiDir string, dirNameToExportEmoji string) *model.AppError {
 	if err := a.ExportVersion(writer); err != nil {
@@ -35,7 +71,16 @@ func (a *App) BulkExport(writer io.Writer, file string, pathToEmojiDir string, d
 	if err := a.ExportAllPosts(writer); err != nil {
 		return err
 	}
+
 	if err := a.ExportCustomEmoji(writer, file, pathToEmojiDir, dirNameToExportEmoji); err != nil {
+		return err
+	}
+
+	if err := a.ExportAllDirectChannels(writer); err != nil {
+		return err
+	}
+
+	if err := a.ExportAllDirectPosts(writer); err != nil {
 		return err
 	}
 
@@ -149,12 +194,45 @@ func (a *App) ExportAllUsers(writer io.Writer) *model.AppError {
 		for _, user := range users {
 			afterId = user.Id
 
-			// Skip deleted.
-			if user.DeleteAt != 0 {
-				continue
+			// Gathering here the exportable preferences to pass them on to ImportLineFromUser
+			exportedPrefs := make(map[string]*string)
+			allPrefs, err := a.GetPreferencesForUser(user.Id)
+			if err != nil {
+				return err
+			}
+			for _, pref := range allPrefs {
+				// We need to manage the special cases
+				// Here we manage Tutorial steps
+				if pref.Category == model.PREFERENCE_CATEGORY_TUTORIAL_STEPS {
+					pref.Name = ""
+					// Then the email interval
+				} else if pref.Category == model.PREFERENCE_CATEGORY_NOTIFICATIONS && pref.Name == model.PREFERENCE_NAME_EMAIL_INTERVAL {
+					switch pref.Value {
+					case model.PREFERENCE_EMAIL_INTERVAL_NO_BATCHING_SECONDS:
+						pref.Value = model.PREFERENCE_EMAIL_INTERVAL_IMMEDIATELY
+					case model.PREFERENCE_EMAIL_INTERVAL_FIFTEEN_AS_SECONDS:
+						pref.Value = model.PREFERENCE_EMAIL_INTERVAL_FIFTEEN
+					case model.PREFERENCE_EMAIL_INTERVAL_HOUR_AS_SECONDS:
+						pref.Value = model.PREFERENCE_EMAIL_INTERVAL_HOUR
+					case "0":
+						pref.Value = ""
+					}
+				}
+				id, ok := exportablePreferences[ComparablePreference{
+					Category: pref.Category,
+					Name:     pref.Name,
+				}]
+				if ok {
+					prefPtr := pref.Value
+					if prefPtr != "" {
+						exportedPrefs[id] = &prefPtr
+					} else {
+						exportedPrefs[id] = nil
+					}
+				}
 			}
 
-			userLine := ImportLineFromUser(user)
+			userLine := ImportLineFromUser(user, exportedPrefs)
 
 			userLine.User.NotifyProps = a.buildUserNotifyProps(user.NotifyProps)
 
@@ -220,7 +298,7 @@ func (a *App) buildUserChannelMemberships(userId string, teamId string) (*[]User
 
 	category := model.PREFERENCE_CATEGORY_FAVORITE_CHANNEL
 	preferences, err := a.GetPreferenceByCategoryForUser(userId, category)
-	if err != nil {
+	if err != nil && err.StatusCode != http.StatusNotFound {
 		return nil, err
 	}
 
@@ -243,8 +321,8 @@ func (a *App) buildUserNotifyProps(notifyProps model.StringMap) *UserNotifyProps
 		Desktop:          getProp(model.DESKTOP_NOTIFY_PROP),
 		DesktopSound:     getProp(model.DESKTOP_SOUND_NOTIFY_PROP),
 		Email:            getProp(model.EMAIL_NOTIFY_PROP),
-		Mobile:           getProp(model.MOBILE_NOTIFY_PROP),
-		MobilePushStatus: getProp(model.MOBILE_PUSH_STATUS_NOTIFY_PROP),
+		Mobile:           getProp(model.PUSH_NOTIFY_PROP),
+		MobilePushStatus: getProp(model.PUSH_STATUS_NOTIFY_PROP),
 		ChannelTrigger:   getProp(model.CHANNEL_MENTIONS_NOTIFY_PROP),
 		CommentsTrigger:  getProp(model.COMMENTS_NOTIFY_PROP),
 		MentionKeys:      getProp(model.MENTION_KEYS_NOTIFY_PROP),
@@ -329,16 +407,18 @@ func (a *App) buildPostReplies(postId string) (*[]ReplyImportData, *model.AppErr
 func (a *App) BuildPostReactions(postId string) (*[]ReactionImportData, *model.AppError) {
 	var reactionsOfPost []ReactionImportData
 
-	result := <-a.Srv.Store.Reaction().GetForPost(postId, true)
-
-	if result.Err != nil {
-		return nil, result.Err
+	reactions, err := a.Srv.Store.Reaction().GetForPost(postId, true)
+	if err != nil {
+		return nil, err
 	}
 
-	reactions := result.Data.([]*model.Reaction)
-
 	for _, reaction := range reactions {
-		reactionsOfPost = append(reactionsOfPost, *ImportReactionFromPost(reaction))
+		var user *model.User
+		user, err = a.Srv.Store.User().Get(reaction.UserId)
+		if err != nil {
+			return nil, err
+		}
+		reactionsOfPost = append(reactionsOfPost, *ImportReactionFromPost(user, reaction))
 	}
 
 	return &reactionsOfPost, nil
@@ -400,8 +480,6 @@ func (a *App) createDirForEmoji(file string, dirName string) string {
 
 // Copies emoji files from 'data/emoji' dir to 'exported_emoji' dir
 func (a *App) copyEmojiImages(emojiId string, emojiImagePath string, pathToDir string) error {
-	var err error
-
 	fromPath, err := os.Open(emojiImagePath)
 	if fromPath == nil || err != nil {
 		return errors.New("Error reading " + emojiImagePath + "file")
@@ -410,12 +488,16 @@ func (a *App) copyEmojiImages(emojiId string, emojiImagePath string, pathToDir s
 
 	emojiDir := pathToDir + "/" + emojiId
 
-	if _, err := os.Stat(emojiDir); os.IsNotExist(err) {
-		os.Mkdir(emojiDir, os.ModePerm)
+	if _, err = os.Stat(emojiDir); err != nil {
+		if !os.IsNotExist(err) {
+			return errors.Wrapf(err, "Error fetching file info of emoji directory %v", emojiDir)
+		}
+
+		if err = os.Mkdir(emojiDir, os.ModePerm); err != nil {
+			return errors.Wrapf(err, "Error creating emoji directory %v", emojiDir)
+		}
 	}
-	if err != nil {
-		return errors.New("Error creating directory for the emoji " + err.Error())
-	}
+
 	toPath, err := os.OpenFile(emojiDir+"/image", os.O_RDWR|os.O_CREATE, 0666)
 	if err != nil {
 		return errors.New("Error creating the image file " + err.Error())
@@ -427,5 +509,85 @@ func (a *App) copyEmojiImages(emojiId string, emojiImagePath string, pathToDir s
 		return errors.New("Error copying emojis " + err.Error())
 	}
 
+	return nil
+}
+
+func (a *App) ExportAllDirectChannels(writer io.Writer) *model.AppError {
+	afterId := strings.Repeat("0", 26)
+	for {
+		result := <-a.Srv.Store.Channel().GetAllDirectChannelsForExportAfter(1000, afterId)
+		if result.Err != nil {
+			return result.Err
+		}
+
+		channels := result.Data.([]*model.DirectChannelForExport)
+		if len(channels) == 0 {
+			break
+		}
+
+		for _, channel := range channels {
+			afterId = channel.Id
+
+			// Skip deleted.
+			if channel.DeleteAt != 0 {
+				continue
+			}
+
+			// There's no import support for single member channels yet.
+			if len(*channel.Members) == 1 {
+				mlog.Debug("Bulk export for direct channels containing a single member is not supported.")
+				continue
+			}
+
+			channelLine := ImportLineFromDirectChannel(channel)
+			if err := a.ExportWriteLine(writer, channelLine); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func (a *App) ExportAllDirectPosts(writer io.Writer) *model.AppError {
+	afterId := strings.Repeat("0", 26)
+	for {
+		result := <-a.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, afterId)
+		if result.Err != nil {
+			return result.Err
+		}
+
+		posts := result.Data.([]*model.DirectPostForExport)
+		if len(posts) == 0 {
+			break
+		}
+
+		for _, post := range posts {
+			afterId = post.Id
+
+			// Skip deleted.
+			if post.DeleteAt != 0 {
+				continue
+			}
+
+			// There's no import support for single member channels yet.
+			if len(*post.ChannelMembers) == 1 {
+				mlog.Debug("Bulk export for posts containing a single member is not supported.")
+				continue
+			}
+
+			// Do the Replies.
+			replies, err := a.buildPostReplies(post.Id)
+			if err != nil {
+				return err
+			}
+
+			postLine := ImportLineForDirectPost(post)
+			postLine.DirectPost.Replies = replies
+			if err := a.ExportWriteLine(writer, postLine); err != nil {
+				return err
+			}
+		}
+	}
 	return nil
 }

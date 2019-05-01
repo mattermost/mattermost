@@ -141,12 +141,11 @@ func (a *App) SlackAddUsers(teamId string, slackusers []SlackUser, importerLog *
 	addedUsers := make(map[string]*model.User)
 
 	// Need the team
-	result := <-a.Srv.Store.Team().Get(teamId)
-	if result.Err != nil {
+	team, err := a.Srv.Store.Team().Get(teamId)
+	if err != nil {
 		importerLog.WriteString(utils.T("api.slackimport.slack_import.team_fail"))
 		return addedUsers
 	}
-	team := result.Data.(*model.Team)
 
 	for _, sUser := range slackusers {
 		firstName := sUser.Profile.FirstName
@@ -193,12 +192,11 @@ func (a *App) SlackAddUsers(teamId string, slackusers []SlackUser, importerLog *
 }
 
 func (a *App) SlackAddBotUser(teamId string, log *bytes.Buffer) *model.User {
-	result := <-a.Srv.Store.Team().Get(teamId)
-	if result.Err != nil {
+	team, err := a.Srv.Store.Team().Get(teamId)
+	if err != nil {
 		log.WriteString(utils.T("api.slackimport.slack_import.team_fail"))
 		return nil
 	}
-	team := result.Data.(*model.Team)
 
 	password := model.NewId()
 	username := "slackimportuser_" + model.NewId()
@@ -248,7 +246,7 @@ func (a *App) SlackAddPosts(teamId string, channel *model.Channel, posts []Slack
 			}
 			a.OldImportPost(&newPost)
 			for _, fileId := range newPost.FileIds {
-				if result := <-a.Srv.Store.FileInfo().AttachToPost(fileId, newPost.Id); result.Err != nil {
+				if result := <-a.Srv.Store.FileInfo().AttachToPost(fileId, newPost.Id, newPost.UserId); result.Err != nil {
 					mlog.Error(fmt.Sprintf("Slack Import: An error occurred when attaching files to a message, post_id=%s, file_ids=%v, err=%v.", newPost.Id, newPost.FileIds, result.Err))
 				}
 			}
@@ -723,7 +721,7 @@ func (a *App) OldImportPost(post *model.Post) {
 		}
 
 		for _, fileId := range post.FileIds {
-			if result := <-a.Srv.Store.FileInfo().AttachToPost(fileId, post.Id); result.Err != nil {
+			if result := <-a.Srv.Store.FileInfo().AttachToPost(fileId, post.Id, post.UserId); result.Err != nil {
 				mlog.Error(fmt.Sprintf("Error attaching files to post. postId=%v, fileIds=%v, message=%v", post.Id, post.FileIds, result.Err), mlog.String("post_id", post.Id))
 			}
 		}
@@ -746,7 +744,7 @@ func (a *App) OldImportUser(team *model.Team, user *model.User) *model.User {
 	}
 	ruser := result.Data.(*model.User)
 
-	if cresult := <-a.Srv.Store.User().VerifyEmail(ruser.Id); cresult.Err != nil {
+	if cresult := <-a.Srv.Store.User().VerifyEmail(ruser.Id, ruser.Email); cresult.Err != nil {
 		mlog.Error(fmt.Sprintf("Failed to set email verified err=%v", cresult.Err))
 	}
 
@@ -780,8 +778,8 @@ func (a *App) OldImportFile(timestamp time.Time, file io.Reader, teamId string, 
 	if fileInfo.IsImage() && fileInfo.MimeType != "image/svg+xml" {
 		img, width, height := prepareImage(data)
 		if img != nil {
-			a.generateThumbnailImage(*img, fileInfo.ThumbnailPath, width, height)
-			a.generatePreviewImage(*img, fileInfo.PreviewPath, width)
+			a.generateThumbnailImage(img, fileInfo.ThumbnailPath, width, height)
+			a.generatePreviewImage(img, fileInfo.PreviewPath, width)
 		}
 	}
 

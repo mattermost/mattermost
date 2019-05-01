@@ -2,6 +2,7 @@ package plugin
 
 import (
 	"crypto/tls"
+	"crypto/x509"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -93,7 +94,7 @@ func protocolVersion(opts *ServeConfig) (int, Protocol, PluginSet) {
 	protoVersion := int(opts.ProtocolVersion)
 	pluginSet := opts.Plugins
 	protoType := ProtocolNetRPC
-	// check if the client sent a list of acceptable versions
+	// Check if the client sent a list of acceptable versions
 	var clientVersions []int
 	if vs := os.Getenv("PLUGIN_PROTOCOL_VERSIONS"); vs != "" {
 		for _, s := range strings.Split(vs, ",") {
@@ -106,7 +107,7 @@ func protocolVersion(opts *ServeConfig) (int, Protocol, PluginSet) {
 		}
 	}
 
-	// we want to iterate in reverse order, to ensure we match the newest
+	// We want to iterate in reverse order, to ensure we match the newest
 	// compatible plugin version.
 	sort.Sort(sort.Reverse(sort.IntSlice(clientVersions)))
 
@@ -119,7 +120,7 @@ func protocolVersion(opts *ServeConfig) (int, Protocol, PluginSet) {
 		opts.VersionedPlugins[protoVersion] = pluginSet
 	}
 
-	// sort the version to make sure we match the latest first
+	// Sort the version to make sure we match the latest first
 	var versions []int
 	for v := range opts.VersionedPlugins {
 		versions = append(versions, v)
@@ -127,23 +128,26 @@ func protocolVersion(opts *ServeConfig) (int, Protocol, PluginSet) {
 
 	sort.Sort(sort.Reverse(sort.IntSlice(versions)))
 
-	// see if we have multiple versions of Plugins to choose from
+	// See if we have multiple versions of Plugins to choose from
 	for _, version := range versions {
-		// record each version, since we guarantee that this returns valid
+		// Record each version, since we guarantee that this returns valid
 		// values even if they are not a protocol match.
 		protoVersion = version
 		pluginSet = opts.VersionedPlugins[version]
 
-		// all plugins in a set must use the same transport, so check the first
-		// for the protocol type
-		for _, p := range pluginSet {
-			switch p.(type) {
-			case GRPCPlugin:
-				protoType = ProtocolGRPC
-			default:
-				protoType = ProtocolNetRPC
+		// If we have a configured gRPC server we should select a protocol
+		if opts.GRPCServer != nil {
+			// All plugins in a set must use the same transport, so check the first
+			// for the protocol type
+			for _, p := range pluginSet {
+				switch p.(type) {
+				case GRPCPlugin:
+					protoType = ProtocolGRPC
+				default:
+					protoType = ProtocolNetRPC
+				}
+				break
 			}
-			break
 		}
 
 		for _, clientVersion := range clientVersions {
@@ -239,6 +243,41 @@ func Serve(opts *ServeConfig) {
 		}
 	}
 
+	var serverCert string
+	clientCert := os.Getenv("PLUGIN_CLIENT_CERT")
+	// If the client is configured using AutoMTLS, the certificate will be here,
+	// and we need to generate our own in response.
+	if tlsConfig == nil && clientCert != "" {
+		logger.Info("configuring server automatic mTLS")
+		clientCertPool := x509.NewCertPool()
+		if !clientCertPool.AppendCertsFromPEM([]byte(clientCert)) {
+			logger.Error("client cert provided but failed to parse", "cert", clientCert)
+		}
+
+		certPEM, keyPEM, err := generateCert()
+		if err != nil {
+			logger.Error("failed to generate client certificate", "error", err)
+			panic(err)
+		}
+
+		cert, err := tls.X509KeyPair(certPEM, keyPEM)
+		if err != nil {
+			logger.Error("failed to parse client certificate", "error", err)
+			panic(err)
+		}
+
+		tlsConfig = &tls.Config{
+			Certificates: []tls.Certificate{cert},
+			ClientAuth:   tls.RequireAndVerifyClientCert,
+			ClientCAs:    clientCertPool,
+			MinVersion:   tls.VersionTLS12,
+		}
+
+		// We send back the raw leaf cert data for the client rather than the
+		// PEM, since the protocol can't handle newlines.
+		serverCert = base64.RawStdEncoding.EncodeToString(cert.Certificate[0])
+	}
+
 	// Create the channel to tell us when we're done
 	doneCh := make(chan struct{})
 
@@ -269,6 +308,7 @@ func Serve(opts *ServeConfig) {
 			Stdout:  stdout_r,
 			Stderr:  stderr_r,
 			DoneCh:  doneCh,
+			logger:  logger,
 		}
 
 	default:
@@ -281,25 +321,16 @@ func Serve(opts *ServeConfig) {
 		return
 	}
 
-	// Build the extra configuration
-	extra := ""
-	if v := server.Config(); v != "" {
-		extra = base64.StdEncoding.EncodeToString([]byte(v))
-	}
-	if extra != "" {
-		extra = "|" + extra
-	}
-
 	logger.Debug("plugin address", "network", listener.Addr().Network(), "address", listener.Addr().String())
 
 	// Output the address and service name to stdout so that the client can bring it up.
-	fmt.Printf("%d|%d|%s|%s|%s%s\n",
+	fmt.Printf("%d|%d|%s|%s|%s|%s\n",
 		CoreProtocolVersion,
 		protoVersion,
 		listener.Addr().Network(),
 		listener.Addr().String(),
 		protoType,
-		extra)
+		serverCert)
 	os.Stdout.Sync()
 
 	// Eat the interrupts

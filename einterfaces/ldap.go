@@ -14,9 +14,11 @@ type LdapInterface interface {
 	CheckPassword(id string, password string) *model.AppError
 	CheckPasswordAuthData(authData string, password string) *model.AppError
 	SwitchToLdap(userId, ldapId, ldapPassword string) *model.AppError
-	ValidateFilter(filter string) *model.AppError
 	StartSynchronizeJob(waitForJobToFinish bool) (*model.Job, *model.AppError)
 	RunTest() *model.AppError
 	GetAllLdapUsers() ([]*model.User, *model.AppError)
 	MigrateIDAttribute(toAttribute string) error
+	GetGroup(groupUID string) (*model.Group, *model.AppError)
+	GetAllGroupsPage(page int, perPage int, opts model.GroupSearchOpts) ([]*model.Group, int, *model.AppError)
+	FirstLoginSync(userID, userAuthService, userAuthData string) *model.AppError
 }

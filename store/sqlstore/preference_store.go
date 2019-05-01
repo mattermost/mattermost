@@ -61,6 +61,7 @@ func (s SqlPreferenceStore) Save(preferences *model.Preferences) store.StoreChan
 		if err != nil {
 			result.Err = model.NewAppError("SqlPreferenceStore.Save", "store.sql_preference.save.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 		} else {
+			defer finalizeTransaction(transaction)
 			for _, preference := range *preferences {
 				if upsertResult := s.save(transaction, &preference); upsertResult.Err != nil {
 					*result = upsertResult
@@ -74,10 +75,6 @@ func (s SqlPreferenceStore) Save(preferences *model.Preferences) store.StoreChan
 					result.Err = model.NewAppError("SqlPreferenceStore.Save", "store.sql_preference.save.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 				} else {
 					result.Data = len(*preferences)
-				}
-			} else {
-				if err := transaction.Rollback(); err != nil {
-					result.Err = model.NewAppError("SqlPreferenceStore.Save", "store.sql_preference.save.rollback_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 				}
 			}
 		}
@@ -128,9 +125,9 @@ func (s SqlPreferenceStore) save(transaction *gorp.Transaction, preference *mode
 		}
 
 		if count == 1 {
-			s.update(transaction, preference)
+			result = s.update(transaction, preference)
 		} else {
-			s.insert(transaction, preference)
+			result = s.insert(transaction, preference)
 		}
 	} else {
 		result.Err = model.NewAppError("SqlPreferenceStore.save", "store.sql_preference.save.missing_driver.app_error", nil, "Failed to update preference because of missing driver", http.StatusNotImplemented)

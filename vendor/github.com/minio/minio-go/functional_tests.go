@@ -1,8 +1,8 @@
 // +build ignore
 
 /*
- * Minio Go Library for Amazon S3 Compatible Cloud Storage
- * Copyright 2015-2017 Minio, Inc.
+ * MinIO Go Library for Amazon S3 Compatible Cloud Storage
+ * Copyright 2015-2017 MinIO, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,6 +57,7 @@ const (
 	accessKey      = "ACCESS_KEY"
 	secretKey      = "SECRET_KEY"
 	enableHTTPS    = "ENABLE_HTTPS"
+	enableKMS      = "ENABLE_KMS"
 )
 
 type mintJSONFormatter struct {
@@ -183,9 +184,9 @@ func isErrNotImplemented(err error) bool {
 
 func init() {
 	// If server endpoint is not set, all tests default to
-	// using https://play.minio.io:9000
+	// using https://play.min.io:9000
 	if os.Getenv(serverEndpoint) == "" {
-		os.Setenv(serverEndpoint, "play.minio.io:9000")
+		os.Setenv(serverEndpoint, "play.min.io:9000")
 		os.Setenv(accessKey, "Q3AM3UQ867SPQQA43P2F")
 		os.Setenv(secretKey, "zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG")
 		os.Setenv(enableHTTPS, "1")
@@ -306,7 +307,7 @@ func testMakeBucketError() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio client creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO client creation failed", err)
 		return
 	}
 
@@ -314,7 +315,7 @@ func testMakeBucketError() {
 	// c.TraceOn(os.Stderr)
 
 	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
 
 	// Generate a new random bucket name.
 	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
@@ -362,10 +363,10 @@ func testMetadataSizeLimit() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio client creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO client creation failed", err)
 		return
 	}
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
 
 	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
 	args["bucketName"] = bucketName
@@ -442,7 +443,7 @@ func testMakeBucketRegions() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio client creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO client creation failed", err)
 		return
 	}
 
@@ -450,7 +451,7 @@ func testMakeBucketRegions() {
 	// c.TraceOn(os.Stderr)
 
 	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
 
 	// Generate a new random bucket name.
 	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
@@ -509,7 +510,7 @@ func testPutObjectReadAt() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio client object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO client object creation failed", err)
 		return
 	}
 
@@ -517,7 +518,7 @@ func testPutObjectReadAt() {
 	// c.TraceOn(os.Stderr)
 
 	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
 
 	// Generate a new random bucket name.
 	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
@@ -619,7 +620,7 @@ func testPutObjectWithMetadata() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio client object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO client object creation failed", err)
 		return
 	}
 
@@ -627,7 +628,7 @@ func testPutObjectWithMetadata() {
 	// c.TraceOn(os.Stderr)
 
 	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
 
 	// Generate a new random bucket name.
 	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
@@ -652,7 +653,8 @@ func testPutObjectWithMetadata() {
 	customContentType := "custom/contenttype"
 
 	args["metadata"] = map[string][]string{
-		"Content-Type": {customContentType},
+		"Content-Type":         {customContentType},
+		"X-Amz-Meta-CustomKey": {"extra  spaces  in   value"},
 	}
 
 	n, err := c.PutObject(bucketName, objectName, reader, int64(bufSize), minio.PutObjectOptions{
@@ -729,7 +731,7 @@ func testPutObjectWithContentLanguage() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio client object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO client object creation failed", err)
 		return
 	}
 
@@ -737,7 +739,7 @@ func testPutObjectWithContentLanguage() {
 	// c.TraceOn(os.Stderr)
 
 	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
 
 	// Generate a new random bucket name.
 	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
@@ -808,7 +810,7 @@ func testPutObjectStreaming() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio client object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO client object creation failed", err)
 		return
 	}
 
@@ -816,7 +818,7 @@ func testPutObjectStreaming() {
 	// c.TraceOn(os.Stderr)
 
 	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
 
 	// Generate a new random bucket name.
 	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
@@ -873,7 +875,7 @@ func testGetObjectSeekEnd() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio client object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO client object creation failed", err)
 		return
 	}
 
@@ -881,7 +883,7 @@ func testGetObjectSeekEnd() {
 	// c.TraceOn(os.Stderr)
 
 	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
 
 	// Generate a new random bucket name.
 	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
@@ -1005,7 +1007,7 @@ func testGetObjectClosedTwice() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio client object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO client object creation failed", err)
 		return
 	}
 
@@ -1013,7 +1015,7 @@ func testGetObjectClosedTwice() {
 	// c.TraceOn(os.Stderr)
 
 	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
 
 	// Generate a new random bucket name.
 	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
@@ -1101,12 +1103,12 @@ func testRemoveObjectsWithContext() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio client object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO client object creation failed", err)
 		return
 	}
 
 	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
 	// Enable tracing, write to stdout.
 	// c.TraceOn(os.Stderr)
 
@@ -1197,12 +1199,12 @@ func testRemoveMultipleObjects() {
 	)
 
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio client object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO client object creation failed", err)
 		return
 	}
 
 	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
 
 	// Enable tracing, write to stdout.
 	// c.TraceOn(os.Stderr)
@@ -1284,7 +1286,7 @@ func testFPutObjectMultipart() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio client object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO client object creation failed", err)
 		return
 	}
 
@@ -1292,7 +1294,7 @@ func testFPutObjectMultipart() {
 	// c.TraceOn(os.Stderr)
 
 	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
 
 	// Generate a new random bucket name.
 	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
@@ -1398,7 +1400,7 @@ func testFPutObject() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio client object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO client object creation failed", err)
 		return
 	}
 
@@ -1406,7 +1408,7 @@ func testFPutObject() {
 	// c.TraceOn(os.Stderr)
 
 	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
 
 	// Generate a new random bucket name.
 	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
@@ -1584,7 +1586,7 @@ func testFPutObjectWithContext() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio client object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO client object creation failed", err)
 		return
 	}
 
@@ -1592,7 +1594,7 @@ func testFPutObjectWithContext() {
 	// c.TraceOn(os.Stderr)
 
 	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
 
 	// Generate a new random bucket name.
 	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
@@ -1695,7 +1697,7 @@ func testFPutObjectWithContextV2() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio client object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO client object creation failed", err)
 		return
 	}
 
@@ -1703,7 +1705,7 @@ func testFPutObjectWithContextV2() {
 	// c.TraceOn(os.Stderr)
 
 	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
 
 	// Generate a new random bucket name.
 	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
@@ -1806,7 +1808,7 @@ func testPutObjectWithContext() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio client object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO client object creation failed", err)
 		return
 	}
 
@@ -1814,7 +1816,7 @@ func testPutObjectWithContext() {
 	// c.TraceOn(os.Stderr)
 
 	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
 
 	// Make a new bucket.
 	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
@@ -1883,7 +1885,7 @@ func testGetObjectReadSeekFunctional() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio client object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO client object creation failed", err)
 		return
 	}
 
@@ -1891,7 +1893,7 @@ func testGetObjectReadSeekFunctional() {
 	// c.TraceOn(os.Stderr)
 
 	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
 
 	// Generate a new random bucket name.
 	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
@@ -2058,7 +2060,7 @@ func testGetObjectReadAtFunctional() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio client object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO client object creation failed", err)
 		return
 	}
 
@@ -2066,7 +2068,7 @@ func testGetObjectReadAtFunctional() {
 	// c.TraceOn(os.Stderr)
 
 	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
 
 	// Generate a new random bucket name.
 	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
@@ -2245,7 +2247,7 @@ func testPresignedPostPolicy() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio client object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO client object creation failed", err)
 		return
 	}
 
@@ -2253,7 +2255,7 @@ func testPresignedPostPolicy() {
 	// c.TraceOn(os.Stderr)
 
 	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
 
 	// Generate a new random bucket name.
 	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
@@ -2445,7 +2447,7 @@ func testCopyObject() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio client object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO client object creation failed", err)
 		return
 	}
 
@@ -2453,7 +2455,7 @@ func testCopyObject() {
 	// c.TraceOn(os.Stderr)
 
 	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
 
 	// Generate a new random bucket name.
 	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
@@ -2657,7 +2659,7 @@ func testCopyObject() {
 }
 
 // Tests SSE-C get object ReaderSeeker interface methods.
-func testEncryptedGetObjectReadSeekFunctional() {
+func testSSECEncryptedGetObjectReadSeekFunctional() {
 	// initialize logging params
 	startTime := time.Now()
 	testName := getFuncName()
@@ -2675,7 +2677,7 @@ func testEncryptedGetObjectReadSeekFunctional() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio client object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO client object creation failed", err)
 		return
 	}
 
@@ -2683,7 +2685,7 @@ func testEncryptedGetObjectReadSeekFunctional() {
 	// c.TraceOn(os.Stderr)
 
 	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
 
 	// Generate a new random bucket name.
 	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
@@ -2844,8 +2846,8 @@ func testEncryptedGetObjectReadSeekFunctional() {
 	successLogger(testName, function, args, startTime).Info()
 }
 
-// Tests SSE-C get object ReaderAt interface methods.
-func testEncryptedGetObjectReadAtFunctional() {
+// Tests SSE-S3 get object ReaderSeeker interface methods.
+func testSSES3EncryptedGetObjectReadSeekFunctional() {
 	// initialize logging params
 	startTime := time.Now()
 	testName := getFuncName()
@@ -2863,7 +2865,7 @@ func testEncryptedGetObjectReadAtFunctional() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio client object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO client object creation failed", err)
 		return
 	}
 
@@ -2871,7 +2873,193 @@ func testEncryptedGetObjectReadAtFunctional() {
 	// c.TraceOn(os.Stderr)
 
 	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
+
+	// Generate a new random bucket name.
+	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
+	args["bucketName"] = bucketName
+
+	// Make a new bucket.
+	err = c.MakeBucket(bucketName, "us-east-1")
+	if err != nil {
+		logError(testName, function, args, startTime, "", "MakeBucket failed", err)
+		return
+	}
+
+	defer func() {
+		// Delete all objects and buckets
+		if err = cleanupBucket(bucketName, c); err != nil {
+			logError(testName, function, args, startTime, "", "Cleanup failed", err)
+			return
+		}
+	}()
+
+	// Generate 65MiB of data.
+	bufSize := dataFileMap["datafile-65-MB"]
+	var reader = getDataReader("datafile-65-MB")
+	defer reader.Close()
+
+	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
+	args["objectName"] = objectName
+
+	buf, err := ioutil.ReadAll(reader)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "ReadAll failed", err)
+		return
+	}
+
+	// Save the data
+	n, err := c.PutObject(bucketName, objectName, bytes.NewReader(buf), int64(len(buf)), minio.PutObjectOptions{
+		ContentType:          "binary/octet-stream",
+		ServerSideEncryption: encrypt.NewSSE(),
+	})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "PutObject failed", err)
+		return
+	}
+
+	if n != int64(bufSize) {
+		logError(testName, function, args, startTime, "", "Number of bytes does not match, expected "+string(int64(bufSize))+", got "+string(n), err)
+		return
+	}
+
+	// Read the data back
+	r, err := c.GetObject(bucketName, objectName, minio.GetObjectOptions{})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "GetObject failed", err)
+		return
+	}
+	defer r.Close()
+
+	st, err := r.Stat()
+	if err != nil {
+		logError(testName, function, args, startTime, "", "Stat object failed", err)
+		return
+	}
+
+	if st.Size != int64(bufSize) {
+		logError(testName, function, args, startTime, "", "Number of bytes does not match, expected "+string(int64(bufSize))+", got "+string(st.Size), err)
+		return
+	}
+
+	// This following function helps us to compare data from the reader after seek
+	// with the data from the original buffer
+	cmpData := func(r io.Reader, start, end int) {
+		if end-start == 0 {
+			return
+		}
+		buffer := bytes.NewBuffer([]byte{})
+		if _, err := io.CopyN(buffer, r, int64(bufSize)); err != nil {
+			if err != io.EOF {
+				logError(testName, function, args, startTime, "", "CopyN failed", err)
+				return
+			}
+		}
+		if !bytes.Equal(buf[start:end], buffer.Bytes()) {
+			logError(testName, function, args, startTime, "", "Incorrect read bytes v/s original buffer", err)
+			return
+		}
+	}
+
+	testCases := []struct {
+		offset    int64
+		whence    int
+		pos       int64
+		err       error
+		shouldCmp bool
+		start     int
+		end       int
+	}{
+		// Start from offset 0, fetch data and compare
+		{0, 0, 0, nil, true, 0, 0},
+		// Start from offset 2048, fetch data and compare
+		{2048, 0, 2048, nil, true, 2048, bufSize},
+		// Start from offset larger than possible
+		{int64(bufSize) + 1024, 0, 0, io.EOF, false, 0, 0},
+		// Move to offset 0 without comparing
+		{0, 0, 0, nil, false, 0, 0},
+		// Move one step forward and compare
+		{1, 1, 1, nil, true, 1, bufSize},
+		// Move larger than possible
+		{int64(bufSize), 1, 0, io.EOF, false, 0, 0},
+		// Provide negative offset with CUR_SEEK
+		{int64(-1), 1, 0, fmt.Errorf("Negative position not allowed for 1"), false, 0, 0},
+		// Test with whence SEEK_END and with positive offset
+		{1024, 2, 0, io.EOF, false, 0, 0},
+		// Test with whence SEEK_END and with negative offset
+		{-1024, 2, int64(bufSize) - 1024, nil, true, bufSize - 1024, bufSize},
+		// Test with whence SEEK_END and with large negative offset
+		{-int64(bufSize) * 2, 2, 0, fmt.Errorf("Seeking at negative offset not allowed for 2"), false, 0, 0},
+		// Test with invalid whence
+		{0, 3, 0, fmt.Errorf("Invalid whence 3"), false, 0, 0},
+	}
+
+	for i, testCase := range testCases {
+		// Perform seek operation
+		n, err := r.Seek(testCase.offset, testCase.whence)
+		if err != nil && testCase.err == nil {
+			// We expected success.
+			logError(testName, function, args, startTime, "",
+				fmt.Sprintf("Test %d, unexpected err value: expected: %s, found: %s", i+1, testCase.err, err), err)
+			return
+		}
+		if err == nil && testCase.err != nil {
+			// We expected failure, but got success.
+			logError(testName, function, args, startTime, "",
+				fmt.Sprintf("Test %d, unexpected err value: expected: %s, found: %s", i+1, testCase.err, err), err)
+			return
+		}
+		if err != nil && testCase.err != nil {
+			if err.Error() != testCase.err.Error() {
+				// We expect a specific error
+				logError(testName, function, args, startTime, "",
+					fmt.Sprintf("Test %d, unexpected err value: expected: %s, found: %s", i+1, testCase.err, err), err)
+				return
+			}
+		}
+		// Check the returned seek pos
+		if n != testCase.pos {
+			logError(testName, function, args, startTime, "",
+				fmt.Sprintf("Test %d, number of bytes seeked does not match, expected %d, got %d", i+1, testCase.pos, n), err)
+			return
+		}
+		// Compare only if shouldCmp is activated
+		if testCase.shouldCmp {
+			cmpData(r, testCase.start, testCase.end)
+		}
+	}
+
+	successLogger(testName, function, args, startTime).Info()
+}
+
+// Tests SSE-C get object ReaderAt interface methods.
+func testSSECEncryptedGetObjectReadAtFunctional() {
+	// initialize logging params
+	startTime := time.Now()
+	testName := getFuncName()
+	function := "GetObject(bucketName, objectName)"
+	args := map[string]interface{}{}
+
+	// Seed random based on current time.
+	rand.Seed(time.Now().Unix())
+
+	// Instantiate new minio client object.
+	c, err := minio.New(
+		os.Getenv(serverEndpoint),
+		os.Getenv(accessKey),
+		os.Getenv(secretKey),
+		mustParseBool(os.Getenv(enableHTTPS)),
+	)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "MinIO client object creation failed", err)
+		return
+	}
+
+	// Enable tracing, write to stderr.
+	// c.TraceOn(os.Stderr)
+
+	// Set user agent.
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
 
 	// Generate a new random bucket name.
 	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
@@ -3035,8 +3223,197 @@ func testEncryptedGetObjectReadAtFunctional() {
 	successLogger(testName, function, args, startTime).Info()
 }
 
-// TestEncryptionPutGet tests client side encryption
-func testEncryptionPutGet() {
+// Tests SSE-S3 get object ReaderAt interface methods.
+func testSSES3EncryptedGetObjectReadAtFunctional() {
+	// initialize logging params
+	startTime := time.Now()
+	testName := getFuncName()
+	function := "GetObject(bucketName, objectName)"
+	args := map[string]interface{}{}
+
+	// Seed random based on current time.
+	rand.Seed(time.Now().Unix())
+
+	// Instantiate new minio client object.
+	c, err := minio.New(
+		os.Getenv(serverEndpoint),
+		os.Getenv(accessKey),
+		os.Getenv(secretKey),
+		mustParseBool(os.Getenv(enableHTTPS)),
+	)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "MinIO client object creation failed", err)
+		return
+	}
+
+	// Enable tracing, write to stderr.
+	// c.TraceOn(os.Stderr)
+
+	// Set user agent.
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
+
+	// Generate a new random bucket name.
+	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
+	args["bucketName"] = bucketName
+
+	// Make a new bucket.
+	err = c.MakeBucket(bucketName, "us-east-1")
+	if err != nil {
+		logError(testName, function, args, startTime, "", "MakeBucket failed", err)
+		return
+	}
+
+	// Generate 65MiB of data.
+	bufSize := dataFileMap["datafile-65-MB"]
+	var reader = getDataReader("datafile-65-MB")
+	defer reader.Close()
+
+	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
+	args["objectName"] = objectName
+
+	buf, err := ioutil.ReadAll(reader)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "ReadAll failed", err)
+		return
+	}
+
+	// Save the data
+	n, err := c.PutObject(bucketName, objectName, bytes.NewReader(buf), int64(len(buf)), minio.PutObjectOptions{
+		ContentType:          "binary/octet-stream",
+		ServerSideEncryption: encrypt.NewSSE(),
+	})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "PutObject failed", err)
+		return
+	}
+
+	if n != int64(bufSize) {
+		logError(testName, function, args, startTime, "", "Number of bytes does not match, expected "+string(int64(bufSize))+", got "+string(n), err)
+		return
+	}
+
+	// read the data back
+	r, err := c.GetObject(bucketName, objectName, minio.GetObjectOptions{})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "PutObject failed", err)
+		return
+	}
+	defer r.Close()
+
+	offset := int64(2048)
+
+	// read directly
+	buf1 := make([]byte, 512)
+	buf2 := make([]byte, 512)
+	buf3 := make([]byte, 512)
+	buf4 := make([]byte, 512)
+
+	// Test readAt before stat is called such that objectInfo doesn't change.
+	m, err := r.ReadAt(buf1, offset)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "ReadAt failed", err)
+		return
+	}
+	if m != len(buf1) {
+		logError(testName, function, args, startTime, "", "ReadAt read shorter bytes before reaching EOF, expected "+string(len(buf1))+", got "+string(m), err)
+		return
+	}
+	if !bytes.Equal(buf1, buf[offset:offset+512]) {
+		logError(testName, function, args, startTime, "", "Incorrect read between two ReadAt from same offset", err)
+		return
+	}
+	offset += 512
+
+	st, err := r.Stat()
+	if err != nil {
+		logError(testName, function, args, startTime, "", "Stat failed", err)
+		return
+	}
+
+	if st.Size != int64(bufSize) {
+		logError(testName, function, args, startTime, "", "Number of bytes in stat does not match, expected "+string(int64(bufSize))+", got "+string(st.Size), err)
+		return
+	}
+
+	m, err = r.ReadAt(buf2, offset)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "ReadAt failed", err)
+		return
+	}
+	if m != len(buf2) {
+		logError(testName, function, args, startTime, "", "ReadAt read shorter bytes before reaching EOF, expected "+string(len(buf2))+", got "+string(m), err)
+		return
+	}
+	if !bytes.Equal(buf2, buf[offset:offset+512]) {
+		logError(testName, function, args, startTime, "", "Incorrect read between two ReadAt from same offset", err)
+		return
+	}
+	offset += 512
+	m, err = r.ReadAt(buf3, offset)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "ReadAt failed", err)
+		return
+	}
+	if m != len(buf3) {
+		logError(testName, function, args, startTime, "", "ReadAt read shorter bytes before reaching EOF, expected "+string(len(buf3))+", got "+string(m), err)
+		return
+	}
+	if !bytes.Equal(buf3, buf[offset:offset+512]) {
+		logError(testName, function, args, startTime, "", "Incorrect read between two ReadAt from same offset", err)
+		return
+	}
+	offset += 512
+	m, err = r.ReadAt(buf4, offset)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "ReadAt failed", err)
+		return
+	}
+	if m != len(buf4) {
+		logError(testName, function, args, startTime, "", "ReadAt read shorter bytes before reaching EOF, expected "+string(len(buf4))+", got "+string(m), err)
+		return
+	}
+	if !bytes.Equal(buf4, buf[offset:offset+512]) {
+		logError(testName, function, args, startTime, "", "Incorrect read between two ReadAt from same offset", err)
+		return
+	}
+
+	buf5 := make([]byte, n)
+	// Read the whole object.
+	m, err = r.ReadAt(buf5, 0)
+	if err != nil {
+		if err != io.EOF {
+			logError(testName, function, args, startTime, "", "ReadAt failed", err)
+			return
+		}
+	}
+	if m != len(buf5) {
+		logError(testName, function, args, startTime, "", "ReadAt read shorter bytes before reaching EOF, expected "+string(len(buf5))+", got "+string(m), err)
+		return
+	}
+	if !bytes.Equal(buf, buf5) {
+		logError(testName, function, args, startTime, "", "Incorrect data read in GetObject, than what was previously uploaded", err)
+		return
+	}
+
+	buf6 := make([]byte, n+1)
+	// Read the whole object and beyond.
+	_, err = r.ReadAt(buf6, 0)
+	if err != nil {
+		if err != io.EOF {
+			logError(testName, function, args, startTime, "", "ReadAt failed", err)
+			return
+		}
+	}
+	// Delete all objects and buckets
+	if err = cleanupBucket(bucketName, c); err != nil {
+		logError(testName, function, args, startTime, "", "Cleanup failed", err)
+		return
+	}
+	successLogger(testName, function, args, startTime).Info()
+}
+
+// testSSECEncryptionPutGet tests encryption with customer provided encryption keys
+func testSSECEncryptionPutGet() {
 	// initialize logging params
 	startTime := time.Now()
 	testName := getFuncName()
@@ -3057,7 +3434,7 @@ func testEncryptionPutGet() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio client object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO client object creation failed", err)
 		return
 	}
 
@@ -3065,7 +3442,7 @@ func testEncryptionPutGet() {
 	// c.TraceOn(os.Stderr)
 
 	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
 
 	// Generate a new random bucket name.
 	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
@@ -3147,8 +3524,8 @@ func testEncryptionPutGet() {
 	successLogger(testName, function, args, startTime).Info()
 }
 
-// TestEncryptionFPut tests client side encryption
-func testEncryptionFPut() {
+// TestEncryptionFPut tests encryption with customer specified encryption keys
+func testSSECEncryptionFPut() {
 	// initialize logging params
 	startTime := time.Now()
 	testName := getFuncName()
@@ -3171,7 +3548,7 @@ func testEncryptionFPut() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio client object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO client object creation failed", err)
 		return
 	}
 
@@ -3179,7 +3556,7 @@ func testEncryptionFPut() {
 	// c.TraceOn(os.Stderr)
 
 	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
 
 	// Generate a new random bucket name.
 	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
@@ -3279,6 +3656,247 @@ func testEncryptionFPut() {
 	successLogger(testName, function, args, startTime).Info()
 }
 
+// testSSES3EncryptionPutGet tests SSE-S3 encryption
+func testSSES3EncryptionPutGet() {
+	// initialize logging params
+	startTime := time.Now()
+	testName := getFuncName()
+	function := "PutEncryptedObject(bucketName, objectName, reader, sse)"
+	args := map[string]interface{}{
+		"bucketName": "",
+		"objectName": "",
+		"sse":        "",
+	}
+	// Seed random based on current time.
+	rand.Seed(time.Now().Unix())
+
+	// Instantiate new minio client object
+	c, err := minio.NewV4(
+		os.Getenv(serverEndpoint),
+		os.Getenv(accessKey),
+		os.Getenv(secretKey),
+		mustParseBool(os.Getenv(enableHTTPS)),
+	)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "MinIO client object creation failed", err)
+		return
+	}
+
+	// Enable tracing, write to stderr.
+	// c.TraceOn(os.Stderr)
+
+	// Set user agent.
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
+
+	// Generate a new random bucket name.
+	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
+	args["bucketName"] = bucketName
+
+	// Make a new bucket.
+	err = c.MakeBucket(bucketName, "us-east-1")
+	if err != nil {
+		logError(testName, function, args, startTime, "", "MakeBucket failed", err)
+		return
+	}
+
+	testCases := []struct {
+		buf []byte
+	}{
+		{buf: bytes.Repeat([]byte("F"), 1)},
+		{buf: bytes.Repeat([]byte("F"), 15)},
+		{buf: bytes.Repeat([]byte("F"), 16)},
+		{buf: bytes.Repeat([]byte("F"), 17)},
+		{buf: bytes.Repeat([]byte("F"), 31)},
+		{buf: bytes.Repeat([]byte("F"), 32)},
+		{buf: bytes.Repeat([]byte("F"), 33)},
+		{buf: bytes.Repeat([]byte("F"), 1024)},
+		{buf: bytes.Repeat([]byte("F"), 1024*2)},
+		{buf: bytes.Repeat([]byte("F"), 1024*1024)},
+	}
+
+	for i, testCase := range testCases {
+		// Generate a random object name
+		objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
+		args["objectName"] = objectName
+
+		// Secured object
+		sse := encrypt.NewSSE()
+		args["sse"] = sse
+
+		// Put encrypted data
+		_, err = c.PutObject(bucketName, objectName, bytes.NewReader(testCase.buf), int64(len(testCase.buf)), minio.PutObjectOptions{ServerSideEncryption: sse})
+		if err != nil {
+			logError(testName, function, args, startTime, "", "PutEncryptedObject failed", err)
+			return
+		}
+
+		// Read the data back without any encryption headers
+		r, err := c.GetObject(bucketName, objectName, minio.GetObjectOptions{})
+		if err != nil {
+			logError(testName, function, args, startTime, "", "GetEncryptedObject failed", err)
+			return
+		}
+		defer r.Close()
+
+		// Compare the sent object with the received one
+		recvBuffer := bytes.NewBuffer([]byte{})
+		if _, err = io.Copy(recvBuffer, r); err != nil {
+			logError(testName, function, args, startTime, "", "Test "+string(i+1)+", error: "+err.Error(), err)
+			return
+		}
+		if recvBuffer.Len() != len(testCase.buf) {
+			logError(testName, function, args, startTime, "", "Test "+string(i+1)+", Number of bytes of received object does not match, expected "+string(len(testCase.buf))+", got "+string(recvBuffer.Len()), err)
+			return
+		}
+		if !bytes.Equal(testCase.buf, recvBuffer.Bytes()) {
+			logError(testName, function, args, startTime, "", "Test "+string(i+1)+", Encrypted sent is not equal to decrypted, expected "+string(testCase.buf)+", got "+string(recvBuffer.Bytes()), err)
+			return
+		}
+
+		successLogger(testName, function, args, startTime).Info()
+
+	}
+
+	// Delete all objects and buckets
+	if err = cleanupBucket(bucketName, c); err != nil {
+		logError(testName, function, args, startTime, "", "Cleanup failed", err)
+		return
+	}
+
+	successLogger(testName, function, args, startTime).Info()
+}
+
+// TestSSES3EncryptionFPut tests server side encryption
+func testSSES3EncryptionFPut() {
+	// initialize logging params
+	startTime := time.Now()
+	testName := getFuncName()
+	function := "FPutEncryptedObject(bucketName, objectName, filePath, contentType, sse)"
+	args := map[string]interface{}{
+		"bucketName":  "",
+		"objectName":  "",
+		"filePath":    "",
+		"contentType": "",
+		"sse":         "",
+	}
+	// Seed random based on current time.
+	rand.Seed(time.Now().Unix())
+
+	// Instantiate new minio client object
+	c, err := minio.NewV4(
+		os.Getenv(serverEndpoint),
+		os.Getenv(accessKey),
+		os.Getenv(secretKey),
+		mustParseBool(os.Getenv(enableHTTPS)),
+	)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "MinIO client object creation failed", err)
+		return
+	}
+
+	// Enable tracing, write to stderr.
+	// c.TraceOn(os.Stderr)
+
+	// Set user agent.
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
+
+	// Generate a new random bucket name.
+	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
+	args["bucketName"] = bucketName
+
+	// Make a new bucket.
+	err = c.MakeBucket(bucketName, "us-east-1")
+	if err != nil {
+		logError(testName, function, args, startTime, "", "MakeBucket failed", err)
+		return
+	}
+
+	// Object custom metadata
+	customContentType := "custom/contenttype"
+	args["metadata"] = customContentType
+
+	testCases := []struct {
+		buf []byte
+	}{
+		{buf: bytes.Repeat([]byte("F"), 0)},
+		{buf: bytes.Repeat([]byte("F"), 1)},
+		{buf: bytes.Repeat([]byte("F"), 15)},
+		{buf: bytes.Repeat([]byte("F"), 16)},
+		{buf: bytes.Repeat([]byte("F"), 17)},
+		{buf: bytes.Repeat([]byte("F"), 31)},
+		{buf: bytes.Repeat([]byte("F"), 32)},
+		{buf: bytes.Repeat([]byte("F"), 33)},
+		{buf: bytes.Repeat([]byte("F"), 1024)},
+		{buf: bytes.Repeat([]byte("F"), 1024*2)},
+		{buf: bytes.Repeat([]byte("F"), 1024*1024)},
+	}
+
+	for i, testCase := range testCases {
+		// Generate a random object name
+		objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
+		args["objectName"] = objectName
+
+		// Secured object
+		sse := encrypt.NewSSE()
+		args["sse"] = sse
+
+		// Generate a random file name.
+		fileName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
+		file, err := os.Create(fileName)
+		if err != nil {
+			logError(testName, function, args, startTime, "", "file create failed", err)
+			return
+		}
+		_, err = file.Write(testCase.buf)
+		if err != nil {
+			logError(testName, function, args, startTime, "", "file write failed", err)
+			return
+		}
+		file.Close()
+		// Put encrypted data
+		if _, err = c.FPutObject(bucketName, objectName, fileName, minio.PutObjectOptions{ServerSideEncryption: sse}); err != nil {
+			logError(testName, function, args, startTime, "", "FPutEncryptedObject failed", err)
+			return
+		}
+
+		// Read the data back
+		r, err := c.GetObject(bucketName, objectName, minio.GetObjectOptions{})
+		if err != nil {
+			logError(testName, function, args, startTime, "", "GetEncryptedObject failed", err)
+			return
+		}
+		defer r.Close()
+
+		// Compare the sent object with the received one
+		recvBuffer := bytes.NewBuffer([]byte{})
+		if _, err = io.Copy(recvBuffer, r); err != nil {
+			logError(testName, function, args, startTime, "", "Test "+string(i+1)+", error: "+err.Error(), err)
+			return
+		}
+		if recvBuffer.Len() != len(testCase.buf) {
+			logError(testName, function, args, startTime, "", "Test "+string(i+1)+", Number of bytes of received object does not match, expected "+string(len(testCase.buf))+", got "+string(recvBuffer.Len()), err)
+			return
+		}
+		if !bytes.Equal(testCase.buf, recvBuffer.Bytes()) {
+			logError(testName, function, args, startTime, "", "Test "+string(i+1)+", Encrypted sent is not equal to decrypted, expected "+string(testCase.buf)+", got "+string(recvBuffer.Bytes()), err)
+			return
+		}
+
+		if err = os.Remove(fileName); err != nil {
+			logError(testName, function, args, startTime, "", "File remove failed", err)
+			return
+		}
+	}
+
+	// Delete all objects and buckets
+	if err = cleanupBucket(bucketName, c); err != nil {
+		logError(testName, function, args, startTime, "", "Cleanup failed", err)
+		return
+	}
+
+	successLogger(testName, function, args, startTime).Info()
+}
+
 func testBucketNotification() {
 	// initialize logging params
 	startTime := time.Now()
@@ -3307,7 +3925,7 @@ func testBucketNotification() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio client object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO client object creation failed", err)
 		return
 	}
 
@@ -3315,7 +3933,7 @@ func testBucketNotification() {
 	// c.TraceOn(os.Stderr)
 
 	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
 
 	bucketName := os.Getenv("NOTIFY_BUCKET")
 	args["bucketName"] = bucketName
@@ -3403,7 +4021,7 @@ func testFunctional() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, nil, startTime, "", "Minio client object creation failed", err)
+		logError(testName, function, nil, startTime, "", "MinIO client object creation failed", err)
 		return
 	}
 
@@ -3411,7 +4029,7 @@ func testFunctional() {
 	// c.TraceOn(os.Stderr)
 
 	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
 
 	// Generate a new random bucket name.
 	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
@@ -4018,7 +4636,7 @@ func testGetObjectModified() {
 	)
 
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio client object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO client object creation failed", err)
 		return
 	}
 
@@ -4026,7 +4644,7 @@ func testGetObjectModified() {
 	// c.TraceOn(os.Stderr)
 
 	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
 
 	// Make a new bucket.
 	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
@@ -4118,7 +4736,7 @@ func testPutObjectUploadSeekedObject() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio client object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO client object creation failed", err)
 		return
 	}
 
@@ -4126,7 +4744,7 @@ func testPutObjectUploadSeekedObject() {
 	// c.TraceOn(os.Stderr)
 
 	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
 
 	// Make a new bucket.
 	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
@@ -4251,7 +4869,7 @@ func testMakeBucketErrorV2() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio v2 client object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO v2 client object creation failed", err)
 		return
 	}
 
@@ -4259,7 +4877,7 @@ func testMakeBucketErrorV2() {
 	// c.TraceOn(os.Stderr)
 
 	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
 
 	// Generate a new random bucket name.
 	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
@@ -4312,7 +4930,7 @@ func testGetObjectClosedTwiceV2() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio v2 client object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO v2 client object creation failed", err)
 		return
 	}
 
@@ -4320,7 +4938,7 @@ func testGetObjectClosedTwiceV2() {
 	// c.TraceOn(os.Stderr)
 
 	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
 
 	// Generate a new random bucket name.
 	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
@@ -4412,7 +5030,7 @@ func testFPutObjectV2() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio v2 client object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO v2 client object creation failed", err)
 		return
 	}
 
@@ -4420,7 +5038,7 @@ func testFPutObjectV2() {
 	// c.TraceOn(os.Stderr)
 
 	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
 
 	// Generate a new random bucket name.
 	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
@@ -4583,7 +5201,7 @@ func testMakeBucketRegionsV2() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio v2 client object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO v2 client object creation failed", err)
 		return
 	}
 
@@ -4591,7 +5209,7 @@ func testMakeBucketRegionsV2() {
 	// c.TraceOn(os.Stderr)
 
 	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
 
 	// Generate a new random bucket name.
 	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
@@ -4646,7 +5264,7 @@ func testGetObjectReadSeekFunctionalV2() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio v2 client object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO v2 client object creation failed", err)
 		return
 	}
 
@@ -4654,7 +5272,7 @@ func testGetObjectReadSeekFunctionalV2() {
 	// c.TraceOn(os.Stderr)
 
 	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
 
 	// Generate a new random bucket name.
 	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
@@ -4810,7 +5428,7 @@ func testGetObjectReadAtFunctionalV2() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio v2 client object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO v2 client object creation failed", err)
 		return
 	}
 
@@ -4818,7 +5436,7 @@ func testGetObjectReadAtFunctionalV2() {
 	// c.TraceOn(os.Stderr)
 
 	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
 
 	// Generate a new random bucket name.
 	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
@@ -4980,7 +5598,7 @@ func testCopyObjectV2() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio v2 client object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO v2 client object creation failed", err)
 		return
 	}
 
@@ -4988,7 +5606,7 @@ func testCopyObjectV2() {
 	// c.TraceOn(os.Stderr)
 
 	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
 
 	// Generate a new random bucket name.
 	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
@@ -5247,7 +5865,7 @@ func testComposeObjectErrorCasesV2() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio v2 client object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO v2 client object creation failed", err)
 		return
 	}
 
@@ -5342,7 +5960,7 @@ func testCompose10KSourcesV2() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio v2 client object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO v2 client object creation failed", err)
 		return
 	}
 
@@ -5364,7 +5982,7 @@ func testEncryptedEmptyObject() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio v4 client object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO v4 client object creation failed", err)
 		return
 	}
 
@@ -5449,24 +6067,20 @@ func testEncryptedEmptyObject() {
 	successLogger(testName, function, args, startTime).Info()
 }
 
-func testEncryptedCopyObjectWrapper(c *minio.Client) {
+func testEncryptedCopyObjectWrapper(c *minio.Client, bucketName string, sseSrc, sseDst encrypt.ServerSide) {
 	// initialize logging params
 	startTime := time.Now()
 	testName := getFuncName()
 	function := "CopyObject(destination, source)"
 	args := map[string]interface{}{}
+	var srcEncryption, dstEncryption encrypt.ServerSide
 
-	// Generate a new random bucket name.
-	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
 	// Make a new bucket in 'us-east-1' (source bucket).
 	err := c.MakeBucket(bucketName, "us-east-1")
 	if err != nil {
 		logError(testName, function, args, startTime, "", "MakeBucket failed", err)
 		return
 	}
-
-	sseSrc := encrypt.DefaultPBKDF([]byte("correct horse battery staple"), []byte(bucketName+"srcObject"))
-	sseDst := encrypt.DefaultPBKDF([]byte("correct horse battery staple"), []byte(bucketName+"dstObject"))
 
 	// 1. create an sse-c encrypted object to copy by uploading
 	const srcSize = 1024 * 1024
@@ -5479,8 +6093,12 @@ func testEncryptedCopyObjectWrapper(c *minio.Client) {
 		return
 	}
 
+	if sseSrc != nil && sseSrc.Type() != encrypt.S3 {
+		srcEncryption = sseSrc
+	}
+
 	// 2. copy object and change encryption key
-	src := minio.NewSourceInfo(bucketName, "srcObject", sseSrc)
+	src := minio.NewSourceInfo(bucketName, "srcObject", srcEncryption)
 	args["source"] = src
 	dst, err := minio.NewDestinationInfo(bucketName, "dstObject", sseDst, nil)
 	if err != nil {
@@ -5495,9 +6113,12 @@ func testEncryptedCopyObjectWrapper(c *minio.Client) {
 		return
 	}
 
+	if sseDst != nil && sseDst.Type() != encrypt.S3 {
+		dstEncryption = sseDst
+	}
 	// 3. get copied object and check if content is equal
 	coreClient := minio.Core{c}
-	reader, _, err := coreClient.GetObject(bucketName, "dstObject", minio.GetObjectOptions{ServerSideEncryption: sseDst})
+	reader, _, err := coreClient.GetObject(bucketName, "dstObject", minio.GetObjectOptions{ServerSideEncryption: dstEncryption})
 	if err != nil {
 		logError(testName, function, args, startTime, "", "GetObject failed", err)
 		return
@@ -5515,52 +6136,59 @@ func testEncryptedCopyObjectWrapper(c *minio.Client) {
 	reader.Close()
 
 	// Test key rotation for source object in-place.
-	newSSE := encrypt.DefaultPBKDF([]byte("Don't Panic"), []byte(bucketName+"srcObject")) // replace key
-	dst, err = minio.NewDestinationInfo(bucketName, "srcObject", newSSE, nil)
-	if err != nil {
-		logError(testName, function, args, startTime, "", "NewDestinationInfo failed", err)
-		return
+	var newSSE encrypt.ServerSide
+	if sseSrc != nil && sseSrc.Type() == encrypt.SSEC {
+		newSSE = encrypt.DefaultPBKDF([]byte("Don't Panic"), []byte(bucketName+"srcObject")) // replace key
 	}
-	args["destination"] = dst
+	if sseSrc != nil && sseSrc.Type() == encrypt.S3 {
+		newSSE = encrypt.NewSSE()
+	}
+	if newSSE != nil {
+		dst, err = minio.NewDestinationInfo(bucketName, "srcObject", newSSE, nil)
+		if err != nil {
+			logError(testName, function, args, startTime, "", "NewDestinationInfo failed", err)
+			return
+		}
+		args["destination"] = dst
 
-	err = c.CopyObject(dst, src)
-	if err != nil {
-		logError(testName, function, args, startTime, "", "CopyObject failed", err)
-		return
-	}
+		err = c.CopyObject(dst, src)
+		if err != nil {
+			logError(testName, function, args, startTime, "", "CopyObject failed", err)
+			return
+		}
 
-	// Get copied object and check if content is equal
-	reader, _, err = coreClient.GetObject(bucketName, "srcObject", minio.GetObjectOptions{ServerSideEncryption: newSSE})
-	if err != nil {
-		logError(testName, function, args, startTime, "", "GetObject failed", err)
-		return
-	}
+		// Get copied object and check if content is equal
+		reader, _, err = coreClient.GetObject(bucketName, "srcObject", minio.GetObjectOptions{ServerSideEncryption: newSSE})
+		if err != nil {
+			logError(testName, function, args, startTime, "", "GetObject failed", err)
+			return
+		}
 
-	decBytes, err = ioutil.ReadAll(reader)
-	if err != nil {
-		logError(testName, function, args, startTime, "", "ReadAll failed", err)
-		return
-	}
-	if !bytes.Equal(decBytes, buf) {
-		logError(testName, function, args, startTime, "", "Downloaded object mismatched for encrypted object", err)
-		return
-	}
-	reader.Close()
+		decBytes, err = ioutil.ReadAll(reader)
+		if err != nil {
+			logError(testName, function, args, startTime, "", "ReadAll failed", err)
+			return
+		}
+		if !bytes.Equal(decBytes, buf) {
+			logError(testName, function, args, startTime, "", "Downloaded object mismatched for encrypted object", err)
+			return
+		}
+		reader.Close()
+		// Test in-place decryption.
+		dst, err = minio.NewDestinationInfo(bucketName, "srcObject", nil, nil)
+		if err != nil {
+			logError(testName, function, args, startTime, "", "NewDestinationInfo failed", err)
+			return
+		}
+		args["destination"] = dst
 
-	// Test in-place decryption.
-	dst, err = minio.NewDestinationInfo(bucketName, "srcObject", nil, nil)
-	if err != nil {
-		logError(testName, function, args, startTime, "", "NewDestinationInfo failed", err)
-		return
-	}
-	args["destination"] = dst
-
-	src = minio.NewSourceInfo(bucketName, "srcObject", newSSE)
-	args["source"] = src
-	err = c.CopyObject(dst, src)
-	if err != nil {
-		logError(testName, function, args, startTime, "", "CopyObject failed", err)
-		return
+		src = minio.NewSourceInfo(bucketName, "srcObject", newSSE)
+		args["source"] = src
+		err = c.CopyObject(dst, src)
+		if err != nil {
+			logError(testName, function, args, startTime, "", "CopyObject Key rotation failed", err)
+			return
+		}
 	}
 
 	// Get copied decrypted object and check if content is equal
@@ -5591,7 +6219,7 @@ func testEncryptedCopyObjectWrapper(c *minio.Client) {
 }
 
 // Test encrypted copy object
-func testEncryptedCopyObject() {
+func testUnencryptedToSSECCopyObject() {
 	// initialize logging params
 	startTime := time.Now()
 	testName := getFuncName()
@@ -5606,12 +6234,239 @@ func testEncryptedCopyObject() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio v2 client object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO v2 client object creation failed", err)
 		return
 	}
+	// Generate a new random bucket name.
+	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
 
+	var sseSrc encrypt.ServerSide
+	sseDst := encrypt.DefaultPBKDF([]byte("correct horse battery staple"), []byte(bucketName+"dstObject"))
 	// c.TraceOn(os.Stderr)
-	testEncryptedCopyObjectWrapper(c)
+	testEncryptedCopyObjectWrapper(c, bucketName, sseSrc, sseDst)
+}
+
+// Test encrypted copy object
+func testUnencryptedToSSES3CopyObject() {
+	// initialize logging params
+	startTime := time.Now()
+	testName := getFuncName()
+	function := "CopyObject(destination, source)"
+	args := map[string]interface{}{}
+
+	// Instantiate new minio client object
+	c, err := minio.NewV4(
+		os.Getenv(serverEndpoint),
+		os.Getenv(accessKey),
+		os.Getenv(secretKey),
+		mustParseBool(os.Getenv(enableHTTPS)),
+	)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "MinIO v2 client object creation failed", err)
+		return
+	}
+	// Generate a new random bucket name.
+	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
+
+	var sseSrc encrypt.ServerSide
+	sseDst := encrypt.NewSSE()
+	// c.TraceOn(os.Stderr)
+	testEncryptedCopyObjectWrapper(c, bucketName, sseSrc, sseDst)
+}
+
+// Test encrypted copy object
+func testUnencryptedToUnencryptedCopyObject() {
+	// initialize logging params
+	startTime := time.Now()
+	testName := getFuncName()
+	function := "CopyObject(destination, source)"
+	args := map[string]interface{}{}
+
+	// Instantiate new minio client object
+	c, err := minio.NewV4(
+		os.Getenv(serverEndpoint),
+		os.Getenv(accessKey),
+		os.Getenv(secretKey),
+		mustParseBool(os.Getenv(enableHTTPS)),
+	)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "MinIO v2 client object creation failed", err)
+		return
+	}
+	// Generate a new random bucket name.
+	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
+
+	var sseSrc, sseDst encrypt.ServerSide
+	// c.TraceOn(os.Stderr)
+	testEncryptedCopyObjectWrapper(c, bucketName, sseSrc, sseDst)
+}
+
+// Test encrypted copy object
+func testEncryptedSSECToSSECCopyObject() {
+	// initialize logging params
+	startTime := time.Now()
+	testName := getFuncName()
+	function := "CopyObject(destination, source)"
+	args := map[string]interface{}{}
+
+	// Instantiate new minio client object
+	c, err := minio.NewV4(
+		os.Getenv(serverEndpoint),
+		os.Getenv(accessKey),
+		os.Getenv(secretKey),
+		mustParseBool(os.Getenv(enableHTTPS)),
+	)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "MinIO v2 client object creation failed", err)
+		return
+	}
+	// Generate a new random bucket name.
+	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
+
+	sseSrc := encrypt.DefaultPBKDF([]byte("correct horse battery staple"), []byte(bucketName+"srcObject"))
+	sseDst := encrypt.DefaultPBKDF([]byte("correct horse battery staple"), []byte(bucketName+"dstObject"))
+	// c.TraceOn(os.Stderr)
+	testEncryptedCopyObjectWrapper(c, bucketName, sseSrc, sseDst)
+}
+
+// Test encrypted copy object
+func testEncryptedSSECToSSES3CopyObject() {
+	// initialize logging params
+	startTime := time.Now()
+	testName := getFuncName()
+	function := "CopyObject(destination, source)"
+	args := map[string]interface{}{}
+
+	// Instantiate new minio client object
+	c, err := minio.NewV4(
+		os.Getenv(serverEndpoint),
+		os.Getenv(accessKey),
+		os.Getenv(secretKey),
+		mustParseBool(os.Getenv(enableHTTPS)),
+	)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "MinIO v2 client object creation failed", err)
+		return
+	}
+	// Generate a new random bucket name.
+	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
+
+	sseSrc := encrypt.DefaultPBKDF([]byte("correct horse battery staple"), []byte(bucketName+"srcObject"))
+	sseDst := encrypt.NewSSE()
+	// c.TraceOn(os.Stderr)
+	testEncryptedCopyObjectWrapper(c, bucketName, sseSrc, sseDst)
+}
+
+// Test encrypted copy object
+func testEncryptedSSECToUnencryptedCopyObject() {
+	// initialize logging params
+	startTime := time.Now()
+	testName := getFuncName()
+	function := "CopyObject(destination, source)"
+	args := map[string]interface{}{}
+
+	// Instantiate new minio client object
+	c, err := minio.NewV4(
+		os.Getenv(serverEndpoint),
+		os.Getenv(accessKey),
+		os.Getenv(secretKey),
+		mustParseBool(os.Getenv(enableHTTPS)),
+	)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "MinIO v2 client object creation failed", err)
+		return
+	}
+	// Generate a new random bucket name.
+	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
+
+	sseSrc := encrypt.DefaultPBKDF([]byte("correct horse battery staple"), []byte(bucketName+"srcObject"))
+	var sseDst encrypt.ServerSide
+	// c.TraceOn(os.Stderr)
+	testEncryptedCopyObjectWrapper(c, bucketName, sseSrc, sseDst)
+}
+
+// Test encrypted copy object
+func testEncryptedSSES3ToSSECCopyObject() {
+	// initialize logging params
+	startTime := time.Now()
+	testName := getFuncName()
+	function := "CopyObject(destination, source)"
+	args := map[string]interface{}{}
+
+	// Instantiate new minio client object
+	c, err := minio.NewV4(
+		os.Getenv(serverEndpoint),
+		os.Getenv(accessKey),
+		os.Getenv(secretKey),
+		mustParseBool(os.Getenv(enableHTTPS)),
+	)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "MinIO v2 client object creation failed", err)
+		return
+	}
+	// Generate a new random bucket name.
+	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
+
+	sseSrc := encrypt.NewSSE()
+	sseDst := encrypt.DefaultPBKDF([]byte("correct horse battery staple"), []byte(bucketName+"dstObject"))
+	// c.TraceOn(os.Stderr)
+	testEncryptedCopyObjectWrapper(c, bucketName, sseSrc, sseDst)
+}
+
+// Test encrypted copy object
+func testEncryptedSSES3ToSSES3CopyObject() {
+	// initialize logging params
+	startTime := time.Now()
+	testName := getFuncName()
+	function := "CopyObject(destination, source)"
+	args := map[string]interface{}{}
+
+	// Instantiate new minio client object
+	c, err := minio.NewV4(
+		os.Getenv(serverEndpoint),
+		os.Getenv(accessKey),
+		os.Getenv(secretKey),
+		mustParseBool(os.Getenv(enableHTTPS)),
+	)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "MinIO v2 client object creation failed", err)
+		return
+	}
+	// Generate a new random bucket name.
+	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
+
+	sseSrc := encrypt.NewSSE()
+	sseDst := encrypt.NewSSE()
+	// c.TraceOn(os.Stderr)
+	testEncryptedCopyObjectWrapper(c, bucketName, sseSrc, sseDst)
+}
+
+// Test encrypted copy object
+func testEncryptedSSES3ToUnencryptedCopyObject() {
+	// initialize logging params
+	startTime := time.Now()
+	testName := getFuncName()
+	function := "CopyObject(destination, source)"
+	args := map[string]interface{}{}
+
+	// Instantiate new minio client object
+	c, err := minio.NewV4(
+		os.Getenv(serverEndpoint),
+		os.Getenv(accessKey),
+		os.Getenv(secretKey),
+		mustParseBool(os.Getenv(enableHTTPS)),
+	)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "MinIO v2 client object creation failed", err)
+		return
+	}
+	// Generate a new random bucket name.
+	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
+
+	sseSrc := encrypt.NewSSE()
+	var sseDst encrypt.ServerSide
+	// c.TraceOn(os.Stderr)
+	testEncryptedCopyObjectWrapper(c, bucketName, sseSrc, sseDst)
 }
 
 // Test encrypted copy object
@@ -5630,12 +6485,16 @@ func testEncryptedCopyObjectV2() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio v2 client object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO v2 client object creation failed", err)
 		return
 	}
+	// Generate a new random bucket name.
+	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
 
+	sseSrc := encrypt.DefaultPBKDF([]byte("correct horse battery staple"), []byte(bucketName+"srcObject"))
+	sseDst := encrypt.DefaultPBKDF([]byte("correct horse battery staple"), []byte(bucketName+"dstObject"))
 	// c.TraceOn(os.Stderr)
-	testEncryptedCopyObjectWrapper(c)
+	testEncryptedCopyObjectWrapper(c, bucketName, sseSrc, sseDst)
 }
 
 func testDecryptedCopyObject() {
@@ -5653,7 +6512,7 @@ func testDecryptedCopyObject() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio v2 client object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO v2 client object creation failed", err)
 		return
 	}
 
@@ -5692,6 +6551,1519 @@ func testDecryptedCopyObject() {
 	successLogger(testName, function, args, startTime).Info()
 }
 
+func testSSECMultipartEncryptedToSSECCopyObjectPart() {
+	// initialize logging params
+	startTime := time.Now()
+	testName := getFuncName()
+	function := "CopyObjectPart(destination, source)"
+	args := map[string]interface{}{}
+
+	// Instantiate new minio client object
+	client, err := minio.NewV4(
+		os.Getenv(serverEndpoint),
+		os.Getenv(accessKey),
+		os.Getenv(secretKey),
+		mustParseBool(os.Getenv(enableHTTPS)),
+	)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "MinIO v4 client object creation failed", err)
+		return
+	}
+
+	// Instantiate new core client object.
+	c := minio.Core{client}
+
+	// Enable tracing, write to stderr.
+	// c.TraceOn(os.Stderr)
+
+	// Set user agent.
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
+
+	// Generate a new random bucket name.
+	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test")
+
+	// Make a new bucket.
+	err = c.MakeBucket(bucketName, "us-east-1")
+	if err != nil {
+		logError(testName, function, args, startTime, "", "MakeBucket failed", err)
+	}
+	defer cleanupBucket(bucketName, client)
+	// Make a buffer with 6MB of data
+	buf := bytes.Repeat([]byte("abcdef"), 1024*1024)
+
+	// Save the data
+	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
+	password := "correct horse battery staple"
+	srcencryption := encrypt.DefaultPBKDF([]byte(password), []byte(bucketName+objectName))
+
+	// Upload a 6MB object using multipart mechanism
+	uploadID, err := c.NewMultipartUpload(bucketName, objectName, minio.PutObjectOptions{ServerSideEncryption: srcencryption})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "NewMultipartUpload call failed", err)
+	}
+
+	var completeParts []minio.CompletePart
+
+	part, err := c.PutObjectPart(bucketName, objectName, uploadID, 1, bytes.NewReader(buf[:5*1024*1024]), 5*1024*1024, "", "", srcencryption)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "PutObjectPart call failed", err)
+	}
+	completeParts = append(completeParts, minio.CompletePart{PartNumber: part.PartNumber, ETag: part.ETag})
+
+	part, err = c.PutObjectPart(bucketName, objectName, uploadID, 2, bytes.NewReader(buf[5*1024*1024:]), 1024*1024, "", "", srcencryption)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "PutObjectPart call failed", err)
+	}
+	completeParts = append(completeParts, minio.CompletePart{PartNumber: part.PartNumber, ETag: part.ETag})
+
+	// Complete the multipart upload
+	_, err = c.CompleteMultipartUpload(bucketName, objectName, uploadID, completeParts)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "CompleteMultipartUpload call failed", err)
+	}
+
+	// Stat the object and check its length matches
+	objInfo, err := c.StatObject(bucketName, objectName, minio.StatObjectOptions{minio.GetObjectOptions{ServerSideEncryption: srcencryption}})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "StatObject call failed", err)
+	}
+
+	destBucketName := bucketName
+	destObjectName := objectName + "-dest"
+	dstencryption := encrypt.DefaultPBKDF([]byte(password), []byte(destBucketName+destObjectName))
+
+	uploadID, err = c.NewMultipartUpload(destBucketName, destObjectName, minio.PutObjectOptions{ServerSideEncryption: dstencryption})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "NewMultipartUpload call failed", err)
+	}
+
+	// Content of the destination object will be two copies of
+	// `objectName` concatenated, followed by first byte of
+	// `objectName`.
+	metadata := make(map[string]string)
+	header := make(http.Header)
+	encrypt.SSECopy(srcencryption).Marshal(header)
+	dstencryption.Marshal(header)
+	for k, v := range header {
+		metadata[k] = v[0]
+	}
+
+	metadata["x-amz-copy-source-if-match"] = objInfo.ETag
+
+	// First of three parts
+	fstPart, err := c.CopyObjectPart(bucketName, objectName, destBucketName, destObjectName, uploadID, 1, 0, -1, metadata)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "CopyObjectPart call failed", err)
+	}
+
+	// Second of three parts
+	sndPart, err := c.CopyObjectPart(bucketName, objectName, destBucketName, destObjectName, uploadID, 2, 0, -1, metadata)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "CopyObjectPart call failed", err)
+	}
+
+	// Last of three parts
+	lstPart, err := c.CopyObjectPart(bucketName, objectName, destBucketName, destObjectName, uploadID, 3, 0, 1, metadata)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "CopyObjectPart call failed", err)
+	}
+
+	// Complete the multipart upload
+	_, err = c.CompleteMultipartUpload(destBucketName, destObjectName, uploadID, []minio.CompletePart{fstPart, sndPart, lstPart})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "CompleteMultipartUpload call failed", err)
+	}
+
+	// Stat the object and check its length matches
+	objInfo, err = c.StatObject(destBucketName, destObjectName, minio.StatObjectOptions{minio.GetObjectOptions{ServerSideEncryption: dstencryption}})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "StatObject call failed", err)
+	}
+
+	if objInfo.Size != (6*1024*1024)*2+1 {
+		logError(testName, function, args, startTime, "", "Destination object has incorrect size!", err)
+	}
+
+	// Now we read the data back
+	getOpts := minio.GetObjectOptions{ServerSideEncryption: dstencryption}
+	getOpts.SetRange(0, 6*1024*1024-1)
+	r, _, err := c.GetObject(destBucketName, destObjectName, getOpts)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "GetObject call failed", err)
+	}
+	getBuf := make([]byte, 6*1024*1024)
+	_, err = io.ReadFull(r, getBuf)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "Read buffer failed", err)
+	}
+	if !bytes.Equal(getBuf, buf) {
+		logError(testName, function, args, startTime, "", "Got unexpected data in first 6MB", err)
+	}
+
+	getOpts.SetRange(6*1024*1024, 0)
+	r, _, err = c.GetObject(destBucketName, destObjectName, getOpts)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "GetObject call failed", err)
+	}
+	getBuf = make([]byte, 6*1024*1024+1)
+	_, err = io.ReadFull(r, getBuf)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "Read buffer failed", err)
+	}
+	if !bytes.Equal(getBuf[:6*1024*1024], buf) {
+		logError(testName, function, args, startTime, "", "Got unexpected data in second 6MB", err)
+	}
+	if getBuf[6*1024*1024] != buf[0] {
+		logError(testName, function, args, startTime, "", "Got unexpected data in last byte of copied object!", err)
+	}
+
+	successLogger(testName, function, args, startTime).Info()
+
+	// Do not need to remove destBucketName its same as bucketName.
+}
+
+// Test Core CopyObjectPart implementation
+func testSSECEncryptedToSSECCopyObjectPart() {
+	// initialize logging params
+	startTime := time.Now()
+	testName := getFuncName()
+	function := "CopyObjectPart(destination, source)"
+	args := map[string]interface{}{}
+
+	// Instantiate new minio client object
+	client, err := minio.NewV4(
+		os.Getenv(serverEndpoint),
+		os.Getenv(accessKey),
+		os.Getenv(secretKey),
+		mustParseBool(os.Getenv(enableHTTPS)),
+	)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "MinIO v4 client object creation failed", err)
+		return
+	}
+
+	// Instantiate new core client object.
+	c := minio.Core{client}
+
+	// Enable tracing, write to stderr.
+	// c.TraceOn(os.Stderr)
+
+	// Set user agent.
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
+
+	// Generate a new random bucket name.
+	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test")
+
+	// Make a new bucket.
+	err = c.MakeBucket(bucketName, "us-east-1")
+	if err != nil {
+		logError(testName, function, args, startTime, "", "MakeBucket failed", err)
+	}
+	defer cleanupBucket(bucketName, client)
+	// Make a buffer with 5MB of data
+	buf := bytes.Repeat([]byte("abcde"), 1024*1024)
+
+	// Save the data
+	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
+	password := "correct horse battery staple"
+	srcencryption := encrypt.DefaultPBKDF([]byte(password), []byte(bucketName+objectName))
+
+	objInfo, err := c.PutObject(bucketName, objectName, bytes.NewReader(buf), int64(len(buf)), "", "", map[string]string{
+		"Content-Type": "binary/octet-stream",
+	}, srcencryption)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "PutObject call failed", err)
+	}
+
+	if objInfo.Size != int64(len(buf)) {
+		logError(testName, function, args, startTime, "", fmt.Sprintf("Error: number of bytes does not match, want %v, got %v\n", len(buf), objInfo.Size), err)
+	}
+
+	destBucketName := bucketName
+	destObjectName := objectName + "-dest"
+	dstencryption := encrypt.DefaultPBKDF([]byte(password), []byte(destBucketName+destObjectName))
+
+	uploadID, err := c.NewMultipartUpload(destBucketName, destObjectName, minio.PutObjectOptions{ServerSideEncryption: dstencryption})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "NewMultipartUpload call failed", err)
+	}
+
+	// Content of the destination object will be two copies of
+	// `objectName` concatenated, followed by first byte of
+	// `objectName`.
+	metadata := make(map[string]string)
+	header := make(http.Header)
+	encrypt.SSECopy(srcencryption).Marshal(header)
+	dstencryption.Marshal(header)
+	for k, v := range header {
+		metadata[k] = v[0]
+	}
+
+	metadata["x-amz-copy-source-if-match"] = objInfo.ETag
+
+	// First of three parts
+	fstPart, err := c.CopyObjectPart(bucketName, objectName, destBucketName, destObjectName, uploadID, 1, 0, -1, metadata)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "CopyObjectPart call failed", err)
+	}
+
+	// Second of three parts
+	sndPart, err := c.CopyObjectPart(bucketName, objectName, destBucketName, destObjectName, uploadID, 2, 0, -1, metadata)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "CopyObjectPart call failed", err)
+	}
+
+	// Last of three parts
+	lstPart, err := c.CopyObjectPart(bucketName, objectName, destBucketName, destObjectName, uploadID, 3, 0, 1, metadata)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "CopyObjectPart call failed", err)
+	}
+
+	// Complete the multipart upload
+	_, err = c.CompleteMultipartUpload(destBucketName, destObjectName, uploadID, []minio.CompletePart{fstPart, sndPart, lstPart})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "CompleteMultipartUpload call failed", err)
+	}
+
+	// Stat the object and check its length matches
+	objInfo, err = c.StatObject(destBucketName, destObjectName, minio.StatObjectOptions{minio.GetObjectOptions{ServerSideEncryption: dstencryption}})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "StatObject call failed", err)
+	}
+
+	if objInfo.Size != (5*1024*1024)*2+1 {
+		logError(testName, function, args, startTime, "", "Destination object has incorrect size!", err)
+	}
+
+	// Now we read the data back
+	getOpts := minio.GetObjectOptions{ServerSideEncryption: dstencryption}
+	getOpts.SetRange(0, 5*1024*1024-1)
+	r, _, err := c.GetObject(destBucketName, destObjectName, getOpts)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "GetObject call failed", err)
+	}
+	getBuf := make([]byte, 5*1024*1024)
+	_, err = io.ReadFull(r, getBuf)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "Read buffer failed", err)
+	}
+	if !bytes.Equal(getBuf, buf) {
+		logError(testName, function, args, startTime, "", "Got unexpected data in first 5MB", err)
+	}
+
+	getOpts.SetRange(5*1024*1024, 0)
+	r, _, err = c.GetObject(destBucketName, destObjectName, getOpts)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "GetObject call failed", err)
+	}
+	getBuf = make([]byte, 5*1024*1024+1)
+	_, err = io.ReadFull(r, getBuf)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "Read buffer failed", err)
+	}
+	if !bytes.Equal(getBuf[:5*1024*1024], buf) {
+		logError(testName, function, args, startTime, "", "Got unexpected data in second 5MB", err)
+	}
+	if getBuf[5*1024*1024] != buf[0] {
+		logError(testName, function, args, startTime, "", "Got unexpected data in last byte of copied object!", err)
+	}
+
+	successLogger(testName, function, args, startTime).Info()
+
+	// Do not need to remove destBucketName its same as bucketName.
+}
+
+// Test Core CopyObjectPart implementation for SSEC encrypted to unencrypted copy
+func testSSECEncryptedToUnencryptedCopyPart() {
+	// initialize logging params
+	startTime := time.Now()
+	testName := getFuncName()
+	function := "CopyObjectPart(destination, source)"
+	args := map[string]interface{}{}
+
+	// Instantiate new minio client object
+	client, err := minio.NewV4(
+		os.Getenv(serverEndpoint),
+		os.Getenv(accessKey),
+		os.Getenv(secretKey),
+		mustParseBool(os.Getenv(enableHTTPS)),
+	)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "MinIO v4 client object creation failed", err)
+		return
+	}
+
+	// Instantiate new core client object.
+	c := minio.Core{client}
+
+	// Enable tracing, write to stderr.
+	// c.TraceOn(os.Stderr)
+
+	// Set user agent.
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
+
+	// Generate a new random bucket name.
+	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test")
+
+	// Make a new bucket.
+	err = c.MakeBucket(bucketName, "us-east-1")
+	if err != nil {
+		logError(testName, function, args, startTime, "", "MakeBucket failed", err)
+	}
+	defer cleanupBucket(bucketName, client)
+	// Make a buffer with 5MB of data
+	buf := bytes.Repeat([]byte("abcde"), 1024*1024)
+
+	// Save the data
+	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
+	password := "correct horse battery staple"
+	srcencryption := encrypt.DefaultPBKDF([]byte(password), []byte(bucketName+objectName))
+
+	objInfo, err := c.PutObject(bucketName, objectName, bytes.NewReader(buf), int64(len(buf)), "", "", map[string]string{
+		"Content-Type": "binary/octet-stream",
+	}, srcencryption)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "PutObject call failed", err)
+	}
+
+	if objInfo.Size != int64(len(buf)) {
+		logError(testName, function, args, startTime, "", fmt.Sprintf("Error: number of bytes does not match, want %v, got %v\n", len(buf), objInfo.Size), err)
+	}
+
+	destBucketName := bucketName
+	destObjectName := objectName + "-dest"
+	var dstencryption encrypt.ServerSide
+
+	uploadID, err := c.NewMultipartUpload(destBucketName, destObjectName, minio.PutObjectOptions{ServerSideEncryption: dstencryption})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "NewMultipartUpload call failed", err)
+	}
+
+	// Content of the destination object will be two copies of
+	// `objectName` concatenated, followed by first byte of
+	// `objectName`.
+	metadata := make(map[string]string)
+	header := make(http.Header)
+	encrypt.SSECopy(srcencryption).Marshal(header)
+	for k, v := range header {
+		metadata[k] = v[0]
+	}
+
+	metadata["x-amz-copy-source-if-match"] = objInfo.ETag
+
+	// First of three parts
+	fstPart, err := c.CopyObjectPart(bucketName, objectName, destBucketName, destObjectName, uploadID, 1, 0, -1, metadata)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "CopyObjectPart call failed", err)
+	}
+
+	// Second of three parts
+	sndPart, err := c.CopyObjectPart(bucketName, objectName, destBucketName, destObjectName, uploadID, 2, 0, -1, metadata)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "CopyObjectPart call failed", err)
+	}
+
+	// Last of three parts
+	lstPart, err := c.CopyObjectPart(bucketName, objectName, destBucketName, destObjectName, uploadID, 3, 0, 1, metadata)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "CopyObjectPart call failed", err)
+	}
+
+	// Complete the multipart upload
+	_, err = c.CompleteMultipartUpload(destBucketName, destObjectName, uploadID, []minio.CompletePart{fstPart, sndPart, lstPart})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "CompleteMultipartUpload call failed", err)
+	}
+
+	// Stat the object and check its length matches
+	objInfo, err = c.StatObject(destBucketName, destObjectName, minio.StatObjectOptions{minio.GetObjectOptions{}})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "StatObject call failed", err)
+	}
+
+	if objInfo.Size != (5*1024*1024)*2+1 {
+		logError(testName, function, args, startTime, "", "Destination object has incorrect size!", err)
+	}
+
+	// Now we read the data back
+	getOpts := minio.GetObjectOptions{}
+	getOpts.SetRange(0, 5*1024*1024-1)
+	r, _, err := c.GetObject(destBucketName, destObjectName, getOpts)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "GetObject call failed", err)
+	}
+	getBuf := make([]byte, 5*1024*1024)
+	_, err = io.ReadFull(r, getBuf)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "Read buffer failed", err)
+	}
+	if !bytes.Equal(getBuf, buf) {
+		logError(testName, function, args, startTime, "", "Got unexpected data in first 5MB", err)
+	}
+
+	getOpts.SetRange(5*1024*1024, 0)
+	r, _, err = c.GetObject(destBucketName, destObjectName, getOpts)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "GetObject call failed", err)
+	}
+	getBuf = make([]byte, 5*1024*1024+1)
+	_, err = io.ReadFull(r, getBuf)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "Read buffer failed", err)
+	}
+	if !bytes.Equal(getBuf[:5*1024*1024], buf) {
+		logError(testName, function, args, startTime, "", "Got unexpected data in second 5MB", err)
+	}
+	if getBuf[5*1024*1024] != buf[0] {
+		logError(testName, function, args, startTime, "", "Got unexpected data in last byte of copied object!", err)
+	}
+
+	successLogger(testName, function, args, startTime).Info()
+
+	// Do not need to remove destBucketName its same as bucketName.
+}
+
+// Test Core CopyObjectPart implementation for SSEC encrypted to SSE-S3 encrypted copy
+func testSSECEncryptedToSSES3CopyObjectPart() {
+	// initialize logging params
+	startTime := time.Now()
+	testName := getFuncName()
+	function := "CopyObjectPart(destination, source)"
+	args := map[string]interface{}{}
+
+	// Instantiate new minio client object
+	client, err := minio.NewV4(
+		os.Getenv(serverEndpoint),
+		os.Getenv(accessKey),
+		os.Getenv(secretKey),
+		mustParseBool(os.Getenv(enableHTTPS)),
+	)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "MinIO v4 client object creation failed", err)
+		return
+	}
+
+	// Instantiate new core client object.
+	c := minio.Core{client}
+
+	// Enable tracing, write to stderr.
+	// c.TraceOn(os.Stderr)
+
+	// Set user agent.
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
+
+	// Generate a new random bucket name.
+	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test")
+
+	// Make a new bucket.
+	err = c.MakeBucket(bucketName, "us-east-1")
+	if err != nil {
+		logError(testName, function, args, startTime, "", "MakeBucket failed", err)
+	}
+	defer cleanupBucket(bucketName, client)
+	// Make a buffer with 5MB of data
+	buf := bytes.Repeat([]byte("abcde"), 1024*1024)
+
+	// Save the data
+	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
+	password := "correct horse battery staple"
+	srcencryption := encrypt.DefaultPBKDF([]byte(password), []byte(bucketName+objectName))
+
+	objInfo, err := c.PutObject(bucketName, objectName, bytes.NewReader(buf), int64(len(buf)), "", "", map[string]string{
+		"Content-Type": "binary/octet-stream",
+	}, srcencryption)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "PutObject call failed", err)
+	}
+
+	if objInfo.Size != int64(len(buf)) {
+		logError(testName, function, args, startTime, "", fmt.Sprintf("Error: number of bytes does not match, want %v, got %v\n", len(buf), objInfo.Size), err)
+	}
+
+	destBucketName := bucketName
+	destObjectName := objectName + "-dest"
+	dstencryption := encrypt.NewSSE()
+
+	uploadID, err := c.NewMultipartUpload(destBucketName, destObjectName, minio.PutObjectOptions{ServerSideEncryption: dstencryption})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "NewMultipartUpload call failed", err)
+	}
+
+	// Content of the destination object will be two copies of
+	// `objectName` concatenated, followed by first byte of
+	// `objectName`.
+	metadata := make(map[string]string)
+	header := make(http.Header)
+	encrypt.SSECopy(srcencryption).Marshal(header)
+	dstencryption.Marshal(header)
+
+	for k, v := range header {
+		metadata[k] = v[0]
+	}
+
+	metadata["x-amz-copy-source-if-match"] = objInfo.ETag
+
+	// First of three parts
+	fstPart, err := c.CopyObjectPart(bucketName, objectName, destBucketName, destObjectName, uploadID, 1, 0, -1, metadata)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "CopyObjectPart call failed", err)
+	}
+
+	// Second of three parts
+	sndPart, err := c.CopyObjectPart(bucketName, objectName, destBucketName, destObjectName, uploadID, 2, 0, -1, metadata)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "CopyObjectPart call failed", err)
+	}
+
+	// Last of three parts
+	lstPart, err := c.CopyObjectPart(bucketName, objectName, destBucketName, destObjectName, uploadID, 3, 0, 1, metadata)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "CopyObjectPart call failed", err)
+	}
+
+	// Complete the multipart upload
+	_, err = c.CompleteMultipartUpload(destBucketName, destObjectName, uploadID, []minio.CompletePart{fstPart, sndPart, lstPart})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "CompleteMultipartUpload call failed", err)
+	}
+
+	// Stat the object and check its length matches
+	objInfo, err = c.StatObject(destBucketName, destObjectName, minio.StatObjectOptions{minio.GetObjectOptions{}})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "StatObject call failed", err)
+	}
+
+	if objInfo.Size != (5*1024*1024)*2+1 {
+		logError(testName, function, args, startTime, "", "Destination object has incorrect size!", err)
+	}
+
+	// Now we read the data back
+	getOpts := minio.GetObjectOptions{}
+	getOpts.SetRange(0, 5*1024*1024-1)
+	r, _, err := c.GetObject(destBucketName, destObjectName, getOpts)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "GetObject call failed", err)
+	}
+	getBuf := make([]byte, 5*1024*1024)
+	_, err = io.ReadFull(r, getBuf)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "Read buffer failed", err)
+	}
+	if !bytes.Equal(getBuf, buf) {
+		logError(testName, function, args, startTime, "", "Got unexpected data in first 5MB", err)
+	}
+
+	getOpts.SetRange(5*1024*1024, 0)
+	r, _, err = c.GetObject(destBucketName, destObjectName, getOpts)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "GetObject call failed", err)
+	}
+	getBuf = make([]byte, 5*1024*1024+1)
+	_, err = io.ReadFull(r, getBuf)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "Read buffer failed", err)
+	}
+	if !bytes.Equal(getBuf[:5*1024*1024], buf) {
+		logError(testName, function, args, startTime, "", "Got unexpected data in second 5MB", err)
+	}
+	if getBuf[5*1024*1024] != buf[0] {
+		logError(testName, function, args, startTime, "", "Got unexpected data in last byte of copied object!", err)
+	}
+
+	successLogger(testName, function, args, startTime).Info()
+
+	// Do not need to remove destBucketName its same as bucketName.
+}
+
+// Test Core CopyObjectPart implementation for unencrypted to SSEC encryption copy part
+func testUnencryptedToSSECCopyObjectPart() {
+	// initialize logging params
+	startTime := time.Now()
+	testName := getFuncName()
+	function := "CopyObjectPart(destination, source)"
+	args := map[string]interface{}{}
+
+	// Instantiate new minio client object
+	client, err := minio.NewV4(
+		os.Getenv(serverEndpoint),
+		os.Getenv(accessKey),
+		os.Getenv(secretKey),
+		mustParseBool(os.Getenv(enableHTTPS)),
+	)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "MinIO v4 client object creation failed", err)
+		return
+	}
+
+	// Instantiate new core client object.
+	c := minio.Core{client}
+
+	// Enable tracing, write to stderr.
+	// c.TraceOn(os.Stderr)
+
+	// Set user agent.
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
+
+	// Generate a new random bucket name.
+	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test")
+
+	// Make a new bucket.
+	err = c.MakeBucket(bucketName, "us-east-1")
+	if err != nil {
+		logError(testName, function, args, startTime, "", "MakeBucket failed", err)
+	}
+	defer cleanupBucket(bucketName, client)
+	// Make a buffer with 5MB of data
+	buf := bytes.Repeat([]byte("abcde"), 1024*1024)
+
+	// Save the data
+	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
+	password := "correct horse battery staple"
+
+	objInfo, err := c.PutObject(bucketName, objectName, bytes.NewReader(buf), int64(len(buf)), "", "", map[string]string{
+		"Content-Type": "binary/octet-stream",
+	}, nil)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "PutObject call failed", err)
+	}
+
+	if objInfo.Size != int64(len(buf)) {
+		logError(testName, function, args, startTime, "", fmt.Sprintf("Error: number of bytes does not match, want %v, got %v\n", len(buf), objInfo.Size), err)
+	}
+
+	destBucketName := bucketName
+	destObjectName := objectName + "-dest"
+	dstencryption := encrypt.DefaultPBKDF([]byte(password), []byte(destBucketName+destObjectName))
+
+	uploadID, err := c.NewMultipartUpload(destBucketName, destObjectName, minio.PutObjectOptions{ServerSideEncryption: dstencryption})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "NewMultipartUpload call failed", err)
+	}
+
+	// Content of the destination object will be two copies of
+	// `objectName` concatenated, followed by first byte of
+	// `objectName`.
+	metadata := make(map[string]string)
+	header := make(http.Header)
+	dstencryption.Marshal(header)
+	for k, v := range header {
+		metadata[k] = v[0]
+	}
+
+	metadata["x-amz-copy-source-if-match"] = objInfo.ETag
+
+	// First of three parts
+	fstPart, err := c.CopyObjectPart(bucketName, objectName, destBucketName, destObjectName, uploadID, 1, 0, -1, metadata)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "CopyObjectPart call failed", err)
+	}
+
+	// Second of three parts
+	sndPart, err := c.CopyObjectPart(bucketName, objectName, destBucketName, destObjectName, uploadID, 2, 0, -1, metadata)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "CopyObjectPart call failed", err)
+	}
+
+	// Last of three parts
+	lstPart, err := c.CopyObjectPart(bucketName, objectName, destBucketName, destObjectName, uploadID, 3, 0, 1, metadata)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "CopyObjectPart call failed", err)
+	}
+
+	// Complete the multipart upload
+	_, err = c.CompleteMultipartUpload(destBucketName, destObjectName, uploadID, []minio.CompletePart{fstPart, sndPart, lstPart})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "CompleteMultipartUpload call failed", err)
+	}
+
+	// Stat the object and check its length matches
+	objInfo, err = c.StatObject(destBucketName, destObjectName, minio.StatObjectOptions{minio.GetObjectOptions{ServerSideEncryption: dstencryption}})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "StatObject call failed", err)
+	}
+
+	if objInfo.Size != (5*1024*1024)*2+1 {
+		logError(testName, function, args, startTime, "", "Destination object has incorrect size!", err)
+	}
+
+	// Now we read the data back
+	getOpts := minio.GetObjectOptions{ServerSideEncryption: dstencryption}
+	getOpts.SetRange(0, 5*1024*1024-1)
+	r, _, err := c.GetObject(destBucketName, destObjectName, getOpts)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "GetObject call failed", err)
+	}
+	getBuf := make([]byte, 5*1024*1024)
+	_, err = io.ReadFull(r, getBuf)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "Read buffer failed", err)
+	}
+	if !bytes.Equal(getBuf, buf) {
+		logError(testName, function, args, startTime, "", "Got unexpected data in first 5MB", err)
+	}
+
+	getOpts.SetRange(5*1024*1024, 0)
+	r, _, err = c.GetObject(destBucketName, destObjectName, getOpts)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "GetObject call failed", err)
+	}
+	getBuf = make([]byte, 5*1024*1024+1)
+	_, err = io.ReadFull(r, getBuf)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "Read buffer failed", err)
+	}
+	if !bytes.Equal(getBuf[:5*1024*1024], buf) {
+		logError(testName, function, args, startTime, "", "Got unexpected data in second 5MB", err)
+	}
+	if getBuf[5*1024*1024] != buf[0] {
+		logError(testName, function, args, startTime, "", "Got unexpected data in last byte of copied object!", err)
+	}
+
+	successLogger(testName, function, args, startTime).Info()
+
+	// Do not need to remove destBucketName its same as bucketName.
+}
+
+// Test Core CopyObjectPart implementation for unencrypted to unencrypted copy
+func testUnencryptedToUnencryptedCopyPart() {
+	// initialize logging params
+	startTime := time.Now()
+	testName := getFuncName()
+	function := "CopyObjectPart(destination, source)"
+	args := map[string]interface{}{}
+
+	// Instantiate new minio client object
+	client, err := minio.NewV4(
+		os.Getenv(serverEndpoint),
+		os.Getenv(accessKey),
+		os.Getenv(secretKey),
+		mustParseBool(os.Getenv(enableHTTPS)),
+	)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "MinIO v4 client object creation failed", err)
+		return
+	}
+
+	// Instantiate new core client object.
+	c := minio.Core{client}
+
+	// Enable tracing, write to stderr.
+	// c.TraceOn(os.Stderr)
+
+	// Set user agent.
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
+
+	// Generate a new random bucket name.
+	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test")
+
+	// Make a new bucket.
+	err = c.MakeBucket(bucketName, "us-east-1")
+	if err != nil {
+		logError(testName, function, args, startTime, "", "MakeBucket failed", err)
+	}
+	defer cleanupBucket(bucketName, client)
+	// Make a buffer with 5MB of data
+	buf := bytes.Repeat([]byte("abcde"), 1024*1024)
+
+	// Save the data
+	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
+
+	objInfo, err := c.PutObject(bucketName, objectName, bytes.NewReader(buf), int64(len(buf)), "", "", map[string]string{
+		"Content-Type": "binary/octet-stream",
+	}, nil)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "PutObject call failed", err)
+	}
+
+	if objInfo.Size != int64(len(buf)) {
+		logError(testName, function, args, startTime, "", fmt.Sprintf("Error: number of bytes does not match, want %v, got %v\n", len(buf), objInfo.Size), err)
+	}
+
+	destBucketName := bucketName
+	destObjectName := objectName + "-dest"
+
+	uploadID, err := c.NewMultipartUpload(destBucketName, destObjectName, minio.PutObjectOptions{})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "NewMultipartUpload call failed", err)
+	}
+
+	// Content of the destination object will be two copies of
+	// `objectName` concatenated, followed by first byte of
+	// `objectName`.
+	metadata := make(map[string]string)
+	header := make(http.Header)
+	for k, v := range header {
+		metadata[k] = v[0]
+	}
+
+	metadata["x-amz-copy-source-if-match"] = objInfo.ETag
+
+	// First of three parts
+	fstPart, err := c.CopyObjectPart(bucketName, objectName, destBucketName, destObjectName, uploadID, 1, 0, -1, metadata)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "CopyObjectPart call failed", err)
+	}
+
+	// Second of three parts
+	sndPart, err := c.CopyObjectPart(bucketName, objectName, destBucketName, destObjectName, uploadID, 2, 0, -1, metadata)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "CopyObjectPart call failed", err)
+	}
+
+	// Last of three parts
+	lstPart, err := c.CopyObjectPart(bucketName, objectName, destBucketName, destObjectName, uploadID, 3, 0, 1, metadata)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "CopyObjectPart call failed", err)
+	}
+
+	// Complete the multipart upload
+	_, err = c.CompleteMultipartUpload(destBucketName, destObjectName, uploadID, []minio.CompletePart{fstPart, sndPart, lstPart})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "CompleteMultipartUpload call failed", err)
+	}
+
+	// Stat the object and check its length matches
+	objInfo, err = c.StatObject(destBucketName, destObjectName, minio.StatObjectOptions{minio.GetObjectOptions{}})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "StatObject call failed", err)
+	}
+
+	if objInfo.Size != (5*1024*1024)*2+1 {
+		logError(testName, function, args, startTime, "", "Destination object has incorrect size!", err)
+	}
+
+	// Now we read the data back
+	getOpts := minio.GetObjectOptions{}
+	getOpts.SetRange(0, 5*1024*1024-1)
+	r, _, err := c.GetObject(destBucketName, destObjectName, getOpts)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "GetObject call failed", err)
+	}
+	getBuf := make([]byte, 5*1024*1024)
+	_, err = io.ReadFull(r, getBuf)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "Read buffer failed", err)
+	}
+	if !bytes.Equal(getBuf, buf) {
+		logError(testName, function, args, startTime, "", "Got unexpected data in first 5MB", err)
+	}
+
+	getOpts.SetRange(5*1024*1024, 0)
+	r, _, err = c.GetObject(destBucketName, destObjectName, getOpts)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "GetObject call failed", err)
+	}
+	getBuf = make([]byte, 5*1024*1024+1)
+	_, err = io.ReadFull(r, getBuf)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "Read buffer failed", err)
+	}
+	if !bytes.Equal(getBuf[:5*1024*1024], buf) {
+		logError(testName, function, args, startTime, "", "Got unexpected data in second 5MB", err)
+	}
+	if getBuf[5*1024*1024] != buf[0] {
+		logError(testName, function, args, startTime, "", "Got unexpected data in last byte of copied object!", err)
+	}
+
+	successLogger(testName, function, args, startTime).Info()
+
+	// Do not need to remove destBucketName its same as bucketName.
+}
+
+// Test Core CopyObjectPart implementation for unencrypted to SSE-S3 encrypted copy
+func testUnencryptedToSSES3CopyObjectPart() {
+	// initialize logging params
+	startTime := time.Now()
+	testName := getFuncName()
+	function := "CopyObjectPart(destination, source)"
+	args := map[string]interface{}{}
+
+	// Instantiate new minio client object
+	client, err := minio.NewV4(
+		os.Getenv(serverEndpoint),
+		os.Getenv(accessKey),
+		os.Getenv(secretKey),
+		mustParseBool(os.Getenv(enableHTTPS)),
+	)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "MinIO v4 client object creation failed", err)
+		return
+	}
+
+	// Instantiate new core client object.
+	c := minio.Core{client}
+
+	// Enable tracing, write to stderr.
+	// c.TraceOn(os.Stderr)
+
+	// Set user agent.
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
+
+	// Generate a new random bucket name.
+	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test")
+
+	// Make a new bucket.
+	err = c.MakeBucket(bucketName, "us-east-1")
+	if err != nil {
+		logError(testName, function, args, startTime, "", "MakeBucket failed", err)
+	}
+	defer cleanupBucket(bucketName, client)
+	// Make a buffer with 5MB of data
+	buf := bytes.Repeat([]byte("abcde"), 1024*1024)
+
+	// Save the data
+	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
+
+	objInfo, err := c.PutObject(bucketName, objectName, bytes.NewReader(buf), int64(len(buf)), "", "", map[string]string{
+		"Content-Type": "binary/octet-stream",
+	}, nil)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "PutObject call failed", err)
+	}
+
+	if objInfo.Size != int64(len(buf)) {
+		logError(testName, function, args, startTime, "", fmt.Sprintf("Error: number of bytes does not match, want %v, got %v\n", len(buf), objInfo.Size), err)
+	}
+
+	destBucketName := bucketName
+	destObjectName := objectName + "-dest"
+	dstencryption := encrypt.NewSSE()
+
+	uploadID, err := c.NewMultipartUpload(destBucketName, destObjectName, minio.PutObjectOptions{ServerSideEncryption: dstencryption})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "NewMultipartUpload call failed", err)
+	}
+
+	// Content of the destination object will be two copies of
+	// `objectName` concatenated, followed by first byte of
+	// `objectName`.
+	metadata := make(map[string]string)
+	header := make(http.Header)
+	dstencryption.Marshal(header)
+
+	for k, v := range header {
+		metadata[k] = v[0]
+	}
+
+	metadata["x-amz-copy-source-if-match"] = objInfo.ETag
+
+	// First of three parts
+	fstPart, err := c.CopyObjectPart(bucketName, objectName, destBucketName, destObjectName, uploadID, 1, 0, -1, metadata)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "CopyObjectPart call failed", err)
+	}
+
+	// Second of three parts
+	sndPart, err := c.CopyObjectPart(bucketName, objectName, destBucketName, destObjectName, uploadID, 2, 0, -1, metadata)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "CopyObjectPart call failed", err)
+	}
+
+	// Last of three parts
+	lstPart, err := c.CopyObjectPart(bucketName, objectName, destBucketName, destObjectName, uploadID, 3, 0, 1, metadata)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "CopyObjectPart call failed", err)
+	}
+
+	// Complete the multipart upload
+	_, err = c.CompleteMultipartUpload(destBucketName, destObjectName, uploadID, []minio.CompletePart{fstPart, sndPart, lstPart})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "CompleteMultipartUpload call failed", err)
+	}
+
+	// Stat the object and check its length matches
+	objInfo, err = c.StatObject(destBucketName, destObjectName, minio.StatObjectOptions{minio.GetObjectOptions{}})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "StatObject call failed", err)
+	}
+
+	if objInfo.Size != (5*1024*1024)*2+1 {
+		logError(testName, function, args, startTime, "", "Destination object has incorrect size!", err)
+	}
+
+	// Now we read the data back
+	getOpts := minio.GetObjectOptions{}
+	getOpts.SetRange(0, 5*1024*1024-1)
+	r, _, err := c.GetObject(destBucketName, destObjectName, getOpts)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "GetObject call failed", err)
+	}
+	getBuf := make([]byte, 5*1024*1024)
+	_, err = io.ReadFull(r, getBuf)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "Read buffer failed", err)
+	}
+	if !bytes.Equal(getBuf, buf) {
+		logError(testName, function, args, startTime, "", "Got unexpected data in first 5MB", err)
+	}
+
+	getOpts.SetRange(5*1024*1024, 0)
+	r, _, err = c.GetObject(destBucketName, destObjectName, getOpts)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "GetObject call failed", err)
+	}
+	getBuf = make([]byte, 5*1024*1024+1)
+	_, err = io.ReadFull(r, getBuf)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "Read buffer failed", err)
+	}
+	if !bytes.Equal(getBuf[:5*1024*1024], buf) {
+		logError(testName, function, args, startTime, "", "Got unexpected data in second 5MB", err)
+	}
+	if getBuf[5*1024*1024] != buf[0] {
+		logError(testName, function, args, startTime, "", "Got unexpected data in last byte of copied object!", err)
+	}
+
+	successLogger(testName, function, args, startTime).Info()
+
+	// Do not need to remove destBucketName its same as bucketName.
+}
+
+// Test Core CopyObjectPart implementation for SSE-S3 to SSEC encryption copy part
+func testSSES3EncryptedToSSECCopyObjectPart() {
+	// initialize logging params
+	startTime := time.Now()
+	testName := getFuncName()
+	function := "CopyObjectPart(destination, source)"
+	args := map[string]interface{}{}
+
+	// Instantiate new minio client object
+	client, err := minio.NewV4(
+		os.Getenv(serverEndpoint),
+		os.Getenv(accessKey),
+		os.Getenv(secretKey),
+		mustParseBool(os.Getenv(enableHTTPS)),
+	)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "MinIO v4 client object creation failed", err)
+		return
+	}
+
+	// Instantiate new core client object.
+	c := minio.Core{client}
+
+	// Enable tracing, write to stderr.
+	// c.TraceOn(os.Stderr)
+
+	// Set user agent.
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
+
+	// Generate a new random bucket name.
+	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test")
+
+	// Make a new bucket.
+	err = c.MakeBucket(bucketName, "us-east-1")
+	if err != nil {
+		logError(testName, function, args, startTime, "", "MakeBucket failed", err)
+	}
+	defer cleanupBucket(bucketName, client)
+	// Make a buffer with 5MB of data
+	buf := bytes.Repeat([]byte("abcde"), 1024*1024)
+
+	// Save the data
+	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
+	password := "correct horse battery staple"
+	srcEncryption := encrypt.NewSSE()
+	objInfo, err := c.PutObject(bucketName, objectName, bytes.NewReader(buf), int64(len(buf)), "", "", map[string]string{
+		"Content-Type": "binary/octet-stream",
+	}, srcEncryption)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "PutObject call failed", err)
+	}
+
+	if objInfo.Size != int64(len(buf)) {
+		logError(testName, function, args, startTime, "", fmt.Sprintf("Error: number of bytes does not match, want %v, got %v\n", len(buf), objInfo.Size), err)
+	}
+
+	destBucketName := bucketName
+	destObjectName := objectName + "-dest"
+	dstencryption := encrypt.DefaultPBKDF([]byte(password), []byte(destBucketName+destObjectName))
+
+	uploadID, err := c.NewMultipartUpload(destBucketName, destObjectName, minio.PutObjectOptions{ServerSideEncryption: dstencryption})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "NewMultipartUpload call failed", err)
+	}
+
+	// Content of the destination object will be two copies of
+	// `objectName` concatenated, followed by first byte of
+	// `objectName`.
+	metadata := make(map[string]string)
+	header := make(http.Header)
+	dstencryption.Marshal(header)
+	for k, v := range header {
+		metadata[k] = v[0]
+	}
+
+	metadata["x-amz-copy-source-if-match"] = objInfo.ETag
+
+	// First of three parts
+	fstPart, err := c.CopyObjectPart(bucketName, objectName, destBucketName, destObjectName, uploadID, 1, 0, -1, metadata)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "CopyObjectPart call failed", err)
+	}
+
+	// Second of three parts
+	sndPart, err := c.CopyObjectPart(bucketName, objectName, destBucketName, destObjectName, uploadID, 2, 0, -1, metadata)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "CopyObjectPart call failed", err)
+	}
+
+	// Last of three parts
+	lstPart, err := c.CopyObjectPart(bucketName, objectName, destBucketName, destObjectName, uploadID, 3, 0, 1, metadata)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "CopyObjectPart call failed", err)
+	}
+
+	// Complete the multipart upload
+	_, err = c.CompleteMultipartUpload(destBucketName, destObjectName, uploadID, []minio.CompletePart{fstPart, sndPart, lstPart})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "CompleteMultipartUpload call failed", err)
+	}
+
+	// Stat the object and check its length matches
+	objInfo, err = c.StatObject(destBucketName, destObjectName, minio.StatObjectOptions{minio.GetObjectOptions{ServerSideEncryption: dstencryption}})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "StatObject call failed", err)
+	}
+
+	if objInfo.Size != (5*1024*1024)*2+1 {
+		logError(testName, function, args, startTime, "", "Destination object has incorrect size!", err)
+	}
+
+	// Now we read the data back
+	getOpts := minio.GetObjectOptions{ServerSideEncryption: dstencryption}
+	getOpts.SetRange(0, 5*1024*1024-1)
+	r, _, err := c.GetObject(destBucketName, destObjectName, getOpts)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "GetObject call failed", err)
+	}
+	getBuf := make([]byte, 5*1024*1024)
+	_, err = io.ReadFull(r, getBuf)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "Read buffer failed", err)
+	}
+	if !bytes.Equal(getBuf, buf) {
+		logError(testName, function, args, startTime, "", "Got unexpected data in first 5MB", err)
+	}
+
+	getOpts.SetRange(5*1024*1024, 0)
+	r, _, err = c.GetObject(destBucketName, destObjectName, getOpts)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "GetObject call failed", err)
+	}
+	getBuf = make([]byte, 5*1024*1024+1)
+	_, err = io.ReadFull(r, getBuf)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "Read buffer failed", err)
+	}
+	if !bytes.Equal(getBuf[:5*1024*1024], buf) {
+		logError(testName, function, args, startTime, "", "Got unexpected data in second 5MB", err)
+	}
+	if getBuf[5*1024*1024] != buf[0] {
+		logError(testName, function, args, startTime, "", "Got unexpected data in last byte of copied object!", err)
+	}
+
+	successLogger(testName, function, args, startTime).Info()
+
+	// Do not need to remove destBucketName its same as bucketName.
+}
+
+// Test Core CopyObjectPart implementation for unencrypted to unencrypted copy
+func testSSES3EncryptedToUnencryptedCopyPart() {
+	// initialize logging params
+	startTime := time.Now()
+	testName := getFuncName()
+	function := "CopyObjectPart(destination, source)"
+	args := map[string]interface{}{}
+
+	// Instantiate new minio client object
+	client, err := minio.NewV4(
+		os.Getenv(serverEndpoint),
+		os.Getenv(accessKey),
+		os.Getenv(secretKey),
+		mustParseBool(os.Getenv(enableHTTPS)),
+	)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "MinIO v4 client object creation failed", err)
+		return
+	}
+
+	// Instantiate new core client object.
+	c := minio.Core{client}
+
+	// Enable tracing, write to stderr.
+	// c.TraceOn(os.Stderr)
+
+	// Set user agent.
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
+
+	// Generate a new random bucket name.
+	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test")
+
+	// Make a new bucket.
+	err = c.MakeBucket(bucketName, "us-east-1")
+	if err != nil {
+		logError(testName, function, args, startTime, "", "MakeBucket failed", err)
+	}
+	defer cleanupBucket(bucketName, client)
+	// Make a buffer with 5MB of data
+	buf := bytes.Repeat([]byte("abcde"), 1024*1024)
+
+	// Save the data
+	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
+	srcEncryption := encrypt.NewSSE()
+
+	objInfo, err := c.PutObject(bucketName, objectName, bytes.NewReader(buf), int64(len(buf)), "", "", map[string]string{
+		"Content-Type": "binary/octet-stream",
+	}, srcEncryption)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "PutObject call failed", err)
+	}
+
+	if objInfo.Size != int64(len(buf)) {
+		logError(testName, function, args, startTime, "", fmt.Sprintf("Error: number of bytes does not match, want %v, got %v\n", len(buf), objInfo.Size), err)
+	}
+
+	destBucketName := bucketName
+	destObjectName := objectName + "-dest"
+
+	uploadID, err := c.NewMultipartUpload(destBucketName, destObjectName, minio.PutObjectOptions{})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "NewMultipartUpload call failed", err)
+	}
+
+	// Content of the destination object will be two copies of
+	// `objectName` concatenated, followed by first byte of
+	// `objectName`.
+	metadata := make(map[string]string)
+	header := make(http.Header)
+	for k, v := range header {
+		metadata[k] = v[0]
+	}
+
+	metadata["x-amz-copy-source-if-match"] = objInfo.ETag
+
+	// First of three parts
+	fstPart, err := c.CopyObjectPart(bucketName, objectName, destBucketName, destObjectName, uploadID, 1, 0, -1, metadata)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "CopyObjectPart call failed", err)
+	}
+
+	// Second of three parts
+	sndPart, err := c.CopyObjectPart(bucketName, objectName, destBucketName, destObjectName, uploadID, 2, 0, -1, metadata)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "CopyObjectPart call failed", err)
+	}
+
+	// Last of three parts
+	lstPart, err := c.CopyObjectPart(bucketName, objectName, destBucketName, destObjectName, uploadID, 3, 0, 1, metadata)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "CopyObjectPart call failed", err)
+	}
+
+	// Complete the multipart upload
+	_, err = c.CompleteMultipartUpload(destBucketName, destObjectName, uploadID, []minio.CompletePart{fstPart, sndPart, lstPart})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "CompleteMultipartUpload call failed", err)
+	}
+
+	// Stat the object and check its length matches
+	objInfo, err = c.StatObject(destBucketName, destObjectName, minio.StatObjectOptions{minio.GetObjectOptions{}})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "StatObject call failed", err)
+	}
+
+	if objInfo.Size != (5*1024*1024)*2+1 {
+		logError(testName, function, args, startTime, "", "Destination object has incorrect size!", err)
+	}
+
+	// Now we read the data back
+	getOpts := minio.GetObjectOptions{}
+	getOpts.SetRange(0, 5*1024*1024-1)
+	r, _, err := c.GetObject(destBucketName, destObjectName, getOpts)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "GetObject call failed", err)
+	}
+	getBuf := make([]byte, 5*1024*1024)
+	_, err = io.ReadFull(r, getBuf)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "Read buffer failed", err)
+	}
+	if !bytes.Equal(getBuf, buf) {
+		logError(testName, function, args, startTime, "", "Got unexpected data in first 5MB", err)
+	}
+
+	getOpts.SetRange(5*1024*1024, 0)
+	r, _, err = c.GetObject(destBucketName, destObjectName, getOpts)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "GetObject call failed", err)
+	}
+	getBuf = make([]byte, 5*1024*1024+1)
+	_, err = io.ReadFull(r, getBuf)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "Read buffer failed", err)
+	}
+	if !bytes.Equal(getBuf[:5*1024*1024], buf) {
+		logError(testName, function, args, startTime, "", "Got unexpected data in second 5MB", err)
+	}
+	if getBuf[5*1024*1024] != buf[0] {
+		logError(testName, function, args, startTime, "", "Got unexpected data in last byte of copied object!", err)
+	}
+
+	successLogger(testName, function, args, startTime).Info()
+
+	// Do not need to remove destBucketName its same as bucketName.
+}
+
+// Test Core CopyObjectPart implementation for unencrypted to SSE-S3 encrypted copy
+func testSSES3EncryptedToSSES3CopyObjectPart() {
+	// initialize logging params
+	startTime := time.Now()
+	testName := getFuncName()
+	function := "CopyObjectPart(destination, source)"
+	args := map[string]interface{}{}
+
+	// Instantiate new minio client object
+	client, err := minio.NewV4(
+		os.Getenv(serverEndpoint),
+		os.Getenv(accessKey),
+		os.Getenv(secretKey),
+		mustParseBool(os.Getenv(enableHTTPS)),
+	)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "MinIO v4 client object creation failed", err)
+		return
+	}
+
+	// Instantiate new core client object.
+	c := minio.Core{client}
+
+	// Enable tracing, write to stderr.
+	// c.TraceOn(os.Stderr)
+
+	// Set user agent.
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
+
+	// Generate a new random bucket name.
+	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test")
+
+	// Make a new bucket.
+	err = c.MakeBucket(bucketName, "us-east-1")
+	if err != nil {
+		logError(testName, function, args, startTime, "", "MakeBucket failed", err)
+	}
+	defer cleanupBucket(bucketName, client)
+	// Make a buffer with 5MB of data
+	buf := bytes.Repeat([]byte("abcde"), 1024*1024)
+
+	// Save the data
+	objectName := randString(60, rand.NewSource(time.Now().UnixNano()), "")
+	srcEncryption := encrypt.NewSSE()
+
+	objInfo, err := c.PutObject(bucketName, objectName, bytes.NewReader(buf), int64(len(buf)), "", "", map[string]string{
+		"Content-Type": "binary/octet-stream",
+	}, srcEncryption)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "PutObject call failed", err)
+	}
+
+	if objInfo.Size != int64(len(buf)) {
+		logError(testName, function, args, startTime, "", fmt.Sprintf("Error: number of bytes does not match, want %v, got %v\n", len(buf), objInfo.Size), err)
+	}
+
+	destBucketName := bucketName
+	destObjectName := objectName + "-dest"
+	dstencryption := encrypt.NewSSE()
+
+	uploadID, err := c.NewMultipartUpload(destBucketName, destObjectName, minio.PutObjectOptions{ServerSideEncryption: dstencryption})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "NewMultipartUpload call failed", err)
+	}
+
+	// Content of the destination object will be two copies of
+	// `objectName` concatenated, followed by first byte of
+	// `objectName`.
+	metadata := make(map[string]string)
+	header := make(http.Header)
+	dstencryption.Marshal(header)
+
+	for k, v := range header {
+		metadata[k] = v[0]
+	}
+
+	metadata["x-amz-copy-source-if-match"] = objInfo.ETag
+
+	// First of three parts
+	fstPart, err := c.CopyObjectPart(bucketName, objectName, destBucketName, destObjectName, uploadID, 1, 0, -1, metadata)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "CopyObjectPart call failed", err)
+	}
+
+	// Second of three parts
+	sndPart, err := c.CopyObjectPart(bucketName, objectName, destBucketName, destObjectName, uploadID, 2, 0, -1, metadata)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "CopyObjectPart call failed", err)
+	}
+
+	// Last of three parts
+	lstPart, err := c.CopyObjectPart(bucketName, objectName, destBucketName, destObjectName, uploadID, 3, 0, 1, metadata)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "CopyObjectPart call failed", err)
+	}
+
+	// Complete the multipart upload
+	_, err = c.CompleteMultipartUpload(destBucketName, destObjectName, uploadID, []minio.CompletePart{fstPart, sndPart, lstPart})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "CompleteMultipartUpload call failed", err)
+	}
+
+	// Stat the object and check its length matches
+	objInfo, err = c.StatObject(destBucketName, destObjectName, minio.StatObjectOptions{minio.GetObjectOptions{}})
+	if err != nil {
+		logError(testName, function, args, startTime, "", "StatObject call failed", err)
+	}
+
+	if objInfo.Size != (5*1024*1024)*2+1 {
+		logError(testName, function, args, startTime, "", "Destination object has incorrect size!", err)
+	}
+
+	// Now we read the data back
+	getOpts := minio.GetObjectOptions{}
+	getOpts.SetRange(0, 5*1024*1024-1)
+	r, _, err := c.GetObject(destBucketName, destObjectName, getOpts)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "GetObject call failed", err)
+	}
+	getBuf := make([]byte, 5*1024*1024)
+	_, err = io.ReadFull(r, getBuf)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "Read buffer failed", err)
+	}
+	if !bytes.Equal(getBuf, buf) {
+		logError(testName, function, args, startTime, "", "Got unexpected data in first 5MB", err)
+	}
+
+	getOpts.SetRange(5*1024*1024, 0)
+	r, _, err = c.GetObject(destBucketName, destObjectName, getOpts)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "GetObject call failed", err)
+	}
+	getBuf = make([]byte, 5*1024*1024+1)
+	_, err = io.ReadFull(r, getBuf)
+	if err != nil {
+		logError(testName, function, args, startTime, "", "Read buffer failed", err)
+	}
+	if !bytes.Equal(getBuf[:5*1024*1024], buf) {
+		logError(testName, function, args, startTime, "", "Got unexpected data in second 5MB", err)
+	}
+	if getBuf[5*1024*1024] != buf[0] {
+		logError(testName, function, args, startTime, "", "Got unexpected data in last byte of copied object!", err)
+	}
+
+	successLogger(testName, function, args, startTime).Info()
+
+	// Do not need to remove destBucketName its same as bucketName.
+}
 func testUserMetadataCopying() {
 	// initialize logging params
 	startTime := time.Now()
@@ -5707,7 +8079,7 @@ func testUserMetadataCopying() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio client object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO client object creation failed", err)
 		return
 	}
 
@@ -5894,7 +8266,7 @@ func testUserMetadataCopyingV2() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio client v2 object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO client v2 object creation failed", err)
 		return
 	}
 
@@ -5917,7 +8289,7 @@ func testStorageClassMetadataPutObject() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio v4 client object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO v4 client object creation failed", err)
 		return
 	}
 
@@ -6007,7 +8379,7 @@ func testStorageClassInvalidMetadataPutObject() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio v4 client object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO v4 client object creation failed", err)
 		return
 	}
 
@@ -6052,7 +8424,7 @@ func testStorageClassMetadataCopyObject() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio v4 client object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO v4 client object creation failed", err)
 		return
 	}
 
@@ -6165,7 +8537,7 @@ func testPutObjectNoLengthV2() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio client v2 object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO client v2 object creation failed", err)
 		return
 	}
 
@@ -6173,7 +8545,7 @@ func testPutObjectNoLengthV2() {
 	// c.TraceOn(os.Stderr)
 
 	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
 
 	// Generate a new random bucket name.
 	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
@@ -6239,7 +8611,7 @@ func testPutObjectsUnknownV2() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio client v2 object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO client v2 object creation failed", err)
 		return
 	}
 
@@ -6247,7 +8619,7 @@ func testPutObjectsUnknownV2() {
 	// c.TraceOn(os.Stderr)
 
 	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
 
 	// Generate a new random bucket name.
 	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
@@ -6323,7 +8695,7 @@ func testPutObject0ByteV2() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio client v2 object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO client v2 object creation failed", err)
 		return
 	}
 
@@ -6331,7 +8703,7 @@ func testPutObject0ByteV2() {
 	// c.TraceOn(os.Stderr)
 
 	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
 
 	// Generate a new random bucket name.
 	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
@@ -6385,7 +8757,7 @@ func testComposeObjectErrorCases() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio client object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO client object creation failed", err)
 		return
 	}
 
@@ -6408,7 +8780,7 @@ func testCompose10KSources() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio client object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO client object creation failed", err)
 		return
 	}
 
@@ -6434,7 +8806,7 @@ func testFunctionalV2() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio client v2 object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO client v2 object creation failed", err)
 		return
 	}
 
@@ -6442,7 +8814,7 @@ func testFunctionalV2() {
 	// c.TraceOn(os.Stderr)
 
 	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
 
 	// Generate a new random bucket name.
 	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
@@ -6847,7 +9219,7 @@ func testGetObjectWithContext() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio client v4 object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO client v4 object creation failed", err)
 		return
 	}
 
@@ -6855,7 +9227,7 @@ func testGetObjectWithContext() {
 	// c.TraceOn(os.Stderr)
 
 	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
 
 	// Generate a new random bucket name.
 	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
@@ -6955,7 +9327,7 @@ func testFGetObjectWithContext() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio client v4 object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO client v4 object creation failed", err)
 		return
 	}
 
@@ -6963,7 +9335,7 @@ func testFGetObjectWithContext() {
 	// c.TraceOn(os.Stderr)
 
 	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
 
 	// Generate a new random bucket name.
 	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
@@ -7051,7 +9423,7 @@ func testGetObjectACL() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio client v4 object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO client v4 object creation failed", err)
 		return
 	}
 
@@ -7059,7 +9431,7 @@ func testGetObjectACL() {
 	// c.TraceOn(os.Stderr)
 
 	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
 
 	// Generate a new random bucket name.
 	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
@@ -7206,7 +9578,7 @@ func testPutObjectWithContextV2() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio client v2 object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO client v2 object creation failed", err)
 		return
 	}
 
@@ -7214,7 +9586,7 @@ func testPutObjectWithContextV2() {
 	// c.TraceOn(os.Stderr)
 
 	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
 
 	// Make a new bucket.
 	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
@@ -7288,7 +9660,7 @@ func testGetObjectWithContextV2() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio client v2 object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO client v2 object creation failed", err)
 		return
 	}
 
@@ -7296,7 +9668,7 @@ func testGetObjectWithContextV2() {
 	// c.TraceOn(os.Stderr)
 
 	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
 
 	// Generate a new random bucket name.
 	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
@@ -7394,7 +9766,7 @@ func testFGetObjectWithContextV2() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio client v2 object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO client v2 object creation failed", err)
 		return
 	}
 
@@ -7402,7 +9774,7 @@ func testFGetObjectWithContextV2() {
 	// c.TraceOn(os.Stderr)
 
 	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
 
 	// Generate a new random bucket name.
 	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
@@ -7487,7 +9859,7 @@ func testListObjects() {
 		mustParseBool(os.Getenv(enableHTTPS)),
 	)
 	if err != nil {
-		logError(testName, function, args, startTime, "", "Minio client v4 object creation failed", err)
+		logError(testName, function, args, startTime, "", "MinIO client v4 object creation failed", err)
 		return
 	}
 
@@ -7495,7 +9867,7 @@ func testListObjects() {
 	// c.TraceOn(os.Stderr)
 
 	// Set user agent.
-	c.SetAppInfo("Minio-go-FunctionalTest", "0.1.0")
+	c.SetAppInfo("MinIO-go-FunctionalTest", "0.1.0")
 
 	// Generate a new random bucket name.
 	bucketName := randString(60, rand.NewSource(time.Now().UnixNano()), "minio-go-test-")
@@ -7599,6 +9971,7 @@ func main() {
 	log.SetLevel(log.InfoLevel)
 
 	tls := mustParseBool(os.Getenv(enableHTTPS))
+	kmsEnabled := mustParseBool(os.Getenv(enableKMS))
 	// execute tests
 	if isFullMode() {
 		testMakeBucketErrorV2()
@@ -7643,7 +10016,9 @@ func main() {
 		testGetObjectWithContext()
 		testFPutObjectWithContext()
 		testFGetObjectWithContext()
+
 		testGetObjectACL()
+
 		testPutObjectWithContext()
 		testStorageClassMetadataPutObject()
 		testStorageClassInvalidMetadataPutObject()
@@ -7653,14 +10028,38 @@ func main() {
 
 		// SSE-C tests will only work over TLS connection.
 		if tls {
-			testEncryptionPutGet()
-			testEncryptionFPut()
-			testEncryptedGetObjectReadAtFunctional()
-			testEncryptedGetObjectReadSeekFunctional()
+			testSSECEncryptionPutGet()
+			testSSECEncryptionFPut()
+			testSSECEncryptedGetObjectReadAtFunctional()
+			testSSECEncryptedGetObjectReadSeekFunctional()
 			testEncryptedCopyObjectV2()
-			testEncryptedCopyObject()
+			testEncryptedSSECToSSECCopyObject()
+			testEncryptedSSECToUnencryptedCopyObject()
+			testUnencryptedToSSECCopyObject()
+			testUnencryptedToUnencryptedCopyObject()
 			testEncryptedEmptyObject()
 			testDecryptedCopyObject()
+			testSSECEncryptedToSSECCopyObjectPart()
+			testSSECMultipartEncryptedToSSECCopyObjectPart()
+			testSSECEncryptedToUnencryptedCopyPart()
+			testUnencryptedToSSECCopyObjectPart()
+			testUnencryptedToUnencryptedCopyPart()
+			if kmsEnabled {
+				testSSES3EncryptionPutGet()
+				testSSES3EncryptionFPut()
+				testSSES3EncryptedGetObjectReadAtFunctional()
+				testSSES3EncryptedGetObjectReadSeekFunctional()
+				testEncryptedSSECToSSES3CopyObject()
+				testEncryptedSSES3ToSSECCopyObject()
+				testEncryptedSSES3ToSSES3CopyObject()
+				testEncryptedSSES3ToUnencryptedCopyObject()
+				testUnencryptedToSSES3CopyObject()
+				testSSECEncryptedToSSES3CopyObjectPart()
+				testUnencryptedToSSES3CopyObjectPart()
+				testSSES3EncryptedToSSECCopyObjectPart()
+				testSSES3EncryptedToUnencryptedCopyPart()
+				testSSES3EncryptedToSSES3CopyObjectPart()
+			}
 		}
 	} else {
 		testFunctional()

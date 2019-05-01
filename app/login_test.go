@@ -8,8 +8,8 @@ import (
 	"testing"
 )
 
-func TestCheckForClienSideCert(t *testing.T) {
-	th := Setup()
+func TestCheckForClientSideCert(t *testing.T) {
+	th := Setup(t)
 	defer th.TearDown()
 
 	var tests = []struct {
@@ -28,10 +28,10 @@ func TestCheckForClienSideCert(t *testing.T) {
 		r.Header.Add("X-SSL-Client-Cert", tt.pem)
 		r.Header.Add("X-SSL-Client-Cert-Subject-DN", tt.subject)
 
-		_, _, actualEmail := th.App.CheckForClienSideCert(r)
+		_, _, actualEmail := th.App.CheckForClientSideCert(r)
 
 		if actualEmail != tt.expectedEmail {
-			t.Fatalf("CheckForClienSideCert(%v): expected %v, actual %v", tt.subject, tt.expectedEmail, actualEmail)
+			t.Fatalf("CheckForClientSideCert(%v): expected %v, actual %v", tt.subject, tt.expectedEmail, actualEmail)
 		}
 	}
 }

@@ -303,10 +303,32 @@ func (a *App) InvalidateCacheForUser(userId string) {
 	}
 }
 
+func (a *App) InvalidateCacheForUserTeams(userId string) {
+	a.InvalidateCacheForUserTeamsSkipClusterSend(userId)
+
+	if a.Cluster != nil {
+		msg := &model.ClusterMessage{
+			Event:    model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_USER_TEAMS,
+			SendType: model.CLUSTER_SEND_BEST_EFFORT,
+			Data:     userId,
+		}
+		a.Cluster.SendClusterMessage(msg)
+	}
+}
+
 func (a *App) InvalidateCacheForUserSkipClusterSend(userId string) {
 	a.Srv.Store.Channel().InvalidateAllChannelMembersForUser(userId)
 	a.Srv.Store.User().InvalidateProfilesInChannelCacheByUser(userId)
 	a.Srv.Store.User().InvalidatProfileCacheForUser(userId)
+
+	hub := a.GetHubForUserId(userId)
+	if hub != nil {
+		hub.InvalidateUser(userId)
+	}
+}
+
+func (a *App) InvalidateCacheForUserTeamsSkipClusterSend(userId string) {
+	a.Srv.Store.Team().InvalidateAllTeamIdsForUser(userId)
 
 	hub := a.GetHubForUserId(userId)
 	if hub != nil {
@@ -359,7 +381,7 @@ func (h *Hub) Register(webConn *WebConn) {
 func (h *Hub) Unregister(webConn *WebConn) {
 	select {
 	case h.unregister <- webConn:
-	case <-h.didStop:
+	case <-h.stop:
 	}
 }
 

@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/services/mfa"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
@@ -45,7 +46,25 @@ func (a *App) CheckPasswordAndAllCriteria(user *model.User, password string, mfa
 	}
 
 	if err := a.checkUserPassword(user, password); err != nil {
+		if result := <-a.Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); result.Err != nil {
+			return result.Err
+		}
 		return err
+	}
+
+	if err := a.CheckUserMfa(user, mfaToken); err != nil {
+		// If the mfaToken is not set, we assume the client used this as a pre-flight request to query the server
+		// about the MFA state of the user in question
+		if mfaToken != "" {
+			if result := <-a.Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); result.Err != nil {
+				return result.Err
+			}
+		}
+		return err
+	}
+
+	if result := <-a.Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, 0); result.Err != nil {
+		return result.Err
 	}
 
 	if err := a.CheckUserPostflightAuthenticationCriteria(user); err != nil {
@@ -56,13 +75,20 @@ func (a *App) CheckPasswordAndAllCriteria(user *model.User, password string, mfa
 }
 
 // This to be used for places we check the users password when they are already logged in
-func (a *App) doubleCheckPassword(user *model.User, password string) *model.AppError {
+func (a *App) DoubleCheckPassword(user *model.User, password string) *model.AppError {
 	if err := checkUserLoginAttempts(user, *a.Config().ServiceSettings.MaximumLoginAttempts); err != nil {
 		return err
 	}
 
 	if err := a.checkUserPassword(user, password); err != nil {
+		if result := <-a.Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); result.Err != nil {
+			return result.Err
+		}
 		return err
+	}
+
+	if result := <-a.Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, 0); result.Err != nil {
+		return result.Err
 	}
 
 	return nil
@@ -70,15 +96,7 @@ func (a *App) doubleCheckPassword(user *model.User, password string) *model.AppE
 
 func (a *App) checkUserPassword(user *model.User, password string) *model.AppError {
 	if !model.ComparePassword(user.Password, password) {
-		if result := <-a.Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, user.FailedAttempts+1); result.Err != nil {
-			return result.Err
-		}
-
 		return model.NewAppError("checkUserPassword", "api.user.check_user_password.invalid.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
-	}
-
-	if result := <-a.Srv.Store.User().UpdateFailedPasswordAttempts(user.Id, 0); result.Err != nil {
-		return result.Err
 	}
 
 	return nil
@@ -121,11 +139,11 @@ func (a *App) CheckUserAllAuthenticationCriteria(user *model.User, mfaToken stri
 }
 
 func (a *App) CheckUserPreflightAuthenticationCriteria(user *model.User, mfaToken string) *model.AppError {
-	if err := a.CheckUserMfa(user, mfaToken); err != nil {
+	if err := checkUserNotDisabled(user); err != nil {
 		return err
 	}
 
-	if err := checkUserNotDisabled(user); err != nil {
+	if err := checkUserNotBot(user); err != nil {
 		return err
 	}
 
@@ -137,7 +155,7 @@ func (a *App) CheckUserPreflightAuthenticationCriteria(user *model.User, mfaToke
 }
 
 func (a *App) CheckUserPostflightAuthenticationCriteria(user *model.User) *model.AppError {
-	if !user.EmailVerified && a.Config().EmailSettings.RequireEmailVerification {
+	if !user.EmailVerified && *a.Config().EmailSettings.RequireEmailVerification {
 		return model.NewAppError("Login", "api.user.login.not_verified.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
 	}
 
@@ -145,15 +163,12 @@ func (a *App) CheckUserPostflightAuthenticationCriteria(user *model.User) *model
 }
 
 func (a *App) CheckUserMfa(user *model.User, token string) *model.AppError {
-	if license := a.License(); !user.MfaActive || license == nil || !*license.Features.MFA || !*a.Config().ServiceSettings.EnableMultifactorAuthentication {
+	if !user.MfaActive || !*a.Config().ServiceSettings.EnableMultifactorAuthentication {
 		return nil
 	}
 
-	if a.Mfa == nil {
-		return model.NewAppError("checkUserMfa", "api.user.check_user_mfa.not_available.app_error", nil, "", http.StatusNotImplemented)
-	}
-
-	ok, err := a.Mfa.ValidateToken(user.MfaSecret, token)
+	mfaService := mfa.New(a, a.Srv.Store)
+	ok, err := mfaService.ValidateToken(user.MfaSecret, token)
 	if err != nil {
 		return err
 	}
@@ -176,6 +191,13 @@ func checkUserLoginAttempts(user *model.User, max int) *model.AppError {
 func checkUserNotDisabled(user *model.User) *model.AppError {
 	if user.DeleteAt > 0 {
 		return model.NewAppError("Login", "api.user.login.inactive.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
+	}
+	return nil
+}
+
+func checkUserNotBot(user *model.User) *model.AppError {
+	if user.IsBot {
+		return model.NewAppError("Login", "api.user.login.bot_login_forbidden.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
 	}
 	return nil
 }

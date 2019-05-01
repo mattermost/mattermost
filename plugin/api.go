@@ -44,21 +44,42 @@ type API interface {
 	// Minimum server version: 5.6
 	SavePluginConfig(config map[string]interface{}) *model.AppError
 
+	// GetBundlePath returns the absolute path where the plugin's bundle was unpacked.
+	//
+	// Minimum server version: 5.10
+	GetBundlePath() (string, error)
+
+	// GetLicense returns the current license used by the Mattermost server. Returns nil if the
+	// the server does not have a license.
+	//
+	// Minimum server version: 5.10
+	GetLicense() *model.License
+
 	// GetServerVersion return the current Mattermost server version
 	//
 	// Minimum server version: 5.4
 	GetServerVersion() string
 
+	// GetSystemInstallDate returns the time that Mattermost was first installed and ran.
+	//
+	// Minimum server version: 5.10
+	GetSystemInstallDate() (int64, *model.AppError)
+
+	// GetDiagnosticId returns a unique identifier used by the server for diagnostic reports.
+	//
+	// Minimum server version: 5.10
+	GetDiagnosticId() string
+
 	// CreateUser creates a user.
 	CreateUser(user *model.User) (*model.User, *model.AppError)
 
-	// CreateDirectChannel creates a Direct channel.
-	//
-	// Minimum server version: 5.6
-	CreateDirectChannel(userId1 string, userId2 string) (*model.Channel, *model.AppError)
-
 	// DeleteUser deletes a user.
 	DeleteUser(userId string) *model.AppError
+
+	// GetUsers a list of users based on search options.
+	//
+	// Minimum server version: 5.10
+	GetUsers(options *model.UserGetOptions) ([]*model.User, *model.AppError)
 
 	// GetUser gets a user.
 	GetUser(userId string) (*model.User, *model.AppError)
@@ -107,6 +128,11 @@ type API interface {
 	// The status parameter can be: "online", "away", "dnd", or "offline".
 	UpdateUserStatus(userId, status string) (*model.Status, *model.AppError)
 
+	// UpdateUserActive deactivates or reactivates an user.
+	//
+	// Minimum server version: 5.8
+	UpdateUserActive(userId string, active bool) *model.AppError
+
 	// GetUsersInChannel returns a page of users in a channel. Page counting starts at 0.
 	// The sortBy parameter can be: "username" or "status".
 	//
@@ -144,6 +170,11 @@ type API interface {
 	// UpdateTeam updates a team.
 	UpdateTeam(team *model.Team) (*model.Team, *model.AppError)
 
+	// SearchTeams search a team.
+	//
+	// Minimum server version: 5.8
+	SearchTeams(term string) ([]*model.Team, *model.AppError)
+
 	// GetTeamsForUser returns list of teams of given user ID.
 	//
 	// Minimum server version: 5.6
@@ -163,6 +194,11 @@ type API interface {
 
 	// GetTeamMember returns a specific membership.
 	GetTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError)
+
+	// GetTeamMembersForUser returns all team memberships for a user.
+	//
+	// Minimum server version: 5.10
+	GetTeamMembersForUser(userId string, page int, perPage int) ([]*model.TeamMember, *model.AppError)
 
 	// UpdateTeamMemberRoles updates the role for a team membership.
 	UpdateTeamMemberRoles(teamId, userId, newRoles string) (*model.TeamMember, *model.AppError)
@@ -196,9 +232,11 @@ type API interface {
 	GetChannelStats(channelId string) (*model.ChannelStats, *model.AppError)
 
 	// GetDirectChannel gets a direct message channel.
+	// If the channel does not exist it will create it.
 	GetDirectChannel(userId1, userId2 string) (*model.Channel, *model.AppError)
 
 	// GetGroupChannel gets a group message channel.
+	// If the channel does not exist it will create it.
 	GetGroupChannel(userIds []string) (*model.Channel, *model.AppError)
 
 	// UpdateChannel updates a channel.
@@ -208,6 +246,16 @@ type API interface {
 	//
 	// Minimum server version: 5.6
 	SearchChannels(teamId string, term string) ([]*model.Channel, *model.AppError)
+
+	// SearchUsers returns a list of users based on some search criteria.
+	//
+	// Minimum server version: 5.6
+	SearchUsers(search *model.UserSearch) ([]*model.User, *model.AppError)
+
+	// SearchPostsInTeam returns a list of posts in a specific team that match the given params.
+	//
+	// Minimum server version: 5.10
+	SearchPostsInTeam(teamId string, paramsList []*model.SearchParams) ([]*model.Post, *model.AppError)
 
 	// AddChannelMember creates a channel membership for a user.
 	AddChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError)
@@ -224,6 +272,11 @@ type API interface {
 	//
 	// Minimum server version: 5.6
 	GetChannelMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError)
+
+	// GetChannelMembersForUser returns all channel memberships on a team for a user.
+	//
+	// Minimum server version: 5.10
+	GetChannelMembersForUser(teamId, userId string, page, perPage int) ([]*model.ChannelMember, *model.AppError)
 
 	// UpdateChannelMemberRoles updates a user's roles for a channel.
 	UpdateChannelMemberRoles(channelId, userId, newRoles string) (*model.ChannelMember, *model.AppError)
@@ -255,6 +308,14 @@ type API interface {
 	// SendEphemeralPost creates an ephemeral post.
 	SendEphemeralPost(userId string, post *model.Post) *model.Post
 
+	// UpdateEphemeralPost updates an ephemeral message previously sent to the user.
+	// EXPERIMENTAL: This API is experimental and can be changed without advance notice.
+	UpdateEphemeralPost(userId string, post *model.Post) *model.Post
+
+	// DeleteEphemeralPost deletes an ephemeral message previously sent to the user.
+	// EXPERIMENTAL: This API is experimental and can be changed without advance notice.
+	DeleteEphemeralPost(userId string, post *model.Post)
+
 	// DeletePost deletes a post.
 	DeletePost(postId string) *model.AppError
 
@@ -285,6 +346,11 @@ type API interface {
 	//
 	// Minimum server version: 5.6
 	GetPostsForChannel(channelId string, page, perPage int) (*model.PostList, *model.AppError)
+
+	// GetTeamStats gets a team's statistics
+	//
+	// Minimum server version: 5.8
+	GetTeamStats(teamId string) (*model.TeamStats, *model.AppError)
 
 	// UpdatePost updates a post.
 	UpdatePost(post *model.Post) (*model.Post, *model.AppError)
@@ -328,6 +394,11 @@ type API interface {
 	//
 	// Minimum server version: 5.3
 	GetFileInfo(fileId string) (*model.FileInfo, *model.AppError)
+
+	// GetFile gets content of a file by it's ID
+	//
+	// Minimum Server version: 5.8
+	GetFile(fileId string) ([]byte, *model.AppError)
 
 	// GetFileLink gets the public link to a file by fileId.
 	//
@@ -388,6 +459,16 @@ type API interface {
 	// KVSet will store a key-value pair, unique per plugin.
 	KVSet(key string, value []byte) *model.AppError
 
+	// KVCompareAndSet will update a key-value pair,
+	// unique per plugin, to the given new value if the current value == the old value.
+	// Inserts a new key if oldValue == nil.
+	// Returns (false, err) if DB error occurred
+	// Returns (false, nil) if current value != old value or key already exists when inserting
+	// Returns (true, nil) if current value == old value or new key is inserted
+	//
+	// Minimum server version: 5.12
+	KVCompareAndSet(key string, oldValue, newValue []byte) (bool, *model.AppError)
+
 	// KVSet will store a key-value pair, unique per plugin with an expiry time
 	//
 	// Minimum server version: 5.6
@@ -410,9 +491,9 @@ type API interface {
 	KVList(page, perPage int) ([]string, *model.AppError)
 
 	// PublishWebSocketEvent sends an event to WebSocket connections.
-	// event is the type and will be prepended with "custom_<pluginid>_"
-	// payload is the data sent with the event. Interface values must be primitive Go types or mattermost-server/model types
-	// broadcast determines to which users to send the event
+	// event is the type and will be prepended with "custom_<pluginid>_".
+	// payload is the data sent with the event. Interface values must be primitive Go types or mattermost-server/model types.
+	// broadcast determines to which users to send the event.
 	PublishWebSocketEvent(event string, payload map[string]interface{}, broadcast *model.WebsocketBroadcast)
 
 	// HasPermissionTo check if the user has the permission at system scope.
@@ -453,6 +534,41 @@ type API interface {
 	// do not need to add that info.
 	// keyValuePairs should be primitive go types or other values that can be encoded by encoding/gob
 	LogWarn(msg string, keyValuePairs ...interface{})
+
+	// SendMail sends an email to a specific address
+	//
+	// Minimum server version: 5.7
+	SendMail(to, subject, htmlBody string) *model.AppError
+
+	// CreateBot creates the given bot and corresponding user.
+	//
+	// Minimum server version: 5.10
+	CreateBot(bot *model.Bot) (*model.Bot, *model.AppError)
+
+	// PatchBot applies the given patch to the bot and corresponding user.
+	//
+	// Minimum server version: 5.10
+	PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError)
+
+	// GetBot returns the given bot.
+	//
+	// Minimum server version: 5.10
+	GetBot(botUserId string, includeDeleted bool) (*model.Bot, *model.AppError)
+
+	// GetBots returns the requested page of bots.
+	//
+	// Minimum server version: 5.10
+	GetBots(options *model.BotGetOptions) ([]*model.Bot, *model.AppError)
+
+	// UpdateBotActive marks a bot as active or inactive, along with its corresponding user.
+	//
+	// Minimum server version: 5.10
+	UpdateBotActive(botUserId string, active bool) (*model.Bot, *model.AppError)
+
+	// PermanentDeleteBot permanently deletes a bot and its corresponding user.
+	//
+	// Minimum server version: 5.10
+	PermanentDeleteBot(botUserId string) *model.AppError
 }
 
 var handshake = plugin.HandshakeConfig{

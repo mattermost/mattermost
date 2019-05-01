@@ -4,17 +4,94 @@
 package api4
 
 import (
+	"bytes"
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/stretchr/testify/require"
 )
+
+type testHandler struct {
+	t *testing.T
+}
+
+func (th *testHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	bb, err := ioutil.ReadAll(r.Body)
+	assert.Nil(th.t, err)
+	assert.NotEmpty(th.t, string(bb))
+	poir := model.PostActionIntegrationRequestFromJson(bytes.NewReader(bb))
+	assert.NotEmpty(th.t, poir.UserId)
+	assert.NotEmpty(th.t, poir.ChannelId)
+	assert.Empty(th.t, poir.TeamId)
+	assert.NotEmpty(th.t, poir.PostId)
+	assert.NotEmpty(th.t, poir.TriggerId)
+	assert.Equal(th.t, "button", poir.Type)
+	assert.Equal(th.t, "test-value", poir.Context["test-key"])
+	w.Write([]byte("{}"))
+	w.WriteHeader(200)
+}
+
+func TestPostActionCookies(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
+	})
+
+	handler := &testHandler{t}
+	server := httptest.NewServer(handler)
+	action := model.PostAction{
+		Id:   model.NewId(),
+		Name: "Test-action",
+		Type: model.POST_ACTION_TYPE_BUTTON,
+		Integration: &model.PostActionIntegration{
+			URL: server.URL,
+			Context: map[string]interface{}{
+				"test-key": "test-value",
+			},
+		},
+	}
+
+	post := &model.Post{
+		Id:        model.NewId(),
+		Type:      model.POST_EPHEMERAL,
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+		CreateAt:  model.GetMillis(),
+		UpdateAt:  model.GetMillis(),
+		Props: map[string]interface{}{
+			"attachments": []*model.SlackAttachment{
+				{
+					Title:     "some-title",
+					TitleLink: "https://some-url.com",
+					Text:      "some-text",
+					ImageURL:  "https://some-other-url.com",
+					Actions:   []*model.PostAction{&action},
+				},
+			},
+		},
+	}
+
+	post.GenerateActionIds()
+	assert.Equal(t, 32, len(th.App.PostActionCookieSecret()))
+	post = model.AddPostActionCookies(post, th.App.PostActionCookieSecret())
+
+	ok, resp := Client.DoPostActionWithCookie(post.Id, action.Id, "", action.Cookie)
+	assert.True(t, ok)
+	assert.NotNil(t, resp)
+	assert.Equal(t, 200, resp.StatusCode)
+	assert.Nil(t, resp.Error)
+	assert.NotNil(t, resp.RequestId)
+	assert.NotNil(t, resp.ServerVersion)
+}
 
 func TestOpenDialog(t *testing.T) {
 	th := Setup().InitBasic()
@@ -24,11 +101,6 @@ func TestOpenDialog(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost 127.0.0.1"
 	})
-
-	WebSocketClient, err := th.CreateWebSocketClient()
-	require.Nil(t, err)
-
-	WebSocketClient.Listen()
 
 	_, triggerId, err := model.GenerateTriggerId(th.BasicUser.Id, th.App.AsymmetricSigningKey())
 	require.Nil(t, err)
@@ -57,21 +129,6 @@ func TestOpenDialog(t *testing.T) {
 	CheckNoError(t, resp)
 	assert.True(t, pass)
 
-	timeout := time.After(300 * time.Millisecond)
-	waiting := true
-	for waiting {
-		select {
-		case event := <-WebSocketClient.EventChannel:
-			if event.Event == model.WEBSOCKET_EVENT_OPEN_DIALOG {
-				waiting = false
-			}
-
-		case <-timeout:
-			waiting = false
-			t.Fatal("should have received open_dialog event")
-		}
-	}
-
 	// Should fail on bad trigger ID
 	request.TriggerId = "junk"
 	pass, resp = Client.OpenInteractiveDialog(request)
@@ -84,6 +141,17 @@ func TestOpenDialog(t *testing.T) {
 	pass, resp = Client.OpenInteractiveDialog(request)
 	CheckBadRequestStatus(t, resp)
 	assert.False(t, pass)
+
+	// Should pass with no elements
+	request.URL = "http://localhost:8065"
+	request.Dialog.Elements = nil
+	pass, resp = Client.OpenInteractiveDialog(request)
+	CheckNoError(t, resp)
+	assert.True(t, pass)
+	request.Dialog.Elements = []model.DialogElement{}
+	pass, resp = Client.OpenInteractiveDialog(request)
+	CheckNoError(t, resp)
+	assert.True(t, pass)
 }
 
 func TestSubmitDialog(t *testing.T) {

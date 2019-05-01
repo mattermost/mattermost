@@ -57,7 +57,7 @@ func TestPluginActivated(t *testing.T) {
 }
 
 func TestDiagnostics(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	if testing.Short() {
@@ -99,7 +99,7 @@ func TestDiagnostics(t *testing.T) {
 	})
 
 	t.Run("SendDailyDiagnostics", func(t *testing.T) {
-		th.App.SendDailyDiagnostics()
+		th.App.sendDailyDiagnostics(true)
 
 		info := ""
 		// Collect the info sent.
@@ -147,10 +147,21 @@ func TestDiagnostics(t *testing.T) {
 		}
 	})
 
+	t.Run("SendDailyDiagnosticsNoSegmentKey", func(t *testing.T) {
+		th.App.SendDailyDiagnostics()
+
+		select {
+		case <-data:
+			t.Fatal("Should not send diagnostics when the segment key is not set")
+		case <-time.After(time.Second * 1):
+			// Did not receive diagnostics
+		}
+	})
+
 	t.Run("SendDailyDiagnosticsDisabled", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.LogSettings.EnableDiagnostics = false })
 
-		th.App.SendDailyDiagnostics()
+		th.App.sendDailyDiagnostics(true)
 
 		select {
 		case <-data:

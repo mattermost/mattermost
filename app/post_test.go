@@ -6,7 +6,7 @@ package app
 import (
 	"fmt"
 	"net/http"
-	"sync/atomic"
+	"sync"
 	"testing"
 	"time"
 
@@ -18,8 +18,233 @@ import (
 	"github.com/mattermost/mattermost-server/store/storetest"
 )
 
+func TestCreatePostDeduplicate(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("duplicate create post is idempotent", func(t *testing.T) {
+		pendingPostId := model.NewId()
+		post, err := th.App.CreatePostAsUser(&model.Post{
+			UserId:        th.BasicUser.Id,
+			ChannelId:     th.BasicChannel.Id,
+			Message:       "message",
+			PendingPostId: pendingPostId,
+		}, "")
+		require.Nil(t, err)
+		require.Equal(t, "message", post.Message)
+
+		duplicatePost, err := th.App.CreatePostAsUser(&model.Post{
+			UserId:        th.BasicUser.Id,
+			ChannelId:     th.BasicChannel.Id,
+			Message:       "message",
+			PendingPostId: pendingPostId,
+		}, "")
+		require.Nil(t, err)
+		require.Equal(t, post.Id, duplicatePost.Id, "should have returned previously created post id")
+		require.Equal(t, "message", duplicatePost.Message)
+	})
+
+	t.Run("post rejected by plugin leaves cache ready for non-deduplicated try", func(t *testing.T) {
+		setupPluginApiTest(t, `
+			package main
+
+			import (
+				"github.com/mattermost/mattermost-server/plugin"
+				"github.com/mattermost/mattermost-server/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+				allow bool
+			}
+
+			func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
+				if !p.allow {
+					p.allow = true
+					return nil, "rejected"
+				}
+
+				return nil, ""
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+		`, `{"id": "testrejectfirstpost", "backend": {"executable": "backend.exe"}}`, "testrejectfirstpost", th.App)
+
+		pendingPostId := model.NewId()
+		post, err := th.App.CreatePostAsUser(&model.Post{
+			UserId:        th.BasicUser.Id,
+			ChannelId:     th.BasicChannel.Id,
+			Message:       "message",
+			PendingPostId: pendingPostId,
+		}, "")
+		require.NotNil(t, err)
+		require.Equal(t, "Post rejected by plugin. rejected", err.Id)
+		require.Nil(t, post)
+
+		duplicatePost, err := th.App.CreatePostAsUser(&model.Post{
+			UserId:        th.BasicUser.Id,
+			ChannelId:     th.BasicChannel.Id,
+			Message:       "message",
+			PendingPostId: pendingPostId,
+		}, "")
+		require.Nil(t, err)
+		require.Equal(t, "message", duplicatePost.Message)
+	})
+
+	t.Run("slow posting after cache entry blocks duplicate request", func(t *testing.T) {
+		setupPluginApiTest(t, `
+			package main
+
+			import (
+				"github.com/mattermost/mattermost-server/plugin"
+				"github.com/mattermost/mattermost-server/model"
+				"time"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+				instant bool
+			}
+
+			func (p *MyPlugin) MessageWillBePosted(c *plugin.Context, post *model.Post) (*model.Post, string) {
+				if !p.instant {
+					p.instant = true
+					time.Sleep(3 * time.Second)
+				}
+
+				return nil, ""
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+		`, `{"id": "testdelayfirstpost", "backend": {"executable": "backend.exe"}}`, "testdelayfirstpost", th.App)
+
+		var post *model.Post
+		pendingPostId := model.NewId()
+
+		wg := sync.WaitGroup{}
+
+		// Launch a goroutine to make the first CreatePost call that will get delayed
+		// by the plugin above.
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			var err error
+			post, err = th.App.CreatePostAsUser(&model.Post{
+				UserId:        th.BasicUser.Id,
+				ChannelId:     th.BasicChannel.Id,
+				Message:       "plugin delayed",
+				PendingPostId: pendingPostId,
+			}, "")
+			require.Nil(t, err)
+			require.Equal(t, post.Message, "plugin delayed")
+		}()
+
+		// Give the goroutine above a chance to start and get delayed by the plugin.
+		time.Sleep(2 * time.Second)
+
+		// Try creating a duplicate post
+		duplicatePost, err := th.App.CreatePostAsUser(&model.Post{
+			UserId:        th.BasicUser.Id,
+			ChannelId:     th.BasicChannel.Id,
+			Message:       "plugin delayed",
+			PendingPostId: pendingPostId,
+		}, "")
+		require.NotNil(t, err)
+		require.Equal(t, "api.post.deduplicate_create_post.pending", err.Id)
+		require.Nil(t, duplicatePost)
+
+		// Wait for the first CreatePost to finish to ensure assertions are made.
+		wg.Wait()
+	})
+
+	t.Run("duplicate create post after cache expires is not idempotent", func(t *testing.T) {
+		pendingPostId := model.NewId()
+		post, err := th.App.CreatePostAsUser(&model.Post{
+			UserId:        th.BasicUser.Id,
+			ChannelId:     th.BasicChannel.Id,
+			Message:       "message",
+			PendingPostId: pendingPostId,
+		}, "")
+		require.Nil(t, err)
+		require.Equal(t, "message", post.Message)
+
+		time.Sleep(PENDING_POST_IDS_CACHE_TTL)
+
+		duplicatePost, err := th.App.CreatePostAsUser(&model.Post{
+			UserId:        th.BasicUser.Id,
+			ChannelId:     th.BasicChannel.Id,
+			Message:       "message",
+			PendingPostId: pendingPostId,
+		}, "")
+		require.Nil(t, err)
+		require.NotEqual(t, post.Id, duplicatePost.Id, "should have created new post id")
+		require.Equal(t, "message", duplicatePost.Message)
+	})
+}
+
+func TestAttachFilesToPost(t *testing.T) {
+	t.Run("should attach files", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		info1 := store.Must(th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
+			CreatorId: th.BasicUser.Id,
+			Path:      "path.txt",
+		})).(*model.FileInfo)
+		info2 := store.Must(th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
+			CreatorId: th.BasicUser.Id,
+			Path:      "path.txt",
+		})).(*model.FileInfo)
+
+		post := th.BasicPost
+		post.FileIds = []string{info1.Id, info2.Id}
+
+		err := th.App.attachFilesToPost(post)
+		assert.Nil(t, err)
+
+		infos, err := th.App.GetFileInfosForPost(post.Id)
+		assert.Nil(t, err)
+		assert.Len(t, infos, 2)
+	})
+
+	t.Run("should update File.PostIds after failing to add files", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		info1 := store.Must(th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
+			CreatorId: th.BasicUser.Id,
+			Path:      "path.txt",
+			PostId:    model.NewId(),
+		})).(*model.FileInfo)
+		info2 := store.Must(th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
+			CreatorId: th.BasicUser.Id,
+			Path:      "path.txt",
+		})).(*model.FileInfo)
+
+		post := th.BasicPost
+		post.FileIds = []string{info1.Id, info2.Id}
+
+		err := th.App.attachFilesToPost(post)
+		assert.Nil(t, err)
+
+		infos, err := th.App.GetFileInfosForPost(post.Id)
+		assert.Nil(t, err)
+		assert.Len(t, infos, 1)
+		assert.Equal(t, info2.Id, infos[0].Id)
+
+		updated, err := th.App.GetSinglePost(post.Id)
+		require.Nil(t, err)
+		assert.Len(t, updated.FileIds, 1)
+		assert.Contains(t, updated.FileIds, info2.Id)
+	})
+}
+
 func TestUpdatePostEditAt(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	post := &model.Post{}
@@ -47,7 +272,7 @@ func TestUpdatePostEditAt(t *testing.T) {
 }
 
 func TestUpdatePostTimeLimit(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	post := &model.Post{}
@@ -83,10 +308,23 @@ func TestUpdatePostTimeLimit(t *testing.T) {
 	})
 }
 
+func TestUpdatePostInArchivedChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	archivedChannel := th.CreateChannel(th.BasicTeam)
+	post := th.CreatePost(archivedChannel)
+	th.App.DeleteChannel(archivedChannel, "")
+
+	_, err := th.App.UpdatePost(post, true)
+	require.NotNil(t, err)
+	require.Equal(t, "api.post.update_post.can_not_update_post_in_deleted.error", err.Id)
+}
+
 func TestPostReplyToPostWhereRootPosterLeftChannel(t *testing.T) {
 	// This test ensures that when replying to a root post made by a user who has since left the channel, the reply
 	// post completes successfully. This is a regression test for PLT-6523.
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	channel := th.BasicChannel
@@ -112,13 +350,66 @@ func TestPostReplyToPostWhereRootPosterLeftChannel(t *testing.T) {
 		CreateAt:      0,
 	}
 
-	if _, err := th.App.CreatePostAsUser(&replyPost, false); err != nil {
+	if _, err := th.App.CreatePostAsUser(&replyPost, ""); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestPostAttachPostToChildPost(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	channel := th.BasicChannel
+	user := th.BasicUser
+	rootPost := th.BasicPost
+
+	replyPost1 := model.Post{
+		Message:       "reply one",
+		ChannelId:     channel.Id,
+		RootId:        rootPost.Id,
+		ParentId:      rootPost.Id,
+		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+		UserId:        user.Id,
+		CreateAt:      0,
+	}
+
+	res1, err := th.App.CreatePostAsUser(&replyPost1, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	replyPost2 := model.Post{
+		Message:       "reply two",
+		ChannelId:     channel.Id,
+		RootId:        res1.Id,
+		ParentId:      res1.Id,
+		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+		UserId:        user.Id,
+		CreateAt:      0,
+	}
+
+	_, err = th.App.CreatePostAsUser(&replyPost2, "")
+	if err.StatusCode != http.StatusBadRequest {
+		t.Fatal(fmt.Sprintf("Expected BadRequest error, got %v", err))
+	}
+
+	replyPost3 := model.Post{
+		Message:       "reply three",
+		ChannelId:     channel.Id,
+		RootId:        rootPost.Id,
+		ParentId:      rootPost.Id,
+		PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+		UserId:        user.Id,
+		CreateAt:      0,
+	}
+
+	if _, err := th.App.CreatePostAsUser(&replyPost3, ""); err != nil {
 		t.Fatal(err)
 	}
 }
 
 func TestPostChannelMentions(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	channel := th.BasicChannel
@@ -146,7 +437,7 @@ func TestPostChannelMentions(t *testing.T) {
 		CreateAt:      0,
 	}
 
-	result, err := th.App.CreatePostAsUser(post, false)
+	result, err := th.App.CreatePostAsUser(post, "")
 	require.Nil(t, err)
 	assert.Equal(t, map[string]interface{}{
 		"mention-test": map[string]interface{}{
@@ -165,7 +456,7 @@ func TestPostChannelMentions(t *testing.T) {
 }
 
 func TestImageProxy(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -180,39 +471,60 @@ func TestImageProxy(t *testing.T) {
 		ProxiedImageURL string
 	}{
 		"atmos/camo": {
-			ProxyType:       "atmos/camo",
+			ProxyType:       model.IMAGE_PROXY_TYPE_ATMOS_CAMO,
 			ProxyURL:        "https://127.0.0.1",
 			ProxyOptions:    "foo",
 			ImageURL:        "http://mydomain.com/myimage",
 			ProxiedImageURL: "https://127.0.0.1/f8dace906d23689e8d5b12c3cefbedbf7b9b72f5/687474703a2f2f6d79646f6d61696e2e636f6d2f6d79696d616765",
 		},
 		"atmos/camo_SameSite": {
-			ProxyType:       "atmos/camo",
+			ProxyType:       model.IMAGE_PROXY_TYPE_ATMOS_CAMO,
 			ProxyURL:        "https://127.0.0.1",
 			ProxyOptions:    "foo",
 			ImageURL:        "http://mymattermost.com/myimage",
 			ProxiedImageURL: "http://mymattermost.com/myimage",
 		},
 		"atmos/camo_PathOnly": {
-			ProxyType:       "atmos/camo",
+			ProxyType:       model.IMAGE_PROXY_TYPE_ATMOS_CAMO,
 			ProxyURL:        "https://127.0.0.1",
 			ProxyOptions:    "foo",
 			ImageURL:        "/myimage",
 			ProxiedImageURL: "/myimage",
 		},
 		"atmos/camo_EmptyImageURL": {
-			ProxyType:       "atmos/camo",
+			ProxyType:       model.IMAGE_PROXY_TYPE_ATMOS_CAMO,
 			ProxyURL:        "https://127.0.0.1",
 			ProxyOptions:    "foo",
+			ImageURL:        "",
+			ProxiedImageURL: "",
+		},
+		"local": {
+			ProxyType:       model.IMAGE_PROXY_TYPE_LOCAL,
+			ImageURL:        "http://mydomain.com/myimage",
+			ProxiedImageURL: "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage",
+		},
+		"local_SameSite": {
+			ProxyType:       model.IMAGE_PROXY_TYPE_LOCAL,
+			ImageURL:        "http://mymattermost.com/myimage",
+			ProxiedImageURL: "http://mymattermost.com/myimage",
+		},
+		"local_PathOnly": {
+			ProxyType:       model.IMAGE_PROXY_TYPE_LOCAL,
+			ImageURL:        "/myimage",
+			ProxiedImageURL: "/myimage",
+		},
+		"local_EmptyImageURL": {
+			ProxyType:       model.IMAGE_PROXY_TYPE_LOCAL,
 			ImageURL:        "",
 			ProxiedImageURL: "",
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			th.App.UpdateConfig(func(cfg *model.Config) {
-				cfg.ServiceSettings.ImageProxyType = model.NewString(tc.ProxyType)
-				cfg.ServiceSettings.ImageProxyOptions = model.NewString(tc.ProxyOptions)
-				cfg.ServiceSettings.ImageProxyURL = model.NewString(tc.ProxyURL)
+				cfg.ImageProxySettings.Enable = model.NewBool(true)
+				cfg.ImageProxySettings.ImageProxyType = model.NewString(tc.ProxyType)
+				cfg.ImageProxySettings.RemoteImageProxyOptions = model.NewString(tc.ProxyOptions)
+				cfg.ImageProxySettings.RemoteImageProxyURL = model.NewString(tc.ProxyURL)
 			})
 
 			post := &model.Post{
@@ -286,8 +598,7 @@ func TestMaxPostSize(t *testing.T) {
 
 			app := App{
 				Srv: &Server{
-					Store:  mockStore,
-					config: atomic.Value{},
+					Store: mockStore,
 				},
 			}
 
@@ -297,7 +608,7 @@ func TestMaxPostSize(t *testing.T) {
 }
 
 func TestDeletePostWithFileAttachments(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	// Create a post with a file attachment.
@@ -339,4 +650,129 @@ func TestDeletePostWithFileAttachments(t *testing.T) {
 	// Check that the file can no longer be reached.
 	_, err = th.App.GetFileInfo(info1.Id)
 	assert.NotNil(t, err)
+}
+
+func TestDeletePostInArchivedChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	archivedChannel := th.CreateChannel(th.BasicTeam)
+	post := th.CreatePost(archivedChannel)
+	th.App.DeleteChannel(archivedChannel, "")
+
+	_, err := th.App.DeletePost(post.Id, "")
+	require.NotNil(t, err)
+	require.Equal(t, "api.post.delete_post.can_not_delete_post_in_deleted.error", err.Id)
+}
+
+func TestCreatePost(t *testing.T) {
+	t.Run("call PreparePostForClient before returning", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ExperimentalSettings.DisablePostMetadata = true
+			*cfg.ImageProxySettings.Enable = true
+			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
+			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
+			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
+		})
+
+		imageURL := "http://mydomain.com/myimage"
+		proxiedImageURL := "https://127.0.0.1/f8dace906d23689e8d5b12c3cefbedbf7b9b72f5/687474703a2f2f6d79646f6d61696e2e636f6d2f6d79696d616765"
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "![image](" + imageURL + ")",
+			UserId:    th.BasicUser.Id,
+		}
+
+		rpost, err := th.App.CreatePost(post, th.BasicChannel, false)
+		require.Nil(t, err)
+		assert.Equal(t, "![image]("+proxiedImageURL+")", rpost.Message)
+	})
+}
+
+func TestPatchPost(t *testing.T) {
+	t.Run("call PreparePostForClient before returning", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ExperimentalSettings.DisablePostMetadata = true
+			*cfg.ImageProxySettings.Enable = true
+			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
+			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
+			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
+		})
+
+		imageURL := "http://mydomain.com/myimage"
+		proxiedImageURL := "https://127.0.0.1/f8dace906d23689e8d5b12c3cefbedbf7b9b72f5/687474703a2f2f6d79646f6d61696e2e636f6d2f6d79696d616765"
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "![image](http://mydomain/anotherimage)",
+			UserId:    th.BasicUser.Id,
+		}
+
+		rpost, err := th.App.CreatePost(post, th.BasicChannel, false)
+		require.Nil(t, err)
+		assert.NotEqual(t, "![image]("+proxiedImageURL+")", rpost.Message)
+
+		patch := &model.PostPatch{
+			Message: model.NewString("![image](" + imageURL + ")"),
+		}
+
+		rpost, err = th.App.PatchPost(rpost.Id, patch)
+		require.Nil(t, err)
+		assert.Equal(t, "![image]("+proxiedImageURL+")", rpost.Message)
+	})
+}
+
+func TestPatchPostInArchivedChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	archivedChannel := th.CreateChannel(th.BasicTeam)
+	post := th.CreatePost(archivedChannel)
+	th.App.DeleteChannel(archivedChannel, "")
+
+	_, err := th.App.PatchPost(post.Id, &model.PostPatch{IsPinned: model.NewBool(true)})
+	require.NotNil(t, err)
+	require.Equal(t, "api.post.patch_post.can_not_update_post_in_deleted.error", err.Id)
+}
+
+func TestUpdatePost(t *testing.T) {
+	t.Run("call PreparePostForClient before returning", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ExperimentalSettings.DisablePostMetadata = true
+			*cfg.ImageProxySettings.Enable = true
+			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
+			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
+			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
+		})
+
+		imageURL := "http://mydomain.com/myimage"
+		proxiedImageURL := "https://127.0.0.1/f8dace906d23689e8d5b12c3cefbedbf7b9b72f5/687474703a2f2f6d79646f6d61696e2e636f6d2f6d79696d616765"
+
+		post := &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "![image](http://mydomain/anotherimage)",
+			UserId:    th.BasicUser.Id,
+		}
+
+		rpost, err := th.App.CreatePost(post, th.BasicChannel, false)
+		require.Nil(t, err)
+		assert.NotEqual(t, "![image]("+proxiedImageURL+")", rpost.Message)
+
+		post.Id = rpost.Id
+		post.Message = "![image](" + imageURL + ")"
+
+		rpost, err = th.App.UpdatePost(post, false)
+		require.Nil(t, err)
+		assert.Equal(t, "![image]("+proxiedImageURL+")", rpost.Message)
+	})
 }

@@ -6,12 +6,13 @@ package api4
 import (
 	"bytes"
 	"encoding/json"
+	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -19,33 +20,24 @@ func TestPlugin(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	enablePlugins := *th.App.Config().PluginSettings.Enable
-	enableUploadPlugins := *th.App.Config().PluginSettings.EnableUploads
 	statesJson, _ := json.Marshal(th.App.Config().PluginSettings.PluginStates)
 	states := map[string]*model.PluginState{}
 	json.Unmarshal(statesJson, &states)
-	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.PluginSettings.Enable = enablePlugins
-			*cfg.PluginSettings.EnableUploads = enableUploadPlugins
-			cfg.PluginSettings.PluginStates = states
-		})
-		th.App.SaveConfig(th.App.Config(), false)
-	}()
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.PluginSettings.Enable = true
 		*cfg.PluginSettings.EnableUploads = true
 	})
 
-	path, _ := utils.FindDir("tests")
-	file, err := os.Open(filepath.Join(path, "testplugin.tar.gz"))
+	path, _ := fileutils.FindDir("tests")
+	tarData, err := ioutil.ReadFile(filepath.Join(path, "testplugin.tar.gz"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer file.Close()
 
 	// Successful upload
-	manifest, resp := th.SystemAdminClient.UploadPlugin(file)
+	manifest, resp := th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
+	CheckNoError(t, resp)
+	manifest, resp = th.SystemAdminClient.UploadPluginForced(bytes.NewReader(tarData))
 	defer os.RemoveAll("plugins/testplugin")
 	CheckNoError(t, resp)
 
@@ -56,18 +48,18 @@ func TestPlugin(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = false })
-	_, resp = th.SystemAdminClient.UploadPlugin(file)
+	_, resp = th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
 	CheckNotImplementedStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.PluginSettings.Enable = true
 		*cfg.PluginSettings.EnableUploads = false
 	})
-	_, resp = th.SystemAdminClient.UploadPlugin(file)
+	_, resp = th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
 	CheckNotImplementedStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.EnableUploads = true })
-	_, resp = th.Client.UploadPlugin(file)
+	_, resp = th.Client.UploadPlugin(bytes.NewReader(tarData))
 	CheckForbiddenStatus(t, resp)
 
 	// Successful gets

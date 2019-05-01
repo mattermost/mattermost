@@ -7,7 +7,6 @@ import (
 	"net"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -39,17 +38,6 @@ func StringArrayIntersection(arr1, arr2 []string) []string {
 	return result
 }
 
-func FileExistsInConfigFolder(filename string) bool {
-	if len(filename) == 0 {
-		return false
-	}
-
-	if _, err := os.Stat(FindConfigFile(filename)); err == nil {
-		return true
-	}
-	return false
-}
-
 func RemoveDuplicatesFromStringArray(arr []string) []string {
 	result := make([]string, 0, len(arr))
 	seen := make(map[string]bool)
@@ -61,6 +49,22 @@ func RemoveDuplicatesFromStringArray(arr []string) []string {
 		}
 	}
 
+	return result
+}
+
+func StringSliceDiff(a, b []string) []string {
+	m := make(map[string]bool)
+	result := []string{}
+
+	for _, item := range b {
+		m[item] = true
+	}
+
+	for _, item := range a {
+		if !m[item] {
+			result = append(result, item)
+		}
+	}
 	return result
 }
 

@@ -13,7 +13,7 @@ import (
 )
 
 func TestSendNotifications(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.App.AddUserToChannel(th.BasicUser2, th.BasicChannel)
@@ -30,9 +30,9 @@ func TestSendNotifications(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	mentions, err := th.App.SendNotifications(post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil)
-	if err != nil {
-		t.Fatal(err)
+	mentions, err2 := th.App.SendNotifications(post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil)
+	if err2 != nil {
+		t.Fatal(err2)
 	} else if mentions == nil {
 		t.Log(mentions)
 		t.Fatal("user should have been mentioned")
@@ -41,7 +41,7 @@ func TestSendNotifications(t *testing.T) {
 		t.Fatal("user should have been mentioned")
 	}
 
-	dm, err := th.App.CreateDirectChannel(th.BasicUser.Id, th.BasicUser2.Id)
+	dm, err := th.App.GetOrCreateDirectChannel(th.BasicUser.Id, th.BasicUser2.Id)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -56,9 +56,9 @@ func TestSendNotifications(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = th.App.SendNotifications(post2, th.BasicTeam, dm, th.BasicUser, nil)
-	if err != nil {
-		t.Fatal(err)
+	_, err2 = th.App.SendNotifications(post2, th.BasicTeam, dm, th.BasicUser, nil)
+	if err2 != nil {
+		t.Fatal(err2)
 	}
 
 	th.App.UpdateActive(th.BasicUser2, false)
@@ -74,14 +74,14 @@ func TestSendNotifications(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = th.App.SendNotifications(post3, th.BasicTeam, dm, th.BasicUser, nil)
-	if err != nil {
-		t.Fatal(err)
+	_, err2 = th.App.SendNotifications(post3, th.BasicTeam, dm, th.BasicUser, nil)
+	if err2 != nil {
+		t.Fatal(err2)
 	}
 
 	th.BasicChannel.DeleteAt = 1
-	mentions, err = th.App.SendNotifications(post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil)
-	assert.Nil(t, err)
+	mentions, err2 = th.App.SendNotifications(post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil)
+	assert.Nil(t, err2)
 	assert.Len(t, mentions, 0)
 }
 
@@ -474,6 +474,51 @@ func TestGetExplicitMentions(t *testing.T) {
 				ChannelMentioned: true,
 			},
 		},
+		"MultibyteCharacter": {
+			Message:  "My name is 萌",
+			Keywords: map[string][]string{"萌": {id1}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
+		"MultibyteCharacterAtBeginningOfSentence": {
+			Message:  "이메일을 보내다.",
+			Keywords: map[string][]string{"이메일": {id1}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
+		"MultibyteCharacterInPartOfSentence": {
+			Message:  "我爱吃番茄炒饭",
+			Keywords: map[string][]string{"番茄": {id1}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
+		"MultibyteCharacterAtEndOfSentence": {
+			Message:  "こんにちは、世界",
+			Keywords: map[string][]string{"世界": {id1}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
+		"MultibyteCharacterTwiceInSentence": {
+			Message:  "石橋さんが石橋を渡る",
+			Keywords: map[string][]string{"石橋": {id1}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
 
 		// The following tests cover cases where the message mentions @user.name, so we shouldn't assume that
 		// the user might be intending to mention some @user that isn't in the channel.
@@ -528,6 +573,20 @@ func TestGetExplicitMentions(t *testing.T) {
 					id2: true,
 				},
 				HereMentioned: true,
+			},
+		},
+		"Name on keywords is a prefix of a mention": {
+			Message:  "@other @test-two",
+			Keywords: map[string][]string{"@test": {model.NewId()}},
+			Expected: &ExplicitMentions{
+				OtherPotentialMentions: []string{"other", "test-two"},
+			},
+		},
+		"Name on mentions is a prefix of other mention": {
+			Message:  "@other-one @other @other-two",
+			Keywords: nil,
+			Expected: &ExplicitMentions{
+				OtherPotentialMentions: []string{"other-one", "other", "other-two"},
 			},
 		},
 	} {
@@ -612,7 +671,7 @@ func TestGetExplicitMentionsAtHere(t *testing.T) {
 }
 
 func TestGetMentionKeywords(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	// user with username or custom mentions enabled
@@ -938,22 +997,22 @@ func TestPostNotificationGetChannelName(t *testing.T) {
 		},
 		"direct channel, unspecified": {
 			channel:  &model.Channel{Type: model.CHANNEL_DIRECT},
-			expected: "@sender",
+			expected: "sender",
 		},
 		"direct channel, username": {
 			channel:    &model.Channel{Type: model.CHANNEL_DIRECT},
 			nameFormat: model.SHOW_USERNAME,
-			expected:   "@sender",
+			expected:   "sender",
 		},
 		"direct channel, full name": {
 			channel:    &model.Channel{Type: model.CHANNEL_DIRECT},
 			nameFormat: model.SHOW_FULLNAME,
-			expected:   "@Sender Sender",
+			expected:   "Sender Sender",
 		},
 		"direct channel, nickname": {
 			channel:    &model.Channel{Type: model.CHANNEL_DIRECT},
 			nameFormat: model.SHOW_NICKNAME_FULLNAME,
-			expected:   "@Sender",
+			expected:   "Sender",
 		},
 		"group channel, unspecified": {
 			channel:  &model.Channel{Type: model.CHANNEL_GROUP},
@@ -999,7 +1058,7 @@ func TestPostNotificationGetChannelName(t *testing.T) {
 }
 
 func TestPostNotificationGetSenderName(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	defaultChannel := &model.Channel{Type: model.CHANNEL_OPEN}

@@ -5,9 +5,10 @@ package human
 
 import (
 	"fmt"
-	"github.com/sirupsen/logrus"
 	"io"
 	"time"
+
+	"github.com/sirupsen/logrus"
 )
 
 type LogrusWriter struct {

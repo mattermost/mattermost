@@ -38,20 +38,47 @@ func ImportLineFromChannel(channel *model.ChannelForExport) *LineImportData {
 	}
 }
 
-func ImportLineFromUser(user *model.User) *LineImportData {
+func ImportLineFromDirectChannel(channel *model.DirectChannelForExport) *LineImportData {
+	return &LineImportData{
+		Type: "direct_channel",
+		DirectChannel: &DirectChannelImportData{
+			Header:  &channel.Header,
+			Members: channel.Members,
+		},
+	}
+}
+
+func ImportLineFromUser(user *model.User, exportedPrefs map[string]*string) *LineImportData {
+	// Bulk Importer doesn't accept "empty string" for AuthService.
+	var authService *string
+	if user.AuthService != "" {
+		authService = &user.AuthService
+	}
+
 	return &LineImportData{
 		Type: "user",
 		User: &UserImportData{
-			Username:    &user.Username,
-			Email:       &user.Email,
-			AuthService: &user.AuthService,
-			AuthData:    user.AuthData,
-			Nickname:    &user.Nickname,
-			FirstName:   &user.FirstName,
-			LastName:    &user.LastName,
-			Position:    &user.Position,
-			Roles:       &user.Roles,
-			Locale:      &user.Locale,
+			Username:           &user.Username,
+			Email:              &user.Email,
+			AuthService:        authService,
+			AuthData:           user.AuthData,
+			Nickname:           &user.Nickname,
+			FirstName:          &user.FirstName,
+			LastName:           &user.LastName,
+			Position:           &user.Position,
+			Roles:              &user.Roles,
+			Locale:             &user.Locale,
+			UseMarkdownPreview: exportedPrefs["UseMarkdownPreview"],
+			UseFormatting:      exportedPrefs["UseFormatting"],
+			ShowUnreadSection:  exportedPrefs["ShowUnreadSection"],
+			Theme:              exportedPrefs["Theme"],
+			UseMilitaryTime:    exportedPrefs["UseMilitaryTime"],
+			CollapsePreviews:   exportedPrefs["CollapsePreviews"],
+			MessageDisplay:     exportedPrefs["MessageDisplay"],
+			ChannelDisplayMode: exportedPrefs["ChannelDisplayMode"],
+			TutorialStep:       exportedPrefs["TutorialStep"],
+			EmailInterval:      exportedPrefs["EmailInterval"],
+			DeleteAt:           &user.DeleteAt,
 		},
 	}
 }
@@ -63,6 +90,9 @@ func ImportUserTeamDataFromTeamMember(member *model.TeamMemberForExport) *UserTe
 	}
 	if member.SchemeUser {
 		rolesList = append(rolesList, model.TEAM_USER_ROLE_ID)
+	}
+	if member.SchemeGuest {
+		rolesList = append(rolesList, model.TEAM_GUEST_ROLE_ID)
 	}
 	roles := strings.Join(rolesList, " ")
 	return &UserTeamImportData{
@@ -78,6 +108,9 @@ func ImportUserChannelDataFromChannelMemberAndPreferences(member *model.ChannelM
 	}
 	if member.SchemeUser {
 		rolesList = append(rolesList, model.CHANNEL_USER_ROLE_ID)
+	}
+	if member.SchemeGuest {
+		rolesList = append(rolesList, model.CHANNEL_GUEST_ROLE_ID)
 	}
 	props := member.NotifyProps
 	notifyProps := UserChannelNotifyPropsImportData{}
@@ -124,6 +157,18 @@ func ImportLineForPost(post *model.PostForExport) *LineImportData {
 	}
 }
 
+func ImportLineForDirectPost(post *model.DirectPostForExport) *LineImportData {
+	return &LineImportData{
+		Type: "direct_post",
+		DirectPost: &DirectPostImportData{
+			ChannelMembers: post.ChannelMembers,
+			User:           &post.User,
+			Message:        &post.Message,
+			CreateAt:       &post.CreateAt,
+		},
+	}
+}
+
 func ImportReplyFromPost(post *model.ReplyForExport) *ReplyImportData {
 	return &ReplyImportData{
 		User:     &post.Username,
@@ -132,9 +177,9 @@ func ImportReplyFromPost(post *model.ReplyForExport) *ReplyImportData {
 	}
 }
 
-func ImportReactionFromPost(reaction *model.Reaction) *ReactionImportData {
+func ImportReactionFromPost(user *model.User, reaction *model.Reaction) *ReactionImportData {
 	return &ReactionImportData{
-		User:      &reaction.UserId,
+		User:      &user.Username,
 		EmojiName: &reaction.EmojiName,
 		CreateAt:  &reaction.CreateAt,
 	}

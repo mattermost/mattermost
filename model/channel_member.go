@@ -40,6 +40,7 @@ type ChannelMember struct {
 	MentionCount  int64     `json:"mention_count"`
 	NotifyProps   StringMap `json:"notify_props"`
 	LastUpdateAt  int64     `json:"last_update_at"`
+	SchemeGuest   bool      `json:"scheme_guest"`
 	SchemeUser    bool      `json:"scheme_user"`
 	SchemeAdmin   bool      `json:"scheme_admin"`
 	ExplicitRoles string    `json:"explicit_roles"`
@@ -50,6 +51,7 @@ type ChannelMembers []ChannelMember
 type ChannelMemberForExport struct {
 	ChannelMember
 	ChannelName string
+	Username    string
 }
 
 func (o *ChannelMembers) ToJson() string {

@@ -8,8 +8,6 @@ import (
 	"crypto/ecdsa"
 	"crypto/tls"
 	"fmt"
-	"io"
-	"io/ioutil"
 	"net"
 	"net/http"
 	"net/url"
@@ -19,20 +17,26 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
 	"github.com/throttled/throttled"
 	"golang.org/x/crypto/acme/autocert"
 
+	"github.com/mattermost/mattermost-server/config"
+	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/jobs"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/mattermost/mattermost-server/services/httpservice"
+	"github.com/mattermost/mattermost-server/services/imageproxy"
+	"github.com/mattermost/mattermost-server/services/timezones"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
 )
+
+var MaxNotificationsPerChannelDefault int64 = 1000000
 
 type Server struct {
 	Store           store.Store
@@ -66,31 +70,29 @@ type Server struct {
 
 	PushNotificationsHub PushNotificationsHub
 
-	Jobs *jobs.JobServer
+	runjobs bool
+	Jobs    *jobs.JobServer
 
-	config                 atomic.Value
-	envConfig              map[string]interface{}
-	configFile             string
-	configListeners        map[string]func(*model.Config, *model.Config)
 	clusterLeaderListeners sync.Map
 
 	licenseValue       atomic.Value
 	clientLicenseValue atomic.Value
 	licenseListeners   map[string]func()
 
-	timezones atomic.Value
+	timezones *timezones.Timezones
 
 	newStore func() store.Store
 
 	htmlTemplateWatcher     *utils.HTMLTemplateWatcher
 	sessionCache            *utils.Cache
+	seenPendingPostIdsCache *utils.Cache
 	configListenerId        string
 	licenseListenerId       string
 	logListenerId           string
 	clusterLeaderListenerId string
-	disableConfigWatch      bool
-	configWatcher           *utils.ConfigWatcher
+	configStore             config.Store
 	asymmetricSigningKey    *ecdsa.PrivateKey
+	postActionCookieSecret  []byte
 
 	pluginCommands     []*PluginCommand
 	pluginCommandsLock sync.RWMutex
@@ -101,10 +103,241 @@ type Server struct {
 	diagnosticId        string
 
 	phase2PermissionsMigrationComplete bool
+
+	HTTPService httpservice.HTTPService
+
+	ImageProxy *imageproxy.ImageProxy
+
+	Log *mlog.Logger
+
+	joinCluster        bool
+	startMetrics       bool
+	startElasticsearch bool
+
+	AccountMigration einterfaces.AccountMigrationInterface
+	Cluster          einterfaces.ClusterInterface
+	Compliance       einterfaces.ComplianceInterface
+	DataRetention    einterfaces.DataRetentionInterface
+	Elasticsearch    einterfaces.ElasticsearchInterface
+	Ldap             einterfaces.LdapInterface
+	MessageExport    einterfaces.MessageExportInterface
+	Metrics          einterfaces.MetricsInterface
+	Saml             einterfaces.SamlInterface
+}
+
+func NewServer(options ...Option) (*Server, error) {
+	rootRouter := mux.NewRouter()
+
+	s := &Server{
+		goroutineExitSignal:     make(chan struct{}, 1),
+		RootRouter:              rootRouter,
+		licenseListeners:        map[string]func(){},
+		sessionCache:            utils.NewLru(model.SESSION_CACHE_SIZE),
+		seenPendingPostIdsCache: utils.NewLru(PENDING_POST_IDS_CACHE_SIZE),
+		clientConfig:            make(map[string]string),
+	}
+	for _, option := range options {
+		if err := option(s); err != nil {
+			return nil, errors.Wrap(err, "failed to apply option")
+		}
+	}
+
+	if s.configStore == nil {
+		configStore, err := config.NewFileStore("config.json", true)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to load config")
+		}
+
+		s.configStore = configStore
+	}
+
+	if s.Log == nil {
+		s.Log = mlog.NewLogger(utils.MloggerConfigFromLoggerConfig(&s.Config().LogSettings))
+	}
+
+	// Redirect default golang logger to this logger
+	mlog.RedirectStdLog(s.Log)
+
+	// Use this app logger as the global logger (eventually remove all instances of global logging)
+	mlog.InitGlobalLogger(s.Log)
+
+	s.logListenerId = s.AddConfigListener(func(_, after *model.Config) {
+		s.Log.ChangeLevels(utils.MloggerConfigFromLoggerConfig(&after.LogSettings))
+	})
+
+	s.HTTPService = httpservice.MakeHTTPService(s.FakeApp())
+
+	s.ImageProxy = imageproxy.MakeImageProxy(s, s.HTTPService, s.Log)
+
+	if err := utils.TranslationsPreInit(); err != nil {
+		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
+	}
+
+	err := s.RunOldAppInitalization()
+	if err != nil {
+		return nil, err
+	}
+
+	model.AppErrorInit(utils.T)
+
+	s.timezones = timezones.New()
+
+	// Start email batching because it's not like the other jobs
+	s.InitEmailBatching()
+	s.AddConfigListener(func(_, _ *model.Config) {
+		s.InitEmailBatching()
+	})
+
+	mlog.Info(fmt.Sprintf("Current version is %v (%v/%v/%v/%v)", model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash, model.BuildHashEnterprise))
+	mlog.Info(fmt.Sprintf("Enterprise Enabled: %v", model.BuildEnterpriseReady))
+	pwd, _ := os.Getwd()
+	mlog.Info(fmt.Sprintf("Current working directory is %v", pwd))
+	mlog.Info("Loaded config", mlog.String("source", s.configStore.String()))
+
+	license := s.License()
+
+	if license == nil && len(s.Config().SqlSettings.DataSourceReplicas) > 1 {
+		mlog.Warn("More than 1 read replica functionality disabled by current license. Please contact your system administrator about upgrading your enterprise license.")
+		s.UpdateConfig(func(cfg *model.Config) {
+			cfg.SqlSettings.DataSourceReplicas = cfg.SqlSettings.DataSourceReplicas[:1]
+		})
+	}
+
+	if license == nil {
+		s.UpdateConfig(func(cfg *model.Config) {
+			cfg.TeamSettings.MaxNotificationsPerChannel = &MaxNotificationsPerChannelDefault
+		})
+	}
+
+	s.ReloadConfig()
+
+	// Enable developer settings if this is a "dev" build
+	if model.BuildNumber == "dev" {
+		s.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = true })
+	}
+
+	if result := <-s.Store.Status().ResetAll(); result.Err != nil {
+		mlog.Error(fmt.Sprint("Error to reset the server status.", result.Err.Error()))
+	}
+
+	if s.joinCluster && s.Cluster != nil {
+		s.FakeApp().RegisterAllClusterMessageHandlers()
+		s.Cluster.StartInterNodeCommunication()
+	}
+
+	if s.startMetrics && s.Metrics != nil {
+		s.Metrics.StartServer()
+	}
+
+	if s.startElasticsearch && s.Elasticsearch != nil {
+		s.StartElasticsearch()
+	}
+
+	s.initJobs()
+
+	if s.runjobs {
+		s.Go(func() {
+			runSecurityJob(s)
+		})
+		s.Go(func() {
+			runDiagnosticsJob(s)
+		})
+		s.Go(func() {
+			runSessionCleanupJob(s)
+		})
+		s.Go(func() {
+			runTokenCleanupJob(s)
+		})
+		s.Go(func() {
+			runCommandWebhookCleanupJob(s)
+		})
+
+		if complianceI := s.Compliance; complianceI != nil {
+			complianceI.StartComplianceDailyJob()
+		}
+
+		if *s.Config().JobSettings.RunJobs && s.Jobs != nil {
+			s.Jobs.StartWorkers()
+		}
+		if *s.Config().JobSettings.RunScheduler && s.Jobs != nil {
+			s.Jobs.StartSchedulers()
+		}
+	}
+
+	return s, nil
+}
+
+// Global app opptions that should be applied to apps created by this server
+func (s *Server) AppOptions() []AppOption {
+	return []AppOption{
+		ServerConnector(s),
+	}
+}
+
+const TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN = time.Second
+
+func (s *Server) StopHTTPServer() {
+	if s.Server != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN)
+		defer cancel()
+		didShutdown := false
+		for s.didFinishListen != nil && !didShutdown {
+			if err := s.Server.Shutdown(ctx); err != nil {
+				mlog.Warn(err.Error())
+			}
+			timer := time.NewTimer(time.Millisecond * 50)
+			select {
+			case <-s.didFinishListen:
+				didShutdown = true
+			case <-timer.C:
+			}
+			timer.Stop()
+		}
+		s.Server.Close()
+		s.Server = nil
+	}
+}
+
+func (s *Server) Shutdown() error {
+	mlog.Info("Stopping Server...")
+
+	s.RunOldAppShutdown()
+
+	s.StopHTTPServer()
+	s.WaitForGoroutines()
+
+	if s.Store != nil {
+		s.Store.Close()
+	}
+
+	if s.htmlTemplateWatcher != nil {
+		s.htmlTemplateWatcher.Close()
+	}
+
+	s.RemoveConfigListener(s.configListenerId)
+	s.RemoveConfigListener(s.logListenerId)
+
+	s.configStore.Close()
+
+	if s.Cluster != nil {
+		s.Cluster.StopInterNodeCommunication()
+	}
+
+	if s.Metrics != nil {
+		s.Metrics.StopServer()
+	}
+
+	if s.Jobs != nil && s.runjobs {
+		s.Jobs.StopWorkers()
+		s.Jobs.StopSchedulers()
+	}
+
+	mlog.Info("Server stopped")
+	return nil
 }
 
 // Go creates a goroutine, but maintains a record of it to ensure that execution completes before
-// the app is destroyed.
+// the server is shutdown.
 func (s *Server) Go(f func()) {
 	atomic.AddInt32(&s.goroutineCount, 1)
 
@@ -135,16 +368,6 @@ var corsAllowedMethods = []string{
 	"DELETE",
 }
 
-type RecoveryLogger struct {
-}
-
-func (rl *RecoveryLogger) Println(i ...interface{}) {
-	mlog.Error("Please check the std error output for the stack trace")
-	mlog.Error(fmt.Sprint(i...))
-}
-
-const TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN = time.Second
-
 // golang.org/x/crypto/acme/autocert/autocert.go
 func handleHTTPRedirect(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" && r.Method != "HEAD" {
@@ -164,14 +387,14 @@ func stripPort(hostport string) string {
 	return net.JoinHostPort(host, "443")
 }
 
-func (a *App) StartServer() error {
+func (s *Server) Start() error {
 	mlog.Info("Starting Server...")
 
-	var handler http.Handler = a.Srv.RootRouter
-	if allowedOrigins := *a.Config().ServiceSettings.AllowCorsFrom; allowedOrigins != "" {
-		exposedCorsHeaders := *a.Config().ServiceSettings.CorsExposedHeaders
-		allowCredentials := *a.Config().ServiceSettings.CorsAllowCredentials
-		debug := *a.Config().ServiceSettings.CorsDebug
+	var handler http.Handler = s.RootRouter
+	if allowedOrigins := *s.Config().ServiceSettings.AllowCorsFrom; allowedOrigins != "" {
+		exposedCorsHeaders := *s.Config().ServiceSettings.CorsExposedHeaders
+		allowCredentials := *s.Config().ServiceSettings.CorsAllowCredentials
+		debug := *s.Config().ServiceSettings.CorsDebug
 		corsWrapper := cors.New(cors.Options{
 			AllowedOrigins:   strings.Fields(allowedOrigins),
 			AllowedMethods:   corsAllowedMethods,
@@ -184,34 +407,40 @@ func (a *App) StartServer() error {
 
 		// If we have debugging of CORS turned on then forward messages to logs
 		if debug {
-			corsWrapper.Log = a.Log.StdLog(mlog.String("source", "cors"))
+			corsWrapper.Log = s.Log.StdLog(mlog.String("source", "cors"))
 		}
 
 		handler = corsWrapper.Handler(handler)
 	}
 
-	if *a.Config().RateLimitSettings.Enable {
+	if *s.Config().RateLimitSettings.Enable {
 		mlog.Info("RateLimiter is enabled")
 
-		rateLimiter, err := NewRateLimiter(&a.Config().RateLimitSettings)
+		rateLimiter, err := NewRateLimiter(&s.Config().RateLimitSettings)
 		if err != nil {
 			return err
 		}
 
-		a.Srv.RateLimiter = rateLimiter
+		s.RateLimiter = rateLimiter
 		handler = rateLimiter.RateLimitHandler(handler)
 	}
 
-	a.Srv.Server = &http.Server{
-		Handler:      handlers.RecoveryHandler(handlers.RecoveryLogger(&RecoveryLogger{}), handlers.PrintRecoveryStack(true))(handler),
-		ReadTimeout:  time.Duration(*a.Config().ServiceSettings.ReadTimeout) * time.Second,
-		WriteTimeout: time.Duration(*a.Config().ServiceSettings.WriteTimeout) * time.Second,
-		ErrorLog:     a.Log.StdLog(mlog.String("source", "httpserver")),
+	// Creating a logger for logging errors from http.Server at error level
+	errStdLog, err := s.Log.StdLogAt(mlog.LevelError, mlog.String("source", "httpserver"))
+	if err != nil {
+		return err
 	}
 
-	addr := *a.Config().ServiceSettings.ListenAddress
+	s.Server = &http.Server{
+		Handler:      handler,
+		ReadTimeout:  time.Duration(*s.Config().ServiceSettings.ReadTimeout) * time.Second,
+		WriteTimeout: time.Duration(*s.Config().ServiceSettings.WriteTimeout) * time.Second,
+		ErrorLog:     errStdLog,
+	}
+
+	addr := *s.Config().ServiceSettings.ListenAddress
 	if addr == "" {
-		if *a.Config().ServiceSettings.ConnectionSecurity == model.CONN_SECURITY_TLS {
+		if *s.Config().ServiceSettings.ConnectionSecurity == model.CONN_SECURITY_TLS {
 			addr = ":https"
 		} else {
 			addr = ":http"
@@ -223,23 +452,23 @@ func (a *App) StartServer() error {
 		errors.Wrapf(err, utils.T("api.server.start_server.starting.critical"), err)
 		return err
 	}
-	a.Srv.ListenAddr = listener.Addr().(*net.TCPAddr)
+	s.ListenAddr = listener.Addr().(*net.TCPAddr)
 
 	mlog.Info(fmt.Sprintf("Server is listening on %v", listener.Addr().String()))
 
 	// Migration from old let's encrypt library
-	if *a.Config().ServiceSettings.UseLetsEncrypt {
-		if stat, err := os.Stat(*a.Config().ServiceSettings.LetsEncryptCertificateCacheFile); err == nil && !stat.IsDir() {
-			os.Remove(*a.Config().ServiceSettings.LetsEncryptCertificateCacheFile)
+	if *s.Config().ServiceSettings.UseLetsEncrypt {
+		if stat, err := os.Stat(*s.Config().ServiceSettings.LetsEncryptCertificateCacheFile); err == nil && !stat.IsDir() {
+			os.Remove(*s.Config().ServiceSettings.LetsEncryptCertificateCacheFile)
 		}
 	}
 
 	m := &autocert.Manager{
-		Cache:  autocert.DirCache(*a.Config().ServiceSettings.LetsEncryptCertificateCacheFile),
+		Cache:  autocert.DirCache(*s.Config().ServiceSettings.LetsEncryptCertificateCacheFile),
 		Prompt: autocert.AcceptTOS,
 	}
 
-	if *a.Config().ServiceSettings.Forward80To443 {
+	if *s.Config().ServiceSettings.Forward80To443 {
 		if host, port, err := net.SplitHostPort(addr); err != nil {
 			mlog.Error("Unable to setup forwarding: " + err.Error())
 		} else if port != "443" {
@@ -247,11 +476,11 @@ func (a *App) StartServer() error {
 		} else {
 			httpListenAddress := net.JoinHostPort(host, "http")
 
-			if *a.Config().ServiceSettings.UseLetsEncrypt {
+			if *s.Config().ServiceSettings.UseLetsEncrypt {
 				server := &http.Server{
 					Addr:     httpListenAddress,
 					Handler:  m.HTTPHandler(nil),
-					ErrorLog: a.Log.StdLog(mlog.String("source", "le_forwarder_server")),
+					ErrorLog: s.Log.StdLog(mlog.String("source", "le_forwarder_server")),
 				}
 				go server.ListenAndServe()
 			} else {
@@ -265,27 +494,27 @@ func (a *App) StartServer() error {
 
 					server := &http.Server{
 						Handler:  http.HandlerFunc(handleHTTPRedirect),
-						ErrorLog: a.Log.StdLog(mlog.String("source", "forwarder_server")),
+						ErrorLog: s.Log.StdLog(mlog.String("source", "forwarder_server")),
 					}
 					server.Serve(redirectListener)
 				}()
 			}
 		}
-	} else if *a.Config().ServiceSettings.UseLetsEncrypt {
+	} else if *s.Config().ServiceSettings.UseLetsEncrypt {
 		return errors.New(utils.T("api.server.start_server.forward80to443.disabled_while_using_lets_encrypt"))
 	}
 
-	a.Srv.didFinishListen = make(chan struct{})
+	s.didFinishListen = make(chan struct{})
 	go func() {
 		var err error
-		if *a.Config().ServiceSettings.ConnectionSecurity == model.CONN_SECURITY_TLS {
+		if *s.Config().ServiceSettings.ConnectionSecurity == model.CONN_SECURITY_TLS {
 
 			tlsConfig := &tls.Config{
 				PreferServerCipherSuites: true,
 				CurvePreferences:         []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
 			}
 
-			switch *a.Config().ServiceSettings.TLSMinVer {
+			switch *s.Config().ServiceSettings.TLSMinVer {
 			case "1.0":
 				tlsConfig.MinVersion = tls.VersionTLS10
 			case "1.1":
@@ -303,11 +532,11 @@ func (a *App) StartServer() error {
 				tls.TLS_RSA_WITH_AES_256_GCM_SHA384,
 			}
 
-			if len(a.Config().ServiceSettings.TLSOverwriteCiphers) == 0 {
+			if len(s.Config().ServiceSettings.TLSOverwriteCiphers) == 0 {
 				tlsConfig.CipherSuites = defaultCiphers
 			} else {
 				var cipherSuites []uint16
-				for _, cipher := range a.Config().ServiceSettings.TLSOverwriteCiphers {
+				for _, cipher := range s.Config().ServiceSettings.TLSOverwriteCiphers {
 					value, ok := model.ServerTLSSupportedCiphers[cipher]
 
 					if !ok {
@@ -329,18 +558,18 @@ func (a *App) StartServer() error {
 			certFile := ""
 			keyFile := ""
 
-			if *a.Config().ServiceSettings.UseLetsEncrypt {
+			if *s.Config().ServiceSettings.UseLetsEncrypt {
 				tlsConfig.GetCertificate = m.GetCertificate
 				tlsConfig.NextProtos = append(tlsConfig.NextProtos, "h2")
 			} else {
-				certFile = *a.Config().ServiceSettings.TLSCertFile
-				keyFile = *a.Config().ServiceSettings.TLSKeyFile
+				certFile = *s.Config().ServiceSettings.TLSCertFile
+				keyFile = *s.Config().ServiceSettings.TLSKeyFile
 			}
 
-			a.Srv.Server.TLSConfig = tlsConfig
-			err = a.Srv.Server.ServeTLS(listener, certFile, keyFile)
+			s.Server.TLSConfig = tlsConfig
+			err = s.Server.ServeTLS(listener, certFile, keyFile)
 		} else {
-			err = a.Srv.Server.Serve(listener)
+			err = s.Server.Serve(listener)
 		}
 
 		if err != nil && err != http.ErrServerClosed {
@@ -348,32 +577,10 @@ func (a *App) StartServer() error {
 			time.Sleep(time.Second)
 		}
 
-		close(a.Srv.didFinishListen)
+		close(s.didFinishListen)
 	}()
 
 	return nil
-}
-
-func (a *App) StopServer() {
-	if a.Srv.Server != nil {
-		ctx, cancel := context.WithTimeout(context.Background(), TIME_TO_WAIT_FOR_CONNECTIONS_TO_CLOSE_ON_SERVER_SHUTDOWN)
-		defer cancel()
-		didShutdown := false
-		for a.Srv.didFinishListen != nil && !didShutdown {
-			if err := a.Srv.Server.Shutdown(ctx); err != nil {
-				mlog.Warn(err.Error())
-			}
-			timer := time.NewTimer(time.Millisecond * 50)
-			select {
-			case <-a.Srv.didFinishListen:
-				didShutdown = true
-			case <-timer.C:
-			}
-			timer.Stop()
-		}
-		a.Srv.Server.Close()
-		a.Srv.Server = nil
-	}
 }
 
 func (a *App) OriginChecker() func(*http.Request) bool {
@@ -391,10 +598,114 @@ func (a *App) OriginChecker() func(*http.Request) bool {
 	return nil
 }
 
-// This is required to re-use the underlying connection and not take up file descriptors
-func consumeAndClose(r *http.Response) {
-	if r.Body != nil {
-		io.Copy(ioutil.Discard, r.Body)
-		r.Body.Close()
+func runSecurityJob(s *Server) {
+	doSecurity(s)
+	model.CreateRecurringTask("Security", func() {
+		doSecurity(s)
+	}, time.Hour*4)
+}
+
+func runDiagnosticsJob(s *Server) {
+	doDiagnostics(s)
+	model.CreateRecurringTask("Diagnostics", func() {
+		doDiagnostics(s)
+	}, time.Hour*24)
+}
+
+func runTokenCleanupJob(s *Server) {
+	doTokenCleanup(s)
+	model.CreateRecurringTask("Token Cleanup", func() {
+		doTokenCleanup(s)
+	}, time.Hour*1)
+}
+
+func runCommandWebhookCleanupJob(s *Server) {
+	doCommandWebhookCleanup(s)
+	model.CreateRecurringTask("Command Hook Cleanup", func() {
+		doCommandWebhookCleanup(s)
+	}, time.Hour*1)
+}
+
+func runSessionCleanupJob(s *Server) {
+	doSessionCleanup(s)
+	model.CreateRecurringTask("Session Cleanup", func() {
+		doSessionCleanup(s)
+	}, time.Hour*24)
+}
+
+func doSecurity(s *Server) {
+	s.DoSecurityUpdateCheck()
+}
+
+func doDiagnostics(s *Server) {
+	if *s.Config().LogSettings.EnableDiagnostics {
+		s.FakeApp().SendDailyDiagnostics()
 	}
+}
+
+func doTokenCleanup(s *Server) {
+	s.Store.Token().Cleanup()
+}
+
+func doCommandWebhookCleanup(s *Server) {
+	s.Store.CommandWebhook().Cleanup()
+}
+
+const (
+	SESSIONS_CLEANUP_BATCH_SIZE = 1000
+)
+
+func doSessionCleanup(s *Server) {
+	s.Store.Session().Cleanup(model.GetMillis(), SESSIONS_CLEANUP_BATCH_SIZE)
+}
+
+func (s *Server) StartElasticsearch() {
+	s.Go(func() {
+		if err := s.Elasticsearch.Start(); err != nil {
+			s.Log.Error(err.Error())
+		}
+	})
+
+	s.AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
+		if !*oldConfig.ElasticsearchSettings.EnableIndexing && *newConfig.ElasticsearchSettings.EnableIndexing {
+			s.Go(func() {
+				if err := s.Elasticsearch.Start(); err != nil {
+					mlog.Error(err.Error())
+				}
+			})
+		} else if *oldConfig.ElasticsearchSettings.EnableIndexing && !*newConfig.ElasticsearchSettings.EnableIndexing {
+			s.Go(func() {
+				if err := s.Elasticsearch.Stop(); err != nil {
+					mlog.Error(err.Error())
+				}
+			})
+		} else if *oldConfig.ElasticsearchSettings.Password != *newConfig.ElasticsearchSettings.Password || *oldConfig.ElasticsearchSettings.Username != *newConfig.ElasticsearchSettings.Username || *oldConfig.ElasticsearchSettings.ConnectionUrl != *newConfig.ElasticsearchSettings.ConnectionUrl || *oldConfig.ElasticsearchSettings.Sniff != *newConfig.ElasticsearchSettings.Sniff {
+			s.Go(func() {
+				if *oldConfig.ElasticsearchSettings.EnableIndexing {
+					if err := s.Elasticsearch.Stop(); err != nil {
+						mlog.Error(err.Error())
+					}
+					if err := s.Elasticsearch.Start(); err != nil {
+						mlog.Error(err.Error())
+					}
+				}
+			})
+		}
+	})
+
+	s.AddLicenseListener(func() {
+		if s.License() != nil {
+			s.Go(func() {
+				if err := s.Elasticsearch.Start(); err != nil {
+					mlog.Error(err.Error())
+				}
+			})
+		} else {
+			s.Go(func() {
+				if err := s.Elasticsearch.Stop(); err != nil {
+					mlog.Error(err.Error())
+				}
+			})
+		}
+	})
 }

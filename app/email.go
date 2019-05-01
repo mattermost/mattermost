@@ -9,7 +9,7 @@ import (
 
 	"net/http"
 
-	"github.com/nicksnyder/go-i18n/i18n"
+	"github.com/mattermost/go-i18n/i18n"
 	"github.com/pkg/errors"
 	"github.com/throttled/throttled"
 	"github.com/throttled/throttled/store/memstore"
@@ -180,7 +180,7 @@ func (a *App) SendWelcomeEmail(userId string, email string, verified bool, local
 	}
 
 	if !verified {
-		token, err := a.CreateVerifyEmailToken(userId)
+		token, err := a.CreateVerifyEmailToken(userId, email)
 		if err != nil {
 			return err
 		}
@@ -341,7 +341,7 @@ func (a *App) SendInviteEmails(team *model.Team, senderName string, senderUserId
 			}
 			bodyPage.Props["Link"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s", siteURL, url.QueryEscape(data), url.QueryEscape(token.Token))
 
-			if !a.Config().EmailSettings.SendEmailNotifications {
+			if !*a.Config().EmailSettings.SendEmailNotifications {
 				mlog.Info(fmt.Sprintf("sending invitation to %v %v", invite, bodyPage.Props["Link"]))
 			}
 

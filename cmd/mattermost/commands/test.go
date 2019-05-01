@@ -53,12 +53,12 @@ func webClientTestsCmdF(command *cobra.Command, args []string) error {
 	defer a.Shutdown()
 
 	utils.InitTranslations(a.Config().LocalizationSettings)
-	serverErr := a.StartServer()
+	serverErr := a.Srv.Start()
 	if serverErr != nil {
 		return serverErr
 	}
 
-	api4.Init(a, a.Srv.Router)
+	api4.Init(a, a.Srv.AppOptions, a.Srv.Router)
 	wsapi.Init(a, a.Srv.WebSocketRouter)
 	a.UpdateConfig(setupClientTests)
 	runWebClientTests()
@@ -74,12 +74,12 @@ func serverForWebClientTestsCmdF(command *cobra.Command, args []string) error {
 	defer a.Shutdown()
 
 	utils.InitTranslations(a.Config().LocalizationSettings)
-	serverErr := a.StartServer()
+	serverErr := a.Srv.Start()
 	if serverErr != nil {
 		return serverErr
 	}
 
-	api4.Init(a, a.Srv.Router)
+	api4.Init(a, a.Srv.AppOptions, a.Srv.Router)
 	wsapi.Init(a, a.Srv.WebSocketRouter)
 	a.UpdateConfig(setupClientTests)
 
@@ -94,8 +94,8 @@ func setupClientTests(cfg *model.Config) {
 	*cfg.TeamSettings.EnableOpenServer = true
 	*cfg.ServiceSettings.EnableCommands = false
 	*cfg.ServiceSettings.EnableCustomEmoji = true
-	cfg.ServiceSettings.EnableIncomingWebhooks = false
-	cfg.ServiceSettings.EnableOutgoingWebhooks = false
+	*cfg.ServiceSettings.EnableIncomingWebhooks = false
+	*cfg.ServiceSettings.EnableOutgoingWebhooks = false
 }
 
 func executeTestCommand(command *exec.Cmd) {

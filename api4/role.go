@@ -99,11 +99,13 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.License() == nil && patch.Permissions != nil {
 		allowedPermissions := []string{
 			model.PERMISSION_CREATE_TEAM.Id,
-			model.PERMISSION_MANAGE_WEBHOOKS.Id,
+			model.PERMISSION_MANAGE_INCOMING_WEBHOOKS.Id,
+			model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS.Id,
 			model.PERMISSION_MANAGE_SLASH_COMMANDS.Id,
 			model.PERMISSION_MANAGE_OAUTH.Id,
 			model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH.Id,
-			model.PERMISSION_MANAGE_EMOJIS.Id,
+			model.PERMISSION_CREATE_EMOJIS.Id,
+			model.PERMISSION_DELETE_EMOJIS.Id,
 			model.PERMISSION_EDIT_OTHERS_POSTS.Id,
 		}
 
@@ -123,7 +125,7 @@ func patchRole(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if !c.App.SessionHasPermissionTo(c.Session, model.PERMISSION_MANAGE_SYSTEM) {
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
 		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}

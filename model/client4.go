@@ -27,6 +27,7 @@ const (
 	HEADER_REAL_IP            = "X-Real-IP"
 	HEADER_FORWARDED_PROTO    = "X-Forwarded-Proto"
 	HEADER_TOKEN              = "token"
+	HEADER_CSRF_TOKEN         = "X-CSRF-Token"
 	HEADER_BEARER             = "BEARER"
 	HEADER_AUTH               = "Authorization"
 	HEADER_REQUESTED_WITH     = "X-Requested-With"
@@ -147,6 +148,14 @@ func (c *Client4) GetUserByUsernameRoute(userName string) string {
 
 func (c *Client4) GetUserByEmailRoute(email string) string {
 	return fmt.Sprintf(c.GetUsersRoute()+"/email/%v", email)
+}
+
+func (c *Client4) GetBotsRoute() string {
+	return fmt.Sprintf("/bots")
+}
+
+func (c *Client4) GetBotRoute(botUserId string) string {
+	return fmt.Sprintf("%s/%s", c.GetBotsRoute(), botUserId)
 }
 
 func (c *Client4) GetTeamsRoute() string {
@@ -409,6 +418,22 @@ func (c *Client4) GetTermsOfServiceRoute() string {
 	return "/terms_of_service"
 }
 
+func (c *Client4) GetGroupsRoute() string {
+	return "/groups"
+}
+
+func (c *Client4) GetGroupRoute(groupID string) string {
+	return fmt.Sprintf("%s/%s", c.GetGroupsRoute(), groupID)
+}
+
+func (c *Client4) GetGroupSyncableRoute(groupID, syncableID string, syncableType GroupSyncableType) string {
+	return fmt.Sprintf("%s/%ss/%s", c.GetGroupRoute(groupID), strings.ToLower(syncableType.String()), syncableID)
+}
+
+func (c *Client4) GetGroupSyncablesRoute(groupID string, syncableType GroupSyncableType) string {
+	return fmt.Sprintf("%s/%ss", c.GetGroupRoute(groupID), strings.ToLower(syncableType.String()))
+}
+
 func (c *Client4) DoApiGet(url string, etag string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodGet, c.ApiUrl+url, "", etag)
 }
@@ -425,6 +450,10 @@ func (c *Client4) DoApiPut(url string, data string) (*http.Response, *AppError) 
 	return c.DoApiRequest(http.MethodPut, c.ApiUrl+url, data, "")
 }
 
+func (c *Client4) doApiPutBytes(url string, data []byte) (*http.Response, *AppError) {
+	return c.doApiRequestBytes(http.MethodPut, c.ApiUrl+url, data, "")
+}
+
 func (c *Client4) DoApiDelete(url string) (*http.Response, *AppError) {
 	return c.DoApiRequest(http.MethodDelete, c.ApiUrl+url, "", "")
 }
@@ -438,7 +467,10 @@ func (c *Client4) doApiRequestBytes(method, url string, data []byte, etag string
 }
 
 func (c *Client4) doApiRequestReader(method, url string, data io.Reader, etag string) (*http.Response, *AppError) {
-	rq, _ := http.NewRequest(method, url, data)
+	rq, err := http.NewRequest(method, url, data)
+	if err != nil {
+		return nil, NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)
+	}
 
 	if len(etag) > 0 {
 		rq.Header.Set(HEADER_ETAG_CLIENT, etag)
@@ -472,7 +504,17 @@ func (c *Client4) doApiRequestReader(method, url string, data io.Reader, etag st
 }
 
 func (c *Client4) DoUploadFile(url string, data []byte, contentType string) (*FileUploadResponse, *Response) {
-	rq, _ := http.NewRequest("POST", c.ApiUrl+url, bytes.NewReader(data))
+	return c.doUploadFile(url, bytes.NewReader(data), contentType, 0)
+}
+
+func (c *Client4) doUploadFile(url string, body io.Reader, contentType string, contentLength int64) (*FileUploadResponse, *Response) {
+	rq, err := http.NewRequest("POST", c.ApiUrl+url, body)
+	if err != nil {
+		return nil, &Response{Error: NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+	if contentLength != 0 {
+		rq.ContentLength = contentLength
+	}
 	rq.Header.Set("Content-Type", contentType)
 
 	if len(c.AuthToken) > 0 {
@@ -493,7 +535,10 @@ func (c *Client4) DoUploadFile(url string, data []byte, contentType string) (*Fi
 }
 
 func (c *Client4) DoEmojiUploadFile(url string, data []byte, contentType string) (*Emoji, *Response) {
-	rq, _ := http.NewRequest("POST", c.ApiUrl+url, bytes.NewReader(data))
+	rq, err := http.NewRequest("POST", c.ApiUrl+url, bytes.NewReader(data))
+	if err != nil {
+		return nil, &Response{Error: NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
 	rq.Header.Set("Content-Type", contentType)
 
 	if len(c.AuthToken) > 0 {
@@ -514,7 +559,10 @@ func (c *Client4) DoEmojiUploadFile(url string, data []byte, contentType string)
 }
 
 func (c *Client4) DoUploadImportTeam(url string, data []byte, contentType string) (map[string]string, *Response) {
-	rq, _ := http.NewRequest("POST", c.ApiUrl+url, bytes.NewReader(data))
+	rq, err := http.NewRequest("POST", c.ApiUrl+url, bytes.NewReader(data))
+	if err != nil {
+		return nil, &Response{Error: NewAppError(url, "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
 	rq.Header.Set("Content-Type", contentType)
 
 	if len(c.AuthToken) > 0 {
@@ -583,6 +631,15 @@ func (c *Client4) LoginWithDevice(loginId string, password string, deviceId stri
 	m["login_id"] = loginId
 	m["password"] = password
 	m["device_id"] = deviceId
+	return c.login(m)
+}
+
+// LoginWithMFA logs a user in with a MFA token
+func (c *Client4) LoginWithMFA(loginId, password, mfaToken string) (*User, *Response) {
+	m := make(map[string]string)
+	m["login_id"] = loginId
+	m["password"] = password
+	m["token"] = mfaToken
 	return c.login(m)
 }
 
@@ -946,6 +1003,7 @@ func (c *Client4) UpdateUserMfa(userId, code string, activate bool) (bool, *Resp
 
 // CheckUserMfa checks whether a user has MFA active on their account or not based on the
 // provided login id.
+// Deprecated: Clients should use Login method and check for MFA Error
 func (c *Client4) CheckUserMfa(loginId string) (bool, *Response) {
 	requestBody := make(map[string]interface{})
 	requestBody["login_id"] = loginId
@@ -1163,7 +1221,10 @@ func (c *Client4) SetProfileImage(userId string, data []byte) (bool, *Response) 
 		return false, &Response{Error: NewAppError("SetProfileImage", "model.client.set_profile_user.writer.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}
 
-	rq, _ := http.NewRequest("POST", c.ApiUrl+c.GetUserRoute(userId)+"/image", bytes.NewReader(body.Bytes()))
+	rq, err := http.NewRequest("POST", c.ApiUrl+c.GetUserRoute(userId)+"/image", bytes.NewReader(body.Bytes()))
+	if err != nil {
+		return false, &Response{Error: NewAppError("SetProfileImage", "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
 	rq.Header.Set("Content-Type", writer.FormDataContentType())
 
 	if len(c.AuthToken) > 0 {
@@ -1172,8 +1233,7 @@ func (c *Client4) SetProfileImage(userId string, data []byte) (bool, *Response) 
 
 	rp, err := c.HttpClient.Do(rq)
 	if err != nil || rp == nil {
-		// set to http.StatusForbidden(403)
-		return false, &Response{StatusCode: http.StatusForbidden, Error: NewAppError(c.GetUserRoute(userId)+"/image", "model.client.connecting.app_error", nil, err.Error(), 403)}
+		return false, &Response{StatusCode: http.StatusForbidden, Error: NewAppError(c.GetUserRoute(userId)+"/image", "model.client.connecting.app_error", nil, err.Error(), http.StatusForbidden)}
 	}
 	defer closeBody(rp)
 
@@ -1285,6 +1345,111 @@ func (c *Client4) EnableUserAccessToken(tokenId string) (bool, *Response) {
 	}
 	defer closeBody(r)
 	return CheckStatusOK(r), BuildResponse(r)
+}
+
+// Bots section
+
+// CreateBot creates a bot in the system based on the provided bot struct.
+func (c *Client4) CreateBot(bot *Bot) (*Bot, *Response) {
+	r, err := c.doApiPostBytes(c.GetBotsRoute(), bot.ToJson())
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return BotFromJson(r.Body), BuildResponse(r)
+}
+
+// PatchBot partially updates a bot. Any missing fields are not updated.
+func (c *Client4) PatchBot(userId string, patch *BotPatch) (*Bot, *Response) {
+	r, err := c.doApiPutBytes(c.GetBotRoute(userId), patch.ToJson())
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return BotFromJson(r.Body), BuildResponse(r)
+}
+
+// GetBot fetches the given, undeleted bot.
+func (c *Client4) GetBot(userId string, etag string) (*Bot, *Response) {
+	r, err := c.DoApiGet(c.GetBotRoute(userId), etag)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return BotFromJson(r.Body), BuildResponse(r)
+}
+
+// GetBot fetches the given bot, even if it is deleted.
+func (c *Client4) GetBotIncludeDeleted(userId string, etag string) (*Bot, *Response) {
+	r, err := c.DoApiGet(c.GetBotRoute(userId)+"?include_deleted=true", etag)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return BotFromJson(r.Body), BuildResponse(r)
+}
+
+// GetBots fetches the given page of bots, excluding deleted.
+func (c *Client4) GetBots(page, perPage int, etag string) ([]*Bot, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
+	r, err := c.DoApiGet(c.GetBotsRoute()+query, etag)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return BotListFromJson(r.Body), BuildResponse(r)
+}
+
+// GetBotsIncludeDeleted fetches the given page of bots, including deleted.
+func (c *Client4) GetBotsIncludeDeleted(page, perPage int, etag string) ([]*Bot, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v&include_deleted=true", page, perPage)
+	r, err := c.DoApiGet(c.GetBotsRoute()+query, etag)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return BotListFromJson(r.Body), BuildResponse(r)
+}
+
+// GetBotsOrphaned fetches the given page of bots, only including orphanded bots.
+func (c *Client4) GetBotsOrphaned(page, perPage int, etag string) ([]*Bot, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v&only_orphaned=true", page, perPage)
+	r, err := c.DoApiGet(c.GetBotsRoute()+query, etag)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return BotListFromJson(r.Body), BuildResponse(r)
+}
+
+// DisableBot disables the given bot in the system.
+func (c *Client4) DisableBot(botUserId string) (*Bot, *Response) {
+	r, err := c.doApiPostBytes(c.GetBotRoute(botUserId)+"/disable", nil)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return BotFromJson(r.Body), BuildResponse(r)
+}
+
+// EnableBot disables the given bot in the system.
+func (c *Client4) EnableBot(botUserId string) (*Bot, *Response) {
+	r, err := c.doApiPostBytes(c.GetBotRoute(botUserId)+"/enable", nil)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return BotFromJson(r.Body), BuildResponse(r)
+}
+
+// AssignBot assigns the given bot to the given user
+func (c *Client4) AssignBot(botUserId, newOwnerId string) (*Bot, *Response) {
+	r, err := c.doApiPostBytes(c.GetBotRoute(botUserId)+"/assign/"+newOwnerId, nil)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return BotFromJson(r.Body), BuildResponse(r)
 }
 
 // Team Section
@@ -1405,6 +1570,16 @@ func (c *Client4) UpdateTeam(team *Team) (*Team, *Response) {
 // PatchTeam partially updates a team. Any missing fields are not updated.
 func (c *Client4) PatchTeam(teamId string, patch *TeamPatch) (*Team, *Response) {
 	r, err := c.DoApiPut(c.GetTeamRoute(teamId)+"/patch", patch.ToJson())
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return TeamFromJson(r.Body), BuildResponse(r)
+}
+
+// RegenerateTeamInviteId requests a new invite ID to be generated.
+func (c *Client4) RegenerateTeamInviteId(teamId string) (*Team, *Response) {
+	r, err := c.DoApiPost(c.GetTeamRoute(teamId)+"/regenerate_invite_id", "")
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
 	}
@@ -1606,6 +1781,16 @@ func (c *Client4) InviteUsersToTeam(teamId string, userEmails []string) (bool, *
 	return CheckStatusOK(r), BuildResponse(r)
 }
 
+// InvalidateEmailInvites will invalidate active email invitations that have not been accepted by the user.
+func (c *Client4) InvalidateEmailInvites() (bool, *Response) {
+	r, err := c.DoApiDelete(c.GetTeamsRoute() + "/invites/email")
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
 // GetTeamInviteInfo returns a team object from an invite id containing sanitized information.
 func (c *Client4) GetTeamInviteInfo(inviteId string) (*Team, *Response) {
 	r, err := c.DoApiGet(c.GetTeamsRoute()+"/invite/"+inviteId, "")
@@ -1634,7 +1819,10 @@ func (c *Client4) SetTeamIcon(teamId string, data []byte) (bool, *Response) {
 		return false, &Response{Error: NewAppError("SetTeamIcon", "model.client.set_team_icon.writer.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}
 
-	rq, _ := http.NewRequest("POST", c.ApiUrl+c.GetTeamRoute(teamId)+"/image", bytes.NewReader(body.Bytes()))
+	rq, err := http.NewRequest("POST", c.ApiUrl+c.GetTeamRoute(teamId)+"/image", bytes.NewReader(body.Bytes()))
+	if err != nil {
+		return false, &Response{Error: NewAppError("SetTeamIcon", "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
 	rq.Header.Set("Content-Type", writer.FormDataContentType())
 
 	if len(c.AuthToken) > 0 {
@@ -1681,6 +1869,17 @@ func (c *Client4) RemoveTeamIcon(teamId string) (bool, *Response) {
 }
 
 // Channel Section
+
+// GetAllChannels get all the channels. Must be a system administrator.
+func (c *Client4) GetAllChannels(page int, perPage int, etag string) (*ChannelListWithTeamData, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v", page, perPage)
+	r, err := c.DoApiGet(c.GetChannelsRoute()+query, etag)
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ChannelListWithTeamDataFromJson(r.Body), BuildResponse(r)
+}
 
 // CreateChannel creates a channel based on the provided channel struct.
 func (c *Client4) CreateChannel(channel *Channel) (*Channel, *Response) {
@@ -1844,6 +2043,16 @@ func (c *Client4) SearchChannels(teamId string, search *ChannelSearch) ([]*Chann
 	}
 	defer closeBody(r)
 	return ChannelSliceFromJson(r.Body), BuildResponse(r)
+}
+
+// SearchAllChannels search in all the channels. Must be a system administrator.
+func (c *Client4) SearchAllChannels(search *ChannelSearch) (*ChannelListWithTeamData, *Response) {
+	r, err := c.DoApiPost(c.GetChannelsRoute()+"/search", search.ToJson())
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ChannelListWithTeamDataFromJson(r.Body), BuildResponse(r)
 }
 
 // DeleteChannel deletes channel based on the provided channel id string.
@@ -2261,6 +2470,23 @@ func (c *Client4) DoPostAction(postId, actionId string) (bool, *Response) {
 	return CheckStatusOK(r), BuildResponse(r)
 }
 
+// DoPostActionWithCookie performs a post action with extra arguments
+func (c *Client4) DoPostActionWithCookie(postId, actionId, selected, cookieStr string) (bool, *Response) {
+	var body []byte
+	if selected != "" || cookieStr != "" {
+		body, _ = json.Marshal(DoPostActionRequest{
+			SelectedOption: selected,
+			Cookie:         cookieStr,
+		})
+	}
+	r, err := c.DoApiPost(c.GetPostRoute(postId)+"/actions/"+actionId, string(body))
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
 // OpenInteractiveDialog sends a WebSocket event to a user's clients to
 // open interactive dialogs, based on the provided trigger ID and other
 // provided data. Used with interactive message buttons, menus and
@@ -2290,33 +2516,33 @@ func (c *Client4) SubmitInteractiveDialog(request SubmitDialogRequest) (*SubmitD
 	return &resp, BuildResponse(r)
 }
 
-// File Section
-
 // UploadFile will upload a file to a channel using a multipart request, to be later attached to a post.
 // This method is functionally equivalent to Client4.UploadFileAsRequestBody.
 func (c *Client4) UploadFile(data []byte, channelId string, filename string) (*FileUploadResponse, *Response) {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 
-	part, err := writer.CreateFormFile("files", filename)
-	if err != nil {
-		return nil, &Response{Error: NewAppError("UploadPostAttachment", "model.client.upload_post_attachment.file.app_error", nil, err.Error(), http.StatusBadRequest)}
-	}
-
-	if _, err = io.Copy(part, bytes.NewBuffer(data)); err != nil {
-		return nil, &Response{Error: NewAppError("UploadPostAttachment", "model.client.upload_post_attachment.file.app_error", nil, err.Error(), http.StatusBadRequest)}
-	}
-
-	part, err = writer.CreateFormField("channel_id")
+	part, err := writer.CreateFormField("channel_id")
 	if err != nil {
 		return nil, &Response{Error: NewAppError("UploadPostAttachment", "model.client.upload_post_attachment.channel_id.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}
 
-	if _, err := io.Copy(part, strings.NewReader(channelId)); err != nil {
+	_, err = io.Copy(part, strings.NewReader(channelId))
+	if err != nil {
 		return nil, &Response{Error: NewAppError("UploadPostAttachment", "model.client.upload_post_attachment.channel_id.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}
 
-	if err := writer.Close(); err != nil {
+	part, err = writer.CreateFormFile("files", filename)
+	if err != nil {
+		return nil, &Response{Error: NewAppError("UploadPostAttachment", "model.client.upload_post_attachment.file.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+	_, err = io.Copy(part, bytes.NewBuffer(data))
+	if err != nil {
+		return nil, &Response{Error: NewAppError("UploadPostAttachment", "model.client.upload_post_attachment.file.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
+
+	err = writer.Close()
+	if err != nil {
 		return nil, &Response{Error: NewAppError("UploadPostAttachment", "model.client.upload_post_attachment.writer.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}
 
@@ -2587,7 +2813,10 @@ func (c *Client4) UploadLicenseFile(data []byte) (bool, *Response) {
 		return false, &Response{Error: NewAppError("UploadLicenseFile", "model.client.set_profile_user.writer.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}
 
-	rq, _ := http.NewRequest("POST", c.ApiUrl+c.GetLicenseRoute(), bytes.NewReader(body.Bytes()))
+	rq, err := http.NewRequest("POST", c.ApiUrl+c.GetLicenseRoute(), bytes.NewReader(body.Bytes()))
+	if err != nil {
+		return false, &Response{Error: NewAppError("UploadLicenseFile", "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
 	rq.Header.Set("Content-Type", writer.FormDataContentType())
 
 	if len(c.AuthToken) > 0 {
@@ -2870,6 +3099,7 @@ func samlFileToMultipart(data []byte, filename string) ([]byte, *multipart.Write
 }
 
 // UploadSamlIdpCertificate will upload an IDP certificate for SAML and set the config to use it.
+// The filename parameter is deprecated and ignored: the server will pick a hard-coded filename when writing to disk.
 func (c *Client4) UploadSamlIdpCertificate(data []byte, filename string) (bool, *Response) {
 	body, writer, err := samlFileToMultipart(data, filename)
 	if err != nil {
@@ -2881,6 +3111,7 @@ func (c *Client4) UploadSamlIdpCertificate(data []byte, filename string) (bool, 
 }
 
 // UploadSamlPublicCertificate will upload a public certificate for SAML and set the config to use it.
+// The filename parameter is deprecated and ignored: the server will pick a hard-coded filename when writing to disk.
 func (c *Client4) UploadSamlPublicCertificate(data []byte, filename string) (bool, *Response) {
 	body, writer, err := samlFileToMultipart(data, filename)
 	if err != nil {
@@ -2892,6 +3123,7 @@ func (c *Client4) UploadSamlPublicCertificate(data []byte, filename string) (boo
 }
 
 // UploadSamlPrivateCertificate will upload a private key for SAML and set the config to use it.
+// The filename parameter is deprecated and ignored: the server will pick a hard-coded filename when writing to disk.
 func (c *Client4) UploadSamlPrivateCertificate(data []byte, filename string) (bool, *Response) {
 	body, writer, err := samlFileToMultipart(data, filename)
 	if err != nil {
@@ -2977,7 +3209,10 @@ func (c *Client4) GetComplianceReport(reportId string) (*Compliance, *Response) 
 
 // DownloadComplianceReport returns a full compliance report as a file.
 func (c *Client4) DownloadComplianceReport(reportId string) ([]byte, *Response) {
-	rq, _ := http.NewRequest("GET", c.ApiUrl+c.GetComplianceReportRoute(reportId), nil)
+	rq, err := http.NewRequest("GET", c.ApiUrl+c.GetComplianceReportRoute(reportId), nil)
+	if err != nil {
+		return nil, &Response{Error: NewAppError("DownloadComplianceReport", "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
 
 	if len(c.AuthToken) > 0 {
 		rq.Header.Set(HEADER_AUTH, "BEARER "+c.AuthToken)
@@ -3034,6 +3269,69 @@ func (c *Client4) TestLdap() (bool, *Response) {
 	}
 	defer closeBody(r)
 	return CheckStatusOK(r), BuildResponse(r)
+}
+
+// GetLdapGroups retrieves the immediate child groups of the given parent group.
+func (c *Client4) GetLdapGroups() ([]*Group, *Response) {
+	path := fmt.Sprintf("%s/groups", c.GetLdapRoute())
+
+	r, appErr := c.DoApiGet(path, "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	return GroupsFromJson(r.Body), BuildResponse(r)
+}
+
+// LinkLdapGroup creates or undeletes a Mattermost group and associates it to the given LDAP group DN.
+func (c *Client4) LinkLdapGroup(dn string) (*Group, *Response) {
+	path := fmt.Sprintf("%s/groups/%s/link", c.GetLdapRoute(), dn)
+
+	r, appErr := c.DoApiPost(path, "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	return GroupFromJson(r.Body), BuildResponse(r)
+}
+
+// UnlinkLdapGroup deletes the Mattermost group associated with the given LDAP group DN.
+func (c *Client4) UnlinkLdapGroup(dn string) (*Group, *Response) {
+	path := fmt.Sprintf("%s/groups/%s/link", c.GetLdapRoute(), dn)
+
+	r, appErr := c.DoApiDelete(path)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	return GroupFromJson(r.Body), BuildResponse(r)
+}
+
+// GetLdapGroupsByChannel retrieves the Mattermost Groups associated with a given channel
+func (c *Client4) GetGroupsByChannel(channelId string, page, perPage int) ([]*Group, *Response) {
+	path := fmt.Sprintf("%s/groups?page=%v&per_page=%v", c.GetChannelRoute(channelId), page, perPage)
+	r, appErr := c.DoApiGet(path, "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	return GroupsFromJson(r.Body), BuildResponse(r)
+}
+
+// GetLdapGroupsByTeam retrieves the Mattermost Groups associated with a given team
+func (c *Client4) GetGroupsByTeam(teamId string, page, perPage int) ([]*Group, *Response) {
+	path := fmt.Sprintf("%s/groups?page=%v&per_page=%v", c.GetTeamRoute(teamId), page, perPage)
+	r, appErr := c.DoApiGet(path, "")
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+
+	return GroupsFromJson(r.Body), BuildResponse(r)
 }
 
 // Audits Section
@@ -3098,7 +3396,10 @@ func (c *Client4) UploadBrandImage(data []byte) (bool, *Response) {
 		return false, &Response{Error: NewAppError("UploadBrandImage", "model.client.set_profile_user.writer.app_error", nil, err.Error(), http.StatusBadRequest)}
 	}
 
-	rq, _ := http.NewRequest("POST", c.ApiUrl+c.GetBrandRoute()+"/image", bytes.NewReader(body.Bytes()))
+	rq, err := http.NewRequest("POST", c.ApiUrl+c.GetBrandRoute()+"/image", bytes.NewReader(body.Bytes()))
+	if err != nil {
+		return false, &Response{Error: NewAppError("UploadBrandImage", "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
 	rq.Header.Set("Content-Type", writer.FormDataContentType())
 
 	if len(c.AuthToken) > 0 {
@@ -3250,7 +3551,10 @@ func (c *Client4) DeauthorizeOAuthApp(appId string) (bool, *Response) {
 
 // GetOAuthAccessToken is a test helper function for the OAuth access token endpoint.
 func (c *Client4) GetOAuthAccessToken(data url.Values) (*AccessResponse, *Response) {
-	rq, _ := http.NewRequest(http.MethodPost, c.Url+"/oauth/access_token", strings.NewReader(data.Encode()))
+	rq, err := http.NewRequest(http.MethodPost, c.Url+"/oauth/access_token", strings.NewReader(data.Encode()))
+	if err != nil {
+		return nil, &Response{Error: NewAppError(c.Url+"/oauth/access_token", "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
 	rq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	if len(c.AuthToken) > 0 {
@@ -3585,16 +3889,28 @@ func (c *Client4) DeleteReaction(reaction *Reaction) (bool, *Response) {
 	return CheckStatusOK(r), BuildResponse(r)
 }
 
+// FetchBulkReactions returns a map of postIds and corresponding reactions
+func (c *Client4) GetBulkReactions(postIds []string) (map[string][]*Reaction, *Response) {
+	r, err := c.DoApiPost(c.GetPostsRoute()+"/ids/reactions", ArrayToJson(postIds))
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return MapPostIdToReactionsFromJson(r.Body), BuildResponse(r)
+}
+
 // Timezone Section
 
 // GetSupportedTimezone returns a page of supported timezones on the system.
-func (c *Client4) GetSupportedTimezone() (SupportedTimezones, *Response) {
+func (c *Client4) GetSupportedTimezone() ([]string, *Response) {
 	r, err := c.DoApiGet(c.GetTimezonesRoute(), "")
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
 	}
 	defer closeBody(r)
-	return TimezonesFromJson(r.Body), BuildResponse(r)
+	var timezones []string
+	json.NewDecoder(r.Body).Decode(&timezones)
+	return timezones, BuildResponse(r)
 }
 
 // Open Graph Metadata Section
@@ -3783,8 +4099,23 @@ func (c *Client4) GetChannelsForScheme(schemeId string, page int, perPage int) (
 // UploadPlugin takes an io.Reader stream pointing to the contents of a .tar.gz plugin.
 // WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
 func (c *Client4) UploadPlugin(file io.Reader) (*Manifest, *Response) {
+	return c.uploadPlugin(file, false)
+}
+
+func (c *Client4) UploadPluginForced(file io.Reader) (*Manifest, *Response) {
+	return c.uploadPlugin(file, true)
+}
+
+func (c *Client4) uploadPlugin(file io.Reader, force bool) (*Manifest, *Response) {
 	body := new(bytes.Buffer)
 	writer := multipart.NewWriter(body)
+
+	if force {
+		err := writer.WriteField("force", "true")
+		if err != nil {
+			return nil, &Response{Error: NewAppError("UploadPlugin", "model.client.writer.app_error", nil, err.Error(), 0)}
+		}
+	}
 
 	part, err := writer.CreateFormFile("plugin", "plugin.tar.gz")
 	if err != nil {
@@ -3799,7 +4130,10 @@ func (c *Client4) UploadPlugin(file io.Reader) (*Manifest, *Response) {
 		return nil, &Response{Error: NewAppError("UploadPlugin", "model.client.writer.app_error", nil, err.Error(), 0)}
 	}
 
-	rq, _ := http.NewRequest("POST", c.ApiUrl+c.GetPluginsRoute(), body)
+	rq, err := http.NewRequest("POST", c.ApiUrl+c.GetPluginsRoute(), body)
+	if err != nil {
+		return nil, &Response{Error: NewAppError("UploadPlugin", "model.client.connecting.app_error", nil, err.Error(), http.StatusBadRequest)}
+	}
 	rq.Header.Set("Content-Type", writer.FormDataContentType())
 
 	if len(c.AuthToken) > 0 {
@@ -3963,4 +4297,72 @@ func (c *Client4) CreateTermsOfService(text, userId string) (*TermsOfService, *R
 	}
 	defer closeBody(r)
 	return TermsOfServiceFromJson(r.Body), BuildResponse(r)
+}
+
+func (c *Client4) GetGroup(groupID, etag string) (*Group, *Response) {
+	r, appErr := c.DoApiGet(c.GetGroupRoute(groupID), etag)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+	return GroupFromJson(r.Body), BuildResponse(r)
+}
+
+func (c *Client4) PatchGroup(groupID string, patch *GroupPatch) (*Group, *Response) {
+	payload, _ := json.Marshal(patch)
+	r, appErr := c.DoApiPut(c.GetGroupRoute(groupID)+"/patch", string(payload))
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+	return GroupFromJson(r.Body), BuildResponse(r)
+}
+
+func (c *Client4) LinkGroupSyncable(groupID, syncableID string, syncableType GroupSyncableType, patch *GroupSyncablePatch) (*GroupSyncable, *Response) {
+	payload, _ := json.Marshal(patch)
+	url := fmt.Sprintf("%s/link", c.GetGroupSyncableRoute(groupID, syncableID, syncableType))
+	r, appErr := c.DoApiPost(url, string(payload))
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+	return GroupSyncableFromJson(r.Body), BuildResponse(r)
+}
+
+func (c *Client4) UnlinkGroupSyncable(groupID, syncableID string, syncableType GroupSyncableType) *Response {
+	url := fmt.Sprintf("%s/link", c.GetGroupSyncableRoute(groupID, syncableID, syncableType))
+	r, appErr := c.DoApiDelete(url)
+	if appErr != nil {
+		return BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+	return BuildResponse(r)
+}
+
+func (c *Client4) GetGroupSyncable(groupID, syncableID string, syncableType GroupSyncableType, etag string) (*GroupSyncable, *Response) {
+	r, appErr := c.DoApiGet(c.GetGroupSyncableRoute(groupID, syncableID, syncableType), etag)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+	return GroupSyncableFromJson(r.Body), BuildResponse(r)
+}
+
+func (c *Client4) GetGroupSyncables(groupID string, syncableType GroupSyncableType, etag string) ([]*GroupSyncable, *Response) {
+	r, appErr := c.DoApiGet(c.GetGroupSyncablesRoute(groupID, syncableType), etag)
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+	return GroupSyncablesFromJson(r.Body), BuildResponse(r)
+}
+
+func (c *Client4) PatchGroupSyncable(groupID, syncableID string, syncableType GroupSyncableType, patch *GroupSyncablePatch) (*GroupSyncable, *Response) {
+	payload, _ := json.Marshal(patch)
+	r, appErr := c.DoApiPut(c.GetGroupSyncableRoute(groupID, syncableID, syncableType)+"/patch", string(payload))
+	if appErr != nil {
+		return nil, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+	return GroupSyncableFromJson(r.Body), BuildResponse(r)
 }

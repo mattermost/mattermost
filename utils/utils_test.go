@@ -48,6 +48,14 @@ func TestRemoveDuplicatesFromStringArray(t *testing.T) {
 	}
 }
 
+func TestStringSliceDiff(t *testing.T) {
+	a := []string{"one", "two", "three", "four", "five", "six"}
+	b := []string{"two", "seven", "four", "six"}
+	expected := []string{"one", "three", "five"}
+
+	assert.Equal(t, StringSliceDiff(a, b), expected)
+}
+
 func TestGetIpAddress(t *testing.T) {
 	// Test with a single IP in the X-Forwarded-For
 	httpRequest1 := http.Request{

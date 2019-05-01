@@ -6,14 +6,14 @@ package app
 import (
 	"testing"
 
-	"github.com/nicksnyder/go-i18n/i18n"
+	"github.com/mattermost/go-i18n/i18n"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/mattermost/mattermost-server/model"
 )
 
 func TestMsgProvider(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	team := th.CreateTeam()

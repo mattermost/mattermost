@@ -40,6 +40,46 @@ func (a *App) TestLdap() *model.AppError {
 	return nil
 }
 
+// GetLdapGroup retrieves a single LDAP group by the given LDAP group id.
+func (a *App) GetLdapGroup(ldapGroupID string) (*model.Group, *model.AppError) {
+	var group *model.Group
+
+	if a.Ldap != nil {
+		var err *model.AppError
+		group, err = a.Ldap.GetGroup(ldapGroupID)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		ae := model.NewAppError("GetLdapGroup", "ent.ldap.app_error", nil, "", http.StatusNotImplemented)
+		mlog.Error(fmt.Sprintf("%v", ae.Error()))
+		return nil, ae
+	}
+
+	return group, nil
+}
+
+// GetAllLdapGroupsPage retrieves all LDAP groups under the configured base DN using the default or configured group
+// filter.
+func (a *App) GetAllLdapGroupsPage(page int, perPage int, opts model.GroupSearchOpts) ([]*model.Group, int, *model.AppError) {
+	var groups []*model.Group
+	var total int
+
+	if a.Ldap != nil {
+		var err *model.AppError
+		groups, total, err = a.Ldap.GetAllGroupsPage(page, perPage, opts)
+		if err != nil {
+			return nil, 0, err
+		}
+	} else {
+		ae := model.NewAppError("GetAllLdapGroupsPage", "ent.ldap.app_error", nil, "", http.StatusNotImplemented)
+		mlog.Error(fmt.Sprintf("%v", ae.Error()))
+		return nil, 0, ae
+	}
+
+	return groups, total, nil
+}
+
 func (a *App) SwitchEmailToLdap(email, password, code, ldapLoginId, ldapPassword string) (string, *model.AppError) {
 	if a.License() != nil && !*a.Config().ServiceSettings.ExperimentalEnableAuthenticationTransfer {
 		return "", model.NewAppError("emailToLdap", "api.user.email_to_ldap.not_available.app_error", nil, "", http.StatusForbidden)

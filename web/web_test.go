@@ -5,66 +5,72 @@ package web
 
 import (
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"testing"
 
+	"github.com/mattermost/mattermost-server/testlib"
+
 	"github.com/mattermost/mattermost-server/app"
-	"github.com/mattermost/mattermost-server/mlog"
+	"github.com/mattermost/mattermost-server/config"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
-	"github.com/mattermost/mattermost-server/store/sqlstore"
-	"github.com/mattermost/mattermost-server/store/storetest"
+	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/utils"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var ApiClient *model.Client4
 var URL string
 
-type persistentTestStore struct {
-	store.Store
-}
-
-func (*persistentTestStore) Close() {}
-
-var testStoreContainer *storetest.RunningContainer
-var testStore *persistentTestStore
-
-func StopTestStore() {
-	if testStoreContainer != nil {
-		testStoreContainer.Stop()
-		testStoreContainer = nil
-	}
-}
-
 type TestHelper struct {
-	App *app.App
+	App    *app.App
+	Server *app.Server
+	Web    *Web
 
 	BasicUser    *model.User
 	BasicChannel *model.Channel
 	BasicTeam    *model.Team
 
 	SystemAdminUser *model.User
+
+	tempWorkspace string
 }
 
 func Setup() *TestHelper {
-	a, err := app.New(app.StoreOverride(testStore), app.DisableConfigWatch)
+	store := mainHelper.GetStore()
+	store.DropAllTables()
+
+	memoryStore, err := config.NewMemoryStore()
+	if err != nil {
+		panic("failed to initialize memory store: " + err.Error())
+	}
+
+	var options []app.Option
+	options = append(options, app.ConfigStore(memoryStore))
+	options = append(options, app.StoreOverride(mainHelper.Store))
+
+	s, err := app.NewServer(options...)
 	if err != nil {
 		panic(err)
 	}
+	a := s.FakeApp()
 	prevListenAddress := *a.Config().ServiceSettings.ListenAddress
 	a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = ":0" })
-	serverErr := a.StartServer()
+	serverErr := s.Start()
 	if serverErr != nil {
 		panic(serverErr)
 	}
 	a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 
-	NewWeb(a, a.Srv.Router)
+	web := New(s, s.AppOptions, s.Router)
 	URL = fmt.Sprintf("http://localhost:%v", a.Srv.ListenAddr.Port)
 	ApiClient = model.NewAPIv4Client(URL)
 
-	a.DoAdvancedPermissionsMigration()
-	a.DoEmojisPermissionsMigration()
+	a.DoAppMigrations()
 
 	a.Srv.Store.MarkSystemRanUnitTests()
 
@@ -73,8 +79,24 @@ func Setup() *TestHelper {
 	})
 
 	th := &TestHelper{
-		App: a,
+		App:    a,
+		Server: s,
+		Web:    web,
 	}
+
+	return th
+}
+
+func (th *TestHelper) InitPlugins() *TestHelper {
+
+	if th.tempWorkspace == "" {
+		th.tempWorkspace, _ = testlib.SetupTestResources()
+	}
+
+	pluginDir := filepath.Join(th.tempWorkspace, "plugins")
+	webappDir := filepath.Join(th.tempWorkspace, "webapp")
+
+	th.App.InitPlugins(pluginDir, webappDir)
 
 	return th
 }
@@ -98,11 +120,86 @@ func (th *TestHelper) InitBasic() *TestHelper {
 }
 
 func (th *TestHelper) TearDown() {
-	th.App.Shutdown()
+	th.Server.Shutdown()
 	if err := recover(); err != nil {
-		StopTestStore()
 		panic(err)
 	}
+}
+
+func TestPublicFilesRequest(t *testing.T) {
+	th := Setup().InitPlugins()
+	defer th.TearDown()
+
+	pluginDir, err := ioutil.TempDir("", "")
+	require.NoError(t, err)
+	webappPluginDir, err := ioutil.TempDir("", "")
+	require.NoError(t, err)
+	defer os.RemoveAll(pluginDir)
+	defer os.RemoveAll(webappPluginDir)
+
+	env, err := plugin.NewEnvironment(th.App.NewPluginAPI, pluginDir, webappPluginDir, th.App.Log)
+	require.NoError(t, err)
+
+	pluginID := "com.mattermost.sample"
+	pluginCode :=
+		`
+	package main
+
+	import (
+		"github.com/mattermost/mattermost-server/plugin"
+	)
+
+	type MyPlugin struct {
+		plugin.MattermostPlugin
+	}
+
+	func main() {
+		plugin.ClientMain(&MyPlugin{})
+	}
+	
+	`
+	// Compile and write the plugin
+	backend := filepath.Join(pluginDir, pluginID, "backend.exe")
+	utils.CompileGo(t, pluginCode, backend)
+
+	// Write the plugin.json manifest
+	pluginManifest := `{"id": "com.mattermost.sample", "server": {"executable": "backend.exe"}, "settings_schema": {"settings": []}}`
+	ioutil.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(pluginManifest), 0600)
+
+	// Write the test public file
+	helloHTML := `Hello from the static files public folder for the com.mattermost.sample plugin!`
+	htmlFolderPath := filepath.Join(pluginDir, pluginID, "public")
+	os.MkdirAll(htmlFolderPath, os.ModePerm)
+	htmlFilePath := filepath.Join(htmlFolderPath, "hello.html")
+
+	htmlFileErr := ioutil.WriteFile(htmlFilePath, []byte(helloHTML), 0600)
+	assert.NoError(t, htmlFileErr)
+
+	nefariousHTML := `You shouldn't be able to get here!`
+	htmlFileErr = ioutil.WriteFile(filepath.Join(pluginDir, pluginID, "nefarious-file-access.html"), []byte(nefariousHTML), 0600)
+	assert.NoError(t, htmlFileErr)
+
+	manifest, activated, reterr := env.Activate(pluginID)
+	require.Nil(t, reterr)
+	require.NotNil(t, manifest)
+	require.True(t, activated)
+
+	th.App.SetPluginsEnvironment(env)
+
+	req, _ := http.NewRequest("GET", "/plugins/com.mattermost.sample/public/hello.html", nil)
+	res := httptest.NewRecorder()
+	th.Web.MainRouter.ServeHTTP(res, req)
+	assert.Equal(t, helloHTML, res.Body.String())
+
+	req, _ = http.NewRequest("GET", "/plugins/com.mattermost.sample/nefarious-file-access.html", nil)
+	res = httptest.NewRecorder()
+	th.Web.MainRouter.ServeHTTP(res, req)
+	assert.Equal(t, 404, res.Code)
+
+	req, _ = http.NewRequest("GET", "/plugins/com.mattermost.sample/public/../nefarious-file-access.html", nil)
+	res = httptest.NewRecorder()
+	th.Web.MainRouter.ServeHTTP(res, req)
+	assert.Equal(t, 301, res.Code)
 }
 
 /* Test disabled for now so we don't requrie the client to build. Maybe re-enable after client gets moved out.
@@ -121,37 +218,6 @@ func TestStatic(t *testing.T) {
 	}
 }
 */
-
-func TestMain(m *testing.M) {
-	// Setup a global logger to catch tests logging outside of app context
-	// The global logger will be stomped by apps initalizing but that's fine for testing. Ideally this won't happen.
-	mlog.InitGlobalLogger(mlog.NewLogger(&mlog.LoggerConfiguration{
-		EnableConsole: true,
-		ConsoleJson:   true,
-		ConsoleLevel:  "error",
-		EnableFile:    false,
-	}))
-
-	utils.TranslationsPreInit()
-
-	status := 0
-
-	container, settings, err := storetest.NewPostgreSQLContainer()
-	if err != nil {
-		panic(err)
-	}
-
-	testStoreContainer = container
-	testStore = &persistentTestStore{store.NewLayeredStore(sqlstore.NewSqlSupplier(*settings, nil), nil, nil)}
-
-	defer func() {
-		StopTestStore()
-		os.Exit(status)
-	}()
-
-	status = m.Run()
-
-}
 
 func TestCheckClientCompatability(t *testing.T) {
 	//Browser Name, UA String, expected result (if the browser should fail the test false and if it should pass the true)

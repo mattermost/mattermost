@@ -4,56 +4,14 @@
 package app
 
 import (
-	"flag"
 	"fmt"
-	"os"
+	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store/storetest"
-	"github.com/mattermost/mattermost-server/utils"
 )
-
-func TestMain(m *testing.M) {
-	flag.Parse()
-
-	// Setup a global logger to catch tests logging outside of app context
-	// The global logger will be stomped by apps initalizing but that's fine for testing. Ideally this won't happen.
-	mlog.InitGlobalLogger(mlog.NewLogger(&mlog.LoggerConfiguration{
-		EnableConsole: true,
-		ConsoleJson:   true,
-		ConsoleLevel:  "error",
-		EnableFile:    false,
-	}))
-
-	utils.TranslationsPreInit()
-
-	// In the case where a dev just wants to run a single test, it's faster to just use the default
-	// store.
-	if filter := flag.Lookup("test.run").Value.String(); filter != "" && filter != "." {
-		mlog.Info("-test.run used, not creating temporary containers")
-		os.Exit(m.Run())
-	}
-
-	status := 0
-
-	container, settings, err := storetest.NewMySQLContainer()
-	if err != nil {
-		panic(err)
-	}
-
-	UseTestStore(container, settings)
-
-	defer func() {
-		StopTestStore()
-		os.Exit(status)
-	}()
-
-	status = m.Run()
-}
 
 /* Temporarily comment out until MM-11108
 func TestAppRace(t *testing.T) {
@@ -69,7 +27,7 @@ func TestAppRace(t *testing.T) {
 */
 
 func TestUpdateConfig(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
 
 	prev := *th.App.Config().ServiceSettings.SiteURL
@@ -85,12 +43,8 @@ func TestUpdateConfig(t *testing.T) {
 }
 
 func TestDoAdvancedPermissionsMigration(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
-
-	if testStoreSqlSupplier == nil {
-		t.Skip("This test requires a TestStore to be run.")
-	}
 
 	th.ResetRoleMigration()
 
@@ -124,6 +78,10 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_GET_PUBLIC_LINK.Id,
 			model.PERMISSION_CREATE_POST.Id,
 			model.PERMISSION_USE_SLASH_COMMANDS.Id,
+			model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES.Id,
+			model.PERMISSION_DELETE_PUBLIC_CHANNEL.Id,
+			model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES.Id,
+			model.PERMISSION_DELETE_PRIVATE_CHANNEL.Id,
 			model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS.Id,
 			model.PERMISSION_DELETE_POST.Id,
 			model.PERMISSION_EDIT_POST.Id,
@@ -137,11 +95,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_READ_PUBLIC_CHANNEL.Id,
 			model.PERMISSION_VIEW_TEAM.Id,
 			model.PERMISSION_CREATE_PUBLIC_CHANNEL.Id,
-			model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES.Id,
-			model.PERMISSION_DELETE_PUBLIC_CHANNEL.Id,
 			model.PERMISSION_CREATE_PRIVATE_CHANNEL.Id,
-			model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES.Id,
-			model.PERMISSION_DELETE_PRIVATE_CHANNEL.Id,
 			model.PERMISSION_INVITE_USER.Id,
 			model.PERMISSION_ADD_USER_TO_TEAM.Id,
 		},
@@ -157,17 +111,21 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_IMPORT_TEAM.Id,
 			model.PERMISSION_MANAGE_TEAM_ROLES.Id,
 			model.PERMISSION_MANAGE_CHANNEL_ROLES.Id,
-			model.PERMISSION_MANAGE_OTHERS_WEBHOOKS.Id,
+			model.PERMISSION_MANAGE_OTHERS_INCOMING_WEBHOOKS.Id,
+			model.PERMISSION_MANAGE_OTHERS_OUTGOING_WEBHOOKS.Id,
 			model.PERMISSION_MANAGE_SLASH_COMMANDS.Id,
 			model.PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS.Id,
-			model.PERMISSION_MANAGE_WEBHOOKS.Id,
+			model.PERMISSION_MANAGE_INCOMING_WEBHOOKS.Id,
+			model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS.Id,
 			model.PERMISSION_DELETE_POST.Id,
 			model.PERMISSION_DELETE_OTHERS_POSTS.Id,
 		},
 		"system_user": []string{
+			model.PERMISSION_LIST_PUBLIC_TEAMS.Id,
+			model.PERMISSION_JOIN_PUBLIC_TEAMS.Id,
 			model.PERMISSION_CREATE_DIRECT_CHANNEL.Id,
 			model.PERMISSION_CREATE_GROUP_CHANNEL.Id,
-			model.PERMISSION_PERMANENT_DELETE_USER.Id,
+			model.PERMISSION_VIEW_MEMBERS.Id,
 			model.PERMISSION_CREATE_TEAM.Id,
 		},
 		"system_post_all": []string{
@@ -194,7 +152,8 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_DELETE_PRIVATE_CHANNEL.Id,
 			model.PERMISSION_CREATE_PRIVATE_CHANNEL.Id,
 			model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH.Id,
-			model.PERMISSION_MANAGE_OTHERS_WEBHOOKS.Id,
+			model.PERMISSION_MANAGE_OTHERS_INCOMING_WEBHOOKS.Id,
+			model.PERMISSION_MANAGE_OTHERS_OUTGOING_WEBHOOKS.Id,
 			model.PERMISSION_EDIT_OTHER_USERS.Id,
 			model.PERMISSION_EDIT_OTHERS_POSTS.Id,
 			model.PERMISSION_MANAGE_OAUTH.Id,
@@ -210,7 +169,15 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_CREATE_USER_ACCESS_TOKEN.Id,
 			model.PERMISSION_READ_USER_ACCESS_TOKEN.Id,
 			model.PERMISSION_REVOKE_USER_ACCESS_TOKEN.Id,
+			model.PERMISSION_CREATE_BOT.Id,
+			model.PERMISSION_READ_BOTS.Id,
+			model.PERMISSION_READ_OTHERS_BOTS.Id,
+			model.PERMISSION_MANAGE_BOTS.Id,
+			model.PERMISSION_MANAGE_OTHERS_BOTS.Id,
 			model.PERMISSION_REMOVE_OTHERS_REACTIONS.Id,
+			model.PERMISSION_LIST_PRIVATE_TEAMS.Id,
+			model.PERMISSION_JOIN_PRIVATE_TEAMS.Id,
+			model.PERMISSION_VIEW_MEMBERS.Id,
 			model.PERMISSION_LIST_TEAM_CHANNELS.Id,
 			model.PERMISSION_JOIN_PUBLIC_CHANNELS.Id,
 			model.PERMISSION_READ_PUBLIC_CHANNEL.Id,
@@ -229,7 +196,8 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_MANAGE_CHANNEL_ROLES.Id,
 			model.PERMISSION_MANAGE_SLASH_COMMANDS.Id,
 			model.PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS.Id,
-			model.PERMISSION_MANAGE_WEBHOOKS.Id,
+			model.PERMISSION_MANAGE_INCOMING_WEBHOOKS.Id,
+			model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS.Id,
 			model.PERMISSION_EDIT_POST.Id,
 		},
 	}
@@ -292,6 +260,8 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_GET_PUBLIC_LINK.Id,
 			model.PERMISSION_CREATE_POST.Id,
 			model.PERMISSION_USE_SLASH_COMMANDS.Id,
+			model.PERMISSION_DELETE_PUBLIC_CHANNEL.Id,
+			model.PERMISSION_DELETE_PRIVATE_CHANNEL.Id,
 			model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS.Id,
 			model.PERMISSION_DELETE_POST.Id,
 			model.PERMISSION_EDIT_POST.Id,
@@ -305,9 +275,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_READ_PUBLIC_CHANNEL.Id,
 			model.PERMISSION_VIEW_TEAM.Id,
 			model.PERMISSION_CREATE_PUBLIC_CHANNEL.Id,
-			model.PERMISSION_DELETE_PUBLIC_CHANNEL.Id,
 			model.PERMISSION_CREATE_PRIVATE_CHANNEL.Id,
-			model.PERMISSION_DELETE_PRIVATE_CHANNEL.Id,
 			model.PERMISSION_INVITE_USER.Id,
 			model.PERMISSION_ADD_USER_TO_TEAM.Id,
 		},
@@ -323,19 +291,23 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_IMPORT_TEAM.Id,
 			model.PERMISSION_MANAGE_TEAM_ROLES.Id,
 			model.PERMISSION_MANAGE_CHANNEL_ROLES.Id,
-			model.PERMISSION_MANAGE_OTHERS_WEBHOOKS.Id,
+			model.PERMISSION_MANAGE_OTHERS_INCOMING_WEBHOOKS.Id,
+			model.PERMISSION_MANAGE_OTHERS_OUTGOING_WEBHOOKS.Id,
 			model.PERMISSION_MANAGE_SLASH_COMMANDS.Id,
 			model.PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS.Id,
-			model.PERMISSION_MANAGE_WEBHOOKS.Id,
+			model.PERMISSION_MANAGE_INCOMING_WEBHOOKS.Id,
+			model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS.Id,
 			model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES.Id,
 			model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES.Id,
 			model.PERMISSION_DELETE_POST.Id,
 			model.PERMISSION_DELETE_OTHERS_POSTS.Id,
 		},
 		"system_user": []string{
+			model.PERMISSION_LIST_PUBLIC_TEAMS.Id,
+			model.PERMISSION_JOIN_PUBLIC_TEAMS.Id,
 			model.PERMISSION_CREATE_DIRECT_CHANNEL.Id,
 			model.PERMISSION_CREATE_GROUP_CHANNEL.Id,
-			model.PERMISSION_PERMANENT_DELETE_USER.Id,
+			model.PERMISSION_VIEW_MEMBERS.Id,
 			model.PERMISSION_CREATE_TEAM.Id,
 		},
 		"system_post_all": []string{
@@ -362,7 +334,8 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_DELETE_PRIVATE_CHANNEL.Id,
 			model.PERMISSION_CREATE_PRIVATE_CHANNEL.Id,
 			model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH.Id,
-			model.PERMISSION_MANAGE_OTHERS_WEBHOOKS.Id,
+			model.PERMISSION_MANAGE_OTHERS_INCOMING_WEBHOOKS.Id,
+			model.PERMISSION_MANAGE_OTHERS_OUTGOING_WEBHOOKS.Id,
 			model.PERMISSION_EDIT_OTHER_USERS.Id,
 			model.PERMISSION_EDIT_OTHERS_POSTS.Id,
 			model.PERMISSION_MANAGE_OAUTH.Id,
@@ -378,7 +351,15 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_CREATE_USER_ACCESS_TOKEN.Id,
 			model.PERMISSION_READ_USER_ACCESS_TOKEN.Id,
 			model.PERMISSION_REVOKE_USER_ACCESS_TOKEN.Id,
+			model.PERMISSION_CREATE_BOT.Id,
+			model.PERMISSION_READ_BOTS.Id,
+			model.PERMISSION_READ_OTHERS_BOTS.Id,
+			model.PERMISSION_MANAGE_BOTS.Id,
+			model.PERMISSION_MANAGE_OTHERS_BOTS.Id,
 			model.PERMISSION_REMOVE_OTHERS_REACTIONS.Id,
+			model.PERMISSION_LIST_PRIVATE_TEAMS.Id,
+			model.PERMISSION_JOIN_PRIVATE_TEAMS.Id,
+			model.PERMISSION_VIEW_MEMBERS.Id,
 			model.PERMISSION_LIST_TEAM_CHANNELS.Id,
 			model.PERMISSION_JOIN_PUBLIC_CHANNELS.Id,
 			model.PERMISSION_READ_PUBLIC_CHANNEL.Id,
@@ -397,7 +378,8 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 			model.PERMISSION_MANAGE_CHANNEL_ROLES.Id,
 			model.PERMISSION_MANAGE_SLASH_COMMANDS.Id,
 			model.PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS.Id,
-			model.PERMISSION_MANAGE_WEBHOOKS.Id,
+			model.PERMISSION_MANAGE_INCOMING_WEBHOOKS.Id,
+			model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS.Id,
 			model.PERMISSION_EDIT_POST.Id,
 		},
 	}
@@ -448,7 +430,7 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 
 	th.App.DoAdvancedPermissionsMigration()
 
-	config := th.App.GetConfig()
+	config := th.App.Config()
 	assert.Equal(t, -1, *config.ServiceSettings.PostEditTimeLimit)
 
 	th.ResetRoleMigration()
@@ -459,17 +441,13 @@ func TestDoAdvancedPermissionsMigration(t *testing.T) {
 	})
 
 	th.App.DoAdvancedPermissionsMigration()
-	config = th.App.GetConfig()
+	config = th.App.Config()
 	assert.Equal(t, 300, *config.ServiceSettings.PostEditTimeLimit)
 }
 
 func TestDoEmojisPermissionsMigration(t *testing.T) {
-	th := Setup()
+	th := Setup(t)
 	defer th.TearDown()
-
-	if testStoreSqlSupplier == nil {
-		t.Skip("This test requires a TestStore to be run.")
-	}
 
 	// Add a license and change the policy config.
 	restrictCustomEmojiCreation := *th.App.Config().ServiceSettings.DEPRECATED_DO_NOT_USE_RestrictCustomEmojiCreation
@@ -500,7 +478,8 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 		model.PERMISSION_DELETE_PRIVATE_CHANNEL.Id,
 		model.PERMISSION_CREATE_PRIVATE_CHANNEL.Id,
 		model.PERMISSION_MANAGE_SYSTEM_WIDE_OAUTH.Id,
-		model.PERMISSION_MANAGE_OTHERS_WEBHOOKS.Id,
+		model.PERMISSION_MANAGE_OTHERS_INCOMING_WEBHOOKS.Id,
+		model.PERMISSION_MANAGE_OTHERS_OUTGOING_WEBHOOKS.Id,
 		model.PERMISSION_EDIT_OTHER_USERS.Id,
 		model.PERMISSION_EDIT_OTHERS_POSTS.Id,
 		model.PERMISSION_MANAGE_OAUTH.Id,
@@ -516,7 +495,14 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 		model.PERMISSION_CREATE_USER_ACCESS_TOKEN.Id,
 		model.PERMISSION_READ_USER_ACCESS_TOKEN.Id,
 		model.PERMISSION_REVOKE_USER_ACCESS_TOKEN.Id,
+		model.PERMISSION_CREATE_BOT.Id,
+		model.PERMISSION_READ_BOTS.Id,
+		model.PERMISSION_READ_OTHERS_BOTS.Id,
+		model.PERMISSION_MANAGE_BOTS.Id,
+		model.PERMISSION_MANAGE_OTHERS_BOTS.Id,
 		model.PERMISSION_REMOVE_OTHERS_REACTIONS.Id,
+		model.PERMISSION_LIST_PRIVATE_TEAMS.Id,
+		model.PERMISSION_JOIN_PRIVATE_TEAMS.Id,
 		model.PERMISSION_LIST_TEAM_CHANNELS.Id,
 		model.PERMISSION_JOIN_PUBLIC_CHANNELS.Id,
 		model.PERMISSION_READ_PUBLIC_CHANNEL.Id,
@@ -535,14 +521,19 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 		model.PERMISSION_MANAGE_CHANNEL_ROLES.Id,
 		model.PERMISSION_MANAGE_SLASH_COMMANDS.Id,
 		model.PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS.Id,
-		model.PERMISSION_MANAGE_WEBHOOKS.Id,
+		model.PERMISSION_MANAGE_INCOMING_WEBHOOKS.Id,
+		model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS.Id,
 		model.PERMISSION_EDIT_POST.Id,
-		model.PERMISSION_MANAGE_EMOJIS.Id,
-		model.PERMISSION_MANAGE_OTHERS_EMOJIS.Id,
+		model.PERMISSION_CREATE_EMOJIS.Id,
+		model.PERMISSION_DELETE_EMOJIS.Id,
+		model.PERMISSION_DELETE_OTHERS_EMOJIS.Id,
+		model.PERMISSION_VIEW_MEMBERS.Id,
 	}
+	sort.Strings(expectedSystemAdmin)
 
 	role1, err1 := th.App.GetRoleByName(model.SYSTEM_ADMIN_ROLE_ID)
 	assert.Nil(t, err1)
+	sort.Strings(role1.Permissions)
 	assert.Equal(t, expectedSystemAdmin, role1.Permissions, fmt.Sprintf("'%v' did not have expected permissions", model.SYSTEM_ADMIN_ROLE_ID))
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -560,18 +551,24 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 		model.PERMISSION_IMPORT_TEAM.Id,
 		model.PERMISSION_MANAGE_TEAM_ROLES.Id,
 		model.PERMISSION_MANAGE_CHANNEL_ROLES.Id,
-		model.PERMISSION_MANAGE_OTHERS_WEBHOOKS.Id,
+		model.PERMISSION_MANAGE_OTHERS_INCOMING_WEBHOOKS.Id,
+		model.PERMISSION_MANAGE_OTHERS_OUTGOING_WEBHOOKS.Id,
 		model.PERMISSION_MANAGE_SLASH_COMMANDS.Id,
 		model.PERMISSION_MANAGE_OTHERS_SLASH_COMMANDS.Id,
-		model.PERMISSION_MANAGE_WEBHOOKS.Id,
+		model.PERMISSION_MANAGE_INCOMING_WEBHOOKS.Id,
+		model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS.Id,
 		model.PERMISSION_DELETE_POST.Id,
 		model.PERMISSION_DELETE_OTHERS_POSTS.Id,
-		model.PERMISSION_MANAGE_EMOJIS.Id,
+		model.PERMISSION_CREATE_EMOJIS.Id,
+		model.PERMISSION_DELETE_EMOJIS.Id,
 	}
+	sort.Strings(expected2)
+	sort.Strings(role2.Permissions)
 	assert.Equal(t, expected2, role2.Permissions, fmt.Sprintf("'%v' did not have expected permissions", model.TEAM_ADMIN_ROLE_ID))
 
 	systemAdmin1, systemAdminErr1 := th.App.GetRoleByName(model.SYSTEM_ADMIN_ROLE_ID)
 	assert.Nil(t, systemAdminErr1)
+	sort.Strings(systemAdmin1.Permissions)
 	assert.Equal(t, expectedSystemAdmin, systemAdmin1.Permissions, fmt.Sprintf("'%v' did not have expected permissions", model.SYSTEM_ADMIN_ROLE_ID))
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -584,15 +581,21 @@ func TestDoEmojisPermissionsMigration(t *testing.T) {
 	role3, err3 := th.App.GetRoleByName(model.SYSTEM_USER_ROLE_ID)
 	assert.Nil(t, err3)
 	expected3 := []string{
+		model.PERMISSION_LIST_PUBLIC_TEAMS.Id,
+		model.PERMISSION_JOIN_PUBLIC_TEAMS.Id,
 		model.PERMISSION_CREATE_DIRECT_CHANNEL.Id,
 		model.PERMISSION_CREATE_GROUP_CHANNEL.Id,
-		model.PERMISSION_PERMANENT_DELETE_USER.Id,
 		model.PERMISSION_CREATE_TEAM.Id,
-		model.PERMISSION_MANAGE_EMOJIS.Id,
+		model.PERMISSION_CREATE_EMOJIS.Id,
+		model.PERMISSION_DELETE_EMOJIS.Id,
+		model.PERMISSION_VIEW_MEMBERS.Id,
 	}
+	sort.Strings(expected3)
+	sort.Strings(role3.Permissions)
 	assert.Equal(t, expected3, role3.Permissions, fmt.Sprintf("'%v' did not have expected permissions", model.SYSTEM_USER_ROLE_ID))
 
 	systemAdmin2, systemAdminErr2 := th.App.GetRoleByName(model.SYSTEM_ADMIN_ROLE_ID)
 	assert.Nil(t, systemAdminErr2)
+	sort.Strings(systemAdmin2.Permissions)
 	assert.Equal(t, expectedSystemAdmin, systemAdmin2.Permissions, fmt.Sprintf("'%v' did not have expected permissions", model.SYSTEM_ADMIN_ROLE_ID))
 }

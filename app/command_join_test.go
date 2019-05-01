@@ -6,14 +6,14 @@ package app
 import (
 	"testing"
 
-	"github.com/nicksnyder/go-i18n/i18n"
+	"github.com/mattermost/go-i18n/i18n"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/mattermost/mattermost-server/model"
 )
 
 func TestJoinCommandNoChannel(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	if testing.Short() {
@@ -33,7 +33,7 @@ func TestJoinCommandNoChannel(t *testing.T) {
 }
 
 func TestJoinCommandForExistingChannel(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	if testing.Short() {
@@ -62,7 +62,7 @@ func TestJoinCommandForExistingChannel(t *testing.T) {
 }
 
 func TestJoinCommandWithTilde(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	if testing.Short() {
@@ -91,7 +91,7 @@ func TestJoinCommandWithTilde(t *testing.T) {
 }
 
 func TestJoinCommandPermissions(t *testing.T) {
-	th := Setup().InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	channel2, _ := th.App.CreateChannel(&model.Channel{

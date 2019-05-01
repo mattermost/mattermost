@@ -68,6 +68,16 @@ func (a *App) ImportScheme(data *SchemeImportData, dryRun bool) *model.AppError 
 		if err := a.ImportRole(data.DefaultTeamUserRole, dryRun, true); err != nil {
 			return err
 		}
+
+		if data.DefaultTeamGuestRole == nil {
+			data.DefaultTeamGuestRole = &RoleImportData{
+				DisplayName: model.NewString("Team Guest Role for Scheme"),
+			}
+		}
+		data.DefaultTeamGuestRole.Name = &scheme.DefaultTeamGuestRole
+		if err := a.ImportRole(data.DefaultTeamGuestRole, dryRun, true); err != nil {
+			return err
+		}
 	}
 
 	if scheme.Scope == model.SCHEME_SCOPE_TEAM || scheme.Scope == model.SCHEME_SCOPE_CHANNEL {
@@ -78,6 +88,16 @@ func (a *App) ImportScheme(data *SchemeImportData, dryRun bool) *model.AppError 
 
 		data.DefaultChannelUserRole.Name = &scheme.DefaultChannelUserRole
 		if err := a.ImportRole(data.DefaultChannelUserRole, dryRun, true); err != nil {
+			return err
+		}
+
+		if data.DefaultChannelGuestRole == nil {
+			data.DefaultChannelGuestRole = &RoleImportData{
+				DisplayName: model.NewString("Channel Guest Role for Scheme"),
+			}
+		}
+		data.DefaultChannelGuestRole.Name = &scheme.DefaultChannelGuestRole
+		if err := a.ImportRole(data.DefaultChannelGuestRole, dryRun, true); err != nil {
 			return err
 		}
 	}
@@ -279,6 +299,7 @@ func (a *App) ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 	} else {
 		user = &model.User{}
 		user.MakeNonNil()
+		user.SetDefaultNotifications()
 		hasUserChanged = true
 	}
 
@@ -368,6 +389,13 @@ func (a *App) ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 		}
 	}
 
+	if data.DeleteAt != nil {
+		if user.DeleteAt != *data.DeleteAt {
+			user.DeleteAt = *data.DeleteAt
+			hasUserChanged = true
+		}
+	}
+
 	var roles string
 	if data.Roles != nil {
 		if user.Roles != *data.Roles {
@@ -438,6 +466,8 @@ func (a *App) ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 				user.AddNotifyProp(model.MENTION_KEYS_NOTIFY_PROP, *data.NotifyProps.MentionKeys)
 				hasNotifyPropsChanged = true
 			}
+		} else {
+			user.UpdateMentionKeysFromUsername("")
 		}
 	}
 
@@ -476,7 +506,7 @@ func (a *App) ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 		}
 		if emailVerified {
 			if hasUserEmailVerifiedChanged {
-				if err := a.VerifyUserEmail(user.Id); err != nil {
+				if err := a.VerifyUserEmail(user.Id, user.Email); err != nil {
 					return err
 				}
 			}
@@ -637,6 +667,7 @@ func (a *App) ImportUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 		}
 
 		var roles string
+		isSchemeGuest := false
 		isSchemeUser := true
 		isSchemeAdmin := false
 
@@ -646,7 +677,10 @@ func (a *App) ImportUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 			rawRoles := *tdata.Roles
 			explicitRoles := []string{}
 			for _, role := range strings.Fields(rawRoles) {
-				if role == model.TEAM_USER_ROLE_ID {
+				if role == model.TEAM_GUEST_ROLE_ID {
+					isSchemeGuest = true
+					isSchemeUser = false
+				} else if role == model.TEAM_USER_ROLE_ID {
 					isSchemeUser = true
 				} else if role == model.TEAM_ADMIN_ROLE_ID {
 					isSchemeAdmin = true
@@ -663,13 +697,13 @@ func (a *App) ImportUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 		}
 
 		if member.ExplicitRoles != roles {
-			if _, err := a.UpdateTeamMemberRoles(team.Id, user.Id, roles); err != nil {
+			if _, err = a.UpdateTeamMemberRoles(team.Id, user.Id, roles); err != nil {
 				return err
 			}
 		}
 
-		if member.SchemeAdmin != isSchemeAdmin || member.SchemeUser != isSchemeUser {
-			a.UpdateTeamMemberSchemeRoles(team.Id, user.Id, isSchemeUser, isSchemeAdmin)
+		if member.SchemeAdmin != isSchemeAdmin || member.SchemeUser != isSchemeUser || member.SchemeGuest != isSchemeGuest {
+			a.UpdateTeamMemberSchemeRoles(team.Id, user.Id, isSchemeGuest, isSchemeUser, isSchemeAdmin)
 		}
 
 		defaultChannel, err := a.GetChannelByName(model.DEFAULT_CHANNEL, team.Id, true)
@@ -710,6 +744,7 @@ func (a *App) ImportUserChannels(user *model.User, team *model.Team, teamMember 
 		}
 
 		var roles string
+		isSchemeGuest := false
 		isSchemeUser := true
 		isSchemeAdmin := false
 
@@ -719,7 +754,10 @@ func (a *App) ImportUserChannels(user *model.User, team *model.Team, teamMember 
 			rawRoles := *cdata.Roles
 			explicitRoles := []string{}
 			for _, role := range strings.Fields(rawRoles) {
-				if role == model.CHANNEL_USER_ROLE_ID {
+				if role == model.CHANNEL_GUEST_ROLE_ID {
+					isSchemeGuest = true
+					isSchemeUser = false
+				} else if role == model.CHANNEL_USER_ROLE_ID {
 					isSchemeUser = true
 				} else if role == model.CHANNEL_ADMIN_ROLE_ID {
 					isSchemeAdmin = true
@@ -745,8 +783,8 @@ func (a *App) ImportUserChannels(user *model.User, team *model.Team, teamMember 
 			}
 		}
 
-		if member.SchemeAdmin != isSchemeAdmin || member.SchemeUser != isSchemeUser {
-			a.UpdateChannelMemberSchemeRoles(channel.Id, user.Id, isSchemeUser, isSchemeAdmin)
+		if member.SchemeAdmin != isSchemeAdmin || member.SchemeUser != isSchemeUser || member.SchemeGuest != isSchemeGuest {
+			a.UpdateChannelMemberSchemeRoles(channel.Id, user.Id, isSchemeGuest, isSchemeUser, isSchemeAdmin)
 		}
 
 		if cdata.NotifyProps != nil {
@@ -805,8 +843,8 @@ func (a *App) ImportReaction(data *ReactionImportData, post *model.Post, dryRun 
 		EmojiName: *data.EmojiName,
 		CreateAt:  *data.CreateAt,
 	}
-	if result := <-a.Srv.Store.Reaction().Save(reaction); result.Err != nil {
-		return result.Err
+	if _, err := a.Srv.Store.Reaction().Save(reaction); err != nil {
+		return err
 	}
 	return nil
 }
@@ -1027,7 +1065,7 @@ func (a *App) uploadAttachments(attachments *[]AttachmentImportData, post *model
 
 func (a *App) UpdateFileInfoWithPostId(post *model.Post) {
 	for _, fileId := range post.FileIds {
-		if result := <-a.Srv.Store.FileInfo().AttachToPost(fileId, post.Id); result.Err != nil {
+		if result := <-a.Srv.Store.FileInfo().AttachToPost(fileId, post.Id, post.UserId); result.Err != nil {
 			mlog.Error(fmt.Sprintf("Error attaching files to post. postId=%v, fileIds=%v, message=%v", post.Id, post.FileIds, result.Err), mlog.String("post_id", post.Id))
 		}
 	}

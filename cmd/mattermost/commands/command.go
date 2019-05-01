@@ -28,6 +28,15 @@ var CommandCreateCmd = &cobra.Command{
 	RunE:    createCommandCmdF,
 }
 
+var CommandShowCmd = &cobra.Command{
+	Use:     "show",
+	Short:   "Show a custom slash command",
+	Long:    `Show a custom slash command. Commands can be specified by command ID.`,
+	Args:    cobra.ExactArgs(1),
+	Example: `  command show commandID`,
+	RunE:    showCommandCmdF,
+}
+
 var CommandMoveCmd = &cobra.Command{
 	Use:     "move",
 	Short:   "Move a slash command to a different team",
@@ -49,8 +58,17 @@ var CommandDeleteCmd = &cobra.Command{
 	Short:   "Delete a slash command",
 	Long:    `Delete a slash command. Commands can be specified by command ID.`,
 	Example: `  command delete commandID`,
-	Args:    cobra.MinimumNArgs(1),
+	Args:    cobra.ExactArgs(1),
 	RunE:    deleteCommandCmdF,
+}
+
+var CommandModifyCmd = &cobra.Command{
+	Use:     "modify",
+	Short:   "Modify a slash command",
+	Long:    `Modify a slash command. Commands can be specified by command ID.`,
+	Example: `  command modify commandID`,
+	Args:    cobra.MinimumNArgs(1),
+	RunE:    modifyCommandCmdF,
 }
 
 func init() {
@@ -69,11 +87,25 @@ func init() {
 	CommandCreateCmd.Flags().String("autocompleteHint", "", "Command Arguments displayed as help in autocomplete list")
 	CommandCreateCmd.Flags().Bool("post", false, "Use POST method for Callback URL")
 
+	CommandModifyCmd.Flags().String("title", "", "Command Title")
+	CommandModifyCmd.Flags().String("description", "", "Command Description")
+	CommandModifyCmd.Flags().String("trigger-word", "", "Command Trigger Word")
+	CommandModifyCmd.Flags().String("url", "", "Command Callback URL")
+	CommandModifyCmd.Flags().String("creator", "", "Command Creator's Username")
+	CommandModifyCmd.Flags().String("response-username", "", "Command Response Username")
+	CommandModifyCmd.Flags().String("icon", "", "Command Icon URL")
+	CommandModifyCmd.Flags().Bool("autocomplete", false, "Show Command in autocomplete list")
+	CommandModifyCmd.Flags().String("autocompleteDesc", "", "Short Command Description for autocomplete list")
+	CommandModifyCmd.Flags().String("autocompleteHint", "", "Command Arguments displayed as help in autocomplete list")
+	CommandModifyCmd.Flags().Bool("post", false, "Use POST method for Callback URL")
+
 	CommandCmd.AddCommand(
 		CommandCreateCmd,
+		CommandShowCmd,
 		CommandMoveCmd,
 		CommandListCmd,
 		CommandDeleteCmd,
+		CommandModifyCmd,
 	)
 	RootCmd.AddCommand(CommandCmd)
 }
@@ -141,9 +173,27 @@ func createCommandCmdF(command *cobra.Command, args []string) error {
 	}
 
 	if _, err := a.CreateCommand(newCommand); err != nil {
-		return errors.New("unable to create command '" + newCommand.Trigger + "'. " + err.Error())
+		return errors.New("unable to create command '" + newCommand.DisplayName + "'. " + err.Error())
 	}
-	CommandPrettyPrintln("created command '" + newCommand.Trigger + "'")
+	CommandPrettyPrintln("created command '" + newCommand.DisplayName + "'")
+
+	return nil
+}
+
+func showCommandCmdF(command *cobra.Command, args []string) error {
+	a, err := InitDBCommandContextCobra(command)
+	if err != nil {
+		return err
+	}
+	defer a.Shutdown()
+
+	slashCommand := getCommandFromCommandArg(a, args[0])
+	if slashCommand == nil {
+		command.SilenceUsage = true
+		return errors.New("Unable to find command '" + args[0] + "'")
+	}
+	// pretty print
+	fmt.Printf("%s", prettyPrintStruct(*slashCommand))
 
 	return nil
 }
@@ -156,7 +206,7 @@ func moveCommandCmdF(command *cobra.Command, args []string) error {
 	defer a.Shutdown()
 
 	if len(args) < 2 {
-		return errors.New("Enter the destination team and at least one comamnd to move.")
+		return errors.New("Enter the destination team and at least one command to move.")
 	}
 
 	team := getTeamFromTeamArg(a, args[0])
@@ -165,16 +215,15 @@ func moveCommandCmdF(command *cobra.Command, args []string) error {
 	}
 
 	commands := getCommandsFromCommandArgs(a, args[1:])
-	CommandPrintErrorln(commands)
 	for i, command := range commands {
 		if command == nil {
 			CommandPrintErrorln("Unable to find command '" + args[i+1] + "'")
 			continue
 		}
 		if err := moveCommand(a, team, command); err != nil {
-			CommandPrintErrorln("Unable to move command '" + command.Trigger + "' error: " + err.Error())
+			CommandPrintErrorln("Unable to move command '" + command.DisplayName + "' error: " + err.Error())
 		} else {
-			CommandPrettyPrintln("Moved command '" + command.Trigger + "'")
+			CommandPrettyPrintln("Moved command '" + command.DisplayName + "'")
 		}
 	}
 
@@ -208,12 +257,11 @@ func listCommandCmdF(command *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to find team '" + args[i] + "'")
 			continue
 		}
-		result := <-a.Srv.Store.Command().GetByTeam(team.Id)
-		if result.Err != nil {
+		commands, err := a.Srv.Store.Command().GetByTeam(team.Id)
+		if err != nil {
 			CommandPrintErrorln("Unable to list commands for '" + args[i] + "'")
 			continue
 		}
-		commands := result.Data.([]*model.Command)
 		for _, command := range commands {
 			commandListItem := fmt.Sprintf("%s: %s (team: %s)", command.Id, command.DisplayName, team.Name)
 			CommandPrettyPrintln(commandListItem)
@@ -229,13 +277,109 @@ func deleteCommandCmdF(command *cobra.Command, args []string) error {
 	}
 	defer a.Shutdown()
 
-	commandID := args[0]
-
-	deleteErr := a.DeleteCommand(commandID)
-	if deleteErr != nil {
-		CommandPrintErrorln("Unable to delete command '" + commandID + "' error: " + deleteErr.Error())
-		return deleteErr
+	slashCommand := getCommandFromCommandArg(a, args[0])
+	if slashCommand == nil {
+		command.SilenceUsage = true
+		return errors.New("Unable to find command '" + args[0] + "'")
 	}
-	CommandPrettyPrintln("Deleted command '" + commandID + "'")
+	if err := a.DeleteCommand(slashCommand.Id); err != nil {
+		command.SilenceUsage = true
+		return errors.New("Unable to delete command '" + slashCommand.Id + "' error: " + err.Error())
+	}
+	CommandPrettyPrintln("Deleted command '" + slashCommand.Id + "' (" + slashCommand.DisplayName + ")")
+	return nil
+}
+
+func modifyCommandCmdF(command *cobra.Command, args []string) error {
+	a, err := InitDBCommandContextCobra(command)
+	if err != nil {
+		return err
+	}
+	defer a.Shutdown()
+
+	oldCommand := getCommandFromCommandArg(a, args[0])
+	if oldCommand == nil {
+		command.SilenceUsage = true
+		return errors.New("Unable to find command '" + args[0] + "'")
+	}
+	modifiedCommand := oldCommand
+
+	// get creator user
+	creator, _ := command.Flags().GetString("creator")
+	if creator != "" {
+		user := getUserFromUserArg(a, creator)
+		if user == nil {
+			return errors.New("unable to find user '" + creator + "'")
+		}
+
+		// check if creator has permission to create slash commands
+		if !a.HasPermissionToTeam(user.Id, modifiedCommand.TeamId, model.PERMISSION_MANAGE_SLASH_COMMANDS) {
+			return errors.New("the creator must be a user who has permissions to manage slash commands")
+		}
+
+		modifiedCommand.CreatorId = user.Id
+	}
+
+	title, _ := command.Flags().GetString("title")
+	if title != "" {
+		modifiedCommand.DisplayName = title
+	}
+
+	description, _ := command.Flags().GetString("description")
+	if description != "" {
+		modifiedCommand.Description = description
+	}
+
+	trigger, _ := command.Flags().GetString("trigger-word")
+	if trigger != "" {
+		if strings.HasPrefix(trigger, "/") {
+			return errors.New("a trigger word cannot begin with a /")
+		}
+		if strings.Contains(trigger, " ") {
+			return errors.New("a trigger word must not contain spaces")
+		}
+		modifiedCommand.Trigger = trigger
+	}
+
+	url, _ := command.Flags().GetString("url")
+	if url != "" {
+		modifiedCommand.URL = url
+	}
+
+	responseUsername, _ := command.Flags().GetString("response-username")
+	if responseUsername != "" {
+		modifiedCommand.Username = responseUsername
+	}
+
+	icon, _ := command.Flags().GetString("icon")
+	if icon != "" {
+		modifiedCommand.IconURL = icon
+	}
+
+	autocomplete, _ := command.Flags().GetBool("autocomplete")
+	modifiedCommand.AutoComplete = autocomplete
+
+	autocompleteDesc, _ := command.Flags().GetString("autocompleteDesc")
+	if autocompleteDesc != "" {
+		modifiedCommand.AutoCompleteDesc = autocompleteDesc
+	}
+
+	autocompleteHint, _ := command.Flags().GetString("autocompleteHint")
+	if autocompleteHint != "" {
+		modifiedCommand.AutoCompleteHint = autocompleteHint
+	}
+
+	post, err := command.Flags().GetBool("post")
+	method := "P"
+	if err != nil || post == false {
+		method = "G"
+	}
+	modifiedCommand.Method = method
+
+	if _, err := a.UpdateCommand(oldCommand, modifiedCommand); err != nil {
+		return errors.New("unable to modify command '" + modifiedCommand.DisplayName + "'. " + err.Error())
+	}
+	CommandPrettyPrintln("modified command '" + modifiedCommand.DisplayName + "'")
+
 	return nil
 }

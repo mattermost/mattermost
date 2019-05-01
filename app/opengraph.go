@@ -4,13 +4,17 @@
 package app
 
 import (
+	"html"
 	"io"
 	"net/url"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
-	"github.com/mattermost/mattermost-server/mlog"
 	"golang.org/x/net/html/charset"
+
+	"github.com/mattermost/mattermost-server/mlog"
 )
+
+const MaxOpenGraphResponseSize = 1024 * 1024 * 50
 
 func (a *App) GetOpenGraphMetadata(requestURL string) *opengraph.OpenGraph {
 	res, err := a.HTTPService.MakeClient(false).Get(requestURL)
@@ -18,21 +22,21 @@ func (a *App) GetOpenGraphMetadata(requestURL string) *opengraph.OpenGraph {
 		mlog.Error("GetOpenGraphMetadata request failed", mlog.String("requestURL", requestURL), mlog.Any("err", err))
 		return nil
 	}
-	defer consumeAndClose(res)
-
+	defer res.Body.Close()
 	return a.ParseOpenGraphMetadata(requestURL, res.Body, res.Header.Get("Content-Type"))
 }
 
 func (a *App) ParseOpenGraphMetadata(requestURL string, body io.Reader, contentType string) *opengraph.OpenGraph {
 	og := opengraph.NewOpenGraph()
-
-	body = forceHTMLEncodingToUTF8(body, contentType)
+	body = forceHTMLEncodingToUTF8(io.LimitReader(body, MaxOpenGraphResponseSize), contentType)
 
 	if err := og.ProcessHTML(body); err != nil {
 		mlog.Error("ParseOpenGraphMetadata processing failed", mlog.String("requestURL", requestURL), mlog.Any("err", err))
 	}
 
 	makeOpenGraphURLsAbsolute(og, requestURL)
+
+	openGraphDecodeHtmlEntities(og)
 
 	// If image proxy enabled modify open graph data to feed though proxy
 	if toProxyURL := a.ImageProxyAdder(); toProxyURL != nil {
@@ -113,4 +117,9 @@ func OpenGraphDataWithProxyAddedToImageURLs(ogdata *opengraph.OpenGraph, toProxy
 	}
 
 	return ogdata
+}
+
+func openGraphDecodeHtmlEntities(og *opengraph.OpenGraph) {
+	og.Title = html.UnescapeString(og.Title)
+	og.Description = html.UnescapeString(og.Description)
 }

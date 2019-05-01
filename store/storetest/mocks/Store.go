@@ -28,6 +28,22 @@ func (_m *Store) Audit() store.AuditStore {
 	return r0
 }
 
+// Bot provides a mock function with given fields:
+func (_m *Store) Bot() store.BotStore {
+	ret := _m.Called()
+
+	var r0 store.BotStore
+	if rf, ok := ret.Get(0).(func() store.BotStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.BotStore)
+		}
+	}
+
+	return r0
+}
+
 // Channel provides a mock function with given fields:
 func (_m *Store) Channel() store.ChannelStore {
 	ret := _m.Called()
@@ -166,6 +182,22 @@ func (_m *Store) FileInfo() store.FileInfoStore {
 	return r0
 }
 
+// Group provides a mock function with given fields:
+func (_m *Store) Group() store.GroupStore {
+	ret := _m.Called()
+
+	var r0 store.GroupStore
+	if rf, ok := ret.Get(0).(func() store.GroupStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.GroupStore)
+		}
+	}
+
+	return r0
+}
+
 // Job provides a mock function with given fields:
 func (_m *Store) Job() store.JobStore {
 	ret := _m.Called()
@@ -198,6 +230,22 @@ func (_m *Store) License() store.LicenseStore {
 	return r0
 }
 
+// LinkMetadata provides a mock function with given fields:
+func (_m *Store) LinkMetadata() store.LinkMetadataStore {
+	ret := _m.Called()
+
+	var r0 store.LinkMetadataStore
+	if rf, ok := ret.Get(0).(func() store.LinkMetadataStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.LinkMetadataStore)
+		}
+	}
+
+	return r0
+}
+
 // LockToMaster provides a mock function with given fields:
 func (_m *Store) LockToMaster() {
 	_m.Called()
@@ -206,6 +254,22 @@ func (_m *Store) LockToMaster() {
 // MarkSystemRanUnitTests provides a mock function with given fields:
 func (_m *Store) MarkSystemRanUnitTests() {
 	_m.Called()
+}
+
+// NotificationRegistry provides a mock function with given fields:
+func (_m *Store) NotificationRegistry() store.NotificationRegistryStore {
+	ret := _m.Called()
+
+	var r0 store.NotificationRegistryStore
+	if rf, ok := ret.Get(0).(func() store.NotificationRegistryStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.NotificationRegistryStore)
+		}
+	}
+
+	return r0
 }
 
 // OAuth provides a mock function with given fields:
