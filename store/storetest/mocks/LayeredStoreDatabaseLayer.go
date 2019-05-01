@@ -734,6 +734,22 @@ func (_m *LayeredStoreDatabaseLayer) Next() store.LayeredStoreSupplier {
 	return r0
 }
 
+// NotificationRegistry provides a mock function with given fields:
+func (_m *LayeredStoreDatabaseLayer) NotificationRegistry() store.NotificationRegistryStore {
+	ret := _m.Called()
+
+	var r0 store.NotificationRegistryStore
+	if rf, ok := ret.Get(0).(func() store.NotificationRegistryStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.NotificationRegistryStore)
+		}
+	}
+
+	return r0
+}
+
 // OAuth provides a mock function with given fields:
 func (_m *LayeredStoreDatabaseLayer) OAuth() store.OAuthStore {
 	ret := _m.Called()
@@ -815,7 +831,7 @@ func (_m *LayeredStoreDatabaseLayer) Reaction() store.ReactionStore {
 }
 
 // ReactionDelete provides a mock function with given fields: ctx, reaction, hints
-func (_m *LayeredStoreDatabaseLayer) ReactionDelete(ctx context.Context, reaction *model.Reaction, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+func (_m *LayeredStoreDatabaseLayer) ReactionDelete(ctx context.Context, reaction *model.Reaction, hints ...store.LayeredStoreHint) (*model.Reaction, *model.AppError) {
 	_va := make([]interface{}, len(hints))
 	for _i := range hints {
 		_va[_i] = hints[_i]
@@ -825,20 +841,29 @@ func (_m *LayeredStoreDatabaseLayer) ReactionDelete(ctx context.Context, reactio
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
-	var r0 *store.LayeredStoreSupplierResult
-	if rf, ok := ret.Get(0).(func(context.Context, *model.Reaction, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
+	var r0 *model.Reaction
+	if rf, ok := ret.Get(0).(func(context.Context, *model.Reaction, ...store.LayeredStoreHint) *model.Reaction); ok {
 		r0 = rf(ctx, reaction, hints...)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*store.LayeredStoreSupplierResult)
+			r0 = ret.Get(0).(*model.Reaction)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(context.Context, *model.Reaction, ...store.LayeredStoreHint) *model.AppError); ok {
+		r1 = rf(ctx, reaction, hints...)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // ReactionDeleteAllWithEmojiName provides a mock function with given fields: ctx, emojiName, hints
-func (_m *LayeredStoreDatabaseLayer) ReactionDeleteAllWithEmojiName(ctx context.Context, emojiName string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+func (_m *LayeredStoreDatabaseLayer) ReactionDeleteAllWithEmojiName(ctx context.Context, emojiName string, hints ...store.LayeredStoreHint) *model.AppError {
 	_va := make([]interface{}, len(hints))
 	for _i := range hints {
 		_va[_i] = hints[_i]
@@ -848,12 +873,12 @@ func (_m *LayeredStoreDatabaseLayer) ReactionDeleteAllWithEmojiName(ctx context.
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
-	var r0 *store.LayeredStoreSupplierResult
-	if rf, ok := ret.Get(0).(func(context.Context, string, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(context.Context, string, ...store.LayeredStoreHint) *model.AppError); ok {
 		r0 = rf(ctx, emojiName, hints...)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*store.LayeredStoreSupplierResult)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
@@ -861,7 +886,7 @@ func (_m *LayeredStoreDatabaseLayer) ReactionDeleteAllWithEmojiName(ctx context.
 }
 
 // ReactionGetForPost provides a mock function with given fields: ctx, postId, hints
-func (_m *LayeredStoreDatabaseLayer) ReactionGetForPost(ctx context.Context, postId string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+func (_m *LayeredStoreDatabaseLayer) ReactionGetForPost(ctx context.Context, postId string, hints ...store.LayeredStoreHint) ([]*model.Reaction, *model.AppError) {
 	_va := make([]interface{}, len(hints))
 	for _i := range hints {
 		_va[_i] = hints[_i]
@@ -871,20 +896,29 @@ func (_m *LayeredStoreDatabaseLayer) ReactionGetForPost(ctx context.Context, pos
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
-	var r0 *store.LayeredStoreSupplierResult
-	if rf, ok := ret.Get(0).(func(context.Context, string, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
+	var r0 []*model.Reaction
+	if rf, ok := ret.Get(0).(func(context.Context, string, ...store.LayeredStoreHint) []*model.Reaction); ok {
 		r0 = rf(ctx, postId, hints...)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*store.LayeredStoreSupplierResult)
+			r0 = ret.Get(0).([]*model.Reaction)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(context.Context, string, ...store.LayeredStoreHint) *model.AppError); ok {
+		r1 = rf(ctx, postId, hints...)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // ReactionPermanentDeleteBatch provides a mock function with given fields: ctx, endTime, limit, hints
-func (_m *LayeredStoreDatabaseLayer) ReactionPermanentDeleteBatch(ctx context.Context, endTime int64, limit int64, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+func (_m *LayeredStoreDatabaseLayer) ReactionPermanentDeleteBatch(ctx context.Context, endTime int64, limit int64, hints ...store.LayeredStoreHint) (int64, *model.AppError) {
 	_va := make([]interface{}, len(hints))
 	for _i := range hints {
 		_va[_i] = hints[_i]
@@ -894,20 +928,27 @@ func (_m *LayeredStoreDatabaseLayer) ReactionPermanentDeleteBatch(ctx context.Co
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
-	var r0 *store.LayeredStoreSupplierResult
-	if rf, ok := ret.Get(0).(func(context.Context, int64, int64, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(context.Context, int64, int64, ...store.LayeredStoreHint) int64); ok {
 		r0 = rf(ctx, endTime, limit, hints...)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*store.LayeredStoreSupplierResult)
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(context.Context, int64, int64, ...store.LayeredStoreHint) *model.AppError); ok {
+		r1 = rf(ctx, endTime, limit, hints...)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
 		}
 	}
 
-	return r0
+	return r0, r1
 }
 
 // ReactionSave provides a mock function with given fields: ctx, reaction, hints
-func (_m *LayeredStoreDatabaseLayer) ReactionSave(ctx context.Context, reaction *model.Reaction, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+func (_m *LayeredStoreDatabaseLayer) ReactionSave(ctx context.Context, reaction *model.Reaction, hints ...store.LayeredStoreHint) (*model.Reaction, *model.AppError) {
 	_va := make([]interface{}, len(hints))
 	for _i := range hints {
 		_va[_i] = hints[_i]
@@ -917,20 +958,29 @@ func (_m *LayeredStoreDatabaseLayer) ReactionSave(ctx context.Context, reaction 
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
-	var r0 *store.LayeredStoreSupplierResult
-	if rf, ok := ret.Get(0).(func(context.Context, *model.Reaction, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
+	var r0 *model.Reaction
+	if rf, ok := ret.Get(0).(func(context.Context, *model.Reaction, ...store.LayeredStoreHint) *model.Reaction); ok {
 		r0 = rf(ctx, reaction, hints...)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*store.LayeredStoreSupplierResult)
+			r0 = ret.Get(0).(*model.Reaction)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(context.Context, *model.Reaction, ...store.LayeredStoreHint) *model.AppError); ok {
+		r1 = rf(ctx, reaction, hints...)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // ReactionsBulkGetForPosts provides a mock function with given fields: ctx, postIds, hints
-func (_m *LayeredStoreDatabaseLayer) ReactionsBulkGetForPosts(ctx context.Context, postIds []string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+func (_m *LayeredStoreDatabaseLayer) ReactionsBulkGetForPosts(ctx context.Context, postIds []string, hints ...store.LayeredStoreHint) ([]*model.Reaction, *model.AppError) {
 	_va := make([]interface{}, len(hints))
 	for _i := range hints {
 		_va[_i] = hints[_i]
@@ -940,16 +990,25 @@ func (_m *LayeredStoreDatabaseLayer) ReactionsBulkGetForPosts(ctx context.Contex
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
-	var r0 *store.LayeredStoreSupplierResult
-	if rf, ok := ret.Get(0).(func(context.Context, []string, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
+	var r0 []*model.Reaction
+	if rf, ok := ret.Get(0).(func(context.Context, []string, ...store.LayeredStoreHint) []*model.Reaction); ok {
 		r0 = rf(ctx, postIds, hints...)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*store.LayeredStoreSupplierResult)
+			r0 = ret.Get(0).([]*model.Reaction)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(context.Context, []string, ...store.LayeredStoreHint) *model.AppError); ok {
+		r1 = rf(ctx, postIds, hints...)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // Role provides a mock function with given fields:

@@ -1615,6 +1615,14 @@
     "translation": "Unable to set user preferences."
   },
   {
+    "id": "api.push_notification.disabled.app_error",
+    "translation": "Push Notifications are disabled on this server."
+  },
+  {
+    "id": "api.push_notifications_ack.forward.app_error",
+    "translation": "An error occurred sending the receipt delivery to the push notification service"
+  },
+  {
     "id": "api.reaction.delete.archived_channel.app_error",
     "translation": "You cannot remove a reaction in an archived channel."
   },
@@ -4775,6 +4783,34 @@
     "translation": "Link metadata URL must be set"
   },
   {
+    "id": "model.notification_registry.ack_id.app_error",
+    "translation": "Invalid Acknowledge Id"
+  },
+  {
+    "id": "model.notification_registry.create_at.app_error",
+    "translation": "Create at must be a valid time"
+  },
+  {
+    "id": "model.notification_registry.device_id.app_error",
+    "translation": "Invalid Device Id"
+  },
+  {
+    "id": "model.notification_registry.post_id.app_error",
+    "translation": "Invalid Post Id"
+  },
+  {
+    "id": "model.notification_registry.status.app_error",
+    "translation": "Invalid Send Status"
+  },
+  {
+    "id": "model.notification_registry.type.app_error",
+    "translation": "Invalid push type, must be \"clear\" or \"message\""
+  },
+  {
+    "id": "model.notification_registry.user_id.app_error",
+    "translation": "Invalid User Id"
+  },
+  {
     "id": "model.oauth.is_valid.app_id.app_error",
     "translation": "Invalid app id"
   },
@@ -5841,6 +5877,18 @@
   {
     "id": "store.sql_link_metadata.save.app_error",
     "translation": "Unable to save the link metadata"
+  },
+  {
+    "id": "store.sql_notification.mark_as_received.app_error",
+    "translation": "An error occurred marking the notification as received"
+  },
+  {
+    "id": "store.sql_notification.save.app_error",
+    "translation": "An error occurred while saving the notification registry"
+  },
+  {
+    "id": "store.sql_notification.update_status.app_error",
+    "translation": "An error occurred while updating the notification status"
   },
   {
     "id": "store.sql_oauth.delete.commit_transaction.app_error",

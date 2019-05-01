@@ -78,6 +78,7 @@ type Store interface {
 	TotalMasterDbConnections() int
 	TotalReadDbConnections() int
 	TotalSearchDbConnections() int
+	NotificationRegistry() NotificationRegistryStore
 }
 
 type TeamStore interface {
@@ -403,7 +404,7 @@ type WebhookStore interface {
 	UpdateOutgoing(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError)
 
 	AnalyticsIncomingCount(teamId string) (int64, *model.AppError)
-	AnalyticsOutgoingCount(teamId string) StoreChannel
+	AnalyticsOutgoingCount(teamId string) (int64, *model.AppError)
 	InvalidateWebhookCache(webhook string)
 	ClearCaches()
 }
@@ -413,7 +414,7 @@ type CommandStore interface {
 	Get(id string) StoreChannel
 	GetByTeam(teamId string) ([]*model.Command, *model.AppError)
 	GetByTrigger(teamId string, trigger string) StoreChannel
-	Delete(commandId string, time int64) StoreChannel
+	Delete(commandId string, time int64) *model.AppError
 	PermanentDeleteByTeam(teamId string) *model.AppError
 	PermanentDeleteByUser(userId string) *model.AppError
 	Update(hook *model.Command) (*model.Command, *model.AppError)
@@ -491,12 +492,12 @@ type FileInfoStore interface {
 }
 
 type ReactionStore interface {
-	Save(reaction *model.Reaction) StoreChannel
-	Delete(reaction *model.Reaction) StoreChannel
-	GetForPost(postId string, allowFromCache bool) StoreChannel
-	DeleteAllWithEmojiName(emojiName string) StoreChannel
-	PermanentDeleteBatch(endTime int64, limit int64) StoreChannel
-	BulkGetForPosts(postIds []string) StoreChannel
+	Save(reaction *model.Reaction) (*model.Reaction, *model.AppError)
+	Delete(reaction *model.Reaction) (*model.Reaction, *model.AppError)
+	GetForPost(postId string, allowFromCache bool) ([]*model.Reaction, *model.AppError)
+	DeleteAllWithEmojiName(emojiName string) *model.AppError
+	PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError)
+	BulkGetForPosts(postIds []string) ([]*model.Reaction, *model.AppError)
 }
 
 type JobStore interface {
@@ -601,4 +602,10 @@ type GroupStore interface {
 type LinkMetadataStore interface {
 	Save(linkMetadata *model.LinkMetadata) StoreChannel
 	Get(url string, timestamp int64) StoreChannel
+}
+
+type NotificationRegistryStore interface {
+	Save(notification *model.NotificationRegistry) (*model.NotificationRegistry, *model.AppError)
+	MarkAsReceived(ackId string, time int64) *model.AppError
+	UpdateSendStatus(ackId, status string) *model.AppError
 }

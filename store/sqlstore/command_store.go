@@ -102,13 +102,13 @@ func (s SqlCommandStore) GetByTrigger(teamId string, trigger string) store.Store
 	})
 }
 
-func (s SqlCommandStore) Delete(commandId string, time int64) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		_, err := s.GetMaster().Exec("Update Commands SET DeleteAt = :DeleteAt, UpdateAt = :UpdateAt WHERE Id = :Id", map[string]interface{}{"DeleteAt": time, "UpdateAt": time, "Id": commandId})
-		if err != nil {
-			result.Err = model.NewAppError("SqlCommandStore.Delete", "store.sql_command.save.delete.app_error", nil, "id="+commandId+", err="+err.Error(), http.StatusInternalServerError)
-		}
-	})
+func (s SqlCommandStore) Delete(commandId string, time int64) *model.AppError {
+	_, err := s.GetMaster().Exec("Update Commands SET DeleteAt = :DeleteAt, UpdateAt = :UpdateAt WHERE Id = :Id", map[string]interface{}{"DeleteAt": time, "UpdateAt": time, "Id": commandId})
+	if err != nil {
+		return model.NewAppError("SqlCommandStore.Delete", "store.sql_command.save.delete.app_error", nil, "id="+commandId+", err="+err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
 }
 
 func (s SqlCommandStore) PermanentDeleteByTeam(teamId string) *model.AppError {

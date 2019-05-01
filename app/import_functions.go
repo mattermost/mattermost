@@ -843,8 +843,8 @@ func (a *App) ImportReaction(data *ReactionImportData, post *model.Post, dryRun 
 		EmojiName: *data.EmojiName,
 		CreateAt:  *data.CreateAt,
 	}
-	if result := <-a.Srv.Store.Reaction().Save(reaction); result.Err != nil {
-		return result.Err
+	if _, err := a.Srv.Store.Reaction().Save(reaction); err != nil {
+		return err
 	}
 	return nil
 }

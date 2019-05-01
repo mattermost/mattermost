@@ -192,7 +192,12 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			close(iHookChan)
 		}()
 
-		oHookChan := a.Srv.Store.Webhook().AnalyticsOutgoingCount(teamId)
+		oHookChan := make(chan store.StoreResult, 1)
+		go func() {
+			c, err := a.Srv.Store.Webhook().AnalyticsOutgoingCount(teamId)
+			oHookChan <- store.StoreResult{Data: c, Err: err}
+			close(oHookChan)
+		}()
 
 		commandChan := make(chan store.StoreResult, 1)
 		go func() {

@@ -195,6 +195,10 @@ func (s *LayeredStore) LinkMetadata() LinkMetadataStore {
 	return s.DatabaseLayer.LinkMetadata()
 }
 
+func (s *LayeredStore) NotificationRegistry() NotificationRegistryStore {
+	return s.DatabaseLayer.NotificationRegistry()
+}
+
 func (s *LayeredStore) MarkSystemRanUnitTests() {
 	s.DatabaseLayer.MarkSystemRanUnitTests()
 }
@@ -232,40 +236,28 @@ type LayeredReactionStore struct {
 	*LayeredStore
 }
 
-func (s *LayeredReactionStore) Save(reaction *model.Reaction) StoreChannel {
-	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.ReactionSave(s.TmpContext, reaction)
-	})
+func (s *LayeredReactionStore) Save(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
+	return s.LayerChainHead.ReactionSave(s.TmpContext, reaction)
 }
 
-func (s *LayeredReactionStore) Delete(reaction *model.Reaction) StoreChannel {
-	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.ReactionDelete(s.TmpContext, reaction)
-	})
+func (s *LayeredReactionStore) Delete(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
+	return s.LayerChainHead.ReactionDelete(s.TmpContext, reaction)
 }
 
-func (s *LayeredReactionStore) GetForPost(postId string, allowFromCache bool) StoreChannel {
-	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.ReactionGetForPost(s.TmpContext, postId)
-	})
+func (s *LayeredReactionStore) GetForPost(postId string, allowFromCache bool) ([]*model.Reaction, *model.AppError) {
+	return s.LayerChainHead.ReactionGetForPost(s.TmpContext, postId)
 }
 
-func (s *LayeredReactionStore) BulkGetForPosts(postIds []string) StoreChannel {
-	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.ReactionsBulkGetForPosts(s.TmpContext, postIds)
-	})
+func (s *LayeredReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction, *model.AppError) {
+	return s.LayerChainHead.ReactionsBulkGetForPosts(s.TmpContext, postIds)
 }
 
-func (s *LayeredReactionStore) DeleteAllWithEmojiName(emojiName string) StoreChannel {
-	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.ReactionDeleteAllWithEmojiName(s.TmpContext, emojiName)
-	})
+func (s *LayeredReactionStore) DeleteAllWithEmojiName(emojiName string) *model.AppError {
+	return s.LayerChainHead.ReactionDeleteAllWithEmojiName(s.TmpContext, emojiName)
 }
 
-func (s *LayeredReactionStore) PermanentDeleteBatch(endTime int64, limit int64) StoreChannel {
-	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.ReactionPermanentDeleteBatch(s.TmpContext, endTime, limit)
-	})
+func (s *LayeredReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
+	return s.LayerChainHead.ReactionPermanentDeleteBatch(s.TmpContext, endTime, limit)
 }
 
 type LayeredRoleStore struct {
