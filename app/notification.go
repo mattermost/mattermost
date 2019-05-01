@@ -161,6 +161,82 @@ func (e *ExplicitMentions) processText(text string, keywords map[string][]string
 	}
 }
 
+func createMessage(a *App, post *model.Post, team *model.Team, channel *model.Channel, notification *postNotification, fchan store.StoreChannel, mentionedUsersList []string) *model.WebSocketEvent {
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POSTED, "", post.ChannelId, "", nil)
+
+	// Note that PreparePostForClient should've already been called by this point
+	message.Add("post", post.ToJson())
+
+	message.Add("channel_type", channel.Type)
+	message.Add("channel_display_name", notification.GetChannelName(model.SHOW_USERNAME, ""))
+	message.Add("channel_name", channel.Name)
+	message.Add("sender_name", notification.GetSenderName(model.SHOW_USERNAME, *a.Config().ServiceSettings.EnablePostUsernameOverride))
+	message.Add("team_id", team.Id)
+
+	if len(post.FileIds) != 0 && fchan != nil {
+		message.Add("otherFile", "true")
+
+		var infos []*model.FileInfo
+		if result := <-fchan; result.Err != nil {
+			mlog.Warn(fmt.Sprint("Unable to get fileInfo for push notifications.", post.Id, result.Err), mlog.String("post_id", post.Id))
+		} else {
+			infos = result.Data.([]*model.FileInfo)
+		}
+
+		for _, info := range infos {
+			if info.IsImage() {
+				message.Add("image", "true")
+				break
+			}
+		}
+	}
+
+	if len(mentionedUsersList) != 0 {
+		message.Add("mentions", model.ArrayToJson(mentionedUsersList))
+	}
+	return message
+}
+
+func (a *App) sendOrRegisterNotification(id string,
+	channelMemberNotifyPropsMap map[string]model.StringMap,
+	wasMentioned bool, status *model.Status,
+	post *model.Post,
+	notification *postNotification,
+	user *model.User, explicitMentions bool,
+	channelWideMentions bool, replyToThreadType string) {
+
+	if ShouldSendPushNotification(user, channelMemberNotifyPropsMap[id], wasMentioned, status, post) {
+		a.sendPushNotification(
+			notification,
+			user,
+			explicitMentions,
+			channelWideMentions,
+			replyToThreadType,
+		)
+	} else {
+		// register that a notification was not sent
+		notificationRegistry := model.NotificationRegistry{
+			UserId:     id,
+			PostId:     post.Id,
+			SendStatus: model.PUSH_NOT_SENT,
+			Type:       model.PUSH_TYPE_MESSAGE,
+		}
+		_, appErr := a.Srv.Store.NotificationRegistry().Save(&notificationRegistry)
+		if appErr != nil {
+			mlog.Debug(appErr.Error())
+		}
+	}
+}
+
+func setStatus(a *App, id string, modelStatus string, manual bool, lastActivity int64, activeChannel string) *model.Status {
+	var status *model.Status
+	var err *model.AppError
+	if status, err = a.GetStatus(id); err != nil {
+		status = &model.Status{UserId: id, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
+	}
+	return status
+}
+
 func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList) ([]string, error) {
 	// Do not send notifications in archived channels
 	if channel.DeleteAt > 0 {
@@ -340,18 +416,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				mlog.Error(fmt.Sprintf("Skipped sending notification email to %v, address not verified. [details: user_id=%v]", profileMap[id].Email, id))
 				continue
 			}
-
-			var status *model.Status
-			var err *model.AppError
-			if status, err = a.GetStatus(id); err != nil {
-				status = &model.Status{
-					UserId:         id,
-					Status:         model.STATUS_OFFLINE,
-					Manual:         false,
-					LastActivityAt: 0,
-					ActiveChannel:  "",
-				}
-			}
+			status := setStatus(a, id, model.STATUS_OFFLINE, false, 0, "")
 
 			autoResponderRelated := status.Status == model.STATUS_OUT_OF_OFFICE || post.Type == model.POST_AUTO_RESPONDER
 
@@ -425,39 +490,23 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			if profileMap[id] == nil {
 				continue
 			}
-
-			var status *model.Status
-			var err *model.AppError
-			if status, err = a.GetStatus(id); err != nil {
-				status = &model.Status{UserId: id, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
+			status := setStatus(a, id, model.STATUS_OFFLINE, false, 0, "")
+			replyToThreadType := ""
+			if value, ok := threadMentionedUserIds[id]; ok {
+				replyToThreadType = value
 			}
-
-			if ShouldSendPushNotification(profileMap[id], channelMemberNotifyPropsMap[id], true, status, post) {
-				replyToThreadType := ""
-				if value, ok := threadMentionedUserIds[id]; ok {
-					replyToThreadType = value
-				}
-
-				a.sendPushNotification(
-					notification,
-					profileMap[id],
-					mentionedUserIds[id],
-					(channelNotification || hereNotification || allNotification),
-					replyToThreadType,
-				)
-			} else {
-				// register that a notification was not sent
-				notificationRegistry := model.NotificationRegistry{
-					UserId:     id,
-					PostId:     post.Id,
-					SendStatus: model.PUSH_NOT_SENT,
-					Type:       model.PUSH_TYPE_MESSAGE,
-				}
-				_, appErr := a.Srv.Store.NotificationRegistry().Save(&notificationRegistry)
-				if appErr != nil {
-					mlog.Debug(appErr.Error())
-				}
-			}
+			a.sendOrRegisterNotification(
+				id,
+				channelMemberNotifyPropsMap,
+				true,
+				status,
+				post,
+				notification,
+				profileMap[id],
+				mentionedUserIds[id],
+				(channelNotification || hereNotification || allNotification),
+				replyToThreadType,
+			)
 		}
 
 		for _, id := range allActivityPushUserIds {
@@ -466,69 +515,24 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 			}
 
 			if _, ok := mentionedUserIds[id]; !ok {
-				var status *model.Status
-				var err *model.AppError
-				if status, err = a.GetStatus(id); err != nil {
-					status = &model.Status{UserId: id, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
-				}
-
-				if ShouldSendPushNotification(profileMap[id], channelMemberNotifyPropsMap[id], false, status, post) {
-					a.sendPushNotification(
-						notification,
-						profileMap[id],
-						false,
-						false,
-						"",
-					)
-				} else {
-					// register that a notification was not sent
-					notificationRegistry := model.NotificationRegistry{
-						UserId:     id,
-						PostId:     post.Id,
-						SendStatus: model.PUSH_NOT_SENT,
-						Type:       model.PUSH_TYPE_MESSAGE,
-					}
-					_, appErr := a.Srv.Store.NotificationRegistry().Save(&notificationRegistry)
-					if appErr != nil {
-						mlog.Debug(appErr.Error())
-					}
-				}
+				status := setStatus(a, id, model.STATUS_OFFLINE, false, 0, "")
+				a.sendOrRegisterNotification(
+					id,
+					channelMemberNotifyPropsMap,
+					true,
+					status,
+					post,
+					notification,
+					profileMap[id],
+					false,
+					false,
+					"",
+				)
 			}
 		}
 	}
 
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POSTED, "", post.ChannelId, "", nil)
-
-	// Note that PreparePostForClient should've already been called by this point
-	message.Add("post", post.ToJson())
-
-	message.Add("channel_type", channel.Type)
-	message.Add("channel_display_name", notification.GetChannelName(model.SHOW_USERNAME, ""))
-	message.Add("channel_name", channel.Name)
-	message.Add("sender_name", notification.GetSenderName(model.SHOW_USERNAME, *a.Config().ServiceSettings.EnablePostUsernameOverride))
-	message.Add("team_id", team.Id)
-
-	if len(post.FileIds) != 0 && fchan != nil {
-		message.Add("otherFile", "true")
-
-		var infos []*model.FileInfo
-		if result := <-fchan; result.Err != nil {
-			mlog.Warn(fmt.Sprint("Unable to get fileInfo for push notifications.", post.Id, result.Err), mlog.String("post_id", post.Id))
-		} else {
-			infos = result.Data.([]*model.FileInfo)
-		}
-
-		for _, info := range infos {
-			if info.IsImage() {
-				message.Add("image", "true")
-				break
-			}
-		}
-	}
-
-	if len(mentionedUsersList) != 0 {
-		message.Add("mentions", model.ArrayToJson(mentionedUsersList))
-	}
+	message := createMessage(a, post, team, channel, notification, fchan, mentionedUsersList)
 
 	a.Publish(message)
 	return mentionedUsersList, nil
