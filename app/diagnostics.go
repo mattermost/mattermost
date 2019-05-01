@@ -199,9 +199,7 @@ func (a *App) trackActivity() {
 		incomingWebhooksCount = c
 	}
 
-	if owc := <-a.Srv.Store.Webhook().AnalyticsOutgoingCount(""); owc.Err == nil {
-		outgoingWebhooksCount = owc.Data.(int64)
-	}
+	outgoingWebhooksCount, _ = a.Srv.Store.Webhook().AnalyticsOutgoingCount("")
 
 	a.SendDiagnostic(TRACK_ACTIVITY, map[string]interface{}{
 		"registered_users":             userCount,
