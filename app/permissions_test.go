@@ -69,8 +69,10 @@ func TestExportPermissions(t *testing.T) {
 		scheme.Scope:                   func(str string) string { return row["scope"].(string) },
 		scheme.DefaultTeamAdminRole:    func(str string) string { return getRoleByName(str) },
 		scheme.DefaultTeamUserRole:     func(str string) string { return getRoleByName(str) },
+		scheme.DefaultTeamGuestRole:    func(str string) string { return getRoleByName(str) },
 		scheme.DefaultChannelAdminRole: func(str string) string { return getRoleByName(str) },
 		scheme.DefaultChannelUserRole:  func(str string) string { return getRoleByName(str) },
+		scheme.DefaultChannelGuestRole: func(str string) string { return getRoleByName(str) },
 	}
 
 	for key, valF := range expectations {
@@ -137,6 +139,11 @@ func TestImportPermissions(t *testing.T) {
 		t.Error(appErr)
 	}
 
+	channelGuestRole, appErr := th.App.GetRoleByName(newScheme.DefaultChannelGuestRole)
+	if appErr != nil {
+		t.Error(appErr)
+	}
+
 	expectations := map[string]string{
 		newScheme.DisplayName:          displayName,
 		newScheme.Name:                 name,
@@ -144,8 +151,10 @@ func TestImportPermissions(t *testing.T) {
 		newScheme.Scope:                scope,
 		newScheme.DefaultTeamAdminRole: "",
 		newScheme.DefaultTeamUserRole:  "",
+		newScheme.DefaultTeamGuestRole: "",
 		channelAdminRole.Name:          newScheme.DefaultChannelAdminRole,
 		channelUserRole.Name:           newScheme.DefaultChannelUserRole,
+		channelGuestRole.Name:          newScheme.DefaultChannelGuestRole,
 	}
 
 	for actual, expected := range expectations {

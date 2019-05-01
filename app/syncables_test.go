@@ -114,7 +114,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 		t.Errorf("error retrieving channel member: %s", err.Error())
 	}
 
-	tMembers, err := th.App.GetTeamMembers(singersTeam.Id, 0, 999)
+	tMembers, err := th.App.GetTeamMembers(singersTeam.Id, 0, 999, nil)
 	if err != nil {
 		t.Errorf("error retrieving team members: %s", err.Error())
 	}
@@ -143,7 +143,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 		t.Errorf("wrong error: %s", err.Id)
 	}
 
-	tMembers, err = th.App.GetTeamMembers(nerdsTeam.Id, 0, 999)
+	tMembers, err = th.App.GetTeamMembers(nerdsTeam.Id, 0, 999, nil)
 	if err != nil {
 		t.Errorf("error retrieving team members: %s", err.Error())
 	}
@@ -185,7 +185,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 		t.Errorf("wrong error: %s", err.Id)
 	}
 
-	tMembers, err = th.App.GetTeamMembers(nerdsTeam.Id, 0, 999)
+	tMembers, err = th.App.GetTeamMembers(nerdsTeam.Id, 0, 999, nil)
 	if err != nil {
 		t.Errorf("error retrieving team members: %s", err.Error())
 	}
@@ -366,7 +366,7 @@ func TestDeleteGroupMemberships(t *testing.T) {
 	require.Nil(t, err)
 
 	// verify the member count
-	tmembers, err := th.App.GetTeamMembers(th.BasicTeam.Id, 0, 100)
+	tmembers, err := th.App.GetTeamMembers(th.BasicTeam.Id, 0, 100, nil)
 	require.Nil(t, err)
 	require.Len(t, tmembers, 3)
 
@@ -383,7 +383,7 @@ func TestDeleteGroupMemberships(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// verify the new member counts
-	tmembers, err = th.App.GetTeamMembers(th.BasicTeam.Id, 0, 100)
+	tmembers, err = th.App.GetTeamMembers(th.BasicTeam.Id, 0, 100, nil)
 	require.Nil(t, err)
 	require.Len(t, tmembers, 1)
 	require.Equal(t, th.SystemAdminUser.Id, tmembers[0].UserId)

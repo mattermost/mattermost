@@ -125,7 +125,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		}
 
 		if len(m.OtherPotentialMentions) > 0 && !post.IsSystemMessage() {
-			if result := <-a.Srv.Store.User().GetProfilesByUsernames(m.OtherPotentialMentions, team.Id); result.Err == nil {
+			if result := <-a.Srv.Store.User().GetProfilesByUsernames(m.OtherPotentialMentions, &model.ViewUsersRestrictions{Teams: []string{team.Id}}); result.Err == nil {
 				channelMentions := model.UserSlice(result.Data.([]*model.User)).FilterByActive(true)
 
 				var outOfChannelMentions model.UserSlice
@@ -306,6 +306,18 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 					(channelNotification || hereNotification || allNotification),
 					replyToThreadType,
 				)
+			} else {
+				// register that a notification was not sent
+				notificationRegistry := model.NotificationRegistry{
+					UserId:     id,
+					PostId:     post.Id,
+					SendStatus: model.PUSH_NOT_SENT,
+					Type:       model.PUSH_TYPE_MESSAGE,
+				}
+				_, appErr := a.Srv.Store.NotificationRegistry().Save(&notificationRegistry)
+				if appErr != nil {
+					mlog.Debug(appErr.Error())
+				}
 			}
 		}
 
@@ -329,6 +341,18 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 						false,
 						"",
 					)
+				} else {
+					// register that a notification was not sent
+					notificationRegistry := model.NotificationRegistry{
+						UserId:     id,
+						PostId:     post.Id,
+						SendStatus: model.PUSH_NOT_SENT,
+						Type:       model.PUSH_TYPE_MESSAGE,
+					}
+					_, appErr := a.Srv.Store.NotificationRegistry().Save(&notificationRegistry)
+					if appErr != nil {
+						mlog.Debug(appErr.Error())
+					}
 				}
 			}
 		}
@@ -691,7 +715,7 @@ type postNotification struct {
 func (n *postNotification) GetChannelName(userNameFormat string, excludeId string) string {
 	switch n.channel.Type {
 	case model.CHANNEL_DIRECT:
-		return fmt.Sprintf("@%s", n.sender.GetDisplayName(userNameFormat))
+		return n.sender.GetDisplayName(userNameFormat)
 	case model.CHANNEL_GROUP:
 		names := []string{}
 		for _, user := range n.profileMap {

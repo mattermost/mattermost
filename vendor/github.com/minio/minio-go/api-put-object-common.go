@@ -1,6 +1,6 @@
 /*
- * Minio Go Library for Amazon S3 Compatible Cloud Storage
- * Copyright 2015-2017 Minio, Inc.
+ * MinIO Go Library for Amazon S3 Compatible Cloud Storage
+ * Copyright 2015-2017 MinIO, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,26 +34,25 @@ func isObject(reader io.Reader) (ok bool) {
 
 // Verify if reader is a generic ReaderAt
 func isReadAt(reader io.Reader) (ok bool) {
-	_, ok = reader.(io.ReaderAt)
+	var v *os.File
+	v, ok = reader.(*os.File)
 	if ok {
-		var v *os.File
-		v, ok = reader.(*os.File)
-		if ok {
-			// Stdin, Stdout and Stderr all have *os.File type
-			// which happen to also be io.ReaderAt compatible
-			// we need to add special conditions for them to
-			// be ignored by this function.
-			for _, f := range []string{
-				"/dev/stdin",
-				"/dev/stdout",
-				"/dev/stderr",
-			} {
-				if f == v.Name() {
-					ok = false
-					break
-				}
+		// Stdin, Stdout and Stderr all have *os.File type
+		// which happen to also be io.ReaderAt compatible
+		// we need to add special conditions for them to
+		// be ignored by this function.
+		for _, f := range []string{
+			"/dev/stdin",
+			"/dev/stdout",
+			"/dev/stderr",
+		} {
+			if f == v.Name() {
+				ok = false
+				break
 			}
 		}
+	} else {
+		_, ok = reader.(io.ReaderAt)
 	}
 	return
 }
@@ -68,20 +67,48 @@ func isReadAt(reader io.Reader) (ok bool) {
 //  minPartSize - 64MiB
 //  maxMultipartPutObjectSize - 5TiB
 //
-func optimalPartInfo(objectSize int64) (totalPartsCount int, partSize int64, lastPartSize int64, err error) {
+func optimalPartInfo(objectSize int64, configuredPartSize uint64) (totalPartsCount int, partSize int64, lastPartSize int64, err error) {
 	// object size is '-1' set it to 5TiB.
 	if objectSize == -1 {
 		objectSize = maxMultipartPutObjectSize
 	}
+
 	// object size is larger than supported maximum.
 	if objectSize > maxMultipartPutObjectSize {
 		err = ErrEntityTooLarge(objectSize, maxMultipartPutObjectSize, "", "")
 		return
 	}
-	// Use floats for part size for all calculations to avoid
-	// overflows during float64 to int64 conversions.
-	partSizeFlt := math.Ceil(float64(objectSize / maxPartsCount))
-	partSizeFlt = math.Ceil(partSizeFlt/minPartSize) * minPartSize
+
+	var partSizeFlt float64
+	if configuredPartSize > 0 {
+		if int64(configuredPartSize) > objectSize {
+			err = ErrEntityTooLarge(int64(configuredPartSize), objectSize, "", "")
+			return
+		}
+
+		if objectSize > (int64(configuredPartSize) * maxPartsCount) {
+			err = ErrInvalidArgument("Part size * max_parts(10000) is lesser than input objectSize.")
+			return
+		}
+
+		if configuredPartSize < absMinPartSize {
+			err = ErrInvalidArgument("Input part size is smaller than allowed minimum of 5MiB.")
+			return
+		}
+
+		if configuredPartSize > maxPartSize {
+			err = ErrInvalidArgument("Input part size is bigger than allowed maximum of 5GiB.")
+			return
+		}
+		partSizeFlt = float64(configuredPartSize)
+	} else {
+		configuredPartSize = minPartSize
+		// Use floats for part size for all calculations to avoid
+		// overflows during float64 to int64 conversions.
+		partSizeFlt = math.Ceil(float64(objectSize / maxPartsCount))
+		partSizeFlt = math.Ceil(partSizeFlt/float64(configuredPartSize)) * float64(configuredPartSize)
+	}
+
 	// Total parts count.
 	totalPartsCount = int(math.Ceil(float64(objectSize) / partSizeFlt))
 	// Part size.

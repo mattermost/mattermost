@@ -144,6 +144,14 @@ func (me *TestHelper) CreateTeam() *model.Team {
 }
 
 func (me *TestHelper) CreateUser() *model.User {
+	return me.CreateUserOrGuest(false)
+}
+
+func (me *TestHelper) CreateGuest() *model.User {
+	return me.CreateUserOrGuest(true)
+}
+
+func (me *TestHelper) CreateUserOrGuest(guest bool) *model.User {
 	id := model.NewId()
 
 	user := &model.User{
@@ -156,11 +164,20 @@ func (me *TestHelper) CreateUser() *model.User {
 
 	utils.DisableDebugLogForTest()
 	var err *model.AppError
-	if user, err = me.App.CreateUser(user); err != nil {
-		mlog.Error(err.Error())
+	if guest {
+		if user, err = me.App.CreateGuest(user); err != nil {
+			mlog.Error(err.Error())
 
-		time.Sleep(time.Second)
-		panic(err)
+			time.Sleep(time.Second)
+			panic(err)
+		}
+	} else {
+		if user, err = me.App.CreateUser(user); err != nil {
+			mlog.Error(err.Error())
+
+			time.Sleep(time.Second)
+			panic(err)
+		}
 	}
 	utils.EnableDebugLogForTest()
 	return user
@@ -316,8 +333,10 @@ func (me *TestHelper) CreateScheme() (*model.Scheme, []*model.Role) {
 	roleNames := []string{
 		scheme.DefaultTeamAdminRole,
 		scheme.DefaultTeamUserRole,
+		scheme.DefaultTeamGuestRole,
 		scheme.DefaultChannelAdminRole,
 		scheme.DefaultChannelUserRole,
+		scheme.DefaultChannelGuestRole,
 	}
 
 	var roles []*model.Role
