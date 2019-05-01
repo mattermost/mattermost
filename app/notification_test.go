@@ -1394,3 +1394,101 @@ func TestCheckForMentionUsers(t *testing.T) {
 		})
 	}
 }
+
+func TestProcessText(t *testing.T) {
+	id1 := model.NewId()
+	// id2 := model.NewId()
+
+	for name, tc := range map[string]struct {
+		Text     string
+		Keywords map[string][]string
+		Expected *ExplicitMentions
+	}{
+		"Mention user in text": {
+			Text:     "hello user @user1",
+			Keywords: map[string][]string{"@user1": {id1}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
+		"Mention user after ending a sentence with full stop": {
+			Text:     "hello user.@user1",
+			Keywords: map[string][]string{"@user1": {id1}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
+		"Mention user after hyphen": {
+			Text:     "hello user-@user1",
+			Keywords: map[string][]string{"@user1": {id1}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
+		"Mention user after colon": {
+			Text:     "hello user:@user1",
+			Keywords: map[string][]string{"@user1": {id1}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
+		"Mention here after colon": {
+			Text:     "hello all:@here",
+			Keywords: map[string][]string{},
+			Expected: &ExplicitMentions{
+				HereMentioned: true,
+			},
+		},
+		"Mention all after hyphen": {
+			Text:     "hello all-@all",
+			Keywords: map[string][]string{},
+			Expected: &ExplicitMentions{
+				AllMentioned: true,
+			},
+		},
+		"Mention channel after full stop": {
+			Text:     "hello channel.@channel",
+			Keywords: map[string][]string{},
+			Expected: &ExplicitMentions{
+				ChannelMentioned: true,
+			},
+		},
+		"Mention other pontential users or system calls": {
+			Text:     "hello @potentialuser and @otherpotentialuser",
+			Keywords: map[string][]string{},
+			Expected: &ExplicitMentions{
+				OtherPotentialMentions: []string{"potentialuser", "otherpotentialuser"},
+			},
+		},
+		"Mention a user and another pontential users or system calls": {
+			Text:     "@user1, you can use @systembot to get help",
+			Keywords: map[string][]string{"@user1": {id1}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+				OtherPotentialMentions: []string{"systembot"},
+			},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+
+			e := &ExplicitMentions{
+				MentionedUserIds: make(map[string]bool),
+			}
+			if tc.Expected.MentionedUserIds == nil {
+				tc.Expected.MentionedUserIds = make(map[string]bool)
+			}
+			e.processText(tc.Text, tc.Keywords)
+			assert.EqualValues(t, tc.Expected, e)
+		})
+	}
+}
