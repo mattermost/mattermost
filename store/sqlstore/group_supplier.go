@@ -398,9 +398,8 @@ func (s *SqlSupplier) GroupCreateGroupSyncable(ctx context.Context, groupSyncabl
 
 	switch groupSyncable.Type {
 	case model.GroupSyncableTypeTeam:
-		teamResult := <-s.Team().Get(groupSyncable.SyncableId)
-		if teamResult.Err != nil {
-			result.Err = teamResult.Err
+		if _, err := s.Team().Get(groupSyncable.SyncableId); err != nil {
+			result.Err = err
 			return result
 		}
 

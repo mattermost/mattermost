@@ -79,11 +79,6 @@ func openDialog(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if dialog.Dialog.Elements == nil || len(dialog.Dialog.Elements) == 0 {
-		c.SetInvalidParam("dialog.elements")
-		return
-	}
-
 	if err := c.App.OpenInteractiveDialog(dialog); err != nil {
 		c.Err = err
 		return

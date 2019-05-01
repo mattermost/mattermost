@@ -55,7 +55,7 @@ func (a *App) CreateDefaultMemberships(since int64) error {
 			)
 		}
 
-		_, err = a.AddChannelMember(userChannel.UserID, channel, "", "", "")
+		_, err = a.AddChannelMember(userChannel.UserID, channel, "", "")
 		if err != nil {
 			return err
 		}

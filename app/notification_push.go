@@ -5,6 +5,7 @@ package app
 
 import (
 	"fmt"
+	"github.com/pkg/errors"
 	"hash/fnv"
 	"net/http"
 	"strings"
@@ -28,6 +29,7 @@ type PushNotificationsHub struct {
 }
 
 type PushNotification struct {
+	id                 string
 	notificationType   NotificationType
 	currentSessionId   string
 	userId             string
@@ -58,7 +60,17 @@ func (a *App) sendPushNotificationSync(post *model.Post, user *model.User, chann
 		return err
 	}
 
-	msg := model.PushNotification{}
+	msg := model.PushNotification{
+		Category:  model.CATEGORY_CAN_REPLY,
+		Version:   model.PUSH_MESSAGE_V2,
+		Type:      model.PUSH_TYPE_MESSAGE,
+		TeamId:    channel.TeamId,
+		ChannelId: channel.Id,
+		PostId:    post.Id,
+		RootId:    post.RootId,
+		SenderId:  post.UserId,
+	}
+
 	if badge := <-a.Srv.Store.User().GetUnreadCount(user.Id); badge.Err != nil {
 		msg.Badge = 1
 		mlog.Error(fmt.Sprint("We could not get the unread message count for the user", user.Id, badge.Err), mlog.String("user_id", user.Id))
@@ -66,22 +78,15 @@ func (a *App) sendPushNotificationSync(post *model.Post, user *model.User, chann
 		msg.Badge = int(badge.Data.(int64))
 	}
 
-	msg.Category = model.CATEGORY_CAN_REPLY
-	msg.Version = model.PUSH_MESSAGE_V2
-	msg.Type = model.PUSH_TYPE_MESSAGE
-	msg.TeamId = channel.TeamId
-	msg.ChannelId = channel.Id
-	msg.PostId = post.Id
-	msg.RootId = post.RootId
-	msg.SenderId = post.UserId
-
 	contentsConfig := *cfg.EmailSettings.PushNotificationContents
 	if contentsConfig != model.GENERIC_NO_CHANNEL_NOTIFICATION || channel.Type == model.CHANNEL_DIRECT {
 		msg.ChannelName = channelName
 	}
 
+	msg.SenderName = senderName
 	if ou, ok := post.Props["override_username"].(string); ok && *cfg.ServiceSettings.EnablePostUsernameOverride {
 		msg.OverrideUsername = ou
+		msg.SenderName = ou
 	}
 
 	if oi, ok := post.Props["override_icon_url"].(string); ok && *cfg.ServiceSettings.EnablePostIconOverride {
@@ -95,7 +100,7 @@ func (a *App) sendPushNotificationSync(post *model.Post, user *model.User, chann
 	userLocale := utils.GetUserTranslations(user.Locale)
 	hasFiles := post.FileIds != nil && len(post.FileIds) > 0
 
-	msg.Message = a.getPushNotificationMessage(post.Message, explicitMention, channelWideMention, hasFiles, senderName, channelName, channel.Type, replyToThreadType, userLocale)
+	msg.Message = a.getPushNotificationMessage(post.Message, explicitMention, channelWideMention, hasFiles, msg.SenderName, channelName, channel.Type, replyToThreadType, userLocale)
 
 	for _, session := range sessions {
 
@@ -103,12 +108,38 @@ func (a *App) sendPushNotificationSync(post *model.Post, user *model.User, chann
 			continue
 		}
 
-		tmpMessage := *model.PushNotificationFromJson(strings.NewReader(msg.ToJson()))
+		tmpMessage := model.PushNotificationFromJson(strings.NewReader(msg.ToJson()))
 		tmpMessage.SetDeviceIdAndPlatform(session.DeviceId)
+		tmpMessage.AckId = model.NewId()
 
-		mlog.Debug(fmt.Sprintf("Sending push notification to device %v for user %v with msg of '%v'", tmpMessage.DeviceId, user.Id, msg.Message), mlog.String("user_id", user.Id))
+		mlog.Debug(
+			"Sending push notification",
+			mlog.String("ackId", tmpMessage.AckId),
+			mlog.String("deviceId", tmpMessage.DeviceId),
+			mlog.String("userId", user.Id),
+		)
 
-		a.sendToPushProxy(tmpMessage, session)
+		err := a.sendToPushProxy(*tmpMessage, session)
+		if err != nil {
+			mlog.Error(
+				"Failed to send Push Notification:",
+				mlog.String("error", err.Error()),
+				mlog.String("userId", session.UserId),
+				mlog.String("sessionId", session.Id),
+				mlog.String("deviceId", msg.DeviceId),
+				mlog.String("ackId", msg.AckId),
+			)
+			appErr := a.Srv.Store.NotificationRegistry().UpdateSendStatus(tmpMessage.AckId, model.PUSH_SEND_ERROR+": "+err.Error())
+			if appErr != nil {
+				mlog.Debug(appErr.Error())
+			}
+			continue
+		}
+
+		appErr := a.Srv.Store.NotificationRegistry().UpdateSendStatus(tmpMessage.AckId, model.PUSH_SEND_SUCCESS)
+		if appErr != nil {
+			mlog.Debug(appErr.Error())
+		}
 
 		if a.Metrics != nil {
 			a.Metrics.IncrementPostSentPush()
@@ -132,10 +163,6 @@ func (a *App) sendPushNotification(notification *postNotification, user *model.U
 
 	channelName := notification.GetChannelName(nameFormat, user.Id)
 	senderName := notification.GetSenderName(nameFormat, *cfg.ServiceSettings.EnablePostUsernameOverride)
-
-	if senderName == notification.sender.Username {
-		senderName = "@" + senderName
-	}
 
 	c := a.Srv.PushNotificationsHub.GetGoChannelFromUserId(user.Id)
 	c <- PushNotification{
@@ -201,10 +228,13 @@ func (a *App) ClearPushNotificationSync(currentSessionId, userId, channelId stri
 		return
 	}
 
-	msg := model.PushNotification{}
-	msg.Type = model.PUSH_TYPE_CLEAR
-	msg.ChannelId = channelId
-	msg.ContentAvailable = 0
+	msg := model.PushNotification{
+		Type:             model.PUSH_TYPE_CLEAR,
+		Version:          model.PUSH_MESSAGE_V2,
+		ChannelId:        channelId,
+		ContentAvailable: 1,
+	}
+
 	if badge := <-a.Srv.Store.User().GetUnreadCount(userId); badge.Err != nil {
 		msg.Badge = 0
 		mlog.Error(fmt.Sprint("We could not get the unread message count for the user", userId, badge.Err), mlog.String("user_id", userId))
@@ -214,10 +244,43 @@ func (a *App) ClearPushNotificationSync(currentSessionId, userId, channelId stri
 
 	for _, session := range sessions {
 		if currentSessionId != session.Id {
-			tmpMessage := *model.PushNotificationFromJson(strings.NewReader(msg.ToJson()))
+			tmpMessage := model.PushNotificationFromJson(strings.NewReader(msg.ToJson()))
 			tmpMessage.SetDeviceIdAndPlatform(session.DeviceId)
-			mlog.Debug(fmt.Sprintf("Clearing push notification to %v with channel_id %v", session.DeviceId, msg.ChannelId))
-			a.sendToPushProxy(tmpMessage, session)
+			tmpMessage.AckId = model.NewId()
+
+			mlog.Debug(
+				"Sending clear push notification",
+				mlog.String("ackId", tmpMessage.AckId),
+				mlog.String("deviceId", tmpMessage.DeviceId),
+				mlog.String("userId", session.UserId),
+				mlog.String("channelId", channelId), //should we remove the message from the logs?
+			)
+
+			err := a.sendToPushProxy(*tmpMessage, session)
+			if err != nil {
+				mlog.Error(
+					"Failed to send Push Notification:",
+					mlog.String("error", err.Error()),
+					mlog.String("userId", session.UserId),
+					mlog.String("sessionId", session.Id),
+					mlog.String("deviceId", msg.DeviceId),
+					mlog.String("ackId", msg.AckId),
+				)
+				appErr := a.Srv.Store.NotificationRegistry().UpdateSendStatus(tmpMessage.AckId, model.PUSH_SEND_ERROR+": "+err.Error())
+				if appErr != nil {
+					mlog.Debug(appErr.Error())
+				}
+				continue
+			}
+
+			appErr := a.Srv.Store.NotificationRegistry().UpdateSendStatus(tmpMessage.AckId, model.PUSH_SEND_SUCCESS)
+			if appErr != nil {
+				mlog.Debug(appErr.Error())
+			}
+
+			if a.Metrics != nil {
+				a.Metrics.IncrementPostSentPush()
+			}
 		}
 	}
 }
@@ -277,20 +340,30 @@ func (a *App) StopPushNotificationsHubWorkers() {
 	}
 }
 
-func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session) {
+func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session) error {
 	msg.ServerId = a.DiagnosticId()
+
+	notificationRegistry := model.NotificationRegistry{
+		AckId:    msg.AckId,
+		DeviceId: msg.DeviceId,
+		UserId:   session.UserId,
+		PostId:   msg.PostId,
+		Type:     msg.Type,
+	}
+
+	_, appErr := a.Srv.Store.NotificationRegistry().Save(&notificationRegistry)
+	if appErr != nil {
+		return appErr
+	}
 
 	request, err := http.NewRequest("POST", strings.TrimRight(*a.Config().EmailSettings.PushNotificationServer, "/")+model.API_URL_SUFFIX_V1+"/send_push", strings.NewReader(msg.ToJson()))
 	if err != nil {
-		mlog.Error(fmt.Sprintf("Error sending to push proxy: UserId=%v SessionId=%v message=%v",
-			session.UserId, session.Id, err.Error()), mlog.String("user_id", session.UserId))
-		return
+		return err
 	}
 
 	resp, err := a.HTTPService.MakeClient(true).Do(request)
 	if err != nil {
-		mlog.Error(fmt.Sprintf("Device push reported as error for UserId=%v SessionId=%v message=%v", session.UserId, session.Id, err.Error()), mlog.String("user_id", session.UserId))
-		return
+		return err
 	}
 
 	defer resp.Body.Close()
@@ -298,14 +371,46 @@ func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session
 	pushResponse := model.PushResponseFromJson(resp.Body)
 
 	if pushResponse[model.PUSH_STATUS] == model.PUSH_STATUS_REMOVE {
-		mlog.Info(fmt.Sprintf("Device was reported as removed for UserId=%v SessionId=%v removing push for this session", session.UserId, session.Id), mlog.String("user_id", session.UserId))
 		a.AttachDeviceId(session.Id, "", session.ExpiresAt)
 		a.ClearSessionCacheForUser(session.UserId)
+		return errors.New("Device was reported as removed")
 	}
 
 	if pushResponse[model.PUSH_STATUS] == model.PUSH_STATUS_FAIL {
-		mlog.Error(fmt.Sprintf("Device push reported as error for UserId=%v SessionId=%v message=%v", session.UserId, session.Id, pushResponse[model.PUSH_STATUS_ERROR_MSG]), mlog.String("user_id", session.UserId))
+		return errors.New(pushResponse[model.PUSH_STATUS_ERROR_MSG])
 	}
+
+	return nil
+}
+
+func (a *App) SendAckToPushProxy(ack *model.PushNotificationAck) error {
+	if ack == nil {
+		return nil
+	}
+
+	appErr := a.Srv.Store.NotificationRegistry().MarkAsReceived(ack.Id, ack.ClientReceivedAt)
+	if appErr != nil {
+		return appErr
+	}
+
+	request, err := http.NewRequest(
+		"POST",
+		strings.TrimRight(*a.Config().EmailSettings.PushNotificationServer, "/")+model.API_URL_SUFFIX_V1+"/ack",
+		strings.NewReader(ack.ToJson()),
+	)
+
+	if err != nil {
+		return err
+	}
+
+	resp, err := a.HTTPService.MakeClient(true).Do(request)
+	if err != nil {
+		return err
+	}
+
+	resp.Body.Close()
+	return nil
+
 }
 
 func (a *App) getMobileAppSessions(userId string) ([]*model.Session, *model.AppError) {

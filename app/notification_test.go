@@ -997,22 +997,22 @@ func TestPostNotificationGetChannelName(t *testing.T) {
 		},
 		"direct channel, unspecified": {
 			channel:  &model.Channel{Type: model.CHANNEL_DIRECT},
-			expected: "@sender",
+			expected: "sender",
 		},
 		"direct channel, username": {
 			channel:    &model.Channel{Type: model.CHANNEL_DIRECT},
 			nameFormat: model.SHOW_USERNAME,
-			expected:   "@sender",
+			expected:   "sender",
 		},
 		"direct channel, full name": {
 			channel:    &model.Channel{Type: model.CHANNEL_DIRECT},
 			nameFormat: model.SHOW_FULLNAME,
-			expected:   "@Sender Sender",
+			expected:   "Sender Sender",
 		},
 		"direct channel, nickname": {
 			channel:    &model.Channel{Type: model.CHANNEL_DIRECT},
 			nameFormat: model.SHOW_NICKNAME_FULLNAME,
-			expected:   "@Sender",
+			expected:   "Sender",
 		},
 		"group channel, unspecified": {
 			channel:  &model.Channel{Type: model.CHANNEL_GROUP},

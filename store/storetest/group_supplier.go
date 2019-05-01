@@ -647,9 +647,8 @@ func testCreateGroupSyncable(t *testing.T, ss store.Store) {
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TEAM_OPEN,
 	}
-	res5 := <-ss.Team().Save(t1)
-	require.Nil(t, res5.Err)
-	team := res5.Data.(*model.Team)
+	team, err := ss.Team().Save(t1)
+	require.Nil(t, err)
 
 	// New GroupSyncable, happy path
 	gt1 := model.NewGroupTeam(group.Id, team.Id, false)
@@ -687,9 +686,8 @@ func testGetGroupSyncable(t *testing.T, ss store.Store) {
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TEAM_OPEN,
 	}
-	res2 := <-ss.Team().Save(t1)
-	require.Nil(t, res2.Err)
-	team := res2.Data.(*model.Team)
+	team, err := ss.Team().Save(t1)
+	require.Nil(t, err)
 
 	// Create GroupSyncable
 	gt1 := model.NewGroupTeam(group.Id, team.Id, false)
@@ -739,9 +737,8 @@ func testGetAllGroupSyncablesByGroup(t *testing.T, ss store.Store) {
 			Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 			Type:            model.TEAM_OPEN,
 		}
-		res2 := <-ss.Team().Save(t1)
-		require.Nil(t, res2.Err)
-		team := res2.Data.(*model.Team)
+		team, err := ss.Team().Save(t1)
+		require.Nil(t, err)
 
 		// create groupteam
 		res3 := <-ss.Group().CreateGroupSyncable(model.NewGroupTeam(group.Id, team.Id, false))
@@ -789,9 +786,8 @@ func testUpdateGroupSyncable(t *testing.T, ss store.Store) {
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TEAM_OPEN,
 	}
-	res5 := <-ss.Team().Save(t1)
-	require.Nil(t, res5.Err)
-	team := res5.Data.(*model.Team)
+	team, err := ss.Team().Save(t1)
+	require.Nil(t, err)
 
 	// New GroupSyncable, happy path
 	gt1 := model.NewGroupTeam(group.Id, team.Id, false)
@@ -861,9 +857,8 @@ func testDeleteGroupSyncable(t *testing.T, ss store.Store) {
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TEAM_OPEN,
 	}
-	res2 := <-ss.Team().Save(t1)
-	require.Nil(t, res2.Err)
-	team := res2.Data.(*model.Team)
+	team, err := ss.Team().Save(t1)
+	require.Nil(t, err)
 
 	// Create GroupSyncable
 	gt1 := model.NewGroupTeam(group.Id, team.Id, false)
@@ -931,9 +926,8 @@ func testPendingAutoAddTeamMembers(t *testing.T, ss store.Store) {
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TEAM_OPEN,
 	}
-	res = <-ss.Team().Save(team)
-	require.Nil(t, res.Err)
-	team = res.Data.(*model.Team)
+	team, err := ss.Team().Save(team)
+	require.Nil(t, err)
 
 	// Create GroupTeam
 	res = <-ss.Group().CreateGroupSyncable(model.NewGroupTeam(group.Id, team.Id, true))
@@ -1011,7 +1005,7 @@ func testPendingAutoAddTeamMembers(t *testing.T, ss store.Store) {
 
 	// No result if Team deleted
 	team.DeleteAt = model.GetMillis()
-	team, err := ss.Team().Update(team)
+	team, err = ss.Team().Update(team)
 	require.Nil(t, err)
 	res = <-ss.Group().TeamMembersToAdd(0)
 	require.Nil(t, res.Err)
@@ -1430,9 +1424,8 @@ func pendingMemberRemovalsDataSetup(t *testing.T, ss store.Store) *removalsData 
 		Type:             model.TEAM_INVITE,
 		GroupConstrained: model.NewBool(true),
 	}
-	res = <-ss.Team().Save(teamConstrained)
-	require.Nil(t, res.Err)
-	teamConstrained = res.Data.(*model.Team)
+	teamConstrained, err := ss.Team().Save(teamConstrained)
+	require.Nil(t, err)
 
 	teamUnconstrained := &model.Team{
 		DisplayName:     "Name",
@@ -1444,9 +1437,8 @@ func pendingMemberRemovalsDataSetup(t *testing.T, ss store.Store) *removalsData 
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TEAM_INVITE,
 	}
-	res = <-ss.Team().Save(teamUnconstrained)
-	require.Nil(t, res.Err)
-	teamUnconstrained = res.Data.(*model.Team)
+	teamUnconstrained, err = ss.Team().Save(teamUnconstrained)
+	require.Nil(t, err)
 
 	// create groupteams
 	res = <-ss.Group().CreateGroupSyncable(model.NewGroupTeam(group.Id, teamConstrained.Id, true))
@@ -1648,12 +1640,11 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TEAM_OPEN,
 	}
-	res := <-ss.Team().Save(team1)
-	require.Nil(t, res.Err)
-	team1 = res.Data.(*model.Team)
+	team1, err := ss.Team().Save(team1)
+	require.Nil(t, err)
 
 	// Create Groups 1 and 2
-	res = <-ss.Group().Create(&model.Group{
+	res := <-ss.Group().Create(&model.Group{
 		Name:        model.NewId(),
 		DisplayName: "group-1",
 		RemoteId:    model.NewId(),
@@ -1693,9 +1684,8 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TEAM_INVITE,
 	}
-	res = <-ss.Team().Save(team2)
-	require.Nil(t, res.Err)
-	team2 = res.Data.(*model.Team)
+	team2, err = ss.Team().Save(team2)
+	require.Nil(t, err)
 
 	// Create Group3
 	res = <-ss.Group().Create(&model.Group{
