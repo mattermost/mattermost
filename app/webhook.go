@@ -360,8 +360,8 @@ func (a *App) DeleteIncomingWebhook(hookId string) *model.AppError {
 		return model.NewAppError("DeleteIncomingWebhook", "api.incoming_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if result := <-a.Srv.Store.Webhook().DeleteIncoming(hookId, model.GetMillis()); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.Webhook().DeleteIncoming(hookId, model.GetMillis()); err != nil {
+		return err
 	}
 
 	a.InvalidateCacheForWebhook(hookId)
