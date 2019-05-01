@@ -98,6 +98,22 @@ func (_m *UserStore) Count(options model.UserCountOptions) store.StoreChannel {
 	return r0
 }
 
+// DemoteUserToGuest provides a mock function with given fields: userID
+func (_m *UserStore) DemoteUserToGuest(userID string) *model.AppError {
+	ret := _m.Called(userID)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+		r0 = rf(userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // Get provides a mock function with given fields: id
 func (_m *UserStore) Get(id string) (*model.User, *model.AppError) {
 	ret := _m.Called(id)
@@ -628,6 +644,22 @@ func (_m *UserStore) PermanentDelete(userId string) store.StoreChannel {
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
+// PromoteGuestToUser provides a mock function with given fields: userID
+func (_m *UserStore) PromoteGuestToUser(userID string) *model.AppError {
+	ret := _m.Called(userID)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+		r0 = rf(userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
