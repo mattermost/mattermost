@@ -70,8 +70,7 @@ func Setup() *TestHelper {
 	URL = fmt.Sprintf("http://localhost:%v", a.Srv.ListenAddr.Port)
 	ApiClient = model.NewAPIv4Client(URL)
 
-	a.DoAdvancedPermissionsMigration()
-	a.DoEmojisPermissionsMigration()
+	a.DoAppMigrations()
 
 	a.Srv.Store.MarkSystemRanUnitTests()
 

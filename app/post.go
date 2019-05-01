@@ -363,11 +363,11 @@ func (a *App) FillInPostProps(post *model.Post, channel *model.Channel) *model.A
 func (a *App) handlePostEvents(post *model.Post, user *model.User, channel *model.Channel, triggerWebhooks bool, parentPostList *model.PostList) error {
 	var team *model.Team
 	if len(channel.TeamId) > 0 {
-		result := <-a.Srv.Store.Team().Get(channel.TeamId)
-		if result.Err != nil {
-			return result.Err
+		t, err := a.Srv.Store.Team().Get(channel.TeamId)
+		if err != nil {
+			return err
 		}
-		team = result.Data.(*model.Team)
+		team = t
 	} else {
 		// Blank team for DMs
 		team = &model.Team{}
@@ -780,7 +780,7 @@ func (a *App) DeletePostFiles(post *model.Post) {
 func (a *App) parseAndFetchChannelIdByNameFromInFilter(channelName, userId, teamId string, includeDeleted bool) (*model.Channel, error) {
 	if strings.HasPrefix(channelName, "@") && strings.Contains(channelName, ",") {
 		var userIds []string
-		users, err := a.GetUsersByUsernames(strings.Split(channelName[1:], ","), false)
+		users, err := a.GetUsersByUsernames(strings.Split(channelName[1:], ","), false, nil)
 		if err != nil {
 			return nil, err
 		}

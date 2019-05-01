@@ -173,7 +173,7 @@ func (api *PluginAPI) DeleteTeamMember(teamId, userId, requestorId string) *mode
 }
 
 func (api *PluginAPI) GetTeamMembers(teamId string, page, perPage int) ([]*model.TeamMember, *model.AppError) {
-	return api.app.GetTeamMembers(teamId, page*perPage, perPage)
+	return api.app.GetTeamMembers(teamId, page*perPage, perPage, nil)
 }
 
 func (api *PluginAPI) GetTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError) {
@@ -222,7 +222,7 @@ func (api *PluginAPI) GetUserByUsername(name string) (*model.User, *model.AppErr
 }
 
 func (api *PluginAPI) GetUsersByUsernames(usernames []string) ([]*model.User, *model.AppError) {
-	return api.app.GetUsersByUsernames(usernames, true)
+	return api.app.GetUsersByUsernames(usernames, true, nil)
 }
 
 func (api *PluginAPI) GetUsersInTeam(teamId string, page int, perPage int) ([]*model.User, *model.AppError) {
@@ -392,7 +392,7 @@ func (api *PluginAPI) AddChannelMember(channelId, userId string) (*model.Channel
 		return nil, err
 	}
 
-	return api.app.AddChannelMember(userId, channel, userRequestorId, postRootId, "")
+	return api.app.AddChannelMember(userId, channel, userRequestorId, postRootId)
 }
 
 func (api *PluginAPI) GetChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError) {

@@ -154,6 +154,7 @@ func UpgradeDatabase(sqlStore SqlStore, currentModelVersionString string) error 
 	UpgradeDatabaseToVersion59(sqlStore)
 	UpgradeDatabaseToVersion510(sqlStore)
 	UpgradeDatabaseToVersion511(sqlStore)
+	UpgradeDatabaseToVersion512(sqlStore)
 
 	return nil
 }
@@ -675,5 +676,18 @@ func UpgradeDatabaseToVersion511(sqlStore SqlStore) {
 	}
 
 	// 	saveSchemaVersion(sqlStore, VERSION_5_11_0)
+	// }
+}
+
+func UpgradeDatabaseToVersion512(sqlStore SqlStore) {
+	// TODO: Uncomment following condition when version 5.12.0 is released
+	// if shouldPerformUpgrade(sqlStore, VERSION_5_11_0, VERSION_5_12_0) {
+	sqlStore.CreateColumnIfNotExistsNoDefault("TeamMembers", "SchemeGuest", "boolean", "boolean")
+	sqlStore.CreateColumnIfNotExistsNoDefault("ChannelMembers", "SchemeGuest", "boolean", "boolean")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Schemes", "DefaultTeamGuestRole", "text", "VARCHAR(64)")
+	sqlStore.CreateColumnIfNotExistsNoDefault("Schemes", "DefaultChannelGuestRole", "text", "VARCHAR(64)")
+	sqlStore.GetMaster().Exec("UPDATE Schemes SET DefaultTeamGuestRole = '', DefaultChannelGuestRole = ''")
+
+	// saveSchemaVersion(sqlStore, VERSION_5_12_0)
 	// }
 }
