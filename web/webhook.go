@@ -29,6 +29,15 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	var err *model.AppError
 	incomingWebhookPayload := &model.IncomingWebhookRequest{}
 	contentType := r.Header.Get("Content-Type")
+
+	defer func() {
+		if *c.App.Config().LogSettings.EnableWebhookDebugging {
+			if err != nil {
+				mlog.Debug("Incoming webhook received", mlog.String("Id", id), mlog.String("Request ID", c.App.RequestId), mlog.String("Payload", incomingWebhookPayload.ToJson()))
+			}
+		}
+	}()
+
 	if strings.Split(contentType, "; ")[0] == "application/x-www-form-urlencoded" {
 		payload := strings.NewReader(r.FormValue("payload"))
 
@@ -55,13 +64,6 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	defer func() {
-		if *c.App.Config().LogSettings.EnableWebhookDebugging {
-			if err != nil {
-				mlog.Debug("Incoming webhook received", mlog.String("Id", id), mlog.String("Request ID", c.App.RequestId), mlog.String("Payload", incomingWebhookPayload.ToJson()))
-			}
-		}
-	}()
 
 	err = c.App.HandleIncomingWebhook(id, incomingWebhookPayload)
 	if err != nil {
