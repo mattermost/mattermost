@@ -15,7 +15,6 @@ import (
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/mattermost/mattermost-server/utils/markdown"
-	"github.com/mitchellh/mapstructure"
 )
 
 const (
@@ -47,15 +46,6 @@ type postNotification struct {
 	post       *model.Post
 	profileMap map[string]*model.User
 	sender     *model.User
-}
-
-// TODO : Comment
-func (a *App) SendEphemeralPostWrapper(userId string, postDetails interface{}, post model.Post) {
-	err := mapstructure.Decode(postDetails, &post)
-	if err != nil {
-		panic(nil)
-	}
-	a.SendEphemeralPost(userId, &post)
 }
 
 // addMentionedUsers will add the mentioned user id in the struct's list for mentioned users
@@ -373,32 +363,41 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 	T := utils.GetUserTranslations(sender.Locale)
 
-	postDetails := map[string]interface{}{
-		"ChannelId": post.ChannelId,
-		"CreateAt":  post.CreateAt + 1,
+	// If the channel has more than 1K users then @here is disabled
+	if hereNotification && int64(len(profileMap)) > *a.Config().TeamSettings.MaxNotificationsPerChannel {
+		hereNotification = false
+		a.SendEphemeralPost(
+			post.UserId,
+			&model.Post{
+				ChannelId: post.ChannelId,
+				Message:   T("api.post.disabled_here", map[string]interface{}{"Users": *a.Config().TeamSettings.MaxNotificationsPerChannel}),
+				CreateAt:  post.CreateAt + 1,
+			},
+		)
 	}
 
-	notificationTypes := map[string]bool{
-		"here":    hereNotification,
-		"channel": channelNotification,
-		"all":     allNotification,
+	// If the channel has more than 1K users then @channel is disabled
+	if channelNotification && int64(len(profileMap)) > *a.Config().TeamSettings.MaxNotificationsPerChannel {
+		a.SendEphemeralPost(
+			post.UserId,
+			&model.Post{
+				ChannelId: post.ChannelId,
+				Message:   T("api.post.disabled_channel", map[string]interface{}{"Users": *a.Config().TeamSettings.MaxNotificationsPerChannel}),
+				CreateAt:  post.CreateAt + 1,
+			},
+		)
 	}
-	if int64(len(profileMap)) > *a.Config().TeamSettings.MaxNotificationsPerChannel {
-		for k, notification := range notificationTypes {
-			var disableNotification string
-			if notification {
-				switch k {
-				case "here":
-					disableNotification = "api.post.disabled_here"
-				case "channel":
-					disableNotification = "api.post.disabled_channel"
-				case "all":
-					disableNotification = "api.post.disabled_all"
-				}
-				postDetails["Message"] = T(disableNotification, map[string]interface{}{"Users": *a.Config().TeamSettings.MaxNotificationsPerChannel})
-				a.SendEphemeralPostWrapper(post.UserId, postDetails, *post)
-			}
-		}
+
+	// If the channel has more than 1K users then @all is disabled
+	if allNotification && int64(len(profileMap)) > *a.Config().TeamSettings.MaxNotificationsPerChannel {
+		a.SendEphemeralPost(
+			post.UserId,
+			&model.Post{
+				ChannelId: post.ChannelId,
+				Message:   T("api.post.disabled_all", map[string]interface{}{"Users": *a.Config().TeamSettings.MaxNotificationsPerChannel}),
+				CreateAt:  post.CreateAt + 1,
+			},
+		)
 	}
 
 	// Make sure all mention updates are complete to prevent race
