@@ -414,7 +414,7 @@ type CommandStore interface {
 	Get(id string) StoreChannel
 	GetByTeam(teamId string) ([]*model.Command, *model.AppError)
 	GetByTrigger(teamId string, trigger string) StoreChannel
-	Delete(commandId string, time int64) StoreChannel
+	Delete(commandId string, time int64) *model.AppError
 	PermanentDeleteByTeam(teamId string) *model.AppError
 	PermanentDeleteByUser(userId string) *model.AppError
 	Update(hook *model.Command) (*model.Command, *model.AppError)

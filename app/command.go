@@ -525,9 +525,6 @@ func (a *App) DeleteCommand(commandId string) *model.AppError {
 	if !*a.Config().ServiceSettings.EnableCommands {
 		return model.NewAppError("DeleteCommand", "api.command.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
-	result := <-a.Srv.Store.Command().Delete(commandId, model.GetMillis())
-	if result.Err != nil {
-		return result.Err
-	}
-	return nil
+
+	return a.Srv.Store.Command().Delete(commandId, model.GetMillis())
 }
