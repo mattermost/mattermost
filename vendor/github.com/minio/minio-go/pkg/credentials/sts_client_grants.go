@@ -1,6 +1,6 @@
 /*
- * Minio Go Library for Amazon S3 Compatible Cloud Storage
- * Copyright 2019 Minio, Inc.
+ * MinIO Go Library for Amazon S3 Compatible Cloud Storage
+ * Copyright 2019 MinIO, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,7 @@ type AssumeRoleWithClientGrantsResponse struct {
 }
 
 // ClientGrantsResult - Contains the response to a successful AssumeRoleWithClientGrants
-// request, including temporary credentials that can be used to make Minio API requests.
+// request, including temporary credentials that can be used to make MinIO API requests.
 type ClientGrantsResult struct {
 	AssumedRoleUser AssumedRoleUser `xml:",omitempty"`
 	Audience        string          `xml:",omitempty"`
@@ -60,30 +60,19 @@ type ClientGrantsResult struct {
 
 // ClientGrantsToken - client grants token with expiry.
 type ClientGrantsToken struct {
-	token  string
-	expiry int
+	Token  string
+	Expiry int
 }
 
-// Token - access token returned after authenticating client grants.
-func (c *ClientGrantsToken) Token() string {
-	return c.token
-}
-
-// Expiry - expiry for the access token returned after authenticating
-// client grants.
-func (c *ClientGrantsToken) Expiry() string {
-	return fmt.Sprintf("%d", c.expiry)
-}
-
-// A STSClientGrants retrieves credentials from Minio service, and keeps track if
+// A STSClientGrants retrieves credentials from MinIO service, and keeps track if
 // those credentials are expired.
 type STSClientGrants struct {
 	Expiry
 
-	// Required http Client to use when connecting to Minio STS service.
+	// Required http Client to use when connecting to MinIO STS service.
 	Client *http.Client
 
-	// Minio endpoint to fetch STS credentials.
+	// MinIO endpoint to fetch STS credentials.
 	stsEndpoint string
 
 	// getClientGrantsTokenExpiry function to retrieve tokens
@@ -123,8 +112,8 @@ func getClientGrantsCredentials(clnt *http.Client, endpoint string,
 
 	v := url.Values{}
 	v.Set("Action", "AssumeRoleWithClientGrants")
-	v.Set("Token", accessToken.Token())
-	v.Set("DurationSeconds", accessToken.Expiry())
+	v.Set("Token", accessToken.Token)
+	v.Set("DurationSeconds", fmt.Sprintf("%d", accessToken.Expiry))
 	v.Set("Version", "2011-06-15")
 
 	u, err := url.Parse(endpoint)
@@ -153,7 +142,7 @@ func getClientGrantsCredentials(clnt *http.Client, endpoint string,
 	return a, nil
 }
 
-// Retrieve retrieves credentials from the Minio service.
+// Retrieve retrieves credentials from the MinIO service.
 // Error will be returned if the request fails.
 func (m *STSClientGrants) Retrieve() (Value, error) {
 	a, err := getClientGrantsCredentials(m.Client, m.stsEndpoint, m.getClientGrantsTokenExpiry)

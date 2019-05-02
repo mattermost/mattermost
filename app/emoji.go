@@ -292,8 +292,8 @@ func (a *App) deleteEmojiImage(id string) {
 }
 
 func (a *App) deleteReactionsForEmoji(emojiName string) {
-	if result := <-a.Srv.Store.Reaction().DeleteAllWithEmojiName(emojiName); result.Err != nil {
+	if err := a.Srv.Store.Reaction().DeleteAllWithEmojiName(emojiName); err != nil {
 		mlog.Warn(fmt.Sprintf("Unable to delete reactions when deleting emoji with emoji name %v", emojiName))
-		mlog.Warn(fmt.Sprint(result.Err))
+		mlog.Warn(fmt.Sprint(err))
 	}
 }

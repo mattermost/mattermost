@@ -212,10 +212,6 @@ func TestUpdateChannel(t *testing.T) {
 		t.Fatal("Update failed for Purpose in private channel")
 	}
 
-	// Updating a private channel requires permission *and* membership, so this should fail.
-	_, resp = th.SystemAdminClient.UpdateChannel(private)
-	CheckForbiddenStatus(t, resp)
-
 	//Non existing channel
 	channel1 := &model.Channel{DisplayName: "Test API Name for apiv4", Name: GenerateTestChannelName(), Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	_, resp = Client.UpdateChannel(channel1)
@@ -325,15 +321,8 @@ func TestPatchChannel(t *testing.T) {
 	_, resp = th.SystemAdminClient.PatchChannel(th.BasicChannel.Id, patch)
 	CheckNoError(t, resp)
 
-	Client.Logout()
-	Client.Login(th.BasicUser.Username, th.BasicUser.Password)
-
-	_, resp = th.Client.PatchChannel(th.BasicPrivateChannel.Id, patch)
-	CheckNoError(t, resp)
-
-	// Patching a private channel requires permission *and* membership, so this should fail.
 	_, resp = th.SystemAdminClient.PatchChannel(th.BasicPrivateChannel.Id, patch)
-	CheckForbiddenStatus(t, resp)
+	CheckNoError(t, resp)
 
 	// Test updating the header of someone else's GM channel.
 	user1 := th.CreateUser()
@@ -1778,52 +1767,82 @@ func TestUpdateChannelMemberSchemeRoles(t *testing.T) {
 	s1 := &model.SchemeRoles{
 		SchemeAdmin: false,
 		SchemeUser:  false,
+		SchemeGuest: false,
 	}
 	_, r1 := SystemAdminClient.UpdateChannelMemberSchemeRoles(th.BasicChannel.Id, th.BasicUser.Id, s1)
 	CheckNoError(t, r1)
 
 	tm1, rtm1 := SystemAdminClient.GetChannelMember(th.BasicChannel.Id, th.BasicUser.Id, "")
 	CheckNoError(t, rtm1)
+	assert.Equal(t, false, tm1.SchemeGuest)
 	assert.Equal(t, false, tm1.SchemeUser)
 	assert.Equal(t, false, tm1.SchemeAdmin)
 
 	s2 := &model.SchemeRoles{
 		SchemeAdmin: false,
 		SchemeUser:  true,
+		SchemeGuest: false,
 	}
 	_, r2 := SystemAdminClient.UpdateChannelMemberSchemeRoles(th.BasicChannel.Id, th.BasicUser.Id, s2)
 	CheckNoError(t, r2)
 
 	tm2, rtm2 := SystemAdminClient.GetChannelMember(th.BasicChannel.Id, th.BasicUser.Id, "")
 	CheckNoError(t, rtm2)
+	assert.Equal(t, false, tm2.SchemeGuest)
 	assert.Equal(t, true, tm2.SchemeUser)
 	assert.Equal(t, false, tm2.SchemeAdmin)
 
 	s3 := &model.SchemeRoles{
 		SchemeAdmin: true,
 		SchemeUser:  false,
+		SchemeGuest: false,
 	}
 	_, r3 := SystemAdminClient.UpdateChannelMemberSchemeRoles(th.BasicChannel.Id, th.BasicUser.Id, s3)
 	CheckNoError(t, r3)
 
 	tm3, rtm3 := SystemAdminClient.GetChannelMember(th.BasicChannel.Id, th.BasicUser.Id, "")
 	CheckNoError(t, rtm3)
+	assert.Equal(t, false, tm3.SchemeGuest)
 	assert.Equal(t, false, tm3.SchemeUser)
 	assert.Equal(t, true, tm3.SchemeAdmin)
 
 	s4 := &model.SchemeRoles{
 		SchemeAdmin: true,
 		SchemeUser:  true,
+		SchemeGuest: false,
 	}
 	_, r4 := SystemAdminClient.UpdateChannelMemberSchemeRoles(th.BasicChannel.Id, th.BasicUser.Id, s4)
 	CheckNoError(t, r4)
 
 	tm4, rtm4 := SystemAdminClient.GetChannelMember(th.BasicChannel.Id, th.BasicUser.Id, "")
 	CheckNoError(t, rtm4)
+	assert.Equal(t, false, tm4.SchemeGuest)
 	assert.Equal(t, true, tm4.SchemeUser)
 	assert.Equal(t, true, tm4.SchemeAdmin)
 
-	_, resp := SystemAdminClient.UpdateChannelMemberSchemeRoles(model.NewId(), th.BasicUser.Id, s4)
+	s5 := &model.SchemeRoles{
+		SchemeAdmin: false,
+		SchemeUser:  false,
+		SchemeGuest: true,
+	}
+	_, r5 := SystemAdminClient.UpdateChannelMemberSchemeRoles(th.BasicChannel.Id, th.BasicUser.Id, s5)
+	CheckNoError(t, r5)
+
+	tm5, rtm5 := SystemAdminClient.GetChannelMember(th.BasicChannel.Id, th.BasicUser.Id, "")
+	CheckNoError(t, rtm5)
+	assert.Equal(t, true, tm5.SchemeGuest)
+	assert.Equal(t, false, tm5.SchemeUser)
+	assert.Equal(t, false, tm5.SchemeAdmin)
+
+	s6 := &model.SchemeRoles{
+		SchemeAdmin: false,
+		SchemeUser:  true,
+		SchemeGuest: true,
+	}
+	_, resp := SystemAdminClient.UpdateChannelMemberSchemeRoles(th.BasicChannel.Id, th.BasicUser.Id, s6)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = SystemAdminClient.UpdateChannelMemberSchemeRoles(model.NewId(), th.BasicUser.Id, s4)
 	CheckForbiddenStatus(t, resp)
 
 	_, resp = SystemAdminClient.UpdateChannelMemberSchemeRoles(th.BasicChannel.Id, model.NewId(), s4)

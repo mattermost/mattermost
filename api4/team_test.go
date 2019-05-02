@@ -307,8 +307,8 @@ func TestUpdateTeam(t *testing.T) {
 	uteam, resp = Client.UpdateTeam(team)
 	CheckNoError(t, resp)
 
-	if uteam.InviteId != "inviteid1" {
-		t.Fatal("Update failed")
+	if uteam.InviteId == "inviteid1" {
+		t.Fatal("InviteID should not be updated")
 	}
 
 	team.AllowedDomains = "domain"
@@ -411,7 +411,6 @@ func TestPatchTeam(t *testing.T) {
 	patch.DisplayName = model.NewString("Other name")
 	patch.Description = model.NewString("Other description")
 	patch.CompanyName = model.NewString("Other company name")
-	patch.InviteId = model.NewString("inviteid1")
 	patch.AllowOpenInvite = model.NewBool(true)
 
 	rteam, resp := Client.PatchTeam(team.Id, patch)
@@ -426,8 +425,8 @@ func TestPatchTeam(t *testing.T) {
 	if rteam.CompanyName != "Other company name" {
 		t.Fatal("CompanyName did not update properly")
 	}
-	if rteam.InviteId != "inviteid1" {
-		t.Fatal("InviteId did not update properly")
+	if rteam.InviteId == "inviteid1" {
+		t.Fatal("InviteId should not update")
 	}
 	if !rteam.AllowOpenInvite {
 		t.Fatal("AllowOpenInvite did not update properly")
@@ -502,6 +501,24 @@ func TestPatchTeamSanitization(t *testing.T) {
 			t.Fatal("should not have sanitized email for admin")
 		}
 	})
+}
+
+func TestRegenerateTeamInviteId(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+
+	team := &model.Team{DisplayName: "Name", Description: "Some description", CompanyName: "Some company name", AllowOpenInvite: false, InviteId: "inviteid0", Name: "z-z-" + model.NewId() + "a", Email: "success+" + model.NewId() + "@simulator.amazonses.com", Type: model.TEAM_OPEN}
+	team, _ = Client.CreateTeam(team)
+
+	assert.NotEqual(t, team.InviteId, "")
+	assert.NotEqual(t, team.InviteId, "inviteid0")
+
+	rteam, resp := Client.RegenerateTeamInviteId(team.Id)
+	CheckNoError(t, resp)
+
+	assert.NotEqual(t, team.InviteId, rteam.InviteId)
+	assert.NotEqual(t, team.InviteId, "")
 }
 
 func TestSoftDeleteTeam(t *testing.T) {
@@ -1916,52 +1933,82 @@ func TestUpdateTeamMemberSchemeRoles(t *testing.T) {
 	s1 := &model.SchemeRoles{
 		SchemeAdmin: false,
 		SchemeUser:  false,
+		SchemeGuest: false,
 	}
 	_, r1 := SystemAdminClient.UpdateTeamMemberSchemeRoles(th.BasicTeam.Id, th.BasicUser.Id, s1)
 	CheckNoError(t, r1)
 
 	tm1, rtm1 := SystemAdminClient.GetTeamMember(th.BasicTeam.Id, th.BasicUser.Id, "")
 	CheckNoError(t, rtm1)
+	assert.Equal(t, false, tm1.SchemeGuest)
 	assert.Equal(t, false, tm1.SchemeUser)
 	assert.Equal(t, false, tm1.SchemeAdmin)
 
 	s2 := &model.SchemeRoles{
 		SchemeAdmin: false,
 		SchemeUser:  true,
+		SchemeGuest: false,
 	}
 	_, r2 := SystemAdminClient.UpdateTeamMemberSchemeRoles(th.BasicTeam.Id, th.BasicUser.Id, s2)
 	CheckNoError(t, r2)
 
 	tm2, rtm2 := SystemAdminClient.GetTeamMember(th.BasicTeam.Id, th.BasicUser.Id, "")
 	CheckNoError(t, rtm2)
+	assert.Equal(t, false, tm2.SchemeGuest)
 	assert.Equal(t, true, tm2.SchemeUser)
 	assert.Equal(t, false, tm2.SchemeAdmin)
 
 	s3 := &model.SchemeRoles{
 		SchemeAdmin: true,
 		SchemeUser:  false,
+		SchemeGuest: false,
 	}
 	_, r3 := SystemAdminClient.UpdateTeamMemberSchemeRoles(th.BasicTeam.Id, th.BasicUser.Id, s3)
 	CheckNoError(t, r3)
 
 	tm3, rtm3 := SystemAdminClient.GetTeamMember(th.BasicTeam.Id, th.BasicUser.Id, "")
 	CheckNoError(t, rtm3)
+	assert.Equal(t, false, tm3.SchemeGuest)
 	assert.Equal(t, false, tm3.SchemeUser)
 	assert.Equal(t, true, tm3.SchemeAdmin)
 
 	s4 := &model.SchemeRoles{
 		SchemeAdmin: true,
 		SchemeUser:  true,
+		SchemeGuest: false,
 	}
 	_, r4 := SystemAdminClient.UpdateTeamMemberSchemeRoles(th.BasicTeam.Id, th.BasicUser.Id, s4)
 	CheckNoError(t, r4)
 
 	tm4, rtm4 := SystemAdminClient.GetTeamMember(th.BasicTeam.Id, th.BasicUser.Id, "")
 	CheckNoError(t, rtm4)
+	assert.Equal(t, false, tm4.SchemeGuest)
 	assert.Equal(t, true, tm4.SchemeUser)
 	assert.Equal(t, true, tm4.SchemeAdmin)
 
-	_, resp := SystemAdminClient.UpdateTeamMemberSchemeRoles(model.NewId(), th.BasicUser.Id, s4)
+	s5 := &model.SchemeRoles{
+		SchemeAdmin: false,
+		SchemeUser:  false,
+		SchemeGuest: true,
+	}
+	_, r5 := SystemAdminClient.UpdateTeamMemberSchemeRoles(th.BasicTeam.Id, th.BasicUser.Id, s5)
+	CheckNoError(t, r5)
+
+	tm5, rtm5 := SystemAdminClient.GetTeamMember(th.BasicTeam.Id, th.BasicUser.Id, "")
+	CheckNoError(t, rtm5)
+	assert.Equal(t, true, tm5.SchemeGuest)
+	assert.Equal(t, false, tm5.SchemeUser)
+	assert.Equal(t, false, tm5.SchemeAdmin)
+
+	s6 := &model.SchemeRoles{
+		SchemeAdmin: false,
+		SchemeUser:  true,
+		SchemeGuest: true,
+	}
+	_, resp := SystemAdminClient.UpdateTeamMemberSchemeRoles(th.BasicTeam.Id, th.BasicUser.Id, s6)
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = SystemAdminClient.UpdateTeamMemberSchemeRoles(model.NewId(), th.BasicUser.Id, s4)
 	CheckNotFoundStatus(t, resp)
 
 	_, resp = SystemAdminClient.UpdateTeamMemberSchemeRoles(th.BasicTeam.Id, model.NewId(), s4)

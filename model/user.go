@@ -4,6 +4,7 @@
 package model
 
 import (
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -118,6 +119,22 @@ type UserForIndexing struct {
 	ChannelsIds []string `json:"channel_id"`
 }
 
+type ViewUsersRestrictions struct {
+	Teams    []string
+	Channels []string
+}
+
+func (r *ViewUsersRestrictions) Hash() string {
+	if r == nil {
+		return ""
+	}
+	ids := append(r.Teams, r.Channels...)
+	sort.Strings(ids)
+	hash := sha256.New()
+	hash.Write([]byte(strings.Join(ids, "")))
+	return fmt.Sprintf("%x", hash.Sum(nil))
+}
+
 type UserSlice []*User
 
 func (u UserSlice) Usernames() []string {
@@ -135,6 +152,19 @@ func (u UserSlice) IDs() []string {
 		ids = append(ids, user.Id)
 	}
 	return ids
+}
+
+func (u UserSlice) FilterByActive(active bool) UserSlice {
+	var matches []*User
+
+	for _, user := range u {
+		if user.DeleteAt == 0 && active {
+			matches = append(matches, user)
+		} else if user.DeleteAt != 0 && !active {
+			matches = append(matches, user)
+		}
+	}
+	return UserSlice(matches)
 }
 
 func (u UserSlice) FilterByID(ids []string) UserSlice {
@@ -533,6 +563,12 @@ func IsValidUserRoles(userRoles string) bool {
 	}
 
 	return true
+}
+
+// Make sure you acually want to use this function. In context.go there are functions to check permissions
+// This function should not be used to check permissions.
+func (u *User) IsGuest() bool {
+	return IsInRole(u.Roles, SYSTEM_GUEST_ROLE_ID)
 }
 
 // Make sure you acually want to use this function. In context.go there are functions to check permissions

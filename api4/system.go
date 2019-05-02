@@ -36,6 +36,8 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.ApiRoot.Handle("/analytics/old", api.ApiSessionRequired(getAnalytics)).Methods("GET")
 
 	api.BaseRoutes.ApiRoot.Handle("/redirect_location", api.ApiSessionRequiredTrustRequester(getRedirectLocation)).Methods("GET")
+
+	api.BaseRoutes.ApiRoot.Handle("/notifications/ack", api.ApiSessionRequired(pushNotificationAck)).Methods("POST")
 }
 
 func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -315,5 +317,30 @@ func getRedirectLocation(c *Context, w http.ResponseWriter, r *http.Request) {
 	m["location"] = location
 
 	w.Write([]byte(model.MapToJson(m)))
+	return
+}
+
+func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
+	ack := model.PushNotificationAckFromJson(r.Body)
+
+	if !*c.App.Config().EmailSettings.SendPushNotifications {
+		c.Err = model.NewAppError("pushNotificationAck", "api.push_notification.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	err := c.App.SendAckToPushProxy(ack)
+	if err != nil {
+		c.Err = model.NewAppError("pushNotificationAck", "api.push_notifications_ack.forward.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	mlog.Debug("Push notification ack received",
+		mlog.String("ackId", ack.Id),
+		mlog.String("platform", ack.ClientPlatform),
+		mlog.String("type", ack.NotificationType),
+		mlog.Int64("at", ack.ClientReceivedAt),
+	)
+
+	ReturnStatusOK(w)
 	return
 }

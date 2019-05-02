@@ -283,8 +283,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 
 		inviteId := th.BasicTeam.InviteId
 
-		th.BasicTeam.InviteId = model.NewId()
-		_, resp := th.SystemAdminClient.UpdateTeam(th.BasicTeam)
+		_, resp := th.SystemAdminClient.RegenerateTeamInviteId(th.BasicTeam.Id)
 		CheckNoError(t, resp)
 
 		_, resp = th.Client.CreateUserWithInviteId(&user, inviteId)
@@ -319,7 +318,9 @@ func TestCreateUserWithInviteId(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = false })
 
-		inviteId := th.BasicTeam.InviteId
+		team, res := th.SystemAdminClient.RegenerateTeamInviteId(th.BasicTeam.Id)
+		assert.Nil(t, res.Error)
+		inviteId := team.InviteId
 
 		ruser, resp := th.Client.CreateUserWithInviteId(&user, inviteId)
 		CheckNoError(t, resp)
@@ -524,7 +525,7 @@ func TestGetBotUser(t *testing.T) {
 	defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
 	th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
-	th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+	th.App.UpdateUserRoles(th.BasicUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.TEAM_USER_ROLE_ID, false)
 
 	bot := &model.Bot{
 		Username:    GenerateTestUsername(),
@@ -537,6 +538,7 @@ func TestGetBotUser(t *testing.T) {
 	defer th.App.PermanentDeleteBot(createdBot.UserId)
 
 	botUser, resp := th.Client.GetUser(createdBot.UserId, "")
+	CheckNoError(t, resp)
 	require.Equal(t, bot.Username, botUser.Username)
 	require.True(t, botUser.IsBot)
 }

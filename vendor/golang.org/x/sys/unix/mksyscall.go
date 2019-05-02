@@ -153,6 +153,11 @@ func main() {
 			}
 			funct, inps, outps, sysname := f[2], f[3], f[4], f[5]
 
+			// ClockGettime doesn't have a syscall number on Darwin, only generate libc wrappers.
+			if goos == "darwin" && !libc && funct == "ClockGettime" {
+				continue
+			}
+
 			// Split argument lists on comma.
 			in := parseParamList(inps)
 			out := parseParamList(outps)

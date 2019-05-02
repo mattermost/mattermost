@@ -1,6 +1,6 @@
 /*
- * Minio Go Library for Amazon S3 Compatible Cloud Storage
- * (C) 2018 Minio, Inc.
+ * MinIO Go Library for Amazon S3 Compatible Cloud Storage
+ * (C) 2018 MinIO, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,19 +90,19 @@ type ParquetInputOptions struct{}
 type CSVInputOptions struct {
 	FileHeaderInfo       CSVFileHeaderInfo
 	RecordDelimiter      string
-	FieldDelimiter       string
-	QuoteCharacter       string
-	QuoteEscapeCharacter string
-	Comments             string
+	FieldDelimiter       string `xml:",omitempty"`
+	QuoteCharacter       string `xml:",omitempty"`
+	QuoteEscapeCharacter string `xml:",omitempty"`
+	Comments             string `xml:",omitempty"`
 }
 
 // CSVOutputOptions csv output specific options
 type CSVOutputOptions struct {
-	QuoteFields          CSVQuoteFields
+	QuoteFields          CSVQuoteFields `xml:",omitempty"`
 	RecordDelimiter      string
-	FieldDelimiter       string
-	QuoteCharacter       string
-	QuoteEscapeCharacter string
+	FieldDelimiter       string `xml:",omitempty"`
+	QuoteCharacter       string `xml:",omitempty"`
+	QuoteEscapeCharacter string `xml:",omitempty"`
 }
 
 // JSONInputOptions json input specific options
@@ -325,7 +325,7 @@ func (s *SelectResults) start(pipeWriter *io.PipeWriter) {
 
 			switch m {
 			case errorMsg:
-				pipeWriter.CloseWithError(errors.New("Error Type of " + headers.Get("error-type") + " " + headers.Get("error-message")))
+				pipeWriter.CloseWithError(errors.New(headers.Get("error-code") + ":\"" + headers.Get("error-message") + "\""))
 				closeResponse(s.resp)
 				return
 			case commonMsg:
