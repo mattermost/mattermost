@@ -459,7 +459,7 @@ func TestResctrictedViewMembers(t *testing.T) {
 				"without restrictions team1",
 				nil,
 				team1.Id,
-				[]string{user2.Id, user4.Id},
+				[]string{user1.Id, user2.Id, user4.Id},
 			},
 			{
 				"without restrictions team2",
@@ -473,7 +473,7 @@ func TestResctrictedViewMembers(t *testing.T) {
 					Teams: []string{team1.Id},
 				},
 				team1.Id,
-				[]string{user2.Id, user4.Id},
+				[]string{user1.Id, user2.Id, user4.Id},
 			},
 			{
 				"with team restrictions with invalid team",
@@ -512,13 +512,21 @@ func TestResctrictedViewMembers(t *testing.T) {
 
 		for _, tc := range testCases {
 			t.Run(tc.Name, func(t *testing.T) {
-				results, err := th.App.GetRecentlyActiveUsersForTeamPage(tc.TeamId, 0, 2, false, tc.Restrictions)
+				results, err := th.App.GetRecentlyActiveUsersForTeamPage(tc.TeamId, 0, 3, false, tc.Restrictions)
 				require.Nil(t, err)
 				ids := []string{}
 				for _, result := range results {
 					ids = append(ids, result.Id)
 				}
 				assert.ElementsMatch(t, tc.ExpectedResults, ids)
+
+				results, err = th.App.GetRecentlyActiveUsersForTeamPage(tc.TeamId, 0, 1, false, tc.Restrictions)
+				require.Nil(t, err)
+				if len(tc.ExpectedResults) > 1 {
+					assert.Len(t, results, 1)
+				} else {
+					assert.Len(t, results, len(tc.ExpectedResults))
+				}
 			})
 		}
 	})
