@@ -404,7 +404,7 @@ type WebhookStore interface {
 	UpdateOutgoing(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError)
 
 	AnalyticsIncomingCount(teamId string) (int64, *model.AppError)
-	AnalyticsOutgoingCount(teamId string) StoreChannel
+	AnalyticsOutgoingCount(teamId string) (int64, *model.AppError)
 	InvalidateWebhookCache(webhook string)
 	ClearCaches()
 }

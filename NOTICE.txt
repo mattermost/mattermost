@@ -88,7 +88,7 @@ THE SOFTWARE.
 
 This product contains 'gziphandler' by The New York Times.
 
-Golang middleware to gzip HTTP responses
+Go middleware to gzip HTTP responses
 
 * HOMEPAGE:
   * https://github.com/NYTimes/gziphandler
@@ -2393,9 +2393,9 @@ SOFTWARE.
 
 ## minio/minio-go
 
-This product contains 'minio-go' by Minio Cloud Storage.
+This product contains 'minio-go' by Object Storage for AI.
 
-Minio Client SDK for Go
+MinIO Client SDK for Go
 
 * HOMEPAGE:
   * https://github.com/minio/minio-go
@@ -2608,18 +2608,18 @@ Minio Client SDK for Go
 * This package includes the following NOTICE:
 
 minio-go
-Copyright 2015-2017 Minio, Inc.
+Copyright 2015-2017 MinIO, Inc.
 
 ---
 
 ## nicksnyder/go-i18n
 
-This product contains 'go-i18n' by Nick Snyder.
+This product contains 'go-i18n' by Mattermost, modified (forked) from original GitHub repo 'nicksnyder/go-i18n' owned by Nick Snyder.
 
 Translate your Go program into multiple languages.
 
 * HOMEPAGE:
-  * https://github.com/nicksnyder/go-i18n
+  * https://github.com/mattermost/go-i18n
 
 * LICENSE: MIT
 
