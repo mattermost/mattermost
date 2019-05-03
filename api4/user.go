@@ -1874,7 +1874,7 @@ func demoteUserToGuest(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if c.App.License() == nil {
-		c.Err = model.NewAppError("Api4.demoteUserToGuest", "api.team.promote_guest_to_user.license.error", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("Api4.demoteUserToGuest", "api.team.demote_user_to_guest.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}
 

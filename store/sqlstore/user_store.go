@@ -1695,7 +1695,7 @@ func (us SqlUserStore) PromoteGuestToUser(userId string) *model.AppError {
 		return model.NewAppError("SqlUserStore.PromoteGuestToUser", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	if _, err := transaction.Exec(queryString, args...); err != nil {
+	if _, err = transaction.Exec(queryString, args...); err != nil {
 		return model.NewAppError("SqlUserStore.PromoteGuestToUser", "store.sql_user.promote_guest.user_update.app_error", nil, "user_id="+userId, http.StatusInternalServerError)
 	}
 
@@ -1713,7 +1713,7 @@ func (us SqlUserStore) PromoteGuestToUser(userId string) *model.AppError {
 		return model.NewAppError("SqlUserStore.PromoteGuestToUser", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	if _, err := transaction.Exec(queryString, args...); err != nil {
+	if _, err = transaction.Exec(queryString, args...); err != nil {
 		return model.NewAppError("SqlUserStore.PromoteGuestToUser", "store.sql_user.promote_guest.channel_members_update.app_error", nil, "user_id="+userId, http.StatusInternalServerError)
 	}
 
@@ -1777,7 +1777,7 @@ func (us SqlUserStore) DemoteUserToGuest(userId string) *model.AppError {
 		return model.NewAppError("SqlUserStore.DemoteGuestToUser", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	if _, err := transaction.Exec(queryString, args...); err != nil {
+	if _, err = transaction.Exec(queryString, args...); err != nil {
 		return model.NewAppError("SqlUserStore.DemoteGuestToUser", "store.sql_user.demote_user_to_guest.user_update.app_error", nil, "user_id="+userId, http.StatusInternalServerError)
 	}
 
@@ -1795,7 +1795,7 @@ func (us SqlUserStore) DemoteUserToGuest(userId string) *model.AppError {
 		return model.NewAppError("SqlUserStore.DemoteGuestToUser", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	if _, err := transaction.Exec(queryString, args...); err != nil {
+	if _, err = transaction.Exec(queryString, args...); err != nil {
 		return model.NewAppError("SqlUserStore.DemoteGuestToUser", "store.sql_user.demote_user_to_guest.channel_members_update.app_error", nil, "user_id="+userId, http.StatusInternalServerError)
 	}
 
