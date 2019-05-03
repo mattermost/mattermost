@@ -5811,6 +5811,10 @@
     "translation": "Unable to save the file info"
   },
   {
+    "id": "store.sql_group.app_error",
+    "translation": "failed to build query"
+  },
+  {
     "id": "store.sql_group.group_syncable_already_deleted",
     "translation": "group syncable was already deleted"
   },
