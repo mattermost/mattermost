@@ -265,7 +265,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		}
 		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, ruser.Id)
 		require.Nil(t, err)
-		require.Len(t, *members, 2)
+		assert.Len(t, *members, 2)
 	})
 
 	t.Run("invalid add a guest using a regular invite", func(t *testing.T) {
@@ -304,7 +304,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, rguest.Id)
 		require.Nil(t, err)
 		require.Len(t, *members, 1)
-		require.Equal(t, (*members)[0].ChannelId, th.BasicChannel.Id)
+		assert.Equal(t, (*members)[0].ChannelId, th.BasicChannel.Id)
 	})
 
 	t.Run("group-constrained team", func(t *testing.T) {
