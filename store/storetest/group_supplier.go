@@ -4,7 +4,6 @@
 package storetest
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 
@@ -1792,6 +1791,7 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 		{
 			Name:    "Get the two Groups for Team1",
 			TeamId:  team1.Id,
+			Opts:    model.GroupSearchOpts{},
 			Page:    0,
 			PerPage: 60,
 			Result:  []*model.Group{group1, group2},
@@ -1799,6 +1799,7 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 		{
 			Name:    "Get first Group for Team1 with page 0 with 1 element",
 			TeamId:  team1.Id,
+			Opts:    model.GroupSearchOpts{},
 			Page:    0,
 			PerPage: 1,
 			Result:  []*model.Group{group1},
@@ -1806,6 +1807,7 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 		{
 			Name:    "Get second Group for Team1 with page 1 with 1 element",
 			TeamId:  team1.Id,
+			Opts:    model.GroupSearchOpts{},
 			Page:    1,
 			PerPage: 1,
 			Result:  []*model.Group{group2},
@@ -1813,6 +1815,7 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 		{
 			Name:    "Get third Group for Team2",
 			TeamId:  team2.Id,
+			Opts:    model.GroupSearchOpts{},
 			Page:    0,
 			PerPage: 60,
 			Result:  []*model.Group{group3},
@@ -1820,6 +1823,7 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 		{
 			Name:    "Get empty Groups for a fake id",
 			TeamId:  model.NewId(),
+			Opts:    model.GroupSearchOpts{},
 			Page:    0,
 			PerPage: 60,
 			Result:  []*model.Group{},
@@ -1860,14 +1864,15 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			if tc.Opts.PageOpts != nil {
-				tc.Opts.PageOpts.Page = tc.Page
-				tc.Opts.PageOpts.PerPage = tc.PerPage
+			if tc.Opts.PageOpts == nil {
+				tc.Opts.PageOpts = &model.PageOpts{}
 			}
+			tc.Opts.PageOpts.Page = tc.Page
+			tc.Opts.PageOpts.PerPage = tc.PerPage
 			res := <-ss.Group().GetGroupsByTeam(tc.TeamId, tc.Opts)
 			require.Nil(t, res.Err)
 			groups := res.Data.([]*model.Group)
-			require.ElementsMatch(t, tc.Result, groups, fmt.Sprintf("Test %q failed", tc.Name))
+			require.ElementsMatch(t, tc.Result, groups)
 		})
 	}
 }
@@ -1966,78 +1971,126 @@ func testGetGroups(t *testing.T, ss store.Store) {
 	group2WithMemberCount := model.Group(*group2)
 	group2WithMemberCount.MemberCount = model.NewInt(0)
 
+	group2NameSubstring := string([]rune(group2.Name)[2:5])
+
 	testCases := []struct {
 		Name    string
 		Page    int
 		PerPage int
 		Opts    model.GroupSearchOpts
-		Result  []*model.Group
+		Resultf func([]*model.Group) bool
 	}{
 		{
 			Name:    "Get all the Groups",
+			Opts:    model.GroupSearchOpts{},
 			Page:    0,
-			PerPage: 60,
-			Result:  []*model.Group{group1, group2, group3},
+			PerPage: 3,
+			Resultf: func(groups []*model.Group) bool { return len(groups) == 3 },
 		},
 		{
 			Name:    "Get first Group with page 0 with 1 element",
+			Opts:    model.GroupSearchOpts{},
 			Page:    0,
 			PerPage: 1,
-			Result:  []*model.Group{group1},
+			Resultf: func(groups []*model.Group) bool { return len(groups) == 1 },
 		},
 		{
-			Name:    "Get second Group with page 1 with 1 element",
+			Name:    "Get single result from page 1",
+			Opts:    model.GroupSearchOpts{},
 			Page:    1,
 			PerPage: 1,
-			Result:  []*model.Group{group2},
+			Resultf: func(groups []*model.Group) bool { return len(groups) == 1 },
 		},
 		{
-			Name:    "Get third Group",
+			Name:    "Get multiple results from page 1",
+			Opts:    model.GroupSearchOpts{},
 			Page:    1,
 			PerPage: 2,
-			Result:  []*model.Group{group3},
+			Resultf: func(groups []*model.Group) bool { return len(groups) == 2 },
 		},
 		{
 			Name:    "Get group matching name",
-			Opts:    model.GroupSearchOpts{Q: string([]rune(group2.Name)[2:20])}, // very low change of a name collision
+			Opts:    model.GroupSearchOpts{Q: group2NameSubstring},
 			Page:    0,
 			PerPage: 100,
-			Result:  []*model.Group{group2},
+			Resultf: func(groups []*model.Group) bool {
+				for _, g := range groups {
+					if !strings.Contains(g.Name, group2NameSubstring) {
+						return false
+					}
+				}
+				return true
+			},
 		},
 		{
 			Name:    "Get group matching display name",
 			Opts:    model.GroupSearchOpts{Q: "rouP-3"},
 			Page:    0,
 			PerPage: 100,
-			Result:  []*model.Group{group3},
+			Resultf: func(groups []*model.Group) bool {
+				for _, g := range groups {
+					if !strings.Contains(strings.ToLower(g.DisplayName), "roup-3") {
+						return false
+					}
+				}
+				return true
+			},
 		},
 		{
 			Name:    "Get group matching multiple display names",
 			Opts:    model.GroupSearchOpts{Q: "groUp"},
 			Page:    0,
 			PerPage: 100,
-			Result:  []*model.Group{group1, group2, group3},
+			Resultf: func(groups []*model.Group) bool {
+				for _, g := range groups {
+					if !strings.Contains(strings.ToLower(g.DisplayName), "group") {
+						return false
+					}
+				}
+				return true
+			},
 		},
 		{
 			Name:    "Include member counts",
 			Opts:    model.GroupSearchOpts{IncludeMemberCount: true},
 			Page:    0,
 			PerPage: 2,
-			Result:  []*model.Group{&group1WithMemberCount, &group2WithMemberCount},
+			Resultf: func(groups []*model.Group) bool {
+				for _, g := range groups {
+					if g.MemberCount == nil {
+						return false
+					}
+				}
+				return true
+			},
 		},
 		{
 			Name:    "Not associated to team",
 			Opts:    model.GroupSearchOpts{NotAssociatedToTeam: team2.Id},
 			Page:    0,
 			PerPage: 100,
-			Result:  []*model.Group{group1, group2},
+			Resultf: func(groups []*model.Group) bool {
+				for _, g := range groups {
+					if g.Id == group3.Id {
+						return false
+					}
+				}
+				return true
+			},
 		},
 		{
 			Name:    "Not associated to other team",
 			Opts:    model.GroupSearchOpts{NotAssociatedToTeam: team1.Id},
 			Page:    0,
 			PerPage: 100,
-			Result:  []*model.Group{group3},
+			Resultf: func(groups []*model.Group) bool {
+				for _, g := range groups {
+					if g.Id == group1.Id || g.Id == group2.Id {
+						return false
+					}
+				}
+				return true
+			},
 		},
 	}
 
@@ -2046,7 +2099,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 			res := <-ss.Group().GetGroups(tc.Page, tc.PerPage, tc.Opts)
 			require.Nil(t, res.Err)
 			groups := res.Data.([]*model.Group)
-			require.ElementsMatch(t, tc.Result, groups, fmt.Sprintf("Test %q failed", tc.Name))
+			require.True(t, tc.Resultf(groups))
 		})
 	}
 }
