@@ -2427,28 +2427,49 @@ func TestAttachDeviceId(t *testing.T) {
 	defer th.TearDown()
 
 	deviceId := model.PUSH_NOTIFY_APPLE + ":1234567890"
-	pass, resp := th.Client.AttachDeviceId(deviceId)
-	CheckNoError(t, resp)
 
-	if !pass {
-		t.Fatal("should have passed")
-	}
-
-	if sessions, err := th.App.GetSessions(th.BasicUser.Id); err != nil {
-		t.Fatal(err)
-	} else {
-		if sessions[0].DeviceId != deviceId {
-			t.Fatal("Missing device Id")
+	t.Run("success", func(t *testing.T) {
+		testCases := []struct {
+			Description                   string
+			SiteURL                       string
+			ExpectedSetCookieHeaderRegexp string
+		}{
+			{"no subpath", "http://localhost:8065", "^MMAUTHTOKEN=[a-z0-9]+; Path=/"},
+			{"subpath", "http://localhost:8065/subpath", "^MMAUTHTOKEN=[a-z0-9]+; Path=/subpath"},
 		}
-	}
 
-	_, resp = th.Client.AttachDeviceId("")
-	CheckBadRequestStatus(t, resp)
+		for _, tc := range testCases {
+			t.Run(tc.Description, func(t *testing.T) {
 
-	th.Client.Logout()
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					*cfg.ServiceSettings.SiteURL = tc.SiteURL
+				})
 
-	_, resp = th.Client.AttachDeviceId("")
-	CheckUnauthorizedStatus(t, resp)
+				pass, resp := th.Client.AttachDeviceId(deviceId)
+				CheckNoError(t, resp)
+
+				cookies := resp.Header.Get("Set-Cookie")
+				assert.Regexp(t, tc.ExpectedSetCookieHeaderRegexp, cookies)
+				assert.True(t, pass)
+
+				sessions, err := th.App.GetSessions(th.BasicUser.Id)
+				require.Nil(t, err)
+				assert.Equal(t, deviceId, sessions[0].DeviceId, "Missing device Id")
+			})
+		}
+	})
+
+	t.Run("invalid device id", func(t *testing.T) {
+		_, resp := th.Client.AttachDeviceId("")
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("not logged in", func(t *testing.T) {
+		th.Client.Logout()
+
+		_, resp := th.Client.AttachDeviceId("")
+		CheckUnauthorizedStatus(t, resp)
+	})
 }
 
 func TestGetUserAudits(t *testing.T) {
@@ -2671,6 +2692,36 @@ func TestLogin(t *testing.T) {
 		assert.Equal(t, user.TermsOfServiceId, userTermsOfService.TermsOfServiceId)
 		assert.Equal(t, user.TermsOfServiceCreateAt, userTermsOfService.CreateAt)
 	})
+}
+
+func TestLoginCookies(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	th.Client.Logout()
+
+	testCases := []struct {
+		Description                   string
+		SiteURL                       string
+		ExpectedSetCookieHeaderRegexp string
+	}{
+		{"no subpath", "http://localhost:8065", "^MMAUTHTOKEN=[a-z0-9]+; Path=/"},
+		{"subpath", "http://localhost:8065/subpath", "^MMAUTHTOKEN=[a-z0-9]+; Path=/subpath"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Description, func(t *testing.T) {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ServiceSettings.SiteURL = tc.SiteURL
+			})
+
+			user, resp := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+			CheckNoError(t, resp)
+			assert.Equal(t, user.Id, th.BasicUser.Id)
+
+			cookies := resp.Header.Get("Set-Cookie")
+			assert.Regexp(t, tc.ExpectedSetCookieHeaderRegexp, cookies)
+		})
+	}
 }
 
 func TestCBALogin(t *testing.T) {
