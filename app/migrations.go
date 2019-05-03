@@ -129,7 +129,7 @@ func (a *App) DoEmojisPermissionsMigration() {
 
 	if role != nil {
 		role.Permissions = append(role.Permissions, model.PERMISSION_CREATE_EMOJIS.Id, model.PERMISSION_DELETE_EMOJIS.Id)
-		if _, err := a.Srv.Store.Role().Save(role); err != nil {
+		if _, err = a.Srv.Store.Role().Save(role); err != nil {
 			mlog.Critical("Failed to migrate emojis creation permissions from mattermost config.")
 			mlog.Critical(err.Error())
 			return

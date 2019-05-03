@@ -91,14 +91,14 @@ func (s *SqlSupplier) RoleSave(ctx context.Context, role *model.Role, hints ...s
 			return nil, model.NewAppError("SqlRoleStore.RoleSave", "store.sql_role.save.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 		defer finalizeTransaction(transaction)
-		role, appErr := s.createRole(ctx, role, transaction, hints...)
+		createdRole, appErr := s.createRole(ctx, role, transaction, hints...)
 		if appErr != nil {
 			transaction.Rollback()
 			return nil, appErr
 		} else if err := transaction.Commit(); err != nil {
 			return nil, model.NewAppError("SqlRoleStore.RoleSave", "store.sql_role.save_role.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
-		return role, nil
+		return createdRole, nil
 	}
 
 	dbRole := NewRoleFromModel(role)
