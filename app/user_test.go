@@ -583,7 +583,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			TOKEN_TYPE_TEAM_INVITATION,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
-		token.CreateAt = model.GetMillis() - TEAM_INVITATION_EXPIRY_TIME - 1
+		token.CreateAt = model.GetMillis() - INVITATION_EXPIRY_TIME - 1
 		<-th.App.Srv.Store.Token().Save(token)
 		defer th.App.DeleteToken(token)
 		if _, err := th.App.CreateUserWithToken(&user, token.Token); err == nil {
