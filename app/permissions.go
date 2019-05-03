@@ -58,9 +58,7 @@ func (a *App) ResetPermissionsSystem() *model.AppError {
 	}
 
 	// Now that the permissions system has been reset, re-run the migration to reinitialise it.
-	a.DoAdvancedPermissionsMigration()
-	a.DoEmojisPermissionsMigration()
-	a.DoPermissionsMigrations()
+	a.DoAppMigrations()
 
 	return nil
 }
@@ -77,8 +75,10 @@ func (a *App) ExportPermissions(w io.Writer) error {
 			roleNames := []string{
 				scheme.DefaultTeamAdminRole,
 				scheme.DefaultTeamUserRole,
+				scheme.DefaultTeamGuestRole,
 				scheme.DefaultChannelAdminRole,
 				scheme.DefaultChannelUserRole,
+				scheme.DefaultChannelGuestRole,
 			}
 
 			roles := []*model.Role{}
@@ -100,8 +100,10 @@ func (a *App) ExportPermissions(w io.Writer) error {
 				Scope:        scheme.Scope,
 				TeamAdmin:    scheme.DefaultTeamAdminRole,
 				TeamUser:     scheme.DefaultTeamUserRole,
+				TeamGuest:    scheme.DefaultTeamGuestRole,
 				ChannelAdmin: scheme.DefaultChannelAdminRole,
 				ChannelUser:  scheme.DefaultChannelUserRole,
+				ChannelGuest: scheme.DefaultChannelGuestRole,
 				Roles:        roles,
 			})
 			if err != nil {
@@ -186,8 +188,10 @@ func (a *App) ImportPermissions(jsonl io.Reader) error {
 		roleNameTuples := [][]string{
 			{schemeCreated.DefaultTeamAdminRole, schemeIn.DefaultTeamAdminRole},
 			{schemeCreated.DefaultTeamUserRole, schemeIn.DefaultTeamUserRole},
+			{schemeCreated.DefaultTeamGuestRole, schemeIn.DefaultTeamGuestRole},
 			{schemeCreated.DefaultChannelAdminRole, schemeIn.DefaultChannelAdminRole},
 			{schemeCreated.DefaultChannelUserRole, schemeIn.DefaultChannelUserRole},
+			{schemeCreated.DefaultChannelGuestRole, schemeIn.DefaultChannelGuestRole},
 		}
 		for _, roleNameTuple := range roleNameTuples {
 			if len(roleNameTuple[0]) == 0 || len(roleNameTuple[1]) == 0 {
