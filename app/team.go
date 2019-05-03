@@ -1081,7 +1081,12 @@ func (a *App) InviteGuestsToChannels(teamId string, guestsInvite *model.GuestsIn
 		return err
 	}
 
-	tchan := a.Srv.Store.Team().Get(teamId)
+	tchan := make(chan store.StoreResult, 1)
+	go func() {
+		team, err := a.Srv.Store.Team().Get(teamId)
+		tchan <- store.StoreResult{Data: team, Err: err}
+		close(tchan)
+	}()
 	cchan := a.Srv.Store.Channel().GetChannelsByIds(guestsInvite.Channels)
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
