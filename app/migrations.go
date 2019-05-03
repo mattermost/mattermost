@@ -30,27 +30,31 @@ func (a *App) DoAdvancedPermissionsMigration() {
 	allSucceeded := true
 
 	for _, role := range roles {
-		if result := <-a.Srv.Store.Role().Save(role); result.Err != nil {
-			// If this failed for reasons other than the role already existing, don't mark the migration as done.
-			if result2 := <-a.Srv.Store.Role().GetByName(role.Name); result2.Err != nil {
+		_, err := a.Srv.Store.Role().Save(role)
+		if err == nil {
+			continue
+		}
+
+		// If this failed for reasons other than the role already existing, don't mark the migration as done.
+		fetchedRole, err := a.Srv.Store.Role().GetByName(role.Name)
+		if err != nil {
+			mlog.Critical("Failed to migrate role to database.")
+			mlog.Critical(fmt.Sprint(err))
+			allSucceeded = false
+			continue
+		}
+
+		// If the role already existed, check it is the same and update if not.
+		if !reflect.DeepEqual(fetchedRole.Permissions, role.Permissions) ||
+			fetchedRole.DisplayName != role.DisplayName ||
+			fetchedRole.Description != role.Description ||
+			fetchedRole.SchemeManaged != role.SchemeManaged {
+			role.Id = fetchedRole.Id
+			if _, err = a.Srv.Store.Role().Save(role); err != nil {
+				// Role is not the same, but failed to update.
 				mlog.Critical("Failed to migrate role to database.")
-				mlog.Critical(fmt.Sprint(result.Err))
+				mlog.Critical(fmt.Sprint(err))
 				allSucceeded = false
-			} else {
-				// If the role already existed, check it is the same and update if not.
-				fetchedRole := result.Data.(*model.Role)
-				if !reflect.DeepEqual(fetchedRole.Permissions, role.Permissions) ||
-					fetchedRole.DisplayName != role.DisplayName ||
-					fetchedRole.Description != role.Description ||
-					fetchedRole.SchemeManaged != role.SchemeManaged {
-					role.Id = fetchedRole.Id
-					if result := <-a.Srv.Store.Role().Save(role); result.Err != nil {
-						// Role is not the same, but failed to update.
-						mlog.Critical("Failed to migrate role to database.")
-						mlog.Critical(fmt.Sprint(result.Err))
-						allSucceeded = false
-					}
-				}
 			}
 		}
 	}
@@ -125,9 +129,9 @@ func (a *App) DoEmojisPermissionsMigration() {
 
 	if role != nil {
 		role.Permissions = append(role.Permissions, model.PERMISSION_CREATE_EMOJIS.Id, model.PERMISSION_DELETE_EMOJIS.Id)
-		if result := <-a.Srv.Store.Role().Save(role); result.Err != nil {
+		if _, err := a.Srv.Store.Role().Save(role); err != nil {
 			mlog.Critical("Failed to migrate emojis creation permissions from mattermost config.")
-			mlog.Critical(result.Err.Error())
+			mlog.Critical(err.Error())
 			return
 		}
 	}
@@ -141,9 +145,9 @@ func (a *App) DoEmojisPermissionsMigration() {
 
 	systemAdminRole.Permissions = append(systemAdminRole.Permissions, model.PERMISSION_CREATE_EMOJIS.Id, model.PERMISSION_DELETE_EMOJIS.Id)
 	systemAdminRole.Permissions = append(systemAdminRole.Permissions, model.PERMISSION_DELETE_OTHERS_EMOJIS.Id)
-	if result := <-a.Srv.Store.Role().Save(systemAdminRole); result.Err != nil {
+	if _, err := a.Srv.Store.Role().Save(systemAdminRole); err != nil {
 		mlog.Critical("Failed to migrate emojis creation permissions from mattermost config.")
-		mlog.Critical(result.Err.Error())
+		mlog.Critical(err.Error())
 		return
 	}
 
@@ -167,24 +171,24 @@ func (a *App) DoGuestRolesCreationMigration() {
 	roles := model.MakeDefaultRoles()
 
 	allSucceeded := true
-	if result := <-a.Srv.Store.Role().GetByName(model.CHANNEL_GUEST_ROLE_ID); result.Err != nil {
-		if result := <-a.Srv.Store.Role().Save(roles[model.CHANNEL_GUEST_ROLE_ID]); result.Err != nil {
+	if _, err := a.Srv.Store.Role().GetByName(model.CHANNEL_GUEST_ROLE_ID); err != nil {
+		if _, err := a.Srv.Store.Role().Save(roles[model.CHANNEL_GUEST_ROLE_ID]); err != nil {
 			mlog.Critical("Failed to create new guest role to database.")
-			mlog.Critical(fmt.Sprint(result.Err))
+			mlog.Critical(fmt.Sprint(err))
 			allSucceeded = false
 		}
 	}
-	if result := <-a.Srv.Store.Role().GetByName(model.TEAM_GUEST_ROLE_ID); result.Err != nil {
-		if result := <-a.Srv.Store.Role().Save(roles[model.TEAM_GUEST_ROLE_ID]); result.Err != nil {
+	if _, err := a.Srv.Store.Role().GetByName(model.TEAM_GUEST_ROLE_ID); err != nil {
+		if _, err := a.Srv.Store.Role().Save(roles[model.TEAM_GUEST_ROLE_ID]); err != nil {
 			mlog.Critical("Failed to create new guest role to database.")
-			mlog.Critical(fmt.Sprint(result.Err))
+			mlog.Critical(fmt.Sprint(err))
 			allSucceeded = false
 		}
 	}
-	if result := <-a.Srv.Store.Role().GetByName(model.SYSTEM_GUEST_ROLE_ID); result.Err != nil {
-		if result := <-a.Srv.Store.Role().Save(roles[model.SYSTEM_GUEST_ROLE_ID]); result.Err != nil {
+	if _, err := a.Srv.Store.Role().GetByName(model.SYSTEM_GUEST_ROLE_ID); err != nil {
+		if _, err := a.Srv.Store.Role().Save(roles[model.SYSTEM_GUEST_ROLE_ID]); err != nil {
 			mlog.Critical("Failed to create new guest role to database.")
-			mlog.Critical(fmt.Sprint(result.Err))
+			mlog.Critical(fmt.Sprint(err))
 			allSucceeded = false
 		}
 	}
@@ -206,12 +210,12 @@ func (a *App) DoGuestRolesCreationMigration() {
 				SchemeManaged: true,
 			}
 
-			if saveRoleResult := <-a.Srv.Store.Role().Save(teamGuestRole); saveRoleResult.Err != nil {
+			if savedRole, err := a.Srv.Store.Role().Save(teamGuestRole); err != nil {
 				mlog.Critical("Failed to create new guest role for custom scheme.")
-				mlog.Critical(fmt.Sprint(saveRoleResult.Err))
+				mlog.Critical(fmt.Sprint(err))
 				allSucceeded = false
 			} else {
-				scheme.DefaultTeamGuestRole = saveRoleResult.Data.(*model.Role).Name
+				scheme.DefaultTeamGuestRole = savedRole.Name
 			}
 
 			// Channel Guest Role
@@ -222,12 +226,12 @@ func (a *App) DoGuestRolesCreationMigration() {
 				SchemeManaged: true,
 			}
 
-			if saveRoleResult := <-a.Srv.Store.Role().Save(channelGuestRole); saveRoleResult.Err != nil {
+			if savedRole, err := a.Srv.Store.Role().Save(channelGuestRole); err != nil {
 				mlog.Critical("Failed to create new guest role for custom scheme.")
-				mlog.Critical(fmt.Sprint(saveRoleResult.Err))
+				mlog.Critical(fmt.Sprint(err))
 				allSucceeded = false
 			} else {
-				scheme.DefaultChannelGuestRole = saveRoleResult.Data.(*model.Role).Name
+				scheme.DefaultChannelGuestRole = savedRole.Name
 			}
 
 			result := <-a.Srv.Store.Scheme().Save(scheme)
