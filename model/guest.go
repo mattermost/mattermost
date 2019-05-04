@@ -46,3 +46,8 @@ func GuestsInviteFromJson(data io.Reader) *GuestsInvite {
 	json.NewDecoder(data).Decode(&invite)
 	return invite
 }
+
+func (invite *GuestsInvite) ToJson() string {
+	b, _ := json.Marshal(invite)
+	return string(b)
+}
