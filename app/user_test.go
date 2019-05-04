@@ -635,19 +635,20 @@ func TestCreateUserWithToken(t *testing.T) {
 		)
 		result := <-th.App.Srv.Store.Token().Save(token)
 		require.Nil(t, result.Err)
-		newUser, err := th.App.CreateUserWithToken(&user, token.Token)
+		guest := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		newGuest, err := th.App.CreateUserWithToken(&guest, token.Token)
 		if err != nil {
 			t.Log(err)
 			t.Fatal("Should add user to the team")
 		}
-		assert.True(t, newUser.IsGuest())
-		if newUser.Email != invitationEmail {
+		assert.True(t, newGuest.IsGuest())
+		if newGuest.Email != invitationEmail {
 			t.Fatal("The user email must be the invitation one")
 		}
 		if result := <-th.App.Srv.Store.Token().GetByToken(token.Token); result.Err == nil {
 			t.Fatal("The token must be deleted after be used")
 		}
-		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, newUser.Id)
+		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, newGuest.Id)
 		require.Nil(t, err)
 		require.Len(t, *members, 1)
 		assert.Equal(t, (*members)[0].ChannelId, th.BasicChannel.Id)
