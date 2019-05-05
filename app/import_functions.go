@@ -921,7 +921,7 @@ func (a *App) ImportAttachment(data *AttachmentImportData, post *model.Post, tea
 		fileInfo, err := a.DoUploadFile(timestamp, teamId, post.ChannelId, post.UserId, file.Name(), buf.Bytes())
 
 		if err != nil {
-			fmt.Print(err)
+			mlog.Error(fmt.Sprintf("Fail to upload file: %s", err.Error()))
 			return nil, err
 		}
 
