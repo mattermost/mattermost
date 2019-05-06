@@ -33,6 +33,7 @@ func TestCreateBot(t *testing.T) {
 
 		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+		th.App.Config().ServiceSettings.CreateBotAccounts = model.NewBool(true)
 
 		bot := &model.Bot{
 			Username:    GenerateTestUsername(),
@@ -55,6 +56,7 @@ func TestCreateBot(t *testing.T) {
 
 		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+		th.App.Config().ServiceSettings.CreateBotAccounts = model.NewBool(true)
 
 		_, resp := th.Client.CreateBot(&model.Bot{
 			Username:    "username",
