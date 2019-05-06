@@ -212,6 +212,8 @@ func (me *TestHelper) InitBasic() *TestHelper {
 	me.LoginBasic()
 	me.Group = me.CreateGroup()
 
+	me.App.Config().ServiceSettings.CreateBotAccounts = model.NewBool(true)
+
 	return me
 }
 
