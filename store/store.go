@@ -594,9 +594,12 @@ type GroupStore interface {
 	TeamMembersToRemove() StoreChannel
 	ChannelMembersToRemove() StoreChannel
 
-	GetGroupsByChannel(channelId string, page, perPage int) StoreChannel
+	GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) StoreChannel
+	CountGroupsByChannel(channelId string, opts model.GroupSearchOpts) StoreChannel
+
 	GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) StoreChannel
 	CountGroupsByTeam(teamId string, opts model.GroupSearchOpts) StoreChannel
+
 	GetGroups(page, perPage int, opts model.GroupSearchOpts) StoreChannel
 }
 

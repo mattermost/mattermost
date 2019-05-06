@@ -827,32 +827,47 @@ func (s *SqlSupplier) TeamMembersToRemove(ctx context.Context, hints ...store.La
 	return result
 }
 
-func (s *SqlSupplier) GetGroupsByChannel(ctx context.Context, channelId string, page, perPage int, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+func (s *SqlSupplier) CountGroupsByChannel(ctx context.Context, channelId string, opts model.GroupSearchOpts, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	result := store.NewSupplierResult()
 
-	var groups []*model.Group
-	offset := page * perPage
-	_, err := s.GetReplica().Select(&groups, `
-		SELECT
-			ug.*
-		FROM
-			GroupChannels gc
-		LEFT JOIN
-			UserGroups ug
-		ON
-			gc.GroupId = ug.Id
-		WHERE
-            gc.DeleteAt = 0
-        AND
-			ug.DeleteAt = 0
-		AND
-			gc.ChannelId = :ChannelId
-		ORDER BY
-			ug.DisplayName
-		LIMIT :Limit
-		OFFSET :Offset`,
-		map[string]interface{}{"ChannelId": channelId, "Limit": perPage, "Offset": offset})
+	countQuery := s.groupsBySyncableBaseQuery(model.GroupSyncableTypeChannel, selectCountGroups, channelId, opts)
 
+	countQueryString, args, err := countQuery.ToSql()
+	if err != nil {
+		result.Err = model.NewAppError("SqlGroupStore.CountGroupsByChannel", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return result
+	}
+
+	count, err := s.GetReplica().SelectInt(countQueryString, args...)
+	if err != nil {
+		result.Err = model.NewAppError("SqlGroupStore.CountGroupsByChannel", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+		return result
+	}
+
+	result.Data = count
+
+	return result
+}
+
+func (s *SqlSupplier) GetGroupsByChannel(ctx context.Context, channelId string, opts model.GroupSearchOpts, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+	result := store.NewSupplierResult()
+
+	query := s.groupsBySyncableBaseQuery(model.GroupSyncableTypeChannel, selectGroups, channelId, opts)
+
+	if opts.PageOpts != nil {
+		offset := uint64(opts.PageOpts.Page * opts.PageOpts.PerPage)
+		query = query.OrderBy("ug.DisplayName").Limit(uint64(opts.PageOpts.PerPage)).Offset(offset)
+	}
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		result.Err = model.NewAppError("SqlGroupStore.GetGroupsByChannel", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return result
+	}
+
+	var groups []*model.Group
+
+	_, err = s.GetReplica().Select(&groups, queryString, args...)
 	if err != nil {
 		result.Err = model.NewAppError("SqlGroupStore.GetGroupsByChannel", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
 		return result
@@ -919,7 +934,7 @@ func (s *SqlSupplier) ChannelMembersToRemove(ctx context.Context, hints ...store
 	return result
 }
 
-func (s *SqlSupplier) groupsByTeamBaseQuery(t selectType, teamID string, opts model.GroupSearchOpts) squirrel.SelectBuilder {
+func (s *SqlSupplier) groupsBySyncableBaseQuery(st model.GroupSyncableType, t selectType, syncableID string, opts model.GroupSearchOpts) squirrel.SelectBuilder {
 	selectStrs := map[selectType]string{
 		selectGroups:      "ug.*",
 		selectCountGroups: "COUNT(*)",
@@ -927,17 +942,17 @@ func (s *SqlSupplier) groupsByTeamBaseQuery(t selectType, teamID string, opts mo
 
 	query := s.getQueryBuilder().
 		Select(selectStrs[t]).
-		From("GroupTeams gt").
+		From(fmt.Sprintf("Group%ss gt", st.String())).
 		LeftJoin("UserGroups ug ON gt.GroupId = ug.Id").
-		Where("ug.DeleteAt = 0 AND gt.TeamId = ? AND gt.DeleteAt = 0", teamID)
+		Where(fmt.Sprintf("ug.DeleteAt = 0 AND gt.%sId = ? AND gt.DeleteAt = 0", st.String()), syncableID)
 
 	if opts.IncludeMemberCount && t == selectGroups {
 		query = s.getQueryBuilder().
 			Select("ug.*, coalesce(Members.MemberCount, 0) AS MemberCount").
 			From("UserGroups ug").
 			LeftJoin("(SELECT GroupMembers.GroupId, COUNT(*) AS MemberCount FROM GroupMembers WHERE GroupMembers.DeleteAt = 0 GROUP BY GroupId) AS Members ON Members.GroupId = ug.Id").
-			LeftJoin("GroupTeams ON GroupTeams.GroupId = ug.Id").
-			Where("GroupTeams.DeleteAt = 0 AND GroupTeams.TeamId = ?", teamID).
+			LeftJoin(fmt.Sprintf("Group%[1]ss ON Group%[1]ss.GroupId = ug.Id", st.String())).
+			Where(fmt.Sprintf("Group%[1]ss.DeleteAt = 0 AND Group%[1]ss.%[1]sId = ?", st.String()), syncableID).
 			OrderBy("ug.DisplayName")
 	}
 
@@ -956,7 +971,7 @@ func (s *SqlSupplier) groupsByTeamBaseQuery(t selectType, teamID string, opts mo
 func (s *SqlSupplier) CountGroupsByTeam(ctx context.Context, teamId string, opts model.GroupSearchOpts, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	result := store.NewSupplierResult()
 
-	countQuery := s.groupsByTeamBaseQuery(selectCountGroups, teamId, opts)
+	countQuery := s.groupsBySyncableBaseQuery(model.GroupSyncableTypeTeam, selectCountGroups, teamId, opts)
 
 	countQueryString, args, err := countQuery.ToSql()
 	if err != nil {
@@ -978,7 +993,7 @@ func (s *SqlSupplier) CountGroupsByTeam(ctx context.Context, teamId string, opts
 func (s *SqlSupplier) GetGroupsByTeam(ctx context.Context, teamId string, opts model.GroupSearchOpts, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	result := store.NewSupplierResult()
 
-	query := s.groupsByTeamBaseQuery(selectGroups, teamId, opts)
+	query := s.groupsBySyncableBaseQuery(model.GroupSyncableTypeTeam, selectGroups, teamId, opts)
 
 	if opts.PageOpts != nil {
 		offset := uint64(opts.PageOpts.Page * opts.PageOpts.PerPage)
@@ -1043,6 +1058,22 @@ func (s *SqlSupplier) GetGroups(ctx context.Context, page, perPage int, opts mod
 					AND GroupTeams.TeamId = ?
 			)
 		`, opts.NotAssociatedToTeam)
+	}
+
+	if len(opts.NotAssociatedToChannel) == 26 {
+		groupsQuery = groupsQuery.Where(`
+			g.Id NOT IN (
+				SELECT 
+					Id 
+				FROM 
+					UserGroups
+					JOIN GroupChannels ON GroupChannels.GroupId = UserGroups.Id
+				WHERE 
+					GroupChannels.DeleteAt = 0
+					AND UserGroups.DeleteAt = 0
+					AND GroupChannels.ChannelId = ?
+			)
+		`, opts.NotAssociatedToChannel)
 	}
 
 	queryString, args, err := groupsQuery.ToSql()
