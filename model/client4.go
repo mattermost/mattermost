@@ -2056,6 +2056,16 @@ func (c *Client4) SearchAllChannels(search *ChannelSearch) (*ChannelListWithTeam
 	return ChannelListWithTeamDataFromJson(r.Body), BuildResponse(r)
 }
 
+// SearchGroupChannels returns the group channels of the user whose members' usernames match the search term.
+func (c *Client4) SearchGroupChannels(search *ChannelSearch) ([]*Channel, *Response) {
+	r, err := c.DoApiPost(c.GetChannelsRoute()+"/search_group", search.ToJson())
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ChannelSliceFromJson(r.Body), BuildResponse(r)
+}
+
 // DeleteChannel deletes channel based on the provided channel id string.
 func (c *Client4) DeleteChannel(channelId string) (bool, *Response) {
 	r, err := c.DoApiDelete(c.GetChannelRoute(channelId))
