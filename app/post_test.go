@@ -475,7 +475,7 @@ func TestImageProxy(t *testing.T) {
 			ProxyURL:        "https://127.0.0.1",
 			ProxyOptions:    "foo",
 			ImageURL:        "http://mydomain.com/myimage",
-			ProxiedImageURL: "https://127.0.0.1/f8dace906d23689e8d5b12c3cefbedbf7b9b72f5/687474703a2f2f6d79646f6d61696e2e636f6d2f6d79696d616765",
+			ProxiedImageURL: "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage",
 		},
 		"atmos/camo_SameSite": {
 			ProxyType:       model.IMAGE_PROXY_TYPE_ATMOS_CAMO,
@@ -671,6 +671,7 @@ func TestCreatePost(t *testing.T) {
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
 			*cfg.ExperimentalSettings.DisablePostMetadata = true
 			*cfg.ImageProxySettings.Enable = true
 			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
@@ -679,7 +680,7 @@ func TestCreatePost(t *testing.T) {
 		})
 
 		imageURL := "http://mydomain.com/myimage"
-		proxiedImageURL := "https://127.0.0.1/f8dace906d23689e8d5b12c3cefbedbf7b9b72f5/687474703a2f2f6d79646f6d61696e2e636f6d2f6d79696d616765"
+		proxiedImageURL := "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage"
 
 		post := &model.Post{
 			ChannelId: th.BasicChannel.Id,
@@ -699,6 +700,7 @@ func TestPatchPost(t *testing.T) {
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
 			*cfg.ExperimentalSettings.DisablePostMetadata = true
 			*cfg.ImageProxySettings.Enable = true
 			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
@@ -707,7 +709,7 @@ func TestPatchPost(t *testing.T) {
 		})
 
 		imageURL := "http://mydomain.com/myimage"
-		proxiedImageURL := "https://127.0.0.1/f8dace906d23689e8d5b12c3cefbedbf7b9b72f5/687474703a2f2f6d79646f6d61696e2e636f6d2f6d79696d616765"
+		proxiedImageURL := "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage"
 
 		post := &model.Post{
 			ChannelId: th.BasicChannel.Id,
@@ -748,6 +750,7 @@ func TestUpdatePost(t *testing.T) {
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
 			*cfg.ExperimentalSettings.DisablePostMetadata = true
 			*cfg.ImageProxySettings.Enable = true
 			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
@@ -756,7 +759,7 @@ func TestUpdatePost(t *testing.T) {
 		})
 
 		imageURL := "http://mydomain.com/myimage"
-		proxiedImageURL := "https://127.0.0.1/f8dace906d23689e8d5b12c3cefbedbf7b9b72f5/687474703a2f2f6d79646f6d61696e2e636f6d2f6d79696d616765"
+		proxiedImageURL := "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage"
 
 		post := &model.Post{
 			ChannelId: th.BasicChannel.Id,
