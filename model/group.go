@@ -43,11 +43,6 @@ type Group struct {
 	MemberCount  *int        `db:"-" json:"member_count,omitempty"`
 }
 
-type GroupsWithTotalCount struct {
-	Groups     []*Group
-	TotalCount int
-}
-
 type GroupPatch struct {
 	Name        *string `json:"name"`
 	DisplayName *string `json:"display_name"`

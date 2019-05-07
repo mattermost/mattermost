@@ -1871,8 +1871,8 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 			tc.Opts.PageOpts.PerPage = tc.PerPage
 			res := <-ss.Group().GetGroupsByTeam(tc.TeamId, tc.Opts)
 			require.Nil(t, res.Err)
-			groupsData := res.Data.(*model.GroupsWithTotalCount)
-			require.ElementsMatch(t, tc.Result, groupsData.Groups)
+			groups := res.Data.([]*model.Group)
+			require.ElementsMatch(t, tc.Result, groups)
 		})
 	}
 }

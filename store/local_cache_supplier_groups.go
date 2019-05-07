@@ -117,6 +117,10 @@ func (s *LocalCacheSupplier) GetGroupsByTeam(ctx context.Context, teamId string,
 	return s.Next().GetGroupsByTeam(ctx, teamId, opts, hints...)
 }
 
+func (s *LocalCacheSupplier) CountGroupsByTeam(ctx context.Context, teamId string, opts model.GroupSearchOpts, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	return s.Next().CountGroupsByTeam(ctx, teamId, opts, hints...)
+}
+
 func (s *LocalCacheSupplier) GetGroups(ctx context.Context, page, perPage int, opts model.GroupSearchOpts, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
 	return s.Next().GetGroups(ctx, page, perPage, opts, hints...)
 }

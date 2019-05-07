@@ -178,9 +178,15 @@ func (a *App) GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*mod
 	if result.Err != nil {
 		return nil, 0, result.Err
 	}
-	data := result.Data.(*model.GroupsWithTotalCount)
+	groups := result.Data.([]*model.Group)
 
-	return data.Groups, data.TotalCount, nil
+	result = <-a.Srv.Store.Group().CountGroupsByTeam(teamId, opts)
+	if result.Err != nil {
+		return nil, 0, result.Err
+	}
+	count := result.Data.(int)
+
+	return groups, count, nil
 }
 
 func (a *App) GetGroups(page, perPage int, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError) {

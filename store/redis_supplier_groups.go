@@ -119,6 +119,11 @@ func (s *RedisSupplier) GetGroupsByTeam(ctx context.Context, teamId string, opts
 	return s.Next().GetGroupsByTeam(ctx, teamId, opts, hints...)
 }
 
+func (s *RedisSupplier) CountGroupsByTeam(ctx context.Context, teamId string, opts model.GroupSearchOpts, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	// TODO: Redis caching.
+	return s.Next().CountGroupsByTeam(ctx, teamId, opts, hints...)
+}
+
 func (s *RedisSupplier) GetGroups(ctx context.Context, page, perPage int, opts model.GroupSearchOpts, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
 	// TODO: Redis caching.
 	return s.Next().GetGroups(ctx, page, perPage, opts, hints...)

@@ -597,6 +597,7 @@ type GroupStore interface {
 
 	GetGroupsByChannel(channelId string, page, perPage int) StoreChannel
 	GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) StoreChannel
+	CountGroupsByTeam(teamId string, opts model.GroupSearchOpts) StoreChannel
 	GetGroups(page, perPage int, opts model.GroupSearchOpts) StoreChannel
 }
 
