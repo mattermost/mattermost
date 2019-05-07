@@ -210,9 +210,9 @@ func (a *App) GetMultipleEmojiByName(names []string) ([]*model.Emoji, *model.App
 }
 
 func (a *App) GetEmojiImage(emojiId string) ([]byte, string, *model.AppError) {
-	_, err := a.Srv.Store.Emoji().Get(emojiId, true)
-	if err != nil {
-		return nil, "", err
+	_, storeErr := a.Srv.Store.Emoji().Get(emojiId, true)
+	if storeErr != nil {
+		return nil, "", storeErr
 	}
 
 	img, appErr := a.ReadFile(getEmojiImagePath(emojiId))
