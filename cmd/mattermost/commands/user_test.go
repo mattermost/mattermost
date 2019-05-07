@@ -116,3 +116,12 @@ func TestChangeUserEmail(t *testing.T) {
 	require.Error(t, th.RunCommand(t, "user", "email", th.BasicUser.Username, th.BasicUser2.Email))
 
 }
+
+func TestConvertUserToBot(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	th.CheckCommand(t, "user", "convert", th.BasicUser.Username, "anotherinvaliduser", "--bot")
+	result := <-th.App.Srv.Store.Bot().Get(th.BasicUser.Id, false)
+	require.Nil(t, result.Err)
+}

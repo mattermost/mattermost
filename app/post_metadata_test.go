@@ -456,7 +456,7 @@ func TestPreparePostForClientWithImageProxy(t *testing.T) {
 func testProxyLinkedImage(t *testing.T, th *TestHelper, shouldProxy bool) {
 	postTemplate := "![foo](%v)"
 	imageURL := "http://mydomain.com/myimage"
-	proxiedImageURL := "https://127.0.0.1/f8dace906d23689e8d5b12c3cefbedbf7b9b72f5/687474703a2f2f6d79646f6d61696e2e636f6d2f6d79696d616765"
+	proxiedImageURL := "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage"
 
 	post := &model.Post{
 		UserId:    th.BasicUser.Id,
@@ -498,7 +498,7 @@ func testProxyOpenGraphImage(t *testing.T, th *TestHelper, shouldProxy bool) {
 	image := og.Images[0]
 	if shouldProxy {
 		assert.Equal(t, "", image.URL, "image URL should not be set with proxy")
-		assert.Equal(t, "https://127.0.0.1/b2ef6ef4890a0107aa80ba33b3011fd51f668303/68747470733a2f2f61766174617273312e67697468756275736572636f6e74656e742e636f6d2f752f333237373331303f733d34303026763d34", image.SecureURL, "secure image URL should be sent through proxy")
+		assert.Equal(t, "http://mymattermost.com/api/v4/image?url=https%3A%2F%2Favatars1.githubusercontent.com%2Fu%2F3277310%3Fs%3D400%26v%3D4", image.SecureURL, "secure image URL should be sent through proxy")
 	} else {
 		assert.Equal(t, "https://avatars1.githubusercontent.com/u/3277310?s=400&v=4", image.URL, "image URL should be set")
 		assert.Equal(t, "", image.SecureURL, "secure image URL should not be set")
