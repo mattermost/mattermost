@@ -133,7 +133,7 @@
   },
   {
     "id": "api.bot.create_disabled",
-    "translation": "Creating of bots disabled in config"
+    "translation": "Bot creation has been disabled."
   },
   {
     "id": "api.channel.add_member.added",
