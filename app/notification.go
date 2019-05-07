@@ -103,6 +103,7 @@ func isKeywordMultibyte(keywords map[string][]string, word string) ([]string, bo
 	return ids, match
 }
 
+// Processes text to filter mentioned users and other potential mentions
 func (e *ExplicitMentions) processText(text string, keywords map[string][]string) {
 	systemMentions := map[string]bool{"@here": true, "@channel": true, "@all": true}
 
@@ -159,6 +160,7 @@ func (e *ExplicitMentions) processText(text string, keywords map[string][]string
 	}
 }
 
+// Create a message
 func createMessage(a *App, post *model.Post, team *model.Team, channel *model.Channel, notification *postNotification, fchan store.StoreChannel, mentionedUsersList []string) *model.WebSocketEvent {
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POSTED, "", post.ChannelId, "", nil)
 
@@ -195,6 +197,7 @@ func createMessage(a *App, post *model.Post, team *model.Team, channel *model.Ch
 	return message
 }
 
+// Send or Register a notification as not sent based on user preference
 func (a *App) sendOrRegisterNotification(id string, channelMemberNotifyPropsMap map[string]model.StringMap, wasMentioned bool, status *model.Status,
 	post *model.Post, notification *postNotification, user *model.User, explicitMentions bool, channelWideMentions bool, replyToThreadType string) {
 
@@ -229,6 +232,7 @@ func (a *App) setStatus(id string, modelStatus string, manual bool, lastActivity
 	return status
 }
 
+// Decide whether a user allows emails or not
 func (a *App) shouldSendEmailNotificationToUser(id string, user *model.User, channelMemberNotifyPropsMap map[string]model.StringMap) bool {
 	userAllowsEmails := user.NotifyProps[model.EMAIL_NOTIFY_PROP] != "false"
 	if channelEmail, ok := channelMemberNotifyPropsMap[id][model.EMAIL_NOTIFY_PROP]; ok {
@@ -252,6 +256,7 @@ func (a *App) shouldSendEmailNotificationToUser(id string, user *model.User, cha
 	return userAllowsEmails
 }
 
+// Disable system mentions
 func (a *App) disableSystemMentions(sender *model.User, post *model.Post, hereNotification bool, channelNotification bool, allNotification bool) {
 
 	T := utils.GetUserTranslations(sender.Locale)
@@ -293,6 +298,7 @@ func (a *App) disableSystemMentions(sender *model.User, post *model.Post, hereNo
 	}
 }
 
+// Get a map or mentioned user in Direct channels
 func (a *App) getMentionedUsersFromDirectChannel(mentionedUserIds map[string]bool, post *model.Post, channel *model.Channel, profileMap map[string]*model.User) map[string]bool {
 	var otherUserId string
 
@@ -323,6 +329,7 @@ func (a *App) getMentionedUsersFromDirectChannel(mentionedUserIds map[string]boo
 	return mentionedUserIds
 }
 
+// Get a active and mentioned users from all channels
 func (a *App) getMentionedUsersFromOtherChannels(post *model.Post, m *ExplicitMentions, profileMap map[string]*model.User, mentionedUserIds map[string]bool, team *model.Team,
 	parentPostList *model.PostList, channel *model.Channel, sender *model.User, channelMemberNotifyPropsMap map[string]model.StringMap, allActivityPushUserIds []string) ([]string, map[string]bool, map[string]model.StringMap, error) {
 	// Add an implicit mention when a user is added to a channel
@@ -399,6 +406,7 @@ func (a *App) getMentionedUsersFromOtherChannels(post *model.Post, m *ExplicitMe
 	return allActivityPushUserIds, mentionedUserIds, channelMemberNotifyPropsMap, nil
 }
 
+// Send Push Notifications based on mentioned or active users
 func (a *App) sendPushNotifications(mentionedUsersList []string, profileMap map[string]*model.User, threadMentionedUserIds map[string]string, post *model.Post, notification *postNotification,
 	mentionedUserIds map[string]bool, hereNotification bool, channelNotification bool, allNotification bool, channelMemberNotifyPropsMap map[string]model.StringMap, allActivityPushUserIds []string) {
 	sendPushNotifications := false
@@ -460,6 +468,7 @@ func (a *App) sendPushNotifications(mentionedUsersList []string, profileMap map[
 	}
 }
 
+// Send Email Notifications
 func (a *App) sendEmailNotifications(mentionedUsersList []string, profileMap map[string]*model.User, channelMemberNotifyPropsMap map[string]model.StringMap, post *model.Post, notification *postNotification, team *model.Team) {
 	for _, id := range mentionedUsersList {
 		if profileMap[id] == nil {
