@@ -1199,7 +1199,6 @@ func TestIsKeywordMultibyte(t *testing.T) {
 }
 
 func TestAddMentionedUsers(t *testing.T) {
-
 	id1 := model.NewId()
 	id2 := model.NewId()
 	id3 := model.NewId()
@@ -1293,7 +1292,6 @@ func TestAddMentionedUsers(t *testing.T) {
 }
 
 func TestCheckForMentionUsers(t *testing.T) {
-
 	id1 := model.NewId()
 	id2 := model.NewId()
 
