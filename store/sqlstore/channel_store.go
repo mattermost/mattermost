@@ -701,9 +701,8 @@ func (s SqlChannelStore) GetChannelUnread(channelId, userId string) (*model.Chan
 			return nil, model.NewAppError("SqlChannelStore.GetChannelUnread", "store.sql_channel.get_unread.app_error", nil, "channelId="+channelId+" "+err.Error(), http.StatusNotFound)
 		}
 		return nil, model.NewAppError("SqlChannelStore.GetChannelUnread", "store.sql_channel.get_unread.app_error", nil, "channelId="+channelId+" "+err.Error(), http.StatusInternalServerError)
-	} else {
-		return &unreadChannel, nil
 	}
+	return &unreadChannel, nil
 }
 
 func (s SqlChannelStore) InvalidateChannel(id string) {
