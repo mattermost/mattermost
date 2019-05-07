@@ -184,9 +184,9 @@ func (a *App) GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*mod
 	if result.Err != nil {
 		return nil, 0, result.Err
 	}
-	count := result.Data.(int)
+	count := result.Data.(int64)
 
-	return groups, count, nil
+	return groups, int(count), nil
 }
 
 func (a *App) GetGroups(page, perPage int, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError) {
