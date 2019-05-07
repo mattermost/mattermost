@@ -474,13 +474,13 @@ func (a *App) GetCommand(commandId string) (*model.Command, *model.AppError) {
 		return nil, model.NewAppError("GetCommand", "api.command.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	result := <-a.Srv.Store.Command().Get(commandId)
-	if result.Err != nil {
-		result.Err.StatusCode = http.StatusNotFound
-		return nil, result.Err
+	cmd, err := a.Srv.Store.Command().Get(commandId)
+	if err != nil {
+		err.StatusCode = http.StatusNotFound
+		return nil, err
 	}
 
-	return result.Data.(*model.Command), nil
+	return cmd, nil
 }
 
 func (a *App) UpdateCommand(oldCmd, updatedCmd *model.Command) (*model.Command, *model.AppError) {

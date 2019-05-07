@@ -55,9 +55,7 @@ func getCommandFromCommandArg(a *app.App, commandArg string) *model.Command {
 	}
 
 	if command == nil {
-		if result := <-a.Srv.Store.Command().Get(commandPart); result.Err == nil {
-			command = result.Data.(*model.Command)
-		}
+		command, _ = a.Srv.Store.Command().Get(commandPart)
 	}
 
 	return command
