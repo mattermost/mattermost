@@ -1781,20 +1781,22 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 	group2WithMemberCount.MemberCount = model.NewInt(0)
 
 	testCases := []struct {
-		Name    string
-		TeamId  string
-		Page    int
-		PerPage int
-		Opts    model.GroupSearchOpts
-		Result  []*model.Group
+		Name       string
+		TeamId     string
+		Page       int
+		PerPage    int
+		Opts       model.GroupSearchOpts
+		Result     []*model.Group
+		TotalCount *int64
 	}{
 		{
-			Name:    "Get the two Groups for Team1",
-			TeamId:  team1.Id,
-			Opts:    model.GroupSearchOpts{},
-			Page:    0,
-			PerPage: 60,
-			Result:  []*model.Group{group1, group2},
+			Name:       "Get the two Groups for Team1",
+			TeamId:     team1.Id,
+			Opts:       model.GroupSearchOpts{},
+			Page:       0,
+			PerPage:    60,
+			Result:     []*model.Group{group1, group2},
+			TotalCount: model.NewInt64(2),
 		},
 		{
 			Name:    "Get first Group for Team1 with page 0 with 1 element",
@@ -1813,44 +1815,49 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 			Result:  []*model.Group{group2},
 		},
 		{
-			Name:    "Get third Group for Team2",
-			TeamId:  team2.Id,
-			Opts:    model.GroupSearchOpts{},
-			Page:    0,
-			PerPage: 60,
-			Result:  []*model.Group{group3},
+			Name:       "Get third Group for Team2",
+			TeamId:     team2.Id,
+			Opts:       model.GroupSearchOpts{},
+			Page:       0,
+			PerPage:    60,
+			Result:     []*model.Group{group3},
+			TotalCount: model.NewInt64(1),
 		},
 		{
-			Name:    "Get empty Groups for a fake id",
-			TeamId:  model.NewId(),
-			Opts:    model.GroupSearchOpts{},
-			Page:    0,
-			PerPage: 60,
-			Result:  []*model.Group{},
+			Name:       "Get empty Groups for a fake id",
+			TeamId:     model.NewId(),
+			Opts:       model.GroupSearchOpts{},
+			Page:       0,
+			PerPage:    60,
+			Result:     []*model.Group{},
+			TotalCount: model.NewInt64(0),
 		},
 		{
-			Name:    "Get group matching name",
-			TeamId:  team1.Id,
-			Opts:    model.GroupSearchOpts{Q: string([]rune(group1.Name)[2:10])}, // very low change of a name collision
-			Page:    0,
-			PerPage: 100,
-			Result:  []*model.Group{group1},
+			Name:       "Get group matching name",
+			TeamId:     team1.Id,
+			Opts:       model.GroupSearchOpts{Q: string([]rune(group1.Name)[2:10])}, // very low change of a name collision
+			Page:       0,
+			PerPage:    100,
+			Result:     []*model.Group{group1},
+			TotalCount: model.NewInt64(1),
 		},
 		{
-			Name:    "Get group matching display name",
-			TeamId:  team1.Id,
-			Opts:    model.GroupSearchOpts{Q: "rouP-1"},
-			Page:    0,
-			PerPage: 100,
-			Result:  []*model.Group{group1},
+			Name:       "Get group matching display name",
+			TeamId:     team1.Id,
+			Opts:       model.GroupSearchOpts{Q: "rouP-1"},
+			Page:       0,
+			PerPage:    100,
+			Result:     []*model.Group{group1},
+			TotalCount: model.NewInt64(1),
 		},
 		{
-			Name:    "Get group matching multiple display names",
-			TeamId:  team1.Id,
-			Opts:    model.GroupSearchOpts{Q: "roUp-"},
-			Page:    0,
-			PerPage: 100,
-			Result:  []*model.Group{group1, group2},
+			Name:       "Get group matching multiple display names",
+			TeamId:     team1.Id,
+			Opts:       model.GroupSearchOpts{Q: "roUp-"},
+			Page:       0,
+			PerPage:    100,
+			Result:     []*model.Group{group1, group2},
+			TotalCount: model.NewInt64(2),
 		},
 		{
 			Name:    "Include member counts",
@@ -1873,6 +1880,11 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 			require.Nil(t, res.Err)
 			groups := res.Data.([]*model.Group)
 			require.ElementsMatch(t, tc.Result, groups)
+			if tc.TotalCount != nil {
+				res = <-ss.Group().CountGroupsByTeam(tc.TeamId, tc.Opts)
+				count := res.Data.(int64)
+				require.Equal(t, *tc.TotalCount, count)
+			}
 		})
 	}
 }
