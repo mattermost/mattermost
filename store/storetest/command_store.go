@@ -118,8 +118,8 @@ func testCommandStoreGetByTrigger(t *testing.T, ss store.Store) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	if r1, err := ss.Command().GetByTrigger(o1.TeamId, o1.Trigger); err != nil {
+	var r1 *model.Command
+	if r1, err = ss.Command().GetByTrigger(o1.TeamId, o1.Trigger); err != nil {
 		t.Fatal(err)
 	} else {
 		if r1.Id != o1.Id {
