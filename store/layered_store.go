@@ -482,6 +482,12 @@ func (s *LayeredGroupStore) GetGroupsByTeam(teamId string, opts model.GroupSearc
 	})
 }
 
+func (s *LayeredGroupStore) CountGroupsByTeam(teamId string, opts model.GroupSearchOpts) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.CountGroupsByTeam(s.TmpContext, teamId, opts)
+	})
+}
+
 func (s *LayeredGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts) StoreChannel {
 	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
 		return supplier.GetGroups(s.TmpContext, page, perPage, opts)

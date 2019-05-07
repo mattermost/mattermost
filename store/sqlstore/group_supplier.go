@@ -935,6 +935,28 @@ func (s *SqlSupplier) groupsByTeamBaseQuery(t selectType, teamID string, opts mo
 	return query
 }
 
+func (s *SqlSupplier) CountGroupsByTeam(ctx context.Context, teamId string, opts model.GroupSearchOpts, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+	result := store.NewSupplierResult()
+
+	countQuery := s.groupsByTeamBaseQuery(selectCountGroups, teamId, opts)
+
+	countQueryString, args, err := countQuery.ToSql()
+	if err != nil {
+		result.Err = model.NewAppError("SqlGroupStore.CountGroupsByTeam", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return result
+	}
+
+	count, err := s.GetReplica().SelectInt(countQueryString, args...)
+	if err != nil {
+		result.Err = model.NewAppError("SqlGroupStore.CountGroupsByTeam", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+		return result
+	}
+
+	result.Data = count
+
+	return result
+}
+
 func (s *SqlSupplier) GetGroupsByTeam(ctx context.Context, teamId string, opts model.GroupSearchOpts, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	result := store.NewSupplierResult()
 
@@ -959,23 +981,7 @@ func (s *SqlSupplier) GetGroupsByTeam(ctx context.Context, teamId string, opts m
 		return result
 	}
 
-	countQuery := s.groupsByTeamBaseQuery(selectCountGroups, teamId, opts)
-	countQueryString, args, err := countQuery.ToSql()
-	if err != nil {
-		result.Err = model.NewAppError("SqlGroupStore.GetGroupsByTeam", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
-		return result
-	}
-
-	count, err := s.GetReplica().SelectInt(countQueryString, args...)
-	if err != nil {
-		result.Err = model.NewAppError("SqlGroupStore.GetGroupsByTeam", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
-		return result
-	}
-
-	result.Data = &model.GroupsWithTotalCount{
-		Groups:     groups,
-		TotalCount: int(count),
-	}
+	result.Data = groups
 
 	return result
 }
