@@ -583,7 +583,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			TOKEN_TYPE_TEAM_INVITATION,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
-		token.CreateAt = model.GetMillis() - TEAM_INVITATION_EXPIRY_TIME - 1
+		token.CreateAt = model.GetMillis() - INVITATION_EXPIRY_TIME - 1
 		<-th.App.Srv.Store.Token().Save(token)
 		defer th.App.DeleteToken(token)
 		if _, err := th.App.CreateUserWithToken(&user, token.Token); err == nil {
@@ -603,7 +603,7 @@ func TestCreateUserWithToken(t *testing.T) {
 		}
 	})
 
-	t.Run("valid request", func(t *testing.T) {
+	t.Run("valid regular user request", func(t *testing.T) {
 		invitationEmail := model.NewId() + "other-email@test.com"
 		token := model.NewToken(
 			TOKEN_TYPE_TEAM_INVITATION,
@@ -615,12 +615,43 @@ func TestCreateUserWithToken(t *testing.T) {
 			t.Log(err)
 			t.Fatal("Should add user to the team")
 		}
+		assert.False(t, newUser.IsGuest())
 		if newUser.Email != invitationEmail {
 			t.Fatal("The user email must be the invitation one")
 		}
 		if result := <-th.App.Srv.Store.Token().GetByToken(token.Token); result.Err == nil {
 			t.Fatal("The token must be deleted after be used")
 		}
+		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, newUser.Id)
+		require.Nil(t, err)
+		assert.Len(t, *members, 2)
+	})
+
+	t.Run("valid guest request", func(t *testing.T) {
+		invitationEmail := model.NewId() + "other-email@test.com"
+		token := model.NewToken(
+			TOKEN_TYPE_GUEST_INVITATION,
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail, "channels": th.BasicChannel.Id}),
+		)
+		result := <-th.App.Srv.Store.Token().Save(token)
+		require.Nil(t, result.Err)
+		guest := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		newGuest, err := th.App.CreateUserWithToken(&guest, token.Token)
+		if err != nil {
+			t.Log(err)
+			t.Fatal("Should add user to the team")
+		}
+		assert.True(t, newGuest.IsGuest())
+		if newGuest.Email != invitationEmail {
+			t.Fatal("The user email must be the invitation one")
+		}
+		if result := <-th.App.Srv.Store.Token().GetByToken(token.Token); result.Err == nil {
+			t.Fatal("The token must be deleted after be used")
+		}
+		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, newGuest.Id)
+		require.Nil(t, err)
+		require.Len(t, *members, 1)
+		assert.Equal(t, (*members)[0].ChannelId, th.BasicChannel.Id)
 	})
 }
 

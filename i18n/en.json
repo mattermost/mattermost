@@ -1835,6 +1835,14 @@
     "translation": "Error invalidating email invites."
   },
   {
+    "id": "api.team.invate_guests_to_channels.license.error",
+    "translation": "Your license does not support guest accounts"
+  },
+  {
+    "id": "api.team.invite_guests.channel_in_invalid_team.app_error",
+    "translation": "The channels of the invite must be part of the team of the invite."
+  },
+  {
     "id": "api.team.invite_members.disabled.app_error",
     "translation": "Email invitations are disabled."
   },
@@ -2045,6 +2053,14 @@
   {
     "id": "api.templates.invite_body.title",
     "translation": "You've been invited"
+  },
+  {
+    "id": "api.templates.invite_body_guest.info",
+    "translation": "The team {{.SenderStatus}} [[{{.SenderName}}]], has invited you to join team [[{{.TeamDisplayName}}]] as a guest."
+  },
+  {
+    "id": "api.templates.invite_guest_subject",
+    "translation": "[{{ .SiteName }}] {{ .SenderName }} invited you to join the team {{ .TeamDisplayName }} as a guest"
   },
   {
     "id": "api.templates.invite_subject",
@@ -2293,6 +2309,10 @@
   {
     "id": "api.user.create_user.disabled.app_error",
     "translation": "User creation is disabled."
+  },
+  {
+    "id": "api.user.create_user.invalid_invitation_type.app_error",
+    "translation": "Unable to create the user, invalid invitation."
   },
   {
     "id": "api.user.create_user.no_open_server",
@@ -4693,6 +4713,22 @@
   {
     "id": "model.group_syncable.type.app_error",
     "translation": "invalid type property for group syncable"
+  },
+  {
+    "id": "model.guest.is_valid.channel.app_error",
+    "translation": "Invalid channel"
+  },
+  {
+    "id": "model.guest.is_valid.channels.app_error",
+    "translation": "Invalid channels"
+  },
+  {
+    "id": "model.guest.is_valid.email.app_error",
+    "translation": "Invalid email"
+  },
+  {
+    "id": "model.guest.is_valid.emails.app_error",
+    "translation": "Invalid emails"
   },
   {
     "id": "model.incoming_hook.channel_id.app_error",

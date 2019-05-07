@@ -23,7 +23,7 @@ func NewSqlTokenStore(sqlStore SqlStore) store.TokenStore {
 		table := db.AddTableWithName(model.Token{}, "Tokens").SetKeys(false, "Token")
 		table.ColMap("Token").SetMaxSize(64)
 		table.ColMap("Type").SetMaxSize(64)
-		table.ColMap("Extra").SetMaxSize(128)
+		table.ColMap("Extra").SetMaxSize(2048)
 	}
 
 	return s

@@ -40,8 +40,9 @@ const (
 	TOKEN_TYPE_PASSWORD_RECOVERY  = "password_recovery"
 	TOKEN_TYPE_VERIFY_EMAIL       = "verify_email"
 	TOKEN_TYPE_TEAM_INVITATION    = "team_invitation"
+	TOKEN_TYPE_GUEST_INVITATION   = "guest_invitation"
 	PASSWORD_RECOVER_EXPIRY_TIME  = 1000 * 60 * 60      // 1 hour
-	TEAM_INVITATION_EXPIRY_TIME   = 1000 * 60 * 60 * 48 // 48 hours
+	INVITATION_EXPIRY_TIME        = 1000 * 60 * 60 * 48 // 48 hours
 	IMAGE_PROFILE_PIXEL_DIMENSION = 128
 )
 
@@ -56,11 +57,11 @@ func (a *App) CreateUserWithToken(user *model.User, tokenId string) (*model.User
 	}
 
 	token := result.Data.(*model.Token)
-	if token.Type != TOKEN_TYPE_TEAM_INVITATION {
+	if token.Type != TOKEN_TYPE_TEAM_INVITATION && token.Type != TOKEN_TYPE_GUEST_INVITATION {
 		return nil, model.NewAppError("CreateUserWithToken", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if model.GetMillis()-token.CreateAt >= TEAM_INVITATION_EXPIRY_TIME {
+	if model.GetMillis()-token.CreateAt >= INVITATION_EXPIRY_TIME {
 		a.DeleteToken(token)
 		return nil, model.NewAppError("CreateUserWithToken", "api.user.create_user.signup_link_expired.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -72,10 +73,21 @@ func (a *App) CreateUserWithToken(user *model.User, tokenId string) (*model.User
 		return nil, err
 	}
 
+	result = <-a.Srv.Store.Channel().GetChannelsByIds(strings.Split(tokenData["channels"], " "))
+	if result.Err != nil {
+		return nil, result.Err
+	}
+	channels := result.Data.([]*model.Channel)
+
 	user.Email = tokenData["email"]
 	user.EmailVerified = true
 
-	ruser, err := a.CreateUser(user)
+	var ruser *model.User
+	if token.Type == TOKEN_TYPE_TEAM_INVITATION {
+		ruser, err = a.CreateUser(user)
+	} else {
+		ruser, err = a.CreateGuest(user)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -85,6 +97,15 @@ func (a *App) CreateUserWithToken(user *model.User, tokenId string) (*model.User
 	}
 
 	a.AddDirectChannels(team.Id, ruser)
+
+	if token.Type == TOKEN_TYPE_GUEST_INVITATION {
+		for _, channel := range channels {
+			_, err := a.AddUserToChannel(ruser, channel)
+			if err != nil {
+				mlog.Error(err.Error())
+			}
+		}
+	}
 
 	if err := a.DeleteToken(token); err != nil {
 		return nil, err
