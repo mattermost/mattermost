@@ -118,11 +118,11 @@ func testCommandStoreGetByTrigger(t *testing.T, ss store.Store) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	if r1 := <-ss.Command().GetByTrigger(o1.TeamId, o1.Trigger); r1.Err != nil {
-		t.Fatal(r1.Err)
+	var r1 *model.Command
+	if r1, err = ss.Command().GetByTrigger(o1.TeamId, o1.Trigger); err != nil {
+		t.Fatal(err)
 	} else {
-		if r1.Data.(*model.Command).Id != o1.Id {
+		if r1.Id != o1.Id {
 			t.Fatal("invalid returned command")
 		}
 	}
@@ -132,7 +132,7 @@ func testCommandStoreGetByTrigger(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	if result := <-ss.Command().GetByTrigger(o1.TeamId, o1.Trigger); result.Err == nil {
+	if _, err := ss.Command().GetByTrigger(o1.TeamId, o1.Trigger); err == nil {
 		t.Fatal("no commands should have returned")
 	}
 }
