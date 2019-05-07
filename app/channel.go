@@ -793,11 +793,18 @@ func (a *App) UpdateChannelMemberNotifyProps(data map[string]string, channelId s
 
 func (a *App) DeleteChannel(channel *model.Channel, userId string) *model.AppError {
 	ihc := make(chan store.StoreResult, 1)
-	ohc := a.Srv.Store.Webhook().GetOutgoingByChannel(channel.Id, -1, -1)
+	ohc := make(chan store.StoreResult, 1)
+
 	go func() {
 		webhooks, err := a.Srv.Store.Webhook().GetIncomingByChannel(channel.Id)
 		ihc <- store.StoreResult{Data: webhooks, Err: err}
 		close(ihc)
+	}()
+
+	go func() {
+		outgoingHooks, err := a.Srv.Store.Webhook().GetOutgoingByChannel(channel.Id, -1, -1)
+		ohc <- store.StoreResult{Data: outgoingHooks, Err: err}
+		close(ohc)
 	}()
 
 	var user *model.User
@@ -1335,11 +1342,10 @@ func (a *App) GetChannelCounts(teamId string, userId string) (*model.ChannelCoun
 }
 
 func (a *App) GetChannelUnread(channelId, userId string) (*model.ChannelUnread, *model.AppError) {
-	result := <-a.Srv.Store.Channel().GetChannelUnread(channelId, userId)
-	if result.Err != nil {
-		return nil, result.Err
+	channelUnread, err := a.Srv.Store.Channel().GetChannelUnread(channelId, userId)
+	if err != nil {
+		return nil, err
 	}
-	channelUnread := result.Data.(*model.ChannelUnread)
 
 	if channelUnread.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] == model.CHANNEL_MARK_UNREAD_MENTION {
 		channelUnread.MsgCount = 0

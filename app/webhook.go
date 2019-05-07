@@ -503,11 +503,7 @@ func (a *App) GetOutgoingWebhooksForChannelPage(channelId string, page, perPage 
 		return nil, model.NewAppError("GetOutgoingWebhooksForChannelPage", "api.outgoing_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if result := <-a.Srv.Store.Webhook().GetOutgoingByChannel(channelId, page*perPage, perPage); result.Err != nil {
-		return nil, result.Err
-	} else {
-		return result.Data.([]*model.OutgoingWebhook), nil
-	}
+	return a.Srv.Store.Webhook().GetOutgoingByChannel(channelId, page*perPage, perPage)
 }
 
 func (a *App) GetOutgoingWebhooksForTeamPage(teamId string, page, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
