@@ -408,17 +408,17 @@ func verifyLinkUnlinkPermission(c *Context, syncableType model.GroupSyncableType
 			return
 		}
 	case model.GroupSyncableTypeChannel:
-		var permission *model.Permission
-
-		if channel, err := c.App.GetChannel(syncableID); err != nil {
+		channel, err := c.App.GetChannel(syncableID)
+		if err != nil {
 			c.Err = err
 			return
+		}
+
+		var permission *model.Permission
+		if channel.Type == model.CHANNEL_PRIVATE {
+			permission = model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS
 		} else {
-			if channel.Type == model.CHANNEL_PRIVATE {
-				permission = model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS
-			} else {
-				permission = model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS
-			}
+			permission = model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS
 		}
 
 		if !c.App.SessionHasPermissionToChannel(c.App.Session, syncableID, permission) {
