@@ -167,7 +167,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.HTTPService = httpservice.MakeHTTPService(s.FakeApp())
 
-	s.ImageProxy = imageproxy.MakeImageProxy(s, s.HTTPService)
+	s.ImageProxy = imageproxy.MakeImageProxy(s, s.HTTPService, s.Log)
 
 	if err := utils.TranslationsPreInit(); err != nil {
 		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")

@@ -11,11 +11,11 @@ import (
 	"net/url"
 	"strings"
 
+	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
-	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 type CommandProvider interface {
@@ -218,8 +218,20 @@ func (a *App) tryExecuteCustomCommand(args *model.CommandArgs, trigger string, m
 		return nil, nil, model.NewAppError("ExecuteCommand", "api.command.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	chanChan := a.Srv.Store.Channel().Get(args.ChannelId, true)
-	teamChan := a.Srv.Store.Team().Get(args.TeamId)
+	chanChan := make(chan store.StoreResult, 1)
+	go func() {
+		channel, err := a.Srv.Store.Channel().Get(args.ChannelId, true)
+		chanChan <- store.StoreResult{Data: channel, Err: err}
+		close(chanChan)
+	}()
+
+	teamChan := make(chan store.StoreResult, 1)
+	go func() {
+		team, err := a.Srv.Store.Team().Get(args.TeamId)
+		teamChan <- store.StoreResult{Data: team, Err: err}
+		close(teamChan)
+	}()
+
 	userChan := make(chan store.StoreResult, 1)
 	go func() {
 		user, err := a.Srv.Store.User().Get(args.UserId)

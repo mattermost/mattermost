@@ -23,6 +23,7 @@ import (
 )
 
 func (a *App) CreateTeam(team *model.Team) (*model.Team, *model.AppError) {
+	team.InviteId = ""
 	result := <-a.Srv.Store.Team().Save(team)
 	if result.Err != nil {
 		return nil, result.Err
@@ -118,7 +119,6 @@ func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 
 	oldTeam.DisplayName = team.DisplayName
 	oldTeam.Description = team.Description
-	oldTeam.InviteId = team.InviteId
 	oldTeam.AllowOpenInvite = team.AllowOpenInvite
 	oldTeam.CompanyName = team.CompanyName
 	oldTeam.AllowedDomains = team.AllowedDomains
@@ -136,12 +136,7 @@ func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 }
 
 func (a *App) updateTeamUnsanitized(team *model.Team) (*model.Team, *model.AppError) {
-	result := <-a.Srv.Store.Team().Update(team)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-
-	return result.Data.(*model.Team), nil
+	return a.Srv.Store.Team().Update(team)
 }
 
 // RenameTeam is used to rename the team Name and the DisplayName fields
@@ -180,8 +175,8 @@ func (a *App) UpdateTeamScheme(team *model.Team) (*model.Team, *model.AppError) 
 
 	oldTeam.SchemeId = team.SchemeId
 
-	if result := <-a.Srv.Store.Team().Update(oldTeam); result.Err != nil {
-		return nil, result.Err
+	if oldTeam, err = a.Srv.Store.Team().Update(oldTeam); err != nil {
+		return nil, err
 	}
 
 	a.sendTeamEvent(oldTeam, model.WEBSOCKET_EVENT_UPDATE_TEAM)
@@ -198,6 +193,24 @@ func (a *App) PatchTeam(teamId string, patch *model.TeamPatch) (*model.Team, *mo
 	team.Patch(patch)
 
 	updatedTeam, err := a.UpdateTeam(team)
+	if err != nil {
+		return nil, err
+	}
+
+	a.sendTeamEvent(updatedTeam, model.WEBSOCKET_EVENT_UPDATE_TEAM)
+
+	return updatedTeam, nil
+}
+
+func (a *App) RegenerateTeamInviteId(teamId string) (*model.Team, *model.AppError) {
+	team, err := a.GetTeam(teamId)
+	if err != nil {
+		return nil, err
+	}
+
+	team.InviteId = model.NewId()
+
+	updatedTeam, err := a.Srv.Store.Team().Update(team)
 	if err != nil {
 		return nil, err
 	}
@@ -327,7 +340,13 @@ func (a *App) sendUpdatedMemberRoleEvent(userId string, member *model.TeamMember
 }
 
 func (a *App) AddUserToTeam(teamId string, userId string, userRequestorId string) (*model.Team, *model.AppError) {
-	tchan := a.Srv.Store.Team().Get(teamId)
+	tchan := make(chan store.StoreResult, 1)
+	go func() {
+		team, err := a.Srv.Store.Team().Get(teamId)
+		tchan <- store.StoreResult{Data: team, Err: err}
+		close(tchan)
+	}()
+
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
 		user, err := a.Srv.Store.User().Get(userId)
@@ -355,11 +374,12 @@ func (a *App) AddUserToTeam(teamId string, userId string, userRequestorId string
 }
 
 func (a *App) AddUserToTeamByTeamId(teamId string, user *model.User) *model.AppError {
-	result := <-a.Srv.Store.Team().Get(teamId)
-	if result.Err != nil {
-		return result.Err
+	team, err := a.Srv.Store.Team().Get(teamId)
+	if err != nil {
+		return err
 	}
-	return a.JoinUserToTeam(result.Data.(*model.Team), user, "")
+
+	return a.JoinUserToTeam(team, user, "")
 }
 
 func (a *App) AddUserToTeamByToken(userId string, tokenId string) (*model.Team, *model.AppError) {
@@ -380,7 +400,13 @@ func (a *App) AddUserToTeamByToken(userId string, tokenId string) (*model.Team, 
 
 	tokenData := model.MapFromJson(strings.NewReader(token.Extra))
 
-	tchan := a.Srv.Store.Team().Get(tokenData["teamId"])
+	tchan := make(chan store.StoreResult, 1)
+	go func() {
+		team, err := a.Srv.Store.Team().Get(tokenData["teamId"])
+		tchan <- store.StoreResult{Data: team, Err: err}
+		close(tchan)
+	}()
+
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
 		user, err := a.Srv.Store.User().Get(userId)
@@ -543,11 +569,7 @@ func (a *App) JoinUserToTeam(team *model.Team, user *model.User, userRequestorId
 }
 
 func (a *App) GetTeam(teamId string) (*model.Team, *model.AppError) {
-	result := <-a.Srv.Store.Team().Get(teamId)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.Team), nil
+	return a.Srv.Store.Team().Get(teamId)
 }
 
 func (a *App) GetTeamByName(name string) (*model.Team, *model.AppError) {
@@ -784,7 +806,13 @@ func (a *App) GetTeamUnread(teamId, userId string) (*model.TeamUnread, *model.Ap
 }
 
 func (a *App) RemoveUserFromTeam(teamId string, userId string, requestorId string) *model.AppError {
-	tchan := a.Srv.Store.Team().Get(teamId)
+	tchan := make(chan store.StoreResult, 1)
+	go func() {
+		team, err := a.Srv.Store.Team().Get(teamId)
+		tchan <- store.StoreResult{Data: team, Err: err}
+		close(tchan)
+	}()
+
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
 		user, err := a.Srv.Store.User().Get(userId)
@@ -954,7 +982,13 @@ func (a *App) InviteNewUsersToTeam(emailList []string, teamId, senderId string) 
 		return err
 	}
 
-	tchan := a.Srv.Store.Team().Get(teamId)
+	tchan := make(chan store.StoreResult, 1)
+	go func() {
+		team, err := a.Srv.Store.Team().Get(teamId)
+		tchan <- store.StoreResult{Data: team, Err: err}
+		close(tchan)
+	}()
+
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
 		user, err := a.Srv.Store.User().Get(senderId)
@@ -1051,8 +1085,8 @@ func (a *App) PermanentDeleteTeamId(teamId string) *model.AppError {
 
 func (a *App) PermanentDeleteTeam(team *model.Team) *model.AppError {
 	team.DeleteAt = model.GetMillis()
-	if result := <-a.Srv.Store.Team().Update(team); result.Err != nil {
-		return result.Err
+	if _, err := a.Srv.Store.Team().Update(team); err != nil {
+		return err
 	}
 
 	if result := <-a.Srv.Store.Channel().GetTeamChannels(team.Id); result.Err != nil {
@@ -1090,8 +1124,8 @@ func (a *App) SoftDeleteTeam(teamId string) *model.AppError {
 	}
 
 	team.DeleteAt = model.GetMillis()
-	if result := <-a.Srv.Store.Team().Update(team); result.Err != nil {
-		return result.Err
+	if team, err = a.Srv.Store.Team().Update(team); err != nil {
+		return err
 	}
 
 	a.sendTeamEvent(team, model.WEBSOCKET_EVENT_DELETE_TEAM)
@@ -1104,11 +1138,12 @@ func (a *App) RestoreTeam(teamId string) *model.AppError {
 	if err != nil {
 		return err
 	}
+
 	team.DeleteAt = 0
-	result := <-a.Srv.Store.Team().Update(team)
-	if result.Err != nil {
-		return result.Err
+	if team, err = a.Srv.Store.Team().Update(team); err != nil {
+		return err
 	}
+
 	a.sendTeamEvent(team, model.WEBSOCKET_EVENT_RESTORE_TEAM)
 	return nil
 }

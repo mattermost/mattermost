@@ -82,9 +82,9 @@ type Store interface {
 
 type TeamStore interface {
 	Save(team *model.Team) StoreChannel
-	Update(team *model.Team) StoreChannel
+	Update(team *model.Team) (*model.Team, *model.AppError)
 	UpdateDisplayName(name string, teamId string) StoreChannel
-	Get(id string) StoreChannel
+	Get(id string) (*model.Team, *model.AppError)
 	GetByName(name string) StoreChannel
 	SearchByName(name string) StoreChannel
 	SearchAll(term string) StoreChannel
@@ -129,10 +129,10 @@ type ChannelStore interface {
 	CreateDirectChannel(userId string, otherUserId string) StoreChannel
 	SaveDirectChannel(channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) StoreChannel
 	Update(channel *model.Channel) StoreChannel
-	Get(id string, allowFromCache bool) StoreChannel
+	Get(id string, allowFromCache bool) (*model.Channel, *model.AppError)
 	InvalidateChannel(id string)
 	InvalidateChannelByName(teamId, name string)
-	GetFromMaster(id string) StoreChannel
+	GetFromMaster(id string) (*model.Channel, *model.AppError)
 	Delete(channelId string, time int64) StoreChannel
 	Restore(channelId string, time int64) StoreChannel
 	SetDeleteAt(channelId string, deleteAt int64, updateAt int64) StoreChannel
@@ -329,21 +329,21 @@ type AuditStore interface {
 }
 
 type ClusterDiscoveryStore interface {
-	Save(discovery *model.ClusterDiscovery) StoreChannel
-	Delete(discovery *model.ClusterDiscovery) StoreChannel
-	Exists(discovery *model.ClusterDiscovery) StoreChannel
-	GetAll(discoveryType, clusterName string) StoreChannel
-	SetLastPingAt(discovery *model.ClusterDiscovery) StoreChannel
-	Cleanup() StoreChannel
+	Save(discovery *model.ClusterDiscovery) *model.AppError
+	Delete(discovery *model.ClusterDiscovery) (bool, *model.AppError)
+	Exists(discovery *model.ClusterDiscovery) (bool, *model.AppError)
+	GetAll(discoveryType, clusterName string) ([]*model.ClusterDiscovery, *model.AppError)
+	SetLastPingAt(discovery *model.ClusterDiscovery) *model.AppError
+	Cleanup() *model.AppError
 }
 
 type ComplianceStore interface {
-	Save(compliance *model.Compliance) StoreChannel
-	Update(compliance *model.Compliance) StoreChannel
-	Get(id string) StoreChannel
-	GetAll(offset, limit int) StoreChannel
-	ComplianceExport(compliance *model.Compliance) StoreChannel
-	MessageExport(after int64, limit int) StoreChannel
+	Save(compliance *model.Compliance) (*model.Compliance, *model.AppError)
+	Update(compliance *model.Compliance) (*model.Compliance, *model.AppError)
+	Get(id string) (*model.Compliance, *model.AppError)
+	GetAll(offset, limit int) (model.Compliances, *model.AppError)
+	ComplianceExport(compliance *model.Compliance) ([]*model.CompliancePost, *model.AppError)
+	MessageExport(after int64, limit int) ([]*model.MessageExport, *model.AppError)
 }
 
 type OAuthStore interface {
@@ -377,27 +377,27 @@ type SystemStore interface {
 }
 
 type WebhookStore interface {
-	SaveIncoming(webhook *model.IncomingWebhook) StoreChannel
+	SaveIncoming(webhook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError)
 	GetIncoming(id string, allowFromCache bool) (*model.IncomingWebhook, *model.AppError)
-	GetIncomingList(offset, limit int) StoreChannel
-	GetIncomingByTeam(teamId string, offset, limit int) StoreChannel
-	UpdateIncoming(webhook *model.IncomingWebhook) StoreChannel
-	GetIncomingByChannel(channelId string) StoreChannel
+	GetIncomingList(offset, limit int) ([]*model.IncomingWebhook, *model.AppError)
+	GetIncomingByTeam(teamId string, offset, limit int) ([]*model.IncomingWebhook, *model.AppError)
+	UpdateIncoming(webhook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError)
+	GetIncomingByChannel(channelId string) ([]*model.IncomingWebhook, *model.AppError)
 	DeleteIncoming(webhookId string, time int64) StoreChannel
-	PermanentDeleteIncomingByChannel(channelId string) StoreChannel
-	PermanentDeleteIncomingByUser(userId string) StoreChannel
+	PermanentDeleteIncomingByChannel(channelId string) *model.AppError
+	PermanentDeleteIncomingByUser(userId string) *model.AppError
 
-	SaveOutgoing(webhook *model.OutgoingWebhook) StoreChannel
-	GetOutgoing(id string) StoreChannel
-	GetOutgoingList(offset, limit int) StoreChannel
+	SaveOutgoing(webhook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError)
+	GetOutgoing(id string) (*model.OutgoingWebhook, *model.AppError)
+	GetOutgoingList(offset, limit int) ([]*model.OutgoingWebhook, *model.AppError)
 	GetOutgoingByChannel(channelId string, offset, limit int) StoreChannel
-	GetOutgoingByTeam(teamId string, offset, limit int) StoreChannel
-	DeleteOutgoing(webhookId string, time int64) StoreChannel
-	PermanentDeleteOutgoingByChannel(channelId string) StoreChannel
+	GetOutgoingByTeam(teamId string, offset, limit int) ([]*model.OutgoingWebhook, *model.AppError)
+	DeleteOutgoing(webhookId string, time int64) *model.AppError
+	PermanentDeleteOutgoingByChannel(channelId string) *model.AppError
 	PermanentDeleteOutgoingByUser(userId string) StoreChannel
-	UpdateOutgoing(hook *model.OutgoingWebhook) StoreChannel
+	UpdateOutgoing(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError)
 
-	AnalyticsIncomingCount(teamId string) StoreChannel
+	AnalyticsIncomingCount(teamId string) (int64, *model.AppError)
 	AnalyticsOutgoingCount(teamId string) StoreChannel
 	InvalidateWebhookCache(webhook string)
 	ClearCaches()
@@ -436,8 +436,8 @@ type PreferenceStore interface {
 }
 
 type LicenseStore interface {
-	Save(license *model.LicenseRecord) StoreChannel
-	Get(id string) StoreChannel
+	Save(license *model.LicenseRecord) (*model.LicenseRecord, *model.AppError)
+	Get(id string) (*model.LicenseRecord, *model.AppError)
 }
 
 type TokenStore interface {
@@ -524,6 +524,7 @@ type UserAccessTokenStore interface {
 
 type PluginStore interface {
 	SaveOrUpdate(keyVal *model.PluginKeyValue) StoreChannel
+	CompareAndSet(keyVal *model.PluginKeyValue, oldValue []byte) (bool, *model.AppError)
 	Get(pluginId, key string) StoreChannel
 	Delete(pluginId, key string) StoreChannel
 	DeleteAllForPlugin(PluginId string) StoreChannel

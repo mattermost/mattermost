@@ -126,15 +126,22 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 		if len(m.OtherPotentialMentions) > 0 && !post.IsSystemMessage() {
 			if result := <-a.Srv.Store.User().GetProfilesByUsernames(m.OtherPotentialMentions, team.Id); result.Err == nil {
-				channelMentions := model.UserSlice(result.Data.([]*model.User))
+				channelMentions := model.UserSlice(result.Data.([]*model.User)).FilterByActive(true)
 
-				nonMemberIDs, err := a.FilterNonGroupChannelMembers(channelMentions.IDs(), channel)
-				if err != nil {
-					return nil, err
+				var outOfChannelMentions model.UserSlice
+				var outOfGroupsMentions model.UserSlice
+
+				if channel.GroupConstrained != nil && *channel.GroupConstrained {
+					nonMemberIDs, err := a.FilterNonGroupChannelMembers(channelMentions.IDs(), channel)
+					if err != nil {
+						return nil, err
+					}
+
+					outOfChannelMentions = channelMentions.FilterWithoutID(nonMemberIDs)
+					outOfGroupsMentions = channelMentions.FilterByID(nonMemberIDs)
+				} else {
+					outOfChannelMentions = channelMentions
 				}
-
-				outOfChannelMentions := channelMentions.FilterWithoutID(nonMemberIDs)
-				outOfGroupsMentions := channelMentions.FilterByID(nonMemberIDs)
 
 				if channel.Type != model.CHANNEL_GROUP {
 					a.Srv.Go(func() {
