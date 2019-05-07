@@ -682,11 +682,10 @@ func (s SqlChannelStore) updateChannelT(transaction *gorp.Transaction, channel *
 	return result
 }
 
-func (s SqlChannelStore) GetChannelUnread(channelId, userId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var unreadChannel model.ChannelUnread
-		err := s.GetReplica().SelectOne(&unreadChannel,
-			`SELECT
+func (s SqlChannelStore) GetChannelUnread(channelId, userId string) (*model.ChannelUnread, *model.AppError) {
+	var unreadChannel model.ChannelUnread
+	err := s.GetReplica().SelectOne(&unreadChannel,
+		`SELECT
 				Channels.TeamId TeamId, Channels.Id ChannelId, (Channels.TotalMsgCount - ChannelMembers.MsgCount) MsgCount, ChannelMembers.MentionCount MentionCount, ChannelMembers.NotifyProps NotifyProps
 			FROM
 				Channels, ChannelMembers
@@ -695,17 +694,15 @@ func (s SqlChannelStore) GetChannelUnread(channelId, userId string) store.StoreC
                 AND Id = :ChannelId
                 AND UserId = :UserId
                 AND DeleteAt = 0`,
-			map[string]interface{}{"ChannelId": channelId, "UserId": userId})
+		map[string]interface{}{"ChannelId": channelId, "UserId": userId})
 
-		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.GetChannelUnread", "store.sql_channel.get_unread.app_error", nil, "channelId="+channelId+" "+err.Error(), http.StatusInternalServerError)
-			if err == sql.ErrNoRows {
-				result.Err.StatusCode = http.StatusNotFound
-			}
-		} else {
-			result.Data = &unreadChannel
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, model.NewAppError("SqlChannelStore.GetChannelUnread", "store.sql_channel.get_unread.app_error", nil, "channelId="+channelId+" "+err.Error(), http.StatusNotFound)
 		}
-	})
+		return nil, model.NewAppError("SqlChannelStore.GetChannelUnread", "store.sql_channel.get_unread.app_error", nil, "channelId="+channelId+" "+err.Error(), http.StatusInternalServerError)
+	}
+	return &unreadChannel, nil
 }
 
 func (s SqlChannelStore) InvalidateChannel(id string) {
