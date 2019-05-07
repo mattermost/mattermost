@@ -5487,10 +5487,6 @@
     "translation": "Unable to get the channel members"
   },
   {
-    "id": "store.sql_channel.search_group_channels.app_error",
-    "translation": "Unable to get the group channels for the given user and term"
-  },
-  {
     "id": "store.sql_channel.get_more_channels.get.app_error",
     "translation": "Unable to get the channels"
   },
@@ -5661,6 +5657,10 @@
   {
     "id": "store.sql_channel.search.app_error",
     "translation": "We encountered an error searching channels"
+  },
+  {
+    "id": "store.sql_channel.search_group_channels.app_error",
+    "translation": "Unable to get the group channels for the given user and term"
   },
   {
     "id": "store.sql_channel.set_delete_at.commit_transaction.app_error",
