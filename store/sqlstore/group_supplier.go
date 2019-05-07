@@ -780,7 +780,13 @@ func (s *SqlSupplier) TeamMembersToRemove(ctx context.Context, hints ...store.La
 
 	sql := `
 		SELECT
-			TeamMembers.*
+			TeamMembers.TeamId,
+			TeamMembers.UserId,
+			TeamMembers.Roles,
+			TeamMembers.DeleteAt,
+			TeamMembers.SchemeUser,
+			TeamMembers.SchemeAdmin,
+			(TeamMembers.SchemeGuest IS NOT NULL AND TeamMembers.SchemeGuest) as SchemeGuest
 		FROM
 			TeamMembers
 			JOIN Teams ON Teams.Id = TeamMembers.TeamId
@@ -861,7 +867,17 @@ func (s *SqlSupplier) ChannelMembersToRemove(ctx context.Context, hints ...store
 
 	sql := `
 		SELECT
-			ChannelMembers.*
+			ChannelMembers.ChannelId,
+			ChannelMembers.UserId,
+			ChannelMembers.LastViewedAt,
+			ChannelMembers.MsgCount,
+			ChannelMembers.MentionCount,
+			ChannelMembers.NotifyProps,
+			ChannelMembers.LastUpdateAt,
+			ChannelMembers.LastUpdateAt,
+			ChannelMembers.SchemeUser,
+			ChannelMembers.SchemeAdmin,
+			(ChannelMembers.SchemeGuest IS NOT NULL AND ChannelMembers.SchemeGuest) as SchemeGuest
 		FROM
 			ChannelMembers
 			JOIN Channels ON Channels.Id = ChannelMembers.ChannelId
