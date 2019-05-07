@@ -8,9 +8,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
 )
@@ -735,11 +734,14 @@ func TestGetGroups(t *testing.T) {
 	assert.Len(t, groups, 1)
 	opts.Q = ""
 
+	_, response = th.SystemAdminClient.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, "")
+	require.Nil(t, response.Error)
+
 	opts.NotAssociatedToTeam = th.BasicTeam.Id
 	_, response = th.Client.GetGroups(opts)
 	CheckForbiddenStatus(t, response)
 
-	_, response = th.SystemAdminClient.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, "team_admin")
+	_, response = th.SystemAdminClient.UpdateTeamMemberRoles(th.BasicTeam.Id, th.BasicUser.Id, "team_user")
 	require.Nil(t, response.Error)
 
 	_, response = th.Client.GetGroups(opts)

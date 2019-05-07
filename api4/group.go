@@ -557,8 +557,8 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	teamID := c.Params.NotAssociatedToTeam
 	if len(teamID) == 26 {
-		if !c.App.SessionHasPermissionToTeam(c.App.Session, teamID, model.PERMISSION_MANAGE_TEAM) {
-			c.SetPermissionError(model.PERMISSION_MANAGE_TEAM)
+		if !c.App.SessionHasPermissionToTeam(c.App.Session, teamID, model.PERMISSION_VIEW_TEAM) {
+			c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
 			return
 		}
 		opts.NotAssociatedToTeam = teamID
