@@ -196,9 +196,9 @@ func (s *hooksRPCServer) OnActivate(args *Z_OnActivateArgs, returns *Z_OnActivat
 	}
 
 	if mmplugin, ok := s.impl.(interface {
-		SetAPI(api API)
+		SetAPI(api API, helpers Helpers)
 	}); ok {
-		mmplugin.SetAPI(s.apiRPCClient)
+		mmplugin.SetAPI(s.apiRPCClient, &HelpersImpl{API: s.apiRPCClient})
 	}
 
 	if mmplugin, ok := s.impl.(interface {

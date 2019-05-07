@@ -45,6 +45,15 @@ var UserCreateCmd = &cobra.Command{
 	RunE:    userCreateCmdF,
 }
 
+var UserConvertCmd = &cobra.Command{
+	Use:     "convert [emails, usernames, userIds] --bot",
+	Short:   "Convert users to bots",
+	Long:    "Convert users to bots",
+	Example: `  user convert user@example.com anotherUser --bot`,
+	Args:    cobra.MinimumNArgs(1),
+	RunE:    userConvertCmdF,
+}
+
 var UserInviteCmd = &cobra.Command{
 	Use:   "invite [email] [teams]",
 	Short: "Send user an email invite to a team.",
@@ -162,6 +171,8 @@ func init() {
 	UserCreateCmd.Flags().String("locale", "", "Optional. The locale (ex: en, fr) for the new user account.")
 	UserCreateCmd.Flags().Bool("system_admin", false, "Optional. If supplied, the new user will be a system administrator. Defaults to false.")
 
+	UserConvertCmd.Flags().Bool("bot", false, "If supplied, convert users to bots.")
+
 	DeleteUserCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the user and a DB backup has been performed.")
 
 	DeleteAllUsersCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the user and a DB backup has been performed.")
@@ -234,6 +245,7 @@ Global Flags:
 		UserActivateCmd,
 		UserDeactivateCmd,
 		UserCreateCmd,
+		UserConvertCmd,
 		UserInviteCmd,
 		ResetUserPasswordCmd,
 		updateUserEmailCmd,
@@ -365,6 +377,44 @@ func userCreateCmdF(command *cobra.Command, args []string) error {
 	CommandPrettyPrintln("email: " + ruser.Email)
 	CommandPrettyPrintln("auth_service: " + ruser.AuthService)
 
+	return nil
+}
+
+func usersToBots(args []string, a *app.App) {
+	users := getUsersFromUserArgs(a, args)
+	for i, user := range users {
+		if user == nil {
+			CommandPrintErrorln(fmt.Errorf("Unable to find user \"%s\"", args[i]))
+			continue
+		}
+
+		bot, err := a.ConvertUserToBot(user)
+		if err != nil {
+			CommandPrintErrorln(err.Error())
+			continue
+		}
+
+		CommandPrettyPrintln(fmt.Sprintf("User %s is converted to bot successfully", bot.UserId))
+	}
+}
+
+func userConvertCmdF(command *cobra.Command, args []string) error {
+	a, err := InitDBCommandContextCobra(command)
+	if err != nil {
+		return err
+	}
+	defer a.Shutdown()
+
+	toBot, err := command.Flags().GetBool("bot")
+	if err != nil {
+		return errors.New("Invalid command. See help text for details.")
+	}
+
+	if !toBot {
+		return errors.New("Expect \"bot\" flag to be set. See help text for details.")
+	}
+
+	usersToBots(args, a)
 	return nil
 }
 

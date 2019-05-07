@@ -532,10 +532,10 @@ func testWebhookStoreCountOutgoing(t *testing.T, ss store.Store) {
 
 	ss.Webhook().SaveOutgoing(o1)
 
-	if r := <-ss.Webhook().AnalyticsOutgoingCount(""); r.Err != nil {
-		t.Fatal(r.Err)
+	if r, err := ss.Webhook().AnalyticsOutgoingCount(""); err != nil {
+		t.Fatal(err)
 	} else {
-		if r.Data.(int64) == 0 {
+		if r == 0 {
 			t.Fatal("should have at least 1 outgoing hook")
 		}
 	}
