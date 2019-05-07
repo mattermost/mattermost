@@ -9,8 +9,17 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/Masterminds/squirrel"
+
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
+)
+
+type selectType int
+
+const (
+	selectGroups selectType = iota
+	selectCountGroups
 )
 
 type groupTeam struct {
@@ -892,22 +901,25 @@ func (s *SqlSupplier) ChannelMembersToRemove(ctx context.Context, hints ...store
 	return result
 }
 
-func (s *SqlSupplier) GetGroupsByTeam(ctx context.Context, teamId string, opts model.GroupSearchOpts, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
-	result := store.NewSupplierResult()
+func (s *SqlSupplier) groupsByTeamBaseQuery(t selectType, teamID string, opts model.GroupSearchOpts) squirrel.SelectBuilder {
+	selectStrs := map[selectType]string{
+		selectGroups:      "ug.*",
+		selectCountGroups: "COUNT(*)",
+	}
 
 	query := s.getQueryBuilder().
-		Select("ug.*").
+		Select(selectStrs[t]).
 		From("GroupTeams gt").
 		LeftJoin("UserGroups ug ON gt.GroupId = ug.Id").
-		Where("ug.DeleteAt = 0 AND gt.TeamId = ? AND gt.DeleteAt = 0", teamId)
+		Where("ug.DeleteAt = 0 AND gt.TeamId = ? AND gt.DeleteAt = 0", teamID)
 
-	if opts.IncludeMemberCount {
+	if opts.IncludeMemberCount && t == selectGroups {
 		query = s.getQueryBuilder().
 			Select("ug.*, coalesce(Members.MemberCount, 0) AS MemberCount").
 			From("UserGroups ug").
 			LeftJoin("(SELECT GroupMembers.GroupId, COUNT(*) AS MemberCount FROM GroupMembers WHERE GroupMembers.DeleteAt = 0 GROUP BY GroupId) AS Members ON Members.GroupId = ug.Id").
 			LeftJoin("GroupTeams ON GroupTeams.GroupId = ug.Id").
-			Where("GroupTeams.DeleteAt = 0 AND GroupTeams.TeamId = ?", teamId).
+			Where("GroupTeams.DeleteAt = 0 AND GroupTeams.TeamId = ?", teamID).
 			OrderBy("ug.DisplayName")
 	}
 
@@ -919,6 +931,14 @@ func (s *SqlSupplier) GetGroupsByTeam(ctx context.Context, teamId string, opts m
 		}
 		query = query.Where(fmt.Sprintf("(ug.Name %[1]s ? OR ug.DisplayName %[1]s ?)", operatorKeyword), pattern, pattern)
 	}
+
+	return query
+}
+
+func (s *SqlSupplier) GetGroupsByTeam(ctx context.Context, teamId string, opts model.GroupSearchOpts, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+	result := store.NewSupplierResult()
+
+	query := s.groupsByTeamBaseQuery(selectGroups, teamId, opts)
 
 	if opts.PageOpts != nil {
 		offset := uint64(opts.PageOpts.Page * opts.PageOpts.PerPage)
@@ -939,7 +959,23 @@ func (s *SqlSupplier) GetGroupsByTeam(ctx context.Context, teamId string, opts m
 		return result
 	}
 
-	result.Data = groups
+	countQuery := s.groupsByTeamBaseQuery(selectCountGroups, teamId, opts)
+	countQueryString, args, err := countQuery.ToSql()
+	if err != nil {
+		result.Err = model.NewAppError("SqlGroupStore.GetGroupsByTeam", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return result
+	}
+
+	count, err := s.GetReplica().SelectInt(countQueryString, args...)
+	if err != nil {
+		result.Err = model.NewAppError("SqlGroupStore.GetGroupsByTeam", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+		return result
+	}
+
+	result.Data = &model.GroupsWithTotalCount{
+		Groups:     groups,
+		TotalCount: int(count),
+	}
 
 	return result
 }
