@@ -14,6 +14,7 @@ import (
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 func (api *API) InitUser() {
@@ -1430,11 +1431,13 @@ func attachDeviceId(c *Context, w http.ResponseWriter, r *http.Request) {
 		secure = true
 	}
 
+	subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
+
 	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAge), 0)
 	sessionCookie := &http.Cookie{
 		Name:     model.SESSION_COOKIE_TOKEN,
 		Value:    c.App.Session.Token,
-		Path:     "/",
+		Path:     subpath,
 		MaxAge:   maxAge,
 		Expires:  expiresAt,
 		HttpOnly: true,

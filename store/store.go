@@ -395,8 +395,8 @@ type WebhookStore interface {
 
 	SaveOutgoing(webhook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError)
 	GetOutgoing(id string) (*model.OutgoingWebhook, *model.AppError)
+	GetOutgoingByChannel(channelId string, offset, limit int) ([]*model.OutgoingWebhook, *model.AppError)
 	GetOutgoingList(offset, limit int) ([]*model.OutgoingWebhook, *model.AppError)
-	GetOutgoingByChannel(channelId string, offset, limit int) StoreChannel
 	GetOutgoingByTeam(teamId string, offset, limit int) ([]*model.OutgoingWebhook, *model.AppError)
 	DeleteOutgoing(webhookId string, time int64) *model.AppError
 	PermanentDeleteOutgoingByChannel(channelId string) *model.AppError
@@ -411,8 +411,8 @@ type WebhookStore interface {
 
 type CommandStore interface {
 	Save(webhook *model.Command) (*model.Command, *model.AppError)
-	Get(id string) StoreChannel
 	GetByTrigger(teamId string, trigger string) (*model.Command, *model.AppError)
+	Get(id string) (*model.Command, *model.AppError)
 	GetByTeam(teamId string) ([]*model.Command, *model.AppError)
 	Delete(commandId string, time int64) *model.AppError
 	PermanentDeleteByTeam(teamId string) *model.AppError
