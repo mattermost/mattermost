@@ -2274,6 +2274,8 @@ func (s SqlChannelStore) getSearchGroupChannelsQuery(userId, term string, isPost
                         cc.Id
                     HAVING
                         %s
+                    LIMIT
+                        ` + strconv.Itoa(model.CHANNEL_SEARCH_DEFAULT_LIMIT) + `
                 )`
 	} else {
 		baseLikeClause = "GROUP_CONCAT(u.Username SEPARATOR ', ') LIKE %s"
@@ -2303,7 +2305,9 @@ func (s SqlChannelStore) getSearchGroupChannelsQuery(userId, term string, isPost
             GROUP BY
                 cc.Id
             HAVING
-                %s`
+                %s
+            LIMIT
+                ` + strconv.Itoa(model.CHANNEL_SEARCH_DEFAULT_LIMIT)
 	}
 
 	var likeClauses []string
