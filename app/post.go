@@ -302,9 +302,9 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 func (a *App) attachFilesToPost(post *model.Post) *model.AppError {
 	var attachedIds []string
 	for _, fileId := range post.FileIds {
-		result := <-a.Srv.Store.FileInfo().AttachToPost(fileId, post.Id, post.UserId)
-		if result.Err != nil {
-			mlog.Warn("Failed to attach file to post", mlog.String("file_id", fileId), mlog.String("post_id", post.Id), mlog.Err(result.Err))
+		err := a.Srv.Store.FileInfo().AttachToPost(fileId, post.Id, post.UserId)
+		if err != nil {
+			mlog.Warn("Failed to attach file to post", mlog.String("file_id", fileId), mlog.String("post_id", post.Id), mlog.Err(err))
 			continue
 		}
 
@@ -776,8 +776,8 @@ func (a *App) DeletePostFiles(post *model.Post) {
 		return
 	}
 
-	if result := <-a.Srv.Store.FileInfo().DeleteForPost(post.Id); result.Err != nil {
-		mlog.Warn(fmt.Sprintf("Encountered error when deleting files for post, post_id=%v, err=%v", post.Id, result.Err), mlog.String("post_id", post.Id))
+	if _, err := a.Srv.Store.FileInfo().DeleteForPost(post.Id); err != nil {
+		mlog.Warn(fmt.Sprintf("Encountered error when deleting files for post, post_id=%v, err=%v", post.Id, err), mlog.String("post_id", post.Id))
 	}
 }
 
@@ -980,12 +980,7 @@ func (a *App) GetFileInfosForPostWithMigration(postId string) ([]*model.FileInfo
 }
 
 func (a *App) GetFileInfosForPost(postId string) ([]*model.FileInfo, *model.AppError) {
-	result := <-a.Srv.Store.FileInfo().GetForPost(postId, false, true)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-
-	return result.Data.([]*model.FileInfo), nil
+	return a.Srv.Store.FileInfo().GetForPost(postId, false, true)
 }
 
 func (a *App) PostWithProxyAddedToImageURLs(post *model.Post) *model.Post {

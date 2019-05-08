@@ -477,17 +477,17 @@ type StatusStore interface {
 }
 
 type FileInfoStore interface {
-	Save(info *model.FileInfo) StoreChannel
-	Get(id string) StoreChannel
-	GetByPath(path string) StoreChannel
-	GetForPost(postId string, readFromMaster bool, allowFromCache bool) StoreChannel
-	GetForUser(userId string) StoreChannel
+	Save(info *model.FileInfo) (*model.FileInfo, *model.AppError)
+	Get(id string) (*model.FileInfo, *model.AppError)
+	GetByPath(path string) (*model.FileInfo, *model.AppError)
+	GetForPost(postId string, readFromMaster bool, allowFromCache bool) ([]*model.FileInfo, *model.AppError)
+	GetForUser(userId string) ([]*model.FileInfo, *model.AppError)
 	InvalidateFileInfosForPostCache(postId string)
-	AttachToPost(fileId string, postId string, creatorId string) StoreChannel
-	DeleteForPost(postId string) StoreChannel
-	PermanentDelete(fileId string) StoreChannel
-	PermanentDeleteBatch(endTime int64, limit int64) StoreChannel
-	PermanentDeleteByUser(userId string) StoreChannel
+	AttachToPost(fileId string, postId string, creatorId string) *model.AppError
+	DeleteForPost(postId string) (string, *model.AppError)
+	PermanentDelete(fileId string) *model.AppError
+	PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError)
+	PermanentDeleteByUser(userId string) (int64, *model.AppError)
 	ClearCaches()
 }
 
