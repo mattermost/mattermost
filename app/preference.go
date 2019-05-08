@@ -32,13 +32,7 @@ func (a *App) GetPreferenceByCategoryForUser(userId string, category string) (mo
 }
 
 func (a *App) GetPreferenceByCategoryAndNameForUser(userId string, category string, preferenceName string) (*model.Preference, *model.AppError) {
-	result := <-a.Srv.Store.Preference().Get(userId, category, preferenceName)
-	if result.Err != nil {
-		result.Err.StatusCode = http.StatusBadRequest
-		return nil, result.Err
-	}
-	data := result.Data.(model.Preference)
-	return &data, nil
+	return a.Srv.Store.Preference().Get(userId, category, preferenceName)
 }
 
 func (a *App) UpdatePreferences(userId string, preferences model.Preferences) *model.AppError {

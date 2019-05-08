@@ -164,7 +164,7 @@ func (s SqlPreferenceStore) update(transaction *gorp.Transaction, preference *mo
 }
 
 func (s SqlPreferenceStore) Get(userId string, category string, name string) (*model.Preference, *model.AppError) {
-	var preference model.Preference
+	var preference *model.Preference
 
 	if err := s.GetReplica().SelectOne(&preference,
 		`SELECT
