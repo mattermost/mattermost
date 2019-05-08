@@ -1346,6 +1346,34 @@ func testChannelMemberRemovals(t *testing.T, ss store.Store) {
 	require.Nil(t, res.Err)
 	require.Len(t, res.Data, 3)
 
+	// Make one of them a bot
+	res = <-ss.Group().ChannelMembersToRemove()
+	channelMembers = res.Data.([]*model.ChannelMember)
+	channelMember := channelMembers[0]
+	bot := &model.Bot{
+		UserId:      channelMember.UserId,
+		Username:    "un_" + model.NewId(),
+		DisplayName: "dn_" + model.NewId(),
+		OwnerId:     channelMember.UserId,
+	}
+	res = <-ss.Bot().Save(bot)
+	require.Nil(t, res.Err)
+	bot = res.Data.(*model.Bot)
+
+	// verify that bot is not returned in results
+	res = <-ss.Group().ChannelMembersToRemove()
+	require.Nil(t, res.Err)
+	require.Len(t, res.Data, 2)
+
+	// delete the bot
+	res = <-ss.Bot().PermanentDelete(bot.UserId)
+	require.Nil(t, res.Err)
+
+	// Should be back to 3 users
+	res = <-ss.Group().ChannelMembersToRemove()
+	require.Nil(t, res.Err)
+	require.Len(t, res.Data, 3)
+
 	// add users back to groups
 	res = <-ss.Team().RemoveMember(data.ConstrainedTeam.Id, data.UserA.Id)
 	require.Nil(t, res.Err)

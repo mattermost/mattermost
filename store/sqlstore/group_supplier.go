@@ -856,9 +856,11 @@ func (s *SqlSupplier) ChannelMembersToRemove(ctx context.Context, hints ...store
 		FROM
 			ChannelMembers
 			JOIN Channels ON Channels.Id = ChannelMembers.ChannelId
+			LEFT JOIN Bots ON Bots.UserId = ChannelMembers.UserId
 		WHERE
 			Channels.DeleteAt = 0
 			AND Channels.GroupConstrained = TRUE
+			AND Bots.UserId IS NULL
 			AND (ChannelMembers.ChannelId, ChannelMembers.UserId)
 			NOT IN (
 				SELECT
