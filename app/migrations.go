@@ -19,7 +19,7 @@ const GUEST_ROLES_CREATION_MIGRATION_KEY = "GuestRolesCreationMigrationComplete"
 // This function migrates the default built in roles from code/config to the database.
 func (a *App) DoAdvancedPermissionsMigration() {
 	// If the migration is already marked as completed, don't do it again.
-	if result := <-a.Srv.Store.System().GetByName(ADVANCED_PERMISSIONS_MIGRATION_KEY); result.Err == nil {
+	if _, err := a.Srv.Store.System().GetByName(ADVANCED_PERMISSIONS_MIGRATION_KEY); err == nil {
 		return
 	}
 
@@ -72,17 +72,16 @@ func (a *App) DoAdvancedPermissionsMigration() {
 		Value: "true",
 	}
 
-	if result := <-a.Srv.Store.System().Save(&system); result.Err != nil {
+	if err := a.Srv.Store.System().Save(&system); err != nil {
 		mlog.Critical("Failed to mark advanced permissions migration as completed.")
-		mlog.Critical(fmt.Sprint(result.Err))
+		mlog.Critical(fmt.Sprint(err))
 	}
 }
 
 func (a *App) SetPhase2PermissionsMigrationStatus(isComplete bool) error {
 	if !isComplete {
-		res := <-a.Srv.Store.System().PermanentDeleteByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2)
-		if res.Err != nil {
-			return res.Err
+		if _, err := a.Srv.Store.System().PermanentDeleteByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2); err != nil {
+			return err
 		}
 	}
 	a.Srv.phase2PermissionsMigrationComplete = isComplete
@@ -91,7 +90,7 @@ func (a *App) SetPhase2PermissionsMigrationStatus(isComplete bool) error {
 
 func (a *App) DoEmojisPermissionsMigration() {
 	// If the migration is already marked as completed, don't do it again.
-	if result := <-a.Srv.Store.System().GetByName(EMOJIS_PERMISSIONS_MIGRATION_KEY); result.Err == nil {
+	if _, err := a.Srv.Store.System().GetByName(EMOJIS_PERMISSIONS_MIGRATION_KEY); err == nil {
 		return
 	}
 
@@ -152,15 +151,15 @@ func (a *App) DoEmojisPermissionsMigration() {
 		Value: "true",
 	}
 
-	if result := <-a.Srv.Store.System().Save(&system); result.Err != nil {
+	if err := a.Srv.Store.System().Save(&system); err != nil {
 		mlog.Critical("Failed to mark emojis permissions migration as completed.")
-		mlog.Critical(fmt.Sprint(result.Err))
+		mlog.Critical(fmt.Sprint(err))
 	}
 }
 
 func (a *App) DoGuestRolesCreationMigration() {
 	// If the migration is already marked as completed, don't do it again.
-	if result := <-a.Srv.Store.System().GetByName(GUEST_ROLES_CREATION_MIGRATION_KEY); result.Err == nil {
+	if _, err := a.Srv.Store.System().GetByName(GUEST_ROLES_CREATION_MIGRATION_KEY); err == nil {
 		return
 	}
 
@@ -248,9 +247,9 @@ func (a *App) DoGuestRolesCreationMigration() {
 		Value: "true",
 	}
 
-	if result := <-a.Srv.Store.System().Save(&system); result.Err != nil {
+	if err := a.Srv.Store.System().Save(&system); err != nil {
 		mlog.Critical("Failed to mark guest roles creation migration as completed.")
-		mlog.Critical(fmt.Sprint(result.Err))
+		mlog.Critical(fmt.Sprint(err))
 	}
 }
 

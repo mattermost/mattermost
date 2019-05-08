@@ -373,12 +373,12 @@ type OAuthStore interface {
 }
 
 type SystemStore interface {
-	Save(system *model.System) StoreChannel
-	SaveOrUpdate(system *model.System) StoreChannel
-	Update(system *model.System) StoreChannel
-	Get() StoreChannel
-	GetByName(name string) StoreChannel
-	PermanentDeleteByName(name string) StoreChannel
+	Save(system *model.System) *model.AppError
+	SaveOrUpdate(system *model.System) *model.AppError
+	Update(system *model.System) *model.AppError
+	Get() (model.StringMap, *model.AppError)
+	GetByName(name string) (*model.System, *model.AppError)
+	PermanentDeleteByName(name string) (*model.System, *model.AppError)
 }
 
 type WebhookStore interface {
