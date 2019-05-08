@@ -5211,6 +5211,10 @@
     "translation": "Missing TO address."
   },
   {
+    "id": "plugin_api.bot_cant_create_bot",
+    "translation": "Bot user cannot create bot user."
+  },
+  {
     "id": "store.insert_error",
     "translation": "insert error"
   },
