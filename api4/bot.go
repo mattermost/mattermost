@@ -36,6 +36,13 @@ func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if user, err := c.App.GetUser(c.App.Session.UserId); err == nil {
+		if user.IsBot {
+			c.SetPermissionError(model.PERMISSION_CREATE_BOT)
+			return
+		}
+	}
+
 	createdBot, err := c.App.CreateBot(bot)
 	if err != nil {
 		c.Err = err
