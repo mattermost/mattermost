@@ -74,12 +74,11 @@ func (job *PluginHealthCheckJob) Start() {
 
 // checkPlugin determines the plugin's health status, then handles the error or success case.
 func (job *PluginHealthCheckJob) checkPlugin(id string) {
-	var ap activePlugin
-	if p, ok := job.env.activePlugins.Load(id); ok {
-		ap = p.(activePlugin)
-	} else {
+	p, ok := job.env.activePlugins.Load(id)
+	if !ok {
 		return
 	}
+	ap := p.(activePlugin)
 
 	if _, ok := job.env.pluginHealthStatuses.Load(id); !ok {
 		job.env.pluginHealthStatuses.Store(id, newPluginHealthStatus())
@@ -93,21 +92,18 @@ func (job *PluginHealthCheckJob) checkPlugin(id string) {
 	pluginErr := sup.PerformHealthCheck()
 
 	if pluginErr != nil {
-		mlog.Debug(fmt.Sprintf("Health check failed for plugin %s, error: %s", id, pluginErr.Error()))
+		mlog.Error(fmt.Sprintf("Health check failed for plugin %s, error: %s", id, pluginErr.Error()))
 		job.handleHealthCheckFail(id, pluginErr)
-	} else {
-		job.handleHealthCheckSuccess(id)
 	}
 }
 
 // handleHealthCheckFail restarts or deactivates the plugin based on how many times it has failed in a configured amount of time.
 func (job *PluginHealthCheckJob) handleHealthCheckFail(id string, err error) {
-	var h *PluginHealthStatus
-	if health, ok := job.env.pluginHealthStatuses.Load(id); ok {
-		h = health.(*PluginHealthStatus)
-	} else {
+	health, ok := job.env.pluginHealthStatuses.Load(id)
+	if !ok {
 		return
 	}
+	h := health.(*PluginHealthStatus)
 
 	// Append current failure before checking for deactivate vs restart action
 	h.failTimeStamps = append(h.failTimeStamps, time.Now())
@@ -120,15 +116,10 @@ func (job *PluginHealthCheckJob) handleHealthCheckFail(id string, err error) {
 		job.env.Deactivate(id)
 	} else {
 		mlog.Debug(fmt.Sprintf("Restarting plugin due to failed health check `%s`", id))
-		job.env.RestartPlugin(id)
+		if err := job.env.RestartPlugin(id); err != nil {
+			mlog.Error(fmt.Sprintf("Failed to restart plugin `%s`: %s", id, err.Error()))
+		}
 	}
-}
-
-// handleHealthCheckSuccess marks the plugin as healthy.
-func (job *PluginHealthCheckJob) handleHealthCheckSuccess(id string) {
-	job.env.UpdatePluginHealthStatus(id, func(h *PluginHealthStatus) {
-		h.Crashed = false
-	})
 }
 
 func newPluginHealthCheckJob(env *Environment) *PluginHealthCheckJob {

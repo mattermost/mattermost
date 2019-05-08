@@ -48,7 +48,8 @@ func testPluginHealthCheck_Success(t *testing.T) {
 		}
 	`, backend)
 
-	ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "backend": {"executable": "backend.exe"}}`), 0600)
+	err = ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "backend": {"executable": "backend.exe"}}`), 0600)
+	require.NoError(t, err)
 
 	bundle := model.BundleInfoForPath(dir)
 	log := mlog.NewLogger(&mlog.LoggerConfiguration{
@@ -93,7 +94,8 @@ func testPluginHealthCheck_PluginPanicProcessCheck(t *testing.T) {
 		}
 	`, backend)
 
-	ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "backend": {"executable": "backend.exe"}}`), 0600)
+	err = ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "backend": {"executable": "backend.exe"}}`), 0600)
+	require.NoError(t, err)
 
 	bundle := model.BundleInfoForPath(dir)
 	log := mlog.NewLogger(&mlog.LoggerConfiguration{
@@ -140,7 +142,8 @@ func testPluginHealthCheck_RPCPingFail(t *testing.T) {
 		}
 	`, backend)
 
-	ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "backend": {"executable": "backend.exe"}}`), 0600)
+	err = ioutil.WriteFile(filepath.Join(dir, "plugin.json"), []byte(`{"id": "foo", "backend": {"executable": "backend.exe"}}`), 0600)
+	require.NoError(t, err)
 
 	bundle := model.BundleInfoForPath(dir)
 	log := mlog.NewLogger(&mlog.LoggerConfiguration{

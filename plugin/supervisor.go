@@ -4,6 +4,7 @@
 package plugin
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -114,7 +115,7 @@ func (sup *supervisor) Hooks() Hooks {
 func (sup *supervisor) PerformHealthCheck() error {
 	if procErr := sup.CheckProcess(); procErr != nil {
 		mlog.Debug(fmt.Sprintf("Error checking plugin process, error: %s", procErr.Error()))
-		return fmt.Errorf("Plugin process not found, or not responding")
+		return errors.New("Plugin process not found, or not responding")
 	}
 
 	if pingErr := sup.Ping(); pingErr != nil {
