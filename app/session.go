@@ -243,6 +243,9 @@ func (a *App) UpdateLastActivityAtIfNeeded(session model.Session) {
 func (a *App) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError) {
 
 	user, err := a.Srv.Store.User().Get(token.UserId)
+	if err != nil {
+		return nil, err
+	}
 
 	if !*a.Config().ServiceSettings.EnableUserAccessTokens && !user.IsBot {
 		return nil, model.NewAppError("CreateUserAccessToken", "app.user_access_token.disabled", nil, "", http.StatusNotImplemented)
@@ -256,12 +259,8 @@ func (a *App) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAc
 	}
 	token = result.Data.(*model.UserAccessToken)
 
-	if err != nil {
-		mlog.Error(err.Error())
-	} else {
-		if err := a.SendUserAccessTokenAddedEmail(user.Email, user.Locale, a.GetSiteURL()); err != nil {
-			mlog.Error(err.Error())
-		}
+	if err := a.SendUserAccessTokenAddedEmail(user.Email, user.Locale, a.GetSiteURL()); err != nil {
+		return nil, err
 	}
 
 	return token, nil
