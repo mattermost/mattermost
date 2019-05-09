@@ -206,26 +206,6 @@ func TestChannelGroupList(t *testing.T) {
 	require.Error(t, th.RunCommand(t, "group", "channel", "list", th.BasicTeam.Name+":"+channel.Name+"asdf"))
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 func TestTeamGroupEnable(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
