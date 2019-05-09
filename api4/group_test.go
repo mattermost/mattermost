@@ -151,7 +151,14 @@ func TestLinkGroupTeam(t *testing.T) {
 
 	th.App.SetLicense(model.NewTestLicense("ldap"))
 
-	groupTeam, response := th.SystemAdminClient.LinkGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+	_, response = th.Client.LinkGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
+	assert.NotNil(t, response.Error)
+
+	th.UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
+	th.Client.Logout()
+	th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+	groupTeam, response := th.Client.LinkGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, patch)
 	assert.Equal(t, http.StatusCreated, response.StatusCode)
 	assert.NotNil(t, groupTeam)
 }
@@ -182,8 +189,17 @@ func TestLinkGroupChannel(t *testing.T) {
 
 	th.App.SetLicense(model.NewTestLicense("ldap"))
 
-	_, response = th.SystemAdminClient.LinkGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+	groupTeam, response := th.Client.LinkGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
 	assert.Equal(t, http.StatusCreated, response.StatusCode)
+	assert.NotNil(t, groupTeam)
+
+	_, response = th.SystemAdminClient.UpdateChannelRoles(th.BasicChannel.Id, th.BasicUser.Id, "")
+	require.Nil(t, response.Error)
+	th.Client.Logout()
+	th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+	_, response = th.Client.LinkGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel, patch)
+	assert.NotNil(t, response.Error)
 }
 
 func TestUnlinkGroupTeam(t *testing.T) {
@@ -219,7 +235,14 @@ func TestUnlinkGroupTeam(t *testing.T) {
 
 	th.App.SetLicense(model.NewTestLicense("ldap"))
 
-	response = th.SystemAdminClient.UnlinkGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
+	response = th.Client.UnlinkGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
+	assert.NotNil(t, response.Error)
+
+	th.UpdateUserToTeamAdmin(th.BasicUser, th.BasicTeam)
+	th.Client.Logout()
+	th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+	response = th.Client.UnlinkGroupSyncable(g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam)
 	CheckOKStatus(t, response)
 }
 
@@ -256,8 +279,21 @@ func TestUnlinkGroupChannel(t *testing.T) {
 
 	th.App.SetLicense(model.NewTestLicense("ldap"))
 
-	response = th.SystemAdminClient.UnlinkGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
-	CheckOKStatus(t, response)
+	_, response = th.SystemAdminClient.UpdateChannelRoles(th.BasicChannel.Id, th.BasicUser.Id, "")
+	require.Nil(t, response.Error)
+	th.Client.Logout()
+	th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+	response = th.Client.UnlinkGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
+	assert.NotNil(t, response.Error)
+
+	_, response = th.SystemAdminClient.UpdateChannelRoles(th.BasicChannel.Id, th.BasicUser.Id, "channel_admin channel_user")
+	require.Nil(t, response.Error)
+	th.Client.Logout()
+	th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+	response = th.Client.UnlinkGroupSyncable(g.Id, th.BasicChannel.Id, model.GroupSyncableTypeChannel)
+	assert.Nil(t, response.Error)
 }
 
 func TestGetGroupTeam(t *testing.T) {
