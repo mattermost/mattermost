@@ -4979,6 +4979,10 @@
     "translation": "잘못된 ID"
   },
   {
+    "id": "model.team.is_valid.invite_id.app_error",
+    "translation": "Invalid invite id"
+  },
+  {
     "id": "model.team.is_valid.name.app_error",
     "translation": "잘못된 이름"
   },
