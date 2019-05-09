@@ -4,6 +4,7 @@
 package app
 
 import (
+	"net/http"
 	"path/filepath"
 	"runtime/debug"
 	"strings"
@@ -157,6 +158,23 @@ func TestImportImportLine(t *testing.T) {
 	if err := th.App.ImportLine(line, false); err == nil {
 		t.Fatalf("Expected an error when importing a line with type scheme with a nil scheme.")
 	}
+}
+
+func TestStopOnError(t *testing.T) {
+	assert.True(t, stopOnError(LineImportWorkerError{
+		model.NewAppError("test", "app.import.attachment.bad_file.error", nil, "", http.StatusBadRequest),
+		1,
+	}))
+
+	assert.True(t, stopOnError(LineImportWorkerError{
+		model.NewAppError("test", "app.import.attachment.file_upload.error", nil, "", http.StatusBadRequest),
+		1,
+	}))
+
+	assert.False(t, stopOnError(LineImportWorkerError{
+		model.NewAppError("test", "api.file.upload_file.large_image.app_error", nil, "", http.StatusBadRequest),
+		1,
+	}))
 }
 
 func TestImportBulkImport(t *testing.T) {
