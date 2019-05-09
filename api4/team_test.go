@@ -2473,7 +2473,7 @@ func TestUpdateTeamScheme(t *testing.T) {
 	_, resp = th.Client.UpdateTeamScheme(team.Id, teamScheme.Id)
 	CheckForbiddenStatus(t, resp)
 
-	// Test that a license is requried.
+	// Test that a license is required.
 	th.App.SetLicense(nil)
 	_, resp = th.SystemAdminClient.UpdateTeamScheme(team.Id, teamScheme.Id)
 	CheckNotImplementedStatus(t, resp)
