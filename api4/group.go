@@ -180,7 +180,11 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	verifyLinkUnlinkPermission(c, syncableType, syncableID)
+	appErr := verifyLinkUnlinkPermission(c, syncableType, syncableID)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
 
 	groupSyncable, appErr := c.App.GetGroupSyncable(c.Params.GroupId, syncableID, syncableType)
 	if appErr != nil && appErr.DetailedError != sql.ErrNoRows.Error() {
@@ -389,9 +393,13 @@ func unlinkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	verifyLinkUnlinkPermission(c, syncableType, syncableID)
+	err := verifyLinkUnlinkPermission(c, syncableType, syncableID)
+	if err != nil {
+		c.Err = err
+		return
+	}
 
-	_, err := c.App.DeleteGroupSyncable(c.Params.GroupId, syncableID, syncableType)
+	_, err = c.App.DeleteGroupSyncable(c.Params.GroupId, syncableID, syncableType)
 	if err != nil {
 		c.Err = err
 		return
@@ -400,18 +408,16 @@ func unlinkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 	ReturnStatusOK(w)
 }
 
-func verifyLinkUnlinkPermission(c *Context, syncableType model.GroupSyncableType, syncableID string) {
+func verifyLinkUnlinkPermission(c *Context, syncableType model.GroupSyncableType, syncableID string) *model.AppError {
 	switch syncableType {
 	case model.GroupSyncableTypeTeam:
 		if !c.App.SessionHasPermissionToTeam(c.App.Session, syncableID, model.PERMISSION_MANAGE_TEAM) {
-			c.SetPermissionError(model.PERMISSION_MANAGE_TEAM)
-			return
+			return c.App.MakePermissionError(model.PERMISSION_MANAGE_TEAM)
 		}
 	case model.GroupSyncableTypeChannel:
 		channel, err := c.App.GetChannel(syncableID)
 		if err != nil {
-			c.Err = err
-			return
+			return err
 		}
 
 		var permission *model.Permission
@@ -422,10 +428,11 @@ func verifyLinkUnlinkPermission(c *Context, syncableType model.GroupSyncableType
 		}
 
 		if !c.App.SessionHasPermissionToChannel(c.App.Session, syncableID, permission) {
-			c.SetPermissionError(permission)
-			return
+			return c.App.MakePermissionError(permission)
 		}
 	}
+
+	return nil
 }
 
 func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -547,8 +554,6 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("Api4.getGroups", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
 		return
 	}
-
-	// TODO: Should the ability to list and search groups be behind a permission?
 
 	opts := model.GroupSearchOpts{
 		Q:                  c.Params.Q,
