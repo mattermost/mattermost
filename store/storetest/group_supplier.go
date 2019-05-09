@@ -34,8 +34,8 @@ func TestGroupStore(t *testing.T, ss store.Store) {
 	t.Run("TeamMembersToAdd", func(t *testing.T) { testPendingAutoAddTeamMembers(t, ss) })
 	t.Run("ChannelMembersToAdd", func(t *testing.T) { testPendingAutoAddChannelMembers(t, ss) })
 
-	t.Run("TeamMembersToRemove", func(t *testing.T) { testPendingTeamMemberRemovals(t, ss) })
-	t.Run("ChannelMembersToRemove", func(t *testing.T) { testPendingChannelMemberRemovals(t, ss) })
+	t.Run("TeamMembersToRemove", func(t *testing.T) { testTeamMemberRemovals(t, ss) })
+	t.Run("ChannelMembersToRemove", func(t *testing.T) { testChannelMemberRemovals(t, ss) })
 
 	t.Run("GetGroupsByChannel", func(t *testing.T) { testGetGroupsByChannel(t, ss) })
 	t.Run("GetGroupsByTeam", func(t *testing.T) { testGetGroupsByTeam(t, ss) })
@@ -1231,7 +1231,7 @@ func testPendingAutoAddChannelMembers(t *testing.T, ss store.Store) {
 	require.Len(t, res.Data, 1)
 }
 
-func testPendingTeamMemberRemovals(t *testing.T, ss store.Store) {
+func testTeamMemberRemovals(t *testing.T, ss store.Store) {
 	data := pendingMemberRemovalsDataSetup(t, ss)
 
 	// one result when both users are in the group (for user C)
@@ -1267,6 +1267,34 @@ func testPendingTeamMemberRemovals(t *testing.T, ss store.Store) {
 	require.Nil(t, res.Err)
 	require.Len(t, res.Data, 3)
 
+	// Make one of them a bot
+	res = <-ss.Group().TeamMembersToRemove()
+	teamMembers = res.Data.([]*model.TeamMember)
+	teamMember := teamMembers[0]
+	bot := &model.Bot{
+		UserId:      teamMember.UserId,
+		Username:    "un_" + model.NewId(),
+		DisplayName: "dn_" + model.NewId(),
+		OwnerId:     teamMember.UserId,
+	}
+	res = <-ss.Bot().Save(bot)
+	require.Nil(t, res.Err)
+	bot = res.Data.(*model.Bot)
+
+	// verify that bot is not returned in results
+	res = <-ss.Group().TeamMembersToRemove()
+	require.Nil(t, res.Err)
+	require.Len(t, res.Data, 2)
+
+	// delete the bot
+	res = <-ss.Bot().PermanentDelete(bot.UserId)
+	require.Nil(t, res.Err)
+
+	// Should be back to 3 users
+	res = <-ss.Group().TeamMembersToRemove()
+	require.Nil(t, res.Err)
+	require.Len(t, res.Data, 3)
+
 	// add users back to groups
 	res = <-ss.Team().RemoveMember(data.ConstrainedTeam.Id, data.UserA.Id)
 	require.Nil(t, res.Err)
@@ -1282,7 +1310,7 @@ func testPendingTeamMemberRemovals(t *testing.T, ss store.Store) {
 	require.Nil(t, res.Err)
 }
 
-func testPendingChannelMemberRemovals(t *testing.T, ss store.Store) {
+func testChannelMemberRemovals(t *testing.T, ss store.Store) {
 	data := pendingMemberRemovalsDataSetup(t, ss)
 
 	// one result when both users are in the group (for user C)
@@ -1314,6 +1342,34 @@ func testPendingChannelMemberRemovals(t *testing.T, ss store.Store) {
 	res = <-ss.Group().DeleteMember(data.Group.Id, data.UserA.Id)
 	require.Nil(t, res.Err)
 
+	res = <-ss.Group().ChannelMembersToRemove()
+	require.Nil(t, res.Err)
+	require.Len(t, res.Data, 3)
+
+	// Make one of them a bot
+	res = <-ss.Group().ChannelMembersToRemove()
+	channelMembers = res.Data.([]*model.ChannelMember)
+	channelMember := channelMembers[0]
+	bot := &model.Bot{
+		UserId:      channelMember.UserId,
+		Username:    "un_" + model.NewId(),
+		DisplayName: "dn_" + model.NewId(),
+		OwnerId:     channelMember.UserId,
+	}
+	res = <-ss.Bot().Save(bot)
+	require.Nil(t, res.Err)
+	bot = res.Data.(*model.Bot)
+
+	// verify that bot is not returned in results
+	res = <-ss.Group().ChannelMembersToRemove()
+	require.Nil(t, res.Err)
+	require.Len(t, res.Data, 2)
+
+	// delete the bot
+	res = <-ss.Bot().PermanentDelete(bot.UserId)
+	require.Nil(t, res.Err)
+
+	// Should be back to 3 users
 	res = <-ss.Group().ChannelMembersToRemove()
 	require.Nil(t, res.Err)
 	require.Len(t, res.Data, 3)
