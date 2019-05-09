@@ -46,11 +46,10 @@ func getCommandFromCommandArg(a *app.App, commandArg string) *model.Command {
 		if team == nil {
 			return nil
 		}
-
-		if result := <-a.Srv.Store.Command().GetByTrigger(team.Id, commandPart); result.Err == nil {
-			command = result.Data.(*model.Command)
-		} else {
-			fmt.Println(result.Err.Error())
+		var err *model.AppError
+		command, err = a.Srv.Store.Command().GetByTrigger(team.Id, commandPart)
+		if err != nil {
+			fmt.Println(err.Error())
 		}
 	}
 
