@@ -621,20 +621,20 @@ func (s SqlChannelStore) Update(channel *model.Channel) (*model.Channel, *model.
 	}
 	defer finalizeTransaction(transaction)
 
-	result, apperr := s.updateChannelT(transaction, channel)
+	updatedChannel, apperr := s.updateChannelT(transaction, channel)
 	if apperr != nil {
 		return nil, apperr
 	}
 
 	// Additionally propagate the write to the PublicChannels table.
-	if err := s.upsertPublicChannelT(transaction, result); err != nil {
+	if err := s.upsertPublicChannelT(transaction, updatedChannel); err != nil {
 		return nil, model.NewAppError("SqlChannelStore.Update", "store.sql_channel.update.upsert_public_channel.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	if err := transaction.Commit(); err != nil {
 		return nil, model.NewAppError("SqlChannelStore.Update", "store.sql_channel.update.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	return result, nil
+	return updatedChannel, nil
 }
 
 func (s SqlChannelStore) updateChannelT(transaction *gorp.Transaction, channel *model.Channel) (*model.Channel, *model.AppError) {
