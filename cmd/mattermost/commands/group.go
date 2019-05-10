@@ -32,7 +32,7 @@ var ChannelGroupEnableCmd = &cobra.Command{
 
 var ChannelGroupDisableCmd = &cobra.Command{
 	Use:     "disable [team]:[channel]",
-	Short:   "Disables group constrains in the specified channel",
+	Short:   "Disables group constraint on the specified channel",
 	Example: "  group channel disable myteam:mychannel",
 	Args:    cobra.ExactArgs(1),
 	RunE:    channelGroupDisableCmdF,
