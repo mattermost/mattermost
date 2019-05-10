@@ -3327,7 +3327,7 @@ func (c *Client4) GetGroupsByChannel(channelId string, opts GroupSearchOpts) ([]
 		Count  int      `json:"total_group_count"`
 	}{}
 	if err := json.NewDecoder(r.Body).Decode(&responseData); err != nil {
-		appErr := NewAppError("Api4.GetGroupsByTeam", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+		appErr := NewAppError("Api4.GetGroupsByChannel", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
 		return nil, 0, BuildErrorResponse(r, appErr)
 	}
 
