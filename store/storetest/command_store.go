@@ -52,15 +52,15 @@ func testCommandStoreGet(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	if r1 := <-ss.Command().Get(o1.Id); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if r1, err := ss.Command().Get(o1.Id); err != nil {
+		t.Fatal(err)
 	} else {
-		if r1.Data.(*model.Command).CreateAt != o1.CreateAt {
+		if r1.CreateAt != o1.CreateAt {
 			t.Fatal("invalid returned command")
 		}
 	}
 
-	if err := (<-ss.Command().Get("123")).Err; err == nil {
+	if _, err := ss.Command().Get("123"); err == nil {
 		t.Fatal("Missing id should have failed")
 	}
 }
@@ -118,11 +118,11 @@ func testCommandStoreGetByTrigger(t *testing.T, ss store.Store) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	if r1 := <-ss.Command().GetByTrigger(o1.TeamId, o1.Trigger); r1.Err != nil {
-		t.Fatal(r1.Err)
+	var r1 *model.Command
+	if r1, err = ss.Command().GetByTrigger(o1.TeamId, o1.Trigger); err != nil {
+		t.Fatal(err)
 	} else {
-		if r1.Data.(*model.Command).Id != o1.Id {
+		if r1.Id != o1.Id {
 			t.Fatal("invalid returned command")
 		}
 	}
@@ -132,7 +132,7 @@ func testCommandStoreGetByTrigger(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	if result := <-ss.Command().GetByTrigger(o1.TeamId, o1.Trigger); result.Err == nil {
+	if _, err := ss.Command().GetByTrigger(o1.TeamId, o1.Trigger); err == nil {
 		t.Fatal("no commands should have returned")
 	}
 }
@@ -150,10 +150,10 @@ func testCommandStoreDelete(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	if r1 := <-ss.Command().Get(o1.Id); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if r1, err := ss.Command().Get(o1.Id); err != nil {
+		t.Fatal(err)
 	} else {
-		if r1.Data.(*model.Command).CreateAt != o1.CreateAt {
+		if r1.CreateAt != o1.CreateAt {
 			t.Fatal("invalid returned command")
 		}
 	}
@@ -162,8 +162,8 @@ func testCommandStoreDelete(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	if r3 := (<-ss.Command().Get(o1.Id)); r3.Err == nil {
-		t.Log(r3.Data)
+	if r3, err := ss.Command().Get(o1.Id); err == nil {
+		t.Log(r3)
 		t.Fatal("Missing id should have failed")
 	}
 }
@@ -181,10 +181,10 @@ func testCommandStoreDeleteByTeam(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	if r1 := <-ss.Command().Get(o1.Id); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if r1, err := ss.Command().Get(o1.Id); err != nil {
+		t.Fatal(err)
 	} else {
-		if r1.Data.(*model.Command).CreateAt != o1.CreateAt {
+		if r1.CreateAt != o1.CreateAt {
 			t.Fatal("invalid returned command")
 		}
 	}
@@ -193,8 +193,8 @@ func testCommandStoreDeleteByTeam(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	if r3 := (<-ss.Command().Get(o1.Id)); r3.Err == nil {
-		t.Log(r3.Data)
+	if r3, err := ss.Command().Get(o1.Id); err == nil {
+		t.Log(r3)
 		t.Fatal("Missing id should have failed")
 	}
 }
@@ -212,10 +212,10 @@ func testCommandStoreDeleteByUser(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	if r1 := <-ss.Command().Get(o1.Id); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if r1, err := ss.Command().Get(o1.Id); err != nil {
+		t.Fatal(err)
 	} else {
-		if r1.Data.(*model.Command).CreateAt != o1.CreateAt {
+		if r1.CreateAt != o1.CreateAt {
 			t.Fatal("invalid returned command")
 		}
 	}
@@ -224,8 +224,8 @@ func testCommandStoreDeleteByUser(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	if r3 := (<-ss.Command().Get(o1.Id)); r3.Err == nil {
-		t.Log(r3.Data)
+	if r3, err := ss.Command().Get(o1.Id); err == nil {
+		t.Log(r3)
 		t.Fatal("Missing id should have failed")
 	}
 }
