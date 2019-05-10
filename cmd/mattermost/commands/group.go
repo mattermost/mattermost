@@ -40,7 +40,7 @@ var ChannelGroupDisableCmd = &cobra.Command{
 
 var ChannelGroupStatusCmd = &cobra.Command{
 	Use:     "status [team]:[channel]",
-	Short:   "Show's the group constrain status for the specified channel",
+	Short:   "Shows the group constraint status of the specified channel",
 	Example: "  group channel status myteam:mychannel",
 	Args:    cobra.ExactArgs(1),
 	RunE:    channelGroupStatusCmdF,
