@@ -70,7 +70,7 @@ var TeamGroupEnableCmd = &cobra.Command{
 
 var TeamGroupDisableCmd = &cobra.Command{
 	Use:     "disable [team]",
-	Short:   "Disables group constrains in the specified team",
+	Short:   "Disables group constraint on the specified team",
 	Example: "  group team disable myteam",
 	Args:    cobra.ExactArgs(1),
 	RunE:    teamGroupDisableCmdF,
