@@ -5859,18 +5859,6 @@
     "translation": "Unable to save the link metadata"
   },
   {
-    "id": "store.sql_notification.mark_as_received.app_error",
-    "translation": "An error occurred marking the notification as received"
-  },
-  {
-    "id": "store.sql_notification.save.app_error",
-    "translation": "An error occurred while saving the notification registry"
-  },
-  {
-    "id": "store.sql_notification.update_status.app_error",
-    "translation": "An error occurred while updating the notification status"
-  },
-  {
     "id": "store.sql_oauth.delete.commit_transaction.app_error",
     "translation": "Unable to commit transaction"
   },
