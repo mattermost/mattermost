@@ -83,20 +83,20 @@ func testEmojiGet(t *testing.T, ss store.Store) {
 	}()
 
 	for _, emoji := range emojis {
-		if result := <-ss.Emoji().Get(emoji.Id, false); result.Err != nil {
-			t.Fatalf("failed to get emoji with id %v: %v", emoji.Id, result.Err)
+		if _, err := ss.Emoji().Get(emoji.Id, false); err != nil {
+			t.Fatalf("failed to get emoji with id %v: %v", emoji.Id, err)
 		}
 	}
 
 	for _, emoji := range emojis {
-		if result := <-ss.Emoji().Get(emoji.Id, true); result.Err != nil {
-			t.Fatalf("failed to get emoji with id %v: %v", emoji.Id, result.Err)
+		if _, err := ss.Emoji().Get(emoji.Id, true); err != nil {
+			t.Fatalf("failed to get emoji with id %v: %v", emoji.Id, err)
 		}
 	}
 
 	for _, emoji := range emojis {
-		if result := <-ss.Emoji().Get(emoji.Id, true); result.Err != nil {
-			t.Fatalf("failed to get emoji with id %v: %v", emoji.Id, result.Err)
+		if _, err := ss.Emoji().Get(emoji.Id, true); err != nil {
+			t.Fatalf("failed to get emoji with id %v: %v", emoji.Id, err)
 		}
 	}
 }

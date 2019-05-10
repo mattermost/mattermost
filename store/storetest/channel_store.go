@@ -4,7 +4,6 @@
 package storetest
 
 import (
-	"fmt"
 	"sort"
 	"strconv"
 	"strings"
@@ -2722,7 +2721,6 @@ func testChannelStoreGetChannelsByScheme(t *testing.T, ss store.Store) {
 	}
 
 	result := <-ss.Scheme().Save(s1)
-	fmt.Println(result.Err)
 	s1 = result.Data.(*model.Scheme)
 	s1 = (<-ss.Scheme().Save(s1)).Data.(*model.Scheme)
 	s2 = (<-ss.Scheme().Save(s2)).Data.(*model.Scheme)
