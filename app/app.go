@@ -23,8 +23,8 @@ import (
 type App struct {
 	Srv *Server
 
-	Log             *mlog.Logger
-	NotificationLog *mlog.Logger
+	Log              *mlog.Logger
+	NotificationsLog *mlog.Logger
 
 	T              goi18n.TranslateFunc
 	Session        model.Session
@@ -54,10 +54,6 @@ func New(options ...AppOption) *App {
 
 	for _, option := range options {
 		option(app)
-	}
-
-	if app.NotificationLog == nil {
-		app.NotificationLog = mlog.NewLogger(utils.MloggerConfigFromLoggerConfig(&app.Config().LogSettings, utils.GetNotificationLogFileLocation))
 	}
 
 	return app

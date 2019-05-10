@@ -114,7 +114,7 @@ func (a *App) sendPushNotificationSync(post *model.Post, user *model.User, chann
 
 		err := a.sendToPushProxy(*tmpMessage, session)
 		if err != nil {
-			a.NotificationLog.Error("Notification error",
+			a.NotificationsLog.Error("Notification error",
 				mlog.String("ackId", tmpMessage.AckId),
 				mlog.String("type", tmpMessage.Type),
 				mlog.String("userId", session.UserId),
@@ -127,7 +127,7 @@ func (a *App) sendPushNotificationSync(post *model.Post, user *model.User, chann
 			continue
 		}
 
-		a.NotificationLog.Info("Notification sent",
+		a.NotificationsLog.Info("Notification sent",
 			mlog.String("ackId", tmpMessage.AckId),
 			mlog.String("type", tmpMessage.Type),
 			mlog.String("userId", session.UserId),
@@ -246,7 +246,7 @@ func (a *App) ClearPushNotificationSync(currentSessionId, userId, channelId stri
 
 			err := a.sendToPushProxy(*tmpMessage, session)
 			if err != nil {
-				a.NotificationLog.Error("Notification error",
+				a.NotificationsLog.Error("Notification error",
 					mlog.String("ackId", tmpMessage.AckId),
 					mlog.String("type", tmpMessage.Type),
 					mlog.String("userId", session.UserId),
@@ -259,7 +259,7 @@ func (a *App) ClearPushNotificationSync(currentSessionId, userId, channelId stri
 				continue
 			}
 
-			a.NotificationLog.Info("Notification sent",
+			a.NotificationsLog.Info("Notification sent",
 				mlog.String("ackId", tmpMessage.AckId),
 				mlog.String("type", tmpMessage.Type),
 				mlog.String("userId", session.UserId),
@@ -334,7 +334,7 @@ func (a *App) StopPushNotificationsHubWorkers() {
 func (a *App) sendToPushProxy(msg model.PushNotification, session *model.Session) error {
 	msg.ServerId = a.DiagnosticId()
 
-	a.NotificationLog.Info("Notification will be sent",
+	a.NotificationsLog.Info("Notification will be sent",
 		mlog.String("ackId", msg.AckId),
 		mlog.String("type", msg.Type),
 		mlog.String("userId", session.UserId),
@@ -374,7 +374,7 @@ func (a *App) SendAckToPushProxy(ack *model.PushNotificationAck) error {
 		return nil
 	}
 
-	a.NotificationLog.Info("Notification received",
+	a.NotificationsLog.Info("Notification received",
 		mlog.String("ackId", ack.Id),
 		mlog.String("type", ack.NotificationType),
 		mlog.String("deviceType", ack.ClientPlatform),

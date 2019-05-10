@@ -40,12 +40,24 @@ func GetLogFileLocation(fileLocation string) string {
 	return filepath.Join(fileLocation, LOG_FILENAME)
 }
 
-func GetNotificationLogFileLocation(fileLocation string) string {
+func GetNotificationsLogFileLocation(fileLocation string) string {
 	if fileLocation == "" {
 		fileLocation, _ = fileutils.FindDir("logs")
 	}
 
 	return filepath.Join(fileLocation, LOG_NOTIFICATION_FILENAME)
+}
+
+func GetLogSettingsFromNotificationsLogSettings(notificationLogSettings *model.NotificationLogSettings) *model.LogSettings {
+	return &model.LogSettings{
+		ConsoleJson:   notificationLogSettings.ConsoleJson,
+		ConsoleLevel:  notificationLogSettings.ConsoleLevel,
+		EnableConsole: notificationLogSettings.EnableConsole,
+		EnableFile:    notificationLogSettings.EnableFile,
+		FileJson:      notificationLogSettings.FileJson,
+		FileLevel:     notificationLogSettings.FileLevel,
+		FileLocation:  notificationLogSettings.FileLocation,
+	}
 }
 
 // DON'T USE THIS Modify the level on the app logger
