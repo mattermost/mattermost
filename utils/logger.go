@@ -13,11 +13,14 @@ import (
 )
 
 const (
-	LOG_ROTATE_SIZE = 10000
-	LOG_FILENAME    = "mattermost.log"
+	LOG_ROTATE_SIZE           = 10000
+	LOG_FILENAME              = "mattermost.log"
+	LOG_NOTIFICATION_FILENAME = "notifications.log"
 )
 
-func MloggerConfigFromLoggerConfig(s *model.LogSettings) *mlog.LoggerConfiguration {
+type fileLocationFunc func(string) string
+
+func MloggerConfigFromLoggerConfig(s *model.LogSettings, getFileFunc fileLocationFunc) *mlog.LoggerConfiguration {
 	return &mlog.LoggerConfiguration{
 		EnableConsole: *s.EnableConsole,
 		ConsoleJson:   *s.ConsoleJson,
@@ -25,7 +28,7 @@ func MloggerConfigFromLoggerConfig(s *model.LogSettings) *mlog.LoggerConfigurati
 		EnableFile:    *s.EnableFile,
 		FileJson:      *s.FileJson,
 		FileLevel:     strings.ToLower(*s.FileLevel),
-		FileLocation:  GetLogFileLocation(*s.FileLocation),
+		FileLocation:  getFileFunc(*s.FileLocation),
 	}
 }
 
@@ -35,6 +38,14 @@ func GetLogFileLocation(fileLocation string) string {
 	}
 
 	return filepath.Join(fileLocation, LOG_FILENAME)
+}
+
+func GetNotificationLogFileLocation(fileLocation string) string {
+	if fileLocation == "" {
+		fileLocation, _ = fileutils.FindDir("logs")
+	}
+
+	return filepath.Join(fileLocation, LOG_NOTIFICATION_FILENAME)
 }
 
 // DON'T USE THIS Modify the level on the app logger
