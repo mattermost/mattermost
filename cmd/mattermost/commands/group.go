@@ -87,7 +87,7 @@ var TeamGroupStatusCmd = &cobra.Command{
 var TeamGroupListCmd = &cobra.Command{
 	Use:     "list [team]",
 	Short:   "List team groups",
-	Long:    "List the groups associated with a team",
+	Long:    "Lists the groups associated with a team",
 	Example: "  group team list myteam",
 	Args:    cobra.ExactArgs(1),
 	RunE:    teamGroupListCmdF,
