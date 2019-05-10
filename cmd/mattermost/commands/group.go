@@ -49,7 +49,7 @@ var ChannelGroupStatusCmd = &cobra.Command{
 var ChannelGroupListCmd = &cobra.Command{
 	Use:     "list [team]:[channel]",
 	Short:   "List channel groups",
-	Long:    "List the groups associated with a channel",
+	Long:    "Lists the groups associated with a channel",
 	Example: "  group channel list myteam:mychannel",
 	Args:    cobra.ExactArgs(1),
 	RunE:    channelGroupListCmdF,
