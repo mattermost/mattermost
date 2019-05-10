@@ -115,12 +115,12 @@ func (a *App) sendPushNotificationSync(post *model.Post, user *model.User, chann
 		err := a.sendToPushProxy(*tmpMessage, session)
 		if err != nil {
 			a.NotificationLog.Error("Notification error",
-				mlog.String("ackId", msg.AckId),
-				mlog.String("type", msg.Type),
+				mlog.String("ackId", tmpMessage.AckId),
+				mlog.String("type", tmpMessage.Type),
 				mlog.String("userId", session.UserId),
-				mlog.String("postId", msg.PostId),
-				mlog.String("channelId", msg.ChannelId),
-				mlog.String("deviceId", msg.DeviceId),
+				mlog.String("postId", tmpMessage.PostId),
+				mlog.String("channelId", tmpMessage.ChannelId),
+				mlog.String("deviceId", tmpMessage.DeviceId),
 				mlog.String("status", err.Error()),
 			)
 
@@ -128,12 +128,12 @@ func (a *App) sendPushNotificationSync(post *model.Post, user *model.User, chann
 		}
 
 		a.NotificationLog.Info("Notification sent",
-			mlog.String("ackId", msg.AckId),
-			mlog.String("type", msg.Type),
+			mlog.String("ackId", tmpMessage.AckId),
+			mlog.String("type", tmpMessage.Type),
 			mlog.String("userId", session.UserId),
-			mlog.String("postId", msg.PostId),
-			mlog.String("channelId", msg.ChannelId),
-			mlog.String("deviceId", msg.DeviceId),
+			mlog.String("postId", tmpMessage.PostId),
+			mlog.String("channelId", tmpMessage.ChannelId),
+			mlog.String("deviceId", tmpMessage.DeviceId),
 			mlog.String("status", model.PUSH_SEND_SUCCESS),
 		)
 
@@ -247,12 +247,12 @@ func (a *App) ClearPushNotificationSync(currentSessionId, userId, channelId stri
 			err := a.sendToPushProxy(*tmpMessage, session)
 			if err != nil {
 				a.NotificationLog.Error("Notification error",
-					mlog.String("ackId", msg.AckId),
-					mlog.String("type", msg.Type),
+					mlog.String("ackId", tmpMessage.AckId),
+					mlog.String("type", tmpMessage.Type),
 					mlog.String("userId", session.UserId),
-					mlog.String("postId", msg.PostId),
-					mlog.String("channelId", msg.ChannelId),
-					mlog.String("deviceId", msg.DeviceId),
+					mlog.String("postId", tmpMessage.PostId),
+					mlog.String("channelId", tmpMessage.ChannelId),
+					mlog.String("deviceId", tmpMessage.DeviceId),
 					mlog.String("status", err.Error()),
 				)
 
@@ -260,12 +260,12 @@ func (a *App) ClearPushNotificationSync(currentSessionId, userId, channelId stri
 			}
 
 			a.NotificationLog.Info("Notification sent",
-				mlog.String("ackId", msg.AckId),
-				mlog.String("type", msg.Type),
+				mlog.String("ackId", tmpMessage.AckId),
+				mlog.String("type", tmpMessage.Type),
 				mlog.String("userId", session.UserId),
-				mlog.String("postId", msg.PostId),
-				mlog.String("channelId", msg.ChannelId),
-				mlog.String("deviceId", msg.DeviceId),
+				mlog.String("postId", tmpMessage.PostId),
+				mlog.String("channelId", tmpMessage.ChannelId),
+				mlog.String("deviceId", tmpMessage.DeviceId),
 				mlog.String("status", model.PUSH_SEND_SUCCESS),
 			)
 
