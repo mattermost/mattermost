@@ -775,10 +775,12 @@ func (s *SqlSupplier) TeamMembersToRemove(ctx context.Context, hints ...store.La
 		FROM
 			TeamMembers
 			JOIN Teams ON Teams.Id = TeamMembers.TeamId
+			LEFT JOIN Bots ON Bots.UserId = TeamMembers.UserId
 		WHERE
 			TeamMembers.DeleteAt = 0
 			AND Teams.DeleteAt = 0
 			AND Teams.GroupConstrained = TRUE
+			AND Bots.UserId IS NULL
 			AND (TeamMembers.TeamId, TeamMembers.UserId)
 			NOT IN (
 				SELECT
@@ -854,9 +856,11 @@ func (s *SqlSupplier) ChannelMembersToRemove(ctx context.Context, hints ...store
 		FROM
 			ChannelMembers
 			JOIN Channels ON Channels.Id = ChannelMembers.ChannelId
+			LEFT JOIN Bots ON Bots.UserId = ChannelMembers.UserId
 		WHERE
 			Channels.DeleteAt = 0
 			AND Channels.GroupConstrained = TRUE
+			AND Bots.UserId IS NULL
 			AND (ChannelMembers.ChannelId, ChannelMembers.UserId)
 			NOT IN (
 				SELECT
