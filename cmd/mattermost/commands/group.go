@@ -222,7 +222,7 @@ func teamGroupEnableCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Unable to find team '" + args[0] + "'")
 	}
 
-	groups, appErr := a.GetGroupsByTeam(team.Id, 0, 9999)
+	groups, _, appErr := a.GetGroupsByTeam(team.Id, model.GroupSearchOpts{})
 	if appErr != nil {
 		return appErr
 	}
@@ -292,7 +292,7 @@ func teamGroupListCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Unable to find team '" + args[0] + "'")
 	}
 
-	groups, appErr := a.GetGroupsByTeam(team.Id, 0, 9999)
+	groups, _, appErr := a.GetGroupsByTeam(team.Id, model.GroupSearchOpts{})
 	if appErr != nil {
 		return appErr
 	}
