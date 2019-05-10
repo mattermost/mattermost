@@ -78,7 +78,7 @@ var TeamGroupDisableCmd = &cobra.Command{
 
 var TeamGroupStatusCmd = &cobra.Command{
 	Use:     "status [team]",
-	Short:   "Show's the group constrain status for the specified team",
+	Short:   "Shows the group constraint status of the specified team",
 	Example: "  group team status myteam",
 	Args:    cobra.ExactArgs(1),
 	RunE:    teamGroupStatusCmdF,
