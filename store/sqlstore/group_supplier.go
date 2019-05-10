@@ -827,6 +827,8 @@ func (s *SqlSupplier) GetGroupsByChannel(ctx context.Context, channelId string, 
 		ON
 			gc.GroupId = ug.Id
 		WHERE
+            gc.DeleteAt = 0
+        AND
 			ug.DeleteAt = 0
 		AND
 			gc.ChannelId = :ChannelId
@@ -907,6 +909,8 @@ func (s *SqlSupplier) GetGroupsByTeam(ctx context.Context, teamId string, page, 
 		ON
 			gt.GroupId = ug.Id
 		WHERE
+            gt.DeleteAt = 0
+        AND
 			ug.DeleteAt = 0
 		AND
 			gt.TeamId = :TeamId
