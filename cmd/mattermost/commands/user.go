@@ -408,22 +408,17 @@ func usersToBots(args []string, a *app.App) {
 	}
 }
 
-func updateBotUserPassword(command *cobra.Command, a *app.App, user *model.User) error {
+func getUpdatedPassword(command *cobra.Command, a *app.App, user *model.User) (string, error) {
 	password, err := command.Flags().GetString("password")
 	if err != nil {
-		return fmt.Errorf("Unable to read password. Error: %s", err.Error())
+		return "", fmt.Errorf("Unable to read password. Error: %s", err.Error())
 	}
 
 	if password == "" {
-		return errors.New("Password is required.")
+		return "", errors.New("Password is required.")
 	}
 
-	appErr := a.UpdatePassword(user, password)
-	if appErr != nil {
-		return fmt.Errorf("Unable to update password. Error: %s", appErr.Error())
-	}
-
-	return nil
+	return password, nil
 }
 
 func getUpdatedUserModel(command *cobra.Command, a *app.App, user *model.User) (*model.User, error) {
@@ -487,7 +482,12 @@ func botToUser(command *cobra.Command, args []string, a *app.App) error {
 		return fmt.Errorf("Unable to find bot. Error: %s", appErr.Error())
 	}
 
-	user, err := getUpdatedUserModel(command, a, user)
+	password, err := getUpdatedPassword(command, a, user)
+	if err != nil {
+		return err
+	}
+
+	user, err = getUpdatedUserModel(command, a, user)
 	if err != nil {
 		return err
 	}
@@ -497,9 +497,9 @@ func botToUser(command *cobra.Command, args []string, a *app.App) error {
 		return fmt.Errorf("Unable to update user. Error: %s" + appErr.Error())
 	}
 
-	err = updateBotUserPassword(command, a, user)
-	if err != nil {
-		return err
+	appErr = a.UpdatePassword(user, password)
+	if appErr != nil {
+		return fmt.Errorf("Unable to update password. Error: %s", appErr.Error())
 	}
 
 	systemAdmin, _ := command.Flags().GetBool("system_admin")
