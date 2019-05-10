@@ -62,7 +62,7 @@ var TeamGroupCmd = &cobra.Command{
 
 var TeamGroupEnableCmd = &cobra.Command{
 	Use:     "enable [team]",
-	Short:   "Enables group constrains in the specified team",
+	Short:   "Enables group constraint on the specified team",
 	Example: "  group team enable myteam",
 	Args:    cobra.ExactArgs(1),
 	RunE:    teamGroupEnableCmdF,
