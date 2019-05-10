@@ -197,6 +197,13 @@ func assignBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if user, err := c.App.GetUser(userId); err == nil {
+		if user.IsBot {
+			c.SetPermissionError(model.PERMISSION_ASSIGN_BOT)
+			return
+		}
+	}
+
 	bot, err := c.App.UpdateBotOwner(botUserId, userId)
 	if err != nil {
 		c.Err = err
