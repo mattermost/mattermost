@@ -491,6 +491,12 @@ func initializePermissions() {
 		"authentication.permissions.create_bot.description",
 		PERMISSION_SCOPE_SYSTEM,
 	}
+	PERMISSION_ASSIGN_BOT = &Permission{
+		"assign_bot",
+		"authentication.permissions.assign_bot.name",
+		"authentication.permissions.assign_bot.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
 	PERMISSION_READ_BOTS = &Permission{
 		"read_bots",
 		"authentication.permissions.read_bots.name",
