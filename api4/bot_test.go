@@ -72,7 +72,6 @@ func TestCreateBot(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
 		th.AddPermissionToRole(model.PERMISSION_EDIT_OTHER_USERS.Id, model.TEAM_USER_ROLE_ID)
-
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID+" "+model.SYSTEM_USER_ACCESS_TOKEN_ROLE_ID, false)
 
 		bot, resp := th.Client.CreateBot(&model.Bot{
@@ -80,9 +79,9 @@ func TestCreateBot(t *testing.T) {
 			DisplayName: "a bot",
 			Description: "bot",
 		})
-		th.App.UpdateUserRoles(bot.UserId, model.TEAM_USER_ROLE_ID+" "+model.SYSTEM_USER_ACCESS_TOKEN_ROLE_ID, false)
 		CheckCreatedStatus(t, resp)
 		defer th.App.PermanentDeleteBot(bot.UserId)
+		th.App.UpdateUserRoles(bot.UserId, model.TEAM_USER_ROLE_ID+" "+model.SYSTEM_USER_ACCESS_TOKEN_ROLE_ID, false)
 
 		rtoken, resp := th.Client.CreateUserAccessToken(bot.UserId, "test token")
 		CheckNoError(t, resp)
