@@ -489,6 +489,12 @@ else
 		echo stopping mattermost $$PID; \
 		kill $$PID; \
 	done
+    ifeq ($(shell uname -s),Darwin)
+		@for PID in $$(ps aux | grep "plugin-darwin-amd64" | awk '{printf ("%s:%s\n", $$2, $$11)}' | grep "plugins" | sed 's/:.*//'); do \
+			echo stopping plugin $$PID; \
+			kill $$PID; \
+		done
+    endif
 endif
 
 stop-client: ## Stops the webapp.
