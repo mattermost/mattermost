@@ -898,8 +898,8 @@ func (a *App) ImportReply(data *ReplyImportData, post *model.Post, teamId string
 			return result.Err
 		}
 	} else {
-		if result := <-a.Srv.Store.Post().Overwrite(reply); result.Err != nil {
-			return result.Err
+		if _, err := a.Srv.Store.Post().Overwrite(reply); err != nil {
+			return err
 		}
 	}
 
@@ -1000,8 +1000,8 @@ func (a *App) ImportPost(data *PostImportData, dryRun bool) *model.AppError {
 			return result.Err
 		}
 	} else {
-		if result := <-a.Srv.Store.Post().Overwrite(post); result.Err != nil {
-			return result.Err
+		if _, err := a.Srv.Store.Post().Overwrite(post); err != nil {
+			return err
 		}
 	}
 
@@ -1224,8 +1224,8 @@ func (a *App) ImportDirectPost(data *DirectPostImportData, dryRun bool) *model.A
 			return result.Err
 		}
 	} else {
-		if result := <-a.Srv.Store.Post().Overwrite(post); result.Err != nil {
-			return result.Err
+		if _, err := a.Srv.Store.Post().Overwrite(post); err != nil {
+			return err
 		}
 	}
 

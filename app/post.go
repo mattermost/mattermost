@@ -315,9 +315,8 @@ func (a *App) attachFilesToPost(post *model.Post) *model.AppError {
 		// We couldn't attach all files to the post, so ensure that post.FileIds reflects what was actually attached
 		post.FileIds = attachedIds
 
-		result := <-a.Srv.Store.Post().Overwrite(post)
-		if result.Err != nil {
-			return result.Err
+		if _, err := a.Srv.Store.Post().Overwrite(post); err != nil {
+			return err
 		}
 	}
 
@@ -1030,10 +1029,5 @@ func (a *App) ImageProxyRemover() (f func(string) string) {
 }
 
 func (a *App) MaxPostSize() int {
-	result := <-a.Srv.Store.Post().GetMaxPostSize()
-	if result.Err != nil {
-		mlog.Error(fmt.Sprint(result.Err))
-		return model.POST_MESSAGE_MAX_RUNES_V1
-	}
-	return result.Data.(int)
+	return a.Srv.Store.Post().GetMaxPostSize()
 }
