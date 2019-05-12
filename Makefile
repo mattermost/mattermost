@@ -1,4 +1,4 @@
-.PHONY: build package run stop run-client run-server stop-client stop-server restart restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist setup-mac prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests
+.PHONY: build package run stop run-client run-server stop-client stop-server restart restart-server restart-client start-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist prepare-enteprise run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows internal-test-web-client vet run-server-for-web-client-tests
 
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
@@ -558,9 +558,6 @@ nuke: clean clean-docker ## Clean plus removes persistant server data.
 	@echo BOOM
 
 	rm -rf data
-
-setup-mac: ## Adds macOS hosts entries for Docker.
-	echo $$(boot2docker ip 2> /dev/null) localhost | sudo tee -a /etc/hosts
 
 update-dependencies: ## Uses go get -u to update all the dependencies while holding back any that require it. 
 	@echo Updating Dependencies
