@@ -511,7 +511,7 @@ run-job-server: ## Runs the background job server.
 config-ldap: ## Configures LDAP.
 	@echo Setting up configuration for local LDAP
 
-	@sed -i'' -e 's|"LdapServer": ".*"|"LdapServer": "dockerhost"|g' config/config.json
+	@sed -i'' -e 's|"LdapServer": ".*"|"LdapServer": "localhost"|g' config/config.json
 	@sed -i'' -e 's|"BaseDN": ".*"|"BaseDN": "dc=mm,dc=test,dc=com"|g' config/config.json
 	@sed -i'' -e 's|"BindUsername": ".*"|"BindUsername": "cn=admin,dc=mm,dc=test,dc=com"|g' config/config.json
 	@sed -i'' -e 's|"BindPassword": ".*"|"BindPassword": "mostest"|g' config/config.json
@@ -560,7 +560,7 @@ nuke: clean clean-docker ## Clean plus removes persistant server data.
 	rm -rf data
 
 setup-mac: ## Adds macOS hosts entries for Docker.
-	echo $$(boot2docker ip 2> /dev/null) dockerhost | sudo tee -a /etc/hosts
+	echo $$(boot2docker ip 2> /dev/null) localhost | sudo tee -a /etc/hosts
 
 update-dependencies: ## Uses go get -u to update all the dependencies while holding back any that require it. 
 	@echo Updating Dependencies

@@ -137,7 +137,6 @@ podTemplate(label: 'jenkins-slave',
 
             // Modify config to run on jenkins
             sh 'mv /go/src/github.com/mattermost/mattermost-server/config/default.json /go/src/github.com/mattermost/mattermost-server/config/config.json'
-            sh 'cd /go/src/github.com/mattermost/mattermost-server && sed -i \'s/dockerhost/localhost/g\' config/config.json'
             sh 'cd /go/src/github.com/mattermost/mattermost-server && sed -i \'s/2500/10025/g\' config/config.json'
         }
 

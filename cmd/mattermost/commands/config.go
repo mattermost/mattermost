@@ -72,7 +72,7 @@ var MigrateConfigCmd = &cobra.Command{
 	Use:     "migrate",
 	Short:   "Migrate existing config between backends",
 	Long:    "Migrate a file-based configuration to (or from) a database-based configuration. Point the Mattermost server at the target configuration to start using it",
-	Example: `config migrate --from=path/to/config.json --to="postgres://mmuser:mostest@dockerhost:5432/mattermost_test?sslmode=disable&connect_timeout=10"`,
+	Example: `config migrate --from=path/to/config.json --to="postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10"`,
 	RunE:    configMigrateCmdF,
 }
 
