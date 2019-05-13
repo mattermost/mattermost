@@ -132,6 +132,10 @@
     "translation": "Unable to upload file. File is too large."
   },
   {
+    "id": "api.bot.create_disabled",
+    "translation": "Bot creation has been disabled."
+  },
+  {
     "id": "api.channel.add_member.added",
     "translation": "%v added to the channel by %v."
   },
