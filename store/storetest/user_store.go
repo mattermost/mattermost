@@ -3797,6 +3797,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		assert.Nil(t, err)
 		require.Equal(t, "system_user", updatedUser.Roles)
 	})
+
 	t.Run("Must work with guest user with teams but no channels", func(t *testing.T) {
 		id := model.NewId()
 		res := <-ss.User().Save(&model.User{
@@ -3824,6 +3825,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.False(t, updatedTeamMember.SchemeGuest)
 		require.True(t, updatedTeamMember.SchemeUser)
 	})
+
 	t.Run("Must work with guest user with teams and channels", func(t *testing.T) {
 		id := model.NewId()
 		res := <-ss.User().Save(&model.User{
@@ -4084,6 +4086,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		assert.Nil(t, err)
 		require.Equal(t, "system_guest", updatedUser.Roles)
 	})
+
 	t.Run("Must work with user with teams but no channels", func(t *testing.T) {
 		id := model.NewId()
 		res := <-ss.User().Save(&model.User{
@@ -4111,6 +4114,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.True(t, updatedTeamMember.SchemeGuest)
 		require.False(t, updatedTeamMember.SchemeUser)
 	})
+
 	t.Run("Must work with user with teams and channels", func(t *testing.T) {
 		id := model.NewId()
 		res := <-ss.User().Save(&model.User{
