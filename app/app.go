@@ -23,7 +23,8 @@ import (
 type App struct {
 	Srv *Server
 
-	Log *mlog.Logger
+	Log              *mlog.Logger
+	NotificationsLog *mlog.Logger
 
 	T              goi18n.TranslateFunc
 	Session        model.Session
@@ -132,11 +133,14 @@ func (a *App) HTMLTemplates() *template.Template {
 }
 
 func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {
-	err := model.NewAppError("Handle404", "api.context.404.app_error", nil, "", http.StatusNotFound)
-
 	mlog.Debug(fmt.Sprintf("%v: code=404 ip=%v", r.URL.Path, utils.GetIpAddress(r)))
 
-	utils.RenderWebAppError(a.Config(), w, r, err, a.AsymmetricSigningKey())
+	if *a.Config().ServiceSettings.WebserverMode == "disabled" {
+		http.NotFound(w, r)
+		return
+	}
+
+	utils.RenderWebAppError(a.Config(), w, r, model.NewAppError("Handle404", "api.context.404.app_error", nil, "", http.StatusNotFound), a.AsymmetricSigningKey())
 }
 
 func (a *App) getSystemInstallDate() (int64, *model.AppError) {

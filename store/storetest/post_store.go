@@ -314,8 +314,8 @@ func testPostStoreDelete(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if r2 := <-ss.Post().Delete(o1.Id, model.GetMillis(), deleteByID); r2.Err != nil {
-		t.Fatal(r2.Err)
+	if err := ss.Post().Delete(o1.Id, model.GetMillis(), deleteByID); err != nil {
+		t.Fatal(err)
 	}
 
 	r5 := <-ss.Post().GetPostsCreatedAt(o1.ChannelId, o1.CreateAt)
@@ -351,8 +351,8 @@ func testPostStoreDelete1Level(t *testing.T, ss store.Store) {
 	o2.RootId = o1.Id
 	o2 = (<-ss.Post().Save(o2)).Data.(*model.Post)
 
-	if r2 := <-ss.Post().Delete(o1.Id, model.GetMillis(), ""); r2.Err != nil {
-		t.Fatal(r2.Err)
+	if err := ss.Post().Delete(o1.Id, model.GetMillis(), ""); err != nil {
+		t.Fatal(err)
 	}
 
 	if r3 := (<-ss.Post().Get(o1.Id)); r3.Err == nil {
@@ -393,8 +393,8 @@ func testPostStoreDelete2Level(t *testing.T, ss store.Store) {
 	o4.Message = "zz" + model.NewId() + "b"
 	o4 = (<-ss.Post().Save(o4)).Data.(*model.Post)
 
-	if r2 := <-ss.Post().Delete(o1.Id, model.GetMillis(), ""); r2.Err != nil {
-		t.Fatal(r2.Err)
+	if err := ss.Post().Delete(o1.Id, model.GetMillis(), ""); err != nil {
+		t.Fatal(err)
 	}
 
 	if r3 := (<-ss.Post().Get(o1.Id)); r3.Err == nil {
@@ -526,7 +526,9 @@ func testPostStoreGetWithChildren(t *testing.T, ss store.Store) {
 		}
 	}
 
-	store.Must(ss.Post().Delete(o3.Id, model.GetMillis(), ""))
+	if err := ss.Post().Delete(o3.Id, model.GetMillis(), ""); err != nil {
+		t.Fatal(err)
+	}
 
 	if r2 := <-ss.Post().Get(o1.Id); r2.Err != nil {
 		t.Fatal(r2.Err)
@@ -537,7 +539,9 @@ func testPostStoreGetWithChildren(t *testing.T, ss store.Store) {
 		}
 	}
 
-	store.Must(ss.Post().Delete(o2.Id, model.GetMillis(), ""))
+	if err := ss.Post().Delete(o2.Id, model.GetMillis(), ""); err != nil {
+		t.Fatal(err)
+	}
 
 	if r3 := <-ss.Post().Get(o1.Id); r3.Err != nil {
 		t.Fatal(r3.Err)
@@ -1726,7 +1730,9 @@ func testPostStoreGetPostsByIds(t *testing.T, ss store.Store) {
 		t.Fatalf("Expected 3 posts in results. Got %v", len(ro4))
 	}
 
-	store.Must(ss.Post().Delete(ro1.Id, model.GetMillis(), ""))
+	if err := ss.Post().Delete(ro1.Id, model.GetMillis(), ""); err != nil {
+		t.Fatal(err)
+	}
 
 	if ro5 := store.Must(ss.Post().GetPostsByIds(postIds)).([]*model.Post); len(ro5) != 3 {
 		t.Fatalf("Expected 3 posts in results. Got %v", len(ro5))
