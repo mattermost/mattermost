@@ -1043,6 +1043,26 @@ func (c *Client4) UpdateUserPassword(userId, currentPassword, newPassword string
 	return CheckStatusOK(r), BuildResponse(r)
 }
 
+// PromoteGuestToUser convert a guest into a regular user
+func (c *Client4) PromoteGuestToUser(guestId string) (bool, *Response) {
+	r, err := c.DoApiPost(c.GetUserRoute(guestId)+"/promote", "")
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
+// DemoteUserToGuest convert a regular user into a guest
+func (c *Client4) DemoteUserToGuest(guestId string) (bool, *Response) {
+	r, err := c.DoApiPost(c.GetUserRoute(guestId)+"/demote", "")
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
 // UpdateUserRoles updates a user's roles in the system. A user can have "system_user" and "system_admin" roles.
 func (c *Client4) UpdateUserRoles(userId, roles string) (bool, *Response) {
 	requestBody := map[string]string{"roles": roles}

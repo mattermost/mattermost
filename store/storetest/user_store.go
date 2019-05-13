@@ -67,6 +67,8 @@ func TestUserStore(t *testing.T, ss store.Store) {
 	t.Run("GetUsersBatchForIndexing", func(t *testing.T) { testUserStoreGetUsersBatchForIndexing(t, ss) })
 	t.Run("GetTeamGroupUsers", func(t *testing.T) { testUserStoreGetTeamGroupUsers(t, ss) })
 	t.Run("GetChannelGroupUsers", func(t *testing.T) { testUserStoreGetChannelGroupUsers(t, ss) })
+	t.Run("PromoteGuestToUser", func(t *testing.T) { testUserStorePromoteGuestToUser(t, ss) })
+	t.Run("DemoteUserToGuest", func(t *testing.T) { testUserStoreDemoteUserToGuest(t, ss) })
 }
 
 func testUserStoreSave(t *testing.T, ss store.Store) {
@@ -3689,4 +3691,582 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, ss store.Store) {
 
 	// ensure removed allowed member still returned by query
 	requireNUsers(2)
+}
+
+func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
+	// create users
+	t.Run("Must do nothing with regular user", func(t *testing.T) {
+		id := model.NewId()
+		res := <-ss.User().Save(&model.User{
+			Email:     id + "@test.com",
+			Username:  "un_" + id,
+			Nickname:  "nn_" + id,
+			FirstName: "f_" + id,
+			LastName:  "l_" + id,
+			Password:  "Password1",
+			Roles:     "system_user",
+		})
+		require.Nil(t, res.Err)
+		user := res.Data.(*model.User)
+
+		teamId := model.NewId()
+		store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999))
+
+		channel := store.Must(ss.Channel().Save(&model.Channel{
+			TeamId:      teamId,
+			DisplayName: "Channel name",
+			Name:        "channel-" + model.NewId(),
+			Type:        model.CHANNEL_OPEN,
+		}, -1)).(*model.Channel)
+		store.Must(ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: true, SchemeUser: false, NotifyProps: model.GetDefaultChannelNotifyProps()}))
+
+		err := ss.User().PromoteGuestToUser(user.Id)
+		assert.Nil(t, err)
+		updatedUser, err := ss.User().Get(user.Id)
+		assert.Nil(t, err)
+		require.Equal(t, "system_user", updatedUser.Roles)
+
+		updatedTeamMember := store.Must(ss.Team().GetMember(teamId, user.Id)).(*model.TeamMember)
+		require.False(t, updatedTeamMember.SchemeGuest)
+		require.True(t, updatedTeamMember.SchemeUser)
+
+		updatedChannelMember, err := ss.Channel().GetMember(channel.Id, user.Id)
+		require.Nil(t, err)
+		require.False(t, updatedChannelMember.SchemeGuest)
+		require.True(t, updatedChannelMember.SchemeUser)
+	})
+
+	t.Run("Must do nothing with admin user", func(t *testing.T) {
+		id := model.NewId()
+		res := <-ss.User().Save(&model.User{
+			Email:     id + "@test.com",
+			Username:  "un_" + id,
+			Nickname:  "nn_" + id,
+			FirstName: "f_" + id,
+			LastName:  "l_" + id,
+			Password:  "Password1",
+			Roles:     "system_user system_admin",
+		})
+		require.Nil(t, res.Err)
+		user := res.Data.(*model.User)
+
+		teamId := model.NewId()
+		store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999))
+
+		channel := store.Must(ss.Channel().Save(&model.Channel{
+			TeamId:      teamId,
+			DisplayName: "Channel name",
+			Name:        "channel-" + model.NewId(),
+			Type:        model.CHANNEL_OPEN,
+		}, -1)).(*model.Channel)
+		store.Must(ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: true, SchemeUser: false, NotifyProps: model.GetDefaultChannelNotifyProps()}))
+
+		err := ss.User().PromoteGuestToUser(user.Id)
+		assert.Nil(t, err)
+		updatedUser, err := ss.User().Get(user.Id)
+		assert.Nil(t, err)
+		require.Equal(t, "system_user system_admin", updatedUser.Roles)
+
+		updatedTeamMember := store.Must(ss.Team().GetMember(teamId, user.Id)).(*model.TeamMember)
+		require.False(t, updatedTeamMember.SchemeGuest)
+		require.True(t, updatedTeamMember.SchemeUser)
+
+		updatedChannelMember, err := ss.Channel().GetMember(channel.Id, user.Id)
+		require.Nil(t, err)
+		require.False(t, updatedChannelMember.SchemeGuest)
+		require.True(t, updatedChannelMember.SchemeUser)
+	})
+
+	t.Run("Must work with guest user without teams or channels", func(t *testing.T) {
+		id := model.NewId()
+		res := <-ss.User().Save(&model.User{
+			Email:     id + "@test.com",
+			Username:  "un_" + id,
+			Nickname:  "nn_" + id,
+			FirstName: "f_" + id,
+			LastName:  "l_" + id,
+			Password:  "Password1",
+			Roles:     "system_guest",
+		})
+		require.Nil(t, res.Err)
+		user := res.Data.(*model.User)
+
+		err := ss.User().PromoteGuestToUser(user.Id)
+		assert.Nil(t, err)
+		updatedUser, err := ss.User().Get(user.Id)
+		assert.Nil(t, err)
+		require.Equal(t, "system_user", updatedUser.Roles)
+	})
+
+	t.Run("Must work with guest user with teams but no channels", func(t *testing.T) {
+		id := model.NewId()
+		res := <-ss.User().Save(&model.User{
+			Email:     id + "@test.com",
+			Username:  "un_" + id,
+			Nickname:  "nn_" + id,
+			FirstName: "f_" + id,
+			LastName:  "l_" + id,
+			Password:  "Password1",
+			Roles:     "system_guest",
+		})
+		require.Nil(t, res.Err)
+		user := res.Data.(*model.User)
+
+		teamId := model.NewId()
+		store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999))
+
+		err := ss.User().PromoteGuestToUser(user.Id)
+		assert.Nil(t, err)
+		updatedUser, err := ss.User().Get(user.Id)
+		assert.Nil(t, err)
+		require.Equal(t, "system_user", updatedUser.Roles)
+
+		updatedTeamMember := store.Must(ss.Team().GetMember(teamId, user.Id)).(*model.TeamMember)
+		require.False(t, updatedTeamMember.SchemeGuest)
+		require.True(t, updatedTeamMember.SchemeUser)
+	})
+
+	t.Run("Must work with guest user with teams and channels", func(t *testing.T) {
+		id := model.NewId()
+		res := <-ss.User().Save(&model.User{
+			Email:     id + "@test.com",
+			Username:  "un_" + id,
+			Nickname:  "nn_" + id,
+			FirstName: "f_" + id,
+			LastName:  "l_" + id,
+			Password:  "Password1",
+			Roles:     "system_guest",
+		})
+		require.Nil(t, res.Err)
+		user := res.Data.(*model.User)
+
+		teamId := model.NewId()
+		store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999))
+
+		channel := store.Must(ss.Channel().Save(&model.Channel{
+			TeamId:      teamId,
+			DisplayName: "Channel name",
+			Name:        "channel-" + model.NewId(),
+			Type:        model.CHANNEL_OPEN,
+		}, -1)).(*model.Channel)
+		store.Must(ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: true, SchemeUser: false, NotifyProps: model.GetDefaultChannelNotifyProps()}))
+
+		err := ss.User().PromoteGuestToUser(user.Id)
+		assert.Nil(t, err)
+		updatedUser, err := ss.User().Get(user.Id)
+		assert.Nil(t, err)
+		require.Equal(t, "system_user", updatedUser.Roles)
+
+		updatedTeamMember := store.Must(ss.Team().GetMember(teamId, user.Id)).(*model.TeamMember)
+		require.False(t, updatedTeamMember.SchemeGuest)
+		require.True(t, updatedTeamMember.SchemeUser)
+
+		updatedChannelMember, err := ss.Channel().GetMember(channel.Id, user.Id)
+		require.Nil(t, err)
+		require.False(t, updatedChannelMember.SchemeGuest)
+		require.True(t, updatedChannelMember.SchemeUser)
+	})
+
+	t.Run("Must work with guest user with teams and channels and custom role", func(t *testing.T) {
+		id := model.NewId()
+		res := <-ss.User().Save(&model.User{
+			Email:     id + "@test.com",
+			Username:  "un_" + id,
+			Nickname:  "nn_" + id,
+			FirstName: "f_" + id,
+			LastName:  "l_" + id,
+			Password:  "Password1",
+			Roles:     "system_guest custom_role",
+		})
+		require.Nil(t, res.Err)
+		user := res.Data.(*model.User)
+
+		teamId := model.NewId()
+		store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999))
+
+		channel := store.Must(ss.Channel().Save(&model.Channel{
+			TeamId:      teamId,
+			DisplayName: "Channel name",
+			Name:        "channel-" + model.NewId(),
+			Type:        model.CHANNEL_OPEN,
+		}, -1)).(*model.Channel)
+		store.Must(ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: true, SchemeUser: false, NotifyProps: model.GetDefaultChannelNotifyProps()}))
+
+		err := ss.User().PromoteGuestToUser(user.Id)
+		assert.Nil(t, err)
+		updatedUser, err := ss.User().Get(user.Id)
+		assert.Nil(t, err)
+		require.Equal(t, "system_user custom_role", updatedUser.Roles)
+
+		updatedTeamMember := store.Must(ss.Team().GetMember(teamId, user.Id)).(*model.TeamMember)
+		require.False(t, updatedTeamMember.SchemeGuest)
+		require.True(t, updatedTeamMember.SchemeUser)
+
+		updatedChannelMember, err := ss.Channel().GetMember(channel.Id, user.Id)
+		require.Nil(t, err)
+		require.False(t, updatedChannelMember.SchemeGuest)
+		require.True(t, updatedChannelMember.SchemeUser)
+	})
+
+	t.Run("Must no change any other user guest role", func(t *testing.T) {
+		id := model.NewId()
+		res := <-ss.User().Save(&model.User{
+			Email:     id + "@test.com",
+			Username:  "un_" + id,
+			Nickname:  "nn_" + id,
+			FirstName: "f_" + id,
+			LastName:  "l_" + id,
+			Password:  "Password1",
+			Roles:     "system_guest",
+		})
+		require.Nil(t, res.Err)
+		user1 := res.Data.(*model.User)
+
+		teamId1 := model.NewId()
+		store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId1, UserId: user1.Id, SchemeGuest: true, SchemeUser: false}, 999))
+
+		channel := store.Must(ss.Channel().Save(&model.Channel{
+			TeamId:      teamId1,
+			DisplayName: "Channel name",
+			Name:        "channel-" + model.NewId(),
+			Type:        model.CHANNEL_OPEN,
+		}, -1)).(*model.Channel)
+
+		store.Must(ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user1.Id, SchemeGuest: true, SchemeUser: false, NotifyProps: model.GetDefaultChannelNotifyProps()}))
+
+		id = model.NewId()
+		res = <-ss.User().Save(&model.User{
+			Email:     id + "@test.com",
+			Username:  "un_" + id,
+			Nickname:  "nn_" + id,
+			FirstName: "f_" + id,
+			LastName:  "l_" + id,
+			Password:  "Password1",
+			Roles:     "system_guest",
+		})
+		require.Nil(t, res.Err)
+		user2 := res.Data.(*model.User)
+
+		teamId2 := model.NewId()
+		store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId2, UserId: user2.Id, SchemeGuest: true, SchemeUser: false}, 999))
+
+		store.Must(ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user2.Id, SchemeGuest: true, SchemeUser: false, NotifyProps: model.GetDefaultChannelNotifyProps()}))
+
+		err := ss.User().PromoteGuestToUser(user1.Id)
+		assert.Nil(t, err)
+		updatedUser, err := ss.User().Get(user1.Id)
+		assert.Nil(t, err)
+		require.Equal(t, "system_user", updatedUser.Roles)
+
+		updatedTeamMember := store.Must(ss.Team().GetMember(teamId1, user1.Id)).(*model.TeamMember)
+		require.False(t, updatedTeamMember.SchemeGuest)
+		require.True(t, updatedTeamMember.SchemeUser)
+
+		updatedChannelMember, err := ss.Channel().GetMember(channel.Id, user1.Id)
+		require.Nil(t, err)
+		require.False(t, updatedChannelMember.SchemeGuest)
+		require.True(t, updatedChannelMember.SchemeUser)
+
+		notUpdatedUser, err := ss.User().Get(user2.Id)
+		assert.Nil(t, err)
+		require.Equal(t, "system_guest", notUpdatedUser.Roles)
+
+		notUpdatedTeamMember := store.Must(ss.Team().GetMember(teamId2, user2.Id)).(*model.TeamMember)
+		require.True(t, notUpdatedTeamMember.SchemeGuest)
+		require.False(t, notUpdatedTeamMember.SchemeUser)
+
+		notUpdatedChannelMember, err := ss.Channel().GetMember(channel.Id, user2.Id)
+		require.Nil(t, err)
+		require.True(t, notUpdatedChannelMember.SchemeGuest)
+		require.False(t, notUpdatedChannelMember.SchemeUser)
+	})
+}
+
+func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
+	// create users
+	t.Run("Must do nothing with guest", func(t *testing.T) {
+		id := model.NewId()
+		res := <-ss.User().Save(&model.User{
+			Email:     id + "@test.com",
+			Username:  "un_" + id,
+			Nickname:  "nn_" + id,
+			FirstName: "f_" + id,
+			LastName:  "l_" + id,
+			Password:  "Password1",
+			Roles:     "system_guest",
+		})
+		require.Nil(t, res.Err)
+		user := res.Data.(*model.User)
+
+		teamId := model.NewId()
+		store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: false, SchemeUser: true}, 999))
+
+		channel := store.Must(ss.Channel().Save(&model.Channel{
+			TeamId:      teamId,
+			DisplayName: "Channel name",
+			Name:        "channel-" + model.NewId(),
+			Type:        model.CHANNEL_OPEN,
+		}, -1)).(*model.Channel)
+		store.Must(ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: false, SchemeUser: true, NotifyProps: model.GetDefaultChannelNotifyProps()}))
+
+		err := ss.User().DemoteUserToGuest(user.Id)
+		assert.Nil(t, err)
+		updatedUser, err := ss.User().Get(user.Id)
+		assert.Nil(t, err)
+		require.Equal(t, "system_guest", updatedUser.Roles)
+
+		updatedTeamMember := store.Must(ss.Team().GetMember(teamId, user.Id)).(*model.TeamMember)
+		require.True(t, updatedTeamMember.SchemeGuest)
+		require.False(t, updatedTeamMember.SchemeUser)
+
+		updatedChannelMember, err := ss.Channel().GetMember(channel.Id, user.Id)
+		require.Nil(t, err)
+		require.True(t, updatedChannelMember.SchemeGuest)
+		require.False(t, updatedChannelMember.SchemeUser)
+	})
+
+	t.Run("Must demote properly an admin user", func(t *testing.T) {
+		id := model.NewId()
+		res := <-ss.User().Save(&model.User{
+			Email:     id + "@test.com",
+			Username:  "un_" + id,
+			Nickname:  "nn_" + id,
+			FirstName: "f_" + id,
+			LastName:  "l_" + id,
+			Password:  "Password1",
+			Roles:     "system_user system_admin",
+		})
+		require.Nil(t, res.Err)
+		user := res.Data.(*model.User)
+
+		teamId := model.NewId()
+		store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999))
+
+		channel := store.Must(ss.Channel().Save(&model.Channel{
+			TeamId:      teamId,
+			DisplayName: "Channel name",
+			Name:        "channel-" + model.NewId(),
+			Type:        model.CHANNEL_OPEN,
+		}, -1)).(*model.Channel)
+		store.Must(ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: true, SchemeUser: false, NotifyProps: model.GetDefaultChannelNotifyProps()}))
+
+		err := ss.User().DemoteUserToGuest(user.Id)
+		assert.Nil(t, err)
+		updatedUser, err := ss.User().Get(user.Id)
+		assert.Nil(t, err)
+		require.Equal(t, "system_guest", updatedUser.Roles)
+
+		updatedTeamMember := store.Must(ss.Team().GetMember(teamId, user.Id)).(*model.TeamMember)
+		require.True(t, updatedTeamMember.SchemeGuest)
+		require.False(t, updatedTeamMember.SchemeUser)
+
+		updatedChannelMember, err := ss.Channel().GetMember(channel.Id, user.Id)
+		require.Nil(t, err)
+		require.True(t, updatedChannelMember.SchemeGuest)
+		require.False(t, updatedChannelMember.SchemeUser)
+	})
+
+	t.Run("Must work with user without teams or channels", func(t *testing.T) {
+		id := model.NewId()
+		res := <-ss.User().Save(&model.User{
+			Email:     id + "@test.com",
+			Username:  "un_" + id,
+			Nickname:  "nn_" + id,
+			FirstName: "f_" + id,
+			LastName:  "l_" + id,
+			Password:  "Password1",
+			Roles:     "system_user",
+		})
+		require.Nil(t, res.Err)
+		user := res.Data.(*model.User)
+
+		err := ss.User().DemoteUserToGuest(user.Id)
+		assert.Nil(t, err)
+		updatedUser, err := ss.User().Get(user.Id)
+		assert.Nil(t, err)
+		require.Equal(t, "system_guest", updatedUser.Roles)
+	})
+
+	t.Run("Must work with user with teams but no channels", func(t *testing.T) {
+		id := model.NewId()
+		res := <-ss.User().Save(&model.User{
+			Email:     id + "@test.com",
+			Username:  "un_" + id,
+			Nickname:  "nn_" + id,
+			FirstName: "f_" + id,
+			LastName:  "l_" + id,
+			Password:  "Password1",
+			Roles:     "system_user",
+		})
+		require.Nil(t, res.Err)
+		user := res.Data.(*model.User)
+
+		teamId := model.NewId()
+		store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: false, SchemeUser: true}, 999))
+
+		err := ss.User().DemoteUserToGuest(user.Id)
+		assert.Nil(t, err)
+		updatedUser, err := ss.User().Get(user.Id)
+		assert.Nil(t, err)
+		require.Equal(t, "system_guest", updatedUser.Roles)
+
+		updatedTeamMember := store.Must(ss.Team().GetMember(teamId, user.Id)).(*model.TeamMember)
+		require.True(t, updatedTeamMember.SchemeGuest)
+		require.False(t, updatedTeamMember.SchemeUser)
+	})
+
+	t.Run("Must work with user with teams and channels", func(t *testing.T) {
+		id := model.NewId()
+		res := <-ss.User().Save(&model.User{
+			Email:     id + "@test.com",
+			Username:  "un_" + id,
+			Nickname:  "nn_" + id,
+			FirstName: "f_" + id,
+			LastName:  "l_" + id,
+			Password:  "Password1",
+			Roles:     "system_user",
+		})
+		require.Nil(t, res.Err)
+		user := res.Data.(*model.User)
+
+		teamId := model.NewId()
+		store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: false, SchemeUser: true}, 999))
+
+		channel := store.Must(ss.Channel().Save(&model.Channel{
+			TeamId:      teamId,
+			DisplayName: "Channel name",
+			Name:        "channel-" + model.NewId(),
+			Type:        model.CHANNEL_OPEN,
+		}, -1)).(*model.Channel)
+		store.Must(ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: false, SchemeUser: true, NotifyProps: model.GetDefaultChannelNotifyProps()}))
+
+		err := ss.User().DemoteUserToGuest(user.Id)
+		assert.Nil(t, err)
+		updatedUser, err := ss.User().Get(user.Id)
+		assert.Nil(t, err)
+		require.Equal(t, "system_guest", updatedUser.Roles)
+
+		updatedTeamMember := store.Must(ss.Team().GetMember(teamId, user.Id)).(*model.TeamMember)
+		require.True(t, updatedTeamMember.SchemeGuest)
+		require.False(t, updatedTeamMember.SchemeUser)
+
+		updatedChannelMember, err := ss.Channel().GetMember(channel.Id, user.Id)
+		assert.Nil(t, err)
+		require.True(t, updatedChannelMember.SchemeGuest)
+		require.False(t, updatedChannelMember.SchemeUser)
+	})
+
+	t.Run("Must work with user with teams and channels and custom role", func(t *testing.T) {
+		id := model.NewId()
+		res := <-ss.User().Save(&model.User{
+			Email:     id + "@test.com",
+			Username:  "un_" + id,
+			Nickname:  "nn_" + id,
+			FirstName: "f_" + id,
+			LastName:  "l_" + id,
+			Password:  "Password1",
+			Roles:     "system_user custom_role",
+		})
+		require.Nil(t, res.Err)
+		user := res.Data.(*model.User)
+
+		teamId := model.NewId()
+		store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: false, SchemeUser: true}, 999))
+
+		channel := store.Must(ss.Channel().Save(&model.Channel{
+			TeamId:      teamId,
+			DisplayName: "Channel name",
+			Name:        "channel-" + model.NewId(),
+			Type:        model.CHANNEL_OPEN,
+		}, -1)).(*model.Channel)
+		store.Must(ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: false, SchemeUser: true, NotifyProps: model.GetDefaultChannelNotifyProps()}))
+
+		err := ss.User().DemoteUserToGuest(user.Id)
+		assert.Nil(t, err)
+		updatedUser, err := ss.User().Get(user.Id)
+		assert.Nil(t, err)
+		require.Equal(t, "system_guest custom_role", updatedUser.Roles)
+
+		updatedTeamMember := store.Must(ss.Team().GetMember(teamId, user.Id)).(*model.TeamMember)
+		require.True(t, updatedTeamMember.SchemeGuest)
+		require.False(t, updatedTeamMember.SchemeUser)
+
+		updatedChannelMember, err := ss.Channel().GetMember(channel.Id, user.Id)
+		assert.Nil(t, err)
+		require.True(t, updatedChannelMember.SchemeGuest)
+		require.False(t, updatedChannelMember.SchemeUser)
+	})
+
+	t.Run("Must no change any other user role", func(t *testing.T) {
+		id := model.NewId()
+		res := <-ss.User().Save(&model.User{
+			Email:     id + "@test.com",
+			Username:  "un_" + id,
+			Nickname:  "nn_" + id,
+			FirstName: "f_" + id,
+			LastName:  "l_" + id,
+			Password:  "Password1",
+			Roles:     "system_user",
+		})
+		require.Nil(t, res.Err)
+		user1 := res.Data.(*model.User)
+
+		teamId1 := model.NewId()
+		store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId1, UserId: user1.Id, SchemeGuest: false, SchemeUser: true}, 999))
+
+		channel := store.Must(ss.Channel().Save(&model.Channel{
+			TeamId:      teamId1,
+			DisplayName: "Channel name",
+			Name:        "channel-" + model.NewId(),
+			Type:        model.CHANNEL_OPEN,
+		}, -1)).(*model.Channel)
+
+		store.Must(ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user1.Id, SchemeGuest: false, SchemeUser: true, NotifyProps: model.GetDefaultChannelNotifyProps()}))
+
+		id = model.NewId()
+		res = <-ss.User().Save(&model.User{
+			Email:     id + "@test.com",
+			Username:  "un_" + id,
+			Nickname:  "nn_" + id,
+			FirstName: "f_" + id,
+			LastName:  "l_" + id,
+			Password:  "Password1",
+			Roles:     "system_user",
+		})
+		require.Nil(t, res.Err)
+		user2 := res.Data.(*model.User)
+
+		teamId2 := model.NewId()
+		store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId2, UserId: user2.Id, SchemeGuest: false, SchemeUser: true}, 999))
+
+		store.Must(ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user2.Id, SchemeGuest: false, SchemeUser: true, NotifyProps: model.GetDefaultChannelNotifyProps()}))
+
+		err := ss.User().DemoteUserToGuest(user1.Id)
+		assert.Nil(t, err)
+		updatedUser, err := ss.User().Get(user1.Id)
+		assert.Nil(t, err)
+		require.Equal(t, "system_guest", updatedUser.Roles)
+
+		updatedTeamMember := store.Must(ss.Team().GetMember(teamId1, user1.Id)).(*model.TeamMember)
+		require.True(t, updatedTeamMember.SchemeGuest)
+		require.False(t, updatedTeamMember.SchemeUser)
+
+		updatedChannelMember, err := ss.Channel().GetMember(channel.Id, user1.Id)
+		assert.Nil(t, err)
+		require.True(t, updatedChannelMember.SchemeGuest)
+		require.False(t, updatedChannelMember.SchemeUser)
+
+		notUpdatedUser, err := ss.User().Get(user2.Id)
+		assert.Nil(t, err)
+		require.Equal(t, "system_user", notUpdatedUser.Roles)
+
+		notUpdatedTeamMember := store.Must(ss.Team().GetMember(teamId2, user2.Id)).(*model.TeamMember)
+		require.False(t, notUpdatedTeamMember.SchemeGuest)
+		require.True(t, notUpdatedTeamMember.SchemeUser)
+
+		notUpdatedChannelMember, err := ss.Channel().GetMember(channel.Id, user2.Id)
+		assert.Nil(t, err)
+		require.False(t, notUpdatedChannelMember.SchemeGuest)
+		require.True(t, notUpdatedChannelMember.SchemeUser)
+	})
 }

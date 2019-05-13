@@ -938,3 +938,152 @@ func TestGetViewUsersRestrictionsForTeam(t *testing.T) {
 		assert.ElementsMatch(t, []string{team1townsquare.Id, team1offtopic.Id, team1channel1.Id, team1channel2.Id, team2townsquare.Id, team2offtopic.Id, team2channel1.Id}, restrictions)
 	})
 }
+
+func TestPromoteGuestToUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("Must fail with regular user", func(t *testing.T) {
+		require.Equal(t, "system_user", th.BasicUser.Roles)
+		err := th.App.PromoteGuestToUser(th.BasicUser)
+		require.Nil(t, err)
+
+		user, err := th.App.GetUser(th.BasicUser.Id)
+		assert.Nil(t, err)
+		assert.Equal(t, "system_user", user.Roles)
+	})
+
+	t.Run("Must work with guest user without teams or channels", func(t *testing.T) {
+		guest := th.CreateGuest()
+		require.Equal(t, "system_guest", guest.Roles)
+
+		err := th.App.PromoteGuestToUser(guest)
+		require.Nil(t, err)
+		guest, err = th.App.GetUser(guest.Id)
+		assert.Nil(t, err)
+		assert.Equal(t, "system_user", guest.Roles)
+	})
+
+	t.Run("Must work with guest user with teams but no channels", func(t *testing.T) {
+		guest := th.CreateGuest()
+		require.Equal(t, "system_guest", guest.Roles)
+		th.LinkUserToTeam(guest, th.BasicTeam)
+		teamMember, err := th.App.GetTeamMember(th.BasicTeam.Id, guest.Id)
+		require.Nil(t, err)
+		require.True(t, teamMember.SchemeGuest)
+		require.False(t, teamMember.SchemeUser)
+
+		err = th.App.PromoteGuestToUser(guest)
+		require.Nil(t, err)
+		guest, err = th.App.GetUser(guest.Id)
+		assert.Nil(t, err)
+		assert.Equal(t, "system_user", guest.Roles)
+		teamMember, err = th.App.GetTeamMember(th.BasicTeam.Id, guest.Id)
+		assert.Nil(t, err)
+		assert.False(t, teamMember.SchemeGuest)
+		assert.True(t, teamMember.SchemeUser)
+	})
+
+	t.Run("Must work with guest user with teams and channels", func(t *testing.T) {
+		guest := th.CreateGuest()
+		require.Equal(t, "system_guest", guest.Roles)
+		th.LinkUserToTeam(guest, th.BasicTeam)
+		teamMember, err := th.App.GetTeamMember(th.BasicTeam.Id, guest.Id)
+		require.Nil(t, err)
+		require.True(t, teamMember.SchemeGuest)
+		require.False(t, teamMember.SchemeUser)
+
+		channelMember := th.AddUserToChannel(guest, th.BasicChannel)
+		require.True(t, channelMember.SchemeGuest)
+		require.False(t, channelMember.SchemeUser)
+
+		err = th.App.PromoteGuestToUser(guest)
+		require.Nil(t, err)
+		guest, err = th.App.GetUser(guest.Id)
+		assert.Nil(t, err)
+		assert.Equal(t, "system_user", guest.Roles)
+		teamMember, err = th.App.GetTeamMember(th.BasicTeam.Id, guest.Id)
+		assert.Nil(t, err)
+		assert.False(t, teamMember.SchemeGuest)
+		assert.True(t, teamMember.SchemeUser)
+		channelMember, err = th.App.GetChannelMember(th.BasicChannel.Id, guest.Id)
+		assert.Nil(t, err)
+		assert.False(t, teamMember.SchemeGuest)
+		assert.True(t, teamMember.SchemeUser)
+	})
+}
+
+func TestDemoteUserToGuest(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("Must fail with guest user", func(t *testing.T) {
+		guest := th.CreateGuest()
+		require.Equal(t, "system_guest", guest.Roles)
+		err := th.App.DemoteUserToGuest(guest)
+		require.Nil(t, err)
+
+		user, err := th.App.GetUser(guest.Id)
+		assert.Nil(t, err)
+		assert.Equal(t, "system_guest", user.Roles)
+	})
+
+	t.Run("Must work with user without teams or channels", func(t *testing.T) {
+		user := th.CreateUser()
+		require.Equal(t, "system_user", user.Roles)
+
+		err := th.App.DemoteUserToGuest(user)
+		require.Nil(t, err)
+		user, err = th.App.GetUser(user.Id)
+		assert.Nil(t, err)
+		assert.Equal(t, "system_guest", user.Roles)
+	})
+
+	t.Run("Must work with user with teams but no channels", func(t *testing.T) {
+		user := th.CreateUser()
+		require.Equal(t, "system_user", user.Roles)
+		th.LinkUserToTeam(user, th.BasicTeam)
+		teamMember, err := th.App.GetTeamMember(th.BasicTeam.Id, user.Id)
+		require.Nil(t, err)
+		require.True(t, teamMember.SchemeUser)
+		require.False(t, teamMember.SchemeGuest)
+
+		err = th.App.DemoteUserToGuest(user)
+		require.Nil(t, err)
+		user, err = th.App.GetUser(user.Id)
+		assert.Nil(t, err)
+		assert.Equal(t, "system_guest", user.Roles)
+		teamMember, err = th.App.GetTeamMember(th.BasicTeam.Id, user.Id)
+		assert.Nil(t, err)
+		assert.False(t, teamMember.SchemeUser)
+		assert.True(t, teamMember.SchemeGuest)
+	})
+
+	t.Run("Must work with user user with teams and channels", func(t *testing.T) {
+		user := th.CreateUser()
+		require.Equal(t, "system_user", user.Roles)
+		th.LinkUserToTeam(user, th.BasicTeam)
+		teamMember, err := th.App.GetTeamMember(th.BasicTeam.Id, user.Id)
+		require.Nil(t, err)
+		require.True(t, teamMember.SchemeUser)
+		require.False(t, teamMember.SchemeGuest)
+
+		channelMember := th.AddUserToChannel(user, th.BasicChannel)
+		require.True(t, channelMember.SchemeUser)
+		require.False(t, channelMember.SchemeGuest)
+
+		err = th.App.DemoteUserToGuest(user)
+		require.Nil(t, err)
+		user, err = th.App.GetUser(user.Id)
+		assert.Nil(t, err)
+		assert.Equal(t, "system_guest", user.Roles)
+		teamMember, err = th.App.GetTeamMember(th.BasicTeam.Id, user.Id)
+		assert.Nil(t, err)
+		assert.False(t, teamMember.SchemeUser)
+		assert.True(t, teamMember.SchemeGuest)
+		channelMember, err = th.App.GetChannelMember(th.BasicChannel.Id, user.Id)
+		assert.Nil(t, err)
+		assert.False(t, teamMember.SchemeUser)
+		assert.True(t, teamMember.SchemeGuest)
+	})
+}
