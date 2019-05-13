@@ -96,6 +96,10 @@ func TestCreateBot(t *testing.T) {
 		th := Setup().InitBasic()
 		defer th.TearDown()
 
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.CreateBotAccounts = true
+		})
+
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
 		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
 		th.AddPermissionToRole(model.PERMISSION_EDIT_OTHER_USERS.Id, model.TEAM_USER_ROLE_ID)
