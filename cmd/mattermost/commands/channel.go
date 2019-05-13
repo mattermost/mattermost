@@ -475,7 +475,7 @@ func restoreChannelsCmdF(command *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to find channel '" + args[i] + "'")
 			continue
 		}
-		if _, err := a.Srv.Store.Channel().SetDeleteAt(channel.Id, 0, model.GetMillis()); err != nil {
+		if err := a.Srv.Store.Channel().SetDeleteAt(channel.Id, 0, model.GetMillis()); err != nil {
 			CommandPrintErrorln("Unable to restore channel '" + args[i] + "'")
 		}
 	}

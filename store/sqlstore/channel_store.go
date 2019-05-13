@@ -770,27 +770,35 @@ func (s SqlChannelStore) get(id string, master bool, allowFromCache bool) (*mode
 
 // Delete records the given deleted timestamp to the channel in question.
 func (s SqlChannelStore) Delete(channelId string, time int64) (*model.Channel, *model.AppError) {
-	return s.SetDeleteAt(channelId, time, time)
+	err := s.SetDeleteAt(channelId, time, time)
+	if err != nil {
+		return nil, err
+	}
+	return s.Get(channelId, false)
 }
 
 // Restore reverts a previous deleted timestamp from the channel in question.
 func (s SqlChannelStore) Restore(channelId string, time int64) (*model.Channel, *model.AppError) {
-	return s.SetDeleteAt(channelId, 0, time)
+	err := s.SetDeleteAt(channelId, 0, time)
+	if err != nil {
+		return nil, err
+	}
+	return s.Get(channelId, false)
 }
 
 // SetDeleteAt records the given deleted and updated timestamp to the channel in question.
-func (s SqlChannelStore) SetDeleteAt(channelId string, deleteAt, updateAt int64) (*model.Channel, *model.AppError) {
+func (s SqlChannelStore) SetDeleteAt(channelId string, deleteAt, updateAt int64) *model.AppError {
 	defer s.InvalidateChannel(channelId)
 
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
-		return nil, model.NewAppError("SqlChannelStore.SetDeleteAt", "store.sql_channel.set_delete_at.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SqlChannelStore.SetDeleteAt", "store.sql_channel.set_delete_at.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	defer finalizeTransaction(transaction)
 
 	var result = s.setDeleteAtT(transaction, channelId, deleteAt, updateAt)
 	if result.Err != nil {
-		return nil, result.Err
+		return result.Err
 	}
 
 	// Additionally propagate the write to the PublicChannels table.
@@ -805,16 +813,14 @@ func (s SqlChannelStore) SetDeleteAt(channelId string, deleteAt, updateAt int64)
 		"DeleteAt":  deleteAt,
 		"ChannelId": channelId,
 	}); err != nil {
-		var error = model.NewAppError("SqlChannelStore.SetDeleteAt", "store.sql_channel.set_delete_at.update_public_channel.app_error", nil, "channel_id="+channelId+", "+err.Error(), http.StatusInternalServerError)
-		return nil, error
+		return model.NewAppError("SqlChannelStore.SetDeleteAt", "store.sql_channel.set_delete_at.update_public_channel.app_error", nil, "channel_id="+channelId+", "+err.Error(), http.StatusInternalServerError)
 	}
 
 	if err := transaction.Commit(); err != nil {
-		var error = model.NewAppError("SqlChannelStore.SetDeleteAt", "store.sql_channel.set_delete_at.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
-		return nil, error
+		return model.NewAppError("SqlChannelStore.SetDeleteAt", "store.sql_channel.set_delete_at.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	return s.Get(channelId, false)
+	return nil
 }
 
 func (s SqlChannelStore) setDeleteAtT(transaction *gorp.Transaction, channelId string, deleteAt, updateAt int64) store.StoreResult {

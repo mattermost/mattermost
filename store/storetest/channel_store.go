@@ -2471,7 +2471,7 @@ func testChannelStoreAutocompleteInTeamForSearch(t *testing.T, ss store.Store, s
 	m3.NotifyProps = model.GetDefaultChannelNotifyProps()
 	store.Must(ss.Channel().SaveMember(&m3))
 
-	_, err := ss.Channel().SetDeleteAt(o3.Id, 100, 100)
+	err := ss.Channel().SetDeleteAt(o3.Id, 100, 100)
 	require.Nil(t, err, "Channel must have been deleted")
 
 	o4 := model.Channel{}
@@ -3422,7 +3422,7 @@ func testChannelStoreExportAllDirectChannelsDeletedChannel(t *testing.T, ss stor
 	_ = <-ss.Channel().SaveDirectChannel(&o1, &m1, &m2)
 
 	o1.DeleteAt = 1
-	_, err := ss.Channel().SetDeleteAt(o1.Id, 1, 1)
+	err := ss.Channel().SetDeleteAt(o1.Id, 1, 1)
 	require.Nil(t, err, "Channel must have been deleted")
 
 	r1 := <-ss.Channel().GetAllDirectChannelsForExportAfter(10000, strings.Repeat("0", 26))

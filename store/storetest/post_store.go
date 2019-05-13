@@ -2073,7 +2073,7 @@ func testPostStoreGetDirectPostParentsForExportAfterDeleted(t *testing.T, ss sto
 	<-ss.Channel().SaveDirectChannel(&o1, &m1, &m2)
 
 	o1.DeleteAt = 1
-	_, err := ss.Channel().SetDeleteAt(o1.Id, 1, 1)
+	err := ss.Channel().SetDeleteAt(o1.Id, 1, 1)
 	assert.Nil(t, err)
 
 	p1 := &model.Post{}

@@ -1052,28 +1052,19 @@ func (_m *ChannelStore) SearchMore(userId string, teamId string, term string) st
 }
 
 // SetDeleteAt provides a mock function with given fields: channelId, deleteAt, updateAt
-func (_m *ChannelStore) SetDeleteAt(channelId string, deleteAt int64, updateAt int64) (*model.Channel, *model.AppError) {
+func (_m *ChannelStore) SetDeleteAt(channelId string, deleteAt int64, updateAt int64) *model.AppError {
 	ret := _m.Called(channelId, deleteAt, updateAt)
 
-	var r0 *model.Channel
-	if rf, ok := ret.Get(0).(func(string, int64, int64) *model.Channel); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, int64, int64) *model.AppError); ok {
 		r0 = rf(channelId, deleteAt, updateAt)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.Channel)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string, int64, int64) *model.AppError); ok {
-		r1 = rf(channelId, deleteAt, updateAt)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
-	}
-
-	return r0, r1
+	return r0
 }
 
 // Update provides a mock function with given fields: channel
