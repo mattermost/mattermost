@@ -138,7 +138,7 @@ type ChannelStore interface {
 	InvalidateChannelByName(teamId, name string)
 	GetFromMaster(id string) (*model.Channel, *model.AppError)
 	Delete(channelId string, time int64) (*model.Channel, *model.AppError)
-	Restore(channelId string, time int64)  (*model.Channel, *model.AppError)
+	Restore(channelId string, time int64) (*model.Channel, *model.AppError)
 	SetDeleteAt(channelId string, deleteAt int64, updateAt int64) (*model.Channel, *model.AppError)
 	PermanentDeleteByTeam(teamId string) StoreChannel
 	PermanentDelete(channelId string) StoreChannel

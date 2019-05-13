@@ -2471,7 +2471,7 @@ func testChannelStoreAutocompleteInTeamForSearch(t *testing.T, ss store.Store, s
 	m3.NotifyProps = model.GetDefaultChannelNotifyProps()
 	store.Must(ss.Channel().SaveMember(&m3))
 
-	_, err := ss.Channel().SetDeleteAt(o3.Id,100, 100)
+	_, err := ss.Channel().SetDeleteAt(o3.Id, 100, 100)
 	require.NotNil(t, err, "Channel must have been deleted")
 
 	o4 := model.Channel{}
