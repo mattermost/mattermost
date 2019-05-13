@@ -503,11 +503,7 @@ func (a *App) GetOutgoingWebhooksForChannelPage(channelId string, page, perPage 
 		return nil, model.NewAppError("GetOutgoingWebhooksForChannelPage", "api.outgoing_webhook.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	if result := <-a.Srv.Store.Webhook().GetOutgoingByChannel(channelId, page*perPage, perPage); result.Err != nil {
-		return nil, result.Err
-	} else {
-		return result.Data.([]*model.OutgoingWebhook), nil
-	}
+	return a.Srv.Store.Webhook().GetOutgoingByChannel(channelId, page*perPage, perPage)
 }
 
 func (a *App) GetOutgoingWebhooksForTeamPage(teamId string, page, perPage int) ([]*model.OutgoingWebhook, *model.AppError) {
@@ -686,11 +682,9 @@ func (a *App) HandleCommandWebhook(hookId string, response *model.CommandRespons
 		hook = result.Data.(*model.CommandWebhook)
 	}
 
-	var cmd *model.Command
-	if result := <-a.Srv.Store.Command().Get(hook.CommandId); result.Err != nil {
-		return model.NewAppError("HandleCommandWebhook", "web.command_webhook.command.app_error", nil, "err="+result.Err.Message, http.StatusBadRequest)
-	} else {
-		cmd = result.Data.(*model.Command)
+	cmd, err := a.Srv.Store.Command().Get(hook.CommandId)
+	if err != nil {
+		return model.NewAppError("HandleCommandWebhook", "web.command_webhook.command.app_error", nil, "err="+err.Message, http.StatusBadRequest)
 	}
 
 	args := &model.CommandArgs{
@@ -705,6 +699,6 @@ func (a *App) HandleCommandWebhook(hookId string, response *model.CommandRespons
 		return model.NewAppError("HandleCommandWebhook", "web.command_webhook.invalid.app_error", nil, "err="+result.Err.Message, result.Err.StatusCode)
 	}
 
-	_, err := a.HandleCommandResponse(cmd, args, response, false)
+	_, err = a.HandleCommandResponse(cmd, args, response, false)
 	return err
 }

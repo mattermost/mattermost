@@ -12,10 +12,11 @@ func (api *API) InitImage() {
 }
 
 func getImage(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !*c.App.Config().ImageProxySettings.Enable {
-		http.NotFound(w, r)
-		return
-	}
+	url := r.URL.Query().Get("url")
 
-	c.App.ImageProxy.GetImage(w, r, r.URL.Query().Get("url"))
+	if *c.App.Config().ImageProxySettings.Enable {
+		c.App.ImageProxy.GetImage(w, r, url)
+	} else {
+		http.Redirect(w, r, url, http.StatusFound)
+	}
 }

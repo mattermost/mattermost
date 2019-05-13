@@ -19,6 +19,9 @@ const (
 )
 
 func (api *API) InitGroup() {
+	// GET /api/v4/groups
+	api.BaseRoutes.Groups.Handle("", api.ApiSessionRequired(getGroups)).Methods("GET")
+
 	// GET /api/v4/groups/:group_id
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}",
 		api.ApiSessionRequired(getGroup)).Methods("GET")
@@ -177,8 +180,9 @@ func linkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	appErr := verifyLinkUnlinkPermission(c, syncableType, syncableID)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -389,18 +393,46 @@ func unlinkGroupSyncable(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	err := verifyLinkUnlinkPermission(c, syncableType, syncableID)
+	if err != nil {
+		c.Err = err
 		return
 	}
 
-	_, err := c.App.DeleteGroupSyncable(c.Params.GroupId, syncableID, syncableType)
+	_, err = c.App.DeleteGroupSyncable(c.Params.GroupId, syncableID, syncableType)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
 	ReturnStatusOK(w)
+}
+
+func verifyLinkUnlinkPermission(c *Context, syncableType model.GroupSyncableType, syncableID string) *model.AppError {
+	switch syncableType {
+	case model.GroupSyncableTypeTeam:
+		if !c.App.SessionHasPermissionToTeam(c.App.Session, syncableID, model.PERMISSION_MANAGE_TEAM) {
+			return c.App.MakePermissionError(model.PERMISSION_MANAGE_TEAM)
+		}
+	case model.GroupSyncableTypeChannel:
+		channel, err := c.App.GetChannel(syncableID)
+		if err != nil {
+			return err
+		}
+
+		var permission *model.Permission
+		if channel.Type == model.CHANNEL_PRIVATE {
+			permission = model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS
+		} else {
+			permission = model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS
+		}
+
+		if !c.App.SessionHasPermissionToChannel(c.App.Session, syncableID, permission) {
+			return c.App.MakePermissionError(permission)
+		}
+	}
+
+	return nil
 }
 
 func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -482,12 +514,62 @@ func getGroupsByTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	if !c.App.SessionHasPermissionToTeam(c.App.Session, c.Params.TeamId, model.PERMISSION_MANAGE_TEAM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_TEAM)
 		return
 	}
 
-	groups, err := c.App.GetGroupsByTeam(c.Params.TeamId, c.Params.Page, c.Params.PerPage)
+	opts := model.GroupSearchOpts{
+		Q:                  c.Params.Q,
+		IncludeMemberCount: c.Params.IncludeMemberCount,
+	}
+	if c.Params.Paginate == nil || *c.Params.Paginate {
+		opts.PageOpts = &model.PageOpts{Page: c.Params.Page, PerPage: c.Params.PerPage}
+	}
+
+	groups, totalCount, err := c.App.GetGroupsByTeam(c.Params.TeamId, opts)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	b, marshalErr := json.Marshal(struct {
+		Groups []*model.Group `json:"groups"`
+		Count  int            `json:"total_group_count"`
+	}{
+		Groups: groups,
+		Count:  totalCount,
+	})
+
+	if marshalErr != nil {
+		c.Err = model.NewAppError("Api4.getGroupsByTeam", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(b)
+}
+
+func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.License() == nil || !*c.App.License().Features.LDAPGroups {
+		c.Err = model.NewAppError("Api4.getGroups", "api.ldap_groups.license_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	opts := model.GroupSearchOpts{
+		Q:                  c.Params.Q,
+		IncludeMemberCount: c.Params.IncludeMemberCount,
+	}
+
+	teamID := c.Params.NotAssociatedToTeam
+	if len(teamID) == 26 {
+		if !c.App.SessionHasPermissionToTeam(c.App.Session, teamID, model.PERMISSION_VIEW_TEAM) {
+			c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
+			return
+		}
+		opts.NotAssociatedToTeam = teamID
+	}
+
+	groups, err := c.App.GetGroups(c.Params.Page, c.Params.PerPage, opts)
 	if err != nil {
 		c.Err = err
 		return
@@ -495,7 +577,7 @@ func getGroupsByTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	b, marshalErr := json.Marshal(groups)
 	if marshalErr != nil {
-		c.Err = model.NewAppError("Api4.getGroupsByTeam", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("Api4.getGroups", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
 		return
 	}
 
