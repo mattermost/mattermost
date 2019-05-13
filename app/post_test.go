@@ -589,12 +589,7 @@ func TestMaxPostSize(t *testing.T) {
 			mockStore := &storetest.Store{}
 			defer mockStore.AssertExpectations(t)
 
-			mockStore.PostStore.On("GetMaxPostSize").Return(
-				storetest.NewStoreChannel(store.StoreResult{
-					Data: testCase.StoreMaxPostSize,
-					Err:  testCase.ExpectedError,
-				}),
-			)
+			mockStore.PostStore.On("GetMaxPostSize").Return(testCase.StoreMaxPostSize)
 
 			app := App{
 				Srv: &Server{
