@@ -585,11 +585,7 @@ func (a *App) postChannelPrivacyMessage(user *model.User, channel *model.Channel
 }
 
 func (a *App) RestoreChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
-	result := <-a.Srv.Store.Channel().Restore(channel.Id, model.GetMillis())
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return channel, nil
+	return a.Srv.Store.Channel().Restore(channel.Id, model.GetMillis())
 }
 
 func (a *App) PatchChannel(channel *model.Channel, patch *model.ChannelPatch, userId string) (*model.Channel, *model.AppError) {
@@ -873,8 +869,8 @@ func (a *App) DeleteChannel(channel *model.Channel, userId string) *model.AppErr
 
 	deleteAt := model.GetMillis()
 
-	if dresult := <-a.Srv.Store.Channel().Delete(channel.Id, deleteAt); dresult.Err != nil {
-		return dresult.Err
+	if _, err := a.Srv.Store.Channel().Delete(channel.Id, deleteAt); err != nil {
+		return err
 	}
 	a.InvalidateCacheForChannel(channel)
 
