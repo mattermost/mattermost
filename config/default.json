@@ -147,6 +147,15 @@
         "EnableWebhookDebugging": true,
         "EnableDiagnostics": true
     },
+    "NotificationLogSettings": {
+        "EnableConsole": true,
+        "ConsoleLevel": "DEBUG",
+        "ConsoleJson": true,
+        "EnableFile": true,
+        "FileLevel": "INFO",
+        "FileJson": true,
+        "FileLocation": ""
+    },
     "PasswordSettings": {
         "MinimumLength": 5,
         "Lowercase": false,

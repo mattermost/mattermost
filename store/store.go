@@ -78,7 +78,6 @@ type Store interface {
 	TotalMasterDbConnections() int
 	TotalReadDbConnections() int
 	TotalSearchDbConnections() int
-	NotificationRegistry() NotificationRegistryStore
 }
 
 type TeamStore interface {
@@ -604,10 +603,4 @@ type GroupStore interface {
 type LinkMetadataStore interface {
 	Save(linkMetadata *model.LinkMetadata) StoreChannel
 	Get(url string, timestamp int64) StoreChannel
-}
-
-type NotificationRegistryStore interface {
-	Save(notification *model.NotificationRegistry) (*model.NotificationRegistry, *model.AppError)
-	MarkAsReceived(ackId string, time int64) *model.AppError
-	UpdateSendStatus(ackId, status string) *model.AppError
 }

@@ -23,7 +23,8 @@ import (
 type App struct {
 	Srv *Server
 
-	Log *mlog.Logger
+	Log              *mlog.Logger
+	NotificationsLog *mlog.Logger
 
 	T              goi18n.TranslateFunc
 	Session        model.Session

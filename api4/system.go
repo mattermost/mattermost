@@ -334,13 +334,6 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mlog.Debug("Push notification ack received",
-		mlog.String("ackId", ack.Id),
-		mlog.String("platform", ack.ClientPlatform),
-		mlog.String("type", ack.NotificationType),
-		mlog.Int64("at", ack.ClientReceivedAt),
-	)
-
 	ReturnStatusOK(w)
 	return
 }
