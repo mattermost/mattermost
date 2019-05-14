@@ -769,21 +769,13 @@ func (s SqlChannelStore) get(id string, master bool, allowFromCache bool) (*mode
 }
 
 // Delete records the given deleted timestamp to the channel in question.
-func (s SqlChannelStore) Delete(channelId string, time int64) (*model.Channel, *model.AppError) {
-	err := s.SetDeleteAt(channelId, time, time)
-	if err != nil {
-		return nil, err
-	}
-	return s.Get(channelId, false)
+func (s SqlChannelStore) Delete(channelId string, time int64) *model.AppError {
+	return s.SetDeleteAt(channelId, time, time)
 }
 
 // Restore reverts a previous deleted timestamp from the channel in question.
-func (s SqlChannelStore) Restore(channelId string, time int64) (*model.Channel, *model.AppError) {
-	err := s.SetDeleteAt(channelId, 0, time)
-	if err != nil {
-		return nil, err
-	}
-	return s.Get(channelId, false)
+func (s SqlChannelStore) Restore(channelId string, time int64) *model.AppError {
+	return s.SetDeleteAt(channelId, 0, time)
 }
 
 // SetDeleteAt records the given deleted and updated timestamp to the channel in question.

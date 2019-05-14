@@ -1169,7 +1169,7 @@ func testPendingAutoAddChannelMembers(t *testing.T, ss store.Store) {
 	require.Len(t, res.Data, 1)
 
 	// No result if Channel deleted
-	_, err := ss.Channel().Delete(channel.Id, model.GetMillis())
+	err := ss.Channel().Delete(channel.Id, model.GetMillis())
 	require.Nil(t, err)
 	res = <-ss.Group().ChannelMembersToAdd(0)
 	require.Nil(t, res.Err)
@@ -1177,7 +1177,7 @@ func testPendingAutoAddChannelMembers(t *testing.T, ss store.Store) {
 
 	// reset state of channel and verify
 	channel.DeleteAt = 0
-	_, err := ss.Channel().Update(channel)
+	_, err = ss.Channel().Update(channel)
 	require.Nil(t, err)
 	res = <-ss.Group().ChannelMembersToAdd(0)
 	require.Nil(t, res.Err)
