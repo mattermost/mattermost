@@ -46,7 +46,8 @@ func Example() {
 	defer helpers.AssertExpectations(t)
 
 	p := &HelloUserPlugin{}
-	p.SetAPI(api, helpers)
+	p.SetAPI(api)
+	p.SetHelpers(helpers)
 
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest("GET", "/", nil)

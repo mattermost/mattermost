@@ -505,9 +505,9 @@ func TestPluginAPIGetPlugins(t *testing.T) {
 	}
 	th.App.SetPluginsEnvironment(env)
 
-	// Decativate the last one for testing
-	sucess := env.Deactivate(pluginIDs[len(pluginIDs)-1])
-	require.True(t, sucess)
+	// Deactivate the last one for testing
+	success := env.Deactivate(pluginIDs[len(pluginIDs)-1])
+	require.True(t, success)
 
 	// check existing user first
 	plugins, err := api.GetPlugins()
