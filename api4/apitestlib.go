@@ -274,7 +274,7 @@ func (me *TestHelper) CreateUserWithClient(client *model.Client4) *model.User {
 		Nickname:  "nn_" + id,
 		FirstName: "f_" + id,
 		LastName:  "l_" + id,
-		Password:  "Password1",
+		Password:  "Pa$$word11",
 	}
 
 	utils.DisableDebugLogForTest()
@@ -283,7 +283,7 @@ func (me *TestHelper) CreateUserWithClient(client *model.Client4) *model.User {
 		panic(response.Error)
 	}
 
-	ruser.Password = "Password1"
+	ruser.Password = "Pa$$word11"
 	store.Must(me.App.Srv.Store.User().VerifyEmail(ruser.Id, ruser.Email))
 	utils.EnableDebugLogForTest()
 	return ruser
