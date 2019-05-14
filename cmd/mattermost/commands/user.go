@@ -422,8 +422,8 @@ func getUpdatedPassword(command *cobra.Command, a *app.App, user *model.User) (s
 }
 
 func getUpdatedUserModel(command *cobra.Command, a *app.App, user *model.User) (*model.User, error) {
-	username, err := command.Flags().GetString("username")
-	if err != nil || username == "" {
+	username, _ := command.Flags().GetString("username")
+	if username == "" {
 		if user.Username == "" {
 			return nil, errors.New("Invalid username. Username is empty.")
 		}
@@ -431,8 +431,8 @@ func getUpdatedUserModel(command *cobra.Command, a *app.App, user *model.User) (
 		user.Username = username
 	}
 
-	email, err := command.Flags().GetString("email")
-	if err != nil || email == "" {
+	email, _ := command.Flags().GetString("email")
+	if email == "" {
 		if user.Email == "" {
 			return nil, errors.New("Invalid email. Email is empty.")
 		}
