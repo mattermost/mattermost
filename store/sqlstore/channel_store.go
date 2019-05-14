@@ -529,7 +529,10 @@ func (s SqlChannelStore) SaveDirectChannel(directchannel *model.Channel, member1
 	// After updating saveChannelT() should be:
 	// newChannel, apperr := s.saveChannelT(transaction, directchannel, 0)
 	channelResult := s.saveChannelT(transaction, directchannel, 0)
-	newChannel := channelResult.Data.(*model.Channel)
+	var newChannel *model.Channel
+	if channelResult.Data != nil {
+		newChannel = channelResult.Data.(*model.Channel)
+	}
 	apperr := channelResult.Err
 
 	if apperr != nil {
