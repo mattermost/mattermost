@@ -149,7 +149,7 @@ func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store, s SqlSuppli
 	m2.UserId = u2.Id
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 
-	if err := (<-ss.Channel().SaveDirectChannel(&o1, &m1, &m2)).Err; err != nil {
+	if _, err := ss.Channel().SaveDirectChannel(&o1, &m1, &m2); err != nil {
 		t.Fatal("couldn't save direct channel", err)
 	}
 
@@ -158,7 +158,7 @@ func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store, s SqlSuppli
 		t.Fatal("should have saved 2 members")
 	}
 
-	if err := (<-ss.Channel().SaveDirectChannel(&o1, &m1, &m2)).Err; err == nil {
+	if _, err := ss.Channel().SaveDirectChannel(&o1, &m1, &m2); err == nil {
 		t.Fatal("shouldn't be able to update from save")
 	}
 
@@ -170,11 +170,12 @@ func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store, s SqlSuppli
 		Type:        o1.Type,
 	}
 
-	if result := <-ss.Channel().SaveDirectChannel(&o1a, &m1, &m2); result.Err == nil {
+	returnedChannel, err := ss.Channel().SaveDirectChannel(&o1a, &m1, &m2)
+	if err == nil {
 		t.Fatal("should've failed to save a duplicate direct channel")
-	} else if result.Err.Id != store.CHANNEL_EXISTS_ERROR {
+	} else if err.Id != store.CHANNEL_EXISTS_ERROR {
 		t.Fatal("should've returned CHANNEL_EXISTS_ERROR")
-	} else if returned := result.Data.(*model.Channel); returned.Id != o1.Id {
+	} else if returnedChannel.Id != o1.Id {
 		t.Fatal("should've returned original channel when saving a duplicate direct channel")
 	}
 
@@ -182,7 +183,7 @@ func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store, s SqlSuppli
 	o1.Id = ""
 	o1.Name = "zz" + model.NewId() + "b"
 	o1.Type = model.CHANNEL_OPEN
-	if err := (<-ss.Channel().SaveDirectChannel(&o1, &m1, &m2)).Err; err == nil {
+	if _, err := ss.Channel().SaveDirectChannel(&o1, &m1, &m2); err == nil {
 		t.Fatal("Should not be able to save non-direct channel")
 	}
 
@@ -191,7 +192,7 @@ func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store, s SqlSuppli
 	o1.DisplayName = "Myself"
 	o1.Name = "zz" + model.NewId() + "b"
 	o1.Type = model.CHANNEL_DIRECT
-	if err := (<-ss.Channel().SaveDirectChannel(&o1, &m1, &m1)).Err; err != nil {
+	if _, err := ss.Channel().SaveDirectChannel(&o1, &m1, &m1); err != nil {
 		t.Fatal("couldn't save direct channel", err)
 	}
 
@@ -217,11 +218,10 @@ func testChannelStoreCreateDirectChannel(t *testing.T, ss store.Store) {
 	store.Must(ss.User().Save(u2))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1))
 
-	res := <-ss.Channel().CreateDirectChannel(u1.Id, u2.Id)
-	if res.Err != nil {
-		t.Fatal("couldn't create direct channel", res.Err)
+	c1, err := ss.Channel().CreateDirectChannel(u1.Id, u2.Id)
+	if err != nil {
+		t.Fatal("couldn't create direct channel", err)
 	}
-	c1 := res.Data.(*model.Channel)
 	defer func() {
 		<-ss.Channel().PermanentDeleteMembersByChannel(c1.Id)
 		<-ss.Channel().PermanentDelete(c1.Id)
@@ -394,7 +394,10 @@ func testChannelStoreGet(t *testing.T, ss store.Store, s SqlSupplier) {
 	m2.UserId = u2.Id
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 
-	store.Must(ss.Channel().SaveDirectChannel(&o2, &m1, &m2))
+	if _, err := ss.Channel().SaveDirectChannel(&o2, &m1, &m2); err != nil {
+		time.Sleep(time.Second)
+		panic(err)
+	}
 
 	if c2, err := ss.Channel().Get(o2.Id, false); err != nil {
 		t.Fatal(err)
@@ -469,7 +472,10 @@ func testChannelStoreGetChannelsByIds(t *testing.T, ss store.Store) {
 	m2.UserId = u2.Id
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 
-	store.Must(ss.Channel().SaveDirectChannel(&o2, &m1, &m2))
+	if _, err := ss.Channel().SaveDirectChannel(&o2, &m1, &m2); err != nil {
+		time.Sleep(time.Second)
+		panic(err)
+	}
 
 	if r1 := <-ss.Channel().GetChannelsByIds([]string{o1.Id, o2.Id}); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -1080,7 +1086,10 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlSupplier)
 	c3.Type = model.CHANNEL_PRIVATE
 	store.Must(ss.Channel().Save(&c3, -1))
 
-	store.Must(ss.Channel().CreateDirectChannel(model.NewId(), model.NewId()))
+	if _, err := ss.Channel().CreateDirectChannel(model.NewId(), model.NewId()); err != nil {
+		time.Sleep(time.Second)
+		panic(err)
+	}
 
 	userIds := []string{model.NewId(), model.NewId(), model.NewId()}
 
@@ -2478,8 +2487,14 @@ func testChannelStoreAutocompleteInTeamForSearch(t *testing.T, ss store.Store, s
 	o5.Type = model.CHANNEL_PRIVATE
 	store.Must(ss.Channel().Save(&o5, -1))
 
-	store.Must(ss.Channel().CreateDirectChannel(u1.Id, u2.Id))
-	store.Must(ss.Channel().CreateDirectChannel(u2.Id, u3.Id))
+	if _, err := ss.Channel().CreateDirectChannel(u1.Id, u2.Id); err != nil {
+		time.Sleep(time.Second)
+		panic(err)
+	}
+	if _, err := ss.Channel().CreateDirectChannel(u2.Id, u3.Id); err != nil {
+		time.Sleep(time.Second)
+		panic(err)
+	}
 
 	tt := []struct {
 		name            string
@@ -2585,11 +2600,9 @@ func testChannelStoreAnalyticsDeletedTypeCount(t *testing.T, ss store.Store) {
 	u2.Nickname = model.NewId()
 	store.Must(ss.User().Save(u2))
 
-	var d4 *model.Channel
-	if result := <-ss.Channel().CreateDirectChannel(u1.Id, u2.Id); result.Err != nil {
-		t.Fatalf(result.Err.Error())
-	} else {
-		d4 = result.Data.(*model.Channel)
+	d4, err := ss.Channel().CreateDirectChannel(u1.Id, u2.Id)
+	if err != nil {
+		t.Fatalf(err.Error())
 	}
 	defer func() {
 		<-ss.Channel().PermanentDeleteMembersByChannel(d4.Id)
@@ -3293,7 +3306,7 @@ func testChannelStoreExportAllDirectChannels(t *testing.T, ss store.Store, s Sql
 	m2.UserId = u2.Id
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 
-	<-ss.Channel().SaveDirectChannel(&o1, &m1, &m2)
+	ss.Channel().SaveDirectChannel(&o1, &m1, &m2)
 
 	r1 := <-ss.Channel().GetAllDirectChannelsForExportAfter(10000, strings.Repeat("0", 26))
 	assert.Nil(t, r1.Err)
@@ -3351,7 +3364,7 @@ func testChannelStoreExportAllDirectChannelsExcludePrivateAndPublic(t *testing.T
 	m2.UserId = u2.Id
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 
-	<-ss.Channel().SaveDirectChannel(&o1, &m1, &m2)
+	ss.Channel().SaveDirectChannel(&o1, &m1, &m2)
 
 	r1 := <-ss.Channel().GetAllDirectChannelsForExportAfter(10000, strings.Repeat("0", 26))
 	assert.Nil(t, r1.Err)
@@ -3394,10 +3407,10 @@ func testChannelStoreExportAllDirectChannelsDeletedChannel(t *testing.T, ss stor
 	m2.UserId = u2.Id
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 
-	result := <-ss.Channel().SaveDirectChannel(&o1, &m1, &m2)
+	ss.Channel().SaveDirectChannel(&o1, &m1, &m2)
 
 	o1.DeleteAt = 1
-	result = <-ss.Channel().SetDeleteAt(o1.Id, 1, 1)
+	result := <-ss.Channel().SetDeleteAt(o1.Id, 1, 1)
 	assert.Nil(t, result.Err)
 
 	r1 := <-ss.Channel().GetAllDirectChannelsForExportAfter(10000, strings.Repeat("0", 26))

@@ -340,15 +340,13 @@ func (a *App) createDirectChannel(userId string, otherUserId string) (*model.Cha
 		return nil, model.NewAppError("CreateDirectChannel", "api.channel.create_direct_channel.invalid_user.app_error", nil, otherUserId, http.StatusBadRequest)
 	}
 
-	result := <-a.Srv.Store.Channel().CreateDirectChannel(userId, otherUserId)
-	if result.Err != nil {
-		if result.Err.Id == store.CHANNEL_EXISTS_ERROR {
-			return result.Data.(*model.Channel), result.Err
+	channel, err := a.Srv.Store.Channel().CreateDirectChannel(userId, otherUserId)
+	if err != nil {
+		if err.Id == store.CHANNEL_EXISTS_ERROR {
+			return channel, err
 		}
-		return nil, result.Err
+		return nil, err
 	}
-
-	channel := result.Data.(*model.Channel)
 
 	if result := <-a.Srv.Store.ChannelMemberHistory().LogJoinEvent(userId, channel.Id, model.GetMillis()); result.Err != nil {
 		mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", result.Err))

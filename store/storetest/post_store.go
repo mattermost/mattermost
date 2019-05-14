@@ -1251,8 +1251,11 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, ss store.Store, s SqlSupp
 	m2.UserId = model.NewId()
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 
-	c2 = store.Must(ss.Channel().SaveDirectChannel(c2, m1, m2)).(*model.Channel)
-
+	c2, err := ss.Channel().SaveDirectChannel(c2, m1, m2)
+	if err != nil {
+		time.Sleep(time.Second)
+		panic(err)
+	}
 	o5 := &model.Post{}
 	o5.ChannelId = c2.Id
 	o5.UserId = m2.UserId
@@ -2018,7 +2021,7 @@ func testPostStoreGetDirectPostParentsForExportAfter(t *testing.T, ss store.Stor
 	m2.UserId = u2.Id
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 
-	<-ss.Channel().SaveDirectChannel(&o1, &m1, &m2)
+	ss.Channel().SaveDirectChannel(&o1, &m1, &m2)
 
 	p1 := &model.Post{}
 	p1.ChannelId = o1.Id
@@ -2070,7 +2073,7 @@ func testPostStoreGetDirectPostParentsForExportAfterDeleted(t *testing.T, ss sto
 	m2.UserId = u2.Id
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 
-	<-ss.Channel().SaveDirectChannel(&o1, &m1, &m2)
+	ss.Channel().SaveDirectChannel(&o1, &m1, &m2)
 
 	o1.DeleteAt = 1
 	result := <-ss.Channel().SetDeleteAt(o1.Id, 1, 1)
@@ -2134,7 +2137,7 @@ func testPostStoreGetDirectPostParentsForExportAfterBatched(t *testing.T, ss sto
 		m2.UserId = u2.Id
 		m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 
-		<-ss.Channel().SaveDirectChannel(&o1, &m1, &m2)
+		ss.Channel().SaveDirectChannel(&o1, &m1, &m2)
 
 		p1 := &model.Post{}
 		p1.ChannelId = o1.Id
