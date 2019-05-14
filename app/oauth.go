@@ -259,11 +259,11 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(clientId, grantType, redirectUri, c
 			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.redirect_uri.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		result = <-a.Srv.Store.User().Get(authData.UserId)
-		if result.Err != nil {
+		var err *model.AppError
+		user, err = a.Srv.Store.User().Get(authData.UserId)
+		if err != nil {
 			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal_user.app_error", nil, "", http.StatusNotFound)
 		}
-		user = result.Data.(*model.User)
 
 		result = <-a.Srv.Store.OAuth().GetPreviousAccessData(user.Id, clientId)
 		if result.Err != nil {
@@ -318,11 +318,10 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(clientId, grantType, redirectUri, c
 		}
 		accessData = result.Data.(*model.AccessData)
 
-		result = <-a.Srv.Store.User().Get(accessData.UserId)
-		if result.Err != nil {
+		user, err := a.Srv.Store.User().Get(accessData.UserId)
+		if err != nil {
 			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal_user.app_error", nil, "", http.StatusNotFound)
 		}
-		user = result.Data.(*model.User)
 
 		access, err := a.newSessionUpdateToken(oauthApp.Name, accessData, user)
 		if err != nil {
@@ -655,11 +654,13 @@ func (a *App) GetAuthorizationCode(w http.ResponseWriter, r *http.Request, servi
 	}
 
 	cookieValue := model.NewId()
+	subpath, _ := utils.GetSubpathFromConfig(a.Config())
+
 	expiresAt := time.Unix(model.GetMillis()/1000+int64(OAUTH_COOKIE_MAX_AGE_SECONDS), 0)
 	oauthCookie := &http.Cookie{
 		Name:     COOKIE_OAUTH,
 		Value:    cookieValue,
-		Path:     "/",
+		Path:     subpath,
 		MaxAge:   OAUTH_COOKIE_MAX_AGE_SECONDS,
 		Expires:  expiresAt,
 		HttpOnly: true,
@@ -742,10 +743,12 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 		mlog.Error(appErr.Error())
 	}
 
+	subpath, _ := utils.GetSubpathFromConfig(a.Config())
+
 	httpCookie := &http.Cookie{
 		Name:     COOKIE_OAUTH,
 		Value:    "",
-		Path:     "/",
+		Path:     subpath,
 		MaxAge:   -1,
 		HttpOnly: true,
 	}

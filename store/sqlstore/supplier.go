@@ -124,7 +124,7 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 
 	supplier.initConnection()
 
-	supplier.oldStores.team = NewSqlTeamStore(supplier)
+	supplier.oldStores.team = NewSqlTeamStore(supplier, metrics)
 	supplier.oldStores.channel = NewSqlChannelStore(supplier, metrics)
 	supplier.oldStores.post = NewSqlPostStore(supplier, metrics)
 	supplier.oldStores.user = NewSqlUserStore(supplier, metrics)
@@ -164,7 +164,12 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 		os.Exit(EXIT_CREATE_TABLE)
 	}
 
-	UpgradeDatabase(supplier)
+	err = UpgradeDatabase(supplier, model.CurrentVersion)
+	if err != nil {
+		mlog.Critical("Failed to upgrade database", mlog.Err(err))
+		time.Sleep(time.Second)
+		os.Exit(EXIT_GENERIC_FAILURE)
+	}
 
 	supplier.oldStores.team.(*SqlTeamStore).CreateIndexesIfNotExists()
 	supplier.oldStores.channel.(*SqlChannelStore).CreateIndexesIfNotExists()

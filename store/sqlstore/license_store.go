@@ -29,32 +29,30 @@ func NewSqlLicenseStore(sqlStore SqlStore) store.LicenseStore {
 func (ls SqlLicenseStore) CreateIndexesIfNotExists() {
 }
 
-func (ls SqlLicenseStore) Save(license *model.LicenseRecord) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		license.PreSave()
-		if result.Err = license.IsValid(); result.Err != nil {
-			return
-		}
+func (ls SqlLicenseStore) Save(license *model.LicenseRecord) (*model.LicenseRecord, *model.AppError) {
+	license.PreSave()
+	if err := license.IsValid(); err != nil {
+		return nil, err
+	}
 
+	var storedLicense model.LicenseRecord
+	if err := ls.GetReplica().SelectOne(&storedLicense, "SELECT * FROM Licenses WHERE Id = :Id", map[string]interface{}{"Id": license.Id}); err != nil {
 		// Only insert if not exists
-		if err := ls.GetReplica().SelectOne(&model.LicenseRecord{}, "SELECT * FROM Licenses WHERE Id = :Id", map[string]interface{}{"Id": license.Id}); err != nil {
-			if err := ls.GetMaster().Insert(license); err != nil {
-				result.Err = model.NewAppError("SqlLicenseStore.Save", "store.sql_license.save.app_error", nil, "license_id="+license.Id+", "+err.Error(), http.StatusInternalServerError)
-			} else {
-				result.Data = license
-			}
+		if err := ls.GetMaster().Insert(license); err != nil {
+			return nil, model.NewAppError("SqlLicenseStore.Save", "store.sql_license.save.app_error", nil, "license_id="+license.Id+", "+err.Error(), http.StatusInternalServerError)
 		}
-	})
+		return license, nil
+	}
+	return &storedLicense, nil
 }
 
-func (ls SqlLicenseStore) Get(id string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if obj, err := ls.GetReplica().Get(model.LicenseRecord{}, id); err != nil {
-			result.Err = model.NewAppError("SqlLicenseStore.Get", "store.sql_license.get.app_error", nil, "license_id="+id+", "+err.Error(), http.StatusInternalServerError)
-		} else if obj == nil {
-			result.Err = model.NewAppError("SqlLicenseStore.Get", "store.sql_license.get.missing.app_error", nil, "license_id="+id, http.StatusNotFound)
-		} else {
-			result.Data = obj.(*model.LicenseRecord)
-		}
-	})
+func (ls SqlLicenseStore) Get(id string) (*model.LicenseRecord, *model.AppError) {
+	obj, err := ls.GetReplica().Get(model.LicenseRecord{}, id)
+	if err != nil {
+		return nil, model.NewAppError("SqlLicenseStore.Get", "store.sql_license.get.app_error", nil, "license_id="+id+", "+err.Error(), http.StatusInternalServerError)
+	}
+	if obj == nil {
+		return nil, model.NewAppError("SqlLicenseStore.Get", "store.sql_license.get.missing.app_error", nil, "license_id="+id, http.StatusNotFound)
+	}
+	return obj.(*model.LicenseRecord), nil
 }

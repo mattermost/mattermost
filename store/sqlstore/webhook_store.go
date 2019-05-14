@@ -4,9 +4,8 @@
 package sqlstore
 
 import (
-	"net/http"
-
 	"database/sql"
+	"net/http"
 
 	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
@@ -89,304 +88,271 @@ func (s SqlWebhookStore) InvalidateWebhookCache(webhookId string) {
 	}
 }
 
-func (s SqlWebhookStore) SaveIncoming(webhook *model.IncomingWebhook) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if len(webhook.Id) > 0 {
-			result.Err = model.NewAppError("SqlWebhookStore.SaveIncoming", "store.sql_webhooks.save_incoming.existing.app_error", nil, "id="+webhook.Id, http.StatusBadRequest)
-			return
-		}
+func (s SqlWebhookStore) SaveIncoming(webhook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError) {
 
-		webhook.PreSave()
-		if result.Err = webhook.IsValid(); result.Err != nil {
-			return
-		}
+	if len(webhook.Id) > 0 {
+		return nil, model.NewAppError("SqlWebhookStore.SaveIncoming", "store.sql_webhooks.save_incoming.existing.app_error", nil, "id="+webhook.Id, http.StatusBadRequest)
+	}
 
-		if err := s.GetMaster().Insert(webhook); err != nil {
-			result.Err = model.NewAppError("SqlWebhookStore.SaveIncoming", "store.sql_webhooks.save_incoming.app_error", nil, "id="+webhook.Id+", "+err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = webhook
-		}
-	})
+	webhook.PreSave()
+	if err := webhook.IsValid(); err != nil {
+		return nil, err
+	}
+
+	if err := s.GetMaster().Insert(webhook); err != nil {
+		return nil, model.NewAppError("SqlWebhookStore.SaveIncoming", "store.sql_webhooks.save_incoming.app_error", nil, "id="+webhook.Id+", "+err.Error(), http.StatusInternalServerError)
+	}
+
+	return webhook, nil
+
 }
 
-func (s SqlWebhookStore) UpdateIncoming(hook *model.IncomingWebhook) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		hook.UpdateAt = model.GetMillis()
+func (s SqlWebhookStore) UpdateIncoming(hook *model.IncomingWebhook) (*model.IncomingWebhook, *model.AppError) {
+	hook.UpdateAt = model.GetMillis()
 
-		if _, err := s.GetMaster().Update(hook); err != nil {
-			result.Err = model.NewAppError("SqlWebhookStore.UpdateIncoming", "store.sql_webhooks.update_incoming.app_error", nil, "id="+hook.Id+", "+err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = hook
-		}
-	})
+	if _, err := s.GetMaster().Update(hook); err != nil {
+		return nil, model.NewAppError("SqlWebhookStore.UpdateIncoming", "store.sql_webhooks.update_incoming.app_error", nil, "id="+hook.Id+", "+err.Error(), http.StatusInternalServerError)
+	}
+	return hook, nil
 }
 
-func (s SqlWebhookStore) GetIncoming(id string, allowFromCache bool) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if allowFromCache {
-			if cacheItem, ok := webhookCache.Get(id); ok {
-				if s.metrics != nil {
-					s.metrics.IncrementMemCacheHitCounter("Webhook")
-				}
-				result.Data = cacheItem.(*model.IncomingWebhook)
-				return
-			} else {
-				if s.metrics != nil {
-					s.metrics.IncrementMemCacheMissCounter("Webhook")
-				}
+func (s SqlWebhookStore) GetIncoming(id string, allowFromCache bool) (*model.IncomingWebhook, *model.AppError) {
+	if allowFromCache {
+		if cacheItem, ok := webhookCache.Get(id); ok {
+			if s.metrics != nil {
+				s.metrics.IncrementMemCacheHitCounter("Webhook")
 			}
+			return cacheItem.(*model.IncomingWebhook), nil
 		}
-
-		var webhook model.IncomingWebhook
-
-		if err := s.GetReplica().SelectOne(&webhook, "SELECT * FROM IncomingWebhooks WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": id}); err != nil {
-			if err == sql.ErrNoRows {
-				result.Err = model.NewAppError("SqlWebhookStore.GetIncoming", "store.sql_webhooks.get_incoming.app_error", nil, "id="+id+", err="+err.Error(), http.StatusNotFound)
-			} else {
-				result.Err = model.NewAppError("SqlWebhookStore.GetIncoming", "store.sql_webhooks.get_incoming.app_error", nil, "id="+id+", err="+err.Error(), http.StatusInternalServerError)
-			}
+		if s.metrics != nil {
+			s.metrics.IncrementMemCacheMissCounter("Webhook")
 		}
+	}
 
-		if result.Err == nil {
-			webhookCache.AddWithExpiresInSecs(id, &webhook, WEBHOOK_CACHE_SEC)
+	var webhook model.IncomingWebhook
+	if err := s.GetReplica().SelectOne(&webhook, "SELECT * FROM IncomingWebhooks WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": id}); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, model.NewAppError("SqlWebhookStore.GetIncoming", "store.sql_webhooks.get_incoming.app_error", nil, "id="+id+", err="+err.Error(), http.StatusNotFound)
 		}
+		return nil, model.NewAppError("SqlWebhookStore.GetIncoming", "store.sql_webhooks.get_incoming.app_error", nil, "id="+id+", err="+err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = &webhook
-	})
+	webhookCache.AddWithExpiresInSecs(id, &webhook, WEBHOOK_CACHE_SEC)
+
+	return &webhook, nil
 }
 
-func (s SqlWebhookStore) DeleteIncoming(webhookId string, time int64) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		_, err := s.GetMaster().Exec("Update IncomingWebhooks SET DeleteAt = :DeleteAt, UpdateAt = :UpdateAt WHERE Id = :Id", map[string]interface{}{"DeleteAt": time, "UpdateAt": time, "Id": webhookId})
-		if err != nil {
-			result.Err = model.NewAppError("SqlWebhookStore.DeleteIncoming", "store.sql_webhooks.delete_incoming.app_error", nil, "id="+webhookId+", err="+err.Error(), http.StatusInternalServerError)
-		}
+func (s SqlWebhookStore) DeleteIncoming(webhookId string, time int64) *model.AppError {
+	_, err := s.GetMaster().Exec("Update IncomingWebhooks SET DeleteAt = :DeleteAt, UpdateAt = :UpdateAt WHERE Id = :Id", map[string]interface{}{"DeleteAt": time, "UpdateAt": time, "Id": webhookId})
+	if err != nil {
+		return model.NewAppError("SqlWebhookStore.DeleteIncoming", "store.sql_webhooks.delete_incoming.app_error", nil, "id="+webhookId+", err="+err.Error(), http.StatusInternalServerError)
+	}
 
-		s.InvalidateWebhookCache(webhookId)
-	})
+	s.InvalidateWebhookCache(webhookId)
+	return nil
 }
 
-func (s SqlWebhookStore) PermanentDeleteIncomingByUser(userId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		_, err := s.GetMaster().Exec("DELETE FROM IncomingWebhooks WHERE UserId = :UserId", map[string]interface{}{"UserId": userId})
-		if err != nil {
-			result.Err = model.NewAppError("SqlWebhookStore.DeleteIncomingByUser", "store.sql_webhooks.permanent_delete_incoming_by_user.app_error", nil, "id="+userId+", err="+err.Error(), http.StatusInternalServerError)
-		}
+func (s SqlWebhookStore) PermanentDeleteIncomingByUser(userId string) *model.AppError {
+	_, err := s.GetMaster().Exec("DELETE FROM IncomingWebhooks WHERE UserId = :UserId", map[string]interface{}{"UserId": userId})
+	if err != nil {
+		return model.NewAppError("SqlWebhookStore.DeleteIncomingByUser", "store.sql_webhooks.permanent_delete_incoming_by_user.app_error", nil, "id="+userId+", err="+err.Error(), http.StatusInternalServerError)
+	}
 
-		s.ClearCaches()
-	})
+	s.ClearCaches()
+	return nil
 }
 
-func (s SqlWebhookStore) PermanentDeleteIncomingByChannel(channelId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		_, err := s.GetMaster().Exec("DELETE FROM IncomingWebhooks WHERE ChannelId = :ChannelId", map[string]interface{}{"ChannelId": channelId})
-		if err != nil {
-			result.Err = model.NewAppError("SqlWebhookStore.DeleteIncomingByChannel", "store.sql_webhooks.permanent_delete_incoming_by_channel.app_error", nil, "id="+channelId+", err="+err.Error(), http.StatusInternalServerError)
-		}
+func (s SqlWebhookStore) PermanentDeleteIncomingByChannel(channelId string) *model.AppError {
+	_, err := s.GetMaster().Exec("DELETE FROM IncomingWebhooks WHERE ChannelId = :ChannelId", map[string]interface{}{"ChannelId": channelId})
+	if err != nil {
+		return model.NewAppError("SqlWebhookStore.DeleteIncomingByChannel", "store.sql_webhooks.permanent_delete_incoming_by_channel.app_error", nil, "id="+channelId+", err="+err.Error(), http.StatusInternalServerError)
+	}
 
-		s.ClearCaches()
-	})
+	s.ClearCaches()
+
+	return nil
 }
 
-func (s SqlWebhookStore) GetIncomingList(offset, limit int) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var webhooks []*model.IncomingWebhook
+func (s SqlWebhookStore) GetIncomingList(offset, limit int) ([]*model.IncomingWebhook, *model.AppError) {
+	var webhooks []*model.IncomingWebhook
 
-		if _, err := s.GetReplica().Select(&webhooks, "SELECT * FROM IncomingWebhooks WHERE DeleteAt = 0 LIMIT :Limit OFFSET :Offset", map[string]interface{}{"Limit": limit, "Offset": offset}); err != nil {
-			result.Err = model.NewAppError("SqlWebhookStore.GetIncomingList", "store.sql_webhooks.get_incoming_by_user.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
-		}
+	if _, err := s.GetReplica().Select(&webhooks, "SELECT * FROM IncomingWebhooks WHERE DeleteAt = 0 LIMIT :Limit OFFSET :Offset", map[string]interface{}{"Limit": limit, "Offset": offset}); err != nil {
+		return nil, model.NewAppError("SqlWebhookStore.GetIncomingList", "store.sql_webhooks.get_incoming_by_user.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = webhooks
-	})
+	return webhooks, nil
+
 }
 
-func (s SqlWebhookStore) GetIncomingByTeam(teamId string, offset, limit int) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var webhooks []*model.IncomingWebhook
+func (s SqlWebhookStore) GetIncomingByTeam(teamId string, offset, limit int) ([]*model.IncomingWebhook, *model.AppError) {
+	var webhooks []*model.IncomingWebhook
 
-		if _, err := s.GetReplica().Select(&webhooks, "SELECT * FROM IncomingWebhooks WHERE TeamId = :TeamId AND DeleteAt = 0 LIMIT :Limit OFFSET :Offset", map[string]interface{}{"TeamId": teamId, "Limit": limit, "Offset": offset}); err != nil {
-			result.Err = model.NewAppError("SqlWebhookStore.GetIncomingByUser", "store.sql_webhooks.get_incoming_by_user.app_error", nil, "teamId="+teamId+", err="+err.Error(), http.StatusInternalServerError)
-		}
+	if _, err := s.GetReplica().Select(&webhooks, "SELECT * FROM IncomingWebhooks WHERE TeamId = :TeamId AND DeleteAt = 0 LIMIT :Limit OFFSET :Offset", map[string]interface{}{"TeamId": teamId, "Limit": limit, "Offset": offset}); err != nil {
+		return nil, model.NewAppError("SqlWebhookStore.GetIncomingByUser", "store.sql_webhooks.get_incoming_by_user.app_error", nil, "teamId="+teamId+", err="+err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = webhooks
-	})
+	return webhooks, nil
 }
 
-func (s SqlWebhookStore) GetIncomingByChannel(channelId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var webhooks []*model.IncomingWebhook
+func (s SqlWebhookStore) GetIncomingByChannel(channelId string) ([]*model.IncomingWebhook, *model.AppError) {
+	var webhooks []*model.IncomingWebhook
 
-		if _, err := s.GetReplica().Select(&webhooks, "SELECT * FROM IncomingWebhooks WHERE ChannelId = :ChannelId AND DeleteAt = 0", map[string]interface{}{"ChannelId": channelId}); err != nil {
-			result.Err = model.NewAppError("SqlWebhookStore.GetIncomingByChannel", "store.sql_webhooks.get_incoming_by_channel.app_error", nil, "channelId="+channelId+", err="+err.Error(), http.StatusInternalServerError)
-		}
+	if _, err := s.GetReplica().Select(&webhooks, "SELECT * FROM IncomingWebhooks WHERE ChannelId = :ChannelId AND DeleteAt = 0", map[string]interface{}{"ChannelId": channelId}); err != nil {
+		return nil, model.NewAppError("SqlWebhookStore.GetIncomingByChannel", "store.sql_webhooks.get_incoming_by_channel.app_error", nil, "channelId="+channelId+", err="+err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = webhooks
-	})
+	return webhooks, nil
 }
 
-func (s SqlWebhookStore) SaveOutgoing(webhook *model.OutgoingWebhook) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if len(webhook.Id) > 0 {
-			result.Err = model.NewAppError("SqlWebhookStore.SaveOutgoing", "store.sql_webhooks.save_outgoing.override.app_error", nil, "id="+webhook.Id, http.StatusBadRequest)
-			return
-		}
+func (s SqlWebhookStore) SaveOutgoing(webhook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError) {
+	if len(webhook.Id) > 0 {
+		return nil, model.NewAppError("SqlWebhookStore.SaveOutgoing", "store.sql_webhooks.save_outgoing.override.app_error", nil, "id="+webhook.Id, http.StatusBadRequest)
+	}
 
-		webhook.PreSave()
-		if result.Err = webhook.IsValid(); result.Err != nil {
-			return
-		}
+	webhook.PreSave()
+	if err := webhook.IsValid(); err != nil {
+		return nil, err
+	}
 
-		if err := s.GetMaster().Insert(webhook); err != nil {
-			result.Err = model.NewAppError("SqlWebhookStore.SaveOutgoing", "store.sql_webhooks.save_outgoing.app_error", nil, "id="+webhook.Id+", "+err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = webhook
-		}
-	})
+	if err := s.GetMaster().Insert(webhook); err != nil {
+		return nil, model.NewAppError("SqlWebhookStore.SaveOutgoing", "store.sql_webhooks.save_outgoing.app_error", nil, "id="+webhook.Id+", "+err.Error(), http.StatusInternalServerError)
+	}
+
+	return webhook, nil
 }
 
-func (s SqlWebhookStore) GetOutgoing(id string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var webhook model.OutgoingWebhook
+func (s SqlWebhookStore) GetOutgoing(id string) (*model.OutgoingWebhook, *model.AppError) {
 
-		if err := s.GetReplica().SelectOne(&webhook, "SELECT * FROM OutgoingWebhooks WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": id}); err != nil {
-			result.Err = model.NewAppError("SqlWebhookStore.GetOutgoing", "store.sql_webhooks.get_outgoing.app_error", nil, "id="+id+", err="+err.Error(), http.StatusInternalServerError)
-		}
+	var webhook model.OutgoingWebhook
 
-		result.Data = &webhook
-	})
+	if err := s.GetReplica().SelectOne(&webhook, "SELECT * FROM OutgoingWebhooks WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": id}); err != nil {
+		return nil, model.NewAppError("SqlWebhookStore.GetOutgoing", "store.sql_webhooks.get_outgoing.app_error", nil, "id="+id+", err="+err.Error(), http.StatusInternalServerError)
+	}
+
+	return &webhook, nil
 }
 
-func (s SqlWebhookStore) GetOutgoingList(offset, limit int) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var webhooks []*model.OutgoingWebhook
+func (s SqlWebhookStore) GetOutgoingList(offset, limit int) ([]*model.OutgoingWebhook, *model.AppError) {
+	var webhooks []*model.OutgoingWebhook
 
-		if _, err := s.GetReplica().Select(&webhooks, "SELECT * FROM OutgoingWebhooks WHERE DeleteAt = 0 LIMIT :Limit OFFSET :Offset", map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
-			result.Err = model.NewAppError("SqlWebhookStore.GetOutgoingList", "store.sql_webhooks.get_outgoing_by_channel.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
-		}
+	if _, err := s.GetReplica().Select(&webhooks, "SELECT * FROM OutgoingWebhooks WHERE DeleteAt = 0 LIMIT :Limit OFFSET :Offset", map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
+		return nil, model.NewAppError("SqlWebhookStore.GetOutgoingList", "store.sql_webhooks.get_outgoing_by_channel.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = webhooks
-	})
+	return webhooks, nil
 }
 
-func (s SqlWebhookStore) GetOutgoingByChannel(channelId string, offset, limit int) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var webhooks []*model.OutgoingWebhook
+func (s SqlWebhookStore) GetOutgoingByChannel(channelId string, offset, limit int) ([]*model.OutgoingWebhook, *model.AppError) {
+	var webhooks []*model.OutgoingWebhook
 
-		query := ""
-		if limit < 0 || offset < 0 {
-			query = "SELECT * FROM OutgoingWebhooks WHERE ChannelId = :ChannelId AND DeleteAt = 0"
-		} else {
-			query = "SELECT * FROM OutgoingWebhooks WHERE ChannelId = :ChannelId AND DeleteAt = 0 LIMIT :Limit OFFSET :Offset"
-		}
+	query := ""
+	if limit < 0 || offset < 0 {
+		query = "SELECT * FROM OutgoingWebhooks WHERE ChannelId = :ChannelId AND DeleteAt = 0"
+	} else {
+		query = "SELECT * FROM OutgoingWebhooks WHERE ChannelId = :ChannelId AND DeleteAt = 0 LIMIT :Limit OFFSET :Offset"
+	}
 
-		if _, err := s.GetReplica().Select(&webhooks, query, map[string]interface{}{"ChannelId": channelId, "Offset": offset, "Limit": limit}); err != nil {
-			result.Err = model.NewAppError("SqlWebhookStore.GetOutgoingByChannel", "store.sql_webhooks.get_outgoing_by_channel.app_error", nil, "channelId="+channelId+", err="+err.Error(), http.StatusInternalServerError)
-		}
+	if _, err := s.GetReplica().Select(&webhooks, query, map[string]interface{}{"ChannelId": channelId, "Offset": offset, "Limit": limit}); err != nil {
+		return nil, model.NewAppError("SqlWebhookStore.GetOutgoingByChannel", "store.sql_webhooks.get_outgoing_by_channel.app_error", nil, "channelId="+channelId+", err="+err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = webhooks
-	})
+	return webhooks, nil
 }
 
-func (s SqlWebhookStore) GetOutgoingByTeam(teamId string, offset, limit int) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var webhooks []*model.OutgoingWebhook
+func (s SqlWebhookStore) GetOutgoingByTeam(teamId string, offset, limit int) ([]*model.OutgoingWebhook, *model.AppError) {
+	var webhooks []*model.OutgoingWebhook
 
-		query := ""
-		if limit < 0 || offset < 0 {
-			query = "SELECT * FROM OutgoingWebhooks WHERE TeamId = :TeamId AND DeleteAt = 0"
-		} else {
-			query = "SELECT * FROM OutgoingWebhooks WHERE TeamId = :TeamId AND DeleteAt = 0 LIMIT :Limit OFFSET :Offset"
-		}
+	query := ""
+	if limit < 0 || offset < 0 {
+		query = "SELECT * FROM OutgoingWebhooks WHERE TeamId = :TeamId AND DeleteAt = 0"
+	} else {
+		query = "SELECT * FROM OutgoingWebhooks WHERE TeamId = :TeamId AND DeleteAt = 0 LIMIT :Limit OFFSET :Offset"
+	}
 
-		if _, err := s.GetReplica().Select(&webhooks, query, map[string]interface{}{"TeamId": teamId, "Offset": offset, "Limit": limit}); err != nil {
-			result.Err = model.NewAppError("SqlWebhookStore.GetOutgoingByTeam", "store.sql_webhooks.get_outgoing_by_team.app_error", nil, "teamId="+teamId+", err="+err.Error(), http.StatusInternalServerError)
-		}
+	if _, err := s.GetReplica().Select(&webhooks, query, map[string]interface{}{"TeamId": teamId, "Offset": offset, "Limit": limit}); err != nil {
+		return nil, model.NewAppError("SqlWebhookStore.GetOutgoingByTeam", "store.sql_webhooks.get_outgoing_by_team.app_error", nil, "teamId="+teamId+", err="+err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = webhooks
-	})
+	return webhooks, nil
 }
 
-func (s SqlWebhookStore) DeleteOutgoing(webhookId string, time int64) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		_, err := s.GetMaster().Exec("Update OutgoingWebhooks SET DeleteAt = :DeleteAt, UpdateAt = :UpdateAt WHERE Id = :Id", map[string]interface{}{"DeleteAt": time, "UpdateAt": time, "Id": webhookId})
-		if err != nil {
-			result.Err = model.NewAppError("SqlWebhookStore.DeleteOutgoing", "store.sql_webhooks.delete_outgoing.app_error", nil, "id="+webhookId+", err="+err.Error(), http.StatusInternalServerError)
-		}
-	})
+func (s SqlWebhookStore) DeleteOutgoing(webhookId string, time int64) *model.AppError {
+	_, err := s.GetMaster().Exec("Update OutgoingWebhooks SET DeleteAt = :DeleteAt, UpdateAt = :UpdateAt WHERE Id = :Id", map[string]interface{}{"DeleteAt": time, "UpdateAt": time, "Id": webhookId})
+	if err != nil {
+		return model.NewAppError("SqlWebhookStore.DeleteOutgoing", "store.sql_webhooks.delete_outgoing.app_error", nil, "id="+webhookId+", err="+err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
 }
 
-func (s SqlWebhookStore) PermanentDeleteOutgoingByUser(userId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		_, err := s.GetMaster().Exec("DELETE FROM OutgoingWebhooks WHERE CreatorId = :UserId", map[string]interface{}{"UserId": userId})
-		if err != nil {
-			result.Err = model.NewAppError("SqlWebhookStore.DeleteOutgoingByUser", "store.sql_webhooks.permanent_delete_outgoing_by_user.app_error", nil, "id="+userId+", err="+err.Error(), http.StatusInternalServerError)
-		}
-	})
+func (s SqlWebhookStore) PermanentDeleteOutgoingByUser(userId string) *model.AppError {
+	_, err := s.GetMaster().Exec("DELETE FROM OutgoingWebhooks WHERE CreatorId = :UserId", map[string]interface{}{"UserId": userId})
+	if err != nil {
+		return model.NewAppError("SqlWebhookStore.DeleteOutgoingByUser", "store.sql_webhooks.permanent_delete_outgoing_by_user.app_error", nil, "id="+userId+", err="+err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
 }
 
-func (s SqlWebhookStore) PermanentDeleteOutgoingByChannel(channelId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		_, err := s.GetMaster().Exec("DELETE FROM OutgoingWebhooks WHERE ChannelId = :ChannelId", map[string]interface{}{"ChannelId": channelId})
-		if err != nil {
-			result.Err = model.NewAppError("SqlWebhookStore.DeleteOutgoingByChannel", "store.sql_webhooks.permanent_delete_outgoing_by_channel.app_error", nil, "id="+channelId+", err="+err.Error(), http.StatusInternalServerError)
-		}
+func (s SqlWebhookStore) PermanentDeleteOutgoingByChannel(channelId string) *model.AppError {
+	_, err := s.GetMaster().Exec("DELETE FROM OutgoingWebhooks WHERE ChannelId = :ChannelId", map[string]interface{}{"ChannelId": channelId})
+	if err != nil {
+		return model.NewAppError("SqlWebhookStore.DeleteOutgoingByChannel", "store.sql_webhooks.permanent_delete_outgoing_by_channel.app_error", nil, "id="+channelId+", err="+err.Error(), http.StatusInternalServerError)
+	}
 
-		s.ClearCaches()
-	})
+	s.ClearCaches()
+
+	return nil
 }
 
-func (s SqlWebhookStore) UpdateOutgoing(hook *model.OutgoingWebhook) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		hook.UpdateAt = model.GetMillis()
+func (s SqlWebhookStore) UpdateOutgoing(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError) {
+	hook.UpdateAt = model.GetMillis()
 
-		if _, err := s.GetMaster().Update(hook); err != nil {
-			result.Err = model.NewAppError("SqlWebhookStore.UpdateOutgoing", "store.sql_webhooks.update_outgoing.app_error", nil, "id="+hook.Id+", "+err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = hook
-		}
-	})
+	if _, err := s.GetMaster().Update(hook); err != nil {
+		return nil, model.NewAppError("SqlWebhookStore.UpdateOutgoing", "store.sql_webhooks.update_outgoing.app_error", nil, "id="+hook.Id+", "+err.Error(), http.StatusInternalServerError)
+	}
+
+	return hook, nil
 }
 
-func (s SqlWebhookStore) AnalyticsIncomingCount(teamId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		query :=
-			`SELECT 
-			    COUNT(*)
-			FROM
-			    IncomingWebhooks
-			WHERE
-                DeleteAt = 0`
+func (s SqlWebhookStore) AnalyticsIncomingCount(teamId string) (int64, *model.AppError) {
+	query :=
+		`SELECT 
+			COUNT(*)
+		FROM
+			IncomingWebhooks
+		WHERE
+			DeleteAt = 0`
 
-		if len(teamId) > 0 {
-			query += " AND TeamId = :TeamId"
-		}
+	if len(teamId) > 0 {
+		query += " AND TeamId = :TeamId"
+	}
 
-		if v, err := s.GetReplica().SelectInt(query, map[string]interface{}{"TeamId": teamId}); err != nil {
-			result.Err = model.NewAppError("SqlWebhookStore.AnalyticsIncomingCount", "store.sql_webhooks.analytics_incoming_count.app_error", nil, "team_id="+teamId+", err="+err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = v
-		}
-	})
+	v, err := s.GetReplica().SelectInt(query, map[string]interface{}{"TeamId": teamId})
+	if err != nil {
+		return 0, model.NewAppError("SqlWebhookStore.AnalyticsIncomingCount", "store.sql_webhooks.analytics_incoming_count.app_error", nil, "team_id="+teamId+", err="+err.Error(), http.StatusInternalServerError)
+	}
+
+	return v, nil
 }
 
-func (s SqlWebhookStore) AnalyticsOutgoingCount(teamId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		query :=
-			`SELECT 
-			    COUNT(*)
-			FROM
-			    OutgoingWebhooks
-			WHERE
-                DeleteAt = 0`
+func (s SqlWebhookStore) AnalyticsOutgoingCount(teamId string) (int64, *model.AppError) {
+	query :=
+		`SELECT 
+			COUNT(*)
+		FROM
+			OutgoingWebhooks
+		WHERE
+			DeleteAt = 0`
 
-		if len(teamId) > 0 {
-			query += " AND TeamId = :TeamId"
-		}
+	if len(teamId) > 0 {
+		query += " AND TeamId = :TeamId"
+	}
 
-		if v, err := s.GetReplica().SelectInt(query, map[string]interface{}{"TeamId": teamId}); err != nil {
-			result.Err = model.NewAppError("SqlWebhookStore.AnalyticsOutgoingCount", "store.sql_webhooks.analytics_outgoing_count.app_error", nil, "team_id="+teamId+", err="+err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = v
-		}
-	})
+	v, err := s.GetReplica().SelectInt(query, map[string]interface{}{"TeamId": teamId})
+	if err != nil {
+		return 0, model.NewAppError("SqlWebhookStore.AnalyticsOutgoingCount", "store.sql_webhooks.analytics_outgoing_count.app_error", nil, "team_id="+teamId+", err="+err.Error(), http.StatusInternalServerError)
+	}
+
+	return v, nil
 }
