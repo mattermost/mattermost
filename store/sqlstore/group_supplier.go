@@ -940,19 +940,29 @@ func (s *SqlSupplier) groupsBySyncableBaseQuery(st model.GroupSyncableType, t se
 		selectCountGroups: "COUNT(*)",
 	}
 
+	var table string
+	var idCol string
+	if st == model.GroupSyncableTypeTeam {
+		table = "GroupTeams"
+		idCol = "TeamId"
+	} else {
+		table = "GroupChannels"
+		idCol = "ChannelId"
+	}
+
 	query := s.getQueryBuilder().
 		Select(selectStrs[t]).
-		From(fmt.Sprintf("Group%ss gt", st.String())).
-		LeftJoin("UserGroups ug ON gt.GroupId = ug.Id").
-		Where(fmt.Sprintf("ug.DeleteAt = 0 AND gt.%sId = ? AND gt.DeleteAt = 0", st.String()), syncableID)
+		From(fmt.Sprintf("%s gs", table)).
+		LeftJoin("UserGroups ug ON gs.GroupId = ug.Id").
+		Where(fmt.Sprintf("ug.DeleteAt = 0 AND gs.%s = ? AND gs.DeleteAt = 0", idCol), syncableID)
 
 	if opts.IncludeMemberCount && t == selectGroups {
 		query = s.getQueryBuilder().
 			Select("ug.*, coalesce(Members.MemberCount, 0) AS MemberCount").
 			From("UserGroups ug").
 			LeftJoin("(SELECT GroupMembers.GroupId, COUNT(*) AS MemberCount FROM GroupMembers WHERE GroupMembers.DeleteAt = 0 GROUP BY GroupId) AS Members ON Members.GroupId = ug.Id").
-			LeftJoin(fmt.Sprintf("Group%[1]ss ON Group%[1]ss.GroupId = ug.Id", st.String())).
-			Where(fmt.Sprintf("Group%[1]ss.DeleteAt = 0 AND Group%[1]ss.%[1]sId = ?", st.String()), syncableID).
+			LeftJoin(fmt.Sprintf("%[1]s ON %[1]s.GroupId = ug.Id", table)).
+			Where(fmt.Sprintf("%[1]s.DeleteAt = 0 AND %[1]s.%[2]s = ?", table, idCol), syncableID).
 			OrderBy("ug.DisplayName")
 	}
 
