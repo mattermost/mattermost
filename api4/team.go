@@ -452,7 +452,7 @@ func addTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if team.GroupConstrained != nil && *team.GroupConstrained {
+	if team.IsGroupConstrained() {
 		nonMembers, err := c.App.FilterNonGroupTeamMembers([]string{member.UserId}, team)
 		if err != nil {
 			if v, ok := err.(*model.AppError); ok {
@@ -533,7 +533,7 @@ func addTeamMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if team.GroupConstrained != nil && *team.GroupConstrained {
+	if team.IsGroupConstrained() {
 		nonMembers, err := c.App.FilterNonGroupTeamMembers(memberIDs, team)
 		if err != nil {
 			if v, ok := err.(*model.AppError); ok {
@@ -599,7 +599,7 @@ func removeTeamMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if team.GroupConstrained != nil && *team.GroupConstrained && (c.Params.UserId != c.App.Session.UserId) {
+	if team.IsGroupConstrained() && (c.Params.UserId != c.App.Session.UserId) {
 		c.Err = model.NewAppError("removeTeamMember", "api.team.remove_member.group_constrained.app_error", nil, "", http.StatusBadRequest)
 		return
 	}

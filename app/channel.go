@@ -900,6 +900,16 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel, teamMem
 		return channelMember, nil
 	}
 
+	if channel.IsGroupConstrained() {
+		nonMembers, err := a.FilterNonGroupChannelMembers([]string{user.Id}, channel)
+		if err != nil {
+			return nil, model.NewAppError("addUserToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusInternalServerError)
+		}
+		if len(nonMembers) > 0 {
+			return nil, model.NewAppError("addUserToChannel", "api.channel.add_members.user_denied", map[string]interface{}{"UserIDs": nonMembers}, "", http.StatusBadRequest)
+		}
+	}
+
 	newMember := &model.ChannelMember{
 		ChannelId:   channel.Id,
 		UserId:      user.Id,
