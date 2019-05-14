@@ -4,7 +4,6 @@
 package storetest
 
 import (
-	"fmt"
 	"sort"
 	"strconv"
 	"strings"
@@ -301,10 +300,9 @@ func testGetChannelUnread(t *testing.T, ss store.Store) {
 	store.Must(ss.Channel().SaveMember(cm2))
 
 	// Check for Channel 1
-	if resp := <-ss.Channel().GetChannelUnread(c1.Id, uid); resp.Err != nil {
-		t.Fatal(resp.Err)
+	if ch, err := ss.Channel().GetChannelUnread(c1.Id, uid); err != nil {
+		t.Fatal(err)
 	} else {
-		ch := resp.Data.(*model.ChannelUnread)
 		if c1.Id != ch.ChannelId {
 			t.Fatal("wrong channel id")
 		}
@@ -327,10 +325,9 @@ func testGetChannelUnread(t *testing.T, ss store.Store) {
 	}
 
 	// Check for Channel 2
-	if resp2 := <-ss.Channel().GetChannelUnread(c2.Id, uid); resp2.Err != nil {
-		t.Fatal(resp2.Err)
+	if ch2, err := ss.Channel().GetChannelUnread(c2.Id, uid); err != nil {
+		t.Fatal(err)
 	} else {
-		ch2 := resp2.Data.(*model.ChannelUnread)
 		if c2.Id != ch2.ChannelId {
 			t.Fatal("wrong channel id")
 		}
@@ -2724,7 +2721,6 @@ func testChannelStoreGetChannelsByScheme(t *testing.T, ss store.Store) {
 	}
 
 	result := <-ss.Scheme().Save(s1)
-	fmt.Println(result.Err)
 	s1 = result.Data.(*model.Scheme)
 	s1 = (<-ss.Scheme().Save(s1)).Data.(*model.Scheme)
 	s2 = (<-ss.Scheme().Save(s2)).Data.(*model.Scheme)

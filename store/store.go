@@ -78,7 +78,6 @@ type Store interface {
 	TotalMasterDbConnections() int
 	TotalReadDbConnections() int
 	TotalSearchDbConnections() int
-	NotificationRegistry() NotificationRegistryStore
 }
 
 type TeamStore interface {
@@ -188,7 +187,7 @@ type ChannelStore interface {
 	SearchMore(userId string, teamId string, term string) StoreChannel
 	GetMembersByIds(channelId string, userIds []string) StoreChannel
 	AnalyticsDeletedTypeCount(teamId string, channelType string) StoreChannel
-	GetChannelUnread(channelId, userId string) StoreChannel
+	GetChannelUnread(channelId, userId string) (*model.ChannelUnread, *model.AppError)
 	ClearCaches()
 	GetChannelsByScheme(schemeId string, offset int, limit int) StoreChannel
 	MigrateChannelMembers(fromChannelId string, fromUserId string) StoreChannel
@@ -215,7 +214,7 @@ type PostStore interface {
 	Update(newPost *model.Post, oldPost *model.Post) StoreChannel
 	Get(id string) StoreChannel
 	GetSingle(id string) StoreChannel
-	Delete(postId string, time int64, deleteByID string) StoreChannel
+	Delete(postId string, time int64, deleteByID string) *model.AppError
 	PermanentDeleteByUser(userId string) StoreChannel
 	PermanentDeleteByChannel(channelId string) StoreChannel
 	GetPosts(channelId string, offset int, limit int, allowFromCache bool) StoreChannel
@@ -411,9 +410,9 @@ type WebhookStore interface {
 
 type CommandStore interface {
 	Save(webhook *model.Command) (*model.Command, *model.AppError)
+	GetByTrigger(teamId string, trigger string) (*model.Command, *model.AppError)
 	Get(id string) (*model.Command, *model.AppError)
 	GetByTeam(teamId string) ([]*model.Command, *model.AppError)
-	GetByTrigger(teamId string, trigger string) StoreChannel
 	Delete(commandId string, time int64) *model.AppError
 	PermanentDeleteByTeam(teamId string) *model.AppError
 	PermanentDeleteByUser(userId string) *model.AppError
@@ -456,7 +455,7 @@ type TokenStore interface {
 
 type EmojiStore interface {
 	Save(emoji *model.Emoji) StoreChannel
-	Get(id string, allowFromCache bool) StoreChannel
+	Get(id string, allowFromCache bool) (*model.Emoji, *model.AppError)
 	GetByName(name string) StoreChannel
 	GetMultipleByName(names []string) StoreChannel
 	GetList(offset, limit int, sort string) StoreChannel
@@ -596,16 +595,12 @@ type GroupStore interface {
 	ChannelMembersToRemove() StoreChannel
 
 	GetGroupsByChannel(channelId string, page, perPage int) StoreChannel
-	GetGroupsByTeam(teamId string, page, perPage int) StoreChannel
+	GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) StoreChannel
+	CountGroupsByTeam(teamId string, opts model.GroupSearchOpts) StoreChannel
+	GetGroups(page, perPage int, opts model.GroupSearchOpts) StoreChannel
 }
 
 type LinkMetadataStore interface {
 	Save(linkMetadata *model.LinkMetadata) StoreChannel
 	Get(url string, timestamp int64) StoreChannel
-}
-
-type NotificationRegistryStore interface {
-	Save(notification *model.NotificationRegistry) (*model.NotificationRegistry, *model.AppError)
-	MarkAsReceived(ackId string, time int64) *model.AppError
-	UpdateSendStatus(ackId, status string) *model.AppError
 }

@@ -211,16 +211,13 @@ func (a *App) sendOrRegisterNotification(id string, channelMemberNotifyPropsMap 
 		)
 	} else {
 		// register that a notification was not sent
-		notificationRegistry := model.NotificationRegistry{
-			UserId:     id,
-			PostId:     post.Id,
-			SendStatus: model.PUSH_NOT_SENT,
-			Type:       model.PUSH_TYPE_MESSAGE,
-		}
-		_, appErr := a.Srv.Store.NotificationRegistry().Save(&notificationRegistry)
-		if appErr != nil {
-			mlog.Debug(appErr.Error())
-		}
+		a.NotificationsLog.Warn("Notification not sent",
+			mlog.String("ackId", ""),
+			mlog.String("type", model.PUSH_TYPE_MESSAGE),
+			mlog.String("userId", id),
+			mlog.String("postId", post.Id),
+			mlog.String("status", model.PUSH_NOT_SENT),
+		)
 	}
 }
 

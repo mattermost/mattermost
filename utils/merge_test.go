@@ -510,7 +510,6 @@ func TestMergeWithSlices(t *testing.T) {
 		merged, err := mergeStringSlices(m1, m2)
 		require.NoError(t, err)
 
-		fmt.Println("expeted: ", expected, " merged: ", merged)
 		assert.Equal(t, expected, merged)
 		// of course this won't change merged, even if it did copy... but just in case.
 		m2 = append(m2, "test")

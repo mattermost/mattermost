@@ -1342,11 +1342,10 @@ func (a *App) GetChannelCounts(teamId string, userId string) (*model.ChannelCoun
 }
 
 func (a *App) GetChannelUnread(channelId, userId string) (*model.ChannelUnread, *model.AppError) {
-	result := <-a.Srv.Store.Channel().GetChannelUnread(channelId, userId)
-	if result.Err != nil {
-		return nil, result.Err
+	channelUnread, err := a.Srv.Store.Channel().GetChannelUnread(channelId, userId)
+	if err != nil {
+		return nil, err
 	}
-	channelUnread := result.Data.(*model.ChannelUnread)
 
 	if channelUnread.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] == model.CHANNEL_MARK_UNREAD_MENTION {
 		channelUnread.MsgCount = 0

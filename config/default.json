@@ -147,6 +147,15 @@
         "EnableWebhookDebugging": true,
         "EnableDiagnostics": true
     },
+    "NotificationLogSettings": {
+        "EnableConsole": true,
+        "ConsoleLevel": "DEBUG",
+        "ConsoleJson": true,
+        "EnableFile": true,
+        "FileLevel": "INFO",
+        "FileJson": true,
+        "FileLocation": ""
+    },
     "PasswordSettings": {
         "MinimumLength": 5,
         "Lowercase": false,
@@ -414,6 +423,7 @@
     "PluginSettings": {
         "Enable": true,
         "EnableUploads": false,
+        "EnableHealthCheck": true,
         "Directory": "./plugins",
         "ClientDirectory": "./client/plugins",
         "Plugins": {},
