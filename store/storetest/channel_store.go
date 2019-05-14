@@ -394,10 +394,8 @@ func testChannelStoreGet(t *testing.T, ss store.Store, s SqlSupplier) {
 	m2.UserId = u2.Id
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 
-	if _, err := ss.Channel().SaveDirectChannel(&o2, &m1, &m2); err != nil {
-		time.Sleep(time.Second)
-		panic(err)
-	}
+	_, err := ss.Channel().SaveDirectChannel(&o2, &m1, &m2)
+	require.Nil(t, err)
 
 	if c2, err := ss.Channel().Get(o2.Id, false); err != nil {
 		t.Fatal(err)
@@ -472,10 +470,8 @@ func testChannelStoreGetChannelsByIds(t *testing.T, ss store.Store) {
 	m2.UserId = u2.Id
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 
-	if _, err := ss.Channel().SaveDirectChannel(&o2, &m1, &m2); err != nil {
-		time.Sleep(time.Second)
-		panic(err)
-	}
+	_, err := ss.Channel().SaveDirectChannel(&o2, &m1, &m2)
+	require.Nil(t, err)
 
 	if r1 := <-ss.Channel().GetChannelsByIds([]string{o1.Id, o2.Id}); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -1086,10 +1082,8 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlSupplier)
 	c3.Type = model.CHANNEL_PRIVATE
 	store.Must(ss.Channel().Save(&c3, -1))
 
-	if _, err := ss.Channel().CreateDirectChannel(model.NewId(), model.NewId()); err != nil {
-		time.Sleep(time.Second)
-		panic(err)
-	}
+	_, err = ss.Channel().CreateDirectChannel(model.NewId(), model.NewId())
+	require.Nil(t, err)
 
 	userIds := []string{model.NewId(), model.NewId(), model.NewId()}
 
@@ -2487,14 +2481,10 @@ func testChannelStoreAutocompleteInTeamForSearch(t *testing.T, ss store.Store, s
 	o5.Type = model.CHANNEL_PRIVATE
 	store.Must(ss.Channel().Save(&o5, -1))
 
-	if _, err := ss.Channel().CreateDirectChannel(u1.Id, u2.Id); err != nil {
-		time.Sleep(time.Second)
-		panic(err)
-	}
-	if _, err := ss.Channel().CreateDirectChannel(u2.Id, u3.Id); err != nil {
-		time.Sleep(time.Second)
-		panic(err)
-	}
+	_, err := ss.Channel().CreateDirectChannel(u1.Id, u2.Id)
+	require.Nil(t, err)
+	_, err = ss.Channel().CreateDirectChannel(u2.Id, u3.Id)
+	require.Nil(t, err)
 
 	tt := []struct {
 		name            string

@@ -564,7 +564,7 @@ func (s SqlChannelStore) SaveDirectChannel(directchannel *model.Channel, member1
 		return nil, model.NewAppError("SqlChannelStore.SaveDirectChannel", "store.sql_channel.save_direct_channel.commit.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	return newChannel, apperr
+	return newChannel, nil
 
 }
 
