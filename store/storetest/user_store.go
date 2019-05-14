@@ -3654,8 +3654,8 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, ss store.Store) {
 
 	// update team to be group-constrained
 	channel.GroupConstrained = model.NewBool(true)
-	res = <-ss.Channel().Update(channel)
-	require.Nil(t, res.Err)
+	_, err := ss.Channel().Update(channel)
+	require.Nil(t, err)
 
 	// still returns user (being group-constrained has no effect)
 	requireNUsers(1)

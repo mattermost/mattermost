@@ -496,9 +496,9 @@ func (a *App) GetGroupChannel(userIds []string) (*model.Channel, *model.AppError
 }
 
 func (a *App) UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
-	result := <-a.Srv.Store.Channel().Update(channel)
-	if result.Err != nil {
-		return nil, result.Err
+	_, err := a.Srv.Store.Channel().Update(channel)
+	if err != nil {
+		return nil, err
 	}
 
 	a.InvalidateCacheForChannel(channel)
@@ -1957,8 +1957,8 @@ func (a *App) MoveChannel(team *model.Team, channel *model.Channel, user *model.
 	}
 
 	channel.TeamId = team.Id
-	if result := <-a.Srv.Store.Channel().Update(channel); result.Err != nil {
-		return result.Err
+	if _, err := a.Srv.Store.Channel().Update(channel); err != nil {
+		return err
 	}
 	a.postChannelMoveMessage(user, channel, previousTeam)
 
