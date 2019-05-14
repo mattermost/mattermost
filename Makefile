@@ -485,10 +485,10 @@ else
 		echo stopping go $$PGID; \
 		kill -- -$$PGID; \
 	done
-	for PGID in $$(ps ax -O pgid  | grep "[g]o-build" | awk '{ print $$2 }'); do \
+	@for PGID in $$(ps ax -O pgid  | grep "[g]o-build" | awk '{ print $$2 }'); do \
 		echo stopping mattermost $$PGID; \
 		kill -- -$$PGID; \
-	 done
+	done
 endif
 
 stop-client: ## Stops the webapp.
