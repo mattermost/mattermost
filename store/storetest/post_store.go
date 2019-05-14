@@ -550,7 +550,9 @@ func testPostStoreGetWithChildren(t *testing.T, ss store.Store) {
 	o3.RootId = o1.Id
 	o3 = (<-ss.Post().Save(o3)).Data.(*model.Post)
 
-	pl, err := ss.Post().Get(o1.Id)
+	var pl *model.PostList
+	var err error
+	pl, err = ss.Post().Get(o1.Id)
 	if err != nil {
 		t.Fatal(err)
 	}
