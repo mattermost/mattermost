@@ -36,6 +36,11 @@ func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !*c.App.Config().ServiceSettings.CreateBotAccounts {
+		c.Err = model.NewAppError("createBot", "api.bot.create_disabled", nil, "", http.StatusForbidden)
+		return
+	}
+
 	createdBot, err := c.App.CreateBot(bot)
 	if err != nil {
 		c.Err = err
