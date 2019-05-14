@@ -755,3 +755,25 @@ func TestPluginAPIKVCompareAndSet(t *testing.T) {
 		})
 	}
 }
+
+func TestPluginCreateBot(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	bot, err := api.CreateBot(&model.Bot{
+		Username:    model.NewRandomString(10),
+		DisplayName: "bot",
+		Description: "bot",
+	})
+	require.Nil(t, err)
+
+	_, err = api.CreateBot(&model.Bot{
+		Username:    model.NewRandomString(10),
+		OwnerId:     bot.UserId,
+		DisplayName: "bot2",
+		Description: "bot2",
+	})
+	require.NotNil(t, err)
+
+}
