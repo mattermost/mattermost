@@ -156,7 +156,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 
 	post.SanitizeProps()
 
-	var pchan store.StoreChannel
+	pchan := make(store.StoreChannel)
 	if len(post.RootId) > 0 {
 		go func() {
 			r, pErr := a.Srv.Store.Post().Get(post.RootId)
