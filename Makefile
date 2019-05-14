@@ -481,20 +481,14 @@ ifeq ($(BUILDER_GOOS_GOARCH),"windows_amd64")
 	wmic process where "Caption='go.exe' and CommandLine like '%go.exe run%'" call terminate
 	wmic process where "Caption='mattermost.exe' and CommandLine like '%go-build%'" call terminate
 else
-	@for PID in $$(ps -ef | grep "[g]o run" | awk '{ print $$2 }'); do \
-		echo stopping go $$PID; \
-		kill $$PID; \
+	@for PGID in $$(ps ax -O pgid  | grep "[g]o run" | awk '{ print $$2 }'); do \
+		echo stopping go $$PGID; \
+		kill -- -$$PGID; \
 	done
-	@for PID in $$(ps -ef | grep "[g]o-build" | awk '{ print $$2 }'); do \
-		echo stopping mattermost $$PID; \
-		kill $$PID; \
-	done
-    ifeq ($(shell uname -s),Darwin)
-		@for PID in $$(ps aux | grep "plugin-darwin-amd64" | awk '{printf ("%s:%s\n", $$2, $$11)}' | grep "plugins" | sed 's/:.*//'); do \
-			echo stopping plugin $$PID; \
-			kill $$PID; \
-		done
-    endif
+	for PGID in $$(ps ax -O pgid  | grep "[g]o-build" | awk '{ print $$2 }'); do \
+		echo stopping mattermost $$PGID; \
+		kill -- -$$PGID; \
+	 done
 endif
 
 stop-client: ## Stops the webapp.
