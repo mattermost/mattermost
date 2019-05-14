@@ -431,7 +431,7 @@ type CommandWebhookStore interface {
 type PreferenceStore interface {
 	Save(preferences *model.Preferences) StoreChannel
 	Get(userId string, category string, name string) StoreChannel
-	GetCategory(userId string, category string) StoreChannel
+	GetCategory(userId string, category string) (model.Preferences, *model.AppError)
 	GetAll(userId string) StoreChannel
 	Delete(userId, category, name string) StoreChannel
 	DeleteCategory(userId string, category string) StoreChannel

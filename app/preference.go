@@ -19,16 +19,16 @@ func (a *App) GetPreferencesForUser(userId string) (model.Preferences, *model.Ap
 }
 
 func (a *App) GetPreferenceByCategoryForUser(userId string, category string) (model.Preferences, *model.AppError) {
-	result := <-a.Srv.Store.Preference().GetCategory(userId, category)
-	if result.Err != nil {
-		result.Err.StatusCode = http.StatusBadRequest
-		return nil, result.Err
+	preferences, err := a.Srv.Store.Preference().GetCategory(userId, category)
+	if err != nil {
+		err.StatusCode = http.StatusBadRequest
+		return nil, err
 	}
-	if len(result.Data.(model.Preferences)) == 0 {
+	if len(preferences) == 0 {
 		err := model.NewAppError("getPreferenceCategory", "api.preference.preferences_category.get.app_error", nil, "", http.StatusNotFound)
 		return nil, err
 	}
-	return result.Data.(model.Preferences), nil
+	return preferences, nil
 }
 
 func (a *App) GetPreferenceByCategoryAndNameForUser(userId string, category string, preferenceName string) (*model.Preference, *model.AppError) {
