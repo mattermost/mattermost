@@ -4980,7 +4980,7 @@
   },
   {
     "id": "model.team.is_valid.invite_id.app_error",
-    "translation": "Invalid invite id"
+    "translation": "Nie prawidłowe id zaproszenia"
   },
   {
     "id": "model.team.is_valid.name.app_error",
