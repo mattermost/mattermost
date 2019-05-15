@@ -735,8 +735,8 @@ func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppErro
 		return nil, err
 	}
 
-	if result := <-a.Srv.Store.Post().Delete(postId, model.GetMillis(), deleteByID); result.Err != nil {
-		return nil, result.Err
+	if err := a.Srv.Store.Post().Delete(postId, model.GetMillis(), deleteByID); err != nil {
+		return nil, err
 	}
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_DELETED, "", post.ChannelId, "", nil)

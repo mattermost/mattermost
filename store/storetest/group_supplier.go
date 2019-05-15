@@ -1177,8 +1177,8 @@ func testPendingAutoAddChannelMembers(t *testing.T, ss store.Store) {
 
 	// reset state of channel and verify
 	channel.DeleteAt = 0
-	res = <-ss.Channel().Update(channel)
-	require.Nil(t, res.Err)
+	_, err := ss.Channel().Update(channel)
+	require.Nil(t, err)
 	res = <-ss.Group().ChannelMembersToAdd(0)
 	require.Nil(t, res.Err)
 	require.Len(t, res.Data, 1)

@@ -1136,8 +1136,8 @@ func (a *App) ImportDirectChannel(data *DirectChannelImportData, dryRun bool) *m
 
 	if data.Header != nil {
 		channel.Header = *data.Header
-		if result := <-a.Srv.Store.Channel().Update(channel); result.Err != nil {
-			return model.NewAppError("BulkImport", "app.import.import_direct_channel.update_header_failed.error", nil, result.Err.Error(), http.StatusBadRequest)
+		if _, apperr := a.Srv.Store.Channel().Update(channel); apperr != nil {
+			return model.NewAppError("BulkImport", "app.import.import_direct_channel.update_header_failed.error", nil, apperr.Error(), http.StatusBadRequest)
 		}
 	}
 
