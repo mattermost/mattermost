@@ -1606,6 +1606,16 @@ func (a *App) removeUserFromChannel(userIdToRemove string, removerUserId string,
 		return model.NewAppError("RemoveUserFromChannel", "api.channel.remove.default.app_error", map[string]interface{}{"Channel": model.DEFAULT_CHANNEL}, "", http.StatusBadRequest)
 	}
 
+	if channel.IsGroupConstrained() && userIdToRemove != removerUserId {
+		nonMembers, err := a.FilterNonGroupChannelMembers([]string{userIdToRemove}, channel)
+		if err != nil {
+			return model.NewAppError("removeUserFromChannel", "api.channel.remove_user_from_channel.app_error", nil, "", http.StatusInternalServerError)
+		}
+		if len(nonMembers) == 0 {
+			return model.NewAppError("removeUserFromChannel", "api.channel.remove_members.denied", map[string]interface{}{"UserIDs": nonMembers}, "", http.StatusBadRequest)
+		}
+	}
+
 	cm, err := a.GetChannelMember(channel.Id, userIdToRemove)
 	if err != nil {
 		return err
