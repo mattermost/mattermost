@@ -945,7 +945,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 
 	t.Run("Must fail with regular user", func(t *testing.T) {
 		require.Equal(t, "system_user", th.BasicUser.Roles)
-		err := th.App.PromoteGuestToUser(th.BasicUser)
+		err := th.App.PromoteGuestToUser(th.BasicUser, th.BasicUser.Id)
 		require.Nil(t, err)
 
 		user, err := th.App.GetUser(th.BasicUser.Id)
@@ -957,7 +957,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 		guest := th.CreateGuest()
 		require.Equal(t, "system_guest", guest.Roles)
 
-		err := th.App.PromoteGuestToUser(guest)
+		err := th.App.PromoteGuestToUser(guest, th.BasicUser.Id)
 		require.Nil(t, err)
 		guest, err = th.App.GetUser(guest.Id)
 		assert.Nil(t, err)
@@ -973,7 +973,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 		require.True(t, teamMember.SchemeGuest)
 		require.False(t, teamMember.SchemeUser)
 
-		err = th.App.PromoteGuestToUser(guest)
+		err = th.App.PromoteGuestToUser(guest, th.BasicUser.Id)
 		require.Nil(t, err)
 		guest, err = th.App.GetUser(guest.Id)
 		assert.Nil(t, err)
@@ -997,7 +997,7 @@ func TestPromoteGuestToUser(t *testing.T) {
 		require.True(t, channelMember.SchemeGuest)
 		require.False(t, channelMember.SchemeUser)
 
-		err = th.App.PromoteGuestToUser(guest)
+		err = th.App.PromoteGuestToUser(guest, th.BasicUser.Id)
 		require.Nil(t, err)
 		guest, err = th.App.GetUser(guest.Id)
 		assert.Nil(t, err)
@@ -1010,6 +1010,42 @@ func TestPromoteGuestToUser(t *testing.T) {
 		assert.Nil(t, err)
 		assert.False(t, teamMember.SchemeGuest)
 		assert.True(t, teamMember.SchemeUser)
+	})
+
+	t.Run("Must add the default channels", func(t *testing.T) {
+		guest := th.CreateGuest()
+		require.Equal(t, "system_guest", guest.Roles)
+		th.LinkUserToTeam(guest, th.BasicTeam)
+		teamMember, err := th.App.GetTeamMember(th.BasicTeam.Id, guest.Id)
+		require.Nil(t, err)
+		require.True(t, teamMember.SchemeGuest)
+		require.False(t, teamMember.SchemeUser)
+
+		channelMember := th.AddUserToChannel(guest, th.BasicChannel)
+		require.True(t, channelMember.SchemeGuest)
+		require.False(t, channelMember.SchemeUser)
+
+		channelMembers, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, guest.Id)
+		require.Nil(t, err)
+		require.Len(t, *channelMembers, 1)
+
+		err = th.App.PromoteGuestToUser(guest, th.BasicUser.Id)
+		require.Nil(t, err)
+		guest, err = th.App.GetUser(guest.Id)
+		assert.Nil(t, err)
+		assert.Equal(t, "system_user", guest.Roles)
+		teamMember, err = th.App.GetTeamMember(th.BasicTeam.Id, guest.Id)
+		assert.Nil(t, err)
+		assert.False(t, teamMember.SchemeGuest)
+		assert.True(t, teamMember.SchemeUser)
+		channelMember, err = th.App.GetChannelMember(th.BasicChannel.Id, guest.Id)
+		assert.Nil(t, err)
+		assert.False(t, teamMember.SchemeGuest)
+		assert.True(t, teamMember.SchemeUser)
+
+		channelMembers, err = th.App.GetChannelMembersForUser(th.BasicTeam.Id, guest.Id)
+		require.Nil(t, err)
+		assert.Len(t, *channelMembers, 3)
 	})
 }
 
@@ -1085,5 +1121,41 @@ func TestDemoteUserToGuest(t *testing.T) {
 		assert.Nil(t, err)
 		assert.False(t, teamMember.SchemeUser)
 		assert.True(t, teamMember.SchemeGuest)
+	})
+
+	t.Run("Must respect the current channels not removing defaults", func(t *testing.T) {
+		user := th.CreateUser()
+		require.Equal(t, "system_user", user.Roles)
+		th.LinkUserToTeam(user, th.BasicTeam)
+		teamMember, err := th.App.GetTeamMember(th.BasicTeam.Id, user.Id)
+		require.Nil(t, err)
+		require.True(t, teamMember.SchemeUser)
+		require.False(t, teamMember.SchemeGuest)
+
+		channelMember := th.AddUserToChannel(user, th.BasicChannel)
+		require.True(t, channelMember.SchemeUser)
+		require.False(t, channelMember.SchemeGuest)
+
+		channelMembers, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, user.Id)
+		require.Nil(t, err)
+		require.Len(t, *channelMembers, 3)
+
+		err = th.App.DemoteUserToGuest(user)
+		require.Nil(t, err)
+		user, err = th.App.GetUser(user.Id)
+		assert.Nil(t, err)
+		assert.Equal(t, "system_guest", user.Roles)
+		teamMember, err = th.App.GetTeamMember(th.BasicTeam.Id, user.Id)
+		assert.Nil(t, err)
+		assert.False(t, teamMember.SchemeUser)
+		assert.True(t, teamMember.SchemeGuest)
+		channelMember, err = th.App.GetChannelMember(th.BasicChannel.Id, user.Id)
+		assert.Nil(t, err)
+		assert.False(t, teamMember.SchemeUser)
+		assert.True(t, teamMember.SchemeGuest)
+
+		channelMembers, err = th.App.GetChannelMembersForUser(th.BasicTeam.Id, user.Id)
+		require.Nil(t, err)
+		assert.Len(t, *channelMembers, 3)
 	})
 }

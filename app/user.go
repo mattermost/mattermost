@@ -2158,8 +2158,23 @@ func (a *App) getListOfAllowedChannelsForTeam(teamId string, viewRestrictions *m
 
 // PromoteGuestToUser Convert user's roles and all his mermbership's roles from
 // guest roles to regular user roles.
-func (a *App) PromoteGuestToUser(user *model.User) *model.AppError {
-	return a.Srv.Store.User().PromoteGuestToUser(user.Id)
+func (a *App) PromoteGuestToUser(user *model.User, requestorId string) *model.AppError {
+	err := a.Srv.Store.User().PromoteGuestToUser(user.Id)
+	if err != nil {
+		return err
+	}
+	userTeams := <-a.Srv.Store.Team().GetTeamsByUserId(user.Id)
+	if userTeams.Err != nil {
+		return userTeams.Err
+	}
+
+	for _, team := range userTeams.Data.([]*model.Team) {
+		// Soft error if there is an issue joining the default channels
+		if err := a.JoinDefaultChannels(team.Id, user, false, requestorId); err != nil {
+			mlog.Error(fmt.Sprintf("Encountered an issue joining default channels err=%v", err), mlog.String("user_id", user.Id), mlog.String("team_id", team.Id))
+		}
+	}
+	return nil
 }
 
 // DemoteUserToGuest Convert user's roles and all his mermbership's roles from
