@@ -1213,9 +1213,12 @@ func testGetChannelUnreadsForAllTeams(t *testing.T, ss store.Store) {
 	store.Must(ss.Team().SaveMember(m2, -1))
 
 	c1 := &model.Channel{TeamId: m1.TeamId, Name: model.NewId(), DisplayName: "Town Square", Type: model.CHANNEL_OPEN, TotalMsgCount: 100}
-	store.Must(ss.Channel().Save(c1, -1))
+	_, err := ss.Channel().Save(c1, -1)
+	require.Nil(t, err)
+
 	c2 := &model.Channel{TeamId: m2.TeamId, Name: model.NewId(), DisplayName: "Town Square", Type: model.CHANNEL_OPEN, TotalMsgCount: 100}
-	store.Must(ss.Channel().Save(c2, -1))
+	_, err = ss.Channel().Save(c2, -1)
+	require.Nil(t, err)
 
 	cm1 := &model.ChannelMember{ChannelId: c1.Id, UserId: m1.UserId, NotifyProps: model.GetDefaultChannelNotifyProps(), MsgCount: 90}
 	store.Must(ss.Channel().SaveMember(cm1))
@@ -1276,9 +1279,12 @@ func testGetChannelUnreadsForTeam(t *testing.T, ss store.Store) {
 	store.Must(ss.Team().SaveMember(m1, -1))
 
 	c1 := &model.Channel{TeamId: m1.TeamId, Name: model.NewId(), DisplayName: "Town Square", Type: model.CHANNEL_OPEN, TotalMsgCount: 100}
-	store.Must(ss.Channel().Save(c1, -1))
+	_, err := ss.Channel().Save(c1, -1)
+	require.Nil(t, err)
+
 	c2 := &model.Channel{TeamId: m1.TeamId, Name: model.NewId(), DisplayName: "Town Square", Type: model.CHANNEL_OPEN, TotalMsgCount: 100}
-	store.Must(ss.Channel().Save(c2, -1))
+	_, err = ss.Channel().Save(c2, -1)
+	require.Nil(t, err)
 
 	cm1 := &model.ChannelMember{ChannelId: c1.Id, UserId: m1.UserId, NotifyProps: model.GetDefaultChannelNotifyProps(), MsgCount: 90}
 	store.Must(ss.Channel().SaveMember(cm1))

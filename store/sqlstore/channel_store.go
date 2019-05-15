@@ -450,41 +450,37 @@ func (s SqlChannelStore) upsertPublicChannelT(transaction *gorp.Transaction, cha
 }
 
 // Save writes the (non-direct) channel channel to the database.
-func (s SqlChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if channel.DeleteAt != 0 {
-			result.Err = model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save.archived_channel.app_error", nil, "", http.StatusBadRequest)
-			return
-		}
+func (s SqlChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, *model.AppError) {
 
-		if channel.Type == model.CHANNEL_DIRECT {
-			result.Err = model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save.direct_channel.app_error", nil, "", http.StatusBadRequest)
-			return
-		}
+	if channel.DeleteAt != 0 {
+		return nil, model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save.archived_channel.app_error", nil, "", http.StatusBadRequest)
+	}
 
-		transaction, err := s.GetMaster().Begin()
-		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		defer finalizeTransaction(transaction)
+	if channel.Type == model.CHANNEL_DIRECT {
+		return nil, model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save.direct_channel.app_error", nil, "", http.StatusBadRequest)
+	}
 
-		*result = s.saveChannelT(transaction, channel, maxChannelsPerTeam)
-		if result.Err != nil {
-			return
-		}
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return nil, model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	defer finalizeTransaction(transaction)
 
-		// Additionally propagate the write to the PublicChannels table.
-		if err := s.upsertPublicChannelT(transaction, result.Data.(*model.Channel)); err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save.upsert_public_channel.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	result := s.saveChannelT(transaction, channel, maxChannelsPerTeam)
+	if result.Err != nil {
+		return nil, result.Err
+	}
 
-		if err := transaction.Commit(); err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	})
+	// Additionally propagate the write to the PublicChannels table
+	if err := s.upsertPublicChannelT(transaction, result.Data.(*model.Channel)); err != nil {
+		return nil, model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save.upsert_public_channel.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if err := transaction.Commit(); err != nil {
+		return nil, model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return result.Data.(*model.Channel), nil
 }
 
 func (s SqlChannelStore) CreateDirectChannel(userId string, otherUserId string) store.StoreChannel {

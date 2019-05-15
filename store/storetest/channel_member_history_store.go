@@ -29,7 +29,13 @@ func testLogJoinEvent(t *testing.T, ss store.Store) {
 		Name:        "zz" + model.NewId() + "b",
 		Type:        model.CHANNEL_OPEN,
 	}
-	channel = *store.Must(ss.Channel().Save(&channel, -1)).(*model.Channel)
+	ch, err := ss.Channel().Save(&channel, -1)
+	storeCh := make(store.StoreChannel, 1)
+	storeCh <- store.StoreResult{
+		Data: ch,
+		Err:  err,
+	}
+	channel = *store.Must(storeCh).(*model.Channel)
 
 	// and a test user
 	user := model.User{
@@ -52,7 +58,13 @@ func testLogLeaveEvent(t *testing.T, ss store.Store) {
 		Name:        "zz" + model.NewId() + "b",
 		Type:        model.CHANNEL_OPEN,
 	}
-	channel = *store.Must(ss.Channel().Save(&channel, -1)).(*model.Channel)
+	ch, err := ss.Channel().Save(&channel, -1)
+	storeCh := make(store.StoreChannel, 1)
+	storeCh <- store.StoreResult{
+		Data: ch,
+		Err:  err,
+	}
+	channel = *store.Must(storeCh).(*model.Channel)
 
 	// and a test user
 	user := model.User{
@@ -78,7 +90,13 @@ func testGetUsersInChannelAtChannelMemberHistory(t *testing.T, ss store.Store) {
 		Name:        "zz" + model.NewId() + "b",
 		Type:        model.CHANNEL_OPEN,
 	}
-	channel = *store.Must(ss.Channel().Save(&channel, -1)).(*model.Channel)
+	ch, err := ss.Channel().Save(&channel, -1)
+	storeCh := make(store.StoreChannel, 1)
+	storeCh <- store.StoreResult{
+		Data: ch,
+		Err:  err,
+	}
+	channel = *store.Must(storeCh).(*model.Channel)
 
 	// and a test user
 	user := model.User{
@@ -161,7 +179,13 @@ func testGetUsersInChannelAtChannelMembers(t *testing.T, ss store.Store) {
 		Name:        "zz" + model.NewId() + "b",
 		Type:        model.CHANNEL_OPEN,
 	}
-	channel = *store.Must(ss.Channel().Save(&channel, -1)).(*model.Channel)
+	ch, err := ss.Channel().Save(&channel, -1)
+	storeCh := make(store.StoreChannel, 1)
+	storeCh <- store.StoreResult{
+		Data: ch,
+		Err:  err,
+	}
+	channel = *store.Must(storeCh).(*model.Channel)
 
 	// and a test user
 	user := model.User{
@@ -263,7 +287,6 @@ func testPermanentDeleteBatch(t *testing.T, ss store.Store) {
 		Name:        "zz" + model.NewId() + "b",
 		Type:        model.CHANNEL_OPEN,
 	}
-	channel = *store.Must(ss.Channel().Save(&channel, -1)).(*model.Channel)
 
 	// and two test users
 	user := model.User{
