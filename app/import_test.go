@@ -33,11 +33,10 @@ func ptrBool(b bool) *bool {
 }
 
 func checkPreference(t *testing.T, a *App, userId string, category string, name string, value string) {
-	if res := <-a.Srv.Store.Preference().GetCategory(userId, category); res.Err != nil {
+	if preferences, err := a.Srv.Store.Preference().GetCategory(userId, category); err != nil {
 		debug.PrintStack()
 		t.Fatalf("Failed to get preferences for user %v with category %v", userId, category)
 	} else {
-		preferences := res.Data.(model.Preferences)
 		found := false
 		for _, preference := range preferences {
 			if preference.Name == name {
