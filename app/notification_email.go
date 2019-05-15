@@ -48,12 +48,12 @@ func (a *App) sendNotificationEmail(notification *postNotification, user *model.
 
 	if *a.Config().EmailSettings.EnableEmailBatching {
 		var sendBatched bool
-		if result := <-a.Srv.Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_NOTIFICATIONS, model.PREFERENCE_NAME_EMAIL_INTERVAL); result.Err != nil {
+		if data, err := a.Srv.Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_NOTIFICATIONS, model.PREFERENCE_NAME_EMAIL_INTERVAL); err != nil {
 			// if the call fails, assume that the interval has not been explicitly set and batch the notifications
 			sendBatched = true
 		} else {
 			// if the user has chosen to receive notifications immediately, don't batch them
-			sendBatched = result.Data.(model.Preference).Value != model.PREFERENCE_EMAIL_INTERVAL_NO_BATCHING_SECONDS
+			sendBatched = data.Value != model.PREFERENCE_EMAIL_INTERVAL_NO_BATCHING_SECONDS
 		}
 
 		if sendBatched {
@@ -68,17 +68,17 @@ func (a *App) sendNotificationEmail(notification *postNotification, user *model.
 	translateFunc := utils.GetUserTranslations(user.Locale)
 
 	var useMilitaryTime bool
-	if result := <-a.Srv.Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_USE_MILITARY_TIME); result.Err != nil {
+	if data, err := a.Srv.Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_USE_MILITARY_TIME); err != nil {
 		useMilitaryTime = true
 	} else {
-		useMilitaryTime = result.Data.(model.Preference).Value == "true"
+		useMilitaryTime = data.Value == "true"
 	}
 
 	var nameFormat string
-	if result := <-a.Srv.Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_NAME_FORMAT); result.Err != nil {
+	if data, err := a.Srv.Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_NAME_FORMAT); err != nil {
 		nameFormat = *a.Config().TeamSettings.TeammateNameDisplay
 	} else {
-		nameFormat = result.Data.(model.Preference).Value
+		nameFormat = data.Value
 	}
 
 	channelName := notification.GetChannelName(nameFormat, "")

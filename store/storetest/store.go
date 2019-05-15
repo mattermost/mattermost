@@ -50,28 +50,24 @@ type Store struct {
 	GroupStore                mocks.GroupStore
 	UserTermsOfServiceStore   mocks.UserTermsOfServiceStore
 	LinkMetadataStore         mocks.LinkMetadataStore
-	NotificationRegistryStore mocks.NotificationRegistryStore
 }
 
-func (s *Store) Team() store.TeamStore                         { return &s.TeamStore }
-func (s *Store) Channel() store.ChannelStore                   { return &s.ChannelStore }
-func (s *Store) Post() store.PostStore                         { return &s.PostStore }
-func (s *Store) User() store.UserStore                         { return &s.UserStore }
-func (s *Store) Bot() store.BotStore                           { return &s.BotStore }
-func (s *Store) Audit() store.AuditStore                       { return &s.AuditStore }
-func (s *Store) ClusterDiscovery() store.ClusterDiscoveryStore { return &s.ClusterDiscoveryStore }
-func (s *Store) Compliance() store.ComplianceStore             { return &s.ComplianceStore }
-func (s *Store) Session() store.SessionStore                   { return &s.SessionStore }
-func (s *Store) OAuth() store.OAuthStore                       { return &s.OAuthStore }
-func (s *Store) System() store.SystemStore                     { return &s.SystemStore }
-func (s *Store) Webhook() store.WebhookStore                   { return &s.WebhookStore }
-func (s *Store) Command() store.CommandStore                   { return &s.CommandStore }
-func (s *Store) CommandWebhook() store.CommandWebhookStore     { return &s.CommandWebhookStore }
-func (s *Store) Preference() store.PreferenceStore             { return &s.PreferenceStore }
-func (s *Store) License() store.LicenseStore                   { return &s.LicenseStore }
-func (s *Store) NotificationRegistry() store.NotificationRegistryStore {
-	return &s.NotificationRegistryStore
-}
+func (s *Store) Team() store.TeamStore                             { return &s.TeamStore }
+func (s *Store) Channel() store.ChannelStore                       { return &s.ChannelStore }
+func (s *Store) Post() store.PostStore                             { return &s.PostStore }
+func (s *Store) User() store.UserStore                             { return &s.UserStore }
+func (s *Store) Bot() store.BotStore                               { return &s.BotStore }
+func (s *Store) Audit() store.AuditStore                           { return &s.AuditStore }
+func (s *Store) ClusterDiscovery() store.ClusterDiscoveryStore     { return &s.ClusterDiscoveryStore }
+func (s *Store) Compliance() store.ComplianceStore                 { return &s.ComplianceStore }
+func (s *Store) Session() store.SessionStore                       { return &s.SessionStore }
+func (s *Store) OAuth() store.OAuthStore                           { return &s.OAuthStore }
+func (s *Store) System() store.SystemStore                         { return &s.SystemStore }
+func (s *Store) Webhook() store.WebhookStore                       { return &s.WebhookStore }
+func (s *Store) Command() store.CommandStore                       { return &s.CommandStore }
+func (s *Store) CommandWebhook() store.CommandWebhookStore         { return &s.CommandWebhookStore }
+func (s *Store) Preference() store.PreferenceStore                 { return &s.PreferenceStore }
+func (s *Store) License() store.LicenseStore                       { return &s.LicenseStore }
 func (s *Store) Token() store.TokenStore                           { return &s.TokenStore }
 func (s *Store) Emoji() store.EmojiStore                           { return &s.EmojiStore }
 func (s *Store) Status() store.StatusStore                         { return &s.StatusStore }
@@ -116,7 +112,6 @@ func (s *Store) AssertExpectations(t mock.TestingT) bool {
 		&s.CommandWebhookStore,
 		&s.PreferenceStore,
 		&s.LicenseStore,
-		&s.NotificationRegistryStore,
 		&s.TokenStore,
 		&s.EmojiStore,
 		&s.StatusStore,

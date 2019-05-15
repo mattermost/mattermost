@@ -132,6 +132,10 @@
     "translation": "Unable to upload file. File is too large."
   },
   {
+    "id": "api.bot.create_disabled",
+    "translation": "Bot creation has been disabled."
+  },
+  {
     "id": "api.channel.add_member.added",
     "translation": "%v added to the channel by %v."
   },
@@ -3767,6 +3771,10 @@
     "translation": "Failed to search users in AD/LDAP. Test if the Mattermost server can connect to your AD/LDAP server and try again."
   },
   {
+    "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
+    "translation": "Size Limit Exceeded. Try checking your [max page size](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
+  },
+  {
     "id": "ent.ldap.validate_filter.app_error",
     "translation": "Invalid AD/LDAP Filter"
   },
@@ -4835,34 +4843,6 @@
     "translation": "Link metadata URL must be set"
   },
   {
-    "id": "model.notification_registry.ack_id.app_error",
-    "translation": "Invalid Acknowledge Id"
-  },
-  {
-    "id": "model.notification_registry.create_at.app_error",
-    "translation": "Create at must be a valid time"
-  },
-  {
-    "id": "model.notification_registry.device_id.app_error",
-    "translation": "Invalid Device Id"
-  },
-  {
-    "id": "model.notification_registry.post_id.app_error",
-    "translation": "Invalid Post Id"
-  },
-  {
-    "id": "model.notification_registry.status.app_error",
-    "translation": "Invalid Send Status"
-  },
-  {
-    "id": "model.notification_registry.type.app_error",
-    "translation": "Invalid push type, must be \"clear\" or \"message\""
-  },
-  {
-    "id": "model.notification_registry.user_id.app_error",
-    "translation": "Invalid User Id"
-  },
-  {
     "id": "model.oauth.is_valid.app_id.app_error",
     "translation": "Invalid app id"
   },
@@ -5241,6 +5221,10 @@
   {
     "id": "plugin.api.update_user_status.bad_status",
     "translation": "Unable to set the user status. Unknown user status."
+  },
+  {
+    "id": "plugin_api.bot_cant_create_bot",
+    "translation": "Bot user cannot create bot user."
   },
   {
     "id": "plugin_api.get_file_link.disabled.app_error",
@@ -5863,6 +5847,10 @@
     "translation": "Unable to save the file info"
   },
   {
+    "id": "store.sql_group.app_error",
+    "translation": "failed to build query"
+  },
+  {
     "id": "store.sql_group.group_syncable_already_deleted",
     "translation": "group syncable was already deleted"
   },
@@ -5929,18 +5917,6 @@
   {
     "id": "store.sql_link_metadata.save.app_error",
     "translation": "Unable to save the link metadata"
-  },
-  {
-    "id": "store.sql_notification.mark_as_received.app_error",
-    "translation": "An error occurred marking the notification as received"
-  },
-  {
-    "id": "store.sql_notification.save.app_error",
-    "translation": "An error occurred while saving the notification registry"
-  },
-  {
-    "id": "store.sql_notification.update_status.app_error",
-    "translation": "An error occurred while updating the notification status"
   },
   {
     "id": "store.sql_oauth.delete.commit_transaction.app_error",

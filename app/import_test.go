@@ -4,6 +4,7 @@
 package app
 
 import (
+	"net/http"
 	"path/filepath"
 	"runtime/debug"
 	"strings"
@@ -32,11 +33,10 @@ func ptrBool(b bool) *bool {
 }
 
 func checkPreference(t *testing.T, a *App, userId string, category string, name string, value string) {
-	if res := <-a.Srv.Store.Preference().GetCategory(userId, category); res.Err != nil {
+	if preferences, err := a.Srv.Store.Preference().GetCategory(userId, category); err != nil {
 		debug.PrintStack()
 		t.Fatalf("Failed to get preferences for user %v with category %v", userId, category)
 	} else {
-		preferences := res.Data.(model.Preferences)
 		found := false
 		for _, preference := range preferences {
 			if preference.Name == name {
@@ -157,6 +157,23 @@ func TestImportImportLine(t *testing.T) {
 	if err := th.App.ImportLine(line, false); err == nil {
 		t.Fatalf("Expected an error when importing a line with type scheme with a nil scheme.")
 	}
+}
+
+func TestStopOnError(t *testing.T) {
+	assert.True(t, stopOnError(LineImportWorkerError{
+		model.NewAppError("test", "app.import.attachment.bad_file.error", nil, "", http.StatusBadRequest),
+		1,
+	}))
+
+	assert.True(t, stopOnError(LineImportWorkerError{
+		model.NewAppError("test", "app.import.attachment.file_upload.error", nil, "", http.StatusBadRequest),
+		1,
+	}))
+
+	assert.False(t, stopOnError(LineImportWorkerError{
+		model.NewAppError("test", "api.file.upload_file.large_image.app_error", nil, "", http.StatusBadRequest),
+		1,
+	}))
 }
 
 func TestImportBulkImport(t *testing.T) {

@@ -6,7 +6,6 @@ package model
 import (
 	"encoding/json"
 	"io"
-	"net/http"
 	"strings"
 )
 
@@ -26,21 +25,11 @@ const (
 
 	MHPNS = "https://push.mattermost.com"
 
+	PUSH_SEND_PREPARE = "Prepared to send"
 	PUSH_SEND_SUCCESS = "Successful"
-	PUSH_SEND_ERROR   = "Error"
 	PUSH_NOT_SENT     = "Not Sent due to preferences"
+	PUSH_RECEIVED     = "Received by device"
 )
-
-type NotificationRegistry struct {
-	AckId      string
-	CreateAt   int64
-	UserId     string
-	DeviceId   string
-	PostId     string
-	SendStatus string
-	Type       string
-	ReceiveAt  int64
-}
 
 type PushNotificationAck struct {
 	Id               string `json:"id"`
@@ -103,45 +92,4 @@ func PushNotificationAckFromJson(data io.Reader) *PushNotificationAck {
 func (ack *PushNotificationAck) ToJson() string {
 	b, _ := json.Marshal(ack)
 	return string(b)
-}
-
-func (o *NotificationRegistry) IsValid() *AppError {
-
-	if len(o.AckId) != 26 {
-		return NewAppError("NotificationRegistry.IsValid", "model.notification_registry.ack_id.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	if o.CreateAt == 0 {
-		return NewAppError("NotificationRegistry.IsValid", "model.notification_registry.create_at.app_error", nil, "AckId="+o.AckId, http.StatusBadRequest)
-	}
-
-	if len(o.UserId) != 26 {
-		return NewAppError("NotificationRegistry.IsValid", "model.notification_registry.user_id.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	if len(o.PostId) > 0 && len(o.PostId) != 26 {
-		return NewAppError("NotificationRegistry.IsValid", "model.notification_registry.post_id.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	if len(o.DeviceId) > 512 {
-		return NewAppError("NotificationRegistry.IsValid", "model.notification_registry.device_id.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	if len(o.SendStatus) > 4096 {
-		return NewAppError("NotificationRegistry.IsValid", "model.notification_registry.status.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	if o.Type != PUSH_TYPE_CLEAR && o.Type != PUSH_TYPE_MESSAGE {
-		return NewAppError("NotificationRegistry.IsValid", "model.notification_registry.type.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	return nil
-}
-
-func (o *NotificationRegistry) PreSave() {
-	if o.AckId == "" {
-		o.AckId = NewId()
-	}
-
-	o.CreateAt = GetMillis()
 }

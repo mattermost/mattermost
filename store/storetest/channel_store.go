@@ -4,7 +4,6 @@
 package storetest
 
 import (
-	"fmt"
 	"sort"
 	"strconv"
 	"strings"
@@ -251,28 +250,28 @@ func testChannelStoreUpdate(t *testing.T, ss store.Store) {
 
 	time.Sleep(100 * time.Millisecond)
 
-	if err := (<-ss.Channel().Update(&o1)).Err; err != nil {
+	if _, err := ss.Channel().Update(&o1); err != nil {
 		t.Fatal(err)
 	}
 
 	o1.DeleteAt = 100
-	if err := (<-ss.Channel().Update(&o1)).Err; err == nil {
+	if _, err := ss.Channel().Update(&o1); err == nil {
 		t.Fatal("Update should have failed because channel is archived")
 	}
 
 	o1.DeleteAt = 0
 	o1.Id = "missing"
-	if err := (<-ss.Channel().Update(&o1)).Err; err == nil {
+	if _, err := ss.Channel().Update(&o1); err == nil {
 		t.Fatal("Update should have failed because of missing key")
 	}
 
 	o1.Id = model.NewId()
-	if err := (<-ss.Channel().Update(&o1)).Err; err == nil {
+	if _, err := ss.Channel().Update(&o1); err == nil {
 		t.Fatal("Update should have faile because id change")
 	}
 
 	o2.Name = o1.Name
-	if err := (<-ss.Channel().Update(&o2)).Err; err == nil {
+	if _, err := ss.Channel().Update(&o2); err == nil {
 		t.Fatal("Update should have failed because of existing name")
 	}
 }
@@ -2722,7 +2721,6 @@ func testChannelStoreGetChannelsByScheme(t *testing.T, ss store.Store) {
 	}
 
 	result := <-ss.Scheme().Save(s1)
-	fmt.Println(result.Err)
 	s1 = result.Data.(*model.Scheme)
 	s1 = (<-ss.Scheme().Save(s1)).Data.(*model.Scheme)
 	s2 = (<-ss.Scheme().Save(s2)).Data.(*model.Scheme)
@@ -2995,7 +2993,8 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlSupplier)
 	})
 
 	o2.Type = model.CHANNEL_PRIVATE
-	require.Nil(t, (<-ss.Channel().Update(&o2)).Err)
+	_, apperr := ss.Channel().Update(&o2)
+	require.Nil(t, apperr)
 
 	t.Run("o2 no longer listed since now private", func(t *testing.T) {
 		result := <-ss.Channel().SearchInTeam(teamId, "", true)
@@ -3004,7 +3003,8 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlSupplier)
 	})
 
 	o2.Type = model.CHANNEL_OPEN
-	require.Nil(t, (<-ss.Channel().Update(&o2)).Err)
+	_, apperr = ss.Channel().Update(&o2)
+	require.Nil(t, apperr)
 
 	t.Run("o2 listed once again since now public", func(t *testing.T) {
 		result := <-ss.Channel().SearchInTeam(teamId, "", true)
@@ -3089,7 +3089,8 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlSupplier)
 	require.Nil(t, err)
 
 	o4.DisplayName += " - Modified"
-	require.Nil(t, (<-ss.Channel().Update(&o4)).Err)
+	_, apperr = ss.Channel().Update(&o4)
+	require.Nil(t, apperr)
 
 	t.Run("verify o4 UPDATE converted to INSERT", func(t *testing.T) {
 		result := <-ss.Channel().SearchInTeam(teamId, "", true)
