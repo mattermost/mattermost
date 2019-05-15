@@ -1976,12 +1976,11 @@ func testGetGroups(t *testing.T, ss store.Store) {
 		Name:        model.NewId(),
 		Type:        model.CHANNEL_PRIVATE,
 	}
-	res := <-ss.Channel().Save(channel1, 9999)
-	require.Nil(t, res.Err)
-	channel1 = res.Data.(*model.Channel)
+	channel1, err = ss.Channel().Save(channel1, 9999)
+	require.Nil(t, err)
 
 	// Create Groups 1 and 2
-	res = <-ss.Group().Create(&model.Group{
+	res := <-ss.Group().Create(&model.Group{
 		Name:        model.NewId(),
 		DisplayName: "group-1",
 		RemoteId:    model.NewId(),
@@ -2031,9 +2030,8 @@ func testGetGroups(t *testing.T, ss store.Store) {
 		Name:        model.NewId(),
 		Type:        model.CHANNEL_PRIVATE,
 	}
-	res = <-ss.Channel().Save(channel2, 9999)
-	require.Nil(t, res.Err)
-	channel2 = res.Data.(*model.Channel)
+	channel2, err = ss.Channel().Save(channel2, 9999)
+	require.Nil(t, err)
 
 	// Create Group3
 	res = <-ss.Group().Create(&model.Group{
