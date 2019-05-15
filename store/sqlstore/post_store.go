@@ -399,26 +399,26 @@ func (s *SqlPostStore) GetEtag(channelId string, allowFromCache bool) store.Stor
 	})
 }
 
-func (s *SqlPostStore) Delete(postId string, time int64, deleteByID string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
+func (s *SqlPostStore) Delete(postId string, time int64, deleteByID string) *model.AppError {
 
-		appErr := func(errMsg string) *model.AppError {
-			return model.NewAppError("SqlPostStore.Delete", "store.sql_post.delete.app_error", nil, "id="+postId+", err="+errMsg, http.StatusInternalServerError)
-		}
+	appErr := func(errMsg string) *model.AppError {
+		return model.NewAppError("SqlPostStore.Delete", "store.sql_post.delete.app_error", nil, "id="+postId+", err="+errMsg, http.StatusInternalServerError)
+	}
 
-		var post model.Post
-		err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": postId})
-		if err != nil {
-			result.Err = appErr(err.Error())
-		}
+	var post model.Post
+	err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": postId})
+	if err != nil {
+		return appErr(err.Error())
+	}
 
-		post.Props[model.POST_PROPS_DELETE_BY] = deleteByID
+	post.Props[model.POST_PROPS_DELETE_BY] = deleteByID
 
-		_, err = s.GetMaster().Exec("UPDATE Posts SET DeleteAt = :DeleteAt, UpdateAt = :UpdateAt, Props = :Props WHERE Id = :Id OR RootId = :RootId", map[string]interface{}{"DeleteAt": time, "UpdateAt": time, "Id": postId, "RootId": postId, "Props": model.StringInterfaceToJson(post.Props)})
-		if err != nil {
-			result.Err = appErr(err.Error())
-		}
-	})
+	_, err = s.GetMaster().Exec("UPDATE Posts SET DeleteAt = :DeleteAt, UpdateAt = :UpdateAt, Props = :Props WHERE Id = :Id OR RootId = :RootId", map[string]interface{}{"DeleteAt": time, "UpdateAt": time, "Id": postId, "RootId": postId, "Props": model.StringInterfaceToJson(post.Props)})
+	if err != nil {
+		return appErr(err.Error())
+	}
+
+	return nil
 }
 
 func (s *SqlPostStore) permanentDelete(postId string) store.StoreChannel {

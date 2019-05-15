@@ -166,6 +166,10 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		return nil, err
 	}
 
+	if user.IsBot {
+		post.AddProp("from_bot", "true")
+	}
+
 	if a.License() != nil && *a.Config().TeamSettings.ExperimentalTownSquareIsReadOnly &&
 		!post.IsSystemMessage() &&
 		channel.Name == model.DEFAULT_CHANNEL &&
@@ -731,8 +735,8 @@ func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppErro
 		return nil, err
 	}
 
-	if result := <-a.Srv.Store.Post().Delete(postId, model.GetMillis(), deleteByID); result.Err != nil {
-		return nil, result.Err
+	if err := a.Srv.Store.Post().Delete(postId, model.GetMillis(), deleteByID); err != nil {
+		return nil, err
 	}
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_DELETED, "", post.ChannelId, "", nil)

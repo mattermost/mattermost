@@ -99,7 +99,6 @@ type SqlSupplierOldStores struct {
 	group                store.GroupStore
 	UserTermsOfService   store.UserTermsOfServiceStore
 	linkMetadata         store.LinkMetadataStore
-	notificationRegistry store.NotificationRegistryStore
 }
 
 type SqlSupplier struct {
@@ -152,7 +151,6 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.oldStores.TermsOfService = NewSqlTermsOfServiceStore(supplier, metrics)
 	supplier.oldStores.UserTermsOfService = NewSqlUserTermsOfServiceStore(supplier)
 	supplier.oldStores.linkMetadata = NewSqlLinkMetadataStore(supplier)
-	supplier.oldStores.notificationRegistry = NewSqlNotificationRegistryStore(supplier)
 
 	initSqlSupplierReactions(supplier)
 	initSqlSupplierRoles(supplier)
@@ -1053,10 +1051,6 @@ func (ss *SqlSupplier) Group() store.GroupStore {
 
 func (ss *SqlSupplier) LinkMetadata() store.LinkMetadataStore {
 	return ss.oldStores.linkMetadata
-}
-
-func (ss *SqlSupplier) NotificationRegistry() store.NotificationRegistryStore {
-	return ss.oldStores.notificationRegistry
 }
 
 func (ss *SqlSupplier) DropAllTables() {
