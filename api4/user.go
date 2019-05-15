@@ -1862,7 +1862,7 @@ func promoteGuestToUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.PromoteGuestToUser(user); err != nil {
+	if err := c.App.PromoteGuestToUser(user, c.App.Session.UserId); err != nil {
 		c.Err = err
 		return
 	}
