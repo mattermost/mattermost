@@ -20,6 +20,7 @@ import (
 )
 
 const (
+	VERSION_5_11_0           = "5.11.0"
 	VERSION_5_10_0           = "5.10.0"
 	VERSION_5_9_0            = "5.9.0"
 	VERSION_5_8_0            = "5.8.0"
@@ -152,6 +153,7 @@ func UpgradeDatabase(sqlStore SqlStore, currentModelVersionString string) error 
 	UpgradeDatabaseToVersion58(sqlStore)
 	UpgradeDatabaseToVersion59(sqlStore)
 	UpgradeDatabaseToVersion510(sqlStore)
+	UpgradeDatabaseToVersion511(sqlStore)
 
 	return nil
 }
@@ -653,22 +655,20 @@ func UpgradeDatabaseToVersion510(sqlStore SqlStore) {
 }
 
 func UpgradeDatabaseToVersion511(sqlStore SqlStore) {
-	// TODO: Uncomment following condition when version 5.11.0 is released
-	// if shouldPerformUpgrade(sqlStore, VERSION_5_10_0, VERSION_5_11_0) {
-
-	// Enforce all teams have an InviteID set
-	var teams []*model.Team
-	if _, err := sqlStore.GetReplica().Select(&teams, "SELECT * FROM Teams WHERE InviteId = ''"); err != nil {
-		mlog.Error("Error fetching Teams without InviteID: " + err.Error())
-	} else {
-		for _, team := range teams {
-			team.InviteId = model.NewId()
-			if res := <-sqlStore.Team().Update(team); res.Err != nil {
-				mlog.Error("Error updating Team InviteIDs: " + res.Err.Error())
+	if shouldPerformUpgrade(sqlStore, VERSION_5_10_0, VERSION_5_11_0) {
+		// Enforce all teams have an InviteID set
+		var teams []*model.Team
+		if _, err := sqlStore.GetReplica().Select(&teams, "SELECT * FROM Teams WHERE InviteId = ''"); err != nil {
+			mlog.Error("Error fetching Teams without InviteID: " + err.Error())
+		} else {
+			for _, team := range teams {
+				team.InviteId = model.NewId()
+				if res := <-sqlStore.Team().Update(team); res.Err != nil {
+					mlog.Error("Error updating Team InviteIDs: " + res.Err.Error())
+				}
 			}
 		}
-	}
 
-	// 	saveSchemaVersion(sqlStore, VERSION_5_11_0)
-	// }
+		saveSchemaVersion(sqlStore, VERSION_5_11_0)
+	}
 }
