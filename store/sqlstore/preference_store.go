@@ -54,31 +54,26 @@ func (s SqlPreferenceStore) DeleteUnusedFeatures() {
 	s.GetMaster().Exec(sql, queryParams)
 }
 
-func (s SqlPreferenceStore) Save(preferences *model.Preferences) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		// wrap in a transaction so that if one fails, everything fails
-		transaction, err := s.GetMaster().Begin()
-		if err != nil {
-			result.Err = model.NewAppError("SqlPreferenceStore.Save", "store.sql_preference.save.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			defer finalizeTransaction(transaction)
-			for _, preference := range *preferences {
-				if upsertResult := s.save(transaction, &preference); upsertResult.Err != nil {
-					*result = upsertResult
-					break
-				}
-			}
-
-			if result.Err == nil {
-				if err := transaction.Commit(); err != nil {
-					// don't need to rollback here since the transaction is already closed
-					result.Err = model.NewAppError("SqlPreferenceStore.Save", "store.sql_preference.save.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
-				} else {
-					result.Data = len(*preferences)
-				}
+func (s SqlPreferenceStore) Save(preferences *model.Preferences) (int, *model.AppError) {
+	// wrap in a transaction so that if one fails, everything fails
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return -1, model.NewAppError("SqlPreferenceStore.Save", "store.sql_preference.save.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	} else {
+		defer finalizeTransaction(transaction)
+		for _, preference := range *preferences {
+			if upsertResult := s.save(transaction, &preference); upsertResult.Err != nil {
+				return -1, 	upsertResult.Err
 			}
 		}
-	})
+
+		if err := transaction.Commit(); err != nil {
+			// don't need to rollback here since the transaction is already closed
+			return -1, model.NewAppError("SqlPreferenceStore.Save", "store.sql_preference.save.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+		} else {
+			return len(*preferences), nil
+		}
+	}
 }
 
 func (s SqlPreferenceStore) save(transaction *gorp.Transaction, preference *model.Preference) store.StoreResult {
