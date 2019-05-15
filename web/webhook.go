@@ -32,8 +32,8 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	defer func() {
 		if *c.App.Config().LogSettings.EnableWebhookDebugging {
-			if err != nil {
-				mlog.Debug("Incoming webhook received", mlog.String("Id", id), mlog.String("Request ID", c.App.RequestId), mlog.String("Payload", incomingWebhookPayload.ToJson()))
+			if c.Err != nil {
+				mlog.Debug("Incoming webhook received", mlog.String("webhook_id", id), mlog.String("request_id", c.App.RequestId), mlog.String("payload", incomingWebhookPayload.ToJson()))
 			}
 		}
 	}()
