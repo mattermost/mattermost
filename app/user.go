@@ -2171,7 +2171,7 @@ func (a *App) PromoteGuestToUser(user *model.User, requestorId string) *model.Ap
 	for _, team := range userTeams.Data.([]*model.Team) {
 		// Soft error if there is an issue joining the default channels
 		if err := a.JoinDefaultChannels(team.Id, user, false, requestorId); err != nil {
-			mlog.Error(fmt.Sprintf("Encountered an issue joining default channels err=%v", err), mlog.String("user_id", user.Id), mlog.String("team_id", team.Id))
+			mlog.Error(fmt.Sprintf("Encountered an issue joining default channels err=%v", err), mlog.String("user_id", user.Id), mlog.String("team_id", team.Id), mlog.String("requestor_id", requestorId))
 		}
 	}
 	return nil
