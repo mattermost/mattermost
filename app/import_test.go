@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils/fileutils"
@@ -250,12 +251,9 @@ func TestImportProcessImportDataFileVersionLine(t *testing.T) {
 }
 
 func GetAttachments(userId string, th *TestHelper, t *testing.T) []*model.FileInfo {
-	if result := <-th.App.Srv.Store.FileInfo().GetForUser(userId); result.Err != nil {
-		t.Fatal(result.Err.Error())
-	} else {
-		return result.Data.([]*model.FileInfo)
-	}
-	return nil
+	fileInfos, err := th.App.Srv.Store.FileInfo().GetForUser(userId)
+	require.Nil(t, err)
+	return fileInfos
 }
 
 func AssertFileIdsInPost(files []*model.FileInfo, th *TestHelper, t *testing.T) {
