@@ -109,9 +109,14 @@ func (s *RedisSupplier) ChannelMembersToRemove(ctx context.Context, hints ...Lay
 	return s.Next().ChannelMembersToRemove(ctx, hints...)
 }
 
-func (s *RedisSupplier) GetGroupsByChannel(ctx context.Context, channelId string, page, perPage int, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+func (s *RedisSupplier) GetGroupsByChannel(ctx context.Context, channelId string, opts model.GroupSearchOpts, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
 	// TODO: Redis caching.
-	return s.Next().GetGroupsByChannel(ctx, channelId, page, perPage, hints...)
+	return s.Next().GetGroupsByChannel(ctx, channelId, opts, hints...)
+}
+
+func (s *RedisSupplier) CountGroupsByChannel(ctx context.Context, channelId string, opts model.GroupSearchOpts, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	// TODO: Redis caching.
+	return s.Next().CountGroupsByChannel(ctx, channelId, opts, hints...)
 }
 
 func (s *RedisSupplier) GetGroupsByTeam(ctx context.Context, teamId string, opts model.GroupSearchOpts, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
