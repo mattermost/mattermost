@@ -195,9 +195,10 @@ func (s SqlPreferenceStore) GetCategory(userId string, category string) (model.P
 				UserId = :UserId
 				AND Category = :Category`, map[string]interface{}{"UserId": userId, "Category": category}); err != nil {
 		return nil, model.NewAppError("SqlPreferenceStore.GetCategory", "store.sql_preference.get_category.app_error", nil, err.Error(), http.StatusInternalServerError)
-	} else {
-		return preferences, nil
 	}
+
+	return preferences, nil
+
 }
 
 func (s SqlPreferenceStore) GetAll(userId string) store.StoreChannel {
