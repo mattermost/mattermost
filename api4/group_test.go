@@ -8,8 +8,9 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/stretchr/testify/assert"
 
 	"github.com/mattermost/mattermost-server/model"
 )
@@ -654,25 +655,34 @@ func TestGetGroupsByChannel(t *testing.T) {
 	})
 	assert.Nil(t, err)
 
-	_, response := th.SystemAdminClient.GetGroupsByChannel("asdfasdf", 0, 60)
+	opts := model.GroupSearchOpts{
+		PageOpts: &model.PageOpts{
+			Page:    0,
+			PerPage: 60,
+		},
+	}
+
+	_, _, response := th.SystemAdminClient.GetGroupsByChannel("asdfasdf", opts)
 	CheckBadRequestStatus(t, response)
 
 	th.App.SetLicense(nil)
 
-	_, response = th.SystemAdminClient.GetGroupsByChannel(th.BasicChannel.Id, 0, 60)
+	_, _, response = th.SystemAdminClient.GetGroupsByChannel(th.BasicChannel.Id, opts)
 	CheckNotImplementedStatus(t, response)
 
 	th.App.SetLicense(model.NewTestLicense("ldap"))
 
-	_, response = th.Client.GetGroupsByChannel(th.BasicChannel.Id, 0, 60)
+	privateChannel := th.CreateChannelWithClient(th.SystemAdminClient, model.CHANNEL_PRIVATE)
+
+	_, _, response = th.Client.GetGroupsByChannel(privateChannel.Id, opts)
 	CheckForbiddenStatus(t, response)
 
-	groups, response := th.SystemAdminClient.GetGroupsByChannel(th.BasicChannel.Id, 0, 60)
+	groups, _, response := th.SystemAdminClient.GetGroupsByChannel(th.BasicChannel.Id, opts)
 	assert.Nil(t, response.Error)
 	assert.ElementsMatch(t, []*model.Group{group}, groups)
 
-	groups, response = th.SystemAdminClient.GetGroupsByChannel(model.NewId(), 0, 60)
-	assert.Nil(t, response.Error)
+	groups, _, response = th.SystemAdminClient.GetGroupsByChannel(model.NewId(), opts)
+	assert.Equal(t, "store.sql_channel.get.existing.app_error", response.Error.Id)
 	assert.Empty(t, groups)
 }
 
