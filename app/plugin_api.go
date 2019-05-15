@@ -725,6 +725,12 @@ func (api *PluginAPI) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
 	if bot.OwnerId == "" {
 		bot.OwnerId = api.id
 	}
+	// Bots cannot be owners of other bots
+	if user, err := api.app.GetUser(bot.OwnerId); err == nil {
+		if user.IsBot {
+			return nil, model.NewAppError("CreateBot", "plugin_api.bot_cant_create_bot", nil, "", http.StatusBadRequest)
+		}
+	}
 
 	return api.app.CreateBot(bot)
 }

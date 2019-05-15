@@ -17,6 +17,10 @@ func TestCreateBot(t *testing.T) {
 		th := Setup().InitBasic()
 		defer th.TearDown()
 
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.CreateBotAccounts = true
+		})
+
 		_, resp := th.Client.CreateBot(&model.Bot{
 			Username:    GenerateTestUsername(),
 			DisplayName: "a bot",
@@ -26,6 +30,23 @@ func TestCreateBot(t *testing.T) {
 		CheckErrorMessage(t, resp, "api.context.permissions.app_error")
 	})
 
+	t.Run("create bot without config permissions", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
+
+		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
+		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+		th.App.Config().ServiceSettings.CreateBotAccounts = model.NewBool(false)
+
+		_, resp := th.Client.CreateBot(&model.Bot{
+			Username:    GenerateTestUsername(),
+			DisplayName: "a bot",
+			Description: "bot",
+		})
+
+		CheckErrorMessage(t, resp, "api.bot.create_disabled")
+	})
+
 	t.Run("create bot with permissions", func(t *testing.T) {
 		th := Setup().InitBasic()
 		defer th.TearDown()
@@ -33,6 +54,9 @@ func TestCreateBot(t *testing.T) {
 
 		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.CreateBotAccounts = true
+		})
 
 		bot := &model.Bot{
 			Username:    GenerateTestUsername(),
@@ -55,6 +79,9 @@ func TestCreateBot(t *testing.T) {
 
 		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.CreateBotAccounts = true
+		})
 
 		_, resp := th.Client.CreateBot(&model.Bot{
 			Username:    "username",
@@ -64,6 +91,42 @@ func TestCreateBot(t *testing.T) {
 
 		CheckErrorMessage(t, resp, "model.bot.is_valid.description.app_error")
 	})
+
+	t.Run("bot attempt to create bot fails", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.CreateBotAccounts = true
+		})
+
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableUserAccessTokens = true })
+		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_EDIT_OTHER_USERS.Id, model.TEAM_USER_ROLE_ID)
+		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID+" "+model.SYSTEM_USER_ACCESS_TOKEN_ROLE_ID, false)
+
+		bot, resp := th.Client.CreateBot(&model.Bot{
+			Username:    GenerateTestUsername(),
+			DisplayName: "a bot",
+			Description: "bot",
+		})
+		CheckCreatedStatus(t, resp)
+		defer th.App.PermanentDeleteBot(bot.UserId)
+		th.App.UpdateUserRoles(bot.UserId, model.TEAM_USER_ROLE_ID+" "+model.SYSTEM_USER_ACCESS_TOKEN_ROLE_ID, false)
+
+		rtoken, resp := th.Client.CreateUserAccessToken(bot.UserId, "test token")
+		CheckNoError(t, resp)
+		th.Client.AuthToken = rtoken.Token
+
+		_, resp = th.Client.CreateBot(&model.Bot{
+			Username:    GenerateTestUsername(),
+			OwnerId:     bot.UserId,
+			DisplayName: "a bot2",
+			Description: "bot2",
+		})
+		CheckErrorMessage(t, resp, "api.context.permissions.app_error")
+	})
+
 }
 
 func TestPatchBot(t *testing.T) {
@@ -80,6 +143,10 @@ func TestPatchBot(t *testing.T) {
 		th := Setup().InitBasic()
 		defer th.TearDown()
 		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.CreateBotAccounts = true
+		})
 
 		createdBot, resp := th.SystemAdminClient.CreateBot(&model.Bot{
 			Username:    GenerateTestUsername(),
@@ -100,6 +167,9 @@ func TestPatchBot(t *testing.T) {
 
 		th.AddPermissionToRole(model.PERMISSION_READ_OTHERS_BOTS.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.CreateBotAccounts = true
+		})
 
 		createdBot, resp := th.SystemAdminClient.CreateBot(&model.Bot{
 			Username:    GenerateTestUsername(),
@@ -120,6 +190,9 @@ func TestPatchBot(t *testing.T) {
 
 		th.AddPermissionToRole(model.PERMISSION_MANAGE_OTHERS_BOTS.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.CreateBotAccounts = true
+		})
 
 		createdBot, resp := th.SystemAdminClient.CreateBot(&model.Bot{
 			Username:    GenerateTestUsername(),
@@ -150,6 +223,9 @@ func TestPatchBot(t *testing.T) {
 
 		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.CreateBotAccounts = true
+		})
 
 		createdBot, resp := th.Client.CreateBot(&model.Bot{
 			Username:    GenerateTestUsername(),
@@ -177,6 +253,9 @@ func TestPatchBot(t *testing.T) {
 		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
 		th.AddPermissionToRole(model.PERMISSION_READ_BOTS.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.CreateBotAccounts = true
+		})
 
 		createdBot, resp := th.Client.CreateBot(&model.Bot{
 			Username:    GenerateTestUsername(),
@@ -204,6 +283,9 @@ func TestPatchBot(t *testing.T) {
 		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
 		th.AddPermissionToRole(model.PERMISSION_MANAGE_BOTS.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.CreateBotAccounts = true
+		})
 
 		createdBot, resp := th.Client.CreateBot(&model.Bot{
 			Username:    GenerateTestUsername(),
@@ -235,6 +317,9 @@ func TestPatchBot(t *testing.T) {
 		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
 		th.AddPermissionToRole(model.PERMISSION_MANAGE_BOTS.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.CreateBotAccounts = true
+		})
 
 		bot := &model.Bot{
 			Username:    GenerateTestUsername(),
@@ -266,6 +351,9 @@ func TestPatchBot(t *testing.T) {
 		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
 		th.AddPermissionToRole(model.PERMISSION_MANAGE_BOTS.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.CreateBotAccounts = true
+		})
 
 		createdBot, resp := th.Client.CreateBot(&model.Bot{
 			Username:    GenerateTestUsername(),
@@ -292,6 +380,10 @@ func TestPatchBot(t *testing.T) {
 func TestGetBot(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.CreateBotAccounts = true
+	})
 
 	bot1, resp := th.SystemAdminClient.CreateBot(&model.Bot{
 		Username:    GenerateTestUsername(),
@@ -320,6 +412,10 @@ func TestGetBot(t *testing.T) {
 
 	th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
 	th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.CreateBotAccounts = true
+	})
+
 	myBot, resp := th.Client.CreateBot(&model.Bot{
 		Username:    GenerateTestUsername(),
 		DisplayName: "my bot",
@@ -428,6 +524,10 @@ func TestGetBot(t *testing.T) {
 func TestGetBots(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.CreateBotAccounts = true
+	})
 
 	bot1, resp := th.SystemAdminClient.CreateBot(&model.Bot{
 		Username:    GenerateTestUsername(),
@@ -661,6 +761,9 @@ func TestDisableBot(t *testing.T) {
 
 		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.CreateBotAccounts = true
+		})
 
 		bot := &model.Bot{
 			Username:    GenerateTestUsername(),
@@ -683,6 +786,9 @@ func TestDisableBot(t *testing.T) {
 		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
 		th.AddPermissionToRole(model.PERMISSION_READ_BOTS.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.CreateBotAccounts = true
+		})
 
 		bot := &model.Bot{
 			Username:    GenerateTestUsername(),
@@ -705,6 +811,9 @@ func TestDisableBot(t *testing.T) {
 		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
 		th.AddPermissionToRole(model.PERMISSION_MANAGE_BOTS.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.CreateBotAccounts = true
+		})
 
 		bot, resp := th.Client.CreateBot(&model.Bot{
 			Username:    GenerateTestUsername(),
@@ -730,7 +839,6 @@ func TestDisableBot(t *testing.T) {
 		require.Equal(t, bot, enabledBot2)
 	})
 }
-
 func TestEnableBot(t *testing.T) {
 	t.Run("enable non-existent bot", func(t *testing.T) {
 		th := Setup().InitBasic()
@@ -747,6 +855,9 @@ func TestEnableBot(t *testing.T) {
 
 		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.CreateBotAccounts = true
+		})
 
 		bot := &model.Bot{
 			Username:    GenerateTestUsername(),
@@ -772,6 +883,9 @@ func TestEnableBot(t *testing.T) {
 		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
 		th.AddPermissionToRole(model.PERMISSION_READ_BOTS.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.CreateBotAccounts = true
+		})
 
 		bot := &model.Bot{
 			Username:    GenerateTestUsername(),
@@ -797,6 +911,9 @@ func TestEnableBot(t *testing.T) {
 		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
 		th.AddPermissionToRole(model.PERMISSION_MANAGE_BOTS.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.CreateBotAccounts = true
+		})
 
 		bot, resp := th.Client.CreateBot(&model.Bot{
 			Username:    GenerateTestUsername(),
@@ -840,6 +957,9 @@ func TestAssignBot(t *testing.T) {
 
 		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.SYSTEM_USER_ROLE_ID)
 		th.AddPermissionToRole(model.PERMISSION_READ_BOTS.Id, model.SYSTEM_USER_ROLE_ID)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.CreateBotAccounts = true
+		})
 
 		bot := &model.Bot{
 			Username:    GenerateTestUsername(),
@@ -879,6 +999,9 @@ func TestAssignBot(t *testing.T) {
 
 		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.SYSTEM_USER_ROLE_ID)
 		th.AddPermissionToRole(model.PERMISSION_READ_BOTS.Id, model.SYSTEM_USER_ROLE_ID)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.CreateBotAccounts = true
+		})
 
 		bot := &model.Bot{
 			Username:    GenerateTestUsername(),
@@ -907,6 +1030,9 @@ func TestAssignBot(t *testing.T) {
 
 		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.SYSTEM_USER_ROLE_ID)
 		th.AddPermissionToRole(model.PERMISSION_READ_BOTS.Id, model.SYSTEM_USER_ROLE_ID)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.CreateBotAccounts = true
+		})
 
 		bot := &model.Bot{
 			Username:    GenerateTestUsername(),
@@ -930,6 +1056,37 @@ func TestAssignBot(t *testing.T) {
 		after, resp := th.SystemAdminClient.GetBot(bot.UserId, "")
 		CheckOKStatus(t, resp)
 		require.Equal(t, th.BasicUser2.Id, after.OwnerId)
+	})
+
+	t.Run("bot assigned to bot fails", func(t *testing.T) {
+		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+
+		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.SYSTEM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_READ_BOTS.Id, model.SYSTEM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_READ_OTHERS_BOTS.Id, model.SYSTEM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_MANAGE_BOTS.Id, model.SYSTEM_USER_ROLE_ID)
+		th.AddPermissionToRole(model.PERMISSION_MANAGE_OTHERS_BOTS.Id, model.SYSTEM_USER_ROLE_ID)
+
+		bot := &model.Bot{
+			Username:    GenerateTestUsername(),
+			Description: "bot",
+		}
+		bot, resp := th.Client.CreateBot(bot)
+		CheckCreatedStatus(t, resp)
+		defer th.App.PermanentDeleteBot(bot.UserId)
+
+		bot2, resp := th.Client.CreateBot(&model.Bot{
+			Username:    GenerateTestUsername(),
+			DisplayName: "a bot",
+			Description: "bot",
+		})
+
+		CheckCreatedStatus(t, resp)
+		defer th.App.PermanentDeleteBot(bot2.UserId)
+
+		_, resp = th.Client.AssignBot(bot.UserId, bot2.UserId)
+		CheckErrorMessage(t, resp, "api.context.permissions.app_error")
+
 	})
 }
 
