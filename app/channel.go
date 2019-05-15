@@ -496,9 +496,9 @@ func (a *App) GetGroupChannel(userIds []string) (*model.Channel, *model.AppError
 }
 
 func (a *App) UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
-	result := <-a.Srv.Store.Channel().Update(channel)
-	if result.Err != nil {
-		return nil, result.Err
+	_, err := a.Srv.Store.Channel().Update(channel)
+	if err != nil {
+		return nil, err
 	}
 
 	a.InvalidateCacheForChannel(channel)
@@ -793,11 +793,18 @@ func (a *App) UpdateChannelMemberNotifyProps(data map[string]string, channelId s
 
 func (a *App) DeleteChannel(channel *model.Channel, userId string) *model.AppError {
 	ihc := make(chan store.StoreResult, 1)
-	ohc := a.Srv.Store.Webhook().GetOutgoingByChannel(channel.Id, -1, -1)
+	ohc := make(chan store.StoreResult, 1)
+
 	go func() {
 		webhooks, err := a.Srv.Store.Webhook().GetIncomingByChannel(channel.Id)
 		ihc <- store.StoreResult{Data: webhooks, Err: err}
 		close(ihc)
+	}()
+
+	go func() {
+		outgoingHooks, err := a.Srv.Store.Webhook().GetOutgoingByChannel(channel.Id, -1, -1)
+		ohc <- store.StoreResult{Data: outgoingHooks, Err: err}
+		close(ohc)
 	}()
 
 	var user *model.User
@@ -1335,11 +1342,10 @@ func (a *App) GetChannelCounts(teamId string, userId string) (*model.ChannelCoun
 }
 
 func (a *App) GetChannelUnread(channelId, userId string) (*model.ChannelUnread, *model.AppError) {
-	result := <-a.Srv.Store.Channel().GetChannelUnread(channelId, userId)
-	if result.Err != nil {
-		return nil, result.Err
+	channelUnread, err := a.Srv.Store.Channel().GetChannelUnread(channelId, userId)
+	if err != nil {
+		return nil, err
 	}
-	channelUnread := result.Data.(*model.ChannelUnread)
 
 	if channelUnread.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] == model.CHANNEL_MARK_UNREAD_MENTION {
 		channelUnread.MsgCount = 0
@@ -1951,8 +1957,8 @@ func (a *App) MoveChannel(team *model.Team, channel *model.Channel, user *model.
 	}
 
 	channel.TeamId = team.Id
-	if result := <-a.Srv.Store.Channel().Update(channel); result.Err != nil {
-		return result.Err
+	if _, err := a.Srv.Store.Channel().Update(channel); err != nil {
+		return err
 	}
 	a.postChannelMoveMessage(user, channel, previousTeam)
 

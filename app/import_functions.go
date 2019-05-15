@@ -909,7 +909,6 @@ func (a *App) ImportReply(data *ReplyImportData, post *model.Post, teamId string
 }
 
 func (a *App) ImportAttachment(data *AttachmentImportData, post *model.Post, teamId string, dryRun bool) (*model.FileInfo, *model.AppError) {
-	fileUploadError := model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
 	file, err := os.Open(*data.Path)
 	if err != nil {
 		return nil, model.NewAppError("BulkImport", "app.import.attachment.bad_file.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
@@ -922,8 +921,8 @@ func (a *App) ImportAttachment(data *AttachmentImportData, post *model.Post, tea
 		fileInfo, err := a.DoUploadFile(timestamp, teamId, post.ChannelId, post.UserId, file.Name(), buf.Bytes())
 
 		if err != nil {
-			fmt.Print(err)
-			return nil, fileUploadError
+			mlog.Error(fmt.Sprintf("Failed to upload file: %s", err.Error()))
+			return nil, err
 		}
 
 		a.HandleImages([]string{fileInfo.PreviewPath}, []string{fileInfo.ThumbnailPath}, [][]byte{buf.Bytes()})
@@ -931,7 +930,7 @@ func (a *App) ImportAttachment(data *AttachmentImportData, post *model.Post, tea
 		mlog.Info(fmt.Sprintf("uploading file with name %s", file.Name()))
 		return fileInfo, nil
 	}
-	return nil, fileUploadError
+	return nil, model.NewAppError("BulkImport", "app.import.attachment.file_upload.error", map[string]interface{}{"FilePath": *data.Path}, "", http.StatusBadRequest)
 }
 
 func (a *App) ImportPost(data *PostImportData, dryRun bool) *model.AppError {
@@ -1137,8 +1136,8 @@ func (a *App) ImportDirectChannel(data *DirectChannelImportData, dryRun bool) *m
 
 	if data.Header != nil {
 		channel.Header = *data.Header
-		if result := <-a.Srv.Store.Channel().Update(channel); result.Err != nil {
-			return model.NewAppError("BulkImport", "app.import.import_direct_channel.update_header_failed.error", nil, result.Err.Error(), http.StatusBadRequest)
+		if _, apperr := a.Srv.Store.Channel().Update(channel); apperr != nil {
+			return model.NewAppError("BulkImport", "app.import.import_direct_channel.update_header_failed.error", nil, apperr.Error(), http.StatusBadRequest)
 		}
 	}
 

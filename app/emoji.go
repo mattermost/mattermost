@@ -178,11 +178,7 @@ func (a *App) GetEmoji(emojiId string) (*model.Emoji, *model.AppError) {
 		return nil, model.NewAppError("GetEmoji", "api.emoji.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	result := <-a.Srv.Store.Emoji().Get(emojiId, false)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.Emoji), nil
+	return a.Srv.Store.Emoji().Get(emojiId, false)
 }
 
 func (a *App) GetEmojiByName(emojiName string) (*model.Emoji, *model.AppError) {
@@ -214,9 +210,9 @@ func (a *App) GetMultipleEmojiByName(names []string) ([]*model.Emoji, *model.App
 }
 
 func (a *App) GetEmojiImage(emojiId string) ([]byte, string, *model.AppError) {
-	result := <-a.Srv.Store.Emoji().Get(emojiId, true)
-	if result.Err != nil {
-		return nil, "", result.Err
+	_, storeErr := a.Srv.Store.Emoji().Get(emojiId, true)
+	if storeErr != nil {
+		return nil, "", storeErr
 	}
 
 	img, appErr := a.ReadFile(getEmojiImagePath(emojiId))

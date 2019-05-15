@@ -195,10 +195,6 @@ func (s *LayeredStore) LinkMetadata() LinkMetadataStore {
 	return s.DatabaseLayer.LinkMetadata()
 }
 
-func (s *LayeredStore) NotificationRegistry() NotificationRegistryStore {
-	return s.DatabaseLayer.NotificationRegistry()
-}
-
 func (s *LayeredStore) MarkSystemRanUnitTests() {
 	s.DatabaseLayer.MarkSystemRanUnitTests()
 }
@@ -476,8 +472,20 @@ func (s *LayeredGroupStore) GetGroupsByChannel(channelId string, page, perPage i
 	})
 }
 
-func (s *LayeredGroupStore) GetGroupsByTeam(teamId string, page, perPage int) StoreChannel {
+func (s *LayeredGroupStore) GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) StoreChannel {
 	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.GetGroupsByTeam(s.TmpContext, teamId, page, perPage)
+		return supplier.GetGroupsByTeam(s.TmpContext, teamId, opts)
+	})
+}
+
+func (s *LayeredGroupStore) CountGroupsByTeam(teamId string, opts model.GroupSearchOpts) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.CountGroupsByTeam(s.TmpContext, teamId, opts)
+	})
+}
+
+func (s *LayeredGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.GetGroups(s.TmpContext, page, perPage, opts)
 	})
 }

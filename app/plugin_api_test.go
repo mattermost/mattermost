@@ -505,9 +505,9 @@ func TestPluginAPIGetPlugins(t *testing.T) {
 	}
 	th.App.SetPluginsEnvironment(env)
 
-	// Decativate the last one for testing
-	sucess := env.Deactivate(pluginIDs[len(pluginIDs)-1])
-	require.True(t, sucess)
+	// Deactivate the last one for testing
+	success := env.Deactivate(pluginIDs[len(pluginIDs)-1])
+	require.True(t, success)
 
 	// check existing user first
 	plugins, err := api.GetPlugins()
@@ -754,4 +754,26 @@ func TestPluginAPIKVCompareAndSet(t *testing.T) {
 			require.Equal(t, expectedValue2, value)
 		})
 	}
+}
+
+func TestPluginCreateBot(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	bot, err := api.CreateBot(&model.Bot{
+		Username:    model.NewRandomString(10),
+		DisplayName: "bot",
+		Description: "bot",
+	})
+	require.Nil(t, err)
+
+	_, err = api.CreateBot(&model.Bot{
+		Username:    model.NewRandomString(10),
+		OwnerId:     bot.UserId,
+		DisplayName: "bot2",
+		Description: "bot2",
+	})
+	require.NotNil(t, err)
+
 }
