@@ -74,7 +74,7 @@
         "ExperimentalChannelOrganization": false,
         "EnableAPITeamDeletion": false,
         "ExperimentalEnableHardenedMode": false,
-        "DisableLegacyMFA": false,
+        "DisableLegacyMFA": true,
         "EnableEmailInvitations": false,
         "ExperimentalLdapGroupSync": false,
         "ExperimentalStrictCSRFEnforcement": false
@@ -146,6 +146,15 @@
         "FileLocation": "",
         "EnableWebhookDebugging": true,
         "EnableDiagnostics": true
+    },
+    "NotificationLogSettings": {
+        "EnableConsole": true,
+        "ConsoleLevel": "DEBUG",
+        "ConsoleJson": true,
+        "EnableFile": true,
+        "FileLevel": "INFO",
+        "FileJson": true,
+        "FileLocation": ""
     },
     "PasswordSettings": {
         "MinimumLength": 5,
@@ -414,6 +423,7 @@
     "PluginSettings": {
         "Enable": true,
         "EnableUploads": false,
+        "EnableHealthCheck": true,
         "Directory": "./plugins",
         "ClientDirectory": "./client/plugins",
         "Plugins": {},

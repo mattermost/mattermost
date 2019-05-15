@@ -293,6 +293,7 @@ type ServiceSettings struct {
 	EnableEmailInvitations                            *bool
 	ExperimentalLdapGroupSync                         *bool
 	DisableBotsWhenOwnerIsDeactivated                 *bool `restricted:"true"`
+	CreateBotAccounts                                 *bool
 }
 
 func (s *ServiceSettings) SetDefaults() {
@@ -635,6 +636,10 @@ func (s *ServiceSettings) SetDefaults() {
 	if s.DisableBotsWhenOwnerIsDeactivated == nil {
 		s.DisableBotsWhenOwnerIsDeactivated = NewBool(true)
 	}
+
+	if s.CreateBotAccounts == nil {
+		s.CreateBotAccounts = NewBool(false)
+	}
 }
 
 type ClusterSettings struct {
@@ -864,7 +869,6 @@ type LogSettings struct {
 	EnableFile             *bool   `restricted:"true"`
 	FileLevel              *string `restricted:"true"`
 	FileJson               *bool   `restricted:"true"`
-	FileFormat             *string `restricted:"true"`
 	FileLocation           *string `restricted:"true"`
 	EnableWebhookDebugging *bool   `restricted:"true"`
 	EnableDiagnostics      *bool   `restricted:"true"`
@@ -887,10 +891,6 @@ func (s *LogSettings) SetDefaults() {
 		s.FileLevel = NewString("INFO")
 	}
 
-	if s.FileFormat == nil {
-		s.FileFormat = NewString("")
-	}
-
 	if s.FileLocation == nil {
 		s.FileLocation = NewString("")
 	}
@@ -901,6 +901,46 @@ func (s *LogSettings) SetDefaults() {
 
 	if s.EnableDiagnostics == nil {
 		s.EnableDiagnostics = NewBool(true)
+	}
+
+	if s.ConsoleJson == nil {
+		s.ConsoleJson = NewBool(true)
+	}
+
+	if s.FileJson == nil {
+		s.FileJson = NewBool(true)
+	}
+}
+
+type NotificationLogSettings struct {
+	EnableConsole *bool   `restricted:"true"`
+	ConsoleLevel  *string `restricted:"true"`
+	ConsoleJson   *bool   `restricted:"true"`
+	EnableFile    *bool   `restricted:"true"`
+	FileLevel     *string `restricted:"true"`
+	FileJson      *bool   `restricted:"true"`
+	FileLocation  *string `restricted:"true"`
+}
+
+func (s *NotificationLogSettings) SetDefaults() {
+	if s.EnableConsole == nil {
+		s.EnableConsole = NewBool(true)
+	}
+
+	if s.ConsoleLevel == nil {
+		s.ConsoleLevel = NewString("DEBUG")
+	}
+
+	if s.EnableFile == nil {
+		s.EnableFile = NewBool(true)
+	}
+
+	if s.FileLevel == nil {
+		s.FileLevel = NewString("INFO")
+	}
+
+	if s.FileLocation == nil {
+		s.FileLocation = NewString("")
 	}
 
 	if s.ConsoleJson == nil {
@@ -2070,12 +2110,13 @@ type PluginState struct {
 }
 
 type PluginSettings struct {
-	Enable          *bool
-	EnableUploads   *bool   `restricted:"true"`
-	Directory       *string `restricted:"true"`
-	ClientDirectory *string `restricted:"true"`
-	Plugins         map[string]map[string]interface{}
-	PluginStates    map[string]*PluginState
+	Enable            *bool
+	EnableUploads     *bool   `restricted:"true"`
+	EnableHealthCheck *bool   `restricted:"true"`
+	Directory         *string `restricted:"true"`
+	ClientDirectory   *string `restricted:"true"`
+	Plugins           map[string]map[string]interface{}
+	PluginStates      map[string]*PluginState
 }
 
 func (s *PluginSettings) SetDefaults() {
@@ -2085,6 +2126,10 @@ func (s *PluginSettings) SetDefaults() {
 
 	if s.EnableUploads == nil {
 		s.EnableUploads = NewBool(false)
+	}
+
+	if s.EnableHealthCheck == nil {
+		s.EnableHealthCheck = NewBool(true)
 	}
 
 	if s.Directory == nil {
@@ -2236,38 +2281,39 @@ func (ips *ImageProxySettings) SetDefaults(ss ServiceSettings) {
 type ConfigFunc func() *Config
 
 type Config struct {
-	ServiceSettings       ServiceSettings
-	TeamSettings          TeamSettings
-	ClientRequirements    ClientRequirements
-	SqlSettings           SqlSettings
-	LogSettings           LogSettings
-	PasswordSettings      PasswordSettings
-	FileSettings          FileSettings
-	EmailSettings         EmailSettings
-	RateLimitSettings     RateLimitSettings
-	PrivacySettings       PrivacySettings
-	SupportSettings       SupportSettings
-	AnnouncementSettings  AnnouncementSettings
-	ThemeSettings         ThemeSettings
-	GitLabSettings        SSOSettings
-	GoogleSettings        SSOSettings
-	Office365Settings     SSOSettings
-	LdapSettings          LdapSettings
-	ComplianceSettings    ComplianceSettings
-	LocalizationSettings  LocalizationSettings
-	SamlSettings          SamlSettings
-	NativeAppSettings     NativeAppSettings
-	ClusterSettings       ClusterSettings
-	MetricsSettings       MetricsSettings
-	ExperimentalSettings  ExperimentalSettings
-	AnalyticsSettings     AnalyticsSettings
-	ElasticsearchSettings ElasticsearchSettings
-	DataRetentionSettings DataRetentionSettings
-	MessageExportSettings MessageExportSettings
-	JobSettings           JobSettings
-	PluginSettings        PluginSettings
-	DisplaySettings       DisplaySettings
-	ImageProxySettings    ImageProxySettings
+	ServiceSettings         ServiceSettings
+	TeamSettings            TeamSettings
+	ClientRequirements      ClientRequirements
+	SqlSettings             SqlSettings
+	LogSettings             LogSettings
+	NotificationLogSettings NotificationLogSettings
+	PasswordSettings        PasswordSettings
+	FileSettings            FileSettings
+	EmailSettings           EmailSettings
+	RateLimitSettings       RateLimitSettings
+	PrivacySettings         PrivacySettings
+	SupportSettings         SupportSettings
+	AnnouncementSettings    AnnouncementSettings
+	ThemeSettings           ThemeSettings
+	GitLabSettings          SSOSettings
+	GoogleSettings          SSOSettings
+	Office365Settings       SSOSettings
+	LdapSettings            LdapSettings
+	ComplianceSettings      ComplianceSettings
+	LocalizationSettings    LocalizationSettings
+	SamlSettings            SamlSettings
+	NativeAppSettings       NativeAppSettings
+	ClusterSettings         ClusterSettings
+	MetricsSettings         MetricsSettings
+	ExperimentalSettings    ExperimentalSettings
+	AnalyticsSettings       AnalyticsSettings
+	ElasticsearchSettings   ElasticsearchSettings
+	DataRetentionSettings   DataRetentionSettings
+	MessageExportSettings   MessageExportSettings
+	JobSettings             JobSettings
+	PluginSettings          PluginSettings
+	DisplaySettings         DisplaySettings
+	ImageProxySettings      ImageProxySettings
 }
 
 func (o *Config) Clone() *Config {
@@ -2339,6 +2385,7 @@ func (o *Config) SetDefaults() {
 	o.DataRetentionSettings.SetDefaults()
 	o.RateLimitSettings.SetDefaults()
 	o.LogSettings.SetDefaults()
+	o.NotificationLogSettings.SetDefaults()
 	o.JobSettings.SetDefaults()
 	o.MessageExportSettings.SetDefaults()
 	o.DisplaySettings.SetDefaults()

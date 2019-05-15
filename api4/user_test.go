@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -282,8 +283,7 @@ func TestCreateUserWithInviteId(t *testing.T) {
 
 		inviteId := th.BasicTeam.InviteId
 
-		th.BasicTeam.InviteId = model.NewId()
-		_, resp := th.SystemAdminClient.UpdateTeam(th.BasicTeam)
+		_, resp := th.SystemAdminClient.RegenerateTeamInviteId(th.BasicTeam.Id)
 		CheckNoError(t, resp)
 
 		_, resp = th.Client.CreateUserWithInviteId(&user, inviteId)
@@ -318,7 +318,9 @@ func TestCreateUserWithInviteId(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = false })
 
-		inviteId := th.BasicTeam.InviteId
+		team, res := th.SystemAdminClient.RegenerateTeamInviteId(th.BasicTeam.Id)
+		assert.Nil(t, res.Error)
+		inviteId := team.InviteId
 
 		ruser, resp := th.Client.CreateUserWithInviteId(&user, inviteId)
 		CheckNoError(t, resp)
@@ -417,6 +419,105 @@ func TestGetUser(t *testing.T) {
 	}
 }
 
+func TestGetUserWithAcceptedTermsOfServiceForOtherUser(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	user := th.CreateUser()
+
+	tos, _ := th.App.CreateTermsOfService("Dummy TOS", user.Id)
+
+	th.App.UpdateUser(user, false)
+
+	ruser, resp := th.Client.GetUser(user.Id, "")
+	CheckNoError(t, resp)
+	CheckUserSanitization(t, ruser)
+
+	if ruser.Email != user.Email {
+		t.Fatal("emails did not match")
+	}
+
+	assert.Empty(t, ruser.TermsOfServiceId)
+
+	th.App.SaveUserTermsOfService(user.Id, tos.Id, true)
+
+	ruser, resp = th.Client.GetUser(user.Id, "")
+	CheckNoError(t, resp)
+	CheckUserSanitization(t, ruser)
+
+	if ruser.Email != user.Email {
+		t.Fatal("emails did not match")
+	}
+
+	// user TOS data cannot be fetched for other users by non-admin users
+	assert.Empty(t, ruser.TermsOfServiceId)
+}
+
+func TestGetUserWithAcceptedTermsOfService(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	user := th.BasicUser
+
+	tos, _ := th.App.CreateTermsOfService("Dummy TOS", user.Id)
+
+	ruser, resp := th.Client.GetUser(user.Id, "")
+	CheckNoError(t, resp)
+	CheckUserSanitization(t, ruser)
+
+	if ruser.Email != user.Email {
+		t.Fatal("emails did not match")
+	}
+
+	assert.Empty(t, ruser.TermsOfServiceId)
+
+	th.App.SaveUserTermsOfService(user.Id, tos.Id, true)
+
+	ruser, resp = th.Client.GetUser(user.Id, "")
+	CheckNoError(t, resp)
+	CheckUserSanitization(t, ruser)
+
+	if ruser.Email != user.Email {
+		t.Fatal("emails did not match")
+	}
+
+	// a user can view their own TOS details
+	assert.Equal(t, tos.Id, ruser.TermsOfServiceId)
+}
+
+func TestGetUserWithAcceptedTermsOfServiceWithAdminUser(t *testing.T) {
+	th := Setup().InitBasic()
+	th.LoginSystemAdmin()
+	defer th.TearDown()
+
+	user := th.BasicUser
+
+	tos, _ := th.App.CreateTermsOfService("Dummy TOS", user.Id)
+
+	ruser, resp := th.SystemAdminClient.GetUser(user.Id, "")
+	CheckNoError(t, resp)
+	CheckUserSanitization(t, ruser)
+
+	if ruser.Email != user.Email {
+		t.Fatal("emails did not match")
+	}
+
+	assert.Empty(t, ruser.TermsOfServiceId)
+
+	th.App.SaveUserTermsOfService(user.Id, tos.Id, true)
+
+	ruser, resp = th.SystemAdminClient.GetUser(user.Id, "")
+	CheckNoError(t, resp)
+	CheckUserSanitization(t, ruser)
+
+	if ruser.Email != user.Email {
+		t.Fatal("emails did not match")
+	}
+
+	// admin can view anyone's TOS details
+	assert.Equal(t, tos.Id, ruser.TermsOfServiceId)
+}
+
 func TestGetBotUser(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
@@ -424,7 +525,11 @@ func TestGetBotUser(t *testing.T) {
 	defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
 
 	th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
-	th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+	th.App.UpdateUserRoles(th.BasicUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.TEAM_USER_ROLE_ID, false)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.CreateBotAccounts = true
+	})
 
 	bot := &model.Bot{
 		Username:    GenerateTestUsername(),
@@ -437,6 +542,7 @@ func TestGetBotUser(t *testing.T) {
 	defer th.App.PermanentDeleteBot(createdBot.UserId)
 
 	botUser, resp := th.Client.GetUser(createdBot.UserId, "")
+	CheckNoError(t, resp)
 	require.Equal(t, bot.Username, botUser.Username)
 	require.True(t, botUser.IsBot)
 }
@@ -498,6 +604,36 @@ func TestGetUserByUsername(t *testing.T) {
 	}
 	if ruser.LastName == "" {
 		t.Fatal("last name should not be blank")
+	}
+}
+
+func TestGetUserByUsernameWithAcceptedTermsOfService(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	user := th.BasicUser
+
+	ruser, resp := th.Client.GetUserByUsername(user.Username, "")
+	CheckNoError(t, resp)
+	CheckUserSanitization(t, ruser)
+
+	if ruser.Email != user.Email {
+		t.Fatal("emails did not match")
+	}
+
+	tos, _ := th.App.CreateTermsOfService("Dummy TOS", user.Id)
+	th.App.SaveUserTermsOfService(ruser.Id, tos.Id, true)
+
+	ruser, resp = th.Client.GetUserByUsername(user.Username, "")
+	CheckNoError(t, resp)
+	CheckUserSanitization(t, ruser)
+
+	if ruser.Email != user.Email {
+		t.Fatal("emails did not match")
+	}
+
+	if ruser.TermsOfServiceId != tos.Id {
+		t.Fatal("Terms of service ID didn't match")
 	}
 }
 
@@ -1901,24 +2037,24 @@ func TestUserLoginMFAFlow(t *testing.T) {
 		*c.ServiceSettings.EnableMultifactorAuthentication = true
 	})
 
-	secret, err := th.App.GenerateMfaSecret(th.BasicUser.Id)
-	assert.Nil(t, err)
-
 	t.Run("WithoutMFA", func(t *testing.T) {
 		_, resp := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
 		CheckNoError(t, resp)
 	})
 
-	// Fake user has MFA enabled
-	if result := <-th.Server.Store.User().UpdateMfaActive(th.BasicUser.Id, true); result.Err != nil {
-		t.Fatal(result.Err)
-	}
-
-	if result := <-th.Server.Store.User().UpdateMfaSecret(th.BasicUser.Id, secret.Secret); result.Err != nil {
-		t.Fatal(result.Err)
-	}
-
 	t.Run("WithInvalidMFA", func(t *testing.T) {
+		secret, err := th.App.GenerateMfaSecret(th.BasicUser.Id)
+		assert.Nil(t, err)
+
+		// Fake user has MFA enabled
+		if result := <-th.Server.Store.User().UpdateMfaActive(th.BasicUser.Id, true); result.Err != nil {
+			t.Fatal(result.Err)
+		}
+
+		if result := <-th.Server.Store.User().UpdateMfaSecret(th.BasicUser.Id, secret.Secret); result.Err != nil {
+			t.Fatal(result.Err)
+		}
+
 		user, resp := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
 		CheckErrorMessage(t, resp, "mfa.validate_token.authenticate.app_error")
 		assert.Nil(t, user)
@@ -1939,10 +2075,21 @@ func TestUserLoginMFAFlow(t *testing.T) {
 	})
 
 	t.Run("WithCorrectMFA", func(t *testing.T) {
-		t.Skip("Skipping test that fails randomly.")
+		secret, err := th.App.GenerateMfaSecret(th.BasicUser.Id)
+		assert.Nil(t, err)
+
+		// Fake user has MFA enabled
+		if result := <-th.Server.Store.User().UpdateMfaActive(th.BasicUser.Id, true); result.Err != nil {
+			t.Fatal(result.Err)
+		}
+
+		if result := <-th.Server.Store.User().UpdateMfaSecret(th.BasicUser.Id, secret.Secret); result.Err != nil {
+			t.Fatal(result.Err)
+		}
+
 		code := dgoogauth.ComputeCode(secret.Secret, time.Now().UTC().Unix()/30)
 
-		user, resp := th.Client.LoginWithMFA(th.BasicUser.Email, th.BasicUser.Password, strconv.Itoa(code))
+		user, resp := th.Client.LoginWithMFA(th.BasicUser.Email, th.BasicUser.Password, fmt.Sprintf("%06d", code))
 		CheckNoError(t, resp)
 		assert.NotNil(t, user)
 	})
@@ -2284,28 +2431,49 @@ func TestAttachDeviceId(t *testing.T) {
 	defer th.TearDown()
 
 	deviceId := model.PUSH_NOTIFY_APPLE + ":1234567890"
-	pass, resp := th.Client.AttachDeviceId(deviceId)
-	CheckNoError(t, resp)
 
-	if !pass {
-		t.Fatal("should have passed")
-	}
-
-	if sessions, err := th.App.GetSessions(th.BasicUser.Id); err != nil {
-		t.Fatal(err)
-	} else {
-		if sessions[0].DeviceId != deviceId {
-			t.Fatal("Missing device Id")
+	t.Run("success", func(t *testing.T) {
+		testCases := []struct {
+			Description                   string
+			SiteURL                       string
+			ExpectedSetCookieHeaderRegexp string
+		}{
+			{"no subpath", "http://localhost:8065", "^MMAUTHTOKEN=[a-z0-9]+; Path=/"},
+			{"subpath", "http://localhost:8065/subpath", "^MMAUTHTOKEN=[a-z0-9]+; Path=/subpath"},
 		}
-	}
 
-	_, resp = th.Client.AttachDeviceId("")
-	CheckBadRequestStatus(t, resp)
+		for _, tc := range testCases {
+			t.Run(tc.Description, func(t *testing.T) {
 
-	th.Client.Logout()
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					*cfg.ServiceSettings.SiteURL = tc.SiteURL
+				})
 
-	_, resp = th.Client.AttachDeviceId("")
-	CheckUnauthorizedStatus(t, resp)
+				pass, resp := th.Client.AttachDeviceId(deviceId)
+				CheckNoError(t, resp)
+
+				cookies := resp.Header.Get("Set-Cookie")
+				assert.Regexp(t, tc.ExpectedSetCookieHeaderRegexp, cookies)
+				assert.True(t, pass)
+
+				sessions, err := th.App.GetSessions(th.BasicUser.Id)
+				require.Nil(t, err)
+				assert.Equal(t, deviceId, sessions[0].DeviceId, "Missing device Id")
+			})
+		}
+	})
+
+	t.Run("invalid device id", func(t *testing.T) {
+		_, resp := th.Client.AttachDeviceId("")
+		CheckBadRequestStatus(t, resp)
+	})
+
+	t.Run("not logged in", func(t *testing.T) {
+		th.Client.Logout()
+
+		_, resp := th.Client.AttachDeviceId("")
+		CheckUnauthorizedStatus(t, resp)
+	})
 }
 
 func TestGetUserAudits(t *testing.T) {
@@ -2476,6 +2644,10 @@ func TestLogin(t *testing.T) {
 	defer th.TearDown()
 	th.Client.Logout()
 
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.CreateBotAccounts = true
+	})
+
 	t.Run("missing password", func(t *testing.T) {
 		_, resp := th.Client.Login(th.BasicUser.Email, "")
 		CheckErrorMessage(t, resp, "api.user.login.blank_pwd.app_error")
@@ -2508,6 +2680,56 @@ func TestLogin(t *testing.T) {
 		_, resp = th.Client.Login(botUser.Email, "password")
 		CheckErrorMessage(t, resp, "api.user.login.bot_login_forbidden.app_error")
 	})
+
+	t.Run("login with terms_of_service set", func(t *testing.T) {
+		termsOfService, err := th.App.CreateTermsOfService("terms of service", th.BasicUser.Id)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		success, resp := th.Client.RegisterTermsOfServiceAction(th.BasicUser.Id, termsOfService.Id, true)
+		CheckNoError(t, resp)
+		assert.True(t, *success)
+
+		userTermsOfService, resp := th.Client.GetUserTermsOfService(th.BasicUser.Id, "")
+		CheckNoError(t, resp)
+
+		user, resp := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+		CheckNoError(t, resp)
+		assert.Equal(t, user.Id, th.BasicUser.Id)
+		assert.Equal(t, user.TermsOfServiceId, userTermsOfService.TermsOfServiceId)
+		assert.Equal(t, user.TermsOfServiceCreateAt, userTermsOfService.CreateAt)
+	})
+}
+
+func TestLoginCookies(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	th.Client.Logout()
+
+	testCases := []struct {
+		Description                   string
+		SiteURL                       string
+		ExpectedSetCookieHeaderRegexp string
+	}{
+		{"no subpath", "http://localhost:8065", "^MMAUTHTOKEN=[a-z0-9]+; Path=/"},
+		{"subpath", "http://localhost:8065/subpath", "^MMAUTHTOKEN=[a-z0-9]+; Path=/subpath"},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Description, func(t *testing.T) {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ServiceSettings.SiteURL = tc.SiteURL
+			})
+
+			user, resp := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+			CheckNoError(t, resp)
+			assert.Equal(t, user.Id, th.BasicUser.Id)
+
+			cookies := resp.Header.Get("Set-Cookie")
+			assert.Regexp(t, tc.ExpectedSetCookieHeaderRegexp, cookies)
+		})
+	}
 }
 
 func TestCBALogin(t *testing.T) {
@@ -2515,6 +2737,10 @@ func TestCBALogin(t *testing.T) {
 		th := Setup().InitBasic()
 		defer th.TearDown()
 		th.App.SetLicense(model.NewTestLicense("saml"))
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.CreateBotAccounts = true
+		})
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ExperimentalSettings.ClientSideCertEnable = true
@@ -2569,6 +2795,10 @@ func TestCBALogin(t *testing.T) {
 		th := Setup().InitBasic()
 		defer th.TearDown()
 		th.App.SetLicense(model.NewTestLicense("saml"))
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.CreateBotAccounts = true
+		})
 
 		th.Client.HttpHeader["X-SSL-Client-Cert"] = "valid_cert_fake"
 
@@ -2874,6 +3104,9 @@ func TestCreateUserAccessToken(t *testing.T) {
 		th.AddPermissionToRole(model.PERMISSION_CREATE_BOT.Id, model.TEAM_USER_ROLE_ID)
 		th.AddPermissionToRole(model.PERMISSION_CREATE_USER_ACCESS_TOKEN.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.CreateBotAccounts = true
+		})
 
 		createdBot, resp := th.Client.CreateBot(&model.Bot{
 			Username:    GenerateTestUsername(),
@@ -2911,6 +3144,9 @@ func TestCreateUserAccessToken(t *testing.T) {
 		th.AddPermissionToRole(model.PERMISSION_MANAGE_BOTS.Id, model.TEAM_USER_ROLE_ID)
 		th.AddPermissionToRole(model.PERMISSION_CREATE_USER_ACCESS_TOKEN.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.CreateBotAccounts = true
+		})
 
 		createdBot, resp := th.SystemAdminClient.CreateBot(&model.Bot{
 			Username:    GenerateTestUsername(),
@@ -3009,6 +3245,9 @@ func TestGetUserAccessToken(t *testing.T) {
 		th.AddPermissionToRole(model.PERMISSION_CREATE_USER_ACCESS_TOKEN.Id, model.TEAM_USER_ROLE_ID)
 		th.AddPermissionToRole(model.PERMISSION_READ_USER_ACCESS_TOKEN.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.CreateBotAccounts = true
+		})
 
 		createdBot, resp := th.Client.CreateBot(&model.Bot{
 			Username:    GenerateTestUsername(),
@@ -3052,6 +3291,9 @@ func TestGetUserAccessToken(t *testing.T) {
 		th.AddPermissionToRole(model.PERMISSION_CREATE_USER_ACCESS_TOKEN.Id, model.TEAM_USER_ROLE_ID)
 		th.AddPermissionToRole(model.PERMISSION_READ_USER_ACCESS_TOKEN.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.CreateBotAccounts = true
+		})
 
 		createdBot, resp := th.SystemAdminClient.CreateBot(&model.Bot{
 			Username:    GenerateTestUsername(),
@@ -3296,6 +3538,9 @@ func TestRevokeUserAccessToken(t *testing.T) {
 		th.AddPermissionToRole(model.PERMISSION_CREATE_USER_ACCESS_TOKEN.Id, model.TEAM_USER_ROLE_ID)
 		th.AddPermissionToRole(model.PERMISSION_REVOKE_USER_ACCESS_TOKEN.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.CreateBotAccounts = true
+		})
 
 		createdBot, resp := th.Client.CreateBot(&model.Bot{
 			Username:    GenerateTestUsername(),
@@ -3336,6 +3581,9 @@ func TestRevokeUserAccessToken(t *testing.T) {
 		th.AddPermissionToRole(model.PERMISSION_CREATE_USER_ACCESS_TOKEN.Id, model.TEAM_USER_ROLE_ID)
 		th.AddPermissionToRole(model.PERMISSION_REVOKE_USER_ACCESS_TOKEN.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.CreateBotAccounts = true
+		})
 
 		createdBot, resp := th.SystemAdminClient.CreateBot(&model.Bot{
 			Username:    GenerateTestUsername(),
@@ -3408,6 +3656,9 @@ func TestDisableUserAccessToken(t *testing.T) {
 		th.AddPermissionToRole(model.PERMISSION_CREATE_USER_ACCESS_TOKEN.Id, model.TEAM_USER_ROLE_ID)
 		th.AddPermissionToRole(model.PERMISSION_REVOKE_USER_ACCESS_TOKEN.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.CreateBotAccounts = true
+		})
 
 		createdBot, resp := th.Client.CreateBot(&model.Bot{
 			Username:    GenerateTestUsername(),
@@ -3448,6 +3699,9 @@ func TestDisableUserAccessToken(t *testing.T) {
 		th.AddPermissionToRole(model.PERMISSION_CREATE_USER_ACCESS_TOKEN.Id, model.TEAM_USER_ROLE_ID)
 		th.AddPermissionToRole(model.PERMISSION_REVOKE_USER_ACCESS_TOKEN.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.CreateBotAccounts = true
+		})
 
 		createdBot, resp := th.SystemAdminClient.CreateBot(&model.Bot{
 			Username:    GenerateTestUsername(),
@@ -3530,6 +3784,9 @@ func TestEnableUserAccessToken(t *testing.T) {
 		th.AddPermissionToRole(model.PERMISSION_CREATE_USER_ACCESS_TOKEN.Id, model.TEAM_USER_ROLE_ID)
 		th.AddPermissionToRole(model.PERMISSION_REVOKE_USER_ACCESS_TOKEN.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.CreateBotAccounts = true
+		})
 
 		createdBot, resp := th.Client.CreateBot(&model.Bot{
 			Username:    GenerateTestUsername(),
@@ -3574,6 +3831,9 @@ func TestEnableUserAccessToken(t *testing.T) {
 		th.AddPermissionToRole(model.PERMISSION_CREATE_USER_ACCESS_TOKEN.Id, model.TEAM_USER_ROLE_ID)
 		th.AddPermissionToRole(model.PERMISSION_REVOKE_USER_ACCESS_TOKEN.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.CreateBotAccounts = true
+		})
 
 		createdBot, resp := th.SystemAdminClient.CreateBot(&model.Bot{
 			Username:    GenerateTestUsername(),

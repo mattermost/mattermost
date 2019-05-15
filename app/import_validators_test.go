@@ -29,12 +29,22 @@ func TestImportValidateSchemeImportData(t *testing.T) {
 			DisplayName: ptrStr("display name"),
 			Permissions: &[]string{"invite_user"},
 		},
+		DefaultTeamGuestRole: &RoleImportData{
+			Name:        ptrStr("name"),
+			DisplayName: ptrStr("display name"),
+			Permissions: &[]string{"invite_user"},
+		},
 		DefaultChannelAdminRole: &RoleImportData{
 			Name:        ptrStr("name"),
 			DisplayName: ptrStr("display name"),
 			Permissions: &[]string{"invite_user"},
 		},
 		DefaultChannelUserRole: &RoleImportData{
+			Name:        ptrStr("name"),
+			DisplayName: ptrStr("display name"),
+			Permissions: &[]string{"invite_user"},
+		},
+		DefaultChannelGuestRole: &RoleImportData{
 			Name:        ptrStr("name"),
 			DisplayName: ptrStr("display name"),
 			Permissions: &[]string{"invite_user"},
@@ -164,6 +174,18 @@ func TestImportValidateSchemeImportData(t *testing.T) {
 		t.Fatal("Should have failed due to spurious role.")
 	}
 
+	data.DefaultTeamUserRole = &RoleImportData{
+		Name:        ptrStr("name"),
+		DisplayName: ptrStr("display name"),
+		Permissions: &[]string{"invite_user"},
+	}
+	data.DefaultTeamGuestRole = nil
+	if err := validateSchemeImportData(&data); err == nil {
+		t.Fatal("Should have failed due to spurious role.")
+	}
+
+	data.DefaultTeamGuestRole = nil
+	data.DefaultTeamUserRole = nil
 	data.DefaultTeamAdminRole = nil
 	if err := validateSchemeImportData(&data); err != nil {
 		t.Fatal("Should have succeeded.")

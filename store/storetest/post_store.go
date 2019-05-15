@@ -80,9 +80,8 @@ func testPostStoreSaveChannelMsgCounts(t *testing.T, ss store.Store) {
 
 	require.Nil(t, (<-ss.Post().Save(&o1)).Err)
 
-	res = <-ss.Channel().Get(c1.Id, false)
-	require.Nil(t, res.Err)
-	c1 = res.Data.(*model.Channel)
+	c1, err := ss.Channel().Get(c1.Id, false)
+	require.Nil(t, err)
 	assert.Equal(t, int64(1), c1.TotalMsgCount, "Message count should update by 1")
 
 	o1.Id = ""
@@ -93,9 +92,8 @@ func testPostStoreSaveChannelMsgCounts(t *testing.T, ss store.Store) {
 	o1.Type = model.POST_REMOVE_FROM_TEAM
 	require.Nil(t, (<-ss.Post().Save(&o1)).Err)
 
-	res = <-ss.Channel().Get(c1.Id, false)
-	require.Nil(t, res.Err)
-	c1 = res.Data.(*model.Channel)
+	c1, err = ss.Channel().Get(c1.Id, false)
+	require.Nil(t, err)
 	assert.Equal(t, int64(1), c1.TotalMsgCount, "Message count should not update for team add/removed message")
 
 	oldLastPostAt := c1.LastPostAt
@@ -107,9 +105,8 @@ func testPostStoreSaveChannelMsgCounts(t *testing.T, ss store.Store) {
 	o2.CreateAt = int64(7)
 	require.Nil(t, (<-ss.Post().Save(&o2)).Err)
 
-	res = <-ss.Channel().Get(c1.Id, false)
-	require.Nil(t, res.Err)
-	c1 = res.Data.(*model.Channel)
+	c1, err = ss.Channel().Get(c1.Id, false)
+	require.Nil(t, err)
 	assert.Equal(t, oldLastPostAt, c1.LastPostAt, "LastPostAt should not update for old message save")
 }
 
@@ -317,8 +314,8 @@ func testPostStoreDelete(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if r2 := <-ss.Post().Delete(o1.Id, model.GetMillis(), deleteByID); r2.Err != nil {
-		t.Fatal(r2.Err)
+	if err := ss.Post().Delete(o1.Id, model.GetMillis(), deleteByID); err != nil {
+		t.Fatal(err)
 	}
 
 	r5 := <-ss.Post().GetPostsCreatedAt(o1.ChannelId, o1.CreateAt)
@@ -354,8 +351,8 @@ func testPostStoreDelete1Level(t *testing.T, ss store.Store) {
 	o2.RootId = o1.Id
 	o2 = (<-ss.Post().Save(o2)).Data.(*model.Post)
 
-	if r2 := <-ss.Post().Delete(o1.Id, model.GetMillis(), ""); r2.Err != nil {
-		t.Fatal(r2.Err)
+	if err := ss.Post().Delete(o1.Id, model.GetMillis(), ""); err != nil {
+		t.Fatal(err)
 	}
 
 	if r3 := (<-ss.Post().Get(o1.Id)); r3.Err == nil {
@@ -396,8 +393,8 @@ func testPostStoreDelete2Level(t *testing.T, ss store.Store) {
 	o4.Message = "zz" + model.NewId() + "b"
 	o4 = (<-ss.Post().Save(o4)).Data.(*model.Post)
 
-	if r2 := <-ss.Post().Delete(o1.Id, model.GetMillis(), ""); r2.Err != nil {
-		t.Fatal(r2.Err)
+	if err := ss.Post().Delete(o1.Id, model.GetMillis(), ""); err != nil {
+		t.Fatal(err)
 	}
 
 	if r3 := (<-ss.Post().Get(o1.Id)); r3.Err == nil {
@@ -529,7 +526,9 @@ func testPostStoreGetWithChildren(t *testing.T, ss store.Store) {
 		}
 	}
 
-	store.Must(ss.Post().Delete(o3.Id, model.GetMillis(), ""))
+	if err := ss.Post().Delete(o3.Id, model.GetMillis(), ""); err != nil {
+		t.Fatal(err)
+	}
 
 	if r2 := <-ss.Post().Get(o1.Id); r2.Err != nil {
 		t.Fatal(r2.Err)
@@ -540,7 +539,9 @@ func testPostStoreGetWithChildren(t *testing.T, ss store.Store) {
 		}
 	}
 
-	store.Must(ss.Post().Delete(o2.Id, model.GetMillis(), ""))
+	if err := ss.Post().Delete(o2.Id, model.GetMillis(), ""); err != nil {
+		t.Fatal(err)
+	}
 
 	if r3 := <-ss.Post().Get(o1.Id); r3.Err != nil {
 		t.Fatal(r3.Err)
@@ -1076,7 +1077,8 @@ func testUserCountsWithPostsByDay(t *testing.T, ss store.Store) {
 	t1.Name = "zz" + model.NewId() + "b"
 	t1.Email = MakeEmail()
 	t1.Type = model.TEAM_OPEN
-	t1 = store.Must(ss.Team().Save(t1)).(*model.Team)
+	t1, err := ss.Team().Save(t1)
+	require.Nil(t, err)
 
 	c1 := &model.Channel{}
 	c1.TeamId = t1.Id
@@ -1134,7 +1136,8 @@ func testPostCountsByDay(t *testing.T, ss store.Store) {
 	t1.Name = "zz" + model.NewId() + "b"
 	t1.Email = MakeEmail()
 	t1.Type = model.TEAM_OPEN
-	t1 = store.Must(ss.Team().Save(t1)).(*model.Team)
+	t1, err := ss.Team().Save(t1)
+	require.Nil(t, err)
 
 	c1 := &model.Channel{}
 	c1.TeamId = t1.Id
@@ -1727,7 +1730,9 @@ func testPostStoreGetPostsByIds(t *testing.T, ss store.Store) {
 		t.Fatalf("Expected 3 posts in results. Got %v", len(ro4))
 	}
 
-	store.Must(ss.Post().Delete(ro1.Id, model.GetMillis(), ""))
+	if err := ss.Post().Delete(ro1.Id, model.GetMillis(), ""); err != nil {
+		t.Fatal(err)
+	}
 
 	if ro5 := store.Must(ss.Post().GetPostsByIds(postIds)).([]*model.Post); len(ro5) != 3 {
 		t.Fatalf("Expected 3 posts in results. Got %v", len(ro5))
@@ -1876,7 +1881,8 @@ func testPostStoreGetParentsForExportAfter(t *testing.T, ss store.Store) {
 	t1.Name = model.NewId()
 	t1.Email = MakeEmail()
 	t1.Type = model.TEAM_OPEN
-	store.Must(ss.Team().Save(&t1))
+	_, err := ss.Team().Save(&t1)
+	require.Nil(t, err)
 
 	c1 := model.Channel{}
 	c1.TeamId = t1.Id
@@ -1922,7 +1928,8 @@ func testPostStoreGetRepliesForExport(t *testing.T, ss store.Store) {
 	t1.Name = model.NewId()
 	t1.Email = MakeEmail()
 	t1.Type = model.TEAM_OPEN
-	store.Must(ss.Team().Save(&t1))
+	_, err := ss.Team().Save(&t1)
+	require.Nil(t, err)
 
 	c1 := model.Channel{}
 	c1.TeamId = t1.Id

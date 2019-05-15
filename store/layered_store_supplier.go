@@ -24,12 +24,12 @@ type LayeredStoreSupplier interface {
 	//
 	// Reactions
 	//), hints ...LayeredStoreHint)
-	ReactionSave(ctx context.Context, reaction *model.Reaction, hints ...LayeredStoreHint) *LayeredStoreSupplierResult
-	ReactionDelete(ctx context.Context, reaction *model.Reaction, hints ...LayeredStoreHint) *LayeredStoreSupplierResult
-	ReactionGetForPost(ctx context.Context, postId string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult
-	ReactionDeleteAllWithEmojiName(ctx context.Context, emojiName string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult
-	ReactionPermanentDeleteBatch(ctx context.Context, endTime int64, limit int64, hints ...LayeredStoreHint) *LayeredStoreSupplierResult
-	ReactionsBulkGetForPosts(ctx context.Context, postIds []string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult
+	ReactionSave(ctx context.Context, reaction *model.Reaction, hints ...LayeredStoreHint) (*model.Reaction, *model.AppError)
+	ReactionDelete(ctx context.Context, reaction *model.Reaction, hints ...LayeredStoreHint) (*model.Reaction, *model.AppError)
+	ReactionGetForPost(ctx context.Context, postId string, hints ...LayeredStoreHint) ([]*model.Reaction, *model.AppError)
+	ReactionDeleteAllWithEmojiName(ctx context.Context, emojiName string, hints ...LayeredStoreHint) *model.AppError
+	ReactionPermanentDeleteBatch(ctx context.Context, endTime int64, limit int64, hints ...LayeredStoreHint) (int64, *model.AppError)
+	ReactionsBulkGetForPosts(ctx context.Context, postIds []string, hints ...LayeredStoreHint) ([]*model.Reaction, *model.AppError)
 
 	// Roles
 	RoleSave(ctx context.Context, role *model.Role, hints ...LayeredStoreHint) *LayeredStoreSupplierResult
@@ -68,6 +68,17 @@ type LayeredStoreSupplier interface {
 	GroupUpdateGroupSyncable(ctx context.Context, groupSyncable *model.GroupSyncable, hints ...LayeredStoreHint) *LayeredStoreSupplierResult
 	GroupDeleteGroupSyncable(ctx context.Context, groupID string, syncableID string, syncableType model.GroupSyncableType, hints ...LayeredStoreHint) *LayeredStoreSupplierResult
 
-	PendingAutoAddTeamMembers(ctx context.Context, minGroupMembersCreateAt int64, hints ...LayeredStoreHint) *LayeredStoreSupplierResult
-	PendingAutoAddChannelMembers(ctx context.Context, minGroupMembersCreateAt int64, hints ...LayeredStoreHint) *LayeredStoreSupplierResult
+	TeamMembersToAdd(ctx context.Context, since int64, hints ...LayeredStoreHint) *LayeredStoreSupplierResult
+	ChannelMembersToAdd(ctx context.Context, since int64, hints ...LayeredStoreHint) *LayeredStoreSupplierResult
+
+	TeamMembersToRemove(ctx context.Context, hints ...LayeredStoreHint) *LayeredStoreSupplierResult
+	ChannelMembersToRemove(ctx context.Context, hints ...LayeredStoreHint) *LayeredStoreSupplierResult
+
+	GetGroupsByChannel(ctx context.Context, channelId string, opts model.GroupSearchOpts, hints ...LayeredStoreHint) *LayeredStoreSupplierResult
+	CountGroupsByChannel(ctx context.Context, channelId string, opts model.GroupSearchOpts, hints ...LayeredStoreHint) *LayeredStoreSupplierResult
+
+	GetGroupsByTeam(ctx context.Context, teamId string, opts model.GroupSearchOpts, hints ...LayeredStoreHint) *LayeredStoreSupplierResult
+	CountGroupsByTeam(ctx context.Context, teamId string, opts model.GroupSearchOpts, hints ...LayeredStoreHint) *LayeredStoreSupplierResult
+
+	GetGroups(ctx context.Context, page, perPage int, opts model.GroupSearchOpts, hints ...LayeredStoreHint) *LayeredStoreSupplierResult
 }

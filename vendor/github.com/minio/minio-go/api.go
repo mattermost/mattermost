@@ -1,6 +1,6 @@
 /*
- * Minio Go Library for Amazon S3 Compatible Cloud Storage
- * Copyright 2015-2018 Minio, Inc.
+ * MinIO Go Library for Amazon S3 Compatible Cloud Storage
+ * Copyright 2015-2018 MinIO, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -102,15 +102,15 @@ type Options struct {
 // Global constants.
 const (
 	libraryName    = "minio-go"
-	libraryVersion = "v6.0.14"
+	libraryVersion = "v6.0.23"
 )
 
 // User Agent should always following the below style.
 // Please open an issue to discuss any new changes here.
 //
-//       Minio (OS; ARCH) LIB/VER APP/VER
+//       MinIO (OS; ARCH) LIB/VER APP/VER
 const (
-	libraryUserAgentPrefix = "Minio (" + runtime.GOOS + "; " + runtime.GOARCH + ") "
+	libraryUserAgentPrefix = "MinIO (" + runtime.GOOS + "; " + runtime.GOARCH + ") "
 	libraryUserAgent       = libraryUserAgentPrefix + libraryName + "/" + libraryVersion
 )
 
@@ -295,10 +295,15 @@ func privateNew(endpoint string, creds *credentials.Credentials, secure bool, re
 	// Save endpoint URL, user agent for future uses.
 	clnt.endpointURL = endpointURL
 
+	transport, err := DefaultTransport(secure)
+	if err != nil {
+		return nil, err
+	}
+
 	// Instantiate http client and bucket location cache.
 	clnt.httpClient = &http.Client{
 		Jar:           jar,
-		Transport:     DefaultTransport,
+		Transport:     transport,
 		CheckRedirect: clnt.redirectHeaders,
 	}
 

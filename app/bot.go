@@ -34,22 +34,21 @@ func (a *App) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, 
 
 	bot.Patch(botPatch)
 
-	result := <-a.Srv.Store.User().Get(botUserId)
-	if result.Err != nil {
-		return nil, result.Err
+	user, err := a.Srv.Store.User().Get(botUserId)
+	if err != nil {
+		return nil, err
 	}
-	user := result.Data.(*model.User)
 
 	patchedUser := model.UserFromBot(bot)
 	user.Id = patchedUser.Id
 	user.Username = patchedUser.Username
 	user.Email = patchedUser.Email
 	user.FirstName = patchedUser.FirstName
-	if result = <-a.Srv.Store.User().Update(user, true); result.Err != nil {
+	if result := <-a.Srv.Store.User().Update(user, true); result.Err != nil {
 		return nil, result.Err
 	}
 
-	result = <-a.Srv.Store.Bot().Update(bot)
+	result := <-a.Srv.Store.Bot().Update(bot)
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -79,17 +78,16 @@ func (a *App) GetBots(options *model.BotGetOptions) (model.BotList, *model.AppEr
 
 // UpdateBotActive marks a bot as active or inactive, along with its corresponding user.
 func (a *App) UpdateBotActive(botUserId string, active bool) (*model.Bot, *model.AppError) {
-	result := <-a.Srv.Store.User().Get(botUserId)
-	if result.Err != nil {
-		return nil, result.Err
+	user, err := a.Srv.Store.User().Get(botUserId)
+	if err != nil {
+		return nil, err
 	}
-	user := result.Data.(*model.User)
 
 	if _, err := a.UpdateActive(user, active); err != nil {
 		return nil, err
 	}
 
-	result = <-a.Srv.Store.Bot().Get(botUserId, true)
+	result := <-a.Srv.Store.Bot().Get(botUserId, true)
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -177,4 +175,13 @@ func (a *App) disableUserBots(userId string) *model.AppError {
 	}
 
 	return nil
+}
+
+// ConvertUserToBot converts a user to bot
+func (a *App) ConvertUserToBot(user *model.User) (*model.Bot, *model.AppError) {
+	result := <-a.Srv.Store.Bot().Save(model.BotFromUser(user))
+	if result.Err != nil {
+		return nil, result.Err
+	}
+	return result.Data.(*model.Bot), nil
 }

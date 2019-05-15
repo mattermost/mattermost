@@ -108,7 +108,8 @@ type Server struct {
 
 	ImageProxy *imageproxy.ImageProxy
 
-	Log *mlog.Logger
+	Log              *mlog.Logger
+	NotificationsLog *mlog.Logger
 
 	joinCluster        bool
 	startMetrics       bool
@@ -152,7 +153,13 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	if s.Log == nil {
-		s.Log = mlog.NewLogger(utils.MloggerConfigFromLoggerConfig(&s.Config().LogSettings))
+		s.Log = mlog.NewLogger(utils.MloggerConfigFromLoggerConfig(&s.Config().LogSettings, utils.GetLogFileLocation))
+	}
+
+	if s.NotificationsLog == nil {
+		notificationLogSettings := utils.GetLogSettingsFromNotificationsLogSettings(&s.Config().NotificationLogSettings)
+		s.NotificationsLog = mlog.NewLogger(utils.MloggerConfigFromLoggerConfig(notificationLogSettings, utils.GetNotificationsLogFileLocation)).
+			WithCallerSkip(1).With(mlog.String("logSource", "notifications"))
 	}
 
 	// Redirect default golang logger to this logger
@@ -162,12 +169,15 @@ func NewServer(options ...Option) (*Server, error) {
 	mlog.InitGlobalLogger(s.Log)
 
 	s.logListenerId = s.AddConfigListener(func(_, after *model.Config) {
-		s.Log.ChangeLevels(utils.MloggerConfigFromLoggerConfig(&after.LogSettings))
+		s.Log.ChangeLevels(utils.MloggerConfigFromLoggerConfig(&after.LogSettings, utils.GetLogFileLocation))
+
+		notificationLogSettings := utils.GetLogSettingsFromNotificationsLogSettings(&after.NotificationLogSettings)
+		s.NotificationsLog.ChangeLevels(utils.MloggerConfigFromLoggerConfig(notificationLogSettings, utils.GetNotificationsLogFileLocation))
 	})
 
 	s.HTTPService = httpservice.MakeHTTPService(s.FakeApp())
 
-	s.ImageProxy = imageproxy.MakeImageProxy(s, s.HTTPService)
+	s.ImageProxy = imageproxy.MakeImageProxy(s, s.HTTPService, s.Log)
 
 	if err := utils.TranslationsPreInit(); err != nil {
 		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
@@ -186,6 +196,18 @@ func NewServer(options ...Option) (*Server, error) {
 	s.InitEmailBatching()
 	s.AddConfigListener(func(_, _ *model.Config) {
 		s.InitEmailBatching()
+	})
+
+	// Start plugin health check job
+	pluginsEnvironment := s.PluginsEnvironment
+	if pluginsEnvironment != nil {
+		pluginsEnvironment.InitPluginHealthCheckJob(*s.Config().PluginSettings.EnableHealthCheck)
+	}
+	s.AddConfigListener(func(_, c *model.Config) {
+		pluginsEnvironment := s.PluginsEnvironment
+		if pluginsEnvironment != nil {
+			pluginsEnvironment.InitPluginHealthCheckJob(*c.PluginSettings.EnableHealthCheck)
+		}
 	})
 
 	mlog.Info(fmt.Sprintf("Current version is %v (%v/%v/%v/%v)", model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash, model.BuildHashEnterprise))

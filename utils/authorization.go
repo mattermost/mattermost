@@ -31,8 +31,8 @@ func SetRolePermissionsFromConfig(roles map[string]*model.Role, cfg *model.Confi
 	if isLicensed {
 		switch *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPublicChannelManagement {
 		case model.PERMISSIONS_ALL:
-			roles[model.TEAM_USER_ROLE_ID].Permissions = append(
-				roles[model.TEAM_USER_ROLE_ID].Permissions,
+			roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(
+				roles[model.CHANNEL_USER_ROLE_ID].Permissions,
 				model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES.Id,
 			)
 		case model.PERMISSIONS_CHANNEL_ADMIN:
@@ -51,8 +51,8 @@ func SetRolePermissionsFromConfig(roles map[string]*model.Role, cfg *model.Confi
 			)
 		}
 	} else {
-		roles[model.TEAM_USER_ROLE_ID].Permissions = append(
-			roles[model.TEAM_USER_ROLE_ID].Permissions,
+		roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(
+			roles[model.CHANNEL_USER_ROLE_ID].Permissions,
 			model.PERMISSION_MANAGE_PUBLIC_CHANNEL_PROPERTIES.Id,
 		)
 	}
@@ -60,8 +60,8 @@ func SetRolePermissionsFromConfig(roles map[string]*model.Role, cfg *model.Confi
 	if isLicensed {
 		switch *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPublicChannelDeletion {
 		case model.PERMISSIONS_ALL:
-			roles[model.TEAM_USER_ROLE_ID].Permissions = append(
-				roles[model.TEAM_USER_ROLE_ID].Permissions,
+			roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(
+				roles[model.CHANNEL_USER_ROLE_ID].Permissions,
 				model.PERMISSION_DELETE_PUBLIC_CHANNEL.Id,
 			)
 		case model.PERMISSIONS_CHANNEL_ADMIN:
@@ -80,8 +80,8 @@ func SetRolePermissionsFromConfig(roles map[string]*model.Role, cfg *model.Confi
 			)
 		}
 	} else {
-		roles[model.TEAM_USER_ROLE_ID].Permissions = append(
-			roles[model.TEAM_USER_ROLE_ID].Permissions,
+		roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(
+			roles[model.CHANNEL_USER_ROLE_ID].Permissions,
 			model.PERMISSION_DELETE_PUBLIC_CHANNEL.Id,
 		)
 	}
@@ -109,8 +109,8 @@ func SetRolePermissionsFromConfig(roles map[string]*model.Role, cfg *model.Confi
 	if isLicensed {
 		switch *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelManagement {
 		case model.PERMISSIONS_ALL:
-			roles[model.TEAM_USER_ROLE_ID].Permissions = append(
-				roles[model.TEAM_USER_ROLE_ID].Permissions,
+			roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(
+				roles[model.CHANNEL_USER_ROLE_ID].Permissions,
 				model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES.Id,
 			)
 		case model.PERMISSIONS_CHANNEL_ADMIN:
@@ -129,8 +129,8 @@ func SetRolePermissionsFromConfig(roles map[string]*model.Role, cfg *model.Confi
 			)
 		}
 	} else {
-		roles[model.TEAM_USER_ROLE_ID].Permissions = append(
-			roles[model.TEAM_USER_ROLE_ID].Permissions,
+		roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(
+			roles[model.CHANNEL_USER_ROLE_ID].Permissions,
 			model.PERMISSION_MANAGE_PRIVATE_CHANNEL_PROPERTIES.Id,
 		)
 	}
@@ -138,8 +138,8 @@ func SetRolePermissionsFromConfig(roles map[string]*model.Role, cfg *model.Confi
 	if isLicensed {
 		switch *cfg.TeamSettings.DEPRECATED_DO_NOT_USE_RestrictPrivateChannelDeletion {
 		case model.PERMISSIONS_ALL:
-			roles[model.TEAM_USER_ROLE_ID].Permissions = append(
-				roles[model.TEAM_USER_ROLE_ID].Permissions,
+			roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(
+				roles[model.CHANNEL_USER_ROLE_ID].Permissions,
 				model.PERMISSION_DELETE_PRIVATE_CHANNEL.Id,
 			)
 		case model.PERMISSIONS_CHANNEL_ADMIN:
@@ -158,8 +158,8 @@ func SetRolePermissionsFromConfig(roles map[string]*model.Role, cfg *model.Confi
 			)
 		}
 	} else {
-		roles[model.TEAM_USER_ROLE_ID].Permissions = append(
-			roles[model.TEAM_USER_ROLE_ID].Permissions,
+		roles[model.CHANNEL_USER_ROLE_ID].Permissions = append(
+			roles[model.CHANNEL_USER_ROLE_ID].Permissions,
 			model.PERMISSION_DELETE_PRIVATE_CHANNEL.Id,
 		)
 	}

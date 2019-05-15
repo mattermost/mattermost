@@ -66,6 +66,7 @@ func TestPreparePostForClient(t *testing.T) {
 		th := Setup(t).InitBasic()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableLinkPreviews = true
 			*cfg.ImageProxySettings.Enable = false
 			*cfg.ExperimentalSettings.DisablePostMetadata = false
 		})
@@ -256,10 +257,12 @@ func TestPreparePostForClient(t *testing.T) {
 			imageDimensions := clientPost.Metadata.Images
 			require.Len(t, imageDimensions, 2)
 			assert.Equal(t, &model.PostImage{
+				Format: "png",
 				Width:  1068,
 				Height: 552,
 			}, imageDimensions["https://github.com/hmhealey/test-files/raw/master/logoVertical.png"])
 			assert.Equal(t, &model.PostImage{
+				Format: "png",
 				Width:  501,
 				Height: 501,
 			}, imageDimensions["https://github.com/hmhealey/test-files/raw/master/icon.png"])
@@ -309,6 +312,7 @@ func TestPreparePostForClient(t *testing.T) {
 			imageDimensions := clientPost.Metadata.Images
 			require.Len(t, imageDimensions, 1)
 			assert.Equal(t, &model.PostImage{
+				Format: "png",
 				Width:  1068,
 				Height: 552,
 			}, imageDimensions["https://github.com/hmhealey/test-files/raw/master/logoVertical.png"])
@@ -353,6 +357,7 @@ func TestPreparePostForClient(t *testing.T) {
 			imageDimensions := clientPost.Metadata.Images
 			require.Len(t, imageDimensions, 1)
 			assert.Equal(t, &model.PostImage{
+				Format: "png",
 				Width:  420,
 				Height: 420,
 			}, imageDimensions["https://avatars1.githubusercontent.com/u/3277310?s=400&v=4"])
@@ -390,6 +395,7 @@ func TestPreparePostForClient(t *testing.T) {
 			imageDimensions := clientPost.Metadata.Images
 			require.Len(t, imageDimensions, 1)
 			assert.Equal(t, &model.PostImage{
+				Format: "png",
 				Width:  501,
 				Height: 501,
 			}, imageDimensions["https://github.com/hmhealey/test-files/raw/master/icon.png"])
@@ -420,6 +426,7 @@ func TestPreparePostForClientWithImageProxy(t *testing.T) {
 		th := Setup(t).InitBasic()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableLinkPreviews = true
 			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
 			*cfg.ImageProxySettings.Enable = true
 			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
@@ -449,7 +456,7 @@ func TestPreparePostForClientWithImageProxy(t *testing.T) {
 func testProxyLinkedImage(t *testing.T, th *TestHelper, shouldProxy bool) {
 	postTemplate := "![foo](%v)"
 	imageURL := "http://mydomain.com/myimage"
-	proxiedImageURL := "https://127.0.0.1/f8dace906d23689e8d5b12c3cefbedbf7b9b72f5/687474703a2f2f6d79646f6d61696e2e636f6d2f6d79696d616765"
+	proxiedImageURL := "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage"
 
 	post := &model.Post{
 		UserId:    th.BasicUser.Id,
@@ -491,11 +498,128 @@ func testProxyOpenGraphImage(t *testing.T, th *TestHelper, shouldProxy bool) {
 	image := og.Images[0]
 	if shouldProxy {
 		assert.Equal(t, "", image.URL, "image URL should not be set with proxy")
-		assert.Equal(t, "https://127.0.0.1/b2ef6ef4890a0107aa80ba33b3011fd51f668303/68747470733a2f2f61766174617273312e67697468756275736572636f6e74656e742e636f6d2f752f333237373331303f733d34303026763d34", image.SecureURL, "secure image URL should be sent through proxy")
+		assert.Equal(t, "http://mymattermost.com/api/v4/image?url=https%3A%2F%2Favatars1.githubusercontent.com%2Fu%2F3277310%3Fs%3D400%26v%3D4", image.SecureURL, "secure image URL should be sent through proxy")
 	} else {
 		assert.Equal(t, "https://avatars1.githubusercontent.com/u/3277310?s=400&v=4", image.URL, "image URL should be set")
 		assert.Equal(t, "", image.SecureURL, "secure image URL should not be set")
 	}
+}
+
+func TestGetEmbedForPost(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/index.html" {
+			w.Header().Set("Content-Type", "text/html")
+			w.Write([]byte(`
+			<html>
+			<head>
+			<meta property="og:title" content="Title" />
+			</head>
+			</html>`))
+		} else if r.URL.Path == "/image.png" {
+			file, err := testutils.ReadTestFile("test.png")
+			require.Nil(t, err)
+
+			w.Header().Set("Content-Type", "image/png")
+			w.Write(file)
+		} else {
+			t.Fatal("Invalid path", r.URL.Path)
+		}
+	}))
+	defer server.Close()
+
+	ogURL := server.URL + "/index.html"
+	imageURL := server.URL + "/image.png"
+
+	t.Run("with link previews enabled", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.1"
+			*cfg.ServiceSettings.EnableLinkPreviews = true
+		})
+
+		t.Run("should return a message attachment when the post has one", func(t *testing.T) {
+			embed, err := th.App.getEmbedForPost(&model.Post{
+				Props: model.StringInterface{
+					"attachments": []*model.SlackAttachment{
+						{
+							Text: "test",
+						},
+					},
+				},
+			}, "", false)
+
+			assert.Equal(t, &model.PostEmbed{
+				Type: model.POST_EMBED_MESSAGE_ATTACHMENT,
+			}, embed)
+			assert.Nil(t, err)
+		})
+
+		t.Run("should return an image embed when the first link is an image", func(t *testing.T) {
+			embed, err := th.App.getEmbedForPost(&model.Post{}, imageURL, false)
+
+			assert.Equal(t, &model.PostEmbed{
+				Type: model.POST_EMBED_IMAGE,
+				URL:  imageURL,
+			}, embed)
+			assert.Nil(t, err)
+		})
+
+		t.Run("should return an image embed when the first link is an image", func(t *testing.T) {
+			embed, err := th.App.getEmbedForPost(&model.Post{}, ogURL, false)
+
+			assert.Equal(t, &model.PostEmbed{
+				Type: model.POST_EMBED_OPENGRAPH,
+				URL:  ogURL,
+				Data: &opengraph.OpenGraph{
+					Title: "Title",
+				},
+			}, embed)
+			assert.Nil(t, err)
+		})
+	})
+
+	t.Run("with link previews disabled", func(t *testing.T) {
+		th := Setup(t)
+		defer th.TearDown()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.1"
+			*cfg.ServiceSettings.EnableLinkPreviews = false
+		})
+
+		t.Run("should return an embedded message attachment", func(t *testing.T) {
+			embed, err := th.App.getEmbedForPost(&model.Post{
+				Props: model.StringInterface{
+					"attachments": []*model.SlackAttachment{
+						{
+							Text: "test",
+						},
+					},
+				},
+			}, "", false)
+
+			assert.Equal(t, &model.PostEmbed{
+				Type: model.POST_EMBED_MESSAGE_ATTACHMENT,
+			}, embed)
+			assert.Nil(t, err)
+		})
+
+		t.Run("should not return an opengraph embed", func(t *testing.T) {
+			embed, err := th.App.getEmbedForPost(&model.Post{}, ogURL, false)
+
+			assert.Nil(t, embed)
+			assert.Nil(t, err)
+		})
+
+		t.Run("should not return an image embed", func(t *testing.T) {
+			embed, err := th.App.getEmbedForPost(&model.Post{}, imageURL, false)
+
+			assert.Nil(t, embed)
+			assert.Nil(t, err)
+		})
+	})
 }
 
 func TestGetImagesForPost(t *testing.T) {
@@ -524,6 +648,7 @@ func TestGetImagesForPost(t *testing.T) {
 
 		assert.Equal(t, images, map[string]*model.PostImage{
 			imageURL: {
+				Format: "png",
 				Width:  408,
 				Height: 336,
 			},
@@ -552,48 +677,7 @@ func TestGetImagesForPost(t *testing.T) {
 		assert.Equal(t, images, map[string]*model.PostImage{})
 	})
 
-	t.Run("for an OpenGraph image with dimensions", func(t *testing.T) {
-		th := Setup(t)
-		defer th.TearDown()
-
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.1"
-		})
-
-		ogURL := "https://example.com/index.html"
-		imageURL := "https://example.com/image.png"
-
-		post := &model.Post{
-			Metadata: &model.PostMetadata{
-				Embeds: []*model.PostEmbed{
-					{
-						Type: model.POST_EMBED_OPENGRAPH,
-						URL:  ogURL,
-						Data: &opengraph.OpenGraph{
-							Images: []*opengraph.Image{
-								{
-									URL:    imageURL,
-									Width:  100,
-									Height: 200,
-								},
-							},
-						},
-					},
-				},
-			},
-		}
-
-		images := th.App.getImagesForPost(post, []string{}, false)
-
-		assert.Equal(t, images, map[string]*model.PostImage{
-			imageURL: {
-				Width:  100,
-				Height: 200,
-			},
-		})
-	})
-
-	t.Run("for an OpenGraph image without dimensions", func(t *testing.T) {
+	t.Run("for an OpenGraph image", func(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()
 
@@ -640,13 +724,14 @@ func TestGetImagesForPost(t *testing.T) {
 
 		assert.Equal(t, images, map[string]*model.PostImage{
 			imageURL: {
+				Format: "png",
 				Width:  200,
 				Height: 300,
 			},
 		})
 	})
 
-	t.Run("with an OpenGraph image with a secure_url and dimensions", func(t *testing.T) {
+	t.Run("with an OpenGraph image with a secure_url", func(t *testing.T) {
 		th := Setup(t)
 		defer th.TearDown()
 
@@ -654,8 +739,22 @@ func TestGetImagesForPost(t *testing.T) {
 			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.1"
 		})
 
-		ogURL := "https://example.com/index.html"
-		imageURL := "https://example.com/secure_image.png"
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if r.URL.Path == "/secure_image.png" {
+				w.Header().Set("Content-Type", "image/png")
+
+				img := image.NewGray(image.Rect(0, 0, 300, 400))
+
+				var encoder png.Encoder
+				encoder.Encode(w, img)
+			} else {
+				w.WriteHeader(http.StatusNotFound)
+			}
+		}))
+		defer server.Close()
+
+		ogURL := server.URL + "/index.html"
+		imageURL := server.URL + "/secure_image.png"
 
 		post := &model.Post{
 			Metadata: &model.PostMetadata{
@@ -666,9 +765,7 @@ func TestGetImagesForPost(t *testing.T) {
 						Data: &opengraph.OpenGraph{
 							Images: []*opengraph.Image{
 								{
-									URL:    imageURL,
-									Width:  300,
-									Height: 400,
+									SecureURL: imageURL,
 								},
 							},
 						},
@@ -681,6 +778,7 @@ func TestGetImagesForPost(t *testing.T) {
 
 		assert.Equal(t, images, map[string]*model.PostImage{
 			imageURL: {
+				Format: "png",
 				Width:  300,
 				Height: 400,
 			},
@@ -734,6 +832,7 @@ func TestGetImagesForPost(t *testing.T) {
 
 		assert.Equal(t, images, map[string]*model.PostImage{
 			imageURL: {
+				Format: "png",
 				Width:  400,
 				Height: 500,
 			},
@@ -1829,6 +1928,7 @@ func TestParseLinkMetadata(t *testing.T) {
 
 		assert.Nil(t, og)
 		assert.Equal(t, &model.PostImage{
+			Format: "png",
 			Width:  408,
 			Height: 336,
 		}, dimensions)
@@ -1872,20 +1972,34 @@ func TestParseLinkMetadata(t *testing.T) {
 
 func TestParseImages(t *testing.T) {
 	for name, testCase := range map[string]struct {
-		FileName       string
-		ExpectedWidth  int
-		ExpectedHeight int
-		ExpectError    bool
+		FileName    string
+		Expected    *model.PostImage
+		ExpectError bool
 	}{
 		"png": {
-			FileName:       "test.png",
-			ExpectedWidth:  408,
-			ExpectedHeight: 336,
+			FileName: "test.png",
+			Expected: &model.PostImage{
+				Width:  408,
+				Height: 336,
+				Format: "png",
+			},
 		},
 		"animated gif": {
-			FileName:       "testgif.gif",
-			ExpectedWidth:  118,
-			ExpectedHeight: 118,
+			FileName: "testgif.gif",
+			Expected: &model.PostImage{
+				Width:      118,
+				Height:     118,
+				Format:     "gif",
+				FrameCount: 4,
+			},
+		},
+		"tiff": {
+			FileName: "test.tiff",
+			Expected: &model.PostImage{
+				Width:  701,
+				Height: 701,
+				Format: "tiff",
+			},
 		},
 		"not an image": {
 			FileName:    "README.md",
@@ -1896,15 +2010,12 @@ func TestParseImages(t *testing.T) {
 			file, err := testutils.ReadTestFile(testCase.FileName)
 			require.Nil(t, err)
 
-			dimensions, err := parseImages(bytes.NewReader(file))
+			result, err := parseImages(bytes.NewReader(file))
 			if testCase.ExpectError {
-				require.NotNil(t, err)
+				assert.NotNil(t, err)
 			} else {
-				require.Nil(t, err)
-
-				require.NotNil(t, dimensions)
-				require.Equal(t, testCase.ExpectedWidth, dimensions.Width)
-				require.Equal(t, testCase.ExpectedHeight, dimensions.Height)
+				assert.Nil(t, err)
+				assert.Equal(t, testCase.Expected, result)
 			}
 		})
 	}

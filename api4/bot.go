@@ -36,6 +36,18 @@ func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if user, err := c.App.GetUser(c.App.Session.UserId); err == nil {
+		if user.IsBot {
+			c.SetPermissionError(model.PERMISSION_CREATE_BOT)
+			return
+		}
+	}
+
+	if !*c.App.Config().ServiceSettings.CreateBotAccounts {
+		c.Err = model.NewAppError("createBot", "api.bot.create_disabled", nil, "", http.StatusForbidden)
+		return
+	}
+
 	createdBot, err := c.App.CreateBot(bot)
 	if err != nil {
 		c.Err = err
@@ -188,6 +200,13 @@ func assignBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := c.App.SessionHasPermissionToManageBot(c.App.Session, botUserId); err != nil {
 		c.Err = err
 		return
+	}
+
+	if user, err := c.App.GetUser(userId); err == nil {
+		if user.IsBot {
+			c.SetPermissionError(model.PERMISSION_ASSIGN_BOT)
+			return
+		}
 	}
 
 	bot, err := c.App.UpdateBotOwner(botUserId, userId)

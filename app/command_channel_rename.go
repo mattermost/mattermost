@@ -4,7 +4,7 @@
 package app
 
 import (
-	goi18n "github.com/nicksnyder/go-i18n/i18n"
+	goi18n "github.com/mattermost/go-i18n/i18n"
 
 	"github.com/mattermost/mattermost-server/model"
 )

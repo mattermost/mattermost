@@ -89,12 +89,47 @@ func (s *RedisSupplier) GroupDeleteGroupSyncable(ctx context.Context, groupID st
 	return s.Next().GroupDeleteGroupSyncable(ctx, groupID, syncableID, syncableType, hints...)
 }
 
-func (s *RedisSupplier) PendingAutoAddTeamMembers(ctx context.Context, minGroupMembersCreateAt int64, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+func (s *RedisSupplier) TeamMembersToAdd(ctx context.Context, since int64, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
 	// TODO: Redis caching.
-	return s.Next().PendingAutoAddTeamMembers(ctx, minGroupMembersCreateAt, hints...)
+	return s.Next().TeamMembersToAdd(ctx, since, hints...)
 }
 
-func (s *RedisSupplier) PendingAutoAddChannelMembers(ctx context.Context, minGroupMembersCreateAt int64, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+func (s *RedisSupplier) ChannelMembersToAdd(ctx context.Context, since int64, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
 	// TODO: Redis caching.
-	return s.Next().PendingAutoAddChannelMembers(ctx, minGroupMembersCreateAt, hints...)
+	return s.Next().ChannelMembersToAdd(ctx, since, hints...)
+}
+
+func (s *RedisSupplier) TeamMembersToRemove(ctx context.Context, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	// TODO: Redis caching.
+	return s.Next().TeamMembersToRemove(ctx, hints...)
+}
+
+func (s *RedisSupplier) ChannelMembersToRemove(ctx context.Context, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	// TODO: Redis caching.
+	return s.Next().ChannelMembersToRemove(ctx, hints...)
+}
+
+func (s *RedisSupplier) GetGroupsByChannel(ctx context.Context, channelId string, opts model.GroupSearchOpts, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	// TODO: Redis caching.
+	return s.Next().GetGroupsByChannel(ctx, channelId, opts, hints...)
+}
+
+func (s *RedisSupplier) CountGroupsByChannel(ctx context.Context, channelId string, opts model.GroupSearchOpts, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	// TODO: Redis caching.
+	return s.Next().CountGroupsByChannel(ctx, channelId, opts, hints...)
+}
+
+func (s *RedisSupplier) GetGroupsByTeam(ctx context.Context, teamId string, opts model.GroupSearchOpts, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	// TODO: Redis caching.
+	return s.Next().GetGroupsByTeam(ctx, teamId, opts, hints...)
+}
+
+func (s *RedisSupplier) CountGroupsByTeam(ctx context.Context, teamId string, opts model.GroupSearchOpts, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	// TODO: Redis caching.
+	return s.Next().CountGroupsByTeam(ctx, teamId, opts, hints...)
+}
+
+func (s *RedisSupplier) GetGroups(ctx context.Context, page, perPage int, opts model.GroupSearchOpts, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+	// TODO: Redis caching.
+	return s.Next().GetGroups(ctx, page, perPage, opts, hints...)
 }
