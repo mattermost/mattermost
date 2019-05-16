@@ -5171,6 +5171,10 @@
     "translation": "Unable to set the user status. Unknown user status."
   },
   {
+    "id": "plugin_api.bot_cant_create_bot",
+    "translation": "Bot user cannot create bot user."
+  },
+  {
     "id": "plugin_api.get_file_link.disabled.app_error",
     "translation": "Public links have been disabled"
   },
