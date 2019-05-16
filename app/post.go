@@ -437,16 +437,18 @@ func (a *App) UpdateEphemeralPost(userId string, post *model.Post) *model.Post {
 	return post
 }
 
-func (a *App) DeleteEphemeralPost(userId string, post *model.Post) *model.Post {
-	post.Type = model.POST_EPHEMERAL
-	post.DeleteAt = model.GetMillis()
-	post.UpdateAt = post.DeleteAt
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_DELETED, "", post.ChannelId, userId, nil)
+func (a *App) DeleteEphemeralPost(userId, postId string) {
+	post := &model.Post{
+		Id:       postId,
+		UserId:   userId,
+		Type:     model.POST_EPHEMERAL,
+		DeleteAt: model.GetMillis(),
+		UpdateAt: model.GetMillis(),
+	}
 
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_DELETED, "", "", userId, nil)
 	message.Add("post", post.ToJson())
 	a.Publish(message)
-
-	return post
 }
 
 func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
