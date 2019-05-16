@@ -78,19 +78,28 @@ func (_m *PreferenceStore) DeleteCategoryAndName(category string, name string) s
 }
 
 // Get provides a mock function with given fields: userId, category, name
-func (_m *PreferenceStore) Get(userId string, category string, name string) store.StoreChannel {
+func (_m *PreferenceStore) Get(userId string, category string, name string) (*model.Preference, *model.AppError) {
 	ret := _m.Called(userId, category, name)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, string, string) store.StoreChannel); ok {
+	var r0 *model.Preference
+	if rf, ok := ret.Get(0).(func(string, string, string) *model.Preference); ok {
 		r0 = rf(userId, category, name)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.Preference)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string, string) *model.AppError); ok {
+		r1 = rf(userId, category, name)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetAll provides a mock function with given fields: userId
@@ -110,19 +119,28 @@ func (_m *PreferenceStore) GetAll(userId string) store.StoreChannel {
 }
 
 // GetCategory provides a mock function with given fields: userId, category
-func (_m *PreferenceStore) GetCategory(userId string, category string) store.StoreChannel {
+func (_m *PreferenceStore) GetCategory(userId string, category string) (model.Preferences, *model.AppError) {
 	ret := _m.Called(userId, category)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, string) store.StoreChannel); ok {
+	var r0 model.Preferences
+	if rf, ok := ret.Get(0).(func(string, string) model.Preferences); ok {
 		r0 = rf(userId, category)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(model.Preferences)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+		r1 = rf(userId, category)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // IsFeatureEnabled provides a mock function with given fields: feature, userId

@@ -191,19 +191,22 @@ func TestAttachFilesToPost(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		info1 := store.Must(th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
+		info1, err := th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
 			CreatorId: th.BasicUser.Id,
 			Path:      "path.txt",
-		})).(*model.FileInfo)
-		info2 := store.Must(th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
+		})
+		require.Nil(t, err)
+
+		info2, err := th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
 			CreatorId: th.BasicUser.Id,
 			Path:      "path.txt",
-		})).(*model.FileInfo)
+		})
+		require.Nil(t, err)
 
 		post := th.BasicPost
 		post.FileIds = []string{info1.Id, info2.Id}
 
-		err := th.App.attachFilesToPost(post)
+		err = th.App.attachFilesToPost(post)
 		assert.Nil(t, err)
 
 		infos, err := th.App.GetFileInfosForPost(post.Id)
@@ -215,20 +218,23 @@ func TestAttachFilesToPost(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		info1 := store.Must(th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
+		info1, err := th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
 			CreatorId: th.BasicUser.Id,
 			Path:      "path.txt",
 			PostId:    model.NewId(),
-		})).(*model.FileInfo)
-		info2 := store.Must(th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
+		})
+		require.Nil(t, err)
+
+		info2, err := th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
 			CreatorId: th.BasicUser.Id,
 			Path:      "path.txt",
-		})).(*model.FileInfo)
+		})
+		require.Nil(t, err)
 
 		post := th.BasicPost
 		post.FileIds = []string{info1.Id, info2.Id}
 
-		err := th.App.attachFilesToPost(post)
+		err = th.App.attachFilesToPost(post)
 		assert.Nil(t, err)
 
 		infos, err := th.App.GetFileInfosForPost(post.Id)
@@ -623,7 +629,7 @@ func TestDeletePostWithFileAttachments(t *testing.T) {
 		t.Fatal(err)
 	} else {
 		defer func() {
-			<-th.App.Srv.Store.FileInfo().PermanentDelete(info1.Id)
+			th.App.Srv.Store.FileInfo().PermanentDelete(info1.Id)
 			th.App.RemoveFile(info1.Path)
 		}()
 	}

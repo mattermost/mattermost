@@ -132,7 +132,7 @@ type ChannelStore interface {
 	Save(channel *model.Channel, maxChannelsPerTeam int64) StoreChannel
 	CreateDirectChannel(userId string, otherUserId string) StoreChannel
 	SaveDirectChannel(channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) StoreChannel
-	Update(channel *model.Channel) StoreChannel
+	Update(channel *model.Channel) (*model.Channel, *model.AppError)
 	Get(id string, allowFromCache bool) (*model.Channel, *model.AppError)
 	InvalidateChannel(id string)
 	InvalidateChannelByName(teamId, name string)
@@ -429,8 +429,8 @@ type CommandWebhookStore interface {
 
 type PreferenceStore interface {
 	Save(preferences *model.Preferences) StoreChannel
-	Get(userId string, category string, name string) StoreChannel
-	GetCategory(userId string, category string) StoreChannel
+	GetCategory(userId string, category string) (model.Preferences, *model.AppError)
+	Get(userId string, category string, name string) (*model.Preference, *model.AppError)
 	GetAll(userId string) StoreChannel
 	Delete(userId, category, name string) StoreChannel
 	DeleteCategory(userId string, category string) StoreChannel
@@ -476,17 +476,17 @@ type StatusStore interface {
 }
 
 type FileInfoStore interface {
-	Save(info *model.FileInfo) StoreChannel
-	Get(id string) StoreChannel
-	GetByPath(path string) StoreChannel
-	GetForPost(postId string, readFromMaster bool, allowFromCache bool) StoreChannel
-	GetForUser(userId string) StoreChannel
+	Save(info *model.FileInfo) (*model.FileInfo, *model.AppError)
+	Get(id string) (*model.FileInfo, *model.AppError)
+	GetByPath(path string) (*model.FileInfo, *model.AppError)
+	GetForPost(postId string, readFromMaster bool, allowFromCache bool) ([]*model.FileInfo, *model.AppError)
+	GetForUser(userId string) ([]*model.FileInfo, *model.AppError)
 	InvalidateFileInfosForPostCache(postId string)
-	AttachToPost(fileId string, postId string, creatorId string) StoreChannel
-	DeleteForPost(postId string) StoreChannel
-	PermanentDelete(fileId string) StoreChannel
-	PermanentDeleteBatch(endTime int64, limit int64) StoreChannel
-	PermanentDeleteByUser(userId string) StoreChannel
+	AttachToPost(fileId string, postId string, creatorId string) *model.AppError
+	DeleteForPost(postId string) (string, *model.AppError)
+	PermanentDelete(fileId string) *model.AppError
+	PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError)
+	PermanentDeleteByUser(userId string) (int64, *model.AppError)
 	ClearCaches()
 }
 
@@ -594,9 +594,12 @@ type GroupStore interface {
 	TeamMembersToRemove() StoreChannel
 	ChannelMembersToRemove() StoreChannel
 
-	GetGroupsByChannel(channelId string, page, perPage int) StoreChannel
+	GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) StoreChannel
+	CountGroupsByChannel(channelId string, opts model.GroupSearchOpts) StoreChannel
+
 	GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) StoreChannel
 	CountGroupsByTeam(teamId string, opts model.GroupSearchOpts) StoreChannel
+
 	GetGroups(page, perPage int, opts model.GroupSearchOpts) StoreChannel
 }
 

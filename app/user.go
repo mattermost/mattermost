@@ -1447,12 +1447,11 @@ func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 		return result.Err
 	}
 
-	result := <-a.Srv.Store.FileInfo().GetForUser(user.Id)
-	if result.Err != nil {
+	infos, err := a.Srv.Store.FileInfo().GetForUser(user.Id)
+	if err != nil {
 		mlog.Warn("Error getting file list for user from FileInfoStore")
 	}
 
-	infos := result.Data.([]*model.FileInfo)
 	for _, info := range infos {
 		res, err := a.FileExists(info.Path)
 		if err != nil {
@@ -1480,8 +1479,8 @@ func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 		}
 	}
 
-	if result := <-a.Srv.Store.FileInfo().PermanentDeleteByUser(user.Id); result.Err != nil {
-		return result.Err
+	if _, err := a.Srv.Store.FileInfo().PermanentDeleteByUser(user.Id); err != nil {
+		return err
 	}
 
 	if result := <-a.Srv.Store.User().PermanentDelete(user.Id); result.Err != nil {

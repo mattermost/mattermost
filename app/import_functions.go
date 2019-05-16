@@ -1064,8 +1064,8 @@ func (a *App) uploadAttachments(attachments *[]AttachmentImportData, post *model
 
 func (a *App) UpdateFileInfoWithPostId(post *model.Post) {
 	for _, fileId := range post.FileIds {
-		if result := <-a.Srv.Store.FileInfo().AttachToPost(fileId, post.Id, post.UserId); result.Err != nil {
-			mlog.Error(fmt.Sprintf("Error attaching files to post. postId=%v, fileIds=%v, message=%v", post.Id, post.FileIds, result.Err), mlog.String("post_id", post.Id))
+		if err := a.Srv.Store.FileInfo().AttachToPost(fileId, post.Id, post.UserId); err != nil {
+			mlog.Error(fmt.Sprintf("Error attaching files to post. postId=%v, fileIds=%v, message=%v", post.Id, post.FileIds, err), mlog.String("post_id", post.Id))
 		}
 	}
 }
@@ -1136,8 +1136,8 @@ func (a *App) ImportDirectChannel(data *DirectChannelImportData, dryRun bool) *m
 
 	if data.Header != nil {
 		channel.Header = *data.Header
-		if result := <-a.Srv.Store.Channel().Update(channel); result.Err != nil {
-			return model.NewAppError("BulkImport", "app.import.import_direct_channel.update_header_failed.error", nil, result.Err.Error(), http.StatusBadRequest)
+		if _, apperr := a.Srv.Store.Channel().Update(channel); apperr != nil {
+			return model.NewAppError("BulkImport", "app.import.import_direct_channel.update_header_failed.error", nil, apperr.Error(), http.StatusBadRequest)
 		}
 	}
 
