@@ -899,7 +899,7 @@ func testPostStoreSearch(t *testing.T, ss store.Store) {
 	c3.Name = "zz" + model.NewId() + "b"
 	c3.Type = model.CHANNEL_OPEN
 	c3 = (<-ss.Channel().Save(c3, -1)).Data.(*model.Channel)
-	<-ss.Channel().Delete(c3.Id, model.GetMillis())
+	ss.Channel().Delete(c3.Id, model.GetMillis())
 
 	m3 := model.ChannelMember{}
 	m3.ChannelId = c3.Id
@@ -2073,8 +2073,8 @@ func testPostStoreGetDirectPostParentsForExportAfterDeleted(t *testing.T, ss sto
 	<-ss.Channel().SaveDirectChannel(&o1, &m1, &m2)
 
 	o1.DeleteAt = 1
-	result := <-ss.Channel().SetDeleteAt(o1.Id, 1, 1)
-	assert.Nil(t, result.Err)
+	err := ss.Channel().SetDeleteAt(o1.Id, 1, 1)
+	assert.Nil(t, err)
 
 	p1 := &model.Post{}
 	p1.ChannelId = o1.Id
