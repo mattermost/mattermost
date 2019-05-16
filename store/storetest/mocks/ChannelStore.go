@@ -115,15 +115,15 @@ func (_m *ChannelStore) CreateDirectChannel(userId string, otherUserId string) s
 }
 
 // Delete provides a mock function with given fields: channelId, time
-func (_m *ChannelStore) Delete(channelId string, time int64) store.StoreChannel {
+func (_m *ChannelStore) Delete(channelId string, time int64) *model.AppError {
 	ret := _m.Called(channelId, time)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, int64) store.StoreChannel); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, int64) *model.AppError); ok {
 		r0 = rf(channelId, time)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
@@ -922,15 +922,15 @@ func (_m *ChannelStore) ResetAllChannelSchemes() store.StoreChannel {
 }
 
 // Restore provides a mock function with given fields: channelId, time
-func (_m *ChannelStore) Restore(channelId string, time int64) store.StoreChannel {
+func (_m *ChannelStore) Restore(channelId string, time int64) *model.AppError {
 	ret := _m.Called(channelId, time)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, int64) store.StoreChannel); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, int64) *model.AppError); ok {
 		r0 = rf(channelId, time)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
@@ -1034,15 +1034,15 @@ func (_m *ChannelStore) SearchMore(userId string, teamId string, term string) st
 }
 
 // SetDeleteAt provides a mock function with given fields: channelId, deleteAt, updateAt
-func (_m *ChannelStore) SetDeleteAt(channelId string, deleteAt int64, updateAt int64) store.StoreChannel {
+func (_m *ChannelStore) SetDeleteAt(channelId string, deleteAt int64, updateAt int64) *model.AppError {
 	ret := _m.Called(channelId, deleteAt, updateAt)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, int64, int64) store.StoreChannel); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, int64, int64) *model.AppError); ok {
 		r0 = rf(channelId, deleteAt, updateAt)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
