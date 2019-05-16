@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"os/signal"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -285,6 +286,14 @@ func NewServer(options ...Option) (*Server, error) {
 			s.Jobs.StartSchedulers()
 		}
 	}
+
+	// gracefully terminate plugins on kill signal
+	s.Go(func() {
+		c := make(chan os.Signal, 1)
+		signal.Notify(c)
+		<-c
+		s.PluginsEnvironment.Shutdown()
+	})
 
 	return s, nil
 }
