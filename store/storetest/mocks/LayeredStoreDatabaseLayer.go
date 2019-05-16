@@ -193,6 +193,52 @@ func (_m *LayeredStoreDatabaseLayer) Compliance() store.ComplianceStore {
 	return r0
 }
 
+// CountGroupsByChannel provides a mock function with given fields: ctx, channelId, opts, hints
+func (_m *LayeredStoreDatabaseLayer) CountGroupsByChannel(ctx context.Context, channelId string, opts model.GroupSearchOpts, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+	_va := make([]interface{}, len(hints))
+	for _i := range hints {
+		_va[_i] = hints[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, channelId, opts)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *store.LayeredStoreSupplierResult
+	if rf, ok := ret.Get(0).(func(context.Context, string, model.GroupSearchOpts, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
+		r0 = rf(ctx, channelId, opts, hints...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*store.LayeredStoreSupplierResult)
+		}
+	}
+
+	return r0
+}
+
+// CountGroupsByTeam provides a mock function with given fields: ctx, teamId, opts, hints
+func (_m *LayeredStoreDatabaseLayer) CountGroupsByTeam(ctx context.Context, teamId string, opts model.GroupSearchOpts, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+	_va := make([]interface{}, len(hints))
+	for _i := range hints {
+		_va[_i] = hints[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, teamId, opts)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *store.LayeredStoreSupplierResult
+	if rf, ok := ret.Get(0).(func(context.Context, string, model.GroupSearchOpts, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
+		r0 = rf(ctx, teamId, opts, hints...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*store.LayeredStoreSupplierResult)
+		}
+	}
+
+	return r0
+}
+
 // DropAllTables provides a mock function with given fields:
 func (_m *LayeredStoreDatabaseLayer) DropAllTables() {
 	_m.Called()
@@ -230,20 +276,20 @@ func (_m *LayeredStoreDatabaseLayer) FileInfo() store.FileInfoStore {
 	return r0
 }
 
-// GetGroupsByChannel provides a mock function with given fields: ctx, channelId, page, perPage, hints
-func (_m *LayeredStoreDatabaseLayer) GetGroupsByChannel(ctx context.Context, channelId string, page int, perPage int, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+// GetGroups provides a mock function with given fields: ctx, page, perPage, opts, hints
+func (_m *LayeredStoreDatabaseLayer) GetGroups(ctx context.Context, page int, perPage int, opts model.GroupSearchOpts, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	_va := make([]interface{}, len(hints))
 	for _i := range hints {
 		_va[_i] = hints[_i]
 	}
 	var _ca []interface{}
-	_ca = append(_ca, ctx, channelId, page, perPage)
+	_ca = append(_ca, ctx, page, perPage, opts)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
 	var r0 *store.LayeredStoreSupplierResult
-	if rf, ok := ret.Get(0).(func(context.Context, string, int, int, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
-		r0 = rf(ctx, channelId, page, perPage, hints...)
+	if rf, ok := ret.Get(0).(func(context.Context, int, int, model.GroupSearchOpts, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
+		r0 = rf(ctx, page, perPage, opts, hints...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*store.LayeredStoreSupplierResult)
@@ -253,20 +299,43 @@ func (_m *LayeredStoreDatabaseLayer) GetGroupsByChannel(ctx context.Context, cha
 	return r0
 }
 
-// GetGroupsByTeam provides a mock function with given fields: ctx, teamId, page, perPage, hints
-func (_m *LayeredStoreDatabaseLayer) GetGroupsByTeam(ctx context.Context, teamId string, page int, perPage int, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+// GetGroupsByChannel provides a mock function with given fields: ctx, channelId, opts, hints
+func (_m *LayeredStoreDatabaseLayer) GetGroupsByChannel(ctx context.Context, channelId string, opts model.GroupSearchOpts, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
 	_va := make([]interface{}, len(hints))
 	for _i := range hints {
 		_va[_i] = hints[_i]
 	}
 	var _ca []interface{}
-	_ca = append(_ca, ctx, teamId, page, perPage)
+	_ca = append(_ca, ctx, channelId, opts)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
 	var r0 *store.LayeredStoreSupplierResult
-	if rf, ok := ret.Get(0).(func(context.Context, string, int, int, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
-		r0 = rf(ctx, teamId, page, perPage, hints...)
+	if rf, ok := ret.Get(0).(func(context.Context, string, model.GroupSearchOpts, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
+		r0 = rf(ctx, channelId, opts, hints...)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*store.LayeredStoreSupplierResult)
+		}
+	}
+
+	return r0
+}
+
+// GetGroupsByTeam provides a mock function with given fields: ctx, teamId, opts, hints
+func (_m *LayeredStoreDatabaseLayer) GetGroupsByTeam(ctx context.Context, teamId string, opts model.GroupSearchOpts, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+	_va := make([]interface{}, len(hints))
+	for _i := range hints {
+		_va[_i] = hints[_i]
+	}
+	var _ca []interface{}
+	_ca = append(_ca, ctx, teamId, opts)
+	_ca = append(_ca, _va...)
+	ret := _m.Called(_ca...)
+
+	var r0 *store.LayeredStoreSupplierResult
+	if rf, ok := ret.Get(0).(func(context.Context, string, model.GroupSearchOpts, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
+		r0 = rf(ctx, teamId, opts, hints...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*store.LayeredStoreSupplierResult)
@@ -728,22 +797,6 @@ func (_m *LayeredStoreDatabaseLayer) Next() store.LayeredStoreSupplier {
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.LayeredStoreSupplier)
-		}
-	}
-
-	return r0
-}
-
-// NotificationRegistry provides a mock function with given fields:
-func (_m *LayeredStoreDatabaseLayer) NotificationRegistry() store.NotificationRegistryStore {
-	ret := _m.Called()
-
-	var r0 store.NotificationRegistryStore
-	if rf, ok := ret.Get(0).(func() store.NotificationRegistryStore); ok {
-		r0 = rf()
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.NotificationRegistryStore)
 		}
 	}
 

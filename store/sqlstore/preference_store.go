@@ -163,43 +163,39 @@ func (s SqlPreferenceStore) update(transaction *gorp.Transaction, preference *mo
 	return result
 }
 
-func (s SqlPreferenceStore) Get(userId string, category string, name string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var preference model.Preference
+func (s SqlPreferenceStore) Get(userId string, category string, name string) (*model.Preference, *model.AppError) {
+	var preference *model.Preference
 
-		if err := s.GetReplica().SelectOne(&preference,
-			`SELECT
-				*
-			FROM
-				Preferences
-			WHERE
-				UserId = :UserId
-				AND Category = :Category
-				AND Name = :Name`, map[string]interface{}{"UserId": userId, "Category": category, "Name": name}); err != nil {
-			result.Err = model.NewAppError("SqlPreferenceStore.Get", "store.sql_preference.get.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = preference
-		}
-	})
+	if err := s.GetReplica().SelectOne(&preference,
+		`SELECT
+			*
+		FROM
+			Preferences
+		WHERE
+			UserId = :UserId
+			AND Category = :Category
+			AND Name = :Name`, map[string]interface{}{"UserId": userId, "Category": category, "Name": name}); err != nil {
+		return nil, model.NewAppError("SqlPreferenceStore.Get", "store.sql_preference.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return preference, nil
 }
 
-func (s SqlPreferenceStore) GetCategory(userId string, category string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var preferences model.Preferences
+func (s SqlPreferenceStore) GetCategory(userId string, category string) (model.Preferences, *model.AppError) {
+	var preferences model.Preferences
 
-		if _, err := s.GetReplica().Select(&preferences,
-			`SELECT
+	if _, err := s.GetReplica().Select(&preferences,
+		`SELECT
 				*
 			FROM
 				Preferences
 			WHERE
 				UserId = :UserId
 				AND Category = :Category`, map[string]interface{}{"UserId": userId, "Category": category}); err != nil {
-			result.Err = model.NewAppError("SqlPreferenceStore.GetCategory", "store.sql_preference.get_category.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = preferences
-		}
-	})
+		return nil, model.NewAppError("SqlPreferenceStore.GetCategory", "store.sql_preference.get_category.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return preferences, nil
+
 }
 
 func (s SqlPreferenceStore) GetAll(userId string) store.StoreChannel {
