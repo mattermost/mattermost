@@ -67,15 +67,15 @@ func (_m *PostStore) ClearCaches() {
 }
 
 // Delete provides a mock function with given fields: postId, time, deleteByID
-func (_m *PostStore) Delete(postId string, time int64, deleteByID string) store.StoreChannel {
+func (_m *PostStore) Delete(postId string, time int64, deleteByID string) *model.AppError {
 	ret := _m.Called(postId, time, deleteByID)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, int64, string) store.StoreChannel); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, int64, string) *model.AppError); ok {
 		r0 = rf(postId, time, deleteByID)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 

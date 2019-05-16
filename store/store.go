@@ -78,7 +78,6 @@ type Store interface {
 	TotalMasterDbConnections() int
 	TotalReadDbConnections() int
 	TotalSearchDbConnections() int
-	NotificationRegistry() NotificationRegistryStore
 }
 
 type TeamStore interface {
@@ -215,7 +214,7 @@ type PostStore interface {
 	Update(newPost *model.Post, oldPost *model.Post) StoreChannel
 	Get(id string) (*model.PostList, *model.AppError)
 	GetSingle(id string) StoreChannel
-	Delete(postId string, time int64, deleteByID string) StoreChannel
+	Delete(postId string, time int64, deleteByID string) *model.AppError
 	PermanentDeleteByUser(userId string) StoreChannel
 	PermanentDeleteByChannel(channelId string) StoreChannel
 	GetPosts(channelId string, offset int, limit int, allowFromCache bool) StoreChannel
@@ -604,10 +603,4 @@ type GroupStore interface {
 type LinkMetadataStore interface {
 	Save(linkMetadata *model.LinkMetadata) StoreChannel
 	Get(url string, timestamp int64) StoreChannel
-}
-
-type NotificationRegistryStore interface {
-	Save(notification *model.NotificationRegistry) (*model.NotificationRegistry, *model.AppError)
-	MarkAsReceived(ackId string, time int64) *model.AppError
-	UpdateSendStatus(ackId, status string) *model.AppError
 }
