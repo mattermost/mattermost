@@ -14,19 +14,26 @@ type PreferenceStore struct {
 }
 
 // CleanupFlagsBatch provides a mock function with given fields: limit
-func (_m *PreferenceStore) CleanupFlagsBatch(limit int64) store.StoreChannel {
+func (_m *PreferenceStore) CleanupFlagsBatch(limit int64) (int64, *model.AppError) {
 	ret := _m.Called(limit)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(int64) store.StoreChannel); ok {
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(int64) int64); ok {
 		r0 = rf(limit)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(int64) *model.AppError); ok {
+		r1 = rf(limit)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
 		}
 	}
 
-	return r0
+	return r0, r1
 }
 
 // Delete provides a mock function with given fields: userId, category, name

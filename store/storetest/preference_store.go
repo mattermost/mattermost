@@ -436,10 +436,10 @@ func testPreferenceCleanupFlagsBatch(t *testing.T, ss store.Store) {
 
 	store.Must(ss.Preference().Save(&model.Preferences{preference1, preference2}))
 
-	result := <-ss.Preference().CleanupFlagsBatch(10000)
-	assert.Nil(t, result.Err)
+	_, err := ss.Preference().CleanupFlagsBatch(10000)
+	assert.Nil(t, err)
 
-	result = <-ss.Preference().Get(userId, category, preference1.Name)
+	result := <-ss.Preference().Get(userId, category, preference1.Name)
 	assert.Nil(t, result.Err)
 
 	result = <-ss.Preference().Get(userId, category, preference2.Name)
