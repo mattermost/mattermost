@@ -527,16 +527,16 @@ func (s SqlChannelStore) SaveDirectChannel(directchannel *model.Channel, member1
 
 	directchannel.TeamId = ""
 	// After updating saveChannelT() should be:
-	// newChannel, apperr := s.saveChannelT(transaction, directchannel, 0)
+	// newChannel, appErr := s.saveChannelT(transaction, directchannel, 0)
 	channelResult := s.saveChannelT(transaction, directchannel, 0)
 	var newChannel *model.Channel
 	if channelResult.Data != nil {
 		newChannel = channelResult.Data.(*model.Channel)
 	}
-	apperr := channelResult.Err
+	appErr := channelResult.Err
 
-	if apperr != nil {
-		return newChannel, apperr
+	if appErr != nil {
+		return newChannel, appErr
 	}
 
 	// Members need new channel ID
@@ -619,9 +619,9 @@ func (s SqlChannelStore) Update(channel *model.Channel) (*model.Channel, *model.
 	}
 	defer finalizeTransaction(transaction)
 
-	updatedChannel, apperr := s.updateChannelT(transaction, channel)
-	if apperr != nil {
-		return nil, apperr
+	updatedChannel, appErr := s.updateChannelT(transaction, channel)
+	if appErr != nil {
+		return nil, appErr
 	}
 
 	// Additionally propagate the write to the PublicChannels table.

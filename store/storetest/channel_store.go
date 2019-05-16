@@ -3018,8 +3018,8 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlSupplier)
 	})
 
 	o2.Type = model.CHANNEL_PRIVATE
-	_, apperr := ss.Channel().Update(&o2)
-	require.Nil(t, apperr)
+	_, appErr := ss.Channel().Update(&o2)
+	require.Nil(t, appErr)
 
 	t.Run("o2 no longer listed since now private", func(t *testing.T) {
 		result := <-ss.Channel().SearchInTeam(teamId, "", true)
@@ -3028,8 +3028,8 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlSupplier)
 	})
 
 	o2.Type = model.CHANNEL_OPEN
-	_, apperr = ss.Channel().Update(&o2)
-	require.Nil(t, apperr)
+	_, appErr = ss.Channel().Update(&o2)
+	require.Nil(t, appErr)
 
 	t.Run("o2 listed once again since now public", func(t *testing.T) {
 		result := <-ss.Channel().SearchInTeam(teamId, "", true)
@@ -3114,8 +3114,8 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlSupplier)
 	require.Nil(t, err)
 
 	o4.DisplayName += " - Modified"
-	_, apperr = ss.Channel().Update(&o4)
-	require.Nil(t, apperr)
+	_, appErr = ss.Channel().Update(&o4)
+	require.Nil(t, appErr)
 
 	t.Run("verify o4 UPDATE converted to INSERT", func(t *testing.T) {
 		result := <-ss.Channel().SearchInTeam(teamId, "", true)
