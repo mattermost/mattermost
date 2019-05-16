@@ -312,12 +312,12 @@ func (s SqlPreferenceStore) CleanupFlagsBatch(limit int64) (int64, *model.AppErr
 	sqlResult, err := s.GetMaster().Exec(query, map[string]interface{}{"Category": model.PREFERENCE_CATEGORY_FLAGGED_POST, "Limit": limit})
 	if err != nil {
 		return int64(0), model.NewAppError("SqlPostStore.CleanupFlagsBatch", "store.sql_preference.cleanup_flags_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
-	} else {
-		rowsAffected, err1 := sqlResult.RowsAffected()
-		if err1 != nil {
-			return int64(0), model.NewAppError("SqlPostStore.CleanupFlagsBatch", "store.sql_preference.cleanup_flags_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
-		} else {
-			return rowsAffected, nil
-		}
 	}
+
+	rowsAffected, err := sqlResult.RowsAffected()
+	if err != nil {
+		return int64(0), model.NewAppError("SqlPostStore.CleanupFlagsBatch", "store.sql_preference.cleanup_flags_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
+	}
+
+	return rowsAffected, nil
 }
