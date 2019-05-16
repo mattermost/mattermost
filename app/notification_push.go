@@ -5,10 +5,11 @@ package app
 
 import (
 	"fmt"
-	"github.com/pkg/errors"
 	"hash/fnv"
 	"net/http"
 	"strings"
+
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/mlog"
@@ -151,10 +152,10 @@ func (a *App) sendPushNotification(notification *postNotification, user *model.U
 	post := notification.post
 
 	var nameFormat string
-	if result := <-a.Srv.Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_NAME_FORMAT); result.Err != nil {
+	if data, err := a.Srv.Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_NAME_FORMAT); err != nil {
 		nameFormat = *a.Config().TeamSettings.TeammateNameDisplay
 	} else {
-		nameFormat = result.Data.(model.Preference).Value
+		nameFormat = data.Value
 	}
 
 	channelName := notification.GetChannelName(nameFormat, user.Id)
