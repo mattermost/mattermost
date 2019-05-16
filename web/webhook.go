@@ -64,7 +64,6 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-
 	err = c.App.HandleIncomingWebhook(id, incomingWebhookPayload)
 	if err != nil {
 		c.Err = err
