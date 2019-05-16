@@ -276,14 +276,14 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 
 	if newPost := result.Posts[post.Id]; len(newPost.Filenames) != len(post.Filenames) {
 		// Another thread has already created FileInfos for this post, so just return those
-		result := <-a.Srv.Store.FileInfo().GetForPost(post.Id, true, false)
-		if result.Err != nil {
-			mlog.Error(fmt.Sprintf("Unable to get FileInfos for migrated post, err=%v", result.Err), mlog.String("post_id", post.Id))
+		forPost := <-a.Srv.Store.FileInfo().GetForPost(post.Id, true, false)
+		if forPost.Err != nil {
+			mlog.Error(fmt.Sprintf("Unable to get FileInfos for migrated post, err=%v", forPost.Err), mlog.String("post_id", post.Id))
 			return []*model.FileInfo{}
 		}
 
 		mlog.Debug("Post already migrated to use FileInfos", mlog.String("post_id", post.Id))
-		return result.Data.([]*model.FileInfo)
+		return forPost.Data.([]*model.FileInfo)
 	}
 
 	mlog.Debug("Migrating post to use FileInfos", mlog.String("post_id", post.Id))
