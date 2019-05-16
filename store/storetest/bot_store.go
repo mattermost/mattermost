@@ -48,6 +48,7 @@ func testBotStoreGet(t *testing.T, ss store.Store) {
 		DeleteAt:    0,
 	})
 	store.Must(ss.Bot().PermanentDelete(permanentlyDeletedBot.UserId))
+	defer func() { store.Must(ss.User().PermanentDelete(permanentlyDeletedBot.UserId)) }()
 
 	b1, _ := makeBotWithUser(ss, &model.Bot{
 		Username:    "b1",
@@ -123,6 +124,7 @@ func testBotStoreGetAll(t *testing.T, ss store.Store) {
 		DeleteAt:    0,
 	})
 	store.Must(ss.Bot().PermanentDelete(permanentlyDeletedBot.UserId))
+	defer func() { store.Must(ss.User().PermanentDelete(permanentlyDeletedBot.UserId)) }()
 
 	b1, _ := makeBotWithUser(ss, &model.Bot{
 		Username:    "b1",

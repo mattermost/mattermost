@@ -47,7 +47,7 @@ func testPreferenceSave(t *testing.T, ss store.Store) {
 	}
 
 	for _, preference := range preferences {
-		if data := store.Must(ss.Preference().Get(preference.UserId, preference.Category, preference.Name)).(model.Preference); preference != data {
+		if data, _ := ss.Preference().Get(preference.UserId, preference.Category, preference.Name); preference.ToJson() != data.ToJson() {
 			t.Fatal("got incorrect preference after first Save")
 		}
 	}
@@ -59,7 +59,7 @@ func testPreferenceSave(t *testing.T, ss store.Store) {
 	}
 
 	for _, preference := range preferences {
-		if data := store.Must(ss.Preference().Get(preference.UserId, preference.Category, preference.Name)).(model.Preference); preference != data {
+		if data, _ := ss.Preference().Get(preference.UserId, preference.Category, preference.Name); preference.ToJson() != data.ToJson() {
 			t.Fatal("got incorrect preference after second Save")
 		}
 	}
@@ -95,14 +95,14 @@ func testPreferenceGet(t *testing.T, ss store.Store) {
 
 	store.Must(ss.Preference().Save(&preferences))
 
-	if result := <-ss.Preference().Get(userId, category, name); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if data := result.Data.(model.Preference); data != preferences[0] {
+	if data, err := ss.Preference().Get(userId, category, name); err != nil {
+		t.Fatal(err)
+	} else if data.ToJson() != preferences[0].ToJson() {
 		t.Fatal("got incorrect preference")
 	}
 
 	// make sure getting a missing preference fails
-	if result := <-ss.Preference().Get(model.NewId(), model.NewId(), model.NewId()); result.Err == nil {
+	if _, err := ss.Preference().Get(model.NewId(), model.NewId(), model.NewId()); err == nil {
 		t.Fatal("no error on getting a missing preference")
 	}
 }
@@ -140,18 +140,18 @@ func testPreferenceGetCategory(t *testing.T, ss store.Store) {
 
 	store.Must(ss.Preference().Save(&preferences))
 
-	if result := <-ss.Preference().GetCategory(userId, category); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if data := result.Data.(model.Preferences); len(data) != 2 {
+	if preferencesByCategory, err := ss.Preference().GetCategory(userId, category); err != nil {
+		t.Fatal(err)
+	} else if len(preferencesByCategory) != 2 {
 		t.Fatal("got the wrong number of preferences")
-	} else if !((data[0] == preferences[0] && data[1] == preferences[1]) || (data[0] == preferences[1] && data[1] == preferences[0])) {
+	} else if !((preferencesByCategory[0] == preferences[0] && preferencesByCategory[1] == preferences[1]) || (preferencesByCategory[0] == preferences[1] && preferencesByCategory[1] == preferences[0])) {
 		t.Fatal("got incorrect preferences")
 	}
 
 	// make sure getting a missing preference category doesn't fail
-	if result := <-ss.Preference().GetCategory(model.NewId(), model.NewId()); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if data := result.Data.(model.Preferences); len(data) != 0 {
+	if preferencesByCategory, err := ss.Preference().GetCategory(model.NewId(), model.NewId()); err != nil {
+		t.Fatal(err)
+	} else if len(preferencesByCategory) != 0 {
 		t.Fatal("shouldn't have got any preferences")
 	}
 }
@@ -439,9 +439,9 @@ func testPreferenceCleanupFlagsBatch(t *testing.T, ss store.Store) {
 	result := <-ss.Preference().CleanupFlagsBatch(10000)
 	assert.Nil(t, result.Err)
 
-	result = <-ss.Preference().Get(userId, category, preference1.Name)
-	assert.Nil(t, result.Err)
+	_, err := ss.Preference().Get(userId, category, preference1.Name)
+	assert.Nil(t, err)
 
-	result = <-ss.Preference().Get(userId, category, preference2.Name)
-	assert.NotNil(t, result.Err)
+	_, err = ss.Preference().Get(userId, category, preference2.Name)
+	assert.NotNil(t, err)
 }

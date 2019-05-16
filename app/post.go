@@ -302,9 +302,9 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 func (a *App) attachFilesToPost(post *model.Post) *model.AppError {
 	var attachedIds []string
 	for _, fileId := range post.FileIds {
-		result := <-a.Srv.Store.FileInfo().AttachToPost(fileId, post.Id, post.UserId)
-		if result.Err != nil {
-			mlog.Warn("Failed to attach file to post", mlog.String("file_id", fileId), mlog.String("post_id", post.Id), mlog.Err(result.Err))
+		err := a.Srv.Store.FileInfo().AttachToPost(fileId, post.Id, post.UserId)
+		if err != nil {
+			mlog.Warn("Failed to attach file to post", mlog.String("file_id", fileId), mlog.String("post_id", post.Id), mlog.Err(err))
 			continue
 		}
 
@@ -437,16 +437,18 @@ func (a *App) UpdateEphemeralPost(userId string, post *model.Post) *model.Post {
 	return post
 }
 
-func (a *App) DeleteEphemeralPost(userId string, post *model.Post) *model.Post {
-	post.Type = model.POST_EPHEMERAL
-	post.DeleteAt = model.GetMillis()
-	post.UpdateAt = post.DeleteAt
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_DELETED, "", post.ChannelId, userId, nil)
+func (a *App) DeleteEphemeralPost(userId, postId string) {
+	post := &model.Post{
+		Id:       postId,
+		UserId:   userId,
+		Type:     model.POST_EPHEMERAL,
+		DeleteAt: model.GetMillis(),
+		UpdateAt: model.GetMillis(),
+	}
 
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_DELETED, "", "", userId, nil)
 	message.Add("post", post.ToJson())
 	a.Publish(message)
-
-	return post
 }
 
 func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
@@ -776,8 +778,8 @@ func (a *App) DeletePostFiles(post *model.Post) {
 		return
 	}
 
-	if result := <-a.Srv.Store.FileInfo().DeleteForPost(post.Id); result.Err != nil {
-		mlog.Warn(fmt.Sprintf("Encountered error when deleting files for post, post_id=%v, err=%v", post.Id, result.Err), mlog.String("post_id", post.Id))
+	if _, err := a.Srv.Store.FileInfo().DeleteForPost(post.Id); err != nil {
+		mlog.Warn(fmt.Sprintf("Encountered error when deleting files for post, post_id=%v, err=%v", post.Id, err), mlog.String("post_id", post.Id))
 	}
 }
 
@@ -980,12 +982,7 @@ func (a *App) GetFileInfosForPostWithMigration(postId string) ([]*model.FileInfo
 }
 
 func (a *App) GetFileInfosForPost(postId string) ([]*model.FileInfo, *model.AppError) {
-	result := <-a.Srv.Store.FileInfo().GetForPost(postId, false, true)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-
-	return result.Data.([]*model.FileInfo), nil
+	return a.Srv.Store.FileInfo().GetForPost(postId, false, true)
 }
 
 func (a *App) PostWithProxyAddedToImageURLs(post *model.Post) *model.Post {

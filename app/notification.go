@@ -474,7 +474,12 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	var fchan store.StoreChannel
 
 	if len(post.FileIds) != 0 {
-		fchan = a.Srv.Store.FileInfo().GetForPost(post.Id, true, true)
+		fchan = make(chan store.StoreResult, 1)
+		go func() {
+			fileInfos, err := a.Srv.Store.FileInfo().GetForPost(post.Id, true, true)
+			fchan <- store.StoreResult{Data: fileInfos, Err: err}
+			close(fchan)
+		}()
 	}
 
 	result := <-pchan
