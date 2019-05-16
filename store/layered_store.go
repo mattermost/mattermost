@@ -466,9 +466,15 @@ func (s *LayeredGroupStore) ChannelMembersToRemove() StoreChannel {
 	})
 }
 
-func (s *LayeredGroupStore) GetGroupsByChannel(channelId string, page, perPage int) StoreChannel {
+func (s *LayeredGroupStore) GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) StoreChannel {
 	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.GetGroupsByChannel(s.TmpContext, channelId, page, perPage)
+		return supplier.GetGroupsByChannel(s.TmpContext, channelId, opts)
+	})
+}
+
+func (s *LayeredGroupStore) CountGroupsByChannel(channelId string, opts model.GroupSearchOpts) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.CountGroupsByChannel(s.TmpContext, channelId, opts)
 	})
 }
 

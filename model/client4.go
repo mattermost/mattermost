@@ -3311,15 +3311,27 @@ func (c *Client4) UnlinkLdapGroup(dn string) (*Group, *Response) {
 }
 
 // GetGroupsByChannel retrieves the Mattermost Groups associated with a given channel
-func (c *Client4) GetGroupsByChannel(channelId string, page, perPage int) ([]*Group, *Response) {
-	path := fmt.Sprintf("%s/groups?page=%v&per_page=%v", c.GetChannelRoute(channelId), page, perPage)
+func (c *Client4) GetGroupsByChannel(channelId string, opts GroupSearchOpts) ([]*Group, int, *Response) {
+	path := fmt.Sprintf("%s/groups?q=%v&include_member_count=%v", c.GetChannelRoute(channelId), opts.Q, opts.IncludeMemberCount)
+	if opts.PageOpts != nil {
+		path = fmt.Sprintf("%s&page=%v&per_page=%v", path, opts.PageOpts.Page, opts.PageOpts.PerPage)
+	}
 	r, appErr := c.DoApiGet(path, "")
 	if appErr != nil {
-		return nil, BuildErrorResponse(r, appErr)
+		return nil, 0, BuildErrorResponse(r, appErr)
 	}
 	defer closeBody(r)
 
-	return GroupsFromJson(r.Body), BuildResponse(r)
+	responseData := struct {
+		Groups []*Group `json:"groups"`
+		Count  int      `json:"total_group_count"`
+	}{}
+	if err := json.NewDecoder(r.Body).Decode(&responseData); err != nil {
+		appErr := NewAppError("Api4.GetGroupsByChannel", "api.marshal_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, 0, BuildErrorResponse(r, appErr)
+	}
+
+	return responseData.Groups, responseData.Count, BuildResponse(r)
 }
 
 // GetGroupsByTeam retrieves the Mattermost Groups associated with a given team
@@ -3349,8 +3361,12 @@ func (c *Client4) GetGroupsByTeam(teamId string, opts GroupSearchOpts) ([]*Group
 // GetGroups retrieves Mattermost Groups
 func (c *Client4) GetGroups(opts GroupSearchOpts) ([]*Group, *Response) {
 	path := fmt.Sprintf(
-		"%s?include_member_count=%v&not_associated_to_team=%v&q=%v",
-		c.GetGroupsRoute(), opts.IncludeMemberCount, opts.NotAssociatedToTeam, opts.Q,
+		"%s?include_member_count=%v&not_associated_to_team=%v&not_associated_to_channel=%v&q=%v",
+		c.GetGroupsRoute(),
+		opts.IncludeMemberCount,
+		opts.NotAssociatedToTeam,
+		opts.NotAssociatedToChannel,
+		opts.Q,
 	)
 	if opts.PageOpts != nil {
 		path = fmt.Sprintf("%s&page=%v&per_page=%v", path, opts.PageOpts.Page, opts.PageOpts.PerPage)

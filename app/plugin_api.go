@@ -447,8 +447,8 @@ func (api *PluginAPI) UpdateEphemeralPost(userId string, post *model.Post) *mode
 	return api.app.UpdateEphemeralPost(userId, post)
 }
 
-func (api *PluginAPI) DeleteEphemeralPost(userId string, post *model.Post) {
-	api.app.DeleteEphemeralPost(userId, post)
+func (api *PluginAPI) DeleteEphemeralPost(userId, postId string) {
+	api.app.DeleteEphemeralPost(userId, postId)
 }
 
 func (api *PluginAPI) DeletePost(postId string) *model.AppError {
@@ -724,6 +724,12 @@ func (api *PluginAPI) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
 	// otherwise specified by the plugin.
 	if bot.OwnerId == "" {
 		bot.OwnerId = api.id
+	}
+	// Bots cannot be owners of other bots
+	if user, err := api.app.GetUser(bot.OwnerId); err == nil {
+		if user.IsBot {
+			return nil, model.NewAppError("CreateBot", "plugin_api.bot_cant_create_bot", nil, "", http.StatusBadRequest)
+		}
 	}
 
 	return api.app.CreateBot(bot)

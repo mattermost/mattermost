@@ -45,6 +45,22 @@ func (_m *GroupStore) ChannelMembersToRemove() store.StoreChannel {
 	return r0
 }
 
+// CountGroupsByChannel provides a mock function with given fields: channelId, opts
+func (_m *GroupStore) CountGroupsByChannel(channelId string, opts model.GroupSearchOpts) store.StoreChannel {
+	ret := _m.Called(channelId, opts)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string, model.GroupSearchOpts) store.StoreChannel); ok {
+		r0 = rf(channelId, opts)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
+}
+
 // CountGroupsByTeam provides a mock function with given fields: teamId, opts
 func (_m *GroupStore) CountGroupsByTeam(teamId string, opts model.GroupSearchOpts) store.StoreChannel {
 	ret := _m.Called(teamId, opts)
@@ -253,13 +269,13 @@ func (_m *GroupStore) GetGroups(page int, perPage int, opts model.GroupSearchOpt
 	return r0
 }
 
-// GetGroupsByChannel provides a mock function with given fields: channelId, page, perPage
-func (_m *GroupStore) GetGroupsByChannel(channelId string, page int, perPage int) store.StoreChannel {
-	ret := _m.Called(channelId, page, perPage)
+// GetGroupsByChannel provides a mock function with given fields: channelId, opts
+func (_m *GroupStore) GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) store.StoreChannel {
+	ret := _m.Called(channelId, opts)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, int, int) store.StoreChannel); ok {
-		r0 = rf(channelId, page, perPage)
+	if rf, ok := ret.Get(0).(func(string, model.GroupSearchOpts) store.StoreChannel); ok {
+		r0 = rf(channelId, opts)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)
