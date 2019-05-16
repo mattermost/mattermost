@@ -30,7 +30,6 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/services/filesstore"
-	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
@@ -276,14 +275,14 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 
 	if newPost := result.Data.(*model.PostList).Posts[post.Id]; len(newPost.Filenames) != len(post.Filenames) {
 		// Another thread has already created FileInfos for this post, so just return those
-		result := <-a.Srv.Store.FileInfo().GetForPost(post.Id, true, false)
-		if result.Err != nil {
+		fileInfos, err := a.Srv.Store.FileInfo().GetForPost(post.Id, true, false)
+		if err != nil {
 			mlog.Error(fmt.Sprintf("Unable to get FileInfos for migrated post, err=%v", result.Err), mlog.String("post_id", post.Id))
 			return []*model.FileInfo{}
 		}
 
 		mlog.Debug("Post already migrated to use FileInfos", mlog.String("post_id", post.Id))
-		return result.Data.([]*model.FileInfo)
+		return fileInfos
 	}
 
 	mlog.Debug("Migrating post to use FileInfos", mlog.String("post_id", post.Id))
@@ -291,9 +290,9 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	savedInfos := make([]*model.FileInfo, 0, len(infos))
 	fileIds := make([]string, 0, len(filenames))
 	for _, info := range infos {
-		if result := <-a.Srv.Store.FileInfo().Save(info); result.Err != nil {
+		if _, err := a.Srv.Store.FileInfo().Save(info); err != nil {
 			mlog.Error(
-				fmt.Sprintf("Unable to save file info when migrating post to use FileInfos, err=%v", result.Err),
+				fmt.Sprintf("Unable to save file info when migrating post to use FileInfos, err=%v", err),
 				mlog.String("post_id", post.Id),
 				mlog.String("file_info_id", info.Id),
 				mlog.String("file_info_path", info.Path),
@@ -506,7 +505,7 @@ type uploadFileTask struct {
 	// Testing: overrideable dependency functions
 	pluginsEnvironment *plugin.Environment
 	writeFile          func(io.Reader, string) (int64, *model.AppError)
-	saveToDatabase     func(*model.FileInfo) store.StoreChannel
+	saveToDatabase     func(*model.FileInfo) (*model.FileInfo, *model.AppError)
 }
 
 func (t *uploadFileTask) init(a *App) {
@@ -605,8 +604,8 @@ func (a *App) UploadFileX(channelId, name string, input io.Reader,
 		return nil, aerr
 	}
 
-	if result := <-t.saveToDatabase(t.fileinfo); result.Err != nil {
-		return nil, result.Err
+	if _, err := t.saveToDatabase(t.fileinfo); err != nil {
+		return nil, err
 	}
 
 	wg.Wait()
@@ -915,8 +914,8 @@ func (a *App) DoUploadFileExpectModification(now time.Time, rawTeamId string, ra
 		return nil, data, err
 	}
 
-	if result := <-a.Srv.Store.FileInfo().Save(info); result.Err != nil {
-		return nil, data, result.Err
+	if _, err := a.Srv.Store.FileInfo().Save(info); err != nil {
+		return nil, data, err
 	}
 
 	return info, data, nil
@@ -1059,11 +1058,7 @@ func (a *App) generatePreviewImage(img image.Image, previewPath string, width in
 }
 
 func (a *App) GetFileInfo(fileId string) (*model.FileInfo, *model.AppError) {
-	result := <-a.Srv.Store.FileInfo().Get(fileId)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.FileInfo), nil
+	return a.Srv.Store.FileInfo().Get(fileId)
 }
 
 func (a *App) GetFile(fileId string) ([]byte, *model.AppError) {
@@ -1086,21 +1081,19 @@ func (a *App) CopyFileInfos(userId string, fileIds []string) ([]string, *model.A
 	now := model.GetMillis()
 
 	for _, fileId := range fileIds {
-		result := <-a.Srv.Store.FileInfo().Get(fileId)
-
-		if result.Err != nil {
-			return nil, result.Err
+		fileInfo, err := a.Srv.Store.FileInfo().Get(fileId)
+		if err != nil {
+			return nil, err
 		}
 
-		fileInfo := result.Data.(*model.FileInfo)
 		fileInfo.Id = model.NewId()
 		fileInfo.CreatorId = userId
 		fileInfo.CreateAt = now
 		fileInfo.UpdateAt = now
 		fileInfo.PostId = ""
 
-		if result := <-a.Srv.Store.FileInfo().Save(fileInfo); result.Err != nil {
-			return newFileIds, result.Err
+		if _, err := a.Srv.Store.FileInfo().Save(fileInfo); err != nil {
+			return newFileIds, err
 		}
 
 		newFileIds = append(newFileIds, fileInfo.Id)
