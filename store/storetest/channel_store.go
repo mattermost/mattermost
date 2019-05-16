@@ -2497,7 +2497,7 @@ func testChannelStoreAutocompleteInTeamForSearch(t *testing.T, ss store.Store, s
 	o5.Type = model.CHANNEL_PRIVATE
 	store.Must(ss.Channel().Save(&o5, -1))
 
-	_, err := ss.Channel().CreateDirectChannel(u1.Id, u2.Id)
+	_, err = ss.Channel().CreateDirectChannel(u1.Id, u2.Id)
 	require.Nil(t, err)
 	_, err = ss.Channel().CreateDirectChannel(u2.Id, u3.Id)
 	require.Nil(t, err)
@@ -2636,7 +2636,7 @@ func testChannelStoreAnalyticsDeletedTypeCount(t *testing.T, ss store.Store) {
 		directStartCount = result.Data.(int64)
 	}
 
-	err := ss.Channel().Delete(o1.Id, model.GetMillis())
+	err = ss.Channel().Delete(o1.Id, model.GetMillis())
 	require.Nil(t, err, "channel should have been deleted")
 	err = ss.Channel().Delete(o2.Id, model.GetMillis())
 	require.Nil(t, err, "channel should have been deleted")
