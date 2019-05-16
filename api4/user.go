@@ -454,6 +454,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	notInTeamId := r.URL.Query().Get("not_in_team")
 	inChannelId := r.URL.Query().Get("in_channel")
 	notInChannelId := r.URL.Query().Get("not_in_channel")
+	groupConstrained := r.URL.Query().Get("group_constrained")
 	withoutTeam := r.URL.Query().Get("without_team")
 	inactive := r.URL.Query().Get("inactive")
 	role := r.URL.Query().Get("role")
@@ -481,6 +482,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	withoutTeamBool, _ := strconv.ParseBool(withoutTeam)
+	groupConstrainedBool, _ := strconv.ParseBool(groupConstrained)
 	inactiveBool, _ := strconv.ParseBool(inactive)
 
 	restrictions, err := c.App.GetViewUsersRestrictions(c.App.Session.UserId)
@@ -494,6 +496,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		InChannelId:      inChannelId,
 		NotInTeamId:      notInTeamId,
 		NotInChannelId:   notInChannelId,
+		GroupConstrained: groupConstrainedBool,
 		WithoutTeam:      withoutTeamBool,
 		Inactive:         inactiveBool,
 		Role:             role,
@@ -520,7 +523,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		profiles, err = c.App.GetUsersNotInChannelPage(inTeamId, notInChannelId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
+		profiles, err = c.App.GetUsersNotInChannelPage(inTeamId, notInChannelId, groupConstrainedBool, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
 	} else if len(notInTeamId) > 0 {
 		if !c.App.SessionHasPermissionToTeam(c.App.Session, notInTeamId, model.PERMISSION_VIEW_TEAM) {
 			c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
@@ -532,7 +535,7 @@ func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		profiles, err = c.App.GetUsersNotInTeamPage(notInTeamId, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
+		profiles, err = c.App.GetUsersNotInTeamPage(notInTeamId, groupConstrainedBool, c.Params.Page, c.Params.PerPage, c.IsSystemAdmin(), restrictions)
 	} else if len(inTeamId) > 0 {
 		if !c.App.SessionHasPermissionToTeam(c.App.Session, inTeamId, model.PERMISSION_VIEW_TEAM) {
 			c.SetPermissionError(model.PERMISSION_VIEW_TEAM)
@@ -675,10 +678,11 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	options := &model.UserSearchOptions{
-		IsAdmin:       c.IsSystemAdmin(),
-		AllowInactive: props.AllowInactive,
-		Limit:         props.Limit,
-		Role:          props.Role,
+		IsAdmin:          c.IsSystemAdmin(),
+		AllowInactive:    props.AllowInactive,
+		GroupConstrained: props.GroupConstrained,
+		Limit:            props.Limit,
+		Role:             props.Role,
 	}
 
 	if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {

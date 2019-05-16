@@ -1033,7 +1033,7 @@ func testUserStoreGetProfilesNotInChannel(t *testing.T, ss store.Store) {
 	}, -1)).(*model.Channel)
 
 	t.Run("get team 1, channel 1, offset 0, limit 100", func(t *testing.T) {
-		result := <-ss.User().GetProfilesNotInChannel(teamId, c1.Id, 0, 100, nil)
+		result := <-ss.User().GetProfilesNotInChannel(teamId, c1.Id, false, 0, 100, nil)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{
 			sanitized(u1),
@@ -1043,7 +1043,7 @@ func testUserStoreGetProfilesNotInChannel(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("get team 1, channel 2, offset 0, limit 100", func(t *testing.T) {
-		result := <-ss.User().GetProfilesNotInChannel(teamId, c2.Id, 0, 100, nil)
+		result := <-ss.User().GetProfilesNotInChannel(teamId, c2.Id, false, 0, 100, nil)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{
 			sanitized(u1),
@@ -1077,17 +1077,53 @@ func testUserStoreGetProfilesNotInChannel(t *testing.T, ss store.Store) {
 	}))
 
 	t.Run("get team 1, channel 1, offset 0, limit 100, after update", func(t *testing.T) {
-		result := <-ss.User().GetProfilesNotInChannel(teamId, c1.Id, 0, 100, nil)
+		result := <-ss.User().GetProfilesNotInChannel(teamId, c1.Id, false, 0, 100, nil)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{}, result.Data.([]*model.User))
 	})
 
 	t.Run("get team 1, channel 2, offset 0, limit 100, after update", func(t *testing.T) {
-		result := <-ss.User().GetProfilesNotInChannel(teamId, c2.Id, 0, 100, nil)
+		result := <-ss.User().GetProfilesNotInChannel(teamId, c2.Id, false, 0, 100, nil)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{
 			sanitized(u2),
 			sanitized(u3),
+		}, result.Data.([]*model.User))
+	})
+
+	t.Run("get team 1, channel 2, offset 0, limit 0, setting group constrained when it's not", func(t *testing.T) {
+		result := <-ss.User().GetProfilesNotInChannel(teamId, c2.Id, true, 0, 100, nil)
+		require.Nil(t, result.Err)
+		assert.Empty(t, result.Data.([]*model.User))
+	})
+
+	// create a group
+	group := store.Must(ss.Group().Create(&model.Group{
+		Name:        "n_" + model.NewId(),
+		DisplayName: "dn_" + model.NewId(),
+		Source:      model.GroupSourceLdap,
+		RemoteId:    "ri_" + model.NewId(),
+	})).(*model.Group)
+
+	// add two members to the group
+	for _, u := range []*model.User{u1, u2} {
+		res := <-ss.Group().CreateOrRestoreMember(group.Id, u.Id)
+		require.Nil(t, res.Err)
+	}
+
+	// associate the group with the channel
+	res := <-ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+		GroupId:    group.Id,
+		SyncableId: c2.Id,
+		Type:       model.GroupSyncableTypeChannel,
+	})
+	require.Nil(t, res.Err)
+
+	t.Run("get team 1, channel 2, offset 0, limit 0, setting group constrained", func(t *testing.T) {
+		result := <-ss.User().GetProfilesNotInChannel(teamId, c2.Id, true, 0, 100, nil)
+		require.Nil(t, result.Err)
+		assert.Equal(t, []*model.User{
+			sanitized(u2),
 		}, result.Data.([]*model.User))
 	})
 }
@@ -3071,7 +3107,14 @@ func testUserStoreAnalyticsGetSystemAdminCount(t *testing.T, ss store.Store) {
 }
 
 func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
-	teamId := model.NewId()
+	team, err := ss.Team().Save(&model.Team{
+		DisplayName: "Team",
+		Name:        model.NewId(),
+		Type:        model.TEAM_OPEN,
+	})
+	require.Nil(t, err)
+
+	teamId := team.Id
 	teamId2 := model.NewId()
 
 	u1 := store.Must(ss.User().Save(&model.User{
@@ -3116,7 +3159,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("get not in team 1, offset 0, limit 100000", func(t *testing.T) {
-		result := <-ss.User().GetProfilesNotInTeam(teamId, 0, 100000, nil)
+		result := <-ss.User().GetProfilesNotInTeam(teamId, false, 0, 100000, nil)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{
 			sanitized(u2),
@@ -3125,7 +3168,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("get not in team 1, offset 1, limit 1", func(t *testing.T) {
-		result := <-ss.User().GetProfilesNotInTeam(teamId, 1, 1, nil)
+		result := <-ss.User().GetProfilesNotInTeam(teamId, false, 1, 1, nil)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{
 			sanitized(u3),
@@ -3133,7 +3176,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("get not in team 2, offset 0, limit 100", func(t *testing.T) {
-		result := <-ss.User().GetProfilesNotInTeam(teamId2, 0, 100, nil)
+		result := <-ss.User().GetProfilesNotInTeam(teamId2, false, 0, 100, nil)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{
 			sanitized(u1),
@@ -3156,7 +3199,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("get not in team 1, offset 0, limit 100000 after update", func(t *testing.T) {
-		result := <-ss.User().GetProfilesNotInTeam(teamId, 0, 100000, nil)
+		result := <-ss.User().GetProfilesNotInTeam(teamId, false, 0, 100000, nil)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{
 			sanitized(u3),
@@ -3180,7 +3223,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("get not in team 1, offset 0, limit 100000 after second update", func(t *testing.T) {
-		result := <-ss.User().GetProfilesNotInTeam(teamId, 0, 100000, nil)
+		result := <-ss.User().GetProfilesNotInTeam(teamId, false, 0, 100000, nil)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{
 			sanitized(u1),
@@ -3221,6 +3264,43 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 		require.Nil(t, result.Err)
 		etag4 := result.Data.(string)
 		require.Equal(t, etag3, etag4, "etag should not have changed")
+	})
+
+	t.Run("get not in team 1, offset 0, limit 100000 after second update, setting group constrained when it's not", func(t *testing.T) {
+		result := <-ss.User().GetProfilesNotInTeam(teamId, true, 0, 100000, nil)
+		require.Nil(t, result.Err)
+		assert.Empty(t, result.Data.([]*model.User))
+	})
+
+	// create a group
+	group := store.Must(ss.Group().Create(&model.Group{
+		Name:        "n_" + model.NewId(),
+		DisplayName: "dn_" + model.NewId(),
+		Source:      model.GroupSourceLdap,
+		RemoteId:    "ri_" + model.NewId(),
+	})).(*model.Group)
+
+	// add two members to the group
+	for _, u := range []*model.User{u1, u2} {
+		res := <-ss.Group().CreateOrRestoreMember(group.Id, u.Id)
+		require.Nil(t, res.Err)
+	}
+
+	// associate the group with the team
+	res := <-ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+		GroupId:    group.Id,
+		SyncableId: teamId,
+		Type:       model.GroupSyncableTypeTeam,
+	})
+	require.Nil(t, res.Err)
+
+	t.Run("get not in team 1, offset 0, limit 100000 after second update, setting group constrained", func(t *testing.T) {
+		result := <-ss.User().GetProfilesNotInTeam(teamId, true, 0, 100000, nil)
+		require.Nil(t, result.Err)
+		assert.Equal(t, []*model.User{
+			sanitized(u1),
+			sanitized(u2),
+		}, result.Data.([]*model.User))
 	})
 }
 

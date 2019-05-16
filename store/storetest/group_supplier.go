@@ -1169,15 +1169,15 @@ func testPendingAutoAddChannelMembers(t *testing.T, ss store.Store) {
 	require.Len(t, res.Data, 1)
 
 	// No result if Channel deleted
-	res = <-ss.Channel().Delete(channel.Id, model.GetMillis())
-	require.Nil(t, res.Err)
+	err := ss.Channel().Delete(channel.Id, model.GetMillis())
+	require.Nil(t, err)
 	res = <-ss.Group().ChannelMembersToAdd(0)
 	require.Nil(t, res.Err)
 	require.Len(t, res.Data, 0)
 
 	// reset state of channel and verify
 	channel.DeleteAt = 0
-	_, err := ss.Channel().Update(channel)
+	_, err = ss.Channel().Update(channel)
 	require.Nil(t, err)
 	res = <-ss.Group().ChannelMembersToAdd(0)
 	require.Nil(t, res.Err)
@@ -1633,23 +1633,44 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 	})
 	require.Nil(t, res.Err)
 
+	// add members
+	u1 := &model.User{
+		Email:    MakeEmail(),
+		Username: model.NewId(),
+	}
+	res = <-ss.User().Save(u1)
+	require.Nil(t, res.Err)
+	user1 := res.Data.(*model.User)
+	<-ss.Group().CreateOrRestoreMember(group1.Id, user1.Id)
+
+	group1WithMemberCount := model.Group(*group1)
+	group1WithMemberCount.MemberCount = model.NewInt(1)
+
+	group2WithMemberCount := model.Group(*group2)
+	group2WithMemberCount.MemberCount = model.NewInt(0)
+
 	testCases := []struct {
-		Name      string
-		ChannelId string
-		Page      int
-		PerPage   int
-		Result    []*model.Group
+		Name       string
+		ChannelId  string
+		Page       int
+		PerPage    int
+		Result     []*model.Group
+		Opts       model.GroupSearchOpts
+		TotalCount *int64
 	}{
 		{
-			Name:      "Get the two Groups for Channel1",
-			ChannelId: channel1.Id,
-			Page:      0,
-			PerPage:   60,
-			Result:    []*model.Group{group1, group2},
+			Name:       "Get the two Groups for Channel1",
+			ChannelId:  channel1.Id,
+			Opts:       model.GroupSearchOpts{},
+			Page:       0,
+			PerPage:    60,
+			Result:     []*model.Group{group1, group2},
+			TotalCount: model.NewInt64(2),
 		},
 		{
 			Name:      "Get first Group for Channel1 with page 0 with 1 element",
 			ChannelId: channel1.Id,
+			Opts:      model.GroupSearchOpts{},
 			Page:      0,
 			PerPage:   1,
 			Result:    []*model.Group{group1},
@@ -1657,6 +1678,7 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 		{
 			Name:      "Get second Group for Channel1 with page 1 with 1 element",
 			ChannelId: channel1.Id,
+			Opts:      model.GroupSearchOpts{},
 			Page:      1,
 			PerPage:   1,
 			Result:    []*model.Group{group2},
@@ -1664,24 +1686,72 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 		{
 			Name:      "Get third Group for Channel2",
 			ChannelId: channel2.Id,
+			Opts:      model.GroupSearchOpts{},
 			Page:      0,
 			PerPage:   60,
 			Result:    []*model.Group{group3},
 		},
 		{
-			Name:      "Get empty Groups for a fake id",
-			ChannelId: model.NewId(),
+			Name:       "Get empty Groups for a fake id",
+			ChannelId:  model.NewId(),
+			Opts:       model.GroupSearchOpts{},
+			Page:       0,
+			PerPage:    60,
+			Result:     []*model.Group{},
+			TotalCount: model.NewInt64(0),
+		},
+		{
+			Name:       "Get group matching name",
+			ChannelId:  channel1.Id,
+			Opts:       model.GroupSearchOpts{Q: string([]rune(group1.Name)[2:10])}, // very low change of a name collision
+			Page:       0,
+			PerPage:    100,
+			Result:     []*model.Group{group1},
+			TotalCount: model.NewInt64(1),
+		},
+		{
+			Name:       "Get group matching display name",
+			ChannelId:  channel1.Id,
+			Opts:       model.GroupSearchOpts{Q: "rouP-1"},
+			Page:       0,
+			PerPage:    100,
+			Result:     []*model.Group{group1},
+			TotalCount: model.NewInt64(1),
+		},
+		{
+			Name:       "Get group matching multiple display names",
+			ChannelId:  channel1.Id,
+			Opts:       model.GroupSearchOpts{Q: "roUp-"},
+			Page:       0,
+			PerPage:    100,
+			Result:     []*model.Group{group1, group2},
+			TotalCount: model.NewInt64(2),
+		},
+		{
+			Name:      "Include member counts",
+			ChannelId: channel1.Id,
+			Opts:      model.GroupSearchOpts{IncludeMemberCount: true},
 			Page:      0,
-			PerPage:   60,
-			Result:    []*model.Group{},
+			PerPage:   2,
+			Result:    []*model.Group{&group1WithMemberCount, &group2WithMemberCount},
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			res := <-ss.Group().GetGroupsByChannel(tc.ChannelId, tc.Page, tc.PerPage)
+			if tc.Opts.PageOpts == nil {
+				tc.Opts.PageOpts = &model.PageOpts{}
+			}
+			tc.Opts.PageOpts.Page = tc.Page
+			tc.Opts.PageOpts.PerPage = tc.PerPage
+			res := <-ss.Group().GetGroupsByChannel(tc.ChannelId, tc.Opts)
 			require.Nil(t, res.Err)
 			require.ElementsMatch(t, tc.Result, res.Data.([]*model.Group))
+			if tc.TotalCount != nil {
+				res = <-ss.Group().CountGroupsByChannel(tc.ChannelId, tc.Opts)
+				count := res.Data.(int64)
+				require.Equal(t, *tc.TotalCount, count)
+			}
 		})
 	}
 }
@@ -1904,8 +1974,19 @@ func testGetGroups(t *testing.T, ss store.Store) {
 	team1, err := ss.Team().Save(team1)
 	require.Nil(t, err)
 
+	// Create Channel1
+	channel1 := &model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "Channel1",
+		Name:        model.NewId(),
+		Type:        model.CHANNEL_PRIVATE,
+	}
+	res := <-ss.Channel().Save(channel1, 9999)
+	require.Nil(t, res.Err)
+	channel1 = res.Data.(*model.Channel)
+
 	// Create Groups 1 and 2
-	res := <-ss.Group().Create(&model.Group{
+	res = <-ss.Group().Create(&model.Group{
 		Name:        model.NewId(),
 		DisplayName: "group-1",
 		RemoteId:    model.NewId(),
@@ -1948,6 +2029,17 @@ func testGetGroups(t *testing.T, ss store.Store) {
 	team2, err = ss.Team().Save(team2)
 	require.Nil(t, err)
 
+	// Create Channel2
+	channel2 := &model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: "Channel2",
+		Name:        model.NewId(),
+		Type:        model.CHANNEL_PRIVATE,
+	}
+	res = <-ss.Channel().Save(channel2, 9999)
+	require.Nil(t, res.Err)
+	channel2 = res.Data.(*model.Channel)
+
 	// Create Group3
 	res = <-ss.Group().Create(&model.Group{
 		Name:        model.NewId(),
@@ -1966,6 +2058,26 @@ func testGetGroups(t *testing.T, ss store.Store) {
 		GroupId:    group3.Id,
 	})
 	require.Nil(t, res.Err)
+
+	// And associate Group1 to Channel2
+	res = <-ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+		AutoAdd:    true,
+		SyncableId: channel2.Id,
+		Type:       model.GroupSyncableTypeChannel,
+		GroupId:    group1.Id,
+	})
+	require.Nil(t, res.Err)
+
+	// And associate Group2 and Group3 to Channel1
+	for _, g := range []*model.Group{group2, group3} {
+		res = <-ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+			AutoAdd:    true,
+			SyncableId: channel1.Id,
+			Type:       model.GroupSyncableTypeChannel,
+			GroupId:    g.Id,
+		})
+		require.Nil(t, res.Err)
+	}
 
 	// add members
 	u1 := &model.User{
@@ -2082,6 +2194,9 @@ func testGetGroups(t *testing.T, ss store.Store) {
 			Page:    0,
 			PerPage: 100,
 			Resultf: func(groups []*model.Group) bool {
+				if len(groups) == 0 {
+					return false
+				}
 				for _, g := range groups {
 					if g.Id == group3.Id {
 						return false
@@ -2096,6 +2211,9 @@ func testGetGroups(t *testing.T, ss store.Store) {
 			Page:    0,
 			PerPage: 100,
 			Resultf: func(groups []*model.Group) bool {
+				if len(groups) == 0 {
+					return false
+				}
 				for _, g := range groups {
 					if g.Id == group1.Id || g.Id == group2.Id {
 						return false
