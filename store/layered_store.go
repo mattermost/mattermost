@@ -232,40 +232,28 @@ type LayeredReactionStore struct {
 	*LayeredStore
 }
 
-func (s *LayeredReactionStore) Save(reaction *model.Reaction) StoreChannel {
-	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.ReactionSave(s.TmpContext, reaction)
-	})
+func (s *LayeredReactionStore) Save(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
+	return s.LayerChainHead.ReactionSave(s.TmpContext, reaction)
 }
 
-func (s *LayeredReactionStore) Delete(reaction *model.Reaction) StoreChannel {
-	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.ReactionDelete(s.TmpContext, reaction)
-	})
+func (s *LayeredReactionStore) Delete(reaction *model.Reaction) (*model.Reaction, *model.AppError) {
+	return s.LayerChainHead.ReactionDelete(s.TmpContext, reaction)
 }
 
-func (s *LayeredReactionStore) GetForPost(postId string, allowFromCache bool) StoreChannel {
-	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.ReactionGetForPost(s.TmpContext, postId)
-	})
+func (s *LayeredReactionStore) GetForPost(postId string, allowFromCache bool) ([]*model.Reaction, *model.AppError) {
+	return s.LayerChainHead.ReactionGetForPost(s.TmpContext, postId)
 }
 
-func (s *LayeredReactionStore) BulkGetForPosts(postIds []string) StoreChannel {
-	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.ReactionsBulkGetForPosts(s.TmpContext, postIds)
-	})
+func (s *LayeredReactionStore) BulkGetForPosts(postIds []string) ([]*model.Reaction, *model.AppError) {
+	return s.LayerChainHead.ReactionsBulkGetForPosts(s.TmpContext, postIds)
 }
 
-func (s *LayeredReactionStore) DeleteAllWithEmojiName(emojiName string) StoreChannel {
-	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.ReactionDeleteAllWithEmojiName(s.TmpContext, emojiName)
-	})
+func (s *LayeredReactionStore) DeleteAllWithEmojiName(emojiName string) *model.AppError {
+	return s.LayerChainHead.ReactionDeleteAllWithEmojiName(s.TmpContext, emojiName)
 }
 
-func (s *LayeredReactionStore) PermanentDeleteBatch(endTime int64, limit int64) StoreChannel {
-	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.ReactionPermanentDeleteBatch(s.TmpContext, endTime, limit)
-	})
+func (s *LayeredReactionStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
+	return s.LayerChainHead.ReactionPermanentDeleteBatch(s.TmpContext, endTime, limit)
 }
 
 type LayeredRoleStore struct {
@@ -478,14 +466,32 @@ func (s *LayeredGroupStore) ChannelMembersToRemove() StoreChannel {
 	})
 }
 
-func (s *LayeredGroupStore) GetGroupsByChannel(channelId string, page, perPage int) StoreChannel {
+func (s *LayeredGroupStore) GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) StoreChannel {
 	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.GetGroupsByChannel(s.TmpContext, channelId, page, perPage)
+		return supplier.GetGroupsByChannel(s.TmpContext, channelId, opts)
 	})
 }
 
-func (s *LayeredGroupStore) GetGroupsByTeam(teamId string, page, perPage int) StoreChannel {
+func (s *LayeredGroupStore) CountGroupsByChannel(channelId string, opts model.GroupSearchOpts) StoreChannel {
 	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.GetGroupsByTeam(s.TmpContext, teamId, page, perPage)
+		return supplier.CountGroupsByChannel(s.TmpContext, channelId, opts)
+	})
+}
+
+func (s *LayeredGroupStore) GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.GetGroupsByTeam(s.TmpContext, teamId, opts)
+	})
+}
+
+func (s *LayeredGroupStore) CountGroupsByTeam(teamId string, opts model.GroupSearchOpts) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.CountGroupsByTeam(s.TmpContext, teamId, opts)
+	})
+}
+
+func (s *LayeredGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.GetGroups(s.TmpContext, page, perPage, opts)
 	})
 }

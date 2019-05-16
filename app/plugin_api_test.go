@@ -291,7 +291,7 @@ func TestPluginAPIGetFile(t *testing.T) {
 	info, err := th.App.DoUploadFile(uploadTime, th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, filename, fileData)
 	require.Nil(t, err)
 	defer func() {
-		<-th.App.Srv.Store.FileInfo().PermanentDelete(info.Id)
+		th.App.Srv.Store.FileInfo().PermanentDelete(info.Id)
 		th.App.RemoveFile(info.Path)
 	}()
 
@@ -505,9 +505,9 @@ func TestPluginAPIGetPlugins(t *testing.T) {
 	}
 	th.App.SetPluginsEnvironment(env)
 
-	// Decativate the last one for testing
-	sucess := env.Deactivate(pluginIDs[len(pluginIDs)-1])
-	require.True(t, sucess)
+	// Deactivate the last one for testing
+	success := env.Deactivate(pluginIDs[len(pluginIDs)-1])
+	require.True(t, success)
 
 	// check existing user first
 	plugins, err := api.GetPlugins()
@@ -658,4 +658,122 @@ func TestBasicAPIPlugins(t *testing.T) {
 			})
 		}
 	}
+}
+
+func TestPluginAPIKVCompareAndSet(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	testCases := []struct {
+		Description   string
+		ExpectedValue []byte
+	}{
+		{
+			Description:   "Testing non-nil, non-empty value",
+			ExpectedValue: []byte("value1"),
+		},
+		{
+			Description:   "Testing empty value",
+			ExpectedValue: []byte(""),
+		},
+	}
+
+	for i, testCase := range testCases {
+		t.Run(testCase.Description, func(t *testing.T) {
+			expectedKey := fmt.Sprintf("Key%d", i)
+			expectedValueEmpty := []byte("")
+			expectedValue1 := testCase.ExpectedValue
+			expectedValue2 := []byte("value2")
+			expectedValue3 := []byte("value3")
+
+			// Attempt update using an incorrect old value
+			updated, err := api.KVCompareAndSet(expectedKey, expectedValue2, expectedValue1)
+			require.Nil(t, err)
+			require.False(t, updated)
+
+			// Make sure no key is already created
+			value, err := api.KVGet(expectedKey)
+			require.Nil(t, err)
+			require.Nil(t, value)
+
+			// Insert using nil old value
+			updated, err = api.KVCompareAndSet(expectedKey, nil, expectedValue1)
+			require.Nil(t, err)
+			require.True(t, updated)
+
+			// Get inserted value
+			value, err = api.KVGet(expectedKey)
+			require.Nil(t, err)
+			require.Equal(t, expectedValue1, value)
+
+			// Attempt to insert again using nil old value
+			updated, err = api.KVCompareAndSet(expectedKey, nil, expectedValue2)
+			require.Nil(t, err)
+			require.False(t, updated)
+
+			// Get old value to assert nothing has changed
+			value, err = api.KVGet(expectedKey)
+			require.Nil(t, err)
+			require.Equal(t, expectedValue1, value)
+
+			// Update using correct old value
+			updated, err = api.KVCompareAndSet(expectedKey, expectedValue1, expectedValue2)
+			require.Nil(t, err)
+			require.True(t, updated)
+
+			value, err = api.KVGet(expectedKey)
+			require.Nil(t, err)
+			require.Equal(t, expectedValue2, value)
+
+			// Update using incorrect old value
+			updated, err = api.KVCompareAndSet(expectedKey, []byte("incorrect"), expectedValue3)
+			require.Nil(t, err)
+			require.False(t, updated)
+
+			value, err = api.KVGet(expectedKey)
+			require.Nil(t, err)
+			require.Equal(t, expectedValue2, value)
+
+			// Update using nil old value
+			updated, err = api.KVCompareAndSet(expectedKey, nil, expectedValue3)
+			require.Nil(t, err)
+			require.False(t, updated)
+
+			value, err = api.KVGet(expectedKey)
+			require.Nil(t, err)
+			require.Equal(t, expectedValue2, value)
+
+			// Update using empty old value
+			updated, err = api.KVCompareAndSet(expectedKey, expectedValueEmpty, expectedValue3)
+			require.Nil(t, err)
+			require.False(t, updated)
+
+			value, err = api.KVGet(expectedKey)
+			require.Nil(t, err)
+			require.Equal(t, expectedValue2, value)
+		})
+	}
+}
+
+func TestPluginCreateBot(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	bot, err := api.CreateBot(&model.Bot{
+		Username:    model.NewRandomString(10),
+		DisplayName: "bot",
+		Description: "bot",
+	})
+	require.Nil(t, err)
+
+	_, err = api.CreateBot(&model.Bot{
+		Username:    model.NewRandomString(10),
+		OwnerId:     bot.UserId,
+		DisplayName: "bot2",
+		Description: "bot2",
+	})
+	require.NotNil(t, err)
+
 }

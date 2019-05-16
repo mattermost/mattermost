@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -54,6 +55,7 @@ type SlackPost struct {
 	BotUsername string                   `json:"username"`
 	Text        string                   `json:"text"`
 	TimeStamp   string                   `json:"ts"`
+	ThreadTS    string                   `json:"thread_ts"`
 	Type        string                   `json:"type"`
 	SubType     string                   `json:"subtype"`
 	Comment     *SlackComment            `json:"comment"`
@@ -141,12 +143,11 @@ func (a *App) SlackAddUsers(teamId string, slackusers []SlackUser, importerLog *
 	addedUsers := make(map[string]*model.User)
 
 	// Need the team
-	result := <-a.Srv.Store.Team().Get(teamId)
-	if result.Err != nil {
+	team, err := a.Srv.Store.Team().Get(teamId)
+	if err != nil {
 		importerLog.WriteString(utils.T("api.slackimport.slack_import.team_fail"))
 		return addedUsers
 	}
-	team := result.Data.(*model.Team)
 
 	for _, sUser := range slackusers {
 		firstName := sUser.Profile.FirstName
@@ -193,12 +194,11 @@ func (a *App) SlackAddUsers(teamId string, slackusers []SlackUser, importerLog *
 }
 
 func (a *App) SlackAddBotUser(teamId string, log *bytes.Buffer) *model.User {
-	result := <-a.Srv.Store.Team().Get(teamId)
-	if result.Err != nil {
+	team, err := a.Srv.Store.Team().Get(teamId)
+	if err != nil {
 		log.WriteString(utils.T("api.slackimport.slack_import.team_fail"))
 		return nil
 	}
-	team := result.Data.(*model.Team)
 
 	password := model.NewId()
 	username := "slackimportuser_" + model.NewId()
@@ -223,6 +223,10 @@ func (a *App) SlackAddBotUser(teamId string, log *bytes.Buffer) *model.User {
 }
 
 func (a *App) SlackAddPosts(teamId string, channel *model.Channel, posts []SlackPost, users map[string]*model.User, uploads map[string]*zip.File, botUser *model.User) {
+	sort.Slice(posts, func(i, j int) bool {
+		return SlackConvertTimeStamp(posts[i].TimeStamp) < SlackConvertTimeStamp(posts[j].TimeStamp)
+	})
+	threads := make(map[string]string)
 	for _, sPost := range posts {
 		switch {
 		case sPost.Type == "message" && (sPost.SubType == "" || sPost.SubType == "file_share"):
@@ -243,16 +247,18 @@ func (a *App) SlackAddPosts(teamId string, channel *model.Channel, posts []Slack
 			if sPost.Upload {
 				if fileInfo, ok := a.SlackUploadFile(sPost, uploads, teamId, newPost.ChannelId, newPost.UserId); ok {
 					newPost.FileIds = append(newPost.FileIds, fileInfo.Id)
-					newPost.Message = sPost.File.Title
 				}
 			}
-			a.OldImportPost(&newPost)
-			for _, fileId := range newPost.FileIds {
-				if result := <-a.Srv.Store.FileInfo().AttachToPost(fileId, newPost.Id, newPost.UserId); result.Err != nil {
-					mlog.Error(fmt.Sprintf("Slack Import: An error occurred when attaching files to a message, post_id=%s, file_ids=%v, err=%v.", newPost.Id, newPost.FileIds, result.Err))
-				}
+			// If post in thread
+			if sPost.ThreadTS != "" && sPost.ThreadTS != sPost.TimeStamp {
+				newPost.RootId = threads[sPost.ThreadTS]
+				newPost.ParentId = threads[sPost.ThreadTS]
 			}
-
+			postId := a.OldImportPost(&newPost)
+			// If post is thread starter
+			if sPost.ThreadTS == sPost.TimeStamp {
+				threads[sPost.ThreadTS] = postId
+			}
 		case sPost.Type == "message" && sPost.SubType == "file_comment":
 			if sPost.Comment == nil {
 				mlog.Debug("Slack Import: Unable to import the message as it has no comments.")
@@ -297,7 +303,11 @@ func (a *App) SlackAddPosts(teamId string, channel *model.Channel, posts []Slack
 				Type:      model.POST_SLACK_ATTACHMENT,
 			}
 
-			a.OldImportIncomingWebhookPost(post, props)
+			postId := a.OldImportIncomingWebhookPost(post, props)
+			// If post is thread starter
+			if sPost.ThreadTS == sPost.TimeStamp {
+				threads[sPost.ThreadTS] = postId
+			}
 		case sPost.Type == "message" && (sPost.SubType == "channel_join" || sPost.SubType == "channel_leave"):
 			if sPost.User == "" {
 				mlog.Debug("Slack Import: Unable to import the message as the user field is missing.")
@@ -341,7 +351,11 @@ func (a *App) SlackAddPosts(teamId string, channel *model.Channel, posts []Slack
 				Message:   "*" + sPost.Text + "*",
 				CreateAt:  SlackConvertTimeStamp(sPost.TimeStamp),
 			}
-			a.OldImportPost(&newPost)
+			postId := a.OldImportPost(&newPost)
+			// If post is thread starter
+			if sPost.ThreadTS == sPost.TimeStamp {
+				threads[sPost.ThreadTS] = postId
+			}
 		case sPost.Type == "message" && sPost.SubType == "channel_topic":
 			if sPost.User == "" {
 				mlog.Debug("Slack Import: Unable to import the message as the user field is missing.")
@@ -702,12 +716,15 @@ func (a *App) SlackImport(fileData multipart.File, fileSize int64, teamID string
 // some of the usual checks. (IsValid is still run)
 //
 
-func (a *App) OldImportPost(post *model.Post) {
+func (a *App) OldImportPost(post *model.Post) string {
 	// Workaround for empty messages, which may be the case if they are webhook posts.
 	firstIteration := true
+	firstPostId := ""
+	if post.ParentId != "" {
+		firstPostId = post.ParentId
+	}
 	maxPostSize := a.MaxPostSize()
 	for messageRuneCount := utf8.RuneCountInString(post.Message); messageRuneCount > 0 || firstIteration; messageRuneCount = utf8.RuneCountInString(post.Message) {
-		firstIteration = false
 		var remainder string
 		if messageRuneCount > maxPostSize {
 			remainder = string(([]rune(post.Message))[maxPostSize:])
@@ -718,20 +735,31 @@ func (a *App) OldImportPost(post *model.Post) {
 
 		post.Hashtags, _ = model.ParseHashtags(post.Message)
 
+		post.RootId = firstPostId
+		post.ParentId = firstPostId
+
 		if result := <-a.Srv.Store.Post().Save(post); result.Err != nil {
 			mlog.Debug(fmt.Sprintf("Error saving post. user=%v, message=%v", post.UserId, post.Message))
 		}
 
-		for _, fileId := range post.FileIds {
-			if result := <-a.Srv.Store.FileInfo().AttachToPost(fileId, post.Id, post.UserId); result.Err != nil {
-				mlog.Error(fmt.Sprintf("Error attaching files to post. postId=%v, fileIds=%v, message=%v", post.Id, post.FileIds, result.Err), mlog.String("post_id", post.Id))
+		if firstIteration {
+			if firstPostId == "" {
+				firstPostId = post.Id
 			}
+			for _, fileId := range post.FileIds {
+				if err := a.Srv.Store.FileInfo().AttachToPost(fileId, post.Id, post.UserId); err != nil {
+					mlog.Error(fmt.Sprintf("Error attaching files to post. postId=%v, fileIds=%v, message=%v", post.Id, post.FileIds, err), mlog.String("post_id", post.Id))
+				}
+			}
+			post.FileIds = nil
 		}
 
 		post.Id = ""
 		post.CreateAt++
 		post.Message = remainder
+		firstIteration = false
 	}
+	return firstPostId
 }
 
 func (a *App) OldImportUser(team *model.Team, user *model.User) *model.User {
@@ -788,7 +816,7 @@ func (a *App) OldImportFile(timestamp time.Time, file io.Reader, teamId string, 
 	return fileInfo, nil
 }
 
-func (a *App) OldImportIncomingWebhookPost(post *model.Post, props model.StringInterface) {
+func (a *App) OldImportIncomingWebhookPost(post *model.Post, props model.StringInterface) string {
 	linkWithTextRegex := regexp.MustCompile(`<([^<\|]+)\|([^>]+)>`)
 	post.Message = linkWithTextRegex.ReplaceAllString(post.Message, "[${2}](${1})")
 
@@ -810,5 +838,5 @@ func (a *App) OldImportIncomingWebhookPost(post *model.Post, props model.StringI
 		}
 	}
 
-	a.OldImportPost(post)
+	return a.OldImportPost(post)
 }

@@ -104,8 +104,7 @@ func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHel
 	web.New(th.Server, th.Server.AppOptions, th.App.Srv.Router)
 	wsapi.Init(th.App, th.App.Srv.WebSocketRouter)
 	th.App.Srv.Store.MarkSystemRanUnitTests()
-	th.App.DoAdvancedPermissionsMigration()
-	th.App.DoEmojisPermissionsMigration()
+	th.App.DoAppMigrations()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
 
@@ -733,8 +732,7 @@ func (me *TestHelper) cleanupTestFile(info *model.FileInfo) error {
 func (me *TestHelper) MakeUserChannelAdmin(user *model.User, channel *model.Channel) {
 	utils.DisableDebugLogForTest()
 
-	if cmr := <-me.App.Srv.Store.Channel().GetMember(channel.Id, user.Id); cmr.Err == nil {
-		cm := cmr.Data.(*model.ChannelMember)
+	if cm, err := me.App.Srv.Store.Channel().GetMember(channel.Id, user.Id); err == nil {
 		cm.SchemeAdmin = true
 		if sr := <-me.App.Srv.Store.Channel().UpdateMember(cm); sr.Err != nil {
 			utils.EnableDebugLogForTest()
@@ -742,7 +740,7 @@ func (me *TestHelper) MakeUserChannelAdmin(user *model.User, channel *model.Chan
 		}
 	} else {
 		utils.EnableDebugLogForTest()
-		panic(cmr.Err)
+		panic(err)
 	}
 
 	utils.EnableDebugLogForTest()

@@ -14,6 +14,7 @@ import (
 
 const ADVANCED_PERMISSIONS_MIGRATION_KEY = "AdvancedPermissionsMigrationComplete"
 const EMOJIS_PERMISSIONS_MIGRATION_KEY = "EmojisPermissionsMigrationComplete"
+const GUEST_ROLES_CREATION_MIGRATION_KEY = "GuestRolesCreationMigrationComplete"
 
 // This function migrates the default built in roles from code/config to the database.
 func (a *App) DoAdvancedPermissionsMigration() {
@@ -155,4 +156,109 @@ func (a *App) DoEmojisPermissionsMigration() {
 		mlog.Critical("Failed to mark emojis permissions migration as completed.")
 		mlog.Critical(fmt.Sprint(result.Err))
 	}
+}
+
+func (a *App) DoGuestRolesCreationMigration() {
+	// If the migration is already marked as completed, don't do it again.
+	if result := <-a.Srv.Store.System().GetByName(GUEST_ROLES_CREATION_MIGRATION_KEY); result.Err == nil {
+		return
+	}
+
+	roles := model.MakeDefaultRoles()
+
+	allSucceeded := true
+	if result := <-a.Srv.Store.Role().GetByName(model.CHANNEL_GUEST_ROLE_ID); result.Err != nil {
+		if result := <-a.Srv.Store.Role().Save(roles[model.CHANNEL_GUEST_ROLE_ID]); result.Err != nil {
+			mlog.Critical("Failed to create new guest role to database.")
+			mlog.Critical(fmt.Sprint(result.Err))
+			allSucceeded = false
+		}
+	}
+	if result := <-a.Srv.Store.Role().GetByName(model.TEAM_GUEST_ROLE_ID); result.Err != nil {
+		if result := <-a.Srv.Store.Role().Save(roles[model.TEAM_GUEST_ROLE_ID]); result.Err != nil {
+			mlog.Critical("Failed to create new guest role to database.")
+			mlog.Critical(fmt.Sprint(result.Err))
+			allSucceeded = false
+		}
+	}
+	if result := <-a.Srv.Store.Role().GetByName(model.SYSTEM_GUEST_ROLE_ID); result.Err != nil {
+		if result := <-a.Srv.Store.Role().Save(roles[model.SYSTEM_GUEST_ROLE_ID]); result.Err != nil {
+			mlog.Critical("Failed to create new guest role to database.")
+			mlog.Critical(fmt.Sprint(result.Err))
+			allSucceeded = false
+		}
+	}
+
+	resultSchemes := <-a.Srv.Store.Scheme().GetAllPage("", 0, 1000000)
+	if resultSchemes.Err != nil {
+		mlog.Critical("Failed to get all schemes.")
+		mlog.Critical(fmt.Sprint(resultSchemes.Err))
+		allSucceeded = false
+	}
+	schemes := resultSchemes.Data.([]*model.Scheme)
+	for _, scheme := range schemes {
+		if scheme.DefaultTeamGuestRole == "" || scheme.DefaultChannelGuestRole == "" {
+			// Team Guest Role
+			teamGuestRole := &model.Role{
+				Name:          model.NewId(),
+				DisplayName:   fmt.Sprintf("Team Guest Role for Scheme %s", scheme.Name),
+				Permissions:   roles[model.TEAM_GUEST_ROLE_ID].Permissions,
+				SchemeManaged: true,
+			}
+
+			if saveRoleResult := <-a.Srv.Store.Role().Save(teamGuestRole); saveRoleResult.Err != nil {
+				mlog.Critical("Failed to create new guest role for custom scheme.")
+				mlog.Critical(fmt.Sprint(saveRoleResult.Err))
+				allSucceeded = false
+			} else {
+				scheme.DefaultTeamGuestRole = saveRoleResult.Data.(*model.Role).Name
+			}
+
+			// Channel Guest Role
+			channelGuestRole := &model.Role{
+				Name:          model.NewId(),
+				DisplayName:   fmt.Sprintf("Channel Guest Role for Scheme %s", scheme.Name),
+				Permissions:   roles[model.CHANNEL_GUEST_ROLE_ID].Permissions,
+				SchemeManaged: true,
+			}
+
+			if saveRoleResult := <-a.Srv.Store.Role().Save(channelGuestRole); saveRoleResult.Err != nil {
+				mlog.Critical("Failed to create new guest role for custom scheme.")
+				mlog.Critical(fmt.Sprint(saveRoleResult.Err))
+				allSucceeded = false
+			} else {
+				scheme.DefaultChannelGuestRole = saveRoleResult.Data.(*model.Role).Name
+			}
+
+			result := <-a.Srv.Store.Scheme().Save(scheme)
+			if result.Err != nil {
+				mlog.Critical("Failed to update custom scheme.")
+				mlog.Critical(fmt.Sprint(result.Err))
+				allSucceeded = false
+			}
+		}
+	}
+
+	if !allSucceeded {
+		return
+	}
+
+	system := model.System{
+		Name:  GUEST_ROLES_CREATION_MIGRATION_KEY,
+		Value: "true",
+	}
+
+	if result := <-a.Srv.Store.System().Save(&system); result.Err != nil {
+		mlog.Critical("Failed to mark guest roles creation migration as completed.")
+		mlog.Critical(fmt.Sprint(result.Err))
+	}
+}
+
+func (a *App) DoAppMigrations() {
+	a.DoAdvancedPermissionsMigration()
+	a.DoEmojisPermissionsMigration()
+	a.DoGuestRolesCreationMigration()
+	// This migration always must be the last, because can be based on previous
+	// migrations. For example, it needs the guest roles migration.
+	a.DoPermissionsMigrations()
 }

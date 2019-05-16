@@ -4,11 +4,13 @@
 package model
 
 import (
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"regexp"
+	"sort"
 	"strings"
 	"unicode/utf8"
 
@@ -115,6 +117,82 @@ type UserForIndexing struct {
 	DeleteAt    int64    `json:"delete_at"`
 	TeamsIds    []string `json:"team_id"`
 	ChannelsIds []string `json:"channel_id"`
+}
+
+type ViewUsersRestrictions struct {
+	Teams    []string
+	Channels []string
+}
+
+func (r *ViewUsersRestrictions) Hash() string {
+	if r == nil {
+		return ""
+	}
+	ids := append(r.Teams, r.Channels...)
+	sort.Strings(ids)
+	hash := sha256.New()
+	hash.Write([]byte(strings.Join(ids, "")))
+	return fmt.Sprintf("%x", hash.Sum(nil))
+}
+
+type UserSlice []*User
+
+func (u UserSlice) Usernames() []string {
+	usernames := []string{}
+	for _, user := range u {
+		usernames = append(usernames, user.Username)
+	}
+	sort.Strings(usernames)
+	return usernames
+}
+
+func (u UserSlice) IDs() []string {
+	ids := []string{}
+	for _, user := range u {
+		ids = append(ids, user.Id)
+	}
+	return ids
+}
+
+func (u UserSlice) FilterByActive(active bool) UserSlice {
+	var matches []*User
+
+	for _, user := range u {
+		if user.DeleteAt == 0 && active {
+			matches = append(matches, user)
+		} else if user.DeleteAt != 0 && !active {
+			matches = append(matches, user)
+		}
+	}
+	return UserSlice(matches)
+}
+
+func (u UserSlice) FilterByID(ids []string) UserSlice {
+	var matches []*User
+	for _, user := range u {
+		for _, id := range ids {
+			if id == user.Id {
+				matches = append(matches, user)
+			}
+		}
+	}
+	return UserSlice(matches)
+}
+
+func (u UserSlice) FilterWithoutID(ids []string) UserSlice {
+	var keep []*User
+	for _, user := range u {
+		present := false
+		for _, id := range ids {
+			if id == user.Id {
+				present = true
+			}
+		}
+		if !present {
+			keep = append(keep, user)
+		}
+	}
+	return UserSlice(keep)
 }
 
 func (u *User) DeepCopy() *User {
@@ -485,6 +563,12 @@ func IsValidUserRoles(userRoles string) bool {
 	}
 
 	return true
+}
+
+// Make sure you acually want to use this function. In context.go there are functions to check permissions
+// This function should not be used to check permissions.
+func (u *User) IsGuest() bool {
+	return IsInRole(u.Roles, SYSTEM_GUEST_ROLE_ID)
 }
 
 // Make sure you acually want to use this function. In context.go there are functions to check permissions

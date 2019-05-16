@@ -30,9 +30,7 @@ func getUserFromUserArg(a *app.App, userArg string) *model.User {
 	}
 
 	if user == nil {
-		if result := <-a.Srv.Store.User().Get(userArg); result.Err == nil {
-			user = result.Data.(*model.User)
-		}
+		user, _ = a.Srv.Store.User().Get(userArg)
 	}
 
 	return user

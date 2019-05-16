@@ -25,7 +25,8 @@ func (a *App) SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *m
 	}
 
 	if a.License() != nil && *a.Config().TeamSettings.ExperimentalTownSquareIsReadOnly && channel.Name == model.DEFAULT_CHANNEL {
-		user, err := a.GetUser(reaction.UserId)
+		var user *model.User
+		user, err = a.GetUser(reaction.UserId)
 		if err != nil {
 			return nil, err
 		}
@@ -35,12 +36,10 @@ func (a *App) SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *m
 		}
 	}
 
-	result := <-a.Srv.Store.Reaction().Save(reaction)
-	if result.Err != nil {
-		return nil, result.Err
+	reaction, err = a.Srv.Store.Reaction().Save(reaction)
+	if err != nil {
+		return nil, err
 	}
-
-	reaction = result.Data.(*model.Reaction)
 
 	// The post is always modified since the UpdateAt always changes
 	a.InvalidateCacheForChannelPosts(post.ChannelId)
@@ -53,22 +52,17 @@ func (a *App) SaveReactionForPost(reaction *model.Reaction) (*model.Reaction, *m
 }
 
 func (a *App) GetReactionsForPost(postId string) ([]*model.Reaction, *model.AppError) {
-	result := <-a.Srv.Store.Reaction().GetForPost(postId, true)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.Reaction), nil
+	return a.Srv.Store.Reaction().GetForPost(postId, true)
 }
 
 func (a *App) GetBulkReactionsForPosts(postIds []string) (map[string][]*model.Reaction, *model.AppError) {
 	reactions := make(map[string][]*model.Reaction)
 
-	result := <-a.Srv.Store.Reaction().BulkGetForPosts(postIds)
-	if result.Err != nil {
-		return nil, result.Err
+	allReactions, err := a.Srv.Store.Reaction().BulkGetForPosts(postIds)
+	if err != nil {
+		return nil, err
 	}
 
-	allReactions := result.Data.([]*model.Reaction)
 	for _, reaction := range allReactions {
 		reactionsForPost := reactions[reaction.PostId]
 		reactionsForPost = append(reactionsForPost, reaction)
@@ -120,8 +114,8 @@ func (a *App) DeleteReactionForPost(reaction *model.Reaction) *model.AppError {
 		hasReactions = false
 	}
 
-	if result := <-a.Srv.Store.Reaction().Delete(reaction); result.Err != nil {
-		return result.Err
+	if _, err := a.Srv.Store.Reaction().Delete(reaction); err != nil {
+		return err
 	}
 
 	// The post is always modified since the UpdateAt always changes

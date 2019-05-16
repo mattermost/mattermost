@@ -16,7 +16,7 @@ import (
 
 	"net/http"
 
-	"github.com/nicksnyder/go-i18n/i18n"
+	"github.com/mattermost/go-i18n/i18n"
 )
 
 const (
@@ -171,13 +171,11 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 
 		// get how long we need to wait to send notifications to the user
 		var interval int64
-		pchan := job.server.Store.Preference().Get(userId, model.PREFERENCE_CATEGORY_NOTIFICATIONS, model.PREFERENCE_NAME_EMAIL_INTERVAL)
-		if result := <-pchan; result.Err != nil {
+		preference, err := job.server.Store.Preference().Get(userId, model.PREFERENCE_CATEGORY_NOTIFICATIONS, model.PREFERENCE_NAME_EMAIL_INTERVAL)
+		if err != nil {
 			// use the default batching interval if an error ocurrs while fetching user preferences
 			interval, _ = strconv.ParseInt(model.PREFERENCE_EMAIL_INTERVAL_BATCHING_SECONDS, 10, 64)
 		} else {
-			preference := result.Data.(model.Preference)
-
 			if value, err := strconv.ParseInt(preference.Value, 10, 64); err != nil {
 				// // use the default batching interval if an error ocurrs while deserializing user preferences
 				interval, _ = strconv.ParseInt(model.PREFERENCE_EMAIL_INTERVAL_BATCHING_SECONDS, 10, 64)
@@ -199,31 +197,28 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 }
 
 func (s *Server) sendBatchedEmailNotification(userId string, notifications []*batchedNotification) {
-	result := <-s.Store.User().Get(userId)
-	if result.Err != nil {
+	user, err := s.Store.User().Get(userId)
+	if err != nil {
 		mlog.Warn("Unable to find recipient for batched email notification")
 		return
 	}
-	user := result.Data.(*model.User)
 
 	translateFunc := utils.GetUserTranslations(user.Locale)
 	displayNameFormat := *s.Config().TeamSettings.TeammateNameDisplay
 
 	var contents string
 	for _, notification := range notifications {
-		result := <-s.Store.User().Get(notification.post.UserId)
-		if result.Err != nil {
+		sender, err := s.Store.User().Get(notification.post.UserId)
+		if err != nil {
 			mlog.Warn("Unable to find sender of post for batched email notification")
 			continue
 		}
-		sender := result.Data.(*model.User)
 
-		result = <-s.Store.Channel().Get(notification.post.ChannelId, true)
-		if result.Err != nil {
+		channel, errCh := s.Store.Channel().Get(notification.post.ChannelId, true)
+		if errCh != nil {
 			mlog.Warn("Unable to find channel of post for batched email notification")
 			continue
 		}
-		channel := result.Data.(*model.Channel)
 
 		emailNotificationContentsType := model.EMAIL_NOTIFICATION_CONTENTS_FULL
 		if license := s.License(); license != nil && *license.Features.EmailNotificationContents {
