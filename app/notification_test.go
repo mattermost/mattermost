@@ -1092,7 +1092,6 @@ func TestPostNotificationGetSenderName(t *testing.T) {
 }
 
 func TestIsKeywordMultibyte(t *testing.T) {
-	// t.Parallel()
 	id1 := model.NewId()
 
 	for name, tc := range map[string]struct {
@@ -1395,7 +1394,6 @@ func TestCheckForMentionUsers(t *testing.T) {
 
 func TestProcessText(t *testing.T) {
 	id1 := model.NewId()
-	// id2 := model.NewId()
 
 	for name, tc := range map[string]struct {
 		Text     string

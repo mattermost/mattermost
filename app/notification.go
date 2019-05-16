@@ -161,7 +161,7 @@ func (e *ExplicitMentions) processText(text string, keywords map[string][]string
 }
 
 // Create a message
-func createMessage(a *App, post *model.Post, team *model.Team, channel *model.Channel, notification *postNotification, fchan store.StoreChannel, mentionedUsersList []string) *model.WebSocketEvent {
+func createNewPostEvent(a *App, post *model.Post, team *model.Team, channel *model.Channel, notification *postNotification, fchan store.StoreChannel, mentionedUsersList []string) *model.WebSocketEvent {
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POSTED, "", post.ChannelId, "", nil)
 
 	// Note that PreparePostForClient should've already been called by this point
@@ -221,10 +221,10 @@ func (a *App) sendOrRegisterNotification(id string, channelMemberNotifyPropsMap 
 	}
 }
 
-func (a *App) setStatus(id string, modelStatus string, manual bool, lastActivity int64, activeChannel string) *model.Status {
+func (a *App) getUserStatusOrDefault(id string) *model.Status {
 	status, err := a.GetStatus(id)
 	if err != nil {
-		return &model.Status{UserId: id, Status: modelStatus, Manual: manual, LastActivityAt: lastActivity, ActiveChannel: activeChannel}
+		return &model.Status{UserId: id, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 	}
 	return status
 }
@@ -249,53 +249,35 @@ func (a *App) shouldSendEmailNotificationToUser(id string, user *model.User, cha
 	//If email verification is required and user email is not verified don't send email.
 	if *a.Config().EmailSettings.RequireEmailVerification && !user.EmailVerified {
 		mlog.Error(fmt.Sprintf("Skipped sending notification email to %v, address not verified. [details: user_id=%v]", user.Email, id))
+		userAllowsEmails = false
 	}
 	return userAllowsEmails
 }
 
-// Disable system mentions
-func (a *App) disableSystemMentions(sender *model.User, post *model.Post, hereNotification bool, channelNotification bool, allNotification bool) {
+// Notify the user that a system mentions wont be sent to the channel
+func (a *App) sendChannelWideMentionsDisabledPost(sender *model.User, post *model.Post, hereNotification bool, channelNotification bool, allNotification bool) {
 
 	T := utils.GetUserTranslations(sender.Locale)
-
-	// If the channel has more than 1K users then @here is disabled
+	var message string
 	if hereNotification {
-		a.SendEphemeralPost(
-			post.UserId,
-			&model.Post{
-				ChannelId: post.ChannelId,
-				Message:   T("api.post.disabled_here", map[string]interface{}{"Users": *a.Config().TeamSettings.MaxNotificationsPerChannel}),
-				CreateAt:  post.CreateAt + 1,
-			},
-		)
+		message = T("api.post.disabled_here", map[string]interface{}{"Users": *a.Config().TeamSettings.MaxNotificationsPerChannel})
+	} else if channelNotification {
+		message = T("api.post.disabled_channel", map[string]interface{}{"Users": *a.Config().TeamSettings.MaxNotificationsPerChannel})
+	} else {
+		message = T("api.post.disabled_all", map[string]interface{}{"Users": *a.Config().TeamSettings.MaxNotificationsPerChannel})
 	}
 
-	// If the channel has more than 1K users then @channel is disabled
-	if channelNotification {
-		a.SendEphemeralPost(
-			post.UserId,
-			&model.Post{
-				ChannelId: post.ChannelId,
-				Message:   T("api.post.disabled_channel", map[string]interface{}{"Users": *a.Config().TeamSettings.MaxNotificationsPerChannel}),
-				CreateAt:  post.CreateAt + 1,
-			},
-		)
-	}
-
-	// If the channel has more than 1K users then @all is disabled
-	if allNotification {
-		a.SendEphemeralPost(
-			post.UserId,
-			&model.Post{
-				ChannelId: post.ChannelId,
-				Message:   T("api.post.disabled_all", map[string]interface{}{"Users": *a.Config().TeamSettings.MaxNotificationsPerChannel}),
-				CreateAt:  post.CreateAt + 1,
-			},
-		)
-	}
+	a.SendEphemeralPost(
+		post.UserId,
+		&model.Post{
+			ChannelId: post.ChannelId,
+			Message:   message,
+			CreateAt:  post.CreateAt + 1,
+		},
+	)
 }
 
-// Get a map or mentioned user in Direct channels
+// Get a map of mentioned user in Direct channels
 func (a *App) getMentionedUsersFromDirectChannel(mentionedUserIds map[string]bool, post *model.Post, channel *model.Channel, profileMap map[string]*model.User) map[string]bool {
 	var otherUserId string
 
@@ -422,7 +404,7 @@ func (a *App) sendPushNotifications(mentionedUsersList []string, profileMap map[
 			if profileMap[id] == nil {
 				continue
 			}
-			status := a.setStatus(id, model.STATUS_OFFLINE, false, 0, "")
+			status := a.getUserStatusOrDefault(id)
 			replyToThreadType := ""
 			if value, ok := threadMentionedUserIds[id]; ok {
 				replyToThreadType = value
@@ -447,7 +429,7 @@ func (a *App) sendPushNotifications(mentionedUsersList []string, profileMap map[
 			}
 
 			if _, ok := mentionedUserIds[id]; !ok {
-				status := a.setStatus(id, model.STATUS_OFFLINE, false, 0, "")
+				status := a.getUserStatusOrDefault(id)
 				a.sendOrRegisterNotification(
 					id,
 					channelMemberNotifyPropsMap,
@@ -472,7 +454,7 @@ func (a *App) sendEmailNotifications(mentionedUsersList []string, profileMap map
 			continue
 		}
 		shouldSendEmail := a.shouldSendEmailNotificationToUser(id, profileMap[id], channelMemberNotifyPropsMap)
-		status := a.setStatus(id, model.STATUS_OFFLINE, false, 0, "")
+		status := a.getUserStatusOrDefault(id)
 		autoResponderRelated := status.Status == model.STATUS_OUT_OF_OFFICE || post.Type == model.POST_AUTO_RESPONDER
 
 		if shouldSendEmail && status.Status != model.STATUS_ONLINE && profileMap[id].DeleteAt == 0 && !autoResponderRelated {
@@ -548,9 +530,9 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	if *a.Config().EmailSettings.SendEmailNotifications {
 		a.sendEmailNotifications(mentionedUsersList, profileMap, channelMemberNotifyPropsMap, post, notification, team)
 	}
-	// If the channel has more than 1K users then system notifications are disabled
+	// If the channel has more than 1K users then notify the user that the system notification wont be sent
 	if int64(len(profileMap)) > *a.Config().TeamSettings.MaxNotificationsPerChannel {
-		a.disableSystemMentions(sender, post, hereNotification, channelNotification, allNotification)
+		a.sendChannelWideMentionsDisabledPost(sender, post, hereNotification, channelNotification, allNotification)
 	}
 
 	// Make sure all mention updates are complete to prevent race
@@ -565,7 +547,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	// Decide whether a notification should be sent or should be registered as not sent
 	a.sendPushNotifications(mentionedUsersList, profileMap, threadMentionedUserIds, post, notification, mentionedUserIds, hereNotification, channelNotification, allNotification, channelMemberNotifyPropsMap, allActivityPushUserIds)
 
-	message := createMessage(a, post, team, channel, notification, fchan, mentionedUsersList)
+	message := createNewPostEvent(a, post, team, channel, notification, fchan, mentionedUsersList)
 
 	a.Publish(message)
 	return mentionedUsersList, nil
