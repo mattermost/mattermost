@@ -130,8 +130,8 @@ type TeamStore interface {
 
 type ChannelStore interface {
 	Save(channel *model.Channel, maxChannelsPerTeam int64) StoreChannel
-	CreateDirectChannel(userId string, otherUserId string) StoreChannel
-	SaveDirectChannel(channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) StoreChannel
+	CreateDirectChannel(userId string, otherUserId string) (*model.Channel, *model.AppError)
+	SaveDirectChannel(channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, *model.AppError)
 	Update(channel *model.Channel) (*model.Channel, *model.AppError)
 	Get(id string, allowFromCache bool) (*model.Channel, *model.AppError)
 	InvalidateChannel(id string)
@@ -232,12 +232,12 @@ type PostStore interface {
 	ClearCaches()
 	InvalidateLastPostTimeCache(channelId string)
 	GetPostsCreatedAt(channelId string, time int64) StoreChannel
-	Overwrite(post *model.Post) StoreChannel
+	Overwrite(post *model.Post) (*model.Post, *model.AppError)
 	GetPostsByIds(postIds []string) StoreChannel
 	GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) StoreChannel
 	PermanentDeleteBatch(endTime int64, limit int64) StoreChannel
 	GetOldest() StoreChannel
-	GetMaxPostSize() StoreChannel
+	GetMaxPostSize() int
 	GetParentsForExportAfter(limit int, afterId string) StoreChannel
 	GetRepliesForExport(parentId string) StoreChannel
 	GetDirectPostParentsForExportAfter(limit int, afterId string) StoreChannel

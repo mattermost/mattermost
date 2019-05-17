@@ -97,13 +97,7 @@ func (s *SqlPostStore) Save(post *model.Post) store.StoreChannel {
 			return
 		}
 
-		var maxPostSize int
-		if result := <-s.GetMaxPostSize(); result.Err != nil {
-			result.Err = model.NewAppError("SqlPostStore.Save", "store.sql_post.save.app_error", nil, "id="+post.Id+", "+result.Err.Error(), http.StatusInternalServerError)
-			return
-		} else {
-			maxPostSize = result.Data.(int)
-		}
+		maxPostSize := s.GetMaxPostSize()
 
 		post.PreSave()
 		if result.Err = post.IsValid(maxPostSize); result.Err != nil {
@@ -146,13 +140,7 @@ func (s *SqlPostStore) Update(newPost *model.Post, oldPost *model.Post) store.St
 		oldPost.Id = model.NewId()
 		oldPost.PreCommit()
 
-		var maxPostSize int
-		if result := <-s.GetMaxPostSize(); result.Err != nil {
-			result.Err = model.NewAppError("SqlPostStore.Save", "store.sql_post.update.app_error", nil, "id="+newPost.Id+", "+result.Err.Error(), http.StatusInternalServerError)
-			return
-		} else {
-			maxPostSize = result.Data.(int)
-		}
+		maxPostSize := s.GetMaxPostSize()
 
 		if result.Err = newPost.IsValid(maxPostSize); result.Err != nil {
 			return
@@ -176,28 +164,19 @@ func (s *SqlPostStore) Update(newPost *model.Post, oldPost *model.Post) store.St
 	})
 }
 
-func (s *SqlPostStore) Overwrite(post *model.Post) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		post.UpdateAt = model.GetMillis()
+func (s *SqlPostStore) Overwrite(post *model.Post) (*model.Post, *model.AppError) {
+	post.UpdateAt = model.GetMillis()
 
-		var maxPostSize int
-		if result := <-s.GetMaxPostSize(); result.Err != nil {
-			result.Err = model.NewAppError("SqlPostStore.Save", "store.sql_post.overwrite.app_error", nil, "id="+post.Id+", "+result.Err.Error(), http.StatusInternalServerError)
-			return
-		} else {
-			maxPostSize = result.Data.(int)
-		}
+	maxPostSize := s.GetMaxPostSize()
+	if appErr := post.IsValid(maxPostSize); appErr != nil {
+		return nil, appErr
+	}
 
-		if result.Err = post.IsValid(maxPostSize); result.Err != nil {
-			return
-		}
+	if _, err := s.GetMaster().Update(post); err != nil {
+		return nil, model.NewAppError("SqlPostStore.Overwrite", "store.sql_post.overwrite.app_error", nil, "id="+post.Id+", "+err.Error(), http.StatusInternalServerError)
+	}
 
-		if _, err := s.GetMaster().Update(post); err != nil {
-			result.Err = model.NewAppError("SqlPostStore.Overwrite", "store.sql_post.overwrite.app_error", nil, "id="+post.Id+", "+err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = post
-		}
-	})
+	return post, nil
 }
 
 func (s *SqlPostStore) GetFlaggedPosts(userId string, offset int, limit int) store.StoreChannel {
@@ -1296,13 +1275,11 @@ func (s *SqlPostStore) determineMaxPostSize() int {
 }
 
 // GetMaxPostSize returns the maximum number of runes that may be stored in a post.
-func (s *SqlPostStore) GetMaxPostSize() store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		s.maxPostSizeOnce.Do(func() {
-			s.maxPostSizeCached = s.determineMaxPostSize()
-		})
-		result.Data = s.maxPostSizeCached
+func (s *SqlPostStore) GetMaxPostSize() int {
+	s.maxPostSizeOnce.Do(func() {
+		s.maxPostSizeCached = s.determineMaxPostSize()
 	})
+	return s.maxPostSizeCached
 }
 
 func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string) store.StoreChannel {

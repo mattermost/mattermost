@@ -353,10 +353,10 @@ func (a *App) getMentionedUsersFromOtherChannels(post *model.Post, m *ExplicitMe
 			var outOfChannelMentions model.UserSlice
 			var outOfGroupsMentions model.UserSlice
 
-			if channel.GroupConstrained != nil && *channel.GroupConstrained {
+			if channel.IsGroupConstrained() {
 				nonMemberIDs, err := a.FilterNonGroupChannelMembers(channelMentions.IDs(), channel)
 				if err != nil {
-					return nil, nil, nil, err
+					return nil, err
 				}
 
 				outOfChannelMentions = channelMentions.FilterWithoutID(nonMemberIDs)
