@@ -13,6 +13,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 func (a *App) CheckForClientSideCert(r *http.Request) (string, string, string) {
@@ -164,11 +165,13 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 	}
 
 	domain := a.GetCookieDomain()
+	subpath, _ := utils.GetSubpathFromConfig(a.Config())
+
 	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAge), 0)
 	sessionCookie := &http.Cookie{
 		Name:     model.SESSION_COOKIE_TOKEN,
 		Value:    session.Token,
-		Path:     "/",
+		Path:     subpath,
 		MaxAge:   maxAge,
 		Expires:  expiresAt,
 		HttpOnly: true,
@@ -179,7 +182,7 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 	userCookie := &http.Cookie{
 		Name:    model.SESSION_COOKIE_USER,
 		Value:   user.Id,
-		Path:    "/",
+		Path:    subpath,
 		MaxAge:  maxAge,
 		Expires: expiresAt,
 		Domain:  domain,
@@ -189,7 +192,7 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 	csrfCookie := &http.Cookie{
 		Name:    model.SESSION_COOKIE_CSRF,
 		Value:   session.GetCSRF(),
-		Path:    "/",
+		Path:    subpath,
 		MaxAge:  maxAge,
 		Expires: expiresAt,
 		Domain:  domain,

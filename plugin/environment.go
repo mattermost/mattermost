@@ -31,11 +31,13 @@ type activePlugin struct {
 // It is meant for use by the Mattermost server to manipulate, interact with and report on the set
 // of active plugins.
 type Environment struct {
-	activePlugins   sync.Map
-	logger          *mlog.Logger
-	newAPIImpl      apiImplCreatorFunc
-	pluginDir       string
-	webappPluginDir string
+	activePlugins        sync.Map
+	pluginHealthStatuses sync.Map
+	pluginHealthCheckJob *PluginHealthCheckJob
+	logger               *mlog.Logger
+	newAPIImpl           apiImplCreatorFunc
+	pluginDir            string
+	webappPluginDir      string
 }
 
 func NewEnvironment(newAPIImpl apiImplCreatorFunc, pluginDir string, webappPluginDir string, logger *mlog.Logger) (*Environment, error) {
@@ -227,6 +229,15 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 		ap.supervisor = sup
 
 		componentActivated = true
+
+		var h *PluginHealthStatus
+		if health, ok := env.pluginHealthStatuses.Load(id); ok {
+			h = health.(*PluginHealthStatus)
+		} else {
+			h = newPluginHealthStatus()
+			env.pluginHealthStatuses.Store(id, h)
+		}
+		h.Crashed = false
 	}
 
 	if !componentActivated {
@@ -254,6 +265,30 @@ func (env *Environment) Deactivate(id string) bool {
 	}
 
 	return true
+}
+
+// RestartPlugin deactivates, then activates the plugin with the given id.
+func (env *Environment) RestartPlugin(id string) error {
+	env.Deactivate(id)
+	_, _, err := env.Activate(id)
+	return err
+}
+
+// UpdatePluginHealthStatus accepts a callback to edit the stored health status of the plugin.
+func (env *Environment) UpdatePluginHealthStatus(id string, callback func(*PluginHealthStatus)) {
+	if h, ok := env.pluginHealthStatuses.Load(id); ok {
+		callback(h.(*PluginHealthStatus))
+	}
+}
+
+// CheckPluginHealthStatus checks if the plugin is in a failed state, based on information gathered from previous health checks.
+func (env *Environment) CheckPluginHealthStatus(id string) error {
+	if h, ok := env.pluginHealthStatuses.Load(id); ok {
+		if h.(*PluginHealthStatus).Crashed {
+			return h.(*PluginHealthStatus).lastError
+		}
+	}
+	return nil
 }
 
 // Shutdown deactivates all plugins and gracefully shuts down the environment.

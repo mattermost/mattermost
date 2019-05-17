@@ -487,7 +487,7 @@ func (s SqlChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) 
 	})
 }
 
-func (s SqlChannelStore) CreateDirectChannel(userId string, otherUserId string) store.StoreChannel {
+func (s SqlChannelStore) CreateDirectChannel(userId string, otherUserId string) (*model.Channel, *model.AppError) {
 	channel := new(model.Channel)
 
 	channel.DisplayName = ""
@@ -510,64 +510,62 @@ func (s SqlChannelStore) CreateDirectChannel(userId string, otherUserId string) 
 	return s.SaveDirectChannel(channel, cm1, cm2)
 }
 
-func (s SqlChannelStore) SaveDirectChannel(directchannel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if directchannel.DeleteAt != 0 {
-			result.Err = model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save.archived_channel.app_error", nil, "", http.StatusBadRequest)
-			return
+func (s SqlChannelStore) SaveDirectChannel(directchannel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, *model.AppError) {
+	if directchannel.DeleteAt != 0 {
+		return nil, model.NewAppError("SqlChannelStore.Save", "store.sql_channel.save.archived_channel.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if directchannel.Type != model.CHANNEL_DIRECT {
+		return nil, model.NewAppError("SqlChannelStore.SaveDirectChannel", "store.sql_channel.save_direct_channel.not_direct.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return nil, model.NewAppError("SqlChannelStore.SaveDirectChannel", "store.sql_channel.save_direct_channel.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	defer finalizeTransaction(transaction)
+
+	directchannel.TeamId = ""
+	// After updating saveChannelT() should be:
+	// newChannel, appErr := s.saveChannelT(transaction, directchannel, 0)
+	channelResult := s.saveChannelT(transaction, directchannel, 0)
+	var newChannel *model.Channel
+	if channelResult.Data != nil {
+		newChannel = channelResult.Data.(*model.Channel)
+	}
+	appErr := channelResult.Err
+
+	if appErr != nil {
+		return newChannel, appErr
+	}
+
+	// Members need new channel ID
+	member1.ChannelId = newChannel.Id
+	member2.ChannelId = newChannel.Id
+
+	member1Result := s.saveMemberT(transaction, member1, newChannel)
+	member2Result := member1Result
+	if member1.UserId != member2.UserId {
+		member2Result = s.saveMemberT(transaction, member2, newChannel)
+	}
+
+	if member1Result.Err != nil || member2Result.Err != nil {
+		details := ""
+		if member1Result.Err != nil {
+			details += "Member1Err: " + member1Result.Err.Message
 		}
-
-		if directchannel.Type != model.CHANNEL_DIRECT {
-			result.Err = model.NewAppError("SqlChannelStore.SaveDirectChannel", "store.sql_channel.save_direct_channel.not_direct.app_error", nil, "", http.StatusBadRequest)
-			return
+		if member2Result.Err != nil {
+			details += "Member2Err: " + member2Result.Err.Message
 		}
+		return nil, model.NewAppError("SqlChannelStore.SaveDirectChannel", "store.sql_channel.save_direct_channel.add_members.app_error", nil, details, http.StatusInternalServerError)
+	}
 
-		transaction, err := s.GetMaster().Begin()
-		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.SaveDirectChannel", "store.sql_channel.save_direct_channel.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		defer finalizeTransaction(transaction)
+	if err := transaction.Commit(); err != nil {
+		return nil, model.NewAppError("SqlChannelStore.SaveDirectChannel", "store.sql_channel.save_direct_channel.commit.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		directchannel.TeamId = ""
-		channelResult := s.saveChannelT(transaction, directchannel, 0)
+	return newChannel, nil
 
-		if channelResult.Err != nil {
-			result.Err = channelResult.Err
-			result.Data = channelResult.Data
-			return
-		}
-
-		newChannel := channelResult.Data.(*model.Channel)
-		// Members need new channel ID
-		member1.ChannelId = newChannel.Id
-		member2.ChannelId = newChannel.Id
-
-		member1Result := s.saveMemberT(transaction, member1, newChannel)
-		member2Result := member1Result
-		if member1.UserId != member2.UserId {
-			member2Result = s.saveMemberT(transaction, member2, newChannel)
-		}
-
-		if member1Result.Err != nil || member2Result.Err != nil {
-			details := ""
-			if member1Result.Err != nil {
-				details += "Member1Err: " + member1Result.Err.Message
-			}
-			if member2Result.Err != nil {
-				details += "Member2Err: " + member2Result.Err.Message
-			}
-			result.Err = model.NewAppError("SqlChannelStore.SaveDirectChannel", "store.sql_channel.save_direct_channel.add_members.app_error", nil, details, http.StatusInternalServerError)
-			return
-		}
-
-		if err := transaction.Commit(); err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.SaveDirectChannel", "store.sql_channel.save_direct_channel.commit.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		*result = channelResult
-	})
 }
 
 func (s SqlChannelStore) saveChannelT(transaction *gorp.Transaction, channel *model.Channel, maxChannelsPerTeam int64) store.StoreResult {
@@ -614,46 +612,38 @@ func (s SqlChannelStore) saveChannelT(transaction *gorp.Transaction, channel *mo
 }
 
 // Update writes the updated channel to the database.
-func (s SqlChannelStore) Update(channel *model.Channel) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		transaction, err := s.GetMaster().Begin()
-		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.Update", "store.sql_channel.update.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		defer finalizeTransaction(transaction)
+func (s SqlChannelStore) Update(channel *model.Channel) (*model.Channel, *model.AppError) {
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return nil, model.NewAppError("SqlChannelStore.Update", "store.sql_channel.update.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	defer finalizeTransaction(transaction)
 
-		*result = s.updateChannelT(transaction, channel)
-		if result.Err != nil {
-			return
-		}
+	updatedChannel, appErr := s.updateChannelT(transaction, channel)
+	if appErr != nil {
+		return nil, appErr
+	}
 
-		// Additionally propagate the write to the PublicChannels table.
-		if err := s.upsertPublicChannelT(transaction, result.Data.(*model.Channel)); err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.Update", "store.sql_channel.update.upsert_public_channel.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	// Additionally propagate the write to the PublicChannels table.
+	if err := s.upsertPublicChannelT(transaction, updatedChannel); err != nil {
+		return nil, model.NewAppError("SqlChannelStore.Update", "store.sql_channel.update.upsert_public_channel.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		if err := transaction.Commit(); err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.Update", "store.sql_channel.update.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	})
-
+	if err := transaction.Commit(); err != nil {
+		return nil, model.NewAppError("SqlChannelStore.Update", "store.sql_channel.update.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return updatedChannel, nil
 }
 
-func (s SqlChannelStore) updateChannelT(transaction *gorp.Transaction, channel *model.Channel) store.StoreResult {
-	result := store.StoreResult{}
-
+func (s SqlChannelStore) updateChannelT(transaction *gorp.Transaction, channel *model.Channel) (*model.Channel, *model.AppError) {
 	channel.PreUpdate()
 
 	if channel.DeleteAt != 0 {
-		result.Err = model.NewAppError("SqlChannelStore.Update", "store.sql_channel.update.archived_channel.app_error", nil, "", http.StatusBadRequest)
-		return result
+		return nil, model.NewAppError("SqlChannelStore.Update", "store.sql_channel.update.archived_channel.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if result.Err = channel.IsValid(); result.Err != nil {
-		return result
+	if err := channel.IsValid(); err != nil {
+		return nil, err
 	}
 
 	count, err := transaction.Update(channel)
@@ -662,31 +652,24 @@ func (s SqlChannelStore) updateChannelT(transaction *gorp.Transaction, channel *
 			dupChannel := model.Channel{}
 			s.GetReplica().SelectOne(&dupChannel, "SELECT * FROM Channels WHERE TeamId = :TeamId AND Name= :Name AND DeleteAt > 0", map[string]interface{}{"TeamId": channel.TeamId, "Name": channel.Name})
 			if dupChannel.DeleteAt > 0 {
-				result.Err = model.NewAppError("SqlChannelStore.Update", "store.sql_channel.update.previously.app_error", nil, "id="+channel.Id+", "+err.Error(), http.StatusBadRequest)
-				return result
+				return nil, model.NewAppError("SqlChannelStore.Update", "store.sql_channel.update.previously.app_error", nil, "id="+channel.Id+", "+err.Error(), http.StatusBadRequest)
 			}
-			result.Err = model.NewAppError("SqlChannelStore.Update", "store.sql_channel.update.exists.app_error", nil, "id="+channel.Id+", "+err.Error(), http.StatusBadRequest)
-			return result
+			return nil, model.NewAppError("SqlChannelStore.Update", "store.sql_channel.update.exists.app_error", nil, "id="+channel.Id+", "+err.Error(), http.StatusBadRequest)
 		}
-		result.Err = model.NewAppError("SqlChannelStore.Update", "store.sql_channel.update.updating.app_error", nil, "id="+channel.Id+", "+err.Error(), http.StatusInternalServerError)
-		return result
+		return nil, model.NewAppError("SqlChannelStore.Update", "store.sql_channel.update.updating.app_error", nil, "id="+channel.Id+", "+err.Error(), http.StatusInternalServerError)
 	}
 
 	if count != 1 {
-		result.Err = model.NewAppError("SqlChannelStore.Update", "store.sql_channel.update.app_error", nil, "id="+channel.Id, http.StatusInternalServerError)
-		return result
+		return nil, model.NewAppError("SqlChannelStore.Update", "store.sql_channel.update.app_error", nil, "id="+channel.Id, http.StatusInternalServerError)
 	}
 
-	result.Data = channel
-
-	return result
+	return channel, nil
 }
 
-func (s SqlChannelStore) GetChannelUnread(channelId, userId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var unreadChannel model.ChannelUnread
-		err := s.GetReplica().SelectOne(&unreadChannel,
-			`SELECT
+func (s SqlChannelStore) GetChannelUnread(channelId, userId string) (*model.ChannelUnread, *model.AppError) {
+	var unreadChannel model.ChannelUnread
+	err := s.GetReplica().SelectOne(&unreadChannel,
+		`SELECT
 				Channels.TeamId TeamId, Channels.Id ChannelId, (Channels.TotalMsgCount - ChannelMembers.MsgCount) MsgCount, ChannelMembers.MentionCount MentionCount, ChannelMembers.NotifyProps NotifyProps
 			FROM
 				Channels, ChannelMembers
@@ -695,17 +678,15 @@ func (s SqlChannelStore) GetChannelUnread(channelId, userId string) store.StoreC
                 AND Id = :ChannelId
                 AND UserId = :UserId
                 AND DeleteAt = 0`,
-			map[string]interface{}{"ChannelId": channelId, "UserId": userId})
+		map[string]interface{}{"ChannelId": channelId, "UserId": userId})
 
-		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.GetChannelUnread", "store.sql_channel.get_unread.app_error", nil, "channelId="+channelId+" "+err.Error(), http.StatusInternalServerError)
-			if err == sql.ErrNoRows {
-				result.Err.StatusCode = http.StatusNotFound
-			}
-		} else {
-			result.Data = &unreadChannel
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, model.NewAppError("SqlChannelStore.GetChannelUnread", "store.sql_channel.get_unread.app_error", nil, "channelId="+channelId+" "+err.Error(), http.StatusNotFound)
 		}
-	})
+		return nil, model.NewAppError("SqlChannelStore.GetChannelUnread", "store.sql_channel.get_unread.app_error", nil, "channelId="+channelId+" "+err.Error(), http.StatusInternalServerError)
+	}
+	return &unreadChannel, nil
 }
 
 func (s SqlChannelStore) InvalidateChannel(id string) {
@@ -786,34 +767,32 @@ func (s SqlChannelStore) get(id string, master bool, allowFromCache bool) (*mode
 }
 
 // Delete records the given deleted timestamp to the channel in question.
-func (s SqlChannelStore) Delete(channelId string, time int64) store.StoreChannel {
+func (s SqlChannelStore) Delete(channelId string, time int64) *model.AppError {
 	return s.SetDeleteAt(channelId, time, time)
 }
 
 // Restore reverts a previous deleted timestamp from the channel in question.
-func (s SqlChannelStore) Restore(channelId string, time int64) store.StoreChannel {
+func (s SqlChannelStore) Restore(channelId string, time int64) *model.AppError {
 	return s.SetDeleteAt(channelId, 0, time)
 }
 
 // SetDeleteAt records the given deleted and updated timestamp to the channel in question.
-func (s SqlChannelStore) SetDeleteAt(channelId string, deleteAt, updateAt int64) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		defer s.InvalidateChannel(channelId)
+func (s SqlChannelStore) SetDeleteAt(channelId string, deleteAt, updateAt int64) *model.AppError {
+	defer s.InvalidateChannel(channelId)
 
-		transaction, err := s.GetMaster().Begin()
-		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.SetDeleteAt", "store.sql_channel.set_delete_at.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		defer finalizeTransaction(transaction)
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return model.NewAppError("SqlChannelStore.SetDeleteAt", "store.sql_channel.set_delete_at.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	defer finalizeTransaction(transaction)
 
-		*result = s.setDeleteAtT(transaction, channelId, deleteAt, updateAt)
-		if result.Err != nil {
-			return
-		}
+	var result = s.setDeleteAtT(transaction, channelId, deleteAt, updateAt)
+	if result.Err != nil {
+		return result.Err
+	}
 
-		// Additionally propagate the write to the PublicChannels table.
-		if _, err := transaction.Exec(`
+	// Additionally propagate the write to the PublicChannels table.
+	if _, err := transaction.Exec(`
 			UPDATE
 			    PublicChannels
 			SET
@@ -821,18 +800,17 @@ func (s SqlChannelStore) SetDeleteAt(channelId string, deleteAt, updateAt int64)
 			WHERE
 			    Id = :ChannelId
 		`, map[string]interface{}{
-			"DeleteAt":  deleteAt,
-			"ChannelId": channelId,
-		}); err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.SetDeleteAt", "store.sql_channel.set_delete_at.update_public_channel.app_error", nil, "channel_id="+channelId+", "+err.Error(), http.StatusInternalServerError)
-			return
-		}
+		"DeleteAt":  deleteAt,
+		"ChannelId": channelId,
+	}); err != nil {
+		return model.NewAppError("SqlChannelStore.SetDeleteAt", "store.sql_channel.set_delete_at.update_public_channel.app_error", nil, "channel_id="+channelId+", "+err.Error(), http.StatusInternalServerError)
+	}
 
-		if err := transaction.Commit(); err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.SetDeleteAt", "store.sql_channel.set_delete_at.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	})
+	if err := transaction.Commit(); err != nil {
+		return model.NewAppError("SqlChannelStore.SetDeleteAt", "store.sql_channel.set_delete_at.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
 }
 
 func (s SqlChannelStore) setDeleteAtT(transaction *gorp.Transaction, channelId string, deleteAt, updateAt int64) store.StoreResult {

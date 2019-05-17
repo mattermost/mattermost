@@ -61,16 +61,14 @@ func (s SqlCommandStore) Save(command *model.Command) (*model.Command, *model.Ap
 	return command, nil
 }
 
-func (s SqlCommandStore) Get(id string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var command model.Command
+func (s SqlCommandStore) Get(id string) (*model.Command, *model.AppError) {
+	var command model.Command
 
-		if err := s.GetReplica().SelectOne(&command, "SELECT * FROM Commands WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": id}); err != nil {
-			result.Err = model.NewAppError("SqlCommandStore.Get", "store.sql_command.save.get.app_error", nil, "id="+id+", err="+err.Error(), http.StatusInternalServerError)
-		}
+	if err := s.GetReplica().SelectOne(&command, "SELECT * FROM Commands WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": id}); err != nil {
+		return nil, model.NewAppError("SqlCommandStore.Get", "store.sql_command.save.get.app_error", nil, "id="+id+", err="+err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = &command
-	})
+	return &command, nil
 }
 
 func (s SqlCommandStore) GetByTeam(teamId string) ([]*model.Command, *model.AppError) {
@@ -83,23 +81,21 @@ func (s SqlCommandStore) GetByTeam(teamId string) ([]*model.Command, *model.AppE
 	return commands, nil
 }
 
-func (s SqlCommandStore) GetByTrigger(teamId string, trigger string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var command model.Command
+func (s SqlCommandStore) GetByTrigger(teamId string, trigger string) (*model.Command, *model.AppError) {
+	var command model.Command
 
-		var query string
-		if s.DriverName() == "mysql" {
-			query = "SELECT * FROM Commands WHERE TeamId = :TeamId AND `Trigger` = :Trigger AND DeleteAt = 0"
-		} else {
-			query = "SELECT * FROM Commands WHERE TeamId = :TeamId AND \"trigger\" = :Trigger AND DeleteAt = 0"
-		}
+	var query string
+	if s.DriverName() == "mysql" {
+		query = "SELECT * FROM Commands WHERE TeamId = :TeamId AND `Trigger` = :Trigger AND DeleteAt = 0"
+	} else {
+		query = "SELECT * FROM Commands WHERE TeamId = :TeamId AND \"trigger\" = :Trigger AND DeleteAt = 0"
+	}
 
-		if err := s.GetReplica().SelectOne(&command, query, map[string]interface{}{"TeamId": teamId, "Trigger": trigger}); err != nil {
-			result.Err = model.NewAppError("SqlCommandStore.GetByTrigger", "store.sql_command.get_by_trigger.app_error", nil, "teamId="+teamId+", trigger="+trigger+", err="+err.Error(), http.StatusInternalServerError)
-		}
+	if err := s.GetReplica().SelectOne(&command, query, map[string]interface{}{"TeamId": teamId, "Trigger": trigger}); err != nil {
+		return nil, model.NewAppError("SqlCommandStore.GetByTrigger", "store.sql_command.get_by_trigger.app_error", nil, "teamId="+teamId+", trigger="+trigger+", err="+err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = &command
-	})
+	return &command, nil
 }
 
 func (s SqlCommandStore) Delete(commandId string, time int64) *model.AppError {
