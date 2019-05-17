@@ -177,7 +177,7 @@ func channelGroupStatusCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Unable to find channel '" + args[0] + "'")
 	}
 
-	if channel.GroupConstrained != nil && *channel.GroupConstrained {
+	if channel.IsGroupConstrained() {
 		fmt.Println("Enabled")
 	} else {
 		fmt.Println("Disabled")
@@ -271,7 +271,7 @@ func teamGroupStatusCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Unable to find team '" + args[0] + "'")
 	}
 
-	if team.GroupConstrained != nil && *team.GroupConstrained {
+	if team.IsGroupConstrained() {
 		fmt.Println("Enabled")
 	} else {
 		fmt.Println("Disabled")

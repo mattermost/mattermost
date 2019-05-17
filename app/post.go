@@ -315,9 +315,8 @@ func (a *App) attachFilesToPost(post *model.Post) *model.AppError {
 		// We couldn't attach all files to the post, so ensure that post.FileIds reflects what was actually attached
 		post.FileIds = attachedIds
 
-		result := <-a.Srv.Store.Post().Overwrite(post)
-		if result.Err != nil {
-			return result.Err
+		if _, err := a.Srv.Store.Post().Overwrite(post); err != nil {
+			return err
 		}
 	}
 
@@ -437,16 +436,18 @@ func (a *App) UpdateEphemeralPost(userId string, post *model.Post) *model.Post {
 	return post
 }
 
-func (a *App) DeleteEphemeralPost(userId string, post *model.Post) *model.Post {
-	post.Type = model.POST_EPHEMERAL
-	post.DeleteAt = model.GetMillis()
-	post.UpdateAt = post.DeleteAt
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_DELETED, "", post.ChannelId, userId, nil)
+func (a *App) DeleteEphemeralPost(userId, postId string) {
+	post := &model.Post{
+		Id:       postId,
+		UserId:   userId,
+		Type:     model.POST_EPHEMERAL,
+		DeleteAt: model.GetMillis(),
+		UpdateAt: model.GetMillis(),
+	}
 
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_DELETED, "", "", userId, nil)
 	message.Add("post", post.ToJson())
 	a.Publish(message)
-
-	return post
 }
 
 func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
@@ -1025,10 +1026,10 @@ func (a *App) ImageProxyRemover() (f func(string) string) {
 }
 
 func (a *App) MaxPostSize() int {
-	result := <-a.Srv.Store.Post().GetMaxPostSize()
-	if result.Err != nil {
-		mlog.Error(fmt.Sprint(result.Err))
+	maxPostSize := a.Srv.Store.Post().GetMaxPostSize()
+	if maxPostSize == 0 {
 		return model.POST_MESSAGE_MAX_RUNES_V1
 	}
-	return result.Data.(int)
+
+	return maxPostSize
 }
