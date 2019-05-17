@@ -215,7 +215,7 @@ func NewServer(options ...Option) (*Server, error) {
 	pwd, _ := os.Getwd()
 	mlog.Info(fmt.Sprintf("Current working directory is %v", pwd))
 	mlog.Info("Loaded config", mlog.String("source", s.configStore.String()))
-	
+
 	s.PushHostChecker()
 
 	license := s.License()
