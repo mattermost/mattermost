@@ -215,6 +215,8 @@ func NewServer(options ...Option) (*Server, error) {
 	pwd, _ := os.Getwd()
 	mlog.Info(fmt.Sprintf("Current working directory is %v", pwd))
 	mlog.Info("Loaded config", mlog.String("source", s.configStore.String()))
+	
+	s.PushHostChecker()
 
 	license := s.License()
 
@@ -618,6 +620,13 @@ func (a *App) OriginChecker() func(*http.Request) bool {
 		return utils.OriginChecker(allowed)
 	}
 	return nil
+}
+
+func (s *Server) PushHostChecker() {
+	notificationServer := *s.Config().EmailSettings.PushNotificationServer
+	if strings.HasPrefix(notificationServer, "http://") == true {
+		mlog.Warn("Your push notification server is configured with HTTP. For improved security, update to HTTPS in your config.json file or System Console.")
+	}
 }
 
 func runSecurityJob(s *Server) {
