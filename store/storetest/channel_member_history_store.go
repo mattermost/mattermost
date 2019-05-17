@@ -11,6 +11,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestChannelMemberHistoryStore(t *testing.T, ss store.Store) {
@@ -23,19 +24,14 @@ func TestChannelMemberHistoryStore(t *testing.T, ss store.Store) {
 
 func testLogJoinEvent(t *testing.T, ss store.Store) {
 	// create a test channel
-	channel := model.Channel{
+	ch := model.Channel{
 		TeamId:      model.NewId(),
 		DisplayName: "Display " + model.NewId(),
 		Name:        "zz" + model.NewId() + "b",
 		Type:        model.CHANNEL_OPEN,
 	}
-	ch, err := ss.Channel().Save(&channel, -1)
-	storeCh := make(store.StoreChannel, 1)
-	storeCh <- store.StoreResult{
-		Data: ch,
-		Err:  err,
-	}
-	channel = *store.Must(storeCh).(*model.Channel)
+	channel, err := ss.Channel().Save(&ch, -1)
+	require.Nil(t, err)
 
 	// and a test user
 	user := model.User{
@@ -52,19 +48,14 @@ func testLogJoinEvent(t *testing.T, ss store.Store) {
 
 func testLogLeaveEvent(t *testing.T, ss store.Store) {
 	// create a test channel
-	channel := model.Channel{
+	ch := model.Channel{
 		TeamId:      model.NewId(),
 		DisplayName: "Display " + model.NewId(),
 		Name:        "zz" + model.NewId() + "b",
 		Type:        model.CHANNEL_OPEN,
 	}
-	ch, err := ss.Channel().Save(&channel, -1)
-	storeCh := make(store.StoreChannel, 1)
-	storeCh <- store.StoreResult{
-		Data: ch,
-		Err:  err,
-	}
-	channel = *store.Must(storeCh).(*model.Channel)
+	channel, err := ss.Channel().Save(&ch, -1)
+	require.Nil(t, err)
 
 	// and a test user
 	user := model.User{

@@ -1255,7 +1255,7 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, ss store.Store, s SqlSupp
 	m2.UserId = model.NewId()
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 
-	c2, err := ss.Channel().SaveDirectChannel(c2, m1, m2)
+	c2, err = ss.Channel().SaveDirectChannel(c2, m1, m2)
 	require.Nil(t, err)
 
 	o5 := &model.Post{}
