@@ -447,8 +447,8 @@ func (api *PluginAPI) UpdateEphemeralPost(userId string, post *model.Post) *mode
 	return api.app.UpdateEphemeralPost(userId, post)
 }
 
-func (api *PluginAPI) DeleteEphemeralPost(userId string, post *model.Post) {
-	api.app.DeleteEphemeralPost(userId, post)
+func (api *PluginAPI) DeleteEphemeralPost(userId, postId string) {
+	api.app.DeleteEphemeralPost(userId, postId)
 }
 
 func (api *PluginAPI) DeletePost(postId string) *model.AppError {
