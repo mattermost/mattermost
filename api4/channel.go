@@ -1166,7 +1166,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if channel.GroupConstrained != nil && *channel.GroupConstrained {
+	if channel.IsGroupConstrained() {
 		nonMembers, err := c.App.FilterNonGroupChannelMembers([]string{member.UserId}, channel)
 		if err != nil {
 			if v, ok := err.(*model.AppError); ok {
@@ -1210,7 +1210,7 @@ func removeChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if channel.GroupConstrained != nil && *channel.GroupConstrained && (c.Params.UserId != c.App.Session.UserId) {
+	if channel.IsGroupConstrained() && (c.Params.UserId != c.App.Session.UserId) {
 		c.Err = model.NewAppError("removeChannelMember", "api.channel.remove_member.group_constrained.app_error", nil, "", http.StatusBadRequest)
 		return
 	}

@@ -308,6 +308,14 @@
     "translation": "%v removed from the channel."
   },
   {
+    "id": "api.channel.remove_members.denied",
+    "translation": "Channel membership removal denied to the following users because of group constraints: {{ .UserIDs }}"
+  },
+  {
+    "id": "api.channel.remove_user_from_channel.app_error",
+    "translation": "Can not remove user from this channel type"
+  },
+  {
     "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
     "translation": "You cannot rename a direct message channel"
   },
@@ -707,6 +715,10 @@
     "translation": "An error occurred while joining the channel."
   },
   {
+    "id": "api.command_invite.group_constrained_user_denied",
+    "translation": "User cannot be added to this channel because it is constrained to group members only."
+  },
+  {
     "id": "api.command_invite.hint",
     "translation": "@[username] ~[channel]"
   },
@@ -909,6 +921,10 @@
   {
     "id": "api.command_remove.direct_group.app_error",
     "translation": "You can't remove someone from a direct message channel."
+  },
+  {
+    "id": "api.command_remove.group_constrained_user_denied",
+    "translation": "User cannot be removed from the channel by you because they are a member of the groups linked to this channel. To remove them from this channel, they must be removed from the linked groups."
   },
   {
     "id": "api.command_remove.hint",
@@ -1458,11 +1474,11 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
-    "translation": "@{{.Usernames}} and @{{.LastUsername}} did not get notified by this mention because they are not in the channel. They are also not a member of the groups linked to this channel."
+    "translation": "@{{.Usernames}} and @{{.LastUsername}} did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups."
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.one",
-    "translation": "@{{.Username}} did not get notified by this mention because they are not in the channel. They are also not a member of the groups linked to this channel."
+    "translation": "@{{.Username}} did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
