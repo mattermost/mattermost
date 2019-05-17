@@ -363,7 +363,8 @@ func testChannelStoreGet(t *testing.T, ss store.Store, s SqlSupplier) {
 	_, err := ss.Channel().Save(&o1, -1)
 	require.Nil(t, err)
 
-	if c1, err := ss.Channel().Get(o1.Id, false); err != nil {
+	c1 := &model.Channel{}
+	if c1, err = ss.Channel().Get(o1.Id, false); err != nil {
 		t.Fatal(err)
 	} else {
 		if c1.ToJson() != o1.ToJson() {
@@ -371,7 +372,7 @@ func testChannelStoreGet(t *testing.T, ss store.Store, s SqlSupplier) {
 		}
 	}
 
-	if _, err := ss.Channel().Get("", false); err == nil {
+	if _, err = ss.Channel().Get("", false); err == nil {
 		t.Fatal("Missing id should have failed")
 	}
 
