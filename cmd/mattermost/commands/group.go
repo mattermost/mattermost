@@ -128,7 +128,7 @@ func channelGroupEnableCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Unable to find channel '" + args[0] + "'")
 	}
 
-	groups, appErr := a.GetGroupsByChannel(channel.Id, 0, 9999)
+	groups, _, appErr := a.GetGroupsByChannel(channel.Id, model.GroupSearchOpts{})
 	if appErr != nil {
 		return appErr
 	}
@@ -198,7 +198,7 @@ func channelGroupListCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Unable to find channel '" + args[0] + "'")
 	}
 
-	groups, appErr := a.GetGroupsByChannel(channel.Id, 0, 9999)
+	groups, _, appErr := a.GetGroupsByChannel(channel.Id, model.GroupSearchOpts{})
 	if appErr != nil {
 		return appErr
 	}
