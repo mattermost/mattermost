@@ -21,7 +21,7 @@ const (
 	TRACK_CONFIG_CLIENT_REQ         = "config_client_requirements"
 	TRACK_CONFIG_SQL                = "config_sql"
 	TRACK_CONFIG_LOG                = "config_log"
-	TRACK_CONFIG_NOTIFICATION_LOG  = "config_notifications_log"
+	TRACK_CONFIG_NOTIFICATION_LOG   = "config_notifications_log"
 	TRACK_CONFIG_FILE               = "config_file"
 	TRACK_CONFIG_RATE               = "config_rate"
 	TRACK_CONFIG_EMAIL              = "config_email"
