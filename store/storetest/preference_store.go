@@ -54,7 +54,7 @@ func testPreferenceSave(t *testing.T, ss store.Store) {
 
 	preferences[0].Value = "value2a"
 	preferences[1].Value = "value2b"
-	if count := ss.Preference().Save(&preferences); count != 2 {
+	if count, _ := ss.Preference().Save(&preferences); count != 2 {
 		t.Fatal("got incorrect number of rows saved")
 	}
 

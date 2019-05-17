@@ -429,7 +429,7 @@ type CommandWebhookStore interface {
 }
 
 type PreferenceStore interface {
-	Save(preferences *model.Preferences) (int, *model.AppError) 
+	Save(preferences *model.Preferences) (int, *model.AppError)
 	Get(userId string, category string, name string) StoreChannel
 	GetCategory(userId string, category string) StoreChannel
 	GetAll(userId string) StoreChannel

@@ -67,8 +67,9 @@ func (s *Store) System() store.SystemStore                     { return &s.Syste
 func (s *Store) Webhook() store.WebhookStore                   { return &s.WebhookStore }
 func (s *Store) Command() store.CommandStore                   { return &s.CommandStore }
 func (s *Store) CommandWebhook() store.CommandWebhookStore     { return &s.CommandWebhookStore }
-func (s *Store) Preference() store.PreferenceStore             { return &s.PreferenceStore }
-func (s *Store) License() store.LicenseStore                   { return &s.LicenseStore }
+
+func (s *Store) Preference() store.PreferenceStore { return &s.PreferenceStore }
+func (s *Store) License() store.LicenseStore       { return &s.LicenseStore }
 func (s *Store) NotificationRegistry() store.NotificationRegistryStore {
 	return &s.NotificationRegistryStore
 }
