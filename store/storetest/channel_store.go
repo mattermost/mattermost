@@ -1258,7 +1258,7 @@ func testChannelStoreGetMoreChannels(t *testing.T, ss store.Store) {
 		Name:        "zz" + model.NewId() + "b",
 		Type:        model.CHANNEL_OPEN,
 	}
-	_, err = ss.Channel().Save(&o1, -1)
+	_, err = ss.Channel().Save(&o7, -1)
 	require.Nil(t, err)
 	store.Must(ss.Channel().Delete(o7.Id, model.GetMillis()))
 
