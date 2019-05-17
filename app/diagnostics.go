@@ -574,7 +574,7 @@ func (a *App) trackConfig() {
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_PLUGIN, map[string]interface{}{
-		"enable_jira":         pluginSetting(&cfg.PluginSettings.PluginStates, "jira"),
+		"enable_jira":         pluginActivated(cfg.PluginSettings.PluginStates, "jira"),
 		"enable_nps":          pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.nps"),
 		"enable_nps_survey":   pluginSetting(&cfg.PluginSettings, "com.mattermost.nps", "enablesurvey", false),
 		"enable_zoom":         pluginActivated(cfg.PluginSettings.PluginStates, "zoom"),
