@@ -68,9 +68,6 @@ func (s *Store) Command() store.CommandStore                       { return &s.C
 func (s *Store) CommandWebhook() store.CommandWebhookStore         { return &s.CommandWebhookStore }
 func (s *Store) Preference() store.PreferenceStore                 { return &s.PreferenceStore }
 func (s *Store) License() store.LicenseStore                       { return &s.LicenseStore }
-func (s *Store) NotificationRegistry() store.NotificationRegistryStore {
-	return &s.NotificationRegistryStore
-}
 func (s *Store) Token() store.TokenStore                           { return &s.TokenStore }
 func (s *Store) Emoji() store.EmojiStore                           { return &s.EmojiStore }
 func (s *Store) Status() store.StatusStore                         { return &s.StatusStore }
