@@ -743,7 +743,7 @@ func (a *App) GetNextPostIdFromPostList(postList *model.PostList) string {
 		firstPost := postList.Posts[firstPostId]
 		nextPost, err := a.GetPostAfterTime(firstPost.ChannelId, firstPost.CreateAt)
 		if err != nil {
-			mlog.Error("GetNextPostIdFromPostList: failed in getting next post", mlog.Any("err", err))
+			mlog.Warn("GetNextPostIdFromPostList: failed in getting next post", mlog.Err(err))
 		}
 
 		if nextPost != nil {
@@ -760,7 +760,7 @@ func (a *App) GetPrevPostIdFromPostList(postList *model.PostList) string {
 		lastPost := postList.Posts[lastPostId]
 		previousPost, err := a.GetPostBeforeTime(lastPost.ChannelId, lastPost.CreateAt)
 		if err != nil {
-			mlog.Error("GetPrevPostIdFromPostList: failed in getting previous post", mlog.Any("err", err))
+			mlog.Warn("GetPrevPostIdFromPostList: failed in getting previous post", mlog.Err(err))
 		}
 
 		if previousPost != nil {
@@ -831,7 +831,7 @@ func (a *App) GetPostsForChannelAroundLastUnread(channelId, userId string, limit
 		return model.NewPostList(), nil
 	}
 
-	var lastUnreadPostId = postListSince.Order[len(postListSince.Order)-1]
+	var lastUnreadPostId = postListSince.Order[0]
 	var postListBefore *model.PostList
 	if lastUnreadPostId != "" {
 		if postListBefore, err = a.GetPostsBeforePost(channelId, lastUnreadPostId, PAGE_DEFAULT, limitBefore); err != nil {

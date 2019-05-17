@@ -371,7 +371,7 @@ func (s *SqlPostStore) InvalidateLastPostTimeCache(channelId string) {
 func (s *SqlPostStore) GetEtag(channelId string, allowFromCache bool) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		if allowFromCache {
-			if cacheItem, ok := s.lastPostTimeCache.Get(channelId); ok && cacheItem.(int64) > 0 {
+			if cacheItem, ok := s.lastPostTimeCache.Get(channelId); ok {
 				if s.metrics != nil {
 					s.metrics.IncrementMemCacheHitCounter("Last Post Time")
 				}
@@ -581,7 +581,7 @@ func (s *SqlPostStore) GetPostsSince(channelId string, time int64, limit int, al
 			WHERE
 			    (UpdateAt > :Time
 			        AND ChannelId = :ChannelId)
-			LIMIT :Limit)
+			LIMIT 1000)
 			UNION
 			(SELECT
 			    *
@@ -597,8 +597,8 @@ func (s *SqlPostStore) GetPostsSince(channelId string, time int64, limit int, al
 			    WHERE
 			        UpdateAt > :Time
 			            AND ChannelId = :ChannelId
-			    LIMIT :Limit) temp_tab))
-			ORDER BY CreateAt DESC`,
+			    LIMIT 1000) temp_tab))
+			ORDER BY CreateAt ASC LIMIT :Limit`,
 			map[string]interface{}{"ChannelId": channelId, "Time": time, "Limit": limit})
 
 		if err != nil {

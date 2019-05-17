@@ -233,7 +233,7 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 	if len(etag) > 0 {
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 	}
-	w.Write([]byte(c.App.PostListWithProxyAddedToImageURLs(postList).ToJson()))
+	w.Write([]byte(clientPostList.ToJson()))
 }
 
 func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
