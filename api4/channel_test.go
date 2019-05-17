@@ -928,15 +928,11 @@ func TestSearchGroupChannels(t *testing.T) {
 	// Create a group channel in which base user belongs but not sysadmin
 	gc1, resp := th.Client.CreateGroupChannel([]string{th.BasicUser.Id, th.BasicUser2.Id, u1.Id})
 	CheckNoError(t, resp)
-	defer func() {
-		th.Client.DeleteChannel(gc1.Id)
-	}()
+	defer th.Client.DeleteChannel(gc1.Id)
 
 	gc2, resp := th.Client.CreateGroupChannel([]string{th.BasicUser.Id, th.BasicUser2.Id, th.SystemAdminUser.Id})
 	CheckNoError(t, resp)
-	defer func() {
-		th.Client.DeleteChannel(gc2.Id)
-	}()
+	defer th.Client.DeleteChannel(gc2.Id)
 
 	search := &model.ChannelSearch{Term: th.BasicUser2.Username}
 

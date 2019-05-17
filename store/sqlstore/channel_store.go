@@ -2262,7 +2262,7 @@ func (s SqlChannelStore) getSearchGroupChannelsQuery(userId, term string, isPost
                         WHERE
                             c.Type = 'G'
                         AND
-                            u.Username = (SELECT Username FROM Users WHERE Id = :UserId)
+                            u.Id = :UserId
                         GROUP BY
                             c.Id
                     ) cc
@@ -2294,7 +2294,7 @@ func (s SqlChannelStore) getSearchGroupChannelsQuery(userId, term string, isPost
                 WHERE
                     c.Type = 'G'
                 AND
-                    u.Username = (SELECT Username FROM Users WHERE Id = :UserId)
+                    u.Id = :UserId
                 GROUP BY
                     c.Id
             ) cc

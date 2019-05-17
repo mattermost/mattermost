@@ -946,6 +946,20 @@ func (c *Client4) GetUsersByUsernames(usernames []string) ([]*User, *Response) {
 	return UserListFromJson(r.Body), BuildResponse(r)
 }
 
+// GetUsersByGroupChannelIds returns a map with channel ids as keys
+// and a list of users as values based on the provided user ids.
+func (c *Client4) GetUsersByGroupChannelIds(groupChannelIds []string) (map[string][]*User, *Response) {
+	r, err := c.DoApiPost(c.GetUsersRoute()+"/group_channels", ArrayToJson(groupChannelIds))
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+
+	usersByChannelId := map[string][]*User{}
+	json.NewDecoder(r.Body).Decode(&usersByChannelId)
+	return usersByChannelId, BuildResponse(r)
+}
+
 // SearchUsers returns a list of users based on some search criteria.
 func (c *Client4) SearchUsers(search *UserSearch) ([]*User, *Response) {
 	r, err := c.doApiPostBytes(c.GetUsersRoute()+"/search", search.ToJson())
@@ -2058,7 +2072,7 @@ func (c *Client4) SearchAllChannels(search *ChannelSearch) (*ChannelListWithTeam
 
 // SearchGroupChannels returns the group channels of the user whose members' usernames match the search term.
 func (c *Client4) SearchGroupChannels(search *ChannelSearch) ([]*Channel, *Response) {
-	r, err := c.DoApiPost(c.GetChannelsRoute()+"/search_group", search.ToJson())
+	r, err := c.DoApiPost(c.GetChannelsRoute()+"/group/search", search.ToJson())
 	if err != nil {
 		return nil, BuildErrorResponse(r, err)
 	}

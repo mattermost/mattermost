@@ -2749,7 +2749,8 @@ func testChannelStoreSearchGroupChannels(t *testing.T, ss store.Store) {
 	gc1.Name = model.GetGroupNameFromUserIds(userIds)
 	gc1.DisplayName = "GroupChannel" + model.NewId()
 	gc1.Type = model.CHANNEL_GROUP
-	store.Must(ss.Channel().Save(&gc1, -1))
+	_, err := ss.Channel().Save(&gc1, -1)
+	require.Nil(t, err)
 
 	for _, userId := range userIds {
 		store.Must(ss.Channel().SaveMember(&model.ChannelMember{
@@ -2764,7 +2765,8 @@ func testChannelStoreSearchGroupChannels(t *testing.T, ss store.Store) {
 	gc2.Name = model.GetGroupNameFromUserIds(userIds)
 	gc2.DisplayName = "GroupChannel" + model.NewId()
 	gc2.Type = model.CHANNEL_GROUP
-	store.Must(ss.Channel().Save(&gc2, -1))
+	_, err = ss.Channel().Save(&gc2, -1)
+	require.Nil(t, err)
 
 	for _, userId := range userIds {
 		store.Must(ss.Channel().SaveMember(&model.ChannelMember{
@@ -2779,7 +2781,8 @@ func testChannelStoreSearchGroupChannels(t *testing.T, ss store.Store) {
 	gc3.Name = model.GetGroupNameFromUserIds(userIds)
 	gc3.DisplayName = "GroupChannel" + model.NewId()
 	gc3.Type = model.CHANNEL_GROUP
-	store.Must(ss.Channel().Save(&gc3, -1))
+	_, err = ss.Channel().Save(&gc3, -1)
+	require.Nil(t, err)
 
 	for _, userId := range userIds {
 		store.Must(ss.Channel().SaveMember(&model.ChannelMember{
