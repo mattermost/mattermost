@@ -77,7 +77,9 @@
         "DisableLegacyMFA": true,
         "EnableEmailInvitations": false,
         "ExperimentalLdapGroupSync": false,
-        "ExperimentalStrictCSRFEnforcement": false
+        "ExperimentalStrictCSRFEnforcement": false,
+        "CreateBotAccounts": false,
+        "DisableBotsWhenOwnerIsDeactivated": true
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
