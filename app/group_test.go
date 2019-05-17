@@ -215,11 +215,18 @@ func TestGetGroupsByChannel(t *testing.T) {
 	require.Nil(t, err)
 	require.NotNil(t, gs)
 
-	groups, err := th.App.GetGroupsByChannel(th.BasicChannel.Id, 0, 60)
+	opts := model.GroupSearchOpts{
+		PageOpts: &model.PageOpts{
+			Page:    0,
+			PerPage: 60,
+		},
+	}
+
+	groups, _, err := th.App.GetGroupsByChannel(th.BasicChannel.Id, opts)
 	require.Nil(t, err)
 	require.ElementsMatch(t, []*model.Group{group}, groups)
 
-	groups, err = th.App.GetGroupsByChannel(model.NewId(), 0, 60)
+	groups, _, err = th.App.GetGroupsByChannel(model.NewId(), opts)
 	require.Nil(t, err)
 	require.Empty(t, groups)
 }

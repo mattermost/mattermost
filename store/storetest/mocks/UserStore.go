@@ -443,13 +443,13 @@ func (_m *UserStore) GetProfilesInChannelByStatus(channelId string, offset int, 
 	return r0
 }
 
-// GetProfilesNotInChannel provides a mock function with given fields: teamId, channelId, offset, limit, viewRestrictions
-func (_m *UserStore) GetProfilesNotInChannel(teamId string, channelId string, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) store.StoreChannel {
-	ret := _m.Called(teamId, channelId, offset, limit, viewRestrictions)
+// GetProfilesNotInChannel provides a mock function with given fields: teamId, channelId, groupConstrained, offset, limit, viewRestrictions
+func (_m *UserStore) GetProfilesNotInChannel(teamId string, channelId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) store.StoreChannel {
+	ret := _m.Called(teamId, channelId, groupConstrained, offset, limit, viewRestrictions)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, string, int, int, *model.ViewUsersRestrictions) store.StoreChannel); ok {
-		r0 = rf(teamId, channelId, offset, limit, viewRestrictions)
+	if rf, ok := ret.Get(0).(func(string, string, bool, int, int, *model.ViewUsersRestrictions) store.StoreChannel); ok {
+		r0 = rf(teamId, channelId, groupConstrained, offset, limit, viewRestrictions)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)
@@ -459,13 +459,13 @@ func (_m *UserStore) GetProfilesNotInChannel(teamId string, channelId string, of
 	return r0
 }
 
-// GetProfilesNotInTeam provides a mock function with given fields: teamId, offset, limit, viewRestrictions
-func (_m *UserStore) GetProfilesNotInTeam(teamId string, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) store.StoreChannel {
-	ret := _m.Called(teamId, offset, limit, viewRestrictions)
+// GetProfilesNotInTeam provides a mock function with given fields: teamId, groupConstrained, offset, limit, viewRestrictions
+func (_m *UserStore) GetProfilesNotInTeam(teamId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) store.StoreChannel {
+	ret := _m.Called(teamId, groupConstrained, offset, limit, viewRestrictions)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, int, int, *model.ViewUsersRestrictions) store.StoreChannel); ok {
-		r0 = rf(teamId, offset, limit, viewRestrictions)
+	if rf, ok := ret.Get(0).(func(string, bool, int, int, *model.ViewUsersRestrictions) store.StoreChannel); ok {
+		r0 = rf(teamId, groupConstrained, offset, limit, viewRestrictions)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)

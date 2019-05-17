@@ -448,6 +448,54 @@ func applyRoleFilter(query sq.SelectBuilder, role string, isPostgreSQL bool) sq.
 	return query.Where("u.Roles LIKE ? ESCAPE '*'", roleParam)
 }
 
+func applyChannelGroupConstrainedFilter(query sq.SelectBuilder, channelId string) sq.SelectBuilder {
+	if channelId == "" {
+		return query
+	}
+
+	return query.
+		Where(`u.Id IN (
+				SELECT
+					GroupMembers.UserId
+				FROM
+					Channels
+					JOIN GroupChannels ON GroupChannels.ChannelId = Channels.Id
+					JOIN UserGroups ON UserGroups.Id = GroupChannels.GroupId
+					JOIN GroupMembers ON GroupMembers.GroupId = UserGroups.Id
+				WHERE
+					Channels.Id = ?
+					AND GroupChannels.DeleteAt = 0
+					AND UserGroups.DeleteAt = 0
+					AND GroupMembers.DeleteAt = 0
+				GROUP BY
+					GroupMembers.UserId
+			)`, channelId)
+}
+
+func applyTeamGroupConstrainedFilter(query sq.SelectBuilder, teamId string) sq.SelectBuilder {
+	if teamId == "" {
+		return query
+	}
+
+	return query.
+		Where(`u.Id IN (
+				SELECT
+					GroupMembers.UserId
+				FROM
+					Teams
+					JOIN GroupTeams ON GroupTeams.TeamId = Teams.Id
+					JOIN UserGroups ON UserGroups.Id = GroupTeams.GroupId
+					JOIN GroupMembers ON GroupMembers.GroupId = UserGroups.Id
+				WHERE
+					Teams.Id = ?
+					AND GroupTeams.DeleteAt = 0
+					AND UserGroups.DeleteAt = 0
+					AND GroupMembers.DeleteAt = 0
+				GROUP BY
+					GroupMembers.UserId
+			)`, teamId)
+}
+
 func (s SqlUserStore) GetEtagForProfiles(teamId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		updateAt, err := s.GetReplica().SelectInt("SELECT UpdateAt FROM Users, TeamMembers WHERE TeamMembers.TeamId = :TeamId AND Users.Id = TeamMembers.UserId ORDER BY UpdateAt DESC LIMIT 1", map[string]interface{}{"TeamId": teamId})
@@ -636,7 +684,7 @@ func (us SqlUserStore) GetAllProfilesInChannel(channelId string, allowFromCache 
 	})
 }
 
-func (us SqlUserStore) GetProfilesNotInChannel(teamId string, channelId string, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) store.StoreChannel {
+func (us SqlUserStore) GetProfilesNotInChannel(teamId string, channelId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		query := us.usersQuery.
 			Join("TeamMembers tm ON ( tm.UserId = u.Id AND tm.DeleteAt = 0 AND tm.TeamId = ? )", teamId).
@@ -646,6 +694,10 @@ func (us SqlUserStore) GetProfilesNotInChannel(teamId string, channelId string, 
 			Offset(uint64(offset)).Limit(uint64(limit))
 
 		query = applyViewRestrictionsFilter(query, viewRestrictions, true)
+
+		if groupConstrained {
+			query = applyChannelGroupConstrainedFilter(query, channelId)
+		}
 
 		queryString, args, err := query.ToSql()
 		if err != nil {
@@ -1185,6 +1237,10 @@ func (us SqlUserStore) SearchNotInTeam(notInTeamId string, term string, options 
 			OrderBy("u.Username ASC").
 			Limit(uint64(options.Limit))
 
+		if options.GroupConstrained {
+			query = applyTeamGroupConstrainedFilter(query, notInTeamId)
+		}
+
 		*result = us.performSearch(query, term, options)
 	})
 }
@@ -1199,6 +1255,10 @@ func (us SqlUserStore) SearchNotInChannel(teamId string, channelId string, term 
 
 		if teamId != "" {
 			query = query.Join("TeamMembers tm ON ( tm.UserId = u.Id AND tm.DeleteAt = 0 AND tm.TeamId = ? )", teamId)
+		}
+
+		if options.GroupConstrained {
+			query = applyChannelGroupConstrainedFilter(query, channelId)
 		}
 
 		*result = us.performSearch(query, term, options)
@@ -1341,7 +1401,7 @@ func (us SqlUserStore) AnalyticsGetSystemAdminCount() store.StoreChannel {
 	})
 }
 
-func (us SqlUserStore) GetProfilesNotInTeam(teamId string, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) store.StoreChannel {
+func (us SqlUserStore) GetProfilesNotInTeam(teamId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		query := us.usersQuery.
 			LeftJoin("TeamMembers tm ON ( tm.UserId = u.Id AND tm.DeleteAt = 0 AND tm.TeamId = ? )", teamId).
@@ -1350,6 +1410,10 @@ func (us SqlUserStore) GetProfilesNotInTeam(teamId string, offset int, limit int
 			Offset(uint64(offset)).Limit(uint64(limit))
 
 		query = applyViewRestrictionsFilter(query, viewRestrictions, true)
+
+		if groupConstrained {
+			query = applyTeamGroupConstrainedFilter(query, teamId)
+		}
 
 		queryString, args, err := query.ToSql()
 		if err != nil {
@@ -1551,23 +1615,7 @@ func (us SqlUserStore) GetUsersBatchForIndexing(startTime, endTime int64, limit 
 
 func (us SqlUserStore) GetTeamGroupUsers(teamID string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		query := us.usersQuery.
-			Where(`Id IN (
-				SELECT
-					GroupMembers.UserId
-				FROM
-					Teams
-					JOIN GroupTeams ON GroupTeams.TeamId = Teams.Id
-					JOIN UserGroups ON UserGroups.Id = GroupTeams.GroupId
-					JOIN GroupMembers ON GroupMembers.GroupId = UserGroups.Id
-				WHERE
-					Teams.Id = ?
-					AND GroupTeams.DeleteAt = 0
-					AND UserGroups.DeleteAt = 0
-					AND GroupMembers.DeleteAt = 0
-				GROUP BY
-					GroupMembers.UserId
-			)`, teamID)
+		query := applyTeamGroupConstrainedFilter(us.usersQuery, teamID)
 
 		queryString, args, err := query.ToSql()
 		if err != nil {
@@ -1591,23 +1639,7 @@ func (us SqlUserStore) GetTeamGroupUsers(teamID string) store.StoreChannel {
 
 func (us SqlUserStore) GetChannelGroupUsers(channelID string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		query := us.usersQuery.
-			Where(`Id IN (
-				SELECT
-					GroupMembers.UserId
-				FROM
-					Channels
-					JOIN GroupChannels ON GroupChannels.ChannelId = Channels.Id
-					JOIN UserGroups ON UserGroups.Id = GroupChannels.GroupId
-					JOIN GroupMembers ON GroupMembers.GroupId = UserGroups.Id
-				WHERE
-					Channels.Id = ?
-					AND GroupChannels.DeleteAt = 0
-					AND UserGroups.DeleteAt = 0
-					AND GroupMembers.DeleteAt = 0
-				GROUP BY
-					GroupMembers.UserId
-			)`, channelID)
+		query := applyChannelGroupConstrainedFilter(us.usersQuery, channelID)
 
 		queryString, args, err := query.ToSql()
 		if err != nil {

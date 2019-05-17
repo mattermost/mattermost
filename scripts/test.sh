@@ -20,7 +20,7 @@ EXIT_STATUS=$?
 
 cat output | $GOPATH/bin/go-junit-report > report.xml
 rm output
-find . -name 'cprofile*.out' -exec sh -c 'tail -n +2 {} >> cover.out ; rm "{}"' \;
+find . -name 'cprofile*.out' -exec sh -c 'tail -n +2 "{}" >> cover.out ; rm "{}"' \;
 rm -f config/*.crt
 rm -f config/*.key
 

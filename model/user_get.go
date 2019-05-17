@@ -12,6 +12,8 @@ type UserGetOptions struct {
 	InChannelId string
 	// Filters the users not in the channel
 	NotInChannelId string
+	// Filters the users group constrained
+	GroupConstrained bool
 	// Filters the users without a team
 	WithoutTeam bool
 	// Filters the inactive users

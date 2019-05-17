@@ -2643,14 +2643,14 @@ func (s *apiRPCServer) UpdateEphemeralPost(args *Z_UpdateEphemeralPostArgs, retu
 
 type Z_DeleteEphemeralPostArgs struct {
 	A string
-	B *model.Post
+	B string
 }
 
 type Z_DeleteEphemeralPostReturns struct {
 }
 
-func (g *apiRPCClient) DeleteEphemeralPost(userId string, post *model.Post) {
-	_args := &Z_DeleteEphemeralPostArgs{userId, post}
+func (g *apiRPCClient) DeleteEphemeralPost(userId, postId string) {
+	_args := &Z_DeleteEphemeralPostArgs{userId, postId}
 	_returns := &Z_DeleteEphemeralPostReturns{}
 	if err := g.client.Call("Plugin.DeleteEphemeralPost", _args, _returns); err != nil {
 		log.Printf("RPC call to DeleteEphemeralPost API failed: %s", err.Error())
@@ -2660,7 +2660,7 @@ func (g *apiRPCClient) DeleteEphemeralPost(userId string, post *model.Post) {
 
 func (s *apiRPCServer) DeleteEphemeralPost(args *Z_DeleteEphemeralPostArgs, returns *Z_DeleteEphemeralPostReturns) error {
 	if hook, ok := s.impl.(interface {
-		DeleteEphemeralPost(userId string, post *model.Post)
+		DeleteEphemeralPost(userId, postId string)
 	}); ok {
 		hook.DeleteEphemeralPost(args.A, args.B)
 	} else {
