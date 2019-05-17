@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"syscall"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -301,6 +302,7 @@ func (env *Environment) Shutdown() {
 				env.logger.Error("Plugin OnDeactivate() error", mlog.String("plugin_id", ap.BundleInfo.Manifest.Id), mlog.Err(err))
 			}
 			ap.supervisor.Shutdown()
+			syscall.Kill(ap.supervisor.pid, syscall.SIGHUP)
 		}
 
 		env.activePlugins.Delete(key)
