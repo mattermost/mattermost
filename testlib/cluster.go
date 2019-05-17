@@ -4,6 +4,7 @@
 package testlib
 
 import (
+	"github.com/hashicorp/memberlist"
 	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/model"
 )
@@ -53,3 +54,21 @@ func (c *FakeClusterInterface) SendClearRoleCacheMessage() {
 func (c *FakeClusterInterface) GetPluginStatuses() (model.PluginStatuses, *model.AppError) {
 	return nil, nil
 }
+
+func (c *FakeClusterInterface) GetBroadcasts(overhead, limit int) [][]byte {
+	return [][]byte{}
+}
+
+func (c *FakeClusterInterface) LocalState(join bool) []byte {
+	return []byte{}
+}
+
+func (c *FakeClusterInterface) MergeRemoteState(buf []byte, join bool) {}
+
+func (c *FakeClusterInterface) NodeMeta(limit int) []byte {
+	return []byte{}
+}
+
+func (c *FakeClusterInterface) NotifyJoin(node *memberlist.Node)   {}
+func (c *FakeClusterInterface) NotifyLeave(node *memberlist.Node)  {}
+func (c *FakeClusterInterface) NotifyUpdate(node *memberlist.Node) {}

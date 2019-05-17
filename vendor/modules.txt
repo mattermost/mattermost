@@ -154,6 +154,9 @@ github.com/mitchellh/go-homedir
 github.com/mitchellh/go-testing-interface
 # github.com/mitchellh/mapstructure v1.1.2
 github.com/mitchellh/mapstructure
+# github.com/mkraft/ifacemaker v0.0.0-20190519133746-5307a9287eec
+github.com/mkraft/ifacemaker/maker
+github.com/mkraft/ifacemaker/maker/footest
 # github.com/muesli/smartcrop v0.2.1-0.20181030220600-548bbf0c0965
 github.com/muesli/smartcrop
 github.com/muesli/smartcrop/nfnt
@@ -303,6 +306,17 @@ golang.org/x/text/encoding/unicode
 golang.org/x/text/internal/tag
 golang.org/x/text/internal/utf8internal
 golang.org/x/text/runes
+# golang.org/x/tools v0.0.0-20190328211700-ab21143f2384
+golang.org/x/tools/imports
+golang.org/x/tools/go/ast/astutil
+golang.org/x/tools/go/packages
+golang.org/x/tools/internal/gopathwalk
+golang.org/x/tools/internal/module
+golang.org/x/tools/go/gcexportdata
+golang.org/x/tools/go/internal/packagesdriver
+golang.org/x/tools/internal/semver
+golang.org/x/tools/internal/fastwalk
+golang.org/x/tools/go/internal/gcimporter
 # google.golang.org/appengine v1.5.0
 google.golang.org/appengine/cloudsql
 # google.golang.org/genproto v0.0.0-20190321212433-e79c0c59cdb5

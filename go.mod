@@ -49,6 +49,7 @@ require (
 	github.com/miekg/dns v1.1.6 // indirect
 	github.com/minio/minio-go v0.0.0-20190422205105-a8704b60278f
 	github.com/mitchellh/go-testing-interface v1.0.0 // indirect
+	github.com/mkraft/ifacemaker v0.0.0-20190519133746-5307a9287eec
 	github.com/olekukonko/tablewriter v0.0.1 // indirect
 	github.com/onsi/ginkgo v1.8.0 // indirect
 	github.com/onsi/gomega v1.5.0 // indirect
