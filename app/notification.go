@@ -356,7 +356,7 @@ func (a *App) getMentionedUsersFromOtherChannels(post *model.Post, m *ExplicitMe
 			if channel.IsGroupConstrained() {
 				nonMemberIDs, err := a.FilterNonGroupChannelMembers(channelMentions.IDs(), channel)
 				if err != nil {
-					return nil, err
+					return nil, nil, nil, err
 				}
 
 				outOfChannelMentions = channelMentions.FilterWithoutID(nonMemberIDs)
