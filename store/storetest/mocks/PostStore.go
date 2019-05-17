@@ -67,15 +67,15 @@ func (_m *PostStore) ClearCaches() {
 }
 
 // Delete provides a mock function with given fields: postId, time, deleteByID
-func (_m *PostStore) Delete(postId string, time int64, deleteByID string) store.StoreChannel {
+func (_m *PostStore) Delete(postId string, time int64, deleteByID string) *model.AppError {
 	ret := _m.Called(postId, time, deleteByID)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, int64, string) store.StoreChannel); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, int64, string) *model.AppError); ok {
 		r0 = rf(postId, time, deleteByID)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
@@ -179,16 +179,14 @@ func (_m *PostStore) GetFlaggedPostsForTeam(userId string, teamId string, offset
 }
 
 // GetMaxPostSize provides a mock function with given fields:
-func (_m *PostStore) GetMaxPostSize() store.StoreChannel {
+func (_m *PostStore) GetMaxPostSize() int {
 	ret := _m.Called()
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func() store.StoreChannel); ok {
+	var r0 int
+	if rf, ok := ret.Get(0).(func() int); ok {
 		r0 = rf()
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
-		}
+		r0 = ret.Get(0).(int)
 	}
 
 	return r0
@@ -376,19 +374,28 @@ func (_m *PostStore) InvalidateLastPostTimeCache(channelId string) {
 }
 
 // Overwrite provides a mock function with given fields: post
-func (_m *PostStore) Overwrite(post *model.Post) store.StoreChannel {
+func (_m *PostStore) Overwrite(post *model.Post) (*model.Post, *model.AppError) {
 	ret := _m.Called(post)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(*model.Post) store.StoreChannel); ok {
+	var r0 *model.Post
+	if rf, ok := ret.Get(0).(func(*model.Post) *model.Post); ok {
 		r0 = rf(post)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.Post)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.Post) *model.AppError); ok {
+		r1 = rf(post)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // PermanentDeleteBatch provides a mock function with given fields: endTime, limit

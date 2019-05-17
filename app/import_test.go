@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils/fileutils"
@@ -33,11 +34,10 @@ func ptrBool(b bool) *bool {
 }
 
 func checkPreference(t *testing.T, a *App, userId string, category string, name string, value string) {
-	if res := <-a.Srv.Store.Preference().GetCategory(userId, category); res.Err != nil {
+	if preferences, err := a.Srv.Store.Preference().GetCategory(userId, category); err != nil {
 		debug.PrintStack()
 		t.Fatalf("Failed to get preferences for user %v with category %v", userId, category)
 	} else {
-		preferences := res.Data.(model.Preferences)
 		found := false
 		for _, preference := range preferences {
 			if preference.Name == name {
@@ -251,12 +251,9 @@ func TestImportProcessImportDataFileVersionLine(t *testing.T) {
 }
 
 func GetAttachments(userId string, th *TestHelper, t *testing.T) []*model.FileInfo {
-	if result := <-th.App.Srv.Store.FileInfo().GetForUser(userId); result.Err != nil {
-		t.Fatal(result.Err.Error())
-	} else {
-		return result.Data.([]*model.FileInfo)
-	}
-	return nil
+	fileInfos, err := th.App.Srv.Store.FileInfo().GetForUser(userId)
+	require.Nil(t, err)
+	return fileInfos
 }
 
 func AssertFileIdsInPost(files []*model.FileInfo, th *TestHelper, t *testing.T) {

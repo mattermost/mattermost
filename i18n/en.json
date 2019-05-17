@@ -132,6 +132,10 @@
     "translation": "Unable to upload file. File is too large."
   },
   {
+    "id": "api.bot.create_disabled",
+    "translation": "Bot creation has been disabled."
+  },
+  {
     "id": "api.channel.add_member.added",
     "translation": "%v added to the channel by %v."
   },
@@ -302,6 +306,14 @@
   {
     "id": "api.channel.remove_member.removed",
     "translation": "%v removed from the channel."
+  },
+  {
+    "id": "api.channel.remove_members.denied",
+    "translation": "Channel membership removal denied to the following users because of group constraints: {{ .UserIDs }}"
+  },
+  {
+    "id": "api.channel.remove_user_from_channel.app_error",
+    "translation": "Can not remove user from this channel type"
   },
   {
     "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
@@ -703,6 +715,10 @@
     "translation": "An error occurred while joining the channel."
   },
   {
+    "id": "api.command_invite.group_constrained_user_denied",
+    "translation": "User cannot be added to this channel because it is constrained to group members only."
+  },
+  {
     "id": "api.command_invite.hint",
     "translation": "@[username] ~[channel]"
   },
@@ -905,6 +921,10 @@
   {
     "id": "api.command_remove.direct_group.app_error",
     "translation": "You can't remove someone from a direct message channel."
+  },
+  {
+    "id": "api.command_remove.group_constrained_user_denied",
+    "translation": "User cannot be removed from the channel by you because they are a member of the groups linked to this channel. To remove them from this channel, they must be removed from the linked groups."
   },
   {
     "id": "api.command_remove.hint",
@@ -1454,11 +1474,11 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
-    "translation": "@{{.Usernames}} and @{{.LastUsername}} did not get notified by this mention because they are not in the channel. They are also not a member of the groups linked to this channel."
+    "translation": "@{{.Usernames}} and @{{.LastUsername}} did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups."
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.one",
-    "translation": "@{{.Username}} did not get notified by this mention because they are not in the channel. They are also not a member of the groups linked to this channel."
+    "translation": "@{{.Username}} did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
@@ -4787,34 +4807,6 @@
     "translation": "Link metadata URL must be set"
   },
   {
-    "id": "model.notification_registry.ack_id.app_error",
-    "translation": "Invalid Acknowledge Id"
-  },
-  {
-    "id": "model.notification_registry.create_at.app_error",
-    "translation": "Create at must be a valid time"
-  },
-  {
-    "id": "model.notification_registry.device_id.app_error",
-    "translation": "Invalid Device Id"
-  },
-  {
-    "id": "model.notification_registry.post_id.app_error",
-    "translation": "Invalid Post Id"
-  },
-  {
-    "id": "model.notification_registry.status.app_error",
-    "translation": "Invalid Send Status"
-  },
-  {
-    "id": "model.notification_registry.type.app_error",
-    "translation": "Invalid push type, must be \"clear\" or \"message\""
-  },
-  {
-    "id": "model.notification_registry.user_id.app_error",
-    "translation": "Invalid User Id"
-  },
-  {
     "id": "model.oauth.is_valid.app_id.app_error",
     "translation": "Invalid app id"
   },
@@ -5193,6 +5185,10 @@
   {
     "id": "plugin.api.update_user_status.bad_status",
     "translation": "Unable to set the user status. Unknown user status."
+  },
+  {
+    "id": "plugin_api.bot_cant_create_bot",
+    "translation": "Bot user cannot create bot user."
   },
   {
     "id": "plugin_api.get_file_link.disabled.app_error",
@@ -5885,18 +5881,6 @@
   {
     "id": "store.sql_link_metadata.save.app_error",
     "translation": "Unable to save the link metadata"
-  },
-  {
-    "id": "store.sql_notification.mark_as_received.app_error",
-    "translation": "An error occurred marking the notification as received"
-  },
-  {
-    "id": "store.sql_notification.save.app_error",
-    "translation": "An error occurred while saving the notification registry"
-  },
-  {
-    "id": "store.sql_notification.update_status.app_error",
-    "translation": "An error occurred while updating the notification status"
   },
   {
     "id": "store.sql_oauth.delete.commit_transaction.app_error",

@@ -77,7 +77,9 @@
         "DisableLegacyMFA": true,
         "EnableEmailInvitations": false,
         "ExperimentalLdapGroupSync": false,
-        "ExperimentalStrictCSRFEnforcement": false
+        "ExperimentalStrictCSRFEnforcement": false,
+        "CreateBotAccounts": false,
+        "DisableBotsWhenOwnerIsDeactivated": true
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
@@ -146,6 +148,15 @@
         "FileLocation": "",
         "EnableWebhookDebugging": true,
         "EnableDiagnostics": true
+    },
+    "NotificationLogSettings": {
+        "EnableConsole": true,
+        "ConsoleLevel": "DEBUG",
+        "ConsoleJson": true,
+        "EnableFile": true,
+        "FileLevel": "INFO",
+        "FileJson": true,
+        "FileLocation": ""
     },
     "PasswordSettings": {
         "MinimumLength": 5,

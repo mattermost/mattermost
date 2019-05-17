@@ -68,6 +68,8 @@ func Handle404(config configservice.ConfigService, w http.ResponseWriter, r *htt
 		w.WriteHeader(err.StatusCode)
 		err.DetailedError = "There doesn't appear to be an api call for the url='" + r.URL.Path + "'.  Typo? are you missing a team_id or user_id as part of the url?"
 		w.Write([]byte(err.ToJson()))
+	} else if *config.Config().ServiceSettings.WebserverMode == "disabled" {
+		http.NotFound(w, r)
 	} else {
 		utils.RenderWebAppError(config.Config(), w, r, err, config.AsymmetricSigningKey())
 	}

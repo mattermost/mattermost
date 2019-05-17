@@ -340,15 +340,13 @@ func (a *App) createDirectChannel(userId string, otherUserId string) (*model.Cha
 		return nil, model.NewAppError("CreateDirectChannel", "api.channel.create_direct_channel.invalid_user.app_error", nil, otherUserId, http.StatusBadRequest)
 	}
 
-	result := <-a.Srv.Store.Channel().CreateDirectChannel(userId, otherUserId)
-	if result.Err != nil {
-		if result.Err.Id == store.CHANNEL_EXISTS_ERROR {
-			return result.Data.(*model.Channel), result.Err
+	channel, err := a.Srv.Store.Channel().CreateDirectChannel(userId, otherUserId)
+	if err != nil {
+		if err.Id == store.CHANNEL_EXISTS_ERROR {
+			return channel, err
 		}
-		return nil, result.Err
+		return nil, err
 	}
-
-	channel := result.Data.(*model.Channel)
 
 	if result := <-a.Srv.Store.ChannelMemberHistory().LogJoinEvent(userId, channel.Id, model.GetMillis()); result.Err != nil {
 		mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", result.Err))
@@ -496,9 +494,9 @@ func (a *App) GetGroupChannel(userIds []string) (*model.Channel, *model.AppError
 }
 
 func (a *App) UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
-	result := <-a.Srv.Store.Channel().Update(channel)
-	if result.Err != nil {
-		return nil, result.Err
+	_, err := a.Srv.Store.Channel().Update(channel)
+	if err != nil {
+		return nil, err
 	}
 
 	a.InvalidateCacheForChannel(channel)
@@ -585,9 +583,8 @@ func (a *App) postChannelPrivacyMessage(user *model.User, channel *model.Channel
 }
 
 func (a *App) RestoreChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
-	result := <-a.Srv.Store.Channel().Restore(channel.Id, model.GetMillis())
-	if result.Err != nil {
-		return nil, result.Err
+	if err := a.Srv.Store.Channel().Restore(channel.Id, model.GetMillis()); err != nil {
+		return nil, err
 	}
 	return channel, nil
 }
@@ -873,8 +870,8 @@ func (a *App) DeleteChannel(channel *model.Channel, userId string) *model.AppErr
 
 	deleteAt := model.GetMillis()
 
-	if dresult := <-a.Srv.Store.Channel().Delete(channel.Id, deleteAt); dresult.Err != nil {
-		return dresult.Err
+	if err := a.Srv.Store.Channel().Delete(channel.Id, deleteAt); err != nil {
+		return err
 	}
 	a.InvalidateCacheForChannel(channel)
 
@@ -898,6 +895,16 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel, teamMem
 		}
 	} else {
 		return channelMember, nil
+	}
+
+	if channel.IsGroupConstrained() {
+		nonMembers, err := a.FilterNonGroupChannelMembers([]string{user.Id}, channel)
+		if err != nil {
+			return nil, model.NewAppError("addUserToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusInternalServerError)
+		}
+		if len(nonMembers) > 0 {
+			return nil, model.NewAppError("addUserToChannel", "api.channel.add_members.user_denied", map[string]interface{}{"UserIDs": nonMembers}, "", http.StatusBadRequest)
+		}
 	}
 
 	newMember := &model.ChannelMember{
@@ -1596,6 +1603,16 @@ func (a *App) removeUserFromChannel(userIdToRemove string, removerUserId string,
 		return model.NewAppError("RemoveUserFromChannel", "api.channel.remove.default.app_error", map[string]interface{}{"Channel": model.DEFAULT_CHANNEL}, "", http.StatusBadRequest)
 	}
 
+	if channel.IsGroupConstrained() && userIdToRemove != removerUserId {
+		nonMembers, err := a.FilterNonGroupChannelMembers([]string{userIdToRemove}, channel)
+		if err != nil {
+			return model.NewAppError("removeUserFromChannel", "api.channel.remove_user_from_channel.app_error", nil, "", http.StatusInternalServerError)
+		}
+		if len(nonMembers) == 0 {
+			return model.NewAppError("removeUserFromChannel", "api.channel.remove_members.denied", map[string]interface{}{"UserIDs": nonMembers}, "", http.StatusBadRequest)
+		}
+	}
+
 	cm, err := a.GetChannelMember(channel.Id, userIdToRemove)
 	if err != nil {
 		return err
@@ -1957,8 +1974,8 @@ func (a *App) MoveChannel(team *model.Team, channel *model.Channel, user *model.
 	}
 
 	channel.TeamId = team.Id
-	if result := <-a.Srv.Store.Channel().Update(channel); result.Err != nil {
-		return result.Err
+	if _, err := a.Srv.Store.Channel().Update(channel); err != nil {
+		return err
 	}
 	a.postChannelMoveMessage(user, channel, previousTeam)
 
