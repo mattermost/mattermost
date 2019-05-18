@@ -232,12 +232,12 @@ type PostStore interface {
 	ClearCaches()
 	InvalidateLastPostTimeCache(channelId string)
 	GetPostsCreatedAt(channelId string, time int64) StoreChannel
-	Overwrite(post *model.Post) StoreChannel
+	Overwrite(post *model.Post) (*model.Post, *model.AppError)
 	GetPostsByIds(postIds []string) StoreChannel
 	GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) StoreChannel
 	PermanentDeleteBatch(endTime int64, limit int64) StoreChannel
 	GetOldest() StoreChannel
-	GetMaxPostSize() StoreChannel
+	GetMaxPostSize() int
 	GetParentsForExportAfter(limit int, afterId string) StoreChannel
 	GetRepliesForExport(parentId string) StoreChannel
 	GetDirectPostParentsForExportAfter(limit int, afterId string) StoreChannel
@@ -538,13 +538,13 @@ type PluginStore interface {
 }
 
 type RoleStore interface {
-	Save(role *model.Role) StoreChannel
-	Get(roleId string) StoreChannel
-	GetAll() StoreChannel
-	GetByName(name string) StoreChannel
-	GetByNames(names []string) StoreChannel
-	Delete(roldId string) StoreChannel
-	PermanentDeleteAll() StoreChannel
+	Save(role *model.Role) (*model.Role, *model.AppError)
+	Get(roleId string) (*model.Role, *model.AppError)
+	GetAll() ([]*model.Role, *model.AppError)
+	GetByName(name string) (*model.Role, *model.AppError)
+	GetByNames(names []string) ([]*model.Role, *model.AppError)
+	Delete(roldId string) (*model.Role, *model.AppError)
+	PermanentDeleteAll() *model.AppError
 }
 
 type SchemeStore interface {

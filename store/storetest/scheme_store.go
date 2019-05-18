@@ -25,7 +25,7 @@ func TestSchemeStore(t *testing.T, ss store.Store) {
 }
 
 func createDefaultRoles(t *testing.T, ss store.Store) {
-	<-ss.Role().Save(&model.Role{
+	ss.Role().Save(&model.Role{
 		Name:        model.TEAM_ADMIN_ROLE_ID,
 		DisplayName: model.TEAM_ADMIN_ROLE_ID,
 		Permissions: []string{
@@ -33,7 +33,7 @@ func createDefaultRoles(t *testing.T, ss store.Store) {
 		},
 	})
 
-	<-ss.Role().Save(&model.Role{
+	ss.Role().Save(&model.Role{
 		Name:        model.TEAM_USER_ROLE_ID,
 		DisplayName: model.TEAM_USER_ROLE_ID,
 		Permissions: []string{
@@ -42,7 +42,7 @@ func createDefaultRoles(t *testing.T, ss store.Store) {
 		},
 	})
 
-	<-ss.Role().Save(&model.Role{
+	ss.Role().Save(&model.Role{
 		Name:        model.TEAM_GUEST_ROLE_ID,
 		DisplayName: model.TEAM_GUEST_ROLE_ID,
 		Permissions: []string{
@@ -50,7 +50,7 @@ func createDefaultRoles(t *testing.T, ss store.Store) {
 		},
 	})
 
-	<-ss.Role().Save(&model.Role{
+	ss.Role().Save(&model.Role{
 		Name:        model.CHANNEL_ADMIN_ROLE_ID,
 		DisplayName: model.CHANNEL_ADMIN_ROLE_ID,
 		Permissions: []string{
@@ -59,7 +59,7 @@ func createDefaultRoles(t *testing.T, ss store.Store) {
 		},
 	})
 
-	<-ss.Role().Save(&model.Role{
+	ss.Role().Save(&model.Role{
 		Name:        model.CHANNEL_USER_ROLE_ID,
 		DisplayName: model.CHANNEL_USER_ROLE_ID,
 		Permissions: []string{
@@ -68,7 +68,7 @@ func createDefaultRoles(t *testing.T, ss store.Store) {
 		},
 	})
 
-	<-ss.Role().Save(&model.Role{
+	ss.Role().Save(&model.Role{
 		Name:        model.CHANNEL_GUEST_ROLE_ID,
 		DisplayName: model.CHANNEL_GUEST_ROLE_ID,
 		Permissions: []string{
@@ -107,39 +107,33 @@ func testSchemeStoreSave(t *testing.T, ss store.Store) {
 	assert.Len(t, d1.DefaultChannelGuestRole, 26)
 
 	// Check the default roles were created correctly.
-	roleRes1 := <-ss.Role().GetByName(d1.DefaultTeamAdminRole)
-	assert.Nil(t, roleRes1.Err)
-	role1 := roleRes1.Data.(*model.Role)
+	role1, err := ss.Role().GetByName(d1.DefaultTeamAdminRole)
+	assert.Nil(t, err)
 	assert.Equal(t, role1.Permissions, []string{"delete_others_posts"})
 	assert.True(t, role1.SchemeManaged)
 
-	roleRes2 := <-ss.Role().GetByName(d1.DefaultTeamUserRole)
-	assert.Nil(t, roleRes2.Err)
-	role2 := roleRes2.Data.(*model.Role)
+	role2, err := ss.Role().GetByName(d1.DefaultTeamUserRole)
+	assert.Nil(t, err)
 	assert.Equal(t, role2.Permissions, []string{"view_team", "add_user_to_team"})
 	assert.True(t, role2.SchemeManaged)
 
-	roleRes3 := <-ss.Role().GetByName(d1.DefaultChannelAdminRole)
-	assert.Nil(t, roleRes3.Err)
-	role3 := roleRes3.Data.(*model.Role)
+	role3, err := ss.Role().GetByName(d1.DefaultChannelAdminRole)
+	assert.Nil(t, err)
 	assert.Equal(t, role3.Permissions, []string{"manage_public_channel_members", "manage_private_channel_members"})
 	assert.True(t, role3.SchemeManaged)
 
-	roleRes4 := <-ss.Role().GetByName(d1.DefaultChannelUserRole)
-	assert.Nil(t, roleRes4.Err)
-	role4 := roleRes4.Data.(*model.Role)
+	role4, err := ss.Role().GetByName(d1.DefaultChannelUserRole)
+	assert.Nil(t, err)
 	assert.Equal(t, role4.Permissions, []string{"read_channel", "create_post"})
 	assert.True(t, role4.SchemeManaged)
 
-	roleRes5 := <-ss.Role().GetByName(d1.DefaultTeamGuestRole)
-	assert.Nil(t, roleRes5.Err)
-	role5 := roleRes5.Data.(*model.Role)
+	role5, err := ss.Role().GetByName(d1.DefaultTeamGuestRole)
+	assert.Nil(t, err)
 	assert.Equal(t, role5.Permissions, []string{"view_team"})
 	assert.True(t, role5.SchemeManaged)
 
-	roleRes6 := <-ss.Role().GetByName(d1.DefaultChannelGuestRole)
-	assert.Nil(t, roleRes6.Err)
-	role6 := roleRes6.Data.(*model.Role)
+	role6, err := ss.Role().GetByName(d1.DefaultChannelGuestRole)
+	assert.Nil(t, err)
 	assert.Equal(t, role6.Permissions, []string{"read_channel", "create_post"})
 	assert.True(t, role6.SchemeManaged)
 
@@ -350,39 +344,33 @@ func testSchemeStoreDelete(t *testing.T, ss store.Store) {
 	assert.Len(t, d1.DefaultChannelGuestRole, 26)
 
 	// Check the default roles were created correctly.
-	roleRes1 := <-ss.Role().GetByName(d1.DefaultTeamAdminRole)
-	assert.Nil(t, roleRes1.Err)
-	role1 := roleRes1.Data.(*model.Role)
+	role1, err := ss.Role().GetByName(d1.DefaultTeamAdminRole)
+	assert.Nil(t, err)
 	assert.Equal(t, role1.Permissions, []string{"delete_others_posts"})
 	assert.True(t, role1.SchemeManaged)
 
-	roleRes2 := <-ss.Role().GetByName(d1.DefaultTeamUserRole)
-	assert.Nil(t, roleRes2.Err)
-	role2 := roleRes2.Data.(*model.Role)
+	role2, err := ss.Role().GetByName(d1.DefaultTeamUserRole)
+	assert.Nil(t, err)
 	assert.Equal(t, role2.Permissions, []string{"view_team", "add_user_to_team"})
 	assert.True(t, role2.SchemeManaged)
 
-	roleRes3 := <-ss.Role().GetByName(d1.DefaultChannelAdminRole)
-	assert.Nil(t, roleRes3.Err)
-	role3 := roleRes3.Data.(*model.Role)
+	role3, err := ss.Role().GetByName(d1.DefaultChannelAdminRole)
+	assert.Nil(t, err)
 	assert.Equal(t, role3.Permissions, []string{"manage_public_channel_members", "manage_private_channel_members"})
 	assert.True(t, role3.SchemeManaged)
 
-	roleRes4 := <-ss.Role().GetByName(d1.DefaultChannelUserRole)
-	assert.Nil(t, roleRes4.Err)
-	role4 := roleRes4.Data.(*model.Role)
+	role4, err := ss.Role().GetByName(d1.DefaultChannelUserRole)
+	assert.Nil(t, err)
 	assert.Equal(t, role4.Permissions, []string{"read_channel", "create_post"})
 	assert.True(t, role4.SchemeManaged)
 
-	roleRes5 := <-ss.Role().GetByName(d1.DefaultTeamGuestRole)
-	assert.Nil(t, roleRes5.Err)
-	role5 := roleRes5.Data.(*model.Role)
+	role5, err := ss.Role().GetByName(d1.DefaultTeamGuestRole)
+	assert.Nil(t, err)
 	assert.Equal(t, role5.Permissions, []string{"view_team"})
 	assert.True(t, role5.SchemeManaged)
 
-	roleRes6 := <-ss.Role().GetByName(d1.DefaultChannelGuestRole)
-	assert.Nil(t, roleRes6.Err)
-	role6 := roleRes6.Data.(*model.Role)
+	role6, err := ss.Role().GetByName(d1.DefaultChannelGuestRole)
+	assert.Nil(t, err)
 	assert.Equal(t, role6.Permissions, []string{"read_channel", "create_post"})
 	assert.True(t, role6.SchemeManaged)
 
@@ -395,34 +383,28 @@ func testSchemeStoreDelete(t *testing.T, ss store.Store) {
 	assert.NotZero(t, d2.DeleteAt)
 
 	// Check that the roles are deleted too.
-	roleRes7 := <-ss.Role().GetByName(d1.DefaultTeamAdminRole)
-	assert.Nil(t, roleRes7.Err)
-	role7 := roleRes7.Data.(*model.Role)
+	role7, err := ss.Role().GetByName(d1.DefaultTeamAdminRole)
+	assert.Nil(t, err)
 	assert.NotZero(t, role7.DeleteAt)
 
-	roleRes8 := <-ss.Role().GetByName(d1.DefaultTeamUserRole)
-	assert.Nil(t, roleRes8.Err)
-	role8 := roleRes8.Data.(*model.Role)
+	role8, err := ss.Role().GetByName(d1.DefaultTeamUserRole)
+	assert.Nil(t, err)
 	assert.NotZero(t, role8.DeleteAt)
 
-	roleRes9 := <-ss.Role().GetByName(d1.DefaultChannelAdminRole)
-	assert.Nil(t, roleRes9.Err)
-	role9 := roleRes9.Data.(*model.Role)
+	role9, err := ss.Role().GetByName(d1.DefaultChannelAdminRole)
+	assert.Nil(t, err)
 	assert.NotZero(t, role9.DeleteAt)
 
-	roleRes10 := <-ss.Role().GetByName(d1.DefaultChannelUserRole)
-	assert.Nil(t, roleRes10.Err)
-	role10 := roleRes10.Data.(*model.Role)
+	role10, err := ss.Role().GetByName(d1.DefaultChannelUserRole)
+	assert.Nil(t, err)
 	assert.NotZero(t, role10.DeleteAt)
 
-	roleRes11 := <-ss.Role().GetByName(d1.DefaultTeamGuestRole)
-	assert.Nil(t, roleRes11.Err)
-	role11 := roleRes11.Data.(*model.Role)
+	role11, err := ss.Role().GetByName(d1.DefaultTeamGuestRole)
+	assert.Nil(t, err)
 	assert.NotZero(t, role11.DeleteAt)
 
-	roleRes12 := <-ss.Role().GetByName(d1.DefaultChannelGuestRole)
-	assert.Nil(t, roleRes12.Err)
-	role12 := roleRes12.Data.(*model.Role)
+	role12, err := ss.Role().GetByName(d1.DefaultChannelGuestRole)
+	assert.Nil(t, err)
 	assert.NotZero(t, role12.DeleteAt)
 
 	// Try deleting a scheme that does not exist.
@@ -447,7 +429,7 @@ func testSchemeStoreDelete(t *testing.T, ss store.Store) {
 		Type:        model.TEAM_OPEN,
 		SchemeId:    &d4.Id,
 	}
-	t4, err := ss.Team().Save(t4)
+	t4, err = ss.Team().Save(t4)
 	require.Nil(t, err)
 
 	sres4 := <-ss.Scheme().Delete(d4.Id)

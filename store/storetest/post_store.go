@@ -1685,8 +1685,8 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 	o1a := &model.Post{}
 	*o1a = *ro1
 	o1a.Message = ro1.Message + "BBBBBBBBBB"
-	if result := <-ss.Post().Overwrite(o1a); result.Err != nil {
-		t.Fatal(result.Err)
+	if _, err := ss.Post().Overwrite(o1a); err != nil {
+		t.Fatal(err)
 	}
 
 	r1, err = ss.Post().Get(o1.Id)
@@ -1702,8 +1702,8 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 	o2a := &model.Post{}
 	*o2a = *ro2
 	o2a.Message = ro2.Message + "DDDDDDD"
-	if result := <-ss.Post().Overwrite(o2a); result.Err != nil {
-		t.Fatal(result.Err)
+	if _, err := ss.Post().Overwrite(o2a); err != nil {
+		t.Fatal(err)
 	}
 
 	r2, err = ss.Post().Get(o1.Id)
@@ -1719,8 +1719,8 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 	o3a := &model.Post{}
 	*o3a = *ro3
 	o3a.Message = ro3.Message + "WWWWWWW"
-	if result := <-ss.Post().Overwrite(o3a); result.Err != nil {
-		t.Fatal(result.Err)
+	if _, err := ss.Post().Overwrite(o3a); err != nil {
+		t.Fatal(err)
 	}
 
 	r3, err = ss.Post().Get(o3.Id)
@@ -1750,8 +1750,8 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 	*o4a = *ro4
 	o4a.Filenames = []string{}
 	o4a.FileIds = []string{model.NewId()}
-	if result := <-ss.Post().Overwrite(o4a); result.Err != nil {
-		t.Fatal(result.Err)
+	if _, err := ss.Post().Overwrite(o4a); err != nil {
+		t.Fatal(err)
 	}
 
 	r4, err = ss.Post().Get(o4.Id)
@@ -1954,8 +1954,8 @@ func testPostStoreGetOldest(t *testing.T, ss store.Store) {
 }
 
 func testGetMaxPostSize(t *testing.T, ss store.Store) {
-	assert.Equal(t, model.POST_MESSAGE_MAX_RUNES_V2, (<-ss.Post().GetMaxPostSize()).Data.(int))
-	assert.Equal(t, model.POST_MESSAGE_MAX_RUNES_V2, (<-ss.Post().GetMaxPostSize()).Data.(int))
+	assert.Equal(t, model.POST_MESSAGE_MAX_RUNES_V2, ss.Post().GetMaxPostSize())
+	assert.Equal(t, model.POST_MESSAGE_MAX_RUNES_V2, ss.Post().GetMaxPostSize())
 }
 
 func testPostStoreGetParentsForExportAfter(t *testing.T, ss store.Store) {
