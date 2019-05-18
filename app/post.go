@@ -158,11 +158,11 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 
 	pchan := make(store.StoreChannel)
 	if len(post.RootId) > 0 {
-		go func() {
+		go func(pchan store.StoreChannel) {
 			r, pErr := a.Srv.Store.Post().Get(post.RootId)
 			s := store.StoreResult{Data: r, Err: pErr}
 			pchan <- s
-		}()
+		}(pchan)
 	}
 
 	user, err := a.Srv.Store.User().Get(post.UserId)
@@ -183,8 +183,9 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 
 	// Verify the parent/child relationships are correct
 	var parentPostList *model.PostList
-	if pchan != nil {
-		result := <-pchan
+	select {
+	//if pchan has value ready, it goes through the below case.
+	case result := <-pchan:
 		if result.Err != nil {
 			return nil, model.NewAppError("createPost", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest)
 		}
@@ -208,6 +209,8 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 				return nil, model.NewAppError("createPost", "api.post.create_post.parent_id.app_error", nil, "", http.StatusInternalServerError)
 			}
 		}
+	default:
+
 	}
 
 	post.Hashtags, _ = model.ParseHashtags(post.Message)
