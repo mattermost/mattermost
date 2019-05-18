@@ -1685,7 +1685,8 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 	o1a := &model.Post{}
 	*o1a = *ro1
 	o1a.Message = ro1.Message + "BBBBBBBBBB"
-	if _, err := ss.Post().Overwrite(o1a); err != nil {
+	_, err = ss.Post().Overwrite(o1a)
+	if err != nil {
 		t.Fatal(err)
 	}
 
@@ -1702,7 +1703,8 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 	o2a := &model.Post{}
 	*o2a = *ro2
 	o2a.Message = ro2.Message + "DDDDDDD"
-	if _, err := ss.Post().Overwrite(o2a); err != nil {
+	_, err = ss.Post().Overwrite(o2a)
+	if err != nil {
 		t.Fatal(err)
 	}
 
@@ -1719,7 +1721,8 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 	o3a := &model.Post{}
 	*o3a = *ro3
 	o3a.Message = ro3.Message + "WWWWWWW"
-	if _, err := ss.Post().Overwrite(o3a); err != nil {
+	_, err = ss.Post().Overwrite(o3a)
+	if err != nil {
 		t.Fatal(err)
 	}
 
@@ -1750,7 +1753,8 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 	*o4a = *ro4
 	o4a.Filenames = []string{}
 	o4a.FileIds = []string{model.NewId()}
-	if _, err := ss.Post().Overwrite(o4a); err != nil {
+	_, err = ss.Post().Overwrite(o4a)
+	if err != nil {
 		t.Fatal(err)
 	}
 
