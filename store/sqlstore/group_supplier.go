@@ -950,14 +950,14 @@ func (s *SqlSupplier) groupsBySyncableBaseQuery(st model.GroupSyncableType, t se
 		idCol = "ChannelId"
 	}
 
-	query := s.getQueryBuilder().
+	query := s.GetQueryBuilder().
 		Select(selectStrs[t]).
 		From(fmt.Sprintf("%s gs", table)).
 		LeftJoin("UserGroups ug ON gs.GroupId = ug.Id").
 		Where(fmt.Sprintf("ug.DeleteAt = 0 AND gs.%s = ? AND gs.DeleteAt = 0", idCol), syncableID)
 
 	if opts.IncludeMemberCount && t == selectGroups {
-		query = s.getQueryBuilder().
+		query = s.GetQueryBuilder().
 			Select("ug.*, coalesce(Members.MemberCount, 0) AS MemberCount").
 			From("UserGroups ug").
 			LeftJoin("(SELECT GroupMembers.GroupId, COUNT(*) AS MemberCount FROM GroupMembers WHERE GroupMembers.DeleteAt = 0 GROUP BY GroupId) AS Members ON Members.GroupId = ug.Id").
@@ -1033,10 +1033,10 @@ func (s *SqlSupplier) GetGroups(ctx context.Context, page, perPage int, opts mod
 	result := store.NewSupplierResult()
 	var groups []*model.Group
 
-	groupsQuery := s.getQueryBuilder().Select("g.*").From("UserGroups g").Limit(uint64(perPage)).Offset(uint64(page * perPage)).OrderBy("g.DisplayName")
+	groupsQuery := s.GetQueryBuilder().Select("g.*").From("UserGroups g").Limit(uint64(perPage)).Offset(uint64(page * perPage)).OrderBy("g.DisplayName")
 
 	if opts.IncludeMemberCount {
-		groupsQuery = s.getQueryBuilder().
+		groupsQuery = s.GetQueryBuilder().
 			Select("g.*, coalesce(Members.MemberCount, 0) AS MemberCount").
 			From("UserGroups g").
 			LeftJoin("(SELECT GroupMembers.GroupId, COUNT(*) AS MemberCount FROM GroupMembers WHERE GroupMembers.DeleteAt = 0 GROUP BY GroupId) AS Members ON Members.GroupId = g.Id").

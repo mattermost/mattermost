@@ -1347,7 +1347,7 @@ func (s *SqlPostStore) GetRepliesForExport(parentId string) store.StoreChannel {
 
 func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		query := s.getQueryBuilder().
+		query := s.GetQueryBuilder().
 			Select("p.*", "Users.Username as User").
 			From("Posts p").
 			Join("Channels ON p.ChannelId = Channels.Id").
@@ -1377,7 +1377,7 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 		for _, post := range posts {
 			channelIds = append(channelIds, post.ChannelId)
 		}
-		query = s.getQueryBuilder().
+		query = s.GetQueryBuilder().
 			Select("u.Username as Username, ChannelId, UserId, cm.Roles as Roles, LastViewedAt, MsgCount, MentionCount, cm.NotifyProps as NotifyProps, LastUpdateAt, SchemeUser, SchemeAdmin, (SchemeGuest IS NOT NULL AND SchemeGuest) as SchemeGuest").
 			From("ChannelMembers cm").
 			Join("Users u ON ( u.Id = cm.UserId )").

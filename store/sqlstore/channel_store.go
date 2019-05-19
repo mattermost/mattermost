@@ -2548,7 +2548,7 @@ func (s SqlChannelStore) GetChannelMembersForExport(userId string, teamId string
 func (s SqlChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var directChannelsForExport []*model.DirectChannelForExport
-		query := s.getQueryBuilder().
+		query := s.GetQueryBuilder().
 			Select("Channels.*").
 			From("Channels").
 			Where(sq.And{
@@ -2574,7 +2574,7 @@ func (s SqlChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId s
 		for _, channel := range directChannelsForExport {
 			channelIds = append(channelIds, channel.Id)
 		}
-		query = s.getQueryBuilder().
+		query = s.GetQueryBuilder().
 			Select("u.Username as Username, ChannelId, UserId, cm.Roles as Roles, LastViewedAt, MsgCount, MentionCount, cm.NotifyProps as NotifyProps, LastUpdateAt, SchemeUser, SchemeAdmin, (SchemeGuest IS NOT NULL AND SchemeGuest) as SchemeGuest").
 			From("ChannelMembers cm").
 			Join("Users u ON ( u.Id = cm.UserId )").
@@ -2639,7 +2639,7 @@ func (s SqlChannelStore) GetChannelsBatchForIndexing(startTime, endTime int64, l
 
 func (s SqlChannelStore) UserBelongsToChannels(userId string, channelIds []string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		query := s.getQueryBuilder().
+		query := s.GetQueryBuilder().
 			Select("Count(*)").
 			From("ChannelMembers").
 			Where(sq.And{

@@ -858,7 +858,7 @@ func (_m *SqlStore) Webhook() store.WebhookStore {
 }
 
 // getQueryBuilder provides a mock function with given fields:
-func (_m *SqlStore) getQueryBuilder() squirrel.StatementBuilderType {
+func (_m *SqlStore) GetQueryBuilder() squirrel.StatementBuilderType {
 	ret := _m.Called()
 
 	var r0 squirrel.StatementBuilderType

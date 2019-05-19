@@ -489,7 +489,7 @@ func (s SqlTeamStore) AnalyticsTeamCount() store.StoreChannel {
 }
 
 func (s SqlTeamStore) getTeamMembersWithSchemeSelectQuery() sq.SelectBuilder {
-	return s.getQueryBuilder().
+	return s.GetQueryBuilder().
 		Select(
 			"TeamMembers.*",
 			"TeamScheme.DefaultTeamGuestRole TeamSchemeDefaultGuestRole",

@@ -68,7 +68,7 @@ func NewSqlUserStore(sqlStore SqlStore, metrics einterfaces.MetricsInterface) st
 		metrics:  metrics,
 	}
 
-	us.usersQuery = us.getQueryBuilder().
+	us.usersQuery = us.GetQueryBuilder().
 		Select("u.*", "b.UserId IS NOT NULL AS IsBot").
 		From("Users u").
 		LeftJoin("Bots b ON ( b.UserId = u.Id )")
@@ -1549,7 +1549,7 @@ func (us SqlUserStore) GetUsersBatchForIndexing(startTime, endTime int64, limit 
 		}
 
 		var channelMembers []*model.ChannelMember
-		channelMembersQuery, args, _ := us.getQueryBuilder().
+		channelMembersQuery, args, _ := us.GetQueryBuilder().
 			Select("cm.*").
 			From("ChannelMembers cm").
 			Join("Channels c ON cm.ChannelId = c.Id").
@@ -1563,7 +1563,7 @@ func (us SqlUserStore) GetUsersBatchForIndexing(startTime, endTime int64, limit 
 		}
 
 		var teamMembers []*model.TeamMember
-		teamMembersQuery, args, _ := us.getQueryBuilder().
+		teamMembersQuery, args, _ := us.GetQueryBuilder().
 			Select("*").
 			From("TeamMembers").
 			Where(sq.Eq{"UserId": userIds, "DeleteAt": 0}).
