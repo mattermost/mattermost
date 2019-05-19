@@ -18,7 +18,7 @@ func (a *App) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
 
 	result = <-a.Srv.Store.Bot().Save(bot)
 	if result.Err != nil {
-		<-a.Srv.Store.User().PermanentDelete(bot.UserId)
+		a.Srv.Store.User().PermanentDelete(bot.UserId)
 		return nil, result.Err
 	}
 
@@ -119,8 +119,8 @@ func (a *App) PermanentDeleteBot(botUserId string) *model.AppError {
 		return result.Err
 	}
 
-	if result := <-a.Srv.Store.User().PermanentDelete(botUserId); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.User().PermanentDelete(botUserId); err != nil {
+		return err
 	}
 
 	return nil

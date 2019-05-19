@@ -955,7 +955,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 		})).(*model.User).Id
 
 		defer func(userId string) {
-			<-ss.User().PermanentDelete(userId)
+			ss.User().PermanentDelete(userId)
 		}(userIds[i])
 
 		store.Must(ss.Team().SaveMember(&model.TeamMember{
@@ -979,7 +979,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 	})).(*model.User).Id
 	defer func() {
-		<-ss.User().PermanentDelete(newUserId)
+		ss.User().PermanentDelete(newUserId)
 	}()
 
 	if result := <-ss.Team().SaveMember(&model.TeamMember{
