@@ -82,9 +82,9 @@ require (
 	golang.org/x/crypto v0.0.0-20190426145343-a29dc8fdc734
 	golang.org/x/image v0.0.0-20190321063152-3fc05d484e9f
 	golang.org/x/net v0.0.0-20190424112056-4829fb13d2c6
-	golang.org/x/sync v0.0.0-20190423024810-112230192c58 // indirect
 	golang.org/x/sys v0.0.0-20190429190828-d89cdac9e872 // indirect
 	golang.org/x/text v0.3.2
+	golang.org/x/tools v0.0.0-20190517183331-d88f79806bbd // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/asn1-ber.v1 v1.0.0-20181015200546-f715ec2f112d // indirect
 	gopkg.in/ini.v1 v1.42.0 // indirect
