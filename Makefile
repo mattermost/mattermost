@@ -528,7 +528,6 @@ config-reset: ## Resets the config/config.json file to the default.
 	@echo Resetting configuration to default
 	rm -f config/config.json
 	go generate ./config
-	cp config/default.json config/config.json
 
 clean: stop-docker ## Clean up everything except persistant server data.
 	@echo Cleaning

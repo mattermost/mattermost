@@ -7,14 +7,14 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/mattermost/mattermost-server/config"
 	"io/ioutil"
 	"os"
+
+	"github.com/mattermost/mattermost-server/model"
 )
 
 func usage() {
-	fmt.Fprintf(os.Stderr, "usage: config_generator [output_file]\n")
-	flag.PrintDefaults()
+	_, _ = fmt.Fprintf(os.Stderr, "usage: config_generator [output_file]\n")
 	os.Exit(2)
 }
 
@@ -24,19 +24,21 @@ func main() {
 
 	args := flag.Args()
 	if len(args) < 1 {
-		fmt.Println("Input file is missing.")
-		os.Exit(1)
+		fmt.Println("Output file name is missing.")
+		usage()
 	}
-
-	configStore, err := config.NewFileStore("config.json", true)
-	if err != nil {
-		panic(err)
+	outputFile := args[0]
+	if f, err := os.Open(outputFile); err == nil {
+		_ = f.Close()
+		_, _ = fmt.Fprintf(os.Stderr, "File %s already exists. Not overwriting!", outputFile)
 	}
-	configFile := configStore.Get()
-	if data, err := json.MarshalIndent(configFile, "", "  "); err != nil {
+	defaultCfg := &model.Config{}
+	defaultCfg.SetDefaults()
+	if data, err := json.MarshalIndent(defaultCfg, "", "  "); err != nil {
 		panic(err)
 	} else {
-		configStore.Close()
-		ioutil.WriteFile(args[0], data, 0644)
+		if err := ioutil.WriteFile(outputFile, data, 0644); err != nil {
+			panic(err)
+		}
 	}
 }
