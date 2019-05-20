@@ -1,6 +1,8 @@
 // Copyright (c) 2017-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
+//go:generate go run params_gen/params_gen.go
+
 package web
 
 import (
@@ -21,244 +23,93 @@ const (
 )
 
 type Params struct {
-	UserId                 string
-	TeamId                 string
-	InviteId               string
-	TokenId                string
-	ChannelId              string
-	PostId                 string
-	FileId                 string
-	Filename               string
-	PluginId               string
-	CommandId              string
-	HookId                 string
-	ReportId               string
-	EmojiId                string
-	AppId                  string
-	Email                  string
-	Username               string
+	UserId                 string `param:"user_id"`
+	TeamId                 string `param:"team_id"`
+	InviteId               string `param:"invite_id"`
+	TokenId                string `param:"token_id"`
+	ChannelId              string `param:"channel_id"`
+	PostId                 string `param:"post_id"`
+	FileId                 string `param:"file_id"`
+	Filename               string `param:"filename"`
+	PluginId               string `param:"plugin_id"`
+	CommandId              string `param:"command_id"`
+	HookId                 string `param:"hook_id"`
+	ReportId               string `param:"report_id"`
+	EmojiId                string `param:"emoji_id"`
+	AppId                  string `param:"app_id"`
+	Email                  string `param:"email"`
+	Username               string `param:"username"`
 	TeamName               string
 	ChannelName            string
-	PreferenceName         string
-	EmojiName              string
-	Category               string
-	Service                string
-	JobId                  string
-	JobType                string
-	ActionId               string
-	RoleId                 string
-	RoleName               string
-	SchemeId               string
-	Scope                  string
-	GroupId                string
+	PreferenceName         string `param:"preference_name"`
+	EmojiName              string `param:"emoji_name"`
+	Category               string `param:"category_name"`
+	Service                string `param:"service"`
+	JobId                  string `param:"job_id"`
+	JobType                string `param:"job_type"`
+	ActionId               string `param:"action_id"`
+	RoleId                 string `param:"role_id"`
+	RoleName               string `param:"role_name"`
+	SchemeId               string `param:"scheme_id"`
+	Scope                  string `param:"scope"`
+	GroupId                string `param:"group_id"`
 	Page                   int
 	PerPage                int
 	LogsPerPage            int
-	Permanent              bool
-	RemoteId               string
-	SyncableId             string
+	Permanent              bool   `param:"permanent"`
+	RemoteId               string `param:"remote_id"`
+	SyncableId             string `param:"syncable_id"`
 	SyncableType           model.GroupSyncableType
-	BotUserId              string
-	Q                      string
-	IsLinked               *bool
-	IsConfigured           *bool
-	NotAssociatedToTeam    string
-	NotAssociatedToChannel string
-	Paginate               *bool
-	IncludeMemberCount     bool
+	BotUserId              string `param:"bot_user_id"`
+	Q                      string `param:"q"`
+	IsLinked               *bool  `param:"is_linked"`
+	IsConfigured           *bool  `param:"is_configured"`
+	NotAssociatedToTeam    string `param:"not_associated_to_team"`
+	NotAssociatedToChannel string `param:"not_associated_to_channel"`
+	Paginate               *bool  `param:"paginate"`
+	IncludeMemberCount     bool   `param:"include_member_count"`
 }
 
-func ParamsFromRequest(r *http.Request) *Params {
-	params := &Params{}
-
+func (p *Params) AddCustomParamsFromRequest(r *http.Request) {
 	props := mux.Vars(r)
 	query := r.URL.Query()
 
-	if val, ok := props["user_id"]; ok {
-		params.UserId = val
-	}
-
-	if val, ok := props["team_id"]; ok {
-		params.TeamId = val
-	}
-
-	if val, ok := props["invite_id"]; ok {
-		params.InviteId = val
-	}
-
-	if val, ok := props["token_id"]; ok {
-		params.TokenId = val
-	}
-
-	if val, ok := props["channel_id"]; ok {
-		params.ChannelId = val
-	} else {
-		params.ChannelId = query.Get("channel_id")
-	}
-
-	if val, ok := props["post_id"]; ok {
-		params.PostId = val
-	}
-
-	if val, ok := props["file_id"]; ok {
-		params.FileId = val
-	}
-
-	params.Filename = query.Get("filename")
-
-	if val, ok := props["plugin_id"]; ok {
-		params.PluginId = val
-	}
-
-	if val, ok := props["command_id"]; ok {
-		params.CommandId = val
-	}
-
-	if val, ok := props["hook_id"]; ok {
-		params.HookId = val
-	}
-
-	if val, ok := props["report_id"]; ok {
-		params.ReportId = val
-	}
-
-	if val, ok := props["emoji_id"]; ok {
-		params.EmojiId = val
-	}
-
-	if val, ok := props["app_id"]; ok {
-		params.AppId = val
-	}
-
-	if val, ok := props["email"]; ok {
-		params.Email = val
-	}
-
-	if val, ok := props["username"]; ok {
-		params.Username = val
-	}
-
 	if val, ok := props["team_name"]; ok {
-		params.TeamName = strings.ToLower(val)
+		p.TeamName = strings.ToLower(val)
 	}
 
 	if val, ok := props["channel_name"]; ok {
-		params.ChannelName = strings.ToLower(val)
+		p.ChannelName = strings.ToLower(val)
 	}
-
-	if val, ok := props["category"]; ok {
-		params.Category = val
-	}
-
-	if val, ok := props["service"]; ok {
-		params.Service = val
-	}
-
-	if val, ok := props["preference_name"]; ok {
-		params.PreferenceName = val
-	}
-
-	if val, ok := props["emoji_name"]; ok {
-		params.EmojiName = val
-	}
-
-	if val, ok := props["job_id"]; ok {
-		params.JobId = val
-	}
-
-	if val, ok := props["job_type"]; ok {
-		params.JobType = val
-	}
-
-	if val, ok := props["action_id"]; ok {
-		params.ActionId = val
-	}
-
-	if val, ok := props["role_id"]; ok {
-		params.RoleId = val
-	}
-
-	if val, ok := props["role_name"]; ok {
-		params.RoleName = val
-	}
-
-	if val, ok := props["scheme_id"]; ok {
-		params.SchemeId = val
-	}
-
-	if val, ok := props["group_id"]; ok {
-		params.GroupId = val
-	}
-
-	if val, ok := props["remote_id"]; ok {
-		params.RemoteId = val
-	}
-
-	params.Scope = query.Get("scope")
 
 	if val, err := strconv.Atoi(query.Get("page")); err != nil || val < 0 {
-		params.Page = PAGE_DEFAULT
+		p.Page = PAGE_DEFAULT
 	} else {
-		params.Page = val
-	}
-
-	if val, err := strconv.ParseBool(query.Get("permanent")); err == nil {
-		params.Permanent = val
+		p.Page = val
 	}
 
 	if val, err := strconv.Atoi(query.Get("per_page")); err != nil || val < 0 {
-		params.PerPage = PER_PAGE_DEFAULT
+		p.PerPage = PER_PAGE_DEFAULT
 	} else if val > PER_PAGE_MAXIMUM {
-		params.PerPage = PER_PAGE_MAXIMUM
+		p.PerPage = PER_PAGE_MAXIMUM
 	} else {
-		params.PerPage = val
+		p.PerPage = val
 	}
 
 	if val, err := strconv.Atoi(query.Get("logs_per_page")); err != nil || val < 0 {
-		params.LogsPerPage = LOGS_PER_PAGE_DEFAULT
+		p.LogsPerPage = LOGS_PER_PAGE_DEFAULT
 	} else if val > LOGS_PER_PAGE_MAXIMUM {
-		params.LogsPerPage = LOGS_PER_PAGE_MAXIMUM
+		p.LogsPerPage = LOGS_PER_PAGE_MAXIMUM
 	} else {
-		params.LogsPerPage = val
-	}
-
-	if val, ok := props["syncable_id"]; ok {
-		params.SyncableId = val
+		p.LogsPerPage = val
 	}
 
 	if val, ok := props["syncable_type"]; ok {
 		switch val {
 		case "teams":
-			params.SyncableType = model.GroupSyncableTypeTeam
+			p.SyncableType = model.GroupSyncableTypeTeam
 		case "channels":
-			params.SyncableType = model.GroupSyncableTypeChannel
+			p.SyncableType = model.GroupSyncableTypeChannel
 		}
 	}
-
-	if val, ok := props["bot_user_id"]; ok {
-		params.BotUserId = val
-	}
-
-	params.Q = query.Get("q")
-
-	if val, err := strconv.ParseBool(query.Get("is_linked")); err == nil {
-		params.IsLinked = &val
-	}
-
-	if val, err := strconv.ParseBool(query.Get("is_configured")); err == nil {
-		params.IsConfigured = &val
-	}
-
-	params.NotAssociatedToTeam = query.Get("not_associated_to_team")
-	params.NotAssociatedToChannel = query.Get("not_associated_to_channel")
-
-	if val, err := strconv.ParseBool(query.Get("paginate")); err == nil {
-		params.Paginate = &val
-	}
-
-	if val, err := strconv.ParseBool(query.Get("include_member_count")); err == nil {
-		params.IncludeMemberCount = val
-	}
-
-	return params
 }
