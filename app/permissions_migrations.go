@@ -143,8 +143,8 @@ func (a *App) doPermissionsMigration(key string, migrationMap permissionsMap) *m
 
 	for _, role := range roles {
 		role.Permissions = applyPermissionsMap(role.Name, roleMap, migrationMap)
-		if result := <-a.Srv.Store.Role().Save(role); result.Err != nil {
-			return result.Err
+		if _, err := a.Srv.Store.Role().Save(role); err != nil {
+			return err
 		}
 	}
 

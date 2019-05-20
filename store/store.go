@@ -538,13 +538,13 @@ type PluginStore interface {
 }
 
 type RoleStore interface {
-	Save(role *model.Role) StoreChannel
-	Get(roleId string) StoreChannel
-	GetAll() StoreChannel
-	GetByName(name string) StoreChannel
-	GetByNames(names []string) StoreChannel
-	Delete(roldId string) StoreChannel
-	PermanentDeleteAll() StoreChannel
+	Save(role *model.Role) (*model.Role, *model.AppError)
+	Get(roleId string) (*model.Role, *model.AppError)
+	GetAll() ([]*model.Role, *model.AppError)
+	GetByName(name string) (*model.Role, *model.AppError)
+	GetByNames(names []string) ([]*model.Role, *model.AppError)
+	Delete(roldId string) (*model.Role, *model.AppError)
+	PermanentDeleteAll() *model.AppError
 }
 
 type SchemeStore interface {
