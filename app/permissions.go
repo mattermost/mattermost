@@ -48,8 +48,8 @@ func (a *App) ResetPermissionsSystem() *model.AppError {
 	}
 
 	// Purge all roles from the database.
-	if result := <-a.Srv.Store.Role().PermanentDeleteAll(); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.Role().PermanentDeleteAll(); err != nil {
+		return err
 	}
 
 	// Remove the "System" table entry that marks the advanced permissions migration as done.

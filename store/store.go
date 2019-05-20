@@ -130,16 +130,16 @@ type TeamStore interface {
 
 type ChannelStore interface {
 	Save(channel *model.Channel, maxChannelsPerTeam int64) StoreChannel
-	CreateDirectChannel(userId string, otherUserId string) StoreChannel
-	SaveDirectChannel(channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) StoreChannel
-	Update(channel *model.Channel) StoreChannel
+	CreateDirectChannel(userId string, otherUserId string) (*model.Channel, *model.AppError)
+	SaveDirectChannel(channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, *model.AppError)
+	Update(channel *model.Channel) (*model.Channel, *model.AppError)
 	Get(id string, allowFromCache bool) (*model.Channel, *model.AppError)
 	InvalidateChannel(id string)
 	InvalidateChannelByName(teamId, name string)
 	GetFromMaster(id string) (*model.Channel, *model.AppError)
-	Delete(channelId string, time int64) StoreChannel
-	Restore(channelId string, time int64) StoreChannel
-	SetDeleteAt(channelId string, deleteAt int64, updateAt int64) StoreChannel
+	Delete(channelId string, time int64) *model.AppError
+	Restore(channelId string, time int64) *model.AppError
+	SetDeleteAt(channelId string, deleteAt int64, updateAt int64) *model.AppError
 	PermanentDeleteByTeam(teamId string) StoreChannel
 	PermanentDelete(channelId string) StoreChannel
 	GetByName(team_id string, name string, allowFromCache bool) StoreChannel
@@ -232,12 +232,12 @@ type PostStore interface {
 	ClearCaches()
 	InvalidateLastPostTimeCache(channelId string)
 	GetPostsCreatedAt(channelId string, time int64) StoreChannel
-	Overwrite(post *model.Post) StoreChannel
+	Overwrite(post *model.Post) (*model.Post, *model.AppError)
 	GetPostsByIds(postIds []string) StoreChannel
 	GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) StoreChannel
 	PermanentDeleteBatch(endTime int64, limit int64) StoreChannel
 	GetOldest() StoreChannel
-	GetMaxPostSize() StoreChannel
+	GetMaxPostSize() int
 	GetParentsForExportAfter(limit int, afterId string) StoreChannel
 	GetRepliesForExport(parentId string) StoreChannel
 	GetDirectPostParentsForExportAfter(limit int, afterId string) StoreChannel
@@ -261,7 +261,7 @@ type UserStore interface {
 	GetProfilesInChannel(channelId string, offset int, limit int) StoreChannel
 	GetProfilesInChannelByStatus(channelId string, offset int, limit int) StoreChannel
 	GetAllProfilesInChannel(channelId string, allowFromCache bool) StoreChannel
-	GetProfilesNotInChannel(teamId string, channelId string, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) StoreChannel
+	GetProfilesNotInChannel(teamId string, channelId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) StoreChannel
 	GetProfilesWithoutTeam(offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) StoreChannel
 	GetProfilesByUsernames(usernames []string, viewRestrictions *model.ViewUsersRestrictions) StoreChannel
 	GetAllProfiles(options *model.UserGetOptions) StoreChannel
@@ -292,7 +292,7 @@ type UserStore interface {
 	SearchWithoutTeam(term string, options *model.UserSearchOptions) StoreChannel
 	AnalyticsGetInactiveUsersCount() StoreChannel
 	AnalyticsGetSystemAdminCount() StoreChannel
-	GetProfilesNotInTeam(teamId string, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) StoreChannel
+	GetProfilesNotInTeam(teamId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) StoreChannel
 	GetEtagForProfilesNotInTeam(teamId string) StoreChannel
 	ClearAllCustomRoleAssignments() StoreChannel
 	InferSystemInstallDate() StoreChannel
@@ -429,13 +429,13 @@ type CommandWebhookStore interface {
 
 type PreferenceStore interface {
 	Save(preferences *model.Preferences) StoreChannel
-	Get(userId string, category string, name string) StoreChannel
-	GetCategory(userId string, category string) StoreChannel
+	GetCategory(userId string, category string) (model.Preferences, *model.AppError)
+	Get(userId string, category string, name string) (*model.Preference, *model.AppError)
 	GetAll(userId string) StoreChannel
 	Delete(userId, category, name string) StoreChannel
 	DeleteCategory(userId string, category string) StoreChannel
 	DeleteCategoryAndName(category string, name string) StoreChannel
-	PermanentDeleteByUser(userId string) StoreChannel
+	PermanentDeleteByUser(userId string) *model.AppError
 	IsFeatureEnabled(feature, userId string) StoreChannel
 	CleanupFlagsBatch(limit int64) StoreChannel
 }
@@ -476,17 +476,17 @@ type StatusStore interface {
 }
 
 type FileInfoStore interface {
-	Save(info *model.FileInfo) StoreChannel
-	Get(id string) StoreChannel
-	GetByPath(path string) StoreChannel
-	GetForPost(postId string, readFromMaster bool, allowFromCache bool) StoreChannel
-	GetForUser(userId string) StoreChannel
+	Save(info *model.FileInfo) (*model.FileInfo, *model.AppError)
+	Get(id string) (*model.FileInfo, *model.AppError)
+	GetByPath(path string) (*model.FileInfo, *model.AppError)
+	GetForPost(postId string, readFromMaster bool, allowFromCache bool) ([]*model.FileInfo, *model.AppError)
+	GetForUser(userId string) ([]*model.FileInfo, *model.AppError)
 	InvalidateFileInfosForPostCache(postId string)
-	AttachToPost(fileId string, postId string, creatorId string) StoreChannel
-	DeleteForPost(postId string) StoreChannel
-	PermanentDelete(fileId string) StoreChannel
-	PermanentDeleteBatch(endTime int64, limit int64) StoreChannel
-	PermanentDeleteByUser(userId string) StoreChannel
+	AttachToPost(fileId string, postId string, creatorId string) *model.AppError
+	DeleteForPost(postId string) (string, *model.AppError)
+	PermanentDelete(fileId string) *model.AppError
+	PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError)
+	PermanentDeleteByUser(userId string) (int64, *model.AppError)
 	ClearCaches()
 }
 
@@ -538,13 +538,13 @@ type PluginStore interface {
 }
 
 type RoleStore interface {
-	Save(role *model.Role) StoreChannel
-	Get(roleId string) StoreChannel
-	GetAll() StoreChannel
-	GetByName(name string) StoreChannel
-	GetByNames(names []string) StoreChannel
-	Delete(roldId string) StoreChannel
-	PermanentDeleteAll() StoreChannel
+	Save(role *model.Role) (*model.Role, *model.AppError)
+	Get(roleId string) (*model.Role, *model.AppError)
+	GetAll() ([]*model.Role, *model.AppError)
+	GetByName(name string) (*model.Role, *model.AppError)
+	GetByNames(names []string) ([]*model.Role, *model.AppError)
+	Delete(roldId string) (*model.Role, *model.AppError)
+	PermanentDeleteAll() *model.AppError
 }
 
 type SchemeStore interface {
@@ -594,9 +594,12 @@ type GroupStore interface {
 	TeamMembersToRemove() StoreChannel
 	ChannelMembersToRemove() StoreChannel
 
-	GetGroupsByChannel(channelId string, page, perPage int) StoreChannel
+	GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) StoreChannel
+	CountGroupsByChannel(channelId string, opts model.GroupSearchOpts) StoreChannel
+
 	GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) StoreChannel
 	CountGroupsByTeam(teamId string, opts model.GroupSearchOpts) StoreChannel
+
 	GetGroups(page, perPage int, opts model.GroupSearchOpts) StoreChannel
 }
 

@@ -472,8 +472,8 @@ func (a *App) GetUsersInTeam(options *model.UserGetOptions) ([]*model.User, *mod
 	return result.Data.([]*model.User), nil
 }
 
-func (a *App) GetUsersNotInTeam(teamId string, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
-	result := <-a.Srv.Store.User().GetProfilesNotInTeam(teamId, offset, limit, viewRestrictions)
+func (a *App) GetUsersNotInTeam(teamId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+	result := <-a.Srv.Store.User().GetProfilesNotInTeam(teamId, groupConstrained, offset, limit, viewRestrictions)
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -489,8 +489,8 @@ func (a *App) GetUsersInTeamPage(options *model.UserGetOptions, asAdmin bool) ([
 	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
-func (a *App) GetUsersNotInTeamPage(teamId string, page int, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
-	users, err := a.GetUsersNotInTeam(teamId, page*perPage, perPage, viewRestrictions)
+func (a *App) GetUsersNotInTeamPage(teamId string, groupConstrained bool, page int, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+	users, err := a.GetUsersNotInTeam(teamId, groupConstrained, page*perPage, perPage, viewRestrictions)
 	if err != nil {
 		return nil, err
 	}
@@ -554,16 +554,16 @@ func (a *App) GetUsersInChannelPageByStatus(channelId string, page int, perPage 
 	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
-func (a *App) GetUsersNotInChannel(teamId string, channelId string, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
-	result := <-a.Srv.Store.User().GetProfilesNotInChannel(teamId, channelId, offset, limit, viewRestrictions)
+func (a *App) GetUsersNotInChannel(teamId string, channelId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+	result := <-a.Srv.Store.User().GetProfilesNotInChannel(teamId, channelId, groupConstrained, offset, limit, viewRestrictions)
 	if result.Err != nil {
 		return nil, result.Err
 	}
 	return result.Data.([]*model.User), nil
 }
 
-func (a *App) GetUsersNotInChannelMap(teamId string, channelId string, offset int, limit int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) (map[string]*model.User, *model.AppError) {
-	users, err := a.GetUsersNotInChannel(teamId, channelId, offset, limit, viewRestrictions)
+func (a *App) GetUsersNotInChannelMap(teamId string, channelId string, groupConstrained bool, offset int, limit int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) (map[string]*model.User, *model.AppError) {
+	users, err := a.GetUsersNotInChannel(teamId, channelId, groupConstrained, offset, limit, viewRestrictions)
 	if err != nil {
 		return nil, err
 	}
@@ -578,8 +578,8 @@ func (a *App) GetUsersNotInChannelMap(teamId string, channelId string, offset in
 	return userMap, nil
 }
 
-func (a *App) GetUsersNotInChannelPage(teamId string, channelId string, page int, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
-	users, err := a.GetUsersNotInChannel(teamId, channelId, page*perPage, perPage, viewRestrictions)
+func (a *App) GetUsersNotInChannelPage(teamId string, channelId string, groupConstrained bool, page int, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+	users, err := a.GetUsersNotInChannel(teamId, channelId, groupConstrained, page*perPage, perPage, viewRestrictions)
 	if err != nil {
 		return nil, err
 	}
@@ -1435,8 +1435,8 @@ func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 		return err
 	}
 
-	if result := <-a.Srv.Store.Preference().PermanentDeleteByUser(user.Id); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.Preference().PermanentDeleteByUser(user.Id); err != nil {
+		return err
 	}
 
 	if result := <-a.Srv.Store.Channel().PermanentDeleteMembersByUser(user.Id); result.Err != nil {
@@ -1447,12 +1447,11 @@ func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 		return result.Err
 	}
 
-	result := <-a.Srv.Store.FileInfo().GetForUser(user.Id)
-	if result.Err != nil {
+	infos, err := a.Srv.Store.FileInfo().GetForUser(user.Id)
+	if err != nil {
 		mlog.Warn("Error getting file list for user from FileInfoStore")
 	}
 
-	infos := result.Data.([]*model.FileInfo)
 	for _, info := range infos {
 		res, err := a.FileExists(info.Path)
 		if err != nil {
@@ -1480,8 +1479,8 @@ func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 		}
 	}
 
-	if result := <-a.Srv.Store.FileInfo().PermanentDeleteByUser(user.Id); result.Err != nil {
-		return result.Err
+	if _, err := a.Srv.Store.FileInfo().PermanentDeleteByUser(user.Id); err != nil {
+		return err
 	}
 
 	if result := <-a.Srv.Store.User().PermanentDelete(user.Id); result.Err != nil {

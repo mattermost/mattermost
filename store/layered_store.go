@@ -260,46 +260,32 @@ type LayeredRoleStore struct {
 	*LayeredStore
 }
 
-func (s *LayeredRoleStore) Save(role *model.Role) StoreChannel {
-	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.RoleSave(s.TmpContext, role)
-	})
+func (s *LayeredRoleStore) Save(role *model.Role) (*model.Role, *model.AppError) {
+	return s.LayerChainHead.RoleSave(s.TmpContext, role)
 }
 
-func (s *LayeredRoleStore) Get(roleId string) StoreChannel {
-	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.RoleGet(s.TmpContext, roleId)
-	})
+func (s *LayeredRoleStore) Get(roleId string) (*model.Role, *model.AppError) {
+	return s.LayerChainHead.RoleGet(s.TmpContext, roleId)
 }
 
-func (s *LayeredRoleStore) GetAll() StoreChannel {
-	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.RoleGetAll(s.TmpContext)
-	})
+func (s *LayeredRoleStore) GetAll() ([]*model.Role, *model.AppError) {
+	return s.LayerChainHead.RoleGetAll(s.TmpContext)
 }
 
-func (s *LayeredRoleStore) GetByName(name string) StoreChannel {
-	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.RoleGetByName(s.TmpContext, name)
-	})
+func (s *LayeredRoleStore) GetByName(name string) (*model.Role, *model.AppError) {
+	return s.LayerChainHead.RoleGetByName(s.TmpContext, name)
 }
 
-func (s *LayeredRoleStore) GetByNames(names []string) StoreChannel {
-	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.RoleGetByNames(s.TmpContext, names)
-	})
+func (s *LayeredRoleStore) GetByNames(names []string) ([]*model.Role, *model.AppError) {
+	return s.LayerChainHead.RoleGetByNames(s.TmpContext, names)
 }
 
-func (s *LayeredRoleStore) Delete(roldId string) StoreChannel {
-	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.RoleDelete(s.TmpContext, roldId)
-	})
+func (s *LayeredRoleStore) Delete(roldId string) (*model.Role, *model.AppError) {
+	return s.LayerChainHead.RoleDelete(s.TmpContext, roldId)
 }
 
-func (s *LayeredRoleStore) PermanentDeleteAll() StoreChannel {
-	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.RolePermanentDeleteAll(s.TmpContext)
-	})
+func (s *LayeredRoleStore) PermanentDeleteAll() *model.AppError {
+	return s.LayerChainHead.RolePermanentDeleteAll(s.TmpContext)
 }
 
 type LayeredSchemeStore struct {
@@ -466,9 +452,15 @@ func (s *LayeredGroupStore) ChannelMembersToRemove() StoreChannel {
 	})
 }
 
-func (s *LayeredGroupStore) GetGroupsByChannel(channelId string, page, perPage int) StoreChannel {
+func (s *LayeredGroupStore) GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) StoreChannel {
 	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
-		return supplier.GetGroupsByChannel(s.TmpContext, channelId, page, perPage)
+		return supplier.GetGroupsByChannel(s.TmpContext, channelId, opts)
+	})
+}
+
+func (s *LayeredGroupStore) CountGroupsByChannel(channelId string, opts model.GroupSearchOpts) StoreChannel {
+	return s.RunQuery(func(supplier LayeredStoreSupplier) *LayeredStoreSupplierResult {
+		return supplier.CountGroupsByChannel(s.TmpContext, channelId, opts)
 	})
 }
 
