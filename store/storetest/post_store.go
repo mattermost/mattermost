@@ -550,7 +550,6 @@ func testPostStoreGetWithChildren(t *testing.T, ss store.Store) {
 	o3.RootId = o1.Id
 	o3 = (<-ss.Post().Save(o3)).Data.(*model.Post)
 
-	var err error
 	pl, err := ss.Post().Get(o1.Id)
 	if err != nil {
 		t.Fatal(err)
@@ -560,8 +559,8 @@ func testPostStoreGetWithChildren(t *testing.T, ss store.Store) {
 		t.Fatal("invalid returned post")
 	}
 
-	if err := ss.Post().Delete(o3.Id, model.GetMillis(), ""); err != nil {
-		t.Fatal(err)
+	if dErr := ss.Post().Delete(o3.Id, model.GetMillis(), ""); dErr != nil {
+		t.Fatal(dErr)
 	}
 
 	pl, err = ss.Post().Get(o1.Id)
@@ -573,8 +572,8 @@ func testPostStoreGetWithChildren(t *testing.T, ss store.Store) {
 		t.Fatal("invalid returned post")
 	}
 
-	if err := ss.Post().Delete(o2.Id, model.GetMillis(), ""); err != nil {
-		t.Fatal(err)
+	if dErr := ss.Post().Delete(o2.Id, model.GetMillis(), ""); dErr != nil {
+		t.Fatal(dErr)
 	}
 
 	pl, err = ss.Post().Get(o1.Id)
