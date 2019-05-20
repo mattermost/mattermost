@@ -20,7 +20,7 @@ build-client:
 
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) build
 
-package:
+package: config-reset
 	@ echo Packaging mattermost
 
 	@# Remove any old files

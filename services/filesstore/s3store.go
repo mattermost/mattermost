@@ -287,7 +287,7 @@ func CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError {
 
 	// if S3 endpoint is not set call the set defaults to set that
 	if settings.AmazonS3Endpoint == nil || len(*settings.AmazonS3Endpoint) == 0 {
-		settings.SetDefaults()
+		settings.SetDefaults(true)
 	}
 
 	return nil

@@ -184,6 +184,16 @@ const (
 
 	IMAGE_PROXY_TYPE_LOCAL      = "local"
 	IMAGE_PROXY_TYPE_ATMOS_CAMO = "atmos/camo"
+
+	GOOGLE_SETTINGS_DEFAULT_SCOPE             = "profile email"
+	GOOGLE_SETTINGS_DEFAULT_AUTH_ENDPOINT     = "https://accounts.google.com/o/oauth2/v2/auth"
+	GOOGLE_SETTINGS_DEFAULT_TOKEN_ENDPOINT    = "https://www.googleapis.com/oauth2/v4/token"
+	GOOGLE_SETTINGS_DEFAULT_USER_API_ENDPOINT = "https://people.googleapis.com/v1/people/me?personFields=names,emailAddresses,nicknames,metadata"
+
+	OFFICE365_SETTINGS_DEFAULT_SCOPE             = "User.Read"
+	OFFICE365_SETTINGS_DEFAULT_AUTH_ENDPOINT     = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
+	OFFICE365_SETTINGS_DEFAULT_TOKEN_ENDPOINT    = "https://login.microsoftonline.com/common/oauth2/v2.0/token"
+	OFFICE365_SETTINGS_DEFAULT_USER_API_ENDPOINT = "https://graph.microsoft.com/v1.0/me"
 )
 
 var ServerTLSSupportedCiphers = map[string]uint16{
@@ -296,7 +306,7 @@ type ServiceSettings struct {
 	CreateBotAccounts                                 *bool
 }
 
-func (s *ServiceSettings) SetDefaults() {
+func (s *ServiceSettings) SetDefaults(isNew bool) {
 	if s.EnableEmailInvitations == nil {
 		// If the site URL is also not present then assume this is a clean install
 		if s.SiteURL == nil {
@@ -622,7 +632,7 @@ func (s *ServiceSettings) SetDefaults() {
 	}
 
 	if s.DisableLegacyMFA == nil {
-		s.DisableLegacyMFA = NewBool(false)
+		s.DisableLegacyMFA = NewBool(isNew)
 	}
 
 	if s.ExperimentalLdapGroupSync == nil {
@@ -777,7 +787,7 @@ type SSOSettings struct {
 	UserApiEndpoint *string
 }
 
-func (s *SSOSettings) setDefaults() {
+func (s *SSOSettings) setDefaults(isNew bool, scope, authEndpoint, tokenEndpoint, userApiEndpoint string) {
 	if s.Enable == nil {
 		s.Enable = NewBool(false)
 	}
@@ -791,19 +801,19 @@ func (s *SSOSettings) setDefaults() {
 	}
 
 	if s.Scope == nil {
-		s.Scope = NewString("")
+		s.Scope = NewString(scope)
 	}
 
 	if s.AuthEndpoint == nil {
-		s.AuthEndpoint = NewString("")
+		s.AuthEndpoint = NewString(authEndpoint)
 	}
 
 	if s.TokenEndpoint == nil {
-		s.TokenEndpoint = NewString("")
+		s.TokenEndpoint = NewString(tokenEndpoint)
 	}
 
 	if s.UserApiEndpoint == nil {
-		s.UserApiEndpoint = NewString("")
+		s.UserApiEndpoint = NewString(userApiEndpoint)
 	}
 }
 
@@ -820,7 +830,7 @@ type SqlSettings struct {
 	QueryTimeout                *int     `restricted:"true"`
 }
 
-func (s *SqlSettings) SetDefaults() {
+func (s *SqlSettings) SetDefaults(isNew bool) {
 	if s.DriverName == nil {
 		s.DriverName = NewString(DATABASE_DRIVER_MYSQL)
 	}
@@ -838,7 +848,10 @@ func (s *SqlSettings) SetDefaults() {
 	}
 
 	if s.AtRestEncryptKey == nil || len(*s.AtRestEncryptKey) == 0 {
-		s.AtRestEncryptKey = NewString(NewRandomString(32))
+		s.AtRestEncryptKey = NewString("")
+		if !isNew {
+			s.AtRestEncryptKey = NewString(NewRandomString(32))
+		}
 	}
 
 	if s.MaxIdleConns == nil {
@@ -1003,7 +1016,7 @@ type FileSettings struct {
 	AmazonS3Trace           *bool   `restricted:"true"`
 }
 
-func (s *FileSettings) SetDefaults() {
+func (s *FileSettings) SetDefaults(isNew bool) {
 	if s.EnableFileAttachments == nil {
 		s.EnableFileAttachments = NewBool(true)
 	}
@@ -1033,7 +1046,10 @@ func (s *FileSettings) SetDefaults() {
 	}
 
 	if s.PublicLinkSalt == nil || len(*s.PublicLinkSalt) == 0 {
-		s.PublicLinkSalt = NewString(NewRandomString(32))
+		s.PublicLinkSalt = NewString("")
+		if !isNew {
+			s.PublicLinkSalt = NewString(NewRandomString(32))
+		}
 	}
 
 	if s.InitialFont == nil {
@@ -2348,6 +2364,11 @@ func ConfigFromJson(data io.Reader) *Config {
 	return o
 }
 
+// isNew guesses if the current config file is a new one or we are making an upgrade based on SiteURL being different from default or nil
+func (o *Config) isNew() bool {
+	return o.ServiceSettings.SiteURL == nil || *(o.ServiceSettings.SiteURL) == SERVICE_SETTINGS_DEFAULT_SITE_URL
+}
+
 func (o *Config) SetDefaults() {
 	o.LdapSettings.SetDefaults()
 	o.SamlSettings.SetDefaults()
@@ -2360,14 +2381,15 @@ func (o *Config) SetDefaults() {
 		}
 	}
 
-	o.SqlSettings.SetDefaults()
-	o.FileSettings.SetDefaults()
+	isNew := o.isNew()
+	o.SqlSettings.SetDefaults(isNew)
+	o.FileSettings.SetDefaults(isNew)
 	o.EmailSettings.SetDefaults()
 	o.PrivacySettings.setDefaults()
-	o.Office365Settings.setDefaults()
-	o.GitLabSettings.setDefaults()
-	o.GoogleSettings.setDefaults()
-	o.ServiceSettings.SetDefaults()
+	o.Office365Settings.setDefaults(isNew, OFFICE365_SETTINGS_DEFAULT_SCOPE, OFFICE365_SETTINGS_DEFAULT_AUTH_ENDPOINT, OFFICE365_SETTINGS_DEFAULT_TOKEN_ENDPOINT, OFFICE365_SETTINGS_DEFAULT_USER_API_ENDPOINT)
+	o.GitLabSettings.setDefaults(isNew, "", "", "", "")
+	o.GoogleSettings.setDefaults(isNew, GOOGLE_SETTINGS_DEFAULT_SCOPE, GOOGLE_SETTINGS_DEFAULT_AUTH_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_TOKEN_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_USER_API_ENDPOINT)
+	o.ServiceSettings.SetDefaults(isNew)
 	o.PasswordSettings.SetDefaults()
 	o.TeamSettings.SetDefaults()
 	o.MetricsSettings.SetDefaults()
