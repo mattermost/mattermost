@@ -86,7 +86,7 @@ func ParamsFromRequest(r *http.Request) *Params {
 		params.EmojiName = val
 	}
 
-	if val, ok := props["category_name"]; ok {
+	if val, ok := props["category"]; ok {
 		params.Category = val
 	}
 

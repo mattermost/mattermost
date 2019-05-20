@@ -43,7 +43,7 @@ type Params struct {
 	ChannelName            string
 	PreferenceName         string `param:"preference_name"`
 	EmojiName              string `param:"emoji_name"`
-	Category               string `param:"category_name"`
+	Category               string `param:"category"`
 	Service                string `param:"service"`
 	JobId                  string `param:"job_id"`
 	JobType                string `param:"job_type"`
