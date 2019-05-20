@@ -9,36 +9,6 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
-func TestIsPasswordValid(t *testing.T) {
-	for name, tc := range map[string]struct {
-		Password      string
-		ExpectedError string
-	}{
-		"Short": {
-			Password: strings.Repeat("x", model.PASSWORD_MINIMUM_LENGTH),
-		},
-		"Long": {
-			Password: strings.Repeat("x", model.PASSWORD_MAXIMUM_LENGTH),
-		},
-		"TooShort": {
-			Password:      strings.Repeat("x", model.PASSWORD_MINIMUM_LENGTH-1),
-			ExpectedError: "model.user.is_valid.pwd.app_error",
-		},
-		"TooLong": {
-			Password:      strings.Repeat("x", model.PASSWORD_MAXIMUM_LENGTH+1),
-			ExpectedError: "model.user.is_valid.pwd.app_error",
-		},
-	} {
-		t.Run(name, func(t *testing.T) {
-			if err := IsPasswordValid(tc.Password); tc.ExpectedError == "" {
-				assert.Nil(t, err)
-			} else {
-				assert.Equal(t, tc.ExpectedError, err.Id)
-			}
-		})
-	}
-}
-
 func TestIsPasswordValidWithSettings(t *testing.T) {
 	for name, tc := range map[string]struct {
 		Password      string
