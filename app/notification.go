@@ -310,11 +310,9 @@ func (a *App) getMentionedUsersFromDirectChannel(mentionedUserIds map[string]boo
 
 // Get a active and mentioned users from all channels
 func (a *App) getMentionedUsersFromOtherChannels(post *model.Post, m *ExplicitMentions, profileMap map[string]*model.User, mentionedUserIds map[string]bool, team *model.Team,
-	parentPostList *model.PostList, channel *model.Channel, sender *model.User, channelMemberNotifyPropsMap map[string]model.StringMap, allActivityPushUserIds []string) ([]string, map[string]bool, map[string]model.StringMap, error) {
+	parentPostList *model.PostList, channel *model.Channel, sender *model.User, channelMemberNotifyPropsMap map[string]model.StringMap, allActivityPushUserIds []string, threadMentionedUserIds map[string]string) ([]string, map[string]bool, map[string]model.StringMap, map[string]string, error) {
 	// Add an implicit mention when a user is added to a channel
 	// even if the user has set 'username mentions' to false in account settings.
-	var threadMentionedUserIds map[string]string
-
 	if post.Type == model.POST_ADD_TO_CHANNEL {
 		val := post.Props[model.POST_PROPS_ADDED_USER_ID]
 		if val != nil {
@@ -356,7 +354,7 @@ func (a *App) getMentionedUsersFromOtherChannels(post *model.Post, m *ExplicitMe
 			if channel.IsGroupConstrained() {
 				nonMemberIDs, err := a.FilterNonGroupChannelMembers(channelMentions.IDs(), channel)
 				if err != nil {
-					return nil, nil, nil, err
+					return nil, nil, nil, nil, err
 				}
 
 				outOfChannelMentions = channelMentions.FilterWithoutID(nonMemberIDs)
@@ -382,7 +380,7 @@ func (a *App) getMentionedUsersFromOtherChannels(post *model.Post, m *ExplicitMe
 			allActivityPushUserIds = append(allActivityPushUserIds, profile.Id)
 		}
 	}
-	return allActivityPushUserIds, mentionedUserIds, channelMemberNotifyPropsMap, nil
+	return allActivityPushUserIds, mentionedUserIds, channelMemberNotifyPropsMap, threadMentionedUserIds, nil
 }
 
 // Send Push Notifications based on mentioned or active users
@@ -513,7 +511,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		mentionedUserIds, hereNotification, channelNotification, allNotification = m.MentionedUserIds, m.HereMentioned, m.ChannelMentioned, m.AllMentioned
 
 		var err error
-		allActivityPushUserIds, mentionedUserIds, channelMemberNotifyPropsMap, err = a.getMentionedUsersFromOtherChannels(post, m, profileMap, mentionedUserIds, team, parentPostList, channel, sender, channelMemberNotifyPropsMap, allActivityPushUserIds)
+		allActivityPushUserIds, mentionedUserIds, channelMemberNotifyPropsMap, threadMentionedUserIds, err = a.getMentionedUsersFromOtherChannels(post, m, profileMap, mentionedUserIds, team, parentPostList, channel, sender, channelMemberNotifyPropsMap, allActivityPushUserIds, threadMentionedUserIds)
 		if err != nil {
 			return nil, err
 		}

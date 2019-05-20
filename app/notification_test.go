@@ -83,6 +83,22 @@ func TestSendNotifications(t *testing.T) {
 	mentions, err2 = th.App.SendNotifications(post1, th.BasicTeam, th.BasicChannel, th.BasicUser, nil)
 	assert.Nil(t, err2)
 	assert.Len(t, mentions, 0)
+
+	post4, err := th.App.CreatePostMissingChannel(&model.Post{
+		UserId:    th.BasicUser2.Id,
+		ChannelId: dm.Id,
+		RootId:    post3.Id,
+		Message:   "reply message",
+	}, true)
+	postList := model.NewPostList()
+	postList.AddOrder(post3.Id)
+	postList.AddOrder(post4.Id)
+	postList.AddPost(post3)
+	postList.AddPost(post4)
+	mentions, err2 = th.App.SendNotifications(post4, th.BasicTeam, dm, th.BasicUser2, postList)
+	assert.Nil(t, err2)
+	assert.Len(t, mentions, 1)
+
 }
 
 func TestGetExplicitMentions(t *testing.T) {
