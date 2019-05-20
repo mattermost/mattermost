@@ -42,9 +42,7 @@ func ParamsFromRequest(r *http.Request) *Params {
 		params.FileId = val
 	}
 
-	if val, ok := props["filename"]; ok {
-		params.Filename = val
-	}
+	params.Filename = query.Get("filename")
 
 	if val, ok := props["plugin_id"]; ok {
 		params.PluginId = val

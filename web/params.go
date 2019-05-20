@@ -30,7 +30,7 @@ type Params struct {
 	ChannelId              string
 	PostId                 string `param:"post_id"`
 	FileId                 string `param:"file_id"`
-	Filename               string `param:"filename"`
+	Filename               string `param:"filename,query"`
 	PluginId               string `param:"plugin_id"`
 	CommandId              string `param:"command_id"`
 	HookId                 string `param:"hook_id"`
