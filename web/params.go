@@ -30,7 +30,7 @@ const (
 // add "query" after the field name name. For example:
 //	Filename string `param:"filename,query"`
 //
-// To set fields using use custom logic — like having default values or setting types other than bool and string —
+// To set fields using custom logic — like having default values or setting types other than bool and string —
 // omit the tag and set the field value in (*Params).AddCustomParamsFromRequest.
 //
 type Params struct {
