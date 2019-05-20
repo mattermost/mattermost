@@ -22,6 +22,17 @@ const (
 	LOGS_PER_PAGE_MAXIMUM = 10000
 )
 
+// Params holds HTTP request props and query parameters.
+//
+// Bool and string fields support the `param` tag which works with the accompanying generator to create the
+// code to set the field values from HTTP requests. The first tag value is the parameter name in the HTTP request
+// (ex. "user_id"). By default the param will be retrieved from request props. To retrieve the param from the query,
+// add "query" after the field name name. For example:
+//	Filename string `param:"filename,query"`
+//
+// To set fields using use custom logic — like having default values or setting types other than bool and string —
+// omit the tag and set the field value in (*Params).AddCustomParamsFromRequest.
+//
 type Params struct {
 	UserId                 string `param:"user_id"`
 	TeamId                 string `param:"team_id"`
