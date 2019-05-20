@@ -68,6 +68,10 @@
     "translation": "No se pudo guardar el archivo con el certificado."
   },
   {
+    "id": "api.admin.delete_brand_image.storage.not_found",
+    "translation": "No se puede eliminar la imagen de la marca, no se encuentra."
+  },
+  {
     "id": "api.admin.file_read_error",
     "translation": "Error leyendo el archivo de registro."
   },
@@ -128,8 +132,20 @@
     "translation": "No se pudo cargar el archivo. El archivo es muy grande."
   },
   {
+    "id": "api.bot.create_disabled",
+    "translation": "Creación de Bots ha sido deshabilitado."
+  },
+  {
     "id": "api.channel.add_member.added",
     "translation": "%v agregado al canal por %v"
+  },
+  {
+    "id": "api.channel.add_members.error",
+    "translation": "Error al agregar miembro(s) del canal."
+  },
+  {
+    "id": "api.channel.add_members.user_denied",
+    "translation": "Negada la membresía al canal a los siguientes usuarios, a causa de restricciones de grupo: {{ .UserIDs }}"
   },
   {
     "id": "api.channel.add_user.to.channel.failed.app_error",
@@ -284,8 +300,20 @@
     "translation": "No se puede eliminar el usuario del canal."
   },
   {
+    "id": "api.channel.remove_member.group_constrained.app_error",
+    "translation": "No se puede quitar un usuario de un canal restringido a grupos."
+  },
+  {
     "id": "api.channel.remove_member.removed",
     "translation": "%v quitado del canal."
+  },
+  {
+    "id": "api.channel.remove_members.denied",
+    "translation": "Negada la eliminación de membresía a los siguientes usuarios, a causa de restricciones de grupo: {{ .UserIDs }}"
+  },
+  {
+    "id": "api.channel.remove_user_from_channel.app_error",
+    "translation": "No se puede eliminar al usuario de este tipo de canal"
   },
   {
     "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
@@ -304,6 +332,14 @@
     "translation": "Intento de realizar una actualización inválida al canal predeterminado {{.Channel}}"
   },
   {
+    "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
+    "translation": "Invalid channel member update: You can't add or remove the guest role manually"
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
+    "translation": "Invalid channel member update: A user must be a guest or a user but not both."
+  },
+  {
     "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
     "translation": "El rol suministrado es administrado por un Esquema y por lo tanto no puede ser aplicado directamente a un Miembro de Canal"
   },
@@ -314,6 +350,10 @@
   {
     "id": "api.channel.update_channel_scheme.scheme_scope.error",
     "translation": "No se puede establecer el esquema para el canal ya que el esquema suministrado no es un esquema de canal."
+  },
+  {
+    "id": "api.channel.update_team_member_roles.changing_guest_role.app_error",
+    "translation": "Invalid team member update: You can't add or remove the guest role manually"
   },
   {
     "id": "api.channel.update_team_member_roles.scheme_role.app_error",
@@ -675,6 +715,10 @@
     "translation": "Ocurrió un error al unirse al canal."
   },
   {
+    "id": "api.command_invite.group_constrained_user_denied",
+    "translation": "User cannot be added to this channel because it is constrained to group members only."
+  },
+  {
     "id": "api.command_invite.hint",
     "translation": "@[usuario] ~[canal]"
   },
@@ -879,6 +923,10 @@
     "translation": "No se puede eliminar a alguien de un canal de mensajes directos."
   },
   {
+    "id": "api.command_remove.group_constrained_user_denied",
+    "translation": "User cannot be removed from the channel by you because they are a member of the groups linked to this channel. To remove them from this channel, they must be removed from the linked groups."
+  },
+  {
     "id": "api.command_remove.hint",
     "translation": "@[nombre de usuario]"
   },
@@ -957,6 +1005,10 @@
   {
     "id": "api.config.client.old_format.app_error",
     "translation": "Nuevo formato para la configuración del cliente no es compatible todavía. Por favor utiliza format=old en la cadena de consulta."
+  },
+  {
+    "id": "api.config.update_config.restricted_merge.app_error",
+    "translation": "Falla al combinar la configuración suministrada."
   },
   {
     "id": "api.context.404.app_error",
@@ -1213,6 +1265,10 @@
     "translation": "No se pueden cargar los archivos. Error al leer los datos."
   },
   {
+    "id": "api.file.upload_file.rejected_by_plugin.app_error",
+    "translation": "No se puede cargar el archivo {{.Filename}}. Rechazado por el complemento: {{.Reason}}"
+  },
+  {
     "id": "api.file.upload_file.storage.app_error",
     "translation": "No se puede cargar el archivo. El almacenamiento de imágenes no está configurado."
   },
@@ -1417,12 +1473,20 @@
     "translation": "Falta el archivo en la solicitud multipart/form"
   },
   {
+    "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
+    "translation": "@{{.Usernames}} and @{{.LastUsername}} did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups."
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_groups_mentions.message.one",
+    "translation": "@{{.Username}} did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups."
+  },
+  {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "@{{.Usernames}} y {{.LastUsername}} fueron mencionados, pero no recibieron notificaciones porque no pertenecen a este canal."
+    "translation": "@{{.Usernames}} and @{{.LastUsername}} did not get notified by this mention because they are not in the channel."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "@{{.Username}} fue mencionado, pero no recibió una notificación porque no pertenece a este canal."
+    "translation": "@{{.Username}} did not get notified by this mention because they are not in the channel."
   },
   {
     "id": "api.post.create_post.can_not_post_to_deleted.error",
@@ -1571,6 +1635,14 @@
     "translation": "No se puede establecer las preferencias del usuario."
   },
   {
+    "id": "api.push_notification.disabled.app_error",
+    "translation": "Push Notifications are disabled on this server."
+  },
+  {
+    "id": "api.push_notifications_ack.forward.app_error",
+    "translation": "An error occurred sending the receipt delivery to the push notification service"
+  },
+  {
     "id": "api.reaction.delete.archived_channel.app_error",
     "translation": "No se puede eliminar una reacción de un canal archivado."
   },
@@ -1592,7 +1664,7 @@
   },
   {
     "id": "api.restricted_system_admin",
-    "translation": "This action is forbidden to a restricted system admin."
+    "translation": "Está acción está prohibida y a sido restringida a administradores del sistema."
   },
   {
     "id": "api.roles.patch_roles.license.error",
@@ -1723,6 +1795,14 @@
     "translation": "Usuario no encontrado"
   },
   {
+    "id": "api.team.add_members.error",
+    "translation": "Error al agregar miembro(s) del canal."
+  },
+  {
+    "id": "api.team.add_members.user_denied",
+    "translation": "Negada la membresía al canal a los siguientes usuarios, a causa de restricciones de grupo: {{ .UserIDs }}"
+  },
+  {
     "id": "api.team.add_user_to_team.added",
     "translation": "%v agregado al equipo por %v"
   },
@@ -1771,6 +1851,10 @@
     "translation": "Solicitud con formato incorrecto: campo con el tamaño del archivo no está presente."
   },
   {
+    "id": "api.team.invalidate_all_email_invites.app_error",
+    "translation": "Error al invalidar las invitaciones por correo electrónico."
+  },
+  {
     "id": "api.team.invite_members.disabled.app_error",
     "translation": "Invitaciones por correo electrónico inhabilitadas."
   },
@@ -1813,6 +1897,10 @@
   {
     "id": "api.team.move_channel.success",
     "translation": "Este canal ha sido movido a este equipo desde %v."
+  },
+  {
+    "id": "api.team.remove_member.group_constrained.app_error",
+    "translation": "No se puede quitar un usuario de un canal restringido a grupos."
   },
   {
     "id": "api.team.remove_team_icon.get_team.app_error",
@@ -1881,6 +1969,10 @@
   {
     "id": "api.team.update_restricted_domains.mismatch.app_error",
     "translation": "La restricción del equipo a {{.Domain}} no está permitido por la configuración del sistema. Por favor contacta a un administrador del sistema."
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest_and_user.app_error",
+    "translation": "Invalid team member update: A user must be a guest or a user but not both."
   },
   {
     "id": "api.team.update_team_scheme.license.error",
@@ -2159,10 +2251,6 @@
     "translation": "Proveedor de servicios de OAuth no es compatible"
   },
   {
-    "id": "api.user.autocomplete_users.invalid_team_id",
-    "translation": "Id del Equipo no válido"
-  },
-  {
     "id": "api.user.check_user_login_attempts.too_many.app_error",
     "translation": "Tu cuenta ha sido bloqueada debido a demasiados intentos fallidos. Por favor, restablece tu contraseña."
   },
@@ -2203,6 +2291,10 @@
     "translation": "{{.Servicio}} SSO a través de OAuth 2.0 no está disponible en este servidor"
   },
   {
+    "id": "api.user.create_password_token.error",
+    "translation": "Unable to create password recovery token"
+  },
+  {
     "id": "api.user.create_profile_image.default_font.app_error",
     "translation": "No se pudo crear la letra para la imagen del pérfil perdeterminada"
   },
@@ -2221,14 +2313,6 @@
   {
     "id": "api.user.create_user.disabled.app_error",
     "translation": "Creación de usuario está deshabilitada."
-  },
-  {
-    "id": "api.user.create_user.missing_invite_id.app_error",
-    "translation": "Falta el Id de invitación."
-  },
-  {
-    "id": "api.user.create_user.missing_token.app_error",
-    "translation": "Falta Token."
   },
   {
     "id": "api.user.create_user.no_open_server",
@@ -2257,10 +2341,6 @@
   {
     "id": "api.user.get_authorization_code.unsupported.app_error",
     "translation": "Proveedor de servicios de OAuth no es compatible"
-  },
-  {
-    "id": "api.user.get_profile_image.not_found.app_error",
-    "translation": "No se pudo obtener la imagen del perfil, usuario no encontrado."
   },
   {
     "id": "api.user.get_user_by_email.permissions.app_error",
@@ -2331,10 +2411,6 @@
     "translation": "La transferencia de autenticación no está configurado o disponible en este servidor."
   },
   {
-    "id": "api.user.register_terms_of_service_action.bad_value.app_error",
-    "translation": "Valor aceptado incorrecto"
-  },
-  {
     "id": "api.user.reset_password.broken_token.app_error",
     "translation": "El enlace para restablecer la contraseña parece ser inválido."
   },
@@ -2355,20 +2431,8 @@
     "translation": "No se puede restablecer la contraseña para cuentas SSO"
   },
   {
-    "id": "api.user.saml.app_error",
-    "translation": "No se ha podido procesar la petición SAML de inicio de sesión."
-  },
-  {
-    "id": "api.user.saml.extension_id.app_error",
-    "translation": "Id de extensión no válida"
-  },
-  {
-    "id": "api.user.saml.extension_unsupported",
-    "translation": "Las extensiones no están soportadas."
-  },
-  {
-    "id": "api.user.saml.invalid_extension",
-    "translation": "La extensión con extension_id={{.ExtensionId}} no está soportada."
+    "id": "api.user.reset_password.token_parse.error",
+    "translation": "Unable to parse the reset password token"
   },
   {
     "id": "api.user.saml.not_available.app_error",
@@ -2603,6 +2667,10 @@
     "translation": "No se encontró el endpoint del API para el agrupamiento de servidores."
   },
   {
+    "id": "app.export.export_custom_emoji.copy_emoji_images.error",
+    "translation": "Unable to copy custom emoji images"
+  },
+  {
     "id": "app.export.export_write_line.io_writer.error",
     "translation": "Se ha producido un error de escritura de los datos de exportación."
   },
@@ -2753,6 +2821,10 @@
   {
     "id": "app.import.import_user_channels.save_preferences.error",
     "translation": "Error al importar las membresías del canal. Error al guardar las preferencias."
+  },
+  {
+    "id": "app.import.import_user_teams.save_preferences.error",
+    "translation": "Unable to save the team theme preferences"
   },
   {
     "id": "app.import.process_import_data_file_version_line.invalid_version.error",
@@ -3047,6 +3119,22 @@
     "translation": "Invalid roles for User's Channel Membership."
   },
   {
+    "id": "app.import.validate_user_import_data.advanced_props_email_interval.error",
+    "translation": "Invalid email batching interval setting for User"
+  },
+  {
+    "id": "app.import.validate_user_import_data.advanced_props_feature_markdown_preview.error",
+    "translation": "Invalid markdown preview setting for User"
+  },
+  {
+    "id": "app.import.validate_user_import_data.advanced_props_formatting.error",
+    "translation": "Invalid post formatting setting for User"
+  },
+  {
+    "id": "app.import.validate_user_import_data.advanced_props_show_unread_section.error",
+    "translation": "Invalid show unread section setting for User"
+  },
+  {
     "id": "app.import.validate_user_import_data.auth_data_and_password.error",
     "translation": "La Contraseña y AuthData del usuario se excluyen mutuamente."
   },
@@ -3129,6 +3217,10 @@
   {
     "id": "app.import.validate_user_teams_import_data.invalid_roles.error",
     "translation": "Invalid roles for User's Team Membership."
+  },
+  {
+    "id": "app.import.validate_user_teams_import_data.invalid_team_theme.error",
+    "translation": "Invalid team theme for the User"
   },
   {
     "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
@@ -3299,8 +3391,20 @@
     "translation": "Fallo al analizar la fecha de instalación"
   },
   {
+    "id": "app.team.invite_id.group_constrained.error",
+    "translation": "Unable to join a group-constrained team by invite."
+  },
+  {
+    "id": "app.team.invite_token.group_constrained.error",
+    "translation": "Unable to join a group-constrained team by token."
+  },
+  {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
     "translation": "Este equipo ha alcanzado el número máximo de cuentas permitidas. Contacta a un Administrador del Sistema para que asigne un límite mayor."
+  },
+  {
+    "id": "app.team.rename_team.name_occupied",
+    "translation": "Unable to rename the team, the name is already in use"
   },
   {
     "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
@@ -3443,8 +3547,16 @@
     "translation": "La configuración del cliente de Elasticsearch falló"
   },
   {
-    "id": "ent.elasticsearch.create_index_if_not_exists.index_create_failed",
-    "translation": "No se pudo crear el índice de Elasticsearch"
+    "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
+    "translation": "Failed to create Elasticsearch template for channels"
+  },
+  {
+    "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
+    "translation": "Failed to create Elasticsearch template for posts"
+  },
+  {
+    "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
+    "translation": "Failed to create Elasticsearch template for users"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
@@ -3455,7 +3567,15 @@
     "translation": "No se pudo obtener los índices de Elasticsearch"
   },
   {
+    "id": "ent.elasticsearch.delete_channel.error",
+    "translation": "Error al actualizar el canal"
+  },
+  {
     "id": "ent.elasticsearch.delete_post.error",
+    "translation": "Error al eliminar el mensaje"
+  },
+  {
+    "id": "ent.elasticsearch.delete_user.error",
     "translation": "Error al eliminar el mensaje"
   },
   {
@@ -3463,7 +3583,15 @@
     "translation": "La búsqueda con Elasticsearch está deshabilitada en este servidor"
   },
   {
+    "id": "ent.elasticsearch.index_channel.error",
+    "translation": "Error al actualizar el canal"
+  },
+  {
     "id": "ent.elasticsearch.index_post.error",
+    "translation": "Error al indexar el mensaje"
+  },
+  {
+    "id": "ent.elasticsearch.index_user.error",
     "translation": "Error al indexar el mensaje"
   },
   {
@@ -3479,12 +3607,28 @@
     "translation": "El trabajo de Elasticsearch falló al analizar la hora de inicio"
   },
   {
+    "id": "ent.elasticsearch.indexer.index_batch.nothing_left_to_index.error",
+    "translation": "Tratando de indexar un nuevo lote cuando todas las entidades se han completado."
+  },
+  {
     "id": "ent.elasticsearch.not_started.error",
     "translation": "Elasticsearch no se ha iniciado"
   },
   {
     "id": "ent.elasticsearch.purge_indexes.delete_failed",
     "translation": "No se pudo borrar el índice de ElasticSearch"
+  },
+  {
+    "id": "ent.elasticsearch.search_channels.disabled",
+    "translation": "La búsqueda con Elasticsearch está deshabilitada en este servidor"
+  },
+  {
+    "id": "ent.elasticsearch.search_channels.search_failed",
+    "translation": "La búsqueda no se pudo completar"
+  },
+  {
+    "id": "ent.elasticsearch.search_channels.unmarshall_channel_failed",
+    "translation": "No pudo decodificar los resultados de búsqueda"
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
@@ -3500,6 +3644,14 @@
   },
   {
     "id": "ent.elasticsearch.search_posts.unmarshall_post_failed",
+    "translation": "No pudo decodificar los resultados de búsqueda"
+  },
+  {
+    "id": "ent.elasticsearch.search_users.search_failed",
+    "translation": "La búsqueda no se pudo completar"
+  },
+  {
+    "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
     "translation": "No pudo decodificar los resultados de búsqueda"
   },
   {
@@ -3579,6 +3731,10 @@
     "translation": "Usuario no registrado en el servidor AD/LDAP"
   },
   {
+    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
+    "translation": "error deleting team or channel memberships"
+  },
+  {
     "id": "ent.ldap.syncronize.get_all.app_error",
     "translation": "No se pudo obtener a todos los usuarios utilizando AD/LDAP"
   },
@@ -3593,6 +3749,10 @@
   {
     "id": "ent.ldap.syncronize.search_failure.app_error",
     "translation": "Ocurrió un error al buscar los usuarios en AD/LDAP. Prueba si el servidor de Mattermost se puede conectar con el servidor AD/LDAP e inténtalo de nuevo."
+  },
+  {
+    "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
+    "translation": "Size Limit Exceeded. Try checking your [max page size](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
   },
   {
     "id": "ent.ldap.validate_filter.app_error",
@@ -3749,6 +3909,10 @@
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed",
     "translation": "No se pudo realizar la decodificación base64 para el trigger ID del diálogo interactivo."
+  },
+  {
+    "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
+    "translation": "No se pudo realizar el decodificación base64 de la firma del trigger ID para el diálogo interactivo."
   },
   {
     "id": "interactive_message.decode_trigger_id.expired",
@@ -3995,78 +4159,6 @@
     "translation": "Encontramos un error mientras conectabamos al servidor"
   },
   {
-    "id": "model.client.create_emoji.emoji.app_error",
-    "translation": "No se puede asociar datos del emoticon a la solicitud"
-  },
-  {
-    "id": "model.client.create_emoji.image.app_error",
-    "translation": "No se puede asociar la imagen a la solicitud"
-  },
-  {
-    "id": "model.client.create_emoji.writer.app_error",
-    "translation": "No se puede escribir la solicitud"
-  },
-  {
-    "id": "model.client.get_flagged_posts_in_channel.missing_parameter.app_error",
-    "translation": "Falta parametro channel"
-  },
-  {
-    "id": "model.client.get_flagged_posts_in_team.missing_parameter.app_error",
-    "translation": "Falta parametro team"
-  },
-  {
-    "id": "model.client.get_team_icon.app_error",
-    "translation": "No se puede leer el icono del equipo en el cuerpo de la respuesta."
-  },
-  {
-    "id": "model.client.read_file.app_error",
-    "translation": "Encontramos un error mientras se leía el archivo"
-  },
-  {
-    "id": "model.client.set_profile_user.no_file.app_error",
-    "translation": "No hay un archivo bajo 'image' en la solicitud"
-  },
-  {
-    "id": "model.client.set_profile_user.writer.app_error",
-    "translation": "No se puede escribir la solicitud"
-  },
-  {
-    "id": "model.client.set_team_icon.no_file.app_error",
-    "translation": "No hay un archivo bajo 'image' en la solicitud."
-  },
-  {
-    "id": "model.client.set_team_icon.writer.app_error",
-    "translation": "No se puede escribir la solicitud."
-  },
-  {
-    "id": "model.client.upload_post_attachment.channel_id.app_error",
-    "translation": "Error writing channel id to multipart form"
-  },
-  {
-    "id": "model.client.upload_post_attachment.file.app_error",
-    "translation": "Error writing file to multipart form"
-  },
-  {
-    "id": "model.client.upload_post_attachment.file_size.app_error",
-    "translation": "Error writing fileSize to multipart form"
-  },
-  {
-    "id": "model.client.upload_post_attachment.import_from.app_error",
-    "translation": "Error writing importFrom to multipart form"
-  },
-  {
-    "id": "model.client.upload_post_attachment.writer.app_error",
-    "translation": "Error closing multipart writer"
-  },
-  {
-    "id": "model.client.upload_saml_cert.app_error",
-    "translation": "Error al crear la solicitud multiparte del certificado SAML"
-  },
-  {
-    "id": "model.client.writer.app_error",
-    "translation": "Incapaz de construir una solicitud multipart"
-  },
-  {
     "id": "model.cluster.is_valid.create_at.app_error",
     "translation": "Se ha de definir una fecha de creación"
   },
@@ -4235,6 +4327,10 @@
     "translation": "El valor de Elastic Search ConnectionUrl debe ser proporcionado cuando está habilitado la indización de Elastic Search."
   },
   {
+    "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
+    "translation": "El valor de Elastic Search IndexingEnabled debe ser verdadero cuando el valor de Elastic Search SearchEnabled es verdadero."
+  },
+  {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
     "translation": "El valor de Elastic Search IndexingEnabled debe ser verdadero cuando el valor de Elastic Search SearchEnabled es verdadero."
   },
@@ -4261,10 +4357,6 @@
   {
     "id": "model.config.is_valid.email_notification_contents_type.app_error",
     "translation": "Configuración del tipo de contenido para la notificación por correo electrónico no válido. Debe ser uno de los siguientes valores 'full' o 'generic'."
-  },
-  {
-    "id": "model.config.is_valid.email_salt.app_error",
-    "translation": "Salt para crear invitaciones en la configuración de correos es inválido. Debe ser de 32 caracteres o más."
   },
   {
     "id": "model.config.is_valid.email_security.app_error",
@@ -4627,10 +4719,6 @@
     "translation": "Propiedad type inválida para el grupo sincronizable"
   },
   {
-    "id": "model.group_syncable.unmarshaljson.duplicate_type_identifier",
-    "translation": "el tipo de identificador ya existe: tal vez el json contiene ambos 'team_id' y 'channel_id'"
-  },
-  {
     "id": "model.incoming_hook.channel_id.app_error",
     "translation": "Channel id inválido"
   },
@@ -4705,10 +4793,6 @@
   {
     "id": "model.link_metadata.is_valid.data_type.app_error",
     "translation": "Enlaces con datos metadata no coinciden con el tipo asignado"
-  },
-  {
-    "id": "model.link_metadata.is_valid.id.app_error",
-    "translation": "ID del enlace con metadata no es válido"
   },
   {
     "id": "model.link_metadata.is_valid.timestamp.app_error",
@@ -4963,6 +5047,10 @@
     "translation": "Id inválido"
   },
   {
+    "id": "model.team.is_valid.invite_id.app_error",
+    "translation": "Identificador de invitación no válido"
+  },
+  {
     "id": "model.team.is_valid.name.app_error",
     "translation": "Nombre inválido"
   },
@@ -4991,32 +5079,12 @@
     "translation": "Id de usuario inválido"
   },
   {
-    "id": "model.terms_of_service.is_valid.create_at.app_error",
-    "translation": "Falta la propiedad requerida de términos de servicio: create_at."
-  },
-  {
-    "id": "model.terms_of_service.is_valid.id.app_error",
-    "translation": "Id de términos de servicio no válido."
-  },
-  {
-    "id": "model.terms_of_service.is_valid.text.app_error",
-    "translation": "El texto de los términos de servicio personalizado es muy largo. Un máximo de {{.MaxLength}} es permitido."
-  },
-  {
-    "id": "model.terms_of_service.is_valid.user_id.app_error",
-    "translation": "Falta la propiedad requerida de términos de servicio: user_id."
-  },
-  {
     "id": "model.token.is_valid.expiry",
     "translation": "Expiración del token no válido"
   },
   {
     "id": "model.token.is_valid.size",
     "translation": "Token no válido."
-  },
-  {
-    "id": "model.user.is_valid.email.app_error",
-    "translation": "Por favor, ingresa una dirección válida de correo electrónico."
   },
   {
     "id": "model.user.is_valid.pwd.app_error",
@@ -5083,10 +5151,6 @@
     "translation": "La contraseña debe contener al menos {{.Min}} caracteres compuesta de al menos una letra mayúscula y al menos un símbolo (por ejemplo,\"~!@#$%^&*()\")."
   },
   {
-    "id": "model.user.is_valid.username.app_error",
-    "translation": "Nombre de usuario debe comenzar con una letra y contener entre 3 y 22 caracteres, incluyendo números, letras minúsculas, y los símbolos \".\", \"- \" y \"_\"."
-  },
-  {
     "id": "model.user_access_token.is_valid.description.app_error",
     "translation": "Descripción no válida, debe tener 255 o menos carácteres"
   },
@@ -5103,18 +5167,6 @@
     "translation": "Id de usuario no válido"
   },
   {
-    "id": "model.user_terms_of_service.is_valid.create_at.app_error",
-    "translation": "Falta la propiedad requerida de términos de servicio: create_at."
-  },
-  {
-    "id": "model.user_terms_of_service.is_valid.service_terms_id.app_error",
-    "translation": "Falta la propiedad requerida de términos de servicio: service_terms_id."
-  },
-  {
-    "id": "model.user_terms_of_service.is_valid.user_id.app_error",
-    "translation": "Falta la propiedad requerida de términos de servicio: user_id."
-  },
-  {
     "id": "model.utils.decode_json.app_error",
     "translation": "no se puede decodificar"
   },
@@ -5127,8 +5179,16 @@
     "translation": "Los Términos de Servicio de GitLab se han actualizado. Por favor, vaya a gitlab.com a aceptar y, a continuación, intente iniciar sesión en Mattermost de nuevo."
   },
   {
+    "id": "plugin.api.get_users_in_channel",
+    "translation": "Unable to get the users, invalid sorting criteria"
+  },
+  {
     "id": "plugin.api.update_user_status.bad_status",
     "translation": "No se pudo establecer el estado del usuario. Estado de usuario desconocido."
+  },
+  {
+    "id": "plugin_api.bot_cant_create_bot",
+    "translation": "Bot user cannot create bot user."
   },
   {
     "id": "plugin_api.get_file_link.disabled.app_error",
@@ -5235,10 +5295,6 @@
     "translation": "No se pudo abrir la transacción de base de datos"
   },
   {
-    "id": "store.sql_channel.clear_all_custom_role_assignments.rollback_transaction.app_error",
-    "translation": "No pudo revertir la transacción de base de datos"
-  },
-  {
     "id": "store.sql_channel.clear_all_custom_role_assignments.select.app_error",
     "translation": "Error al obtener los miembros del canal"
   },
@@ -5260,6 +5316,14 @@
   },
   {
     "id": "store.sql_channel.get_all.app_error",
+    "translation": "No se pudo obtener  todos los canales"
+  },
+  {
+    "id": "store.sql_channel.get_all_channels.get.app_error",
+    "translation": "No se pudo obtener  todos los canales"
+  },
+  {
+    "id": "store.sql_channel.get_all_direct.app_error",
     "translation": "No se pudo obtener  todos los canales"
   },
   {
@@ -5285,6 +5349,14 @@
   {
     "id": "store.sql_channel.get_channels.not_found.app_error",
     "translation": "No se encontró ningún canal"
+  },
+  {
+    "id": "store.sql_channel.get_channels_batch_for_indexing.get.app_error",
+    "translation": "No se puede obtener los canales en lote para la indexación"
+  },
+  {
+    "id": "store.sql_channel.get_channels_by_ids.app_error",
+    "translation": "No se pudo obtener los canales"
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.get.app_error",
@@ -5347,10 +5419,6 @@
     "translation": "No se pudo obtener los canales públicos"
   },
   {
-    "id": "store.sql_channel.get_timezone.app_error",
-    "translation": "No pudimos obtener las zonas horarias de los miembros del canal"
-  },
-  {
     "id": "store.sql_channel.get_unread.app_error",
     "translation": "No pudimos obtener los mensajes sin leer del canal"
   },
@@ -5365,10 +5433,6 @@
   {
     "id": "store.sql_channel.migrate_channel_members.open_transaction.app_error",
     "translation": "No se pudo abrir la transacción de base de datos"
-  },
-  {
-    "id": "store.sql_channel.migrate_channel_members.rollback_transaction.app_error",
-    "translation": "No pudo revertir la transacción de base de datos"
   },
   {
     "id": "store.sql_channel.migrate_channel_members.select.app_error",
@@ -5436,18 +5500,6 @@
   },
   {
     "id": "store.sql_channel.reset_all_channel_schemes.open_transaction.app_error",
-    "translation": "No se puede abrir la transacción"
-  },
-  {
-    "id": "store.sql_channel.reset_last_post_at.app_error",
-    "translation": "No se pudo reiniciar el canal a la última fecha del mensaje publicado"
-  },
-  {
-    "id": "store.sql_channel.reset_last_post_at.commit_transaction.app_error",
-    "translation": "No se puede perpetrar la transacción"
-  },
-  {
-    "id": "store.sql_channel.reset_last_post_at.open_transaction.app_error",
     "translation": "No se puede abrir la transacción"
   },
   {
@@ -5581,6 +5633,10 @@
   {
     "id": "store.sql_channel.update_member.app_error",
     "translation": "Encontramos un error actualizando el miembro del canal"
+  },
+  {
+    "id": "store.sql_channel.user_belongs_to_channels.app_error",
+    "translation": "Unable to determine if the user belongs to a list of channels"
   },
   {
     "id": "store.sql_channel_member_history.get_users_in_channel_during.app_error",
@@ -5755,6 +5811,10 @@
     "translation": "No se pudo guardar la información del archivo"
   },
   {
+    "id": "store.sql_group.app_error",
+    "translation": "Falla al construir la consulta"
+  },
+  {
     "id": "store.sql_group.group_syncable_already_deleted",
     "translation": "grupo sinconizable ya fue eliminado"
   },
@@ -5765,10 +5825,6 @@
   {
     "id": "store.sql_group.no_rows_changed",
     "translation": "no hay cambios en las filas"
-  },
-  {
-    "id": "store.sql_group.nothing_to_update",
-    "translation": "no hay nada que actualizar para el grupo sincronizable"
   },
   {
     "id": "store.sql_group.unique_constraint",
@@ -5819,16 +5875,20 @@
     "translation": "Encontramos un error al guardar la licencia"
   },
   {
+    "id": "store.sql_link_metadata.get.app_error",
+    "translation": "Unable to get the link metadata"
+  },
+  {
+    "id": "store.sql_link_metadata.save.app_error",
+    "translation": "Unable to save the link metadata"
+  },
+  {
     "id": "store.sql_oauth.delete.commit_transaction.app_error",
     "translation": "No se puede perpetrar la transacción"
   },
   {
     "id": "store.sql_oauth.delete.open_transaction.app_error",
     "translation": "No se puede abrir la transacción para eliminar la app de OAuth2"
-  },
-  {
-    "id": "store.sql_oauth.delete.rollback_transaction.app_error",
-    "translation": "no se puede deshacer la transacción de eliminar la App de OAuth2"
   },
   {
     "id": "store.sql_oauth.delete_app.app_error",
@@ -5927,6 +5987,10 @@
     "translation": "No se pudo obtener el valor de la clave del plugin"
   },
   {
+    "id": "store.sql_plugin_store.list.app_error",
+    "translation": "Unable to list all the plugin keys"
+  },
+  {
     "id": "store.sql_plugin_store.save.app_error",
     "translation": "No se pudo guardar o actualizar el valor de la clave del plugin"
   },
@@ -5953,6 +6017,10 @@
   {
     "id": "store.sql_post.get.app_error",
     "translation": "No se puede obtener el mensaje"
+  },
+  {
+    "id": "store.sql_post.get_direct_posts.app_error",
+    "translation": "No se puede obtener los mensajes"
   },
   {
     "id": "store.sql_post.get_flagged_posts.app_error",
@@ -6091,10 +6159,6 @@
     "translation": "No se pudo abrir la transacción para guardar las preferencias"
   },
   {
-    "id": "store.sql_preference.save.rollback_transaction.app_error",
-    "translation": "No se pudo deshacer la transaccion para guardar las preferencias"
-  },
-  {
     "id": "store.sql_preference.save.updating.app_error",
     "translation": "Encontramos un error mientras actualizabamos las preferencias"
   },
@@ -6155,6 +6219,10 @@
     "translation": "No se puede obtener un token con el código suministrado"
   },
   {
+    "id": "store.sql_recover.remove_all_tokens_by_type.app_error",
+    "translation": "No se pudo borrar todos los tokens del tipo"
+  },
+  {
     "id": "store.sql_recover.save.app_error",
     "translation": "No se pudo guardar token"
   },
@@ -6165,6 +6233,10 @@
   {
     "id": "store.sql_role.get.app_error",
     "translation": "No se pudo obtener el rol"
+  },
+  {
+    "id": "store.sql_role.get_all.app_error",
+    "translation": "No se pudo obtener  todos los canales"
   },
   {
     "id": "store.sql_role.get_by_name.app_error",
@@ -6367,10 +6439,6 @@
     "translation": "No se pudo abrir la transacción de base de datos"
   },
   {
-    "id": "store.sql_team.clear_all_custom_role_assignments.rollback_transaction.app_error",
-    "translation": "No pudo revertir la transacción de base de datos"
-  },
-  {
     "id": "store.sql_team.clear_all_custom_role_assignments.select.app_error",
     "translation": "Falló al obtener los miembros del equipo"
   },
@@ -6389,6 +6457,10 @@
   {
     "id": "store.sql_team.get_all.app_error",
     "translation": "No pudimos obtener todos los equipos"
+  },
+  {
+    "id": "store.sql_team.get_all_private_team_listing.app_error",
+    "translation": "No pudimos obtener todos los equipos privados"
   },
   {
     "id": "store.sql_team.get_all_team_listing.app_error",
@@ -6435,16 +6507,16 @@
     "translation": "No se puede obtener los mensajes sin leer de tus equipos"
   },
   {
+    "id": "store.sql_team.get_user_team_ids.app_error",
+    "translation": "Unable to get the list of teams of a user"
+  },
+  {
     "id": "store.sql_team.migrate_team_members.commit_transaction.app_error",
     "translation": "Falla al terminar la transacción en la base de datos"
   },
   {
     "id": "store.sql_team.migrate_team_members.open_transaction.app_error",
     "translation": "Falla al abrir la transacción en la base de datos"
-  },
-  {
-    "id": "store.sql_team.migrate_team_members.rollback_transaction.app_error",
-    "translation": "Falla al deshacer la transacción en la base de datos"
   },
   {
     "id": "store.sql_team.migrate_team_members.select.app_error",
@@ -6495,6 +6567,10 @@
     "translation": "Encontramos un error buscando los equipos abiertos"
   },
   {
+    "id": "store.sql_team.search_private_team.app_error",
+    "translation": "Encontramos un error buscando los equipos privados"
+  },
+  {
     "id": "store.sql_team.update.app_error",
     "translation": "No se puede actualizar el equipo"
   },
@@ -6517,6 +6593,10 @@
   {
     "id": "store.sql_team.update_last_team_icon_update.app_error",
     "translation": "No se puede actualizar la fecha de la última actualización del icono del equipo"
+  },
+  {
+    "id": "store.sql_team.user_belongs_to_teams.app_error",
+    "translation": "Unable to determine if the user belongs to a list of teams"
   },
   {
     "id": "store.sql_terms_of_service.save.app_error",
@@ -6547,10 +6627,6 @@
     "translation": "No se puede obtener la cantidad de administradores del sistema"
   },
   {
-    "id": "store.sql_user.analytics_unique_user_count.app_error",
-    "translation": "No se puede obtener la cantidad de usuarios únicos"
-  },
-  {
     "id": "store.sql_user.app_error",
     "translation": "Falla al construir la consulta"
   },
@@ -6563,16 +6639,16 @@
     "translation": "No se pudo abrir la transacción de base de datos"
   },
   {
-    "id": "store.sql_user.clear_all_custom_role_assignments.rollback_transaction.app_error",
-    "translation": "No pudo revertir la transacción de base de datos"
-  },
-  {
     "id": "store.sql_user.clear_all_custom_role_assignments.select.app_error",
     "translation": "Falló al obtener los usuarios"
   },
   {
     "id": "store.sql_user.clear_all_custom_role_assignments.update.app_error",
     "translation": "Error al actualizar el usuario"
+  },
+  {
+    "id": "store.sql_user.count.app_error",
+    "translation": "UserCountOptions don't make sense"
   },
   {
     "id": "store.sql_user.get.app_error",
@@ -6629,6 +6705,18 @@
   {
     "id": "store.sql_user.get_unread_count_for_channel.app_error",
     "translation": "No pudimos obtener la cantidad de mensajes sin leer del usuario y canal"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_channel_members.app_error",
+    "translation": "No se puede obtener los miembros del canal para los usuarios ha ser indexados por lotes"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_team_members.app_error",
+    "translation": "No se puede obtener los miembros del equipo para los usuarios ha ser indexados por lotes"
+  },
+  {
+    "id": "store.sql_user.get_users_batch_for_indexing.get_users.app_error",
+    "translation": "No se puede obtener los usuarios en lote para la indexación"
   },
   {
     "id": "store.sql_user.missing_account.const",
@@ -6885,34 +6973,6 @@
   {
     "id": "system.message.name",
     "translation": "Sistema"
-  },
-  {
-    "id": "utils.config.add_client_locale.app_error",
-    "translation": "No se puede cargar el archivo de configuración de mattermost: Se agrega DefaultClientLocale a AvailableLocales."
-  },
-  {
-    "id": "utils.config.load_config.decoding.panic",
-    "translation": "Error decifrando la configuración del archivo={{.Filename}}, err={{.Error}}"
-  },
-  {
-    "id": "utils.config.load_config.opening.panic",
-    "translation": "Error abriendo la configuración del archivo={{.Filename}}, err={{.Error}}"
-  },
-  {
-    "id": "utils.config.save_config.saving.app_error",
-    "translation": "Ocurrió un error mientras se guardaba el archivo en {{.Filename}}"
-  },
-  {
-    "id": "utils.config.supported_available_locales.app_error",
-    "translation": "No se puede cargar el archivo de configuración de mattermost: AvailableLocales debe incluir DefaultClientLocale. Se asignan todos los idiomas como valor predeterminado a AvailableLocales."
-  },
-  {
-    "id": "utils.config.supported_client_locale.app_error",
-    "translation": "No se puede cargar el archivo de configuración de mattermost: DefaultClientLocale debe contener uno de los idiomas soportados. Se asigna `en` como valor predeterminado a DefaultClientLocale."
-  },
-  {
-    "id": "utils.config.supported_server_locale.app_error",
-    "translation": "No se puede cargar el archivo de configuración de mattermost: DefaultClientLocale debe contener uno de los idiomas soportados. Se asigna `en` como valor predeterminado a DefaultClientLocale."
   },
   {
     "id": "utils.file.list_directory.local.app_error",
