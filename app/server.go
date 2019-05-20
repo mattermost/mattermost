@@ -625,7 +625,7 @@ func (a *App) OriginChecker() func(*http.Request) bool {
 func (s *Server) checkPushNotificationServerUrl() {
 	notificationServer := *s.Config().EmailSettings.PushNotificationServer
 	if strings.HasPrefix(notificationServer, "http://") == true {
-		mlog.Warn("Your push notification server is configured with HTTP. For improved security, update to HTTPS in your config.json file or System Console.")
+		mlog.Warn("Your push notification server is configured with HTTP. For improved security, update to HTTPS in your configuration.")
 	}
 }
 
