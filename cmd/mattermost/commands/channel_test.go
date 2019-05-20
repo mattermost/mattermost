@@ -112,7 +112,7 @@ func TestCreateChannel(t *testing.T) {
 	defer th.TearDown()
 
 	id := model.NewId()
-	name := "name" + id
+	name := "name" + id[0:10]
 
 	th.CheckCommand(t, "channel", "create", "--display_name", name, "--team", th.BasicTeam.Name, "--name", name)
 

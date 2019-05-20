@@ -269,7 +269,7 @@ func TestPatchChannel(t *testing.T) {
 		Header:      new(string),
 		Purpose:     new(string),
 	}
-	*patch.Name = model.NewId()
+	*patch.Name = model.NewId()[0:10]
 	*patch.DisplayName = model.NewId()
 	*patch.Header = model.NewId()
 	*patch.Purpose = model.NewId()
@@ -2535,7 +2535,7 @@ func TestUpdateChannelScheme(t *testing.T) {
 
 	channel, resp := th.SystemAdminClient.CreateChannel(&model.Channel{
 		DisplayName: "Name",
-		Name:        "z-z-" + model.NewId() + "a",
+		Name:        "z-z-" + model.NewId()[0:10] + "a",
 		Type:        model.CHANNEL_OPEN,
 		TeamId:      team.Id,
 	})

@@ -26,7 +26,7 @@ func testLogJoinEvent(t *testing.T, ss store.Store) {
 	channel := model.Channel{
 		TeamId:      model.NewId(),
 		DisplayName: "Display " + model.NewId(),
-		Name:        "zz" + model.NewId() + "b",
+		Name:        "zz" + model.NewId()[0:10] + "b",
 		Type:        model.CHANNEL_OPEN,
 	}
 	channel = *store.Must(ss.Channel().Save(&channel, -1)).(*model.Channel)
@@ -49,7 +49,7 @@ func testLogLeaveEvent(t *testing.T, ss store.Store) {
 	channel := model.Channel{
 		TeamId:      model.NewId(),
 		DisplayName: "Display " + model.NewId(),
-		Name:        "zz" + model.NewId() + "b",
+		Name:        "zz" + model.NewId()[0:10] + "b",
 		Type:        model.CHANNEL_OPEN,
 	}
 	channel = *store.Must(ss.Channel().Save(&channel, -1)).(*model.Channel)
@@ -75,7 +75,7 @@ func testGetUsersInChannelAtChannelMemberHistory(t *testing.T, ss store.Store) {
 	channel := model.Channel{
 		TeamId:      model.NewId(),
 		DisplayName: "Display " + model.NewId(),
-		Name:        "zz" + model.NewId() + "b",
+		Name:        "zz" + model.NewId()[0:10] + "b",
 		Type:        model.CHANNEL_OPEN,
 	}
 	channel = *store.Must(ss.Channel().Save(&channel, -1)).(*model.Channel)
@@ -158,7 +158,7 @@ func testGetUsersInChannelAtChannelMembers(t *testing.T, ss store.Store) {
 	channel := model.Channel{
 		TeamId:      model.NewId(),
 		DisplayName: "Display " + model.NewId(),
-		Name:        "zz" + model.NewId() + "b",
+		Name:        "zz" + model.NewId()[0:10] + "b",
 		Type:        model.CHANNEL_OPEN,
 	}
 	channel = *store.Must(ss.Channel().Save(&channel, -1)).(*model.Channel)
@@ -260,7 +260,7 @@ func testPermanentDeleteBatch(t *testing.T, ss store.Store) {
 	channel := model.Channel{
 		TeamId:      model.NewId(),
 		DisplayName: "Display " + model.NewId(),
-		Name:        "zz" + model.NewId() + "b",
+		Name:        "zz" + model.NewId()[0:10] + "b",
 		Type:        model.CHANNEL_OPEN,
 	}
 	channel = *store.Must(ss.Channel().Save(&channel, -1)).(*model.Channel)

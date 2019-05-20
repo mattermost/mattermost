@@ -115,14 +115,14 @@ func testJoinCommands(t *testing.T, alias string) {
 	team := th.BasicTeam
 	user2 := th.BasicUser2
 
-	channel0 := &model.Channel{DisplayName: "00", Name: "00" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
+	channel0 := &model.Channel{DisplayName: "00", Name: "00" + model.NewId()[0:10] + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel0 = Client.Must(Client.CreateChannel(channel0)).(*model.Channel)
 
-	channel1 := &model.Channel{DisplayName: "AA", Name: "aa" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
+	channel1 := &model.Channel{DisplayName: "AA", Name: "aa" + model.NewId()[0:10] + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel1 = Client.Must(Client.CreateChannel(channel1)).(*model.Channel)
 	Client.Must(Client.RemoveUserFromChannel(channel1.Id, th.BasicUser.Id))
 
-	channel2 := &model.Channel{DisplayName: "BB", Name: "bb" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
+	channel2 := &model.Channel{DisplayName: "BB", Name: "bb" + model.NewId()[0:10] + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel2 = Client.Must(Client.CreateChannel(channel2)).(*model.Channel)
 	Client.Must(Client.RemoveUserFromChannel(channel2.Id, th.BasicUser.Id))
 

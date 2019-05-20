@@ -196,7 +196,7 @@ func (me *TestHelper) createChannel(team *model.Team, channelType string) *model
 
 	channel := &model.Channel{
 		DisplayName: "dn_" + id,
-		Name:        "name_" + id,
+		Name:        "name_" + id[0:10],
 		Type:        channelType,
 		TeamId:      team.Id,
 		CreatorId:   me.BasicUser.Id,
@@ -219,7 +219,7 @@ func (me *TestHelper) createChannelWithAnotherUser(team *model.Team, channelType
 
 	channel := &model.Channel{
 		DisplayName: "dn_" + id,
-		Name:        "name_" + id,
+		Name:        "name_" + id[0:10],
 		Type:        channelType,
 		TeamId:      team.Id,
 		CreatorId:   userId,

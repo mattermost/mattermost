@@ -350,8 +350,9 @@ var reservedName = []string{
 	"help",
 }
 
-func IsValidChannelIdentifier(s string) bool {
+var multipleHyphensRegexp = regexp.MustCompile("-{2,}")
 
+func IsValidChannelIdentifier(s string) bool {
 	if !IsValidAlphaNumHyphenUnderscore(s, true) {
 		return false
 	}
@@ -364,8 +365,7 @@ func IsValidChannelIdentifier(s string) bool {
 		return false
 	}
 
-	multipleHyphens := regexp.MustCompile("-{2,}")
-	if multipleHyphens.MatchString(s) {
+	if multipleHyphensRegexp.MatchString(s) {
 		return false
 	}
 
@@ -373,7 +373,6 @@ func IsValidChannelIdentifier(s string) bool {
 }
 
 func IsValidGroupOrDirectChannelIdentifier(s string) bool {
-
 	if !IsValidAlphaNumHyphenUnderscore(s, true) {
 		return false
 	}
