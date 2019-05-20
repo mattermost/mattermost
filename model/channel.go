@@ -131,8 +131,12 @@ func (o *Channel) IsValid() *AppError {
 		return NewAppError("Channel.IsValid", "model.channel.is_valid.display_name.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
-	if !IsValidChannelIdentifier(o.Name) {
-		return NewAppError("Channel.IsValid", "model.channel.is_valid.2_or_more.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+	if (o.Type == CHANNEL_OPEN || o.Type == CHANNEL_PRIVATE) && !IsValidChannelIdentifier(o.Name) {
+		return NewAppError("Channel.IsValid", "model.channel.is_valid.between_2_and_22.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+	}
+
+	if (o.Type == CHANNEL_GROUP || o.Type == CHANNEL_DIRECT) && !IsValidGroupOrDirectChannelIdentifier(o.Name) {
+		return NewAppError("Channel.IsValid", "model.channel.is_valid.invalid_channel_name.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
 	if !(o.Type == CHANNEL_OPEN || o.Type == CHANNEL_PRIVATE || o.Type == CHANNEL_DIRECT || o.Type == CHANNEL_GROUP) {

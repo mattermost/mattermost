@@ -4091,8 +4091,8 @@
     "translation": "Invalid username"
   },
   {
-    "id": "model.channel.is_valid.2_or_more.app_error",
-    "translation": "Name must be 2 or more lowercase alphanumeric characters"
+    "id": "model.channel.is_valid.between_2_and_22.app_error",
+    "translation": "Name must be between 2 and 22 lowercase alphanumeric characters"
   },
   {
     "id": "model.channel.is_valid.create_at.app_error",
@@ -4113,6 +4113,10 @@
   {
     "id": "model.channel.is_valid.id.app_error",
     "translation": "Invalid Id"
+  },
+  {
+    "id": "model.channel.is_valid.invalid_channel_name.app_error",
+    "translation": "Invalid channel name"
   },
   {
     "id": "model.channel.is_valid.purpose.app_error",

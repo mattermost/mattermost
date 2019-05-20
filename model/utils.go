@@ -360,6 +360,28 @@ func IsValidChannelIdentifier(s string) bool {
 		return false
 	}
 
+	if len(s) > CHANNEL_NAME_UI_MAX_LENGTH {
+		return false
+	}
+
+	multipleHyphens := regexp.MustCompile("-{2,}")
+	if multipleHyphens.MatchString(s) {
+		return false
+	}
+
+	return true
+}
+
+func IsValidGroupOrDirectChannelIdentifier(s string) bool {
+
+	if !IsValidAlphaNumHyphenUnderscore(s, true) {
+		return false
+	}
+
+	if len(s) < CHANNEL_NAME_MIN_LENGTH {
+		return false
+	}
+
 	return true
 }
 

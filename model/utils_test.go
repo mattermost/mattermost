@@ -767,3 +767,121 @@ func checkNowhereNil(t *testing.T, name string, value interface{}) bool {
 		return true
 	}
 }
+
+func TestIsValidChannelIdentifier(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		Name        string
+		ChannelName string
+		Expected    bool
+	}{
+		{
+			"Valid channel name",
+			"channel-10_valid",
+			true,
+		},
+		{
+			"Very Long name",
+			"this-name-have-more-than-22-characters-in-it-so-it-must-fail",
+			false,
+		},
+		{
+			"Very short name",
+			"a",
+			false,
+		},
+		{
+			"Not valid characters",
+			"channel-with-no-simple-characters-$",
+			false,
+		},
+		{
+			"With spaces",
+			"channel name with spaces",
+			false,
+		},
+		{
+			"Channel with multiple hyphens",
+			"channel--name",
+			false,
+		},
+		{
+			"Channel starting with hyphen",
+			"-channel",
+			false,
+		},
+		{
+			"Channel ending with hyphen",
+			"channel-",
+			false,
+		},
+	}
+
+	for _, testCase := range testCases {
+		testCase := testCase
+		t.Run(testCase.Name, func(t *testing.T) {
+			t.Parallel()
+			require.Equal(t, testCase.Expected, IsValidChannelIdentifier(testCase.ChannelName))
+		})
+	}
+}
+
+func TestIsValidGroupOrDirectChannelIdentifier(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		Name        string
+		ChannelName string
+		Expected    bool
+	}{
+		{
+			"Valid channel name",
+			"channel-10_valid",
+			true,
+		},
+		{
+			"Very Long name",
+			"this-name-have-more-than-22-characters-in-it-so-it-must-fail",
+			true,
+		},
+		{
+			"Very short name",
+			"a",
+			false,
+		},
+		{
+			"Not valid characters",
+			"channel-with-no-simple-characters-$",
+			false,
+		},
+		{
+			"With spaces",
+			"channel name with spaces",
+			false,
+		},
+		{
+			"Channel with multiple hyphens",
+			"channel--name",
+			true,
+		},
+		{
+			"Channel starting with hyphen",
+			"-channel",
+			false,
+		},
+		{
+			"Channel ending with hyphen",
+			"channel-",
+			false,
+		},
+	}
+
+	for _, testCase := range testCases {
+		testCase := testCase
+		t.Run(testCase.Name, func(t *testing.T) {
+			t.Parallel()
+			require.Equal(t, testCase.Expected, IsValidGroupOrDirectChannelIdentifier(testCase.ChannelName))
+		})
+	}
+}
