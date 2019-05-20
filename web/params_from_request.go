@@ -150,12 +150,24 @@ func ParamsFromRequest(r *http.Request) *Params {
 		params.Q = val
 	}
 
+	if val, err := strconv.ParseBool(query.Get("is_linked")); err == nil {
+		params.IsLinked = &val
+	}
+
+	if val, err := strconv.ParseBool(query.Get("is_configured")); err == nil {
+		params.IsConfigured = &val
+	}
+
 	if val, ok := props["not_associated_to_team"]; ok {
 		params.NotAssociatedToTeam = val
 	}
 
 	if val, ok := props["not_associated_to_channel"]; ok {
 		params.NotAssociatedToChannel = val
+	}
+
+	if val, err := strconv.ParseBool(query.Get("paginate")); err == nil {
+		params.Paginate = &val
 	}
 
 	if val, err := strconv.ParseBool(query.Get("include_member_count")); err == nil {

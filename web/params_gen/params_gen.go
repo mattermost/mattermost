@@ -26,6 +26,10 @@ const boolTemplate = `if val, err := strconv.ParseBool(query.Get("{{.ParamName}}
 	params.{{.FieldName}} = val
 }`
 
+const boolPtrTemplate = `if val, err := strconv.ParseBool(query.Get("{{.ParamName}}")); err == nil {
+	params.{{.FieldName}} = &val
+}`
+
 const stringTemplate = `if val, ok := props["{{.ParamName}}"]; ok {
 	params.{{.FieldName}} = val
 }`
@@ -96,6 +100,11 @@ func getCode() ([]byte, error) {
 		return nil, err
 	}
 
+	boolPtrTmpl, err := template.New("bool").Parse(boolPtrTemplate)
+	if err != nil {
+		return nil, err
+	}
+
 	stringTmpl, err := template.New("string").Parse(stringTemplate)
 	if err != nil {
 		return nil, err
@@ -109,12 +118,16 @@ func getCode() ([]byte, error) {
 			continue
 		}
 
+		var b bool
+		var s string
 		var template *template.Template
-		switch field.Type.Name() {
-		case "string":
+		switch field.Type {
+		case reflect.TypeOf(s):
 			template = stringTmpl
-		case "bool":
+		case reflect.TypeOf(b):
 			template = boolTmpl
+		case reflect.PtrTo(reflect.TypeOf(b)):
+			template = boolPtrTmpl
 		default:
 			continue
 		}
