@@ -217,11 +217,13 @@ func (s SqlPreferenceStore) GetAll(userId string) store.StoreChannel {
 }
 
 func (s SqlPreferenceStore) PermanentDeleteByUser(userId string) *model.AppError {
-	if _, err := s.GetMaster().Exec(
+	query :=
 		`DELETE FROM 
 			Preferences 
 		WHERE 
-			UserId = :UserId`, map[string]interface{}{"UserId": userId}); err != nil {
+			UserId = :UserId`
+
+	if _, err := s.GetMaster().Exec(query, map[string]interface{}{"UserId": userId}); err != nil {
 		return model.NewAppError("SqlPreferenceStore.Delete", "store.sql_preference.permanent_delete_by_user.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
