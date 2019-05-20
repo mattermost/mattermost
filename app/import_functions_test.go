@@ -1022,7 +1022,7 @@ func TestImportImportUser(t *testing.T) {
 		t.Fatalf("Failed to get team from database.")
 	}
 
-	channelName := model.NewId()
+	channelName := model.NewId()[0:10]
 	th.App.ImportChannel(&ChannelImportData{
 		Team:        &teamName,
 		Name:        &channelName,
@@ -1103,7 +1103,7 @@ func TestImportImportUser(t *testing.T) {
 			Name: &teamName,
 			Channels: &[]UserChannelImportData{
 				{
-					Name: ptrStr(model.NewId()),
+					Name: ptrStr(model.NewId()[0:10]),
 				},
 			},
 		},
@@ -1191,7 +1191,7 @@ func TestImportImportUser(t *testing.T) {
 			Name: &teamName,
 			Channels: &[]UserChannelImportData{
 				{
-					Name: ptrStr(model.NewId()),
+					Name: ptrStr(model.NewId()[0:10]),
 				},
 			},
 		},
@@ -1569,7 +1569,7 @@ func TestImportImportUser(t *testing.T) {
 
 	channelData := &ChannelImportData{
 		Team:        &teamName,
-		Name:        ptrStr(model.NewId()),
+		Name:        ptrStr(model.NewId()[0:10]),
 		DisplayName: ptrStr("Display Name"),
 		Type:        ptrStr("O"),
 		Header:      ptrStr("Channe Header"),
@@ -1777,7 +1777,7 @@ func TestImportImportPost(t *testing.T) {
 	}
 
 	// Create a Channel.
-	channelName := model.NewId()
+	channelName := model.NewId()[0:10]
 	th.App.ImportChannel(&ChannelImportData{
 		Team:        &teamName,
 		Name:        &channelName,
@@ -2783,7 +2783,7 @@ func TestImportPostAndRepliesWithAttachments(t *testing.T) {
 	}
 
 	// Create a Channel.
-	channelName := model.NewId()
+	channelName := model.NewId()[0:10]
 	th.App.ImportChannel(&ChannelImportData{
 		Team:        &teamName,
 		Name:        &channelName,

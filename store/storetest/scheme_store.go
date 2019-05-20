@@ -453,7 +453,7 @@ func testSchemeStoreDelete(t *testing.T, ss store.Store) {
 	c5 := &model.Channel{
 		TeamId:      model.NewId(),
 		DisplayName: model.NewId(),
-		Name:        model.NewId(),
+		Name:        model.NewId()[0:10],
 		Type:        model.CHANNEL_OPEN,
 		SchemeId:    &d5.Id,
 	}

@@ -69,7 +69,7 @@ func testPostStoreSave(t *testing.T, ss store.Store) {
 }
 
 func testPostStoreSaveChannelMsgCounts(t *testing.T, ss store.Store) {
-	c1 := &model.Channel{Name: model.NewId(), DisplayName: "posttestchannel", Type: model.CHANNEL_OPEN}
+	c1 := &model.Channel{Name: model.NewId()[0:10], DisplayName: "posttestchannel", Type: model.CHANNEL_OPEN}
 	res := <-ss.Channel().Save(c1, 1000000)
 	require.Nil(t, res.Err)
 
@@ -876,7 +876,7 @@ func testPostStoreSearch(t *testing.T, ss store.Store) {
 	c1 := &model.Channel{}
 	c1.TeamId = teamId
 	c1.DisplayName = "Channel1"
-	c1.Name = "zz" + model.NewId() + "b"
+	c1.Name = "zz" + model.NewId()[0:10] + "b"
 	c1.Type = model.CHANNEL_OPEN
 	c1 = (<-ss.Channel().Save(c1, -1)).Data.(*model.Channel)
 
@@ -889,14 +889,14 @@ func testPostStoreSearch(t *testing.T, ss store.Store) {
 	c2 := &model.Channel{}
 	c2.TeamId = teamId
 	c2.DisplayName = "Channel1"
-	c2.Name = "zz" + model.NewId() + "b"
+	c2.Name = "zz" + model.NewId()[0:10] + "b"
 	c2.Type = model.CHANNEL_OPEN
 	c2 = (<-ss.Channel().Save(c2, -1)).Data.(*model.Channel)
 
 	c3 := &model.Channel{}
 	c3.TeamId = teamId
 	c3.DisplayName = "Channel1"
-	c3.Name = "zz" + model.NewId() + "b"
+	c3.Name = "zz" + model.NewId()[0:10] + "b"
 	c3.Type = model.CHANNEL_OPEN
 	c3 = (<-ss.Channel().Save(c3, -1)).Data.(*model.Channel)
 	ss.Channel().Delete(c3.Id, model.GetMillis())
@@ -1083,7 +1083,7 @@ func testUserCountsWithPostsByDay(t *testing.T, ss store.Store) {
 	c1 := &model.Channel{}
 	c1.TeamId = t1.Id
 	c1.DisplayName = "Channel2"
-	c1.Name = "zz" + model.NewId() + "b"
+	c1.Name = "zz" + model.NewId()[0:10] + "b"
 	c1.Type = model.CHANNEL_OPEN
 	c1 = store.Must(ss.Channel().Save(c1, -1)).(*model.Channel)
 
@@ -1142,7 +1142,7 @@ func testPostCountsByDay(t *testing.T, ss store.Store) {
 	c1 := &model.Channel{}
 	c1.TeamId = t1.Id
 	c1.DisplayName = "Channel2"
-	c1.Name = "zz" + model.NewId() + "b"
+	c1.Name = "zz" + model.NewId()[0:10] + "b"
 	c1.Type = model.CHANNEL_OPEN
 	c1 = store.Must(ss.Channel().Save(c1, -1)).(*model.Channel)
 
@@ -1203,7 +1203,7 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, ss store.Store, s SqlSupp
 	c1 := &model.Channel{}
 	c1.TeamId = model.NewId()
 	c1.DisplayName = "Channel1"
-	c1.Name = "zz" + model.NewId() + "b"
+	c1.Name = "zz" + model.NewId()[0:10] + "b"
 	c1.Type = model.CHANNEL_OPEN
 	c1 = store.Must(ss.Channel().Save(c1, -1)).(*model.Channel)
 
@@ -1238,7 +1238,7 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, ss store.Store, s SqlSupp
 
 	c2 := &model.Channel{}
 	c2.DisplayName = "DMChannel1"
-	c2.Name = "zz" + model.NewId() + "b"
+	c2.Name = "zz" + model.NewId()[0:10] + "b"
 	c2.Type = model.CHANNEL_DIRECT
 
 	m1 := &model.ChannelMember{}
@@ -1744,14 +1744,14 @@ func testPostStoreGetPostsBatchForIndexing(t *testing.T, ss store.Store) {
 	c1 := &model.Channel{}
 	c1.TeamId = model.NewId()
 	c1.DisplayName = "Channel1"
-	c1.Name = "zz" + model.NewId() + "b"
+	c1.Name = "zz" + model.NewId()[0:10] + "b"
 	c1.Type = model.CHANNEL_OPEN
 	c1 = (<-ss.Channel().Save(c1, -1)).Data.(*model.Channel)
 
 	c2 := &model.Channel{}
 	c2.TeamId = model.NewId()
 	c2.DisplayName = "Channel2"
-	c2.Name = "zz" + model.NewId() + "b"
+	c2.Name = "zz" + model.NewId()[0:10] + "b"
 	c2.Type = model.CHANNEL_OPEN
 	c2 = (<-ss.Channel().Save(c2, -1)).Data.(*model.Channel)
 
@@ -1888,7 +1888,7 @@ func testPostStoreGetParentsForExportAfter(t *testing.T, ss store.Store) {
 	c1 := model.Channel{}
 	c1.TeamId = t1.Id
 	c1.DisplayName = "Channel1"
-	c1.Name = "zz" + model.NewId() + "b"
+	c1.Name = "zz" + model.NewId()[0:10] + "b"
 	c1.Type = model.CHANNEL_OPEN
 	store.Must(ss.Channel().Save(&c1, -1))
 
@@ -1935,7 +1935,7 @@ func testPostStoreGetRepliesForExport(t *testing.T, ss store.Store) {
 	c1 := model.Channel{}
 	c1.TeamId = t1.Id
 	c1.DisplayName = "Channel1"
-	c1.Name = "zz" + model.NewId() + "b"
+	c1.Name = "zz" + model.NewId()[0:10] + "b"
 	c1.Type = model.CHANNEL_OPEN
 	store.Must(ss.Channel().Save(&c1, -1))
 
@@ -1994,7 +1994,7 @@ func testPostStoreGetDirectPostParentsForExportAfter(t *testing.T, ss store.Stor
 	o1 := model.Channel{}
 	o1.TeamId = teamId
 	o1.DisplayName = "Name"
-	o1.Name = "zz" + model.NewId() + "b"
+	o1.Name = "zz" + model.NewId()[0:10] + "b"
 	o1.Type = model.CHANNEL_DIRECT
 
 	u1 := &model.User{}
@@ -2044,7 +2044,7 @@ func testPostStoreGetDirectPostParentsForExportAfterDeleted(t *testing.T, ss sto
 	o1 := model.Channel{}
 	o1.TeamId = teamId
 	o1.DisplayName = "Name"
-	o1.Name = "zz" + model.NewId() + "b"
+	o1.Name = "zz" + model.NewId()[0:10] + "b"
 	o1.Type = model.CHANNEL_DIRECT
 
 	u1 := &model.User{}
@@ -2108,7 +2108,7 @@ func testPostStoreGetDirectPostParentsForExportAfterBatched(t *testing.T, ss sto
 	o1 := model.Channel{}
 	o1.TeamId = teamId
 	o1.DisplayName = "Name"
-	o1.Name = "zz" + model.NewId() + "b"
+	o1.Name = "zz" + model.NewId()[0:10] + "b"
 	o1.Type = model.CHANNEL_DIRECT
 
 	var postIds []string

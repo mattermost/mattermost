@@ -34,7 +34,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	practiceChannel, err := th.App.CreateChannel(&model.Channel{
 		TeamId:      singersTeam.Id,
 		DisplayName: "Practices",
-		Name:        model.NewId(),
+		Name:        model.NewId()[0:10],
 		Type:        model.CHANNEL_OPEN,
 	}, false)
 	if err != nil {
@@ -44,7 +44,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	experimentsChannel, err := th.App.CreateChannel(&model.Channel{
 		TeamId:      singersTeam.Id,
 		DisplayName: "Experiments",
-		Name:        model.NewId(),
+		Name:        model.NewId()[0:10],
 		Type:        model.CHANNEL_PRIVATE,
 	}, false)
 	if err != nil {

@@ -88,7 +88,7 @@ func testComplianceExport(t *testing.T, ss store.Store) {
 	c1 := &model.Channel{}
 	c1.TeamId = t1.Id
 	c1.DisplayName = "Channel2"
-	c1.Name = "zz" + model.NewId() + "b"
+	c1.Name = "zz" + model.NewId()[0:10] + "b"
 	c1.Type = model.CHANNEL_OPEN
 	c1 = store.Must(ss.Channel().Save(c1, -1)).(*model.Channel)
 
@@ -188,7 +188,7 @@ func testComplianceExportDirectMessages(t *testing.T, ss store.Store) {
 	c1 := &model.Channel{}
 	c1.TeamId = t1.Id
 	c1.DisplayName = "Channel2"
-	c1.Name = "zz" + model.NewId() + "b"
+	c1.Name = "zz" + model.NewId()[0:10] + "b"
 	c1.Type = model.CHANNEL_OPEN
 	c1 = store.Must(ss.Channel().Save(c1, -1)).(*model.Channel)
 
@@ -280,7 +280,7 @@ func testMessageExportPublicChannel(t *testing.T, ss store.Store) {
 	// need a public channel
 	channel := &model.Channel{
 		TeamId:      team.Id,
-		Name:        model.NewId(),
+		Name:        model.NewId()[0:10],
 		DisplayName: "Public Channel",
 		Type:        model.CHANNEL_OPEN,
 	}
@@ -375,7 +375,7 @@ func testMessageExportPrivateChannel(t *testing.T, ss store.Store) {
 	// need a private channel
 	channel := &model.Channel{
 		TeamId:      team.Id,
-		Name:        model.NewId(),
+		Name:        model.NewId()[0:10],
 		DisplayName: "Private Channel",
 		Type:        model.CHANNEL_PRIVATE,
 	}
@@ -556,7 +556,7 @@ func testMessageExportGroupMessageChannel(t *testing.T, ss store.Store) {
 	// can't create a group channel directly, because importing app creates an import cycle, so we have to fake it
 	groupMessageChannel := &model.Channel{
 		TeamId: team.Id,
-		Name:   model.NewId(),
+		Name:   model.NewId()[0:10],
 		Type:   model.CHANNEL_GROUP,
 	}
 	groupMessageChannel = store.Must(ss.Channel().Save(groupMessageChannel, -1)).(*model.Channel)

@@ -19,7 +19,7 @@ func TestRemoveProviderDoCommand(t *testing.T) {
 
 	publicChannel, _ := th.App.CreateChannel(&model.Channel{
 		DisplayName: "AA",
-		Name:        "aa" + model.NewId() + "a",
+		Name:        "aa" + model.NewId()[0:10] + "a",
 		Type:        model.CHANNEL_OPEN,
 		TeamId:      th.BasicTeam.Id,
 		CreatorId:   th.BasicUser.Id,
@@ -27,7 +27,7 @@ func TestRemoveProviderDoCommand(t *testing.T) {
 
 	privateChannel, _ := th.App.CreateChannel(&model.Channel{
 		DisplayName: "BB",
-		Name:        "aa" + model.NewId() + "a",
+		Name:        "aa" + model.NewId()[0:10] + "a",
 		Type:        model.CHANNEL_OPEN,
 		TeamId:      th.BasicTeam.Id,
 		CreatorId:   th.BasicUser.Id,

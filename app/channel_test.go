@@ -143,7 +143,7 @@ func TestMoveChannel(t *testing.T) {
 	// Test moving a channel with no members.
 	channel3 := &model.Channel{
 		DisplayName: "dn_" + model.NewId(),
-		Name:        "name_" + model.NewId(),
+		Name:        "name_" + model.NewId()[0:10],
 		Type:        model.CHANNEL_OPEN,
 		TeamId:      sourceTeam.Id,
 		CreatorId:   th.BasicUser.Id,

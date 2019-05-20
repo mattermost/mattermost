@@ -681,14 +681,14 @@ func testUserStoreGetProfilesInChannel(t *testing.T, ss store.Store) {
 	c1 := store.Must(ss.Channel().Save(&model.Channel{
 		TeamId:      teamId,
 		DisplayName: "Profiles in channel",
-		Name:        "profiles-" + model.NewId(),
+		Name:        "profiles-" + model.NewId()[0:10],
 		Type:        model.CHANNEL_OPEN,
 	}, -1)).(*model.Channel)
 
 	c2 := store.Must(ss.Channel().Save(&model.Channel{
 		TeamId:      teamId,
 		DisplayName: "Profiles in private",
-		Name:        "profiles-" + model.NewId(),
+		Name:        "profiles-" + model.NewId()[0:10],
 		Type:        model.CHANNEL_PRIVATE,
 	}, -1)).(*model.Channel)
 
@@ -769,14 +769,14 @@ func testUserStoreGetProfilesInChannelByStatus(t *testing.T, ss store.Store) {
 	c1 := store.Must(ss.Channel().Save(&model.Channel{
 		TeamId:      teamId,
 		DisplayName: "Profiles in channel",
-		Name:        "profiles-" + model.NewId(),
+		Name:        "profiles-" + model.NewId()[0:10],
 		Type:        model.CHANNEL_OPEN,
 	}, -1)).(*model.Channel)
 
 	c2 := store.Must(ss.Channel().Save(&model.Channel{
 		TeamId:      teamId,
 		DisplayName: "Profiles in private",
-		Name:        "profiles-" + model.NewId(),
+		Name:        "profiles-" + model.NewId()[0:10],
 		Type:        model.CHANNEL_PRIVATE,
 	}, -1)).(*model.Channel)
 
@@ -912,14 +912,14 @@ func testUserStoreGetAllProfilesInChannel(t *testing.T, ss store.Store) {
 	c1 := store.Must(ss.Channel().Save(&model.Channel{
 		TeamId:      teamId,
 		DisplayName: "Profiles in channel",
-		Name:        "profiles-" + model.NewId(),
+		Name:        "profiles-" + model.NewId()[0:10],
 		Type:        model.CHANNEL_OPEN,
 	}, -1)).(*model.Channel)
 
 	c2 := store.Must(ss.Channel().Save(&model.Channel{
 		TeamId:      teamId,
 		DisplayName: "Profiles in private",
-		Name:        "profiles-" + model.NewId(),
+		Name:        "profiles-" + model.NewId()[0:10],
 		Type:        model.CHANNEL_PRIVATE,
 	}, -1)).(*model.Channel)
 
@@ -1019,14 +1019,14 @@ func testUserStoreGetProfilesNotInChannel(t *testing.T, ss store.Store) {
 	c1 := store.Must(ss.Channel().Save(&model.Channel{
 		TeamId:      teamId,
 		DisplayName: "Profiles in channel",
-		Name:        "profiles-" + model.NewId(),
+		Name:        "profiles-" + model.NewId()[0:10],
 		Type:        model.CHANNEL_OPEN,
 	}, -1)).(*model.Channel)
 
 	c2 := store.Must(ss.Channel().Save(&model.Channel{
 		TeamId:      teamId,
 		DisplayName: "Profiles in private",
-		Name:        "profiles-" + model.NewId(),
+		Name:        "profiles-" + model.NewId()[0:10],
 		Type:        model.CHANNEL_PRIVATE,
 	}, -1)).(*model.Channel)
 
@@ -1646,13 +1646,13 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	c1 := model.Channel{}
 	c1.TeamId = teamId
 	c1.DisplayName = "Unread Messages"
-	c1.Name = "unread-messages-" + model.NewId()
+	c1.Name = "unread-messages-" + model.NewId()[0:6]
 	c1.Type = model.CHANNEL_OPEN
 
 	c2 := model.Channel{}
 	c2.TeamId = teamId
 	c2.DisplayName = "Unread Direct"
-	c2.Name = "unread-direct-" + model.NewId()
+	c2.Name = "unread-direct-" + model.NewId()[0:6]
 	c2.Type = model.CHANNEL_DIRECT
 
 	u1 := &model.User{}
@@ -2335,7 +2335,7 @@ func testUserStoreSearchNotInChannel(t *testing.T, ss store.Store) {
 	c1 := model.Channel{
 		TeamId:      tid,
 		DisplayName: "NameName",
-		Name:        "zz" + model.NewId() + "b",
+		Name:        "zz" + model.NewId()[0:10] + "b",
 		Type:        model.CHANNEL_OPEN,
 	}
 	c1 = *store.Must(ss.Channel().Save(&c1, -1)).(*model.Channel)
@@ -2343,7 +2343,7 @@ func testUserStoreSearchNotInChannel(t *testing.T, ss store.Store) {
 	c2 := model.Channel{
 		TeamId:      tid,
 		DisplayName: "NameName",
-		Name:        "zz" + model.NewId() + "b",
+		Name:        "zz" + model.NewId()[0:10] + "b",
 		Type:        model.CHANNEL_OPEN,
 	}
 	c2 = *store.Must(ss.Channel().Save(&c2, -1)).(*model.Channel)
@@ -2549,7 +2549,7 @@ func testUserStoreSearchInChannel(t *testing.T, ss store.Store) {
 	c1 := model.Channel{
 		TeamId:      tid,
 		DisplayName: "NameName",
-		Name:        "zz" + model.NewId() + "b",
+		Name:        "zz" + model.NewId()[0:10] + "b",
 		Type:        model.CHANNEL_OPEN,
 	}
 	c1 = *store.Must(ss.Channel().Save(&c1, -1)).(*model.Channel)
@@ -2557,7 +2557,7 @@ func testUserStoreSearchInChannel(t *testing.T, ss store.Store) {
 	c2 := model.Channel{
 		TeamId:      tid,
 		DisplayName: "NameName",
-		Name:        "zz" + model.NewId() + "b",
+		Name:        "zz" + model.NewId()[0:10] + "b",
 		Type:        model.CHANNEL_OPEN,
 	}
 	c2 = *store.Must(ss.Channel().Save(&c2, -1)).(*model.Channel)
@@ -3412,15 +3412,15 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
 	})
 	require.Nil(t, err)
 	cPub1 := store.Must(ss.Channel().Save(&model.Channel{
-		Name: model.NewId(),
+		Name: model.NewId()[0:10],
 		Type: model.CHANNEL_OPEN,
 	}, -1)).(*model.Channel)
 	cPub2 := store.Must(ss.Channel().Save(&model.Channel{
-		Name: model.NewId(),
+		Name: model.NewId()[0:10],
 		Type: model.CHANNEL_OPEN,
 	}, -1)).(*model.Channel)
 	cPriv := store.Must(ss.Channel().Save(&model.Channel{
-		Name: model.NewId(),
+		Name: model.NewId()[0:10],
 		Type: model.CHANNEL_PRIVATE,
 	}, -1)).(*model.Channel)
 
@@ -3651,7 +3651,7 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, ss store.Store) {
 	id := model.NewId()
 	res := <-ss.Channel().Save(&model.Channel{
 		DisplayName: "dn_" + id,
-		Name:        "n-" + id,
+		Name:        "n-" + id[0:10],
 		Type:        model.CHANNEL_PRIVATE,
 	}, 999)
 	require.Nil(t, res.Err)

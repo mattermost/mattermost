@@ -42,7 +42,7 @@ func TestJoinCommandForExistingChannel(t *testing.T) {
 
 	channel2, _ := th.App.CreateChannel(&model.Channel{
 		DisplayName: "AA",
-		Name:        "aa" + model.NewId() + "a",
+		Name:        "aa" + model.NewId()[0:10] + "a",
 		Type:        model.CHANNEL_OPEN,
 		TeamId:      th.BasicTeam.Id,
 		CreatorId:   th.BasicUser.Id,
@@ -71,7 +71,7 @@ func TestJoinCommandWithTilde(t *testing.T) {
 
 	channel2, _ := th.App.CreateChannel(&model.Channel{
 		DisplayName: "AA",
-		Name:        "aa" + model.NewId() + "a",
+		Name:        "aa" + model.NewId()[0:10] + "a",
 		Type:        model.CHANNEL_OPEN,
 		TeamId:      th.BasicTeam.Id,
 		CreatorId:   th.BasicUser.Id,
@@ -96,7 +96,7 @@ func TestJoinCommandPermissions(t *testing.T) {
 
 	channel2, _ := th.App.CreateChannel(&model.Channel{
 		DisplayName: "AA",
-		Name:        "aa" + model.NewId() + "a",
+		Name:        "aa" + model.NewId()[0:10] + "a",
 		Type:        model.CHANNEL_OPEN,
 		TeamId:      th.BasicTeam.Id,
 		CreatorId:   th.BasicUser.Id,
@@ -131,7 +131,7 @@ func TestJoinCommandPermissions(t *testing.T) {
 	// Try a private channel *without* permission.
 	channel3, _ := th.App.CreateChannel(&model.Channel{
 		DisplayName: "BB",
-		Name:        "aa" + model.NewId() + "a",
+		Name:        "aa" + model.NewId()[0:10] + "a",
 		Type:        model.CHANNEL_PRIVATE,
 		TeamId:      th.BasicTeam.Id,
 		CreatorId:   th.BasicUser.Id,

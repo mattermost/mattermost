@@ -80,7 +80,7 @@ func TestMuteCommandSpecificChannel(t *testing.T) {
 	channel1 := th.BasicChannel
 	channel2, _ := th.App.CreateChannel(&model.Channel{
 		DisplayName: "AA",
-		Name:        "aa" + model.NewId() + "a",
+		Name:        "aa" + model.NewId()[0:10] + "a",
 		Type:        model.CHANNEL_OPEN,
 		TeamId:      th.BasicTeam.Id,
 		CreatorId:   th.BasicUser.Id,
@@ -125,7 +125,7 @@ func TestMuteCommandNotMember(t *testing.T) {
 	channel1 := th.BasicChannel
 	channel2, _ := th.App.CreateChannel(&model.Channel{
 		DisplayName: "AA",
-		Name:        "aa" + model.NewId() + "a",
+		Name:        "aa" + model.NewId()[0:10] + "a",
 		Type:        model.CHANNEL_OPEN,
 		TeamId:      th.BasicTeam.Id,
 		CreatorId:   th.BasicUser.Id,

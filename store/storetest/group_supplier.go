@@ -1087,7 +1087,7 @@ func testPendingAutoAddChannelMembers(t *testing.T, ss store.Store) {
 	channel := &model.Channel{
 		TeamId:      model.NewId(),
 		DisplayName: "A Name",
-		Name:        model.NewId(),
+		Name:        model.NewId()[0:10],
 		Type:        model.CHANNEL_OPEN, // Query does not look at type so this shouldn't matter.
 	}
 	res = <-ss.Channel().Save(channel, 9999)
@@ -1452,7 +1452,7 @@ func pendingMemberRemovalsDataSetup(t *testing.T, ss store.Store) *removalsData 
 	channelConstrained := &model.Channel{
 		TeamId:           model.NewId(),
 		DisplayName:      "A Name",
-		Name:             model.NewId(),
+		Name:             model.NewId()[0:10],
 		Type:             model.CHANNEL_PRIVATE,
 		GroupConstrained: model.NewBool(true),
 	}
@@ -1463,7 +1463,7 @@ func pendingMemberRemovalsDataSetup(t *testing.T, ss store.Store) *removalsData 
 	channelUnconstrained := &model.Channel{
 		TeamId:      model.NewId(),
 		DisplayName: "A Name",
-		Name:        model.NewId(),
+		Name:        model.NewId()[0:10],
 		Type:        model.CHANNEL_PRIVATE,
 	}
 	res = <-ss.Channel().Save(channelUnconstrained, 9999)
@@ -1566,7 +1566,7 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 	channel1 := &model.Channel{
 		TeamId:      model.NewId(),
 		DisplayName: "Channel1",
-		Name:        model.NewId(),
+		Name:        model.NewId()[0:10],
 		Type:        model.CHANNEL_OPEN,
 	}
 	res := <-ss.Channel().Save(channel1, 9999)
@@ -1607,7 +1607,7 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 	channel2 := &model.Channel{
 		TeamId:      model.NewId(),
 		DisplayName: "Channel2",
-		Name:        model.NewId(),
+		Name:        model.NewId()[0:10],
 		Type:        model.CHANNEL_OPEN,
 	}
 	res = <-ss.Channel().Save(channel2, 9999)
@@ -1978,7 +1978,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 	channel1 := &model.Channel{
 		TeamId:      model.NewId(),
 		DisplayName: "Channel1",
-		Name:        model.NewId(),
+		Name:        model.NewId()[0:10],
 		Type:        model.CHANNEL_PRIVATE,
 	}
 	res := <-ss.Channel().Save(channel1, 9999)
@@ -2033,7 +2033,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 	channel2 := &model.Channel{
 		TeamId:      model.NewId(),
 		DisplayName: "Channel2",
-		Name:        model.NewId(),
+		Name:        model.NewId()[0:10],
 		Type:        model.CHANNEL_PRIVATE,
 	}
 	res = <-ss.Channel().Save(channel2, 9999)

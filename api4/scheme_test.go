@@ -397,7 +397,7 @@ func TestGetChannelsForScheme(t *testing.T) {
 	channel1 := &model.Channel{
 		TeamId:      model.NewId(),
 		DisplayName: "A Name",
-		Name:        model.NewId(),
+		Name:        model.NewId()[0:10],
 		Type:        model.CHANNEL_OPEN,
 	}
 
@@ -421,7 +421,7 @@ func TestGetChannelsForScheme(t *testing.T) {
 	channel2 := &model.Channel{
 		TeamId:      model.NewId(),
 		DisplayName: "B Name",
-		Name:        model.NewId(),
+		Name:        model.NewId()[0:10],
 		Type:        model.CHANNEL_OPEN,
 		SchemeId:    &scheme1.Id,
 	}
@@ -694,7 +694,7 @@ func TestDeleteScheme(t *testing.T) {
 		res := <-th.App.Srv.Store.Channel().Save(&model.Channel{
 			TeamId:      model.NewId(),
 			DisplayName: model.NewId(),
-			Name:        model.NewId(),
+			Name:        model.NewId()[0:10],
 			Type:        model.CHANNEL_OPEN,
 			SchemeId:    &s1.Id,
 		}, -1)

@@ -274,11 +274,11 @@ func TestLeaveCommands(t *testing.T) {
 	team := th.BasicTeam
 	user2 := th.BasicUser2
 
-	channel1 := &model.Channel{DisplayName: "AA", Name: "aa" + model.NewId() + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
+	channel1 := &model.Channel{DisplayName: "AA", Name: "aa" + model.NewId()[0:10] + "a", Type: model.CHANNEL_OPEN, TeamId: team.Id}
 	channel1 = Client.Must(Client.CreateChannel(channel1)).(*model.Channel)
 	Client.Must(Client.AddChannelMember(channel1.Id, th.BasicUser.Id))
 
-	channel2 := &model.Channel{DisplayName: "BB", Name: "bb" + model.NewId() + "a", Type: model.CHANNEL_PRIVATE, TeamId: team.Id}
+	channel2 := &model.Channel{DisplayName: "BB", Name: "bb" + model.NewId()[0:10] + "a", Type: model.CHANNEL_PRIVATE, TeamId: team.Id}
 	channel2 = Client.Must(Client.CreateChannel(channel2)).(*model.Channel)
 	Client.Must(Client.AddChannelMember(channel2.Id, th.BasicUser.Id))
 	Client.Must(Client.AddChannelMember(channel2.Id, user2.Id))

@@ -1212,9 +1212,9 @@ func testGetChannelUnreadsForAllTeams(t *testing.T, ss store.Store) {
 	store.Must(ss.Team().SaveMember(m1, -1))
 	store.Must(ss.Team().SaveMember(m2, -1))
 
-	c1 := &model.Channel{TeamId: m1.TeamId, Name: model.NewId(), DisplayName: "Town Square", Type: model.CHANNEL_OPEN, TotalMsgCount: 100}
+	c1 := &model.Channel{TeamId: m1.TeamId, Name: model.NewId()[0:10], DisplayName: "Town Square", Type: model.CHANNEL_OPEN, TotalMsgCount: 100}
 	store.Must(ss.Channel().Save(c1, -1))
-	c2 := &model.Channel{TeamId: m2.TeamId, Name: model.NewId(), DisplayName: "Town Square", Type: model.CHANNEL_OPEN, TotalMsgCount: 100}
+	c2 := &model.Channel{TeamId: m2.TeamId, Name: model.NewId()[0:10], DisplayName: "Town Square", Type: model.CHANNEL_OPEN, TotalMsgCount: 100}
 	store.Must(ss.Channel().Save(c2, -1))
 
 	cm1 := &model.ChannelMember{ChannelId: c1.Id, UserId: m1.UserId, NotifyProps: model.GetDefaultChannelNotifyProps(), MsgCount: 90}
@@ -1275,9 +1275,9 @@ func testGetChannelUnreadsForTeam(t *testing.T, ss store.Store) {
 	m1 := &model.TeamMember{TeamId: teamId1, UserId: uid}
 	store.Must(ss.Team().SaveMember(m1, -1))
 
-	c1 := &model.Channel{TeamId: m1.TeamId, Name: model.NewId(), DisplayName: "Town Square", Type: model.CHANNEL_OPEN, TotalMsgCount: 100}
+	c1 := &model.Channel{TeamId: m1.TeamId, Name: model.NewId()[0:10], DisplayName: "Town Square", Type: model.CHANNEL_OPEN, TotalMsgCount: 100}
 	store.Must(ss.Channel().Save(c1, -1))
-	c2 := &model.Channel{TeamId: m1.TeamId, Name: model.NewId(), DisplayName: "Town Square", Type: model.CHANNEL_OPEN, TotalMsgCount: 100}
+	c2 := &model.Channel{TeamId: m1.TeamId, Name: model.NewId()[0:10], DisplayName: "Town Square", Type: model.CHANNEL_OPEN, TotalMsgCount: 100}
 	store.Must(ss.Channel().Save(c2, -1))
 
 	cm1 := &model.ChannelMember{ChannelId: c1.Id, UserId: m1.UserId, NotifyProps: model.GetDefaultChannelNotifyProps(), MsgCount: 90}

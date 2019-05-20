@@ -184,7 +184,7 @@ func TestImportBulkImport(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableCustomEmoji = true })
 
 	teamName := model.NewId()
-	channelName := model.NewId()
+	channelName := model.NewId()[0:10]
 	username := model.NewId()
 	username2 := model.NewId()
 	username3 := model.NewId()
