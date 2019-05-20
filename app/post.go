@@ -158,12 +158,12 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 
 	var pchan store.StoreChannel
 	if len(post.RootId) > 0 {
-		postList, pErr := a.Srv.Store.Post().Get(post.RootId)
-		s := store.StoreResult{Data: postList, Err: pErr}
-		storeChan := make(store.StoreChannel, 1)
-		storeChan <- s
-		close(storeChan)
-		pchan = storeChan
+		pchan = make(store.StoreChannel, 1)
+		go func() {
+			r, pErr := a.Srv.Store.Post().Get(post.RootId)
+			pchan <- store.StoreResult{Data: r, Err: pErr}
+			close(pchan)
+		}()
 	}
 
 	user, err := a.Srv.Store.User().Get(post.UserId)
