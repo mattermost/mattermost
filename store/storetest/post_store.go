@@ -472,8 +472,8 @@ func testPostStorePermDelete1Level(t *testing.T, ss store.Store) {
 		t.Fatal(r2.Err)
 	}
 
-	if _, err := ss.Post().Get(o1.Id); err == nil {
-		t.Fatal("Deleted id should have failed")
+	if _, err := ss.Post().Get(o1.Id); err != nil {
+		t.Fatal("Deleted id shouldn't have failed")
 	}
 
 	if _, err := ss.Post().Get(o2.Id); err == nil {
@@ -522,8 +522,8 @@ func testPostStorePermDelete1Level2(t *testing.T, ss store.Store) {
 		t.Fatal("Deleted id should have failed")
 	}
 
-	if _, err := ss.Post().Get(o3.Id); err == nil {
-		t.Fatal("Deleted id should have failed")
+	if _, err := ss.Post().Get(o3.Id); err != nil {
+		t.Fatal("Deleted id shouldn't have failed")
 	}
 }
 
@@ -550,9 +550,8 @@ func testPostStoreGetWithChildren(t *testing.T, ss store.Store) {
 	o3.RootId = o1.Id
 	o3 = (<-ss.Post().Save(o3)).Data.(*model.Post)
 
-	var pl *model.PostList
 	var err error
-	pl, err = ss.Post().Get(o1.Id)
+	pl, err := ss.Post().Get(o1.Id)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1712,7 +1711,7 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	ro2a := r1.Posts[o2.Id]
+	ro2a := r2.Posts[o2.Id]
 
 	if ro2a.Message != o2a.Message {
 		t.Fatal("Failed to overwrite/get")
@@ -1730,7 +1729,7 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	ro3a := r1.Posts[o3.Id]
+	ro3a := r3.Posts[o3.Id]
 
 	if ro3a.Message != o3a.Message && ro3a.Hashtags != o3a.Hashtags {
 		t.Fatal("Failed to overwrite/get")
