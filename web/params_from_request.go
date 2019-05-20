@@ -34,10 +34,6 @@ func ParamsFromRequest(r *http.Request) *Params {
 		params.TokenId = val
 	}
 
-	if val, ok := props["channel_id"]; ok {
-		params.ChannelId = val
-	}
-
 	if val, ok := props["post_id"]; ok {
 		params.PostId = val
 	}
@@ -122,9 +118,7 @@ func ParamsFromRequest(r *http.Request) *Params {
 		params.SchemeId = val
 	}
 
-	if val, ok := props["scope"]; ok {
-		params.Scope = val
-	}
+	params.Scope = query.Get("scope")
 
 	if val, ok := props["group_id"]; ok {
 		params.GroupId = val
@@ -146,9 +140,7 @@ func ParamsFromRequest(r *http.Request) *Params {
 		params.BotUserId = val
 	}
 
-	if val, ok := props["q"]; ok {
-		params.Q = val
-	}
+	params.Q = query.Get("q")
 
 	if val, err := strconv.ParseBool(query.Get("is_linked")); err == nil {
 		params.IsLinked = &val
@@ -158,13 +150,9 @@ func ParamsFromRequest(r *http.Request) *Params {
 		params.IsConfigured = &val
 	}
 
-	if val, ok := props["not_associated_to_team"]; ok {
-		params.NotAssociatedToTeam = val
-	}
+	params.NotAssociatedToTeam = query.Get("not_associated_to_team")
 
-	if val, ok := props["not_associated_to_channel"]; ok {
-		params.NotAssociatedToChannel = val
-	}
+	params.NotAssociatedToChannel = query.Get("not_associated_to_channel")
 
 	if val, err := strconv.ParseBool(query.Get("paginate")); err == nil {
 		params.Paginate = &val

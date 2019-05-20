@@ -27,7 +27,7 @@ type Params struct {
 	TeamId                 string `param:"team_id"`
 	InviteId               string `param:"invite_id"`
 	TokenId                string `param:"token_id"`
-	ChannelId              string `param:"channel_id"`
+	ChannelId              string
 	PostId                 string `param:"post_id"`
 	FileId                 string `param:"file_id"`
 	Filename               string `param:"filename"`
@@ -51,7 +51,7 @@ type Params struct {
 	RoleId                 string `param:"role_id"`
 	RoleName               string `param:"role_name"`
 	SchemeId               string `param:"scheme_id"`
-	Scope                  string `param:"scope"`
+	Scope                  string `param:"scope,query"`
 	GroupId                string `param:"group_id"`
 	Page                   int
 	PerPage                int
@@ -61,11 +61,11 @@ type Params struct {
 	SyncableId             string `param:"syncable_id"`
 	SyncableType           model.GroupSyncableType
 	BotUserId              string `param:"bot_user_id"`
-	Q                      string `param:"q"`
+	Q                      string `param:"q,query"`
 	IsLinked               *bool  `param:"is_linked"`
 	IsConfigured           *bool  `param:"is_configured"`
-	NotAssociatedToTeam    string `param:"not_associated_to_team"`
-	NotAssociatedToChannel string `param:"not_associated_to_channel"`
+	NotAssociatedToTeam    string `param:"not_associated_to_team,query"`
+	NotAssociatedToChannel string `param:"not_associated_to_channel,query"`
 	Paginate               *bool  `param:"paginate"`
 	IncludeMemberCount     bool   `param:"include_member_count"`
 }
@@ -111,5 +111,11 @@ func (p *Params) AddCustomParamsFromRequest(r *http.Request) {
 		case "channels":
 			p.SyncableType = model.GroupSyncableTypeChannel
 		}
+	}
+
+	if val, ok := props["channel_id"]; ok {
+		p.ChannelId = val
+	} else {
+		p.ChannelId = query.Get("channel_id")
 	}
 }

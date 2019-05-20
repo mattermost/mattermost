@@ -10,12 +10,14 @@ import (
 	"log"
 	"os"
 	"reflect"
+	"strings"
 	"text/template"
 
 	"github.com/mattermost/mattermost-server/web"
 )
 
-const tagName = "param"
+const paramTagName = "param"
+const paramModifierQuery = "query"
 
 type TemplateData struct {
 	ParamName string
@@ -33,6 +35,8 @@ const boolPtrTemplate = `if val, err := strconv.ParseBool(query.Get("{{.ParamNam
 const stringTemplate = `if val, ok := props["{{.ParamName}}"]; ok {
 	params.{{.FieldName}} = val
 }`
+
+const queryTemplate = `params.{{.FieldName}} = query.Get("{{.ParamName}}")`
 
 const goFile = `// Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
@@ -110,12 +114,25 @@ func getCode() ([]byte, error) {
 		return nil, err
 	}
 
+	queryTmpl, err := template.New("query").Parse(queryTemplate)
+	if err != nil {
+		return nil, err
+	}
+
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
-		tag := field.Tag.Get(tagName)
+		tag := field.Tag.Get(paramTagName)
 
 		if len(tag) == 0 {
 			continue
+		}
+
+		tagParts := strings.Split(tag, ",")
+		paramName := tagParts[0]
+		hasQueryModifier := false
+
+		if len(tagParts) > 1 {
+			hasQueryModifier = tagParts[1] == paramModifierQuery
 		}
 
 		var b bool
@@ -123,7 +140,11 @@ func getCode() ([]byte, error) {
 		var template *template.Template
 		switch field.Type {
 		case reflect.TypeOf(s):
-			template = stringTmpl
+			if hasQueryModifier {
+				template = queryTmpl
+			} else {
+				template = stringTmpl
+			}
 		case reflect.TypeOf(b):
 			template = boolTmpl
 		case reflect.PtrTo(reflect.TypeOf(b)):
@@ -132,7 +153,7 @@ func getCode() ([]byte, error) {
 			continue
 		}
 
-		td := TemplateData{FieldName: field.Name, ParamName: tag}
+		td := TemplateData{FieldName: field.Name, ParamName: paramName}
 
 		if err = template.Execute(&buff, td); err != nil {
 			return nil, err
