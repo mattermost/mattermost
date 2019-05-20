@@ -44,7 +44,7 @@ const (
 type Hooks interface {
 	// OnActivate is invoked when the plugin is activated. If an error is returned, the plugin
 	// will be terminated. The plugin will not receive hooks until after OnActivate returns
-	// without error.
+	// without error. OnConfigurationChange will be called once before OnActivate.
 	OnActivate() error
 
 	// Implemented returns a list of hooks that are implemented by the plugin.
@@ -58,7 +58,7 @@ type Hooks interface {
 
 	// OnConfigurationChange is invoked when configuration changes may have been made. Any
 	// returned error is logged, but does not stop the plugin. You must be prepared to handle
-	// a configuration failure gracefully.
+	// a configuration failure gracefully. It is called once before OnActivate.
 	OnConfigurationChange() error
 
 	// ServeHTTP allows the plugin to implement the http.Handler interface. Requests destined for

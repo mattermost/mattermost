@@ -140,7 +140,8 @@ ifeq ($(IS_CI),false)
 	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-minio$$ | wc -l) -eq 0 ]; then \
 		echo starting mattermost-minio; \
 		docker run --name mattermost-minio -p 9001:9000 -e "MINIO_ACCESS_KEY=minioaccesskey" \
-		-e "MINIO_SECRET_KEY=miniosecretkey" -d minio/minio:RELEASE.2018-05-25T19-49-13Z server /data > /dev/null; \
+		-e "MINIO_SSE_MASTER_KEY=my-minio-key:6368616e676520746869732070617373776f726420746f206120736563726574" \
+		-e "MINIO_SECRET_KEY=miniosecretkey" -d minio/minio:RELEASE.2019-04-23T23-50-36Z server /data > /dev/null; \
 		docker exec -it mattermost-minio /bin/sh -c "mkdir -p /data/mattermost-test" > /dev/null; \
 	elif [ $(shell docker ps --no-trunc --quiet --filter name=^/mattermost-minio$$ | wc -l) -eq 0 ]; then \
 		echo restarting mattermost-minio; \
@@ -337,6 +338,7 @@ plugin-mocks: ## Creates mock files for plugins.
 	go get -u github.com/vektra/mockery/...
 	$(GOPATH)/bin/mockery -dir plugin -name API -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
 	$(GOPATH)/bin/mockery -dir plugin -name Hooks -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
+	$(GOPATH)/bin/mockery -dir plugin -name Helpers -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
 
 pluginapi: ## Generates api and hooks glue code for plugins
 	go generate ./plugin
@@ -559,6 +561,21 @@ nuke: clean clean-docker ## Clean plus removes persistant server data.
 
 setup-mac: ## Adds macOS hosts entries for Docker.
 	echo $$(boot2docker ip 2> /dev/null) dockerhost | sudo tee -a /etc/hosts
+
+update-dependencies: ## Uses go get -u to update all the dependencies while holding back any that require it. 
+	@echo Updating Dependencies
+
+	# Update all dependencies (does not update across major versions)
+	go get -u
+
+	# Keep back because of breaking API changes
+	go get -u github.com/segmentio/analytics-go@2.1.1
+
+	# Tidy up
+	go mod tidy
+
+	# Copy everything to vendor directory
+	go mod vendor
 
 
 todo: ## Display TODO and FIXME items in the source code.

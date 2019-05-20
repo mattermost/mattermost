@@ -24,9 +24,22 @@ const (
 	CATEGORY_CAN_REPLY = "CAN_REPLY"
 
 	MHPNS = "https://push.mattermost.com"
+
+	PUSH_SEND_PREPARE = "Prepared to send"
+	PUSH_SEND_SUCCESS = "Successful"
+	PUSH_NOT_SENT     = "Not Sent due to preferences"
+	PUSH_RECEIVED     = "Received by device"
 )
 
+type PushNotificationAck struct {
+	Id               string `json:"id"`
+	ClientReceivedAt int64  `json:"received_at"`
+	ClientPlatform   string `json:"platform"`
+	NotificationType string `json:"type"`
+}
+
 type PushNotification struct {
+	AckId            string `json:"ack_id"`
 	Platform         string `json:"platform"`
 	ServerId         string `json:"server_id"`
 	DeviceId         string `json:"device_id"`
@@ -42,6 +55,7 @@ type PushNotification struct {
 	ChannelName      string `json:"channel_name"`
 	Type             string `json:"type"`
 	SenderId         string `json:"sender_id"`
+	SenderName       string `json:"sender_name"`
 	OverrideUsername string `json:"override_username"`
 	OverrideIconUrl  string `json:"override_icon_url"`
 	FromWebhook      string `json:"from_webhook"`
@@ -67,4 +81,15 @@ func PushNotificationFromJson(data io.Reader) *PushNotification {
 	var me *PushNotification
 	json.NewDecoder(data).Decode(&me)
 	return me
+}
+
+func PushNotificationAckFromJson(data io.Reader) *PushNotificationAck {
+	var ack *PushNotificationAck
+	json.NewDecoder(data).Decode(&ack)
+	return ack
+}
+
+func (ack *PushNotificationAck) ToJson() string {
+	b, _ := json.Marshal(ack)
+	return string(b)
 }

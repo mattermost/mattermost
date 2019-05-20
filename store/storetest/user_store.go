@@ -65,6 +65,8 @@ func TestUserStore(t *testing.T, ss store.Store) {
 	t.Run("ClearAllCustomRoleAssignments", func(t *testing.T) { testUserStoreClearAllCustomRoleAssignments(t, ss) })
 	t.Run("GetAllAfter", func(t *testing.T) { testUserStoreGetAllAfter(t, ss) })
 	t.Run("GetUsersBatchForIndexing", func(t *testing.T) { testUserStoreGetUsersBatchForIndexing(t, ss) })
+	t.Run("GetTeamGroupUsers", func(t *testing.T) { testUserStoreGetTeamGroupUsers(t, ss) })
+	t.Run("GetChannelGroupUsers", func(t *testing.T) { testUserStoreGetChannelGroupUsers(t, ss) })
 }
 
 func testUserStoreSave(t *testing.T, ss store.Store) {
@@ -218,12 +220,10 @@ func testUserStoreUpdateUpdateAt(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	if r1 := <-ss.User().Get(u1.Id); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		if r1.Data.(*model.User).UpdateAt <= u1.UpdateAt {
-			t.Fatal("UpdateAt not updated correctly")
-		}
+	user, err := ss.User().Get(u1.Id)
+	require.Nil(t, err)
+	if user.UpdateAt <= u1.UpdateAt {
+		t.Fatal("UpdateAt not updated correctly")
 	}
 
 }
@@ -239,14 +239,11 @@ func testUserStoreUpdateFailedPasswordAttempts(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	if r1 := <-ss.User().Get(u1.Id); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		if r1.Data.(*model.User).FailedAttempts != 3 {
-			t.Fatal("FailedAttempts not updated correctly")
-		}
+	user, err := ss.User().Get(u1.Id)
+	require.Nil(t, err)
+	if user.FailedAttempts != 3 {
+		t.Fatal("FailedAttempts not updated correctly")
 	}
-
 }
 
 func testUserStoreGet(t *testing.T, ss store.Store) {
@@ -272,23 +269,20 @@ func testUserStoreGet(t *testing.T, ss store.Store) {
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1))
 
 	t.Run("fetch empty id", func(t *testing.T) {
-		require.NotNil(t, (<-ss.User().Get("")).Err)
+		_, err := ss.User().Get("")
+		require.NotNil(t, err)
 	})
 
 	t.Run("fetch user 1", func(t *testing.T) {
-		result := <-ss.User().Get(u1.Id)
-		require.Nil(t, result.Err)
-
-		actual := result.Data.(*model.User)
+		actual, err := ss.User().Get(u1.Id)
+		require.Nil(t, err)
 		require.Equal(t, u1, actual)
 		require.False(t, actual.IsBot)
 	})
 
 	t.Run("fetch user 2, also a bot", func(t *testing.T) {
-		result := <-ss.User().Get(u2.Id)
-		require.Nil(t, result.Err)
-
-		actual := result.Data.(*model.User)
+		actual, err := ss.User().Get(u2.Id)
+		require.Nil(t, err)
 		require.Equal(t, u2, actual)
 		require.True(t, actual.IsBot)
 	})
@@ -866,19 +860,19 @@ func testUserStoreGetProfilesWithoutTeam(t *testing.T, ss store.Store) {
 	defer func() { store.Must(ss.Bot().PermanentDelete(u3.Id)) }()
 
 	t.Run("get, offset 0, limit 100", func(t *testing.T) {
-		result := <-ss.User().GetProfilesWithoutTeam(0, 100)
+		result := <-ss.User().GetProfilesWithoutTeam(0, 100, nil)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{sanitized(u2), sanitized(u3)}, result.Data.([]*model.User))
 	})
 
 	t.Run("get, offset 1, limit 1", func(t *testing.T) {
-		result := <-ss.User().GetProfilesWithoutTeam(1, 1)
+		result := <-ss.User().GetProfilesWithoutTeam(1, 1, nil)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{sanitized(u3)}, result.Data.([]*model.User))
 	})
 
 	t.Run("get, offset 2, limit 1", func(t *testing.T) {
-		result := <-ss.User().GetProfilesWithoutTeam(2, 1)
+		result := <-ss.User().GetProfilesWithoutTeam(2, 1, nil)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{}, result.Data.([]*model.User))
 	})
@@ -1037,7 +1031,7 @@ func testUserStoreGetProfilesNotInChannel(t *testing.T, ss store.Store) {
 	}, -1)).(*model.Channel)
 
 	t.Run("get team 1, channel 1, offset 0, limit 100", func(t *testing.T) {
-		result := <-ss.User().GetProfilesNotInChannel(teamId, c1.Id, 0, 100)
+		result := <-ss.User().GetProfilesNotInChannel(teamId, c1.Id, false, 0, 100, nil)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{
 			sanitized(u1),
@@ -1047,7 +1041,7 @@ func testUserStoreGetProfilesNotInChannel(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("get team 1, channel 2, offset 0, limit 100", func(t *testing.T) {
-		result := <-ss.User().GetProfilesNotInChannel(teamId, c2.Id, 0, 100)
+		result := <-ss.User().GetProfilesNotInChannel(teamId, c2.Id, false, 0, 100, nil)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{
 			sanitized(u1),
@@ -1081,17 +1075,53 @@ func testUserStoreGetProfilesNotInChannel(t *testing.T, ss store.Store) {
 	}))
 
 	t.Run("get team 1, channel 1, offset 0, limit 100, after update", func(t *testing.T) {
-		result := <-ss.User().GetProfilesNotInChannel(teamId, c1.Id, 0, 100)
+		result := <-ss.User().GetProfilesNotInChannel(teamId, c1.Id, false, 0, 100, nil)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{}, result.Data.([]*model.User))
 	})
 
 	t.Run("get team 1, channel 2, offset 0, limit 100, after update", func(t *testing.T) {
-		result := <-ss.User().GetProfilesNotInChannel(teamId, c2.Id, 0, 100)
+		result := <-ss.User().GetProfilesNotInChannel(teamId, c2.Id, false, 0, 100, nil)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{
 			sanitized(u2),
 			sanitized(u3),
+		}, result.Data.([]*model.User))
+	})
+
+	t.Run("get team 1, channel 2, offset 0, limit 0, setting group constrained when it's not", func(t *testing.T) {
+		result := <-ss.User().GetProfilesNotInChannel(teamId, c2.Id, true, 0, 100, nil)
+		require.Nil(t, result.Err)
+		assert.Empty(t, result.Data.([]*model.User))
+	})
+
+	// create a group
+	group := store.Must(ss.Group().Create(&model.Group{
+		Name:        "n_" + model.NewId(),
+		DisplayName: "dn_" + model.NewId(),
+		Source:      model.GroupSourceLdap,
+		RemoteId:    "ri_" + model.NewId(),
+	})).(*model.Group)
+
+	// add two members to the group
+	for _, u := range []*model.User{u1, u2} {
+		res := <-ss.Group().CreateOrRestoreMember(group.Id, u.Id)
+		require.Nil(t, res.Err)
+	}
+
+	// associate the group with the channel
+	res := <-ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+		GroupId:    group.Id,
+		SyncableId: c2.Id,
+		Type:       model.GroupSyncableTypeChannel,
+	})
+	require.Nil(t, res.Err)
+
+	t.Run("get team 1, channel 2, offset 0, limit 0, setting group constrained", func(t *testing.T) {
+		result := <-ss.User().GetProfilesNotInChannel(teamId, c2.Id, true, 0, 100, nil)
+		require.Nil(t, result.Err)
+		assert.Equal(t, []*model.User{
+			sanitized(u2),
 		}, result.Data.([]*model.User))
 	})
 }
@@ -1128,31 +1158,31 @@ func testUserStoreGetProfilesByIds(t *testing.T, ss store.Store) {
 	defer func() { store.Must(ss.Bot().PermanentDelete(u3.Id)) }()
 
 	t.Run("get u1 by id, no caching", func(t *testing.T) {
-		result := <-ss.User().GetProfileByIds([]string{u1.Id}, false)
+		result := <-ss.User().GetProfileByIds([]string{u1.Id}, false, nil)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{sanitized(u1)}, result.Data.([]*model.User))
 	})
 
 	t.Run("get u1 by id, caching", func(t *testing.T) {
-		result := <-ss.User().GetProfileByIds([]string{u1.Id}, true)
+		result := <-ss.User().GetProfileByIds([]string{u1.Id}, true, nil)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{sanitized(u1)}, result.Data.([]*model.User))
 	})
 
 	t.Run("get u1, u2, u3 by id, no caching", func(t *testing.T) {
-		result := <-ss.User().GetProfileByIds([]string{u1.Id, u2.Id, u3.Id}, false)
+		result := <-ss.User().GetProfileByIds([]string{u1.Id, u2.Id, u3.Id}, false, nil)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{sanitized(u1), sanitized(u2), sanitized(u3)}, result.Data.([]*model.User))
 	})
 
 	t.Run("get u1, u2, u3 by id, caching", func(t *testing.T) {
-		result := <-ss.User().GetProfileByIds([]string{u1.Id, u2.Id, u3.Id}, true)
+		result := <-ss.User().GetProfileByIds([]string{u1.Id, u2.Id, u3.Id}, true, nil)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{sanitized(u1), sanitized(u2), sanitized(u3)}, result.Data.([]*model.User))
 	})
 
 	t.Run("get unknown id, caching", func(t *testing.T) {
-		result := <-ss.User().GetProfileByIds([]string{"123"}, true)
+		result := <-ss.User().GetProfileByIds([]string{"123"}, true, nil)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{}, result.Data.([]*model.User))
 	})
@@ -1191,31 +1221,31 @@ func testUserStoreGetProfilesByUsernames(t *testing.T, ss store.Store) {
 	defer func() { store.Must(ss.Bot().PermanentDelete(u3.Id)) }()
 
 	t.Run("get by u1 and u2 usernames, team id 1", func(t *testing.T) {
-		result := <-ss.User().GetProfilesByUsernames([]string{u1.Username, u2.Username}, teamId)
+		result := <-ss.User().GetProfilesByUsernames([]string{u1.Username, u2.Username}, &model.ViewUsersRestrictions{Teams: []string{teamId}})
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{u1, u2}, result.Data.([]*model.User))
 	})
 
 	t.Run("get by u1 username, team id 1", func(t *testing.T) {
-		result := <-ss.User().GetProfilesByUsernames([]string{u1.Username}, teamId)
+		result := <-ss.User().GetProfilesByUsernames([]string{u1.Username}, &model.ViewUsersRestrictions{Teams: []string{teamId}})
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{u1}, result.Data.([]*model.User))
 	})
 
 	t.Run("get by u1 and u3 usernames, no team id", func(t *testing.T) {
-		result := <-ss.User().GetProfilesByUsernames([]string{u1.Username, u3.Username}, "")
+		result := <-ss.User().GetProfilesByUsernames([]string{u1.Username, u3.Username}, nil)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{u1, u3}, result.Data.([]*model.User))
 	})
 
 	t.Run("get by u1 and u3 usernames, team id 1", func(t *testing.T) {
-		result := <-ss.User().GetProfilesByUsernames([]string{u1.Username, u3.Username}, teamId)
+		result := <-ss.User().GetProfilesByUsernames([]string{u1.Username, u3.Username}, &model.ViewUsersRestrictions{Teams: []string{teamId}})
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{u1}, result.Data.([]*model.User))
 	})
 
 	t.Run("get by u1 and u3 usernames, team id 2", func(t *testing.T) {
-		result := <-ss.User().GetProfilesByUsernames([]string{u1.Username, u3.Username}, team2Id)
+		result := <-ss.User().GetProfilesByUsernames([]string{u1.Username, u3.Username}, &model.ViewUsersRestrictions{Teams: []string{team2Id}})
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{u3}, result.Data.([]*model.User))
 	})
@@ -1659,7 +1689,7 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	m1.ChannelId = c2.Id
 	m2.ChannelId = c2.Id
 
-	if err := (<-ss.Channel().SaveDirectChannel(&c2, &m1, &m2)).Err; err != nil {
+	if _, err := ss.Channel().SaveDirectChannel(&c2, &m1, &m2); err != nil {
 		t.Fatal("couldn't save direct channel", err)
 	}
 
@@ -1784,7 +1814,7 @@ func testUserStoreGetRecentlyActiveUsersForTeam(t *testing.T, ss store.Store) {
 	store.Must(ss.Status().SaveOrUpdate(&model.Status{UserId: u3.Id, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: u3.LastActivityAt, ActiveChannel: ""}))
 
 	t.Run("get team 1, offset 0, limit 100", func(t *testing.T) {
-		result := <-ss.User().GetRecentlyActiveUsersForTeam(teamId, 0, 100)
+		result := <-ss.User().GetRecentlyActiveUsersForTeam(teamId, 0, 100, nil)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{
 			sanitized(u3),
@@ -1794,7 +1824,7 @@ func testUserStoreGetRecentlyActiveUsersForTeam(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("get team 1, offset 0, limit 1", func(t *testing.T) {
-		result := <-ss.User().GetRecentlyActiveUsersForTeam(teamId, 0, 1)
+		result := <-ss.User().GetRecentlyActiveUsersForTeam(teamId, 0, 1, nil)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{
 			sanitized(u3),
@@ -1802,7 +1832,7 @@ func testUserStoreGetRecentlyActiveUsersForTeam(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("get team 1, offset 2, limit 1", func(t *testing.T) {
-		result := <-ss.User().GetRecentlyActiveUsersForTeam(teamId, 2, 1)
+		result := <-ss.User().GetRecentlyActiveUsersForTeam(teamId, 2, 1, nil)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{
 			sanitized(u2),
@@ -1850,7 +1880,7 @@ func testUserStoreGetNewUsersForTeam(t *testing.T, ss store.Store) {
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId2, UserId: u4.Id}, -1))
 
 	t.Run("get team 1, offset 0, limit 100", func(t *testing.T) {
-		result := <-ss.User().GetNewUsersForTeam(teamId, 0, 100)
+		result := <-ss.User().GetNewUsersForTeam(teamId, 0, 100, nil)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{
 			sanitized(u3),
@@ -1860,7 +1890,7 @@ func testUserStoreGetNewUsersForTeam(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("get team 1, offset 0, limit 1", func(t *testing.T) {
-		result := <-ss.User().GetNewUsersForTeam(teamId, 0, 1)
+		result := <-ss.User().GetNewUsersForTeam(teamId, 0, 1, nil)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{
 			sanitized(u3),
@@ -1868,7 +1898,7 @@ func testUserStoreGetNewUsersForTeam(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("get team 1, offset 2, limit 1", func(t *testing.T) {
-		result := <-ss.User().GetNewUsersForTeam(teamId, 2, 1)
+		result := <-ss.User().GetNewUsersForTeam(teamId, 2, 1, nil)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{
 			sanitized(u1),
@@ -1876,7 +1906,7 @@ func testUserStoreGetNewUsersForTeam(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("get team 2, offset 0, limit 100", func(t *testing.T) {
-		result := <-ss.User().GetNewUsersForTeam(teamId2, 0, 100)
+		result := <-ss.User().GetNewUsersForTeam(teamId2, 0, 100, nil)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{
 			sanitized(u4),
@@ -2988,6 +3018,23 @@ func testCount(t *testing.T, ss store.Store) {
 	require.Nil(t, result.Err)
 	require.Equal(t, int64(0), result.Data.(int64))
 
+	result = <-ss.User().Count(model.UserCountOptions{
+		IncludeBotAccounts: true,
+		IncludeDeleted:     true,
+		TeamId:             teamId,
+		ViewRestrictions:   &model.ViewUsersRestrictions{Teams: []string{teamId}},
+	})
+	require.Nil(t, result.Err)
+	require.Equal(t, int64(1), result.Data.(int64))
+
+	result = <-ss.User().Count(model.UserCountOptions{
+		IncludeBotAccounts: true,
+		IncludeDeleted:     true,
+		TeamId:             teamId,
+		ViewRestrictions:   &model.ViewUsersRestrictions{Teams: []string{model.NewId()}},
+	})
+	require.Nil(t, result.Err)
+	require.Equal(t, int64(0), result.Data.(int64))
 }
 
 func testUserStoreAnalyticsGetInactiveUsersCount(t *testing.T, ss store.Store) {
@@ -3058,7 +3105,14 @@ func testUserStoreAnalyticsGetSystemAdminCount(t *testing.T, ss store.Store) {
 }
 
 func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
-	teamId := model.NewId()
+	team, err := ss.Team().Save(&model.Team{
+		DisplayName: "Team",
+		Name:        model.NewId(),
+		Type:        model.TEAM_OPEN,
+	})
+	require.Nil(t, err)
+
+	teamId := team.Id
 	teamId2 := model.NewId()
 
 	u1 := store.Must(ss.User().Save(&model.User{
@@ -3103,7 +3157,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("get not in team 1, offset 0, limit 100000", func(t *testing.T) {
-		result := <-ss.User().GetProfilesNotInTeam(teamId, 0, 100000)
+		result := <-ss.User().GetProfilesNotInTeam(teamId, false, 0, 100000, nil)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{
 			sanitized(u2),
@@ -3112,7 +3166,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("get not in team 1, offset 1, limit 1", func(t *testing.T) {
-		result := <-ss.User().GetProfilesNotInTeam(teamId, 1, 1)
+		result := <-ss.User().GetProfilesNotInTeam(teamId, false, 1, 1, nil)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{
 			sanitized(u3),
@@ -3120,7 +3174,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("get not in team 2, offset 0, limit 100", func(t *testing.T) {
-		result := <-ss.User().GetProfilesNotInTeam(teamId2, 0, 100)
+		result := <-ss.User().GetProfilesNotInTeam(teamId2, false, 0, 100, nil)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{
 			sanitized(u1),
@@ -3143,7 +3197,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("get not in team 1, offset 0, limit 100000 after update", func(t *testing.T) {
-		result := <-ss.User().GetProfilesNotInTeam(teamId, 0, 100000)
+		result := <-ss.User().GetProfilesNotInTeam(teamId, false, 0, 100000, nil)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{
 			sanitized(u3),
@@ -3167,7 +3221,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("get not in team 1, offset 0, limit 100000 after second update", func(t *testing.T) {
-		result := <-ss.User().GetProfilesNotInTeam(teamId, 0, 100000)
+		result := <-ss.User().GetProfilesNotInTeam(teamId, false, 0, 100000, nil)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{
 			sanitized(u1),
@@ -3208,6 +3262,43 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 		require.Nil(t, result.Err)
 		etag4 := result.Data.(string)
 		require.Equal(t, etag3, etag4, "etag should not have changed")
+	})
+
+	t.Run("get not in team 1, offset 0, limit 100000 after second update, setting group constrained when it's not", func(t *testing.T) {
+		result := <-ss.User().GetProfilesNotInTeam(teamId, true, 0, 100000, nil)
+		require.Nil(t, result.Err)
+		assert.Empty(t, result.Data.([]*model.User))
+	})
+
+	// create a group
+	group := store.Must(ss.Group().Create(&model.Group{
+		Name:        "n_" + model.NewId(),
+		DisplayName: "dn_" + model.NewId(),
+		Source:      model.GroupSourceLdap,
+		RemoteId:    "ri_" + model.NewId(),
+	})).(*model.Group)
+
+	// add two members to the group
+	for _, u := range []*model.User{u1, u2} {
+		res := <-ss.Group().CreateOrRestoreMember(group.Id, u.Id)
+		require.Nil(t, res.Err)
+	}
+
+	// associate the group with the team
+	res := <-ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+		GroupId:    group.Id,
+		SyncableId: teamId,
+		Type:       model.GroupSyncableTypeTeam,
+	})
+	require.Nil(t, res.Err)
+
+	t.Run("get not in team 1, offset 0, limit 100000 after second update, setting group constrained", func(t *testing.T) {
+		result := <-ss.User().GetProfilesNotInTeam(teamId, true, 0, 100000, nil)
+		require.Nil(t, result.Err)
+		assert.Equal(t, []*model.User{
+			sanitized(u1),
+			sanitized(u2),
+		}, result.Data.([]*model.User))
 	})
 }
 
@@ -3314,11 +3405,12 @@ func testUserStoreGetAllAfter(t *testing.T, ss store.Store) {
 
 func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
 	// Set up all the objects needed
-	t1 := store.Must(ss.Team().Save(&model.Team{
+	t1, err := ss.Team().Save(&model.Team{
 		DisplayName: "Team1",
 		Name:        model.NewId(),
 		Type:        model.TEAM_OPEN,
-	})).(*model.Team)
+	})
+	require.Nil(t, err)
 	cPub1 := store.Must(ss.Channel().Save(&model.Channel{
 		Name: model.NewId(),
 		Type: model.CHANNEL_OPEN,
@@ -3429,4 +3521,252 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
 	assert.Len(t, res4List, 2)
 	assert.Equal(t, res4List[0].Username, u1.Username)
 	assert.Equal(t, res4List[1].Username, u2.Username)
+}
+
+func testUserStoreGetTeamGroupUsers(t *testing.T, ss store.Store) {
+	// create team
+	id := model.NewId()
+	team, err := ss.Team().Save(&model.Team{
+		DisplayName: "dn_" + id,
+		Name:        "n-" + id,
+		Email:       id + "@test.com",
+		Type:        model.TEAM_INVITE,
+	})
+	require.Nil(t, err)
+	require.NotNil(t, team)
+
+	// create users
+	var testUsers []*model.User
+	for i := 0; i < 3; i++ {
+		id = model.NewId()
+		res := <-ss.User().Save(&model.User{
+			Email:     id + "@test.com",
+			Username:  "un_" + id,
+			Nickname:  "nn_" + id,
+			FirstName: "f_" + id,
+			LastName:  "l_" + id,
+			Password:  "Password1",
+		})
+		require.Nil(t, res.Err)
+		user := res.Data.(*model.User)
+		require.NotNil(t, user)
+		testUsers = append(testUsers, user)
+	}
+	userGroupA := testUsers[0]
+	userGroupB := testUsers[1]
+	userNoGroup := testUsers[2]
+
+	// add non-group-member to the team (to prove that the query isn't just returning all members)
+	res := <-ss.Team().SaveMember(&model.TeamMember{
+		TeamId: team.Id,
+		UserId: userNoGroup.Id,
+	}, 999)
+	require.Nil(t, res.Err)
+
+	// create groups
+	var testGroups []*model.Group
+	for i := 0; i < 2; i++ {
+		id = model.NewId()
+		res = <-ss.Group().Create(&model.Group{
+			Name:        "n_" + id,
+			DisplayName: "dn_" + id,
+			Source:      model.GroupSourceLdap,
+			RemoteId:    "ri_" + id,
+		})
+		require.Nil(t, res.Err)
+		group := res.Data.(*model.Group)
+		require.NotNil(t, group)
+		testGroups = append(testGroups, group)
+	}
+	groupA := testGroups[0]
+	groupB := testGroups[1]
+
+	// add members to groups
+	res = <-ss.Group().CreateOrRestoreMember(groupA.Id, userGroupA.Id)
+	require.Nil(t, res.Err)
+	res = <-ss.Group().CreateOrRestoreMember(groupB.Id, userGroupB.Id)
+	require.Nil(t, res.Err)
+
+	// association one group to team
+	res = <-ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+		GroupId:    groupA.Id,
+		SyncableId: team.Id,
+		Type:       model.GroupSyncableTypeTeam,
+	})
+	require.Nil(t, res.Err)
+
+	var users []*model.User
+
+	requireNUsers := func(n int) {
+		res = <-ss.User().GetTeamGroupUsers(team.Id)
+		require.Nil(t, res.Err)
+		users = res.Data.([]*model.User)
+		require.NotNil(t, users)
+		require.Len(t, users, n)
+	}
+
+	// team not group constrained returns users
+	requireNUsers(1)
+
+	// update team to be group-constrained
+	team.GroupConstrained = model.NewBool(true)
+	team, err = ss.Team().Update(team)
+	require.Nil(t, err)
+
+	// still returns user (being group-constrained has no effect)
+	requireNUsers(1)
+
+	// associate other group to team
+	res = <-ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+		GroupId:    groupB.Id,
+		SyncableId: team.Id,
+		Type:       model.GroupSyncableTypeTeam,
+	})
+	require.Nil(t, res.Err)
+
+	// should return users from all groups
+	// 2 users now that both groups have been associated to the team
+	requireNUsers(2)
+
+	// add team membership of allowed user
+	res = <-ss.Team().SaveMember(&model.TeamMember{
+		TeamId: team.Id,
+		UserId: userGroupA.Id,
+	}, 999)
+	require.Nil(t, res.Err)
+
+	// ensure allowed member still returned by query
+	requireNUsers(2)
+
+	// delete team membership of allowed user
+	res = <-ss.Team().RemoveMember(team.Id, userGroupA.Id)
+	require.Nil(t, res.Err)
+
+	// ensure removed allowed member still returned by query
+	requireNUsers(2)
+}
+
+func testUserStoreGetChannelGroupUsers(t *testing.T, ss store.Store) {
+	// create channel
+	id := model.NewId()
+	res := <-ss.Channel().Save(&model.Channel{
+		DisplayName: "dn_" + id,
+		Name:        "n-" + id,
+		Type:        model.CHANNEL_PRIVATE,
+	}, 999)
+	require.Nil(t, res.Err)
+	channel := res.Data.(*model.Channel)
+	require.NotNil(t, channel)
+
+	// create users
+	var testUsers []*model.User
+	for i := 0; i < 3; i++ {
+		id = model.NewId()
+		res = <-ss.User().Save(&model.User{
+			Email:     id + "@test.com",
+			Username:  "un_" + id,
+			Nickname:  "nn_" + id,
+			FirstName: "f_" + id,
+			LastName:  "l_" + id,
+			Password:  "Password1",
+		})
+		require.Nil(t, res.Err)
+		user := res.Data.(*model.User)
+		require.NotNil(t, user)
+		testUsers = append(testUsers, user)
+	}
+	userGroupA := testUsers[0]
+	userGroupB := testUsers[1]
+	userNoGroup := testUsers[2]
+
+	// add non-group-member to the channel (to prove that the query isn't just returning all members)
+	res = <-ss.Channel().SaveMember(&model.ChannelMember{
+		ChannelId:   channel.Id,
+		UserId:      userNoGroup.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	})
+	require.Nil(t, res.Err)
+
+	// create groups
+	var testGroups []*model.Group
+	for i := 0; i < 2; i++ {
+		id = model.NewId()
+		res = <-ss.Group().Create(&model.Group{
+			Name:        "n_" + id,
+			DisplayName: "dn_" + id,
+			Source:      model.GroupSourceLdap,
+			RemoteId:    "ri_" + id,
+		})
+		require.Nil(t, res.Err)
+		group := res.Data.(*model.Group)
+		require.NotNil(t, group)
+		testGroups = append(testGroups, group)
+	}
+	groupA := testGroups[0]
+	groupB := testGroups[1]
+
+	// add members to groups
+	res = <-ss.Group().CreateOrRestoreMember(groupA.Id, userGroupA.Id)
+	require.Nil(t, res.Err)
+	res = <-ss.Group().CreateOrRestoreMember(groupB.Id, userGroupB.Id)
+	require.Nil(t, res.Err)
+
+	// association one group to channel
+	res = <-ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+		GroupId:    groupA.Id,
+		SyncableId: channel.Id,
+		Type:       model.GroupSyncableTypeChannel,
+	})
+	require.Nil(t, res.Err)
+
+	var users []*model.User
+
+	requireNUsers := func(n int) {
+		res = <-ss.User().GetChannelGroupUsers(channel.Id)
+		require.Nil(t, res.Err)
+		users = res.Data.([]*model.User)
+		require.NotNil(t, users)
+		require.Len(t, users, n)
+	}
+
+	// channel not group constrained returns users
+	requireNUsers(1)
+
+	// update team to be group-constrained
+	channel.GroupConstrained = model.NewBool(true)
+	_, err := ss.Channel().Update(channel)
+	require.Nil(t, err)
+
+	// still returns user (being group-constrained has no effect)
+	requireNUsers(1)
+
+	// associate other group to team
+	res = <-ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+		GroupId:    groupB.Id,
+		SyncableId: channel.Id,
+		Type:       model.GroupSyncableTypeChannel,
+	})
+	require.Nil(t, res.Err)
+
+	// should return users from all groups
+	// 2 users now that both groups have been associated to the team
+	requireNUsers(2)
+
+	// add team membership of allowed user
+	res = <-ss.Channel().SaveMember(&model.ChannelMember{
+		ChannelId:   channel.Id,
+		UserId:      userGroupA.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	})
+	require.Nil(t, res.Err)
+
+	// ensure allowed member still returned by query
+	requireNUsers(2)
+
+	// delete team membership of allowed user
+	res = <-ss.Channel().RemoveMember(channel.Id, userGroupA.Id)
+	require.Nil(t, res.Err)
+
+	// ensure removed allowed member still returned by query
+	requireNUsers(2)
 }

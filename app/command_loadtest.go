@@ -10,10 +10,10 @@ import (
 	"strconv"
 	"strings"
 
+	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
-	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 var usage = `Mattermost testing commands to help configure the system
@@ -184,12 +184,9 @@ func (me *LoadTestProvider) SetupCommand(a *App, args *model.CommandArgs, messag
 			}
 		}
 	} else {
-
-		var team *model.Team
-		if tr := <-a.Srv.Store.Team().Get(args.TeamId); tr.Err != nil {
+		team, err := a.Srv.Store.Team().Get(args.TeamId)
+		if err != nil {
 			return &model.CommandResponse{Text: "Failed to create testing environment", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
-		} else {
-			team = tr.Data.(*model.Team)
 		}
 
 		client.MockSession(args.Session.Token)
@@ -215,16 +212,14 @@ func (me *LoadTestProvider) UsersCommand(a *App, args *model.CommandArgs, messag
 		cmd = strings.TrimSpace(strings.TrimPrefix(cmd, "fuzz"))
 	}
 
-	usersr, err := parseRange(cmd, "")
-	if !err {
+	usersr, ok := parseRange(cmd, "")
+	if !ok {
 		usersr = utils.Range{Begin: 2, End: 5}
 	}
 
-	var team *model.Team
-	if tr := <-a.Srv.Store.Team().Get(args.TeamId); tr.Err != nil {
+	team, err := a.Srv.Store.Team().Get(args.TeamId)
+	if err != nil {
 		return &model.CommandResponse{Text: "Failed to create testing environment", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
-	} else {
-		team = tr.Data.(*model.Team)
 	}
 
 	client := model.NewAPIv4Client(args.SiteURL)
@@ -244,16 +239,14 @@ func (me *LoadTestProvider) ChannelsCommand(a *App, args *model.CommandArgs, mes
 		cmd = strings.TrimSpace(strings.TrimPrefix(cmd, "fuzz"))
 	}
 
-	channelsr, err := parseRange(cmd, "")
-	if !err {
+	channelsr, ok := parseRange(cmd, "")
+	if !ok {
 		channelsr = utils.Range{Begin: 2, End: 5}
 	}
 
-	var team *model.Team
-	if tr := <-a.Srv.Store.Team().Get(args.TeamId); tr.Err != nil {
+	team, err := a.Srv.Store.Team().Get(args.TeamId)
+	if err != nil {
 		return &model.CommandResponse{Text: "Failed to create testing environment", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
-	} else {
-		team = tr.Data.(*model.Team)
 	}
 
 	client := model.NewAPIv4Client(args.SiteURL)
@@ -274,8 +267,8 @@ func (me *LoadTestProvider) PostsCommand(a *App, args *model.CommandArgs, messag
 		cmd = strings.TrimSpace(strings.TrimPrefix(cmd, "fuzz"))
 	}
 
-	postsr, err := parseRange(cmd, "")
-	if !err {
+	postsr, ok := parseRange(cmd, "")
+	if !ok {
 		postsr = utils.Range{Begin: 20, End: 30}
 	}
 

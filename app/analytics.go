@@ -185,9 +185,27 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 		rows[4] = &model.AnalyticsRow{Name: "command_count", Value: 0}
 		rows[5] = &model.AnalyticsRow{Name: "session_count", Value: 0}
 
-		iHookChan := a.Srv.Store.Webhook().AnalyticsIncomingCount(teamId)
-		oHookChan := a.Srv.Store.Webhook().AnalyticsOutgoingCount(teamId)
-		commandChan := a.Srv.Store.Command().AnalyticsCommandCount(teamId)
+		iHookChan := make(chan store.StoreResult, 1)
+		go func() {
+			c, err := a.Srv.Store.Webhook().AnalyticsIncomingCount(teamId)
+			iHookChan <- store.StoreResult{Data: c, Err: err}
+			close(iHookChan)
+		}()
+
+		oHookChan := make(chan store.StoreResult, 1)
+		go func() {
+			c, err := a.Srv.Store.Webhook().AnalyticsOutgoingCount(teamId)
+			oHookChan <- store.StoreResult{Data: c, Err: err}
+			close(oHookChan)
+		}()
+
+		commandChan := make(chan store.StoreResult, 1)
+		go func() {
+			c, err := a.Srv.Store.Command().AnalyticsCommandCount(teamId)
+			commandChan <- store.StoreResult{Data: c, Err: err}
+			close(commandChan)
+		}()
+
 		sessionChan := a.Srv.Store.Session().AnalyticsSessionCount()
 
 		var fileChan store.StoreChannel
@@ -248,7 +266,7 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 }
 
 func (a *App) GetRecentlyActiveUsersForTeam(teamId string) (map[string]*model.User, *model.AppError) {
-	result := <-a.Srv.Store.User().GetRecentlyActiveUsersForTeam(teamId, 0, 100)
+	result := <-a.Srv.Store.User().GetRecentlyActiveUsersForTeam(teamId, 0, 100, nil)
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -263,9 +281,9 @@ func (a *App) GetRecentlyActiveUsersForTeam(teamId string) (map[string]*model.Us
 	return userMap, nil
 }
 
-func (a *App) GetRecentlyActiveUsersForTeamPage(teamId string, page, perPage int, asAdmin bool) ([]*model.User, *model.AppError) {
+func (a *App) GetRecentlyActiveUsersForTeamPage(teamId string, page, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
 	var users []*model.User
-	result := <-a.Srv.Store.User().GetRecentlyActiveUsersForTeam(teamId, page*perPage, perPage)
+	result := <-a.Srv.Store.User().GetRecentlyActiveUsersForTeam(teamId, page*perPage, perPage, viewRestrictions)
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -274,9 +292,9 @@ func (a *App) GetRecentlyActiveUsersForTeamPage(teamId string, page, perPage int
 	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
-func (a *App) GetNewUsersForTeamPage(teamId string, page, perPage int, asAdmin bool) ([]*model.User, *model.AppError) {
+func (a *App) GetNewUsersForTeamPage(teamId string, page, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
 	var users []*model.User
-	result := <-a.Srv.Store.User().GetNewUsersForTeam(teamId, page*perPage, perPage)
+	result := <-a.Srv.Store.User().GetNewUsersForTeam(teamId, page*perPage, perPage, viewRestrictions)
 	if result.Err != nil {
 		return nil, result.Err
 	}

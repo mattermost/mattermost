@@ -14,7 +14,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/store/storetest"
 )
 
@@ -191,19 +190,22 @@ func TestAttachFilesToPost(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		info1 := store.Must(th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
+		info1, err := th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
 			CreatorId: th.BasicUser.Id,
 			Path:      "path.txt",
-		})).(*model.FileInfo)
-		info2 := store.Must(th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
+		})
+		require.Nil(t, err)
+
+		info2, err := th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
 			CreatorId: th.BasicUser.Id,
 			Path:      "path.txt",
-		})).(*model.FileInfo)
+		})
+		require.Nil(t, err)
 
 		post := th.BasicPost
 		post.FileIds = []string{info1.Id, info2.Id}
 
-		err := th.App.attachFilesToPost(post)
+		err = th.App.attachFilesToPost(post)
 		assert.Nil(t, err)
 
 		infos, err := th.App.GetFileInfosForPost(post.Id)
@@ -215,20 +217,23 @@ func TestAttachFilesToPost(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		info1 := store.Must(th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
+		info1, err := th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
 			CreatorId: th.BasicUser.Id,
 			Path:      "path.txt",
 			PostId:    model.NewId(),
-		})).(*model.FileInfo)
-		info2 := store.Must(th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
+		})
+		require.Nil(t, err)
+
+		info2, err := th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
 			CreatorId: th.BasicUser.Id,
 			Path:      "path.txt",
-		})).(*model.FileInfo)
+		})
+		require.Nil(t, err)
 
 		post := th.BasicPost
 		post.FileIds = []string{info1.Id, info2.Id}
 
-		err := th.App.attachFilesToPost(post)
+		err = th.App.attachFilesToPost(post)
 		assert.Nil(t, err)
 
 		infos, err := th.App.GetFileInfosForPost(post.Id)
@@ -475,7 +480,7 @@ func TestImageProxy(t *testing.T) {
 			ProxyURL:        "https://127.0.0.1",
 			ProxyOptions:    "foo",
 			ImageURL:        "http://mydomain.com/myimage",
-			ProxiedImageURL: "https://127.0.0.1/f8dace906d23689e8d5b12c3cefbedbf7b9b72f5/687474703a2f2f6d79646f6d61696e2e636f6d2f6d79696d616765",
+			ProxiedImageURL: "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage",
 		},
 		"atmos/camo_SameSite": {
 			ProxyType:       model.IMAGE_PROXY_TYPE_ATMOS_CAMO,
@@ -559,25 +564,21 @@ func TestMaxPostSize(t *testing.T) {
 		Description         string
 		StoreMaxPostSize    int
 		ExpectedMaxPostSize int
-		ExpectedError       *model.AppError
 	}{
 		{
-			"error fetching max post size",
+			"Max post size less than model.model.POST_MESSAGE_MAX_RUNES_V1 ",
 			0,
 			model.POST_MESSAGE_MAX_RUNES_V1,
-			model.NewAppError("TestMaxPostSize", "this is an error", nil, "", http.StatusBadRequest),
 		},
 		{
 			"4000 rune limit",
 			4000,
 			4000,
-			nil,
 		},
 		{
 			"16383 rune limit",
 			16383,
 			16383,
-			nil,
 		},
 	}
 
@@ -589,12 +590,7 @@ func TestMaxPostSize(t *testing.T) {
 			mockStore := &storetest.Store{}
 			defer mockStore.AssertExpectations(t)
 
-			mockStore.PostStore.On("GetMaxPostSize").Return(
-				storetest.NewStoreChannel(store.StoreResult{
-					Data: testCase.StoreMaxPostSize,
-					Err:  testCase.ExpectedError,
-				}),
-			)
+			mockStore.PostStore.On("GetMaxPostSize").Return(testCase.StoreMaxPostSize)
 
 			app := App{
 				Srv: &Server{
@@ -623,7 +619,7 @@ func TestDeletePostWithFileAttachments(t *testing.T) {
 		t.Fatal(err)
 	} else {
 		defer func() {
-			<-th.App.Srv.Store.FileInfo().PermanentDelete(info1.Id)
+			th.App.Srv.Store.FileInfo().PermanentDelete(info1.Id)
 			th.App.RemoveFile(info1.Path)
 		}()
 	}
@@ -671,6 +667,7 @@ func TestCreatePost(t *testing.T) {
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
 			*cfg.ExperimentalSettings.DisablePostMetadata = true
 			*cfg.ImageProxySettings.Enable = true
 			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
@@ -679,7 +676,7 @@ func TestCreatePost(t *testing.T) {
 		})
 
 		imageURL := "http://mydomain.com/myimage"
-		proxiedImageURL := "https://127.0.0.1/f8dace906d23689e8d5b12c3cefbedbf7b9b72f5/687474703a2f2f6d79646f6d61696e2e636f6d2f6d79696d616765"
+		proxiedImageURL := "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage"
 
 		post := &model.Post{
 			ChannelId: th.BasicChannel.Id,
@@ -699,6 +696,7 @@ func TestPatchPost(t *testing.T) {
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
 			*cfg.ExperimentalSettings.DisablePostMetadata = true
 			*cfg.ImageProxySettings.Enable = true
 			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
@@ -707,7 +705,7 @@ func TestPatchPost(t *testing.T) {
 		})
 
 		imageURL := "http://mydomain.com/myimage"
-		proxiedImageURL := "https://127.0.0.1/f8dace906d23689e8d5b12c3cefbedbf7b9b72f5/687474703a2f2f6d79646f6d61696e2e636f6d2f6d79696d616765"
+		proxiedImageURL := "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage"
 
 		post := &model.Post{
 			ChannelId: th.BasicChannel.Id,
@@ -748,6 +746,7 @@ func TestUpdatePost(t *testing.T) {
 		defer th.TearDown()
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
 			*cfg.ExperimentalSettings.DisablePostMetadata = true
 			*cfg.ImageProxySettings.Enable = true
 			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
@@ -756,7 +755,7 @@ func TestUpdatePost(t *testing.T) {
 		})
 
 		imageURL := "http://mydomain.com/myimage"
-		proxiedImageURL := "https://127.0.0.1/f8dace906d23689e8d5b12c3cefbedbf7b9b72f5/687474703a2f2f6d79646f6d61696e2e636f6d2f6d79696d616765"
+		proxiedImageURL := "http://mymattermost.com/api/v4/image?url=http%3A%2F%2Fmydomain.com%2Fmyimage"
 
 		post := &model.Post{
 			ChannelId: th.BasicChannel.Id,

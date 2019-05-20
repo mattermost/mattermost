@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strconv"
 
+	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/jobs"
 	"github.com/mattermost/mattermost-server/mlog"
@@ -17,13 +18,13 @@ import (
 	"github.com/mattermost/mattermost-server/services/imageproxy"
 	"github.com/mattermost/mattermost-server/services/timezones"
 	"github.com/mattermost/mattermost-server/utils"
-	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 type App struct {
 	Srv *Server
 
-	Log *mlog.Logger
+	Log              *mlog.Logger
+	NotificationsLog *mlog.Logger
 
 	T              goi18n.TranslateFunc
 	Session        model.Session
@@ -132,11 +133,14 @@ func (a *App) HTMLTemplates() *template.Template {
 }
 
 func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {
-	err := model.NewAppError("Handle404", "api.context.404.app_error", nil, "", http.StatusNotFound)
-
 	mlog.Debug(fmt.Sprintf("%v: code=404 ip=%v", r.URL.Path, utils.GetIpAddress(r)))
 
-	utils.RenderWebAppError(a.Config(), w, r, err, a.AsymmetricSigningKey())
+	if *a.Config().ServiceSettings.WebserverMode == "disabled" {
+		http.NotFound(w, r)
+		return
+	}
+
+	utils.RenderWebAppError(a.Config(), w, r, model.NewAppError("Handle404", "api.context.404.app_error", nil, "", http.StatusNotFound), a.AsymmetricSigningKey())
 }
 
 func (a *App) getSystemInstallDate() (int64, *model.AppError) {

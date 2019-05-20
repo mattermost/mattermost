@@ -70,6 +70,7 @@ where example UserAgent is:
 * `BrowserOpera` - [Opera](https://en.wikipedia.org/wiki/Opera_(web_browser))
 * `BrowserUCBrowser` - [UC Browser](https://en.wikipedia.org/wiki/UC_Browser)
 * `BrowserSilk` - Amazon [Silk](https://en.wikipedia.org/wiki/Amazon_Silk)
+* `BrowserQQ` - Tencent [QQ](https://en.wikipedia.org/wiki/Tencent_QQ)
 * `BrowserSpotify` - [Spotify](https://en.wikipedia.org/wiki/Spotify#Clients) desktop client
 * `BrowserBlackberry` - RIM [BlackBerry](https://en.wikipedia.org/wiki/BlackBerry)
 * `BrowserYandex` - [Yandex](https://en.wikipedia.org/wiki/Yandex_Browser)
@@ -157,7 +158,6 @@ DeviceType is typically quite accurate, though determining between phones and ta
 * Better version support on Firefox derivatives (e.g. SeaMonkey)
 * Potential additional browser support:
  * "NetFront" (1% share in India)
- * "QQ Browser" (6.5% share in China)
  * "Sogou Explorer" (5% share in China)
  * "Maxthon" (1.5% share in China)
  * "Nokia"

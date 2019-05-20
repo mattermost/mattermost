@@ -4,6 +4,7 @@
 package app
 
 import (
+	"bytes"
 	"image"
 	"io"
 	"net/http"
@@ -15,6 +16,7 @@ import (
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
+	"github.com/mattermost/mattermost-server/utils/imgutils"
 	"github.com/mattermost/mattermost-server/utils/markdown"
 )
 
@@ -65,7 +67,7 @@ func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost bool) *mo
 
 	// Emojis and reaction counts
 	if emojis, reactions, err := a.getEmojisAndReactionsForPost(post); err != nil {
-		mlog.Warn("Failed to get emojis and reactions for a post", mlog.String("post_id", post.Id), mlog.Any("err", err))
+		mlog.Warn("Failed to get emojis and reactions for a post", mlog.String("post_id", post.Id), mlog.Err(err))
 	} else {
 		post.Metadata.Emojis = emojis
 		post.Metadata.Reactions = reactions
@@ -73,7 +75,7 @@ func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost bool) *mo
 
 	// Files
 	if fileInfos, err := a.getFileMetadataForPost(post); err != nil {
-		mlog.Warn("Failed to get files for a post", mlog.String("post_id", post.Id), mlog.Any("err", err))
+		mlog.Warn("Failed to get files for a post", mlog.String("post_id", post.Id), mlog.Err(err))
 	} else {
 		post.Metadata.Files = fileInfos
 	}
@@ -82,7 +84,7 @@ func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost bool) *mo
 	firstLink, images := getFirstLinkAndImages(post.Message)
 
 	if embed, err := a.getEmbedForPost(post, firstLink, isNewPost); err != nil {
-		mlog.Debug("Failed to get embedded content for a post", mlog.String("post_id", post.Id), mlog.Any("err", err))
+		mlog.Debug("Failed to get embedded content for a post", mlog.String("post_id", post.Id), mlog.Err(err))
 	} else if embed == nil {
 		post.Metadata.Embeds = []*model.PostEmbed{}
 	} else {
@@ -127,7 +129,7 @@ func (a *App) getEmbedForPost(post *model.Post, firstLink string, isNewPost bool
 		}, nil
 	}
 
-	if firstLink == "" {
+	if firstLink == "" || !*a.Config().ServiceSettings.EnableLinkPreviews {
 		return nil, nil
 	}
 
@@ -145,7 +147,7 @@ func (a *App) getEmbedForPost(post *model.Post, firstLink string, isNewPost bool
 	}
 
 	if image != nil {
-		// Note that we're not passing the image info here since they'll be part of the PostMetadata.Images field
+		// Note that we're not passing the image info here since it'll be part of the PostMetadata.Images field
 		return &model.PostEmbed{
 			Type: model.POST_EMBED_IMAGE,
 			URL:  firstLink,
@@ -180,16 +182,7 @@ func (a *App) getImagesForPost(post *model.Post, imageURLs []string, isNewPost b
 					continue
 				}
 
-				if image.Width != 0 || image.Height != 0 {
-					// The site has already told us the image dimensions
-					images[imageURL] = &model.PostImage{
-						Width:  int(image.Width),
-						Height: int(image.Height),
-					}
-				} else {
-					// The site did not specify its image dimensions
-					imageURLs = append(imageURLs, imageURL)
-				}
+				imageURLs = append(imageURLs, imageURL)
 			}
 		}
 	}
@@ -202,7 +195,7 @@ func (a *App) getImagesForPost(post *model.Post, imageURLs []string, isNewPost b
 	for _, imageURL := range imageURLs {
 		if _, image, err := a.getLinkMetadata(imageURL, post.CreateAt, isNewPost); err != nil {
 			mlog.Debug("Failed to get dimensions of an image in a post",
-				mlog.String("post_id", post.Id), mlog.String("image_url", imageURL), mlog.Any("err", err))
+				mlog.String("post_id", post.Id), mlog.String("image_url", imageURL), mlog.Err(err))
 		} else if image != nil {
 			images[imageURL] = image
 		}
@@ -498,7 +491,12 @@ func (a *App) parseLinkMetadata(requestURL string, body io.Reader, contentType s
 }
 
 func parseImages(body io.Reader) (*model.PostImage, error) {
-	config, _, err := image.DecodeConfig(body)
+	// Store any data that is read for the config for any further processing
+	buf := &bytes.Buffer{}
+	t := io.TeeReader(body, buf)
+
+	// Read the image config to get the format and dimensions
+	config, format, err := image.DecodeConfig(t)
 	if err != nil {
 		return nil, err
 	}
@@ -506,6 +504,17 @@ func parseImages(body io.Reader) (*model.PostImage, error) {
 	image := &model.PostImage{
 		Width:  config.Width,
 		Height: config.Height,
+		Format: format,
+	}
+
+	if format == "gif" {
+		// Decoding the config may have read some of the image data, so re-read the data that has already been read first
+		frameCount, err := imgutils.CountFrames(io.MultiReader(buf, body))
+		if err != nil {
+			return nil, err
+		}
+
+		image.FrameCount = frameCount
 	}
 
 	return image, nil

@@ -81,10 +81,12 @@ var PERMISSION_CREATE_USER_ACCESS_TOKEN *Permission
 var PERMISSION_READ_USER_ACCESS_TOKEN *Permission
 var PERMISSION_REVOKE_USER_ACCESS_TOKEN *Permission
 var PERMISSION_CREATE_BOT *Permission
+var PERMISSION_ASSIGN_BOT *Permission
 var PERMISSION_READ_BOTS *Permission
 var PERMISSION_READ_OTHERS_BOTS *Permission
 var PERMISSION_MANAGE_BOTS *Permission
 var PERMISSION_MANAGE_OTHERS_BOTS *Permission
+var PERMISSION_VIEW_MEMBERS *Permission
 
 // General permission that encompasses all system admin functions
 // in the future this could be broken up to allow access to some
@@ -489,6 +491,12 @@ func initializePermissions() {
 		"authentication.permissions.create_bot.description",
 		PERMISSION_SCOPE_SYSTEM,
 	}
+	PERMISSION_ASSIGN_BOT = &Permission{
+		"assign_bot",
+		"authentication.permissions.assign_bot.name",
+		"authentication.permissions.assign_bot.description",
+		PERMISSION_SCOPE_SYSTEM,
+	}
 	PERMISSION_READ_BOTS = &Permission{
 		"read_bots",
 		"authentication.permissions.read_bots.name",
@@ -518,6 +526,12 @@ func initializePermissions() {
 		"authentication.permisssions.manage_jobs.name",
 		"authentication.permisssions.manage_jobs.description",
 		PERMISSION_SCOPE_SYSTEM,
+	}
+	PERMISSION_VIEW_MEMBERS = &Permission{
+		"view_members",
+		"authentication.permisssions.view_members.name",
+		"authentication.permisssions.view_members.description",
+		PERMISSION_SCOPE_TEAM,
 	}
 
 	ALL_PERMISSIONS = []*Permission{
@@ -591,6 +605,7 @@ func initializePermissions() {
 		PERMISSION_MANAGE_BOTS,
 		PERMISSION_MANAGE_OTHERS_BOTS,
 		PERMISSION_MANAGE_SYSTEM,
+		PERMISSION_VIEW_MEMBERS,
 	}
 }
 
