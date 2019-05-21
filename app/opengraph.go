@@ -19,7 +19,7 @@ const MaxOpenGraphResponseSize = 1024 * 1024 * 50
 func (a *App) GetOpenGraphMetadata(requestURL string) *opengraph.OpenGraph {
 	res, err := a.HTTPService.MakeClient(false).Get(requestURL)
 	if err != nil {
-		mlog.Error("GetOpenGraphMetadata request failed", mlog.String("requestURL", requestURL), mlog.Err(err))
+		mlog.Warn("GetOpenGraphMetadata request failed", mlog.String("requestURL", requestURL), mlog.Err(err))
 		return nil
 	}
 	defer res.Body.Close()
@@ -31,7 +31,7 @@ func (a *App) ParseOpenGraphMetadata(requestURL string, body io.Reader, contentT
 	body = forceHTMLEncodingToUTF8(io.LimitReader(body, MaxOpenGraphResponseSize), contentType)
 
 	if err := og.ProcessHTML(body); err != nil {
-		mlog.Error("ParseOpenGraphMetadata processing failed", mlog.String("requestURL", requestURL), mlog.Err(err))
+		mlog.Warn("ParseOpenGraphMetadata processing failed", mlog.String("requestURL", requestURL), mlog.Err(err))
 	}
 
 	makeOpenGraphURLsAbsolute(og, requestURL)
@@ -54,7 +54,7 @@ func (a *App) ParseOpenGraphMetadata(requestURL string, body io.Reader, contentT
 func forceHTMLEncodingToUTF8(body io.Reader, contentType string) io.Reader {
 	r, err := charset.NewReader(body, contentType)
 	if err != nil {
-		mlog.Error("forceHTMLEncodingToUTF8 failed to convert", mlog.String("contentType", contentType), mlog.Err(err))
+		mlog.Warn("forceHTMLEncodingToUTF8 failed to convert", mlog.String("contentType", contentType), mlog.Err(err))
 		return body
 	}
 	return r
