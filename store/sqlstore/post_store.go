@@ -271,49 +271,43 @@ func (s *SqlPostStore) GetFlaggedPostsForChannel(userId, channelId string, offse
 	})
 }
 
-func (s *SqlPostStore) Get(id string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		pl := model.NewPostList()
+func (s *SqlPostStore) Get(id string) (*model.PostList, *model.AppError) {
+	pl := model.NewPostList()
 
-		if len(id) == 0 {
-			result.Err = model.NewAppError("SqlPostStore.GetPost", "store.sql_post.get.app_error", nil, "id="+id, http.StatusBadRequest)
-			return
-		}
+	if len(id) == 0 {
+		return nil, model.NewAppError("SqlPostStore.GetPost", "store.sql_post.get.app_error", nil, "id="+id, http.StatusBadRequest)
+	}
 
-		var post model.Post
-		err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": id})
-		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetPost", "store.sql_post.get.app_error", nil, "id="+id+err.Error(), http.StatusNotFound)
-			return
-		}
+	var post model.Post
+	err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": id})
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetPost", "store.sql_post.get.app_error", nil, "id="+id+err.Error(), http.StatusNotFound)
+	}
 
-		pl.AddPost(&post)
-		pl.AddOrder(id)
+	pl.AddPost(&post)
+	pl.AddOrder(id)
 
-		rootId := post.RootId
+	rootId := post.RootId
 
-		if rootId == "" {
-			rootId = post.Id
-		}
+	if rootId == "" {
+		rootId = post.Id
+	}
 
-		if len(rootId) == 0 {
-			result.Err = model.NewAppError("SqlPostStore.GetPost", "store.sql_post.get.app_error", nil, "root_id="+rootId, http.StatusInternalServerError)
-			return
-		}
+	if len(rootId) == 0 {
+		return nil, model.NewAppError("SqlPostStore.GetPost", "store.sql_post.get.app_error", nil, "root_id="+rootId, http.StatusInternalServerError)
+	}
 
-		var posts []*model.Post
-		_, err = s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE (Id = :Id OR RootId = :RootId) AND DeleteAt = 0", map[string]interface{}{"Id": rootId, "RootId": rootId})
-		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetPost", "store.sql_post.get.app_error", nil, "root_id="+rootId+err.Error(), http.StatusInternalServerError)
-			return
-		} else {
-			for _, p := range posts {
-				pl.AddPost(p)
-			}
-		}
+	var posts []*model.Post
+	_, err = s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE (Id = :Id OR RootId = :RootId) AND DeleteAt = 0", map[string]interface{}{"Id": rootId, "RootId": rootId})
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetPost", "store.sql_post.get.app_error", nil, "root_id="+rootId+err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = pl
-	})
+	for _, p := range posts {
+		pl.AddPost(p)
+	}
+
+	return pl, nil
 }
 
 func (s *SqlPostStore) GetSingle(id string) store.StoreChannel {

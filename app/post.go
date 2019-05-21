@@ -158,7 +158,12 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 
 	var pchan store.StoreChannel
 	if len(post.RootId) > 0 {
-		pchan = a.Srv.Store.Post().Get(post.RootId)
+		pchan = make(store.StoreChannel, 1)
+		go func() {
+			r, pErr := a.Srv.Store.Post().Get(post.RootId)
+			pchan <- store.StoreResult{Data: r, Err: pErr}
+			close(pchan)
+		}()
 	}
 
 	user, err := a.Srv.Store.User().Get(post.UserId)
@@ -453,30 +458,30 @@ func (a *App) DeleteEphemeralPost(userId, postId string) {
 func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
 	post.SanitizeProps()
 
-	result := <-a.Srv.Store.Post().Get(post.Id)
-	if result.Err != nil {
-		return nil, result.Err
+	postLists, err := a.Srv.Store.Post().Get(post.Id)
+	if err != nil {
+		return nil, err
 	}
-	oldPost := result.Data.(*model.PostList).Posts[post.Id]
+	oldPost := postLists.Posts[post.Id]
 
 	if oldPost == nil {
-		err := model.NewAppError("UpdatePost", "api.post.update_post.find.app_error", nil, "id="+post.Id, http.StatusBadRequest)
+		err = model.NewAppError("UpdatePost", "api.post.update_post.find.app_error", nil, "id="+post.Id, http.StatusBadRequest)
 		return nil, err
 	}
 
 	if oldPost.DeleteAt != 0 {
-		err := model.NewAppError("UpdatePost", "api.post.update_post.permissions_details.app_error", map[string]interface{}{"PostId": post.Id}, "", http.StatusBadRequest)
+		err = model.NewAppError("UpdatePost", "api.post.update_post.permissions_details.app_error", map[string]interface{}{"PostId": post.Id}, "", http.StatusBadRequest)
 		return nil, err
 	}
 
 	if oldPost.IsSystemMessage() {
-		err := model.NewAppError("UpdatePost", "api.post.update_post.system_message.app_error", nil, "id="+post.Id, http.StatusBadRequest)
+		err = model.NewAppError("UpdatePost", "api.post.update_post.system_message.app_error", nil, "id="+post.Id, http.StatusBadRequest)
 		return nil, err
 	}
 
 	if a.License() != nil {
 		if *a.Config().ServiceSettings.PostEditTimeLimit != -1 && model.GetMillis() > oldPost.CreateAt+int64(*a.Config().ServiceSettings.PostEditTimeLimit*1000) && post.Message != oldPost.Message {
-			err := model.NewAppError("UpdatePost", "api.post.update_post.permissions_time_limit.app_error", map[string]interface{}{"timeLimit": *a.Config().ServiceSettings.PostEditTimeLimit}, "", http.StatusBadRequest)
+			err = model.NewAppError("UpdatePost", "api.post.update_post.permissions_time_limit.app_error", map[string]interface{}{"timeLimit": *a.Config().ServiceSettings.PostEditTimeLimit}, "", http.StatusBadRequest)
 			return nil, err
 		}
 	}
@@ -528,7 +533,7 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 		}
 	}
 
-	result = <-a.Srv.Store.Post().Update(newPost, oldPost)
+	result := <-a.Srv.Store.Post().Update(newPost, oldPost)
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -632,11 +637,7 @@ func (a *App) GetSinglePost(postId string) (*model.Post, *model.AppError) {
 }
 
 func (a *App) GetPostThread(postId string) (*model.PostList, *model.AppError) {
-	result := <-a.Srv.Store.Post().Get(postId)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.PostList), nil
+	return a.Srv.Store.Post().Get(postId)
 }
 
 func (a *App) GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *model.AppError) {
@@ -664,11 +665,10 @@ func (a *App) GetFlaggedPostsForChannel(userId, channelId string, offset int, li
 }
 
 func (a *App) GetPermalinkPost(postId string, userId string) (*model.PostList, *model.AppError) {
-	result := <-a.Srv.Store.Post().Get(postId)
-	if result.Err != nil {
-		return nil, result.Err
+	list, err := a.Srv.Store.Post().Get(postId)
+	if err != nil {
+		return nil, err
 	}
-	list := result.Data.(*model.PostList)
 
 	if len(list.Order) != 1 {
 		return nil, model.NewAppError("getPermalinkTmp", "api.post_get_post_by_id.get.app_error", nil, "", http.StatusNotFound)
