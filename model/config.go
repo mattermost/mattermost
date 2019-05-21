@@ -962,23 +962,23 @@ type PasswordSettings struct {
 
 func (s *PasswordSettings) SetDefaults() {
 	if s.MinimumLength == nil {
-		s.MinimumLength = NewInt(PASSWORD_MINIMUM_LENGTH)
+		s.MinimumLength = NewInt(10)
 	}
 
 	if s.Lowercase == nil {
-		s.Lowercase = NewBool(false)
+		s.Lowercase = NewBool(true)
 	}
 
 	if s.Number == nil {
-		s.Number = NewBool(false)
+		s.Number = NewBool(true)
 	}
 
 	if s.Uppercase == nil {
-		s.Uppercase = NewBool(false)
+		s.Uppercase = NewBool(true)
 	}
 
 	if s.Symbol == nil {
-		s.Symbol = NewBool(false)
+		s.Symbol = NewBool(true)
 	}
 }
 
