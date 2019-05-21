@@ -272,3 +272,26 @@ func TestRenameTeam(t *testing.T) {
 	}
 
 }
+
+func TestModifyTeam(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	team := th.CreateTeam()
+	user := th.CreateUser()
+
+	th.CheckCommand(t, "team", "modify", team.Name, "--private", "--username", user.FirstName)
+
+	updatedTeam, _ := th.App.GetTeam(team.Id)
+
+	if !updatedTeam.AllowOpenInvite && team.Type == model.TEAM_INVITE {
+		t.Fatal("Failed modifying team's privacy to private")
+	}
+
+	th.CheckCommand(t, "team", "modify", team.Name, "--public", "--username", user.FirstName)
+
+	if updatedTeam.AllowOpenInvite && team.Type == model.TEAM_OPEN {
+		t.Fatal("Failed modifying team's privacy to private")
+	}
+
+}
