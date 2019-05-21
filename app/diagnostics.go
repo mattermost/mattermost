@@ -360,13 +360,13 @@ func (a *App) trackConfig() {
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_NOTIFICATION_LOG, map[string]interface{}{
-		"enable_console":           *cfg.NotificationLogSettings.EnableConsole,
-		"console_level":            *cfg.NotificationLogSettings.ConsoleLevel,
-		"console_json":             *cfg.NotificationLogSettings.ConsoleJson,
-		"enable_file":              *cfg.NotificationLogSettings.EnableFile,
-		"file_level":               *cfg.NotificationLogSettings.FileLevel,
-		"file_json":                *cfg.NotificationLogSettings.FileJson,
-		"isdefault_file_location":  isDefault(*cfg.NotificationLogSettings.FileLocation, ""),
+		"enable_console":          *cfg.NotificationLogSettings.EnableConsole,
+		"console_level":           *cfg.NotificationLogSettings.ConsoleLevel,
+		"console_json":            *cfg.NotificationLogSettings.ConsoleJson,
+		"enable_file":             *cfg.NotificationLogSettings.EnableFile,
+		"file_level":              *cfg.NotificationLogSettings.FileLevel,
+		"file_json":               *cfg.NotificationLogSettings.FileJson,
+		"isdefault_file_location": isDefault(*cfg.NotificationLogSettings.FileLocation, ""),
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_PASSWORD, map[string]interface{}{
