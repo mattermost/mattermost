@@ -212,13 +212,13 @@ func (_m *ChannelStore) GetAllChannelMembersNotifyPropsForChannel(channelId stri
 	return r0
 }
 
-// GetAllChannels provides a mock function with given fields: page, perPage, includeDeleted
-func (_m *ChannelStore) GetAllChannels(page int, perPage int, includeDeleted bool) store.StoreChannel {
-	ret := _m.Called(page, perPage, includeDeleted)
+// GetAllChannels provides a mock function with given fields: page, perPage, opts
+func (_m *ChannelStore) GetAllChannels(page int, perPage int, opts model.ChannelSearchOpts) store.StoreChannel {
+	ret := _m.Called(page, perPage, opts)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(int, int, bool) store.StoreChannel); ok {
-		r0 = rf(page, perPage, includeDeleted)
+	if rf, ok := ret.Get(0).(func(int, int, model.ChannelSearchOpts) store.StoreChannel); ok {
+		r0 = rf(page, perPage, opts)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)
@@ -1003,13 +1003,13 @@ func (_m *ChannelStore) SaveMember(member *model.ChannelMember) store.StoreChann
 	return r0
 }
 
-// SearchAllChannels provides a mock function with given fields: term, includeDeleted
-func (_m *ChannelStore) SearchAllChannels(term string, includeDeleted bool) store.StoreChannel {
-	ret := _m.Called(term, includeDeleted)
+// SearchAllChannels provides a mock function with given fields: term, opts
+func (_m *ChannelStore) SearchAllChannels(term string, opts model.ChannelSearchOpts) store.StoreChannel {
+	ret := _m.Called(term, opts)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, bool) store.StoreChannel); ok {
-		r0 = rf(term, includeDeleted)
+	if rf, ok := ret.Get(0).(func(string, model.ChannelSearchOpts) store.StoreChannel); ok {
+		r0 = rf(term, opts)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)
