@@ -2525,6 +2525,10 @@ func (ts *TeamSettings) isValid() *AppError {
 }
 
 func (ss *SqlSettings) isValid() *AppError {
+	if ss.AtRestEncryptKey != nil && len(*ss.AtRestEncryptKey) < 32 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.encrypt_sql.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if !(*ss.DriverName == DATABASE_DRIVER_MYSQL || *ss.DriverName == DATABASE_DRIVER_POSTGRES) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.sql_driver.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -2559,6 +2563,10 @@ func (fs *FileSettings) isValid() *AppError {
 
 	if !(*fs.DriverName == IMAGE_DRIVER_LOCAL || *fs.DriverName == IMAGE_DRIVER_S3) {
 		return NewAppError("Config.IsValid", "model.config.is_valid.file_driver.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if fs.PublicLinkSalt != nil && len(*fs.PublicLinkSalt) < 32 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.file_salt.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	return nil
