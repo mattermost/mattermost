@@ -376,7 +376,7 @@ func (a *App) WaitForChannelMembership(channelId string, userId string) {
 			return
 		}
 
-		// If we received a error but it wasn't a missing channel member then return
+		// If we received an error, but it wasn't a missing channel member then return
 		if err.Id != store.MISSING_CHANNEL_MEMBER_ERROR {
 			return
 		}
