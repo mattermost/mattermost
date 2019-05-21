@@ -346,13 +346,15 @@ func (ss *SqlSupplier) TotalSearchDbConnections() int {
 }
 
 func (ss *SqlSupplier) MarkSystemRanUnitTests() {
-	if result := <-ss.System().Get(); result.Err == nil {
-		props := result.Data.(model.StringMap)
-		unitTests := props[model.SYSTEM_RAN_UNIT_TESTS]
-		if len(unitTests) == 0 {
-			systemTests := &model.System{Name: model.SYSTEM_RAN_UNIT_TESTS, Value: "1"}
-			<-ss.System().Save(systemTests)
-		}
+	props, err := ss.System().Get()
+	if err != nil {
+		return
+	}
+
+	unitTests := props[model.SYSTEM_RAN_UNIT_TESTS]
+	if len(unitTests) == 0 {
+		systemTests := &model.System{Name: model.SYSTEM_RAN_UNIT_TESTS, Value: "1"}
+		ss.System().Save(systemTests)
 	}
 }
 

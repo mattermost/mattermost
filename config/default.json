@@ -159,11 +159,11 @@
         "FileLocation": ""
     },
     "PasswordSettings": {
-        "MinimumLength": 5,
-        "Lowercase": false,
-        "Number": false,
-        "Uppercase": false,
-        "Symbol": false
+        "MinimumLength": 10,
+        "Lowercase": true,
+        "Number": true,
+        "Uppercase": true,
+        "Symbol": true
     },
     "FileSettings": {
         "EnableFileAttachments": true,

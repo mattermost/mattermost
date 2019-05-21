@@ -113,9 +113,9 @@ func (a *App) ensurePostActionCookieSecret() error {
 
 	var secret *model.SystemPostActionCookieSecret
 
-	result := <-a.Srv.Store.System().GetByName(model.SYSTEM_POST_ACTION_COOKIE_SECRET)
-	if result.Err == nil {
-		if err := json.Unmarshal([]byte(result.Data.(*model.System).Value), &secret); err != nil {
+	value, err := a.Srv.Store.System().GetByName(model.SYSTEM_POST_ACTION_COOKIE_SECRET)
+	if err == nil {
+		if err := json.Unmarshal([]byte(value.Value), &secret); err != nil {
 			return err
 		}
 	}
@@ -138,7 +138,7 @@ func (a *App) ensurePostActionCookieSecret() error {
 			return err
 		}
 		system.Value = string(v)
-		if result = <-a.Srv.Store.System().Save(system); result.Err == nil {
+		if err = a.Srv.Store.System().Save(system); err == nil {
 			// If we were able to save the key, use it, otherwise ignore the error.
 			secret = newSecret
 		}
@@ -147,12 +147,12 @@ func (a *App) ensurePostActionCookieSecret() error {
 	// If we weren't able to save a new key above, another server must have beat us to it. Get the
 	// key from the database, and if that fails, error out.
 	if secret == nil {
-		result := <-a.Srv.Store.System().GetByName(model.SYSTEM_POST_ACTION_COOKIE_SECRET)
-		if result.Err != nil {
-			return result.Err
+		value, err := a.Srv.Store.System().GetByName(model.SYSTEM_POST_ACTION_COOKIE_SECRET)
+		if err != nil {
+			return err
 		}
 
-		if err := json.Unmarshal([]byte(result.Data.(*model.System).Value), &secret); err != nil {
+		if err := json.Unmarshal([]byte(value.Value), &secret); err != nil {
 			return err
 		}
 	}
@@ -170,9 +170,9 @@ func (a *App) ensureAsymmetricSigningKey() error {
 
 	var key *model.SystemAsymmetricSigningKey
 
-	result := <-a.Srv.Store.System().GetByName(model.SYSTEM_ASYMMETRIC_SIGNING_KEY)
-	if result.Err == nil {
-		if err := json.Unmarshal([]byte(result.Data.(*model.System).Value), &key); err != nil {
+	value, err := a.Srv.Store.System().GetByName(model.SYSTEM_ASYMMETRIC_SIGNING_KEY)
+	if err == nil {
+		if err := json.Unmarshal([]byte(value.Value), &key); err != nil {
 			return err
 		}
 	}
@@ -199,7 +199,7 @@ func (a *App) ensureAsymmetricSigningKey() error {
 			return err
 		}
 		system.Value = string(v)
-		if result = <-a.Srv.Store.System().Save(system); result.Err == nil {
+		if err = a.Srv.Store.System().Save(system); err == nil {
 			// If we were able to save the key, use it, otherwise ignore the error.
 			key = newKey
 		}
@@ -208,12 +208,12 @@ func (a *App) ensureAsymmetricSigningKey() error {
 	// If we weren't able to save a new key above, another server must have beat us to it. Get the
 	// key from the database, and if that fails, error out.
 	if key == nil {
-		result := <-a.Srv.Store.System().GetByName(model.SYSTEM_ASYMMETRIC_SIGNING_KEY)
-		if result.Err != nil {
-			return result.Err
+		value, err := a.Srv.Store.System().GetByName(model.SYSTEM_ASYMMETRIC_SIGNING_KEY)
+		if err != nil {
+			return err
 		}
 
-		if err := json.Unmarshal([]byte(result.Data.(*model.System).Value), &key); err != nil {
+		if err := json.Unmarshal([]byte(value.Value), &key); err != nil {
 			return err
 		}
 	}
@@ -251,12 +251,12 @@ func (a *App) ensureInstallationDate() error {
 		installationDate = utils.MillisFromTime(time.Now())
 	}
 
-	result = <-a.Srv.Store.System().SaveOrUpdate(&model.System{
+	err = a.Srv.Store.System().SaveOrUpdate(&model.System{
 		Name:  model.SYSTEM_INSTALLATION_DATE_KEY,
 		Value: strconv.FormatInt(installationDate, 10),
 	})
-	if result.Err != nil {
-		return result.Err
+	if err != nil {
+		return err
 	}
 	return nil
 }
