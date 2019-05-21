@@ -298,10 +298,10 @@ func (env *Environment) Shutdown() {
 		ap := value.(activePlugin)
 
 		if ap.supervisor != nil {
-			if err := ap.supervisor.Hooks().OnDeactivate(); err != nil {
-				env.logger.Error("Plugin OnDeactivate() error", mlog.String("plugin_id", ap.BundleInfo.Manifest.Id), mlog.Err(err))
-			}
-			ap.supervisor.Shutdown()
+			//if err := ap.supervisor.Hooks().OnDeactivate(); err != nil {
+			//	env.logger.Error("Plugin OnDeactivate() error", mlog.String("plugin_id", ap.BundleInfo.Manifest.Id), mlog.Err(err))
+			//}
+			//ap.supervisor.Shutdown()
 			p, err := os.FindProcess(ap.supervisor.pid)
 			if err == nil {
 				p.Signal(syscall.SIGHUP)
