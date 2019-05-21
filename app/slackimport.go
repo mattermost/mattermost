@@ -30,6 +30,7 @@ type SlackChannel struct {
 	Members []string          `json:"members"`
 	Topic   map[string]string `json:"topic"`
 	Purpose map[string]string `json:"purpose"`
+	Type    string
 }
 
 type SlackProfile struct {
@@ -102,7 +103,7 @@ func SlackConvertChannelName(channelName string, channelId string) string {
 	return strings.ToLower(channelId)
 }
 
-func SlackParseChannels(data io.Reader) ([]SlackChannel, error) {
+func SlackParseChannels(data io.Reader, channelType string) ([]SlackChannel, error) {
 	decoder := json.NewDecoder(data)
 
 	var channels []SlackChannel
@@ -110,6 +111,11 @@ func SlackParseChannels(data io.Reader) ([]SlackChannel, error) {
 		mlog.Warn("Slack Import: Error occurred when parsing some Slack channels. Import may work anyway.")
 		return channels, err
 	}
+
+	for i := range channels {
+		channels[i].Type = channelType
+	}
+
 	return channels, nil
 }
 
@@ -492,7 +498,7 @@ func (a *App) SlackAddChannels(teamId string, slackchannels []SlackChannel, post
 	for _, sChannel := range slackchannels {
 		newChannel := model.Channel{
 			TeamId:      teamId,
-			Type:        model.CHANNEL_OPEN,
+			Type:        sChannel.Type,
 			DisplayName: sChannel.Name,
 			Name:        SlackConvertChannelName(sChannel.Name, sChannel.Id),
 			Purpose:     sChannel.Purpose["value"],
@@ -656,6 +662,7 @@ func (a *App) SlackImport(fileData multipart.File, fileSize int64, teamID string
 	}
 
 	var channels []SlackChannel
+	var tempChannels []SlackChannel
 	var users []SlackUser
 	posts := make(map[string][]SlackPost)
 	uploads := make(map[string]*zip.File)
@@ -666,7 +673,16 @@ func (a *App) SlackImport(fileData multipart.File, fileSize int64, teamID string
 			return model.NewAppError("SlackImport", "api.slackimport.slack_import.open.app_error", map[string]interface{}{"Filename": file.Name}, err.Error(), http.StatusInternalServerError), log
 		}
 		if file.Name == "channels.json" {
-			channels, _ = SlackParseChannels(reader)
+			channels, _ = SlackParseChannels(reader, "O")
+		} else if file.Name == "dms.json" {
+			tempChannels, _ = SlackParseChannels(reader, "D")
+			channels = append(channels, tempChannels...)
+		} else if file.Name == "groups.json" {
+			tempChannels, _ = SlackParseChannels(reader, "P")
+			channels = append(channels, tempChannels...)
+		} else if file.Name == "mpims.json" {
+			tempChannels, _ = SlackParseChannels(reader, "G")
+			channels = append(channels, tempChannels...)
 		} else if file.Name == "users.json" {
 			users, _ = SlackParseUsers(reader)
 		} else {

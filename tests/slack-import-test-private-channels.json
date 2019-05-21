@@ -1,0 +1,25 @@
+[
+    {
+        "id": "G1T7B1T9N",
+        "name": "csi-team-chat",
+        "created": 1468959839,
+        "creator": "U17G57PB6",
+        "is_archived": false,
+        "members": [
+            "U15CML9C1",
+            "U1934896U",
+            "U17G57PB6",
+            "U1T7A2J56"
+        ],
+        "topic": {
+            "value": "\"A constantly evolving landscape of hills\"",
+            "creator": "U1934896U",
+            "last_set": "1469017133"
+        },
+        "purpose": {
+            "value": "CSI team chat",
+            "creator": "U17G57PB6",
+            "last_set": "1468972624"
+        }
+    }
+]
