@@ -212,7 +212,7 @@ type ChannelMemberHistoryStore interface {
 type PostStore interface {
 	Save(post *model.Post) StoreChannel
 	Update(newPost *model.Post, oldPost *model.Post) StoreChannel
-	Get(id string) StoreChannel
+	Get(id string) (*model.PostList, *model.AppError)
 	GetSingle(id string) StoreChannel
 	Delete(postId string, time int64, deleteByID string) *model.AppError
 	PermanentDeleteByUser(userId string) StoreChannel
