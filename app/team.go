@@ -189,7 +189,8 @@ func (a *App) UpdateTeamPrivacy(team *model.Team, user *model.User) (*model.Team
 		return nil, err
 	}
 
-	oldTeam.SchemeId = team.SchemeId
+	oldTeam.Type = team.Type
+	oldTeam.AllowOpenInvite = team.AllowOpenInvite
 
 	if oldTeam, err = a.Srv.Store.Team().Update(oldTeam); err != nil {
 		return nil, err
