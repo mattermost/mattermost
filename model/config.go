@@ -306,7 +306,7 @@ type ServiceSettings struct {
 	CreateBotAccounts                                 *bool
 }
 
-func (s *ServiceSettings) SetDefaults(isNew bool) {
+func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.EnableEmailInvitations == nil {
 		// If the site URL is also not present then assume this is a clean install
 		if s.SiteURL == nil {
@@ -632,7 +632,7 @@ func (s *ServiceSettings) SetDefaults(isNew bool) {
 	}
 
 	if s.DisableLegacyMFA == nil {
-		s.DisableLegacyMFA = NewBool(isNew)
+		s.DisableLegacyMFA = NewBool(isUpdate)
 	}
 
 	if s.ExperimentalLdapGroupSync == nil {
@@ -787,7 +787,7 @@ type SSOSettings struct {
 	UserApiEndpoint *string
 }
 
-func (s *SSOSettings) setDefaults(isNew bool, scope, authEndpoint, tokenEndpoint, userApiEndpoint string) {
+func (s *SSOSettings) setDefaults(isUpdate bool, scope, authEndpoint, tokenEndpoint, userApiEndpoint string) {
 	if s.Enable == nil {
 		s.Enable = NewBool(false)
 	}
@@ -830,7 +830,7 @@ type SqlSettings struct {
 	QueryTimeout                *int     `restricted:"true"`
 }
 
-func (s *SqlSettings) SetDefaults(isNew bool) {
+func (s *SqlSettings) SetDefaults(isUpdate bool) {
 	if s.DriverName == nil {
 		s.DriverName = NewString(DATABASE_DRIVER_MYSQL)
 	}
@@ -848,8 +848,9 @@ func (s *SqlSettings) SetDefaults(isNew bool) {
 	}
 
 	if s.AtRestEncryptKey == nil || len(*s.AtRestEncryptKey) == 0 {
-		s.AtRestEncryptKey = NewString("")
-		if !isNew {
+		if isUpdate {
+			s.AtRestEncryptKey = NewString("")
+		} else {
 			s.AtRestEncryptKey = NewString(NewRandomString(32))
 		}
 	}
@@ -1016,7 +1017,7 @@ type FileSettings struct {
 	AmazonS3Trace           *bool   `restricted:"true"`
 }
 
-func (s *FileSettings) SetDefaults(isNew bool) {
+func (s *FileSettings) SetDefaults(isUpdate bool) {
 	if s.EnableFileAttachments == nil {
 		s.EnableFileAttachments = NewBool(true)
 	}
@@ -1046,8 +1047,9 @@ func (s *FileSettings) SetDefaults(isNew bool) {
 	}
 
 	if s.PublicLinkSalt == nil || len(*s.PublicLinkSalt) == 0 {
-		s.PublicLinkSalt = NewString("")
-		if !isNew {
+		if isUpdate {
+			s.PublicLinkSalt = NewString("")
+		} else {
 			s.PublicLinkSalt = NewString(NewRandomString(32))
 		}
 	}
@@ -2364,8 +2366,8 @@ func ConfigFromJson(data io.Reader) *Config {
 	return o
 }
 
-// isNew guesses if the current config file is a new one or we are making an upgrade based on SiteURL being different from default or nil
-func (o *Config) isNew() bool {
+// isUpdate detects a pre-existing config based on whether SiteURL has been changed
+func (o *Config) isUpdate() bool {
 	return o.ServiceSettings.SiteURL == nil || *(o.ServiceSettings.SiteURL) == SERVICE_SETTINGS_DEFAULT_SITE_URL
 }
 
@@ -2381,15 +2383,15 @@ func (o *Config) SetDefaults() {
 		}
 	}
 
-	isNew := o.isNew()
-	o.SqlSettings.SetDefaults(isNew)
-	o.FileSettings.SetDefaults(isNew)
+	isUpdate := o.isUpdate()
+	o.SqlSettings.SetDefaults(isUpdate)
+	o.FileSettings.SetDefaults(isUpdate)
 	o.EmailSettings.SetDefaults()
 	o.PrivacySettings.setDefaults()
-	o.Office365Settings.setDefaults(isNew, OFFICE365_SETTINGS_DEFAULT_SCOPE, OFFICE365_SETTINGS_DEFAULT_AUTH_ENDPOINT, OFFICE365_SETTINGS_DEFAULT_TOKEN_ENDPOINT, OFFICE365_SETTINGS_DEFAULT_USER_API_ENDPOINT)
-	o.GitLabSettings.setDefaults(isNew, "", "", "", "")
-	o.GoogleSettings.setDefaults(isNew, GOOGLE_SETTINGS_DEFAULT_SCOPE, GOOGLE_SETTINGS_DEFAULT_AUTH_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_TOKEN_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_USER_API_ENDPOINT)
-	o.ServiceSettings.SetDefaults(isNew)
+	o.Office365Settings.setDefaults(isUpdate, OFFICE365_SETTINGS_DEFAULT_SCOPE, OFFICE365_SETTINGS_DEFAULT_AUTH_ENDPOINT, OFFICE365_SETTINGS_DEFAULT_TOKEN_ENDPOINT, OFFICE365_SETTINGS_DEFAULT_USER_API_ENDPOINT)
+	o.GitLabSettings.setDefaults(isUpdate, "", "", "", "")
+	o.GoogleSettings.setDefaults(isUpdate, GOOGLE_SETTINGS_DEFAULT_SCOPE, GOOGLE_SETTINGS_DEFAULT_AUTH_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_TOKEN_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_USER_API_ENDPOINT)
+	o.ServiceSettings.SetDefaults(isUpdate)
 	o.PasswordSettings.SetDefaults()
 	o.TeamSettings.SetDefaults()
 	o.MetricsSettings.SetDefaults()

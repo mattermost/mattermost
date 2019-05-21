@@ -28,17 +28,17 @@ func main() {
 		usage()
 	}
 	outputFile := args[0]
-	if f, err := os.Open(outputFile); err == nil {
-		_ = f.Close()
-		_, _ = fmt.Fprintf(os.Stderr, "File %s already exists. Not overwriting!", outputFile)
+	if _, err := os.Stat(outputFile); !os.IsNotExist(err) {
+		_, _ = fmt.Fprintf(os.Stderr, "File %s already exists. Not overwriting!\n", outputFile)
+		usage()
 	}
+
 	defaultCfg := &model.Config{}
 	defaultCfg.SetDefaults()
 	if data, err := json.MarshalIndent(defaultCfg, "", "  "); err != nil {
 		panic(err)
-	} else {
-		if err := ioutil.WriteFile(outputFile, data, 0644); err != nil {
-			panic(err)
-		}
+	} else if err := ioutil.WriteFile(outputFile, data, 0644); err != nil {
+		panic(err)
 	}
+
 }
