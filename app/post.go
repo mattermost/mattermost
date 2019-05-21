@@ -957,7 +957,7 @@ func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamId strin
 func (a *App) GetFileInfosForPostWithMigration(postId string) ([]*model.FileInfo, *model.AppError) {
 	pchan := a.Srv.Store.Post().GetSingle(postId)
 
-	infos, err := a.GetFileInfosForPost(postId)
+	infos, err := a.GetFileInfosForPost(postId, false)
 	if err != nil {
 		return nil, err
 	}
@@ -980,8 +980,8 @@ func (a *App) GetFileInfosForPostWithMigration(postId string) ([]*model.FileInfo
 	return infos, nil
 }
 
-func (a *App) GetFileInfosForPost(postId string) ([]*model.FileInfo, *model.AppError) {
-	return a.Srv.Store.FileInfo().GetForPost(postId, false, true)
+func (a *App) GetFileInfosForPost(postId string, fromMaster bool) ([]*model.FileInfo, *model.AppError) {
+	return a.Srv.Store.FileInfo().GetForPost(postId, fromMaster, true)
 }
 
 func (a *App) PostWithProxyAddedToImageURLs(post *model.Post) *model.Post {

@@ -74,7 +74,7 @@ func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost bool) *mo
 	}
 
 	// Files
-	if fileInfos, err := a.getFileMetadataForPost(post); err != nil {
+	if fileInfos, err := a.getFileMetadataForPost(post, isNewPost); err != nil {
 		mlog.Warn("Failed to get files for a post", mlog.String("post_id", post.Id), mlog.Err(err))
 	} else {
 		post.Metadata.Files = fileInfos
@@ -96,12 +96,12 @@ func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost bool) *mo
 	return post
 }
 
-func (a *App) getFileMetadataForPost(post *model.Post) ([]*model.FileInfo, *model.AppError) {
+func (a *App) getFileMetadataForPost(post *model.Post, fromMaster bool) ([]*model.FileInfo, *model.AppError) {
 	if len(post.FileIds) == 0 {
 		return nil, nil
 	}
 
-	return a.GetFileInfosForPost(post.Id)
+	return a.GetFileInfosForPost(post.Id, fromMaster)
 }
 
 func (a *App) getEmojisAndReactionsForPost(post *model.Post) ([]*model.Emoji, []*model.Reaction, *model.AppError) {
