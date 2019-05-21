@@ -108,6 +108,15 @@ func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHel
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
 
+	// Disable strict password requirements for test
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PasswordSettings.MinimumLength = 5
+		*cfg.PasswordSettings.Lowercase = false
+		*cfg.PasswordSettings.Uppercase = false
+		*cfg.PasswordSettings.Symbol = false
+		*cfg.PasswordSettings.Number = false
+	})
+
 	if enterprise {
 		th.App.SetLicense(model.NewTestLicense())
 	} else {
@@ -274,7 +283,7 @@ func (me *TestHelper) CreateUserWithClient(client *model.Client4) *model.User {
 		Nickname:  "nn_" + id,
 		FirstName: "f_" + id,
 		LastName:  "l_" + id,
-		Password:  "Password1",
+		Password:  "Pa$$word11",
 	}
 
 	utils.DisableDebugLogForTest()
@@ -283,7 +292,7 @@ func (me *TestHelper) CreateUserWithClient(client *model.Client4) *model.User {
 		panic(response.Error)
 	}
 
-	ruser.Password = "Password1"
+	ruser.Password = "Pa$$word11"
 	store.Must(me.App.Srv.Store.User().VerifyEmail(ruser.Id, ruser.Email))
 	utils.EnableDebugLogForTest()
 	return ruser
