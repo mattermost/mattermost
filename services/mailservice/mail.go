@@ -244,13 +244,17 @@ func SendMail(c *smtp.Client, mimeTo, smtpTo string, from, replyTo mail.Address,
 
 	headers := map[string][]string{
 		"From":                      {from.String()},
-		"Reply-To":                  {replyTo.String()},
 		"To":                        {mimeTo},
 		"Subject":                   {encodeRFC2047Word(subject)},
 		"Content-Transfer-Encoding": {"8bit"},
 		"Auto-Submitted":            {"auto-generated"},
 		"Precedence":                {"bulk"},
 	}
+
+	if len(replyTo.Address) > 0 {
+		headers["Reply-To"] = []string{replyTo.String()}
+	}
+
 	for k, v := range mimeHeaders {
 		headers[k] = []string{encodeRFC2047Word(v)}
 	}
