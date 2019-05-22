@@ -741,7 +741,7 @@ func (_m *LayeredStoreSupplier) ReactionsBulkGetForPosts(ctx context.Context, po
 }
 
 // RoleDelete provides a mock function with given fields: ctx, roldId, hints
-func (_m *LayeredStoreSupplier) RoleDelete(ctx context.Context, roldId string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+func (_m *LayeredStoreSupplier) RoleDelete(ctx context.Context, roldId string, hints ...store.LayeredStoreHint) (*model.Role, *model.AppError) {
 	_va := make([]interface{}, len(hints))
 	for _i := range hints {
 		_va[_i] = hints[_i]
@@ -751,20 +751,29 @@ func (_m *LayeredStoreSupplier) RoleDelete(ctx context.Context, roldId string, h
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
-	var r0 *store.LayeredStoreSupplierResult
-	if rf, ok := ret.Get(0).(func(context.Context, string, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
+	var r0 *model.Role
+	if rf, ok := ret.Get(0).(func(context.Context, string, ...store.LayeredStoreHint) *model.Role); ok {
 		r0 = rf(ctx, roldId, hints...)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*store.LayeredStoreSupplierResult)
+			r0 = ret.Get(0).(*model.Role)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(context.Context, string, ...store.LayeredStoreHint) *model.AppError); ok {
+		r1 = rf(ctx, roldId, hints...)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // RoleGet provides a mock function with given fields: ctx, roleId, hints
-func (_m *LayeredStoreSupplier) RoleGet(ctx context.Context, roleId string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+func (_m *LayeredStoreSupplier) RoleGet(ctx context.Context, roleId string, hints ...store.LayeredStoreHint) (*model.Role, *model.AppError) {
 	_va := make([]interface{}, len(hints))
 	for _i := range hints {
 		_va[_i] = hints[_i]
@@ -774,20 +783,29 @@ func (_m *LayeredStoreSupplier) RoleGet(ctx context.Context, roleId string, hint
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
-	var r0 *store.LayeredStoreSupplierResult
-	if rf, ok := ret.Get(0).(func(context.Context, string, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
+	var r0 *model.Role
+	if rf, ok := ret.Get(0).(func(context.Context, string, ...store.LayeredStoreHint) *model.Role); ok {
 		r0 = rf(ctx, roleId, hints...)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*store.LayeredStoreSupplierResult)
+			r0 = ret.Get(0).(*model.Role)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(context.Context, string, ...store.LayeredStoreHint) *model.AppError); ok {
+		r1 = rf(ctx, roleId, hints...)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // RoleGetAll provides a mock function with given fields: ctx, hints
-func (_m *LayeredStoreSupplier) RoleGetAll(ctx context.Context, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+func (_m *LayeredStoreSupplier) RoleGetAll(ctx context.Context, hints ...store.LayeredStoreHint) ([]*model.Role, *model.AppError) {
 	_va := make([]interface{}, len(hints))
 	for _i := range hints {
 		_va[_i] = hints[_i]
@@ -797,20 +815,29 @@ func (_m *LayeredStoreSupplier) RoleGetAll(ctx context.Context, hints ...store.L
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
-	var r0 *store.LayeredStoreSupplierResult
-	if rf, ok := ret.Get(0).(func(context.Context, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
+	var r0 []*model.Role
+	if rf, ok := ret.Get(0).(func(context.Context, ...store.LayeredStoreHint) []*model.Role); ok {
 		r0 = rf(ctx, hints...)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*store.LayeredStoreSupplierResult)
+			r0 = ret.Get(0).([]*model.Role)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(context.Context, ...store.LayeredStoreHint) *model.AppError); ok {
+		r1 = rf(ctx, hints...)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // RoleGetByName provides a mock function with given fields: ctx, name, hints
-func (_m *LayeredStoreSupplier) RoleGetByName(ctx context.Context, name string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+func (_m *LayeredStoreSupplier) RoleGetByName(ctx context.Context, name string, hints ...store.LayeredStoreHint) (*model.Role, *model.AppError) {
 	_va := make([]interface{}, len(hints))
 	for _i := range hints {
 		_va[_i] = hints[_i]
@@ -820,20 +847,29 @@ func (_m *LayeredStoreSupplier) RoleGetByName(ctx context.Context, name string, 
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
-	var r0 *store.LayeredStoreSupplierResult
-	if rf, ok := ret.Get(0).(func(context.Context, string, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
+	var r0 *model.Role
+	if rf, ok := ret.Get(0).(func(context.Context, string, ...store.LayeredStoreHint) *model.Role); ok {
 		r0 = rf(ctx, name, hints...)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*store.LayeredStoreSupplierResult)
+			r0 = ret.Get(0).(*model.Role)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(context.Context, string, ...store.LayeredStoreHint) *model.AppError); ok {
+		r1 = rf(ctx, name, hints...)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // RoleGetByNames provides a mock function with given fields: ctx, names, hints
-func (_m *LayeredStoreSupplier) RoleGetByNames(ctx context.Context, names []string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+func (_m *LayeredStoreSupplier) RoleGetByNames(ctx context.Context, names []string, hints ...store.LayeredStoreHint) ([]*model.Role, *model.AppError) {
 	_va := make([]interface{}, len(hints))
 	for _i := range hints {
 		_va[_i] = hints[_i]
@@ -843,20 +879,29 @@ func (_m *LayeredStoreSupplier) RoleGetByNames(ctx context.Context, names []stri
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
-	var r0 *store.LayeredStoreSupplierResult
-	if rf, ok := ret.Get(0).(func(context.Context, []string, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
+	var r0 []*model.Role
+	if rf, ok := ret.Get(0).(func(context.Context, []string, ...store.LayeredStoreHint) []*model.Role); ok {
 		r0 = rf(ctx, names, hints...)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*store.LayeredStoreSupplierResult)
+			r0 = ret.Get(0).([]*model.Role)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(context.Context, []string, ...store.LayeredStoreHint) *model.AppError); ok {
+		r1 = rf(ctx, names, hints...)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // RolePermanentDeleteAll provides a mock function with given fields: ctx, hints
-func (_m *LayeredStoreSupplier) RolePermanentDeleteAll(ctx context.Context, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+func (_m *LayeredStoreSupplier) RolePermanentDeleteAll(ctx context.Context, hints ...store.LayeredStoreHint) *model.AppError {
 	_va := make([]interface{}, len(hints))
 	for _i := range hints {
 		_va[_i] = hints[_i]
@@ -866,12 +911,12 @@ func (_m *LayeredStoreSupplier) RolePermanentDeleteAll(ctx context.Context, hint
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
-	var r0 *store.LayeredStoreSupplierResult
-	if rf, ok := ret.Get(0).(func(context.Context, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(context.Context, ...store.LayeredStoreHint) *model.AppError); ok {
 		r0 = rf(ctx, hints...)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*store.LayeredStoreSupplierResult)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
@@ -879,7 +924,7 @@ func (_m *LayeredStoreSupplier) RolePermanentDeleteAll(ctx context.Context, hint
 }
 
 // RoleSave provides a mock function with given fields: ctx, role, hints
-func (_m *LayeredStoreSupplier) RoleSave(ctx context.Context, role *model.Role, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
+func (_m *LayeredStoreSupplier) RoleSave(ctx context.Context, role *model.Role, hints ...store.LayeredStoreHint) (*model.Role, *model.AppError) {
 	_va := make([]interface{}, len(hints))
 	for _i := range hints {
 		_va[_i] = hints[_i]
@@ -889,16 +934,25 @@ func (_m *LayeredStoreSupplier) RoleSave(ctx context.Context, role *model.Role, 
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
-	var r0 *store.LayeredStoreSupplierResult
-	if rf, ok := ret.Get(0).(func(context.Context, *model.Role, ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult); ok {
+	var r0 *model.Role
+	if rf, ok := ret.Get(0).(func(context.Context, *model.Role, ...store.LayeredStoreHint) *model.Role); ok {
 		r0 = rf(ctx, role, hints...)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*store.LayeredStoreSupplierResult)
+			r0 = ret.Get(0).(*model.Role)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(context.Context, *model.Role, ...store.LayeredStoreHint) *model.AppError); ok {
+		r1 = rf(ctx, role, hints...)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // SchemeDelete provides a mock function with given fields: ctx, schemeId, hints

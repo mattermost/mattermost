@@ -376,7 +376,7 @@ func (a *App) WaitForChannelMembership(channelId string, userId string) {
 			return
 		}
 
-		// If we received a error but it wasn't a missing channel member then return
+		// If we received an error, but it wasn't a missing channel member then return
 		if err.Id != store.MISSING_CHANNEL_MEMBER_ERROR {
 			return
 		}
@@ -895,6 +895,16 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel, teamMem
 		}
 	} else {
 		return channelMember, nil
+	}
+
+	if channel.IsGroupConstrained() {
+		nonMembers, err := a.FilterNonGroupChannelMembers([]string{user.Id}, channel)
+		if err != nil {
+			return nil, model.NewAppError("addUserToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusInternalServerError)
+		}
+		if len(nonMembers) > 0 {
+			return nil, model.NewAppError("addUserToChannel", "api.channel.add_members.user_denied", map[string]interface{}{"UserIDs": nonMembers}, "", http.StatusBadRequest)
+		}
 	}
 
 	newMember := &model.ChannelMember{
@@ -1591,6 +1601,16 @@ func (a *App) postRemoveFromChannelMessage(removerUserId string, removedUser *mo
 func (a *App) removeUserFromChannel(userIdToRemove string, removerUserId string, channel *model.Channel) *model.AppError {
 	if channel.Name == model.DEFAULT_CHANNEL {
 		return model.NewAppError("RemoveUserFromChannel", "api.channel.remove.default.app_error", map[string]interface{}{"Channel": model.DEFAULT_CHANNEL}, "", http.StatusBadRequest)
+	}
+
+	if channel.IsGroupConstrained() && userIdToRemove != removerUserId {
+		nonMembers, err := a.FilterNonGroupChannelMembers([]string{userIdToRemove}, channel)
+		if err != nil {
+			return model.NewAppError("removeUserFromChannel", "api.channel.remove_user_from_channel.app_error", nil, "", http.StatusInternalServerError)
+		}
+		if len(nonMembers) == 0 {
+			return model.NewAppError("removeUserFromChannel", "api.channel.remove_members.denied", map[string]interface{}{"UserIDs": nonMembers}, "", http.StatusBadRequest)
+		}
 	}
 
 	cm, err := a.GetChannelMember(channel.Id, userIdToRemove)
