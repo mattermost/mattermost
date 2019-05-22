@@ -787,7 +787,7 @@ type SSOSettings struct {
 	UserApiEndpoint *string
 }
 
-func (s *SSOSettings) setDefaults(isUpdate bool, scope, authEndpoint, tokenEndpoint, userApiEndpoint string) {
+func (s *SSOSettings) setDefaults(scope, authEndpoint, tokenEndpoint, userApiEndpoint string) {
 	if s.Enable == nil {
 		s.Enable = NewBool(false)
 	}
@@ -847,12 +847,14 @@ func (s *SqlSettings) SetDefaults(isUpdate bool) {
 		s.DataSourceSearchReplicas = []string{}
 	}
 
-	if s.AtRestEncryptKey == nil || len(*s.AtRestEncryptKey) == 0 {
-		if isUpdate {
+	if isUpdate {
+		// When updating an existing configuration, ensure an encryption key has been specified.
+		if s.AtRestEncryptKey == nil || len(*s.AtRestEncryptKey) == 0 {
 			s.AtRestEncryptKey = NewString(NewRandomString(32))
-		} else {
-			s.AtRestEncryptKey = NewString("")
 		}
+	} else {
+		// When generating a blank configuration, leave this key empty to be generated on server start.
+		s.AtRestEncryptKey = NewString("")
 	}
 
 	if s.MaxIdleConns == nil {
@@ -1046,12 +1048,14 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 		s.EnablePublicLink = NewBool(false)
 	}
 
-	if s.PublicLinkSalt == nil || len(*s.PublicLinkSalt) == 0 {
-		if isUpdate {
+	if isUpdate {
+		// When updating an existing configuration, ensure link salt has been specified.
+		if s.PublicLinkSalt == nil || len(*s.PublicLinkSalt) == 0 {
 			s.PublicLinkSalt = NewString(NewRandomString(32))
-		} else {
-			s.PublicLinkSalt = NewString("")
 		}
+	} else {
+		// When generating a blank configuration, leave link salt empty to be generated on server start.
+		s.PublicLinkSalt = NewString("")
 	}
 
 	if s.InitialFont == nil {
@@ -2372,6 +2376,8 @@ func (o *Config) isUpdate() bool {
 }
 
 func (o *Config) SetDefaults() {
+	isUpdate := o.isUpdate()
+
 	o.LdapSettings.SetDefaults()
 	o.SamlSettings.SetDefaults()
 
@@ -2383,14 +2389,13 @@ func (o *Config) SetDefaults() {
 		}
 	}
 
-	isUpdate := o.isUpdate()
 	o.SqlSettings.SetDefaults(isUpdate)
 	o.FileSettings.SetDefaults(isUpdate)
 	o.EmailSettings.SetDefaults()
 	o.PrivacySettings.setDefaults()
-	o.Office365Settings.setDefaults(isUpdate, OFFICE365_SETTINGS_DEFAULT_SCOPE, OFFICE365_SETTINGS_DEFAULT_AUTH_ENDPOINT, OFFICE365_SETTINGS_DEFAULT_TOKEN_ENDPOINT, OFFICE365_SETTINGS_DEFAULT_USER_API_ENDPOINT)
-	o.GitLabSettings.setDefaults(isUpdate, "", "", "", "")
-	o.GoogleSettings.setDefaults(isUpdate, GOOGLE_SETTINGS_DEFAULT_SCOPE, GOOGLE_SETTINGS_DEFAULT_AUTH_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_TOKEN_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_USER_API_ENDPOINT)
+	o.Office365Settings.setDefaults(OFFICE365_SETTINGS_DEFAULT_SCOPE, OFFICE365_SETTINGS_DEFAULT_AUTH_ENDPOINT, OFFICE365_SETTINGS_DEFAULT_TOKEN_ENDPOINT, OFFICE365_SETTINGS_DEFAULT_USER_API_ENDPOINT)
+	o.GitLabSettings.setDefaults("", "", "", "")
+	o.GoogleSettings.setDefaults(GOOGLE_SETTINGS_DEFAULT_SCOPE, GOOGLE_SETTINGS_DEFAULT_AUTH_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_TOKEN_ENDPOINT, GOOGLE_SETTINGS_DEFAULT_USER_API_ENDPOINT)
 	o.ServiceSettings.SetDefaults(isUpdate)
 	o.PasswordSettings.SetDefaults()
 	o.TeamSettings.SetDefaults()

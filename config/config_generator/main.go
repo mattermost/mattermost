@@ -4,13 +4,11 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/config/config_generator/generator"
 )
 
 func usage() {
@@ -33,11 +31,13 @@ func main() {
 		usage()
 	}
 
-	defaultCfg := &model.Config{}
-	defaultCfg.SetDefaults()
-	if data, err := json.MarshalIndent(defaultCfg, "", "  "); err != nil {
-		panic(err)
-	} else if err := ioutil.WriteFile(outputFile, data, 0644); err != nil {
+	if file, err := os.Create(outputFile); err == nil {
+		err := generator.GenerateDefaultConfig(file)
+		_ = file.Close()
+		if err != nil {
+			panic(err)
+		}
+	} else {
 		panic(err)
 	}
 

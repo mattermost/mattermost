@@ -20,7 +20,7 @@ build-client:
 
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) build
 
-package: config-reset
+package:
 	@ echo Packaging mattermost
 
 	@# Remove any old files
@@ -34,7 +34,7 @@ package: config-reset
 	@# Resource directories
 	mkdir -p $(DIST_PATH)/config
 	cp -L config/README.md $(DIST_PATH)/config
-	cp -L config/config.json $(DIST_PATH)/config
+	go generate ./config
 	cp -RL fonts $(DIST_PATH)
 	cp -RL templates $(DIST_PATH)
 	cp -RL i18n $(DIST_PATH)
