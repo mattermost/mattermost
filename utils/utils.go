@@ -79,7 +79,7 @@ func GetIpAddress(r *http.Request, trustedProxyIPHeader []string) string {
 		}
 
 		if len(address) > 0 {
-			break
+			return address
 		}
 	}
 

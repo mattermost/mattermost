@@ -47,6 +47,7 @@ func NewRateLimiter(settings *model.RateLimitSettings, trustedProxyIPHeader []st
 		useAuth:              *settings.VaryByUser,
 		useIP:                *settings.VaryByRemoteAddr,
 		header:               settings.VaryByHeader,
+		trustedProxyIPHeader: trustedProxyIPHeader,
 	}, nil
 }
 
