@@ -1561,7 +1561,7 @@ func (us SqlUserStore) GetUsersBatchForIndexing(startTime, endTime int64, limit 
 				cm.LastUpdateAt,
 				cm.SchemeUser,
 				cm.SchemeAdmin,
-				cm.SchemeGuest IS NOT NULL AND cm.SchemeGuest) as SchemeGuest
+				(cm.SchemeGuest IS NOT NULL AND cm.SchemeGuest) as SchemeGuest
 			`).
 			From("ChannelMembers cm").
 			Join("Channels c ON cm.ChannelId = c.Id").
