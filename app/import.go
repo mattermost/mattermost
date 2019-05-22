@@ -56,9 +56,9 @@ func (a *App) BulkImport(fileReader io.Reader, dryRun bool, workers int) (*model
 		}
 
 		if lineNumber == 1 {
-			importDataFileVersion, apperr := processImportDataFileVersionLine(line)
-			if apperr != nil {
-				return apperr, lineNumber
+			importDataFileVersion, appErr := processImportDataFileVersionLine(line)
+			if appErr != nil {
+				return appErr, lineNumber
 			}
 
 			if importDataFileVersion != 1 {

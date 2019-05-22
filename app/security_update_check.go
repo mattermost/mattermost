@@ -33,93 +33,97 @@ const (
 )
 
 func (s *Server) DoSecurityUpdateCheck() {
-	if *s.Config().ServiceSettings.EnableSecurityFixAlert {
-		if result := <-s.Store.System().Get(); result.Err == nil {
-			props := result.Data.(model.StringMap)
-			lastSecurityTime, _ := strconv.ParseInt(props[model.SYSTEM_LAST_SECURITY_TIME], 10, 0)
-			currentTime := model.GetMillis()
+	if !*s.Config().ServiceSettings.EnableSecurityFixAlert {
+		return
+	}
 
-			if (currentTime - lastSecurityTime) > SECURITY_UPDATE_PERIOD {
-				mlog.Debug("Checking for security update from Mattermost")
+	props, err := s.Store.System().Get()
+	if err != nil {
+		return
+	}
 
-				v := url.Values{}
+	lastSecurityTime, _ := strconv.ParseInt(props[model.SYSTEM_LAST_SECURITY_TIME], 10, 0)
+	currentTime := model.GetMillis()
 
-				v.Set(PROP_SECURITY_ID, s.diagnosticId)
-				v.Set(PROP_SECURITY_BUILD, model.CurrentVersion+"."+model.BuildNumber)
-				v.Set(PROP_SECURITY_ENTERPRISE_READY, model.BuildEnterpriseReady)
-				v.Set(PROP_SECURITY_DATABASE, *s.Config().SqlSettings.DriverName)
-				v.Set(PROP_SECURITY_OS, runtime.GOOS)
+	if (currentTime - lastSecurityTime) > SECURITY_UPDATE_PERIOD {
+		mlog.Debug("Checking for security update from Mattermost")
 
-				if len(props[model.SYSTEM_RAN_UNIT_TESTS]) > 0 {
-					v.Set(PROP_SECURITY_UNIT_TESTS, "1")
-				} else {
-					v.Set(PROP_SECURITY_UNIT_TESTS, "0")
-				}
+		v := url.Values{}
 
-				systemSecurityLastTime := &model.System{Name: model.SYSTEM_LAST_SECURITY_TIME, Value: strconv.FormatInt(currentTime, 10)}
-				if lastSecurityTime == 0 {
-					<-s.Store.System().Save(systemSecurityLastTime)
-				} else {
-					<-s.Store.System().Update(systemSecurityLastTime)
-				}
+		v.Set(PROP_SECURITY_ID, s.diagnosticId)
+		v.Set(PROP_SECURITY_BUILD, model.CurrentVersion+"."+model.BuildNumber)
+		v.Set(PROP_SECURITY_ENTERPRISE_READY, model.BuildEnterpriseReady)
+		v.Set(PROP_SECURITY_DATABASE, *s.Config().SqlSettings.DriverName)
+		v.Set(PROP_SECURITY_OS, runtime.GOOS)
 
-				if ucr := <-s.Store.User().Count(model.UserCountOptions{
-					IncludeDeleted: true,
-				}); ucr.Err == nil {
-					v.Set(PROP_SECURITY_USER_COUNT, strconv.FormatInt(ucr.Data.(int64), 10))
-				}
+		if len(props[model.SYSTEM_RAN_UNIT_TESTS]) > 0 {
+			v.Set(PROP_SECURITY_UNIT_TESTS, "1")
+		} else {
+			v.Set(PROP_SECURITY_UNIT_TESTS, "0")
+		}
 
-				if ucr := <-s.Store.Status().GetTotalActiveUsersCount(); ucr.Err == nil {
-					v.Set(PROP_SECURITY_ACTIVE_USER_COUNT, strconv.FormatInt(ucr.Data.(int64), 10))
-				}
+		systemSecurityLastTime := &model.System{Name: model.SYSTEM_LAST_SECURITY_TIME, Value: strconv.FormatInt(currentTime, 10)}
+		if lastSecurityTime == 0 {
+			s.Store.System().Save(systemSecurityLastTime)
+		} else {
+			s.Store.System().Update(systemSecurityLastTime)
+		}
 
-				if tcr := <-s.Store.Team().AnalyticsTeamCount(); tcr.Err == nil {
-					v.Set(PROP_SECURITY_TEAM_COUNT, strconv.FormatInt(tcr.Data.(int64), 10))
-				}
+		if ucr := <-s.Store.User().Count(model.UserCountOptions{
+			IncludeDeleted: true,
+		}); ucr.Err == nil {
+			v.Set(PROP_SECURITY_USER_COUNT, strconv.FormatInt(ucr.Data.(int64), 10))
+		}
 
-				res, err := http.Get(SECURITY_URL + "/security?" + v.Encode())
-				if err != nil {
-					mlog.Error("Failed to get security update information from Mattermost.")
-					return
-				}
+		if ucr := <-s.Store.Status().GetTotalActiveUsersCount(); ucr.Err == nil {
+			v.Set(PROP_SECURITY_ACTIVE_USER_COUNT, strconv.FormatInt(ucr.Data.(int64), 10))
+		}
 
-				defer res.Body.Close()
+		if tcr := <-s.Store.Team().AnalyticsTeamCount(); tcr.Err == nil {
+			v.Set(PROP_SECURITY_TEAM_COUNT, strconv.FormatInt(tcr.Data.(int64), 10))
+		}
 
-				bulletins := model.SecurityBulletinsFromJson(res.Body)
+		res, err := http.Get(SECURITY_URL + "/security?" + v.Encode())
+		if err != nil {
+			mlog.Error("Failed to get security update information from Mattermost.")
+			return
+		}
 
-				for _, bulletin := range bulletins {
-					if bulletin.AppliesToVersion == model.CurrentVersion {
-						if props["SecurityBulletin_"+bulletin.Id] == "" {
-							results := <-s.Store.User().GetSystemAdminProfiles()
-							if results.Err != nil {
-								mlog.Error("Failed to get system admins for security update information from Mattermost.")
-								return
-							}
-							users := results.Data.(map[string]*model.User)
+		defer res.Body.Close()
 
-							resBody, err := http.Get(SECURITY_URL + "/bulletins/" + bulletin.Id)
-							if err != nil {
-								mlog.Error("Failed to get security bulletin details")
-								return
-							}
+		bulletins := model.SecurityBulletinsFromJson(res.Body)
 
-							body, err := ioutil.ReadAll(resBody.Body)
-							res.Body.Close()
-							if err != nil || resBody.StatusCode != 200 {
-								mlog.Error("Failed to read security bulletin details")
-								return
-							}
-
-							for _, user := range users {
-								mlog.Info(fmt.Sprintf("Sending security bulletin for %v to %v", bulletin.Id, user.Email))
-								license := s.License()
-								mailservice.SendMailUsingConfig(user.Email, utils.T("mattermost.bulletin.subject"), string(body), s.Config(), license != nil && *license.Features.Compliance)
-							}
-
-							bulletinSeen := &model.System{Name: "SecurityBulletin_" + bulletin.Id, Value: bulletin.Id}
-							<-s.Store.System().Save(bulletinSeen)
-						}
+		for _, bulletin := range bulletins {
+			if bulletin.AppliesToVersion == model.CurrentVersion {
+				if props["SecurityBulletin_"+bulletin.Id] == "" {
+					results := <-s.Store.User().GetSystemAdminProfiles()
+					if results.Err != nil {
+						mlog.Error("Failed to get system admins for security update information from Mattermost.")
+						return
 					}
+					users := results.Data.(map[string]*model.User)
+
+					resBody, err := http.Get(SECURITY_URL + "/bulletins/" + bulletin.Id)
+					if err != nil {
+						mlog.Error("Failed to get security bulletin details")
+						return
+					}
+
+					body, err := ioutil.ReadAll(resBody.Body)
+					res.Body.Close()
+					if err != nil || resBody.StatusCode != 200 {
+						mlog.Error("Failed to read security bulletin details")
+						return
+					}
+
+					for _, user := range users {
+						mlog.Info(fmt.Sprintf("Sending security bulletin for %v to %v", bulletin.Id, user.Email))
+						license := s.License()
+						mailservice.SendMailUsingConfig(user.Email, utils.T("mattermost.bulletin.subject"), string(body), s.Config(), license != nil && *license.Features.Compliance)
+					}
+
+					bulletinSeen := &model.System{Name: "SecurityBulletin_" + bulletin.Id, Value: bulletin.Id}
+					s.Store.System().Save(bulletinSeen)
 				}
 			}
 		}

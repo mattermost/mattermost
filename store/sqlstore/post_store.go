@@ -97,13 +97,7 @@ func (s *SqlPostStore) Save(post *model.Post) store.StoreChannel {
 			return
 		}
 
-		var maxPostSize int
-		if result := <-s.GetMaxPostSize(); result.Err != nil {
-			result.Err = model.NewAppError("SqlPostStore.Save", "store.sql_post.save.app_error", nil, "id="+post.Id+", "+result.Err.Error(), http.StatusInternalServerError)
-			return
-		} else {
-			maxPostSize = result.Data.(int)
-		}
+		maxPostSize := s.GetMaxPostSize()
 
 		post.PreSave()
 		if result.Err = post.IsValid(maxPostSize); result.Err != nil {
@@ -146,13 +140,7 @@ func (s *SqlPostStore) Update(newPost *model.Post, oldPost *model.Post) store.St
 		oldPost.Id = model.NewId()
 		oldPost.PreCommit()
 
-		var maxPostSize int
-		if result := <-s.GetMaxPostSize(); result.Err != nil {
-			result.Err = model.NewAppError("SqlPostStore.Save", "store.sql_post.update.app_error", nil, "id="+newPost.Id+", "+result.Err.Error(), http.StatusInternalServerError)
-			return
-		} else {
-			maxPostSize = result.Data.(int)
-		}
+		maxPostSize := s.GetMaxPostSize()
 
 		if result.Err = newPost.IsValid(maxPostSize); result.Err != nil {
 			return
@@ -176,28 +164,19 @@ func (s *SqlPostStore) Update(newPost *model.Post, oldPost *model.Post) store.St
 	})
 }
 
-func (s *SqlPostStore) Overwrite(post *model.Post) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		post.UpdateAt = model.GetMillis()
+func (s *SqlPostStore) Overwrite(post *model.Post) (*model.Post, *model.AppError) {
+	post.UpdateAt = model.GetMillis()
 
-		var maxPostSize int
-		if result := <-s.GetMaxPostSize(); result.Err != nil {
-			result.Err = model.NewAppError("SqlPostStore.Save", "store.sql_post.overwrite.app_error", nil, "id="+post.Id+", "+result.Err.Error(), http.StatusInternalServerError)
-			return
-		} else {
-			maxPostSize = result.Data.(int)
-		}
+	maxPostSize := s.GetMaxPostSize()
+	if appErr := post.IsValid(maxPostSize); appErr != nil {
+		return nil, appErr
+	}
 
-		if result.Err = post.IsValid(maxPostSize); result.Err != nil {
-			return
-		}
+	if _, err := s.GetMaster().Update(post); err != nil {
+		return nil, model.NewAppError("SqlPostStore.Overwrite", "store.sql_post.overwrite.app_error", nil, "id="+post.Id+", "+err.Error(), http.StatusInternalServerError)
+	}
 
-		if _, err := s.GetMaster().Update(post); err != nil {
-			result.Err = model.NewAppError("SqlPostStore.Overwrite", "store.sql_post.overwrite.app_error", nil, "id="+post.Id+", "+err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = post
-		}
-	})
+	return post, nil
 }
 
 func (s *SqlPostStore) GetFlaggedPosts(userId string, offset int, limit int) store.StoreChannel {
@@ -292,49 +271,43 @@ func (s *SqlPostStore) GetFlaggedPostsForChannel(userId, channelId string, offse
 	})
 }
 
-func (s *SqlPostStore) Get(id string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		pl := model.NewPostList()
+func (s *SqlPostStore) Get(id string) (*model.PostList, *model.AppError) {
+	pl := model.NewPostList()
 
-		if len(id) == 0 {
-			result.Err = model.NewAppError("SqlPostStore.GetPost", "store.sql_post.get.app_error", nil, "id="+id, http.StatusBadRequest)
-			return
-		}
+	if len(id) == 0 {
+		return nil, model.NewAppError("SqlPostStore.GetPost", "store.sql_post.get.app_error", nil, "id="+id, http.StatusBadRequest)
+	}
 
-		var post model.Post
-		err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": id})
-		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetPost", "store.sql_post.get.app_error", nil, "id="+id+err.Error(), http.StatusNotFound)
-			return
-		}
+	var post model.Post
+	err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": id})
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetPost", "store.sql_post.get.app_error", nil, "id="+id+err.Error(), http.StatusNotFound)
+	}
 
-		pl.AddPost(&post)
-		pl.AddOrder(id)
+	pl.AddPost(&post)
+	pl.AddOrder(id)
 
-		rootId := post.RootId
+	rootId := post.RootId
 
-		if rootId == "" {
-			rootId = post.Id
-		}
+	if rootId == "" {
+		rootId = post.Id
+	}
 
-		if len(rootId) == 0 {
-			result.Err = model.NewAppError("SqlPostStore.GetPost", "store.sql_post.get.app_error", nil, "root_id="+rootId, http.StatusInternalServerError)
-			return
-		}
+	if len(rootId) == 0 {
+		return nil, model.NewAppError("SqlPostStore.GetPost", "store.sql_post.get.app_error", nil, "root_id="+rootId, http.StatusInternalServerError)
+	}
 
-		var posts []*model.Post
-		_, err = s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE (Id = :Id OR RootId = :RootId) AND DeleteAt = 0", map[string]interface{}{"Id": rootId, "RootId": rootId})
-		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetPost", "store.sql_post.get.app_error", nil, "root_id="+rootId+err.Error(), http.StatusInternalServerError)
-			return
-		} else {
-			for _, p := range posts {
-				pl.AddPost(p)
-			}
-		}
+	var posts []*model.Post
+	_, err = s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE (Id = :Id OR RootId = :RootId) AND DeleteAt = 0", map[string]interface{}{"Id": rootId, "RootId": rootId})
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetPost", "store.sql_post.get.app_error", nil, "root_id="+rootId+err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = pl
-	})
+	for _, p := range posts {
+		pl.AddPost(p)
+	}
+
+	return pl, nil
 }
 
 func (s *SqlPostStore) GetSingle(id string) store.StoreChannel {
@@ -1296,13 +1269,11 @@ func (s *SqlPostStore) determineMaxPostSize() int {
 }
 
 // GetMaxPostSize returns the maximum number of runes that may be stored in a post.
-func (s *SqlPostStore) GetMaxPostSize() store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		s.maxPostSizeOnce.Do(func() {
-			s.maxPostSizeCached = s.determineMaxPostSize()
-		})
-		result.Data = s.maxPostSizeCached
+func (s *SqlPostStore) GetMaxPostSize() int {
+	s.maxPostSizeOnce.Do(func() {
+		s.maxPostSizeCached = s.determineMaxPostSize()
 	})
+	return s.maxPostSizeCached
 }
 
 func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string) store.StoreChannel {

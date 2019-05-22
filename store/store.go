@@ -130,8 +130,8 @@ type TeamStore interface {
 
 type ChannelStore interface {
 	Save(channel *model.Channel, maxChannelsPerTeam int64) StoreChannel
-	CreateDirectChannel(userId string, otherUserId string) StoreChannel
-	SaveDirectChannel(channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) StoreChannel
+	CreateDirectChannel(userId string, otherUserId string) (*model.Channel, *model.AppError)
+	SaveDirectChannel(channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, *model.AppError)
 	Update(channel *model.Channel) (*model.Channel, *model.AppError)
 	Get(id string, allowFromCache bool) (*model.Channel, *model.AppError)
 	InvalidateChannel(id string)
@@ -212,7 +212,7 @@ type ChannelMemberHistoryStore interface {
 type PostStore interface {
 	Save(post *model.Post) StoreChannel
 	Update(newPost *model.Post, oldPost *model.Post) StoreChannel
-	Get(id string) StoreChannel
+	Get(id string) (*model.PostList, *model.AppError)
 	GetSingle(id string) StoreChannel
 	Delete(postId string, time int64, deleteByID string) *model.AppError
 	PermanentDeleteByUser(userId string) StoreChannel
@@ -232,12 +232,12 @@ type PostStore interface {
 	ClearCaches()
 	InvalidateLastPostTimeCache(channelId string)
 	GetPostsCreatedAt(channelId string, time int64) StoreChannel
-	Overwrite(post *model.Post) StoreChannel
+	Overwrite(post *model.Post) (*model.Post, *model.AppError)
 	GetPostsByIds(postIds []string) StoreChannel
 	GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) StoreChannel
 	PermanentDeleteBatch(endTime int64, limit int64) StoreChannel
 	GetOldest() StoreChannel
-	GetMaxPostSize() StoreChannel
+	GetMaxPostSize() int
 	GetParentsForExportAfter(limit int, afterId string) StoreChannel
 	GetRepliesForExport(parentId string) StoreChannel
 	GetDirectPostParentsForExportAfter(limit int, afterId string) StoreChannel
@@ -373,12 +373,12 @@ type OAuthStore interface {
 }
 
 type SystemStore interface {
-	Save(system *model.System) StoreChannel
-	SaveOrUpdate(system *model.System) StoreChannel
-	Update(system *model.System) StoreChannel
-	Get() StoreChannel
-	GetByName(name string) StoreChannel
-	PermanentDeleteByName(name string) StoreChannel
+	Save(system *model.System) *model.AppError
+	SaveOrUpdate(system *model.System) *model.AppError
+	Update(system *model.System) *model.AppError
+	Get() (model.StringMap, *model.AppError)
+	GetByName(name string) (*model.System, *model.AppError)
+	PermanentDeleteByName(name string) (*model.System, *model.AppError)
 }
 
 type WebhookStore interface {
@@ -435,7 +435,7 @@ type PreferenceStore interface {
 	Delete(userId, category, name string) StoreChannel
 	DeleteCategory(userId string, category string) StoreChannel
 	DeleteCategoryAndName(category string, name string) StoreChannel
-	PermanentDeleteByUser(userId string) StoreChannel
+	PermanentDeleteByUser(userId string) *model.AppError
 	IsFeatureEnabled(feature, userId string) StoreChannel
 	CleanupFlagsBatch(limit int64) (int64, *model.AppError)
 }
@@ -538,13 +538,13 @@ type PluginStore interface {
 }
 
 type RoleStore interface {
-	Save(role *model.Role) StoreChannel
-	Get(roleId string) StoreChannel
-	GetAll() StoreChannel
-	GetByName(name string) StoreChannel
-	GetByNames(names []string) StoreChannel
-	Delete(roldId string) StoreChannel
-	PermanentDeleteAll() StoreChannel
+	Save(role *model.Role) (*model.Role, *model.AppError)
+	Get(roleId string) (*model.Role, *model.AppError)
+	GetAll() ([]*model.Role, *model.AppError)
+	GetByName(name string) (*model.Role, *model.AppError)
+	GetByNames(names []string) ([]*model.Role, *model.AppError)
+	Delete(roldId string) (*model.Role, *model.AppError)
+	PermanentDeleteAll() *model.AppError
 }
 
 type SchemeStore interface {

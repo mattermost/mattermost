@@ -216,13 +216,18 @@ func (s SqlPreferenceStore) GetAll(userId string) store.StoreChannel {
 	})
 }
 
-func (s SqlPreferenceStore) PermanentDeleteByUser(userId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if _, err := s.GetMaster().Exec(
-			`DELETE FROM Preferences WHERE UserId = :UserId`, map[string]interface{}{"UserId": userId}); err != nil {
-			result.Err = model.NewAppError("SqlPreferenceStore.Delete", "store.sql_preference.permanent_delete_by_user.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-	})
+func (s SqlPreferenceStore) PermanentDeleteByUser(userId string) *model.AppError {
+	query :=
+		`DELETE FROM 
+			Preferences 
+		WHERE 
+			UserId = :UserId`
+
+	if _, err := s.GetMaster().Exec(query, map[string]interface{}{"UserId": userId}); err != nil {
+		return model.NewAppError("SqlPreferenceStore.Delete", "store.sql_preference.permanent_delete_by_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
 }
 
 func (s SqlPreferenceStore) IsFeatureEnabled(feature, userId string) store.StoreChannel {

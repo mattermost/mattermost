@@ -235,8 +235,8 @@ func testPreferenceDeleteByUser(t *testing.T, ss store.Store) {
 
 	store.Must(ss.Preference().Save(&preferences))
 
-	if result := <-ss.Preference().PermanentDeleteByUser(userId); result.Err != nil {
-		t.Fatal(result.Err)
+	if err := ss.Preference().PermanentDeleteByUser(userId); err != nil {
+		t.Fatal(err)
 	}
 }
 

@@ -308,6 +308,14 @@
     "translation": "%v removed from the channel."
   },
   {
+    "id": "api.channel.remove_members.denied",
+    "translation": "Channel membership removal denied to the following users because of group constraints: {{ .UserIDs }}"
+  },
+  {
+    "id": "api.channel.remove_user_from_channel.app_error",
+    "translation": "Can not remove user from this channel type"
+  },
+  {
     "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
     "translation": "You cannot rename a direct message channel"
   },
@@ -707,6 +715,10 @@
     "translation": "An error occurred while joining the channel."
   },
   {
+    "id": "api.command_invite.group_constrained_user_denied",
+    "translation": "User cannot be added to this channel because it is constrained to group members only."
+  },
+  {
     "id": "api.command_invite.hint",
     "translation": "@[username] ~[channel]"
   },
@@ -909,6 +921,10 @@
   {
     "id": "api.command_remove.direct_group.app_error",
     "translation": "You can't remove someone from a direct message channel."
+  },
+  {
+    "id": "api.command_remove.group_constrained_user_denied",
+    "translation": "User cannot be removed from the channel by you because they are a member of the groups linked to this channel. To remove them from this channel, they must be removed from the linked groups."
   },
   {
     "id": "api.command_remove.hint",
@@ -1458,11 +1474,11 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
-    "translation": "@{{.Usernames}} and @{{.LastUsername}} did not get notified by this mention because they are not in the channel. They are also not a member of the groups linked to this channel."
+    "translation": "@{{.Usernames}} and @{{.LastUsername}} did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups."
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.one",
-    "translation": "@{{.Username}} did not get notified by this mention because they are not in the channel. They are also not a member of the groups linked to this channel."
+    "translation": "@{{.Username}} did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
@@ -5071,6 +5087,54 @@
     "translation": "Invalid token."
   },
   {
+    "id": "model.user.is_valid.auth_data.app_error",
+    "translation": "Invalid auth data"
+  },
+  {
+    "id": "model.user.is_valid.auth_data_pwd.app_error",
+    "translation": "Invalid user, password and auth data cannot both be set"
+  },
+  {
+    "id": "model.user.is_valid.auth_data_type.app_error",
+    "translation": "Invalid user, auth data must be set with auth type"
+  },
+  {
+    "id": "model.user.is_valid.create_at.app_error",
+    "translation": "Create at must be a valid time"
+  },
+  {
+    "id": "model.user.is_valid.email.app_error",
+    "translation": "Invalid email"
+  },
+  {
+    "id": "model.user.is_valid.first_name.app_error",
+    "translation": "Invalid first name"
+  },
+  {
+    "id": "model.user.is_valid.id.app_error",
+    "translation": "Invalid user id"
+  },
+  {
+    "id": "model.user.is_valid.last_name.app_error",
+    "translation": "Invalid last name"
+  },
+  {
+    "id": "model.user.is_valid.locale.app_error",
+    "translation": "Invalid locale"
+  },
+  {
+    "id": "model.user.is_valid.nickname.app_error",
+    "translation": "Invalid nickname"
+  },
+  {
+    "id": "model.user.is_valid.password_limit.app_error",
+    "translation": "Unable to set a password over 72 characters due to the limitations of bcrypt."
+  },
+  {
+    "id": "model.user.is_valid.position.app_error",
+    "translation": "Invalid position: must not be longer than 128 characters."
+  },
+  {
     "id": "model.user.is_valid.pwd.app_error",
     "translation": "Your password must contain at least {{.Min}} characters."
   },
@@ -5133,6 +5197,14 @@
   {
     "id": "model.user.is_valid.pwd_uppercase_symbol.app_error",
     "translation": "Your password must contain at least {{.Min}} characters made up of at least one uppercase letter and at least one symbol (e.g. \"~!@#$%^&*()\")."
+  },
+  {
+    "id": "model.user.is_valid.update_at.app_error",
+    "translation": "Update at must be a valid time"
+  },
+  {
+    "id": "model.user.is_valid.username.app_error",
+    "translation": "Username must begin with a letter, and contain between 3 to 22 lowercase characters made up of numbers, letters, and the symbols \".\", \"-\", and \"_\"."
   },
   {
     "id": "model.user_access_token.is_valid.description.app_error",
