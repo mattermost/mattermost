@@ -632,7 +632,7 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	}
 
 	if s.DisableLegacyMFA == nil {
-		s.DisableLegacyMFA = NewBool(isUpdate)
+		s.DisableLegacyMFA = NewBool(!isUpdate)
 	}
 
 	if s.ExperimentalLdapGroupSync == nil {
@@ -849,9 +849,9 @@ func (s *SqlSettings) SetDefaults(isUpdate bool) {
 
 	if s.AtRestEncryptKey == nil || len(*s.AtRestEncryptKey) == 0 {
 		if isUpdate {
-			s.AtRestEncryptKey = NewString("")
-		} else {
 			s.AtRestEncryptKey = NewString(NewRandomString(32))
+		} else {
+			s.AtRestEncryptKey = NewString("")
 		}
 	}
 
@@ -1048,9 +1048,9 @@ func (s *FileSettings) SetDefaults(isUpdate bool) {
 
 	if s.PublicLinkSalt == nil || len(*s.PublicLinkSalt) == 0 {
 		if isUpdate {
-			s.PublicLinkSalt = NewString("")
-		} else {
 			s.PublicLinkSalt = NewString(NewRandomString(32))
+		} else {
+			s.PublicLinkSalt = NewString("")
 		}
 	}
 
@@ -2368,7 +2368,7 @@ func ConfigFromJson(data io.Reader) *Config {
 
 // isUpdate detects a pre-existing config based on whether SiteURL has been changed
 func (o *Config) isUpdate() bool {
-	return o.ServiceSettings.SiteURL == nil || *(o.ServiceSettings.SiteURL) == SERVICE_SETTINGS_DEFAULT_SITE_URL
+	return o.ServiceSettings.SiteURL != nil
 }
 
 func (o *Config) SetDefaults() {
