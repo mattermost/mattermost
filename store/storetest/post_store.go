@@ -128,19 +128,19 @@ func testPostStoreGet(t *testing.T, ss store.Store) {
 		t.Fatal("Invalid Etag")
 	}
 
-	if r1 := <-ss.Post().Get(o1.Id); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		if r1.Data.(*model.PostList).Posts[o1.Id].CreateAt != o1.CreateAt {
-			t.Fatal("invalid returned post")
-		}
+	r1, err := ss.Post().Get(o1.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r1.Posts[o1.Id].CreateAt != o1.CreateAt {
+		t.Fatal("invalid returned post")
 	}
 
-	if err := (<-ss.Post().Get("123")).Err; err == nil {
+	if _, err = ss.Post().Get("123"); err == nil {
 		t.Fatal("Missing id should have failed")
 	}
 
-	if err := (<-ss.Post().Get("")).Err; err == nil {
+	if _, err = ss.Post().Get(""); err == nil {
 		t.Fatal("should fail for blank post ids")
 	}
 }
@@ -221,9 +221,21 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 	o3.Message = "zz" + model.NewId() + "QQQQQQQQQQ"
 	o3 = (<-ss.Post().Save(o3)).Data.(*model.Post)
 
-	ro1 := (<-ss.Post().Get(o1.Id)).Data.(*model.PostList).Posts[o1.Id]
-	ro2 := (<-ss.Post().Get(o1.Id)).Data.(*model.PostList).Posts[o2.Id]
-	ro3 := (<-ss.Post().Get(o3.Id)).Data.(*model.PostList).Posts[o3.Id]
+	r1, err := ss.Post().Get(o1.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ro1 := r1.Posts[o1.Id]
+	r2, err := ss.Post().Get(o1.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ro2 := r2.Posts[o2.Id]
+	r3, err := ss.Post().Get(o3.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ro3 := r3.Posts[o3.Id]
 
 	if ro1.Message != o1.Message {
 		t.Fatal("Failed to save/get")
@@ -236,8 +248,12 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 		t.Fatal(result.Err)
 	}
 
-	ro1a := (<-ss.Post().Get(o1.Id)).Data.(*model.PostList).Posts[o1.Id]
+	r1, err = ss.Post().Get(o1.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
 
+	ro1a := r1.Posts[o1.Id]
 	if ro1a.Message != o1a.Message {
 		t.Fatal("Failed to update/get")
 	}
@@ -249,7 +265,11 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 		t.Fatal(result.Err)
 	}
 
-	ro2a := (<-ss.Post().Get(o1.Id)).Data.(*model.PostList).Posts[o2.Id]
+	r2, err = ss.Post().Get(o1.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ro2a := r2.Posts[o2.Id]
 
 	if ro2a.Message != o2a.Message {
 		t.Fatal("Failed to update/get")
@@ -262,7 +282,11 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 		t.Fatal(result.Err)
 	}
 
-	ro3a := (<-ss.Post().Get(o3.Id)).Data.(*model.PostList).Posts[o3.Id]
+	r3, err = ss.Post().Get(o3.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ro3a := r3.Posts[o3.Id]
 
 	if ro3a.Message != o3a.Message && ro3a.Hashtags != o3a.Hashtags {
 		t.Fatal("Failed to update/get")
@@ -275,7 +299,11 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 		Filenames: []string{"test"},
 	})).(*model.Post)
 
-	ro4 := (<-ss.Post().Get(o4.Id)).Data.(*model.PostList).Posts[o4.Id]
+	r4, err := ss.Post().Get(o4.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ro4 := r4.Posts[o4.Id]
 
 	o4a := &model.Post{}
 	*o4a = *ro4
@@ -285,7 +313,12 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 		t.Fatal(result.Err)
 	}
 
-	if ro4a := store.Must(ss.Post().Get(o4.Id)).(*model.PostList).Posts[o4.Id]; len(ro4a.Filenames) != 0 {
+	r4, err = ss.Post().Get(o4.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if ro4a := r4.Posts[o4.Id]; len(ro4a.Filenames) != 0 {
 		t.Fatal("Failed to clear Filenames")
 	} else if len(ro4a.FileIds) != 1 {
 		t.Fatal("Failed to set FileIds")
@@ -306,10 +339,10 @@ func testPostStoreDelete(t *testing.T, ss store.Store) {
 
 	o1 = (<-ss.Post().Save(o1)).Data.(*model.Post)
 
-	if r1 := <-ss.Post().Get(o1.Id); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if r1, err := ss.Post().Get(o1.Id); err != nil {
+		t.Fatal(err)
 	} else {
-		if r1.Data.(*model.PostList).Posts[o1.Id].CreateAt != o1.CreateAt {
+		if r1.Posts[o1.Id].CreateAt != o1.CreateAt {
 			t.Fatal("invalid returned post")
 		}
 	}
@@ -325,8 +358,8 @@ func testPostStoreDelete(t *testing.T, ss store.Store) {
 		t.Errorf("Expected (*Post).Props[model.POST_PROPS_DELETE_BY] to be %v but got %v.", deleteByID, actual)
 	}
 
-	if r3 := (<-ss.Post().Get(o1.Id)); r3.Err == nil {
-		t.Log(r3.Data)
+	if r3, err := ss.Post().Get(o1.Id); err == nil {
+		t.Log(r3)
 		t.Fatal("Missing id should have failed")
 	}
 
@@ -355,11 +388,11 @@ func testPostStoreDelete1Level(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	if r3 := (<-ss.Post().Get(o1.Id)); r3.Err == nil {
+	if _, err := ss.Post().Get(o1.Id); err == nil {
 		t.Fatal("Deleted id should have failed")
 	}
 
-	if r4 := (<-ss.Post().Get(o2.Id)); r4.Err == nil {
+	if _, err := ss.Post().Get(o2.Id); err == nil {
 		t.Fatal("Deleted id should have failed")
 	}
 }
@@ -397,20 +430,20 @@ func testPostStoreDelete2Level(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	if r3 := (<-ss.Post().Get(o1.Id)); r3.Err == nil {
+	if _, err := ss.Post().Get(o1.Id); err == nil {
 		t.Fatal("Deleted id should have failed")
 	}
 
-	if r4 := (<-ss.Post().Get(o2.Id)); r4.Err == nil {
+	if _, err := ss.Post().Get(o2.Id); err == nil {
 		t.Fatal("Deleted id should have failed")
 	}
 
-	if r5 := (<-ss.Post().Get(o3.Id)); r5.Err == nil {
+	if _, err := ss.Post().Get(o3.Id); err == nil {
 		t.Fatal("Deleted id should have failed")
 	}
 
-	if r6 := <-ss.Post().Get(o4.Id); r6.Err != nil {
-		t.Fatal(r6.Err)
+	if _, err := ss.Post().Get(o4.Id); err != nil {
+		t.Fatal(err)
 	}
 }
 
@@ -439,11 +472,11 @@ func testPostStorePermDelete1Level(t *testing.T, ss store.Store) {
 		t.Fatal(r2.Err)
 	}
 
-	if r3 := (<-ss.Post().Get(o1.Id)); r3.Err != nil {
+	if _, err := ss.Post().Get(o1.Id); err != nil {
 		t.Fatal("Deleted id shouldn't have failed")
 	}
 
-	if r4 := (<-ss.Post().Get(o2.Id)); r4.Err == nil {
+	if _, err := ss.Post().Get(o2.Id); err == nil {
 		t.Fatal("Deleted id should have failed")
 	}
 
@@ -451,7 +484,7 @@ func testPostStorePermDelete1Level(t *testing.T, ss store.Store) {
 		t.Fatal(r2.Err)
 	}
 
-	if r3 := (<-ss.Post().Get(o3.Id)); r3.Err == nil {
+	if _, err := ss.Post().Get(o3.Id); err == nil {
 		t.Fatal("Deleted id should have failed")
 	}
 }
@@ -481,15 +514,15 @@ func testPostStorePermDelete1Level2(t *testing.T, ss store.Store) {
 		t.Fatal(r2.Err)
 	}
 
-	if r3 := (<-ss.Post().Get(o1.Id)); r3.Err == nil {
+	if _, err := ss.Post().Get(o1.Id); err == nil {
 		t.Fatal("Deleted id should have failed")
 	}
 
-	if r4 := (<-ss.Post().Get(o2.Id)); r4.Err == nil {
+	if _, err := ss.Post().Get(o2.Id); err == nil {
 		t.Fatal("Deleted id should have failed")
 	}
 
-	if r5 := (<-ss.Post().Get(o3.Id)); r5.Err != nil {
+	if _, err := ss.Post().Get(o3.Id); err != nil {
 		t.Fatal("Deleted id shouldn't have failed")
 	}
 }
@@ -517,39 +550,39 @@ func testPostStoreGetWithChildren(t *testing.T, ss store.Store) {
 	o3.RootId = o1.Id
 	o3 = (<-ss.Post().Save(o3)).Data.(*model.Post)
 
-	if r1 := <-ss.Post().Get(o1.Id); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		pl := r1.Data.(*model.PostList)
-		if len(pl.Posts) != 3 {
-			t.Fatal("invalid returned post")
-		}
-	}
-
-	if err := ss.Post().Delete(o3.Id, model.GetMillis(), ""); err != nil {
+	pl, err := ss.Post().Get(o1.Id)
+	if err != nil {
 		t.Fatal(err)
 	}
 
-	if r2 := <-ss.Post().Get(o1.Id); r2.Err != nil {
-		t.Fatal(r2.Err)
-	} else {
-		pl := r2.Data.(*model.PostList)
-		if len(pl.Posts) != 2 {
-			t.Fatal("invalid returned post")
-		}
+	if len(pl.Posts) != 3 {
+		t.Fatal("invalid returned post")
 	}
 
-	if err := ss.Post().Delete(o2.Id, model.GetMillis(), ""); err != nil {
+	if dErr := ss.Post().Delete(o3.Id, model.GetMillis(), ""); dErr != nil {
+		t.Fatal(dErr)
+	}
+
+	pl, err = ss.Post().Get(o1.Id)
+	if err != nil {
 		t.Fatal(err)
 	}
 
-	if r3 := <-ss.Post().Get(o1.Id); r3.Err != nil {
-		t.Fatal(r3.Err)
-	} else {
-		pl := r3.Data.(*model.PostList)
-		if len(pl.Posts) != 1 {
-			t.Fatal("invalid returned post")
-		}
+	if len(pl.Posts) != 2 {
+		t.Fatal("invalid returned post")
+	}
+
+	if dErr := ss.Post().Delete(o2.Id, model.GetMillis(), ""); dErr != nil {
+		t.Fatal(dErr)
+	}
+
+	pl, err = ss.Post().Get(o1.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(pl.Posts) != 1 {
+		t.Fatal("invalid returned post")
 	}
 }
 
@@ -1627,9 +1660,21 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 	o3.Message = "zz" + model.NewId() + "QQQQQQQQQQ"
 	o3 = (<-ss.Post().Save(o3)).Data.(*model.Post)
 
-	ro1 := (<-ss.Post().Get(o1.Id)).Data.(*model.PostList).Posts[o1.Id]
-	ro2 := (<-ss.Post().Get(o1.Id)).Data.(*model.PostList).Posts[o2.Id]
-	ro3 := (<-ss.Post().Get(o3.Id)).Data.(*model.PostList).Posts[o3.Id]
+	r1, err := ss.Post().Get(o1.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ro1 := r1.Posts[o1.Id]
+	r2, err := ss.Post().Get(o1.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ro2 := r2.Posts[o2.Id]
+	r3, err := ss.Post().Get(o3.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ro3 := r3.Posts[o3.Id]
 
 	if ro1.Message != o1.Message {
 		t.Fatal("Failed to save/get")
@@ -1638,11 +1683,16 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 	o1a := &model.Post{}
 	*o1a = *ro1
 	o1a.Message = ro1.Message + "BBBBBBBBBB"
-	if _, err := ss.Post().Overwrite(o1a); err != nil {
+	_, err = ss.Post().Overwrite(o1a)
+	if err != nil {
 		t.Fatal(err)
 	}
 
-	ro1a := (<-ss.Post().Get(o1.Id)).Data.(*model.PostList).Posts[o1.Id]
+	r1, err = ss.Post().Get(o1.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ro1a := r1.Posts[o1.Id]
 
 	if ro1a.Message != o1a.Message {
 		t.Fatal("Failed to overwrite/get")
@@ -1651,11 +1701,16 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 	o2a := &model.Post{}
 	*o2a = *ro2
 	o2a.Message = ro2.Message + "DDDDDDD"
-	if _, err := ss.Post().Overwrite(o2a); err != nil {
+	_, err = ss.Post().Overwrite(o2a)
+	if err != nil {
 		t.Fatal(err)
 	}
 
-	ro2a := (<-ss.Post().Get(o1.Id)).Data.(*model.PostList).Posts[o2.Id]
+	r2, err = ss.Post().Get(o1.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ro2a := r2.Posts[o2.Id]
 
 	if ro2a.Message != o2a.Message {
 		t.Fatal("Failed to overwrite/get")
@@ -1664,11 +1719,16 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 	o3a := &model.Post{}
 	*o3a = *ro3
 	o3a.Message = ro3.Message + "WWWWWWW"
-	if _, err := ss.Post().Overwrite(o3a); err != nil {
+	_, err = ss.Post().Overwrite(o3a)
+	if err != nil {
 		t.Fatal(err)
 	}
 
-	ro3a := (<-ss.Post().Get(o3.Id)).Data.(*model.PostList).Posts[o3.Id]
+	r3, err = ss.Post().Get(o3.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ro3a := r3.Posts[o3.Id]
 
 	if ro3a.Message != o3a.Message && ro3a.Hashtags != o3a.Hashtags {
 		t.Fatal("Failed to overwrite/get")
@@ -1681,17 +1741,29 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 		Filenames: []string{"test"},
 	})).(*model.Post)
 
-	ro4 := (<-ss.Post().Get(o4.Id)).Data.(*model.PostList).Posts[o4.Id]
+	r4, err := ss.Post().Get(o4.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ro4 := r4.Posts[o4.Id]
 
 	o4a := &model.Post{}
 	*o4a = *ro4
 	o4a.Filenames = []string{}
 	o4a.FileIds = []string{model.NewId()}
-	if _, err := ss.Post().Overwrite(o4a); err != nil {
+	_, err = ss.Post().Overwrite(o4a)
+	if err != nil {
 		t.Fatal(err)
 	}
 
-	if ro4a := store.Must(ss.Post().Get(o4.Id)).(*model.PostList).Posts[o4.Id]; len(ro4a.Filenames) != 0 {
+	r4, err = ss.Post().Get(o4.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ro4a := r4.Posts[o4.Id]
+
+	if len(ro4a.Filenames) != 0 {
 		t.Fatal("Failed to clear Filenames")
 	} else if len(ro4a.FileIds) != 1 {
 		t.Fatal("Failed to set FileIds")
@@ -1717,9 +1789,21 @@ func testPostStoreGetPostsByIds(t *testing.T, ss store.Store) {
 	o3.Message = "zz" + model.NewId() + "QQQQQQQQQQ"
 	o3 = (<-ss.Post().Save(o3)).Data.(*model.Post)
 
-	ro1 := (<-ss.Post().Get(o1.Id)).Data.(*model.PostList).Posts[o1.Id]
-	ro2 := (<-ss.Post().Get(o2.Id)).Data.(*model.PostList).Posts[o2.Id]
-	ro3 := (<-ss.Post().Get(o3.Id)).Data.(*model.PostList).Posts[o3.Id]
+	r1, err := ss.Post().Get(o1.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ro1 := r1.Posts[o1.Id]
+	r2, err := ss.Post().Get(o2.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ro2 := r2.Posts[o2.Id]
+	r3, err := ss.Post().Get(o3.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ro3 := r3.Posts[o3.Id]
 
 	postIds := []string{
 		ro1.Id,
@@ -1831,16 +1915,16 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 
 	store.Must(ss.Post().PermanentDeleteBatch(2000, 1000))
 
-	if p := <-ss.Post().Get(o1.Id); p.Err == nil {
+	if _, err := ss.Post().Get(o1.Id); err == nil {
 		t.Fatalf("Should have not found post 1 after purge")
 	}
 
-	if p := <-ss.Post().Get(o2.Id); p.Err == nil {
+	if _, err := ss.Post().Get(o2.Id); err == nil {
 		t.Fatalf("Should have not found post 2 after purge")
 	}
 
-	if p := <-ss.Post().Get(o3.Id); p.Err != nil {
-		t.Fatalf("Should have found post 3 after purge")
+	if _, err := ss.Post().Get(o3.Id); err != nil {
+		t.Fatalf("Should have not found post 3 after purge")
 	}
 }
 

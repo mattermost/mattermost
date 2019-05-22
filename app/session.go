@@ -9,7 +9,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
 )
 
 func (a *App) CreateSession(session *model.Session) (*model.Session, *model.AppError) {
@@ -242,18 +241,17 @@ func (a *App) UpdateLastActivityAtIfNeeded(session model.Session) {
 }
 
 func (a *App) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError) {
-	if !*a.Config().ServiceSettings.EnableUserAccessTokens {
+
+	user, err := a.Srv.Store.User().Get(token.UserId)
+	if err != nil {
+		return nil, err
+	}
+
+	if !*a.Config().ServiceSettings.EnableUserAccessTokens && !user.IsBot {
 		return nil, model.NewAppError("CreateUserAccessToken", "app.user_access_token.disabled", nil, "", http.StatusNotImplemented)
 	}
 
 	token.Token = model.NewId()
-
-	uchan := make(chan store.StoreResult, 1)
-	go func() {
-		user, err := a.Srv.Store.User().Get(token.UserId)
-		uchan <- store.StoreResult{Data: user, Err: err}
-		close(uchan)
-	}()
 
 	result := <-a.Srv.Store.UserAccessToken().Save(token)
 	if result.Err != nil {
@@ -261,13 +259,8 @@ func (a *App) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAc
 	}
 	token = result.Data.(*model.UserAccessToken)
 
-	if result := <-uchan; result.Err != nil {
-		mlog.Error(result.Err.Error())
-	} else {
-		user := result.Data.(*model.User)
-		if err := a.SendUserAccessTokenAddedEmail(user.Email, user.Locale, a.GetSiteURL()); err != nil {
-			mlog.Error(err.Error())
-		}
+	if err := a.SendUserAccessTokenAddedEmail(user.Email, user.Locale, a.GetSiteURL()); err != nil {
+		return nil, err
 	}
 
 	return token, nil

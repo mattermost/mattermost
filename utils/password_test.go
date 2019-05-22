@@ -9,36 +9,6 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
-func TestIsPasswordValid(t *testing.T) {
-	for name, tc := range map[string]struct {
-		Password      string
-		ExpectedError string
-	}{
-		"Short": {
-			Password: strings.Repeat("x", model.PASSWORD_MINIMUM_LENGTH),
-		},
-		"Long": {
-			Password: strings.Repeat("x", model.PASSWORD_MAXIMUM_LENGTH),
-		},
-		"TooShort": {
-			Password:      strings.Repeat("x", model.PASSWORD_MINIMUM_LENGTH-1),
-			ExpectedError: "model.user.is_valid.pwd.app_error",
-		},
-		"TooLong": {
-			Password:      strings.Repeat("x", model.PASSWORD_MAXIMUM_LENGTH+1),
-			ExpectedError: "model.user.is_valid.pwd.app_error",
-		},
-	} {
-		t.Run(name, func(t *testing.T) {
-			if err := IsPasswordValid(tc.Password); tc.ExpectedError == "" {
-				assert.Nil(t, err)
-			} else {
-				assert.Equal(t, tc.ExpectedError, err.Id)
-			}
-		})
-	}
-}
-
 func TestIsPasswordValidWithSettings(t *testing.T) {
 	for name, tc := range map[string]struct {
 		Password      string
@@ -49,54 +19,84 @@ func TestIsPasswordValidWithSettings(t *testing.T) {
 			Password: strings.Repeat("x", 3),
 			Settings: &model.PasswordSettings{
 				MinimumLength: model.NewInt(3),
+				Lowercase: model.NewBool(false),
+				Uppercase: model.NewBool(false),
+				Number: model.NewBool(false),
+				Symbol: model.NewBool(false),
 			},
 		},
 		"Long": {
 			Password: strings.Repeat("x", model.PASSWORD_MAXIMUM_LENGTH),
-			Settings: &model.PasswordSettings{},
+			Settings: &model.PasswordSettings{
+				Lowercase: model.NewBool(false),
+				Uppercase: model.NewBool(false),
+				Number: model.NewBool(false),
+				Symbol: model.NewBool(false),
+			},
 		},
 		"TooShort": {
 			Password: strings.Repeat("x", 2),
 			Settings: &model.PasswordSettings{
 				MinimumLength: model.NewInt(3),
+				Lowercase: model.NewBool(false),
+				Uppercase: model.NewBool(false),
+				Number: model.NewBool(false),
+				Symbol: model.NewBool(false),
 			},
 			ExpectedError: "model.user.is_valid.pwd.app_error",
 		},
 		"TooLong": {
 			Password:      strings.Repeat("x", model.PASSWORD_MAXIMUM_LENGTH+1),
-			Settings:      &model.PasswordSettings{},
+			Settings:      &model.PasswordSettings{
+				Lowercase: model.NewBool(false),
+				Uppercase: model.NewBool(false),
+				Number: model.NewBool(false),
+				Symbol: model.NewBool(false),
+			},
 			ExpectedError: "model.user.is_valid.pwd.app_error",
 		},
 		"MissingLower": {
-			Password: "ASD123!@#",
+			Password: "AAAAAAAAAAASD123!@#",
 			Settings: &model.PasswordSettings{
 				Lowercase: model.NewBool(true),
+				Uppercase: model.NewBool(false),
+				Number: model.NewBool(false),
+				Symbol: model.NewBool(false),
 			},
 			ExpectedError: "model.user.is_valid.pwd_lowercase.app_error",
 		},
 		"MissingUpper": {
-			Password: "asd123!@#",
+			Password: "aaaaaaaaaaaaasd123!@#",
 			Settings: &model.PasswordSettings{
 				Uppercase: model.NewBool(true),
+				Lowercase: model.NewBool(false),
+				Number: model.NewBool(false),
+				Symbol: model.NewBool(false),
 			},
 			ExpectedError: "model.user.is_valid.pwd_uppercase.app_error",
 		},
 		"MissingNumber": {
-			Password: "asdASD!@#",
+			Password: "asasdasdsadASD!@#",
 			Settings: &model.PasswordSettings{
 				Number: model.NewBool(true),
+				Lowercase: model.NewBool(false),
+				Uppercase: model.NewBool(false),
+				Symbol: model.NewBool(false),
 			},
 			ExpectedError: "model.user.is_valid.pwd_number.app_error",
 		},
 		"MissingSymbol": {
-			Password: "asdASD123",
+			Password: "asdasdasdasdasdASD123",
 			Settings: &model.PasswordSettings{
 				Symbol: model.NewBool(true),
+				Lowercase: model.NewBool(false),
+				Uppercase: model.NewBool(false),
+				Number: model.NewBool(false),
 			},
 			ExpectedError: "model.user.is_valid.pwd_symbol.app_error",
 		},
 		"MissingMultiple": {
-			Password: "asd",
+			Password: "asdasdasdasdasdasd",
 			Settings: &model.PasswordSettings{
 				Lowercase: model.NewBool(true),
 				Uppercase: model.NewBool(true),
