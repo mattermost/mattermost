@@ -737,7 +737,7 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func writeFileResponse(filename string, contentType string, contentSize int64, webserverMode string, fileReader io.Reader, forceDownload bool, w http.ResponseWriter, r *http.Request) *model.AppError {
-	w.Header().Set("Cache-Control", "max-age=2592000, private")
+	w.Header().Set("Cache-Control", "private, no-cache")
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 
 	if contentSize > 0 {

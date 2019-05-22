@@ -212,7 +212,7 @@ type ChannelMemberHistoryStore interface {
 type PostStore interface {
 	Save(post *model.Post) StoreChannel
 	Update(newPost *model.Post, oldPost *model.Post) StoreChannel
-	Get(id string) StoreChannel
+	Get(id string) (*model.PostList, *model.AppError)
 	GetSingle(id string) StoreChannel
 	Delete(postId string, time int64, deleteByID string) *model.AppError
 	PermanentDeleteByUser(userId string) StoreChannel
@@ -373,12 +373,12 @@ type OAuthStore interface {
 }
 
 type SystemStore interface {
-	Save(system *model.System) StoreChannel
-	SaveOrUpdate(system *model.System) StoreChannel
-	Update(system *model.System) StoreChannel
-	Get() StoreChannel
-	GetByName(name string) StoreChannel
-	PermanentDeleteByName(name string) StoreChannel
+	Save(system *model.System) *model.AppError
+	SaveOrUpdate(system *model.System) *model.AppError
+	Update(system *model.System) *model.AppError
+	Get() (model.StringMap, *model.AppError)
+	GetByName(name string) (*model.System, *model.AppError)
+	PermanentDeleteByName(name string) (*model.System, *model.AppError)
 }
 
 type WebhookStore interface {
@@ -435,7 +435,7 @@ type PreferenceStore interface {
 	Delete(userId, category, name string) StoreChannel
 	DeleteCategory(userId string, category string) StoreChannel
 	DeleteCategoryAndName(category string, name string) StoreChannel
-	PermanentDeleteByUser(userId string) StoreChannel
+	PermanentDeleteByUser(userId string) *model.AppError
 	IsFeatureEnabled(feature, userId string) StoreChannel
 	CleanupFlagsBatch(limit int64) StoreChannel
 }
