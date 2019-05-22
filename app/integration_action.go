@@ -228,7 +228,8 @@ func (a *App) DoActionRequest(rawURL string, body []byte) (*http.Response, *mode
 }
 
 func (a *App) OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppError {
-	if request.UserId == "" {
+	// optionally use a TriggerId if present, otherwise rely on the request.UserId
+	if request.TriggerId != "" {
 		clientTriggerId, userId, err := request.DecodeAndVerifyTriggerId(a.AsymmetricSigningKey())
 		if err != nil {
 			return err
