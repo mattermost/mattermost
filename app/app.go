@@ -4,7 +4,6 @@
 package app
 
 import (
-	"fmt"
 	"html/template"
 	"net/http"
 	"strconv"
@@ -135,7 +134,7 @@ func (a *App) HTMLTemplates() *template.Template {
 
 func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {
 	ipAddress := utils.GetIpAddress(r, a.Config().ServiceSettings.TrustedProxyIPHeader)
-	mlog.Debug(fmt.Sprintf("%v: code=404 ip=%v", r.URL.Path, ipAddress))
+	mlog.Debug("not found handler triggered", mlog.String("path", r.URL.Path), mlog.Int("code", 404), mlog.String("ip", ipAddress))
 
 	if *a.Config().ServiceSettings.WebserverMode == "disabled" {
 		http.NotFound(w, r)
