@@ -69,8 +69,8 @@ func StringSliceDiff(a, b []string) []string {
 func GetIpAddress(r *http.Request, trustedProxyIPHeader []string) string {
 	address := ""
 
-	for _, header := range trustedProxyIPHeader {
-		header := r.Header.Get(header)
+	for _, proxyHeader := range trustedProxyIPHeader {
+		header := r.Header.Get(proxyHeader)
 		if len(header) > 0 {
 			addresses := strings.Fields(header)
 			if len(addresses) > 0 {
