@@ -30,12 +30,20 @@ func TestNewRateLimiterSuccess(t *testing.T) {
 	rateLimiter, err := NewRateLimiter(settings, nil)
 	require.NotNil(t, rateLimiter)
 	require.NoError(t, err)
+
+	rateLimiter, err = NewRateLimiter(settings, []string{"X-Forwarded-For"})
+	require.NotNil(t, rateLimiter)
+	require.NoError(t, err)
 }
 
 func TestNewRateLimiterFailure(t *testing.T) {
 	invalidSettings := genRateLimitSettings(false, false, "")
 	invalidSettings.MaxBurst = model.NewInt(-100)
 	rateLimiter, err := NewRateLimiter(invalidSettings, nil)
+	require.Nil(t, rateLimiter)
+	require.Error(t, err)
+
+	rateLimiter, err = NewRateLimiter(invalidSettings, []string{"X-Forwarded-For", "X-Real-Ip"})
 	require.Nil(t, rateLimiter)
 	require.Error(t, err)
 }
