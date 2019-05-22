@@ -1550,7 +1550,19 @@ func (us SqlUserStore) GetUsersBatchForIndexing(startTime, endTime int64, limit 
 
 		var channelMembers []*model.ChannelMember
 		channelMembersQuery, args, _ := us.getQueryBuilder().
-			Select("cm.*").
+			Select(`
+				cm.ChannelId,
+				cm.UserId,
+				cm.Roles,
+				cm.LastViewedAt,
+				cm.MsgCount,
+				cm.MentionCount,
+				cm.NotifyProps,
+				cm.LastUpdateAt,
+				cm.SchemeUser,
+				cm.SchemeAdmin,
+				(cm.SchemeGuest IS NOT NULL AND cm.SchemeGuest) as SchemeGuest
+			`).
 			From("ChannelMembers cm").
 			Join("Channels c ON cm.ChannelId = c.Id").
 			Where(sq.Eq{"c.Type": "O", "cm.UserId": userIds}).
