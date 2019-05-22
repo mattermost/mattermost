@@ -134,7 +134,8 @@ func (a *App) HTMLTemplates() *template.Template {
 }
 
 func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {
-	mlog.Debug(fmt.Sprintf("%v: code=404 ip=%v", r.URL.Path, utils.GetIpAddress(r)))
+	ipAddress := utils.GetIpAddress(r, a.Config().ServiceSettings.TrustedProxyIPHeader)
+	mlog.Debug(fmt.Sprintf("%v: code=404 ip=%v", r.URL.Path, ipAddress))
 
 	if *a.Config().ServiceSettings.WebserverMode == "disabled" {
 		http.NotFound(w, r)

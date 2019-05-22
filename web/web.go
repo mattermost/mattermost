@@ -62,7 +62,7 @@ func CheckClientCompatability(agentString string) bool {
 func Handle404(config configservice.ConfigService, w http.ResponseWriter, r *http.Request) {
 	err := model.NewAppError("Handle404", "api.context.404.app_error", nil, "", http.StatusNotFound)
 
-	mlog.Debug(fmt.Sprintf("%v: code=404 ip=%v", r.URL.Path, utils.GetIpAddress(r)))
+	mlog.Debug(fmt.Sprintf("%v: code=404 ip=%v", r.URL.Path, utils.GetIpAddress(r, config.Config().ServiceSettings.TrustedProxyIPHeader)))
 
 	if IsApiCall(config, r) {
 		w.WriteHeader(err.StatusCode)

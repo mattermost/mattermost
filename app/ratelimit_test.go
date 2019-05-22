@@ -27,7 +27,7 @@ func genRateLimitSettings(useAuth, useIP bool, header string) *model.RateLimitSe
 
 func TestNewRateLimiterSuccess(t *testing.T) {
 	settings := genRateLimitSettings(false, false, "")
-	rateLimiter, err := NewRateLimiter(settings)
+	rateLimiter, err := NewRateLimiter(settings, nil)
 	require.NotNil(t, rateLimiter)
 	require.NoError(t, err)
 }
@@ -35,7 +35,7 @@ func TestNewRateLimiterSuccess(t *testing.T) {
 func TestNewRateLimiterFailure(t *testing.T) {
 	invalidSettings := genRateLimitSettings(false, false, "")
 	invalidSettings.MaxBurst = model.NewInt(-100)
-	rateLimiter, err := NewRateLimiter(invalidSettings)
+	rateLimiter, err := NewRateLimiter(invalidSettings, nil)
 	require.Nil(t, rateLimiter)
 	require.Error(t, err)
 }
@@ -73,7 +73,7 @@ func TestGenerateKey(t *testing.T) {
 			req.Header.Set(tc.header, tc.headerResult)
 		}
 
-		rateLimiter, _ := NewRateLimiter(genRateLimitSettings(tc.useAuth, tc.useIP, tc.header))
+		rateLimiter, _ := NewRateLimiter(genRateLimitSettings(tc.useAuth, tc.useIP, tc.header), nil)
 
 		key := rateLimiter.GenerateKey(req)
 
