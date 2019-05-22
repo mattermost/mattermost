@@ -228,16 +228,18 @@ func (a *App) DoActionRequest(rawURL string, body []byte) (*http.Response, *mode
 }
 
 func (a *App) OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppError {
-	clientTriggerId, userId, err := request.DecodeAndVerifyTriggerId(a.AsymmetricSigningKey())
-	if err != nil {
-		return err
+	if request.UserId == "" {
+		clientTriggerId, userId, err := request.DecodeAndVerifyTriggerId(a.AsymmetricSigningKey())
+		if err != nil {
+			return err
+		}
+		request.UserId = userId
+		request.TriggerId = clientTriggerId
 	}
-
-	request.TriggerId = clientTriggerId
 
 	jsonRequest, _ := json.Marshal(request)
 
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_OPEN_DIALOG, "", "", userId, nil)
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_OPEN_DIALOG, "", "", request.UserId, nil)
 	message.Add("dialog", string(jsonRequest))
 	a.Publish(message)
 

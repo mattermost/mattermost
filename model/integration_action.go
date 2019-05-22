@@ -204,6 +204,7 @@ type DialogElement struct {
 
 type OpenDialogRequest struct {
 	TriggerId string `json:"trigger_id"`
+	UserId    string `json:"user_id"`
 	URL       string `json:"url"`
 	Dialog    Dialog `json:"dialog"`
 }
