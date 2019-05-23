@@ -4,31 +4,21 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"os"
 
 	"github.com/mattermost/mattermost-server/config/config_generator/generator"
 )
 
-func usage() {
-	_, _ = fmt.Fprintf(os.Stderr, "usage: config_generator [output_file]\n")
-	os.Exit(2)
-}
-
 func main() {
-	flag.Usage = usage
-	flag.Parse()
-
-	args := flag.Args()
-	if len(args) < 1 {
-		fmt.Println("Output file name is missing.")
-		usage()
+	outputFile := os.Getenv("OUTPUT_CONFIG")
+	if outputFile == "" {
+		fmt.Println("Output file name is missing. Please set OUTPUT_CONFIG env variable to absolute path")
+		os.Exit(2)
 	}
-	outputFile := args[0]
 	if _, err := os.Stat(outputFile); !os.IsNotExist(err) {
 		_, _ = fmt.Fprintf(os.Stderr, "File %s already exists. Not overwriting!\n", outputFile)
-		usage()
+		os.Exit(2)
 	}
 
 	if file, err := os.Create(outputFile); err == nil {
