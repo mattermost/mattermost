@@ -6,8 +6,12 @@ package mailservice
 import (
 	"bytes"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"net/mail"
 	"net/smtp"
@@ -299,4 +303,48 @@ func TestAuthMethods(t *testing.T) {
 			}
 		})
 	}
+}
+
+type MockWriteCloser struct {
+	data []byte
+}
+
+func (m *MockWriteCloser) Write(p []byte) (int, error) {
+	m.data = append(m.data, p...)
+	return len(p), nil
+}
+func (m *MockWriteCloser) Close() error { return nil }
+func (m *MockWriteCloser) Clear()       { m.data = []byte{} }
+
+type MockMailer struct {
+	writeCloser *MockWriteCloser
+}
+
+func (m MockMailer) Mail(string) error             { return nil }
+func (m MockMailer) Rcpt(string) error             { return nil }
+func (m MockMailer) Data() (io.WriteCloser, error) { return m.writeCloser, nil }
+
+func TestSendMailReplyToHeader(t *testing.T) {
+	dir, err := ioutil.TempDir("", "")
+	require.Nil(t, err)
+	defer os.RemoveAll(dir)
+	settings := model.FileSettings{
+		DriverName: model.NewString(model.IMAGE_DRIVER_LOCAL),
+		Directory:  &dir,
+	}
+	mockBackend, appErr := filesstore.NewFileBackend(&settings, true)
+	require.Nil(t, appErr)
+
+	myMockWriteCloser := &MockWriteCloser{}
+	myMockMailer := &MockMailer{writeCloser: myMockWriteCloser}
+
+	appErr = SendMail(myMockMailer, "", "", mail.Address{}, mail.Address{Address: "foo@test.com"}, "", "", nil, nil, mockBackend, time.Now())
+	require.Nil(t, appErr)
+	require.Contains(t, string(myMockWriteCloser.data), "\r\nReply-To: <foo@test.com>\r\n")
+
+	myMockWriteCloser.Clear()
+
+	appErr = SendMail(myMockMailer, "", "", mail.Address{}, mail.Address{}, "", "", nil, nil, mockBackend, time.Now())
+	require.Nil(t, appErr)
+	require.NotContains(t, string(myMockWriteCloser.data), "\r\nReply-To:")
 }
