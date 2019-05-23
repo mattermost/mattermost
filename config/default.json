@@ -78,7 +78,7 @@
         "EnableEmailInvitations": false,
         "ExperimentalLdapGroupSync": false,
         "ExperimentalStrictCSRFEnforcement": false,
-        "CreateBotAccounts": false,
+        "EnableBotAccountCreation": false,
         "DisableBotsWhenOwnerIsDeactivated": true
     },
     "TeamSettings": {
