@@ -305,24 +305,18 @@ func TestAuthMethods(t *testing.T) {
 	}
 }
 
-type MockWriteCloser struct {
+type mockMailer struct {
 	data []byte
 }
 
-func (m *MockWriteCloser) Write(p []byte) (int, error) {
+func (m *mockMailer) Mail(string) error             { return nil }
+func (m *mockMailer) Rcpt(string) error             { return nil }
+func (m *mockMailer) Data() (io.WriteCloser, error) { return m, nil }
+func (m *mockMailer) Write(p []byte) (int, error) {
 	m.data = append(m.data, p...)
 	return len(p), nil
 }
-func (m *MockWriteCloser) Close() error { return nil }
-func (m *MockWriteCloser) Clear()       { m.data = []byte{} }
-
-type MockMailer struct {
-	writeCloser *MockWriteCloser
-}
-
-func (m MockMailer) Mail(string) error             { return nil }
-func (m MockMailer) Rcpt(string) error             { return nil }
-func (m MockMailer) Data() (io.WriteCloser, error) { return m.writeCloser, nil }
+func (m *mockMailer) Close() error { return nil }
 
 func TestSendMailReplyToHeader(t *testing.T) {
 	dir, err := ioutil.TempDir("", "")
@@ -335,16 +329,15 @@ func TestSendMailReplyToHeader(t *testing.T) {
 	mockBackend, appErr := filesstore.NewFileBackend(&settings, true)
 	require.Nil(t, appErr)
 
-	myMockWriteCloser := &MockWriteCloser{}
-	myMockMailer := &MockMailer{writeCloser: myMockWriteCloser}
+	myMockMailer := &mockMailer{}
 
 	appErr = SendMail(myMockMailer, "", "", mail.Address{}, mail.Address{Address: "foo@test.com"}, "", "", nil, nil, mockBackend, time.Now())
 	require.Nil(t, appErr)
-	require.Contains(t, string(myMockWriteCloser.data), "\r\nReply-To: <foo@test.com>\r\n")
+	require.Contains(t, string(myMockMailer.data), "\r\nReply-To: <foo@test.com>\r\n")
 
-	myMockWriteCloser.Clear()
+	myMockMailer.data = []byte{}
 
 	appErr = SendMail(myMockMailer, "", "", mail.Address{}, mail.Address{}, "", "", nil, nil, mockBackend, time.Now())
 	require.Nil(t, appErr)
-	require.NotContains(t, string(myMockWriteCloser.data), "\r\nReply-To:")
+	require.NotContains(t, string(myMockMailer.data), "\r\nReply-To:")
 }
