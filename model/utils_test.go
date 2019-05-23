@@ -357,7 +357,7 @@ func TestIsValidAlphaNum(t *testing.T) {
 }
 
 func TestGetServerIpAddress(t *testing.T) {
-	if len(GetServerIpAddress()) == 0 {
+	if len(GetServerIpAddress("")) == 0 {
 		t.Fatal("Should find local ip address")
 	}
 }
