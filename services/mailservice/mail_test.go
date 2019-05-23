@@ -328,16 +328,36 @@ func TestSendMailReplyToHeader(t *testing.T) {
 	}
 	mockBackend, appErr := filesstore.NewFileBackend(&settings, true)
 	require.Nil(t, appErr)
+	mocm := &mockMailer{}
 
-	myMockMailer := &mockMailer{}
+	testCases := map[string]struct {
+		replyTo     mail.Address
+		contains    string
+		notContains string
+	}{
+		"adds reply-to header": {
+			mail.Address{Address: "foo@test.com"},
+			"\r\nReply-To: <foo@test.com>\r\n",
+			"",
+		},
+		"doesn't add reply-to header": {
+			mail.Address{},
+			"",
+			"\r\nReply-To:",
+		},
+	}
 
-	appErr = SendMail(myMockMailer, "", "", mail.Address{}, mail.Address{Address: "foo@test.com"}, "", "", nil, nil, mockBackend, time.Now())
-	require.Nil(t, appErr)
-	require.Contains(t, string(myMockMailer.data), "\r\nReply-To: <foo@test.com>\r\n")
-
-	myMockMailer.data = []byte{}
-
-	appErr = SendMail(myMockMailer, "", "", mail.Address{}, mail.Address{}, "", "", nil, nil, mockBackend, time.Now())
-	require.Nil(t, appErr)
-	require.NotContains(t, string(myMockMailer.data), "\r\nReply-To:")
+	for testName, tc := range testCases {
+		t.Run(testName, func(t *testing.T) {
+			appErr = SendMail(mocm, "", "", mail.Address{}, tc.replyTo, "", "", nil, nil, mockBackend, time.Now())
+			require.Nil(t, appErr)
+			if len(tc.contains) > 0 {
+				require.Contains(t, string(mocm.data), tc.contains)
+			}
+			if len(tc.notContains) > 0 {
+				require.NotContains(t, string(mocm.data), tc.notContains)
+			}
+			mocm.data = []byte{}
+		})
+	}
 }
