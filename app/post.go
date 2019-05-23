@@ -158,7 +158,12 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 
 	var pchan store.StoreChannel
 	if len(post.RootId) > 0 {
-		pchan = a.Srv.Store.Post().Get(post.RootId)
+		pchan = make(store.StoreChannel, 1)
+		go func() {
+			r, pErr := a.Srv.Store.Post().Get(post.RootId)
+			pchan <- store.StoreResult{Data: r, Err: pErr}
+			close(pchan)
+		}()
 	}
 
 	user, err := a.Srv.Store.User().Get(post.UserId)
@@ -290,7 +295,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 
 	// Normally, we would let the API layer call PreparePostForClient, but we do it here since it also needs
 	// to be done when we send the post over the websocket in handlePostEvents
-	rpost = a.PreparePostForClient(rpost, true)
+	rpost = a.PreparePostForClient(rpost, true, false)
 
 	if err := a.handlePostEvents(rpost, user, channel, triggerWebhooks, parentPostList); err != nil {
 		mlog.Error("Failed to handle post events", mlog.Err(err))
@@ -410,7 +415,7 @@ func (a *App) SendEphemeralPost(userId string, post *model.Post) *model.Post {
 
 	post.GenerateActionIds()
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE, "", post.ChannelId, userId, nil)
-	post = a.PreparePostForClient(post, true)
+	post = a.PreparePostForClient(post, true, false)
 	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
 	message.Add("post", post.ToJson())
 	a.Publish(message)
@@ -428,7 +433,7 @@ func (a *App) UpdateEphemeralPost(userId string, post *model.Post) *model.Post {
 
 	post.GenerateActionIds()
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", post.ChannelId, userId, nil)
-	post = a.PreparePostForClient(post, true)
+	post = a.PreparePostForClient(post, true, false)
 	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
 	message.Add("post", post.ToJson())
 	a.Publish(message)
@@ -453,30 +458,30 @@ func (a *App) DeleteEphemeralPost(userId, postId string) {
 func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
 	post.SanitizeProps()
 
-	result := <-a.Srv.Store.Post().Get(post.Id)
-	if result.Err != nil {
-		return nil, result.Err
+	postLists, err := a.Srv.Store.Post().Get(post.Id)
+	if err != nil {
+		return nil, err
 	}
-	oldPost := result.Data.(*model.PostList).Posts[post.Id]
+	oldPost := postLists.Posts[post.Id]
 
 	if oldPost == nil {
-		err := model.NewAppError("UpdatePost", "api.post.update_post.find.app_error", nil, "id="+post.Id, http.StatusBadRequest)
+		err = model.NewAppError("UpdatePost", "api.post.update_post.find.app_error", nil, "id="+post.Id, http.StatusBadRequest)
 		return nil, err
 	}
 
 	if oldPost.DeleteAt != 0 {
-		err := model.NewAppError("UpdatePost", "api.post.update_post.permissions_details.app_error", map[string]interface{}{"PostId": post.Id}, "", http.StatusBadRequest)
+		err = model.NewAppError("UpdatePost", "api.post.update_post.permissions_details.app_error", map[string]interface{}{"PostId": post.Id}, "", http.StatusBadRequest)
 		return nil, err
 	}
 
 	if oldPost.IsSystemMessage() {
-		err := model.NewAppError("UpdatePost", "api.post.update_post.system_message.app_error", nil, "id="+post.Id, http.StatusBadRequest)
+		err = model.NewAppError("UpdatePost", "api.post.update_post.system_message.app_error", nil, "id="+post.Id, http.StatusBadRequest)
 		return nil, err
 	}
 
 	if a.License() != nil {
 		if *a.Config().ServiceSettings.PostEditTimeLimit != -1 && model.GetMillis() > oldPost.CreateAt+int64(*a.Config().ServiceSettings.PostEditTimeLimit*1000) && post.Message != oldPost.Message {
-			err := model.NewAppError("UpdatePost", "api.post.update_post.permissions_time_limit.app_error", map[string]interface{}{"timeLimit": *a.Config().ServiceSettings.PostEditTimeLimit}, "", http.StatusBadRequest)
+			err = model.NewAppError("UpdatePost", "api.post.update_post.permissions_time_limit.app_error", map[string]interface{}{"timeLimit": *a.Config().ServiceSettings.PostEditTimeLimit}, "", http.StatusBadRequest)
 			return nil, err
 		}
 	}
@@ -528,7 +533,7 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 		}
 	}
 
-	result = <-a.Srv.Store.Post().Update(newPost, oldPost)
+	result := <-a.Srv.Store.Post().Update(newPost, oldPost)
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -558,7 +563,7 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 		})
 	}
 
-	rpost = a.PreparePostForClient(rpost, false)
+	rpost = a.PreparePostForClient(rpost, false, true)
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", rpost.ChannelId, "", nil)
 	message.Add("post", rpost.ToJson())
@@ -632,11 +637,7 @@ func (a *App) GetSinglePost(postId string) (*model.Post, *model.AppError) {
 }
 
 func (a *App) GetPostThread(postId string) (*model.PostList, *model.AppError) {
-	result := <-a.Srv.Store.Post().Get(postId)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.PostList), nil
+	return a.Srv.Store.Post().Get(postId)
 }
 
 func (a *App) GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *model.AppError) {
@@ -664,11 +665,10 @@ func (a *App) GetFlaggedPostsForChannel(userId, channelId string, offset int, li
 }
 
 func (a *App) GetPermalinkPost(postId string, userId string) (*model.PostList, *model.AppError) {
-	result := <-a.Srv.Store.Post().Get(postId)
-	if result.Err != nil {
-		return nil, result.Err
+	list, err := a.Srv.Store.Post().Get(postId)
+	if err != nil {
+		return nil, err
 	}
-	list := result.Data.(*model.PostList)
 
 	if len(list.Order) != 1 {
 		return nil, model.NewAppError("getPermalinkTmp", "api.post_get_post_by_id.get.app_error", nil, "", http.StatusNotFound)
@@ -741,7 +741,7 @@ func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppErro
 	}
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_DELETED, "", post.ChannelId, "", nil)
-	message.Add("post", a.PreparePostForClient(post, false).ToJson())
+	message.Add("post", a.PreparePostForClient(post, false, false).ToJson())
 	a.Publish(message)
 
 	a.Srv.Go(func() {
@@ -957,7 +957,7 @@ func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamId strin
 func (a *App) GetFileInfosForPostWithMigration(postId string) ([]*model.FileInfo, *model.AppError) {
 	pchan := a.Srv.Store.Post().GetSingle(postId)
 
-	infos, err := a.GetFileInfosForPost(postId)
+	infos, err := a.GetFileInfosForPost(postId, false)
 	if err != nil {
 		return nil, err
 	}
@@ -980,8 +980,8 @@ func (a *App) GetFileInfosForPostWithMigration(postId string) ([]*model.FileInfo
 	return infos, nil
 }
 
-func (a *App) GetFileInfosForPost(postId string) ([]*model.FileInfo, *model.AppError) {
-	return a.Srv.Store.FileInfo().GetForPost(postId, false, true)
+func (a *App) GetFileInfosForPost(postId string, fromMaster bool) ([]*model.FileInfo, *model.AppError) {
+	return a.Srv.Store.FileInfo().GetForPost(postId, fromMaster, true)
 }
 
 func (a *App) PostWithProxyAddedToImageURLs(post *model.Post) *model.Post {
