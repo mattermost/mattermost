@@ -1249,7 +1249,12 @@ func (a *App) GetAllChannels(page, perPage int, opts model.ChannelSearchOpts) (*
 	if opts.ExcludeDefaultChannels {
 		opts.ExcludeChannelNames = a.DefaultChannelNames()
 	}
-	result := <-a.Srv.Store.Channel().GetAllChannels(page*perPage, perPage, opts)
+	storeOpts := store.ChannelSearchOpts{
+		ExcludeChannelNames:  opts.ExcludeChannelNames,
+		NotAssociatedToGroup: opts.NotAssociatedToGroup,
+		IncludeDeleted:       opts.IncludeDeleted,
+	}
+	result := <-a.Srv.Store.Channel().GetAllChannels(page*perPage, perPage, storeOpts)
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -1807,7 +1812,12 @@ func (a *App) SearchAllChannels(term string, opts model.ChannelSearchOpts) (*mod
 	if opts.ExcludeDefaultChannels {
 		opts.ExcludeChannelNames = a.DefaultChannelNames()
 	}
-	result := <-a.Srv.Store.Channel().SearchAllChannels(term, opts)
+	storeOpts := store.ChannelSearchOpts{
+		ExcludeChannelNames:  opts.ExcludeChannelNames,
+		NotAssociatedToGroup: opts.NotAssociatedToGroup,
+		IncludeDeleted:       opts.IncludeDeleted,
+	}
+	result := <-a.Srv.Store.Channel().SearchAllChannels(term, storeOpts)
 	if result.Err != nil {
 		return nil, result.Err
 	}

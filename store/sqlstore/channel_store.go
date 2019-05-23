@@ -949,7 +949,7 @@ func (s SqlChannelStore) GetChannels(teamId string, userId string, includeDelete
 	})
 }
 
-func (s SqlChannelStore) GetAllChannels(offset int, limit int, opts model.ChannelSearchOpts) store.StoreChannel {
+func (s SqlChannelStore) GetAllChannels(offset int, limit int, opts store.ChannelSearchOpts) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		query := s.getQueryBuilder().
 			Select("c.*, Teams.DisplayName AS TeamDisplayName, Teams.Name AS TeamName, Teams.UpdateAt AS TeamUpdateAt").
@@ -2140,7 +2140,7 @@ func (s SqlChannelStore) SearchInTeam(teamId string, term string, includeDeleted
 	})
 }
 
-func (s SqlChannelStore) SearchAllChannels(term string, opts model.ChannelSearchOpts) store.StoreChannel {
+func (s SqlChannelStore) SearchAllChannels(term string, opts store.ChannelSearchOpts) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		query := s.getQueryBuilder().
 			Select("c.*, t.DisplayName AS TeamDisplayName, t.Name AS TeamName, t.UpdateAt as TeamUpdateAt").
