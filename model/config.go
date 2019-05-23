@@ -46,6 +46,7 @@ const (
 
 	GENERIC_NO_CHANNEL_NOTIFICATION = "generic_no_channel"
 	GENERIC_NOTIFICATION            = "generic"
+	GENERIC_NOTIFICATION_SERVER     = "https://push-test.mattermost.com"
 	FULL_NOTIFICATION               = "full"
 
 	DIRECT_MESSAGE_ANY  = "any"
@@ -1133,7 +1134,7 @@ type EmailSettings struct {
 	LoginButtonTextColor              *string
 }
 
-func (s *EmailSettings) SetDefaults() {
+func (s *EmailSettings) SetDefaults(isUpdate bool) {
 	if s.EnableSignUpWithEmail == nil {
 		s.EnableSignUpWithEmail = NewBool(true)
 	}
@@ -1203,11 +1204,15 @@ func (s *EmailSettings) SetDefaults() {
 	}
 
 	if s.SendPushNotifications == nil {
-		s.SendPushNotifications = NewBool(false)
+		s.SendPushNotifications = NewBool(!isUpdate)
 	}
 
 	if s.PushNotificationServer == nil {
-		s.PushNotificationServer = NewString("")
+		if isUpdate {
+			s.PushNotificationServer = NewString("")
+		} else {
+			s.PushNotificationServer = NewString(GENERIC_NOTIFICATION_SERVER)
+		}
 	}
 
 	if s.PushNotificationContents == nil {
@@ -2391,7 +2396,7 @@ func (o *Config) SetDefaults() {
 
 	o.SqlSettings.SetDefaults(isUpdate)
 	o.FileSettings.SetDefaults(isUpdate)
-	o.EmailSettings.SetDefaults()
+	o.EmailSettings.SetDefaults(isUpdate)
 	o.PrivacySettings.setDefaults()
 	o.Office365Settings.setDefaults(OFFICE365_SETTINGS_DEFAULT_SCOPE, OFFICE365_SETTINGS_DEFAULT_AUTH_ENDPOINT, OFFICE365_SETTINGS_DEFAULT_TOKEN_ENDPOINT, OFFICE365_SETTINGS_DEFAULT_USER_API_ENDPOINT)
 	o.GitLabSettings.setDefaults("", "", "", "")
