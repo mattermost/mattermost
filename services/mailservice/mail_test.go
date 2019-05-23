@@ -319,7 +319,7 @@ func (m *mockMailer) Write(p []byte) (int, error) {
 func (m *mockMailer) Close() error { return nil }
 
 func TestSendMail(t *testing.T) {
-	dir, err := ioutil.TempDir("", "")
+	dir, err := ioutil.TempDir(".", "mail-test-")
 	require.Nil(t, err)
 	defer os.RemoveAll(dir)
 	settings := model.FileSettings{
