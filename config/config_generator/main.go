@@ -32,7 +32,7 @@ func main() {
 	}
 
 	if file, err := os.Create(outputFile); err == nil {
-		err := generator.GenerateDefaultConfig(file)
+		err = generator.GenerateDefaultConfig(file)
 		_ = file.Close()
 		if err != nil {
 			panic(err)
