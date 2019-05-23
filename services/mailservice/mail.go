@@ -25,9 +25,9 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-// SMTPClient is implemented by an smtp.Client. See https://golang.org/pkg/net/smtp/#Client.
+// smtpClient is implemented by an smtp.Client. See https://golang.org/pkg/net/smtp/#Client.
 //
-type SMTPClient interface {
+type smtpClient interface {
 	Mail(string) error
 	Rcpt(string) error
 	Data() (io.WriteCloser, error)
@@ -239,7 +239,7 @@ func SendMailUsingConfigAdvanced(mimeTo, smtpTo string, from, replyTo mail.Addre
 	return SendMail(c, mimeTo, smtpTo, from, replyTo, subject, htmlBody, attachments, mimeHeaders, fileBackend, time.Now())
 }
 
-func SendMail(c SMTPClient, mimeTo, smtpTo string, from, replyTo mail.Address, subject, htmlBody string, attachments []*model.FileInfo, mimeHeaders map[string]string, fileBackend filesstore.FileBackend, date time.Time) *model.AppError {
+func SendMail(c smtpClient, mimeTo, smtpTo string, from, replyTo mail.Address, subject, htmlBody string, attachments []*model.FileInfo, mimeHeaders map[string]string, fileBackend filesstore.FileBackend, date time.Time) *model.AppError {
 	mlog.Debug(fmt.Sprintf("sending mail to %v with subject of '%v'", smtpTo, subject))
 
 	htmlMessage := "\r\n<html><body>" + htmlBody + "</body></html>"
