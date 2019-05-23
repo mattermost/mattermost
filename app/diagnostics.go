@@ -292,7 +292,7 @@ func (a *App) trackConfig() {
 		"experimental_channel_organization":                       *cfg.ServiceSettings.ExperimentalChannelOrganization,
 		"experimental_ldap_group_sync":                            *cfg.ServiceSettings.ExperimentalLdapGroupSync,
 		"disable_bots_when_owner_is_deactivated":                  *cfg.ServiceSettings.DisableBotsWhenOwnerIsDeactivated,
-		"enable_bot_account_creation":                             *cfg.ServiceSettings.CreateBotAccounts,
+		"enable_bot_account_creation":                             *cfg.ServiceSettings.EnableBotAccountCreation,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_TEAM, map[string]interface{}{
