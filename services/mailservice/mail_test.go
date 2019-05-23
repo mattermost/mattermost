@@ -318,7 +318,7 @@ func (m *mockMailer) Write(p []byte) (int, error) {
 }
 func (m *mockMailer) Close() error { return nil }
 
-func TestSendMailReplyToHeader(t *testing.T) {
+func TestSendMail(t *testing.T) {
 	dir, err := ioutil.TempDir("", "")
 	require.Nil(t, err)
 	defer os.RemoveAll(dir)
