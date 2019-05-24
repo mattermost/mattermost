@@ -226,6 +226,7 @@ type ServiceSettings struct {
 	UseLetsEncrypt                                    *bool    `restricted:"true"`
 	LetsEncryptCertificateCacheFile                   *string  `restricted:"true"`
 	Forward80To443                                    *bool    `restricted:"true"`
+	TrustedProxyIPHeader                              []string `restricted:"true"`
 	ReadTimeout                                       *int     `restricted:"true"`
 	WriteTimeout                                      *int     `restricted:"true"`
 	MaximumLoginAttempts                              *int     `restricted:"true"`
@@ -432,6 +433,10 @@ func (s *ServiceSettings) SetDefaults() {
 
 	if s.Forward80To443 == nil {
 		s.Forward80To443 = NewBool(false)
+	}
+
+	if s.TrustedProxyIPHeader == nil {
+		s.TrustedProxyIPHeader = []string{HEADER_FORWARDED, HEADER_REAL_IP}
 	}
 
 	if s.TimeBetweenUserTypingUpdatesMilliseconds == nil {
