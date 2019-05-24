@@ -709,107 +709,187 @@ func testPostStoreGetPostsWithDetails(t *testing.T, ss store.Store) {
 }
 
 func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
-	o0 := &model.Post{}
-	o0.ChannelId = model.NewId()
-	o0.UserId = model.NewId()
-	o0.Message = "zz" + model.NewId() + "b"
-	_ = (<-ss.Post().Save(o0)).Data.(*model.Post)
-	time.Sleep(2 * time.Millisecond)
+	t.Run("without threads", func(t *testing.T) {
+		channelId := model.NewId()
+		userId := model.NewId()
 
-	o1 := &model.Post{}
-	o1.ChannelId = model.NewId()
-	o1.UserId = model.NewId()
-	o1.Message = "zz" + model.NewId() + "b"
-	o1 = (<-ss.Post().Save(o1)).Data.(*model.Post)
-	time.Sleep(2 * time.Millisecond)
+		var posts []*model.Post
+		for i := 0; i < 10; i++ {
+			post := store.Must(ss.Post().Save(&model.Post{
+				ChannelId: channelId,
+				UserId:    userId,
+				Message:   "message",
+			})).(*model.Post)
 
-	o2 := &model.Post{}
-	o2.ChannelId = o1.ChannelId
-	o2.UserId = model.NewId()
-	o2.Message = "zz" + model.NewId() + "b"
-	o2.ParentId = o1.Id
-	o2.RootId = o1.Id
-	o2 = (<-ss.Post().Save(o2)).Data.(*model.Post)
-	time.Sleep(2 * time.Millisecond)
+			posts = append(posts, post)
 
-	o2a := &model.Post{}
-	o2a.ChannelId = o1.ChannelId
-	o2a.UserId = model.NewId()
-	o2a.Message = "zz" + model.NewId() + "b"
-	o2a.ParentId = o1.Id
-	o2a.RootId = o1.Id
-	o2a = (<-ss.Post().Save(o2a)).Data.(*model.Post)
-	time.Sleep(2 * time.Millisecond)
+			time.Sleep(time.Millisecond)
+		}
 
-	o3 := &model.Post{}
-	o3.ChannelId = o1.ChannelId
-	o3.UserId = model.NewId()
-	o3.Message = "zz" + model.NewId() + "b"
-	o3.ParentId = o1.Id
-	o3.RootId = o1.Id
-	o3 = (<-ss.Post().Save(o3)).Data.(*model.Post)
-	time.Sleep(2 * time.Millisecond)
+		t.Run("should not return anything before the first post", func(t *testing.T) {
+			res := <-ss.Post().GetPostsBefore(channelId, posts[0].Id, 10, 0)
+			assert.Nil(t, res.Err)
 
-	o4 := &model.Post{}
-	o4.ChannelId = o1.ChannelId
-	o4.UserId = model.NewId()
-	o4.Message = "zz" + model.NewId() + "b"
-	o4 = (<-ss.Post().Save(o4)).Data.(*model.Post)
-	time.Sleep(2 * time.Millisecond)
+			postList := res.Data.(*model.PostList)
+			assert.Equal(t, []string{}, postList.Order)
+			assert.Equal(t, map[string]*model.Post{}, postList.Posts)
+		})
 
-	o5 := &model.Post{}
-	o5.ChannelId = o1.ChannelId
-	o5.UserId = model.NewId()
-	o5.Message = "zz" + model.NewId() + "b"
-	o5.ParentId = o4.Id
-	o5.RootId = o4.Id
-	_ = (<-ss.Post().Save(o5)).Data.(*model.Post)
+		t.Run("should return posts before a post", func(t *testing.T) {
+			res := <-ss.Post().GetPostsBefore(channelId, posts[5].Id, 10, 0)
+			assert.Nil(t, res.Err)
 
-	r1 := (<-ss.Post().GetPostsBefore(o1.ChannelId, o1.Id, 4, 0)).Data.(*model.PostList)
+			postList := res.Data.(*model.PostList)
+			assert.Equal(t, []string{posts[4].Id, posts[3].Id, posts[2].Id, posts[1].Id, posts[0].Id}, postList.Order)
+			assert.Equal(t, map[string]*model.Post{
+				posts[0].Id: posts[0],
+				posts[1].Id: posts[1],
+				posts[2].Id: posts[2],
+				posts[3].Id: posts[3],
+				posts[4].Id: posts[4],
+			}, postList.Posts)
+		})
 
-	if len(r1.Posts) != 0 {
-		t.Fatal("Wrong size")
-	}
+		t.Run("should limit posts before", func(t *testing.T) {
+			res := <-ss.Post().GetPostsBefore(channelId, posts[5].Id, 2, 0)
+			assert.Nil(t, res.Err)
 
-	r2 := (<-ss.Post().GetPostsAfter(o1.ChannelId, o1.Id, 4, 0)).Data.(*model.PostList)
+			postList := res.Data.(*model.PostList)
+			assert.Equal(t, []string{posts[4].Id, posts[3].Id}, postList.Order)
+			assert.Equal(t, map[string]*model.Post{
+				posts[3].Id: posts[3],
+				posts[4].Id: posts[4],
+			}, postList.Posts)
+		})
 
-	if r2.Order[0] != o4.Id {
-		t.Fatal("invalid order")
-	}
+		t.Run("should not return anything after the last post", func(t *testing.T) {
+			res := <-ss.Post().GetPostsAfter(channelId, posts[len(posts)-1].Id, 10, 0)
+			assert.Nil(t, res.Err)
 
-	if r2.Order[1] != o3.Id {
-		t.Fatal("invalid order")
-	}
+			postList := res.Data.(*model.PostList)
+			assert.Equal(t, []string{}, postList.Order)
+			assert.Equal(t, map[string]*model.Post{}, postList.Posts)
+		})
 
-	if r2.Order[2] != o2a.Id {
-		t.Fatal("invalid order")
-	}
+		t.Run("should return posts after a post", func(t *testing.T) {
+			res := <-ss.Post().GetPostsAfter(channelId, posts[5].Id, 10, 0)
+			assert.Nil(t, res.Err)
 
-	if r2.Order[3] != o2.Id {
-		t.Fatal("invalid order")
-	}
+			postList := res.Data.(*model.PostList)
+			assert.Equal(t, []string{posts[9].Id, posts[8].Id, posts[7].Id, posts[6].Id}, postList.Order)
+			assert.Equal(t, map[string]*model.Post{
+				posts[6].Id: posts[6],
+				posts[7].Id: posts[7],
+				posts[8].Id: posts[8],
+				posts[9].Id: posts[9],
+			}, postList.Posts)
+		})
 
-	if len(r2.Posts) != 5 {
-		t.Fatal("wrong size")
-	}
+		t.Run("should limit posts after", func(t *testing.T) {
+			res := <-ss.Post().GetPostsAfter(channelId, posts[5].Id, 2, 0)
+			assert.Nil(t, res.Err)
 
-	r3 := (<-ss.Post().GetPostsBefore(o3.ChannelId, o3.Id, 2, 0)).Data.(*model.PostList)
+			postList := res.Data.(*model.PostList)
+			assert.Equal(t, []string{posts[7].Id, posts[6].Id}, postList.Order)
+			assert.Equal(t, map[string]*model.Post{
+				posts[6].Id: posts[6],
+				posts[7].Id: posts[7],
+			}, postList.Posts)
+		})
+	})
 
-	if r3.Order[0] != o2a.Id {
-		t.Fatal("invalid order")
-	}
+	t.Run("with threads", func(t *testing.T) {
+		channelId := model.NewId()
+		userId := model.NewId()
 
-	if r3.Order[1] != o2.Id {
-		t.Fatal("invalid order")
-	}
+		// This creates a series of posts that looks like:
+		// post1
+		// post2
+		// post3 (in response to post1)
+		// post4 (in response to post2)
+		// post5
+		// post6 (in response to post2)
 
-	if len(r3.Posts) != 3 {
-		t.Fatal("wrong size")
-	}
+		post1 := store.Must(ss.Post().Save(&model.Post{
+			ChannelId: channelId,
+			UserId:    userId,
+			Message:   "message",
+		})).(*model.Post)
+		time.Sleep(time.Millisecond)
 
-	if r3.Posts[o1.Id].Message != o1.Message {
-		t.Fatal("Missing parent")
-	}
+		post2 := store.Must(ss.Post().Save(&model.Post{
+			ChannelId: channelId,
+			UserId:    userId,
+			Message:   "message",
+		})).(*model.Post)
+		time.Sleep(time.Millisecond)
+
+		post3 := store.Must(ss.Post().Save(&model.Post{
+			ChannelId: channelId,
+			UserId:    userId,
+			ParentId:  post1.Id,
+			RootId:    post1.Id,
+			Message:   "message",
+		})).(*model.Post)
+		time.Sleep(time.Millisecond)
+
+		post4 := store.Must(ss.Post().Save(&model.Post{
+			ChannelId: channelId,
+			UserId:    userId,
+			RootId:    post2.Id,
+			ParentId:  post2.Id,
+			Message:   "message",
+		})).(*model.Post)
+		time.Sleep(time.Millisecond)
+
+		post5 := store.Must(ss.Post().Save(&model.Post{
+			ChannelId: channelId,
+			UserId:    userId,
+			Message:   "message",
+		})).(*model.Post)
+		time.Sleep(time.Millisecond)
+
+		post6 := store.Must(ss.Post().Save(&model.Post{
+			ChannelId: channelId,
+			UserId:    userId,
+			ParentId:  post2.Id,
+			RootId:    post2.Id,
+			Message:   "message",
+		})).(*model.Post)
+
+		// Adding a post to a thread changes the UpdateAt timestamp of the parent post
+		post1.UpdateAt = post3.UpdateAt
+		post2.UpdateAt = post6.UpdateAt
+
+		t.Run("should return each post and thread before a post", func(t *testing.T) {
+			res := <-ss.Post().GetPostsBefore(channelId, post4.Id, 2, 0)
+			assert.Nil(t, res.Err)
+
+			postList := res.Data.(*model.PostList)
+			assert.Equal(t, []string{post3.Id, post2.Id}, postList.Order)
+			assert.Equal(t, map[string]*model.Post{
+				post1.Id: post1,
+				post2.Id: post2,
+				post3.Id: post3,
+				post4.Id: post4,
+				post6.Id: post6,
+			}, postList.Posts)
+		})
+
+		t.Run("should return each post and the root of each thread after a post", func(t *testing.T) {
+			res := <-ss.Post().GetPostsAfter(channelId, post4.Id, 2, 0)
+			assert.Nil(t, res.Err)
+
+			postList := res.Data.(*model.PostList)
+			assert.Equal(t, []string{post6.Id, post5.Id}, postList.Order)
+			assert.Equal(t, map[string]*model.Post{
+				post2.Id: post2,
+				post4.Id: post4,
+				post5.Id: post5,
+				post6.Id: post6,
+			}, postList.Posts)
+		})
+	})
 }
 
 func testPostStoreGetPostsSince(t *testing.T, ss store.Store) {
