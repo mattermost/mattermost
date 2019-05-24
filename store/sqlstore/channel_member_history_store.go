@@ -112,9 +112,11 @@ func (s SqlChannelMemberHistoryStore) getFromChannelMemberHistoryTable(startTime
 			SELECT
 				cmh.*,
 				u.Email,
-				u.Username
+				u.Username,
+			    Bots.UserId IS NOT NULL AS IsBot
 			FROM ChannelMemberHistory cmh
 			INNER JOIN Users u ON cmh.UserId = u.Id
+			LEFT JOIN Bots ON Bots.UserId = u.Id
 			WHERE cmh.ChannelId = :ChannelId
 			AND cmh.JoinTime <= :EndTime
 			AND (cmh.LeaveTime IS NULL OR cmh.LeaveTime >= :StartTime)
@@ -135,9 +137,12 @@ func (s SqlChannelMemberHistoryStore) getFromChannelMembersTable(startTime int64
 			ch.ChannelId,
 			ch.UserId,
 			u.Email,
-			u.Username
+			u.Username,
+		    Bots.UserId IS NOT NULL AS IsBot
+
 		FROM ChannelMembers AS ch
 		INNER JOIN Users AS u ON ch.UserId = u.id
+		LEFT JOIN Bots ON Bots.UserId = u.Id
 		WHERE ch.ChannelId = :ChannelId`
 
 	params := map[string]interface{}{"ChannelId": channelId}

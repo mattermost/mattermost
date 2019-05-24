@@ -598,15 +598,15 @@ func (s *SqlPostStore) GetPostsSince(channelId string, time int64, allowFromCach
 	})
 }
 
-func (s *SqlPostStore) GetPostsBefore(channelId string, postId string, numPosts int, offset int) store.StoreChannel {
-	return s.getPostsAround(channelId, postId, numPosts, offset, true)
+func (s *SqlPostStore) GetPostsBefore(channelId string, postId string, limit int, offset int) store.StoreChannel {
+	return s.getPostsAround(channelId, postId, limit, offset, true)
 }
 
-func (s *SqlPostStore) GetPostsAfter(channelId string, postId string, numPosts int, offset int) store.StoreChannel {
-	return s.getPostsAround(channelId, postId, numPosts, offset, false)
+func (s *SqlPostStore) GetPostsAfter(channelId string, postId string, limit int, offset int) store.StoreChannel {
+	return s.getPostsAround(channelId, postId, limit, offset, false)
 }
 
-func (s *SqlPostStore) getPostsAround(channelId string, postId string, numPosts int, offset int, before bool) store.StoreChannel {
+func (s *SqlPostStore) getPostsAround(channelId string, postId string, limit int, offset int, before bool) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var direction string
 		var sort string
@@ -621,47 +621,52 @@ func (s *SqlPostStore) getPostsAround(channelId string, postId string, numPosts 
 		var posts []*model.Post
 		var parents []*model.Post
 		_, err1 := s.GetReplica().Select(&posts,
-			`(SELECT
+			`SELECT
 			    *
 			FROM
 			    Posts
 			WHERE
-				(CreateAt `+direction+` (SELECT CreateAt FROM Posts WHERE Id = :PostId)
+				CreateAt `+direction+` (SELECT CreateAt FROM Posts WHERE Id = :PostId)
 			        AND ChannelId = :ChannelId
-					AND DeleteAt = 0)
+					AND DeleteAt = 0
 			ORDER BY CreateAt `+sort+`
-			LIMIT :NumPosts
-			OFFSET :Offset)`,
-			map[string]interface{}{"ChannelId": channelId, "PostId": postId, "NumPosts": numPosts, "Offset": offset})
+			LIMIT :Limit
+			OFFSET :Offset`,
+			map[string]interface{}{"ChannelId": channelId, "PostId": postId, "Limit": limit, "Offset": offset})
 		_, err2 := s.GetReplica().Select(&parents,
-			`(SELECT
-			    *
+			`SELECT
+			    q2.*
 			FROM
-			    Posts
-			WHERE
-			    Id
-			IN
-			    (SELECT * FROM (SELECT
-			        RootId
+				Posts q2
+					INNER JOIN
+			    (SELECT DISTINCT
+			        q3.Id, q3.RootId
 			    FROM
-			        Posts
-			    WHERE
-					(CreateAt `+direction+` (SELECT CreateAt FROM Posts WHERE Id = :PostId)
+					(SELECT
+						Id, RootId
+					FROM
+						Posts
+					WHERE
+						CreateAt `+direction+` (SELECT CreateAt FROM Posts WHERE Id = :PostId)
 						AND ChannelId = :ChannelId
-						AND DeleteAt = 0)
+						AND DeleteAt = 0
 					ORDER BY CreateAt `+sort+`
-					LIMIT :NumPosts
-					OFFSET :Offset)
-			    temp_tab))
+					LIMIT :Limit OFFSET :Offset) q3 -- q3 contains the Id and RootId of every post in posts
+				) q1 -- q1 is q3 with the duplicates removed
+				ON q1.RootId = q2.Id -- This is the root post of a thread that appears in posts
+					OR q1.Id = q2.RootId -- This is a comment on a post in posts
+					OR (q2.RootId != '' AND q1.RootId = q2.RootId) -- This is a comment on a thread that appears in posts
+			WHERE
+				ChannelId = :ChannelId
+				AND DeleteAt = 0
 			ORDER BY CreateAt DESC`,
-			map[string]interface{}{"ChannelId": channelId, "PostId": postId, "NumPosts": numPosts, "Offset": offset})
+			map[string]interface{}{"ChannelId": channelId, "PostId": postId, "Limit": limit, "Offset": offset})
 
 		if err1 != nil {
 			result.Err = model.NewAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_around.get.app_error", nil, "channelId="+channelId+err1.Error(), http.StatusInternalServerError)
 		} else if err2 != nil {
 			result.Err = model.NewAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_around.get_parent.app_error", nil, "channelId="+channelId+err2.Error(), http.StatusInternalServerError)
 		} else {
-
 			list := model.NewPostList()
 
 			// We need to flip the order if we selected backwards
@@ -712,14 +717,14 @@ func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int) 
 			        q3.RootId
 			    FROM
 			        (SELECT
-			        RootId
-			    FROM
-			        Posts
-			    WHERE
-			        ChannelId = :ChannelId1
-			            AND DeleteAt = 0
-			    ORDER BY CreateAt DESC
-			    LIMIT :Limit OFFSET :Offset) q3
+						RootId
+					FROM
+						Posts
+					WHERE
+						ChannelId = :ChannelId1
+							AND DeleteAt = 0
+					ORDER BY CreateAt DESC
+					LIMIT :Limit OFFSET :Offset) q3
 			    WHERE q3.RootId != '') q1
 			    ON q1.RootId = q2.Id OR q1.RootId = q2.RootId
 			WHERE
