@@ -6,13 +6,24 @@ package app
 import (
 	"bufio"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
 	"sync"
 
+	"github.com/mattermost/mattermost-server/mlog"
+
 	"github.com/mattermost/mattermost-server/model"
 )
+
+func stopOnError(err LineImportWorkerError) bool {
+	if err.Error.Id == "api.file.upload_file.large_image.app_error" {
+		mlog.Warn(fmt.Sprintf("Large image import error: %s", err.Error.Error()))
+		return false
+	}
+	return true
+}
 
 func (a *App) bulkImportWorker(dryRun bool, wg *sync.WaitGroup, lines <-chan LineImportWorkerData, errors chan<- LineImportWorkerError) {
 	for line := range lines {
@@ -45,9 +56,9 @@ func (a *App) BulkImport(fileReader io.Reader, dryRun bool, workers int) (*model
 		}
 
 		if lineNumber == 1 {
-			importDataFileVersion, apperr := processImportDataFileVersionLine(line)
-			if apperr != nil {
-				return apperr, lineNumber
+			importDataFileVersion, appErr := processImportDataFileVersionLine(line)
+			if appErr != nil {
+				return appErr, lineNumber
 			}
 
 			if importDataFileVersion != 1 {
@@ -65,7 +76,9 @@ func (a *App) BulkImport(fileReader io.Reader, dryRun bool, workers int) (*model
 				// Check no errors occurred while waiting for the queue to empty.
 				if len(errorsChan) != 0 {
 					err := <-errorsChan
-					return err.Error, err.LineNumber
+					if stopOnError(err) {
+						return err.Error, err.LineNumber
+					}
 				}
 			}
 
@@ -81,9 +94,11 @@ func (a *App) BulkImport(fileReader io.Reader, dryRun bool, workers int) (*model
 		select {
 		case linesChan <- LineImportWorkerData{line, lineNumber}:
 		case err := <-errorsChan:
-			close(linesChan)
-			wg.Wait()
-			return err.Error, err.LineNumber
+			if stopOnError(err) {
+				close(linesChan)
+				wg.Wait()
+				return err.Error, err.LineNumber
+			}
 		}
 	}
 
@@ -94,7 +109,9 @@ func (a *App) BulkImport(fileReader io.Reader, dryRun bool, workers int) (*model
 	// Check no errors occurred while waiting for the queue to empty.
 	if len(errorsChan) != 0 {
 		err := <-errorsChan
-		return err.Error, err.LineNumber
+		if stopOnError(err) {
+			return err.Error, err.LineNumber
+		}
 	}
 
 	if err := scanner.Err(); err != nil {

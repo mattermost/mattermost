@@ -66,12 +66,20 @@ func Setup() *TestHelper {
 	}
 	a.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.ListenAddress = prevListenAddress })
 
+	// Disable strict password requirements for test
+	a.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PasswordSettings.MinimumLength = 5
+		*cfg.PasswordSettings.Lowercase = false
+		*cfg.PasswordSettings.Uppercase = false
+		*cfg.PasswordSettings.Symbol = false
+		*cfg.PasswordSettings.Number = false
+	})
+
 	web := New(s, s.AppOptions, s.Router)
 	URL = fmt.Sprintf("http://localhost:%v", a.Srv.ListenAddr.Port)
 	ApiClient = model.NewAPIv4Client(URL)
 
-	a.DoAdvancedPermissionsMigration()
-	a.DoEmojisPermissionsMigration()
+	a.DoAppMigrations()
 
 	a.Srv.Store.MarkSystemRanUnitTests()
 

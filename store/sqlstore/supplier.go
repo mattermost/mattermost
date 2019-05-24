@@ -124,7 +124,7 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 
 	supplier.initConnection()
 
-	supplier.oldStores.team = NewSqlTeamStore(supplier)
+	supplier.oldStores.team = NewSqlTeamStore(supplier, metrics)
 	supplier.oldStores.channel = NewSqlChannelStore(supplier, metrics)
 	supplier.oldStores.post = NewSqlPostStore(supplier, metrics)
 	supplier.oldStores.user = NewSqlUserStore(supplier, metrics)
@@ -346,13 +346,15 @@ func (ss *SqlSupplier) TotalSearchDbConnections() int {
 }
 
 func (ss *SqlSupplier) MarkSystemRanUnitTests() {
-	if result := <-ss.System().Get(); result.Err == nil {
-		props := result.Data.(model.StringMap)
-		unitTests := props[model.SYSTEM_RAN_UNIT_TESTS]
-		if len(unitTests) == 0 {
-			systemTests := &model.System{Name: model.SYSTEM_RAN_UNIT_TESTS, Value: "1"}
-			<-ss.System().Save(systemTests)
-		}
+	props, err := ss.System().Get()
+	if err != nil {
+		return
+	}
+
+	unitTests := props[model.SYSTEM_RAN_UNIT_TESTS]
+	if len(unitTests) == 0 {
+		systemTests := &model.System{Name: model.SYSTEM_RAN_UNIT_TESTS, Value: "1"}
+		ss.System().Save(systemTests)
 	}
 }
 

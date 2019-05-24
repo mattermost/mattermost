@@ -138,10 +138,12 @@ func (c *Context) MfaRequired() {
 }
 
 func (c *Context) RemoveSessionCookie(w http.ResponseWriter, r *http.Request) {
+	subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
+
 	cookie := &http.Cookie{
 		Name:     model.SESSION_COOKIE_TOKEN,
 		Value:    "",
-		Path:     "/",
+		Path:     subpath,
 		MaxAge:   -1,
 		HttpOnly: true,
 	}

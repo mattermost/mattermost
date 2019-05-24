@@ -654,11 +654,13 @@ func (a *App) GetAuthorizationCode(w http.ResponseWriter, r *http.Request, servi
 	}
 
 	cookieValue := model.NewId()
+	subpath, _ := utils.GetSubpathFromConfig(a.Config())
+
 	expiresAt := time.Unix(model.GetMillis()/1000+int64(OAUTH_COOKIE_MAX_AGE_SECONDS), 0)
 	oauthCookie := &http.Cookie{
 		Name:     COOKIE_OAUTH,
 		Value:    cookieValue,
-		Path:     "/",
+		Path:     subpath,
 		MaxAge:   OAUTH_COOKIE_MAX_AGE_SECONDS,
 		Expires:  expiresAt,
 		HttpOnly: true,
@@ -741,10 +743,12 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 		mlog.Error(appErr.Error())
 	}
 
+	subpath, _ := utils.GetSubpathFromConfig(a.Config())
+
 	httpCookie := &http.Cookie{
 		Name:     COOKIE_OAUTH,
 		Value:    "",
-		Path:     "/",
+		Path:     subpath,
 		MaxAge:   -1,
 		HttpOnly: true,
 	}
@@ -779,7 +783,7 @@ func (a *App) AuthorizeOAuthUser(w http.ResponseWriter, r *http.Request, service
 	ar := model.AccessResponseFromJson(tee)
 
 	if ar == nil || resp.StatusCode != http.StatusOK {
-		return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.bad_response.app_error", nil, "response_body="+buf.String(), http.StatusInternalServerError)
+		return nil, "", stateProps, model.NewAppError("AuthorizeOAuthUser", "api.user.authorize_oauth_user.bad_response.app_error", nil, fmt.Sprintf("response_body=%s, status_code=%d", buf.String(), resp.StatusCode), http.StatusInternalServerError)
 	}
 
 	if strings.ToLower(ar.TokenType) != model.ACCESS_TOKEN_TYPE {

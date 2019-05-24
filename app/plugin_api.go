@@ -173,7 +173,7 @@ func (api *PluginAPI) DeleteTeamMember(teamId, userId, requestorId string) *mode
 }
 
 func (api *PluginAPI) GetTeamMembers(teamId string, page, perPage int) ([]*model.TeamMember, *model.AppError) {
-	return api.app.GetTeamMembers(teamId, page*perPage, perPage)
+	return api.app.GetTeamMembers(teamId, page*perPage, perPage, nil)
 }
 
 func (api *PluginAPI) GetTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError) {
@@ -222,7 +222,7 @@ func (api *PluginAPI) GetUserByUsername(name string) (*model.User, *model.AppErr
 }
 
 func (api *PluginAPI) GetUsersByUsernames(usernames []string) ([]*model.User, *model.AppError) {
-	return api.app.GetUsersByUsernames(usernames, true)
+	return api.app.GetUsersByUsernames(usernames, true, nil)
 }
 
 func (api *PluginAPI) GetUsersInTeam(teamId string, page int, perPage int) ([]*model.User, *model.AppError) {
@@ -447,8 +447,8 @@ func (api *PluginAPI) UpdateEphemeralPost(userId string, post *model.Post) *mode
 	return api.app.UpdateEphemeralPost(userId, post)
 }
 
-func (api *PluginAPI) DeleteEphemeralPost(userId string, post *model.Post) {
-	api.app.DeleteEphemeralPost(userId, post)
+func (api *PluginAPI) DeleteEphemeralPost(userId, postId string) {
+	api.app.DeleteEphemeralPost(userId, postId)
 }
 
 func (api *PluginAPI) DeletePost(postId string) *model.AppError {
@@ -724,6 +724,12 @@ func (api *PluginAPI) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
 	// otherwise specified by the plugin.
 	if bot.OwnerId == "" {
 		bot.OwnerId = api.id
+	}
+	// Bots cannot be owners of other bots
+	if user, err := api.app.GetUser(bot.OwnerId); err == nil {
+		if user.IsBot {
+			return nil, model.NewAppError("CreateBot", "plugin_api.bot_cant_create_bot", nil, "", http.StatusBadRequest)
+		}
 	}
 
 	return api.app.CreateBot(bot)

@@ -206,6 +206,10 @@ func (o *Channel) AddProp(key string, value interface{}) {
 	o.Props[key] = value
 }
 
+func (o *Channel) IsGroupConstrained() bool {
+	return o.GroupConstrained != nil && *o.GroupConstrained
+}
+
 func GetDMNameFromIds(userId1, userId2 string) string {
 	if userId1 > userId2 {
 		return userId2 + "__" + userId1

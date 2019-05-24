@@ -149,7 +149,7 @@ func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store, s SqlSuppli
 	m2.UserId = u2.Id
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 
-	if err := (<-ss.Channel().SaveDirectChannel(&o1, &m1, &m2)).Err; err != nil {
+	if _, err := ss.Channel().SaveDirectChannel(&o1, &m1, &m2); err != nil {
 		t.Fatal("couldn't save direct channel", err)
 	}
 
@@ -158,7 +158,7 @@ func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store, s SqlSuppli
 		t.Fatal("should have saved 2 members")
 	}
 
-	if err := (<-ss.Channel().SaveDirectChannel(&o1, &m1, &m2)).Err; err == nil {
+	if _, err := ss.Channel().SaveDirectChannel(&o1, &m1, &m2); err == nil {
 		t.Fatal("shouldn't be able to update from save")
 	}
 
@@ -170,11 +170,12 @@ func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store, s SqlSuppli
 		Type:        o1.Type,
 	}
 
-	if result := <-ss.Channel().SaveDirectChannel(&o1a, &m1, &m2); result.Err == nil {
+	returnedChannel, err := ss.Channel().SaveDirectChannel(&o1a, &m1, &m2)
+	if err == nil {
 		t.Fatal("should've failed to save a duplicate direct channel")
-	} else if result.Err.Id != store.CHANNEL_EXISTS_ERROR {
+	} else if err.Id != store.CHANNEL_EXISTS_ERROR {
 		t.Fatal("should've returned CHANNEL_EXISTS_ERROR")
-	} else if returned := result.Data.(*model.Channel); returned.Id != o1.Id {
+	} else if returnedChannel.Id != o1.Id {
 		t.Fatal("should've returned original channel when saving a duplicate direct channel")
 	}
 
@@ -182,7 +183,7 @@ func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store, s SqlSuppli
 	o1.Id = ""
 	o1.Name = "zz" + model.NewId() + "b"
 	o1.Type = model.CHANNEL_OPEN
-	if err := (<-ss.Channel().SaveDirectChannel(&o1, &m1, &m2)).Err; err == nil {
+	if _, err := ss.Channel().SaveDirectChannel(&o1, &m1, &m2); err == nil {
 		t.Fatal("Should not be able to save non-direct channel")
 	}
 
@@ -191,7 +192,7 @@ func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store, s SqlSuppli
 	o1.DisplayName = "Myself"
 	o1.Name = "zz" + model.NewId() + "b"
 	o1.Type = model.CHANNEL_DIRECT
-	if err := (<-ss.Channel().SaveDirectChannel(&o1, &m1, &m1)).Err; err != nil {
+	if _, err := ss.Channel().SaveDirectChannel(&o1, &m1, &m1); err != nil {
 		t.Fatal("couldn't save direct channel", err)
 	}
 
@@ -217,11 +218,10 @@ func testChannelStoreCreateDirectChannel(t *testing.T, ss store.Store) {
 	store.Must(ss.User().Save(u2))
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1))
 
-	res := <-ss.Channel().CreateDirectChannel(u1.Id, u2.Id)
-	if res.Err != nil {
-		t.Fatal("couldn't create direct channel", res.Err)
+	c1, err := ss.Channel().CreateDirectChannel(u1.Id, u2.Id)
+	if err != nil {
+		t.Fatal("couldn't create direct channel", err)
 	}
-	c1 := res.Data.(*model.Channel)
 	defer func() {
 		<-ss.Channel().PermanentDeleteMembersByChannel(c1.Id)
 		<-ss.Channel().PermanentDelete(c1.Id)
@@ -250,28 +250,28 @@ func testChannelStoreUpdate(t *testing.T, ss store.Store) {
 
 	time.Sleep(100 * time.Millisecond)
 
-	if err := (<-ss.Channel().Update(&o1)).Err; err != nil {
+	if _, err := ss.Channel().Update(&o1); err != nil {
 		t.Fatal(err)
 	}
 
 	o1.DeleteAt = 100
-	if err := (<-ss.Channel().Update(&o1)).Err; err == nil {
+	if _, err := ss.Channel().Update(&o1); err == nil {
 		t.Fatal("Update should have failed because channel is archived")
 	}
 
 	o1.DeleteAt = 0
 	o1.Id = "missing"
-	if err := (<-ss.Channel().Update(&o1)).Err; err == nil {
+	if _, err := ss.Channel().Update(&o1); err == nil {
 		t.Fatal("Update should have failed because of missing key")
 	}
 
 	o1.Id = model.NewId()
-	if err := (<-ss.Channel().Update(&o1)).Err; err == nil {
+	if _, err := ss.Channel().Update(&o1); err == nil {
 		t.Fatal("Update should have faile because id change")
 	}
 
 	o2.Name = o1.Name
-	if err := (<-ss.Channel().Update(&o2)).Err; err == nil {
+	if _, err := ss.Channel().Update(&o2); err == nil {
 		t.Fatal("Update should have failed because of existing name")
 	}
 }
@@ -300,10 +300,9 @@ func testGetChannelUnread(t *testing.T, ss store.Store) {
 	store.Must(ss.Channel().SaveMember(cm2))
 
 	// Check for Channel 1
-	if resp := <-ss.Channel().GetChannelUnread(c1.Id, uid); resp.Err != nil {
-		t.Fatal(resp.Err)
+	if ch, err := ss.Channel().GetChannelUnread(c1.Id, uid); err != nil {
+		t.Fatal(err)
 	} else {
-		ch := resp.Data.(*model.ChannelUnread)
 		if c1.Id != ch.ChannelId {
 			t.Fatal("wrong channel id")
 		}
@@ -326,10 +325,9 @@ func testGetChannelUnread(t *testing.T, ss store.Store) {
 	}
 
 	// Check for Channel 2
-	if resp2 := <-ss.Channel().GetChannelUnread(c2.Id, uid); resp2.Err != nil {
-		t.Fatal(resp2.Err)
+	if ch2, err := ss.Channel().GetChannelUnread(c2.Id, uid); err != nil {
+		t.Fatal(err)
 	} else {
-		ch2 := resp2.Data.(*model.ChannelUnread)
 		if c2.Id != ch2.ChannelId {
 			t.Fatal("wrong channel id")
 		}
@@ -396,7 +394,8 @@ func testChannelStoreGet(t *testing.T, ss store.Store, s SqlSupplier) {
 	m2.UserId = u2.Id
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 
-	store.Must(ss.Channel().SaveDirectChannel(&o2, &m1, &m2))
+	_, err := ss.Channel().SaveDirectChannel(&o2, &m1, &m2)
+	require.Nil(t, err)
 
 	if c2, err := ss.Channel().Get(o2.Id, false); err != nil {
 		t.Fatal(err)
@@ -471,7 +470,8 @@ func testChannelStoreGetChannelsByIds(t *testing.T, ss store.Store) {
 	m2.UserId = u2.Id
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 
-	store.Must(ss.Channel().SaveDirectChannel(&o2, &m1, &m2))
+	_, err := ss.Channel().SaveDirectChannel(&o2, &m1, &m2)
+	require.Nil(t, err)
 
 	if r1 := <-ss.Channel().GetChannelsByIds([]string{o1.Id, o2.Id}); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -531,16 +531,16 @@ func testChannelStoreRestore(t *testing.T, ss store.Store) {
 	o1.Type = model.CHANNEL_OPEN
 	store.Must(ss.Channel().Save(&o1, -1))
 
-	if r := <-ss.Channel().Delete(o1.Id, model.GetMillis()); r.Err != nil {
-		t.Fatal(r.Err)
+	if err := ss.Channel().Delete(o1.Id, model.GetMillis()); err != nil {
+		t.Fatal(err)
 	}
 
 	if c, _ := ss.Channel().Get(o1.Id, false); c.DeleteAt == 0 {
 		t.Fatal("should have been deleted")
 	}
 
-	if r := <-ss.Channel().Restore(o1.Id, model.GetMillis()); r.Err != nil {
-		t.Fatal(r.Err)
+	if err := ss.Channel().Restore(o1.Id, model.GetMillis()); err != nil {
+		t.Fatal(err)
 	}
 
 	if c, _ := ss.Channel().Get(o1.Id, false); c.DeleteAt != 0 {
@@ -590,16 +590,16 @@ func testChannelStoreDelete(t *testing.T, ss store.Store) {
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 	store.Must(ss.Channel().SaveMember(&m2))
 
-	if r := <-ss.Channel().Delete(o1.Id, model.GetMillis()); r.Err != nil {
-		t.Fatal(r.Err)
+	if err := ss.Channel().Delete(o1.Id, model.GetMillis()); err != nil {
+		t.Fatal(err)
 	}
 
 	if c, _ := ss.Channel().Get(o1.Id, false); c.DeleteAt == 0 {
 		t.Fatal("should have been deleted")
 	}
 
-	if r := <-ss.Channel().Delete(o3.Id, model.GetMillis()); r.Err != nil {
-		t.Fatal(r.Err)
+	if err := ss.Channel().Delete(o3.Id, model.GetMillis()); err != nil {
+		t.Fatal(err)
 	}
 
 	cresult := <-ss.Channel().GetChannels(o1.TeamId, m1.UserId, false)
@@ -657,7 +657,9 @@ func testChannelStoreGetByName(t *testing.T, ss store.Store) {
 	result = <-ss.Channel().GetByName(o1.TeamId, "", false)
 	require.NotNil(t, result.Err, "Missing id should have failed")
 
-	store.Must(ss.Channel().Delete(channelID, model.GetMillis()))
+	err := ss.Channel().Delete(channelID, model.GetMillis())
+	require.Nil(t, err, "channel should have been deleted")
+
 	result = <-ss.Channel().GetByName(o1.TeamId, o1.Name, false)
 	require.NotNil(t, result.Err, "Deleted channel should not be returned by GetByName()")
 }
@@ -704,8 +706,11 @@ func testChannelStoreGetByNames(t *testing.T, ss store.Store) {
 		assert.Equal(t, tc.ExpectedIds, ids, "tc %v", index)
 	}
 
-	store.Must(ss.Channel().Delete(o1.Id, model.GetMillis()))
-	store.Must(ss.Channel().Delete(o2.Id, model.GetMillis()))
+	err := ss.Channel().Delete(o1.Id, model.GetMillis())
+	require.Nil(t, err, "channel should have been deleted")
+
+	err = ss.Channel().Delete(o2.Id, model.GetMillis())
+	require.Nil(t, err, "channel should have been deleted")
 
 	r := <-ss.Channel().GetByNames(o1.TeamId, []string{o1.Name}, false)
 	require.Nil(t, r.Err)
@@ -721,7 +726,8 @@ func testChannelStoreGetDeletedByName(t *testing.T, ss store.Store) {
 	o1.Type = model.CHANNEL_OPEN
 	store.Must(ss.Channel().Save(&o1, -1))
 	now := model.GetMillis()
-	store.Must(ss.Channel().Delete(o1.Id, now))
+	err := ss.Channel().Delete(o1.Id, model.GetMillis())
+	require.Nil(t, err, "channel should have been deleted")
 	o1.DeleteAt = now
 	o1.UpdateAt = now
 
@@ -745,7 +751,8 @@ func testChannelStoreGetDeleted(t *testing.T, ss store.Store) {
 	o1.Name = "zz" + model.NewId() + "b"
 	o1.Type = model.CHANNEL_OPEN
 	store.Must(ss.Channel().Save(&o1, -1))
-	store.Must(ss.Channel().Delete(o1.Id, model.GetMillis()))
+	err := ss.Channel().Delete(o1.Id, model.GetMillis())
+	require.Nil(t, err, "channel should have been deleted")
 
 	cresult := <-ss.Channel().GetDeleted(o1.TeamId, 0, 100)
 	if cresult.Err != nil {
@@ -784,7 +791,8 @@ func testChannelStoreGetDeleted(t *testing.T, ss store.Store) {
 	o3.Name = "zz" + model.NewId() + "b"
 	o3.Type = model.CHANNEL_OPEN
 	store.Must(ss.Channel().Save(&o3, -1))
-	store.Must(ss.Channel().SetDeleteAt(o3.Id, model.GetMillis(), model.GetMillis()))
+	err = ss.Channel().Delete(o3.Id, model.GetMillis())
+	require.Nil(t, err, "channel should have been deleted")
 
 	cresult = <-ss.Channel().GetDeleted(o1.TeamId, 0, 100)
 	if cresult.Err != nil {
@@ -1047,14 +1055,16 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlSupplier)
 	t1.Name = model.NewId()
 	t1.Email = MakeEmail()
 	t1.Type = model.TEAM_OPEN
-	store.Must(ss.Team().Save(&t1))
+	_, err := ss.Team().Save(&t1)
+	require.Nil(t, err)
 
 	t2 := model.Team{}
 	t2.DisplayName = "Name2"
 	t2.Name = model.NewId()
 	t2.Email = MakeEmail()
 	t2.Type = model.TEAM_OPEN
-	store.Must(ss.Team().Save(&t2))
+	_, err = ss.Team().Save(&t2)
+	require.Nil(t, err)
 
 	c1 := model.Channel{}
 	c1.TeamId = t1.Id
@@ -1071,7 +1081,8 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlSupplier)
 	store.Must(ss.Channel().Save(&c2, -1))
 	c2.DeleteAt = model.GetMillis()
 	c2.UpdateAt = c2.DeleteAt
-	store.Must(ss.Channel().Delete(c2.Id, c2.DeleteAt))
+	err = ss.Channel().Delete(c2.Id, c2.DeleteAt)
+	require.Nil(t, err, "channel should have been deleted")
 
 	c3 := model.Channel{}
 	c3.TeamId = t2.Id
@@ -1080,7 +1091,8 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlSupplier)
 	c3.Type = model.CHANNEL_PRIVATE
 	store.Must(ss.Channel().Save(&c3, -1))
 
-	store.Must(ss.Channel().CreateDirectChannel(model.NewId(), model.NewId()))
+	_, err = ss.Channel().CreateDirectChannel(model.NewId(), model.NewId())
+	require.Nil(t, err)
 
 	userIds := []string{model.NewId(), model.NewId(), model.NewId()}
 
@@ -1219,7 +1231,8 @@ func testChannelStoreGetMoreChannels(t *testing.T, ss store.Store) {
 		Type:        model.CHANNEL_OPEN,
 	}
 	store.Must(ss.Channel().Save(&o7, -1))
-	store.Must(ss.Channel().Delete(o7.Id, model.GetMillis()))
+	err := ss.Channel().Delete(o7.Id, model.GetMillis())
+	require.Nil(t, err, "channel should have been deleted")
 
 	t.Run("both o3 and o6 listed in more channels", func(t *testing.T) {
 		result := <-ss.Channel().GetMoreChannels(teamId, userId, 0, 100)
@@ -1305,7 +1318,8 @@ func testChannelStoreGetPublicChannelsForTeam(t *testing.T, ss store.Store) {
 		Type:        model.CHANNEL_OPEN,
 	}
 	store.Must(ss.Channel().Save(&o5, -1))
-	store.Must(ss.Channel().Delete(o5.Id, model.GetMillis()))
+	err := ss.Channel().Delete(o5.Id, model.GetMillis())
+	require.Nil(t, err, "channel should have been deleted")
 
 	t.Run("both o1 and o4 listed in public channels", func(t *testing.T) {
 		cresult := <-ss.Channel().GetPublicChannelsForTeam(teamId, 0, 100)
@@ -1397,7 +1411,8 @@ func testChannelStoreGetPublicChannelsByIdsForTeam(t *testing.T, ss store.Store)
 		Type:        model.CHANNEL_OPEN,
 	}
 	store.Must(ss.Channel().Save(&oc5, -1))
-	store.Must(ss.Channel().Delete(oc5.Id, model.GetMillis()))
+	err := ss.Channel().Delete(oc5.Id, model.GetMillis())
+	require.Nil(t, err, "channel should have been deleted")
 
 	t.Run("only oc1 and oc4, among others, should be found as a public channel in the team", func(t *testing.T) {
 		result := <-ss.Channel().GetPublicChannelsByIdsForTeam(teamId, []string{oc1.Id, oc2.Id, model.NewId(), pc3.Id, oc4.Id})
@@ -1463,7 +1478,8 @@ func testChannelStoreGetMembersForUser(t *testing.T, ss store.Store) {
 	t1.Name = model.NewId()
 	t1.Email = MakeEmail()
 	t1.Type = model.TEAM_OPEN
-	store.Must(ss.Team().Save(&t1))
+	_, err := ss.Team().Save(&t1)
+	require.Nil(t, err)
 
 	o1 := model.Channel{}
 	o1.TeamId = t1.Id
@@ -1506,7 +1522,8 @@ func testChannelStoreGetMembersForUserWithPagination(t *testing.T, ss store.Stor
 	t1.Name = model.NewId()
 	t1.Email = MakeEmail()
 	t1.Type = model.TEAM_OPEN
-	store.Must(ss.Team().Save(&t1))
+	_, err := ss.Team().Save(&t1)
+	require.Nil(t, err)
 
 	o1 := model.Channel{}
 	o1.TeamId = t1.Id
@@ -1987,7 +2004,8 @@ func testChannelStoreSearchMore(t *testing.T, ss store.Store) {
 	store.Must(ss.Channel().Save(&o10, -1))
 	o10.DeleteAt = model.GetMillis()
 	o10.UpdateAt = o10.DeleteAt
-	store.Must(ss.Channel().Delete(o10.Id, o10.DeleteAt))
+	err := ss.Channel().Delete(o10.Id, model.GetMillis())
+	require.Nil(t, err, "channel should have been deleted")
 
 	t.Run("three public channels matching 'ChannelA', but already a member of one and one deleted", func(t *testing.T) {
 		result := <-ss.Channel().SearchMore(m1.UserId, teamId, "ChannelA")
@@ -2165,7 +2183,8 @@ func testChannelStoreSearchInTeam(t *testing.T, ss store.Store) {
 	store.Must(ss.Channel().Save(&o13, -1))
 	o13.DeleteAt = model.GetMillis()
 	o13.UpdateAt = o13.DeleteAt
-	store.Must(ss.Channel().Delete(o13.Id, o13.DeleteAt))
+	err := ss.Channel().Delete(o13.Id, model.GetMillis())
+	require.Nil(t, err, "channel should have been deleted")
 
 	testCases := []struct {
 		Description     string
@@ -2218,14 +2237,16 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 	t1.Name = model.NewId()
 	t1.Email = MakeEmail()
 	t1.Type = model.TEAM_OPEN
-	store.Must(ss.Team().Save(&t1))
+	_, err := ss.Team().Save(&t1)
+	require.Nil(t, err)
 
 	t2 := model.Team{}
 	t2.DisplayName = "Name2"
 	t2.Name = model.NewId()
 	t2.Email = MakeEmail()
 	t2.Type = model.TEAM_OPEN
-	store.Must(ss.Team().Save(&t2))
+	_, err = ss.Team().Save(&t2)
+	require.Nil(t, err)
 
 	o1 := model.Channel{
 		TeamId:      t1.Id,
@@ -2354,7 +2375,8 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 	store.Must(ss.Channel().Save(&o13, -1))
 	o13.DeleteAt = model.GetMillis()
 	o13.UpdateAt = o13.DeleteAt
-	store.Must(ss.Channel().Delete(o13.Id, o13.DeleteAt))
+	err = ss.Channel().Delete(o13.Id, o13.DeleteAt)
+	require.Nil(t, err, "channel should have been deleted")
 
 	testCases := []struct {
 		Description     string
@@ -2452,7 +2474,8 @@ func testChannelStoreAutocompleteInTeamForSearch(t *testing.T, ss store.Store, s
 	m3.NotifyProps = model.GetDefaultChannelNotifyProps()
 	store.Must(ss.Channel().SaveMember(&m3))
 
-	store.Must(ss.Channel().SetDeleteAt(o3.Id, 100, 100))
+	err := ss.Channel().SetDeleteAt(o3.Id, 100, 100)
+	require.Nil(t, err, "channel should have been deleted")
 
 	o4 := model.Channel{}
 	o4.TeamId = o1.TeamId
@@ -2474,8 +2497,10 @@ func testChannelStoreAutocompleteInTeamForSearch(t *testing.T, ss store.Store, s
 	o5.Type = model.CHANNEL_PRIVATE
 	store.Must(ss.Channel().Save(&o5, -1))
 
-	store.Must(ss.Channel().CreateDirectChannel(u1.Id, u2.Id))
-	store.Must(ss.Channel().CreateDirectChannel(u2.Id, u3.Id))
+	_, err = ss.Channel().CreateDirectChannel(u1.Id, u2.Id)
+	require.Nil(t, err)
+	_, err = ss.Channel().CreateDirectChannel(u2.Id, u3.Id)
+	require.Nil(t, err)
 
 	tt := []struct {
 		name            string
@@ -2581,11 +2606,9 @@ func testChannelStoreAnalyticsDeletedTypeCount(t *testing.T, ss store.Store) {
 	u2.Nickname = model.NewId()
 	store.Must(ss.User().Save(u2))
 
-	var d4 *model.Channel
-	if result := <-ss.Channel().CreateDirectChannel(u1.Id, u2.Id); result.Err != nil {
-		t.Fatalf(result.Err.Error())
-	} else {
-		d4 = result.Data.(*model.Channel)
+	d4, err := ss.Channel().CreateDirectChannel(u1.Id, u2.Id)
+	if err != nil {
+		t.Fatalf(err.Error())
 	}
 	defer func() {
 		<-ss.Channel().PermanentDeleteMembersByChannel(d4.Id)
@@ -2613,10 +2636,14 @@ func testChannelStoreAnalyticsDeletedTypeCount(t *testing.T, ss store.Store) {
 		directStartCount = result.Data.(int64)
 	}
 
-	store.Must(ss.Channel().Delete(o1.Id, model.GetMillis()))
-	store.Must(ss.Channel().Delete(o2.Id, model.GetMillis()))
-	store.Must(ss.Channel().Delete(p3.Id, model.GetMillis()))
-	store.Must(ss.Channel().Delete(d4.Id, model.GetMillis()))
+	err = ss.Channel().Delete(o1.Id, model.GetMillis())
+	require.Nil(t, err, "channel should have been deleted")
+	err = ss.Channel().Delete(o2.Id, model.GetMillis())
+	require.Nil(t, err, "channel should have been deleted")
+	err = ss.Channel().Delete(p3.Id, model.GetMillis())
+	require.Nil(t, err, "channel should have been deleted")
+	err = ss.Channel().Delete(d4.Id, model.GetMillis())
+	require.Nil(t, err, "channel should have been deleted")
 
 	if result := <-ss.Channel().AnalyticsDeletedTypeCount("", "O"); result.Err != nil {
 		t.Fatal(result.Err.Error())
@@ -2716,6 +2743,8 @@ func testChannelStoreGetChannelsByScheme(t *testing.T, ss store.Store) {
 		Scope:       model.SCHEME_SCOPE_CHANNEL,
 	}
 
+	result := <-ss.Scheme().Save(s1)
+	s1 = result.Data.(*model.Scheme)
 	s1 = (<-ss.Scheme().Save(s1)).Data.(*model.Scheme)
 	s2 = (<-ss.Scheme().Save(s2)).Data.(*model.Scheme)
 
@@ -2820,18 +2849,21 @@ func testChannelStoreMigrateChannelMembers(t *testing.T, ss store.Store) {
 	cm1b, err := ss.Channel().GetMember(cm1.ChannelId, cm1.UserId)
 	assert.Nil(t, err)
 	assert.Equal(t, "", cm1b.ExplicitRoles)
+	assert.False(t, cm1b.SchemeGuest)
 	assert.True(t, cm1b.SchemeUser)
 	assert.True(t, cm1b.SchemeAdmin)
 
 	cm2b, err := ss.Channel().GetMember(cm2.ChannelId, cm2.UserId)
 	assert.Nil(t, err)
 	assert.Equal(t, "", cm2b.ExplicitRoles)
+	assert.False(t, cm1b.SchemeGuest)
 	assert.True(t, cm2b.SchemeUser)
 	assert.False(t, cm2b.SchemeAdmin)
 
 	cm3b, err := ss.Channel().GetMember(cm3.ChannelId, cm3.UserId)
 	assert.Nil(t, err)
 	assert.Equal(t, "something_else", cm3b.ExplicitRoles)
+	assert.False(t, cm1b.SchemeGuest)
 	assert.False(t, cm3b.SchemeUser)
 	assert.False(t, cm3b.SchemeAdmin)
 }
@@ -2967,7 +2999,9 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlSupplier)
 
 	o1.DeleteAt = model.GetMillis()
 	o1.UpdateAt = model.GetMillis()
-	store.Must(ss.Channel().Delete(o1.Id, o1.DeleteAt))
+
+	e := ss.Channel().Delete(o1.Id, o1.DeleteAt)
+	require.Nil(t, e, "channel should have been deleted")
 
 	t.Run("o1 still listed in public channels when marked as deleted", func(t *testing.T) {
 		result := <-ss.Channel().SearchInTeam(teamId, "", true)
@@ -2984,7 +3018,8 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlSupplier)
 	})
 
 	o2.Type = model.CHANNEL_PRIVATE
-	require.Nil(t, (<-ss.Channel().Update(&o2)).Err)
+	_, appErr := ss.Channel().Update(&o2)
+	require.Nil(t, appErr)
 
 	t.Run("o2 no longer listed since now private", func(t *testing.T) {
 		result := <-ss.Channel().SearchInTeam(teamId, "", true)
@@ -2993,7 +3028,8 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlSupplier)
 	})
 
 	o2.Type = model.CHANNEL_OPEN
-	require.Nil(t, (<-ss.Channel().Update(&o2)).Err)
+	_, appErr = ss.Channel().Update(&o2)
+	require.Nil(t, appErr)
 
 	t.Run("o2 listed once again since now public", func(t *testing.T) {
 		result := <-ss.Channel().SearchInTeam(teamId, "", true)
@@ -3078,7 +3114,8 @@ func testMaterializedPublicChannels(t *testing.T, ss store.Store, s SqlSupplier)
 	require.Nil(t, err)
 
 	o4.DisplayName += " - Modified"
-	require.Nil(t, (<-ss.Channel().Update(&o4)).Err)
+	_, appErr = ss.Channel().Update(&o4)
+	require.Nil(t, appErr)
 
 	t.Run("verify o4 UPDATE converted to INSERT", func(t *testing.T) {
 		result := <-ss.Channel().SearchInTeam(teamId, "", true)
@@ -3093,7 +3130,8 @@ func testChannelStoreGetAllChannelsForExportAfter(t *testing.T, ss store.Store) 
 	t1.Name = model.NewId()
 	t1.Email = MakeEmail()
 	t1.Type = model.TEAM_OPEN
-	store.Must(ss.Team().Save(&t1))
+	_, err := ss.Team().Save(&t1)
+	require.Nil(t, err)
 
 	c1 := model.Channel{}
 	c1.TeamId = t1.Id
@@ -3124,7 +3162,8 @@ func testChannelStoreGetChannelMembersForExport(t *testing.T, ss store.Store) {
 	t1.Name = model.NewId()
 	t1.Email = MakeEmail()
 	t1.Type = model.TEAM_OPEN
-	store.Must(ss.Team().Save(&t1))
+	_, err := ss.Team().Save(&t1)
+	require.Nil(t, err)
 
 	c1 := model.Channel{}
 	c1.TeamId = t1.Id
@@ -3176,7 +3215,8 @@ func testChannelStoreRemoveAllDeactivatedMembers(t *testing.T, ss store.Store) {
 	t1.Name = model.NewId()
 	t1.Email = MakeEmail()
 	t1.Type = model.TEAM_OPEN
-	store.Must(ss.Team().Save(&t1))
+	_, err := ss.Team().Save(&t1)
+	require.Nil(t, err)
 
 	c1 := model.Channel{}
 	c1.TeamId = t1.Id
@@ -3281,7 +3321,7 @@ func testChannelStoreExportAllDirectChannels(t *testing.T, ss store.Store, s Sql
 	m2.UserId = u2.Id
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 
-	<-ss.Channel().SaveDirectChannel(&o1, &m1, &m2)
+	ss.Channel().SaveDirectChannel(&o1, &m1, &m2)
 
 	r1 := <-ss.Channel().GetAllDirectChannelsForExportAfter(10000, strings.Repeat("0", 26))
 	assert.Nil(t, r1.Err)
@@ -3339,7 +3379,7 @@ func testChannelStoreExportAllDirectChannelsExcludePrivateAndPublic(t *testing.T
 	m2.UserId = u2.Id
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 
-	<-ss.Channel().SaveDirectChannel(&o1, &m1, &m2)
+	ss.Channel().SaveDirectChannel(&o1, &m1, &m2)
 
 	r1 := <-ss.Channel().GetAllDirectChannelsForExportAfter(10000, strings.Repeat("0", 26))
 	assert.Nil(t, r1.Err)
@@ -3382,11 +3422,11 @@ func testChannelStoreExportAllDirectChannelsDeletedChannel(t *testing.T, ss stor
 	m2.UserId = u2.Id
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 
-	result := <-ss.Channel().SaveDirectChannel(&o1, &m1, &m2)
+	ss.Channel().SaveDirectChannel(&o1, &m1, &m2)
 
 	o1.DeleteAt = 1
-	result = <-ss.Channel().SetDeleteAt(o1.Id, 1, 1)
-	assert.Nil(t, result.Err)
+	err := ss.Channel().SetDeleteAt(o1.Id, 1, 1)
+	require.Nil(t, err, "channel should have been deleted")
 
 	r1 := <-ss.Channel().GetAllDirectChannelsForExportAfter(10000, strings.Repeat("0", 26))
 	assert.Nil(t, r1.Err)

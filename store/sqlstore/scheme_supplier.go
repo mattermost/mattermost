@@ -26,8 +26,10 @@ func initSqlSupplierSchemes(sqlStore SqlStore) {
 		table.ColMap("Scope").SetMaxSize(32)
 		table.ColMap("DefaultTeamAdminRole").SetMaxSize(64)
 		table.ColMap("DefaultTeamUserRole").SetMaxSize(64)
+		table.ColMap("DefaultTeamGuestRole").SetMaxSize(64)
 		table.ColMap("DefaultChannelAdminRole").SetMaxSize(64)
 		table.ColMap("DefaultChannelUserRole").SetMaxSize(64)
+		table.ColMap("DefaultChannelGuestRole").SetMaxSize(64)
 	}
 }
 
@@ -71,29 +73,34 @@ func (s *SqlSupplier) createScheme(ctx context.Context, scheme *model.Scheme, tr
 	result := store.NewSupplierResult()
 
 	// Fetch the default system scheme roles to populate default permissions.
-	defaultRoleNames := []string{model.TEAM_ADMIN_ROLE_ID, model.TEAM_USER_ROLE_ID, model.CHANNEL_ADMIN_ROLE_ID, model.CHANNEL_USER_ROLE_ID}
+	defaultRoleNames := []string{model.TEAM_ADMIN_ROLE_ID, model.TEAM_USER_ROLE_ID, model.TEAM_GUEST_ROLE_ID, model.CHANNEL_ADMIN_ROLE_ID, model.CHANNEL_USER_ROLE_ID, model.CHANNEL_GUEST_ROLE_ID}
 	defaultRoles := make(map[string]*model.Role)
-	if rolesResult := s.RoleGetByNames(ctx, defaultRoleNames); rolesResult.Err != nil {
-		result.Err = rolesResult.Err
+	roles, err := s.RoleGetByNames(ctx, defaultRoleNames)
+	if err != nil {
+		result.Err = err
 		return result
-	} else {
-		for _, role := range rolesResult.Data.([]*model.Role) {
-			switch role.Name {
-			case model.TEAM_ADMIN_ROLE_ID:
-				defaultRoles[model.TEAM_ADMIN_ROLE_ID] = role
-			case model.TEAM_USER_ROLE_ID:
-				defaultRoles[model.TEAM_USER_ROLE_ID] = role
-			case model.CHANNEL_ADMIN_ROLE_ID:
-				defaultRoles[model.CHANNEL_ADMIN_ROLE_ID] = role
-			case model.CHANNEL_USER_ROLE_ID:
-				defaultRoles[model.CHANNEL_USER_ROLE_ID] = role
-			}
-		}
+	}
 
-		if len(defaultRoles) != 4 {
-			result.Err = model.NewAppError("SqlSchemeStore.SaveScheme", "store.sql_scheme.save.retrieve_default_scheme_roles.app_error", nil, "", http.StatusInternalServerError)
-			return result
+	for _, role := range roles {
+		switch role.Name {
+		case model.TEAM_ADMIN_ROLE_ID:
+			defaultRoles[model.TEAM_ADMIN_ROLE_ID] = role
+		case model.TEAM_USER_ROLE_ID:
+			defaultRoles[model.TEAM_USER_ROLE_ID] = role
+		case model.TEAM_GUEST_ROLE_ID:
+			defaultRoles[model.TEAM_GUEST_ROLE_ID] = role
+		case model.CHANNEL_ADMIN_ROLE_ID:
+			defaultRoles[model.CHANNEL_ADMIN_ROLE_ID] = role
+		case model.CHANNEL_USER_ROLE_ID:
+			defaultRoles[model.CHANNEL_USER_ROLE_ID] = role
+		case model.CHANNEL_GUEST_ROLE_ID:
+			defaultRoles[model.CHANNEL_GUEST_ROLE_ID] = role
 		}
+	}
+
+	if len(defaultRoles) != 6 {
+		result.Err = model.NewAppError("SqlSchemeStore.SaveScheme", "store.sql_scheme.save.retrieve_default_scheme_roles.app_error", nil, "", http.StatusInternalServerError)
+		return result
 	}
 
 	// Create the appropriate default roles for the scheme.
@@ -106,11 +113,11 @@ func (s *SqlSupplier) createScheme(ctx context.Context, scheme *model.Scheme, tr
 			SchemeManaged: true,
 		}
 
-		if saveRoleResult := s.createRole(ctx, teamAdminRole, transaction); saveRoleResult.Err != nil {
-			result.Err = saveRoleResult.Err
+		if savedRole, err := s.createRole(ctx, teamAdminRole, transaction); err != nil {
+			result.Err = err
 			return result
 		} else {
-			scheme.DefaultTeamAdminRole = saveRoleResult.Data.(*model.Role).Name
+			scheme.DefaultTeamAdminRole = savedRole.Name
 		}
 
 		// Team User Role
@@ -121,11 +128,26 @@ func (s *SqlSupplier) createScheme(ctx context.Context, scheme *model.Scheme, tr
 			SchemeManaged: true,
 		}
 
-		if saveRoleResult := s.createRole(ctx, teamUserRole, transaction); saveRoleResult.Err != nil {
-			result.Err = saveRoleResult.Err
+		if savedRole, err := s.createRole(ctx, teamUserRole, transaction); err != nil {
+			result.Err = err
 			return result
 		} else {
-			scheme.DefaultTeamUserRole = saveRoleResult.Data.(*model.Role).Name
+			scheme.DefaultTeamUserRole = savedRole.Name
+		}
+
+		// Team Guest Role
+		teamGuestRole := &model.Role{
+			Name:          model.NewId(),
+			DisplayName:   fmt.Sprintf("Team Guest Role for Scheme %s", scheme.Name),
+			Permissions:   defaultRoles[model.TEAM_GUEST_ROLE_ID].Permissions,
+			SchemeManaged: true,
+		}
+
+		if savedRole, err := s.createRole(ctx, teamGuestRole, transaction); err != nil {
+			result.Err = err
+			return result
+		} else {
+			scheme.DefaultTeamGuestRole = savedRole.Name
 		}
 	}
 	if scheme.Scope == model.SCHEME_SCOPE_TEAM || scheme.Scope == model.SCHEME_SCOPE_CHANNEL {
@@ -137,11 +159,11 @@ func (s *SqlSupplier) createScheme(ctx context.Context, scheme *model.Scheme, tr
 			SchemeManaged: true,
 		}
 
-		if saveRoleResult := s.createRole(ctx, channelAdminRole, transaction); saveRoleResult.Err != nil {
-			result.Err = saveRoleResult.Err
+		if savedRole, err := s.createRole(ctx, channelAdminRole, transaction); err != nil {
+			result.Err = err
 			return result
 		} else {
-			scheme.DefaultChannelAdminRole = saveRoleResult.Data.(*model.Role).Name
+			scheme.DefaultChannelAdminRole = savedRole.Name
 		}
 
 		// Channel User Role
@@ -152,11 +174,26 @@ func (s *SqlSupplier) createScheme(ctx context.Context, scheme *model.Scheme, tr
 			SchemeManaged: true,
 		}
 
-		if saveRoleResult := s.createRole(ctx, channelUserRole, transaction); saveRoleResult.Err != nil {
-			result.Err = saveRoleResult.Err
+		if savedRole, err := s.createRole(ctx, channelUserRole, transaction); err != nil {
+			result.Err = err
 			return result
 		} else {
-			scheme.DefaultChannelUserRole = saveRoleResult.Data.(*model.Role).Name
+			scheme.DefaultChannelUserRole = savedRole.Name
+		}
+
+		// Channel Guest Role
+		channelGuestRole := &model.Role{
+			Name:          model.NewId(),
+			DisplayName:   fmt.Sprintf("Channel Guest Role for Scheme %s", scheme.Name),
+			Permissions:   defaultRoles[model.CHANNEL_GUEST_ROLE_ID].Permissions,
+			SchemeManaged: true,
+		}
+
+		if savedRole, err := s.createRole(ctx, channelGuestRole, transaction); err != nil {
+			result.Err = err
+			return result
+		} else {
+			scheme.DefaultChannelGuestRole = savedRole.Name
 		}
 	}
 
@@ -250,9 +287,9 @@ func (s *SqlSupplier) SchemeDelete(ctx context.Context, schemeId string, hints .
 	}
 
 	// Delete the roles belonging to the scheme.
-	roleNames := []string{scheme.DefaultChannelUserRole, scheme.DefaultChannelAdminRole}
+	roleNames := []string{scheme.DefaultChannelGuestRole, scheme.DefaultChannelUserRole, scheme.DefaultChannelAdminRole}
 	if scheme.Scope == model.SCHEME_SCOPE_TEAM {
-		roleNames = append(roleNames, scheme.DefaultTeamUserRole, scheme.DefaultTeamAdminRole)
+		roleNames = append(roleNames, scheme.DefaultTeamGuestRole, scheme.DefaultTeamUserRole, scheme.DefaultTeamAdminRole)
 	}
 
 	var inQueryList []string
