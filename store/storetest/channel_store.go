@@ -23,9 +23,9 @@ type SqlSupplier interface {
 }
 
 func cleanupChannels(t *testing.T, ss store.Store) {
-	result := <-ss.Channel().GetAllChannels(0, 100000, true)
+	result := <-ss.Channel().GetAllChannels(0, 100000, store.ChannelSearchOpts{IncludeDeleted: true})
 	if result.Err != nil {
-		t.Fatal("error cleaning all channels")
+		t.Fatalf("error cleaning all channels: %v", result.Err)
 	}
 	list := result.Data.(*model.ChannelListWithTeamData)
 	for _, channel := range *list {
@@ -1073,6 +1073,15 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlSupplier)
 	c1.Type = model.CHANNEL_OPEN
 	store.Must(ss.Channel().Save(&c1, -1))
 
+	group := &model.Group{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Source:      model.GroupSourceLdap,
+		RemoteId:    model.NewId(),
+	}
+	store.Must(ss.Group().Create(group))
+	store.Must(ss.Group().CreateGroupSyncable(model.NewGroupChannel(group.Id, c1.Id, true)))
+
 	c2 := model.Channel{}
 	c2.TeamId = t1.Id
 	c2.DisplayName = "Channel2" + model.NewId()
@@ -1103,7 +1112,7 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlSupplier)
 	c5.Type = model.CHANNEL_GROUP
 	store.Must(ss.Channel().Save(&c5, -1))
 
-	cresult := <-ss.Channel().GetAllChannels(0, 10, false)
+	cresult := <-ss.Channel().GetAllChannels(0, 10, store.ChannelSearchOpts{})
 	list := cresult.Data.(*model.ChannelListWithTeamData)
 	assert.Len(t, *list, 2)
 	assert.Equal(t, (*list)[0].Id, c1.Id)
@@ -1111,7 +1120,7 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlSupplier)
 	assert.Equal(t, (*list)[1].Id, c3.Id)
 	assert.Equal(t, (*list)[1].TeamDisplayName, "Name2")
 
-	cresult = <-ss.Channel().GetAllChannels(0, 10, true)
+	cresult = <-ss.Channel().GetAllChannels(0, 10, store.ChannelSearchOpts{IncludeDeleted: true})
 	list = cresult.Data.(*model.ChannelListWithTeamData)
 	assert.Len(t, *list, 3)
 	assert.Equal(t, (*list)[0].Id, c1.Id)
@@ -1119,11 +1128,21 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlSupplier)
 	assert.Equal(t, (*list)[1].Id, c2.Id)
 	assert.Equal(t, (*list)[2].Id, c3.Id)
 
-	cresult = <-ss.Channel().GetAllChannels(0, 1, true)
+	cresult = <-ss.Channel().GetAllChannels(0, 1, store.ChannelSearchOpts{IncludeDeleted: true})
 	list = cresult.Data.(*model.ChannelListWithTeamData)
 	assert.Len(t, *list, 1)
 	assert.Equal(t, (*list)[0].Id, c1.Id)
 	assert.Equal(t, (*list)[0].TeamDisplayName, "Name")
+
+	// Not associated to group
+	cresult = <-ss.Channel().GetAllChannels(0, 10, store.ChannelSearchOpts{NotAssociatedToGroup: group.Id})
+	list = cresult.Data.(*model.ChannelListWithTeamData)
+	assert.Len(t, *list, 1)
+
+	// Exclude channel names
+	cresult = <-ss.Channel().GetAllChannels(0, 10, store.ChannelSearchOpts{ExcludeChannelNames: []string{c1.Name}})
+	list = cresult.Data.(*model.ChannelListWithTeamData)
+	assert.Len(t, *list, 1)
 
 	// Manually truncate Channels table until testlib can handle cleanups
 	s.GetMaster().Exec("TRUNCATE Channels")
@@ -2325,6 +2344,15 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 	}
 	store.Must(ss.Channel().Save(&o7, -1))
 
+	group := &model.Group{
+		Name:        model.NewId(),
+		DisplayName: model.NewId(),
+		Source:      model.GroupSourceLdap,
+		RemoteId:    model.NewId(),
+	}
+	store.Must(ss.Group().Create(group))
+	store.Must(ss.Group().CreateGroupSyncable(model.NewGroupChannel(group.Id, o7.Id, true)))
+
 	o8 := model.Channel{
 		TeamId:      t1.Id,
 		DisplayName: "Off-Limit",
@@ -2381,28 +2409,31 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 	testCases := []struct {
 		Description     string
 		Term            string
-		IncludeDeleted  bool
+		Opts            store.ChannelSearchOpts
 		ExpectedResults *model.ChannelList
 	}{
-		{"ChannelA", "ChannelA", false, &model.ChannelList{&o1, &o2, &o3}},
-		{"ChannelA, include deleted", "ChannelA", true, &model.ChannelList{&o1, &o2, &o3, &o13}},
-		{"empty string", "", false, &model.ChannelList{&o1, &o2, &o3, &o4, &o5, &o12, &o11, &o8, &o7, &o6, &o10, &o9}},
-		{"no matches", "blargh", false, &model.ChannelList{}},
-		{"prefix", "off-", false, &model.ChannelList{&o8, &o7, &o6}},
-		{"full match with dash", "off-topic", false, &model.ChannelList{&o6}},
-		{"town square", "town square", false, &model.ChannelList{&o9}},
-		{"the in name", "the", false, &model.ChannelList{&o10}},
-		{"Mobile", "Mobile", false, &model.ChannelList{&o11}},
-		{"search purpose", "now searchable", false, &model.ChannelList{&o12}},
-		{"pipe ignored", "town square |", false, &model.ChannelList{&o9}},
+		{"ChannelA", "ChannelA", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o1, &o2, &o3}},
+		{"ChannelA, include deleted", "ChannelA", store.ChannelSearchOpts{IncludeDeleted: true}, &model.ChannelList{&o1, &o2, &o3, &o13}},
+		{"empty string", "", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o1, &o2, &o3, &o4, &o5, &o12, &o11, &o8, &o7, &o6, &o10, &o9}},
+		{"no matches", "blargh", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{}},
+		{"prefix", "off-", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o8, &o7, &o6}},
+		{"full match with dash", "off-topic", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o6}},
+		{"town square", "town square", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o9}},
+		{"the in name", "the", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o10}},
+		{"Mobile", "Mobile", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o11}},
+		{"search purpose", "now searchable", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o12}},
+		{"pipe ignored", "town square |", store.ChannelSearchOpts{IncludeDeleted: false}, &model.ChannelList{&o9}},
+		{"exclude defaults search 'off'", "off-", store.ChannelSearchOpts{IncludeDeleted: false, ExcludeChannelNames: []string{"off-topic"}}, &model.ChannelList{&o8, &o7}},
+		{"exclude defaults search 'town'", "town", store.ChannelSearchOpts{IncludeDeleted: false, ExcludeChannelNames: []string{"town-square"}}, &model.ChannelList{}},
+		{"exclude by group association", "off", store.ChannelSearchOpts{IncludeDeleted: false, NotAssociatedToGroup: group.Id}, &model.ChannelList{&o8, &o6}},
 	}
 
 	for _, testCase := range testCases {
 		t.Run(testCase.Description, func(t *testing.T) {
-			result := <-ss.Channel().SearchAllChannels(testCase.Term, testCase.IncludeDeleted)
+			result := <-ss.Channel().SearchAllChannels(testCase.Term, testCase.Opts)
 			require.Nil(t, result.Err)
 			channels := result.Data.(*model.ChannelListWithTeamData)
-			require.Equal(t, len(*channels), len(*testCase.ExpectedResults))
+			require.Equal(t, len(*testCase.ExpectedResults), len(*channels))
 			for i, expected := range *testCase.ExpectedResults {
 				require.Equal(t, (*channels)[i].Id, expected.Id)
 			}
