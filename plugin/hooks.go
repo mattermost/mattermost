@@ -36,6 +36,12 @@ const (
 	TotalHooksId            = iota
 )
 
+// Exported error string(s) to be used as signal mechanisms between plugins and the server.
+const (
+	// to be returned by MessageWillBePosted to signal a pending post should be dismissed.
+	DismissPostError = "plugin.message_will_be_posted.dismiss_post"
+)
+
 // Hooks describes the methods a plugin may implement to automatically receive the corresponding
 // event.
 //
@@ -90,6 +96,7 @@ type Hooks interface {
 	// To reject a post, return an non-empty string describing why the post was rejected.
 	// To modify the post, return the replacement, non-nil *model.Post and an empty string.
 	// To allow the post without modification, return a nil *model.Post and an empty string.
+	// To dismiss the post, return a nil *model.Post and the const DismissPostError string.
 	//
 	// If you don't need to modify or reject posts, use MessageHasBeenPosted instead.
 	//

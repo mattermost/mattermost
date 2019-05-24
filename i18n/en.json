@@ -5235,6 +5235,10 @@
     "translation": "GitLab's Terms of Service have updated. Please go to gitlab.com to accept them and then try logging into Mattermost again."
   },
   {
+    "id": "plugin.message_will_be_posted.dismiss_post",
+    "translation": "Post has been dismissed by plugin."
+  },
+  {
     "id": "plugin.api.get_users_in_channel",
     "translation": "Unable to get the users, invalid sorting criteria"
   },
