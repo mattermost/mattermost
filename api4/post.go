@@ -98,7 +98,7 @@ func createEphemeralPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	rp = model.AddPostActionCookies(rp, c.App.PostActionCookieSecret())
-	rp = c.App.PreparePostForClient(rp, true)
+	rp = c.App.PreparePostForClient(rp, true, false)
 	w.Write([]byte(rp.ToJson()))
 }
 
@@ -261,7 +261,7 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	post = c.App.PreparePostForClient(post, false)
+	post = c.App.PreparePostForClient(post, false, false)
 
 	if c.HandleEtag(post.Etag(), "Get Post", w, r) {
 		return
