@@ -248,8 +248,8 @@ func testPreferenceDeleteByUser(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 	require.Equal(t, 4, count)
 
-	if result := <-ss.Preference().PermanentDeleteByUser(userId); result.Err != nil {
-		t.Fatal(result.Err)
+	if err := ss.Preference().PermanentDeleteByUser(userId); err != nil {
+		t.Fatal(err)
 	}
 }
 
@@ -459,8 +459,8 @@ func testPreferenceCleanupFlagsBatch(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 	require.Equal(t, 2, count)
 
-	result := <-ss.Preference().CleanupFlagsBatch(10000)
-	assert.Nil(t, result.Err)
+	_, err := ss.Preference().CleanupFlagsBatch(10000)
+	assert.Nil(t, err)
 
 	_, err = ss.Preference().Get(userId, category, preference1.Name)
 	assert.Nil(t, err)

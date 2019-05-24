@@ -77,7 +77,9 @@
         "DisableLegacyMFA": true,
         "EnableEmailInvitations": false,
         "ExperimentalLdapGroupSync": false,
-        "ExperimentalStrictCSRFEnforcement": false
+        "ExperimentalStrictCSRFEnforcement": false,
+        "EnableBotAccountCreation": false,
+        "DisableBotsWhenOwnerIsDeactivated": true
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
@@ -157,11 +159,11 @@
         "FileLocation": ""
     },
     "PasswordSettings": {
-        "MinimumLength": 5,
-        "Lowercase": false,
-        "Number": false,
-        "Uppercase": false,
-        "Symbol": false
+        "MinimumLength": 10,
+        "Lowercase": true,
+        "Number": true,
+        "Uppercase": true,
+        "Symbol": true
     },
     "FileSettings": {
         "EnableFileAttachments": true,
@@ -263,7 +265,7 @@
         "Scope": "profile email",
         "AuthEndpoint": "https://accounts.google.com/o/oauth2/v2/auth",
         "TokenEndpoint": "https://www.googleapis.com/oauth2/v4/token",
-        "UserApiEndpoint": "https://www.googleapis.com/plus/v1/people/me"
+        "UserApiEndpoint": "https://people.googleapis.com/v1/people/me?personFields=names,emailAddresses,nicknames,metadata"
     },
     "Office365Settings": {
         "Enable": false,

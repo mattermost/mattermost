@@ -293,7 +293,7 @@ type ServiceSettings struct {
 	EnableEmailInvitations                            *bool
 	ExperimentalLdapGroupSync                         *bool
 	DisableBotsWhenOwnerIsDeactivated                 *bool `restricted:"true"`
-	CreateBotAccounts                                 *bool
+	EnableBotAccountCreation                          *bool
 }
 
 func (s *ServiceSettings) SetDefaults() {
@@ -637,8 +637,8 @@ func (s *ServiceSettings) SetDefaults() {
 		s.DisableBotsWhenOwnerIsDeactivated = NewBool(true)
 	}
 
-	if s.CreateBotAccounts == nil {
-		s.CreateBotAccounts = NewBool(false)
+	if s.EnableBotAccountCreation == nil {
+		s.EnableBotAccountCreation = NewBool(false)
 	}
 }
 
@@ -962,23 +962,23 @@ type PasswordSettings struct {
 
 func (s *PasswordSettings) SetDefaults() {
 	if s.MinimumLength == nil {
-		s.MinimumLength = NewInt(PASSWORD_MINIMUM_LENGTH)
+		s.MinimumLength = NewInt(10)
 	}
 
 	if s.Lowercase == nil {
-		s.Lowercase = NewBool(false)
+		s.Lowercase = NewBool(true)
 	}
 
 	if s.Number == nil {
-		s.Number = NewBool(false)
+		s.Number = NewBool(true)
 	}
 
 	if s.Uppercase == nil {
-		s.Uppercase = NewBool(false)
+		s.Uppercase = NewBool(true)
 	}
 
 	if s.Symbol == nil {
-		s.Symbol = NewBool(false)
+		s.Symbol = NewBool(true)
 	}
 }
 
