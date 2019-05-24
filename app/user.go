@@ -1483,8 +1483,8 @@ func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 		return err
 	}
 
-	if result := <-a.Srv.Store.User().PermanentDelete(user.Id); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.User().PermanentDelete(user.Id); err != nil {
+		return err
 	}
 
 	if err := a.Srv.Store.Audit().PermanentDeleteByUser(user.Id); err != nil {

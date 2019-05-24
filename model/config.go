@@ -294,7 +294,7 @@ type ServiceSettings struct {
 	EnableEmailInvitations                            *bool
 	ExperimentalLdapGroupSync                         *bool
 	DisableBotsWhenOwnerIsDeactivated                 *bool `restricted:"true"`
-	CreateBotAccounts                                 *bool
+	EnableBotAccountCreation                          *bool
 }
 
 func (s *ServiceSettings) SetDefaults() {
@@ -642,8 +642,8 @@ func (s *ServiceSettings) SetDefaults() {
 		s.DisableBotsWhenOwnerIsDeactivated = NewBool(true)
 	}
 
-	if s.CreateBotAccounts == nil {
-		s.CreateBotAccounts = NewBool(false)
+	if s.EnableBotAccountCreation == nil {
+		s.EnableBotAccountCreation = NewBool(false)
 	}
 }
 
@@ -1647,6 +1647,8 @@ type LdapSettings struct {
 	LoginButtonColor       *string
 	LoginButtonBorderColor *string
 	LoginButtonTextColor   *string
+
+	Trace *bool
 }
 
 func (s *LdapSettings) SetDefaults() {
@@ -1763,6 +1765,10 @@ func (s *LdapSettings) SetDefaults() {
 
 	if s.LoginButtonTextColor == nil {
 		s.LoginButtonTextColor = NewString("#2389D7")
+	}
+
+	if s.Trace == nil {
+		s.Trace = NewBool(false)
 	}
 }
 

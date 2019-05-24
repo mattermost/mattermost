@@ -895,3 +895,20 @@ func TestUpdateChannelMemberRolesChangingGuest(t *testing.T) {
 		}
 	})
 }
+
+func TestDefaultChannelNames(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	actual := th.App.DefaultChannelNames()
+	expect := []string{"town-square", "off-topic"}
+	require.ElementsMatch(t, expect, actual)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.TeamSettings.ExperimentalDefaultChannels = []string{"foo", "bar"}
+	})
+
+	actual = th.App.DefaultChannelNames()
+	expect = []string{"town-square", "foo", "bar"}
+	require.ElementsMatch(t, expect, actual)
+}

@@ -949,17 +949,37 @@ func (s SqlChannelStore) GetChannels(teamId string, userId string, includeDelete
 	})
 }
 
-func (s SqlChannelStore) GetAllChannels(offset int, limit int, includeDeleted bool) store.StoreChannel {
+func (s SqlChannelStore) GetAllChannels(offset int, limit int, opts store.ChannelSearchOpts) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		deleteFilter := "AND c.DeleteAt = 0"
-		if includeDeleted {
-			deleteFilter = ""
+		query := s.getQueryBuilder().
+			Select("c.*, Teams.DisplayName AS TeamDisplayName, Teams.Name AS TeamName, Teams.UpdateAt AS TeamUpdateAt").
+			From("Channels AS c").
+			Join("Teams ON Teams.Id = c.TeamId").
+			Where(sq.Eq{"c.Type": []string{model.CHANNEL_PRIVATE, model.CHANNEL_OPEN}}).
+			OrderBy("c.DisplayName, Teams.DisplayName").
+			Limit(uint64(limit)).
+			Offset(uint64(offset))
+
+		if !opts.IncludeDeleted {
+			query = query.Where(sq.Eq{"c.DeleteAt": int(0)})
 		}
 
-		query := "SELECT c.*, Teams.DisplayName AS TeamDisplayName, Teams.Name AS TeamName, Teams.UpdateAt as TeamUpdateAt FROM Channels AS c JOIN Teams ON Teams.Id = c.TeamId WHERE (c.Type = 'P' OR c.Type = 'O') " + deleteFilter + " ORDER BY c.DisplayName, Teams.DisplayName LIMIT :Limit OFFSET :Offset"
+		if len(opts.NotAssociatedToGroup) > 0 {
+			query = query.Where("c.Id NOT IN (SELECT ChannelId FROM GroupChannels WHERE GroupChannels.GroupId = ? AND GroupChannels.DeleteAt = 0)", opts.NotAssociatedToGroup)
+		}
+
+		if len(opts.ExcludeChannelNames) > 0 {
+			query = query.Where(fmt.Sprintf("c.Name NOT IN ('%s')", strings.Join(opts.ExcludeChannelNames, "', '")))
+		}
+
+		queryString, args, err := query.ToSql()
+		if err != nil {
+			result.Err = model.NewAppError("SqlChannelStore.GetAllChannels", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
 		data := &model.ChannelListWithTeamData{}
-		_, err := s.GetReplica().Select(data, query, map[string]interface{}{"Limit": limit, "Offset": offset})
+		_, err = s.GetReplica().Select(data, queryString, args...)
 
 		if err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.GetAllChannels", "store.sql_channel.get_all_channels.get.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -2120,29 +2140,45 @@ func (s SqlChannelStore) SearchInTeam(teamId string, term string, includeDeleted
 	})
 }
 
-func (s SqlChannelStore) SearchAllChannels(term string, includeDeleted bool) store.StoreChannel {
+func (s SqlChannelStore) SearchAllChannels(term string, opts store.ChannelSearchOpts) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
-		parameters := map[string]interface{}{}
-		deleteFilter := "AND c.DeleteAt = 0"
-		if includeDeleted {
-			deleteFilter = ""
+		query := s.getQueryBuilder().
+			Select("c.*, t.DisplayName AS TeamDisplayName, t.Name AS TeamName, t.UpdateAt as TeamUpdateAt").
+			From("Channels AS c").
+			Join("Teams AS t ON t.Id = c.TeamId").
+			Where(sq.Eq{"c.Type": []string{model.CHANNEL_PRIVATE, model.CHANNEL_OPEN}}).
+			OrderBy("c.DisplayName, t.DisplayName").
+			Limit(uint64(100))
+
+		if !opts.IncludeDeleted {
+			query = query.Where(sq.Eq{"c.DeleteAt": int(0)})
 		}
-		searchQuery := `SELECT c.*, t.DisplayName AS TeamDisplayName, t.Name AS TeamName, t.UpdateAt as TeamUpdateAt FROM Channels AS c JOIN Teams AS t ON t.Id = c.TeamId WHERE (c.Type = 'P' OR c.Type = 'O') ` + deleteFilter + ` SEARCH_CLAUSE ORDER BY c.DisplayName, t.DisplayName LIMIT 100`
 
 		likeClause, likeTerm := s.buildLIKEClause(term, "c.Name, c.DisplayName, c.Purpose")
-		if likeTerm == "" {
-			// If the likeTerm is empty after preparing, then don't bother searching.
-			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
-		} else {
-			parameters["LikeTerm"] = likeTerm
+		if len(likeTerm) > 0 {
+			likeClause = strings.ReplaceAll(likeClause, ":LikeTerm", "'"+likeTerm+"'")
 			fulltextClause, fulltextTerm := s.buildFulltextClause(term, "c.Name, c.DisplayName, c.Purpose")
-			parameters["FulltextTerm"] = fulltextTerm
-			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "AND ("+likeClause+" OR "+fulltextClause+")", 1)
+			fulltextClause = strings.ReplaceAll(fulltextClause, ":FulltextTerm", "'"+fulltextTerm+"'")
+			query = query.Where("(" + likeClause + " OR " + fulltextClause + ")")
+		}
+
+		if len(opts.ExcludeChannelNames) > 0 {
+			query = query.Where(fmt.Sprintf("c.Name NOT IN ('%s')", strings.Join(opts.ExcludeChannelNames, "', '")))
+		}
+
+		if len(opts.NotAssociatedToGroup) > 0 {
+			query = query.Where("c.Id NOT IN (SELECT ChannelId FROM GroupChannels WHERE GroupChannels.GroupId = ? AND GroupChannels.DeleteAt = 0)", opts.NotAssociatedToGroup)
+		}
+
+		queryString, args, err := query.ToSql()
+		if err != nil {
+			result.Err = model.NewAppError("SqlChannelStore.SearchAllChannels", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
 		}
 
 		var channels model.ChannelListWithTeamData
 
-		if _, err := s.GetReplica().Select(&channels, searchQuery, parameters); err != nil {
+		if _, err := s.GetReplica().Select(&channels, queryString, args...); err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.Search", "store.sql_channel.search.app_error", nil, "term="+term+", "+", "+err.Error(), http.StatusInternalServerError)
 		}
 
@@ -2501,7 +2537,7 @@ func (s SqlChannelStore) GetAllChannelsForExportAfter(limit int, afterId string)
 				Id
 			LIMIT :Limit`,
 			map[string]interface{}{"AfterId": afterId, "Limit": limit}); err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.GetAllChannelsForExportAfter", "store.sql_channel.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+			result.Err = model.NewAppError("SqlChannelStore.GetAllChannelsForExportAfter", "store.sql_channel.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
@@ -2561,12 +2597,12 @@ func (s SqlChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId s
 
 		queryString, args, err := query.ToSql()
 		if err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.GetAllDirectChannelsForExportAfter", "store.sql_channel.get_all_direct.app_error", nil, err.Error(), http.StatusInternalServerError)
+			result.Err = model.NewAppError("SqlChannelStore.GetAllDirectChannelsForExportAfter", "store.sql_channel.get_all_direct.app_error", nil, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
 		if _, err = s.GetReplica().Select(&directChannelsForExport, queryString, args...); err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.GetAllDirectChannelsForExportAfter", "store.sql_channel.get_all_direct.app_error", nil, err.Error(), http.StatusInternalServerError)
+			result.Err = model.NewAppError("SqlChannelStore.GetAllDirectChannelsForExportAfter", "store.sql_channel.get_all_direct.app_error", nil, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
@@ -2585,13 +2621,13 @@ func (s SqlChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId s
 
 		queryString, args, err = query.ToSql()
 		if err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.GetAllDirectChannelsForExportAfter", "store.sql_channel.get_all_direct.app_error", nil, err.Error(), http.StatusInternalServerError)
+			result.Err = model.NewAppError("SqlChannelStore.GetAllDirectChannelsForExportAfter", "store.sql_channel.get_all_direct.app_error", nil, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
 		var channelMembers []*model.ChannelMemberForExport
 		if _, err := s.GetReplica().Select(&channelMembers, queryString, args...); err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.GetAllDirectChannelsForExportAfter", "store.sql_channel.get_all_direct.app_error", nil, err.Error(), http.StatusInternalServerError)
+			result.Err = model.NewAppError("SqlChannelStore.GetAllDirectChannelsForExportAfter", "store.sql_channel.get_all_direct.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 
 		// Populate each channel with its members
