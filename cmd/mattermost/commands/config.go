@@ -181,7 +181,7 @@ func configShowCmdF(command *cobra.Command, args []string) error {
 	config := *configStore.Get()
 
 	if useJSON {
-		configJSON, err := json.Marshal(config)
+		configJSON, err := json.MarshalIndent(config, "", "    ")
 		if err != nil {
 			return errors.Wrap(err, "failed to marshal config as json")
 		}

@@ -342,10 +342,18 @@ func TestConfigShow(t *testing.T) {
 		output, err := th.RunCommandWithOutput(t, "config", "show", "--json")
 		require.Nil(t, err)
 
-		// Take only the second line of output, ignoring the test headers.
-		output = strings.Split(output, "\n")[1]
+		// Filter out the test headers
+		var filteredOutput []string
+		for _, line := range strings.Split(output, "\n") {
+			if strings.HasPrefix(line, "---") || strings.HasPrefix(line, "===") || strings.HasPrefix(line, "PASS") {
+				continue
+			}
+
+			filteredOutput = append(filteredOutput, line)
+		}
+
+		output = strings.Join(filteredOutput, "")
 		fmt.Printf("%s\n", output)
-		require.Equal(t, `{"ServiceSettings":{"SiteURL"`, output[0:len(`{"ServiceSettings":{"SiteURL"`)])
 
 		var config model.Config
 		err = json.Unmarshal([]byte(output), &config)
