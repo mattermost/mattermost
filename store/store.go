@@ -437,7 +437,7 @@ type PreferenceStore interface {
 	DeleteCategoryAndName(category string, name string) StoreChannel
 	PermanentDeleteByUser(userId string) *model.AppError
 	IsFeatureEnabled(feature, userId string) StoreChannel
-	CleanupFlagsBatch(limit int64) StoreChannel
+	CleanupFlagsBatch(limit int64) (int64, *model.AppError)
 }
 
 type LicenseStore interface {
