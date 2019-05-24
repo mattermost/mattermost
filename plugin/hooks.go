@@ -36,9 +36,8 @@ const (
 	TotalHooksId            = iota
 )
 
-// Exported error string(s) to be used as signal mechanisms between plugins and the server.
 const (
-	// to be returned by MessageWillBePosted to signal a pending post should be dismissed.
+	//DismissPostError dismisses a pending post when the error is returned from MessageWillBePosted.
 	DismissPostError = "plugin.message_will_be_posted.dismiss_post"
 )
 
