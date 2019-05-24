@@ -1642,6 +1642,8 @@ type LdapSettings struct {
 	LoginButtonColor       *string
 	LoginButtonBorderColor *string
 	LoginButtonTextColor   *string
+
+	Trace *bool
 }
 
 func (s *LdapSettings) SetDefaults() {
@@ -1758,6 +1760,10 @@ func (s *LdapSettings) SetDefaults() {
 
 	if s.LoginButtonTextColor == nil {
 		s.LoginButtonTextColor = NewString("#2389D7")
+	}
+
+	if s.Trace == nil {
+		s.Trace = NewBool(false)
 	}
 }
 
