@@ -89,9 +89,9 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		}
 
 	} else {
-		keywords := a.GetMentionKeywordsInChannel(profileMap, post.Type != model.POST_HEADER_CHANGE && post.Type != model.POST_PURPOSE_CHANGE, channelMemberNotifyPropsMap)
+		keywords := a.getMentionKeywordsInChannel(profileMap, post.Type != model.POST_HEADER_CHANGE && post.Type != model.POST_PURPOSE_CHANGE, channelMemberNotifyPropsMap)
 
-		m := GetExplicitMentions(post, keywords)
+		m := getExplicitMentions(post, keywords)
 
 		// Add an implicit mention when a user is added to a channel
 		// even if the user has set 'username mentions' to false in account settings.
@@ -504,7 +504,7 @@ type ExplicitMentions struct {
 
 // Given a message and a map mapping mention keywords to the users who use them, returns a map of mentioned
 // users and a slice of potential mention users not in the channel and whether or not @here was mentioned.
-func GetExplicitMentions(post *model.Post, keywords map[string][]string) *ExplicitMentions {
+func getExplicitMentions(post *model.Post, keywords map[string][]string) *ExplicitMentions {
 	ret := &ExplicitMentions{
 		MentionedUserIds: make(map[string]bool),
 	}
@@ -615,7 +615,7 @@ func GetExplicitMentions(post *model.Post, keywords map[string][]string) *Explic
 	}
 
 	buf := ""
-	mentionsEnabledFields := GetMentionsEnabledFields(post)
+	mentionsEnabledFields := getMentionsEnabledFields(post)
 	for _, message := range mentionsEnabledFields {
 		markdown.Inspect(message, func(node interface{}) bool {
 			text, ok := node.(*markdown.Text)
@@ -635,7 +635,7 @@ func GetExplicitMentions(post *model.Post, keywords map[string][]string) *Explic
 
 // Given a post returns the values of the fields in which mentions are possible.
 // post.message, preText and text in the attachment are enabled.
-func GetMentionsEnabledFields(post *model.Post) model.StringArray {
+func getMentionsEnabledFields(post *model.Post) model.StringArray {
 	ret := []string{}
 
 	ret = append(ret, post.Message)
@@ -653,7 +653,7 @@ func GetMentionsEnabledFields(post *model.Post) model.StringArray {
 
 // Given a map of user IDs to profiles, returns a list of mention
 // keywords for all users in the channel.
-func (a *App) GetMentionKeywordsInChannel(profiles map[string]*model.User, lookForSpecialMentions bool, channelMemberNotifyPropsMap map[string]model.StringMap) map[string][]string {
+func (a *App) getMentionKeywordsInChannel(profiles map[string]*model.User, lookForSpecialMentions bool, channelMemberNotifyPropsMap map[string]model.StringMap) map[string][]string {
 	keywords := make(map[string][]string)
 
 	for id, profile := range profiles {
