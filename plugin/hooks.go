@@ -37,7 +37,7 @@ const (
 )
 
 const (
-	//DismissPostError dismisses a pending post when the error is returned from MessageWillBePosted.
+	// DismissPostError dismisses a pending post when the error is returned from MessageWillBePosted.
 	DismissPostError = "plugin.message_will_be_posted.dismiss_post"
 )
 
