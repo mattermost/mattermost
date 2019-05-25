@@ -503,7 +503,12 @@ func getAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	channels, err := c.App.GetAllChannels(c.Params.Page, c.Params.PerPage, false)
+	opts := model.ChannelSearchOpts{
+		NotAssociatedToGroup:   c.Params.NotAssociatedToGroup,
+		ExcludeDefaultChannels: c.Params.ExcludeDefaultChannels,
+	}
+
+	channels, err := c.App.GetAllChannels(c.Params.Page, c.Params.PerPage, opts)
 	if err != nil {
 		c.Err = err
 		return
@@ -727,9 +732,13 @@ func searchAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	includeDeleted := r.URL.Query().Get("include_deleted") == "true"
+	opts := model.ChannelSearchOpts{
+		NotAssociatedToGroup:   props.NotAssociatedToGroup,
+		ExcludeDefaultChannels: props.ExcludeDefaultChannels,
+		IncludeDeleted:         r.URL.Query().Get("include_deleted") == "true",
+	}
 
-	channels, err := c.App.SearchAllChannels(props.Term, includeDeleted)
+	channels, err := c.App.SearchAllChannels(props.Term, opts)
 	if err != nil {
 		c.Err = err
 		return
