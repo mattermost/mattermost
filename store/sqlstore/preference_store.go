@@ -261,17 +261,19 @@ func (s SqlPreferenceStore) Delete(userId, category, name string) store.StoreCha
 	})
 }
 
-func (s SqlPreferenceStore) DeleteCategory(userId string, category string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if _, err := s.GetMaster().Exec(
-			`DELETE FROM
-				Preferences
-			WHERE
-				UserId = :UserId
-				AND Category = :Category`, map[string]interface{}{"UserId": userId, "Category": category}); err != nil {
-			result.Err = model.NewAppError("SqlPreferenceStore.DeleteCategory", "store.sql_preference.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-	})
+func (s SqlPreferenceStore) DeleteCategory(userId string, category string) *model.AppError {
+	_, err := s.GetMaster().Exec(
+		`DELETE FROM
+			Preferences
+		WHERE
+			UserId = :UserId
+			AND Category = :Category`, map[string]interface{}{"UserId": userId, "Category": category})
+
+	if err != nil {
+		return model.NewAppError("SqlPreferenceStore.DeleteCategory", "store.sql_preference.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
 }
 
 func (s SqlPreferenceStore) DeleteCategoryAndName(category string, name string) store.StoreChannel {

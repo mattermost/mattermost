@@ -433,7 +433,7 @@ type PreferenceStore interface {
 	Get(userId string, category string, name string) (*model.Preference, *model.AppError)
 	GetAll(userId string) StoreChannel
 	Delete(userId, category, name string) StoreChannel
-	DeleteCategory(userId string, category string) StoreChannel
+	DeleteCategory(userId string, category string) *model.AppError
 	DeleteCategoryAndName(category string, name string) StoreChannel
 	PermanentDeleteByUser(userId string) *model.AppError
 	IsFeatureEnabled(feature, userId string) StoreChannel

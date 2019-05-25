@@ -53,15 +53,15 @@ func (_m *PreferenceStore) Delete(userId string, category string, name string) s
 }
 
 // DeleteCategory provides a mock function with given fields: userId, category
-func (_m *PreferenceStore) DeleteCategory(userId string, category string) store.StoreChannel {
+func (_m *PreferenceStore) DeleteCategory(userId string, category string) *model.AppError {
 	ret := _m.Called(userId, category)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, string) store.StoreChannel); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, string) *model.AppError); ok {
 		r0 = rf(userId, category)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
