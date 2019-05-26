@@ -10,11 +10,12 @@ import (
 )
 
 func (a *App) GetPreferencesForUser(userId string) (model.Preferences, *model.AppError) {
-	if result, err := a.Srv.Store.Preference().GetAll(userId); err != nil {
+	preferences, err := a.Srv.Store.Preference().GetAll(userId)
+	if err != nil {
 		err.StatusCode = http.StatusBadRequest
 		return nil, err
 	}
-	return result, nil
+	return preferences, nil
 }
 
 func (a *App) GetPreferenceByCategoryForUser(userId string, category string) (model.Preferences, *model.AppError) {

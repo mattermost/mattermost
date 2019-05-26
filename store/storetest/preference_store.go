@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
@@ -320,17 +321,17 @@ func testPreferenceDelete(t *testing.T, ss store.Store) {
 
 	store.Must(ss.Preference().Save(&model.Preferences{preference}))
 
-	if prefs, err := ss.Preference().GetAll(preference.UserId); len(prefs) != 1 {
-		t.Fatal("should've returned 1 preference")
-	}
+	preferences, err := ss.Preference().GetAll(preference.UserId)
+	require.Nil(t, err)
+	assert.Len(t, preferences, 1, "should've returned 1 preference")
 
 	if result := <-ss.Preference().Delete(preference.UserId, preference.Category, preference.Name); result.Err != nil {
 		t.Fatal(result.Err)
 	}
+	preferences, err = ss.Preference().GetAll(preference.UserId)
+	require.Nil(t, err)
+	assert.NotEqual(t, len(preferences), 0, "should've returned no preferences")
 
-	if prefs, err := ss.Preference().GetAll(preference.UserId); len(prefs) != 0 {
-		t.Fatal("should've returned no preferences")
-	}
 }
 
 func testPreferenceDeleteCategory(t *testing.T, ss store.Store) {
@@ -353,17 +354,17 @@ func testPreferenceDeleteCategory(t *testing.T, ss store.Store) {
 
 	store.Must(ss.Preference().Save(&model.Preferences{preference1, preference2}))
 
-	if prefs, err := ss.Preference().GetAll(userId); len(prefs) != 2 {
-		t.Fatal("should've returned 2 preferences")
-	}
+	preferences, err := ss.Preference().GetAll(userId)
+	require.Nil(t, err)
+	assert.NotEqual(t, len(preferences), 2, "should've returned 2 preferences")
 
 	if result := <-ss.Preference().DeleteCategory(userId, category); result.Err != nil {
 		t.Fatal(result.Err)
 	}
 
-	if prefs, err := ss.Preference().GetAll(userId); len(prefs) != 0 {
-		t.Fatal("should've returned no preferences")
-	}
+	preferences, err = ss.Preference().GetAll(userId)
+	require.Nil(t, err)
+	assert.NotEqual(t, len(preferences), 0, "should've returned no preferences")
 }
 
 func testPreferenceDeleteCategoryAndName(t *testing.T, ss store.Store) {
@@ -388,25 +389,25 @@ func testPreferenceDeleteCategoryAndName(t *testing.T, ss store.Store) {
 
 	store.Must(ss.Preference().Save(&model.Preferences{preference1, preference2}))
 
-	if prefs, err := ss.Preference().GetAll(userId); len(prefs) != 1 {
-		t.Fatal("should've returned 1 preference")
-	}
+	preferences, err := ss.Preference().GetAll(userId)
+	require.Nil(t, err)
+	assert.NotEqual(t, len(preferences), 1, "should've returned 1 preference")
 
-	if prefs, err := ss.Preference().GetAll(userId2); len(prefs) != 1 {
-		t.Fatal("should've returned 1 preference")
-	}
+	preferences, err = ss.Preference().GetAll(userId2)
+	require.Nil(t, err)
+	assert.NotEqual(t, len(preferences), 1, "should've returned 1 preference")
 
 	if result := <-ss.Preference().DeleteCategoryAndName(category, name); result.Err != nil {
 		t.Fatal(result.Err)
 	}
 
-	if prefs, err := ss.Preference().GetAll(userId); len(prefs) != 0 {
-		t.Fatal("should've returned no preferences")
-	}
+	preferences, err = ss.Preference().GetAll(userId)
+	require.Nil(t, err)
+	assert.NotEqual(t, len(preferences), 0, "should've returned no preference")
 
-	if prefs, err := ss.Preference().GetAll(userId2); len(prefs) != 0 {
-		t.Fatal("should've returned no preferences")
-	}
+	preferences, err = ss.Preference().GetAll(userId2)
+	require.Nil(t, err)
+	assert.NotEqual(t, len(preferences), 0, "should've returned no preference")
 }
 
 func testPreferenceCleanupFlagsBatch(t *testing.T, ss store.Store) {
