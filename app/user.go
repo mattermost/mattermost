@@ -333,8 +333,18 @@ func (a *App) CreateOAuthUser(service string, userData io.Reader, teamId string)
 		return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.create.app_error", map[string]interface{}{"Service": service}, "", http.StatusInternalServerError)
 	}
 
-	suchan := a.Srv.Store.User().GetByAuth(user.AuthData, service)
-	euchan := a.Srv.Store.User().GetByEmail(user.Email)
+	suchan := make(chan store.StoreResult, 1)
+	euchan := make(chan store.StoreResult, 1)
+	go func() {
+		userByAuth, err := a.Srv.Store.User().GetByAuth(user.AuthData, service)
+		suchan <- store.StoreResult{Data: userByAuth, Err: err}
+		close(suchan)
+	}()
+	go func() {
+		userByEmail, err := a.Srv.Store.User().GetByEmail(user.Email)
+		euchan <- store.StoreResult{Data: userByEmail, Err: err}
+		close(euchan)
+	}()
 
 	found := true
 	count := 0
@@ -423,24 +433,20 @@ func (a *App) GetUserByUsername(username string) (*model.User, *model.AppError) 
 }
 
 func (a *App) GetUserByEmail(email string) (*model.User, *model.AppError) {
-	result := <-a.Srv.Store.User().GetByEmail(email)
-	if result.Err != nil {
-		if result.Err.Id == "store.sql_user.missing_account.const" {
-			result.Err.StatusCode = http.StatusNotFound
-			return nil, result.Err
+	user, err := a.Srv.Store.User().GetByEmail(email)
+	if err != nil {
+		if err.Id == "store.sql_user.missing_account.const" {
+			err.StatusCode = http.StatusNotFound
+			return nil, err
 		}
-		result.Err.StatusCode = http.StatusBadRequest
-		return nil, result.Err
+		err.StatusCode = http.StatusBadRequest
+		return nil, err
 	}
-	return result.Data.(*model.User), nil
+	return user, nil
 }
 
 func (a *App) GetUserByAuth(authData *string, authService string) (*model.User, *model.AppError) {
-	result := <-a.Srv.Store.User().GetByAuth(authData, authService)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.User), nil
+	return a.Srv.Store.User().GetByAuth(authData, authService)
 }
 
 func (a *App) GetUsers(options *model.UserGetOptions) ([]*model.User, *model.AppError) {
@@ -1628,8 +1634,7 @@ func (a *App) GetTotalUsersStats(viewRestrictions *model.ViewUsersRestrictions) 
 }
 
 func (a *App) VerifyUserEmail(userId, email string) *model.AppError {
-	err := (<-a.Srv.Store.User().VerifyEmail(userId, email)).Err
-
+	_, err := a.Srv.Store.User().VerifyEmail(userId, email)
 	if err != nil {
 		return err
 	}

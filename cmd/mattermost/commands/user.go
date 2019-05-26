@@ -886,8 +886,8 @@ func verifyUserCmdF(command *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to find user '" + args[i] + "'")
 			continue
 		}
-		if cresult := <-a.Srv.Store.User().VerifyEmail(user.Id, user.Email); cresult.Err != nil {
-			CommandPrintErrorln("Unable to verify '" + args[i] + "' email. Error: " + cresult.Err.Error())
+		if _, err := a.Srv.Store.User().VerifyEmail(user.Id, user.Email); err != nil {
+			CommandPrintErrorln("Unable to verify '" + args[i] + "' email. Error: " + err.Error())
 		}
 	}
 

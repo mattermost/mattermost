@@ -5,8 +5,6 @@ package commands
 
 import (
 	"testing"
-
-	"github.com/mattermost/mattermost-server/model"
 )
 
 func TestAssignRole(t *testing.T) {
@@ -15,10 +13,9 @@ func TestAssignRole(t *testing.T) {
 
 	th.CheckCommand(t, "roles", "system_admin", th.BasicUser.Email)
 
-	if result := <-th.App.Srv.Store.User().GetByEmail(th.BasicUser.Email); result.Err != nil {
-		t.Fatal(result.Err)
+	if user, err := th.App.Srv.Store.User().GetByEmail(th.BasicUser.Email); err != nil {
+		t.Fatal(err)
 	} else {
-		user := result.Data.(*model.User)
 		if user.Roles != "system_user system_admin" {
 			t.Fatal("Got wrong roles:", user.Roles)
 		}
@@ -26,10 +23,9 @@ func TestAssignRole(t *testing.T) {
 
 	th.CheckCommand(t, "roles", "member", th.BasicUser.Email)
 
-	if result := <-th.App.Srv.Store.User().GetByEmail(th.BasicUser.Email); result.Err != nil {
-		t.Fatal(result.Err)
+	if user, err := th.App.Srv.Store.User().GetByEmail(th.BasicUser.Email); err != nil {
+		t.Fatal(err)
 	} else {
-		user := result.Data.(*model.User)
 		if user.Roles != "system_user" {
 			t.Fatal("Got wrong roles:", user.Roles, user.Id)
 		}

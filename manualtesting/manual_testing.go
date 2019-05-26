@@ -99,7 +99,7 @@ func manualTest(c *web.Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		<-c.App.Srv.Store.User().VerifyEmail(user.Id, user.Email)
+		c.App.Srv.Store.User().VerifyEmail(user.Id, user.Email)
 		<-c.App.Srv.Store.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: user.Id}, *c.App.Config().TeamSettings.MaxUsersPerTeam)
 
 		userID = user.Id
