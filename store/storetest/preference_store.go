@@ -459,7 +459,7 @@ func testPreferenceCleanupFlagsBatch(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 	require.Equal(t, 2, count)
 
-	_, err := ss.Preference().CleanupFlagsBatch(10000)
+	_, err = ss.Preference().CleanupFlagsBatch(10000)
 	assert.Nil(t, err)
 
 	_, err = ss.Preference().Get(userId, category, preference1.Name)
