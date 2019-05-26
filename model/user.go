@@ -87,6 +87,11 @@ type User struct {
 	TermsOfServiceCreateAt int64     `db:"-" json:"terms_of_service_create_at,omitempty"`
 }
 
+type UserUpdate struct {
+	Old *User
+	New *User
+}
+
 type UserPatch struct {
 	Username    *string   `json:"username"`
 	Password    *string   `json:"password,omitempty"`

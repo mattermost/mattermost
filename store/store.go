@@ -245,7 +245,7 @@ type PostStore interface {
 
 type UserStore interface {
 	Save(user *model.User) StoreChannel
-	Update(user *model.User, allowRoleUpdate bool) StoreChannel
+	Update(user *model.User, allowRoleUpdate bool) (*model.UserUpdate, *model.AppError)
 	UpdateLastPictureUpdate(userId string) StoreChannel
 	ResetLastPictureUpdate(userId string) StoreChannel
 	UpdateUpdateAt(userId string) StoreChannel
