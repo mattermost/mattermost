@@ -196,7 +196,7 @@ func testPreferenceGetAll(t *testing.T, ss store.Store) {
 		t.Fatal("got the wrong number of preferences")
 	} else {
 		for i := 0; i < 3; i++ {
-			if result[i] != preferences[i] && result[i] != preferences[i] && result[i] != preferences[i] {
+			if result[i] != preferences[i] {
 				t.Fatal("got incorrect preferences")
 			}
 		}
