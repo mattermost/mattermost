@@ -11,7 +11,9 @@ import (
 const CHANNEL_SEARCH_DEFAULT_LIMIT = 50
 
 type ChannelSearch struct {
-	Term string `json:"term"`
+	Term                   string `json:"term"`
+	ExcludeDefaultChannels bool   `json:"exclude_default_channels"`
+	NotAssociatedToGroup   string `json:"not_associated_to_group"`
 }
 
 // ToJson convert a Channel to a json string
