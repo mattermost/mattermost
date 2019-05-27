@@ -342,11 +342,10 @@ func (a *App) newSession(appName string, user *model.User) (*model.Session, *mod
 	session.AddProp(model.SESSION_PROP_OS, "OAuth2")
 	session.AddProp(model.SESSION_PROP_BROWSER, "OAuth2")
 
-	result := <-a.Srv.Store.Session().Save(session)
-	if result.Err != nil {
+	session, err := a.Srv.Store.Session().Save(session)
+	if err != nil {
 		return nil, model.NewAppError("newSession", "api.oauth.get_access_token.internal_session.app_error", nil, "", http.StatusInternalServerError)
 	}
-	session = result.Data.(*model.Session)
 
 	a.AddSessionToCache(session)
 

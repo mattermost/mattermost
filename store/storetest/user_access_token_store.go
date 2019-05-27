@@ -5,6 +5,7 @@ package storetest
 
 import (
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
@@ -23,11 +24,16 @@ func testUserAccessTokenSaveGetDelete(t *testing.T, ss store.Store) {
 		Description: "testtoken",
 	}
 
-	s1 := model.Session{}
+	s1 := &model.Session{}
 	s1.UserId = uat.UserId
 	s1.Token = uat.Token
 
-	store.Must(ss.Session().Save(&s1))
+	s1, err := ss.Session().Save(s1)
+
+	if err != nil {
+		time.Sleep(time.Second)
+		panic(err)
+	}
 
 	if result := <-ss.UserAccessToken().Save(uat); result.Err != nil {
 		t.Fatal(result.Err)
@@ -73,11 +79,16 @@ func testUserAccessTokenSaveGetDelete(t *testing.T, ss store.Store) {
 		t.Fatal("should error - access token should be deleted")
 	}
 
-	s2 := model.Session{}
+	s2 := &model.Session{}
 	s2.UserId = uat.UserId
 	s2.Token = uat.Token
 
-	store.Must(ss.Session().Save(&s2))
+	s2, err = ss.Session().Save(s2)
+
+	if err != nil {
+		time.Sleep(time.Second)
+		panic(err)
+	}
 
 	if result := <-ss.UserAccessToken().Save(uat); result.Err != nil {
 		t.Fatal(result.Err)
@@ -103,11 +114,16 @@ func testUserAccessTokenDisableEnable(t *testing.T, ss store.Store) {
 		Description: "testtoken",
 	}
 
-	s1 := model.Session{}
+	s1 := &model.Session{}
 	s1.UserId = uat.UserId
 	s1.Token = uat.Token
 
-	store.Must(ss.Session().Save(&s1))
+	s1, err := ss.Session().Save(s1)
+
+	if err != nil {
+		time.Sleep(time.Second)
+		panic(err)
+	}
 
 	if result := <-ss.UserAccessToken().Save(uat); result.Err != nil {
 		t.Fatal(result.Err)
@@ -121,11 +137,16 @@ func testUserAccessTokenDisableEnable(t *testing.T, ss store.Store) {
 		t.Fatal("should error - session should be deleted")
 	}
 
-	s2 := model.Session{}
+	s2 := &model.Session{}
 	s2.UserId = uat.UserId
 	s2.Token = uat.Token
 
-	store.Must(ss.Session().Save(&s2))
+	s2, err = ss.Session().Save(s2)
+
+	if err != nil {
+		time.Sleep(time.Second)
+		panic(err)
+	}
 
 	if err := (<-ss.UserAccessToken().UpdateTokenEnable(uat.Id)).Err; err != nil {
 		t.Fatal(err)
@@ -145,11 +166,16 @@ func testUserAccessTokenSearch(t *testing.T, ss store.Store) {
 		Description: "testtoken",
 	}
 
-	s1 := model.Session{}
+	s1 := &model.Session{}
 	s1.UserId = uat.UserId
 	s1.Token = uat.Token
 
-	store.Must(ss.Session().Save(&s1))
+	s1, err := ss.Session().Save(s1)
+
+	if err != nil {
+		time.Sleep(time.Second)
+		panic(err)
+	}
 
 	if result := <-ss.UserAccessToken().Save(uat); result.Err != nil {
 		t.Fatal(result.Err)
