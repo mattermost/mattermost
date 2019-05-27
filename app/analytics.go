@@ -206,7 +206,7 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			close(commandChan)
 		}()
 
-		sessionChan := a.Srv.Store.Session().AnalyticsSessionCount()
+		sessionCount, sessionErr := a.Srv.Store.Session().AnalyticsSessionCount()
 
 		var fileChan store.StoreChannel
 		var hashtagChan store.StoreChannel
@@ -253,11 +253,10 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 		}
 		rows[4].Value = float64(r.Data.(int64))
 
-		r = <-sessionChan
-		if r.Err != nil {
-			return nil, r.Err
+		if sessionErr != nil {
+			return nil, sessionErr
 		}
-		rows[5].Value = float64(r.Data.(int64))
+		rows[5].Value = float64(sessionCount)
 
 		return rows, nil
 	}
