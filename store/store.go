@@ -129,7 +129,7 @@ type TeamStore interface {
 }
 
 type ChannelStore interface {
-	Save(channel *model.Channel, maxChannelsPerTeam int64) StoreChannel
+	Save(channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, *model.AppError)
 	CreateDirectChannel(userId string, otherUserId string) (*model.Channel, *model.AppError)
 	SaveDirectChannel(channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, *model.AppError)
 	Update(channel *model.Channel) (*model.Channel, *model.AppError)
@@ -428,13 +428,13 @@ type CommandWebhookStore interface {
 }
 
 type PreferenceStore interface {
-	Save(preferences *model.Preferences) StoreChannel
+	Save(preferences *model.Preferences) (int, *model.AppError)
 	GetCategory(userId string, category string) (model.Preferences, *model.AppError)
 	Get(userId string, category string, name string) (*model.Preference, *model.AppError)
 	GetAll(userId string) StoreChannel
 	Delete(userId, category, name string) StoreChannel
 	DeleteCategory(userId string, category string) *model.AppError
-	DeleteCategoryAndName(category string, name string) StoreChannel
+	DeleteCategoryAndName(category string, name string) *model.AppError
 	PermanentDeleteByUser(userId string) *model.AppError
 	IsFeatureEnabled(feature, userId string) StoreChannel
 	CleanupFlagsBatch(limit int64) (int64, *model.AppError)

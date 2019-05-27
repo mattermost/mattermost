@@ -69,15 +69,15 @@ func (_m *PreferenceStore) DeleteCategory(userId string, category string) *model
 }
 
 // DeleteCategoryAndName provides a mock function with given fields: category, name
-func (_m *PreferenceStore) DeleteCategoryAndName(category string, name string) store.StoreChannel {
+func (_m *PreferenceStore) DeleteCategoryAndName(category string, name string) *model.AppError {
 	ret := _m.Called(category, name)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, string) store.StoreChannel); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, string) *model.AppError); ok {
 		r0 = rf(category, name)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
@@ -183,17 +183,24 @@ func (_m *PreferenceStore) PermanentDeleteByUser(userId string) *model.AppError 
 }
 
 // Save provides a mock function with given fields: preferences
-func (_m *PreferenceStore) Save(preferences *model.Preferences) store.StoreChannel {
+func (_m *PreferenceStore) Save(preferences *model.Preferences) (int, *model.AppError) {
 	ret := _m.Called(preferences)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(*model.Preferences) store.StoreChannel); ok {
+	var r0 int
+	if rf, ok := ret.Get(0).(func(*model.Preferences) int); ok {
 		r0 = rf(preferences)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+		r0 = ret.Get(0).(int)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.Preferences) *model.AppError); ok {
+		r1 = rf(preferences)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
 		}
 	}
 
-	return r0
+	return r0, r1
 }

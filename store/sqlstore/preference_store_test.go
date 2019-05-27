@@ -9,6 +9,8 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/store/storetest"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestPreferenceStore(t *testing.T) {
@@ -50,7 +52,9 @@ func TestDeleteUnusedFeatures(t *testing.T) {
 			},
 		}
 
-		store.Must(ss.Preference().Save(&features))
+		count, err := ss.Preference().Save(&features)
+		require.Nil(t, err)
+		require.Equal(t, 4, count)
 
 		ss.Preference().(*SqlPreferenceStore).DeleteUnusedFeatures()
 

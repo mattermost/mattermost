@@ -221,12 +221,10 @@ func (a *App) RenameChannel(channel *model.Channel, newChannelName string, newDi
 }
 
 func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Channel, *model.AppError) {
-	result := <-a.Srv.Store.Channel().Save(channel, *a.Config().TeamSettings.MaxChannelsPerTeam)
-	if result.Err != nil {
-		return nil, result.Err
+	sc, err := a.Srv.Store.Channel().Save(channel, *a.Config().TeamSettings.MaxChannelsPerTeam)
+	if err != nil {
+		return nil, err
 	}
-
-	sc := result.Data.(*model.Channel)
 
 	if addMember {
 		user, err := a.Srv.Store.User().Get(channel.CreatorId)
@@ -456,14 +454,13 @@ func (a *App) createGroupChannel(userIds []string, creatorId string) (*model.Cha
 		Type:        model.CHANNEL_GROUP,
 	}
 
-	result = <-a.Srv.Store.Channel().Save(group, *a.Config().TeamSettings.MaxChannelsPerTeam)
-	if result.Err != nil {
-		if result.Err.Id == store.CHANNEL_EXISTS_ERROR {
-			return result.Data.(*model.Channel), result.Err
+	channel, err := a.Srv.Store.Channel().Save(group, *a.Config().TeamSettings.MaxChannelsPerTeam)
+	if err != nil {
+		if err.Id == store.CHANNEL_EXISTS_ERROR {
+			return channel, err
 		}
-		return nil, result.Err
+		return nil, err
 	}
-	channel := result.Data.(*model.Channel)
 
 	for _, user := range users {
 		cm := &model.ChannelMember{
@@ -1059,8 +1056,8 @@ func (a *App) AddDirectChannels(teamId string, user *model.User) *model.AppError
 		}
 	}
 
-	if result := <-a.Srv.Store.Preference().Save(&preferences); result.Err != nil {
-		return model.NewAppError("AddDirectChannels", "api.user.add_direct_channels_and_forget.failed.error", map[string]interface{}{"UserId": user.Id, "TeamId": teamId, "Error": result.Err.Error()}, "", http.StatusInternalServerError)
+	if _, err := a.Srv.Store.Preference().Save(&preferences); err != nil {
+		return model.NewAppError("AddDirectChannels", "api.user.add_direct_channels_and_forget.failed.error", map[string]interface{}{"UserId": user.Id, "TeamId": teamId, "Error": err.Error()}, "", http.StatusInternalServerError)
 	}
 
 	return nil
