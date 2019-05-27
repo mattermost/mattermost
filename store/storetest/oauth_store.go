@@ -412,7 +412,6 @@ func testOAuthStoreDeleteApp(t *testing.T, ss store.Store) {
 	s1.IsOAuth = true
 
 	s1, err := ss.Session().Save(s1)
-
 	require.Nil(t, err)
 
 	ad1 := model.AccessData{}

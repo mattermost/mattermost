@@ -5,10 +5,10 @@ package storetest
 
 import (
 	"testing"
-	"time"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
+	"github.com/stretchr/testify/require"
 )
 
 func TestUserAccessTokenStore(t *testing.T, ss store.Store) {
@@ -29,11 +29,7 @@ func testUserAccessTokenSaveGetDelete(t *testing.T, ss store.Store) {
 	s1.Token = uat.Token
 
 	s1, err := ss.Session().Save(s1)
-
-	if err != nil {
-		time.Sleep(time.Second)
-		panic(err)
-	}
+	require.Nil(t, err)
 
 	if result := <-ss.UserAccessToken().Save(uat); result.Err != nil {
 		t.Fatal(result.Err)
@@ -84,11 +80,7 @@ func testUserAccessTokenSaveGetDelete(t *testing.T, ss store.Store) {
 	s2.Token = uat.Token
 
 	s2, err = ss.Session().Save(s2)
-
-	if err != nil {
-		time.Sleep(time.Second)
-		panic(err)
-	}
+	require.Nil(t, err)
 
 	if result := <-ss.UserAccessToken().Save(uat); result.Err != nil {
 		t.Fatal(result.Err)
@@ -119,11 +111,7 @@ func testUserAccessTokenDisableEnable(t *testing.T, ss store.Store) {
 	s1.Token = uat.Token
 
 	s1, err := ss.Session().Save(s1)
-
-	if err != nil {
-		time.Sleep(time.Second)
-		panic(err)
-	}
+	require.Nil(t, err)
 
 	if result := <-ss.UserAccessToken().Save(uat); result.Err != nil {
 		t.Fatal(result.Err)
@@ -142,11 +130,7 @@ func testUserAccessTokenDisableEnable(t *testing.T, ss store.Store) {
 	s2.Token = uat.Token
 
 	s2, err = ss.Session().Save(s2)
-
-	if err != nil {
-		time.Sleep(time.Second)
-		panic(err)
-	}
+	require.Nil(t, err)
 
 	if err := (<-ss.UserAccessToken().UpdateTokenEnable(uat.Id)).Err; err != nil {
 		t.Fatal(err)
@@ -171,11 +155,7 @@ func testUserAccessTokenSearch(t *testing.T, ss store.Store) {
 	s1.Token = uat.Token
 
 	s1, err := ss.Session().Save(s1)
-
-	if err != nil {
-		time.Sleep(time.Second)
-		panic(err)
-	}
+	require.Nil(t, err)
 
 	if result := <-ss.UserAccessToken().Save(uat); result.Err != nil {
 		t.Fatal(result.Err)

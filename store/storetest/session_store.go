@@ -44,14 +44,12 @@ func testSessionGet(t *testing.T, ss store.Store) {
 	s1.UserId = model.NewId()
 
 	s1, err := ss.Session().Save(s1)
-
 	require.Nil(t, err)
 
 	s2 := &model.Session{}
 	s2.UserId = s1.UserId
 
 	s2, err = ss.Session().Save(s2)
-
 	require.Nil(t, err)
 
 	s3 := &model.Session{}
@@ -59,7 +57,6 @@ func testSessionGet(t *testing.T, ss store.Store) {
 	s3.ExpiresAt = 1
 
 	s3, err = ss.Session().Save(s3)
-
 	require.Nil(t, err)
 
 	if rs1 := (<-ss.Session().Get(s1.Id)); rs1.Err != nil {
@@ -85,7 +82,6 @@ func testSessionGetWithDeviceId(t *testing.T, ss store.Store) {
 	s1.ExpiresAt = model.GetMillis() + 10000
 
 	s1, err := ss.Session().Save(s1)
-
 	require.Nil(t, err)
 
 	s2 := &model.Session{}
@@ -94,7 +90,6 @@ func testSessionGetWithDeviceId(t *testing.T, ss store.Store) {
 	s2.ExpiresAt = model.GetMillis() + 10000
 
 	s2, err = ss.Session().Save(s2)
-
 	require.Nil(t, err)
 
 	s3 := &model.Session{}
@@ -103,7 +98,6 @@ func testSessionGetWithDeviceId(t *testing.T, ss store.Store) {
 	s3.DeviceId = model.NewId()
 
 	s3, err = ss.Session().Save(s3)
-
 	require.Nil(t, err)
 
 	if rs1 := (<-ss.Session().GetSessionsWithActiveDeviceIds(s1.UserId)); rs1.Err != nil {
@@ -120,7 +114,6 @@ func testSessionRemove(t *testing.T, ss store.Store) {
 	s1.UserId = model.NewId()
 
 	s1, err := ss.Session().Save(s1)
-
 	require.Nil(t, err)
 
 	if rs1 := (<-ss.Session().Get(s1.Id)); rs1.Err != nil {
@@ -143,7 +136,6 @@ func testSessionRemoveAll(t *testing.T, ss store.Store) {
 	s1.UserId = model.NewId()
 
 	s1, err := ss.Session().Save(s1)
-
 	require.Nil(t, err)
 
 	if rs1 := (<-ss.Session().Get(s1.Id)); rs1.Err != nil {
@@ -166,7 +158,6 @@ func testSessionRemoveByUser(t *testing.T, ss store.Store) {
 	s1.UserId = model.NewId()
 
 	s1, err := ss.Session().Save(s1)
-
 	require.Nil(t, err)
 
 	if rs1 := (<-ss.Session().Get(s1.Id)); rs1.Err != nil {
@@ -189,7 +180,6 @@ func testSessionRemoveToken(t *testing.T, ss store.Store) {
 	s1.UserId = model.NewId()
 
 	s1, err := ss.Session().Save(s1)
-
 	require.Nil(t, err)
 
 	if rs1 := (<-ss.Session().Get(s1.Id)); rs1.Err != nil {
@@ -220,7 +210,6 @@ func testSessionUpdateDeviceId(t *testing.T, ss store.Store) {
 	s1.UserId = model.NewId()
 
 	s1, err := ss.Session().Save(s1)
-
 	require.Nil(t, err)
 
 	if rs1 := (<-ss.Session().UpdateDeviceId(s1.Id, model.PUSH_NOTIFY_APPLE+":1234567890", s1.ExpiresAt)); rs1.Err != nil {
@@ -231,7 +220,6 @@ func testSessionUpdateDeviceId(t *testing.T, ss store.Store) {
 	s2.UserId = model.NewId()
 
 	s2, err = ss.Session().Save(s2)
-
 	require.Nil(t, err)
 
 	if rs2 := (<-ss.Session().UpdateDeviceId(s2.Id, model.PUSH_NOTIFY_APPLE+":1234567890", s1.ExpiresAt)); rs2.Err != nil {
@@ -244,7 +232,6 @@ func testSessionUpdateDeviceId2(t *testing.T, ss store.Store) {
 	s1.UserId = model.NewId()
 
 	s1, err := ss.Session().Save(s1)
-
 	require.Nil(t, err)
 
 	if rs1 := (<-ss.Session().UpdateDeviceId(s1.Id, model.PUSH_NOTIFY_APPLE_REACT_NATIVE+":1234567890", s1.ExpiresAt)); rs1.Err != nil {
@@ -255,7 +242,6 @@ func testSessionUpdateDeviceId2(t *testing.T, ss store.Store) {
 	s2.UserId = model.NewId()
 
 	s2, err = ss.Session().Save(s2)
-
 	require.Nil(t, err)
 
 	if rs2 := (<-ss.Session().UpdateDeviceId(s2.Id, model.PUSH_NOTIFY_APPLE_REACT_NATIVE+":1234567890", s1.ExpiresAt)); rs2.Err != nil {
@@ -268,7 +254,6 @@ func testSessionStoreUpdateLastActivityAt(t *testing.T, ss store.Store) {
 	s1.UserId = model.NewId()
 
 	s1, err := ss.Session().Save(s1)
-
 	require.Nil(t, err)
 
 	if err := (<-ss.Session().UpdateLastActivityAt(s1.Id, 1234567890)).Err; err != nil {
@@ -291,7 +276,6 @@ func testSessionCount(t *testing.T, ss store.Store) {
 	s1.ExpiresAt = model.GetMillis() + 100000
 
 	s1, err := ss.Session().Save(s1)
-
 	require.Nil(t, err)
 
 	if r1 := <-ss.Session().AnalyticsSessionCount(); r1.Err != nil {
@@ -311,7 +295,6 @@ func testSessionCleanup(t *testing.T, ss store.Store) {
 	s1.ExpiresAt = 0 // never expires
 
 	s1, err := ss.Session().Save(s1)
-
 	require.Nil(t, err)
 
 	s2 := &model.Session{}
@@ -319,7 +302,6 @@ func testSessionCleanup(t *testing.T, ss store.Store) {
 	s2.ExpiresAt = now + 1000000 // expires in the future
 
 	s2, err = ss.Session().Save(s2)
-
 	require.Nil(t, err)
 
 	s3 := &model.Session{}
@@ -327,7 +309,6 @@ func testSessionCleanup(t *testing.T, ss store.Store) {
 	s3.ExpiresAt = 1 // expired
 
 	s3, err = ss.Session().Save(s3)
-
 	require.Nil(t, err)
 
 	s4 := &model.Session{}
@@ -335,7 +316,6 @@ func testSessionCleanup(t *testing.T, ss store.Store) {
 	s4.ExpiresAt = 2 // expired
 
 	s4, err = ss.Session().Save(s4)
-
 	require.Nil(t, err)
 
 	ss.Session().Cleanup(now, 1)
