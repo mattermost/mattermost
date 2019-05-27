@@ -378,6 +378,11 @@ func SearchParameterFromJson(data io.Reader) *SearchParameter {
 		return nil
 	}
 
+	if searchParam.Terms != nil {
+		terms := strings.TrimSpace(*searchParam.Terms)
+		searchParam.Terms = &terms
+	}
+
 	return &searchParam
 }
 

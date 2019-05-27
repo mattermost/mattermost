@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"io"
+	"strings"
 )
 
 const USER_SEARCH_MAX_LIMIT = 1000
@@ -39,6 +40,8 @@ func UserSearchFromJson(data io.Reader) *UserSearch {
 	if us.Limit == 0 {
 		us.Limit = USER_SEARCH_DEFAULT_LIMIT
 	}
+
+	us.Term = strings.TrimSpace(us.Term)
 
 	return us
 }

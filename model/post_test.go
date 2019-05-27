@@ -530,3 +530,15 @@ func BenchmarkRewriteImageURLs(b *testing.B) {
 		})
 	}
 }
+
+func TestSearchParameterFromJson(t *testing.T) {
+	terms := " a string "
+	searchParameter := SearchParameter{
+		Terms: &terms,
+	}
+	json := searchParameter.SearchParameterToJson()
+	result := SearchParameterFromJson(strings.NewReader(json))
+	if !strings.EqualFold(*result.Terms, "a string") {
+		t.Fatal("Term should not have leading or trailing spaces")
+	}
+}

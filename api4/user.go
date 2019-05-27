@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/mattermost/mattermost-server/app"
@@ -709,7 +710,7 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 	channelId := r.URL.Query().Get("in_channel")
 	teamId := r.URL.Query().Get("in_team")
-	name := r.URL.Query().Get("name")
+	name := strings.TrimSpace(r.URL.Query().Get("name"))
 	limitStr := r.URL.Query().Get("limit")
 	limit, _ := strconv.Atoi(limitStr)
 	if limitStr == "" {

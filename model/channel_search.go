@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"io"
+	"strings"
 )
 
 const CHANNEL_SEARCH_DEFAULT_LIMIT = 50
@@ -26,5 +27,8 @@ func (c *ChannelSearch) ToJson() string {
 func ChannelSearchFromJson(data io.Reader) *ChannelSearch {
 	var cs *ChannelSearch
 	json.NewDecoder(data).Decode(&cs)
+
+	cs.Term = strings.TrimSpace(cs.Term)
+
 	return cs
 }

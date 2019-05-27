@@ -16,4 +16,12 @@ func TestChannelSearchJson(t *testing.T) {
 	if channelSearch.Term != rchannelSearch.Term {
 		t.Fatal("Terms do not match")
 	}
+
+	channelSearchWithSpaces := ChannelSearch{Term: " a string "}
+	jsonWithSpaces := channelSearchWithSpaces.ToJson()
+	rchannelSearchWithSpaces := ChannelSearchFromJson(strings.NewReader(jsonWithSpaces))
+
+	if !strings.EqualFold(rchannelSearchWithSpaces.Term, "a string") {
+		t.Fatal("Terms should not have leading or trailing spaces")
+	}
 }

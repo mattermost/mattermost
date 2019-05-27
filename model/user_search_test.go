@@ -5,6 +5,7 @@ package model
 
 import (
 	"bytes"
+	"strings"
 	"testing"
 )
 
@@ -15,5 +16,13 @@ func TestUserSearchJson(t *testing.T) {
 
 	if userSearch.Term != ruserSearch.Term {
 		t.Fatal("Terms do not match")
+	}
+
+	userSearchWithSpaces := UserSearch{Term: " a string ", TeamId: NewId()}
+	jsonWithSpaces := userSearchWithSpaces.ToJson()
+	ruserSearchWithSpaces := UserSearchFromJson(bytes.NewReader(jsonWithSpaces))
+
+	if !strings.EqualFold(ruserSearchWithSpaces.Term, "a string") {
+		t.Fatal("Term should not have leading or trailing spaces")
 	}
 }
