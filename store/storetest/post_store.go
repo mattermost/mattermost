@@ -1389,7 +1389,9 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, ss store.Store, s SqlSupp
 		},
 	}
 
-	store.Must(ss.Preference().Save(&preferences))
+	count, err := ss.Preference().Save(&preferences)
+	require.Nil(t, err)
+	require.Equal(t, 1, count)
 
 	r2 := (<-ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 2)).Data.(*model.PostList)
 
@@ -1406,7 +1408,9 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, ss store.Store, s SqlSupp
 		},
 	}
 
-	store.Must(ss.Preference().Save(&preferences))
+	count, err = ss.Preference().Save(&preferences)
+	require.Nil(t, err)
+	require.Equal(t, 1, count)
 
 	r3 := (<-ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 1)).Data.(*model.PostList)
 
@@ -1441,7 +1445,9 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, ss store.Store, s SqlSupp
 		},
 	}
 
-	store.Must(ss.Preference().Save(&preferences))
+	count, err = ss.Preference().Save(&preferences)
+	require.Nil(t, err)
+	require.Equal(t, 1, count)
 
 	r4 = (<-ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 2)).Data.(*model.PostList)
 
@@ -1457,7 +1463,9 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, ss store.Store, s SqlSupp
 			Value:    "true",
 		},
 	}
-	store.Must(ss.Preference().Save(&preferences))
+	count, err = ss.Preference().Save(&preferences)
+	require.Nil(t, err)
+	require.Equal(t, 1, count)
 
 	r4 = (<-ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 2)).Data.(*model.PostList)
 
@@ -1479,7 +1487,9 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, ss store.Store, s SqlSupp
 			Value:    "true",
 		},
 	}
-	store.Must(ss.Preference().Save(&preferences))
+	count, err = ss.Preference().Save(&preferences)
+	require.Nil(t, err)
+	require.Equal(t, 1, count)
 
 	r4 = (<-ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 10)).Data.(*model.PostList)
 
@@ -1529,7 +1539,9 @@ func testPostStoreGetFlaggedPosts(t *testing.T, ss store.Store) {
 		},
 	}
 
-	store.Must(ss.Preference().Save(&preferences))
+	count, err := ss.Preference().Save(&preferences)
+	require.Nil(t, err)
+	require.Equal(t, 1, count)
 
 	r2 := (<-ss.Post().GetFlaggedPosts(o1.UserId, 0, 2)).Data.(*model.PostList)
 
@@ -1546,7 +1558,9 @@ func testPostStoreGetFlaggedPosts(t *testing.T, ss store.Store) {
 		},
 	}
 
-	store.Must(ss.Preference().Save(&preferences))
+	count, err = ss.Preference().Save(&preferences)
+	require.Nil(t, err)
+	require.Equal(t, 1, count)
 
 	r3 := (<-ss.Post().GetFlaggedPosts(o1.UserId, 0, 1)).Data.(*model.PostList)
 
@@ -1581,7 +1595,9 @@ func testPostStoreGetFlaggedPosts(t *testing.T, ss store.Store) {
 		},
 	}
 
-	store.Must(ss.Preference().Save(&preferences))
+	count, err = ss.Preference().Save(&preferences)
+	require.Nil(t, err)
+	require.Equal(t, 1, count)
 
 	r4 = (<-ss.Post().GetFlaggedPosts(o1.UserId, 0, 2)).Data.(*model.PostList)
 
@@ -1634,7 +1650,9 @@ func testPostStoreGetFlaggedPostsForChannel(t *testing.T, ss store.Store) {
 		Value:    "true",
 	}
 
-	store.Must(ss.Preference().Save(&model.Preferences{preference}))
+	count, err := ss.Preference().Save(&model.Preferences{preference})
+	require.Nil(t, err)
+	require.Equal(t, 1, count)
 
 	r = (<-ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 0, 10)).Data.(*model.PostList)
 
@@ -1643,10 +1661,14 @@ func testPostStoreGetFlaggedPostsForChannel(t *testing.T, ss store.Store) {
 	}
 
 	preference.Name = o2.Id
-	store.Must(ss.Preference().Save(&model.Preferences{preference}))
+	count, err = ss.Preference().Save(&model.Preferences{preference})
+	require.Nil(t, err)
+	require.Equal(t, 1, count)
 
 	preference.Name = o3.Id
-	store.Must(ss.Preference().Save(&model.Preferences{preference}))
+	count, err = ss.Preference().Save(&model.Preferences{preference})
+	require.Nil(t, err)
+	require.Equal(t, 1, count)
 
 	r = (<-ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 0, 1)).Data.(*model.PostList)
 
@@ -1673,7 +1695,9 @@ func testPostStoreGetFlaggedPostsForChannel(t *testing.T, ss store.Store) {
 	}
 
 	preference.Name = o4.Id
-	store.Must(ss.Preference().Save(&model.Preferences{preference}))
+	count, err = ss.Preference().Save(&model.Preferences{preference})
+	require.Nil(t, err)
+	require.Equal(t, 1, count)
 
 	r = (<-ss.Post().GetFlaggedPostsForChannel(o1.UserId, o4.ChannelId, 0, 10)).Data.(*model.PostList)
 

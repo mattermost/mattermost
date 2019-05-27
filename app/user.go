@@ -310,8 +310,8 @@ func (a *App) createUser(user *model.User) (*model.User, *model.AppError) {
 	}
 
 	pref := model.Preference{UserId: ruser.Id, Category: model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, Name: ruser.Id, Value: "0"}
-	if presult := <-a.Srv.Store.Preference().Save(&model.Preferences{pref}); presult.Err != nil {
-		mlog.Error(fmt.Sprintf("Encountered error saving tutorial preference, err=%v", presult.Err.Message))
+	if _, err := a.Srv.Store.Preference().Save(&model.Preferences{pref}); err != nil {
+		mlog.Error(fmt.Sprintf("Encountered error saving tutorial preference, err=%v", err.Message))
 	}
 
 	ruser.Sanitize(map[string]bool{})
