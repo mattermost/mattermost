@@ -17,6 +17,11 @@ func TestChannelGroupEnable(t *testing.T) {
 	// create public channel
 	channel := th.CreatePublicChannel()
 
+	// try to enable, should fail it is private
+	require.Error(t, th.RunCommand(t, "group", "channel", "enable", th.BasicTeam.Name+":"+channel.Name))
+
+	channel = th.CreatePrivateChannel()
+
 	// try to enable, should fail because channel has no groups
 	require.Error(t, th.RunCommand(t, "group", "channel", "enable", th.BasicTeam.Name+":"+channel.Name))
 
