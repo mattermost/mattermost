@@ -28,8 +28,8 @@ func testEmojiSaveDelete(t *testing.T, ss store.Store) {
 		Name:      model.NewId(),
 	}
 
-	if result := <-ss.Emoji().Save(emoji1); result.Err != nil {
-		t.Fatal(result.Err)
+	if _, err := ss.Emoji().Save(emoji1); err != nil {
+		t.Fatal(err)
 	}
 
 	if len(emoji1.Id) != 26 {
@@ -40,7 +40,7 @@ func testEmojiSaveDelete(t *testing.T, ss store.Store) {
 		CreatorId: model.NewId(),
 		Name:      emoji1.Name,
 	}
-	if result := <-ss.Emoji().Save(&emoji2); result.Err == nil {
+	if _, err := ss.Emoji().Save(&emoji2); err == nil {
 		t.Fatal("shouldn't be able to save emoji with duplicate name")
 	}
 
@@ -48,8 +48,8 @@ func testEmojiSaveDelete(t *testing.T, ss store.Store) {
 		t.Fatal(result.Err)
 	}
 
-	if result := <-ss.Emoji().Save(&emoji2); result.Err != nil {
-		t.Fatal("should be able to save emoji with duplicate name now that original has been deleted", result.Err)
+	if _, err := ss.Emoji().Save(&emoji2); err != nil {
+		t.Fatal("should be able to save emoji with duplicate name now that original has been deleted", err)
 	}
 
 	if result := <-ss.Emoji().Delete(emoji2.Id, time.Now().Unix()+1); result.Err != nil {
@@ -74,7 +74,11 @@ func testEmojiGet(t *testing.T, ss store.Store) {
 	}
 
 	for i, emoji := range emojis {
-		emojis[i] = *store.Must(ss.Emoji().Save(&emoji)).(*model.Emoji)
+		data, err := ss.Emoji().Save(&emoji)
+		if err != nil {
+			t.Fatal(err)
+		}
+		emojis[i] = *data
 	}
 	defer func() {
 		for _, emoji := range emojis {
@@ -118,7 +122,11 @@ func testEmojiGetByName(t *testing.T, ss store.Store) {
 	}
 
 	for i, emoji := range emojis {
-		emojis[i] = *store.Must(ss.Emoji().Save(&emoji)).(*model.Emoji)
+		data, err := ss.Emoji().Save(&emoji)
+		if err != nil {
+			t.Fatal(err)
+		}
+		emojis[i] = *data
 	}
 	defer func() {
 		for _, emoji := range emojis {
@@ -150,7 +158,11 @@ func testEmojiGetMultipleByName(t *testing.T, ss store.Store) {
 	}
 
 	for i, emoji := range emojis {
-		emojis[i] = *store.Must(ss.Emoji().Save(&emoji)).(*model.Emoji)
+		data, err := ss.Emoji().Save(&emoji)
+		if err != nil {
+			t.Fatal(err)
+		}
+		emojis[i] = *data
 	}
 	defer func() {
 		for _, emoji := range emojis {
@@ -208,7 +220,11 @@ func testEmojiGetList(t *testing.T, ss store.Store) {
 	}
 
 	for i, emoji := range emojis {
-		emojis[i] = *store.Must(ss.Emoji().Save(&emoji)).(*model.Emoji)
+		data, err := ss.Emoji().Save(&emoji)
+		if err != nil {
+			t.Fatal(err)
+		}
+		emojis[i] = *data
 	}
 	defer func() {
 		for _, emoji := range emojis {
@@ -273,7 +289,11 @@ func testEmojiSearch(t *testing.T, ss store.Store) {
 	}
 
 	for i, emoji := range emojis {
-		emojis[i] = *store.Must(ss.Emoji().Save(&emoji)).(*model.Emoji)
+		data, err := ss.Emoji().Save(&emoji)
+		if err != nil {
+			t.Fatal(err)
+		}
+		emojis[i] = *data
 	}
 	defer func() {
 		for _, emoji := range emojis {
