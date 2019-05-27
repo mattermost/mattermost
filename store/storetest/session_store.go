@@ -52,10 +52,10 @@ func testSessionGet(t *testing.T, ss store.Store) {
 	s3.ExpiresAt = 1
 	store.Must(ss.Session().Save(&s3))
 
-	if rs1 := (<-ss.Session().Get(s1.Id)); rs1.Err != nil {
-		t.Fatal(rs1.Err)
+	if session, err := ss.Session().Get(s1.Id); err != nil {
+		t.Fatal(err)
 	} else {
-		if rs1.Data.(*model.Session).Id != s1.Id {
+		if session.Id != s1.Id {
 			t.Fatal("should match")
 		}
 	}
@@ -101,17 +101,17 @@ func testSessionRemove(t *testing.T, ss store.Store) {
 	s1.UserId = model.NewId()
 	store.Must(ss.Session().Save(&s1))
 
-	if rs1 := (<-ss.Session().Get(s1.Id)); rs1.Err != nil {
-		t.Fatal(rs1.Err)
+	if session, err := ss.Session().Get(s1.Id); err != nil {
+		t.Fatal(err)
 	} else {
-		if rs1.Data.(*model.Session).Id != s1.Id {
+		if session.Id != s1.Id {
 			t.Fatal("should match")
 		}
 	}
 
 	store.Must(ss.Session().Remove(s1.Id))
 
-	if rs2 := (<-ss.Session().Get(s1.Id)); rs2.Err == nil {
+	if _, err := ss.Session().Get(s1.Id); err == nil {
 		t.Fatal("should have been removed")
 	}
 }
@@ -121,17 +121,17 @@ func testSessionRemoveAll(t *testing.T, ss store.Store) {
 	s1.UserId = model.NewId()
 	store.Must(ss.Session().Save(&s1))
 
-	if rs1 := (<-ss.Session().Get(s1.Id)); rs1.Err != nil {
-		t.Fatal(rs1.Err)
+	if session, err := ss.Session().Get(s1.Id); err != nil {
+		t.Fatal(err)
 	} else {
-		if rs1.Data.(*model.Session).Id != s1.Id {
+		if session.Id != s1.Id {
 			t.Fatal("should match")
 		}
 	}
 
 	store.Must(ss.Session().RemoveAllSessions())
 
-	if rs2 := (<-ss.Session().Get(s1.Id)); rs2.Err == nil {
+	if _, err := ss.Session().Get(s1.Id); err == nil {
 		t.Fatal("should have been removed")
 	}
 }
@@ -141,17 +141,17 @@ func testSessionRemoveByUser(t *testing.T, ss store.Store) {
 	s1.UserId = model.NewId()
 	store.Must(ss.Session().Save(&s1))
 
-	if rs1 := (<-ss.Session().Get(s1.Id)); rs1.Err != nil {
-		t.Fatal(rs1.Err)
+	if session, err := ss.Session().Get(s1.Id); err != nil {
+		t.Fatal(err)
 	} else {
-		if rs1.Data.(*model.Session).Id != s1.Id {
+		if session.Id != s1.Id {
 			t.Fatal("should match")
 		}
 	}
 
 	store.Must(ss.Session().PermanentDeleteSessionsByUser(s1.UserId))
 
-	if rs2 := (<-ss.Session().Get(s1.Id)); rs2.Err == nil {
+	if _, err := ss.Session().Get(s1.Id); err == nil {
 		t.Fatal("should have been removed")
 	}
 }
@@ -161,17 +161,17 @@ func testSessionRemoveToken(t *testing.T, ss store.Store) {
 	s1.UserId = model.NewId()
 	store.Must(ss.Session().Save(&s1))
 
-	if rs1 := (<-ss.Session().Get(s1.Id)); rs1.Err != nil {
-		t.Fatal(rs1.Err)
+	if session, err := ss.Session().Get(s1.Id); err != nil {
+		t.Fatal(err)
 	} else {
-		if rs1.Data.(*model.Session).Id != s1.Id {
+		if session.Id != s1.Id {
 			t.Fatal("should match")
 		}
 	}
 
 	store.Must(ss.Session().Remove(s1.Token))
 
-	if rs2 := (<-ss.Session().Get(s1.Id)); rs2.Err == nil {
+	if _, err := ss.Session().Get(s1.Id); err == nil {
 		t.Fatal("should have been removed")
 	}
 
@@ -229,10 +229,10 @@ func testSessionStoreUpdateLastActivityAt(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	if r1 := <-ss.Session().Get(s1.Id); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if session, err := ss.Session().Get(s1.Id); err != nil {
+		t.Fatal(err)
 	} else {
-		if r1.Data.(*model.Session).LastActivityAt != 1234567890 {
+		if session.LastActivityAt != 1234567890 {
 			t.Fatal("LastActivityAt not updated correctly")
 		}
 	}
@@ -279,16 +279,16 @@ func testSessionCleanup(t *testing.T, ss store.Store) {
 
 	ss.Session().Cleanup(now, 1)
 
-	err := (<-ss.Session().Get(s1.Id)).Err
+	_, err := ss.Session().Get(s1.Id)
 	assert.Nil(t, err)
 
-	err = (<-ss.Session().Get(s2.Id)).Err
+	_, err = ss.Session().Get(s2.Id)
 	assert.Nil(t, err)
 
-	err = (<-ss.Session().Get(s3.Id)).Err
+	_, err = ss.Session().Get(s3.Id)
 	assert.NotNil(t, err)
 
-	err = (<-ss.Session().Get(s4.Id)).Err
+	_, err = ss.Session().Get(s4.Id)
 	assert.NotNil(t, err)
 
 	store.Must(ss.Session().Remove(s1.Id))
