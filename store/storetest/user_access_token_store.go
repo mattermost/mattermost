@@ -71,11 +71,11 @@ func testUserAccessTokenSaveGetDelete(t *testing.T, ss store.Store) {
 		t.Fatal(result.Err)
 	}
 
-	if err := (<-ss.Session().Get(s1.Token)).Err; err == nil {
+	if err = (<-ss.Session().Get(s1.Token)).Err; err == nil {
 		t.Fatal("should error - session should be deleted")
 	}
 
-	if err := (<-ss.UserAccessToken().GetByToken(s1.Token)).Err; err == nil {
+	if err = (<-ss.UserAccessToken().GetByToken(s1.Token)).Err; err == nil {
 		t.Fatal("should error - access token should be deleted")
 	}
 
@@ -129,11 +129,11 @@ func testUserAccessTokenDisableEnable(t *testing.T, ss store.Store) {
 		t.Fatal(result.Err)
 	}
 
-	if err := (<-ss.UserAccessToken().UpdateTokenDisable(uat.Id)).Err; err != nil {
+	if err = (<-ss.UserAccessToken().UpdateTokenDisable(uat.Id)).Err; err != nil {
 		t.Fatal(err)
 	}
 
-	if err := (<-ss.Session().Get(s1.Token)).Err; err == nil {
+	if err = (<-ss.Session().Get(s1.Token)).Err; err == nil {
 		t.Fatal("should error - session should be deleted")
 	}
 
