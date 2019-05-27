@@ -15,7 +15,6 @@ func (a *App) CreateSession(session *model.Session) (*model.Session, *model.AppE
 	session.Token = ""
 
 	session, err := a.Srv.Store.Session().Save(session)
-
 	if err != nil {
 		return nil, err
 	}

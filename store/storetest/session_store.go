@@ -5,12 +5,12 @@ package storetest
 
 import (
 	"testing"
-	"time"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSessionStore(t *testing.T, ss store.Store) {
@@ -45,20 +45,14 @@ func testSessionGet(t *testing.T, ss store.Store) {
 
 	s1, err := ss.Session().Save(s1)
 
-	if err != nil {
-		time.Sleep(time.Second)
-		panic(err)
-	}
+	require.Nil(t, err)
 
 	s2 := &model.Session{}
 	s2.UserId = s1.UserId
 
 	s2, err = ss.Session().Save(s2)
 
-	if err != nil {
-		time.Sleep(time.Second)
-		panic(err)
-	}
+	require.Nil(t, err)
 
 	s3 := &model.Session{}
 	s3.UserId = s1.UserId
@@ -66,10 +60,7 @@ func testSessionGet(t *testing.T, ss store.Store) {
 
 	s3, err = ss.Session().Save(s3)
 
-	if err != nil {
-		time.Sleep(time.Second)
-		panic(err)
-	}
+	require.Nil(t, err)
 
 	if rs1 := (<-ss.Session().Get(s1.Id)); rs1.Err != nil {
 		t.Fatal(rs1.Err)
@@ -95,10 +86,7 @@ func testSessionGetWithDeviceId(t *testing.T, ss store.Store) {
 
 	s1, err := ss.Session().Save(s1)
 
-	if err != nil {
-		time.Sleep(time.Second)
-		panic(err)
-	}
+	require.Nil(t, err)
 
 	s2 := &model.Session{}
 	s2.UserId = s1.UserId
@@ -107,10 +95,7 @@ func testSessionGetWithDeviceId(t *testing.T, ss store.Store) {
 
 	s2, err = ss.Session().Save(s2)
 
-	if err != nil {
-		time.Sleep(time.Second)
-		panic(err)
-	}
+	require.Nil(t, err)
 
 	s3 := &model.Session{}
 	s3.UserId = s1.UserId
@@ -119,10 +104,7 @@ func testSessionGetWithDeviceId(t *testing.T, ss store.Store) {
 
 	s3, err = ss.Session().Save(s3)
 
-	if err != nil {
-		time.Sleep(time.Second)
-		panic(err)
-	}
+	require.Nil(t, err)
 
 	if rs1 := (<-ss.Session().GetSessionsWithActiveDeviceIds(s1.UserId)); rs1.Err != nil {
 		t.Fatal(rs1.Err)
@@ -139,10 +121,7 @@ func testSessionRemove(t *testing.T, ss store.Store) {
 
 	s1, err := ss.Session().Save(s1)
 
-	if err != nil {
-		time.Sleep(time.Second)
-		panic(err)
-	}
+	require.Nil(t, err)
 
 	if rs1 := (<-ss.Session().Get(s1.Id)); rs1.Err != nil {
 		t.Fatal(rs1.Err)
@@ -165,10 +144,7 @@ func testSessionRemoveAll(t *testing.T, ss store.Store) {
 
 	s1, err := ss.Session().Save(s1)
 
-	if err != nil {
-		time.Sleep(time.Second)
-		panic(err)
-	}
+	require.Nil(t, err)
 
 	if rs1 := (<-ss.Session().Get(s1.Id)); rs1.Err != nil {
 		t.Fatal(rs1.Err)
@@ -191,10 +167,7 @@ func testSessionRemoveByUser(t *testing.T, ss store.Store) {
 
 	s1, err := ss.Session().Save(s1)
 
-	if err != nil {
-		time.Sleep(time.Second)
-		panic(err)
-	}
+	require.Nil(t, err)
 
 	if rs1 := (<-ss.Session().Get(s1.Id)); rs1.Err != nil {
 		t.Fatal(rs1.Err)
@@ -217,10 +190,7 @@ func testSessionRemoveToken(t *testing.T, ss store.Store) {
 
 	s1, err := ss.Session().Save(s1)
 
-	if err != nil {
-		time.Sleep(time.Second)
-		panic(err)
-	}
+	require.Nil(t, err)
 
 	if rs1 := (<-ss.Session().Get(s1.Id)); rs1.Err != nil {
 		t.Fatal(rs1.Err)
@@ -251,10 +221,7 @@ func testSessionUpdateDeviceId(t *testing.T, ss store.Store) {
 
 	s1, err := ss.Session().Save(s1)
 
-	if err != nil {
-		time.Sleep(time.Second)
-		panic(err)
-	}
+	require.Nil(t, err)
 
 	if rs1 := (<-ss.Session().UpdateDeviceId(s1.Id, model.PUSH_NOTIFY_APPLE+":1234567890", s1.ExpiresAt)); rs1.Err != nil {
 		t.Fatal(rs1.Err)
@@ -265,10 +232,7 @@ func testSessionUpdateDeviceId(t *testing.T, ss store.Store) {
 
 	s2, err = ss.Session().Save(s2)
 
-	if err != nil {
-		time.Sleep(time.Second)
-		panic(err)
-	}
+	require.Nil(t, err)
 
 	if rs2 := (<-ss.Session().UpdateDeviceId(s2.Id, model.PUSH_NOTIFY_APPLE+":1234567890", s1.ExpiresAt)); rs2.Err != nil {
 		t.Fatal(rs2.Err)
@@ -281,10 +245,7 @@ func testSessionUpdateDeviceId2(t *testing.T, ss store.Store) {
 
 	s1, err := ss.Session().Save(s1)
 
-	if err != nil {
-		time.Sleep(time.Second)
-		panic(err)
-	}
+	require.Nil(t, err)
 
 	if rs1 := (<-ss.Session().UpdateDeviceId(s1.Id, model.PUSH_NOTIFY_APPLE_REACT_NATIVE+":1234567890", s1.ExpiresAt)); rs1.Err != nil {
 		t.Fatal(rs1.Err)
@@ -295,10 +256,7 @@ func testSessionUpdateDeviceId2(t *testing.T, ss store.Store) {
 
 	s2, err = ss.Session().Save(s2)
 
-	if err != nil {
-		time.Sleep(time.Second)
-		panic(err)
-	}
+	require.Nil(t, err)
 
 	if rs2 := (<-ss.Session().UpdateDeviceId(s2.Id, model.PUSH_NOTIFY_APPLE_REACT_NATIVE+":1234567890", s1.ExpiresAt)); rs2.Err != nil {
 		t.Fatal(rs2.Err)
@@ -311,10 +269,7 @@ func testSessionStoreUpdateLastActivityAt(t *testing.T, ss store.Store) {
 
 	s1, err := ss.Session().Save(s1)
 
-	if err != nil {
-		time.Sleep(time.Second)
-		panic(err)
-	}
+	require.Nil(t, err)
 
 	if err := (<-ss.Session().UpdateLastActivityAt(s1.Id, 1234567890)).Err; err != nil {
 		t.Fatal(err)
@@ -337,10 +292,7 @@ func testSessionCount(t *testing.T, ss store.Store) {
 
 	s1, err := ss.Session().Save(s1)
 
-	if err != nil {
-		time.Sleep(time.Second)
-		panic(err)
-	}
+	require.Nil(t, err)
 
 	if r1 := <-ss.Session().AnalyticsSessionCount(); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -360,10 +312,7 @@ func testSessionCleanup(t *testing.T, ss store.Store) {
 
 	s1, err := ss.Session().Save(s1)
 
-	if err != nil {
-		time.Sleep(time.Second)
-		panic(err)
-	}
+	require.Nil(t, err)
 
 	s2 := &model.Session{}
 	s2.UserId = s1.UserId
@@ -371,10 +320,7 @@ func testSessionCleanup(t *testing.T, ss store.Store) {
 
 	s2, err = ss.Session().Save(s2)
 
-	if err != nil {
-		time.Sleep(time.Second)
-		panic(err)
-	}
+	require.Nil(t, err)
 
 	s3 := &model.Session{}
 	s3.UserId = model.NewId()
@@ -382,10 +328,7 @@ func testSessionCleanup(t *testing.T, ss store.Store) {
 
 	s3, err = ss.Session().Save(s3)
 
-	if err != nil {
-		time.Sleep(time.Second)
-		panic(err)
-	}
+	require.Nil(t, err)
 
 	s4 := &model.Session{}
 	s4.UserId = model.NewId()
@@ -393,10 +336,7 @@ func testSessionCleanup(t *testing.T, ss store.Store) {
 
 	s4, err = ss.Session().Save(s4)
 
-	if err != nil {
-		time.Sleep(time.Second)
-		panic(err)
-	}
+	require.Nil(t, err)
 
 	ss.Session().Cleanup(now, 1)
 

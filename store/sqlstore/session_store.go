@@ -58,17 +58,20 @@ func (me SqlSessionStore) Save(session *model.Session) (*model.Session, *model.A
 		return nil, model.NewAppError("SqlSessionStore.Save", "store.sql_session.save.app_error", nil, "id="+session.Id+", "+err.Error(), http.StatusInternalServerError)
 	}
 
-	if rtcs := <-tcs; rtcs.Err != nil {
+	rtcs := <-tcs
+
+	if rtcs.Err != nil {
 		return nil, model.NewAppError("SqlSessionStore.Save", "store.sql_session.save.app_error", nil, "id="+session.Id+", "+rtcs.Err.Error(), http.StatusInternalServerError)
-	} else {
-		tempMembers := rtcs.Data.([]*model.TeamMember)
-		session.TeamMembers = make([]*model.TeamMember, 0, len(tempMembers))
-		for _, tm := range tempMembers {
-			if tm.DeleteAt == 0 {
-				session.TeamMembers = append(session.TeamMembers, tm)
-			}
+	}
+
+	tempMembers := rtcs.Data.([]*model.TeamMember)
+	session.TeamMembers = make([]*model.TeamMember, 0, len(tempMembers))
+	for _, tm := range tempMembers {
+		if tm.DeleteAt == 0 {
+			session.TeamMembers = append(session.TeamMembers, tm)
 		}
 	}
+
 	return session, nil
 }
 

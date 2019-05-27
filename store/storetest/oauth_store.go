@@ -5,10 +5,10 @@ package storetest
 
 import (
 	"testing"
-	"time"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
+	"github.com/stretchr/testify/require"
 )
 
 func TestOAuthStore(t *testing.T, ss store.Store) {
@@ -413,10 +413,7 @@ func testOAuthStoreDeleteApp(t *testing.T, ss store.Store) {
 
 	s1, err := ss.Session().Save(s1)
 
-	if err != nil {
-		time.Sleep(time.Second)
-		panic(err)
-	}
+	require.Nil(t, err)
 
 	ad1 := model.AccessData{}
 	ad1.ClientId = a1.Id
