@@ -56,8 +56,6 @@ func (me SqlSessionStore) Save(session *model.Session) (*model.Session, *model.A
 
 	if err := me.GetMaster().Insert(session); err != nil {
 		return nil, model.NewAppError("SqlSessionStore.Save", "store.sql_session.save.app_error", nil, "id="+session.Id+", "+err.Error(), http.StatusInternalServerError)
-	} else {
-		return session, nil
 	}
 
 	if rtcs := <-tcs; rtcs.Err != nil {
@@ -70,8 +68,8 @@ func (me SqlSessionStore) Save(session *model.Session) (*model.Session, *model.A
 				session.TeamMembers = append(session.TeamMembers, tm)
 			}
 		}
-		return session, nil
 	}
+	return session, nil
 }
 
 func (me SqlSessionStore) Get(sessionIdOrToken string) store.StoreChannel {
