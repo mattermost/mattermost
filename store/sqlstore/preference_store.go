@@ -235,9 +235,8 @@ func (s SqlPreferenceStore) IsFeatureEnabled(feature, userId string) (bool, *mod
 	value, err := s.GetReplica().SelectStr(query, map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS, "Name": store.FEATURE_TOGGLE_PREFIX + feature})
 	if err != nil {
 		return false, model.NewAppError("SqlPreferenceStore.IsFeatureEnabled", "store.sql_preference.is_feature_enabled.app_error", nil, err.Error(), http.StatusInternalServerError)
-	} else {
-		return value == "true", nil
 	}
+	return value == "true", nil
 }
 
 func (s SqlPreferenceStore) Delete(userId, category, name string) store.StoreChannel {
