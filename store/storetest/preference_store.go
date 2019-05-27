@@ -417,8 +417,8 @@ func testPreferenceDeleteCategoryAndName(t *testing.T, ss store.Store) {
 		t.Fatal("should've returned 1 preference")
 	}
 
-	if result := <-ss.Preference().DeleteCategoryAndName(category, name); result.Err != nil {
-		t.Fatal(result.Err)
+	if err := ss.Preference().DeleteCategoryAndName(category, name); err != nil {
+		t.Fatal(err)
 	}
 
 	if prefs := store.Must(ss.Preference().GetAll(userId)).(model.Preferences); len([]model.Preference(prefs)) != 0 {
