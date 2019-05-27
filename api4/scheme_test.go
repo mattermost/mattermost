@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
 )
@@ -40,8 +41,10 @@ func TestCreateScheme(t *testing.T) {
 	assert.Equal(t, s1.Scope, scheme1.Scope)
 	assert.NotZero(t, len(s1.DefaultTeamAdminRole))
 	assert.NotZero(t, len(s1.DefaultTeamUserRole))
+	assert.NotZero(t, len(s1.DefaultTeamGuestRole))
 	assert.NotZero(t, len(s1.DefaultChannelAdminRole))
 	assert.NotZero(t, len(s1.DefaultChannelUserRole))
+	assert.NotZero(t, len(s1.DefaultChannelGuestRole))
 
 	// Check the default roles have been created.
 	_, roleRes1 := th.SystemAdminClient.GetRoleByName(s1.DefaultTeamAdminRole)
@@ -52,6 +55,10 @@ func TestCreateScheme(t *testing.T) {
 	CheckNoError(t, roleRes3)
 	_, roleRes4 := th.SystemAdminClient.GetRoleByName(s1.DefaultChannelUserRole)
 	CheckNoError(t, roleRes4)
+	_, roleRes5 := th.SystemAdminClient.GetRoleByName(s1.DefaultTeamGuestRole)
+	CheckNoError(t, roleRes5)
+	_, roleRes6 := th.SystemAdminClient.GetRoleByName(s1.DefaultChannelGuestRole)
+	CheckNoError(t, roleRes6)
 
 	// Basic Test of a Channel scheme.
 	scheme2 := &model.Scheme{
@@ -73,14 +80,18 @@ func TestCreateScheme(t *testing.T) {
 	assert.Equal(t, s2.Scope, scheme2.Scope)
 	assert.Zero(t, len(s2.DefaultTeamAdminRole))
 	assert.Zero(t, len(s2.DefaultTeamUserRole))
+	assert.Zero(t, len(s2.DefaultTeamGuestRole))
 	assert.NotZero(t, len(s2.DefaultChannelAdminRole))
 	assert.NotZero(t, len(s2.DefaultChannelUserRole))
+	assert.NotZero(t, len(s2.DefaultChannelGuestRole))
 
 	// Check the default roles have been created.
-	_, roleRes5 := th.SystemAdminClient.GetRoleByName(s2.DefaultChannelAdminRole)
-	CheckNoError(t, roleRes5)
-	_, roleRes6 := th.SystemAdminClient.GetRoleByName(s2.DefaultChannelUserRole)
-	CheckNoError(t, roleRes6)
+	_, roleRes7 := th.SystemAdminClient.GetRoleByName(s2.DefaultChannelAdminRole)
+	CheckNoError(t, roleRes7)
+	_, roleRes8 := th.SystemAdminClient.GetRoleByName(s2.DefaultChannelUserRole)
+	CheckNoError(t, roleRes8)
+	_, roleRes9 := th.SystemAdminClient.GetRoleByName(s2.DefaultChannelGuestRole)
+	CheckNoError(t, roleRes9)
 
 	// Try and create a scheme with an invalid scope.
 	scheme3 := &model.Scheme{
@@ -177,8 +188,10 @@ func TestGetScheme(t *testing.T) {
 	assert.Equal(t, s1.Scope, scheme1.Scope)
 	assert.NotZero(t, len(s1.DefaultTeamAdminRole))
 	assert.NotZero(t, len(s1.DefaultTeamUserRole))
+	assert.NotZero(t, len(s1.DefaultTeamGuestRole))
 	assert.NotZero(t, len(s1.DefaultChannelAdminRole))
 	assert.NotZero(t, len(s1.DefaultChannelUserRole))
+	assert.NotZero(t, len(s1.DefaultChannelGuestRole))
 
 	s2, r2 := th.SystemAdminClient.GetScheme(s1.Id)
 	CheckNoError(t, r2)
@@ -295,18 +308,16 @@ func TestGetTeamsForScheme(t *testing.T) {
 		Type:        model.TEAM_OPEN,
 	}
 
-	result1 := <-th.App.Srv.Store.Team().Save(team1)
-	assert.Nil(t, result1.Err)
-	team1 = result1.Data.(*model.Team)
+	team1, err := th.App.Srv.Store.Team().Save(team1)
+	require.Nil(t, err)
 
 	l2, r2 := th.SystemAdminClient.GetTeamsForScheme(scheme1.Id, 0, 100)
 	CheckNoError(t, r2)
 	assert.Zero(t, len(l2))
 
 	team1.SchemeId = &scheme1.Id
-	result2 := <-th.App.Srv.Store.Team().Update(team1)
-	assert.Nil(t, result2.Err)
-	team1 = result2.Data.(*model.Team)
+	team1, err = th.App.Srv.Store.Team().Update(team1)
+	assert.Nil(t, err)
 
 	l3, r3 := th.SystemAdminClient.GetTeamsForScheme(scheme1.Id, 0, 100)
 	CheckNoError(t, r3)
@@ -319,9 +330,8 @@ func TestGetTeamsForScheme(t *testing.T) {
 		Type:        model.TEAM_OPEN,
 		SchemeId:    &scheme1.Id,
 	}
-	result3 := <-th.App.Srv.Store.Team().Save(team2)
-	assert.Nil(t, result3.Err)
-	team2 = result3.Data.(*model.Team)
+	team2, err = th.App.Srv.Store.Team().Save(team2)
+	require.Nil(t, err)
 
 	l4, r4 := th.SystemAdminClient.GetTeamsForScheme(scheme1.Id, 0, 100)
 	CheckNoError(t, r4)
@@ -400,9 +410,8 @@ func TestGetChannelsForScheme(t *testing.T) {
 	assert.Zero(t, len(l2))
 
 	channel1.SchemeId = &scheme1.Id
-	result2 := <-th.App.Srv.Store.Channel().Update(channel1)
-	assert.Nil(t, result2.Err)
-	channel1 = result2.Data.(*model.Channel)
+	channel1, err := th.App.Srv.Store.Channel().Update(channel1)
+	assert.Nil(t, err)
 
 	l3, r3 := th.SystemAdminClient.GetChannelsForScheme(scheme1.Id, 0, 100)
 	CheckNoError(t, r3)
@@ -492,8 +501,10 @@ func TestPatchScheme(t *testing.T) {
 	assert.Equal(t, s1.Scope, scheme1.Scope)
 	assert.NotZero(t, len(s1.DefaultTeamAdminRole))
 	assert.NotZero(t, len(s1.DefaultTeamUserRole))
+	assert.NotZero(t, len(s1.DefaultTeamGuestRole))
 	assert.NotZero(t, len(s1.DefaultChannelAdminRole))
 	assert.NotZero(t, len(s1.DefaultChannelUserRole))
+	assert.NotZero(t, len(s1.DefaultChannelGuestRole))
 
 	s2, r2 := th.SystemAdminClient.GetScheme(s1.Id)
 	CheckNoError(t, r2)
@@ -598,22 +609,27 @@ func TestDeleteScheme(t *testing.T) {
 		CheckNoError(t, roleRes3)
 		role4, roleRes4 := th.SystemAdminClient.GetRoleByName(s1.DefaultChannelUserRole)
 		CheckNoError(t, roleRes4)
+		role5, roleRes5 := th.SystemAdminClient.GetRoleByName(s1.DefaultTeamGuestRole)
+		CheckNoError(t, roleRes5)
+		role6, roleRes6 := th.SystemAdminClient.GetRoleByName(s1.DefaultChannelGuestRole)
+		CheckNoError(t, roleRes6)
 
 		assert.Zero(t, role1.DeleteAt)
 		assert.Zero(t, role2.DeleteAt)
 		assert.Zero(t, role3.DeleteAt)
 		assert.Zero(t, role4.DeleteAt)
+		assert.Zero(t, role5.DeleteAt)
+		assert.Zero(t, role6.DeleteAt)
 
 		// Make sure this scheme is in use by a team.
-		res := <-th.App.Srv.Store.Team().Save(&model.Team{
+		team, err := th.App.Srv.Store.Team().Save(&model.Team{
 			Name:        model.NewId(),
 			DisplayName: model.NewId(),
 			Email:       model.NewId() + "@nowhere.com",
 			Type:        model.TEAM_OPEN,
 			SchemeId:    &s1.Id,
 		})
-		assert.Nil(t, res.Err)
-		team := res.Data.(*model.Team)
+		require.Nil(t, err)
 
 		// Delete the Scheme.
 		_, r3 := th.SystemAdminClient.DeleteScheme(s1.Id)
@@ -628,11 +644,17 @@ func TestDeleteScheme(t *testing.T) {
 		CheckNoError(t, roleRes3)
 		role4, roleRes4 = th.SystemAdminClient.GetRoleByName(s1.DefaultChannelUserRole)
 		CheckNoError(t, roleRes4)
+		role5, roleRes5 = th.SystemAdminClient.GetRoleByName(s1.DefaultTeamGuestRole)
+		CheckNoError(t, roleRes5)
+		role6, roleRes6 = th.SystemAdminClient.GetRoleByName(s1.DefaultChannelGuestRole)
+		CheckNoError(t, roleRes6)
 
 		assert.NotZero(t, role1.DeleteAt)
 		assert.NotZero(t, role2.DeleteAt)
 		assert.NotZero(t, role3.DeleteAt)
 		assert.NotZero(t, role4.DeleteAt)
+		assert.NotZero(t, role5.DeleteAt)
+		assert.NotZero(t, role6.DeleteAt)
 
 		// Check the team now uses the default scheme
 		c2, resp := th.SystemAdminClient.GetTeam(team.Id, "")
@@ -661,9 +683,12 @@ func TestDeleteScheme(t *testing.T) {
 		CheckNoError(t, roleRes3)
 		role4, roleRes4 := th.SystemAdminClient.GetRoleByName(s1.DefaultChannelUserRole)
 		CheckNoError(t, roleRes4)
+		role6, roleRes6 := th.SystemAdminClient.GetRoleByName(s1.DefaultChannelGuestRole)
+		CheckNoError(t, roleRes6)
 
 		assert.Zero(t, role3.DeleteAt)
 		assert.Zero(t, role4.DeleteAt)
+		assert.Zero(t, role6.DeleteAt)
 
 		// Make sure this scheme is in use by a team.
 		res := <-th.App.Srv.Store.Channel().Save(&model.Channel{
@@ -685,9 +710,12 @@ func TestDeleteScheme(t *testing.T) {
 		CheckNoError(t, roleRes3)
 		role4, roleRes4 = th.SystemAdminClient.GetRoleByName(s1.DefaultChannelUserRole)
 		CheckNoError(t, roleRes4)
+		role6, roleRes6 = th.SystemAdminClient.GetRoleByName(s1.DefaultChannelGuestRole)
+		CheckNoError(t, roleRes6)
 
 		assert.NotZero(t, role3.DeleteAt)
 		assert.NotZero(t, role4.DeleteAt)
+		assert.NotZero(t, role6.DeleteAt)
 
 		// Check the channel now uses the default scheme
 		c2, resp := th.SystemAdminClient.GetChannelByName(channel.Name, channel.TeamId, "")

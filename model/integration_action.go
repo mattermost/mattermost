@@ -26,7 +26,7 @@ const (
 	INTERACTIVE_DIALOG_TRIGGER_TIMEOUT_MILLISECONDS = 3000
 )
 
-var PostActionRetainPropKeys = []string{"override_username", "override_icon_url"}
+var PostActionRetainPropKeys = []string{"from_webhook", "override_username", "override_icon_url"}
 
 type DoPostActionRequest struct {
 	SelectedOption string `json:"selected_option,omitempty"`
@@ -47,8 +47,16 @@ type PostAction struct {
 	// DataSource indicates the data source for the select action. If left
 	// empty, the select is populated from Options. Other supported values
 	// are "users" and "channels".
-	DataSource string               `json:"data_source,omitempty"`
-	Options    []*PostActionOptions `json:"options,omitempty"`
+	DataSource string `json:"data_source,omitempty"`
+
+	// Options contains either the buttons that will be displayed on the post
+	// or the values listed in a select dropdowon on the post.
+	Options []*PostActionOptions `json:"options,omitempty"`
+
+	// DefaultOption contains the option, if any, that will appear as the
+	// default selection in a select box. It has no effect when used with
+	// other types of actions.
+	DefaultOption string `json:"default_option,omitempty"`
 
 	// Defines the interaction with the backend upon a user action.
 	// Integration contains Context, which is private plugin data;
@@ -72,6 +80,10 @@ func (p *PostAction) Equals(input *PostAction) bool {
 	}
 
 	if p.DataSource != input.DataSource {
+		return false
+	}
+
+	if p.DefaultOption != input.DefaultOption {
 		return false
 	}
 

@@ -132,8 +132,20 @@
     "translation": "Unable to upload file. File is too large."
   },
   {
+    "id": "api.bot.create_disabled",
+    "translation": "Bot creation has been disabled."
+  },
+  {
     "id": "api.channel.add_member.added",
     "translation": "%v added to the channel by %v."
+  },
+  {
+    "id": "api.channel.add_members.error",
+    "translation": "Error adding channel member(s)."
+  },
+  {
+    "id": "api.channel.add_members.user_denied",
+    "translation": "Channel membership denied to the following users because of group constraints: {{ .UserIDs }}"
   },
   {
     "id": "api.channel.add_user.to.channel.failed.app_error",
@@ -288,8 +300,20 @@
     "translation": "Unable to remove user from a channel."
   },
   {
+    "id": "api.channel.remove_member.group_constrained.app_error",
+    "translation": "Unable to remove a user from a group-constrained channel."
+  },
+  {
     "id": "api.channel.remove_member.removed",
     "translation": "%v removed from the channel."
+  },
+  {
+    "id": "api.channel.remove_members.denied",
+    "translation": "Channel membership removal denied to the following users because of group constraints: {{ .UserIDs }}"
+  },
+  {
+    "id": "api.channel.remove_user_from_channel.app_error",
+    "translation": "Can not remove user from this channel type"
   },
   {
     "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
@@ -308,6 +332,14 @@
     "translation": "Tried to perform an invalid update of the default channel {{.Channel}}"
   },
   {
+    "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
+    "translation": "Invalid channel member update: You can't add or remove the guest role manually"
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
+    "translation": "Invalid channel member update: A user must be a guest or a user but not both."
+  },
+  {
     "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
     "translation": "The provided role is managed by a Scheme and therefore cannot be applied directly to a Channel Member"
   },
@@ -318,6 +350,10 @@
   {
     "id": "api.channel.update_channel_scheme.scheme_scope.error",
     "translation": "Unable to set the scheme to the channel because the supplied scheme is not a channel scheme."
+  },
+  {
+    "id": "api.channel.update_team_member_roles.changing_guest_role.app_error",
+    "translation": "Invalid team member update: You can't add or remove the guest role manually"
   },
   {
     "id": "api.channel.update_team_member_roles.scheme_role.app_error",
@@ -679,6 +715,10 @@
     "translation": "An error occurred while joining the channel."
   },
   {
+    "id": "api.command_invite.group_constrained_user_denied",
+    "translation": "User cannot be added to this channel because it is constrained to group members only."
+  },
+  {
     "id": "api.command_invite.hint",
     "translation": "@[username] ~[channel]"
   },
@@ -881,6 +921,10 @@
   {
     "id": "api.command_remove.direct_group.app_error",
     "translation": "You can't remove someone from a direct message channel."
+  },
+  {
+    "id": "api.command_remove.group_constrained_user_denied",
+    "translation": "User cannot be removed from the channel by you because they are a member of the groups linked to this channel. To remove them from this channel, they must be removed from the linked groups."
   },
   {
     "id": "api.command_remove.hint",
@@ -1429,12 +1473,20 @@
     "translation": "Missing file in multipart/form request"
   },
   {
+    "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
+    "translation": "@{{.Usernames}} and @{{.LastUsername}} did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups."
+  },
+  {
+    "id": "api.post.check_for_out_of_channel_groups_mentions.message.one",
+    "translation": "@{{.Username}} did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups."
+  },
+  {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "@{{.Usernames}} and @{{.LastUsername}} were mentioned, but they did not receive notifications because they do not belong to this channel."
+    "translation": "@{{.Usernames}} and @{{.LastUsername}} did not get notified by this mention because they are not in the channel."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "@{{.Username}} was mentioned, but they did not receive notifications because they do not belong to this channel."
+    "translation": "@{{.Username}} did not get notified by this mention because they are not in the channel."
   },
   {
     "id": "api.post.create_post.can_not_post_to_deleted.error",
@@ -1581,6 +1633,14 @@
   {
     "id": "api.preference.update_preferences.set.app_error",
     "translation": "Unable to set user preferences."
+  },
+  {
+    "id": "api.push_notification.disabled.app_error",
+    "translation": "Push Notifications are disabled on this server."
+  },
+  {
+    "id": "api.push_notifications_ack.forward.app_error",
+    "translation": "An error occurred sending the receipt delivery to the push notification service"
   },
   {
     "id": "api.reaction.delete.archived_channel.app_error",
@@ -1735,6 +1795,14 @@
     "translation": "User not found"
   },
   {
+    "id": "api.team.add_members.error",
+    "translation": "Error adding team member(s)."
+  },
+  {
+    "id": "api.team.add_members.user_denied",
+    "translation": "Team membership denied to the following users because of group constraints: {{ .UserIDs }}"
+  },
+  {
     "id": "api.team.add_user_to_team.added",
     "translation": "%v added to the team by %v."
   },
@@ -1831,6 +1899,10 @@
     "translation": "This channel has been moved to this team from %v."
   },
   {
+    "id": "api.team.remove_member.group_constrained.app_error",
+    "translation": "Unable to remove a user from a group-constrained team."
+  },
+  {
     "id": "api.team.remove_team_icon.get_team.app_error",
     "translation": "An error occurred getting the team"
   },
@@ -1897,6 +1969,10 @@
   {
     "id": "api.team.update_restricted_domains.mismatch.app_error",
     "translation": "Restricting team to {{ .Domain }} is not allowed by the system config. Please contact your system administrator."
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest_and_user.app_error",
+    "translation": "Invalid team member update: A user must be a guest or a user but not both."
   },
   {
     "id": "api.team.update_team_scheme.license.error",
@@ -2265,10 +2341,6 @@
   {
     "id": "api.user.get_authorization_code.unsupported.app_error",
     "translation": "Unsupported OAuth service provider"
-  },
-  {
-    "id": "api.user.get_profile_image.not_found.app_error",
-    "translation": "Unable to get profile image, user not found."
   },
   {
     "id": "api.user.get_user_by_email.permissions.app_error",
@@ -3319,6 +3391,14 @@
     "translation": "Failed to parse installation date"
   },
   {
+    "id": "app.team.invite_id.group_constrained.error",
+    "translation": "Unable to join a group-constrained team by invite."
+  },
+  {
+    "id": "app.team.invite_token.group_constrained.error",
+    "translation": "Unable to join a group-constrained team by token."
+  },
+  {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
     "translation": "This team has reached the maximum number of allowed accounts. Contact your System Administrator to set a higher limit."
   },
@@ -3567,10 +3647,6 @@
     "translation": "Failed to decode search results"
   },
   {
-    "id": "ent.elasticsearch.search_users.disabled",
-    "translation": "Elasticsearch searching is disabled on this server"
-  },
-  {
     "id": "ent.elasticsearch.search_users.search_failed",
     "translation": "Search failed to complete"
   },
@@ -3673,6 +3749,10 @@
   {
     "id": "ent.ldap.syncronize.search_failure.app_error",
     "translation": "Failed to search users in AD/LDAP. Test if the Mattermost server can connect to your AD/LDAP server and try again."
+  },
+  {
+    "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
+    "translation": "Size Limit Exceeded. Try checking your [max page size](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
   },
   {
     "id": "ent.ldap.validate_filter.app_error",
@@ -4967,6 +5047,10 @@
     "translation": "Invalid Id"
   },
   {
+    "id": "model.team.is_valid.invite_id.app_error",
+    "translation": "Invalid invite id"
+  },
+  {
     "id": "model.team.is_valid.name.app_error",
     "translation": "Invalid name"
   },
@@ -5001,6 +5085,54 @@
   {
     "id": "model.token.is_valid.size",
     "translation": "Invalid token."
+  },
+  {
+    "id": "model.user.is_valid.auth_data.app_error",
+    "translation": "Invalid auth data"
+  },
+  {
+    "id": "model.user.is_valid.auth_data_pwd.app_error",
+    "translation": "Invalid user, password and auth data cannot both be set"
+  },
+  {
+    "id": "model.user.is_valid.auth_data_type.app_error",
+    "translation": "Invalid user, auth data must be set with auth type"
+  },
+  {
+    "id": "model.user.is_valid.create_at.app_error",
+    "translation": "Create at must be a valid time"
+  },
+  {
+    "id": "model.user.is_valid.email.app_error",
+    "translation": "Invalid email"
+  },
+  {
+    "id": "model.user.is_valid.first_name.app_error",
+    "translation": "Invalid first name"
+  },
+  {
+    "id": "model.user.is_valid.id.app_error",
+    "translation": "Invalid user id"
+  },
+  {
+    "id": "model.user.is_valid.last_name.app_error",
+    "translation": "Invalid last name"
+  },
+  {
+    "id": "model.user.is_valid.locale.app_error",
+    "translation": "Invalid locale"
+  },
+  {
+    "id": "model.user.is_valid.nickname.app_error",
+    "translation": "Invalid nickname"
+  },
+  {
+    "id": "model.user.is_valid.password_limit.app_error",
+    "translation": "Unable to set a password over 72 characters due to the limitations of bcrypt."
+  },
+  {
+    "id": "model.user.is_valid.position.app_error",
+    "translation": "Invalid position: must not be longer than 128 characters."
   },
   {
     "id": "model.user.is_valid.pwd.app_error",
@@ -5067,6 +5199,14 @@
     "translation": "Your password must contain at least {{.Min}} characters made up of at least one uppercase letter and at least one symbol (e.g. \"~!@#$%^&*()\")."
   },
   {
+    "id": "model.user.is_valid.update_at.app_error",
+    "translation": "Update at must be a valid time"
+  },
+  {
+    "id": "model.user.is_valid.username.app_error",
+    "translation": "Username must begin with a letter, and contain between 3 to 22 lowercase characters made up of numbers, letters, and the symbols \".\", \"-\", and \"_\"."
+  },
+  {
     "id": "model.user_access_token.is_valid.description.app_error",
     "translation": "Invalid description, must be 255 or less characters"
   },
@@ -5103,6 +5243,10 @@
     "translation": "Unable to set the user status. Unknown user status."
   },
   {
+    "id": "plugin_api.bot_cant_create_bot",
+    "translation": "Bot user cannot create bot user."
+  },
+  {
     "id": "plugin_api.get_file_link.disabled.app_error",
     "translation": "Public links have been disabled"
   },
@@ -5129,6 +5273,10 @@
   {
     "id": "store.select_error",
     "translation": "select error"
+  },
+  {
+    "id": "store.sql.build_query.app_error",
+    "translation": "failed to build query"
   },
   {
     "id": "store.sql.convert_string_array",
@@ -5547,6 +5695,10 @@
     "translation": "We encountered an error updating the channel member"
   },
   {
+    "id": "store.sql_channel.user_belongs_to_channels.app_error",
+    "translation": "Unable to determine if the user belongs to a list of channels"
+  },
+  {
     "id": "store.sql_channel_member_history.get_users_in_channel_during.app_error",
     "translation": "Failed to get users in channel during specified time period"
   },
@@ -5717,6 +5869,10 @@
   {
     "id": "store.sql_file_info.save.app_error",
     "translation": "Unable to save the file info"
+  },
+  {
+    "id": "store.sql_group.app_error",
+    "translation": "failed to build query"
   },
   {
     "id": "store.sql_group.group_syncable_already_deleted",
@@ -6411,6 +6567,10 @@
     "translation": "Unable to get the teams unread messages"
   },
   {
+    "id": "store.sql_team.get_user_team_ids.app_error",
+    "translation": "Unable to get the list of teams of a user"
+  },
+  {
     "id": "store.sql_team.migrate_team_members.commit_transaction.app_error",
     "translation": "Failed to commit the database transaction"
   },
@@ -6493,6 +6653,10 @@
   {
     "id": "store.sql_team.update_last_team_icon_update.app_error",
     "translation": "Unable to update the date of the last team icon update"
+  },
+  {
+    "id": "store.sql_team.user_belongs_to_teams.app_error",
+    "translation": "Unable to determine if the user belongs to a list of teams"
   },
   {
     "id": "store.sql_terms_of_service.save.app_error",

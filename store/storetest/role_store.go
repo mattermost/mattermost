@@ -37,9 +37,8 @@ func testRoleStoreSave(t *testing.T, ss store.Store) {
 		SchemeManaged: false,
 	}
 
-	res1 := <-ss.Role().Save(r1)
-	assert.Nil(t, res1.Err)
-	d1 := res1.Data.(*model.Role)
+	d1, err := ss.Role().Save(r1)
+	assert.Nil(t, err)
 	assert.Len(t, d1.Id, 26)
 	assert.Equal(t, r1.Name, d1.Name)
 	assert.Equal(t, r1.DisplayName, d1.DisplayName)
@@ -54,9 +53,8 @@ func testRoleStoreSave(t *testing.T, ss store.Store) {
 		"delete_public_channel",
 	}
 
-	res2 := <-ss.Role().Save(d1)
-	assert.Nil(t, res2.Err)
-	d2 := res2.Data.(*model.Role)
+	d2, err := ss.Role().Save(d1)
+	assert.Nil(t, err)
 	assert.Len(t, d2.Id, 26)
 	assert.Equal(t, r1.Name, d2.Name)
 	assert.Equal(t, r1.DisplayName, d2.DisplayName)
@@ -78,8 +76,8 @@ func testRoleStoreSave(t *testing.T, ss store.Store) {
 		SchemeManaged: false,
 	}
 
-	res3 := <-ss.Role().Save(r3)
-	assert.NotNil(t, res3.Err)
+	_, err = ss.Role().Save(r3)
+	assert.NotNil(t, err)
 
 	// Try saving one with a duplicate "name" field.
 	r4 := &model.Role{
@@ -94,14 +92,14 @@ func testRoleStoreSave(t *testing.T, ss store.Store) {
 		SchemeManaged: false,
 	}
 
-	res4 := <-ss.Role().Save(r4)
-	assert.NotNil(t, res4.Err)
+	_, err = ss.Role().Save(r4)
+	assert.NotNil(t, err)
 }
 
 func testRoleStoreGetAll(t *testing.T, ss store.Store) {
-	prev := <-ss.Role().GetAll()
-	require.Nil(t, prev.Err)
-	prevCount := len(prev.Data.([]*model.Role))
+	prev, err := ss.Role().GetAll()
+	require.Nil(t, err)
+	prevCount := len(prev)
 
 	// Save a role to test with.
 	r1 := &model.Role{
@@ -116,8 +114,8 @@ func testRoleStoreGetAll(t *testing.T, ss store.Store) {
 		SchemeManaged: false,
 	}
 
-	res1 := <-ss.Role().Save(r1)
-	require.Nil(t, res1.Err)
+	_, err = ss.Role().Save(r1)
+	require.Nil(t, err)
 
 	r2 := &model.Role{
 		Name:        model.NewId(),
@@ -130,12 +128,11 @@ func testRoleStoreGetAll(t *testing.T, ss store.Store) {
 		},
 		SchemeManaged: false,
 	}
-	res2 := <-ss.Role().Save(r2)
-	require.Nil(t, res2.Err)
+	_, err = ss.Role().Save(r2)
+	require.Nil(t, err)
 
-	res3 := <-ss.Role().GetAll()
-	require.Nil(t, res3.Err)
-	data := res3.Data.([]*model.Role)
+	data, err := ss.Role().GetAll()
+	require.Nil(t, err)
 	assert.Len(t, data, prevCount+2)
 }
 
@@ -153,15 +150,13 @@ func testRoleStoreGet(t *testing.T, ss store.Store) {
 		SchemeManaged: false,
 	}
 
-	res1 := <-ss.Role().Save(r1)
-	assert.Nil(t, res1.Err)
-	d1 := res1.Data.(*model.Role)
+	d1, err := ss.Role().Save(r1)
+	assert.Nil(t, err)
 	assert.Len(t, d1.Id, 26)
 
 	// Get a valid role
-	res2 := <-ss.Role().Get(d1.Id)
-	assert.Nil(t, res2.Err)
-	d2 := res1.Data.(*model.Role)
+	d2, err := ss.Role().Get(d1.Id)
+	assert.Nil(t, err)
 	assert.Equal(t, d1.Id, d2.Id)
 	assert.Equal(t, r1.Name, d2.Name)
 	assert.Equal(t, r1.DisplayName, d2.DisplayName)
@@ -170,8 +165,8 @@ func testRoleStoreGet(t *testing.T, ss store.Store) {
 	assert.Equal(t, r1.SchemeManaged, d2.SchemeManaged)
 
 	// Get an invalid role
-	res3 := <-ss.Role().Get(model.NewId())
-	assert.NotNil(t, res3.Err)
+	_, err = ss.Role().Get(model.NewId())
+	assert.NotNil(t, err)
 }
 
 func testRoleStoreGetByName(t *testing.T, ss store.Store) {
@@ -188,15 +183,13 @@ func testRoleStoreGetByName(t *testing.T, ss store.Store) {
 		SchemeManaged: false,
 	}
 
-	res1 := <-ss.Role().Save(r1)
-	assert.Nil(t, res1.Err)
-	d1 := res1.Data.(*model.Role)
+	d1, err := ss.Role().Save(r1)
+	assert.Nil(t, err)
 	assert.Len(t, d1.Id, 26)
 
 	// Get a valid role
-	res2 := <-ss.Role().GetByName(d1.Name)
-	assert.Nil(t, res2.Err)
-	d2 := res1.Data.(*model.Role)
+	d2, err := ss.Role().GetByName(d1.Name)
+	assert.Nil(t, err)
 	assert.Equal(t, d1.Id, d2.Id)
 	assert.Equal(t, r1.Name, d2.Name)
 	assert.Equal(t, r1.DisplayName, d2.DisplayName)
@@ -205,8 +198,8 @@ func testRoleStoreGetByName(t *testing.T, ss store.Store) {
 	assert.Equal(t, r1.SchemeManaged, d2.SchemeManaged)
 
 	// Get an invalid role
-	res3 := <-ss.Role().GetByName(model.NewId())
-	assert.NotNil(t, res3.Err)
+	_, err = ss.Role().GetByName(model.NewId())
+	assert.NotNil(t, err)
 }
 
 func testRoleStoreGetByNames(t *testing.T, ss store.Store) {
@@ -245,26 +238,22 @@ func testRoleStoreGetByNames(t *testing.T, ss store.Store) {
 		SchemeManaged: false,
 	}
 
-	res1 := <-ss.Role().Save(r1)
-	assert.Nil(t, res1.Err)
-	d1 := res1.Data.(*model.Role)
+	d1, err := ss.Role().Save(r1)
+	assert.Nil(t, err)
 	assert.Len(t, d1.Id, 26)
 
-	res2 := <-ss.Role().Save(r2)
-	assert.Nil(t, res2.Err)
-	d2 := res2.Data.(*model.Role)
+	d2, err := ss.Role().Save(r2)
+	assert.Nil(t, err)
 	assert.Len(t, d2.Id, 26)
 
-	res3 := <-ss.Role().Save(r3)
-	assert.Nil(t, res3.Err)
-	d3 := res3.Data.(*model.Role)
+	d3, err := ss.Role().Save(r3)
+	assert.Nil(t, err)
 	assert.Len(t, d3.Id, 26)
 
 	// Get two valid roles.
 	n4 := []string{r1.Name, r2.Name}
-	res4 := <-ss.Role().GetByNames(n4)
-	assert.Nil(t, res4.Err)
-	roles4 := res4.Data.([]*model.Role)
+	roles4, err := ss.Role().GetByNames(n4)
+	assert.Nil(t, err)
 	assert.Len(t, roles4, 2)
 	assert.Contains(t, roles4, d1)
 	assert.Contains(t, roles4, d2)
@@ -272,16 +261,14 @@ func testRoleStoreGetByNames(t *testing.T, ss store.Store) {
 
 	// Get two invalid roles.
 	n5 := []string{model.NewId(), model.NewId()}
-	res5 := <-ss.Role().GetByNames(n5)
-	assert.Nil(t, res5.Err)
-	roles5 := res5.Data.([]*model.Role)
+	roles5, err := ss.Role().GetByNames(n5)
+	assert.Nil(t, err)
 	assert.Len(t, roles5, 0)
 
 	// Get one valid one and one invalid one.
 	n6 := []string{r1.Name, model.NewId()}
-	res6 := <-ss.Role().GetByNames(n6)
-	assert.Nil(t, res6.Err)
-	roles6 := res6.Data.([]*model.Role)
+	roles6, err := ss.Role().GetByNames(n6)
+	assert.Nil(t, err)
 	assert.Len(t, roles6, 1)
 	assert.Contains(t, roles6, d1)
 	assert.NotContains(t, roles6, d2)
@@ -302,33 +289,30 @@ func testRoleStoreDelete(t *testing.T, ss store.Store) {
 		SchemeManaged: false,
 	}
 
-	res1 := <-ss.Role().Save(r1)
-	assert.Nil(t, res1.Err)
-	d1 := res1.Data.(*model.Role)
+	d1, err := ss.Role().Save(r1)
+	assert.Nil(t, err)
 	assert.Len(t, d1.Id, 26)
 
 	// Check the role is there.
-	res2 := <-ss.Role().Get(d1.Id)
-	assert.Nil(t, res2.Err)
+	_, err = ss.Role().Get(d1.Id)
+	assert.Nil(t, err)
 
 	// Delete the role.
-	res3 := <-ss.Role().Delete(d1.Id)
-	assert.Nil(t, res3.Err)
+	_, err = ss.Role().Delete(d1.Id)
+	assert.Nil(t, err)
 
 	// Check the role is deleted there.
-	res4 := <-ss.Role().Get(d1.Id)
-	assert.Nil(t, res4.Err)
-	d2 := res4.Data.(*model.Role)
+	d2, err := ss.Role().Get(d1.Id)
+	assert.Nil(t, err)
 	assert.NotZero(t, d2.DeleteAt)
 
-	res5 := <-ss.Role().GetByName(d1.Name)
-	assert.Nil(t, res5.Err)
-	d3 := res5.Data.(*model.Role)
+	d3, err := ss.Role().GetByName(d1.Name)
+	assert.Nil(t, err)
 	assert.NotZero(t, d3.DeleteAt)
 
 	// Try and delete a role that does not exist.
-	res6 := <-ss.Role().Delete(model.NewId())
-	assert.NotNil(t, res6.Err)
+	_, err = ss.Role().Delete(model.NewId())
+	assert.NotNil(t, err)
 }
 
 func testRoleStorePermanentDeleteAll(t *testing.T, ss store.Store) {
@@ -356,17 +340,19 @@ func testRoleStorePermanentDeleteAll(t *testing.T, ss store.Store) {
 		SchemeManaged: false,
 	}
 
-	store.Must(ss.Role().Save(r1))
-	store.Must(ss.Role().Save(r2))
+	_, err := ss.Role().Save(r1)
+	require.Nil(t, err)
+	_, err = ss.Role().Save(r2)
+	require.Nil(t, err)
 
-	res1 := <-ss.Role().GetByNames([]string{r1.Name, r2.Name})
-	assert.Nil(t, res1.Err)
-	assert.Len(t, res1.Data.([]*model.Role), 2)
+	roles, err := ss.Role().GetByNames([]string{r1.Name, r2.Name})
+	assert.Nil(t, err)
+	assert.Len(t, roles, 2)
 
-	res2 := <-ss.Role().PermanentDeleteAll()
-	assert.Nil(t, res2.Err)
+	err = ss.Role().PermanentDeleteAll()
+	assert.Nil(t, err)
 
-	res3 := <-ss.Role().GetByNames([]string{r1.Name, r2.Name})
-	assert.Nil(t, res3.Err)
-	assert.Len(t, res3.Data.([]*model.Role), 0)
+	roles, err = ss.Role().GetByNames([]string{r1.Name, r2.Name})
+	assert.Nil(t, err)
+	assert.Len(t, roles, 0)
 }

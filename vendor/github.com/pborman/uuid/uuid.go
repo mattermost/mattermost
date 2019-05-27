@@ -54,9 +54,8 @@ func New() string {
 	return NewRandom().String()
 }
 
-// Parse decodes s into a UUID or returns nil.  Both the UUID form of
-// xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx and
-// urn:uuid:xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx are decoded.
+// Parse decodes s into a UUID or returns nil. See github.com/google/uuid for
+// the formats parsed.
 func Parse(s string) UUID {
 	gu, err := guuid.Parse(s)
 	if err == nil {

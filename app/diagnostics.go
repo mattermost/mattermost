@@ -21,6 +21,7 @@ const (
 	TRACK_CONFIG_CLIENT_REQ         = "config_client_requirements"
 	TRACK_CONFIG_SQL                = "config_sql"
 	TRACK_CONFIG_LOG                = "config_log"
+	TRACK_CONFIG_NOTIFICATION_LOG   = "config_notifications_log"
 	TRACK_CONFIG_FILE               = "config_file"
 	TRACK_CONFIG_RATE               = "config_rate"
 	TRACK_CONFIG_EMAIL              = "config_email"
@@ -193,17 +194,13 @@ func (a *App) trackActivity() {
 		postsCount = pcr.Data.(int64)
 	}
 
-	if scc := <-a.Srv.Store.Command().AnalyticsCommandCount(""); scc.Err == nil {
-		slashCommandsCount = scc.Data.(int64)
+	slashCommandsCount, _ = a.Srv.Store.Command().AnalyticsCommandCount("")
+
+	if c, err := a.Srv.Store.Webhook().AnalyticsIncomingCount(""); err == nil {
+		incomingWebhooksCount = c
 	}
 
-	if iwc := <-a.Srv.Store.Webhook().AnalyticsIncomingCount(""); iwc.Err == nil {
-		incomingWebhooksCount = iwc.Data.(int64)
-	}
-
-	if owc := <-a.Srv.Store.Webhook().AnalyticsOutgoingCount(""); owc.Err == nil {
-		outgoingWebhooksCount = owc.Data.(int64)
-	}
+	outgoingWebhooksCount, _ = a.Srv.Store.Webhook().AnalyticsOutgoingCount("")
 
 	a.SendDiagnostic(TRACK_ACTIVITY, map[string]interface{}{
 		"registered_users":             userCount,
@@ -289,11 +286,13 @@ func (a *App) trackConfig() {
 		"allow_cookies_for_subdomains":                            *cfg.ServiceSettings.AllowCookiesForSubdomains,
 		"enable_api_team_deletion":                                *cfg.ServiceSettings.EnableAPITeamDeletion,
 		"experimental_enable_hardened_mode":                       *cfg.ServiceSettings.ExperimentalEnableHardenedMode,
+		"disable_legacy_mfa":                                      *cfg.ServiceSettings.DisableLegacyMFA,
 		"experimental_strict_csrf_enforcement":                    *cfg.ServiceSettings.ExperimentalStrictCSRFEnforcement,
 		"enable_email_invitations":                                *cfg.ServiceSettings.EnableEmailInvitations,
 		"experimental_channel_organization":                       *cfg.ServiceSettings.ExperimentalChannelOrganization,
 		"experimental_ldap_group_sync":                            *cfg.ServiceSettings.ExperimentalLdapGroupSync,
 		"disable_bots_when_owner_is_deactivated":                  *cfg.ServiceSettings.DisableBotsWhenOwnerIsDeactivated,
+		"enable_bot_account_creation":                             *cfg.ServiceSettings.EnableBotAccountCreation,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_TEAM, map[string]interface{}{
@@ -358,6 +357,16 @@ func (a *App) trackConfig() {
 		"file_json":                cfg.LogSettings.FileJson,
 		"enable_webhook_debugging": cfg.LogSettings.EnableWebhookDebugging,
 		"isdefault_file_location":  isDefault(cfg.LogSettings.FileLocation, ""),
+	})
+
+	a.SendDiagnostic(TRACK_CONFIG_NOTIFICATION_LOG, map[string]interface{}{
+		"enable_console":          *cfg.NotificationLogSettings.EnableConsole,
+		"console_level":           *cfg.NotificationLogSettings.ConsoleLevel,
+		"console_json":            *cfg.NotificationLogSettings.ConsoleJson,
+		"enable_file":             *cfg.NotificationLogSettings.EnableFile,
+		"file_level":              *cfg.NotificationLogSettings.FileLevel,
+		"file_json":               *cfg.NotificationLogSettings.FileJson,
+		"isdefault_file_location": isDefault(*cfg.NotificationLogSettings.FileLocation, ""),
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_PASSWORD, map[string]interface{}{
@@ -565,12 +574,13 @@ func (a *App) trackConfig() {
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_PLUGIN, map[string]interface{}{
-		"enable_jira":       pluginSetting(&cfg.PluginSettings, "jira", "enabled", false),
-		"enable_nps":        pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.nps"),
-		"enable_nps_survey": pluginSetting(&cfg.PluginSettings, "com.mattermost.nps", "enablesurvey", false),
-		"enable_zoom":       pluginActivated(cfg.PluginSettings.PluginStates, "zoom"),
-		"enable":            *cfg.PluginSettings.Enable,
-		"enable_uploads":    *cfg.PluginSettings.EnableUploads,
+		"enable_jira":         pluginActivated(cfg.PluginSettings.PluginStates, "jira"),
+		"enable_nps":          pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.nps"),
+		"enable_nps_survey":   pluginSetting(&cfg.PluginSettings, "com.mattermost.nps", "enablesurvey", false),
+		"enable_zoom":         pluginActivated(cfg.PluginSettings.PluginStates, "zoom"),
+		"enable":              *cfg.PluginSettings.Enable,
+		"enable_uploads":      *cfg.PluginSettings.EnableUploads,
+		"enable_health_check": *cfg.PluginSettings.EnableHealthCheck,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_DATA_RETENTION, map[string]interface{}{
@@ -706,12 +716,12 @@ func (a *App) trackServer() {
 
 func (a *App) trackPermissions() {
 	phase1Complete := false
-	if ph1res := <-a.Srv.Store.System().GetByName(ADVANCED_PERMISSIONS_MIGRATION_KEY); ph1res.Err == nil {
+	if _, err := a.Srv.Store.System().GetByName(ADVANCED_PERMISSIONS_MIGRATION_KEY); err == nil {
 		phase1Complete = true
 	}
 
 	phase2Complete := false
-	if ph2res := <-a.Srv.Store.System().GetByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2); ph2res.Err == nil {
+	if _, err := a.Srv.Store.System().GetByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2); err == nil {
 		phase2Complete = true
 	}
 
@@ -740,6 +750,11 @@ func (a *App) trackPermissions() {
 		teamUserPermissions = strings.Join(role.Permissions, " ")
 	}
 
+	teamGuestPermissions := ""
+	if role, err := a.GetRoleByName(model.TEAM_GUEST_ROLE_ID); err == nil {
+		teamGuestPermissions = strings.Join(role.Permissions, " ")
+	}
+
 	channelAdminPermissions := ""
 	if role, err := a.GetRoleByName(model.CHANNEL_ADMIN_ROLE_ID); err == nil {
 		channelAdminPermissions = strings.Join(role.Permissions, " ")
@@ -747,7 +762,12 @@ func (a *App) trackPermissions() {
 
 	channelUserPermissions := ""
 	if role, err := a.GetRoleByName(model.CHANNEL_USER_ROLE_ID); err == nil {
-		systemAdminPermissions = strings.Join(role.Permissions, " ")
+		channelUserPermissions = strings.Join(role.Permissions, " ")
+	}
+
+	channelGuestPermissions := ""
+	if role, err := a.GetRoleByName(model.CHANNEL_GUEST_ROLE_ID); err == nil {
+		channelGuestPermissions = strings.Join(role.Permissions, " ")
 	}
 
 	a.SendDiagnostic(TRACK_PERMISSIONS_SYSTEM_SCHEME, map[string]interface{}{
@@ -755,8 +775,10 @@ func (a *App) trackPermissions() {
 		"system_user_permissions":   systemUserPermissions,
 		"team_admin_permissions":    teamAdminPermissions,
 		"team_user_permissions":     teamUserPermissions,
+		"team_guest_permissions":    teamGuestPermissions,
 		"channel_admin_permissions": channelAdminPermissions,
 		"channel_user_permissions":  channelUserPermissions,
+		"channel_guest_permissions": channelGuestPermissions,
 	})
 
 	if schemes, err := a.GetSchemes(model.SCHEME_SCOPE_TEAM, 0, 100); err == nil {
@@ -771,6 +793,11 @@ func (a *App) trackPermissions() {
 				teamUserPermissions = strings.Join(role.Permissions, " ")
 			}
 
+			teamGuestPermissions := ""
+			if role, err := a.GetRoleByName(scheme.DefaultTeamGuestRole); err == nil {
+				teamGuestPermissions = strings.Join(role.Permissions, " ")
+			}
+
 			channelAdminPermissions := ""
 			if role, err := a.GetRoleByName(scheme.DefaultChannelAdminRole); err == nil {
 				channelAdminPermissions = strings.Join(role.Permissions, " ")
@@ -778,7 +805,12 @@ func (a *App) trackPermissions() {
 
 			channelUserPermissions := ""
 			if role, err := a.GetRoleByName(scheme.DefaultChannelUserRole); err == nil {
-				systemAdminPermissions = strings.Join(role.Permissions, " ")
+				channelUserPermissions = strings.Join(role.Permissions, " ")
+			}
+
+			channelGuestPermissions := ""
+			if role, err := a.GetRoleByName(scheme.DefaultChannelGuestRole); err == nil {
+				channelGuestPermissions = strings.Join(role.Permissions, " ")
 			}
 
 			var count int64 = 0
@@ -790,8 +822,10 @@ func (a *App) trackPermissions() {
 				"scheme_id":                 scheme.Id,
 				"team_admin_permissions":    teamAdminPermissions,
 				"team_user_permissions":     teamUserPermissions,
+				"team_guest_permissions":    teamGuestPermissions,
 				"channel_admin_permissions": channelAdminPermissions,
 				"channel_user_permissions":  channelUserPermissions,
+				"channel_guest_permissions": channelGuestPermissions,
 				"team_count":                count,
 			})
 		}

@@ -15,8 +15,51 @@ import (
 
 // Options provide toggles and overrides to control specific rendering behaviors.
 type Options struct {
-	PrettyTables bool // Turns on pretty ASCII rendering for table elements.
-	OmitLinks    bool // Turns on omitting links
+	PrettyTables        bool                 // Turns on pretty ASCII rendering for table elements.
+	PrettyTablesOptions *PrettyTablesOptions // Configures pretty ASCII rendering for table elements.
+	OmitLinks           bool                 // Turns on omitting links
+}
+
+// PrettyTablesOptions overrides tablewriter behaviors
+type PrettyTablesOptions struct {
+	AutoFormatHeader     bool
+	AutoWrapText         bool
+	ReflowDuringAutoWrap bool
+	ColWidth             int
+	ColumnSeparator      string
+	RowSeparator         string
+	CenterSeparator      string
+	HeaderAlignment      int
+	FooterAlignment      int
+	Alignment            int
+	ColumnAlignment      []int
+	NewLine              string
+	HeaderLine           bool
+	RowLine              bool
+	AutoMergeCells       bool
+	Borders              tablewriter.Border
+}
+
+// NewPrettyTablesOptions creates PrettyTablesOptions with default settings
+func NewPrettyTablesOptions() *PrettyTablesOptions {
+	return &PrettyTablesOptions{
+		AutoFormatHeader:     true,
+		AutoWrapText:         true,
+		ReflowDuringAutoWrap: true,
+		ColWidth:             tablewriter.MAX_ROW_WIDTH,
+		ColumnSeparator:      tablewriter.COLUMN,
+		RowSeparator:         tablewriter.ROW,
+		CenterSeparator:      tablewriter.CENTER,
+		HeaderAlignment:      tablewriter.ALIGN_DEFAULT,
+		FooterAlignment:      tablewriter.ALIGN_DEFAULT,
+		Alignment:            tablewriter.ALIGN_DEFAULT,
+		ColumnAlignment:      []int{},
+		NewLine:              tablewriter.NEWLINE,
+		HeaderLine:           true,
+		RowLine:              false,
+		AutoMergeCells:       false,
+		Borders:              tablewriter.Border{Left: true, Right: true, Bottom: true, Top: true},
+	}
 }
 
 // FromHTMLNode renders text output from a pre-parsed HTML document.
@@ -277,6 +320,25 @@ func (ctx *textifyTraverseContext) handleTableElement(node *html.Node) error {
 
 		buf := &bytes.Buffer{}
 		table := tablewriter.NewWriter(buf)
+		if ctx.options.PrettyTablesOptions != nil {
+			options := ctx.options.PrettyTablesOptions
+			table.SetAutoFormatHeaders(options.AutoFormatHeader)
+			table.SetAutoWrapText(options.AutoWrapText)
+			table.SetReflowDuringAutoWrap(options.ReflowDuringAutoWrap)
+			table.SetColWidth(options.ColWidth)
+			table.SetColumnSeparator(options.ColumnSeparator)
+			table.SetRowSeparator(options.RowSeparator)
+			table.SetCenterSeparator(options.CenterSeparator)
+			table.SetHeaderAlignment(options.HeaderAlignment)
+			table.SetFooterAlignment(options.FooterAlignment)
+			table.SetAlignment(options.Alignment)
+			table.SetColumnAlignment(options.ColumnAlignment)
+			table.SetNewLine(options.NewLine)
+			table.SetHeaderLine(options.HeaderLine)
+			table.SetRowLine(options.RowLine)
+			table.SetAutoMergeCells(options.AutoMergeCells)
+			table.SetBorders(options.Borders)
+		}
 		table.SetHeader(ctx.tableCtx.header)
 		table.SetFooter(ctx.tableCtx.footer)
 		table.AppendBulk(ctx.tableCtx.body)

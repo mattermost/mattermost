@@ -1,6 +1,6 @@
 /*
- * Minio Go Library for Amazon S3 Compatible Cloud Storage
- * Copyright 2015-2017 Minio, Inc.
+ * MinIO Go Library for Amazon S3 Compatible Cloud Storage
+ * Copyright 2015-2017 MinIO, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@
 package minio
 
 import (
+	"net"
 	"net/http"
 	"net/url"
 	"path"
@@ -162,6 +163,14 @@ func (c Client) getBucketLocationRequest(bucketName string) (*http.Request, erro
 
 	// Set get bucket location always as path style.
 	targetURL := c.endpointURL
+
+	// as it works in makeTargetURL method from api.go file
+	if h, p, err := net.SplitHostPort(targetURL.Host); err == nil {
+		if targetURL.Scheme == "http" && p == "80" || targetURL.Scheme == "https" && p == "443" {
+			targetURL.Host = h
+		}
+	}
+
 	targetURL.Path = path.Join(bucketName, "") + "/"
 	targetURL.RawQuery = urlValues.Encode()
 

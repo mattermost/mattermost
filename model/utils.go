@@ -21,7 +21,7 @@ import (
 	"time"
 	"unicode"
 
-	goi18n "github.com/nicksnyder/go-i18n/i18n"
+	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/pborman/uuid"
 )
 
@@ -346,6 +346,8 @@ var reservedName = []string{
 	"post",
 	"api",
 	"oauth",
+	"error",
+	"help",
 }
 
 func IsValidChannelIdentifier(s string) bool {

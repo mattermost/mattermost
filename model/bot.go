@@ -172,6 +172,16 @@ func UserFromBot(b *Bot) *User {
 	}
 }
 
+// BotFromUser returns a bot model given a user model
+func BotFromUser(u *User) *Bot {
+	return &Bot{
+		OwnerId:     u.Id,
+		UserId:      u.Id,
+		Username:    u.Username,
+		DisplayName: u.GetDisplayName(SHOW_USERNAME),
+	}
+}
+
 // BotListFromJson deserializes a list of bots from json.
 func BotListFromJson(data io.Reader) BotList {
 	var bots BotList
