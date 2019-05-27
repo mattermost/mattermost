@@ -206,7 +206,12 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			close(commandChan)
 		}()
 
-		sessionCount, sessionErr := a.Srv.Store.Session().AnalyticsSessionCount()
+		sessionChan := make(chan store.StoreResult, 1)
+		go func() {
+			count, err := a.Srv.Store.Session().AnalyticsSessionCount()
+			sessionChan <- store.StoreResult{Data: count, Err: err}
+			close(sessionChan)
+		}()
 
 		var fileChan store.StoreChannel
 		var hashtagChan store.StoreChannel
@@ -253,10 +258,11 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 		}
 		rows[4].Value = float64(r.Data.(int64))
 
-		if sessionErr != nil {
-			return nil, sessionErr
+		r = <-sessionChan
+		if r.Err != nil {
+			return nil, r.Err
 		}
-		rows[5].Value = float64(sessionCount)
+		rows[5].Value = float64(r.Data.(int64))
 
 		return rows, nil
 	}
