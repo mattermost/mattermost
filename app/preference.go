@@ -48,7 +48,7 @@ func (a *App) UpdatePreferences(userId string, preferences model.Preferences) *m
 		}
 	}
 
-	if _, err := a.Srv.Store.Preference().Save(&preferences); err != nil {
+	if err := a.Srv.Store.Preference().Save(&preferences); err != nil {
 		err.StatusCode = http.StatusBadRequest
 		return err
 	}
