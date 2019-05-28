@@ -1761,6 +1761,7 @@ func (a *App) UpdateChannelLastViewedAt(channelIds []string, userId string) *mod
 
 func (a *App) AutocompleteChannels(teamId string, term string) (*model.ChannelList, *model.AppError) {
 	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
+	term = strings.TrimSpace(term)
 
 	esInterface := a.Elasticsearch
 	license := a.License()
@@ -1797,6 +1798,8 @@ func (a *App) AutocompleteChannels(teamId string, term string) (*model.ChannelLi
 func (a *App) AutocompleteChannelsForSearch(teamId string, userId string, term string) (*model.ChannelList, *model.AppError) {
 	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 
+	term = strings.TrimSpace(term)
+
 	result := <-a.Srv.Store.Channel().AutocompleteInTeamForSearch(teamId, userId, term, includeDeleted)
 	if result.Err != nil {
 		return nil, result.Err
@@ -1814,6 +1817,9 @@ func (a *App) SearchAllChannels(term string, opts model.ChannelSearchOpts) (*mod
 		NotAssociatedToGroup: opts.NotAssociatedToGroup,
 		IncludeDeleted:       opts.IncludeDeleted,
 	}
+
+	term = strings.TrimSpace(term)
+
 	result := <-a.Srv.Store.Channel().SearchAllChannels(term, storeOpts)
 	if result.Err != nil {
 		return nil, result.Err
@@ -1824,6 +1830,8 @@ func (a *App) SearchAllChannels(term string, opts model.ChannelSearchOpts) (*mod
 func (a *App) SearchChannels(teamId string, term string) (*model.ChannelList, *model.AppError) {
 	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 
+	term = strings.TrimSpace(term)
+
 	result := <-a.Srv.Store.Channel().SearchInTeam(teamId, term, includeDeleted)
 	if result.Err != nil {
 		return nil, result.Err
@@ -1832,6 +1840,7 @@ func (a *App) SearchChannels(teamId string, term string) (*model.ChannelList, *m
 }
 
 func (a *App) SearchChannelsUserNotIn(teamId string, userId string, term string) (*model.ChannelList, *model.AppError) {
+	term = strings.TrimSpace(term)
 	result := <-a.Srv.Store.Channel().SearchMore(userId, teamId, term)
 	if result.Err != nil {
 		return nil, result.Err
