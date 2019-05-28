@@ -244,7 +244,7 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 	o1a := &model.Post{}
 	*o1a = *ro1
 	o1a.Message = ro1.Message + "BBBBBBBBBB"
-	if _, err := ss.Post().Update(o1a, ro1); err != nil {
+	if _, err = ss.Post().Update(o1a, ro1); err != nil {
 		t.Fatal(err)
 	}
 
@@ -261,7 +261,7 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 	o2a := &model.Post{}
 	*o2a = *ro2
 	o2a.Message = ro2.Message + "DDDDDDD"
-	if _, err := ss.Post().Update(o2a, ro2); err != nil {
+	if _, err = ss.Post().Update(o2a, ro2); err != nil {
 		t.Fatal(err)
 	}
 
@@ -278,7 +278,7 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 	o3a := &model.Post{}
 	*o3a = *ro3
 	o3a.Message = ro3.Message + "WWWWWWW"
-	if _, err := ss.Post().Update(o3a, ro3); err != nil {
+	if _, err = ss.Post().Update(o3a, ro3); err != nil {
 		t.Fatal(err)
 	}
 
@@ -309,7 +309,7 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 	*o4a = *ro4
 	o4a.Filenames = []string{}
 	o4a.FileIds = []string{model.NewId()}
-	if _, err := ss.Post().Update(o4a, ro4); err != nil {
+	if _, err = ss.Post().Update(o4a, ro4); err != nil {
 		t.Fatal(err)
 	}
 
