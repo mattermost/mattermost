@@ -446,8 +446,14 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.Forward80To443 = NewBool(false)
 	}
 
-	if s.TrustedProxyIPHeader == nil {
-		s.TrustedProxyIPHeader = []string{HEADER_FORWARDED, HEADER_REAL_IP}
+	if isUpdate {
+		// When updating an existing configuration, ensure that defaults are set.
+		if s.TrustedProxyIPHeader == nil {
+			s.TrustedProxyIPHeader = []string{HEADER_FORWARDED, HEADER_REAL_IP}
+		}
+	} else {
+		// When generating a blank configuration, leave the list empty.
+		s.TrustedProxyIPHeader = []string{}
 	}
 
 	if s.TimeBetweenUserTypingUpdatesMilliseconds == nil {
