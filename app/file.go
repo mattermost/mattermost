@@ -312,8 +312,8 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	newPost.FileIds = fileIds
 
 	// Update Posts to clear Filenames and set FileIds
-	if result := <-a.Srv.Store.Post().Update(newPost, post); result.Err != nil {
-		mlog.Error(fmt.Sprintf("Unable to save migrated post when migrating to use FileInfos, new_file_ids=%v, old_filenames=%v, err=%v", newPost.FileIds, post.Filenames, result.Err), mlog.String("post_id", post.Id))
+	if newPost, err := a.Srv.Store.Post().Update(newPost, post); err != nil {
+		mlog.Error(fmt.Sprintf("Unable to save migrated post when migrating to use FileInfos, new_file_ids=%v, old_filenames=%v, err=%v", newPost.FileIds, post.Filenames, err), mlog.String("post_id", post.Id))
 		return []*model.FileInfo{}
 	}
 	return savedInfos

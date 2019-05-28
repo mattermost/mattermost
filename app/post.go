@@ -533,12 +533,11 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 		}
 	}
 
-	result := <-a.Srv.Store.Post().Update(newPost, oldPost)
-	if result.Err != nil {
-		return nil, result.Err
+	rpost, err := a.Srv.Store.Post().Update(newPost, oldPost)
+	if err != nil {
+		return nil, err
 	}
-	rpost := result.Data.(*model.Post)
-
+	
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv.Go(func() {
 			pluginContext := a.PluginContext()
