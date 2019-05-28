@@ -2394,7 +2394,7 @@ func ConfigFromJson(data io.Reader) *Config {
 
 // isUpdate detects a pre-existing config based on whether SiteURL has been changed
 func (o *Config) isUpdate() bool {
-	return o.ServiceSettings.SiteURL != nil
+	return o.ServiceSettings.SiteURL != nil && *o.ServiceSettings.SiteURL != ""
 }
 
 func (o *Config) SetDefaults() {
