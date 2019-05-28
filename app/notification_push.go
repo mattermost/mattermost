@@ -14,7 +14,6 @@ import (
 	"github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
@@ -405,18 +404,7 @@ func (a *App) SendAckToPushProxy(ack *model.PushNotificationAck) error {
 }
 
 func (a *App) getMobileAppSessions(userId string) ([]*model.Session, *model.AppError) {
-	sessionChan := make(chan store.StoreResult, 1)
-	go func() {
-		data, err := a.Srv.Store.Session().GetSessionsWithActiveDeviceIds(userId)
-		sessionChan <- store.StoreResult{Data: data, Err: err}
-		close(sessionChan)
-	}()
-
-	r := <-sessionChan
-	if r.Err != nil {
-		return nil, r.Err
-	}
-	return r.Data.([]*model.Session), nil
+	return a.Srv.Store.Session().GetSessionsWithActiveDeviceIds(userId)
 }
 
 func ShouldSendPushNotification(user *model.User, channelNotifyProps model.StringMap, wasMentioned bool, status *model.Status, post *model.Post) bool {
