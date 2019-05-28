@@ -1090,9 +1090,8 @@ func testPendingAutoAddChannelMembers(t *testing.T, ss store.Store) {
 		Name:        model.NewId(),
 		Type:        model.CHANNEL_OPEN, // Query does not look at type so this shouldn't matter.
 	}
-	res = <-ss.Channel().Save(channel, 9999)
-	require.Nil(t, res.Err)
-	channel = res.Data.(*model.Channel)
+	channel, err := ss.Channel().Save(channel, 9999)
+	require.Nil(t, err)
 
 	// Create GroupChannel
 	res = <-ss.Group().CreateGroupSyncable(model.NewGroupChannel(group.Id, channel.Id, true))
@@ -1169,7 +1168,7 @@ func testPendingAutoAddChannelMembers(t *testing.T, ss store.Store) {
 	require.Len(t, res.Data, 1)
 
 	// No result if Channel deleted
-	err := ss.Channel().Delete(channel.Id, model.GetMillis())
+	err = ss.Channel().Delete(channel.Id, model.GetMillis())
 	require.Nil(t, err)
 	res = <-ss.Group().ChannelMembersToAdd(0)
 	require.Nil(t, res.Err)
@@ -1456,9 +1455,8 @@ func pendingMemberRemovalsDataSetup(t *testing.T, ss store.Store) *removalsData 
 		Type:             model.CHANNEL_PRIVATE,
 		GroupConstrained: model.NewBool(true),
 	}
-	res = <-ss.Channel().Save(channelConstrained, 9999)
-	require.Nil(t, res.Err)
-	channelConstrained = res.Data.(*model.Channel)
+	channelConstrained, err := ss.Channel().Save(channelConstrained, 9999)
+	require.Nil(t, err)
 
 	channelUnconstrained := &model.Channel{
 		TeamId:      model.NewId(),
@@ -1466,9 +1464,8 @@ func pendingMemberRemovalsDataSetup(t *testing.T, ss store.Store) *removalsData 
 		Name:        model.NewId(),
 		Type:        model.CHANNEL_PRIVATE,
 	}
-	res = <-ss.Channel().Save(channelUnconstrained, 9999)
-	require.Nil(t, res.Err)
-	channelUnconstrained = res.Data.(*model.Channel)
+	channelUnconstrained, err = ss.Channel().Save(channelUnconstrained, 9999)
+	require.Nil(t, err)
 
 	// create teams
 	teamConstrained := &model.Team{
@@ -1482,7 +1479,7 @@ func pendingMemberRemovalsDataSetup(t *testing.T, ss store.Store) *removalsData 
 		Type:             model.TEAM_INVITE,
 		GroupConstrained: model.NewBool(true),
 	}
-	teamConstrained, err := ss.Team().Save(teamConstrained)
+	teamConstrained, err = ss.Team().Save(teamConstrained)
 	require.Nil(t, err)
 
 	teamUnconstrained := &model.Team{
@@ -1569,12 +1566,11 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 		Name:        model.NewId(),
 		Type:        model.CHANNEL_OPEN,
 	}
-	res := <-ss.Channel().Save(channel1, 9999)
-	require.Nil(t, res.Err)
-	channel1 = res.Data.(*model.Channel)
+	channel1, err := ss.Channel().Save(channel1, 9999)
+	require.Nil(t, err)
 
 	// Create Groups 1 and 2
-	res = <-ss.Group().Create(&model.Group{
+	res := <-ss.Group().Create(&model.Group{
 		Name:        model.NewId(),
 		DisplayName: "group-1",
 		RemoteId:    model.NewId(),
@@ -1610,9 +1606,8 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 		Name:        model.NewId(),
 		Type:        model.CHANNEL_OPEN,
 	}
-	res = <-ss.Channel().Save(channel2, 9999)
-	require.Nil(t, res.Err)
-	channel2 = res.Data.(*model.Channel)
+	channel2, err = ss.Channel().Save(channel2, 9999)
+	require.Nil(t, err)
 
 	// Create Group3
 	res = <-ss.Group().Create(&model.Group{
@@ -1981,12 +1976,11 @@ func testGetGroups(t *testing.T, ss store.Store) {
 		Name:        model.NewId(),
 		Type:        model.CHANNEL_PRIVATE,
 	}
-	res := <-ss.Channel().Save(channel1, 9999)
-	require.Nil(t, res.Err)
-	channel1 = res.Data.(*model.Channel)
+	channel1, err = ss.Channel().Save(channel1, 9999)
+	require.Nil(t, err)
 
 	// Create Groups 1 and 2
-	res = <-ss.Group().Create(&model.Group{
+	res := <-ss.Group().Create(&model.Group{
 		Name:        model.NewId(),
 		DisplayName: "group-1",
 		RemoteId:    model.NewId(),
@@ -2036,9 +2030,8 @@ func testGetGroups(t *testing.T, ss store.Store) {
 		Name:        model.NewId(),
 		Type:        model.CHANNEL_PRIVATE,
 	}
-	res = <-ss.Channel().Save(channel2, 9999)
-	require.Nil(t, res.Err)
-	channel2 = res.Data.(*model.Channel)
+	channel2, err = ss.Channel().Save(channel2, 9999)
+	require.Nil(t, err)
 
 	// Create Group3
 	res = <-ss.Group().Create(&model.Group{
