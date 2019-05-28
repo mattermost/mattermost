@@ -1995,11 +1995,7 @@ func TestParseImages(t *testing.T) {
 		},
 		"tiff": {
 			FileName: "test.tiff",
-			Expected: &model.PostImage{
-				Width:  701,
-				Height: 701,
-				Format: "tiff",
-			},
+			Expected: (*model.PostImage)(nil),
 		},
 		"not an image": {
 			FileName:    "README.md",

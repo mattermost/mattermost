@@ -245,7 +245,7 @@ type PostStore interface {
 
 type UserStore interface {
 	Save(user *model.User) StoreChannel
-	Update(user *model.User, allowRoleUpdate bool) StoreChannel
+	Update(user *model.User, allowRoleUpdate bool) (*model.UserUpdate, *model.AppError)
 	UpdateLastPictureUpdate(userId string) StoreChannel
 	ResetLastPictureUpdate(userId string) StoreChannel
 	UpdateUpdateAt(userId string) StoreChannel
@@ -433,7 +433,7 @@ type PreferenceStore interface {
 	Get(userId string, category string, name string) (*model.Preference, *model.AppError)
 	GetAll(userId string) StoreChannel
 	Delete(userId, category, name string) StoreChannel
-	DeleteCategory(userId string, category string) StoreChannel
+	DeleteCategory(userId string, category string) *model.AppError
 	DeleteCategoryAndName(category string, name string) *model.AppError
 	PermanentDeleteByUser(userId string) *model.AppError
 	IsFeatureEnabled(feature, userId string) StoreChannel
