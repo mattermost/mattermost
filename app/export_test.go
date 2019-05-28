@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
 )
 
 func TestReactionsOfPost(t *testing.T) {
@@ -81,7 +80,10 @@ func TestExportUserChannels(t *testing.T) {
 	}
 	var preferences model.Preferences
 	preferences = append(preferences, preference)
-	store.Must(th.App.Srv.Store.Preference().Save(&preferences))
+	count, err := th.App.Srv.Store.Preference().Save(&preferences)
+	require.Nil(t, err)
+	require.Equal(t, 1, count)
+
 	th.App.UpdateChannelMemberNotifyProps(notifyProps, channel.Id, user.Id)
 	exportData, err := th.App.buildUserChannelMemberships(user.Id, team.Id)
 	require.Nil(t, err)

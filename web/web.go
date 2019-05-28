@@ -4,7 +4,6 @@
 package web
 
 import (
-	"fmt"
 	"net/http"
 	"path"
 	"strings"
@@ -61,8 +60,8 @@ func CheckClientCompatability(agentString string) bool {
 
 func Handle404(config configservice.ConfigService, w http.ResponseWriter, r *http.Request) {
 	err := model.NewAppError("Handle404", "api.context.404.app_error", nil, "", http.StatusNotFound)
-
-	mlog.Debug(fmt.Sprintf("%v: code=404 ip=%v", r.URL.Path, utils.GetIpAddress(r)))
+	ipAddress := utils.GetIpAddress(r, config.Config().ServiceSettings.TrustedProxyIPHeader)
+	mlog.Debug("not found handler triggered", mlog.String("path", r.URL.Path), mlog.Int("code", 404), mlog.String("ip", ipAddress))
 
 	if IsApiCall(config, r) {
 		w.WriteHeader(err.StatusCode)

@@ -129,7 +129,7 @@ type TeamStore interface {
 }
 
 type ChannelStore interface {
-	Save(channel *model.Channel, maxChannelsPerTeam int64) StoreChannel
+	Save(channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, *model.AppError)
 	CreateDirectChannel(userId string, otherUserId string) (*model.Channel, *model.AppError)
 	SaveDirectChannel(channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, *model.AppError)
 	Update(channel *model.Channel) (*model.Channel, *model.AppError)
@@ -148,7 +148,7 @@ type ChannelStore interface {
 	GetDeletedByName(team_id string, name string) StoreChannel
 	GetDeleted(team_id string, offset int, limit int) StoreChannel
 	GetChannels(teamId string, userId string, includeDeleted bool) StoreChannel
-	GetAllChannels(page, perPage int, includeDeleted bool) StoreChannel
+	GetAllChannels(page, perPage int, opts ChannelSearchOpts) StoreChannel
 	GetMoreChannels(teamId string, userId string, offset int, limit int) StoreChannel
 	GetPublicChannelsForTeam(teamId string, offset int, limit int) StoreChannel
 	GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) StoreChannel
@@ -182,7 +182,7 @@ type ChannelStore interface {
 	GetMembersForUserWithPagination(teamId, userId string, page, perPage int) StoreChannel
 	AutocompleteInTeam(teamId string, term string, includeDeleted bool) StoreChannel
 	AutocompleteInTeamForSearch(teamId string, userId string, term string, includeDeleted bool) StoreChannel
-	SearchAllChannels(term string, includeDeleted bool) StoreChannel
+	SearchAllChannels(term string, opts ChannelSearchOpts) StoreChannel
 	SearchInTeam(teamId string, term string, includeDeleted bool) StoreChannel
 	SearchMore(userId string, teamId string, term string) StoreChannel
 	GetMembersByIds(channelId string, userIds []string) StoreChannel
@@ -278,7 +278,7 @@ type UserStore interface {
 	GetEtagForProfiles(teamId string) StoreChannel
 	UpdateFailedPasswordAttempts(userId string, attempts int) StoreChannel
 	GetSystemAdminProfiles() StoreChannel
-	PermanentDelete(userId string) StoreChannel
+	PermanentDelete(userId string) *model.AppError
 	AnalyticsActiveCount(time int64) StoreChannel
 	GetUnreadCount(userId string) StoreChannel
 	GetUnreadCountForChannel(userId string, channelId string) StoreChannel
@@ -322,7 +322,7 @@ type SessionStore interface {
 	UpdateLastActivityAt(sessionId string, time int64) StoreChannel
 	UpdateRoles(userId string, roles string) StoreChannel
 	UpdateDeviceId(id string, deviceId string, expiresAt int64) StoreChannel
-	AnalyticsSessionCount() StoreChannel
+	AnalyticsSessionCount() (int64, *model.AppError)
 	Cleanup(expiryTime int64, batchSize int64)
 }
 
@@ -428,16 +428,16 @@ type CommandWebhookStore interface {
 }
 
 type PreferenceStore interface {
-	Save(preferences *model.Preferences) StoreChannel
+	Save(preferences *model.Preferences) (int, *model.AppError)
 	GetCategory(userId string, category string) (model.Preferences, *model.AppError)
 	Get(userId string, category string, name string) (*model.Preference, *model.AppError)
 	GetAll(userId string) StoreChannel
 	Delete(userId, category, name string) StoreChannel
 	DeleteCategory(userId string, category string) StoreChannel
-	DeleteCategoryAndName(category string, name string) StoreChannel
+	DeleteCategoryAndName(category string, name string) *model.AppError
 	PermanentDeleteByUser(userId string) *model.AppError
 	IsFeatureEnabled(feature, userId string) StoreChannel
-	CleanupFlagsBatch(limit int64) StoreChannel
+	CleanupFlagsBatch(limit int64) (int64, *model.AppError)
 }
 
 type LicenseStore interface {
@@ -606,4 +606,16 @@ type GroupStore interface {
 type LinkMetadataStore interface {
 	Save(linkMetadata *model.LinkMetadata) StoreChannel
 	Get(url string, timestamp int64) StoreChannel
+}
+
+// ChannelSearchOpts contains options for searching channels.
+//
+// NotAssociatedToGroup will exclude channels that have associated, active GroupChannels records.
+// IncludeDeleted will include channel records where DeleteAt != 0.
+// ExcludeChannelNames will exclude channels from the results by name.
+//
+type ChannelSearchOpts struct {
+	NotAssociatedToGroup string
+	IncludeDeleted       bool
+	ExcludeChannelNames  []string
 }
