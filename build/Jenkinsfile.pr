@@ -45,7 +45,7 @@ pipeline {
                     ansiColor('xterm') {
                         sh """
                             #!/bin/bash -ex
-                            git checkout $env.BRANCH_NAME || git checkout $env.CHANGE_BRANCH || git checkout $env.GIT_BRANCH || git checkout $env.CHANGE_TARGET || git checkout master || echo 1
+                            git checkout $env.BRANCH_NAME || git checkout $env.CHANGE_BRANCH || git checkout $env.GIT_BRANCH || git checkout $env.CHANGE_TARGET || git checkout release-5.12 || echo 1
                             export EE_GIT_COMMIT=\$(git rev-parse HEAD)
 
                             echo EE Commit: \${EE_GIT_COMMIT}
@@ -57,7 +57,7 @@ pipeline {
                         ansiColor('xterm') {
                             sh """
                                 #!/bin/bash -ex
-                                git checkout $env.BRANCH_NAME || git checkout $env.CHANGE_BRANCH || git checkout $env.GIT_BRANCH || git checkout $env.CHANGE_TARGET || git checkout master
+                                git checkout $env.BRANCH_NAME || git checkout $env.CHANGE_BRANCH || git checkout $env.GIT_BRANCH || git checkout $env.CHANGE_TARGET || git checkout release-5.12
                                 rm -rf ./dist
                                 export WEBAPP_GIT_COMMIT=\$(git rev-parse HEAD)
 
