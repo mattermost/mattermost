@@ -1666,6 +1666,7 @@ func (a *App) SearchUsers(props *model.UserSearch, options *model.UserSearchOpti
 }
 
 func (a *App) SearchUsersInChannel(channelId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+	term = strings.TrimSpace(term)
 	result := <-a.Srv.Store.User().SearchInChannel(channelId, term, options)
 	if result.Err != nil {
 		return nil, result.Err
@@ -1680,6 +1681,7 @@ func (a *App) SearchUsersInChannel(channelId string, term string, options *model
 }
 
 func (a *App) SearchUsersNotInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+	term = strings.TrimSpace(term)
 	result := <-a.Srv.Store.User().SearchNotInChannel(teamId, channelId, term, options)
 	if result.Err != nil {
 		return nil, result.Err
@@ -1695,6 +1697,8 @@ func (a *App) SearchUsersNotInChannel(teamId string, channelId string, term stri
 
 func (a *App) SearchUsersInTeam(teamId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	var result store.StoreResult
+
+	term = strings.TrimSpace(term)
 
 	esInterface := a.Elasticsearch
 	license := a.License()
@@ -1730,6 +1734,7 @@ func (a *App) SearchUsersInTeam(teamId string, term string, options *model.UserS
 }
 
 func (a *App) SearchUsersNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+	term = strings.TrimSpace(term)
 	result := <-a.Srv.Store.User().SearchNotInTeam(notInTeamId, term, options)
 	if result.Err != nil {
 		return nil, result.Err
@@ -1744,6 +1749,7 @@ func (a *App) SearchUsersNotInTeam(notInTeamId string, term string, options *mod
 }
 
 func (a *App) SearchUsersWithoutTeam(term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+	term = strings.TrimSpace(term)
 	result := <-a.Srv.Store.User().SearchWithoutTeam(term, options)
 	if result.Err != nil {
 		return nil, result.Err
@@ -1759,6 +1765,8 @@ func (a *App) SearchUsersWithoutTeam(term string, options *model.UserSearchOptio
 
 func (a *App) AutocompleteUsersInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, *model.AppError) {
 	var uchan, nuchan store.StoreChannel
+
+	term = strings.TrimSpace(term)
 
 	esInterface := a.Elasticsearch
 	license := a.License()
@@ -1819,6 +1827,8 @@ func (a *App) AutocompleteUsersInChannel(teamId string, channelId string, term s
 func (a *App) AutocompleteUsersInTeam(teamId string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInTeam, *model.AppError) {
 	autocomplete := &model.UserAutocompleteInTeam{}
 	var result store.StoreResult
+
+	term = strings.TrimSpace(term)
 
 	esInterface := a.Elasticsearch
 	license := a.License()
