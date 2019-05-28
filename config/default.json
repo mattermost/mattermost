@@ -14,6 +14,7 @@
         "UseLetsEncrypt": false,
         "LetsEncryptCertificateCacheFile": "./config/letsencrypt.cache",
         "Forward80To443": false,
+        "TrustedProxyIPHeader": [],
         "ReadTimeout": 300,
         "WriteTimeout": 300,
         "MaximumLoginAttempts": 10,
@@ -78,7 +79,7 @@
         "EnableEmailInvitations": false,
         "ExperimentalLdapGroupSync": false,
         "ExperimentalStrictCSRFEnforcement": false,
-        "CreateBotAccounts": false,
+        "EnableBotAccountCreation": false,
         "DisableBotsWhenOwnerIsDeactivated": true
     },
     "TeamSettings": {

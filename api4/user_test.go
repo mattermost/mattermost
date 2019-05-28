@@ -528,7 +528,7 @@ func TestGetBotUser(t *testing.T) {
 	th.App.UpdateUserRoles(th.BasicUser.Id, model.SYSTEM_USER_ROLE_ID+" "+model.TEAM_USER_ROLE_ID, false)
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.CreateBotAccounts = true
+		*cfg.ServiceSettings.EnableBotAccountCreation = true
 	})
 
 	bot := &model.Bot{
@@ -2645,7 +2645,7 @@ func TestLogin(t *testing.T) {
 	th.Client.Logout()
 
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.CreateBotAccounts = true
+		*cfg.ServiceSettings.EnableBotAccountCreation = true
 	})
 
 	t.Run("missing password", func(t *testing.T) {
@@ -2655,7 +2655,7 @@ func TestLogin(t *testing.T) {
 
 	t.Run("unknown user", func(t *testing.T) {
 		_, resp := th.Client.Login("unknown", th.BasicUser.Password)
-		CheckErrorMessage(t, resp, "store.sql_user.get_for_login.app_error")
+		CheckErrorMessage(t, resp, "api.user.login.invalid_credentials")
 	})
 
 	t.Run("valid login", func(t *testing.T) {
@@ -2739,7 +2739,7 @@ func TestCBALogin(t *testing.T) {
 		th.App.SetLicense(model.NewTestLicense("saml"))
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.CreateBotAccounts = true
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -2764,7 +2764,7 @@ func TestCBALogin(t *testing.T) {
 			th.Client.Logout()
 			th.Client.HttpHeader["X-SSL-Client-Cert-Subject-DN"] = "C=US, ST=Maryland, L=Pasadena, O=Brent Baccala, OU=FreeSoft, CN=www.freesoft.org/emailAddress=mis_match" + th.BasicUser.Email
 			_, resp := th.Client.Login(th.BasicUser.Email, "")
-			CheckBadRequestStatus(t, resp)
+			CheckUnauthorizedStatus(t, resp)
 		})
 
 		t.Run("successful cba login", func(t *testing.T) {
@@ -2797,7 +2797,7 @@ func TestCBALogin(t *testing.T) {
 		th.App.SetLicense(model.NewTestLicense("saml"))
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.CreateBotAccounts = true
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
 
 		th.Client.HttpHeader["X-SSL-Client-Cert"] = "valid_cert_fake"
@@ -3105,7 +3105,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 		th.AddPermissionToRole(model.PERMISSION_CREATE_USER_ACCESS_TOKEN.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.CreateBotAccounts = true
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
 
 		createdBot, resp := th.Client.CreateBot(&model.Bot{
@@ -3145,7 +3145,7 @@ func TestCreateUserAccessToken(t *testing.T) {
 		th.AddPermissionToRole(model.PERMISSION_CREATE_USER_ACCESS_TOKEN.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.CreateBotAccounts = true
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
 
 		createdBot, resp := th.SystemAdminClient.CreateBot(&model.Bot{
@@ -3246,7 +3246,7 @@ func TestGetUserAccessToken(t *testing.T) {
 		th.AddPermissionToRole(model.PERMISSION_READ_USER_ACCESS_TOKEN.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.CreateBotAccounts = true
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
 
 		createdBot, resp := th.Client.CreateBot(&model.Bot{
@@ -3292,7 +3292,7 @@ func TestGetUserAccessToken(t *testing.T) {
 		th.AddPermissionToRole(model.PERMISSION_READ_USER_ACCESS_TOKEN.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.CreateBotAccounts = true
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
 
 		createdBot, resp := th.SystemAdminClient.CreateBot(&model.Bot{
@@ -3539,7 +3539,7 @@ func TestRevokeUserAccessToken(t *testing.T) {
 		th.AddPermissionToRole(model.PERMISSION_REVOKE_USER_ACCESS_TOKEN.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.CreateBotAccounts = true
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
 
 		createdBot, resp := th.Client.CreateBot(&model.Bot{
@@ -3582,7 +3582,7 @@ func TestRevokeUserAccessToken(t *testing.T) {
 		th.AddPermissionToRole(model.PERMISSION_REVOKE_USER_ACCESS_TOKEN.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.CreateBotAccounts = true
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
 
 		createdBot, resp := th.SystemAdminClient.CreateBot(&model.Bot{
@@ -3657,7 +3657,7 @@ func TestDisableUserAccessToken(t *testing.T) {
 		th.AddPermissionToRole(model.PERMISSION_REVOKE_USER_ACCESS_TOKEN.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.CreateBotAccounts = true
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
 
 		createdBot, resp := th.Client.CreateBot(&model.Bot{
@@ -3700,7 +3700,7 @@ func TestDisableUserAccessToken(t *testing.T) {
 		th.AddPermissionToRole(model.PERMISSION_REVOKE_USER_ACCESS_TOKEN.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.CreateBotAccounts = true
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
 
 		createdBot, resp := th.SystemAdminClient.CreateBot(&model.Bot{
@@ -3785,7 +3785,7 @@ func TestEnableUserAccessToken(t *testing.T) {
 		th.AddPermissionToRole(model.PERMISSION_REVOKE_USER_ACCESS_TOKEN.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.CreateBotAccounts = true
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
 
 		createdBot, resp := th.Client.CreateBot(&model.Bot{
@@ -3832,7 +3832,7 @@ func TestEnableUserAccessToken(t *testing.T) {
 		th.AddPermissionToRole(model.PERMISSION_REVOKE_USER_ACCESS_TOKEN.Id, model.TEAM_USER_ROLE_ID)
 		th.App.UpdateUserRoles(th.BasicUser.Id, model.TEAM_USER_ROLE_ID, false)
 		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ServiceSettings.CreateBotAccounts = true
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
 		})
 
 		createdBot, resp := th.SystemAdminClient.CreateBot(&model.Bot{
@@ -4114,28 +4114,41 @@ func TestLoginLockout(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableMultifactorAuthentication = true })
 
 	_, resp = th.Client.Login(th.BasicUser.Email, "wrong")
-	CheckErrorMessage(t, resp, "api.user.check_user_password.invalid.app_error")
+	CheckErrorMessage(t, resp, "api.user.login.invalid_credentials")
 	_, resp = th.Client.Login(th.BasicUser.Email, "wrong")
-	CheckErrorMessage(t, resp, "api.user.check_user_password.invalid.app_error")
+	CheckErrorMessage(t, resp, "api.user.login.invalid_credentials")
 	_, resp = th.Client.Login(th.BasicUser.Email, "wrong")
-	CheckErrorMessage(t, resp, "api.user.check_user_password.invalid.app_error")
+	CheckErrorMessage(t, resp, "api.user.login.invalid_credentials")
 	_, resp = th.Client.Login(th.BasicUser.Email, "wrong")
-	CheckErrorMessage(t, resp, "api.user.check_user_login_attempts.too_many.app_error")
+	CheckErrorMessage(t, resp, "api.user.login.invalid_credentials")
 	_, resp = th.Client.Login(th.BasicUser.Email, "wrong")
-	CheckErrorMessage(t, resp, "api.user.check_user_login_attempts.too_many.app_error")
+	CheckErrorMessage(t, resp, "api.user.login.invalid_credentials")
+
+	//Check if lock is active
+	_, resp = th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+	CheckErrorMessage(t, resp, "api.user.login.invalid_credentials")
 
 	// Fake user has MFA enabled
 	if result := <-th.Server.Store.User().UpdateMfaActive(th.BasicUser2.Id, true); result.Err != nil {
 		t.Fatal(result.Err)
 	}
 	_, resp = th.Client.LoginWithMFA(th.BasicUser2.Email, th.BasicUser2.Password, "000000")
-	CheckErrorMessage(t, resp, "api.user.check_user_mfa.bad_code.app_error")
+	CheckErrorMessage(t, resp, "api.user.login.invalid_credentials")
 	_, resp = th.Client.LoginWithMFA(th.BasicUser2.Email, th.BasicUser2.Password, "000000")
-	CheckErrorMessage(t, resp, "api.user.check_user_mfa.bad_code.app_error")
+	CheckErrorMessage(t, resp, "api.user.login.invalid_credentials")
 	_, resp = th.Client.LoginWithMFA(th.BasicUser2.Email, th.BasicUser2.Password, "000000")
-	CheckErrorMessage(t, resp, "api.user.check_user_mfa.bad_code.app_error")
+	CheckErrorMessage(t, resp, "api.user.login.invalid_credentials")
 	_, resp = th.Client.LoginWithMFA(th.BasicUser2.Email, th.BasicUser2.Password, "000000")
-	CheckErrorMessage(t, resp, "api.user.check_user_login_attempts.too_many.app_error")
+	CheckErrorMessage(t, resp, "api.user.login.invalid_credentials")
 	_, resp = th.Client.LoginWithMFA(th.BasicUser2.Email, th.BasicUser2.Password, "000000")
-	CheckErrorMessage(t, resp, "api.user.check_user_login_attempts.too_many.app_error")
+	CheckErrorMessage(t, resp, "api.user.login.invalid_credentials")
+
+	// Fake user has MFA disabled
+	if result := <-th.Server.Store.User().UpdateMfaActive(th.BasicUser2.Id, false); result.Err != nil {
+		t.Fatal(result.Err)
+	}
+
+	//Check if lock is active
+	_, resp = th.Client.Login(th.BasicUser2.Email, th.BasicUser2.Password)
+	CheckErrorMessage(t, resp, "api.user.login.invalid_credentials")
 }
