@@ -68,6 +68,23 @@ func (a *App) CompareAndSetPluginKey(pluginId string, key string, oldValue, newV
 	return updated, nil
 }
 
+func (a *App) CompareAndSetPluginKeyWithExpiry(pluginId string, key string, oldValue, newValue []byte, expireInSeconds int64) (bool, *model.AppError) {
+	updated, err := a.CompareAndSetPluginKey(pluginId, key, oldValue, newValue)
+	if err != nil {
+		mlog.Error("Failed to compare and set plugin key value", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(err))
+		return updated, err
+	}
+
+	if updated {
+		err = a.SetPluginKeyWithExpiry(pluginId, key, newValue, expireInSeconds)
+		if err != nil {
+			mlog.Error("Failed to set plugin key value", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(err))
+		}
+	}
+
+	return updated, err
+}
+
 func (a *App) GetPluginKey(pluginId string, key string) ([]byte, *model.AppError) {
 	if kv, err := a.Srv.Store.Plugin().Get(pluginId, key); err == nil {
 		return kv.Value, nil

@@ -474,7 +474,17 @@ type API interface {
 	// Minimum server version: 5.6
 	KVSetWithExpiry(key string, value []byte, expireInSeconds int64) *model.AppError
 
-	// KVGet retrieves a value based on the key, unique per plugin. Returns nil for non-existent keys.
+	// KVCompareAndSetWithExpiry will update a key-value pair, with an expiry time
+	// unique per plugin, to the given new value if the current value == the old value.
+	// Inserts a new key if oldValue == nil.
+	// Returns (false, err) if DB error occurred
+	// Returns (false, nil) if current value != old value or key already exists when inserting
+	// Returns (true, nil) if current value == old value or new key is inserted
+	//
+	// Minimum server version: 5.13
+	KVCompareAndSetWithExpiry(key string, oldValue, newValue []byte, expireInSeconds int64) (bool, *model.AppError)
+
+	// KVGet will retrieve a value based on the key. Returns nil for non-existent keys.
 	KVGet(key string) ([]byte, *model.AppError)
 
 	// KVDelete removes a key-value pair, unique per plugin. Returns nil for non-existent keys.

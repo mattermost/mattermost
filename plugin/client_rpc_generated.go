@@ -9,9 +9,6 @@ package plugin
 import (
 	"fmt"
 	"log"
-
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
 )
 
 func init() {
@@ -3547,6 +3544,38 @@ func (s *apiRPCServer) KVSetWithExpiry(args *Z_KVSetWithExpiryArgs, returns *Z_K
 		returns.A = hook.KVSetWithExpiry(args.A, args.B, args.C)
 	} else {
 		return encodableError(fmt.Errorf("API KVSetWithExpiry called but not implemented."))
+	}
+	return nil
+}
+
+type Z_KVCompareAndSetWithExpiryArgs struct {
+	A string
+	B []byte
+	C []byte
+	D int64
+}
+
+type Z_KVCompareAndSetWithExpiryReturns struct {
+	A bool
+	B *model.AppError
+}
+
+func (g *apiRPCClient) KVCompareAndSetWithExpiry(key string, oldValue, newValue []byte, expireInSeconds int64) (bool, *model.AppError) {
+	_args := &Z_KVCompareAndSetWithExpiryArgs{key, oldValue, newValue, expireInSeconds}
+	_returns := &Z_KVCompareAndSetWithExpiryReturns{}
+	if err := g.client.Call("Plugin.KVCompareAndSetWithExpiry", _args, _returns); err != nil {
+		log.Printf("RPC call to KVCompareAndSetWithExpiry API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) KVCompareAndSetWithExpiry(args *Z_KVCompareAndSetWithExpiryArgs, returns *Z_KVCompareAndSetWithExpiryReturns) error {
+	if hook, ok := s.impl.(interface {
+		KVCompareAndSetWithExpiry(key string, oldValue, newValue []byte, expireInSeconds int64) (bool, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.KVCompareAndSetWithExpiry(args.A, args.B, args.C, args.D)
+	} else {
+		return encodableError(fmt.Errorf("API KVCompareAndSetWithExpiry called but not implemented."))
 	}
 	return nil
 }
