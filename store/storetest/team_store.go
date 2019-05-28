@@ -1026,7 +1026,8 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 	user2, err := ss.User().Get(userIds[1])
 	require.Nil(t, err)
 	user2.DeleteAt = 1234
-	store.Must(ss.User().Update(user2, true))
+	_, err = ss.User().Update(user2, true)
+	require.Nil(t, err)
 
 	newUserId2 := store.Must(ss.User().Save(&model.User{
 		Username: model.NewId(),

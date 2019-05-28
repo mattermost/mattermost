@@ -2167,7 +2167,8 @@ func testPostStoreGetRepliesForExport(t *testing.T, ss store.Store) {
 
 	// Checking whether replies by deleted user are exported
 	u1.DeleteAt = 1002
-	store.Must(ss.User().Update(&u1, false))
+	_, err = ss.User().Update(&u1, false)
+	require.Nil(t, err)
 
 	r1 = <-ss.Post().GetRepliesForExport(p1.Id)
 	assert.Nil(t, r1.Err)

@@ -152,24 +152,24 @@ func testUserStoreUpdate(t *testing.T, ss store.Store) {
 
 	time.Sleep(100 * time.Millisecond)
 
-	if err := (<-ss.User().Update(u1, false)).Err; err != nil {
+	if _, err := ss.User().Update(u1, false); err != nil {
 		t.Fatal(err)
 	}
 
 	missing := &model.User{}
-	if err := (<-ss.User().Update(missing, false)).Err; err == nil {
+	if _, err := ss.User().Update(missing, false); err == nil {
 		t.Fatal("Update should have failed because of missing key")
 	}
 
 	newId := &model.User{
 		Id: model.NewId(),
 	}
-	if err := (<-ss.User().Update(newId, false)).Err; err == nil {
+	if _, err := ss.User().Update(newId, false); err == nil {
 		t.Fatal("Update should have failed because id change")
 	}
 
 	u2.Email = MakeEmail()
-	if err := (<-ss.User().Update(u2, false)).Err; err == nil {
+	if _, err := ss.User().Update(u2, false); err == nil {
 		t.Fatal("Update should have failed because you can't modify AD/LDAP fields")
 	}
 
@@ -183,20 +183,20 @@ func testUserStoreUpdate(t *testing.T, ss store.Store) {
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u3.Id}, -1))
 
 	u3.Email = MakeEmail()
-	if result := <-ss.User().Update(u3, false); result.Err != nil {
+	if userUpdate, err := ss.User().Update(u3, false); err != nil {
 		t.Fatal("Update should not have failed")
 	} else {
-		newUser := result.Data.([2]*model.User)[0]
+		newUser := userUpdate.New
 		if newUser.Email != oldEmail {
 			t.Fatal("Email should not have been updated as the update is not trusted")
 		}
 	}
 
 	u3.Email = MakeEmail()
-	if result := <-ss.User().Update(u3, true); result.Err != nil {
+	if userUpdate, err := ss.User().Update(u3, true); err != nil {
 		t.Fatal("Update should not have failed")
 	} else {
-		newUser := result.Data.([2]*model.User)[0]
+		newUser := userUpdate.New
 		if newUser.Email == oldEmail {
 			t.Fatal("Email should have been updated as the update is trusted")
 		}

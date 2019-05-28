@@ -989,11 +989,11 @@ func (a *App) UpdateActive(user *model.User, active bool) (*model.User, *model.A
 		user.DeleteAt = model.GetMillis()
 	}
 
-	result := <-a.Srv.Store.User().Update(user, true)
-	if result.Err != nil {
-		return nil, result.Err
+	userUpdate, err := a.Srv.Store.User().Update(user, true)
+	if err != nil {
+		return nil, err
 	}
-	ruser := result.Data.([2]*model.User)[0]
+	ruser := userUpdate.New
 
 	if !active {
 		if err := a.userDeactivated(ruser); err != nil {
@@ -1110,7 +1110,7 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 	if *a.Config().EmailSettings.RequireEmailVerification && prev.Email != user.Email {
 		newEmail = user.Email
 
-		_, err := a.GetUserByEmail(newEmail)
+		_, err = a.GetUserByEmail(newEmail)
 		if err == nil {
 			return nil, model.NewAppError("UpdateUser", "store.sql_user.update.email_taken.app_error", nil, "user_id="+user.Id, http.StatusBadRequest)
 		}
@@ -1118,32 +1118,31 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 		user.Email = prev.Email
 	}
 
-	result := <-a.Srv.Store.User().Update(user, false)
-	if result.Err != nil {
-		return nil, result.Err
+	userUpdate, err := a.Srv.Store.User().Update(user, false)
+	if err != nil {
+		return nil, err
 	}
-	rusers := result.Data.([2]*model.User)
 
 	if sendNotifications {
-		if rusers[0].Email != rusers[1].Email || newEmail != "" {
+		if userUpdate.New.Email != userUpdate.Old.Email || newEmail != "" {
 			if *a.Config().EmailSettings.RequireEmailVerification {
 				a.Srv.Go(func() {
-					if err := a.SendEmailVerification(rusers[0], newEmail); err != nil {
+					if err := a.SendEmailVerification(userUpdate.New, newEmail); err != nil {
 						mlog.Error(err.Error())
 					}
 				})
 			} else {
 				a.Srv.Go(func() {
-					if err := a.SendEmailChangeEmail(rusers[1].Email, rusers[0].Email, rusers[0].Locale, a.GetSiteURL()); err != nil {
+					if err := a.SendEmailChangeEmail(userUpdate.Old.Email, userUpdate.New.Email, userUpdate.New.Locale, a.GetSiteURL()); err != nil {
 						mlog.Error(err.Error())
 					}
 				})
 			}
 		}
 
-		if rusers[0].Username != rusers[1].Username {
+		if userUpdate.New.Username != userUpdate.Old.Username {
 			a.Srv.Go(func() {
-				if err := a.SendChangeUsernameEmail(rusers[1].Username, rusers[0].Username, rusers[0].Email, rusers[0].Locale, a.GetSiteURL()); err != nil {
+				if err := a.SendChangeUsernameEmail(userUpdate.Old.Username, userUpdate.New.Username, userUpdate.New.Email, userUpdate.New.Locale, a.GetSiteURL()); err != nil {
 					mlog.Error(err.Error())
 				}
 			})
@@ -1161,7 +1160,7 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 		})
 	}
 
-	return rusers[0], nil
+	return userUpdate.New, nil
 }
 
 func (a *App) UpdateUserActive(userId string, active bool) *model.AppError {
@@ -1375,14 +1374,19 @@ func (a *App) UpdateUserRoles(userId string, newRoles string, sendWebSocketEvent
 	}
 
 	user.Roles = newRoles
-	uchan := a.Srv.Store.User().Update(user, true)
+	uchan := make(chan store.StoreResult, 1)
+	go func() {
+		userUpdate, err := a.Srv.Store.User().Update(user, true)
+		uchan <- store.StoreResult{Data: userUpdate, Err: err}
+		close(uchan)
+	}()
 	schan := a.Srv.Store.Session().UpdateRoles(user.Id, newRoles)
 
 	result := <-uchan
 	if result.Err != nil {
 		return nil, result.Err
 	}
-	ruser := result.Data.([2]*model.User)[0]
+	ruser := result.Data.(*model.UserUpdate).New
 
 	if result := <-schan; result.Err != nil {
 		// soft error since the user roles were still updated
@@ -1886,12 +1890,12 @@ func (a *App) UpdateOAuthUserAttrs(userData io.Reader, user *model.User, provide
 	}
 
 	if userAttrsChanged {
-		result := <-a.Srv.Store.User().Update(user, true)
-		if result.Err != nil {
-			return result.Err
+		users, err := a.Srv.Store.User().Update(user, true)
+		if err != nil {
+			return err
 		}
 
-		user = result.Data.([2]*model.User)[0]
+		user = users.New
 		a.InvalidateCacheForUser(user.Id)
 
 		esInterface := a.Elasticsearch
