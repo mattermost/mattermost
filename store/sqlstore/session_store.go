@@ -136,17 +136,24 @@ func (me SqlSessionStore) GetSessions(userId string) store.StoreChannel {
 	})
 }
 
-func (me SqlSessionStore) GetSessionsWithActiveDeviceIds(userId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var sessions []*model.Session
+func (me SqlSessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*model.Session, *model.AppError) {
+	query :=
+		`SELECT * 
+		FROM 
+			Sessions 
+		WHERE 
+			UserId = :UserId AND 
+			ExpiresAt != 0 AND 
+			:ExpiresAt <= ExpiresAt AND 
+			DeviceId != ''`
 
-		if _, err := me.GetReplica().Select(&sessions, "SELECT * FROM Sessions WHERE UserId = :UserId AND ExpiresAt != 0 AND :ExpiresAt <= ExpiresAt AND DeviceId != ''", map[string]interface{}{"UserId": userId, "ExpiresAt": model.GetMillis()}); err != nil {
-			result.Err = model.NewAppError("SqlSessionStore.GetActiveSessionsWithDeviceIds", "store.sql_session.get_sessions.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
+	var sessions []*model.Session
 
-			result.Data = sessions
-		}
-	})
+	_, err := me.GetReplica().Select(&sessions, query, map[string]interface{}{"UserId": userId, "ExpiresAt": model.GetMillis()})
+	if err != nil {
+		return nil, model.NewAppError("SqlSessionStore.GetActiveSessionsWithDeviceIds", "store.sql_session.get_sessions.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return sessions, nil
 }
 
 func (me SqlSessionStore) Remove(sessionIdOrToken string) store.StoreChannel {

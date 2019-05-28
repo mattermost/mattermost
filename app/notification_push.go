@@ -404,11 +404,7 @@ func (a *App) SendAckToPushProxy(ack *model.PushNotificationAck) error {
 }
 
 func (a *App) getMobileAppSessions(userId string) ([]*model.Session, *model.AppError) {
-	result := <-a.Srv.Store.Session().GetSessionsWithActiveDeviceIds(userId)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.Session), nil
+	return a.Srv.Store.Session().GetSessionsWithActiveDeviceIds(userId)
 }
 
 func ShouldSendPushNotification(user *model.User, channelNotifyProps model.StringMap, wasMentioned bool, status *model.Status, post *model.Post) bool {
