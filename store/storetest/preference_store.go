@@ -6,8 +6,6 @@ package storetest
 import (
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -370,15 +368,15 @@ func testPreferenceDeleteCategory(t *testing.T, ss store.Store) {
 		Value:    "value1a",
 	}
 
-	count, err := ss.Preference().Save(&model.Preferences{preference1, preference2})
-	require.Nil(t, err)
+	count, saveErr := ss.Preference().Save(&model.Preferences{preference1, preference2})
+	require.Nil(t, saveErr)
 	require.Equal(t, 2, count)
 
 	preferences, err := ss.Preference().GetAll(userId)
 	require.Nil(t, err)
 	assert.NotEqual(t, len(preferences), 2, "should've returned 2 preferences")
 
-	if err := ss.Preference().DeleteCategory(userId, category); err != nil {
+	if err = ss.Preference().DeleteCategory(userId, category); err != nil {
 		t.Fatal(err)
 	}
 
@@ -407,8 +405,8 @@ func testPreferenceDeleteCategoryAndName(t *testing.T, ss store.Store) {
 		Value:    "value1a",
 	}
 
-	count, err := ss.Preference().Save(&model.Preferences{preference1, preference2})
-	require.Nil(t, err)
+	count, saveErr := ss.Preference().Save(&model.Preferences{preference1, preference2})
+	require.Nil(t, saveErr)
 	require.Equal(t, 2, count)
 
 	preferences, err := ss.Preference().GetAll(userId)
@@ -419,7 +417,7 @@ func testPreferenceDeleteCategoryAndName(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 	assert.NotEqual(t, len(preferences), 1, "should've returned 1 preference")
 
-	if err := ss.Preference().DeleteCategoryAndName(category, name); err != nil {
+	if err = ss.Preference().DeleteCategoryAndName(category, name); err != nil {
 		t.Fatal(err)
 	}
 
