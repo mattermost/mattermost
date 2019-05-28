@@ -90,7 +90,8 @@ func testComplianceExport(t *testing.T, ss store.Store) {
 	c1.DisplayName = "Channel2"
 	c1.Name = "zz" + model.NewId() + "b"
 	c1.Type = model.CHANNEL_OPEN
-	c1 = store.Must(ss.Channel().Save(c1, -1)).(*model.Channel)
+	c1, err = ss.Channel().Save(c1, -1)
+	require.Nil(t, err)
 
 	o1 := &model.Post{}
 	o1.ChannelId = c1.Id
@@ -190,7 +191,8 @@ func testComplianceExportDirectMessages(t *testing.T, ss store.Store) {
 	c1.DisplayName = "Channel2"
 	c1.Name = "zz" + model.NewId() + "b"
 	c1.Type = model.CHANNEL_OPEN
-	c1 = store.Must(ss.Channel().Save(c1, -1)).(*model.Channel)
+	c1, err = ss.Channel().Save(c1, -1)
+	require.Nil(t, err)
 
 	cDM, err := ss.Channel().CreateDirectChannel(u1.Id, u2.Id)
 	require.Nil(t, err)
@@ -284,7 +286,8 @@ func testMessageExportPublicChannel(t *testing.T, ss store.Store) {
 		DisplayName: "Public Channel",
 		Type:        model.CHANNEL_OPEN,
 	}
-	channel = store.Must(ss.Channel().Save(channel, -1)).(*model.Channel)
+	channel, err = ss.Channel().Save(channel, -1)
+	require.Nil(t, err)
 
 	// user1 posts twice in the public channel
 	post1 := &model.Post{
@@ -379,7 +382,8 @@ func testMessageExportPrivateChannel(t *testing.T, ss store.Store) {
 		DisplayName: "Private Channel",
 		Type:        model.CHANNEL_PRIVATE,
 	}
-	channel = store.Must(ss.Channel().Save(channel, -1)).(*model.Channel)
+	channel, err = ss.Channel().Save(channel, -1)
+	require.Nil(t, err)
 
 	// user1 posts twice in the private channel
 	post1 := &model.Post{
@@ -559,7 +563,8 @@ func testMessageExportGroupMessageChannel(t *testing.T, ss store.Store) {
 		Name:   model.NewId(),
 		Type:   model.CHANNEL_GROUP,
 	}
-	groupMessageChannel = store.Must(ss.Channel().Save(groupMessageChannel, -1)).(*model.Channel)
+	groupMessageChannel, err = ss.Channel().Save(groupMessageChannel, -1)
+	require.Nil(t, err)
 
 	// user1 posts in the GM
 	post := &model.Post{

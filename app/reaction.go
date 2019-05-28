@@ -137,7 +137,7 @@ func (a *App) sendReactionEvent(event string, reaction *model.Reaction, post *mo
 	post.HasReactions = hasReactions
 	post.UpdateAt = model.GetMillis()
 
-	clientPost := a.PreparePostForClient(post, false)
+	clientPost := a.PreparePostForClient(post, false, false)
 
 	umessage := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", post.ChannelId, "", nil)
 	umessage.Add("post", clientPost.ToJson())

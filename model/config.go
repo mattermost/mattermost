@@ -237,6 +237,7 @@ type ServiceSettings struct {
 	UseLetsEncrypt                                    *bool    `restricted:"true"`
 	LetsEncryptCertificateCacheFile                   *string  `restricted:"true"`
 	Forward80To443                                    *bool    `restricted:"true"`
+	TrustedProxyIPHeader                              []string `restricted:"true"`
 	ReadTimeout                                       *int     `restricted:"true"`
 	WriteTimeout                                      *int     `restricted:"true"`
 	MaximumLoginAttempts                              *int     `restricted:"true"`
@@ -304,7 +305,7 @@ type ServiceSettings struct {
 	EnableEmailInvitations                            *bool
 	ExperimentalLdapGroupSync                         *bool
 	DisableBotsWhenOwnerIsDeactivated                 *bool `restricted:"true"`
-	CreateBotAccounts                                 *bool
+	EnableBotAccountCreation                          *bool
 }
 
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
@@ -443,6 +444,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.Forward80To443 == nil {
 		s.Forward80To443 = NewBool(false)
+	}
+
+	if s.TrustedProxyIPHeader == nil {
+		s.TrustedProxyIPHeader = []string{HEADER_FORWARDED, HEADER_REAL_IP}
 	}
 
 	if s.TimeBetweenUserTypingUpdatesMilliseconds == nil {
@@ -648,8 +653,8 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 		s.DisableBotsWhenOwnerIsDeactivated = NewBool(true)
 	}
 
-	if s.CreateBotAccounts == nil {
-		s.CreateBotAccounts = NewBool(false)
+	if s.EnableBotAccountCreation == nil {
+		s.EnableBotAccountCreation = NewBool(false)
 	}
 }
 
@@ -1669,6 +1674,8 @@ type LdapSettings struct {
 	LoginButtonColor       *string
 	LoginButtonBorderColor *string
 	LoginButtonTextColor   *string
+
+	Trace *bool
 }
 
 func (s *LdapSettings) SetDefaults() {
@@ -1785,6 +1792,10 @@ func (s *LdapSettings) SetDefaults() {
 
 	if s.LoginButtonTextColor == nil {
 		s.LoginButtonTextColor = NewString("#2389D7")
+	}
+
+	if s.Trace == nil {
+		s.Trace = NewBool(false)
 	}
 }
 
@@ -2894,7 +2905,7 @@ func (mes *MessageExportSettings) isValid(fs FileSettings) *AppError {
 
 func (ds *DisplaySettings) isValid() *AppError {
 	if len(ds.CustomUrlSchemes) != 0 {
-		validProtocolPattern := regexp.MustCompile(`(?i)^\s*[a-z][a-z0-9-]*\s*$`)
+		validProtocolPattern := regexp.MustCompile(`(?i)^\s*[A-Za-z][A-Za-z0-9.+-]*\s*$`)
 
 		for _, scheme := range ds.CustomUrlSchemes {
 			if !validProtocolPattern.MatchString(scheme) {
