@@ -345,7 +345,7 @@ func TestConfigShow(t *testing.T) {
 		// Filter out the test headers
 		var filteredOutput []string
 		for _, line := range strings.Split(output, "\n") {
-			if strings.HasPrefix(line, "---") || strings.HasPrefix(line, "===") || strings.HasPrefix(line, "PASS") {
+			if strings.HasPrefix(line, "---") || strings.HasPrefix(line, "===") || strings.HasPrefix(line, "PASS") || strings.HasPrefix(line, "coverage:") {
 				continue
 			}
 
@@ -353,7 +353,6 @@ func TestConfigShow(t *testing.T) {
 		}
 
 		output = strings.Join(filteredOutput, "")
-		fmt.Printf("%s\n", output)
 
 		var config model.Config
 		err = json.Unmarshal([]byte(output), &config)
