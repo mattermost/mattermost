@@ -47,18 +47,43 @@ func firstImage(images []*opengraph.Image) []*opengraph.Image {
 func TruncateOpenGraph(ogdata *opengraph.OpenGraph) *opengraph.OpenGraph {
 	if ogdata != nil {
 		// we might want to truncate url too, but that can have unintended effect
-		ogdata.Title = truncateText(ogdata.Title)
-		ogdata.Description = truncateText(ogdata.Description)
-		ogdata.SiteName = truncateText(ogdata.SiteName)
-		ogdata.Article = nil
-		ogdata.Book = nil
-		ogdata.Profile = nil
-		ogdata.Determiner = ""
-		ogdata.Locale = ""
-		ogdata.LocalesAlternate = make([]string, 0)
-		ogdata.Images = firstImage(ogdata.Images)
-		ogdata.Audios = make([]*opengraph.Audio, 0)
-		ogdata.Videos = make([]*opengraph.Video, 0)
+		if ogdata.Title != "" {
+			ogdata.Title = truncateText(ogdata.Title)
+		}
+		if ogdata.Description != "" {
+			ogdata.Description = truncateText(ogdata.Description)
+		}
+		if ogdata.SiteName != "" {
+			ogdata.SiteName = truncateText(ogdata.SiteName)
+		}
+		if ogdata.Article != nil {
+			ogdata.Article = nil
+		}
+		if ogdata.Book != nil {
+			ogdata.Book = nil
+		}
+		if ogdata.Profile != nil {
+			ogdata.Profile = nil
+		}
+		if ogdata.Determiner != "" {
+			ogdata.Determiner = ""
+		}
+		if ogdata.Locale != "" {
+			ogdata.Locale = ""
+		}
+		if ogdata.LocalesAlternate != nil {
+			ogdata.LocalesAlternate = make([]string, 0)
+		}
+		if len(ogdata.Images) > 0 {
+			ogdata.Images = firstImage(ogdata.Images)
+		}
+		if len(ogdata.Audios) > 0 {
+			ogdata.Audios = make([]*opengraph.Audio, 0)
+		}
+		if len(ogdata.Videos) > 0 {
+			ogdata.Videos = make([]*opengraph.Video, 0)
+		}
+
 	}
 	return ogdata
 }
