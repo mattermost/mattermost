@@ -4,8 +4,9 @@
 package storetest
 
 import (
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 
 	"github.com/stretchr/testify/assert"
 
@@ -298,29 +299,29 @@ func testIsFeatureEnabled(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 	require.Equal(t, 5, count)
 
-	if result := <-ss.Preference().IsFeatureEnabled(feature1, userId); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if data := result.Data.(bool); !data {
+	if data, err := ss.Preference().IsFeatureEnabled(feature1, userId); err != nil {
+		t.Fatal(err)
+	} else if !data {
 		t.Fatalf("got incorrect setting for feature1, %v=%v", true, data)
 	}
 
-	if result := <-ss.Preference().IsFeatureEnabled(feature2, userId); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if data := result.Data.(bool); data {
+	if data, err := ss.Preference().IsFeatureEnabled(feature2, userId); err != nil {
+		t.Fatal(err)
+	} else if data {
 		t.Fatalf("got incorrect setting for feature2, %v=%v", false, data)
 	}
 
 	// make sure we get false if something different than "true" or "false" has been saved to database
-	if result := <-ss.Preference().IsFeatureEnabled(feature3, userId); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if data := result.Data.(bool); data {
+	if data, err := ss.Preference().IsFeatureEnabled(feature3, userId); err != nil {
+		t.Fatal(err)
+	} else if data {
 		t.Fatalf("got incorrect setting for feature3, %v=%v", false, data)
 	}
 
 	// make sure false is returned if a non-existent feature is queried
-	if result := <-ss.Preference().IsFeatureEnabled("someOtherFeature", userId); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if data := result.Data.(bool); data {
+	if data, err := ss.Preference().IsFeatureEnabled("someOtherFeature", userId); err != nil {
+		t.Fatal(err)
+	} else if data {
 		t.Fatalf("got incorrect setting for non-existent feature 'someOtherFeature', %v=%v", false, data)
 	}
 }
