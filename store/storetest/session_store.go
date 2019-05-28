@@ -87,10 +87,10 @@ func testSessionGetWithDeviceId(t *testing.T, ss store.Store) {
 	s3.DeviceId = model.NewId()
 	store.Must(ss.Session().Save(&s3))
 
-	if rs1 := (<-ss.Session().GetSessionsWithActiveDeviceIds(s1.UserId)); rs1.Err != nil {
-		t.Fatal(rs1.Err)
+	if data, err := ss.Session().GetSessionsWithActiveDeviceIds(s1.UserId); err != nil {
+		t.Fatal(err)
 	} else {
-		if len(rs1.Data.([]*model.Session)) != 1 {
+		if len(data) != 1 {
 			t.Fatal("should match len")
 		}
 	}
