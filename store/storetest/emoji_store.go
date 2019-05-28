@@ -11,6 +11,7 @@ import (
 	"github.com/mattermost/mattermost-server/store"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestEmojiStore(t *testing.T, ss store.Store) {
@@ -75,9 +76,7 @@ func testEmojiGet(t *testing.T, ss store.Store) {
 
 	for i, emoji := range emojis {
 		data, err := ss.Emoji().Save(&emoji)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.Nil(t, err)
 		emojis[i] = *data
 	}
 	defer func() {
@@ -123,9 +122,7 @@ func testEmojiGetByName(t *testing.T, ss store.Store) {
 
 	for i, emoji := range emojis {
 		data, err := ss.Emoji().Save(&emoji)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.Nil(t, err)
 		emojis[i] = *data
 	}
 	defer func() {
@@ -159,9 +156,7 @@ func testEmojiGetMultipleByName(t *testing.T, ss store.Store) {
 
 	for i, emoji := range emojis {
 		data, err := ss.Emoji().Save(&emoji)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.Nil(t, err)
 		emojis[i] = *data
 	}
 	defer func() {
@@ -221,9 +216,7 @@ func testEmojiGetList(t *testing.T, ss store.Store) {
 
 	for i, emoji := range emojis {
 		data, err := ss.Emoji().Save(&emoji)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.Nil(t, err)
 		emojis[i] = *data
 	}
 	defer func() {
@@ -290,9 +283,7 @@ func testEmojiSearch(t *testing.T, ss store.Store) {
 
 	for i, emoji := range emojis {
 		data, err := ss.Emoji().Save(&emoji)
-		if err != nil {
-			t.Fatal(err)
-		}
+		require.Nil(t, err)
 		emojis[i] = *data
 	}
 	defer func() {
