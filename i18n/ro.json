@@ -1800,7 +1800,7 @@
   },
   {
     "id": "api.team.add_members.user_denied",
-    "translation": "Participarea la echipe a fost respinsă următorilor utilizatori din cauza constrângerilor de grup: {{. UserIDs }}"
+    "translation": "Participarea la echipe a fost respinsă următorilor utilizatori din cauza constrângerilor de grup: {{ .UserIDs }}"
   },
   {
     "id": "api.team.add_user_to_team.added",
