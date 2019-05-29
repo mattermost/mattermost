@@ -1417,25 +1417,29 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, ss store.Store, s SqlSupp
 	require.Nil(t, err)
 	require.Equal(t, 1, count)
 
-	r3, _ := ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 1)
+	r3, err := ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 1)
+	require.Nil(t, err)
 
 	if len(r3.Order) != 1 {
 		t.Fatal("should have 1 post")
 	}
 
-	r3, _ = ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 1, 1)
+	r3, err = ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 1, 1)
+	require.Nil(t, err)
 
 	if len(r3.Order) != 1 {
 		t.Fatal("should have 1 post")
 	}
 
-	r3, _ = ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 1000, 10)
+	r3, err = ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 1000, 10)
+	require.Nil(t, err)
 
 	if len(r3.Order) != 0 {
 		t.Fatal("should be empty")
 	}
 
-	r4, _ := ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 2)
+	r4, err := ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 2)
+	require.Nil(t, err)
 
 	if len(r4.Order) != 2 {
 		t.Fatal("should have 2 posts")
@@ -1454,7 +1458,8 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, ss store.Store, s SqlSupp
 	require.Nil(t, err)
 	require.Equal(t, 1, count)
 
-	r4, _ = ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 2)
+	r4, err = ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 2)
+	require.Nil(t, err)
 
 	if len(r4.Order) != 2 {
 		t.Fatal("should have 2 posts")
@@ -1472,13 +1477,15 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, ss store.Store, s SqlSupp
 	require.Nil(t, err)
 	require.Equal(t, 1, count)
 
-	r4, _ = ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 2)
+	r4, err = ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 2)
+	require.Nil(t, err)
 
 	if len(r4.Order) != 2 {
 		t.Fatal("should have 2 posts")
 	}
 
-	r4, _ = ss.Post().GetFlaggedPostsForTeam(o1.UserId, model.NewId(), 0, 2)
+	r4, err = ss.Post().GetFlaggedPostsForTeam(o1.UserId, model.NewId(), 0, 2)
+	require.Nil(t, err)
 
 	if len(r4.Order) != 0 {
 		t.Fatal("should have 0 posts")
@@ -1496,7 +1503,8 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, ss store.Store, s SqlSupp
 	require.Nil(t, err)
 	require.Equal(t, 1, count)
 
-	r4, _ = ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 10)
+	r4, err = ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 10)
+	require.Nil(t, err)
 
 	if len(r4.Order) != 3 {
 		t.Fatal("should have 3 posts")
