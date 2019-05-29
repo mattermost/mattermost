@@ -476,7 +476,7 @@ func (s *SqlPostStore) GetPosts(channelId string, offset int, limit int, allowFr
 	}
 
 	if s.metrics != nil {
-		s.metrics.IncrementMemCacheHitCounter("Last Posts Cache")
+		s.metrics.IncrementMemCacheMissCounter("Last Posts Cache")
 	}
 
 	rpc := s.getRootPosts(channelId, offset, limit)
