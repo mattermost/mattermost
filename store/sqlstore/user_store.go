@@ -142,71 +142,72 @@ func (us SqlUserStore) Save(user *model.User) store.StoreChannel {
 	})
 }
 
-func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		user.PreUpdate()
+func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) (*model.UserUpdate, *model.AppError) {
+	user.PreUpdate()
 
-		if result.Err = user.IsValid(); result.Err != nil {
-			return
+	if err := user.IsValid(); err != nil {
+		return nil, err
+	}
+
+	oldUserResult, err := us.GetMaster().Get(model.User{}, user.Id)
+	if err != nil {
+		return nil, model.NewAppError("SqlUserStore.Update", "store.sql_user.update.finding.app_error", nil, "user_id="+user.Id+", "+err.Error(), http.StatusInternalServerError)
+	}
+
+	if oldUserResult == nil {
+		return nil, model.NewAppError("SqlUserStore.Update", "store.sql_user.update.find.app_error", nil, "user_id="+user.Id, http.StatusBadRequest)
+	}
+
+	oldUser := oldUserResult.(*model.User)
+	user.CreateAt = oldUser.CreateAt
+	user.AuthData = oldUser.AuthData
+	user.AuthService = oldUser.AuthService
+	user.Password = oldUser.Password
+	user.LastPasswordUpdate = oldUser.LastPasswordUpdate
+	user.LastPictureUpdate = oldUser.LastPictureUpdate
+	user.EmailVerified = oldUser.EmailVerified
+	user.FailedAttempts = oldUser.FailedAttempts
+	user.MfaSecret = oldUser.MfaSecret
+	user.MfaActive = oldUser.MfaActive
+
+	if !trustedUpdateData {
+		user.Roles = oldUser.Roles
+		user.DeleteAt = oldUser.DeleteAt
+	}
+
+	if user.IsOAuthUser() {
+		if !trustedUpdateData {
+			user.Email = oldUser.Email
 		}
-
-		if oldUserResult, err := us.GetMaster().Get(model.User{}, user.Id); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.Update", "store.sql_user.update.finding.app_error", nil, "user_id="+user.Id+", "+err.Error(), http.StatusInternalServerError)
-		} else if oldUserResult == nil {
-			result.Err = model.NewAppError("SqlUserStore.Update", "store.sql_user.update.find.app_error", nil, "user_id="+user.Id, http.StatusBadRequest)
-		} else {
-			oldUser := oldUserResult.(*model.User)
-			user.CreateAt = oldUser.CreateAt
-			user.AuthData = oldUser.AuthData
-			user.AuthService = oldUser.AuthService
-			user.Password = oldUser.Password
-			user.LastPasswordUpdate = oldUser.LastPasswordUpdate
-			user.LastPictureUpdate = oldUser.LastPictureUpdate
-			user.EmailVerified = oldUser.EmailVerified
-			user.FailedAttempts = oldUser.FailedAttempts
-			user.MfaSecret = oldUser.MfaSecret
-			user.MfaActive = oldUser.MfaActive
-
-			if !trustedUpdateData {
-				user.Roles = oldUser.Roles
-				user.DeleteAt = oldUser.DeleteAt
-			}
-
-			if user.IsOAuthUser() {
-				if !trustedUpdateData {
-					user.Email = oldUser.Email
-				}
-			} else if user.IsLDAPUser() && !trustedUpdateData {
-				if user.Username != oldUser.Username ||
-					user.Email != oldUser.Email {
-					result.Err = model.NewAppError("SqlUserStore.Update", "store.sql_user.update.can_not_change_ldap.app_error", nil, "user_id="+user.Id, http.StatusBadRequest)
-					return
-				}
-			} else if user.Email != oldUser.Email {
-				user.EmailVerified = false
-			}
-
-			if user.Username != oldUser.Username {
-				user.UpdateMentionKeysFromUsername(oldUser.Username)
-			}
-
-			if count, err := us.GetMaster().Update(user); err != nil {
-				if IsUniqueConstraintError(err, []string{"Email", "users_email_key", "idx_users_email_unique"}) {
-					result.Err = model.NewAppError("SqlUserStore.Update", "store.sql_user.update.email_taken.app_error", nil, "user_id="+user.Id+", "+err.Error(), http.StatusBadRequest)
-				} else if IsUniqueConstraintError(err, []string{"Username", "users_username_key", "idx_users_username_unique"}) {
-					result.Err = model.NewAppError("SqlUserStore.Update", "store.sql_user.update.username_taken.app_error", nil, "user_id="+user.Id+", "+err.Error(), http.StatusBadRequest)
-				} else {
-					result.Err = model.NewAppError("SqlUserStore.Update", "store.sql_user.update.updating.app_error", nil, "user_id="+user.Id+", "+err.Error(), http.StatusInternalServerError)
-				}
-			} else if count != 1 {
-				result.Err = model.NewAppError("SqlUserStore.Update", "store.sql_user.update.app_error", nil, fmt.Sprintf("user_id=%v, count=%v", user.Id, count), http.StatusInternalServerError)
-			} else {
-				user.Sanitize(map[string]bool{})
-				oldUser.Sanitize(map[string]bool{})
-				result.Data = [2]*model.User{user, oldUser}
-			}
+	} else if user.IsLDAPUser() && !trustedUpdateData {
+		if user.Username != oldUser.Username || user.Email != oldUser.Email {
+			return nil, model.NewAppError("SqlUserStore.Update", "store.sql_user.update.can_not_change_ldap.app_error", nil, "user_id="+user.Id, http.StatusBadRequest)
 		}
-	})
+	} else if user.Email != oldUser.Email {
+		user.EmailVerified = false
+	}
+
+	if user.Username != oldUser.Username {
+		user.UpdateMentionKeysFromUsername(oldUser.Username)
+	}
+
+	count, err := us.GetMaster().Update(user)
+	if err != nil {
+		if IsUniqueConstraintError(err, []string{"Email", "users_email_key", "idx_users_email_unique"}) {
+			return nil, model.NewAppError("SqlUserStore.Update", "store.sql_user.update.email_taken.app_error", nil, "user_id="+user.Id+", "+err.Error(), http.StatusBadRequest)
+		} else if IsUniqueConstraintError(err, []string{"Username", "users_username_key", "idx_users_username_unique"}) {
+			return nil, model.NewAppError("SqlUserStore.Update", "store.sql_user.update.username_taken.app_error", nil, "user_id="+user.Id+", "+err.Error(), http.StatusBadRequest)
+		}
+		return nil, model.NewAppError("SqlUserStore.Update", "store.sql_user.update.updating.app_error", nil, "user_id="+user.Id+", "+err.Error(), http.StatusInternalServerError)
+	}
+
+	if count != 1 {
+		return nil, model.NewAppError("SqlUserStore.Update", "store.sql_user.update.app_error", nil, fmt.Sprintf("user_id=%v, count=%v", user.Id, count), http.StatusInternalServerError)
+	}
+
+	user.Sanitize(map[string]bool{})
+	oldUser.Sanitize(map[string]bool{})
+	return &model.UserUpdate{New: user, Old: oldUser}, nil
 }
 
 func (us SqlUserStore) UpdateLastPictureUpdate(userId string) store.StoreChannel {
@@ -1093,12 +1094,11 @@ func (us SqlUserStore) VerifyEmail(userId, email string) store.StoreChannel {
 	})
 }
 
-func (us SqlUserStore) PermanentDelete(userId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if _, err := us.GetMaster().Exec("DELETE FROM Users WHERE Id = :UserId", map[string]interface{}{"UserId": userId}); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.PermanentDelete", "store.sql_user.permanent_delete.app_error", nil, "userId="+userId+", "+err.Error(), http.StatusInternalServerError)
-		}
-	})
+func (us SqlUserStore) PermanentDelete(userId string) *model.AppError {
+	if _, err := us.GetMaster().Exec("DELETE FROM Users WHERE Id = :UserId", map[string]interface{}{"UserId": userId}); err != nil {
+		return model.NewAppError("SqlUserStore.PermanentDelete", "store.sql_user.permanent_delete.app_error", nil, "userId="+userId+", "+err.Error(), http.StatusInternalServerError)
+	}
+	return nil
 }
 
 func (us SqlUserStore) Count(options model.UserCountOptions) store.StoreChannel {
@@ -1576,7 +1576,7 @@ func (us SqlUserStore) GetUsersBatchForIndexing(startTime, endTime int64, limit 
 
 		var teamMembers []*model.TeamMember
 		teamMembersQuery, args, _ := us.getQueryBuilder().
-			Select("*").
+			Select("TeamId, UserId, Roles, DeleteAt, (SchemeGuest IS NOT NULL AND SchemeGuest) as SchemeGuest, SchemeUser, SchemeAdmin").
 			From("TeamMembers").
 			Where(sq.Eq{"UserId": userIds, "DeleteAt": 0}).
 			ToSql()

@@ -17,6 +17,11 @@ func TestChannelGroupEnable(t *testing.T) {
 	// create public channel
 	channel := th.CreatePublicChannel()
 
+	// try to enable, should fail it is private
+	require.Error(t, th.RunCommand(t, "group", "channel", "enable", th.BasicTeam.Name+":"+channel.Name))
+
+	channel = th.CreatePrivateChannel()
+
 	// try to enable, should fail because channel has no groups
 	require.Error(t, th.RunCommand(t, "group", "channel", "enable", th.BasicTeam.Name+":"+channel.Name))
 
@@ -54,8 +59,8 @@ func TestChannelGroupDisable(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	// create public channel
-	channel := th.CreatePublicChannel()
+	// create private channel
+	channel := th.CreatePrivateChannel()
 
 	// try to disable, should work
 	th.CheckCommand(t, "group", "channel", "disable", th.BasicTeam.Name+":"+channel.Name)
@@ -104,8 +109,8 @@ func TestChannelGroupStatus(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	// create public channel
-	channel := th.CreatePublicChannel()
+	// create private channel
+	channel := th.CreatePrivateChannel()
 
 	// get status, should be Disabled
 	output := th.CheckCommand(t, "group", "channel", "status", th.BasicTeam.Name+":"+channel.Name)
@@ -148,8 +153,8 @@ func TestChannelGroupList(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	// create public channel
-	channel := th.CreatePublicChannel()
+	// create private channel
+	channel := th.CreatePrivateChannel()
 
 	// list groups for a channel with none, should work
 	th.CheckCommand(t, "group", "channel", "list", th.BasicTeam.Name+":"+channel.Name)

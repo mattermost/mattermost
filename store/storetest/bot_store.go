@@ -39,7 +39,7 @@ func testBotStoreGet(t *testing.T, ss store.Store) {
 	deletedBot.DeleteAt = 1
 	deletedBot = store.Must(ss.Bot().Update(deletedBot)).(*model.Bot)
 	defer func() { store.Must(ss.Bot().PermanentDelete(deletedBot.UserId)) }()
-	defer func() { store.Must(ss.User().PermanentDelete(deletedBot.UserId)) }()
+	defer func() { require.Nil(t, ss.User().PermanentDelete(deletedBot.UserId)) }()
 
 	permanentlyDeletedBot, _ := makeBotWithUser(ss, &model.Bot{
 		Username:    "permanently_deleted_bot",
@@ -48,7 +48,7 @@ func testBotStoreGet(t *testing.T, ss store.Store) {
 		DeleteAt:    0,
 	})
 	store.Must(ss.Bot().PermanentDelete(permanentlyDeletedBot.UserId))
-	defer func() { store.Must(ss.User().PermanentDelete(permanentlyDeletedBot.UserId)) }()
+	defer func() { require.Nil(t, ss.User().PermanentDelete(permanentlyDeletedBot.UserId)) }()
 
 	b1, _ := makeBotWithUser(ss, &model.Bot{
 		Username:    "b1",
@@ -56,7 +56,7 @@ func testBotStoreGet(t *testing.T, ss store.Store) {
 		OwnerId:     model.NewId(),
 	})
 	defer func() { store.Must(ss.Bot().PermanentDelete(b1.UserId)) }()
-	defer func() { store.Must(ss.User().PermanentDelete(b1.UserId)) }()
+	defer func() { require.Nil(t, ss.User().PermanentDelete(b1.UserId)) }()
 
 	b2, _ := makeBotWithUser(ss, &model.Bot{
 		Username:    "b2",
@@ -64,7 +64,7 @@ func testBotStoreGet(t *testing.T, ss store.Store) {
 		OwnerId:     model.NewId(),
 	})
 	defer func() { store.Must(ss.Bot().PermanentDelete(b2.UserId)) }()
-	defer func() { store.Must(ss.User().PermanentDelete(b2.UserId)) }()
+	defer func() { require.Nil(t, ss.User().PermanentDelete(b2.UserId)) }()
 
 	t.Run("get non-existent bot", func(t *testing.T) {
 		result := <-ss.Bot().Get("unknown", false)
@@ -115,7 +115,7 @@ func testBotStoreGetAll(t *testing.T, ss store.Store) {
 	deletedBot.DeleteAt = 1
 	deletedBot = store.Must(ss.Bot().Update(deletedBot)).(*model.Bot)
 	defer func() { store.Must(ss.Bot().PermanentDelete(deletedBot.UserId)) }()
-	defer func() { store.Must(ss.User().PermanentDelete(deletedBot.UserId)) }()
+	defer func() { require.Nil(t, ss.User().PermanentDelete(deletedBot.UserId)) }()
 
 	permanentlyDeletedBot, _ := makeBotWithUser(ss, &model.Bot{
 		Username:    "permanently_deleted_bot",
@@ -124,7 +124,7 @@ func testBotStoreGetAll(t *testing.T, ss store.Store) {
 		DeleteAt:    0,
 	})
 	store.Must(ss.Bot().PermanentDelete(permanentlyDeletedBot.UserId))
-	defer func() { store.Must(ss.User().PermanentDelete(permanentlyDeletedBot.UserId)) }()
+	defer func() { require.Nil(t, ss.User().PermanentDelete(permanentlyDeletedBot.UserId)) }()
 
 	b1, _ := makeBotWithUser(ss, &model.Bot{
 		Username:    "b1",
@@ -132,7 +132,7 @@ func testBotStoreGetAll(t *testing.T, ss store.Store) {
 		OwnerId:     OwnerId1,
 	})
 	defer func() { store.Must(ss.Bot().PermanentDelete(b1.UserId)) }()
-	defer func() { store.Must(ss.User().PermanentDelete(b1.UserId)) }()
+	defer func() { require.Nil(t, ss.User().PermanentDelete(b1.UserId)) }()
 
 	b2, _ := makeBotWithUser(ss, &model.Bot{
 		Username:    "b2",
@@ -140,7 +140,7 @@ func testBotStoreGetAll(t *testing.T, ss store.Store) {
 		OwnerId:     OwnerId1,
 	})
 	defer func() { store.Must(ss.Bot().PermanentDelete(b2.UserId)) }()
-	defer func() { store.Must(ss.User().PermanentDelete(b2.UserId)) }()
+	defer func() { require.Nil(t, ss.User().PermanentDelete(b2.UserId)) }()
 
 	t.Run("get original bots", func(t *testing.T) {
 		result := <-ss.Bot().GetAll(&model.BotGetOptions{Page: 0, PerPage: 10})
@@ -157,7 +157,7 @@ func testBotStoreGetAll(t *testing.T, ss store.Store) {
 		OwnerId:     OwnerId1,
 	})
 	defer func() { store.Must(ss.Bot().PermanentDelete(b3.UserId)) }()
-	defer func() { store.Must(ss.User().PermanentDelete(b3.UserId)) }()
+	defer func() { require.Nil(t, ss.User().PermanentDelete(b3.UserId)) }()
 
 	b4, _ := makeBotWithUser(ss, &model.Bot{
 		Username:    "b4",
@@ -165,7 +165,7 @@ func testBotStoreGetAll(t *testing.T, ss store.Store) {
 		OwnerId:     OwnerId2,
 	})
 	defer func() { store.Must(ss.Bot().PermanentDelete(b4.UserId)) }()
-	defer func() { store.Must(ss.User().PermanentDelete(b4.UserId)) }()
+	defer func() { require.Nil(t, ss.User().PermanentDelete(b4.UserId)) }()
 
 	deletedUser := model.User{
 		Email:    MakeEmail(),
@@ -175,17 +175,17 @@ func testBotStoreGetAll(t *testing.T, ss store.Store) {
 		t.Fatal("couldn't save user", err)
 	}
 	deletedUser.DeleteAt = model.GetMillis()
-	if err := (<-ss.User().Update(&deletedUser, true)).Err; err != nil {
+	if _, err := ss.User().Update(&deletedUser, true); err != nil {
 		t.Fatal("couldn't delete user", err)
 	}
-	defer func() { store.Must(ss.User().PermanentDelete(deletedUser.Id)) }()
+	defer func() { require.Nil(t, ss.User().PermanentDelete(deletedUser.Id)) }()
 	ob5, _ := makeBotWithUser(ss, &model.Bot{
 		Username:    "ob5",
 		Description: "Orphaned bot 5",
 		OwnerId:     deletedUser.Id,
 	})
 	defer func() { store.Must(ss.Bot().PermanentDelete(b4.UserId)) }()
-	defer func() { store.Must(ss.User().PermanentDelete(b4.UserId)) }()
+	defer func() { require.Nil(t, ss.User().PermanentDelete(b4.UserId)) }()
 
 	t.Run("get newly created bot stoo", func(t *testing.T) {
 		result := <-ss.Bot().GetAll(&model.BotGetOptions{Page: 0, PerPage: 10})
@@ -308,7 +308,7 @@ func testBotStoreSave(t *testing.T, ss store.Store) {
 		}
 
 		user := store.Must(ss.User().Save(model.UserFromBot(bot))).(*model.User)
-		defer func() { store.Must(ss.User().PermanentDelete(user.Id)) }()
+		defer func() { require.Nil(t, ss.User().PermanentDelete(user.Id)) }()
 		bot.UserId = user.Id
 
 		result := <-ss.Bot().Save(bot)
@@ -341,7 +341,7 @@ func testBotStoreUpdate(t *testing.T, ss store.Store) {
 			OwnerId:  model.NewId(),
 		})
 		defer func() { store.Must(ss.Bot().PermanentDelete(existingBot.UserId)) }()
-		defer func() { store.Must(ss.User().PermanentDelete(existingBot.UserId)) }()
+		defer func() { require.Nil(t, ss.User().PermanentDelete(existingBot.UserId)) }()
 
 		bot := existingBot.Clone()
 		bot.Username = "invalid username"
@@ -356,7 +356,7 @@ func testBotStoreUpdate(t *testing.T, ss store.Store) {
 			OwnerId:  model.NewId(),
 		})
 		defer func() { store.Must(ss.Bot().PermanentDelete(existingBot.UserId)) }()
-		defer func() { store.Must(ss.User().PermanentDelete(existingBot.UserId)) }()
+		defer func() { require.Nil(t, ss.User().PermanentDelete(existingBot.UserId)) }()
 
 		bot := existingBot.Clone()
 		bot.OwnerId = model.NewId()
@@ -389,7 +389,7 @@ func testBotStoreUpdate(t *testing.T, ss store.Store) {
 			OwnerId:  model.NewId(),
 		})
 		defer func() { store.Must(ss.Bot().PermanentDelete(existingBot.UserId)) }()
-		defer func() { store.Must(ss.User().PermanentDelete(existingBot.UserId)) }()
+		defer func() { require.Nil(t, ss.User().PermanentDelete(existingBot.UserId)) }()
 
 		existingBot.DeleteAt = 100000
 		existingBot = store.Must(ss.Bot().Update(existingBot)).(*model.Bot)
@@ -418,14 +418,14 @@ func testBotStorePermanentDelete(t *testing.T, ss store.Store) {
 		OwnerId:  model.NewId(),
 	})
 	defer func() { store.Must(ss.Bot().PermanentDelete(b1.UserId)) }()
-	defer func() { store.Must(ss.User().PermanentDelete(b1.UserId)) }()
+	defer func() { require.Nil(t, ss.User().PermanentDelete(b1.UserId)) }()
 
 	b2, _ := makeBotWithUser(ss, &model.Bot{
 		Username: "b2",
 		OwnerId:  model.NewId(),
 	})
 	defer func() { store.Must(ss.Bot().PermanentDelete(b2.UserId)) }()
-	defer func() { store.Must(ss.User().PermanentDelete(b2.UserId)) }()
+	defer func() { require.Nil(t, ss.User().PermanentDelete(b2.UserId)) }()
 
 	t.Run("permanently delete a non-existent bot", func(t *testing.T) {
 		result := <-ss.Bot().PermanentDelete("unknown")
