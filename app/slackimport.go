@@ -662,7 +662,18 @@ func (a *App) SlackImport(fileData multipart.File, fileSize int64, teamID string
 	}
 
 	var channels []SlackChannel
-	var tempChannels []SlackChannel
+	var publicChannels []SlackChannel
+	var privateChannels []SlackChannel
+	var groupChannels []SlackChannel
+	var directChannels []SlackChannel
+
+	channelTypes := [][]SlackChannel{
+		publicChannels,
+		privateChannels,
+		groupChannels,
+		directChannels,
+	}
+
 	var users []SlackUser
 	posts := make(map[string][]SlackPost)
 	uploads := make(map[string]*zip.File)
@@ -673,16 +684,13 @@ func (a *App) SlackImport(fileData multipart.File, fileSize int64, teamID string
 			return model.NewAppError("SlackImport", "api.slackimport.slack_import.open.app_error", map[string]interface{}{"Filename": file.Name}, err.Error(), http.StatusInternalServerError), log
 		}
 		if file.Name == "channels.json" {
-			channels, _ = SlackParseChannels(reader, "O")
+			publicChannels, _ = SlackParseChannels(reader, "O")
 		} else if file.Name == "dms.json" {
-			tempChannels, _ = SlackParseChannels(reader, "D")
-			channels = append(channels, tempChannels...)
+			directChannels, _ = SlackParseChannels(reader, "D")
 		} else if file.Name == "groups.json" {
-			tempChannels, _ = SlackParseChannels(reader, "P")
-			channels = append(channels, tempChannels...)
+			privateChannels, _ = SlackParseChannels(reader, "P")
 		} else if file.Name == "mpims.json" {
-			tempChannels, _ = SlackParseChannels(reader, "G")
-			channels = append(channels, tempChannels...)
+			groupChannels, _ = SlackParseChannels(reader, "G")
 		} else if file.Name == "users.json" {
 			users, _ = SlackParseUsers(reader)
 		} else {
@@ -699,6 +707,10 @@ func (a *App) SlackImport(fileData multipart.File, fileSize int64, teamID string
 				uploads[spl[1]] = file
 			}
 		}
+	}
+
+	for _, c := range channelTypes {
+		channels = append(channels, c...)
 	}
 
 	posts = SlackConvertUserMentions(users, posts)
@@ -728,7 +740,7 @@ func (a *App) SlackImport(fileData multipart.File, fileSize int64, teamID string
 
 //
 // -- Old SlackImport Functions --
-// Import functions are sutible for entering posts and users into the database without
+// Import functions are suitible for entering posts and users into the database without
 // some of the usual checks. (IsValid is still run)
 //
 
