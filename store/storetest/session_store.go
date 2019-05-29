@@ -60,10 +60,10 @@ func testSessionGet(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if data, err := ss.Session().GetSessions(s1.UserId); err != nil {
+	if session, err := ss.Session().GetSessions(s1.UserId); err != nil {
 		t.Fatal(err)
 	} else {
-		if len(data) != 3 {
+		if len(session) != 3 {
 			t.Fatal("should match len")
 		}
 	}
@@ -175,10 +175,10 @@ func testSessionRemoveToken(t *testing.T, ss store.Store) {
 		t.Fatal("should have been removed")
 	}
 
-	if data, err := ss.Session().GetSessions(s1.UserId); err != nil {
+	if session, err := ss.Session().GetSessions(s1.UserId); err != nil {
 		t.Fatal(err)
 	} else {
-		if len(data) != 0 {
+		if len(session) != 0 {
 			t.Fatal("should match len")
 		}
 	}

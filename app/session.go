@@ -160,7 +160,8 @@ func (a *App) SessionCacheLength() int {
 }
 
 func (a *App) RevokeSessionsForDeviceId(userId string, deviceId string, currentSessionId string) *model.AppError {
-	sessions, err:= a.Srv.Store.Session().GetSessions(userId)
+	
+	sessions, err := a.Srv.Store.Session().GetSessions(userId)
 	if err != nil {
 		return err
 	}

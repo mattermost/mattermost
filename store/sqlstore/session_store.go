@@ -109,7 +109,6 @@ func (me SqlSessionStore) Get(sessionIdOrToken string) store.StoreChannel {
 func (me SqlSessionStore) GetSessions(userId string) ([]*model.Session, *model.AppError) {
 	
 	var sessions []*model.Session
-
 	tcs := me.Team().GetTeamsForUser(userId)
 	
 	_, err := me.GetReplica().Select(&sessions, "SELECT * FROM Sessions WHERE UserId = :UserId ORDER BY LastActivityAt DESC", map[string]interface{}{"UserId": userId})
