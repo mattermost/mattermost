@@ -314,7 +314,7 @@ type BotStore interface {
 type SessionStore interface {
 	Save(session *model.Session) StoreChannel
 	Get(sessionIdOrToken string) StoreChannel
-	GetSessions(userId string) StoreChannel
+	GetSessions(userId string) ([]*model.Session, *model.AppError)
 	GetSessionsWithActiveDeviceIds(userId string) StoreChannel
 	Remove(sessionIdOrToken string) StoreChannel
 	RemoveAllSessions() StoreChannel
