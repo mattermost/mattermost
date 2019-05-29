@@ -51,19 +51,16 @@ func (es SqlEmojiStore) CreateIndexesIfNotExists() {
 	es.CreateIndexIfNotExists("idx_emoji_name", "Emoji", "Name")
 }
 
-func (es SqlEmojiStore) Save(emoji *model.Emoji) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		emoji.PreSave()
-		if result.Err = emoji.IsValid(); result.Err != nil {
-			return
-		}
+func (es SqlEmojiStore) Save(emoji *model.Emoji) (*model.Emoji, *model.AppError) {
+	emoji.PreSave()
+	if err := emoji.IsValid(); err != nil {
+		return nil, err
+	}
 
-		if err := es.GetMaster().Insert(emoji); err != nil {
-			result.Err = model.NewAppError("SqlEmojiStore.Save", "store.sql_emoji.save.app_error", nil, "id="+emoji.Id+", "+err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = emoji
-		}
-	})
+	if err := es.GetMaster().Insert(emoji); err != nil {
+		return nil, model.NewAppError("SqlEmojiStore.Save", "store.sql_emoji.save.app_error", nil, "id="+emoji.Id+", "+err.Error(), http.StatusInternalServerError)
+	}
+	return emoji, nil
 }
 
 func (es SqlEmojiStore) Get(id string, allowFromCache bool) (*model.Emoji, *model.AppError) {
