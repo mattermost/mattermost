@@ -27,6 +27,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
@@ -61,11 +62,16 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 
 	// See if the post exists in the DB, if so ignore the cookie.
 	// Start all queries here for parallel execution
-	post, err := a.Srv.Store.Post().GetSingle(postId)
+	pchan := store.Do(func(result *store.StoreResult) {
+		post, err := a.Srv.Store.Post().GetSingle(postId)
+		result.Data = post
+		result.Err = err
+	})
 	cchan := a.Srv.Store.Channel().GetForPost(postId)
-	if err != nil {
+	result := <-pchan
+	if result.Err != nil {
 		if cookie == nil {
-			return "", err
+			return "", result.Err
 		}
 		if cookie.Integration == nil {
 			return "", model.NewAppError("DoPostAction", "api.post.do_action.action_integration.app_error", nil, "no Integration in action cookie", http.StatusBadRequest)
@@ -85,6 +91,7 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 		rootPostId = cookie.RootPostId
 		upstreamURL = cookie.Integration.URL
 	} else {
+		post := result.Data.(*model.Post)
 		result := <-cchan
 		if result.Err != nil {
 			return "", result.Err

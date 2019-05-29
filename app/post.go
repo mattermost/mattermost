@@ -942,11 +942,12 @@ func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamId strin
 }
 
 func (a *App) GetFileInfosForPostWithMigration(postId string) ([]*model.FileInfo, *model.AppError) {
-	post, errPost := a.Srv.Store.Post().GetSingle(postId)
 
-	if errPost != nil {
-		return nil, errPost
-	}
+	pchan := store.Do(func(result *store.StoreResult) {
+		post, errPost := a.Srv.Store.Post().GetSingle(postId)
+		result.Data = post
+		result.Err = errPost
+	})
 
 	infos, err := a.GetFileInfosForPost(postId, false)
 	if err != nil {
@@ -955,6 +956,12 @@ func (a *App) GetFileInfosForPostWithMigration(postId string) ([]*model.FileInfo
 
 	if len(infos) == 0 {
 		// No FileInfos were returned so check if they need to be created for this post
+		result := <-pchan
+		if result.Err != nil {
+			return nil, result.Err
+		}
+		post := result.Data.(*model.Post)
+
 		if len(post.Filenames) > 0 {
 			a.Srv.Store.FileInfo().InvalidateFileInfosForPostCache(postId)
 			// The post has Filenames that need to be replaced with FileInfos

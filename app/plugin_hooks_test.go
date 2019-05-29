@@ -176,11 +176,9 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			t.Fatal(err)
 		}
 		assert.Equal(t, "message", post.Message)
-		if retrievedPost, errSingle := th.App.Srv.Store.Post().GetSingle(post.Id); err != nil {
-			t.Fatal(errSingle)
-		} else {
-			assert.Equal(t, "message", retrievedPost.Message)
-		}
+		retrievedPost, errSingle := th.App.Srv.Store.Post().GetSingle(post.Id)
+		require.Nil(t, errSingle)
+		assert.Equal(t, "message", retrievedPost.Message)
 	})
 
 	t.Run("updated", func(t *testing.T) {
