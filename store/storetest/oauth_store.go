@@ -335,9 +335,8 @@ func testOAuthGetAuthorizedApps(t *testing.T, ss store.Store) {
 	p.Category = model.PREFERENCE_CATEGORY_AUTHORIZED_OAUTH_APP
 	p.Name = a1.Id
 	p.Value = "true"
-	count, err := ss.Preference().Save(&model.Preferences{p})
+	err := ss.Preference().Save(&model.Preferences{p})
 	require.Nil(t, err)
-	require.Equal(t, 1, count)
 
 	if result := <-ss.OAuth().GetAuthorizedApps(a1.CreatorId, 0, 1000); result.Err != nil {
 		t.Fatal(result.Err)
@@ -363,9 +362,8 @@ func testOAuthGetAccessDataByUserForApp(t *testing.T, ss store.Store) {
 	p.Category = model.PREFERENCE_CATEGORY_AUTHORIZED_OAUTH_APP
 	p.Name = a1.Id
 	p.Value = "true"
-	count, err := ss.Preference().Save(&model.Preferences{p})
+	err := ss.Preference().Save(&model.Preferences{p})
 	require.Nil(t, err)
-	require.Equal(t, 1, count)
 
 	if result := <-ss.OAuth().GetAuthorizedApps(a1.CreatorId, 0, 1000); result.Err != nil {
 		t.Fatal(result.Err)
