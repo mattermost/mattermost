@@ -3433,8 +3433,10 @@ func testChannelStoreRemoveAllDeactivatedMembers(t *testing.T, ss store.Store) {
 	// Deactivate users 1 & 2.
 	u1.DeleteAt = model.GetMillis()
 	u2.DeleteAt = model.GetMillis()
-	require.Nil(t, (<-ss.User().Update(&u1, true)).Err)
-	require.Nil(t, (<-ss.User().Update(&u2, true)).Err)
+	_, err = ss.User().Update(&u1, true)
+	require.Nil(t, err)
+	_, err = ss.User().Update(&u2, true)
+	require.Nil(t, err)
 
 	// Remove all deactivated users from the channel.
 	assert.Nil(t, (<-ss.Channel().RemoveAllDeactivatedMembers(c1.Id)).Err)
