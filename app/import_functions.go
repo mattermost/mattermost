@@ -636,7 +636,7 @@ func (a *App) ImportUser(data *UserImportData, dryRun bool) *model.AppError {
 	}
 
 	if len(preferences) > 0 {
-		if _, err := a.Srv.Store.Preference().Save(&preferences); err != nil {
+		if err := a.Srv.Store.Preference().Save(&preferences); err != nil {
 			return model.NewAppError("BulkImport", "app.import.import_user.save_preferences.error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
@@ -721,7 +721,7 @@ func (a *App) ImportUserTeams(user *model.User, data *[]UserTeamImportData) *mod
 	}
 
 	if len(teamThemePreferences) > 0 {
-		if _, err := a.Srv.Store.Preference().Save(&teamThemePreferences); err != nil {
+		if err := a.Srv.Store.Preference().Save(&teamThemePreferences); err != nil {
 			return model.NewAppError("BulkImport", "app.import.import_user_teams.save_preferences.error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
@@ -818,7 +818,7 @@ func (a *App) ImportUserChannels(user *model.User, team *model.Team, teamMember 
 	}
 
 	if len(preferences) > 0 {
-		if _, err := a.Srv.Store.Preference().Save(&preferences); err != nil {
+		if err := a.Srv.Store.Preference().Save(&preferences); err != nil {
 			return model.NewAppError("BulkImport", "app.import.import_user_channels.save_preferences.error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
@@ -1024,7 +1024,7 @@ func (a *App) ImportPost(data *PostImportData, dryRun bool) *model.AppError {
 		}
 
 		if len(preferences) > 0 {
-			if _, err := a.Srv.Store.Preference().Save(&preferences); err != nil {
+			if err := a.Srv.Store.Preference().Save(&preferences); err != nil {
 				return model.NewAppError("BulkImport", "app.import.import_post.save_preferences.error", nil, err.Error(), http.StatusInternalServerError)
 			}
 		}
@@ -1129,7 +1129,7 @@ func (a *App) ImportDirectChannel(data *DirectChannelImportData, dryRun bool) *m
 		}
 	}
 
-	if _, err := a.Srv.Store.Preference().Save(&preferences); err != nil {
+	if err := a.Srv.Store.Preference().Save(&preferences); err != nil {
 		err.StatusCode = http.StatusBadRequest
 		return err
 	}
@@ -1248,7 +1248,7 @@ func (a *App) ImportDirectPost(data *DirectPostImportData, dryRun bool) *model.A
 		}
 
 		if len(preferences) > 0 {
-			if _, err := a.Srv.Store.Preference().Save(&preferences); err != nil {
+			if err := a.Srv.Store.Preference().Save(&preferences); err != nil {
 				return model.NewAppError("BulkImport", "app.import.import_direct_post.save_preferences.error", nil, err.Error(), http.StatusInternalServerError)
 			}
 		}
