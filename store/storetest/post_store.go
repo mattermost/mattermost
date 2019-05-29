@@ -480,8 +480,8 @@ func testPostStorePermDelete1Level(t *testing.T, ss store.Store) {
 		t.Fatal("Deleted id should have failed")
 	}
 
-	if r2 := <-ss.Post().PermanentDeleteByChannel(o3.ChannelId); r2.Err != nil {
-		t.Fatal(r2.Err)
+	if err := ss.Post().PermanentDeleteByChannel(o3.ChannelId); err != nil {
+		t.Fatal(err)
 	}
 
 	if _, err := ss.Post().Get(o3.Id); err == nil {

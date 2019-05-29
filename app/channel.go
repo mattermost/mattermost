@@ -1933,8 +1933,8 @@ func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
 		return channelUsers.Err
 	}
 
-	if result := <-a.Srv.Store.Post().PermanentDeleteByChannel(channel.Id); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.Post().PermanentDeleteByChannel(channel.Id); err != nil {
+		return err
 	}
 
 	if result := <-a.Srv.Store.Channel().PermanentDeleteMembersByChannel(channel.Id); result.Err != nil {
