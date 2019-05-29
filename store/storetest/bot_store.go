@@ -175,7 +175,7 @@ func testBotStoreGetAll(t *testing.T, ss store.Store) {
 		t.Fatal("couldn't save user", err)
 	}
 	deletedUser.DeleteAt = model.GetMillis()
-	if err := (<-ss.User().Update(&deletedUser, true)).Err; err != nil {
+	if _, err := ss.User().Update(&deletedUser, true); err != nil {
 		t.Fatal("couldn't delete user", err)
 	}
 	defer func() { require.Nil(t, ss.User().PermanentDelete(deletedUser.Id)) }()
