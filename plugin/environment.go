@@ -82,7 +82,10 @@ func (env *Environment) Available() ([]*model.BundleInfo, error) {
 func (env *Environment) Active() []*model.BundleInfo {
 	activePlugins := []*model.BundleInfo{}
 	env.activePlugins.Range(func(key, value interface{}) bool {
-		activePlugins = append(activePlugins, value.(activePlugin).BundleInfo)
+		plugin := value.(activePlugin)
+		if plugin.State == model.PluginStateRunning {
+			activePlugins = append(activePlugins, plugin.BundleInfo)
+		}
 
 		return true
 	})

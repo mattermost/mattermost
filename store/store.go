@@ -129,7 +129,7 @@ type TeamStore interface {
 }
 
 type ChannelStore interface {
-	Save(channel *model.Channel, maxChannelsPerTeam int64) StoreChannel
+	Save(channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, *model.AppError)
 	CreateDirectChannel(userId string, otherUserId string) (*model.Channel, *model.AppError)
 	SaveDirectChannel(channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, *model.AppError)
 	Update(channel *model.Channel) (*model.Channel, *model.AppError)
@@ -216,10 +216,10 @@ type PostStore interface {
 	GetSingle(id string) (*model.Post, *model.AppError)
 	Delete(postId string, time int64, deleteByID string) *model.AppError
 	PermanentDeleteByUser(userId string) StoreChannel
-	PermanentDeleteByChannel(channelId string) StoreChannel
+	PermanentDeleteByChannel(channelId string) *model.AppError
 	GetPosts(channelId string, offset int, limit int, allowFromCache bool) StoreChannel
-	GetFlaggedPosts(userId string, offset int, limit int) StoreChannel
-	GetFlaggedPostsForTeam(userId, teamId string, offset int, limit int) StoreChannel
+	GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *model.AppError)
+	GetFlaggedPostsForTeam(userId, teamId string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) StoreChannel
 	GetPostsBefore(channelId string, postId string, numPosts int, offset int) StoreChannel
 	GetPostsAfter(channelId string, postId string, numPosts int, offset int) StoreChannel
@@ -245,7 +245,7 @@ type PostStore interface {
 
 type UserStore interface {
 	Save(user *model.User) StoreChannel
-	Update(user *model.User, allowRoleUpdate bool) StoreChannel
+	Update(user *model.User, allowRoleUpdate bool) (*model.UserUpdate, *model.AppError)
 	UpdateLastPictureUpdate(userId string) StoreChannel
 	ResetLastPictureUpdate(userId string) StoreChannel
 	UpdateUpdateAt(userId string) StoreChannel
@@ -315,14 +315,14 @@ type SessionStore interface {
 	Save(session *model.Session) StoreChannel
 	Get(sessionIdOrToken string) StoreChannel
 	GetSessions(userId string) StoreChannel
-	GetSessionsWithActiveDeviceIds(userId string) StoreChannel
+	GetSessionsWithActiveDeviceIds(userId string) ([]*model.Session, *model.AppError)
 	Remove(sessionIdOrToken string) StoreChannel
 	RemoveAllSessions() StoreChannel
 	PermanentDeleteSessionsByUser(teamId string) StoreChannel
 	UpdateLastActivityAt(sessionId string, time int64) StoreChannel
 	UpdateRoles(userId string, roles string) StoreChannel
 	UpdateDeviceId(id string, deviceId string, expiresAt int64) StoreChannel
-	AnalyticsSessionCount() StoreChannel
+	AnalyticsSessionCount() (int64, *model.AppError)
 	Cleanup(expiryTime int64, batchSize int64)
 }
 
@@ -428,15 +428,15 @@ type CommandWebhookStore interface {
 }
 
 type PreferenceStore interface {
-	Save(preferences *model.Preferences) StoreChannel
+	Save(preferences *model.Preferences) *model.AppError
 	GetCategory(userId string, category string) (model.Preferences, *model.AppError)
 	Get(userId string, category string, name string) (*model.Preference, *model.AppError)
 	GetAll(userId string) StoreChannel
 	Delete(userId, category, name string) StoreChannel
-	DeleteCategory(userId string, category string) StoreChannel
-	DeleteCategoryAndName(category string, name string) StoreChannel
+	DeleteCategory(userId string, category string) *model.AppError
+	DeleteCategoryAndName(category string, name string) *model.AppError
 	PermanentDeleteByUser(userId string) *model.AppError
-	IsFeatureEnabled(feature, userId string) StoreChannel
+	IsFeatureEnabled(feature, userId string) (bool, *model.AppError)
 	CleanupFlagsBatch(limit int64) (int64, *model.AppError)
 }
 
@@ -454,7 +454,7 @@ type TokenStore interface {
 }
 
 type EmojiStore interface {
-	Save(emoji *model.Emoji) StoreChannel
+	Save(emoji *model.Emoji) (*model.Emoji, *model.AppError)
 	Get(id string, allowFromCache bool) (*model.Emoji, *model.AppError)
 	GetByName(name string) StoreChannel
 	GetMultipleByName(names []string) StoreChannel
