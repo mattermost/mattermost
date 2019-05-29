@@ -1391,7 +1391,7 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, ss store.Store, s SqlSupp
 
 	store.Must(ss.Preference().Save(&preferences))
 
-	r2 := (<-ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 2)).Data.(*model.PostList)
+	r2, _ := ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 2)
 
 	if len(r2.Order) != 1 {
 		t.Fatal("should have 1 post")
@@ -1408,25 +1408,25 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, ss store.Store, s SqlSupp
 
 	store.Must(ss.Preference().Save(&preferences))
 
-	r3 := (<-ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 1)).Data.(*model.PostList)
+	r3, _ := ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 1)
 
 	if len(r3.Order) != 1 {
 		t.Fatal("should have 1 post")
 	}
 
-	r3 = (<-ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 1, 1)).Data.(*model.PostList)
+	r3, _ = ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 1, 1)
 
 	if len(r3.Order) != 1 {
 		t.Fatal("should have 1 post")
 	}
 
-	r3 = (<-ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 1000, 10)).Data.(*model.PostList)
+	r3, _ = ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 1000, 10)
 
 	if len(r3.Order) != 0 {
 		t.Fatal("should be empty")
 	}
 
-	r4 := (<-ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 2)).Data.(*model.PostList)
+	r4, _ := ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 2)
 
 	if len(r4.Order) != 2 {
 		t.Fatal("should have 2 posts")
@@ -1443,7 +1443,7 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, ss store.Store, s SqlSupp
 
 	store.Must(ss.Preference().Save(&preferences))
 
-	r4 = (<-ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 2)).Data.(*model.PostList)
+	r4, _ = ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 2)
 
 	if len(r4.Order) != 2 {
 		t.Fatal("should have 2 posts")
@@ -1459,13 +1459,13 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, ss store.Store, s SqlSupp
 	}
 	store.Must(ss.Preference().Save(&preferences))
 
-	r4 = (<-ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 2)).Data.(*model.PostList)
+	r4, _ = ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 2)
 
 	if len(r4.Order) != 2 {
 		t.Fatal("should have 2 posts")
 	}
 
-	r4 = (<-ss.Post().GetFlaggedPostsForTeam(o1.UserId, model.NewId(), 0, 2)).Data.(*model.PostList)
+	r4, _ = ss.Post().GetFlaggedPostsForTeam(o1.UserId, model.NewId(), 0, 2)
 
 	if len(r4.Order) != 0 {
 		t.Fatal("should have 0 posts")
@@ -1481,7 +1481,7 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, ss store.Store, s SqlSupp
 	}
 	store.Must(ss.Preference().Save(&preferences))
 
-	r4 = (<-ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 10)).Data.(*model.PostList)
+	r4, _ = ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 10)
 
 	if len(r4.Order) != 3 {
 		t.Fatal("should have 3 posts")
