@@ -239,7 +239,7 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	// Find the team that was used to make this post since its part of the file path that isn't saved in the Filename
 	var teamId string
 	if channel.TeamId == "" {
-		// This post was made in a cross-team DM channel so we need to find where its files were saved
+		// This post was made in a cross-team DM channel, so we need to find where its files were saved
 		teamId = a.FindTeamIdForFilename(post, filenames[0])
 	} else {
 		teamId = channel.TeamId
