@@ -153,15 +153,15 @@ func testPostStoreGetSingle(t *testing.T, ss store.Store) {
 
 	o1 = (<-ss.Post().Save(o1)).Data.(*model.Post)
 
-	if r1 := <-ss.Post().GetSingle(o1.Id); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if post, err := ss.Post().GetSingle(o1.Id); err != nil {
+		t.Fatal(err)
 	} else {
-		if r1.Data.(*model.Post).CreateAt != o1.CreateAt {
+		if post.CreateAt != o1.CreateAt {
 			t.Fatal("invalid returned post")
 		}
 	}
 
-	if err := (<-ss.Post().GetSingle("123")).Err; err == nil {
+	if _, err := ss.Post().GetSingle("123"); err == nil {
 		t.Fatal("Missing id should have failed")
 	}
 }

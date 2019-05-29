@@ -381,10 +381,8 @@ func TestPostActionProps(t *testing.T) {
 	require.Nil(t, err)
 	assert.True(t, len(clientTriggerId) == 26)
 
-	pchan := th.App.Srv.Store.Post().GetSingle(post.Id)
-	result := <-pchan
-	require.Nil(t, result.Err)
-	newPost := result.Data.(*model.Post)
+	newPost, err := th.App.Srv.Store.Post().GetSingle(post.Id)
+	require.Nil(t, err)
 
 	assert.True(t, newPost.IsPinned)
 	assert.False(t, newPost.HasReactions)
