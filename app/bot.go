@@ -44,8 +44,8 @@ func (a *App) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, 
 	user.Username = patchedUser.Username
 	user.Email = patchedUser.Email
 	user.FirstName = patchedUser.FirstName
-	if result := <-a.Srv.Store.User().Update(user, true); result.Err != nil {
-		return nil, result.Err
+	if _, err := a.Srv.Store.User().Update(user, true); err != nil {
+		return nil, err
 	}
 
 	result := <-a.Srv.Store.Bot().Update(bot)

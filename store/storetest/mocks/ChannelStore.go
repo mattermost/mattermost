@@ -947,19 +947,28 @@ func (_m *ChannelStore) Restore(channelId string, time int64) *model.AppError {
 }
 
 // Save provides a mock function with given fields: channel, maxChannelsPerTeam
-func (_m *ChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) store.StoreChannel {
+func (_m *ChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, *model.AppError) {
 	ret := _m.Called(channel, maxChannelsPerTeam)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(*model.Channel, int64) store.StoreChannel); ok {
+	var r0 *model.Channel
+	if rf, ok := ret.Get(0).(func(*model.Channel, int64) *model.Channel); ok {
 		r0 = rf(channel, maxChannelsPerTeam)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.Channel)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.Channel, int64) *model.AppError); ok {
+		r1 = rf(channel, maxChannelsPerTeam)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // SaveDirectChannel provides a mock function with given fields: channel, member1, member2
