@@ -67,15 +67,15 @@ func (a *App) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartIma
 		return nil, err
 	}
 
-	result := <-a.Srv.Store.Emoji().Save(emoji)
-	if result.Err != nil {
-		return nil, result.Err
+	emoji, err := a.Srv.Store.Emoji().Save(emoji)
+	if err != nil {
+		return nil, err
 	}
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_EMOJI_ADDED, "", "", "", nil)
 	message.Add("emoji", emoji.ToJson())
 	a.Publish(message)
-	return result.Data.(*model.Emoji), nil
+	return emoji, nil
 }
 
 func (a *App) GetEmojiList(page, perPage int, sort string) ([]*model.Emoji, *model.AppError) {

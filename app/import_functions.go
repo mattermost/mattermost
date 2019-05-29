@@ -1314,8 +1314,8 @@ func (a *App) ImportEmoji(data *EmojiImportData, dryRun bool) *model.AppError {
 	}
 
 	if !alreadyExists {
-		if result := <-a.Srv.Store.Emoji().Save(emoji); result.Err != nil {
-			return result.Err
+		if _, err := a.Srv.Store.Emoji().Save(emoji); err != nil {
+			return err
 		}
 	}
 
