@@ -1233,6 +1233,7 @@ func testTeamMemberRemovals(t *testing.T, ss store.Store) {
 
 	// one result when both users are in the group (for user C)
 	teamMembers, err := ss.Group().TeamMembersToRemove()
+	require.Nil(t, err)
 	require.Len(t, teamMembers, 1)
 	require.Equal(t, data.UserC.Id, teamMembers[0].UserId)
 
