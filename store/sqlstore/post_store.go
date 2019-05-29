@@ -197,13 +197,12 @@ func (s *SqlPostStore) GetFlaggedPosts(userId string, offset int, limit int) sto
 	})
 }
 
-func (s *SqlPostStore) GetFlaggedPostsForTeam(userId, teamId string, offset int, limit int) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		pl := model.NewPostList()
+func (s *SqlPostStore) GetFlaggedPostsForTeam(userId, teamId string, offset int, limit int) (*model.PostList, *model.AppError) {
+	pl := model.NewPostList()
 
-		var posts []*model.Post
+	var posts []*model.Post
 
-		query := `
+	query := `
             SELECT
                 A.*
             FROM
@@ -229,17 +228,16 @@ func (s *SqlPostStore) GetFlaggedPostsForTeam(userId, teamId string, offset int,
             ORDER BY CreateAt DESC
             LIMIT :Limit OFFSET :Offset`
 
-		if _, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_FLAGGED_POST, "Offset": offset, "Limit": limit, "TeamId": teamId}); err != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetFlaggedPostsForTeam", "store.sql_post.get_flagged_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			for _, post := range posts {
-				pl.AddPost(post)
-				pl.AddOrder(post.Id)
-			}
-		}
+	if _, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_FLAGGED_POST, "Offset": offset, "Limit": limit, "TeamId": teamId}); err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetFlaggedPostsForTeam", "store.sql_post.get_flagged_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = pl
-	})
+	for _, post := range posts {
+		pl.AddPost(post)
+		pl.AddOrder(post.Id)
+	}
+
+	return pl, nil
 }
 
 func (s *SqlPostStore) GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) store.StoreChannel {
