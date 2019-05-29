@@ -1549,7 +1549,7 @@ func testPostStoreGetFlaggedPosts(t *testing.T, ss store.Store) {
 		},
 	}
 
-	err := ss.Preference().Save(&preferences)
+	err = ss.Preference().Save(&preferences)
 	require.Nil(t, err)
 
 	r2, err := ss.Post().GetFlaggedPosts(o1.UserId, 0, 2)
