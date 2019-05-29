@@ -246,7 +246,7 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(clientId, grantType, redirectUri, c
 		var authData *model.AuthData
 		result := <-a.Srv.Store.OAuth().GetAuthData(code)
 		if result.Err != nil {
-			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.expired_code.app_error", nil, "", http.StatusInternalServerError)
+			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.expired_code.app_error", nil, "", http.StatusBadRequest)
 		}
 		authData = result.Data.(*model.AuthData)
 
@@ -267,7 +267,7 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(clientId, grantType, redirectUri, c
 
 		result = <-a.Srv.Store.OAuth().GetPreviousAccessData(user.Id, clientId)
 		if result.Err != nil {
-			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal.app_error", nil, "", http.StatusInternalServerError)
+			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal.app_error", nil, "", http.StatusBadRequest)
 		}
 
 		if result.Data != nil {
