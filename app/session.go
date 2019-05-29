@@ -96,17 +96,15 @@ func (a *App) GetSessions(userId string) ([]*model.Session, *model.AppError) {
 	if err != nil {
 		return nil, err
 	}
-	return result.Data.([]*model.Session), nil
+	return session, nil
 
 }
 
 func (a *App) RevokeAllSessions(userId string) *model.AppError {
-	session, err := a.Srv.Store.Session().GetSessions(userId)
+	sessions, err := a.Srv.Store.Session().GetSessions(userId)
 	if err != nil {
 		return err
 	}
-	sessions := result.Data.([]*model.Session)
-
 	for _, session := range sessions {
 		if session.IsOAuth {
 			a.RevokeAccessToken(session.Token)
@@ -162,11 +160,10 @@ func (a *App) SessionCacheLength() int {
 }
 
 func (a *App) RevokeSessionsForDeviceId(userId string, deviceId string, currentSessionId string) *model.AppError {
-	session := a.Srv.Store.Session().GetSessions(userId)
-	if result.Err != nil {
+	sessions, err:= a.Srv.Store.Session().GetSessions(userId)
+	if err != nil {
 		return err
 	}
-	sessions := result.Data.([]*model.Session)
 	for _, session := range sessions {
 		if session.DeviceId == deviceId && session.Id != currentSessionId {
 			mlog.Debug(fmt.Sprintf("Revoking sessionId=%v for userId=%v re-login with same device Id", session.Id, userId), mlog.String("user_id", userId))
