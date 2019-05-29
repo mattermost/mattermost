@@ -468,20 +468,12 @@ func (s *SqlPostStore) GetPosts(channelId string, offset int, limit int, allowFr
 	// Caching only occurs on limits of 30 and 60, the common limits requested by MM clients
 	if allowFromCache && offset == 0 && (limit == 60 || limit == 30) {
 		if cacheItem, ok := s.lastPostsCache.Get(fmt.Sprintf("%s%v", channelId, limit)); ok {
-			if s.metrics != nil {
-				s.metrics.IncrementMemCacheHitCounter("Last Posts Cache")
-			}
-
 			return cacheItem.(*model.PostList), nil
-		} else {
-			if s.metrics != nil {
-				s.metrics.IncrementMemCacheMissCounter("Last Posts Cache")
-			}
 		}
-	} else {
-		if s.metrics != nil {
-			s.metrics.IncrementMemCacheMissCounter("Last Posts Cache")
-		}
+	}
+
+	if s.metrics != nil {
+		s.metrics.IncrementMemCacheHitCounter("Last Posts Cache")
 	}
 
 	rpc := s.getRootPosts(channelId, offset, limit)
@@ -490,30 +482,34 @@ func (s *SqlPostStore) GetPosts(channelId string, offset int, limit int, allowFr
 	var err *model.AppError
 	list := model.NewPostList()
 
-	if rpr := <-rpc; rpr.Err != nil {
-		err = rpr.Err
-	} else if cpr := <-cpc; cpr.Err != nil {
-		err = cpr.Err
-	} else {
-		posts := rpr.Data.([]*model.Post)
-		parents := cpr.Data.([]*model.Post)
+	rpr := <-rpc
+	cpr := <-cpc
 
-		for _, p := range posts {
-			list.AddPost(p)
-			list.AddOrder(p.Id)
-		}
-
-		for _, p := range parents {
-			list.AddPost(p)
-		}
-
-		list.MakeNonNil()
-
-		// Caching only occurs on limits of 30 and 60, the common limits requested by MM clients
-		if offset == 0 && (limit == 60 || limit == 30) {
-			s.lastPostsCache.AddWithExpiresInSecs(fmt.Sprintf("%s%v", channelId, limit), list, LAST_POSTS_CACHE_SEC)
-		}
+	if rpr.Err != nil {
+		return nil, rpr.Err
+	} else if cpr.Err != nil {
+		return nil, cpr.Err
 	}
+
+	posts := rpr.Data.([]*model.Post)
+	parents := cpr.Data.([]*model.Post)
+
+	for _, p := range posts {
+		list.AddPost(p)
+		list.AddOrder(p.Id)
+	}
+
+	for _, p := range parents {
+		list.AddPost(p)
+	}
+
+	list.MakeNonNil()
+
+	// Caching only occurs on limits of 30 and 60, the common limits requested by MM clients
+	if offset == 0 && (limit == 60 || limit == 30) {
+		s.lastPostsCache.AddWithExpiresInSecs(fmt.Sprintf("%s%v", channelId, limit), list, LAST_POSTS_CACHE_SEC)
+	}
+
 	return list, err
 }
 

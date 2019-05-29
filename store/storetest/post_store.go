@@ -636,7 +636,8 @@ func testPostStoreGetPostsWithDetails(t *testing.T, ss store.Store) {
 	o5.RootId = o4.Id
 	o5 = (<-ss.Post().Save(o5)).Data.(*model.Post)
 
-	r1, _ := ss.Post().GetPosts(o1.ChannelId, 0, 4, false)
+	r1, err := ss.Post().GetPosts(o1.ChannelId, 0, 4, false)
+	require.Nil(t, err)
 
 	if r1.Order[0] != o5.Id {
 		t.Fatal("invalid order")
