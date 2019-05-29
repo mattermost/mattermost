@@ -1378,7 +1378,8 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, ss store.Store, s SqlSupp
 	o5 = (<-ss.Post().Save(o5)).Data.(*model.Post)
 	time.Sleep(2 * time.Millisecond)
 
-	r1 := (<-ss.Post().GetFlaggedPosts(o1.ChannelId, 0, 2)).Data.(*model.PostList)
+	r1, err := ss.Post().GetFlaggedPosts(o1.ChannelId, 0, 2)
+	require.Nil(t, err)
 
 	if len(r1.Order) != 0 {
 		t.Fatal("should be empty")
@@ -1532,7 +1533,8 @@ func testPostStoreGetFlaggedPosts(t *testing.T, ss store.Store) {
 	o3 = (<-ss.Post().Save(o3)).Data.(*model.Post)
 	time.Sleep(2 * time.Millisecond)
 
-	r1 := (<-ss.Post().GetFlaggedPosts(o1.UserId, 0, 2)).Data.(*model.PostList)
+	r1, err := ss.Post().GetFlaggedPosts(o1.UserId, 0, 2)
+	require.Nil(t, err)
 
 	if len(r1.Order) != 0 {
 		t.Fatal("should be empty")
@@ -1547,10 +1549,11 @@ func testPostStoreGetFlaggedPosts(t *testing.T, ss store.Store) {
 		},
 	}
 
-	err := ss.Preference().Save(&preferences)
+	err = ss.Preference().Save(&preferences)
 	require.Nil(t, err)
 
-	r2 := (<-ss.Post().GetFlaggedPosts(o1.UserId, 0, 2)).Data.(*model.PostList)
+	r2, err := ss.Post().GetFlaggedPosts(o1.UserId, 0, 2)
+	require.Nil(t, err)
 
 	if len(r2.Order) != 1 {
 		t.Fatal("should have 1 post")
@@ -1568,25 +1571,29 @@ func testPostStoreGetFlaggedPosts(t *testing.T, ss store.Store) {
 	err = ss.Preference().Save(&preferences)
 	require.Nil(t, err)
 
-	r3 := (<-ss.Post().GetFlaggedPosts(o1.UserId, 0, 1)).Data.(*model.PostList)
+	r3, err := ss.Post().GetFlaggedPosts(o1.UserId, 0, 1)
+	require.Nil(t, err)
 
 	if len(r3.Order) != 1 {
 		t.Fatal("should have 1 post")
 	}
 
-	r3 = (<-ss.Post().GetFlaggedPosts(o1.UserId, 1, 1)).Data.(*model.PostList)
+	r3, err = ss.Post().GetFlaggedPosts(o1.UserId, 1, 1)
+	require.Nil(t, err)
 
 	if len(r3.Order) != 1 {
 		t.Fatal("should have 1 post")
 	}
 
-	r3 = (<-ss.Post().GetFlaggedPosts(o1.UserId, 1000, 10)).Data.(*model.PostList)
+	r3, err = ss.Post().GetFlaggedPosts(o1.UserId, 1000, 10)
+	require.Nil(t, err)
 
 	if len(r3.Order) != 0 {
 		t.Fatal("should be empty")
 	}
 
-	r4 := (<-ss.Post().GetFlaggedPosts(o1.UserId, 0, 2)).Data.(*model.PostList)
+	r4, err := ss.Post().GetFlaggedPosts(o1.UserId, 0, 2)
+	require.Nil(t, err)
 
 	if len(r4.Order) != 2 {
 		t.Fatal("should have 2 posts")
@@ -1604,7 +1611,8 @@ func testPostStoreGetFlaggedPosts(t *testing.T, ss store.Store) {
 	err = ss.Preference().Save(&preferences)
 	require.Nil(t, err)
 
-	r4 = (<-ss.Post().GetFlaggedPosts(o1.UserId, 0, 2)).Data.(*model.PostList)
+	r4, err = ss.Post().GetFlaggedPosts(o1.UserId, 0, 2)
+	require.Nil(t, err)
 
 	if len(r4.Order) != 2 {
 		t.Fatal("should have 2 posts")
