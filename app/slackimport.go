@@ -740,7 +740,7 @@ func (a *App) SlackImport(fileData multipart.File, fileSize int64, teamID string
 
 //
 // -- Old SlackImport Functions --
-// Import functions are suitible for entering posts and users into the database without
+// Import functions are suitable for entering posts and users into the database without
 // some of the usual checks. (IsValid is still run)
 //
 
