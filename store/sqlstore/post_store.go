@@ -230,11 +230,11 @@ func (s *SqlPostStore) GetFlaggedPostsForTeam(userId, teamId string, offset int,
 
 	if _, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_FLAGGED_POST, "Offset": offset, "Limit": limit, "TeamId": teamId}); err != nil {
 		return nil, model.NewAppError("SqlPostStore.GetFlaggedPostsForTeam", "store.sql_post.get_flagged_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
-	} else {
-		for _, post := range posts {
-			pl.AddPost(post)
-			pl.AddOrder(post.Id)
-		}
+	}
+
+	for _, post := range posts {
+		pl.AddPost(post)
+		pl.AddOrder(post.Id)
 	}
 
 	return pl, nil
