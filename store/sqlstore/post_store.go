@@ -147,19 +147,19 @@ func (s *SqlPostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.
 
 	if _, err := s.GetMaster().Update(newPost); err != nil {
 		return nil, model.NewAppError("SqlPostStore.Update", "store.sql_post.update.app_error", nil, "id="+newPost.Id+", "+err.Error(), http.StatusInternalServerError)
-	} else {
-		time := model.GetMillis()
-		s.GetMaster().Exec("UPDATE Channels SET LastPostAt = :LastPostAt  WHERE Id = :ChannelId AND LastPostAt < :LastPostAt", map[string]interface{}{"LastPostAt": time, "ChannelId": newPost.ChannelId})
-
-		if len(newPost.RootId) > 0 {
-			s.GetMaster().Exec("UPDATE Posts SET UpdateAt = :UpdateAt WHERE Id = :RootId AND UpdateAt < :UpdateAt", map[string]interface{}{"UpdateAt": time, "RootId": newPost.RootId})
-		}
-
-		// mark the old post as deleted
-		s.GetMaster().Insert(oldPost)
-
-		return newPost, nil
 	}
+
+	time := model.GetMillis()
+	s.GetMaster().Exec("UPDATE Channels SET LastPostAt = :LastPostAt  WHERE Id = :ChannelId AND LastPostAt < :LastPostAt", map[string]interface{}{"LastPostAt": time, "ChannelId": newPost.ChannelId})
+
+	if len(newPost.RootId) > 0 {
+		s.GetMaster().Exec("UPDATE Posts SET UpdateAt = :UpdateAt WHERE Id = :RootId AND UpdateAt < :UpdateAt", map[string]interface{}{"UpdateAt": time, "RootId": newPost.RootId})
+	}
+
+	// mark the old post as deleted
+	s.GetMaster().Insert(oldPost)
+
+	return newPost, nil
 }
 
 func (s *SqlPostStore) Overwrite(post *model.Post) (*model.Post, *model.AppError) {
