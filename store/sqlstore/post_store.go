@@ -468,6 +468,9 @@ func (s *SqlPostStore) GetPosts(channelId string, offset int, limit int, allowFr
 	// Caching only occurs on limits of 30 and 60, the common limits requested by MM clients
 	if allowFromCache && offset == 0 && (limit == 60 || limit == 30) {
 		if cacheItem, ok := s.lastPostsCache.Get(fmt.Sprintf("%s%v", channelId, limit)); ok {
+			if s.metrics != nil {
+				s.metrics.IncrementMemCacheHitCounter("Last Posts Cache")
+			}
 			return cacheItem.(*model.PostList), nil
 		}
 	}
@@ -483,11 +486,12 @@ func (s *SqlPostStore) GetPosts(channelId string, offset int, limit int, allowFr
 	list := model.NewPostList()
 
 	rpr := <-rpc
-	cpr := <-cpc
-
 	if rpr.Err != nil {
 		return nil, rpr.Err
-	} else if cpr.Err != nil {
+	}
+
+	cpr := <-cpc
+	if cpr.Err != nil {
 		return nil, cpr.Err
 	}
 
