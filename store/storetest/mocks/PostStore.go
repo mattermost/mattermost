@@ -424,15 +424,15 @@ func (_m *PostStore) PermanentDeleteBatch(endTime int64, limit int64) store.Stor
 }
 
 // PermanentDeleteByChannel provides a mock function with given fields: channelId
-func (_m *PostStore) PermanentDeleteByChannel(channelId string) store.StoreChannel {
+func (_m *PostStore) PermanentDeleteByChannel(channelId string) *model.AppError {
 	ret := _m.Called(channelId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
 		r0 = rf(channelId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
