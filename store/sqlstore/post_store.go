@@ -179,31 +179,28 @@ func (s *SqlPostStore) Overwrite(post *model.Post) (*model.Post, *model.AppError
 	return post, nil
 }
 
-func (s *SqlPostStore) GetFlaggedPosts(userId string, offset int, limit int) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		pl := model.NewPostList()
+func (s *SqlPostStore) GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *model.AppError) {
+	pl := model.NewPostList()
 
-		var posts []*model.Post
-		if _, err := s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE Id IN (SELECT Name FROM Preferences WHERE UserId = :UserId AND Category = :Category) AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset", map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_FLAGGED_POST, "Offset": offset, "Limit": limit}); err != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetFlaggedPosts", "store.sql_post.get_flagged_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			for _, post := range posts {
-				pl.AddPost(post)
-				pl.AddOrder(post.Id)
-			}
-		}
+	var posts []*model.Post
+	if _, err := s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE Id IN (SELECT Name FROM Preferences WHERE UserId = :UserId AND Category = :Category) AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset", map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_FLAGGED_POST, "Offset": offset, "Limit": limit}); err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetFlaggedPosts", "store.sql_post.get_flagged_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = pl
-	})
+	for _, post := range posts {
+		pl.AddPost(post)
+		pl.AddOrder(post.Id)
+	}
+
+	return pl, nil
 }
 
-func (s *SqlPostStore) GetFlaggedPostsForTeam(userId, teamId string, offset int, limit int) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		pl := model.NewPostList()
+func (s *SqlPostStore) GetFlaggedPostsForTeam(userId, teamId string, offset int, limit int) (*model.PostList, *model.AppError) {
+	pl := model.NewPostList()
 
-		var posts []*model.Post
+	var posts []*model.Post
 
-		query := `
+	query := `
             SELECT
                 A.*
             FROM
@@ -229,17 +226,16 @@ func (s *SqlPostStore) GetFlaggedPostsForTeam(userId, teamId string, offset int,
             ORDER BY CreateAt DESC
             LIMIT :Limit OFFSET :Offset`
 
-		if _, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_FLAGGED_POST, "Offset": offset, "Limit": limit, "TeamId": teamId}); err != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetFlaggedPostsForTeam", "store.sql_post.get_flagged_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			for _, post := range posts {
-				pl.AddPost(post)
-				pl.AddOrder(post.Id)
-			}
-		}
+	if _, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_FLAGGED_POST, "Offset": offset, "Limit": limit, "TeamId": teamId}); err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetFlaggedPostsForTeam", "store.sql_post.get_flagged_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = pl
-	})
+	for _, post := range posts {
+		pl.AddPost(post)
+		pl.AddOrder(post.Id)
+	}
+
+	return pl, nil
 }
 
 func (s *SqlPostStore) GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) store.StoreChannel {
@@ -452,12 +448,11 @@ func (s *SqlPostStore) PermanentDeleteByUser(userId string) store.StoreChannel {
 	})
 }
 
-func (s *SqlPostStore) PermanentDeleteByChannel(channelId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if _, err := s.GetMaster().Exec("DELETE FROM Posts WHERE ChannelId = :ChannelId", map[string]interface{}{"ChannelId": channelId}); err != nil {
-			result.Err = model.NewAppError("SqlPostStore.PermanentDeleteByChannel", "store.sql_post.permanent_delete_by_channel.app_error", nil, "channel_id="+channelId+", "+err.Error(), http.StatusInternalServerError)
-		}
-	})
+func (s *SqlPostStore) PermanentDeleteByChannel(channelId string) *model.AppError {
+	if _, err := s.GetMaster().Exec("DELETE FROM Posts WHERE ChannelId = :ChannelId", map[string]interface{}{"ChannelId": channelId}); err != nil {
+		return model.NewAppError("SqlPostStore.PermanentDeleteByChannel", "store.sql_post.permanent_delete_by_channel.app_error", nil, "channel_id="+channelId+", "+err.Error(), http.StatusInternalServerError)
+	}
+	return nil
 }
 
 func (s *SqlPostStore) GetPosts(channelId string, offset int, limit int, allowFromCache bool) store.StoreChannel {
