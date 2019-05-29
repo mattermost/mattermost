@@ -588,11 +588,11 @@ type GroupStore interface {
 	UpdateGroupSyncable(groupSyncable *model.GroupSyncable) StoreChannel
 	DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) StoreChannel
 
-	TeamMembersToAdd(since int64) StoreChannel
-	ChannelMembersToAdd(since int64) StoreChannel
+	TeamMembersToAdd(since int64) ([]*model.UserTeamIDPair, *model.AppError)
+	ChannelMembersToAdd(since int64) ([]*model.UserChannelIDPair, *model.AppError)
 
-	TeamMembersToRemove() StoreChannel
-	ChannelMembersToRemove() StoreChannel
+	TeamMembersToRemove() ([]*model.TeamMember, *model.AppError)
+	ChannelMembersToRemove() ([]*model.ChannelMember, *model.AppError)
 
 	GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) StoreChannel
 	CountGroupsByChannel(channelId string, opts model.GroupSearchOpts) StoreChannel
