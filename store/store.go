@@ -227,7 +227,7 @@ type PostStore interface {
 	GetEtag(channelId string, allowFromCache bool) StoreChannel
 	Search(teamId string, userId string, params *model.SearchParams) StoreChannel
 	AnalyticsUserCountsWithPostsByDay(teamId string) StoreChannel
-	AnalyticsPostCountsByDay(teamId string) StoreChannel
+	AnalyticsPostCountsByDay(teamId string) (model.AnalyticsRows, *model.AppError)
 	AnalyticsPostCount(teamId string, mustHaveFile bool, mustHaveHashtag bool) StoreChannel
 	ClearCaches()
 	InvalidateLastPostTimeCache(channelId string)

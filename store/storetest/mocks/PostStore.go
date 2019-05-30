@@ -30,19 +30,28 @@ func (_m *PostStore) AnalyticsPostCount(teamId string, mustHaveFile bool, mustHa
 }
 
 // AnalyticsPostCountsByDay provides a mock function with given fields: teamId
-func (_m *PostStore) AnalyticsPostCountsByDay(teamId string) store.StoreChannel {
+func (_m *PostStore) AnalyticsPostCountsByDay(teamId string) (model.AnalyticsRows, *model.AppError) {
 	ret := _m.Called(teamId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+	var r0 model.AnalyticsRows
+	if rf, ok := ret.Get(0).(func(string) model.AnalyticsRows); ok {
 		r0 = rf(teamId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(model.AnalyticsRows)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(teamId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // AnalyticsUserCountsWithPostsByDay provides a mock function with given fields: teamId
