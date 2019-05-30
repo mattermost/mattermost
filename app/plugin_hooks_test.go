@@ -176,11 +176,9 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			t.Fatal(err)
 		}
 		assert.Equal(t, "message", post.Message)
-		if result := <-th.App.Srv.Store.Post().GetSingle(post.Id); result.Err != nil {
-			t.Fatal(err)
-		} else {
-			assert.Equal(t, "message", result.Data.(*model.Post).Message)
-		}
+		retrievedPost, errSingle := th.App.Srv.Store.Post().GetSingle(post.Id)
+		require.Nil(t, errSingle)
+		assert.Equal(t, "message", retrievedPost.Message)
 	})
 
 	t.Run("updated", func(t *testing.T) {
@@ -223,10 +221,10 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			t.Fatal(err)
 		}
 		assert.Equal(t, "message_fromplugin", post.Message)
-		if result := <-th.App.Srv.Store.Post().GetSingle(post.Id); result.Err != nil {
-			t.Fatal(err)
+		if retrievedPost, errSingle := th.App.Srv.Store.Post().GetSingle(post.Id); err != nil {
+			t.Fatal(errSingle)
 		} else {
-			assert.Equal(t, "message_fromplugin", result.Data.(*model.Post).Message)
+			assert.Equal(t, "message_fromplugin", retrievedPost.Message)
 		}
 	})
 

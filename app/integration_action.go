@@ -27,6 +27,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
@@ -61,8 +62,15 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 
 	// See if the post exists in the DB, if so ignore the cookie.
 	// Start all queries here for parallel execution
-	pchan := a.Srv.Store.Post().GetSingle(postId)
+	pchan := make(chan store.StoreResult, 1)
+	go func() {
+		post, err := a.Srv.Store.Post().GetSingle(postId)
+		pchan <- store.StoreResult{Data: post, Err: err}
+		close(pchan)
+	}()
+
 	cchan := a.Srv.Store.Channel().GetForPost(postId)
+
 	result := <-pchan
 	if result.Err != nil {
 		if cookie == nil {
@@ -86,9 +94,7 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 		rootPostId = cookie.RootPostId
 		upstreamURL = cookie.Integration.URL
 	} else {
-		// Get action metadata from the database
 		post := result.Data.(*model.Post)
-
 		result = <-cchan
 		if result.Err != nil {
 			return "", result.Err

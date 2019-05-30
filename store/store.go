@@ -213,7 +213,7 @@ type PostStore interface {
 	Save(post *model.Post) StoreChannel
 	Update(newPost *model.Post, oldPost *model.Post) (*model.Post, *model.AppError)
 	Get(id string) (*model.PostList, *model.AppError)
-	GetSingle(id string) StoreChannel
+	GetSingle(id string) (*model.Post, *model.AppError)
 	Delete(postId string, time int64, deleteByID string) *model.AppError
 	PermanentDeleteByUser(userId string) StoreChannel
 	PermanentDeleteByChannel(channelId string) *model.AppError
