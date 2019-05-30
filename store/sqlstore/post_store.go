@@ -304,16 +304,13 @@ func (s *SqlPostStore) Get(id string) (*model.PostList, *model.AppError) {
 	return pl, nil
 }
 
-func (s *SqlPostStore) GetSingle(id string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var post model.Post
-		err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": id})
-		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetSingle", "store.sql_post.get.app_error", nil, "id="+id+err.Error(), http.StatusNotFound)
-		}
-
-		result.Data = &post
-	})
+func (s *SqlPostStore) GetSingle(id string) (*model.Post, *model.AppError) {
+	var post model.Post
+	err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": id})
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetSingle", "store.sql_post.get.app_error", nil, "id="+id+err.Error(), http.StatusNotFound)
+	}
+	return &post, nil
 }
 
 type etagPosts struct {
