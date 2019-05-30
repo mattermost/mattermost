@@ -70,20 +70,22 @@ require (
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/ssor/bom v0.0.0-20170718123548-6386211fdfcf // indirect
+	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/stretchr/testify v1.3.0
 	github.com/throttled/throttled v2.2.4+incompatible
 	github.com/tylerb/graceful v1.2.15
+	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5 // indirect
 	github.com/xtgo/uuid v0.0.0-20140804021211-a0b114877d4c // indirect
 	github.com/ziutek/mymysql v1.5.4 // indirect
 	go.uber.org/atomic v1.3.2 // indirect
 	go.uber.org/multierr v1.1.0 // indirect
 	go.uber.org/zap v1.9.1
-	golang.org/x/crypto v0.0.0-20190426145343-a29dc8fdc734
+	golang.org/x/crypto v0.0.0-20190530122614-20be4c3c3ed5
 	golang.org/x/image v0.0.0-20190321063152-3fc05d484e9f
-	golang.org/x/net v0.0.0-20190424112056-4829fb13d2c6
-	golang.org/x/sync v0.0.0-20190423024810-112230192c58 // indirect
-	golang.org/x/sys v0.0.0-20190429190828-d89cdac9e872 // indirect
+	golang.org/x/net v0.0.0-20190522155817-f3200d17e092
+	golang.org/x/sys v0.0.0-20190529164535-6a60838ec259 // indirect
 	golang.org/x/text v0.3.2
+	golang.org/x/tools v0.0.0-20190530171427-2b03ca6e44eb // indirect
 	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/asn1-ber.v1 v1.0.0-20181015200546-f715ec2f112d // indirect
 	gopkg.in/ini.v1 v1.42.0 // indirect

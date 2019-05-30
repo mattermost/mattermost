@@ -220,7 +220,7 @@ type PostStore interface {
 	GetPosts(channelId string, offset int, limit int, allowFromCache bool) (*model.PostList, *model.AppError)
 	GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetFlaggedPostsForTeam(userId, teamId string, offset int, limit int) (*model.PostList, *model.AppError)
-	GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) StoreChannel
+	GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetPostsBefore(channelId string, postId string, numPosts int, offset int) StoreChannel
 	GetPostsAfter(channelId string, postId string, numPosts int, offset int) StoreChannel
 	GetPostsSince(channelId string, time int64, allowFromCache bool) StoreChannel

@@ -635,11 +635,7 @@ func (a *App) GetFlaggedPostsForTeam(userId, teamId string, offset int, limit in
 }
 
 func (a *App) GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) (*model.PostList, *model.AppError) {
-	result := <-a.Srv.Store.Post().GetFlaggedPostsForChannel(userId, channelId, offset, limit)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.PostList), nil
+	return a.Srv.Store.Post().GetFlaggedPostsForChannel(userId, channelId, offset, limit)
 }
 
 func (a *App) GetPermalinkPost(postId string, userId string) (*model.PostList, *model.AppError) {
