@@ -1716,7 +1716,7 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	p1.Message = "this is a message for @" + u2.Username
 
 	// Post one message with mention to open channel
-	store.Must(ss.Post().Save(&p1))
+	ss.Post().Save(&p1)
 	store.Must(ss.Channel().IncrementMentionCount(c1.Id, u2.Id))
 
 	// Post 2 messages without mention to direct channel
@@ -1724,14 +1724,14 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	p2.ChannelId = c2.Id
 	p2.UserId = u1.Id
 	p2.Message = "first message"
-	store.Must(ss.Post().Save(&p2))
+	ss.Post().Save(&p2)
 	store.Must(ss.Channel().IncrementMentionCount(c2.Id, u2.Id))
 
 	p3 := model.Post{}
 	p3.ChannelId = c2.Id
 	p3.UserId = u1.Id
 	p3.Message = "second message"
-	store.Must(ss.Post().Save(&p3))
+	ss.Post().Save(&p3)
 	store.Must(ss.Channel().IncrementMentionCount(c2.Id, u2.Id))
 
 	badge := (<-ss.User().GetUnreadCount(u2.Id)).Data.(int64)

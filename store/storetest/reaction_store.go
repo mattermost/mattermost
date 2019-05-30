@@ -21,10 +21,10 @@ func TestReactionStore(t *testing.T, ss store.Store) {
 }
 
 func testReactionSave(t *testing.T, ss store.Store) {
-	post := store.Must(ss.Post().Save(&model.Post{
+	post, _ := ss.Post().Save(&model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
-	})).(*model.Post)
+	})
 	firstUpdateAt := post.UpdateAt
 
 	reaction1 := &model.Reaction{
@@ -107,10 +107,10 @@ func testReactionSave(t *testing.T, ss store.Store) {
 }
 
 func testReactionDelete(t *testing.T, ss store.Store) {
-	post := store.Must(ss.Post().Save(&model.Post{
+	post, _ := ss.Post().Save(&model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
-	})).(*model.Post)
+	})
 
 	reaction := &model.Reaction{
 		UserId:    model.NewId(),
@@ -232,18 +232,18 @@ func testReactionGetForPost(t *testing.T, ss store.Store) {
 func testReactionDeleteAllWithEmojiName(t *testing.T, ss store.Store) {
 	emojiToDelete := model.NewId()
 
-	post := store.Must(ss.Post().Save(&model.Post{
+	post, _ := ss.Post().Save(&model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
-	})).(*model.Post)
-	post2 := store.Must(ss.Post().Save(&model.Post{
+	})
+	post2, _ := ss.Post().Save(&model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
-	})).(*model.Post)
-	post3 := store.Must(ss.Post().Save(&model.Post{
+	})
+	post3, _ := ss.Post().Save(&model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
-	})).(*model.Post)
+	})
 
 	userId := model.NewId()
 
@@ -337,10 +337,10 @@ func testReactionDeleteAllWithEmojiName(t *testing.T, ss store.Store) {
 }
 
 func testReactionStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
-	post := store.Must(ss.Post().Save(&model.Post{
+	post, _ := ss.Post().Save(&model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
-	})).(*model.Post)
+	})
 
 	reactions := []*model.Reaction{
 		{
