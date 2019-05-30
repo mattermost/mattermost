@@ -450,11 +450,9 @@ func (s *SqlPostStore) PermanentDeleteByChannel(channelId string) *model.AppErro
 	return nil
 }
 
-func (s *SqlPostStore) GetPosts(channelId string, offset int, limit int, allowFromCache bool) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
+func (s *SqlPostStore) GetPosts(channelId string, offset int, limit int, allowFromCache bool) (*model.PostList, *model.AppError) {
 		if limit > 1000 {
-			result.Err = model.NewAppError("SqlPostStore.GetLinearPosts", "store.sql_post.get_posts.app_error", nil, "channelId="+channelId, http.StatusBadRequest)
-			return
+			return nil, model.NewAppError("SqlPostStore.GetLinearPosts", "store.sql_post.get_posts.app_error", nil, "channelId="+channelId, http.StatusBadRequest)
 		}
 
 		// Caching only occurs on limits of 30 and 60, the common limits requested by MM clients
@@ -464,8 +462,7 @@ func (s *SqlPostStore) GetPosts(channelId string, offset int, limit int, allowFr
 					s.metrics.IncrementMemCacheHitCounter("Last Posts Cache")
 				}
 
-				result.Data = cacheItem.(*model.PostList)
-				return
+				return cacheItem.(*model.PostList), nil
 			} else {
 				if s.metrics != nil {
 					s.metrics.IncrementMemCacheMissCounter("Last Posts Cache")
@@ -481,9 +478,9 @@ func (s *SqlPostStore) GetPosts(channelId string, offset int, limit int, allowFr
 		cpc := s.getParentsPosts(channelId, offset, limit)
 
 		if rpr := <-rpc; rpr.Err != nil {
-			result.Err = rpr.Err
+			return nil, rpr.Err
 		} else if cpr := <-cpc; cpr.Err != nil {
-			result.Err = cpr.Err
+			return nil, cpr.Err
 		} else {
 			posts := rpr.Data.([]*model.Post)
 			parents := cpr.Data.([]*model.Post)
@@ -506,9 +503,8 @@ func (s *SqlPostStore) GetPosts(channelId string, offset int, limit int, allowFr
 				s.lastPostsCache.AddWithExpiresInSecs(fmt.Sprintf("%s%v", channelId, limit), list, LAST_POSTS_CACHE_SEC)
 			}
 
-			result.Data = list
+			return list, nil
 		}
-	})
 }
 
 func (s *SqlPostStore) GetPostsSince(channelId string, time int64, allowFromCache bool) store.StoreChannel {
