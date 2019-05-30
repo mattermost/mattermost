@@ -937,26 +937,25 @@ func testPendingAutoAddTeamMembers(t *testing.T, ss store.Store) {
 	syncable := res.Data.(*model.GroupSyncable)
 
 	// Time before syncable was created
-	res = <-ss.Group().TeamMembersToAdd(syncable.CreateAt - 1)
-	require.Nil(t, res.Err)
-	teamMembers := res.Data.([]*model.UserTeamIDPair)
+	teamMembers, err := ss.Group().TeamMembersToAdd(syncable.CreateAt - 1)
+	require.Nil(t, err)
 	require.Len(t, teamMembers, 1)
 	require.Equal(t, user.Id, teamMembers[0].UserID)
 	require.Equal(t, team.Id, teamMembers[0].TeamID)
 
 	// Time after syncable was created
-	res = <-ss.Group().TeamMembersToAdd(syncable.CreateAt + 1)
-	require.Nil(t, res.Err)
-	require.Len(t, res.Data, 0)
+	teamMembers, err = ss.Group().TeamMembersToAdd(syncable.CreateAt + 1)
+	require.Nil(t, err)
+	require.Len(t, teamMembers, 0)
 
 	// Delete and restore GroupMember should return result
 	res = <-ss.Group().DeleteMember(group.Id, user.Id)
 	require.Nil(t, res.Err)
 	res = <-ss.Group().CreateOrRestoreMember(group.Id, user.Id)
 	require.Nil(t, res.Err)
-	res = <-ss.Group().TeamMembersToAdd(syncable.CreateAt + 1)
-	require.Nil(t, res.Err)
-	require.Len(t, res.Data, 1)
+	teamMembers, err = ss.Group().TeamMembersToAdd(syncable.CreateAt + 1)
+	require.Nil(t, err)
+	require.Len(t, teamMembers, 1)
 
 	pristineSyncable := *syncable
 
@@ -964,89 +963,88 @@ func testPendingAutoAddTeamMembers(t *testing.T, ss store.Store) {
 	require.Nil(t, res.Err)
 
 	// Time before syncable was updated
-	res = <-ss.Group().TeamMembersToAdd(syncable.UpdateAt - 1)
-	require.Nil(t, res.Err)
-	teamMembers = res.Data.([]*model.UserTeamIDPair)
+	teamMembers, err = ss.Group().TeamMembersToAdd(syncable.UpdateAt - 1)
+	require.Nil(t, err)
 	require.Len(t, teamMembers, 1)
 	require.Equal(t, user.Id, teamMembers[0].UserID)
 	require.Equal(t, team.Id, teamMembers[0].TeamID)
 
 	// Time after syncable was updated
-	res = <-ss.Group().TeamMembersToAdd(syncable.UpdateAt + 1)
-	require.Nil(t, res.Err)
-	require.Len(t, res.Data, 0)
+	teamMembers, err = ss.Group().TeamMembersToAdd(syncable.UpdateAt + 1)
+	require.Nil(t, err)
+	require.Len(t, teamMembers, 0)
 
 	// Only includes if auto-add
 	syncable.AutoAdd = false
 	res = <-ss.Group().UpdateGroupSyncable(syncable)
 	require.Nil(t, res.Err)
-	res = <-ss.Group().TeamMembersToAdd(0)
-	require.Nil(t, res.Err)
-	require.Len(t, res.Data, 0)
+	teamMembers, err = ss.Group().TeamMembersToAdd(0)
+	require.Nil(t, err)
+	require.Len(t, teamMembers, 0)
 
 	// reset state of syncable and verify
 	res = <-ss.Group().UpdateGroupSyncable(&pristineSyncable)
 	require.Nil(t, res.Err)
-	res = <-ss.Group().TeamMembersToAdd(0)
-	require.Nil(t, res.Err)
-	require.Len(t, res.Data, 1)
+	teamMembers, err = ss.Group().TeamMembersToAdd(0)
+	require.Nil(t, err)
+	require.Len(t, teamMembers, 1)
 
 	// No result if Group deleted
 	res = <-ss.Group().Delete(group.Id)
 	require.Nil(t, res.Err)
-	res = <-ss.Group().TeamMembersToAdd(0)
-	require.Nil(t, res.Err)
-	require.Len(t, res.Data, 0)
+	teamMembers, err = ss.Group().TeamMembersToAdd(0)
+	require.Nil(t, err)
+	require.Len(t, teamMembers, 0)
 
 	// reset state of group and verify
 	group.DeleteAt = 0
 	res = <-ss.Group().Update(group)
-	res = <-ss.Group().TeamMembersToAdd(0)
-	require.Nil(t, res.Err)
-	require.Len(t, res.Data, 1)
+	teamMembers, err = ss.Group().TeamMembersToAdd(0)
+	require.Nil(t, err)
+	require.Len(t, teamMembers, 1)
 
 	// No result if Team deleted
 	team.DeleteAt = model.GetMillis()
 	team, err = ss.Team().Update(team)
 	require.Nil(t, err)
-	res = <-ss.Group().TeamMembersToAdd(0)
-	require.Nil(t, res.Err)
-	require.Len(t, res.Data, 0)
+	teamMembers, err = ss.Group().TeamMembersToAdd(0)
+	require.Nil(t, err)
+	require.Len(t, teamMembers, 0)
 
 	// reset state of team and verify
 	team.DeleteAt = 0
 	team, err = ss.Team().Update(team)
 	require.Nil(t, err)
-	res = <-ss.Group().TeamMembersToAdd(0)
-	require.Nil(t, res.Err)
-	require.Len(t, res.Data, 1)
+	teamMembers, err = ss.Group().TeamMembersToAdd(0)
+	require.Nil(t, err)
+	require.Len(t, teamMembers, 1)
 
 	// No result if GroupTeam deleted
 	res = <-ss.Group().DeleteGroupSyncable(group.Id, team.Id, model.GroupSyncableTypeTeam)
 	require.Nil(t, res.Err)
-	res = <-ss.Group().TeamMembersToAdd(0)
-	require.Nil(t, res.Err)
-	require.Len(t, res.Data, 0)
+	teamMembers, err = ss.Group().TeamMembersToAdd(0)
+	require.Nil(t, err)
+	require.Len(t, teamMembers, 0)
 
 	// reset GroupTeam and verify
 	res = <-ss.Group().UpdateGroupSyncable(&pristineSyncable)
 	require.Nil(t, res.Err)
-	res = <-ss.Group().TeamMembersToAdd(0)
-	require.Nil(t, res.Err)
-	require.Len(t, res.Data, 1)
+	teamMembers, err = ss.Group().TeamMembersToAdd(0)
+	require.Nil(t, err)
+	require.Len(t, teamMembers, 1)
 
 	// No result if GroupMember deleted
 	res = <-ss.Group().DeleteMember(group.Id, user.Id)
 	require.Nil(t, res.Err)
-	res = <-ss.Group().TeamMembersToAdd(0)
-	require.Nil(t, res.Err)
-	require.Len(t, res.Data, 0)
+	teamMembers, err = ss.Group().TeamMembersToAdd(0)
+	require.Nil(t, err)
+	require.Len(t, teamMembers, 0)
 
 	// restore group member and verify
 	res = <-ss.Group().CreateOrRestoreMember(group.Id, user.Id)
-	res = <-ss.Group().TeamMembersToAdd(0)
-	require.Nil(t, res.Err)
-	require.Len(t, res.Data, 1)
+	teamMembers, err = ss.Group().TeamMembersToAdd(0)
+	require.Nil(t, err)
+	require.Len(t, teamMembers, 1)
 
 	// adding team membership stops returning result
 	res = <-ss.Team().SaveMember(&model.TeamMember{
@@ -1054,9 +1052,9 @@ func testPendingAutoAddTeamMembers(t *testing.T, ss store.Store) {
 		UserId: user.Id,
 	}, 999)
 	require.Nil(t, res.Err)
-	res = <-ss.Group().TeamMembersToAdd(0)
-	require.Nil(t, res.Err)
-	require.Len(t, res.Data, 0)
+	teamMembers, err = ss.Group().TeamMembersToAdd(0)
+	require.Nil(t, err)
+	require.Len(t, teamMembers, 0)
 }
 
 func testPendingAutoAddChannelMembers(t *testing.T, ss store.Store) {
@@ -1099,26 +1097,25 @@ func testPendingAutoAddChannelMembers(t *testing.T, ss store.Store) {
 	syncable := res.Data.(*model.GroupSyncable)
 
 	// Time before syncable was created
-	res = <-ss.Group().ChannelMembersToAdd(syncable.CreateAt - 1)
-	require.Nil(t, res.Err)
-	channelMembers := res.Data.([]*model.UserChannelIDPair)
+	channelMembers, err := ss.Group().ChannelMembersToAdd(syncable.CreateAt - 1)
+	require.Nil(t, err)
 	require.Len(t, channelMembers, 1)
 	require.Equal(t, user.Id, channelMembers[0].UserID)
 	require.Equal(t, channel.Id, channelMembers[0].ChannelID)
 
 	// Time after syncable was created
-	res = <-ss.Group().ChannelMembersToAdd(syncable.CreateAt + 1)
-	require.Nil(t, res.Err)
-	require.Len(t, res.Data, 0)
+	channelMembers, err = ss.Group().ChannelMembersToAdd(syncable.CreateAt + 1)
+	require.Nil(t, err)
+	require.Len(t, channelMembers, 0)
 
 	// Delete and restore GroupMember should return result
 	res = <-ss.Group().DeleteMember(group.Id, user.Id)
 	require.Nil(t, res.Err)
 	res = <-ss.Group().CreateOrRestoreMember(group.Id, user.Id)
 	require.Nil(t, res.Err)
-	res = <-ss.Group().ChannelMembersToAdd(syncable.CreateAt + 1)
-	require.Nil(t, res.Err)
-	require.Len(t, res.Data, 1)
+	channelMembers, err = ss.Group().ChannelMembersToAdd(syncable.CreateAt + 1)
+	require.Nil(t, err)
+	require.Len(t, channelMembers, 1)
 
 	pristineSyncable := *syncable
 
@@ -1126,131 +1123,127 @@ func testPendingAutoAddChannelMembers(t *testing.T, ss store.Store) {
 	require.Nil(t, res.Err)
 
 	// Time before syncable was updated
-	res = <-ss.Group().ChannelMembersToAdd(syncable.UpdateAt - 1)
-	require.Nil(t, res.Err)
-	channelMembers = res.Data.([]*model.UserChannelIDPair)
+	channelMembers, err = ss.Group().ChannelMembersToAdd(syncable.UpdateAt - 1)
+	require.Nil(t, err)
 	require.Len(t, channelMembers, 1)
 	require.Equal(t, user.Id, channelMembers[0].UserID)
 	require.Equal(t, channel.Id, channelMembers[0].ChannelID)
 
 	// Time after syncable was updated
-	res = <-ss.Group().ChannelMembersToAdd(syncable.UpdateAt + 1)
-	require.Nil(t, res.Err)
-	require.Len(t, res.Data, 0)
+	channelMembers, err = ss.Group().ChannelMembersToAdd(syncable.UpdateAt + 1)
+	require.Nil(t, err)
+	require.Len(t, channelMembers, 0)
 
 	// Only includes if auto-add
 	syncable.AutoAdd = false
 	res = <-ss.Group().UpdateGroupSyncable(syncable)
 	require.Nil(t, res.Err)
-	res = <-ss.Group().ChannelMembersToAdd(0)
-	require.Nil(t, res.Err)
-	require.Len(t, res.Data, 0)
+	channelMembers, err = ss.Group().ChannelMembersToAdd(0)
+	require.Nil(t, err)
+	require.Len(t, channelMembers, 0)
 
 	// reset state of syncable and verify
 	res = <-ss.Group().UpdateGroupSyncable(&pristineSyncable)
 	require.Nil(t, res.Err)
-	res = <-ss.Group().ChannelMembersToAdd(0)
-	require.Nil(t, res.Err)
-	require.Len(t, res.Data, 1)
+	channelMembers, err = ss.Group().ChannelMembersToAdd(0)
+	require.Nil(t, err)
+	require.Len(t, channelMembers, 1)
 
 	// No result if Group deleted
 	res = <-ss.Group().Delete(group.Id)
 	require.Nil(t, res.Err)
-	res = <-ss.Group().ChannelMembersToAdd(0)
-	require.Nil(t, res.Err)
-	require.Len(t, res.Data, 0)
+	channelMembers, err = ss.Group().ChannelMembersToAdd(0)
+	require.Nil(t, err)
+	require.Len(t, channelMembers, 0)
 
 	// reset state of group and verify
 	group.DeleteAt = 0
 	res = <-ss.Group().Update(group)
-	res = <-ss.Group().ChannelMembersToAdd(0)
-	require.Nil(t, res.Err)
-	require.Len(t, res.Data, 1)
+	channelMembers, err = ss.Group().ChannelMembersToAdd(0)
+	require.Nil(t, err)
+	require.Len(t, channelMembers, 1)
 
 	// No result if Channel deleted
 	err = ss.Channel().Delete(channel.Id, model.GetMillis())
 	require.Nil(t, err)
-	res = <-ss.Group().ChannelMembersToAdd(0)
-	require.Nil(t, res.Err)
-	require.Len(t, res.Data, 0)
+	channelMembers, err = ss.Group().ChannelMembersToAdd(0)
+	require.Nil(t, err)
+	require.Len(t, channelMembers, 0)
 
 	// reset state of channel and verify
 	channel.DeleteAt = 0
 	_, err = ss.Channel().Update(channel)
 	require.Nil(t, err)
-	res = <-ss.Group().ChannelMembersToAdd(0)
-	require.Nil(t, res.Err)
-	require.Len(t, res.Data, 1)
+	channelMembers, err = ss.Group().ChannelMembersToAdd(0)
+	require.Nil(t, err)
+	require.Len(t, channelMembers, 1)
 
 	// No result if GroupChannel deleted
 	res = <-ss.Group().DeleteGroupSyncable(group.Id, channel.Id, model.GroupSyncableTypeChannel)
 	require.Nil(t, res.Err)
-	res = <-ss.Group().ChannelMembersToAdd(0)
-	require.Nil(t, res.Err)
-	require.Len(t, res.Data, 0)
+	channelMembers, err = ss.Group().ChannelMembersToAdd(0)
+	require.Nil(t, err)
+	require.Len(t, channelMembers, 0)
 
 	// reset GroupChannel and verify
 	res = <-ss.Group().UpdateGroupSyncable(&pristineSyncable)
 	require.Nil(t, res.Err)
-	res = <-ss.Group().ChannelMembersToAdd(0)
-	require.Nil(t, res.Err)
-	require.Len(t, res.Data, 1)
+	channelMembers, err = ss.Group().ChannelMembersToAdd(0)
+	require.Nil(t, err)
+	require.Len(t, channelMembers, 1)
 
 	// No result if GroupMember deleted
 	res = <-ss.Group().DeleteMember(group.Id, user.Id)
 	require.Nil(t, res.Err)
-	res = <-ss.Group().ChannelMembersToAdd(0)
-	require.Nil(t, res.Err)
-	require.Len(t, res.Data, 0)
+	channelMembers, err = ss.Group().ChannelMembersToAdd(0)
+	require.Nil(t, err)
+	require.Len(t, channelMembers, 0)
 
 	// restore group member and verify
 	res = <-ss.Group().CreateOrRestoreMember(group.Id, user.Id)
 	require.Nil(t, res.Err)
-	res = <-ss.Group().ChannelMembersToAdd(0)
-	require.Nil(t, res.Err)
-	require.Len(t, res.Data, 1)
+	channelMembers, err = ss.Group().ChannelMembersToAdd(0)
+	require.Nil(t, err)
+	require.Len(t, channelMembers, 1)
 
 	// Adding Channel (ChannelMemberHistory) should stop returning result
 	res = <-ss.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis())
 	require.Nil(t, res.Err)
-	res = <-ss.Group().ChannelMembersToAdd(0)
-	require.Nil(t, res.Err)
-	require.Len(t, res.Data, 0)
+	channelMembers, err = ss.Group().ChannelMembersToAdd(0)
+	require.Nil(t, err)
+	require.Len(t, channelMembers, 0)
 
 	// Leaving Channel (ChannelMemberHistory) should still not return result
 	res = <-ss.ChannelMemberHistory().LogLeaveEvent(user.Id, channel.Id, model.GetMillis())
 	require.Nil(t, res.Err)
-	res = <-ss.Group().ChannelMembersToAdd(0)
-	require.Nil(t, res.Err)
-	require.Len(t, res.Data, 0)
+	channelMembers, err = ss.Group().ChannelMembersToAdd(0)
+	require.Nil(t, err)
+	require.Len(t, channelMembers, 0)
 
 	// Purging ChannelMemberHistory re-returns the result
 	res = <-ss.ChannelMemberHistory().PermanentDeleteBatch(model.GetMillis()+1, 100)
 	require.Nil(t, res.Err)
-	res = <-ss.Group().ChannelMembersToAdd(0)
-	require.Nil(t, res.Err)
-	require.Len(t, res.Data, 1)
+	channelMembers, err = ss.Group().ChannelMembersToAdd(0)
+	require.Nil(t, err)
+	require.Len(t, channelMembers, 1)
 }
 
 func testTeamMemberRemovals(t *testing.T, ss store.Store) {
 	data := pendingMemberRemovalsDataSetup(t, ss)
 
 	// one result when both users are in the group (for user C)
-	res := <-ss.Group().TeamMembersToRemove()
-
-	require.Nil(t, res.Err)
-	require.Len(t, res.Data, 1)
-	teamMembers := res.Data.([]*model.TeamMember)
+	teamMembers, err := ss.Group().TeamMembersToRemove()
+	require.Nil(t, err)
+	require.Len(t, teamMembers, 1)
 	require.Equal(t, data.UserC.Id, teamMembers[0].UserId)
 
-	res = <-ss.Group().DeleteMember(data.Group.Id, data.UserB.Id)
+	res := <-ss.Group().DeleteMember(data.Group.Id, data.UserB.Id)
 	require.Nil(t, res.Err)
 
 	// user b and c should now be returned
-	res = <-ss.Group().TeamMembersToRemove()
-	require.Nil(t, res.Err)
-	require.Len(t, res.Data, 2)
-	teamMembers = res.Data.([]*model.TeamMember)
+	teamMembers, err = ss.Group().TeamMembersToRemove()
+	require.Nil(t, err)
+	require.Len(t, teamMembers, 2)
 
 	var userIDs []string
 	for _, item := range teamMembers {
@@ -1264,13 +1257,13 @@ func testTeamMemberRemovals(t *testing.T, ss store.Store) {
 	res = <-ss.Group().DeleteMember(data.Group.Id, data.UserA.Id)
 	require.Nil(t, res.Err)
 
-	res = <-ss.Group().TeamMembersToRemove()
-	require.Nil(t, res.Err)
-	require.Len(t, res.Data, 3)
+	teamMembers, err = ss.Group().TeamMembersToRemove()
+	require.Nil(t, err)
+	require.Len(t, teamMembers, 3)
 
 	// Make one of them a bot
-	res = <-ss.Group().TeamMembersToRemove()
-	teamMembers = res.Data.([]*model.TeamMember)
+	teamMembers, err = ss.Group().TeamMembersToRemove()
+	require.Nil(t, err)
 	teamMember := teamMembers[0]
 	bot := &model.Bot{
 		UserId:      teamMember.UserId,
@@ -1283,18 +1276,18 @@ func testTeamMemberRemovals(t *testing.T, ss store.Store) {
 	bot = res.Data.(*model.Bot)
 
 	// verify that bot is not returned in results
-	res = <-ss.Group().TeamMembersToRemove()
-	require.Nil(t, res.Err)
-	require.Len(t, res.Data, 2)
+	teamMembers, err = ss.Group().TeamMembersToRemove()
+	require.Nil(t, err)
+	require.Len(t, teamMembers, 2)
 
 	// delete the bot
 	res = <-ss.Bot().PermanentDelete(bot.UserId)
 	require.Nil(t, res.Err)
 
 	// Should be back to 3 users
-	res = <-ss.Group().TeamMembersToRemove()
-	require.Nil(t, res.Err)
-	require.Len(t, res.Data, 3)
+	teamMembers, err = ss.Group().TeamMembersToRemove()
+	require.Nil(t, err)
+	require.Len(t, teamMembers, 3)
 
 	// add users back to groups
 	res = <-ss.Team().RemoveMember(data.ConstrainedTeam.Id, data.UserA.Id)
@@ -1315,21 +1308,18 @@ func testChannelMemberRemovals(t *testing.T, ss store.Store) {
 	data := pendingMemberRemovalsDataSetup(t, ss)
 
 	// one result when both users are in the group (for user C)
-	res := <-ss.Group().ChannelMembersToRemove()
-
-	require.Nil(t, res.Err)
-	require.Len(t, res.Data, 1)
-	channelMembers := res.Data.([]*model.ChannelMember)
+	channelMembers, err := ss.Group().ChannelMembersToRemove()
+	require.Nil(t, err)
+	require.Len(t, channelMembers, 1)
 	require.Equal(t, data.UserC.Id, channelMembers[0].UserId)
 
-	res = <-ss.Group().DeleteMember(data.Group.Id, data.UserB.Id)
+	res := <-ss.Group().DeleteMember(data.Group.Id, data.UserB.Id)
 	require.Nil(t, res.Err)
 
 	// user b and c should now be returned
-	res = <-ss.Group().ChannelMembersToRemove()
-	require.Nil(t, res.Err)
-	require.Len(t, res.Data, 2)
-	channelMembers = res.Data.([]*model.ChannelMember)
+	channelMembers, err = ss.Group().ChannelMembersToRemove()
+	require.Nil(t, err)
+	require.Len(t, channelMembers, 2)
 
 	var userIDs []string
 	for _, item := range channelMembers {
@@ -1343,13 +1333,13 @@ func testChannelMemberRemovals(t *testing.T, ss store.Store) {
 	res = <-ss.Group().DeleteMember(data.Group.Id, data.UserA.Id)
 	require.Nil(t, res.Err)
 
-	res = <-ss.Group().ChannelMembersToRemove()
-	require.Nil(t, res.Err)
-	require.Len(t, res.Data, 3)
+	channelMembers, err = ss.Group().ChannelMembersToRemove()
+	require.Nil(t, err)
+	require.Len(t, channelMembers, 3)
 
 	// Make one of them a bot
-	res = <-ss.Group().ChannelMembersToRemove()
-	channelMembers = res.Data.([]*model.ChannelMember)
+	channelMembers, err = ss.Group().ChannelMembersToRemove()
+	require.Nil(t, err)
 	channelMember := channelMembers[0]
 	bot := &model.Bot{
 		UserId:      channelMember.UserId,
@@ -1362,18 +1352,18 @@ func testChannelMemberRemovals(t *testing.T, ss store.Store) {
 	bot = res.Data.(*model.Bot)
 
 	// verify that bot is not returned in results
-	res = <-ss.Group().ChannelMembersToRemove()
-	require.Nil(t, res.Err)
-	require.Len(t, res.Data, 2)
+	channelMembers, err = ss.Group().ChannelMembersToRemove()
+	require.Nil(t, err)
+	require.Len(t, channelMembers, 2)
 
 	// delete the bot
 	res = <-ss.Bot().PermanentDelete(bot.UserId)
 	require.Nil(t, res.Err)
 
 	// Should be back to 3 users
-	res = <-ss.Group().ChannelMembersToRemove()
-	require.Nil(t, res.Err)
-	require.Len(t, res.Data, 3)
+	channelMembers, err = ss.Group().ChannelMembersToRemove()
+	require.Nil(t, err)
+	require.Len(t, channelMembers, 3)
 
 	// add users back to groups
 	res = <-ss.Team().RemoveMember(data.ConstrainedTeam.Id, data.UserA.Id)

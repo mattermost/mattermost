@@ -134,35 +134,19 @@ func (a *App) DeleteGroupSyncable(groupID string, syncableID string, syncableTyp
 }
 
 func (a *App) TeamMembersToAdd(since int64) ([]*model.UserTeamIDPair, *model.AppError) {
-	result := <-a.Srv.Store.Group().TeamMembersToAdd(since)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.UserTeamIDPair), nil
+	return a.Srv.Store.Group().TeamMembersToAdd(since)
 }
 
 func (a *App) ChannelMembersToAdd(since int64) ([]*model.UserChannelIDPair, *model.AppError) {
-	result := <-a.Srv.Store.Group().ChannelMembersToAdd(since)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.UserChannelIDPair), nil
+	return a.Srv.Store.Group().ChannelMembersToAdd(since)
 }
 
 func (a *App) TeamMembersToRemove() ([]*model.TeamMember, *model.AppError) {
-	result := <-a.Srv.Store.Group().TeamMembersToRemove()
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.TeamMember), nil
+	return a.Srv.Store.Group().TeamMembersToRemove()
 }
 
 func (a *App) ChannelMembersToRemove() ([]*model.ChannelMember, *model.AppError) {
-	result := <-a.Srv.Store.Group().ChannelMembersToRemove()
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.ChannelMember), nil
+	return a.Srv.Store.Group().ChannelMembersToRemove()
 }
 
 func (a *App) GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) ([]*model.Group, int, *model.AppError) {

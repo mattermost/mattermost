@@ -701,10 +701,8 @@ func (s *SqlGroupStore) DeleteGroupSyncable(groupID string, syncableID string, s
 // based on the groups configurations.
 //
 // Typically since will be the last successful group sync time.
-func (s *SqlGroupStore) TeamMembersToAdd(since int64) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-
-		sql := `
+func (s *SqlGroupStore) TeamMembersToAdd(since int64) ([]*model.UserTeamIDPair, *model.AppError) {
+	sql := `
 		SELECT
 			GroupMembers.UserId, GroupTeams.TeamId
 		FROM
@@ -727,27 +725,22 @@ func (s *SqlGroupStore) TeamMembersToAdd(since int64) store.StoreChannel {
 			AND (GroupMembers.CreateAt >= :Since
 			OR GroupTeams.UpdateAt >= :Since)`
 
-		var teamMembers []*model.UserTeamIDPair
+	var teamMembers []*model.UserTeamIDPair
 
-		_, err := s.GetReplica().Select(&teamMembers, sql, map[string]interface{}{"Since": since})
-		if err != nil {
-			result.Err = model.NewAppError("SqlGroupStore.TeamMembersToAdd", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
-		}
+	_, err := s.GetReplica().Select(&teamMembers, sql, map[string]interface{}{"Since": since})
+	if err != nil {
+		return nil, model.NewAppError("SqlGroupStore.TeamMembersToAdd", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = teamMembers
-
-		return
-	})
+	return teamMembers, nil
 }
 
 // ChannelMembersToAdd returns a slice of UserChannelIDPair that need newly created memberships
 // based on the groups configurations.
 //
 // Typically since will be the last successful group sync time.
-func (s *SqlGroupStore) ChannelMembersToAdd(since int64) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-
-		sql := `
+func (s *SqlGroupStore) ChannelMembersToAdd(since int64) ([]*model.UserChannelIDPair, *model.AppError) {
+	sql := `
 		SELECT
 			GroupMembers.UserId, GroupChannels.ChannelId
 		FROM
@@ -770,17 +763,14 @@ func (s *SqlGroupStore) ChannelMembersToAdd(since int64) store.StoreChannel {
 			AND (GroupMembers.CreateAt >= :Since
 			OR GroupChannels.UpdateAt >= :Since)`
 
-		var channelMembers []*model.UserChannelIDPair
+	var channelMembers []*model.UserChannelIDPair
 
-		_, err := s.GetReplica().Select(&channelMembers, sql, map[string]interface{}{"Since": since})
-		if err != nil {
-			result.Err = model.NewAppError("SqlGroupStore.ChannelMembersToAdd", "store.select_error", nil, "", http.StatusInternalServerError)
-		}
+	_, err := s.GetReplica().Select(&channelMembers, sql, map[string]interface{}{"Since": since})
+	if err != nil {
+		return nil, model.NewAppError("SqlGroupStore.ChannelMembersToAdd", "store.select_error", nil, "", http.StatusInternalServerError)
+	}
 
-		result.Data = channelMembers
-
-		return
-	})
+	return channelMembers, nil
 }
 
 func groupSyncableToGroupTeam(groupSyncable *model.GroupSyncable) *groupTeam {
@@ -798,10 +788,8 @@ func groupSyncableToGroupChannel(groupSyncable *model.GroupSyncable) *groupChann
 }
 
 // TeamMembersToRemove returns all team members that should be removed based on group constraints.
-func (s *SqlGroupStore) TeamMembersToRemove() store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-
-		sql := `
+func (s *SqlGroupStore) TeamMembersToRemove() ([]*model.TeamMember, *model.AppError) {
+	sql := `
 		SELECT
 			TeamMembers.TeamId,
 			TeamMembers.UserId,
@@ -838,17 +826,14 @@ func (s *SqlGroupStore) TeamMembersToRemove() store.StoreChannel {
 					Teams.Id,
 					GroupMembers.UserId)`
 
-		var teamMembers []*model.TeamMember
+	var teamMembers []*model.TeamMember
 
-		_, err := s.GetReplica().Select(&teamMembers, sql)
-		if err != nil {
-			result.Err = model.NewAppError("SqlGroupStore.TeamMembersToRemove", "store.select_error", nil, "", http.StatusInternalServerError)
-		}
+	_, err := s.GetReplica().Select(&teamMembers, sql)
+	if err != nil {
+		return nil, model.NewAppError("SqlGroupStore.TeamMembersToRemove", "store.select_error", nil, "", http.StatusInternalServerError)
+	}
 
-		result.Data = teamMembers
-
-		return
-	})
+	return teamMembers, nil
 }
 
 func (s *SqlGroupStore) CountGroupsByChannel(channelId string, opts model.GroupSearchOpts) store.StoreChannel {
@@ -905,10 +890,8 @@ func (s *SqlGroupStore) GetGroupsByChannel(channelId string, opts model.GroupSea
 }
 
 // ChannelMembersToRemove returns all channel members that should be removed based on group constraints.
-func (s *SqlGroupStore) ChannelMembersToRemove() store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-
-		sql := `
+func (s *SqlGroupStore) ChannelMembersToRemove() ([]*model.ChannelMember, *model.AppError) {
+	sql := `
 		SELECT
 			ChannelMembers.ChannelId,
 			ChannelMembers.UserId,
@@ -948,17 +931,14 @@ func (s *SqlGroupStore) ChannelMembersToRemove() store.StoreChannel {
 					Channels.Id,
 					GroupMembers.UserId)`
 
-		var channelMembers []*model.ChannelMember
+	var channelMembers []*model.ChannelMember
 
-		_, err := s.GetReplica().Select(&channelMembers, sql)
-		if err != nil {
-			result.Err = model.NewAppError("SqlGroupStore.ChannelMembersToRemove", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
-		}
+	_, err := s.GetReplica().Select(&channelMembers, sql)
+	if err != nil {
+		return nil, model.NewAppError("SqlGroupStore.ChannelMembersToRemove", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = channelMembers
-
-		return
-	})
+	return channelMembers, nil
 }
 
 func (s *SqlGroupStore) groupsBySyncableBaseQuery(st model.GroupSyncableType, t selectType, syncableID string, opts model.GroupSearchOpts) squirrel.SelectBuilder {
