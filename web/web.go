@@ -89,13 +89,11 @@ func IsWebhookCall(a *app.App, r *http.Request) bool {
 func IsOAuthApiCall(config configservice.ConfigService, r *http.Request) bool {
 	subpath, _ := utils.GetSubpathFromConfig(config.Config())
 
-	// To avoid the /oauth/authorize page on get
-	if r.Method == "GET" {
-		return false
+	if r.Method == "POST" && r.URL.Path == path.Join(subpath, "oauth", "authorize") {
+		return true
 	}
 
 	if r.URL.Path == path.Join(subpath, "oauth", "apps", "authorized") ||
-		r.URL.Path == path.Join(subpath, "oauth", "authorize") ||
 		r.URL.Path == path.Join(subpath, "oauth", "deauthorize") ||
 		r.URL.Path == path.Join(subpath, "oauth", "access_token") {
 		return true
