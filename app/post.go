@@ -798,7 +798,7 @@ func (a *App) parseAndFetchChannelIdByNameFromInFilter(channelName, userId, team
 }
 
 func (a *App) searchPostsInTeam(teamId string, userId string, paramsList []*model.SearchParams, modifierFun func(*model.SearchParams)) (*model.PostList, *model.AppError) {
-	channels := []store.StoreChannel{}
+	posts := model.NewPostList()
 
 	for _, params := range paramsList {
 		// Don't allow users to search for everything.
@@ -806,17 +806,13 @@ func (a *App) searchPostsInTeam(teamId string, userId string, paramsList []*mode
 			continue
 		}
 		modifierFun(params)
-		channels = append(channels, a.Srv.Store.Post().Search(teamId, userId, params))
-	}
+		postList, err := a.Srv.Store.Post().Search(teamId, userId, params)
 
-	posts := model.NewPostList()
-	for _, channel := range channels {
-		result := <-channel
-		if result.Err != nil {
-			return nil, result.Err
+		if err != nil {
+			return nil, err
 		}
-		data := result.Data.(*model.PostList)
-		posts.Extend(data)
+
+		posts.Extend(postList)
 	}
 
 	posts.SortByCreateAt()
