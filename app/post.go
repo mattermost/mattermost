@@ -943,11 +943,12 @@ func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamId strin
 
 func (a *App) GetFileInfosForPostWithMigration(postId string) ([]*model.FileInfo, *model.AppError) {
 
-	pchan := store.Do(func(result *store.StoreResult) {
-		post, errPost := a.Srv.Store.Post().GetSingle(postId)
-		result.Data = post
-		result.Err = errPost
-	})
+	pchan := make(chan store.StoreResult, 1)
+	go func() {
+		post, err := a.Srv.Store.Post().GetSingle(postId)
+		pchan <- store.StoreResult{Data: post, Err: err}
+		close(pchan)
+	}()
 
 	infos, err := a.GetFileInfosForPost(postId, false)
 	if err != nil {
