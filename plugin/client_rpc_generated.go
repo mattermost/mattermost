@@ -2643,14 +2643,14 @@ func (s *apiRPCServer) UpdateEphemeralPost(args *Z_UpdateEphemeralPostArgs, retu
 
 type Z_DeleteEphemeralPostArgs struct {
 	A string
-	B *model.Post
+	B string
 }
 
 type Z_DeleteEphemeralPostReturns struct {
 }
 
-func (g *apiRPCClient) DeleteEphemeralPost(userId string, post *model.Post) {
-	_args := &Z_DeleteEphemeralPostArgs{userId, post}
+func (g *apiRPCClient) DeleteEphemeralPost(userId, postId string) {
+	_args := &Z_DeleteEphemeralPostArgs{userId, postId}
 	_returns := &Z_DeleteEphemeralPostReturns{}
 	if err := g.client.Call("Plugin.DeleteEphemeralPost", _args, _returns); err != nil {
 		log.Printf("RPC call to DeleteEphemeralPost API failed: %s", err.Error())
@@ -2660,7 +2660,7 @@ func (g *apiRPCClient) DeleteEphemeralPost(userId string, post *model.Post) {
 
 func (s *apiRPCServer) DeleteEphemeralPost(args *Z_DeleteEphemeralPostArgs, returns *Z_DeleteEphemeralPostReturns) error {
 	if hook, ok := s.impl.(interface {
-		DeleteEphemeralPost(userId string, post *model.Post)
+		DeleteEphemeralPost(userId, postId string)
 	}); ok {
 		hook.DeleteEphemeralPost(args.A, args.B)
 	} else {
@@ -3486,6 +3486,37 @@ func (s *apiRPCServer) KVSet(args *Z_KVSetArgs, returns *Z_KVSetReturns) error {
 		returns.A = hook.KVSet(args.A, args.B)
 	} else {
 		return encodableError(fmt.Errorf("API KVSet called but not implemented."))
+	}
+	return nil
+}
+
+type Z_KVCompareAndSetArgs struct {
+	A string
+	B []byte
+	C []byte
+}
+
+type Z_KVCompareAndSetReturns struct {
+	A bool
+	B *model.AppError
+}
+
+func (g *apiRPCClient) KVCompareAndSet(key string, oldValue, newValue []byte) (bool, *model.AppError) {
+	_args := &Z_KVCompareAndSetArgs{key, oldValue, newValue}
+	_returns := &Z_KVCompareAndSetReturns{}
+	if err := g.client.Call("Plugin.KVCompareAndSet", _args, _returns); err != nil {
+		log.Printf("RPC call to KVCompareAndSet API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) KVCompareAndSet(args *Z_KVCompareAndSetArgs, returns *Z_KVCompareAndSetReturns) error {
+	if hook, ok := s.impl.(interface {
+		KVCompareAndSet(key string, oldValue, newValue []byte) (bool, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.KVCompareAndSet(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API KVCompareAndSet called but not implemented."))
 	}
 	return nil
 }

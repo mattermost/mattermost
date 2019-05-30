@@ -16,6 +16,7 @@ BUILD_ENTERPRISE ?= true
 BUILD_ENTERPRISE_READY = false
 BUILD_TYPE_NAME = team
 BUILD_HASH_ENTERPRISE = none
+LDAP_DATA ?= test
 ifneq ($(wildcard $(BUILD_ENTERPRISE_DIR)/.),)
 	ifeq ($(BUILD_ENTERPRISE),true)
 		BUILD_ENTERPRISE_READY = true
@@ -70,7 +71,7 @@ TESTFLAGS ?= -short
 TESTFLAGSEE ?= -short
 
 # Packages lists
-TE_PACKAGES=$(shell go list ./...)
+TE_PACKAGES=$(shell go list ./...|grep -v plugin_tests)
 
 # Plugins Packages
 PLUGIN_PACKAGES=mattermost-plugin-zoom mattermost-plugin-jira
@@ -139,7 +140,8 @@ ifeq ($(IS_CI),false)
 	@if [ $(shell docker ps -a --no-trunc --quiet --filter name=^/mattermost-minio$$ | wc -l) -eq 0 ]; then \
 		echo starting mattermost-minio; \
 		docker run --name mattermost-minio -p 9001:9000 -e "MINIO_ACCESS_KEY=minioaccesskey" \
-		-e "MINIO_SECRET_KEY=miniosecretkey" -d minio/minio:RELEASE.2018-05-25T19-49-13Z server /data > /dev/null; \
+		-e "MINIO_SSE_MASTER_KEY=my-minio-key:6368616e676520746869732070617373776f726420746f206120736563726574" \
+		-e "MINIO_SECRET_KEY=miniosecretkey" -d minio/minio:RELEASE.2019-04-23T23-50-36Z server /data > /dev/null; \
 		docker exec -it mattermost-minio /bin/sh -c "mkdir -p /data/mattermost-test" > /dev/null; \
 	elif [ $(shell docker ps --no-trunc --quiet --filter name=^/mattermost-minio$$ | wc -l) -eq 0 ]; then \
 		echo restarting mattermost-minio; \
@@ -157,11 +159,9 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 			-e LDAP_ADMIN_PASSWORD="mostest" \
 			-d osixia/openldap:1.2.2 > /dev/null;\
 		sleep 10; \
-		docker cp tests/add-users.ldif mattermost-openldap:/add-users.ldif;\
-		docker cp tests/add-groups.ldif mattermost-openldap:/add-groups.ldif;\
+		docker cp tests/test-data.ldif mattermost-openldap:/test-data.ldif;\
 		docker cp tests/qa-data.ldif mattermost-openldap:/qa-data.ldif;\
-		docker exec -ti mattermost-openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest -f /add-users.ldif';\
-		docker exec -ti mattermost-openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest -f /add-groups.ldif';\
+		docker exec -ti mattermost-openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest -f /$(LDAP_DATA)-data.ldif';\
 	elif [ $(shell docker ps | grep -ci mattermost-openldap) -eq 0 ]; then \
 		echo restarting mattermost-openldap; \
 		docker start mattermost-openldap > /dev/null; \
@@ -338,6 +338,7 @@ plugin-mocks: ## Creates mock files for plugins.
 	go get -u github.com/vektra/mockery/...
 	$(GOPATH)/bin/mockery -dir plugin -name API -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
 	$(GOPATH)/bin/mockery -dir plugin -name Hooks -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
+	$(GOPATH)/bin/mockery -dir plugin -name Helpers -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
 
 pluginapi: ## Generates api and hooks glue code for plugins
 	go generate ./plugin
@@ -560,6 +561,21 @@ nuke: clean clean-docker ## Clean plus removes persistant server data.
 
 setup-mac: ## Adds macOS hosts entries for Docker.
 	echo $$(boot2docker ip 2> /dev/null) dockerhost | sudo tee -a /etc/hosts
+
+update-dependencies: ## Uses go get -u to update all the dependencies while holding back any that require it. 
+	@echo Updating Dependencies
+
+	# Update all dependencies (does not update across major versions)
+	go get -u
+
+	# Keep back because of breaking API changes
+	go get -u github.com/segmentio/analytics-go@2.1.1
+
+	# Tidy up
+	go mod tidy
+
+	# Copy everything to vendor directory
+	go mod vendor
 
 
 todo: ## Display TODO and FIXME items in the source code.

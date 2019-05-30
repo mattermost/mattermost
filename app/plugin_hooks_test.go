@@ -10,7 +10,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -22,21 +21,10 @@ import (
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/plugin/plugintest"
 	"github.com/mattermost/mattermost-server/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost-server/utils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-func compileGo(t *testing.T, sourceCode, outputPath string) {
-	dir, err := ioutil.TempDir(".", "")
-	require.NoError(t, err)
-	defer os.RemoveAll(dir)
-	require.NoError(t, ioutil.WriteFile(filepath.Join(dir, "main.go"), []byte(sourceCode), 0600))
-	cmd := exec.Command("go", "build", "-o", outputPath, "main.go")
-	cmd.Dir = dir
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	require.NoError(t, cmd.Run(), "failed to compile go")
-}
 
 func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, apiFunc func(*model.Manifest) plugin.API) (func(), []string, []error) {
 	pluginDir, err := ioutil.TempDir("", "")
@@ -53,7 +41,7 @@ func SetAppEnvironmentWithPlugins(t *testing.T, pluginCode []string, app *App, a
 	for _, code := range pluginCode {
 		pluginId := model.NewId()
 		backend := filepath.Join(pluginDir, pluginId, "backend.exe")
-		compileGo(t, code, backend)
+		utils.CompileGo(t, code, backend)
 
 		ioutil.WriteFile(filepath.Join(pluginDir, pluginId, "plugin.json"), []byte(`{"id": "`+pluginId+`", "backend": {"executable": "backend.exe"}}`), 0600)
 		_, _, activationErr := env.Activate(pluginId)
@@ -188,11 +176,9 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			t.Fatal(err)
 		}
 		assert.Equal(t, "message", post.Message)
-		if result := <-th.App.Srv.Store.Post().GetSingle(post.Id); result.Err != nil {
-			t.Fatal(err)
-		} else {
-			assert.Equal(t, "message", result.Data.(*model.Post).Message)
-		}
+		retrievedPost, errSingle := th.App.Srv.Store.Post().GetSingle(post.Id)
+		require.Nil(t, errSingle)
+		assert.Equal(t, "message", retrievedPost.Message)
 	})
 
 	t.Run("updated", func(t *testing.T) {
@@ -235,10 +221,10 @@ func TestHookMessageWillBePosted(t *testing.T) {
 			t.Fatal(err)
 		}
 		assert.Equal(t, "message_fromplugin", post.Message)
-		if result := <-th.App.Srv.Store.Post().GetSingle(post.Id); result.Err != nil {
-			t.Fatal(err)
+		if retrievedPost, errSingle := th.App.Srv.Store.Post().GetSingle(post.Id); err != nil {
+			t.Fatal(errSingle)
 		} else {
-			assert.Equal(t, "message_fromplugin", result.Data.(*model.Post).Message)
+			assert.Equal(t, "message_fromplugin", retrievedPost.Message)
 		}
 	})
 

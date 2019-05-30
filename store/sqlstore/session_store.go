@@ -45,37 +45,34 @@ func (me SqlSessionStore) CreateIndexesIfNotExists() {
 	me.CreateIndexIfNotExists("idx_sessions_last_activity_at", "Sessions", "LastActivityAt")
 }
 
-func (me SqlSessionStore) Save(session *model.Session) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if len(session.Id) > 0 {
-			result.Err = model.NewAppError("SqlSessionStore.Save", "store.sql_session.save.existing.app_error", nil, "id="+session.Id, http.StatusBadRequest)
-			return
+func (me SqlSessionStore) Save(session *model.Session) (*model.Session, *model.AppError) {
+	if len(session.Id) > 0 {
+		return nil, model.NewAppError("SqlSessionStore.Save", "store.sql_session.save.existing.app_error", nil, "id="+session.Id, http.StatusBadRequest)
+	}
+
+	session.PreSave()
+
+	tcs := me.Team().GetTeamsForUser(session.UserId)
+
+	if err := me.GetMaster().Insert(session); err != nil {
+		return nil, model.NewAppError("SqlSessionStore.Save", "store.sql_session.save.app_error", nil, "id="+session.Id+", "+err.Error(), http.StatusInternalServerError)
+	}
+
+	rtcs := <-tcs
+
+	if rtcs.Err != nil {
+		return nil, model.NewAppError("SqlSessionStore.Save", "store.sql_session.save.app_error", nil, "id="+session.Id+", "+rtcs.Err.Error(), http.StatusInternalServerError)
+	}
+
+	tempMembers := rtcs.Data.([]*model.TeamMember)
+	session.TeamMembers = make([]*model.TeamMember, 0, len(tempMembers))
+	for _, tm := range tempMembers {
+		if tm.DeleteAt == 0 {
+			session.TeamMembers = append(session.TeamMembers, tm)
 		}
+	}
 
-		session.PreSave()
-
-		tcs := me.Team().GetTeamsForUser(session.UserId)
-
-		if err := me.GetMaster().Insert(session); err != nil {
-			result.Err = model.NewAppError("SqlSessionStore.Save", "store.sql_session.save.app_error", nil, "id="+session.Id+", "+err.Error(), http.StatusInternalServerError)
-			return
-		} else {
-			result.Data = session
-		}
-
-		if rtcs := <-tcs; rtcs.Err != nil {
-			result.Err = model.NewAppError("SqlSessionStore.Save", "store.sql_session.save.app_error", nil, "id="+session.Id+", "+rtcs.Err.Error(), http.StatusInternalServerError)
-			return
-		} else {
-			tempMembers := rtcs.Data.([]*model.TeamMember)
-			session.TeamMembers = make([]*model.TeamMember, 0, len(tempMembers))
-			for _, tm := range tempMembers {
-				if tm.DeleteAt == 0 {
-					session.TeamMembers = append(session.TeamMembers, tm)
-				}
-			}
-		}
-	})
+	return session, nil
 }
 
 func (me SqlSessionStore) Get(sessionIdOrToken string) (*model.Session, *model.AppError) {
@@ -132,17 +129,24 @@ func (me SqlSessionStore) GetSessions(userId string) store.StoreChannel {
 	})
 }
 
-func (me SqlSessionStore) GetSessionsWithActiveDeviceIds(userId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var sessions []*model.Session
+func (me SqlSessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*model.Session, *model.AppError) {
+	query :=
+		`SELECT * 
+		FROM 
+			Sessions 
+		WHERE 
+			UserId = :UserId AND 
+			ExpiresAt != 0 AND 
+			:ExpiresAt <= ExpiresAt AND 
+			DeviceId != ''`
 
-		if _, err := me.GetReplica().Select(&sessions, "SELECT * FROM Sessions WHERE UserId = :UserId AND ExpiresAt != 0 AND :ExpiresAt <= ExpiresAt AND DeviceId != ''", map[string]interface{}{"UserId": userId, "ExpiresAt": model.GetMillis()}); err != nil {
-			result.Err = model.NewAppError("SqlSessionStore.GetActiveSessionsWithDeviceIds", "store.sql_session.get_sessions.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
+	var sessions []*model.Session
 
-			result.Data = sessions
-		}
-	})
+	_, err := me.GetReplica().Select(&sessions, query, map[string]interface{}{"UserId": userId, "ExpiresAt": model.GetMillis()})
+	if err != nil {
+		return nil, model.NewAppError("SqlSessionStore.GetActiveSessionsWithDeviceIds", "store.sql_session.get_sessions.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return sessions, nil
 }
 
 func (me SqlSessionStore) Remove(sessionIdOrToken string) store.StoreChannel {
@@ -202,21 +206,18 @@ func (me SqlSessionStore) UpdateDeviceId(id string, deviceId string, expiresAt i
 	})
 }
 
-func (me SqlSessionStore) AnalyticsSessionCount() store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		query :=
-			`SELECT
-                COUNT(*)
-            FROM
-                Sessions
-            WHERE ExpiresAt > :Time`
-
-		if c, err := me.GetReplica().SelectInt(query, map[string]interface{}{"Time": model.GetMillis()}); err != nil {
-			result.Err = model.NewAppError("SqlSessionStore.AnalyticsSessionCount", "store.sql_session.analytics_session_count.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = c
-		}
-	})
+func (me SqlSessionStore) AnalyticsSessionCount() (int64, *model.AppError) {
+	query :=
+		`SELECT 
+			COUNT(*)
+		FROM
+			Sessions
+		WHERE ExpiresAt > :Time`
+	count, err := me.GetReplica().SelectInt(query, map[string]interface{}{"Time": model.GetMillis()})
+	if err != nil {
+		return int64(0), model.NewAppError("SqlSessionStore.AnalyticsSessionCount", "store.sql_session.analytics_session_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return count, nil
 }
 
 func (me SqlSessionStore) Cleanup(expiryTime int64, batchSize int64) {

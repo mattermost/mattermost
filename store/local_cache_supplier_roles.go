@@ -17,38 +17,43 @@ func (s *LocalCacheSupplier) handleClusterInvalidateRole(msg *model.ClusterMessa
 	}
 }
 
-func (s *LocalCacheSupplier) RoleSave(ctx context.Context, role *model.Role, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+func (s *LocalCacheSupplier) RoleSave(ctx context.Context, role *model.Role, hints ...LayeredStoreHint) (*model.Role, *model.AppError) {
 	if len(role.Name) != 0 {
 		defer s.doInvalidateCacheCluster(s.roleCache, role.Name)
 	}
 	return s.Next().RoleSave(ctx, role, hints...)
 }
 
-func (s *LocalCacheSupplier) RoleGet(ctx context.Context, roleId string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+func (s *LocalCacheSupplier) RoleGet(ctx context.Context, roleId string, hints ...LayeredStoreHint) (*model.Role, *model.AppError) {
 	// Roles are cached by name, as that is most commonly how they are looked up.
 	// This means that no caching is supported on roles being looked up by ID.
 	return s.Next().RoleGet(ctx, roleId, hints...)
 }
 
-func (s *LocalCacheSupplier) RoleGetAll(ctx context.Context, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+func (s *LocalCacheSupplier) RoleGetAll(ctx context.Context, hints ...LayeredStoreHint) ([]*model.Role, *model.AppError) {
 	// Roles are cached by name, as that is most commonly how they are looked up.
 	// This means that no caching is supported on roles being listed.
 	return s.Next().RoleGetAll(ctx, hints...)
 }
 
-func (s *LocalCacheSupplier) RoleGetByName(ctx context.Context, name string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+func (s *LocalCacheSupplier) RoleGetByName(ctx context.Context, name string, hints ...LayeredStoreHint) (*model.Role, *model.AppError) {
 	if result := s.doStandardReadCache(ctx, s.roleCache, name, hints...); result != nil {
-		return result
+		return result.Data.(*model.Role), nil
 	}
 
-	result := s.Next().RoleGetByName(ctx, name, hints...)
+	role, err := s.Next().RoleGetByName(ctx, name, hints...)
+	if err != nil {
+		return nil, err
+	}
 
+	result := NewSupplierResult()
+	result.Data = role
 	s.doStandardAddToCache(ctx, s.roleCache, name, result, hints...)
 
-	return result
+	return role, nil
 }
 
-func (s *LocalCacheSupplier) RoleGetByNames(ctx context.Context, roleNames []string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+func (s *LocalCacheSupplier) RoleGetByNames(ctx context.Context, roleNames []string, hints ...LayeredStoreHint) ([]*model.Role, *model.AppError) {
 	var foundRoles []*model.Role
 	var rolesToQuery []string
 
@@ -60,33 +65,30 @@ func (s *LocalCacheSupplier) RoleGetByNames(ctx context.Context, roleNames []str
 		}
 	}
 
-	result := s.Next().RoleGetByNames(ctx, rolesToQuery, hints...)
+	rolesFound, err := s.Next().RoleGetByNames(ctx, rolesToQuery, hints...)
 
-	if result.Data != nil {
-		rolesFound := result.Data.([]*model.Role)
-		for _, role := range rolesFound {
-			res := NewSupplierResult()
-			res.Data = role
-			s.doStandardAddToCache(ctx, s.roleCache, role.Name, res, hints...)
-		}
-		result.Data = append(foundRoles, result.Data.([]*model.Role)...)
+	for _, role := range rolesFound {
+		res := NewSupplierResult()
+		res.Data = role
+		s.doStandardAddToCache(ctx, s.roleCache, role.Name, res, hints...)
 	}
+	foundRoles = append(foundRoles, rolesFound...)
 
-	return result
+	return foundRoles, err
 }
 
-func (s *LocalCacheSupplier) RoleDelete(ctx context.Context, roleId string, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
-	result := s.Next().RoleDelete(ctx, roleId, hints...)
-
-	if result.Err == nil {
-		role := result.Data.(*model.Role)
-		s.doInvalidateCacheCluster(s.roleCache, role.Name)
+func (s *LocalCacheSupplier) RoleDelete(ctx context.Context, roleId string, hints ...LayeredStoreHint) (*model.Role, *model.AppError) {
+	role, err := s.Next().RoleDelete(ctx, roleId, hints...)
+	if err != nil {
+		return nil, err
 	}
 
-	return result
+	s.doInvalidateCacheCluster(s.roleCache, role.Name)
+
+	return role, nil
 }
 
-func (s *LocalCacheSupplier) RolePermanentDeleteAll(ctx context.Context, hints ...LayeredStoreHint) *LayeredStoreSupplierResult {
+func (s *LocalCacheSupplier) RolePermanentDeleteAll(ctx context.Context, hints ...LayeredStoreHint) *model.AppError {
 	defer s.roleCache.Purge()
 	defer s.doClearCacheCluster(s.roleCache)
 

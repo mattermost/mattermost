@@ -1,6 +1,6 @@
 /*
- * Minio Go Library for Amazon S3 Compatible Cloud Storage
- * Copyright 2017 Minio, Inc.
+ * MinIO Go Library for Amazon S3 Compatible Cloud Storage
+ * Copyright 2017 MinIO, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ type FileMinioClient struct {
 	// Windows:   "%USERALIAS%\mc\config.json"
 	filename string
 
-	// Minio Alias to extract credentials from the shared credentials file. If empty
+	// MinIO Alias to extract credentials from the shared credentials file. If empty
 	// will default to environment variable "MINIO_ALIAS" or "default" if
 	// environment variable is also not set.
 	alias string
