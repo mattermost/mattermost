@@ -301,6 +301,7 @@ func (s *SqlPostStore) Get(id string) (*model.PostList, *model.AppError) {
 
 	for _, p := range posts {
 		pl.AddPost(p)
+		pl.AddOrder(p.Id)
 	}
 
 	return pl, nil
