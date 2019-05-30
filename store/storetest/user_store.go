@@ -1126,12 +1126,12 @@ func testUserStoreGetProfilesNotInChannel(t *testing.T, ss store.Store) {
 	}
 
 	// associate the group with the channel
-	res := <-ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+	_, err = ss.Group().CreateGroupSyncable(&model.GroupSyncable{
 		GroupId:    group.Id,
 		SyncableId: c2.Id,
 		Type:       model.GroupSyncableTypeChannel,
 	})
-	require.Nil(t, res.Err)
+	require.Nil(t, err)
 
 	t.Run("get team 1, channel 2, offset 0, limit 0, setting group constrained", func(t *testing.T) {
 		result := <-ss.User().GetProfilesNotInChannel(teamId, c2.Id, true, 0, 100, nil)
@@ -3305,12 +3305,12 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	}
 
 	// associate the group with the team
-	res := <-ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+	_, err = ss.Group().CreateGroupSyncable(&model.GroupSyncable{
 		GroupId:    group.Id,
 		SyncableId: teamId,
 		Type:       model.GroupSyncableTypeTeam,
 	})
-	require.Nil(t, res.Err)
+	require.Nil(t, err)
 
 	t.Run("get not in team 1, offset 0, limit 100000 after second update, setting group constrained", func(t *testing.T) {
 		result := <-ss.User().GetProfilesNotInTeam(teamId, true, 0, 100000, nil)
@@ -3618,12 +3618,12 @@ func testUserStoreGetTeamGroupUsers(t *testing.T, ss store.Store) {
 	require.Nil(t, res.Err)
 
 	// association one group to team
-	res = <-ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+	_, err = ss.Group().CreateGroupSyncable(&model.GroupSyncable{
 		GroupId:    groupA.Id,
 		SyncableId: team.Id,
 		Type:       model.GroupSyncableTypeTeam,
 	})
-	require.Nil(t, res.Err)
+	require.Nil(t, err)
 
 	var users []*model.User
 
@@ -3647,12 +3647,12 @@ func testUserStoreGetTeamGroupUsers(t *testing.T, ss store.Store) {
 	requireNUsers(1)
 
 	// associate other group to team
-	res = <-ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+	_, err = ss.Group().CreateGroupSyncable(&model.GroupSyncable{
 		GroupId:    groupB.Id,
 		SyncableId: team.Id,
 		Type:       model.GroupSyncableTypeTeam,
 	})
-	require.Nil(t, res.Err)
+	require.Nil(t, err)
 
 	// should return users from all groups
 	// 2 users now that both groups have been associated to the team
@@ -3741,12 +3741,12 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, ss store.Store) {
 	require.Nil(t, res.Err)
 
 	// association one group to channel
-	res = <-ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+	_, err = ss.Group().CreateGroupSyncable(&model.GroupSyncable{
 		GroupId:    groupA.Id,
 		SyncableId: channel.Id,
 		Type:       model.GroupSyncableTypeChannel,
 	})
-	require.Nil(t, res.Err)
+	require.Nil(t, err)
 
 	var users []*model.User
 
@@ -3770,12 +3770,12 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, ss store.Store) {
 	requireNUsers(1)
 
 	// associate other group to team
-	res = <-ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+	_, err = ss.Group().CreateGroupSyncable(&model.GroupSyncable{
 		GroupId:    groupB.Id,
 		SyncableId: channel.Id,
 		Type:       model.GroupSyncableTypeChannel,
 	})
-	require.Nil(t, res.Err)
+	require.Nil(t, err)
 
 	// should return users from all groups
 	// 2 users now that both groups have been associated to the team

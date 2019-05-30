@@ -1116,7 +1116,8 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlSupplier)
 		RemoteId:    model.NewId(),
 	}
 	store.Must(ss.Group().Create(group))
-	store.Must(ss.Group().CreateGroupSyncable(model.NewGroupChannel(group.Id, c1.Id, true)))
+	_, err = ss.Group().CreateGroupSyncable(model.NewGroupChannel(group.Id, c1.Id, true))
+	require.Nil(t, err)
 
 	c2 := model.Channel{}
 	c2.TeamId = t1.Id
@@ -2457,7 +2458,8 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 		RemoteId:    model.NewId(),
 	}
 	store.Must(ss.Group().Create(group))
-	store.Must(ss.Group().CreateGroupSyncable(model.NewGroupChannel(group.Id, o7.Id, true)))
+	_, err = ss.Group().CreateGroupSyncable(model.NewGroupChannel(group.Id, o7.Id, true))
+	require.Nil(t, err)
 
 	o8 := model.Channel{
 		TeamId:      t1.Id,
