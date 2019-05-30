@@ -636,7 +636,8 @@ func testPostStoreGetPostsWithDetails(t *testing.T, ss store.Store) {
 	o5.RootId = o4.Id
 	o5 = (<-ss.Post().Save(o5)).Data.(*model.Post)
 
-	r1 := (<-ss.Post().GetPosts(o1.ChannelId, 0, 4, false)).Data.(*model.PostList)
+	r1, err := ss.Post().GetPosts(o1.ChannelId, 0, 4, false)
+	require.Nil(t, err)
 
 	if r1.Order[0] != o5.Id {
 		t.Fatal("invalid order")
@@ -662,7 +663,8 @@ func testPostStoreGetPostsWithDetails(t *testing.T, ss store.Store) {
 		t.Fatal("Missing parent")
 	}
 
-	r2 := (<-ss.Post().GetPosts(o1.ChannelId, 0, 4, true)).Data.(*model.PostList)
+	r2, err := ss.Post().GetPosts(o1.ChannelId, 0, 4, true)
+	require.Nil(t, err)
 
 	if r2.Order[0] != o5.Id {
 		t.Fatal("invalid order")
@@ -689,7 +691,7 @@ func testPostStoreGetPostsWithDetails(t *testing.T, ss store.Store) {
 	}
 
 	// Run once to fill cache
-	<-ss.Post().GetPosts(o1.ChannelId, 0, 30, true)
+	ss.Post().GetPosts(o1.ChannelId, 0, 30, true)
 
 	o6 := &model.Post{}
 	o6.ChannelId = o1.ChannelId
@@ -698,13 +700,15 @@ func testPostStoreGetPostsWithDetails(t *testing.T, ss store.Store) {
 	_ = (<-ss.Post().Save(o6)).Data.(*model.Post)
 
 	// Should only be 6 since we hit the cache
-	r3 := (<-ss.Post().GetPosts(o1.ChannelId, 0, 30, true)).Data.(*model.PostList)
+	r3, err := ss.Post().GetPosts(o1.ChannelId, 0, 30, true)
+	require.Nil(t, err)
 	assert.Equal(t, 6, len(r3.Order))
 
 	ss.Post().InvalidateLastPostTimeCache(o1.ChannelId)
 
 	// Cache was invalidated, we should get all the posts
-	r4 := (<-ss.Post().GetPosts(o1.ChannelId, 0, 30, true)).Data.(*model.PostList)
+	r4, err := ss.Post().GetPosts(o1.ChannelId, 0, 30, true)
+	require.Nil(t, err)
 	assert.Equal(t, 7, len(r4.Order))
 }
 

@@ -599,19 +599,11 @@ func (a *App) PatchPost(postId string, patch *model.PostPatch) (*model.Post, *mo
 }
 
 func (a *App) GetPostsPage(channelId string, page int, perPage int) (*model.PostList, *model.AppError) {
-	result := <-a.Srv.Store.Post().GetPosts(channelId, page*perPage, perPage, true)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.PostList), nil
+	return a.Srv.Store.Post().GetPosts(channelId, page*perPage, perPage, true)
 }
 
 func (a *App) GetPosts(channelId string, offset int, limit int) (*model.PostList, *model.AppError) {
-	result := <-a.Srv.Store.Post().GetPosts(channelId, offset, limit, true)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.PostList), nil
+	return a.Srv.Store.Post().GetPosts(channelId, offset, limit, true)
 }
 
 func (a *App) GetPostsEtag(channelId string) string {

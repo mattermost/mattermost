@@ -217,7 +217,7 @@ type PostStore interface {
 	Delete(postId string, time int64, deleteByID string) *model.AppError
 	PermanentDeleteByUser(userId string) StoreChannel
 	PermanentDeleteByChannel(channelId string) *model.AppError
-	GetPosts(channelId string, offset int, limit int, allowFromCache bool) StoreChannel
+	GetPosts(channelId string, offset int, limit int, allowFromCache bool) (*model.PostList, *model.AppError)
 	GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetFlaggedPostsForTeam(userId, teamId string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) StoreChannel
