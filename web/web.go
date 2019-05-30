@@ -86,6 +86,21 @@ func IsWebhookCall(a *app.App, r *http.Request) bool {
 	return strings.HasPrefix(r.URL.Path, path.Join(subpath, "hooks")+"/")
 }
 
+func IsOAuthApiCall(config configservice.ConfigService, r *http.Request) bool {
+	subpath, _ := utils.GetSubpathFromConfig(config.Config())
+
+	if r.Method == "POST" && r.URL.Path == path.Join(subpath, "oauth", "authorize") {
+		return true
+	}
+
+	if r.URL.Path == path.Join(subpath, "oauth", "apps", "authorized") ||
+		r.URL.Path == path.Join(subpath, "oauth", "deauthorize") ||
+		r.URL.Path == path.Join(subpath, "oauth", "access_token") {
+		return true
+	}
+	return false
+}
+
 func ReturnStatusOK(w http.ResponseWriter) {
 	m := make(map[string]string)
 	m[model.STATUS] = model.STATUS_OK
