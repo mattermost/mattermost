@@ -1802,10 +1802,11 @@ func TestImportImportPost(t *testing.T) {
 
 	// Count the number of posts in the testing team.
 	var initialPostCount int64
-	if result := <-th.App.Srv.Store.Post().AnalyticsPostCount(team.Id, false, false); result.Err != nil {
-		t.Fatal(result.Err)
+	count, err := th.App.Srv.Store.Post().AnalyticsPostCount(team.Id, false, false)
+	if err != nil {
+		t.Fatal(err)
 	} else {
-		initialPostCount = result.Data.(int64)
+		initialPostCount = count
 	}
 
 	// Try adding an invalid post in dry run mode.
@@ -2374,9 +2375,9 @@ func TestImportImportDirectPost(t *testing.T) {
 	directChannel = channel
 
 	// Get the number of posts in the system.
-	result := <-th.App.Srv.Store.Post().AnalyticsPostCount("", false, false)
-	require.Nil(t, result.Err)
-	initialPostCount := result.Data.(int64)
+	count, err := th.App.Srv.Store.Post().AnalyticsPostCount("", false, false)
+	require.Nil(t, err)
+	initialPostCount := count
 
 	// Try adding an invalid post in dry run mode.
 	data := &DirectPostImportData{
@@ -2434,7 +2435,7 @@ func TestImportImportDirectPost(t *testing.T) {
 	AssertAllPostsCount(t, th.App, initialPostCount, 1, "")
 
 	// Check the post values.
-	result = <-th.App.Srv.Store.Post().GetPostsCreatedAt(directChannel.Id, *data.CreateAt)
+	result := <-th.App.Srv.Store.Post().GetPostsCreatedAt(directChannel.Id, *data.CreateAt)
 	require.Nil(t, result.Err)
 
 	posts := result.Data.([]*model.Post)
@@ -2548,9 +2549,9 @@ func TestImportImportDirectPost(t *testing.T) {
 	groupChannel = channel
 
 	// Get the number of posts in the system.
-	result = <-th.App.Srv.Store.Post().AnalyticsPostCount("", false, false)
-	require.Nil(t, result.Err)
-	initialPostCount = result.Data.(int64)
+	count, err = th.App.Srv.Store.Post().AnalyticsPostCount("", false, false)
+	require.Nil(t, err)
+	initialPostCount = count
 
 	// Try adding an invalid post in dry run mode.
 	data = &DirectPostImportData{

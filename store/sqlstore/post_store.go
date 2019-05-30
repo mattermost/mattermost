@@ -1066,10 +1066,9 @@ func (s *SqlPostStore) AnalyticsPostCountsByDay(teamId string) store.StoreChanne
 	})
 }
 
-func (s *SqlPostStore) AnalyticsPostCount(teamId string, mustHaveFile bool, mustHaveHashtag bool) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		query :=
-			`SELECT
+func (s *SqlPostStore) AnalyticsPostCount(teamId string, mustHaveFile bool, mustHaveHashtag bool) (int64, *model.AppError) {
+	query :=
+		`SELECT
 			    COUNT(Posts.Id) AS Value
 			FROM
 			    Posts,
@@ -1077,24 +1076,23 @@ func (s *SqlPostStore) AnalyticsPostCount(teamId string, mustHaveFile bool, must
 			WHERE
 			    Posts.ChannelId = Channels.Id`
 
-		if len(teamId) > 0 {
-			query += " AND Channels.TeamId = :TeamId"
-		}
+	if len(teamId) > 0 {
+		query += " AND Channels.TeamId = :TeamId"
+	}
 
-		if mustHaveFile {
-			query += " AND (Posts.FileIds != '[]' OR Posts.Filenames != '[]')"
-		}
+	if mustHaveFile {
+		query += " AND (Posts.FileIds != '[]' OR Posts.Filenames != '[]')"
+	}
 
-		if mustHaveHashtag {
-			query += " AND Posts.Hashtags != ''"
-		}
+	if mustHaveHashtag {
+		query += " AND Posts.Hashtags != ''"
+	}
 
-		if v, err := s.GetReplica().SelectInt(query, map[string]interface{}{"TeamId": teamId}); err != nil {
-			result.Err = model.NewAppError("SqlPostStore.AnalyticsPostCount", "store.sql_post.analytics_posts_count.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = v
-		}
-	})
+	if v, err := s.GetReplica().SelectInt(query, map[string]interface{}{"TeamId": teamId}); err != nil {
+		return 0, model.NewAppError("SqlPostStore.AnalyticsPostCount", "store.sql_post.analytics_posts_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+	} else {
+		return v, nil
+	}
 }
 
 func (s *SqlPostStore) GetPostsCreatedAt(channelId string, time int64) store.StoreChannel {

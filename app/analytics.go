@@ -58,9 +58,10 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			})
 		}
 
-		var postChan store.StoreChannel
+		var count int64
+		var err *model.AppError
 		if !skipIntensiveQueries {
-			postChan = a.Srv.Store.Post().AnalyticsPostCount(teamId, false, false)
+			count, err = a.Srv.Store.Post().AnalyticsPostCount(teamId, false, false)
 		}
 
 		dailyActiveChan := a.Srv.Store.User().AnalyticsActiveCount(DAY_MILLISECONDS)
@@ -78,14 +79,13 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 		}
 		rows[1].Value = float64(r.Data.(int64))
 
-		if postChan == nil {
+		if skipIntensiveQueries {
 			rows[2].Value = -1
 		} else {
-			r = <-postChan
-			if r.Err != nil {
-				return nil, r.Err
+			if err != nil {
+				return nil, err
 			}
-			rows[2].Value = float64(r.Data.(int64))
+			rows[2].Value = float64(count)
 		}
 
 		if userChan == nil {
@@ -213,31 +213,29 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			close(sessionChan)
 		}()
 
-		var fileChan store.StoreChannel
-		var hashtagChan store.StoreChannel
+		var fileCount, hashtagCount int64
+		var fileError, hashtagError *model.AppError
 		if !skipIntensiveQueries {
-			fileChan = a.Srv.Store.Post().AnalyticsPostCount(teamId, true, false)
-			hashtagChan = a.Srv.Store.Post().AnalyticsPostCount(teamId, false, true)
+			fileCount, fileError = a.Srv.Store.Post().AnalyticsPostCount(teamId, true, false)
+			hashtagCount, hashtagError = a.Srv.Store.Post().AnalyticsPostCount(teamId, false, true)
 		}
 
-		if fileChan == nil {
+		if skipIntensiveQueries {
 			rows[0].Value = -1
 		} else {
-			r := <-fileChan
-			if r.Err != nil {
-				return nil, r.Err
+			if fileError != nil {
+				return nil, fileError
 			}
-			rows[0].Value = float64(r.Data.(int64))
+			rows[0].Value = float64(fileCount)
 		}
 
-		if hashtagChan == nil {
+		if skipIntensiveQueries {
 			rows[1].Value = -1
 		} else {
-			r := <-hashtagChan
-			if r.Err != nil {
-				return nil, r.Err
+			if hashtagError != nil {
+				return nil, hashtagError
 			}
-			rows[1].Value = float64(r.Data.(int64))
+			rows[1].Value = float64(hashtagCount)
 		}
 
 		r := <-iHookChan
