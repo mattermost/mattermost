@@ -225,7 +225,7 @@ type PostStore interface {
 	GetPostsAfter(channelId string, postId string, numPosts int, offset int) StoreChannel
 	GetPostsSince(channelId string, time int64, allowFromCache bool) StoreChannel
 	GetEtag(channelId string, allowFromCache bool) StoreChannel
-	Search(teamId string, userId string, params *model.SearchParams) StoreChannel
+	Search(teamId string, userId string, params *model.SearchParams) (*model.PostList, *model.AppError)
 	AnalyticsUserCountsWithPostsByDay(teamId string) StoreChannel
 	AnalyticsPostCountsByDay(teamId string) StoreChannel
 	AnalyticsPostCount(teamId string, mustHaveFile bool, mustHaveHashtag bool) StoreChannel
