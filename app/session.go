@@ -92,12 +92,8 @@ func (a *App) GetSession(token string) (*model.Session, *model.AppError) {
 }
 
 func (a *App) GetSessions(userId string) ([]*model.Session, *model.AppError) {
-	session, err := a.Srv.Store.Session().GetSessions(userId)
-	if err != nil {
-		return nil, err
-	}
-	return session, nil
 
+	return a.Srv.Store.Session().GetSessions(userId)
 }
 
 func (a *App) RevokeAllSessions(userId string) *model.AppError {

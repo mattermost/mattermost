@@ -75,7 +75,7 @@ func (_m *SessionStore) GetSessions(userId string) ([]*model.Session, *model.App
 		r1 = rf(userId)
 	} else {
 		if ret.Get(1) != nil {
-			r1= ret.Get(1).(*model.AppError)
+			r1 = ret.Get(1).(*model.AppError)
 		}
 	}
 	

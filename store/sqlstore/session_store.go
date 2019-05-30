@@ -109,11 +109,12 @@ func (me SqlSessionStore) Get(sessionIdOrToken string) store.StoreChannel {
 func (me SqlSessionStore) GetSessions(userId string) ([]*model.Session, *model.AppError) {
 	var sessions []*model.Session
 
+	tcs := me.Team().GetTeamsForUser(userId)
 	if _, err := me.GetReplica().Select(&sessions, "SELECT * FROM Sessions WHERE UserId = :UserId ORDER BY LastActivityAt DESC", map[string]interface{}{"UserId": userId}); err != nil {
 		return nil, model.NewAppError("SqlSessionStore.GetSessions", "store.sql_session.get_sessions.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	rtcs := <-me.Team().GetTeamsForUser(userId)	
+	rtcs := <-tcs
 	if rtcs.Err != nil {
 		return nil, model.NewAppError("SqlSessionStore.GetSessions", "store.sql_session.get_sessions.app_error", nil, rtcs.Err.Error(), http.StatusInternalServerError)
 	}
