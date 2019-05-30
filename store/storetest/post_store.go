@@ -244,8 +244,8 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 	o1a := &model.Post{}
 	*o1a = *ro1
 	o1a.Message = ro1.Message + "BBBBBBBBBB"
-	if result := <-ss.Post().Update(o1a, ro1); result.Err != nil {
-		t.Fatal(result.Err)
+	if _, err = ss.Post().Update(o1a, ro1); err != nil {
+		t.Fatal(err)
 	}
 
 	r1, err = ss.Post().Get(o1.Id)
@@ -261,8 +261,8 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 	o2a := &model.Post{}
 	*o2a = *ro2
 	o2a.Message = ro2.Message + "DDDDDDD"
-	if result := <-ss.Post().Update(o2a, ro2); result.Err != nil {
-		t.Fatal(result.Err)
+	if _, err = ss.Post().Update(o2a, ro2); err != nil {
+		t.Fatal(err)
 	}
 
 	r2, err = ss.Post().Get(o1.Id)
@@ -278,8 +278,8 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 	o3a := &model.Post{}
 	*o3a = *ro3
 	o3a.Message = ro3.Message + "WWWWWWW"
-	if result := <-ss.Post().Update(o3a, ro3); result.Err != nil {
-		t.Fatal(result.Err)
+	if _, err = ss.Post().Update(o3a, ro3); err != nil {
+		t.Fatal(err)
 	}
 
 	r3, err = ss.Post().Get(o3.Id)
@@ -309,8 +309,8 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 	*o4a = *ro4
 	o4a.Filenames = []string{}
 	o4a.FileIds = []string{model.NewId()}
-	if result := <-ss.Post().Update(o4a, ro4); result.Err != nil {
-		t.Fatal(result.Err)
+	if _, err = ss.Post().Update(o4a, ro4); err != nil {
+		t.Fatal(err)
 	}
 
 	r4, err = ss.Post().Get(o4.Id)
@@ -2288,8 +2288,8 @@ func testPostStoreGetDirectPostParentsForExportAfterDeleted(t *testing.T, ss sto
 	*o1a = *p1
 	o1a.DeleteAt = 1
 	o1a.Message = p1.Message + "BBBBBBBBBB"
-	if result := <-ss.Post().Update(o1a, p1); result.Err != nil {
-		t.Fatal(result.Err)
+	if _, err := ss.Post().Update(o1a, p1); err != nil {
+		t.Fatal(err)
 	}
 
 	r1 := <-ss.Post().GetDirectPostParentsForExportAfter(10000, strings.Repeat("0", 26))

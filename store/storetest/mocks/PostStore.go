@@ -506,17 +506,26 @@ func (_m *PostStore) Search(teamId string, userId string, params *model.SearchPa
 }
 
 // Update provides a mock function with given fields: newPost, oldPost
-func (_m *PostStore) Update(newPost *model.Post, oldPost *model.Post) store.StoreChannel {
+func (_m *PostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.Post, *model.AppError) {
 	ret := _m.Called(newPost, oldPost)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(*model.Post, *model.Post) store.StoreChannel); ok {
+	var r0 *model.Post
+	if rf, ok := ret.Get(0).(func(*model.Post, *model.Post) *model.Post); ok {
 		r0 = rf(newPost, oldPost)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.Post)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.Post, *model.Post) *model.AppError); ok {
+		r1 = rf(newPost, oldPost)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }

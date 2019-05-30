@@ -492,8 +492,7 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 	}
 
 	if channel.DeleteAt != 0 {
-		err := model.NewAppError("UpdatePost", "api.post.update_post.can_not_update_post_in_deleted.error", nil, "", http.StatusBadRequest)
-		return nil, err
+		return nil, model.NewAppError("UpdatePost", "api.post.update_post.can_not_update_post_in_deleted.error", nil, "", http.StatusBadRequest)
 	}
 
 	newPost := &model.Post{}
@@ -517,7 +516,7 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 		newPost.EditAt = model.GetMillis()
 	}
 
-	if err := a.FillInPostProps(post, nil); err != nil {
+	if err = a.FillInPostProps(post, nil); err != nil {
 		return nil, err
 	}
 
@@ -533,11 +532,10 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 		}
 	}
 
-	result := <-a.Srv.Store.Post().Update(newPost, oldPost)
-	if result.Err != nil {
-		return nil, result.Err
+	rpost, err := a.Srv.Store.Post().Update(newPost, oldPost)
+	if err != nil {
+		return nil, err
 	}
-	rpost := result.Data.(*model.Post)
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv.Go(func() {
