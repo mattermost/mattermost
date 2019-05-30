@@ -1729,12 +1729,12 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 			}
 			tc.Opts.PageOpts.Page = tc.Page
 			tc.Opts.PageOpts.PerPage = tc.PerPage
-			res := <-ss.Group().GetGroupsByChannel(tc.ChannelId, tc.Opts)
-			require.Nil(t, res.Err)
-			require.ElementsMatch(t, tc.Result, res.Data.([]*model.Group))
+			groups, err := ss.Group().GetGroupsByChannel(tc.ChannelId, tc.Opts)
+			require.Nil(t, err)
+			require.ElementsMatch(t, tc.Result, groups)
 			if tc.TotalCount != nil {
-				res = <-ss.Group().CountGroupsByChannel(tc.ChannelId, tc.Opts)
-				count := res.Data.(int64)
+				var count int64
+				count, err = ss.Group().CountGroupsByChannel(tc.ChannelId, tc.Opts)
 				require.Equal(t, *tc.TotalCount, count)
 			}
 		})
@@ -1931,13 +1931,12 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 			}
 			tc.Opts.PageOpts.Page = tc.Page
 			tc.Opts.PageOpts.PerPage = tc.PerPage
-			res := <-ss.Group().GetGroupsByTeam(tc.TeamId, tc.Opts)
-			require.Nil(t, res.Err)
-			groups := res.Data.([]*model.Group)
+			groups, err := ss.Group().GetGroupsByTeam(tc.TeamId, tc.Opts)
+			require.Nil(t, err)
 			require.ElementsMatch(t, tc.Result, groups)
 			if tc.TotalCount != nil {
-				res = <-ss.Group().CountGroupsByTeam(tc.TeamId, tc.Opts)
-				count := res.Data.(int64)
+				var count int64
+				count, err = ss.Group().CountGroupsByTeam(tc.TeamId, tc.Opts)
 				require.Equal(t, *tc.TotalCount, count)
 			}
 		})
@@ -2209,9 +2208,8 @@ func testGetGroups(t *testing.T, ss store.Store) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			res := <-ss.Group().GetGroups(tc.Page, tc.PerPage, tc.Opts)
-			require.Nil(t, res.Err)
-			groups := res.Data.([]*model.Group)
+			groups, err := ss.Group().GetGroups(tc.Page, tc.PerPage, tc.Opts)
+			require.Nil(t, err)
 			require.True(t, tc.Resultf(groups))
 		})
 	}

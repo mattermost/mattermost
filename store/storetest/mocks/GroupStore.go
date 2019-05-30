@@ -64,35 +64,49 @@ func (_m *GroupStore) ChannelMembersToRemove() ([]*model.ChannelMember, *model.A
 }
 
 // CountGroupsByChannel provides a mock function with given fields: channelId, opts
-func (_m *GroupStore) CountGroupsByChannel(channelId string, opts model.GroupSearchOpts) store.StoreChannel {
+func (_m *GroupStore) CountGroupsByChannel(channelId string, opts model.GroupSearchOpts) (int64, *model.AppError) {
 	ret := _m.Called(channelId, opts)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, model.GroupSearchOpts) store.StoreChannel); ok {
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(string, model.GroupSearchOpts) int64); ok {
 		r0 = rf(channelId, opts)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, model.GroupSearchOpts) *model.AppError); ok {
+		r1 = rf(channelId, opts)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
 		}
 	}
 
-	return r0
+	return r0, r1
 }
 
 // CountGroupsByTeam provides a mock function with given fields: teamId, opts
-func (_m *GroupStore) CountGroupsByTeam(teamId string, opts model.GroupSearchOpts) store.StoreChannel {
+func (_m *GroupStore) CountGroupsByTeam(teamId string, opts model.GroupSearchOpts) (int64, *model.AppError) {
 	ret := _m.Called(teamId, opts)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, model.GroupSearchOpts) store.StoreChannel); ok {
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(string, model.GroupSearchOpts) int64); ok {
 		r0 = rf(teamId, opts)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, model.GroupSearchOpts) *model.AppError); ok {
+		r1 = rf(teamId, opts)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
 		}
 	}
 
-	return r0
+	return r0, r1
 }
 
 // Create provides a mock function with given fields: group
@@ -272,51 +286,78 @@ func (_m *GroupStore) GetGroupSyncable(groupID string, syncableID string, syncab
 }
 
 // GetGroups provides a mock function with given fields: page, perPage, opts
-func (_m *GroupStore) GetGroups(page int, perPage int, opts model.GroupSearchOpts) store.StoreChannel {
+func (_m *GroupStore) GetGroups(page int, perPage int, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError) {
 	ret := _m.Called(page, perPage, opts)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(int, int, model.GroupSearchOpts) store.StoreChannel); ok {
+	var r0 []*model.Group
+	if rf, ok := ret.Get(0).(func(int, int, model.GroupSearchOpts) []*model.Group); ok {
 		r0 = rf(page, perPage, opts)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]*model.Group)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(int, int, model.GroupSearchOpts) *model.AppError); ok {
+		r1 = rf(page, perPage, opts)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetGroupsByChannel provides a mock function with given fields: channelId, opts
-func (_m *GroupStore) GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) store.StoreChannel {
+func (_m *GroupStore) GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError) {
 	ret := _m.Called(channelId, opts)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, model.GroupSearchOpts) store.StoreChannel); ok {
+	var r0 []*model.Group
+	if rf, ok := ret.Get(0).(func(string, model.GroupSearchOpts) []*model.Group); ok {
 		r0 = rf(channelId, opts)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]*model.Group)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, model.GroupSearchOpts) *model.AppError); ok {
+		r1 = rf(channelId, opts)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetGroupsByTeam provides a mock function with given fields: teamId, opts
-func (_m *GroupStore) GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) store.StoreChannel {
+func (_m *GroupStore) GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError) {
 	ret := _m.Called(teamId, opts)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, model.GroupSearchOpts) store.StoreChannel); ok {
+	var r0 []*model.Group
+	if rf, ok := ret.Get(0).(func(string, model.GroupSearchOpts) []*model.Group); ok {
 		r0 = rf(teamId, opts)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]*model.Group)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, model.GroupSearchOpts) *model.AppError); ok {
+		r1 = rf(teamId, opts)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetMemberCount provides a mock function with given fields: groupID

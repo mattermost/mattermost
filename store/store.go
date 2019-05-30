@@ -594,13 +594,13 @@ type GroupStore interface {
 	TeamMembersToRemove() ([]*model.TeamMember, *model.AppError)
 	ChannelMembersToRemove() ([]*model.ChannelMember, *model.AppError)
 
-	GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) StoreChannel
-	CountGroupsByChannel(channelId string, opts model.GroupSearchOpts) StoreChannel
+	GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError)
+	CountGroupsByChannel(channelId string, opts model.GroupSearchOpts) (int64, *model.AppError)
 
-	GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) StoreChannel
-	CountGroupsByTeam(teamId string, opts model.GroupSearchOpts) StoreChannel
+	GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError)
+	CountGroupsByTeam(teamId string, opts model.GroupSearchOpts) (int64, *model.AppError)
 
-	GetGroups(page, perPage int, opts model.GroupSearchOpts) StoreChannel
+	GetGroups(page, perPage int, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError)
 }
 
 type LinkMetadataStore interface {
