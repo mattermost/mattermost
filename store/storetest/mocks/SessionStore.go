@@ -78,7 +78,7 @@ func (_m *SessionStore) GetSessions(userId string) ([]*model.Session, *model.App
 			r1 = ret.Get(1).(*model.AppError)
 		}
 	}
-	
+
 	return r0, r1
 }
 
