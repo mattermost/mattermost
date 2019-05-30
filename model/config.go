@@ -226,6 +226,7 @@ type ServiceSettings struct {
 	UseLetsEncrypt                                    *bool    `restricted:"true"`
 	LetsEncryptCertificateCacheFile                   *string  `restricted:"true"`
 	Forward80To443                                    *bool    `restricted:"true"`
+	TrustedProxyIPHeader                              []string `restricted:"true"`
 	ReadTimeout                                       *int     `restricted:"true"`
 	WriteTimeout                                      *int     `restricted:"true"`
 	MaximumLoginAttempts                              *int     `restricted:"true"`
@@ -293,6 +294,7 @@ type ServiceSettings struct {
 	EnableEmailInvitations                            *bool
 	ExperimentalLdapGroupSync                         *bool
 	DisableBotsWhenOwnerIsDeactivated                 *bool `restricted:"true"`
+	EnableBotAccountCreation                          *bool
 }
 
 func (s *ServiceSettings) SetDefaults() {
@@ -431,6 +433,10 @@ func (s *ServiceSettings) SetDefaults() {
 
 	if s.Forward80To443 == nil {
 		s.Forward80To443 = NewBool(false)
+	}
+
+	if s.TrustedProxyIPHeader == nil {
+		s.TrustedProxyIPHeader = []string{HEADER_FORWARDED, HEADER_REAL_IP}
 	}
 
 	if s.TimeBetweenUserTypingUpdatesMilliseconds == nil {
@@ -634,6 +640,10 @@ func (s *ServiceSettings) SetDefaults() {
 
 	if s.DisableBotsWhenOwnerIsDeactivated == nil {
 		s.DisableBotsWhenOwnerIsDeactivated = NewBool(true)
+	}
+
+	if s.EnableBotAccountCreation == nil {
+		s.EnableBotAccountCreation = NewBool(false)
 	}
 }
 
@@ -864,7 +874,6 @@ type LogSettings struct {
 	EnableFile             *bool   `restricted:"true"`
 	FileLevel              *string `restricted:"true"`
 	FileJson               *bool   `restricted:"true"`
-	FileFormat             *string `restricted:"true"`
 	FileLocation           *string `restricted:"true"`
 	EnableWebhookDebugging *bool   `restricted:"true"`
 	EnableDiagnostics      *bool   `restricted:"true"`
@@ -885,10 +894,6 @@ func (s *LogSettings) SetDefaults() {
 
 	if s.FileLevel == nil {
 		s.FileLevel = NewString("INFO")
-	}
-
-	if s.FileFormat == nil {
-		s.FileFormat = NewString("")
 	}
 
 	if s.FileLocation == nil {
@@ -912,6 +917,46 @@ func (s *LogSettings) SetDefaults() {
 	}
 }
 
+type NotificationLogSettings struct {
+	EnableConsole *bool   `restricted:"true"`
+	ConsoleLevel  *string `restricted:"true"`
+	ConsoleJson   *bool   `restricted:"true"`
+	EnableFile    *bool   `restricted:"true"`
+	FileLevel     *string `restricted:"true"`
+	FileJson      *bool   `restricted:"true"`
+	FileLocation  *string `restricted:"true"`
+}
+
+func (s *NotificationLogSettings) SetDefaults() {
+	if s.EnableConsole == nil {
+		s.EnableConsole = NewBool(true)
+	}
+
+	if s.ConsoleLevel == nil {
+		s.ConsoleLevel = NewString("DEBUG")
+	}
+
+	if s.EnableFile == nil {
+		s.EnableFile = NewBool(true)
+	}
+
+	if s.FileLevel == nil {
+		s.FileLevel = NewString("INFO")
+	}
+
+	if s.FileLocation == nil {
+		s.FileLocation = NewString("")
+	}
+
+	if s.ConsoleJson == nil {
+		s.ConsoleJson = NewBool(true)
+	}
+
+	if s.FileJson == nil {
+		s.FileJson = NewBool(true)
+	}
+}
+
 type PasswordSettings struct {
 	MinimumLength *int
 	Lowercase     *bool
@@ -922,23 +967,23 @@ type PasswordSettings struct {
 
 func (s *PasswordSettings) SetDefaults() {
 	if s.MinimumLength == nil {
-		s.MinimumLength = NewInt(PASSWORD_MINIMUM_LENGTH)
+		s.MinimumLength = NewInt(10)
 	}
 
 	if s.Lowercase == nil {
-		s.Lowercase = NewBool(false)
+		s.Lowercase = NewBool(true)
 	}
 
 	if s.Number == nil {
-		s.Number = NewBool(false)
+		s.Number = NewBool(true)
 	}
 
 	if s.Uppercase == nil {
-		s.Uppercase = NewBool(false)
+		s.Uppercase = NewBool(true)
 	}
 
 	if s.Symbol == nil {
-		s.Symbol = NewBool(false)
+		s.Symbol = NewBool(true)
 	}
 }
 
@@ -1602,6 +1647,8 @@ type LdapSettings struct {
 	LoginButtonColor       *string
 	LoginButtonBorderColor *string
 	LoginButtonTextColor   *string
+
+	Trace *bool
 }
 
 func (s *LdapSettings) SetDefaults() {
@@ -1718,6 +1765,10 @@ func (s *LdapSettings) SetDefaults() {
 
 	if s.LoginButtonTextColor == nil {
 		s.LoginButtonTextColor = NewString("#2389D7")
+	}
+
+	if s.Trace == nil {
+		s.Trace = NewBool(false)
 	}
 }
 
@@ -1940,6 +1991,7 @@ type ElasticsearchSettings struct {
 	LiveIndexingBatchSize         *int    `restricted:"true"`
 	BulkIndexingTimeWindowSeconds *int    `restricted:"true"`
 	RequestTimeoutSeconds         *int    `restricted:"true"`
+	Trace                         *bool   `restricted:"true"`
 }
 
 func (s *ElasticsearchSettings) SetDefaults() {
@@ -2018,6 +2070,10 @@ func (s *ElasticsearchSettings) SetDefaults() {
 	if s.RequestTimeoutSeconds == nil {
 		s.RequestTimeoutSeconds = NewInt(ELASTICSEARCH_SETTINGS_DEFAULT_REQUEST_TIMEOUT_SECONDS)
 	}
+
+	if s.Trace == nil {
+		s.Trace = NewBool(false)
+	}
 }
 
 type DataRetentionSettings struct {
@@ -2070,12 +2126,13 @@ type PluginState struct {
 }
 
 type PluginSettings struct {
-	Enable          *bool
-	EnableUploads   *bool   `restricted:"true"`
-	Directory       *string `restricted:"true"`
-	ClientDirectory *string `restricted:"true"`
-	Plugins         map[string]map[string]interface{}
-	PluginStates    map[string]*PluginState
+	Enable            *bool
+	EnableUploads     *bool   `restricted:"true"`
+	EnableHealthCheck *bool   `restricted:"true"`
+	Directory         *string `restricted:"true"`
+	ClientDirectory   *string `restricted:"true"`
+	Plugins           map[string]map[string]interface{}
+	PluginStates      map[string]*PluginState
 }
 
 func (s *PluginSettings) SetDefaults() {
@@ -2085,6 +2142,10 @@ func (s *PluginSettings) SetDefaults() {
 
 	if s.EnableUploads == nil {
 		s.EnableUploads = NewBool(false)
+	}
+
+	if s.EnableHealthCheck == nil {
+		s.EnableHealthCheck = NewBool(true)
 	}
 
 	if s.Directory == nil {
@@ -2236,38 +2297,39 @@ func (ips *ImageProxySettings) SetDefaults(ss ServiceSettings) {
 type ConfigFunc func() *Config
 
 type Config struct {
-	ServiceSettings       ServiceSettings
-	TeamSettings          TeamSettings
-	ClientRequirements    ClientRequirements
-	SqlSettings           SqlSettings
-	LogSettings           LogSettings
-	PasswordSettings      PasswordSettings
-	FileSettings          FileSettings
-	EmailSettings         EmailSettings
-	RateLimitSettings     RateLimitSettings
-	PrivacySettings       PrivacySettings
-	SupportSettings       SupportSettings
-	AnnouncementSettings  AnnouncementSettings
-	ThemeSettings         ThemeSettings
-	GitLabSettings        SSOSettings
-	GoogleSettings        SSOSettings
-	Office365Settings     SSOSettings
-	LdapSettings          LdapSettings
-	ComplianceSettings    ComplianceSettings
-	LocalizationSettings  LocalizationSettings
-	SamlSettings          SamlSettings
-	NativeAppSettings     NativeAppSettings
-	ClusterSettings       ClusterSettings
-	MetricsSettings       MetricsSettings
-	ExperimentalSettings  ExperimentalSettings
-	AnalyticsSettings     AnalyticsSettings
-	ElasticsearchSettings ElasticsearchSettings
-	DataRetentionSettings DataRetentionSettings
-	MessageExportSettings MessageExportSettings
-	JobSettings           JobSettings
-	PluginSettings        PluginSettings
-	DisplaySettings       DisplaySettings
-	ImageProxySettings    ImageProxySettings
+	ServiceSettings         ServiceSettings
+	TeamSettings            TeamSettings
+	ClientRequirements      ClientRequirements
+	SqlSettings             SqlSettings
+	LogSettings             LogSettings
+	NotificationLogSettings NotificationLogSettings
+	PasswordSettings        PasswordSettings
+	FileSettings            FileSettings
+	EmailSettings           EmailSettings
+	RateLimitSettings       RateLimitSettings
+	PrivacySettings         PrivacySettings
+	SupportSettings         SupportSettings
+	AnnouncementSettings    AnnouncementSettings
+	ThemeSettings           ThemeSettings
+	GitLabSettings          SSOSettings
+	GoogleSettings          SSOSettings
+	Office365Settings       SSOSettings
+	LdapSettings            LdapSettings
+	ComplianceSettings      ComplianceSettings
+	LocalizationSettings    LocalizationSettings
+	SamlSettings            SamlSettings
+	NativeAppSettings       NativeAppSettings
+	ClusterSettings         ClusterSettings
+	MetricsSettings         MetricsSettings
+	ExperimentalSettings    ExperimentalSettings
+	AnalyticsSettings       AnalyticsSettings
+	ElasticsearchSettings   ElasticsearchSettings
+	DataRetentionSettings   DataRetentionSettings
+	MessageExportSettings   MessageExportSettings
+	JobSettings             JobSettings
+	PluginSettings          PluginSettings
+	DisplaySettings         DisplaySettings
+	ImageProxySettings      ImageProxySettings
 }
 
 func (o *Config) Clone() *Config {
@@ -2339,6 +2401,7 @@ func (o *Config) SetDefaults() {
 	o.DataRetentionSettings.SetDefaults()
 	o.RateLimitSettings.SetDefaults()
 	o.LogSettings.SetDefaults()
+	o.NotificationLogSettings.SetDefaults()
 	o.JobSettings.SetDefaults()
 	o.MessageExportSettings.SetDefaults()
 	o.DisplaySettings.SetDefaults()
@@ -2813,7 +2876,7 @@ func (mes *MessageExportSettings) isValid(fs FileSettings) *AppError {
 
 func (ds *DisplaySettings) isValid() *AppError {
 	if len(ds.CustomUrlSchemes) != 0 {
-		validProtocolPattern := regexp.MustCompile(`(?i)^\s*[a-z][a-z0-9-]*\s*$`)
+		validProtocolPattern := regexp.MustCompile(`(?i)^\s*[A-Za-z][A-Za-z0-9.+-]*\s*$`)
 
 		for _, scheme := range ds.CustomUrlSchemes {
 			if !validProtocolPattern.MatchString(scheme) {

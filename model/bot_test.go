@@ -517,6 +517,23 @@ func TestUserFromBot(t *testing.T) {
 	}, UserFromBot(bot2))
 }
 
+func TestBotFromUser(t *testing.T) {
+	user := &User{
+		Id:       NewId(),
+		Username: "username",
+		CreateAt: 1,
+		UpdateAt: 2,
+		DeleteAt: 3,
+	}
+
+	assert.Equal(t, &Bot{
+		OwnerId:     user.Id,
+		UserId:      user.Id,
+		Username:    "username",
+		DisplayName: "username",
+	}, BotFromUser(user))
+}
+
 func TestBotListToAndFromJson(t *testing.T) {
 	testCases := []struct {
 		Description string

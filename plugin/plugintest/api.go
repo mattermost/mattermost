@@ -294,9 +294,9 @@ func (_m *API) DeleteChannelMember(channelId string, userId string) *model.AppEr
 	return r0
 }
 
-// DeleteEphemeralPost provides a mock function with given fields: userId, post
-func (_m *API) DeleteEphemeralPost(userId string, post *model.Post) {
-	_m.Called(userId, post)
+// DeleteEphemeralPost provides a mock function with given fields: userId, postId
+func (_m *API) DeleteEphemeralPost(userId string, postId string) {
+	_m.Called(userId, postId)
 }
 
 // DeletePost provides a mock function with given fields: postId
@@ -1860,6 +1860,29 @@ func (_m *API) HasPermissionToTeam(userId string, teamId string, permission *mod
 	}
 
 	return r0
+}
+
+// KVCompareAndSet provides a mock function with given fields: key, oldValue, newValue
+func (_m *API) KVCompareAndSet(key string, oldValue []byte, newValue []byte) (bool, *model.AppError) {
+	ret := _m.Called(key, oldValue, newValue)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(string, []byte, []byte) bool); ok {
+		r0 = rf(key, oldValue, newValue)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, []byte, []byte) *model.AppError); ok {
+		r1 = rf(key, oldValue, newValue)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // KVDelete provides a mock function with given fields: key

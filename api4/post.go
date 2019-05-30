@@ -98,7 +98,7 @@ func createEphemeralPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	rp = model.AddPostActionCookies(rp, c.App.PostActionCookieSecret())
-	rp = c.App.PreparePostForClient(rp, true)
+	rp = c.App.PreparePostForClient(rp, true, false)
 	w.Write([]byte(rp.ToJson()))
 }
 
@@ -261,7 +261,7 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	post = c.App.PreparePostForClient(post, false)
+	post = c.App.PreparePostForClient(post, false, false)
 
 	if c.HandleEtag(post.Etag(), "Get Post", w, r) {
 		return
@@ -437,6 +437,9 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Updating the file_ids of a post is not a supported operation and will be ignored
+	post.FileIds = nil
+
 	if !c.App.SessionHasPermissionToChannelByPost(c.App.Session, c.Params.PostId, model.PERMISSION_EDIT_POST) {
 		c.SetPermissionError(model.PERMISSION_EDIT_POST)
 		return
@@ -478,6 +481,9 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("post")
 		return
 	}
+
+	// Updating the file_ids of a post is not a supported operation and will be ignored
+	post.FileIds = nil
 
 	if !c.App.SessionHasPermissionToChannelByPost(c.App.Session, c.Params.PostId, model.PERMISSION_EDIT_POST) {
 		c.SetPermissionError(model.PERMISSION_EDIT_POST)

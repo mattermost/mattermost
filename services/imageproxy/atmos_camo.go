@@ -23,11 +23,11 @@ func makeAtmosCamoBackend(proxy *ImageProxy) *AtmosCamoBackend {
 }
 
 func (backend *AtmosCamoBackend) GetImage(w http.ResponseWriter, r *http.Request, imageURL string) {
-	http.Redirect(w, r, backend.GetProxiedImageURL(imageURL), http.StatusFound)
+	http.Redirect(w, r, backend.getAtmosCamoImageURL(imageURL), http.StatusFound)
 }
 
 func (backend *AtmosCamoBackend) GetImageDirect(imageURL string) (io.ReadCloser, string, error) {
-	req, err := http.NewRequest("GET", backend.GetProxiedImageURL(imageURL), nil)
+	req, err := http.NewRequest("GET", backend.getAtmosCamoImageURL(imageURL), nil)
 	if err != nil {
 		return nil, "", Error{err}
 	}
@@ -43,7 +43,7 @@ func (backend *AtmosCamoBackend) GetImageDirect(imageURL string) (io.ReadCloser,
 	return resp.Body, resp.Header.Get("Content-Type"), nil
 }
 
-func (backend *AtmosCamoBackend) GetProxiedImageURL(imageURL string) string {
+func (backend *AtmosCamoBackend) getAtmosCamoImageURL(imageURL string) string {
 	cfg := *backend.proxy.ConfigService.Config()
 	siteURL := *cfg.ServiceSettings.SiteURL
 	proxyURL := *cfg.ImageProxySettings.RemoteImageProxyURL
@@ -63,26 +63,4 @@ func getAtmosCamoImageURL(imageURL, siteURL, proxyURL, options string) string {
 	digest := hex.EncodeToString(mac.Sum(nil))
 
 	return proxyURL + "/" + digest + "/" + hex.EncodeToString([]byte(imageURL))
-}
-
-func (backend *AtmosCamoBackend) GetUnproxiedImageURL(proxiedURL string) string {
-	proxyURL := *backend.proxy.ConfigService.Config().ImageProxySettings.RemoteImageProxyURL + "/"
-
-	if !strings.HasPrefix(proxiedURL, proxyURL) {
-		return proxiedURL
-	}
-
-	path := proxiedURL[len(proxyURL):]
-
-	slash := strings.IndexByte(path, '/')
-	if slash == -1 {
-		return proxiedURL
-	}
-
-	decoded, err := hex.DecodeString(path[slash+1:])
-	if err != nil {
-		return proxiedURL
-	}
-
-	return string(decoded)
 }

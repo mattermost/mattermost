@@ -44,6 +44,7 @@ type TestHelper struct {
 	BasicDeletedChannel *model.Channel
 	BasicChannel2       *model.Channel
 	BasicPost           *model.Post
+	Group               *model.Group
 
 	SystemAdminClient *model.Client4
 	SystemAdminUser   *model.User
@@ -103,10 +104,18 @@ func setupTestHelper(enterprise bool, updateConfig func(*model.Config)) *TestHel
 	web.New(th.Server, th.Server.AppOptions, th.App.Srv.Router)
 	wsapi.Init(th.App, th.App.Srv.WebSocketRouter)
 	th.App.Srv.Store.MarkSystemRanUnitTests()
-	th.App.DoAdvancedPermissionsMigration()
-	th.App.DoEmojisPermissionsMigration()
+	th.App.DoAppMigrations()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
+
+	// Disable strict password requirements for test
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PasswordSettings.MinimumLength = 5
+		*cfg.PasswordSettings.Lowercase = false
+		*cfg.PasswordSettings.Uppercase = false
+		*cfg.PasswordSettings.Symbol = false
+		*cfg.PasswordSettings.Number = false
+	})
 
 	if enterprise {
 		th.App.SetLicense(model.NewTestLicense())
@@ -210,6 +219,7 @@ func (me *TestHelper) InitBasic() *TestHelper {
 	me.App.UpdateUserRoles(me.BasicUser.Id, model.SYSTEM_USER_ROLE_ID, false)
 	me.Client.DeleteChannel(me.BasicDeletedChannel.Id)
 	me.LoginBasic()
+	me.Group = me.CreateGroup()
 
 	return me
 }
@@ -273,7 +283,7 @@ func (me *TestHelper) CreateUserWithClient(client *model.Client4) *model.User {
 		Nickname:  "nn_" + id,
 		FirstName: "f_" + id,
 		LastName:  "l_" + id,
-		Password:  "Password1",
+		Password:  "Pa$$word11",
 	}
 
 	utils.DisableDebugLogForTest()
@@ -282,7 +292,7 @@ func (me *TestHelper) CreateUserWithClient(client *model.Client4) *model.User {
 		panic(response.Error)
 	}
 
-	ruser.Password = "Password1"
+	ruser.Password = "Pa$$word11"
 	store.Must(me.App.Srv.Store.User().VerifyEmail(ruser.Id, ruser.Email))
 	utils.EnableDebugLogForTest()
 	return ruser
@@ -509,6 +519,24 @@ func (me *TestHelper) GenerateTestEmail() string {
 	return strings.ToLower(model.NewId() + "@dockerhost")
 }
 
+func (me *TestHelper) CreateGroup() *model.Group {
+	id := model.NewId()
+	group := &model.Group{
+		Name:        "n-" + id,
+		DisplayName: "dn_" + id,
+		Source:      model.GroupSourceLdap,
+		RemoteId:    "ri_" + id,
+	}
+
+	utils.DisableDebugLogForTest()
+	group, err := me.App.CreateGroup(group)
+	if err != nil {
+		panic(err)
+	}
+	utils.EnableDebugLogForTest()
+	return group
+}
+
 func GenerateTestUsername() string {
 	return "fakeuser" + model.NewRandomString(10)
 }
@@ -713,8 +741,7 @@ func (me *TestHelper) cleanupTestFile(info *model.FileInfo) error {
 func (me *TestHelper) MakeUserChannelAdmin(user *model.User, channel *model.Channel) {
 	utils.DisableDebugLogForTest()
 
-	if cmr := <-me.App.Srv.Store.Channel().GetMember(channel.Id, user.Id); cmr.Err == nil {
-		cm := cmr.Data.(*model.ChannelMember)
+	if cm, err := me.App.Srv.Store.Channel().GetMember(channel.Id, user.Id); err == nil {
 		cm.SchemeAdmin = true
 		if sr := <-me.App.Srv.Store.Channel().UpdateMember(cm); sr.Err != nil {
 			utils.EnableDebugLogForTest()
@@ -722,7 +749,7 @@ func (me *TestHelper) MakeUserChannelAdmin(user *model.User, channel *model.Chan
 		}
 	} else {
 		utils.EnableDebugLogForTest()
-		panic(cmr.Err)
+		panic(err)
 	}
 
 	utils.EnableDebugLogForTest()

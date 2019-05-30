@@ -8,6 +8,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
+	"github.com/stretchr/testify/require"
 )
 
 func TestOAuthStore(t *testing.T, ss store.Store) {
@@ -333,7 +334,8 @@ func testOAuthGetAuthorizedApps(t *testing.T, ss store.Store) {
 	p.Category = model.PREFERENCE_CATEGORY_AUTHORIZED_OAUTH_APP
 	p.Name = a1.Id
 	p.Value = "true"
-	store.Must(ss.Preference().Save(&model.Preferences{p}))
+	err := ss.Preference().Save(&model.Preferences{p})
+	require.Nil(t, err)
 
 	if result := <-ss.OAuth().GetAuthorizedApps(a1.CreatorId, 0, 1000); result.Err != nil {
 		t.Fatal(result.Err)
@@ -359,7 +361,8 @@ func testOAuthGetAccessDataByUserForApp(t *testing.T, ss store.Store) {
 	p.Category = model.PREFERENCE_CATEGORY_AUTHORIZED_OAUTH_APP
 	p.Name = a1.Id
 	p.Value = "true"
-	store.Must(ss.Preference().Save(&model.Preferences{p}))
+	err := ss.Preference().Save(&model.Preferences{p})
+	require.Nil(t, err)
 
 	if result := <-ss.OAuth().GetAuthorizedApps(a1.CreatorId, 0, 1000); result.Err != nil {
 		t.Fatal(result.Err)
@@ -405,12 +408,13 @@ func testOAuthStoreDeleteApp(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	s1 := model.Session{}
+	s1 := &model.Session{}
 	s1.UserId = model.NewId()
 	s1.Token = model.NewId()
 	s1.IsOAuth = true
 
-	store.Must(ss.Session().Save(&s1))
+	s1, err := ss.Session().Save(s1)
+	require.Nil(t, err)
 
 	ad1 := model.AccessData{}
 	ad1.ClientId = a1.Id
