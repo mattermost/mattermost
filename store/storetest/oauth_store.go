@@ -8,7 +8,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
-
 	"github.com/stretchr/testify/require"
 )
 
@@ -409,12 +408,13 @@ func testOAuthStoreDeleteApp(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	s1 := model.Session{}
+	s1 := &model.Session{}
 	s1.UserId = model.NewId()
 	s1.Token = model.NewId()
 	s1.IsOAuth = true
 
-	store.Must(ss.Session().Save(&s1))
+	s1, err := ss.Session().Save(s1)
+	require.Nil(t, err)
 
 	ad1 := model.AccessData{}
 	ad1.ClientId = a1.Id
