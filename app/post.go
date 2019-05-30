@@ -492,8 +492,7 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 	}
 
 	if channel.DeleteAt != 0 {
-		err := model.NewAppError("UpdatePost", "api.post.update_post.can_not_update_post_in_deleted.error", nil, "", http.StatusBadRequest)
-		return nil, err
+		return nil, model.NewAppError("UpdatePost", "api.post.update_post.can_not_update_post_in_deleted.error", nil, "", http.StatusBadRequest)
 	}
 
 	newPost := &model.Post{}
@@ -517,7 +516,7 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 		newPost.EditAt = model.GetMillis()
 	}
 
-	if err := a.FillInPostProps(post, nil); err != nil {
+	if err = a.FillInPostProps(post, nil); err != nil {
 		return nil, err
 	}
 
@@ -533,11 +532,10 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 		}
 	}
 
-	result := <-a.Srv.Store.Post().Update(newPost, oldPost)
-	if result.Err != nil {
-		return nil, result.Err
+	rpost, err := a.Srv.Store.Post().Update(newPost, oldPost)
+	if err != nil {
+		return nil, err
 	}
-	rpost := result.Data.(*model.Post)
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv.Go(func() {
@@ -629,11 +627,7 @@ func (a *App) GetPostsSince(channelId string, time int64) (*model.PostList, *mod
 }
 
 func (a *App) GetSinglePost(postId string) (*model.Post, *model.AppError) {
-	result := <-a.Srv.Store.Post().GetSingle(postId)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.Post), nil
+	return a.Srv.Store.Post().GetSingle(postId)
 }
 
 func (a *App) GetPostThread(postId string) (*model.PostList, *model.AppError) {
@@ -641,19 +635,11 @@ func (a *App) GetPostThread(postId string) (*model.PostList, *model.AppError) {
 }
 
 func (a *App) GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *model.AppError) {
-	result := <-a.Srv.Store.Post().GetFlaggedPosts(userId, offset, limit)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.PostList), nil
+	return a.Srv.Store.Post().GetFlaggedPosts(userId, offset, limit)
 }
 
 func (a *App) GetFlaggedPostsForTeam(userId, teamId string, offset int, limit int) (*model.PostList, *model.AppError) {
-	result := <-a.Srv.Store.Post().GetFlaggedPostsForTeam(userId, teamId, offset, limit)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.PostList), nil
+	return a.Srv.Store.Post().GetFlaggedPostsForTeam(userId, teamId, offset, limit)
 }
 
 func (a *App) GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) (*model.PostList, *model.AppError) {
@@ -719,12 +705,11 @@ func (a *App) GetPostsAroundPost(postId, channelId string, offset, limit int, be
 }
 
 func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppError) {
-	result := <-a.Srv.Store.Post().GetSingle(postId)
-	if result.Err != nil {
-		result.Err.StatusCode = http.StatusBadRequest
-		return nil, result.Err
+	post, err := a.Srv.Store.Post().GetSingle(postId)
+	if err != nil {
+		err.StatusCode = http.StatusBadRequest
+		return nil, err
 	}
-	post := result.Data.(*model.Post)
 
 	channel, err := a.GetChannel(post.ChannelId)
 	if err != nil {
@@ -766,8 +751,8 @@ func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppErro
 }
 
 func (a *App) DeleteFlaggedPosts(postId string) {
-	if result := <-a.Srv.Store.Preference().DeleteCategoryAndName(model.PREFERENCE_CATEGORY_FLAGGED_POST, postId); result.Err != nil {
-		mlog.Warn(fmt.Sprintf("Unable to delete flagged post preference when deleting post, err=%v", result.Err))
+	if err := a.Srv.Store.Preference().DeleteCategoryAndName(model.PREFERENCE_CATEGORY_FLAGGED_POST, postId); err != nil {
+		mlog.Warn(fmt.Sprintf("Unable to delete flagged post preference when deleting post, err=%v", err))
 		return
 	}
 }
@@ -855,7 +840,7 @@ func (a *App) SearchPostsInTeam(teamId string, paramsList []*model.SearchParams)
 }
 
 func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.PostSearchResults, *model.AppError) {
-	paramsList := model.ParseSearchParams(terms, timeZoneOffset)
+	paramsList := model.ParseSearchParams(strings.TrimSpace(terms), timeZoneOffset)
 	includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 
 	esInterface := a.Elasticsearch
@@ -955,7 +940,13 @@ func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamId strin
 }
 
 func (a *App) GetFileInfosForPostWithMigration(postId string) ([]*model.FileInfo, *model.AppError) {
-	pchan := a.Srv.Store.Post().GetSingle(postId)
+
+	pchan := make(chan store.StoreResult, 1)
+	go func() {
+		post, err := a.Srv.Store.Post().GetSingle(postId)
+		pchan <- store.StoreResult{Data: post, Err: err}
+		close(pchan)
+	}()
 
 	infos, err := a.GetFileInfosForPost(postId, false)
 	if err != nil {

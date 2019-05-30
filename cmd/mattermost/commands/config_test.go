@@ -4,14 +4,16 @@
 package commands
 
 import (
+	"encoding/json"
 	"fmt"
-	"github.com/mattermost/mattermost-server/config"
 	"io/ioutil"
 	"os"
 	"reflect"
 	"sort"
 	"strings"
 	"testing"
+
+	"github.com/mattermost/mattermost-server/config"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -334,6 +336,27 @@ func TestConfigShow(t *testing.T) {
 		assert.Contains(t, string(output), "SqlSettings")
 		assert.Contains(t, string(output), "MessageExportSettings")
 		assert.Contains(t, string(output), "AnnouncementSettings")
+	})
+
+	t.Run("successfully dumping config as json", func(t *testing.T) {
+		output, err := th.RunCommandWithOutput(t, "config", "show", "--json")
+		require.Nil(t, err)
+
+		// Filter out the test headers
+		var filteredOutput []string
+		for _, line := range strings.Split(output, "\n") {
+			if strings.HasPrefix(line, "---") || strings.HasPrefix(line, "===") || strings.HasPrefix(line, "PASS") || strings.HasPrefix(line, "coverage:") {
+				continue
+			}
+
+			filteredOutput = append(filteredOutput, line)
+		}
+
+		output = strings.Join(filteredOutput, "")
+
+		var config model.Config
+		err = json.Unmarshal([]byte(output), &config)
+		require.Nil(t, err)
 	})
 }
 
