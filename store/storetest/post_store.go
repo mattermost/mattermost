@@ -666,7 +666,6 @@ func testPostStoreGetPostsWithDetails(t *testing.T, ss store.Store) {
 	r2, err := ss.Post().GetPosts(o1.ChannelId, 0, 4, true)
 	require.NotNil(t, err)
 
-
 	if r2.Order[0] != o5.Id {
 		t.Fatal("invalid order")
 	}
