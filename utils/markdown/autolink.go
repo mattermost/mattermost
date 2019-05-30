@@ -78,6 +78,10 @@ func parseURLAutolink(data string, position int) (Range, bool) {
 		start -= 1
 	}
 
+	if start < 0 || position >= len(data) {
+		return Range{}, false
+	}
+
 	// Ensure that the URL scheme is allowed and that at least one character after the scheme is valid.
 	scheme := data[start:position]
 	if !isSchemeAllowed(scheme) || !isValidHostCharacter(data[position+3:]) {

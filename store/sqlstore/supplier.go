@@ -124,7 +124,7 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 
 	supplier.initConnection()
 
-	supplier.oldStores.team = NewSqlTeamStore(supplier)
+	supplier.oldStores.team = NewSqlTeamStore(supplier, metrics)
 	supplier.oldStores.channel = NewSqlChannelStore(supplier, metrics)
 	supplier.oldStores.post = NewSqlPostStore(supplier, metrics)
 	supplier.oldStores.user = NewSqlUserStore(supplier, metrics)
@@ -151,11 +151,11 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.oldStores.TermsOfService = NewSqlTermsOfServiceStore(supplier, metrics)
 	supplier.oldStores.UserTermsOfService = NewSqlUserTermsOfServiceStore(supplier)
 	supplier.oldStores.linkMetadata = NewSqlLinkMetadataStore(supplier)
+	supplier.oldStores.group = NewSqlGroupStore(supplier)
 
 	initSqlSupplierReactions(supplier)
 	initSqlSupplierRoles(supplier)
 	initSqlSupplierSchemes(supplier)
-	initSqlSupplierGroups(supplier)
 
 	err := supplier.GetMaster().CreateTablesIfNotExists()
 	if err != nil {
@@ -164,7 +164,12 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 		os.Exit(EXIT_CREATE_TABLE)
 	}
 
-	UpgradeDatabase(supplier)
+	err = UpgradeDatabase(supplier, model.CurrentVersion)
+	if err != nil {
+		mlog.Critical("Failed to upgrade database", mlog.Err(err))
+		time.Sleep(time.Second)
+		os.Exit(EXIT_GENERIC_FAILURE)
+	}
 
 	supplier.oldStores.team.(*SqlTeamStore).CreateIndexesIfNotExists()
 	supplier.oldStores.channel.(*SqlChannelStore).CreateIndexesIfNotExists()
@@ -191,8 +196,7 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.oldStores.TermsOfService.(SqlTermsOfServiceStore).CreateIndexesIfNotExists()
 	supplier.oldStores.UserTermsOfService.(SqlUserTermsOfServiceStore).CreateIndexesIfNotExists()
 	supplier.oldStores.linkMetadata.(*SqlLinkMetadataStore).CreateIndexesIfNotExists()
-
-	supplier.CreateIndexesIfNotExistsGroups()
+	supplier.oldStores.group.(*SqlGroupStore).CreateIndexesIfNotExists()
 
 	supplier.oldStores.preference.(*SqlPreferenceStore).DeleteUnusedFeatures()
 
@@ -341,13 +345,15 @@ func (ss *SqlSupplier) TotalSearchDbConnections() int {
 }
 
 func (ss *SqlSupplier) MarkSystemRanUnitTests() {
-	if result := <-ss.System().Get(); result.Err == nil {
-		props := result.Data.(model.StringMap)
-		unitTests := props[model.SYSTEM_RAN_UNIT_TESTS]
-		if len(unitTests) == 0 {
-			systemTests := &model.System{Name: model.SYSTEM_RAN_UNIT_TESTS, Value: "1"}
-			<-ss.System().Save(systemTests)
-		}
+	props, err := ss.System().Get()
+	if err != nil {
+		return
+	}
+
+	unitTests := props[model.SYSTEM_RAN_UNIT_TESTS]
+	if len(unitTests) == 0 {
+		systemTests := &model.System{Name: model.SYSTEM_RAN_UNIT_TESTS, Value: "1"}
+		ss.System().Save(systemTests)
 	}
 }
 

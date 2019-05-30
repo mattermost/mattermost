@@ -264,6 +264,31 @@ func TestAddUserToTeamByToken(t *testing.T) {
 		}
 	})
 
+	t.Run("group-constrained team", func(t *testing.T) {
+		th.BasicTeam.GroupConstrained = model.NewBool(true)
+		if _, err := th.App.UpdateTeam(th.BasicTeam); err != nil {
+			t.Log(err)
+			t.Fatal("Should update the team")
+		}
+
+		token := model.NewToken(
+			TOKEN_TYPE_TEAM_INVITATION,
+			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id}),
+		)
+		<-th.App.Srv.Store.Token().Save(token)
+		if _, err := th.App.AddUserToTeamByToken(ruser.Id, token.Token); err == nil {
+			t.Fatal("Should return an error when trying to join a group-constrained team.")
+		} else {
+			require.Equal(t, "app.team.invite_token.group_constrained.error", err.Id)
+		}
+
+		th.BasicTeam.GroupConstrained = model.NewBool(false)
+		if _, err := th.App.UpdateTeam(th.BasicTeam); err != nil {
+			t.Log(err)
+			t.Fatal("Should update the team")
+		}
+	})
+
 	t.Run("block user", func(t *testing.T) {
 		th.BasicTeam.AllowedDomains = "example.com"
 		if _, err := th.App.UpdateTeam(th.BasicTeam); err != nil {
@@ -731,10 +756,10 @@ func TestGetTeamMembers(t *testing.T) {
 	sort.Sort(userIDs)
 
 	// Fetch team members multipile times
-	members, err := th.App.GetTeamMembers(th.BasicTeam.Id, 0, 5)
+	members, err := th.App.GetTeamMembers(th.BasicTeam.Id, 0, 5, nil)
 	require.Nil(t, err)
 	// This should return 5 members
-	members2, err := th.App.GetTeamMembers(th.BasicTeam.Id, 5, 6)
+	members2, err := th.App.GetTeamMembers(th.BasicTeam.Id, 5, 6, nil)
 	require.Nil(t, err)
 	members = append(members, members2...)
 
@@ -751,7 +776,75 @@ func TestGetTeamStats(t *testing.T) {
 	teamStats, err := th.App.GetTeamStats(th.BasicTeam.Id)
 	require.Nil(t, err)
 	require.NotNil(t, teamStats)
-	members, err := th.App.GetTeamMembers(th.BasicTeam.Id, 0, 5)
+	members, err := th.App.GetTeamMembers(th.BasicTeam.Id, 0, 5, nil)
 	require.Nil(t, err)
 	assert.Equal(t, int64(len(members)), teamStats.TotalMemberCount)
+}
+
+func TestUpdateTeamMemberRolesChangingGuest(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("from guest to user", func(t *testing.T) {
+		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser, _ := th.App.CreateGuest(&user)
+
+		_, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, "")
+		require.Nil(t, err)
+
+		if _, err := th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, "team_user"); err == nil {
+			t.Fatal("Should fail when try to modify the guest role")
+		}
+	})
+
+	t.Run("from user to guest", func(t *testing.T) {
+		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser, _ := th.App.CreateUser(&user)
+
+		_, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, "")
+		require.Nil(t, err)
+
+		if _, err := th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, "team_guest"); err == nil {
+			t.Fatal("Should fail when try to modify the guest role")
+		}
+	})
+
+	t.Run("from user to admin", func(t *testing.T) {
+		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser, _ := th.App.CreateUser(&user)
+
+		_, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, "")
+		require.Nil(t, err)
+
+		if _, err := th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, "team_user team_admin"); err != nil {
+			t.Fatal("Should work when you not modify guest role")
+		}
+	})
+
+	t.Run("from guest to guest plus custom", func(t *testing.T) {
+		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser, _ := th.App.CreateGuest(&user)
+
+		_, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, "")
+		require.Nil(t, err)
+
+		_, err = th.App.CreateRole(&model.Role{Name: "custom", DisplayName: "custom", Description: "custom"})
+		require.Nil(t, err)
+
+		if _, err := th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, "team_guest custom"); err != nil {
+			t.Fatal("Should work when you not modify guest role")
+		}
+	})
+
+	t.Run("a guest cant have user role", func(t *testing.T) {
+		user := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
+		ruser, _ := th.App.CreateGuest(&user)
+
+		_, err := th.App.AddUserToTeam(th.BasicTeam.Id, ruser.Id, "")
+		require.Nil(t, err)
+
+		if _, err := th.App.UpdateTeamMemberRoles(th.BasicTeam.Id, ruser.Id, "team_guest team_user"); err == nil {
+			t.Fatal("Should work when you not modify guest role")
+		}
+	})
 }

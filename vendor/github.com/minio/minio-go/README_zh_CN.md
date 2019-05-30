@@ -1,12 +1,12 @@
-# 适用于与Amazon S3兼容云存储的Minio Go SDK [![Slack](https://slack.minio.io/slack?type=svg)](https://slack.minio.io) [![Sourcegraph](https://sourcegraph.com/github.com/minio/minio-go/-/badge.svg)](https://sourcegraph.com/github.com/minio/minio-go?badge)
+# 适用于与Amazon S3兼容云存储的MinIO Go SDK [![Slack](https://slack.min.io/slack?type=svg)](https://slack.min.io) [![Sourcegraph](https://sourcegraph.com/github.com/minio/minio-go/-/badge.svg)](https://sourcegraph.com/github.com/minio/minio-go?badge)
 
-Minio Go Client SDK提供了简单的API来访问任何与Amazon S3兼容的对象存储服务。
+MinIO Go Client SDK提供了简单的API来访问任何与Amazon S3兼容的对象存储服务。
 
 **支持的云存储:** 
 
 - AWS Signature Version 4
    - Amazon S3
-   - Minio
+   - MinIO
 
 - AWS Signature Version 2
    - Google Cloud Storage (兼容模式)
@@ -14,17 +14,17 @@ Minio Go Client SDK提供了简单的API来访问任何与Amazon S3兼容的对�
    - Ceph Object Gateway
    - Riak CS
 
-本文我们将学习如何安装Minio client SDK，连接到Minio，并提供一下文件上传的示例。对于完整的API以及示例，请参考[Go Client API Reference](https://docs.minio.io/docs/golang-client-api-reference)。
+本文我们将学习如何安装MinIO client SDK，连接到MinIO，并提供一下文件上传的示例。对于完整的API以及示例，请参考[Go Client API Reference](https://docs.min.io/docs/golang-client-api-reference)。
 
-本文假设你已经有 [Go开发环境](https://docs.minio.io/docs/how-to-install-golang)。
+本文假设你已经有 [Go开发环境](https://docs.min.io/docs/how-to-install-golang)。
 
 ## 从Github下载
 ```sh
 go get -u github.com/minio/minio-go
 ```
 
-## 初始化Minio Client
-Minio client需要以下4个参数来连接与Amazon S3兼容的对象存储。
+## 初始化MinIO Client
+MinIO client需要以下4个参数来连接与Amazon S3兼容的对象存储。
 
 | 参数  | 描述| 
 | :---         |     :---     |
@@ -43,7 +43,7 @@ import (
 )
 
 func main() {
-	endpoint := "play.minio.io:9000"
+	endpoint := "play.min.io:9000"
 	accessKeyID := "Q3AM3UQ867SPQQA43P2F"
 	secretAccessKey := "zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG"
 	useSSL := true
@@ -61,7 +61,7 @@ func main() {
 ## 示例-文件上传
 本示例连接到一个对象存储服务，创建一个存储桶并上传一个文件到存储桶中。
 
-我们在本示例中使用运行在 [https://play.minio.io:9000](https://play.minio.io:9000) 上的Minio服务，你可以用这个服务来开发和测试。示例中的访问凭据是公开的。
+我们在本示例中使用运行在 [https://play.min.io:9000](https://play.min.io:9000) 上的MinIO服务，你可以用这个服务来开发和测试。示例中的访问凭据是公开的。
 
 ### FileUploader.go
 ```go
@@ -73,7 +73,7 @@ import (
 )
 
 func main() {
-	endpoint := "play.minio.io:9000"
+	endpoint := "play.min.io:9000"
 	accessKeyID := "Q3AM3UQ867SPQQA43P2F"
 	secretAccessKey := "zuf+tfteSlswRu7BJ86wekitnifILbZam1KYY3TG"
 	useSSL := true
@@ -127,60 +127,60 @@ mc ls play/mymusic/
 
 ## API文档
 完整的API文档在这里。
-* [完整API文档](https://docs.minio.io/docs/golang-client-api-reference)
+* [完整API文档](https://docs.min.io/docs/golang-client-api-reference)
 
 ### API文档 : 操作存储桶
-* [`MakeBucket`](https://docs.minio.io/docs/golang-client-api-reference#MakeBucket)
-* [`ListBuckets`](https://docs.minio.io/docs/golang-client-api-reference#ListBuckets)
-* [`BucketExists`](https://docs.minio.io/docs/golang-client-api-reference#BucketExists)
-* [`RemoveBucket`](https://docs.minio.io/docs/golang-client-api-reference#RemoveBucket)
-* [`ListObjects`](https://docs.minio.io/docs/golang-client-api-reference#ListObjects)
-* [`ListObjectsV2`](https://docs.minio.io/docs/golang-client-api-reference#ListObjectsV2)
-* [`ListIncompleteUploads`](https://docs.minio.io/docs/golang-client-api-reference#ListIncompleteUploads)
+* [`MakeBucket`](https://docs.min.io/docs/golang-client-api-reference#MakeBucket)
+* [`ListBuckets`](https://docs.min.io/docs/golang-client-api-reference#ListBuckets)
+* [`BucketExists`](https://docs.min.io/docs/golang-client-api-reference#BucketExists)
+* [`RemoveBucket`](https://docs.min.io/docs/golang-client-api-reference#RemoveBucket)
+* [`ListObjects`](https://docs.min.io/docs/golang-client-api-reference#ListObjects)
+* [`ListObjectsV2`](https://docs.min.io/docs/golang-client-api-reference#ListObjectsV2)
+* [`ListIncompleteUploads`](https://docs.min.io/docs/golang-client-api-reference#ListIncompleteUploads)
 
 ### API文档 : 存储桶策略
-* [`SetBucketPolicy`](https://docs.minio.io/docs/golang-client-api-reference#SetBucketPolicy)
-* [`GetBucketPolicy`](https://docs.minio.io/docs/golang-client-api-reference#GetBucketPolicy)
+* [`SetBucketPolicy`](https://docs.min.io/docs/golang-client-api-reference#SetBucketPolicy)
+* [`GetBucketPolicy`](https://docs.min.io/docs/golang-client-api-reference#GetBucketPolicy)
 
 ### API文档 : 存储桶通知
-* [`SetBucketNotification`](https://docs.minio.io/docs/golang-client-api-reference#SetBucketNotification)
-* [`GetBucketNotification`](https://docs.minio.io/docs/golang-client-api-reference#GetBucketNotification)
-* [`RemoveAllBucketNotification`](https://docs.minio.io/docs/golang-client-api-reference#RemoveAllBucketNotification)
-* [`ListenBucketNotification`](https://docs.minio.io/docs/golang-client-api-reference#ListenBucketNotification) (Minio Extension)
+* [`SetBucketNotification`](https://docs.min.io/docs/golang-client-api-reference#SetBucketNotification)
+* [`GetBucketNotification`](https://docs.min.io/docs/golang-client-api-reference#GetBucketNotification)
+* [`RemoveAllBucketNotification`](https://docs.min.io/docs/golang-client-api-reference#RemoveAllBucketNotification)
+* [`ListenBucketNotification`](https://docs.min.io/docs/golang-client-api-reference#ListenBucketNotification) (MinIO Extension)
 
 ### API文档 : 操作文件对象
-* [`FPutObject`](https://docs.minio.io/docs/golang-client-api-reference#FPutObject)
-* [`FGetObject`](https://docs.minio.io/docs/golang-client-api-reference#FPutObject)
-* [`FPutObjectWithContext`](https://docs.minio.io/docs/golang-client-api-reference#FPutObjectWithContext)
-* [`FGetObjectWithContext`](https://docs.minio.io/docs/golang-client-api-reference#FGetObjectWithContext)
+* [`FPutObject`](https://docs.min.io/docs/golang-client-api-reference#FPutObject)
+* [`FGetObject`](https://docs.min.io/docs/golang-client-api-reference#FPutObject)
+* [`FPutObjectWithContext`](https://docs.min.io/docs/golang-client-api-reference#FPutObjectWithContext)
+* [`FGetObjectWithContext`](https://docs.min.io/docs/golang-client-api-reference#FGetObjectWithContext)
 
 ### API文档 : 操作对象
-* [`GetObject`](https://docs.minio.io/docs/golang-client-api-reference#GetObject)
-* [`PutObject`](https://docs.minio.io/docs/golang-client-api-reference#PutObject)
-* [`GetObjectWithContext`](https://docs.minio.io/docs/golang-client-api-reference#GetObjectWithContext)
-* [`PutObjectWithContext`](https://docs.minio.io/docs/golang-client-api-reference#PutObjectWithContext)
-* [`PutObjectStreaming`](https://docs.minio.io/docs/golang-client-api-reference#PutObjectStreaming)
-* [`StatObject`](https://docs.minio.io/docs/golang-client-api-reference#StatObject)
-* [`CopyObject`](https://docs.minio.io/docs/golang-client-api-reference#CopyObject)
-* [`RemoveObject`](https://docs.minio.io/docs/golang-client-api-reference#RemoveObject)
-* [`RemoveObjects`](https://docs.minio.io/docs/golang-client-api-reference#RemoveObjects)
-* [`RemoveIncompleteUpload`](https://docs.minio.io/docs/golang-client-api-reference#RemoveIncompleteUpload)
+* [`GetObject`](https://docs.min.io/docs/golang-client-api-reference#GetObject)
+* [`PutObject`](https://docs.min.io/docs/golang-client-api-reference#PutObject)
+* [`GetObjectWithContext`](https://docs.min.io/docs/golang-client-api-reference#GetObjectWithContext)
+* [`PutObjectWithContext`](https://docs.min.io/docs/golang-client-api-reference#PutObjectWithContext)
+* [`PutObjectStreaming`](https://docs.min.io/docs/golang-client-api-reference#PutObjectStreaming)
+* [`StatObject`](https://docs.min.io/docs/golang-client-api-reference#StatObject)
+* [`CopyObject`](https://docs.min.io/docs/golang-client-api-reference#CopyObject)
+* [`RemoveObject`](https://docs.min.io/docs/golang-client-api-reference#RemoveObject)
+* [`RemoveObjects`](https://docs.min.io/docs/golang-client-api-reference#RemoveObjects)
+* [`RemoveIncompleteUpload`](https://docs.min.io/docs/golang-client-api-reference#RemoveIncompleteUpload)
 
 ### API文档: 操作加密对象
-* [`GetEncryptedObject`](https://docs.minio.io/docs/golang-client-api-reference#GetEncryptedObject)
-* [`PutEncryptedObject`](https://docs.minio.io/docs/golang-client-api-reference#PutEncryptedObject)
+* [`GetEncryptedObject`](https://docs.min.io/docs/golang-client-api-reference#GetEncryptedObject)
+* [`PutEncryptedObject`](https://docs.min.io/docs/golang-client-api-reference#PutEncryptedObject)
 
 ### API文档 : Presigned操作
-* [`PresignedGetObject`](https://docs.minio.io/docs/golang-client-api-reference#PresignedGetObject)
-* [`PresignedPutObject`](https://docs.minio.io/docs/golang-client-api-reference#PresignedPutObject)
-* [`PresignedHeadObject`](https://docs.minio.io/docs/golang-client-api-reference#PresignedHeadObject)
-* [`PresignedPostPolicy`](https://docs.minio.io/docs/golang-client-api-reference#PresignedPostPolicy)
+* [`PresignedGetObject`](https://docs.min.io/docs/golang-client-api-reference#PresignedGetObject)
+* [`PresignedPutObject`](https://docs.min.io/docs/golang-client-api-reference#PresignedPutObject)
+* [`PresignedHeadObject`](https://docs.min.io/docs/golang-client-api-reference#PresignedHeadObject)
+* [`PresignedPostPolicy`](https://docs.min.io/docs/golang-client-api-reference#PresignedPostPolicy)
 
 ### API文档 : 客户端自定义设置
-* [`SetAppInfo`](http://docs.minio.io/docs/golang-client-api-reference#SetAppInfo)
-* [`SetCustomTransport`](http://docs.minio.io/docs/golang-client-api-reference#SetCustomTransport)
-* [`TraceOn`](http://docs.minio.io/docs/golang-client-api-reference#TraceOn)
-* [`TraceOff`](http://docs.minio.io/docs/golang-client-api-reference#TraceOff)
+* [`SetAppInfo`](http://docs.min.io/docs/golang-client-api-reference#SetAppInfo)
+* [`SetCustomTransport`](http://docs.min.io/docs/golang-client-api-reference#SetCustomTransport)
+* [`TraceOn`](http://docs.min.io/docs/golang-client-api-reference#TraceOn)
+* [`TraceOff`](http://docs.min.io/docs/golang-client-api-reference#TraceOff)
 
 ## 完整示例
 
@@ -202,7 +202,7 @@ mc ls play/mymusic/
 * [setbucketnotification.go](https://github.com/minio/minio-go/blob/master/examples/s3/setbucketnotification.go)
 * [getbucketnotification.go](https://github.com/minio/minio-go/blob/master/examples/s3/getbucketnotification.go)
 * [removeallbucketnotification.go](https://github.com/minio/minio-go/blob/master/examples/s3/removeallbucketnotification.go)
-* [listenbucketnotification.go](https://github.com/minio/minio-go/blob/master/examples/minio/listenbucketnotification.go) (Minio扩展)
+* [listenbucketnotification.go](https://github.com/minio/minio-go/blob/master/examples/minio/listenbucketnotification.go) (MinIO扩展)
 
 ### 完整示例 : 操作文件对象
 * [fputobject.go](https://github.com/minio/minio-go/blob/master/examples/s3/fputobject.go)
@@ -233,9 +233,8 @@ mc ls play/mymusic/
 * [presignedpostpolicy.go](https://github.com/minio/minio-go/blob/master/examples/s3/presignedpostpolicy.go)
 
 ## 了解更多
-* [完整文档](https://docs.minio.io)
-* [Minio Go Client SDK API文档](https://docs.minio.io/docs/golang-client-api-reference) 
-* [Go 音乐播放器完整示例](https://docs.minio.io/docs/go-music-player-app)
+* [完整文档](https://docs.min.io)
+* [MinIO Go Client SDK API文档](https://docs.min.io/docs/golang-client-api-reference)
 
 ## 贡献
 [贡献指南](https://github.com/minio/minio-go/blob/master/docs/zh_CN/CONTRIBUTING.md)

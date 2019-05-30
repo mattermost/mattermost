@@ -108,7 +108,8 @@ type Server struct {
 
 	ImageProxy *imageproxy.ImageProxy
 
-	Log *mlog.Logger
+	Log              *mlog.Logger
+	NotificationsLog *mlog.Logger
 
 	joinCluster        bool
 	startMetrics       bool
@@ -152,7 +153,13 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	if s.Log == nil {
-		s.Log = mlog.NewLogger(utils.MloggerConfigFromLoggerConfig(&s.Config().LogSettings))
+		s.Log = mlog.NewLogger(utils.MloggerConfigFromLoggerConfig(&s.Config().LogSettings, utils.GetLogFileLocation))
+	}
+
+	if s.NotificationsLog == nil {
+		notificationLogSettings := utils.GetLogSettingsFromNotificationsLogSettings(&s.Config().NotificationLogSettings)
+		s.NotificationsLog = mlog.NewLogger(utils.MloggerConfigFromLoggerConfig(notificationLogSettings, utils.GetNotificationsLogFileLocation)).
+			WithCallerSkip(1).With(mlog.String("logSource", "notifications"))
 	}
 
 	// Redirect default golang logger to this logger
@@ -162,12 +169,15 @@ func NewServer(options ...Option) (*Server, error) {
 	mlog.InitGlobalLogger(s.Log)
 
 	s.logListenerId = s.AddConfigListener(func(_, after *model.Config) {
-		s.Log.ChangeLevels(utils.MloggerConfigFromLoggerConfig(&after.LogSettings))
+		s.Log.ChangeLevels(utils.MloggerConfigFromLoggerConfig(&after.LogSettings, utils.GetLogFileLocation))
+
+		notificationLogSettings := utils.GetLogSettingsFromNotificationsLogSettings(&after.NotificationLogSettings)
+		s.NotificationsLog.ChangeLevels(utils.MloggerConfigFromLoggerConfig(notificationLogSettings, utils.GetNotificationsLogFileLocation))
 	})
 
 	s.HTTPService = httpservice.MakeHTTPService(s.FakeApp())
 
-	s.ImageProxy = imageproxy.MakeImageProxy(s, s.HTTPService)
+	s.ImageProxy = imageproxy.MakeImageProxy(s, s.HTTPService, s.Log)
 
 	if err := utils.TranslationsPreInit(); err != nil {
 		return nil, errors.Wrapf(err, "unable to load Mattermost translation files")
@@ -188,11 +198,25 @@ func NewServer(options ...Option) (*Server, error) {
 		s.InitEmailBatching()
 	})
 
+	// Start plugin health check job
+	pluginsEnvironment := s.PluginsEnvironment
+	if pluginsEnvironment != nil {
+		pluginsEnvironment.InitPluginHealthCheckJob(*s.Config().PluginSettings.EnableHealthCheck)
+	}
+	s.AddConfigListener(func(_, c *model.Config) {
+		pluginsEnvironment := s.PluginsEnvironment
+		if pluginsEnvironment != nil {
+			pluginsEnvironment.InitPluginHealthCheckJob(*c.PluginSettings.EnableHealthCheck)
+		}
+	})
+
 	mlog.Info(fmt.Sprintf("Current version is %v (%v/%v/%v/%v)", model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash, model.BuildHashEnterprise))
 	mlog.Info(fmt.Sprintf("Enterprise Enabled: %v", model.BuildEnterpriseReady))
 	pwd, _ := os.Getwd()
 	mlog.Info(fmt.Sprintf("Current working directory is %v", pwd))
 	mlog.Info("Loaded config", mlog.String("source", s.configStore.String()))
+
+	s.checkPushNotificationServerUrl()
 
 	license := s.License()
 
@@ -416,7 +440,7 @@ func (s *Server) Start() error {
 	if *s.Config().RateLimitSettings.Enable {
 		mlog.Info("RateLimiter is enabled")
 
-		rateLimiter, err := NewRateLimiter(&s.Config().RateLimitSettings)
+		rateLimiter, err := NewRateLimiter(&s.Config().RateLimitSettings, s.Config().ServiceSettings.TrustedProxyIPHeader)
 		if err != nil {
 			return err
 		}
@@ -596,6 +620,13 @@ func (a *App) OriginChecker() func(*http.Request) bool {
 		return utils.OriginChecker(allowed)
 	}
 	return nil
+}
+
+func (s *Server) checkPushNotificationServerUrl() {
+	notificationServer := *s.Config().EmailSettings.PushNotificationServer
+	if strings.HasPrefix(notificationServer, "http://") == true {
+		mlog.Warn("Your push notification server is configured with HTTP. For improved security, update to HTTPS in your configuration.")
+	}
 }
 
 func runSecurityJob(s *Server) {

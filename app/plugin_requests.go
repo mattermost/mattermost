@@ -4,8 +4,10 @@
 package app
 
 import (
+	"fmt"
 	"net/http"
 	"path"
+	"path/filepath"
 	"strings"
 
 	"bytes"
@@ -40,11 +42,39 @@ func (a *App) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
 	a.servePluginRequest(w, r, hooks.ServeHTTP)
 }
 
+// ServePluginPublicRequest serves public plugin files
+// at the URL http(s)://$SITE_URL/plugins/$PLUGIN_ID/public/{anything}
+func (a *App) ServePluginPublicRequest(w http.ResponseWriter, r *http.Request) {
+	if strings.HasSuffix(r.URL.Path, "/") {
+		http.NotFound(w, r)
+		return
+	}
+
+	// Should be in the form of /$PLUGIN_ID/public/{anything} by the time we get here
+	vars := mux.Vars(r)
+	pluginID := vars["plugin_id"]
+
+	publicFilesPath, err := a.GetPluginsEnvironment().PublicFilesPath(pluginID)
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	publicFilePath := path.Clean(r.URL.Path)
+	prefix := fmt.Sprintf("/plugins/%s/public/", pluginID)
+	if !strings.HasPrefix(publicFilePath, prefix) {
+		http.NotFound(w, r)
+		return
+	}
+	publicFile := filepath.Join(publicFilesPath, strings.TrimPrefix(publicFilePath, prefix))
+	http.ServeFile(w, r, publicFile)
+}
+
 func (a *App) servePluginRequest(w http.ResponseWriter, r *http.Request, handler func(*plugin.Context, http.ResponseWriter, *http.Request)) {
 	token := ""
 	context := &plugin.Context{
 		RequestId:      model.NewId(),
-		IpAddress:      utils.GetIpAddress(r),
+		IpAddress:      utils.GetIpAddress(r, a.Config().ServiceSettings.TrustedProxyIPHeader),
 		AcceptLanguage: r.Header.Get("Accept-Language"),
 		UserAgent:      r.UserAgent(),
 	}

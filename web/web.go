@@ -4,7 +4,6 @@
 package web
 
 import (
-	"fmt"
 	"net/http"
 	"path"
 	"strings"
@@ -61,13 +60,15 @@ func CheckClientCompatability(agentString string) bool {
 
 func Handle404(config configservice.ConfigService, w http.ResponseWriter, r *http.Request) {
 	err := model.NewAppError("Handle404", "api.context.404.app_error", nil, "", http.StatusNotFound)
-
-	mlog.Debug(fmt.Sprintf("%v: code=404 ip=%v", r.URL.Path, utils.GetIpAddress(r)))
+	ipAddress := utils.GetIpAddress(r, config.Config().ServiceSettings.TrustedProxyIPHeader)
+	mlog.Debug("not found handler triggered", mlog.String("path", r.URL.Path), mlog.Int("code", 404), mlog.String("ip", ipAddress))
 
 	if IsApiCall(config, r) {
 		w.WriteHeader(err.StatusCode)
 		err.DetailedError = "There doesn't appear to be an api call for the url='" + r.URL.Path + "'.  Typo? are you missing a team_id or user_id as part of the url?"
 		w.Write([]byte(err.ToJson()))
+	} else if *config.Config().ServiceSettings.WebserverMode == "disabled" {
+		http.NotFound(w, r)
 	} else {
 		utils.RenderWebAppError(config.Config(), w, r, err, config.AsymmetricSigningKey())
 	}

@@ -10,10 +10,15 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
+type ReadCloseSeeker interface {
+	io.ReadCloser
+	io.Seeker
+}
+
 type FileBackend interface {
 	TestConnection() *model.AppError
 
-	Reader(path string) (io.ReadCloser, *model.AppError)
+	Reader(path string) (ReadCloseSeeker, *model.AppError)
 	ReadFile(path string) ([]byte, *model.AppError)
 	FileExists(path string) (bool, *model.AppError)
 	CopyFile(oldPath, newPath string) *model.AppError

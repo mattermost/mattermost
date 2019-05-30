@@ -87,10 +87,10 @@ func testSessionGetWithDeviceId(t *testing.T, ss store.Store) {
 	s3.DeviceId = model.NewId()
 	store.Must(ss.Session().Save(&s3))
 
-	if rs1 := (<-ss.Session().GetSessionsWithActiveDeviceIds(s1.UserId)); rs1.Err != nil {
-		t.Fatal(rs1.Err)
+	if data, err := ss.Session().GetSessionsWithActiveDeviceIds(s1.UserId); err != nil {
+		t.Fatal(err)
 	} else {
-		if len(rs1.Data.([]*model.Session)) != 1 {
+		if len(data) != 1 {
 			t.Fatal("should match len")
 		}
 	}
@@ -245,10 +245,10 @@ func testSessionCount(t *testing.T, ss store.Store) {
 	s1.ExpiresAt = model.GetMillis() + 100000
 	store.Must(ss.Session().Save(&s1))
 
-	if r1 := <-ss.Session().AnalyticsSessionCount(); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if count, err := ss.Session().AnalyticsSessionCount(); err != nil {
+		t.Fatal(err)
 	} else {
-		if r1.Data.(int64) == 0 {
+		if count == 0 {
 			t.Fatal("should have at least 1 session")
 		}
 	}

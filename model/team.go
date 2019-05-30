@@ -49,7 +49,6 @@ type TeamPatch struct {
 	Description      *string `json:"description"`
 	CompanyName      *string `json:"company_name"`
 	AllowedDomains   *string `json:"allowed_domains"`
-	InviteId         *string `json:"invite_id"`
 	AllowOpenInvite  *bool   `json:"allow_open_invite"`
 	GroupConstrained *bool   `json:"group_constrained"`
 }
@@ -151,6 +150,10 @@ func (o *Team) IsValid() *AppError {
 
 	if len(o.Description) > TEAM_DESCRIPTION_MAX_LENGTH {
 		return NewAppError("Team.IsValid", "model.team.is_valid.description.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+	}
+
+	if len(o.InviteId) == 0 {
+		return NewAppError("Team.IsValid", "model.team.is_valid.invite_id.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
 	if IsReservedTeamName(o.Name) {
@@ -268,10 +271,6 @@ func (t *Team) Patch(patch *TeamPatch) {
 		t.AllowedDomains = *patch.AllowedDomains
 	}
 
-	if patch.InviteId != nil {
-		t.InviteId = *patch.InviteId
-	}
-
 	if patch.AllowOpenInvite != nil {
 		t.AllowOpenInvite = *patch.AllowOpenInvite
 	}
@@ -279,6 +278,10 @@ func (t *Team) Patch(patch *TeamPatch) {
 	if patch.GroupConstrained != nil {
 		t.GroupConstrained = patch.GroupConstrained
 	}
+}
+
+func (t *Team) IsGroupConstrained() bool {
+	return t.GroupConstrained != nil && *t.GroupConstrained
 }
 
 func (t *TeamPatch) ToJson() string {

@@ -239,13 +239,17 @@ func (a *App) UpdateLastActivityAtIfNeeded(session model.Session) {
 }
 
 func (a *App) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError) {
-	if !*a.Config().ServiceSettings.EnableUserAccessTokens {
+
+	user, err := a.Srv.Store.User().Get(token.UserId)
+	if err != nil {
+		return nil, err
+	}
+
+	if !*a.Config().ServiceSettings.EnableUserAccessTokens && !user.IsBot {
 		return nil, model.NewAppError("CreateUserAccessToken", "app.user_access_token.disabled", nil, "", http.StatusNotImplemented)
 	}
 
 	token.Token = model.NewId()
-
-	uchan := a.Srv.Store.User().Get(token.UserId)
 
 	result := <-a.Srv.Store.UserAccessToken().Save(token)
 	if result.Err != nil {
@@ -253,13 +257,8 @@ func (a *App) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAc
 	}
 	token = result.Data.(*model.UserAccessToken)
 
-	if result := <-uchan; result.Err != nil {
-		mlog.Error(result.Err.Error())
-	} else {
-		user := result.Data.(*model.User)
-		if err := a.SendUserAccessTokenAddedEmail(user.Email, user.Locale, a.GetSiteURL()); err != nil {
-			mlog.Error(err.Error())
-		}
+	if err := a.SendUserAccessTokenAddedEmail(user.Email, user.Locale, a.GetSiteURL()); err != nil {
+		return nil, err
 	}
 
 	return token, nil
@@ -282,12 +281,10 @@ func (a *App) createSessionForUserAccessToken(tokenString string) (*model.Sessio
 		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, "inactive_token", http.StatusUnauthorized)
 	}
 
-	var user *model.User
-	result = <-a.Srv.Store.User().Get(token.UserId)
-	if result.Err != nil {
-		return nil, result.Err
+	user, err := a.Srv.Store.User().Get(token.UserId)
+	if err != nil {
+		return nil, err
 	}
-	user = result.Data.(*model.User)
 
 	if user.DeleteAt != 0 {
 		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, "inactive_user_id="+user.Id, http.StatusUnauthorized)
