@@ -275,7 +275,8 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 
 	if newPost := result.Posts[post.Id]; len(newPost.Filenames) != len(post.Filenames) {
 		// Another thread has already created FileInfos for this post, so just return those
-		fileInfos, err := a.Srv.Store.FileInfo().GetForPost(post.Id, true, false)
+		var fileInfos []*model.FileInfo
+		fileInfos, err = a.Srv.Store.FileInfo().GetForPost(post.Id, true, false)
 		if err != nil {
 			mlog.Error(fmt.Sprintf("Unable to get FileInfos for migrated post, err=%v", err), mlog.String("post_id", post.Id))
 			return []*model.FileInfo{}
@@ -290,7 +291,7 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	savedInfos := make([]*model.FileInfo, 0, len(infos))
 	fileIds := make([]string, 0, len(filenames))
 	for _, info := range infos {
-		if _, err := a.Srv.Store.FileInfo().Save(info); err != nil {
+		if _, err = a.Srv.Store.FileInfo().Save(info); err != nil {
 			mlog.Error(
 				fmt.Sprintf("Unable to save file info when migrating post to use FileInfos, err=%v", err),
 				mlog.String("post_id", post.Id),
@@ -312,8 +313,8 @@ func (a *App) MigrateFilenamesToFileInfos(post *model.Post) []*model.FileInfo {
 	newPost.FileIds = fileIds
 
 	// Update Posts to clear Filenames and set FileIds
-	if result := <-a.Srv.Store.Post().Update(newPost, post); result.Err != nil {
-		mlog.Error(fmt.Sprintf("Unable to save migrated post when migrating to use FileInfos, new_file_ids=%v, old_filenames=%v, err=%v", newPost.FileIds, post.Filenames, result.Err), mlog.String("post_id", post.Id))
+	if _, err = a.Srv.Store.Post().Update(newPost, post); err != nil {
+		mlog.Error(fmt.Sprintf("Unable to save migrated post when migrating to use FileInfos, new_file_ids=%v, old_filenames=%v, err=%v", newPost.FileIds, post.Filenames, err), mlog.String("post_id", post.Id))
 		return []*model.FileInfo{}
 	}
 	return savedInfos
