@@ -450,65 +450,61 @@ func (s *SqlPostStore) PermanentDeleteByChannel(channelId string) *model.AppErro
 	return nil
 }
 
-func (s *SqlPostStore) GetPosts(channelId string, offset int, limit int, allowFromCache bool) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if limit > 1000 {
-			result.Err = model.NewAppError("SqlPostStore.GetLinearPosts", "store.sql_post.get_posts.app_error", nil, "channelId="+channelId, http.StatusBadRequest)
-			return
-		}
+func (s *SqlPostStore) GetPosts(channelId string, offset int, limit int, allowFromCache bool) (*model.PostList, *model.AppError) {
+	if limit > 1000 {
+		return nil, model.NewAppError("SqlPostStore.GetLinearPosts", "store.sql_post.get_posts.app_error", nil, "channelId="+channelId, http.StatusBadRequest)
+	}
 
-		// Caching only occurs on limits of 30 and 60, the common limits requested by MM clients
-		if allowFromCache && offset == 0 && (limit == 60 || limit == 30) {
-			if cacheItem, ok := s.lastPostsCache.Get(fmt.Sprintf("%s%v", channelId, limit)); ok {
-				if s.metrics != nil {
-					s.metrics.IncrementMemCacheHitCounter("Last Posts Cache")
-				}
-
-				result.Data = cacheItem.(*model.PostList)
-				return
-			} else {
-				if s.metrics != nil {
-					s.metrics.IncrementMemCacheMissCounter("Last Posts Cache")
-				}
-			}
-		} else {
+	// Caching only occurs on limits of 30 and 60, the common limits requested by MM clients
+	if allowFromCache && offset == 0 && (limit == 60 || limit == 30) {
+		if cacheItem, ok := s.lastPostsCache.Get(fmt.Sprintf("%s%v", channelId, limit)); ok {
 			if s.metrics != nil {
-				s.metrics.IncrementMemCacheMissCounter("Last Posts Cache")
+				s.metrics.IncrementMemCacheHitCounter("Last Posts Cache")
 			}
+			return cacheItem.(*model.PostList), nil
 		}
+	}
 
-		rpc := s.getRootPosts(channelId, offset, limit)
-		cpc := s.getParentsPosts(channelId, offset, limit)
+	if s.metrics != nil {
+		s.metrics.IncrementMemCacheMissCounter("Last Posts Cache")
+	}
 
-		if rpr := <-rpc; rpr.Err != nil {
-			result.Err = rpr.Err
-		} else if cpr := <-cpc; cpr.Err != nil {
-			result.Err = cpr.Err
-		} else {
-			posts := rpr.Data.([]*model.Post)
-			parents := cpr.Data.([]*model.Post)
+	rpc := s.getRootPosts(channelId, offset, limit)
+	cpc := s.getParentsPosts(channelId, offset, limit)
 
-			list := model.NewPostList()
+	var err *model.AppError
+	list := model.NewPostList()
 
-			for _, p := range posts {
-				list.AddPost(p)
-				list.AddOrder(p.Id)
-			}
+	rpr := <-rpc
+	if rpr.Err != nil {
+		return nil, rpr.Err
+	}
 
-			for _, p := range parents {
-				list.AddPost(p)
-			}
+	cpr := <-cpc
+	if cpr.Err != nil {
+		return nil, cpr.Err
+	}
 
-			list.MakeNonNil()
+	posts := rpr.Data.([]*model.Post)
+	parents := cpr.Data.([]*model.Post)
 
-			// Caching only occurs on limits of 30 and 60, the common limits requested by MM clients
-			if offset == 0 && (limit == 60 || limit == 30) {
-				s.lastPostsCache.AddWithExpiresInSecs(fmt.Sprintf("%s%v", channelId, limit), list, LAST_POSTS_CACHE_SEC)
-			}
+	for _, p := range posts {
+		list.AddPost(p)
+		list.AddOrder(p.Id)
+	}
 
-			result.Data = list
-		}
-	})
+	for _, p := range parents {
+		list.AddPost(p)
+	}
+
+	list.MakeNonNil()
+
+	// Caching only occurs on limits of 30 and 60, the common limits requested by MM clients
+	if offset == 0 && (limit == 60 || limit == 30) {
+		s.lastPostsCache.AddWithExpiresInSecs(fmt.Sprintf("%s%v", channelId, limit), list, LAST_POSTS_CACHE_SEC)
+	}
+
+	return list, err
 }
 
 func (s *SqlPostStore) GetPostsSince(channelId string, time int64, allowFromCache bool) store.StoreChannel {
