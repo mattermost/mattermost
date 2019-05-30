@@ -8,6 +8,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
+	"github.com/stretchr/testify/require"
 )
 
 func TestUserAccessTokenStore(t *testing.T, ss store.Store) {
@@ -23,11 +24,12 @@ func testUserAccessTokenSaveGetDelete(t *testing.T, ss store.Store) {
 		Description: "testtoken",
 	}
 
-	s1 := model.Session{}
+	s1 := &model.Session{}
 	s1.UserId = uat.UserId
 	s1.Token = uat.Token
 
-	store.Must(ss.Session().Save(&s1))
+	s1, err := ss.Session().Save(s1)
+	require.Nil(t, err)
 
 	if result := <-ss.UserAccessToken().Save(uat); result.Err != nil {
 		t.Fatal(result.Err)
@@ -65,19 +67,20 @@ func testUserAccessTokenSaveGetDelete(t *testing.T, ss store.Store) {
 		t.Fatal(result.Err)
 	}
 
-	if err := (<-ss.Session().Get(s1.Token)).Err; err == nil {
+	if err = (<-ss.Session().Get(s1.Token)).Err; err == nil {
 		t.Fatal("should error - session should be deleted")
 	}
 
-	if err := (<-ss.UserAccessToken().GetByToken(s1.Token)).Err; err == nil {
+	if err = (<-ss.UserAccessToken().GetByToken(s1.Token)).Err; err == nil {
 		t.Fatal("should error - access token should be deleted")
 	}
 
-	s2 := model.Session{}
+	s2 := &model.Session{}
 	s2.UserId = uat.UserId
 	s2.Token = uat.Token
 
-	store.Must(ss.Session().Save(&s2))
+	s2, err = ss.Session().Save(s2)
+	require.Nil(t, err)
 
 	if result := <-ss.UserAccessToken().Save(uat); result.Err != nil {
 		t.Fatal(result.Err)
@@ -103,29 +106,31 @@ func testUserAccessTokenDisableEnable(t *testing.T, ss store.Store) {
 		Description: "testtoken",
 	}
 
-	s1 := model.Session{}
+	s1 := &model.Session{}
 	s1.UserId = uat.UserId
 	s1.Token = uat.Token
 
-	store.Must(ss.Session().Save(&s1))
+	s1, err := ss.Session().Save(s1)
+	require.Nil(t, err)
 
 	if result := <-ss.UserAccessToken().Save(uat); result.Err != nil {
 		t.Fatal(result.Err)
 	}
 
-	if err := (<-ss.UserAccessToken().UpdateTokenDisable(uat.Id)).Err; err != nil {
+	if err = (<-ss.UserAccessToken().UpdateTokenDisable(uat.Id)).Err; err != nil {
 		t.Fatal(err)
 	}
 
-	if err := (<-ss.Session().Get(s1.Token)).Err; err == nil {
+	if err = (<-ss.Session().Get(s1.Token)).Err; err == nil {
 		t.Fatal("should error - session should be deleted")
 	}
 
-	s2 := model.Session{}
+	s2 := &model.Session{}
 	s2.UserId = uat.UserId
 	s2.Token = uat.Token
 
-	store.Must(ss.Session().Save(&s2))
+	s2, err = ss.Session().Save(s2)
+	require.Nil(t, err)
 
 	if err := (<-ss.UserAccessToken().UpdateTokenEnable(uat.Id)).Err; err != nil {
 		t.Fatal(err)
@@ -145,11 +150,12 @@ func testUserAccessTokenSearch(t *testing.T, ss store.Store) {
 		Description: "testtoken",
 	}
 
-	s1 := model.Session{}
+	s1 := &model.Session{}
 	s1.UserId = uat.UserId
 	s1.Token = uat.Token
 
-	store.Must(ss.Session().Save(&s1))
+	s1, err := ss.Session().Save(s1)
+	require.Nil(t, err)
 
 	if result := <-ss.UserAccessToken().Save(uat); result.Err != nil {
 		t.Fatal(result.Err)

@@ -14,11 +14,10 @@ import (
 func (a *App) CreateSession(session *model.Session) (*model.Session, *model.AppError) {
 	session.Token = ""
 
-	result := <-a.Srv.Store.Session().Save(session)
-	if result.Err != nil {
-		return nil, result.Err
+	session, err := a.Srv.Store.Session().Save(session)
+	if err != nil {
+		return nil, err
 	}
-	session = result.Data.(*model.Session)
 
 	a.AddSessionToCache(session)
 
@@ -303,11 +302,10 @@ func (a *App) createSessionForUserAccessToken(tokenString string) (*model.Sessio
 	session.AddProp(model.SESSION_PROP_TYPE, model.SESSION_TYPE_USER_ACCESS_TOKEN)
 	session.SetExpireInDays(model.SESSION_USER_ACCESS_TOKEN_EXPIRY)
 
-	result = <-a.Srv.Store.Session().Save(session)
-	if result.Err != nil {
-		return nil, result.Err
+	session, err = a.Srv.Store.Session().Save(session)
+	if err != nil {
+		return nil, err
 	}
-	session = result.Data.(*model.Session)
 
 	a.AddSessionToCache(session)
 
