@@ -861,11 +861,10 @@ func (a *App) ImportReply(data *ReplyImportData, post *model.Post, teamId string
 	user := result.Data.(*model.User)
 
 	// Check if this post already exists.
-	result = <-a.Srv.Store.Post().GetPostsCreatedAt(post.ChannelId, *data.CreateAt)
-	if result.Err != nil {
-		return result.Err
+	replies, err := a.Srv.Store.Post().GetPostsCreatedAt(post.ChannelId, *data.CreateAt)
+	if err != nil {
+		return err
 	}
-	replies := result.Data.([]*model.Post)
 
 	var reply *model.Post
 	for _, r := range replies {
@@ -962,11 +961,10 @@ func (a *App) ImportPost(data *PostImportData, dryRun bool) *model.AppError {
 	user := result.Data.(*model.User)
 
 	// Check if this post already exists.
-	result = <-a.Srv.Store.Post().GetPostsCreatedAt(channel.Id, *data.CreateAt)
-	if result.Err != nil {
-		return result.Err
+	posts, err := a.Srv.Store.Post().GetPostsCreatedAt(channel.Id, *data.CreateAt)
+	if err != nil {
+		return err
 	}
-	posts := result.Data.([]*model.Post)
 
 	var post *model.Post
 	for _, p := range posts {
@@ -1186,11 +1184,10 @@ func (a *App) ImportDirectPost(data *DirectPostImportData, dryRun bool) *model.A
 	user := result.Data.(*model.User)
 
 	// Check if this post already exists.
-	result = <-a.Srv.Store.Post().GetPostsCreatedAt(channel.Id, *data.CreateAt)
-	if result.Err != nil {
-		return result.Err
+	posts, err := a.Srv.Store.Post().GetPostsCreatedAt(channel.Id, *data.CreateAt)
+	if err != nil {
+		return err
 	}
-	posts := result.Data.([]*model.Post)
 
 	var post *model.Post
 	for _, p := range posts {
