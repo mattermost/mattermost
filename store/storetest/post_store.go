@@ -956,19 +956,19 @@ func testPostStoreGetPostsSince(t *testing.T, ss store.Store) {
 
 	r1 := (<-ss.Post().GetPostsSince(o1.ChannelId, o1.CreateAt, 1000, false)).Data.(*model.PostList)
 
-	if r1.Order[0] != o5.Id {
+	if r1.Order[5] != o5.Id {
 		t.Fatal("invalid order")
 	}
 
-	if r1.Order[1] != o4.Id {
+	if r1.Order[4] != o4.Id {
 		t.Fatal("invalid order")
 	}
 
-	if r1.Order[2] != o3.Id {
+	if r1.Order[3] != o3.Id {
 		t.Fatal("invalid order")
 	}
 
-	if r1.Order[3] != o2a.Id {
+	if r1.Order[2] != o2a.Id {
 		t.Fatal("invalid order")
 	}
 

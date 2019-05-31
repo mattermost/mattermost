@@ -1747,17 +1747,17 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 		t.Fatal("Should return 12 posts only since there's no unread post")
 	}
 
+	// get the first system post generated before the created posts above
+	posts, resp = Client.GetPostsBefore(th.BasicChannel.Id, post1.Id, 0, 2, "")
+	CheckNoError(t, resp)
+	systemPostId1 := posts.Order[1]
+
 	// Set channel member's last viewed before post1.
 	channelMember, err = th.App.Srv.Store.Channel().GetMember(channelId, userId)
 	require.Nil(t, err)
 	channelMember.LastViewedAt = post1.CreateAt - 1
 	store.Must(th.App.Srv.Store.Channel().UpdateMember(channelMember))
 	th.App.Srv.Store.Post().InvalidateLastPostTimeCache(channelId)
-
-	// get the first system post generated before the created posts above
-	posts, resp = Client.GetPostsBefore(th.BasicChannel.Id, post1.Id, 0, 2, "")
-	CheckNoError(t, resp)
-	systemPostId1 := posts.Order[1]
 
 	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 3, 3)
 	CheckNoError(t, resp)

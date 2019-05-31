@@ -618,7 +618,10 @@ func (a *App) GetPostsSince(channelId string, time int64, limit int) (*model.Pos
 	if result.Err != nil {
 		return nil, result.Err
 	}
-	return result.Data.(*model.PostList), nil
+	postList := result.Data.(*model.PostList)
+	postList.SortByCreateAt()
+
+	return postList, nil
 }
 
 func (a *App) GetSinglePost(postId string) (*model.Post, *model.AppError) {
@@ -723,7 +726,7 @@ func (a *App) GetNextPostIdFromPostList(postList *model.PostList) string {
 		firstPost := postList.Posts[firstPostId]
 		nextPost, err := a.GetPostAfterTime(firstPost.ChannelId, firstPost.CreateAt)
 		if err != nil {
-			mlog.Error("GetNextPostIdFromPostList: failed in getting next post", mlog.Any("err", err))
+			mlog.Warn("GetNextPostIdFromPostList: failed in getting next post", mlog.Err(err))
 		}
 
 		if nextPost != nil {
@@ -740,7 +743,7 @@ func (a *App) GetPrevPostIdFromPostList(postList *model.PostList) string {
 		lastPost := postList.Posts[lastPostId]
 		previousPost, err := a.GetPostBeforeTime(lastPost.ChannelId, lastPost.CreateAt)
 		if err != nil {
-			mlog.Error("GetPrevPostIdFromPostList: failed in getting previous post", mlog.Any("err", err))
+			mlog.Warn("GetPrevPostIdFromPostList: failed in getting previous post", mlog.Err(err))
 		}
 
 		if previousPost != nil {
