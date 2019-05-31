@@ -452,7 +452,9 @@ func TestAddChannelMemberNoUserRequestor(t *testing.T) {
 	}
 	assert.Equal(t, groupUserIds, channelMemberHistoryUserIds)
 
-	postList := store.Must(th.App.Srv.Store.Post().GetPosts(channel.Id, 0, 1, false)).(*model.PostList)
+	postList, err := th.App.Srv.Store.Post().GetPosts(channel.Id, 0, 1, false)
+	require.Nil(t,err)
+
 	if assert.Len(t, postList.Order, 1) {
 		post := postList.Posts[postList.Order[0]]
 
