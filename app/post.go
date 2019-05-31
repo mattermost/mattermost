@@ -698,21 +698,11 @@ func (a *App) GetPostsAroundPost(postId, channelId string, offset, limit int, be
 }
 
 func (a *App) GetPostAfterTime(channelId string, time int64) (*model.Post, *model.AppError) {
-	result := <-a.Srv.Store.Post().GetPostAfterTime(channelId, time)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-
-	return result.Data.(*model.Post), nil
+	return a.Srv.Store.Post().GetPostAfterTime(channelId, time)
 }
 
 func (a *App) GetPostBeforeTime(channelId string, time int64) (*model.Post, *model.AppError) {
-	result := <-a.Srv.Store.Post().GetPostBeforeTime(channelId, time)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-
-	return result.Data.(*model.Post), nil
+	return a.Srv.Store.Post().GetPostBeforeTime(channelId, time)
 }
 
 func (a *App) GetNextPostIdFromPostList(postList *model.PostList) string {
