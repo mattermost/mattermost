@@ -148,7 +148,7 @@ func getPostsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	etag := ""
 
 	if since > 0 {
-		list, err = c.App.GetPostsSince(channelId, since, app.MAX_LIMIT_POSTS_SINCE)
+		list, err = c.App.GetPostsSince(channelId, since)
 	} else if len(afterPost) > 0 {
 		etag = c.App.GetPostsEtag(channelId)
 
