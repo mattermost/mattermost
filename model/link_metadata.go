@@ -19,6 +19,7 @@ const (
 	LINK_METADATA_TYPE_IMAGE     LinkMetadataType = "image"
 	LINK_METADATA_TYPE_NONE      LinkMetadataType = "none"
 	LINK_METADATA_TYPE_OPENGRAPH LinkMetadataType = "opengraph"
+	MAX_IMAGES                   int              = 5
 )
 
 type LinkMetadataType string
@@ -34,9 +35,12 @@ func truncateText(original string) string {
 	return original
 }
 
-func firstImage(images []*opengraph.Image) []*opengraph.Image {
-	if len(images) > 1 {
-		return []*opengraph.Image{images[0]}
+func firstNImages(images []*opengraph.Image, maxImages int) []*opengraph.Image {
+	numImages := len(images)
+	if numImages > maxImages {
+		subImages := make([]*opengraph.Image, maxImages)
+		subImages = images[0:maxImages]
+		return subImages
 	}
 	return images
 }
@@ -75,7 +79,7 @@ func TruncateOpenGraph(ogdata *opengraph.OpenGraph) *opengraph.OpenGraph {
 			ogdata.LocalesAlternate = make([]string, 0)
 		}
 		if len(ogdata.Images) > 0 {
-			ogdata.Images = firstImage(ogdata.Images)
+			ogdata.Images = firstNImages(ogdata.Images, MAX_IMAGES)
 		}
 		if len(ogdata.Audios) > 0 {
 			ogdata.Audios = make([]*opengraph.Audio, 0)
