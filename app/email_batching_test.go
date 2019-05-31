@@ -115,14 +115,13 @@ func TestCheckPendingNotifications(t *testing.T) {
 	channelMember.LastViewedAt = 9999999
 	store.Must(th.App.Srv.Store.Channel().UpdateMember(channelMember))
 
-	count, err := th.App.Srv.Store.Preference().Save(&model.Preferences{{
+	err = th.App.Srv.Store.Preference().Save(&model.Preferences{{
 		UserId:   th.BasicUser.Id,
 		Category: model.PREFERENCE_CATEGORY_NOTIFICATIONS,
 		Name:     model.PREFERENCE_NAME_EMAIL_INTERVAL,
 		Value:    "60",
 	}})
 	require.Nil(t, err)
-	require.Equal(t, 1, count)
 
 	// test that notifications aren't sent before interval
 	job.checkPendingNotifications(time.Unix(10001, 0), func(string, []*batchedNotification) {})
@@ -258,14 +257,13 @@ func TestCheckPendingNotificationsCantParseInterval(t *testing.T) {
 	store.Must(th.App.Srv.Store.Channel().UpdateMember(channelMember))
 
 	// preference value is not an integer, so we'll fall back to the default 15min value
-	count, err := th.App.Srv.Store.Preference().Save(&model.Preferences{{
+	err = th.App.Srv.Store.Preference().Save(&model.Preferences{{
 		UserId:   th.BasicUser.Id,
 		Category: model.PREFERENCE_CATEGORY_NOTIFICATIONS,
 		Name:     model.PREFERENCE_NAME_EMAIL_INTERVAL,
 		Value:    "notAnIntegerValue",
 	}})
 	require.Nil(t, err)
-	require.Equal(t, 1, count)
 
 	job.pendingNotifications[th.BasicUser.Id] = []*batchedNotification{
 		{

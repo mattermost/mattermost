@@ -457,9 +457,8 @@ func testSchemeStoreDelete(t *testing.T, ss store.Store) {
 		Type:        model.CHANNEL_OPEN,
 		SchemeId:    &d5.Id,
 	}
-	cres5 := <-ss.Channel().Save(c5, -1)
-	assert.Nil(t, cres5.Err)
-	c5 = cres5.Data.(*model.Channel)
+	c5, err = ss.Channel().Save(c5, -1)
+	assert.Nil(t, err)
 
 	sres5 := <-ss.Scheme().Delete(d5.Id)
 	assert.Nil(t, sres5.Err)

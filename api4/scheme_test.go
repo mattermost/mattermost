@@ -401,9 +401,8 @@ func TestGetChannelsForScheme(t *testing.T) {
 		Type:        model.CHANNEL_OPEN,
 	}
 
-	result1 := <-th.App.Srv.Store.Channel().Save(channel1, 1000000)
-	assert.Nil(t, result1.Err)
-	channel1 = result1.Data.(*model.Channel)
+	channel1, errCh := th.App.Srv.Store.Channel().Save(channel1, 1000000)
+	assert.Nil(t, errCh)
 
 	l2, r2 := th.SystemAdminClient.GetChannelsForScheme(scheme1.Id, 0, 100)
 	CheckNoError(t, r2)
@@ -425,9 +424,8 @@ func TestGetChannelsForScheme(t *testing.T) {
 		Type:        model.CHANNEL_OPEN,
 		SchemeId:    &scheme1.Id,
 	}
-	result3 := <-th.App.Srv.Store.Channel().Save(channel2, 1000000)
-	assert.Nil(t, result3.Err)
-	channel2 = result3.Data.(*model.Channel)
+	channel2, err = th.App.Srv.Store.Channel().Save(channel2, 1000000)
+	assert.Nil(t, err)
 
 	l4, r4 := th.SystemAdminClient.GetChannelsForScheme(scheme1.Id, 0, 100)
 	CheckNoError(t, r4)
@@ -691,15 +689,14 @@ func TestDeleteScheme(t *testing.T) {
 		assert.Zero(t, role6.DeleteAt)
 
 		// Make sure this scheme is in use by a team.
-		res := <-th.App.Srv.Store.Channel().Save(&model.Channel{
+		channel, err := th.App.Srv.Store.Channel().Save(&model.Channel{
 			TeamId:      model.NewId(),
 			DisplayName: model.NewId(),
 			Name:        model.NewId(),
 			Type:        model.CHANNEL_OPEN,
 			SchemeId:    &s1.Id,
 		}, -1)
-		assert.Nil(t, res.Err)
-		channel := res.Data.(*model.Channel)
+		assert.Nil(t, err)
 
 		// Delete the Scheme.
 		_, r3 := th.SystemAdminClient.DeleteScheme(s1.Id)

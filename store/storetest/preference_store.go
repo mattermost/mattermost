@@ -4,8 +4,9 @@
 package storetest
 
 import (
-	"github.com/stretchr/testify/require"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 
 	"github.com/stretchr/testify/assert"
 
@@ -43,9 +44,7 @@ func testPreferenceSave(t *testing.T, ss store.Store) {
 			Value:    "value1b",
 		},
 	}
-	if count, err := ss.Preference().Save(&preferences); count != 2 {
-		t.Fatal("got incorrect number of rows saved")
-	} else if err != nil {
+	if err := ss.Preference().Save(&preferences); err != nil {
 		t.Fatal("saving preference returned error")
 	}
 
@@ -57,9 +56,7 @@ func testPreferenceSave(t *testing.T, ss store.Store) {
 
 	preferences[0].Value = "value2a"
 	preferences[1].Value = "value2b"
-	if count, err := ss.Preference().Save(&preferences); count != 2 {
-		t.Fatal("got incorrect number of rows saved")
-	} else if err != nil {
+	if err := ss.Preference().Save(&preferences); err != nil {
 		t.Fatal("saving preference returned error")
 	}
 
@@ -98,9 +95,8 @@ func testPreferenceGet(t *testing.T, ss store.Store) {
 		},
 	}
 
-	count, err := ss.Preference().Save(&preferences)
+	err := ss.Preference().Save(&preferences)
 	require.Nil(t, err)
-	require.Equal(t, 4, count)
 
 	if data, err := ss.Preference().Get(userId, category, name); err != nil {
 		t.Fatal(err)
@@ -145,9 +141,8 @@ func testPreferenceGetCategory(t *testing.T, ss store.Store) {
 		},
 	}
 
-	count, err := ss.Preference().Save(&preferences)
+	err := ss.Preference().Save(&preferences)
 	require.Nil(t, err)
-	require.Equal(t, 4, count)
 
 	if preferencesByCategory, err := ss.Preference().GetCategory(userId, category); err != nil {
 		t.Fatal(err)
@@ -196,9 +191,8 @@ func testPreferenceGetAll(t *testing.T, ss store.Store) {
 		},
 	}
 
-	count, err := ss.Preference().Save(&preferences)
+	err := ss.Preference().Save(&preferences)
 	require.Nil(t, err)
-	require.Equal(t, 4, count)
 
 	if result := <-ss.Preference().GetAll(userId); result.Err != nil {
 		t.Fatal(result.Err)
@@ -244,9 +238,8 @@ func testPreferenceDeleteByUser(t *testing.T, ss store.Store) {
 		},
 	}
 
-	count, err := ss.Preference().Save(&preferences)
+	err := ss.Preference().Save(&preferences)
 	require.Nil(t, err)
-	require.Equal(t, 4, count)
 
 	if err := ss.Preference().PermanentDeleteByUser(userId); err != nil {
 		t.Fatal(err)
@@ -294,33 +287,32 @@ func testIsFeatureEnabled(t *testing.T, ss store.Store) {
 		},
 	}
 
-	count, err := ss.Preference().Save(&features)
+	err := ss.Preference().Save(&features)
 	require.Nil(t, err)
-	require.Equal(t, 5, count)
 
-	if result := <-ss.Preference().IsFeatureEnabled(feature1, userId); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if data := result.Data.(bool); !data {
+	if data, err := ss.Preference().IsFeatureEnabled(feature1, userId); err != nil {
+		t.Fatal(err)
+	} else if !data {
 		t.Fatalf("got incorrect setting for feature1, %v=%v", true, data)
 	}
 
-	if result := <-ss.Preference().IsFeatureEnabled(feature2, userId); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if data := result.Data.(bool); data {
+	if data, err := ss.Preference().IsFeatureEnabled(feature2, userId); err != nil {
+		t.Fatal(err)
+	} else if data {
 		t.Fatalf("got incorrect setting for feature2, %v=%v", false, data)
 	}
 
 	// make sure we get false if something different than "true" or "false" has been saved to database
-	if result := <-ss.Preference().IsFeatureEnabled(feature3, userId); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if data := result.Data.(bool); data {
+	if data, err := ss.Preference().IsFeatureEnabled(feature3, userId); err != nil {
+		t.Fatal(err)
+	} else if data {
 		t.Fatalf("got incorrect setting for feature3, %v=%v", false, data)
 	}
 
 	// make sure false is returned if a non-existent feature is queried
-	if result := <-ss.Preference().IsFeatureEnabled("someOtherFeature", userId); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if data := result.Data.(bool); data {
+	if data, err := ss.Preference().IsFeatureEnabled("someOtherFeature", userId); err != nil {
+		t.Fatal(err)
+	} else if data {
 		t.Fatalf("got incorrect setting for non-existent feature 'someOtherFeature', %v=%v", false, data)
 	}
 }
@@ -333,9 +325,8 @@ func testPreferenceDelete(t *testing.T, ss store.Store) {
 		Value:    "value1a",
 	}
 
-	count, err := ss.Preference().Save(&model.Preferences{preference})
+	err := ss.Preference().Save(&model.Preferences{preference})
 	require.Nil(t, err)
-	require.Equal(t, 1, count)
 
 	if prefs := store.Must(ss.Preference().GetAll(preference.UserId)).(model.Preferences); len([]model.Preference(prefs)) != 1 {
 		t.Fatal("should've returned 1 preference")
@@ -368,16 +359,15 @@ func testPreferenceDeleteCategory(t *testing.T, ss store.Store) {
 		Value:    "value1a",
 	}
 
-	count, err := ss.Preference().Save(&model.Preferences{preference1, preference2})
+	err := ss.Preference().Save(&model.Preferences{preference1, preference2})
 	require.Nil(t, err)
-	require.Equal(t, 2, count)
 
 	if prefs := store.Must(ss.Preference().GetAll(userId)).(model.Preferences); len([]model.Preference(prefs)) != 2 {
 		t.Fatal("should've returned 2 preferences")
 	}
 
-	if result := <-ss.Preference().DeleteCategory(userId, category); result.Err != nil {
-		t.Fatal(result.Err)
+	if err := ss.Preference().DeleteCategory(userId, category); err != nil {
+		t.Fatal(err)
 	}
 
 	if prefs := store.Must(ss.Preference().GetAll(userId)).(model.Preferences); len([]model.Preference(prefs)) != 0 {
@@ -405,9 +395,8 @@ func testPreferenceDeleteCategoryAndName(t *testing.T, ss store.Store) {
 		Value:    "value1a",
 	}
 
-	count, err := ss.Preference().Save(&model.Preferences{preference1, preference2})
+	err := ss.Preference().Save(&model.Preferences{preference1, preference2})
 	require.Nil(t, err)
-	require.Equal(t, 2, count)
 
 	if prefs := store.Must(ss.Preference().GetAll(userId)).(model.Preferences); len([]model.Preference(prefs)) != 1 {
 		t.Fatal("should've returned 1 preference")
@@ -455,9 +444,8 @@ func testPreferenceCleanupFlagsBatch(t *testing.T, ss store.Store) {
 		Value:    "true",
 	}
 
-	count, err := ss.Preference().Save(&model.Preferences{preference1, preference2})
+	err := ss.Preference().Save(&model.Preferences{preference1, preference2})
 	require.Nil(t, err)
-	require.Equal(t, 2, count)
 
 	_, err = ss.Preference().CleanupFlagsBatch(10000)
 	assert.Nil(t, err)

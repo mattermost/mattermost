@@ -82,6 +82,8 @@ func init() {
 	MigrateConfigCmd.Flags().String("to", "", "Config to which to migrate")
 	MigrateConfigCmd.MarkFlagRequired("to")
 
+	ConfigShowCmd.Flags().Bool("json", false, "Output the configuration as JSON.")
+
 	ConfigCmd.AddCommand(
 		ValidateConfigCmd,
 		ConfigSubpathCmd,
@@ -161,9 +163,9 @@ func configGetCmdF(command *cobra.Command, args []string) error {
 }
 
 func configShowCmdF(command *cobra.Command, args []string) error {
-	configStore, err := getConfigStore(command)
+	useJSON, err := command.Flags().GetBool("json")
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed reading json parameter")
 	}
 
 	err = cobra.NoArgs(command, args)
@@ -171,7 +173,24 @@ func configShowCmdF(command *cobra.Command, args []string) error {
 		return err
 	}
 
-	fmt.Printf("%s", prettyPrintStruct(*configStore.Get()))
+	configStore, err := getConfigStore(command)
+	if err != nil {
+		return err
+	}
+
+	config := *configStore.Get()
+
+	if useJSON {
+		configJSON, err := json.MarshalIndent(config, "", "    ")
+		if err != nil {
+			return errors.Wrap(err, "failed to marshal config as json")
+		}
+
+		fmt.Printf("%s\n", configJSON)
+	} else {
+		fmt.Printf("%s", prettyPrintStruct(config))
+	}
+
 	return nil
 }
 

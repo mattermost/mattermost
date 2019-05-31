@@ -518,5 +518,10 @@ func parseImages(body io.Reader) (*model.PostImage, error) {
 		image.FrameCount = frameCount
 	}
 
+	// Make image information nil when the format is tiff
+	if format == "tiff" {
+		image = nil
+	}
+
 	return image, nil
 }
