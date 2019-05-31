@@ -213,8 +213,9 @@ func (a *App) RevokeSession(session *model.Session) *model.AppError {
 }
 
 func (a *App) AttachDeviceId(sessionId string, deviceId string, expiresAt int64) *model.AppError {
-	if result := <-a.Srv.Store.Session().UpdateDeviceId(sessionId, deviceId, expiresAt); result.Err != nil {
-		return result.Err
+	_, err := a.Srv.Store.Session().UpdateDeviceId(sessionId, deviceId, expiresAt)
+	if err != nil {
+		return err
 	}
 
 	return nil

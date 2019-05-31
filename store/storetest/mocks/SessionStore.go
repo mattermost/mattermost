@@ -181,19 +181,26 @@ func (_m *SessionStore) Save(session *model.Session) (*model.Session, *model.App
 }
 
 // UpdateDeviceId provides a mock function with given fields: id, deviceId, expiresAt
-func (_m *SessionStore) UpdateDeviceId(id string, deviceId string, expiresAt int64) store.StoreChannel {
+func (_m *SessionStore) UpdateDeviceId(id string, deviceId string, expiresAt int64) (string, *model.AppError) {
 	ret := _m.Called(id, deviceId, expiresAt)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, string, int64) store.StoreChannel); ok {
+	var r0 string
+	if rf, ok := ret.Get(0).(func(string, string, int64) string); ok {
 		r0 = rf(id, deviceId, expiresAt)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string, int64) *model.AppError); ok {
+		r1 = rf(id, deviceId, expiresAt)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
 		}
 	}
 
-	return r0
+	return r0, r1
 }
 
 // UpdateLastActivityAt provides a mock function with given fields: sessionId, time
