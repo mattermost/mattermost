@@ -42,19 +42,28 @@ func (_m *SessionStore) Cleanup(expiryTime int64, batchSize int64) {
 }
 
 // Get provides a mock function with given fields: sessionIdOrToken
-func (_m *SessionStore) Get(sessionIdOrToken string) store.StoreChannel {
+func (_m *SessionStore) Get(sessionIdOrToken string) (*model.Session, *model.AppError) {
 	ret := _m.Called(sessionIdOrToken)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+	var r0 *model.Session
+	if rf, ok := ret.Get(0).(func(string) *model.Session); ok {
 		r0 = rf(sessionIdOrToken)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.Session)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(sessionIdOrToken)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetSessions provides a mock function with given fields: userId

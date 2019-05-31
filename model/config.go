@@ -1991,7 +1991,7 @@ type ElasticsearchSettings struct {
 	LiveIndexingBatchSize         *int    `restricted:"true"`
 	BulkIndexingTimeWindowSeconds *int    `restricted:"true"`
 	RequestTimeoutSeconds         *int    `restricted:"true"`
-	Trace                         *bool   `restricted:"true"`
+	Trace                         *string `restricted:"true"`
 }
 
 func (s *ElasticsearchSettings) SetDefaults() {
@@ -2072,7 +2072,7 @@ func (s *ElasticsearchSettings) SetDefaults() {
 	}
 
 	if s.Trace == nil {
-		s.Trace = NewBool(false)
+		s.Trace = NewString("")
 	}
 }
 
