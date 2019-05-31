@@ -954,21 +954,21 @@ func testPostStoreGetPostsSince(t *testing.T, ss store.Store) {
 	o5.RootId = o4.Id
 	o5 = (<-ss.Post().Save(o5)).Data.(*model.Post)
 
-	r1 := (<-ss.Post().GetPostsSince(o1.ChannelId, o1.CreateAt, 1000, false)).Data.(*model.PostList)
+	r1 := (<-ss.Post().GetPostsSince(o1.ChannelId, o1.CreateAt, false)).Data.(*model.PostList)
 
-	if r1.Order[5] != o5.Id {
+	if r1.Order[0] != o5.Id {
 		t.Fatal("invalid order")
 	}
 
-	if r1.Order[4] != o4.Id {
+	if r1.Order[1] != o4.Id {
 		t.Fatal("invalid order")
 	}
 
-	if r1.Order[3] != o3.Id {
+	if r1.Order[2] != o3.Id {
 		t.Fatal("invalid order")
 	}
 
-	if r1.Order[2] != o2a.Id {
+	if r1.Order[3] != o2a.Id {
 		t.Fatal("invalid order")
 	}
 
@@ -980,7 +980,7 @@ func testPostStoreGetPostsSince(t *testing.T, ss store.Store) {
 		t.Fatal("Missing parent")
 	}
 
-	r2 := (<-ss.Post().GetPostsSince(o1.ChannelId, o5.UpdateAt, 1000, true)).Data.(*model.PostList)
+	r2 := (<-ss.Post().GetPostsSince(o1.ChannelId, o5.UpdateAt, true)).Data.(*model.PostList)
 
 	if len(r2.Order) != 0 {
 		t.Fatal("wrong size ", len(r2.Posts))
