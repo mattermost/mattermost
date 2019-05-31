@@ -228,12 +228,10 @@ func getPostsForChannelAroundLastUnread(c *Context, w http.ResponseWriter, r *ht
 	postList.NextPostId = c.App.GetNextPostIdFromPostList(postList)
 	postList.PrevPostId = c.App.GetPrevPostIdFromPostList(postList)
 
-	clientPostList := c.App.PreparePostListForClient(postList)
-
 	if len(etag) > 0 {
 		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 	}
-	w.Write([]byte(c.App.PostListWithProxyAddedToImageURLs(postList).ToJson()))
+	w.Write([]byte(c.App.PreparePostListForClient(postList).ToJson()))
 }
 
 func getFlaggedPostsForUser(c *Context, w http.ResponseWriter, r *http.Request) {
