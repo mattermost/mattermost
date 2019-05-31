@@ -1088,11 +1088,11 @@ func (s *SqlPostStore) AnalyticsPostCount(teamId string, mustHaveFile bool, must
 		query += " AND Posts.Hashtags != ''"
 	}
 
-	if v, err := s.GetReplica().SelectInt(query, map[string]interface{}{"TeamId": teamId}); err != nil {
+	v, err := s.GetReplica().SelectInt(query, map[string]interface{}{"TeamId": teamId})
+	if err != nil {
 		return 0, model.NewAppError("SqlPostStore.AnalyticsPostCount", "store.sql_post.analytics_posts_count.app_error", nil, err.Error(), http.StatusInternalServerError)
-	} else {
-		return v, nil
 	}
+	return v, nil
 }
 
 func (s *SqlPostStore) GetPostsCreatedAt(channelId string, time int64) store.StoreChannel {
