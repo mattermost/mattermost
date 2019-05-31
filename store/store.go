@@ -582,11 +582,11 @@ type GroupStore interface {
 	CreateOrRestoreMember(groupID string, userID string) StoreChannel
 	DeleteMember(groupID string, userID string) StoreChannel
 
-	CreateGroupSyncable(groupSyncable *model.GroupSyncable) StoreChannel
-	GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) StoreChannel
-	GetAllGroupSyncablesByGroupId(groupID string, syncableType model.GroupSyncableType) StoreChannel
-	UpdateGroupSyncable(groupSyncable *model.GroupSyncable) StoreChannel
-	DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) StoreChannel
+	CreateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError)
+	GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError)
+	GetAllGroupSyncablesByGroupId(groupID string, syncableType model.GroupSyncableType) ([]*model.GroupSyncable, *model.AppError)
+	UpdateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError)
+	DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError)
 
 	TeamMembersToAdd(since int64) ([]*model.UserTeamIDPair, *model.AppError)
 	ChannelMembersToAdd(since int64) ([]*model.UserChannelIDPair, *model.AppError)
