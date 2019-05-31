@@ -104,6 +104,10 @@ func (a *App) CreateUserWithInviteId(user *model.User, inviteId string) (*model.
 	}
 	team := result.Data.(*model.Team)
 
+	if team.IsGroupConstrained() {
+		return nil, model.NewAppError("CreateUserWithInviteId", "app.team.invite_id.group_constrained.error", nil, "", http.StatusForbidden)
+	}
+
 	user.EmailVerified = false
 
 	ruser, err := a.CreateUser(user)
