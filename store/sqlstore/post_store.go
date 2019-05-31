@@ -1004,9 +1004,8 @@ func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.A
 		map[string]interface{}{"TeamId": teamId, "StartTime": start, "EndTime": end})
 	if err != nil {
 		return nil, model.NewAppError("SqlPostStore.AnalyticsUserCountsWithPostsByDay", "store.sql_post.analytics_user_counts_posts_by_day.app_error", nil, err.Error(), http.StatusInternalServerError)
-	} else {
-		return rows, nil
 	}
+	return rows, nil
 }
 
 func (s *SqlPostStore) AnalyticsPostCountsByDay(teamId string) store.StoreChannel {
