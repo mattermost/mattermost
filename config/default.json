@@ -397,7 +397,8 @@
         "IndexPrefix": "",
         "LiveIndexingBatchSize": 1,
         "BulkIndexingTimeWindowSeconds": 3600,
-        "RequestTimeoutSeconds": 30
+        "RequestTimeoutSeconds": 30,
+        "Trace": ""
     },
     "DataRetentionSettings": {
         "EnableMessageDeletion": false,
