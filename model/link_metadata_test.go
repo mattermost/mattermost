@@ -256,18 +256,18 @@ func TestTruncateText(t *testing.T) {
 	})
 }
 
-func TestFirstImage(t *testing.T) {
+func TestFirstNImages(t *testing.T) {
 	t.Run("when empty, return an empty one", func(t *testing.T) {
 		empty := make([]*opengraph.Image, 0)
-		assert.Exactly(t, firstImage(empty), empty, "Should be the same element")
+		assert.Exactly(t, firstNImages(empty, 1), empty, "Should be the same element")
 	})
 	t.Run("when it contains one element, return the same array", func(t *testing.T) {
 		one := []*opengraph.Image{sampleImage("image.png")}
-		assert.Exactly(t, firstImage(one), one, "Should be the same element")
+		assert.Exactly(t, firstNImages(one, 1), one, "Should be the same element")
 	})
 	t.Run("when it contains more than one element, return the first one", func(t *testing.T) {
 		two := []*opengraph.Image{sampleImage("image.png"), sampleImage("notme.png")}
-		assert.True(t, strings.HasSuffix(firstImage(two)[0].URL, "image.png"), "Should be the image element")
+		assert.True(t, strings.HasSuffix(firstNImages(two, 1)[0].URL, "image.png"), "Should be the image element")
 	})
 
 }
