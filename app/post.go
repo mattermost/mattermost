@@ -20,9 +20,7 @@ import (
 const (
 	PENDING_POST_IDS_CACHE_SIZE = 25000
 	PENDING_POST_IDS_CACHE_TTL  = 30 * time.Second
-	MAX_LIMIT_POSTS_SINCE       = 1000
 	PAGE_DEFAULT                = 0
-	PER_PAGE_DEFAULT            = 60
 )
 
 func (a *App) CreatePostAsUser(post *model.Post, currentSessionId string) (*model.Post, *model.AppError) {
@@ -613,15 +611,12 @@ func (a *App) GetPostsEtag(channelId string) string {
 	return (<-a.Srv.Store.Post().GetEtag(channelId, true)).Data.(string)
 }
 
-func (a *App) GetPostsSince(channelId string, time int64, limit int) (*model.PostList, *model.AppError) {
-	result := <-a.Srv.Store.Post().GetPostsSince(channelId, time, limit, true)
+func (a *App) GetPostsSince(channelId string, time int64) (*model.PostList, *model.AppError) {
+	result := <-a.Srv.Store.Post().GetPostsSince(channelId, time, true)
 	if result.Err != nil {
 		return nil, result.Err
 	}
-	postList := result.Data.(*model.PostList)
-	postList.SortByCreateAt()
-
-	return postList, nil
+	return result.Data.(*model.PostList), nil
 }
 
 func (a *App) GetSinglePost(postId string) (*model.Post, *model.AppError) {
@@ -807,27 +802,29 @@ func (a *App) GetPostsForChannelAroundLastUnread(channelId, userId string, limit
 		return model.NewPostList(), nil
 	}
 
-	var postListSince *model.PostList
-	if postListSince, err = a.GetPostsSince(channelId, member.LastViewedAt, limitAfter); err != nil {
+	lastUnreadPost, err := a.GetPostAfterTime(channelId, member.LastViewedAt)
+	if err != nil {
 		return nil, err
-	} else if len(postListSince.Order) == 0 {
+	} else if lastUnreadPost == nil {
 		return model.NewPostList(), nil
 	}
 
-	var lastUnreadPostId = postListSince.Order[len(postListSince.Order)-1]
-	var postListBefore *model.PostList
-	if lastUnreadPostId != "" {
-		if postListBefore, err = a.GetPostsBeforePost(channelId, lastUnreadPostId, PAGE_DEFAULT, limitBefore); err != nil {
-			return nil, err
-		}
+	var postList *model.PostList
+	if postList, err = a.GetPostsBeforePost(channelId, lastUnreadPost.Id, PAGE_DEFAULT, limitBefore); err != nil {
+		return nil, err
 	}
 
-	if postListBefore != nil {
-		postListSince.Extend(postListBefore)
+	if postListAfter, err := a.GetPostsAfterPost(channelId, lastUnreadPost.Id, PAGE_DEFAULT, limitAfter-1); err != nil {
+		return nil, err
+	} else if postListAfter != nil {
+		postList.Extend(postListAfter)
 	}
 
-	postListSince.SortByCreateAt()
-	return postListSince, nil
+	postList.AddPost(lastUnreadPost)
+	postList.AddOrder(lastUnreadPost.Id)
+
+	postList.SortByCreateAt()
+	return postList, nil
 }
 
 func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppError) {
