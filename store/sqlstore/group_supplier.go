@@ -701,10 +701,8 @@ func (s *SqlGroupStore) DeleteGroupSyncable(groupID string, syncableID string, s
 // based on the groups configurations.
 //
 // Typically since will be the last successful group sync time.
-func (s *SqlGroupStore) TeamMembersToAdd(since int64) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-
-		sql := `
+func (s *SqlGroupStore) TeamMembersToAdd(since int64) ([]*model.UserTeamIDPair, *model.AppError) {
+	sql := `
 		SELECT
 			GroupMembers.UserId, GroupTeams.TeamId
 		FROM
@@ -727,27 +725,22 @@ func (s *SqlGroupStore) TeamMembersToAdd(since int64) store.StoreChannel {
 			AND (GroupMembers.CreateAt >= :Since
 			OR GroupTeams.UpdateAt >= :Since)`
 
-		var teamMembers []*model.UserTeamIDPair
+	var teamMembers []*model.UserTeamIDPair
 
-		_, err := s.GetReplica().Select(&teamMembers, sql, map[string]interface{}{"Since": since})
-		if err != nil {
-			result.Err = model.NewAppError("SqlGroupStore.TeamMembersToAdd", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
-		}
+	_, err := s.GetReplica().Select(&teamMembers, sql, map[string]interface{}{"Since": since})
+	if err != nil {
+		return nil, model.NewAppError("SqlGroupStore.TeamMembersToAdd", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = teamMembers
-
-		return
-	})
+	return teamMembers, nil
 }
 
 // ChannelMembersToAdd returns a slice of UserChannelIDPair that need newly created memberships
 // based on the groups configurations.
 //
 // Typically since will be the last successful group sync time.
-func (s *SqlGroupStore) ChannelMembersToAdd(since int64) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-
-		sql := `
+func (s *SqlGroupStore) ChannelMembersToAdd(since int64) ([]*model.UserChannelIDPair, *model.AppError) {
+	sql := `
 		SELECT
 			GroupMembers.UserId, GroupChannels.ChannelId
 		FROM
@@ -770,17 +763,14 @@ func (s *SqlGroupStore) ChannelMembersToAdd(since int64) store.StoreChannel {
 			AND (GroupMembers.CreateAt >= :Since
 			OR GroupChannels.UpdateAt >= :Since)`
 
-		var channelMembers []*model.UserChannelIDPair
+	var channelMembers []*model.UserChannelIDPair
 
-		_, err := s.GetReplica().Select(&channelMembers, sql, map[string]interface{}{"Since": since})
-		if err != nil {
-			result.Err = model.NewAppError("SqlGroupStore.ChannelMembersToAdd", "store.select_error", nil, "", http.StatusInternalServerError)
-		}
+	_, err := s.GetReplica().Select(&channelMembers, sql, map[string]interface{}{"Since": since})
+	if err != nil {
+		return nil, model.NewAppError("SqlGroupStore.ChannelMembersToAdd", "store.select_error", nil, "", http.StatusInternalServerError)
+	}
 
-		result.Data = channelMembers
-
-		return
-	})
+	return channelMembers, nil
 }
 
 func groupSyncableToGroupTeam(groupSyncable *model.GroupSyncable) *groupTeam {
@@ -798,10 +788,8 @@ func groupSyncableToGroupChannel(groupSyncable *model.GroupSyncable) *groupChann
 }
 
 // TeamMembersToRemove returns all team members that should be removed based on group constraints.
-func (s *SqlGroupStore) TeamMembersToRemove() store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-
-		sql := `
+func (s *SqlGroupStore) TeamMembersToRemove() ([]*model.TeamMember, *model.AppError) {
+	sql := `
 		SELECT
 			TeamMembers.TeamId,
 			TeamMembers.UserId,
@@ -838,77 +826,58 @@ func (s *SqlGroupStore) TeamMembersToRemove() store.StoreChannel {
 					Teams.Id,
 					GroupMembers.UserId)`
 
-		var teamMembers []*model.TeamMember
+	var teamMembers []*model.TeamMember
 
-		_, err := s.GetReplica().Select(&teamMembers, sql)
-		if err != nil {
-			result.Err = model.NewAppError("SqlGroupStore.TeamMembersToRemove", "store.select_error", nil, "", http.StatusInternalServerError)
-		}
+	_, err := s.GetReplica().Select(&teamMembers, sql)
+	if err != nil {
+		return nil, model.NewAppError("SqlGroupStore.TeamMembersToRemove", "store.select_error", nil, "", http.StatusInternalServerError)
+	}
 
-		result.Data = teamMembers
-
-		return
-	})
+	return teamMembers, nil
 }
 
-func (s *SqlGroupStore) CountGroupsByChannel(channelId string, opts model.GroupSearchOpts) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
+func (s *SqlGroupStore) CountGroupsByChannel(channelId string, opts model.GroupSearchOpts) (int64, *model.AppError) {
+	countQuery := s.groupsBySyncableBaseQuery(model.GroupSyncableTypeChannel, selectCountGroups, channelId, opts)
 
-		countQuery := s.groupsBySyncableBaseQuery(model.GroupSyncableTypeChannel, selectCountGroups, channelId, opts)
+	countQueryString, args, err := countQuery.ToSql()
+	if err != nil {
+		return int64(0), model.NewAppError("SqlGroupStore.CountGroupsByChannel", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		countQueryString, args, err := countQuery.ToSql()
-		if err != nil {
-			result.Err = model.NewAppError("SqlGroupStore.CountGroupsByChannel", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	count, err := s.GetReplica().SelectInt(countQueryString, args...)
+	if err != nil {
+		return int64(0), model.NewAppError("SqlGroupStore.CountGroupsByChannel", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		count, err := s.GetReplica().SelectInt(countQueryString, args...)
-		if err != nil {
-			result.Err = model.NewAppError("SqlGroupStore.CountGroupsByChannel", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		result.Data = count
-
-		return
-	})
+	return count, nil
 }
 
-func (s *SqlGroupStore) GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
+func (s *SqlGroupStore) GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError) {
+	query := s.groupsBySyncableBaseQuery(model.GroupSyncableTypeChannel, selectGroups, channelId, opts)
 
-		query := s.groupsBySyncableBaseQuery(model.GroupSyncableTypeChannel, selectGroups, channelId, opts)
+	if opts.PageOpts != nil {
+		offset := uint64(opts.PageOpts.Page * opts.PageOpts.PerPage)
+		query = query.OrderBy("ug.DisplayName").Limit(uint64(opts.PageOpts.PerPage)).Offset(offset)
+	}
 
-		if opts.PageOpts != nil {
-			offset := uint64(opts.PageOpts.Page * opts.PageOpts.PerPage)
-			query = query.OrderBy("ug.DisplayName").Limit(uint64(opts.PageOpts.PerPage)).Offset(offset)
-		}
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlGroupStore.GetGroupsByChannel", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		queryString, args, err := query.ToSql()
-		if err != nil {
-			result.Err = model.NewAppError("SqlGroupStore.GetGroupsByChannel", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	var groups []*model.Group
 
-		var groups []*model.Group
+	_, err = s.GetReplica().Select(&groups, queryString, args...)
+	if err != nil {
+		return nil, model.NewAppError("SqlGroupStore.GetGroupsByChannel", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		_, err = s.GetReplica().Select(&groups, queryString, args...)
-		if err != nil {
-			result.Err = model.NewAppError("SqlGroupStore.GetGroupsByChannel", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		result.Data = groups
-
-		return
-	})
+	return groups, nil
 }
 
 // ChannelMembersToRemove returns all channel members that should be removed based on group constraints.
-func (s *SqlGroupStore) ChannelMembersToRemove() store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-
-		sql := `
+func (s *SqlGroupStore) ChannelMembersToRemove() ([]*model.ChannelMember, *model.AppError) {
+	sql := `
 		SELECT
 			ChannelMembers.ChannelId,
 			ChannelMembers.UserId,
@@ -948,17 +917,14 @@ func (s *SqlGroupStore) ChannelMembersToRemove() store.StoreChannel {
 					Channels.Id,
 					GroupMembers.UserId)`
 
-		var channelMembers []*model.ChannelMember
+	var channelMembers []*model.ChannelMember
 
-		_, err := s.GetReplica().Select(&channelMembers, sql)
-		if err != nil {
-			result.Err = model.NewAppError("SqlGroupStore.ChannelMembersToRemove", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
-		}
+	_, err := s.GetReplica().Select(&channelMembers, sql)
+	if err != nil {
+		return nil, model.NewAppError("SqlGroupStore.ChannelMembersToRemove", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = channelMembers
-
-		return
-	})
+	return channelMembers, nil
 }
 
 func (s *SqlGroupStore) groupsBySyncableBaseQuery(st model.GroupSyncableType, t selectType, syncableID string, opts model.GroupSearchOpts) squirrel.SelectBuilder {
@@ -1005,86 +971,71 @@ func (s *SqlGroupStore) groupsBySyncableBaseQuery(st model.GroupSyncableType, t 
 	return query
 }
 
-func (s *SqlGroupStore) CountGroupsByTeam(teamId string, opts model.GroupSearchOpts) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
+func (s *SqlGroupStore) CountGroupsByTeam(teamId string, opts model.GroupSearchOpts) (int64, *model.AppError) {
+	countQuery := s.groupsBySyncableBaseQuery(model.GroupSyncableTypeTeam, selectCountGroups, teamId, opts)
 
-		countQuery := s.groupsBySyncableBaseQuery(model.GroupSyncableTypeTeam, selectCountGroups, teamId, opts)
+	countQueryString, args, err := countQuery.ToSql()
+	if err != nil {
+		return int64(0), model.NewAppError("SqlGroupStore.CountGroupsByTeam", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		countQueryString, args, err := countQuery.ToSql()
-		if err != nil {
-			result.Err = model.NewAppError("SqlGroupStore.CountGroupsByTeam", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	count, err := s.GetReplica().SelectInt(countQueryString, args...)
+	if err != nil {
+		return int64(0), model.NewAppError("SqlGroupStore.CountGroupsByTeam", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		count, err := s.GetReplica().SelectInt(countQueryString, args...)
-		if err != nil {
-			result.Err = model.NewAppError("SqlGroupStore.CountGroupsByTeam", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		result.Data = count
-
-		return
-	})
+	return count, nil
 }
 
-func (s *SqlGroupStore) GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
+func (s *SqlGroupStore) GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError) {
+	query := s.groupsBySyncableBaseQuery(model.GroupSyncableTypeTeam, selectGroups, teamId, opts)
 
-		query := s.groupsBySyncableBaseQuery(model.GroupSyncableTypeTeam, selectGroups, teamId, opts)
+	if opts.PageOpts != nil {
+		offset := uint64(opts.PageOpts.Page * opts.PageOpts.PerPage)
+		query = query.OrderBy("ug.DisplayName").Limit(uint64(opts.PageOpts.PerPage)).Offset(offset)
+	}
 
-		if opts.PageOpts != nil {
-			offset := uint64(opts.PageOpts.Page * opts.PageOpts.PerPage)
-			query = query.OrderBy("ug.DisplayName").Limit(uint64(opts.PageOpts.PerPage)).Offset(offset)
-		}
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlGroupStore.GetGroupsByTeam", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		queryString, args, err := query.ToSql()
-		if err != nil {
-			result.Err = model.NewAppError("SqlGroupStore.GetGroupsByTeam", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	var groups []*model.Group
 
-		var groups []*model.Group
+	_, err = s.GetReplica().Select(&groups, queryString, args...)
+	if err != nil {
+		return nil, model.NewAppError("SqlGroupStore.GetGroupsByTeam", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		_, err = s.GetReplica().Select(&groups, queryString, args...)
-		if err != nil {
-			result.Err = model.NewAppError("SqlGroupStore.GetGroupsByTeam", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		result.Data = groups
-
-		return
-	})
+	return groups, nil
 }
 
-func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var groups []*model.Group
+func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError) {
+	var groups []*model.Group
 
-		groupsQuery := s.getQueryBuilder().Select("g.*").From("UserGroups g").Limit(uint64(perPage)).Offset(uint64(page * perPage)).OrderBy("g.DisplayName")
+	groupsQuery := s.getQueryBuilder().Select("g.*").From("UserGroups g").Limit(uint64(perPage)).Offset(uint64(page * perPage)).OrderBy("g.DisplayName")
 
-		if opts.IncludeMemberCount {
-			groupsQuery = s.getQueryBuilder().
-				Select("g.*, coalesce(Members.MemberCount, 0) AS MemberCount").
-				From("UserGroups g").
-				LeftJoin("(SELECT GroupMembers.GroupId, COUNT(*) AS MemberCount FROM GroupMembers WHERE GroupMembers.DeleteAt = 0 GROUP BY GroupId) AS Members ON Members.GroupId = g.Id").
-				Limit(uint64(perPage)).
-				Offset(uint64(page * perPage)).
-				OrderBy("g.DisplayName")
+	if opts.IncludeMemberCount {
+		groupsQuery = s.getQueryBuilder().
+			Select("g.*, coalesce(Members.MemberCount, 0) AS MemberCount").
+			From("UserGroups g").
+			LeftJoin("(SELECT GroupMembers.GroupId, COUNT(*) AS MemberCount FROM GroupMembers WHERE GroupMembers.DeleteAt = 0 GROUP BY GroupId) AS Members ON Members.GroupId = g.Id").
+			Limit(uint64(perPage)).
+			Offset(uint64(page * perPage)).
+			OrderBy("g.DisplayName")
+	}
+
+	if len(opts.Q) > 0 {
+		pattern := fmt.Sprintf("%%%s%%", opts.Q)
+		operatorKeyword := "ILIKE"
+		if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+			operatorKeyword = "LIKE"
 		}
+		groupsQuery = groupsQuery.Where(fmt.Sprintf("(g.Name %[1]s ? OR g.DisplayName %[1]s ?)", operatorKeyword), pattern, pattern)
+	}
 
-		if len(opts.Q) > 0 {
-			pattern := fmt.Sprintf("%%%s%%", opts.Q)
-			operatorKeyword := "ILIKE"
-			if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
-				operatorKeyword = "LIKE"
-			}
-			groupsQuery = groupsQuery.Where(fmt.Sprintf("(g.Name %[1]s ? OR g.DisplayName %[1]s ?)", operatorKeyword), pattern, pattern)
-		}
-
-		if len(opts.NotAssociatedToTeam) == 26 {
-			groupsQuery = groupsQuery.Where(`
+	if len(opts.NotAssociatedToTeam) == 26 {
+		groupsQuery = groupsQuery.Where(`
 			g.Id NOT IN (
 				SELECT 
 					Id 
@@ -1097,10 +1048,10 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts)
 					AND GroupTeams.TeamId = ?
 			)
 		`, opts.NotAssociatedToTeam)
-		}
+	}
 
-		if len(opts.NotAssociatedToChannel) == 26 {
-			groupsQuery = groupsQuery.Where(`
+	if len(opts.NotAssociatedToChannel) == 26 {
+		groupsQuery = groupsQuery.Where(`
 			g.Id NOT IN (
 				SELECT 
 					Id 
@@ -1113,20 +1064,16 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts)
 					AND GroupChannels.ChannelId = ?
 			)
 		`, opts.NotAssociatedToChannel)
-		}
+	}
 
-		queryString, args, err := groupsQuery.ToSql()
-		if err != nil {
-			result.Err = model.NewAppError("SqlGroupStore.GetGroups", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	queryString, args, err := groupsQuery.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlGroupStore.GetGroups", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		if _, err = s.GetReplica().Select(&groups, queryString, args...); err != nil {
-			result.Err = model.NewAppError("SqlGroupStore.GetGroups", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	if _, err = s.GetReplica().Select(&groups, queryString, args...); err != nil {
+		return nil, model.NewAppError("SqlGroupStore.GetGroups", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = groups
-		return
-	})
+	return groups, nil
 }

@@ -45,65 +45,58 @@ func (me SqlSessionStore) CreateIndexesIfNotExists() {
 	me.CreateIndexIfNotExists("idx_sessions_last_activity_at", "Sessions", "LastActivityAt")
 }
 
-func (me SqlSessionStore) Save(session *model.Session) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if len(session.Id) > 0 {
-			result.Err = model.NewAppError("SqlSessionStore.Save", "store.sql_session.save.existing.app_error", nil, "id="+session.Id, http.StatusBadRequest)
-			return
+func (me SqlSessionStore) Save(session *model.Session) (*model.Session, *model.AppError) {
+	if len(session.Id) > 0 {
+		return nil, model.NewAppError("SqlSessionStore.Save", "store.sql_session.save.existing.app_error", nil, "id="+session.Id, http.StatusBadRequest)
+	}
+
+	session.PreSave()
+
+	tcs := me.Team().GetTeamsForUser(session.UserId)
+
+	if err := me.GetMaster().Insert(session); err != nil {
+		return nil, model.NewAppError("SqlSessionStore.Save", "store.sql_session.save.app_error", nil, "id="+session.Id+", "+err.Error(), http.StatusInternalServerError)
+	}
+
+	rtcs := <-tcs
+
+	if rtcs.Err != nil {
+		return nil, model.NewAppError("SqlSessionStore.Save", "store.sql_session.save.app_error", nil, "id="+session.Id+", "+rtcs.Err.Error(), http.StatusInternalServerError)
+	}
+
+	tempMembers := rtcs.Data.([]*model.TeamMember)
+	session.TeamMembers = make([]*model.TeamMember, 0, len(tempMembers))
+	for _, tm := range tempMembers {
+		if tm.DeleteAt == 0 {
+			session.TeamMembers = append(session.TeamMembers, tm)
 		}
+	}
 
-		session.PreSave()
-
-		tcs := me.Team().GetTeamsForUser(session.UserId)
-
-		if err := me.GetMaster().Insert(session); err != nil {
-			result.Err = model.NewAppError("SqlSessionStore.Save", "store.sql_session.save.app_error", nil, "id="+session.Id+", "+err.Error(), http.StatusInternalServerError)
-			return
-		} else {
-			result.Data = session
-		}
-
-		if rtcs := <-tcs; rtcs.Err != nil {
-			result.Err = model.NewAppError("SqlSessionStore.Save", "store.sql_session.save.app_error", nil, "id="+session.Id+", "+rtcs.Err.Error(), http.StatusInternalServerError)
-			return
-		} else {
-			tempMembers := rtcs.Data.([]*model.TeamMember)
-			session.TeamMembers = make([]*model.TeamMember, 0, len(tempMembers))
-			for _, tm := range tempMembers {
-				if tm.DeleteAt == 0 {
-					session.TeamMembers = append(session.TeamMembers, tm)
-				}
-			}
-		}
-	})
+	return session, nil
 }
 
-func (me SqlSessionStore) Get(sessionIdOrToken string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var sessions []*model.Session
+func (me SqlSessionStore) Get(sessionIdOrToken string) (*model.Session, *model.AppError) {
+	var sessions []*model.Session
 
-		if _, err := me.GetReplica().Select(&sessions, "SELECT * FROM Sessions WHERE Token = :Token OR Id = :Id LIMIT 1", map[string]interface{}{"Token": sessionIdOrToken, "Id": sessionIdOrToken}); err != nil {
-			result.Err = model.NewAppError("SqlSessionStore.Get", "store.sql_session.get.app_error", nil, "sessionIdOrToken="+sessionIdOrToken+", "+err.Error(), http.StatusInternalServerError)
-		} else if len(sessions) == 0 {
-			result.Err = model.NewAppError("SqlSessionStore.Get", "store.sql_session.get.app_error", nil, "sessionIdOrToken="+sessionIdOrToken, http.StatusNotFound)
-		} else {
-			result.Data = sessions[0]
+	if _, err := me.GetReplica().Select(&sessions, "SELECT * FROM Sessions WHERE Token = :Token OR Id = :Id LIMIT 1", map[string]interface{}{"Token": sessionIdOrToken, "Id": sessionIdOrToken}); err != nil {
+		return nil, model.NewAppError("SqlSessionStore.Get", "store.sql_session.get.app_error", nil, "sessionIdOrToken="+sessionIdOrToken+", "+err.Error(), http.StatusInternalServerError)
+	} else if len(sessions) == 0 {
+		return nil, model.NewAppError("SqlSessionStore.Get", "store.sql_session.get.app_error", nil, "sessionIdOrToken="+sessionIdOrToken, http.StatusNotFound)
+	}
+	session := sessions[0]
 
-			tcs := me.Team().GetTeamsForUser(sessions[0].UserId)
-			if rtcs := <-tcs; rtcs.Err != nil {
-				result.Err = model.NewAppError("SqlSessionStore.Get", "store.sql_session.get.app_error", nil, "sessionIdOrToken="+sessionIdOrToken+", "+rtcs.Err.Error(), http.StatusInternalServerError)
-				return
-			} else {
-				tempMembers := rtcs.Data.([]*model.TeamMember)
-				sessions[0].TeamMembers = make([]*model.TeamMember, 0, len(tempMembers))
-				for _, tm := range tempMembers {
-					if tm.DeleteAt == 0 {
-						sessions[0].TeamMembers = append(sessions[0].TeamMembers, tm)
-					}
-				}
-			}
+	rtcs := <-me.Team().GetTeamsForUser(sessions[0].UserId)
+	if rtcs.Err != nil {
+		return nil, model.NewAppError("SqlSessionStore.Get", "store.sql_session.get.app_error", nil, "sessionIdOrToken="+sessionIdOrToken+", "+rtcs.Err.Error(), http.StatusInternalServerError)
+	}
+	tempMembers := rtcs.Data.([]*model.TeamMember)
+	sessions[0].TeamMembers = make([]*model.TeamMember, 0, len(tempMembers))
+	for _, tm := range tempMembers {
+		if tm.DeleteAt == 0 {
+			sessions[0].TeamMembers = append(sessions[0].TeamMembers, tm)
 		}
-	})
+	}
+	return session, nil
 }
 
 func (me SqlSessionStore) GetSessions(userId string) store.StoreChannel {

@@ -134,73 +134,49 @@ func (a *App) DeleteGroupSyncable(groupID string, syncableID string, syncableTyp
 }
 
 func (a *App) TeamMembersToAdd(since int64) ([]*model.UserTeamIDPair, *model.AppError) {
-	result := <-a.Srv.Store.Group().TeamMembersToAdd(since)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.UserTeamIDPair), nil
+	return a.Srv.Store.Group().TeamMembersToAdd(since)
 }
 
 func (a *App) ChannelMembersToAdd(since int64) ([]*model.UserChannelIDPair, *model.AppError) {
-	result := <-a.Srv.Store.Group().ChannelMembersToAdd(since)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.UserChannelIDPair), nil
+	return a.Srv.Store.Group().ChannelMembersToAdd(since)
 }
 
 func (a *App) TeamMembersToRemove() ([]*model.TeamMember, *model.AppError) {
-	result := <-a.Srv.Store.Group().TeamMembersToRemove()
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.TeamMember), nil
+	return a.Srv.Store.Group().TeamMembersToRemove()
 }
 
 func (a *App) ChannelMembersToRemove() ([]*model.ChannelMember, *model.AppError) {
-	result := <-a.Srv.Store.Group().ChannelMembersToRemove()
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.ChannelMember), nil
+	return a.Srv.Store.Group().ChannelMembersToRemove()
 }
 
 func (a *App) GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) ([]*model.Group, int, *model.AppError) {
-	result := <-a.Srv.Store.Group().GetGroupsByChannel(channelId, opts)
-	if result.Err != nil {
-		return nil, 0, result.Err
+	groups, err := a.Srv.Store.Group().GetGroupsByChannel(channelId, opts)
+	if err != nil {
+		return nil, 0, err
 	}
-	groups := result.Data.([]*model.Group)
 
-	result = <-a.Srv.Store.Group().CountGroupsByChannel(channelId, opts)
-	if result.Err != nil {
-		return nil, 0, result.Err
+	count, err := a.Srv.Store.Group().CountGroupsByChannel(channelId, opts)
+	if err != nil {
+		return nil, 0, err
 	}
-	count := result.Data.(int64)
 
 	return groups, int(count), nil
 }
 
 func (a *App) GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.Group, int, *model.AppError) {
-	result := <-a.Srv.Store.Group().GetGroupsByTeam(teamId, opts)
-	if result.Err != nil {
-		return nil, 0, result.Err
+	groups, err := a.Srv.Store.Group().GetGroupsByTeam(teamId, opts)
+	if err != nil {
+		return nil, 0, err
 	}
-	groups := result.Data.([]*model.Group)
 
-	result = <-a.Srv.Store.Group().CountGroupsByTeam(teamId, opts)
-	if result.Err != nil {
-		return nil, 0, result.Err
+	count, err := a.Srv.Store.Group().CountGroupsByTeam(teamId, opts)
+	if err != nil {
+		return nil, 0, err
 	}
-	count := result.Data.(int64)
 
 	return groups, int(count), nil
 }
 
 func (a *App) GetGroups(page, perPage int, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError) {
-	result := <-a.Srv.Store.Group().GetGroups(page, perPage, opts)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.Group), nil
+	return a.Srv.Store.Group().GetGroups(page, perPage, opts)
 }

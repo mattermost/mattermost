@@ -153,15 +153,15 @@ func testPostStoreGetSingle(t *testing.T, ss store.Store) {
 
 	o1 = (<-ss.Post().Save(o1)).Data.(*model.Post)
 
-	if r1 := <-ss.Post().GetSingle(o1.Id); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if post, err := ss.Post().GetSingle(o1.Id); err != nil {
+		t.Fatal(err)
 	} else {
-		if r1.Data.(*model.Post).CreateAt != o1.CreateAt {
+		if post.CreateAt != o1.CreateAt {
 			t.Fatal("invalid returned post")
 		}
 	}
 
-	if err := (<-ss.Post().GetSingle("123")).Err; err == nil {
+	if _, err := ss.Post().GetSingle("123"); err == nil {
 		t.Fatal("Missing id should have failed")
 	}
 }
@@ -244,8 +244,8 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 	o1a := &model.Post{}
 	*o1a = *ro1
 	o1a.Message = ro1.Message + "BBBBBBBBBB"
-	if result := <-ss.Post().Update(o1a, ro1); result.Err != nil {
-		t.Fatal(result.Err)
+	if _, err = ss.Post().Update(o1a, ro1); err != nil {
+		t.Fatal(err)
 	}
 
 	r1, err = ss.Post().Get(o1.Id)
@@ -261,8 +261,8 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 	o2a := &model.Post{}
 	*o2a = *ro2
 	o2a.Message = ro2.Message + "DDDDDDD"
-	if result := <-ss.Post().Update(o2a, ro2); result.Err != nil {
-		t.Fatal(result.Err)
+	if _, err = ss.Post().Update(o2a, ro2); err != nil {
+		t.Fatal(err)
 	}
 
 	r2, err = ss.Post().Get(o1.Id)
@@ -278,8 +278,8 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 	o3a := &model.Post{}
 	*o3a = *ro3
 	o3a.Message = ro3.Message + "WWWWWWW"
-	if result := <-ss.Post().Update(o3a, ro3); result.Err != nil {
-		t.Fatal(result.Err)
+	if _, err = ss.Post().Update(o3a, ro3); err != nil {
+		t.Fatal(err)
 	}
 
 	r3, err = ss.Post().Get(o3.Id)
@@ -309,8 +309,8 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 	*o4a = *ro4
 	o4a.Filenames = []string{}
 	o4a.FileIds = []string{model.NewId()}
-	if result := <-ss.Post().Update(o4a, ro4); result.Err != nil {
-		t.Fatal(result.Err)
+	if _, err = ss.Post().Update(o4a, ro4); err != nil {
+		t.Fatal(err)
 	}
 
 	r4, err = ss.Post().Get(o4.Id)
@@ -636,7 +636,8 @@ func testPostStoreGetPostsWithDetails(t *testing.T, ss store.Store) {
 	o5.RootId = o4.Id
 	o5 = (<-ss.Post().Save(o5)).Data.(*model.Post)
 
-	r1 := (<-ss.Post().GetPosts(o1.ChannelId, 0, 4, false)).Data.(*model.PostList)
+	r1, err := ss.Post().GetPosts(o1.ChannelId, 0, 4, false)
+	require.Nil(t, err)
 
 	if r1.Order[0] != o5.Id {
 		t.Fatal("invalid order")
@@ -662,7 +663,8 @@ func testPostStoreGetPostsWithDetails(t *testing.T, ss store.Store) {
 		t.Fatal("Missing parent")
 	}
 
-	r2 := (<-ss.Post().GetPosts(o1.ChannelId, 0, 4, true)).Data.(*model.PostList)
+	r2, err := ss.Post().GetPosts(o1.ChannelId, 0, 4, true)
+	require.Nil(t, err)
 
 	if r2.Order[0] != o5.Id {
 		t.Fatal("invalid order")
@@ -689,7 +691,7 @@ func testPostStoreGetPostsWithDetails(t *testing.T, ss store.Store) {
 	}
 
 	// Run once to fill cache
-	<-ss.Post().GetPosts(o1.ChannelId, 0, 30, true)
+	ss.Post().GetPosts(o1.ChannelId, 0, 30, true)
 
 	o6 := &model.Post{}
 	o6.ChannelId = o1.ChannelId
@@ -698,13 +700,15 @@ func testPostStoreGetPostsWithDetails(t *testing.T, ss store.Store) {
 	_ = (<-ss.Post().Save(o6)).Data.(*model.Post)
 
 	// Should only be 6 since we hit the cache
-	r3 := (<-ss.Post().GetPosts(o1.ChannelId, 0, 30, true)).Data.(*model.PostList)
+	r3, err := ss.Post().GetPosts(o1.ChannelId, 0, 30, true)
+	require.Nil(t, err)
 	assert.Equal(t, 6, len(r3.Order))
 
 	ss.Post().InvalidateLastPostTimeCache(o1.ChannelId)
 
 	// Cache was invalidated, we should get all the posts
-	r4 := (<-ss.Post().GetPosts(o1.ChannelId, 0, 30, true)).Data.(*model.PostList)
+	r4, err := ss.Post().GetPosts(o1.ChannelId, 0, 30, true)
+	require.Nil(t, err)
 	assert.Equal(t, 7, len(r4.Order))
 }
 
@@ -2228,11 +2232,10 @@ func testPostStoreGetDirectPostParentsForExportAfter(t *testing.T, ss store.Stor
 	p1.CreateAt = 1000
 	p1 = (<-ss.Post().Save(p1)).Data.(*model.Post)
 
-	r1 := <-ss.Post().GetDirectPostParentsForExportAfter(10000, strings.Repeat("0", 26))
-	assert.Nil(t, r1.Err)
-	d1 := r1.Data.([]*model.DirectPostForExport)
+	r1, err := ss.Post().GetDirectPostParentsForExportAfter(10000, strings.Repeat("0", 26))
+	assert.Nil(t, err)
 
-	assert.Equal(t, p1.Message, d1[0].Message)
+	assert.Equal(t, p1.Message, r1[0].Message)
 
 	// Manually truncate Channels table until testlib can handle cleanups
 	s.GetMaster().Exec("TRUNCATE Channels")
@@ -2288,15 +2291,14 @@ func testPostStoreGetDirectPostParentsForExportAfterDeleted(t *testing.T, ss sto
 	*o1a = *p1
 	o1a.DeleteAt = 1
 	o1a.Message = p1.Message + "BBBBBBBBBB"
-	if result := <-ss.Post().Update(o1a, p1); result.Err != nil {
-		t.Fatal(result.Err)
+	if _, err = ss.Post().Update(o1a, p1); err != nil {
+		t.Fatal(err)
 	}
 
-	r1 := <-ss.Post().GetDirectPostParentsForExportAfter(10000, strings.Repeat("0", 26))
-	assert.Nil(t, r1.Err)
-	d1 := r1.Data.([]*model.DirectPostForExport)
+	r1, err := ss.Post().GetDirectPostParentsForExportAfter(10000, strings.Repeat("0", 26))
+	assert.Nil(t, err)
 
-	assert.Equal(t, 0, len(d1))
+	assert.Equal(t, 0, len(r1))
 
 	// Manually truncate Channels table until testlib can handle cleanups
 	s.GetMaster().Exec("TRUNCATE Channels")
@@ -2348,25 +2350,23 @@ func testPostStoreGetDirectPostParentsForExportAfterBatched(t *testing.T, ss sto
 	sort.Slice(postIds, func(i, j int) bool { return postIds[i] < postIds[j] })
 
 	// Get all posts
-	r1 := <-ss.Post().GetDirectPostParentsForExportAfter(10000, strings.Repeat("0", 26))
-	assert.Nil(t, r1.Err)
-	d1 := r1.Data.([]*model.DirectPostForExport)
-	assert.Equal(t, len(postIds), len(d1))
+	r1, err := ss.Post().GetDirectPostParentsForExportAfter(10000, strings.Repeat("0", 26))
+	assert.Nil(t, err)
+	assert.Equal(t, len(postIds), len(r1))
 	var exportedPostIds []string
-	for i := range d1 {
-		exportedPostIds = append(exportedPostIds, d1[i].Id)
+	for i := range r1 {
+		exportedPostIds = append(exportedPostIds, r1[i].Id)
 	}
 	sort.Slice(exportedPostIds, func(i, j int) bool { return exportedPostIds[i] < exportedPostIds[j] })
 	assert.ElementsMatch(t, postIds, exportedPostIds)
 
 	// Get 100
-	r1 = <-ss.Post().GetDirectPostParentsForExportAfter(100, strings.Repeat("0", 26))
-	assert.Nil(t, r1.Err)
-	d1 = r1.Data.([]*model.DirectPostForExport)
-	assert.Equal(t, 100, len(d1))
+	r1, err = ss.Post().GetDirectPostParentsForExportAfter(100, strings.Repeat("0", 26))
+	assert.Nil(t, err)
+	assert.Equal(t, 100, len(r1))
 	exportedPostIds = []string{}
-	for i := range d1 {
-		exportedPostIds = append(exportedPostIds, d1[i].Id)
+	for i := range r1 {
+		exportedPostIds = append(exportedPostIds, r1[i].Id)
 	}
 	sort.Slice(exportedPostIds, func(i, j int) bool { return exportedPostIds[i] < exportedPostIds[j] })
 	assert.ElementsMatch(t, postIds[:100], exportedPostIds)

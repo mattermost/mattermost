@@ -407,12 +407,12 @@ func TestExportDMandGMPost(t *testing.T) {
 	}
 	th1.App.CreatePost(p4, gmChannel, false)
 
-	result := <-th1.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
-	posts := result.Data.([]*model.DirectPostForExport)
+	posts, err := th1.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
+	require.Nil(t, err)
 	assert.Equal(t, 4, len(posts))
 
 	var b bytes.Buffer
-	err := th1.App.BulkExport(&b, "somefile", "somePath", "someDir")
+	err = th1.App.BulkExport(&b, "somefile", "somePath", "someDir")
 	require.Nil(t, err)
 
 	th1.TearDown()
@@ -420,8 +420,8 @@ func TestExportDMandGMPost(t *testing.T) {
 	th2 := Setup(t)
 	defer th2.TearDown()
 
-	result = <-th2.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
-	posts = result.Data.([]*model.DirectPostForExport)
+	posts, err = th2.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
+	require.Nil(t, err)
 	assert.Equal(t, 0, len(posts))
 
 	// import the exported posts
@@ -429,8 +429,8 @@ func TestExportDMandGMPost(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 0, i)
 
-	result = <-th2.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
-	posts = result.Data.([]*model.DirectPostForExport)
+	posts, err = th2.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
+	require.Nil(t, err)
 
 	// Adding some deteminism so its possible to assert on slice index
 	sort.Slice(posts, func(i, j int) bool { return posts[i].Message > posts[j].Message })
@@ -453,8 +453,8 @@ func TestExportDMPostWithSelf(t *testing.T) {
 	err := th1.App.BulkExport(&b, "somefile", "somePath", "someDir")
 	require.Nil(t, err)
 
-	result := <-th1.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
-	posts := result.Data.([]*model.DirectPostForExport)
+	posts, err := th1.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
+	require.Nil(t, err)
 	assert.Equal(t, 1, len(posts))
 
 	th1.TearDown()
@@ -462,8 +462,8 @@ func TestExportDMPostWithSelf(t *testing.T) {
 	th2 := Setup(t)
 	defer th2.TearDown()
 
-	result = <-th2.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
-	posts = result.Data.([]*model.DirectPostForExport)
+	posts, err = th2.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
+	require.Nil(t, err)
 	assert.Equal(t, 0, len(posts))
 
 	// import the exported posts
@@ -471,7 +471,7 @@ func TestExportDMPostWithSelf(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 0, i)
 
-	result = <-th2.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
-	posts = result.Data.([]*model.DirectPostForExport)
+	posts, err = th2.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
+	require.Nil(t, err)
 	assert.Equal(t, 0, len(posts))
 }
