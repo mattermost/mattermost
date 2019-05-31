@@ -15,6 +15,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost-server/config"
+	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/mattermost/viper"
@@ -69,18 +70,16 @@ var ConfigSetCmd = &cobra.Command{
 }
 
 var MigrateConfigCmd = &cobra.Command{
-	Use:     "migrate",
+	Use:     "migrate [from_config] [to_config]",
 	Short:   "Migrate existing config between backends",
 	Long:    "Migrate a file-based configuration to (or from) a database-based configuration. Point the Mattermost server at the target configuration to start using it",
-	Example: `config migrate --from=path/to/config.json --to="postgres://mmuser:mostest@dockerhost:5432/mattermost_test?sslmode=disable&connect_timeout=10"`,
+	Example: `config migrate path/to/config.json "postgres://mmuser:mostest@dockerhost:5432/mattermost_test?sslmode=disable&connect_timeout=10"`,
+	Args:    cobra.ExactArgs(2),
 	RunE:    configMigrateCmdF,
 }
 
 func init() {
 	ConfigSubpathCmd.Flags().String("path", "", "Optional subpath; defaults to value in SiteURL")
-	MigrateConfigCmd.Flags().String("from", "", "Config from which to migrate")
-	MigrateConfigCmd.Flags().String("to", "", "Config to which to migrate")
-	MigrateConfigCmd.MarkFlagRequired("to")
 
 	ConfigCmd.AddCommand(
 		ValidateConfigCmd,
@@ -230,28 +229,19 @@ func configSetCmdF(command *cobra.Command, args []string) error {
 }
 
 func configMigrateCmdF(command *cobra.Command, args []string) error {
-	// Parse source config; defaults to global --config unless overwritten by --from
-	from, err := command.Flags().GetString("from")
-	if err != nil {
-		return errors.Wrap(err, "failed reading source config parameter")
-	}
-	if from == "" {
-		from = viper.GetString("config")
-	}
-
-	// Parse destination config store - MarkFlagRequired handles errors here
-	to, _ := command.Flags().GetString("to")
+	from := args[0]
+	to := args[1]
 
 	// Get source config store - invalid config will throw error here
 	fromConfigStore, err := config.NewStore(from, false)
 	if err != nil {
-		return errors.Wrap(err, "failed to read --from config")
+		return errors.Wrapf(err, "failed to access config %s", from)
 	}
 
 	// Get destination config store
 	toConfigStore, err := config.NewStore(to, false)
 	if err != nil {
-		return errors.Wrap(err, "failed to read --to config")
+		return errors.Wrapf(err, "failed to access config %s", to)
 	}
 
 	// Copy config from source to destination
@@ -259,6 +249,8 @@ func configMigrateCmdF(command *cobra.Command, args []string) error {
 	if err != nil {
 		return errors.Wrap(err, "failed to migrate config")
 	}
+
+	mlog.Info("Successfully migrated config.")
 
 	return nil
 }
