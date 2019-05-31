@@ -1059,9 +1059,8 @@ func (s *SqlPostStore) AnalyticsPostCountsByDay(teamId string) (model.AnalyticsR
 		map[string]interface{}{"TeamId": teamId, "StartTime": start, "EndTime": end})
 	if err != nil {
 		return nil, model.NewAppError("SqlPostStore.AnalyticsPostCountsByDay", "store.sql_post.analytics_posts_count_by_day.app_error", nil, err.Error(), http.StatusInternalServerError)
-	} else {
-		return rows, nil
 	}
+	return rows, nil
 }
 
 func (s *SqlPostStore) AnalyticsPostCount(teamId string, mustHaveFile bool, mustHaveHashtag bool) store.StoreChannel {
