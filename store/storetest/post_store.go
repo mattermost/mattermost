@@ -2232,11 +2232,10 @@ func testPostStoreGetDirectPostParentsForExportAfter(t *testing.T, ss store.Stor
 	p1.CreateAt = 1000
 	p1 = (<-ss.Post().Save(p1)).Data.(*model.Post)
 
-	r1 := <-ss.Post().GetDirectPostParentsForExportAfter(10000, strings.Repeat("0", 26))
-	assert.Nil(t, r1.Err)
-	d1 := r1.Data.([]*model.DirectPostForExport)
+	r1, err := ss.Post().GetDirectPostParentsForExportAfter(10000, strings.Repeat("0", 26))
+	assert.Nil(t, err)
 
-	assert.Equal(t, p1.Message, d1[0].Message)
+	assert.Equal(t, p1.Message, r1[0].Message)
 
 	// Manually truncate Channels table until testlib can handle cleanups
 	s.GetMaster().Exec("TRUNCATE Channels")
@@ -2292,15 +2291,14 @@ func testPostStoreGetDirectPostParentsForExportAfterDeleted(t *testing.T, ss sto
 	*o1a = *p1
 	o1a.DeleteAt = 1
 	o1a.Message = p1.Message + "BBBBBBBBBB"
-	if _, err := ss.Post().Update(o1a, p1); err != nil {
+	if _, err = ss.Post().Update(o1a, p1); err != nil {
 		t.Fatal(err)
 	}
 
-	r1 := <-ss.Post().GetDirectPostParentsForExportAfter(10000, strings.Repeat("0", 26))
-	assert.Nil(t, r1.Err)
-	d1 := r1.Data.([]*model.DirectPostForExport)
+	r1, err := ss.Post().GetDirectPostParentsForExportAfter(10000, strings.Repeat("0", 26))
+	assert.Nil(t, err)
 
-	assert.Equal(t, 0, len(d1))
+	assert.Equal(t, 0, len(r1))
 
 	// Manually truncate Channels table until testlib can handle cleanups
 	s.GetMaster().Exec("TRUNCATE Channels")
@@ -2352,25 +2350,23 @@ func testPostStoreGetDirectPostParentsForExportAfterBatched(t *testing.T, ss sto
 	sort.Slice(postIds, func(i, j int) bool { return postIds[i] < postIds[j] })
 
 	// Get all posts
-	r1 := <-ss.Post().GetDirectPostParentsForExportAfter(10000, strings.Repeat("0", 26))
-	assert.Nil(t, r1.Err)
-	d1 := r1.Data.([]*model.DirectPostForExport)
-	assert.Equal(t, len(postIds), len(d1))
+	r1, err := ss.Post().GetDirectPostParentsForExportAfter(10000, strings.Repeat("0", 26))
+	assert.Nil(t, err)
+	assert.Equal(t, len(postIds), len(r1))
 	var exportedPostIds []string
-	for i := range d1 {
-		exportedPostIds = append(exportedPostIds, d1[i].Id)
+	for i := range r1 {
+		exportedPostIds = append(exportedPostIds, r1[i].Id)
 	}
 	sort.Slice(exportedPostIds, func(i, j int) bool { return exportedPostIds[i] < exportedPostIds[j] })
 	assert.ElementsMatch(t, postIds, exportedPostIds)
 
 	// Get 100
-	r1 = <-ss.Post().GetDirectPostParentsForExportAfter(100, strings.Repeat("0", 26))
-	assert.Nil(t, r1.Err)
-	d1 = r1.Data.([]*model.DirectPostForExport)
-	assert.Equal(t, 100, len(d1))
+	r1, err = ss.Post().GetDirectPostParentsForExportAfter(100, strings.Repeat("0", 26))
+	assert.Nil(t, err)
+	assert.Equal(t, 100, len(r1))
 	exportedPostIds = []string{}
-	for i := range d1 {
-		exportedPostIds = append(exportedPostIds, d1[i].Id)
+	for i := range r1 {
+		exportedPostIds = append(exportedPostIds, r1[i].Id)
 	}
 	sort.Slice(exportedPostIds, func(i, j int) bool { return exportedPostIds[i] < exportedPostIds[j] })
 	assert.ElementsMatch(t, postIds[:100], exportedPostIds)

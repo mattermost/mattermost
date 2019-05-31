@@ -240,7 +240,7 @@ type PostStore interface {
 	GetMaxPostSize() int
 	GetParentsForExportAfter(limit int, afterId string) StoreChannel
 	GetRepliesForExport(parentId string) StoreChannel
-	GetDirectPostParentsForExportAfter(limit int, afterId string) StoreChannel
+	GetDirectPostParentsForExportAfter(limit int, afterId string) ([]*model.DirectPostForExport, *model.AppError)
 }
 
 type UserStore interface {
@@ -312,8 +312,8 @@ type BotStore interface {
 }
 
 type SessionStore interface {
+	Get(sessionIdOrToken string) (*model.Session, *model.AppError)
 	Save(session *model.Session) (*model.Session, *model.AppError)
-	Get(sessionIdOrToken string) StoreChannel
 	GetSessions(userId string) StoreChannel
 	GetSessionsWithActiveDeviceIds(userId string) ([]*model.Session, *model.AppError)
 	Remove(sessionIdOrToken string) StoreChannel
@@ -582,25 +582,25 @@ type GroupStore interface {
 	CreateOrRestoreMember(groupID string, userID string) StoreChannel
 	DeleteMember(groupID string, userID string) StoreChannel
 
-	CreateGroupSyncable(groupSyncable *model.GroupSyncable) StoreChannel
-	GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) StoreChannel
-	GetAllGroupSyncablesByGroupId(groupID string, syncableType model.GroupSyncableType) StoreChannel
-	UpdateGroupSyncable(groupSyncable *model.GroupSyncable) StoreChannel
-	DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) StoreChannel
+	CreateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError)
+	GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError)
+	GetAllGroupSyncablesByGroupId(groupID string, syncableType model.GroupSyncableType) ([]*model.GroupSyncable, *model.AppError)
+	UpdateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError)
+	DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError)
 
-	TeamMembersToAdd(since int64) StoreChannel
-	ChannelMembersToAdd(since int64) StoreChannel
+	TeamMembersToAdd(since int64) ([]*model.UserTeamIDPair, *model.AppError)
+	ChannelMembersToAdd(since int64) ([]*model.UserChannelIDPair, *model.AppError)
 
-	TeamMembersToRemove() StoreChannel
-	ChannelMembersToRemove() StoreChannel
+	TeamMembersToRemove() ([]*model.TeamMember, *model.AppError)
+	ChannelMembersToRemove() ([]*model.ChannelMember, *model.AppError)
 
-	GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) StoreChannel
-	CountGroupsByChannel(channelId string, opts model.GroupSearchOpts) StoreChannel
+	GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError)
+	CountGroupsByChannel(channelId string, opts model.GroupSearchOpts) (int64, *model.AppError)
 
-	GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) StoreChannel
-	CountGroupsByTeam(teamId string, opts model.GroupSearchOpts) StoreChannel
+	GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError)
+	CountGroupsByTeam(teamId string, opts model.GroupSearchOpts) (int64, *model.AppError)
 
-	GetGroups(page, perPage int, opts model.GroupSearchOpts) StoreChannel
+	GetGroups(page, perPage int, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError)
 }
 
 type LinkMetadataStore interface {
