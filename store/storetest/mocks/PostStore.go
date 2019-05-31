@@ -108,19 +108,28 @@ func (_m *PostStore) Get(id string) (*model.PostList, *model.AppError) {
 }
 
 // GetDirectPostParentsForExportAfter provides a mock function with given fields: limit, afterId
-func (_m *PostStore) GetDirectPostParentsForExportAfter(limit int, afterId string) store.StoreChannel {
+func (_m *PostStore) GetDirectPostParentsForExportAfter(limit int, afterId string) ([]*model.DirectPostForExport, *model.AppError) {
 	ret := _m.Called(limit, afterId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(int, string) store.StoreChannel); ok {
+	var r0 []*model.DirectPostForExport
+	if rf, ok := ret.Get(0).(func(int, string) []*model.DirectPostForExport); ok {
 		r0 = rf(limit, afterId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]*model.DirectPostForExport)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(int, string) *model.AppError); ok {
+		r1 = rf(limit, afterId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetEtag provides a mock function with given fields: channelId, allowFromCache
