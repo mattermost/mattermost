@@ -1014,9 +1014,9 @@ func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) store.St
 func (s *SqlPostStore) AnalyticsPostCountsByDay(teamId string) (model.AnalyticsRows, *model.AppError) {
 	query :=
 		`SELECT
-			        DATE(FROM_UNIXTIME(Posts.CreateAt / 1000)) AS Name,
-			        COUNT(Posts.Id) AS Value
-			    FROM Posts`
+		        DATE(FROM_UNIXTIME(Posts.CreateAt / 1000)) AS Name,
+		        COUNT(Posts.Id) AS Value
+		    FROM Posts`
 
 	if len(teamId) > 0 {
 		query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id AND Channels.TeamId = :TeamId AND"
@@ -1025,16 +1025,16 @@ func (s *SqlPostStore) AnalyticsPostCountsByDay(teamId string) (model.AnalyticsR
 	}
 
 	query += ` Posts.CreateAt <= :EndTime
-			            AND Posts.CreateAt >= :StartTime
-			GROUP BY DATE(FROM_UNIXTIME(Posts.CreateAt / 1000))
-			ORDER BY Name DESC
-			LIMIT 30`
+		            AND Posts.CreateAt >= :StartTime
+		GROUP BY DATE(FROM_UNIXTIME(Posts.CreateAt / 1000))
+		ORDER BY Name DESC
+		LIMIT 30`
 
 	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		query =
 			`SELECT
-					TO_CHAR(DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)), 'YYYY-MM-DD') AS Name, Count(Posts.Id) AS Value
-				FROM Posts`
+				TO_CHAR(DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)), 'YYYY-MM-DD') AS Name, Count(Posts.Id) AS Value
+			FROM Posts`
 
 		if len(teamId) > 0 {
 			query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id  AND Channels.TeamId = :TeamId AND"
@@ -1043,10 +1043,10 @@ func (s *SqlPostStore) AnalyticsPostCountsByDay(teamId string) (model.AnalyticsR
 		}
 
 		query += ` Posts.CreateAt <= :EndTime
-				            AND Posts.CreateAt >= :StartTime
-				GROUP BY DATE(TO_TIMESTAMP(Posts.CreateAt / 1000))
-				ORDER BY Name DESC
-				LIMIT 30`
+			            AND Posts.CreateAt >= :StartTime
+			GROUP BY DATE(TO_TIMESTAMP(Posts.CreateAt / 1000))
+			ORDER BY Name DESC
+			LIMIT 30`
 	}
 
 	end := utils.MillisFromTime(utils.EndOfDay(utils.Yesterday()))
