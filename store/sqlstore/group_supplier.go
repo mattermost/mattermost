@@ -406,69 +406,52 @@ func (s *SqlGroupStore) DeleteMember(groupID string, userID string) store.StoreC
 	})
 }
 
-func (s *SqlGroupStore) CreateGroupSyncable(groupSyncable *model.GroupSyncable) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
+func (s *SqlGroupStore) CreateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
+	if err := groupSyncable.IsValid(); err != nil {
+		return nil, err
+	}
 
-		if err := groupSyncable.IsValid(); err != nil {
-			result.Err = err
-			return
+	// Reset values that shouldn't be updatable by parameter
+	groupSyncable.DeleteAt = 0
+	groupSyncable.CreateAt = model.GetMillis()
+	groupSyncable.UpdateAt = groupSyncable.CreateAt
+
+	var insertErr error
+
+	switch groupSyncable.Type {
+	case model.GroupSyncableTypeTeam:
+		if _, err := s.Team().Get(groupSyncable.SyncableId); err != nil {
+			return nil, err
 		}
 
-		// Reset values that shouldn't be updatable by parameter
-		groupSyncable.DeleteAt = 0
-		groupSyncable.CreateAt = model.GetMillis()
-		groupSyncable.UpdateAt = groupSyncable.CreateAt
-
-		var err error
-
-		switch groupSyncable.Type {
-		case model.GroupSyncableTypeTeam:
-			if _, err := s.Team().Get(groupSyncable.SyncableId); err != nil {
-				result.Err = err
-				return
-			}
-
-			err = s.GetMaster().Insert(groupSyncableToGroupTeam(groupSyncable))
-		case model.GroupSyncableTypeChannel:
-			_, errCh := s.Channel().Get(groupSyncable.SyncableId, false)
-			if errCh != nil {
-				result.Err = errCh
-				return
-			}
-
-			err = s.GetMaster().Insert(groupSyncableToGroupChannel(groupSyncable))
-		default:
-			result.Err = model.NewAppError("SqlGroupStore.GroupCreateGroupSyncable", "model.group_syncable.type.app_error", nil, "group_id="+groupSyncable.GroupId+", syncable_id="+groupSyncable.SyncableId+", "+err.Error(), http.StatusInternalServerError)
-			return
+		insertErr = s.GetMaster().Insert(groupSyncableToGroupTeam(groupSyncable))
+	case model.GroupSyncableTypeChannel:
+		if _, err := s.Channel().Get(groupSyncable.SyncableId, false); err != nil {
+			return nil, err
 		}
 
-		if err != nil {
-			result.Err = model.NewAppError("SqlGroupStore.GroupCreateGroupSyncable", "store.insert_error", nil, "group_id="+groupSyncable.GroupId+", syncable_id="+groupSyncable.SyncableId+", "+err.Error(), http.StatusInternalServerError)
-			return
-		}
+		insertErr = s.GetMaster().Insert(groupSyncableToGroupChannel(groupSyncable))
+	default:
+		return nil, model.NewAppError("SqlGroupStore.GroupCreateGroupSyncable", "model.group_syncable.type.app_error", nil, "group_id="+groupSyncable.GroupId+", syncable_id="+groupSyncable.SyncableId, http.StatusInternalServerError)
+	}
 
-		result.Data = groupSyncable
-		return
-	})
+	if insertErr != nil {
+		return nil, model.NewAppError("SqlGroupStore.GroupCreateGroupSyncable", "store.insert_error", nil, "group_id="+groupSyncable.GroupId+", syncable_id="+groupSyncable.SyncableId+", "+insertErr.Error(), http.StatusInternalServerError)
+	}
+
+	return groupSyncable, nil
 }
 
-func (s *SqlGroupStore) GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-
-		groupSyncable, err := s.getGroupSyncable(groupID, syncableID, syncableType)
-		if err != nil {
-			if err == sql.ErrNoRows {
-				result.Err = model.NewAppError("SqlGroupStore.GroupGetGroupSyncable", "store.sql_group.no_rows", nil, err.Error(), http.StatusNotFound)
-			} else {
-				result.Err = model.NewAppError("SqlGroupStore.GroupGetGroupSyncable", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
-			}
-			return
+func (s *SqlGroupStore) GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError) {
+	groupSyncable, err := s.getGroupSyncable(groupID, syncableID, syncableType)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, model.NewAppError("SqlGroupStore.GroupGetGroupSyncable", "store.sql_group.no_rows", nil, err.Error(), http.StatusNotFound)
 		}
+		return nil, model.NewAppError("SqlGroupStore.GroupGetGroupSyncable", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = groupSyncable
-
-		return
-	})
+	return groupSyncable, nil
 }
 
 func (s *SqlGroupStore) getGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, error) {
@@ -517,20 +500,18 @@ func (s *SqlGroupStore) getGroupSyncable(groupID string, syncableID string, sync
 	return &groupSyncable, nil
 }
 
-func (s *SqlGroupStore) GetAllGroupSyncablesByGroupId(groupID string, syncableType model.GroupSyncableType) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
+func (s *SqlGroupStore) GetAllGroupSyncablesByGroupId(groupID string, syncableType model.GroupSyncableType) ([]*model.GroupSyncable, *model.AppError) {
+	args := map[string]interface{}{"GroupId": groupID}
 
-		args := map[string]interface{}{"GroupId": groupID}
+	appErrF := func(msg string) *model.AppError {
+		return model.NewAppError("SqlGroupStore.GroupGetAllGroupSyncablesByGroup", "store.select_error", nil, msg, http.StatusInternalServerError)
+	}
 
-		appErrF := func(msg string) *model.AppError {
-			return model.NewAppError("SqlGroupStore.GroupGetAllGroupSyncablesByGroup", "store.select_error", nil, msg, http.StatusInternalServerError)
-		}
+	groupSyncables := []*model.GroupSyncable{}
 
-		groupSyncables := []*model.GroupSyncable{}
-
-		switch syncableType {
-		case model.GroupSyncableTypeTeam:
-			sqlQuery := `
+	switch syncableType {
+	case model.GroupSyncableTypeTeam:
+		sqlQuery := `
 			SELECT
 				GroupTeams.*,
 				Teams.DisplayName AS TeamDisplayName,
@@ -541,28 +522,27 @@ func (s *SqlGroupStore) GetAllGroupSyncablesByGroupId(groupID string, syncableTy
 			WHERE
 				GroupId = :GroupId AND GroupTeams.DeleteAt = 0`
 
-			results := []*groupTeamJoin{}
-			_, err := s.GetMaster().Select(&results, sqlQuery, args)
-			if err != nil {
-				result.Err = appErrF(err.Error())
-				return
+		results := []*groupTeamJoin{}
+		_, err := s.GetMaster().Select(&results, sqlQuery, args)
+		if err != nil {
+			return nil, appErrF(err.Error())
+		}
+		for _, result := range results {
+			groupSyncable := &model.GroupSyncable{
+				SyncableId:      result.TeamId,
+				GroupId:         result.GroupId,
+				AutoAdd:         result.AutoAdd,
+				CreateAt:        result.CreateAt,
+				DeleteAt:        result.DeleteAt,
+				UpdateAt:        result.UpdateAt,
+				Type:            syncableType,
+				TeamDisplayName: result.TeamDisplayName,
+				TeamType:        result.TeamType,
 			}
-			for _, result := range results {
-				groupSyncable := &model.GroupSyncable{
-					SyncableId:      result.TeamId,
-					GroupId:         result.GroupId,
-					AutoAdd:         result.AutoAdd,
-					CreateAt:        result.CreateAt,
-					DeleteAt:        result.DeleteAt,
-					UpdateAt:        result.UpdateAt,
-					Type:            syncableType,
-					TeamDisplayName: result.TeamDisplayName,
-					TeamType:        result.TeamType,
-				}
-				groupSyncables = append(groupSyncables, groupSyncable)
-			}
-		case model.GroupSyncableTypeChannel:
-			sqlQuery := `
+			groupSyncables = append(groupSyncables, groupSyncable)
+		}
+	case model.GroupSyncableTypeChannel:
+		sqlQuery := `
 			SELECT
 				GroupChannels.*,
 				Channels.DisplayName AS ChannelDisplayName,
@@ -577,134 +557,110 @@ func (s *SqlGroupStore) GetAllGroupSyncablesByGroupId(groupID string, syncableTy
 			WHERE
 				GroupId = :GroupId AND GroupChannels.DeleteAt = 0`
 
-			results := []*groupChannelJoin{}
-			_, err := s.GetMaster().Select(&results, sqlQuery, args)
-			if err != nil {
-				result.Err = appErrF(err.Error())
-				return
-			}
-			for _, result := range results {
-				groupSyncable := &model.GroupSyncable{
-					SyncableId:         result.ChannelId,
-					GroupId:            result.GroupId,
-					AutoAdd:            result.AutoAdd,
-					CreateAt:           result.CreateAt,
-					DeleteAt:           result.DeleteAt,
-					UpdateAt:           result.UpdateAt,
-					Type:               syncableType,
-					ChannelDisplayName: result.ChannelDisplayName,
-					ChannelType:        result.ChannelType,
-					TeamDisplayName:    result.TeamDisplayName,
-					TeamType:           result.TeamType,
-					TeamID:             result.TeamID,
-				}
-				groupSyncables = append(groupSyncables, groupSyncable)
-			}
+		results := []*groupChannelJoin{}
+		_, err := s.GetMaster().Select(&results, sqlQuery, args)
+		if err != nil {
+			return nil, appErrF(err.Error())
 		}
+		for _, result := range results {
+			groupSyncable := &model.GroupSyncable{
+				SyncableId:         result.ChannelId,
+				GroupId:            result.GroupId,
+				AutoAdd:            result.AutoAdd,
+				CreateAt:           result.CreateAt,
+				DeleteAt:           result.DeleteAt,
+				UpdateAt:           result.UpdateAt,
+				Type:               syncableType,
+				ChannelDisplayName: result.ChannelDisplayName,
+				ChannelType:        result.ChannelType,
+				TeamDisplayName:    result.TeamDisplayName,
+				TeamType:           result.TeamType,
+				TeamID:             result.TeamID,
+			}
+			groupSyncables = append(groupSyncables, groupSyncable)
+		}
+	}
 
-		result.Data = groupSyncables
-		return
-	})
+	return groupSyncables, nil
 }
 
-func (s *SqlGroupStore) UpdateGroupSyncable(groupSyncable *model.GroupSyncable) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-
-		retrievedGroupSyncable, err := s.getGroupSyncable(groupSyncable.GroupId, groupSyncable.SyncableId, groupSyncable.Type)
-		if err != nil {
-			if err == sql.ErrNoRows {
-				result.Err = model.NewAppError("SqlGroupStore.GroupUpdateGroupSyncable", "store.sql_group.no_rows", nil, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			result.Err = model.NewAppError("SqlGroupStore.GroupUpdateGroupSyncable", "store.select_error", nil, "GroupId="+groupSyncable.GroupId+", SyncableId="+groupSyncable.SyncableId+", SyncableType="+groupSyncable.Type.String()+", "+err.Error(), http.StatusInternalServerError)
-			return
+func (s *SqlGroupStore) UpdateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
+	retrievedGroupSyncable, err := s.getGroupSyncable(groupSyncable.GroupId, groupSyncable.SyncableId, groupSyncable.Type)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, model.NewAppError("SqlGroupStore.GroupUpdateGroupSyncable", "store.sql_group.no_rows", nil, err.Error(), http.StatusInternalServerError)
 		}
+		return nil, model.NewAppError("SqlGroupStore.GroupUpdateGroupSyncable", "store.select_error", nil, "GroupId="+groupSyncable.GroupId+", SyncableId="+groupSyncable.SyncableId+", SyncableType="+groupSyncable.Type.String()+", "+err.Error(), http.StatusInternalServerError)
+	}
 
-		if err := groupSyncable.IsValid(); err != nil {
-			result.Err = err
-			return
-		}
+	if err := groupSyncable.IsValid(); err != nil {
+		return nil, err
+	}
 
-		// If updating DeleteAt it can only be to 0
-		if groupSyncable.DeleteAt != retrievedGroupSyncable.DeleteAt && groupSyncable.DeleteAt != 0 {
-			result.Err = model.NewAppError("SqlGroupStore.GroupUpdateGroupSyncable", "model.group.delete_at.app_error", nil, "", http.StatusInternalServerError)
-			return
-		}
+	// If updating DeleteAt it can only be to 0
+	if groupSyncable.DeleteAt != retrievedGroupSyncable.DeleteAt && groupSyncable.DeleteAt != 0 {
+		return nil, model.NewAppError("SqlGroupStore.GroupUpdateGroupSyncable", "model.group.delete_at.app_error", nil, "", http.StatusInternalServerError)
+	}
 
-		// Reset these properties, don't update them based on input
-		groupSyncable.CreateAt = retrievedGroupSyncable.CreateAt
-		groupSyncable.UpdateAt = model.GetMillis()
+	// Reset these properties, don't update them based on input
+	groupSyncable.CreateAt = retrievedGroupSyncable.CreateAt
+	groupSyncable.UpdateAt = model.GetMillis()
 
-		switch groupSyncable.Type {
-		case model.GroupSyncableTypeTeam:
-			_, err = s.GetMaster().Update(groupSyncableToGroupTeam(groupSyncable))
-		case model.GroupSyncableTypeChannel:
-			_, err = s.GetMaster().Update(groupSyncableToGroupChannel(groupSyncable))
-		default:
-			model.NewAppError("SqlGroupStore.GroupUpdateGroupSyncable", "model.group_syncable.type.app_error", nil, "group_id="+groupSyncable.GroupId+", syncable_id="+groupSyncable.SyncableId+", "+err.Error(), http.StatusInternalServerError)
-			return
-		}
+	switch groupSyncable.Type {
+	case model.GroupSyncableTypeTeam:
+		_, err = s.GetMaster().Update(groupSyncableToGroupTeam(groupSyncable))
+	case model.GroupSyncableTypeChannel:
+		_, err = s.GetMaster().Update(groupSyncableToGroupChannel(groupSyncable))
+	default:
+		return nil, model.NewAppError("SqlGroupStore.GroupUpdateGroupSyncable", "model.group_syncable.type.app_error", nil, "group_id="+groupSyncable.GroupId+", syncable_id="+groupSyncable.SyncableId+", "+err.Error(), http.StatusInternalServerError)
+	}
 
-		if err != nil {
-			result.Err = model.NewAppError("SqlGroupStore.GroupUpdateGroupSyncable", "store.update_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	if err != nil {
+		return nil, model.NewAppError("SqlGroupStore.GroupUpdateGroupSyncable", "store.update_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = groupSyncable
-		return
-	})
+	return groupSyncable, nil
 }
 
-func (s *SqlGroupStore) DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-
-		groupSyncable, err := s.getGroupSyncable(groupID, syncableID, syncableType)
-		if err != nil {
-			if err == sql.ErrNoRows {
-				result.Err = model.NewAppError("SqlGroupStore.GroupDeleteGroupSyncable", "store.sql_group.no_rows", nil, "Id="+groupID+", "+err.Error(), http.StatusNotFound)
-			} else {
-				result.Err = model.NewAppError("SqlGroupStore.GroupDeleteGroupSyncable", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
-			}
-			return
+func (s *SqlGroupStore) DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError) {
+	groupSyncable, err := s.getGroupSyncable(groupID, syncableID, syncableType)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, model.NewAppError("SqlGroupStore.GroupDeleteGroupSyncable", "store.sql_group.no_rows", nil, "Id="+groupID+", "+err.Error(), http.StatusNotFound)
 		}
+		return nil, model.NewAppError("SqlGroupStore.GroupDeleteGroupSyncable", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		if groupSyncable.DeleteAt != 0 {
-			result.Err = model.NewAppError("SqlGroupStore.GroupDeleteGroupSyncable", "store.sql_group.group_syncable_already_deleted", nil, "group_id="+groupID+"syncable_id="+syncableID, http.StatusBadRequest)
-			return
-		}
+	if groupSyncable.DeleteAt != 0 {
+		return nil, model.NewAppError("SqlGroupStore.GroupDeleteGroupSyncable", "store.sql_group.group_syncable_already_deleted", nil, "group_id="+groupID+"syncable_id="+syncableID, http.StatusBadRequest)
+	}
 
-		time := model.GetMillis()
-		groupSyncable.DeleteAt = time
-		groupSyncable.UpdateAt = time
+	time := model.GetMillis()
+	groupSyncable.DeleteAt = time
+	groupSyncable.UpdateAt = time
 
-		switch groupSyncable.Type {
-		case model.GroupSyncableTypeTeam:
-			_, err = s.GetMaster().Update(groupSyncableToGroupTeam(groupSyncable))
-		case model.GroupSyncableTypeChannel:
-			_, err = s.GetMaster().Update(groupSyncableToGroupChannel(groupSyncable))
-		default:
-			model.NewAppError("SqlGroupStore.GroupDeleteGroupSyncable", "model.group_syncable.type.app_error", nil, "group_id="+groupSyncable.GroupId+", syncable_id="+groupSyncable.SyncableId+", "+err.Error(), http.StatusInternalServerError)
-			return
-		}
+	switch groupSyncable.Type {
+	case model.GroupSyncableTypeTeam:
+		_, err = s.GetMaster().Update(groupSyncableToGroupTeam(groupSyncable))
+	case model.GroupSyncableTypeChannel:
+		_, err = s.GetMaster().Update(groupSyncableToGroupChannel(groupSyncable))
+	default:
+		return nil, model.NewAppError("SqlGroupStore.GroupDeleteGroupSyncable", "model.group_syncable.type.app_error", nil, "group_id="+groupSyncable.GroupId+", syncable_id="+groupSyncable.SyncableId+", "+err.Error(), http.StatusInternalServerError)
+	}
 
-		if err != nil {
-			result.Err = model.NewAppError("SqlGroupStore.GroupDeleteGroupSyncable", "store.update_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	if err != nil {
+		return nil, model.NewAppError("SqlGroupStore.GroupDeleteGroupSyncable", "store.update_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = groupSyncable
-		return
-	})
+	return groupSyncable, nil
 }
 
 // TeamMembersToAdd returns a slice of UserTeamIDPair that need newly created memberships
 // based on the groups configurations.
 //
 // Typically since will be the last successful group sync time.
-func (s *SqlGroupStore) TeamMembersToAdd(since int64) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-
-		sql := `
+func (s *SqlGroupStore) TeamMembersToAdd(since int64) ([]*model.UserTeamIDPair, *model.AppError) {
+	sql := `
 		SELECT
 			GroupMembers.UserId, GroupTeams.TeamId
 		FROM
@@ -727,27 +683,22 @@ func (s *SqlGroupStore) TeamMembersToAdd(since int64) store.StoreChannel {
 			AND (GroupMembers.CreateAt >= :Since
 			OR GroupTeams.UpdateAt >= :Since)`
 
-		var teamMembers []*model.UserTeamIDPair
+	var teamMembers []*model.UserTeamIDPair
 
-		_, err := s.GetReplica().Select(&teamMembers, sql, map[string]interface{}{"Since": since})
-		if err != nil {
-			result.Err = model.NewAppError("SqlGroupStore.TeamMembersToAdd", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
-		}
+	_, err := s.GetReplica().Select(&teamMembers, sql, map[string]interface{}{"Since": since})
+	if err != nil {
+		return nil, model.NewAppError("SqlGroupStore.TeamMembersToAdd", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = teamMembers
-
-		return
-	})
+	return teamMembers, nil
 }
 
 // ChannelMembersToAdd returns a slice of UserChannelIDPair that need newly created memberships
 // based on the groups configurations.
 //
 // Typically since will be the last successful group sync time.
-func (s *SqlGroupStore) ChannelMembersToAdd(since int64) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-
-		sql := `
+func (s *SqlGroupStore) ChannelMembersToAdd(since int64) ([]*model.UserChannelIDPair, *model.AppError) {
+	sql := `
 		SELECT
 			GroupMembers.UserId, GroupChannels.ChannelId
 		FROM
@@ -770,17 +721,14 @@ func (s *SqlGroupStore) ChannelMembersToAdd(since int64) store.StoreChannel {
 			AND (GroupMembers.CreateAt >= :Since
 			OR GroupChannels.UpdateAt >= :Since)`
 
-		var channelMembers []*model.UserChannelIDPair
+	var channelMembers []*model.UserChannelIDPair
 
-		_, err := s.GetReplica().Select(&channelMembers, sql, map[string]interface{}{"Since": since})
-		if err != nil {
-			result.Err = model.NewAppError("SqlGroupStore.ChannelMembersToAdd", "store.select_error", nil, "", http.StatusInternalServerError)
-		}
+	_, err := s.GetReplica().Select(&channelMembers, sql, map[string]interface{}{"Since": since})
+	if err != nil {
+		return nil, model.NewAppError("SqlGroupStore.ChannelMembersToAdd", "store.select_error", nil, "", http.StatusInternalServerError)
+	}
 
-		result.Data = channelMembers
-
-		return
-	})
+	return channelMembers, nil
 }
 
 func groupSyncableToGroupTeam(groupSyncable *model.GroupSyncable) *groupTeam {
@@ -798,10 +746,8 @@ func groupSyncableToGroupChannel(groupSyncable *model.GroupSyncable) *groupChann
 }
 
 // TeamMembersToRemove returns all team members that should be removed based on group constraints.
-func (s *SqlGroupStore) TeamMembersToRemove() store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-
-		sql := `
+func (s *SqlGroupStore) TeamMembersToRemove() ([]*model.TeamMember, *model.AppError) {
+	sql := `
 		SELECT
 			TeamMembers.TeamId,
 			TeamMembers.UserId,
@@ -838,77 +784,58 @@ func (s *SqlGroupStore) TeamMembersToRemove() store.StoreChannel {
 					Teams.Id,
 					GroupMembers.UserId)`
 
-		var teamMembers []*model.TeamMember
+	var teamMembers []*model.TeamMember
 
-		_, err := s.GetReplica().Select(&teamMembers, sql)
-		if err != nil {
-			result.Err = model.NewAppError("SqlGroupStore.TeamMembersToRemove", "store.select_error", nil, "", http.StatusInternalServerError)
-		}
+	_, err := s.GetReplica().Select(&teamMembers, sql)
+	if err != nil {
+		return nil, model.NewAppError("SqlGroupStore.TeamMembersToRemove", "store.select_error", nil, "", http.StatusInternalServerError)
+	}
 
-		result.Data = teamMembers
-
-		return
-	})
+	return teamMembers, nil
 }
 
-func (s *SqlGroupStore) CountGroupsByChannel(channelId string, opts model.GroupSearchOpts) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
+func (s *SqlGroupStore) CountGroupsByChannel(channelId string, opts model.GroupSearchOpts) (int64, *model.AppError) {
+	countQuery := s.groupsBySyncableBaseQuery(model.GroupSyncableTypeChannel, selectCountGroups, channelId, opts)
 
-		countQuery := s.groupsBySyncableBaseQuery(model.GroupSyncableTypeChannel, selectCountGroups, channelId, opts)
+	countQueryString, args, err := countQuery.ToSql()
+	if err != nil {
+		return int64(0), model.NewAppError("SqlGroupStore.CountGroupsByChannel", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		countQueryString, args, err := countQuery.ToSql()
-		if err != nil {
-			result.Err = model.NewAppError("SqlGroupStore.CountGroupsByChannel", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	count, err := s.GetReplica().SelectInt(countQueryString, args...)
+	if err != nil {
+		return int64(0), model.NewAppError("SqlGroupStore.CountGroupsByChannel", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		count, err := s.GetReplica().SelectInt(countQueryString, args...)
-		if err != nil {
-			result.Err = model.NewAppError("SqlGroupStore.CountGroupsByChannel", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		result.Data = count
-
-		return
-	})
+	return count, nil
 }
 
-func (s *SqlGroupStore) GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
+func (s *SqlGroupStore) GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError) {
+	query := s.groupsBySyncableBaseQuery(model.GroupSyncableTypeChannel, selectGroups, channelId, opts)
 
-		query := s.groupsBySyncableBaseQuery(model.GroupSyncableTypeChannel, selectGroups, channelId, opts)
+	if opts.PageOpts != nil {
+		offset := uint64(opts.PageOpts.Page * opts.PageOpts.PerPage)
+		query = query.OrderBy("ug.DisplayName").Limit(uint64(opts.PageOpts.PerPage)).Offset(offset)
+	}
 
-		if opts.PageOpts != nil {
-			offset := uint64(opts.PageOpts.Page * opts.PageOpts.PerPage)
-			query = query.OrderBy("ug.DisplayName").Limit(uint64(opts.PageOpts.PerPage)).Offset(offset)
-		}
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlGroupStore.GetGroupsByChannel", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		queryString, args, err := query.ToSql()
-		if err != nil {
-			result.Err = model.NewAppError("SqlGroupStore.GetGroupsByChannel", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	var groups []*model.Group
 
-		var groups []*model.Group
+	_, err = s.GetReplica().Select(&groups, queryString, args...)
+	if err != nil {
+		return nil, model.NewAppError("SqlGroupStore.GetGroupsByChannel", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		_, err = s.GetReplica().Select(&groups, queryString, args...)
-		if err != nil {
-			result.Err = model.NewAppError("SqlGroupStore.GetGroupsByChannel", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		result.Data = groups
-
-		return
-	})
+	return groups, nil
 }
 
 // ChannelMembersToRemove returns all channel members that should be removed based on group constraints.
-func (s *SqlGroupStore) ChannelMembersToRemove() store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-
-		sql := `
+func (s *SqlGroupStore) ChannelMembersToRemove() ([]*model.ChannelMember, *model.AppError) {
+	sql := `
 		SELECT
 			ChannelMembers.ChannelId,
 			ChannelMembers.UserId,
@@ -948,17 +875,14 @@ func (s *SqlGroupStore) ChannelMembersToRemove() store.StoreChannel {
 					Channels.Id,
 					GroupMembers.UserId)`
 
-		var channelMembers []*model.ChannelMember
+	var channelMembers []*model.ChannelMember
 
-		_, err := s.GetReplica().Select(&channelMembers, sql)
-		if err != nil {
-			result.Err = model.NewAppError("SqlGroupStore.ChannelMembersToRemove", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
-		}
+	_, err := s.GetReplica().Select(&channelMembers, sql)
+	if err != nil {
+		return nil, model.NewAppError("SqlGroupStore.ChannelMembersToRemove", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = channelMembers
-
-		return
-	})
+	return channelMembers, nil
 }
 
 func (s *SqlGroupStore) groupsBySyncableBaseQuery(st model.GroupSyncableType, t selectType, syncableID string, opts model.GroupSearchOpts) squirrel.SelectBuilder {
@@ -1005,86 +929,71 @@ func (s *SqlGroupStore) groupsBySyncableBaseQuery(st model.GroupSyncableType, t 
 	return query
 }
 
-func (s *SqlGroupStore) CountGroupsByTeam(teamId string, opts model.GroupSearchOpts) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
+func (s *SqlGroupStore) CountGroupsByTeam(teamId string, opts model.GroupSearchOpts) (int64, *model.AppError) {
+	countQuery := s.groupsBySyncableBaseQuery(model.GroupSyncableTypeTeam, selectCountGroups, teamId, opts)
 
-		countQuery := s.groupsBySyncableBaseQuery(model.GroupSyncableTypeTeam, selectCountGroups, teamId, opts)
+	countQueryString, args, err := countQuery.ToSql()
+	if err != nil {
+		return int64(0), model.NewAppError("SqlGroupStore.CountGroupsByTeam", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		countQueryString, args, err := countQuery.ToSql()
-		if err != nil {
-			result.Err = model.NewAppError("SqlGroupStore.CountGroupsByTeam", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	count, err := s.GetReplica().SelectInt(countQueryString, args...)
+	if err != nil {
+		return int64(0), model.NewAppError("SqlGroupStore.CountGroupsByTeam", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		count, err := s.GetReplica().SelectInt(countQueryString, args...)
-		if err != nil {
-			result.Err = model.NewAppError("SqlGroupStore.CountGroupsByTeam", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		result.Data = count
-
-		return
-	})
+	return count, nil
 }
 
-func (s *SqlGroupStore) GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
+func (s *SqlGroupStore) GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError) {
+	query := s.groupsBySyncableBaseQuery(model.GroupSyncableTypeTeam, selectGroups, teamId, opts)
 
-		query := s.groupsBySyncableBaseQuery(model.GroupSyncableTypeTeam, selectGroups, teamId, opts)
+	if opts.PageOpts != nil {
+		offset := uint64(opts.PageOpts.Page * opts.PageOpts.PerPage)
+		query = query.OrderBy("ug.DisplayName").Limit(uint64(opts.PageOpts.PerPage)).Offset(offset)
+	}
 
-		if opts.PageOpts != nil {
-			offset := uint64(opts.PageOpts.Page * opts.PageOpts.PerPage)
-			query = query.OrderBy("ug.DisplayName").Limit(uint64(opts.PageOpts.PerPage)).Offset(offset)
-		}
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlGroupStore.GetGroupsByTeam", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		queryString, args, err := query.ToSql()
-		if err != nil {
-			result.Err = model.NewAppError("SqlGroupStore.GetGroupsByTeam", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	var groups []*model.Group
 
-		var groups []*model.Group
+	_, err = s.GetReplica().Select(&groups, queryString, args...)
+	if err != nil {
+		return nil, model.NewAppError("SqlGroupStore.GetGroupsByTeam", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		_, err = s.GetReplica().Select(&groups, queryString, args...)
-		if err != nil {
-			result.Err = model.NewAppError("SqlGroupStore.GetGroupsByTeam", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		result.Data = groups
-
-		return
-	})
+	return groups, nil
 }
 
-func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var groups []*model.Group
+func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError) {
+	var groups []*model.Group
 
-		groupsQuery := s.getQueryBuilder().Select("g.*").From("UserGroups g").Limit(uint64(perPage)).Offset(uint64(page * perPage)).OrderBy("g.DisplayName")
+	groupsQuery := s.getQueryBuilder().Select("g.*").From("UserGroups g").Limit(uint64(perPage)).Offset(uint64(page * perPage)).OrderBy("g.DisplayName")
 
-		if opts.IncludeMemberCount {
-			groupsQuery = s.getQueryBuilder().
-				Select("g.*, coalesce(Members.MemberCount, 0) AS MemberCount").
-				From("UserGroups g").
-				LeftJoin("(SELECT GroupMembers.GroupId, COUNT(*) AS MemberCount FROM GroupMembers WHERE GroupMembers.DeleteAt = 0 GROUP BY GroupId) AS Members ON Members.GroupId = g.Id").
-				Limit(uint64(perPage)).
-				Offset(uint64(page * perPage)).
-				OrderBy("g.DisplayName")
+	if opts.IncludeMemberCount {
+		groupsQuery = s.getQueryBuilder().
+			Select("g.*, coalesce(Members.MemberCount, 0) AS MemberCount").
+			From("UserGroups g").
+			LeftJoin("(SELECT GroupMembers.GroupId, COUNT(*) AS MemberCount FROM GroupMembers WHERE GroupMembers.DeleteAt = 0 GROUP BY GroupId) AS Members ON Members.GroupId = g.Id").
+			Limit(uint64(perPage)).
+			Offset(uint64(page * perPage)).
+			OrderBy("g.DisplayName")
+	}
+
+	if len(opts.Q) > 0 {
+		pattern := fmt.Sprintf("%%%s%%", opts.Q)
+		operatorKeyword := "ILIKE"
+		if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+			operatorKeyword = "LIKE"
 		}
+		groupsQuery = groupsQuery.Where(fmt.Sprintf("(g.Name %[1]s ? OR g.DisplayName %[1]s ?)", operatorKeyword), pattern, pattern)
+	}
 
-		if len(opts.Q) > 0 {
-			pattern := fmt.Sprintf("%%%s%%", opts.Q)
-			operatorKeyword := "ILIKE"
-			if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
-				operatorKeyword = "LIKE"
-			}
-			groupsQuery = groupsQuery.Where(fmt.Sprintf("(g.Name %[1]s ? OR g.DisplayName %[1]s ?)", operatorKeyword), pattern, pattern)
-		}
-
-		if len(opts.NotAssociatedToTeam) == 26 {
-			groupsQuery = groupsQuery.Where(`
+	if len(opts.NotAssociatedToTeam) == 26 {
+		groupsQuery = groupsQuery.Where(`
 			g.Id NOT IN (
 				SELECT 
 					Id 
@@ -1097,10 +1006,10 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts)
 					AND GroupTeams.TeamId = ?
 			)
 		`, opts.NotAssociatedToTeam)
-		}
+	}
 
-		if len(opts.NotAssociatedToChannel) == 26 {
-			groupsQuery = groupsQuery.Where(`
+	if len(opts.NotAssociatedToChannel) == 26 {
+		groupsQuery = groupsQuery.Where(`
 			g.Id NOT IN (
 				SELECT 
 					Id 
@@ -1113,20 +1022,16 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts)
 					AND GroupChannels.ChannelId = ?
 			)
 		`, opts.NotAssociatedToChannel)
-		}
+	}
 
-		queryString, args, err := groupsQuery.ToSql()
-		if err != nil {
-			result.Err = model.NewAppError("SqlGroupStore.GetGroups", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	queryString, args, err := groupsQuery.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlGroupStore.GetGroups", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		if _, err = s.GetReplica().Select(&groups, queryString, args...); err != nil {
-			result.Err = model.NewAppError("SqlGroupStore.GetGroups", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	if _, err = s.GetReplica().Select(&groups, queryString, args...); err != nil {
+		return nil, model.NewAppError("SqlGroupStore.GetGroups", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = groups
-		return
-	})
+	return groups, nil
 }
