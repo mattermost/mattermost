@@ -667,13 +667,6 @@ func (a *App) SlackImport(fileData multipart.File, fileSize int64, teamID string
 	var groupChannels []SlackChannel
 	var directChannels []SlackChannel
 
-	channelTypes := [][]SlackChannel{
-		publicChannels,
-		privateChannels,
-		groupChannels,
-		directChannels,
-	}
-
 	var users []SlackUser
 	posts := make(map[string][]SlackPost)
 	uploads := make(map[string]*zip.File)
@@ -684,13 +677,17 @@ func (a *App) SlackImport(fileData multipart.File, fileSize int64, teamID string
 			return model.NewAppError("SlackImport", "api.slackimport.slack_import.open.app_error", map[string]interface{}{"Filename": file.Name}, err.Error(), http.StatusInternalServerError), log
 		}
 		if file.Name == "channels.json" {
-			publicChannels, _ = SlackParseChannels(reader, "O")
+			publicChannels, _ = SlackParseChannels(reader, model.CHANNEL_OPEN)
+			channels = append(channels, publicChannels...)
 		} else if file.Name == "dms.json" {
-			directChannels, _ = SlackParseChannels(reader, "D")
+			directChannels, _ = SlackParseChannels(reader, model.CHANNEL_DIRECT)
+			channels = append(channels, directChannels...)
 		} else if file.Name == "groups.json" {
-			privateChannels, _ = SlackParseChannels(reader, "P")
+			privateChannels, _ = SlackParseChannels(reader, model.CHANNEL_PRIVATE)
+			channels = append(channels, privateChannels...)
 		} else if file.Name == "mpims.json" {
-			groupChannels, _ = SlackParseChannels(reader, "G")
+			groupChannels, _ = SlackParseChannels(reader, model.CHANNEL_GROUP)
+			channels = append(channels, groupChannels...)
 		} else if file.Name == "users.json" {
 			users, _ = SlackParseUsers(reader)
 		} else {
@@ -707,10 +704,6 @@ func (a *App) SlackImport(fileData multipart.File, fileSize int64, teamID string
 				uploads[spl[1]] = file
 			}
 		}
-	}
-
-	for _, c := range channelTypes {
-		channels = append(channels, c...)
 	}
 
 	posts = SlackConvertUserMentions(users, posts)
