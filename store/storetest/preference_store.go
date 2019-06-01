@@ -358,9 +358,8 @@ func testPreferenceDeleteCategory(t *testing.T, ss store.Store) {
 		Value:    "value1a",
 	}
 
-	count, saveErr := ss.Preference().Save(&model.Preferences{preference1, preference2})
-	require.Nil(t, saveErr)
-	require.Equal(t, 2, count)
+	err := ss.Preference().Save(&model.Preferences{preference1, preference2})
+	require.Nil(t, err)
 
 	preferences, err := ss.Preference().GetAll(userId)
 	require.Nil(t, err)
@@ -395,9 +394,8 @@ func testPreferenceDeleteCategoryAndName(t *testing.T, ss store.Store) {
 		Value:    "value1a",
 	}
 
-	count, saveErr := ss.Preference().Save(&model.Preferences{preference1, preference2})
-	require.Nil(t, saveErr)
-	require.Equal(t, 2, count)
+	err := ss.Preference().Save(&model.Preferences{preference1, preference2})
+	require.Nil(t, err)
 
 	preferences, err := ss.Preference().GetAll(userId)
 	require.Nil(t, err)
