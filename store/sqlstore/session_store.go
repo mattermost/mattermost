@@ -202,9 +202,8 @@ func (me SqlSessionStore) UpdateDeviceId(id string, deviceId string, expiresAt i
 	_, err := me.GetMaster().Exec(query, map[string]interface{}{"DeviceId": deviceId, "Id": id, "ExpiresAt": expiresAt})
 	if err != nil {
 		return "", model.NewAppError("SqlSessionStore.UpdateDeviceId", "store.sql_session.update_device_id.app_error", nil, err.Error(), http.StatusInternalServerError)
-	} else {
-		return deviceId, nil
 	}
+	return deviceId, nil
 }
 
 func (me SqlSessionStore) AnalyticsSessionCount() (int64, *model.AppError) {
