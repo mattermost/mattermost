@@ -94,43 +94,23 @@ func (a *App) DeleteGroupMember(groupID string, userID string) (*model.GroupMemb
 }
 
 func (a *App) CreateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
-	result := <-a.Srv.Store.Group().CreateGroupSyncable(groupSyncable)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.GroupSyncable), nil
+	return a.Srv.Store.Group().CreateGroupSyncable(groupSyncable)
 }
 
 func (a *App) GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError) {
-	result := <-a.Srv.Store.Group().GetGroupSyncable(groupID, syncableID, syncableType)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.GroupSyncable), nil
+	return a.Srv.Store.Group().GetGroupSyncable(groupID, syncableID, syncableType)
 }
 
 func (a *App) GetGroupSyncables(groupID string, syncableType model.GroupSyncableType) ([]*model.GroupSyncable, *model.AppError) {
-	result := <-a.Srv.Store.Group().GetAllGroupSyncablesByGroupId(groupID, syncableType)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.GroupSyncable), nil
+	return a.Srv.Store.Group().GetAllGroupSyncablesByGroupId(groupID, syncableType)
 }
 
 func (a *App) UpdateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
-	result := <-a.Srv.Store.Group().UpdateGroupSyncable(groupSyncable)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.GroupSyncable), nil
+	return a.Srv.Store.Group().UpdateGroupSyncable(groupSyncable)
 }
 
 func (a *App) DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError) {
-	result := <-a.Srv.Store.Group().DeleteGroupSyncable(groupID, syncableID, syncableType)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.GroupSyncable), nil
+	return a.Srv.Store.Group().DeleteGroupSyncable(groupID, syncableID, syncableType)
 }
 
 func (a *App) TeamMembersToAdd(since int64) ([]*model.UserTeamIDPair, *model.AppError) {
