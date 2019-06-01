@@ -282,18 +282,24 @@ func TestTruncateOpenGraph(t *testing.T) {
 		SiteName:         BigText,
 		Locale:           "[EN-en]",
 		LocalesAlternate: []string{"[EN-ca]", "[ES-es]"},
-		Images:           []*opengraph.Image{sampleImage("image.png"), sampleImage("notme.png")},
-		Audios:           []*opengraph.Audio{&opengraph.Audio{}},
-		Videos:           []*opengraph.Video{&opengraph.Video{}},
-		Article:          &opengraph.Article{},
-		Book:             &opengraph.Book{},
-		Profile:          &opengraph.Profile{},
+		Images: []*opengraph.Image{
+			sampleImage("image.png"),
+			sampleImage("another.png"),
+			sampleImage("yetanother.jpg"),
+			sampleImage("metoo.gif"),
+			sampleImage("fifth.ico"),
+			sampleImage("notme.tiff")},
+		Audios:  []*opengraph.Audio{&opengraph.Audio{}},
+		Videos:  []*opengraph.Video{&opengraph.Video{}},
+		Article: &opengraph.Article{},
+		Book:    &opengraph.Book{},
+		Profile: &opengraph.Profile{},
 	}
 	result := TruncateOpenGraph(&og)
 	assert.Nil(t, result.Article, "No article stored")
 	assert.Nil(t, result.Book, "No book stored")
 	assert.Nil(t, result.Profile, "No profile stored")
-	assert.Len(t, result.Images, 1, "Only the first image")
+	assert.Len(t, result.Images, 5, "Only the first 5 images")
 	assert.Len(t, result.Audios, 0, "No audios stored")
 	assert.Len(t, result.Videos, 0, "No videos stored")
 	assert.Len(t, result.LocalesAlternate, 0, "No alternate locales stored")
