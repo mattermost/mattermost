@@ -126,19 +126,28 @@ func (_m *GroupStore) Create(group *model.Group) store.StoreChannel {
 }
 
 // CreateGroupSyncable provides a mock function with given fields: groupSyncable
-func (_m *GroupStore) CreateGroupSyncable(groupSyncable *model.GroupSyncable) store.StoreChannel {
+func (_m *GroupStore) CreateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
 	ret := _m.Called(groupSyncable)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(*model.GroupSyncable) store.StoreChannel); ok {
+	var r0 *model.GroupSyncable
+	if rf, ok := ret.Get(0).(func(*model.GroupSyncable) *model.GroupSyncable); ok {
 		r0 = rf(groupSyncable)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.GroupSyncable)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.GroupSyncable) *model.AppError); ok {
+		r1 = rf(groupSyncable)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // CreateOrRestoreMember provides a mock function with given fields: groupID, userID
@@ -174,19 +183,28 @@ func (_m *GroupStore) Delete(groupID string) store.StoreChannel {
 }
 
 // DeleteGroupSyncable provides a mock function with given fields: groupID, syncableID, syncableType
-func (_m *GroupStore) DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) store.StoreChannel {
+func (_m *GroupStore) DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError) {
 	ret := _m.Called(groupID, syncableID, syncableType)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, string, model.GroupSyncableType) store.StoreChannel); ok {
+	var r0 *model.GroupSyncable
+	if rf, ok := ret.Get(0).(func(string, string, model.GroupSyncableType) *model.GroupSyncable); ok {
 		r0 = rf(groupID, syncableID, syncableType)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.GroupSyncable)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string, model.GroupSyncableType) *model.AppError); ok {
+		r1 = rf(groupID, syncableID, syncableType)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // DeleteMember provides a mock function with given fields: groupID, userID
@@ -238,19 +256,28 @@ func (_m *GroupStore) GetAllBySource(groupSource model.GroupSource) store.StoreC
 }
 
 // GetAllGroupSyncablesByGroupId provides a mock function with given fields: groupID, syncableType
-func (_m *GroupStore) GetAllGroupSyncablesByGroupId(groupID string, syncableType model.GroupSyncableType) store.StoreChannel {
+func (_m *GroupStore) GetAllGroupSyncablesByGroupId(groupID string, syncableType model.GroupSyncableType) ([]*model.GroupSyncable, *model.AppError) {
 	ret := _m.Called(groupID, syncableType)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, model.GroupSyncableType) store.StoreChannel); ok {
+	var r0 []*model.GroupSyncable
+	if rf, ok := ret.Get(0).(func(string, model.GroupSyncableType) []*model.GroupSyncable); ok {
 		r0 = rf(groupID, syncableType)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]*model.GroupSyncable)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, model.GroupSyncableType) *model.AppError); ok {
+		r1 = rf(groupID, syncableType)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetByRemoteID provides a mock function with given fields: remoteID, groupSource
@@ -270,19 +297,28 @@ func (_m *GroupStore) GetByRemoteID(remoteID string, groupSource model.GroupSour
 }
 
 // GetGroupSyncable provides a mock function with given fields: groupID, syncableID, syncableType
-func (_m *GroupStore) GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) store.StoreChannel {
+func (_m *GroupStore) GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError) {
 	ret := _m.Called(groupID, syncableID, syncableType)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, string, model.GroupSyncableType) store.StoreChannel); ok {
+	var r0 *model.GroupSyncable
+	if rf, ok := ret.Get(0).(func(string, string, model.GroupSyncableType) *model.GroupSyncable); ok {
 		r0 = rf(groupID, syncableID, syncableType)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.GroupSyncable)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string, model.GroupSyncableType) *model.AppError); ok {
+		r1 = rf(groupID, syncableID, syncableType)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetGroups provides a mock function with given fields: page, perPage, opts
@@ -475,17 +511,26 @@ func (_m *GroupStore) Update(group *model.Group) store.StoreChannel {
 }
 
 // UpdateGroupSyncable provides a mock function with given fields: groupSyncable
-func (_m *GroupStore) UpdateGroupSyncable(groupSyncable *model.GroupSyncable) store.StoreChannel {
+func (_m *GroupStore) UpdateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
 	ret := _m.Called(groupSyncable)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(*model.GroupSyncable) store.StoreChannel); ok {
+	var r0 *model.GroupSyncable
+	if rf, ok := ret.Get(0).(func(*model.GroupSyncable) *model.GroupSyncable); ok {
 		r0 = rf(groupSyncable)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.GroupSyncable)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.GroupSyncable) *model.AppError); ok {
+		r1 = rf(groupSyncable)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
