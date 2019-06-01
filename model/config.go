@@ -273,6 +273,7 @@ type ServiceSettings struct {
 	TimeBetweenUserTypingUpdatesMilliseconds          *int64 `restricted:"true"`
 	EnablePostSearch                                  *bool  `restricted:"true"`
 	MinimumHashtagLength                              *int   `restricted:"true"`
+	MinimumUsernameLength                             *int   `restricted:"true"`
 	EnableUserTypingMessages                          *bool  `restricted:"true"`
 	EnableChannelViewedMessages                       *bool  `restricted:"true"`
 	EnableUserStatuses                                *bool  `restricted:"true"`
@@ -449,6 +450,10 @@ func (s *ServiceSettings) SetDefaults() {
 
 	if s.MinimumHashtagLength == nil {
 		s.MinimumHashtagLength = NewInt(3)
+	}
+
+	if s.MinimumUsernameLength == nil {
+		s.MinimumUsernameLength = NewInt(3)
 	}
 
 	if s.EnableUserTypingMessages == nil {
