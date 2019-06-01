@@ -265,9 +265,25 @@ func TestFirstNImages(t *testing.T) {
 		one := []*opengraph.Image{sampleImage("image.png")}
 		assert.Exactly(t, firstNImages(one, 1), one, "Should be the same element")
 	})
-	t.Run("when it contains more than one element, return the first one", func(t *testing.T) {
+	t.Run("when it contains more than one element and asking for only one, return the first one", func(t *testing.T) {
 		two := []*opengraph.Image{sampleImage("image.png"), sampleImage("notme.png")}
 		assert.True(t, strings.HasSuffix(firstNImages(two, 1)[0].URL, "image.png"), "Should be the image element")
+	})
+	t.Run("when it contains less than asked, return the original", func(t *testing.T) {
+		two := []*opengraph.Image{sampleImage("image.png"), sampleImage("notme.png")}
+		assert.Equal(t, two, firstNImages(two, 10), "should be the same pointer")
+	})
+
+	t.Run("asking for negative images", func(t *testing.T) {
+		six := []*opengraph.Image{
+			sampleImage("image.png"),
+			sampleImage("another.png"),
+			sampleImage("yetanother.jpg"),
+			sampleImage("metoo.gif"),
+			sampleImage("fifth.ico"),
+			sampleImage("notme.tiff"),
+		}
+		assert.Len(t, firstNImages(six, -10), MAX_IMAGES, "On negative, go for defaults")
 	})
 
 }

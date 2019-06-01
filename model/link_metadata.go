@@ -36,6 +36,9 @@ func truncateText(original string) string {
 }
 
 func firstNImages(images []*opengraph.Image, maxImages int) []*opengraph.Image {
+	if maxImages < 0 { // dont break stuff, if it's weird, go for sane defaults
+		maxImages = MAX_IMAGES
+	}
 	numImages := len(images)
 	if numImages > maxImages {
 		subImages := make([]*opengraph.Image, maxImages)
