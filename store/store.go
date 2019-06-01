@@ -211,20 +211,20 @@ type ChannelMemberHistoryStore interface {
 
 type PostStore interface {
 	Save(post *model.Post) StoreChannel
-	Update(newPost *model.Post, oldPost *model.Post) StoreChannel
+	Update(newPost *model.Post, oldPost *model.Post) (*model.Post, *model.AppError)
 	Get(id string) (*model.PostList, *model.AppError)
-	GetSingle(id string) StoreChannel
+	GetSingle(id string) (*model.Post, *model.AppError)
 	Delete(postId string, time int64, deleteByID string) *model.AppError
 	PermanentDeleteByUser(userId string) StoreChannel
-	PermanentDeleteByChannel(channelId string) StoreChannel
-	GetPosts(channelId string, offset int, limit int, allowFromCache bool) StoreChannel
-	GetFlaggedPosts(userId string, offset int, limit int) StoreChannel
-	GetFlaggedPostsForTeam(userId, teamId string, offset int, limit int) StoreChannel
+	PermanentDeleteByChannel(channelId string) *model.AppError
+	GetPosts(channelId string, offset int, limit int, allowFromCache bool) (*model.PostList, *model.AppError)
+	GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *model.AppError)
+	GetFlaggedPostsForTeam(userId, teamId string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) StoreChannel
 	GetPostsBefore(channelId string, postId string, numPosts int, offset int) StoreChannel
 	GetPostsAfter(channelId string, postId string, numPosts int, offset int) StoreChannel
 	GetPostsSince(channelId string, time int64, allowFromCache bool) StoreChannel
-	GetEtag(channelId string, allowFromCache bool) StoreChannel
+	GetEtag(channelId string, allowFromCache bool) string
 	Search(teamId string, userId string, params *model.SearchParams) StoreChannel
 	AnalyticsUserCountsWithPostsByDay(teamId string) StoreChannel
 	AnalyticsPostCountsByDay(teamId string) StoreChannel
@@ -240,7 +240,7 @@ type PostStore interface {
 	GetMaxPostSize() int
 	GetParentsForExportAfter(limit int, afterId string) StoreChannel
 	GetRepliesForExport(parentId string) StoreChannel
-	GetDirectPostParentsForExportAfter(limit int, afterId string) StoreChannel
+	GetDirectPostParentsForExportAfter(limit int, afterId string) ([]*model.DirectPostForExport, *model.AppError)
 }
 
 type UserStore interface {
@@ -312,8 +312,8 @@ type BotStore interface {
 }
 
 type SessionStore interface {
-	Save(session *model.Session) StoreChannel
-	Get(sessionIdOrToken string) StoreChannel
+	Get(sessionIdOrToken string) (*model.Session, *model.AppError)
+	Save(session *model.Session) (*model.Session, *model.AppError)
 	GetSessions(userId string) StoreChannel
 	GetSessionsWithActiveDeviceIds(userId string) ([]*model.Session, *model.AppError)
 	Remove(sessionIdOrToken string) StoreChannel
@@ -428,7 +428,7 @@ type CommandWebhookStore interface {
 }
 
 type PreferenceStore interface {
-	Save(preferences *model.Preferences) (int, *model.AppError)
+	Save(preferences *model.Preferences) *model.AppError
 	GetCategory(userId string, category string) (model.Preferences, *model.AppError)
 	Get(userId string, category string, name string) (*model.Preference, *model.AppError)
 	GetAll(userId string) (model.Preferences, *model.AppError)
@@ -454,7 +454,7 @@ type TokenStore interface {
 }
 
 type EmojiStore interface {
-	Save(emoji *model.Emoji) StoreChannel
+	Save(emoji *model.Emoji) (*model.Emoji, *model.AppError)
 	Get(id string, allowFromCache bool) (*model.Emoji, *model.AppError)
 	GetByName(name string) StoreChannel
 	GetMultipleByName(names []string) StoreChannel
@@ -582,25 +582,25 @@ type GroupStore interface {
 	CreateOrRestoreMember(groupID string, userID string) StoreChannel
 	DeleteMember(groupID string, userID string) StoreChannel
 
-	CreateGroupSyncable(groupSyncable *model.GroupSyncable) StoreChannel
-	GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) StoreChannel
-	GetAllGroupSyncablesByGroupId(groupID string, syncableType model.GroupSyncableType) StoreChannel
-	UpdateGroupSyncable(groupSyncable *model.GroupSyncable) StoreChannel
-	DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) StoreChannel
+	CreateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError)
+	GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError)
+	GetAllGroupSyncablesByGroupId(groupID string, syncableType model.GroupSyncableType) ([]*model.GroupSyncable, *model.AppError)
+	UpdateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError)
+	DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError)
 
-	TeamMembersToAdd(since int64) StoreChannel
-	ChannelMembersToAdd(since int64) StoreChannel
+	TeamMembersToAdd(since int64) ([]*model.UserTeamIDPair, *model.AppError)
+	ChannelMembersToAdd(since int64) ([]*model.UserChannelIDPair, *model.AppError)
 
-	TeamMembersToRemove() StoreChannel
-	ChannelMembersToRemove() StoreChannel
+	TeamMembersToRemove() ([]*model.TeamMember, *model.AppError)
+	ChannelMembersToRemove() ([]*model.ChannelMember, *model.AppError)
 
-	GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) StoreChannel
-	CountGroupsByChannel(channelId string, opts model.GroupSearchOpts) StoreChannel
+	GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError)
+	CountGroupsByChannel(channelId string, opts model.GroupSearchOpts) (int64, *model.AppError)
 
-	GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) StoreChannel
-	CountGroupsByTeam(teamId string, opts model.GroupSearchOpts) StoreChannel
+	GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError)
+	CountGroupsByTeam(teamId string, opts model.GroupSearchOpts) (int64, *model.AppError)
 
-	GetGroups(page, perPage int, opts model.GroupSearchOpts) StoreChannel
+	GetGroups(page, perPage int, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError)
 }
 
 type LinkMetadataStore interface {
