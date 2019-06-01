@@ -1968,7 +1968,7 @@ func TestImportImportPost(t *testing.T) {
 	assert.Nil(t, err)
 	AssertAllPostsCount(t, th.App, initialPostCount, 4, team.Id)
 
-	posts, err = th.App.Srv.Store.Post().GetPostsCreatedAt(channel.Id, time)
+	posts, err = th.App.Srv.Store.Post().GetPostsCreatedAt(channel.Id, hashtagTime)
 	if err != nil {
 		t.Fatal(err.Error())
 	} else {
@@ -2013,7 +2013,7 @@ func TestImportImportPost(t *testing.T) {
 	AssertAllPostsCount(t, th.App, initialPostCount, 5, team.Id)
 
 	// Check the post values.
-	if posts, err := th.App.Srv.Store.Post().GetPostsCreatedAt(channel.Id, time); err != nil {
+	if posts, err := th.App.Srv.Store.Post().GetPostsCreatedAt(channel.Id, flagsTime); err != nil {
 		t.Fatal(err.Error())
 	} else {
 		if len(posts) != 1 {
