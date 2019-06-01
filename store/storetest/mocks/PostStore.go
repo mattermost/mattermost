@@ -133,16 +133,14 @@ func (_m *PostStore) GetDirectPostParentsForExportAfter(limit int, afterId strin
 }
 
 // GetEtag provides a mock function with given fields: channelId, allowFromCache
-func (_m *PostStore) GetEtag(channelId string, allowFromCache bool) store.StoreChannel {
+func (_m *PostStore) GetEtag(channelId string, allowFromCache bool) string {
 	ret := _m.Called(channelId, allowFromCache)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, bool) store.StoreChannel); ok {
+	var r0 string
+	if rf, ok := ret.Get(0).(func(string, bool) string); ok {
 		r0 = rf(channelId, allowFromCache)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
-		}
+		r0 = ret.Get(0).(string)
 	}
 
 	return r0

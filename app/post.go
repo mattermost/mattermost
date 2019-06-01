@@ -607,7 +607,7 @@ func (a *App) GetPosts(channelId string, offset int, limit int) (*model.PostList
 }
 
 func (a *App) GetPostsEtag(channelId string) string {
-	return (<-a.Srv.Store.Post().GetEtag(channelId, true)).Data.(string)
+	return a.Srv.Store.Post().GetEtag(channelId, true)
 }
 
 func (a *App) GetPostsSince(channelId string, time int64) (*model.PostList, *model.AppError) {
