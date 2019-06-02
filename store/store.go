@@ -318,7 +318,7 @@ type SessionStore interface {
 	GetSessionsWithActiveDeviceIds(userId string) ([]*model.Session, *model.AppError)
 	Remove(sessionIdOrToken string) StoreChannel
 	RemoveAllSessions() StoreChannel
-	PermanentDeleteSessionsByUser(teamId string) StoreChannel
+	PermanentDeleteSessionsByUser(teamId string) *model.AppError
 	UpdateLastActivityAt(sessionId string, time int64) StoreChannel
 	UpdateRoles(userId string, roles string) StoreChannel
 	UpdateDeviceId(id string, deviceId string, expiresAt int64) StoreChannel

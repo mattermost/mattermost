@@ -167,13 +167,13 @@ func (me SqlSessionStore) RemoveAllSessions() store.StoreChannel {
 	})
 }
 
-func (me SqlSessionStore) PermanentDeleteSessionsByUser(userId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		_, err := me.GetMaster().Exec("DELETE FROM Sessions WHERE UserId = :UserId", map[string]interface{}{"UserId": userId})
-		if err != nil {
-			result.Err = model.NewAppError("SqlSessionStore.RemoveAllSessionsForUser", "store.sql_session.permanent_delete_sessions_by_user.app_error", nil, "id="+userId+", err="+err.Error(), http.StatusInternalServerError)
-		}
-	})
+func (me SqlSessionStore) PermanentDeleteSessionsByUser(userId string) *model.AppError {
+	_, err := me.GetMaster().Exec("DELETE FROM Sessions WHERE UserId = :UserId", map[string]interface{}{"UserId": userId})
+	if err != nil {
+		return model.NewAppError("SqlSessionStore.RemoveAllSessionsForUser", "store.sql_session.permanent_delete_sessions_by_user.app_error", nil, "id="+userId+", err="+err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
 }
 
 func (me SqlSessionStore) UpdateLastActivityAt(sessionId string, time int64) store.StoreChannel {
