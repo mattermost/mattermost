@@ -1129,11 +1129,10 @@ func (s *SqlPostStore) GetPostsByIds(postIds []string) store.StoreChannel {
 	})
 }
 
-func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var posts []*model.PostForIndexing
-		_, err1 := s.GetSearchReplica().Select(&posts,
-			`SELECT
+func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) ([]*model.PostForIndexing, *model.AppError) {
+	var posts []*model.PostForIndexing
+	_, err := s.GetSearchReplica().Select(&posts,
+		`SELECT
 				PostsQuery.*, Channels.TeamId, ParentPosts.CreateAt ParentCreateAt
 			FROM (
 				SELECT
@@ -1159,14 +1158,12 @@ func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, endTime int64, 
 				Posts ParentPosts
 			ON
 				PostsQuery.RootId = ParentPosts.Id`,
-			map[string]interface{}{"StartTime": startTime, "EndTime": endTime, "NumPosts": limit})
+		map[string]interface{}{"StartTime": startTime, "EndTime": endTime, "NumPosts": limit})
 
-		if err1 != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_batch_for_indexing.get.app_error", nil, err1.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = posts
-		}
-	})
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_batch_for_indexing.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return posts, nil
 }
 
 func (s *SqlPostStore) PermanentDeleteBatch(endTime int64, limit int64) store.StoreChannel {
