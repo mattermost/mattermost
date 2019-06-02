@@ -817,14 +817,11 @@ func (a *App) searchPostsInTeam(teamId string, userId string, paramsList []*mode
 	}
 
 	posts := model.NewPostList()
-
 	for _, channel := range channels {
-
 		result := <-channel
 		if result.Err != nil {
 			return nil, result.Err
 		}
-
 		data := result.Data.(*model.PostList)
 		posts.Extend(data)
 	}

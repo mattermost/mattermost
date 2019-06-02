@@ -775,30 +775,30 @@ func (s *SqlPostStore) Search(teamId string, userId string, params *model.Search
 	}
 
 	searchQuery := `
-					SELECT
-						*
-					FROM
-						Posts
-					WHERE
-						DeleteAt = 0
-						AND Type NOT LIKE '` + model.POST_SYSTEM_MESSAGE_PREFIX + `%'
-						POST_FILTER
-						AND ChannelId IN (
-							SELECT
-								Id
-							FROM
-								Channels,
-								ChannelMembers
-							WHERE
-								Id = ChannelId
-									AND (TeamId = :TeamId OR TeamId = '')
-									` + userIdPart + `
-									` + deletedQueryPart + `
-									CHANNEL_FILTER)
-						CREATEDATE_CLAUSE
-						SEARCH_CLAUSE
-						ORDER BY CreateAt DESC
-					LIMIT 100`
+						SELECT
+							*
+						FROM
+							Posts
+						WHERE
+							DeleteAt = 0
+							AND Type NOT LIKE '` + model.POST_SYSTEM_MESSAGE_PREFIX + `%'
+							POST_FILTER
+							AND ChannelId IN (
+								SELECT
+									Id
+								FROM
+									Channels,
+									ChannelMembers
+								WHERE
+									Id = ChannelId
+										AND (TeamId = :TeamId OR TeamId = '')
+										` + userIdPart + `
+										` + deletedQueryPart + `
+										CHANNEL_FILTER)
+							CREATEDATE_CLAUSE
+							SEARCH_CLAUSE
+							ORDER BY CreateAt DESC
+						LIMIT 100`
 
 	if len(params.InChannels) > 1 {
 		inClause := ":InChannel0"
@@ -829,29 +829,29 @@ func (s *SqlPostStore) Search(teamId string, userId string, params *model.Search
 		}
 
 		searchQuery = strings.Replace(searchQuery, "POST_FILTER", `
-						AND UserId IN (
-							SELECT
-								Id
-							FROM
-								Users,
-								TeamMembers
-							WHERE
-								TeamMembers.TeamId = :TeamId
-								AND Users.Id = TeamMembers.UserId
-								AND Username IN (`+inClause+`))`, 1)
+							AND UserId IN (
+								SELECT
+									Id
+								FROM
+									Users,
+									TeamMembers
+								WHERE
+									TeamMembers.TeamId = :TeamId
+									AND Users.Id = TeamMembers.UserId
+									AND Username IN (`+inClause+`))`, 1)
 	} else if len(params.FromUsers) == 1 {
 		queryParams["FromUser"] = params.FromUsers[0]
 		searchQuery = strings.Replace(searchQuery, "POST_FILTER", `
-						AND UserId IN (
-							SELECT
-								Id
-							FROM
-								Users,
-								TeamMembers
-							WHERE
-								TeamMembers.TeamId = :TeamId
-								AND Users.Id = TeamMembers.UserId
-								AND Username = :FromUser)`, 1)
+							AND UserId IN (
+								SELECT
+									Id
+								FROM
+									Users,
+									TeamMembers
+								WHERE
+									TeamMembers.TeamId = :TeamId
+									AND Users.Id = TeamMembers.UserId
+									AND Username = :FromUser)`, 1)
 	} else {
 		searchQuery = strings.Replace(searchQuery, "POST_FILTER", "", 1)
 	}
@@ -930,22 +930,23 @@ func (s *SqlPostStore) Search(teamId string, userId string, params *model.Search
 	if err != nil {
 		mlog.Warn(fmt.Sprintf("Query error searching posts: %v", err.Error()))
 		// Don't return the error to the caller as it is of no use to the user. Instead return an empty set of search results.
-	} else {
-		for _, p := range posts {
-			if searchType == "Hashtags" {
-				exactMatch := false
-				for _, tag := range strings.Split(p.Hashtags, " ") {
-					if termMap[strings.ToUpper(tag)] {
-						exactMatch = true
-					}
-				}
-				if !exactMatch {
-					continue
+		return list, nil
+	}
+
+	for _, p := range posts {
+		if searchType == "Hashtags" {
+			exactMatch := false
+			for _, tag := range strings.Split(p.Hashtags, " ") {
+				if termMap[strings.ToUpper(tag)] {
+					exactMatch = true
 				}
 			}
-			list.AddPost(p)
-			list.AddOrder(p.Id)
+			if !exactMatch {
+				continue
+			}
 		}
+		list.AddPost(p)
+		list.AddOrder(p.Id)
 	}
 
 	list.MakeNonNil()
