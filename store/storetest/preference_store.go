@@ -199,7 +199,7 @@ func testPreferenceGetAll(t *testing.T, ss store.Store) {
 		t.Fatal("got the wrong number of preferences")
 	} else {
 		for i := 0; i < 3; i++ {
-			if result[i] != preferences[i] {
+			if result[0] != preferences[i] && result[1] != preferences[i] && result[2] != preferences[i] {
 				t.Fatal("got incorrect preferences")
 			}
 		}
@@ -336,7 +336,7 @@ func testPreferenceDelete(t *testing.T, ss store.Store) {
 	}
 	preferences, err = ss.Preference().GetAll(preference.UserId)
 	require.Nil(t, err)
-	assert.NotEqual(t, len(preferences), 0, "should've returned no preferences")
+	assert.Len(t, preferences, 0, "should've returned no preferences")
 
 }
 
@@ -363,7 +363,7 @@ func testPreferenceDeleteCategory(t *testing.T, ss store.Store) {
 
 	preferences, err := ss.Preference().GetAll(userId)
 	require.Nil(t, err)
-	assert.NotEqual(t, len(preferences), 2, "should've returned 2 preferences")
+	assert.Len(t, preferences, 2, "should've returned 2 preferences")
 
 	if err = ss.Preference().DeleteCategory(userId, category); err != nil {
 		t.Fatal(err)
@@ -371,7 +371,7 @@ func testPreferenceDeleteCategory(t *testing.T, ss store.Store) {
 
 	preferences, err = ss.Preference().GetAll(userId)
 	require.Nil(t, err)
-	assert.NotEqual(t, len(preferences), 0, "should've returned no preferences")
+	assert.Len(t, preferences, 0, "should've returned no preferences")
 }
 
 func testPreferenceDeleteCategoryAndName(t *testing.T, ss store.Store) {
@@ -399,11 +399,11 @@ func testPreferenceDeleteCategoryAndName(t *testing.T, ss store.Store) {
 
 	preferences, err := ss.Preference().GetAll(userId)
 	require.Nil(t, err)
-	assert.NotEqual(t, len(preferences), 1, "should've returned 1 preference")
+	assert.Len(t, preferences, 1, "should've returned 1 preference")
 
 	preferences, err = ss.Preference().GetAll(userId2)
 	require.Nil(t, err)
-	assert.NotEqual(t, len(preferences), 1, "should've returned 1 preference")
+	assert.Len(t, preferences, 1, "should've returned 1 preference")
 
 	if err = ss.Preference().DeleteCategoryAndName(category, name); err != nil {
 		t.Fatal(err)
@@ -411,11 +411,11 @@ func testPreferenceDeleteCategoryAndName(t *testing.T, ss store.Store) {
 
 	preferences, err = ss.Preference().GetAll(userId)
 	require.Nil(t, err)
-	assert.NotEqual(t, len(preferences), 0, "should've returned no preference")
+	assert.Len(t, preferences, 0, "should've returned no preference")
 
 	preferences, err = ss.Preference().GetAll(userId2)
 	require.Nil(t, err)
-	assert.NotEqual(t, len(preferences), 0, "should've returned no preference")
+	assert.Len(t, preferences, 0, "should've returned no preference")
 }
 
 func testPreferenceCleanupFlagsBatch(t *testing.T, ss store.Store) {
