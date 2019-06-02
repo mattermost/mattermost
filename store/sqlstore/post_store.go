@@ -583,30 +583,29 @@ func (s *SqlPostStore) GetPostsSince(channelId string, time int64, allowFromCach
 	})
 }
 
-func (s *SqlPostStore) GetPostsBefore(channelId string, postId string, limit int, offset int) store.StoreChannel {
+func (s *SqlPostStore) GetPostsBefore(channelId string, postId string, limit int, offset int) (*model.PostList, *model.AppError) {
 	return s.getPostsAround(channelId, postId, limit, offset, true)
 }
 
-func (s *SqlPostStore) GetPostsAfter(channelId string, postId string, limit int, offset int) store.StoreChannel {
+func (s *SqlPostStore) GetPostsAfter(channelId string, postId string, limit int, offset int) (*model.PostList, *model.AppError) {
 	return s.getPostsAround(channelId, postId, limit, offset, false)
 }
 
-func (s *SqlPostStore) getPostsAround(channelId string, postId string, limit int, offset int, before bool) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var direction string
-		var sort string
-		if before {
-			direction = "<"
-			sort = "DESC"
-		} else {
-			direction = ">"
-			sort = "ASC"
-		}
+func (s *SqlPostStore) getPostsAround(channelId string, postId string, limit int, offset int, before bool) (*model.PostList, *model.AppError) {
+	var direction string
+	var sort string
+	if before {
+		direction = "<"
+		sort = "DESC"
+	} else {
+		direction = ">"
+		sort = "ASC"
+	}
 
-		var posts []*model.Post
-		var parents []*model.Post
-		_, err1 := s.GetReplica().Select(&posts,
-			`SELECT
+	var posts []*model.Post
+	var parents []*model.Post
+	_, err := s.GetReplica().Select(&posts,
+		`SELECT
 			    *
 			FROM
 			    Posts
@@ -617,9 +616,12 @@ func (s *SqlPostStore) getPostsAround(channelId string, postId string, limit int
 			ORDER BY CreateAt `+sort+`
 			LIMIT :Limit
 			OFFSET :Offset`,
-			map[string]interface{}{"ChannelId": channelId, "PostId": postId, "Limit": limit, "Offset": offset})
-		_, err2 := s.GetReplica().Select(&parents,
-			`SELECT
+		map[string]interface{}{"ChannelId": channelId, "PostId": postId, "Limit": limit, "Offset": offset})
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_around.get.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
+	}
+	_, err = s.GetReplica().Select(&parents,
+		`SELECT
 			    q2.*
 			FROM
 				Posts q2
@@ -645,36 +647,31 @@ func (s *SqlPostStore) getPostsAround(channelId string, postId string, limit int
 				ChannelId = :ChannelId
 				AND DeleteAt = 0
 			ORDER BY CreateAt DESC`,
-			map[string]interface{}{"ChannelId": channelId, "PostId": postId, "Limit": limit, "Offset": offset})
+		map[string]interface{}{"ChannelId": channelId, "PostId": postId, "Limit": limit, "Offset": offset})
 
-		if err1 != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_around.get.app_error", nil, "channelId="+channelId+err1.Error(), http.StatusInternalServerError)
-		} else if err2 != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_around.get_parent.app_error", nil, "channelId="+channelId+err2.Error(), http.StatusInternalServerError)
-		} else {
-			list := model.NewPostList()
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_around.get_parent.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
+	}
+	list := model.NewPostList()
 
-			// We need to flip the order if we selected backwards
-			if before {
-				for _, p := range posts {
-					list.AddPost(p)
-					list.AddOrder(p.Id)
-				}
-			} else {
-				l := len(posts)
-				for i := range posts {
-					list.AddPost(posts[l-i-1])
-					list.AddOrder(posts[l-i-1].Id)
-				}
-			}
-
-			for _, p := range parents {
-				list.AddPost(p)
-			}
-
-			result.Data = list
+	// We need to flip the order if we selected backwards
+	if before {
+		for _, p := range posts {
+			list.AddPost(p)
+			list.AddOrder(p.Id)
 		}
-	})
+	} else {
+		l := len(posts)
+		for i := range posts {
+			list.AddPost(posts[l-i-1])
+			list.AddOrder(posts[l-i-1].Id)
+		}
+	}
+
+	for _, p := range parents {
+		list.AddPost(p)
+	}
+	return list, nil
 }
 
 func (s *SqlPostStore) getRootPosts(channelId string, offset int, limit int) store.StoreChannel {
