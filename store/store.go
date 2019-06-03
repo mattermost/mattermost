@@ -431,7 +431,7 @@ type PreferenceStore interface {
 	Save(preferences *model.Preferences) *model.AppError
 	GetCategory(userId string, category string) (model.Preferences, *model.AppError)
 	Get(userId string, category string, name string) (*model.Preference, *model.AppError)
-	GetAll(userId string) StoreChannel
+	GetAll(userId string) (model.Preferences, *model.AppError)
 	Delete(userId, category, name string) StoreChannel
 	DeleteCategory(userId string, category string) *model.AppError
 	DeleteCategoryAndName(category string, name string) *model.AppError
