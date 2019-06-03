@@ -786,11 +786,10 @@ func (a *App) OldImportUser(team *model.Team, user *model.User) *model.User {
 }
 
 func (a *App) OldImportChannel(channel *model.Channel) *model.Channel {
-	result := <-a.Srv.Store.Channel().Save(channel, *a.Config().TeamSettings.MaxChannelsPerTeam)
-	if result.Err != nil {
+	sc, err := a.Srv.Store.Channel().Save(channel, *a.Config().TeamSettings.MaxChannelsPerTeam)
+	if err != nil {
 		return nil
 	}
-	sc := result.Data.(*model.Channel)
 
 	return sc
 }

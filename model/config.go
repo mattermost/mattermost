@@ -1991,6 +1991,7 @@ type ElasticsearchSettings struct {
 	LiveIndexingBatchSize         *int    `restricted:"true"`
 	BulkIndexingTimeWindowSeconds *int    `restricted:"true"`
 	RequestTimeoutSeconds         *int    `restricted:"true"`
+	Trace                         *string `restricted:"true"`
 }
 
 func (s *ElasticsearchSettings) SetDefaults() {
@@ -2068,6 +2069,10 @@ func (s *ElasticsearchSettings) SetDefaults() {
 
 	if s.RequestTimeoutSeconds == nil {
 		s.RequestTimeoutSeconds = NewInt(ELASTICSEARCH_SETTINGS_DEFAULT_REQUEST_TIMEOUT_SECONDS)
+	}
+
+	if s.Trace == nil {
+		s.Trace = NewString("")
 	}
 }
 
@@ -2871,7 +2876,7 @@ func (mes *MessageExportSettings) isValid(fs FileSettings) *AppError {
 
 func (ds *DisplaySettings) isValid() *AppError {
 	if len(ds.CustomUrlSchemes) != 0 {
-		validProtocolPattern := regexp.MustCompile(`(?i)^\s*[a-z][a-z0-9-]*\s*$`)
+		validProtocolPattern := regexp.MustCompile(`(?i)^\s*[A-Za-z][A-Za-z0-9.+-]*\s*$`)
 
 		for _, scheme := range ds.CustomUrlSchemes {
 			if !validProtocolPattern.MatchString(scheme) {
