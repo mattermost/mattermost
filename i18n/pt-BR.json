@@ -69,7 +69,7 @@
   },
   {
     "id": "api.admin.delete_brand_image.storage.not_found",
-    "translation": "Unable to delete brand image, not found."
+    "translation": "Não foi possível excluir a imagem da marca, não foi encontrada."
   },
   {
     "id": "api.admin.file_read_error",
@@ -133,7 +133,7 @@
   },
   {
     "id": "api.bot.create_disabled",
-    "translation": "Bot creation has been disabled."
+    "translation": "Criação de bot foi desativada."
   },
   {
     "id": "api.channel.add_member.added",
@@ -141,11 +141,11 @@
   },
   {
     "id": "api.channel.add_members.error",
-    "translation": "Error adding channel member(s)."
+    "translation": "Erro ao adicionar membro(s) ao canal."
   },
   {
     "id": "api.channel.add_members.user_denied",
-    "translation": "Channel membership denied to the following users because of group constraints: {{ .UserIDs }}"
+    "translation": "Associação de canal negada devido a restrições de grupo aos seguintes usuários: {{ .UserIDs }}"
   },
   {
     "id": "api.channel.add_user.to.channel.failed.app_error",
@@ -301,7 +301,7 @@
   },
   {
     "id": "api.channel.remove_member.group_constrained.app_error",
-    "translation": "Unable to remove a user from a group-constrained channel."
+    "translation": "Não é possível remover um usuário de um canal restrito por grupo."
   },
   {
     "id": "api.channel.remove_member.removed",
@@ -309,11 +309,11 @@
   },
   {
     "id": "api.channel.remove_members.denied",
-    "translation": "Channel membership removal denied to the following users because of group constraints: {{ .UserIDs }}"
+    "translation": "Remoção de membros do canal negada devido a restrições de grupo aos seguintes usuários: {{ .UserIDs }}"
   },
   {
     "id": "api.channel.remove_user_from_channel.app_error",
-    "translation": "Não foi possível adicionar usuário para este tipo de canal"
+    "translation": "Não foi possível remover usuário para este tipo de canal"
   },
   {
     "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
@@ -3548,15 +3548,15 @@
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "Failed to create Elasticsearch template for channels"
+    "translation": "Falha ao criar modelo Elasticsearch para canais"
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "Failed to create Elasticsearch template for posts"
+    "translation": "Falha ao criar modelo Elasticsearch para publicações"
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "Failed to create Elasticsearch template for users"
+    "translation": "Falha ao criar modelo Elasticsearch para usuários"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
@@ -3568,7 +3568,7 @@
   },
   {
     "id": "ent.elasticsearch.delete_channel.error",
-    "translation": "Falha ao atualizar o canal"
+    "translation": "Falha ao excluir o canal"
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
@@ -3576,7 +3576,7 @@
   },
   {
     "id": "ent.elasticsearch.delete_user.error",
-    "translation": "Não foi possível apagar o post"
+    "translation": "Falha ao excluir o usuário"
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
@@ -3584,7 +3584,7 @@
   },
   {
     "id": "ent.elasticsearch.index_channel.error",
-    "translation": "Falha ao atualizar o canal"
+    "translation": "Falha ao indexar o canal"
   },
   {
     "id": "ent.elasticsearch.index_post.error",
@@ -3592,7 +3592,7 @@
   },
   {
     "id": "ent.elasticsearch.index_user.error",
-    "translation": "Não foi possível indexar o post"
+    "translation": "Falha ao indexar o usuário"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
@@ -3620,7 +3620,7 @@
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": "A busca usando o ElasticSearch foi desativada neste servidor"
+    "translation": "A busca no Elasticsearch foi desativada neste servidor"
   },
   {
     "id": "ent.elasticsearch.search_channels.search_failed",
@@ -3732,7 +3732,7 @@
   },
   {
     "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "error deleting team or channel memberships"
+    "translation": "erro ao excluir membros de equipe ou canal"
   },
   {
     "id": "ent.ldap.syncronize.get_all.app_error",
@@ -4328,7 +4328,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "O opção ElasticSearch IndexingEnabled deve ser configurada para verdadeiro quando o ElasticSearch SearchEnabled estiver configurado como verdadeiro."
+    "translation": "O opção Elastic Search IndexingEnabled deve ser configurada para verdadeiro quando o Elastic Search AutocompleteEnabled estiver configurado como verdadeiro."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
@@ -5120,7 +5120,7 @@
   },
   {
     "id": "model.user.is_valid.locale.app_error",
-    "translation": "Função inválida"
+    "translation": "Localidade inválida"
   },
   {
     "id": "model.user.is_valid.nickname.app_error",
@@ -5384,7 +5384,7 @@
   },
   {
     "id": "store.sql_channel.get_all_direct.app_error",
-    "translation": "Não é possível obter todos os canais"
+    "translation": "Não é possível obter todos os canais diretos"
   },
   {
     "id": "store.sql_channel.get_by_name.existing.app_error",
@@ -5416,7 +5416,7 @@
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.app_error",
-    "translation": "Não é possível obter canais"
+    "translation": "Não é possível obter canais por ids"
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.get.app_error",
@@ -5872,7 +5872,7 @@
   },
   {
     "id": "store.sql_group.app_error",
-    "translation": "Falha ao construir a consulta"
+    "translation": "falha ao construir a consulta"
   },
   {
     "id": "store.sql_group.group_syncable_already_deleted",
@@ -6080,7 +6080,7 @@
   },
   {
     "id": "store.sql_post.get_direct_posts.app_error",
-    "translation": "Não foi possível obter as publicações"
+    "translation": "Não foi possível obter as publicações diretas"
   },
   {
     "id": "store.sql_post.get_flagged_posts.app_error",
@@ -6296,7 +6296,7 @@
   },
   {
     "id": "store.sql_role.get_all.app_error",
-    "translation": "Não é possível obter todos os canais"
+    "translation": "Não é possível obter todos os papéis"
   },
   {
     "id": "store.sql_role.get_by_name.app_error",

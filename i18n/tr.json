@@ -1474,11 +1474,11 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
-    "translation": "Kanalda bulunmadıklarından @{{.Usernames}} ve @{{.LastUsername}} için bu anma nedeniyle bildirim gönderilmeyecek. Bağlantılı grupların üyesi olmadıklarından bu kanala eklenemezler. Onları bu kanala eklemek için ilgili gruplara eklenmeleri gerekir."
+    "translation": "Kanalda bulunmadıklarından @{{.Usernames}} ve @{{.LastUsername}} için bu anma nedeniyle bildirim gönderilmeyecek. İlişkilendirilmiş grupların üyesi olmadıklarından bu kanala eklenemezler. Onları bu kanala eklemek için ilişkilendirilmiş gruplara eklenmeleri gerekir."
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.one",
-    "translation": "Kanalda bulunmadıklarından @{{.Username}} için bu anma nedeniyle bildirim gönderilmeyecek. Bağlantılı grupların üyesi olmadıklarından bu kanala eklenemezler. Onları bu kanala eklemek için ilgili gruplara eklenmeleri gerekir."
+    "translation": "Kanalda bulunmadıklarından @{{.Username}} için bu anma nedeniyle bildirim gönderilmeyecek. İlişkilendirilmiş grupların üyesi olmadıklarından bu kanala eklenemezler. Onları bu kanala eklemek için ilişkilendirilmiş gruplara eklenmeleri gerekir."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
