@@ -76,6 +76,8 @@ TE_PACKAGES=$(shell go list ./...|grep -v plugin_tests)
 # Plugins Packages
 PLUGIN_PACKAGES=mattermost-plugin-zoom-v1.0.6
 PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.0.0
+PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.0.0
+PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.0.0
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -563,7 +565,7 @@ nuke: clean clean-docker ## Clean plus removes persistant server data.
 setup-mac: ## Adds macOS hosts entries for Docker.
 	echo $$(boot2docker ip 2> /dev/null) dockerhost | sudo tee -a /etc/hosts
 
-update-dependencies: ## Uses go get -u to update all the dependencies while holding back any that require it. 
+update-dependencies: ## Uses go get -u to update all the dependencies while holding back any that require it.
 	@echo Updating Dependencies
 
 	# Update all dependencies (does not update across major versions)
