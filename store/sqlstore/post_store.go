@@ -1133,31 +1133,31 @@ func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, endTime int64, 
 	var posts []*model.PostForIndexing
 	_, err := s.GetSearchReplica().Select(&posts,
 		`SELECT
-				PostsQuery.*, Channels.TeamId, ParentPosts.CreateAt ParentCreateAt
-			FROM (
-				SELECT
-					*
-				FROM
-					Posts
-				WHERE
-					Posts.CreateAt >= :StartTime
-				AND
-					Posts.CreateAt < :EndTime
-				ORDER BY
-					CreateAt ASC
-				LIMIT
-					1000
-				)
-			AS
-				PostsQuery
-			LEFT JOIN
-				Channels
-			ON
-				PostsQuery.ChannelId = Channels.Id
-			LEFT JOIN
-				Posts ParentPosts
-			ON
-				PostsQuery.RootId = ParentPosts.Id`,
+			PostsQuery.*, Channels.TeamId, ParentPosts.CreateAt ParentCreateAt
+		FROM (
+			SELECT
+				*
+			FROM
+				Posts
+			WHERE
+				Posts.CreateAt >= :StartTime
+			AND
+				Posts.CreateAt < :EndTime
+			ORDER BY
+				CreateAt ASC
+			LIMIT
+				1000
+			)
+		AS
+			PostsQuery
+		LEFT JOIN
+			Channels
+		ON
+			PostsQuery.ChannelId = Channels.Id
+		LEFT JOIN
+			Posts ParentPosts
+		ON
+			PostsQuery.RootId = ParentPosts.Id`,
 		map[string]interface{}{"StartTime": startTime, "EndTime": endTime, "NumPosts": limit})
 
 	if err != nil {
