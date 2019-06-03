@@ -1263,10 +1263,9 @@ func (s *SqlPostStore) GetMaxPostSize() int {
 	return s.maxPostSizeCached
 }
 
-func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var posts []*model.PostForExport
-		_, err1 := s.GetSearchReplica().Select(&posts, `
+func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string) ([]*model.PostForExport, *model.AppError) {
+	var posts []*model.PostForExport
+	_, err := s.GetSearchReplica().Select(&posts, `
                 SELECT
                     p1.*,
                     Users.Username as Username,
@@ -1290,14 +1289,13 @@ func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string) store
                     p1.Id
                 LIMIT
                     :Limit`,
-			map[string]interface{}{"Limit": limit, "AfterId": afterId})
+		map[string]interface{}{"Limit": limit, "AfterId": afterId})
 
-		if err1 != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetAllAfterForExport", "store.sql_post.get_posts.app_error", nil, err1.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = posts
-		}
-	})
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetAllAfterForExport", "store.sql_post.get_posts.app_error",
+			nil, err.Error(), http.StatusInternalServerError)
+	}
+	return posts, nil
 }
 
 func (s *SqlPostStore) GetRepliesForExport(parentId string) store.StoreChannel {
