@@ -1303,30 +1303,29 @@ func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string) store
 	})
 }
 
-func (s *SqlPostStore) GetRepliesForExport(parentId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var posts []*model.ReplyForExport
-		_, err1 := s.GetSearchReplica().Select(&posts, `
-                SELECT
-                    Posts.*,
-                    Users.Username as Username
-                FROM
-                    Posts
-                INNER JOIN
-                    Users ON Posts.UserId = Users.Id
-                WHERE
-                    Posts.ParentId = :ParentId
-                    AND Posts.DeleteAt = 0
-                ORDER BY
-                    Posts.Id`,
-			map[string]interface{}{"ParentId": parentId})
+func (s *SqlPostStore) GetRepliesForExport(parentId string) ([]*model.ReplyForExport, *model.AppError) {
 
-		if err1 != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetAllAfterForExport", "store.sql_post.get_posts.app_error", nil, err1.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = posts
-		}
-	})
+	var posts []*model.ReplyForExport
+	_, err1 := s.GetSearchReplica().Select(&posts, `
+			SELECT
+				Posts.*,
+				Users.Username as Username
+			FROM
+				Posts
+			INNER JOIN
+				Users ON Posts.UserId = Users.Id
+			WHERE
+				Posts.ParentId = :ParentId
+				AND Posts.DeleteAt = 0
+			ORDER BY
+				Posts.Id`,
+		map[string]interface{}{"ParentId": parentId})
+
+	if err1 != nil {
+		return nil, model.NewAppError("SqlPostStore.GetAllAfterForExport", "store.sql_post.get_posts.app_error", nil, err1.Error(), http.StatusInternalServerError)
+	} else {
+		return posts, nil
+	}
 }
 
 func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId string) ([]*model.DirectPostForExport, *model.AppError) {
