@@ -2030,9 +2030,8 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 	o3.CreateAt = 100000
 	o3 = (<-ss.Post().Save(o3)).Data.(*model.Post)
 
-	if _, err := ss.Post().PermanentDeleteBatch(2000, 1000); err != nil {
-		t.Fatal(err)
-	}
+	_, err := ss.Post().PermanentDeleteBatch(2000, 1000)
+	require.Nil(t, err)
 
 	if _, err := ss.Post().Get(o1.Id); err == nil {
 		t.Fatalf("Should have not found post 1 after purge")
