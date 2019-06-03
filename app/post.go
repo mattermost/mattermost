@@ -599,23 +599,15 @@ func (a *App) PatchPost(postId string, patch *model.PostPatch) (*model.Post, *mo
 }
 
 func (a *App) GetPostsPage(channelId string, page int, perPage int) (*model.PostList, *model.AppError) {
-	result := <-a.Srv.Store.Post().GetPosts(channelId, page*perPage, perPage, true)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.PostList), nil
+	return a.Srv.Store.Post().GetPosts(channelId, page*perPage, perPage, true)
 }
 
 func (a *App) GetPosts(channelId string, offset int, limit int) (*model.PostList, *model.AppError) {
-	result := <-a.Srv.Store.Post().GetPosts(channelId, offset, limit, true)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.PostList), nil
+	return a.Srv.Store.Post().GetPosts(channelId, offset, limit, true)
 }
 
 func (a *App) GetPostsEtag(channelId string) string {
-	return (<-a.Srv.Store.Post().GetEtag(channelId, true)).Data.(string)
+	return a.Srv.Store.Post().GetEtag(channelId, true)
 }
 
 func (a *App) GetPostsSince(channelId string, time int64) (*model.PostList, *model.AppError) {
@@ -627,11 +619,7 @@ func (a *App) GetPostsSince(channelId string, time int64) (*model.PostList, *mod
 }
 
 func (a *App) GetSinglePost(postId string) (*model.Post, *model.AppError) {
-	result := <-a.Srv.Store.Post().GetSingle(postId)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.Post), nil
+	return a.Srv.Store.Post().GetSingle(postId)
 }
 
 func (a *App) GetPostThread(postId string) (*model.PostList, *model.AppError) {
@@ -647,11 +635,7 @@ func (a *App) GetFlaggedPostsForTeam(userId, teamId string, offset int, limit in
 }
 
 func (a *App) GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) (*model.PostList, *model.AppError) {
-	result := <-a.Srv.Store.Post().GetFlaggedPostsForChannel(userId, channelId, offset, limit)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.PostList), nil
+	return a.Srv.Store.Post().GetFlaggedPostsForChannel(userId, channelId, offset, limit)
 }
 
 func (a *App) GetPermalinkPost(postId string, userId string) (*model.PostList, *model.AppError) {
@@ -709,12 +693,11 @@ func (a *App) GetPostsAroundPost(postId, channelId string, offset, limit int, be
 }
 
 func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppError) {
-	result := <-a.Srv.Store.Post().GetSingle(postId)
-	if result.Err != nil {
-		result.Err.StatusCode = http.StatusBadRequest
-		return nil, result.Err
+	post, err := a.Srv.Store.Post().GetSingle(postId)
+	if err != nil {
+		err.StatusCode = http.StatusBadRequest
+		return nil, err
 	}
-	post := result.Data.(*model.Post)
 
 	channel, err := a.GetChannel(post.ChannelId)
 	if err != nil {
@@ -945,7 +928,13 @@ func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamId strin
 }
 
 func (a *App) GetFileInfosForPostWithMigration(postId string) ([]*model.FileInfo, *model.AppError) {
-	pchan := a.Srv.Store.Post().GetSingle(postId)
+
+	pchan := make(chan store.StoreResult, 1)
+	go func() {
+		post, err := a.Srv.Store.Post().GetSingle(postId)
+		pchan <- store.StoreResult{Data: post, Err: err}
+		close(pchan)
+	}()
 
 	infos, err := a.GetFileInfosForPost(postId, false)
 	if err != nil {

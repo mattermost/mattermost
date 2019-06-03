@@ -246,7 +246,7 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(clientId, grantType, redirectUri, c
 		var authData *model.AuthData
 		result := <-a.Srv.Store.OAuth().GetAuthData(code)
 		if result.Err != nil {
-			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.expired_code.app_error", nil, "", http.StatusInternalServerError)
+			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.expired_code.app_error", nil, "", http.StatusBadRequest)
 		}
 		authData = result.Data.(*model.AuthData)
 
@@ -267,7 +267,7 @@ func (a *App) GetOAuthAccessTokenForCodeFlow(clientId, grantType, redirectUri, c
 
 		result = <-a.Srv.Store.OAuth().GetPreviousAccessData(user.Id, clientId)
 		if result.Err != nil {
-			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal.app_error", nil, "", http.StatusInternalServerError)
+			return nil, model.NewAppError("GetOAuthAccessToken", "api.oauth.get_access_token.internal.app_error", nil, "", http.StatusBadRequest)
 		}
 
 		if result.Data != nil {
@@ -342,11 +342,10 @@ func (a *App) newSession(appName string, user *model.User) (*model.Session, *mod
 	session.AddProp(model.SESSION_PROP_OS, "OAuth2")
 	session.AddProp(model.SESSION_PROP_BROWSER, "OAuth2")
 
-	result := <-a.Srv.Store.Session().Save(session)
-	if result.Err != nil {
+	session, err := a.Srv.Store.Session().Save(session)
+	if err != nil {
 		return nil, model.NewAppError("newSession", "api.oauth.get_access_token.internal_session.app_error", nil, "", http.StatusInternalServerError)
 	}
-	session = result.Data.(*model.Session)
 
 	a.AddSessionToCache(session)
 
