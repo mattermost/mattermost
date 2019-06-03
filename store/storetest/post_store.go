@@ -116,14 +116,14 @@ func testPostStoreGet(t *testing.T, ss store.Store) {
 	o1.UserId = model.NewId()
 	o1.Message = "zz" + model.NewId() + "b"
 
-	etag1 := (<-ss.Post().GetEtag(o1.ChannelId, false)).Data.(string)
+	etag1 := ss.Post().GetEtag(o1.ChannelId, false)
 	if strings.Index(etag1, model.CurrentVersion+".") != 0 {
 		t.Fatal("Invalid Etag")
 	}
 
 	o1 = (<-ss.Post().Save(o1)).Data.(*model.Post)
 
-	etag2 := (<-ss.Post().GetEtag(o1.ChannelId, false)).Data.(string)
+	etag2 := ss.Post().GetEtag(o1.ChannelId, false)
 	if strings.Index(etag2, fmt.Sprintf("%v.%v", model.CurrentVersion, o1.UpdateAt)) != 0 {
 		t.Fatal("Invalid Etag")
 	}
@@ -172,13 +172,13 @@ func testGetEtagCache(t *testing.T, ss store.Store) {
 	o1.UserId = model.NewId()
 	o1.Message = "zz" + model.NewId() + "b"
 
-	etag1 := (<-ss.Post().GetEtag(o1.ChannelId, true)).Data.(string)
+	etag1 := ss.Post().GetEtag(o1.ChannelId, true)
 	if strings.Index(etag1, model.CurrentVersion+".") != 0 {
 		t.Fatal("Invalid Etag")
 	}
 
 	// This one should come from the cache
-	etag2 := (<-ss.Post().GetEtag(o1.ChannelId, true)).Data.(string)
+	etag2 := ss.Post().GetEtag(o1.ChannelId, true)
 	if strings.Index(etag2, model.CurrentVersion+".") != 0 {
 		t.Fatal("Invalid Etag")
 	}
@@ -186,7 +186,7 @@ func testGetEtagCache(t *testing.T, ss store.Store) {
 	o1 = (<-ss.Post().Save(o1)).Data.(*model.Post)
 
 	// We have not invalidated the cache so this should be the same as above
-	etag3 := (<-ss.Post().GetEtag(o1.ChannelId, true)).Data.(string)
+	etag3 := ss.Post().GetEtag(o1.ChannelId, true)
 	if strings.Index(etag3, etag2) != 0 {
 		t.Fatal("Invalid Etag")
 	}
@@ -194,7 +194,7 @@ func testGetEtagCache(t *testing.T, ss store.Store) {
 	ss.Post().InvalidateLastPostTimeCache(o1.ChannelId)
 
 	// Invalidated cache so we should get a good result
-	etag4 := (<-ss.Post().GetEtag(o1.ChannelId, true)).Data.(string)
+	etag4 := ss.Post().GetEtag(o1.ChannelId, true)
 	if strings.Index(etag4, fmt.Sprintf("%v.%v", model.CurrentVersion, o1.UpdateAt)) != 0 {
 		t.Fatal("Invalid Etag")
 	}
@@ -332,7 +332,7 @@ func testPostStoreDelete(t *testing.T, ss store.Store) {
 	o1.Message = "zz" + model.NewId() + "b"
 	deleteByID := model.NewId()
 
-	etag1 := (<-ss.Post().GetEtag(o1.ChannelId, false)).Data.(string)
+	etag1 := ss.Post().GetEtag(o1.ChannelId, false)
 	if strings.Index(etag1, model.CurrentVersion+".") != 0 {
 		t.Fatal("Invalid Etag")
 	}
@@ -363,7 +363,7 @@ func testPostStoreDelete(t *testing.T, ss store.Store) {
 		t.Fatal("Missing id should have failed")
 	}
 
-	etag2 := (<-ss.Post().GetEtag(o1.ChannelId, false)).Data.(string)
+	etag2 := ss.Post().GetEtag(o1.ChannelId, false)
 	if strings.Index(etag2, model.CurrentVersion+".") != 0 {
 		t.Fatal("Invalid Etag")
 	}
@@ -1654,7 +1654,8 @@ func testPostStoreGetFlaggedPostsForChannel(t *testing.T, ss store.Store) {
 	o4 = (<-ss.Post().Save(o4)).Data.(*model.Post)
 	time.Sleep(2 * time.Millisecond)
 
-	r := (<-ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 0, 10)).Data.(*model.PostList)
+	r, err := ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 0, 10)
+	require.Nil(t, err)
 
 	if len(r.Order) != 0 {
 		t.Fatal("should be empty")
@@ -1667,10 +1668,11 @@ func testPostStoreGetFlaggedPostsForChannel(t *testing.T, ss store.Store) {
 		Value:    "true",
 	}
 
-	err := ss.Preference().Save(&model.Preferences{preference})
+	err = ss.Preference().Save(&model.Preferences{preference})
 	require.Nil(t, err)
 
-	r = (<-ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 0, 10)).Data.(*model.PostList)
+	r, err = ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 0, 10)
+	require.Nil(t, err)
 
 	if len(r.Order) != 1 {
 		t.Fatal("should have 1 post")
@@ -1684,25 +1686,29 @@ func testPostStoreGetFlaggedPostsForChannel(t *testing.T, ss store.Store) {
 	err = ss.Preference().Save(&model.Preferences{preference})
 	require.Nil(t, err)
 
-	r = (<-ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 0, 1)).Data.(*model.PostList)
+	r, err = ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 0, 1)
+	require.Nil(t, err)
 
 	if len(r.Order) != 1 {
 		t.Fatal("should have 1 post")
 	}
 
-	r = (<-ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 1, 1)).Data.(*model.PostList)
+	r, err = ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 1, 1)
+	require.Nil(t, err)
 
 	if len(r.Order) != 1 {
 		t.Fatal("should have 1 post")
 	}
 
-	r = (<-ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 1000, 10)).Data.(*model.PostList)
+	r, err = ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 1000, 10)
+	require.Nil(t, err)
 
 	if len(r.Order) != 0 {
 		t.Fatal("should be empty")
 	}
 
-	r = (<-ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 0, 10)).Data.(*model.PostList)
+	r, err = ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 0, 10)
+	require.Nil(t, err)
 
 	if len(r.Order) != 2 {
 		t.Fatal("should have 2 posts")
@@ -1712,7 +1718,8 @@ func testPostStoreGetFlaggedPostsForChannel(t *testing.T, ss store.Store) {
 	err = ss.Preference().Save(&model.Preferences{preference})
 	require.Nil(t, err)
 
-	r = (<-ss.Post().GetFlaggedPostsForChannel(o1.UserId, o4.ChannelId, 0, 10)).Data.(*model.PostList)
+	r, err = ss.Post().GetFlaggedPostsForChannel(o1.UserId, o4.ChannelId, 0, 10)
+	require.Nil(t, err)
 
 	if len(r.Order) != 1 {
 		t.Fatal("should have 1 post")

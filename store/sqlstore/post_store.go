@@ -236,33 +236,30 @@ func (s *SqlPostStore) GetFlaggedPostsForTeam(userId, teamId string, offset int,
 	return pl, nil
 }
 
-func (s *SqlPostStore) GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		pl := model.NewPostList()
+func (s *SqlPostStore) GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) (*model.PostList, *model.AppError) {
+	pl := model.NewPostList()
 
-		var posts []*model.Post
-		query := `
-			SELECT
-				*
-			FROM Posts
-			WHERE
-				Id IN (SELECT Name FROM Preferences WHERE UserId = :UserId AND Category = :Category)
-				AND ChannelId = :ChannelId
-				AND DeleteAt = 0
-			ORDER BY CreateAt DESC
-			LIMIT :Limit OFFSET :Offset`
+	var posts []*model.Post
+	query := `
+		SELECT
+			*
+		FROM Posts
+		WHERE
+			Id IN (SELECT Name FROM Preferences WHERE UserId = :UserId AND Category = :Category)
+			AND ChannelId = :ChannelId
+			AND DeleteAt = 0
+		ORDER BY CreateAt DESC
+		LIMIT :Limit OFFSET :Offset`
 
-		if _, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_FLAGGED_POST, "ChannelId": channelId, "Offset": offset, "Limit": limit}); err != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetFlaggedPostsForChannel", "store.sql_post.get_flagged_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			for _, post := range posts {
-				pl.AddPost(post)
-				pl.AddOrder(post.Id)
-			}
-		}
+	if _, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_FLAGGED_POST, "ChannelId": channelId, "Offset": offset, "Limit": limit}); err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetFlaggedPostsForChannel", "store.sql_post.get_flagged_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	for _, post := range posts {
+		pl.AddPost(post)
+		pl.AddOrder(post.Id)
+	}
 
-		result.Data = pl
-	})
+	return pl, nil
 }
 
 func (s *SqlPostStore) Get(id string) (*model.PostList, *model.AppError) {
@@ -331,36 +328,35 @@ func (s *SqlPostStore) InvalidateLastPostTimeCache(channelId string) {
 	}
 }
 
-func (s *SqlPostStore) GetEtag(channelId string, allowFromCache bool) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if allowFromCache {
-			if cacheItem, ok := s.lastPostTimeCache.Get(channelId); ok {
-				if s.metrics != nil {
-					s.metrics.IncrementMemCacheHitCounter("Last Post Time")
-				}
-				result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, cacheItem.(int64))
-				return
-			} else {
-				if s.metrics != nil {
-					s.metrics.IncrementMemCacheMissCounter("Last Post Time")
-				}
+func (s *SqlPostStore) GetEtag(channelId string, allowFromCache bool) string {
+	if allowFromCache {
+		if cacheItem, ok := s.lastPostTimeCache.Get(channelId); ok {
+			if s.metrics != nil {
+				s.metrics.IncrementMemCacheHitCounter("Last Post Time")
 			}
+			return fmt.Sprintf("%v.%v", model.CurrentVersion, cacheItem.(int64))
 		} else {
 			if s.metrics != nil {
 				s.metrics.IncrementMemCacheMissCounter("Last Post Time")
 			}
 		}
-
-		var et etagPosts
-		err := s.GetReplica().SelectOne(&et, "SELECT Id, UpdateAt FROM Posts WHERE ChannelId = :ChannelId ORDER BY UpdateAt DESC LIMIT 1", map[string]interface{}{"ChannelId": channelId})
-		if err != nil {
-			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, model.GetMillis())
-		} else {
-			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, et.UpdateAt)
+	} else {
+		if s.metrics != nil {
+			s.metrics.IncrementMemCacheMissCounter("Last Post Time")
 		}
+	}
 
-		s.lastPostTimeCache.AddWithExpiresInSecs(channelId, et.UpdateAt, LAST_POST_TIME_CACHE_SEC)
-	})
+	var et etagPosts
+	err := s.GetReplica().SelectOne(&et, "SELECT Id, UpdateAt FROM Posts WHERE ChannelId = :ChannelId ORDER BY UpdateAt DESC LIMIT 1", map[string]interface{}{"ChannelId": channelId})
+	var result string
+	if err != nil {
+		result = fmt.Sprintf("%v.%v", model.CurrentVersion, model.GetMillis())
+	} else {
+		result = fmt.Sprintf("%v.%v", model.CurrentVersion, et.UpdateAt)
+	}
+
+	s.lastPostTimeCache.AddWithExpiresInSecs(channelId, et.UpdateAt, LAST_POST_TIME_CACHE_SEC)
+	return result
 }
 
 func (s *SqlPostStore) Delete(postId string, time int64, deleteByID string) *model.AppError {

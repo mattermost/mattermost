@@ -607,7 +607,7 @@ func (a *App) GetPosts(channelId string, offset int, limit int) (*model.PostList
 }
 
 func (a *App) GetPostsEtag(channelId string) string {
-	return (<-a.Srv.Store.Post().GetEtag(channelId, true)).Data.(string)
+	return a.Srv.Store.Post().GetEtag(channelId, true)
 }
 
 func (a *App) GetPostsSince(channelId string, time int64) (*model.PostList, *model.AppError) {
@@ -635,11 +635,7 @@ func (a *App) GetFlaggedPostsForTeam(userId, teamId string, offset int, limit in
 }
 
 func (a *App) GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) (*model.PostList, *model.AppError) {
-	result := <-a.Srv.Store.Post().GetFlaggedPostsForChannel(userId, channelId, offset, limit)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.PostList), nil
+	return a.Srv.Store.Post().GetFlaggedPostsForChannel(userId, channelId, offset, limit)
 }
 
 func (a *App) GetPermalinkPost(postId string, userId string) (*model.PostList, *model.AppError) {
