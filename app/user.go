@@ -1415,8 +1415,8 @@ func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 		return err
 	}
 
-	if result := <-a.Srv.Store.Session().PermanentDeleteSessionsByUser(user.Id); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.Session().PermanentDeleteSessionsByUser(user.Id); err != nil {
+		return err
 	}
 
 	if result := <-a.Srv.Store.UserAccessToken().DeleteAllForUser(user.Id); result.Err != nil {
