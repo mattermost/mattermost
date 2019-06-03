@@ -78,6 +78,7 @@ PLUGIN_PACKAGES=mattermost-plugin-zoom-v1.0.6
 PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.0.0
+PLUGIN_PACKAGES += mattermost-plugin-jira-v2.0.0
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
