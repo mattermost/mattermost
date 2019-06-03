@@ -45,7 +45,7 @@ func (a *App) PreparePostListForClient(originalList *model.PostList) *model.Post
 	}
 
 	for id, originalPost := range originalList.Posts {
-		post := a.PreparePostForClient(originalPost, false)
+		post := a.PreparePostForClient(originalPost, false, false)
 
 		list.Posts[id] = post
 	}
@@ -53,7 +53,7 @@ func (a *App) PreparePostListForClient(originalList *model.PostList) *model.Post
 	return list
 }
 
-func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost bool) *model.Post {
+func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost bool, isEditPost bool) *model.Post {
 	post := originalPost.Clone()
 
 	// Proxy image links before constructing metadata so that requests go through the proxy
@@ -67,15 +67,15 @@ func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost bool) *mo
 
 	// Emojis and reaction counts
 	if emojis, reactions, err := a.getEmojisAndReactionsForPost(post); err != nil {
-		mlog.Warn("Failed to get emojis and reactions for a post", mlog.String("post_id", post.Id), mlog.Any("err", err))
+		mlog.Warn("Failed to get emojis and reactions for a post", mlog.String("post_id", post.Id), mlog.Err(err))
 	} else {
 		post.Metadata.Emojis = emojis
 		post.Metadata.Reactions = reactions
 	}
 
 	// Files
-	if fileInfos, err := a.getFileMetadataForPost(post); err != nil {
-		mlog.Warn("Failed to get files for a post", mlog.String("post_id", post.Id), mlog.Any("err", err))
+	if fileInfos, err := a.getFileMetadataForPost(post, isNewPost || isEditPost); err != nil {
+		mlog.Warn("Failed to get files for a post", mlog.String("post_id", post.Id), mlog.Err(err))
 	} else {
 		post.Metadata.Files = fileInfos
 	}
@@ -84,7 +84,7 @@ func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost bool) *mo
 	firstLink, images := getFirstLinkAndImages(post.Message)
 
 	if embed, err := a.getEmbedForPost(post, firstLink, isNewPost); err != nil {
-		mlog.Debug("Failed to get embedded content for a post", mlog.String("post_id", post.Id), mlog.Any("err", err))
+		mlog.Debug("Failed to get embedded content for a post", mlog.String("post_id", post.Id), mlog.Err(err))
 	} else if embed == nil {
 		post.Metadata.Embeds = []*model.PostEmbed{}
 	} else {
@@ -96,12 +96,12 @@ func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost bool) *mo
 	return post
 }
 
-func (a *App) getFileMetadataForPost(post *model.Post) ([]*model.FileInfo, *model.AppError) {
+func (a *App) getFileMetadataForPost(post *model.Post, fromMaster bool) ([]*model.FileInfo, *model.AppError) {
 	if len(post.FileIds) == 0 {
 		return nil, nil
 	}
 
-	return a.GetFileInfosForPost(post.Id)
+	return a.GetFileInfosForPost(post.Id, fromMaster)
 }
 
 func (a *App) getEmojisAndReactionsForPost(post *model.Post) ([]*model.Emoji, []*model.Reaction, *model.AppError) {
@@ -195,7 +195,7 @@ func (a *App) getImagesForPost(post *model.Post, imageURLs []string, isNewPost b
 	for _, imageURL := range imageURLs {
 		if _, image, err := a.getLinkMetadata(imageURL, post.CreateAt, isNewPost); err != nil {
 			mlog.Debug("Failed to get dimensions of an image in a post",
-				mlog.String("post_id", post.Id), mlog.String("image_url", imageURL), mlog.Any("err", err))
+				mlog.String("post_id", post.Id), mlog.String("image_url", imageURL), mlog.Err(err))
 		} else if image != nil {
 			images[imageURL] = image
 		}
@@ -515,6 +515,11 @@ func parseImages(body io.Reader) (*model.PostImage, error) {
 		}
 
 		image.FrameCount = frameCount
+	}
+
+	// Make image information nil when the format is tiff
+	if format == "tiff" {
+		image = nil
 	}
 
 	return image, nil

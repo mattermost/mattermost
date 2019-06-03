@@ -56,10 +56,11 @@ type LdapGroupSearchOpts struct {
 }
 
 type GroupSearchOpts struct {
-	Q                   string
-	NotAssociatedToTeam string
-	IncludeMemberCount  bool
-	PageOpts            *PageOpts
+	Q                      string
+	NotAssociatedToTeam    string
+	NotAssociatedToChannel string
+	IncludeMemberCount     bool
+	PageOpts               *PageOpts
 }
 
 type PageOpts struct {

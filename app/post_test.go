@@ -14,7 +14,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/store/storetest"
 )
 
@@ -191,22 +190,25 @@ func TestAttachFilesToPost(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		info1 := store.Must(th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
+		info1, err := th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
 			CreatorId: th.BasicUser.Id,
 			Path:      "path.txt",
-		})).(*model.FileInfo)
-		info2 := store.Must(th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
+		})
+		require.Nil(t, err)
+
+		info2, err := th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
 			CreatorId: th.BasicUser.Id,
 			Path:      "path.txt",
-		})).(*model.FileInfo)
+		})
+		require.Nil(t, err)
 
 		post := th.BasicPost
 		post.FileIds = []string{info1.Id, info2.Id}
 
-		err := th.App.attachFilesToPost(post)
+		err = th.App.attachFilesToPost(post)
 		assert.Nil(t, err)
 
-		infos, err := th.App.GetFileInfosForPost(post.Id)
+		infos, err := th.App.GetFileInfosForPost(post.Id, false)
 		assert.Nil(t, err)
 		assert.Len(t, infos, 2)
 	})
@@ -215,23 +217,26 @@ func TestAttachFilesToPost(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
-		info1 := store.Must(th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
+		info1, err := th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
 			CreatorId: th.BasicUser.Id,
 			Path:      "path.txt",
 			PostId:    model.NewId(),
-		})).(*model.FileInfo)
-		info2 := store.Must(th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
+		})
+		require.Nil(t, err)
+
+		info2, err := th.App.Srv.Store.FileInfo().Save(&model.FileInfo{
 			CreatorId: th.BasicUser.Id,
 			Path:      "path.txt",
-		})).(*model.FileInfo)
+		})
+		require.Nil(t, err)
 
 		post := th.BasicPost
 		post.FileIds = []string{info1.Id, info2.Id}
 
-		err := th.App.attachFilesToPost(post)
+		err = th.App.attachFilesToPost(post)
 		assert.Nil(t, err)
 
-		infos, err := th.App.GetFileInfosForPost(post.Id)
+		infos, err := th.App.GetFileInfosForPost(post.Id, false)
 		assert.Nil(t, err)
 		assert.Len(t, infos, 1)
 		assert.Equal(t, info2.Id, infos[0].Id)
@@ -559,25 +564,21 @@ func TestMaxPostSize(t *testing.T) {
 		Description         string
 		StoreMaxPostSize    int
 		ExpectedMaxPostSize int
-		ExpectedError       *model.AppError
 	}{
 		{
-			"error fetching max post size",
+			"Max post size less than model.model.POST_MESSAGE_MAX_RUNES_V1 ",
 			0,
 			model.POST_MESSAGE_MAX_RUNES_V1,
-			model.NewAppError("TestMaxPostSize", "this is an error", nil, "", http.StatusBadRequest),
 		},
 		{
 			"4000 rune limit",
 			4000,
 			4000,
-			nil,
 		},
 		{
 			"16383 rune limit",
 			16383,
 			16383,
-			nil,
 		},
 	}
 
@@ -589,12 +590,7 @@ func TestMaxPostSize(t *testing.T) {
 			mockStore := &storetest.Store{}
 			defer mockStore.AssertExpectations(t)
 
-			mockStore.PostStore.On("GetMaxPostSize").Return(
-				storetest.NewStoreChannel(store.StoreResult{
-					Data: testCase.StoreMaxPostSize,
-					Err:  testCase.ExpectedError,
-				}),
-			)
+			mockStore.PostStore.On("GetMaxPostSize").Return(testCase.StoreMaxPostSize)
 
 			app := App{
 				Srv: &Server{
@@ -623,7 +619,7 @@ func TestDeletePostWithFileAttachments(t *testing.T) {
 		t.Fatal(err)
 	} else {
 		defer func() {
-			<-th.App.Srv.Store.FileInfo().PermanentDelete(info1.Id)
+			th.App.Srv.Store.FileInfo().PermanentDelete(info1.Id)
 			th.App.RemoveFile(info1.Path)
 		}()
 	}

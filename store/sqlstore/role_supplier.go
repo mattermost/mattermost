@@ -79,52 +79,43 @@ func initSqlSupplierRoles(sqlStore SqlStore) {
 	}
 }
 
-func (s *SqlSupplier) RoleSave(ctx context.Context, role *model.Role, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
-	result := store.NewSupplierResult()
-
+func (s *SqlSupplier) RoleSave(ctx context.Context, role *model.Role, hints ...store.LayeredStoreHint) (*model.Role, *model.AppError) {
 	// Check the role is valid before proceeding.
 	if !role.IsValidWithoutId() {
-		result.Err = model.NewAppError("SqlRoleStore.Save", "store.sql_role.save.invalid_role.app_error", nil, "", http.StatusBadRequest)
-		return result
+		return nil, model.NewAppError("SqlRoleStore.Save", "store.sql_role.save.invalid_role.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if len(role.Id) == 0 {
-		if transaction, err := s.GetMaster().Begin(); err != nil {
-			result.Err = model.NewAppError("SqlRoleStore.RoleSave", "store.sql_role.save.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return result
-		} else {
-			defer finalizeTransaction(transaction)
-			result = s.createRole(ctx, role, transaction, hints...)
-
-			if result.Err != nil {
-				transaction.Rollback()
-			} else if err := transaction.Commit(); err != nil {
-				result.Err = model.NewAppError("SqlRoleStore.RoleSave", "store.sql_role.save_role.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
-			}
+		transaction, err := s.GetMaster().Begin()
+		if err != nil {
+			return nil, model.NewAppError("SqlRoleStore.RoleSave", "store.sql_role.save.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
-	} else {
-		dbRole := NewRoleFromModel(role)
-
-		dbRole.UpdateAt = model.GetMillis()
-		if rowsChanged, err := s.GetMaster().Update(dbRole); err != nil {
-			result.Err = model.NewAppError("SqlRoleStore.Save", "store.sql_role.save.update.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else if rowsChanged != 1 {
-			result.Err = model.NewAppError("SqlRoleStore.Save", "store.sql_role.save.update.app_error", nil, "no record to update", http.StatusInternalServerError)
+		defer finalizeTransaction(transaction)
+		createdRole, appErr := s.createRole(ctx, role, transaction, hints...)
+		if appErr != nil {
+			transaction.Rollback()
+			return nil, appErr
+		} else if err := transaction.Commit(); err != nil {
+			return nil, model.NewAppError("SqlRoleStore.RoleSave", "store.sql_role.save_role.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
-
-		result.Data = dbRole.ToModel()
+		return createdRole, nil
 	}
 
-	return result
+	dbRole := NewRoleFromModel(role)
+	dbRole.UpdateAt = model.GetMillis()
+	if rowsChanged, err := s.GetMaster().Update(dbRole); err != nil {
+		return nil, model.NewAppError("SqlRoleStore.Save", "store.sql_role.save.update.app_error", nil, err.Error(), http.StatusInternalServerError)
+	} else if rowsChanged != 1 {
+		return nil, model.NewAppError("SqlRoleStore.Save", "store.sql_role.save.update.app_error", nil, "no record to update", http.StatusInternalServerError)
+	}
+
+	return dbRole.ToModel(), nil
 }
 
-func (s *SqlSupplier) createRole(ctx context.Context, role *model.Role, transaction *gorp.Transaction, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
-	result := store.NewSupplierResult()
-
+func (s *SqlSupplier) createRole(ctx context.Context, role *model.Role, transaction *gorp.Transaction, hints ...store.LayeredStoreHint) (*model.Role, *model.AppError) {
 	// Check the role is valid before proceeding.
 	if !role.IsValidWithoutId() {
-		result.Err = model.NewAppError("SqlRoleStore.Save", "store.sql_role.save.invalid_role.app_error", nil, "", http.StatusBadRequest)
-		return result
+		return nil, model.NewAppError("SqlRoleStore.Save", "store.sql_role.save.invalid_role.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	dbRole := NewRoleFromModel(role)
@@ -134,80 +125,60 @@ func (s *SqlSupplier) createRole(ctx context.Context, role *model.Role, transact
 	dbRole.UpdateAt = dbRole.CreateAt
 
 	if err := transaction.Insert(dbRole); err != nil {
-		result.Err = model.NewAppError("SqlRoleStore.Save", "store.sql_role.save.insert.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("SqlRoleStore.Save", "store.sql_role.save.insert.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	result.Data = dbRole.ToModel()
-
-	return result
+	return dbRole.ToModel(), nil
 }
 
-func (s *SqlSupplier) RoleGet(ctx context.Context, roleId string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
-	result := store.NewSupplierResult()
-
+func (s *SqlSupplier) RoleGet(ctx context.Context, roleId string, hints ...store.LayeredStoreHint) (*model.Role, *model.AppError) {
 	var dbRole Role
 
 	if err := s.GetReplica().SelectOne(&dbRole, "SELECT * from Roles WHERE Id = :Id", map[string]interface{}{"Id": roleId}); err != nil {
 		if err == sql.ErrNoRows {
-			result.Err = model.NewAppError("SqlRoleStore.Get", "store.sql_role.get.app_error", nil, "Id="+roleId+", "+err.Error(), http.StatusNotFound)
-		} else {
-			result.Err = model.NewAppError("SqlRoleStore.Get", "store.sql_role.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("SqlRoleStore.Get", "store.sql_role.get.app_error", nil, "Id="+roleId+", "+err.Error(), http.StatusNotFound)
 		}
+		return nil, model.NewAppError("SqlRoleStore.Get", "store.sql_role.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	result.Data = dbRole.ToModel()
-
-	return result
+	return dbRole.ToModel(), nil
 }
 
-func (s *SqlSupplier) RoleGetAll(ctx context.Context, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
-	result := store.NewSupplierResult()
-
+func (s *SqlSupplier) RoleGetAll(ctx context.Context, hints ...store.LayeredStoreHint) ([]*model.Role, *model.AppError) {
 	var dbRoles []Role
 
 	if _, err := s.GetReplica().Select(&dbRoles, "SELECT * from Roles", map[string]interface{}{}); err != nil {
 		if err == sql.ErrNoRows {
-			result.Err = model.NewAppError("SqlRoleStore.GetAll", "store.sql_role.get_all.app_error", nil, err.Error(), http.StatusNotFound)
-		} else {
-			result.Err = model.NewAppError("SqlRoleStore.GetAll", "store.sql_role.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("SqlRoleStore.GetAll", "store.sql_role.get_all.app_error", nil, err.Error(), http.StatusNotFound)
 		}
+		return nil, model.NewAppError("SqlRoleStore.GetAll", "store.sql_role.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	var roles []*model.Role
 	for _, dbRole := range dbRoles {
 		roles = append(roles, dbRole.ToModel())
 	}
-	result.Data = roles
-
-	return result
+	return roles, nil
 }
 
-func (s *SqlSupplier) RoleGetByName(ctx context.Context, name string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
-	result := store.NewSupplierResult()
-
+func (s *SqlSupplier) RoleGetByName(ctx context.Context, name string, hints ...store.LayeredStoreHint) (*model.Role, *model.AppError) {
 	var dbRole Role
 
 	if err := s.GetReplica().SelectOne(&dbRole, "SELECT * from Roles WHERE Name = :Name", map[string]interface{}{"Name": name}); err != nil {
 		if err == sql.ErrNoRows {
-			result.Err = model.NewAppError("SqlRoleStore.GetByName", "store.sql_role.get_by_name.app_error", nil, "name="+name+",err="+err.Error(), http.StatusNotFound)
-		} else {
-			result.Err = model.NewAppError("SqlRoleStore.GetByName", "store.sql_role.get_by_name.app_error", nil, "name="+name+",err="+err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("SqlRoleStore.GetByName", "store.sql_role.get_by_name.app_error", nil, "name="+name+",err="+err.Error(), http.StatusNotFound)
 		}
+		return nil, model.NewAppError("SqlRoleStore.GetByName", "store.sql_role.get_by_name.app_error", nil, "name="+name+",err="+err.Error(), http.StatusInternalServerError)
 	}
 
-	result.Data = dbRole.ToModel()
-
-	return result
+	return dbRole.ToModel(), nil
 }
 
-func (s *SqlSupplier) RoleGetByNames(ctx context.Context, names []string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
-	result := store.NewSupplierResult()
-
+func (s *SqlSupplier) RoleGetByNames(ctx context.Context, names []string, hints ...store.LayeredStoreHint) ([]*model.Role, *model.AppError) {
 	var dbRoles []*Role
 
 	if len(names) == 0 {
-		result.Data = []*model.Role{}
-		return result
+		return []*model.Role{}, nil
 	}
 
 	var searchPlaceholders []string
@@ -220,7 +191,7 @@ func (s *SqlSupplier) RoleGetByNames(ctx context.Context, names []string, hints 
 	searchTerm := "Name IN (" + strings.Join(searchPlaceholders, ", ") + ")"
 
 	if _, err := s.GetReplica().Select(&dbRoles, "SELECT * from Roles WHERE "+searchTerm, parameters); err != nil {
-		result.Err = model.NewAppError("SqlRoleStore.GetByNames", "store.sql_role.get_by_names.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("SqlRoleStore.GetByNames", "store.sql_role.get_by_names.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	var roles []*model.Role
@@ -228,24 +199,17 @@ func (s *SqlSupplier) RoleGetByNames(ctx context.Context, names []string, hints 
 		roles = append(roles, dbRole.ToModel())
 	}
 
-	result.Data = roles
-
-	return result
+	return roles, nil
 }
 
-func (s *SqlSupplier) RoleDelete(ctx context.Context, roleId string, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
-	result := store.NewSupplierResult()
-
+func (s *SqlSupplier) RoleDelete(ctx context.Context, roleId string, hints ...store.LayeredStoreHint) (*model.Role, *model.AppError) {
 	// Get the role.
 	var role *Role
 	if err := s.GetReplica().SelectOne(&role, "SELECT * from Roles WHERE Id = :Id", map[string]interface{}{"Id": roleId}); err != nil {
 		if err == sql.ErrNoRows {
-			result.Err = model.NewAppError("SqlRoleStore.Delete", "store.sql_role.get.app_error", nil, "Id="+roleId+", "+err.Error(), http.StatusNotFound)
-		} else {
-			result.Err = model.NewAppError("SqlRoleStore.Delete", "store.sql_role.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return nil, model.NewAppError("SqlRoleStore.Delete", "store.sql_role.get.app_error", nil, "Id="+roleId+", "+err.Error(), http.StatusNotFound)
 		}
-
-		return result
+		return nil, model.NewAppError("SqlRoleStore.Delete", "store.sql_role.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	time := model.GetMillis()
@@ -253,22 +217,17 @@ func (s *SqlSupplier) RoleDelete(ctx context.Context, roleId string, hints ...st
 	role.UpdateAt = time
 
 	if rowsChanged, err := s.GetMaster().Update(role); err != nil {
-		result.Err = model.NewAppError("SqlRoleStore.Delete", "store.sql_role.delete.update.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("SqlRoleStore.Delete", "store.sql_role.delete.update.app_error", nil, err.Error(), http.StatusInternalServerError)
 	} else if rowsChanged != 1 {
-		result.Err = model.NewAppError("SqlRoleStore.Delete", "store.sql_role.delete.update.app_error", nil, "no record to update", http.StatusInternalServerError)
-	} else {
-		result.Data = role.ToModel()
+		return nil, model.NewAppError("SqlRoleStore.Delete", "store.sql_role.delete.update.app_error", nil, "no record to update", http.StatusInternalServerError)
 	}
-
-	return result
+	return role.ToModel(), nil
 }
 
-func (s *SqlSupplier) RolePermanentDeleteAll(ctx context.Context, hints ...store.LayeredStoreHint) *store.LayeredStoreSupplierResult {
-	result := store.NewSupplierResult()
-
+func (s *SqlSupplier) RolePermanentDeleteAll(ctx context.Context, hints ...store.LayeredStoreHint) *model.AppError {
 	if _, err := s.GetMaster().Exec("DELETE FROM Roles"); err != nil {
-		result.Err = model.NewAppError("SqlRoleStore.PermanentDeleteAll", "store.sql_role.permanent_delete_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SqlRoleStore.PermanentDeleteAll", "store.sql_role.permanent_delete_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	return result
+	return nil
 }

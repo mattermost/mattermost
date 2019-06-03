@@ -158,7 +158,12 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 
 	var pchan store.StoreChannel
 	if len(post.RootId) > 0 {
-		pchan = a.Srv.Store.Post().Get(post.RootId)
+		pchan = make(store.StoreChannel, 1)
+		go func() {
+			r, pErr := a.Srv.Store.Post().Get(post.RootId)
+			pchan <- store.StoreResult{Data: r, Err: pErr}
+			close(pchan)
+		}()
 	}
 
 	user, err := a.Srv.Store.User().Get(post.UserId)
@@ -290,7 +295,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 
 	// Normally, we would let the API layer call PreparePostForClient, but we do it here since it also needs
 	// to be done when we send the post over the websocket in handlePostEvents
-	rpost = a.PreparePostForClient(rpost, true)
+	rpost = a.PreparePostForClient(rpost, true, false)
 
 	if err := a.handlePostEvents(rpost, user, channel, triggerWebhooks, parentPostList); err != nil {
 		mlog.Error("Failed to handle post events", mlog.Err(err))
@@ -302,9 +307,9 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 func (a *App) attachFilesToPost(post *model.Post) *model.AppError {
 	var attachedIds []string
 	for _, fileId := range post.FileIds {
-		result := <-a.Srv.Store.FileInfo().AttachToPost(fileId, post.Id, post.UserId)
-		if result.Err != nil {
-			mlog.Warn("Failed to attach file to post", mlog.String("file_id", fileId), mlog.String("post_id", post.Id), mlog.Err(result.Err))
+		err := a.Srv.Store.FileInfo().AttachToPost(fileId, post.Id, post.UserId)
+		if err != nil {
+			mlog.Warn("Failed to attach file to post", mlog.String("file_id", fileId), mlog.String("post_id", post.Id), mlog.Err(err))
 			continue
 		}
 
@@ -315,9 +320,8 @@ func (a *App) attachFilesToPost(post *model.Post) *model.AppError {
 		// We couldn't attach all files to the post, so ensure that post.FileIds reflects what was actually attached
 		post.FileIds = attachedIds
 
-		result := <-a.Srv.Store.Post().Overwrite(post)
-		if result.Err != nil {
-			return result.Err
+		if _, err := a.Srv.Store.Post().Overwrite(post); err != nil {
+			return err
 		}
 	}
 
@@ -411,7 +415,7 @@ func (a *App) SendEphemeralPost(userId string, post *model.Post) *model.Post {
 
 	post.GenerateActionIds()
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_EPHEMERAL_MESSAGE, "", post.ChannelId, userId, nil)
-	post = a.PreparePostForClient(post, true)
+	post = a.PreparePostForClient(post, true, false)
 	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
 	message.Add("post", post.ToJson())
 	a.Publish(message)
@@ -429,7 +433,7 @@ func (a *App) UpdateEphemeralPost(userId string, post *model.Post) *model.Post {
 
 	post.GenerateActionIds()
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", post.ChannelId, userId, nil)
-	post = a.PreparePostForClient(post, true)
+	post = a.PreparePostForClient(post, true, false)
 	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
 	message.Add("post", post.ToJson())
 	a.Publish(message)
@@ -437,45 +441,47 @@ func (a *App) UpdateEphemeralPost(userId string, post *model.Post) *model.Post {
 	return post
 }
 
-func (a *App) DeleteEphemeralPost(userId string, post *model.Post) *model.Post {
-	post.Type = model.POST_EPHEMERAL
-	post.DeleteAt = model.GetMillis()
-	post.UpdateAt = post.DeleteAt
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_DELETED, "", post.ChannelId, userId, nil)
+func (a *App) DeleteEphemeralPost(userId, postId string) {
+	post := &model.Post{
+		Id:       postId,
+		UserId:   userId,
+		Type:     model.POST_EPHEMERAL,
+		DeleteAt: model.GetMillis(),
+		UpdateAt: model.GetMillis(),
+	}
 
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_DELETED, "", "", userId, nil)
 	message.Add("post", post.ToJson())
 	a.Publish(message)
-
-	return post
 }
 
 func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
 	post.SanitizeProps()
 
-	result := <-a.Srv.Store.Post().Get(post.Id)
-	if result.Err != nil {
-		return nil, result.Err
+	postLists, err := a.Srv.Store.Post().Get(post.Id)
+	if err != nil {
+		return nil, err
 	}
-	oldPost := result.Data.(*model.PostList).Posts[post.Id]
+	oldPost := postLists.Posts[post.Id]
 
 	if oldPost == nil {
-		err := model.NewAppError("UpdatePost", "api.post.update_post.find.app_error", nil, "id="+post.Id, http.StatusBadRequest)
+		err = model.NewAppError("UpdatePost", "api.post.update_post.find.app_error", nil, "id="+post.Id, http.StatusBadRequest)
 		return nil, err
 	}
 
 	if oldPost.DeleteAt != 0 {
-		err := model.NewAppError("UpdatePost", "api.post.update_post.permissions_details.app_error", map[string]interface{}{"PostId": post.Id}, "", http.StatusBadRequest)
+		err = model.NewAppError("UpdatePost", "api.post.update_post.permissions_details.app_error", map[string]interface{}{"PostId": post.Id}, "", http.StatusBadRequest)
 		return nil, err
 	}
 
 	if oldPost.IsSystemMessage() {
-		err := model.NewAppError("UpdatePost", "api.post.update_post.system_message.app_error", nil, "id="+post.Id, http.StatusBadRequest)
+		err = model.NewAppError("UpdatePost", "api.post.update_post.system_message.app_error", nil, "id="+post.Id, http.StatusBadRequest)
 		return nil, err
 	}
 
 	if a.License() != nil {
 		if *a.Config().ServiceSettings.PostEditTimeLimit != -1 && model.GetMillis() > oldPost.CreateAt+int64(*a.Config().ServiceSettings.PostEditTimeLimit*1000) && post.Message != oldPost.Message {
-			err := model.NewAppError("UpdatePost", "api.post.update_post.permissions_time_limit.app_error", map[string]interface{}{"timeLimit": *a.Config().ServiceSettings.PostEditTimeLimit}, "", http.StatusBadRequest)
+			err = model.NewAppError("UpdatePost", "api.post.update_post.permissions_time_limit.app_error", map[string]interface{}{"timeLimit": *a.Config().ServiceSettings.PostEditTimeLimit}, "", http.StatusBadRequest)
 			return nil, err
 		}
 	}
@@ -486,8 +492,7 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 	}
 
 	if channel.DeleteAt != 0 {
-		err := model.NewAppError("UpdatePost", "api.post.update_post.can_not_update_post_in_deleted.error", nil, "", http.StatusBadRequest)
-		return nil, err
+		return nil, model.NewAppError("UpdatePost", "api.post.update_post.can_not_update_post_in_deleted.error", nil, "", http.StatusBadRequest)
 	}
 
 	newPost := &model.Post{}
@@ -511,7 +516,7 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 		newPost.EditAt = model.GetMillis()
 	}
 
-	if err := a.FillInPostProps(post, nil); err != nil {
+	if err = a.FillInPostProps(post, nil); err != nil {
 		return nil, err
 	}
 
@@ -527,11 +532,10 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 		}
 	}
 
-	result = <-a.Srv.Store.Post().Update(newPost, oldPost)
-	if result.Err != nil {
-		return nil, result.Err
+	rpost, err := a.Srv.Store.Post().Update(newPost, oldPost)
+	if err != nil {
+		return nil, err
 	}
-	rpost := result.Data.(*model.Post)
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
 		a.Srv.Go(func() {
@@ -557,7 +561,7 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 		})
 	}
 
-	rpost = a.PreparePostForClient(rpost, false)
+	rpost = a.PreparePostForClient(rpost, false, true)
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_EDITED, "", rpost.ChannelId, "", nil)
 	message.Add("post", rpost.ToJson())
@@ -595,23 +599,15 @@ func (a *App) PatchPost(postId string, patch *model.PostPatch) (*model.Post, *mo
 }
 
 func (a *App) GetPostsPage(channelId string, page int, perPage int) (*model.PostList, *model.AppError) {
-	result := <-a.Srv.Store.Post().GetPosts(channelId, page*perPage, perPage, true)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.PostList), nil
+	return a.Srv.Store.Post().GetPosts(channelId, page*perPage, perPage, true)
 }
 
 func (a *App) GetPosts(channelId string, offset int, limit int) (*model.PostList, *model.AppError) {
-	result := <-a.Srv.Store.Post().GetPosts(channelId, offset, limit, true)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.PostList), nil
+	return a.Srv.Store.Post().GetPosts(channelId, offset, limit, true)
 }
 
 func (a *App) GetPostsEtag(channelId string) string {
-	return (<-a.Srv.Store.Post().GetEtag(channelId, true)).Data.(string)
+	return a.Srv.Store.Post().GetEtag(channelId, true)
 }
 
 func (a *App) GetPostsSince(channelId string, time int64) (*model.PostList, *model.AppError) {
@@ -623,51 +619,30 @@ func (a *App) GetPostsSince(channelId string, time int64) (*model.PostList, *mod
 }
 
 func (a *App) GetSinglePost(postId string) (*model.Post, *model.AppError) {
-	result := <-a.Srv.Store.Post().GetSingle(postId)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.Post), nil
+	return a.Srv.Store.Post().GetSingle(postId)
 }
 
 func (a *App) GetPostThread(postId string) (*model.PostList, *model.AppError) {
-	result := <-a.Srv.Store.Post().Get(postId)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.PostList), nil
+	return a.Srv.Store.Post().Get(postId)
 }
 
 func (a *App) GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *model.AppError) {
-	result := <-a.Srv.Store.Post().GetFlaggedPosts(userId, offset, limit)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.PostList), nil
+	return a.Srv.Store.Post().GetFlaggedPosts(userId, offset, limit)
 }
 
 func (a *App) GetFlaggedPostsForTeam(userId, teamId string, offset int, limit int) (*model.PostList, *model.AppError) {
-	result := <-a.Srv.Store.Post().GetFlaggedPostsForTeam(userId, teamId, offset, limit)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.PostList), nil
+	return a.Srv.Store.Post().GetFlaggedPostsForTeam(userId, teamId, offset, limit)
 }
 
 func (a *App) GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) (*model.PostList, *model.AppError) {
-	result := <-a.Srv.Store.Post().GetFlaggedPostsForChannel(userId, channelId, offset, limit)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.PostList), nil
+	return a.Srv.Store.Post().GetFlaggedPostsForChannel(userId, channelId, offset, limit)
 }
 
 func (a *App) GetPermalinkPost(postId string, userId string) (*model.PostList, *model.AppError) {
-	result := <-a.Srv.Store.Post().Get(postId)
-	if result.Err != nil {
-		return nil, result.Err
+	list, err := a.Srv.Store.Post().Get(postId)
+	if err != nil {
+		return nil, err
 	}
-	list := result.Data.(*model.PostList)
 
 	if len(list.Order) != 1 {
 		return nil, model.NewAppError("getPermalinkTmp", "api.post_get_post_by_id.get.app_error", nil, "", http.StatusNotFound)
@@ -718,12 +693,11 @@ func (a *App) GetPostsAroundPost(postId, channelId string, offset, limit int, be
 }
 
 func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppError) {
-	result := <-a.Srv.Store.Post().GetSingle(postId)
-	if result.Err != nil {
-		result.Err.StatusCode = http.StatusBadRequest
-		return nil, result.Err
+	post, err := a.Srv.Store.Post().GetSingle(postId)
+	if err != nil {
+		err.StatusCode = http.StatusBadRequest
+		return nil, err
 	}
-	post := result.Data.(*model.Post)
 
 	channel, err := a.GetChannel(post.ChannelId)
 	if err != nil {
@@ -740,7 +714,7 @@ func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppErro
 	}
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POST_DELETED, "", post.ChannelId, "", nil)
-	message.Add("post", a.PreparePostForClient(post, false).ToJson())
+	message.Add("post", a.PreparePostForClient(post, false, false).ToJson())
 	a.Publish(message)
 
 	a.Srv.Go(func() {
@@ -765,8 +739,8 @@ func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppErro
 }
 
 func (a *App) DeleteFlaggedPosts(postId string) {
-	if result := <-a.Srv.Store.Preference().DeleteCategoryAndName(model.PREFERENCE_CATEGORY_FLAGGED_POST, postId); result.Err != nil {
-		mlog.Warn(fmt.Sprintf("Unable to delete flagged post preference when deleting post, err=%v", result.Err))
+	if err := a.Srv.Store.Preference().DeleteCategoryAndName(model.PREFERENCE_CATEGORY_FLAGGED_POST, postId); err != nil {
+		mlog.Warn(fmt.Sprintf("Unable to delete flagged post preference when deleting post, err=%v", err))
 		return
 	}
 }
@@ -776,8 +750,8 @@ func (a *App) DeletePostFiles(post *model.Post) {
 		return
 	}
 
-	if result := <-a.Srv.Store.FileInfo().DeleteForPost(post.Id); result.Err != nil {
-		mlog.Warn(fmt.Sprintf("Encountered error when deleting files for post, post_id=%v, err=%v", post.Id, result.Err), mlog.String("post_id", post.Id))
+	if _, err := a.Srv.Store.FileInfo().DeleteForPost(post.Id); err != nil {
+		mlog.Warn(fmt.Sprintf("Encountered error when deleting files for post, post_id=%v, err=%v", post.Id, err), mlog.String("post_id", post.Id))
 	}
 }
 
@@ -854,7 +828,7 @@ func (a *App) SearchPostsInTeam(teamId string, paramsList []*model.SearchParams)
 }
 
 func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.PostSearchResults, *model.AppError) {
-	paramsList := model.ParseSearchParams(terms, timeZoneOffset)
+	paramsList := model.ParseSearchParams(strings.TrimSpace(terms), timeZoneOffset)
 	includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 
 	esInterface := a.Elasticsearch
@@ -954,9 +928,15 @@ func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamId strin
 }
 
 func (a *App) GetFileInfosForPostWithMigration(postId string) ([]*model.FileInfo, *model.AppError) {
-	pchan := a.Srv.Store.Post().GetSingle(postId)
 
-	infos, err := a.GetFileInfosForPost(postId)
+	pchan := make(chan store.StoreResult, 1)
+	go func() {
+		post, err := a.Srv.Store.Post().GetSingle(postId)
+		pchan <- store.StoreResult{Data: post, Err: err}
+		close(pchan)
+	}()
+
+	infos, err := a.GetFileInfosForPost(postId, false)
 	if err != nil {
 		return nil, err
 	}
@@ -979,13 +959,8 @@ func (a *App) GetFileInfosForPostWithMigration(postId string) ([]*model.FileInfo
 	return infos, nil
 }
 
-func (a *App) GetFileInfosForPost(postId string) ([]*model.FileInfo, *model.AppError) {
-	result := <-a.Srv.Store.FileInfo().GetForPost(postId, false, true)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-
-	return result.Data.([]*model.FileInfo), nil
+func (a *App) GetFileInfosForPost(postId string, fromMaster bool) ([]*model.FileInfo, *model.AppError) {
+	return a.Srv.Store.FileInfo().GetForPost(postId, fromMaster, true)
 }
 
 func (a *App) PostWithProxyAddedToImageURLs(post *model.Post) *model.Post {
@@ -1030,10 +1005,10 @@ func (a *App) ImageProxyRemover() (f func(string) string) {
 }
 
 func (a *App) MaxPostSize() int {
-	result := <-a.Srv.Store.Post().GetMaxPostSize()
-	if result.Err != nil {
-		mlog.Error(fmt.Sprint(result.Err))
+	maxPostSize := a.Srv.Store.Post().GetMaxPostSize()
+	if maxPostSize == 0 {
 		return model.POST_MESSAGE_MAX_RUNES_V1
 	}
-	return result.Data.(int)
+
+	return maxPostSize
 }

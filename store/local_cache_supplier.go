@@ -34,7 +34,6 @@ type LocalCacheSupplier struct {
 	schemeCache   *utils.Cache
 	metrics       einterfaces.MetricsInterface
 	cluster       einterfaces.ClusterInterface
-	groupCache    *utils.Cache
 }
 
 // Caching Interface
@@ -54,7 +53,6 @@ func NewLocalCacheSupplier(metrics einterfaces.MetricsInterface, cluster einterf
 		reactionCache: utils.NewLruWithParams(REACTION_CACHE_SIZE, "Reaction", REACTION_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_REACTIONS),
 		roleCache:     utils.NewLruWithParams(ROLE_CACHE_SIZE, "Role", ROLE_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_ROLES),
 		schemeCache:   utils.NewLruWithParams(SCHEME_CACHE_SIZE, "Scheme", SCHEME_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_SCHEMES),
-		groupCache:    utils.NewLruWithParams(GROUP_CACHE_SIZE, "Group", GROUP_CACHE_SEC, model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_GROUPS),
 		metrics:       metrics,
 		cluster:       cluster,
 	}
@@ -62,7 +60,6 @@ func NewLocalCacheSupplier(metrics einterfaces.MetricsInterface, cluster einterf
 	if cluster != nil {
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_REACTIONS, supplier.handleClusterInvalidateReaction)
 		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_ROLES, supplier.handleClusterInvalidateRole)
-		cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_GROUPS, supplier.handleClusterInvalidateGroup)
 	}
 
 	return supplier

@@ -483,18 +483,44 @@ func getGroupsByChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
-		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+	var permission *model.Permission
+	channel, err := c.App.GetChannel(c.Params.ChannelId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+	if channel.Type == model.CHANNEL_PRIVATE {
+		permission = model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS
+	} else {
+		permission = model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS
+	}
+	if !c.App.SessionHasPermissionToChannel(c.App.Session, c.Params.ChannelId, permission) {
+		c.SetPermissionError(permission)
 		return
 	}
 
-	groups, err := c.App.GetGroupsByChannel(c.Params.ChannelId, c.Params.Page, c.Params.PerPage)
+	opts := model.GroupSearchOpts{
+		Q:                  c.Params.Q,
+		IncludeMemberCount: c.Params.IncludeMemberCount,
+	}
+	if c.Params.Paginate == nil || *c.Params.Paginate {
+		opts.PageOpts = &model.PageOpts{Page: c.Params.Page, PerPage: c.Params.PerPage}
+	}
+
+	groups, totalCount, err := c.App.GetGroupsByChannel(c.Params.ChannelId, opts)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	b, marshalErr := json.Marshal(groups)
+	b, marshalErr := json.Marshal(struct {
+		Groups []*model.Group `json:"groups"`
+		Count  int            `json:"total_group_count"`
+	}{
+		Groups: groups,
+		Count:  totalCount,
+	})
+
 	if marshalErr != nil {
 		c.Err = model.NewAppError("Api4.getGroupsByChannel", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
 		return
@@ -567,6 +593,26 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		opts.NotAssociatedToTeam = teamID
+	}
+
+	channelID := c.Params.NotAssociatedToChannel
+	if len(channelID) == 26 {
+		channel, err := c.App.GetChannel(channelID)
+		if err != nil {
+			c.Err = err
+			return
+		}
+		var permission *model.Permission
+		if channel.Type == model.CHANNEL_PRIVATE {
+			permission = model.PERMISSION_MANAGE_PRIVATE_CHANNEL_MEMBERS
+		} else {
+			permission = model.PERMISSION_MANAGE_PUBLIC_CHANNEL_MEMBERS
+		}
+		if !c.App.SessionHasPermissionToChannel(c.App.Session, channelID, permission) {
+			c.SetPermissionError(permission)
+			return
+		}
+		opts.NotAssociatedToChannel = channelID
 	}
 
 	groups, err := c.App.GetGroups(c.Params.Page, c.Params.PerPage, opts)

@@ -5,10 +5,11 @@ package app
 
 import (
 	"fmt"
-	"github.com/pkg/errors"
 	"hash/fnv"
 	"net/http"
 	"strings"
+
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/mlog"
@@ -151,10 +152,10 @@ func (a *App) sendPushNotification(notification *postNotification, user *model.U
 	post := notification.post
 
 	var nameFormat string
-	if result := <-a.Srv.Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_NAME_FORMAT); result.Err != nil {
+	if data, err := a.Srv.Store.Preference().Get(user.Id, model.PREFERENCE_CATEGORY_DISPLAY_SETTINGS, model.PREFERENCE_NAME_NAME_FORMAT); err != nil {
 		nameFormat = *a.Config().TeamSettings.TeammateNameDisplay
 	} else {
-		nameFormat = result.Data.(model.Preference).Value
+		nameFormat = data.Value
 	}
 
 	channelName := notification.GetChannelName(nameFormat, user.Id)
@@ -403,11 +404,7 @@ func (a *App) SendAckToPushProxy(ack *model.PushNotificationAck) error {
 }
 
 func (a *App) getMobileAppSessions(userId string) ([]*model.Session, *model.AppError) {
-	result := <-a.Srv.Store.Session().GetSessionsWithActiveDeviceIds(userId)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.Session), nil
+	return a.Srv.Store.Session().GetSessionsWithActiveDeviceIds(userId)
 }
 
 func ShouldSendPushNotification(user *model.User, channelNotifyProps model.StringMap, wasMentioned bool, status *model.Status, post *model.Post) bool {

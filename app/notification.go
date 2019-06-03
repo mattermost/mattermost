@@ -30,10 +30,14 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 
 	pchan := a.Srv.Store.User().GetAllProfilesInChannel(channel.Id, true)
 	cmnchan := a.Srv.Store.Channel().GetAllChannelMembersNotifyPropsForChannel(channel.Id, true)
-	var fchan store.StoreChannel
-
+	var fchan chan store.StoreResult
 	if len(post.FileIds) != 0 {
-		fchan = a.Srv.Store.FileInfo().GetForPost(post.Id, true, true)
+		fchan = make(chan store.StoreResult, 1)
+		go func() {
+			fileInfos, err := a.Srv.Store.FileInfo().GetForPost(post.Id, true, true)
+			fchan <- store.StoreResult{Data: fileInfos, Err: err}
+			close(fchan)
+		}()
 	}
 
 	result := <-pchan
@@ -131,7 +135,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				var outOfChannelMentions model.UserSlice
 				var outOfGroupsMentions model.UserSlice
 
-				if channel.GroupConstrained != nil && *channel.GroupConstrained {
+				if channel.IsGroupConstrained() {
 					nonMemberIDs, err := a.FilterNonGroupChannelMembers(channelMentions.IDs(), channel)
 					if err != nil {
 						return nil, err

@@ -437,7 +437,7 @@ func (a *App) AddUserToTeamByToken(userId string, tokenId string) (*model.Team, 
 	}
 	team := result.Data.(*model.Team)
 
-	if team.GroupConstrained != nil && *team.GroupConstrained {
+	if team.IsGroupConstrained() {
 		return nil, model.NewAppError("AddUserToTeamByToken", "app.team.invite_token.group_constrained.error", nil, "", http.StatusForbidden)
 	}
 
@@ -789,7 +789,7 @@ func (a *App) AddTeamMemberByInviteId(inviteId, userId string) (*model.TeamMembe
 		return nil, err
 	}
 
-	if team.GroupConstrained != nil && *team.GroupConstrained {
+	if team.IsGroupConstrained() {
 		return nil, model.NewAppError("AddTeamMemberByInviteId", "app.team.invite_id.group_constrained.error", nil, "", http.StatusForbidden)
 	}
 
@@ -945,8 +945,8 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 	}
 
 	// delete the preferences that set the last channel used in the team and other team specific preferences
-	if result := <-a.Srv.Store.Preference().DeleteCategory(user.Id, team.Id); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.Preference().DeleteCategory(user.Id, team.Id); err != nil {
+		return err
 	}
 
 	a.ClearSessionCacheForUser(user.Id)

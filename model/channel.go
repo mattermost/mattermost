@@ -80,6 +80,20 @@ type DirectChannelForExport struct {
 	Members *[]string
 }
 
+// ChannelSearchOpts contains options for searching channels.
+//
+// NotAssociatedToGroup will exclude channels that have associated, active GroupChannels records.
+// ExcludeDefaultChannels will exclude the configured default channels (ex 'town-square' and 'off-topic').
+// IncludeDeleted will include channel records where DeleteAt != 0.
+// ExcludeChannelNames will exclude channels from the results by name.
+//
+type ChannelSearchOpts struct {
+	NotAssociatedToGroup   string
+	ExcludeDefaultChannels bool
+	IncludeDeleted         bool
+	ExcludeChannelNames    []string
+}
+
 func (o *Channel) DeepCopy() *Channel {
 	copy := *o
 	if copy.SchemeId != nil {
@@ -204,6 +218,10 @@ func (o *Channel) AddProp(key string, value interface{}) {
 	o.MakeNonNil()
 
 	o.Props[key] = value
+}
+
+func (o *Channel) IsGroupConstrained() bool {
+	return o.GroupConstrained != nil && *o.GroupConstrained
 }
 
 func GetDMNameFromIds(userId1, userId2 string) string {

@@ -314,7 +314,7 @@ type API interface {
 
 	// DeleteEphemeralPost deletes an ephemeral message previously sent to the user.
 	// EXPERIMENTAL: This API is experimental and can be changed without advance notice.
-	DeleteEphemeralPost(userId string, post *model.Post)
+	DeleteEphemeralPost(userId, postId string)
 
 	// DeletePost deletes a post.
 	DeletePost(postId string) *model.AppError
