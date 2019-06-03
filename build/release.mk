@@ -65,8 +65,8 @@ endif
 
 	@# Download prepackaged plugins
 	mkdir -p tmpprepackaged
-	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
-		cd tmpprepackaged && curl -O -L https://plugins-store.test.mattermost.com/release/$$plugin_package.tar.gz; \
+	@cd tmpprepackaged && for plugin_package in $(PLUGIN_PACKAGES) ; do \
+		curl -O -L https://plugins-store.test.mattermost.com/release/$$plugin_package.tar.gz; \
 	done
 
 	@# ----- PLATFORM SPECIFIC -----
