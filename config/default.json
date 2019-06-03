@@ -14,6 +14,7 @@
         "UseLetsEncrypt": false,
         "LetsEncryptCertificateCacheFile": "./config/letsencrypt.cache",
         "Forward80To443": false,
+        "TrustedProxyIPHeader": [],
         "ReadTimeout": 300,
         "WriteTimeout": 300,
         "MaximumLoginAttempts": 10,
@@ -74,10 +75,12 @@
         "ExperimentalChannelOrganization": false,
         "EnableAPITeamDeletion": false,
         "ExperimentalEnableHardenedMode": false,
-        "DisableLegacyMFA": false,
+        "DisableLegacyMFA": true,
         "EnableEmailInvitations": false,
         "ExperimentalLdapGroupSync": false,
-        "ExperimentalStrictCSRFEnforcement": false
+        "ExperimentalStrictCSRFEnforcement": false,
+        "EnableBotAccountCreation": false,
+        "DisableBotsWhenOwnerIsDeactivated": true
     },
     "TeamSettings": {
         "SiteName": "Mattermost",
@@ -147,12 +150,21 @@
         "EnableWebhookDebugging": true,
         "EnableDiagnostics": true
     },
+    "NotificationLogSettings": {
+        "EnableConsole": true,
+        "ConsoleLevel": "DEBUG",
+        "ConsoleJson": true,
+        "EnableFile": true,
+        "FileLevel": "INFO",
+        "FileJson": true,
+        "FileLocation": ""
+    },
     "PasswordSettings": {
-        "MinimumLength": 5,
-        "Lowercase": false,
-        "Number": false,
-        "Uppercase": false,
-        "Symbol": false
+        "MinimumLength": 10,
+        "Lowercase": true,
+        "Number": true,
+        "Uppercase": true,
+        "Symbol": true
     },
     "FileSettings": {
         "EnableFileAttachments": true,
@@ -254,7 +266,7 @@
         "Scope": "profile email",
         "AuthEndpoint": "https://accounts.google.com/o/oauth2/v2/auth",
         "TokenEndpoint": "https://www.googleapis.com/oauth2/v4/token",
-        "UserApiEndpoint": "https://www.googleapis.com/plus/v1/people/me"
+        "UserApiEndpoint": "https://people.googleapis.com/v1/people/me?personFields=names,emailAddresses,nicknames,metadata"
     },
     "Office365Settings": {
         "Enable": false,
@@ -385,7 +397,8 @@
         "IndexPrefix": "",
         "LiveIndexingBatchSize": 1,
         "BulkIndexingTimeWindowSeconds": 3600,
-        "RequestTimeoutSeconds": 30
+        "RequestTimeoutSeconds": 30,
+        "Trace": ""
     },
     "DataRetentionSettings": {
         "EnableMessageDeletion": false,
@@ -414,6 +427,7 @@
     "PluginSettings": {
         "Enable": true,
         "EnableUploads": false,
+        "EnableHealthCheck": true,
         "Directory": "./plugins",
         "ClientDirectory": "./client/plugins",
         "Plugins": {},

@@ -12,7 +12,7 @@ func gaussianBlurKernel(x, sigma float64) float64 {
 // Blur produces a blurred version of the image using a Gaussian function.
 // Sigma parameter must be positive and indicates how much the image will be blurred.
 //
-// Usage example:
+// Example:
 //
 //	dstImage := imaging.Blur(srcImage, 3.5)
 //
@@ -44,7 +44,7 @@ func blurHorizontal(img image.Image, kernel []float64) *image.NRGBA {
 			for i, v := range scanLine {
 				scanLineF[i] = float64(v)
 			}
-			for x, idx := 0, 0; x < src.w; x, idx = x+1, idx+4 {
+			for x := 0; x < src.w; x++ {
 				min := x - radius
 				if min < 0 {
 					min = 0
@@ -53,30 +53,28 @@ func blurHorizontal(img image.Image, kernel []float64) *image.NRGBA {
 				if max > src.w-1 {
 					max = src.w - 1
 				}
-
 				var r, g, b, a, wsum float64
 				for ix := min; ix <= max; ix++ {
 					i := ix * 4
 					weight := kernel[absint(x-ix)]
 					wsum += weight
-					wa := scanLineF[i+3] * weight
-					r += scanLineF[i+0] * wa
-					g += scanLineF[i+1] * wa
-					b += scanLineF[i+2] * wa
+					s := scanLineF[i : i+4 : i+4]
+					wa := s[3] * weight
+					r += s[0] * wa
+					g += s[1] * wa
+					b += s[2] * wa
 					a += wa
 				}
 				if a != 0 {
-					r /= a
-					g /= a
-					b /= a
+					aInv := 1 / a
+					j := y*dst.Stride + x*4
+					d := dst.Pix[j : j+4 : j+4]
+					d[0] = clamp(r * aInv)
+					d[1] = clamp(g * aInv)
+					d[2] = clamp(b * aInv)
+					d[3] = clamp(a / wsum)
 				}
-
-				scanLine[idx+0] = clamp(r)
-				scanLine[idx+1] = clamp(g)
-				scanLine[idx+2] = clamp(b)
-				scanLine[idx+3] = clamp(a / wsum)
 			}
-			copy(dst.Pix[y*dst.Stride:], scanLine)
 		}
 	})
 
@@ -105,29 +103,27 @@ func blurVertical(img image.Image, kernel []float64) *image.NRGBA {
 				if max > src.h-1 {
 					max = src.h - 1
 				}
-
 				var r, g, b, a, wsum float64
 				for iy := min; iy <= max; iy++ {
 					i := iy * 4
 					weight := kernel[absint(y-iy)]
 					wsum += weight
-					wa := scanLineF[i+3] * weight
-					r += scanLineF[i+0] * wa
-					g += scanLineF[i+1] * wa
-					b += scanLineF[i+2] * wa
+					s := scanLineF[i : i+4 : i+4]
+					wa := s[3] * weight
+					r += s[0] * wa
+					g += s[1] * wa
+					b += s[2] * wa
 					a += wa
 				}
 				if a != 0 {
-					r /= a
-					g /= a
-					b /= a
+					aInv := 1 / a
+					j := y*dst.Stride + x*4
+					d := dst.Pix[j : j+4 : j+4]
+					d[0] = clamp(r * aInv)
+					d[1] = clamp(g * aInv)
+					d[2] = clamp(b * aInv)
+					d[3] = clamp(a / wsum)
 				}
-
-				j := y*dst.Stride + x*4
-				dst.Pix[j+0] = clamp(r)
-				dst.Pix[j+1] = clamp(g)
-				dst.Pix[j+2] = clamp(b)
-				dst.Pix[j+3] = clamp(a / wsum)
 			}
 		}
 	})
@@ -138,7 +134,7 @@ func blurVertical(img image.Image, kernel []float64) *image.NRGBA {
 // Sharpen produces a sharpened version of the image.
 // Sigma parameter must be positive and indicates how much the image will be sharpened.
 //
-// Usage example:
+// Example:
 //
 //	dstImage := imaging.Sharpen(srcImage, 3.5)
 //

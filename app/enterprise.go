@@ -11,9 +11,9 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
-var accountMigrationInterface func(*App) einterfaces.AccountMigrationInterface
+var accountMigrationInterface func(*Server) einterfaces.AccountMigrationInterface
 
-func RegisterAccountMigrationInterface(f func(*App) einterfaces.AccountMigrationInterface) {
+func RegisterAccountMigrationInterface(f func(*Server) einterfaces.AccountMigrationInterface) {
 	accountMigrationInterface = f
 }
 
@@ -109,7 +109,7 @@ func RegisterSamlInterface(f func(*App) einterfaces.SamlInterface) {
 
 func (s *Server) initEnterprise() {
 	if accountMigrationInterface != nil {
-		s.AccountMigration = accountMigrationInterface(s.FakeApp())
+		s.AccountMigration = accountMigrationInterface(s)
 	}
 	if complianceInterface != nil {
 		s.Compliance = complianceInterface(s.FakeApp())

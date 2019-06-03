@@ -51,8 +51,8 @@ func getChannelFromChannelArg(a *app.App, channelArg string) *model.Channel {
 	}
 
 	if channel == nil {
-		if result := <-a.Srv.Store.Channel().Get(channelPart, true); result.Err == nil {
-			channel = result.Data.(*model.Channel)
+		if ch, errCh := a.Srv.Store.Channel().Get(channelPart, true); errCh == nil {
+			channel = ch
 		}
 	}
 

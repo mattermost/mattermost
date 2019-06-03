@@ -2,7 +2,7 @@
 
 package uasurfer
 
-import "fmt"
+import "strconv"
 
 const _DeviceType_name = "DeviceUnknownDeviceComputerDeviceTabletDevicePhoneDeviceConsoleDeviceWearableDeviceTV"
 
@@ -10,7 +10,7 @@ var _DeviceType_index = [...]uint8{0, 13, 27, 39, 50, 63, 77, 85}
 
 func (i DeviceType) String() string {
 	if i < 0 || i >= DeviceType(len(_DeviceType_index)-1) {
-		return fmt.Sprintf("DeviceType(%d)", i)
+		return "DeviceType(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
 	return _DeviceType_name[_DeviceType_index[i]:_DeviceType_index[i+1]]
 }
@@ -21,7 +21,7 @@ var _BrowserName_index = [...]uint16{0, 14, 27, 36, 49, 63, 77, 89, 106, 122, 13
 
 func (i BrowserName) String() string {
 	if i < 0 || i >= BrowserName(len(_BrowserName_index)-1) {
-		return fmt.Sprintf("BrowserName(%d)", i)
+		return "BrowserName(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
 	return _BrowserName_name[_BrowserName_index[i]:_BrowserName_index[i+1]]
 }
@@ -32,7 +32,7 @@ var _OSName_index = [...]uint8{0, 9, 23, 32, 40, 45, 54, 66, 76, 84, 91, 98, 111
 
 func (i OSName) String() string {
 	if i < 0 || i >= OSName(len(_OSName_index)-1) {
-		return fmt.Sprintf("OSName(%d)", i)
+		return "OSName(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
 	return _OSName_name[_OSName_index[i]:_OSName_index[i+1]]
 }
@@ -43,7 +43,7 @@ var _Platform_index = [...]uint8{0, 15, 30, 41, 54, 66, 80, 92, 110, 130, 149, 1
 
 func (i Platform) String() string {
 	if i < 0 || i >= Platform(len(_Platform_index)-1) {
-		return fmt.Sprintf("Platform(%d)", i)
+		return "Platform(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
 	return _Platform_name[_Platform_index[i]:_Platform_index[i+1]]
 }

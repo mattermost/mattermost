@@ -57,3 +57,17 @@ func ReadUintFromFile(path string) (uint64, error) {
 	}
 	return strconv.ParseUint(strings.TrimSpace(string(data)), 10, 64)
 }
+
+// ParseBool parses a string into a boolean pointer.
+func ParseBool(b string) *bool {
+	var truth bool
+	switch b {
+	case "enabled":
+		truth = true
+	case "disabled":
+		truth = false
+	default:
+		return nil
+	}
+	return &truth
+}

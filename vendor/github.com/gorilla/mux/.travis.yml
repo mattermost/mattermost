@@ -3,12 +3,13 @@ sudo: false
 
 matrix:
   include:
-    - go: 1.5.x
-    - go: 1.6.x
     - go: 1.7.x
     - go: 1.8.x
     - go: 1.9.x
     - go: 1.10.x
+    - go: 1.11.x
+    - go: 1.x
+      env: LATEST=true
     - go: tip
   allow_failures:
     - go: tip
@@ -19,5 +20,5 @@ install:
 script:
   - go get -t -v ./...
   - diff -u <(echo -n) <(gofmt -d .)
-  - go tool vet .
+  - if [[ "$LATEST" = true ]]; then go tool vet .; fi
   - go test -v -race ./...

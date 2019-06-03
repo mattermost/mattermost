@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"path/filepath"
 	"strings"
 
 	"github.com/mattermost/mattermost-server/mlog"
@@ -98,6 +99,15 @@ func (api *PluginAPI) SavePluginConfig(pluginConfig map[string]interface{}) *mod
 	return api.app.SaveConfig(cfg, true)
 }
 
+func (api *PluginAPI) GetBundlePath() (string, error) {
+	bundlePath, err := filepath.Abs(filepath.Join(*api.GetConfig().PluginSettings.Directory, api.manifest.Id))
+	if err != nil {
+		return "", err
+	}
+
+	return bundlePath, err
+}
+
 func (api *PluginAPI) GetLicense() *model.License {
 	return api.app.License()
 }
@@ -163,7 +173,7 @@ func (api *PluginAPI) DeleteTeamMember(teamId, userId, requestorId string) *mode
 }
 
 func (api *PluginAPI) GetTeamMembers(teamId string, page, perPage int) ([]*model.TeamMember, *model.AppError) {
-	return api.app.GetTeamMembers(teamId, page*perPage, perPage)
+	return api.app.GetTeamMembers(teamId, page*perPage, perPage, nil)
 }
 
 func (api *PluginAPI) GetTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError) {
@@ -212,7 +222,7 @@ func (api *PluginAPI) GetUserByUsername(name string) (*model.User, *model.AppErr
 }
 
 func (api *PluginAPI) GetUsersByUsernames(usernames []string) ([]*model.User, *model.AppError) {
-	return api.app.GetUsersByUsernames(usernames, true)
+	return api.app.GetUsersByUsernames(usernames, true, nil)
 }
 
 func (api *PluginAPI) GetUsersInTeam(teamId string, page int, perPage int) ([]*model.User, *model.AppError) {
@@ -274,11 +284,17 @@ func (api *PluginAPI) GetLDAPUserAttributes(userId string, attributes []string) 
 		return nil, err
 	}
 
-	if user.AuthService != model.USER_AUTH_SERVICE_LDAP || user.AuthData == nil {
+	if user.AuthData == nil {
 		return map[string]string{}, nil
 	}
 
-	return api.app.Ldap.GetUserAttributes(*user.AuthData, attributes)
+	// Only bother running the query if the user's auth service is LDAP or it's SAML and sync is enabled.
+	if user.AuthService == model.USER_AUTH_SERVICE_LDAP ||
+		(user.AuthService == model.USER_AUTH_SERVICE_SAML && *api.app.Config().SamlSettings.EnableSyncWithLdap) {
+		return api.app.Ldap.GetUserAttributes(*user.AuthData, attributes)
+	}
+
+	return map[string]string{}, nil
 }
 
 func (api *PluginAPI) CreateChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
@@ -376,7 +392,7 @@ func (api *PluginAPI) AddChannelMember(channelId, userId string) (*model.Channel
 		return nil, err
 	}
 
-	return api.app.AddChannelMember(userId, channel, userRequestorId, postRootId, "")
+	return api.app.AddChannelMember(userId, channel, userRequestorId, postRootId)
 }
 
 func (api *PluginAPI) GetChannelMember(channelId, userId string) (*model.ChannelMember, *model.AppError) {
@@ -431,8 +447,8 @@ func (api *PluginAPI) UpdateEphemeralPost(userId string, post *model.Post) *mode
 	return api.app.UpdateEphemeralPost(userId, post)
 }
 
-func (api *PluginAPI) DeleteEphemeralPost(userId string, post *model.Post) {
-	api.app.DeleteEphemeralPost(userId, post)
+func (api *PluginAPI) DeleteEphemeralPost(userId, postId string) {
+	api.app.DeleteEphemeralPost(userId, postId)
 }
 
 func (api *PluginAPI) DeletePost(postId string) *model.AppError {
@@ -646,6 +662,10 @@ func (api *PluginAPI) KVSet(key string, value []byte) *model.AppError {
 	return api.app.SetPluginKey(api.id, key, value)
 }
 
+func (api *PluginAPI) KVCompareAndSet(key string, oldValue, newValue []byte) (bool, *model.AppError) {
+	return api.app.CompareAndSetPluginKey(api.id, key, oldValue, newValue)
+}
+
 func (api *PluginAPI) KVSetWithExpiry(key string, value []byte, expireInSeconds int64) *model.AppError {
 	return api.app.SetPluginKeyWithExpiry(api.id, key, value, expireInSeconds)
 }
@@ -704,6 +724,12 @@ func (api *PluginAPI) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
 	// otherwise specified by the plugin.
 	if bot.OwnerId == "" {
 		bot.OwnerId = api.id
+	}
+	// Bots cannot be owners of other bots
+	if user, err := api.app.GetUser(bot.OwnerId); err == nil {
+		if user.IsBot {
+			return nil, model.NewAppError("CreateBot", "plugin_api.bot_cant_create_bot", nil, "", http.StatusBadRequest)
+		}
 	}
 
 	return api.app.CreateBot(bot)

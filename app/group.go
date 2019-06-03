@@ -94,57 +94,69 @@ func (a *App) DeleteGroupMember(groupID string, userID string) (*model.GroupMemb
 }
 
 func (a *App) CreateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
-	result := <-a.Srv.Store.Group().CreateGroupSyncable(groupSyncable)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.GroupSyncable), nil
+	return a.Srv.Store.Group().CreateGroupSyncable(groupSyncable)
 }
 
 func (a *App) GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError) {
-	result := <-a.Srv.Store.Group().GetGroupSyncable(groupID, syncableID, syncableType)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.GroupSyncable), nil
+	return a.Srv.Store.Group().GetGroupSyncable(groupID, syncableID, syncableType)
 }
 
 func (a *App) GetGroupSyncables(groupID string, syncableType model.GroupSyncableType) ([]*model.GroupSyncable, *model.AppError) {
-	result := <-a.Srv.Store.Group().GetAllGroupSyncablesByGroupId(groupID, syncableType)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.GroupSyncable), nil
+	return a.Srv.Store.Group().GetAllGroupSyncablesByGroupId(groupID, syncableType)
 }
 
 func (a *App) UpdateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError) {
-	result := <-a.Srv.Store.Group().UpdateGroupSyncable(groupSyncable)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.GroupSyncable), nil
+	return a.Srv.Store.Group().UpdateGroupSyncable(groupSyncable)
 }
 
 func (a *App) DeleteGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError) {
-	result := <-a.Srv.Store.Group().DeleteGroupSyncable(groupID, syncableID, syncableType)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.GroupSyncable), nil
+	return a.Srv.Store.Group().DeleteGroupSyncable(groupID, syncableID, syncableType)
 }
 
-func (a *App) PendingAutoAddTeamMembers(minGroupMembersCreateAt int64) ([]*model.UserTeamIDPair, *model.AppError) {
-	result := <-a.Srv.Store.Group().PendingAutoAddTeamMembers(minGroupMembersCreateAt)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.UserTeamIDPair), nil
+func (a *App) TeamMembersToAdd(since int64) ([]*model.UserTeamIDPair, *model.AppError) {
+	return a.Srv.Store.Group().TeamMembersToAdd(since)
 }
 
-func (a *App) PendingAutoAddChannelMembers(minGroupMembersCreateAt int64) ([]*model.UserChannelIDPair, *model.AppError) {
-	result := <-a.Srv.Store.Group().PendingAutoAddChannelMembers(minGroupMembersCreateAt)
-	if result.Err != nil {
-		return nil, result.Err
+func (a *App) ChannelMembersToAdd(since int64) ([]*model.UserChannelIDPair, *model.AppError) {
+	return a.Srv.Store.Group().ChannelMembersToAdd(since)
+}
+
+func (a *App) TeamMembersToRemove() ([]*model.TeamMember, *model.AppError) {
+	return a.Srv.Store.Group().TeamMembersToRemove()
+}
+
+func (a *App) ChannelMembersToRemove() ([]*model.ChannelMember, *model.AppError) {
+	return a.Srv.Store.Group().ChannelMembersToRemove()
+}
+
+func (a *App) GetGroupsByChannel(channelId string, opts model.GroupSearchOpts) ([]*model.Group, int, *model.AppError) {
+	groups, err := a.Srv.Store.Group().GetGroupsByChannel(channelId, opts)
+	if err != nil {
+		return nil, 0, err
 	}
-	return result.Data.([]*model.UserChannelIDPair), nil
+
+	count, err := a.Srv.Store.Group().CountGroupsByChannel(channelId, opts)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return groups, int(count), nil
+}
+
+func (a *App) GetGroupsByTeam(teamId string, opts model.GroupSearchOpts) ([]*model.Group, int, *model.AppError) {
+	groups, err := a.Srv.Store.Group().GetGroupsByTeam(teamId, opts)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	count, err := a.Srv.Store.Group().CountGroupsByTeam(teamId, opts)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return groups, int(count), nil
+}
+
+func (a *App) GetGroups(page, perPage int, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError) {
+	return a.Srv.Store.Group().GetGroups(page, perPage, opts)
 }

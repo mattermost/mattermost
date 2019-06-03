@@ -22,6 +22,7 @@
  *	Authors:
  *		Christian Muehlhaeuser <muesli@gmail.com>
  *		Michael Wendland <michael@michiwend.com>
+ *		Bjørn Erik Pedersen <bjorn.erik.pedersen@gmail.com>
  */
 
 /*

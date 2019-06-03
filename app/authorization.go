@@ -20,7 +20,6 @@ func (a *App) SessionHasPermissionTo(session model.Session, permission *model.Pe
 	return a.RolesGrantPermission(session.GetUserRoles(), permission.Id)
 }
 
-/// DO NOT USE: LEGACY
 func (a *App) SessionHasPermissionToTeam(session model.Session, teamId string, permission *model.Permission) bool {
 	if teamId == "" {
 		return false

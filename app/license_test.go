@@ -53,15 +53,6 @@ func TestSetLicense(t *testing.T) {
 		t.Fatal("license should have worked")
 	}
 
-	l2 := &model.License{}
-	l2.Features = &model.Features{}
-	l2.Customer = &model.Customer{}
-	l2.StartsAt = model.GetMillis() - 1000
-	l2.ExpiresAt = model.GetMillis() - 100
-	if ok := th.App.SetLicense(l2); ok {
-		t.Fatal("license should have failed")
-	}
-
 	l3 := &model.License{}
 	l3.Features = &model.Features{}
 	l3.Customer = &model.Customer{}

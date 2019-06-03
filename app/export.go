@@ -407,19 +407,17 @@ func (a *App) buildPostReplies(postId string) (*[]ReplyImportData, *model.AppErr
 func (a *App) BuildPostReactions(postId string) (*[]ReactionImportData, *model.AppError) {
 	var reactionsOfPost []ReactionImportData
 
-	result := <-a.Srv.Store.Reaction().GetForPost(postId, true)
-	if result.Err != nil {
-		return nil, result.Err
+	reactions, err := a.Srv.Store.Reaction().GetForPost(postId, true)
+	if err != nil {
+		return nil, err
 	}
 
-	reactions := result.Data.([]*model.Reaction)
-
 	for _, reaction := range reactions {
-		result := <-a.Srv.Store.User().Get(reaction.UserId)
-		if result.Err != nil {
-			return nil, result.Err
+		var user *model.User
+		user, err = a.Srv.Store.User().Get(reaction.UserId)
+		if err != nil {
+			return nil, err
 		}
-		user := result.Data.(*model.User)
 		reactionsOfPost = append(reactionsOfPost, *ImportReactionFromPost(user, reaction))
 	}
 
@@ -554,12 +552,11 @@ func (a *App) ExportAllDirectChannels(writer io.Writer) *model.AppError {
 func (a *App) ExportAllDirectPosts(writer io.Writer) *model.AppError {
 	afterId := strings.Repeat("0", 26)
 	for {
-		result := <-a.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, afterId)
-		if result.Err != nil {
-			return result.Err
+		posts, err := a.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, afterId)
+		if err != nil {
+			return err
 		}
 
-		posts := result.Data.([]*model.DirectPostForExport)
 		if len(posts) == 0 {
 			break
 		}

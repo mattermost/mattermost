@@ -25,8 +25,8 @@ type Context struct {
 
 func (c *Context) LogAudit(extraInfo string) {
 	audit := &model.Audit{UserId: c.App.Session.UserId, IpAddress: c.App.IpAddress, Action: c.App.Path, ExtraInfo: extraInfo, SessionId: c.App.Session.Id}
-	if r := <-c.App.Srv.Store.Audit().Save(audit); r.Err != nil {
-		c.LogError(r.Err)
+	if err := c.App.Srv.Store.Audit().Save(audit); err != nil {
+		c.LogError(err)
 	}
 }
 
@@ -37,8 +37,8 @@ func (c *Context) LogAuditWithUserId(userId, extraInfo string) {
 	}
 
 	audit := &model.Audit{UserId: userId, IpAddress: c.App.IpAddress, Action: c.App.Path, ExtraInfo: extraInfo, SessionId: c.App.Session.Id}
-	if r := <-c.App.Srv.Store.Audit().Save(audit); r.Err != nil {
-		c.LogError(r.Err)
+	if err := c.App.Srv.Store.Audit().Save(audit); err != nil {
+		c.LogError(err)
 	}
 }
 
@@ -125,6 +125,11 @@ func (c *Context) MfaRequired() {
 			return
 		}
 
+		// Bots are exempt
+		if user.IsBot {
+			return
+		}
+
 		if !user.MfaActive {
 			c.Err = model.NewAppError("", "api.context.mfa_required.app_error", nil, "MfaRequired", http.StatusForbidden)
 			return
@@ -133,10 +138,12 @@ func (c *Context) MfaRequired() {
 }
 
 func (c *Context) RemoveSessionCookie(w http.ResponseWriter, r *http.Request) {
+	subpath, _ := utils.GetSubpathFromConfig(c.App.Config())
+
 	cookie := &http.Cookie{
 		Name:     model.SESSION_COOKIE_TOKEN,
 		Value:    "",
-		Path:     "/",
+		Path:     subpath,
 		MaxAge:   -1,
 		HttpOnly: true,
 	}

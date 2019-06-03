@@ -47,6 +47,27 @@ func (a *App) SetPluginKeyWithExpiry(pluginId string, key string, value []byte, 
 	return nil
 }
 
+func (a *App) CompareAndSetPluginKey(pluginId string, key string, oldValue, newValue []byte) (bool, *model.AppError) {
+	kv := &model.PluginKeyValue{
+		PluginId: pluginId,
+		Key:      key,
+		Value:    newValue,
+	}
+
+	updated, err := a.Srv.Store.Plugin().CompareAndSet(kv, oldValue)
+	if err != nil {
+		mlog.Error("Failed to compare and set plugin key value", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(err))
+		return updated, err
+	}
+
+	// Clean up a previous entry using the hashed key, if it exists.
+	if result := <-a.Srv.Store.Plugin().Delete(pluginId, getKeyHash(key)); result.Err != nil {
+		mlog.Error("Failed to clean up previously hashed plugin key value", mlog.String("plugin_id", pluginId), mlog.String("key", key), mlog.Err(result.Err))
+	}
+
+	return updated, nil
+}
+
 func (a *App) GetPluginKey(pluginId string, key string) ([]byte, *model.AppError) {
 	if result := <-a.Srv.Store.Plugin().Get(pluginId, key); result.Err == nil {
 		return result.Data.(*model.PluginKeyValue).Value, nil

@@ -230,7 +230,7 @@ func TestPanicLog(t *testing.T) {
 		ConsoleJson:   true,
 		EnableFile:    true,
 		FileLocation:  tmpfile.Name(),
-		FileLevel: mlog.LevelInfo,
+		FileLevel:     mlog.LevelInfo,
 	})
 
 	// Creating a server with logger

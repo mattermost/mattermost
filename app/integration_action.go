@@ -27,6 +27,7 @@ import (
 	"strings"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
@@ -35,11 +36,23 @@ func (a *App) DoPostAction(postId, actionId, userId, selectedOption string) (str
 }
 
 func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption string, cookie *model.PostActionCookie) (string, *model.AppError) {
-	// the prop values that we need to retain/clear in replacement message to match the original
-	remove := []string{"override_username", "override_icon_url"}
-	retain := map[string]interface{}{}
-	datasource := ""
 
+	// PostAction may result in the original post being updated. For the
+	// updated post, we need to unconditionally preserve the original
+	// IsPinned and HasReaction attributes, and preserve its entire
+	// original Props set unless the plugin returns a replacement value.
+	// originalXxx variables are used to preserve these values.
+	var originalProps map[string]interface{}
+	originalIsPinned := false
+	originalHasReactions := false
+
+	// If the updated post does contain a replacement Props set, we still
+	// need to preserve some original values, as listed in
+	// model.PostActionRetainPropKeys. remove and retain track these.
+	remove := []string{}
+	retain := map[string]interface{}{}
+
+	datasource := ""
 	upstreamURL := ""
 	rootPostId := ""
 	upstreamRequest := &model.PostActionIntegrationRequest{
@@ -49,8 +62,15 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 
 	// See if the post exists in the DB, if so ignore the cookie.
 	// Start all queries here for parallel execution
-	pchan := a.Srv.Store.Post().GetSingle(postId)
+	pchan := make(chan store.StoreResult, 1)
+	go func() {
+		post, err := a.Srv.Store.Post().GetSingle(postId)
+		pchan <- store.StoreResult{Data: post, Err: err}
+		close(pchan)
+	}()
+
 	cchan := a.Srv.Store.Channel().GetForPost(postId)
+
 	result := <-pchan
 	if result.Err != nil {
 		if cookie == nil {
@@ -74,9 +94,7 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 		rootPostId = cookie.RootPostId
 		upstreamURL = cookie.Integration.URL
 	} else {
-		// Get action metadata from the database
 		post := result.Data.(*model.Post)
-
 		result = <-cchan
 		if result.Err != nil {
 			return "", result.Err
@@ -94,8 +112,9 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 		upstreamRequest.Context = action.Integration.Context
 		datasource = action.DataSource
 
-		retainPropKeys := []string{"override_username", "override_icon_url"}
-		for _, key := range retainPropKeys {
+		// Save the original values that may need to be preserved (including selected
+		// Props, i.e. override_username, override_icon_url)
+		for _, key := range model.PostActionRetainPropKeys {
 			value, ok := post.Props[key]
 			if ok {
 				retain[key] = value
@@ -103,6 +122,9 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 				remove = append(remove, key)
 			}
 		}
+		originalProps = post.Props
+		originalIsPinned = post.IsPinned
+		originalHasReactions = post.HasReactions
 
 		if post.RootId == "" {
 			rootPostId = post.Id
@@ -141,13 +163,21 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 
 	if response.Update != nil {
 		response.Update.Id = postId
-		response.Update.AddProp("from_webhook", "true")
-		for key, value := range retain {
-			response.Update.AddProp(key, value)
+
+		// Restore the post attributes and Props that need to be preserved
+		if response.Update.Props == nil {
+			response.Update.Props = originalProps
+		} else {
+			for key, value := range retain {
+				response.Update.AddProp(key, value)
+			}
+			for _, key := range remove {
+				delete(response.Update.Props, key)
+			}
 		}
-		for _, key := range remove {
-			delete(response.Update.Props, key)
-		}
+		response.Update.IsPinned = originalIsPinned
+		response.Update.HasReactions = originalHasReactions
+
 		if _, appErr = a.UpdatePost(response.Update, false); appErr != nil {
 			return "", appErr
 		}
@@ -160,7 +190,6 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 			RootId:    rootPostId,
 			UserId:    userId,
 		}
-		ephemeralPost.AddProp("from_webhook", "true")
 		for key, value := range retain {
 			ephemeralPost.AddProp(key, value)
 		}

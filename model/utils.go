@@ -21,7 +21,7 @@ import (
 	"time"
 	"unicode"
 
-	goi18n "github.com/nicksnyder/go-i18n/i18n"
+	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/pborman/uuid"
 )
 
@@ -35,6 +35,22 @@ const (
 type StringInterface map[string]interface{}
 type StringMap map[string]string
 type StringArray []string
+
+func (sa StringArray) Equals(input StringArray) bool {
+
+	if len(sa) != len(input) {
+		return false
+	}
+
+	for index := range sa {
+
+		if sa[index] != input[index] {
+			return false
+		}
+	}
+
+	return true
+}
 
 var translateFunc goi18n.TranslateFunc = nil
 
@@ -330,6 +346,8 @@ var reservedName = []string{
 	"post",
 	"api",
 	"oauth",
+	"error",
+	"help",
 }
 
 func IsValidChannelIdentifier(s string) bool {

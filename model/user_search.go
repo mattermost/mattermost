@@ -13,15 +13,16 @@ const USER_SEARCH_DEFAULT_LIMIT = 100
 
 // UserSearch captures the parameters provided by a client for initiating a user search.
 type UserSearch struct {
-	Term           string `json:"term"`
-	TeamId         string `json:"team_id"`
-	NotInTeamId    string `json:"not_in_team_id"`
-	InChannelId    string `json:"in_channel_id"`
-	NotInChannelId string `json:"not_in_channel_id"`
-	AllowInactive  bool   `json:"allow_inactive"`
-	WithoutTeam    bool   `json:"without_team"`
-	Limit          int    `json:"limit"`
-	Role           string `json:"role"`
+	Term             string `json:"term"`
+	TeamId           string `json:"team_id"`
+	NotInTeamId      string `json:"not_in_team_id"`
+	InChannelId      string `json:"in_channel_id"`
+	NotInChannelId   string `json:"not_in_channel_id"`
+	GroupConstrained bool   `json:"group_constrained"`
+	AllowInactive    bool   `json:"allow_inactive"`
+	WithoutTeam      bool   `json:"without_team"`
+	Limit            int    `json:"limit"`
+	Role             string `json:"role"`
 }
 
 // ToJson convert a User to a json string
@@ -53,8 +54,12 @@ type UserSearchOptions struct {
 	AllowFullNames bool
 	// AllowInactive configures whether or not to return inactive users in the search results.
 	AllowInactive bool
+	// Narrows the search to the group constrained users
+	GroupConstrained bool
 	// Limit limits the total number of results returned.
 	Limit int
 	// Filters for the given role
 	Role string
+	// Restrict to search in a list of teams and channels
+	ViewRestrictions *ViewUsersRestrictions
 }

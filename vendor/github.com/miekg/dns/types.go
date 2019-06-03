@@ -404,7 +404,7 @@ type RP struct {
 }
 
 func (rr *RP) String() string {
-	return rr.Hdr.String() + rr.Mbox + " " + sprintTxt([]string{rr.Txt})
+	return rr.Hdr.String() + sprintName(rr.Mbox) + " " + sprintName(rr.Txt)
 }
 
 // SOA RR. See RFC 1035.

@@ -1,46 +1,38 @@
 module willnorris.com/go/imageproxy
 
 require (
-	cloud.google.com/go v0.0.0-20180131234750-2de512d2700d
-	github.com/Azure/azure-sdk-for-go v12.3.0-beta+incompatible // indirect
-	github.com/Azure/go-autorest v9.9.0+incompatible // indirect
+	cloud.google.com/go v0.37.1
+	contrib.go.opencensus.io/exporter/ocagent v0.4.9 // indirect
+	github.com/Azure/azure-sdk-for-go v26.5.0+incompatible // indirect
+	github.com/Azure/go-autorest v11.5.2+incompatible // indirect
 	github.com/PaulARoy/azurestoragecache v0.0.0-20170906084534-3c249a3ba788
-	github.com/aws/aws-sdk-go v1.15.35
-	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/dgrijalva/jwt-go v3.1.0+incompatible // indirect
-	github.com/die-net/lrucache v0.0.0-20171111232917-04b9315ab7a6
-	github.com/disintegration/imaging v1.3.0
-	github.com/dnaeon/go-vcr v0.0.0-20180814043457-aafff18a5cc2 // indirect
-	github.com/garyburd/redigo v1.5.0
-	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b // indirect
-	github.com/golang/protobuf v1.0.0 // indirect
-	github.com/google/btree v0.0.0-20180124185431-e89373fe6b4a // indirect
-	github.com/google/go-cmp v0.2.0 // indirect
-	github.com/googleapis/gax-go v2.0.0+incompatible // indirect
-	github.com/gopherjs/gopherjs v0.0.0-20180825215210-0210a2f0f73c // indirect
-	github.com/gregjones/httpcache v0.0.0-20171119193500-2bcd89a1743f
-	github.com/jtolds/gls v4.2.1+incompatible // indirect
-	github.com/kr/pretty v0.1.0 // indirect
+	github.com/aws/aws-sdk-go v1.19.0
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
+	github.com/die-net/lrucache v0.0.0-20181227122439-19a39ef22a11
+	github.com/disintegration/imaging v1.6.0
+	github.com/dnaeon/go-vcr v1.0.1 // indirect
+	github.com/garyburd/redigo v1.6.0
+	github.com/gomodule/redigo v2.0.0+incompatible // indirect
+	github.com/google/btree v1.0.0 // indirect
+	github.com/gregjones/httpcache v0.0.0-20190212212710-3befbb6ad0cc
+	github.com/grpc-ecosystem/grpc-gateway v1.8.5 // indirect
+	github.com/hashicorp/golang-lru v0.5.1 // indirect
 	github.com/marstr/guid v0.0.0-20170427235115-8bdf7d1a087c // indirect
-	github.com/muesli/smartcrop v0.0.0-20171215203440-9032446b30f6
-	github.com/nfnt/resize v0.0.0-20160724205520-891127d8d1b5 // indirect
+	github.com/muesli/smartcrop v0.2.1-0.20181030220600-548bbf0c0965
+	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646 // indirect
 	github.com/peterbourgon/diskv v0.0.0-20171120014656-2973218375c3
-	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/rwcarlsen/goexif v0.0.0-20141222211634-41dad3aa0833
+	github.com/rwcarlsen/goexif v0.0.0-20190318171057-76e3344f7516
 	github.com/satori/go.uuid v0.0.0-20180103174451-36e9d2ebbde5 // indirect
-	github.com/smartystreets/assertions v0.0.0-20180820201707-7c9eb446e3cf // indirect
-	github.com/smartystreets/goconvey v0.0.0-20180222194500-ef6db91d284a // indirect
-	github.com/stretchr/testify v1.2.2 // indirect
-	golang.org/x/image v0.0.0-20171214225156-12117c17ca67
-	golang.org/x/net v0.0.0-20180201232540-b417086c80e9 // indirect
-	golang.org/x/oauth2 v0.0.0-20180126164932-a032972e2806 // indirect
-	golang.org/x/sync v0.0.0-20180314180146-1d60e4601c6f // indirect
-	golang.org/x/text v0.0.0-20171227012246-e19ae1496984 // indirect
-	google.golang.org/api v0.0.0-20180202000329-f7618f4b41ca // indirect
-	google.golang.org/appengine v0.0.0-20171212223047-5bee14b453b4 // indirect
-	google.golang.org/genproto v0.0.0-20180125080656-4eb30f4778ee // indirect
-	google.golang.org/grpc v0.0.0-20180201193814-f9628db66d14 // indirect
-	gopkg.in/check.v1 v1.0.0-20180628173108-788fd7840127 // indirect
-	gopkg.in/yaml.v2 v2.2.1 // indirect
+	github.com/stretchr/testify v1.3.0 // indirect
+	go.opencensus.io v0.19.2 // indirect
+	golang.org/x/image v0.0.0-20190321063152-3fc05d484e9f
+	golang.org/x/net v0.0.0-20190322120337-addf6b3196f6 // indirect
+	golang.org/x/oauth2 v0.0.0-20190319182350-c85d3e98c914 // indirect
+	golang.org/x/sys v0.0.0-20190322080309-f49334f85ddc // indirect
+	google.golang.org/appengine v1.5.0 // indirect
+	google.golang.org/genproto v0.0.0-20190321212433-e79c0c59cdb5 // indirect
 	willnorris.com/go/gifresize v1.0.0
 )
+
+// temporary fix to https://github.com/golang/lint/issues/436 which still seems to be a problem
+replace github.com/golang/lint => github.com/golang/lint v0.0.0-20190227174305-8f45f776aaf1

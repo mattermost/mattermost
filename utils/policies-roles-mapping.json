@@ -101,14 +101,14 @@
     "restrictPublicChannelManagement": {
         "all": [
             {
-                "roleName": "team_user",
+                "roleName": "channel_user",
                 "permission": "manage_public_channel_properties",
                 "shouldHave": true
             }
         ],
         "channel_admin": [
             {
-                "roleName": "team_user",
+                "roleName": "channel_user",
                 "permission": "manage_public_channel_properties",
                 "shouldHave": false
             },
@@ -125,7 +125,7 @@
         ],
         "team_admin": [
             {
-                "roleName": "team_user",
+                "roleName": "channel_user",
                 "permission": "manage_public_channel_properties",
                 "shouldHave": false
             },
@@ -142,7 +142,7 @@
         ],
         "system_admin": [
             {
-                "roleName": "team_user",
+                "roleName": "channel_user",
                 "permission": "manage_public_channel_properties",
                 "shouldHave": false
             },
@@ -161,14 +161,14 @@
     "restrictPublicChannelDeletion": {
         "all": [
             {
-                "roleName": "team_user",
+                "roleName": "channel_user",
                 "permission": "delete_public_channel",
                 "shouldHave": true
             }
         ],
         "channel_admin": [
             {
-                "roleName": "team_user",
+                "roleName": "channel_user",
                 "permission": "delete_public_channel",
                 "shouldHave": false
             },
@@ -185,7 +185,7 @@
         ],
         "team_admin": [
             {
-                "roleName": "team_user",
+                "roleName": "channel_user",
                 "permission": "delete_public_channel",
                 "shouldHave": false
             },
@@ -202,7 +202,7 @@
         ],
         "system_admin": [
             {
-                "roleName": "team_user",
+                "roleName": "channel_user",
                 "permission": "delete_public_channel",
                 "shouldHave": false
             },
@@ -221,14 +221,14 @@
     "restrictPrivateChannelManagement": {
         "all": [
             {
-                "roleName": "team_user",
+                "roleName": "channel_user",
                 "permission": "manage_private_channel_properties",
                 "shouldHave": true
             }
         ],
         "channel_admin": [
             {
-                "roleName": "team_user",
+                "roleName": "channel_user",
                 "permission": "manage_private_channel_properties",
                 "shouldHave": false
             },
@@ -245,7 +245,7 @@
         ],
         "team_admin": [
             {
-                "roleName": "team_user",
+                "roleName": "channel_user",
                 "permission": "manage_private_channel_properties",
                 "shouldHave": false
             },
@@ -262,7 +262,7 @@
         ],
         "system_admin": [
             {
-                "roleName": "team_user",
+                "roleName": "channel_user",
                 "permission": "manage_private_channel_properties",
                 "shouldHave": false
             },
@@ -341,14 +341,14 @@
     "restrictPrivateChannelDeletion": {
         "all": [
             {
-                "roleName": "team_user",
+                "roleName": "channel_user",
                 "permission": "delete_private_channel",
                 "shouldHave": true
             }
         ],
         "channel_admin": [
             {
-                "roleName": "team_user",
+                "roleName": "channel_user",
                 "permission": "delete_private_channel",
                 "shouldHave": false
             },
@@ -365,7 +365,7 @@
         ],
         "team_admin": [
             {
-                "roleName": "team_user",
+                "roleName": "channel_user",
                 "permission": "delete_private_channel",
                 "shouldHave": false
             },
@@ -382,7 +382,7 @@
         ],
         "system_admin": [
             {
-                "roleName": "team_user",
+                "roleName": "channel_user",
                 "permission": "delete_private_channel",
                 "shouldHave": false
             },

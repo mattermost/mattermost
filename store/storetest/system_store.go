@@ -21,37 +21,35 @@ func TestSystemStore(t *testing.T, ss store.Store) {
 
 func testSystemStore(t *testing.T, ss store.Store) {
 	system := &model.System{Name: model.NewId(), Value: "value"}
-	store.Must(ss.System().Save(system))
+	err := ss.System().Save(system)
+	require.Nil(t, err)
 
-	result := <-ss.System().Get()
-	systems := result.Data.(model.StringMap)
+	systems, _ := ss.System().Get()
 
 	require.Equal(t, system.Value, systems[system.Name])
 
 	system.Value = "value2"
-	store.Must(ss.System().Update(system))
+	err = ss.System().Update(system)
+	require.Nil(t, err)
 
-	result2 := <-ss.System().Get()
-	systems2 := result2.Data.(model.StringMap)
-
+	systems2, _ := ss.System().Get()
 	require.Equal(t, system.Value, systems2[system.Name])
 
-	result3 := <-ss.System().GetByName(system.Name)
-	rsystem := result3.Data.(*model.System)
+	rsystem, _ := ss.System().GetByName(system.Name)
 	require.Equal(t, system.Value, rsystem.Value)
 }
 
 func testSystemStoreSaveOrUpdate(t *testing.T, ss store.Store) {
 	system := &model.System{Name: model.NewId(), Value: "value"}
 
-	if err := (<-ss.System().SaveOrUpdate(system)).Err; err != nil {
+	if err := ss.System().SaveOrUpdate(system); err != nil {
 		t.Fatal(err)
 	}
 
 	system.Value = "value2"
 
-	if r := <-ss.System().SaveOrUpdate(system); r.Err != nil {
-		t.Fatal(r.Err)
+	if err := ss.System().SaveOrUpdate(system); err != nil {
+		t.Fatal(err)
 	}
 }
 
@@ -59,31 +57,32 @@ func testSystemStorePermanentDeleteByName(t *testing.T, ss store.Store) {
 	s1 := &model.System{Name: model.NewId(), Value: "value"}
 	s2 := &model.System{Name: model.NewId(), Value: "value"}
 
-	store.Must(ss.System().Save(s1))
-	store.Must(ss.System().Save(s2))
+	err := ss.System().Save(s1)
+	require.Nil(t, err)
+	err = ss.System().Save(s2)
+	require.Nil(t, err)
 
-	res1 := <-ss.System().GetByName(s1.Name)
-	assert.Nil(t, res1.Err)
+	_, err = ss.System().GetByName(s1.Name)
+	assert.Nil(t, err)
 
-	res2 := <-ss.System().GetByName(s2.Name)
-	assert.Nil(t, res2.Err)
+	_, err = ss.System().GetByName(s2.Name)
+	assert.Nil(t, err)
 
-	res3 := <-ss.System().PermanentDeleteByName(s1.Name)
-	assert.Nil(t, res3.Err)
+	_, err = ss.System().PermanentDeleteByName(s1.Name)
+	assert.Nil(t, err)
 
-	res4 := <-ss.System().GetByName(s1.Name)
-	assert.NotNil(t, res4.Err)
+	_, err = ss.System().GetByName(s1.Name)
+	assert.NotNil(t, err)
 
-	res5 := <-ss.System().GetByName(s2.Name)
-	assert.Nil(t, res5.Err)
+	_, err = ss.System().GetByName(s2.Name)
+	assert.Nil(t, err)
 
-	res6 := <-ss.System().PermanentDeleteByName(s2.Name)
-	assert.Nil(t, res6.Err)
+	_, err = ss.System().PermanentDeleteByName(s2.Name)
+	assert.Nil(t, err)
 
-	res7 := <-ss.System().GetByName(s1.Name)
-	assert.NotNil(t, res7.Err)
+	_, err = ss.System().GetByName(s1.Name)
+	assert.NotNil(t, err)
 
-	res8 := <-ss.System().GetByName(s2.Name)
-	assert.NotNil(t, res8.Err)
-
+	_, err = ss.System().GetByName(s2.Name)
+	assert.NotNil(t, err)
 }

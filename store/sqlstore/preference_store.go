@@ -54,31 +54,25 @@ func (s SqlPreferenceStore) DeleteUnusedFeatures() {
 	s.GetMaster().Exec(sql, queryParams)
 }
 
-func (s SqlPreferenceStore) Save(preferences *model.Preferences) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		// wrap in a transaction so that if one fails, everything fails
-		transaction, err := s.GetMaster().Begin()
-		if err != nil {
-			result.Err = model.NewAppError("SqlPreferenceStore.Save", "store.sql_preference.save.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			defer finalizeTransaction(transaction)
-			for _, preference := range *preferences {
-				if upsertResult := s.save(transaction, &preference); upsertResult.Err != nil {
-					*result = upsertResult
-					break
-				}
-			}
+func (s SqlPreferenceStore) Save(preferences *model.Preferences) *model.AppError {
+	// wrap in a transaction so that if one fails, everything fails
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return model.NewAppError("SqlPreferenceStore.Save", "store.sql_preference.save.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-			if result.Err == nil {
-				if err := transaction.Commit(); err != nil {
-					// don't need to rollback here since the transaction is already closed
-					result.Err = model.NewAppError("SqlPreferenceStore.Save", "store.sql_preference.save.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
-				} else {
-					result.Data = len(*preferences)
-				}
-			}
+	defer finalizeTransaction(transaction)
+	for _, preference := range *preferences {
+		if upsertResult := s.save(transaction, &preference); upsertResult.Err != nil {
+			return upsertResult.Err
 		}
-	})
+	}
+
+	if err := transaction.Commit(); err != nil {
+		// don't need to rollback here since the transaction is already closed
+		return model.NewAppError("SqlPreferenceStore.Save", "store.sql_preference.save.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return nil
 }
 
 func (s SqlPreferenceStore) save(transaction *gorp.Transaction, preference *model.Preference) store.StoreResult {
@@ -163,43 +157,39 @@ func (s SqlPreferenceStore) update(transaction *gorp.Transaction, preference *mo
 	return result
 }
 
-func (s SqlPreferenceStore) Get(userId string, category string, name string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var preference model.Preference
+func (s SqlPreferenceStore) Get(userId string, category string, name string) (*model.Preference, *model.AppError) {
+	var preference *model.Preference
 
-		if err := s.GetReplica().SelectOne(&preference,
-			`SELECT
-				*
-			FROM
-				Preferences
-			WHERE
-				UserId = :UserId
-				AND Category = :Category
-				AND Name = :Name`, map[string]interface{}{"UserId": userId, "Category": category, "Name": name}); err != nil {
-			result.Err = model.NewAppError("SqlPreferenceStore.Get", "store.sql_preference.get.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = preference
-		}
-	})
+	if err := s.GetReplica().SelectOne(&preference,
+		`SELECT
+			*
+		FROM
+			Preferences
+		WHERE
+			UserId = :UserId
+			AND Category = :Category
+			AND Name = :Name`, map[string]interface{}{"UserId": userId, "Category": category, "Name": name}); err != nil {
+		return nil, model.NewAppError("SqlPreferenceStore.Get", "store.sql_preference.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return preference, nil
 }
 
-func (s SqlPreferenceStore) GetCategory(userId string, category string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var preferences model.Preferences
+func (s SqlPreferenceStore) GetCategory(userId string, category string) (model.Preferences, *model.AppError) {
+	var preferences model.Preferences
 
-		if _, err := s.GetReplica().Select(&preferences,
-			`SELECT
+	if _, err := s.GetReplica().Select(&preferences,
+		`SELECT
 				*
 			FROM
 				Preferences
 			WHERE
 				UserId = :UserId
 				AND Category = :Category`, map[string]interface{}{"UserId": userId, "Category": category}); err != nil {
-			result.Err = model.NewAppError("SqlPreferenceStore.GetCategory", "store.sql_preference.get_category.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = preferences
-		}
-	})
+		return nil, model.NewAppError("SqlPreferenceStore.GetCategory", "store.sql_preference.get_category.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return preferences, nil
+
 }
 
 func (s SqlPreferenceStore) GetAll(userId string) store.StoreChannel {
@@ -220,30 +210,33 @@ func (s SqlPreferenceStore) GetAll(userId string) store.StoreChannel {
 	})
 }
 
-func (s SqlPreferenceStore) PermanentDeleteByUser(userId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if _, err := s.GetMaster().Exec(
-			`DELETE FROM Preferences WHERE UserId = :UserId`, map[string]interface{}{"UserId": userId}); err != nil {
-			result.Err = model.NewAppError("SqlPreferenceStore.Delete", "store.sql_preference.permanent_delete_by_user.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-	})
+func (s SqlPreferenceStore) PermanentDeleteByUser(userId string) *model.AppError {
+	query :=
+		`DELETE FROM 
+			Preferences 
+		WHERE 
+			UserId = :UserId`
+
+	if _, err := s.GetMaster().Exec(query, map[string]interface{}{"UserId": userId}); err != nil {
+		return model.NewAppError("SqlPreferenceStore.Delete", "store.sql_preference.permanent_delete_by_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
 }
 
-func (s SqlPreferenceStore) IsFeatureEnabled(feature, userId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if value, err := s.GetReplica().SelectStr(`SELECT
-				value
-			FROM
-				Preferences
-			WHERE
-				UserId = :UserId
-				AND Category = :Category
-				AND Name = :Name`, map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS, "Name": store.FEATURE_TOGGLE_PREFIX + feature}); err != nil {
-			result.Err = model.NewAppError("SqlPreferenceStore.IsFeatureEnabled", "store.sql_preference.is_feature_enabled.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = value == "true"
-		}
-	})
+func (s SqlPreferenceStore) IsFeatureEnabled(feature, userId string) (bool, *model.AppError) {
+	query :=
+		`SELECT value FROM Preferences
+		WHERE
+			UserId = :UserId
+			AND Category = :Category
+			AND Name = :Name`
+
+	value, err := s.GetReplica().SelectStr(query, map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS, "Name": store.FEATURE_TOGGLE_PREFIX + feature})
+	if err != nil {
+		return false, model.NewAppError("SqlPreferenceStore.IsFeatureEnabled", "store.sql_preference.is_feature_enabled.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return value == "true", nil
 }
 
 func (s SqlPreferenceStore) Delete(userId, category, name string) store.StoreChannel {
@@ -260,71 +253,72 @@ func (s SqlPreferenceStore) Delete(userId, category, name string) store.StoreCha
 	})
 }
 
-func (s SqlPreferenceStore) DeleteCategory(userId string, category string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if _, err := s.GetMaster().Exec(
-			`DELETE FROM
-				Preferences
-			WHERE
-				UserId = :UserId
-				AND Category = :Category`, map[string]interface{}{"UserId": userId, "Category": category}); err != nil {
-			result.Err = model.NewAppError("SqlPreferenceStore.DeleteCategory", "store.sql_preference.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-	})
+func (s SqlPreferenceStore) DeleteCategory(userId string, category string) *model.AppError {
+	_, err := s.GetMaster().Exec(
+		`DELETE FROM
+			Preferences
+		WHERE
+			UserId = :UserId
+			AND Category = :Category`, map[string]interface{}{"UserId": userId, "Category": category})
+
+	if err != nil {
+		return model.NewAppError("SqlPreferenceStore.DeleteCategory", "store.sql_preference.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
 }
 
-func (s SqlPreferenceStore) DeleteCategoryAndName(category string, name string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if _, err := s.GetMaster().Exec(
-			`DELETE FROM
-				Preferences
-			WHERE
-				Name = :Name
-				AND Category = :Category`, map[string]interface{}{"Name": name, "Category": category}); err != nil {
-			result.Err = model.NewAppError("SqlPreferenceStore.DeleteCategoryAndName", "store.sql_preference.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-	})
+func (s SqlPreferenceStore) DeleteCategoryAndName(category string, name string) *model.AppError {
+	_, err := s.GetMaster().Exec(
+		`DELETE FROM
+			Preferences
+		WHERE
+			Name = :Name
+			AND Category = :Category`, map[string]interface{}{"Name": name, "Category": category})
+
+	if err != nil {
+		return model.NewAppError("SqlPreferenceStore.DeleteCategoryAndName", "store.sql_preference.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
 }
 
-func (s SqlPreferenceStore) CleanupFlagsBatch(limit int64) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		query :=
-			`DELETE FROM
-				Preferences
-			WHERE
-				Category = :Category
-				AND Name IN (
+func (s SqlPreferenceStore) CleanupFlagsBatch(limit int64) (int64, *model.AppError) {
+	query :=
+		`DELETE FROM
+			Preferences
+		WHERE
+			Category = :Category
+			AND Name IN (
+				SELECT
+					*
+				FROM (
 					SELECT
-						*
-					FROM (
-						SELECT
-							Preferences.Name
-						FROM
-							Preferences
-						LEFT JOIN
-							Posts
-						ON
-							Preferences.Name = Posts.Id
-						WHERE
-							Preferences.Category = :Category
-							AND Posts.Id IS null
-						LIMIT
-							:Limit
-					)
-					AS t
-				)`
+						Preferences.Name
+					FROM
+						Preferences
+					LEFT JOIN
+						Posts
+					ON
+						Preferences.Name = Posts.Id
+					WHERE
+						Preferences.Category = :Category
+						AND Posts.Id IS null
+					LIMIT
+						:Limit
+				)
+				AS t
+			)`
 
-		sqlResult, err := s.GetMaster().Exec(query, map[string]interface{}{"Category": model.PREFERENCE_CATEGORY_FLAGGED_POST, "Limit": limit})
-		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.CleanupFlagsBatch", "store.sql_preference.cleanup_flags_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
-		} else {
-			rowsAffected, err1 := sqlResult.RowsAffected()
-			if err1 != nil {
-				result.Err = model.NewAppError("SqlPostStore.CleanupFlagsBatch", "store.sql_preference.cleanup_flags_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
-				result.Data = int64(0)
-			} else {
-				result.Data = rowsAffected
-			}
-		}
-	})
+	sqlResult, err := s.GetMaster().Exec(query, map[string]interface{}{"Category": model.PREFERENCE_CATEGORY_FLAGGED_POST, "Limit": limit})
+	if err != nil {
+		return int64(0), model.NewAppError("SqlPostStore.CleanupFlagsBatch", "store.sql_preference.cleanup_flags_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
+	}
+
+	rowsAffected, err := sqlResult.RowsAffected()
+	if err != nil {
+		return int64(0), model.NewAppError("SqlPostStore.CleanupFlagsBatch", "store.sql_preference.cleanup_flags_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
+	}
+
+	return rowsAffected, nil
 }

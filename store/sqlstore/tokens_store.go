@@ -75,3 +75,12 @@ func (s SqlTokenStore) Cleanup() {
 		mlog.Error("Unable to cleanup token store.")
 	}
 }
+
+func (s SqlTokenStore) RemoveAllTokensByType(tokenType string) store.StoreChannel {
+	return store.Do(func(result *store.StoreResult) {
+		if _, err := s.GetMaster().Exec("DELETE FROM Tokens WHERE Type = :TokenType", map[string]interface{}{"TokenType": tokenType}); err != nil {
+			result.Err = model.NewAppError("SqlTokenStore.RemoveAllTokensByType", "store.sql_recover.remove_all_tokens_by_type.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+	})
+}

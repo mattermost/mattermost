@@ -6,6 +6,8 @@ package storetest
 import (
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/stretchr/testify/assert"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -42,24 +44,24 @@ func testPreferenceSave(t *testing.T, ss store.Store) {
 			Value:    "value1b",
 		},
 	}
-	if count := store.Must(ss.Preference().Save(&preferences)); count != 2 {
-		t.Fatal("got incorrect number of rows saved")
+	if err := ss.Preference().Save(&preferences); err != nil {
+		t.Fatal("saving preference returned error")
 	}
 
 	for _, preference := range preferences {
-		if data := store.Must(ss.Preference().Get(preference.UserId, preference.Category, preference.Name)).(model.Preference); preference != data {
+		if data, _ := ss.Preference().Get(preference.UserId, preference.Category, preference.Name); preference.ToJson() != data.ToJson() {
 			t.Fatal("got incorrect preference after first Save")
 		}
 	}
 
 	preferences[0].Value = "value2a"
 	preferences[1].Value = "value2b"
-	if count := store.Must(ss.Preference().Save(&preferences)); count != 2 {
-		t.Fatal("got incorrect number of rows saved")
+	if err := ss.Preference().Save(&preferences); err != nil {
+		t.Fatal("saving preference returned error")
 	}
 
 	for _, preference := range preferences {
-		if data := store.Must(ss.Preference().Get(preference.UserId, preference.Category, preference.Name)).(model.Preference); preference != data {
+		if data, _ := ss.Preference().Get(preference.UserId, preference.Category, preference.Name); preference.ToJson() != data.ToJson() {
 			t.Fatal("got incorrect preference after second Save")
 		}
 	}
@@ -93,16 +95,17 @@ func testPreferenceGet(t *testing.T, ss store.Store) {
 		},
 	}
 
-	store.Must(ss.Preference().Save(&preferences))
+	err := ss.Preference().Save(&preferences)
+	require.Nil(t, err)
 
-	if result := <-ss.Preference().Get(userId, category, name); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if data := result.Data.(model.Preference); data != preferences[0] {
+	if data, err := ss.Preference().Get(userId, category, name); err != nil {
+		t.Fatal(err)
+	} else if data.ToJson() != preferences[0].ToJson() {
 		t.Fatal("got incorrect preference")
 	}
 
 	// make sure getting a missing preference fails
-	if result := <-ss.Preference().Get(model.NewId(), model.NewId(), model.NewId()); result.Err == nil {
+	if _, err := ss.Preference().Get(model.NewId(), model.NewId(), model.NewId()); err == nil {
 		t.Fatal("no error on getting a missing preference")
 	}
 }
@@ -138,20 +141,21 @@ func testPreferenceGetCategory(t *testing.T, ss store.Store) {
 		},
 	}
 
-	store.Must(ss.Preference().Save(&preferences))
+	err := ss.Preference().Save(&preferences)
+	require.Nil(t, err)
 
-	if result := <-ss.Preference().GetCategory(userId, category); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if data := result.Data.(model.Preferences); len(data) != 2 {
+	if preferencesByCategory, err := ss.Preference().GetCategory(userId, category); err != nil {
+		t.Fatal(err)
+	} else if len(preferencesByCategory) != 2 {
 		t.Fatal("got the wrong number of preferences")
-	} else if !((data[0] == preferences[0] && data[1] == preferences[1]) || (data[0] == preferences[1] && data[1] == preferences[0])) {
+	} else if !((preferencesByCategory[0] == preferences[0] && preferencesByCategory[1] == preferences[1]) || (preferencesByCategory[0] == preferences[1] && preferencesByCategory[1] == preferences[0])) {
 		t.Fatal("got incorrect preferences")
 	}
 
 	// make sure getting a missing preference category doesn't fail
-	if result := <-ss.Preference().GetCategory(model.NewId(), model.NewId()); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if data := result.Data.(model.Preferences); len(data) != 0 {
+	if preferencesByCategory, err := ss.Preference().GetCategory(model.NewId(), model.NewId()); err != nil {
+		t.Fatal(err)
+	} else if len(preferencesByCategory) != 0 {
 		t.Fatal("shouldn't have got any preferences")
 	}
 }
@@ -187,7 +191,8 @@ func testPreferenceGetAll(t *testing.T, ss store.Store) {
 		},
 	}
 
-	store.Must(ss.Preference().Save(&preferences))
+	err := ss.Preference().Save(&preferences)
+	require.Nil(t, err)
 
 	if result := <-ss.Preference().GetAll(userId); result.Err != nil {
 		t.Fatal(result.Err)
@@ -233,10 +238,11 @@ func testPreferenceDeleteByUser(t *testing.T, ss store.Store) {
 		},
 	}
 
-	store.Must(ss.Preference().Save(&preferences))
+	err := ss.Preference().Save(&preferences)
+	require.Nil(t, err)
 
-	if result := <-ss.Preference().PermanentDeleteByUser(userId); result.Err != nil {
-		t.Fatal(result.Err)
+	if err := ss.Preference().PermanentDeleteByUser(userId); err != nil {
+		t.Fatal(err)
 	}
 }
 
@@ -281,31 +287,32 @@ func testIsFeatureEnabled(t *testing.T, ss store.Store) {
 		},
 	}
 
-	store.Must(ss.Preference().Save(&features))
+	err := ss.Preference().Save(&features)
+	require.Nil(t, err)
 
-	if result := <-ss.Preference().IsFeatureEnabled(feature1, userId); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if data := result.Data.(bool); !data {
+	if data, err := ss.Preference().IsFeatureEnabled(feature1, userId); err != nil {
+		t.Fatal(err)
+	} else if !data {
 		t.Fatalf("got incorrect setting for feature1, %v=%v", true, data)
 	}
 
-	if result := <-ss.Preference().IsFeatureEnabled(feature2, userId); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if data := result.Data.(bool); data {
+	if data, err := ss.Preference().IsFeatureEnabled(feature2, userId); err != nil {
+		t.Fatal(err)
+	} else if data {
 		t.Fatalf("got incorrect setting for feature2, %v=%v", false, data)
 	}
 
 	// make sure we get false if something different than "true" or "false" has been saved to database
-	if result := <-ss.Preference().IsFeatureEnabled(feature3, userId); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if data := result.Data.(bool); data {
+	if data, err := ss.Preference().IsFeatureEnabled(feature3, userId); err != nil {
+		t.Fatal(err)
+	} else if data {
 		t.Fatalf("got incorrect setting for feature3, %v=%v", false, data)
 	}
 
 	// make sure false is returned if a non-existent feature is queried
-	if result := <-ss.Preference().IsFeatureEnabled("someOtherFeature", userId); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if data := result.Data.(bool); data {
+	if data, err := ss.Preference().IsFeatureEnabled("someOtherFeature", userId); err != nil {
+		t.Fatal(err)
+	} else if data {
 		t.Fatalf("got incorrect setting for non-existent feature 'someOtherFeature', %v=%v", false, data)
 	}
 }
@@ -318,7 +325,8 @@ func testPreferenceDelete(t *testing.T, ss store.Store) {
 		Value:    "value1a",
 	}
 
-	store.Must(ss.Preference().Save(&model.Preferences{preference}))
+	err := ss.Preference().Save(&model.Preferences{preference})
+	require.Nil(t, err)
 
 	if prefs := store.Must(ss.Preference().GetAll(preference.UserId)).(model.Preferences); len([]model.Preference(prefs)) != 1 {
 		t.Fatal("should've returned 1 preference")
@@ -351,14 +359,15 @@ func testPreferenceDeleteCategory(t *testing.T, ss store.Store) {
 		Value:    "value1a",
 	}
 
-	store.Must(ss.Preference().Save(&model.Preferences{preference1, preference2}))
+	err := ss.Preference().Save(&model.Preferences{preference1, preference2})
+	require.Nil(t, err)
 
 	if prefs := store.Must(ss.Preference().GetAll(userId)).(model.Preferences); len([]model.Preference(prefs)) != 2 {
 		t.Fatal("should've returned 2 preferences")
 	}
 
-	if result := <-ss.Preference().DeleteCategory(userId, category); result.Err != nil {
-		t.Fatal(result.Err)
+	if err := ss.Preference().DeleteCategory(userId, category); err != nil {
+		t.Fatal(err)
 	}
 
 	if prefs := store.Must(ss.Preference().GetAll(userId)).(model.Preferences); len([]model.Preference(prefs)) != 0 {
@@ -386,7 +395,8 @@ func testPreferenceDeleteCategoryAndName(t *testing.T, ss store.Store) {
 		Value:    "value1a",
 	}
 
-	store.Must(ss.Preference().Save(&model.Preferences{preference1, preference2}))
+	err := ss.Preference().Save(&model.Preferences{preference1, preference2})
+	require.Nil(t, err)
 
 	if prefs := store.Must(ss.Preference().GetAll(userId)).(model.Preferences); len([]model.Preference(prefs)) != 1 {
 		t.Fatal("should've returned 1 preference")
@@ -396,8 +406,8 @@ func testPreferenceDeleteCategoryAndName(t *testing.T, ss store.Store) {
 		t.Fatal("should've returned 1 preference")
 	}
 
-	if result := <-ss.Preference().DeleteCategoryAndName(category, name); result.Err != nil {
-		t.Fatal(result.Err)
+	if err := ss.Preference().DeleteCategoryAndName(category, name); err != nil {
+		t.Fatal(err)
 	}
 
 	if prefs := store.Must(ss.Preference().GetAll(userId)).(model.Preferences); len([]model.Preference(prefs)) != 0 {
@@ -434,14 +444,15 @@ func testPreferenceCleanupFlagsBatch(t *testing.T, ss store.Store) {
 		Value:    "true",
 	}
 
-	store.Must(ss.Preference().Save(&model.Preferences{preference1, preference2}))
+	err := ss.Preference().Save(&model.Preferences{preference1, preference2})
+	require.Nil(t, err)
 
-	result := <-ss.Preference().CleanupFlagsBatch(10000)
-	assert.Nil(t, result.Err)
+	_, err = ss.Preference().CleanupFlagsBatch(10000)
+	assert.Nil(t, err)
 
-	result = <-ss.Preference().Get(userId, category, preference1.Name)
-	assert.Nil(t, result.Err)
+	_, err = ss.Preference().Get(userId, category, preference1.Name)
+	assert.Nil(t, err)
 
-	result = <-ss.Preference().Get(userId, category, preference2.Name)
-	assert.NotNil(t, result.Err)
+	_, err = ss.Preference().Get(userId, category, preference2.Name)
+	assert.NotNil(t, err)
 }

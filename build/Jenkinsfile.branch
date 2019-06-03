@@ -1,0 +1,151 @@
+#!/usr/bin/env groovy
+
+@Library('shared-pipelines') _
+import org.mattermost.Utils
+import java.util.*;
+def utils = new org.mattermost.Utils()
+def build = new org.mattermost.BuildCommands()
+def platformStages = new org.mattermost.PlatformStages()
+
+def rndEE = UUID.randomUUID().toString()
+def rndTE = UUID.randomUUID().toString()
+def mmBuilderServer = 'mattermost/mattermost-build-server:feb-28-2019'
+def mmBuilderWebapp = 'mattermost/mattermost-build-webapp:oct-2-2018'
+
+pipeline {
+  agent {
+    label 'default-mm-builder'
+  }
+
+  options {
+    buildDiscarder(logRotator(numToKeepStr: '3'))
+    timeout(time: 2, unit: 'HOURS')
+  }
+
+  environment {
+    COMPOSE_PROJECT_NAME="${rnd}-${env.BUILD_NUMBER}"
+    GOPATH = "/go"
+  }
+
+  stages {
+    stage('Setup') {
+      steps {
+        script {
+          platformStages.platformEcho()
+        }
+      }
+    }
+
+    stage('Build') {
+      failFast true
+      parallel {
+        stage ('Build EE') {
+          agent {
+            label 'default-mm-builder'
+          }
+          steps {
+            script {
+              forcefullyCleanWorkspace(mmBuilderServer)
+              platformStages.platformCheckoutTE(env.BRANCH_NAME)
+              platformStages.platformCheckoutEE(env.BRANCH_NAME)
+              platformStages.platformCheckoutRedux(env.BRANCH_NAME)
+              SERVER_GIT_COMMIT=platformStages.platformServerCommitHash()
+              try {
+                platformStages.newPlatformBuild(env.BRANCH_NAME + '.' + env.BUILD_NUMBER + '.' + SERVER_GIT_COMMIT, rndEE, false, mmBuilderServer, mmBuilderWebapp)
+              } finally {
+                platformStages.platformPublishResults()
+                platformStages.platformCleanDockerCompose(rndEE)
+              }
+            }
+            stash includes: 'src/github.com/mattermost/mattermost-server/dist/**', name: 'eedist'
+          }
+        }
+        stage ('Build TE') {
+          agent {
+            label 'default-mm-builder'
+          }
+          steps {
+            script {
+              forcefullyCleanWorkspace(mmBuilderServer)
+              platformStages.platformCheckoutTE(env.BRANCH_NAME)
+              platformStages.platformCheckoutRedux(env.BRANCH_NAME)
+              SERVER_GIT_COMMIT=platformStages.platformServerCommitHash()
+              try {
+                platformStages.newPlatformBuild(env.BRANCH_NAME + '.' + env.BUILD_NUMBER + '.' + SERVER_GIT_COMMIT, rndTE, false, mmBuilderServer, mmBuilderWebapp)
+              } finally {
+                platformStages.platformPublishResults()
+                platformStages.platformCleanDockerCompose(rndTE)
+              }
+            }
+            stash includes: 'src/github.com/mattermost/mattermost-server/dist/**', name: 'tedist'
+          }
+        }
+      }
+    }
+
+    stage ('Push EE') {
+      steps {
+        node('master') {
+          forcefullyCleanWorkspace(mmBuilderServer)
+          unstash 'eedist'
+          script {
+            platformStages.pushToS3('mattermost-platform/' + env.BRANCH_NAME, 'mattermost-enterprise-*',false)
+          }
+        }
+      }
+    }
+    stage ('Push TE') {
+      steps {
+        node('master') {
+          forcefullyCleanWorkspace(mmBuilderServer)
+          unstash 'tedist'
+          script {
+            platformStages.pushToS3('mattermost-platform/' + env.BRANCH_NAME, 'mattermost-team-*',false)
+          }
+        }
+      }
+    }
+    stage ('CleanCloudfront') {
+      steps {
+        node('master') {
+          script {
+            platformStages.cleanCloudfrontCache('mattermost-platform/' + env.BRANCH_NAME)
+          }
+        }
+      }
+    }
+
+    stage ('Build Docker mattermost-enterprise-edition') {
+      steps {
+        script {
+          platformStages.platformCheckoutDockerRepo('master')
+          def MMBINARYPATH="https://releases.mattermost.com/mattermost-platform/" + env.BRANCH_NAME + "/mattermost-enterprise-linux-amd64.tar.gz"
+          platformStages.platformBuildDockerImage(MMBINARYPATH, env.BRANCH_NAME + '.' + env.BUILD_NUMBER + '.' + SERVER_GIT_COMMIT)
+        }
+      }
+    }
+  }
+
+  post {
+    cleanup {
+      forcefullyCleanWorkspace(mmBuilderServer)
+    }
+  }
+}
+
+
+def forcefullyCleanWorkspace(String imageToUse) {
+  return withDockerContainer(
+    image: imageToUse,
+    args: '-u root'
+  ) {
+    ansiColor('xterm') {
+      sh """#!/bin/bash -e
+        if [ -d "\$WORKSPACE" ]
+        then
+          rm -rfv \$WORKSPACE/*
+        fi
+      """
+    }
+  }
+}

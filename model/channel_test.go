@@ -59,8 +59,8 @@ func TestChannelPatch(t *testing.T) {
 	if *p.Purpose != o.Purpose {
 		t.Fatal("do not match")
 	}
-	if *p.GroupConstrained != o.GroupConstrained.Bool {
-		t.Fatalf("expected %v got %v", *p.GroupConstrained, o.GroupConstrained.Bool)
+	if *p.GroupConstrained != *o.GroupConstrained {
+		t.Fatalf("expected %v got %v", *p.GroupConstrained, *o.GroupConstrained)
 	}
 }
 

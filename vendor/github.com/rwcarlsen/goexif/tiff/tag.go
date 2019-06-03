@@ -107,71 +107,59 @@ type Tag struct {
 	ratVals   [][]int64
 	strVal    string
 	format    Format
+	// raw contains the raw content of the value
+	// either the value if it fits in 4 bytes or a pointer to it if bigger
+	r      io.ReaderAt
+	raw    []byte
+	valLen uint32
 }
 
 // DecodeTag parses a tiff-encoded IFD tag from r and returns a Tag object. The
 // first read from r should be the first byte of the tag. ReadAt offsets should
 // generally be relative to the beginning of the tiff structure (not relative
 // to the beginning of the tag).
-func DecodeTag(r ReadAtReader, order binary.ByteOrder) (*Tag, error) {
+func DecodeTag(r io.ReaderAt, rawData []byte, order binary.ByteOrder) (*Tag, error) {
 	t := new(Tag)
 	t.order = order
+	t.r = r
 
-	err := binary.Read(r, order, &t.Id)
-	if err != nil {
-		return nil, errors.New("tiff: tag id read failed: " + err.Error())
-	}
-
-	err = binary.Read(r, order, &t.Type)
-	if err != nil {
-		return nil, errors.New("tiff: tag type read failed: " + err.Error())
-	}
-
-	err = binary.Read(r, order, &t.Count)
-	if err != nil {
-		return nil, errors.New("tiff: tag component count read failed: " + err.Error())
-	}
+	t.Id = order.Uint16(rawData[0:2])
+	t.Type = DataType(order.Uint16(rawData[2:4]))
+	t.Count = order.Uint32(rawData[4:8])
 
 	// There seems to be a relatively common corrupt tag which has a Count of
 	// MaxUint32. This is probably not a valid value, so return early.
-	if t.Count == 1<<32-1 {
+	if t.Count >= 1<<32-1 {
 		return t, errors.New("invalid Count offset in tag")
 	}
 
-	valLen := typeSize[t.Type] * t.Count
-	if valLen == 0 {
+	t.valLen = typeSize[t.Type] * t.Count
+	if t.valLen == 0 {
 		return t, errors.New("zero length tag value")
 	}
 
-	if valLen > 4 {
-		binary.Read(r, order, &t.ValOffset)
+	t.raw = rawData[8:12]
 
-		// Use a bytes.Buffer so we don't allocate a huge slice if the tag
-		// is corrupt.
-		var buff bytes.Buffer
-		sr := io.NewSectionReader(r, int64(t.ValOffset), int64(valLen))
-		n, err := io.Copy(&buff, sr)
+	return t, nil
+}
+
+func (t *Tag) LoadVal() error {
+	if t.Val != nil {
+		return nil
+	}
+	if t.valLen > 4 {
+		offset := t.order.Uint32(t.raw)
+		val := make([]byte, t.valLen)
+		_, err := t.r.ReadAt(val, int64(offset))
 		if err != nil {
-			return t, errors.New("tiff: tag value read failed: " + err.Error())
-		} else if n != int64(valLen) {
-			return t, ErrShortReadTagValue
+			return errors.New("tiff: tag value read failed: " + err.Error())
 		}
-		t.Val = buff.Bytes()
+		t.Val = val
 
 	} else {
-		val := make([]byte, valLen)
-		if _, err = io.ReadFull(r, val); err != nil {
-			return t, errors.New("tiff: tag offset read failed: " + err.Error())
-		}
-		// ignore padding.
-		if _, err = io.ReadFull(r, make([]byte, 4-valLen)); err != nil {
-			return t, errors.New("tiff: tag offset read failed: " + err.Error())
-		}
-
-		t.Val = val
+		t.Val = t.raw[0:t.valLen]
 	}
-
-	return t, t.convertVals()
+	return t.convertVals()
 }
 
 func (t *Tag) convertVals() error {
@@ -340,6 +328,12 @@ func (t *Tag) Rat(i int) (*big.Rat, error) {
 // numerator-denominator pair. It returns an error if the tag's Format is not
 // RatVal. It panics if i is out of range.
 func (t *Tag) Rat2(i int) (num, den int64, err error) {
+	if t.ratVals == nil {
+		err := t.LoadVal()
+		if err != nil {
+			return 0, 0, err
+		}
+	}
 	if t.format != RatVal {
 		return 0, 0, t.typeErr(RatVal)
 	}
@@ -349,6 +343,12 @@ func (t *Tag) Rat2(i int) (num, den int64, err error) {
 // Int64 returns the tag's i'th value as an integer. It returns an error if the
 // tag's Format is not IntVal. It panics if i is out of range.
 func (t *Tag) Int64(i int) (int64, error) {
+	if t.intVals == nil {
+		err := t.LoadVal()
+		if err != nil {
+			return 0, err
+		}
+	}
 	if t.format != IntVal {
 		return 0, t.typeErr(IntVal)
 	}
@@ -358,6 +358,12 @@ func (t *Tag) Int64(i int) (int64, error) {
 // Int returns the tag's i'th value as an integer. It returns an error if the
 // tag's Format is not IntVal. It panics if i is out of range.
 func (t *Tag) Int(i int) (int, error) {
+	if t.intVals == nil {
+		err := t.LoadVal()
+		if err != nil {
+			return 0, err
+		}
+	}
 	if t.format != IntVal {
 		return 0, t.typeErr(IntVal)
 	}
@@ -367,6 +373,12 @@ func (t *Tag) Int(i int) (int, error) {
 // Float returns the tag's i'th value as a float. It returns an error if the
 // tag's Format is not IntVal.  It panics if i is out of range.
 func (t *Tag) Float(i int) (float64, error) {
+	if t.floatVals == nil {
+		err := t.LoadVal()
+		if err != nil {
+			return 0, err
+		}
+	}
 	if t.format != FloatVal {
 		return 0, t.typeErr(FloatVal)
 	}
@@ -376,6 +388,12 @@ func (t *Tag) Float(i int) (float64, error) {
 // StringVal returns the tag's value as a string. It returns an error if the
 // tag's Format is not StringVal. It panics if i is out of range.
 func (t *Tag) StringVal() (string, error) {
+	if t.strVal == "" {
+		err := t.LoadVal()
+		if err != nil {
+			return "", err
+		}
+	}
 	if t.format != StringVal {
 		return "", t.typeErr(StringVal)
 	}
@@ -396,6 +414,10 @@ func (t *Tag) String() string {
 }
 
 func (t *Tag) MarshalJSON() ([]byte, error) {
+	err := t.LoadVal()
+	if err != nil {
+		return nil, err
+	}
 	switch t.format {
 	case StringVal, UndefVal:
 		return nullString(t.Val), nil

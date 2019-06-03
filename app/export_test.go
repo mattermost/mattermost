@@ -10,7 +10,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
 )
 
 func TestReactionsOfPost(t *testing.T) {
@@ -81,7 +80,9 @@ func TestExportUserChannels(t *testing.T) {
 	}
 	var preferences model.Preferences
 	preferences = append(preferences, preference)
-	store.Must(th.App.Srv.Store.Preference().Save(&preferences))
+	err := th.App.Srv.Store.Preference().Save(&preferences)
+	require.Nil(t, err)
+
 	th.App.UpdateChannelMemberNotifyProps(notifyProps, channel.Id, user.Id)
 	exportData, err := th.App.buildUserChannelMemberships(user.Id, team.Id)
 	require.Nil(t, err)
@@ -354,7 +355,7 @@ func TestExportGMandDMChannels(t *testing.T) {
 	channels = result.Data.([]*model.DirectChannelForExport)
 
 	// Adding some deteminism so its possible to assert on slice index
-	sort.Slice(channels, func(i, j int) bool { return channels[i].CreateAt > channels[j].CreateAt })
+	sort.Slice(channels, func(i, j int) bool { return channels[i].Type > channels[j].Type })
 	assert.Equal(t, 2, len(channels))
 	assert.ElementsMatch(t, []string{th1.BasicUser.Username, user1.Username, user2.Username}, *channels[0].Members)
 	assert.ElementsMatch(t, []string{th1.BasicUser.Username, th1.BasicUser2.Username}, *channels[1].Members)
@@ -377,18 +378,41 @@ func TestExportDMandGMPost(t *testing.T) {
 	gmMembers := []string{th1.BasicUser.Username, user1.Username, user2.Username}
 
 	// DM posts
-	th1.CreatePost(dmChannel)
-	th1.CreatePost(dmChannel)
-	// GM posts
-	th1.CreatePost(gmChannel)
-	th1.CreatePost(gmChannel)
+	p1 := &model.Post{
+		ChannelId: dmChannel.Id,
+		Message:   "aa" + model.NewId() + "a",
+		UserId:    th1.BasicUser.Id,
+	}
+	th1.App.CreatePost(p1, dmChannel, false)
 
-	result := <-th1.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
-	posts := result.Data.([]*model.DirectPostForExport)
+	p2 := &model.Post{
+		ChannelId: dmChannel.Id,
+		Message:   "bb" + model.NewId() + "a",
+		UserId:    th1.BasicUser.Id,
+	}
+	th1.App.CreatePost(p2, dmChannel, false)
+
+	// GM posts
+	p3 := &model.Post{
+		ChannelId: gmChannel.Id,
+		Message:   "cc" + model.NewId() + "a",
+		UserId:    th1.BasicUser.Id,
+	}
+	th1.App.CreatePost(p3, gmChannel, false)
+
+	p4 := &model.Post{
+		ChannelId: gmChannel.Id,
+		Message:   "dd" + model.NewId() + "a",
+		UserId:    th1.BasicUser.Id,
+	}
+	th1.App.CreatePost(p4, gmChannel, false)
+
+	posts, err := th1.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
+	require.Nil(t, err)
 	assert.Equal(t, 4, len(posts))
 
 	var b bytes.Buffer
-	err := th1.App.BulkExport(&b, "somefile", "somePath", "someDir")
+	err = th1.App.BulkExport(&b, "somefile", "somePath", "someDir")
 	require.Nil(t, err)
 
 	th1.TearDown()
@@ -396,8 +420,8 @@ func TestExportDMandGMPost(t *testing.T) {
 	th2 := Setup(t)
 	defer th2.TearDown()
 
-	result = <-th2.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
-	posts = result.Data.([]*model.DirectPostForExport)
+	posts, err = th2.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
+	require.Nil(t, err)
 	assert.Equal(t, 0, len(posts))
 
 	// import the exported posts
@@ -405,11 +429,11 @@ func TestExportDMandGMPost(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 0, i)
 
-	result = <-th2.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
-	posts = result.Data.([]*model.DirectPostForExport)
+	posts, err = th2.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
+	require.Nil(t, err)
 
 	// Adding some deteminism so its possible to assert on slice index
-	sort.Slice(posts, func(i, j int) bool { return posts[i].CreateAt > posts[j].CreateAt })
+	sort.Slice(posts, func(i, j int) bool { return posts[i].Message > posts[j].Message })
 	assert.Equal(t, 4, len(posts))
 	assert.ElementsMatch(t, gmMembers, *posts[0].ChannelMembers)
 	assert.ElementsMatch(t, gmMembers, *posts[1].ChannelMembers)
@@ -429,8 +453,8 @@ func TestExportDMPostWithSelf(t *testing.T) {
 	err := th1.App.BulkExport(&b, "somefile", "somePath", "someDir")
 	require.Nil(t, err)
 
-	result := <-th1.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
-	posts := result.Data.([]*model.DirectPostForExport)
+	posts, err := th1.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
+	require.Nil(t, err)
 	assert.Equal(t, 1, len(posts))
 
 	th1.TearDown()
@@ -438,8 +462,8 @@ func TestExportDMPostWithSelf(t *testing.T) {
 	th2 := Setup(t)
 	defer th2.TearDown()
 
-	result = <-th2.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
-	posts = result.Data.([]*model.DirectPostForExport)
+	posts, err = th2.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
+	require.Nil(t, err)
 	assert.Equal(t, 0, len(posts))
 
 	// import the exported posts
@@ -447,7 +471,7 @@ func TestExportDMPostWithSelf(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 0, i)
 
-	result = <-th2.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
-	posts = result.Data.([]*model.DirectPostForExport)
+	posts, err = th2.App.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, "0000000")
+	require.Nil(t, err)
 	assert.Equal(t, 0, len(posts))
 }

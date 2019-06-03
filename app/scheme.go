@@ -61,8 +61,10 @@ func (a *App) CreateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError
 	// Clear any user-provided values for trusted properties.
 	scheme.DefaultTeamAdminRole = ""
 	scheme.DefaultTeamUserRole = ""
+	scheme.DefaultTeamGuestRole = ""
 	scheme.DefaultChannelAdminRole = ""
 	scheme.DefaultChannelUserRole = ""
+	scheme.DefaultChannelGuestRole = ""
 	scheme.CreateAt = 0
 	scheme.UpdateAt = 0
 	scheme.DeleteAt = 0
@@ -156,8 +158,8 @@ func (a *App) IsPhase2MigrationCompleted() *model.AppError {
 		return nil
 	}
 
-	if result := <-a.Srv.Store.System().GetByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2); result.Err != nil {
-		return model.NewAppError("App.IsPhase2MigrationCompleted", "app.schemes.is_phase_2_migration_completed.not_completed.app_error", nil, result.Err.Error(), http.StatusNotImplemented)
+	if _, err := a.Srv.Store.System().GetByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2); err != nil {
+		return model.NewAppError("App.IsPhase2MigrationCompleted", "app.schemes.is_phase_2_migration_completed.not_completed.app_error", nil, err.Error(), http.StatusNotImplemented)
 	}
 
 	a.Srv.phase2PermissionsMigrationComplete = true

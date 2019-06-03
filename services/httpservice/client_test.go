@@ -149,7 +149,7 @@ func NewHTTPClient(transport http.RoundTripper) *http.Client {
 func TestIsReservedIP(t *testing.T) {
 	tests := []struct {
 		name string
-		ip net.IP
+		ip   net.IP
 		want bool
 	}{
 		{"127.8.3.5", net.IPv4(127, 8, 3, 5), true},
@@ -171,7 +171,7 @@ func TestIsReservedIP(t *testing.T) {
 func TestIsOwnIP(t *testing.T) {
 	tests := []struct {
 		name string
-		ip net.IP
+		ip   net.IP
 		want bool
 	}{
 		{"127.0.0.1", net.IPv4(127, 0, 0, 1), true},
@@ -181,7 +181,7 @@ func TestIsOwnIP(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got, _ := IsOwnIP(tt.ip); got != tt.want {
 				t.Errorf("IsOwnIP() = %v, want %v", got, tt.want)
-				t.Errorf(tt.ip.String());
+				t.Errorf(tt.ip.String())
 			}
 		})
 	}

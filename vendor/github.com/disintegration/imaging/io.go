@@ -18,66 +18,6 @@ import (
 	"golang.org/x/image/tiff"
 )
 
-// Format is an image file format.
-type Format int
-
-// Image file formats.
-const (
-	JPEG Format = iota
-	PNG
-	GIF
-	TIFF
-	BMP
-)
-
-func (f Format) String() string {
-	switch f {
-	case JPEG:
-		return "JPEG"
-	case PNG:
-		return "PNG"
-	case GIF:
-		return "GIF"
-	case TIFF:
-		return "TIFF"
-	case BMP:
-		return "BMP"
-	default:
-		return "Unsupported"
-	}
-}
-
-var formatFromExt = map[string]Format{
-	"jpg":  JPEG,
-	"jpeg": JPEG,
-	"png":  PNG,
-	"tif":  TIFF,
-	"tiff": TIFF,
-	"bmp":  BMP,
-	"gif":  GIF,
-}
-
-// FormatFromExtension parses image format from extension:
-// "jpg" (or "jpeg"), "png", "gif", "tif" (or "tiff") and "bmp" are supported.
-func FormatFromExtension(ext string) (Format, error) {
-	if f, ok := formatFromExt[strings.ToLower(strings.TrimPrefix(ext, "."))]; ok {
-		return f, nil
-	}
-	return -1, ErrUnsupportedFormat
-}
-
-// FormatFromFilename parses image format from filename extension:
-// "jpg" (or "jpeg"), "png", "gif", "tif" (or "tiff") and "bmp" are supported.
-func FormatFromFilename(filename string) (Format, error) {
-	ext := filepath.Ext(filename)
-	return FormatFromExtension(ext)
-}
-
-var (
-	// ErrUnsupportedFormat means the given image format (or file extension) is unsupported.
-	ErrUnsupportedFormat = errors.New("imaging: unsupported image format")
-)
-
 type fileSystem interface {
 	Create(string) (io.WriteCloser, error)
 	Open(string) (io.ReadCloser, error)
@@ -161,6 +101,59 @@ func Open(filename string, opts ...DecodeOption) (image.Image, error) {
 	return Decode(file, opts...)
 }
 
+// Format is an image file format.
+type Format int
+
+// Image file formats.
+const (
+	JPEG Format = iota
+	PNG
+	GIF
+	TIFF
+	BMP
+)
+
+var formatExts = map[string]Format{
+	"jpg":  JPEG,
+	"jpeg": JPEG,
+	"png":  PNG,
+	"gif":  GIF,
+	"tif":  TIFF,
+	"tiff": TIFF,
+	"bmp":  BMP,
+}
+
+var formatNames = map[Format]string{
+	JPEG: "JPEG",
+	PNG:  "PNG",
+	GIF:  "GIF",
+	TIFF: "TIFF",
+	BMP:  "BMP",
+}
+
+func (f Format) String() string {
+	return formatNames[f]
+}
+
+// ErrUnsupportedFormat means the given image format is not supported.
+var ErrUnsupportedFormat = errors.New("imaging: unsupported image format")
+
+// FormatFromExtension parses image format from filename extension:
+// "jpg" (or "jpeg"), "png", "gif", "tif" (or "tiff") and "bmp" are supported.
+func FormatFromExtension(ext string) (Format, error) {
+	if f, ok := formatExts[strings.ToLower(strings.TrimPrefix(ext, "."))]; ok {
+		return f, nil
+	}
+	return -1, ErrUnsupportedFormat
+}
+
+// FormatFromFilename parses image format from filename:
+// "jpg" (or "jpeg"), "png", "gif", "tif" (or "tiff") and "bmp" are supported.
+func FormatFromFilename(filename string) (Format, error) {
+	ext := filepath.Ext(filename)
+	return FormatFromExtension(ext)
+}
+
 type encodeConfig struct {
 	jpegQuality         int
 	gifNumColors        int
@@ -227,46 +220,37 @@ func Encode(w io.Writer, img image.Image, format Format, opts ...EncodeOption) e
 		option(&cfg)
 	}
 
-	var err error
 	switch format {
 	case JPEG:
-		var rgba *image.RGBA
-		if nrgba, ok := img.(*image.NRGBA); ok {
-			if nrgba.Opaque() {
-				rgba = &image.RGBA{
-					Pix:    nrgba.Pix,
-					Stride: nrgba.Stride,
-					Rect:   nrgba.Rect,
-				}
+		if nrgba, ok := img.(*image.NRGBA); ok && nrgba.Opaque() {
+			rgba := &image.RGBA{
+				Pix:    nrgba.Pix,
+				Stride: nrgba.Stride,
+				Rect:   nrgba.Rect,
 			}
+			return jpeg.Encode(w, rgba, &jpeg.Options{Quality: cfg.jpegQuality})
 		}
-		if rgba != nil {
-			err = jpeg.Encode(w, rgba, &jpeg.Options{Quality: cfg.jpegQuality})
-		} else {
-			err = jpeg.Encode(w, img, &jpeg.Options{Quality: cfg.jpegQuality})
-		}
+		return jpeg.Encode(w, img, &jpeg.Options{Quality: cfg.jpegQuality})
 
 	case PNG:
-		enc := png.Encoder{CompressionLevel: cfg.pngCompressionLevel}
-		err = enc.Encode(w, img)
+		encoder := png.Encoder{CompressionLevel: cfg.pngCompressionLevel}
+		return encoder.Encode(w, img)
 
 	case GIF:
-		err = gif.Encode(w, img, &gif.Options{
+		return gif.Encode(w, img, &gif.Options{
 			NumColors: cfg.gifNumColors,
 			Quantizer: cfg.gifQuantizer,
 			Drawer:    cfg.gifDrawer,
 		})
 
 	case TIFF:
-		err = tiff.Encode(w, img, &tiff.Options{Compression: tiff.Deflate, Predictor: true})
+		return tiff.Encode(w, img, &tiff.Options{Compression: tiff.Deflate, Predictor: true})
 
 	case BMP:
-		err = bmp.Encode(w, img)
-
-	default:
-		err = ErrUnsupportedFormat
+		return bmp.Encode(w, img)
 	}
-	return err
+
+	return ErrUnsupportedFormat
 }
 
 // Save saves the image to file with the specified filename.
@@ -290,15 +274,12 @@ func Save(img image.Image, filename string, opts ...EncodeOption) (err error) {
 	if err != nil {
 		return err
 	}
-
-	defer func() {
-		cerr := file.Close()
-		if err == nil {
-			err = cerr
-		}
-	}()
-
-	return Encode(file, img, f, opts...)
+	err = Encode(file, img, f, opts...)
+	errc := file.Close()
+	if err == nil {
+		err = errc
+	}
+	return err
 }
 
 // orientation is an EXIF flag that specifies the transformation

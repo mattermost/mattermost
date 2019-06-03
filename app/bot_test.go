@@ -544,6 +544,48 @@ func TestDisableUserBots(t *testing.T) {
 	require.Nil(t, err)
 }
 
+func TestConvertUserToBot(t *testing.T) {
+	t.Run("invalid user", func(t *testing.T) {
+		t.Run("invalid user id", func(t *testing.T) {
+			th := Setup(t).InitBasic()
+			defer th.TearDown()
+
+			_, err := th.App.ConvertUserToBot(&model.User{
+				Username: "username",
+				Id:       "",
+			})
+			require.NotNil(t, err)
+			require.Equal(t, "model.bot.is_valid.user_id.app_error", err.Id)
+		})
+
+		t.Run("invalid username", func(t *testing.T) {
+			th := Setup(t).InitBasic()
+			defer th.TearDown()
+
+			_, err := th.App.ConvertUserToBot(&model.User{
+				Username: "invalid username",
+				Id:       th.BasicUser.Id,
+			})
+			require.NotNil(t, err)
+			require.Equal(t, "model.bot.is_valid.username.app_error", err.Id)
+		})
+	})
+
+	t.Run("valid user", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		bot, err := th.App.ConvertUserToBot(&model.User{
+			Username: "username",
+			Id:       th.BasicUser.Id,
+		})
+		require.Nil(t, err)
+		defer th.App.PermanentDeleteBot(bot.UserId)
+		assert.Equal(t, "username", bot.Username)
+		assert.Equal(t, th.BasicUser.Id, bot.OwnerId)
+	})
+}
+
 func sToP(s string) *string {
 	return &s
 }

@@ -263,10 +263,10 @@ func TestGetReactions(t *testing.T) {
 	var reactions []*model.Reaction
 
 	for _, userReaction := range userReactions {
-		if result := <-th.App.Srv.Store.Reaction().Save(userReaction); result.Err != nil {
-			t.Fatal(result.Err)
+		if reaction, err := th.App.Srv.Store.Reaction().Save(userReaction); err != nil {
+			t.Fatal(err)
 		} else {
-			reactions = append(reactions, result.Data.(*model.Reaction))
+			reactions = append(reactions, reaction)
 		}
 	}
 
@@ -618,10 +618,10 @@ func TestGetBulkReactions(t *testing.T) {
 
 	for _, userReaction := range userReactions {
 		reactions := expectedPostIdsReactionsMap[userReaction.PostId]
-		if result := <-th.App.Srv.Store.Reaction().Save(userReaction); result.Err != nil {
-			t.Fatal(result.Err)
+		if reaction, err := th.App.Srv.Store.Reaction().Save(userReaction); err != nil {
+			t.Fatal(err)
 		} else {
-			reactions = append(reactions, result.Data.(*model.Reaction))
+			reactions = append(reactions, reaction)
 
 		}
 		expectedPostIdsReactionsMap[userReaction.PostId] = reactions

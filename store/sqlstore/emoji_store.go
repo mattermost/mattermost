@@ -51,60 +51,53 @@ func (es SqlEmojiStore) CreateIndexesIfNotExists() {
 	es.CreateIndexIfNotExists("idx_emoji_name", "Emoji", "Name")
 }
 
-func (es SqlEmojiStore) Save(emoji *model.Emoji) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		emoji.PreSave()
-		if result.Err = emoji.IsValid(); result.Err != nil {
-			return
-		}
+func (es SqlEmojiStore) Save(emoji *model.Emoji) (*model.Emoji, *model.AppError) {
+	emoji.PreSave()
+	if err := emoji.IsValid(); err != nil {
+		return nil, err
+	}
 
-		if err := es.GetMaster().Insert(emoji); err != nil {
-			result.Err = model.NewAppError("SqlEmojiStore.Save", "store.sql_emoji.save.app_error", nil, "id="+emoji.Id+", "+err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = emoji
-		}
-	})
+	if err := es.GetMaster().Insert(emoji); err != nil {
+		return nil, model.NewAppError("SqlEmojiStore.Save", "store.sql_emoji.save.app_error", nil, "id="+emoji.Id+", "+err.Error(), http.StatusInternalServerError)
+	}
+	return emoji, nil
 }
 
-func (es SqlEmojiStore) Get(id string, allowFromCache bool) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if allowFromCache {
-			if cacheItem, ok := emojiCache.Get(id); ok {
-				if es.metrics != nil {
-					es.metrics.IncrementMemCacheHitCounter("Emoji")
-				}
-				result.Data = cacheItem.(*model.Emoji)
-				return
-			} else {
-				if es.metrics != nil {
-					es.metrics.IncrementMemCacheMissCounter("Emoji")
-				}
-			}
-		} else {
+func (es SqlEmojiStore) Get(id string, allowFromCache bool) (*model.Emoji, *model.AppError) {
+	if allowFromCache {
+		if cacheItem, ok := emojiCache.Get(id); ok {
 			if es.metrics != nil {
-				es.metrics.IncrementMemCacheMissCounter("Emoji")
+				es.metrics.IncrementMemCacheHitCounter("Emoji")
 			}
+			return cacheItem.(*model.Emoji), nil
 		}
-
-		var emoji *model.Emoji
-
-		if err := es.GetReplica().SelectOne(&emoji,
-			`SELECT
-				*
-			FROM
-				Emoji
-			WHERE
-				Id = :Id
-				AND DeleteAt = 0`, map[string]interface{}{"Id": id}); err != nil {
-			result.Err = model.NewAppError("SqlEmojiStore.Get", "store.sql_emoji.get.app_error", nil, "id="+id+", "+err.Error(), http.StatusNotFound)
-		} else {
-			result.Data = emoji
-
-			if allowFromCache {
-				emojiCache.AddWithExpiresInSecs(id, emoji, EMOJI_CACHE_SEC)
-			}
+		if es.metrics != nil {
+			es.metrics.IncrementMemCacheMissCounter("Emoji")
 		}
-	})
+	} else {
+		if es.metrics != nil {
+			es.metrics.IncrementMemCacheMissCounter("Emoji")
+		}
+	}
+
+	var emoji *model.Emoji
+
+	if err := es.GetReplica().SelectOne(&emoji,
+		`SELECT
+			*
+		FROM
+			Emoji
+		WHERE
+			Id = :Id
+			AND DeleteAt = 0`, map[string]interface{}{"Id": id}); err != nil {
+		return nil, model.NewAppError("SqlEmojiStore.Get", "store.sql_emoji.get.app_error", nil, "id="+id+", "+err.Error(), http.StatusNotFound)
+	}
+
+	if allowFromCache {
+		emojiCache.AddWithExpiresInSecs(id, emoji, EMOJI_CACHE_SEC)
+	}
+
+	return emoji, nil
 }
 
 func (es SqlEmojiStore) GetByName(name string) store.StoreChannel {

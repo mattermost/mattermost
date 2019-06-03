@@ -38,7 +38,8 @@ func TestGetImage(t *testing.T) {
 
 		resp, err := th.Client.HttpClient.Do(r)
 		require.NoError(t, err)
-		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
+		assert.Equal(t, http.StatusFound, resp.StatusCode)
+		assert.Equal(t, imageURL, resp.Header.Get("Location"))
 	})
 
 	t.Run("atmos/camo", func(t *testing.T) {

@@ -1,6 +1,6 @@
 /*
- * Minio Go Library for Amazon S3 Compatible Cloud Storage
- * Copyright 2015-2017 Minio, Inc.
+ * MinIO Go Library for Amazon S3 Compatible Cloud Storage
+ * Copyright 2015-2017 MinIO, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,7 +73,7 @@ func (c Client) putObjectMultipartNoStream(ctx context.Context, bucketName, obje
 	var complMultipartUpload completeMultipartUpload
 
 	// Calculate the optimal parts info for a given size.
-	totalPartsCount, partSize, _, err := optimalPartInfo(-1)
+	totalPartsCount, partSize, _, err := optimalPartInfo(-1, opts.PartSize)
 	if err != nil {
 		return 0, err
 	}

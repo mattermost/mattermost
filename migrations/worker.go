@@ -157,8 +157,8 @@ func (worker *Worker) runMigration(key string, lastDone string) (bool, string, *
 	}
 
 	if done {
-		if result := <-worker.app.Srv.Store.System().Save(&model.System{Name: key, Value: "true"}); result.Err != nil {
-			return false, "", result.Err
+		if saveErr := worker.app.Srv.Store.System().Save(&model.System{Name: key, Value: "true"}); saveErr != nil {
+			return false, "", saveErr
 		}
 	}
 

@@ -127,6 +127,21 @@ func TestConfigDefaultServiceSettingsExperimentalGroupUnreadChannels(t *testing.
 	}
 }
 
+func TestConfigDefaultNPSPluginState(t *testing.T) {
+	c1 := Config{}
+	c1.SetDefaults()
+
+	if c1.PluginSettings.PluginStates["com.mattermost.nps"].Enable != true {
+		t.Fatal("PluginSettings.PluginStates[\"com.mattermost.nps\"].Enable should default to true")
+	}
+
+	c1.PluginSettings.PluginStates["com.mattermost.nps"].Enable = false
+	c1.SetDefaults()
+	if c1.PluginSettings.PluginStates["com.mattermost.nps"].Enable != false {
+		t.Fatal("PluginSettings.PluginStates[\"com.mattermost.nps\"].Enable should remain false")
+	}
+}
+
 func TestTeamSettingsIsValidSiteNameEmpty(t *testing.T) {
 	c1 := Config{}
 	c1.SetDefaults()
@@ -494,7 +509,7 @@ func TestDisplaySettingsIsValidCustomUrlSchemes(t *testing.T) {
 		{
 			name:  "containing period",
 			value: []string{"iris.beep"},
-			valid: false, // should technically be true, but client doesn't support it
+			valid: true,
 		},
 		{
 			name:  "containing hyphen",
@@ -504,7 +519,7 @@ func TestDisplaySettingsIsValidCustomUrlSchemes(t *testing.T) {
 		{
 			name:  "containing plus",
 			value: []string{"coap+tcp", "coap+ws"},
-			valid: false, // should technically be true, but client doesn't support it
+			valid: true,
 		},
 		{
 			name:  "starting with number",

@@ -4,11 +4,14 @@
 package plugin
 
 import (
+	"errors"
 	"fmt"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
+	"syscall"
 	"time"
 
 	plugin "github.com/hashicorp/go-plugin"
@@ -20,6 +23,7 @@ type supervisor struct {
 	client      *plugin.Client
 	hooks       Hooks
 	implemented [TotalHooksId]bool
+	pid         int
 }
 
 func newSupervisor(pluginInfo *model.BundleInfo, parentLogger *mlog.Logger, apiImpl API) (retSupervisor *supervisor, retErr error) {
@@ -53,10 +57,12 @@ func newSupervisor(pluginInfo *model.BundleInfo, parentLogger *mlog.Logger, apiI
 	}
 	executable = filepath.Join(pluginInfo.Path, executable)
 
+	cmd := exec.Command(executable)
+
 	sup.client = plugin.NewClient(&plugin.ClientConfig{
 		HandshakeConfig: handshake,
 		Plugins:         pluginMap,
-		Cmd:             exec.Command(executable),
+		Cmd:             cmd,
 		SyncStdout:      wrappedLogger.With(mlog.String("source", "plugin_stdout")).StdLogWriter(),
 		SyncStderr:      wrappedLogger.With(mlog.String("source", "plugin_stderr")).StdLogWriter(),
 		Logger:          hclogAdaptedLogger,
@@ -67,6 +73,8 @@ func newSupervisor(pluginInfo *model.BundleInfo, parentLogger *mlog.Logger, apiI
 	if err != nil {
 		return nil, err
 	}
+
+	sup.pid = cmd.Process.Pid
 
 	raw, err := rpcClient.Dispense("hooks")
 	if err != nil {
@@ -101,6 +109,55 @@ func (sup *supervisor) Shutdown() {
 
 func (sup *supervisor) Hooks() Hooks {
 	return sup.hooks
+}
+
+// PerformHealthCheck checks the plugin through a process check, an RPC ping, and a HealthCheck hook call.
+func (sup *supervisor) PerformHealthCheck() error {
+	if procErr := sup.CheckProcess(); procErr != nil {
+		mlog.Debug(fmt.Sprintf("Error checking plugin process, error: %s", procErr.Error()))
+		return errors.New("Plugin process not found, or not responding")
+	}
+
+	if pingErr := sup.Ping(); pingErr != nil {
+		for pingFails := 1; pingFails < HEALTH_CHECK_PING_FAIL_LIMIT; pingFails++ {
+			pingErr = sup.Ping()
+			if pingErr == nil {
+				break
+			}
+		}
+		if pingErr != nil {
+			mlog.Debug(fmt.Sprintf("Error pinging plugin, error: %s", pingErr.Error()))
+			return fmt.Errorf("Plugin RPC connection is not responding")
+		}
+	}
+
+	return nil
+}
+
+// Ping checks that the RPC connection with the plugin is alive and healthy.
+func (sup *supervisor) Ping() error {
+	client, err := sup.client.Client()
+
+	if err != nil {
+		return err
+	}
+
+	return client.Ping()
+}
+
+// CheckProcess checks if the plugin process's PID exists and can respond to a signal.
+func (sup *supervisor) CheckProcess() error {
+	process, err := os.FindProcess(sup.pid)
+	if err != nil {
+		return err
+	}
+
+	err = process.Signal(syscall.Signal(0))
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (sup *supervisor) Implements(hookId int) bool {

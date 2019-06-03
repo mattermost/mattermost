@@ -22,9 +22,7 @@ func InitDBCommandContextCobra(command *cobra.Command) (*app.App, error) {
 	}
 
 	a.InitPlugins(*a.Config().PluginSettings.Directory, *a.Config().PluginSettings.ClientDirectory)
-	a.DoAdvancedPermissionsMigration()
-	a.DoEmojisPermissionsMigration()
-	a.DoPermissionsMigrations()
+	a.DoAppMigrations()
 
 	return a, nil
 }

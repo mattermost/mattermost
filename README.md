@@ -1,19 +1,19 @@
 # [![Mattermost](https://user-images.githubusercontent.com/33878967/33095422-7c8aa7a4-ceb8-11e7-810a-4b261fdff6d6.png)](https://mattermost.org)
 
-Mattermost is an open source, private cloud, Slack-alternative from [https://mattermost.org](https://mattermost.org).
+Mattermost is an open source, private cloud, Slack-alternative from [https://mattermost.com](https://mattermost.com).
 
-It's written in Golang and React and runs as a single Linux binary with MySQL or PostgreSQL. Every month on the 16th [a new compiled version is released under an MIT license](https://www.mattermost.org/download/).
+It's written in Golang and React and runs as a single Linux binary with MySQL or PostgreSQL. Every month on the 16th [a new compiled version is released under an MIT license](https://www.mattermost.com/download/).
 
 - [Review product documentation](http://docs.mattermost.com/).
 - [Review developer documentation](http://developers.mattermost.com/).
-- [Download compiled version](https://mattermost.org/download).
+- [Download compiled version](https://mattermost.com/download).
 
-<img width="1006" alt="screenshot at nov 29 14-11-32" src="https://user-images.githubusercontent.com/29708087/33394101-404e23e4-d50f-11e7-8fe5-99d4802a9768.png">
+<img width="1006" alt="screenshot at nov 29 14-11-32" src="https://user-images.githubusercontent.com/13119842/56807911-1bf66f00-67fe-11e9-9b7b-96ce9ceab645.png">
 
 ## Try out Mattermost
 
 - [Join the Mattermost Contributor's server](https://pre-release.mattermost.com/) (latest nightly builds, unstable)
-- [Join the Mattermost Demo server](https://demo.mattermost.com) (latest stable version)
+- [Join the Mattermost Demo server](https://demo.mattermost.com/signup_email) (latest stable version)
 
 ## Deploy on Heroku
 
@@ -23,26 +23,26 @@ _Note: Heroku preview does not include email or persistent storage_
 
 ## Deploy on a Cloud Platform via Bitnami
 
-[Auto-deploy Mattermost](https://about.mattermost.com/download/#bitnami) to Amazon Web Services, Azure, Google Cloud Platform, or Oracle Cloud Platform via Bitnami.
+[Auto-deploy Mattermost](https://mattermost.com/download/#bitnami) to Amazon Web Services, Azure, Google Cloud Platform, or Oracle Cloud Platform via Bitnami.
 
 ## Install on Your Own Machine
 
 - [One-line Docker Preview](http://docs.mattermost.com/install/docker-local-machine.html#one-line-docker-install)
 - [Developer Machine Setup](https://docs.mattermost.com/developer/dev-setup.html)
-- [Production Install Guides using Linux Binary](http://www.mattermost.org/installation/)
+- [Production Install Guides using Linux Binary](https://mattermost.com/download/)
 - [Production Docker Install](https://docs.mattermost.com/install/prod-docker.html)
 
 ## Native Mobile and Desktop Apps
 
-In addition to the web interface, you can also download Mattermost clients for [Android](https://about.mattermost.com/mattermost-android-app/), [iOS](https://about.mattermost.com/mattermost-ios-app/), [Windows PC](https://docs.mattermost.com/install/desktop.html#windows-10-windows-8-1-windows-7), [Mac OSX](https://docs.mattermost.com/install/desktop.html#mac-os-x-10-9), and [Linux](https://docs.mattermost.com/install/desktop.html#linux-beta).
+In addition to the web interface, you can also download Mattermost clients for [Android](https://play.google.com/store/apps/details?id=com.mattermost.rn), [iOS](https://itunes.apple.com/us/app/mattermost/id1257222717?mt=8), [Windows PC](https://docs.mattermost.com/install/desktop.html#windows-10-windows-8-1-windows-7), [Mac OSX](https://docs.mattermost.com/install/desktop.html#macos-10-9), and [Linux](https://docs.mattermost.com/install/desktop.html#linux).
 
-[![Google Play](https://user-images.githubusercontent.com/33878967/33095356-39b6fbf8-ceb8-11e7-8a61-c3a18fa5e658.png)](https://about.mattermost.com/mattermost-android-app/)  [![App Store](https://user-images.githubusercontent.com/33878967/33095353-397e69b4-ceb8-11e7-8175-f95a97d5274f.png)](https://about.mattermost.com/mattermost-ios-app/)  [![Windows PC](https://user-images.githubusercontent.com/33878967/33095357-39cab8d2-ceb8-11e7-89a6-67dccc571ca3.png)](https://docs.mattermost.com/install/desktop.html#windows-10-windows-8-1-windows-7)  [![Mac OSX](https://user-images.githubusercontent.com/33878967/33095355-39a36f2a-ceb8-11e7-9b33-73d4f6d5d6c1.png)](https://docs.mattermost.com/install/desktop.html#mac-os-x-10-9)  [![Linux](https://user-images.githubusercontent.com/33878967/33095354-3990e256-ceb8-11e7-965d-b00a16e578de.png)](https://docs.mattermost.com/install/desktop.html#linux-beta)
+[![Google Play](https://user-images.githubusercontent.com/33878967/33095356-39b6fbf8-ceb8-11e7-8a61-c3a18fa5e658.png)](https://play.google.com/store/apps/details?id=com.mattermost.rn)  [![App Store](https://user-images.githubusercontent.com/33878967/33095353-397e69b4-ceb8-11e7-8175-f95a97d5274f.png)](https://itunes.apple.com/us/app/mattermost/id1257222717?mt=8)  [![Windows PC](https://user-images.githubusercontent.com/33878967/33095357-39cab8d2-ceb8-11e7-89a6-67dccc571ca3.png)](https://docs.mattermost.com/install/desktop.html#windows-10-windows-8-1-windows-7)  [![Mac OSX](https://user-images.githubusercontent.com/33878967/33095355-39a36f2a-ceb8-11e7-9b33-73d4f6d5d6c1.png)](https://docs.mattermost.com/install/desktop.html#macos-10-9)  [![Linux](https://user-images.githubusercontent.com/33878967/33095354-3990e256-ceb8-11e7-965d-b00a16e578de.png)](https://docs.mattermost.com/install/desktop.html#linux)
 
 ## Get Security Bulletins
 
 Receive notifications of critical security updates. The sophistication of online attackers is perpetually increasing. If you are deploying Mattermost it is highly recommended you subscribe to the Mattermost Security Bulletin mailing list for updates on critical security releases.
 
-- [Subscribe here](https://about.mattermost.com/security-bulletin/)
+- [Subscribe here](https://mattermost.com/blog/category/security-updates/)
 
 ## Get Involved
 
@@ -57,13 +57,13 @@ Receive notifications of critical security updates. The sophistication of online
 ## Learn More
 
 - [API Options - webhooks, slash commands, drivers and web service](https://api.mattermost.com/)
-- [See who's using Mattermost](https://about.mattermost.com/success-stories/)
-- [Browse over 700 Mattermost integrations](https://about.mattermost.com/community-applications/)
+- [See who's using Mattermost](https://mattermost.com/blog/category/customer-stories/)
+- [Browse over 700 Mattermost integrations](https://integrations.mattermost.com/)
 
 ## Get the Latest News
 
 - **Twitter** - Follow [Mattermost](https://twitter.com/mattermost)
-- **Blog** - Get the latest updates from the [Mattermost blog](https://about.mattermost.com/blog/).
+- **Blog** - Get the latest updates from the [Mattermost blog](https://mattermost.com/blog/).
 - **Email** - Subscribe to our [newsletter](http://mattermost.us11.list-manage.com/subscribe?u=6cdba22349ae374e188e7ab8e&id=2add1c8034) (1 or 2 per month)
 - **IRC** - Join the #matterbridge channel on [Freenode](https://freenode.net/) (thanks to [matterircd](https://github.com/42wim/matterircd))
 

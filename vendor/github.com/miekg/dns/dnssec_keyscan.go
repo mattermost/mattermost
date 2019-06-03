@@ -322,6 +322,11 @@ func (kl *klexer) Next() (lex, bool) {
 				commt = false
 			}
 
+			if kl.key && str.Len() == 0 {
+				// ignore empty lines
+				break
+			}
+
 			kl.key = true
 
 			l.value = zValue

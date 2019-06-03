@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	goi18n "github.com/nicksnyder/go-i18n/i18n"
 )
 
 const (
@@ -200,9 +200,9 @@ func (c *WebConn) writePump() {
 
 				if len(c.Send) >= SEND_DEADLOCK_WARN {
 					if evtOk {
-						mlog.Error(fmt.Sprintf("websocket.full: message userId=%v type=%v channelId=%v size=%v", c.UserId, msg.EventType(), evt.Broadcast.ChannelId, len(msg.ToJson())))
+						mlog.Warn(fmt.Sprintf("websocket.full: message userId=%v type=%v channelId=%v size=%v", c.UserId, msg.EventType(), evt.Broadcast.ChannelId, len(msg.ToJson())))
 					} else {
-						mlog.Error(fmt.Sprintf("websocket.full: message userId=%v type=%v size=%v", c.UserId, msg.EventType(), len(msg.ToJson())))
+						mlog.Warn(fmt.Sprintf("websocket.full: message userId=%v type=%v size=%v", c.UserId, msg.EventType(), len(msg.ToJson())))
 					}
 				}
 

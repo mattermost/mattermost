@@ -26,7 +26,7 @@ type Bot struct {
 	Username    string `json:"username"`
 	DisplayName string `json:"display_name,omitempty"`
 	Description string `json:"description,omitempty"`
-	OwnerId     string `json:"creator_id"`
+	OwnerId     string `json:"owner_id"`
 	CreateAt    int64  `json:"create_at"`
 	UpdateAt    int64  `json:"update_at"`
 	DeleteAt    int64  `json:"delete_at"`
@@ -169,6 +169,16 @@ func UserFromBot(b *Bot) *User {
 		Username:  b.Username,
 		Email:     fmt.Sprintf("%s@localhost", strings.ToLower(b.Username)),
 		FirstName: b.DisplayName,
+	}
+}
+
+// BotFromUser returns a bot model given a user model
+func BotFromUser(u *User) *Bot {
+	return &Bot{
+		OwnerId:     u.Id,
+		UserId:      u.Id,
+		Username:    u.Username,
+		DisplayName: u.GetDisplayName(SHOW_USERNAME),
 	}
 }
 

@@ -20,6 +20,7 @@ func (a *App) RegisterAllClusterMessageHandlers() {
 	a.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL_BY_NAME, a.ClusterInvalidateCacheForChannelByNameHandler)
 	a.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_CHANNEL, a.ClusterInvalidateCacheForChannelHandler)
 	a.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_USER, a.ClusterInvalidateCacheForUserHandler)
+	a.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_INVALIDATE_CACHE_FOR_USER_TEAMS, a.ClusterInvalidateCacheForUserTeamsHandler)
 	a.Cluster.RegisterClusterMessageHandler(model.CLUSTER_EVENT_CLEAR_SESSION_CACHE_FOR_USER, a.ClusterClearSessionCacheForUserHandler)
 }
 
@@ -63,6 +64,10 @@ func (a *App) ClusterInvalidateCacheForChannelHandler(msg *model.ClusterMessage)
 
 func (a *App) ClusterInvalidateCacheForUserHandler(msg *model.ClusterMessage) {
 	a.InvalidateCacheForUserSkipClusterSend(msg.Data)
+}
+
+func (a *App) ClusterInvalidateCacheForUserTeamsHandler(msg *model.ClusterMessage) {
+	a.InvalidateCacheForUserTeamsSkipClusterSend(msg.Data)
 }
 
 func (a *App) ClusterClearSessionCacheForUserHandler(msg *model.ClusterMessage) {

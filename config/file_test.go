@@ -48,7 +48,7 @@ func setupConfigFile(t *testing.T, cfg *model.Config) (string, func()) {
 	}
 }
 
-// getActualFileConfig returns the configuration present in the given file without relying a config store.
+// getActualFileConfig returns the configuration present in the given file without relying on a config store.
 func getActualFileConfig(t *testing.T, path string) *model.Config {
 	t.Helper()
 
@@ -428,12 +428,36 @@ func TestFileStoreLoad(t *testing.T) {
 		require.NoError(t, err)
 		defer fs.Close()
 
+		assert.Equal(t, "http://minimal", *fs.Get().ServiceSettings.SiteURL)
+
 		os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://override")
 
 		err = fs.Load()
 		require.NoError(t, err)
 		assert.Equal(t, "http://override", *fs.Get().ServiceSettings.SiteURL)
 		assert.Equal(t, map[string]interface{}{"ServiceSettings": map[string]interface{}{"SiteURL": true}}, fs.GetEnvironmentOverrides())
+	})
+
+	t.Run("do not persist environment variables", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, minimalConfig)
+		defer tearDown()
+
+		os.Setenv("MM_SERVICESETTINGS_SITEURL", "http://overridePersistEnvVariables")
+
+		fs, err := config.NewFileStore(path, false)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		assert.Equal(t, "http://overridePersistEnvVariables", *fs.Get().ServiceSettings.SiteURL)
+
+		_, err = fs.Set(fs.Get())
+		require.NoError(t, err)
+
+		assert.Equal(t, "http://overridePersistEnvVariables", *fs.Get().ServiceSettings.SiteURL)
+		assert.Equal(t, map[string]interface{}{"ServiceSettings": map[string]interface{}{"SiteURL": true}}, fs.GetEnvironmentOverrides())
+		// check that on disk config does not include overwritten variable
+		actualConfig := getActualFileConfig(t, path)
+		assert.Equal(t, "http://minimal", *actualConfig.ServiceSettings.SiteURL)
 	})
 
 	t.Run("invalid", func(t *testing.T) {

@@ -24,8 +24,8 @@ func getTeamFromTeamArg(a *app.App, teamArg string) *model.Team {
 	}
 
 	if team == nil {
-		if result := <-a.Srv.Store.Team().Get(teamArg); result.Err == nil {
-			team = result.Data.(*model.Team)
+		if t, err := a.Srv.Store.Team().Get(teamArg); err == nil {
+			team = t
 		}
 	}
 

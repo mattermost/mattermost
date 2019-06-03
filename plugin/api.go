@@ -44,7 +44,12 @@ type API interface {
 	// Minimum server version: 5.6
 	SavePluginConfig(config map[string]interface{}) *model.AppError
 
-	// GetLicense returns the current license used by the Mattermoset server. Returns nil if the
+	// GetBundlePath returns the absolute path where the plugin's bundle was unpacked.
+	//
+	// Minimum server version: 5.10
+	GetBundlePath() (string, error)
+
+	// GetLicense returns the current license used by the Mattermost server. Returns nil if the
 	// the server does not have a license.
 	//
 	// Minimum server version: 5.10
@@ -309,7 +314,7 @@ type API interface {
 
 	// DeleteEphemeralPost deletes an ephemeral message previously sent to the user.
 	// EXPERIMENTAL: This API is experimental and can be changed without advance notice.
-	DeleteEphemeralPost(userId string, post *model.Post)
+	DeleteEphemeralPost(userId, postId string)
 
 	// DeletePost deletes a post.
 	DeletePost(postId string) *model.AppError
@@ -452,7 +457,18 @@ type API interface {
 	// KV Store Section
 
 	// KVSet will store a key-value pair, unique per plugin.
+	// Provided helper functions and internal plugin code will use the prefix `mmi_` before keys. Do not use this prefix.
 	KVSet(key string, value []byte) *model.AppError
+
+	// KVCompareAndSet will update a key-value pair,
+	// unique per plugin, to the given new value if the current value == the old value.
+	// Inserts a new key if oldValue == nil.
+	// Returns (false, err) if DB error occurred
+	// Returns (false, nil) if current value != old value or key already exists when inserting
+	// Returns (true, nil) if current value == old value or new key is inserted
+	//
+	// Minimum server version: 5.12
+	KVCompareAndSet(key string, oldValue, newValue []byte) (bool, *model.AppError)
 
 	// KVSet will store a key-value pair, unique per plugin with an expiry time
 	//

@@ -40,6 +40,7 @@ type Group struct {
 	UpdateAt     int64       `json:"update_at"`
 	DeleteAt     int64       `json:"delete_at"`
 	HasSyncables bool        `db:"-" json:"has_syncables"`
+	MemberCount  *int        `db:"-" json:"member_count,omitempty"`
 }
 
 type GroupPatch struct {
@@ -48,10 +49,23 @@ type GroupPatch struct {
 	Description *string `json:"description"`
 }
 
-type GroupSearchOpts struct {
+type LdapGroupSearchOpts struct {
 	Q            string
 	IsLinked     *bool
 	IsConfigured *bool
+}
+
+type GroupSearchOpts struct {
+	Q                      string
+	NotAssociatedToTeam    string
+	NotAssociatedToChannel string
+	IncludeMemberCount     bool
+	PageOpts               *PageOpts
+}
+
+type PageOpts struct {
+	Page    int
+	PerPage int
 }
 
 func (group *Group) Patch(patch *GroupPatch) {

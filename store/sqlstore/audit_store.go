@@ -34,71 +34,60 @@ func (s SqlAuditStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_audits_user_id", "Audits", "UserId")
 }
 
-func (s SqlAuditStore) Save(audit *model.Audit) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		audit.Id = model.NewId()
-		audit.CreateAt = model.GetMillis()
+func (s SqlAuditStore) Save(audit *model.Audit) *model.AppError {
+	audit.Id = model.NewId()
+	audit.CreateAt = model.GetMillis()
 
-		if err := s.GetMaster().Insert(audit); err != nil {
-			result.Err = model.NewAppError("SqlAuditStore.Save", "store.sql_audit.save.saving.app_error", nil, "user_id="+audit.UserId+" action="+audit.Action, http.StatusInternalServerError)
-		}
-	})
+	if err := s.GetMaster().Insert(audit); err != nil {
+		return model.NewAppError("SqlAuditStore.Save", "store.sql_audit.save.saving.app_error", nil, "user_id="+audit.UserId+" action="+audit.Action, http.StatusInternalServerError)
+	}
+	return nil
 }
 
-func (s SqlAuditStore) Get(user_id string, offset int, limit int) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if limit > 1000 {
-			limit = 1000
-			result.Err = model.NewAppError("SqlAuditStore.Get", "store.sql_audit.get.limit.app_error", nil, "user_id="+user_id, http.StatusBadRequest)
-			return
-		}
+func (s SqlAuditStore) Get(user_id string, offset int, limit int) (model.Audits, *model.AppError) {
+	if limit > 1000 {
+		return nil, model.NewAppError("SqlAuditStore.Get", "store.sql_audit.get.limit.app_error", nil, "user_id="+user_id, http.StatusBadRequest)
+	}
 
-		query := "SELECT * FROM Audits"
+	query := "SELECT * FROM Audits"
 
-		if len(user_id) != 0 {
-			query += " WHERE UserId = :user_id"
-		}
+	if len(user_id) != 0 {
+		query += " WHERE UserId = :user_id"
+	}
 
-		query += " ORDER BY CreateAt DESC LIMIT :limit OFFSET :offset"
+	query += " ORDER BY CreateAt DESC LIMIT :limit OFFSET :offset"
 
-		var audits model.Audits
-		if _, err := s.GetReplica().Select(&audits, query, map[string]interface{}{"user_id": user_id, "limit": limit, "offset": offset}); err != nil {
-			result.Err = model.NewAppError("SqlAuditStore.Get", "store.sql_audit.get.finding.app_error", nil, "user_id="+user_id, http.StatusInternalServerError)
-		} else {
-			result.Data = audits
-		}
-	})
+	var audits model.Audits
+	if _, err := s.GetReplica().Select(&audits, query, map[string]interface{}{"user_id": user_id, "limit": limit, "offset": offset}); err != nil {
+		return nil, model.NewAppError("SqlAuditStore.Get", "store.sql_audit.get.finding.app_error", nil, "user_id="+user_id, http.StatusInternalServerError)
+	}
+	return audits, nil
 }
 
-func (s SqlAuditStore) PermanentDeleteByUser(userId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if _, err := s.GetMaster().Exec("DELETE FROM Audits WHERE UserId = :userId",
-			map[string]interface{}{"userId": userId}); err != nil {
-			result.Err = model.NewAppError("SqlAuditStore.Delete", "store.sql_audit.permanent_delete_by_user.app_error", nil, "user_id="+userId, http.StatusInternalServerError)
-		}
-	})
+func (s SqlAuditStore) PermanentDeleteByUser(userId string) *model.AppError {
+	if _, err := s.GetMaster().Exec("DELETE FROM Audits WHERE UserId = :userId",
+		map[string]interface{}{"userId": userId}); err != nil {
+		return model.NewAppError("SqlAuditStore.Delete", "store.sql_audit.permanent_delete_by_user.app_error", nil, "user_id="+userId, http.StatusInternalServerError)
+	}
+	return nil
 }
 
-func (s SqlAuditStore) PermanentDeleteBatch(endTime int64, limit int64) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var query string
-		if s.DriverName() == "postgres" {
-			query = "DELETE from Audits WHERE Id = any (array (SELECT Id FROM Audits WHERE CreateAt < :EndTime LIMIT :Limit))"
-		} else {
-			query = "DELETE from Audits WHERE CreateAt < :EndTime LIMIT :Limit"
-		}
+func (s SqlAuditStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
+	var query string
+	if s.DriverName() == "postgres" {
+		query = "DELETE from Audits WHERE Id = any (array (SELECT Id FROM Audits WHERE CreateAt < :EndTime LIMIT :Limit))"
+	} else {
+		query = "DELETE from Audits WHERE CreateAt < :EndTime LIMIT :Limit"
+	}
 
-		sqlResult, err := s.GetMaster().Exec(query, map[string]interface{}{"EndTime": endTime, "Limit": limit})
-		if err != nil {
-			result.Err = model.NewAppError("SqlAuditStore.PermanentDeleteBatch", "store.sql_audit.permanent_delete_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
-		} else {
-			rowsAffected, err1 := sqlResult.RowsAffected()
-			if err1 != nil {
-				result.Err = model.NewAppError("SqlAuditStore.PermanentDeleteBatch", "store.sql_audit.permanent_delete_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
-				result.Data = int64(0)
-			} else {
-				result.Data = rowsAffected
-			}
-		}
-	})
+	sqlResult, err := s.GetMaster().Exec(query, map[string]interface{}{"EndTime": endTime, "Limit": limit})
+	if err != nil {
+		return 0, model.NewAppError("SqlAuditStore.PermanentDeleteBatch", "store.sql_audit.permanent_delete_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
+	}
+
+	rowsAffected, err1 := sqlResult.RowsAffected()
+	if err1 != nil {
+		return 0, model.NewAppError("SqlAuditStore.PermanentDeleteBatch", "store.sql_audit.permanent_delete_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
+	}
+	return rowsAffected, nil
 }

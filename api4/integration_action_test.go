@@ -142,16 +142,16 @@ func TestOpenDialog(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 	assert.False(t, pass)
 
-	// At least one element is required
+	// Should pass with no elements
 	request.URL = "http://localhost:8065"
 	request.Dialog.Elements = nil
 	pass, resp = Client.OpenInteractiveDialog(request)
-	CheckBadRequestStatus(t, resp)
-	assert.False(t, pass)
+	CheckNoError(t, resp)
+	assert.True(t, pass)
 	request.Dialog.Elements = []model.DialogElement{}
 	pass, resp = Client.OpenInteractiveDialog(request)
-	CheckBadRequestStatus(t, resp)
-	assert.False(t, pass)
+	CheckNoError(t, resp)
+	assert.True(t, pass)
 }
 
 func TestSubmitDialog(t *testing.T) {

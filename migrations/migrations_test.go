@@ -30,16 +30,16 @@ func TestGetMigrationState(t *testing.T) {
 		Name:  migrationKey,
 		Value: "true",
 	}
-	res1 := <-th.App.Srv.Store.System().Save(&system)
-	assert.Nil(t, res1.Err)
+	err = th.App.Srv.Store.System().Save(&system)
+	assert.Nil(t, err)
 
 	state, job, err = GetMigrationState(migrationKey, th.App.Srv.Store)
 	assert.Nil(t, err)
 	assert.Nil(t, job)
 	assert.Equal(t, "completed", state)
 
-	res2 := <-th.App.Srv.Store.System().PermanentDeleteByName(migrationKey)
-	assert.Nil(t, res2.Err)
+	_, err = th.App.Srv.Store.System().PermanentDeleteByName(migrationKey)
+	assert.Nil(t, err)
 
 	// Test with a job scheduled in "pending" state.
 	j1 := &model.Job{

@@ -111,6 +111,16 @@ func TestUpdateConfig(t *testing.T) {
 
 	require.Equal(t, SiteName, cfg.TeamSettings.SiteName, "It should update the SiteName")
 
+	t.Run("Should fail with validation error if invalid config setting is passed", func(t *testing.T) {
+		//Revert the change
+		badcfg := cfg.Clone()
+		badcfg.PasswordSettings.MinimumLength = model.NewInt(4)
+		badcfg.PasswordSettings.MinimumLength = model.NewInt(4)
+		_, resp = th.SystemAdminClient.UpdateConfig(badcfg)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorMessage(t, resp, "model.config.is_valid.password_length.app_error")
+	})
+
 	t.Run("Should not be able to modify PluginSettings.EnableUploads", func(t *testing.T) {
 		oldEnableUploads := *th.App.Config().PluginSettings.EnableUploads
 		*cfg.PluginSettings.EnableUploads = !oldEnableUploads
@@ -194,6 +204,30 @@ func TestUpdateConfigMessageExportSpecialHandling(t *testing.T) {
 
 	assert.False(t, *th.App.Config().MessageExportSettings.EnableExport)
 	assert.Equal(t, int64(0), *th.App.Config().MessageExportSettings.ExportFromTimestamp)
+}
+
+func TestUpdateConfigRestrictSystemAdmin(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
+
+	originalCfg, resp := th.SystemAdminClient.GetConfig()
+	CheckNoError(t, resp)
+
+	cfg := originalCfg.Clone()
+	*cfg.TeamSettings.SiteName = "MyFancyName"          // Allowed
+	*cfg.ServiceSettings.SiteURL = "http://example.com" // Ignored
+
+	returnedCfg, resp := th.SystemAdminClient.UpdateConfig(cfg)
+	CheckNoError(t, resp)
+
+	require.Equal(t, "MyFancyName", *returnedCfg.TeamSettings.SiteName)
+	require.Equal(t, *originalCfg.ServiceSettings.SiteURL, *returnedCfg.ServiceSettings.SiteURL)
+
+	actualCfg, resp := th.SystemAdminClient.GetConfig()
+	CheckNoError(t, resp)
+
+	require.Equal(t, returnedCfg, actualCfg)
 }
 
 func TestGetEnvironmentConfig(t *testing.T) {

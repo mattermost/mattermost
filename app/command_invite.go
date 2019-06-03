@@ -6,7 +6,7 @@ package app
 import (
 	"strings"
 
-	goi18n "github.com/nicksnyder/go-i18n/i18n"
+	goi18n "github.com/mattermost/go-i18n/i18n"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -141,9 +141,15 @@ func (me *InviteProvider) DoCommand(a *App, args *model.CommandArgs, message str
 		}
 	}
 
-	if _, err := a.AddChannelMember(userProfile.Id, channelToJoin, args.Session.UserId, "", args.Session.Id); err != nil {
+	if _, err := a.AddChannelMember(userProfile.Id, channelToJoin, args.Session.UserId, ""); err != nil {
+		var text string
+		if err.Id == "api.channel.add_members.user_denied" {
+			text = args.T("api.command_invite.group_constrained_user_denied")
+		} else {
+			text = args.T("api.command_invite.fail.app_error")
+		}
 		return &model.CommandResponse{
-			Text:         args.T("api.command_invite.fail.app_error"),
+			Text:         text,
 			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
 		}
 	}

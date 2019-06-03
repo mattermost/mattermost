@@ -116,3 +116,78 @@ func TestChangeUserEmail(t *testing.T) {
 	require.Error(t, th.RunCommand(t, "user", "email", th.BasicUser.Username, th.BasicUser2.Email))
 
 }
+
+func TestConvertUser(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	t.Run("Invalid command line input", func(t *testing.T) {
+		err := th.RunCommand(t, "user", "convert", th.BasicUser.Username)
+		require.NotNil(t, err)
+
+		err = th.RunCommand(t, "user", "convert", th.BasicUser.Username, "--user", "--bot")
+		require.NotNil(t, err)
+
+		err = th.RunCommand(t, "user", "convert", "--bot")
+		require.NotNil(t, err)
+	})
+
+	t.Run("Convert to bot from username", func(t *testing.T) {
+		th.CheckCommand(t, "user", "convert", th.BasicUser.Username, "anotherinvaliduser", "--bot")
+		result := <-th.App.Srv.Store.Bot().Get(th.BasicUser.Id, false)
+		require.Nil(t, result.Err)
+	})
+
+	t.Run("Unable to convert to user with missing password", func(t *testing.T) {
+		err := th.RunCommand(t, "user", "convert", th.BasicUser.Username, "--user")
+		require.NotNil(t, err)
+	})
+
+	t.Run("Unable to convert to user with invalid email", func(t *testing.T) {
+		err := th.RunCommand(t, "user", "convert", th.BasicUser.Username, "--user",
+			"--password", "password",
+			"--email", "invalidEmail")
+		require.NotNil(t, err)
+	})
+
+	t.Run("Convert to user with minimum flags", func(t *testing.T) {
+		err := th.RunCommand(t, "user", "convert", th.BasicUser.Username, "--user",
+			"--password", "password")
+		require.Nil(t, err)
+		result := <-th.App.Srv.Store.Bot().Get(th.BasicUser.Id, false)
+		require.NotNil(t, result.Err)
+	})
+
+	t.Run("Convert to bot from email", func(t *testing.T) {
+		th.CheckCommand(t, "user", "convert", th.BasicUser2.Email, "--bot")
+		result := <-th.App.Srv.Store.Bot().Get(th.BasicUser2.Id, false)
+		require.Nil(t, result.Err)
+	})
+
+	t.Run("Convert to user with all flags", func(t *testing.T) {
+		err := th.RunCommand(t, "user", "convert", th.BasicUser2.Username, "--user",
+			"--password", "password",
+			"--username", "newusername",
+			"--email", "valid@email.com",
+			"--nickname", "newNickname",
+			"--firstname", "newFirstName",
+			"--lastname", "newLastName",
+			"--locale", "en_CA",
+			"--system_admin")
+		require.Nil(t, err)
+
+		result := <-th.App.Srv.Store.Bot().Get(th.BasicUser2.Id, false)
+		require.NotNil(t, result.Err)
+
+		user, appErr := th.App.Srv.Store.User().Get(th.BasicUser2.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, "newusername", user.Username)
+		require.Equal(t, "valid@email.com", user.Email)
+		require.Equal(t, "newNickname", user.Nickname)
+		require.Equal(t, "newFirstName", user.FirstName)
+		require.Equal(t, "newLastName", user.LastName)
+		require.Equal(t, "en_CA", user.Locale)
+		require.True(t, user.IsInRole("system_admin"))
+	})
+
+}
