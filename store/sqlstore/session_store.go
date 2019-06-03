@@ -167,13 +167,13 @@ func (me SqlSessionStore) RemoveAllSessions() store.StoreChannel {
 	})
 }
 
-func (me SqlSessionStore) PermanentDeleteSessionsByUser(userId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		_, err := me.GetMaster().Exec("DELETE FROM Sessions WHERE UserId = :UserId", map[string]interface{}{"UserId": userId})
-		if err != nil {
-			result.Err = model.NewAppError("SqlSessionStore.RemoveAllSessionsForUser", "store.sql_session.permanent_delete_sessions_by_user.app_error", nil, "id="+userId+", err="+err.Error(), http.StatusInternalServerError)
-		}
-	})
+func (me SqlSessionStore) PermanentDeleteSessionsByUser(userId string) *model.AppError {
+	_, err := me.GetMaster().Exec("DELETE FROM Sessions WHERE UserId = :UserId", map[string]interface{}{"UserId": userId})
+	if err != nil {
+		return model.NewAppError("SqlSessionStore.RemoveAllSessionsForUser", "store.sql_session.permanent_delete_sessions_by_user.app_error", nil, "id="+userId+", err="+err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
 }
 
 func (me SqlSessionStore) UpdateLastActivityAt(sessionId string, time int64) store.StoreChannel {
@@ -196,14 +196,14 @@ func (me SqlSessionStore) UpdateRoles(userId, roles string) store.StoreChannel {
 	})
 }
 
-func (me SqlSessionStore) UpdateDeviceId(id string, deviceId string, expiresAt int64) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if _, err := me.GetMaster().Exec("UPDATE Sessions SET DeviceId = :DeviceId, ExpiresAt = :ExpiresAt WHERE Id = :Id", map[string]interface{}{"DeviceId": deviceId, "Id": id, "ExpiresAt": expiresAt}); err != nil {
-			result.Err = model.NewAppError("SqlSessionStore.UpdateDeviceId", "store.sql_session.update_device_id.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = deviceId
-		}
-	})
+func (me SqlSessionStore) UpdateDeviceId(id string, deviceId string, expiresAt int64) (string, *model.AppError) {
+	query := "UPDATE Sessions SET DeviceId = :DeviceId, ExpiresAt = :ExpiresAt WHERE Id = :Id"
+
+	_, err := me.GetMaster().Exec(query, map[string]interface{}{"DeviceId": deviceId, "Id": id, "ExpiresAt": expiresAt})
+	if err != nil {
+		return "", model.NewAppError("SqlSessionStore.UpdateDeviceId", "store.sql_session.update_device_id.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return deviceId, nil
 }
 
 func (me SqlSessionStore) AnalyticsSessionCount() (int64, *model.AppError) {

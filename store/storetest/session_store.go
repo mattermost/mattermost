@@ -168,7 +168,8 @@ func testSessionRemoveByUser(t *testing.T, ss store.Store) {
 		}
 	}
 
-	store.Must(ss.Session().PermanentDeleteSessionsByUser(s1.UserId))
+	deleteErr := ss.Session().PermanentDeleteSessionsByUser(s1.UserId)
+	require.Nil(t, deleteErr)
 
 	if _, err := ss.Session().Get(s1.Id); err == nil {
 		t.Fatal("should have been removed")
@@ -212,8 +213,8 @@ func testSessionUpdateDeviceId(t *testing.T, ss store.Store) {
 	s1, err := ss.Session().Save(s1)
 	require.Nil(t, err)
 
-	if rs1 := (<-ss.Session().UpdateDeviceId(s1.Id, model.PUSH_NOTIFY_APPLE+":1234567890", s1.ExpiresAt)); rs1.Err != nil {
-		t.Fatal(rs1.Err)
+	if _, err = ss.Session().UpdateDeviceId(s1.Id, model.PUSH_NOTIFY_APPLE+":1234567890", s1.ExpiresAt); err != nil {
+		t.Fatal(err)
 	}
 
 	s2 := &model.Session{}
@@ -222,8 +223,8 @@ func testSessionUpdateDeviceId(t *testing.T, ss store.Store) {
 	s2, err = ss.Session().Save(s2)
 	require.Nil(t, err)
 
-	if rs2 := (<-ss.Session().UpdateDeviceId(s2.Id, model.PUSH_NOTIFY_APPLE+":1234567890", s1.ExpiresAt)); rs2.Err != nil {
-		t.Fatal(rs2.Err)
+	if _, err := ss.Session().UpdateDeviceId(s2.Id, model.PUSH_NOTIFY_APPLE+":1234567890", s1.ExpiresAt); err != nil {
+		t.Fatal(err)
 	}
 }
 
@@ -234,8 +235,8 @@ func testSessionUpdateDeviceId2(t *testing.T, ss store.Store) {
 	s1, err := ss.Session().Save(s1)
 	require.Nil(t, err)
 
-	if rs1 := (<-ss.Session().UpdateDeviceId(s1.Id, model.PUSH_NOTIFY_APPLE_REACT_NATIVE+":1234567890", s1.ExpiresAt)); rs1.Err != nil {
-		t.Fatal(rs1.Err)
+	if _, err = ss.Session().UpdateDeviceId(s1.Id, model.PUSH_NOTIFY_APPLE_REACT_NATIVE+":1234567890", s1.ExpiresAt); err != nil {
+		t.Fatal(err)
 	}
 
 	s2 := &model.Session{}
@@ -244,8 +245,8 @@ func testSessionUpdateDeviceId2(t *testing.T, ss store.Store) {
 	s2, err = ss.Session().Save(s2)
 	require.Nil(t, err)
 
-	if rs2 := (<-ss.Session().UpdateDeviceId(s2.Id, model.PUSH_NOTIFY_APPLE_REACT_NATIVE+":1234567890", s1.ExpiresAt)); rs2.Err != nil {
-		t.Fatal(rs2.Err)
+	if _, err := ss.Session().UpdateDeviceId(s2.Id, model.PUSH_NOTIFY_APPLE_REACT_NATIVE+":1234567890", s1.ExpiresAt); err != nil {
+		t.Fatal(err)
 	}
 }
 
