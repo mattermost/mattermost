@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"path"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -28,25 +29,31 @@ var usage = `Mattermost testing commands to help configure the system
 
 	Users - Add a specified number of random users with fuzz text to current team.
 		/test users [fuzz] <Min Users> <Max Users>
-		
+
 		Example:
 			/test users fuzz 5 10
 
 	Channels - Add a specified number of random channels with fuzz text to current team.
 		/test channels [fuzz] <Min Channels> <Max Channels>
-		
+
 		Example:
 			/test channels fuzz 5 10
 
 	Posts - Add some random posts with fuzz text to current channel.
 		/test posts [fuzz] <Min Posts> <Max Posts> <Max Images>
-		
+
 		Example:
 			/test posts fuzz 5 10 3
 
+	Post - Add post to a channel as another user.
+		/test post u=@username p=passwd c=~channelname t=teamname "message"
+
+		Example:
+			/test post u=@user-1 p=user-1 c=~town-square t=ad-1 "message"
+
 	Url - Add a post containing the text from a given url to current channel.
 		/test url
-		
+
 		Example:
 			/test http://www.example.com/sample_file.md
 
@@ -60,6 +67,14 @@ var usage = `Mattermost testing commands to help configure the system
 
 const (
 	CMD_TEST = "test"
+)
+
+var (
+	userRE    = regexp.MustCompile(`u=@([^\s]+)`)
+	passwdRE  = regexp.MustCompile(`p=([^\s]+)`)
+	teamRE    = regexp.MustCompile(`t=([^\s]+)`)
+	channelRE = regexp.MustCompile(`c=~([^\s]+)`)
+	messageRE = regexp.MustCompile(`"(.*)"`)
 )
 
 type LoadTestProvider struct {
@@ -106,6 +121,10 @@ func (me *LoadTestProvider) DoCommand(a *App, args *model.CommandArgs, message s
 
 	if strings.HasPrefix(message, "posts") {
 		return me.PostsCommand(a, args, message)
+	}
+
+	if strings.HasPrefix(message, "post") {
+		return me.PostCommand(a, args, message)
 	}
 
 	if strings.HasPrefix(message, "url") {
@@ -306,6 +325,57 @@ func (me *LoadTestProvider) PostsCommand(a *App, args *model.CommandArgs, messag
 	}
 
 	return &model.CommandResponse{Text: "Added posts", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+}
+
+func getMatch(re *regexp.Regexp, text string) string {
+	if match := re.FindStringSubmatch(text); match != nil {
+		return match[1]
+	}
+
+	return ""
+}
+
+func (me *LoadTestProvider) PostCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse {
+	textMessage := getMatch(messageRE, message)
+	if textMessage == "" {
+		return &model.CommandResponse{Text: "No message to post", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	}
+
+	teamName := getMatch(teamRE, message)
+	team, err := a.GetTeamByName(teamName)
+	if err != nil {
+		return &model.CommandResponse{Text: "Failed to get a team", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	}
+
+	channelName := getMatch(channelRE, message)
+	channel, err := a.GetChannelByName(channelName, team.Id, true)
+	if err != nil {
+		return &model.CommandResponse{Text: "Failed to get a channel", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	}
+
+	passwd := getMatch(passwdRE, message)
+	username := getMatch(userRE, message)
+	user, err := a.GetUserByUsername(username)
+	if err != nil {
+		return &model.CommandResponse{Text: "Failed to get a user", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	}
+
+	client := model.NewAPIv4Client(args.SiteURL)
+	_, resp := client.LoginById(user.Id, passwd)
+	if resp != nil && resp.Error != nil {
+		return &model.CommandResponse{Text: "Failed to login a user", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	}
+
+	post := &model.Post{
+		ChannelId: channel.Id,
+		Message:   textMessage,
+	}
+	_, resp = client.CreatePost(post)
+	if resp != nil && resp.Error != nil {
+		return &model.CommandResponse{Text: "Failed to create a post", ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
+	}
+
+	return &model.CommandResponse{Text: "Added a post to " + channel.DisplayName, ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 }
 
 func (me *LoadTestProvider) UrlCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse {

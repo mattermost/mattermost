@@ -452,7 +452,9 @@ func TestAddChannelMemberNoUserRequestor(t *testing.T) {
 	}
 	assert.Equal(t, groupUserIds, channelMemberHistoryUserIds)
 
-	postList := store.Must(th.App.Srv.Store.Post().GetPosts(channel.Id, 0, 1, false)).(*model.PostList)
+	postList, err := th.App.Srv.Store.Post().GetPosts(channel.Id, 0, 1, false)
+	require.Nil(t,err)
+
 	if assert.Len(t, postList.Order, 1) {
 		post := postList.Posts[postList.Order[0]]
 
@@ -894,4 +896,21 @@ func TestUpdateChannelMemberRolesChangingGuest(t *testing.T) {
 			t.Fatal("Should work when you not modify guest role")
 		}
 	})
+}
+
+func TestDefaultChannelNames(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	actual := th.App.DefaultChannelNames()
+	expect := []string{"town-square", "off-topic"}
+	require.ElementsMatch(t, expect, actual)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.TeamSettings.ExperimentalDefaultChannels = []string{"foo", "bar"}
+	})
+
+	actual = th.App.DefaultChannelNames()
+	expect = []string{"town-square", "foo", "bar"}
+	require.ElementsMatch(t, expect, actual)
 }

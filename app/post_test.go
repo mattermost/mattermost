@@ -208,7 +208,7 @@ func TestAttachFilesToPost(t *testing.T) {
 		err = th.App.attachFilesToPost(post)
 		assert.Nil(t, err)
 
-		infos, err := th.App.GetFileInfosForPost(post.Id)
+		infos, err := th.App.GetFileInfosForPost(post.Id, false)
 		assert.Nil(t, err)
 		assert.Len(t, infos, 2)
 	})
@@ -236,7 +236,7 @@ func TestAttachFilesToPost(t *testing.T) {
 		err = th.App.attachFilesToPost(post)
 		assert.Nil(t, err)
 
-		infos, err := th.App.GetFileInfosForPost(post.Id)
+		infos, err := th.App.GetFileInfosForPost(post.Id, false)
 		assert.Nil(t, err)
 		assert.Len(t, infos, 1)
 		assert.Equal(t, info2.Id, infos[0].Id)

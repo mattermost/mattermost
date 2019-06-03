@@ -48,9 +48,9 @@ func (a *App) UpdatePreferences(userId string, preferences model.Preferences) *m
 		}
 	}
 
-	if result := <-a.Srv.Store.Preference().Save(&preferences); result.Err != nil {
-		result.Err.StatusCode = http.StatusBadRequest
-		return result.Err
+	if err := a.Srv.Store.Preference().Save(&preferences); err != nil {
+		err.StatusCode = http.StatusBadRequest
+		return err
 	}
 
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_PREFERENCES_CHANGED, "", "", userId, nil)

@@ -310,8 +310,8 @@ func (a *App) createUser(user *model.User) (*model.User, *model.AppError) {
 	}
 
 	pref := model.Preference{UserId: ruser.Id, Category: model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, Name: ruser.Id, Value: "0"}
-	if presult := <-a.Srv.Store.Preference().Save(&model.Preferences{pref}); presult.Err != nil {
-		mlog.Error(fmt.Sprintf("Encountered error saving tutorial preference, err=%v", presult.Err.Message))
+	if err := a.Srv.Store.Preference().Save(&model.Preferences{pref}); err != nil {
+		mlog.Error(fmt.Sprintf("Encountered error saving tutorial preference, err=%v", err.Message))
 	}
 
 	ruser.Sanitize(map[string]bool{})
@@ -989,11 +989,11 @@ func (a *App) UpdateActive(user *model.User, active bool) (*model.User, *model.A
 		user.DeleteAt = model.GetMillis()
 	}
 
-	result := <-a.Srv.Store.User().Update(user, true)
-	if result.Err != nil {
-		return nil, result.Err
+	userUpdate, err := a.Srv.Store.User().Update(user, true)
+	if err != nil {
+		return nil, err
 	}
-	ruser := result.Data.([2]*model.User)[0]
+	ruser := userUpdate.New
 
 	if !active {
 		if err := a.userDeactivated(ruser); err != nil {
@@ -1110,7 +1110,7 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 	if *a.Config().EmailSettings.RequireEmailVerification && prev.Email != user.Email {
 		newEmail = user.Email
 
-		_, err := a.GetUserByEmail(newEmail)
+		_, err = a.GetUserByEmail(newEmail)
 		if err == nil {
 			return nil, model.NewAppError("UpdateUser", "store.sql_user.update.email_taken.app_error", nil, "user_id="+user.Id, http.StatusBadRequest)
 		}
@@ -1118,32 +1118,31 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 		user.Email = prev.Email
 	}
 
-	result := <-a.Srv.Store.User().Update(user, false)
-	if result.Err != nil {
-		return nil, result.Err
+	userUpdate, err := a.Srv.Store.User().Update(user, false)
+	if err != nil {
+		return nil, err
 	}
-	rusers := result.Data.([2]*model.User)
 
 	if sendNotifications {
-		if rusers[0].Email != rusers[1].Email || newEmail != "" {
+		if userUpdate.New.Email != userUpdate.Old.Email || newEmail != "" {
 			if *a.Config().EmailSettings.RequireEmailVerification {
 				a.Srv.Go(func() {
-					if err := a.SendEmailVerification(rusers[0], newEmail); err != nil {
+					if err := a.SendEmailVerification(userUpdate.New, newEmail); err != nil {
 						mlog.Error(err.Error())
 					}
 				})
 			} else {
 				a.Srv.Go(func() {
-					if err := a.SendEmailChangeEmail(rusers[1].Email, rusers[0].Email, rusers[0].Locale, a.GetSiteURL()); err != nil {
+					if err := a.SendEmailChangeEmail(userUpdate.Old.Email, userUpdate.New.Email, userUpdate.New.Locale, a.GetSiteURL()); err != nil {
 						mlog.Error(err.Error())
 					}
 				})
 			}
 		}
 
-		if rusers[0].Username != rusers[1].Username {
+		if userUpdate.New.Username != userUpdate.Old.Username {
 			a.Srv.Go(func() {
-				if err := a.SendChangeUsernameEmail(rusers[1].Username, rusers[0].Username, rusers[0].Email, rusers[0].Locale, a.GetSiteURL()); err != nil {
+				if err := a.SendChangeUsernameEmail(userUpdate.Old.Username, userUpdate.New.Username, userUpdate.New.Email, userUpdate.New.Locale, a.GetSiteURL()); err != nil {
 					mlog.Error(err.Error())
 				}
 			})
@@ -1161,7 +1160,7 @@ func (a *App) UpdateUser(user *model.User, sendNotifications bool) (*model.User,
 		})
 	}
 
-	return rusers[0], nil
+	return userUpdate.New, nil
 }
 
 func (a *App) UpdateUserActive(userId string, active bool) *model.AppError {
@@ -1375,14 +1374,19 @@ func (a *App) UpdateUserRoles(userId string, newRoles string, sendWebSocketEvent
 	}
 
 	user.Roles = newRoles
-	uchan := a.Srv.Store.User().Update(user, true)
+	uchan := make(chan store.StoreResult, 1)
+	go func() {
+		userUpdate, err := a.Srv.Store.User().Update(user, true)
+		uchan <- store.StoreResult{Data: userUpdate, Err: err}
+		close(uchan)
+	}()
 	schan := a.Srv.Store.Session().UpdateRoles(user.Id, newRoles)
 
 	result := <-uchan
 	if result.Err != nil {
 		return nil, result.Err
 	}
-	ruser := result.Data.([2]*model.User)[0]
+	ruser := result.Data.(*model.UserUpdate).New
 
 	if result := <-schan; result.Err != nil {
 		// soft error since the user roles were still updated
@@ -1483,8 +1487,8 @@ func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 		return err
 	}
 
-	if result := <-a.Srv.Store.User().PermanentDelete(user.Id); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.User().PermanentDelete(user.Id); err != nil {
+		return err
 	}
 
 	if err := a.Srv.Store.Audit().PermanentDeleteByUser(user.Id); err != nil {
@@ -1662,6 +1666,7 @@ func (a *App) SearchUsers(props *model.UserSearch, options *model.UserSearchOpti
 }
 
 func (a *App) SearchUsersInChannel(channelId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+	term = strings.TrimSpace(term)
 	result := <-a.Srv.Store.User().SearchInChannel(channelId, term, options)
 	if result.Err != nil {
 		return nil, result.Err
@@ -1676,6 +1681,7 @@ func (a *App) SearchUsersInChannel(channelId string, term string, options *model
 }
 
 func (a *App) SearchUsersNotInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+	term = strings.TrimSpace(term)
 	result := <-a.Srv.Store.User().SearchNotInChannel(teamId, channelId, term, options)
 	if result.Err != nil {
 		return nil, result.Err
@@ -1691,6 +1697,8 @@ func (a *App) SearchUsersNotInChannel(teamId string, channelId string, term stri
 
 func (a *App) SearchUsersInTeam(teamId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	var result store.StoreResult
+
+	term = strings.TrimSpace(term)
 
 	esInterface := a.Elasticsearch
 	license := a.License()
@@ -1726,6 +1734,7 @@ func (a *App) SearchUsersInTeam(teamId string, term string, options *model.UserS
 }
 
 func (a *App) SearchUsersNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+	term = strings.TrimSpace(term)
 	result := <-a.Srv.Store.User().SearchNotInTeam(notInTeamId, term, options)
 	if result.Err != nil {
 		return nil, result.Err
@@ -1740,6 +1749,7 @@ func (a *App) SearchUsersNotInTeam(notInTeamId string, term string, options *mod
 }
 
 func (a *App) SearchUsersWithoutTeam(term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+	term = strings.TrimSpace(term)
 	result := <-a.Srv.Store.User().SearchWithoutTeam(term, options)
 	if result.Err != nil {
 		return nil, result.Err
@@ -1755,6 +1765,8 @@ func (a *App) SearchUsersWithoutTeam(term string, options *model.UserSearchOptio
 
 func (a *App) AutocompleteUsersInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, *model.AppError) {
 	var uchan, nuchan store.StoreChannel
+
+	term = strings.TrimSpace(term)
 
 	esInterface := a.Elasticsearch
 	license := a.License()
@@ -1815,6 +1827,8 @@ func (a *App) AutocompleteUsersInChannel(teamId string, channelId string, term s
 func (a *App) AutocompleteUsersInTeam(teamId string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInTeam, *model.AppError) {
 	autocomplete := &model.UserAutocompleteInTeam{}
 	var result store.StoreResult
+
+	term = strings.TrimSpace(term)
 
 	esInterface := a.Elasticsearch
 	license := a.License()
@@ -1886,12 +1900,12 @@ func (a *App) UpdateOAuthUserAttrs(userData io.Reader, user *model.User, provide
 	}
 
 	if userAttrsChanged {
-		result := <-a.Srv.Store.User().Update(user, true)
-		if result.Err != nil {
-			return result.Err
+		users, err := a.Srv.Store.User().Update(user, true)
+		if err != nil {
+			return err
 		}
 
-		user = result.Data.([2]*model.User)[0]
+		user = users.New
 		a.InvalidateCacheForUser(user.Id)
 
 		esInterface := a.Elasticsearch

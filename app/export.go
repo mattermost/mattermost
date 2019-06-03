@@ -552,12 +552,11 @@ func (a *App) ExportAllDirectChannels(writer io.Writer) *model.AppError {
 func (a *App) ExportAllDirectPosts(writer io.Writer) *model.AppError {
 	afterId := strings.Repeat("0", 26)
 	for {
-		result := <-a.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, afterId)
-		if result.Err != nil {
-			return result.Err
+		posts, err := a.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, afterId)
+		if err != nil {
+			return err
 		}
 
-		posts := result.Data.([]*model.DirectPostForExport)
 		if len(posts) == 0 {
 			break
 		}
