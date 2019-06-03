@@ -2114,12 +2114,11 @@ func testPostStoreGetParentsForExportAfter(t *testing.T, ss store.Store) {
 	p1.CreateAt = 1000
 	p1 = (<-ss.Post().Save(p1)).Data.(*model.Post)
 
-	r1 := <-ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26))
-	assert.Nil(t, r1.Err)
-	d1 := r1.Data.([]*model.PostForExport)
+	posts, err := ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26))
+	assert.Nil(t, err)
 
 	found := false
-	for _, p := range d1 {
+	for _, p := range posts {
 		if p.Id == p1.Id {
 			found = true
 			assert.Equal(t, p.Id, p1.Id)
