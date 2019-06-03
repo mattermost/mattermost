@@ -334,7 +334,7 @@ func (s *SqlPostStore) InvalidateLastPostTimeCache(channelId string) {
 
 func (s *SqlPostStore) GetEtag(channelId string, allowFromCache bool) string {
 	if allowFromCache {
-		if cacheItem, ok := s.lastPostTimeCache.Get(channelId); ok {
+		if cacheItem, ok := s.lastPostTimeCache.Get(channelId); ok && cacheItem.(int64) > 0 {
 			if s.metrics != nil {
 				s.metrics.IncrementMemCacheHitCounter("Last Post Time")
 			}
