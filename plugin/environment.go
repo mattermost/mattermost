@@ -307,7 +307,10 @@ func (env *Environment) Shutdown() {
 			//ap.supervisor.Shutdown()
 			p, err := os.FindProcess(ap.supervisor.pid)
 			if err == nil {
-				p.Signal(syscall.SIGHUP)
+				err = p.Signal(syscall.SIGTERM)
+				if err != nil {
+					p.Signal(syscall.SIGKILL)
+				}
 			}
 		}
 
