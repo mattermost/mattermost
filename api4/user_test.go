@@ -2721,33 +2721,56 @@ func TestLogin(t *testing.T) {
 }
 
 func TestLoginCookies(t *testing.T) {
-	th := Setup().InitBasic()
-	defer th.TearDown()
-	th.Client.Logout()
+	t.Run("should return cookies with X-Requested-With header", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
 
-	testCases := []struct {
-		Description                   string
-		SiteURL                       string
-		ExpectedSetCookieHeaderRegexp string
-	}{
-		{"no subpath", "http://localhost:8065", "^MMAUTHTOKEN=[a-z0-9]+; Path=/"},
-		{"subpath", "http://localhost:8065/subpath", "^MMAUTHTOKEN=[a-z0-9]+; Path=/subpath"},
-	}
+		th.Client.HttpHeader[model.HEADER_REQUESTED_WITH] = model.HEADER_REQUESTED_WITH_XML
 
-	for _, tc := range testCases {
-		t.Run(tc.Description, func(t *testing.T) {
-			th.App.UpdateConfig(func(cfg *model.Config) {
-				*cfg.ServiceSettings.SiteURL = tc.SiteURL
+		_, resp := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+		assert.NotEqual(t, "", resp.Header.Get("Set-Cookie"))
+	})
+
+	t.Run("should not return cookies without X-Requested-With header", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
+
+		_, resp := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+		assert.Equal(t, "", resp.Header.Get("Set-Cookie"))
+	})
+
+	t.Run("should include subpath in path", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
+
+		th.Client.HttpHeader[model.HEADER_REQUESTED_WITH] = model.HEADER_REQUESTED_WITH_XML
+
+		testCases := []struct {
+			Description                   string
+			SiteURL                       string
+			ExpectedSetCookieHeaderRegexp string
+		}{
+			{"no subpath", "http://localhost:8065", "^MMAUTHTOKEN=[a-z0-9]+; Path=/"},
+			{"subpath", "http://localhost:8065/subpath", "^MMAUTHTOKEN=[a-z0-9]+; Path=/subpath"},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.Description, func(t *testing.T) {
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					*cfg.ServiceSettings.SiteURL = tc.SiteURL
+				})
+
+				user, resp := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+				CheckNoError(t, resp)
+				assert.Equal(t, user.Id, th.BasicUser.Id)
+
+				cookies := resp.Header.Get("Set-Cookie")
+				assert.Regexp(t, tc.ExpectedSetCookieHeaderRegexp, cookies)
 			})
-
-			user, resp := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
-			CheckNoError(t, resp)
-			assert.Equal(t, user.Id, th.BasicUser.Id)
-
-			cookies := resp.Header.Get("Set-Cookie")
-			assert.Regexp(t, tc.ExpectedSetCookieHeaderRegexp, cookies)
-		})
-	}
+		}
+	})
 }
 
 func TestCBALogin(t *testing.T) {
