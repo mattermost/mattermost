@@ -828,6 +828,8 @@ type SqlSettings struct {
 	Trace                       *bool    `restricted:"true"`
 	AtRestEncryptKey            *string  `restricted:"true"`
 	QueryTimeout                *int     `restricted:"true"`
+	InnodbFtMinTokenSize        *int     `restricted:"true"`
+	FtMinWordLen                *int     `restricted:"true"`
 }
 
 func (s *SqlSettings) SetDefaults() {
@@ -869,6 +871,14 @@ func (s *SqlSettings) SetDefaults() {
 
 	if s.QueryTimeout == nil {
 		s.QueryTimeout = NewInt(30)
+	}
+
+	if s.InnodbFtMinTokenSize == nil {
+		s.InnodbFtMinTokenSize = NewInt(3)
+	}
+
+	if s.FtMinWordLen == nil {
+		s.FtMinWordLen = NewInt(3)
 	}
 }
 

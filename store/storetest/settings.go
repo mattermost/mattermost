@@ -139,11 +139,15 @@ func databaseSettings(driver, dataSource string) *model.SqlSettings {
 		Trace:                       model.NewBool(false),
 		AtRestEncryptKey:            model.NewString(model.NewRandomString(32)),
 		QueryTimeout:                new(int),
+		InnodbFtMinTokenSize:        new(int),
+		FtMinWordLen:                new(int),
 	}
 	*settings.MaxIdleConns = 10
 	*settings.ConnMaxLifetimeMilliseconds = 3600000
 	*settings.MaxOpenConns = 100
 	*settings.QueryTimeout = 60
+	*settings.InnodbFtMinTokenSize = 1
+	*settings.FtMinWordLen = 1
 
 	return settings
 }
