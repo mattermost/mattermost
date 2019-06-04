@@ -1656,6 +1656,34 @@ func TestSearchPostsInChannel(t *testing.T) {
 
 }
 
+func TestSearchPostsWithMinUsernameLength(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+
+	th.LoginTeamAdmin()
+	id := model.NewId()
+
+	user := &model.User{
+		Email:     th.GenerateTestEmail(),
+		Username:  model.NewRandomString(*th.App.Config().ServiceSettings.MinimumUsernameLength),
+		Nickname:  "nn_" + id,
+		FirstName: "f_" + id,
+		LastName:  "l_" + id,
+		Password:  "Pa$$word11",
+	}
+	user = th.CreateCustomUser(user)
+	th.LinkUserToTeam(user, th.BasicTeam)
+	th.App.AddUserToChannel(user, th.BasicChannel)
+
+	message := "short username"
+	_ = th.CreateMessagePost(message)
+
+	if posts, _ := Client.SearchPosts(th.BasicTeam.Id, "from: "+th.TeamAdminUser.Username+" short username", false); len(posts.Order) != 1 {
+		t.Fatalf("wrong number of posts returned %v", len(posts.Order))
+	}
+}
+
 func TestSearchPostsFromUser(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()

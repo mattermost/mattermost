@@ -26,6 +26,12 @@ func TestConfigDefaults(t *testing.T) {
 		require.True(t, checkNowhereNil(t, "config", c))
 	})
 
+	t.Run("MinimumUsernameLength not nil when initialized",func(t *testing.T){
+		c := Config{}
+		c.SetDefaults()
+		require.NotNil(t,c.ServiceSettings.MinimumUsernameLength)
+	})
+
 	t.Run("nowhere nil when partially initialized", func(t *testing.T) {
 		var recursivelyUninitialize func(*Config, string, reflect.Value)
 		recursivelyUninitialize = func(config *Config, name string, v reflect.Value) {
