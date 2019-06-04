@@ -260,6 +260,25 @@ func TestCreateUserWithInviteId(t *testing.T) {
 		CheckUserSanitization(t, ruser)
 	})
 
+	t.Run("GroupConstrainedTeam", func(t *testing.T) {
+		user := model.User{Email: th.GenerateTestEmail(), Nickname: "", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
+
+		th.BasicTeam.GroupConstrained = model.NewBool(true)
+		team, err := th.App.UpdateTeam(th.BasicTeam)
+		require.Nil(t, err)
+
+		defer func() {
+			th.BasicTeam.GroupConstrained = model.NewBool(false)
+			_, err = th.App.UpdateTeam(th.BasicTeam)
+			require.Nil(t, err)
+		}()
+
+		inviteID := team.InviteId
+
+		_, resp := th.Client.CreateUserWithInviteId(&user, inviteID)
+		require.Equal(t, "app.team.invite_id.group_constrained.error", resp.Error.Id)
+	})
+
 	t.Run("WrongInviteId", func(t *testing.T) {
 		user := model.User{Email: th.GenerateTestEmail(), Nickname: "Corey Hulen", Password: "hello1", Username: GenerateTestUsername(), Roles: model.SYSTEM_ADMIN_ROLE_ID + " " + model.SYSTEM_USER_ROLE_ID}
 
@@ -336,7 +355,6 @@ func TestCreateUserWithInviteId(t *testing.T) {
 		}
 		CheckUserSanitization(t, ruser)
 	})
-
 }
 
 func TestGetMe(t *testing.T) {

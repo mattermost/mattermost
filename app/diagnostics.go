@@ -575,13 +575,18 @@ func (a *App) trackConfig() {
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_PLUGIN, map[string]interface{}{
-		"enable_jira":         pluginActivated(cfg.PluginSettings.PluginStates, "jira"),
-		"enable_nps":          pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.nps"),
-		"enable_nps_survey":   pluginSetting(&cfg.PluginSettings, "com.mattermost.nps", "enablesurvey", false),
-		"enable_zoom":         pluginActivated(cfg.PluginSettings.PluginStates, "zoom"),
-		"enable":              *cfg.PluginSettings.Enable,
-		"enable_uploads":      *cfg.PluginSettings.EnableUploads,
-		"enable_health_check": *cfg.PluginSettings.EnableHealthCheck,
+		"enable_autolink":               pluginActivated(cfg.PluginSettings.PluginStates, "mattermost-autolink"),
+		"enable_aws_sns":                pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.aws-sns"),
+		"enable_custom_user_attributes": pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.custom-attributes"),
+		"enable_github":                 pluginActivated(cfg.PluginSettings.PluginStates, "github"),
+		"enable_jira":                   pluginActivated(cfg.PluginSettings.PluginStates, "jira"),
+		"enable_nps":                    pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.nps"),
+		"enable_nps_survey":             pluginSetting(&cfg.PluginSettings, "com.mattermost.nps", "enablesurvey", false),
+		"enable_welcome_bot":            pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.welcomebot"),
+		"enable_zoom":                   pluginActivated(cfg.PluginSettings.PluginStates, "zoom"),
+		"enable":                        *cfg.PluginSettings.Enable,
+		"enable_uploads":                *cfg.PluginSettings.EnableUploads,
+		"enable_health_check":           *cfg.PluginSettings.EnableHealthCheck,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_DATA_RETENTION, map[string]interface{}{

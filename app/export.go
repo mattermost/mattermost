@@ -332,13 +332,11 @@ func (a *App) buildUserNotifyProps(notifyProps model.StringMap) *UserNotifyProps
 func (a *App) ExportAllPosts(writer io.Writer) *model.AppError {
 	afterId := strings.Repeat("0", 26)
 	for {
-		result := <-a.Srv.Store.Post().GetParentsForExportAfter(1000, afterId)
+		posts, err := a.Srv.Store.Post().GetParentsForExportAfter(1000, afterId)
 
-		if result.Err != nil {
-			return result.Err
+		if err != nil {
+			return err
 		}
-
-		posts := result.Data.([]*model.PostForExport)
 
 		if len(posts) == 0 {
 			break
