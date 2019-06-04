@@ -351,8 +351,8 @@ func testPostStoreDelete(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	r5 := <-ss.Post().GetPostsCreatedAt(o1.ChannelId, o1.CreateAt)
-	post := r5.Data.([]*model.Post)[0]
+	posts, _ := ss.Post().GetPostsCreatedAt(o1.ChannelId, o1.CreateAt)
+	post := posts[0]
 	actual := post.Props[model.POST_PROPS_DELETE_BY]
 	if actual != deleteByID {
 		t.Errorf("Expected (*Post).Props[model.POST_PROPS_DELETE_BY] to be %v but got %v.", deleteByID, actual)
@@ -1759,7 +1759,7 @@ func testPostStoreGetPostsCreatedAt(t *testing.T, ss store.Store) {
 	o3.CreateAt = createTime
 	_ = (<-ss.Post().Save(o3)).Data.(*model.Post)
 
-	r1 := (<-ss.Post().GetPostsCreatedAt(o1.ChannelId, createTime)).Data.([]*model.Post)
+	r1, _ := ss.Post().GetPostsCreatedAt(o1.ChannelId, createTime)
 	assert.Equal(t, 2, len(r1))
 }
 
