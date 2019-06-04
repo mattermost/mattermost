@@ -1093,19 +1093,16 @@ func (s *SqlPostStore) AnalyticsPostCount(teamId string, mustHaveFile bool, must
 	})
 }
 
-func (s *SqlPostStore) GetPostsCreatedAt(channelId string, time int64) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		query := `SELECT * FROM Posts WHERE CreateAt = :CreateAt AND ChannelId = :ChannelId`
+func (s *SqlPostStore) GetPostsCreatedAt(channelId string, time int64) ([]*model.Post, *model.AppError) {
+	query := `SELECT * FROM Posts WHERE CreateAt = :CreateAt AND ChannelId = :ChannelId`
 
-		var posts []*model.Post
-		_, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"CreateAt": time, "ChannelId": channelId})
+	var posts []*model.Post
+	_, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"CreateAt": time, "ChannelId": channelId})
 
-		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetPostsCreatedAt", "store.sql_post.get_posts_created_att.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = posts
-		}
-	})
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetPostsCreatedAt", "store.sql_post.get_posts_created_att.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
+	}
+	return posts, nil
 }
 
 func (s *SqlPostStore) GetPostsByIds(postIds []string) store.StoreChannel {

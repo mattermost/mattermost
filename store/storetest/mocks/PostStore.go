@@ -366,19 +366,28 @@ func (_m *PostStore) GetPostsByIds(postIds []string) store.StoreChannel {
 }
 
 // GetPostsCreatedAt provides a mock function with given fields: channelId, time
-func (_m *PostStore) GetPostsCreatedAt(channelId string, time int64) store.StoreChannel {
+func (_m *PostStore) GetPostsCreatedAt(channelId string, time int64) ([]*model.Post, *model.AppError) {
 	ret := _m.Called(channelId, time)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, int64) store.StoreChannel); ok {
+	var r0 []*model.Post
+	if rf, ok := ret.Get(0).(func(string, int64) []*model.Post); ok {
 		r0 = rf(channelId, time)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]*model.Post)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, int64) *model.AppError); ok {
+		r1 = rf(channelId, time)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetPostsSince provides a mock function with given fields: channelId, time, allowFromCache
