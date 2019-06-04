@@ -1242,12 +1242,24 @@ func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Translate all login errors to generic. MFA error being an exception, since it's required for the login flow itself
 	defer func() {
-		if c.Err != nil &&
-			c.Err.Id != "mfa.validate_token.authenticate.app_error" &&
-			c.Err.Id != "api.user.login.blank_pwd.app_error" &&
-			c.Err.Id != "api.user.login.bot_login_forbidden.app_error" &&
-			c.Err.Id != "api.user.login.client_side_cert.certificate.app_error" {
-			c.Err = model.NewAppError("login", "api.user.login.invalid_credentials", nil, "", http.StatusUnauthorized)
+		if c.Err == nil {
+			return
+		}
+
+		maskedErrors := []string{
+			"store.sql_user.get_for_login.app_error",
+			"api.user.login_ldap.not_available.app_error",
+			"api.user.login.use_auth_service.app_error",
+			"ent.ldap.do_login.invalid_password.app_error",
+			"api.user.check_user_login_attempts.too_many.app_error",
+			"api.user.check_user_password.invalid.app_error",
+		}
+
+		for _, maskedError := range maskedErrors {
+			if c.Err.Id == maskedError {
+				c.Err = model.NewAppError("login", "api.user.login.invalid_credentials", nil, "", http.StatusUnauthorized)
+				break
+			}
 		}
 	}()
 
