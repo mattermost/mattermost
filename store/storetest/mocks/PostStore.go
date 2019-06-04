@@ -108,32 +108,39 @@ func (_m *PostStore) Get(id string) (*model.PostList, *model.AppError) {
 }
 
 // GetDirectPostParentsForExportAfter provides a mock function with given fields: limit, afterId
-func (_m *PostStore) GetDirectPostParentsForExportAfter(limit int, afterId string) store.StoreChannel {
+func (_m *PostStore) GetDirectPostParentsForExportAfter(limit int, afterId string) ([]*model.DirectPostForExport, *model.AppError) {
 	ret := _m.Called(limit, afterId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(int, string) store.StoreChannel); ok {
+	var r0 []*model.DirectPostForExport
+	if rf, ok := ret.Get(0).(func(int, string) []*model.DirectPostForExport); ok {
 		r0 = rf(limit, afterId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]*model.DirectPostForExport)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(int, string) *model.AppError); ok {
+		r1 = rf(limit, afterId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetEtag provides a mock function with given fields: channelId, allowFromCache
-func (_m *PostStore) GetEtag(channelId string, allowFromCache bool) store.StoreChannel {
+func (_m *PostStore) GetEtag(channelId string, allowFromCache bool) string {
 	ret := _m.Called(channelId, allowFromCache)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, bool) store.StoreChannel); ok {
+	var r0 string
+	if rf, ok := ret.Get(0).(func(string, bool) string); ok {
 		r0 = rf(channelId, allowFromCache)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
-		}
+		r0 = ret.Get(0).(string)
 	}
 
 	return r0
@@ -165,19 +172,28 @@ func (_m *PostStore) GetFlaggedPosts(userId string, offset int, limit int) (*mod
 }
 
 // GetFlaggedPostsForChannel provides a mock function with given fields: userId, channelId, offset, limit
-func (_m *PostStore) GetFlaggedPostsForChannel(userId string, channelId string, offset int, limit int) store.StoreChannel {
+func (_m *PostStore) GetFlaggedPostsForChannel(userId string, channelId string, offset int, limit int) (*model.PostList, *model.AppError) {
 	ret := _m.Called(userId, channelId, offset, limit)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, string, int, int) store.StoreChannel); ok {
+	var r0 *model.PostList
+	if rf, ok := ret.Get(0).(func(string, string, int, int) *model.PostList); ok {
 		r0 = rf(userId, channelId, offset, limit)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.PostList)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string, int, int) *model.AppError); ok {
+		r1 = rf(userId, channelId, offset, limit)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetFlaggedPostsForTeam provides a mock function with given fields: userId, teamId, offset, limit
@@ -236,35 +252,53 @@ func (_m *PostStore) GetOldest() store.StoreChannel {
 }
 
 // GetParentsForExportAfter provides a mock function with given fields: limit, afterId
-func (_m *PostStore) GetParentsForExportAfter(limit int, afterId string) store.StoreChannel {
+func (_m *PostStore) GetParentsForExportAfter(limit int, afterId string) ([]*model.PostForExport, *model.AppError) {
 	ret := _m.Called(limit, afterId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(int, string) store.StoreChannel); ok {
+	var r0 []*model.PostForExport
+	if rf, ok := ret.Get(0).(func(int, string) []*model.PostForExport); ok {
 		r0 = rf(limit, afterId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]*model.PostForExport)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(int, string) *model.AppError); ok {
+		r1 = rf(limit, afterId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetPosts provides a mock function with given fields: channelId, offset, limit, allowFromCache
-func (_m *PostStore) GetPosts(channelId string, offset int, limit int, allowFromCache bool) store.StoreChannel {
+func (_m *PostStore) GetPosts(channelId string, offset int, limit int, allowFromCache bool) (*model.PostList, *model.AppError) {
 	ret := _m.Called(channelId, offset, limit, allowFromCache)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, int, int, bool) store.StoreChannel); ok {
+	var r0 *model.PostList
+	if rf, ok := ret.Get(0).(func(string, int, int, bool) *model.PostList); ok {
 		r0 = rf(channelId, offset, limit, allowFromCache)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.PostList)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, int, int, bool) *model.AppError); ok {
+		r1 = rf(channelId, offset, limit, allowFromCache)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetPostsAfter provides a mock function with given fields: channelId, postId, numPosts, offset
@@ -380,19 +414,28 @@ func (_m *PostStore) GetRepliesForExport(parentId string) store.StoreChannel {
 }
 
 // GetSingle provides a mock function with given fields: id
-func (_m *PostStore) GetSingle(id string) store.StoreChannel {
+func (_m *PostStore) GetSingle(id string) (*model.Post, *model.AppError) {
 	ret := _m.Called(id)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+	var r0 *model.Post
+	if rf, ok := ret.Get(0).(func(string) *model.Post); ok {
 		r0 = rf(id)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.Post)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(id)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // InvalidateLastPostTimeCache provides a mock function with given fields: channelId
@@ -506,17 +549,26 @@ func (_m *PostStore) Search(teamId string, userId string, params *model.SearchPa
 }
 
 // Update provides a mock function with given fields: newPost, oldPost
-func (_m *PostStore) Update(newPost *model.Post, oldPost *model.Post) store.StoreChannel {
+func (_m *PostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.Post, *model.AppError) {
 	ret := _m.Called(newPost, oldPost)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(*model.Post, *model.Post) store.StoreChannel); ok {
+	var r0 *model.Post
+	if rf, ok := ret.Get(0).(func(*model.Post, *model.Post) *model.Post); ok {
 		r0 = rf(newPost, oldPost)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.Post)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.Post, *model.Post) *model.AppError); ok {
+		r1 = rf(newPost, oldPost)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
