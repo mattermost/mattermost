@@ -1301,7 +1301,7 @@ func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string) ([]*m
 func (s *SqlPostStore) GetRepliesForExport(parentId string) ([]*model.ReplyForExport, *model.AppError) {
 
 	var posts []*model.ReplyForExport
-	_, err1 := s.GetSearchReplica().Select(&posts, `
+	_, err := s.GetSearchReplica().Select(&posts, `
 			SELECT
 				Posts.*,
 				Users.Username as Username
@@ -1316,11 +1316,11 @@ func (s *SqlPostStore) GetRepliesForExport(parentId string) ([]*model.ReplyForEx
 				Posts.Id`,
 		map[string]interface{}{"ParentId": parentId})
 
-	if err1 != nil {
-		return nil, model.NewAppError("SqlPostStore.GetAllAfterForExport", "store.sql_post.get_posts.app_error", nil, err1.Error(), http.StatusInternalServerError)
-	} else {
-		return posts, nil
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetAllAfterForExport", "store.sql_post.get_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
+
+	return posts, nil
 }
 
 func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId string) ([]*model.DirectPostForExport, *model.AppError) {
