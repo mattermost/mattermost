@@ -252,10 +252,6 @@ func (me *TestHelper) CreateUser() *model.User {
 	return me.CreateUserWithClient(me.Client)
 }
 
-func (me *TestHelper) CreateCustomUser(user *model.User) *model.User {
-	return me.CreateCustomUserWithClient(me.Client, user)
-}
-
 func (me *TestHelper) CreateTeam() *model.Team {
 	return me.CreateTeamWithClient(me.Client)
 }
@@ -276,20 +272,6 @@ func (me *TestHelper) CreateTeamWithClient(client *model.Client4) *model.Team {
 	}
 	utils.EnableDebugLogForTest()
 	return rteam
-}
-
-func (me *TestHelper) CreateCustomUserWithClient(client *model.Client4, user *model.User) *model.User {
-
-	utils.DisableDebugLogForTest()
-	ruser, response := client.CreateUser(user)
-	if response.Error != nil {
-		panic(response.Error)
-	}
-
-	ruser.Password = user.Password
-	store.Must(me.App.Srv.Store.User().VerifyEmail(ruser.Id, ruser.Email))
-	utils.EnableDebugLogForTest()
-	return ruser
 }
 
 func (me *TestHelper) CreateUserWithClient(client *model.Client4) *model.User {

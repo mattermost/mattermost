@@ -296,6 +296,10 @@ func (a *App) createUser(user *model.User) (*model.User, *model.AppError) {
 		return nil, err
 	}
 
+	if err := a.IsUsernameValid(user.Username); err != nil {
+		return nil, err
+	}
+
 	result := <-a.Srv.Store.User().Save(user)
 	if result.Err != nil {
 		mlog.Error(fmt.Sprintf("Couldn't save the user err=%v", result.Err))

@@ -45,6 +45,15 @@ func (a *App) IsPasswordValid(password string) *model.AppError {
 	return utils.IsPasswordValidWithSettings(password, &a.Config().PasswordSettings)
 }
 
+// IsUsernameValid adds extra checks beyond those found in model/user, particularly, those dependent on config values.
+func (a *App) IsUsernameValid(username string) *model.AppError {
+
+	if len(username) >= *a.Config().ServiceSettings.MinimumUsernameLength {
+		return nil
+	}
+	return model.NewAppError("IsUsernameValid", "api.user.check_username.invalid.app_error", nil, "", http.StatusBadRequest)
+}
+
 func (a *App) CheckPasswordAndAllCriteria(user *model.User, password string, mfaToken string) *model.AppError {
 	if err := a.CheckUserPreflightAuthenticationCriteria(user, mfaToken); err != nil {
 		return err

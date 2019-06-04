@@ -554,6 +554,64 @@ func TestGetUsersByStatus(t *testing.T) {
 	})
 }
 
+func TestMinimumUsernameLength(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	id := model.NewId()
+
+	minLength := *th.App.Config().ServiceSettings.MinimumUsernameLength
+
+	user := &model.User{
+		Email:     th.MakeEmail(),
+		Username:  model.NewRandomString(minLength),
+		Nickname:  "nn_" + id,
+		FirstName: "f_" + id,
+		LastName:  "l_" + id,
+		Password:  "Pa$$word11",
+	}
+
+	t.Run("username has minimum length", func(t *testing.T) {
+		_, err := th.App.CreateUser(user)
+		require.Nil(t, err)
+	})
+
+	id = model.NewId()
+
+	user = &model.User{
+		Email:     th.MakeEmail(),
+		Username:  model.NewRandomString(minLength - 1),
+		Nickname:  "nn_" + id,
+		FirstName: "f_" + id,
+		LastName:  "l_" + id,
+		Password:  "Pa$$word11",
+	}
+	t.Run("username is shorter than minimum length", func(t *testing.T) {
+		_, err := th.App.CreateUser(user)
+		require.NotNil(t, err)
+	})
+
+	id = model.NewId()
+
+	user = &model.User{
+		Email:     th.MakeEmail(),
+		Username:  model.NewRandomString(minLength - 1),
+		Nickname:  "nn_" + id,
+		FirstName: "f_" + id,
+		LastName:  "l_" + id,
+		Password:  "Pa$$word11",
+	}
+
+	th.App.UpdateConfig(func(config *model.Config) {
+		*config.ServiceSettings.MinimumUsernameLength--
+	})
+
+	t.Run("Updating username minimum length settings works", func(t *testing.T) {
+		_, err := th.App.CreateUser(user)
+		require.Nil(t, err)
+	})
+
+}
 func TestCreateUserWithToken(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
