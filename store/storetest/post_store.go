@@ -1935,16 +1935,20 @@ func testPostStoreGetPostsByIds(t *testing.T, ss store.Store) {
 		ro3.Id,
 	}
 
-	if ro4 := store.Must(ss.Post().GetPostsByIds(postIds)).([]*model.Post); len(ro4) != 3 {
-		t.Fatalf("Expected 3 posts in results. Got %v", len(ro4))
+	if posts, err := ss.Post().GetPostsByIds(postIds); err != nil {
+		t.Fatal(err)
+	} else if len(posts) != 3 {
+		t.Fatalf("Expected 3 posts in results. Got %v", len(posts))
 	}
 
 	if err := ss.Post().Delete(ro1.Id, model.GetMillis(), ""); err != nil {
 		t.Fatal(err)
 	}
 
-	if ro5 := store.Must(ss.Post().GetPostsByIds(postIds)).([]*model.Post); len(ro5) != 3 {
-		t.Fatalf("Expected 3 posts in results. Got %v", len(ro5))
+	if posts, err := ss.Post().GetPostsByIds(postIds); err != nil {
+		t.Fatal(err)
+	} else if len(posts) != 3 {
+		t.Fatalf("Expected 3 posts in results. Got %v", len(posts))
 	}
 }
 

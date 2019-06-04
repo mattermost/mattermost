@@ -1105,22 +1105,19 @@ func (s *SqlPostStore) GetPostsCreatedAt(channelId string, time int64) ([]*model
 	return posts, nil
 }
 
-func (s *SqlPostStore) GetPostsByIds(postIds []string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		keys, params := MapStringsToQueryParams(postIds, "Post")
+func (s *SqlPostStore) GetPostsByIds(postIds []string) ([]*model.Post, *model.AppError) {
+	keys, params := MapStringsToQueryParams(postIds, "Post")
 
-		query := `SELECT * FROM Posts WHERE Id IN ` + keys + ` ORDER BY CreateAt DESC`
+	query := `SELECT * FROM Posts WHERE Id IN ` + keys + ` ORDER BY CreateAt DESC`
 
-		var posts []*model.Post
-		_, err := s.GetReplica().Select(&posts, query, params)
+	var posts []*model.Post
+	_, err := s.GetReplica().Select(&posts, query, params)
 
-		if err != nil {
-			mlog.Error(fmt.Sprint(err))
-			result.Err = model.NewAppError("SqlPostStore.GetPostsByIds", "store.sql_post.get_posts_by_ids.app_error", nil, "", http.StatusInternalServerError)
-		} else {
-			result.Data = posts
-		}
-	})
+	if err != nil {
+		mlog.Error(fmt.Sprint(err))
+		return nil, model.NewAppError("SqlPostStore.GetPostsByIds", "store.sql_post.get_posts_by_ids.app_error", nil, "", http.StatusInternalServerError)
+	}
+	return posts, nil
 }
 
 func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) store.StoreChannel {
