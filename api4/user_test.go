@@ -4151,15 +4151,15 @@ func TestLoginLockout(t *testing.T) {
 		t.Fatal(result.Err)
 	}
 	_, resp = th.Client.LoginWithMFA(th.BasicUser2.Email, th.BasicUser2.Password, "000000")
-	CheckErrorMessage(t, resp, "api.user.login.invalid_credentials")
+	CheckErrorMessage(t, resp, "api.user.check_user_mfa.bad_code.app_error")
 	_, resp = th.Client.LoginWithMFA(th.BasicUser2.Email, th.BasicUser2.Password, "000000")
-	CheckErrorMessage(t, resp, "api.user.login.invalid_credentials")
+	CheckErrorMessage(t, resp, "api.user.check_user_mfa.bad_code.app_error")
 	_, resp = th.Client.LoginWithMFA(th.BasicUser2.Email, th.BasicUser2.Password, "000000")
-	CheckErrorMessage(t, resp, "api.user.login.invalid_credentials")
+	CheckErrorMessage(t, resp, "api.user.check_user_mfa.bad_code.app_error")
 	_, resp = th.Client.LoginWithMFA(th.BasicUser2.Email, th.BasicUser2.Password, "000000")
-	CheckErrorMessage(t, resp, "api.user.login.invalid_credentials")
+	CheckErrorMessage(t, resp, "api.user.check_user_mfa.bad_code.app_error")
 	_, resp = th.Client.LoginWithMFA(th.BasicUser2.Email, th.BasicUser2.Password, "000000")
-	CheckErrorMessage(t, resp, "api.user.login.invalid_credentials")
+	CheckErrorMessage(t, resp, "api.user.check_user_mfa.bad_code.app_error")
 
 	// Fake user has MFA disabled
 	if result := <-th.Server.Store.User().UpdateMfaActive(th.BasicUser2.Id, false); result.Err != nil {
