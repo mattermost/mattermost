@@ -1711,7 +1711,7 @@ func (a *App) SearchUsersInTeam(teamId string, term string, options *model.UserS
 		if err != nil {
 			return nil, err
 		}
-		if len(listOfAllowedChannels) == 0 {
+		if listOfAllowedChannels != nil && len(listOfAllowedChannels) == 0 {
 			return []*model.User{}, nil
 		}
 
