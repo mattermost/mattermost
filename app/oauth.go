@@ -455,7 +455,7 @@ func (a *App) DeauthorizeOAuthAppForUser(userId, appId string) *model.AppError {
 	}
 
 	// Deauthorize the app
-	if err := (<-a.Srv.Store.Preference().Delete(userId, model.PREFERENCE_CATEGORY_AUTHORIZED_OAUTH_APP, appId)).Err; err != nil {
+	if err := a.Srv.Store.Preference().Delete(userId, model.PREFERENCE_CATEGORY_AUTHORIZED_OAUTH_APP, appId); err != nil {
 		return err
 	}
 
