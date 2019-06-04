@@ -883,11 +883,11 @@ func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamId strin
 		// Get the posts
 		postList := model.NewPostList()
 		if len(postIds) > 0 {
-			presult := <-a.Srv.Store.Post().GetPostsByIds(postIds)
-			if presult.Err != nil {
-				return nil, presult.Err
+			posts, err := a.Srv.Store.Post().GetPostsByIds(postIds)
+			if err != nil {
+				return nil, err
 			}
-			for _, p := range presult.Data.([]*model.Post) {
+			for _, p := range posts {
 				if p.DeleteAt == 0 {
 					postList.AddPost(p)
 					postList.AddOrder(p.Id)
