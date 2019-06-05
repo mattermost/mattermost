@@ -2263,6 +2263,10 @@
     "translation": "Login failed because of invalid password"
   },
   {
+    "id": "api.user.check_username.invalid.app_error",
+    "translation": "Invalid username."
+  },
+  {
     "id": "api.user.complete_switch_with_oauth.blank_email.app_error",
     "translation": "Blank email"
   },
