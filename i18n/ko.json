@@ -133,7 +133,7 @@
   },
   {
     "id": "api.bot.create_disabled",
-    "translation": "Bot creation has been disabled."
+    "translation": "봇을 생성할 수 없습니다."
   },
   {
     "id": "api.channel.add_member.added",
@@ -301,7 +301,7 @@
   },
   {
     "id": "api.channel.remove_member.group_constrained.app_error",
-    "translation": "Unable to remove a user from a group-constrained channel."
+    "translation": "그룹 채널에서 사용자를 제거할 수 없습니다."
   },
   {
     "id": "api.channel.remove_member.removed",
@@ -716,7 +716,7 @@
   },
   {
     "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "User cannot be added to this channel because it is constrained to group members only."
+    "translation": "사용자를 이 채널에 추가할 수 없습니다. 이 채널에는 그룹 멤버만 추가할 수 있습니다."
   },
   {
     "id": "api.command_invite.hint",

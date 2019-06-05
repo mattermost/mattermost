@@ -924,7 +924,7 @@
   },
   {
     "id": "api.command_remove.group_constrained_user_denied",
-    "translation": "User cannot be removed from the channel by you because they are a member of the groups linked to this channel. To remove them from this channel, they must be removed from the linked groups."
+    "translation": "用户不能从此频道移除因为他们属于连接到此频道的组。如果想从此频道移除他们，必须从连接的组里移除。"
   },
   {
     "id": "api.command_remove.hint",
@@ -1640,7 +1640,7 @@
   },
   {
     "id": "api.push_notifications_ack.forward.app_error",
-    "translation": "An error occurred sending the receipt delivery to the push notification service"
+    "translation": "发送接收标记到推送服务出错"
   },
   {
     "id": "api.reaction.delete.archived_channel.app_error",
@@ -1800,7 +1800,7 @@
   },
   {
     "id": "api.team.add_members.user_denied",
-    "translation": "Team membership denied to the following users because of group constraints: {{ .UserIDs }}"
+    "translation": "团队成员拒绝以下用户因为组限制：{{ .UserIDs }}"
   },
   {
     "id": "api.team.add_user_to_team.added",
@@ -1900,7 +1900,7 @@
   },
   {
     "id": "api.team.remove_member.group_constrained.app_error",
-    "translation": "Unable to remove a user from a group-constrained team."
+    "translation": "无法从组受限频道移除用户。"
   },
   {
     "id": "api.team.remove_team_icon.get_team.app_error",
@@ -1972,7 +1972,7 @@
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
-    "translation": "Invalid team member update: A user must be a guest or a user but not both."
+    "translation": "无效的频道成员更新：用户不能同时为游客和用户。"
   },
   {
     "id": "api.team.update_team_scheme.license.error",

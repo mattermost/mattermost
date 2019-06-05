@@ -3548,15 +3548,15 @@
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "Failed to create Elasticsearch template for channels"
+    "translation": "Nie udało się utworzyć szablonu Elasticsearch dla kanałów"
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "Failed to create Elasticsearch template for posts"
+    "translation": "Nie udało się utworzyć szablonu Elasticsearch dla kanałów"
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "Failed to create Elasticsearch template for users"
+    "translation": "Nie udało się utworzyć szablonu Elasticsearch dla kanałów"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",

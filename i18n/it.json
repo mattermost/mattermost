@@ -337,7 +337,7 @@
   },
   {
     "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
-    "translation": "Invalid channel member update: A user must be a guest or a user but not both."
+    "translation": "Aggiornamento membro canale non valido: Un utente deve essere un ospite o un utente ma non entrambi."
   },
   {
     "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
@@ -353,7 +353,7 @@
   },
   {
     "id": "api.channel.update_team_member_roles.changing_guest_role.app_error",
-    "translation": "Invalid team member update: You can't add or remove the guest role manually"
+    "translation": "Aggiornamento membro gruppo non valido: Non è possibile aggiungere o rimuovere il ruolo ospite manualmente"
   },
   {
     "id": "api.channel.update_team_member_roles.scheme_role.app_error",
@@ -716,7 +716,7 @@
   },
   {
     "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "User cannot be added to this channel because it is constrained to group members only."
+    "translation": "L'utente non può essere aggiunto a questo canale poiché è vincolato ai soli membri del gruppo."
   },
   {
     "id": "api.command_invite.hint",
@@ -924,7 +924,7 @@
   },
   {
     "id": "api.command_remove.group_constrained_user_denied",
-    "translation": "User cannot be removed from the channel by you because they are a member of the groups linked to this channel. To remove them from this channel, they must be removed from the linked groups."
+    "translation": "Non puoi rimuovere gli utenti dal canale poiché sono membri di uno o più gruppi collegati a questo canale. Per eliminare gli utenti dal canale devono essere prima rimossi dai gruppi collegati."
   },
   {
     "id": "api.command_remove.hint",
@@ -1474,19 +1474,19 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
-    "translation": "@{{.Usernames}} and @{{.LastUsername}} did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups."
+    "translation": "@{{.Usernames}} e @{{.LastUsername}} non sono stati avvisati di questa citazione poiché non sono nel canale. Non possono essere aggiunti al canale poiché non sono membri dei gruppi collegati. Per aggiungere gli utenti al canale aggiungerli a uno dei gruppi collegati."
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.one",
-    "translation": "@{{.Username}} did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups."
+    "translation": "@{{.Usernames}} non è statè avvisatè di questa citazione poiché non è nel canale. Non può essere aggiunto al canale poiché non è membro dei gruppi collegati. Per aggiungere gli utenti al canale aggiungerlo a uno dei gruppi collegati."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "@{{.Usernames}} and @{{.LastUsername}} did not get notified by this mention because they are not in the channel."
+    "translation": "@{{.Usernames}} e @{{.LastUsername}} non sono stati avvisati di questa citazione poiché non sono nel canale."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "@{{.Username}} did not get notified by this mention because they are not in the channel."
+    "translation": "@{{.Username}} non è stato avvisato di questa citazione poiché non è nel canale."
   },
   {
     "id": "api.post.create_post.can_not_post_to_deleted.error",
@@ -1636,11 +1636,11 @@
   },
   {
     "id": "api.push_notification.disabled.app_error",
-    "translation": "Push Notifications are disabled on this server."
+    "translation": "Le notifiche push sono disattivate su questo server."
   },
   {
     "id": "api.push_notifications_ack.forward.app_error",
-    "translation": "An error occurred sending the receipt delivery to the push notification service"
+    "translation": "Si è verificato un errore nell'invio della ricevuta di consegna al servizio di notifiche push"
   },
   {
     "id": "api.reaction.delete.archived_channel.app_error",
@@ -1796,11 +1796,11 @@
   },
   {
     "id": "api.team.add_members.error",
-    "translation": "Error adding team member(s)."
+    "translation": "Errore aggiungendo i membri al gruppo."
   },
   {
     "id": "api.team.add_members.user_denied",
-    "translation": "Team membership denied to the following users because of group constraints: {{ .UserIDs }}"
+    "translation": "Appartenenza al gruppo negata ai seguenti utenti a causa di un vincolo di gruppo: {{ .UserIDs }}"
   },
   {
     "id": "api.team.add_user_to_team.added",
@@ -1900,7 +1900,7 @@
   },
   {
     "id": "api.team.remove_member.group_constrained.app_error",
-    "translation": "Unable to remove a user from a group-constrained team."
+    "translation": "Impossibile rimuovere un utente da un gruppo con vincoli."
   },
   {
     "id": "api.team.remove_team_icon.get_team.app_error",
@@ -1972,7 +1972,7 @@
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
-    "translation": "Invalid team member update: A user must be a guest or a user but not both."
+    "translation": "Aggiornamento membro gruppo invalido: Un utente deve essere ospite o utente ma non entrambi."
   },
   {
     "id": "api.team.update_team_scheme.license.error",
@@ -2292,7 +2292,7 @@
   },
   {
     "id": "api.user.create_password_token.error",
-    "translation": "Unable to create password recovery token"
+    "translation": "Impossibile creare un token di recupero password"
   },
   {
     "id": "api.user.create_profile_image.default_font.app_error",
@@ -2432,7 +2432,7 @@
   },
   {
     "id": "api.user.reset_password.token_parse.error",
-    "translation": "Unable to parse the reset password token"
+    "translation": "Impossibile elaborare il token di recupero password"
   },
   {
     "id": "api.user.saml.not_available.app_error",
@@ -2668,7 +2668,7 @@
   },
   {
     "id": "app.export.export_custom_emoji.copy_emoji_images.error",
-    "translation": "Unable to copy custom emoji images"
+    "translation": "Impossibile copiare le immagini delle emoji personalizzate"
   },
   {
     "id": "app.export.export_write_line.io_writer.error",
@@ -2824,7 +2824,7 @@
   },
   {
     "id": "app.import.import_user_teams.save_preferences.error",
-    "translation": "Unable to save the team theme preferences"
+    "translation": "Impossibile salvare le preferenze del tema di gruppo"
   },
   {
     "id": "app.import.process_import_data_file_version_line.invalid_version.error",
@@ -3120,19 +3120,19 @@
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_email_interval.error",
-    "translation": "Invalid email batching interval setting for User"
+    "translation": "Intervallo elaborazione email non valido per l'utente"
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_feature_markdown_preview.error",
-    "translation": "Invalid markdown preview setting for User"
+    "translation": "Impostazione anteprima markdown non valida per l'utente"
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_formatting.error",
-    "translation": "Invalid post formatting setting for User"
+    "translation": "Impostazione formato pubblicazione non valida per l'utente"
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_show_unread_section.error",
-    "translation": "Invalid show unread section setting for User"
+    "translation": "Impostazione visualizza non letti non valida per l'utente"
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_and_password.error",
@@ -3220,7 +3220,7 @@
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_team_theme.error",
-    "translation": "Invalid team theme for the User"
+    "translation": "Tema di gruppo non valido per l'utente"
   },
   {
     "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
@@ -3392,11 +3392,11 @@
   },
   {
     "id": "app.team.invite_id.group_constrained.error",
-    "translation": "Unable to join a group-constrained team by invite."
+    "translation": "Impossibile unirsi a un gruppo con vincoli tramite invito."
   },
   {
     "id": "app.team.invite_token.group_constrained.error",
-    "translation": "Unable to join a group-constrained team by token."
+    "translation": "Impossible unirsi a un gruppo con vincoli tramite token."
   },
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
@@ -3404,7 +3404,7 @@
   },
   {
     "id": "app.team.rename_team.name_occupied",
-    "translation": "Unable to rename the team, the name is already in use"
+    "translation": "Impossibile rinominare il gruppo, il nome è già in uso"
   },
   {
     "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
@@ -3548,15 +3548,15 @@
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "Failed to create Elasticsearch template for channels"
+    "translation": "Errore durante la creazione del template Elasticsearch per i canali"
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "Failed to create Elasticsearch template for posts"
+    "translation": "Errore durante la creazione del template Elasticsearch per le pubblicazioni"
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "Failed to create Elasticsearch template for users"
+    "translation": "Errore durante la creazione del template Elasticsearch per gli utenti"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
@@ -3568,7 +3568,7 @@
   },
   {
     "id": "ent.elasticsearch.delete_channel.error",
-    "translation": "Errore durante l'aggiornamento del canale"
+    "translation": "Errore durante la cancellazione del canale"
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
@@ -3576,7 +3576,7 @@
   },
   {
     "id": "ent.elasticsearch.delete_user.error",
-    "translation": "Impossibile cancellare la pubblicazione"
+    "translation": "Errore durante la cancellazione dell'utente"
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
@@ -3584,7 +3584,7 @@
   },
   {
     "id": "ent.elasticsearch.index_channel.error",
-    "translation": "Errore durante l'aggiornamento del canale"
+    "translation": "Errore durante l'indicizzazione del canale"
   },
   {
     "id": "ent.elasticsearch.index_post.error",
@@ -3592,7 +3592,7 @@
   },
   {
     "id": "ent.elasticsearch.index_user.error",
-    "translation": "Impossibile indicizzare la pubblicazione"
+    "translation": "Errore durante l'indicizzazione dell'utente"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
@@ -3732,7 +3732,7 @@
   },
   {
     "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "error deleting team or channel memberships"
+    "translation": "Errore durante la cancellazione delle appartenenze a gruppi o canali"
   },
   {
     "id": "ent.ldap.syncronize.get_all.app_error",
@@ -3752,7 +3752,7 @@
   },
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
-    "translation": "Size Limit Exceeded. Try checking your [max page size](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
+    "translation": "Limite Dimensione Superato. Controllare [dimensione massima pagina](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
   },
   {
     "id": "ent.ldap.validate_filter.app_error",
@@ -4328,7 +4328,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "L'impostazione Elastich Search IndexingEnabled deve essere abilitata quando l'impostazione Elastic Search SearchEnabled è abilitata."
+    "translation": "L'impostazione Elastich Search IndexingEnabled deve essere abilitata quando l'impostazione Elastic Search AutocompleteEnabled è abilitata."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
@@ -5120,7 +5120,7 @@
   },
   {
     "id": "model.user.is_valid.locale.app_error",
-    "translation": "Ruolo non valido"
+    "translation": "Lingua non valida"
   },
   {
     "id": "model.user.is_valid.nickname.app_error",
@@ -5204,7 +5204,7 @@
   },
   {
     "id": "model.user.is_valid.username.app_error",
-    "translation": "Il nome utente deve iniziare con una lettera e contenere da 3 a 22 caratteri inclusi numeri, lettere minuscole e i simboli \".\",\"-\" e \"_\"."
+    "translation": "Il nome utente deve iniziare con una lettera e contenere da 3 a 22 caratteri inclusi numeri, lettere e i simboli \".\",\"-\" e \"_\"."
   },
   {
     "id": "model.user_access_token.is_valid.description.app_error",
@@ -5236,7 +5236,7 @@
   },
   {
     "id": "plugin.api.get_users_in_channel",
-    "translation": "Unable to get the users, invalid sorting criteria"
+    "translation": "Impossibile recuperare gli utenti, criteri di ordinamento non validi"
   },
   {
     "id": "plugin.api.update_user_status.bad_status",
@@ -5244,7 +5244,7 @@
   },
   {
     "id": "plugin_api.bot_cant_create_bot",
-    "translation": "Bot user cannot create bot user."
+    "translation": "Un utente bot non può creare un utente bot."
   },
   {
     "id": "plugin_api.get_file_link.disabled.app_error",
@@ -5384,7 +5384,7 @@
   },
   {
     "id": "store.sql_channel.get_all_direct.app_error",
-    "translation": "Impossibile recuperare tutti i canali"
+    "translation": "Impossibile recuperare tutti i canali diretti"
   },
   {
     "id": "store.sql_channel.get_by_name.existing.app_error",
@@ -5416,7 +5416,7 @@
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.app_error",
-    "translation": "Impossibile recuperare canali"
+    "translation": "Impossibile recuperare canali per id"
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.get.app_error",
@@ -5696,7 +5696,7 @@
   },
   {
     "id": "store.sql_channel.user_belongs_to_channels.app_error",
-    "translation": "Unable to determine if the user belongs to a list of channels"
+    "translation": "Impossibile determinare se l'utente appartiene ad una lista di canali"
   },
   {
     "id": "store.sql_channel_member_history.get_users_in_channel_during.app_error",
@@ -5936,11 +5936,11 @@
   },
   {
     "id": "store.sql_link_metadata.get.app_error",
-    "translation": "Unable to get the link metadata"
+    "translation": "Impossibile ottenere i metadati del collegamento"
   },
   {
     "id": "store.sql_link_metadata.save.app_error",
-    "translation": "Unable to save the link metadata"
+    "translation": "Impossibile salvare i metadati del collegamento"
   },
   {
     "id": "store.sql_oauth.delete.commit_transaction.app_error",
@@ -6048,7 +6048,7 @@
   },
   {
     "id": "store.sql_plugin_store.list.app_error",
-    "translation": "Unable to list all the plugin keys"
+    "translation": "Impossibile elencare tutte le chiavi plugin"
   },
   {
     "id": "store.sql_plugin_store.save.app_error",
@@ -6080,7 +6080,7 @@
   },
   {
     "id": "store.sql_post.get_direct_posts.app_error",
-    "translation": "Impossibile recuperare le pubblicazioni"
+    "translation": "Impossibile recuperare le pubblicazioni dirette"
   },
   {
     "id": "store.sql_post.get_flagged_posts.app_error",
@@ -6296,7 +6296,7 @@
   },
   {
     "id": "store.sql_role.get_all.app_error",
-    "translation": "Impossibile recuperare tutti i canali"
+    "translation": "Impossibile recuperare tutti i ruoli"
   },
   {
     "id": "store.sql_role.get_by_name.app_error",
@@ -6568,7 +6568,7 @@
   },
   {
     "id": "store.sql_team.get_user_team_ids.app_error",
-    "translation": "Unable to get the list of teams of a user"
+    "translation": "Impossibile elencare i gruppi di un utente"
   },
   {
     "id": "store.sql_team.migrate_team_members.commit_transaction.app_error",
@@ -6656,7 +6656,7 @@
   },
   {
     "id": "store.sql_team.user_belongs_to_teams.app_error",
-    "translation": "Unable to determine if the user belongs to a list of teams"
+    "translation": "Impossibile determinare se un utente appartiene a una lista di gruppi"
   },
   {
     "id": "store.sql_terms_of_service.save.app_error",
@@ -6708,7 +6708,7 @@
   },
   {
     "id": "store.sql_user.count.app_error",
-    "translation": "UserCountOptions don't make sense"
+    "translation": "UserCountOptions non ha senso"
   },
   {
     "id": "store.sql_user.get.app_error",
