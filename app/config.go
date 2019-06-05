@@ -399,3 +399,19 @@ func (a *App) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bo
 
 	return nil
 }
+
+func (a *App) HasESIndexingEnabled() bool {
+	return a.Elasticsearch != nil && *a.Config().ElasticsearchSettings.EnableIndexing
+}
+
+func (a *App) HasESSearchEnabled() bool {
+	esInterface := a.Elasticsearch
+	license := a.License()
+	return esInterface != nil && *a.Config().ElasticsearchSettings.EnableSearching && license != nil && *license.Features.Elasticsearch
+}
+
+func (a *App) HasESAutocompletionEnabled() bool {
+	esInterface := a.Elasticsearch
+	license := a.License()
+	return esInterface != nil && *a.Config().ElasticsearchSettings.EnableAutocomplete && license != nil && *license.Features.Elasticsearch
+}
