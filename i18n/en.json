@@ -2260,7 +2260,7 @@
   },
   {
     "id": "api.user.check_username.invalid.app_error",
-    "translation": "Username is invalid."
+    "translation": ""
   },
   {
     "id": "api.user.complete_switch_with_oauth.blank_email.app_error",
