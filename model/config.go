@@ -312,9 +312,11 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.EnableEmailInvitations == nil {
 		// If the site URL is also not present then assume this is a clean install
 		if s.SiteURL == nil {
-			s.EnableEmailInvitations = NewBool(false)
-		} else {
-			s.EnableEmailInvitations = NewBool(true)
+			if s.EnableDeveloper != nil && *s.EnableDeveloper {
+				s.SiteURL = NewString(SERVICE_SETTINGS_DEFAULT_SITE_URL)
+			} else {
+				s.SiteURL = NewString("")
+			}
 		}
 	}
 
@@ -2394,7 +2396,7 @@ func ConfigFromJson(data io.Reader) *Config {
 
 // isUpdate detects a pre-existing config based on whether SiteURL has been changed
 func (o *Config) isUpdate() bool {
-	return o.ServiceSettings.SiteURL != nil && *o.ServiceSettings.SiteURL != ""
+	return o.ServiceSettings.SiteURL != nil
 }
 
 func (o *Config) SetDefaults() {
