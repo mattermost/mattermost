@@ -122,7 +122,7 @@ func TestFileStoreNew(t *testing.T) {
 		require.NoError(t, err)
 		defer fs.Close()
 
-		assert.Equal(t, model.SERVICE_SETTINGS_DEFAULT_SITE_URL, *fs.Get().ServiceSettings.SiteURL)
+		assert.Equal(t, "", *fs.Get().ServiceSettings.SiteURL)
 		assertFileNotEqualsConfig(t, testConfig, path)
 	})
 
@@ -175,7 +175,7 @@ func TestFileStoreNew(t *testing.T) {
 		require.NoError(t, err)
 		defer fs.Close()
 
-		assert.Equal(t, model.SERVICE_SETTINGS_DEFAULT_SITE_URL, *fs.Get().ServiceSettings.SiteURL)
+		assert.Equal(t, "", *fs.Get().ServiceSettings.SiteURL)
 		assertFileNotEqualsConfig(t, testConfig, filepath.Join("config", path))
 	})
 }
@@ -257,7 +257,7 @@ func TestFileStoreSet(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, oldCfg, retCfg)
 
-		assert.Equal(t, model.SERVICE_SETTINGS_DEFAULT_SITE_URL, *fs.Get().ServiceSettings.SiteURL)
+		assert.Equal(t, "", *fs.Get().ServiceSettings.SiteURL)
 	})
 
 	t.Run("desanitization required", func(t *testing.T) {
@@ -296,7 +296,7 @@ func TestFileStoreSet(t *testing.T) {
 			assert.EqualError(t, err, "new configuration is invalid: Config.IsValid: model.config.is_valid.site_url.app_error, ")
 		}
 
-		assert.Equal(t, model.SERVICE_SETTINGS_DEFAULT_SITE_URL, *fs.Get().ServiceSettings.SiteURL)
+		assert.Equal(t, "", *fs.Get().ServiceSettings.SiteURL)
 	})
 
 	t.Run("read-only", func(t *testing.T) {
@@ -314,7 +314,7 @@ func TestFileStoreSet(t *testing.T) {
 			assert.Equal(t, config.ErrReadOnlyConfiguration, errors.Cause(err))
 		}
 
-		assert.Equal(t, model.SERVICE_SETTINGS_DEFAULT_SITE_URL, *fs.Get().ServiceSettings.SiteURL)
+		assert.Equal(t, "", *fs.Get().ServiceSettings.SiteURL)
 	})
 
 	t.Run("persist failed", func(t *testing.T) {
@@ -335,7 +335,7 @@ func TestFileStoreSet(t *testing.T) {
 			assert.True(t, strings.HasPrefix(err.Error(), "failed to persist: failed to write file"))
 		}
 
-		assert.Equal(t, model.SERVICE_SETTINGS_DEFAULT_SITE_URL, *fs.Get().ServiceSettings.SiteURL)
+		assert.Equal(t, "", *fs.Get().ServiceSettings.SiteURL)
 	})
 
 	t.Run("listeners notified", func(t *testing.T) {
