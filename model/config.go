@@ -312,16 +312,18 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.EnableEmailInvitations == nil {
 		// If the site URL is also not present then assume this is a clean install
 		if s.SiteURL == nil {
-			if s.EnableDeveloper != nil && *s.EnableDeveloper {
-				s.SiteURL = NewString(SERVICE_SETTINGS_DEFAULT_SITE_URL)
-			} else {
-				s.SiteURL = NewString("")
-			}
+			s.EnableEmailInvitations = NewBool(false)
+		} else {
+			s.EnableEmailInvitations = NewBool(true)
 		}
 	}
 
 	if s.SiteURL == nil {
-		s.SiteURL = NewString(SERVICE_SETTINGS_DEFAULT_SITE_URL)
+		if s.EnableDeveloper != nil && *s.EnableDeveloper {
+			s.SiteURL = NewString(SERVICE_SETTINGS_DEFAULT_SITE_URL)
+		} else {
+			s.SiteURL = NewString("")
+		}
 	}
 
 	if s.WebsocketURL == nil {
