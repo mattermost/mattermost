@@ -688,7 +688,6 @@ func TestFileSetFile(t *testing.T) {
 }
 
 func TestFileHasFile(t *testing.T) {
-
 	t.Run("has non-existent", func(t *testing.T) {
 		path, tearDown := setupConfigFile(t, minimalConfig)
 		defer tearDown()
@@ -739,6 +738,19 @@ func TestFileHasFile(t *testing.T) {
 		has, err := fs.HasFile(f.Name())
 		require.NoError(t, err)
 		require.True(t, has)
+	})
+
+	t.Run("has empty string", func(t *testing.T) {
+		path, tearDown := setupConfigFile(t, minimalConfig)
+		defer tearDown()
+
+		fs, err := config.NewFileStore(path, true)
+		require.NoError(t, err)
+		defer fs.Close()
+
+		has, err := fs.HasFile("")
+		require.NoError(t, err)
+		require.False(t, has)
 	})
 }
 
