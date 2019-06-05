@@ -601,6 +601,8 @@ type GroupStore interface {
 	CountGroupsByTeam(teamId string, opts model.GroupSearchOpts) (int64, *model.AppError)
 
 	GetGroups(page, perPage int, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError)
+
+	GetTeamMissingGroups(teamID string, page, perPage int) ([]*model.Group, *model.AppError)
 }
 
 type LinkMetadataStore interface {

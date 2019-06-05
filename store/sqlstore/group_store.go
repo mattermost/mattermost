@@ -1035,3 +1035,60 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts)
 
 	return groups, nil
 }
+
+// GetTeamMissingGroups returns so called "missing" groups for a given team.
+// Missing groups are determined by taking all of the users who — based on group constraints — will be removed
+// from a team on the next sync, and list the set of all of their groups, minus the groups that are already
+// associated to the given team.
+func (s *SqlGroupStore) GetTeamMissingGroups(teamID string, page, perPage int) ([]*model.Group, *model.AppError) {
+	sql := `SELECT
+				DISTINCT UserGroups.*
+			FROM
+				UserGroups
+				JOIN GroupMembers ON GroupMembers.GroupId = UserGroups.Id
+			WHERE
+				GroupMembers.DeleteAt = 0
+				AND GroupMembers.UserId IN (
+					SELECT
+						TeamMembers.UserId
+					FROM
+						TeamMembers
+						JOIN Teams ON Teams.Id = TeamMembers.TeamId
+						LEFT JOIN Bots ON Bots.UserId = TeamMembers.UserId
+					WHERE
+						TeamMembers.DeleteAt = 0
+						AND Bots.UserId IS NULL
+						AND Teams.Id = :TeamId
+						AND Teams.GroupConstrained = true
+						AND (TeamMembers.TeamId, TeamMembers.UserId)
+						NOT IN (
+							SELECT
+								Teams.Id AS TeamId, GroupMembers.UserId
+							FROM
+								Teams
+								JOIN GroupTeams ON GroupTeams.TeamId = Teams.Id
+								JOIN UserGroups ON UserGroups.Id = GroupTeams.GroupId
+								JOIN GroupMembers ON GroupMembers.GroupId = UserGroups.Id
+							WHERE
+								GroupTeams.DeleteAt = 0
+								AND UserGroups.DeleteAt = 0
+								AND GroupMembers.DeleteAt = 0
+								AND Teams.Id = :TeamId
+							GROUP BY
+								Teams.Id,
+								GroupMembers.UserId))
+					ORDER BY
+            			UserGroups.Name
+        			LIMIT :Limit OFFSET :Offset`
+
+	var groups []*model.Group
+
+	offset := uint64(page * perPage)
+
+	_, err := s.GetReplica().Select(&groups, sql, map[string]interface{}{"TeamId": teamID, "Limit": perPage, "Offset": offset})
+	if err != nil {
+		return nil, model.NewAppError("SqlGroupStore.GetTeamMissingGroups", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return groups, nil
+}

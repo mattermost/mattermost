@@ -4,6 +4,8 @@
 package storetest
 
 import (
+	"fmt"
+	"math"
 	"strings"
 	"testing"
 
@@ -41,6 +43,8 @@ func TestGroupStore(t *testing.T, ss store.Store) {
 	t.Run("GetGroupsByTeam", func(t *testing.T) { testGetGroupsByTeam(t, ss) })
 
 	t.Run("GetGroups", func(t *testing.T) { testGetGroups(t, ss) })
+
+	t.Run("GetTeamMissingGroups", func(t *testing.T) { testGetTeamMissingGroups(t, ss) })
 }
 
 func testGroupStoreCreate(t *testing.T, ss store.Store) {
@@ -2199,6 +2203,169 @@ func testGetGroups(t *testing.T, ss store.Store) {
 			groups, err := ss.Group().GetGroups(tc.Page, tc.PerPage, tc.Opts)
 			require.Nil(t, err)
 			require.True(t, tc.Resultf(groups))
+		})
+	}
+}
+
+func testGetTeamMissingGroups(t *testing.T, ss store.Store) {
+	groups := []*model.Group{}
+	users := []*model.User{}
+
+	team := &model.Team{
+		DisplayName:      model.NewId(),
+		Description:      model.NewId(),
+		CompanyName:      model.NewId(),
+		AllowOpenInvite:  false,
+		InviteId:         model.NewId(),
+		Name:             model.NewId(),
+		Email:            model.NewId() + "@simulator.amazonses.com",
+		Type:             model.TEAM_OPEN,
+		GroupConstrained: model.NewBool(true),
+	}
+	team, err := ss.Team().Save(team)
+	require.Nil(t, err)
+
+	for i := 0; i < 3; i++ {
+		user := &model.User{
+			Email:    MakeEmail(),
+			Username: model.NewId(),
+		}
+		res := <-ss.User().Save(user)
+		require.Nil(t, res.Err)
+		user = res.Data.(*model.User)
+		users = append(users, user)
+
+		res = <-ss.Team().SaveMember(&model.TeamMember{TeamId: team.Id, UserId: user.Id}, 999)
+		require.Nil(t, res.Err)
+	}
+
+	for i := 0; i < 4; i++ {
+		group := &model.Group{
+			Name:        fmt.Sprintf("n_%d_%s", i, model.NewId()),
+			DisplayName: model.NewId(),
+			Source:      model.GroupSourceLdap,
+			Description: model.NewId(),
+			RemoteId:    model.NewId(),
+		}
+		res := <-ss.Group().Create(group)
+		require.Nil(t, res.Err)
+		group = res.Data.(*model.Group)
+		groups = append(groups, group)
+
+		// add User[0] to Group[0] and Group[2]
+		// add User[1] to Group[1] and Group[3]
+		userIndex := int(math.Mod(float64(i), 2)) // 0 or 1
+		res = <-ss.Group().CreateOrRestoreMember(group.Id, users[userIndex].Id)
+		require.Nil(t, res.Err)
+	}
+
+	// Create and delete groups syncable
+	_, err = ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+		GroupId:    groups[1].Id,
+		SyncableId: team.Id,
+		Type:       model.GroupSyncableTypeTeam,
+	})
+	require.Nil(t, err)
+	group1Syncable, err := ss.Group().DeleteGroupSyncable(groups[1].Id, team.Id, model.GroupSyncableTypeTeam)
+	require.Nil(t, err)
+
+	testCases := map[string]struct {
+		expectedGroups []*model.Group
+		page           int
+		perPage        int
+		setup          func()
+		teardown       func()
+	}{
+		"no groups, team is not group constrained": {
+			expectedGroups: nil,
+			page:           0,
+			perPage:        100,
+			setup: func() {
+				team.GroupConstrained = model.NewBool(false)
+				_, err := ss.Team().Update(team)
+				require.Nil(t, err)
+			},
+			teardown: func() {
+				team.GroupConstrained = model.NewBool(true)
+				_, err := ss.Team().Update(team)
+				require.Nil(t, err)
+			},
+		},
+		"all groups": {
+			expectedGroups: groups,
+			page:           0,
+			perPage:        100,
+		},
+		"page 0, 2 per page": {
+			expectedGroups: []*model.Group{groups[0], groups[1]},
+			page:           0,
+			perPage:        2,
+		},
+		"page 1, 2 per page": {
+			expectedGroups: []*model.Group{groups[2], groups[3]},
+			page:           1,
+			perPage:        2,
+		},
+		"user 0 not on team": {
+			expectedGroups: []*model.Group{groups[1], groups[3]},
+			page:           0,
+			perPage:        100,
+			setup: func() {
+				res := <-ss.Team().RemoveMember(team.Id, users[0].Id)
+				require.Nil(t, res.Err)
+			},
+			teardown: func() {
+				res := <-ss.Team().SaveMember(&model.TeamMember{TeamId: team.Id, UserId: users[0].Id}, 999)
+				require.Nil(t, res.Err)
+			},
+		},
+		"group 1 already associated to team": {
+			expectedGroups: []*model.Group{groups[0], groups[2]},
+			page:           0,
+			perPage:        100,
+			setup: func() {
+				group1Syncable.DeleteAt = 0
+				_, err := ss.Group().UpdateGroupSyncable(group1Syncable)
+				require.Nil(t, err)
+			},
+			teardown: func() {
+				_, err := ss.Group().DeleteGroupSyncable(groups[1].Id, team.Id, model.GroupSyncableTypeTeam)
+				require.Nil(t, err)
+			},
+		},
+		"group 1 already associated to team, group 3 has newly added user 2": {
+			expectedGroups: []*model.Group{groups[0], groups[2], groups[3]},
+			page:           0,
+			perPage:        100,
+			setup: func() {
+				group1Syncable.DeleteAt = 0
+				_, err := ss.Group().UpdateGroupSyncable(group1Syncable)
+				require.Nil(t, err)
+
+				res := <-ss.Group().CreateOrRestoreMember(groups[3].Id, users[2].Id)
+				require.Nil(t, res.Err)
+			},
+			teardown: func() {
+				_, err := ss.Group().DeleteGroupSyncable(groups[1].Id, team.Id, model.GroupSyncableTypeTeam)
+				require.Nil(t, err)
+
+				res := <-ss.Group().DeleteMember(groups[3].Id, users[2].Id)
+				require.Nil(t, res.Err)
+			},
+		},
+	}
+
+	for tcName, tc := range testCases {
+		t.Run(tcName, func(t *testing.T) {
+			if tc.setup != nil {
+				tc.setup()
+			}
+			if tc.teardown != nil {
+				defer tc.teardown()
+			}
+			actual, err := ss.Group().GetTeamMissingGroups(team.Id, tc.page, tc.perPage)
+			require.Nil(t, err)
+			require.ElementsMatch(t, actual, tc.expectedGroups)
 		})
 	}
 }

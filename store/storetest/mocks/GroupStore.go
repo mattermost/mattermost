@@ -444,6 +444,31 @@ func (_m *GroupStore) GetMemberUsersPage(groupID string, offset int, limit int) 
 	return r0
 }
 
+// GetTeamMissingGroups provides a mock function with given fields: teamID, page, perPage
+func (_m *GroupStore) GetTeamMissingGroups(teamID string, page int, perPage int) ([]*model.Group, *model.AppError) {
+	ret := _m.Called(teamID, page, perPage)
+
+	var r0 []*model.Group
+	if rf, ok := ret.Get(0).(func(string, int, int) []*model.Group); ok {
+		r0 = rf(teamID, page, perPage)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Group)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
+		r1 = rf(teamID, page, perPage)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // TeamMembersToAdd provides a mock function with given fields: since
 func (_m *GroupStore) TeamMembersToAdd(since int64) ([]*model.UserTeamIDPair, *model.AppError) {
 	ret := _m.Called(since)
