@@ -611,6 +611,19 @@ func TestDatabaseHasFile(t *testing.T) {
 		require.NoError(t, err)
 		require.True(t, has)
 	})
+
+	t.Run("has non-existent empty string", func(t *testing.T) {
+		_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
+		defer tearDown()
+
+		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *mainHelper.Settings.DriverName, *mainHelper.Settings.DataSource))
+		require.NoError(t, err)
+		defer ds.Close()
+
+		has, err := ds.HasFile("")
+		require.NoError(t, err)
+		require.False(t, has)
+	})
 }
 
 func TestDatabaseRemoveFile(t *testing.T) {
