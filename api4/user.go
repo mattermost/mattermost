@@ -1240,10 +1240,13 @@ func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func login(c *Context, w http.ResponseWriter, r *http.Request) {
-	// For hardened mode, translate all login errors to generic. MFA error being an exception, since it's required for
-	// the login flow itself.
+	// Translate all login errors to generic. MFA error being an exception, since it's required for the login flow itself
 	defer func() {
-		if *c.App.Config().ServiceSettings.ExperimentalEnableHardenedMode && c.Err != nil && c.Err.Id != "mfa.validate_token.authenticate.app_error" {
+		if c.Err != nil &&
+			c.Err.Id != "mfa.validate_token.authenticate.app_error" &&
+			c.Err.Id != "api.user.login.blank_pwd.app_error" &&
+			c.Err.Id != "api.user.login.bot_login_forbidden.app_error" &&
+			c.Err.Id != "api.user.login.client_side_cert.certificate.app_error" {
 			c.Err = model.NewAppError("login", "api.user.login.invalid_credentials", nil, "", http.StatusUnauthorized)
 		}
 	}()

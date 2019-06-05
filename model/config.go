@@ -2026,6 +2026,7 @@ type ElasticsearchSettings struct {
 	LiveIndexingBatchSize         *int    `restricted:"true"`
 	BulkIndexingTimeWindowSeconds *int    `restricted:"true"`
 	RequestTimeoutSeconds         *int    `restricted:"true"`
+	Trace                         *string `restricted:"true"`
 }
 
 func (s *ElasticsearchSettings) SetDefaults() {
@@ -2103,6 +2104,10 @@ func (s *ElasticsearchSettings) SetDefaults() {
 
 	if s.RequestTimeoutSeconds == nil {
 		s.RequestTimeoutSeconds = NewInt(ELASTICSEARCH_SETTINGS_DEFAULT_REQUEST_TIMEOUT_SECONDS)
+	}
+
+	if s.Trace == nil {
+		s.Trace = NewString("")
 	}
 }
 

@@ -110,19 +110,28 @@ func (_m *PreferenceStore) Get(userId string, category string, name string) (*mo
 }
 
 // GetAll provides a mock function with given fields: userId
-func (_m *PreferenceStore) GetAll(userId string) store.StoreChannel {
+func (_m *PreferenceStore) GetAll(userId string) (model.Preferences, *model.AppError) {
 	ret := _m.Called(userId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+	var r0 model.Preferences
+	if rf, ok := ret.Get(0).(func(string) model.Preferences); ok {
 		r0 = rf(userId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(model.Preferences)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(userId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetCategory provides a mock function with given fields: userId, category
@@ -151,19 +160,26 @@ func (_m *PreferenceStore) GetCategory(userId string, category string) (model.Pr
 }
 
 // IsFeatureEnabled provides a mock function with given fields: feature, userId
-func (_m *PreferenceStore) IsFeatureEnabled(feature string, userId string) store.StoreChannel {
+func (_m *PreferenceStore) IsFeatureEnabled(feature string, userId string) (bool, *model.AppError) {
 	ret := _m.Called(feature, userId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, string) store.StoreChannel); ok {
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(string, string) bool); ok {
 		r0 = rf(feature, userId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+		r0 = ret.Get(0).(bool)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+		r1 = rf(feature, userId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
 		}
 	}
 
-	return r0
+	return r0, r1
 }
 
 // PermanentDeleteByUser provides a mock function with given fields: userId
@@ -183,24 +199,17 @@ func (_m *PreferenceStore) PermanentDeleteByUser(userId string) *model.AppError 
 }
 
 // Save provides a mock function with given fields: preferences
-func (_m *PreferenceStore) Save(preferences *model.Preferences) (int, *model.AppError) {
+func (_m *PreferenceStore) Save(preferences *model.Preferences) *model.AppError {
 	ret := _m.Called(preferences)
 
-	var r0 int
-	if rf, ok := ret.Get(0).(func(*model.Preferences) int); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(*model.Preferences) *model.AppError); ok {
 		r0 = rf(preferences)
 	} else {
-		r0 = ret.Get(0).(int)
-	}
-
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(*model.Preferences) *model.AppError); ok {
-		r1 = rf(preferences)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
-	return r0, r1
+	return r0
 }

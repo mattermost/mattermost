@@ -1056,7 +1056,7 @@ func (a *App) AddDirectChannels(teamId string, user *model.User) *model.AppError
 		}
 	}
 
-	if _, err := a.Srv.Store.Preference().Save(&preferences); err != nil {
+	if err := a.Srv.Store.Preference().Save(&preferences); err != nil {
 		return model.NewAppError("AddDirectChannels", "api.user.add_direct_channels_and_forget.failed.error", map[string]interface{}{"UserId": user.Id, "TeamId": teamId, "Error": err.Error()}, "", http.StatusInternalServerError)
 	}
 
@@ -1761,6 +1761,7 @@ func (a *App) UpdateChannelLastViewedAt(channelIds []string, userId string) *mod
 
 func (a *App) AutocompleteChannels(teamId string, term string) (*model.ChannelList, *model.AppError) {
 	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
+	term = strings.TrimSpace(term)
 
 	esInterface := a.Elasticsearch
 	license := a.License()
@@ -1797,6 +1798,8 @@ func (a *App) AutocompleteChannels(teamId string, term string) (*model.ChannelLi
 func (a *App) AutocompleteChannelsForSearch(teamId string, userId string, term string) (*model.ChannelList, *model.AppError) {
 	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 
+	term = strings.TrimSpace(term)
+
 	result := <-a.Srv.Store.Channel().AutocompleteInTeamForSearch(teamId, userId, term, includeDeleted)
 	if result.Err != nil {
 		return nil, result.Err
@@ -1814,6 +1817,9 @@ func (a *App) SearchAllChannels(term string, opts model.ChannelSearchOpts) (*mod
 		NotAssociatedToGroup: opts.NotAssociatedToGroup,
 		IncludeDeleted:       opts.IncludeDeleted,
 	}
+
+	term = strings.TrimSpace(term)
+
 	result := <-a.Srv.Store.Channel().SearchAllChannels(term, storeOpts)
 	if result.Err != nil {
 		return nil, result.Err
@@ -1824,6 +1830,8 @@ func (a *App) SearchAllChannels(term string, opts model.ChannelSearchOpts) (*mod
 func (a *App) SearchChannels(teamId string, term string) (*model.ChannelList, *model.AppError) {
 	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 
+	term = strings.TrimSpace(term)
+
 	result := <-a.Srv.Store.Channel().SearchInTeam(teamId, term, includeDeleted)
 	if result.Err != nil {
 		return nil, result.Err
@@ -1832,6 +1840,7 @@ func (a *App) SearchChannels(teamId string, term string) (*model.ChannelList, *m
 }
 
 func (a *App) SearchChannelsUserNotIn(teamId string, userId string, term string) (*model.ChannelList, *model.AppError) {
+	term = strings.TrimSpace(term)
 	result := <-a.Srv.Store.Channel().SearchMore(userId, teamId, term)
 	if result.Err != nil {
 		return nil, result.Err
@@ -1924,8 +1933,8 @@ func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
 		return channelUsers.Err
 	}
 
-	if result := <-a.Srv.Store.Post().PermanentDeleteByChannel(channel.Id); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.Post().PermanentDeleteByChannel(channel.Id); err != nil {
+		return err
 	}
 
 	if result := <-a.Srv.Store.Channel().PermanentDeleteMembersByChannel(channel.Id); result.Err != nil {

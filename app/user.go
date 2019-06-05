@@ -104,6 +104,10 @@ func (a *App) CreateUserWithInviteId(user *model.User, inviteId string) (*model.
 	}
 	team := result.Data.(*model.Team)
 
+	if team.IsGroupConstrained() {
+		return nil, model.NewAppError("CreateUserWithInviteId", "app.team.invite_id.group_constrained.error", nil, "", http.StatusForbidden)
+	}
+
 	user.EmailVerified = false
 
 	ruser, err := a.CreateUser(user)
@@ -310,7 +314,7 @@ func (a *App) createUser(user *model.User) (*model.User, *model.AppError) {
 	}
 
 	pref := model.Preference{UserId: ruser.Id, Category: model.PREFERENCE_CATEGORY_TUTORIAL_STEPS, Name: ruser.Id, Value: "0"}
-	if _, err := a.Srv.Store.Preference().Save(&model.Preferences{pref}); err != nil {
+	if err := a.Srv.Store.Preference().Save(&model.Preferences{pref}); err != nil {
 		mlog.Error(fmt.Sprintf("Encountered error saving tutorial preference, err=%v", err.Message))
 	}
 
@@ -1415,8 +1419,8 @@ func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 		return err
 	}
 
-	if result := <-a.Srv.Store.Session().PermanentDeleteSessionsByUser(user.Id); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.Session().PermanentDeleteSessionsByUser(user.Id); err != nil {
+		return err
 	}
 
 	if result := <-a.Srv.Store.UserAccessToken().DeleteAllForUser(user.Id); result.Err != nil {
@@ -1666,6 +1670,7 @@ func (a *App) SearchUsers(props *model.UserSearch, options *model.UserSearchOpti
 }
 
 func (a *App) SearchUsersInChannel(channelId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+	term = strings.TrimSpace(term)
 	result := <-a.Srv.Store.User().SearchInChannel(channelId, term, options)
 	if result.Err != nil {
 		return nil, result.Err
@@ -1680,6 +1685,7 @@ func (a *App) SearchUsersInChannel(channelId string, term string, options *model
 }
 
 func (a *App) SearchUsersNotInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+	term = strings.TrimSpace(term)
 	result := <-a.Srv.Store.User().SearchNotInChannel(teamId, channelId, term, options)
 	if result.Err != nil {
 		return nil, result.Err
@@ -1695,6 +1701,8 @@ func (a *App) SearchUsersNotInChannel(teamId string, channelId string, term stri
 
 func (a *App) SearchUsersInTeam(teamId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	var result store.StoreResult
+
+	term = strings.TrimSpace(term)
 
 	esInterface := a.Elasticsearch
 	license := a.License()
@@ -1730,6 +1738,7 @@ func (a *App) SearchUsersInTeam(teamId string, term string, options *model.UserS
 }
 
 func (a *App) SearchUsersNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+	term = strings.TrimSpace(term)
 	result := <-a.Srv.Store.User().SearchNotInTeam(notInTeamId, term, options)
 	if result.Err != nil {
 		return nil, result.Err
@@ -1744,6 +1753,7 @@ func (a *App) SearchUsersNotInTeam(notInTeamId string, term string, options *mod
 }
 
 func (a *App) SearchUsersWithoutTeam(term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+	term = strings.TrimSpace(term)
 	result := <-a.Srv.Store.User().SearchWithoutTeam(term, options)
 	if result.Err != nil {
 		return nil, result.Err
@@ -1759,6 +1769,8 @@ func (a *App) SearchUsersWithoutTeam(term string, options *model.UserSearchOptio
 
 func (a *App) AutocompleteUsersInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, *model.AppError) {
 	var uchan, nuchan store.StoreChannel
+
+	term = strings.TrimSpace(term)
 
 	esInterface := a.Elasticsearch
 	license := a.License()
@@ -1819,6 +1831,8 @@ func (a *App) AutocompleteUsersInChannel(teamId string, channelId string, term s
 func (a *App) AutocompleteUsersInTeam(teamId string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInTeam, *model.AppError) {
 	autocomplete := &model.UserAutocompleteInTeam{}
 	var result store.StoreResult
+
+	term = strings.TrimSpace(term)
 
 	esInterface := a.Elasticsearch
 	license := a.License()

@@ -10,12 +10,12 @@ import (
 )
 
 func (a *App) GetPreferencesForUser(userId string) (model.Preferences, *model.AppError) {
-	result := <-a.Srv.Store.Preference().GetAll(userId)
-	if result.Err != nil {
-		result.Err.StatusCode = http.StatusBadRequest
-		return nil, result.Err
+	preferences, err := a.Srv.Store.Preference().GetAll(userId)
+	if err != nil {
+		err.StatusCode = http.StatusBadRequest
+		return nil, err
 	}
-	return result.Data.(model.Preferences), nil
+	return preferences, nil
 }
 
 func (a *App) GetPreferenceByCategoryForUser(userId string, category string) (model.Preferences, *model.AppError) {
@@ -48,7 +48,7 @@ func (a *App) UpdatePreferences(userId string, preferences model.Preferences) *m
 		}
 	}
 
-	if _, err := a.Srv.Store.Preference().Save(&preferences); err != nil {
+	if err := a.Srv.Store.Preference().Save(&preferences); err != nil {
 		err.StatusCode = http.StatusBadRequest
 		return err
 	}

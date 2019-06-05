@@ -151,11 +151,11 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.oldStores.TermsOfService = NewSqlTermsOfServiceStore(supplier, metrics)
 	supplier.oldStores.UserTermsOfService = NewSqlUserTermsOfServiceStore(supplier)
 	supplier.oldStores.linkMetadata = NewSqlLinkMetadataStore(supplier)
+	supplier.oldStores.group = NewSqlGroupStore(supplier)
 
 	initSqlSupplierReactions(supplier)
 	initSqlSupplierRoles(supplier)
 	initSqlSupplierSchemes(supplier)
-	initSqlSupplierGroups(supplier)
 
 	err := supplier.GetMaster().CreateTablesIfNotExists()
 	if err != nil {
@@ -196,8 +196,7 @@ func NewSqlSupplier(settings model.SqlSettings, metrics einterfaces.MetricsInter
 	supplier.oldStores.TermsOfService.(SqlTermsOfServiceStore).CreateIndexesIfNotExists()
 	supplier.oldStores.UserTermsOfService.(SqlUserTermsOfServiceStore).CreateIndexesIfNotExists()
 	supplier.oldStores.linkMetadata.(*SqlLinkMetadataStore).CreateIndexesIfNotExists()
-
-	supplier.CreateIndexesIfNotExistsGroups()
+	supplier.oldStores.group.(*SqlGroupStore).CreateIndexesIfNotExists()
 
 	supplier.oldStores.preference.(*SqlPreferenceStore).DeleteUnusedFeatures()
 

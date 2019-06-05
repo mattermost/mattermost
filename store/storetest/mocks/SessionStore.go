@@ -42,63 +42,90 @@ func (_m *SessionStore) Cleanup(expiryTime int64, batchSize int64) {
 }
 
 // Get provides a mock function with given fields: sessionIdOrToken
-func (_m *SessionStore) Get(sessionIdOrToken string) store.StoreChannel {
+func (_m *SessionStore) Get(sessionIdOrToken string) (*model.Session, *model.AppError) {
 	ret := _m.Called(sessionIdOrToken)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+	var r0 *model.Session
+	if rf, ok := ret.Get(0).(func(string) *model.Session); ok {
 		r0 = rf(sessionIdOrToken)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.Session)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(sessionIdOrToken)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetSessions provides a mock function with given fields: userId
-func (_m *SessionStore) GetSessions(userId string) store.StoreChannel {
+func (_m *SessionStore) GetSessions(userId string) ([]*model.Session, *model.AppError) {
 	ret := _m.Called(userId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+	var r0 []*model.Session
+	if rf, ok := ret.Get(0).(func(string) []*model.Session); ok {
 		r0 = rf(userId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]*model.Session)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(userId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetSessionsWithActiveDeviceIds provides a mock function with given fields: userId
-func (_m *SessionStore) GetSessionsWithActiveDeviceIds(userId string) store.StoreChannel {
+func (_m *SessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*model.Session, *model.AppError) {
 	ret := _m.Called(userId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+	var r0 []*model.Session
+	if rf, ok := ret.Get(0).(func(string) []*model.Session); ok {
 		r0 = rf(userId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]*model.Session)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(userId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // PermanentDeleteSessionsByUser provides a mock function with given fields: teamId
-func (_m *SessionStore) PermanentDeleteSessionsByUser(teamId string) store.StoreChannel {
+func (_m *SessionStore) PermanentDeleteSessionsByUser(teamId string) *model.AppError {
 	ret := _m.Called(teamId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
 		r0 = rf(teamId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
@@ -138,35 +165,51 @@ func (_m *SessionStore) RemoveAllSessions() store.StoreChannel {
 }
 
 // Save provides a mock function with given fields: session
-func (_m *SessionStore) Save(session *model.Session) store.StoreChannel {
+func (_m *SessionStore) Save(session *model.Session) (*model.Session, *model.AppError) {
 	ret := _m.Called(session)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(*model.Session) store.StoreChannel); ok {
+	var r0 *model.Session
+	if rf, ok := ret.Get(0).(func(*model.Session) *model.Session); ok {
 		r0 = rf(session)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.Session)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.Session) *model.AppError); ok {
+		r1 = rf(session)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // UpdateDeviceId provides a mock function with given fields: id, deviceId, expiresAt
-func (_m *SessionStore) UpdateDeviceId(id string, deviceId string, expiresAt int64) store.StoreChannel {
+func (_m *SessionStore) UpdateDeviceId(id string, deviceId string, expiresAt int64) (string, *model.AppError) {
 	ret := _m.Called(id, deviceId, expiresAt)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, string, int64) store.StoreChannel); ok {
+	var r0 string
+	if rf, ok := ret.Get(0).(func(string, string, int64) string); ok {
 		r0 = rf(id, deviceId, expiresAt)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string, int64) *model.AppError); ok {
+		r1 = rf(id, deviceId, expiresAt)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
 		}
 	}
 
-	return r0
+	return r0, r1
 }
 
 // UpdateLastActivityAt provides a mock function with given fields: sessionId, time

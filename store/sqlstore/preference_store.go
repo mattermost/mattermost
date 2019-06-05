@@ -54,25 +54,25 @@ func (s SqlPreferenceStore) DeleteUnusedFeatures() {
 	s.GetMaster().Exec(sql, queryParams)
 }
 
-func (s SqlPreferenceStore) Save(preferences *model.Preferences) (int, *model.AppError) {
+func (s SqlPreferenceStore) Save(preferences *model.Preferences) *model.AppError {
 	// wrap in a transaction so that if one fails, everything fails
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
-		return 0, model.NewAppError("SqlPreferenceStore.Save", "store.sql_preference.save.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SqlPreferenceStore.Save", "store.sql_preference.save.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	defer finalizeTransaction(transaction)
 	for _, preference := range *preferences {
 		if upsertResult := s.save(transaction, &preference); upsertResult.Err != nil {
-			return 0, upsertResult.Err
+			return upsertResult.Err
 		}
 	}
 
 	if err := transaction.Commit(); err != nil {
 		// don't need to rollback here since the transaction is already closed
-		return 0, model.NewAppError("SqlPreferenceStore.Save", "store.sql_preference.save.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return model.NewAppError("SqlPreferenceStore.Save", "store.sql_preference.save.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	return len(*preferences), nil
+	return nil
 }
 
 func (s SqlPreferenceStore) save(transaction *gorp.Transaction, preference *model.Preference) store.StoreResult {
@@ -192,22 +192,19 @@ func (s SqlPreferenceStore) GetCategory(userId string, category string) (model.P
 
 }
 
-func (s SqlPreferenceStore) GetAll(userId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var preferences model.Preferences
+func (s SqlPreferenceStore) GetAll(userId string) (model.Preferences, *model.AppError) {
+	var preferences model.Preferences
 
-		if _, err := s.GetReplica().Select(&preferences,
-			`SELECT
+	if _, err := s.GetReplica().Select(&preferences,
+		`SELECT
 				*
 			FROM
 				Preferences
 			WHERE
 				UserId = :UserId`, map[string]interface{}{"UserId": userId}); err != nil {
-			result.Err = model.NewAppError("SqlPreferenceStore.GetAll", "store.sql_preference.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = preferences
-		}
-	})
+		return nil, model.NewAppError("SqlPreferenceStore.GetAll", "store.sql_preference.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return preferences, nil
 }
 
 func (s SqlPreferenceStore) PermanentDeleteByUser(userId string) *model.AppError {
@@ -224,21 +221,19 @@ func (s SqlPreferenceStore) PermanentDeleteByUser(userId string) *model.AppError
 	return nil
 }
 
-func (s SqlPreferenceStore) IsFeatureEnabled(feature, userId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if value, err := s.GetReplica().SelectStr(`SELECT
-				value
-			FROM
-				Preferences
-			WHERE
-				UserId = :UserId
-				AND Category = :Category
-				AND Name = :Name`, map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS, "Name": store.FEATURE_TOGGLE_PREFIX + feature}); err != nil {
-			result.Err = model.NewAppError("SqlPreferenceStore.IsFeatureEnabled", "store.sql_preference.is_feature_enabled.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = value == "true"
-		}
-	})
+func (s SqlPreferenceStore) IsFeatureEnabled(feature, userId string) (bool, *model.AppError) {
+	query :=
+		`SELECT value FROM Preferences
+		WHERE
+			UserId = :UserId
+			AND Category = :Category
+			AND Name = :Name`
+
+	value, err := s.GetReplica().SelectStr(query, map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_ADVANCED_SETTINGS, "Name": store.FEATURE_TOGGLE_PREFIX + feature})
+	if err != nil {
+		return false, model.NewAppError("SqlPreferenceStore.IsFeatureEnabled", "store.sql_preference.is_feature_enabled.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return value == "true", nil
 }
 
 func (s SqlPreferenceStore) Delete(userId, category, name string) store.StoreChannel {
