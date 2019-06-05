@@ -84,10 +84,6 @@ func TestCreateUser(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, r.StatusCode)
 }
 
-func TestCreateUserCookies(t *testing.T) {
-
-}
-
 func TestCreateUserWithToken(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
