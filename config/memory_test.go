@@ -26,7 +26,7 @@ func TestMemoryStoreNew(t *testing.T) {
 		require.NoError(t, err)
 		defer ms.Close()
 
-		assert.Equal(t, model.SERVICE_SETTINGS_DEFAULT_SITE_URL, *ms.Get().ServiceSettings.SiteURL)
+		assert.Equal(t, "", *ms.Get().ServiceSettings.SiteURL)
 	})
 
 	t.Run("existing config, initialization required", func(t *testing.T) {
@@ -134,7 +134,7 @@ func TestMemoryStoreSet(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, oldCfg, retCfg)
 
-		assert.Equal(t, model.SERVICE_SETTINGS_DEFAULT_SITE_URL, *ms.Get().ServiceSettings.SiteURL)
+		assert.Equal(t, "", *ms.Get().ServiceSettings.SiteURL)
 	})
 
 	t.Run("desanitization required", func(t *testing.T) {
@@ -171,7 +171,7 @@ func TestMemoryStoreSet(t *testing.T) {
 			assert.EqualError(t, err, "new configuration is invalid: Config.IsValid: model.config.is_valid.site_url.app_error, ")
 		}
 
-		assert.Equal(t, model.SERVICE_SETTINGS_DEFAULT_SITE_URL, *ms.Get().ServiceSettings.SiteURL)
+		assert.Equal(t, "", *ms.Get().ServiceSettings.SiteURL)
 	})
 
 	t.Run("read-only ignored", func(t *testing.T) {
