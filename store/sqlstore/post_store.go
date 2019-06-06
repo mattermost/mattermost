@@ -236,33 +236,30 @@ func (s *SqlPostStore) GetFlaggedPostsForTeam(userId, teamId string, offset int,
 	return pl, nil
 }
 
-func (s *SqlPostStore) GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		pl := model.NewPostList()
+func (s *SqlPostStore) GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) (*model.PostList, *model.AppError) {
+	pl := model.NewPostList()
 
-		var posts []*model.Post
-		query := `
-			SELECT
-				*
-			FROM Posts
-			WHERE
-				Id IN (SELECT Name FROM Preferences WHERE UserId = :UserId AND Category = :Category)
-				AND ChannelId = :ChannelId
-				AND DeleteAt = 0
-			ORDER BY CreateAt DESC
-			LIMIT :Limit OFFSET :Offset`
+	var posts []*model.Post
+	query := `
+		SELECT
+			*
+		FROM Posts
+		WHERE
+			Id IN (SELECT Name FROM Preferences WHERE UserId = :UserId AND Category = :Category)
+			AND ChannelId = :ChannelId
+			AND DeleteAt = 0
+		ORDER BY CreateAt DESC
+		LIMIT :Limit OFFSET :Offset`
 
-		if _, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_FLAGGED_POST, "ChannelId": channelId, "Offset": offset, "Limit": limit}); err != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetFlaggedPostsForChannel", "store.sql_post.get_flagged_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			for _, post := range posts {
-				pl.AddPost(post)
-				pl.AddOrder(post.Id)
-			}
-		}
+	if _, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_FLAGGED_POST, "ChannelId": channelId, "Offset": offset, "Limit": limit}); err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetFlaggedPostsForChannel", "store.sql_post.get_flagged_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	for _, post := range posts {
+		pl.AddPost(post)
+		pl.AddOrder(post.Id)
+	}
 
-		result.Data = pl
-	})
+	return pl, nil
 }
 
 func (s *SqlPostStore) Get(id string) (*model.PostList, *model.AppError) {
@@ -299,6 +296,7 @@ func (s *SqlPostStore) Get(id string) (*model.PostList, *model.AppError) {
 
 	for _, p := range posts {
 		pl.AddPost(p)
+		pl.AddOrder(p.Id)
 	}
 
 	return pl, nil
@@ -605,49 +603,49 @@ func (s *SqlPostStore) getPostsAround(channelId string, postId string, limit int
 	var posts []*model.Post
 	var parents []*model.Post
 	_, err := s.GetReplica().Select(&posts,
-		`SELECT
-			    *
-			FROM
-			    Posts
-			WHERE
-				CreateAt `+direction+` (SELECT CreateAt FROM Posts WHERE Id = :PostId)
-			        AND ChannelId = :ChannelId
-					AND DeleteAt = 0
-			ORDER BY CreateAt `+sort+`
-			LIMIT :Limit
-			OFFSET :Offset`,
+	`SELECT
+			*
+		FROM
+			Posts
+		WHERE
+			CreateAt `+direction+` (SELECT CreateAt FROM Posts WHERE Id = :PostId)
+				AND ChannelId = :ChannelId
+				AND DeleteAt = 0
+		ORDER BY CreateAt `+sort+`
+		LIMIT :Limit
+		OFFSET :Offset`,
 		map[string]interface{}{"ChannelId": channelId, "PostId": postId, "Limit": limit, "Offset": offset})
 	if err != nil {
 		return nil, model.NewAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_around.get.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
 	}
 	_, err = s.GetReplica().Select(&parents,
-		`SELECT
-			    q2.*
+	`SELECT
+			q2.*
+		FROM
+			Posts q2
+				INNER JOIN
+			(SELECT DISTINCT
+				q3.Id, q3.RootId
 			FROM
-				Posts q2
-					INNER JOIN
-			    (SELECT DISTINCT
-			        q3.Id, q3.RootId
-			    FROM
-					(SELECT
-						Id, RootId
-					FROM
-						Posts
-					WHERE
-						CreateAt `+direction+` (SELECT CreateAt FROM Posts WHERE Id = :PostId)
-						AND ChannelId = :ChannelId
-						AND DeleteAt = 0
-					ORDER BY CreateAt `+sort+`
-					LIMIT :Limit OFFSET :Offset) q3 -- q3 contains the Id and RootId of every post in posts
-				) q1 -- q1 is q3 with the duplicates removed
-				ON q1.RootId = q2.Id -- This is the root post of a thread that appears in posts
-					OR q1.Id = q2.RootId -- This is a comment on a post in posts
-					OR (q2.RootId != '' AND q1.RootId = q2.RootId) -- This is a comment on a thread that appears in posts
-			WHERE
-				ChannelId = :ChannelId
-				AND DeleteAt = 0
-			ORDER BY CreateAt DESC`,
-		map[string]interface{}{"ChannelId": channelId, "PostId": postId, "Limit": limit, "Offset": offset})
+				(SELECT
+					Id, RootId
+				FROM
+					Posts
+				WHERE
+					CreateAt `+direction+` (SELECT CreateAt FROM Posts WHERE Id = :PostId)
+					AND ChannelId = :ChannelId
+					AND DeleteAt = 0
+				ORDER BY CreateAt `+sort+`
+				LIMIT :Limit OFFSET :Offset) q3 -- q3 contains the Id and RootId of every post in posts
+			) q1 -- q1 is q3 with the duplicates removed
+			ON q1.RootId = q2.Id -- This is the root post of a thread that appears in posts
+				OR q1.Id = q2.RootId -- This is a comment on a post in posts
+				OR (q2.RootId != '' AND q1.RootId = q2.RootId) -- This is a comment on a thread that appears in posts
+		WHERE
+			ChannelId = :ChannelId
+			AND DeleteAt = 0
+		ORDER BY CreateAt DESC`,
+	map[string]interface{}{"ChannelId": channelId, "PostId": postId, "Limit": limit, "Offset": offset})
 
 	if err != nil {
 		return nil, model.NewAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_around.get_parent.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
@@ -1093,37 +1091,31 @@ func (s *SqlPostStore) AnalyticsPostCount(teamId string, mustHaveFile bool, must
 	})
 }
 
-func (s *SqlPostStore) GetPostsCreatedAt(channelId string, time int64) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		query := `SELECT * FROM Posts WHERE CreateAt = :CreateAt AND ChannelId = :ChannelId`
+func (s *SqlPostStore) GetPostsCreatedAt(channelId string, time int64) ([]*model.Post, *model.AppError) {
+	query := `SELECT * FROM Posts WHERE CreateAt = :CreateAt AND ChannelId = :ChannelId`
 
-		var posts []*model.Post
-		_, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"CreateAt": time, "ChannelId": channelId})
+	var posts []*model.Post
+	_, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"CreateAt": time, "ChannelId": channelId})
 
-		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetPostsCreatedAt", "store.sql_post.get_posts_created_att.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = posts
-		}
-	})
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetPostsCreatedAt", "store.sql_post.get_posts_created_att.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
+	}
+	return posts, nil
 }
 
-func (s *SqlPostStore) GetPostsByIds(postIds []string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		keys, params := MapStringsToQueryParams(postIds, "Post")
+func (s *SqlPostStore) GetPostsByIds(postIds []string) ([]*model.Post, *model.AppError) {
+	keys, params := MapStringsToQueryParams(postIds, "Post")
 
-		query := `SELECT * FROM Posts WHERE Id IN ` + keys + ` ORDER BY CreateAt DESC`
+	query := `SELECT * FROM Posts WHERE Id IN ` + keys + ` ORDER BY CreateAt DESC`
 
-		var posts []*model.Post
-		_, err := s.GetReplica().Select(&posts, query, params)
+	var posts []*model.Post
+	_, err := s.GetReplica().Select(&posts, query, params)
 
-		if err != nil {
-			mlog.Error(fmt.Sprint(err))
-			result.Err = model.NewAppError("SqlPostStore.GetPostsByIds", "store.sql_post.get_posts_by_ids.app_error", nil, "", http.StatusInternalServerError)
-		} else {
-			result.Data = posts
-		}
-	})
+	if err != nil {
+		mlog.Error(fmt.Sprint(err))
+		return nil, model.NewAppError("SqlPostStore.GetPostsByIds", "store.sql_post.get_posts_by_ids.app_error", nil, "", http.StatusInternalServerError)
+	}
+	return posts, nil
 }
 
 func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) store.StoreChannel {
@@ -1263,10 +1255,9 @@ func (s *SqlPostStore) GetMaxPostSize() int {
 	return s.maxPostSizeCached
 }
 
-func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var posts []*model.PostForExport
-		_, err1 := s.GetSearchReplica().Select(&posts, `
+func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string) ([]*model.PostForExport, *model.AppError) {
+	var posts []*model.PostForExport
+	_, err := s.GetSearchReplica().Select(&posts, `
                 SELECT
                     p1.*,
                     Users.Username as Username,
@@ -1290,14 +1281,13 @@ func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string) store
                     p1.Id
                 LIMIT
                     :Limit`,
-			map[string]interface{}{"Limit": limit, "AfterId": afterId})
+		map[string]interface{}{"Limit": limit, "AfterId": afterId})
 
-		if err1 != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetAllAfterForExport", "store.sql_post.get_posts.app_error", nil, err1.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = posts
-		}
-	})
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetAllAfterForExport", "store.sql_post.get_posts.app_error",
+			nil, err.Error(), http.StatusInternalServerError)
+	}
+	return posts, nil
 }
 
 func (s *SqlPostStore) GetRepliesForExport(parentId string) store.StoreChannel {

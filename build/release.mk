@@ -64,8 +64,9 @@ endif
 	cp README.md $(DIST_PATH)
 
 	@# Download prepackaged plugins
-	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
-		curl -s https://api.github.com/repos/mattermost/$$plugin_package/releases/latest | awk -F\" '/browser_download_url/ { system("cd $(DIST_PATH)/prepackaged_plugins; curl -OL " $$4) }';\
+	mkdir -p tmpprepackaged
+	@cd tmpprepackaged && for plugin_package in $(PLUGIN_PACKAGES) ; do \
+		curl -O -L https://plugins-store.test.mattermost.com/release/$$plugin_package.tar.gz; \
 	done
 
 	@# ----- PLATFORM SPECIFIC -----
@@ -79,11 +80,16 @@ else
 	cp $(GOPATH)/bin/darwin_amd64/mattermost $(DIST_PATH)/bin # from cross-compiled bin dir
 	cp $(GOPATH)/bin/darwin_amd64/platform $(DIST_PATH)/bin # from cross-compiled bin dir
 endif
+	@# Strip and prepackage plugins
+	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
+		cat tmpprepackaged/$$plugin_package.tar.gz | gunzip | tar --wildcards --delete "*windows*" --delete "*linux*" | gzip  > $(DIST_PATH)/prepackaged_plugins/$$plugin_package.tar.gz; \
+	done
 	@# Package
 	tar -C dist -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-osx-amd64.tar.gz mattermost
 	@# Cleanup
 	rm -f $(DIST_PATH)/bin/mattermost
 	rm -f $(DIST_PATH)/bin/platform
+	rm -f $(DIST_PATH)/prepackaged_plugins/*
 
 	@# Make windows package
 	@# Copy binary
@@ -94,11 +100,16 @@ else
 	cp $(GOPATH)/bin/windows_amd64/mattermost.exe $(DIST_PATH)/bin # from cross-compiled bin dir
 	cp $(GOPATH)/bin/windows_amd64/platform.exe $(DIST_PATH)/bin # from cross-compiled bin dir
 endif
+	@# Strip and prepackage plugins
+	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
+		cat tmpprepackaged/$$plugin_package.tar.gz | gunzip | tar --wildcards --delete "*darwin*" --delete "*linux*" | gzip  > $(DIST_PATH)/prepackaged_plugins/$$plugin_package.tar.gz; \
+	done
 	@# Package
 	cd $(DIST_ROOT) && zip -9 -r -q -l mattermost-$(BUILD_TYPE_NAME)-windows-amd64.zip mattermost && cd ..
 	@# Cleanup
 	rm -f $(DIST_PATH)/bin/mattermost.exe
 	rm -f $(DIST_PATH)/bin/platform.exe
+	rm -f $(DIST_PATH)/prepackaged_plugins/*
 
 	@# Make linux package
 	@# Copy binary
@@ -109,7 +120,13 @@ else
 	cp $(GOPATH)/bin/linux_amd64/mattermost $(DIST_PATH)/bin # from cross-compiled bin dir
 	cp $(GOPATH)/bin/linux_amd64/platform $(DIST_PATH)/bin # from cross-compiled bin dir
 endif
+	@# Strip and prepackage plugins
+	@for plugin_package in $(PLUGIN_PACKAGES) ; do \
+		cat tmpprepackaged/$$plugin_package.tar.gz | gunzip | tar --wildcards --delete "*windows*" --delete "*darwin*" | gzip  > $(DIST_PATH)/prepackaged_plugins/$$plugin_package.tar.gz; \
+	done
 	@# Package
 	tar -C dist -czf $(DIST_PATH)-$(BUILD_TYPE_NAME)-linux-amd64.tar.gz mattermost
 	@# Don't clean up native package so dev machines will have an unzipped package available
 	@#rm -f $(DIST_PATH)/bin/mattermost
+
+	rm -rf tmpprepackaged
