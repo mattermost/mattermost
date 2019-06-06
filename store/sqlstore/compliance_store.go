@@ -177,11 +177,13 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance) ([]*model.Co
 			Posts.Type AS PostType,
 			Posts.Props AS PostProps,
 			Posts.Hashtags AS PostHashtags,
-			Posts.FileIds AS PostFileIds
+			Posts.FileIds AS PostFileIds,
+			Bots.UserId IS NOT NULL AS IsBot
 		FROM
 			Channels,
 			Users,
 			Posts
+		LEFT JOIN Bots ON Bots.UserId = Users.Id
 		WHERE
 			Channels.TeamId = ''
 				AND Posts.ChannelId = Channels.Id
@@ -225,12 +227,14 @@ func (s SqlComplianceStore) MessageExport(after int64, limit int) ([]*model.Mess
 			Channels.Type AS ChannelType,
 			Users.Id AS UserId,
 			Users.Email AS UserEmail,
-			Users.Username
+			Users.Username,
+			Bots.UserId IS NOT NULL AS IsBot
 		FROM
 			Posts
 			LEFT OUTER JOIN Channels ON Posts.ChannelId = Channels.Id
 			LEFT OUTER JOIN Teams ON Channels.TeamId = Teams.Id
 			LEFT OUTER JOIN Users ON Posts.UserId = Users.Id
+			LEFT JOIN Bots ON Bots.UserId = Users.Id
 		WHERE
 			Posts.CreateAt > :StartTime AND
 			Posts.Type = ''
