@@ -535,7 +535,7 @@ config-ldap: ## Configures LDAP.
 config-reset: ## Resets the config/config.json file to the default.
 	@echo Resetting configuration to default
 	rm -f config/config.json
-	cp config/default.json config/config.json
+	OUTPUT_CONFIG=$(PWD)/config/config.json go generate ./config
 
 clean: stop-docker ## Clean up everything except persistant server data.
 	@echo Cleaning
