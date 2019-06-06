@@ -2561,7 +2561,7 @@ func (ts *TeamSettings) isValid() *AppError {
 }
 
 func (ss *SqlSettings) isValid() *AppError {
-	if ss.AtRestEncryptKey != nil && *ss.AtRestEncryptKey != "" && len(*ss.AtRestEncryptKey) < 32 {
+	if *ss.AtRestEncryptKey != "" && len(*ss.AtRestEncryptKey) < 32 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.encrypt_sql.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -2601,7 +2601,7 @@ func (fs *FileSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.file_driver.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if fs.PublicLinkSalt != nil && *fs.PublicLinkSalt != "" && len(*fs.PublicLinkSalt) < 32 {
+	if  *fs.PublicLinkSalt != "" && len(*fs.PublicLinkSalt) < 32 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.file_salt.app_error", nil, "", http.StatusBadRequest)
 	}
 
