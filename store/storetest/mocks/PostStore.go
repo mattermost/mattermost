@@ -416,19 +416,28 @@ func (_m *PostStore) GetPostsSince(channelId string, time int64, allowFromCache 
 }
 
 // GetRepliesForExport provides a mock function with given fields: parentId
-func (_m *PostStore) GetRepliesForExport(parentId string) store.StoreChannel {
+func (_m *PostStore) GetRepliesForExport(parentId string) ([]*model.ReplyForExport, *model.AppError) {
 	ret := _m.Called(parentId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+	var r0 []*model.ReplyForExport
+	if rf, ok := ret.Get(0).(func(string) []*model.ReplyForExport); ok {
 		r0 = rf(parentId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]*model.ReplyForExport)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(parentId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetSingle provides a mock function with given fields: id
