@@ -2173,13 +2173,12 @@ func testPostStoreGetRepliesForExport(t *testing.T, ss store.Store) {
 	p2.RootId = p1.Id
 	p2 = (<-ss.Post().Save(p2)).Data.(*model.Post)
 
-	r1 := <-ss.Post().GetRepliesForExport(p1.Id)
-	assert.Nil(t, r1.Err)
+	r1, err := ss.Post().GetRepliesForExport(p1.Id)
+	assert.Nil(t, err)
 
-	d1 := r1.Data.([]*model.ReplyForExport)
-	assert.Len(t, d1, 1)
+	assert.Len(t, r1, 1)
 
-	reply1 := d1[0]
+	reply1 := r1[0]
 	assert.Equal(t, reply1.Id, p2.Id)
 	assert.Equal(t, reply1.Message, p2.Message)
 	assert.Equal(t, reply1.Username, u1.Username)
@@ -2189,13 +2188,12 @@ func testPostStoreGetRepliesForExport(t *testing.T, ss store.Store) {
 	_, err = ss.User().Update(&u1, false)
 	require.Nil(t, err)
 
-	r1 = <-ss.Post().GetRepliesForExport(p1.Id)
-	assert.Nil(t, r1.Err)
+	r1, err = ss.Post().GetRepliesForExport(p1.Id)
+	assert.Nil(t, err)
 
-	d1 = r1.Data.([]*model.ReplyForExport)
-	assert.Len(t, d1, 1)
+	assert.Len(t, r1, 1)
 
-	reply1 = d1[0]
+	reply1 = r1[0]
 	assert.Equal(t, reply1.Id, p2.Id)
 	assert.Equal(t, reply1.Message, p2.Message)
 	assert.Equal(t, reply1.Username, u1.Username)
