@@ -102,8 +102,15 @@ func (a *App) RevokeAllSessions(userId string) *model.AppError {
 		if session.IsOAuth {
 			a.RevokeAccessToken(session.Token)
 		} else {
-			if result := <-a.Srv.Store.Session().Remove(session.Id); result.Err != nil {
-				return result.Err
+			schan := make(chan *model.AppError, 1)
+			go func() {
+				removeErr := a.Srv.Store.Session().Remove(session.Id)
+				schan <- removeErr
+				close(schan)
+			}()
+
+			if result := <-schan; result != nil {
+				return result
 			}
 		}
 	}
@@ -195,8 +202,14 @@ func (a *App) RevokeSession(session *model.Session) *model.AppError {
 			return err
 		}
 	} else {
-		if result := <-a.Srv.Store.Session().Remove(session.Id); result.Err != nil {
-			return result.Err
+		schan := make(chan *model.AppError, 1)
+		go func() {
+			removeErr := a.Srv.Store.Session().Remove(session.Id)
+			schan <- removeErr
+			close(schan)
+		}()
+		if result := <-schan; result != nil {
+			return result
 		}
 	}
 
