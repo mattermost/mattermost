@@ -400,17 +400,17 @@ func (a *App) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bo
 	return nil
 }
 
-func (a *App) HasESIndexingEnabled() bool {
+func (a *App) IsESIndexingEnabled() bool {
 	return a.Elasticsearch != nil && *a.Config().ElasticsearchSettings.EnableIndexing
 }
 
-func (a *App) HasESSearchEnabled() bool {
+func (a *App) IsESSearchEnabled() bool {
 	esInterface := a.Elasticsearch
 	license := a.License()
 	return esInterface != nil && *a.Config().ElasticsearchSettings.EnableSearching && license != nil && *license.Features.Elasticsearch
 }
 
-func (a *App) HasESAutocompletionEnabled() bool {
+func (a *App) IsESAutocompletionEnabled() bool {
 	esInterface := a.Elasticsearch
 	license := a.License()
 	return esInterface != nil && *a.Config().ElasticsearchSettings.EnableAutocomplete && license != nil && *license.Features.Elasticsearch

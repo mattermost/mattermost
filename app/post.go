@@ -274,7 +274,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		})
 	}
 
-	if a.HasESIndexingEnabled() {
+	if a.IsESIndexingEnabled() {
 		a.Srv.Go(func() {
 			if err = a.Elasticsearch.IndexPost(rpost, channel.TeamId); err != nil {
 				mlog.Error("Encountered error indexing post", mlog.String("post_id", post.Id), mlog.Err(err))
@@ -550,7 +550,7 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 		})
 	}
 
-	if a.HasESIndexingEnabled() {
+	if a.IsESIndexingEnabled() {
 		a.Srv.Go(func() {
 			rchannel := <-a.Srv.Store.Channel().GetForPost(rpost.Id)
 			if rchannel.Err != nil {
@@ -706,7 +706,7 @@ func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppErro
 		a.DeleteFlaggedPosts(post.Id)
 	})
 
-	if a.HasESIndexingEnabled() {
+	if a.IsESIndexingEnabled() {
 		a.Srv.Go(func() {
 			if err := a.Elasticsearch.DeletePost(post); err != nil {
 				mlog.Error("Encountered error deleting post", mlog.String("post_id", post.Id), mlog.Err(err))
@@ -879,7 +879,7 @@ func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamId strin
 	var err *model.AppError
 	paramsList := model.ParseSearchParams(strings.TrimSpace(terms), timeZoneOffset)
 
-	if a.HasESSearchEnabled() {
+	if a.IsESSearchEnabled() {
 		postSearchResults, err = a.esSearchPostsInTeamForUser(paramsList, userId, teamId, isOrSearch, includeDeletedChannels, page, perPage)
 		if err != nil {
 			mlog.Error("Encountered error on SearchPostsInTeamForUser through Elasticsearch. Falling back to default search.", mlog.Err(err))
@@ -895,7 +895,7 @@ func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamId strin
 		return model.MakePostSearchResults(model.NewPostList(), nil), nil
 	}
 
-	if !a.HasESSearchEnabled() || err != nil {
+	if !a.IsESSearchEnabled() || err != nil {
 		includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 		posts, err := a.searchPostsInTeam(teamId, userId, paramsList, func(params *model.SearchParams) {
 			params.IncludeDeletedChannels = includeDeleted
