@@ -351,8 +351,8 @@ func testPostStoreDelete(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	r5 := <-ss.Post().GetPostsCreatedAt(o1.ChannelId, o1.CreateAt)
-	post := r5.Data.([]*model.Post)[0]
+	posts, _ := ss.Post().GetPostsCreatedAt(o1.ChannelId, o1.CreateAt)
+	post := posts[0]
 	actual := post.Props[model.POST_PROPS_DELETE_BY]
 	if actual != deleteByID {
 		t.Errorf("Expected (*Post).Props[model.POST_PROPS_DELETE_BY] to be %v but got %v.", deleteByID, actual)
@@ -1654,7 +1654,8 @@ func testPostStoreGetFlaggedPostsForChannel(t *testing.T, ss store.Store) {
 	o4 = (<-ss.Post().Save(o4)).Data.(*model.Post)
 	time.Sleep(2 * time.Millisecond)
 
-	r := (<-ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 0, 10)).Data.(*model.PostList)
+	r, err := ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 0, 10)
+	require.Nil(t, err)
 
 	if len(r.Order) != 0 {
 		t.Fatal("should be empty")
@@ -1667,10 +1668,11 @@ func testPostStoreGetFlaggedPostsForChannel(t *testing.T, ss store.Store) {
 		Value:    "true",
 	}
 
-	err := ss.Preference().Save(&model.Preferences{preference})
+	err = ss.Preference().Save(&model.Preferences{preference})
 	require.Nil(t, err)
 
-	r = (<-ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 0, 10)).Data.(*model.PostList)
+	r, err = ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 0, 10)
+	require.Nil(t, err)
 
 	if len(r.Order) != 1 {
 		t.Fatal("should have 1 post")
@@ -1684,25 +1686,29 @@ func testPostStoreGetFlaggedPostsForChannel(t *testing.T, ss store.Store) {
 	err = ss.Preference().Save(&model.Preferences{preference})
 	require.Nil(t, err)
 
-	r = (<-ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 0, 1)).Data.(*model.PostList)
+	r, err = ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 0, 1)
+	require.Nil(t, err)
 
 	if len(r.Order) != 1 {
 		t.Fatal("should have 1 post")
 	}
 
-	r = (<-ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 1, 1)).Data.(*model.PostList)
+	r, err = ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 1, 1)
+	require.Nil(t, err)
 
 	if len(r.Order) != 1 {
 		t.Fatal("should have 1 post")
 	}
 
-	r = (<-ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 1000, 10)).Data.(*model.PostList)
+	r, err = ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 1000, 10)
+	require.Nil(t, err)
 
 	if len(r.Order) != 0 {
 		t.Fatal("should be empty")
 	}
 
-	r = (<-ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 0, 10)).Data.(*model.PostList)
+	r, err = ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 0, 10)
+	require.Nil(t, err)
 
 	if len(r.Order) != 2 {
 		t.Fatal("should have 2 posts")
@@ -1712,7 +1718,8 @@ func testPostStoreGetFlaggedPostsForChannel(t *testing.T, ss store.Store) {
 	err = ss.Preference().Save(&model.Preferences{preference})
 	require.Nil(t, err)
 
-	r = (<-ss.Post().GetFlaggedPostsForChannel(o1.UserId, o4.ChannelId, 0, 10)).Data.(*model.PostList)
+	r, err = ss.Post().GetFlaggedPostsForChannel(o1.UserId, o4.ChannelId, 0, 10)
+	require.Nil(t, err)
 
 	if len(r.Order) != 1 {
 		t.Fatal("should have 1 post")
@@ -1752,7 +1759,7 @@ func testPostStoreGetPostsCreatedAt(t *testing.T, ss store.Store) {
 	o3.CreateAt = createTime
 	_ = (<-ss.Post().Save(o3)).Data.(*model.Post)
 
-	r1 := (<-ss.Post().GetPostsCreatedAt(o1.ChannelId, createTime)).Data.([]*model.Post)
+	r1, _ := ss.Post().GetPostsCreatedAt(o1.ChannelId, createTime)
 	assert.Equal(t, 2, len(r1))
 }
 
@@ -1928,16 +1935,20 @@ func testPostStoreGetPostsByIds(t *testing.T, ss store.Store) {
 		ro3.Id,
 	}
 
-	if ro4 := store.Must(ss.Post().GetPostsByIds(postIds)).([]*model.Post); len(ro4) != 3 {
-		t.Fatalf("Expected 3 posts in results. Got %v", len(ro4))
+	if posts, err := ss.Post().GetPostsByIds(postIds); err != nil {
+		t.Fatal(err)
+	} else if len(posts) != 3 {
+		t.Fatalf("Expected 3 posts in results. Got %v", len(posts))
 	}
 
 	if err := ss.Post().Delete(ro1.Id, model.GetMillis(), ""); err != nil {
 		t.Fatal(err)
 	}
 
-	if ro5 := store.Must(ss.Post().GetPostsByIds(postIds)).([]*model.Post); len(ro5) != 3 {
-		t.Fatalf("Expected 3 posts in results. Got %v", len(ro5))
+	if posts, err := ss.Post().GetPostsByIds(postIds); err != nil {
+		t.Fatal(err)
+	} else if len(posts) != 3 {
+		t.Fatalf("Expected 3 posts in results. Got %v", len(posts))
 	}
 }
 
@@ -2107,12 +2118,11 @@ func testPostStoreGetParentsForExportAfter(t *testing.T, ss store.Store) {
 	p1.CreateAt = 1000
 	p1 = (<-ss.Post().Save(p1)).Data.(*model.Post)
 
-	r1 := <-ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26))
-	assert.Nil(t, r1.Err)
-	d1 := r1.Data.([]*model.PostForExport)
+	posts, err := ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26))
+	assert.Nil(t, err)
 
 	found := false
-	for _, p := range d1 {
+	for _, p := range posts {
 		if p.Id == p1.Id {
 			found = true
 			assert.Equal(t, p.Id, p1.Id)

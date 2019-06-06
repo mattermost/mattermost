@@ -192,22 +192,19 @@ func (s SqlPreferenceStore) GetCategory(userId string, category string) (model.P
 
 }
 
-func (s SqlPreferenceStore) GetAll(userId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var preferences model.Preferences
+func (s SqlPreferenceStore) GetAll(userId string) (model.Preferences, *model.AppError) {
+	var preferences model.Preferences
 
-		if _, err := s.GetReplica().Select(&preferences,
-			`SELECT
+	if _, err := s.GetReplica().Select(&preferences,
+		`SELECT
 				*
 			FROM
 				Preferences
 			WHERE
 				UserId = :UserId`, map[string]interface{}{"UserId": userId}); err != nil {
-			result.Err = model.NewAppError("SqlPreferenceStore.GetAll", "store.sql_preference.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = preferences
-		}
-	})
+		return nil, model.NewAppError("SqlPreferenceStore.GetAll", "store.sql_preference.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return preferences, nil
 }
 
 func (s SqlPreferenceStore) PermanentDeleteByUser(userId string) *model.AppError {
