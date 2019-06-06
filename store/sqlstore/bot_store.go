@@ -233,6 +233,12 @@ func (us SqlBotStore) Update(bot *model.Bot) store.StoreChannel {
 // If the corresponding user is to be deleted, it must be done via the user store.
 func (us SqlBotStore) PermanentDelete(botUserId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
+		userResult := <-us.User().PermanentDelete(botUserId)
+		if userResult.Err != nil {
+			result.Err = userResult.Err
+			return
+		}
+
 		if _, err := us.GetMaster().Exec(`
 			DELETE FROM
 			    Bots

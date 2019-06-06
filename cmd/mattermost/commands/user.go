@@ -46,13 +46,12 @@ var UserCreateCmd = &cobra.Command{
 }
 
 var UserConvertCmd = &cobra.Command{
-	Use:   "convert [emails, usernames, userIds] --bot",
-	Short: "Convert users to bots, or a bot to a user",
-	Long:  "Convert users to bots, or a bot to a user",
-	Example: `  user convert user@example.com anotherUser --bot
-	user convert botusername --email new.email@email.com --password password --user`,
-	Args: cobra.MinimumNArgs(1),
-	RunE: userConvertCmdF,
+	Use:     "convert [emails, usernames, userIds] --bot",
+	Short:   "Convert users to bots",
+	Long:    "Convert users to bots",
+	Example: `  user convert user@example.com anotherUser --bot`,
+	Args:    cobra.MinimumNArgs(1),
+	RunE:    userConvertCmdF,
 }
 
 var UserInviteCmd = &cobra.Command{
@@ -173,15 +172,6 @@ func init() {
 	UserCreateCmd.Flags().Bool("system_admin", false, "Optional. If supplied, the new user will be a system administrator. Defaults to false.")
 
 	UserConvertCmd.Flags().Bool("bot", false, "If supplied, convert users to bots.")
-	UserConvertCmd.Flags().Bool("user", false, "If supplied, convert a bot to a user.")
-	UserConvertCmd.Flags().String("password", "", "The password for converted new user account. Required when \"user\" flag is set.")
-	UserConvertCmd.Flags().String("username", "", "Username for the converted user account. Ignored when \"user\" flag is missing.")
-	UserConvertCmd.Flags().String("email", "", "The email address for the converted user account. Ignored when \"user\" flag is missing.")
-	UserConvertCmd.Flags().String("nickname", "", "The nickname for the converted user account. Ignored when \"user\" flag is missing.")
-	UserConvertCmd.Flags().String("firstname", "", "The first name for the converted user account. Ignored when \"user\" flag is missing.")
-	UserConvertCmd.Flags().String("lastname", "", "The last name for the converted user account. Ignored when \"user\" flag is missing.")
-	UserConvertCmd.Flags().String("locale", "", "The locale (ex: en, fr) for converted new user account. Ignored when \"user\" flag is missing.")
-	UserConvertCmd.Flags().Bool("system_admin", false, "If supplied, the converted user will be a system administrator. Defaults to false. Ignored when \"user\" flag is missing.")
 
 	DeleteUserCmd.Flags().Bool("confirm", false, "Confirm you really want to delete the user and a DB backup has been performed.")
 
@@ -408,126 +398,6 @@ func usersToBots(args []string, a *app.App) {
 	}
 }
 
-func getUpdatedPassword(command *cobra.Command, a *app.App, user *model.User) (string, error) {
-	password, err := command.Flags().GetString("password")
-	if err != nil {
-		return "", fmt.Errorf("Unable to read password. Error: %s", err.Error())
-	}
-
-	if password == "" {
-		return "", errors.New("Password is required.")
-	}
-
-	return password, nil
-}
-
-func getUpdatedUserModel(command *cobra.Command, a *app.App, user *model.User) (*model.User, error) {
-	username, _ := command.Flags().GetString("username")
-	if username == "" {
-		if user.Username == "" {
-			return nil, errors.New("Invalid username. Username is empty.")
-		}
-	} else {
-		user.Username = username
-	}
-
-	email, _ := command.Flags().GetString("email")
-	if email == "" {
-		if user.Email == "" {
-			return nil, errors.New("Invalid email. Email is empty.")
-		}
-	} else {
-		user.Email = email
-	}
-
-	nickname, _ := command.Flags().GetString("nickname")
-	if nickname != "" {
-		user.Nickname = nickname
-	}
-
-	firstname, _ := command.Flags().GetString("firstname")
-	if firstname != "" {
-		user.FirstName = firstname
-	}
-
-	lastname, _ := command.Flags().GetString("lastname")
-	if lastname != "" {
-		user.LastName = lastname
-	}
-
-	locale, _ := command.Flags().GetString("locale")
-	if locale != "" {
-		user.Locale = locale
-	}
-
-	if !user.IsLDAPUser() && !user.IsSAMLUser() && !app.CheckUserDomain(user, *a.Config().TeamSettings.RestrictCreationToDomains) {
-		return nil, errors.New("The email does not belong to an accepted domain.")
-	}
-
-	return user, nil
-}
-
-func botToUser(command *cobra.Command, args []string, a *app.App) error {
-	if len(args) != 1 {
-		return errors.New("Expect 1 argument. See help text for more details.")
-	}
-
-	user := getUserFromUserArg(a, args[0])
-	if user == nil {
-		return errors.New("Unable to find bot.")
-	}
-
-	_, appErr := a.GetBot(user.Id, false)
-	if appErr != nil {
-		return fmt.Errorf("Unable to find bot. Error: %s", appErr.Error())
-	}
-
-	password, err := getUpdatedPassword(command, a, user)
-	if err != nil {
-		return err
-	}
-
-	user, err = getUpdatedUserModel(command, a, user)
-	if err != nil {
-		return err
-	}
-
-	user, appErr = a.UpdateUser(user, false)
-	if appErr != nil {
-		return fmt.Errorf("Unable to update user. Error: %s" + appErr.Error())
-	}
-
-	appErr = a.UpdatePassword(user, password)
-	if appErr != nil {
-		return fmt.Errorf("Unable to update password. Error: %s", appErr.Error())
-	}
-
-	systemAdmin, _ := command.Flags().GetBool("system_admin")
-	if systemAdmin && !user.IsInRole(model.SYSTEM_ADMIN_ROLE_ID) {
-		if _, appErr = a.UpdateUserRoles(
-			user.Id,
-			fmt.Sprintf("%s %s", user.Roles, model.SYSTEM_ADMIN_ROLE_ID),
-			false); appErr != nil {
-			return fmt.Errorf("Unable to make user system admin. Error: %s" + appErr.Error())
-		}
-	}
-
-	result := <-a.Srv.Store.Bot().PermanentDelete(user.Id)
-	if result.Err != nil {
-		return fmt.Errorf("Unable to delete bot. Error: %s", result.Err.Error())
-	}
-
-	CommandPrettyPrintln("id: " + user.Id)
-	CommandPrettyPrintln("username: " + user.Username)
-	CommandPrettyPrintln("email: " + user.Email)
-	CommandPrettyPrintln("nickname: " + user.Nickname)
-	CommandPrettyPrintln("first_name: " + user.FirstName)
-	CommandPrettyPrintln("last_name: " + user.LastName)
-	CommandPrettyPrintln("roles: " + user.Roles)
-	CommandPrettyPrintln("locale: " + user.Locale)
-	return nil
-}
-
 func userConvertCmdF(command *cobra.Command, args []string) error {
 	a, err := InitDBCommandContextCobra(command)
 	if err != nil {
@@ -540,21 +410,8 @@ func userConvertCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Invalid command. See help text for details.")
 	}
 
-	toUser, err := command.Flags().GetBool("user")
-	if err != nil {
-		return errors.New("Invalid command. See help text for details.")
-	}
-
-	if !(toUser || toBot) {
-		return errors.New("Expect either \"user\" flag or \"bot\" flag. See help text for details.")
-	}
-
-	if toUser && toBot {
-		return errors.New("Expect either \"user\" flag or \"bot\" flag but not both. See help text for details.")
-	}
-
-	if toUser {
-		return botToUser(command, args, a)
+	if !toBot {
+		return errors.New("Expect \"bot\" flag to be set. See help text for details.")
 	}
 
 	usersToBots(args, a)
