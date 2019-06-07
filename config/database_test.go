@@ -101,7 +101,7 @@ func TestDatabaseStoreNew(t *testing.T) {
 		require.NoError(t, err)
 		defer ds.Close()
 
-		assert.Equal(t, model.SERVICE_SETTINGS_DEFAULT_SITE_URL, *ds.Get().ServiceSettings.SiteURL)
+		assert.Equal(t, "", *ds.Get().ServiceSettings.SiteURL)
 	})
 
 	t.Run("existing config, initialization required", func(t *testing.T) {
@@ -221,7 +221,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, oldCfg, retCfg)
 
-		assert.Equal(t, model.SERVICE_SETTINGS_DEFAULT_SITE_URL, *ds.Get().ServiceSettings.SiteURL)
+		assert.Equal(t, "", *ds.Get().ServiceSettings.SiteURL)
 	})
 
 	t.Run("desanitization required", func(t *testing.T) {
@@ -260,7 +260,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 			assert.EqualError(t, err, "new configuration is invalid: Config.IsValid: model.config.is_valid.site_url.app_error, ")
 		}
 
-		assert.Equal(t, model.SERVICE_SETTINGS_DEFAULT_SITE_URL, *ds.Get().ServiceSettings.SiteURL)
+		assert.Equal(t, "", *ds.Get().ServiceSettings.SiteURL)
 	})
 
 	t.Run("duplicate ignored", func(t *testing.T) {
@@ -345,7 +345,7 @@ func TestDatabaseStoreSet(t *testing.T) {
 			assert.True(t, strings.HasPrefix(err.Error(), "failed to persist: failed to write to database"))
 		}
 
-		assert.Equal(t, model.SERVICE_SETTINGS_DEFAULT_SITE_URL, *ds.Get().ServiceSettings.SiteURL)
+		assert.Equal(t, "", *ds.Get().ServiceSettings.SiteURL)
 	})
 
 	t.Run("listeners notified", func(t *testing.T) {
@@ -610,6 +610,19 @@ func TestDatabaseHasFile(t *testing.T) {
 		has, err := ds.HasFile("manual")
 		require.NoError(t, err)
 		require.True(t, has)
+	})
+
+	t.Run("has non-existent empty string", func(t *testing.T) {
+		_, tearDown := setupConfigDatabase(t, minimalConfig, nil)
+		defer tearDown()
+
+		ds, err := config.NewDatabaseStore(fmt.Sprintf("%s://%s", *mainHelper.Settings.DriverName, *mainHelper.Settings.DataSource))
+		require.NoError(t, err)
+		defer ds.Close()
+
+		has, err := ds.HasFile("")
+		require.NoError(t, err)
+		require.False(t, has)
 	})
 }
 
