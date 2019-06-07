@@ -74,7 +74,7 @@ TESTFLAGSEE ?= -short
 TE_PACKAGES=$(shell go list ./...|grep -v plugin_tests)
 
 # Plugins Packages
-PLUGIN_PACKAGES=mattermost-plugin-zoom-v1.0.6
+PLUGIN_PACKAGES=mattermost-plugin-zoom-v1.0.7
 PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.0.0-rc2
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.0.0
