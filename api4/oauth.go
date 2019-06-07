@@ -530,7 +530,11 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		c.App.Session = *session
 
-		redirectUrl = c.GetSiteURLHeader()
+		if _, ok := props["redirect_to"]; ok {
+			redirectUrl = props["redirect_to"]
+		} else {
+			redirectUrl = c.GetSiteURLHeader()
+		}
 	}
 
 	if action == model.OAUTH_ACTION_MOBILE {

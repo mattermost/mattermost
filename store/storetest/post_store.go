@@ -351,8 +351,8 @@ func testPostStoreDelete(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	r5 := <-ss.Post().GetPostsCreatedAt(o1.ChannelId, o1.CreateAt)
-	post := r5.Data.([]*model.Post)[0]
+	posts, _ := ss.Post().GetPostsCreatedAt(o1.ChannelId, o1.CreateAt)
+	post := posts[0]
 	actual := post.Props[model.POST_PROPS_DELETE_BY]
 	if actual != deleteByID {
 		t.Errorf("Expected (*Post).Props[model.POST_PROPS_DELETE_BY] to be %v but got %v.", deleteByID, actual)
@@ -1759,7 +1759,7 @@ func testPostStoreGetPostsCreatedAt(t *testing.T, ss store.Store) {
 	o3.CreateAt = createTime
 	_ = (<-ss.Post().Save(o3)).Data.(*model.Post)
 
-	r1 := (<-ss.Post().GetPostsCreatedAt(o1.ChannelId, createTime)).Data.([]*model.Post)
+	r1, _ := ss.Post().GetPostsCreatedAt(o1.ChannelId, createTime)
 	assert.Equal(t, 2, len(r1))
 }
 
@@ -1935,16 +1935,20 @@ func testPostStoreGetPostsByIds(t *testing.T, ss store.Store) {
 		ro3.Id,
 	}
 
-	if ro4 := store.Must(ss.Post().GetPostsByIds(postIds)).([]*model.Post); len(ro4) != 3 {
-		t.Fatalf("Expected 3 posts in results. Got %v", len(ro4))
+	if posts, err := ss.Post().GetPostsByIds(postIds); err != nil {
+		t.Fatal(err)
+	} else if len(posts) != 3 {
+		t.Fatalf("Expected 3 posts in results. Got %v", len(posts))
 	}
 
 	if err := ss.Post().Delete(ro1.Id, model.GetMillis(), ""); err != nil {
 		t.Fatal(err)
 	}
 
-	if ro5 := store.Must(ss.Post().GetPostsByIds(postIds)).([]*model.Post); len(ro5) != 3 {
-		t.Fatalf("Expected 3 posts in results. Got %v", len(ro5))
+	if posts, err := ss.Post().GetPostsByIds(postIds); err != nil {
+		t.Fatal(err)
+	} else if len(posts) != 3 {
+		t.Fatalf("Expected 3 posts in results. Got %v", len(posts))
 	}
 }
 
@@ -2169,13 +2173,12 @@ func testPostStoreGetRepliesForExport(t *testing.T, ss store.Store) {
 	p2.RootId = p1.Id
 	p2 = (<-ss.Post().Save(p2)).Data.(*model.Post)
 
-	r1 := <-ss.Post().GetRepliesForExport(p1.Id)
-	assert.Nil(t, r1.Err)
+	r1, err := ss.Post().GetRepliesForExport(p1.Id)
+	assert.Nil(t, err)
 
-	d1 := r1.Data.([]*model.ReplyForExport)
-	assert.Len(t, d1, 1)
+	assert.Len(t, r1, 1)
 
-	reply1 := d1[0]
+	reply1 := r1[0]
 	assert.Equal(t, reply1.Id, p2.Id)
 	assert.Equal(t, reply1.Message, p2.Message)
 	assert.Equal(t, reply1.Username, u1.Username)
@@ -2185,13 +2188,12 @@ func testPostStoreGetRepliesForExport(t *testing.T, ss store.Store) {
 	_, err = ss.User().Update(&u1, false)
 	require.Nil(t, err)
 
-	r1 = <-ss.Post().GetRepliesForExport(p1.Id)
-	assert.Nil(t, r1.Err)
+	r1, err = ss.Post().GetRepliesForExport(p1.Id)
+	assert.Nil(t, err)
 
-	d1 = r1.Data.([]*model.ReplyForExport)
-	assert.Len(t, d1, 1)
+	assert.Len(t, r1, 1)
 
-	reply1 = d1[0]
+	reply1 = r1[0]
 	assert.Equal(t, reply1.Id, p2.Id)
 	assert.Equal(t, reply1.Message, p2.Message)
 	assert.Equal(t, reply1.Username, u1.Username)
