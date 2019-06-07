@@ -258,11 +258,13 @@ func testUserStoreGet(t *testing.T, ss store.Store) {
 		Username: model.NewId(),
 	})).(*model.User)
 	store.Must(ss.Bot().Save(&model.Bot{
-		UserId:   u2.Id,
-		Username: u2.Username,
-		OwnerId:  u1.Id,
+		UserId:      u2.Id,
+		Username:    u2.Username,
+		Description: "bot description",
+		OwnerId:     u1.Id,
 	}))
 	u2.IsBot = true
+	u2.BotDescription = "bot description"
 	defer func() { store.Must(ss.Bot().PermanentDelete(u2.Id)) }()
 	defer func() { store.Must(ss.User().PermanentDelete(u2.Id)) }()
 
@@ -285,6 +287,7 @@ func testUserStoreGet(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 		require.Equal(t, u2, actual)
 		require.True(t, actual.IsBot)
+		require.Equal(t, "bot description", actual.BotDescription)
 	})
 }
 
