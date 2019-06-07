@@ -184,6 +184,10 @@ func (fs *FileStore) SetFile(name string, data []byte) error {
 
 // HasFile returns true if the given file was previously persisted.
 func (fs *FileStore) HasFile(name string) (bool, error) {
+	if name == "" {
+		return false, nil
+	}
+
 	resolvedPath := filepath.Join(filepath.Dir(fs.path), name)
 
 	_, err := os.Stat(resolvedPath)

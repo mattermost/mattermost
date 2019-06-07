@@ -220,26 +220,26 @@ type PostStore interface {
 	GetPosts(channelId string, offset int, limit int, allowFromCache bool) (*model.PostList, *model.AppError)
 	GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetFlaggedPostsForTeam(userId, teamId string, offset int, limit int) (*model.PostList, *model.AppError)
-	GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) StoreChannel
+	GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetPostsBefore(channelId string, postId string, numPosts int, offset int) StoreChannel
 	GetPostsAfter(channelId string, postId string, numPosts int, offset int) StoreChannel
 	GetPostsSince(channelId string, time int64, allowFromCache bool) StoreChannel
-	GetEtag(channelId string, allowFromCache bool) StoreChannel
+	GetEtag(channelId string, allowFromCache bool) string
 	Search(teamId string, userId string, params *model.SearchParams) StoreChannel
 	AnalyticsUserCountsWithPostsByDay(teamId string) StoreChannel
 	AnalyticsPostCountsByDay(teamId string) StoreChannel
 	AnalyticsPostCount(teamId string, mustHaveFile bool, mustHaveHashtag bool) StoreChannel
 	ClearCaches()
 	InvalidateLastPostTimeCache(channelId string)
-	GetPostsCreatedAt(channelId string, time int64) StoreChannel
+	GetPostsCreatedAt(channelId string, time int64) ([]*model.Post, *model.AppError)
 	Overwrite(post *model.Post) (*model.Post, *model.AppError)
-	GetPostsByIds(postIds []string) StoreChannel
+	GetPostsByIds(postIds []string) ([]*model.Post, *model.AppError)
 	GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) StoreChannel
 	PermanentDeleteBatch(endTime int64, limit int64) StoreChannel
 	GetOldest() StoreChannel
 	GetMaxPostSize() int
-	GetParentsForExportAfter(limit int, afterId string) StoreChannel
-	GetRepliesForExport(parentId string) StoreChannel
+	GetParentsForExportAfter(limit int, afterId string) ([]*model.PostForExport, *model.AppError)
+	GetRepliesForExport(parentId string) ([]*model.ReplyForExport, *model.AppError)
 	GetDirectPostParentsForExportAfter(limit int, afterId string) ([]*model.DirectPostForExport, *model.AppError)
 }
 
@@ -314,14 +314,14 @@ type BotStore interface {
 type SessionStore interface {
 	Get(sessionIdOrToken string) (*model.Session, *model.AppError)
 	Save(session *model.Session) (*model.Session, *model.AppError)
-	GetSessions(userId string) StoreChannel
+	GetSessions(userId string) ([]*model.Session, *model.AppError)
 	GetSessionsWithActiveDeviceIds(userId string) ([]*model.Session, *model.AppError)
 	Remove(sessionIdOrToken string) StoreChannel
-	RemoveAllSessions() StoreChannel
-	PermanentDeleteSessionsByUser(teamId string) StoreChannel
+	RemoveAllSessions() *model.AppError
+	PermanentDeleteSessionsByUser(teamId string) *model.AppError
 	UpdateLastActivityAt(sessionId string, time int64) StoreChannel
 	UpdateRoles(userId string, roles string) StoreChannel
-	UpdateDeviceId(id string, deviceId string, expiresAt int64) StoreChannel
+	UpdateDeviceId(id string, deviceId string, expiresAt int64) (string, *model.AppError)
 	AnalyticsSessionCount() (int64, *model.AppError)
 	Cleanup(expiryTime int64, batchSize int64)
 }
@@ -431,7 +431,7 @@ type PreferenceStore interface {
 	Save(preferences *model.Preferences) *model.AppError
 	GetCategory(userId string, category string) (model.Preferences, *model.AppError)
 	Get(userId string, category string, name string) (*model.Preference, *model.AppError)
-	GetAll(userId string) StoreChannel
+	GetAll(userId string) (model.Preferences, *model.AppError)
 	Delete(userId, category, name string) StoreChannel
 	DeleteCategory(userId string, category string) *model.AppError
 	DeleteCategoryAndName(category string, name string) *model.AppError
