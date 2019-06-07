@@ -667,7 +667,7 @@ func (a *App) GetPermalinkPost(postId string, userId string) (*model.PostList, *
 }
 
 func (a *App) GetPostsBeforePost(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError) {
-	return  a.Srv.Store.Post().GetPostsBefore(channelId, postId, perPage, page*perPage)
+	return a.Srv.Store.Post().GetPostsBefore(channelId, postId, perPage, page*perPage)
 }
 
 func (a *App) GetPostsAfterPost(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError) {
@@ -677,7 +677,7 @@ func (a *App) GetPostsAfterPost(channelId, postId string, page, perPage int) (*m
 func (a *App) GetPostsAroundPost(postId, channelId string, offset, limit int, before bool) (*model.PostList, *model.AppError) {
 	if before {
 		return a.Srv.Store.Post().GetPostsBefore(channelId, postId, limit, offset)
-	} 
+	}
 	return a.Srv.Store.Post().GetPostsAfter(channelId, postId, limit, offset)
 }
 
