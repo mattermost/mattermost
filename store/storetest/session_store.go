@@ -124,8 +124,8 @@ func testSessionRemove(t *testing.T, ss store.Store) {
 		}
 	}
 
-	removeErr := ss.Session().Remove(s1.Id)
-	require.Nil(t, removeErr)
+	err = ss.Session().Remove(s1.Id)
+	require.Nil(t, err)
 	if _, err := ss.Session().Get(s1.Id); err == nil {
 		t.Fatal("should have been removed")
 	}
