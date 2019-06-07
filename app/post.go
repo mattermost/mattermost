@@ -236,7 +236,11 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 			replacementPost, rejectionReason := hooks.MessageWillBePosted(pluginContext, post)
 			if rejectionReason != "" {
-				rejectionError = model.NewAppError("createPost", "Post rejected by plugin. "+rejectionReason, nil, "", http.StatusBadRequest)
+				id := "Post rejected by plugin. " + rejectionReason
+				if rejectionReason == plugin.DismissPostError {
+					id = plugin.DismissPostError
+				}
+				rejectionError = model.NewAppError("createPost", id, nil, "", http.StatusBadRequest)
 				return false
 			}
 			if replacementPost != nil {
@@ -245,6 +249,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 
 			return true
 		}, plugin.MessageWillBePostedId)
+
 		if rejectionError != nil {
 			return nil, rejectionError
 		}
@@ -883,11 +888,11 @@ func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamId strin
 		// Get the posts
 		postList := model.NewPostList()
 		if len(postIds) > 0 {
-			presult := <-a.Srv.Store.Post().GetPostsByIds(postIds)
-			if presult.Err != nil {
-				return nil, presult.Err
+			posts, err := a.Srv.Store.Post().GetPostsByIds(postIds)
+			if err != nil {
+				return nil, err
 			}
-			for _, p := range presult.Data.([]*model.Post) {
+			for _, p := range posts {
 				if p.DeleteAt == 0 {
 					postList.AddPost(p)
 					postList.AddOrder(p.Id)
