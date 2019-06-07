@@ -67,10 +67,10 @@ func testSessionGet(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if rs2 := (<-ss.Session().GetSessions(s1.UserId)); rs2.Err != nil {
-		t.Fatal(rs2.Err)
+	if session, err := ss.Session().GetSessions(s1.UserId); err != nil {
+		t.Fatal(err)
 	} else {
-		if len(rs2.Data.([]*model.Session)) != 3 {
+		if len(session) != 3 {
 			t.Fatal("should match len")
 		}
 	}
@@ -146,7 +146,8 @@ func testSessionRemoveAll(t *testing.T, ss store.Store) {
 		}
 	}
 
-	store.Must(ss.Session().RemoveAllSessions())
+	removeErr := ss.Session().RemoveAllSessions()
+	require.Nil(t, removeErr)
 
 	if _, err := ss.Session().Get(s1.Id); err == nil {
 		t.Fatal("should have been removed")
@@ -197,10 +198,10 @@ func testSessionRemoveToken(t *testing.T, ss store.Store) {
 		t.Fatal("should have been removed")
 	}
 
-	if rs3 := (<-ss.Session().GetSessions(s1.UserId)); rs3.Err != nil {
-		t.Fatal(rs3.Err)
+	if session, err := ss.Session().GetSessions(s1.UserId); err != nil {
+		t.Fatal(err)
 	} else {
-		if len(rs3.Data.([]*model.Session)) != 0 {
+		if len(session) != 0 {
 			t.Fatal("should match len")
 		}
 	}
