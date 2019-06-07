@@ -354,13 +354,8 @@ func (a *App) newSession(appName string, user *model.User) (*model.Session, *mod
 
 func (a *App) newSessionUpdateToken(appName string, accessData *model.AccessData, user *model.User) (*model.AccessResponse, *model.AppError) {
 	// Remove the previous session
-	schan := make(chan *model.AppError, 1)
-	go func() {
-		removeErr := a.Srv.Store.Session().Remove(accessData.Token)
-		schan <- removeErr
-		close(schan)
-	}()
-	<-schan
+	a.Srv.Store.Session().Remove(accessData.Token)
+
 	session, err := a.newSession(appName, user)
 	if err != nil {
 		return nil, err
