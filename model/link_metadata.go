@@ -24,10 +24,25 @@ const (
 
 type LinkMetadataType string
 
-// checks if original string has more than 300 characters long, if so
-// it'll truncate it and add an ellipsis (it will be stripped within
-// the client, but in case it isn't we might as well add it so it is
-// properly understood)
+// LinkMetadata stores arbitrary data about a link posted in a message. This includes dimensions of linked images
+// and OpenGraph metadata.
+type LinkMetadata struct {
+	// Hash is a value computed from the URL and Timestamp for use as a primary key in the database.
+	Hash int64
+
+	URL       string
+	Timestamp int64
+	Type      LinkMetadataType
+
+	// Data is the actual metadata for the link. It should contain data of one of the following types:
+	// - *model.PostImage if the linked content is an image
+	// - *opengraph.OpenGraph if the linked content is an HTML document
+	// - nil if the linked content has no metadata
+	Data interface{}
+}
+
+// truncateText ensure string is 300 chars, truncate and add ellipsis
+// if it was bigger.
 func truncateText(original string) string {
 	if utf8.RuneCountInString(original) > 300 {
 		return fmt.Sprintf("%.300s[...]", original)
@@ -48,9 +63,9 @@ func firstNImages(images []*opengraph.Image, maxImages int) []*opengraph.Image {
 	return images
 }
 
-// TruncateOpenGraph modifies a OG into a smaller version to ensure it
-// doesn't grow too big, as that much text won't be displayed by the
-// clients anyway. Also remove unwanted fields
+// TruncateOpenGraph ensure OpenGraph metadata doesn't grow too big by
+// shortening strings, trimming fields and reducing the number of
+// images.
 func TruncateOpenGraph(ogdata *opengraph.OpenGraph) *opengraph.OpenGraph {
 	if ogdata != nil {
 		// we might want to truncate url too, but that can have unintended effect
@@ -93,23 +108,6 @@ func TruncateOpenGraph(ogdata *opengraph.OpenGraph) *opengraph.OpenGraph {
 
 	}
 	return ogdata
-}
-
-// LinkMetadata stores arbitrary data about a link posted in a message. This includes dimensions of linked images
-// and OpenGraph metadata.
-type LinkMetadata struct {
-	// Hash is a value computed from the URL and Timestamp for use as a primary key in the database.
-	Hash int64
-
-	URL       string
-	Timestamp int64
-	Type      LinkMetadataType
-
-	// Data is the actual metadata for the link. It should contain data of one of the following types:
-	// - *model.PostImage if the linked content is an image
-	// - *opengraph.OpenGraph if the linked content is an HTML document
-	// - nil if the linked content has no metadata
-	Data interface{}
 }
 
 func (o *LinkMetadata) PreSave() {
