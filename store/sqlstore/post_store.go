@@ -603,7 +603,7 @@ func (s *SqlPostStore) getPostsAround(channelId string, postId string, limit int
 	var posts []*model.Post
 	var parents []*model.Post
 	_, err := s.GetReplica().Select(&posts,
-	`SELECT
+		`SELECT
 			*
 		FROM
 			Posts
@@ -619,7 +619,7 @@ func (s *SqlPostStore) getPostsAround(channelId string, postId string, limit int
 		return nil, model.NewAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_around.get.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
 	}
 	_, err = s.GetReplica().Select(&parents,
-	`SELECT
+		`SELECT
 			q2.*
 		FROM
 			Posts q2
@@ -645,7 +645,7 @@ func (s *SqlPostStore) getPostsAround(channelId string, postId string, limit int
 			ChannelId = :ChannelId
 			AND DeleteAt = 0
 		ORDER BY CreateAt DESC`,
-	map[string]interface{}{"ChannelId": channelId, "PostId": postId, "Limit": limit, "Offset": offset})
+		map[string]interface{}{"ChannelId": channelId, "PostId": postId, "Limit": limit, "Offset": offset})
 
 	if err != nil {
 		return nil, model.NewAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_around.get_parent.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
