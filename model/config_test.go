@@ -593,7 +593,7 @@ func TestListenAddressIsValidated(t *testing.T) {
 		ss := &ServiceSettings{
 			ListenAddress: NewString(key),
 		}
-		ss.SetDefaults()
+		ss.SetDefaults(true)
 		if expected {
 			require.Nil(t, ss.isValid(), fmt.Sprintf("Got an error from '%v'.", key))
 		} else {

@@ -239,7 +239,7 @@ type PostStore interface {
 	GetOldest() StoreChannel
 	GetMaxPostSize() int
 	GetParentsForExportAfter(limit int, afterId string) ([]*model.PostForExport, *model.AppError)
-	GetRepliesForExport(parentId string) StoreChannel
+	GetRepliesForExport(parentId string) ([]*model.ReplyForExport, *model.AppError)
 	GetDirectPostParentsForExportAfter(limit int, afterId string) ([]*model.DirectPostForExport, *model.AppError)
 }
 
