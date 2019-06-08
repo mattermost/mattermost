@@ -68,44 +68,19 @@ func firstNImages(images []*opengraph.Image, maxImages int) []*opengraph.Image {
 // images.
 func TruncateOpenGraph(ogdata *opengraph.OpenGraph) *opengraph.OpenGraph {
 	if ogdata != nil {
-		// we might want to truncate url too, but that can have unintended effect
-		if ogdata.Title != "" {
-			ogdata.Title = truncateText(ogdata.Title)
-		}
-		if ogdata.Description != "" {
-			ogdata.Description = truncateText(ogdata.Description)
-		}
-		if ogdata.SiteName != "" {
-			ogdata.SiteName = truncateText(ogdata.SiteName)
-		}
-		if ogdata.Article != nil {
-			ogdata.Article = nil
-		}
-		if ogdata.Book != nil {
-			ogdata.Book = nil
-		}
-		if ogdata.Profile != nil {
-			ogdata.Profile = nil
-		}
-		if ogdata.Determiner != "" {
-			ogdata.Determiner = ""
-		}
-		if ogdata.Locale != "" {
-			ogdata.Locale = ""
-		}
-		if ogdata.LocalesAlternate != nil {
-			ogdata.LocalesAlternate = make([]string, 0)
-		}
-		if len(ogdata.Images) > 0 {
-			ogdata.Images = firstNImages(ogdata.Images, MAX_IMAGES)
-		}
-		if len(ogdata.Audios) > 0 {
-			ogdata.Audios = make([]*opengraph.Audio, 0)
-		}
-		if len(ogdata.Videos) > 0 {
-			ogdata.Videos = make([]*opengraph.Video, 0)
-		}
-
+		empty := &opengraph.OpenGraph{}
+		ogdata.Title = truncateText(ogdata.Title)
+		ogdata.Description = truncateText(ogdata.Description)
+		ogdata.SiteName = truncateText(ogdata.SiteName)
+		ogdata.Article = empty.Article
+		ogdata.Book = empty.Book
+		ogdata.Profile = empty.Profile
+		ogdata.Determiner = empty.Determiner
+		ogdata.Locale = empty.Locale
+		ogdata.LocalesAlternate = empty.LocalesAlternate
+		ogdata.Images = firstNImages(ogdata.Images, MAX_IMAGES)
+		ogdata.Audios = empty.Audios
+		ogdata.Videos = empty.Videos
 	}
 	return ogdata
 }
