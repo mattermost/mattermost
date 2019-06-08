@@ -302,19 +302,28 @@ func (_m *PostStore) GetPosts(channelId string, offset int, limit int, allowFrom
 }
 
 // GetPostsAfter provides a mock function with given fields: channelId, postId, numPosts, offset
-func (_m *PostStore) GetPostsAfter(channelId string, postId string, numPosts int, offset int) store.StoreChannel {
+func (_m *PostStore) GetPostsAfter(channelId string, postId string, numPosts int, offset int) (*model.PostList, *model.AppError) {
 	ret := _m.Called(channelId, postId, numPosts, offset)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, string, int, int) store.StoreChannel); ok {
+	var r0 *model.PostList
+	if rf, ok := ret.Get(0).(func(string, string, int, int) *model.PostList); ok {
 		r0 = rf(channelId, postId, numPosts, offset)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.PostList)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string, int, int) *model.AppError); ok {
+		r1 = rf(channelId, postId, numPosts, offset)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetPostsBatchForIndexing provides a mock function with given fields: startTime, endTime, limit
@@ -334,19 +343,28 @@ func (_m *PostStore) GetPostsBatchForIndexing(startTime int64, endTime int64, li
 }
 
 // GetPostsBefore provides a mock function with given fields: channelId, postId, numPosts, offset
-func (_m *PostStore) GetPostsBefore(channelId string, postId string, numPosts int, offset int) store.StoreChannel {
+func (_m *PostStore) GetPostsBefore(channelId string, postId string, numPosts int, offset int) (*model.PostList, *model.AppError) {
 	ret := _m.Called(channelId, postId, numPosts, offset)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, string, int, int) store.StoreChannel); ok {
+	var r0 *model.PostList
+	if rf, ok := ret.Get(0).(func(string, string, int, int) *model.PostList); ok {
 		r0 = rf(channelId, postId, numPosts, offset)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.PostList)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string, int, int) *model.AppError); ok {
+		r1 = rf(channelId, postId, numPosts, offset)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetPostsByIds provides a mock function with given fields: postIds
