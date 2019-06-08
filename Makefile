@@ -121,7 +121,7 @@ endif
 stop-docker: ## Stops the docker containers for local development.
 	@echo Stopping docker containers
 
-	docker-compose --no-ansi -f ./build/docker-compose.yml down -v
+	docker-compose --no-ansi -f ./build/docker-compose.yml stop
 
 
 clean-docker: ## Deletes the docker containers for local development.
