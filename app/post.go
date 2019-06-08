@@ -667,34 +667,18 @@ func (a *App) GetPermalinkPost(postId string, userId string) (*model.PostList, *
 }
 
 func (a *App) GetPostsBeforePost(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError) {
-	result := <-a.Srv.Store.Post().GetPostsBefore(channelId, postId, perPage, page*perPage)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.PostList), nil
+	return a.Srv.Store.Post().GetPostsBefore(channelId, postId, perPage, page*perPage)
 }
 
 func (a *App) GetPostsAfterPost(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError) {
-	result := <-a.Srv.Store.Post().GetPostsAfter(channelId, postId, perPage, page*perPage)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.PostList), nil
+	return a.Srv.Store.Post().GetPostsAfter(channelId, postId, perPage, page*perPage)
 }
 
 func (a *App) GetPostsAroundPost(postId, channelId string, offset, limit int, before bool) (*model.PostList, *model.AppError) {
-	var pchan store.StoreChannel
 	if before {
-		pchan = a.Srv.Store.Post().GetPostsBefore(channelId, postId, limit, offset)
-	} else {
-		pchan = a.Srv.Store.Post().GetPostsAfter(channelId, postId, limit, offset)
+		return a.Srv.Store.Post().GetPostsBefore(channelId, postId, limit, offset)
 	}
-
-	result := <-pchan
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.PostList), nil
+	return a.Srv.Store.Post().GetPostsAfter(channelId, postId, limit, offset)
 }
 
 func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppError) {
