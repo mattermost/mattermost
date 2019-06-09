@@ -278,9 +278,8 @@ func TestModifyTeam(t *testing.T) {
 	defer th.TearDown()
 
 	team := th.CreateTeam()
-	user := th.CreateUser()
 
-	th.CheckCommand(t, "team", "modify", team.Name, "--private", "--username", user.FirstName)
+	th.CheckCommand(t, "team", "modify", team.Name, "--private")
 
 	updatedTeam, _ := th.App.GetTeam(team.Id)
 
@@ -288,7 +287,7 @@ func TestModifyTeam(t *testing.T) {
 		t.Fatal("Failed modifying team's privacy to private")
 	}
 
-	th.CheckCommand(t, "team", "modify", team.Name, "--public", "--username", user.FirstName)
+	th.CheckCommand(t, "team", "modify", team.Name, "--public")
 
 	if updatedTeam.AllowOpenInvite && team.Type == model.TEAM_OPEN {
 		t.Fatal("Failed modifying team's privacy to private")

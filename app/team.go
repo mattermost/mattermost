@@ -183,7 +183,7 @@ func (a *App) UpdateTeamScheme(team *model.Team) (*model.Team, *model.AppError) 
 	return oldTeam, nil
 }
 
-func (a *App) UpdateTeamPrivacy(team *model.Team, user *model.User) (*model.Team, *model.AppError) {
+func (a *App) UpdateTeamPrivacy(team *model.Team) (*model.Team, *model.AppError) {
 	oldTeam, err := a.GetTeam(team.Id)
 	if err != nil {
 		return nil, err

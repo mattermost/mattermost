@@ -101,11 +101,10 @@ var TeamRenameCmd = &cobra.Command{
 }
 
 var ModifyTeamCmd = &cobra.Command{
-	Use:     "modify [team] [flag] --username [user]",
+	Use:     "modify [team] [flag]",
 	Short:   "Modify a team's privacy setting to public or private",
 	Long:    `Modify a team's privacy setting to public or private.`,
-	Example: "  team modify myteam --private --username myusername",
-	Args:    cobra.MinimumNArgs(1),
+	Example: "  team modify myteam --private",
 	RunE:    modifyTeamCmdF,
 }
 
@@ -121,7 +120,6 @@ func init() {
 
 	ModifyTeamCmd.Flags().Bool("private", false, "Convert the team to a private team")
 	ModifyTeamCmd.Flags().Bool("public", false, "Convert the team to a public team")
-	ModifyTeamCmd.Flags().String("username", "", "Required. Username who changes the team privacy.")
 
 	TeamCmd.AddCommand(
 		TeamCreateCmd,
@@ -437,12 +435,6 @@ func modifyTeamCmdF(command *cobra.Command, args []string) error {
 		return errors.New("Unable to find team '" + args[0] + "'")
 	}
 
-	username, err := command.Flags().GetString("username")
-	if username == "" || err != nil {
-		return errors.New("Username is required.")
-	}
-	user := getUserFromUserArg(a, username)
-
 	public, _ := command.Flags().GetBool("public")
 	private, _ := command.Flags().GetBool("private")
 
@@ -458,7 +450,7 @@ func modifyTeamCmdF(command *cobra.Command, args []string) error {
 		team.AllowOpenInvite = false
 	}
 
-	if _, err := a.UpdateTeamPrivacy(team, user); err != nil {
+	if _, err := a.UpdateTeamPrivacy(team); err != nil {
 		return errors.New("Failed to update privacy for team" + args[0])
 	}
 
