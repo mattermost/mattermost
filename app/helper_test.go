@@ -71,6 +71,15 @@ func setupTestHelper(enterprise bool, tb testing.TB) *TestHelper {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
 
+	// Disable strict password requirements for test
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PasswordSettings.MinimumLength = 5
+		*cfg.PasswordSettings.Lowercase = false
+		*cfg.PasswordSettings.Uppercase = false
+		*cfg.PasswordSettings.Symbol = false
+		*cfg.PasswordSettings.Number = false
+	})
+
 	if enterprise {
 		th.App.SetLicense(model.NewTestLicense())
 	} else {
@@ -378,17 +387,17 @@ func (me *TestHelper) CreateGroup() *model.Group {
 func (me *TestHelper) CreateEmoji() *model.Emoji {
 	utils.DisableDebugLogForTest()
 
-	result := <-me.App.Srv.Store.Emoji().Save(&model.Emoji{
+	emoji, err := me.App.Srv.Store.Emoji().Save(&model.Emoji{
 		CreatorId: me.BasicUser.Id,
 		Name:      model.NewRandomString(10),
 	})
-	if result.Err != nil {
-		panic(result.Err)
+	if err != nil {
+		panic(err)
 	}
 
 	utils.EnableDebugLogForTest()
 
-	return result.Data.(*model.Emoji)
+	return emoji
 }
 
 func (me *TestHelper) AddReactionToPost(post *model.Post, user *model.User, emojiName string) *model.Reaction {

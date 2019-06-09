@@ -212,13 +212,13 @@ func (_m *ChannelStore) GetAllChannelMembersNotifyPropsForChannel(channelId stri
 	return r0
 }
 
-// GetAllChannels provides a mock function with given fields: page, perPage, includeDeleted
-func (_m *ChannelStore) GetAllChannels(page int, perPage int, includeDeleted bool) store.StoreChannel {
-	ret := _m.Called(page, perPage, includeDeleted)
+// GetAllChannels provides a mock function with given fields: page, perPage, opts
+func (_m *ChannelStore) GetAllChannels(page int, perPage int, opts store.ChannelSearchOpts) store.StoreChannel {
+	ret := _m.Called(page, perPage, opts)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(int, int, bool) store.StoreChannel); ok {
-		r0 = rf(page, perPage, includeDeleted)
+	if rf, ok := ret.Get(0).(func(int, int, store.ChannelSearchOpts) store.StoreChannel); ok {
+		r0 = rf(page, perPage, opts)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)
@@ -947,19 +947,28 @@ func (_m *ChannelStore) Restore(channelId string, time int64) *model.AppError {
 }
 
 // Save provides a mock function with given fields: channel, maxChannelsPerTeam
-func (_m *ChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) store.StoreChannel {
+func (_m *ChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, *model.AppError) {
 	ret := _m.Called(channel, maxChannelsPerTeam)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(*model.Channel, int64) store.StoreChannel); ok {
+	var r0 *model.Channel
+	if rf, ok := ret.Get(0).(func(*model.Channel, int64) *model.Channel); ok {
 		r0 = rf(channel, maxChannelsPerTeam)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.Channel)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.Channel, int64) *model.AppError); ok {
+		r1 = rf(channel, maxChannelsPerTeam)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // SaveDirectChannel provides a mock function with given fields: channel, member1, member2
@@ -1003,13 +1012,13 @@ func (_m *ChannelStore) SaveMember(member *model.ChannelMember) store.StoreChann
 	return r0
 }
 
-// SearchAllChannels provides a mock function with given fields: term, includeDeleted
-func (_m *ChannelStore) SearchAllChannels(term string, includeDeleted bool) store.StoreChannel {
-	ret := _m.Called(term, includeDeleted)
+// SearchAllChannels provides a mock function with given fields: term, opts
+func (_m *ChannelStore) SearchAllChannels(term string, opts store.ChannelSearchOpts) store.StoreChannel {
+	ret := _m.Called(term, opts)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, bool) store.StoreChannel); ok {
-		r0 = rf(term, includeDeleted)
+	if rf, ok := ret.Get(0).(func(string, store.ChannelSearchOpts) store.StoreChannel); ok {
+		r0 = rf(term, opts)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)

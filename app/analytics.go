@@ -206,7 +206,12 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			close(commandChan)
 		}()
 
-		sessionChan := a.Srv.Store.Session().AnalyticsSessionCount()
+		sessionChan := make(chan store.StoreResult, 1)
+		go func() {
+			count, err := a.Srv.Store.Session().AnalyticsSessionCount()
+			sessionChan <- store.StoreResult{Data: count, Err: err}
+			close(sessionChan)
+		}()
 
 		var fileChan store.StoreChannel
 		var hashtagChan store.StoreChannel

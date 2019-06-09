@@ -70,8 +70,8 @@ func testPostStoreSave(t *testing.T, ss store.Store) {
 
 func testPostStoreSaveChannelMsgCounts(t *testing.T, ss store.Store) {
 	c1 := &model.Channel{Name: model.NewId(), DisplayName: "posttestchannel", Type: model.CHANNEL_OPEN}
-	res := <-ss.Channel().Save(c1, 1000000)
-	require.Nil(t, res.Err)
+	_, err := ss.Channel().Save(c1, 1000000)
+	require.Nil(t, err)
 
 	o1 := model.Post{}
 	o1.ChannelId = c1.Id
@@ -80,7 +80,7 @@ func testPostStoreSaveChannelMsgCounts(t *testing.T, ss store.Store) {
 
 	require.Nil(t, (<-ss.Post().Save(&o1)).Err)
 
-	c1, err := ss.Channel().Get(c1.Id, false)
+	c1, err = ss.Channel().Get(c1.Id, false)
 	require.Nil(t, err)
 	assert.Equal(t, int64(1), c1.TotalMsgCount, "Message count should update by 1")
 
@@ -116,31 +116,31 @@ func testPostStoreGet(t *testing.T, ss store.Store) {
 	o1.UserId = model.NewId()
 	o1.Message = "zz" + model.NewId() + "b"
 
-	etag1 := (<-ss.Post().GetEtag(o1.ChannelId, false)).Data.(string)
+	etag1 := ss.Post().GetEtag(o1.ChannelId, false)
 	if strings.Index(etag1, model.CurrentVersion+".") != 0 {
 		t.Fatal("Invalid Etag")
 	}
 
 	o1 = (<-ss.Post().Save(o1)).Data.(*model.Post)
 
-	etag2 := (<-ss.Post().GetEtag(o1.ChannelId, false)).Data.(string)
+	etag2 := ss.Post().GetEtag(o1.ChannelId, false)
 	if strings.Index(etag2, fmt.Sprintf("%v.%v", model.CurrentVersion, o1.UpdateAt)) != 0 {
 		t.Fatal("Invalid Etag")
 	}
 
-	if r1 := <-ss.Post().Get(o1.Id); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		if r1.Data.(*model.PostList).Posts[o1.Id].CreateAt != o1.CreateAt {
-			t.Fatal("invalid returned post")
-		}
+	r1, err := ss.Post().Get(o1.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r1.Posts[o1.Id].CreateAt != o1.CreateAt {
+		t.Fatal("invalid returned post")
 	}
 
-	if err := (<-ss.Post().Get("123")).Err; err == nil {
+	if _, err = ss.Post().Get("123"); err == nil {
 		t.Fatal("Missing id should have failed")
 	}
 
-	if err := (<-ss.Post().Get("")).Err; err == nil {
+	if _, err = ss.Post().Get(""); err == nil {
 		t.Fatal("should fail for blank post ids")
 	}
 }
@@ -153,15 +153,15 @@ func testPostStoreGetSingle(t *testing.T, ss store.Store) {
 
 	o1 = (<-ss.Post().Save(o1)).Data.(*model.Post)
 
-	if r1 := <-ss.Post().GetSingle(o1.Id); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if post, err := ss.Post().GetSingle(o1.Id); err != nil {
+		t.Fatal(err)
 	} else {
-		if r1.Data.(*model.Post).CreateAt != o1.CreateAt {
+		if post.CreateAt != o1.CreateAt {
 			t.Fatal("invalid returned post")
 		}
 	}
 
-	if err := (<-ss.Post().GetSingle("123")).Err; err == nil {
+	if _, err := ss.Post().GetSingle("123"); err == nil {
 		t.Fatal("Missing id should have failed")
 	}
 }
@@ -172,13 +172,13 @@ func testGetEtagCache(t *testing.T, ss store.Store) {
 	o1.UserId = model.NewId()
 	o1.Message = "zz" + model.NewId() + "b"
 
-	etag1 := (<-ss.Post().GetEtag(o1.ChannelId, true)).Data.(string)
+	etag1 := ss.Post().GetEtag(o1.ChannelId, true)
 	if strings.Index(etag1, model.CurrentVersion+".") != 0 {
 		t.Fatal("Invalid Etag")
 	}
 
 	// This one should come from the cache
-	etag2 := (<-ss.Post().GetEtag(o1.ChannelId, true)).Data.(string)
+	etag2 := ss.Post().GetEtag(o1.ChannelId, true)
 	if strings.Index(etag2, model.CurrentVersion+".") != 0 {
 		t.Fatal("Invalid Etag")
 	}
@@ -186,7 +186,7 @@ func testGetEtagCache(t *testing.T, ss store.Store) {
 	o1 = (<-ss.Post().Save(o1)).Data.(*model.Post)
 
 	// We have not invalidated the cache so this should be the same as above
-	etag3 := (<-ss.Post().GetEtag(o1.ChannelId, true)).Data.(string)
+	etag3 := ss.Post().GetEtag(o1.ChannelId, true)
 	if strings.Index(etag3, etag2) != 0 {
 		t.Fatal("Invalid Etag")
 	}
@@ -194,7 +194,7 @@ func testGetEtagCache(t *testing.T, ss store.Store) {
 	ss.Post().InvalidateLastPostTimeCache(o1.ChannelId)
 
 	// Invalidated cache so we should get a good result
-	etag4 := (<-ss.Post().GetEtag(o1.ChannelId, true)).Data.(string)
+	etag4 := ss.Post().GetEtag(o1.ChannelId, true)
 	if strings.Index(etag4, fmt.Sprintf("%v.%v", model.CurrentVersion, o1.UpdateAt)) != 0 {
 		t.Fatal("Invalid Etag")
 	}
@@ -221,9 +221,21 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 	o3.Message = "zz" + model.NewId() + "QQQQQQQQQQ"
 	o3 = (<-ss.Post().Save(o3)).Data.(*model.Post)
 
-	ro1 := (<-ss.Post().Get(o1.Id)).Data.(*model.PostList).Posts[o1.Id]
-	ro2 := (<-ss.Post().Get(o1.Id)).Data.(*model.PostList).Posts[o2.Id]
-	ro3 := (<-ss.Post().Get(o3.Id)).Data.(*model.PostList).Posts[o3.Id]
+	r1, err := ss.Post().Get(o1.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ro1 := r1.Posts[o1.Id]
+	r2, err := ss.Post().Get(o1.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ro2 := r2.Posts[o2.Id]
+	r3, err := ss.Post().Get(o3.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ro3 := r3.Posts[o3.Id]
 
 	if ro1.Message != o1.Message {
 		t.Fatal("Failed to save/get")
@@ -232,12 +244,16 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 	o1a := &model.Post{}
 	*o1a = *ro1
 	o1a.Message = ro1.Message + "BBBBBBBBBB"
-	if result := <-ss.Post().Update(o1a, ro1); result.Err != nil {
-		t.Fatal(result.Err)
+	if _, err = ss.Post().Update(o1a, ro1); err != nil {
+		t.Fatal(err)
 	}
 
-	ro1a := (<-ss.Post().Get(o1.Id)).Data.(*model.PostList).Posts[o1.Id]
+	r1, err = ss.Post().Get(o1.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
 
+	ro1a := r1.Posts[o1.Id]
 	if ro1a.Message != o1a.Message {
 		t.Fatal("Failed to update/get")
 	}
@@ -245,11 +261,15 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 	o2a := &model.Post{}
 	*o2a = *ro2
 	o2a.Message = ro2.Message + "DDDDDDD"
-	if result := <-ss.Post().Update(o2a, ro2); result.Err != nil {
-		t.Fatal(result.Err)
+	if _, err = ss.Post().Update(o2a, ro2); err != nil {
+		t.Fatal(err)
 	}
 
-	ro2a := (<-ss.Post().Get(o1.Id)).Data.(*model.PostList).Posts[o2.Id]
+	r2, err = ss.Post().Get(o1.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ro2a := r2.Posts[o2.Id]
 
 	if ro2a.Message != o2a.Message {
 		t.Fatal("Failed to update/get")
@@ -258,11 +278,15 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 	o3a := &model.Post{}
 	*o3a = *ro3
 	o3a.Message = ro3.Message + "WWWWWWW"
-	if result := <-ss.Post().Update(o3a, ro3); result.Err != nil {
-		t.Fatal(result.Err)
+	if _, err = ss.Post().Update(o3a, ro3); err != nil {
+		t.Fatal(err)
 	}
 
-	ro3a := (<-ss.Post().Get(o3.Id)).Data.(*model.PostList).Posts[o3.Id]
+	r3, err = ss.Post().Get(o3.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ro3a := r3.Posts[o3.Id]
 
 	if ro3a.Message != o3a.Message && ro3a.Hashtags != o3a.Hashtags {
 		t.Fatal("Failed to update/get")
@@ -275,17 +299,26 @@ func testPostStoreUpdate(t *testing.T, ss store.Store) {
 		Filenames: []string{"test"},
 	})).(*model.Post)
 
-	ro4 := (<-ss.Post().Get(o4.Id)).Data.(*model.PostList).Posts[o4.Id]
+	r4, err := ss.Post().Get(o4.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ro4 := r4.Posts[o4.Id]
 
 	o4a := &model.Post{}
 	*o4a = *ro4
 	o4a.Filenames = []string{}
 	o4a.FileIds = []string{model.NewId()}
-	if result := <-ss.Post().Update(o4a, ro4); result.Err != nil {
-		t.Fatal(result.Err)
+	if _, err = ss.Post().Update(o4a, ro4); err != nil {
+		t.Fatal(err)
 	}
 
-	if ro4a := store.Must(ss.Post().Get(o4.Id)).(*model.PostList).Posts[o4.Id]; len(ro4a.Filenames) != 0 {
+	r4, err = ss.Post().Get(o4.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if ro4a := r4.Posts[o4.Id]; len(ro4a.Filenames) != 0 {
 		t.Fatal("Failed to clear Filenames")
 	} else if len(ro4a.FileIds) != 1 {
 		t.Fatal("Failed to set FileIds")
@@ -299,17 +332,17 @@ func testPostStoreDelete(t *testing.T, ss store.Store) {
 	o1.Message = "zz" + model.NewId() + "b"
 	deleteByID := model.NewId()
 
-	etag1 := (<-ss.Post().GetEtag(o1.ChannelId, false)).Data.(string)
+	etag1 := ss.Post().GetEtag(o1.ChannelId, false)
 	if strings.Index(etag1, model.CurrentVersion+".") != 0 {
 		t.Fatal("Invalid Etag")
 	}
 
 	o1 = (<-ss.Post().Save(o1)).Data.(*model.Post)
 
-	if r1 := <-ss.Post().Get(o1.Id); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if r1, err := ss.Post().Get(o1.Id); err != nil {
+		t.Fatal(err)
 	} else {
-		if r1.Data.(*model.PostList).Posts[o1.Id].CreateAt != o1.CreateAt {
+		if r1.Posts[o1.Id].CreateAt != o1.CreateAt {
 			t.Fatal("invalid returned post")
 		}
 	}
@@ -318,19 +351,19 @@ func testPostStoreDelete(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	r5 := <-ss.Post().GetPostsCreatedAt(o1.ChannelId, o1.CreateAt)
-	post := r5.Data.([]*model.Post)[0]
+	posts, _ := ss.Post().GetPostsCreatedAt(o1.ChannelId, o1.CreateAt)
+	post := posts[0]
 	actual := post.Props[model.POST_PROPS_DELETE_BY]
 	if actual != deleteByID {
 		t.Errorf("Expected (*Post).Props[model.POST_PROPS_DELETE_BY] to be %v but got %v.", deleteByID, actual)
 	}
 
-	if r3 := (<-ss.Post().Get(o1.Id)); r3.Err == nil {
-		t.Log(r3.Data)
+	if r3, err := ss.Post().Get(o1.Id); err == nil {
+		t.Log(r3)
 		t.Fatal("Missing id should have failed")
 	}
 
-	etag2 := (<-ss.Post().GetEtag(o1.ChannelId, false)).Data.(string)
+	etag2 := ss.Post().GetEtag(o1.ChannelId, false)
 	if strings.Index(etag2, model.CurrentVersion+".") != 0 {
 		t.Fatal("Invalid Etag")
 	}
@@ -355,11 +388,11 @@ func testPostStoreDelete1Level(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	if r3 := (<-ss.Post().Get(o1.Id)); r3.Err == nil {
+	if _, err := ss.Post().Get(o1.Id); err == nil {
 		t.Fatal("Deleted id should have failed")
 	}
 
-	if r4 := (<-ss.Post().Get(o2.Id)); r4.Err == nil {
+	if _, err := ss.Post().Get(o2.Id); err == nil {
 		t.Fatal("Deleted id should have failed")
 	}
 }
@@ -397,20 +430,20 @@ func testPostStoreDelete2Level(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	if r3 := (<-ss.Post().Get(o1.Id)); r3.Err == nil {
+	if _, err := ss.Post().Get(o1.Id); err == nil {
 		t.Fatal("Deleted id should have failed")
 	}
 
-	if r4 := (<-ss.Post().Get(o2.Id)); r4.Err == nil {
+	if _, err := ss.Post().Get(o2.Id); err == nil {
 		t.Fatal("Deleted id should have failed")
 	}
 
-	if r5 := (<-ss.Post().Get(o3.Id)); r5.Err == nil {
+	if _, err := ss.Post().Get(o3.Id); err == nil {
 		t.Fatal("Deleted id should have failed")
 	}
 
-	if r6 := <-ss.Post().Get(o4.Id); r6.Err != nil {
-		t.Fatal(r6.Err)
+	if _, err := ss.Post().Get(o4.Id); err != nil {
+		t.Fatal(err)
 	}
 }
 
@@ -439,19 +472,19 @@ func testPostStorePermDelete1Level(t *testing.T, ss store.Store) {
 		t.Fatal(r2.Err)
 	}
 
-	if r3 := (<-ss.Post().Get(o1.Id)); r3.Err != nil {
+	if _, err := ss.Post().Get(o1.Id); err != nil {
 		t.Fatal("Deleted id shouldn't have failed")
 	}
 
-	if r4 := (<-ss.Post().Get(o2.Id)); r4.Err == nil {
+	if _, err := ss.Post().Get(o2.Id); err == nil {
 		t.Fatal("Deleted id should have failed")
 	}
 
-	if r2 := <-ss.Post().PermanentDeleteByChannel(o3.ChannelId); r2.Err != nil {
-		t.Fatal(r2.Err)
+	if err := ss.Post().PermanentDeleteByChannel(o3.ChannelId); err != nil {
+		t.Fatal(err)
 	}
 
-	if r3 := (<-ss.Post().Get(o3.Id)); r3.Err == nil {
+	if _, err := ss.Post().Get(o3.Id); err == nil {
 		t.Fatal("Deleted id should have failed")
 	}
 }
@@ -481,15 +514,15 @@ func testPostStorePermDelete1Level2(t *testing.T, ss store.Store) {
 		t.Fatal(r2.Err)
 	}
 
-	if r3 := (<-ss.Post().Get(o1.Id)); r3.Err == nil {
+	if _, err := ss.Post().Get(o1.Id); err == nil {
 		t.Fatal("Deleted id should have failed")
 	}
 
-	if r4 := (<-ss.Post().Get(o2.Id)); r4.Err == nil {
+	if _, err := ss.Post().Get(o2.Id); err == nil {
 		t.Fatal("Deleted id should have failed")
 	}
 
-	if r5 := (<-ss.Post().Get(o3.Id)); r5.Err != nil {
+	if _, err := ss.Post().Get(o3.Id); err != nil {
 		t.Fatal("Deleted id shouldn't have failed")
 	}
 }
@@ -517,39 +550,39 @@ func testPostStoreGetWithChildren(t *testing.T, ss store.Store) {
 	o3.RootId = o1.Id
 	o3 = (<-ss.Post().Save(o3)).Data.(*model.Post)
 
-	if r1 := <-ss.Post().Get(o1.Id); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		pl := r1.Data.(*model.PostList)
-		if len(pl.Posts) != 3 {
-			t.Fatal("invalid returned post")
-		}
-	}
-
-	if err := ss.Post().Delete(o3.Id, model.GetMillis(), ""); err != nil {
+	pl, err := ss.Post().Get(o1.Id)
+	if err != nil {
 		t.Fatal(err)
 	}
 
-	if r2 := <-ss.Post().Get(o1.Id); r2.Err != nil {
-		t.Fatal(r2.Err)
-	} else {
-		pl := r2.Data.(*model.PostList)
-		if len(pl.Posts) != 2 {
-			t.Fatal("invalid returned post")
-		}
+	if len(pl.Posts) != 3 {
+		t.Fatal("invalid returned post")
 	}
 
-	if err := ss.Post().Delete(o2.Id, model.GetMillis(), ""); err != nil {
+	if dErr := ss.Post().Delete(o3.Id, model.GetMillis(), ""); dErr != nil {
+		t.Fatal(dErr)
+	}
+
+	pl, err = ss.Post().Get(o1.Id)
+	if err != nil {
 		t.Fatal(err)
 	}
 
-	if r3 := <-ss.Post().Get(o1.Id); r3.Err != nil {
-		t.Fatal(r3.Err)
-	} else {
-		pl := r3.Data.(*model.PostList)
-		if len(pl.Posts) != 1 {
-			t.Fatal("invalid returned post")
-		}
+	if len(pl.Posts) != 2 {
+		t.Fatal("invalid returned post")
+	}
+
+	if dErr := ss.Post().Delete(o2.Id, model.GetMillis(), ""); dErr != nil {
+		t.Fatal(dErr)
+	}
+
+	pl, err = ss.Post().Get(o1.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(pl.Posts) != 1 {
+		t.Fatal("invalid returned post")
 	}
 }
 
@@ -603,7 +636,8 @@ func testPostStoreGetPostsWithDetails(t *testing.T, ss store.Store) {
 	o5.RootId = o4.Id
 	o5 = (<-ss.Post().Save(o5)).Data.(*model.Post)
 
-	r1 := (<-ss.Post().GetPosts(o1.ChannelId, 0, 4, false)).Data.(*model.PostList)
+	r1, err := ss.Post().GetPosts(o1.ChannelId, 0, 4, false)
+	require.Nil(t, err)
 
 	if r1.Order[0] != o5.Id {
 		t.Fatal("invalid order")
@@ -629,7 +663,8 @@ func testPostStoreGetPostsWithDetails(t *testing.T, ss store.Store) {
 		t.Fatal("Missing parent")
 	}
 
-	r2 := (<-ss.Post().GetPosts(o1.ChannelId, 0, 4, true)).Data.(*model.PostList)
+	r2, err := ss.Post().GetPosts(o1.ChannelId, 0, 4, true)
+	require.Nil(t, err)
 
 	if r2.Order[0] != o5.Id {
 		t.Fatal("invalid order")
@@ -656,7 +691,7 @@ func testPostStoreGetPostsWithDetails(t *testing.T, ss store.Store) {
 	}
 
 	// Run once to fill cache
-	<-ss.Post().GetPosts(o1.ChannelId, 0, 30, true)
+	ss.Post().GetPosts(o1.ChannelId, 0, 30, true)
 
 	o6 := &model.Post{}
 	o6.ChannelId = o1.ChannelId
@@ -665,118 +700,192 @@ func testPostStoreGetPostsWithDetails(t *testing.T, ss store.Store) {
 	_ = (<-ss.Post().Save(o6)).Data.(*model.Post)
 
 	// Should only be 6 since we hit the cache
-	r3 := (<-ss.Post().GetPosts(o1.ChannelId, 0, 30, true)).Data.(*model.PostList)
+	r3, err := ss.Post().GetPosts(o1.ChannelId, 0, 30, true)
+	require.Nil(t, err)
 	assert.Equal(t, 6, len(r3.Order))
 
 	ss.Post().InvalidateLastPostTimeCache(o1.ChannelId)
 
 	// Cache was invalidated, we should get all the posts
-	r4 := (<-ss.Post().GetPosts(o1.ChannelId, 0, 30, true)).Data.(*model.PostList)
+	r4, err := ss.Post().GetPosts(o1.ChannelId, 0, 30, true)
+	require.Nil(t, err)
 	assert.Equal(t, 7, len(r4.Order))
 }
 
 func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
-	o0 := &model.Post{}
-	o0.ChannelId = model.NewId()
-	o0.UserId = model.NewId()
-	o0.Message = "zz" + model.NewId() + "b"
-	_ = (<-ss.Post().Save(o0)).Data.(*model.Post)
-	time.Sleep(2 * time.Millisecond)
+	t.Run("without threads", func(t *testing.T) {
+		channelId := model.NewId()
+		userId := model.NewId()
 
-	o1 := &model.Post{}
-	o1.ChannelId = model.NewId()
-	o1.UserId = model.NewId()
-	o1.Message = "zz" + model.NewId() + "b"
-	o1 = (<-ss.Post().Save(o1)).Data.(*model.Post)
-	time.Sleep(2 * time.Millisecond)
+		var posts []*model.Post
+		for i := 0; i < 10; i++ {
+			post := store.Must(ss.Post().Save(&model.Post{
+				ChannelId: channelId,
+				UserId:    userId,
+				Message:   "message",
+			})).(*model.Post)
 
-	o2 := &model.Post{}
-	o2.ChannelId = o1.ChannelId
-	o2.UserId = model.NewId()
-	o2.Message = "zz" + model.NewId() + "b"
-	o2.ParentId = o1.Id
-	o2.RootId = o1.Id
-	o2 = (<-ss.Post().Save(o2)).Data.(*model.Post)
-	time.Sleep(2 * time.Millisecond)
+			posts = append(posts, post)
 
-	o2a := &model.Post{}
-	o2a.ChannelId = o1.ChannelId
-	o2a.UserId = model.NewId()
-	o2a.Message = "zz" + model.NewId() + "b"
-	o2a.ParentId = o1.Id
-	o2a.RootId = o1.Id
-	o2a = (<-ss.Post().Save(o2a)).Data.(*model.Post)
-	time.Sleep(2 * time.Millisecond)
+			time.Sleep(time.Millisecond)
+		}
 
-	o3 := &model.Post{}
-	o3.ChannelId = o1.ChannelId
-	o3.UserId = model.NewId()
-	o3.Message = "zz" + model.NewId() + "b"
-	o3.ParentId = o1.Id
-	o3.RootId = o1.Id
-	o3 = (<-ss.Post().Save(o3)).Data.(*model.Post)
-	time.Sleep(2 * time.Millisecond)
+		t.Run("should not return anything before the first post", func(t *testing.T) {
+			postList, err := ss.Post().GetPostsBefore(channelId, posts[0].Id, 10, 0)
+			assert.Nil(t, err)
 
-	o4 := &model.Post{}
-	o4.ChannelId = o1.ChannelId
-	o4.UserId = model.NewId()
-	o4.Message = "zz" + model.NewId() + "b"
-	o4 = (<-ss.Post().Save(o4)).Data.(*model.Post)
-	time.Sleep(2 * time.Millisecond)
+			assert.Equal(t, []string{}, postList.Order)
+			assert.Equal(t, map[string]*model.Post{}, postList.Posts)
+		})
 
-	o5 := &model.Post{}
-	o5.ChannelId = o1.ChannelId
-	o5.UserId = model.NewId()
-	o5.Message = "zz" + model.NewId() + "b"
-	o5.ParentId = o4.Id
-	o5.RootId = o4.Id
-	_ = (<-ss.Post().Save(o5)).Data.(*model.Post)
+		t.Run("should return posts before a post", func(t *testing.T) {
+			postList, err := ss.Post().GetPostsBefore(channelId, posts[5].Id, 10, 0)
+			assert.Nil(t, err)
 
-	r1 := (<-ss.Post().GetPostsBefore(o1.ChannelId, o1.Id, 4, 0)).Data.(*model.PostList)
+			assert.Equal(t, []string{posts[4].Id, posts[3].Id, posts[2].Id, posts[1].Id, posts[0].Id}, postList.Order)
+			assert.Equal(t, map[string]*model.Post{
+				posts[0].Id: posts[0],
+				posts[1].Id: posts[1],
+				posts[2].Id: posts[2],
+				posts[3].Id: posts[3],
+				posts[4].Id: posts[4],
+			}, postList.Posts)
+		})
 
-	if len(r1.Posts) != 0 {
-		t.Fatal("Wrong size")
-	}
+		t.Run("should limit posts before", func(t *testing.T) {
+			postList, err := ss.Post().GetPostsBefore(channelId, posts[5].Id, 2, 0)
+			assert.Nil(t, err)
 
-	r2 := (<-ss.Post().GetPostsAfter(o1.ChannelId, o1.Id, 4, 0)).Data.(*model.PostList)
+			assert.Equal(t, []string{posts[4].Id, posts[3].Id}, postList.Order)
+			assert.Equal(t, map[string]*model.Post{
+				posts[3].Id: posts[3],
+				posts[4].Id: posts[4],
+			}, postList.Posts)
+		})
 
-	if r2.Order[0] != o4.Id {
-		t.Fatal("invalid order")
-	}
+		t.Run("should not return anything after the last post", func(t *testing.T) {
+			postList, err := ss.Post().GetPostsAfter(channelId, posts[len(posts)-1].Id, 10, 0)
+			assert.Nil(t, err)
 
-	if r2.Order[1] != o3.Id {
-		t.Fatal("invalid order")
-	}
+			assert.Equal(t, []string{}, postList.Order)
+			assert.Equal(t, map[string]*model.Post{}, postList.Posts)
+		})
 
-	if r2.Order[2] != o2a.Id {
-		t.Fatal("invalid order")
-	}
+		t.Run("should return posts after a post", func(t *testing.T) {
+			postList, err := ss.Post().GetPostsAfter(channelId, posts[5].Id, 10, 0)
+			assert.Nil(t, err)
 
-	if r2.Order[3] != o2.Id {
-		t.Fatal("invalid order")
-	}
+			assert.Equal(t, []string{posts[9].Id, posts[8].Id, posts[7].Id, posts[6].Id}, postList.Order)
+			assert.Equal(t, map[string]*model.Post{
+				posts[6].Id: posts[6],
+				posts[7].Id: posts[7],
+				posts[8].Id: posts[8],
+				posts[9].Id: posts[9],
+			}, postList.Posts)
+		})
 
-	if len(r2.Posts) != 5 {
-		t.Fatal("wrong size")
-	}
+		t.Run("should limit posts after", func(t *testing.T) {
+			postList, err := ss.Post().GetPostsAfter(channelId, posts[5].Id, 2, 0)
+			assert.Nil(t, err)
 
-	r3 := (<-ss.Post().GetPostsBefore(o3.ChannelId, o3.Id, 2, 0)).Data.(*model.PostList)
+			assert.Equal(t, []string{posts[7].Id, posts[6].Id}, postList.Order)
+			assert.Equal(t, map[string]*model.Post{
+				posts[6].Id: posts[6],
+				posts[7].Id: posts[7],
+			}, postList.Posts)
+		})
+	})
 
-	if r3.Order[0] != o2a.Id {
-		t.Fatal("invalid order")
-	}
+	t.Run("with threads", func(t *testing.T) {
+		channelId := model.NewId()
+		userId := model.NewId()
 
-	if r3.Order[1] != o2.Id {
-		t.Fatal("invalid order")
-	}
+		// This creates a series of posts that looks like:
+		// post1
+		// post2
+		// post3 (in response to post1)
+		// post4 (in response to post2)
+		// post5
+		// post6 (in response to post2)
 
-	if len(r3.Posts) != 3 {
-		t.Fatal("wrong size")
-	}
+		post1 := store.Must(ss.Post().Save(&model.Post{
+			ChannelId: channelId,
+			UserId:    userId,
+			Message:   "message",
+		})).(*model.Post)
+		time.Sleep(time.Millisecond)
 
-	if r3.Posts[o1.Id].Message != o1.Message {
-		t.Fatal("Missing parent")
-	}
+		post2 := store.Must(ss.Post().Save(&model.Post{
+			ChannelId: channelId,
+			UserId:    userId,
+			Message:   "message",
+		})).(*model.Post)
+		time.Sleep(time.Millisecond)
+
+		post3 := store.Must(ss.Post().Save(&model.Post{
+			ChannelId: channelId,
+			UserId:    userId,
+			ParentId:  post1.Id,
+			RootId:    post1.Id,
+			Message:   "message",
+		})).(*model.Post)
+		time.Sleep(time.Millisecond)
+
+		post4 := store.Must(ss.Post().Save(&model.Post{
+			ChannelId: channelId,
+			UserId:    userId,
+			RootId:    post2.Id,
+			ParentId:  post2.Id,
+			Message:   "message",
+		})).(*model.Post)
+		time.Sleep(time.Millisecond)
+
+		post5 := store.Must(ss.Post().Save(&model.Post{
+			ChannelId: channelId,
+			UserId:    userId,
+			Message:   "message",
+		})).(*model.Post)
+		time.Sleep(time.Millisecond)
+
+		post6 := store.Must(ss.Post().Save(&model.Post{
+			ChannelId: channelId,
+			UserId:    userId,
+			ParentId:  post2.Id,
+			RootId:    post2.Id,
+			Message:   "message",
+		})).(*model.Post)
+
+		// Adding a post to a thread changes the UpdateAt timestamp of the parent post
+		post1.UpdateAt = post3.UpdateAt
+		post2.UpdateAt = post6.UpdateAt
+
+		t.Run("should return each post and thread before a post", func(t *testing.T) {
+			postList, err := ss.Post().GetPostsBefore(channelId, post4.Id, 2, 0)
+			assert.Nil(t, err)
+
+			assert.Equal(t, []string{post3.Id, post2.Id}, postList.Order)
+			assert.Equal(t, map[string]*model.Post{
+				post1.Id: post1,
+				post2.Id: post2,
+				post3.Id: post3,
+				post4.Id: post4,
+				post6.Id: post6,
+			}, postList.Posts)
+		})
+
+		t.Run("should return each post and the root of each thread after a post", func(t *testing.T) {
+			postList, err := ss.Post().GetPostsAfter(channelId, post4.Id, 2, 0)
+			assert.Nil(t, err)
+
+			assert.Equal(t, []string{post6.Id, post5.Id}, postList.Order)
+			assert.Equal(t, map[string]*model.Post{
+				post2.Id: post2,
+				post4.Id: post4,
+				post5.Id: post5,
+				post6.Id: post6,
+			}, postList.Posts)
+		})
+	})
 }
 
 func testPostStoreGetPostsSince(t *testing.T, ss store.Store) {
@@ -878,7 +987,7 @@ func testPostStoreSearch(t *testing.T, ss store.Store) {
 	c1.DisplayName = "Channel1"
 	c1.Name = "zz" + model.NewId() + "b"
 	c1.Type = model.CHANNEL_OPEN
-	c1 = (<-ss.Channel().Save(c1, -1)).Data.(*model.Channel)
+	c1, _ = ss.Channel().Save(c1, -1)
 
 	m1 := model.ChannelMember{}
 	m1.ChannelId = c1.Id
@@ -891,14 +1000,15 @@ func testPostStoreSearch(t *testing.T, ss store.Store) {
 	c2.DisplayName = "Channel1"
 	c2.Name = "zz" + model.NewId() + "b"
 	c2.Type = model.CHANNEL_OPEN
-	c2 = (<-ss.Channel().Save(c2, -1)).Data.(*model.Channel)
+	c2, _ = ss.Channel().Save(c2, -1)
 
 	c3 := &model.Channel{}
 	c3.TeamId = teamId
 	c3.DisplayName = "Channel1"
 	c3.Name = "zz" + model.NewId() + "b"
 	c3.Type = model.CHANNEL_OPEN
-	c3 = (<-ss.Channel().Save(c3, -1)).Data.(*model.Channel)
+	c3, _ = ss.Channel().Save(c3, -1)
+
 	ss.Channel().Delete(c3.Id, model.GetMillis())
 
 	m3 := model.ChannelMember{}
@@ -1085,7 +1195,8 @@ func testUserCountsWithPostsByDay(t *testing.T, ss store.Store) {
 	c1.DisplayName = "Channel2"
 	c1.Name = "zz" + model.NewId() + "b"
 	c1.Type = model.CHANNEL_OPEN
-	c1 = store.Must(ss.Channel().Save(c1, -1)).(*model.Channel)
+	c1, err = ss.Channel().Save(c1, -1)
+	require.Nil(t, err)
 
 	o1 := &model.Post{}
 	o1.ChannelId = c1.Id
@@ -1144,7 +1255,8 @@ func testPostCountsByDay(t *testing.T, ss store.Store) {
 	c1.DisplayName = "Channel2"
 	c1.Name = "zz" + model.NewId() + "b"
 	c1.Type = model.CHANNEL_OPEN
-	c1 = store.Must(ss.Channel().Save(c1, -1)).(*model.Channel)
+	c1, err = ss.Channel().Save(c1, -1)
+	require.Nil(t, err)
 
 	o1 := &model.Post{}
 	o1.ChannelId = c1.Id
@@ -1205,7 +1317,8 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, ss store.Store, s SqlSupp
 	c1.DisplayName = "Channel1"
 	c1.Name = "zz" + model.NewId() + "b"
 	c1.Type = model.CHANNEL_OPEN
-	c1 = store.Must(ss.Channel().Save(c1, -1)).(*model.Channel)
+	c1, err := ss.Channel().Save(c1, -1)
+	require.Nil(t, err)
 
 	o1 := &model.Post{}
 	o1.ChannelId = c1.Id
@@ -1251,7 +1364,7 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, ss store.Store, s SqlSupp
 	m2.UserId = model.NewId()
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 
-	c2, err := ss.Channel().SaveDirectChannel(c2, m1, m2)
+	c2, err = ss.Channel().SaveDirectChannel(c2, m1, m2)
 	require.Nil(t, err)
 
 	o5 := &model.Post{}
@@ -1261,7 +1374,8 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, ss store.Store, s SqlSupp
 	o5 = (<-ss.Post().Save(o5)).Data.(*model.Post)
 	time.Sleep(2 * time.Millisecond)
 
-	r1 := (<-ss.Post().GetFlaggedPosts(o1.ChannelId, 0, 2)).Data.(*model.PostList)
+	r1, err := ss.Post().GetFlaggedPosts(o1.ChannelId, 0, 2)
+	require.Nil(t, err)
 
 	if len(r1.Order) != 0 {
 		t.Fatal("should be empty")
@@ -1276,9 +1390,11 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, ss store.Store, s SqlSupp
 		},
 	}
 
-	store.Must(ss.Preference().Save(&preferences))
+	err = ss.Preference().Save(&preferences)
+	require.Nil(t, err)
 
-	r2 := (<-ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 2)).Data.(*model.PostList)
+	r2, err := ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 2)
+	require.Nil(t, err)
 
 	if len(r2.Order) != 1 {
 		t.Fatal("should have 1 post")
@@ -1293,27 +1409,32 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, ss store.Store, s SqlSupp
 		},
 	}
 
-	store.Must(ss.Preference().Save(&preferences))
+	err = ss.Preference().Save(&preferences)
+	require.Nil(t, err)
 
-	r3 := (<-ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 1)).Data.(*model.PostList)
-
-	if len(r3.Order) != 1 {
-		t.Fatal("should have 1 post")
-	}
-
-	r3 = (<-ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 1, 1)).Data.(*model.PostList)
+	r3, err := ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 1)
+	require.Nil(t, err)
 
 	if len(r3.Order) != 1 {
 		t.Fatal("should have 1 post")
 	}
 
-	r3 = (<-ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 1000, 10)).Data.(*model.PostList)
+	r3, err = ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 1, 1)
+	require.Nil(t, err)
+
+	if len(r3.Order) != 1 {
+		t.Fatal("should have 1 post")
+	}
+
+	r3, err = ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 1000, 10)
+	require.Nil(t, err)
 
 	if len(r3.Order) != 0 {
 		t.Fatal("should be empty")
 	}
 
-	r4 := (<-ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 2)).Data.(*model.PostList)
+	r4, err := ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 2)
+	require.Nil(t, err)
 
 	if len(r4.Order) != 2 {
 		t.Fatal("should have 2 posts")
@@ -1328,9 +1449,11 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, ss store.Store, s SqlSupp
 		},
 	}
 
-	store.Must(ss.Preference().Save(&preferences))
+	err = ss.Preference().Save(&preferences)
+	require.Nil(t, err)
 
-	r4 = (<-ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 2)).Data.(*model.PostList)
+	r4, err = ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 2)
+	require.Nil(t, err)
 
 	if len(r4.Order) != 2 {
 		t.Fatal("should have 2 posts")
@@ -1344,15 +1467,18 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, ss store.Store, s SqlSupp
 			Value:    "true",
 		},
 	}
-	store.Must(ss.Preference().Save(&preferences))
+	err = ss.Preference().Save(&preferences)
+	require.Nil(t, err)
 
-	r4 = (<-ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 2)).Data.(*model.PostList)
+	r4, err = ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 2)
+	require.Nil(t, err)
 
 	if len(r4.Order) != 2 {
 		t.Fatal("should have 2 posts")
 	}
 
-	r4 = (<-ss.Post().GetFlaggedPostsForTeam(o1.UserId, model.NewId(), 0, 2)).Data.(*model.PostList)
+	r4, err = ss.Post().GetFlaggedPostsForTeam(o1.UserId, model.NewId(), 0, 2)
+	require.Nil(t, err)
 
 	if len(r4.Order) != 0 {
 		t.Fatal("should have 0 posts")
@@ -1366,9 +1492,11 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, ss store.Store, s SqlSupp
 			Value:    "true",
 		},
 	}
-	store.Must(ss.Preference().Save(&preferences))
+	err = ss.Preference().Save(&preferences)
+	require.Nil(t, err)
 
-	r4 = (<-ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 10)).Data.(*model.PostList)
+	r4, err = ss.Post().GetFlaggedPostsForTeam(o1.UserId, c1.TeamId, 0, 10)
+	require.Nil(t, err)
 
 	if len(r4.Order) != 3 {
 		t.Fatal("should have 3 posts")
@@ -1401,7 +1529,8 @@ func testPostStoreGetFlaggedPosts(t *testing.T, ss store.Store) {
 	o3 = (<-ss.Post().Save(o3)).Data.(*model.Post)
 	time.Sleep(2 * time.Millisecond)
 
-	r1 := (<-ss.Post().GetFlaggedPosts(o1.UserId, 0, 2)).Data.(*model.PostList)
+	r1, err := ss.Post().GetFlaggedPosts(o1.UserId, 0, 2)
+	require.Nil(t, err)
 
 	if len(r1.Order) != 0 {
 		t.Fatal("should be empty")
@@ -1416,9 +1545,11 @@ func testPostStoreGetFlaggedPosts(t *testing.T, ss store.Store) {
 		},
 	}
 
-	store.Must(ss.Preference().Save(&preferences))
+	err = ss.Preference().Save(&preferences)
+	require.Nil(t, err)
 
-	r2 := (<-ss.Post().GetFlaggedPosts(o1.UserId, 0, 2)).Data.(*model.PostList)
+	r2, err := ss.Post().GetFlaggedPosts(o1.UserId, 0, 2)
+	require.Nil(t, err)
 
 	if len(r2.Order) != 1 {
 		t.Fatal("should have 1 post")
@@ -1433,27 +1564,32 @@ func testPostStoreGetFlaggedPosts(t *testing.T, ss store.Store) {
 		},
 	}
 
-	store.Must(ss.Preference().Save(&preferences))
+	err = ss.Preference().Save(&preferences)
+	require.Nil(t, err)
 
-	r3 := (<-ss.Post().GetFlaggedPosts(o1.UserId, 0, 1)).Data.(*model.PostList)
-
-	if len(r3.Order) != 1 {
-		t.Fatal("should have 1 post")
-	}
-
-	r3 = (<-ss.Post().GetFlaggedPosts(o1.UserId, 1, 1)).Data.(*model.PostList)
+	r3, err := ss.Post().GetFlaggedPosts(o1.UserId, 0, 1)
+	require.Nil(t, err)
 
 	if len(r3.Order) != 1 {
 		t.Fatal("should have 1 post")
 	}
 
-	r3 = (<-ss.Post().GetFlaggedPosts(o1.UserId, 1000, 10)).Data.(*model.PostList)
+	r3, err = ss.Post().GetFlaggedPosts(o1.UserId, 1, 1)
+	require.Nil(t, err)
+
+	if len(r3.Order) != 1 {
+		t.Fatal("should have 1 post")
+	}
+
+	r3, err = ss.Post().GetFlaggedPosts(o1.UserId, 1000, 10)
+	require.Nil(t, err)
 
 	if len(r3.Order) != 0 {
 		t.Fatal("should be empty")
 	}
 
-	r4 := (<-ss.Post().GetFlaggedPosts(o1.UserId, 0, 2)).Data.(*model.PostList)
+	r4, err := ss.Post().GetFlaggedPosts(o1.UserId, 0, 2)
+	require.Nil(t, err)
 
 	if len(r4.Order) != 2 {
 		t.Fatal("should have 2 posts")
@@ -1468,9 +1604,11 @@ func testPostStoreGetFlaggedPosts(t *testing.T, ss store.Store) {
 		},
 	}
 
-	store.Must(ss.Preference().Save(&preferences))
+	err = ss.Preference().Save(&preferences)
+	require.Nil(t, err)
 
-	r4 = (<-ss.Post().GetFlaggedPosts(o1.UserId, 0, 2)).Data.(*model.PostList)
+	r4, err = ss.Post().GetFlaggedPosts(o1.UserId, 0, 2)
+	require.Nil(t, err)
 
 	if len(r4.Order) != 2 {
 		t.Fatal("should have 2 posts")
@@ -1508,7 +1646,8 @@ func testPostStoreGetFlaggedPostsForChannel(t *testing.T, ss store.Store) {
 	o4 = (<-ss.Post().Save(o4)).Data.(*model.Post)
 	time.Sleep(2 * time.Millisecond)
 
-	r := (<-ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 0, 10)).Data.(*model.PostList)
+	r, err := ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 0, 10)
+	require.Nil(t, err)
 
 	if len(r.Order) != 0 {
 		t.Fatal("should be empty")
@@ -1521,48 +1660,58 @@ func testPostStoreGetFlaggedPostsForChannel(t *testing.T, ss store.Store) {
 		Value:    "true",
 	}
 
-	store.Must(ss.Preference().Save(&model.Preferences{preference}))
+	err = ss.Preference().Save(&model.Preferences{preference})
+	require.Nil(t, err)
 
-	r = (<-ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 0, 10)).Data.(*model.PostList)
+	r, err = ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 0, 10)
+	require.Nil(t, err)
 
 	if len(r.Order) != 1 {
 		t.Fatal("should have 1 post")
 	}
 
 	preference.Name = o2.Id
-	store.Must(ss.Preference().Save(&model.Preferences{preference}))
+	err = ss.Preference().Save(&model.Preferences{preference})
+	require.Nil(t, err)
 
 	preference.Name = o3.Id
-	store.Must(ss.Preference().Save(&model.Preferences{preference}))
+	err = ss.Preference().Save(&model.Preferences{preference})
+	require.Nil(t, err)
 
-	r = (<-ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 0, 1)).Data.(*model.PostList)
-
-	if len(r.Order) != 1 {
-		t.Fatal("should have 1 post")
-	}
-
-	r = (<-ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 1, 1)).Data.(*model.PostList)
+	r, err = ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 0, 1)
+	require.Nil(t, err)
 
 	if len(r.Order) != 1 {
 		t.Fatal("should have 1 post")
 	}
 
-	r = (<-ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 1000, 10)).Data.(*model.PostList)
+	r, err = ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 1, 1)
+	require.Nil(t, err)
+
+	if len(r.Order) != 1 {
+		t.Fatal("should have 1 post")
+	}
+
+	r, err = ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 1000, 10)
+	require.Nil(t, err)
 
 	if len(r.Order) != 0 {
 		t.Fatal("should be empty")
 	}
 
-	r = (<-ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 0, 10)).Data.(*model.PostList)
+	r, err = ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 0, 10)
+	require.Nil(t, err)
 
 	if len(r.Order) != 2 {
 		t.Fatal("should have 2 posts")
 	}
 
 	preference.Name = o4.Id
-	store.Must(ss.Preference().Save(&model.Preferences{preference}))
+	err = ss.Preference().Save(&model.Preferences{preference})
+	require.Nil(t, err)
 
-	r = (<-ss.Post().GetFlaggedPostsForChannel(o1.UserId, o4.ChannelId, 0, 10)).Data.(*model.PostList)
+	r, err = ss.Post().GetFlaggedPostsForChannel(o1.UserId, o4.ChannelId, 0, 10)
+	require.Nil(t, err)
 
 	if len(r.Order) != 1 {
 		t.Fatal("should have 1 post")
@@ -1602,7 +1751,7 @@ func testPostStoreGetPostsCreatedAt(t *testing.T, ss store.Store) {
 	o3.CreateAt = createTime
 	_ = (<-ss.Post().Save(o3)).Data.(*model.Post)
 
-	r1 := (<-ss.Post().GetPostsCreatedAt(o1.ChannelId, createTime)).Data.([]*model.Post)
+	r1, _ := ss.Post().GetPostsCreatedAt(o1.ChannelId, createTime)
 	assert.Equal(t, 2, len(r1))
 }
 
@@ -1627,9 +1776,21 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 	o3.Message = "zz" + model.NewId() + "QQQQQQQQQQ"
 	o3 = (<-ss.Post().Save(o3)).Data.(*model.Post)
 
-	ro1 := (<-ss.Post().Get(o1.Id)).Data.(*model.PostList).Posts[o1.Id]
-	ro2 := (<-ss.Post().Get(o1.Id)).Data.(*model.PostList).Posts[o2.Id]
-	ro3 := (<-ss.Post().Get(o3.Id)).Data.(*model.PostList).Posts[o3.Id]
+	r1, err := ss.Post().Get(o1.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ro1 := r1.Posts[o1.Id]
+	r2, err := ss.Post().Get(o1.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ro2 := r2.Posts[o2.Id]
+	r3, err := ss.Post().Get(o3.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ro3 := r3.Posts[o3.Id]
 
 	if ro1.Message != o1.Message {
 		t.Fatal("Failed to save/get")
@@ -1638,11 +1799,16 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 	o1a := &model.Post{}
 	*o1a = *ro1
 	o1a.Message = ro1.Message + "BBBBBBBBBB"
-	if _, err := ss.Post().Overwrite(o1a); err != nil {
+	_, err = ss.Post().Overwrite(o1a)
+	if err != nil {
 		t.Fatal(err)
 	}
 
-	ro1a := (<-ss.Post().Get(o1.Id)).Data.(*model.PostList).Posts[o1.Id]
+	r1, err = ss.Post().Get(o1.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ro1a := r1.Posts[o1.Id]
 
 	if ro1a.Message != o1a.Message {
 		t.Fatal("Failed to overwrite/get")
@@ -1651,11 +1817,16 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 	o2a := &model.Post{}
 	*o2a = *ro2
 	o2a.Message = ro2.Message + "DDDDDDD"
-	if _, err := ss.Post().Overwrite(o2a); err != nil {
+	_, err = ss.Post().Overwrite(o2a)
+	if err != nil {
 		t.Fatal(err)
 	}
 
-	ro2a := (<-ss.Post().Get(o1.Id)).Data.(*model.PostList).Posts[o2.Id]
+	r2, err = ss.Post().Get(o1.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ro2a := r2.Posts[o2.Id]
 
 	if ro2a.Message != o2a.Message {
 		t.Fatal("Failed to overwrite/get")
@@ -1664,11 +1835,16 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 	o3a := &model.Post{}
 	*o3a = *ro3
 	o3a.Message = ro3.Message + "WWWWWWW"
-	if _, err := ss.Post().Overwrite(o3a); err != nil {
+	_, err = ss.Post().Overwrite(o3a)
+	if err != nil {
 		t.Fatal(err)
 	}
 
-	ro3a := (<-ss.Post().Get(o3.Id)).Data.(*model.PostList).Posts[o3.Id]
+	r3, err = ss.Post().Get(o3.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ro3a := r3.Posts[o3.Id]
 
 	if ro3a.Message != o3a.Message && ro3a.Hashtags != o3a.Hashtags {
 		t.Fatal("Failed to overwrite/get")
@@ -1681,17 +1857,29 @@ func testPostStoreOverwrite(t *testing.T, ss store.Store) {
 		Filenames: []string{"test"},
 	})).(*model.Post)
 
-	ro4 := (<-ss.Post().Get(o4.Id)).Data.(*model.PostList).Posts[o4.Id]
+	r4, err := ss.Post().Get(o4.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ro4 := r4.Posts[o4.Id]
 
 	o4a := &model.Post{}
 	*o4a = *ro4
 	o4a.Filenames = []string{}
 	o4a.FileIds = []string{model.NewId()}
-	if _, err := ss.Post().Overwrite(o4a); err != nil {
+	_, err = ss.Post().Overwrite(o4a)
+	if err != nil {
 		t.Fatal(err)
 	}
 
-	if ro4a := store.Must(ss.Post().Get(o4.Id)).(*model.PostList).Posts[o4.Id]; len(ro4a.Filenames) != 0 {
+	r4, err = ss.Post().Get(o4.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	ro4a := r4.Posts[o4.Id]
+
+	if len(ro4a.Filenames) != 0 {
 		t.Fatal("Failed to clear Filenames")
 	} else if len(ro4a.FileIds) != 1 {
 		t.Fatal("Failed to set FileIds")
@@ -1717,9 +1905,21 @@ func testPostStoreGetPostsByIds(t *testing.T, ss store.Store) {
 	o3.Message = "zz" + model.NewId() + "QQQQQQQQQQ"
 	o3 = (<-ss.Post().Save(o3)).Data.(*model.Post)
 
-	ro1 := (<-ss.Post().Get(o1.Id)).Data.(*model.PostList).Posts[o1.Id]
-	ro2 := (<-ss.Post().Get(o2.Id)).Data.(*model.PostList).Posts[o2.Id]
-	ro3 := (<-ss.Post().Get(o3.Id)).Data.(*model.PostList).Posts[o3.Id]
+	r1, err := ss.Post().Get(o1.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ro1 := r1.Posts[o1.Id]
+	r2, err := ss.Post().Get(o2.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ro2 := r2.Posts[o2.Id]
+	r3, err := ss.Post().Get(o3.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	ro3 := r3.Posts[o3.Id]
 
 	postIds := []string{
 		ro1.Id,
@@ -1727,16 +1927,20 @@ func testPostStoreGetPostsByIds(t *testing.T, ss store.Store) {
 		ro3.Id,
 	}
 
-	if ro4 := store.Must(ss.Post().GetPostsByIds(postIds)).([]*model.Post); len(ro4) != 3 {
-		t.Fatalf("Expected 3 posts in results. Got %v", len(ro4))
+	if posts, err := ss.Post().GetPostsByIds(postIds); err != nil {
+		t.Fatal(err)
+	} else if len(posts) != 3 {
+		t.Fatalf("Expected 3 posts in results. Got %v", len(posts))
 	}
 
 	if err := ss.Post().Delete(ro1.Id, model.GetMillis(), ""); err != nil {
 		t.Fatal(err)
 	}
 
-	if ro5 := store.Must(ss.Post().GetPostsByIds(postIds)).([]*model.Post); len(ro5) != 3 {
-		t.Fatalf("Expected 3 posts in results. Got %v", len(ro5))
+	if posts, err := ss.Post().GetPostsByIds(postIds); err != nil {
+		t.Fatal(err)
+	} else if len(posts) != 3 {
+		t.Fatalf("Expected 3 posts in results. Got %v", len(posts))
 	}
 }
 
@@ -1746,14 +1950,14 @@ func testPostStoreGetPostsBatchForIndexing(t *testing.T, ss store.Store) {
 	c1.DisplayName = "Channel1"
 	c1.Name = "zz" + model.NewId() + "b"
 	c1.Type = model.CHANNEL_OPEN
-	c1 = (<-ss.Channel().Save(c1, -1)).Data.(*model.Channel)
+	c1, _ = ss.Channel().Save(c1, -1)
 
 	c2 := &model.Channel{}
 	c2.TeamId = model.NewId()
 	c2.DisplayName = "Channel2"
 	c2.Name = "zz" + model.NewId() + "b"
 	c2.Type = model.CHANNEL_OPEN
-	c2 = (<-ss.Channel().Save(c2, -1)).Data.(*model.Channel)
+	c2, _ = ss.Channel().Save(c2, -1)
 
 	o1 := &model.Post{}
 	o1.ChannelId = c1.Id
@@ -1831,16 +2035,16 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 
 	store.Must(ss.Post().PermanentDeleteBatch(2000, 1000))
 
-	if p := <-ss.Post().Get(o1.Id); p.Err == nil {
+	if _, err := ss.Post().Get(o1.Id); err == nil {
 		t.Fatalf("Should have not found post 1 after purge")
 	}
 
-	if p := <-ss.Post().Get(o2.Id); p.Err == nil {
+	if _, err := ss.Post().Get(o2.Id); err == nil {
 		t.Fatalf("Should have not found post 2 after purge")
 	}
 
-	if p := <-ss.Post().Get(o3.Id); p.Err != nil {
-		t.Fatalf("Should have found post 3 after purge")
+	if _, err := ss.Post().Get(o3.Id); err != nil {
+		t.Fatalf("Should have not found post 3 after purge")
 	}
 }
 
@@ -1890,7 +2094,8 @@ func testPostStoreGetParentsForExportAfter(t *testing.T, ss store.Store) {
 	c1.DisplayName = "Channel1"
 	c1.Name = "zz" + model.NewId() + "b"
 	c1.Type = model.CHANNEL_OPEN
-	store.Must(ss.Channel().Save(&c1, -1))
+	_, err = ss.Channel().Save(&c1, -1)
+	require.Nil(t, err)
 
 	u1 := model.User{}
 	u1.Username = model.NewId()
@@ -1905,12 +2110,11 @@ func testPostStoreGetParentsForExportAfter(t *testing.T, ss store.Store) {
 	p1.CreateAt = 1000
 	p1 = (<-ss.Post().Save(p1)).Data.(*model.Post)
 
-	r1 := <-ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26))
-	assert.Nil(t, r1.Err)
-	d1 := r1.Data.([]*model.PostForExport)
+	posts, err := ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26))
+	assert.Nil(t, err)
 
 	found := false
-	for _, p := range d1 {
+	for _, p := range posts {
 		if p.Id == p1.Id {
 			found = true
 			assert.Equal(t, p.Id, p1.Id)
@@ -1937,7 +2141,8 @@ func testPostStoreGetRepliesForExport(t *testing.T, ss store.Store) {
 	c1.DisplayName = "Channel1"
 	c1.Name = "zz" + model.NewId() + "b"
 	c1.Type = model.CHANNEL_OPEN
-	store.Must(ss.Channel().Save(&c1, -1))
+	_, err = ss.Channel().Save(&c1, -1)
+	require.Nil(t, err)
 
 	u1 := model.User{}
 	u1.Email = MakeEmail()
@@ -1960,28 +2165,27 @@ func testPostStoreGetRepliesForExport(t *testing.T, ss store.Store) {
 	p2.RootId = p1.Id
 	p2 = (<-ss.Post().Save(p2)).Data.(*model.Post)
 
-	r1 := <-ss.Post().GetRepliesForExport(p1.Id)
-	assert.Nil(t, r1.Err)
+	r1, err := ss.Post().GetRepliesForExport(p1.Id)
+	assert.Nil(t, err)
 
-	d1 := r1.Data.([]*model.ReplyForExport)
-	assert.Len(t, d1, 1)
+	assert.Len(t, r1, 1)
 
-	reply1 := d1[0]
+	reply1 := r1[0]
 	assert.Equal(t, reply1.Id, p2.Id)
 	assert.Equal(t, reply1.Message, p2.Message)
 	assert.Equal(t, reply1.Username, u1.Username)
 
 	// Checking whether replies by deleted user are exported
 	u1.DeleteAt = 1002
-	store.Must(ss.User().Update(&u1, false))
+	_, err = ss.User().Update(&u1, false)
+	require.Nil(t, err)
 
-	r1 = <-ss.Post().GetRepliesForExport(p1.Id)
-	assert.Nil(t, r1.Err)
+	r1, err = ss.Post().GetRepliesForExport(p1.Id)
+	assert.Nil(t, err)
 
-	d1 = r1.Data.([]*model.ReplyForExport)
-	assert.Len(t, d1, 1)
+	assert.Len(t, r1, 1)
 
-	reply1 = d1[0]
+	reply1 = r1[0]
 	assert.Equal(t, reply1.Id, p2.Id)
 	assert.Equal(t, reply1.Message, p2.Message)
 	assert.Equal(t, reply1.Username, u1.Username)
@@ -2028,11 +2232,10 @@ func testPostStoreGetDirectPostParentsForExportAfter(t *testing.T, ss store.Stor
 	p1.CreateAt = 1000
 	p1 = (<-ss.Post().Save(p1)).Data.(*model.Post)
 
-	r1 := <-ss.Post().GetDirectPostParentsForExportAfter(10000, strings.Repeat("0", 26))
-	assert.Nil(t, r1.Err)
-	d1 := r1.Data.([]*model.DirectPostForExport)
+	r1, err := ss.Post().GetDirectPostParentsForExportAfter(10000, strings.Repeat("0", 26))
+	assert.Nil(t, err)
 
-	assert.Equal(t, p1.Message, d1[0].Message)
+	assert.Equal(t, p1.Message, r1[0].Message)
 
 	// Manually truncate Channels table until testlib can handle cleanups
 	s.GetMaster().Exec("TRUNCATE Channels")
@@ -2088,15 +2291,14 @@ func testPostStoreGetDirectPostParentsForExportAfterDeleted(t *testing.T, ss sto
 	*o1a = *p1
 	o1a.DeleteAt = 1
 	o1a.Message = p1.Message + "BBBBBBBBBB"
-	if result := <-ss.Post().Update(o1a, p1); result.Err != nil {
-		t.Fatal(result.Err)
+	if _, err = ss.Post().Update(o1a, p1); err != nil {
+		t.Fatal(err)
 	}
 
-	r1 := <-ss.Post().GetDirectPostParentsForExportAfter(10000, strings.Repeat("0", 26))
-	assert.Nil(t, r1.Err)
-	d1 := r1.Data.([]*model.DirectPostForExport)
+	r1, err := ss.Post().GetDirectPostParentsForExportAfter(10000, strings.Repeat("0", 26))
+	assert.Nil(t, err)
 
-	assert.Equal(t, 0, len(d1))
+	assert.Equal(t, 0, len(r1))
 
 	// Manually truncate Channels table until testlib can handle cleanups
 	s.GetMaster().Exec("TRUNCATE Channels")
@@ -2148,25 +2350,23 @@ func testPostStoreGetDirectPostParentsForExportAfterBatched(t *testing.T, ss sto
 	sort.Slice(postIds, func(i, j int) bool { return postIds[i] < postIds[j] })
 
 	// Get all posts
-	r1 := <-ss.Post().GetDirectPostParentsForExportAfter(10000, strings.Repeat("0", 26))
-	assert.Nil(t, r1.Err)
-	d1 := r1.Data.([]*model.DirectPostForExport)
-	assert.Equal(t, len(postIds), len(d1))
+	r1, err := ss.Post().GetDirectPostParentsForExportAfter(10000, strings.Repeat("0", 26))
+	assert.Nil(t, err)
+	assert.Equal(t, len(postIds), len(r1))
 	var exportedPostIds []string
-	for i := range d1 {
-		exportedPostIds = append(exportedPostIds, d1[i].Id)
+	for i := range r1 {
+		exportedPostIds = append(exportedPostIds, r1[i].Id)
 	}
 	sort.Slice(exportedPostIds, func(i, j int) bool { return exportedPostIds[i] < exportedPostIds[j] })
 	assert.ElementsMatch(t, postIds, exportedPostIds)
 
 	// Get 100
-	r1 = <-ss.Post().GetDirectPostParentsForExportAfter(100, strings.Repeat("0", 26))
-	assert.Nil(t, r1.Err)
-	d1 = r1.Data.([]*model.DirectPostForExport)
-	assert.Equal(t, 100, len(d1))
+	r1, err = ss.Post().GetDirectPostParentsForExportAfter(100, strings.Repeat("0", 26))
+	assert.Nil(t, err)
+	assert.Equal(t, 100, len(r1))
 	exportedPostIds = []string{}
-	for i := range d1 {
-		exportedPostIds = append(exportedPostIds, d1[i].Id)
+	for i := range r1 {
+		exportedPostIds = append(exportedPostIds, r1[i].Id)
 	}
 	sort.Slice(exportedPostIds, func(i, j int) bool { return exportedPostIds[i] < exportedPostIds[j] })
 	assert.ElementsMatch(t, postIds[:100], exportedPostIds)

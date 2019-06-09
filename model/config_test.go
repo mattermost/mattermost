@@ -509,7 +509,7 @@ func TestDisplaySettingsIsValidCustomUrlSchemes(t *testing.T) {
 		{
 			name:  "containing period",
 			value: []string{"iris.beep"},
-			valid: false, // should technically be true, but client doesn't support it
+			valid: true,
 		},
 		{
 			name:  "containing hyphen",
@@ -519,7 +519,7 @@ func TestDisplaySettingsIsValidCustomUrlSchemes(t *testing.T) {
 		{
 			name:  "containing plus",
 			value: []string{"coap+tcp", "coap+ws"},
-			valid: false, // should technically be true, but client doesn't support it
+			valid: true,
 		},
 		{
 			name:  "starting with number",
@@ -593,7 +593,7 @@ func TestListenAddressIsValidated(t *testing.T) {
 		ss := &ServiceSettings{
 			ListenAddress: NewString(key),
 		}
-		ss.SetDefaults()
+		ss.SetDefaults(true)
 		if expected {
 			require.Nil(t, ss.isValid(), fmt.Sprintf("Got an error from '%v'.", key))
 		} else {

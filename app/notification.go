@@ -22,146 +22,340 @@ const (
 	THREAD_ROOT = "root"
 )
 
-type ExplicitMentions struct {
-	// MentionedUserIds contains a key for each user mentioned by keyword.
-	MentionedUserIds map[string]bool
-
-	// OtherPotentialMentions contains a list of strings that looked like mentions, but didn't have
-	// a corresponding keyword.
-	OtherPotentialMentions []string
-
-	// HereMentioned is true if the message contained @here.
-	HereMentioned bool
-
-	// AllMentioned is true if the message contained @all.
-	AllMentioned bool
-
-	// ChannelMentioned is true if the message contained @channel.
-	ChannelMentioned bool
-}
-
-// Represents either an email or push notification and contains the fields required to send it to any user.
-type postNotification struct {
-	channel    *model.Channel
-	post       *model.Post
-	profileMap map[string]*model.User
-	sender     *model.User
-}
-
-// addMentionedUsers will add the mentioned user id in the struct's list for mentioned users
-func (e *ExplicitMentions) addMentionedUsers(ids []string) {
-	for _, id := range ids {
-		e.MentionedUserIds[id] = true
-	}
-}
-
-// checkForMention checks if there is a mention to a specific user or to the keywords here / channel / all
-func (e *ExplicitMentions) checkForMention(word string, keywords map[string][]string) bool {
-	isMention := false
-
-	switch strings.ToLower(word) {
-	case "@here":
-		e.HereMentioned = true
-	case "@channel":
-		e.ChannelMentioned = true
-	case "@all":
-		e.AllMentioned = true
+func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList) ([]string, error) {
+	// Do not send notifications in archived channels
+	if channel.DeleteAt > 0 {
+		return []string{}, nil
 	}
 
-	if ids, match := keywords[strings.ToLower(word)]; match {
-		e.addMentionedUsers(ids)
-		isMention = true
+	pchan := a.Srv.Store.User().GetAllProfilesInChannel(channel.Id, true)
+	cmnchan := a.Srv.Store.Channel().GetAllChannelMembersNotifyPropsForChannel(channel.Id, true)
+	var fchan chan store.StoreResult
+	if len(post.FileIds) != 0 {
+		fchan = make(chan store.StoreResult, 1)
+		go func() {
+			fileInfos, err := a.Srv.Store.FileInfo().GetForPost(post.Id, true, true)
+			fchan <- store.StoreResult{Data: fileInfos, Err: err}
+			close(fchan)
+		}()
 	}
 
-	// Case-sensitive check for first name
-	if ids, match := keywords[word]; match {
-		e.addMentionedUsers(ids)
-		isMention = true
+	result := <-pchan
+	if result.Err != nil {
+		return nil, result.Err
 	}
+	profileMap := result.Data.(map[string]*model.User)
 
-	return isMention
-}
-
-// isKeywordMultibyte if the word contains a multibyte character, check if it contains a multibyte keyword
-func isKeywordMultibyte(keywords map[string][]string, word string) ([]string, bool) {
-	ids := []string{}
-	match := false
-	var multibyteKeywords []string
-	for keyword := range keywords {
-		if len(keyword) != utf8.RuneCountInString(keyword) {
-			multibyteKeywords = append(multibyteKeywords, keyword)
-		}
+	result = <-cmnchan
+	if result.Err != nil {
+		return nil, result.Err
 	}
+	channelMemberNotifyPropsMap := result.Data.(map[string]model.StringMap)
 
-	if len(word) != utf8.RuneCountInString(word) {
-		for _, key := range multibyteKeywords {
-			if strings.Contains(word, key) {
-				ids, match = keywords[key]
-			}
-		}
-	}
-	return ids, match
-}
+	mentionedUserIds := make(map[string]bool)
+	threadMentionedUserIds := make(map[string]string)
+	allActivityPushUserIds := []string{}
+	hereNotification := false
+	channelNotification := false
+	allNotification := false
+	updateMentionChans := []store.StoreChannel{}
 
-// Processes text to filter mentioned users and other potential mentions
-func (e *ExplicitMentions) processText(text string, keywords map[string][]string) {
-	systemMentions := map[string]bool{"@here": true, "@channel": true, "@all": true}
+	if channel.Type == model.CHANNEL_DIRECT {
+		var otherUserId string
 
-	for _, word := range strings.FieldsFunc(text, func(c rune) bool {
-		// Split on any whitespace or punctuation that can't be part of an at mention or emoji pattern
-		return !(c == ':' || c == '.' || c == '-' || c == '_' || c == '@' || unicode.IsLetter(c) || unicode.IsNumber(c))
-	}) {
-		// skip word with format ':word:' with an assumption that it is an emoji format only
-		if word[0] == ':' && word[len(word)-1] == ':' {
-			continue
-		}
+		userIds := strings.Split(channel.Name, "__")
 
-		word = strings.TrimLeft(word, ":.-_")
-
-		if e.checkForMention(word, keywords) {
-			continue
-		}
-
-		foundWithoutSuffix := false
-		wordWithoutSuffix := word
-		for len(wordWithoutSuffix) > 0 && strings.LastIndexAny(wordWithoutSuffix, ".-:_") == (len(wordWithoutSuffix)-1) {
-			wordWithoutSuffix = wordWithoutSuffix[0 : len(wordWithoutSuffix)-1]
-
-			if e.checkForMention(wordWithoutSuffix, keywords) {
-				foundWithoutSuffix = true
-				break
+		if userIds[0] != userIds[1] {
+			if userIds[0] == post.UserId {
+				otherUserId = userIds[1]
+			} else {
+				otherUserId = userIds[0]
 			}
 		}
 
-		if foundWithoutSuffix {
-			continue
+		otherUser, ok := profileMap[otherUserId]
+		if ok {
+			mentionedUserIds[otherUserId] = true
 		}
 
-		if _, ok := systemMentions[word]; !ok && strings.HasPrefix(word, "@") {
-			e.OtherPotentialMentions = append(e.OtherPotentialMentions, word[1:])
-		} else if strings.ContainsAny(word, ".-:") {
-			// This word contains a character that may be the end of a sentence, so split further
-			splitWords := strings.FieldsFunc(word, func(c rune) bool {
-				return c == '.' || c == '-' || c == ':'
+		if post.Props["from_webhook"] == "true" {
+			mentionedUserIds[post.UserId] = true
+		}
+
+		if post.Type != model.POST_AUTO_RESPONDER {
+			a.Srv.Go(func() {
+				a.SendAutoResponse(channel, otherUser)
 			})
+		}
 
-			for _, splitWord := range splitWords {
-				if e.checkForMention(splitWord, keywords) {
-					continue
-				}
-				if _, ok := systemMentions[splitWord]; !ok && strings.HasPrefix(splitWord, "@") {
-					e.OtherPotentialMentions = append(e.OtherPotentialMentions, splitWord[1:])
+	} else {
+		keywords := a.GetMentionKeywordsInChannel(profileMap, post.Type != model.POST_HEADER_CHANGE && post.Type != model.POST_PURPOSE_CHANGE, channelMemberNotifyPropsMap)
+
+		m := GetExplicitMentions(post, keywords)
+
+		// Add an implicit mention when a user is added to a channel
+		// even if the user has set 'username mentions' to false in account settings.
+		if post.Type == model.POST_ADD_TO_CHANNEL {
+			val := post.Props[model.POST_PROPS_ADDED_USER_ID]
+			if val != nil {
+				uid := val.(string)
+				m.MentionedUserIds[uid] = true
+			}
+		}
+
+		mentionedUserIds, hereNotification, channelNotification, allNotification = m.MentionedUserIds, m.HereMentioned, m.ChannelMentioned, m.AllMentioned
+
+		// get users that have comment thread mentions enabled
+		if len(post.RootId) > 0 && parentPostList != nil {
+			for _, threadPost := range parentPostList.Posts {
+				profile := profileMap[threadPost.UserId]
+				if profile != nil && (profile.NotifyProps[model.COMMENTS_NOTIFY_PROP] == THREAD_ANY || (profile.NotifyProps[model.COMMENTS_NOTIFY_PROP] == THREAD_ROOT && threadPost.Id == parentPostList.Order[0])) {
+					if threadPost.Id == parentPostList.Order[0] {
+						threadMentionedUserIds[threadPost.UserId] = THREAD_ROOT
+					} else {
+						threadMentionedUserIds[threadPost.UserId] = THREAD_ANY
+					}
+
+					if _, ok := mentionedUserIds[threadPost.UserId]; !ok {
+						mentionedUserIds[threadPost.UserId] = false
+					}
 				}
 			}
 		}
-		if ids, match := isKeywordMultibyte(keywords, word); match {
-			e.addMentionedUsers(ids)
+
+		// prevent the user from mentioning themselves
+		if post.Props["from_webhook"] != "true" {
+			delete(mentionedUserIds, post.UserId)
+		}
+
+		if len(m.OtherPotentialMentions) > 0 && !post.IsSystemMessage() {
+			if result := <-a.Srv.Store.User().GetProfilesByUsernames(m.OtherPotentialMentions, &model.ViewUsersRestrictions{Teams: []string{team.Id}}); result.Err == nil {
+				channelMentions := model.UserSlice(result.Data.([]*model.User)).FilterByActive(true)
+
+				var outOfChannelMentions model.UserSlice
+				var outOfGroupsMentions model.UserSlice
+
+				if channel.IsGroupConstrained() {
+					nonMemberIDs, err := a.FilterNonGroupChannelMembers(channelMentions.IDs(), channel)
+					if err != nil {
+						return nil, err
+					}
+
+					outOfChannelMentions = channelMentions.FilterWithoutID(nonMemberIDs)
+					outOfGroupsMentions = channelMentions.FilterByID(nonMemberIDs)
+				} else {
+					outOfChannelMentions = channelMentions
+				}
+
+				if channel.Type != model.CHANNEL_GROUP {
+					a.Srv.Go(func() {
+						a.sendOutOfChannelMentions(sender, post, outOfChannelMentions, outOfGroupsMentions)
+					})
+				}
+			}
+		}
+
+		// find which users in the channel are set up to always receive mobile notifications
+		for _, profile := range profileMap {
+			if (profile.NotifyProps[model.PUSH_NOTIFY_PROP] == model.USER_NOTIFY_ALL ||
+				channelMemberNotifyPropsMap[profile.Id][model.PUSH_NOTIFY_PROP] == model.CHANNEL_NOTIFY_ALL) &&
+				(post.UserId != profile.Id || post.Props["from_webhook"] == "true") &&
+				!post.IsSystemMessage() {
+				allActivityPushUserIds = append(allActivityPushUserIds, profile.Id)
+			}
 		}
 	}
-}
 
-// Create a message
-func createNewPostEvent(a *App, post *model.Post, team *model.Team, channel *model.Channel, notification *postNotification, fchan store.StoreChannel, mentionedUsersList []string) *model.WebSocketEvent {
+	mentionedUsersList := make([]string, 0, len(mentionedUserIds))
+	for id := range mentionedUserIds {
+		mentionedUsersList = append(mentionedUsersList, id)
+		updateMentionChans = append(updateMentionChans, a.Srv.Store.Channel().IncrementMentionCount(post.ChannelId, id))
+	}
+
+	notification := &postNotification{
+		post:       post,
+		channel:    channel,
+		profileMap: profileMap,
+		sender:     sender,
+	}
+
+	if *a.Config().EmailSettings.SendEmailNotifications {
+		for _, id := range mentionedUsersList {
+			if profileMap[id] == nil {
+				continue
+			}
+
+			userAllowsEmails := profileMap[id].NotifyProps[model.EMAIL_NOTIFY_PROP] != "false"
+			if channelEmail, ok := channelMemberNotifyPropsMap[id][model.EMAIL_NOTIFY_PROP]; ok {
+				if channelEmail != model.CHANNEL_NOTIFY_DEFAULT {
+					userAllowsEmails = channelEmail != "false"
+				}
+			}
+
+			// Remove the user as recipient when the user has muted the channel.
+			if channelMuted, ok := channelMemberNotifyPropsMap[id][model.MARK_UNREAD_NOTIFY_PROP]; ok {
+				if channelMuted == model.CHANNEL_MARK_UNREAD_MENTION {
+					mlog.Debug(fmt.Sprintf("Channel muted for user_id %v, channel_mute %v", id, channelMuted))
+					userAllowsEmails = false
+				}
+			}
+
+			//If email verification is required and user email is not verified don't send email.
+			if *a.Config().EmailSettings.RequireEmailVerification && !profileMap[id].EmailVerified {
+				mlog.Error(fmt.Sprintf("Skipped sending notification email to %v, address not verified. [details: user_id=%v]", profileMap[id].Email, id))
+				continue
+			}
+
+			var status *model.Status
+			var err *model.AppError
+			if status, err = a.GetStatus(id); err != nil {
+				status = &model.Status{
+					UserId:         id,
+					Status:         model.STATUS_OFFLINE,
+					Manual:         false,
+					LastActivityAt: 0,
+					ActiveChannel:  "",
+				}
+			}
+
+			autoResponderRelated := status.Status == model.STATUS_OUT_OF_OFFICE || post.Type == model.POST_AUTO_RESPONDER
+
+			if userAllowsEmails && status.Status != model.STATUS_ONLINE && profileMap[id].DeleteAt == 0 && !autoResponderRelated {
+				a.sendNotificationEmail(notification, profileMap[id], team)
+			}
+		}
+	}
+
+	T := utils.GetUserTranslations(sender.Locale)
+
+	// If the channel has more than 1K users then @here is disabled
+	if hereNotification && int64(len(profileMap)) > *a.Config().TeamSettings.MaxNotificationsPerChannel {
+		hereNotification = false
+		a.SendEphemeralPost(
+			post.UserId,
+			&model.Post{
+				ChannelId: post.ChannelId,
+				Message:   T("api.post.disabled_here", map[string]interface{}{"Users": *a.Config().TeamSettings.MaxNotificationsPerChannel}),
+				CreateAt:  post.CreateAt + 1,
+			},
+		)
+	}
+
+	// If the channel has more than 1K users then @channel is disabled
+	if channelNotification && int64(len(profileMap)) > *a.Config().TeamSettings.MaxNotificationsPerChannel {
+		a.SendEphemeralPost(
+			post.UserId,
+			&model.Post{
+				ChannelId: post.ChannelId,
+				Message:   T("api.post.disabled_channel", map[string]interface{}{"Users": *a.Config().TeamSettings.MaxNotificationsPerChannel}),
+				CreateAt:  post.CreateAt + 1,
+			},
+		)
+	}
+
+	// If the channel has more than 1K users then @all is disabled
+	if allNotification && int64(len(profileMap)) > *a.Config().TeamSettings.MaxNotificationsPerChannel {
+		a.SendEphemeralPost(
+			post.UserId,
+			&model.Post{
+				ChannelId: post.ChannelId,
+				Message:   T("api.post.disabled_all", map[string]interface{}{"Users": *a.Config().TeamSettings.MaxNotificationsPerChannel}),
+				CreateAt:  post.CreateAt + 1,
+			},
+		)
+	}
+
+	// Make sure all mention updates are complete to prevent race
+	// Probably better to batch these DB updates in the future
+	// MUST be completed before push notifications send
+	for _, uchan := range updateMentionChans {
+		if result := <-uchan; result.Err != nil {
+			mlog.Warn(fmt.Sprintf("Failed to update mention count, post_id=%v channel_id=%v err=%v", post.Id, post.ChannelId, result.Err), mlog.String("post_id", post.Id))
+		}
+	}
+
+	sendPushNotifications := false
+	if *a.Config().EmailSettings.SendPushNotifications {
+		pushServer := *a.Config().EmailSettings.PushNotificationServer
+		if license := a.License(); pushServer == model.MHPNS && (license == nil || !*license.Features.MHPNS) {
+			mlog.Warn("Push notifications are disabled. Go to System Console > Notifications > Mobile Push to enable them.")
+			sendPushNotifications = false
+		} else {
+			sendPushNotifications = true
+		}
+	}
+
+	if sendPushNotifications {
+		for _, id := range mentionedUsersList {
+			if profileMap[id] == nil {
+				continue
+			}
+
+			var status *model.Status
+			var err *model.AppError
+			if status, err = a.GetStatus(id); err != nil {
+				status = &model.Status{UserId: id, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
+			}
+
+			if ShouldSendPushNotification(profileMap[id], channelMemberNotifyPropsMap[id], true, status, post) {
+				replyToThreadType := ""
+				if value, ok := threadMentionedUserIds[id]; ok {
+					replyToThreadType = value
+				}
+
+				a.sendPushNotification(
+					notification,
+					profileMap[id],
+					mentionedUserIds[id],
+					(channelNotification || hereNotification || allNotification),
+					replyToThreadType,
+				)
+			} else {
+				// register that a notification was not sent
+				a.NotificationsLog.Warn("Notification not sent",
+					mlog.String("ackId", ""),
+					mlog.String("type", model.PUSH_TYPE_MESSAGE),
+					mlog.String("userId", id),
+					mlog.String("postId", post.Id),
+					mlog.String("status", model.PUSH_NOT_SENT),
+				)
+			}
+		}
+
+		for _, id := range allActivityPushUserIds {
+			if profileMap[id] == nil {
+				continue
+			}
+
+			if _, ok := mentionedUserIds[id]; !ok {
+				var status *model.Status
+				var err *model.AppError
+				if status, err = a.GetStatus(id); err != nil {
+					status = &model.Status{UserId: id, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
+				}
+
+				if ShouldSendPushNotification(profileMap[id], channelMemberNotifyPropsMap[id], false, status, post) {
+					a.sendPushNotification(
+						notification,
+						profileMap[id],
+						false,
+						false,
+						"",
+					)
+				} else {
+					// register that a notification was not sent
+					a.NotificationsLog.Warn("Notification not sent",
+						mlog.String("ackId", ""),
+						mlog.String("type", model.PUSH_TYPE_MESSAGE),
+						mlog.String("userId", id),
+						mlog.String("postId", post.Id),
+						mlog.String("status", model.PUSH_NOT_SENT),
+					)
+				}
+			}
+		}
+	}
+
 	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_POSTED, "", post.ChannelId, "", nil)
 
 	// Note that PreparePostForClient should've already been called by this point
@@ -194,365 +388,6 @@ func createNewPostEvent(a *App, post *model.Post, team *model.Team, channel *mod
 	if len(mentionedUsersList) != 0 {
 		message.Add("mentions", model.ArrayToJson(mentionedUsersList))
 	}
-	return message
-}
-
-// Send or Register a notification as not sent based on user preference
-func (a *App) sendOrRegisterNotification(id string, channelMemberNotifyPropsMap map[string]model.StringMap, wasMentioned bool, status *model.Status,
-	post *model.Post, notification *postNotification, user *model.User, explicitMentions bool, channelWideMentions bool, replyToThreadType string) {
-
-	if ShouldSendPushNotification(user, channelMemberNotifyPropsMap[id], wasMentioned, status, post) {
-		a.sendPushNotification(
-			notification,
-			user,
-			explicitMentions,
-			channelWideMentions,
-			replyToThreadType,
-		)
-	} else {
-		// register that a notification was not sent
-		a.NotificationsLog.Warn("Notification not sent",
-			mlog.String("ackId", ""),
-			mlog.String("type", model.PUSH_TYPE_MESSAGE),
-			mlog.String("userId", id),
-			mlog.String("postId", post.Id),
-			mlog.String("status", model.PUSH_NOT_SENT),
-		)
-	}
-}
-
-func (a *App) getUserStatusOrDefault(id string) *model.Status {
-	status, err := a.GetStatus(id)
-	if err != nil {
-		return &model.Status{UserId: id, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
-	}
-	return status
-}
-
-// Decide whether a user allows emails or not
-func (a *App) shouldSendEmailNotificationToUser(id string, user *model.User, channelMemberNotifyPropsMap map[string]model.StringMap) bool {
-	userAllowsEmails := user.NotifyProps[model.EMAIL_NOTIFY_PROP] != "false"
-	if channelEmail, ok := channelMemberNotifyPropsMap[id][model.EMAIL_NOTIFY_PROP]; ok {
-		if channelEmail != model.CHANNEL_NOTIFY_DEFAULT {
-			userAllowsEmails = channelEmail != "false"
-		}
-	}
-
-	// Remove the user as recipient when the user has muted the channel.
-	if channelMuted, ok := channelMemberNotifyPropsMap[id][model.MARK_UNREAD_NOTIFY_PROP]; ok {
-		if channelMuted == model.CHANNEL_MARK_UNREAD_MENTION {
-			mlog.Debug(fmt.Sprintf("Channel muted for user_id %v, channel_mute %v", id, channelMuted))
-			userAllowsEmails = false
-		}
-	}
-
-	//If email verification is required and user email is not verified don't send email.
-	if *a.Config().EmailSettings.RequireEmailVerification && !user.EmailVerified {
-		mlog.Error(fmt.Sprintf("Skipped sending notification email to %v, address not verified. [details: user_id=%v]", user.Email, id))
-		userAllowsEmails = false
-	}
-	return userAllowsEmails
-}
-
-// Notify the user that a system mentions wont be sent to the channel
-func (a *App) sendChannelWideMentionsDisabledPost(sender *model.User, post *model.Post, hereNotification bool, channelNotification bool, allNotification bool) {
-
-	T := utils.GetUserTranslations(sender.Locale)
-	var message string
-	if hereNotification {
-		message = T("api.post.disabled_here", map[string]interface{}{"Users": *a.Config().TeamSettings.MaxNotificationsPerChannel})
-	} else if channelNotification {
-		message = T("api.post.disabled_channel", map[string]interface{}{"Users": *a.Config().TeamSettings.MaxNotificationsPerChannel})
-	} else {
-		message = T("api.post.disabled_all", map[string]interface{}{"Users": *a.Config().TeamSettings.MaxNotificationsPerChannel})
-	}
-
-	a.SendEphemeralPost(
-		post.UserId,
-		&model.Post{
-			ChannelId: post.ChannelId,
-			Message:   message,
-			CreateAt:  post.CreateAt + 1,
-		},
-	)
-}
-
-// Get a map of mentioned user in Direct channels
-func (a *App) getMentionedUsersFromDirectChannel(mentionedUserIds map[string]bool, post *model.Post, channel *model.Channel, profileMap map[string]*model.User) map[string]bool {
-	var otherUserId string
-
-	userIds := strings.Split(channel.Name, "__")
-
-	if userIds[0] != userIds[1] {
-		if userIds[0] == post.UserId {
-			otherUserId = userIds[1]
-		} else {
-			otherUserId = userIds[0]
-		}
-	}
-
-	otherUser, ok := profileMap[otherUserId]
-	if ok {
-		mentionedUserIds[otherUserId] = true
-	}
-
-	if post.Props["from_webhook"] == "true" {
-		mentionedUserIds[post.UserId] = true
-	}
-
-	if post.Type != model.POST_AUTO_RESPONDER {
-		a.Srv.Go(func() {
-			a.SendAutoResponse(channel, otherUser)
-		})
-	}
-	return mentionedUserIds
-}
-
-// Get a active and mentioned users from all channels
-func (a *App) getMentionedUsersFromOtherChannels(post *model.Post, m *ExplicitMentions, profileMap map[string]*model.User, mentionedUserIds map[string]bool, team *model.Team,
-	parentPostList *model.PostList, channel *model.Channel, sender *model.User, channelMemberNotifyPropsMap map[string]model.StringMap, allActivityPushUserIds []string) ([]string, map[string]bool, map[string]model.StringMap, error) {
-	// Add an implicit mention when a user is added to a channel
-	// even if the user has set 'username mentions' to false in account settings.
-	var threadMentionedUserIds map[string]string
-
-	if post.Type == model.POST_ADD_TO_CHANNEL {
-		val := post.Props[model.POST_PROPS_ADDED_USER_ID]
-		if val != nil {
-			uid := val.(string)
-			m.MentionedUserIds[uid] = true
-		}
-	}
-
-	// get users that have comment thread mentions enabled
-	if len(post.RootId) > 0 && parentPostList != nil {
-		for _, threadPost := range parentPostList.Posts {
-			profile := profileMap[threadPost.UserId]
-			if profile != nil && (profile.NotifyProps[model.COMMENTS_NOTIFY_PROP] == THREAD_ANY || (profile.NotifyProps[model.COMMENTS_NOTIFY_PROP] == THREAD_ROOT && threadPost.Id == parentPostList.Order[0])) {
-				if threadPost.Id == parentPostList.Order[0] {
-					threadMentionedUserIds[threadPost.UserId] = THREAD_ROOT
-				} else {
-					threadMentionedUserIds[threadPost.UserId] = THREAD_ANY
-				}
-
-				if _, ok := mentionedUserIds[threadPost.UserId]; !ok {
-					mentionedUserIds[threadPost.UserId] = false
-				}
-			}
-		}
-	}
-
-	// prevent the user from mentioning themselves
-	if post.Props["from_webhook"] != "true" {
-		delete(mentionedUserIds, post.UserId)
-	}
-
-	if len(m.OtherPotentialMentions) > 0 && !post.IsSystemMessage() {
-		if result := <-a.Srv.Store.User().GetProfilesByUsernames(m.OtherPotentialMentions, &model.ViewUsersRestrictions{Teams: []string{team.Id}}); result.Err == nil {
-			channelMentions := model.UserSlice(result.Data.([]*model.User)).FilterByActive(true)
-
-			var outOfChannelMentions model.UserSlice
-			var outOfGroupsMentions model.UserSlice
-
-			if channel.IsGroupConstrained() {
-				nonMemberIDs, err := a.FilterNonGroupChannelMembers(channelMentions.IDs(), channel)
-				if err != nil {
-					return nil, nil, nil, err
-				}
-
-				outOfChannelMentions = channelMentions.FilterWithoutID(nonMemberIDs)
-				outOfGroupsMentions = channelMentions.FilterByID(nonMemberIDs)
-			} else {
-				outOfChannelMentions = channelMentions
-			}
-
-			if channel.Type != model.CHANNEL_GROUP {
-				a.Srv.Go(func() {
-					a.sendOutOfChannelMentions(sender, post, outOfChannelMentions, outOfGroupsMentions)
-				})
-			}
-		}
-	}
-
-	// find which users in the channel are set up to always receive mobile notifications
-	for _, profile := range profileMap {
-		if (profile.NotifyProps[model.PUSH_NOTIFY_PROP] == model.USER_NOTIFY_ALL ||
-			channelMemberNotifyPropsMap[profile.Id][model.PUSH_NOTIFY_PROP] == model.CHANNEL_NOTIFY_ALL) &&
-			(post.UserId != profile.Id || post.Props["from_webhook"] == "true") &&
-			!post.IsSystemMessage() {
-			allActivityPushUserIds = append(allActivityPushUserIds, profile.Id)
-		}
-	}
-	return allActivityPushUserIds, mentionedUserIds, channelMemberNotifyPropsMap, nil
-}
-
-// Send Push Notifications based on mentioned or active users
-func (a *App) sendPushNotifications(mentionedUsersList []string, profileMap map[string]*model.User, threadMentionedUserIds map[string]string, post *model.Post, notification *postNotification,
-	mentionedUserIds map[string]bool, hereNotification bool, channelNotification bool, allNotification bool, channelMemberNotifyPropsMap map[string]model.StringMap, allActivityPushUserIds []string) {
-	sendPushNotifications := false
-	if *a.Config().EmailSettings.SendPushNotifications {
-		pushServer := *a.Config().EmailSettings.PushNotificationServer
-		if license := a.License(); pushServer == model.MHPNS && (license == nil || !*license.Features.MHPNS) {
-			mlog.Warn("Push notifications are disabled. Go to System Console > Notifications > Mobile Push to enable them.")
-			sendPushNotifications = false
-		} else {
-			sendPushNotifications = true
-		}
-	}
-
-	if sendPushNotifications {
-		for _, id := range mentionedUsersList {
-			if profileMap[id] == nil {
-				continue
-			}
-			status := a.getUserStatusOrDefault(id)
-			replyToThreadType := ""
-			if value, ok := threadMentionedUserIds[id]; ok {
-				replyToThreadType = value
-			}
-			a.sendOrRegisterNotification(
-				id,
-				channelMemberNotifyPropsMap,
-				true,
-				status,
-				post,
-				notification,
-				profileMap[id],
-				mentionedUserIds[id],
-				(channelNotification || hereNotification || allNotification),
-				replyToThreadType,
-			)
-		}
-
-		for _, id := range allActivityPushUserIds {
-			if profileMap[id] == nil {
-				continue
-			}
-
-			if _, ok := mentionedUserIds[id]; !ok {
-				status := a.getUserStatusOrDefault(id)
-				a.sendOrRegisterNotification(
-					id,
-					channelMemberNotifyPropsMap,
-					true,
-					status,
-					post,
-					notification,
-					profileMap[id],
-					false,
-					false,
-					"",
-				)
-			}
-		}
-	}
-}
-
-// Send Email Notifications
-func (a *App) sendEmailNotifications(mentionedUsersList []string, profileMap map[string]*model.User, channelMemberNotifyPropsMap map[string]model.StringMap, post *model.Post, notification *postNotification, team *model.Team) {
-	for _, id := range mentionedUsersList {
-		if profileMap[id] == nil {
-			continue
-		}
-		shouldSendEmail := a.shouldSendEmailNotificationToUser(id, profileMap[id], channelMemberNotifyPropsMap)
-		status := a.getUserStatusOrDefault(id)
-		autoResponderRelated := status.Status == model.STATUS_OUT_OF_OFFICE || post.Type == model.POST_AUTO_RESPONDER
-
-		if shouldSendEmail && status.Status != model.STATUS_ONLINE && profileMap[id].DeleteAt == 0 && !autoResponderRelated {
-			a.sendNotificationEmail(notification, profileMap[id], team)
-		}
-	}
-}
-
-func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList) ([]string, error) {
-	// Do not send notifications in archived channels
-	if channel.DeleteAt > 0 {
-		return []string{}, nil
-	}
-
-	pchan := a.Srv.Store.User().GetAllProfilesInChannel(channel.Id, true)
-	cmnchan := a.Srv.Store.Channel().GetAllChannelMembersNotifyPropsForChannel(channel.Id, true)
-	var fchan store.StoreChannel
-
-	if len(post.FileIds) != 0 {
-		fchan = make(chan store.StoreResult, 1)
-		go func() {
-			fileInfos, err := a.Srv.Store.FileInfo().GetForPost(post.Id, true, true)
-			fchan <- store.StoreResult{Data: fileInfos, Err: err}
-			close(fchan)
-		}()
-	}
-
-	result := <-pchan
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	profileMap := result.Data.(map[string]*model.User)
-
-	result = <-cmnchan
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	channelMemberNotifyPropsMap := result.Data.(map[string]model.StringMap)
-
-	mentionedUserIds := make(map[string]bool)
-	threadMentionedUserIds := make(map[string]string)
-	allActivityPushUserIds := []string{}
-	hereNotification := false
-	channelNotification := false
-	allNotification := false
-	updateMentionChans := []store.StoreChannel{}
-
-	if channel.Type == model.CHANNEL_DIRECT {
-
-		mentionedUserIds = a.getMentionedUsersFromDirectChannel(mentionedUserIds, post, channel, profileMap)
-
-	} else {
-
-		keywords := a.getMentionKeywordsInChannel(profileMap, post.Type != model.POST_HEADER_CHANGE && post.Type != model.POST_PURPOSE_CHANGE, channelMemberNotifyPropsMap)
-		m := getExplicitMentions(post, keywords)
-		mentionedUserIds, hereNotification, channelNotification, allNotification = m.MentionedUserIds, m.HereMentioned, m.ChannelMentioned, m.AllMentioned
-
-		var err error
-		allActivityPushUserIds, mentionedUserIds, channelMemberNotifyPropsMap, err = a.getMentionedUsersFromOtherChannels(post, m, profileMap, mentionedUserIds, team, parentPostList, channel, sender, channelMemberNotifyPropsMap, allActivityPushUserIds)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	mentionedUsersList := make([]string, 0, len(mentionedUserIds))
-	for id := range mentionedUserIds {
-		mentionedUsersList = append(mentionedUsersList, id)
-		updateMentionChans = append(updateMentionChans, a.Srv.Store.Channel().IncrementMentionCount(post.ChannelId, id))
-	}
-
-	notification := &postNotification{
-		post:       post,
-		channel:    channel,
-		profileMap: profileMap,
-		sender:     sender,
-	}
-
-	if *a.Config().EmailSettings.SendEmailNotifications {
-		a.sendEmailNotifications(mentionedUsersList, profileMap, channelMemberNotifyPropsMap, post, notification, team)
-	}
-	// If the channel has more than 1K users then notify the user that the system notification wont be sent
-	if int64(len(profileMap)) > *a.Config().TeamSettings.MaxNotificationsPerChannel {
-		a.sendChannelWideMentionsDisabledPost(sender, post, hereNotification, channelNotification, allNotification)
-	}
-
-	// Make sure all mention updates are complete to prevent race
-	// Probably better to batch these DB updates in the future
-	// MUST be completed before push notifications send
-	for _, uchan := range updateMentionChans {
-		if result := <-uchan; result.Err != nil {
-			mlog.Warn(fmt.Sprintf("Failed to update mention count, post_id=%v channel_id=%v err=%v", post.Id, post.ChannelId, result.Err), mlog.String("post_id", post.Id))
-		}
-	}
-
-	// Decide whether a notification should be sent or should be registered as not sent
-	a.sendPushNotifications(mentionedUsersList, profileMap, threadMentionedUserIds, post, notification, mentionedUserIds, hereNotification, channelNotification, allNotification, channelMemberNotifyPropsMap, allActivityPushUserIds)
-
-	message := createNewPostEvent(a, post, team, channel, notification, fchan, mentionedUsersList)
 
 	a.Publish(message)
 	return mentionedUsersList, nil
@@ -649,20 +484,143 @@ func splitAtFinal(items []string) (preliminary []string, final string) {
 	return
 }
 
+type ExplicitMentions struct {
+	// MentionedUserIds contains a key for each user mentioned by keyword.
+	MentionedUserIds map[string]bool
+
+	// OtherPotentialMentions contains a list of strings that looked like mentions, but didn't have
+	// a corresponding keyword.
+	OtherPotentialMentions []string
+
+	// HereMentioned is true if the message contained @here.
+	HereMentioned bool
+
+	// AllMentioned is true if the message contained @all.
+	AllMentioned bool
+
+	// ChannelMentioned is true if the message contained @channel.
+	ChannelMentioned bool
+}
+
 // Given a message and a map mapping mention keywords to the users who use them, returns a map of mentioned
 // users and a slice of potential mention users not in the channel and whether or not @here was mentioned.
-func getExplicitMentions(post *model.Post, keywords map[string][]string) *ExplicitMentions {
+func GetExplicitMentions(post *model.Post, keywords map[string][]string) *ExplicitMentions {
 	ret := &ExplicitMentions{
 		MentionedUserIds: make(map[string]bool),
 	}
+	systemMentions := map[string]bool{"@here": true, "@channel": true, "@all": true}
+
+	addMentionedUsers := func(ids []string) {
+		for _, id := range ids {
+			ret.MentionedUserIds[id] = true
+		}
+	}
+	checkForMention := func(word string) bool {
+		isMention := false
+
+		if strings.ToLower(word) == "@here" {
+			ret.HereMentioned = true
+		}
+
+		if strings.ToLower(word) == "@channel" {
+			ret.ChannelMentioned = true
+		}
+
+		if strings.ToLower(word) == "@all" {
+			ret.AllMentioned = true
+		}
+
+		// Non-case-sensitive check for regular keys
+		if ids, match := keywords[strings.ToLower(word)]; match {
+			addMentionedUsers(ids)
+			isMention = true
+		}
+
+		// Case-sensitive check for first name
+		if ids, match := keywords[word]; match {
+			addMentionedUsers(ids)
+			isMention = true
+		}
+
+		return isMention
+	}
+
+	var multibyteKeywords []string
+	for keyword := range keywords {
+		if len(keyword) != utf8.RuneCountInString(keyword) {
+			multibyteKeywords = append(multibyteKeywords, keyword)
+		}
+	}
+
+	processText := func(text string) {
+		for _, word := range strings.FieldsFunc(text, func(c rune) bool {
+			// Split on any whitespace or punctuation that can't be part of an at mention or emoji pattern
+			return !(c == ':' || c == '.' || c == '-' || c == '_' || c == '@' || unicode.IsLetter(c) || unicode.IsNumber(c))
+		}) {
+			// skip word with format ':word:' with an assumption that it is an emoji format only
+			if word[0] == ':' && word[len(word)-1] == ':' {
+				continue
+			}
+
+			word = strings.TrimLeft(word, ":.-_")
+
+			if checkForMention(word) {
+				continue
+			}
+
+			foundWithoutSuffix := false
+			wordWithoutSuffix := word
+			for len(wordWithoutSuffix) > 0 && strings.LastIndexAny(wordWithoutSuffix, ".-:_") == (len(wordWithoutSuffix)-1) {
+				wordWithoutSuffix = wordWithoutSuffix[0 : len(wordWithoutSuffix)-1]
+
+				if checkForMention(wordWithoutSuffix) {
+					foundWithoutSuffix = true
+					break
+				}
+			}
+
+			if foundWithoutSuffix {
+				continue
+			}
+
+			if _, ok := systemMentions[word]; !ok && strings.HasPrefix(word, "@") {
+				ret.OtherPotentialMentions = append(ret.OtherPotentialMentions, word[1:])
+			} else if strings.ContainsAny(word, ".-:") {
+				// This word contains a character that may be the end of a sentence, so split further
+				splitWords := strings.FieldsFunc(word, func(c rune) bool {
+					return c == '.' || c == '-' || c == ':'
+				})
+
+				for _, splitWord := range splitWords {
+					if checkForMention(splitWord) {
+						continue
+					}
+					if _, ok := systemMentions[splitWord]; !ok && strings.HasPrefix(splitWord, "@") {
+						ret.OtherPotentialMentions = append(ret.OtherPotentialMentions, splitWord[1:])
+					}
+				}
+			}
+
+			// If word contains a multibyte character, check if it contains a multibyte keyword
+			if len(word) != utf8.RuneCountInString(word) {
+				for _, key := range multibyteKeywords {
+					if strings.Contains(word, key) {
+						if ids, match := keywords[key]; match {
+							addMentionedUsers(ids)
+						}
+					}
+				}
+			}
+		}
+	}
 
 	buf := ""
-	mentionsEnabledFields := getMentionsEnabledFields(post)
+	mentionsEnabledFields := GetMentionsEnabledFields(post)
 	for _, message := range mentionsEnabledFields {
 		markdown.Inspect(message, func(node interface{}) bool {
 			text, ok := node.(*markdown.Text)
 			if !ok {
-				ret.processText(buf, keywords)
+				processText(buf)
 				buf = ""
 				return true
 			}
@@ -670,14 +628,14 @@ func getExplicitMentions(post *model.Post, keywords map[string][]string) *Explic
 			return false
 		})
 	}
-	ret.processText(buf, keywords)
+	processText(buf)
 
 	return ret
 }
 
 // Given a post returns the values of the fields in which mentions are possible.
 // post.message, preText and text in the attachment are enabled.
-func getMentionsEnabledFields(post *model.Post) model.StringArray {
+func GetMentionsEnabledFields(post *model.Post) model.StringArray {
 	ret := []string{}
 
 	ret = append(ret, post.Message)
@@ -695,7 +653,7 @@ func getMentionsEnabledFields(post *model.Post) model.StringArray {
 
 // Given a map of user IDs to profiles, returns a list of mention
 // keywords for all users in the channel.
-func (a *App) getMentionKeywordsInChannel(profiles map[string]*model.User, lookForSpecialMentions bool, channelMemberNotifyPropsMap map[string]model.StringMap) map[string][]string {
+func (a *App) GetMentionKeywordsInChannel(profiles map[string]*model.User, lookForSpecialMentions bool, channelMemberNotifyPropsMap map[string]model.StringMap) map[string][]string {
 	keywords := make(map[string][]string)
 
 	for id, profile := range profiles {
@@ -739,6 +697,14 @@ func (a *App) getMentionKeywordsInChannel(profiles map[string]*model.User, lookF
 	}
 
 	return keywords
+}
+
+// Represents either an email or push notification and contains the fields required to send it to any user.
+type postNotification struct {
+	channel    *model.Channel
+	post       *model.Post
+	profileMap map[string]*model.User
+	sender     *model.User
 }
 
 // Returns the name of the channel for this notification. For direct messages, this is the sender's name

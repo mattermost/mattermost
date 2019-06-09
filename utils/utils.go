@@ -8,8 +8,6 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-
-	"github.com/mattermost/mattermost-server/model"
 )
 
 func StringInSlice(a string, slice []string) bool {
@@ -68,19 +66,21 @@ func StringSliceDiff(a, b []string) []string {
 	return result
 }
 
-func GetIpAddress(r *http.Request) string {
+func GetIpAddress(r *http.Request, trustedProxyIPHeader []string) string {
 	address := ""
 
-	header := r.Header.Get(model.HEADER_FORWARDED)
-	if len(header) > 0 {
-		addresses := strings.Fields(header)
-		if len(addresses) > 0 {
-			address = strings.TrimRight(addresses[0], ",")
+	for _, proxyHeader := range trustedProxyIPHeader {
+		header := r.Header.Get(proxyHeader)
+		if len(header) > 0 {
+			addresses := strings.Fields(header)
+			if len(addresses) > 0 {
+				address = strings.TrimRight(addresses[0], ",")
+			}
 		}
-	}
 
-	if len(address) == 0 {
-		address = r.Header.Get(model.HEADER_REAL_IP)
+		if len(address) > 0 {
+			return address
+		}
 	}
 
 	if len(address) == 0 {

@@ -16,6 +16,7 @@ type MessageExport struct {
 	UserId    *string
 	UserEmail *string
 	Username  *string
+	IsBot     bool
 
 	PostId         *string
 	PostCreateAt   *int64
