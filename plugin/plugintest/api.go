@@ -294,9 +294,9 @@ func (_m *API) DeleteChannelMember(channelId string, userId string) *model.AppEr
 	return r0
 }
 
-// DeleteEphemeralPost provides a mock function with given fields: userId, post
-func (_m *API) DeleteEphemeralPost(userId string, post *model.Post) {
-	_m.Called(userId, post)
+// DeleteEphemeralPost provides a mock function with given fields: userId, postId
+func (_m *API) DeleteEphemeralPost(userId string, postId string) {
+	_m.Called(userId, postId)
 }
 
 // DeletePost provides a mock function with given fields: postId

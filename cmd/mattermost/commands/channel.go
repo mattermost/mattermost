@@ -313,8 +313,8 @@ func archiveChannelsCmdF(command *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to find channel '" + args[i] + "'")
 			continue
 		}
-		if result := <-a.Srv.Store.Channel().Delete(channel.Id, model.GetMillis()); result.Err != nil {
-			CommandPrintErrorln("Unable to archive channel '" + channel.Name + "' error: " + result.Err.Error())
+		if err := a.Srv.Store.Channel().Delete(channel.Id, model.GetMillis()); err != nil {
+			CommandPrintErrorln("Unable to archive channel '" + channel.Name + "' error: " + err.Error())
 		}
 	}
 
@@ -475,7 +475,7 @@ func restoreChannelsCmdF(command *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to find channel '" + args[i] + "'")
 			continue
 		}
-		if result := <-a.Srv.Store.Channel().SetDeleteAt(channel.Id, 0, model.GetMillis()); result.Err != nil {
+		if err := a.Srv.Store.Channel().SetDeleteAt(channel.Id, 0, model.GetMillis()); err != nil {
 			CommandPrintErrorln("Unable to restore channel '" + args[i] + "'")
 		}
 	}

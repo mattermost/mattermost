@@ -16,21 +16,50 @@ import (
 	"github.com/mattermost/mattermost-server/utils"
 )
 
-func (a *App) CreateDefaultChannels(teamId string) ([]*model.Channel, *model.AppError) {
-	townSquare := &model.Channel{DisplayName: utils.T("api.channel.create_default_channels.town_square"), Name: "town-square", Type: model.CHANNEL_OPEN, TeamId: teamId}
-
-	if _, err := a.CreateChannel(townSquare, false); err != nil {
-		return nil, err
+// CreateDefaultChannels creates channels in the given team for each channel returned by (*App).DefaultChannelNames.
+//
+func (a *App) CreateDefaultChannels(teamID string) ([]*model.Channel, *model.AppError) {
+	displayNames := map[string]string{
+		"town-square": utils.T("api.channel.create_default_channels.town_square"),
+		"off-topic":   utils.T("api.channel.create_default_channels.off_topic"),
 	}
-
-	offTopic := &model.Channel{DisplayName: utils.T("api.channel.create_default_channels.off_topic"), Name: "off-topic", Type: model.CHANNEL_OPEN, TeamId: teamId}
-
-	if _, err := a.CreateChannel(offTopic, false); err != nil {
-		return nil, err
+	channels := []*model.Channel{}
+	defaultChannelNames := a.DefaultChannelNames()
+	for _, name := range defaultChannelNames {
+		displayName := utils.TDefault(displayNames[name], name)
+		channel := &model.Channel{DisplayName: displayName, Name: name, Type: model.CHANNEL_OPEN, TeamId: teamID}
+		if _, err := a.CreateChannel(channel, false); err != nil {
+			return nil, err
+		}
+		channels = append(channels, channel)
 	}
-
-	channels := []*model.Channel{townSquare, offTopic}
 	return channels, nil
+}
+
+// DefaultChannelNames returns the list of system-wide default channel names.
+//
+// By default the list will be (not necessarily in this order):
+//	['town-square', 'off-topic']
+// However, if TeamSettings.ExperimentalDefaultChannels contains a list of channels then that list will replace
+// 'off-topic' and be included in the return results in addition to 'town-square'. For example:
+//	['town-square', 'game-of-thrones', 'wow']
+//
+func (a *App) DefaultChannelNames() []string {
+	names := []string{"town-square"}
+
+	if len(a.Config().TeamSettings.ExperimentalDefaultChannels) == 0 {
+		names = append(names, "off-topic")
+	} else {
+		seenChannels := map[string]bool{}
+		for _, channelName := range a.Config().TeamSettings.ExperimentalDefaultChannels {
+			if !seenChannels[channelName] {
+				names = append(names, channelName)
+				seenChannels[channelName] = true
+			}
+		}
+	}
+
+	return names
 }
 
 func (a *App) JoinDefaultChannels(teamId string, user *model.User, shouldBeAdmin bool, userRequestorId string) *model.AppError {
@@ -43,22 +72,8 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, shouldBeAdmin
 		}
 	}
 
-	defaultChannelList := []string{"town-square"}
-
-	if len(a.Config().TeamSettings.ExperimentalDefaultChannels) == 0 {
-		defaultChannelList = append(defaultChannelList, "off-topic")
-	} else {
-		seenChannels := map[string]bool{}
-		for _, channelName := range a.Config().TeamSettings.ExperimentalDefaultChannels {
-			if !seenChannels[channelName] {
-				defaultChannelList = append(defaultChannelList, channelName)
-				seenChannels[channelName] = true
-			}
-		}
-	}
-
 	var err *model.AppError
-	for _, channelName := range defaultChannelList {
+	for _, channelName := range a.DefaultChannelNames() {
 		if result := <-a.Srv.Store.Channel().GetByName(teamId, channelName, true); result.Err != nil {
 			err = result.Err
 		} else {
@@ -206,12 +221,10 @@ func (a *App) RenameChannel(channel *model.Channel, newChannelName string, newDi
 }
 
 func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Channel, *model.AppError) {
-	result := <-a.Srv.Store.Channel().Save(channel, *a.Config().TeamSettings.MaxChannelsPerTeam)
-	if result.Err != nil {
-		return nil, result.Err
+	sc, err := a.Srv.Store.Channel().Save(channel, *a.Config().TeamSettings.MaxChannelsPerTeam)
+	if err != nil {
+		return nil, err
 	}
-
-	sc := result.Data.(*model.Channel)
 
 	if addMember {
 		user, err := a.Srv.Store.User().Get(channel.CreatorId)
@@ -340,15 +353,13 @@ func (a *App) createDirectChannel(userId string, otherUserId string) (*model.Cha
 		return nil, model.NewAppError("CreateDirectChannel", "api.channel.create_direct_channel.invalid_user.app_error", nil, otherUserId, http.StatusBadRequest)
 	}
 
-	result := <-a.Srv.Store.Channel().CreateDirectChannel(userId, otherUserId)
-	if result.Err != nil {
-		if result.Err.Id == store.CHANNEL_EXISTS_ERROR {
-			return result.Data.(*model.Channel), result.Err
+	channel, err := a.Srv.Store.Channel().CreateDirectChannel(userId, otherUserId)
+	if err != nil {
+		if err.Id == store.CHANNEL_EXISTS_ERROR {
+			return channel, err
 		}
-		return nil, result.Err
+		return nil, err
 	}
-
-	channel := result.Data.(*model.Channel)
 
 	if result := <-a.Srv.Store.ChannelMemberHistory().LogJoinEvent(userId, channel.Id, model.GetMillis()); result.Err != nil {
 		mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", result.Err))
@@ -378,7 +389,7 @@ func (a *App) WaitForChannelMembership(channelId string, userId string) {
 			return
 		}
 
-		// If we received a error but it wasn't a missing channel member then return
+		// If we received an error, but it wasn't a missing channel member then return
 		if err.Id != store.MISSING_CHANNEL_MEMBER_ERROR {
 			return
 		}
@@ -443,14 +454,13 @@ func (a *App) createGroupChannel(userIds []string, creatorId string) (*model.Cha
 		Type:        model.CHANNEL_GROUP,
 	}
 
-	result = <-a.Srv.Store.Channel().Save(group, *a.Config().TeamSettings.MaxChannelsPerTeam)
-	if result.Err != nil {
-		if result.Err.Id == store.CHANNEL_EXISTS_ERROR {
-			return result.Data.(*model.Channel), result.Err
+	channel, err := a.Srv.Store.Channel().Save(group, *a.Config().TeamSettings.MaxChannelsPerTeam)
+	if err != nil {
+		if err.Id == store.CHANNEL_EXISTS_ERROR {
+			return channel, err
 		}
-		return nil, result.Err
+		return nil, err
 	}
-	channel := result.Data.(*model.Channel)
 
 	for _, user := range users {
 		cm := &model.ChannelMember{
@@ -585,9 +595,8 @@ func (a *App) postChannelPrivacyMessage(user *model.User, channel *model.Channel
 }
 
 func (a *App) RestoreChannel(channel *model.Channel) (*model.Channel, *model.AppError) {
-	result := <-a.Srv.Store.Channel().Restore(channel.Id, model.GetMillis())
-	if result.Err != nil {
-		return nil, result.Err
+	if err := a.Srv.Store.Channel().Restore(channel.Id, model.GetMillis()); err != nil {
+		return nil, err
 	}
 	return channel, nil
 }
@@ -873,8 +882,8 @@ func (a *App) DeleteChannel(channel *model.Channel, userId string) *model.AppErr
 
 	deleteAt := model.GetMillis()
 
-	if dresult := <-a.Srv.Store.Channel().Delete(channel.Id, deleteAt); dresult.Err != nil {
-		return dresult.Err
+	if err := a.Srv.Store.Channel().Delete(channel.Id, deleteAt); err != nil {
+		return err
 	}
 	a.InvalidateCacheForChannel(channel)
 
@@ -898,6 +907,16 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel, teamMem
 		}
 	} else {
 		return channelMember, nil
+	}
+
+	if channel.IsGroupConstrained() {
+		nonMembers, err := a.FilterNonGroupChannelMembers([]string{user.Id}, channel)
+		if err != nil {
+			return nil, model.NewAppError("addUserToChannel", "api.channel.add_user_to_channel.type.app_error", nil, "", http.StatusInternalServerError)
+		}
+		if len(nonMembers) > 0 {
+			return nil, model.NewAppError("addUserToChannel", "api.channel.add_members.user_denied", map[string]interface{}{"UserIDs": nonMembers}, "", http.StatusBadRequest)
+		}
 	}
 
 	newMember := &model.ChannelMember{
@@ -1037,8 +1056,8 @@ func (a *App) AddDirectChannels(teamId string, user *model.User) *model.AppError
 		}
 	}
 
-	if result := <-a.Srv.Store.Preference().Save(&preferences); result.Err != nil {
-		return model.NewAppError("AddDirectChannels", "api.user.add_direct_channels_and_forget.failed.error", map[string]interface{}{"UserId": user.Id, "TeamId": teamId, "Error": result.Err.Error()}, "", http.StatusInternalServerError)
+	if err := a.Srv.Store.Preference().Save(&preferences); err != nil {
+		return model.NewAppError("AddDirectChannels", "api.user.add_direct_channels_and_forget.failed.error", map[string]interface{}{"UserId": user.Id, "TeamId": teamId, "Error": err.Error()}, "", http.StatusInternalServerError)
 	}
 
 	return nil
@@ -1223,8 +1242,16 @@ func (a *App) GetChannelsForUser(teamId string, userId string, includeDeleted bo
 	return result.Data.(*model.ChannelList), nil
 }
 
-func (a *App) GetAllChannels(page, perPage int, includeDeleted bool) (*model.ChannelListWithTeamData, *model.AppError) {
-	result := <-a.Srv.Store.Channel().GetAllChannels(page*perPage, perPage, includeDeleted)
+func (a *App) GetAllChannels(page, perPage int, opts model.ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError) {
+	if opts.ExcludeDefaultChannels {
+		opts.ExcludeChannelNames = a.DefaultChannelNames()
+	}
+	storeOpts := store.ChannelSearchOpts{
+		ExcludeChannelNames:  opts.ExcludeChannelNames,
+		NotAssociatedToGroup: opts.NotAssociatedToGroup,
+		IncludeDeleted:       opts.IncludeDeleted,
+	}
+	result := <-a.Srv.Store.Channel().GetAllChannels(page*perPage, perPage, storeOpts)
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -1596,6 +1623,16 @@ func (a *App) removeUserFromChannel(userIdToRemove string, removerUserId string,
 		return model.NewAppError("RemoveUserFromChannel", "api.channel.remove.default.app_error", map[string]interface{}{"Channel": model.DEFAULT_CHANNEL}, "", http.StatusBadRequest)
 	}
 
+	if channel.IsGroupConstrained() && userIdToRemove != removerUserId {
+		nonMembers, err := a.FilterNonGroupChannelMembers([]string{userIdToRemove}, channel)
+		if err != nil {
+			return model.NewAppError("removeUserFromChannel", "api.channel.remove_user_from_channel.app_error", nil, "", http.StatusInternalServerError)
+		}
+		if len(nonMembers) == 0 {
+			return model.NewAppError("removeUserFromChannel", "api.channel.remove_members.denied", map[string]interface{}{"UserIDs": nonMembers}, "", http.StatusBadRequest)
+		}
+	}
+
 	cm, err := a.GetChannelMember(channel.Id, userIdToRemove)
 	if err != nil {
 		return err
@@ -1724,6 +1761,7 @@ func (a *App) UpdateChannelLastViewedAt(channelIds []string, userId string) *mod
 
 func (a *App) AutocompleteChannels(teamId string, term string) (*model.ChannelList, *model.AppError) {
 	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
+	term = strings.TrimSpace(term)
 
 	esInterface := a.Elasticsearch
 	license := a.License()
@@ -1760,6 +1798,8 @@ func (a *App) AutocompleteChannels(teamId string, term string) (*model.ChannelLi
 func (a *App) AutocompleteChannelsForSearch(teamId string, userId string, term string) (*model.ChannelList, *model.AppError) {
 	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 
+	term = strings.TrimSpace(term)
+
 	result := <-a.Srv.Store.Channel().AutocompleteInTeamForSearch(teamId, userId, term, includeDeleted)
 	if result.Err != nil {
 		return nil, result.Err
@@ -1767,8 +1807,20 @@ func (a *App) AutocompleteChannelsForSearch(teamId string, userId string, term s
 	return result.Data.(*model.ChannelList), nil
 }
 
-func (a *App) SearchAllChannels(term string, includeDeleted bool) (*model.ChannelListWithTeamData, *model.AppError) {
-	result := <-a.Srv.Store.Channel().SearchAllChannels(term, *a.Config().TeamSettings.ExperimentalViewArchivedChannels && includeDeleted)
+func (a *App) SearchAllChannels(term string, opts model.ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError) {
+	opts.IncludeDeleted = *a.Config().TeamSettings.ExperimentalViewArchivedChannels && opts.IncludeDeleted
+	if opts.ExcludeDefaultChannels {
+		opts.ExcludeChannelNames = a.DefaultChannelNames()
+	}
+	storeOpts := store.ChannelSearchOpts{
+		ExcludeChannelNames:  opts.ExcludeChannelNames,
+		NotAssociatedToGroup: opts.NotAssociatedToGroup,
+		IncludeDeleted:       opts.IncludeDeleted,
+	}
+
+	term = strings.TrimSpace(term)
+
+	result := <-a.Srv.Store.Channel().SearchAllChannels(term, storeOpts)
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -1778,6 +1830,8 @@ func (a *App) SearchAllChannels(term string, includeDeleted bool) (*model.Channe
 func (a *App) SearchChannels(teamId string, term string) (*model.ChannelList, *model.AppError) {
 	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 
+	term = strings.TrimSpace(term)
+
 	result := <-a.Srv.Store.Channel().SearchInTeam(teamId, term, includeDeleted)
 	if result.Err != nil {
 		return nil, result.Err
@@ -1786,6 +1840,7 @@ func (a *App) SearchChannels(teamId string, term string) (*model.ChannelList, *m
 }
 
 func (a *App) SearchChannelsUserNotIn(teamId string, userId string, term string) (*model.ChannelList, *model.AppError) {
+	term = strings.TrimSpace(term)
 	result := <-a.Srv.Store.Channel().SearchMore(userId, teamId, term)
 	if result.Err != nil {
 		return nil, result.Err
@@ -1878,8 +1933,8 @@ func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
 		return channelUsers.Err
 	}
 
-	if result := <-a.Srv.Store.Post().PermanentDeleteByChannel(channel.Id); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.Post().PermanentDeleteByChannel(channel.Id); err != nil {
+		return err
 	}
 
 	if result := <-a.Srv.Store.Channel().PermanentDeleteMembersByChannel(channel.Id); result.Err != nil {

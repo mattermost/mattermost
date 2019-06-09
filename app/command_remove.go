@@ -135,10 +135,16 @@ func doCommand(a *App, args *model.CommandArgs, message string) *model.CommandRe
 	}
 
 	if err = a.RemoveUserFromChannel(userProfile.Id, args.UserId, channel); err != nil {
-		return &model.CommandResponse{
-			Text: args.T(err.Id, map[string]interface{}{
+		var text string
+		if err.Id == "api.channel.remove_members.denied" {
+			text = args.T("api.command_remove.group_constrained_user_denied")
+		} else {
+			text = args.T(err.Id, map[string]interface{}{
 				"Channel": model.DEFAULT_CHANNEL,
-			}),
+			})
+		}
+		return &model.CommandResponse{
+			Text:         text,
 			ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL,
 		}
 	}

@@ -22,10 +22,10 @@ func TestImportImportScheme(t *testing.T) {
 	defer th.TearDown()
 
 	// Mark the phase 2 permissions migration as completed.
-	<-th.App.Srv.Store.System().Save(&model.System{Name: model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2, Value: "true"})
+	th.App.Srv.Store.System().Save(&model.System{Name: model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2, Value: "true"})
 
 	defer func() {
-		<-th.App.Srv.Store.System().PermanentDeleteByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2)
+		th.App.Srv.Store.System().PermanentDeleteByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2)
 	}()
 
 	// Try importing an invalid scheme in dryRun mode.
@@ -105,55 +105,49 @@ func TestImportImportScheme(t *testing.T) {
 		assert.Equal(t, *data.Description, scheme.Description)
 		assert.Equal(t, *data.Scope, scheme.Scope)
 
-		if res := <-th.App.Srv.Store.Role().GetByName(scheme.DefaultTeamAdminRole); res.Err != nil {
+		if role, err := th.App.Srv.Store.Role().GetByName(scheme.DefaultTeamAdminRole); err != nil {
 			t.Fatalf("Should have found the imported role.")
 		} else {
-			role := res.Data.(*model.Role)
 			assert.Equal(t, *data.DefaultTeamAdminRole.DisplayName, role.DisplayName)
 			assert.False(t, role.BuiltIn)
 			assert.True(t, role.SchemeManaged)
 		}
 
-		if res := <-th.App.Srv.Store.Role().GetByName(scheme.DefaultTeamUserRole); res.Err != nil {
+		if role, err := th.App.Srv.Store.Role().GetByName(scheme.DefaultTeamUserRole); err != nil {
 			t.Fatalf("Should have found the imported role.")
 		} else {
-			role := res.Data.(*model.Role)
 			assert.Equal(t, *data.DefaultTeamUserRole.DisplayName, role.DisplayName)
 			assert.False(t, role.BuiltIn)
 			assert.True(t, role.SchemeManaged)
 		}
 
-		if res := <-th.App.Srv.Store.Role().GetByName(scheme.DefaultTeamGuestRole); res.Err != nil {
+		if role, err := th.App.Srv.Store.Role().GetByName(scheme.DefaultTeamGuestRole); err != nil {
 			t.Fatalf("Should have found the imported role.")
 		} else {
-			role := res.Data.(*model.Role)
 			assert.Equal(t, *data.DefaultTeamGuestRole.DisplayName, role.DisplayName)
 			assert.False(t, role.BuiltIn)
 			assert.True(t, role.SchemeManaged)
 		}
 
-		if res := <-th.App.Srv.Store.Role().GetByName(scheme.DefaultChannelAdminRole); res.Err != nil {
+		if role, err := th.App.Srv.Store.Role().GetByName(scheme.DefaultChannelAdminRole); err != nil {
 			t.Fatalf("Should have found the imported role.")
 		} else {
-			role := res.Data.(*model.Role)
 			assert.Equal(t, *data.DefaultChannelAdminRole.DisplayName, role.DisplayName)
 			assert.False(t, role.BuiltIn)
 			assert.True(t, role.SchemeManaged)
 		}
 
-		if res := <-th.App.Srv.Store.Role().GetByName(scheme.DefaultChannelUserRole); res.Err != nil {
+		if role, err := th.App.Srv.Store.Role().GetByName(scheme.DefaultChannelUserRole); err != nil {
 			t.Fatalf("Should have found the imported role.")
 		} else {
-			role := res.Data.(*model.Role)
 			assert.Equal(t, *data.DefaultChannelUserRole.DisplayName, role.DisplayName)
 			assert.False(t, role.BuiltIn)
 			assert.True(t, role.SchemeManaged)
 		}
 
-		if res := <-th.App.Srv.Store.Role().GetByName(scheme.DefaultChannelGuestRole); res.Err != nil {
+		if role, err := th.App.Srv.Store.Role().GetByName(scheme.DefaultChannelGuestRole); err != nil {
 			t.Fatalf("Should have found the imported role.")
 		} else {
-			role := res.Data.(*model.Role)
 			assert.Equal(t, *data.DefaultChannelGuestRole.DisplayName, role.DisplayName)
 			assert.False(t, role.BuiltIn)
 			assert.True(t, role.SchemeManaged)
@@ -177,55 +171,49 @@ func TestImportImportScheme(t *testing.T) {
 		assert.Equal(t, *data.Description, scheme.Description)
 		assert.Equal(t, *data.Scope, scheme.Scope)
 
-		if res := <-th.App.Srv.Store.Role().GetByName(scheme.DefaultTeamAdminRole); res.Err != nil {
+		if role, err := th.App.Srv.Store.Role().GetByName(scheme.DefaultTeamAdminRole); err != nil {
 			t.Fatalf("Should have found the imported role.")
 		} else {
-			role := res.Data.(*model.Role)
 			assert.Equal(t, *data.DefaultTeamAdminRole.DisplayName, role.DisplayName)
 			assert.False(t, role.BuiltIn)
 			assert.True(t, role.SchemeManaged)
 		}
 
-		if res := <-th.App.Srv.Store.Role().GetByName(scheme.DefaultTeamUserRole); res.Err != nil {
+		if role, err := th.App.Srv.Store.Role().GetByName(scheme.DefaultTeamUserRole); err != nil {
 			t.Fatalf("Should have found the imported role.")
 		} else {
-			role := res.Data.(*model.Role)
 			assert.Equal(t, *data.DefaultTeamUserRole.DisplayName, role.DisplayName)
 			assert.False(t, role.BuiltIn)
 			assert.True(t, role.SchemeManaged)
 		}
 
-		if res := <-th.App.Srv.Store.Role().GetByName(scheme.DefaultTeamGuestRole); res.Err != nil {
+		if role, err := th.App.Srv.Store.Role().GetByName(scheme.DefaultTeamGuestRole); err != nil {
 			t.Fatalf("Should have found the imported role.")
 		} else {
-			role := res.Data.(*model.Role)
 			assert.Equal(t, *data.DefaultTeamGuestRole.DisplayName, role.DisplayName)
 			assert.False(t, role.BuiltIn)
 			assert.True(t, role.SchemeManaged)
 		}
 
-		if res := <-th.App.Srv.Store.Role().GetByName(scheme.DefaultChannelAdminRole); res.Err != nil {
+		if role, err := th.App.Srv.Store.Role().GetByName(scheme.DefaultChannelAdminRole); err != nil {
 			t.Fatalf("Should have found the imported role.")
 		} else {
-			role := res.Data.(*model.Role)
 			assert.Equal(t, *data.DefaultChannelAdminRole.DisplayName, role.DisplayName)
 			assert.False(t, role.BuiltIn)
 			assert.True(t, role.SchemeManaged)
 		}
 
-		if res := <-th.App.Srv.Store.Role().GetByName(scheme.DefaultChannelUserRole); res.Err != nil {
+		if role, err := th.App.Srv.Store.Role().GetByName(scheme.DefaultChannelUserRole); err != nil {
 			t.Fatalf("Should have found the imported role.")
 		} else {
-			role := res.Data.(*model.Role)
 			assert.Equal(t, *data.DefaultChannelUserRole.DisplayName, role.DisplayName)
 			assert.False(t, role.BuiltIn)
 			assert.True(t, role.SchemeManaged)
 		}
 
-		if res := <-th.App.Srv.Store.Role().GetByName(scheme.DefaultChannelGuestRole); res.Err != nil {
+		if role, err := th.App.Srv.Store.Role().GetByName(scheme.DefaultChannelGuestRole); err != nil {
 			t.Fatalf("Should have found the imported role.")
 		} else {
-			role := res.Data.(*model.Role)
 			assert.Equal(t, *data.DefaultChannelGuestRole.DisplayName, role.DisplayName)
 			assert.False(t, role.BuiltIn)
 			assert.True(t, role.SchemeManaged)
@@ -255,10 +243,10 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 	defer th.TearDown()
 
 	// Mark the phase 2 permissions migration as completed.
-	<-th.App.Srv.Store.System().Save(&model.System{Name: model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2, Value: "true"})
+	th.App.Srv.Store.System().Save(&model.System{Name: model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2, Value: "true"})
 
 	defer func() {
-		<-th.App.Srv.Store.System().PermanentDeleteByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2)
+		th.App.Srv.Store.System().PermanentDeleteByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2)
 	}()
 
 	// Try importing an invalid scheme in dryRun mode.
@@ -330,55 +318,49 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 		assert.Equal(t, *data.Description, scheme.Description)
 		assert.Equal(t, *data.Scope, scheme.Scope)
 
-		if res := <-th.App.Srv.Store.Role().GetByName(scheme.DefaultTeamAdminRole); res.Err != nil {
+		if role, err := th.App.Srv.Store.Role().GetByName(scheme.DefaultTeamAdminRole); err != nil {
 			t.Fatalf("Should have found the imported role.")
 		} else {
-			role := res.Data.(*model.Role)
 			assert.Equal(t, *data.DefaultTeamAdminRole.DisplayName, role.DisplayName)
 			assert.False(t, role.BuiltIn)
 			assert.True(t, role.SchemeManaged)
 		}
 
-		if res := <-th.App.Srv.Store.Role().GetByName(scheme.DefaultTeamUserRole); res.Err != nil {
+		if role, err := th.App.Srv.Store.Role().GetByName(scheme.DefaultTeamUserRole); err != nil {
 			t.Fatalf("Should have found the imported role.")
 		} else {
-			role := res.Data.(*model.Role)
 			assert.Equal(t, *data.DefaultTeamUserRole.DisplayName, role.DisplayName)
 			assert.False(t, role.BuiltIn)
 			assert.True(t, role.SchemeManaged)
 		}
 
-		if res := <-th.App.Srv.Store.Role().GetByName(scheme.DefaultTeamGuestRole); res.Err != nil {
+		if role, err := th.App.Srv.Store.Role().GetByName(scheme.DefaultTeamGuestRole); err != nil {
 			t.Fatalf("Should have found the imported role.")
 		} else {
-			role := res.Data.(*model.Role)
 			assert.Equal(t, *data.DefaultTeamGuestRole.DisplayName, role.DisplayName)
 			assert.False(t, role.BuiltIn)
 			assert.True(t, role.SchemeManaged)
 		}
 
-		if res := <-th.App.Srv.Store.Role().GetByName(scheme.DefaultChannelAdminRole); res.Err != nil {
+		if role, err := th.App.Srv.Store.Role().GetByName(scheme.DefaultChannelAdminRole); err != nil {
 			t.Fatalf("Should have found the imported role.")
 		} else {
-			role := res.Data.(*model.Role)
 			assert.Equal(t, *data.DefaultChannelAdminRole.DisplayName, role.DisplayName)
 			assert.False(t, role.BuiltIn)
 			assert.True(t, role.SchemeManaged)
 		}
 
-		if res := <-th.App.Srv.Store.Role().GetByName(scheme.DefaultChannelUserRole); res.Err != nil {
+		if role, err := th.App.Srv.Store.Role().GetByName(scheme.DefaultChannelUserRole); err != nil {
 			t.Fatalf("Should have found the imported role.")
 		} else {
-			role := res.Data.(*model.Role)
 			assert.Equal(t, *data.DefaultChannelUserRole.DisplayName, role.DisplayName)
 			assert.False(t, role.BuiltIn)
 			assert.True(t, role.SchemeManaged)
 		}
 
-		if res := <-th.App.Srv.Store.Role().GetByName(scheme.DefaultChannelGuestRole); res.Err != nil {
+		if role, err := th.App.Srv.Store.Role().GetByName(scheme.DefaultChannelGuestRole); err != nil {
 			t.Fatalf("Should have found the imported role.")
 		} else {
-			role := res.Data.(*model.Role)
 			assert.Equal(t, *data.DefaultChannelGuestRole.DisplayName, role.DisplayName)
 			assert.False(t, role.BuiltIn)
 			assert.True(t, role.SchemeManaged)
@@ -402,55 +384,49 @@ func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
 		assert.Equal(t, *data.Description, scheme.Description)
 		assert.Equal(t, *data.Scope, scheme.Scope)
 
-		if res := <-th.App.Srv.Store.Role().GetByName(scheme.DefaultTeamAdminRole); res.Err != nil {
+		if role, err := th.App.Srv.Store.Role().GetByName(scheme.DefaultTeamAdminRole); err != nil {
 			t.Fatalf("Should have found the imported role.")
 		} else {
-			role := res.Data.(*model.Role)
 			assert.Equal(t, *data.DefaultTeamAdminRole.DisplayName, role.DisplayName)
 			assert.False(t, role.BuiltIn)
 			assert.True(t, role.SchemeManaged)
 		}
 
-		if res := <-th.App.Srv.Store.Role().GetByName(scheme.DefaultTeamUserRole); res.Err != nil {
+		if role, err := th.App.Srv.Store.Role().GetByName(scheme.DefaultTeamUserRole); err != nil {
 			t.Fatalf("Should have found the imported role.")
 		} else {
-			role := res.Data.(*model.Role)
 			assert.Equal(t, *data.DefaultTeamUserRole.DisplayName, role.DisplayName)
 			assert.False(t, role.BuiltIn)
 			assert.True(t, role.SchemeManaged)
 		}
 
-		if res := <-th.App.Srv.Store.Role().GetByName(scheme.DefaultTeamGuestRole); res.Err != nil {
+		if role, err := th.App.Srv.Store.Role().GetByName(scheme.DefaultTeamGuestRole); err != nil {
 			t.Fatalf("Should have found the imported role.")
 		} else {
-			role := res.Data.(*model.Role)
 			assert.Equal(t, *data.DefaultTeamGuestRole.DisplayName, role.DisplayName)
 			assert.False(t, role.BuiltIn)
 			assert.True(t, role.SchemeManaged)
 		}
 
-		if res := <-th.App.Srv.Store.Role().GetByName(scheme.DefaultChannelAdminRole); res.Err != nil {
+		if role, err := th.App.Srv.Store.Role().GetByName(scheme.DefaultChannelAdminRole); err != nil {
 			t.Fatalf("Should have found the imported role.")
 		} else {
-			role := res.Data.(*model.Role)
 			assert.Equal(t, *data.DefaultChannelAdminRole.DisplayName, role.DisplayName)
 			assert.False(t, role.BuiltIn)
 			assert.True(t, role.SchemeManaged)
 		}
 
-		if res := <-th.App.Srv.Store.Role().GetByName(scheme.DefaultChannelUserRole); res.Err != nil {
+		if role, err := th.App.Srv.Store.Role().GetByName(scheme.DefaultChannelUserRole); err != nil {
 			t.Fatalf("Should have found the imported role.")
 		} else {
-			role := res.Data.(*model.Role)
 			assert.Equal(t, *data.DefaultChannelUserRole.DisplayName, role.DisplayName)
 			assert.False(t, role.BuiltIn)
 			assert.True(t, role.SchemeManaged)
 		}
 
-		if res := <-th.App.Srv.Store.Role().GetByName(scheme.DefaultChannelGuestRole); res.Err != nil {
+		if role, err := th.App.Srv.Store.Role().GetByName(scheme.DefaultChannelGuestRole); err != nil {
 			t.Fatalf("Should have found the imported role.")
 		} else {
-			role := res.Data.(*model.Role)
 			assert.Equal(t, *data.DefaultChannelGuestRole.DisplayName, role.DisplayName)
 			assert.False(t, role.BuiltIn)
 			assert.True(t, role.SchemeManaged)
@@ -489,7 +465,7 @@ func TestImportImportRole(t *testing.T) {
 		t.Fatalf("Should have failed to import.")
 	}
 
-	if res := <-th.App.Srv.Store.Role().GetByName(rid1); res.Err == nil {
+	if _, err := th.App.Srv.Store.Role().GetByName(rid1); err == nil {
 		t.Fatalf("Role should not have imported.")
 	}
 
@@ -500,7 +476,7 @@ func TestImportImportRole(t *testing.T) {
 		t.Fatalf("Should have succeeded.")
 	}
 
-	if res := <-th.App.Srv.Store.Role().GetByName(rid1); res.Err == nil {
+	if _, err := th.App.Srv.Store.Role().GetByName(rid1); err == nil {
 		t.Fatalf("Role should not have imported as we are in dry run mode.")
 	}
 
@@ -511,7 +487,7 @@ func TestImportImportRole(t *testing.T) {
 		t.Fatalf("Should have failed to import.")
 	}
 
-	if res := <-th.App.Srv.Store.Role().GetByName(rid1); res.Err == nil {
+	if _, err := th.App.Srv.Store.Role().GetByName(rid1); err == nil {
 		t.Fatalf("Role should not have imported.")
 	}
 
@@ -524,10 +500,9 @@ func TestImportImportRole(t *testing.T) {
 		t.Fatalf("Should have succeeded.")
 	}
 
-	if res := <-th.App.Srv.Store.Role().GetByName(rid1); res.Err != nil {
+	if role, err := th.App.Srv.Store.Role().GetByName(rid1); err != nil {
 		t.Fatalf("Should have found the imported role.")
 	} else {
-		role := res.Data.(*model.Role)
 		assert.Equal(t, *data.Name, role.Name)
 		assert.Equal(t, *data.DisplayName, role.DisplayName)
 		assert.Equal(t, *data.Description, role.Description)
@@ -545,10 +520,9 @@ func TestImportImportRole(t *testing.T) {
 		t.Fatalf("Should have succeeded. %v", err)
 	}
 
-	if res := <-th.App.Srv.Store.Role().GetByName(rid1); res.Err != nil {
+	if role, err := th.App.Srv.Store.Role().GetByName(rid1); err != nil {
 		t.Fatalf("Should have found the imported role.")
 	} else {
-		role := res.Data.(*model.Role)
 		assert.Equal(t, *data.Name, role.Name)
 		assert.Equal(t, *data.DisplayName, role.DisplayName)
 		assert.Equal(t, *data.Description, role.Description)
@@ -567,10 +541,9 @@ func TestImportImportRole(t *testing.T) {
 		t.Fatalf("Should have succeeded.")
 	}
 
-	if res := <-th.App.Srv.Store.Role().GetByName(rid1); res.Err != nil {
+	if role, err := th.App.Srv.Store.Role().GetByName(rid1); err != nil {
 		t.Fatalf("Should have found the imported role.")
 	} else {
-		role := res.Data.(*model.Role)
 		assert.Equal(t, *data2.Name, role.Name)
 		assert.Equal(t, *data2.DisplayName, role.DisplayName)
 		assert.Equal(t, *data.Description, role.Description)
@@ -585,10 +558,10 @@ func TestImportImportTeam(t *testing.T) {
 	defer th.TearDown()
 
 	// Mark the phase 2 permissions migration as completed.
-	<-th.App.Srv.Store.System().Save(&model.System{Name: model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2, Value: "true"})
+	th.App.Srv.Store.System().Save(&model.System{Name: model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2, Value: "true"})
 
 	defer func() {
-		<-th.App.Srv.Store.System().PermanentDeleteByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2)
+		th.App.Srv.Store.System().PermanentDeleteByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2)
 	}()
 
 	scheme1 := th.SetupTeamScheme()
@@ -686,10 +659,10 @@ func TestImportImportChannel(t *testing.T) {
 	defer th.TearDown()
 
 	// Mark the phase 2 permissions migration as completed.
-	<-th.App.Srv.Store.System().Save(&model.System{Name: model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2, Value: "true"})
+	th.App.Srv.Store.System().Save(&model.System{Name: model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2, Value: "true"})
 
 	defer func() {
-		<-th.App.Srv.Store.System().PermanentDeleteByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2)
+		th.App.Srv.Store.System().PermanentDeleteByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2)
 	}()
 
 	scheme1 := th.SetupChannelScheme()
@@ -1532,10 +1505,10 @@ func TestImportImportUser(t *testing.T) {
 	// to the appropriate scheme-managed-role booleans.
 
 	// Mark the phase 2 permissions migration as completed.
-	<-th.App.Srv.Store.System().Save(&model.System{Name: model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2, Value: "true"})
+	th.App.Srv.Store.System().Save(&model.System{Name: model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2, Value: "true"})
 
 	defer func() {
-		<-th.App.Srv.Store.System().PermanentDeleteByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2)
+		th.App.Srv.Store.System().PermanentDeleteByName(model.MIGRATION_KEY_ADVANCED_PERMISSIONS_PHASE_2)
 	}()
 
 	teamSchemeData := &SchemeImportData{
@@ -1918,10 +1891,10 @@ func TestImportImportPost(t *testing.T) {
 	AssertAllPostsCount(t, th.App, initialPostCount, 1, team.Id)
 
 	// Check the post values.
-	if result := <-th.App.Srv.Store.Post().GetPostsCreatedAt(channel.Id, time); result.Err != nil {
-		t.Fatal(result.Err.Error())
+	posts, err := th.App.Srv.Store.Post().GetPostsCreatedAt(channel.Id, time)
+	if err != nil {
+		t.Fatal(err.Error())
 	} else {
-		posts := result.Data.([]*model.Post)
 		if len(posts) != 1 {
 			t.Fatal("Unexpected number of posts found.")
 		}
@@ -1944,10 +1917,10 @@ func TestImportImportPost(t *testing.T) {
 	AssertAllPostsCount(t, th.App, initialPostCount, 1, team.Id)
 
 	// Check the post values.
-	if result := <-th.App.Srv.Store.Post().GetPostsCreatedAt(channel.Id, time); result.Err != nil {
-		t.Fatal(result.Err.Error())
+	posts, err = th.App.Srv.Store.Post().GetPostsCreatedAt(channel.Id, time)
+	if err != nil {
+		t.Fatal(err.Error())
 	} else {
-		posts := result.Data.([]*model.Post)
 		if len(posts) != 1 {
 			t.Fatal("Unexpected number of posts found.")
 		}
@@ -1995,10 +1968,10 @@ func TestImportImportPost(t *testing.T) {
 	assert.Nil(t, err)
 	AssertAllPostsCount(t, th.App, initialPostCount, 4, team.Id)
 
-	if result := <-th.App.Srv.Store.Post().GetPostsCreatedAt(channel.Id, hashtagTime); result.Err != nil {
-		t.Fatal(result.Err.Error())
+	posts, err = th.App.Srv.Store.Post().GetPostsCreatedAt(channel.Id, hashtagTime)
+	if err != nil {
+		t.Fatal(err.Error())
 	} else {
-		posts := result.Data.([]*model.Post)
 		if len(posts) != 1 {
 			t.Fatal("Unexpected number of posts found.")
 		}
@@ -2040,10 +2013,9 @@ func TestImportImportPost(t *testing.T) {
 	AssertAllPostsCount(t, th.App, initialPostCount, 5, team.Id)
 
 	// Check the post values.
-	if result := <-th.App.Srv.Store.Post().GetPostsCreatedAt(channel.Id, flagsTime); result.Err != nil {
-		t.Fatal(result.Err.Error())
+	if posts, err := th.App.Srv.Store.Post().GetPostsCreatedAt(channel.Id, flagsTime); err != nil {
+		t.Fatal(err.Error())
 	} else {
-		posts := result.Data.([]*model.Post)
 		if len(posts) != 1 {
 			t.Fatal("Unexpected number of posts found.")
 		}
@@ -2077,10 +2049,9 @@ func TestImportImportPost(t *testing.T) {
 	AssertAllPostsCount(t, th.App, initialPostCount, 6, team.Id)
 
 	// Check the post values.
-	if result := <-th.App.Srv.Store.Post().GetPostsCreatedAt(channel.Id, reactionPostTime); result.Err != nil {
-		t.Fatal(result.Err.Error())
+	if posts, err := th.App.Srv.Store.Post().GetPostsCreatedAt(channel.Id, reactionPostTime); err != nil {
+		t.Fatal(err.Error())
 	} else {
-		posts := result.Data.([]*model.Post)
 		if len(posts) != 1 {
 			t.Fatal("Unexpected number of posts found.")
 		}
@@ -2117,10 +2088,9 @@ func TestImportImportPost(t *testing.T) {
 	AssertAllPostsCount(t, th.App, initialPostCount, 8, team.Id)
 
 	// Check the post values.
-	if result := <-th.App.Srv.Store.Post().GetPostsCreatedAt(channel.Id, replyPostTime); result.Err != nil {
-		t.Fatal(result.Err.Error())
+	if posts, err := th.App.Srv.Store.Post().GetPostsCreatedAt(channel.Id, replyPostTime); err != nil {
+		t.Fatal(err.Error())
 	} else {
-		posts := result.Data.([]*model.Post)
 		if len(posts) != 1 {
 			t.Fatal("Unexpected number of posts found.")
 		}
@@ -2130,10 +2100,9 @@ func TestImportImportPost(t *testing.T) {
 		}
 
 		// Check the reply values.
-		if result := <-th.App.Srv.Store.Post().GetPostsCreatedAt(channel.Id, replyTime); result.Err != nil {
-			t.Fatal(result.Err.Error())
+		if replies, err := th.App.Srv.Store.Post().GetPostsCreatedAt(channel.Id, replyTime); err != nil {
+			t.Fatal(err.Error())
 		} else {
-			replies := result.Data.([]*model.Post)
 			if len(replies) != 1 {
 				t.Fatal("Unexpected number of posts found.")
 			}
@@ -2461,10 +2430,8 @@ func TestImportImportDirectPost(t *testing.T) {
 	AssertAllPostsCount(t, th.App, initialPostCount, 1, "")
 
 	// Check the post values.
-	result = <-th.App.Srv.Store.Post().GetPostsCreatedAt(directChannel.Id, *data.CreateAt)
-	require.Nil(t, result.Err)
-
-	posts := result.Data.([]*model.Post)
+	posts, err := th.App.Srv.Store.Post().GetPostsCreatedAt(directChannel.Id, *data.CreateAt)
+	require.Nil(t, err)
 	require.Equal(t, len(posts), 1)
 
 	post := posts[0]
@@ -2478,10 +2445,8 @@ func TestImportImportDirectPost(t *testing.T) {
 	AssertAllPostsCount(t, th.App, initialPostCount, 1, "")
 
 	// Check the post values.
-	result = <-th.App.Srv.Store.Post().GetPostsCreatedAt(directChannel.Id, *data.CreateAt)
-	require.Nil(t, result.Err)
-
-	posts = result.Data.([]*model.Post)
+	posts, err = th.App.Srv.Store.Post().GetPostsCreatedAt(directChannel.Id, *data.CreateAt)
+	require.Nil(t, err)
 	require.Equal(t, len(posts), 1)
 
 	post = posts[0]
@@ -2508,10 +2473,8 @@ func TestImportImportDirectPost(t *testing.T) {
 	require.Nil(t, err)
 	AssertAllPostsCount(t, th.App, initialPostCount, 4, "")
 
-	result = <-th.App.Srv.Store.Post().GetPostsCreatedAt(directChannel.Id, *data.CreateAt)
-	require.Nil(t, result.Err)
-
-	posts = result.Data.([]*model.Post)
+	posts, err = th.App.Srv.Store.Post().GetPostsCreatedAt(directChannel.Id, *data.CreateAt)
+	require.Nil(t, err)
 	require.Equal(t, len(posts), 1)
 
 	post = posts[0]
@@ -2539,10 +2502,8 @@ func TestImportImportDirectPost(t *testing.T) {
 	require.Nil(t, err)
 
 	// Check the post values.
-	result = <-th.App.Srv.Store.Post().GetPostsCreatedAt(directChannel.Id, *data.CreateAt)
-	require.Nil(t, result.Err)
-
-	posts = result.Data.([]*model.Post)
+	posts, err = th.App.Srv.Store.Post().GetPostsCreatedAt(directChannel.Id, *data.CreateAt)
+	require.Nil(t, err)
 	require.Equal(t, len(posts), 1)
 
 	post = posts[0]
@@ -2640,10 +2601,8 @@ func TestImportImportDirectPost(t *testing.T) {
 	AssertAllPostsCount(t, th.App, initialPostCount, 1, "")
 
 	// Check the post values.
-	result = <-th.App.Srv.Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt)
-	require.Nil(t, result.Err)
-
-	posts = result.Data.([]*model.Post)
+	posts, err = th.App.Srv.Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt)
+	require.Nil(t, err)
 	require.Equal(t, len(posts), 1)
 
 	post = posts[0]
@@ -2657,10 +2616,8 @@ func TestImportImportDirectPost(t *testing.T) {
 	AssertAllPostsCount(t, th.App, initialPostCount, 1, "")
 
 	// Check the post values.
-	result = <-th.App.Srv.Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt)
-	require.Nil(t, result.Err)
-
-	posts = result.Data.([]*model.Post)
+	posts, err = th.App.Srv.Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt)
+	require.Nil(t, err)
 	require.Equal(t, len(posts), 1)
 
 	post = posts[0]
@@ -2687,10 +2644,8 @@ func TestImportImportDirectPost(t *testing.T) {
 	require.Nil(t, err)
 	AssertAllPostsCount(t, th.App, initialPostCount, 4, "")
 
-	result = <-th.App.Srv.Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt)
-	require.Nil(t, result.Err)
-
-	posts = result.Data.([]*model.Post)
+	posts, err = th.App.Srv.Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt)
+	require.Nil(t, err)
 	require.Equal(t, len(posts), 1)
 
 	post = posts[0]
@@ -2719,10 +2674,8 @@ func TestImportImportDirectPost(t *testing.T) {
 	require.Nil(t, err)
 
 	// Check the post values.
-	result = <-th.App.Srv.Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt)
-	require.Nil(t, result.Err)
-
-	posts = result.Data.([]*model.Post)
+	posts, err = th.App.Srv.Store.Post().GetPostsCreatedAt(groupChannel.Id, *data.CreateAt)
+	require.Nil(t, err)
 	require.Equal(t, len(posts), 1)
 
 	post = posts[0]

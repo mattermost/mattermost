@@ -135,7 +135,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 				var outOfChannelMentions model.UserSlice
 				var outOfGroupsMentions model.UserSlice
 
-				if channel.GroupConstrained != nil && *channel.GroupConstrained {
+				if channel.IsGroupConstrained() {
 					nonMemberIDs, err := a.FilterNonGroupChannelMembers(channelMentions.IDs(), channel)
 					if err != nil {
 						return nil, err
