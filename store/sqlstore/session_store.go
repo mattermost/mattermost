@@ -170,13 +170,12 @@ func (me SqlSessionStore) PermanentDeleteSessionsByUser(userId string) *model.Ap
 	return nil
 }
 
-func (me SqlSessionStore) UpdateLastActivityAt(sessionId string, time int64) (string, *model.AppError) {
+func (me SqlSessionStore) UpdateLastActivityAt(sessionId string, time int64) *model.AppError {
 	_, err := me.GetMaster().Exec("UPDATE Sessions SET LastActivityAt = :LastActivityAt WHERE Id = :Id", map[string]interface{}{"LastActivityAt": time, "Id": sessionId})
 	if err != nil {
-		return "", model.NewAppError("SqlSessionStore.UpdateLastActivityAt", "store.sql_session.update_last_activity.app_error", nil, "sessionId="+sessionId, http.StatusInternalServerError)
+		return model.NewAppError("SqlSessionStore.UpdateLastActivityAt", "store.sql_session.update_last_activity.app_error", nil, "sessionId="+sessionId, http.StatusInternalServerError)
 	}
-
-	return sessionId, nil
+	return nil
 }
 
 func (me SqlSessionStore) UpdateRoles(userId, roles string) store.StoreChannel {

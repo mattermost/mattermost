@@ -258,7 +258,7 @@ func testSessionStoreUpdateLastActivityAt(t *testing.T, ss store.Store) {
 	s1, err := ss.Session().Save(s1)
 	require.Nil(t, err)
 
-	_, err = ss.Session().UpdateLastActivityAt(s1.Id, 1234567890)
+	err = ss.Session().UpdateLastActivityAt(s1.Id, 1234567890)
 	require.Nil(t, err)
 
 	if session, err := ss.Session().Get(s1.Id); err != nil {
