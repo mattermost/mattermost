@@ -2075,7 +2075,7 @@ func testPostStoreGetOldest(t *testing.T, ss store.Store) {
 
 	r1, err := ss.Post().GetOldest()
 
-	require.NoError(t, err)
+	require.Nil(t, err)
 	assert.EqualValues(t, o2.Id, r1.Id)
 }
 
