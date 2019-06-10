@@ -2186,7 +2186,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 		},
 		Header: ptrStr("Channel Header"),
 	}
-	err := th.App.ImportDirectChannel(&data, true)
+	err = th.App.ImportDirectChannel(&data, true)
 	require.NotNil(t, err)
 
 	// Check that no more channels are in the DB.
