@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/mattermost/mattermost-server/mlog"
@@ -798,7 +799,11 @@ func (a *App) parseAndFetchChannelIdByNameFromInFilter(channelName, userId, team
 }
 
 func (a *App) searchPostsInTeam(teamId string, userId string, paramsList []*model.SearchParams, modifierFun func(*model.SearchParams)) (*model.PostList, *model.AppError) {
-	channels := []chan store.StoreResult{}
+	var wg sync.WaitGroup
+	wg.Add(len(paramsList))
+
+	//create a channel with buffer size of len(paramsList)
+	pchan := make(chan store.StoreResult, len(paramsList))
 
 	for _, params := range paramsList {
 		// Don't allow users to search for everything.
@@ -807,18 +812,18 @@ func (a *App) searchPostsInTeam(teamId string, userId string, paramsList []*mode
 		}
 		modifierFun(params)
 
-		pchan := make(chan store.StoreResult, 1)
-		go func() {
+		go func(params *model.SearchParams) {
 			postList, err := a.Srv.Store.Post().Search(teamId, userId, params)
 			pchan <- store.StoreResult{Data: postList, Err: err}
-			channels = append(channels, pchan)
-			close(pchan)
-		}()
+		}(params)
 	}
 
+	wg.Wait()
+	close(pchan)
+
 	posts := model.NewPostList()
-	for _, channel := range channels {
-		result := <-channel
+
+	for result := range pchan {
 		if result.Err != nil {
 			return nil, result.Err
 		}
