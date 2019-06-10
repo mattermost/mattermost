@@ -306,6 +306,17 @@ type API interface {
 	GetReactions(postId string) ([]*model.Reaction, *model.AppError)
 
 	// SendEphemeralPost creates an ephemeral post.
+	// To create an ephemeral post that can be overriden by the webapp, pass a 'type' prop within the post struct.
+	// e.g.
+	//```
+	//		p.API.SendEphemeralPost(userId, &model.Post{
+	//		ChannelId: channelId,
+	//		Message:   "message",
+	//		Props: model.StringInterface{
+	//			"type": "system_ephemeral_test_plugin",
+	//		},
+	//	})
+	//```
 	SendEphemeralPost(userId string, post *model.Post) *model.Post
 
 	// UpdateEphemeralPost updates an ephemeral message previously sent to the user.
