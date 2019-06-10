@@ -327,19 +327,28 @@ func (_m *PostStore) GetPostsAfter(channelId string, postId string, numPosts int
 }
 
 // GetPostsBatchForIndexing provides a mock function with given fields: startTime, endTime, limit
-func (_m *PostStore) GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) store.StoreChannel {
+func (_m *PostStore) GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) ([]*model.PostForIndexing, *model.AppError) {
 	ret := _m.Called(startTime, endTime, limit)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(int64, int64, int) store.StoreChannel); ok {
+	var r0 []*model.PostForIndexing
+	if rf, ok := ret.Get(0).(func(int64, int64, int) []*model.PostForIndexing); ok {
 		r0 = rf(startTime, endTime, limit)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]*model.PostForIndexing)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(int64, int64, int) *model.AppError); ok {
+		r1 = rf(startTime, endTime, limit)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetPostsBefore provides a mock function with given fields: channelId, postId, numPosts, offset
