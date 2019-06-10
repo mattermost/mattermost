@@ -488,8 +488,8 @@ func (me *TestHelper) CheckTeamCount(t *testing.T, expected int64) {
 }
 
 func (me *TestHelper) CheckChannelsCount(t *testing.T, expected int64) {
-	if r := <-me.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN); r.Err == nil {
-		if r.Data.(int64) != expected {
+	if count, err := me.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN); err == nil {
+		if count != expected {
 			t.Fatalf("Unexpected number of channels. Expected: %v, found: %v", expected, r.Data.(int64))
 		}
 	} else {
