@@ -681,11 +681,11 @@ func (a *App) SearchPrivateTeams(term string) ([]*model.Team, *model.AppError) {
 }
 
 func (a *App) GetTeamsForUser(userId string) ([]*model.Team, *model.AppError) {
-	result := <-a.Srv.Store.Team().GetTeamsByUserId(userId)
-	if result.Err != nil {
-		return nil, result.Err
+	result, err := a.Srv.Store.Team().GetTeamsByUserId(userId)
+	if err != nil {
+		return nil, err
 	}
-	return result.Data.([]*model.Team), nil
+	return result, nil
 }
 
 func (a *App) GetTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError) {

@@ -22,13 +22,12 @@ func (a *App) sendNotificationEmail(notification *postNotification, user *model.
 	post := notification.post
 
 	if channel.IsGroupOrDirect() {
-		result := <-a.Srv.Store.Team().GetTeamsByUserId(user.Id)
-		if result.Err != nil {
-			return result.Err
+		teams, err := a.Srv.Store.Team().GetTeamsByUserId(user.Id)
+		if err != nil {
+			return err
 		}
 
 		// if the recipient isn't in the current user's team, just pick one
-		teams := result.Data.([]*model.Team)
 		found := false
 
 		for i := range teams {
