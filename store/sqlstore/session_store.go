@@ -126,13 +126,13 @@ func (me SqlSessionStore) GetSessions(userId string) ([]*model.Session, *model.A
 
 func (me SqlSessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*model.Session, *model.AppError) {
 	query :=
-		`SELECT * 
-		FROM 
-			Sessions 
-		WHERE 
-			UserId = :UserId AND 
-			ExpiresAt != 0 AND 
-			:ExpiresAt <= ExpiresAt AND 
+		`SELECT *
+		FROM
+			Sessions
+		WHERE
+			UserId = :UserId AND
+			ExpiresAt != 0 AND
+			:ExpiresAt <= ExpiresAt AND
 			DeviceId != ''`
 
 	var sessions []*model.Session
@@ -153,13 +153,12 @@ func (me SqlSessionStore) Remove(sessionIdOrToken string) store.StoreChannel {
 	})
 }
 
-func (me SqlSessionStore) RemoveAllSessions() store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		_, err := me.GetMaster().Exec("DELETE FROM Sessions")
-		if err != nil {
-			result.Err = model.NewAppError("SqlSessionStore.RemoveAllSessions", "store.sql_session.remove_all_sessions_for_team.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-	})
+func (me SqlSessionStore) RemoveAllSessions() *model.AppError {
+	_, err := me.GetMaster().Exec("DELETE FROM Sessions")
+	if err != nil {
+		return model.NewAppError("SqlSessionStore.RemoveAllSessions", "store.sql_session.remove_all_sessions_for_team.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return nil
 }
 
 func (me SqlSessionStore) PermanentDeleteSessionsByUser(userId string) *model.AppError {
@@ -203,7 +202,7 @@ func (me SqlSessionStore) UpdateDeviceId(id string, deviceId string, expiresAt i
 
 func (me SqlSessionStore) AnalyticsSessionCount() (int64, *model.AppError) {
 	query :=
-		`SELECT 
+		`SELECT
 			COUNT(*)
 		FROM
 			Sessions

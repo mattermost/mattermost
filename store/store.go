@@ -221,8 +221,8 @@ type PostStore interface {
 	GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetFlaggedPostsForTeam(userId, teamId string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) (*model.PostList, *model.AppError)
-	GetPostsBefore(channelId string, postId string, numPosts int, offset int) StoreChannel
-	GetPostsAfter(channelId string, postId string, numPosts int, offset int) StoreChannel
+	GetPostsBefore(channelId string, postId string, numPosts int, offset int) (*model.PostList, *model.AppError)
+	GetPostsAfter(channelId string, postId string, numPosts int, offset int) (*model.PostList, *model.AppError)
 	GetPostsSince(channelId string, time int64, allowFromCache bool) StoreChannel
 	GetEtag(channelId string, allowFromCache bool) string
 	Search(teamId string, userId string, params *model.SearchParams) StoreChannel
@@ -234,12 +234,12 @@ type PostStore interface {
 	GetPostsCreatedAt(channelId string, time int64) ([]*model.Post, *model.AppError)
 	Overwrite(post *model.Post) (*model.Post, *model.AppError)
 	GetPostsByIds(postIds []string) ([]*model.Post, *model.AppError)
-	GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) StoreChannel
-	PermanentDeleteBatch(endTime int64, limit int64) StoreChannel
+	GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) ([]*model.PostForIndexing, *model.AppError)
+	PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError)
 	GetOldest() StoreChannel
 	GetMaxPostSize() int
 	GetParentsForExportAfter(limit int, afterId string) ([]*model.PostForExport, *model.AppError)
-	GetRepliesForExport(parentId string) StoreChannel
+	GetRepliesForExport(parentId string) ([]*model.ReplyForExport, *model.AppError)
 	GetDirectPostParentsForExportAfter(limit int, afterId string) ([]*model.DirectPostForExport, *model.AppError)
 }
 
@@ -317,7 +317,7 @@ type SessionStore interface {
 	GetSessions(userId string) ([]*model.Session, *model.AppError)
 	GetSessionsWithActiveDeviceIds(userId string) ([]*model.Session, *model.AppError)
 	Remove(sessionIdOrToken string) StoreChannel
-	RemoveAllSessions() StoreChannel
+	RemoveAllSessions() *model.AppError
 	PermanentDeleteSessionsByUser(teamId string) *model.AppError
 	UpdateLastActivityAt(sessionId string, time int64) StoreChannel
 	UpdateRoles(userId string, roles string) (string, *model.AppError)

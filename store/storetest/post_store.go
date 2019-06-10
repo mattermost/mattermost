@@ -731,19 +731,17 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 		}
 
 		t.Run("should not return anything before the first post", func(t *testing.T) {
-			res := <-ss.Post().GetPostsBefore(channelId, posts[0].Id, 10, 0)
-			assert.Nil(t, res.Err)
+			postList, err := ss.Post().GetPostsBefore(channelId, posts[0].Id, 10, 0)
+			assert.Nil(t, err)
 
-			postList := res.Data.(*model.PostList)
 			assert.Equal(t, []string{}, postList.Order)
 			assert.Equal(t, map[string]*model.Post{}, postList.Posts)
 		})
 
 		t.Run("should return posts before a post", func(t *testing.T) {
-			res := <-ss.Post().GetPostsBefore(channelId, posts[5].Id, 10, 0)
-			assert.Nil(t, res.Err)
+			postList, err := ss.Post().GetPostsBefore(channelId, posts[5].Id, 10, 0)
+			assert.Nil(t, err)
 
-			postList := res.Data.(*model.PostList)
 			assert.Equal(t, []string{posts[4].Id, posts[3].Id, posts[2].Id, posts[1].Id, posts[0].Id}, postList.Order)
 			assert.Equal(t, map[string]*model.Post{
 				posts[0].Id: posts[0],
@@ -755,10 +753,9 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 		})
 
 		t.Run("should limit posts before", func(t *testing.T) {
-			res := <-ss.Post().GetPostsBefore(channelId, posts[5].Id, 2, 0)
-			assert.Nil(t, res.Err)
+			postList, err := ss.Post().GetPostsBefore(channelId, posts[5].Id, 2, 0)
+			assert.Nil(t, err)
 
-			postList := res.Data.(*model.PostList)
 			assert.Equal(t, []string{posts[4].Id, posts[3].Id}, postList.Order)
 			assert.Equal(t, map[string]*model.Post{
 				posts[3].Id: posts[3],
@@ -767,19 +764,17 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 		})
 
 		t.Run("should not return anything after the last post", func(t *testing.T) {
-			res := <-ss.Post().GetPostsAfter(channelId, posts[len(posts)-1].Id, 10, 0)
-			assert.Nil(t, res.Err)
+			postList, err := ss.Post().GetPostsAfter(channelId, posts[len(posts)-1].Id, 10, 0)
+			assert.Nil(t, err)
 
-			postList := res.Data.(*model.PostList)
 			assert.Equal(t, []string{}, postList.Order)
 			assert.Equal(t, map[string]*model.Post{}, postList.Posts)
 		})
 
 		t.Run("should return posts after a post", func(t *testing.T) {
-			res := <-ss.Post().GetPostsAfter(channelId, posts[5].Id, 10, 0)
-			assert.Nil(t, res.Err)
+			postList, err := ss.Post().GetPostsAfter(channelId, posts[5].Id, 10, 0)
+			assert.Nil(t, err)
 
-			postList := res.Data.(*model.PostList)
 			assert.Equal(t, []string{posts[9].Id, posts[8].Id, posts[7].Id, posts[6].Id}, postList.Order)
 			assert.Equal(t, map[string]*model.Post{
 				posts[6].Id: posts[6],
@@ -790,10 +785,9 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 		})
 
 		t.Run("should limit posts after", func(t *testing.T) {
-			res := <-ss.Post().GetPostsAfter(channelId, posts[5].Id, 2, 0)
-			assert.Nil(t, res.Err)
+			postList, err := ss.Post().GetPostsAfter(channelId, posts[5].Id, 2, 0)
+			assert.Nil(t, err)
 
-			postList := res.Data.(*model.PostList)
 			assert.Equal(t, []string{posts[7].Id, posts[6].Id}, postList.Order)
 			assert.Equal(t, map[string]*model.Post{
 				posts[6].Id: posts[6],
@@ -866,10 +860,9 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 		post2.UpdateAt = post6.UpdateAt
 
 		t.Run("should return each post and thread before a post", func(t *testing.T) {
-			res := <-ss.Post().GetPostsBefore(channelId, post4.Id, 2, 0)
-			assert.Nil(t, res.Err)
+			postList, err := ss.Post().GetPostsBefore(channelId, post4.Id, 2, 0)
+			assert.Nil(t, err)
 
-			postList := res.Data.(*model.PostList)
 			assert.Equal(t, []string{post3.Id, post2.Id}, postList.Order)
 			assert.Equal(t, map[string]*model.Post{
 				post1.Id: post1,
@@ -881,10 +874,9 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 		})
 
 		t.Run("should return each post and the root of each thread after a post", func(t *testing.T) {
-			res := <-ss.Post().GetPostsAfter(channelId, post4.Id, 2, 0)
-			assert.Nil(t, res.Err)
+			postList, err := ss.Post().GetPostsAfter(channelId, post4.Id, 2, 0)
+			assert.Nil(t, err)
 
-			postList := res.Data.(*model.PostList)
 			assert.Equal(t, []string{post6.Id, post5.Id}, postList.Order)
 			assert.Equal(t, map[string]*model.Post{
 				post2.Id: post2,
@@ -1987,7 +1979,9 @@ func testPostStoreGetPostsBatchForIndexing(t *testing.T, ss store.Store) {
 	o3.Message = "zz" + model.NewId() + "QQQQQQQQQQ"
 	o3 = (<-ss.Post().Save(o3)).Data.(*model.Post)
 
-	if r := store.Must(ss.Post().GetPostsBatchForIndexing(o1.CreateAt, model.GetMillis()+100000, 100)).([]*model.PostForIndexing); len(r) != 3 {
+	if r, err := ss.Post().GetPostsBatchForIndexing(o1.CreateAt, model.GetMillis()+100000, 100); err != nil {
+		t.Fatal(err)
+	} else if len(r) != 3 {
 		t.Fatalf("Expected 3 posts in results. Got %v", len(r))
 	} else {
 		for _, p := range r {
@@ -2041,7 +2035,8 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 	o3.CreateAt = 100000
 	o3 = (<-ss.Post().Save(o3)).Data.(*model.Post)
 
-	store.Must(ss.Post().PermanentDeleteBatch(2000, 1000))
+	_, err := ss.Post().PermanentDeleteBatch(2000, 1000)
+	require.Nil(t, err)
 
 	if _, err := ss.Post().Get(o1.Id); err == nil {
 		t.Fatalf("Should have not found post 1 after purge")
@@ -2173,13 +2168,12 @@ func testPostStoreGetRepliesForExport(t *testing.T, ss store.Store) {
 	p2.RootId = p1.Id
 	p2 = (<-ss.Post().Save(p2)).Data.(*model.Post)
 
-	r1 := <-ss.Post().GetRepliesForExport(p1.Id)
-	assert.Nil(t, r1.Err)
+	r1, err := ss.Post().GetRepliesForExport(p1.Id)
+	assert.Nil(t, err)
 
-	d1 := r1.Data.([]*model.ReplyForExport)
-	assert.Len(t, d1, 1)
+	assert.Len(t, r1, 1)
 
-	reply1 := d1[0]
+	reply1 := r1[0]
 	assert.Equal(t, reply1.Id, p2.Id)
 	assert.Equal(t, reply1.Message, p2.Message)
 	assert.Equal(t, reply1.Username, u1.Username)
@@ -2189,13 +2183,12 @@ func testPostStoreGetRepliesForExport(t *testing.T, ss store.Store) {
 	_, err = ss.User().Update(&u1, false)
 	require.Nil(t, err)
 
-	r1 = <-ss.Post().GetRepliesForExport(p1.Id)
-	assert.Nil(t, r1.Err)
+	r1, err = ss.Post().GetRepliesForExport(p1.Id)
+	assert.Nil(t, err)
 
-	d1 = r1.Data.([]*model.ReplyForExport)
-	assert.Len(t, d1, 1)
+	assert.Len(t, r1, 1)
 
-	reply1 = d1[0]
+	reply1 = r1[0]
 	assert.Equal(t, reply1.Id, p2.Id)
 	assert.Equal(t, reply1.Message, p2.Message)
 	assert.Equal(t, reply1.Username, u1.Username)
