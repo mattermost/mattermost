@@ -799,8 +799,7 @@ func (a *App) parseAndFetchChannelIdByNameFromInFilter(channelName, userId, team
 }
 
 func (a *App) searchPostsInTeam(teamId string, userId string, paramsList []*model.SearchParams, modifierFun func(*model.SearchParams)) (*model.PostList, *model.AppError) {
-	var wg sync.WaitGroup
-	wg.Add(len(paramsList))
+	wg := new(sync.WaitGroup)
 
 	//create a channel with buffer size of len(paramsList)
 	pchan := make(chan store.StoreResult, len(paramsList))
@@ -811,6 +810,7 @@ func (a *App) searchPostsInTeam(teamId string, userId string, paramsList []*mode
 			continue
 		}
 		modifierFun(params)
+		wg.Add(1)
 
 		go func(params *model.SearchParams) {
 			defer wg.Done()
