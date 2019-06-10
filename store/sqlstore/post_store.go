@@ -1118,68 +1118,61 @@ func (s *SqlPostStore) GetPostsByIds(postIds []string) ([]*model.Post, *model.Ap
 	return posts, nil
 }
 
-func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var posts []*model.PostForIndexing
-		_, err1 := s.GetSearchReplica().Select(&posts,
-			`SELECT
-				PostsQuery.*, Channels.TeamId, ParentPosts.CreateAt ParentCreateAt
-			FROM (
-				SELECT
-					*
-				FROM
-					Posts
-				WHERE
-					Posts.CreateAt >= :StartTime
-				AND
-					Posts.CreateAt < :EndTime
-				ORDER BY
-					CreateAt ASC
-				LIMIT
-					1000
-				)
-			AS
-				PostsQuery
-			LEFT JOIN
-				Channels
-			ON
-				PostsQuery.ChannelId = Channels.Id
-			LEFT JOIN
-				Posts ParentPosts
-			ON
-				PostsQuery.RootId = ParentPosts.Id`,
-			map[string]interface{}{"StartTime": startTime, "EndTime": endTime, "NumPosts": limit})
+func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) ([]*model.PostForIndexing, *model.AppError) {
+	var posts []*model.PostForIndexing
+	_, err := s.GetSearchReplica().Select(&posts,
+		`SELECT
+			PostsQuery.*, Channels.TeamId, ParentPosts.CreateAt ParentCreateAt
+		FROM (
+			SELECT
+				*
+			FROM
+				Posts
+			WHERE
+				Posts.CreateAt >= :StartTime
+			AND
+				Posts.CreateAt < :EndTime
+			ORDER BY
+				CreateAt ASC
+			LIMIT
+				1000
+			)
+		AS
+			PostsQuery
+		LEFT JOIN
+			Channels
+		ON
+			PostsQuery.ChannelId = Channels.Id
+		LEFT JOIN
+			Posts ParentPosts
+		ON
+			PostsQuery.RootId = ParentPosts.Id`,
+		map[string]interface{}{"StartTime": startTime, "EndTime": endTime, "NumPosts": limit})
 
-		if err1 != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_batch_for_indexing.get.app_error", nil, err1.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = posts
-		}
-	})
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_batch_for_indexing.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return posts, nil
 }
 
-func (s *SqlPostStore) PermanentDeleteBatch(endTime int64, limit int64) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var query string
-		if s.DriverName() == "postgres" {
-			query = "DELETE from Posts WHERE Id = any (array (SELECT Id FROM Posts WHERE CreateAt < :EndTime LIMIT :Limit))"
-		} else {
-			query = "DELETE from Posts WHERE CreateAt < :EndTime LIMIT :Limit"
-		}
+func (s *SqlPostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
+	var query string
+	if s.DriverName() == "postgres" {
+		query = "DELETE from Posts WHERE Id = any (array (SELECT Id FROM Posts WHERE CreateAt < :EndTime LIMIT :Limit))"
+	} else {
+		query = "DELETE from Posts WHERE CreateAt < :EndTime LIMIT :Limit"
+	}
 
-		sqlResult, err := s.GetMaster().Exec(query, map[string]interface{}{"EndTime": endTime, "Limit": limit})
-		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.PermanentDeleteBatch", "store.sql_post.permanent_delete_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
-		} else {
-			rowsAffected, err1 := sqlResult.RowsAffected()
-			if err1 != nil {
-				result.Err = model.NewAppError("SqlPostStore.PermanentDeleteBatch", "store.sql_post.permanent_delete_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
-				result.Data = int64(0)
-			} else {
-				result.Data = rowsAffected
-			}
-		}
-	})
+	sqlResult, err := s.GetMaster().Exec(query, map[string]interface{}{"EndTime": endTime, "Limit": limit})
+	if err != nil {
+		return 0, model.NewAppError("SqlPostStore.PermanentDeleteBatch", "store.sql_post.permanent_delete_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
+	}
+
+	rowsAffected, err := sqlResult.RowsAffected()
+	if err != nil {
+		return 0, model.NewAppError("SqlPostStore.PermanentDeleteBatch", "store.sql_post.permanent_delete_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
+	}
+	return rowsAffected, nil
 }
 
 func (s *SqlPostStore) GetOldest() store.StoreChannel {

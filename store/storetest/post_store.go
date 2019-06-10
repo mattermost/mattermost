@@ -1979,7 +1979,9 @@ func testPostStoreGetPostsBatchForIndexing(t *testing.T, ss store.Store) {
 	o3.Message = "zz" + model.NewId() + "QQQQQQQQQQ"
 	o3 = (<-ss.Post().Save(o3)).Data.(*model.Post)
 
-	if r := store.Must(ss.Post().GetPostsBatchForIndexing(o1.CreateAt, model.GetMillis()+100000, 100)).([]*model.PostForIndexing); len(r) != 3 {
+	if r, err := ss.Post().GetPostsBatchForIndexing(o1.CreateAt, model.GetMillis()+100000, 100); err != nil {
+		t.Fatal(err)
+	} else if len(r) != 3 {
 		t.Fatalf("Expected 3 posts in results. Got %v", len(r))
 	} else {
 		for _, p := range r {
@@ -2033,7 +2035,8 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 	o3.CreateAt = 100000
 	o3 = (<-ss.Post().Save(o3)).Data.(*model.Post)
 
-	store.Must(ss.Post().PermanentDeleteBatch(2000, 1000))
+	_, err := ss.Post().PermanentDeleteBatch(2000, 1000)
+	require.Nil(t, err)
 
 	if _, err := ss.Post().Get(o1.Id); err == nil {
 		t.Fatalf("Should have not found post 1 after purge")

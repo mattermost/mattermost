@@ -234,8 +234,8 @@ type PostStore interface {
 	GetPostsCreatedAt(channelId string, time int64) ([]*model.Post, *model.AppError)
 	Overwrite(post *model.Post) (*model.Post, *model.AppError)
 	GetPostsByIds(postIds []string) ([]*model.Post, *model.AppError)
-	GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) StoreChannel
-	PermanentDeleteBatch(endTime int64, limit int64) StoreChannel
+	GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) ([]*model.PostForIndexing, *model.AppError)
+	PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError)
 	GetOldest() StoreChannel
 	GetMaxPostSize() int
 	GetParentsForExportAfter(limit int, afterId string) ([]*model.PostForExport, *model.AppError)
