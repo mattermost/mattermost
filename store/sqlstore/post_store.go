@@ -744,9 +744,10 @@ func (s *SqlPostStore) Search(teamId string, userId string, params *model.Search
 
 	termMap := map[string]bool{}
 	terms := params.Terms
+	list := model.NewPostList()
 
 	if terms == "" && len(params.InChannels) == 0 && len(params.FromUsers) == 0 && len(params.OnDate) == 0 && len(params.AfterDate) == 0 && len(params.BeforeDate) == 0 {
-		return nil, model.NewAppError("SqlPostStore.Search", "store.sql_post.search.app_error", nil, "userId="+userId+" teamId="+teamId, http.StatusBadRequest)
+		return list, nil
 	}
 
 	searchType := "Message"
@@ -923,8 +924,6 @@ func (s *SqlPostStore) Search(teamId string, userId string, params *model.Search
 	}
 
 	queryParams["Terms"] = terms
-
-	list := model.NewPostList()
 
 	_, err := s.GetSearchReplica().Select(&posts, searchQuery, queryParams)
 	if err != nil {

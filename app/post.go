@@ -813,6 +813,7 @@ func (a *App) searchPostsInTeam(teamId string, userId string, paramsList []*mode
 		modifierFun(params)
 
 		go func(params *model.SearchParams) {
+			defer wg.Done()
 			postList, err := a.Srv.Store.Post().Search(teamId, userId, params)
 			pchan <- store.StoreResult{Data: postList, Err: err}
 		}(params)
