@@ -351,8 +351,8 @@ func testPostStoreDelete(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	r5 := <-ss.Post().GetPostsCreatedAt(o1.ChannelId, o1.CreateAt)
-	post := r5.Data.([]*model.Post)[0]
+	posts, _ := ss.Post().GetPostsCreatedAt(o1.ChannelId, o1.CreateAt)
+	post := posts[0]
 	actual := post.Props[model.POST_PROPS_DELETE_BY]
 	if actual != deleteByID {
 		t.Errorf("Expected (*Post).Props[model.POST_PROPS_DELETE_BY] to be %v but got %v.", deleteByID, actual)
@@ -731,19 +731,17 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 		}
 
 		t.Run("should not return anything before the first post", func(t *testing.T) {
-			res := <-ss.Post().GetPostsBefore(channelId, posts[0].Id, 10, 0)
-			assert.Nil(t, res.Err)
+			postList, err := ss.Post().GetPostsBefore(channelId, posts[0].Id, 10, 0)
+			assert.Nil(t, err)
 
-			postList := res.Data.(*model.PostList)
 			assert.Equal(t, []string{}, postList.Order)
 			assert.Equal(t, map[string]*model.Post{}, postList.Posts)
 		})
 
 		t.Run("should return posts before a post", func(t *testing.T) {
-			res := <-ss.Post().GetPostsBefore(channelId, posts[5].Id, 10, 0)
-			assert.Nil(t, res.Err)
+			postList, err := ss.Post().GetPostsBefore(channelId, posts[5].Id, 10, 0)
+			assert.Nil(t, err)
 
-			postList := res.Data.(*model.PostList)
 			assert.Equal(t, []string{posts[4].Id, posts[3].Id, posts[2].Id, posts[1].Id, posts[0].Id}, postList.Order)
 			assert.Equal(t, map[string]*model.Post{
 				posts[0].Id: posts[0],
@@ -755,10 +753,9 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 		})
 
 		t.Run("should limit posts before", func(t *testing.T) {
-			res := <-ss.Post().GetPostsBefore(channelId, posts[5].Id, 2, 0)
-			assert.Nil(t, res.Err)
+			postList, err := ss.Post().GetPostsBefore(channelId, posts[5].Id, 2, 0)
+			assert.Nil(t, err)
 
-			postList := res.Data.(*model.PostList)
 			assert.Equal(t, []string{posts[4].Id, posts[3].Id}, postList.Order)
 			assert.Equal(t, map[string]*model.Post{
 				posts[3].Id: posts[3],
@@ -767,19 +764,17 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 		})
 
 		t.Run("should not return anything after the last post", func(t *testing.T) {
-			res := <-ss.Post().GetPostsAfter(channelId, posts[len(posts)-1].Id, 10, 0)
-			assert.Nil(t, res.Err)
+			postList, err := ss.Post().GetPostsAfter(channelId, posts[len(posts)-1].Id, 10, 0)
+			assert.Nil(t, err)
 
-			postList := res.Data.(*model.PostList)
 			assert.Equal(t, []string{}, postList.Order)
 			assert.Equal(t, map[string]*model.Post{}, postList.Posts)
 		})
 
 		t.Run("should return posts after a post", func(t *testing.T) {
-			res := <-ss.Post().GetPostsAfter(channelId, posts[5].Id, 10, 0)
-			assert.Nil(t, res.Err)
+			postList, err := ss.Post().GetPostsAfter(channelId, posts[5].Id, 10, 0)
+			assert.Nil(t, err)
 
-			postList := res.Data.(*model.PostList)
 			assert.Equal(t, []string{posts[9].Id, posts[8].Id, posts[7].Id, posts[6].Id}, postList.Order)
 			assert.Equal(t, map[string]*model.Post{
 				posts[6].Id: posts[6],
@@ -790,10 +785,9 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 		})
 
 		t.Run("should limit posts after", func(t *testing.T) {
-			res := <-ss.Post().GetPostsAfter(channelId, posts[5].Id, 2, 0)
-			assert.Nil(t, res.Err)
+			postList, err := ss.Post().GetPostsAfter(channelId, posts[5].Id, 2, 0)
+			assert.Nil(t, err)
 
-			postList := res.Data.(*model.PostList)
 			assert.Equal(t, []string{posts[7].Id, posts[6].Id}, postList.Order)
 			assert.Equal(t, map[string]*model.Post{
 				posts[6].Id: posts[6],
@@ -866,10 +860,9 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 		post2.UpdateAt = post6.UpdateAt
 
 		t.Run("should return each post and thread before a post", func(t *testing.T) {
-			res := <-ss.Post().GetPostsBefore(channelId, post4.Id, 2, 0)
-			assert.Nil(t, res.Err)
+			postList, err := ss.Post().GetPostsBefore(channelId, post4.Id, 2, 0)
+			assert.Nil(t, err)
 
-			postList := res.Data.(*model.PostList)
 			assert.Equal(t, []string{post3.Id, post2.Id}, postList.Order)
 			assert.Equal(t, map[string]*model.Post{
 				post1.Id: post1,
@@ -881,10 +874,9 @@ func testPostStoreGetPostsBeforeAfter(t *testing.T, ss store.Store) {
 		})
 
 		t.Run("should return each post and the root of each thread after a post", func(t *testing.T) {
-			res := <-ss.Post().GetPostsAfter(channelId, post4.Id, 2, 0)
-			assert.Nil(t, res.Err)
+			postList, err := ss.Post().GetPostsAfter(channelId, post4.Id, 2, 0)
+			assert.Nil(t, err)
 
-			postList := res.Data.(*model.PostList)
 			assert.Equal(t, []string{post6.Id, post5.Id}, postList.Order)
 			assert.Equal(t, map[string]*model.Post{
 				post2.Id: post2,
@@ -1654,7 +1646,8 @@ func testPostStoreGetFlaggedPostsForChannel(t *testing.T, ss store.Store) {
 	o4 = (<-ss.Post().Save(o4)).Data.(*model.Post)
 	time.Sleep(2 * time.Millisecond)
 
-	r := (<-ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 0, 10)).Data.(*model.PostList)
+	r, err := ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 0, 10)
+	require.Nil(t, err)
 
 	if len(r.Order) != 0 {
 		t.Fatal("should be empty")
@@ -1667,10 +1660,11 @@ func testPostStoreGetFlaggedPostsForChannel(t *testing.T, ss store.Store) {
 		Value:    "true",
 	}
 
-	err := ss.Preference().Save(&model.Preferences{preference})
+	err = ss.Preference().Save(&model.Preferences{preference})
 	require.Nil(t, err)
 
-	r = (<-ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 0, 10)).Data.(*model.PostList)
+	r, err = ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 0, 10)
+	require.Nil(t, err)
 
 	if len(r.Order) != 1 {
 		t.Fatal("should have 1 post")
@@ -1684,25 +1678,29 @@ func testPostStoreGetFlaggedPostsForChannel(t *testing.T, ss store.Store) {
 	err = ss.Preference().Save(&model.Preferences{preference})
 	require.Nil(t, err)
 
-	r = (<-ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 0, 1)).Data.(*model.PostList)
+	r, err = ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 0, 1)
+	require.Nil(t, err)
 
 	if len(r.Order) != 1 {
 		t.Fatal("should have 1 post")
 	}
 
-	r = (<-ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 1, 1)).Data.(*model.PostList)
+	r, err = ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 1, 1)
+	require.Nil(t, err)
 
 	if len(r.Order) != 1 {
 		t.Fatal("should have 1 post")
 	}
 
-	r = (<-ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 1000, 10)).Data.(*model.PostList)
+	r, err = ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 1000, 10)
+	require.Nil(t, err)
 
 	if len(r.Order) != 0 {
 		t.Fatal("should be empty")
 	}
 
-	r = (<-ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 0, 10)).Data.(*model.PostList)
+	r, err = ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 0, 10)
+	require.Nil(t, err)
 
 	if len(r.Order) != 2 {
 		t.Fatal("should have 2 posts")
@@ -1712,7 +1710,8 @@ func testPostStoreGetFlaggedPostsForChannel(t *testing.T, ss store.Store) {
 	err = ss.Preference().Save(&model.Preferences{preference})
 	require.Nil(t, err)
 
-	r = (<-ss.Post().GetFlaggedPostsForChannel(o1.UserId, o4.ChannelId, 0, 10)).Data.(*model.PostList)
+	r, err = ss.Post().GetFlaggedPostsForChannel(o1.UserId, o4.ChannelId, 0, 10)
+	require.Nil(t, err)
 
 	if len(r.Order) != 1 {
 		t.Fatal("should have 1 post")
@@ -1752,7 +1751,7 @@ func testPostStoreGetPostsCreatedAt(t *testing.T, ss store.Store) {
 	o3.CreateAt = createTime
 	_ = (<-ss.Post().Save(o3)).Data.(*model.Post)
 
-	r1 := (<-ss.Post().GetPostsCreatedAt(o1.ChannelId, createTime)).Data.([]*model.Post)
+	r1, _ := ss.Post().GetPostsCreatedAt(o1.ChannelId, createTime)
 	assert.Equal(t, 2, len(r1))
 }
 
@@ -1928,16 +1927,20 @@ func testPostStoreGetPostsByIds(t *testing.T, ss store.Store) {
 		ro3.Id,
 	}
 
-	if ro4 := store.Must(ss.Post().GetPostsByIds(postIds)).([]*model.Post); len(ro4) != 3 {
-		t.Fatalf("Expected 3 posts in results. Got %v", len(ro4))
+	if posts, err := ss.Post().GetPostsByIds(postIds); err != nil {
+		t.Fatal(err)
+	} else if len(posts) != 3 {
+		t.Fatalf("Expected 3 posts in results. Got %v", len(posts))
 	}
 
 	if err := ss.Post().Delete(ro1.Id, model.GetMillis(), ""); err != nil {
 		t.Fatal(err)
 	}
 
-	if ro5 := store.Must(ss.Post().GetPostsByIds(postIds)).([]*model.Post); len(ro5) != 3 {
-		t.Fatalf("Expected 3 posts in results. Got %v", len(ro5))
+	if posts, err := ss.Post().GetPostsByIds(postIds); err != nil {
+		t.Fatal(err)
+	} else if len(posts) != 3 {
+		t.Fatalf("Expected 3 posts in results. Got %v", len(posts))
 	}
 }
 
@@ -1976,7 +1979,9 @@ func testPostStoreGetPostsBatchForIndexing(t *testing.T, ss store.Store) {
 	o3.Message = "zz" + model.NewId() + "QQQQQQQQQQ"
 	o3 = (<-ss.Post().Save(o3)).Data.(*model.Post)
 
-	if r := store.Must(ss.Post().GetPostsBatchForIndexing(o1.CreateAt, model.GetMillis()+100000, 100)).([]*model.PostForIndexing); len(r) != 3 {
+	if r, err := ss.Post().GetPostsBatchForIndexing(o1.CreateAt, model.GetMillis()+100000, 100); err != nil {
+		t.Fatal(err)
+	} else if len(r) != 3 {
 		t.Fatalf("Expected 3 posts in results. Got %v", len(r))
 	} else {
 		for _, p := range r {
@@ -2108,12 +2113,11 @@ func testPostStoreGetParentsForExportAfter(t *testing.T, ss store.Store) {
 	p1.CreateAt = 1000
 	p1 = (<-ss.Post().Save(p1)).Data.(*model.Post)
 
-	r1 := <-ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26))
-	assert.Nil(t, r1.Err)
-	d1 := r1.Data.([]*model.PostForExport)
+	posts, err := ss.Post().GetParentsForExportAfter(10000, strings.Repeat("0", 26))
+	assert.Nil(t, err)
 
 	found := false
-	for _, p := range d1 {
+	for _, p := range posts {
 		if p.Id == p1.Id {
 			found = true
 			assert.Equal(t, p.Id, p1.Id)
@@ -2164,13 +2168,12 @@ func testPostStoreGetRepliesForExport(t *testing.T, ss store.Store) {
 	p2.RootId = p1.Id
 	p2 = (<-ss.Post().Save(p2)).Data.(*model.Post)
 
-	r1 := <-ss.Post().GetRepliesForExport(p1.Id)
-	assert.Nil(t, r1.Err)
+	r1, err := ss.Post().GetRepliesForExport(p1.Id)
+	assert.Nil(t, err)
 
-	d1 := r1.Data.([]*model.ReplyForExport)
-	assert.Len(t, d1, 1)
+	assert.Len(t, r1, 1)
 
-	reply1 := d1[0]
+	reply1 := r1[0]
 	assert.Equal(t, reply1.Id, p2.Id)
 	assert.Equal(t, reply1.Message, p2.Message)
 	assert.Equal(t, reply1.Username, u1.Username)
@@ -2180,13 +2183,12 @@ func testPostStoreGetRepliesForExport(t *testing.T, ss store.Store) {
 	_, err = ss.User().Update(&u1, false)
 	require.Nil(t, err)
 
-	r1 = <-ss.Post().GetRepliesForExport(p1.Id)
-	assert.Nil(t, r1.Err)
+	r1, err = ss.Post().GetRepliesForExport(p1.Id)
+	assert.Nil(t, err)
 
-	d1 = r1.Data.([]*model.ReplyForExport)
-	assert.Len(t, d1, 1)
+	assert.Len(t, r1, 1)
 
-	reply1 = d1[0]
+	reply1 = r1[0]
 	assert.Equal(t, reply1.Id, p2.Id)
 	assert.Equal(t, reply1.Message, p2.Message)
 	assert.Equal(t, reply1.Username, u1.Username)
