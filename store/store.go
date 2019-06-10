@@ -95,7 +95,7 @@ type TeamStore interface {
 	GetAllPrivateTeamListing() StoreChannel
 	GetAllPrivateTeamPageListing(offset int, limit int) StoreChannel
 	GetAllTeamListing() StoreChannel
-	GetAllTeamPageListing(offset int, limit int) StoreChannel
+	GetAllTeamPageListing(offset int, limit int) ([]*model.Team, *model.AppError)
 	GetTeamsByUserId(userId string) StoreChannel
 	GetByInviteId(inviteId string) StoreChannel
 	PermanentDelete(teamId string) StoreChannel
