@@ -1246,21 +1246,52 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		maskedErrors := []string{
-			"store.sql_user.get_for_login.app_error",
-			"api.user.login_ldap.not_available.app_error",
-			"api.user.login.use_auth_service.app_error",
-			"ent.ldap.do_login.invalid_password.app_error",
-			"api.user.check_user_login_attempts.too_many.app_error",
-			"api.user.check_user_password.invalid.app_error",
+		unmaskedErrors := []string{
+			"mfa.validate_token.authenticate.app_error",
+			"api.user.check_user_mfa.bad_code.app_error",
+			"api.user.login.blank_pwd.app_error",
+			"api.user.login.bot_login_forbidden.app_error",
+			"api.user.login.client_side_cert.certificate.app_error",
+			"api.user.login.inactive.app_error",
+			"api.user.login.not_verified.app_error",
 		}
 
-		for _, maskedError := range maskedErrors {
-			if c.Err.Id == maskedError {
-				c.Err = model.NewAppError("login", "api.user.login.invalid_credentials", nil, "", http.StatusUnauthorized)
-				break
+		maskError := true
+
+		for _, unmaskedError := range unmaskedErrors {
+			if c.Err.Id == unmaskedError {
+				maskError = false
 			}
 		}
+
+		if !maskError {
+			return
+		}
+
+		config := c.App.Config()
+		enableUsername := *config.EmailSettings.EnableSignInWithUsername
+		enableEmail := *config.EmailSettings.EnableSignInWithEmail
+		samlEnabled := *config.SamlSettings.Enable
+		gitlabEnabled := *config.GetSSOService("gitlab").Enable
+		googleEnabled := *config.GetSSOService("google").Enable
+		office365Enabled := *config.GetSSOService("office365").Enable
+
+		if samlEnabled || gitlabEnabled || googleEnabled || office365Enabled {
+			c.Err = model.NewAppError("login", "api.user.login.invalid_credentials_sso", nil, "", http.StatusUnauthorized)
+			return
+		}
+
+		if enableUsername && !enableEmail {
+			c.Err = model.NewAppError("login", "api.user.login.invalid_credentials_username", nil, "", http.StatusUnauthorized)
+			return
+		}
+
+		if !enableUsername && enableEmail {
+			c.Err = model.NewAppError("login", "api.user.login.invalid_credentials_email", nil, "", http.StatusUnauthorized)
+			return
+		}
+
+		c.Err = model.NewAppError("login", "api.user.login.invalid_credentials_email_username", nil, "", http.StatusUnauthorized)
 	}()
 
 	props := model.MapFromJson(r.Body)
