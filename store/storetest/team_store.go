@@ -174,10 +174,10 @@ func testTeamStoreSearchByName(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	if r1 := <-ss.Team().SearchByName(name); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if r1, err := ss.Team().SearchByName(name); err != nil {
+		t.Fatal(err)
 	} else {
-		if r1.Data.([]*model.Team)[0].ToJson() != o1.ToJson() {
+		if r1[0].ToJson() != o1.ToJson() {
 			t.Fatal("invalid returned team")
 		}
 	}
