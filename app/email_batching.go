@@ -140,19 +140,19 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 				continue
 			}
 
-			result := <-job.server.Store.Team().GetByName(notifications[0].teamName)
-			if result.Err != nil {
-				mlog.Error(fmt.Sprint("Unable to find Team id for notification", result.Err))
+			team, err := job.server.Store.Team().GetByName(notifications[0].teamName)
+			if err != nil {
+				mlog.Error(fmt.Sprint("Unable to find Team id for notification", err))
 				continue
 			}
 
-			if team, ok := result.Data.(*model.Team); ok {
+			if team != nil {
 				inspectedTeamNames[notification.teamName] = team.Id
 			}
 
 			// if the user has viewed any channels in this team since the notification was queued, delete
 			// all queued notifications
-			result = <-job.server.Store.Channel().GetMembersForUser(inspectedTeamNames[notification.teamName], userId)
+			result := <-job.server.Store.Channel().GetMembersForUser(inspectedTeamNames[notification.teamName], userId)
 			if result.Err != nil {
 				mlog.Error(fmt.Sprint("Unable to find ChannelMembers for user", result.Err))
 				continue

@@ -295,17 +295,15 @@ func (s SqlTeamStore) GetByInviteId(inviteId string) store.StoreChannel {
 	})
 }
 
-func (s SqlTeamStore) GetByName(name string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		team := model.Team{}
+func (s SqlTeamStore) GetByName(name string) (*model.Team, *model.AppError) {
 
-		if err := s.GetReplica().SelectOne(&team, "SELECT * FROM Teams WHERE Name = :Name", map[string]interface{}{"Name": name}); err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.GetByName", "store.sql_team.get_by_name.app_error", nil, "name="+name+", "+err.Error(), http.StatusInternalServerError)
-			return
-		}
+	team := model.Team{}
 
-		result.Data = &team
-	})
+	err := s.GetReplica().SelectOne(&team, "SELECT * FROM Teams WHERE Name = :Name", map[string]interface{}{"Name": name})
+	if err != nil {
+		return nil, model.NewAppError("SqlTeamStore.GetByName", "store.sql_team.get_by_name.app_error", nil, "name="+name+", "+err.Error(), http.StatusInternalServerError)
+	}
+	return &team, nil
 }
 
 func (s SqlTeamStore) SearchByName(name string) ([]*model.Team, *model.AppError) {
