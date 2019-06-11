@@ -134,6 +134,10 @@ func doLogin(c *Context, w http.ResponseWriter, r *http.Request, user *model.Use
 		return
 	}
 
+	if r.Header.Get(model.HEADER_REQUESTED_WITH) == model.HEADER_REQUESTED_WITH_XML {
+		c.App.AttachSessionCookies(w, r, session)
+	}
+
 	c.Session = *session
 }
 

@@ -56,8 +56,6 @@ func (a *App) AuthenticateUserForLogin(id, loginId, password, mfaToken, deviceId
 func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, deviceId string) (*model.Session, *model.AppError) {
 	session := &model.Session{UserId: user.Id, Roles: user.GetRawRoles(), DeviceId: deviceId, IsOAuth: false}
 
-	maxAge := *a.Config().ServiceSettings.SessionLengthWebInDays * 60 * 60 * 24
-
 	if len(deviceId) > 0 {
 		session.SetExpireInDays(*a.Config().ServiceSettings.SessionLengthMobileInDays)
 
@@ -89,11 +87,16 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 
 	w.Header().Set(model.HEADER_TOKEN, session.Token)
 
+	return session, nil
+}
+
+func (a *App) AttachSessionCookies(w http.ResponseWriter, r *http.Request, session *model.Session) {
 	secure := false
 	if GetProtocol(r) == "https" {
 		secure = true
 	}
 
+	maxAge := *a.Config().ServiceSettings.SessionLengthWebInDays * 60 * 60 * 24
 	domain := a.GetCookieDomain()
 	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAge), 0)
 	sessionCookie := &http.Cookie{
@@ -109,7 +112,7 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 
 	userCookie := &http.Cookie{
 		Name:    model.SESSION_COOKIE_USER,
-		Value:   user.Id,
+		Value:   session.UserId,
 		Path:    "/",
 		MaxAge:  maxAge,
 		Expires: expiresAt,
@@ -119,8 +122,6 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 
 	http.SetCookie(w, sessionCookie)
 	http.SetCookie(w, userCookie)
-
-	return session, nil
 }
 
 func GetProtocol(r *http.Request) string {
