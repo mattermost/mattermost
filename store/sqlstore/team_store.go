@@ -254,7 +254,7 @@ func (s SqlTeamStore) Update(team *model.Team) (*model.Team, *model.AppError) {
 	return team, nil
 }
 
-func (s SqlTeamStore) UpdateDisplayName(name string, teamId string) *model.AppError  {
+func (s SqlTeamStore) UpdateDisplayName(name string, teamId string) *model.AppError {
 	if _, err := s.GetMaster().Exec("UPDATE Teams SET DisplayName = :Name WHERE Id = :Id", map[string]interface{}{"Name": name, "Id": teamId}); err != nil {
 		return model.NewAppError("SqlTeamStore.UpdateName", "store.sql_team.update_display_name.app_error", nil, "team_id="+teamId, http.StatusInternalServerError)
 	}
