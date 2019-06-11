@@ -565,7 +565,7 @@ func (s *SqlPostStore) GetPostsSince(channelId string, time int64, allowFromCach
 	for _, p := range posts {
 		list.AddPost(p)
 		if p.UpdateAt > time {
-				list.AddOrder(p.Id)
+			list.AddOrder(p.Id)
 		}
 		if latestUpdate < p.UpdateAt {
 			latestUpdate = p.UpdateAt
