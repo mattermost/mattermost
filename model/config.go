@@ -1855,8 +1855,9 @@ type SamlSettings struct {
 	EnableSyncWithLdap            *bool
 	EnableSyncWithLdapIncludeAuth *bool
 
-	Verify  *bool
-	Encrypt *bool
+	Verify      *bool
+	Encrypt     *bool
+	SignRequest *bool
 
 	IdpUrl                      *string
 	IdpDescriptorUrl            *string
@@ -1905,6 +1906,10 @@ func (s *SamlSettings) SetDefaults() {
 
 	if s.Encrypt == nil {
 		s.Encrypt = NewBool(true)
+	}
+
+	if s.SignRequest == nil {
+		s.SignRequest = NewBool(false)
 	}
 
 	if s.IdpUrl == nil {
