@@ -1711,7 +1711,7 @@ func (a *App) SearchUsersInTeam(teamId string, term string, options *model.UserS
 		if err != nil {
 			return nil, err
 		}
-		if len(listOfAllowedChannels) == 0 {
+		if listOfAllowedChannels != nil && len(listOfAllowedChannels) == 0 {
 			return []*model.User{}, nil
 		}
 
@@ -2102,6 +2102,11 @@ func (a *App) GetViewUsersRestrictions(userId string) (*model.ViewUsersRestricti
 	return &model.ViewUsersRestrictions{Teams: teamIdsWithPermission, Channels: channelIds}, nil
 }
 
+/**
+ * Returns a list with the channel ids that the user has permissions to view on a
+ * team. If the result is an empty list, the user can't view any channel; if it's
+ * nil, there are no restrictions for the user in the specified team.
+ */
 func (a *App) GetViewUsersRestrictionsForTeam(userId string, teamId string) ([]string, *model.AppError) {
 	if a.HasPermissionTo(userId, model.PERMISSION_VIEW_MEMBERS) {
 		return nil, nil
