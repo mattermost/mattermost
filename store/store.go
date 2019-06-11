@@ -319,7 +319,7 @@ type SessionStore interface {
 	Remove(sessionIdOrToken string) StoreChannel
 	RemoveAllSessions() *model.AppError
 	PermanentDeleteSessionsByUser(teamId string) *model.AppError
-	UpdateLastActivityAt(sessionId string, time int64) StoreChannel
+	UpdateLastActivityAt(sessionId string, time int64) *model.AppError
 	UpdateRoles(userId string, roles string) StoreChannel
 	UpdateDeviceId(id string, deviceId string, expiresAt int64) (string, *model.AppError)
 	AnalyticsSessionCount() (int64, *model.AppError)
