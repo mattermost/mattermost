@@ -15,7 +15,7 @@ import (
 type TokenLocation int
 
 const (
-	TokenLocationNotFound = iota
+	TokenLocationNotFound TokenLocation = iota
 	TokenLocationHeader
 	TokenLocationCookie
 	TokenLocationQueryString
