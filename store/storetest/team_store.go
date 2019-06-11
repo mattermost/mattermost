@@ -149,15 +149,15 @@ func testTeamStoreGetByName(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	if r1 := <-ss.Team().GetByName(o1.Name); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if team, err := ss.Team().GetByName(o1.Name); err != nil {
+		t.Fatal(err)
 	} else {
-		if r1.Data.(*model.Team).ToJson() != o1.ToJson() {
+		if team.ToJson() != o1.ToJson() {
 			t.Fatal("invalid returned team")
 		}
 	}
 
-	if err := (<-ss.Team().GetByName("")).Err; err == nil {
+	if _, err := ss.Team().GetByName(""); err == nil {
 		t.Fatal("Missing id should have failed")
 	}
 }

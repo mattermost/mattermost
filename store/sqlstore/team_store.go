@@ -295,17 +295,15 @@ func (s SqlTeamStore) GetByInviteId(inviteId string) store.StoreChannel {
 	})
 }
 
-func (s SqlTeamStore) GetByName(name string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		team := model.Team{}
+func (s SqlTeamStore) GetByName(name string) (*model.Team, *model.AppError) {
 
-		if err := s.GetReplica().SelectOne(&team, "SELECT * FROM Teams WHERE Name = :Name", map[string]interface{}{"Name": name}); err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.GetByName", "store.sql_team.get_by_name.app_error", nil, "name="+name+", "+err.Error(), http.StatusInternalServerError)
-			return
-		}
+	team := model.Team{}
 
-		result.Data = &team
-	})
+	err := s.GetReplica().SelectOne(&team, "SELECT * FROM Teams WHERE Name = :Name", map[string]interface{}{"Name": name})
+	if err != nil {
+		return nil, model.NewAppError("SqlTeamStore.GetByName", "store.sql_team.get_by_name.app_error", nil, "name="+name+", "+err.Error(), http.StatusInternalServerError)
+	}
+	return &team, nil
 }
 
 func (s SqlTeamStore) SearchByName(name string) ([]*model.Team, *model.AppError) {
@@ -360,16 +358,14 @@ func (s SqlTeamStore) SearchPrivate(term string) ([]*model.Team, *model.AppError
 	return teams, nil
 }
 
-func (s SqlTeamStore) GetAll() store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var data []*model.Team
-		if _, err := s.GetReplica().Select(&data, "SELECT * FROM Teams ORDER BY DisplayName"); err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.GetAllTeams", "store.sql_team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+func (s SqlTeamStore) GetAll() ([]*model.Team, *model.AppError) {
+	var teams []*model.Team
 
-		result.Data = data
-	})
+	_, err := s.GetReplica().Select(&teams, "SELECT * FROM Teams ORDER BY DisplayName")
+	if err != nil {
+		return nil, model.NewAppError("SqlTeamStore.GetAllTeams", "store.sql_team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return teams, nil
 }
 
 func (s SqlTeamStore) GetAllPage(offset int, limit int) store.StoreChannel {
