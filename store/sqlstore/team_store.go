@@ -358,13 +358,13 @@ func (s SqlTeamStore) SearchPrivate(term string) store.StoreChannel {
 }
 
 func (s SqlTeamStore) GetAll() ([]*model.Team, *model.AppError) {
-	var data []*model.Team
+	var teams []*model.Team
 
-	_, err := s.GetReplica().Select(&data, "SELECT * FROM Teams ORDER BY DisplayName")
+	_, err := s.GetReplica().Select(&teams, "SELECT * FROM Teams ORDER BY DisplayName")
 	if err != nil {
 		return nil, model.NewAppError("SqlTeamStore.GetAllTeams", "store.sql_team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
-	return data, nil
+	return teams, nil
 }
 
 func (s SqlTeamStore) GetAllPage(offset int, limit int) store.StoreChannel {
