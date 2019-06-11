@@ -702,15 +702,15 @@ func (_m *TeamStore) Update(team *model.Team) (*model.Team, *model.AppError) {
 }
 
 // UpdateDisplayName provides a mock function with given fields: name, teamId
-func (_m *TeamStore) UpdateDisplayName(name string, teamId string) store.StoreChannel {
+func (_m *TeamStore) UpdateDisplayName(name string, teamId string) *model.AppError {
 	ret := _m.Called(name, teamId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, string) store.StoreChannel); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, string) *model.AppError); ok {
 		r0 = rf(name, teamId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
