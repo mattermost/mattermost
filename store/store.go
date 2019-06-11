@@ -86,7 +86,7 @@ type TeamStore interface {
 	UpdateDisplayName(name string, teamId string) StoreChannel
 	Get(id string) (*model.Team, *model.AppError)
 	GetByName(name string) StoreChannel
-	SearchByName(name string) StoreChannel
+	SearchByName(name string) ([]*model.Team, *model.AppError)
 	SearchAll(term string) StoreChannel
 	SearchOpen(term string) StoreChannel
 	SearchPrivate(term string) StoreChannel
@@ -432,7 +432,7 @@ type PreferenceStore interface {
 	GetCategory(userId string, category string) (model.Preferences, *model.AppError)
 	Get(userId string, category string, name string) (*model.Preference, *model.AppError)
 	GetAll(userId string) (model.Preferences, *model.AppError)
-	Delete(userId, category, name string) StoreChannel
+	Delete(userId, category, name string) *model.AppError
 	DeleteCategory(userId string, category string) *model.AppError
 	DeleteCategoryAndName(category string, name string) *model.AppError
 	PermanentDeleteByUser(userId string) *model.AppError

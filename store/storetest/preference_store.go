@@ -331,8 +331,8 @@ func testPreferenceDelete(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 	assert.Len(t, preferences, 1, "should've returned 1 preference")
 
-	if result := <-ss.Preference().Delete(preference.UserId, preference.Category, preference.Name); result.Err != nil {
-		t.Fatal(result.Err)
+	if err = ss.Preference().Delete(preference.UserId, preference.Category, preference.Name); err != nil {
+		t.Fatal(err)
 	}
 	preferences, err = ss.Preference().GetAll(preference.UserId)
 	require.Nil(t, err)

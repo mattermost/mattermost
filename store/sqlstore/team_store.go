@@ -308,17 +308,14 @@ func (s SqlTeamStore) GetByName(name string) store.StoreChannel {
 	})
 }
 
-func (s SqlTeamStore) SearchByName(name string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var teams []*model.Team
+func (s SqlTeamStore) SearchByName(name string) ([]*model.Team, *model.AppError) {
+	var teams []*model.Team
 
-		if _, err := s.GetReplica().Select(&teams, "SELECT * FROM Teams WHERE Name LIKE :Name", map[string]interface{}{"Name": name + "%"}); err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.SearchByName", "store.sql_team.get_by_name.app_error", nil, "name="+name+", "+err.Error(), http.StatusInternalServerError)
-			return
-		}
+	if _, err := s.GetReplica().Select(&teams, "SELECT * FROM Teams WHERE Name LIKE :Name", map[string]interface{}{"Name": name + "%"}); err != nil {
+		return nil, model.NewAppError("SqlTeamStore.SearchByName", "store.sql_team.get_by_name.app_error", nil, "name="+name+", "+err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = teams
-	})
+	return teams, nil
 }
 
 func (s SqlTeamStore) SearchAll(term string) store.StoreChannel {
