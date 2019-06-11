@@ -93,24 +93,51 @@ func (a *App) GetSessions(userId string) ([]*model.Session, *model.AppError) {
 	return a.Srv.Store.Session().GetSessions(userId)
 }
 
+func (a *App) revokeSession(session *model.Session) *model.AppError {
+	if session.IsOAuth {
+		a.RevokeAccessToken(session.Token)
+	} else {
+		if result := <-a.Srv.Store.Session().Remove(session.Id); result.Err != nil {
+			return result.Err
+		}
+	}
+	return nil
+}
+
 func (a *App) RevokeAllSessions(userId string) *model.AppError {
 	sessions, err := a.Srv.Store.Session().GetSessions(userId)
 	if err != nil {
 		return err
 	}
 	for _, session := range sessions {
-		if session.IsOAuth {
-			a.RevokeAccessToken(session.Token)
-		} else {
-			if result := <-a.Srv.Store.Session().Remove(session.Id); result.Err != nil {
-				return result.Err
-			}
+		revokeErr := a.revokeSession(session)
+		if revokeErr != nil {
+			return revokeErr
 		}
 	}
 
 	a.ClearSessionCacheForUser(userId)
 
 	return nil
+}
+
+// RevokeSessionsFromAllUsers will go through all the sessions active
+// in the server and revoke them
+func (a *App) RevokeSessionsFromAllUsers() *model.AppError {
+	sessions, err := a.Srv.Store.Session().GetAll()
+	if err != nil {
+		return err
+	}
+	userSet := make(map[string]struct{}) // set type for holding user id's
+	for _, session := range sessions {
+		revokeErr := a.revokeSession(session)
+		if revokeErr != nil {
+			a.clearSessionCacheForUserSet(userSet)
+			return revokeErr
+		}
+		userSet[session.UserId] = struct{}{}
+	}
+	a.clearSessionCacheForUserSet(userSet)
 }
 
 func (a *App) ClearSessionCacheForUser(userId string) {
@@ -142,6 +169,15 @@ func (a *App) ClearSessionCacheForUserSkipClusterSend(userId string) {
 	}
 
 	a.InvalidateWebConnSessionCacheForUser(userId)
+}
+
+func (a *App) clearSessionCacheForUserSet(users map[string]struct{}) {
+	// if this ever gets reused, it would make sense to change
+	// parameter type into an actual array
+	// for the time being, I'll avoid to not use any extra memory
+	for userID := range users {
+		a.ClearSessionCacheForUser(userID)
+	}
 }
 
 func (a *App) AddSessionToCache(session *model.Session) {

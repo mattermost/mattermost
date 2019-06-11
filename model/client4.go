@@ -1131,6 +1131,16 @@ func (c *Client4) RevokeAllSessions(userId string) (bool, *Response) {
 	return CheckStatusOK(r), BuildResponse(r)
 }
 
+// RevokeAllSessions revokes all sessions for the provided user id string.
+func (c *Client4) RevokeSessionsFromAllUsers(userId string) (bool, *Response) {
+	r, err := c.DoApiPost(c.GetUserRoute(userId)+"/sessions/revoke/allUsers", "")
+	if err != nil {
+		return false, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
 // AttachDeviceId attaches a mobile device ID to the current session.
 func (c *Client4) AttachDeviceId(deviceId string) (bool, *Response) {
 	requestBody := map[string]string{"device_id": deviceId}
