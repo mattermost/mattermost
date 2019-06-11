@@ -616,11 +616,11 @@ func (a *App) GetPostsEtag(channelId string) string {
 }
 
 func (a *App) GetPostsSince(channelId string, time int64) (*model.PostList, *model.AppError) {
-	result := <-a.Srv.Store.Post().GetPostsSince(channelId, time, true)
-	if result.Err != nil {
-		return nil, result.Err
+	result, err := a.Srv.Store.Post().GetPostsSince(channelId, time, true)
+	if err != nil {
+		return nil, err
 	}
-	return result.Data.(*model.PostList), nil
+	return result, nil
 }
 
 func (a *App) GetSinglePost(postId string) (*model.Post, *model.AppError) {
