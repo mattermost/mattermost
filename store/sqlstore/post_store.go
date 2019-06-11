@@ -519,23 +519,23 @@ func (s *SqlPostStore) GetPostsSince(channelId string, time int64, allowFromCach
 				s.metrics.IncrementMemCacheMissCounter("Last Post Time")
 			}
 		}
-	} else {
-		if s.metrics != nil {
-			s.metrics.IncrementMemCacheMissCounter("Last Post Time")
-		}
+	}
+
+	if s.metrics != nil {
+		s.metrics.IncrementMemCacheMissCounter("Last Post Time")
 	}
 
 	var posts []*model.Post
 	_, err := s.GetReplica().Select(&posts,
 		`(SELECT
-			    *
-			FROM
-			    Posts
-			WHERE
-			    (UpdateAt > :Time
-			        AND ChannelId = :ChannelId)
+			*
+		FROM
+			Posts
+		WHERE
+			(UpdateAt > :Time
+				AND ChannelId = :ChannelId)
 			LIMIT 1000)
-			UNION
+		UNION
 			(SELECT
 			    *
 			FROM
@@ -549,33 +549,32 @@ func (s *SqlPostStore) GetPostsSince(channelId string, time int64, allowFromCach
 			        Posts
 			    WHERE
 			        UpdateAt > :Time
-			            AND ChannelId = :ChannelId
-			    LIMIT 1000) temp_tab))
-			ORDER BY CreateAt DESC`,
+						AND ChannelId = :ChannelId
+				LIMIT 1000) temp_tab))
+		ORDER BY CreateAt DESC`,
 		map[string]interface{}{"ChannelId": channelId, "Time": time})
 
 	if err != nil {
 		return nil, model.NewAppError("SqlPostStore.GetPostsSince", "store.sql_post.get_posts_since.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
-	} else {
-
-		list := model.NewPostList()
-
-		var latestUpdate int64 = 0
-
-		for _, p := range posts {
-			list.AddPost(p)
-			if p.UpdateAt > time {
-				list.AddOrder(p.Id)
-			}
-			if latestUpdate < p.UpdateAt {
-				latestUpdate = p.UpdateAt
-			}
-		}
-
-		s.lastPostTimeCache.AddWithExpiresInSecs(channelId, latestUpdate, LAST_POST_TIME_CACHE_SEC)
-
-		return list, nil
 	}
+
+	list := model.NewPostList()
+
+	var latestUpdate int64 = 0
+
+	for _, p := range posts {
+		list.AddPost(p)
+		if p.UpdateAt > time {
+				list.AddOrder(p.Id)
+		}
+		if latestUpdate < p.UpdateAt {
+			latestUpdate = p.UpdateAt
+		}
+	}
+
+	s.lastPostTimeCache.AddWithExpiresInSecs(channelId, latestUpdate, LAST_POST_TIME_CACHE_SEC)
+
+	return list, nil
 }
 
 func (s *SqlPostStore) GetPostsBefore(channelId string, postId string, limit int, offset int) (*model.PostList, *model.AppError) {
