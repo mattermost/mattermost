@@ -619,15 +619,15 @@ func (_m *UserStore) InvalidateProfilesInChannelCacheByUser(userId string) {
 }
 
 // PermanentDelete provides a mock function with given fields: userId
-func (_m *UserStore) PermanentDelete(userId string) store.StoreChannel {
+func (_m *UserStore) PermanentDelete(userId string) *model.AppError {
 	ret := _m.Called(userId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
 		r0 = rf(userId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
@@ -747,19 +747,28 @@ func (_m *UserStore) SearchWithoutTeam(term string, options *model.UserSearchOpt
 }
 
 // Update provides a mock function with given fields: user, allowRoleUpdate
-func (_m *UserStore) Update(user *model.User, allowRoleUpdate bool) store.StoreChannel {
+func (_m *UserStore) Update(user *model.User, allowRoleUpdate bool) (*model.UserUpdate, *model.AppError) {
 	ret := _m.Called(user, allowRoleUpdate)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(*model.User, bool) store.StoreChannel); ok {
+	var r0 *model.UserUpdate
+	if rf, ok := ret.Get(0).(func(*model.User, bool) *model.UserUpdate); ok {
 		r0 = rf(user, allowRoleUpdate)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.UserUpdate)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.User, bool) *model.AppError); ok {
+		r1 = rf(user, allowRoleUpdate)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // UpdateAuthData provides a mock function with given fields: userId, service, authData, email, resetMfa

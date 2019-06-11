@@ -592,12 +592,12 @@ func (a *App) GetTeam(teamId string) (*model.Team, *model.AppError) {
 }
 
 func (a *App) GetTeamByName(name string) (*model.Team, *model.AppError) {
-	result := <-a.Srv.Store.Team().GetByName(name)
-	if result.Err != nil {
-		result.Err.StatusCode = http.StatusNotFound
-		return nil, result.Err
+	team, err := a.Srv.Store.Team().GetByName(name)
+	if err != nil {
+		err.StatusCode = http.StatusNotFound
+		return nil, err
 	}
-	return result.Data.(*model.Team), nil
+	return team, nil
 }
 
 func (a *App) GetTeamByInviteId(inviteId string) (*model.Team, *model.AppError) {
@@ -609,11 +609,7 @@ func (a *App) GetTeamByInviteId(inviteId string) (*model.Team, *model.AppError) 
 }
 
 func (a *App) GetAllTeams() ([]*model.Team, *model.AppError) {
-	result := <-a.Srv.Store.Team().GetAll()
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.Team), nil
+	return a.Srv.Store.Team().GetAll()
 }
 
 func (a *App) GetAllTeamsPage(offset int, limit int) ([]*model.Team, *model.AppError) {
@@ -945,8 +941,8 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 	}
 
 	// delete the preferences that set the last channel used in the team and other team specific preferences
-	if result := <-a.Srv.Store.Preference().DeleteCategory(user.Id, team.Id); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.Preference().DeleteCategory(user.Id, team.Id); err != nil {
+		return err
 	}
 
 	a.ClearSessionCacheForUser(user.Id)
@@ -1049,7 +1045,7 @@ func (a *App) InviteNewUsersToTeam(emailList []string, teamId, senderId string) 
 }
 
 func (a *App) FindTeamByName(name string) bool {
-	if result := <-a.Srv.Store.Team().GetByName(name); result.Err != nil {
+	if _, err := a.Srv.Store.Team().GetByName(name); err != nil {
 		return false
 	}
 	return true

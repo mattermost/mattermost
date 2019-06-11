@@ -83,7 +83,7 @@ func TestPreparePostForClient(t *testing.T) {
 			Message: message,
 		}
 
-		clientPost := th.App.PreparePostForClient(post, false)
+		clientPost := th.App.PreparePostForClient(post, false, false)
 
 		t.Run("doesn't mutate provided post", func(t *testing.T) {
 			assert.NotEqual(t, clientPost, post, "should've returned a new post")
@@ -109,7 +109,7 @@ func TestPreparePostForClient(t *testing.T) {
 
 		post := th.CreatePost(th.BasicChannel)
 
-		clientPost := th.App.PreparePostForClient(post, false)
+		clientPost := th.App.PreparePostForClient(post, false, false)
 
 		assert.False(t, clientPost == post, "should've returned a new post")
 		assert.Equal(t, clientPost, post, "shouldn't have changed any metadata")
@@ -125,7 +125,7 @@ func TestPreparePostForClient(t *testing.T) {
 		reaction3 := th.AddReactionToPost(post, th.BasicUser2, "ice_cream")
 		post.HasReactions = true
 
-		clientPost := th.App.PreparePostForClient(post, false)
+		clientPost := th.App.PreparePostForClient(post, false, false)
 
 		assert.Len(t, clientPost.Metadata.Reactions, 3, "should've populated Reactions")
 		assert.Equal(t, reaction1, clientPost.Metadata.Reactions[0], "first reaction is incorrect")
@@ -149,7 +149,7 @@ func TestPreparePostForClient(t *testing.T) {
 
 		fileInfo.PostId = post.Id
 
-		clientPost := th.App.PreparePostForClient(post, false)
+		clientPost := th.App.PreparePostForClient(post, false, false)
 
 		assert.Equal(t, []*model.FileInfo{fileInfo}, clientPost.Metadata.Files, "should've populated Files")
 	})
@@ -183,7 +183,7 @@ func TestPreparePostForClient(t *testing.T) {
 		th.AddReactionToPost(post, th.BasicUser2, "angry")
 		post.HasReactions = true
 
-		clientPost := th.App.PreparePostForClient(post, false)
+		clientPost := th.App.PreparePostForClient(post, false, false)
 
 		t.Run("populates emojis", func(t *testing.T) {
 			assert.ElementsMatch(t, []*model.Emoji{}, clientPost.Metadata.Emojis, "should've populated empty Emojis")
@@ -228,9 +228,9 @@ func TestPreparePostForClient(t *testing.T) {
 		th.AddReactionToPost(post, th.BasicUser2, "angry")
 		post.HasReactions = true
 
-		clientPost := th.App.PreparePostForClient(post, false)
+		clientPost := th.App.PreparePostForClient(post, false, false)
 
-		t.Run("pupulates emojis", func(t *testing.T) {
+		t.Run("populates emojis", func(t *testing.T) {
 			assert.ElementsMatch(t, []*model.Emoji{emoji1, emoji2, emoji3, emoji4}, clientPost.Metadata.Emojis, "should've populated post.Emojis")
 		})
 
@@ -251,7 +251,7 @@ func TestPreparePostForClient(t *testing.T) {
 		}, th.BasicChannel, false)
 		require.Nil(t, err)
 
-		clientPost := th.App.PreparePostForClient(post, false)
+		clientPost := th.App.PreparePostForClient(post, false, false)
 
 		t.Run("populates image dimensions", func(t *testing.T) {
 			imageDimensions := clientPost.Metadata.Images
@@ -295,7 +295,7 @@ func TestPreparePostForClient(t *testing.T) {
 		}, th.BasicChannel, false)
 		require.Nil(t, err)
 
-		clientPost := th.App.PreparePostForClient(post, false)
+		clientPost := th.App.PreparePostForClient(post, false, false)
 
 		// Reminder that only the first link gets an embed and dimensions
 
@@ -330,27 +330,19 @@ func TestPreparePostForClient(t *testing.T) {
 		}, th.BasicChannel, false)
 		require.Nil(t, err)
 
-		clientPost := th.App.PreparePostForClient(post, false)
+		clientPost := th.App.PreparePostForClient(post, false, false)
+		firstEmbed := clientPost.Metadata.Embeds[0]
+		ogData := firstEmbed.Data.(*opengraph.OpenGraph)
 
 		t.Run("populates embeds", func(t *testing.T) {
-			assert.ElementsMatch(t, []*model.PostEmbed{
-				{
-					Type: model.POST_EMBED_OPENGRAPH,
-					URL:  "https://github.com/hmhealey/test-files",
-					Data: &opengraph.OpenGraph{
-						Description: "Contribute to hmhealey/test-files development by creating an account on GitHub.",
-						SiteName:    "GitHub",
-						Title:       "hmhealey/test-files",
-						Type:        "object",
-						URL:         "https://github.com/hmhealey/test-files",
-						Images: []*opengraph.Image{
-							{
-								URL: "https://avatars1.githubusercontent.com/u/3277310?s=400&v=4",
-							},
-						},
-					},
-				},
-			}, clientPost.Metadata.Embeds)
+			assert.Equal(t, firstEmbed.Type, model.POST_EMBED_OPENGRAPH)
+			assert.Equal(t, firstEmbed.URL, "https://github.com/hmhealey/test-files")
+			assert.Equal(t, ogData.Description, "Contribute to hmhealey/test-files development by creating an account on GitHub.")
+			assert.Equal(t, ogData.SiteName, "GitHub")
+			assert.Equal(t, ogData.Title, "hmhealey/test-files")
+			assert.Equal(t, ogData.Type, "object")
+			assert.Equal(t, ogData.URL, "https://github.com/hmhealey/test-files")
+			assert.Equal(t, ogData.Images[0].URL, "https://avatars1.githubusercontent.com/u/3277310?s=400&v=4")
 		})
 
 		t.Run("populates image dimensions", func(t *testing.T) {
@@ -381,7 +373,7 @@ func TestPreparePostForClient(t *testing.T) {
 		}, th.BasicChannel, false)
 		require.Nil(t, err)
 
-		clientPost := th.App.PreparePostForClient(post, false)
+		clientPost := th.App.PreparePostForClient(post, false, false)
 
 		t.Run("populates embeds", func(t *testing.T) {
 			assert.ElementsMatch(t, []*model.PostEmbed{
@@ -411,7 +403,7 @@ func TestPreparePostForClient(t *testing.T) {
 		})
 
 		post := th.CreatePost(th.BasicChannel)
-		post = th.App.PreparePostForClient(post, false)
+		post = th.App.PreparePostForClient(post, false, false)
 
 		assert.Nil(t, post.Metadata)
 
@@ -464,7 +456,7 @@ func testProxyLinkedImage(t *testing.T, th *TestHelper, shouldProxy bool) {
 		Message:   fmt.Sprintf(postTemplate, imageURL),
 	}
 
-	clientPost := th.App.PreparePostForClient(post, false)
+	clientPost := th.App.PreparePostForClient(post, false, false)
 
 	if shouldProxy {
 		assert.Equal(t, fmt.Sprintf(postTemplate, imageURL), post.Message, "should not have mutated original post")
@@ -482,7 +474,7 @@ func testProxyOpenGraphImage(t *testing.T, th *TestHelper, shouldProxy bool) {
 	}, th.BasicChannel, false)
 	require.Nil(t, err)
 
-	embeds := th.App.PreparePostForClient(post, false).Metadata.Embeds
+	embeds := th.App.PreparePostForClient(post, false, false).Metadata.Embeds
 	require.Len(t, embeds, 1, "should have one embed")
 
 	embed := embeds[0]
@@ -1995,11 +1987,7 @@ func TestParseImages(t *testing.T) {
 		},
 		"tiff": {
 			FileName: "test.tiff",
-			Expected: &model.PostImage{
-				Width:  701,
-				Height: 701,
-				Format: "tiff",
-			},
+			Expected: (*model.PostImage)(nil),
 		},
 		"not an image": {
 			FileName:    "README.md",

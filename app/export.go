@@ -332,13 +332,11 @@ func (a *App) buildUserNotifyProps(notifyProps model.StringMap) *UserNotifyProps
 func (a *App) ExportAllPosts(writer io.Writer) *model.AppError {
 	afterId := strings.Repeat("0", 26)
 	for {
-		result := <-a.Srv.Store.Post().GetParentsForExportAfter(1000, afterId)
+		posts, err := a.Srv.Store.Post().GetParentsForExportAfter(1000, afterId)
 
-		if result.Err != nil {
-			return result.Err
+		if err != nil {
+			return err
 		}
-
-		posts := result.Data.([]*model.PostForExport)
 
 		if len(posts) == 0 {
 			break
@@ -381,13 +379,11 @@ func (a *App) ExportAllPosts(writer io.Writer) *model.AppError {
 func (a *App) buildPostReplies(postId string) (*[]ReplyImportData, *model.AppError) {
 	var replies []ReplyImportData
 
-	result := <-a.Srv.Store.Post().GetRepliesForExport(postId)
+	replyPosts, err := a.Srv.Store.Post().GetRepliesForExport(postId)
 
-	if result.Err != nil {
-		return nil, result.Err
+	if err != nil {
+		return nil, err
 	}
-
-	replyPosts := result.Data.([]*model.ReplyForExport)
 
 	for _, reply := range replyPosts {
 		replyImportObject := ImportReplyFromPost(reply)
@@ -552,12 +548,11 @@ func (a *App) ExportAllDirectChannels(writer io.Writer) *model.AppError {
 func (a *App) ExportAllDirectPosts(writer io.Writer) *model.AppError {
 	afterId := strings.Repeat("0", 26)
 	for {
-		result := <-a.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, afterId)
-		if result.Err != nil {
-			return result.Err
+		posts, err := a.Srv.Store.Post().GetDirectPostParentsForExportAfter(1000, afterId)
+		if err != nil {
+			return err
 		}
 
-		posts := result.Data.([]*model.DirectPostForExport)
 		if len(posts) == 0 {
 			break
 		}

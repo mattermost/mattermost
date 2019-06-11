@@ -149,15 +149,15 @@ func testTeamStoreGetByName(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	if r1 := <-ss.Team().GetByName(o1.Name); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if team, err := ss.Team().GetByName(o1.Name); err != nil {
+		t.Fatal(err)
 	} else {
-		if r1.Data.(*model.Team).ToJson() != o1.ToJson() {
+		if team.ToJson() != o1.ToJson() {
 			t.Fatal("invalid returned team")
 		}
 	}
 
-	if err := (<-ss.Team().GetByName("")).Err; err == nil {
+	if _, err := ss.Team().GetByName(""); err == nil {
 		t.Fatal("Missing id should have failed")
 	}
 }
@@ -174,10 +174,10 @@ func testTeamStoreSearchByName(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	if r1 := <-ss.Team().SearchByName(name); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if r1, err := ss.Team().SearchByName(name); err != nil {
+		t.Fatal(err)
 	} else {
-		if r1.Data.([]*model.Team)[0].ToJson() != o1.ToJson() {
+		if r1[0].ToJson() != o1.ToJson() {
 			t.Fatal("invalid returned team")
 		}
 	}
@@ -955,7 +955,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 		})).(*model.User).Id
 
 		defer func(userId string) {
-			<-ss.User().PermanentDelete(userId)
+			ss.User().PermanentDelete(userId)
 		}(userIds[i])
 
 		store.Must(ss.Team().SaveMember(&model.TeamMember{
@@ -979,7 +979,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 	})).(*model.User).Id
 	defer func() {
-		<-ss.User().PermanentDelete(newUserId)
+		ss.User().PermanentDelete(newUserId)
 	}()
 
 	if result := <-ss.Team().SaveMember(&model.TeamMember{
@@ -1026,7 +1026,8 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 	user2, err := ss.User().Get(userIds[1])
 	require.Nil(t, err)
 	user2.DeleteAt = 1234
-	store.Must(ss.User().Update(user2, true))
+	_, err = ss.User().Update(user2, true)
+	require.Nil(t, err)
 
 	newUserId2 := store.Must(ss.User().Save(&model.User{
 		Username: model.NewId(),
@@ -1213,9 +1214,12 @@ func testGetChannelUnreadsForAllTeams(t *testing.T, ss store.Store) {
 	store.Must(ss.Team().SaveMember(m2, -1))
 
 	c1 := &model.Channel{TeamId: m1.TeamId, Name: model.NewId(), DisplayName: "Town Square", Type: model.CHANNEL_OPEN, TotalMsgCount: 100}
-	store.Must(ss.Channel().Save(c1, -1))
+	_, err := ss.Channel().Save(c1, -1)
+	require.Nil(t, err)
+
 	c2 := &model.Channel{TeamId: m2.TeamId, Name: model.NewId(), DisplayName: "Town Square", Type: model.CHANNEL_OPEN, TotalMsgCount: 100}
-	store.Must(ss.Channel().Save(c2, -1))
+	_, err = ss.Channel().Save(c2, -1)
+	require.Nil(t, err)
 
 	cm1 := &model.ChannelMember{ChannelId: c1.Id, UserId: m1.UserId, NotifyProps: model.GetDefaultChannelNotifyProps(), MsgCount: 90}
 	store.Must(ss.Channel().SaveMember(cm1))
@@ -1276,9 +1280,12 @@ func testGetChannelUnreadsForTeam(t *testing.T, ss store.Store) {
 	store.Must(ss.Team().SaveMember(m1, -1))
 
 	c1 := &model.Channel{TeamId: m1.TeamId, Name: model.NewId(), DisplayName: "Town Square", Type: model.CHANNEL_OPEN, TotalMsgCount: 100}
-	store.Must(ss.Channel().Save(c1, -1))
+	_, err := ss.Channel().Save(c1, -1)
+	require.Nil(t, err)
+
 	c2 := &model.Channel{TeamId: m1.TeamId, Name: model.NewId(), DisplayName: "Town Square", Type: model.CHANNEL_OPEN, TotalMsgCount: 100}
-	store.Must(ss.Channel().Save(c2, -1))
+	_, err = ss.Channel().Save(c2, -1)
+	require.Nil(t, err)
 
 	cm1 := &model.ChannelMember{ChannelId: c1.Id, UserId: m1.UserId, NotifyProps: model.GetDefaultChannelNotifyProps(), MsgCount: 90}
 	store.Must(ss.Channel().SaveMember(cm1))

@@ -129,39 +129,37 @@ func (s *SqlPostStore) Save(post *model.Post) store.StoreChannel {
 	})
 }
 
-func (s *SqlPostStore) Update(newPost *model.Post, oldPost *model.Post) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		newPost.UpdateAt = model.GetMillis()
-		newPost.PreCommit()
+func (s *SqlPostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.Post, *model.AppError) {
+	newPost.UpdateAt = model.GetMillis()
+	newPost.PreCommit()
 
-		oldPost.DeleteAt = newPost.UpdateAt
-		oldPost.UpdateAt = newPost.UpdateAt
-		oldPost.OriginalId = oldPost.Id
-		oldPost.Id = model.NewId()
-		oldPost.PreCommit()
+	oldPost.DeleteAt = newPost.UpdateAt
+	oldPost.UpdateAt = newPost.UpdateAt
+	oldPost.OriginalId = oldPost.Id
+	oldPost.Id = model.NewId()
+	oldPost.PreCommit()
 
-		maxPostSize := s.GetMaxPostSize()
+	maxPostSize := s.GetMaxPostSize()
 
-		if result.Err = newPost.IsValid(maxPostSize); result.Err != nil {
-			return
-		}
+	if err := newPost.IsValid(maxPostSize); err != nil {
+		return nil, err
+	}
 
-		if _, err := s.GetMaster().Update(newPost); err != nil {
-			result.Err = model.NewAppError("SqlPostStore.Update", "store.sql_post.update.app_error", nil, "id="+newPost.Id+", "+err.Error(), http.StatusInternalServerError)
-		} else {
-			time := model.GetMillis()
-			s.GetMaster().Exec("UPDATE Channels SET LastPostAt = :LastPostAt  WHERE Id = :ChannelId AND LastPostAt < :LastPostAt", map[string]interface{}{"LastPostAt": time, "ChannelId": newPost.ChannelId})
+	if _, err := s.GetMaster().Update(newPost); err != nil {
+		return nil, model.NewAppError("SqlPostStore.Update", "store.sql_post.update.app_error", nil, "id="+newPost.Id+", "+err.Error(), http.StatusInternalServerError)
+	}
 
-			if len(newPost.RootId) > 0 {
-				s.GetMaster().Exec("UPDATE Posts SET UpdateAt = :UpdateAt WHERE Id = :RootId AND UpdateAt < :UpdateAt", map[string]interface{}{"UpdateAt": time, "RootId": newPost.RootId})
-			}
+	time := model.GetMillis()
+	s.GetMaster().Exec("UPDATE Channels SET LastPostAt = :LastPostAt  WHERE Id = :ChannelId AND LastPostAt < :LastPostAt", map[string]interface{}{"LastPostAt": time, "ChannelId": newPost.ChannelId})
 
-			// mark the old post as deleted
-			s.GetMaster().Insert(oldPost)
+	if len(newPost.RootId) > 0 {
+		s.GetMaster().Exec("UPDATE Posts SET UpdateAt = :UpdateAt WHERE Id = :RootId AND UpdateAt < :UpdateAt", map[string]interface{}{"UpdateAt": time, "RootId": newPost.RootId})
+	}
 
-			result.Data = newPost
-		}
-	})
+	// mark the old post as deleted
+	s.GetMaster().Insert(oldPost)
+
+	return newPost, nil
 }
 
 func (s *SqlPostStore) Overwrite(post *model.Post) (*model.Post, *model.AppError) {
@@ -179,31 +177,28 @@ func (s *SqlPostStore) Overwrite(post *model.Post) (*model.Post, *model.AppError
 	return post, nil
 }
 
-func (s *SqlPostStore) GetFlaggedPosts(userId string, offset int, limit int) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		pl := model.NewPostList()
+func (s *SqlPostStore) GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *model.AppError) {
+	pl := model.NewPostList()
 
-		var posts []*model.Post
-		if _, err := s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE Id IN (SELECT Name FROM Preferences WHERE UserId = :UserId AND Category = :Category) AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset", map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_FLAGGED_POST, "Offset": offset, "Limit": limit}); err != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetFlaggedPosts", "store.sql_post.get_flagged_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			for _, post := range posts {
-				pl.AddPost(post)
-				pl.AddOrder(post.Id)
-			}
-		}
+	var posts []*model.Post
+	if _, err := s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE Id IN (SELECT Name FROM Preferences WHERE UserId = :UserId AND Category = :Category) AND DeleteAt = 0 ORDER BY CreateAt DESC LIMIT :Limit OFFSET :Offset", map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_FLAGGED_POST, "Offset": offset, "Limit": limit}); err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetFlaggedPosts", "store.sql_post.get_flagged_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = pl
-	})
+	for _, post := range posts {
+		pl.AddPost(post)
+		pl.AddOrder(post.Id)
+	}
+
+	return pl, nil
 }
 
-func (s *SqlPostStore) GetFlaggedPostsForTeam(userId, teamId string, offset int, limit int) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		pl := model.NewPostList()
+func (s *SqlPostStore) GetFlaggedPostsForTeam(userId, teamId string, offset int, limit int) (*model.PostList, *model.AppError) {
+	pl := model.NewPostList()
 
-		var posts []*model.Post
+	var posts []*model.Post
 
-		query := `
+	query := `
             SELECT
                 A.*
             FROM
@@ -229,46 +224,42 @@ func (s *SqlPostStore) GetFlaggedPostsForTeam(userId, teamId string, offset int,
             ORDER BY CreateAt DESC
             LIMIT :Limit OFFSET :Offset`
 
-		if _, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_FLAGGED_POST, "Offset": offset, "Limit": limit, "TeamId": teamId}); err != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetFlaggedPostsForTeam", "store.sql_post.get_flagged_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			for _, post := range posts {
-				pl.AddPost(post)
-				pl.AddOrder(post.Id)
-			}
-		}
+	if _, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_FLAGGED_POST, "Offset": offset, "Limit": limit, "TeamId": teamId}); err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetFlaggedPostsForTeam", "store.sql_post.get_flagged_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = pl
-	})
+	for _, post := range posts {
+		pl.AddPost(post)
+		pl.AddOrder(post.Id)
+	}
+
+	return pl, nil
 }
 
-func (s *SqlPostStore) GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		pl := model.NewPostList()
+func (s *SqlPostStore) GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) (*model.PostList, *model.AppError) {
+	pl := model.NewPostList()
 
-		var posts []*model.Post
-		query := `
-			SELECT
-				*
-			FROM Posts
-			WHERE
-				Id IN (SELECT Name FROM Preferences WHERE UserId = :UserId AND Category = :Category)
-				AND ChannelId = :ChannelId
-				AND DeleteAt = 0
-			ORDER BY CreateAt DESC
-			LIMIT :Limit OFFSET :Offset`
+	var posts []*model.Post
+	query := `
+		SELECT
+			*
+		FROM Posts
+		WHERE
+			Id IN (SELECT Name FROM Preferences WHERE UserId = :UserId AND Category = :Category)
+			AND ChannelId = :ChannelId
+			AND DeleteAt = 0
+		ORDER BY CreateAt DESC
+		LIMIT :Limit OFFSET :Offset`
 
-		if _, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_FLAGGED_POST, "ChannelId": channelId, "Offset": offset, "Limit": limit}); err != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetFlaggedPostsForChannel", "store.sql_post.get_flagged_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			for _, post := range posts {
-				pl.AddPost(post)
-				pl.AddOrder(post.Id)
-			}
-		}
+	if _, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"UserId": userId, "Category": model.PREFERENCE_CATEGORY_FLAGGED_POST, "ChannelId": channelId, "Offset": offset, "Limit": limit}); err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetFlaggedPostsForChannel", "store.sql_post.get_flagged_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	for _, post := range posts {
+		pl.AddPost(post)
+		pl.AddOrder(post.Id)
+	}
 
-		result.Data = pl
-	})
+	return pl, nil
 }
 
 func (s *SqlPostStore) Get(id string) (*model.PostList, *model.AppError) {
@@ -305,21 +296,19 @@ func (s *SqlPostStore) Get(id string) (*model.PostList, *model.AppError) {
 
 	for _, p := range posts {
 		pl.AddPost(p)
+		pl.AddOrder(p.Id)
 	}
 
 	return pl, nil
 }
 
-func (s *SqlPostStore) GetSingle(id string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var post model.Post
-		err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": id})
-		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetSingle", "store.sql_post.get.app_error", nil, "id="+id+err.Error(), http.StatusNotFound)
-		}
-
-		result.Data = &post
-	})
+func (s *SqlPostStore) GetSingle(id string) (*model.Post, *model.AppError) {
+	var post model.Post
+	err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts WHERE Id = :Id AND DeleteAt = 0", map[string]interface{}{"Id": id})
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetSingle", "store.sql_post.get.app_error", nil, "id="+id+err.Error(), http.StatusNotFound)
+	}
+	return &post, nil
 }
 
 type etagPosts struct {
@@ -340,36 +329,35 @@ func (s *SqlPostStore) InvalidateLastPostTimeCache(channelId string) {
 	}
 }
 
-func (s *SqlPostStore) GetEtag(channelId string, allowFromCache bool) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if allowFromCache {
-			if cacheItem, ok := s.lastPostTimeCache.Get(channelId); ok {
-				if s.metrics != nil {
-					s.metrics.IncrementMemCacheHitCounter("Last Post Time")
-				}
-				result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, cacheItem.(int64))
-				return
-			} else {
-				if s.metrics != nil {
-					s.metrics.IncrementMemCacheMissCounter("Last Post Time")
-				}
+func (s *SqlPostStore) GetEtag(channelId string, allowFromCache bool) string {
+	if allowFromCache {
+		if cacheItem, ok := s.lastPostTimeCache.Get(channelId); ok {
+			if s.metrics != nil {
+				s.metrics.IncrementMemCacheHitCounter("Last Post Time")
 			}
+			return fmt.Sprintf("%v.%v", model.CurrentVersion, cacheItem.(int64))
 		} else {
 			if s.metrics != nil {
 				s.metrics.IncrementMemCacheMissCounter("Last Post Time")
 			}
 		}
-
-		var et etagPosts
-		err := s.GetReplica().SelectOne(&et, "SELECT Id, UpdateAt FROM Posts WHERE ChannelId = :ChannelId ORDER BY UpdateAt DESC LIMIT 1", map[string]interface{}{"ChannelId": channelId})
-		if err != nil {
-			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, model.GetMillis())
-		} else {
-			result.Data = fmt.Sprintf("%v.%v", model.CurrentVersion, et.UpdateAt)
+	} else {
+		if s.metrics != nil {
+			s.metrics.IncrementMemCacheMissCounter("Last Post Time")
 		}
+	}
 
-		s.lastPostTimeCache.AddWithExpiresInSecs(channelId, et.UpdateAt, LAST_POST_TIME_CACHE_SEC)
-	})
+	var et etagPosts
+	err := s.GetReplica().SelectOne(&et, "SELECT Id, UpdateAt FROM Posts WHERE ChannelId = :ChannelId ORDER BY UpdateAt DESC LIMIT 1", map[string]interface{}{"ChannelId": channelId})
+	var result string
+	if err != nil {
+		result = fmt.Sprintf("%v.%v", model.CurrentVersion, model.GetMillis())
+	} else {
+		result = fmt.Sprintf("%v.%v", model.CurrentVersion, et.UpdateAt)
+	}
+
+	s.lastPostTimeCache.AddWithExpiresInSecs(channelId, et.UpdateAt, LAST_POST_TIME_CACHE_SEC)
+	return result
 }
 
 func (s *SqlPostStore) Delete(postId string, time int64, deleteByID string) *model.AppError {
@@ -452,73 +440,68 @@ func (s *SqlPostStore) PermanentDeleteByUser(userId string) store.StoreChannel {
 	})
 }
 
-func (s *SqlPostStore) PermanentDeleteByChannel(channelId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if _, err := s.GetMaster().Exec("DELETE FROM Posts WHERE ChannelId = :ChannelId", map[string]interface{}{"ChannelId": channelId}); err != nil {
-			result.Err = model.NewAppError("SqlPostStore.PermanentDeleteByChannel", "store.sql_post.permanent_delete_by_channel.app_error", nil, "channel_id="+channelId+", "+err.Error(), http.StatusInternalServerError)
-		}
-	})
+func (s *SqlPostStore) PermanentDeleteByChannel(channelId string) *model.AppError {
+	if _, err := s.GetMaster().Exec("DELETE FROM Posts WHERE ChannelId = :ChannelId", map[string]interface{}{"ChannelId": channelId}); err != nil {
+		return model.NewAppError("SqlPostStore.PermanentDeleteByChannel", "store.sql_post.permanent_delete_by_channel.app_error", nil, "channel_id="+channelId+", "+err.Error(), http.StatusInternalServerError)
+	}
+	return nil
 }
 
-func (s *SqlPostStore) GetPosts(channelId string, offset int, limit int, allowFromCache bool) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if limit > 1000 {
-			result.Err = model.NewAppError("SqlPostStore.GetLinearPosts", "store.sql_post.get_posts.app_error", nil, "channelId="+channelId, http.StatusBadRequest)
-			return
-		}
+func (s *SqlPostStore) GetPosts(channelId string, offset int, limit int, allowFromCache bool) (*model.PostList, *model.AppError) {
+	if limit > 1000 {
+		return nil, model.NewAppError("SqlPostStore.GetLinearPosts", "store.sql_post.get_posts.app_error", nil, "channelId="+channelId, http.StatusBadRequest)
+	}
 
-		// Caching only occurs on limits of 30 and 60, the common limits requested by MM clients
-		if allowFromCache && offset == 0 && (limit == 60 || limit == 30) {
-			if cacheItem, ok := s.lastPostsCache.Get(fmt.Sprintf("%s%v", channelId, limit)); ok {
-				if s.metrics != nil {
-					s.metrics.IncrementMemCacheHitCounter("Last Posts Cache")
-				}
-
-				result.Data = cacheItem.(*model.PostList)
-				return
-			} else {
-				if s.metrics != nil {
-					s.metrics.IncrementMemCacheMissCounter("Last Posts Cache")
-				}
-			}
-		} else {
+	// Caching only occurs on limits of 30 and 60, the common limits requested by MM clients
+	if allowFromCache && offset == 0 && (limit == 60 || limit == 30) {
+		if cacheItem, ok := s.lastPostsCache.Get(fmt.Sprintf("%s%v", channelId, limit)); ok {
 			if s.metrics != nil {
-				s.metrics.IncrementMemCacheMissCounter("Last Posts Cache")
+				s.metrics.IncrementMemCacheHitCounter("Last Posts Cache")
 			}
+			return cacheItem.(*model.PostList), nil
 		}
+	}
 
-		rpc := s.getRootPosts(channelId, offset, limit)
-		cpc := s.getParentsPosts(channelId, offset, limit)
+	if s.metrics != nil {
+		s.metrics.IncrementMemCacheMissCounter("Last Posts Cache")
+	}
 
-		if rpr := <-rpc; rpr.Err != nil {
-			result.Err = rpr.Err
-		} else if cpr := <-cpc; cpr.Err != nil {
-			result.Err = cpr.Err
-		} else {
-			posts := rpr.Data.([]*model.Post)
-			parents := cpr.Data.([]*model.Post)
+	rpc := s.getRootPosts(channelId, offset, limit)
+	cpc := s.getParentsPosts(channelId, offset, limit)
 
-			list := model.NewPostList()
+	var err *model.AppError
+	list := model.NewPostList()
 
-			for _, p := range posts {
-				list.AddPost(p)
-				list.AddOrder(p.Id)
-			}
+	rpr := <-rpc
+	if rpr.Err != nil {
+		return nil, rpr.Err
+	}
 
-			for _, p := range parents {
-				list.AddPost(p)
-			}
+	cpr := <-cpc
+	if cpr.Err != nil {
+		return nil, cpr.Err
+	}
 
-			list.MakeNonNil()
+	posts := rpr.Data.([]*model.Post)
+	parents := cpr.Data.([]*model.Post)
 
-			// Caching only occurs on limits of 30 and 60, the common limits requested by MM clients
-			if offset == 0 && (limit == 60 || limit == 30) {
-				s.lastPostsCache.AddWithExpiresInSecs(fmt.Sprintf("%s%v", channelId, limit), list, LAST_POSTS_CACHE_SEC)
-			}
+	for _, p := range posts {
+		list.AddPost(p)
+		list.AddOrder(p.Id)
+	}
 
-			result.Data = list
-		}
-	})
+	for _, p := range parents {
+		list.AddPost(p)
+	}
+
+	list.MakeNonNil()
+
+	// Caching only occurs on limits of 30 and 60, the common limits requested by MM clients
+	if offset == 0 && (limit == 60 || limit == 30) {
+		s.lastPostsCache.AddWithExpiresInSecs(fmt.Sprintf("%s%v", channelId, limit), list, LAST_POSTS_CACHE_SEC)
+	}
+
+	return list, err
 }
 
 func (s *SqlPostStore) GetPostsSince(channelId string, time int64, allowFromCache bool) store.StoreChannel {
@@ -598,93 +581,95 @@ func (s *SqlPostStore) GetPostsSince(channelId string, time int64, allowFromCach
 	})
 }
 
-func (s *SqlPostStore) GetPostsBefore(channelId string, postId string, numPosts int, offset int) store.StoreChannel {
-	return s.getPostsAround(channelId, postId, numPosts, offset, true)
+func (s *SqlPostStore) GetPostsBefore(channelId string, postId string, limit int, offset int) (*model.PostList, *model.AppError) {
+	return s.getPostsAround(channelId, postId, limit, offset, true)
 }
 
-func (s *SqlPostStore) GetPostsAfter(channelId string, postId string, numPosts int, offset int) store.StoreChannel {
-	return s.getPostsAround(channelId, postId, numPosts, offset, false)
+func (s *SqlPostStore) GetPostsAfter(channelId string, postId string, limit int, offset int) (*model.PostList, *model.AppError) {
+	return s.getPostsAround(channelId, postId, limit, offset, false)
 }
 
-func (s *SqlPostStore) getPostsAround(channelId string, postId string, numPosts int, offset int, before bool) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var direction string
-		var sort string
-		if before {
-			direction = "<"
-			sort = "DESC"
-		} else {
-			direction = ">"
-			sort = "ASC"
-		}
+func (s *SqlPostStore) getPostsAround(channelId string, postId string, limit int, offset int, before bool) (*model.PostList, *model.AppError) {
+	var direction string
+	var sort string
+	if before {
+		direction = "<"
+		sort = "DESC"
+	} else {
+		direction = ">"
+		sort = "ASC"
+	}
 
-		var posts []*model.Post
-		var parents []*model.Post
-		_, err1 := s.GetReplica().Select(&posts,
-			`(SELECT
-			    *
+	var posts []*model.Post
+	var parents []*model.Post
+	_, err := s.GetReplica().Select(&posts,
+		`SELECT
+			*
+		FROM
+			Posts
+		WHERE
+			CreateAt `+direction+` (SELECT CreateAt FROM Posts WHERE Id = :PostId)
+				AND ChannelId = :ChannelId
+				AND DeleteAt = 0
+		ORDER BY CreateAt `+sort+`
+		LIMIT :Limit
+		OFFSET :Offset`,
+		map[string]interface{}{"ChannelId": channelId, "PostId": postId, "Limit": limit, "Offset": offset})
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_around.get.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
+	}
+	_, err = s.GetReplica().Select(&parents,
+		`SELECT
+			q2.*
+		FROM
+			Posts q2
+				INNER JOIN
+			(SELECT DISTINCT
+				q3.Id, q3.RootId
 			FROM
-			    Posts
-			WHERE
-				(CreateAt `+direction+` (SELECT CreateAt FROM Posts WHERE Id = :PostId)
-			        AND ChannelId = :ChannelId
-					AND DeleteAt = 0)
-			ORDER BY CreateAt `+sort+`
-			LIMIT :NumPosts
-			OFFSET :Offset)`,
-			map[string]interface{}{"ChannelId": channelId, "PostId": postId, "NumPosts": numPosts, "Offset": offset})
-		_, err2 := s.GetReplica().Select(&parents,
-			`(SELECT
-			    *
-			FROM
-			    Posts
-			WHERE
-			    Id
-			IN
-			    (SELECT * FROM (SELECT
-			        RootId
-			    FROM
-			        Posts
-			    WHERE
-					(CreateAt `+direction+` (SELECT CreateAt FROM Posts WHERE Id = :PostId)
-						AND ChannelId = :ChannelId
-						AND DeleteAt = 0)
-					ORDER BY CreateAt `+sort+`
-					LIMIT :NumPosts
-					OFFSET :Offset)
-			    temp_tab))
-			ORDER BY CreateAt DESC`,
-			map[string]interface{}{"ChannelId": channelId, "PostId": postId, "NumPosts": numPosts, "Offset": offset})
+				(SELECT
+					Id, RootId
+				FROM
+					Posts
+				WHERE
+					CreateAt `+direction+` (SELECT CreateAt FROM Posts WHERE Id = :PostId)
+					AND ChannelId = :ChannelId
+					AND DeleteAt = 0
+				ORDER BY CreateAt `+sort+`
+				LIMIT :Limit OFFSET :Offset) q3 -- q3 contains the Id and RootId of every post in posts
+			) q1 -- q1 is q3 with the duplicates removed
+			ON q1.RootId = q2.Id -- This is the root post of a thread that appears in posts
+				OR q1.Id = q2.RootId -- This is a comment on a post in posts
+				OR (q2.RootId != '' AND q1.RootId = q2.RootId) -- This is a comment on a thread that appears in posts
+		WHERE
+			ChannelId = :ChannelId
+			AND DeleteAt = 0
+		ORDER BY CreateAt DESC`,
+		map[string]interface{}{"ChannelId": channelId, "PostId": postId, "Limit": limit, "Offset": offset})
 
-		if err1 != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_around.get.app_error", nil, "channelId="+channelId+err1.Error(), http.StatusInternalServerError)
-		} else if err2 != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_around.get_parent.app_error", nil, "channelId="+channelId+err2.Error(), http.StatusInternalServerError)
-		} else {
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_around.get_parent.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
+	}
+	list := model.NewPostList()
 
-			list := model.NewPostList()
-
-			// We need to flip the order if we selected backwards
-			if before {
-				for _, p := range posts {
-					list.AddPost(p)
-					list.AddOrder(p.Id)
-				}
-			} else {
-				l := len(posts)
-				for i := range posts {
-					list.AddPost(posts[l-i-1])
-					list.AddOrder(posts[l-i-1].Id)
-				}
-			}
-
-			for _, p := range parents {
-				list.AddPost(p)
-			}
-
-			result.Data = list
+	// We need to flip the order if we selected backwards
+	if before {
+		for _, p := range posts {
+			list.AddPost(p)
+			list.AddOrder(p.Id)
 		}
-	})
+	} else {
+		l := len(posts)
+		for i := range posts {
+			list.AddPost(posts[l-i-1])
+			list.AddOrder(posts[l-i-1].Id)
+		}
+	}
+
+	for _, p := range parents {
+		list.AddPost(p)
+	}
+	return list, nil
 }
 
 func (s *SqlPostStore) getRootPosts(channelId string, offset int, limit int) store.StoreChannel {
@@ -712,14 +697,14 @@ func (s *SqlPostStore) getParentsPosts(channelId string, offset int, limit int) 
 			        q3.RootId
 			    FROM
 			        (SELECT
-			        RootId
-			    FROM
-			        Posts
-			    WHERE
-			        ChannelId = :ChannelId1
-			            AND DeleteAt = 0
-			    ORDER BY CreateAt DESC
-			    LIMIT :Limit OFFSET :Offset) q3
+						RootId
+					FROM
+						Posts
+					WHERE
+						ChannelId = :ChannelId1
+							AND DeleteAt = 0
+					ORDER BY CreateAt DESC
+					LIMIT :Limit OFFSET :Offset) q3
 			    WHERE q3.RootId != '') q1
 			    ON q1.RootId = q2.Id OR q1.RootId = q2.RootId
 			WHERE
@@ -1106,101 +1091,88 @@ func (s *SqlPostStore) AnalyticsPostCount(teamId string, mustHaveFile bool, must
 	})
 }
 
-func (s *SqlPostStore) GetPostsCreatedAt(channelId string, time int64) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		query := `SELECT * FROM Posts WHERE CreateAt = :CreateAt AND ChannelId = :ChannelId`
+func (s *SqlPostStore) GetPostsCreatedAt(channelId string, time int64) ([]*model.Post, *model.AppError) {
+	query := `SELECT * FROM Posts WHERE CreateAt = :CreateAt AND ChannelId = :ChannelId`
 
-		var posts []*model.Post
-		_, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"CreateAt": time, "ChannelId": channelId})
+	var posts []*model.Post
+	_, err := s.GetReplica().Select(&posts, query, map[string]interface{}{"CreateAt": time, "ChannelId": channelId})
 
-		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetPostsCreatedAt", "store.sql_post.get_posts_created_att.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = posts
-		}
-	})
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetPostsCreatedAt", "store.sql_post.get_posts_created_att.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
+	}
+	return posts, nil
 }
 
-func (s *SqlPostStore) GetPostsByIds(postIds []string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		keys, params := MapStringsToQueryParams(postIds, "Post")
+func (s *SqlPostStore) GetPostsByIds(postIds []string) ([]*model.Post, *model.AppError) {
+	keys, params := MapStringsToQueryParams(postIds, "Post")
 
-		query := `SELECT * FROM Posts WHERE Id IN ` + keys + ` ORDER BY CreateAt DESC`
+	query := `SELECT * FROM Posts WHERE Id IN ` + keys + ` ORDER BY CreateAt DESC`
 
-		var posts []*model.Post
-		_, err := s.GetReplica().Select(&posts, query, params)
+	var posts []*model.Post
+	_, err := s.GetReplica().Select(&posts, query, params)
 
-		if err != nil {
-			mlog.Error(fmt.Sprint(err))
-			result.Err = model.NewAppError("SqlPostStore.GetPostsByIds", "store.sql_post.get_posts_by_ids.app_error", nil, "", http.StatusInternalServerError)
-		} else {
-			result.Data = posts
-		}
-	})
+	if err != nil {
+		mlog.Error(fmt.Sprint(err))
+		return nil, model.NewAppError("SqlPostStore.GetPostsByIds", "store.sql_post.get_posts_by_ids.app_error", nil, "", http.StatusInternalServerError)
+	}
+	return posts, nil
 }
 
-func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var posts []*model.PostForIndexing
-		_, err1 := s.GetSearchReplica().Select(&posts,
-			`SELECT
-				PostsQuery.*, Channels.TeamId, ParentPosts.CreateAt ParentCreateAt
-			FROM (
-				SELECT
-					*
-				FROM
-					Posts
-				WHERE
-					Posts.CreateAt >= :StartTime
-				AND
-					Posts.CreateAt < :EndTime
-				ORDER BY
-					CreateAt ASC
-				LIMIT
-					1000
-				)
-			AS
-				PostsQuery
-			LEFT JOIN
-				Channels
-			ON
-				PostsQuery.ChannelId = Channels.Id
-			LEFT JOIN
-				Posts ParentPosts
-			ON
-				PostsQuery.RootId = ParentPosts.Id`,
-			map[string]interface{}{"StartTime": startTime, "EndTime": endTime, "NumPosts": limit})
+func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) ([]*model.PostForIndexing, *model.AppError) {
+	var posts []*model.PostForIndexing
+	_, err := s.GetSearchReplica().Select(&posts,
+		`SELECT
+			PostsQuery.*, Channels.TeamId, ParentPosts.CreateAt ParentCreateAt
+		FROM (
+			SELECT
+				*
+			FROM
+				Posts
+			WHERE
+				Posts.CreateAt >= :StartTime
+			AND
+				Posts.CreateAt < :EndTime
+			ORDER BY
+				CreateAt ASC
+			LIMIT
+				1000
+			)
+		AS
+			PostsQuery
+		LEFT JOIN
+			Channels
+		ON
+			PostsQuery.ChannelId = Channels.Id
+		LEFT JOIN
+			Posts ParentPosts
+		ON
+			PostsQuery.RootId = ParentPosts.Id`,
+		map[string]interface{}{"StartTime": startTime, "EndTime": endTime, "NumPosts": limit})
 
-		if err1 != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_batch_for_indexing.get.app_error", nil, err1.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = posts
-		}
-	})
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_batch_for_indexing.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return posts, nil
 }
 
-func (s *SqlPostStore) PermanentDeleteBatch(endTime int64, limit int64) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var query string
-		if s.DriverName() == "postgres" {
-			query = "DELETE from Posts WHERE Id = any (array (SELECT Id FROM Posts WHERE CreateAt < :EndTime LIMIT :Limit))"
-		} else {
-			query = "DELETE from Posts WHERE CreateAt < :EndTime LIMIT :Limit"
-		}
+func (s *SqlPostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
+	var query string
+	if s.DriverName() == "postgres" {
+		query = "DELETE from Posts WHERE Id = any (array (SELECT Id FROM Posts WHERE CreateAt < :EndTime LIMIT :Limit))"
+	} else {
+		query = "DELETE from Posts WHERE CreateAt < :EndTime LIMIT :Limit"
+	}
 
-		sqlResult, err := s.GetMaster().Exec(query, map[string]interface{}{"EndTime": endTime, "Limit": limit})
-		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.PermanentDeleteBatch", "store.sql_post.permanent_delete_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
-		} else {
-			rowsAffected, err1 := sqlResult.RowsAffected()
-			if err1 != nil {
-				result.Err = model.NewAppError("SqlPostStore.PermanentDeleteBatch", "store.sql_post.permanent_delete_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
-				result.Data = int64(0)
-			} else {
-				result.Data = rowsAffected
-			}
-		}
-	})
+	sqlResult, err := s.GetMaster().Exec(query, map[string]interface{}{"EndTime": endTime, "Limit": limit})
+	if err != nil {
+		return 0, model.NewAppError("SqlPostStore.PermanentDeleteBatch", "store.sql_post.permanent_delete_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
+	}
+
+	rowsAffected, err := sqlResult.RowsAffected()
+	if err != nil {
+		return 0, model.NewAppError("SqlPostStore.PermanentDeleteBatch", "store.sql_post.permanent_delete_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
+	}
+	return rowsAffected, nil
 }
 
 func (s *SqlPostStore) GetOldest() store.StoreChannel {
@@ -1276,10 +1248,9 @@ func (s *SqlPostStore) GetMaxPostSize() int {
 	return s.maxPostSizeCached
 }
 
-func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var posts []*model.PostForExport
-		_, err1 := s.GetSearchReplica().Select(&posts, `
+func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string) ([]*model.PostForExport, *model.AppError) {
+	var posts []*model.PostForExport
+	_, err := s.GetSearchReplica().Select(&posts, `
                 SELECT
                     p1.*,
                     Users.Username as Username,
@@ -1303,112 +1274,106 @@ func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string) store
                     p1.Id
                 LIMIT
                     :Limit`,
-			map[string]interface{}{"Limit": limit, "AfterId": afterId})
+		map[string]interface{}{"Limit": limit, "AfterId": afterId})
 
-		if err1 != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetAllAfterForExport", "store.sql_post.get_posts.app_error", nil, err1.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = posts
-		}
-	})
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetAllAfterForExport", "store.sql_post.get_posts.app_error",
+			nil, err.Error(), http.StatusInternalServerError)
+	}
+	return posts, nil
 }
 
-func (s *SqlPostStore) GetRepliesForExport(parentId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var posts []*model.ReplyForExport
-		_, err1 := s.GetSearchReplica().Select(&posts, `
-                SELECT
-                    Posts.*,
-                    Users.Username as Username
-                FROM
-                    Posts
-                INNER JOIN
-                    Users ON Posts.UserId = Users.Id
-                WHERE
-                    Posts.ParentId = :ParentId
-                    AND Posts.DeleteAt = 0
-                ORDER BY
-                    Posts.Id`,
-			map[string]interface{}{"ParentId": parentId})
+func (s *SqlPostStore) GetRepliesForExport(parentId string) ([]*model.ReplyForExport, *model.AppError) {
 
-		if err1 != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetAllAfterForExport", "store.sql_post.get_posts.app_error", nil, err1.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = posts
-		}
-	})
+	var posts []*model.ReplyForExport
+	_, err := s.GetSearchReplica().Select(&posts, `
+			SELECT
+				Posts.*,
+				Users.Username as Username
+			FROM
+				Posts
+			INNER JOIN
+				Users ON Posts.UserId = Users.Id
+			WHERE
+				Posts.ParentId = :ParentId
+				AND Posts.DeleteAt = 0
+			ORDER BY
+				Posts.Id`,
+		map[string]interface{}{"ParentId": parentId})
+
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetAllAfterForExport", "store.sql_post.get_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return posts, nil
 }
 
-func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		query := s.getQueryBuilder().
-			Select("p.*", "Users.Username as User").
-			From("Posts p").
-			Join("Channels ON p.ChannelId = Channels.Id").
-			Join("Users ON p.UserId = Users.Id").
-			Where(sq.And{
-				sq.Gt{"p.Id": afterId},
-				sq.Eq{"p.ParentId": string("")},
-				sq.Eq{"p.DeleteAt": int(0)},
-				sq.Eq{"Channels.DeleteAt": int(0)},
-				sq.Eq{"Users.DeleteAt": int(0)},
-				sq.Eq{"Channels.Type": []string{"D", "G"}},
-			}).
-			OrderBy("p.Id").
-			Limit(uint64(limit))
+func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId string) ([]*model.DirectPostForExport, *model.AppError) {
+	query := s.getQueryBuilder().
+		Select("p.*", "Users.Username as User").
+		From("Posts p").
+		Join("Channels ON p.ChannelId = Channels.Id").
+		Join("Users ON p.UserId = Users.Id").
+		Where(sq.And{
+			sq.Gt{"p.Id": afterId},
+			sq.Eq{"p.ParentId": string("")},
+			sq.Eq{"p.DeleteAt": int(0)},
+			sq.Eq{"Channels.DeleteAt": int(0)},
+			sq.Eq{"Users.DeleteAt": int(0)},
+			sq.Eq{"Channels.Type": []string{"D", "G"}},
+		}).
+		OrderBy("p.Id").
+		Limit(uint64(limit))
 
-		queryString, args, err := query.ToSql()
-		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetDirectPostParentsForExportAfter", "store.sql_post.get_direct_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetDirectPostParentsForExportAfter", "store.sql_post.get_direct_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		var posts []*model.DirectPostForExport
-		if _, err = s.GetReplica().Select(&posts, queryString, args...); err != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetDirectPostParentsForExportAfter", "store.sql_post.get_direct_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-		var channelIds []string
-		for _, post := range posts {
-			channelIds = append(channelIds, post.ChannelId)
-		}
-		query = s.getQueryBuilder().
-			Select("u.Username as Username, ChannelId, UserId, cm.Roles as Roles, LastViewedAt, MsgCount, MentionCount, cm.NotifyProps as NotifyProps, LastUpdateAt, SchemeUser, SchemeAdmin, (SchemeGuest IS NOT NULL AND SchemeGuest) as SchemeGuest").
-			From("ChannelMembers cm").
-			Join("Users u ON ( u.Id = cm.UserId )").
-			Where(sq.Eq{
-				"cm.ChannelId": channelIds,
-			})
+	var posts []*model.DirectPostForExport
+	if _, err = s.GetReplica().Select(&posts, queryString, args...); err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetDirectPostParentsForExportAfter", "store.sql_post.get_direct_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	var channelIds []string
+	for _, post := range posts {
+		channelIds = append(channelIds, post.ChannelId)
+	}
+	query = s.getQueryBuilder().
+		Select("u.Username as Username, ChannelId, UserId, cm.Roles as Roles, LastViewedAt, MsgCount, MentionCount, cm.NotifyProps as NotifyProps, LastUpdateAt, SchemeUser, SchemeAdmin, (SchemeGuest IS NOT NULL AND SchemeGuest) as SchemeGuest").
+		From("ChannelMembers cm").
+		Join("Users u ON ( u.Id = cm.UserId )").
+		Where(sq.Eq{
+			"cm.ChannelId": channelIds,
+		})
 
-		queryString, args, err = query.ToSql()
-		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetDirectPostParentsForExportAfter", "store.sql_post.get_direct_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	queryString, args, err = query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetDirectPostParentsForExportAfter", "store.sql_post.get_direct_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		var channelMembers []*model.ChannelMemberForExport
-		if _, err := s.GetReplica().Select(&channelMembers, queryString, args...); err != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetDirectPostParentsForExportAfter", "store.sql_post.get_direct_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
+	var channelMembers []*model.ChannelMemberForExport
+	if _, err := s.GetReplica().Select(&channelMembers, queryString, args...); err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetDirectPostParentsForExportAfter", "store.sql_post.get_direct_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		// Build a map of channels and their posts
-		postsChannelMap := make(map[string][]*model.DirectPostForExport)
-		for _, post := range posts {
-			post.ChannelMembers = &[]string{}
-			postsChannelMap[post.ChannelId] = append(postsChannelMap[post.ChannelId], post)
-		}
+	// Build a map of channels and their posts
+	postsChannelMap := make(map[string][]*model.DirectPostForExport)
+	for _, post := range posts {
+		post.ChannelMembers = &[]string{}
+		postsChannelMap[post.ChannelId] = append(postsChannelMap[post.ChannelId], post)
+	}
 
-		// Build a map of channels and their members
-		channelMembersMap := make(map[string][]string)
-		for _, member := range channelMembers {
-			channelMembersMap[member.ChannelId] = append(channelMembersMap[member.ChannelId], member.Username)
-		}
+	// Build a map of channels and their members
+	channelMembersMap := make(map[string][]string)
+	for _, member := range channelMembers {
+		channelMembersMap[member.ChannelId] = append(channelMembersMap[member.ChannelId], member.Username)
+	}
 
-		// Populate each post ChannelMembers extracting it from the channelMembersMap
-		for channelId := range channelMembersMap {
-			for _, post := range postsChannelMap[channelId] {
-				*post.ChannelMembers = channelMembersMap[channelId]
-			}
+	// Populate each post ChannelMembers extracting it from the channelMembersMap
+	for channelId := range channelMembersMap {
+		for _, post := range postsChannelMap[channelId] {
+			*post.ChannelMembers = channelMembersMap[channelId]
 		}
-		result.Data = posts
-	})
+	}
+	return posts, nil
 }
