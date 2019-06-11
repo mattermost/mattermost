@@ -202,9 +202,7 @@ func (h *Handler) checkCSRFToken(c *Context, r *http.Request, token string, toke
 
 	if csrfCheckNeeded {
 		csrfHeader := r.Header.Get(model.HEADER_CSRF_TOKEN)
-		c.App.Log.Debug("header " + csrfHeader)
-		c.App.Log.Debug("session " + session.GetCSRF())
-		c.App.Log.Debug("requested-with " + r.Header.Get(model.HEADER_REQUESTED_WITH))
+
 		if csrfHeader == session.GetCSRF() {
 			csrfCheckPassed = true
 		} else if r.Header.Get(model.HEADER_REQUESTED_WITH) == model.HEADER_REQUESTED_WITH_XML {
