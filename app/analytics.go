@@ -171,11 +171,7 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			return rows, nil
 		}
 
-		r := <-a.Srv.Store.Post().AnalyticsUserCountsWithPostsByDay(teamId)
-		if r.Err != nil {
-			return nil, r.Err
-		}
-		return r.Data.(model.AnalyticsRows), nil
+		return a.Srv.Store.Post().AnalyticsUserCountsWithPostsByDay(teamId)
 	} else if name == "extra_counts" {
 		var rows model.AnalyticsRows = make([]*model.AnalyticsRow, 6)
 		rows[0] = &model.AnalyticsRow{Name: "file_post_count", Value: 0}
