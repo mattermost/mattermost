@@ -152,24 +152,24 @@ func testUserStoreUpdate(t *testing.T, ss store.Store) {
 
 	time.Sleep(100 * time.Millisecond)
 
-	if err := (<-ss.User().Update(u1, false)).Err; err != nil {
+	if _, err := ss.User().Update(u1, false); err != nil {
 		t.Fatal(err)
 	}
 
 	missing := &model.User{}
-	if err := (<-ss.User().Update(missing, false)).Err; err == nil {
+	if _, err := ss.User().Update(missing, false); err == nil {
 		t.Fatal("Update should have failed because of missing key")
 	}
 
 	newId := &model.User{
 		Id: model.NewId(),
 	}
-	if err := (<-ss.User().Update(newId, false)).Err; err == nil {
+	if _, err := ss.User().Update(newId, false); err == nil {
 		t.Fatal("Update should have failed because id change")
 	}
 
 	u2.Email = MakeEmail()
-	if err := (<-ss.User().Update(u2, false)).Err; err == nil {
+	if _, err := ss.User().Update(u2, false); err == nil {
 		t.Fatal("Update should have failed because you can't modify AD/LDAP fields")
 	}
 
@@ -183,20 +183,20 @@ func testUserStoreUpdate(t *testing.T, ss store.Store) {
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u3.Id}, -1))
 
 	u3.Email = MakeEmail()
-	if result := <-ss.User().Update(u3, false); result.Err != nil {
+	if userUpdate, err := ss.User().Update(u3, false); err != nil {
 		t.Fatal("Update should not have failed")
 	} else {
-		newUser := result.Data.([2]*model.User)[0]
+		newUser := userUpdate.New
 		if newUser.Email != oldEmail {
 			t.Fatal("Email should not have been updated as the update is not trusted")
 		}
 	}
 
 	u3.Email = MakeEmail()
-	if result := <-ss.User().Update(u3, true); result.Err != nil {
+	if userUpdate, err := ss.User().Update(u3, true); err != nil {
 		t.Fatal("Update should not have failed")
 	} else {
-		newUser := result.Data.([2]*model.User)[0]
+		newUser := userUpdate.New
 		if newUser.Email == oldEmail {
 			t.Fatal("Email should have been updated as the update is trusted")
 		}
@@ -258,11 +258,13 @@ func testUserStoreGet(t *testing.T, ss store.Store) {
 		Username: model.NewId(),
 	})).(*model.User)
 	store.Must(ss.Bot().Save(&model.Bot{
-		UserId:   u2.Id,
-		Username: u2.Username,
-		OwnerId:  u1.Id,
+		UserId:      u2.Id,
+		Username:    u2.Username,
+		Description: "bot description",
+		OwnerId:     u1.Id,
 	}))
 	u2.IsBot = true
+	u2.BotDescription = "bot description"
 	defer func() { store.Must(ss.Bot().PermanentDelete(u2.Id)) }()
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u2.Id)) }()
 
@@ -285,6 +287,7 @@ func testUserStoreGet(t *testing.T, ss store.Store) {
 		require.Nil(t, err)
 		require.Equal(t, u2, actual)
 		require.True(t, actual.IsBot)
+		require.Equal(t, "bot description", actual.BotDescription)
 	})
 }
 
@@ -678,19 +681,23 @@ func testUserStoreGetProfilesInChannel(t *testing.T, ss store.Store) {
 	u3.IsBot = true
 	defer func() { store.Must(ss.Bot().PermanentDelete(u3.Id)) }()
 
-	c1 := store.Must(ss.Channel().Save(&model.Channel{
+	ch1 := &model.Channel{
 		TeamId:      teamId,
 		DisplayName: "Profiles in channel",
 		Name:        "profiles-" + model.NewId(),
 		Type:        model.CHANNEL_OPEN,
-	}, -1)).(*model.Channel)
+	}
+	c1, err := ss.Channel().Save(ch1, -1)
+	require.Nil(t, err)
 
-	c2 := store.Must(ss.Channel().Save(&model.Channel{
+	ch2 := &model.Channel{
 		TeamId:      teamId,
 		DisplayName: "Profiles in private",
 		Name:        "profiles-" + model.NewId(),
 		Type:        model.CHANNEL_PRIVATE,
-	}, -1)).(*model.Channel)
+	}
+	c2, err := ss.Channel().Save(ch2, -1)
+	require.Nil(t, err)
 
 	store.Must(ss.Channel().SaveMember(&model.ChannelMember{
 		ChannelId:   c1.Id,
@@ -766,19 +773,23 @@ func testUserStoreGetProfilesInChannelByStatus(t *testing.T, ss store.Store) {
 	u3.IsBot = true
 	defer func() { store.Must(ss.Bot().PermanentDelete(u3.Id)) }()
 
-	c1 := store.Must(ss.Channel().Save(&model.Channel{
+	ch1 := &model.Channel{
 		TeamId:      teamId,
 		DisplayName: "Profiles in channel",
 		Name:        "profiles-" + model.NewId(),
 		Type:        model.CHANNEL_OPEN,
-	}, -1)).(*model.Channel)
+	}
+	c1, err := ss.Channel().Save(ch1, -1)
+	require.Nil(t, err)
 
-	c2 := store.Must(ss.Channel().Save(&model.Channel{
+	ch2 := &model.Channel{
 		TeamId:      teamId,
 		DisplayName: "Profiles in private",
 		Name:        "profiles-" + model.NewId(),
 		Type:        model.CHANNEL_PRIVATE,
-	}, -1)).(*model.Channel)
+	}
+	c2, err := ss.Channel().Save(ch2, -1)
+	require.Nil(t, err)
 
 	store.Must(ss.Channel().SaveMember(&model.ChannelMember{
 		ChannelId:   c1.Id,
@@ -909,19 +920,23 @@ func testUserStoreGetAllProfilesInChannel(t *testing.T, ss store.Store) {
 	u3.IsBot = true
 	defer func() { store.Must(ss.Bot().PermanentDelete(u3.Id)) }()
 
-	c1 := store.Must(ss.Channel().Save(&model.Channel{
+	ch1 := &model.Channel{
 		TeamId:      teamId,
 		DisplayName: "Profiles in channel",
 		Name:        "profiles-" + model.NewId(),
 		Type:        model.CHANNEL_OPEN,
-	}, -1)).(*model.Channel)
+	}
+	c1, err := ss.Channel().Save(ch1, -1)
+	require.Nil(t, err)
 
-	c2 := store.Must(ss.Channel().Save(&model.Channel{
+	ch2 := &model.Channel{
 		TeamId:      teamId,
 		DisplayName: "Profiles in private",
 		Name:        "profiles-" + model.NewId(),
 		Type:        model.CHANNEL_PRIVATE,
-	}, -1)).(*model.Channel)
+	}
+	c2, err := ss.Channel().Save(ch2, -1)
+	require.Nil(t, err)
 
 	store.Must(ss.Channel().SaveMember(&model.ChannelMember{
 		ChannelId:   c1.Id,
@@ -1016,19 +1031,23 @@ func testUserStoreGetProfilesNotInChannel(t *testing.T, ss store.Store) {
 	u3.IsBot = true
 	defer func() { store.Must(ss.Bot().PermanentDelete(u3.Id)) }()
 
-	c1 := store.Must(ss.Channel().Save(&model.Channel{
+	ch1 := &model.Channel{
 		TeamId:      teamId,
 		DisplayName: "Profiles in channel",
 		Name:        "profiles-" + model.NewId(),
 		Type:        model.CHANNEL_OPEN,
-	}, -1)).(*model.Channel)
+	}
+	c1, err := ss.Channel().Save(ch1, -1)
+	require.Nil(t, err)
 
-	c2 := store.Must(ss.Channel().Save(&model.Channel{
+	ch2 := &model.Channel{
 		TeamId:      teamId,
 		DisplayName: "Profiles in private",
 		Name:        "profiles-" + model.NewId(),
 		Type:        model.CHANNEL_PRIVATE,
-	}, -1)).(*model.Channel)
+	}
+	c2, err := ss.Channel().Save(ch2, -1)
+	require.Nil(t, err)
 
 	t.Run("get team 1, channel 1, offset 0, limit 100", func(t *testing.T) {
 		result := <-ss.User().GetProfilesNotInChannel(teamId, c1.Id, false, 0, 100, nil)
@@ -1110,12 +1129,12 @@ func testUserStoreGetProfilesNotInChannel(t *testing.T, ss store.Store) {
 	}
 
 	// associate the group with the channel
-	res := <-ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+	_, err = ss.Group().CreateGroupSyncable(&model.GroupSyncable{
 		GroupId:    group.Id,
 		SyncableId: c2.Id,
 		Type:       model.GroupSyncableTypeChannel,
 	})
-	require.Nil(t, res.Err)
+	require.Nil(t, err)
 
 	t.Run("get team 1, channel 2, offset 0, limit 0, setting group constrained", func(t *testing.T) {
 		result := <-ss.User().GetProfilesNotInChannel(teamId, c2.Id, true, 0, 100, nil)
@@ -1667,7 +1686,7 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u2.Id)) }()
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1))
 
-	if err := (<-ss.Channel().Save(&c1, -1)).Err; err != nil {
+	if _, err := ss.Channel().Save(&c1, -1); err != nil {
 		t.Fatal("couldn't save item", err)
 	}
 
@@ -2330,21 +2349,23 @@ func testUserStoreSearchNotInChannel(t *testing.T, ss store.Store) {
 	u2.AuthData = nilAuthData
 	u3.AuthData = nilAuthData
 
-	c1 := model.Channel{
+	ch1 := model.Channel{
 		TeamId:      tid,
 		DisplayName: "NameName",
 		Name:        "zz" + model.NewId() + "b",
 		Type:        model.CHANNEL_OPEN,
 	}
-	c1 = *store.Must(ss.Channel().Save(&c1, -1)).(*model.Channel)
+	c1, err := ss.Channel().Save(&ch1, -1)
+	require.Nil(t, err)
 
-	c2 := model.Channel{
+	ch2 := model.Channel{
 		TeamId:      tid,
 		DisplayName: "NameName",
 		Name:        "zz" + model.NewId() + "b",
 		Type:        model.CHANNEL_OPEN,
 	}
-	c2 = *store.Must(ss.Channel().Save(&c2, -1)).(*model.Channel)
+	c2, err := ss.Channel().Save(&ch2, -1)
+	require.Nil(t, err)
 
 	store.Must(ss.Channel().SaveMember(&model.ChannelMember{
 		ChannelId:   c2.Id,
@@ -2544,21 +2565,23 @@ func testUserStoreSearchInChannel(t *testing.T, ss store.Store) {
 	u2.AuthData = nilAuthData
 	u3.AuthData = nilAuthData
 
-	c1 := model.Channel{
+	ch1 := model.Channel{
 		TeamId:      tid,
 		DisplayName: "NameName",
 		Name:        "zz" + model.NewId() + "b",
 		Type:        model.CHANNEL_OPEN,
 	}
-	c1 = *store.Must(ss.Channel().Save(&c1, -1)).(*model.Channel)
+	c1, err := ss.Channel().Save(&ch1, -1)
+	require.Nil(t, err)
 
-	c2 := model.Channel{
+	ch2 := model.Channel{
 		TeamId:      tid,
 		DisplayName: "NameName",
 		Name:        "zz" + model.NewId() + "b",
 		Type:        model.CHANNEL_OPEN,
 	}
-	c2 = *store.Must(ss.Channel().Save(&c2, -1)).(*model.Channel)
+	c2, err := ss.Channel().Save(&ch2, -1)
+	require.Nil(t, err)
 
 	store.Must(ss.Channel().SaveMember(&model.ChannelMember{
 		ChannelId:   c1.Id,
@@ -3283,12 +3306,12 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	}
 
 	// associate the group with the team
-	res := <-ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+	_, err = ss.Group().CreateGroupSyncable(&model.GroupSyncable{
 		GroupId:    group.Id,
 		SyncableId: teamId,
 		Type:       model.GroupSyncableTypeTeam,
 	})
-	require.Nil(t, res.Err)
+	require.Nil(t, err)
 
 	t.Run("get not in team 1, offset 0, limit 100000 after second update, setting group constrained", func(t *testing.T) {
 		result := <-ss.User().GetProfilesNotInTeam(teamId, true, 0, 100000, nil)
@@ -3409,18 +3432,28 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
 		Type:        model.TEAM_OPEN,
 	})
 	require.Nil(t, err)
-	cPub1 := store.Must(ss.Channel().Save(&model.Channel{
+
+	ch1 := &model.Channel{
 		Name: model.NewId(),
 		Type: model.CHANNEL_OPEN,
-	}, -1)).(*model.Channel)
-	cPub2 := store.Must(ss.Channel().Save(&model.Channel{
+	}
+	cPub1, err := ss.Channel().Save(ch1, -1)
+	require.Nil(t, err)
+
+	ch2 := &model.Channel{
 		Name: model.NewId(),
 		Type: model.CHANNEL_OPEN,
-	}, -1)).(*model.Channel)
-	cPriv := store.Must(ss.Channel().Save(&model.Channel{
+	}
+	cPub2, err := ss.Channel().Save(ch2, -1)
+	require.Nil(t, err)
+
+	ch3 := &model.Channel{
 		Name: model.NewId(),
 		Type: model.CHANNEL_PRIVATE,
-	}, -1)).(*model.Channel)
+	}
+
+	cPriv, err := ss.Channel().Save(ch3, -1)
+	require.Nil(t, err)
 
 	u1 := store.Must(ss.User().Save(&model.User{
 		Email:    MakeEmail(),
@@ -3586,12 +3619,12 @@ func testUserStoreGetTeamGroupUsers(t *testing.T, ss store.Store) {
 	require.Nil(t, res.Err)
 
 	// association one group to team
-	res = <-ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+	_, err = ss.Group().CreateGroupSyncable(&model.GroupSyncable{
 		GroupId:    groupA.Id,
 		SyncableId: team.Id,
 		Type:       model.GroupSyncableTypeTeam,
 	})
-	require.Nil(t, res.Err)
+	require.Nil(t, err)
 
 	var users []*model.User
 
@@ -3615,12 +3648,12 @@ func testUserStoreGetTeamGroupUsers(t *testing.T, ss store.Store) {
 	requireNUsers(1)
 
 	// associate other group to team
-	res = <-ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+	_, err = ss.Group().CreateGroupSyncable(&model.GroupSyncable{
 		GroupId:    groupB.Id,
 		SyncableId: team.Id,
 		Type:       model.GroupSyncableTypeTeam,
 	})
-	require.Nil(t, res.Err)
+	require.Nil(t, err)
 
 	// should return users from all groups
 	// 2 users now that both groups have been associated to the team
@@ -3647,20 +3680,19 @@ func testUserStoreGetTeamGroupUsers(t *testing.T, ss store.Store) {
 func testUserStoreGetChannelGroupUsers(t *testing.T, ss store.Store) {
 	// create channel
 	id := model.NewId()
-	res := <-ss.Channel().Save(&model.Channel{
+	channel, err := ss.Channel().Save(&model.Channel{
 		DisplayName: "dn_" + id,
 		Name:        "n-" + id,
 		Type:        model.CHANNEL_PRIVATE,
 	}, 999)
-	require.Nil(t, res.Err)
-	channel := res.Data.(*model.Channel)
+	require.Nil(t, err)
 	require.NotNil(t, channel)
 
 	// create users
 	var testUsers []*model.User
 	for i := 0; i < 3; i++ {
 		id = model.NewId()
-		res = <-ss.User().Save(&model.User{
+		res := <-ss.User().Save(&model.User{
 			Email:     id + "@test.com",
 			Username:  "un_" + id,
 			Nickname:  "nn_" + id,
@@ -3678,7 +3710,7 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, ss store.Store) {
 	userNoGroup := testUsers[2]
 
 	// add non-group-member to the channel (to prove that the query isn't just returning all members)
-	res = <-ss.Channel().SaveMember(&model.ChannelMember{
+	res := <-ss.Channel().SaveMember(&model.ChannelMember{
 		ChannelId:   channel.Id,
 		UserId:      userNoGroup.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -3710,12 +3742,12 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, ss store.Store) {
 	require.Nil(t, res.Err)
 
 	// association one group to channel
-	res = <-ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+	_, err = ss.Group().CreateGroupSyncable(&model.GroupSyncable{
 		GroupId:    groupA.Id,
 		SyncableId: channel.Id,
 		Type:       model.GroupSyncableTypeChannel,
 	})
-	require.Nil(t, res.Err)
+	require.Nil(t, err)
 
 	var users []*model.User
 
@@ -3732,19 +3764,19 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, ss store.Store) {
 
 	// update team to be group-constrained
 	channel.GroupConstrained = model.NewBool(true)
-	_, err := ss.Channel().Update(channel)
+	_, err = ss.Channel().Update(channel)
 	require.Nil(t, err)
 
 	// still returns user (being group-constrained has no effect)
 	requireNUsers(1)
 
 	// associate other group to team
-	res = <-ss.Group().CreateGroupSyncable(&model.GroupSyncable{
+	_, err = ss.Group().CreateGroupSyncable(&model.GroupSyncable{
 		GroupId:    groupB.Id,
 		SyncableId: channel.Id,
 		Type:       model.GroupSyncableTypeChannel,
 	})
-	require.Nil(t, res.Err)
+	require.Nil(t, err)
 
 	// should return users from all groups
 	// 2 users now that both groups have been associated to the team
