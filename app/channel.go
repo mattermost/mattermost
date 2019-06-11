@@ -50,7 +50,7 @@ func (a *App) DefaultChannelNames() []string {
 	if len(a.Config().TeamSettings.ExperimentalDefaultChannels) == 0 {
 		names = append(names, "off-topic")
 	} else {
-		seenChannels := map[string]bool{}
+		seenChannels := map[string]bool{"town-square": true}
 		for _, channelName := range a.Config().TeamSettings.ExperimentalDefaultChannels {
 			if !seenChannels[channelName] {
 				names = append(names, channelName)
