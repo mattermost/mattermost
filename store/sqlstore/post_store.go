@@ -514,10 +514,6 @@ func (s *SqlPostStore) GetPostsSince(channelId string, time int64, allowFromCach
 			}
 			list := model.NewPostList()
 			return list, nil
-		} else {
-			if s.metrics != nil {
-				s.metrics.IncrementMemCacheMissCounter("Last Post Time")
-			}
 		}
 	}
 
