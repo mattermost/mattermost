@@ -592,7 +592,12 @@ func (a *App) GetTeam(teamId string) (*model.Team, *model.AppError) {
 }
 
 func (a *App) GetTeamByName(name string) (*model.Team, *model.AppError) {
-	return a.Srv.Store.Team().GetByName(name)
+	team, err := a.Srv.Store.Team().GetByName(name)
+	if err != nil {
+		err.StatusCode = http.StatusNotFound
+		return nil, err
+	}
+	return team, nil
 }
 
 func (a *App) GetTeamByInviteId(inviteId string) (*model.Team, *model.AppError) {

@@ -162,11 +162,9 @@ func (a *App) ImportTeam(data *TeamImportData, dryRun bool) *model.AppError {
 	}
 
 	var team *model.Team
-	result, err := a.Srv.Store.Team().GetByName(*data.Name)
+	team, err := a.Srv.Store.Team().GetByName(*data.Name)
 
-	if err == nil {
-		team = result
-	} else {
+	if err != nil {
 		team = &model.Team{}
 	}
 
