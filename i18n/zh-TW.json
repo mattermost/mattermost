@@ -69,7 +69,7 @@
   },
   {
     "id": "api.admin.delete_brand_image.storage.not_found",
-    "translation": "Unable to delete brand image, not found."
+    "translation": "無法刪除品牌圖片，沒有找到檔案。"
   },
   {
     "id": "api.admin.file_read_error",
@@ -133,7 +133,7 @@
   },
   {
     "id": "api.bot.create_disabled",
-    "translation": "Bot creation has been disabled."
+    "translation": "建立機器人已被停用。"
   },
   {
     "id": "api.channel.add_member.added",
@@ -141,11 +141,11 @@
   },
   {
     "id": "api.channel.add_members.error",
-    "translation": "Error adding channel member(s)."
+    "translation": "增加頻道成員時發生錯誤。"
   },
   {
     "id": "api.channel.add_members.user_denied",
-    "translation": "Channel membership denied to the following users because of group constraints: {{ .UserIDs }}"
+    "translation": "由於群組限制，下列使用者無法加入頻道：{{ .UserIDs }}"
   },
   {
     "id": "api.channel.add_user.to.channel.failed.app_error",
@@ -301,7 +301,7 @@
   },
   {
     "id": "api.channel.remove_member.group_constrained.app_error",
-    "translation": "Unable to remove a user from a group-constrained channel."
+    "translation": "無法從群組限制頻道中移除使用者。"
   },
   {
     "id": "api.channel.remove_member.removed",
@@ -309,11 +309,11 @@
   },
   {
     "id": "api.channel.remove_members.denied",
-    "translation": "Channel membership removal denied to the following users because of group constraints: {{ .UserIDs }}"
+    "translation": "由於群組限制，下列使用者從頻道中移除：{{ .UserIDs }}"
   },
   {
     "id": "api.channel.remove_user_from_channel.app_error",
-    "translation": "無法加入使用者至此類型頻道"
+    "translation": "無法從此類型頻道移除使用者"
   },
   {
     "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
@@ -333,11 +333,11 @@
   },
   {
     "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
-    "translation": "Invalid channel member update: You can't add or remove the guest role manually"
+    "translation": "無效的頻道成員更動：訪客角色不能被手動增減"
   },
   {
     "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
-    "translation": "Invalid channel member update: A user must be a guest or a user but not both."
+    "translation": "無效的頻道成員更動：使用者角色必須在使用者與訪客間取一。"
   },
   {
     "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
@@ -353,7 +353,7 @@
   },
   {
     "id": "api.channel.update_team_member_roles.changing_guest_role.app_error",
-    "translation": "Invalid team member update: You can't add or remove the guest role manually"
+    "translation": "無效的團隊成員更動：訪客角色不能被手動增減"
   },
   {
     "id": "api.channel.update_team_member_roles.scheme_role.app_error",
@@ -716,7 +716,7 @@
   },
   {
     "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "User cannot be added to this channel because it is constrained to group members only."
+    "translation": "由於頻道被限定為僅限群組成員，無法將使用者加入此頻道。"
   },
   {
     "id": "api.command_invite.hint",
@@ -924,7 +924,7 @@
   },
   {
     "id": "api.command_remove.group_constrained_user_denied",
-    "translation": "User cannot be removed from the channel by you because they are a member of the groups linked to this channel. To remove them from this channel, they must be removed from the linked groups."
+    "translation": "由於使用者為此頻道連結的群組成員，無法將使用者移出。如要將他們從此頻道中移出，必須將使用者從連結群組中移除。"
   },
   {
     "id": "api.command_remove.hint",
@@ -1474,19 +1474,19 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
-    "translation": "@{{.Usernames}} and @{{.LastUsername}} did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups."
+    "translation": "由於 @{{.Usernames}} 與 @{{.LastUsername}} 不在此頻道，沒有被此提及提醒。由於他們不是連結群組的成員，無法將其加入此頻道。如要將使用者加入此頻道，必須將他們加入連結群組。"
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.one",
-    "translation": "@{{.Username}} did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups."
+    "translation": "由於 @{{.Usernames}} 不在此頻道，沒有被此提及提醒。由於他們不是連結群組的成員，無法將其加入此頻道。如要將他們加入此頻道，必須將他們加入連結群組。"
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "@{{.Usernames}} and @{{.LastUsername}} did not get notified by this mention because they are not in the channel."
+    "translation": "由於 @{{.Usernames}} 與 @{{.LastUsername}} 不在此頻道，沒有被此提及提醒。"
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "@{{.Username}} did not get notified by this mention because they are not in the channel."
+    "translation": "由於 @{{.Usernames}} 不在此頻道，沒有被此提及提醒。"
   },
   {
     "id": "api.post.create_post.can_not_post_to_deleted.error",
@@ -1636,11 +1636,11 @@
   },
   {
     "id": "api.push_notification.disabled.app_error",
-    "translation": "Push Notifications are disabled on this server."
+    "translation": "此伺服器停用推播通知。"
   },
   {
     "id": "api.push_notifications_ack.forward.app_error",
-    "translation": "An error occurred sending the receipt delivery to the push notification service"
+    "translation": "傳送訊息至推播服務時發生錯誤"
   },
   {
     "id": "api.reaction.delete.archived_channel.app_error",
@@ -1796,11 +1796,11 @@
   },
   {
     "id": "api.team.add_members.error",
-    "translation": "Error adding team member(s)."
+    "translation": "新增團隊成員時錯誤。"
   },
   {
     "id": "api.team.add_members.user_denied",
-    "translation": "Team membership denied to the following users because of group constraints: {{ .UserIDs }}"
+    "translation": "由於群組限制，下列使用者無法加入團隊：{{ .UserIDs }}"
   },
   {
     "id": "api.team.add_user_to_team.added",
@@ -1900,7 +1900,7 @@
   },
   {
     "id": "api.team.remove_member.group_constrained.app_error",
-    "translation": "Unable to remove a user from a group-constrained team."
+    "translation": "無法從群組限制團隊中移除使用者。"
   },
   {
     "id": "api.team.remove_team_icon.get_team.app_error",
@@ -1972,7 +1972,7 @@
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
-    "translation": "Invalid team member update: A user must be a guest or a user but not both."
+    "translation": "無效的團隊成員更動：使用者角色必須在使用者與訪客間取一。"
   },
   {
     "id": "api.team.update_team_scheme.license.error",
@@ -2292,7 +2292,7 @@
   },
   {
     "id": "api.user.create_password_token.error",
-    "translation": "Unable to create password recovery token"
+    "translation": "無法產生密碼回復 Token"
   },
   {
     "id": "api.user.create_profile_image.default_font.app_error",
@@ -2375,8 +2375,20 @@
     "translation": "登入失敗，您的帳號已被設定為停用。請向系統管理員聯繫。"
   },
   {
-    "id": "api.user.login.invalid_credentials",
-    "translation": "使用者 ID 或密碼錯誤。"
+    "id": "api.user.login.invalid_credentials_email",
+    "translation": "Enter a valid email and/or password"
+  },
+  {
+    "id": "api.user.login.invalid_credentials_email_username",
+    "translation": "Enter a valid email or username and/or password."
+  },
+  {
+    "id": "api.user.login.invalid_credentials_sso",
+    "translation": "Enter a valid email or username and/or password, or sign in using another method.\n"
+  },
+  {
+    "id": "api.user.login.invalid_credentials_username",
+    "translation": "Enter a valid username and/or password."
   },
   {
     "id": "api.user.login.not_verified.app_error",
@@ -2432,7 +2444,7 @@
   },
   {
     "id": "api.user.reset_password.token_parse.error",
-    "translation": "Unable to parse the reset password token"
+    "translation": "無法解析密碼重置 Token"
   },
   {
     "id": "api.user.saml.not_available.app_error",
@@ -2668,7 +2680,7 @@
   },
   {
     "id": "app.export.export_custom_emoji.copy_emoji_images.error",
-    "translation": "Unable to copy custom emoji images"
+    "translation": "無法複製自訂繪文字圖片"
   },
   {
     "id": "app.export.export_write_line.io_writer.error",
@@ -2824,7 +2836,7 @@
   },
   {
     "id": "app.import.import_user_teams.save_preferences.error",
-    "translation": "Unable to save the team theme preferences"
+    "translation": "無法儲存團隊佈景組題偏好"
   },
   {
     "id": "app.import.process_import_data_file_version_line.invalid_version.error",
@@ -3120,19 +3132,19 @@
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_email_interval.error",
-    "translation": "Invalid email batching interval setting for User"
+    "translation": "使用者的批次郵件間隔值無效。"
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_feature_markdown_preview.error",
-    "translation": "Invalid markdown preview setting for User"
+    "translation": "使用者的 Markdown 預覽設定無效。"
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_formatting.error",
-    "translation": "Invalid post formatting setting for User"
+    "translation": "使用者的文章格式設定無效。"
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_show_unread_section.error",
-    "translation": "Invalid show unread section setting for User"
+    "translation": "使用者的顯示未讀區段設定無效。"
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_and_password.error",
@@ -3220,7 +3232,7 @@
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_team_theme.error",
-    "translation": "Invalid team theme for the User"
+    "translation": "使用者的團隊佈景主題無效。"
   },
   {
     "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
@@ -3392,11 +3404,11 @@
   },
   {
     "id": "app.team.invite_id.group_constrained.error",
-    "translation": "Unable to join a group-constrained team by invite."
+    "translation": "無法由邀請加入群組限制團隊。"
   },
   {
     "id": "app.team.invite_token.group_constrained.error",
-    "translation": "Unable to join a group-constrained team by token."
+    "translation": "無法以 Token 加入群組限制團隊。"
   },
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
@@ -3404,7 +3416,7 @@
   },
   {
     "id": "app.team.rename_team.name_occupied",
-    "translation": "Unable to rename the team, the name is already in use"
+    "translation": "無法為團隊更名，該名稱已被使用。"
   },
   {
     "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
@@ -3548,15 +3560,15 @@
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "Failed to create Elasticsearch template for channels"
+    "translation": "為頻道建立 Elasticsearch 樣板失敗"
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "Failed to create Elasticsearch template for posts"
+    "translation": "為訊息建立 Elasticsearch 樣板失敗"
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "Failed to create Elasticsearch template for users"
+    "translation": "為使用者建立 Elasticsearch 樣板失敗"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
@@ -3568,7 +3580,7 @@
   },
   {
     "id": "ent.elasticsearch.delete_channel.error",
-    "translation": "更新頻道時失敗"
+    "translation": "刪除頻道時失敗"
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
@@ -3576,7 +3588,7 @@
   },
   {
     "id": "ent.elasticsearch.delete_user.error",
-    "translation": "刪除訊息時失敗"
+    "translation": "刪除使用者時失敗"
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
@@ -3584,7 +3596,7 @@
   },
   {
     "id": "ent.elasticsearch.index_channel.error",
-    "translation": "更新頻道時失敗"
+    "translation": "索引頻道時失敗"
   },
   {
     "id": "ent.elasticsearch.index_post.error",
@@ -3592,7 +3604,7 @@
   },
   {
     "id": "ent.elasticsearch.index_user.error",
-    "translation": "索引訊息時失敗"
+    "translation": "索引使用者時失敗"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
@@ -3732,7 +3744,7 @@
   },
   {
     "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "error deleting team or channel memberships"
+    "translation": "刪除團隊或頻道成員資格時錯誤"
   },
   {
     "id": "ent.ldap.syncronize.get_all.app_error",
@@ -3752,7 +3764,7 @@
   },
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
-    "translation": "Size Limit Exceeded. Try checking your [max page size](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
+    "translation": "超過大小限制。請檢查[最大分頁大小](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)。"
   },
   {
     "id": "ent.ldap.validate_filter.app_error",
@@ -4328,7 +4340,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "當啟用 ElasticSearch 搜尋時必須設定 ElasticSearch IndexingEnabled 為啟用。"
+    "translation": "當啟用 ElasticSearch AutocompleteEnabled 時必須設定 ElasticSearch IndexingEnabled 為啟用。"
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
@@ -5120,7 +5132,7 @@
   },
   {
     "id": "model.user.is_valid.locale.app_error",
-    "translation": "無效的角色"
+    "translation": "無效的地區"
   },
   {
     "id": "model.user.is_valid.nickname.app_error",
@@ -5204,7 +5216,7 @@
   },
   {
     "id": "model.user.is_valid.username.app_error",
-    "translation": "使用者名稱必須要以小寫英字母開頭，最少 3 個最多 22 個字，只能使用小寫英字母、數字、'.'、'-'跟'_'。"
+    "translation": "使用者名稱必須要以小寫英字母開頭，最少 3 個最多 22 個字，只能使用小寫英字母、數字、\".\"、\"-\"跟\"_\"。"
   },
   {
     "id": "model.user_access_token.is_valid.description.app_error",
@@ -5236,7 +5248,7 @@
   },
   {
     "id": "plugin.api.get_users_in_channel",
-    "translation": "Unable to get the users, invalid sorting criteria"
+    "translation": "無法取得使用者，無效的排序條件。"
   },
   {
     "id": "plugin.api.update_user_status.bad_status",
@@ -5244,7 +5256,7 @@
   },
   {
     "id": "plugin_api.bot_cant_create_bot",
-    "translation": "Bot user cannot create bot user."
+    "translation": "機器人帳號不能建立機器人帳號。"
   },
   {
     "id": "plugin_api.get_file_link.disabled.app_error",
@@ -5384,7 +5396,7 @@
   },
   {
     "id": "store.sql_channel.get_all_direct.app_error",
-    "translation": "無法取得頻道"
+    "translation": "無法取得直接頻道"
   },
   {
     "id": "store.sql_channel.get_by_name.existing.app_error",
@@ -5416,7 +5428,7 @@
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.app_error",
-    "translation": "無法取得頻道"
+    "translation": "無法根據 ID 取得頻道"
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.get.app_error",
@@ -5696,7 +5708,7 @@
   },
   {
     "id": "store.sql_channel.user_belongs_to_channels.app_error",
-    "translation": "Unable to determine if the user belongs to a list of channels"
+    "translation": "無法判定使用者是否屬於頻道"
   },
   {
     "id": "store.sql_channel_member_history.get_users_in_channel_during.app_error",
@@ -5936,11 +5948,11 @@
   },
   {
     "id": "store.sql_link_metadata.get.app_error",
-    "translation": "Unable to get the link metadata"
+    "translation": "無法取得連結中繼資料"
   },
   {
     "id": "store.sql_link_metadata.save.app_error",
-    "translation": "Unable to save the link metadata"
+    "translation": "無法儲存連結中繼資料"
   },
   {
     "id": "store.sql_oauth.delete.commit_transaction.app_error",
@@ -6048,7 +6060,7 @@
   },
   {
     "id": "store.sql_plugin_store.list.app_error",
-    "translation": "Unable to list all the plugin keys"
+    "translation": "無法表列模組鍵值"
   },
   {
     "id": "store.sql_plugin_store.save.app_error",
@@ -6080,7 +6092,7 @@
   },
   {
     "id": "store.sql_post.get_direct_posts.app_error",
-    "translation": "無法取得訊息"
+    "translation": "無法取得直接訊息"
   },
   {
     "id": "store.sql_post.get_flagged_posts.app_error",
@@ -6296,7 +6308,7 @@
   },
   {
     "id": "store.sql_role.get_all.app_error",
-    "translation": "無法取得頻道"
+    "translation": "無法取得角色"
   },
   {
     "id": "store.sql_role.get_by_name.app_error",
@@ -6568,7 +6580,7 @@
   },
   {
     "id": "store.sql_team.get_user_team_ids.app_error",
-    "translation": "Unable to get the list of teams of a user"
+    "translation": "無法取得使用者的團隊列表"
   },
   {
     "id": "store.sql_team.migrate_team_members.commit_transaction.app_error",
@@ -6656,7 +6668,7 @@
   },
   {
     "id": "store.sql_team.user_belongs_to_teams.app_error",
-    "translation": "Unable to determine if the user belongs to a list of teams"
+    "translation": "無法判定使用者是否屬於團隊"
   },
   {
     "id": "store.sql_terms_of_service.save.app_error",
@@ -6708,7 +6720,7 @@
   },
   {
     "id": "store.sql_user.count.app_error",
-    "translation": "UserCountOptions don't make sense"
+    "translation": "UserCountOptions 無效"
   },
   {
     "id": "store.sql_user.get.app_error",
