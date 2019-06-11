@@ -160,11 +160,7 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			return rows, nil
 		}
 
-		r := <-a.Srv.Store.Post().AnalyticsPostCountsByDay(teamId)
-		if r.Err != nil {
-			return nil, r.Err
-		}
-		return r.Data.(model.AnalyticsRows), nil
+		return a.Srv.Store.Post().AnalyticsPostCountsByDay(teamId)
 	} else if name == "user_counts_with_posts_day" {
 		if skipIntensiveQueries {
 			rows := model.AnalyticsRows{&model.AnalyticsRow{Name: "", Value: -1}}
