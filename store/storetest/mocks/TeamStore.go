@@ -108,19 +108,28 @@ func (_m *TeamStore) GetActiveMemberCount(teamId string) store.StoreChannel {
 }
 
 // GetAll provides a mock function with given fields:
-func (_m *TeamStore) GetAll() store.StoreChannel {
+func (_m *TeamStore) GetAll() ([]*model.Team, *model.AppError) {
 	ret := _m.Called()
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func() store.StoreChannel); ok {
+	var r0 []*model.Team
+	if rf, ok := ret.Get(0).(func() []*model.Team); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]*model.Team)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
+		r1 = rf()
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetAllForExportAfter provides a mock function with given fields: limit, afterId

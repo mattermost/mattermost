@@ -609,11 +609,11 @@ func (a *App) GetTeamByInviteId(inviteId string) (*model.Team, *model.AppError) 
 }
 
 func (a *App) GetAllTeams() ([]*model.Team, *model.AppError) {
-	result := <-a.Srv.Store.Team().GetAll()
-	if result.Err != nil {
-		return nil, result.Err
+	data, err := a.Srv.Store.Team().GetAll()
+	if err != nil {
+		return nil, err
 	}
-	return result.Data.([]*model.Team), nil
+	return data, nil
 }
 
 func (a *App) GetAllTeamsPage(offset int, limit int) ([]*model.Team, *model.AppError) {

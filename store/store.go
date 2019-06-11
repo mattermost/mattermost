@@ -90,7 +90,7 @@ type TeamStore interface {
 	SearchAll(term string) StoreChannel
 	SearchOpen(term string) StoreChannel
 	SearchPrivate(term string) StoreChannel
-	GetAll() StoreChannel
+	GetAll() ([]*model.Team, *model.AppError)
 	GetAllPage(offset int, limit int) StoreChannel
 	GetAllPrivateTeamListing() StoreChannel
 	GetAllPrivateTeamPageListing(offset int, limit int) StoreChannel
