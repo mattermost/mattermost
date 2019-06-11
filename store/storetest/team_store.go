@@ -112,7 +112,7 @@ func testTeamStoreUpdateDisplayName(t *testing.T, ss store.Store) {
 
 	newDisplayName := "NewDisplayName"
 
-	if err = (<-ss.Team().UpdateDisplayName(newDisplayName, o1.Id)).Err; err != nil {
+	if err = ss.Team().UpdateDisplayName(newDisplayName, o1.Id); err != nil {
 		t.Fatal(err)
 	}
 
