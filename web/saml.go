@@ -132,6 +132,8 @@ func completeSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		c.App.AttachSessionCookies(w, r, session)
+
 		c.App.Session = *session
 
 		if val, ok := relayProps["redirect_to"]; ok {
