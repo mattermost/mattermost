@@ -1226,15 +1226,15 @@ func testUserCountsWithPostsByDay(t *testing.T, ss store.Store) {
 	o2a.Message = "zz" + model.NewId() + "b"
 	_ = store.Must(ss.Post().Save(o2a)).(*model.Post)
 
-	if r1 := <-ss.Post().AnalyticsUserCountsWithPostsByDay(t1.Id); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if r1, err := ss.Post().AnalyticsUserCountsWithPostsByDay(t1.Id); err != nil {
+		t.Fatal(err)
 	} else {
-		row1 := r1.Data.(model.AnalyticsRows)[0]
+		row1 := r1[0]
 		if row1.Value != 2 {
 			t.Fatal("wrong value")
 		}
 
-		row2 := r1.Data.(model.AnalyticsRows)[1]
+		row2 := r1[1]
 		if row2.Value != 1 {
 			t.Fatal("wrong value")
 		}
@@ -1288,15 +1288,15 @@ func testPostCountsByDay(t *testing.T, ss store.Store) {
 
 	time.Sleep(1 * time.Second)
 
-	if r1 := <-ss.Post().AnalyticsPostCountsByDay(t1.Id); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if r1, err := ss.Post().AnalyticsPostCountsByDay(t1.Id); err != nil {
+		t.Fatal(err)
 	} else {
-		row1 := r1.Data.(model.AnalyticsRows)[0]
+		row1 := r1[0]
 		if row1.Value != 2 {
 			t.Fatal(row1)
 		}
 
-		row2 := r1.Data.(model.AnalyticsRows)[1]
+		row2 := r1[1]
 		if row2.Value != 2 {
 			t.Fatal("wrong value")
 		}
