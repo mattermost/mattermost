@@ -444,6 +444,15 @@ test-data: start-docker ## Add test data to the local instance.
 	@echo Login with a regular account username=user-1 password=user-1
 	@echo ========================================================================
 
+cypress-test-data: start-docker ## Add test data to the local instance.
+	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) config set TeamSettings.MaxUsersPerTeam 100
+	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) sampledata -w 4 -u 60 
+	@echo You may need to restart the Mattermost server before using the following
+	@echo ========================================================================
+	@echo Login with a system admin account username=sysadmin password=sysadmin
+	@echo Login with a regular account username=user-1 password=user-1
+	@echo ========================================================================
+
 run-server: start-docker ## Starts the server.
 	@echo Running mattermost for development
 
