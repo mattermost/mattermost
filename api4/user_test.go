@@ -5,6 +5,7 @@ package api4
 
 import (
 	"net/http"
+	"regexp"
 	"strconv"
 	"testing"
 	"time"
@@ -29,7 +30,7 @@ func TestCreateUser(t *testing.T) {
 	CheckNoError(t, resp)
 	CheckCreatedStatus(t, resp)
 
-	th.Client.Login(user.Email, user.Password)
+	_, _ = th.Client.Login(user.Email, user.Password)
 
 	if ruser.Nickname != user.Nickname {
 		t.Fatal("nickname didn't match")
@@ -2422,6 +2423,40 @@ func TestSetDefaultProfileImage(t *testing.T) {
 	if err := th.cleanupTestFile(info); err != nil {
 		t.Fatal(err)
 	}
+}
+
+func TestLoginCookies(t *testing.T) {
+	t.Run("should return cookies with X-Requested-With header", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
+
+		th.Client.HttpHeader[model.HEADER_REQUESTED_WITH] = model.HEADER_REQUESTED_WITH_XML
+
+		user, resp := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+		sessionCookie := ""
+		userCookie := ""
+
+		for _, cookie := range resp.Header["Set-Cookie"] {
+			if match := regexp.MustCompile("^" + model.SESSION_COOKIE_TOKEN + "=([a-z0-9]+)").FindStringSubmatch(cookie); match != nil {
+				sessionCookie = match[1]
+			} else if match := regexp.MustCompile("^" + model.SESSION_COOKIE_USER + "=([a-z0-9]+)").FindStringSubmatch(cookie); match != nil {
+				userCookie = match[1]
+			}
+		}
+
+		assert.Equal(t, th.Client.AuthToken, sessionCookie)
+		assert.Equal(t, user.Id, userCookie)
+	})
+
+	t.Run("should not return cookies without X-Requested-With header", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
+
+		_, resp := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+		assert.Empty(t, resp.Header.Get("Set-Cookie"))
+	})
 }
 
 func TestCBALogin(t *testing.T) {
