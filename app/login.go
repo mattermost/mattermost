@@ -125,7 +125,6 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 
 	session := &model.Session{UserId: user.Id, Roles: user.GetRawRoles(), DeviceId: deviceId, IsOAuth: false}
 	session.GenerateCSRF()
-	maxAge := *a.Config().ServiceSettings.SessionLengthWebInDays * 60 * 60 * 24
 
 	if len(deviceId) > 0 {
 		session.SetExpireInDays(*a.Config().ServiceSettings.SessionLengthMobileInDays)
@@ -158,11 +157,26 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 
 	w.Header().Set(model.HEADER_TOKEN, session.Token)
 
+	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
+		a.Srv.Go(func() {
+			pluginContext := a.PluginContext()
+			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+				hooks.UserHasLoggedIn(pluginContext, user)
+				return true
+			}, plugin.UserHasLoggedInId)
+		})
+	}
+
+	return session, nil
+}
+
+func (a *App) AttachSessionCookies(w http.ResponseWriter, r *http.Request, session *model.Session) {
 	secure := false
 	if GetProtocol(r) == "https" {
 		secure = true
 	}
 
+	maxAge := *a.Config().ServiceSettings.SessionLengthWebInDays * 60 * 60 * 24
 	domain := a.GetCookieDomain()
 	expiresAt := time.Unix(model.GetMillis()/1000+int64(maxAge), 0)
 	sessionCookie := &http.Cookie{
@@ -178,7 +192,7 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 
 	userCookie := &http.Cookie{
 		Name:    model.SESSION_COOKIE_USER,
-		Value:   user.Id,
+		Value:   session.UserId,
 		Path:    "/",
 		MaxAge:  maxAge,
 		Expires: expiresAt,
@@ -199,18 +213,6 @@ func (a *App) DoLogin(w http.ResponseWriter, r *http.Request, user *model.User, 
 	http.SetCookie(w, sessionCookie)
 	http.SetCookie(w, userCookie)
 	http.SetCookie(w, csrfCookie)
-
-	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-		a.Srv.Go(func() {
-			pluginContext := a.PluginContext()
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				hooks.UserHasLoggedIn(pluginContext, user)
-				return true
-			}, plugin.UserHasLoggedInId)
-		})
-	}
-
-	return session, nil
 }
 
 func GetProtocol(r *http.Request) string {
