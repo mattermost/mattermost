@@ -94,12 +94,14 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 	props["LdapNicknameAttributeSet"] = "false"
 	props["LdapFirstNameAttributeSet"] = "false"
 	props["LdapLastNameAttributeSet"] = "false"
+	props["LdapPositionAttributeSet"] = "false"
 	props["EnableCompliance"] = "false"
 	props["EnableMobileFileDownload"] = "true"
 	props["EnableMobileFileUpload"] = "true"
 	props["SamlFirstNameAttributeSet"] = "false"
 	props["SamlLastNameAttributeSet"] = "false"
 	props["SamlNicknameAttributeSet"] = "false"
+	props["SamlPositionAttributeSet"] = "false"
 	props["EnableCluster"] = "false"
 	props["EnableMetrics"] = "false"
 	props["PasswordMinimumLength"] = "0"
@@ -136,6 +138,7 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 			props["LdapNicknameAttributeSet"] = strconv.FormatBool(*c.LdapSettings.NicknameAttribute != "")
 			props["LdapFirstNameAttributeSet"] = strconv.FormatBool(*c.LdapSettings.FirstNameAttribute != "")
 			props["LdapLastNameAttributeSet"] = strconv.FormatBool(*c.LdapSettings.LastNameAttribute != "")
+			props["LdapPositionAttributeSet"] = strconv.FormatBool(*c.LdapSettings.PositionAttribute != "")
 		}
 
 		if *license.Features.Compliance {
@@ -148,6 +151,7 @@ func GenerateClientConfig(c *model.Config, diagnosticId string, license *model.L
 			props["SamlFirstNameAttributeSet"] = strconv.FormatBool(*c.SamlSettings.FirstNameAttribute != "")
 			props["SamlLastNameAttributeSet"] = strconv.FormatBool(*c.SamlSettings.LastNameAttribute != "")
 			props["SamlNicknameAttributeSet"] = strconv.FormatBool(*c.SamlSettings.NicknameAttribute != "")
+			props["SamlPositionAttributeSet"] = strconv.FormatBool(*c.SamlSettings.PositionAttribute != "")
 
 			// do this under the correct licensed feature
 			props["ExperimentalClientSideCertEnable"] = strconv.FormatBool(*c.ExperimentalSettings.ClientSideCertEnable)

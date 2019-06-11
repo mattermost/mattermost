@@ -379,6 +379,7 @@ func (a *App) getLinkMetadata(requestURL string, timestamp int64, isNewPost bool
 		// Parse the data
 		og, image, err = a.parseLinkMetadata(requestURL, body, contentType)
 	}
+	og = model.TruncateOpenGraph(og) // remove unwanted length of texts
 
 	// Write back to cache and database, even if there was an error and the results are nil
 	cacheLinkMetadata(requestURL, timestamp, og, image)

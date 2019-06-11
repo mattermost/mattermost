@@ -50,7 +50,7 @@ func (a *App) DefaultChannelNames() []string {
 	if len(a.Config().TeamSettings.ExperimentalDefaultChannels) == 0 {
 		names = append(names, "off-topic")
 	} else {
-		seenChannels := map[string]bool{}
+		seenChannels := map[string]bool{"town-square": true}
 		for _, channelName := range a.Config().TeamSettings.ExperimentalDefaultChannels {
 			if !seenChannels[channelName] {
 				names = append(names, channelName)
@@ -1208,12 +1208,13 @@ func (a *App) GetChannelsByNames(channelNames []string, teamId string) ([]*model
 func (a *App) GetChannelByNameForTeamName(channelName, teamName string, includeDeleted bool) (*model.Channel, *model.AppError) {
 	var team *model.Team
 
-	result := <-a.Srv.Store.Team().GetByName(teamName)
-	if result.Err != nil {
-		result.Err.StatusCode = http.StatusNotFound
-		return nil, result.Err
+	team, err := a.Srv.Store.Team().GetByName(teamName)
+	if err != nil {
+		err.StatusCode = http.StatusNotFound
+		return nil, err
 	}
-	team = result.Data.(*model.Team)
+
+	var result store.StoreResult
 
 	if includeDeleted {
 		result = <-a.Srv.Store.Channel().GetByNameIncludeDeleted(team.Id, channelName, false)
