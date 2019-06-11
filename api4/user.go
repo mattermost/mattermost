@@ -1341,6 +1341,10 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAuditWithUserId(user.Id, "success")
 
+	if r.Header.Get(model.HEADER_REQUESTED_WITH) == model.HEADER_REQUESTED_WITH_XML {
+		c.App.AttachSessionCookies(w, r, session)
+	}
+
 	userTermsOfService, err := c.App.GetUserTermsOfService(user.Id)
 	if err != nil && err.StatusCode != http.StatusNotFound {
 		c.Err = err
