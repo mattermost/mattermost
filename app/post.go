@@ -236,7 +236,11 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
 			replacementPost, rejectionReason := hooks.MessageWillBePosted(pluginContext, post)
 			if rejectionReason != "" {
-				rejectionError = model.NewAppError("createPost", "Post rejected by plugin. "+rejectionReason, nil, "", http.StatusBadRequest)
+				id := "Post rejected by plugin. " + rejectionReason
+				if rejectionReason == plugin.DismissPostError {
+					id = plugin.DismissPostError
+				}
+				rejectionError = model.NewAppError("createPost", id, nil, "", http.StatusBadRequest)
 				return false
 			}
 			if replacementPost != nil {
@@ -245,6 +249,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 
 			return true
 		}, plugin.MessageWillBePostedId)
+
 		if rejectionError != nil {
 			return nil, rejectionError
 		}
@@ -607,7 +612,7 @@ func (a *App) GetPosts(channelId string, offset int, limit int) (*model.PostList
 }
 
 func (a *App) GetPostsEtag(channelId string) string {
-	return (<-a.Srv.Store.Post().GetEtag(channelId, true)).Data.(string)
+	return a.Srv.Store.Post().GetEtag(channelId, true)
 }
 
 func (a *App) GetPostsSince(channelId string, time int64) (*model.PostList, *model.AppError) {
@@ -635,11 +640,7 @@ func (a *App) GetFlaggedPostsForTeam(userId, teamId string, offset int, limit in
 }
 
 func (a *App) GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) (*model.PostList, *model.AppError) {
-	result := <-a.Srv.Store.Post().GetFlaggedPostsForChannel(userId, channelId, offset, limit)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.PostList), nil
+	return a.Srv.Store.Post().GetFlaggedPostsForChannel(userId, channelId, offset, limit)
 }
 
 func (a *App) GetPermalinkPost(postId string, userId string) (*model.PostList, *model.AppError) {
@@ -666,34 +667,18 @@ func (a *App) GetPermalinkPost(postId string, userId string) (*model.PostList, *
 }
 
 func (a *App) GetPostsBeforePost(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError) {
-	result := <-a.Srv.Store.Post().GetPostsBefore(channelId, postId, perPage, page*perPage)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.PostList), nil
+	return a.Srv.Store.Post().GetPostsBefore(channelId, postId, perPage, page*perPage)
 }
 
 func (a *App) GetPostsAfterPost(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError) {
-	result := <-a.Srv.Store.Post().GetPostsAfter(channelId, postId, perPage, page*perPage)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.PostList), nil
+	return a.Srv.Store.Post().GetPostsAfter(channelId, postId, perPage, page*perPage)
 }
 
 func (a *App) GetPostsAroundPost(postId, channelId string, offset, limit int, before bool) (*model.PostList, *model.AppError) {
-	var pchan store.StoreChannel
 	if before {
-		pchan = a.Srv.Store.Post().GetPostsBefore(channelId, postId, limit, offset)
-	} else {
-		pchan = a.Srv.Store.Post().GetPostsAfter(channelId, postId, limit, offset)
+		return a.Srv.Store.Post().GetPostsBefore(channelId, postId, limit, offset)
 	}
-
-	result := <-pchan
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.PostList), nil
+	return a.Srv.Store.Post().GetPostsAfter(channelId, postId, limit, offset)
 }
 
 func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppError) {
@@ -887,11 +872,11 @@ func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamId strin
 		// Get the posts
 		postList := model.NewPostList()
 		if len(postIds) > 0 {
-			presult := <-a.Srv.Store.Post().GetPostsByIds(postIds)
-			if presult.Err != nil {
-				return nil, presult.Err
+			posts, err := a.Srv.Store.Post().GetPostsByIds(postIds)
+			if err != nil {
+				return nil, err
 			}
-			for _, p := range presult.Data.([]*model.Post) {
+			for _, p := range posts {
 				if p.DeleteAt == 0 {
 					postList.AddPost(p)
 					postList.AddOrder(p.Id)

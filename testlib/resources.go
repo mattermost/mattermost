@@ -141,16 +141,10 @@ func setupConfig(configDir string) error {
 		return errors.Wrapf(err, "failed to create config directory %s", configDir)
 	}
 
-	defaultJson := path.Join(configDir, "default.json")
-	err = ioutil.WriteFile(defaultJson, []byte(config.ToJson()), 0644)
-	if err != nil {
-		return errors.Wrapf(err, "failed to write config to %s", defaultJson)
-	}
-
 	configJson := path.Join(configDir, "config.json")
-	err = utils.CopyFile(defaultJson, configJson)
+	err = ioutil.WriteFile(configJson, []byte(config.ToJson()), 0644)
 	if err != nil {
-		return errors.Wrapf(err, "failed to copy file %s to %s", defaultJson, configJson)
+		return errors.Wrapf(err, "failed to write config to %s", configJson)
 	}
 
 	return nil

@@ -260,10 +260,9 @@ func AssertFileIdsInPost(files []*model.FileInfo, th *TestHelper, t *testing.T) 
 	postId := files[0].PostId
 	assert.NotNil(t, postId)
 
-	if result := <-th.App.Srv.Store.Post().GetPostsByIds([]string{postId}); result.Err != nil {
-		t.Fatal(result.Err.Error())
+	if posts, err := th.App.Srv.Store.Post().GetPostsByIds([]string{postId}); err != nil {
+		t.Fatal(err.Error())
 	} else {
-		posts := result.Data.([]*model.Post)
 		assert.Equal(t, len(posts), 1)
 		for _, file := range files {
 			assert.Contains(t, posts[0].FileIds, file.Id)
