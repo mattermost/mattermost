@@ -13,6 +13,31 @@ type GroupStore struct {
 	mock.Mock
 }
 
+// ChannelMembersMinusGroupMembers provides a mock function with given fields: channelID, groupIDs, page, perPage
+func (_m *GroupStore) ChannelMembersMinusGroupMembers(channelID string, groupIDs []string, page int, perPage int) ([]*model.UserWithGroups, *model.AppError) {
+	ret := _m.Called(channelID, groupIDs, page, perPage)
+
+	var r0 []*model.UserWithGroups
+	if rf, ok := ret.Get(0).(func(string, []string, int, int) []*model.UserWithGroups); ok {
+		r0 = rf(channelID, groupIDs, page, perPage)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.UserWithGroups)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, []string, int, int) *model.AppError); ok {
+		r1 = rf(channelID, groupIDs, page, perPage)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // ChannelMembersToAdd provides a mock function with given fields: since
 func (_m *GroupStore) ChannelMembersToAdd(since int64) ([]*model.UserChannelIDPair, *model.AppError) {
 	ret := _m.Called(since)
@@ -54,6 +79,29 @@ func (_m *GroupStore) ChannelMembersToRemove() ([]*model.ChannelMember, *model.A
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
 		r1 = rf()
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// CountChannelMembersMinusGroupMembers provides a mock function with given fields: channelID, groupIDs
+func (_m *GroupStore) CountChannelMembersMinusGroupMembers(channelID string, groupIDs []string) (int64, *model.AppError) {
+	ret := _m.Called(channelID, groupIDs)
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(string, []string) int64); ok {
+		r0 = rf(channelID, groupIDs)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, []string) *model.AppError); ok {
+		r1 = rf(channelID, groupIDs)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

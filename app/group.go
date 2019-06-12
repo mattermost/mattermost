@@ -221,3 +221,58 @@ func (a *App) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, pag
 func (a *App) GetGroupsByIDs(groupIDs []string) ([]*model.Group, *model.AppError) {
 	return a.Srv.Store.Group().GetByIDs(groupIDs)
 }
+
+// ChannelMembersMinusGroupMembers returns the set of users in the given channel minus the set of users in the given
+// groups.
+//
+// The result can be used, for example, to determine the set of users who would be removed from a channel if the
+// channel were group-constrained with the given groups.
+func (a *App) ChannelMembersMinusGroupMembers(channelID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, int64, *model.AppError) {
+	users, err := a.Srv.Store.Group().ChannelMembersMinusGroupMembers(channelID, groupIDs, page, perPage)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// parse all group ids of all users
+	allUsersGroupIDMap := map[string]bool{}
+	for _, user := range users {
+		for _, groupID := range strings.Split(user.GroupIDs, ",") {
+			allUsersGroupIDMap[groupID] = true
+		}
+	}
+
+	// create a slice of distinct group ids
+	var allUsersGroupIDSlice []string
+	for key := range allUsersGroupIDMap {
+		allUsersGroupIDSlice = append(allUsersGroupIDSlice, key)
+	}
+
+	// retrieve groups from DB
+	groups, err := a.GetGroupsByIDs(allUsersGroupIDSlice)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// map groups by id
+	groupMap := map[string]*model.Group{}
+	for _, group := range groups {
+		groupMap[group.Id] = group
+	}
+
+	// populate each instance's groups field
+	for _, user := range users {
+		user.Groups = []*model.Group{}
+		for _, groupID := range strings.Split(user.GroupIDs, ",") {
+			group, ok := groupMap[groupID]
+			if ok {
+				user.Groups = append(user.Groups, group)
+			}
+		}
+	}
+
+	totalCount, err := a.Srv.Store.Group().CountChannelMembersMinusGroupMembers(channelID, groupIDs)
+	if err != nil {
+		return nil, 0, err
+	}
+	return users, totalCount, nil
+}
