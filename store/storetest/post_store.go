@@ -1226,15 +1226,15 @@ func testUserCountsWithPostsByDay(t *testing.T, ss store.Store) {
 	o2a.Message = "zz" + model.NewId() + "b"
 	_ = store.Must(ss.Post().Save(o2a)).(*model.Post)
 
-	if r1 := <-ss.Post().AnalyticsUserCountsWithPostsByDay(t1.Id); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if r1, err := ss.Post().AnalyticsUserCountsWithPostsByDay(t1.Id); err != nil {
+		t.Fatal(err)
 	} else {
-		row1 := r1.Data.(model.AnalyticsRows)[0]
+		row1 := r1[0]
 		if row1.Value != 2 {
 			t.Fatal("wrong value")
 		}
 
-		row2 := r1.Data.(model.AnalyticsRows)[1]
+		row2 := r1[1]
 		if row2.Value != 1 {
 			t.Fatal("wrong value")
 		}
@@ -1288,15 +1288,15 @@ func testPostCountsByDay(t *testing.T, ss store.Store) {
 
 	time.Sleep(1 * time.Second)
 
-	if r1 := <-ss.Post().AnalyticsPostCountsByDay(t1.Id); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if r1, err := ss.Post().AnalyticsPostCountsByDay(t1.Id); err != nil {
+		t.Fatal(err)
 	} else {
-		row1 := r1.Data.(model.AnalyticsRows)[0]
+		row1 := r1[0]
 		if row1.Value != 2 {
 			t.Fatal(row1)
 		}
 
-		row2 := r1.Data.(model.AnalyticsRows)[1]
+		row2 := r1[1]
 		if row2.Value != 2 {
 			t.Fatal("wrong value")
 		}
@@ -1979,7 +1979,9 @@ func testPostStoreGetPostsBatchForIndexing(t *testing.T, ss store.Store) {
 	o3.Message = "zz" + model.NewId() + "QQQQQQQQQQ"
 	o3 = (<-ss.Post().Save(o3)).Data.(*model.Post)
 
-	if r := store.Must(ss.Post().GetPostsBatchForIndexing(o1.CreateAt, model.GetMillis()+100000, 100)).([]*model.PostForIndexing); len(r) != 3 {
+	if r, err := ss.Post().GetPostsBatchForIndexing(o1.CreateAt, model.GetMillis()+100000, 100); err != nil {
+		t.Fatal(err)
+	} else if len(r) != 3 {
 		t.Fatalf("Expected 3 posts in results. Got %v", len(r))
 	} else {
 		for _, p := range r {
@@ -2033,7 +2035,8 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 	o3.CreateAt = 100000
 	o3 = (<-ss.Post().Save(o3)).Data.(*model.Post)
 
-	store.Must(ss.Post().PermanentDeleteBatch(2000, 1000))
+	_, err := ss.Post().PermanentDeleteBatch(2000, 1000)
+	require.Nil(t, err)
 
 	if _, err := ss.Post().Get(o1.Id); err == nil {
 		t.Fatalf("Should have not found post 1 after purge")

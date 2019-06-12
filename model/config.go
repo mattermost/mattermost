@@ -672,6 +672,7 @@ type ClusterSettings struct {
 	Enable                      *bool   `restricted:"true"`
 	ClusterName                 *string `restricted:"true"`
 	OverrideHostname            *string `restricted:"true"`
+	NetworkInterface            *string `restricted:"true"`
 	UseIpAddress                *bool   `restricted:"true"`
 	UseExperimentalGossip       *bool   `restricted:"true"`
 	ReadOnlyConfig              *bool   `restricted:"true"`
@@ -693,6 +694,10 @@ func (s *ClusterSettings) SetDefaults() {
 
 	if s.OverrideHostname == nil {
 		s.OverrideHostname = NewString("")
+	}
+
+	if s.NetworkInterface == nil {
+		s.NetworkInterface = NewString("")
 	}
 
 	if s.UseIpAddress == nil {
@@ -1855,8 +1860,9 @@ type SamlSettings struct {
 	EnableSyncWithLdap            *bool
 	EnableSyncWithLdapIncludeAuth *bool
 
-	Verify  *bool
-	Encrypt *bool
+	Verify      *bool
+	Encrypt     *bool
+	SignRequest *bool
 
 	IdpUrl                      *string
 	IdpDescriptorUrl            *string
@@ -1905,6 +1911,10 @@ func (s *SamlSettings) SetDefaults() {
 
 	if s.Encrypt == nil {
 		s.Encrypt = NewBool(true)
+	}
+
+	if s.SignRequest == nil {
+		s.SignRequest = NewBool(false)
 	}
 
 	if s.IdpUrl == nil {
