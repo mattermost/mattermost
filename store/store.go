@@ -101,7 +101,7 @@ type TeamStore interface {
 	PermanentDelete(teamId string) StoreChannel
 	AnalyticsTeamCount() StoreChannel
 	SaveMember(member *model.TeamMember, maxUsersPerTeam int) StoreChannel
-	UpdateMember(member *model.TeamMember) StoreChannel
+	UpdateMember(member *model.TeamMember) (*model.TeamMember, *model.AppError)
 	GetMember(teamId string, userId string) StoreChannel
 	GetMembers(teamId string, offset int, limit int, restrictions *model.ViewUsersRestrictions) StoreChannel
 	GetMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) StoreChannel

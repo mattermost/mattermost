@@ -996,11 +996,13 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 	}
 
 	// Leaving the team from the UI sets DeleteAt instead of using TeamStore.RemoveMember
-	store.Must(ss.Team().UpdateMember(&model.TeamMember{
+	if _, err = ss.Team().UpdateMember(&model.TeamMember{
 		TeamId:   team.Id,
 		UserId:   userIds[0],
 		DeleteAt: 1234,
-	}))
+	}); err != nil {
+		panic(err)
+	}
 
 	if result := <-ss.Team().GetTotalMemberCount(team.Id); result.Err != nil {
 		t.Fatal(result.Err)
