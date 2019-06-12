@@ -271,10 +271,11 @@ func (a *App) UpdateTeamMemberRoles(teamId string, userId string, newRoles strin
 	member.SchemeAdmin = false
 
 	for _, roleName := range strings.Fields(newRoles) {
-		role, roleErr := a.GetRoleByName(roleName)
-		if roleErr != nil {
-			roleErr.StatusCode = http.StatusBadRequest
-			return nil, roleErr
+		var role *model.Role
+		role, err = a.GetRoleByName(roleName)
+		if err != nil {
+			err.StatusCode = http.StatusBadRequest
+			return nil, err
 		}
 		if !role.SchemeManaged {
 			// The role is not scheme-managed, so it's OK to apply it to the explicit roles field.
