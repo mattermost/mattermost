@@ -229,17 +229,24 @@ func (_m *SessionStore) UpdateLastActivityAt(sessionId string, time int64) *mode
 }
 
 // UpdateRoles provides a mock function with given fields: userId, roles
-func (_m *SessionStore) UpdateRoles(userId string, roles string) store.StoreChannel {
+func (_m *SessionStore) UpdateRoles(userId string, roles string) (string, *model.AppError) {
 	ret := _m.Called(userId, roles)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, string) store.StoreChannel); ok {
+	var r0 string
+	if rf, ok := ret.Get(0).(func(string, string) string); ok {
 		r0 = rf(userId, roles)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+		r1 = rf(userId, roles)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
 		}
 	}
 
-	return r0
+	return r0, r1
 }
