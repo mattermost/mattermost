@@ -1292,10 +1292,9 @@ func testGetChannelUnreadsForTeam(t *testing.T, ss store.Store) {
 	cm2 := &model.ChannelMember{ChannelId: c2.Id, UserId: m1.UserId, NotifyProps: model.GetDefaultChannelNotifyProps(), MsgCount: 90}
 	store.Must(ss.Channel().SaveMember(cm2))
 
-	if r1 := <-ss.Team().GetChannelUnreadsForTeam(m1.TeamId, m1.UserId); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if ms, err := ss.Team().GetChannelUnreadsForTeam(m1.TeamId, m1.UserId); err != nil {
+		t.Fatal(err)
 	} else {
-		ms := r1.Data.([]*model.ChannelUnread)
 		if len(ms) != 2 {
 			t.Fatal("wrong length")
 		}
