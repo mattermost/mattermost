@@ -46,7 +46,6 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 
 		openChan := a.Srv.Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_OPEN)
 		privateChan := a.Srv.Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_PRIVATE)
-		teamChan := a.Srv.Store.Team().AnalyticsTeamCount()
 
 		var userChan store.StoreChannel
 		var userInactiveChan store.StoreChannel
@@ -108,11 +107,11 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			rows[10].Value = float64(r.Data.(int64))
 		}
 
-		r = <-teamChan
-		if r.Err != nil {
-			return nil, r.Err
+		if teamCount, err := a.Srv.Store.Team().AnalyticsTeamCount(); err != nil {
+			rows[4].Value = float64(teamCount)
+		} else {
+			return nil, err
 		}
-		rows[4].Value = float64(r.Data.(int64))
 
 		// If in HA mode then aggregrate all the stats
 		if a.Cluster != nil && *a.Config().ClusterSettings.Enable {

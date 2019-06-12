@@ -166,9 +166,7 @@ func (a *App) trackActivity() {
 		inactiveUserCount = iucr.Data.(int64)
 	}
 
-	if tcr := <-a.Srv.Store.Team().AnalyticsTeamCount(); tcr.Err == nil {
-		teamCount = tcr.Data.(int64)
-	}
+	teamCount, _ = a.Srv.Store.Team().AnalyticsTeamCount()
 
 	if ucc := <-a.Srv.Store.Channel().AnalyticsTypeCount("", "O"); ucc.Err == nil {
 		publicChannelCount = ucc.Data.(int64)
