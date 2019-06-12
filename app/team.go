@@ -520,12 +520,12 @@ func (a *App) joinUserToTeam(team *model.Team, user *model.User) (*model.TeamMem
 		return rtm, true, nil
 	}
 
-	membersCount := <-a.Srv.Store.Team().GetActiveMemberCount(tm.TeamId)
-	if membersCount.Err != nil {
-		return nil, false, membersCount.Err
+	membersCount, err := a.Srv.Store.Team().GetActiveMemberCount(tm.TeamId)
+	if err != nil {
+		return nil, false, err
 	}
 
-	if membersCount.Data.(int64) >= int64(*a.Config().TeamSettings.MaxUsersPerTeam) {
+	if membersCount >= int64(*a.Config().TeamSettings.MaxUsersPerTeam) {
 		return nil, false, model.NewAppError("joinUserToTeam", "app.team.join_user_to_team.max_accounts.app_error", nil, "teamId="+tm.TeamId, http.StatusBadRequest)
 	}
 
@@ -1165,7 +1165,7 @@ func (a *App) RestoreTeam(teamId string) *model.AppError {
 
 func (a *App) GetTeamStats(teamId string) (*model.TeamStats, *model.AppError) {
 	tchan := a.Srv.Store.Team().GetTotalMemberCount(teamId)
-	achan := a.Srv.Store.Team().GetActiveMemberCount(teamId)
+	aCount, aErr := a.Srv.Store.Team().GetActiveMemberCount(teamId)
 
 	stats := &model.TeamStats{}
 	stats.TeamId = teamId
@@ -1176,11 +1176,10 @@ func (a *App) GetTeamStats(teamId string) (*model.TeamStats, *model.AppError) {
 	}
 	stats.TotalMemberCount = result.Data.(int64)
 
-	result = <-achan
-	if result.Err != nil {
-		return nil, result.Err
+	if aErr != nil {
+		return nil, aErr
 	}
-	stats.ActiveMemberCount = result.Data.(int64)
+	stats.ActiveMemberCount = aCount
 
 	return stats, nil
 }
