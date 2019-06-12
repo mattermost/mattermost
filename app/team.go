@@ -684,11 +684,7 @@ func (a *App) GetTeamsForUser(userId string) ([]*model.Team, *model.AppError) {
 }
 
 func (a *App) GetTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError) {
-	result, err := a.Srv.Store.Team().GetMember(teamId, userId)
-	if err != nil {
-		return nil, err
-	}
-	return result, nil
+	return a.Srv.Store.Team().GetMember(teamId, userId)
 }
 
 func (a *App) GetTeamMembersForUser(userId string) ([]*model.TeamMember, *model.AppError) {
