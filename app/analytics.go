@@ -64,6 +64,12 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 
 		dailyActiveChan := a.Srv.Store.User().AnalyticsActiveCount(DAY_MILLISECONDS)
 		monthlyActiveChan := a.Srv.Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS)
+		teamCountChan := make(chan store.StoreResult, 1)
+		go func() {
+			teamCount, err := a.Srv.Store.Team().AnalyticsTeamCount()
+			teamCountChan <- store.StoreResult{Data:teamCount, Err:err}
+			close(teamCountChan)
+		}()
 
 		r := <-openChan
 		if r.Err != nil {
@@ -107,11 +113,11 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			rows[10].Value = float64(r.Data.(int64))
 		}
 
-		if teamCount, err := a.Srv.Store.Team().AnalyticsTeamCount(); err != nil {
-			rows[4].Value = float64(teamCount)
-		} else {
-			return nil, err
+		r = <-teamCountChan
+		if r.Err != nil {
+			return nil, r.Err
 		}
+		rows[4].Value = float64(r.Data.(int64))
 
 		// If in HA mode then aggregrate all the stats
 		if a.Cluster != nil && *a.Config().ClusterSettings.Enable {
