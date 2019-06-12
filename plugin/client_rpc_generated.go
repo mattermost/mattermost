@@ -9,6 +9,9 @@ package plugin
 import (
 	"fmt"
 	"log"
+
+	"github.com/mattermost/mattermost-server/mlog"
+	"github.com/mattermost/mattermost-server/model"
 )
 
 func init() {
