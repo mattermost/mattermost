@@ -58,12 +58,6 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			})
 		}
 
-		var count int64
-		var err *model.AppError
-		if !skipIntensiveQueries {
-			count, err = a.Srv.Store.Post().AnalyticsPostCount(teamId, false, false)
-		}
-
 		dailyActiveChan := a.Srv.Store.User().AnalyticsActiveCount(DAY_MILLISECONDS)
 		monthlyActiveChan := a.Srv.Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS)
 
@@ -82,6 +76,7 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 		if skipIntensiveQueries {
 			rows[2].Value = -1
 		} else {
+			count, err := a.Srv.Store.Post().AnalyticsPostCount(teamId, false, false)
 			if err != nil {
 				return nil, err
 			}
