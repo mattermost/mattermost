@@ -32,10 +32,6 @@ func TestPreparePostListForClient(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ExperimentalSettings.DisablePostMetadata = false
-	})
-
 	postList := model.NewPostList()
 	for i := 0; i < 5; i++ {
 		postList.AddPost(&model.Post{})
@@ -68,7 +64,6 @@ func TestPreparePostForClient(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableLinkPreviews = true
 			*cfg.ImageProxySettings.Enable = false
-			*cfg.ExperimentalSettings.DisablePostMetadata = false
 		})
 
 		return th
@@ -393,24 +388,6 @@ func TestPreparePostForClient(t *testing.T) {
 			}, imageDimensions["https://github.com/hmhealey/test-files/raw/master/icon.png"])
 		})
 	})
-
-	t.Run("when disabled", func(t *testing.T) {
-		th := setup()
-		defer th.TearDown()
-
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ExperimentalSettings.DisablePostMetadata = true
-		})
-
-		post := th.CreatePost(th.BasicChannel)
-		post = th.App.PreparePostForClient(post, false, false)
-
-		assert.Nil(t, post.Metadata)
-
-		b := post.ToJson()
-
-		assert.NotContains(t, string(b), "metadata", "json shouldn't include a metadata field, not even a falsey one")
-	})
 }
 
 func TestPreparePostForClientWithImageProxy(t *testing.T) {
@@ -424,7 +401,6 @@ func TestPreparePostForClientWithImageProxy(t *testing.T) {
 			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
 			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
 			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
-			*cfg.ExperimentalSettings.DisablePostMetadata = false
 		})
 
 		return th
