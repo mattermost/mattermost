@@ -501,7 +501,7 @@ func (a *App) joinUserToTeam(team *model.Team, user *model.User) (*model.TeamMem
 		tm.SchemeAdmin = true
 	}
 
-	result, err := a.Srv.Store.Team().GetMember(team.Id, user.Id)
+	rtm, err := a.Srv.Store.Team().GetMember(team.Id, user.Id)
 	if err != nil {
 		// Membership appears to be missing. Lets try to add.
 		tmr := <-a.Srv.Store.Team().SaveMember(tm, *a.Config().TeamSettings.MaxUsersPerTeam)
@@ -511,9 +511,7 @@ func (a *App) joinUserToTeam(team *model.Team, user *model.User) (*model.TeamMem
 		return tmr.Data.(*model.TeamMember), false, nil
 	}
 
-	// Membership already exists.  Check if deleted and and update, otherwise do nothing
-	rtm := result
-
+	// Membership already exists.  Check if deleted and update, otherwise do nothing
 	// Do nothing if already added
 	if rtm.DeleteAt == 0 {
 		return rtm, true, nil
