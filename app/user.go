@@ -98,11 +98,10 @@ func (a *App) CreateUserWithInviteId(user *model.User, inviteId string) (*model.
 		return nil, err
 	}
 
-	result := <-a.Srv.Store.Team().GetByInviteId(inviteId)
-	if result.Err != nil {
-		return nil, result.Err
+	team, err := a.Srv.Store.Team().GetByInviteId(inviteId)
+	if err != nil {
+		return nil, err
 	}
-	team := result.Data.(*model.Team)
 
 	if team.IsGroupConstrained() {
 		return nil, model.NewAppError("CreateUserWithInviteId", "app.team.invite_id.group_constrained.error", nil, "", http.StatusForbidden)
