@@ -168,8 +168,7 @@ func (a *App) SlackAddUsers(teamId string, slackusers []SlackUser, importerLog *
 		password := model.NewId()
 
 		// Check for email conflict and use existing user if found
-		if result := <-a.Srv.Store.User().GetByEmail(email); result.Err == nil {
-			existingUser := result.Data.(*model.User)
+		if existingUser, err := a.Srv.Store.User().GetByEmail(email); err == nil {
 			addedUsers[sUser.Id] = existingUser
 			if err := a.JoinUserToTeam(team, addedUsers[sUser.Id], ""); err != nil {
 				importerLog.WriteString(utils.T("api.slackimport.slack_add_users.merge_existing_failed", map[string]interface{}{"Email": existingUser.Email, "Username": existingUser.Username}))
@@ -795,8 +794,8 @@ func (a *App) OldImportUser(team *model.Team, user *model.User) *model.User {
 	}
 	ruser := result.Data.(*model.User)
 
-	if cresult := <-a.Srv.Store.User().VerifyEmail(ruser.Id, ruser.Email); cresult.Err != nil {
-		mlog.Error(fmt.Sprintf("Failed to set email verified err=%v", cresult.Err))
+	if _, err := a.Srv.Store.User().VerifyEmail(ruser.Id, ruser.Email); err != nil {
+		mlog.Error(fmt.Sprintf("Failed to set email verified err=%v", err))
 	}
 
 	if err := a.JoinUserToTeam(team, user, ""); err != nil {
