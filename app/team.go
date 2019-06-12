@@ -253,7 +253,7 @@ func (a *App) UpdateTeamMemberRoles(teamId string, userId string, newRoles strin
 	}
 
 	if member == nil {
-		err := model.NewAppError("UpdateTeamMemberRoles", "api.team.update_member_roles.not_a_member", nil, "userId="+userId+" teamId="+teamId, http.StatusBadRequest)
+		err = model.NewAppError("UpdateTeamMemberRoles", "api.team.update_member_roles.not_a_member", nil, "userId="+userId+" teamId="+teamId, http.StatusBadRequest)
 		return nil, err
 	}
 
