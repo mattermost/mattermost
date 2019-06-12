@@ -7,6 +7,7 @@ import (
 	"database/sql"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/Masterminds/squirrel"
 
@@ -130,6 +131,15 @@ func (s *SqlGroupStore) Get(groupId string) store.StoreChannel {
 		result.Data = group
 		return
 	})
+}
+
+func (s *SqlGroupStore) GetByIDs(groupIDs []string) ([]*model.Group, *model.AppError) {
+	var groups []*model.Group
+	query := fmt.Sprintf("SELECT * from UserGroups WHERE Id IN ('%s')", strings.Join(groupIDs, "', '"))
+	if _, err := s.GetReplica().Select(&groups, query); err != nil {
+		return nil, model.NewAppError("SqlGroupStore.GetByIDs", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return groups, nil
 }
 
 func (s *SqlGroupStore) GetByRemoteID(remoteID string, groupSource model.GroupSource) store.StoreChannel {
@@ -1034,4 +1044,81 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts)
 	}
 
 	return groups, nil
+}
+
+func (s *SqlGroupStore) ifGroupsThenTeamUsersRemovedQuery(teamID string, groupIDs []string, isCount bool) squirrel.SelectBuilder {
+	var selectStr string
+
+	if isCount {
+		selectStr = "count(DISTINCT Users.Id)"
+	} else {
+		if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+			selectStr = "Users.*, group_concat(UserGroups.Id) AS GroupIDs"
+		} else {
+			selectStr = "Users.*, string_agg(UserGroups.Id, ',') AS GroupIDs"
+		}
+	}
+
+	groupIDsSQL := strings.Join(groupIDs, "', '")
+
+	query := s.getQueryBuilder().Select(selectStr).
+		From(`TeamMembers
+			JOIN Teams ON Teams.Id = TeamMembers.TeamId
+			JOIN Users ON Users.Id = TeamMembers.UserId
+			LEFT JOIN Bots ON Bots.UserId = TeamMembers.UserId
+			JOIN GroupMembers ON GroupMembers.UserId = Users.Id
+			JOIN UserGroups ON UserGroups.Id = GroupMembers.GroupId`).
+		Where(fmt.Sprintf(`TeamMembers.DeleteAt = 0
+				AND Teams.DeleteAt = 0
+				AND Users.DeleteAt = 0
+				AND Bots.UserId IS NULL
+				AND Teams.Id = '%s'
+				AND Users.Id NOT IN (
+					SELECT
+						GroupMembers.UserId
+					FROM
+						GroupMembers
+						JOIN UserGroups ON UserGroups.Id = GroupMembers.GroupId
+					WHERE
+						GroupMembers.DeleteAt = 0
+						AND GroupMembers.GroupId IN ('%s'))`, teamID, groupIDsSQL))
+
+	if !isCount {
+		query = query.GroupBy("Users.Id")
+	}
+
+	return query
+}
+
+// IfGroupsThenTeamUsersRemoved returns all team members that should be removed based on group constraints.
+func (s *SqlGroupStore) IfGroupsThenTeamUsersRemoved(teamID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, *model.AppError) {
+	query := s.ifGroupsThenTeamUsersRemovedQuery(teamID, groupIDs, false)
+	query = query.OrderBy("Users.Id").Limit(uint64(perPage)).Offset(uint64(page * perPage))
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlGroupStore.IfGroupsThenTeamUsersRemoved", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	var users []*model.UserWithGroups
+	if _, err = s.GetReplica().Select(&users, queryString, args...); err != nil {
+		return nil, model.NewAppError("SqlGroupStore.IfGroupsThenTeamUsersRemoved", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return users, nil
+}
+
+// CountIfGroupsThenTeamUsersRemoved returns the count all team members that should be removed based on group constraints.
+func (s *SqlGroupStore) CountIfGroupsThenTeamUsersRemoved(teamID string, groupIDs []string) (int64, *model.AppError) {
+	queryString, args, err := s.ifGroupsThenTeamUsersRemovedQuery(teamID, groupIDs, true).ToSql()
+	if err != nil {
+		return 0, model.NewAppError("SqlGroupStore.CountIfGroupsThenTeamUsersRemoved", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	var count int64
+	if count, err = s.GetReplica().SelectInt(queryString, args...); err != nil {
+		return 0, model.NewAppError("SqlGroupStore.CountIfGroupsThenTeamUsersRemoved", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return count, nil
 }

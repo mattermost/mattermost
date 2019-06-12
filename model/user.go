@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"regexp"
 	"sort"
@@ -767,4 +768,22 @@ func IsValidLocale(locale string) bool {
 	}
 
 	return true
+}
+
+type UserWithGroups struct {
+	User
+	GroupIDs string   `json:"-"`
+	Groups   []*Group `json:"groups"`
+}
+
+type UsersWithGroupsAndCount struct {
+	Users []*UserWithGroups `json:"users"`
+	Count int64             `json:"total_count"`
+}
+
+func UsersWithGroupsAndCountFromJson(data io.Reader) *UsersWithGroupsAndCount {
+	uwg := &UsersWithGroupsAndCount{}
+	bodyBytes, _ := ioutil.ReadAll(data)
+	json.Unmarshal(bodyBytes, uwg)
+	return uwg
 }
