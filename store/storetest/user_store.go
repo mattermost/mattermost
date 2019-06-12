@@ -1345,33 +1345,33 @@ func testUserStoreGetByEmail(t *testing.T, ss store.Store) {
 	defer func() { store.Must(ss.Bot().PermanentDelete(u3.Id)) }()
 
 	t.Run("get u1 by email", func(t *testing.T) {
-		result := <-ss.User().GetByEmail(u1.Email)
-		require.Nil(t, result.Err)
-		assert.Equal(t, u1, result.Data.(*model.User))
+		u, err := ss.User().GetByEmail(u1.Email)
+		require.Nil(t, err)
+		assert.Equal(t, u1, u)
 	})
 
 	t.Run("get u2 by email", func(t *testing.T) {
-		result := <-ss.User().GetByEmail(u2.Email)
-		require.Nil(t, result.Err)
-		assert.Equal(t, u2, result.Data.(*model.User))
+		u, err := ss.User().GetByEmail(u2.Email)
+		require.Nil(t, err)
+		assert.Equal(t, u2, u)
 	})
 
 	t.Run("get u3 by email", func(t *testing.T) {
-		result := <-ss.User().GetByEmail(u3.Email)
-		require.Nil(t, result.Err)
-		assert.Equal(t, u3, result.Data.(*model.User))
+		u, err := ss.User().GetByEmail(u3.Email)
+		require.Nil(t, err)
+		assert.Equal(t, u3, u)
 	})
 
 	t.Run("get by empty email", func(t *testing.T) {
-		result := <-ss.User().GetByEmail("")
-		require.NotNil(t, result.Err)
-		require.Equal(t, result.Err.Id, store.MISSING_ACCOUNT_ERROR)
+		_, err := ss.User().GetByEmail("")
+		require.NotNil(t, err)
+		require.Equal(t, err.Id, store.MISSING_ACCOUNT_ERROR)
 	})
 
 	t.Run("get by unknown", func(t *testing.T) {
-		result := <-ss.User().GetByEmail("unknown")
-		require.NotNil(t, result.Err)
-		require.Equal(t, result.Err.Id, store.MISSING_ACCOUNT_ERROR)
+		_, err := ss.User().GetByEmail("unknown")
+		require.NotNil(t, err)
+		require.Equal(t, err.Id, store.MISSING_ACCOUNT_ERROR)
 	})
 }
 
@@ -1413,35 +1413,35 @@ func testUserStoreGetByAuthData(t *testing.T, ss store.Store) {
 	defer func() { store.Must(ss.Bot().PermanentDelete(u3.Id)) }()
 
 	t.Run("get by u1 auth", func(t *testing.T) {
-		result := <-ss.User().GetByAuth(u1.AuthData, u1.AuthService)
-		require.Nil(t, result.Err)
-		assert.Equal(t, u1, result.Data.(*model.User))
+		u, err := ss.User().GetByAuth(u1.AuthData, u1.AuthService)
+		require.Nil(t, err)
+		assert.Equal(t, u1, u)
 	})
 
 	t.Run("get by u3 auth", func(t *testing.T) {
-		result := <-ss.User().GetByAuth(u3.AuthData, u3.AuthService)
-		require.Nil(t, result.Err)
-		assert.Equal(t, u3, result.Data.(*model.User))
+		u, err := ss.User().GetByAuth(u3.AuthData, u3.AuthService)
+		require.Nil(t, err)
+		assert.Equal(t, u3, u)
 	})
 
 	t.Run("get by u1 auth, unknown service", func(t *testing.T) {
-		result := <-ss.User().GetByAuth(u1.AuthData, "unknown")
-		require.NotNil(t, result.Err)
-		require.Equal(t, result.Err.Id, store.MISSING_AUTH_ACCOUNT_ERROR)
+		_, err := ss.User().GetByAuth(u1.AuthData, "unknown")
+		require.NotNil(t, err)
+		require.Equal(t, err.Id, store.MISSING_AUTH_ACCOUNT_ERROR)
 	})
 
 	t.Run("get by unknown auth, u1 service", func(t *testing.T) {
 		unknownAuth := ""
-		result := <-ss.User().GetByAuth(&unknownAuth, u1.AuthService)
-		require.NotNil(t, result.Err)
-		require.Equal(t, result.Err.Id, store.MISSING_AUTH_ACCOUNT_ERROR)
+		_, err := ss.User().GetByAuth(&unknownAuth, u1.AuthService)
+		require.NotNil(t, err)
+		require.Equal(t, err.Id, store.MISSING_AUTH_ACCOUNT_ERROR)
 	})
 
 	t.Run("get by unknown auth, unknown service", func(t *testing.T) {
 		unknownAuth := ""
-		result := <-ss.User().GetByAuth(&unknownAuth, "unknown")
-		require.NotNil(t, result.Err)
-		require.Equal(t, result.Err.Id, store.MISSING_AUTH_ACCOUNT_ERROR)
+		_, err := ss.User().GetByAuth(&unknownAuth, "unknown")
+		require.NotNil(t, err)
+		require.Equal(t, err.Id, store.MISSING_AUTH_ACCOUNT_ERROR)
 	})
 }
 
@@ -1605,10 +1605,9 @@ func testUserStoreUpdatePassword(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	if r1 := <-ss.User().GetByEmail(u1.Email); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if user, err := ss.User().GetByEmail(u1.Email); err != nil {
+		t.Fatal(err)
 	} else {
-		user := r1.Data.(*model.User)
 		if user.Password != hashedPassword {
 			t.Fatal("Password was not updated correctly")
 		}
@@ -1643,10 +1642,9 @@ func testUserStoreUpdateAuthData(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	if r1 := <-ss.User().GetByEmail(u1.Email); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if user, err := ss.User().GetByEmail(u1.Email); err != nil {
+		t.Fatal(err)
 	} else {
-		user := r1.Data.(*model.User)
 		if user.AuthService != service {
 			t.Fatal("AuthService was not updated correctly")
 		}

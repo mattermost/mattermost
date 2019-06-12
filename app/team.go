@@ -797,12 +797,11 @@ func (a *App) AddTeamMemberByInviteId(inviteId, userId string) (*model.TeamMembe
 }
 
 func (a *App) GetTeamUnread(teamId, userId string) (*model.TeamUnread, *model.AppError) {
-	result := <-a.Srv.Store.Team().GetChannelUnreadsForTeam(teamId, userId)
-	if result.Err != nil {
-		return nil, result.Err
+	channelUnreads, err := a.Srv.Store.Team().GetChannelUnreadsForTeam(teamId, userId)
+	if err != nil {
+		return nil, err
 	}
 
-	channelUnreads := result.Data.([]*model.ChannelUnread)
 	var teamUnread = &model.TeamUnread{
 		MsgCount:     0,
 		MentionCount: 0,
