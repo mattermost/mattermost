@@ -110,7 +110,7 @@ type TeamStore interface {
 	GetTeamsForUser(userId string) StoreChannel
 	GetTeamsForUserWithPagination(userId string, page, perPage int) StoreChannel
 	GetChannelUnreadsForAllTeams(excludeTeamId, userId string) StoreChannel
-	GetChannelUnreadsForTeam(teamId, userId string) StoreChannel
+	GetChannelUnreadsForTeam(teamId, userId string) ([]*model.ChannelUnread, *model.AppError)
 	RemoveMember(teamId string, userId string) StoreChannel
 	RemoveAllMembersByTeam(teamId string) StoreChannel
 	RemoveAllMembersByUser(userId string) StoreChannel
