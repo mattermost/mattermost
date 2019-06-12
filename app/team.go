@@ -1165,7 +1165,7 @@ func (a *App) RestoreTeam(teamId string) *model.AppError {
 
 func (a *App) GetTeamStats(teamId string) (*model.TeamStats, *model.AppError) {
 	tchan := a.Srv.Store.Team().GetTotalMemberCount(teamId)
-	aCount, aErr := a.Srv.Store.Team().GetActiveMemberCount(teamId)
+	count, err := a.Srv.Store.Team().GetActiveMemberCount(teamId)
 
 	stats := &model.TeamStats{}
 	stats.TeamId = teamId
@@ -1176,10 +1176,10 @@ func (a *App) GetTeamStats(teamId string) (*model.TeamStats, *model.AppError) {
 	}
 	stats.TotalMemberCount = result.Data.(int64)
 
-	if aErr != nil {
-		return nil, aErr
+	if err != nil {
+		return nil, err
 	}
-	stats.ActiveMemberCount = aCount
+	stats.ActiveMemberCount = count
 
 	return stats, nil
 }
