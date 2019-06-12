@@ -788,27 +788,25 @@ func (s SqlTeamStore) GetChannelUnreadsForAllTeams(excludeTeamId, userId string)
 	})
 }
 
-func (s SqlTeamStore) GetChannelUnreadsForTeam(teamId, userId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var data []*model.ChannelUnread
-		_, err := s.GetReplica().Select(&data,
-			`SELECT
-				Channels.TeamId TeamId, Channels.Id ChannelId, (Channels.TotalMsgCount - ChannelMembers.MsgCount) MsgCount, ChannelMembers.MentionCount MentionCount, ChannelMembers.NotifyProps NotifyProps
-			FROM
-				Channels, ChannelMembers
-			WHERE
-				Id = ChannelId
-                AND UserId = :UserId
-                AND TeamId = :TeamId
-                AND DeleteAt = 0`,
-			map[string]interface{}{"TeamId": teamId, "UserId": userId})
+func (s SqlTeamStore) GetChannelUnreadsForTeam(teamId, userId string) ([]*model.ChannelUnread, *model.AppError) {
+	query := `
+		SELECT
+			Channels.TeamId TeamId, Channels.Id ChannelId, (Channels.TotalMsgCount - ChannelMembers.MsgCount) MsgCount, ChannelMembers.MentionCount MentionCount, ChannelMembers.NotifyProps NotifyProps
+		FROM
+			Channels, ChannelMembers
+		WHERE
+			Id = ChannelId
+			AND UserId = :UserId
+			AND TeamId = :TeamId
+			AND DeleteAt = 0`
 
-		if err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.GetChannelUnreadsForTeam", "store.sql_team.get_unread.app_error", nil, "teamId="+teamId+" "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-		result.Data = data
-	})
+	var channels []*model.ChannelUnread
+	_, err := s.GetReplica().Select(&channels, query, map[string]interface{}{"TeamId": teamId, "UserId": userId})
+
+	if err != nil {
+		return nil, model.NewAppError("SqlTeamStore.GetChannelUnreadsForTeam", "store.sql_team.get_unread.app_error", nil, "teamId="+teamId+" "+err.Error(), http.StatusInternalServerError)
+	}
+	return channels, nil
 }
 
 func (s SqlTeamStore) RemoveMember(teamId string, userId string) store.StoreChannel {
