@@ -1169,16 +1169,14 @@ func (s *SqlPostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, 
 	return rowsAffected, nil
 }
 
-func (s *SqlPostStore) GetOldest() store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var post model.Post
-		err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts ORDER BY CreateAt LIMIT 1")
-		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetOldest", "store.sql_post.get.app_error", nil, err.Error(), http.StatusNotFound)
-		}
+func (s *SqlPostStore) GetOldest() (*model.Post, *model.AppError) {
+	var post model.Post
+	err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts ORDER BY CreateAt LIMIT 1")
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetOldest", "store.sql_post.get.app_error", nil, err.Error(), http.StatusNotFound)
+	}
 
-		result.Data = &post
-	})
+	return &post, nil
 }
 
 func (s *SqlPostStore) determineMaxPostSize() int {

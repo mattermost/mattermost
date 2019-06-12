@@ -110,7 +110,7 @@ type TeamStore interface {
 	GetTeamsForUser(userId string) StoreChannel
 	GetTeamsForUserWithPagination(userId string, page, perPage int) StoreChannel
 	GetChannelUnreadsForAllTeams(excludeTeamId, userId string) StoreChannel
-	GetChannelUnreadsForTeam(teamId, userId string) StoreChannel
+	GetChannelUnreadsForTeam(teamId, userId string) ([]*model.ChannelUnread, *model.AppError)
 	RemoveMember(teamId string, userId string) StoreChannel
 	RemoveAllMembersByTeam(teamId string) StoreChannel
 	RemoveAllMembersByUser(userId string) StoreChannel
@@ -236,7 +236,7 @@ type PostStore interface {
 	GetPostsByIds(postIds []string) ([]*model.Post, *model.AppError)
 	GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) ([]*model.PostForIndexing, *model.AppError)
 	PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError)
-	GetOldest() StoreChannel
+	GetOldest() (*model.Post, *model.AppError)
 	GetMaxPostSize() int
 	GetParentsForExportAfter(limit int, afterId string) ([]*model.PostForExport, *model.AppError)
 	GetRepliesForExport(parentId string) ([]*model.ReplyForExport, *model.AppError)
@@ -268,12 +268,12 @@ type UserStore interface {
 	GetProfiles(options *model.UserGetOptions) StoreChannel
 	GetProfileByIds(userId []string, allowFromCache bool, viewRestrictions *model.ViewUsersRestrictions) StoreChannel
 	InvalidatProfileCacheForUser(userId string)
-	GetByEmail(email string) StoreChannel
-	GetByAuth(authData *string, authService string) StoreChannel
+	GetByEmail(email string) (*model.User, *model.AppError)
+	GetByAuth(authData *string, authService string) (*model.User, *model.AppError)
 	GetAllUsingAuthService(authService string) StoreChannel
 	GetByUsername(username string) StoreChannel
 	GetForLogin(loginId string, allowSignInWithUsername, allowSignInWithEmail bool) StoreChannel
-	VerifyEmail(userId, email string) StoreChannel
+	VerifyEmail(userId, email string) (string, *model.AppError)
 	GetEtagForAllProfiles() StoreChannel
 	GetEtagForProfiles(teamId string) StoreChannel
 	UpdateFailedPasswordAttempts(userId string, attempts int) StoreChannel
@@ -320,7 +320,7 @@ type SessionStore interface {
 	RemoveAllSessions() *model.AppError
 	PermanentDeleteSessionsByUser(teamId string) *model.AppError
 	UpdateLastActivityAt(sessionId string, time int64) *model.AppError
-	UpdateRoles(userId string, roles string) StoreChannel
+	UpdateRoles(userId string, roles string) (string, *model.AppError)
 	UpdateDeviceId(id string, deviceId string, expiresAt int64) (string, *model.AppError)
 	AnalyticsSessionCount() (int64, *model.AppError)
 	Cleanup(expiryTime int64, batchSize int64)
