@@ -796,9 +796,9 @@ func (s SqlTeamStore) GetChannelUnreadsForTeam(teamId, userId string) ([]*model.
 			Channels, ChannelMembers
 		WHERE
 			Id = ChannelId
-							AND UserId = :UserId
-							AND TeamId = :TeamId
-							AND DeleteAt = 0`
+			AND UserId = :UserId
+			AND TeamId = :TeamId
+			AND DeleteAt = 0`
 
 	var channels []*model.ChannelUnread
 	_, err := s.GetReplica().Select(&channels, query, map[string]interface{}{"TeamId": teamId, "UserId": userId})
