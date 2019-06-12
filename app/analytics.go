@@ -67,7 +67,7 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 		teamCountChan := make(chan store.StoreResult, 1)
 		go func() {
 			teamCount, err := a.Srv.Store.Team().AnalyticsTeamCount()
-			teamCountChan <- store.StoreResult{Data:teamCount, Err:err}
+			teamCountChan <- store.StoreResult{Data: teamCount, Err: err}
 			close(teamCountChan)
 		}()
 
