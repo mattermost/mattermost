@@ -49,7 +49,10 @@ func (a *App) CreateBasicUser(client *model.Client4) *model.AppError {
 			return resp.Error
 		}
 		store.Must(a.Srv.Store.User().VerifyEmail(ruser.Id, ruser.Email))
-		store.Must(a.Srv.Store.Team().SaveMember(&model.TeamMember{TeamId: basicteam.Id, UserId: ruser.Id}, *a.Config().TeamSettings.MaxUsersPerTeam))
+		_, err := a.Srv.Store.Team().SaveMember(&model.TeamMember{TeamId: basicteam.Id, UserId: ruser.Id}, *a.Config().TeamSettings.MaxUsersPerTeam)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

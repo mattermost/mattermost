@@ -588,19 +588,28 @@ func (_m *TeamStore) Save(team *model.Team) (*model.Team, *model.AppError) {
 }
 
 // SaveMember provides a mock function with given fields: member, maxUsersPerTeam
-func (_m *TeamStore) SaveMember(member *model.TeamMember, maxUsersPerTeam int) store.StoreChannel {
+func (_m *TeamStore) SaveMember(member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, *model.AppError) {
 	ret := _m.Called(member, maxUsersPerTeam)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(*model.TeamMember, int) store.StoreChannel); ok {
+	var r0 *model.TeamMember
+	if rf, ok := ret.Get(0).(func(*model.TeamMember, int) *model.TeamMember); ok {
 		r0 = rf(member, maxUsersPerTeam)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.TeamMember)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.TeamMember, int) *model.AppError); ok {
+		r1 = rf(member, maxUsersPerTeam)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // SearchAll provides a mock function with given fields: term
