@@ -479,11 +479,9 @@ func (me *TestHelper) ResetEmojisMigration() {
 
 func (me *TestHelper) CheckTeamCount(t *testing.T, expected int64) {
 	teamCount, err := me.App.Srv.Store.Team().AnalyticsTeamCount()
-
 	if err != nil {
 		t.Fatalf("Failed to get team count.")
 	}
-
 	if teamCount != expected {
 		t.Fatalf("Unexpected number of teams. Expected: %v, found: %v", expected, teamCount)
 	}

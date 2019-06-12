@@ -569,7 +569,6 @@ func TestImportImportTeam(t *testing.T) {
 
 	// Check how many teams are in the database.
 	teamsCount, err := th.App.Srv.Store.Team().AnalyticsTeamCount()
-
 	if err != nil {
 		t.Fatalf("Failed to get team count.")
 	}
