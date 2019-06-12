@@ -1926,6 +1926,29 @@ func (_m *API) KVCompareAndSet(key string, oldValue []byte, newValue []byte) (bo
 	return r0, r1
 }
 
+// KVCompareAndSetWithExpiry provides a mock function with given fields: key, oldValue, newValue, expireInSeconds
+func (_m *API) KVCompareAndSetWithExpiry(key string, oldValue []byte, newValue []byte, expireInSeconds int64) (bool, *model.AppError) {
+	ret := _m.Called(key, oldValue, newValue, expireInSeconds)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(string, []byte, []byte, int64) bool); ok {
+		r0 = rf(key, oldValue, newValue, expireInSeconds)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, []byte, []byte, int64) *model.AppError); ok {
+		r1 = rf(key, oldValue, newValue, expireInSeconds)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // KVDelete provides a mock function with given fields: key
 func (_m *API) KVDelete(key string) *model.AppError {
 	ret := _m.Called(key)
