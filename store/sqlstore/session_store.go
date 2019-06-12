@@ -52,12 +52,11 @@ func (me SqlSessionStore) Save(session *model.Session) (*model.Session, *model.A
 
 	session.PreSave()
 
-	tempMembers, err := me.Team().GetTeamsForUser(session.UserId)
-
 	if err := me.GetMaster().Insert(session); err != nil {
 		return nil, model.NewAppError("SqlSessionStore.Save", "store.sql_session.save.app_error", nil, "id="+session.Id+", "+err.Error(), http.StatusInternalServerError)
 	}
 
+	tempMembers, err := me.Team().GetTeamsForUser(session.UserId)
 	if err != nil {
 		return nil, model.NewAppError("SqlSessionStore.Save", "store.sql_session.save.app_error", nil, "id="+session.Id+", "+err.Error(), http.StatusInternalServerError)
 	}
