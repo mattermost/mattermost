@@ -223,8 +223,8 @@ func (a *App) UpdateLastActivityAtIfNeeded(session model.Session) {
 		return
 	}
 
-	if result := <-a.Srv.Store.Session().UpdateLastActivityAt(session.Id, now); result.Err != nil {
-		mlog.Error(fmt.Sprintf("Failed to update LastActivityAt for user_id=%v and session_id=%v, err=%v", session.UserId, session.Id, result.Err), mlog.String("user_id", session.UserId))
+	if err := a.Srv.Store.Session().UpdateLastActivityAt(session.Id, now); err != nil {
+		mlog.Error(fmt.Sprintf("Failed to update LastActivityAt for user_id=%v and session_id=%v, err=%v", session.UserId, session.Id, err), mlog.String("user_id", session.UserId))
 	}
 
 	session.LastActivityAt = now
