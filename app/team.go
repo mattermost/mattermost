@@ -717,11 +717,11 @@ func (a *App) GetTeamMembers(teamId string, offset int, limit int, restrictions 
 }
 
 func (a *App) GetTeamMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError) {
-	result := <-a.Srv.Store.Team().GetMembersByIds(teamId, userIds, restrictions)
-	if result.Err != nil {
-		return nil, result.Err
+	members, err := a.Srv.Store.Team().GetMembersByIds(teamId, userIds, restrictions)
+	if err != nil {
+		return nil, err
 	}
-	return result.Data.([]*model.TeamMember), nil
+	return members, nil
 }
 
 func (a *App) AddTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError) {
