@@ -1474,19 +1474,19 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
-    "translation": "@{{.Usernames}} and @{{.LastUsername}} did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups."
+    "translation": "@{{.Usernames}} i @{{.LastUsername}} nie zostały powiadomione przez tę wzmiankę, ponieważ nie znajdują się na kanale. Nie można ich dodać do kanału, ponieważ nie należą do połączonych grup. Aby dodać je do tego kanału, muszą zostać dodane do połączonych grup."
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.one",
-    "translation": "@{{.Username}} did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups."
+    "translation": "@{{.Username}} nie zostanie powiadomiony/a przez tę wzmiankę, ponieważ nie ma go w kanale. Nie można go dodać do kanału, ponieważ nie należą do połączonych grup. Aby dodać je do tego kanału, muszą zostać dodane do połączonych grup."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "@{{.Usernames}} and @{{.LastUsername}} did not get notified by this mention because they are not in the channel."
+    "translation": "@{{.Usernames}} i @{{.LastUsername}} nie zostały powiadomione przez tę wzmiankę, ponieważ nie znajdują się na kanale."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "@{{.Username}} did not get notified by this mention because they are not in the channel."
+    "translation": "@{{.Username}} nie zostanie powiadomiony/a o tym wpisie, ponieważ nie ma go na kanale."
   },
   {
     "id": "api.post.create_post.can_not_post_to_deleted.error",
@@ -1636,11 +1636,11 @@
   },
   {
     "id": "api.push_notification.disabled.app_error",
-    "translation": "Push Notifications are disabled on this server."
+    "translation": "Powiadomienia Push są wyłączone na tym serwerze."
   },
   {
     "id": "api.push_notifications_ack.forward.app_error",
-    "translation": "An error occurred sending the receipt delivery to the push notification service"
+    "translation": "Wystąpił błąd podczas wysyłania potwierdzenia odbioru do usługi powiadomień push"
   },
   {
     "id": "api.reaction.delete.archived_channel.app_error",
@@ -2375,8 +2375,20 @@
     "translation": "Logowanie nie powiodło się ponieważ Twoje konto zostało dezaktywowane. Skontaktuj się z administratorem."
   },
   {
-    "id": "api.user.login.invalid_credentials",
-    "translation": "Identyfikator użytkownika lub hasło są nieprawidłowe."
+    "id": "api.user.login.invalid_credentials_email",
+    "translation": "Enter a valid email and/or password"
+  },
+  {
+    "id": "api.user.login.invalid_credentials_email_username",
+    "translation": "Enter a valid email or username and/or password."
+  },
+  {
+    "id": "api.user.login.invalid_credentials_sso",
+    "translation": "Enter a valid email or username and/or password, or sign in using another method.\n"
+  },
+  {
+    "id": "api.user.login.invalid_credentials_username",
+    "translation": "Enter a valid username and/or password."
   },
   {
     "id": "api.user.login.not_verified.app_error",
@@ -3124,15 +3136,15 @@
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_feature_markdown_preview.error",
-    "translation": "Invalid markdown preview setting for User"
+    "translation": "Nieprawidłowe ustawienia podglądu markdownów dla użytkownika "
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_formatting.error",
-    "translation": "Invalid post formatting setting for User"
+    "translation": "Nijeprawidłowe ustawienia formatowania wiadomości dla użytkownika"
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_show_unread_section.error",
-    "translation": "Invalid show unread section setting for User"
+    "translation": "Nieprawidłowe wyświetlanie ustawień sekcji nieprzeczytanej dla użytkownika"
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_and_password.error",
@@ -3220,7 +3232,7 @@
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_team_theme.error",
-    "translation": "Invalid team theme for the User"
+    "translation": "Nieprawidłowy motyw zespołu dla użytkownika"
   },
   {
     "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
@@ -3392,11 +3404,11 @@
   },
   {
     "id": "app.team.invite_id.group_constrained.error",
-    "translation": "Unable to join a group-constrained team by invite."
+    "translation": "Nie można dołączyć do zespołu z ograniczoną grupą przez zaproszenie."
   },
   {
     "id": "app.team.invite_token.group_constrained.error",
-    "translation": "Unable to join a group-constrained team by token."
+    "translation": "Nie można dołączyć do zespołu z ograniczoną grupą przez token."
   },
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
@@ -3404,7 +3416,7 @@
   },
   {
     "id": "app.team.rename_team.name_occupied",
-    "translation": "Unable to rename the team, the name is already in use"
+    "translation": "Nie można zmienić nazwy zespołu, nazwa jest już używana"
   },
   {
     "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
@@ -3552,11 +3564,11 @@
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "Nie udało się utworzyć szablonu Elasticsearch dla kanałów"
+    "translation": "Nie udało się utworzyć szablonu Elasticsearch dla wiadomości"
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "Nie udało się utworzyć szablonu Elasticsearch dla kanałów"
+    "translation": "Nie udało się utworzyć szablonu Elasticsearch dla użytkowników"
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
@@ -3568,7 +3580,7 @@
   },
   {
     "id": "ent.elasticsearch.delete_channel.error",
-    "translation": "Nie udało się zaktualizować kanału"
+    "translation": "Nie udało się usunąć kanału"
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
@@ -3576,7 +3588,7 @@
   },
   {
     "id": "ent.elasticsearch.delete_user.error",
-    "translation": "Nie udało się usunąć wiadomości"
+    "translation": "Nie udało się usunąć użytkownika"
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
@@ -3584,7 +3596,7 @@
   },
   {
     "id": "ent.elasticsearch.index_channel.error",
-    "translation": "Nie udało się zaktualizować kanału"
+    "translation": "Nie udało się zaindeksować kanału"
   },
   {
     "id": "ent.elasticsearch.index_post.error",
@@ -3592,7 +3604,7 @@
   },
   {
     "id": "ent.elasticsearch.index_user.error",
-    "translation": "Nie udało się zindeksować wiadomości"
+    "translation": "Nie udało się zaindeksować użytkownika"
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
@@ -3620,15 +3632,15 @@
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": "Na tym serwerze wyszukiwanie ElasticSearch jest wyłączone."
+    "translation": "Wyszukiwanie ElasticSearch jest wyłączone na tym serwerze"
   },
   {
     "id": "ent.elasticsearch.search_channels.search_failed",
-    "translation": "Nie udało się zakończyć wyszukiwania."
+    "translation": "Wyszukiwanie nie powiodło się"
   },
   {
     "id": "ent.elasticsearch.search_channels.unmarshall_channel_failed",
-    "translation": "Błąd w dekodowaniu wyników wyszukiwania."
+    "translation": "Nie udało się zdekodować wyników wyszukiwania"
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
@@ -3648,11 +3660,11 @@
   },
   {
     "id": "ent.elasticsearch.search_users.search_failed",
-    "translation": "Nie udało się zakończyć wyszukiwania."
+    "translation": "Nie udało się zakończyć wyszukiwania"
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
-    "translation": "Błąd w dekodowaniu wyników wyszukiwania."
+    "translation": "Nie udało się zdekodować wyników wyszukiwania"
   },
   {
     "id": "ent.elasticsearch.start.already_started.app_error",
@@ -3732,7 +3744,7 @@
   },
   {
     "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "error deleting team or channel memberships"
+    "translation": "błąd podczas usuwania członkostwa zespołu lub kanału"
   },
   {
     "id": "ent.ldap.syncronize.get_all.app_error",
@@ -3752,7 +3764,7 @@
   },
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
-    "translation": "Size Limit Exceeded. Try checking your [max page size](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
+    "translation": "Przekroczono limit rozmiaru. Spróbuj sprawdzić [maksymalny rozmiar strony](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
   },
   {
     "id": "ent.ldap.validate_filter.app_error",
@@ -3912,7 +3924,7 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
-    "translation": "Nie powiodło się dekodowanie podpisu base64 dla ID wywołania dla interaktywnego dialogu."
+    "translation": "Nie powiodło się dekodowanie podpisu base64 dla ID wywołania interaktywnego dialogu."
   },
   {
     "id": "interactive_message.decode_trigger_id.expired",
@@ -4328,7 +4340,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "Elastic Search Ustawienie IndexingEnabled musi być ustawione na wartość true, gdy Elastich Search SearchEnabled ma wartość true."
+    "translation": "Ustawienie Elastic Search IndexingEnabled musi być włączone, gdy Elastich Search AutocompleteEnabled jest włączone."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
@@ -5120,7 +5132,7 @@
   },
   {
     "id": "model.user.is_valid.locale.app_error",
-    "translation": "Nieprawidłowa rola"
+    "translation": "Nieprawidłowe ustawienia regionalne"
   },
   {
     "id": "model.user.is_valid.nickname.app_error",
@@ -5132,7 +5144,7 @@
   },
   {
     "id": "model.user.is_valid.position.app_error",
-    "translation": "Nieprawidłowa pozycja: nie może być dłuższa niż 35 znaków."
+    "translation": "Nieprawidłowa pozycja: nie może być dłuższa niż 128 znaków."
   },
   {
     "id": "model.user.is_valid.pwd.app_error",
@@ -5236,7 +5248,7 @@
   },
   {
     "id": "plugin.api.get_users_in_channel",
-    "translation": "Unable to get the users, invalid sorting criteria"
+    "translation": "Nie udało się pobrać użytkowników, nieprawidłowe kryteria sortowania"
   },
   {
     "id": "plugin.api.update_user_status.bad_status",
@@ -5244,7 +5256,7 @@
   },
   {
     "id": "plugin_api.bot_cant_create_bot",
-    "translation": "Bot user cannot create bot user."
+    "translation": "Konto bota nie może utworzyć innego bota."
   },
   {
     "id": "plugin_api.get_file_link.disabled.app_error",
@@ -5276,7 +5288,7 @@
   },
   {
     "id": "store.sql.build_query.app_error",
-    "translation": "Nie udało się zbudować zapytania"
+    "translation": "nie udało się zbudować zapytania"
   },
   {
     "id": "store.sql.convert_string_array",
@@ -5380,11 +5392,11 @@
   },
   {
     "id": "store.sql_channel.get_all_channels.get.app_error",
-    "translation": "Nie można pobrać wszystkich kanałów"
+    "translation": "Nie można uzyskać wszystkich kanałów"
   },
   {
     "id": "store.sql_channel.get_all_direct.app_error",
-    "translation": "Nie można pobrać wszystkich kanałów"
+    "translation": "Nie można uzyskać wszystkich kanałów bezpośrednich"
   },
   {
     "id": "store.sql_channel.get_by_name.existing.app_error",
@@ -5416,7 +5428,7 @@
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.app_error",
-    "translation": "Nie można pobrać kanałów"
+    "translation": "Nie można uzyskać kanałów według identyfikatorów"
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.get.app_error",
@@ -5872,7 +5884,7 @@
   },
   {
     "id": "store.sql_group.app_error",
-    "translation": "Nie udało się zbudować zapytania"
+    "translation": "nie udało się zbudować zapytania"
   },
   {
     "id": "store.sql_group.group_syncable_already_deleted",
@@ -5936,11 +5948,11 @@
   },
   {
     "id": "store.sql_link_metadata.get.app_error",
-    "translation": "Unable to get the link metadata"
+    "translation": "Nie można uzyskać metadanych linku"
   },
   {
     "id": "store.sql_link_metadata.save.app_error",
-    "translation": "Unable to save the link metadata"
+    "translation": "Nie można zapisać metadanych linku"
   },
   {
     "id": "store.sql_oauth.delete.commit_transaction.app_error",
@@ -6048,7 +6060,7 @@
   },
   {
     "id": "store.sql_plugin_store.list.app_error",
-    "translation": "Unable to list all the plugin keys"
+    "translation": "Nie można wyświetlić wszystkich kluczy wtyczek"
   },
   {
     "id": "store.sql_plugin_store.save.app_error",
@@ -6708,7 +6720,7 @@
   },
   {
     "id": "store.sql_user.count.app_error",
-    "translation": "UserCountOptions don't make sense"
+    "translation": "UserCountOptions nie mają sensu"
   },
   {
     "id": "store.sql_user.get.app_error",

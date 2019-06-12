@@ -924,7 +924,7 @@
   },
   {
     "id": "api.command_remove.group_constrained_user_denied",
-    "translation": "用户不能从此频道移除因为他们属于连接到此频道的组。如果想从此频道移除他们，必须从连接的组里移除。"
+    "translation": "用户不能从此频道移除因为他们属于连接到此频道的组。如果想从此频道移除他们，必须从连动组里移除。"
   },
   {
     "id": "api.command_remove.hint",
@@ -1474,11 +1474,11 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
-    "translation": "@{{.Usernames}} 以及 @{{.LastUsername}} 未被通知因为他们不在此频道。他们未能被添加到频道因为他们不是连接组的成员。他们必须添加到连接组才能添加到此频道。"
+    "translation": "@{{.Usernames}} 以及 @{{.LastUsername}} 未被通知因为他们不在此频道。他们未能被添加到频道因为他们不是连动组的成员。他们必须添加到连动组才能添加到此频道。"
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.one",
-    "translation": "@{{.Username}} 未被通知因为他不在此频道。他们未能被添加到频道因为他们不是连接组的成员。他们必须添加到连接组才能添加到此频道。"
+    "translation": "@{{.Username}} 未被通知因为他不在此频道。他们未能被添加到频道因为他们不是连动组的成员。他们必须添加到连动组才能添加到此频道。"
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
@@ -1900,7 +1900,7 @@
   },
   {
     "id": "api.team.remove_member.group_constrained.app_error",
-    "translation": "无法从组受限频道移除用户。"
+    "translation": "无法从组受限团队移除用户。"
   },
   {
     "id": "api.team.remove_team_icon.get_team.app_error",
@@ -1972,7 +1972,7 @@
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
-    "translation": "无效的频道成员更新：用户不能同时为游客和用户。"
+    "translation": "无效的团队成员更新：用户不能同时为游客和用户。"
   },
   {
     "id": "api.team.update_team_scheme.license.error",
@@ -2375,8 +2375,20 @@
     "translation": "您的帐号因被停用而登入失败。请联系系统管理员。"
   },
   {
-    "id": "api.user.login.invalid_credentials",
-    "translation": "用户ID或密码错误。"
+    "id": "api.user.login.invalid_credentials_email",
+    "translation": "Enter a valid email and/or password"
+  },
+  {
+    "id": "api.user.login.invalid_credentials_email_username",
+    "translation": "Enter a valid email or username and/or password."
+  },
+  {
+    "id": "api.user.login.invalid_credentials_sso",
+    "translation": "Enter a valid email or username and/or password, or sign in using another method.\n"
+  },
+  {
+    "id": "api.user.login.invalid_credentials_username",
+    "translation": "Enter a valid username and/or password."
   },
   {
     "id": "api.user.login.not_verified.app_error",
@@ -3120,19 +3132,19 @@
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_email_interval.error",
-    "translation": "Invalid email batching interval setting for User"
+    "translation": "无效的用户邮件批量间隔设定"
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_feature_markdown_preview.error",
-    "translation": "Invalid markdown preview setting for User"
+    "translation": "无效的用户 markdown 预览设定"
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_formatting.error",
-    "translation": "Invalid post formatting setting for User"
+    "translation": "无效的用户消息格式设定"
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_show_unread_section.error",
-    "translation": "Invalid show unread section setting for User"
+    "translation": "无效的用户显示未读块设定"
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_and_password.error",
@@ -3392,11 +3404,11 @@
   },
   {
     "id": "app.team.invite_id.group_constrained.error",
-    "translation": "Unable to join a group-constrained team by invite."
+    "translation": "无法以邀请加入组受限团队。"
   },
   {
     "id": "app.team.invite_token.group_constrained.error",
-    "translation": "Unable to join a group-constrained team by token."
+    "translation": "无法以令牌加入组受限团队。"
   },
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",

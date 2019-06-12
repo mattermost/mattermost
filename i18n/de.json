@@ -69,7 +69,7 @@
   },
   {
     "id": "api.admin.delete_brand_image.storage.not_found",
-    "translation": "Unable to delete brand image, not found."
+    "translation": "Konnte Markenbild kann nicht löschen, es wurde nicht gefunden."
   },
   {
     "id": "api.admin.file_read_error",
@@ -125,15 +125,15 @@
   },
   {
     "id": "api.admin.upload_brand_image.storage.app_error",
-    "translation": "Foto konnte nicht hochgeladen werden. Fotospeicherort ist nicht eingerichtet."
+    "translation": "Konnte Foto nicht hochladen. Fotospeicherort ist nicht eingerichtet."
   },
   {
     "id": "api.admin.upload_brand_image.too_large.app_error",
-    "translation": "Dateiupload nicht möglich. Datei ist zu groß."
+    "translation": "Konnte Datei nicht hochladen. Datei ist zu groß."
   },
   {
     "id": "api.bot.create_disabled",
-    "translation": "Bot creation has been disabled."
+    "translation": "Bot-Erstellung wurde deaktiviert."
   },
   {
     "id": "api.channel.add_member.added",
@@ -141,11 +141,11 @@
   },
   {
     "id": "api.channel.add_members.error",
-    "translation": "Error adding channel member(s)."
+    "translation": "Fehler beim Hinzufügen von Kanalmitglied(ern)."
   },
   {
     "id": "api.channel.add_members.user_denied",
-    "translation": "Channel membership denied to the following users because of group constraints: {{ .UserIDs }}"
+    "translation": "Kanalzugehörigkeit, die den folgenden Benutzern aufgrund von Gruppenbeschränkungen verweigert wird: {{ .UserIDs }}"
   },
   {
     "id": "api.channel.add_user.to.channel.failed.app_error",
@@ -185,7 +185,7 @@
   },
   {
     "id": "api.channel.create_channel.max_channel_limit.app_error",
-    "translation": "Es können nicht mehr als {{.MaxChannelsPerTeam}} Kanäle für das aktuelle Team erstellt werden."
+    "translation": "Konnte nicht mehr als {{.MaxChannelsPerTeam}} Kanäle für das aktuelle Team erstellen."
   },
   {
     "id": "api.channel.create_default_channels.off_topic",
@@ -213,7 +213,7 @@
   },
   {
     "id": "api.channel.delete_channel.cannot.app_error",
-    "translation": "Der Standardkanal {{.Channel}} kann nicht gelöscht werden."
+    "translation": "Konnte den Standardkanal {{.Channel}} nicht löschen."
   },
   {
     "id": "api.channel.delete_channel.deleted.app_error",
@@ -221,7 +221,7 @@
   },
   {
     "id": "api.channel.delete_channel.type.invalid",
-    "translation": "Kann Direkt- oder Gruppen-Nachrichtenkanäle nicht löschen."
+    "translation": "Konnte Direkt- oder Gruppen-Nachrichtenkanäle nicht löschen."
   },
   {
     "id": "api.channel.join_channel.permissions.app_error",
@@ -233,11 +233,11 @@
   },
   {
     "id": "api.channel.leave.default.app_error",
-    "translation": "Der Standardkanal {{.Channel}} kann nicht verlassen werden."
+    "translation": "Konnte den Standardkanal {{.Channel}} nicht verlassen."
   },
   {
     "id": "api.channel.leave.direct.app_error",
-    "translation": "Ein Direktnachrichtenkanal kann nicht verlassen werden."
+    "translation": "Konnte einen Direktnachrichtenkanal nicht verlassen."
   },
   {
     "id": "api.channel.leave.last_member.app_error",
@@ -293,15 +293,15 @@
   },
   {
     "id": "api.channel.remove.default.app_error",
-    "translation": "Der Benutzer kann nicht aus dem Standardkanal {{.Channel}} entfernt werden."
+    "translation": "Konnte den Benutzer kann nicht aus dem Standardkanal {{.Channel}} entfernten."
   },
   {
     "id": "api.channel.remove_channel_member.type.app_error",
-    "translation": "Der Benutzer kann nicht aus dem Kanal entfernt werden."
+    "translation": "Konnte den Benutzer nicht aus dem Kanal entfernen."
   },
   {
     "id": "api.channel.remove_member.group_constrained.app_error",
-    "translation": "Unable to remove a user from a group-constrained channel."
+    "translation": "Konnte einen Benutzer nicht aus einem gruppenbeschränkten Kanal entfernen."
   },
   {
     "id": "api.channel.remove_member.removed",
@@ -309,11 +309,11 @@
   },
   {
     "id": "api.channel.remove_members.denied",
-    "translation": "Channel membership removal denied to the following users because of group constraints: {{ .UserIDs }}"
+    "translation": "Entfernen der Kanalzugehörigkeit, die den folgenden Benutzern aufgrund von Gruppenbeschränkungen verweigert wird: {{ .UserIDs }}"
   },
   {
     "id": "api.channel.remove_user_from_channel.app_error",
-    "translation": "Der Benutzer konnte diesem Kanaltyp nicht hinzugefügt werden."
+    "translation": "Der Benutzer konnte nicht aus diesem Kanaltyp entfernt werden."
   },
   {
     "id": "api.channel.rename_channel.cant_rename_direct_messages.app_error",
@@ -333,11 +333,11 @@
   },
   {
     "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
-    "translation": "Invalid channel member update: You can't add or remove the guest role manually"
+    "translation": "Ungültige Aktualisierung von Kanalmitglied: Sie können die Gastrolle nicht manuell hinzufügen oder entfernen."
   },
   {
     "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
-    "translation": "Invalid channel member update: A user must be a guest or a user but not both."
+    "translation": "Ungültige Aktualisierung von Kanalmitglied: Ein Benutzer muss ein Gast oder ein Benutzer sein, aber nicht beides."
   },
   {
     "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
@@ -353,7 +353,7 @@
   },
   {
     "id": "api.channel.update_team_member_roles.changing_guest_role.app_error",
-    "translation": "Invalid team member update: You can't add or remove the guest role manually"
+    "translation": "Ungültige Aktualisierung von Teammitglied: Sie können die Gastrolle nicht manuell hinzufügen oder entfernen."
   },
   {
     "id": "api.channel.update_team_member_roles.scheme_role.app_error",
@@ -441,7 +441,7 @@
   },
   {
     "id": "api.command.team_mismatch.app_error",
-    "translation": "Befehle können nicht über Teams hinweg aktualisiert werden."
+    "translation": "Konnte Befehle nicht über Teams hinweg aktualisieren."
   },
   {
     "id": "api.command_away.desc",
@@ -469,7 +469,7 @@
   },
   {
     "id": "api.command_channel_header.message.app_error",
-    "translation": "Der Befehl /überschrift muss Text beinhalten."
+    "translation": "Der Befehl /header muss Text beinhalten."
   },
   {
     "id": "api.command_channel_header.name",
@@ -493,7 +493,7 @@
   },
   {
     "id": "api.command_channel_purpose.direct_group.app_error",
-    "translation": "Kann Kanalzweck nicht für Direktnachrichten setzen. Benutzen Sie stattdessen /überschrift, um den Kanalzweck zu setzen."
+    "translation": "Konnte Kanalzweck nicht für Direktnachrichten setzen. Benutzen Sie stattdessen /header, um den Kanalzweck zu setzen."
   },
   {
     "id": "api.command_channel_purpose.hint",
@@ -529,7 +529,7 @@
   },
   {
     "id": "api.command_channel_rename.direct_group.app_error",
-    "translation": "Direktnachrichtenkanäle können nicht umbenannt werden."
+    "translation": "Konnte Direktnachrichtenkanäle nicht umbenennen."
   },
   {
     "id": "api.command_channel_rename.hint",
@@ -716,7 +716,7 @@
   },
   {
     "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "User cannot be added to this channel because it is constrained to group members only."
+    "translation": "Ein Benutzer kann diesem Kanal nicht hinzugefügt werden, da er nur für Gruppenmitglieder bestimmt ist."
   },
   {
     "id": "api.command_invite.hint",
@@ -836,7 +836,7 @@
   },
   {
     "id": "api.command_msg.missing.app_error",
-    "translation": "Benutzer konnte nicht gefunden werden."
+    "translation": "Konnte Benutzer nicht finden."
   },
   {
     "id": "api.command_msg.name",
@@ -924,7 +924,7 @@
   },
   {
     "id": "api.command_remove.group_constrained_user_denied",
-    "translation": "User cannot be removed from the channel by you because they are a member of the groups linked to this channel. To remove them from this channel, they must be removed from the linked groups."
+    "translation": "Der Benutzer kann von ihnen nicht aus dem Kanal entfernt werden, da er Mitglied der mit diesem Kanal verknüpften Gruppen ist. Um ihn aus diesem Kanal zu entfernen, muss er aus den verknüpften Gruppen entfernt werden."
   },
   {
     "id": "api.command_remove.hint",
@@ -1098,7 +1098,7 @@
   },
   {
     "id": "api.emoji.create.duplicate.app_error",
-    "translation": "Das Emoji kann nicht erstellt werden. Ein anderes Emoji mit dem selben Namen existiert bereits."
+    "translation": "Konnte Emoji nicht erstellen. Ein anderes Emoji mit dem selben Namen existiert bereits."
   },
   {
     "id": "api.emoji.create.other_user.app_error",
@@ -1106,11 +1106,11 @@
   },
   {
     "id": "api.emoji.create.parse.app_error",
-    "translation": "Das Emoji kann nicht erstellt werden. Die Anfrage war nicht verständlich."
+    "translation": "Konnte Emoji nicht erstellten. Die Anfrage war nicht verständlich."
   },
   {
     "id": "api.emoji.create.too_large.app_error",
-    "translation": "Das Emoji konnte nicht erstellt werden. Das Bild muss kleiner als 1 MB sein."
+    "translation": "Konnte Emoji nicht erstellen. Das Bild muss kleiner als 1 MB sein."
   },
   {
     "id": "api.emoji.disabled.app_error",
@@ -1118,11 +1118,11 @@
   },
   {
     "id": "api.emoji.get_image.decode.app_error",
-    "translation": "Die Bilddatei für das Emoji kann nicht dekodiert werden."
+    "translation": "Konnte die Bilddatei für das Emoji nicht dekodieren."
   },
   {
     "id": "api.emoji.get_image.read.app_error",
-    "translation": "Die Bilddatei für das Emoji kann nicht gelesen werden."
+    "translation": "Konnte die Bilddatei für das Emoji nicht lesen."
   },
   {
     "id": "api.emoji.storage.app_error",
@@ -1130,7 +1130,7 @@
   },
   {
     "id": "api.emoji.upload.image.app_error",
-    "translation": "Das Emoji kann nicht erstellt werden. Die Datei muss vom Typ PNG, JPEG oder GIF sein."
+    "translation": "Konnte Emoji nicht erstellen. Die Datei muss vom Typ PNG, JPEG oder GIF sein."
   },
   {
     "id": "api.emoji.upload.large_image.decode_error",
@@ -1162,11 +1162,11 @@
   },
   {
     "id": "api.file.file_exists.exists_local.app_error",
-    "translation": "Es konnte nicht geprüft werden, ob die Datei existiert."
+    "translation": "Konnte nicht prüfen, ob die Datei existiert."
   },
   {
     "id": "api.file.file_exists.s3.app_error",
-    "translation": "Es konnte nicht geprüft werden, ob die Datei existiert."
+    "translation": "Konnte nicht prüfen, ob die Datei existiert."
   },
   {
     "id": "api.file.get_file.public_invalid.app_error",
@@ -1186,19 +1186,19 @@
   },
   {
     "id": "api.file.get_public_link.no_post.app_error",
-    "translation": "Öffentlicher Link für Datei konnte nicht abgerufen werden. Datei muss an einen Beitrag angehängt sein, der vom aktuellen Benutzer gelesen werden kann."
+    "translation": "Konnte öffentlichen Link für Datei nicht abrufen. Datei muss an einen Beitrag angehängt sein, der vom aktuellen Benutzer gelesen werden kann."
   },
   {
     "id": "api.file.move_file.copy_within_s3.app_error",
-    "translation": "Kopieren der Datei innerhalb von S3 fehlgeschlagen."
+    "translation": "Konnte Datei nicht innerhalb von S3 kopieren."
   },
   {
     "id": "api.file.move_file.delete_from_s3.app_error",
-    "translation": "Die Datei von S3 kann nicht gelöscht werden."
+    "translation": "Konnte Datei nicht von S3 löschen."
   },
   {
     "id": "api.file.move_file.rename.app_error",
-    "translation": "Die Datei kann lokal nicht verschoben werden."
+    "translation": "Konnte Datei nicht lokal verschieben."
   },
   {
     "id": "api.file.no_driver.app_error",
@@ -1270,11 +1270,11 @@
   },
   {
     "id": "api.file.upload_file.storage.app_error",
-    "translation": "Die Datei kann nicht hochgeladen werden. Ein Foto Speicherort ist nicht eingerichtet."
+    "translation": "Konnte die Datei nicht hochladen. Ein Fotospeicherort ist nicht eingerichtet."
   },
   {
     "id": "api.file.upload_file.too_large.app_error",
-    "translation": "Dateiupload nicht möglich. Datei ist zu groß."
+    "translation": "Konnte Datei nicht hochladen. Datei ist zu groß."
   },
   {
     "id": "api.file.upload_file.too_large_detailed.app_error",
@@ -1474,19 +1474,19 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
-    "translation": "@{{.Usernames}} and @{{.LastUsername}} did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups."
+    "translation": "@{{.Usernames}} und @{{.LastUsername}} wurden durch diese Erwähnung nicht benachrichtigt, da sie sich nicht im Kanal befinden. Sie können dem Kanal nicht hinzugefügt werden, da sie nicht Mitglied der verknüpften Gruppen sind. Um sie zu diesem Kanal hinzuzufügen, müssen sie zu den verknüpften Gruppen hinzugefügt werden."
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.one",
-    "translation": "@{{.Username}} did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups."
+    "translation": "@{{.Username}}} wurde durch diese Erwähnung nicht benachrichtigt, da sich der Benutzer nicht im Kanal befindet. Er kann dem Kanal nicht hinzugefügt werden, da er nicht Mitglied der verknüpften Gruppen ist. Um ihn zu diesem Kanal hinzuzufügen, muss er zu den verknüpften Gruppen hinzugefügt werden."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.multiple",
-    "translation": "@{{.Usernames}} and @{{.LastUsername}} did not get notified by this mention because they are not in the channel."
+    "translation": "@{{.Usernames}}} und @{{.LastUsername}} wurden durch diese Erwähnung nicht benachrichtigt, da sie sich nicht im Kanal befinden."
   },
   {
     "id": "api.post.check_for_out_of_channel_mentions.message.one",
-    "translation": "@{{.Username}} did not get notified by this mention because they are not in the channel."
+    "translation": "@{{.Username}} wurde durch diese Erwähnung nicht benachrichtigt, da sich der Benutzer nicht im Kanal befindet."
   },
   {
     "id": "api.post.create_post.can_not_post_to_deleted.error",
@@ -1604,7 +1604,7 @@
   },
   {
     "id": "api.post.update_post.find.app_error",
-    "translation": "Die bestehende Nachricht oder der bestehende Kommentar konnte nicht zur Aktualisierung gefunden werden."
+    "translation": "Konnte die bestehende Nachricht oder den bestehenden Kommentar nicht zur Aktualisierung finden."
   },
   {
     "id": "api.post.update_post.permissions_details.app_error",
@@ -1636,11 +1636,11 @@
   },
   {
     "id": "api.push_notification.disabled.app_error",
-    "translation": "Push Notifications are disabled on this server."
+    "translation": "Push-Benachrichtigungen sind auf diesem Server deaktiviert."
   },
   {
     "id": "api.push_notifications_ack.forward.app_error",
-    "translation": "An error occurred sending the receipt delivery to the push notification service"
+    "translation": "Es ist ein Fehler beim Senden der Quittungslieferung an den Push-Benachrichtigungsdienst aufgetreten."
   },
   {
     "id": "api.reaction.delete.archived_channel.app_error",
@@ -1784,7 +1784,7 @@
   },
   {
     "id": "api.slackimport.slack_import.team_fail",
-    "translation": "Fehler beim Abruf des Teams, in das importiert werden soll.\r\n"
+    "translation": "Konnte Team nicht abrufen, in das importiert werden soll.\r\n"
   },
   {
     "id": "api.slackimport.slack_import.zip.app_error",
@@ -1796,11 +1796,11 @@
   },
   {
     "id": "api.team.add_members.error",
-    "translation": "Error adding team member(s)."
+    "translation": "Fehler beim Hinzufügen von Teammitglied(ern)."
   },
   {
     "id": "api.team.add_members.user_denied",
-    "translation": "Team membership denied to the following users because of group constraints: {{ .UserIDs }}"
+    "translation": "Teammitgliedschaft folgenden Benutzern aufgrund von Gruppenbeschränkungen verweigert: {{ .UserIDs }}"
   },
   {
     "id": "api.team.add_user_to_team.added",
@@ -1900,7 +1900,7 @@
   },
   {
     "id": "api.team.remove_member.group_constrained.app_error",
-    "translation": "Unable to remove a user from a group-constrained team."
+    "translation": "Konnte Benutzer nicht aus einem gruppenbeschränkten Team entfernen."
   },
   {
     "id": "api.team.remove_team_icon.get_team.app_error",
@@ -1948,11 +1948,11 @@
   },
   {
     "id": "api.team.set_team_icon.storage.app_error",
-    "translation": "Das Teamsymbol kann nicht hochgeladen werden. Ein Foto-Speicherort ist nicht konfiguriert."
+    "translation": "Konnte das Teamsymbol nicht hochladen. Ein Fotospeicherort ist nicht konfiguriert."
   },
   {
     "id": "api.team.set_team_icon.too_large.app_error",
-    "translation": "Kann Teamsymbol nicht hochladen. Datei ist zu groß."
+    "translation": "Konnte Teamsymbol nicht hochladen. Datei ist zu groß."
   },
   {
     "id": "api.team.set_team_icon.write_file.app_error",
@@ -1972,7 +1972,7 @@
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
-    "translation": "Invalid team member update: A user must be a guest or a user but not both."
+    "translation": "Ungültige Aktualisierung von Teammitglied: Ein Benutzer muss ein Gast oder ein Benutzer sein, aber nicht beides."
   },
   {
     "id": "api.team.update_team_scheme.license.error",
@@ -2292,7 +2292,7 @@
   },
   {
     "id": "api.user.create_password_token.error",
-    "translation": "Unable to create password recovery token"
+    "translation": "Konnte Kennwortwiederherstellungs-Token nicht erstellen."
   },
   {
     "id": "api.user.create_profile_image.default_font.app_error",
@@ -2375,8 +2375,20 @@
     "translation": "Anmeldung nicht möglich, weil ihr Konto deaktiviert wurde.  Bitte wenden Sie sich an einen Administrator."
   },
   {
-    "id": "api.user.login.invalid_credentials",
-    "translation": "Benutzername oder Passwort inkorrekt."
+    "id": "api.user.login.invalid_credentials_email",
+    "translation": "Enter a valid email and/or password"
+  },
+  {
+    "id": "api.user.login.invalid_credentials_email_username",
+    "translation": "Enter a valid email or username and/or password."
+  },
+  {
+    "id": "api.user.login.invalid_credentials_sso",
+    "translation": "Enter a valid email or username and/or password, or sign in using another method.\n"
+  },
+  {
+    "id": "api.user.login.invalid_credentials_username",
+    "translation": "Enter a valid username and/or password."
   },
   {
     "id": "api.user.login.not_verified.app_error",
@@ -2428,11 +2440,11 @@
   },
   {
     "id": "api.user.reset_password.sso.app_error",
-    "translation": "Kann Passwort für SSO-Konten nicht zurücksetzen"
+    "translation": "Konnte Passwort für SSO-Konten nicht zurücksetzen"
   },
   {
     "id": "api.user.reset_password.token_parse.error",
-    "translation": "Unable to parse the reset password token"
+    "translation": "Konnte Passwortrücksetzungs-Token nicht verarbeiten."
   },
   {
     "id": "api.user.saml.not_available.app_error",
@@ -2468,7 +2480,7 @@
   },
   {
     "id": "api.user.send_password_reset.sso.app_error",
-    "translation": "Kann Passwort für SSO-Konten nicht zurücksetzen"
+    "translation": "Konnte Passwort für SSO-Konten nicht zurücksetzen"
   },
   {
     "id": "api.user.send_sign_in_change_email_and_forget.error",
@@ -2552,11 +2564,11 @@
   },
   {
     "id": "api.user.upload_profile_user.storage.app_error",
-    "translation": "Die Datei kann nicht hochgeladen werden. Ein Foto-Speicherort ist nicht eingerichtet."
+    "translation": "Konnte die Datei nicht hochladen. Ein Fotospeicherort ist nicht eingerichtet."
   },
   {
     "id": "api.user.upload_profile_user.too_large.app_error",
-    "translation": "Dateiupload nicht möglich. Datei ist zu groß."
+    "translation": "Konnte Datei nicht hochladen. Datei ist zu groß."
   },
   {
     "id": "api.user.upload_profile_user.upload_profile.app_error",
@@ -2620,7 +2632,7 @@
   },
   {
     "id": "api.webhook.team_mismatch.app_error",
-    "translation": "Kann Webhooks nicht über Teams hinweg aktualisieren."
+    "translation": "Konnte Webhooks nicht über Teams hinweg aktualisieren."
   },
   {
     "id": "api.webhook.update_outgoing.intersect.app_error",
@@ -2640,7 +2652,7 @@
   },
   {
     "id": "app.channel.move_channel.members_do_not_match.error",
-    "translation": "Kann einen Kanal nicht bewegen, bis alle Mitglieder auch Mitglieder im Ziel-Team sind."
+    "translation": "Konnte einen Kanal nicht bewegen, bis alle Mitglieder auch Mitglieder im Ziel-Team sind."
   },
   {
     "id": "app.channel.post_update_channel_purpose_message.post.error",
@@ -2668,7 +2680,7 @@
   },
   {
     "id": "app.export.export_custom_emoji.copy_emoji_images.error",
-    "translation": "Unable to copy custom emoji images"
+    "translation": "Konnte benutzerdefinierte Emoji-Bilder nicht kopieren."
   },
   {
     "id": "app.export.export_write_line.io_writer.error",
@@ -2704,7 +2716,7 @@
   },
   {
     "id": "app.import.import_channel.scheme_deleted.error",
-    "translation": "Kann einem Kanal keine gelöschtes Schema zuweisen."
+    "translation": "Konnte einem Kanal keine gelöschtes Schema zuweisen."
   },
   {
     "id": "app.import.import_channel.scheme_wrong_scope.error",
@@ -2808,7 +2820,7 @@
   },
   {
     "id": "app.import.import_team.scheme_deleted.error",
-    "translation": "Kann einem Team kein gelöschtes Schema zuweisen."
+    "translation": "Konnte einem Team kein gelöschtes Schema zuweisen."
   },
   {
     "id": "app.import.import_team.scheme_wrong_scope.error",
@@ -2824,7 +2836,7 @@
   },
   {
     "id": "app.import.import_user_teams.save_preferences.error",
-    "translation": "Unable to save the team theme preferences"
+    "translation": "Konnte die Einstellungen für das Teammotiv nicht speichern."
   },
   {
     "id": "app.import.process_import_data_file_version_line.invalid_version.error",
@@ -3120,19 +3132,19 @@
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_email_interval.error",
-    "translation": "Invalid email batching interval setting for User"
+    "translation": "Ungültige Einstellung des E-Mail-Stapelverarbeitungs-Intervalls für Benutzer."
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_feature_markdown_preview.error",
-    "translation": "Invalid markdown preview setting for User"
+    "translation": "Ungültige Einstellung der Markdown-Vorschau für Benutzer."
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_formatting.error",
-    "translation": "Invalid post formatting setting for User"
+    "translation": "Ungültige Einstellung der Nachrichtenformatierung für Benutzer."
   },
   {
     "id": "app.import.validate_user_import_data.advanced_props_show_unread_section.error",
-    "translation": "Invalid show unread section setting for User"
+    "translation": "Ungültige Einstellung des Zeige-Ungelesene-Bereichs für Benutzer."
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_and_password.error",
@@ -3220,7 +3232,7 @@
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_team_theme.error",
-    "translation": "Invalid team theme for the User"
+    "translation": "Ungültige Einstellung des Team-Motivs für Benutzer."
   },
   {
     "id": "app.import.validate_user_teams_import_data.team_name_missing.error",
@@ -3392,11 +3404,11 @@
   },
   {
     "id": "app.team.invite_id.group_constrained.error",
-    "translation": "Unable to join a group-constrained team by invite."
+    "translation": "Konnte einem gruppenbeschränkten Team durch Einladung nicht beitreten."
   },
   {
     "id": "app.team.invite_token.group_constrained.error",
-    "translation": "Unable to join a group-constrained team by token."
+    "translation": "Konnte einem gruppenbeschränkten Team durch Token nicht beitreten."
   },
   {
     "id": "app.team.join_user_to_team.max_accounts.app_error",
@@ -3404,7 +3416,7 @@
   },
   {
     "id": "app.team.rename_team.name_occupied",
-    "translation": "Unable to rename the team, the name is already in use"
+    "translation": "Konnte Team nicht umbenennen, der Name wird bereits verwendet."
   },
   {
     "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
@@ -3548,15 +3560,15 @@
   },
   {
     "id": "ent.elasticsearch.create_template_channels_if_not_exists.template_create_failed",
-    "translation": "Failed to create Elasticsearch template for channels"
+    "translation": "Fehler bei Erstellung der Elasticsearch-Vorlage für Kanäle."
   },
   {
     "id": "ent.elasticsearch.create_template_posts_if_not_exists.template_create_failed",
-    "translation": "Failed to create Elasticsearch template for posts"
+    "translation": "Fehler bei Erstellung der Elasticsearch-Vorlage für Nachrichten."
   },
   {
     "id": "ent.elasticsearch.create_template_users_if_not_exists.template_create_failed",
-    "translation": "Failed to create Elasticsearch template for users"
+    "translation": "Fehler bei Erstellung der Elasticsearch-Vorlage für Benutzer."
   },
   {
     "id": "ent.elasticsearch.data_retention_delete_indexes.delete_index.error",
@@ -3568,7 +3580,7 @@
   },
   {
     "id": "ent.elasticsearch.delete_channel.error",
-    "translation": "Konnte den Kanal nicht aktualisieren."
+    "translation": "Fehler beim Löschen des Kanals."
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
@@ -3576,7 +3588,7 @@
   },
   {
     "id": "ent.elasticsearch.delete_user.error",
-    "translation": "Löschen der Nachricht fehlgeschlagen"
+    "translation": "Fehler beim Löschen des Benutzers."
   },
   {
     "id": "ent.elasticsearch.generic.disabled",
@@ -3584,7 +3596,7 @@
   },
   {
     "id": "ent.elasticsearch.index_channel.error",
-    "translation": "Konnte den Kanal nicht aktualisieren."
+    "translation": "Fehler beim Indizieren des Kanals."
   },
   {
     "id": "ent.elasticsearch.index_post.error",
@@ -3592,7 +3604,7 @@
   },
   {
     "id": "ent.elasticsearch.index_user.error",
-    "translation": "Indizierung der Nachricht fehlgeschlagen"
+    "translation": "Fehler beim Indizieren der Benutzer."
   },
   {
     "id": "ent.elasticsearch.indexer.do_job.get_oldest_post.error",
@@ -3620,15 +3632,15 @@
   },
   {
     "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": "ElasticSearch-Suche ist auf diesem Server deaktiviert"
+    "translation": "ElasticSearch-Suche ist auf diesem Server deaktiviert."
   },
   {
     "id": "ent.elasticsearch.search_channels.search_failed",
-    "translation": "Suche konnte nicht abgeschlossen werden"
+    "translation": "Suche konnte nicht abgeschlossen werden."
   },
   {
     "id": "ent.elasticsearch.search_channels.unmarshall_channel_failed",
-    "translation": "Konnte Suchergebnisse nicht dekodieren"
+    "translation": "Fehler beim dekodieren der Suchergebnisse."
   },
   {
     "id": "ent.elasticsearch.search_posts.disabled",
@@ -3648,11 +3660,11 @@
   },
   {
     "id": "ent.elasticsearch.search_users.search_failed",
-    "translation": "Suche konnte nicht abgeschlossen werden"
+    "translation": "Suche konnte nicht abgeschlossen werden."
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
-    "translation": "Konnte Suchergebnisse nicht dekodieren"
+    "translation": "Fehler beim dekodieren der Suchergebnisse."
   },
   {
     "id": "ent.elasticsearch.start.already_started.app_error",
@@ -3700,7 +3712,7 @@
   },
   {
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
-    "translation": "Bind zum AD/LDAP-Server nicht möglich. Überprüfen Sie BindUsername und BindPassword."
+    "translation": "Konnte Bind zum AD/LDAP-Server nicht herstellen. Überprüfen Sie BindUsername und BindPassword."
   },
   {
     "id": "ent.ldap.do_login.invalid_password.app_error",
@@ -3720,7 +3732,7 @@
   },
   {
     "id": "ent.ldap.do_login.unable_to_connect.app_error",
-    "translation": "Verbindung zum AD/LDAP-Server nicht möglich"
+    "translation": "Konnte Verbindung zum AD/LDAP-Server nicht aufbauen."
   },
   {
     "id": "ent.ldap.do_login.user_filtered.app_error",
@@ -3732,7 +3744,7 @@
   },
   {
     "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "error deleting team or channel memberships"
+    "translation": "Fehler beim Löschen von Team- oder Kanalmitgliedschaften."
   },
   {
     "id": "ent.ldap.syncronize.get_all.app_error",
@@ -3752,7 +3764,7 @@
   },
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
-    "translation": "Size Limit Exceeded. Try checking your [max page size](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
+    "translation": "Größenbegrenzung überschritten. Überprüfen Sie Ihre [maximale Seitengröße](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
   },
   {
     "id": "ent.ldap.validate_filter.app_error",
@@ -3836,7 +3848,7 @@
   },
   {
     "id": "ent.migration.migratetoldap.user_not_found",
-    "translation": "Kann Benutzer nicht auf AD/LDAP-Server finden: "
+    "translation": "Konnte Benutzer nicht auf AD/LDAP-Server finden: "
   },
   {
     "id": "ent.migration.migratetosaml.email_already_used_by_other_user",
@@ -3912,7 +3924,7 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
-    "translation": "Fehler beim Dekodieren von base64 der Auslöse-ID für interaktiven Dialog."
+    "translation": "Fehler beim Dekodieren von base64-Signatur der Auslöse-ID für interaktiven Dialog."
   },
   {
     "id": "interactive_message.decode_trigger_id.expired",
@@ -3956,7 +3968,7 @@
   },
   {
     "id": "manaultesting.manual_test.parse.app_error",
-    "translation": "Verarbeiten der URL nicht möglich"
+    "translation": "Konnte URL nicht verarbeiten."
   },
   {
     "id": "manaultesting.test_autolink.unable.app_error",
@@ -4296,7 +4308,7 @@
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
-    "translation": "E-Mail-Stapelverarbeitung lässt sich bei aktiviertem Clustering nicht aktivieren."
+    "translation": "Konnte E-Mail-Stapelverarbeitung nicht bei aktiviertem Clustering aktivieren."
   },
   {
     "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
@@ -4328,7 +4340,7 @@
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_autocomplete.app_error",
-    "translation": "ElasticSearch-Einstellung IndexingEnabled muss angegeben sein, wenn Elastic-Search-Indizierung aktiviert ist."
+    "translation": "ElasticSearch-Einstellung IndexingEnabled muss auf wahr gesetzt sein, wenn Elastic-Search-Indizierung aktiviert ist."
   },
   {
     "id": "model.config.is_valid.elastic_search.enable_searching.app_error",
@@ -4548,7 +4560,7 @@
   },
   {
     "id": "model.config.is_valid.site_url_email_batching.app_error",
-    "translation": "E-Mail-Stapelverarbeitung lässt sich nicht aktivieren, wenn SiteURL nicht gesetzt ist."
+    "translation": "Konnte E-Mail-Stapelverarbeitung nicht aktivieren, wenn SiteURL nicht gesetzt ist."
   },
   {
     "id": "model.config.is_valid.sitename_empty.app_error",
@@ -5120,7 +5132,7 @@
   },
   {
     "id": "model.user.is_valid.locale.app_error",
-    "translation": "Ungültige Rolle"
+    "translation": "Ungültiges Gebietsschema"
   },
   {
     "id": "model.user.is_valid.nickname.app_error",
@@ -5128,7 +5140,7 @@
   },
   {
     "id": "model.user.is_valid.password_limit.app_error",
-    "translation": "Aufgrund der Einschränkungen von bcrypt ist es ist nicht möglich, ein Passwort mit mehr als 72 Zeichen zu setzen."
+    "translation": "Konnte aufgrund der Einschränkungen von bcrypt kein Passwort mit mehr als 72 Zeichen setzen."
   },
   {
     "id": "model.user.is_valid.position.app_error",
@@ -5204,7 +5216,7 @@
   },
   {
     "id": "model.user.is_valid.username.app_error",
-    "translation": "Der Benutzername muss mit einem Buchstaben anfangen, zwischen 3 und 22 Zeichen lang sein und darf nur aus Buchstaben, Nummern und den Zeichen \".\", \"-\" und \"_\" bestehen."
+    "translation": "Der Benutzername muss mit einem Buchstaben anfangen, zwischen 3 und 22 Zeichen lang sein und darf nur aus Kleinbuchstaben, Nummern und den Zeichen \".\", \"-\" und \"_\" bestehen."
   },
   {
     "id": "model.user_access_token.is_valid.description.app_error",
@@ -5236,7 +5248,7 @@
   },
   {
     "id": "plugin.api.get_users_in_channel",
-    "translation": "Unable to get the users, invalid sorting criteria"
+    "translation": "Konnte die Benutzer nicht finden, ungültige Sortierkriterien."
   },
   {
     "id": "plugin.api.update_user_status.bad_status",
@@ -5244,7 +5256,7 @@
   },
   {
     "id": "plugin_api.bot_cant_create_bot",
-    "translation": "Bot user cannot create bot user."
+    "translation": "Bot kann keinen Bot-Benutzer erstellen."
   },
   {
     "id": "plugin_api.get_file_link.disabled.app_error",
@@ -5252,7 +5264,7 @@
   },
   {
     "id": "plugin_api.get_file_link.no_post.app_error",
-    "translation": "Öffentlicher Link für Datei konnte nicht abgerufen werden. Datei muss an einen Beitrag angehängt sein, der gelesen werden kann."
+    "translation": "Konnte öffentlichen Link für Datei nicht abrufen. Datei muss an einen Beitrag angehängt sein, der gelesen werden kann."
   },
   {
     "id": "plugin_api.send_mail.missing_htmlbody",
@@ -5340,11 +5352,11 @@
   },
   {
     "id": "store.sql_channel.analytics_deleted_type_count.app_error",
-    "translation": "Die Anzahl der gelöschten Kanaltypen konnte nicht geladen werden."
+    "translation": "Konnte die Anzahl der gelöschten Kanaltypen nicht laden."
   },
   {
     "id": "store.sql_channel.analytics_type_count.app_error",
-    "translation": "Die Anzahl der Kanaltypen konnte nicht geladen werden."
+    "translation": "Konnte die Anzahl der Kanaltypen nicht laden."
   },
   {
     "id": "store.sql_channel.clear_all_custom_role_assignments.commit_transaction.app_error",
@@ -5368,7 +5380,7 @@
   },
   {
     "id": "store.sql_channel.get.existing.app_error",
-    "translation": "Der bestehende Kanal konnte nicht gefunden werden."
+    "translation": "Konnte den bestehende Kanal nicht finden."
   },
   {
     "id": "store.sql_channel.get.find.app_error",
@@ -5384,11 +5396,11 @@
   },
   {
     "id": "store.sql_channel.get_all_direct.app_error",
-    "translation": "Konnte nicht alle Kanäle abrufen."
+    "translation": "Konnte nicht alle Direktnachrichtenkanäle abrufen."
   },
   {
     "id": "store.sql_channel.get_by_name.existing.app_error",
-    "translation": "Der bestehende Kanal konnte nicht gefunden werden."
+    "translation": "Konnte den bestehenden Kanal nicht finden."
   },
   {
     "id": "store.sql_channel.get_by_name.missing.app_error",
@@ -5400,7 +5412,7 @@
   },
   {
     "id": "store.sql_channel.get_channel_counts.get.app_error",
-    "translation": "Die Anzahl der Kanäle konnte nicht geladen werden."
+    "translation": "Konnte die Anzahl der Kanäle nicht laden."
   },
   {
     "id": "store.sql_channel.get_channels.get.app_error",
@@ -5416,7 +5428,7 @@
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.app_error",
-    "translation": "Konnte die Kanäle nicht abrufen."
+    "translation": "Konnte die Kanäle nicht nach IDs abrufen."
   },
   {
     "id": "store.sql_channel.get_channels_by_ids.get.app_error",
@@ -5428,7 +5440,7 @@
   },
   {
     "id": "store.sql_channel.get_deleted.existing.app_error",
-    "translation": "Der bestehende gelöschte Kanal konnte nicht gefunden werden."
+    "translation": "Konnte den bestehenden gelöschte Kanal nicht finden."
   },
   {
     "id": "store.sql_channel.get_deleted.missing.app_error",
@@ -5436,7 +5448,7 @@
   },
   {
     "id": "store.sql_channel.get_deleted_by_name.existing.app_error",
-    "translation": "Der bestehende gelöschte Kanal konnte nicht gefunden werden."
+    "translation": "Konnte den bestehenden gelöschte Kanal nicht finden."
   },
   {
     "id": "store.sql_channel.get_deleted_by_name.missing.app_error",
@@ -5444,7 +5456,7 @@
   },
   {
     "id": "store.sql_channel.get_for_post.app_error",
-    "translation": "Der Kanal für den angegebenen Beitrag konnte nicht abgerufen werden."
+    "translation": "Konnte den Kanal für den angegebenen Beitrag nicht abrufen."
   },
   {
     "id": "store.sql_channel.get_member.app_error",
@@ -5456,11 +5468,11 @@
   },
   {
     "id": "store.sql_channel.get_member_count.app_error",
-    "translation": "Die Anzahl der Kanalmitglieder konnte nicht ermittelt werden."
+    "translation": "Konnte die Anzahl der Kanalmitglieder nicht ermitteln."
   },
   {
     "id": "store.sql_channel.get_member_for_post.app_error",
-    "translation": "Das Kanalmitglied konnte für den angegeben Beitrag nicht abgerufen werden."
+    "translation": "Konnte das Kanalmitglied für den angegeben Beitrag nicht abrufen."
   },
   {
     "id": "store.sql_channel.get_members.app_error",
@@ -5480,7 +5492,7 @@
   },
   {
     "id": "store.sql_channel.get_unread.app_error",
-    "translation": "Die ungelesenen Nachrichten des Kanals konnten nicht abgerufen werden."
+    "translation": "Konnte die ungelesenen Nachrichten des Kanals nicht abrufen."
   },
   {
     "id": "store.sql_channel.increment_mention_count.app_error",
@@ -5568,7 +5580,7 @@
   },
   {
     "id": "store.sql_channel.save.commit_transaction.app_error",
-    "translation": "Konnte die Transaktion nicht ausführen"
+    "translation": "Konnte die Transaktion nicht ausführen."
   },
   {
     "id": "store.sql_channel.save.direct_channel.app_error",
@@ -5576,7 +5588,7 @@
   },
   {
     "id": "store.sql_channel.save.open_transaction.app_error",
-    "translation": "Konnte die Transaktion nicht öffnen"
+    "translation": "Konnte die Transaktion nicht öffnen."
   },
   {
     "id": "store.sql_channel.save.upsert_public_channel.app_error",
@@ -5608,7 +5620,7 @@
   },
   {
     "id": "store.sql_channel.save_direct_channel.add_members.app_error",
-    "translation": "Hinzufügen von Direktkanalmitgliedern nicht möglich"
+    "translation": "Konnte Direktkanalmitgliedern nicht hinzufügen."
   },
   {
     "id": "store.sql_channel.save_direct_channel.commit.app_error",
@@ -5632,7 +5644,7 @@
   },
   {
     "id": "store.sql_channel.save_member.open_transaction.app_error",
-    "translation": "Konnte die Transaktion nicht öffnen"
+    "translation": "Konnte die Transaktion nicht öffnen."
   },
   {
     "id": "store.sql_channel.save_member.save.app_error",
@@ -5688,7 +5700,7 @@
   },
   {
     "id": "store.sql_channel.update_last_viewed_at.app_error",
-    "translation": "Der Zeitpunkt der letzten Betrachtung konnte nicht aktualisiert werden."
+    "translation": "Konnte den Zeitpunkt der letzten Betrachtung nicht aktualisieren."
   },
   {
     "id": "store.sql_channel.update_member.app_error",
@@ -5696,7 +5708,7 @@
   },
   {
     "id": "store.sql_channel.user_belongs_to_channels.app_error",
-    "translation": "Unable to determine if the user belongs to a list of channels"
+    "translation": "Konnte nicht feststellen, ob der Benutzer zu einer Liste von Kanälen gehört."
   },
   {
     "id": "store.sql_channel_member_history.get_users_in_channel_during.app_error",
@@ -5788,7 +5800,7 @@
   },
   {
     "id": "store.sql_command_webhooks.try_use.app_error",
-    "translation": "Kann den Webhook nicht verwenden"
+    "translation": "Konnte den Webhook nicht verwenden."
   },
   {
     "id": "store.sql_command_webhooks.try_use.invalid.app_error",
@@ -5832,15 +5844,15 @@
   },
   {
     "id": "store.sql_file_info.PermanentDeleteByUser.app_error",
-    "translation": "Die Anhänge des Benutzers konnten nicht gelöscht werden."
+    "translation": "Konnte die Anhänge des Benutzers nicht löschen."
   },
   {
     "id": "store.sql_file_info.attach_to_post.app_error",
-    "translation": "Die Dateiinformationen konnten nicht an den Beitrag angehängt werden."
+    "translation": "Konnte die Dateiinformationen nicht an den Beitrag anhängen."
   },
   {
     "id": "store.sql_file_info.delete_for_post.app_error",
-    "translation": "Die Dateiinformationen konnten nicht aus dem Beitrag gelöscht werden."
+    "translation": "Konnte die Dateiinformationen nicht aus dem Beitrag löschen."
   },
   {
     "id": "store.sql_file_info.get.app_error",
@@ -5908,11 +5920,11 @@
   },
   {
     "id": "store.sql_job.get_count_by_status_and_type.app_error",
-    "translation": "Die Anzahl der Jobs konnte nicht über Status und Typ abgerufen werden."
+    "translation": "Konnte die Anzahl der Jobs nicht über Status und Typ abrufen."
   },
   {
     "id": "store.sql_job.get_newest_job_by_status_and_type.app_error",
-    "translation": "Die neuesten Jobs konnten nicht über Status und Typ abgerufen werden."
+    "translation": "Konnte die neuesten Jobs nicht über Status und Typ abrufen."
   },
   {
     "id": "store.sql_job.save.app_error",
@@ -5936,11 +5948,11 @@
   },
   {
     "id": "store.sql_link_metadata.get.app_error",
-    "translation": "Unable to get the link metadata"
+    "translation": "Konnte die Link-Metadaten nicht abrufen."
   },
   {
     "id": "store.sql_link_metadata.save.app_error",
-    "translation": "Unable to save the link metadata"
+    "translation": "Konnte die Link-Metadaten nicht speichern."
   },
   {
     "id": "store.sql_oauth.delete.commit_transaction.app_error",
@@ -6048,7 +6060,7 @@
   },
   {
     "id": "store.sql_plugin_store.list.app_error",
-    "translation": "Unable to list all the plugin keys"
+    "translation": "Konnte nicht alle Plugin-Schlüssel aufzählen."
   },
   {
     "id": "store.sql_plugin_store.save.app_error",
@@ -6080,7 +6092,7 @@
   },
   {
     "id": "store.sql_post.get_direct_posts.app_error",
-    "translation": "Konnte die Nachrichten nicht abrufen."
+    "translation": "Konnte die Direktnachrichten nicht abrufen."
   },
   {
     "id": "store.sql_post.get_flagged_posts.app_error",
@@ -6216,7 +6228,7 @@
   },
   {
     "id": "store.sql_preference.save.open_transaction.app_error",
-    "translation": "Öffnen der Transaktion zum Speichern der Einstellungen nicht möglich"
+    "translation": "Konnte Transaktion zum Speichern der Einstellungen öffnen."
   },
   {
     "id": "store.sql_preference.save.updating.app_error",
@@ -6236,11 +6248,11 @@
   },
   {
     "id": "store.sql_reaction.delete.begin.app_error",
-    "translation": "Konnte Transaktion zum Löschen der Reaktion nicht öffnen"
+    "translation": "Konnte Transaktion zum Löschen der Reaktion nicht öffnen."
   },
   {
     "id": "store.sql_reaction.delete.commit.app_error",
-    "translation": "Konnte Transaktion zum Löschen der Reaktion nicht ausführen"
+    "translation": "Konnte Transaktion zum Löschen der Reaktion nicht ausführen."
   },
   {
     "id": "store.sql_reaction.delete_all_with_emoji_name.delete_reactions.app_error",
@@ -6260,15 +6272,15 @@
   },
   {
     "id": "store.sql_reaction.save.begin.app_error",
-    "translation": "Konnte Transaktion zum Speichern der Reaktion nicht öffnen"
+    "translation": "Konnte Transaktion zum Speichern der Reaktion nicht öffnen."
   },
   {
     "id": "store.sql_reaction.save.commit.app_error",
-    "translation": "Konnte Transaktion zum Speichern der Reaktion nicht ausführen"
+    "translation": "Konnte Transaktion zum Speichern der Reaktion nicht ausführen."
   },
   {
     "id": "store.sql_reaction.save.save.app_error",
-    "translation": "Konnte Reaktion nicht speichern"
+    "translation": "Konnte Reaktion nicht speichern."
   },
   {
     "id": "store.sql_recover.delete.app_error",
@@ -6288,7 +6300,7 @@
   },
   {
     "id": "store.sql_role.delete.update.app_error",
-    "translation": "Konnte die Rolle nicht löschen"
+    "translation": "Konnte die Rolle nicht löschen."
   },
   {
     "id": "store.sql_role.get.app_error",
@@ -6296,7 +6308,7 @@
   },
   {
     "id": "store.sql_role.get_all.app_error",
-    "translation": "Konnte nicht alle Kanäle abrufen."
+    "translation": "Konnte nicht alle Rollen abrufen."
   },
   {
     "id": "store.sql_role.get_by_name.app_error",
@@ -6312,7 +6324,7 @@
   },
   {
     "id": "store.sql_role.save.insert.app_error",
-    "translation": "Konnte die neue Rolle nicht speichern"
+    "translation": "Konnte die neue Rolle nicht speichern."
   },
   {
     "id": "store.sql_role.save.invalid_role.app_error",
@@ -6324,7 +6336,7 @@
   },
   {
     "id": "store.sql_role.save.update.app_error",
-    "translation": "Konnte die Rolle nicht aktualisieren"
+    "translation": "Konnte die Rolle nicht aktualisieren."
   },
   {
     "id": "store.sql_role.save_role.commit_transaction.app_error",
@@ -6332,11 +6344,11 @@
   },
   {
     "id": "store.sql_scheme.delete.role_update.app_error",
-    "translation": "Konnte die zu diesem Schema gehörenden Rollen nicht löschen"
+    "translation": "Konnte die zu diesem Schema gehörenden Rollen nicht löschen."
   },
   {
     "id": "store.sql_scheme.delete.update.app_error",
-    "translation": "Konnte das Schema nicht löschen"
+    "translation": "Konnte das Schema nicht löschen."
   },
   {
     "id": "store.sql_scheme.get.app_error",
@@ -6348,15 +6360,15 @@
   },
   {
     "id": "store.sql_scheme.reset_channels.app_error",
-    "translation": "Konnte nicht alle Kanäle, die dieses Schema verwenden, auf das Standard-Schema zurücksetzen"
+    "translation": "Konnte nicht alle Kanäle, die dieses Schema verwenden, auf das Standard-Schema zurücksetzen."
   },
   {
     "id": "store.sql_scheme.reset_teams.app_error",
-    "translation": "Konnte nicht alle Teams, die dieses Schema verwenden, auf das Standard-Schema zurücksetzen"
+    "translation": "Konnte nicht alle Teams, die dieses Schema verwenden, auf das Standard-Schema zurücksetzen."
   },
   {
     "id": "store.sql_scheme.save.insert.app_error",
-    "translation": "Konnte Schema nicht erstellen"
+    "translation": "Konnte Schema nicht erstellen."
   },
   {
     "id": "store.sql_scheme.save.invalid_scheme.app_error",
@@ -6368,11 +6380,11 @@
   },
   {
     "id": "store.sql_scheme.save.retrieve_default_scheme_roles.app_error",
-    "translation": "Konnte die Standard-Schema-Rollen nicht abrufen"
+    "translation": "Konnte die Standard-Schema-Rollen nicht abrufen."
   },
   {
     "id": "store.sql_scheme.save.update.app_error",
-    "translation": "Konnte das Schema nicht aktualisieren"
+    "translation": "Konnte das Schema nicht aktualisieren."
   },
   {
     "id": "store.sql_scheme.save_scheme.commit_transaction.app_error",
@@ -6568,7 +6580,7 @@
   },
   {
     "id": "store.sql_team.get_user_team_ids.app_error",
-    "translation": "Unable to get the list of teams of a user"
+    "translation": "Konnte die Liste der Team eines Benutzers nicht abrufen."
   },
   {
     "id": "store.sql_team.migrate_team_members.commit_transaction.app_error",
@@ -6656,7 +6668,7 @@
   },
   {
     "id": "store.sql_team.user_belongs_to_teams.app_error",
-    "translation": "Unable to determine if the user belongs to a list of teams"
+    "translation": "Konnte nicht feststellen, ob der Benutzer zu einer Liste von Teams gehört."
   },
   {
     "id": "store.sql_terms_of_service.save.app_error",
@@ -6708,7 +6720,7 @@
   },
   {
     "id": "store.sql_user.count.app_error",
-    "translation": "UserCountOptions don't make sense"
+    "translation": "UserCountOptions machen keinen Sinn."
   },
   {
     "id": "store.sql_user.get.app_error",
@@ -6752,7 +6764,7 @@
   },
   {
     "id": "store.sql_user.get_system_install_date.app_error",
-    "translation": "Fehler beim Ableiten des Systemdatums auf Basis des Erstellungszeitpunkt des ersten Benutzers."
+    "translation": "Konnte das Systemdatum nicht auf Basis des Erstellungszeitpunkt des ersten Benutzers ableiten."
   },
   {
     "id": "store.sql_user.get_total_users_count.app_error",
@@ -6864,7 +6876,7 @@
   },
   {
     "id": "store.sql_user.update_auth_data.email_exists.app_error",
-    "translation": "Es war nicht möglich, das Konto zu {{.Service}} zu wechseln. Es existiert bereits ein Konto mit der E-Mail-Adresse {{.Email}}."
+    "translation": "Konnte das Konto nicht zu {{.Service}} wechseln. Es existiert bereits ein Konto mit der E-Mail-Adresse {{.Email}}."
   },
   {
     "id": "store.sql_user.update_failed_pwd_attempts.app_error",
@@ -6892,7 +6904,7 @@
   },
   {
     "id": "store.sql_user.verify_email.app_error",
-    "translation": "Es konnte das E-Mail-Adresse bestätigt Feld nicht aktualisiert werden"
+    "translation": "Konnte das Feld \"E-Mail-Adresse bestätigt\" nicht aktualisieren."
   },
   {
     "id": "store.sql_user_access_token.delete.app_error",
@@ -7108,7 +7120,7 @@
   },
   {
     "id": "web.command_webhook.parse.app_error",
-    "translation": "Konnte eingehende Daten nicht verarbeiten"
+    "translation": "Konnte eingehende Daten nicht verarbeiten."
   },
   {
     "id": "web.error.unsupported_browser.message",
@@ -7140,7 +7152,7 @@
   },
   {
     "id": "web.incoming_webhook.parse.app_error",
-    "translation": "Konnte eingehende Daten nicht verarbeiten"
+    "translation": "Konnte eingehende Daten nicht verarbeiten."
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",

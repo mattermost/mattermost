@@ -1816,7 +1816,7 @@
   },
   {
     "id": "api.team.get_team_icon.filesettings_no_driver.app_error",
-    "translation": "Numele de driver incorect pentru setările de fişier.  Trebuie să fie 'locale' sau 'amazons3'"
+    "translation": "Numele de driver incorect pentru setările de fişier.  Trebuie să fie 'local' sau 'amazons3'"
   },
   {
     "id": "api.team.get_team_icon.read_file.app_error",
@@ -1836,19 +1836,19 @@
   },
   {
     "id": "api.team.import_team.no_import_from.app_error",
-    "translation": "Incorect: domeniul importFrom nu este prezent."
+    "translation": "Cerere malformată: câmpul importFrom nu este prezent."
   },
   {
     "id": "api.team.import_team.open.app_error",
-    "translation": "Nu s-a putut deschide fișierul"
+    "translation": "Fișierul nu poate fi deschis"
   },
   {
     "id": "api.team.import_team.parse.app_error",
-    "translation": "Nu s-a putut parsa forma multipartidă"
+    "translation": "Nu s-a putut analiza formularul multipart"
   },
   {
     "id": "api.team.import_team.unavailable.app_error",
-    "translation": "Incorect: câmpul filesize nu este prezent."
+    "translation": "Cerere deformată: câmpul pentru dimensiunea fișierului nu este prezent."
   },
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
@@ -1856,7 +1856,7 @@
   },
   {
     "id": "api.team.invite_members.disabled.app_error",
-    "translation": "E-mail invitațiile sunt dezactivate."
+    "translation": "Invitațiile prin e-mail sunt dezactivate."
   },
   {
     "id": "api.team.invite_members.invalid_email.app_error",
@@ -2375,8 +2375,20 @@
     "translation": "Conectare a eşuat deoarece contul a fost dezactivat.  Vă rugăm să contactaţi un administrator."
   },
   {
-    "id": "api.user.login.invalid_credentials",
-    "translation": "ID de utilizator sau parola incorecte."
+    "id": "api.user.login.invalid_credentials_email",
+    "translation": "Enter a valid email and/or password"
+  },
+  {
+    "id": "api.user.login.invalid_credentials_email_username",
+    "translation": "Enter a valid email or username and/or password."
+  },
+  {
+    "id": "api.user.login.invalid_credentials_sso",
+    "translation": "Enter a valid email or username and/or password, or sign in using another method.\n"
+  },
+  {
+    "id": "api.user.login.invalid_credentials_username",
+    "translation": "Enter a valid username and/or password."
   },
   {
     "id": "api.user.login.not_verified.app_error",

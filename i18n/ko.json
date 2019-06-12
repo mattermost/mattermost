@@ -201,7 +201,7 @@
   },
   {
     "id": "api.channel.create_group.bad_size.app_error",
-    "translation": "그룹 메세지 채널은 최소 3명에서 최대 8명까지의 사용자를 포함해야 합니다."
+    "translation": "그룹 메시지 채널은 최소 3명에서 최대 8명까지의 사용자를 포함해야 합니다."
   },
   {
     "id": "api.channel.create_group.bad_user.app_error",
@@ -952,7 +952,7 @@
   },
   {
     "id": "api.command_search.desc",
-    "translation": "메세지에서 문장 찾기"
+    "translation": "메시지에서 문장 찾기"
   },
   {
     "id": "api.command_search.hint",
@@ -964,7 +964,7 @@
   },
   {
     "id": "api.command_search.unsupported.app_error",
-    "translation": "당신의 기기에서는 검색 명령을 지원하지 않습니다"
+    "translation": "해당 기기는 검색을 지원하지 않습니다"
   },
   {
     "id": "api.command_settings.desc",
@@ -1900,7 +1900,7 @@
   },
   {
     "id": "api.team.remove_member.group_constrained.app_error",
-    "translation": "Unable to remove a user from a group-constrained team."
+    "translation": "그룹 채널에서 사용자를 제거할 수 없습니다."
   },
   {
     "id": "api.team.remove_team_icon.get_team.app_error",
@@ -2196,7 +2196,7 @@
   },
   {
     "id": "api.templates.welcome_body.info2",
-    "translation": "You can sign in from:"
+    "translation": "다음으로 로그인 가능:"
   },
   {
     "id": "api.templates.welcome_body.info3",
@@ -2375,8 +2375,20 @@
     "translation": "Login failed because your account has been set to inactive.  Please contact an administrator."
   },
   {
-    "id": "api.user.login.invalid_credentials",
-    "translation": "User ID or password incorrect."
+    "id": "api.user.login.invalid_credentials_email",
+    "translation": "Enter a valid email and/or password"
+  },
+  {
+    "id": "api.user.login.invalid_credentials_email_username",
+    "translation": "Enter a valid email or username and/or password."
+  },
+  {
+    "id": "api.user.login.invalid_credentials_sso",
+    "translation": "Enter a valid email or username and/or password, or sign in using another method.\n"
+  },
+  {
+    "id": "api.user.login.invalid_credentials_username",
+    "translation": "Enter a valid username and/or password."
   },
   {
     "id": "api.user.login.not_verified.app_error",
@@ -2832,7 +2844,7 @@
   },
   {
     "id": "app.import.validate_channel_import_data.display_name_length.error",
-    "translation": "Channel display_name is not within permitted length constraints."
+    "translation": "팀 표시명이 허용된 길이 제한을 초과하였습니다."
   },
   {
     "id": "app.import.validate_channel_import_data.display_name_missing.error",
@@ -2840,15 +2852,15 @@
   },
   {
     "id": "app.import.validate_channel_import_data.header_length.error",
-    "translation": "Channel header is too long."
+    "translation": "채널 헤더가 너무 깁니다."
   },
   {
     "id": "app.import.validate_channel_import_data.name_characters.error",
-    "translation": "Channel name contains invalid characters."
+    "translation": "팀 이름이 유효하지 않은 문자를 포함하고 있습니다."
   },
   {
     "id": "app.import.validate_channel_import_data.name_length.error",
-    "translation": "Channel name is too long."
+    "translation": "팀 이름이 너무 깁니다."
   },
   {
     "id": "app.import.validate_channel_import_data.name_missing.error",
@@ -2856,7 +2868,7 @@
   },
   {
     "id": "app.import.validate_channel_import_data.purpose_length.error",
-    "translation": "Channel purpose is too long."
+    "translation": "팀 이름이 너무 깁니다."
   },
   {
     "id": "app.import.validate_channel_import_data.scheme_invalid.error",
@@ -2868,7 +2880,7 @@
   },
   {
     "id": "app.import.validate_channel_import_data.type_invalid.error",
-    "translation": "Channel type is invalid."
+    "translation": "잘못된 채널 타입입니다."
   },
   {
     "id": "app.import.validate_channel_import_data.type_missing.error",
@@ -2916,7 +2928,7 @@
   },
   {
     "id": "app.import.validate_direct_post_import_data.message_length.error",
-    "translation": "Message is too long"
+    "translation": "메시지가 너무 깁니다"
   },
   {
     "id": "app.import.validate_direct_post_import_data.message_missing.error",
@@ -3064,7 +3076,7 @@
   },
   {
     "id": "app.import.validate_team_import_data.display_name_length.error",
-    "translation": "Team display_name is not within permitted length constraints."
+    "translation": "팀 표시명이 허용된 길이 제한을 초과하였습니다."
   },
   {
     "id": "app.import.validate_team_import_data.display_name_missing.error",
@@ -3072,11 +3084,11 @@
   },
   {
     "id": "app.import.validate_team_import_data.name_characters.error",
-    "translation": "Team name contains invalid characters."
+    "translation": "팀 이름이 유효하지 않은 문자를 포함하고 있습니다."
   },
   {
     "id": "app.import.validate_team_import_data.name_length.error",
-    "translation": "Team name is too long."
+    "translation": "팀 이름이 너무 깁니다."
   },
   {
     "id": "app.import.validate_team_import_data.name_missing.error",
@@ -3092,7 +3104,7 @@
   },
   {
     "id": "app.import.validate_team_import_data.type_invalid.error",
-    "translation": "Team type is not valid."
+    "translation": "팀 타입이 유효하지 않습니다."
   },
   {
     "id": "app.import.validate_team_import_data.type_missing.error",
@@ -3144,7 +3156,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.email_length.error",
-    "translation": "User email has an invalid length."
+    "translation": "사용자 이메일 길이가 유효하지 않습니다."
   },
   {
     "id": "app.import.validate_user_import_data.email_missing.error",
@@ -3200,7 +3212,7 @@
   },
   {
     "id": "app.import.validate_user_import_data.profile_image.error",
-    "translation": "Invalid profile image."
+    "translation": "잘못된 프로필 이미지."
   },
   {
     "id": "app.import.validate_user_import_data.roles_invalid.error",
@@ -3404,7 +3416,7 @@
   },
   {
     "id": "app.team.rename_team.name_occupied",
-    "translation": "Unable to rename the team, the name is already in use"
+    "translation": "팀 이름을 재설정 할 수 없습니다, 그 이름은 이미 사용중입니다."
   },
   {
     "id": "app.user.complete_switch_with_oauth.blank_email.app_error",
@@ -3428,7 +3440,7 @@
   },
   {
     "id": "brand.save_brand_image.encode.app_error",
-    "translation": "Unable to convert the image data to PNG format. Please try again."
+    "translation": "이미지 데이터를 PNG형식으로 바꿀 수 없습니다. 다시 시도해보세요."
   },
   {
     "id": "brand.save_brand_image.open.app_error",
@@ -3804,11 +3816,11 @@
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.msg.app_error",
-    "translation": "Unable to set the email message."
+    "translation": "이메일을 작성할 수 없음"
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.msg_data.app_error",
-    "translation": "Unable to write the email message."
+    "translation": "이메일을 작성할 수 없음"
   },
   {
     "id": "ent.message_export.global_relay_export.deliver.parse_mail.app_error",
@@ -3840,7 +3852,7 @@
   },
   {
     "id": "ent.migration.migratetosaml.email_already_used_by_other_user",
-    "translation": "Email already used by another SAML user."
+    "translation": "이미 사용 중인 이메일입니다"
   },
   {
     "id": "ent.migration.migratetosaml.user_not_found_in_users_mapping_file",
@@ -4232,7 +4244,7 @@
   },
   {
     "id": "model.command_hook.channel_id.app_error",
-    "translation": "Invalid channel id"
+    "translation": "유효하지 않은 채널 id 입니다."
   },
   {
     "id": "model.command_hook.command_id.app_error",
@@ -4924,7 +4936,7 @@
   },
   {
     "id": "model.post.is_valid.channel_id.app_error",
-    "translation": "Invalid channel id"
+    "translation": "유효하지 않은 채널 id"
   },
   {
     "id": "model.post.is_valid.create_at.app_error",
@@ -4940,7 +4952,7 @@
   },
   {
     "id": "model.post.is_valid.hashtags.app_error",
-    "translation": "Invalid hashtags"
+    "translation": "유효하지 않은 해시태그"
   },
   {
     "id": "model.post.is_valid.id.app_error",
@@ -6740,7 +6752,7 @@
   },
   {
     "id": "store.sql_user.get_profiles.app_error",
-    "translation": "We encountered an error while finding user profiles"
+    "translation": "사용자 프로필을 찾을 수 없습니다."
   },
   {
     "id": "store.sql_user.get_recently_active_users.app_error",
@@ -6748,7 +6760,7 @@
   },
   {
     "id": "store.sql_user.get_sysadmin_profiles.app_error",
-    "translation": "We encountered an error while finding user profiles"
+    "translation": "사용자 프로필을 찾을 수 없습니다."
   },
   {
     "id": "store.sql_user.get_system_install_date.app_error",
