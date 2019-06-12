@@ -218,6 +218,7 @@ func testUserStoreUpdateUpdateAt(t *testing.T, ss store.Store) {
 	store.Must(ss.User().Save(u1))
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u1.Id)) }()
 	_, err := ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1)
+	require.Nil(t, err)
 
 	time.Sleep(10 * time.Millisecond)
 
@@ -556,7 +557,6 @@ func testUserStoreGetProfiles(t *testing.T, ss store.Store) {
 	defer func() { store.Must(ss.Bot().PermanentDelete(u3.Id)) }()
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u3.Id)) }()
 	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1)
-	require.Nil(t, err)
 	require.Nil(t, err)
 
 	u4 := store.Must(ss.User().Save(&model.User{
@@ -2085,11 +2085,16 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u6.Id)) }()
 
 	tid := model.NewId()
-	_, _ = ss.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u1.Id}, -1)
-	_, _ = ss.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u2.Id}, -1)
-	_, _ = ss.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u3.Id}, -1)
-	_, _ = ss.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u5.Id}, -1)
-	_, _ = ss.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u6.Id}, -1)
+	_, err := ss.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u1.Id}, -1)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u2.Id}, -1)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u3.Id}, -1)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u5.Id}, -1)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u6.Id}, -1)
+	require.Nil(t, err)
 
 	// The users returned from the database will have AuthData as an empty string.
 	nilAuthData := new(string)
@@ -2402,9 +2407,12 @@ func testUserStoreSearchNotInChannel(t *testing.T, ss store.Store) {
 	defer func() { store.Must(ss.Bot().PermanentDelete(u3.Id)) }()
 
 	tid := model.NewId()
-	_, _ = ss.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u1.Id}, -1)
-	_, _ = ss.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u2.Id}, -1)
-	_, _ = ss.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u3.Id}, -1)
+	_, err := ss.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u1.Id}, -1)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u2.Id}, -1)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u3.Id}, -1)
+	require.Nil(t, err)
 
 	// The users returned from the database will have AuthData as an empty string.
 	nilAuthData := new(string)
@@ -2618,9 +2626,12 @@ func testUserStoreSearchInChannel(t *testing.T, ss store.Store) {
 	defer func() { store.Must(ss.Bot().PermanentDelete(u3.Id)) }()
 
 	tid := model.NewId()
-	_, _ = ss.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u1.Id}, -1)
-	_, _ = ss.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u2.Id}, -1)
-	_, _ = ss.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u3.Id}, -1)
+	_, err := ss.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u1.Id}, -1)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u2.Id}, -1)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u3.Id}, -1)
+	require.Nil(t, err)
 
 	// The users returned from the database will have AuthData as an empty string.
 	nilAuthData := new(string)
@@ -2801,15 +2812,20 @@ func testUserStoreSearchNotInTeam(t *testing.T, ss store.Store) {
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u6.Id)) }()
 
 	teamId1 := model.NewId()
-	_, _ = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId1, UserId: u1.Id}, -1)
-	_, _ = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId1, UserId: u2.Id}, -1)
-	_, _ = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId1, UserId: u3.Id}, -1)
-	// u4 is not in team 1
-	_, _ = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId1, UserId: u5.Id}, -1)
-	_, _ = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId1, UserId: u6.Id}, -1)
-
+	_, err := ss.Team().SaveMember(&model.TeamMember{TeamId: teamId1, UserId: u1.Id}, -1)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId1, UserId: u2.Id}, -1)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId1, UserId: u3.Id}, -1)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId1, UserId: u5.Id}, -1)
+	require.Nil(t, err)
+	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId1, UserId: u6.Id}, -1)
+	require.Nil(t, err)
 	teamId2 := model.NewId()
-	_, _ = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId2, UserId: u4.Id}, -1)
+	// u4 is not in team 1
+	_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId2, UserId: u4.Id}, -1)
+	require.Nil(t, err)
 
 	// The users returned from the database will have AuthData as an empty string.
 	nilAuthData := new(string)
@@ -2952,7 +2968,8 @@ func testUserStoreSearchWithoutTeam(t *testing.T, ss store.Store) {
 	defer func() { store.Must(ss.Bot().PermanentDelete(u3.Id)) }()
 
 	tid := model.NewId()
-	_, _ = ss.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u3.Id}, -1)
+	_, err := ss.Team().SaveMember(&model.TeamMember{TeamId: tid, UserId: u3.Id}, -1)
+	require.Nil(t, err)
 
 	// The users returned from the database will have AuthData as an empty string.
 	nilAuthData := new(string)

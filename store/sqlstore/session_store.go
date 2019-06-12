@@ -178,14 +178,14 @@ func (me SqlSessionStore) UpdateLastActivityAt(sessionId string, time int64) *mo
 	return nil
 }
 
-func (me SqlSessionStore) UpdateRoles(userId, roles string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if _, err := me.GetMaster().Exec("UPDATE Sessions SET Roles = :Roles WHERE UserId = :UserId", map[string]interface{}{"Roles": roles, "UserId": userId}); err != nil {
-			result.Err = model.NewAppError("SqlSessionStore.UpdateRoles", "store.sql_session.update_roles.app_error", nil, "userId="+userId, http.StatusInternalServerError)
-		} else {
-			result.Data = userId
-		}
-	})
+func (me SqlSessionStore) UpdateRoles(userId, roles string) (string, *model.AppError) {
+	query := "UPDATE Sessions SET Roles = :Roles WHERE UserId = :UserId"
+
+	_, err := me.GetMaster().Exec(query, map[string]interface{}{"Roles": roles, "UserId": userId})
+	if err != nil {
+		return "", model.NewAppError("SqlSessionStore.UpdateRoles", "store.sql_session.update_roles.app_error", nil, "userId="+userId, http.StatusInternalServerError)
+	}
+	return userId, nil
 }
 
 func (me SqlSessionStore) UpdateDeviceId(id string, deviceId string, expiresAt int64) (string, *model.AppError) {

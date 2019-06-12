@@ -370,6 +370,7 @@ func testMessageExportPrivateChannel(t *testing.T, ss store.Store) {
 		TeamId: team.Id,
 		UserId: user1.Id,
 	}, -1)
+	require.Nil(t, err)
 
 	user2 := &model.User{
 		Email:    MakeEmail(),
@@ -380,7 +381,7 @@ func testMessageExportPrivateChannel(t *testing.T, ss store.Store) {
 		TeamId: team.Id,
 		UserId: user2.Id,
 	}, -1)
-
+	require.Nil(t, err)
 
 	// need a private channel
 	channel := &model.Channel{

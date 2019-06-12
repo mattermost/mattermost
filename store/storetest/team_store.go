@@ -1454,8 +1454,11 @@ func testTeamStoreMigrateTeamMembers(t *testing.T, ss store.Store) {
 	}
 
 	tm1, _ = ss.Team().SaveMember(tm1, -1)
+	require.Nil(t, err)
 	tm2, _ = ss.Team().SaveMember(tm2, -1)
+	require.Nil(t, err)
 	tm3, _ = ss.Team().SaveMember(tm3, -1)
+	require.Nil(t, err)
 
 	lastDoneTeamId := strings.Repeat("0", 26)
 	lastDoneUserId := strings.Repeat("0", 26)

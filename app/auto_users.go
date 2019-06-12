@@ -56,6 +56,7 @@ func (a *App) CreateBasicUser(client *model.Client4) *model.AppError {
 			return err
 		}
 	}
+
 	return nil
 }
 

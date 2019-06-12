@@ -502,17 +502,17 @@ func (s SqlTeamStore) SaveMember(member *model.TeamMember, maxUsersPerTeam int) 
 	if maxUsersPerTeam >= 0 {
 		count, err := s.GetMaster().SelectInt(
 			`SELECT
-					COUNT(0)
-				FROM
-					TeamMembers
-				INNER JOIN
-					Users
-				ON
-					TeamMembers.UserId = Users.Id
-				WHERE
-					TeamId = :TeamId
-					AND TeamMembers.DeleteAt = 0
-					AND Users.DeleteAt = 0`, map[string]interface{}{"TeamId": member.TeamId})
+				COUNT(0)
+			FROM
+				TeamMembers
+			INNER JOIN
+				Users
+			ON
+				TeamMembers.UserId = Users.Id
+			WHERE
+				TeamId = :TeamId
+				AND TeamMembers.DeleteAt = 0
+				AND Users.DeleteAt = 0`, map[string]interface{}{"TeamId": member.TeamId})
 
 		if err != nil {
 			return nil, model.NewAppError("SqlUserStore.Save", "store.sql_user.save.member_count.app_error", nil, "teamId="+member.TeamId+", "+err.Error(), http.StatusInternalServerError)
