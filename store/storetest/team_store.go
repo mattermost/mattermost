@@ -801,17 +801,15 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	_, err = ss.Team().SaveMember(m3, -1)
 	require.Nil(t, err)
 
-	if r1 := <-ss.Team().GetMembers(teamId1, 0, 100, nil); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if ms, err := ss.Team().GetMembers(teamId1, 0, 100, nil); err != nil {
+		t.Fatal(err)
 	} else {
-		ms := r1.Data.([]*model.TeamMember)
 		require.Len(t, ms, 2)
 	}
 
-	if r1 := <-ss.Team().GetMembers(teamId2, 0, 100, nil); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if ms, err := ss.Team().GetMembers(teamId2, 0, 100, nil); err != nil {
+		t.Fatal(err)
 	} else {
-		ms := r1.Data.([]*model.TeamMember)
 
 		require.Len(t, ms, 1)
 		require.Equal(t, m3.UserId, ms[0].UserId)
@@ -830,10 +828,9 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 		t.Fatal(r1.Err)
 	}
 
-	if r1 := <-ss.Team().GetMembers(teamId1, 0, 100, nil); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if ms, err := ss.Team().GetMembers(teamId1, 0, 100, nil); err != nil {
+		t.Fatal(err)
 	} else {
-		ms := r1.Data.([]*model.TeamMember)
 
 		require.Len(t, ms, 1)
 		require.Equal(t, m2.UserId, ms[0].UserId)
@@ -846,10 +843,9 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 		t.Fatal(r1.Err)
 	}
 
-	if r1 := <-ss.Team().GetMembers(teamId1, 0, 100, nil); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if ms, err := ss.Team().GetMembers(teamId1, 0, 100, nil); err != nil {
+		t.Fatal(err)
 	} else {
-		ms := r1.Data.([]*model.TeamMember)
 
 		require.Len(t, ms, 0)
 	}
@@ -909,10 +905,9 @@ func testTeamMembersWithPagination(t *testing.T, ss store.Store) {
 	r1 = <-ss.Team().RemoveMember(teamId1, m1.UserId)
 	require.Nil(t, r1.Err)
 
-	r1 = <-ss.Team().GetMembers(teamId1, 0, 100, nil)
-	require.Nil(t, r1.Err)
+	ms, err := ss.Team().GetMembers(teamId1, 0, 100, nil)
+	require.Nil(t, err)
 
-	ms = r1.Data.([]*model.TeamMember)
 	require.Len(t, ms, 1)
 	require.Equal(t, m2.UserId, ms[0].UserId)
 
