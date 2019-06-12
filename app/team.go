@@ -693,11 +693,11 @@ func (a *App) GetTeamMember(teamId, userId string) (*model.TeamMember, *model.Ap
 }
 
 func (a *App) GetTeamMembersForUser(userId string) ([]*model.TeamMember, *model.AppError) {
-	result := <-a.Srv.Store.Team().GetTeamsForUser(userId)
-	if result.Err != nil {
-		return nil, result.Err
+	members, err := a.Srv.Store.Team().GetTeamsForUser(userId)
+	if err != nil {
+		return nil, err
 	}
-	return result.Data.([]*model.TeamMember), nil
+	return members, nil
 }
 
 func (a *App) GetTeamMembersForUserWithPagination(userId string, page, perPage int) ([]*model.TeamMember, *model.AppError) {
