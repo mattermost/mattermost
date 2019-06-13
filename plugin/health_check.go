@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/mlog"
+	"github.com/mattermost/mattermost-server/model"
 )
 
 const (
@@ -21,12 +22,6 @@ type PluginHealthCheckJob struct {
 	cancel    chan struct{}
 	cancelled chan struct{}
 	env       *Environment
-}
-
-type PluginHealthStatus struct {
-	Crashed        bool
-	failTimeStamps []time.Time
-	lastError      error
 }
 
 // InitPluginHealthCheckJob starts a new job if one is not running and is set to enabled, or kills an existing one if set to disabled.
@@ -103,7 +98,7 @@ func (job *PluginHealthCheckJob) handleHealthCheckFail(id string, err error) {
 	if !ok {
 		return
 	}
-	h := health.(*PluginHealthStatus)
+	h := health.(*pluginHealthStatus)
 
 	// Append current failure before checking for deactivate vs restart action
 	h.failTimeStamps = append(h.failTimeStamps, time.Now())
@@ -111,7 +106,7 @@ func (job *PluginHealthCheckJob) handleHealthCheckFail(id string, err error) {
 
 	if shouldDeactivatePlugin(h) {
 		h.failTimeStamps = []time.Time{}
-		h.Crashed = true
+		*h.State = model.PluginStateFailedToStayRunning
 		mlog.Debug(fmt.Sprintf("Deactivating plugin due to multiple crashes `%s`", id))
 		job.env.Deactivate(id)
 	} else {
@@ -135,14 +130,10 @@ func (job *PluginHealthCheckJob) Cancel() {
 	<-job.cancelled
 }
 
-func newPluginHealthStatus() *PluginHealthStatus {
-	return &PluginHealthStatus{failTimeStamps: []time.Time{}, Crashed: false}
-}
-
 // shouldDeactivatePlugin determines if a plugin needs to be deactivated after certain criteria is met.
 //
 // The criteria is based on if the plugin has consistently failed during the configured number of restarts, within the configured time window.
-func shouldDeactivatePlugin(h *PluginHealthStatus) bool {
+func shouldDeactivatePlugin(h *pluginHealthStatus) bool {
 	if len(h.failTimeStamps) >= HEALTH_CHECK_RESTART_LIMIT {
 		index := len(h.failTimeStamps) - HEALTH_CHECK_RESTART_LIMIT
 		t := h.failTimeStamps[index]

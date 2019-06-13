@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"sync"
+	"time"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -21,9 +22,15 @@ type apiImplCreatorFunc func(*model.Manifest) API
 
 type activePlugin struct {
 	BundleInfo *model.BundleInfo
-	State      int
 
 	supervisor *supervisor
+}
+
+type pluginHealthStatus struct {
+	State *int
+
+	failTimeStamps []time.Time
+	lastError      error
 }
 
 // Environment represents the execution environment of active plugins.
@@ -83,9 +90,7 @@ func (env *Environment) Active() []*model.BundleInfo {
 	activePlugins := []*model.BundleInfo{}
 	env.activePlugins.Range(func(key, value interface{}) bool {
 		plugin := value.(activePlugin)
-		if plugin.State == model.PluginStateRunning {
-			activePlugins = append(activePlugins, plugin.BundleInfo)
-		}
+		activePlugins = append(activePlugins, plugin.BundleInfo)
 
 		return true
 	})
@@ -97,6 +102,25 @@ func (env *Environment) Active() []*model.BundleInfo {
 func (env *Environment) IsActive(id string) bool {
 	_, ok := env.activePlugins.Load(id)
 	return ok
+}
+
+func (env *Environment) GetPluginState(id string) int {
+	h, ok := env.pluginHealthStatuses.Load(id)
+	if !ok {
+		return model.PluginStateNotRunning
+	}
+
+	return *h.(*pluginHealthStatus).State
+}
+
+func (env *Environment) SetPluginState(id string, state int) bool {
+	h, ok := env.pluginHealthStatuses.Load(id)
+	if !ok {
+		return false
+	}
+
+	*h.(*pluginHealthStatus).State = state
+	return true
 }
 
 // PublicFilesPath returns a path and true if the plugin with the given id is active.
@@ -122,10 +146,7 @@ func (env *Environment) Statuses() (model.PluginStatuses, error) {
 			continue
 		}
 
-		pluginState := model.PluginStateNotRunning
-		if plugin, ok := env.activePlugins.Load(plugin.Manifest.Id); ok {
-			pluginState = plugin.(activePlugin).State
-		}
+		pluginState := env.GetPluginState(plugin.Manifest.Id)
 
 		status := &model.PluginStatus{
 			PluginId:    plugin.Manifest.Id,
@@ -165,14 +186,18 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 		return nil, false, fmt.Errorf("plugin not found: %v", id)
 	}
 
+	if _, ok := env.pluginHealthStatuses.Load(id); !ok {
+		env.pluginHealthStatuses.Store(id, newPluginHealthStatus())
+	}
+
 	ap := activePlugin{BundleInfo: pluginInfo}
 	defer func() {
 		if reterr == nil {
-			ap.State = model.PluginStateRunning
+			env.activePlugins.Store(id, ap)
+			env.SetPluginState(id, model.PluginStateRunning)
 		} else {
-			ap.State = model.PluginStateFailedToStart
+			env.SetPluginState(id, model.PluginStateFailedToStart)
 		}
-		env.activePlugins.Store(pluginInfo.Manifest.Id, ap)
 	}()
 
 	if pluginInfo.Manifest.MinServerVersion != "" {
@@ -232,15 +257,6 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 		ap.supervisor = sup
 
 		componentActivated = true
-
-		var h *PluginHealthStatus
-		if health, ok := env.pluginHealthStatuses.Load(id); ok {
-			h = health.(*PluginHealthStatus)
-		} else {
-			h = newPluginHealthStatus()
-			env.pluginHealthStatuses.Store(id, h)
-		}
-		h.Crashed = false
 	}
 
 	if !componentActivated {
@@ -275,23 +291,6 @@ func (env *Environment) RestartPlugin(id string) error {
 	env.Deactivate(id)
 	_, _, err := env.Activate(id)
 	return err
-}
-
-// UpdatePluginHealthStatus accepts a callback to edit the stored health status of the plugin.
-func (env *Environment) UpdatePluginHealthStatus(id string, callback func(*PluginHealthStatus)) {
-	if h, ok := env.pluginHealthStatuses.Load(id); ok {
-		callback(h.(*PluginHealthStatus))
-	}
-}
-
-// CheckPluginHealthStatus checks if the plugin is in a failed state, based on information gathered from previous health checks.
-func (env *Environment) CheckPluginHealthStatus(id string) error {
-	if h, ok := env.pluginHealthStatuses.Load(id); ok {
-		if h.(*PluginHealthStatus).Crashed {
-			return h.(*PluginHealthStatus).lastError
-		}
-	}
-	return nil
 }
 
 // Shutdown deactivates all plugins and gracefully shuts down the environment.
@@ -343,4 +342,9 @@ func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks) bool
 
 		return true
 	})
+}
+
+func newPluginHealthStatus() *pluginHealthStatus {
+	state := model.PluginStateNotRunning
+	return &pluginHealthStatus{failTimeStamps: []time.Time{}, State: &state}
 }

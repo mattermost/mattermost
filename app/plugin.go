@@ -73,6 +73,7 @@ func (a *App) SyncPluginsActiveState() {
 					message.Add("manifest", plugin.Manifest.ClientManifest())
 					a.Publish(message)
 				}
+				pluginsEnvironment.SetPluginState(pluginId, model.PluginStateNotRunning)
 			}
 		}
 
@@ -103,6 +104,7 @@ func (a *App) SyncPluginsActiveState() {
 					message.Add("manifest", updatedManifest.ClientManifest())
 					a.Publish(message)
 				}
+				pluginsEnvironment.SetPluginState(pluginId, model.PluginStateRunning)
 			}
 		}
 	} else { // If plugins are disabled, shutdown plugins.
