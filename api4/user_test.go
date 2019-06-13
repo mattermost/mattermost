@@ -3960,6 +3960,30 @@ func TestUserAccessTokenDisableConfig(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestUserAccessTokenDisableConfigBotsExcluded(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableBotAccountCreation = true
+		*cfg.ServiceSettings.EnableUserAccessTokens = false
+	})
+
+	bot, resp := th.SystemAdminClient.CreateBot(&model.Bot{
+		Username:    GenerateTestUsername(),
+		DisplayName: "a bot",
+		Description: "bot",
+	})
+	CheckCreatedStatus(t, resp)
+
+	rtoken, resp := th.SystemAdminClient.CreateUserAccessToken(bot.UserId, "test token")
+	th.Client.AuthToken = rtoken.Token
+	CheckNoError(t, resp)
+
+	_, resp = th.Client.GetMe("")
+	CheckNoError(t, resp)
+}
+
 func TestGetUsersByStatus(t *testing.T) {
 	th := Setup()
 	defer th.TearDown()
