@@ -468,8 +468,8 @@ func testPostStorePermDelete1Level(t *testing.T, ss store.Store) {
 	o3.Message = "zz" + model.NewId() + "b"
 	o3 = (<-ss.Post().Save(o3)).Data.(*model.Post)
 
-	if r2 := <-ss.Post().PermanentDeleteByUser(o2.UserId); r2.Err != nil {
-		t.Fatal(r2.Err)
+	if err2 := ss.Post().PermanentDeleteByUser(o2.UserId); err2 != nil {
+		t.Fatal(err2)
 	}
 
 	if _, err := ss.Post().Get(o1.Id); err != nil {
@@ -510,8 +510,8 @@ func testPostStorePermDelete1Level2(t *testing.T, ss store.Store) {
 	o3.Message = "zz" + model.NewId() + "b"
 	o3 = (<-ss.Post().Save(o3)).Data.(*model.Post)
 
-	if r2 := <-ss.Post().PermanentDeleteByUser(o1.UserId); r2.Err != nil {
-		t.Fatal(r2.Err)
+	if err2 := ss.Post().PermanentDeleteByUser(o1.UserId); err2 != nil {
+		t.Fatal(err2)
 	}
 
 	if _, err := ss.Post().Get(o1.Id); err == nil {
@@ -1226,15 +1226,15 @@ func testUserCountsWithPostsByDay(t *testing.T, ss store.Store) {
 	o2a.Message = "zz" + model.NewId() + "b"
 	_ = store.Must(ss.Post().Save(o2a)).(*model.Post)
 
-	if r1 := <-ss.Post().AnalyticsUserCountsWithPostsByDay(t1.Id); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if r1, err := ss.Post().AnalyticsUserCountsWithPostsByDay(t1.Id); err != nil {
+		t.Fatal(err)
 	} else {
-		row1 := r1.Data.(model.AnalyticsRows)[0]
+		row1 := r1[0]
 		if row1.Value != 2 {
 			t.Fatal("wrong value")
 		}
 
-		row2 := r1.Data.(model.AnalyticsRows)[1]
+		row2 := r1[1]
 		if row2.Value != 1 {
 			t.Fatal("wrong value")
 		}
@@ -1288,15 +1288,15 @@ func testPostCountsByDay(t *testing.T, ss store.Store) {
 
 	time.Sleep(1 * time.Second)
 
-	if r1 := <-ss.Post().AnalyticsPostCountsByDay(t1.Id); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if r1, err := ss.Post().AnalyticsPostCountsByDay(t1.Id); err != nil {
+		t.Fatal(err)
 	} else {
-		row1 := r1.Data.(model.AnalyticsRows)[0]
+		row1 := r1[0]
 		if row1.Value != 2 {
 			t.Fatal(row1)
 		}
 
-		row2 := r1.Data.(model.AnalyticsRows)[1]
+		row2 := r1[1]
 		if row2.Value != 2 {
 			t.Fatal("wrong value")
 		}
@@ -2073,8 +2073,9 @@ func testPostStoreGetOldest(t *testing.T, ss store.Store) {
 	o2.CreateAt = 1
 	o2 = (<-ss.Post().Save(o2)).Data.(*model.Post)
 
-	r1 := (<-ss.Post().GetOldest()).Data.(*model.Post)
+	r1, err := ss.Post().GetOldest()
 
+	require.Nil(t, err)
 	assert.EqualValues(t, o2.Id, r1.Id)
 }
 
