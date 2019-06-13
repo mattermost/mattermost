@@ -86,7 +86,10 @@ func (c *Context) IsSystemAdmin() bool {
 }
 
 func (c *Context) SessionRequired() {
-	if !*c.App.Config().ServiceSettings.EnableUserAccessTokens && c.App.Session.Props[model.SESSION_PROP_TYPE] == model.SESSION_TYPE_USER_ACCESS_TOKEN {
+	if !*c.App.Config().ServiceSettings.EnableUserAccessTokens &&
+		c.App.Session.Props[model.SESSION_PROP_TYPE] == model.SESSION_TYPE_USER_ACCESS_TOKEN &&
+		c.App.Session.Props[model.SESSION_PROP_IS_BOT] != model.SESSION_PROP_IS_BOT_VALUE {
+
 		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "UserAccessToken", http.StatusUnauthorized)
 		return
 	}

@@ -48,10 +48,9 @@ func TestCreateUserWithoutTeam(t *testing.T) {
 
 	th.CheckCommand(t, "user", "create", "--email", email, "--password", "mypassword1", "--username", username)
 
-	if result := <-th.App.Srv.Store.User().GetByEmail(email); result.Err != nil {
-		t.Fatal(result.Err)
+	if user, err := th.App.Srv.Store.User().GetByEmail(email); err != nil {
+		t.Fatal(err)
 	} else {
-		user := result.Data.(*model.User)
 		require.Equal(t, email, user.Email)
 	}
 }
@@ -85,13 +84,12 @@ func TestChangeUserEmail(t *testing.T) {
 	newEmail := model.NewId() + "@mattermost-test.com"
 
 	th.CheckCommand(t, "user", "email", th.BasicUser.Username, newEmail)
-	if result := <-th.App.Srv.Store.User().GetByEmail(th.BasicUser.Email); result.Err == nil {
+	if _, err := th.App.Srv.Store.User().GetByEmail(th.BasicUser.Email); err == nil {
 		t.Fatal("should've updated to the new email")
 	}
-	if result := <-th.App.Srv.Store.User().GetByEmail(newEmail); result.Err != nil {
-		t.Fatal(result.Err)
+	if user, err := th.App.Srv.Store.User().GetByEmail(newEmail); err != nil {
+		t.Fatal(err)
 	} else {
-		user := result.Data.(*model.User)
 		if user.Email != newEmail {
 			t.Fatal("should've updated to the new email")
 		}

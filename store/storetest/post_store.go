@@ -468,8 +468,8 @@ func testPostStorePermDelete1Level(t *testing.T, ss store.Store) {
 	o3.Message = "zz" + model.NewId() + "b"
 	o3 = (<-ss.Post().Save(o3)).Data.(*model.Post)
 
-	if r2 := <-ss.Post().PermanentDeleteByUser(o2.UserId); r2.Err != nil {
-		t.Fatal(r2.Err)
+	if err2 := ss.Post().PermanentDeleteByUser(o2.UserId); err2 != nil {
+		t.Fatal(err2)
 	}
 
 	if _, err := ss.Post().Get(o1.Id); err != nil {
@@ -510,8 +510,8 @@ func testPostStorePermDelete1Level2(t *testing.T, ss store.Store) {
 	o3.Message = "zz" + model.NewId() + "b"
 	o3 = (<-ss.Post().Save(o3)).Data.(*model.Post)
 
-	if r2 := <-ss.Post().PermanentDeleteByUser(o1.UserId); r2.Err != nil {
-		t.Fatal(r2.Err)
+	if err2 := ss.Post().PermanentDeleteByUser(o1.UserId); err2 != nil {
+		t.Fatal(err2)
 	}
 
 	if _, err := ss.Post().Get(o1.Id); err == nil {
@@ -2073,8 +2073,9 @@ func testPostStoreGetOldest(t *testing.T, ss store.Store) {
 	o2.CreateAt = 1
 	o2 = (<-ss.Post().Save(o2)).Data.(*model.Post)
 
-	r1 := (<-ss.Post().GetOldest()).Data.(*model.Post)
+	r1, err := ss.Post().GetOldest()
 
+	require.Nil(t, err)
 	assert.EqualValues(t, o2.Id, r1.Id)
 }
 
