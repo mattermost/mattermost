@@ -1156,7 +1156,12 @@ func (a *App) RestoreTeam(teamId string) *model.AppError {
 }
 
 func (a *App) GetTeamStats(teamId string) (*model.TeamStats, *model.AppError) {
-	tchan := a.Srv.Store.Team().GetTotalMemberCount(teamId)
+	tchan := make(chan store.StoreResult, 1)
+	go func() {
+		totalMemberCount, err := a.Srv.Store.Team().GetTotalMemberCount(teamId)
+		tchan <- store.StoreResult{Data: totalMemberCount, Err: err}
+		close(tchan)
+	}()
 	achan := a.Srv.Store.Team().GetActiveMemberCount(teamId)
 
 	stats := &model.TeamStats{}

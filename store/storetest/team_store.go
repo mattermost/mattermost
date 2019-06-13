@@ -942,12 +942,12 @@ func testTeamMembersWithPagination(t *testing.T, ss store.Store) {
 func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 	maxUsersPerTeam := 5
 
-	team, err := ss.Team().Save(&model.Team{
+	team, errSave := ss.Team().Save(&model.Team{
 		DisplayName: "DisplayName",
 		Name:        "z-z-z" + model.NewId() + "b",
 		Type:        model.TEAM_OPEN,
 	})
-	require.Nil(t, err)
+	require.Nil(t, errSave)
 	defer func() {
 		<-ss.Team().PermanentDelete(team.Id)
 	}()
@@ -972,10 +972,10 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 		}(userIds[i])
 	}
 
-	if result := <-ss.Team().GetTotalMemberCount(team.Id); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if count := result.Data.(int64); int(count) != maxUsersPerTeam {
-		t.Fatalf("should start with 5 team members, had %v instead", count)
+	if totalMemberCount, err := ss.Team().GetTotalMemberCount(team.Id); err != nil {
+		t.Fatal(err)
+	} else if int(totalMemberCount) != maxUsersPerTeam {
+		t.Fatalf("should start with 5 team members, had %v instead", totalMemberCount)
 	}
 
 	newUserId := store.Must(ss.User().Save(&model.User{
@@ -993,10 +993,10 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 		t.Fatal("shouldn't be able to save member when at maximum members per team")
 	}
 
-	if result := <-ss.Team().GetTotalMemberCount(team.Id); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if count := result.Data.(int64); int(count) != maxUsersPerTeam {
-		t.Fatalf("should still have 5 team members, had %v instead", count)
+	if totalMemberCount, err := ss.Team().GetTotalMemberCount(team.Id); err != nil {
+		t.Fatal(err)
+	} else if int(totalMemberCount) != maxUsersPerTeam {
+		t.Fatalf("should still have 5 team members, had %v instead", totalMemberCount)
 	}
 
 	// Leaving the team from the UI sets DeleteAt instead of using TeamStore.RemoveMember
@@ -1006,10 +1006,10 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 		DeleteAt: 1234,
 	}))
 
-	if result := <-ss.Team().GetTotalMemberCount(team.Id); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if count := result.Data.(int64); int(count) != maxUsersPerTeam-1 {
-		t.Fatalf("should now only have 4 team members, had %v instead", count)
+	if totalMemberCount, err := ss.Team().GetTotalMemberCount(team.Id); err != nil {
+		t.Fatal(err)
+	} else if int(totalMemberCount) != maxUsersPerTeam-1 {
+		t.Fatalf("should now only have 4 team members, had %v instead", totalMemberCount)
 	}
 
 	if _, err := ss.Team().SaveMember(&model.TeamMember{TeamId: team.Id, UserId: newUserId}, maxUsersPerTeam); err != nil {
@@ -1020,10 +1020,10 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 		}(newUserId)
 	}
 
-	if result := <-ss.Team().GetTotalMemberCount(team.Id); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if count := result.Data.(int64); int(count) != maxUsersPerTeam {
-		t.Fatalf("should have 5 team members again, had %v instead", count)
+	if totalMemberCount, err := ss.Team().GetTotalMemberCount(team.Id); err != nil {
+		t.Fatal(err)
+	} else if int(totalMemberCount) != maxUsersPerTeam {
+		t.Fatalf("should have 5 team members again, had %v instead", totalMemberCount)
 	}
 
 	// Deactivating a user should make them stop counting against max members
@@ -1177,10 +1177,10 @@ func testTeamStoreMemberCount(t *testing.T, ss store.Store) {
 	_, err = ss.Team().SaveMember(m2, -1)
 	require.Nil(t, err)
 
-	if result := <-ss.Team().GetTotalMemberCount(teamId1); result.Err != nil {
-		t.Fatal(result.Err)
+	if totalMemberCount, err := ss.Team().GetTotalMemberCount(teamId1); err != nil {
+		t.Fatal(err)
 	} else {
-		if result.Data.(int64) != 2 {
+		if totalMemberCount != 2 {
 			t.Fatal("wrong count")
 		}
 	}
@@ -1197,10 +1197,10 @@ func testTeamStoreMemberCount(t *testing.T, ss store.Store) {
 	_, err = ss.Team().SaveMember(m3, -1)
 	require.Nil(t, err)
 
-	if result := <-ss.Team().GetTotalMemberCount(teamId1); result.Err != nil {
-		t.Fatal(result.Err)
+	if totalMemberCount, err := ss.Team().GetTotalMemberCount(teamId1); err != nil {
+		t.Fatal(err)
 	} else {
-		if result.Data.(int64) != 2 {
+		if totalMemberCount != 2 {
 			t.Fatal("wrong count")
 		}
 	}
