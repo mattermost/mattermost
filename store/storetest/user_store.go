@@ -1735,6 +1735,7 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	p3.UserId = u1.Id
 	p3.Message = "second message"
 	_, err = ss.Post().Save(&p3)
+	require.Nil(t, err)
 
 	store.Must(ss.Channel().IncrementMentionCount(c2.Id, u2.Id))
 
