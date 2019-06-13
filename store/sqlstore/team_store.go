@@ -644,9 +644,8 @@ func (s SqlTeamStore) GetMembers(teamId string, offset int, limit int, restricti
 	return dbMembers.ToModel(), nil
 }
 
-func (s SqlTeamStore) GetTotalMemberCount(teamId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		count, err := s.GetReplica().SelectInt(`
+func (s SqlTeamStore) GetTotalMemberCount(teamId string) (int64, *model.AppError) {
+	count, err := s.GetReplica().SelectInt(`
 			SELECT
 				count(*)
 			FROM
@@ -656,13 +655,10 @@ func (s SqlTeamStore) GetTotalMemberCount(teamId string) store.StoreChannel {
 				TeamMembers.UserId = Users.Id
 				AND TeamMembers.TeamId = :TeamId
 				AND TeamMembers.DeleteAt = 0`, map[string]interface{}{"TeamId": teamId})
-		if err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.GetTotalMemberCount", "store.sql_team.get_member_count.app_error", nil, "teamId="+teamId+" "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		result.Data = count
-	})
+	if err != nil {
+		return int64(0), model.NewAppError("SqlTeamStore.GetTotalMemberCount", "store.sql_team.get_member_count.app_error", nil, "teamId="+teamId+" "+err.Error(), http.StatusInternalServerError)
+	}
+	return count, nil
 }
 
 func (s SqlTeamStore) GetActiveMemberCount(teamId string) store.StoreChannel {
