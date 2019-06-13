@@ -610,12 +610,12 @@ func (a *App) GetTeam(teamId string) (*model.Team, *model.AppError) {
 }
 
 func (a *App) GetTeamByName(name string) (*model.Team, *model.AppError) {
-	result := <-a.Srv.Store.Team().GetByName(name)
-	if result.Err != nil {
-		result.Err.StatusCode = http.StatusNotFound
-		return nil, result.Err
+	team, err := a.Srv.Store.Team().GetByName(name)
+	if err != nil {
+		err.StatusCode = http.StatusNotFound
+		return nil, err
 	}
-	return result.Data.(*model.Team), nil
+	return team, nil
 }
 
 func (a *App) GetTeamByInviteId(inviteId string) (*model.Team, *model.AppError) {
@@ -627,11 +627,7 @@ func (a *App) GetTeamByInviteId(inviteId string) (*model.Team, *model.AppError) 
 }
 
 func (a *App) GetAllTeams() ([]*model.Team, *model.AppError) {
-	result := <-a.Srv.Store.Team().GetAll()
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.Team), nil
+	return a.Srv.Store.Team().GetAll()
 }
 
 func (a *App) GetAllTeamsPage(offset int, limit int) ([]*model.Team, *model.AppError) {
@@ -731,11 +727,7 @@ func (a *App) GetTeamMembersForUserWithPagination(userId string, page, perPage i
 }
 
 func (a *App) GetTeamMembers(teamId string, offset int, limit int, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError) {
-	result := <-a.Srv.Store.Team().GetMembers(teamId, offset, limit, restrictions)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.TeamMember), nil
+	return a.Srv.Store.Team().GetMembers(teamId, offset, limit, restrictions)
 }
 
 func (a *App) GetTeamMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError) {
@@ -819,12 +811,11 @@ func (a *App) AddTeamMemberByInviteId(inviteId, userId string) (*model.TeamMembe
 }
 
 func (a *App) GetTeamUnread(teamId, userId string) (*model.TeamUnread, *model.AppError) {
-	result := <-a.Srv.Store.Team().GetChannelUnreadsForTeam(teamId, userId)
-	if result.Err != nil {
-		return nil, result.Err
+	channelUnreads, err := a.Srv.Store.Team().GetChannelUnreadsForTeam(teamId, userId)
+	if err != nil {
+		return nil, err
 	}
 
-	channelUnreads := result.Data.([]*model.ChannelUnread)
 	var teamUnread = &model.TeamUnread{
 		MsgCount:     0,
 		MentionCount: 0,
@@ -1067,7 +1058,7 @@ func (a *App) InviteNewUsersToTeam(emailList []string, teamId, senderId string) 
 }
 
 func (a *App) FindTeamByName(name string) bool {
-	if result := <-a.Srv.Store.Team().GetByName(name); result.Err != nil {
+	if _, err := a.Srv.Store.Team().GetByName(name); err != nil {
 		return false
 	}
 	return true
