@@ -97,15 +97,15 @@ type TeamStore interface {
 	GetAllTeamListing() StoreChannel
 	GetAllTeamPageListing(offset int, limit int) StoreChannel
 	GetTeamsByUserId(userId string) StoreChannel
-	GetByInviteId(inviteId string) StoreChannel
+	GetByInviteId(inviteId string) (*model.Team, *model.AppError)
 	PermanentDelete(teamId string) StoreChannel
 	AnalyticsTeamCount() StoreChannel
 	SaveMember(member *model.TeamMember, maxUsersPerTeam int) StoreChannel
 	UpdateMember(member *model.TeamMember) StoreChannel
 	GetMember(teamId string, userId string) (*model.TeamMember, *model.AppError)
 	GetMembers(teamId string, offset int, limit int, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError)
-	GetMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) StoreChannel
-	GetTotalMemberCount(teamId string) StoreChannel
+	GetMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError)
+	GetTotalMemberCount(teamId string) (int64, *model.AppError)
 	GetActiveMemberCount(teamId string) StoreChannel
 	GetTeamsForUser(userId string) StoreChannel
 	GetTeamsForUserWithPagination(userId string, page, perPage int) StoreChannel
@@ -215,7 +215,7 @@ type PostStore interface {
 	Get(id string) (*model.PostList, *model.AppError)
 	GetSingle(id string) (*model.Post, *model.AppError)
 	Delete(postId string, time int64, deleteByID string) *model.AppError
-	PermanentDeleteByUser(userId string) StoreChannel
+	PermanentDeleteByUser(userId string) *model.AppError
 	PermanentDeleteByChannel(channelId string) *model.AppError
 	GetPosts(channelId string, offset int, limit int, allowFromCache bool) (*model.PostList, *model.AppError)
 	GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, *model.AppError)

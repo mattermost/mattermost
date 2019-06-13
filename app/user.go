@@ -98,11 +98,10 @@ func (a *App) CreateUserWithInviteId(user *model.User, inviteId string) (*model.
 		return nil, err
 	}
 
-	result := <-a.Srv.Store.Team().GetByInviteId(inviteId)
-	if result.Err != nil {
-		return nil, result.Err
+	team, err := a.Srv.Store.Team().GetByInviteId(inviteId)
+	if err != nil {
+		return nil, err
 	}
-	team := result.Data.(*model.Team)
 
 	if team.IsGroupConstrained() {
 		return nil, model.NewAppError("CreateUserWithInviteId", "app.team.invite_id.group_constrained.error", nil, "", http.StatusForbidden)
@@ -1463,8 +1462,8 @@ func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 		return result.Err
 	}
 
-	if result := <-a.Srv.Store.Post().PermanentDeleteByUser(user.Id); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.Post().PermanentDeleteByUser(user.Id); err != nil {
+		return err
 	}
 
 	infos, err := a.Srv.Store.FileInfo().GetForUser(user.Id)

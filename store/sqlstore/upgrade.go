@@ -688,6 +688,9 @@ func UpgradeDatabaseToVersion512(sqlStore SqlStore) {
 		sqlStore.CreateColumnIfNotExistsNoDefault("Schemes", "DefaultChannelGuestRole", "text", "VARCHAR(64)")
 		sqlStore.GetMaster().Exec("UPDATE Schemes SET DefaultTeamGuestRole = '', DefaultChannelGuestRole = ''")
 
+		// Saturday, January 24, 2065 5:20:00 AM GMT. To remove all personal access token sessions.
+		sqlStore.GetMaster().Exec("DELETE FROM Sessions WHERE ExpiresAt > 3000000000000")
+
 		saveSchemaVersion(sqlStore, VERSION_5_12_0)
 	}
 }
