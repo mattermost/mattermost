@@ -687,32 +687,28 @@ func (s SqlTeamStore) GetActiveMemberCount(teamId string) store.StoreChannel {
 	})
 }
 
-func (s SqlTeamStore) GetMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if len(userIds) == 0 {
-			result.Err = model.NewAppError("SqlTeamStore.GetMembersByIds", "store.sql_team.get_members_by_ids.app_error", nil, "Invalid list of user ids", http.StatusInternalServerError)
-		}
+func (s SqlTeamStore) GetMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError) {
+	if len(userIds) == 0 {
+		return nil, model.NewAppError("SqlTeamStore.GetMembersByIds", "store.sql_team.get_members_by_ids.app_error", nil, "Invalid list of user ids", http.StatusInternalServerError)
+	}
 
-		query := s.getTeamMembersWithSchemeSelectQuery().
-			Where(sq.Eq{"TeamMembers.TeamId": teamId}).
-			Where(sq.Eq{"TeamMembers.UserId": userIds}).
-			Where(sq.Eq{"TeamMembers.DeleteAt": 0})
+	query := s.getTeamMembersWithSchemeSelectQuery().
+		Where(sq.Eq{"TeamMembers.TeamId": teamId}).
+		Where(sq.Eq{"TeamMembers.UserId": userIds}).
+		Where(sq.Eq{"TeamMembers.DeleteAt": 0})
 
-		query = applyTeamMemberViewRestrictionsFilter(query, teamId, restrictions)
+	query = applyTeamMemberViewRestrictionsFilter(query, teamId, restrictions)
 
-		queryString, args, err := query.ToSql()
-		if err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.GetMembersByIds", "store.sql_team.get_members_by_ids.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlTeamStore.GetMembersByIds", "store.sql_team.get_members_by_ids.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		var dbMembers teamMemberWithSchemeRolesList
-		if _, err := s.GetReplica().Select(&dbMembers, queryString, args...); err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.GetMembersByIds", "store.sql_team.get_members_by_ids.app_error", nil, "teamId="+teamId+" "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-		result.Data = dbMembers.ToModel()
-	})
+	var dbMembers teamMemberWithSchemeRolesList
+	if _, err := s.GetReplica().Select(&dbMembers, queryString, args...); err != nil {
+		return nil, model.NewAppError("SqlTeamStore.GetMembersByIds", "store.sql_team.get_members_by_ids.app_error", nil, "teamId="+teamId+" "+err.Error(), http.StatusInternalServerError)
+	}
+	return dbMembers.ToModel(), nil
 }
 
 func (s SqlTeamStore) GetTeamsForUser(userId string) store.StoreChannel {
