@@ -406,15 +406,15 @@ func testTeamStoreGetByInviteId(t *testing.T, ss store.Store) {
 	o2.Email = MakeEmail()
 	o2.Type = model.TEAM_OPEN
 
-	if r1 := <-ss.Team().GetByInviteId(save1.InviteId); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if r1, err := ss.Team().GetByInviteId(save1.InviteId); err != nil {
+		t.Fatal(err)
 	} else {
-		if r1.Data.(*model.Team).ToJson() != o1.ToJson() {
+		if r1.ToJson() != o1.ToJson() {
 			t.Fatal("invalid returned team")
 		}
 	}
 
-	if err := (<-ss.Team().GetByInviteId("")).Err; err == nil {
+	if _, err := ss.Team().GetByInviteId(""); err == nil {
 		t.Fatal("Missing id should have failed")
 	}
 }

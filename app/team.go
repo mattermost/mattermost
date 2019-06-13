@@ -459,7 +459,13 @@ func (a *App) AddUserToTeamByToken(userId string, tokenId string) (*model.Team, 
 }
 
 func (a *App) AddUserToTeamByInviteId(inviteId string, userId string) (*model.Team, *model.AppError) {
-	tchan := a.Srv.Store.Team().GetByInviteId(inviteId)
+	tchan := make(chan store.StoreResult, 1)
+	go func() {
+		team, err := a.Srv.Store.Team().GetByInviteId(inviteId)
+		tchan <- store.StoreResult{Data: team, Err: err}
+		close(tchan)
+	}()
+
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
 		user, err := a.Srv.Store.User().Get(userId)
@@ -601,11 +607,7 @@ func (a *App) GetTeamByName(name string) (*model.Team, *model.AppError) {
 }
 
 func (a *App) GetTeamByInviteId(inviteId string) (*model.Team, *model.AppError) {
-	result := <-a.Srv.Store.Team().GetByInviteId(inviteId)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.Team), nil
+	return a.Srv.Store.Team().GetByInviteId(inviteId)
 }
 
 func (a *App) GetAllTeams() ([]*model.Team, *model.AppError) {
@@ -1207,12 +1209,12 @@ func (a *App) GetTeamIdFromQuery(query url.Values) (string, *model.AppError) {
 		return tokenData["teamId"], nil
 	}
 	if len(inviteId) > 0 {
-		result := <-a.Srv.Store.Team().GetByInviteId(inviteId)
-		if result.Err == nil {
-			return result.Data.(*model.Team).Id, nil
+		team, err := a.Srv.Store.Team().GetByInviteId(inviteId)
+		if err == nil {
+			return team.Id, nil
 		}
 		// soft fail, so we still create user but don't auto-join team
-		mlog.Error(fmt.Sprintf("%v", result.Err))
+		mlog.Error(fmt.Sprintf("%v", err))
 	}
 
 	return "", nil
