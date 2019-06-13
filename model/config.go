@@ -754,12 +754,11 @@ func (s *MetricsSettings) SetDefaults() {
 }
 
 type ExperimentalSettings struct {
-	ClientSideCertEnable                      *bool
-	ClientSideCertCheck                       *string
-	DEPRECATED_DO_NOT_USE_DisablePostMetadata *bool  `json:"EnableOnlyAdminIntegrations"` // This field is deprecated and must not be used.
-	EnableClickToReply                        *bool  `restricted:"true"`
-	LinkMetadataTimeoutMilliseconds           *int64 `restricted:"true"`
-	RestrictSystemAdmin                       *bool  `restricted:"true"`
+	ClientSideCertEnable            *bool
+	ClientSideCertCheck             *string
+	EnableClickToReply              *bool  `restricted:"true"`
+	LinkMetadataTimeoutMilliseconds *int64 `restricted:"true"`
+	RestrictSystemAdmin             *bool  `restricted:"true"`
 }
 
 func (s *ExperimentalSettings) SetDefaults() {
