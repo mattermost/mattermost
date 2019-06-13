@@ -709,19 +709,11 @@ func (a *App) GetTeamMembersForUserWithPagination(userId string, page, perPage i
 }
 
 func (a *App) GetTeamMembers(teamId string, offset int, limit int, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError) {
-	result := <-a.Srv.Store.Team().GetMembers(teamId, offset, limit, restrictions)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.TeamMember), nil
+	return a.Srv.Store.Team().GetMembers(teamId, offset, limit, restrictions)
 }
 
 func (a *App) GetTeamMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError) {
-	result := <-a.Srv.Store.Team().GetMembersByIds(teamId, userIds, restrictions)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.TeamMember), nil
+	return a.Srv.Store.Team().GetMembersByIds(teamId, userIds, restrictions)
 }
 
 func (a *App) AddTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError) {
@@ -797,12 +789,11 @@ func (a *App) AddTeamMemberByInviteId(inviteId, userId string) (*model.TeamMembe
 }
 
 func (a *App) GetTeamUnread(teamId, userId string) (*model.TeamUnread, *model.AppError) {
-	result := <-a.Srv.Store.Team().GetChannelUnreadsForTeam(teamId, userId)
-	if result.Err != nil {
-		return nil, result.Err
+	channelUnreads, err := a.Srv.Store.Team().GetChannelUnreadsForTeam(teamId, userId)
+	if err != nil {
+		return nil, err
 	}
 
-	channelUnreads := result.Data.([]*model.ChannelUnread)
 	var teamUnread = &model.TeamUnread{
 		MsgCount:     0,
 		MentionCount: 0,
