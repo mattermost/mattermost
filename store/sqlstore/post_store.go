@@ -952,12 +952,28 @@ func (s *SqlPostStore) Search(teamId string, userId string, params *model.Search
 	})
 }
 
-func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		query :=
-			`SELECT DISTINCT
-			        DATE(FROM_UNIXTIME(Posts.CreateAt / 1000)) AS Name,
-			        COUNT(DISTINCT Posts.UserId) AS Value
+func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.AnalyticsRows, *model.AppError) {
+	query :=
+		`SELECT DISTINCT
+		        DATE(FROM_UNIXTIME(Posts.CreateAt / 1000)) AS Name,
+		        COUNT(DISTINCT Posts.UserId) AS Value
+		FROM Posts`
+
+	if len(teamId) > 0 {
+		query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id AND Channels.TeamId = :TeamId AND"
+	} else {
+		query += " WHERE"
+	}
+
+	query += ` Posts.CreateAt >= :StartTime AND Posts.CreateAt <= :EndTime
+		GROUP BY DATE(FROM_UNIXTIME(Posts.CreateAt / 1000))
+		ORDER BY Name DESC
+		LIMIT 30`
+
+	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		query =
+			`SELECT
+				TO_CHAR(DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)), 'YYYY-MM-DD') AS Name, COUNT(DISTINCT Posts.UserId) AS Value
 			FROM Posts`
 
 		if len(teamId) > 0 {
@@ -967,97 +983,75 @@ func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) store.St
 		}
 
 		query += ` Posts.CreateAt >= :StartTime AND Posts.CreateAt <= :EndTime
-			GROUP BY DATE(FROM_UNIXTIME(Posts.CreateAt / 1000))
+			GROUP BY DATE(TO_TIMESTAMP(Posts.CreateAt / 1000))
 			ORDER BY Name DESC
 			LIMIT 30`
+	}
 
-		if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-			query =
-				`SELECT
-					TO_CHAR(DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)), 'YYYY-MM-DD') AS Name, COUNT(DISTINCT Posts.UserId) AS Value
-				FROM Posts`
+	end := utils.MillisFromTime(utils.EndOfDay(utils.Yesterday()))
+	start := utils.MillisFromTime(utils.StartOfDay(utils.Yesterday().AddDate(0, 0, -31)))
 
-			if len(teamId) > 0 {
-				query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id AND Channels.TeamId = :TeamId AND"
-			} else {
-				query += " WHERE"
-			}
-
-			query += ` Posts.CreateAt >= :StartTime AND Posts.CreateAt <= :EndTime
-				GROUP BY DATE(TO_TIMESTAMP(Posts.CreateAt / 1000))
-				ORDER BY Name DESC
-				LIMIT 30`
-		}
-
-		end := utils.MillisFromTime(utils.EndOfDay(utils.Yesterday()))
-		start := utils.MillisFromTime(utils.StartOfDay(utils.Yesterday().AddDate(0, 0, -31)))
-
-		var rows model.AnalyticsRows
-		_, err := s.GetReplica().Select(
-			&rows,
-			query,
-			map[string]interface{}{"TeamId": teamId, "StartTime": start, "EndTime": end})
-		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.AnalyticsUserCountsWithPostsByDay", "store.sql_post.analytics_user_counts_posts_by_day.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = rows
-		}
-	})
+	var rows model.AnalyticsRows
+	_, err := s.GetReplica().Select(
+		&rows,
+		query,
+		map[string]interface{}{"TeamId": teamId, "StartTime": start, "EndTime": end})
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.AnalyticsUserCountsWithPostsByDay", "store.sql_post.analytics_user_counts_posts_by_day.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return rows, nil
 }
 
-func (s *SqlPostStore) AnalyticsPostCountsByDay(teamId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		query :=
+func (s *SqlPostStore) AnalyticsPostCountsByDay(teamId string) (model.AnalyticsRows, *model.AppError) {
+	query :=
+		`SELECT
+		        DATE(FROM_UNIXTIME(Posts.CreateAt / 1000)) AS Name,
+		        COUNT(Posts.Id) AS Value
+		    FROM Posts`
+
+	if len(teamId) > 0 {
+		query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id AND Channels.TeamId = :TeamId AND"
+	} else {
+		query += " WHERE"
+	}
+
+	query += ` Posts.CreateAt <= :EndTime
+		            AND Posts.CreateAt >= :StartTime
+		GROUP BY DATE(FROM_UNIXTIME(Posts.CreateAt / 1000))
+		ORDER BY Name DESC
+		LIMIT 30`
+
+	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		query =
 			`SELECT
-			        DATE(FROM_UNIXTIME(Posts.CreateAt / 1000)) AS Name,
-			        COUNT(Posts.Id) AS Value
-			    FROM Posts`
+				TO_CHAR(DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)), 'YYYY-MM-DD') AS Name, Count(Posts.Id) AS Value
+			FROM Posts`
 
 		if len(teamId) > 0 {
-			query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id AND Channels.TeamId = :TeamId AND"
+			query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id  AND Channels.TeamId = :TeamId AND"
 		} else {
 			query += " WHERE"
 		}
 
 		query += ` Posts.CreateAt <= :EndTime
 			            AND Posts.CreateAt >= :StartTime
-			GROUP BY DATE(FROM_UNIXTIME(Posts.CreateAt / 1000))
+			GROUP BY DATE(TO_TIMESTAMP(Posts.CreateAt / 1000))
 			ORDER BY Name DESC
 			LIMIT 30`
+	}
 
-		if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-			query =
-				`SELECT
-					TO_CHAR(DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)), 'YYYY-MM-DD') AS Name, Count(Posts.Id) AS Value
-				FROM Posts`
+	end := utils.MillisFromTime(utils.EndOfDay(utils.Yesterday()))
+	start := utils.MillisFromTime(utils.StartOfDay(utils.Yesterday().AddDate(0, 0, -31)))
 
-			if len(teamId) > 0 {
-				query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id  AND Channels.TeamId = :TeamId AND"
-			} else {
-				query += " WHERE"
-			}
-
-			query += ` Posts.CreateAt <= :EndTime
-				            AND Posts.CreateAt >= :StartTime
-				GROUP BY DATE(TO_TIMESTAMP(Posts.CreateAt / 1000))
-				ORDER BY Name DESC
-				LIMIT 30`
-		}
-
-		end := utils.MillisFromTime(utils.EndOfDay(utils.Yesterday()))
-		start := utils.MillisFromTime(utils.StartOfDay(utils.Yesterday().AddDate(0, 0, -31)))
-
-		var rows model.AnalyticsRows
-		_, err := s.GetReplica().Select(
-			&rows,
-			query,
-			map[string]interface{}{"TeamId": teamId, "StartTime": start, "EndTime": end})
-		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.AnalyticsPostCountsByDay", "store.sql_post.analytics_posts_count_by_day.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = rows
-		}
-	})
+	var rows model.AnalyticsRows
+	_, err := s.GetReplica().Select(
+		&rows,
+		query,
+		map[string]interface{}{"TeamId": teamId, "StartTime": start, "EndTime": end})
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.AnalyticsPostCountsByDay", "store.sql_post.analytics_posts_count_by_day.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return rows, nil
 }
 
 func (s *SqlPostStore) AnalyticsPostCount(teamId string, mustHaveFile bool, mustHaveHashtag bool) store.StoreChannel {
@@ -1118,80 +1112,71 @@ func (s *SqlPostStore) GetPostsByIds(postIds []string) ([]*model.Post, *model.Ap
 	return posts, nil
 }
 
-func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var posts []*model.PostForIndexing
-		_, err1 := s.GetSearchReplica().Select(&posts,
-			`SELECT
-				PostsQuery.*, Channels.TeamId, ParentPosts.CreateAt ParentCreateAt
-			FROM (
-				SELECT
-					*
-				FROM
-					Posts
-				WHERE
-					Posts.CreateAt >= :StartTime
-				AND
-					Posts.CreateAt < :EndTime
-				ORDER BY
-					CreateAt ASC
-				LIMIT
-					1000
-				)
-			AS
-				PostsQuery
-			LEFT JOIN
-				Channels
-			ON
-				PostsQuery.ChannelId = Channels.Id
-			LEFT JOIN
-				Posts ParentPosts
-			ON
-				PostsQuery.RootId = ParentPosts.Id`,
-			map[string]interface{}{"StartTime": startTime, "EndTime": endTime, "NumPosts": limit})
+func (s *SqlPostStore) GetPostsBatchForIndexing(startTime int64, endTime int64, limit int) ([]*model.PostForIndexing, *model.AppError) {
+	var posts []*model.PostForIndexing
+	_, err := s.GetSearchReplica().Select(&posts,
+		`SELECT
+			PostsQuery.*, Channels.TeamId, ParentPosts.CreateAt ParentCreateAt
+		FROM (
+			SELECT
+				*
+			FROM
+				Posts
+			WHERE
+				Posts.CreateAt >= :StartTime
+			AND
+				Posts.CreateAt < :EndTime
+			ORDER BY
+				CreateAt ASC
+			LIMIT
+				1000
+			)
+		AS
+			PostsQuery
+		LEFT JOIN
+			Channels
+		ON
+			PostsQuery.ChannelId = Channels.Id
+		LEFT JOIN
+			Posts ParentPosts
+		ON
+			PostsQuery.RootId = ParentPosts.Id`,
+		map[string]interface{}{"StartTime": startTime, "EndTime": endTime, "NumPosts": limit})
 
-		if err1 != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_batch_for_indexing.get.app_error", nil, err1.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = posts
-		}
-	})
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetPostContext", "store.sql_post.get_posts_batch_for_indexing.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return posts, nil
 }
 
-func (s *SqlPostStore) PermanentDeleteBatch(endTime int64, limit int64) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var query string
-		if s.DriverName() == "postgres" {
-			query = "DELETE from Posts WHERE Id = any (array (SELECT Id FROM Posts WHERE CreateAt < :EndTime LIMIT :Limit))"
-		} else {
-			query = "DELETE from Posts WHERE CreateAt < :EndTime LIMIT :Limit"
-		}
+func (s *SqlPostStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
+	var query string
+	if s.DriverName() == "postgres" {
+		query = "DELETE from Posts WHERE Id = any (array (SELECT Id FROM Posts WHERE CreateAt < :EndTime LIMIT :Limit))"
+	} else {
+		query = "DELETE from Posts WHERE CreateAt < :EndTime LIMIT :Limit"
+	}
 
-		sqlResult, err := s.GetMaster().Exec(query, map[string]interface{}{"EndTime": endTime, "Limit": limit})
-		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.PermanentDeleteBatch", "store.sql_post.permanent_delete_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
-		} else {
-			rowsAffected, err1 := sqlResult.RowsAffected()
-			if err1 != nil {
-				result.Err = model.NewAppError("SqlPostStore.PermanentDeleteBatch", "store.sql_post.permanent_delete_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
-				result.Data = int64(0)
-			} else {
-				result.Data = rowsAffected
-			}
-		}
-	})
+	sqlResult, err := s.GetMaster().Exec(query, map[string]interface{}{"EndTime": endTime, "Limit": limit})
+	if err != nil {
+		return 0, model.NewAppError("SqlPostStore.PermanentDeleteBatch", "store.sql_post.permanent_delete_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
+	}
+
+	rowsAffected, err := sqlResult.RowsAffected()
+	if err != nil {
+		return 0, model.NewAppError("SqlPostStore.PermanentDeleteBatch", "store.sql_post.permanent_delete_batch.app_error", nil, ""+err.Error(), http.StatusInternalServerError)
+	}
+	return rowsAffected, nil
 }
 
-func (s *SqlPostStore) GetOldest() store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var post model.Post
-		err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts ORDER BY CreateAt LIMIT 1")
-		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetOldest", "store.sql_post.get.app_error", nil, err.Error(), http.StatusNotFound)
-		}
+func (s *SqlPostStore) GetOldest() (*model.Post, *model.AppError) {
+	var post model.Post
+	err := s.GetReplica().SelectOne(&post, "SELECT * FROM Posts ORDER BY CreateAt LIMIT 1")
+	if err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetOldest", "store.sql_post.get.app_error", nil, err.Error(), http.StatusNotFound)
+	}
 
-		result.Data = &post
-	})
+	return &post, nil
 }
 
 func (s *SqlPostStore) determineMaxPostSize() int {

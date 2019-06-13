@@ -112,7 +112,7 @@ func testTeamStoreUpdateDisplayName(t *testing.T, ss store.Store) {
 
 	newDisplayName := "NewDisplayName"
 
-	if err = (<-ss.Team().UpdateDisplayName(newDisplayName, o1.Id)).Err; err != nil {
+	if err = ss.Team().UpdateDisplayName(newDisplayName, o1.Id); err != nil {
 		t.Fatal(err)
 	}
 
@@ -149,15 +149,15 @@ func testTeamStoreGetByName(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	if r1 := <-ss.Team().GetByName(o1.Name); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if team, err := ss.Team().GetByName(o1.Name); err != nil {
+		t.Fatal(err)
 	} else {
-		if r1.Data.(*model.Team).ToJson() != o1.ToJson() {
+		if team.ToJson() != o1.ToJson() {
 			t.Fatal("invalid returned team")
 		}
 	}
 
-	if err := (<-ss.Team().GetByName("")).Err; err == nil {
+	if _, err := ss.Team().GetByName(""); err == nil {
 		t.Fatal("Missing id should have failed")
 	}
 }
@@ -174,10 +174,10 @@ func testTeamStoreSearchByName(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	if r1 := <-ss.Team().SearchByName(name); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if r1, err := ss.Team().SearchByName(name); err != nil {
+		t.Fatal(err)
 	} else {
-		if r1.Data.([]*model.Team)[0].ToJson() != o1.ToJson() {
+		if r1[0].ToJson() != o1.ToJson() {
 			t.Fatal("invalid returned team")
 		}
 	}
@@ -798,17 +798,15 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	store.Must(ss.Team().SaveMember(m2, -1))
 	store.Must(ss.Team().SaveMember(m3, -1))
 
-	if r1 := <-ss.Team().GetMembers(teamId1, 0, 100, nil); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if ms, err := ss.Team().GetMembers(teamId1, 0, 100, nil); err != nil {
+		t.Fatal(err)
 	} else {
-		ms := r1.Data.([]*model.TeamMember)
 		require.Len(t, ms, 2)
 	}
 
-	if r1 := <-ss.Team().GetMembers(teamId2, 0, 100, nil); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if ms, err := ss.Team().GetMembers(teamId2, 0, 100, nil); err != nil {
+		t.Fatal(err)
 	} else {
-		ms := r1.Data.([]*model.TeamMember)
 
 		require.Len(t, ms, 1)
 		require.Equal(t, m3.UserId, ms[0].UserId)
@@ -827,10 +825,9 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 		t.Fatal(r1.Err)
 	}
 
-	if r1 := <-ss.Team().GetMembers(teamId1, 0, 100, nil); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if ms, err := ss.Team().GetMembers(teamId1, 0, 100, nil); err != nil {
+		t.Fatal(err)
 	} else {
-		ms := r1.Data.([]*model.TeamMember)
 
 		require.Len(t, ms, 1)
 		require.Equal(t, m2.UserId, ms[0].UserId)
@@ -842,10 +839,9 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 		t.Fatal(r1.Err)
 	}
 
-	if r1 := <-ss.Team().GetMembers(teamId1, 0, 100, nil); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if ms, err := ss.Team().GetMembers(teamId1, 0, 100, nil); err != nil {
+		t.Fatal(err)
 	} else {
-		ms := r1.Data.([]*model.TeamMember)
 
 		require.Len(t, ms, 0)
 	}
@@ -901,10 +897,9 @@ func testTeamMembersWithPagination(t *testing.T, ss store.Store) {
 	r1 = <-ss.Team().RemoveMember(teamId1, m1.UserId)
 	require.Nil(t, r1.Err)
 
-	r1 = <-ss.Team().GetMembers(teamId1, 0, 100, nil)
-	require.Nil(t, r1.Err)
+	ms, err := ss.Team().GetMembers(teamId1, 0, 100, nil)
+	require.Nil(t, err)
 
-	ms = r1.Data.([]*model.TeamMember)
 	require.Len(t, ms, 1)
 	require.Equal(t, m2.UserId, ms[0].UserId)
 
@@ -1292,10 +1287,9 @@ func testGetChannelUnreadsForTeam(t *testing.T, ss store.Store) {
 	cm2 := &model.ChannelMember{ChannelId: c2.Id, UserId: m1.UserId, NotifyProps: model.GetDefaultChannelNotifyProps(), MsgCount: 90}
 	store.Must(ss.Channel().SaveMember(cm2))
 
-	if r1 := <-ss.Team().GetChannelUnreadsForTeam(m1.TeamId, m1.UserId); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if ms, err := ss.Team().GetChannelUnreadsForTeam(m1.TeamId, m1.UserId); err != nil {
+		t.Fatal(err)
 	} else {
-		ms := r1.Data.([]*model.ChannelUnread)
 		if len(ms) != 2 {
 			t.Fatal("wrong length")
 		}
