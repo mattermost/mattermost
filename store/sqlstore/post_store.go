@@ -382,62 +382,56 @@ func (s *SqlPostStore) Delete(postId string, time int64, deleteByID string) *mod
 	return nil
 }
 
-func (s *SqlPostStore) permanentDelete(postId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		_, err := s.GetMaster().Exec("DELETE FROM Posts WHERE Id = :Id OR RootId = :RootId", map[string]interface{}{"Id": postId, "RootId": postId})
-		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.Delete", "store.sql_post.permanent_delete.app_error", nil, "id="+postId+", err="+err.Error(), http.StatusInternalServerError)
-		}
-	})
+func (s *SqlPostStore) permanentDelete(postId string) *model.AppError {
+	_, err := s.GetMaster().Exec("DELETE FROM Posts WHERE Id = :Id OR RootId = :RootId", map[string]interface{}{"Id": postId, "RootId": postId})
+	if err != nil {
+		return model.NewAppError("SqlPostStore.Delete", "store.sql_post.permanent_delete.app_error", nil, "id="+postId+", err="+err.Error(), http.StatusInternalServerError)
+	}
+	return nil
 }
 
-func (s *SqlPostStore) permanentDeleteAllCommentByUser(userId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		_, err := s.GetMaster().Exec("DELETE FROM Posts WHERE UserId = :UserId AND RootId != ''", map[string]interface{}{"UserId": userId})
-		if err != nil {
-			result.Err = model.NewAppError("SqlPostStore.permanentDeleteAllCommentByUser", "store.sql_post.permanent_delete_all_comments_by_user.app_error", nil, "userId="+userId+", err="+err.Error(), http.StatusInternalServerError)
-		}
-	})
+func (s *SqlPostStore) permanentDeleteAllCommentByUser(userId string) *model.AppError {
+	_, err := s.GetMaster().Exec("DELETE FROM Posts WHERE UserId = :UserId AND RootId != ''", map[string]interface{}{"UserId": userId})
+	if err != nil {
+		return model.NewAppError("SqlPostStore.permanentDeleteAllCommentByUser", "store.sql_post.permanent_delete_all_comments_by_user.app_error", nil, "userId="+userId+", err="+err.Error(), http.StatusInternalServerError)
+	}
+	return nil
 }
 
-func (s *SqlPostStore) PermanentDeleteByUser(userId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		// First attempt to delete all the comments for a user
-		if r := <-s.permanentDeleteAllCommentByUser(userId); r.Err != nil {
-			result.Err = r.Err
-			return
+func (s *SqlPostStore) PermanentDeleteByUser(userId string) *model.AppError {
+	// First attempt to delete all the comments for a user
+	if err := s.permanentDeleteAllCommentByUser(userId); err != nil {
+		return err
+	}
+
+	// Now attempt to delete all the root posts for a user. This will also
+	// delete all the comments for each post
+	found := true
+	count := 0
+
+	for found {
+		var ids []string
+		_, err := s.GetMaster().Select(&ids, "SELECT Id FROM Posts WHERE UserId = :UserId LIMIT 1000", map[string]interface{}{"UserId": userId})
+		if err != nil {
+			return model.NewAppError("SqlPostStore.PermanentDeleteByUser.select", "store.sql_post.permanent_delete_by_user.app_error", nil, "userId="+userId+", err="+err.Error(), http.StatusInternalServerError)
 		}
 
-		// Now attempt to delete all the root posts for a user.  This will also
-		// delete all the comments for each post.
-		found := true
-		count := 0
-
-		for found {
-			var ids []string
-			_, err := s.GetMaster().Select(&ids, "SELECT Id FROM Posts WHERE UserId = :UserId LIMIT 1000", map[string]interface{}{"UserId": userId})
-			if err != nil {
-				result.Err = model.NewAppError("SqlPostStore.PermanentDeleteByUser.select", "store.sql_post.permanent_delete_by_user.app_error", nil, "userId="+userId+", err="+err.Error(), http.StatusInternalServerError)
-				return
-			} else {
-				found = false
-				for _, id := range ids {
-					found = true
-					if r := <-s.permanentDelete(id); r.Err != nil {
-						result.Err = r.Err
-						return
-					}
-				}
-			}
-
-			// This is a fail safe, give up if more than 10K messages
-			count = count + 1
-			if count >= 10 {
-				result.Err = model.NewAppError("SqlPostStore.PermanentDeleteByUser.toolarge", "store.sql_post.permanent_delete_by_user.too_many.app_error", nil, "userId="+userId, http.StatusInternalServerError)
-				return
+		found = false
+		for _, id := range ids {
+			found = true
+			if err := s.permanentDelete(id); err != nil {
+				return err
 			}
 		}
-	})
+
+		// This is a fail safe, give up if more than 10k messages
+		count++
+		if count >= 10 {
+			return model.NewAppError("SqlPostStore.PermanentDeleteByUser.toolarge", "store.sql_post.permanent_delete_by_user.too_many.app_error", nil, "userId="+userId, http.StatusInternalServerError)
+		}
+	}
+
+	return nil
 }
 
 func (s *SqlPostStore) PermanentDeleteByChannel(channelId string) *model.AppError {
