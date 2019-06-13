@@ -659,16 +659,16 @@ func (s SqlTeamStore) GetTotalMemberCount(teamId string) (int64, *model.AppError
 
 func (s SqlTeamStore) GetActiveMemberCount(teamId string) (int64, *model.AppError) {
 	count, err := s.GetReplica().SelectInt(`
-			SELECT
-				count(*)
-			FROM
-				TeamMembers,
-				Users
-			WHERE
-				TeamMembers.UserId = Users.Id
-				AND TeamMembers.TeamId = :TeamId
-				AND TeamMembers.DeleteAt = 0
-				AND Users.DeleteAt = 0`, map[string]interface{}{"TeamId": teamId})
+		SELECT
+			count(*)
+		FROM
+			TeamMembers,
+			Users
+		WHERE
+			TeamMembers.UserId = Users.Id
+			AND TeamMembers.TeamId = :TeamId
+			AND TeamMembers.DeleteAt = 0
+			AND Users.DeleteAt = 0`, map[string]interface{}{"TeamId": teamId})
 	if err != nil {
 		return 0, model.NewAppError("SqlTeamStore.GetActiveMemberCount", "store.sql_team.get_active_member_count.app_error", nil, "teamId="+teamId+" "+err.Error(), http.StatusInternalServerError)
 	}
