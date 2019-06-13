@@ -6,6 +6,8 @@ package app
 import (
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/store"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 // CreateBot creates the given bot and corresponding user.
@@ -20,6 +22,32 @@ func (a *App) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
 	if result.Err != nil {
 		a.Srv.Store.User().PermanentDelete(bot.UserId)
 		return nil, result.Err
+	}
+
+	// Get the owner of the bot, if one exists. If not, don't send a message
+	ownerUser, err := a.Srv.Store.User().Get(bot.OwnerId)
+	if err != nil && err.Id != store.MISSING_ACCOUNT_ERROR {
+		mlog.Error(err.Error())
+		return nil, err
+	} else if ownerUser != nil {
+		// Send a message to the bot's creator to inform them that the bot needs to be added
+		// to a team and channel after it's created
+		channel, err := a.GetOrCreateDirectChannel(result.Data.(*model.Bot).UserId, bot.OwnerId)
+		if err != nil {
+			return nil, err
+		}
+
+		T := utils.GetUserTranslations(ownerUser.Locale)
+		botAddPost := &model.Post{
+			Type:      model.POST_ADD_BOT_TEAMS_CHANNELS,
+			UserId:    result.Data.(*model.Bot).UserId,
+			ChannelId: channel.Id,
+			Message:   T("api.bot.teams_channels.add_message_mobile"),
+		}
+
+		if _, err := a.CreatePostAsUser(botAddPost, a.Session.Id); err != nil {
+			return nil, err
+		}
 	}
 
 	return result.Data.(*model.Bot), nil
