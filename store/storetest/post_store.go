@@ -1170,10 +1170,40 @@ func testPostStoreSearch(t *testing.T, ss store.Store) {
 	teamId := model.NewId()
 	userId := model.NewId()
 
+	u1 := &model.User{}
+	u1.Username = "usera1"
+	u1.Email = MakeEmail()
+	u1, _ = (<-ss.User().Save(u1)).Data.(*model.User)
+
+	t1 := &model.TeamMember{}
+	t1.TeamId = teamId
+	t1.UserId = u1.Id
+	t1, _ = (<-ss.Team().SaveMember(t1, 1000)).Data.(*model.TeamMember)
+
+	u2 := &model.User{}
+	u2.Username = "userb2"
+	u2.Email = MakeEmail()
+	u2, _ = (<-ss.User().Save(u2)).Data.(*model.User)
+
+	t2 := &model.TeamMember{}
+	t2.TeamId = teamId
+	t2.UserId = u2.Id
+	t2, _ = (<-ss.Team().SaveMember(t2, 1000)).Data.(*model.TeamMember)
+
+	u3 := &model.User{}
+	u3.Username = "userc3"
+	u3.Email = MakeEmail()
+	u3, _ = (<-ss.User().Save(u3)).Data.(*model.User)
+
+	t3 := &model.TeamMember{}
+	t3.TeamId = teamId
+	t3.UserId = u3.Id
+	t3, _ = (<-ss.Team().SaveMember(t3, 1000)).Data.(*model.TeamMember)
+
 	c1 := &model.Channel{}
 	c1.TeamId = teamId
 	c1.DisplayName = "Channel1"
-	c1.Name = "zz" + model.NewId() + "b"
+	c1.Name = "channel-x"
 	c1.Type = model.CHANNEL_OPEN
 	c1, _ = ss.Channel().Save(c1, -1)
 
@@ -1186,15 +1216,15 @@ func testPostStoreSearch(t *testing.T, ss store.Store) {
 
 	c2 := &model.Channel{}
 	c2.TeamId = teamId
-	c2.DisplayName = "Channel1"
-	c2.Name = "zz" + model.NewId() + "b"
+	c2.DisplayName = "Channel2"
+	c2.Name = "channel-y"
 	c2.Type = model.CHANNEL_OPEN
 	c2, _ = ss.Channel().Save(c2, -1)
 
 	c3 := &model.Channel{}
 	c3.TeamId = teamId
-	c3.DisplayName = "Channel1"
-	c3.Name = "zz" + model.NewId() + "b"
+	c3.DisplayName = "Channel3"
+	c3.Name = "channel-z"
 	c3.Type = model.CHANNEL_OPEN
 	c3, _ = ss.Channel().Save(c3, -1)
 
@@ -1209,37 +1239,37 @@ func testPostStoreSearch(t *testing.T, ss store.Store) {
 
 	o1 := &model.Post{}
 	o1.ChannelId = c1.Id
-	o1.UserId = model.NewId()
-	o1.Message = "corey mattermost new york"
+	o1.UserId = u1.Id
+	o1.Message = "corey mattermost new york United States"
 	o1, err = ss.Post().Save(o1)
 	require.Nil(t, err)
 
 	o1a := &model.Post{}
 	o1a.ChannelId = c1.Id
 	o1a.UserId = model.NewId()
-	o1a.Message = "corey mattermost new york"
+	o1a.Message = "corey mattermost new york United States"
 	o1a.Type = model.POST_JOIN_CHANNEL
 	_, err = ss.Post().Save(o1a)
 	require.Nil(t, err)
 
 	o2 := &model.Post{}
 	o2.ChannelId = c1.Id
-	o2.UserId = model.NewId()
-	o2.Message = "New Jersey is where John is from"
+	o2.UserId = u2.Id
+	o2.Message = "New Jersey United States is where John is from"
 	o2, err = ss.Post().Save(o2)
 	require.Nil(t, err)
 
 	o3 := &model.Post{}
 	o3.ChannelId = c2.Id
 	o3.UserId = model.NewId()
-	o3.Message = "New Jersey is where John is from corey new york"
+	o3.Message = "New Jersey United States is where John is from corey new york"
 	_, err = ss.Post().Save(o3)
 	require.Nil(t, err)
 
 	o4 := &model.Post{}
 	o4.ChannelId = c1.Id
 	o4.UserId = model.NewId()
-	o4.Hashtags = "#hashtag"
+	o4.Hashtags = "#hashtag #tagme"
 	o4.Message = "(message)blargh"
 	o4, err = ss.Post().Save(o4)
 	require.Nil(t, err)
@@ -1247,7 +1277,7 @@ func testPostStoreSearch(t *testing.T, ss store.Store) {
 	o5 := &model.Post{}
 	o5.ChannelId = c1.Id
 	o5.UserId = model.NewId()
-	o5.Hashtags = "#secret #howdy"
+	o5.Hashtags = "#secret #howdy #tagme"
 	o5, err = ss.Post().Save(o5)
 	require.Nil(t, err)
 
@@ -1260,8 +1290,8 @@ func testPostStoreSearch(t *testing.T, ss store.Store) {
 
 	o7 := &model.Post{}
 	o7.ChannelId = c3.Id
-	o7.UserId = model.NewId()
-	o7.Message = "New Jersey is where John is from corey new york"
+	o7.UserId = u3.Id
+	o7.Message = "New Jersey United States is where John is from corey new york"
 	o7, err = ss.Post().Save(o7)
 	require.Nil(t, err)
 
@@ -1315,6 +1345,12 @@ func testPostStoreSearch(t *testing.T, ss store.Store) {
 			[]string{o5.Id},
 		},
 		{
+			"hashtag-search-with-exclusion",
+			&model.SearchParams{Terms: "#tagme", ExcludedTerms: "#hashtag", IsHashtag: true},
+			1,
+			[]string{o5.Id},
+		},
+		{
 			"no-match-mention",
 			&model.SearchParams{Terms: "@thisshouldmatchnothing", IsHashtag: true},
 			0,
@@ -1327,14 +1363,44 @@ func testPostStoreSearch(t *testing.T, ss store.Store) {
 			[]string{},
 		},
 		{
+			"exclude-search",
+			&model.SearchParams{Terms: "united", ExcludedTerms: "jersey"},
+			1,
+			[]string{o1.Id},
+		},
+		{
 			"multiple-words-search",
 			&model.SearchParams{Terms: "corey new york"},
 			1,
 			[]string{o1.Id},
 		},
 		{
+			"multiple-words-with-exclusion-search",
+			&model.SearchParams{Terms: "united states", ExcludedTerms: "jersey"},
+			1,
+			[]string{o1.Id},
+		},
+		{
+			"multiple-excluded-words-search",
+			&model.SearchParams{Terms: "united", ExcludedTerms: "corey john"},
+			0,
+			[]string{},
+		},
+		{
 			"multiple-wildcard-search",
 			&model.SearchParams{Terms: "matter* jer*"},
+			0,
+			[]string{},
+		},
+		{
+			"multiple-wildcard-with-exclusion-search",
+			&model.SearchParams{Terms: "unite* state*", ExcludedTerms: "jers*"},
+			1,
+			[]string{o1.Id},
+		},
+		{
+			"multiple-wildcard-excluded-words-search",
+			&model.SearchParams{Terms: "united states", ExcludedTerms: "jers* yor*"},
 			0,
 			[]string{},
 		},
@@ -1349,6 +1415,60 @@ func testPostStoreSearch(t *testing.T, ss store.Store) {
 			&model.SearchParams{Terms: "Jersey corey", OrTerms: true},
 			2,
 			[]string{o1.Id, o2.Id},
+		},
+		{
+			"exclude-search-with-or",
+			&model.SearchParams{Terms: "york jersey", ExcludedTerms: "john", OrTerms: true},
+			1,
+			[]string{o1.Id},
+		},
+		{
+			"search-with-from-user",
+			&model.SearchParams{Terms: "united states", FromUsers: []string{"usera1"}, IncludeDeletedChannels: true},
+			1,
+			[]string{o1.Id},
+		},
+		{
+			"search-with-multiple-from-user",
+			&model.SearchParams{Terms: "united states", FromUsers: []string{"usera1", "userc3"}, IncludeDeletedChannels: true},
+			2,
+			[]string{o1.Id, o7.Id},
+		},
+		{
+			"search-with-excluded-user",
+			&model.SearchParams{Terms: "united states", ExcludedUsers: []string{"usera1"}, IncludeDeletedChannels: true},
+			2,
+			[]string{o2.Id, o7.Id},
+		},
+		{
+			"search-with-multiple-excluded-user",
+			&model.SearchParams{Terms: "united states", ExcludedUsers: []string{"usera1", "userb2"}, IncludeDeletedChannels: true},
+			1,
+			[]string{o7.Id},
+		},
+		{
+			"search-with-deleted-and-channel-filter",
+			&model.SearchParams{Terms: "Jersey corey", InChannels: []string{"channel-x"}, IncludeDeletedChannels: true, OrTerms: true},
+			2,
+			[]string{o1.Id, o2.Id},
+		},
+		{
+			"search-with-deleted-and-multiple-channel-filter",
+			&model.SearchParams{Terms: "Jersey corey", InChannels: []string{"channel-x", "channel-z"}, IncludeDeletedChannels: true, OrTerms: true},
+			3,
+			[]string{o1.Id, o2.Id, o7.Id},
+		},
+		{
+			"search-with-deleted-and-excluded-channel-filter",
+			&model.SearchParams{Terms: "Jersey corey", ExcludedChannels: []string{"channel-x"}, IncludeDeletedChannels: true, OrTerms: true},
+			1,
+			[]string{o7.Id},
+		},
+		{
+			"search-with-deleted-and-multiple-excluded-channel-filter",
+			&model.SearchParams{Terms: "Jersey corey", ExcludedChannels: []string{"channel-x", "channel-z"}, IncludeDeletedChannels: true, OrTerms: true},
+			0,
+			[]string{},
 		},
 		{
 			"search-with-or-and-deleted",
