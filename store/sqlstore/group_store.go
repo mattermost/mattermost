@@ -1052,10 +1052,11 @@ func (s *SqlGroupStore) ifGroupsThenTeamUsersRemovedQuery(teamID string, groupID
 	if isCount {
 		selectStr = "count(DISTINCT Users.Id)"
 	} else {
+		tmpl := "Users.*, TeamMembers.SchemeGuest, TeamMembers.SchemeAdmin, TeamMembers.SchemeUser, %s AS GroupIDs"
 		if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
-			selectStr = "Users.*, group_concat(UserGroups.Id) AS GroupIDs"
+			selectStr = fmt.Sprintf(tmpl, "group_concat(UserGroups.Id)")
 		} else {
-			selectStr = "Users.*, string_agg(UserGroups.Id, ',') AS GroupIDs"
+			selectStr = fmt.Sprintf(tmpl, "string_agg(UserGroups.Id, ',')")
 		}
 	}
 
@@ -1084,7 +1085,7 @@ func (s *SqlGroupStore) ifGroupsThenTeamUsersRemovedQuery(teamID string, groupID
 						AND GroupMembers.GroupId IN ('%s'))`, teamID, groupIDsSQL))
 
 	if !isCount {
-		query = query.GroupBy("Users.Id")
+		query = query.GroupBy("Users.Id, TeamMembers.SchemeGuest, TeamMembers.SchemeAdmin, TeamMembers.SchemeUser")
 	}
 
 	return query

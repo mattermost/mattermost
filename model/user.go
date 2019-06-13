@@ -772,8 +772,11 @@ func IsValidLocale(locale string) bool {
 
 type UserWithGroups struct {
 	User
-	GroupIDs string   `json:"-"`
-	Groups   []*Group `json:"groups"`
+	GroupIDs    string   `json:"-"`
+	Groups      []*Group `json:"groups"`
+	SchemeGuest bool     `json:"scheme_guest"`
+	SchemeUser  bool     `json:"scheme_user"`
+	SchemeAdmin bool     `json:"scheme_admin"`
 }
 
 type UsersWithGroupsAndCount struct {
