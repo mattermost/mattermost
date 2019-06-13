@@ -721,6 +721,86 @@ var specialSearchChar = []string{
 	":",
 }
 
+func (s *SqlPostStore) buildSearchChannelFilterClause(channels []string, paramPrefix string, exclusion bool, queryParams map[string]interface{}) (string, map[string]interface{}) {
+	if len(channels) > 1 {
+		clause := ":" + paramPrefix + "0"
+		queryParams[paramPrefix+"0"] = channels[0]
+		for i := 1; i < len(channels); i++ {
+			paramName := paramPrefix + strconv.FormatInt(int64(i), 10)
+			clause += ", :" + paramName
+			queryParams[paramName] = channels[i]
+		}
+
+		if exclusion {
+			return "AND Name NOT IN (" + clause + ")", queryParams
+		}
+		return "AND Name IN (" + clause + ")", queryParams
+	}
+
+	if len(channels) == 1 {
+		queryParams[paramPrefix] = channels[0]
+		if exclusion {
+			return "AND Name <> :" + paramPrefix, queryParams
+		}
+		return "AND Name = :" + paramPrefix, queryParams
+	}
+	return "", queryParams
+}
+
+func (s *SqlPostStore) buildSearchUserFilterClause(users []string, paramPrefix string, exclusion bool, queryParams map[string]interface{}) (string, map[string]interface{}) {
+	if len(users) > 1 {
+		clause := ":" + paramPrefix + "0"
+		queryParams[paramPrefix+"0"] = users[0]
+
+		for i := 1; i < len(users); i++ {
+			paramName := paramPrefix + strconv.FormatInt(int64(i), 10)
+			clause += ", :" + paramName
+			queryParams[paramName] = users[i]
+		}
+
+		if exclusion {
+			return "AND Username NOT IN (" + clause + ")", queryParams
+		}
+		return "AND Username IN (" + clause + ")", queryParams
+
+	} else if len(users) == 1 {
+		queryParams[paramPrefix] = users[0]
+		if exclusion {
+			return "AND Username <> :" + paramPrefix, queryParams
+		}
+		return "AND Username = :" + paramPrefix, queryParams
+	}
+
+	return "", queryParams
+}
+
+func (s *SqlPostStore) buildSearchPostFilterClause(fromUsers []string, excludedUsers []string, queryParams map[string]interface{}) (string, map[string]interface{}) {
+	if len(fromUsers) == 0 && len(excludedUsers) == 0 {
+		return "", queryParams
+	}
+
+	filterQuery := `
+		AND UserId IN (
+			SELECT
+				Id
+			FROM
+				Users,
+				TeamMembers
+			WHERE
+				TeamMembers.TeamId = :TeamId
+				AND Users.Id = TeamMembers.UserId
+				FROM_USER_FILTER
+				EXCLUDED_USER_FILTER)`
+
+	fromUserClause, queryParams := s.buildSearchUserFilterClause(fromUsers, "FromUser", false, queryParams)
+	filterQuery = strings.Replace(filterQuery, "FROM_USER_FILTER", fromUserClause, 1)
+
+	excludedUserClause, queryParams := s.buildSearchUserFilterClause(excludedUsers, "ExcludedUser", true, queryParams)
+	filterQuery = strings.Replace(filterQuery, "EXCLUDED_USER_FILTER", excludedUserClause, 1)
+
+	return filterQuery, queryParams
+}
+
 func (s *SqlPostStore) Search(teamId string, userId string, params *model.SearchParams) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		queryParams := map[string]interface{}{
@@ -728,25 +808,12 @@ func (s *SqlPostStore) Search(teamId string, userId string, params *model.Search
 			"UserId": userId,
 		}
 
-		termMap := map[string]bool{}
-		terms := params.Terms
-
-		if terms == "" && len(params.InChannels) == 0 && len(params.FromUsers) == 0 && len(params.OnDate) == 0 && len(params.AfterDate) == 0 && len(params.BeforeDate) == 0 {
+		if params.Terms == "" && params.ExcludedTerms == "" &&
+			len(params.InChannels) == 0 && len(params.ExcludedChannels) == 0 &&
+			len(params.FromUsers) == 0 && len(params.ExcludedUsers) == 0 &&
+			len(params.OnDate) == 0 && len(params.AfterDate) == 0 && len(params.BeforeDate) == 0 {
 			result.Data = []*model.Post{}
 			return
-		}
-
-		searchType := "Message"
-		if params.IsHashtag {
-			searchType = "Hashtags"
-			for _, term := range strings.Split(terms, " ") {
-				termMap[strings.ToUpper(term)] = true
-			}
-		}
-
-		// these chars have special meaning and can be treated as spaces
-		for _, c := range specialSearchChar {
-			terms = strings.Replace(terms, c, " ", -1)
 		}
 
 		var posts []*model.Post
@@ -781,67 +848,21 @@ func (s *SqlPostStore) Search(teamId string, userId string, params *model.Search
 							AND (TeamId = :TeamId OR TeamId = '')
 							` + userIdPart + `
 							` + deletedQueryPart + `
-							CHANNEL_FILTER)
+							IN_CHANNEL_FILTER
+							EXCLUDED_CHANNEL_FILTER)
 				CREATEDATE_CLAUSE
 				SEARCH_CLAUSE
 				ORDER BY CreateAt DESC
 			LIMIT 100`
 
-		if len(params.InChannels) > 1 {
-			inClause := ":InChannel0"
-			queryParams["InChannel0"] = params.InChannels[0]
+		inChannelClause, queryParams := s.buildSearchChannelFilterClause(params.InChannels, "InChannel", false, queryParams)
+		searchQuery = strings.Replace(searchQuery, "IN_CHANNEL_FILTER", inChannelClause, 1)
 
-			for i := 1; i < len(params.InChannels); i++ {
-				paramName := "InChannel" + strconv.FormatInt(int64(i), 10)
-				inClause += ", :" + paramName
-				queryParams[paramName] = params.InChannels[i]
-			}
+		excludedChannelClause, queryParams := s.buildSearchChannelFilterClause(params.ExcludedChannels, "ExcludedChannel", true, queryParams)
+		searchQuery = strings.Replace(searchQuery, "EXCLUDED_CHANNEL_FILTER", excludedChannelClause, 1)
 
-			searchQuery = strings.Replace(searchQuery, "CHANNEL_FILTER", "AND Name IN ("+inClause+")", 1)
-		} else if len(params.InChannels) == 1 {
-			queryParams["InChannel"] = params.InChannels[0]
-			searchQuery = strings.Replace(searchQuery, "CHANNEL_FILTER", "AND Name = :InChannel", 1)
-		} else {
-			searchQuery = strings.Replace(searchQuery, "CHANNEL_FILTER", "", 1)
-		}
-
-		if len(params.FromUsers) > 1 {
-			inClause := ":FromUser0"
-			queryParams["FromUser0"] = params.FromUsers[0]
-
-			for i := 1; i < len(params.FromUsers); i++ {
-				paramName := "FromUser" + strconv.FormatInt(int64(i), 10)
-				inClause += ", :" + paramName
-				queryParams[paramName] = params.FromUsers[i]
-			}
-
-			searchQuery = strings.Replace(searchQuery, "POST_FILTER", `
-				AND UserId IN (
-					SELECT
-						Id
-					FROM
-						Users,
-						TeamMembers
-					WHERE
-						TeamMembers.TeamId = :TeamId
-						AND Users.Id = TeamMembers.UserId
-						AND Username IN (`+inClause+`))`, 1)
-		} else if len(params.FromUsers) == 1 {
-			queryParams["FromUser"] = params.FromUsers[0]
-			searchQuery = strings.Replace(searchQuery, "POST_FILTER", `
-				AND UserId IN (
-					SELECT
-						Id
-					FROM
-						Users,
-						TeamMembers
-					WHERE
-						TeamMembers.TeamId = :TeamId
-						AND Users.Id = TeamMembers.UserId
-						AND Username = :FromUser)`, 1)
-		} else {
-			searchQuery = strings.Replace(searchQuery, "POST_FILTER", "", 1)
-		}
+		postFilterClause, queryParams := s.buildSearchPostFilterClause(params.FromUsers, params.ExcludedUsers, queryParams)
+		searchQuery = strings.Replace(searchQuery, "POST_FILTER", postFilterClause, 1)
 
 		// handle after: before: on: filters
 		if len(params.AfterDate) > 1 || len(params.BeforeDate) > 1 || len(params.OnDate) > 1 {
@@ -878,19 +899,43 @@ func (s *SqlPostStore) Search(teamId string, userId string, params *model.Search
 			searchQuery = strings.Replace(searchQuery, "CREATEDATE_CLAUSE", "", 1)
 		}
 
-		if terms == "" {
+		termMap := map[string]bool{}
+		terms := params.Terms
+		excludedTerms := params.ExcludedTerms
+
+		searchType := "Message"
+		if params.IsHashtag {
+			searchType = "Hashtags"
+			for _, term := range strings.Split(terms, " ") {
+				termMap[strings.ToUpper(term)] = true
+			}
+		}
+
+		// these chars have special meaning and can be treated as spaces
+		for _, c := range specialSearchChar {
+			terms = strings.Replace(terms, c, " ", -1)
+			excludedTerms = strings.Replace(excludedTerms, c, " ", -1)
+		}
+
+		if terms == "" && excludedTerms == "" {
 			// we've already confirmed that we have a channel or user to search for
 			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", "", 1)
 		} else if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 			// Parse text for wildcards
 			if wildcard, err := regexp.Compile(`\*($| )`); err == nil {
 				terms = wildcard.ReplaceAllLiteralString(terms, ":* ")
+				excludedTerms = wildcard.ReplaceAllLiteralString(excludedTerms, ":* ")
+			}
+
+			excludeClause := ""
+			if excludedTerms != "" {
+				excludeClause = " & !(" + strings.Join(strings.Fields(excludedTerms), " | ") + ")"
 			}
 
 			if params.OrTerms {
-				terms = strings.Join(strings.Fields(terms), " | ")
+				queryParams["Terms"] = "(" + strings.Join(strings.Fields(terms), " | ") + ")" + excludeClause
 			} else {
-				terms = strings.Join(strings.Fields(terms), " & ")
+				queryParams["Terms"] = "(" + strings.Join(strings.Fields(terms), " & ") + ")" + excludeClause
 			}
 
 			searchClause := fmt.Sprintf("AND to_tsvector('english', %s) @@  to_tsquery(:Terms)", searchType)
@@ -899,17 +944,21 @@ func (s *SqlPostStore) Search(teamId string, userId string, params *model.Search
 			searchClause := fmt.Sprintf("AND MATCH (%s) AGAINST (:Terms IN BOOLEAN MODE)", searchType)
 			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
 
-			if !params.OrTerms {
-				splitTerms := strings.Fields(terms)
-				for i, t := range strings.Fields(terms) {
-					splitTerms[i] = "+" + t
-				}
+			excludeClause := ""
+			if excludedTerms != "" {
+				excludeClause = " -(" + excludedTerms + ")"
+			}
 
-				terms = strings.Join(splitTerms, " ")
+			if params.OrTerms {
+				queryParams["Terms"] = terms + excludeClause
+			} else {
+				splitTerms := []string{}
+				for _, t := range strings.Fields(terms) {
+					splitTerms = append(splitTerms, "+"+t)
+				}
+				queryParams["Terms"] = strings.Join(splitTerms, " ") + excludeClause
 			}
 		}
-
-		queryParams["Terms"] = terms
 
 		list := model.NewPostList()
 
@@ -924,6 +973,7 @@ func (s *SqlPostStore) Search(teamId string, userId string, params *model.Search
 					for _, tag := range strings.Split(p.Hashtags, " ") {
 						if termMap[strings.ToUpper(tag)] {
 							exactMatch = true
+							break
 						}
 					}
 					if !exactMatch {
