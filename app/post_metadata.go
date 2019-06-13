@@ -59,10 +59,6 @@ func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost bool, isE
 	// Proxy image links before constructing metadata so that requests go through the proxy
 	post = a.PostWithProxyAddedToImageURLs(post)
 
-	if *a.Config().ExperimentalSettings.DisablePostMetadata {
-		return post
-	}
-
 	post.Metadata = &model.PostMetadata{}
 
 	// Emojis and reaction counts
