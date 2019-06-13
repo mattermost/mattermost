@@ -212,7 +212,7 @@ func TestConfigReset(t *testing.T) {
 		assert.NoError(t, th.RunCommand(t, "config", "set", "JobSettings.RunScheduler", "false"))
 		assert.NoError(t, th.RunCommand(t, "config", "reset", "JobSettings.RunJobs"))
 		output1 := th.CheckCommand(t, "config", "get", "JobSettings.RunJobs")
-		output2 := th.CheckCommand(t, "config", "get", "JobSettings.Scheduler")
+		output2 := th.CheckCommand(t, "config", "get", "JobSettings.RunScheduler")
 		assert.Contains(t, string(output1), "true")
 		assert.Contains(t, string(output2), "false")
 	})
