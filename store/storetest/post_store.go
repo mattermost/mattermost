@@ -2126,7 +2126,7 @@ func testPostStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
 	o3, err = ss.Post().Save(o3)
 	require.Nil(t, err)
 
-	_, err := ss.Post().PermanentDeleteBatch(2000, 1000)
+	_, err = ss.Post().PermanentDeleteBatch(2000, 1000)
 	require.Nil(t, err)
 
 	if _, err := ss.Post().Get(o1.Id); err == nil {

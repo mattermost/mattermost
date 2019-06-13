@@ -115,6 +115,7 @@ func testComplianceExport(t *testing.T, ss store.Store) {
 	o2.CreateAt = o1.CreateAt + 20
 	o2.Message = "zz" + model.NewId() + "b"
 	_, err = ss.Post().Save(o2)
+	require.Nil(t, err)
 
 	o2a := &model.Post{}
 	o2a.ChannelId = c1.Id
