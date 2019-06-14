@@ -445,7 +445,7 @@ func (s SqlTeamStore) GetAllTeamPageListing(offset int, limit int) ([]*model.Tea
 
 	var data []*model.Team
 	if _, err := s.GetReplica().Select(&data, query, map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
-		return nil, model.NewAppError("SqlTeamStore.GetAllTeamListing", "store.sql_team.get_all_team_listing.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return nil, model.NewAppError("SqlTeamStore.GetAllTeamPageListing", "store.sql_team.get_all_team_page_listing.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return data, nil
