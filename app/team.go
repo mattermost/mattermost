@@ -247,14 +247,13 @@ func (a *App) GetSchemeRolesForTeam(teamId string) (string, string, string, *mod
 }
 
 func (a *App) UpdateTeamMemberRoles(teamId string, userId string, newRoles string) (*model.TeamMember, *model.AppError) {
-	result := <-a.Srv.Store.Team().GetMember(teamId, userId)
-	if result.Err != nil {
-		return nil, result.Err
+	member, err := a.Srv.Store.Team().GetMember(teamId, userId)
+	if err != nil {
+		return nil, err
 	}
-	member := result.Data.(*model.TeamMember)
 
 	if member == nil {
-		err := model.NewAppError("UpdateTeamMemberRoles", "api.team.update_member_roles.not_a_member", nil, "userId="+userId+" teamId="+teamId, http.StatusBadRequest)
+		err = model.NewAppError("UpdateTeamMemberRoles", "api.team.update_member_roles.not_a_member", nil, "userId="+userId+" teamId="+teamId, http.StatusBadRequest)
 		return nil, err
 	}
 
@@ -305,7 +304,7 @@ func (a *App) UpdateTeamMemberRoles(teamId string, userId string, newRoles strin
 
 	member.ExplicitRoles = strings.Join(newExplicitRoles, " ")
 
-	result = <-a.Srv.Store.Team().UpdateMember(member)
+	result := <-a.Srv.Store.Team().UpdateMember(member)
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -459,7 +458,13 @@ func (a *App) AddUserToTeamByToken(userId string, tokenId string) (*model.Team, 
 }
 
 func (a *App) AddUserToTeamByInviteId(inviteId string, userId string) (*model.Team, *model.AppError) {
-	tchan := a.Srv.Store.Team().GetByInviteId(inviteId)
+	tchan := make(chan store.StoreResult, 1)
+	go func() {
+		team, err := a.Srv.Store.Team().GetByInviteId(inviteId)
+		tchan <- store.StoreResult{Data: team, Err: err}
+		close(tchan)
+	}()
+
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
 		user, err := a.Srv.Store.User().Get(userId)
@@ -502,8 +507,8 @@ func (a *App) joinUserToTeam(team *model.Team, user *model.User) (*model.TeamMem
 		tm.SchemeAdmin = true
 	}
 
-	etmr := <-a.Srv.Store.Team().GetMember(team.Id, user.Id)
-	if etmr.Err != nil {
+	rtm, err := a.Srv.Store.Team().GetMember(team.Id, user.Id)
+	if err != nil {
 		// Membership appears to be missing. Lets try to add.
 		tmr := <-a.Srv.Store.Team().SaveMember(tm, *a.Config().TeamSettings.MaxUsersPerTeam)
 		if tmr.Err != nil {
@@ -512,9 +517,7 @@ func (a *App) joinUserToTeam(team *model.Team, user *model.User) (*model.TeamMem
 		return tmr.Data.(*model.TeamMember), false, nil
 	}
 
-	// Membership already exists.  Check if deleted and and update, otherwise do nothing
-	rtm := etmr.Data.(*model.TeamMember)
-
+	// Membership already exists.  Check if deleted and update, otherwise do nothing
 	// Do nothing if already added
 	if rtm.DeleteAt == 0 {
 		return rtm, true, nil
@@ -601,11 +604,7 @@ func (a *App) GetTeamByName(name string) (*model.Team, *model.AppError) {
 }
 
 func (a *App) GetTeamByInviteId(inviteId string) (*model.Team, *model.AppError) {
-	result := <-a.Srv.Store.Team().GetByInviteId(inviteId)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.Team), nil
+	return a.Srv.Store.Team().GetByInviteId(inviteId)
 }
 
 func (a *App) GetAllTeams() ([]*model.Team, *model.AppError) {
@@ -629,11 +628,7 @@ func (a *App) GetAllPrivateTeams() ([]*model.Team, *model.AppError) {
 }
 
 func (a *App) GetAllPrivateTeamsPage(offset int, limit int) ([]*model.Team, *model.AppError) {
-	result := <-a.Srv.Store.Team().GetAllPrivateTeamPageListing(offset, limit)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.Team), nil
+	return a.Srv.Store.Team().GetAllPrivateTeamPageListing(offset, limit)
 }
 
 func (a *App) GetAllPublicTeams() ([]*model.Team, *model.AppError) {
@@ -669,11 +664,7 @@ func (a *App) SearchPublicTeams(term string) ([]*model.Team, *model.AppError) {
 }
 
 func (a *App) SearchPrivateTeams(term string) ([]*model.Team, *model.AppError) {
-	result := <-a.Srv.Store.Team().SearchPrivate(term)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.Team), nil
+	return a.Srv.Store.Team().SearchPrivate(term)
 }
 
 func (a *App) GetTeamsForUser(userId string) ([]*model.Team, *model.AppError) {
@@ -685,11 +676,7 @@ func (a *App) GetTeamsForUser(userId string) ([]*model.Team, *model.AppError) {
 }
 
 func (a *App) GetTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError) {
-	result := <-a.Srv.Store.Team().GetMember(teamId, userId)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.TeamMember), nil
+	return a.Srv.Store.Team().GetMember(teamId, userId)
 }
 
 func (a *App) GetTeamMembersForUser(userId string) ([]*model.TeamMember, *model.AppError) {
@@ -705,19 +692,11 @@ func (a *App) GetTeamMembersForUserWithPagination(userId string, page, perPage i
 }
 
 func (a *App) GetTeamMembers(teamId string, offset int, limit int, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError) {
-	result := <-a.Srv.Store.Team().GetMembers(teamId, offset, limit, restrictions)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.TeamMember), nil
+	return a.Srv.Store.Team().GetMembers(teamId, offset, limit, restrictions)
 }
 
 func (a *App) GetTeamMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError) {
-	result := <-a.Srv.Store.Team().GetMembersByIds(teamId, userIds, restrictions)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.TeamMember), nil
+	return a.Srv.Store.Team().GetMembersByIds(teamId, userIds, restrictions)
 }
 
 func (a *App) AddTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError) {
@@ -1160,7 +1139,12 @@ func (a *App) RestoreTeam(teamId string) *model.AppError {
 }
 
 func (a *App) GetTeamStats(teamId string) (*model.TeamStats, *model.AppError) {
-	tchan := a.Srv.Store.Team().GetTotalMemberCount(teamId)
+	tchan := make(chan store.StoreResult, 1)
+	go func() {
+		totalMemberCount, err := a.Srv.Store.Team().GetTotalMemberCount(teamId)
+		tchan <- store.StoreResult{Data: totalMemberCount, Err: err}
+		close(tchan)
+	}()
 	achan := a.Srv.Store.Team().GetActiveMemberCount(teamId)
 
 	stats := &model.TeamStats{}
@@ -1206,12 +1190,12 @@ func (a *App) GetTeamIdFromQuery(query url.Values) (string, *model.AppError) {
 		return tokenData["teamId"], nil
 	}
 	if len(inviteId) > 0 {
-		result := <-a.Srv.Store.Team().GetByInviteId(inviteId)
-		if result.Err == nil {
-			return result.Data.(*model.Team).Id, nil
+		team, err := a.Srv.Store.Team().GetByInviteId(inviteId)
+		if err == nil {
+			return team.Id, nil
 		}
 		// soft fail, so we still create user but don't auto-join team
-		mlog.Error(fmt.Sprintf("%v", result.Err))
+		mlog.Error(fmt.Sprintf("%v", err))
 	}
 
 	return "", nil

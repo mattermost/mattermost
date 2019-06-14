@@ -943,14 +943,11 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel, teamMem
 }
 
 func (a *App) AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
-	tmchan := a.Srv.Store.Team().GetMember(channel.TeamId, user.Id)
-	var teamMember *model.TeamMember
+	teamMember, err := a.Srv.Store.Team().GetMember(channel.TeamId, user.Id)
 
-	result := <-tmchan
-	if result.Err != nil {
-		return nil, result.Err
+	if err != nil {
+		return nil, err
 	}
-	teamMember = result.Data.(*model.TeamMember)
 	if teamMember.DeleteAt > 0 {
 		return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.deleted.app_error", nil, "", http.StatusBadRequest)
 	}
