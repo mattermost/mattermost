@@ -1094,7 +1094,8 @@ func (s *SqlGroupStore) teamMembersMinusGroupMembersQuery(teamID string, groupID
 	return query
 }
 
-// TeamMembersMinusGroupMembers returns all team members that should be removed based on group constraints.
+// TeamMembersMinusGroupMembers returns the set of users on the given team minus the set of users in the given
+// groups.
 func (s *SqlGroupStore) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, *model.AppError) {
 	query := s.teamMembersMinusGroupMembersQuery(teamID, groupIDs, false)
 	query = query.OrderBy("Users.Id").Limit(uint64(perPage)).Offset(uint64(page * perPage))
@@ -1112,7 +1113,8 @@ func (s *SqlGroupStore) TeamMembersMinusGroupMembers(teamID string, groupIDs []s
 	return users, nil
 }
 
-// CountTeamMembersMinusGroupMembers returns the count all team members that should be removed based on group constraints.
+// CountTeamMembersMinusGroupMembers returns the count of the set of users on the given team minus the set of users
+// in the given groups.
 func (s *SqlGroupStore) CountTeamMembersMinusGroupMembers(teamID string, groupIDs []string) (int64, *model.AppError) {
 	queryString, args, err := s.teamMembersMinusGroupMembersQuery(teamID, groupIDs, true).ToSql()
 	if err != nil {

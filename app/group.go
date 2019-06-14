@@ -163,7 +163,11 @@ func (a *App) GetGroups(page, perPage int, opts model.GroupSearchOpts) ([]*model
 	return a.Srv.Store.Group().GetGroups(page, perPage, opts)
 }
 
-// TeamMembersMinusGroupMembers returns the list of users who would be removed from the team if the groups were as given.
+// TeamMembersMinusGroupMembers returns the set of users on the given team minus the set of users in the given
+// groups.
+//
+// The result can be used, for example, to determine the set of users who would be removed from a team if the team
+// were group-constrained with the given groups.
 func (a *App) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, int64, *model.AppError) {
 	users, err := a.Srv.Store.Group().TeamMembersMinusGroupMembers(teamID, groupIDs, page, perPage)
 	if err != nil {
