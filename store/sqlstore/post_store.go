@@ -90,43 +90,46 @@ func (s *SqlPostStore) CreateIndexesIfNotExists() {
 	s.CreateFullTextIndexIfNotExists("idx_posts_hashtags_txt", "Posts", "Hashtags")
 }
 
-func (s *SqlPostStore) Save(post *model.Post) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if len(post.Id) > 0 {
-			result.Err = model.NewAppError("SqlPostStore.Save", "store.sql_post.save.existing.app_error", nil, "id="+post.Id, http.StatusBadRequest)
-			return
+func (s *SqlPostStore) Save(post *model.Post) (*model.Post, *model.AppError) {
+	if len(post.Id) > 0 {
+		return nil, model.NewAppError("SqlPostStore.Save", "store.sql_post.save.existing.app_error", nil, "id="+post.Id, http.StatusBadRequest)
+	}
+
+	maxPostSize := s.GetMaxPostSize()
+
+	post.PreSave()
+	if err := post.IsValid(maxPostSize); err != nil {
+		return nil, err
+	}
+
+	if err := s.GetMaster().Insert(post); err != nil {
+		return nil, model.NewAppError("SqlPostStore.Save", "store.sql_post.save.app_error", nil, "id="+post.Id+", "+err.Error(), http.StatusInternalServerError)
+	}
+
+	time := post.UpdateAt
+
+	if post.Type != model.POST_JOIN_LEAVE && post.Type != model.POST_ADD_REMOVE &&
+		post.Type != model.POST_JOIN_CHANNEL && post.Type != model.POST_LEAVE_CHANNEL &&
+		post.Type != model.POST_JOIN_TEAM && post.Type != model.POST_LEAVE_TEAM &&
+		post.Type != model.POST_ADD_TO_CHANNEL && post.Type != model.POST_REMOVE_FROM_CHANNEL &&
+		post.Type != model.POST_ADD_TO_TEAM && post.Type != model.POST_REMOVE_FROM_TEAM {
+		if _, err := s.GetMaster().Exec("UPDATE Channels SET LastPostAt = GREATEST(:LastPostAt, LastPostAt), TotalMsgCount = TotalMsgCount + 1 WHERE Id = :ChannelId", map[string]interface{}{"LastPostAt": time, "ChannelId": post.ChannelId}); err != nil {
+			mlog.Error(fmt.Sprintf("Error updating Channel LastPostAt: %v", err.Error()))
 		}
-
-		maxPostSize := s.GetMaxPostSize()
-
-		post.PreSave()
-		if result.Err = post.IsValid(maxPostSize); result.Err != nil {
-			return
+	} else {
+		// don't update TotalMsgCount for unimportant messages so that the channel isn't marked as unread
+		if _, err := s.GetMaster().Exec("UPDATE Channels SET LastPostAt = :LastPostAt WHERE Id = :ChannelId AND LastPostAt < :LastPostAt", map[string]interface{}{"LastPostAt": time, "ChannelId": post.ChannelId}); err != nil {
+			mlog.Error(fmt.Sprintf("Error updating Channel LastPostAt: %v", err.Error()))
 		}
+	}
 
-		if err := s.GetMaster().Insert(post); err != nil {
-			result.Err = model.NewAppError("SqlPostStore.Save", "store.sql_post.save.app_error", nil, "id="+post.Id+", "+err.Error(), http.StatusInternalServerError)
-		} else {
-			time := post.UpdateAt
-
-			if post.Type != model.POST_JOIN_LEAVE && post.Type != model.POST_ADD_REMOVE &&
-				post.Type != model.POST_JOIN_CHANNEL && post.Type != model.POST_LEAVE_CHANNEL &&
-				post.Type != model.POST_JOIN_TEAM && post.Type != model.POST_LEAVE_TEAM &&
-				post.Type != model.POST_ADD_TO_CHANNEL && post.Type != model.POST_REMOVE_FROM_CHANNEL &&
-				post.Type != model.POST_ADD_TO_TEAM && post.Type != model.POST_REMOVE_FROM_TEAM {
-				s.GetMaster().Exec("UPDATE Channels SET LastPostAt = GREATEST(:LastPostAt, LastPostAt), TotalMsgCount = TotalMsgCount + 1 WHERE Id = :ChannelId", map[string]interface{}{"LastPostAt": time, "ChannelId": post.ChannelId})
-			} else {
-				// don't update TotalMsgCount for unimportant messages so that the channel isn't marked as unread
-				s.GetMaster().Exec("UPDATE Channels SET LastPostAt = :LastPostAt WHERE Id = :ChannelId AND LastPostAt < :LastPostAt", map[string]interface{}{"LastPostAt": time, "ChannelId": post.ChannelId})
-			}
-
-			if len(post.RootId) > 0 {
-				s.GetMaster().Exec("UPDATE Posts SET UpdateAt = :UpdateAt WHERE Id = :RootId", map[string]interface{}{"UpdateAt": time, "RootId": post.RootId})
-			}
-
-			result.Data = post
+	if len(post.RootId) > 0 {
+		if _, err := s.GetMaster().Exec("UPDATE Posts SET UpdateAt = :UpdateAt WHERE Id = :RootId", map[string]interface{}{"UpdateAt": time, "RootId": post.RootId}); err != nil {
+			mlog.Error(fmt.Sprintf("Error updating Post UpdateAt: %v", err.Error()))
 		}
-	})
+	}
+
+	return post, nil
 }
 
 func (s *SqlPostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.Post, *model.AppError) {
