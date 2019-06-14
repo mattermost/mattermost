@@ -376,9 +376,9 @@ func testTeamStoreSearchPrivate(t *testing.T, ss store.Store) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			r1 := <-ss.Team().SearchPrivate(tc.Term)
-			require.Nil(t, r1.Err)
-			results := r1.Data.([]*model.Team)
+			r1, err := ss.Team().SearchPrivate(tc.Term)
+			require.Nil(t, err)
+			results := r1
 			require.Equal(t, tc.ExpectedLength, len(results))
 			if tc.ExpectedFirstId != "" {
 				assert.Equal(t, tc.ExpectedFirstId, results[0].Id)
@@ -899,7 +899,7 @@ func testTeamMembersWithPagination(t *testing.T, ss store.Store) {
 	r1 = <-ss.Team().RemoveMember(teamId1, m1.UserId)
 	require.Nil(t, r1.Err)
 
-	ms, err := ss.Team().GetMembers(teamId1, 0, 100, nil)
+	ms, err = ss.Team().GetMembers(teamId1, 0, 100, nil)
 	require.Nil(t, err)
 
 	require.Len(t, ms, 1)
@@ -958,7 +958,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 			ss.User().PermanentDelete(userId)
 		}(userIds[i])
 
-		_, err = ss.Team().SaveMember(&model.TeamMember{TeamId: team.Id, UserId: userIds[i]}, maxUsersPerTeam)
+		_, err := ss.Team().SaveMember(&model.TeamMember{TeamId: team.Id, UserId: userIds[i]}, maxUsersPerTeam)
 		require.Nil(t, err)
 
 		defer func(userId string) {
