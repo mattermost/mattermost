@@ -163,9 +163,9 @@ func (a *App) GetGroups(page, perPage int, opts model.GroupSearchOpts) ([]*model
 	return a.Srv.Store.Group().GetGroups(page, perPage, opts)
 }
 
-// IfGroupsThenTeamUsersRemoved returns the list of users who would be removed from the team if the groups were as given.
-func (a *App) IfGroupsThenTeamUsersRemoved(teamID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, int64, *model.AppError) {
-	users, err := a.Srv.Store.Group().IfGroupsThenTeamUsersRemoved(teamID, groupIDs, page, perPage)
+// TeamMembersMinusGroupMembers returns the list of users who would be removed from the team if the groups were as given.
+func (a *App) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, int64, *model.AppError) {
+	users, err := a.Srv.Store.Group().TeamMembersMinusGroupMembers(teamID, groupIDs, page, perPage)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -207,7 +207,7 @@ func (a *App) IfGroupsThenTeamUsersRemoved(teamID string, groupIDs []string, pag
 		}
 	}
 
-	totalCount, err := a.Srv.Store.Group().CountIfGroupsThenTeamUsersRemoved(teamID, groupIDs)
+	totalCount, err := a.Srv.Store.Group().CountTeamMembersMinusGroupMembers(teamID, groupIDs)
 	if err != nil {
 		return nil, 0, err
 	}

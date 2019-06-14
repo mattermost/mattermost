@@ -4413,7 +4413,7 @@ func (c *Client4) PatchGroupSyncable(groupID, syncableID string, syncableType Gr
 	return GroupSyncableFromJson(r.Body), BuildResponse(r)
 }
 
-func (c *Client4) IfGroupsThenTeamUsersRemoved(teamID string, groupIDs []string, page, perPage int, etag string) ([]*UserWithGroups, int64, *Response) {
+func (c *Client4) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page, perPage int, etag string) ([]*UserWithGroups, int64, *Response) {
 	groupIDStr := strings.Join(groupIDs, ",")
 	query := fmt.Sprintf("?group_ids=%s&page=%d&per_page=%d", groupIDStr, page, perPage)
 	r, err := c.DoApiGet(c.GetTeamRoute(teamID)+"/if_groups_then_users_removed"+query, etag)

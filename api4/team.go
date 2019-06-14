@@ -61,7 +61,7 @@ func (api *API) InitTeam() {
 	api.BaseRoutes.Teams.Handle("/invites/email", api.ApiSessionRequired(invalidateAllEmailInvites)).Methods("DELETE")
 	api.BaseRoutes.Teams.Handle("/invite/{invite_id:[A-Za-z0-9]+}", api.ApiHandler(getInviteInfo)).Methods("GET")
 
-	api.BaseRoutes.Teams.Handle("/{team_id:[A-Za-z0-9]+}/if_groups_then_users_removed", api.ApiSessionRequired(ifGroupsThenUsersRemoved)).Methods("GET")
+	api.BaseRoutes.Teams.Handle("/{team_id:[A-Za-z0-9]+}/members_minus_group_members", api.ApiSessionRequired(teamMembersMinusGroupMembers)).Methods("GET")
 }
 
 func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1087,7 +1087,7 @@ func updateTeamScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	ReturnStatusOK(w)
 }
 
-func ifGroupsThenUsersRemoved(c *Context, w http.ResponseWriter, r *http.Request) {
+func teamMembersMinusGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequireTeamId()
 	if c.Err != nil {
 		return
@@ -1103,7 +1103,7 @@ func ifGroupsThenUsersRemoved(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	users, totalCount, err := c.App.IfGroupsThenTeamUsersRemoved(
+	users, totalCount, err := c.App.TeamMembersMinusGroupMembers(
 		c.Params.TeamId,
 		strings.Split(c.Params.GroupIDs, ","),
 		c.Params.Page,
@@ -1119,7 +1119,7 @@ func ifGroupsThenUsersRemoved(c *Context, w http.ResponseWriter, r *http.Request
 		Count: totalCount,
 	})
 	if marshalErr != nil {
-		c.Err = model.NewAppError("Api4.ifGroupsThenUsersRemoved", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
+		c.Err = model.NewAppError("Api4.teamMembersMinusGroupMembers", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
 		return
 	}
 

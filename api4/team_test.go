@@ -2489,7 +2489,7 @@ func TestUpdateTeamScheme(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 }
 
-func TestIfGroupsThenUsersRemoved(t *testing.T) {
+func TestTeamMembersMinusGroupMembers(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
@@ -2515,7 +2515,7 @@ func TestIfGroupsThenUsersRemoved(t *testing.T) {
 	require.Nil(t, err)
 
 	// No permissions
-	_, _, res := th.Client.IfGroupsThenTeamUsersRemoved(team.Id, []string{group1.Id, group2.Id}, 0, 100, "")
+	_, _, res := th.Client.TeamMembersMinusGroupMembers(team.Id, []string{group1.Id, group2.Id}, 0, 100, "")
 	require.Equal(t, "api.context.permissions.app_error", res.Error.Id)
 
 	testCases := map[string]struct {
@@ -2571,7 +2571,7 @@ func TestIfGroupsThenUsersRemoved(t *testing.T) {
 
 	for name, tc := range testCases {
 		t.Run(name, func(t *testing.T) {
-			uwg, count, res := th.SystemAdminClient.IfGroupsThenTeamUsersRemoved(team.Id, tc.groupIDs, tc.page, tc.perPage, "")
+			uwg, count, res := th.SystemAdminClient.TeamMembersMinusGroupMembers(team.Id, tc.groupIDs, tc.page, tc.perPage, "")
 			require.Nil(t, res.Error)
 			require.Len(t, uwg, tc.length)
 			require.Equal(t, tc.count, int(count))

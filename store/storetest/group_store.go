@@ -46,7 +46,7 @@ func TestGroupStore(t *testing.T, ss store.Store) {
 
 	t.Run("GetGroups", func(t *testing.T) { testGetGroups(t, ss) })
 
-	t.Run("IfGroupsThenTeamUsersRemoved", func(t *testing.T) { testIfGroupsThenTeamUsersRemoved(t, ss) })
+	t.Run("TeamMembersMinusGroupMembers", func(t *testing.T) { testTeamMembersMinusGroupMembers(t, ss) })
 }
 
 func testGroupStoreCreate(t *testing.T, ss store.Store) {
@@ -2243,7 +2243,7 @@ func testGetGroups(t *testing.T, ss store.Store) {
 	}
 }
 
-func testIfGroupsThenTeamUsersRemoved(t *testing.T, ss store.Store) {
+func testTeamMembersMinusGroupMembers(t *testing.T, ss store.Store) {
 	const numberOfGroups = 3
 	const numberOfUsers = 4
 
@@ -2379,7 +2379,7 @@ func testIfGroupsThenTeamUsersRemoved(t *testing.T, ss store.Store) {
 				defer tc.teardown()
 			}
 
-			actual, err := ss.Group().IfGroupsThenTeamUsersRemoved(team.Id, tc.groupIDs, tc.page, tc.perPage)
+			actual, err := ss.Group().TeamMembersMinusGroupMembers(team.Id, tc.groupIDs, tc.page, tc.perPage)
 			require.Nil(t, err)
 			require.ElementsMatch(t, tc.expectedUserIDs, mapUserIDs(actual))
 
@@ -2388,7 +2388,7 @@ func testIfGroupsThenTeamUsersRemoved(t *testing.T, ss store.Store) {
 				require.True(t, (user.SchemeAdmin || user.SchemeUser))
 			}
 
-			actualCount, err := ss.Group().CountIfGroupsThenTeamUsersRemoved(team.Id, tc.groupIDs)
+			actualCount, err := ss.Group().CountTeamMembersMinusGroupMembers(team.Id, tc.groupIDs)
 			require.Nil(t, err)
 			require.Equal(t, tc.expectedTotalCount, actualCount)
 		})
