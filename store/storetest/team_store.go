@@ -684,11 +684,9 @@ func testGetAllPrivateTeamPageListing(t *testing.T, ss store.Store) {
 	_, err = ss.Team().Save(&o4)
 	require.Nil(t, err)
 
-	if r1 := <-ss.Team().GetAllPrivateTeamPageListing(0, 10); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if teams, listErr := ss.Team().GetAllPrivateTeamPageListing(0, 10); listErr != nil {
+		t.Fatal(listErr)
 	} else {
-		teams := r1.Data.([]*model.Team)
-
 		for _, team := range teams {
 			if team.AllowOpenInvite {
 				t.Fatal("should have returned team with AllowOpenInvite as false")
@@ -709,11 +707,9 @@ func testGetAllPrivateTeamPageListing(t *testing.T, ss store.Store) {
 	_, err = ss.Team().Save(&o5)
 	require.Nil(t, err)
 
-	if r1 := <-ss.Team().GetAllPrivateTeamPageListing(0, 4); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if teams, listErr := ss.Team().GetAllPrivateTeamPageListing(0, 4); listErr != nil {
+		t.Fatal(listErr)
 	} else {
-		teams := r1.Data.([]*model.Team)
-
 		for _, team := range teams {
 			if team.AllowOpenInvite {
 				t.Fatal("should have returned team with AllowOpenInvite as false")
@@ -725,11 +721,9 @@ func testGetAllPrivateTeamPageListing(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if r1 := <-ss.Team().GetAllPrivateTeamPageListing(1, 1); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if teams, listErr := ss.Team().GetAllPrivateTeamPageListing(1, 1); listErr != nil {
+		t.Fatal(listErr)
 	} else {
-		teams := r1.Data.([]*model.Team)
-
 		for _, team := range teams {
 			if team.AllowOpenInvite {
 				t.Fatal("should have returned team with AllowOpenInvite as false")
