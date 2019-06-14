@@ -767,7 +767,7 @@ func (me *TestHelper) UpdateUserToTeamAdmin(user *model.User, team *model.Team) 
 
 	if tm, err := me.App.Srv.Store.Team().GetMember(team.Id, user.Id); err == nil {
 		tm.SchemeAdmin = true
-		if _, err := me.App.Srv.Store.Team().UpdateMember(tm); err != nil {
+		if _, err = me.App.Srv.Store.Team().UpdateMember(tm); err != nil {
 			utils.EnableDebugLogForTest()
 			panic(err)
 		}
@@ -787,7 +787,7 @@ func (me *TestHelper) UpdateUserToNonTeamAdmin(user *model.User, team *model.Tea
 
 	if tm, err := me.App.Srv.Store.Team().GetMember(team.Id, user.Id); err == nil {
 		tm.SchemeAdmin = false
-		if _, err := me.App.Srv.Store.Team().UpdateMember(tm); err != nil {
+		if _, err = me.App.Srv.Store.Team().UpdateMember(tm); err != nil {
 			utils.EnableDebugLogForTest()
 			panic(err)
 		}
