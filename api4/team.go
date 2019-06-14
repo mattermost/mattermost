@@ -1093,9 +1093,19 @@ func teamMembersMinusGroupMembers(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if len(c.Params.GroupIDs) < 26 {
+	if len(strings.Trim(c.Params.GroupIDs, "")) < 26 {
 		c.SetInvalidParam("group_ids")
 		return
+	}
+
+	groupIDs := []string{}
+	for _, gid := range strings.Split(c.Params.GroupIDs, ",") {
+		trimmedID := strings.Trim(gid, "")
+		if len(trimmedID) != 26 {
+			c.SetInvalidParam("group_ids")
+			return
+		}
+		groupIDs = append(groupIDs, trimmedID)
 	}
 
 	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
@@ -1105,7 +1115,7 @@ func teamMembersMinusGroupMembers(c *Context, w http.ResponseWriter, r *http.Req
 
 	users, totalCount, err := c.App.TeamMembersMinusGroupMembers(
 		c.Params.TeamId,
-		strings.Split(c.Params.GroupIDs, ","),
+		groupIDs,
 		c.Params.Page,
 		c.Params.PerPage,
 	)
