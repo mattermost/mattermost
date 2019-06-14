@@ -674,11 +674,6 @@ func (c *Client) login(m map[string]string) (*Result, *AppError) {
 	} else {
 		c.AuthToken = r.Header.Get(HEADER_TOKEN)
 		c.AuthType = HEADER_BEARER
-		sessionToken := getCookie(SESSION_COOKIE_TOKEN, r)
-
-		if c.AuthToken != sessionToken.Value {
-			NewAppError("/users/login", "model.client.login.app_error", nil, "", 0)
-		}
 
 		defer closeBody(r)
 		return &Result{r.Header.Get(HEADER_REQUEST_ID),
