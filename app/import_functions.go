@@ -162,9 +162,9 @@ func (a *App) ImportTeam(data *TeamImportData, dryRun bool) *model.AppError {
 	}
 
 	var team *model.Team
-	if result := <-a.Srv.Store.Team().GetByName(*data.Name); result.Err == nil {
-		team = result.Data.(*model.Team)
-	} else {
+	team, err := a.Srv.Store.Team().GetByName(*data.Name)
+
+	if err != nil {
 		team = &model.Team{}
 	}
 
@@ -220,11 +220,10 @@ func (a *App) ImportChannel(data *ChannelImportData, dryRun bool) *model.AppErro
 		return nil
 	}
 
-	result := <-a.Srv.Store.Team().GetByName(*data.Team)
-	if result.Err != nil {
-		return model.NewAppError("BulkImport", "app.import.import_channel.team_not_found.error", map[string]interface{}{"TeamName": *data.Team}, result.Err.Error(), http.StatusBadRequest)
+	team, err := a.Srv.Store.Team().GetByName(*data.Team)
+	if err != nil {
+		return model.NewAppError("BulkImport", "app.import.import_channel.team_not_found.error", map[string]interface{}{"TeamName": *data.Team}, err.Error(), http.StatusBadRequest)
 	}
-	team := result.Data.(*model.Team)
 
 	var channel *model.Channel
 	if result := <-a.Srv.Store.Channel().GetByNameIncludeDeleted(team.Id, *data.Name, true); result.Err == nil {
@@ -893,8 +892,8 @@ func (a *App) ImportReply(data *ReplyImportData, post *model.Post, teamId string
 	}
 
 	if reply.Id == "" {
-		if result := <-a.Srv.Store.Post().Save(reply); result.Err != nil {
-			return result.Err
+		if _, err := a.Srv.Store.Post().Save(reply); err != nil {
+			return err
 		}
 	} else {
 		if _, err := a.Srv.Store.Post().Overwrite(reply); err != nil {
@@ -942,13 +941,12 @@ func (a *App) ImportPost(data *PostImportData, dryRun bool) *model.AppError {
 		return nil
 	}
 
-	result := <-a.Srv.Store.Team().GetByName(*data.Team)
-	if result.Err != nil {
-		return model.NewAppError("BulkImport", "app.import.import_post.team_not_found.error", map[string]interface{}{"TeamName": *data.Team}, result.Err.Error(), http.StatusBadRequest)
+	team, err := a.Srv.Store.Team().GetByName(*data.Team)
+	if err != nil {
+		return model.NewAppError("BulkImport", "app.import.import_post.team_not_found.error", map[string]interface{}{"TeamName": *data.Team}, err.Error(), http.StatusBadRequest)
 	}
-	team := result.Data.(*model.Team)
 
-	result = <-a.Srv.Store.Channel().GetByName(team.Id, *data.Channel, false)
+	result := <-a.Srv.Store.Channel().GetByName(team.Id, *data.Channel, false)
 	if result.Err != nil {
 		return model.NewAppError("BulkImport", "app.import.import_post.channel_not_found.error", map[string]interface{}{"ChannelName": *data.Channel}, result.Err.Error(), http.StatusBadRequest)
 	}
@@ -994,8 +992,8 @@ func (a *App) ImportPost(data *PostImportData, dryRun bool) *model.AppError {
 	}
 
 	if post.Id == "" {
-		if result := <-a.Srv.Store.Post().Save(post); result.Err != nil {
-			return result.Err
+		if _, err := a.Srv.Store.Post().Save(post); err != nil {
+			return err
 		}
 	} else {
 		if _, err := a.Srv.Store.Post().Overwrite(post); err != nil {
@@ -1217,8 +1215,8 @@ func (a *App) ImportDirectPost(data *DirectPostImportData, dryRun bool) *model.A
 	}
 
 	if post.Id == "" {
-		if result := <-a.Srv.Store.Post().Save(post); result.Err != nil {
-			return result.Err
+		if _, err := a.Srv.Store.Post().Save(post); err != nil {
+			return err
 		}
 	} else {
 		if _, err := a.Srv.Store.Post().Overwrite(post); err != nil {
