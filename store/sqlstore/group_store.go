@@ -1065,29 +1065,27 @@ func (s *SqlGroupStore) ifGroupsThenTeamUsersRemovedQuery(teamID string, groupID
 		}
 	}
 
-	groupIDsSQL := strings.Join(groupIDs, "', '")
+	subQuery := s.getQueryBuilder().Select("GroupMembers.UserId").
+		From("GroupMembers").
+		Join("UserGroups ON UserGroups.Id = GroupMembers.GroupId").
+		Where("GroupMembers.DeleteAt = 0").
+		Where(fmt.Sprintf("GroupMembers.GroupId IN ('%s')", strings.Join(groupIDs, "', '")))
+
+	sql, _ := subQuery.MustSql()
 
 	query := s.getQueryBuilder().Select(selectStr).
-		From(`TeamMembers
-			JOIN Teams ON Teams.Id = TeamMembers.TeamId
-			JOIN Users ON Users.Id = TeamMembers.UserId
-			LEFT JOIN Bots ON Bots.UserId = TeamMembers.UserId
-			JOIN GroupMembers ON GroupMembers.UserId = Users.Id
-			JOIN UserGroups ON UserGroups.Id = GroupMembers.GroupId`).
-		Where(fmt.Sprintf(`TeamMembers.DeleteAt = 0
-				AND Teams.DeleteAt = 0
-				AND Users.DeleteAt = 0
-				AND Bots.UserId IS NULL
-				AND Teams.Id = '%s'
-				AND Users.Id NOT IN (
-					SELECT
-						GroupMembers.UserId
-					FROM
-						GroupMembers
-						JOIN UserGroups ON UserGroups.Id = GroupMembers.GroupId
-					WHERE
-						GroupMembers.DeleteAt = 0
-						AND GroupMembers.GroupId IN ('%s'))`, teamID, groupIDsSQL))
+		From("TeamMembers").
+		Join("Teams ON Teams.Id = TeamMembers.TeamId").
+		Join("Users ON Users.Id = TeamMembers.UserId").
+		LeftJoin("Bots ON Bots.UserId = TeamMembers.UserId").
+		Join("GroupMembers ON GroupMembers.UserId = Users.Id").
+		Join("UserGroups ON UserGroups.Id = GroupMembers.GroupId").
+		Where("TeamMembers.DeleteAt = 0").
+		Where("Teams.DeleteAt = 0").
+		Where("Users.DeleteAt = 0").
+		Where("Bots.UserId IS NULL").
+		Where("Teams.Id = ?", teamID).
+		Where(fmt.Sprintf("Users.Id NOT IN (%s)", sql))
 
 	if !isCount {
 		query = query.GroupBy("Users.Id, TeamMembers.SchemeGuest, TeamMembers.SchemeAdmin, TeamMembers.SchemeUser")
