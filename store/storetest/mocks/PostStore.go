@@ -254,19 +254,28 @@ func (_m *PostStore) GetMaxPostSize() int {
 }
 
 // GetOldest provides a mock function with given fields:
-func (_m *PostStore) GetOldest() store.StoreChannel {
+func (_m *PostStore) GetOldest() (*model.Post, *model.AppError) {
 	ret := _m.Called()
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func() store.StoreChannel); ok {
+	var r0 *model.Post
+	if rf, ok := ret.Get(0).(func() *model.Post); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.Post)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
+		r1 = rf()
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetParentsForExportAfter provides a mock function with given fields: limit, afterId
@@ -445,19 +454,28 @@ func (_m *PostStore) GetPostsCreatedAt(channelId string, time int64) ([]*model.P
 }
 
 // GetPostsSince provides a mock function with given fields: channelId, time, allowFromCache
-func (_m *PostStore) GetPostsSince(channelId string, time int64, allowFromCache bool) store.StoreChannel {
+func (_m *PostStore) GetPostsSince(channelId string, time int64, allowFromCache bool) (*model.PostList, *model.AppError) {
 	ret := _m.Called(channelId, time, allowFromCache)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, int64, bool) store.StoreChannel); ok {
+	var r0 *model.PostList
+	if rf, ok := ret.Get(0).(func(string, int64, bool) *model.PostList); ok {
 		r0 = rf(channelId, time, allowFromCache)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.PostList)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, int64, bool) *model.AppError); ok {
+		r1 = rf(channelId, time, allowFromCache)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetRepliesForExport provides a mock function with given fields: parentId
@@ -580,15 +598,15 @@ func (_m *PostStore) PermanentDeleteByChannel(channelId string) *model.AppError 
 }
 
 // PermanentDeleteByUser provides a mock function with given fields: userId
-func (_m *PostStore) PermanentDeleteByUser(userId string) store.StoreChannel {
+func (_m *PostStore) PermanentDeleteByUser(userId string) *model.AppError {
 	ret := _m.Called(userId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
 		r0 = rf(userId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
@@ -596,19 +614,28 @@ func (_m *PostStore) PermanentDeleteByUser(userId string) store.StoreChannel {
 }
 
 // Save provides a mock function with given fields: post
-func (_m *PostStore) Save(post *model.Post) store.StoreChannel {
+func (_m *PostStore) Save(post *model.Post) (*model.Post, *model.AppError) {
 	ret := _m.Called(post)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(*model.Post) store.StoreChannel); ok {
+	var r0 *model.Post
+	if rf, ok := ret.Get(0).(func(*model.Post) *model.Post); ok {
 		r0 = rf(post)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.Post)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*model.Post) *model.AppError); ok {
+		r1 = rf(post)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // Search provides a mock function with given fields: teamId, userId, params

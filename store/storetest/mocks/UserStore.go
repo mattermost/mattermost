@@ -220,35 +220,53 @@ func (_m *UserStore) GetAnyUnreadPostCountForChannel(userId string, channelId st
 }
 
 // GetByAuth provides a mock function with given fields: authData, authService
-func (_m *UserStore) GetByAuth(authData *string, authService string) store.StoreChannel {
+func (_m *UserStore) GetByAuth(authData *string, authService string) (*model.User, *model.AppError) {
 	ret := _m.Called(authData, authService)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(*string, string) store.StoreChannel); ok {
+	var r0 *model.User
+	if rf, ok := ret.Get(0).(func(*string, string) *model.User); ok {
 		r0 = rf(authData, authService)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.User)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(*string, string) *model.AppError); ok {
+		r1 = rf(authData, authService)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetByEmail provides a mock function with given fields: email
-func (_m *UserStore) GetByEmail(email string) store.StoreChannel {
+func (_m *UserStore) GetByEmail(email string) (*model.User, *model.AppError) {
 	ret := _m.Called(email)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+	var r0 *model.User
+	if rf, ok := ret.Get(0).(func(string) *model.User); ok {
 		r0 = rf(email)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.User)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(email)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetByUsername provides a mock function with given fields: username
@@ -884,17 +902,24 @@ func (_m *UserStore) UpdateUpdateAt(userId string) store.StoreChannel {
 }
 
 // VerifyEmail provides a mock function with given fields: userId, email
-func (_m *UserStore) VerifyEmail(userId string, email string) store.StoreChannel {
+func (_m *UserStore) VerifyEmail(userId string, email string) (string, *model.AppError) {
 	ret := _m.Called(userId, email)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, string) store.StoreChannel); ok {
+	var r0 string
+	if rf, ok := ret.Get(0).(func(string, string) string); ok {
 		r0 = rf(userId, email)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+		r0 = ret.Get(0).(string)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+		r1 = rf(userId, email)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
 		}
 	}
 
-	return r0
+	return r0, r1
 }
