@@ -22,6 +22,7 @@ type MessageExport struct {
 	PostMessage    *string
 	PostType       *string
 	PostRootId     *string
+	PostProps      *string
 	PostOriginalId *string
 	PostFileIds    StringArray
 }
