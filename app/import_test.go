@@ -81,10 +81,10 @@ func checkNoError(t *testing.T, err *model.AppError) {
 }
 
 func AssertAllPostsCount(t *testing.T, a *App, initialCount int64, change int64, teamName string) {
-	if result := <-a.Srv.Store.Post().AnalyticsPostCount(teamName, false, false); result.Err != nil {
-		t.Fatal(result.Err)
+	if result, err := a.Srv.Store.Post().AnalyticsPostCount(teamName, false, false); err != nil {
+		t.Fatal(err)
 	} else {
-		if initialCount+change != result.Data.(int64) {
+		if initialCount+change != result {
 			debug.PrintStack()
 			t.Fatalf("Did not find the expected number of posts.")
 		}
