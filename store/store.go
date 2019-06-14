@@ -210,7 +210,7 @@ type ChannelMemberHistoryStore interface {
 }
 
 type PostStore interface {
-	Save(post *model.Post) StoreChannel
+	Save(post *model.Post) (*model.Post, *model.AppError)
 	Update(newPost *model.Post, oldPost *model.Post) (*model.Post, *model.AppError)
 	Get(id string) (*model.PostList, *model.AppError)
 	GetSingle(id string) (*model.Post, *model.AppError)
