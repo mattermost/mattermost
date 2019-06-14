@@ -507,7 +507,7 @@ func (s *SqlPostStore) GetPosts(channelId string, offset int, limit int, allowFr
 	return list, err
 }
 
-func (s *SqlPostStore) GetPostsSince(channelId string, time int64, limit int, allowFromCache bool) store.StoreChannel {
+func (s *SqlPostStore) GetPostsSince(channelId string, time int64, allowFromCache bool) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		if allowFromCache {
 			// If the last post in the channel's time is less than or equal to the time we are getting posts since,
@@ -539,7 +539,7 @@ func (s *SqlPostStore) GetPostsSince(channelId string, time int64, limit int, al
 			WHERE
 			    (UpdateAt > :Time
 			        AND ChannelId = :ChannelId)
-			LIMIT :Limit)
+			LIMIT 1000)
 			UNION
 			(SELECT
 			    *
@@ -555,9 +555,9 @@ func (s *SqlPostStore) GetPostsSince(channelId string, time int64, limit int, al
 			    WHERE
 			        UpdateAt > :Time
 			            AND ChannelId = :ChannelId
-			    LIMIT :Limit) temp_tab))
+				LIMIT 1000) temp_tab))
 			ORDER BY CreateAt DESC`,
-			map[string]interface{}{"ChannelId": channelId, "Time": time, "Limit": limit})
+			map[string]interface{}{"ChannelId": channelId, "Time": time})
 
 		if err != nil {
 			result.Err = model.NewAppError("SqlPostStore.GetPostsSince", "store.sql_post.get_posts_since.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
@@ -678,48 +678,46 @@ func (s *SqlPostStore) getPostsAround(channelId string, postId string, limit int
 	})
 }
 
-func (s *SqlPostStore) GetPostBeforeTime(channelId string, time int64) store.StoreChannel {
+func (s *SqlPostStore) GetPostBeforeTime(channelId string, time int64) (*model.Post, *model.AppError) {
 	return s.getPostAroundTime(channelId, time, true)
 }
 
-func (s *SqlPostStore) GetPostAfterTime(channelId string, time int64) store.StoreChannel {
+func (s *SqlPostStore) GetPostAfterTime(channelId string, time int64) (*model.Post, *model.AppError) {
 	return s.getPostAroundTime(channelId, time, false)
 }
 
-func (s *SqlPostStore) getPostAroundTime(channelId string, time int64, before bool) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var direction string
-		var sort string
-		if before {
-			direction = "<"
-			sort = "DESC"
-		} else {
-			direction = ">"
-			sort = "ASC"
-		}
+func (s *SqlPostStore) getPostAroundTime(channelId string, time int64, before bool) (*model.Post, *model.AppError) {
+	var direction string
+	var sort string
+	if before {
+		direction = "<"
+		sort = "DESC"
+	} else {
+		direction = ">"
+		sort = "ASC"
+	}
 
-		var post *model.Post
-		err := s.GetReplica().SelectOne(
-			&post,
-			`SELECT
-				*
-			FROM
-				Posts
-			WHERE
-				CreateAt `+direction+` :Time
-				AND ChannelId = :ChannelId
-				AND DeleteAt = 0
-			ORDER BY CreateAt `+sort+`
-			LIMIT 1`,
-			map[string]interface{}{"ChannelId": channelId, "Time": time})
-		if err != nil {
-			if err != sql.ErrNoRows {
-				result.Err = model.NewAppError("SqlPostStore.getPostAroundTime", "store.sql_post.get_post_around.get.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
-			}
+	var post *model.Post
+	err := s.GetReplica().SelectOne(
+		&post,
+		`SELECT
+			*
+		FROM
+			Posts
+		WHERE
+			CreateAt `+direction+` :Time
+			AND ChannelId = :ChannelId
+			AND DeleteAt = 0
+		ORDER BY CreateAt `+sort+`
+		LIMIT 1`,
+		map[string]interface{}{"ChannelId": channelId, "Time": time})
+	if err != nil {
+		if err != sql.ErrNoRows {
+			return nil, model.NewAppError("SqlPostStore.getPostAroundTime", "store.sql_post.get_post_around.get.app_error", nil, "channelId="+channelId+err.Error(), http.StatusInternalServerError)
 		}
+	}
 
-		result.Data = post
-	})
+	return post, nil
 }
 
 func (s *SqlPostStore) getRootPosts(channelId string, offset int, limit int) store.StoreChannel {

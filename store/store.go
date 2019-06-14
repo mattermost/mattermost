@@ -223,9 +223,9 @@ type PostStore interface {
 	GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) StoreChannel
 	GetPostsBefore(channelId string, postId string, numPosts int, offset int) StoreChannel
 	GetPostsAfter(channelId string, postId string, numPosts int, offset int) StoreChannel
-	GetPostsSince(channelId string, time int64, limit int, allowFromCache bool) StoreChannel
-	GetPostAfterTime(channelId string, time int64) StoreChannel
-	GetPostBeforeTime(channelId string, time int64) StoreChannel
+	GetPostsSince(channelId string, time int64, allowFromCache bool) StoreChannel
+	GetPostAfterTime(channelId string, time int64) (*model.Post, *model.AppError)
+	GetPostBeforeTime(channelId string, time int64) (*model.Post, *model.AppError)
 	GetEtag(channelId string, allowFromCache bool) string
 	Search(teamId string, userId string, params *model.SearchParams) StoreChannel
 	AnalyticsUserCountsWithPostsByDay(teamId string) StoreChannel
