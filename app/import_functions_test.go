@@ -679,12 +679,8 @@ func TestImportImportChannel(t *testing.T) {
 	}
 
 	// Check how many channels are in the database.
-	var channelCount int64
-	if r := <-th.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN); r.Err == nil {
-		channelCount = r.Data.(int64)
-	} else {
-		t.Fatalf("Failed to get team count.")
-	}
+	channelCount, err := th.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN)
+	require.Nil(t, err, "Failed to get team count.")
 
 	// Do an invalid channel in dry-run mode.
 	data := ChannelImportData{
@@ -2173,19 +2169,11 @@ func TestImportImportDirectChannel(t *testing.T) {
 	defer th.TearDown()
 
 	// Check how many channels are in the database.
-	var directChannelCount int64
-	if r := <-th.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_DIRECT); r.Err == nil {
-		directChannelCount = r.Data.(int64)
-	} else {
-		t.Fatalf("Failed to get direct channel count.")
-	}
+	directChannelCount, err := th.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_DIRECT)
+	require.Nil(t, err, "Failed to get direct channel count.")
 
-	var groupChannelCount int64
-	if r := <-th.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_GROUP); r.Err == nil {
-		groupChannelCount = r.Data.(int64)
-	} else {
-		t.Fatalf("Failed to get group channel count.")
-	}
+	groupChannelCount, err := th.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_GROUP)
+	require.Nil(t, err, "Failed to get group channel count.")
 
 	// Do an invalid channel in dry-run mode.
 	data := DirectChannelImportData{
@@ -2194,7 +2182,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 		},
 		Header: ptrStr("Channel Header"),
 	}
-	err := th.App.ImportDirectChannel(&data, true)
+	err = th.App.ImportDirectChannel(&data, true)
 	require.NotNil(t, err)
 
 	// Check that no more channels are in the DB.
