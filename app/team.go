@@ -631,11 +631,7 @@ func (a *App) GetAllPrivateTeams() ([]*model.Team, *model.AppError) {
 }
 
 func (a *App) GetAllPrivateTeamsPage(offset int, limit int) ([]*model.Team, *model.AppError) {
-	result := <-a.Srv.Store.Team().GetAllPrivateTeamPageListing(offset, limit)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.Team), nil
+	return a.Srv.Store.Team().GetAllPrivateTeamPageListing(offset, limit)
 }
 
 func (a *App) GetAllPublicTeams() ([]*model.Team, *model.AppError) {
