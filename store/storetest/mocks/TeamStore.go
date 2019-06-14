@@ -99,19 +99,26 @@ func (_m *TeamStore) Get(id string) (*model.Team, *model.AppError) {
 }
 
 // GetActiveMemberCount provides a mock function with given fields: teamId
-func (_m *TeamStore) GetActiveMemberCount(teamId string) store.StoreChannel {
+func (_m *TeamStore) GetActiveMemberCount(teamId string) (int64, *model.AppError) {
 	ret := _m.Called(teamId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(string) int64); ok {
 		r0 = rf(teamId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(teamId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
 		}
 	}
 
-	return r0
+	return r0, r1
 }
 
 // GetAll provides a mock function with given fields:
