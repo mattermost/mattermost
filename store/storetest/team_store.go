@@ -683,8 +683,8 @@ func testGetAllPrivateTeamPageListing(t *testing.T, ss store.Store) {
 	_, err = ss.Team().Save(&o4)
 	require.Nil(t, err)
 
-	if teams,err := ss.Team().GetAllPrivateTeamPageListing(0, 10); err != nil {
-		t.Fatal(err)
+	if teams, listErr := ss.Team().GetAllPrivateTeamPageListing(0, 10); listErr != nil {
+		t.Fatal(listErr)
 	} else {
 		for _, team := range teams {
 			if team.AllowOpenInvite {
@@ -706,8 +706,8 @@ func testGetAllPrivateTeamPageListing(t *testing.T, ss store.Store) {
 	_, err = ss.Team().Save(&o5)
 	require.Nil(t, err)
 
-	if teams,err := ss.Team().GetAllPrivateTeamPageListing(0, 4); err != nil {
-		t.Fatal(err)
+	if teams, listErr := ss.Team().GetAllPrivateTeamPageListing(0, 4); listErr != nil {
+		t.Fatal(listErr)
 	} else {
 		for _, team := range teams {
 			if team.AllowOpenInvite {
@@ -720,8 +720,8 @@ func testGetAllPrivateTeamPageListing(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if teams,err := ss.Team().GetAllPrivateTeamPageListing(1, 1); err != nil {
-		t.Fatal(err)
+	if teams, listErr := ss.Team().GetAllPrivateTeamPageListing(1, 1); listErr != nil {
+		t.Fatal(listErr)
 	} else {
 		for _, team := range teams {
 			if team.AllowOpenInvite {
