@@ -144,13 +144,12 @@ func (me SqlSessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*mode
 	return sessions, nil
 }
 
-func (me SqlSessionStore) Remove(sessionIdOrToken string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		_, err := me.GetMaster().Exec("DELETE FROM Sessions WHERE Id = :Id Or Token = :Token", map[string]interface{}{"Id": sessionIdOrToken, "Token": sessionIdOrToken})
-		if err != nil {
-			result.Err = model.NewAppError("SqlSessionStore.RemoveSession", "store.sql_session.remove.app_error", nil, "id="+sessionIdOrToken+", err="+err.Error(), http.StatusInternalServerError)
-		}
-	})
+func (me SqlSessionStore) Remove(sessionIdOrToken string) *model.AppError {
+	_, err := me.GetMaster().Exec("DELETE FROM Sessions WHERE Id = :Id Or Token = :Token", map[string]interface{}{"Id": sessionIdOrToken, "Token": sessionIdOrToken})
+	if err != nil {
+		return model.NewAppError("SqlSessionStore.RemoveSession", "store.sql_session.remove.app_error", nil, "id="+sessionIdOrToken+", err="+err.Error(), http.StatusInternalServerError)
+	}
+	return nil
 }
 
 func (me SqlSessionStore) RemoveAllSessions() *model.AppError {
