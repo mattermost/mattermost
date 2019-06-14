@@ -101,12 +101,12 @@ type TeamStore interface {
 	PermanentDelete(teamId string) StoreChannel
 	AnalyticsTeamCount() (int64, *model.AppError)
 	SaveMember(member *model.TeamMember, maxUsersPerTeam int) StoreChannel
-	UpdateMember(member *model.TeamMember) StoreChannel
+	UpdateMember(member *model.TeamMember) (*model.TeamMember, *model.AppError)
 	GetMember(teamId string, userId string) (*model.TeamMember, *model.AppError)
 	GetMembers(teamId string, offset int, limit int, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError)
 	GetMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError)
 	GetTotalMemberCount(teamId string) (int64, *model.AppError)
-	GetActiveMemberCount(teamId string) StoreChannel
+	GetActiveMemberCount(teamId string) (int64, *model.AppError)
 	GetTeamsForUser(userId string) ([]*model.TeamMember, *model.AppError)
 	GetTeamsForUserWithPagination(userId string, page, perPage int) StoreChannel
 	GetChannelUnreadsForAllTeams(excludeTeamId, userId string) StoreChannel
@@ -177,7 +177,7 @@ type ChannelStore interface {
 	PermanentDeleteMembersByChannel(channelId string) StoreChannel
 	UpdateLastViewedAt(channelIds []string, userId string) StoreChannel
 	IncrementMentionCount(channelId string, userId string) StoreChannel
-	AnalyticsTypeCount(teamId string, channelType string) StoreChannel
+	AnalyticsTypeCount(teamId string, channelType string) (int64, *model.AppError)
 	GetMembersForUser(teamId string, userId string) StoreChannel
 	GetMembersForUserWithPagination(teamId, userId string, page, perPage int) StoreChannel
 	AutocompleteInTeam(teamId string, term string, includeDeleted bool) StoreChannel
@@ -228,7 +228,7 @@ type PostStore interface {
 	Search(teamId string, userId string, params *model.SearchParams) StoreChannel
 	AnalyticsUserCountsWithPostsByDay(teamId string) (model.AnalyticsRows, *model.AppError)
 	AnalyticsPostCountsByDay(teamId string) (model.AnalyticsRows, *model.AppError)
-	AnalyticsPostCount(teamId string, mustHaveFile bool, mustHaveHashtag bool) StoreChannel
+	AnalyticsPostCount(teamId string, mustHaveFile bool, mustHaveHashtag bool) (int64, *model.AppError)
 	ClearCaches()
 	InvalidateLastPostTimeCache(channelId string)
 	GetPostsCreatedAt(channelId string, time int64) ([]*model.Post, *model.AppError)
