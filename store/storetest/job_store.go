@@ -360,7 +360,7 @@ func testJobUpdateOptimistically(t *testing.T, ss store.Store) {
 		"Foo": "Bar",
 	}
 
-	if updated, err := ss.Job().UpdateOptimistically(job, model.JOB_STATUS_SUCCESS); err != nil {
+	if updated, err2 := ss.Job().UpdateOptimistically(job, model.JOB_STATUS_SUCCESS); err2 != nil {
 		if updated {
 			t.Fatal("should have failed due to incorrect old status")
 		}
