@@ -191,9 +191,7 @@ func (a *App) trackActivity() {
 		deletedPrivateChannelCount = dpccr.Data.(int64)
 	}
 
-	if pcr := <-a.Srv.Store.Post().AnalyticsPostCount("", false, false); pcr.Err == nil {
-		postsCount = pcr.Data.(int64)
-	}
+	postsCount, _ = a.Srv.Store.Post().AnalyticsPostCount("", false, false)
 
 	slashCommandsCount, _ = a.Srv.Store.Command().AnalyticsCommandCount("")
 
