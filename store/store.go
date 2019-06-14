@@ -304,11 +304,11 @@ type UserStore interface {
 }
 
 type BotStore interface {
-	Get(userId string, includeDeleted bool) StoreChannel
-	GetAll(options *model.BotGetOptions) StoreChannel
-	Save(bot *model.Bot) StoreChannel
-	Update(bot *model.Bot) StoreChannel
-	PermanentDelete(userId string) StoreChannel
+	Get(userId string, includeDeleted bool) (*model.Bot, *model.AppError)
+	GetAll(options *model.BotGetOptions) ([]*model.Bot, *model.AppError)
+	Save(bot *model.Bot) (*model.Bot, *model.AppError)
+	Update(bot *model.Bot) (*model.Bot, *model.AppError)
+	PermanentDelete(userId string) *model.AppError
 }
 
 type SessionStore interface {
