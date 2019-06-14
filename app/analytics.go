@@ -44,8 +44,18 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 		rows[9] = &model.AnalyticsRow{Name: "monthly_active_users", Value: 0}
 		rows[10] = &model.AnalyticsRow{Name: "inactive_user_count", Value: 0}
 
-		openChan := a.Srv.Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_OPEN)
-		privateChan := a.Srv.Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_PRIVATE)
+		openChan := make(chan store.StoreResult, 1)
+		privateChan := make(chan store.StoreResult, 1)
+		go func() {
+			count, err := a.Srv.Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_OPEN)
+			openChan <- store.StoreResult{Data: count, Err: err}
+			close(openChan)
+		}()
+		go func() {
+			count, err := a.Srv.Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_PRIVATE)
+			privateChan <- store.StoreResult{Data: count, Err: err}
+			close(privateChan)
+		}()
 
 		var userChan store.StoreChannel
 		var userInactiveChan store.StoreChannel
