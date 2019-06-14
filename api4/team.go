@@ -11,6 +11,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -20,7 +21,14 @@ import (
 const (
 	MAX_ADD_MEMBERS_BATCH    = 20
 	MAXIMUM_BULK_IMPORT_SIZE = 10 * 1024 * 1024
+	idParamRegexStr          = "[^a-zA-Z0-9,]*"
 )
+
+var groupIDQueryParamRegex *regexp.Regexp
+
+func init() {
+	groupIDQueryParamRegex = regexp.MustCompile(idParamRegexStr)
+}
 
 func (api *API) InitTeam() {
 	api.BaseRoutes.Teams.Handle("", api.ApiSessionRequired(createTeam)).Methods("POST")
@@ -1093,19 +1101,20 @@ func teamMembersMinusGroupMembers(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if len(strings.Trim(c.Params.GroupIDs, "")) < 26 {
+	groupIDsParam := groupIDQueryParamRegex.ReplaceAllString(c.Params.GroupIDs, "")
+
+	if len(groupIDsParam) < 26 {
 		c.SetInvalidParam("group_ids")
 		return
 	}
 
 	groupIDs := []string{}
 	for _, gid := range strings.Split(c.Params.GroupIDs, ",") {
-		trimmedID := strings.Trim(gid, "")
-		if len(trimmedID) != 26 {
+		if len(gid) != 26 {
 			c.SetInvalidParam("group_ids")
 			return
 		}
-		groupIDs = append(groupIDs, trimmedID)
+		groupIDs = append(groupIDs, gid)
 	}
 
 	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
