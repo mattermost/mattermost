@@ -443,12 +443,12 @@ func (s SqlTeamStore) GetAllTeamPageListing(offset int, limit int) ([]*model.Tea
 		query = "SELECT * FROM Teams WHERE AllowOpenInvite = true ORDER BY DisplayName LIMIT :Limit OFFSET :Offset"
 	}
 
-	var data []*model.Team
-	if _, err := s.GetReplica().Select(&data, query, map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
+	var teams []*model.Team
+	if _, err := s.GetReplica().Select(&teams, query, map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
 		return nil, model.NewAppError("SqlTeamStore.GetAllTeamPageListing", "store.sql_team.get_all_team_page_listing.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
-	return data, nil
+	return teams, nil
 }
 
 func (s SqlTeamStore) PermanentDelete(teamId string) store.StoreChannel {
