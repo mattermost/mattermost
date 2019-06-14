@@ -615,11 +615,7 @@ func (a *App) GetPostsEtag(channelId string) string {
 }
 
 func (a *App) GetPostsSince(channelId string, time int64) (*model.PostList, *model.AppError) {
-	result := <-a.Srv.Store.Post().GetPostsSince(channelId, time, true)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.PostList), nil
+	return a.Srv.Store.Post().GetPostsSince(channelId, time, true)
 }
 
 func (a *App) GetSinglePost(postId string) (*model.Post, *model.AppError) {
