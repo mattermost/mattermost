@@ -460,15 +460,14 @@ func (s SqlTeamStore) PermanentDelete(teamId string) store.StoreChannel {
 	})
 }
 
-func (s SqlTeamStore) AnalyticsTeamCount() store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		c, err := s.GetReplica().SelectInt("SELECT COUNT(*) FROM Teams WHERE DeleteAt = 0", map[string]interface{}{})
-		if err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.AnalyticsTeamCount", "store.sql_team.analytics_team_count.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		result.Data = c
-	})
+func (s SqlTeamStore) AnalyticsTeamCount() (int64, *model.AppError) {
+	c, err := s.GetReplica().SelectInt("SELECT COUNT(*) FROM Teams WHERE DeleteAt = 0", map[string]interface{}{})
+
+	if err != nil {
+		return int64(0), model.NewAppError("SqlTeamStore.AnalyticsTeamCount", "store.sql_team.analytics_team_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return c, nil
 }
 
 func (s SqlTeamStore) getTeamMembersWithSchemeSelectQuery() sq.SelectBuilder {

@@ -99,7 +99,7 @@ type TeamStore interface {
 	GetTeamsByUserId(userId string) StoreChannel
 	GetByInviteId(inviteId string) (*model.Team, *model.AppError)
 	PermanentDelete(teamId string) StoreChannel
-	AnalyticsTeamCount() StoreChannel
+	AnalyticsTeamCount() (int64, *model.AppError)
 	SaveMember(member *model.TeamMember, maxUsersPerTeam int) StoreChannel
 	UpdateMember(member *model.TeamMember) StoreChannel
 	GetMember(teamId string, userId string) StoreChannel

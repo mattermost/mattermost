@@ -79,8 +79,8 @@ func (s *Server) DoSecurityUpdateCheck() {
 			v.Set(PROP_SECURITY_ACTIVE_USER_COUNT, strconv.FormatInt(ucr.Data.(int64), 10))
 		}
 
-		if tcr := <-s.Store.Team().AnalyticsTeamCount(); tcr.Err == nil {
-			v.Set(PROP_SECURITY_TEAM_COUNT, strconv.FormatInt(tcr.Data.(int64), 10))
+		if teamCount, err := s.Store.Team().AnalyticsTeamCount(); err == nil {
+			v.Set(PROP_SECURITY_TEAM_COUNT, strconv.FormatInt(teamCount, 10))
 		}
 
 		res, err := http.Get(SECURITY_URL + "/security?" + v.Encode())
