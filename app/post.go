@@ -213,7 +213,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 
 	post.Hashtags, _ = model.ParseHashtags(post.Message)
 
-	if err := a.FillInPostProps(post, channel); err != nil {
+	if err = a.FillInPostProps(post, channel); err != nil {
 		return nil, err
 	}
 
@@ -255,11 +255,10 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		}
 	}
 
-	result := <-a.Srv.Store.Post().Save(post)
-	if result.Err != nil {
-		return nil, result.Err
+	rpost, err := a.Srv.Store.Post().Save(post)
+	if err != nil {
+		return nil, err
 	}
-	rpost := result.Data.(*model.Post)
 
 	// Update the mapping from pending post id to the actual post id, for any clients that
 	// might be duplicating requests.
@@ -278,7 +277,7 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 	esInterface := a.Elasticsearch
 	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
 		a.Srv.Go(func() {
-			if err := esInterface.IndexPost(rpost, channel.TeamId); err != nil {
+			if err = esInterface.IndexPost(rpost, channel.TeamId); err != nil {
 				mlog.Error("Encountered error indexing post", mlog.String("post_id", post.Id), mlog.Err(err))
 			}
 		})
@@ -289,8 +288,8 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 	}
 
 	if len(post.FileIds) > 0 {
-		if err := a.attachFilesToPost(post); err != nil {
-			mlog.Error("Encountered error attaching files to post", mlog.String("post_id", post.Id), mlog.Any("file_ids", post.FileIds), mlog.Err(result.Err))
+		if err = a.attachFilesToPost(post); err != nil {
+			mlog.Error("Encountered error attaching files to post", mlog.String("post_id", post.Id), mlog.Any("file_ids", post.FileIds), mlog.Err(err))
 		}
 
 		if a.Metrics != nil {
@@ -616,11 +615,7 @@ func (a *App) GetPostsEtag(channelId string) string {
 }
 
 func (a *App) GetPostsSince(channelId string, time int64) (*model.PostList, *model.AppError) {
-	result := <-a.Srv.Store.Post().GetPostsSince(channelId, time, true)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.PostList), nil
+	return a.Srv.Store.Post().GetPostsSince(channelId, time, true)
 }
 
 func (a *App) GetSinglePost(postId string) (*model.Post, *model.AppError) {
@@ -667,34 +662,18 @@ func (a *App) GetPermalinkPost(postId string, userId string) (*model.PostList, *
 }
 
 func (a *App) GetPostsBeforePost(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError) {
-	result := <-a.Srv.Store.Post().GetPostsBefore(channelId, postId, perPage, page*perPage)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.PostList), nil
+	return a.Srv.Store.Post().GetPostsBefore(channelId, postId, perPage, page*perPage)
 }
 
 func (a *App) GetPostsAfterPost(channelId, postId string, page, perPage int) (*model.PostList, *model.AppError) {
-	result := <-a.Srv.Store.Post().GetPostsAfter(channelId, postId, perPage, page*perPage)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.PostList), nil
+	return a.Srv.Store.Post().GetPostsAfter(channelId, postId, perPage, page*perPage)
 }
 
 func (a *App) GetPostsAroundPost(postId, channelId string, offset, limit int, before bool) (*model.PostList, *model.AppError) {
-	var pchan store.StoreChannel
 	if before {
-		pchan = a.Srv.Store.Post().GetPostsBefore(channelId, postId, limit, offset)
-	} else {
-		pchan = a.Srv.Store.Post().GetPostsAfter(channelId, postId, limit, offset)
+		return a.Srv.Store.Post().GetPostsBefore(channelId, postId, limit, offset)
 	}
-
-	result := <-pchan
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.PostList), nil
+	return a.Srv.Store.Post().GetPostsAfter(channelId, postId, limit, offset)
 }
 
 func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppError) {

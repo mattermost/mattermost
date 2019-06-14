@@ -38,6 +38,7 @@ const (
 	POST_CHANNEL_DELETED        = "system_channel_deleted"
 	POST_EPHEMERAL              = "system_ephemeral"
 	POST_CHANGE_CHANNEL_PRIVACY = "system_change_chan_privacy"
+	POST_ADD_BOT_TEAMS_CHANNELS = "add_bot_teams_channels"
 	POST_FILEIDS_MAX_RUNES      = 150
 	POST_FILENAMES_MAX_RUNES    = 4000
 	POST_HASHTAGS_MAX_RUNES     = 1000
@@ -234,7 +235,8 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		POST_DISPLAYNAME_CHANGE,
 		POST_CONVERT_CHANNEL,
 		POST_CHANNEL_DELETED,
-		POST_CHANGE_CHANNEL_PRIVACY:
+		POST_CHANGE_CHANNEL_PRIVACY,
+		POST_ADD_BOT_TEAMS_CHANNELS:
 	default:
 		if !strings.HasPrefix(o.Type, POST_CUSTOM_TYPE_PREFIX) {
 			return NewAppError("Post.IsValid", "model.post.is_valid.type.app_error", nil, "id="+o.Type, http.StatusBadRequest)
