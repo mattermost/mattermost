@@ -56,7 +56,6 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			privateChan <- store.StoreResult{Data: count, Err: err}
 			close(privateChan)
 		}()
-		teamChan := a.Srv.Store.Team().AnalyticsTeamCount()
 
 		var userChan store.StoreChannel
 		var userInactiveChan store.StoreChannel
@@ -75,6 +74,12 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 
 		dailyActiveChan := a.Srv.Store.User().AnalyticsActiveCount(DAY_MILLISECONDS)
 		monthlyActiveChan := a.Srv.Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS)
+		teamCountChan := make(chan store.StoreResult, 1)
+		go func() {
+			teamCount, err := a.Srv.Store.Team().AnalyticsTeamCount()
+			teamCountChan <- store.StoreResult{Data: teamCount, Err: err}
+			close(teamCountChan)
+		}()
 
 		r := <-openChan
 		if r.Err != nil {
@@ -118,7 +123,7 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			rows[10].Value = float64(r.Data.(int64))
 		}
 
-		r = <-teamChan
+		r = <-teamCountChan
 		if r.Err != nil {
 			return nil, r.Err
 		}
