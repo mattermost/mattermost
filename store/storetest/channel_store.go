@@ -1321,15 +1321,15 @@ func testChannelStoreGetMoreChannels(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("verify analytics for open channels", func(t *testing.T) {
-		result := <-ss.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_OPEN)
-		require.Nil(t, result.Err)
-		require.EqualValues(t, 4, result.Data.(int64))
+		count, err := ss.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_OPEN)
+		require.Nil(t, err)
+		require.EqualValues(t, 4, count)
 	})
 
 	t.Run("verify analytics for private channels", func(t *testing.T) {
-		result := <-ss.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_PRIVATE)
-		require.Nil(t, result.Err)
-		require.EqualValues(t, 2, result.Data.(int64))
+		count, err := ss.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_PRIVATE)
+		require.Nil(t, err)
+		require.EqualValues(t, 2, count)
 	})
 }
 
@@ -1413,15 +1413,15 @@ func testChannelStoreGetPublicChannelsForTeam(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("verify analytics for open channels", func(t *testing.T) {
-		result := <-ss.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_OPEN)
-		require.Nil(t, result.Err)
-		require.EqualValues(t, 3, result.Data.(int64))
+		count, err := ss.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_OPEN)
+		require.Nil(t, err)
+		require.EqualValues(t, 3, count)
 	})
 
 	t.Run("verify analytics for private channels", func(t *testing.T) {
-		result := <-ss.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_PRIVATE)
-		require.Nil(t, result.Err)
-		require.EqualValues(t, 1, result.Data.(int64))
+		count, err := ss.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_PRIVATE)
+		require.Nil(t, err)
+		require.EqualValues(t, 1, count)
 	})
 }
 
