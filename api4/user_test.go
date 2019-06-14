@@ -6,6 +6,7 @@ package api4
 import (
 	"fmt"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 	"testing"
@@ -16,7 +17,6 @@ import (
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/services/mailservice"
-	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -32,22 +32,7 @@ func TestCreateUser(t *testing.T) {
 	CheckNoError(t, resp)
 	CheckCreatedStatus(t, resp)
 
-	_, resp = th.Client.Login(user.Email, user.Password)
-	session, _ := th.App.GetSession(th.Client.AuthToken)
-	expectedCsrf := "MMCSRF=" + session.GetCSRF()
-	actualCsrf := ""
-
-	for _, cookie := range resp.Header["Set-Cookie"] {
-		if strings.HasPrefix(cookie, "MMCSRF") {
-			cookieParts := strings.Split(cookie, ";")
-			actualCsrf = cookieParts[0]
-			break
-		}
-	}
-
-	if expectedCsrf != actualCsrf {
-		t.Errorf("CSRF Mismatch - Expected %s, got %s", expectedCsrf, actualCsrf)
-	}
+	_, _ = th.Client.Login(user.Email, user.Password)
 
 	if ruser.Nickname != user.Nickname {
 		t.Fatal("nickname didn't match")
@@ -1405,7 +1390,8 @@ func TestUpdateUserAuth(t *testing.T) {
 	user := th.CreateUser()
 
 	th.LinkUserToTeam(user, team)
-	store.Must(th.App.Srv.Store.User().VerifyEmail(user.Id, user.Email))
+	_, err := th.App.Srv.Store.User().VerifyEmail(user.Id, user.Email)
+	require.Nil(t, err)
 
 	userAuth := &model.UserAuth{}
 	userAuth.AuthData = user.AuthData
@@ -1445,7 +1431,8 @@ func TestUpdateUserAuth(t *testing.T) {
 	// Regular user can not use endpoint
 	user2 := th.CreateUser()
 	th.LinkUserToTeam(user2, team)
-	store.Must(th.App.Srv.Store.User().VerifyEmail(user2.Id, user2.Email))
+	_, err = th.App.Srv.Store.User().VerifyEmail(user2.Id, user2.Email)
+	require.Nil(t, err)
 
 	th.SystemAdminClient.Login(user2.Email, "passwd1")
 
@@ -2721,33 +2708,74 @@ func TestLogin(t *testing.T) {
 }
 
 func TestLoginCookies(t *testing.T) {
-	th := Setup().InitBasic()
-	defer th.TearDown()
-	th.Client.Logout()
+	t.Run("should return cookies with X-Requested-With header", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
 
-	testCases := []struct {
-		Description                   string
-		SiteURL                       string
-		ExpectedSetCookieHeaderRegexp string
-	}{
-		{"no subpath", "http://localhost:8065", "^MMAUTHTOKEN=[a-z0-9]+; Path=/"},
-		{"subpath", "http://localhost:8065/subpath", "^MMAUTHTOKEN=[a-z0-9]+; Path=/subpath"},
-	}
+		th.Client.HttpHeader[model.HEADER_REQUESTED_WITH] = model.HEADER_REQUESTED_WITH_XML
 
-	for _, tc := range testCases {
-		t.Run(tc.Description, func(t *testing.T) {
-			th.App.UpdateConfig(func(cfg *model.Config) {
-				*cfg.ServiceSettings.SiteURL = tc.SiteURL
+		user, resp := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+		sessionCookie := ""
+		userCookie := ""
+		csrfCookie := ""
+
+		for _, cookie := range resp.Header["Set-Cookie"] {
+			if match := regexp.MustCompile("^" + model.SESSION_COOKIE_TOKEN + "=([a-z0-9]+)").FindStringSubmatch(cookie); match != nil {
+				sessionCookie = match[1]
+			} else if match := regexp.MustCompile("^" + model.SESSION_COOKIE_USER + "=([a-z0-9]+)").FindStringSubmatch(cookie); match != nil {
+				userCookie = match[1]
+			} else if match := regexp.MustCompile("^" + model.SESSION_COOKIE_CSRF + "=([a-z0-9]+)").FindStringSubmatch(cookie); match != nil {
+				csrfCookie = match[1]
+			}
+		}
+
+		session, _ := th.App.GetSession(th.Client.AuthToken)
+
+		assert.Equal(t, th.Client.AuthToken, sessionCookie)
+		assert.Equal(t, user.Id, userCookie)
+		assert.Equal(t, session.GetCSRF(), csrfCookie)
+	})
+
+	t.Run("should not return cookies without X-Requested-With header", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
+
+		_, resp := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+
+		assert.Empty(t, resp.Header.Get("Set-Cookie"))
+	})
+
+	t.Run("should include subpath in path", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
+
+		th.Client.HttpHeader[model.HEADER_REQUESTED_WITH] = model.HEADER_REQUESTED_WITH_XML
+
+		testCases := []struct {
+			Description                   string
+			SiteURL                       string
+			ExpectedSetCookieHeaderRegexp string
+		}{
+			{"no subpath", "http://localhost:8065", "^MMAUTHTOKEN=[a-z0-9]+; Path=/"},
+			{"subpath", "http://localhost:8065/subpath", "^MMAUTHTOKEN=[a-z0-9]+; Path=/subpath"},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.Description, func(t *testing.T) {
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					*cfg.ServiceSettings.SiteURL = tc.SiteURL
+				})
+
+				user, resp := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
+				CheckNoError(t, resp)
+				assert.Equal(t, user.Id, th.BasicUser.Id)
+
+				cookies := resp.Header.Get("Set-Cookie")
+				assert.Regexp(t, tc.ExpectedSetCookieHeaderRegexp, cookies)
 			})
-
-			user, resp := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
-			CheckNoError(t, resp)
-			assert.Equal(t, user.Id, th.BasicUser.Id)
-
-			cookies := resp.Header.Get("Set-Cookie")
-			assert.Regexp(t, tc.ExpectedSetCookieHeaderRegexp, cookies)
-		})
-	}
+		}
+	})
 }
 
 func TestCBALogin(t *testing.T) {
@@ -3932,6 +3960,30 @@ func TestUserAccessTokenDisableConfig(t *testing.T) {
 	CheckNoError(t, resp)
 }
 
+func TestUserAccessTokenDisableConfigBotsExcluded(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableBotAccountCreation = true
+		*cfg.ServiceSettings.EnableUserAccessTokens = false
+	})
+
+	bot, resp := th.SystemAdminClient.CreateBot(&model.Bot{
+		Username:    GenerateTestUsername(),
+		DisplayName: "a bot",
+		Description: "bot",
+	})
+	CheckCreatedStatus(t, resp)
+
+	rtoken, resp := th.SystemAdminClient.CreateUserAccessToken(bot.UserId, "test token")
+	th.Client.AuthToken = rtoken.Token
+	CheckNoError(t, resp)
+
+	_, resp = th.Client.GetMe("")
+	CheckNoError(t, resp)
+}
+
 func TestGetUsersByStatus(t *testing.T) {
 	th := Setup()
 	defer th.TearDown()
@@ -4193,13 +4245,13 @@ func TestLoginLockout(t *testing.T) {
 	_, resp = th.Client.Login(th.BasicUser.Email, "wrong")
 	CheckErrorMessage(t, resp, "api.user.login.invalid_credentials_email_username")
 	_, resp = th.Client.Login(th.BasicUser.Email, "wrong")
-	CheckErrorMessage(t, resp, "api.user.login.invalid_credentials_email_username")
+	CheckErrorMessage(t, resp, "api.user.check_user_login_attempts.too_many.app_error")
 	_, resp = th.Client.Login(th.BasicUser.Email, "wrong")
-	CheckErrorMessage(t, resp, "api.user.login.invalid_credentials_email_username")
+	CheckErrorMessage(t, resp, "api.user.check_user_login_attempts.too_many.app_error")
 
 	//Check if lock is active
 	_, resp = th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
-	CheckErrorMessage(t, resp, "api.user.login.invalid_credentials_email_username")
+	CheckErrorMessage(t, resp, "api.user.check_user_login_attempts.too_many.app_error")
 
 	// Fake user has MFA enabled
 	if result := <-th.Server.Store.User().UpdateMfaActive(th.BasicUser2.Id, true); result.Err != nil {
@@ -4212,9 +4264,9 @@ func TestLoginLockout(t *testing.T) {
 	_, resp = th.Client.LoginWithMFA(th.BasicUser2.Email, th.BasicUser2.Password, "000000")
 	CheckErrorMessage(t, resp, "api.user.check_user_mfa.bad_code.app_error")
 	_, resp = th.Client.LoginWithMFA(th.BasicUser2.Email, th.BasicUser2.Password, "000000")
-	CheckErrorMessage(t, resp, "api.user.login.invalid_credentials_email_username")
+	CheckErrorMessage(t, resp, "api.user.check_user_login_attempts.too_many.app_error")
 	_, resp = th.Client.LoginWithMFA(th.BasicUser2.Email, th.BasicUser2.Password, "000000")
-	CheckErrorMessage(t, resp, "api.user.login.invalid_credentials_email_username")
+	CheckErrorMessage(t, resp, "api.user.check_user_login_attempts.too_many.app_error")
 
 	// Fake user has MFA disabled
 	if result := <-th.Server.Store.User().UpdateMfaActive(th.BasicUser2.Id, false); result.Err != nil {
@@ -4223,5 +4275,5 @@ func TestLoginLockout(t *testing.T) {
 
 	//Check if lock is active
 	_, resp = th.Client.Login(th.BasicUser2.Email, th.BasicUser2.Password)
-	CheckErrorMessage(t, resp, "api.user.login.invalid_credentials_email_username")
+	CheckErrorMessage(t, resp, "api.user.check_user_login_attempts.too_many.app_error")
 }

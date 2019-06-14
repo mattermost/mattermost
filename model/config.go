@@ -672,6 +672,7 @@ type ClusterSettings struct {
 	Enable                      *bool   `restricted:"true"`
 	ClusterName                 *string `restricted:"true"`
 	OverrideHostname            *string `restricted:"true"`
+	NetworkInterface            *string `restricted:"true"`
 	UseIpAddress                *bool   `restricted:"true"`
 	UseExperimentalGossip       *bool   `restricted:"true"`
 	ReadOnlyConfig              *bool   `restricted:"true"`
@@ -693,6 +694,10 @@ func (s *ClusterSettings) SetDefaults() {
 
 	if s.OverrideHostname == nil {
 		s.OverrideHostname = NewString("")
+	}
+
+	if s.NetworkInterface == nil {
+		s.NetworkInterface = NewString("")
 	}
 
 	if s.UseIpAddress == nil {
@@ -751,7 +756,6 @@ func (s *MetricsSettings) SetDefaults() {
 type ExperimentalSettings struct {
 	ClientSideCertEnable            *bool
 	ClientSideCertCheck             *string
-	DisablePostMetadata             *bool  `restricted:"true"`
 	EnableClickToReply              *bool  `restricted:"true"`
 	LinkMetadataTimeoutMilliseconds *int64 `restricted:"true"`
 	RestrictSystemAdmin             *bool  `restricted:"true"`
@@ -764,10 +768,6 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.ClientSideCertCheck == nil {
 		s.ClientSideCertCheck = NewString(CLIENT_SIDE_CERT_CHECK_SECONDARY_AUTH)
-	}
-
-	if s.DisablePostMetadata == nil {
-		s.DisablePostMetadata = NewBool(false)
 	}
 
 	if s.EnableClickToReply == nil {
@@ -1855,8 +1855,9 @@ type SamlSettings struct {
 	EnableSyncWithLdap            *bool
 	EnableSyncWithLdapIncludeAuth *bool
 
-	Verify  *bool
-	Encrypt *bool
+	Verify      *bool
+	Encrypt     *bool
+	SignRequest *bool
 
 	IdpUrl                      *string
 	IdpDescriptorUrl            *string
@@ -1905,6 +1906,10 @@ func (s *SamlSettings) SetDefaults() {
 
 	if s.Encrypt == nil {
 		s.Encrypt = NewBool(true)
+	}
+
+	if s.SignRequest == nil {
+		s.SignRequest = NewBool(false)
 	}
 
 	if s.IdpUrl == nil {

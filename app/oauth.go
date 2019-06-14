@@ -46,7 +46,6 @@ func (a *App) GetOAuthApp(appId string) (*model.OAuthApp, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableOAuthServiceProvider {
 		return nil, model.NewAppError("GetOAuthApp", "api.oauth.allow_oauth.turn_off.app_error", nil, "", http.StatusNotImplemented)
 	}
-
 	result := <-a.Srv.Store.OAuth().GetApp(appId)
 	if result.Err != nil {
 		return nil, result.Err
@@ -354,7 +353,9 @@ func (a *App) newSession(appName string, user *model.User) (*model.Session, *mod
 
 func (a *App) newSessionUpdateToken(appName string, accessData *model.AccessData, user *model.User) (*model.AccessResponse, *model.AppError) {
 	// Remove the previous session
-	<-a.Srv.Store.Session().Remove(accessData.Token)
+	if err := a.Srv.Store.Session().Remove(accessData.Token); err != nil {
+		mlog.Error(fmt.Sprint(err))
+	}
 
 	session, err := a.newSession(appName, user)
 	if err != nil {
@@ -455,7 +456,7 @@ func (a *App) DeauthorizeOAuthAppForUser(userId, appId string) *model.AppError {
 	}
 
 	// Deauthorize the app
-	if err := (<-a.Srv.Store.Preference().Delete(userId, model.PREFERENCE_CATEGORY_AUTHORIZED_OAUTH_APP, appId)).Err; err != nil {
+	if err := a.Srv.Store.Preference().Delete(userId, model.PREFERENCE_CATEGORY_AUTHORIZED_OAUTH_APP, appId); err != nil {
 		return err
 	}
 
@@ -477,7 +478,12 @@ func (a *App) RegenerateOAuthAppSecret(app *model.OAuthApp) (*model.OAuthApp, *m
 
 func (a *App) RevokeAccessToken(token string) *model.AppError {
 	session, _ := a.GetSession(token)
-	schan := a.Srv.Store.Session().Remove(token)
+
+	schan := make(chan *model.AppError, 1)
+	go func() {
+		schan <- a.Srv.Store.Session().Remove(token)
+		close(schan)
+	}()
 
 	if result := <-a.Srv.Store.OAuth().GetAccessData(token); result.Err != nil {
 		return model.NewAppError("RevokeAccessToken", "api.oauth.revoke_access_token.get.app_error", nil, "", http.StatusBadRequest)
@@ -487,7 +493,7 @@ func (a *App) RevokeAccessToken(token string) *model.AppError {
 		return model.NewAppError("RevokeAccessToken", "api.oauth.revoke_access_token.del_token.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	if result := <-schan; result.Err != nil {
+	if err := <-schan; err != nil {
 		return model.NewAppError("RevokeAccessToken", "api.oauth.revoke_access_token.del_session.app_error", nil, "", http.StatusInternalServerError)
 	}
 
@@ -594,22 +600,21 @@ func (a *App) CompleteSwitchWithOAuth(service string, userData io.Reader, email 
 		return nil, model.NewAppError("CompleteSwitchWithOAuth", "api.user.complete_switch_with_oauth.blank_email.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	result := <-a.Srv.Store.User().GetByEmail(email)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	user := result.Data.(*model.User)
-
-	if err := a.RevokeAllSessions(user.Id); err != nil {
+	user, err := a.Srv.Store.User().GetByEmail(email)
+	if err != nil {
 		return nil, err
 	}
 
-	if result = <-a.Srv.Store.User().UpdateAuthData(user.Id, service, &authData, ssoEmail, true); result.Err != nil {
+	if err = a.RevokeAllSessions(user.Id); err != nil {
+		return nil, err
+	}
+
+	if result := <-a.Srv.Store.User().UpdateAuthData(user.Id, service, &authData, ssoEmail, true); result.Err != nil {
 		return nil, result.Err
 	}
 
 	a.Srv.Go(func() {
-		if err := a.SendSignInChangeEmail(user.Email, strings.Title(service)+" SSO", user.Locale, a.GetSiteURL()); err != nil {
+		if err = a.SendSignInChangeEmail(user.Email, strings.Title(service)+" SSO", user.Locale, a.GetSiteURL()); err != nil {
 			mlog.Error(err.Error())
 		}
 	})
