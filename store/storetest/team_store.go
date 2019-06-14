@@ -768,10 +768,10 @@ func testTeamCount(t *testing.T, ss store.Store) {
 	_, err := ss.Team().Save(&o1)
 	require.Nil(t, err)
 
-	if r1 := <-ss.Team().AnalyticsTeamCount(); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if teamCount, err := ss.Team().AnalyticsTeamCount(); err != nil {
+		t.Fatal(err)
 	} else {
-		if r1.Data.(int64) == 0 {
+		if teamCount == 0 {
 			t.Fatal("should be at least 1 team")
 		}
 	}
