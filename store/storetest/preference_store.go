@@ -427,7 +427,8 @@ func testPreferenceCleanupFlagsBatch(t *testing.T, ss store.Store) {
 	o1.UserId = userId
 	o1.Message = "zz" + model.NewId() + "AAAAAAAAAAA"
 	o1.CreateAt = 1000
-	o1 = (<-ss.Post().Save(o1)).Data.(*model.Post)
+	o1, err := ss.Post().Save(o1)
+	require.Nil(t, err)
 
 	preference1 := model.Preference{
 		UserId:   userId,
@@ -443,7 +444,7 @@ func testPreferenceCleanupFlagsBatch(t *testing.T, ss store.Store) {
 		Value:    "true",
 	}
 
-	err := ss.Preference().Save(&model.Preferences{preference1, preference2})
+	err = ss.Preference().Save(&model.Preferences{preference1, preference2})
 	require.Nil(t, err)
 
 	_, err = ss.Preference().CleanupFlagsBatch(10000)
