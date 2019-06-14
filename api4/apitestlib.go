@@ -765,8 +765,7 @@ func (me *TestHelper) MakeUserChannelAdmin(user *model.User, channel *model.Chan
 func (me *TestHelper) UpdateUserToTeamAdmin(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
-	if tmr := <-me.App.Srv.Store.Team().GetMember(team.Id, user.Id); tmr.Err == nil {
-		tm := tmr.Data.(*model.TeamMember)
+	if tm, err := me.App.Srv.Store.Team().GetMember(team.Id, user.Id); err == nil {
 		tm.SchemeAdmin = true
 		if sr := <-me.App.Srv.Store.Team().UpdateMember(tm); sr.Err != nil {
 			utils.EnableDebugLogForTest()
@@ -774,10 +773,10 @@ func (me *TestHelper) UpdateUserToTeamAdmin(user *model.User, team *model.Team) 
 		}
 	} else {
 		utils.EnableDebugLogForTest()
-		mlog.Error(tmr.Err.Error())
+		mlog.Error(err.Error())
 
 		time.Sleep(time.Second)
-		panic(tmr.Err)
+		panic(err)
 	}
 
 	utils.EnableDebugLogForTest()
@@ -786,8 +785,7 @@ func (me *TestHelper) UpdateUserToTeamAdmin(user *model.User, team *model.Team) 
 func (me *TestHelper) UpdateUserToNonTeamAdmin(user *model.User, team *model.Team) {
 	utils.DisableDebugLogForTest()
 
-	if tmr := <-me.App.Srv.Store.Team().GetMember(team.Id, user.Id); tmr.Err == nil {
-		tm := tmr.Data.(*model.TeamMember)
+	if tm, err := me.App.Srv.Store.Team().GetMember(team.Id, user.Id); err == nil {
 		tm.SchemeAdmin = false
 		if sr := <-me.App.Srv.Store.Team().UpdateMember(tm); sr.Err != nil {
 			utils.EnableDebugLogForTest()
@@ -795,10 +793,10 @@ func (me *TestHelper) UpdateUserToNonTeamAdmin(user *model.User, team *model.Tea
 		}
 	} else {
 		utils.EnableDebugLogForTest()
-		mlog.Error(tmr.Err.Error())
+		mlog.Error(err.Error())
 
 		time.Sleep(time.Second)
-		panic(tmr.Err)
+		panic(err)
 	}
 
 	utils.EnableDebugLogForTest()
