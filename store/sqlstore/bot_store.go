@@ -221,12 +221,7 @@ func (us SqlBotStore) Update(bot *model.Bot) (*model.Bot, *model.AppError) {
 // PermanentDelete removes the bot from the database altogether.
 // If the corresponding user is to be deleted, it must be done via the user store.
 func (us SqlBotStore) PermanentDelete(botUserId string) *model.AppError {
-	query := `
-		DELETE FROM
-			Bots
-		WHERE
-			UserId = :user_id
-	`
+	query := "DELETE FROM Bots WHERE UserId = :user_id"
 	if _, err := us.GetMaster().Exec(query, map[string]interface{}{"user_id": botUserId}); err != nil {
 		return model.NewAppError("SqlBotStore.Update", "store.sql_bot.delete.app_error", map[string]interface{}{"user_id": botUserId}, err.Error(), http.StatusBadRequest)
 	}
