@@ -166,8 +166,9 @@ func (a *App) trackActivity() {
 		inactiveUserCount = iucr.Data.(int64)
 	}
 
-	if tcr := <-a.Srv.Store.Team().AnalyticsTeamCount(); tcr.Err == nil {
-		teamCount = tcr.Data.(int64)
+	teamCount, err := a.Srv.Store.Team().AnalyticsTeamCount()
+	if err != nil {
+		mlog.Error(err.Error())
 	}
 
 	if ucc := <-a.Srv.Store.Channel().AnalyticsTypeCount("", "O"); ucc.Err == nil {
@@ -535,7 +536,6 @@ func (a *App) trackConfig() {
 	a.SendDiagnostic(TRACK_CONFIG_EXPERIMENTAL, map[string]interface{}{
 		"client_side_cert_enable":            *cfg.ExperimentalSettings.ClientSideCertEnable,
 		"isdefault_client_side_cert_check":   isDefault(*cfg.ExperimentalSettings.ClientSideCertCheck, model.CLIENT_SIDE_CERT_CHECK_PRIMARY_AUTH),
-		"enable_post_metadata":               !*cfg.ExperimentalSettings.DisablePostMetadata,
 		"link_metadata_timeout_milliseconds": *cfg.ExperimentalSettings.LinkMetadataTimeoutMilliseconds,
 		"enable_click_to_reply":              *cfg.ExperimentalSettings.EnableClickToReply,
 		"restrict_system_admin":              *cfg.ExperimentalSettings.RestrictSystemAdmin,

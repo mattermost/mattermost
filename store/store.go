@@ -93,13 +93,13 @@ type TeamStore interface {
 	GetAll() ([]*model.Team, *model.AppError)
 	GetAllPage(offset int, limit int) StoreChannel
 	GetAllPrivateTeamListing() StoreChannel
-	GetAllPrivateTeamPageListing(offset int, limit int) StoreChannel
+	GetAllPrivateTeamPageListing(offset int, limit int) ([]*model.Team, *model.AppError)
 	GetAllTeamListing() StoreChannel
 	GetAllTeamPageListing(offset int, limit int) StoreChannel
 	GetTeamsByUserId(userId string) StoreChannel
 	GetByInviteId(inviteId string) (*model.Team, *model.AppError)
 	PermanentDelete(teamId string) StoreChannel
-	AnalyticsTeamCount() StoreChannel
+	AnalyticsTeamCount() (int64, *model.AppError)
 	SaveMember(member *model.TeamMember, maxUsersPerTeam int) StoreChannel
 	UpdateMember(member *model.TeamMember) StoreChannel
 	GetMember(teamId string, userId string) StoreChannel
@@ -210,7 +210,7 @@ type ChannelMemberHistoryStore interface {
 }
 
 type PostStore interface {
-	Save(post *model.Post) StoreChannel
+	Save(post *model.Post) (*model.Post, *model.AppError)
 	Update(newPost *model.Post, oldPost *model.Post) (*model.Post, *model.AppError)
 	Get(id string) (*model.PostList, *model.AppError)
 	GetSingle(id string) (*model.Post, *model.AppError)
@@ -223,7 +223,7 @@ type PostStore interface {
 	GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) (*model.PostList, *model.AppError)
 	GetPostsBefore(channelId string, postId string, numPosts int, offset int) (*model.PostList, *model.AppError)
 	GetPostsAfter(channelId string, postId string, numPosts int, offset int) (*model.PostList, *model.AppError)
-	GetPostsSince(channelId string, time int64, allowFromCache bool) StoreChannel
+	GetPostsSince(channelId string, time int64, allowFromCache bool) (*model.PostList, *model.AppError)
 	GetEtag(channelId string, allowFromCache bool) string
 	Search(teamId string, userId string, params *model.SearchParams) StoreChannel
 	AnalyticsUserCountsWithPostsByDay(teamId string) (model.AnalyticsRows, *model.AppError)

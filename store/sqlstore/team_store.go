@@ -400,22 +400,19 @@ func (s SqlTeamStore) GetAllPrivateTeamListing() store.StoreChannel {
 	})
 }
 
-func (s SqlTeamStore) GetAllPrivateTeamPageListing(offset int, limit int) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		query := "SELECT * FROM Teams WHERE AllowOpenInvite = 0 ORDER BY DisplayName LIMIT :Limit OFFSET :Offset"
+func (s SqlTeamStore) GetAllPrivateTeamPageListing(offset int, limit int) ([]*model.Team, *model.AppError) {
+	query := "SELECT * FROM Teams WHERE AllowOpenInvite = 0 ORDER BY DisplayName LIMIT :Limit OFFSET :Offset"
 
-		if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-			query = "SELECT * FROM Teams WHERE AllowOpenInvite = false ORDER BY DisplayName LIMIT :Limit OFFSET :Offset"
-		}
+	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		query = "SELECT * FROM Teams WHERE AllowOpenInvite = false ORDER BY DisplayName LIMIT :Limit OFFSET :Offset"
+	}
 
-		var data []*model.Team
-		if _, err := s.GetReplica().Select(&data, query, map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.GetAllPrivateTeamListing", "store.sql_team.get_all_private_team_listing.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	var data []*model.Team
+	if _, err := s.GetReplica().Select(&data, query, map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
+		return nil, model.NewAppError("SqlTeamStore.GetAllPrivateTeamListing", "store.sql_team.get_all_private_team_listing.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = data
-	})
+	return data, nil
 }
 
 func (s SqlTeamStore) GetAllTeamListing() store.StoreChannel {
@@ -463,15 +460,14 @@ func (s SqlTeamStore) PermanentDelete(teamId string) store.StoreChannel {
 	})
 }
 
-func (s SqlTeamStore) AnalyticsTeamCount() store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		c, err := s.GetReplica().SelectInt("SELECT COUNT(*) FROM Teams WHERE DeleteAt = 0", map[string]interface{}{})
-		if err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.AnalyticsTeamCount", "store.sql_team.analytics_team_count.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		result.Data = c
-	})
+func (s SqlTeamStore) AnalyticsTeamCount() (int64, *model.AppError) {
+	c, err := s.GetReplica().SelectInt("SELECT COUNT(*) FROM Teams WHERE DeleteAt = 0", map[string]interface{}{})
+
+	if err != nil {
+		return int64(0), model.NewAppError("SqlTeamStore.AnalyticsTeamCount", "store.sql_team.analytics_team_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return c, nil
 }
 
 func (s SqlTeamStore) getTeamMembersWithSchemeSelectQuery() sq.SelectBuilder {
