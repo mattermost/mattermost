@@ -59,7 +59,12 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 
 		var postChan store.StoreChannel
 		if !skipIntensiveQueries {
-			postChan = a.Srv.Store.Post().AnalyticsPostCount(teamId, false, false)
+			postChan = make(chan store.StoreResult, 1)
+			go func() {
+				count, err := a.Srv.Store.Post().AnalyticsPostCount(teamId, false, false)
+				postChan <- store.StoreResult{Data: count, Err: err}
+				close(postChan)
+			}()
 		}
 
 		dailyActiveChan := a.Srv.Store.User().AnalyticsActiveCount(DAY_MILLISECONDS)
@@ -212,9 +217,21 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 
 		var fileChan store.StoreChannel
 		var hashtagChan store.StoreChannel
+
 		if !skipIntensiveQueries {
-			fileChan = a.Srv.Store.Post().AnalyticsPostCount(teamId, true, false)
-			hashtagChan = a.Srv.Store.Post().AnalyticsPostCount(teamId, false, true)
+			fileChan = make(chan store.StoreResult, 1)
+			go func() {
+				count, err := a.Srv.Store.Post().AnalyticsPostCount(teamId, true, false)
+				fileChan <- store.StoreResult{Data: count, Err: err}
+				close(fileChan)
+			}()
+
+			hashtagChan = make(chan store.StoreResult, 1)
+			go func() {
+				count, err := a.Srv.Store.Post().AnalyticsPostCount(teamId, false, true)
+				hashtagChan <- store.StoreResult{Data: count, Err: err}
+				close(hashtagChan)
+			}()
 		}
 
 		if fileChan == nil {
