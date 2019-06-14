@@ -512,9 +512,9 @@ func botToUser(command *cobra.Command, args []string, a *app.App) error {
 		}
 	}
 
-	result := <-a.Srv.Store.Bot().PermanentDelete(user.Id)
-	if result.Err != nil {
-		return fmt.Errorf("Unable to delete bot. Error: %s", result.Err.Error())
+	err = a.Srv.Store.Bot().PermanentDelete(user.Id)
+	if err != nil {
+		return fmt.Errorf("Unable to delete bot. Error: %s", err.Error())
 	}
 
 	CommandPrettyPrintln("id: " + user.Id)
