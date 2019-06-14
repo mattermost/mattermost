@@ -587,30 +587,26 @@ func (s SqlTeamStore) UpdateMember(member *model.TeamMember) store.StoreChannel 
 	})
 }
 
-func (s SqlTeamStore) GetMember(teamId string, userId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		query := s.getTeamMembersWithSchemeSelectQuery().
-			Where(sq.Eq{"TeamMembers.TeamId": teamId}).
-			Where(sq.Eq{"TeamMembers.UserId": userId})
+func (s SqlTeamStore) GetMember(teamId string, userId string) (*model.TeamMember, *model.AppError) {
+	query := s.getTeamMembersWithSchemeSelectQuery().
+		Where(sq.Eq{"TeamMembers.TeamId": teamId}).
+		Where(sq.Eq{"TeamMembers.UserId": userId})
 
-		queryString, args, err := query.ToSql()
-		if err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.GetMember", "store.sql_team.get_member.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlTeamStore.GetMember", "store.sql_team.get_member.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		var dbMember teamMemberWithSchemeRoles
-		err = s.GetReplica().SelectOne(&dbMember, queryString, args...)
-		if err != nil {
-			if err == sql.ErrNoRows {
-				result.Err = model.NewAppError("SqlTeamStore.GetMember", "store.sql_team.get_member.missing.app_error", nil, "teamId="+teamId+" userId="+userId+" "+err.Error(), http.StatusNotFound)
-				return
-			}
-			result.Err = model.NewAppError("SqlTeamStore.GetMember", "store.sql_team.get_member.app_error", nil, "teamId="+teamId+" userId="+userId+" "+err.Error(), http.StatusInternalServerError)
-			return
+	var dbMember teamMemberWithSchemeRoles
+	err = s.GetReplica().SelectOne(&dbMember, queryString, args...)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, model.NewAppError("SqlTeamStore.GetMember", "store.sql_team.get_member.missing.app_error", nil, "teamId="+teamId+" userId="+userId+" "+err.Error(), http.StatusNotFound)
 		}
-		result.Data = dbMember.ToModel()
-	})
+		return nil, model.NewAppError("SqlTeamStore.GetMember", "store.sql_team.get_member.app_error", nil, "teamId="+teamId+" userId="+userId+" "+err.Error(), http.StatusInternalServerError)
+	}
+
+	return dbMember.ToModel(), nil
 }
 
 func (s SqlTeamStore) GetMembers(teamId string, offset int, limit int, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError) {

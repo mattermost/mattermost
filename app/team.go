@@ -247,14 +247,13 @@ func (a *App) GetSchemeRolesForTeam(teamId string) (string, string, string, *mod
 }
 
 func (a *App) UpdateTeamMemberRoles(teamId string, userId string, newRoles string) (*model.TeamMember, *model.AppError) {
-	result := <-a.Srv.Store.Team().GetMember(teamId, userId)
-	if result.Err != nil {
-		return nil, result.Err
+	member, err := a.Srv.Store.Team().GetMember(teamId, userId)
+	if err != nil {
+		return nil, err
 	}
-	member := result.Data.(*model.TeamMember)
 
 	if member == nil {
-		err := model.NewAppError("UpdateTeamMemberRoles", "api.team.update_member_roles.not_a_member", nil, "userId="+userId+" teamId="+teamId, http.StatusBadRequest)
+		err = model.NewAppError("UpdateTeamMemberRoles", "api.team.update_member_roles.not_a_member", nil, "userId="+userId+" teamId="+teamId, http.StatusBadRequest)
 		return nil, err
 	}
 
@@ -305,7 +304,7 @@ func (a *App) UpdateTeamMemberRoles(teamId string, userId string, newRoles strin
 
 	member.ExplicitRoles = strings.Join(newExplicitRoles, " ")
 
-	result = <-a.Srv.Store.Team().UpdateMember(member)
+	result := <-a.Srv.Store.Team().UpdateMember(member)
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -508,8 +507,8 @@ func (a *App) joinUserToTeam(team *model.Team, user *model.User) (*model.TeamMem
 		tm.SchemeAdmin = true
 	}
 
-	etmr := <-a.Srv.Store.Team().GetMember(team.Id, user.Id)
-	if etmr.Err != nil {
+	rtm, err := a.Srv.Store.Team().GetMember(team.Id, user.Id)
+	if err != nil {
 		// Membership appears to be missing. Lets try to add.
 		tmr := <-a.Srv.Store.Team().SaveMember(tm, *a.Config().TeamSettings.MaxUsersPerTeam)
 		if tmr.Err != nil {
@@ -518,9 +517,7 @@ func (a *App) joinUserToTeam(team *model.Team, user *model.User) (*model.TeamMem
 		return tmr.Data.(*model.TeamMember), false, nil
 	}
 
-	// Membership already exists.  Check if deleted and and update, otherwise do nothing
-	rtm := etmr.Data.(*model.TeamMember)
-
+	// Membership already exists.  Check if deleted and update, otherwise do nothing
 	// Do nothing if already added
 	if rtm.DeleteAt == 0 {
 		return rtm, true, nil
@@ -683,11 +680,7 @@ func (a *App) GetTeamsForUser(userId string) ([]*model.Team, *model.AppError) {
 }
 
 func (a *App) GetTeamMember(teamId, userId string) (*model.TeamMember, *model.AppError) {
-	result := <-a.Srv.Store.Team().GetMember(teamId, userId)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.TeamMember), nil
+	return a.Srv.Store.Team().GetMember(teamId, userId)
 }
 
 func (a *App) GetTeamMembersForUser(userId string) ([]*model.TeamMember, *model.AppError) {

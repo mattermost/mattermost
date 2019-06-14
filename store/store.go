@@ -102,7 +102,7 @@ type TeamStore interface {
 	AnalyticsTeamCount() (int64, *model.AppError)
 	SaveMember(member *model.TeamMember, maxUsersPerTeam int) StoreChannel
 	UpdateMember(member *model.TeamMember) StoreChannel
-	GetMember(teamId string, userId string) StoreChannel
+	GetMember(teamId string, userId string) (*model.TeamMember, *model.AppError)
 	GetMembers(teamId string, offset int, limit int, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError)
 	GetMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError)
 	GetTotalMemberCount(teamId string) (int64, *model.AppError)

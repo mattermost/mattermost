@@ -1037,10 +1037,9 @@ func testGetTeamMember(t *testing.T, ss store.Store) {
 	m1 := &model.TeamMember{TeamId: teamId1, UserId: model.NewId()}
 	store.Must(ss.Team().SaveMember(m1, -1))
 
-	if r := <-ss.Team().GetMember(m1.TeamId, m1.UserId); r.Err != nil {
-		t.Fatal(r.Err)
+	if rm1, err := ss.Team().GetMember(m1.TeamId, m1.UserId); err != nil {
+		t.Fatal(err)
 	} else {
-		rm1 := r.Data.(*model.TeamMember)
 
 		if rm1.TeamId != m1.TeamId {
 			t.Fatal("bad team id")
@@ -1051,11 +1050,11 @@ func testGetTeamMember(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if r := <-ss.Team().GetMember(m1.TeamId, ""); r.Err == nil {
+	if _, err := ss.Team().GetMember(m1.TeamId, ""); err == nil {
 		t.Fatal("empty user id - should have failed")
 	}
 
-	if r := <-ss.Team().GetMember("", m1.UserId); r.Err == nil {
+	if _, err := ss.Team().GetMember("", m1.UserId); err == nil {
 		t.Fatal("empty team id - should have failed")
 	}
 
@@ -1084,9 +1083,8 @@ func testGetTeamMember(t *testing.T, ss store.Store) {
 	m2 := &model.TeamMember{TeamId: t2.Id, UserId: model.NewId(), SchemeUser: true}
 	store.Must(ss.Team().SaveMember(m2, -1))
 
-	r2 := <-ss.Team().GetMember(m2.TeamId, m2.UserId)
-	require.Nil(t, r2.Err)
-	m3 := r2.Data.(*model.TeamMember)
+	m3, err := ss.Team().GetMember(m2.TeamId, m2.UserId)
+	require.Nil(t, err)
 	t.Log(m3)
 
 	assert.Equal(t, s2.DefaultTeamUserRole, m3.Roles)
@@ -1094,9 +1092,8 @@ func testGetTeamMember(t *testing.T, ss store.Store) {
 	m4 := &model.TeamMember{TeamId: t2.Id, UserId: model.NewId(), SchemeGuest: true}
 	store.Must(ss.Team().SaveMember(m4, -1))
 
-	r3 := <-ss.Team().GetMember(m4.TeamId, m4.UserId)
-	require.Nil(t, r3.Err)
-	m5 := r3.Data.(*model.TeamMember)
+	m5, err := ss.Team().GetMember(m4.TeamId, m4.UserId)
+	require.Nil(t, err)
 
 	assert.Equal(t, s2.DefaultTeamGuestRole, m5.Roles)
 }
@@ -1440,23 +1437,20 @@ func testTeamStoreMigrateTeamMembers(t *testing.T, ss store.Store) {
 		}
 	}
 
-	res1 := <-ss.Team().GetMember(tm1.TeamId, tm1.UserId)
-	assert.Nil(t, res1.Err)
-	tm1b := res1.Data.(*model.TeamMember)
+	tm1b, err := ss.Team().GetMember(tm1.TeamId, tm1.UserId)
+	assert.Nil(t, err)
 	assert.Equal(t, "", tm1b.ExplicitRoles)
 	assert.True(t, tm1b.SchemeUser)
 	assert.True(t, tm1b.SchemeAdmin)
 
-	res2 := <-ss.Team().GetMember(tm2.TeamId, tm2.UserId)
-	assert.Nil(t, res2.Err)
-	tm2b := res2.Data.(*model.TeamMember)
+	tm2b, err := ss.Team().GetMember(tm2.TeamId, tm2.UserId)
+	assert.Nil(t, err)
 	assert.Equal(t, "", tm2b.ExplicitRoles)
 	assert.True(t, tm2b.SchemeUser)
 	assert.False(t, tm2b.SchemeAdmin)
 
-	res3 := <-ss.Team().GetMember(tm3.TeamId, tm3.UserId)
-	assert.Nil(t, res3.Err)
-	tm3b := res3.Data.(*model.TeamMember)
+	tm3b, err := ss.Team().GetMember(tm3.TeamId, tm3.UserId)
+	assert.Nil(t, err)
 	assert.Equal(t, "something_else", tm3b.ExplicitRoles)
 	assert.False(t, tm3b.SchemeUser)
 	assert.False(t, tm3b.SchemeAdmin)
@@ -1537,21 +1531,21 @@ func testTeamStoreClearAllCustomRoleAssignments(t *testing.T, ss store.Store) {
 
 	require.Nil(t, (<-ss.Team().ClearAllCustomRoleAssignments()).Err)
 
-	r1 := <-ss.Team().GetMember(m1.TeamId, m1.UserId)
-	require.Nil(t, r1.Err)
-	assert.Equal(t, m1.ExplicitRoles, r1.Data.(*model.TeamMember).Roles)
+	r1, err := ss.Team().GetMember(m1.TeamId, m1.UserId)
+	require.Nil(t, err)
+	assert.Equal(t, m1.ExplicitRoles, r1.Roles)
 
-	r2 := <-ss.Team().GetMember(m2.TeamId, m2.UserId)
-	require.Nil(t, r2.Err)
-	assert.Equal(t, "team_user team_admin", r2.Data.(*model.TeamMember).Roles)
+	r2, err := ss.Team().GetMember(m2.TeamId, m2.UserId)
+	require.Nil(t, err)
+	assert.Equal(t, "team_user team_admin", r2.Roles)
 
-	r3 := <-ss.Team().GetMember(m3.TeamId, m3.UserId)
-	require.Nil(t, r3.Err)
-	assert.Equal(t, m3.ExplicitRoles, r3.Data.(*model.TeamMember).Roles)
+	r3, err := ss.Team().GetMember(m3.TeamId, m3.UserId)
+	require.Nil(t, err)
+	assert.Equal(t, m3.ExplicitRoles, r3.Roles)
 
-	r4 := <-ss.Team().GetMember(m4.TeamId, m4.UserId)
-	require.Nil(t, r4.Err)
-	assert.Equal(t, "", r4.Data.(*model.TeamMember).Roles)
+	r4, err := ss.Team().GetMember(m4.TeamId, m4.UserId)
+	require.Nil(t, err)
+	assert.Equal(t, "", r4.Roles)
 }
 
 func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
