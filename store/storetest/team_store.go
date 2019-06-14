@@ -244,12 +244,11 @@ func testTeamStoreSearchAll(t *testing.T, ss store.Store) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			r1 := <-ss.Team().SearchAll(tc.Term)
-			require.Nil(t, r1.Err)
-			results := r1.Data.([]*model.Team)
-			require.Equal(t, tc.ExpectedLenth, len(results))
+			r1, err := ss.Team().SearchAll(tc.Term)
+			require.Nil(t, err)
+			require.Equal(t, tc.ExpectedLenth, len(r1))
 			if tc.ExpectedFirstId != "" {
-				assert.Equal(t, tc.ExpectedFirstId, results[0].Id)
+				assert.Equal(t, tc.ExpectedFirstId, r1[0].Id)
 			}
 		})
 	}
