@@ -859,11 +859,10 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 		}
 	}
 
-	result := <-a.Srv.Store.Channel().GetByName(team.Id, model.DEFAULT_CHANNEL, false)
-	if result.Err != nil {
-		return result.Err
+	channel, err := a.Srv.Store.Channel().GetByName(team.Id, model.DEFAULT_CHANNEL, false)
+	if err != nil {
+		return err
 	}
-	channel := result.Data.(*model.Channel)
 
 	if *a.Config().ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages {
 		if requestorId == user.Id {
