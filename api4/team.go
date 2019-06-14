@@ -21,13 +21,13 @@ import (
 const (
 	MAX_ADD_MEMBERS_BATCH    = 20
 	MAXIMUM_BULK_IMPORT_SIZE = 10 * 1024 * 1024
-	idParamRegexStr          = "[^a-zA-Z0-9,]*"
+	groupIDsParamPattern     = "[^a-zA-Z0-9,]*"
 )
 
-var groupIDQueryParamRegex *regexp.Regexp
+var groupIDsQueryParamRegex *regexp.Regexp
 
 func init() {
-	groupIDQueryParamRegex = regexp.MustCompile(idParamRegexStr)
+	groupIDsQueryParamRegex = regexp.MustCompile(groupIDsParamPattern)
 }
 
 func (api *API) InitTeam() {
@@ -1101,7 +1101,7 @@ func teamMembersMinusGroupMembers(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	groupIDsParam := groupIDQueryParamRegex.ReplaceAllString(c.Params.GroupIDs, "")
+	groupIDsParam := groupIDsQueryParamRegex.ReplaceAllString(c.Params.GroupIDs, "")
 
 	if len(groupIDsParam) < 26 {
 		c.SetInvalidParam("group_ids")
