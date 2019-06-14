@@ -758,7 +758,8 @@ func (a *App) OldImportPost(post *model.Post) string {
 		post.RootId = firstPostId
 		post.ParentId = firstPostId
 
-		if result := <-a.Srv.Store.Post().Save(post); result.Err != nil {
+		_, err := a.Srv.Store.Post().Save(post)
+		if err != nil {
 			mlog.Debug(fmt.Sprintf("Error saving post. user=%v, message=%v", post.UserId, post.Message))
 		}
 
