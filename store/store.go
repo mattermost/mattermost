@@ -93,7 +93,7 @@ type TeamStore interface {
 	GetAll() ([]*model.Team, *model.AppError)
 	GetAllPage(offset int, limit int) StoreChannel
 	GetAllPrivateTeamListing() StoreChannel
-	GetAllPrivateTeamPageListing(offset int, limit int) StoreChannel
+	GetAllPrivateTeamPageListing(offset int, limit int) ([]*model.Team, *model.AppError)
 	GetAllTeamListing() StoreChannel
 	GetAllTeamPageListing(offset int, limit int) StoreChannel
 	GetTeamsByUserId(userId string) StoreChannel
@@ -210,7 +210,7 @@ type ChannelMemberHistoryStore interface {
 }
 
 type PostStore interface {
-	Save(post *model.Post) StoreChannel
+	Save(post *model.Post) (*model.Post, *model.AppError)
 	Update(newPost *model.Post, oldPost *model.Post) (*model.Post, *model.AppError)
 	Get(id string) (*model.PostList, *model.AppError)
 	GetSingle(id string) (*model.Post, *model.AppError)
