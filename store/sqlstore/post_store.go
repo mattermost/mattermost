@@ -1051,12 +1051,12 @@ func (s *SqlPostStore) AnalyticsPostCountsByDay(teamId string) (model.AnalyticsR
 func (s *SqlPostStore) AnalyticsPostCount(teamId string, mustHaveFile bool, mustHaveHashtag bool) (int64, *model.AppError) {
 	query :=
 		`SELECT
-			    COUNT(Posts.Id) AS Value
-			FROM
-			    Posts,
-			    Channels
-			WHERE
-			    Posts.ChannelId = Channels.Id`
+			COUNT(Posts.Id) AS Value
+		FROM
+			Posts,
+			Channels
+		WHERE
+			Posts.ChannelId = Channels.Id`
 
 	if len(teamId) > 0 {
 		query += " AND Channels.TeamId = :TeamId"
