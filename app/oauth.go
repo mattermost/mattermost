@@ -46,7 +46,6 @@ func (a *App) GetOAuthApp(appId string) (*model.OAuthApp, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableOAuthServiceProvider {
 		return nil, model.NewAppError("GetOAuthApp", "api.oauth.allow_oauth.turn_off.app_error", nil, "", http.StatusNotImplemented)
 	}
-
 	result := <-a.Srv.Store.OAuth().GetApp(appId)
 	if result.Err != nil {
 		return nil, result.Err
@@ -354,7 +353,9 @@ func (a *App) newSession(appName string, user *model.User) (*model.Session, *mod
 
 func (a *App) newSessionUpdateToken(appName string, accessData *model.AccessData, user *model.User) (*model.AccessResponse, *model.AppError) {
 	// Remove the previous session
-	<-a.Srv.Store.Session().Remove(accessData.Token)
+	if err := a.Srv.Store.Session().Remove(accessData.Token); err != nil {
+		mlog.Error(fmt.Sprint(err))
+	}
 
 	session, err := a.newSession(appName, user)
 	if err != nil {
@@ -477,7 +478,12 @@ func (a *App) RegenerateOAuthAppSecret(app *model.OAuthApp) (*model.OAuthApp, *m
 
 func (a *App) RevokeAccessToken(token string) *model.AppError {
 	session, _ := a.GetSession(token)
-	schan := a.Srv.Store.Session().Remove(token)
+
+	schan := make(chan *model.AppError, 1)
+	go func() {
+		schan <- a.Srv.Store.Session().Remove(token)
+		close(schan)
+	}()
 
 	if result := <-a.Srv.Store.OAuth().GetAccessData(token); result.Err != nil {
 		return model.NewAppError("RevokeAccessToken", "api.oauth.revoke_access_token.get.app_error", nil, "", http.StatusBadRequest)
@@ -487,7 +493,7 @@ func (a *App) RevokeAccessToken(token string) *model.AppError {
 		return model.NewAppError("RevokeAccessToken", "api.oauth.revoke_access_token.del_token.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	if result := <-schan; result.Err != nil {
+	if err := <-schan; err != nil {
 		return model.NewAppError("RevokeAccessToken", "api.oauth.revoke_access_token.del_session.app_error", nil, "", http.StatusInternalServerError)
 	}
 

@@ -395,12 +395,16 @@ func (me *TestHelper) CreateMessagePostWithClient(client *model.Client4, channel
 }
 
 func (me *TestHelper) CreateMessagePostNoClient(channel *model.Channel, message string, createAtTime int64) *model.Post {
-	post := store.Must(me.App.Srv.Store.Post().Save(&model.Post{
+	post, err := me.App.Srv.Store.Post().Save(&model.Post{
 		UserId:    me.BasicUser.Id,
 		ChannelId: channel.Id,
 		Message:   message,
 		CreateAt:  createAtTime,
-	})).(*model.Post)
+	})
+
+	if err != nil {
+		panic(err)
+	}
 
 	return post
 }
