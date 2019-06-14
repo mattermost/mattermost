@@ -96,7 +96,7 @@ func (a *App) UpdateBotActive(botUserId string, active bool) (*model.Bot, *model
 		return nil, err
 	}
 
-	if _, err := a.UpdateActive(user, active); err != nil {
+	if _, err = a.UpdateActive(user, active); err != nil {
 		return nil, err
 	}
 
