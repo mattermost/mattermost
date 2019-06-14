@@ -166,20 +166,21 @@ func (a *App) trackActivity() {
 		inactiveUserCount = iucr.Data.(int64)
 	}
 
-	if tcr := <-a.Srv.Store.Team().AnalyticsTeamCount(); tcr.Err == nil {
-		teamCount = tcr.Data.(int64)
+	teamCount, err := a.Srv.Store.Team().AnalyticsTeamCount()
+	if err != nil {
+		mlog.Error(err.Error())
 	}
 
-	if ucc := <-a.Srv.Store.Channel().AnalyticsTypeCount("", "O"); ucc.Err == nil {
-		publicChannelCount = ucc.Data.(int64)
+	if ucc, err := a.Srv.Store.Channel().AnalyticsTypeCount("", "O"); err == nil {
+		publicChannelCount = ucc
 	}
 
-	if pcc := <-a.Srv.Store.Channel().AnalyticsTypeCount("", "P"); pcc.Err == nil {
-		privateChannelCount = pcc.Data.(int64)
+	if pcc, err := a.Srv.Store.Channel().AnalyticsTypeCount("", "P"); err == nil {
+		privateChannelCount = pcc
 	}
 
-	if dcc := <-a.Srv.Store.Channel().AnalyticsTypeCount("", "D"); dcc.Err == nil {
-		directChannelCount = dcc.Data.(int64)
+	if dcc, err := a.Srv.Store.Channel().AnalyticsTypeCount("", "D"); err == nil {
+		directChannelCount = dcc
 	}
 
 	if duccr := <-a.Srv.Store.Channel().AnalyticsDeletedTypeCount("", "O"); duccr.Err == nil {
@@ -190,9 +191,7 @@ func (a *App) trackActivity() {
 		deletedPrivateChannelCount = dpccr.Data.(int64)
 	}
 
-	if pcr := <-a.Srv.Store.Post().AnalyticsPostCount("", false, false); pcr.Err == nil {
-		postsCount = pcr.Data.(int64)
-	}
+	postsCount, _ = a.Srv.Store.Post().AnalyticsPostCount("", false, false)
 
 	slashCommandsCount, _ = a.Srv.Store.Command().AnalyticsCommandCount("")
 

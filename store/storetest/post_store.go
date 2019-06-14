@@ -994,7 +994,7 @@ func testPostStoreGetPostsSince(t *testing.T, ss store.Store) {
 	o5, err = ss.Post().Save(o5)
 	require.Nil(t, err)
 
-	r1 := (<-ss.Post().GetPostsSince(o1.ChannelId, o1.CreateAt, false)).Data.(*model.PostList)
+	r1, _ := ss.Post().GetPostsSince(o1.ChannelId, o1.CreateAt, false)
 
 	if r1.Order[0] != o5.Id {
 		t.Fatal("invalid order")
@@ -1020,7 +1020,7 @@ func testPostStoreGetPostsSince(t *testing.T, ss store.Store) {
 		t.Fatal("Missing parent")
 	}
 
-	r2 := (<-ss.Post().GetPostsSince(o1.ChannelId, o5.UpdateAt, true)).Data.(*model.PostList)
+	r2, _ := ss.Post().GetPostsSince(o1.ChannelId, o5.UpdateAt, true)
 
 	if len(r2.Order) != 0 {
 		t.Fatal("wrong size ", len(r2.Posts))
@@ -1134,7 +1134,7 @@ func testPostStoreSearch(t *testing.T, ss store.Store) {
 	tt := []struct {
 		name                     string
 		searchParams             *model.SearchParams
-		extectedResultsCount     int
+		expectedResultsCount     int
 		expectedMessageResultIds []string
 	}{
 		{
@@ -1231,7 +1231,7 @@ func testPostStoreSearch(t *testing.T, ss store.Store) {
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			result := (<-ss.Post().Search(teamId, userId, tc.searchParams)).Data.(*model.PostList)
-			require.Len(t, result.Order, tc.extectedResultsCount)
+			require.Len(t, result.Order, tc.expectedResultsCount)
 			for _, expectedMessageResultId := range tc.expectedMessageResultIds {
 				assert.Contains(t, result.Order, expectedMessageResultId)
 			}
@@ -1368,10 +1368,10 @@ func testPostCountsByDay(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if r1 := <-ss.Post().AnalyticsPostCount(t1.Id, false, false); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if r1, err := ss.Post().AnalyticsPostCount(t1.Id, false, false); err != nil {
+		t.Fatal(err)
 	} else {
-		if r1.Data.(int64) != 4 {
+		if r1 != 4 {
 			t.Fatal("wrong value")
 		}
 	}
