@@ -4416,7 +4416,7 @@ func (c *Client4) PatchGroupSyncable(groupID, syncableID string, syncableType Gr
 func (c *Client4) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page, perPage int, etag string) ([]*UserWithGroups, int64, *Response) {
 	groupIDStr := strings.Join(groupIDs, ",")
 	query := fmt.Sprintf("?group_ids=%s&page=%d&per_page=%d", groupIDStr, page, perPage)
-	r, err := c.DoApiGet(c.GetTeamRoute(teamID)+"/if_groups_then_users_removed"+query, etag)
+	r, err := c.DoApiGet(c.GetTeamRoute(teamID)+"/members_minus_group_members"+query, etag)
 	if err != nil {
 		return nil, 0, BuildErrorResponse(r, err)
 	}
