@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/Masterminds/squirrel"
+	sq "github.com/Masterminds/squirrel"
 
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
@@ -135,8 +136,12 @@ func (s *SqlGroupStore) Get(groupId string) store.StoreChannel {
 
 func (s *SqlGroupStore) GetByIDs(groupIDs []string) ([]*model.Group, *model.AppError) {
 	var groups []*model.Group
-	query := fmt.Sprintf("SELECT * from UserGroups WHERE Id IN ('%s')", strings.Join(groupIDs, "', '"))
-	if _, err := s.GetReplica().Select(&groups, query); err != nil {
+	query := s.getQueryBuilder().Select("*").From("UserGroups").Where(sq.Eq{"Id": groupIDs})
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlGroupStore.GetByIDs", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	if _, err := s.GetReplica().Select(&groups, queryString, args...); err != nil {
 		return nil, model.NewAppError("SqlGroupStore.GetByIDs", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	return groups, nil
