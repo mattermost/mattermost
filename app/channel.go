@@ -287,7 +287,7 @@ func (a *App) GetOrCreateDirectChannel(userId, otherUserId string) (*model.Chann
 	channel, err := a.Srv.Store.Channel().GetByName("", model.GetDMNameFromIds(userId, otherUserId), true)
 	if err != nil {
 		if err.Id == store.MISSING_CHANNEL_ERROR {
-			channel, err := a.createDirectChannel(userId, otherUserId)
+			channel, err = a.createDirectChannel(userId, otherUserId)
 			if err != nil {
 				if err.Id == store.CHANNEL_EXISTS_ERROR {
 					return channel, nil
@@ -314,7 +314,7 @@ func (a *App) GetOrCreateDirectChannel(userId, otherUserId string) (*model.Chann
 			if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
 				a.Srv.Go(func() {
 					for _, id := range []string{userId, otherUserId} {
-						if err := a.indexUserFromId(id); err != nil {
+						if err = a.indexUserFromId(id); err != nil {
 							mlog.Error("Encountered error indexing user", mlog.String("user_id", id), mlog.Err(err))
 						}
 					}
