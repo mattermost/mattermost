@@ -67,10 +67,10 @@ func testSessionGet(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if rs2 := (<-ss.Session().GetSessions(s1.UserId)); rs2.Err != nil {
-		t.Fatal(rs2.Err)
+	if session, err := ss.Session().GetSessions(s1.UserId); err != nil {
+		t.Fatal(err)
 	} else {
-		if len(rs2.Data.([]*model.Session)) != 3 {
+		if len(session) != 3 {
 			t.Fatal("should match len")
 		}
 	}
@@ -124,8 +124,8 @@ func testSessionRemove(t *testing.T, ss store.Store) {
 		}
 	}
 
-	store.Must(ss.Session().Remove(s1.Id))
-
+	removeErr := ss.Session().Remove(s1.Id)
+	require.Nil(t, removeErr)
 	if _, err := ss.Session().Get(s1.Id); err == nil {
 		t.Fatal("should have been removed")
 	}
@@ -146,7 +146,8 @@ func testSessionRemoveAll(t *testing.T, ss store.Store) {
 		}
 	}
 
-	store.Must(ss.Session().RemoveAllSessions())
+	removeErr := ss.Session().RemoveAllSessions()
+	require.Nil(t, removeErr)
 
 	if _, err := ss.Session().Get(s1.Id); err == nil {
 		t.Fatal("should have been removed")
@@ -191,16 +192,17 @@ func testSessionRemoveToken(t *testing.T, ss store.Store) {
 		}
 	}
 
-	store.Must(ss.Session().Remove(s1.Token))
+	removeErr := ss.Session().Remove(s1.Token)
+	require.Nil(t, removeErr)
 
 	if _, err := ss.Session().Get(s1.Id); err == nil {
 		t.Fatal("should have been removed")
 	}
 
-	if rs3 := (<-ss.Session().GetSessions(s1.UserId)); rs3.Err != nil {
-		t.Fatal(rs3.Err)
+	if session, err := ss.Session().GetSessions(s1.UserId); err != nil {
+		t.Fatal(err)
 	} else {
-		if len(rs3.Data.([]*model.Session)) != 0 {
+		if len(session) != 0 {
 			t.Fatal("should match len")
 		}
 	}
@@ -257,9 +259,8 @@ func testSessionStoreUpdateLastActivityAt(t *testing.T, ss store.Store) {
 	s1, err := ss.Session().Save(s1)
 	require.Nil(t, err)
 
-	if err := (<-ss.Session().UpdateLastActivityAt(s1.Id, 1234567890)).Err; err != nil {
-		t.Fatal(err)
-	}
+	err = ss.Session().UpdateLastActivityAt(s1.Id, 1234567890)
+	require.Nil(t, err)
 
 	if session, err := ss.Session().Get(s1.Id); err != nil {
 		t.Fatal(err)
@@ -333,6 +334,9 @@ func testSessionCleanup(t *testing.T, ss store.Store) {
 	_, err = ss.Session().Get(s4.Id)
 	assert.NotNil(t, err)
 
-	store.Must(ss.Session().Remove(s1.Id))
-	store.Must(ss.Session().Remove(s2.Id))
+	removeErr := ss.Session().Remove(s1.Id)
+	require.Nil(t, removeErr)
+
+	removeErr = ss.Session().Remove(s2.Id)
+	require.Nil(t, removeErr)
 }

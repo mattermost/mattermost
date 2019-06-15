@@ -1909,22 +1909,18 @@ func (s SqlChannelStore) GetForPost(postId string) store.StoreChannel {
 	})
 }
 
-func (s SqlChannelStore) AnalyticsTypeCount(teamId string, channelType string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		query := "SELECT COUNT(Id) AS Value FROM Channels WHERE Type = :ChannelType"
+func (s SqlChannelStore) AnalyticsTypeCount(teamId string, channelType string) (int64, *model.AppError) {
+	query := "SELECT COUNT(Id) AS Value FROM Channels WHERE Type = :ChannelType"
 
-		if len(teamId) > 0 {
-			query += " AND TeamId = :TeamId"
-		}
+	if len(teamId) > 0 {
+		query += " AND TeamId = :TeamId"
+	}
 
-		v, err := s.GetReplica().SelectInt(query, map[string]interface{}{"TeamId": teamId, "ChannelType": channelType})
-		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.AnalyticsTypeCount", "store.sql_channel.analytics_type_count.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		result.Data = v
-	})
+	value, err := s.GetReplica().SelectInt(query, map[string]interface{}{"TeamId": teamId, "ChannelType": channelType})
+	if err != nil {
+		return int64(0), model.NewAppError("SqlChannelStore.AnalyticsTypeCount", "store.sql_channel.analytics_type_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return value, nil
 }
 
 func (s SqlChannelStore) AnalyticsDeletedTypeCount(teamId string, channelType string) store.StoreChannel {

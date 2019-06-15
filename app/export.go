@@ -379,13 +379,11 @@ func (a *App) ExportAllPosts(writer io.Writer) *model.AppError {
 func (a *App) buildPostReplies(postId string) (*[]ReplyImportData, *model.AppError) {
 	var replies []ReplyImportData
 
-	result := <-a.Srv.Store.Post().GetRepliesForExport(postId)
+	replyPosts, err := a.Srv.Store.Post().GetRepliesForExport(postId)
 
-	if result.Err != nil {
-		return nil, result.Err
+	if err != nil {
+		return nil, err
 	}
-
-	replyPosts := result.Data.([]*model.ReplyForExport)
 
 	for _, reply := range replyPosts {
 		replyImportObject := ImportReplyFromPost(reply)

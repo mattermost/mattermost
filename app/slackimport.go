@@ -30,6 +30,7 @@ type SlackChannel struct {
 	Members []string          `json:"members"`
 	Topic   map[string]string `json:"topic"`
 	Purpose map[string]string `json:"purpose"`
+	Type    string
 }
 
 type SlackProfile struct {
@@ -102,7 +103,7 @@ func SlackConvertChannelName(channelName string, channelId string) string {
 	return strings.ToLower(channelId)
 }
 
-func SlackParseChannels(data io.Reader) ([]SlackChannel, error) {
+func SlackParseChannels(data io.Reader, channelType string) ([]SlackChannel, error) {
 	decoder := json.NewDecoder(data)
 
 	var channels []SlackChannel
@@ -110,6 +111,11 @@ func SlackParseChannels(data io.Reader) ([]SlackChannel, error) {
 		mlog.Warn("Slack Import: Error occurred when parsing some Slack channels. Import may work anyway.")
 		return channels, err
 	}
+
+	for i := range channels {
+		channels[i].Type = channelType
+	}
+
 	return channels, nil
 }
 
@@ -162,8 +168,7 @@ func (a *App) SlackAddUsers(teamId string, slackusers []SlackUser, importerLog *
 		password := model.NewId()
 
 		// Check for email conflict and use existing user if found
-		if result := <-a.Srv.Store.User().GetByEmail(email); result.Err == nil {
-			existingUser := result.Data.(*model.User)
+		if existingUser, err := a.Srv.Store.User().GetByEmail(email); err == nil {
 			addedUsers[sUser.Id] = existingUser
 			if err := a.JoinUserToTeam(team, addedUsers[sUser.Id], ""); err != nil {
 				importerLog.WriteString(utils.T("api.slackimport.slack_add_users.merge_existing_failed", map[string]interface{}{"Email": existingUser.Email, "Username": existingUser.Username}))
@@ -492,7 +497,7 @@ func (a *App) SlackAddChannels(teamId string, slackchannels []SlackChannel, post
 	for _, sChannel := range slackchannels {
 		newChannel := model.Channel{
 			TeamId:      teamId,
-			Type:        model.CHANNEL_OPEN,
+			Type:        sChannel.Type,
 			DisplayName: sChannel.Name,
 			Name:        SlackConvertChannelName(sChannel.Name, sChannel.Id),
 			Purpose:     sChannel.Purpose["value"],
@@ -656,6 +661,11 @@ func (a *App) SlackImport(fileData multipart.File, fileSize int64, teamID string
 	}
 
 	var channels []SlackChannel
+	var publicChannels []SlackChannel
+	var privateChannels []SlackChannel
+	var groupChannels []SlackChannel
+	var directChannels []SlackChannel
+
 	var users []SlackUser
 	posts := make(map[string][]SlackPost)
 	uploads := make(map[string]*zip.File)
@@ -666,7 +676,17 @@ func (a *App) SlackImport(fileData multipart.File, fileSize int64, teamID string
 			return model.NewAppError("SlackImport", "api.slackimport.slack_import.open.app_error", map[string]interface{}{"Filename": file.Name}, err.Error(), http.StatusInternalServerError), log
 		}
 		if file.Name == "channels.json" {
-			channels, _ = SlackParseChannels(reader)
+			publicChannels, _ = SlackParseChannels(reader, model.CHANNEL_OPEN)
+			channels = append(channels, publicChannels...)
+		} else if file.Name == "dms.json" {
+			directChannels, _ = SlackParseChannels(reader, model.CHANNEL_DIRECT)
+			channels = append(channels, directChannels...)
+		} else if file.Name == "groups.json" {
+			privateChannels, _ = SlackParseChannels(reader, model.CHANNEL_PRIVATE)
+			channels = append(channels, privateChannels...)
+		} else if file.Name == "mpims.json" {
+			groupChannels, _ = SlackParseChannels(reader, model.CHANNEL_GROUP)
+			channels = append(channels, groupChannels...)
 		} else if file.Name == "users.json" {
 			users, _ = SlackParseUsers(reader)
 		} else {
@@ -712,7 +732,7 @@ func (a *App) SlackImport(fileData multipart.File, fileSize int64, teamID string
 
 //
 // -- Old SlackImport Functions --
-// Import functions are sutible for entering posts and users into the database without
+// Import functions are suitable for entering posts and users into the database without
 // some of the usual checks. (IsValid is still run)
 //
 
@@ -738,7 +758,8 @@ func (a *App) OldImportPost(post *model.Post) string {
 		post.RootId = firstPostId
 		post.ParentId = firstPostId
 
-		if result := <-a.Srv.Store.Post().Save(post); result.Err != nil {
+		_, err := a.Srv.Store.Post().Save(post)
+		if err != nil {
 			mlog.Debug(fmt.Sprintf("Error saving post. user=%v, message=%v", post.UserId, post.Message))
 		}
 
@@ -774,8 +795,8 @@ func (a *App) OldImportUser(team *model.Team, user *model.User) *model.User {
 	}
 	ruser := result.Data.(*model.User)
 
-	if cresult := <-a.Srv.Store.User().VerifyEmail(ruser.Id, ruser.Email); cresult.Err != nil {
-		mlog.Error(fmt.Sprintf("Failed to set email verified err=%v", cresult.Err))
+	if _, err := a.Srv.Store.User().VerifyEmail(ruser.Id, ruser.Email); err != nil {
+		mlog.Error(fmt.Sprintf("Failed to set email verified err=%v", err))
 	}
 
 	if err := a.JoinUserToTeam(team, user, ""); err != nil {

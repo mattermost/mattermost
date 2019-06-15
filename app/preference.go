@@ -70,9 +70,9 @@ func (a *App) DeletePreferences(userId string, preferences model.Preferences) *m
 	}
 
 	for _, preference := range preferences {
-		if result := <-a.Srv.Store.Preference().Delete(userId, preference.Category, preference.Name); result.Err != nil {
-			result.Err.StatusCode = http.StatusBadRequest
-			return result.Err
+		if err := a.Srv.Store.Preference().Delete(userId, preference.Category, preference.Name); err != nil {
+			err.StatusCode = http.StatusBadRequest
+			return err
 		}
 	}
 

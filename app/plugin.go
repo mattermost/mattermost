@@ -57,7 +57,7 @@ func (a *App) SyncPluginsActiveState() {
 		}
 
 		// Deactivate any plugins that have been disabled.
-		for _, plugin := range pluginsEnvironment.Active() {
+		for _, plugin := range availablePlugins {
 			// Determine if plugin is enabled
 			pluginId := plugin.Manifest.Id
 			pluginEnabled := false
