@@ -97,8 +97,8 @@ func (a *App) revokeSession(session *model.Session) *model.AppError {
 	if session.IsOAuth {
 		a.RevokeAccessToken(session.Token)
 	} else {
-		if result := <-a.Srv.Store.Session().Remove(session.Id); result.Err != nil {
-			return result.Err
+		if err := a.Srv.Store.Session().Remove(session.Id); err != nil {
+			return err
 		}
 	}
 	return nil
