@@ -31,50 +31,42 @@ func (srv *JobServer) CreateJob(jobType string, jobData map[string]string) (*mod
 		return nil, err
 	}
 
-	if result := <-srv.Store.Job().Save(&job); result.Err != nil {
-		return nil, result.Err
+	if _, err := srv.Store.Job().Save(&job); err != nil {
+		return nil, err
 	}
 
 	return &job, nil
 }
 
 func (srv *JobServer) GetJob(id string) (*model.Job, *model.AppError) {
-	if result := <-srv.Store.Job().Get(id); result.Err != nil {
-		return nil, result.Err
-	} else {
-		return result.Data.(*model.Job), nil
-	}
+	return srv.Store.Job().Get(id)
 }
 
 func (srv *JobServer) ClaimJob(job *model.Job) (bool, *model.AppError) {
-	if result := <-srv.Store.Job().UpdateStatusOptimistically(job.Id, model.JOB_STATUS_PENDING, model.JOB_STATUS_IN_PROGRESS); result.Err != nil {
-		return false, result.Err
-	} else {
-		success := result.Data.(bool)
-		return success, nil
-	}
+	return srv.Store.Job().UpdateStatusOptimistically(job.Id, model.JOB_STATUS_PENDING, model.JOB_STATUS_IN_PROGRESS)
 }
 
 func (srv *JobServer) SetJobProgress(job *model.Job, progress int64) *model.AppError {
 	job.Status = model.JOB_STATUS_IN_PROGRESS
 	job.Progress = progress
 
-	if result := <-srv.Store.Job().UpdateOptimistically(job, model.JOB_STATUS_IN_PROGRESS); result.Err != nil {
-		return result.Err
-	} else {
-		return nil
+	if _, err := srv.Store.Job().UpdateOptimistically(job, model.JOB_STATUS_IN_PROGRESS); err != nil {
+		return err
 	}
+	return nil
 }
 
 func (srv *JobServer) SetJobSuccess(job *model.Job) *model.AppError {
-	result := <-srv.Store.Job().UpdateStatus(job.Id, model.JOB_STATUS_SUCCESS)
-	return result.Err
+	if _, err := srv.Store.Job().UpdateStatus(job.Id, model.JOB_STATUS_SUCCESS); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (srv *JobServer) SetJobError(job *model.Job, jobError *model.AppError) *model.AppError {
 	if jobError == nil {
-		result := <-srv.Store.Job().UpdateStatus(job.Id, model.JOB_STATUS_ERROR)
-		return result.Err
+		_, err := srv.Store.Job().UpdateStatus(job.Id, model.JOB_STATUS_ERROR)
+		return err
 	}
 
 	job.Status = model.JOB_STATUS_ERROR
@@ -84,17 +76,18 @@ func (srv *JobServer) SetJobError(job *model.Job, jobError *model.AppError) *mod
 	}
 	job.Data["error"] = jobError.Message + " — " + jobError.DetailedError
 
-	if result := <-srv.Store.Job().UpdateOptimistically(job, model.JOB_STATUS_IN_PROGRESS); result.Err != nil {
-		return result.Err
-	} else {
-		if !result.Data.(bool) {
-			if result := <-srv.Store.Job().UpdateOptimistically(job, model.JOB_STATUS_CANCEL_REQUESTED); result.Err != nil {
-				return result.Err
-			} else {
-				if !result.Data.(bool) {
-					return model.NewAppError("Jobs.SetJobError", "jobs.set_job_error.update.error", nil, "id="+job.Id, http.StatusInternalServerError)
-				}
-			}
+	updated, err := srv.Store.Job().UpdateOptimistically(job, model.JOB_STATUS_IN_PROGRESS)
+	if err != nil {
+		return err
+	}
+
+	if !updated {
+		updated, err = srv.Store.Job().UpdateOptimistically(job, model.JOB_STATUS_CANCEL_REQUESTED)
+		if err != nil {
+			return err
+		}
+		if !updated {
+			return model.NewAppError("Jobs.SetJobError", "jobs.set_job_error.update.error", nil, "id="+job.Id, http.StatusInternalServerError)
 		}
 	}
 
@@ -102,27 +95,36 @@ func (srv *JobServer) SetJobError(job *model.Job, jobError *model.AppError) *mod
 }
 
 func (srv *JobServer) SetJobCanceled(job *model.Job) *model.AppError {
-	result := <-srv.Store.Job().UpdateStatus(job.Id, model.JOB_STATUS_CANCELED)
-	return result.Err
+	if _, err := srv.Store.Job().UpdateStatus(job.Id, model.JOB_STATUS_CANCELED); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (srv *JobServer) UpdateInProgressJobData(job *model.Job) *model.AppError {
 	job.Status = model.JOB_STATUS_IN_PROGRESS
 	job.LastActivityAt = model.GetMillis()
-	result := <-srv.Store.Job().UpdateOptimistically(job, model.JOB_STATUS_IN_PROGRESS)
-	return result.Err
+	if _, err := srv.Store.Job().UpdateOptimistically(job, model.JOB_STATUS_IN_PROGRESS); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (srv *JobServer) RequestCancellation(jobId string) *model.AppError {
-	if result := <-srv.Store.Job().UpdateStatusOptimistically(jobId, model.JOB_STATUS_PENDING, model.JOB_STATUS_CANCELED); result.Err != nil {
-		return result.Err
-	} else if result.Data.(bool) {
+	updated, err := srv.Store.Job().UpdateStatusOptimistically(jobId, model.JOB_STATUS_PENDING, model.JOB_STATUS_CANCELED)
+	if err != nil {
+		return err
+	}
+	if updated {
 		return nil
 	}
 
-	if result := <-srv.Store.Job().UpdateStatusOptimistically(jobId, model.JOB_STATUS_IN_PROGRESS, model.JOB_STATUS_CANCEL_REQUESTED); result.Err != nil {
-		return result.Err
-	} else if result.Data.(bool) {
+	updated, err = srv.Store.Job().UpdateStatusOptimistically(jobId, model.JOB_STATUS_IN_PROGRESS, model.JOB_STATUS_CANCEL_REQUESTED)
+	if err != nil {
+		return err
+	}
+
+	if updated {
 		return nil
 	}
 
@@ -137,8 +139,7 @@ func (srv *JobServer) CancellationWatcher(ctx context.Context, jobId string, can
 			return
 		case <-time.After(CANCEL_WATCHER_POLLING_INTERVAL * time.Millisecond):
 			mlog.Debug(fmt.Sprintf("CancellationWatcher for Job: %v polling.", jobId))
-			if result := <-srv.Store.Job().Get(jobId); result.Err == nil {
-				jobStatus := result.Data.(*model.Job)
+			if jobStatus, err := srv.Store.Job().Get(jobId); err == nil {
 				if jobStatus.Status == model.JOB_STATUS_CANCEL_REQUESTED {
 					close(cancelChan)
 					return
@@ -159,17 +160,13 @@ func GenerateNextStartDateTime(now time.Time, nextStartTime time.Time) *time.Tim
 }
 
 func (srv *JobServer) CheckForPendingJobsByType(jobType string) (bool, *model.AppError) {
-	if result := <-srv.Store.Job().GetCountByStatusAndType(model.JOB_STATUS_PENDING, jobType); result.Err != nil {
-		return false, result.Err
-	} else {
-		return result.Data.(int64) > 0, nil
+	count, err := srv.Store.Job().GetCountByStatusAndType(model.JOB_STATUS_PENDING, jobType)
+	if err != nil {
+		return false, err
 	}
+	return count > 0, nil
 }
 
 func (srv *JobServer) GetLastSuccessfulJobByType(jobType string) (*model.Job, *model.AppError) {
-	if result := <-srv.Store.Job().GetNewestJobByStatusAndType(model.JOB_STATUS_SUCCESS, jobType); result.Err != nil {
-		return nil, result.Err
-	} else {
-		return result.Data.(*model.Job), nil
-	}
+	return srv.Store.Job().GetNewestJobByStatusAndType(model.JOB_STATUS_SUCCESS, jobType)
 }
