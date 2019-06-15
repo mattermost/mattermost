@@ -89,9 +89,9 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 		}
 
 	} else {
-		keywords := a.GetMentionKeywordsInChannel(profileMap, post.Type != model.POST_HEADER_CHANGE && post.Type != model.POST_PURPOSE_CHANGE, channelMemberNotifyPropsMap)
+		keywords := a.getMentionKeywordsInChannel(profileMap, post.Type != model.POST_HEADER_CHANGE && post.Type != model.POST_PURPOSE_CHANGE, channelMemberNotifyPropsMap)
 
-		m := GetExplicitMentions(post, keywords)
+		m := getExplicitMentions(post, keywords)
 
 		// Add an implicit mention when a user is added to a channel
 		// even if the user has set 'username mentions' to false in account settings.
@@ -504,123 +504,18 @@ type ExplicitMentions struct {
 
 // Given a message and a map mapping mention keywords to the users who use them, returns a map of mentioned
 // users and a slice of potential mention users not in the channel and whether or not @here was mentioned.
-func GetExplicitMentions(post *model.Post, keywords map[string][]string) *ExplicitMentions {
+func getExplicitMentions(post *model.Post, keywords map[string][]string) *ExplicitMentions {
 	ret := &ExplicitMentions{
 		MentionedUserIds: make(map[string]bool),
 	}
-	systemMentions := map[string]bool{"@here": true, "@channel": true, "@all": true}
-
-	addMentionedUsers := func(ids []string) {
-		for _, id := range ids {
-			ret.MentionedUserIds[id] = true
-		}
-	}
-	checkForMention := func(word string) bool {
-		isMention := false
-
-		if strings.ToLower(word) == "@here" {
-			ret.HereMentioned = true
-		}
-
-		if strings.ToLower(word) == "@channel" {
-			ret.ChannelMentioned = true
-		}
-
-		if strings.ToLower(word) == "@all" {
-			ret.AllMentioned = true
-		}
-
-		// Non-case-sensitive check for regular keys
-		if ids, match := keywords[strings.ToLower(word)]; match {
-			addMentionedUsers(ids)
-			isMention = true
-		}
-
-		// Case-sensitive check for first name
-		if ids, match := keywords[word]; match {
-			addMentionedUsers(ids)
-			isMention = true
-		}
-
-		return isMention
-	}
-
-	var multibyteKeywords []string
-	for keyword := range keywords {
-		if len(keyword) != utf8.RuneCountInString(keyword) {
-			multibyteKeywords = append(multibyteKeywords, keyword)
-		}
-	}
-
-	processText := func(text string) {
-		for _, word := range strings.FieldsFunc(text, func(c rune) bool {
-			// Split on any whitespace or punctuation that can't be part of an at mention or emoji pattern
-			return !(c == ':' || c == '.' || c == '-' || c == '_' || c == '@' || unicode.IsLetter(c) || unicode.IsNumber(c))
-		}) {
-			// skip word with format ':word:' with an assumption that it is an emoji format only
-			if word[0] == ':' && word[len(word)-1] == ':' {
-				continue
-			}
-
-			word = strings.TrimLeft(word, ":.-_")
-
-			if checkForMention(word) {
-				continue
-			}
-
-			foundWithoutSuffix := false
-			wordWithoutSuffix := word
-			for len(wordWithoutSuffix) > 0 && strings.LastIndexAny(wordWithoutSuffix, ".-:_") == (len(wordWithoutSuffix)-1) {
-				wordWithoutSuffix = wordWithoutSuffix[0 : len(wordWithoutSuffix)-1]
-
-				if checkForMention(wordWithoutSuffix) {
-					foundWithoutSuffix = true
-					break
-				}
-			}
-
-			if foundWithoutSuffix {
-				continue
-			}
-
-			if _, ok := systemMentions[word]; !ok && strings.HasPrefix(word, "@") {
-				ret.OtherPotentialMentions = append(ret.OtherPotentialMentions, word[1:])
-			} else if strings.ContainsAny(word, ".-:") {
-				// This word contains a character that may be the end of a sentence, so split further
-				splitWords := strings.FieldsFunc(word, func(c rune) bool {
-					return c == '.' || c == '-' || c == ':'
-				})
-
-				for _, splitWord := range splitWords {
-					if checkForMention(splitWord) {
-						continue
-					}
-					if _, ok := systemMentions[splitWord]; !ok && strings.HasPrefix(splitWord, "@") {
-						ret.OtherPotentialMentions = append(ret.OtherPotentialMentions, splitWord[1:])
-					}
-				}
-			}
-
-			// If word contains a multibyte character, check if it contains a multibyte keyword
-			if len(word) != utf8.RuneCountInString(word) {
-				for _, key := range multibyteKeywords {
-					if strings.Contains(word, key) {
-						if ids, match := keywords[key]; match {
-							addMentionedUsers(ids)
-						}
-					}
-				}
-			}
-		}
-	}
 
 	buf := ""
-	mentionsEnabledFields := GetMentionsEnabledFields(post)
+	mentionsEnabledFields := getMentionsEnabledFields(post)
 	for _, message := range mentionsEnabledFields {
 		markdown.Inspect(message, func(node interface{}) bool {
 			text, ok := node.(*markdown.Text)
 			if !ok {
-				processText(buf)
+				ret.processText(buf, keywords)
 				buf = ""
 				return true
 			}
@@ -628,14 +523,14 @@ func GetExplicitMentions(post *model.Post, keywords map[string][]string) *Explic
 			return false
 		})
 	}
-	processText(buf)
+	ret.processText(buf, keywords)
 
 	return ret
 }
 
 // Given a post returns the values of the fields in which mentions are possible.
 // post.message, preText and text in the attachment are enabled.
-func GetMentionsEnabledFields(post *model.Post) model.StringArray {
+func getMentionsEnabledFields(post *model.Post) model.StringArray {
 	ret := []string{}
 
 	ret = append(ret, post.Message)
@@ -653,7 +548,7 @@ func GetMentionsEnabledFields(post *model.Post) model.StringArray {
 
 // Given a map of user IDs to profiles, returns a list of mention
 // keywords for all users in the channel.
-func (a *App) GetMentionKeywordsInChannel(profiles map[string]*model.User, lookForSpecialMentions bool, channelMemberNotifyPropsMap map[string]model.StringMap) map[string][]string {
+func (a *App) getMentionKeywordsInChannel(profiles map[string]*model.User, lookForSpecialMentions bool, channelMemberNotifyPropsMap map[string]model.StringMap) map[string][]string {
 	keywords := make(map[string][]string)
 
 	for id, profile := range profiles {
@@ -744,4 +639,116 @@ func (n *postNotification) GetSenderName(userNameFormat string, overridesAllowed
 	}
 
 	return n.sender.GetDisplayName(userNameFormat)
+}
+
+// addMentionedUsers will add the mentioned user id in the struct's list for mentioned users
+func (e *ExplicitMentions) addMentionedUsers(ids []string) {
+	for _, id := range ids {
+		e.MentionedUserIds[id] = true
+	}
+}
+
+// checkForMention checks if there is a mention to a specific user or to the keywords here / channel / all
+func (e *ExplicitMentions) checkForMention(word string, keywords map[string][]string) bool {
+	isMention := false
+
+	switch strings.ToLower(word) {
+	case "@here":
+		e.HereMentioned = true
+	case "@channel":
+		e.ChannelMentioned = true
+	case "@all":
+		e.AllMentioned = true
+	}
+
+	if ids, match := keywords[strings.ToLower(word)]; match {
+		e.addMentionedUsers(ids)
+		isMention = true
+	}
+
+	// Case-sensitive check for first name
+	if ids, match := keywords[word]; match {
+		e.addMentionedUsers(ids)
+		isMention = true
+	}
+
+	return isMention
+}
+
+// isKeywordMultibyte checks if a word containing a multibyte character contains a multibyte keyword
+func isKeywordMultibyte(keywords map[string][]string, word string) ([]string, bool) {
+	ids := []string{}
+	match := false
+	var multibyteKeywords []string
+	for keyword := range keywords {
+		if len(keyword) != utf8.RuneCountInString(keyword) {
+			multibyteKeywords = append(multibyteKeywords, keyword)
+		}
+	}
+
+	if len(word) != utf8.RuneCountInString(word) {
+		for _, key := range multibyteKeywords {
+			if strings.Contains(word, key) {
+				ids, match = keywords[key]
+			}
+		}
+	}
+	return ids, match
+}
+
+// Processes text to filter mentioned users and other potential mentions
+func (e *ExplicitMentions) processText(text string, keywords map[string][]string) {
+	systemMentions := map[string]bool{"@here": true, "@channel": true, "@all": true}
+
+	for _, word := range strings.FieldsFunc(text, func(c rune) bool {
+		// Split on any whitespace or punctuation that can't be part of an at mention or emoji pattern
+		return !(c == ':' || c == '.' || c == '-' || c == '_' || c == '@' || unicode.IsLetter(c) || unicode.IsNumber(c))
+	}) {
+		// skip word with format ':word:' with an assumption that it is an emoji format only
+		if word[0] == ':' && word[len(word)-1] == ':' {
+			continue
+		}
+
+		word = strings.TrimLeft(word, ":.-_")
+
+		if e.checkForMention(word, keywords) {
+			continue
+		}
+
+		foundWithoutSuffix := false
+		wordWithoutSuffix := word
+		for len(wordWithoutSuffix) > 0 && strings.LastIndexAny(wordWithoutSuffix, ".-:_") == (len(wordWithoutSuffix)-1) {
+			wordWithoutSuffix = wordWithoutSuffix[0 : len(wordWithoutSuffix)-1]
+
+			if e.checkForMention(wordWithoutSuffix, keywords) {
+				foundWithoutSuffix = true
+				break
+			}
+		}
+
+		if foundWithoutSuffix {
+			continue
+		}
+
+		if _, ok := systemMentions[word]; !ok && strings.HasPrefix(word, "@") {
+			e.OtherPotentialMentions = append(e.OtherPotentialMentions, word[1:])
+		} else if strings.ContainsAny(word, ".-:") {
+			// This word contains a character that may be the end of a sentence, so split further
+			splitWords := strings.FieldsFunc(word, func(c rune) bool {
+				return c == '.' || c == '-' || c == ':'
+			})
+
+			for _, splitWord := range splitWords {
+				if e.checkForMention(splitWord, keywords) {
+					continue
+				}
+				if _, ok := systemMentions[splitWord]; !ok && strings.HasPrefix(splitWord, "@") {
+					e.OtherPotentialMentions = append(e.OtherPotentialMentions, splitWord[1:])
+				}
+			}
+		}
+		if ids, match := isKeywordMultibyte(keywords, word); match {
+			e.addMentionedUsers(ids)
+		}
+	}
 }
