@@ -675,7 +675,7 @@ func (e *ExplicitMentions) checkForMention(word string, keywords map[string][]st
 	return isMention
 }
 
-// isKeywordMultibyte if the word contains a multibyte character, check if it contains a multibyte keyword
+// isKeywordMultibyte checks if a word containing a multibyte character contains a multibyte keyword
 func isKeywordMultibyte(keywords map[string][]string, word string) ([]string, bool) {
 	ids := []string{}
 	match := false
