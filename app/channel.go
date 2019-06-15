@@ -74,36 +74,38 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, shouldBeAdmin
 
 	var err *model.AppError
 	for _, channelName := range a.DefaultChannelNames() {
-		if channel, channelErr := a.Srv.Store.Channel().GetByName(teamId, channelName, true); channelErr != nil {
+		channel, channelErr := a.Srv.Store.Channel().GetByName(teamId, channelName, true)
+		if channelErr != nil {
 			err = channelErr
-		} else {
-
-			if channel.Type != model.CHANNEL_OPEN {
-				continue
-			}
-
-			cm := &model.ChannelMember{
-				ChannelId:   channel.Id,
-				UserId:      user.Id,
-				SchemeGuest: user.IsGuest(),
-				SchemeUser:  !user.IsGuest(),
-				SchemeAdmin: shouldBeAdmin,
-				NotifyProps: model.GetDefaultChannelNotifyProps(),
-			}
-
-			if cmResult := <-a.Srv.Store.Channel().SaveMember(cm); cmResult.Err != nil {
-				err = cmResult.Err
-			}
-			if result := <-a.Srv.Store.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); result.Err != nil {
-				mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", result.Err))
-			}
-
-			if *a.Config().ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages {
-				a.postJoinMessageForDefaultChannel(user, requestor, channel)
-			}
-
-			a.InvalidateCacheForChannelMembers(channel.Id)
+			continue
 		}
+
+		if channel.Type != model.CHANNEL_OPEN {
+			continue
+		}
+
+		cm := &model.ChannelMember{
+			ChannelId:   channel.Id,
+			UserId:      user.Id,
+			SchemeGuest: user.IsGuest(),
+			SchemeUser:  !user.IsGuest(),
+			SchemeAdmin: shouldBeAdmin,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		}
+
+		if cmResult := <-a.Srv.Store.Channel().SaveMember(cm); cmResult.Err != nil {
+			err = cmResult.Err
+		}
+		if result := <-a.Srv.Store.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); result.Err != nil {
+			mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", result.Err))
+		}
+
+		if *a.Config().ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages {
+			a.postJoinMessageForDefaultChannel(user, requestor, channel)
+		}
+
+		a.InvalidateCacheForChannelMembers(channel.Id)
+
 	}
 
 	esInterface := a.Elasticsearch
