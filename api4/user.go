@@ -1463,8 +1463,8 @@ func revokeAllSessionsAllUser(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if !c.App.SessionHasPermissionToUser(c.App.Session, c.Params.UserId) {
-		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
 		return
 	}
 

@@ -135,9 +135,11 @@ func (a *App) RevokeSessionsFromAllUsers() *model.AppError {
 			a.clearSessionCacheForUserSet(userSet)
 			return revokeErr
 		}
-		userSet[session.UserId] = struct{}{}
+		userSet[session.UserId] = struct{}{} // we just need the keys, no value need
 	}
 	a.clearSessionCacheForUserSet(userSet)
+
+	return nil
 }
 
 func (a *App) ClearSessionCacheForUser(userId string) {
