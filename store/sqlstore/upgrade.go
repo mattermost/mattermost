@@ -707,6 +707,6 @@ func UpgradeDatabaseToVersion514(sqlStore SqlStore) {
 	// TODO: Uncomment following condition when version 5.14.0 is released
 	// if shouldPerformUpgrade(sqlStore, VERSION_5_13_0, VERSION_5_14_0) {
 
-	// 	saveSchemaVersion(sqlStore, VERSION_5_13_0)
+	// 	saveSchemaVersion(sqlStore, VERSION_5_14_0)
 	// }
 }
