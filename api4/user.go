@@ -1241,7 +1241,7 @@ func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func login(c *Context, w http.ResponseWriter, r *http.Request) {
-	// Translate all login errors to generic. MFA error being an exception, since it's required for the login flow itself
+	// Mask all sensitive errors, with the exception of the following
 	defer func() {
 		if c.Err == nil {
 			return
@@ -1255,6 +1255,7 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 			"api.user.login.client_side_cert.certificate.app_error",
 			"api.user.login.inactive.app_error",
 			"api.user.login.not_verified.app_error",
+			"api.user.check_user_login_attempts.too_many.app_error",
 		}
 
 		maskError := true
@@ -1341,6 +1342,10 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.LogAuditWithUserId(user.Id, "success")
+
+	if r.Header.Get(model.HEADER_REQUESTED_WITH) == model.HEADER_REQUESTED_WITH_XML {
+		c.App.AttachSessionCookies(w, r, session)
+	}
 
 	userTermsOfService, err := c.App.GetUserTermsOfService(user.Id)
 	if err != nil && err.StatusCode != http.StatusNotFound {

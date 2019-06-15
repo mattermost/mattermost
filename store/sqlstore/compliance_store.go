@@ -142,12 +142,14 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance) ([]*model.Co
 			Posts.Type AS PostType,
 			Posts.Props AS PostProps,
 			Posts.Hashtags AS PostHashtags,
-			Posts.FileIds AS PostFileIds
+			Posts.FileIds AS PostFileIds,
+			Bots.UserId IS NOT NULL AS IsBot
 		FROM
 			Teams,
 			Channels,
 			Users,
 			Posts
+        LEFT JOIN Bots ON Bots.UserId = Posts.UserId
 		WHERE
 			Teams.Id = Channels.TeamId
 				AND Posts.ChannelId = Channels.Id
@@ -177,11 +179,13 @@ func (s SqlComplianceStore) ComplianceExport(job *model.Compliance) ([]*model.Co
 			Posts.Type AS PostType,
 			Posts.Props AS PostProps,
 			Posts.Hashtags AS PostHashtags,
-			Posts.FileIds AS PostFileIds
+			Posts.FileIds AS PostFileIds,
+			Bots.UserId IS NOT NULL AS IsBot
 		FROM
 			Channels,
 			Users,
 			Posts
+		LEFT JOIN Bots ON Bots.UserId = Posts.UserId
 		WHERE
 			Channels.TeamId = ''
 				AND Posts.ChannelId = Channels.Id
@@ -211,6 +215,7 @@ func (s SqlComplianceStore) MessageExport(after int64, limit int) ([]*model.Mess
 			Posts.Type AS PostType,
 			Posts.OriginalId AS PostOriginalId,
 			Posts.RootId AS PostRootId,
+			Posts.Props AS PostProps,
 			Posts.FileIds AS PostFileIds,
 			Teams.Id AS TeamId,
 			Teams.Name AS TeamName,
@@ -225,12 +230,14 @@ func (s SqlComplianceStore) MessageExport(after int64, limit int) ([]*model.Mess
 			Channels.Type AS ChannelType,
 			Users.Id AS UserId,
 			Users.Email AS UserEmail,
-			Users.Username
+			Users.Username,
+			Bots.UserId IS NOT NULL AS IsBot
 		FROM
 			Posts
-			LEFT OUTER JOIN Channels ON Posts.ChannelId = Channels.Id
-			LEFT OUTER JOIN Teams ON Channels.TeamId = Teams.Id
-			LEFT OUTER JOIN Users ON Posts.UserId = Users.Id
+		LEFT OUTER JOIN Channels ON Posts.ChannelId = Channels.Id
+		LEFT OUTER JOIN Teams ON Channels.TeamId = Teams.Id
+		LEFT OUTER JOIN Users ON Posts.UserId = Users.Id
+		LEFT JOIN Bots ON Bots.UserId = Posts.UserId
 		WHERE
 			Posts.CreateAt > :StartTime AND
 			Posts.Type = ''

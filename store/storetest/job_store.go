@@ -11,6 +11,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestJobStore(t *testing.T, ss store.Store) {
@@ -38,17 +39,14 @@ func testJobSaveGet(t *testing.T, ss store.Store) {
 		},
 	}
 
-	if result := <-ss.Job().Save(job); result.Err != nil {
-		t.Fatal(result.Err)
-	}
+	_, err := ss.Job().Save(job)
+	require.Nil(t, err)
 
-	defer func() {
-		<-ss.Job().Delete(job.Id)
-	}()
+	defer ss.Job().Delete(job.Id)
 
-	if result := <-ss.Job().Get(job.Id); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if received := result.Data.(*model.Job); received.Id != job.Id {
+	if received, err := ss.Job().Get(job.Id); err != nil {
+		t.Fatal(err)
+	} else if received.Id != job.Id {
 		t.Fatal("received incorrect job after save")
 	} else if received.Data["Total"] != "12345" {
 		t.Fatal("data field was not retrieved successfully:", received.Data)
@@ -74,13 +72,14 @@ func testJobGetAllByType(t *testing.T, ss store.Store) {
 	}
 
 	for _, job := range jobs {
-		store.Must(ss.Job().Save(job))
+		_, err := ss.Job().Save(job)
+		require.Nil(t, err)
 		defer ss.Job().Delete(job.Id)
 	}
 
-	if result := <-ss.Job().GetAllByType(jobType); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if received := result.Data.([]*model.Job); len(received) != 2 {
+	if received, err := ss.Job().GetAllByType(jobType); err != nil {
+		t.Fatal(err)
+	} else if len(received) != 2 {
 		t.Fatal("received wrong number of jobs")
 	} else if received[0].Id != jobs[0].Id && received[1].Id != jobs[0].Id {
 		t.Fatal("should've received first jobs")
@@ -116,13 +115,14 @@ func testJobGetAllByTypePage(t *testing.T, ss store.Store) {
 	}
 
 	for _, job := range jobs {
-		store.Must(ss.Job().Save(job))
+		_, err := ss.Job().Save(job)
+		require.Nil(t, err)
 		defer ss.Job().Delete(job.Id)
 	}
 
-	if result := <-ss.Job().GetAllByTypePage(jobType, 0, 2); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if received := result.Data.([]*model.Job); len(received) != 2 {
+	if received, err := ss.Job().GetAllByTypePage(jobType, 0, 2); err != nil {
+		t.Fatal(err)
+	} else if len(received) != 2 {
 		t.Fatal("received wrong number of jobs")
 	} else if received[0].Id != jobs[2].Id {
 		t.Fatal("should've received newest job first")
@@ -130,9 +130,9 @@ func testJobGetAllByTypePage(t *testing.T, ss store.Store) {
 		t.Fatal("should've received second newest job second")
 	}
 
-	if result := <-ss.Job().GetAllByTypePage(jobType, 2, 2); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if received := result.Data.([]*model.Job); len(received) != 1 {
+	if received, err := ss.Job().GetAllByTypePage(jobType, 2, 2); err != nil {
+		t.Fatal(err)
+	} else if len(received) != 1 {
 		t.Fatal("received wrong number of jobs")
 	} else if received[0].Id != jobs[1].Id {
 		t.Fatal("should've received oldest job last")
@@ -162,13 +162,14 @@ func testJobGetAllPage(t *testing.T, ss store.Store) {
 	}
 
 	for _, job := range jobs {
-		store.Must(ss.Job().Save(job))
+		_, err := ss.Job().Save(job)
+		require.Nil(t, err)
 		defer ss.Job().Delete(job.Id)
 	}
 
-	if result := <-ss.Job().GetAllPage(0, 2); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if received := result.Data.([]*model.Job); len(received) != 2 {
+	if received, err := ss.Job().GetAllPage(0, 2); err != nil {
+		t.Fatal(err)
+	} else if len(received) != 2 {
 		t.Fatal("received wrong number of jobs")
 	} else if received[0].Id != jobs[2].Id {
 		t.Fatal("should've received newest job first")
@@ -176,9 +177,9 @@ func testJobGetAllPage(t *testing.T, ss store.Store) {
 		t.Fatal("should've received second newest job second")
 	}
 
-	if result := <-ss.Job().GetAllPage(2, 2); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if received := result.Data.([]*model.Job); len(received) < 1 {
+	if received, err := ss.Job().GetAllPage(2, 2); err != nil {
+		t.Fatal(err)
+	} else if len(received) < 1 {
 		t.Fatal("received wrong number of jobs")
 	} else if received[0].Id != jobs[1].Id {
 		t.Fatal("should've received oldest job last")
@@ -220,13 +221,14 @@ func testJobGetAllByStatus(t *testing.T, ss store.Store) {
 	}
 
 	for _, job := range jobs {
-		store.Must(ss.Job().Save(job))
+		_, err := ss.Job().Save(job)
+		require.Nil(t, err)
 		defer ss.Job().Delete(job.Id)
 	}
 
-	if result := <-ss.Job().GetAllByStatus(status); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if received := result.Data.([]*model.Job); len(received) != 3 {
+	if received, err := ss.Job().GetAllByStatus(status); err != nil {
+		t.Fatal(err)
+	} else if len(received) != 3 {
 		t.Fatal("received wrong number of jobs")
 	} else if received[0].Id != jobs[1].Id || received[1].Id != jobs[0].Id || received[2].Id != jobs[2].Id {
 		t.Fatal("should've received jobs ordered by CreateAt time")
@@ -269,17 +271,18 @@ func testJobStoreGetNewestJobByStatusAndType(t *testing.T, ss store.Store) {
 	}
 
 	for _, job := range jobs {
-		store.Must(ss.Job().Save(job))
+		_, err := ss.Job().Save(job)
+		require.Nil(t, err)
 		defer ss.Job().Delete(job.Id)
 	}
 
-	result := <-ss.Job().GetNewestJobByStatusAndType(status1, jobType1)
-	assert.Nil(t, result.Err)
-	assert.EqualValues(t, jobs[0].Id, result.Data.(*model.Job).Id)
+	received, err := ss.Job().GetNewestJobByStatusAndType(status1, jobType1)
+	assert.Nil(t, err)
+	assert.EqualValues(t, jobs[0].Id, received.Id)
 
-	result = <-ss.Job().GetNewestJobByStatusAndType(model.NewId(), model.NewId())
-	assert.Nil(t, result.Err)
-	assert.Nil(t, result.Data.(*model.Job))
+	received, err = ss.Job().GetNewestJobByStatusAndType(model.NewId(), model.NewId())
+	assert.Nil(t, err)
+	assert.Nil(t, received)
 }
 
 func testJobStoreGetCountByStatusAndType(t *testing.T, ss store.Store) {
@@ -316,25 +319,26 @@ func testJobStoreGetCountByStatusAndType(t *testing.T, ss store.Store) {
 	}
 
 	for _, job := range jobs {
-		store.Must(ss.Job().Save(job))
+		_, err := ss.Job().Save(job)
+		require.Nil(t, err)
 		defer ss.Job().Delete(job.Id)
 	}
 
-	result := <-ss.Job().GetCountByStatusAndType(status1, jobType1)
-	assert.Nil(t, result.Err)
-	assert.EqualValues(t, 2, result.Data.(int64))
+	count, err := ss.Job().GetCountByStatusAndType(status1, jobType1)
+	assert.Nil(t, err)
+	assert.EqualValues(t, 2, count)
 
-	result = <-ss.Job().GetCountByStatusAndType(status2, jobType2)
-	assert.Nil(t, result.Err)
-	assert.EqualValues(t, 0, result.Data.(int64))
+	count, err = ss.Job().GetCountByStatusAndType(status2, jobType2)
+	assert.Nil(t, err)
+	assert.EqualValues(t, 0, count)
 
-	result = <-ss.Job().GetCountByStatusAndType(status1, jobType2)
-	assert.Nil(t, result.Err)
-	assert.EqualValues(t, 1, result.Data.(int64))
+	count, err = ss.Job().GetCountByStatusAndType(status1, jobType2)
+	assert.Nil(t, err)
+	assert.EqualValues(t, 1, count)
 
-	result = <-ss.Job().GetCountByStatusAndType(status2, jobType1)
-	assert.Nil(t, result.Err)
-	assert.EqualValues(t, 1, result.Data.(int64))
+	count, err = ss.Job().GetCountByStatusAndType(status2, jobType1)
+	assert.Nil(t, err)
+	assert.EqualValues(t, 1, count)
 }
 
 func testJobUpdateOptimistically(t *testing.T, ss store.Store) {
@@ -345,9 +349,8 @@ func testJobUpdateOptimistically(t *testing.T, ss store.Store) {
 		Status:   model.JOB_STATUS_PENDING,
 	}
 
-	if result := <-ss.Job().Save(job); result.Err != nil {
-		t.Fatal(result.Err)
-	}
+	_, err := ss.Job().Save(job)
+	require.Nil(t, err)
 	defer ss.Job().Delete(job.Id)
 
 	job.LastActivityAt = model.GetMillis()
@@ -357,34 +360,24 @@ func testJobUpdateOptimistically(t *testing.T, ss store.Store) {
 		"Foo": "Bar",
 	}
 
-	if result := <-ss.Job().UpdateOptimistically(job, model.JOB_STATUS_SUCCESS); result.Err != nil {
-		if result.Data.(bool) {
+	if updated, err2 := ss.Job().UpdateOptimistically(job, model.JOB_STATUS_SUCCESS); err2 != nil {
+		if updated {
 			t.Fatal("should have failed due to incorrect old status")
 		}
 	}
 
 	time.Sleep(2 * time.Millisecond)
 
-	if result := <-ss.Job().UpdateOptimistically(job, model.JOB_STATUS_PENDING); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		if !result.Data.(bool) {
-			t.Fatal("Should have successfully updated")
-		}
+	updated, err := ss.Job().UpdateOptimistically(job, model.JOB_STATUS_PENDING)
+	require.Nil(t, err)
+	require.True(t, updated)
 
-		var updatedJob *model.Job
+	updatedJob, err := ss.Job().Get(job.Id)
+	require.Nil(t, err)
 
-		if result := <-ss.Job().Get(job.Id); result.Err != nil {
-			t.Fatal(result.Err)
-		} else {
-			updatedJob = result.Data.(*model.Job)
-		}
-
-		if updatedJob.Type != job.Type || updatedJob.CreateAt != job.CreateAt || updatedJob.Status != job.Status || updatedJob.LastActivityAt <= job.LastActivityAt || updatedJob.Progress != job.Progress || updatedJob.Data["Foo"] != job.Data["Foo"] {
-			t.Fatal("Some update property was not as expected")
-		}
+	if updatedJob.Type != job.Type || updatedJob.CreateAt != job.CreateAt || updatedJob.Status != job.Status || updatedJob.LastActivityAt <= job.LastActivityAt || updatedJob.Progress != job.Progress || updatedJob.Data["Foo"] != job.Data["Foo"] {
+		t.Fatal("Some update property was not as expected")
 	}
-
 }
 
 func testJobUpdateStatusUpdateStatusOptimistically(t *testing.T, ss store.Store) {
@@ -396,111 +389,85 @@ func testJobUpdateStatusUpdateStatusOptimistically(t *testing.T, ss store.Store)
 	}
 
 	var lastUpdateAt int64
-	if result := <-ss.Job().Save(job); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		lastUpdateAt = result.Data.(*model.Job).LastActivityAt
-	}
+	received, err := ss.Job().Save(job)
+	require.Nil(t, err)
+	lastUpdateAt = received.LastActivityAt
 
 	defer ss.Job().Delete(job.Id)
 
 	time.Sleep(2 * time.Millisecond)
 
-	if result := <-ss.Job().UpdateStatus(job.Id, model.JOB_STATUS_PENDING); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		received := result.Data.(*model.Job)
-		if received.Status != model.JOB_STATUS_PENDING {
-			t.Fatal("status wasn't updated")
-		}
-		if received.LastActivityAt <= lastUpdateAt {
-			t.Fatal("lastActivityAt wasn't updated")
-		}
-		lastUpdateAt = received.LastActivityAt
+	received, err = ss.Job().UpdateStatus(job.Id, model.JOB_STATUS_PENDING)
+	require.Nil(t, err)
+
+	if received.Status != model.JOB_STATUS_PENDING {
+		t.Fatal("status wasn't updated")
+	}
+	if received.LastActivityAt <= lastUpdateAt {
+		t.Fatal("lastActivityAt wasn't updated")
+	}
+	lastUpdateAt = received.LastActivityAt
+
+	time.Sleep(2 * time.Millisecond)
+
+	updated, err := ss.Job().UpdateStatusOptimistically(job.Id, model.JOB_STATUS_IN_PROGRESS, model.JOB_STATUS_SUCCESS)
+	require.Nil(t, err)
+	require.False(t, updated)
+
+	received, err = ss.Job().Get(job.Id)
+	require.Nil(t, err)
+
+	if received.Status != model.JOB_STATUS_PENDING {
+		t.Fatal("should still be pending")
+	}
+	if received.LastActivityAt != lastUpdateAt {
+		t.Fatal("last activity at shouldn't have changed")
 	}
 
 	time.Sleep(2 * time.Millisecond)
 
-	if result := <-ss.Job().UpdateStatusOptimistically(job.Id, model.JOB_STATUS_IN_PROGRESS, model.JOB_STATUS_SUCCESS); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		if result.Data.(bool) {
-			t.Fatal("should be false due to incorrect original status")
-		}
-	}
-
-	if result := <-ss.Job().Get(job.Id); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		received := result.Data.(*model.Job)
-		if received.Status != model.JOB_STATUS_PENDING {
-			t.Fatal("should still be pending")
-		}
-		if received.LastActivityAt != lastUpdateAt {
-			t.Fatal("last activity at shouldn't have changed")
-		}
-	}
-
-	time.Sleep(2 * time.Millisecond)
-
-	if result := <-ss.Job().UpdateStatusOptimistically(job.Id, model.JOB_STATUS_PENDING, model.JOB_STATUS_IN_PROGRESS); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		if !result.Data.(bool) {
-			t.Fatal("should have succeeded")
-		}
-	}
+	updated, err = ss.Job().UpdateStatusOptimistically(job.Id, model.JOB_STATUS_PENDING, model.JOB_STATUS_IN_PROGRESS)
+	require.Nil(t, err)
+	require.True(t, updated, "should have succeeded")
 
 	var startAtSet int64
-	if result := <-ss.Job().Get(job.Id); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		received := result.Data.(*model.Job)
-		if received.Status != model.JOB_STATUS_IN_PROGRESS {
-			t.Fatal("should be in progress")
-		}
-		if received.StartAt == 0 {
-			t.Fatal("received should have start at set")
-		}
-		if received.LastActivityAt <= lastUpdateAt {
-			t.Fatal("lastActivityAt wasn't updated")
-		}
-		lastUpdateAt = received.LastActivityAt
-		startAtSet = received.StartAt
+	received, err = ss.Job().Get(job.Id)
+	require.Nil(t, err)
+	if received.Status != model.JOB_STATUS_IN_PROGRESS {
+		t.Fatal("should be in progress")
 	}
+	if received.StartAt == 0 {
+		t.Fatal("received should have start at set")
+	}
+	if received.LastActivityAt <= lastUpdateAt {
+		t.Fatal("lastActivityAt wasn't updated")
+	}
+	lastUpdateAt = received.LastActivityAt
+	startAtSet = received.StartAt
 
 	time.Sleep(2 * time.Millisecond)
 
-	if result := <-ss.Job().UpdateStatusOptimistically(job.Id, model.JOB_STATUS_IN_PROGRESS, model.JOB_STATUS_SUCCESS); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		if !result.Data.(bool) {
-			t.Fatal("should have succeeded")
-		}
-	}
+	updated, err = ss.Job().UpdateStatusOptimistically(job.Id, model.JOB_STATUS_IN_PROGRESS, model.JOB_STATUS_SUCCESS)
+	require.Nil(t, err)
+	require.True(t, updated, "should have succeeded")
 
-	if result := <-ss.Job().Get(job.Id); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		received := result.Data.(*model.Job)
-		if received.Status != model.JOB_STATUS_SUCCESS {
-			t.Fatal("should be success status")
-		}
-		if received.StartAt != startAtSet {
-			t.Fatal("startAt should not have changed")
-		}
-		if received.LastActivityAt <= lastUpdateAt {
-			t.Fatal("lastActivityAt wasn't updated")
-		}
+	received, err = ss.Job().Get(job.Id)
+	require.Nil(t, err)
+	if received.Status != model.JOB_STATUS_SUCCESS {
+		t.Fatal("should be success status")
+	}
+	if received.StartAt != startAtSet {
+		t.Fatal("startAt should not have changed")
+	}
+	if received.LastActivityAt <= lastUpdateAt {
+		t.Fatal("lastActivityAt wasn't updated")
 	}
 }
 
 func testJobDelete(t *testing.T, ss store.Store) {
-	job := store.Must(ss.Job().Save(&model.Job{
-		Id: model.NewId(),
-	})).(*model.Job)
+	job, err := ss.Job().Save(&model.Job{Id: model.NewId()})
+	require.Nil(t, err)
 
-	if result := <-ss.Job().Delete(job.Id); result.Err != nil {
-		t.Fatal(result.Err)
-	}
+	_, err = ss.Job().Delete(job.Id)
+	assert.Nil(t, err)
 }
