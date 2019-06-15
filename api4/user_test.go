@@ -2444,6 +2444,39 @@ func TestRevokeAllSessions(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 }
 
+func TestRevokeSessionsFromAllUsers(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	user := th.BasicUser
+	th.Client.Login(user.Email, user.Password)
+	_, resp := th.Client.RevokeSessionsFromAllUsers(user.Id)
+	CheckForbiddenStatus(t, resp)
+
+	th.Client.Logout()
+	_, resp = th.Client.RevokeSessionsFromAllUsers(user.Id)
+	CheckUnauthorizedStatus(t, resp)
+
+	admin := th.SystemAdminUser
+	th.Client.Login(admin.Email, admin.Password)
+	_, resp = th.Client.RevokeSessionsFromAllUsers(admin.Id)
+	CheckNoError(t, resp)
+
+	_, resp = th.Client.RevokeSessionsFromAllUsers(admin.Id)
+	CheckUnauthorizedStatus(t, resp)
+
+	sessions, _ := th.SystemAdminClient.GetSessions(user.Id, "")
+	if len(sessions) != 0 {
+		t.Fatal("no sessions should exist for user")
+	}
+
+	sessions, _ = th.SystemAdminClient.GetSessions(admin.Id, "")
+	if len(sessions) != 0 {
+		t.Fatal("no sessions should exist for admin")
+	}
+
+}
+
 func TestAttachDeviceId(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
@@ -4127,7 +4160,6 @@ func TestLoginErrorMessage(t *testing.T) {
 
 	_, resp := th.Client.Logout()
 	CheckNoError(t, resp)
-
 
 	// Email and Username enabled
 	th.App.UpdateConfig(func(cfg *model.Config) {
