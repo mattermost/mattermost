@@ -216,6 +216,8 @@ func NewServer(options ...Option) (*Server, error) {
 	mlog.Info(fmt.Sprintf("Current working directory is %v", pwd))
 	mlog.Info("Loaded config", mlog.String("source", s.configStore.String()))
 
+	s.checkPushNotificationServerUrl()
+
 	license := s.License()
 
 	if license == nil && len(s.Config().SqlSettings.DataSourceReplicas) > 1 {
@@ -438,7 +440,7 @@ func (s *Server) Start() error {
 	if *s.Config().RateLimitSettings.Enable {
 		mlog.Info("RateLimiter is enabled")
 
-		rateLimiter, err := NewRateLimiter(&s.Config().RateLimitSettings)
+		rateLimiter, err := NewRateLimiter(&s.Config().RateLimitSettings, s.Config().ServiceSettings.TrustedProxyIPHeader)
 		if err != nil {
 			return err
 		}
@@ -618,6 +620,13 @@ func (a *App) OriginChecker() func(*http.Request) bool {
 		return utils.OriginChecker(allowed)
 	}
 	return nil
+}
+
+func (s *Server) checkPushNotificationServerUrl() {
+	notificationServer := *s.Config().EmailSettings.PushNotificationServer
+	if strings.HasPrefix(notificationServer, "http://") == true {
+		mlog.Warn("Your push notification server is configured with HTTP. For improved security, update to HTTPS in your configuration.")
+	}
 }
 
 func runSecurityJob(s *Server) {

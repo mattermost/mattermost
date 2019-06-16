@@ -21,10 +21,11 @@ func TestReactionStore(t *testing.T, ss store.Store) {
 }
 
 func testReactionSave(t *testing.T, ss store.Store) {
-	post := store.Must(ss.Post().Save(&model.Post{
+	post, err := ss.Post().Save(&model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
-	})).(*model.Post)
+	})
+	require.Nil(t, err)
 	firstUpdateAt := post.UpdateAt
 
 	reaction1 := &model.Reaction{
@@ -32,7 +33,8 @@ func testReactionSave(t *testing.T, ss store.Store) {
 		PostId:    post.Id,
 		EmojiName: model.NewId(),
 	}
-	if reaction, err := ss.Reaction().Save(reaction1); err != nil {
+	reaction, err := ss.Reaction().Save(reaction1)
+	if err != nil {
 		t.Fatal(err)
 	} else if saved := reaction; saved.UserId != reaction1.UserId ||
 		saved.PostId != reaction1.PostId || saved.EmojiName != reaction1.EmojiName {
@@ -40,7 +42,11 @@ func testReactionSave(t *testing.T, ss store.Store) {
 	}
 
 	var secondUpdateAt int64
-	if postList := store.Must(ss.Post().Get(reaction1.PostId)).(*model.PostList); !postList.Posts[post.Id].HasReactions {
+	postList, err := ss.Post().Get(reaction1.PostId)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !postList.Posts[post.Id].HasReactions {
 		t.Fatal("should've set HasReactions = true on post")
 	} else if postList.Posts[post.Id].UpdateAt == firstUpdateAt {
 		t.Fatal("should've marked post as updated when HasReactions changed")
@@ -48,7 +54,7 @@ func testReactionSave(t *testing.T, ss store.Store) {
 		secondUpdateAt = postList.Posts[post.Id].UpdateAt
 	}
 
-	if _, err := ss.Reaction().Save(reaction1); err != nil {
+	if _, err = ss.Reaction().Save(reaction1); err != nil {
 		t.Log(err)
 		t.Fatal("should've allowed saving a duplicate reaction")
 	}
@@ -59,11 +65,16 @@ func testReactionSave(t *testing.T, ss store.Store) {
 		PostId:    reaction1.PostId,
 		EmojiName: reaction1.EmojiName,
 	}
-	if _, err := ss.Reaction().Save(reaction2); err != nil {
+	if _, err = ss.Reaction().Save(reaction2); err != nil {
 		t.Fatal(err)
 	}
 
-	if postList := store.Must(ss.Post().Get(reaction2.PostId)).(*model.PostList); postList.Posts[post.Id].UpdateAt == secondUpdateAt {
+	postList, err = ss.Post().Get(reaction2.PostId)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if postList.Posts[post.Id].UpdateAt == secondUpdateAt {
 		t.Fatal("should've marked post as updated even if HasReactions doesn't change")
 	}
 
@@ -98,10 +109,11 @@ func testReactionSave(t *testing.T, ss store.Store) {
 }
 
 func testReactionDelete(t *testing.T, ss store.Store) {
-	post := store.Must(ss.Post().Save(&model.Post{
+	post, err := ss.Post().Save(&model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
-	})).(*model.Post)
+	})
+	require.Nil(t, err)
 
 	reaction := &model.Reaction{
 		UserId:    model.NewId(),
@@ -109,21 +121,28 @@ func testReactionDelete(t *testing.T, ss store.Store) {
 		EmojiName: model.NewId(),
 	}
 
-	_, err := ss.Reaction().Save(reaction)
+	_, err = ss.Reaction().Save(reaction)
 	require.Nil(t, err)
-	firstUpdateAt := store.Must(ss.Post().Get(reaction.PostId)).(*model.PostList).Posts[post.Id].UpdateAt
+	result, err := ss.Post().Get(reaction.PostId)
+	if err != nil {
+		t.Fatal(err)
+	}
+	firstUpdateAt := result.Posts[post.Id].UpdateAt
 
-	if _, err := ss.Reaction().Delete(reaction); err != nil {
+	if _, err = ss.Reaction().Delete(reaction); err != nil {
 		t.Fatal(err)
 	}
 
-	if reactions, err := ss.Reaction().GetForPost(post.Id, false); err != nil {
-		t.Fatal(err)
+	if reactions, rErr := ss.Reaction().GetForPost(post.Id, false); rErr != nil {
+		t.Fatal(rErr)
 	} else if len(reactions) != 0 {
 		t.Fatal("should've deleted reaction")
 	}
-
-	if postList := store.Must(ss.Post().Get(post.Id)).(*model.PostList); postList.Posts[post.Id].HasReactions {
+	postList, err := ss.Post().Get(post.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if postList.Posts[post.Id].HasReactions {
 		t.Fatal("should've set HasReactions = false on post")
 	} else if postList.Posts[post.Id].UpdateAt == firstUpdateAt {
 		t.Fatal("should mark post as updated after deleting reactions")
@@ -216,18 +235,21 @@ func testReactionGetForPost(t *testing.T, ss store.Store) {
 func testReactionDeleteAllWithEmojiName(t *testing.T, ss store.Store) {
 	emojiToDelete := model.NewId()
 
-	post := store.Must(ss.Post().Save(&model.Post{
+	post, err1 := ss.Post().Save(&model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
-	})).(*model.Post)
-	post2 := store.Must(ss.Post().Save(&model.Post{
+	})
+	require.Nil(t, err1)
+	post2, err2 := ss.Post().Save(&model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
-	})).(*model.Post)
-	post3 := store.Must(ss.Post().Save(&model.Post{
+	})
+	require.Nil(t, err2)
+	post3, err3 := ss.Post().Save(&model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
-	})).(*model.Post)
+	})
+	require.Nil(t, err3)
 
 	userId := model.NewId()
 
@@ -294,24 +316,38 @@ func testReactionDeleteAllWithEmojiName(t *testing.T, ss store.Store) {
 	}
 
 	// check that the posts are updated
-	if postList := store.Must(ss.Post().Get(post.Id)).(*model.PostList); !postList.Posts[post.Id].HasReactions {
+	postList, err := ss.Post().Get(post.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !postList.Posts[post.Id].HasReactions {
 		t.Fatal("post should still have reactions")
 	}
 
-	if postList := store.Must(ss.Post().Get(post2.Id)).(*model.PostList); !postList.Posts[post2.Id].HasReactions {
+	postList, err = ss.Post().Get(post2.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !postList.Posts[post2.Id].HasReactions {
 		t.Fatal("post should still have reactions")
 	}
 
-	if postList := store.Must(ss.Post().Get(post3.Id)).(*model.PostList); postList.Posts[post3.Id].HasReactions {
+	postList, err = ss.Post().Get(post3.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if postList.Posts[post3.Id].HasReactions {
 		t.Fatal("post shouldn't have reactions any more")
 	}
 }
 
 func testReactionStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
-	post := store.Must(ss.Post().Save(&model.Post{
+	post, err1 := ss.Post().Save(&model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
-	})).(*model.Post)
+	})
+	require.Nil(t, err1)
 
 	reactions := []*model.Reaction{
 		{

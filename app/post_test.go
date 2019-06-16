@@ -208,7 +208,7 @@ func TestAttachFilesToPost(t *testing.T) {
 		err = th.App.attachFilesToPost(post)
 		assert.Nil(t, err)
 
-		infos, err := th.App.GetFileInfosForPost(post.Id)
+		infos, err := th.App.GetFileInfosForPost(post.Id, false)
 		assert.Nil(t, err)
 		assert.Len(t, infos, 2)
 	})
@@ -236,7 +236,7 @@ func TestAttachFilesToPost(t *testing.T) {
 		err = th.App.attachFilesToPost(post)
 		assert.Nil(t, err)
 
-		infos, err := th.App.GetFileInfosForPost(post.Id)
+		infos, err := th.App.GetFileInfosForPost(post.Id, false)
 		assert.Nil(t, err)
 		assert.Len(t, infos, 1)
 		assert.Equal(t, info2.Id, infos[0].Id)
@@ -668,7 +668,6 @@ func TestCreatePost(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
-			*cfg.ExperimentalSettings.DisablePostMetadata = true
 			*cfg.ImageProxySettings.Enable = true
 			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
 			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
@@ -697,7 +696,6 @@ func TestPatchPost(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
-			*cfg.ExperimentalSettings.DisablePostMetadata = true
 			*cfg.ImageProxySettings.Enable = true
 			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
 			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
@@ -747,7 +745,6 @@ func TestUpdatePost(t *testing.T) {
 
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.SiteURL = "http://mymattermost.com"
-			*cfg.ExperimentalSettings.DisablePostMetadata = true
 			*cfg.ImageProxySettings.Enable = true
 			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
 			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"

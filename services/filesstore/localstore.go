@@ -34,7 +34,7 @@ func (b *LocalFileBackend) TestConnection() *model.AppError {
 	return nil
 }
 
-func (b *LocalFileBackend) Reader(path string) (io.ReadCloser, *model.AppError) {
+func (b *LocalFileBackend) Reader(path string) (ReadCloseSeeker, *model.AppError) {
 	f, err := os.Open(filepath.Join(b.directory, path))
 	if err != nil {
 		return nil, model.NewAppError("Reader", "api.file.reader.reading_local.app_error", nil, err.Error(), http.StatusInternalServerError)

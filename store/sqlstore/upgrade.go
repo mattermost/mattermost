@@ -20,6 +20,8 @@ import (
 )
 
 const (
+	VERSION_5_13_0           = "5.13.0"
+	VERSION_5_12_0           = "5.12.0"
 	VERSION_5_11_0           = "5.11.0"
 	VERSION_5_10_0           = "5.10.0"
 	VERSION_5_9_0            = "5.9.0"
@@ -95,7 +97,7 @@ func UpgradeDatabase(sqlStore SqlStore, currentModelVersionString string) error 
 
 	// Assume a fresh database if no schema version has been recorded.
 	if currentSchemaVersion == nil {
-		if result := <-sqlStore.System().SaveOrUpdate(&model.System{Name: "Version", Value: currentModelVersion.String()}); result.Err != nil {
+		if err := sqlStore.System().SaveOrUpdate(&model.System{Name: "Version", Value: currentModelVersion.String()}); err != nil {
 			return errors.Wrap(err, "failed to initialize schema version for fresh database")
 		}
 
@@ -155,13 +157,14 @@ func UpgradeDatabase(sqlStore SqlStore, currentModelVersionString string) error 
 	UpgradeDatabaseToVersion510(sqlStore)
 	UpgradeDatabaseToVersion511(sqlStore)
 	UpgradeDatabaseToVersion512(sqlStore)
+	UpgradeDatabaseToVersion513(sqlStore)
 
 	return nil
 }
 
 func saveSchemaVersion(sqlStore SqlStore, version string) {
-	if result := <-sqlStore.System().SaveOrUpdate(&model.System{Name: "Version", Value: version}); result.Err != nil {
-		mlog.Critical(result.Err.Error())
+	if err := sqlStore.System().SaveOrUpdate(&model.System{Name: "Version", Value: version}); err != nil {
+		mlog.Critical(err.Error())
 		time.Sleep(time.Second)
 		os.Exit(EXIT_VERSION_SAVE)
 	}
@@ -678,14 +681,24 @@ func UpgradeDatabaseToVersion511(sqlStore SqlStore) {
 }
 
 func UpgradeDatabaseToVersion512(sqlStore SqlStore) {
-	// TODO: Uncomment following condition when version 5.12.0 is released
-	// if shouldPerformUpgrade(sqlStore, VERSION_5_11_0, VERSION_5_12_0) {
-	sqlStore.CreateColumnIfNotExistsNoDefault("TeamMembers", "SchemeGuest", "boolean", "boolean")
-	sqlStore.CreateColumnIfNotExistsNoDefault("ChannelMembers", "SchemeGuest", "boolean", "boolean")
-	sqlStore.CreateColumnIfNotExistsNoDefault("Schemes", "DefaultTeamGuestRole", "text", "VARCHAR(64)")
-	sqlStore.CreateColumnIfNotExistsNoDefault("Schemes", "DefaultChannelGuestRole", "text", "VARCHAR(64)")
-	sqlStore.GetMaster().Exec("UPDATE Schemes SET DefaultTeamGuestRole = '', DefaultChannelGuestRole = ''")
+	if shouldPerformUpgrade(sqlStore, VERSION_5_11_0, VERSION_5_12_0) {
+		sqlStore.CreateColumnIfNotExistsNoDefault("TeamMembers", "SchemeGuest", "boolean", "boolean")
+		sqlStore.CreateColumnIfNotExistsNoDefault("ChannelMembers", "SchemeGuest", "boolean", "boolean")
+		sqlStore.CreateColumnIfNotExistsNoDefault("Schemes", "DefaultTeamGuestRole", "text", "VARCHAR(64)")
+		sqlStore.CreateColumnIfNotExistsNoDefault("Schemes", "DefaultChannelGuestRole", "text", "VARCHAR(64)")
+		sqlStore.GetMaster().Exec("UPDATE Schemes SET DefaultTeamGuestRole = '', DefaultChannelGuestRole = ''")
 
-	// saveSchemaVersion(sqlStore, VERSION_5_12_0)
+		// Saturday, January 24, 2065 5:20:00 AM GMT. To remove all personal access token sessions.
+		sqlStore.GetMaster().Exec("DELETE FROM Sessions WHERE ExpiresAt > 3000000000000")
+
+		saveSchemaVersion(sqlStore, VERSION_5_12_0)
+	}
+}
+
+func UpgradeDatabaseToVersion513(sqlStore SqlStore) {
+	// TODO: Uncomment following condition when version 5.13.0 is released
+	// if shouldPerformUpgrade(sqlStore, VERSION_5_12_0, VERSION_5_13_0) {
+
+	// 	saveSchemaVersion(sqlStore, VERSION_5_13_0)
 	// }
 }

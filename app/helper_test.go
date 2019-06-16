@@ -71,6 +71,15 @@ func setupTestHelper(enterprise bool, tb testing.TB) *TestHelper {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableOpenServer = true })
 
+	// Disable strict password requirements for test
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.PasswordSettings.MinimumLength = 5
+		*cfg.PasswordSettings.Lowercase = false
+		*cfg.PasswordSettings.Uppercase = false
+		*cfg.PasswordSettings.Symbol = false
+		*cfg.PasswordSettings.Number = false
+	})
+
 	if enterprise {
 		th.App.SetLicense(model.NewTestLicense())
 	} else {
@@ -378,17 +387,17 @@ func (me *TestHelper) CreateGroup() *model.Group {
 func (me *TestHelper) CreateEmoji() *model.Emoji {
 	utils.DisableDebugLogForTest()
 
-	result := <-me.App.Srv.Store.Emoji().Save(&model.Emoji{
+	emoji, err := me.App.Srv.Store.Emoji().Save(&model.Emoji{
 		CreatorId: me.BasicUser.Id,
 		Name:      model.NewRandomString(10),
 	})
-	if result.Err != nil {
-		panic(result.Err)
+	if err != nil {
+		panic(err)
 	}
 
 	utils.EnableDebugLogForTest()
 
-	return result.Data.(*model.Emoji)
+	return emoji
 }
 
 func (me *TestHelper) AddReactionToPost(post *model.Post, user *model.User, emojiName string) *model.Reaction {
@@ -469,19 +478,19 @@ func (me *TestHelper) ResetEmojisMigration() {
 }
 
 func (me *TestHelper) CheckTeamCount(t *testing.T, expected int64) {
-	if r := <-me.App.Srv.Store.Team().AnalyticsTeamCount(); r.Err == nil {
-		if r.Data.(int64) != expected {
-			t.Fatalf("Unexpected number of teams. Expected: %v, found: %v", expected, r.Data.(int64))
-		}
-	} else {
+	teamCount, err := me.App.Srv.Store.Team().AnalyticsTeamCount()
+	if err != nil {
 		t.Fatalf("Failed to get team count.")
+	}
+	if teamCount != expected {
+		t.Fatalf("Unexpected number of teams. Expected: %v, found: %v", expected, teamCount)
 	}
 }
 
 func (me *TestHelper) CheckChannelsCount(t *testing.T, expected int64) {
-	if r := <-me.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN); r.Err == nil {
-		if r.Data.(int64) != expected {
-			t.Fatalf("Unexpected number of channels. Expected: %v, found: %v", expected, r.Data.(int64))
+	if count, err := me.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN); err == nil {
+		if count != expected {
+			t.Fatalf("Unexpected number of channels. Expected: %v, found: %v", expected, count)
 		}
 	} else {
 		t.Fatalf("Failed to get channel count.")

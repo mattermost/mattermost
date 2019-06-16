@@ -4,7 +4,6 @@
 package app
 
 import (
-	"fmt"
 	"html/template"
 	"net/http"
 	"strconv"
@@ -110,18 +109,19 @@ func (a *App) EnsureDiagnosticId() {
 	if a.Srv.diagnosticId != "" {
 		return
 	}
-	if result := <-a.Srv.Store.System().Get(); result.Err == nil {
-		props := result.Data.(model.StringMap)
-
-		id := props[model.SYSTEM_DIAGNOSTIC_ID]
-		if len(id) == 0 {
-			id = model.NewId()
-			systemId := &model.System{Name: model.SYSTEM_DIAGNOSTIC_ID, Value: id}
-			<-a.Srv.Store.System().Save(systemId)
-		}
-
-		a.Srv.diagnosticId = id
+	props, err := a.Srv.Store.System().Get()
+	if err != nil {
+		return
 	}
+
+	id := props[model.SYSTEM_DIAGNOSTIC_ID]
+	if len(id) == 0 {
+		id = model.NewId()
+		systemId := &model.System{Name: model.SYSTEM_DIAGNOSTIC_ID, Value: id}
+		a.Srv.Store.System().Save(systemId)
+	}
+
+	a.Srv.diagnosticId = id
 }
 
 func (a *App) HTMLTemplates() *template.Template {
@@ -133,7 +133,8 @@ func (a *App) HTMLTemplates() *template.Template {
 }
 
 func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {
-	mlog.Debug(fmt.Sprintf("%v: code=404 ip=%v", r.URL.Path, utils.GetIpAddress(r)))
+	ipAddress := utils.GetIpAddress(r, a.Config().ServiceSettings.TrustedProxyIPHeader)
+	mlog.Debug("not found handler triggered", mlog.String("path", r.URL.Path), mlog.Int("code", 404), mlog.String("ip", ipAddress))
 
 	if *a.Config().ServiceSettings.WebserverMode == "disabled" {
 		http.NotFound(w, r)
@@ -144,11 +145,10 @@ func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) getSystemInstallDate() (int64, *model.AppError) {
-	result := <-a.Srv.Store.System().GetByName(model.SYSTEM_INSTALLATION_DATE_KEY)
-	if result.Err != nil {
-		return 0, result.Err
+	systemData, appErr := a.Srv.Store.System().GetByName(model.SYSTEM_INSTALLATION_DATE_KEY)
+	if appErr != nil {
+		return 0, appErr
 	}
-	systemData := result.Data.(*model.System)
 	value, err := strconv.ParseInt(systemData.Value, 10, 64)
 	if err != nil {
 		return 0, model.NewAppError("getSystemInstallDate", "app.system_install_date.parse_int.app_error", nil, err.Error(), http.StatusInternalServerError)

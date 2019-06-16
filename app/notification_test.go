@@ -474,6 +474,52 @@ func TestGetExplicitMentions(t *testing.T) {
 				ChannelMentioned: true,
 			},
 		},
+		"MultibyteCharacter": {
+			Message:  "My name is 萌",
+			Keywords: map[string][]string{"萌": {id1}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
+		"MultibyteCharacterAtBeginningOfSentence": {
+			Message:  "이메일을 보내다.",
+			Keywords: map[string][]string{"이메일": {id1}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
+		"MultibyteCharacterInPartOfSentence": {
+			Message:  "我爱吃番茄炒饭",
+			Keywords: map[string][]string{"番茄": {id1}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
+		"MultibyteCharacterAtEndOfSentence": {
+			Message:  "こんにちは、世界",
+			Keywords: map[string][]string{"世界": {id1}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
+		"MultibyteCharacterTwiceInSentence": {
+			Message:  "石橋さんが石橋を渡る",
+			Keywords: map[string][]string{"石橋": {id1}},
+			Expected: &ExplicitMentions{
+				MentionedUserIds: map[string]bool{
+					id1: true,
+				},
+			},
+		},
+
 		// The following tests cover cases where the message mentions @user.name, so we shouldn't assume that
 		// the user might be intending to mention some @user that isn't in the channel.
 		"Don't include potential mention that's part of an actual mention (without trailing period)": {
@@ -1391,7 +1437,6 @@ func TestCheckForMentionUsers(t *testing.T) {
 		})
 	}
 }
-
 func TestProcessText(t *testing.T) {
 	id1 := model.NewId()
 

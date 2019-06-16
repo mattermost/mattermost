@@ -15,7 +15,7 @@ import (
 type TokenLocation int
 
 const (
-	TokenLocationNotFound = iota
+	TokenLocationNotFound TokenLocation = iota
 	TokenLocationHeader
 	TokenLocationCookie
 	TokenLocationQueryString
@@ -37,6 +37,11 @@ func (tl TokenLocation) String() string {
 }
 
 func (a *App) IsPasswordValid(password string) *model.AppError {
+
+	if *a.Config().ServiceSettings.EnableDeveloper {
+		return nil
+	}
+
 	return utils.IsPasswordValidWithSettings(password, &a.Config().PasswordSettings)
 }
 
