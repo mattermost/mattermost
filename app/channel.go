@@ -314,8 +314,8 @@ func (a *App) GetOrCreateDirectChannel(userId, otherUserId string) (*model.Chann
 			if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
 				a.Srv.Go(func() {
 					for _, id := range []string{userId, otherUserId} {
-						if err = a.indexUserFromId(id); err != nil {
-							mlog.Error("Encountered error indexing user", mlog.String("user_id", id), mlog.Err(err))
+						if indexUserErr := a.indexUserFromId(id); indexUserErr != nil {
+							mlog.Error("Encountered error indexing user", mlog.String("user_id", id), mlog.Err(indexUserErr))
 						}
 					}
 				})

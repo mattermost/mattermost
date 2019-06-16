@@ -601,17 +601,15 @@ func (a *App) HandleIncomingWebhook(hookId string, req *model.IncomingWebhookReq
 		} else if channelName[0] == '#' {
 			cchan = make(store.StoreChannel, 1)
 			go func() {
-				var err *model.AppError
-				channel, err = a.Srv.Store.Channel().GetByName(hook.TeamId, channelName[1:], true)
-				cchan <- store.StoreResult{Data: channel, Err: err}
+				chnn, chnnErr := a.Srv.Store.Channel().GetByName(hook.TeamId, channelName[1:], true)
+				cchan <- store.StoreResult{Data: chnn, Err: chnnErr}
 				close(cchan)
 			}()
 		} else {
 			cchan = make(store.StoreChannel, 1)
 			go func() {
-				var err *model.AppError
-				channel, err = a.Srv.Store.Channel().GetByName(hook.TeamId, channelName, true)
-				cchan <- store.StoreResult{Data: channel, Err: err}
+				chnn, chnnErr := a.Srv.Store.Channel().GetByName(hook.TeamId, channelName, true)
+				cchan <- store.StoreResult{Data: chnn, Err: chnnErr}
 				close(cchan)
 			}()
 		}
