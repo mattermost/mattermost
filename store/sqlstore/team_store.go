@@ -339,11 +339,11 @@ func (s SqlTeamStore) SearchPrivate(term string) ([]*model.Team, *model.AppError
 	var teams []*model.Team
 
 	query :=
-		`SELECT * 
-		FROM 
-			Teams 
-		WHERE 
-			(Type != 'O' OR AllowOpenInvite = false) AND 
+		`SELECT *
+		FROM
+			Teams
+		WHERE
+			(Type != 'O' OR AllowOpenInvite = false) AND
 			(Name LIKE :Term OR DisplayName LIKE :Term)`
 	if _, err := s.GetReplica().Select(&teams, query, map[string]interface{}{"Term": term + "%"}); err != nil {
 		return nil, model.NewAppError("SqlTeamStore.SearchPrivate", "store.sql_team.search_private_team.app_error", nil, "term="+term+", "+err.Error(), http.StatusInternalServerError)
@@ -377,10 +377,9 @@ func (s SqlTeamStore) GetAllPage(offset int, limit int) ([]*model.Team, *model.A
 			:Offset`, map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
 		return nil, model.NewAppError("SqlTeamStore.GetAllTeams",
 			"store.sql_team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
-	} else {
-		return teams, nil
 	}
 
+	return teams, nil
 }
 
 func (s SqlTeamStore) GetTeamsByUserId(userId string) store.StoreChannel {
