@@ -1139,23 +1139,19 @@ func (s SqlChannelStore) GetChannelCounts(teamId string, userId string) store.St
 	})
 }
 
-func (s SqlChannelStore) GetTeamChannels(teamId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		data := &model.ChannelList{}
-		_, err := s.GetReplica().Select(data, "SELECT * FROM Channels WHERE TeamId = :TeamId And Type != 'D' ORDER BY DisplayName", map[string]interface{}{"TeamId": teamId})
+func (s SqlChannelStore) GetTeamChannels(teamId string) (*model.ChannelList, *model.AppError) {
+	data := &model.ChannelList{}
+	_, err := s.GetReplica().Select(data, "SELECT * FROM Channels WHERE TeamId = :TeamId And Type != 'D' ORDER BY DisplayName", map[string]interface{}{"TeamId": teamId})
 
-		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.GetTeamChannels", "store.sql_channel.get_channels.get.app_error", nil, "teamId="+teamId+",  err="+err.Error(), http.StatusInternalServerError)
-			return
-		}
+	if err != nil {
+		return nil, model.NewAppError("SqlChannelStore.GetTeamChannels", "store.sql_channel.get_channels.get.app_error", nil, "teamId="+teamId+",  err="+err.Error(), http.StatusInternalServerError)
+	}
 
-		if len(*data) == 0 {
-			result.Err = model.NewAppError("SqlChannelStore.GetTeamChannels", "store.sql_channel.get_channels.not_found.app_error", nil, "teamId="+teamId, http.StatusNotFound)
-			return
-		}
+	if len(*data) == 0 {
+		return nil, model.NewAppError("SqlChannelStore.GetTeamChannels", "store.sql_channel.get_channels.not_found.app_error", nil, "teamId="+teamId, http.StatusNotFound)
+	}
 
-		result.Data = data
-	})
+	return data, nil
 }
 
 func (s SqlChannelStore) GetByName(teamId string, name string, allowFromCache bool) store.StoreChannel {
