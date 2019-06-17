@@ -571,6 +571,7 @@ type UserTermsOfServiceStore interface {
 type GroupStore interface {
 	Create(group *model.Group) StoreChannel
 	Get(groupID string) StoreChannel
+	GetByIDs(groupIDs []string) ([]*model.Group, *model.AppError)
 	GetByRemoteID(remoteID string, groupSource model.GroupSource) StoreChannel
 	GetAllBySource(groupSource model.GroupSource) StoreChannel
 	Update(group *model.Group) StoreChannel
@@ -601,6 +602,9 @@ type GroupStore interface {
 	CountGroupsByTeam(teamId string, opts model.GroupSearchOpts) (int64, *model.AppError)
 
 	GetGroups(page, perPage int, opts model.GroupSearchOpts) ([]*model.Group, *model.AppError)
+
+	TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, *model.AppError)
+	CountTeamMembersMinusGroupMembers(teamID string, groupIDs []string) (int64, *model.AppError)
 }
 
 type LinkMetadataStore interface {

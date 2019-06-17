@@ -109,6 +109,29 @@ func (_m *GroupStore) CountGroupsByTeam(teamId string, opts model.GroupSearchOpt
 	return r0, r1
 }
 
+// CountTeamMembersMinusGroupMembers provides a mock function with given fields: teamID, groupIDs
+func (_m *GroupStore) CountTeamMembersMinusGroupMembers(teamID string, groupIDs []string) (int64, *model.AppError) {
+	ret := _m.Called(teamID, groupIDs)
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(string, []string) int64); ok {
+		r0 = rf(teamID, groupIDs)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, []string) *model.AppError); ok {
+		r1 = rf(teamID, groupIDs)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // Create provides a mock function with given fields: group
 func (_m *GroupStore) Create(group *model.Group) store.StoreChannel {
 	ret := _m.Called(group)
@@ -280,6 +303,31 @@ func (_m *GroupStore) GetAllGroupSyncablesByGroupId(groupID string, syncableType
 	return r0, r1
 }
 
+// GetByIDs provides a mock function with given fields: groupIDs
+func (_m *GroupStore) GetByIDs(groupIDs []string) ([]*model.Group, *model.AppError) {
+	ret := _m.Called(groupIDs)
+
+	var r0 []*model.Group
+	if rf, ok := ret.Get(0).(func([]string) []*model.Group); ok {
+		r0 = rf(groupIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Group)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func([]string) *model.AppError); ok {
+		r1 = rf(groupIDs)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetByRemoteID provides a mock function with given fields: remoteID, groupSource
 func (_m *GroupStore) GetByRemoteID(remoteID string, groupSource model.GroupSource) store.StoreChannel {
 	ret := _m.Called(remoteID, groupSource)
@@ -442,6 +490,31 @@ func (_m *GroupStore) GetMemberUsersPage(groupID string, offset int, limit int) 
 	}
 
 	return r0
+}
+
+// TeamMembersMinusGroupMembers provides a mock function with given fields: teamID, groupIDs, page, perPage
+func (_m *GroupStore) TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page int, perPage int) ([]*model.UserWithGroups, *model.AppError) {
+	ret := _m.Called(teamID, groupIDs, page, perPage)
+
+	var r0 []*model.UserWithGroups
+	if rf, ok := ret.Get(0).(func(string, []string, int, int) []*model.UserWithGroups); ok {
+		r0 = rf(teamID, groupIDs, page, perPage)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.UserWithGroups)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, []string, int, int) *model.AppError); ok {
+		r1 = rf(teamID, groupIDs, page, perPage)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // TeamMembersToAdd provides a mock function with given fields: since
