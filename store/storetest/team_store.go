@@ -869,15 +869,9 @@ func testTeamMembersWithPagination(t *testing.T, ss store.Store) {
 	store.Must(ss.Team().SaveMember(m2, -1))
 	store.Must(ss.Team().SaveMember(m3, -1))
 
-	teamChan := make(chan store.StoreResult, 1)
-	go func() {
-		members, err := ss.Team().GetTeamsForUserWithPagination(m1.UserId, 0, 1)
-		teamChan <- store.StoreResult{Data: members, Err: err}
-	}()
-
-	r1 = <-teamChan
-	require.Nil(t, r1.Err)
-	ms := r1.Data.([]*model.TeamMember)
+	members, errTeam := ss.Team().GetTeamsForUserWithPagination(m1.UserId, 0, 1)
+	require.Nil(t, errTeam)
+	ms := members
 
 	require.Len(t, ms, 1)
 	require.Equal(t, m1.TeamId, ms[0].TeamId)
