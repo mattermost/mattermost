@@ -716,9 +716,9 @@ func testChannelStoreGetByNames(t *testing.T, ss store.Store) {
 		{"", []string{o1.Name, "foo", o2.Name, o2.Name}, []string{o1.Id, o2.Id}},
 		{"asd", []string{o1.Name, "foo", o2.Name, o2.Name}, nil},
 	} {
-		r := <-ss.Channel().GetByNames(tc.TeamId, tc.Names, true)
-		require.Nil(t, r.Err)
-		channels := r.Data.([]*model.Channel)
+		var channels []*model.Channel
+		channels, err = ss.Channel().GetByNames(tc.TeamId, tc.Names, true)
+		require.Nil(t, err)
 		var ids []string
 		for _, channel := range channels {
 			ids = append(ids, channel.Id)
@@ -734,9 +734,8 @@ func testChannelStoreGetByNames(t *testing.T, ss store.Store) {
 	err = ss.Channel().Delete(o2.Id, model.GetMillis())
 	require.Nil(t, err, "channel should have been deleted")
 
-	r := <-ss.Channel().GetByNames(o1.TeamId, []string{o1.Name}, false)
-	require.Nil(t, r.Err)
-	channels := r.Data.([]*model.Channel)
+	channels, err := ss.Channel().GetByNames(o1.TeamId, []string{o1.Name}, false)
+	require.Nil(t, err)
 	assert.Len(t, channels, 0)
 }
 
