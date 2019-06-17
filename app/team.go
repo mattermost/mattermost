@@ -675,11 +675,7 @@ func (a *App) GetTeamMember(teamId, userId string) (*model.TeamMember, *model.Ap
 }
 
 func (a *App) GetTeamMembersForUser(userId string) ([]*model.TeamMember, *model.AppError) {
-	result := <-a.Srv.Store.Team().GetTeamsForUser(userId)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.TeamMember), nil
+	return a.Srv.Store.Team().GetTeamsForUser(userId)
 }
 
 func (a *App) GetTeamMembersForUserWithPagination(userId string, page, perPage int) ([]*model.TeamMember, *model.AppError) {
