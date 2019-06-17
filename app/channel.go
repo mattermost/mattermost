@@ -1265,11 +1265,7 @@ func (a *App) GetDeletedChannels(teamId string, offset int, limit int) (*model.C
 }
 
 func (a *App) GetChannelsUserNotIn(teamId string, userId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
-	result := <-a.Srv.Store.Channel().GetMoreChannels(teamId, userId, offset, limit)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.ChannelList), nil
+	return a.Srv.Store.Channel().GetMoreChannels(teamId, userId, offset, limit)
 }
 
 func (a *App) GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) (*model.ChannelList, *model.AppError) {

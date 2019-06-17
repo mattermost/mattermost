@@ -993,49 +993,46 @@ func (s SqlChannelStore) GetAllChannels(offset int, limit int, opts store.Channe
 	})
 }
 
-func (s SqlChannelStore) GetMoreChannels(teamId string, userId string, offset int, limit int) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		data := &model.ChannelList{}
-		_, err := s.GetReplica().Select(data, `
+func (s SqlChannelStore) GetMoreChannels(teamId string, userId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
+	channels := &model.ChannelList{}
+	_, err := s.GetReplica().Select(channels, `
+		SELECT
+			Channels.*
+		FROM
+			Channels
+		JOIN
+			PublicChannels c ON (c.Id = Channels.Id)
+		WHERE
+			c.TeamId = :TeamId
+		AND c.DeleteAt = 0
+		AND c.Id NOT IN (
 			SELECT
-			    Channels.*
+				c.Id
 			FROM
-			    Channels
+				PublicChannels c
 			JOIN
-			    PublicChannels c ON (c.Id = Channels.Id)
+				ChannelMembers cm ON (cm.ChannelId = c.Id)
 			WHERE
-			    c.TeamId = :TeamId
+				c.TeamId = :TeamId
+			AND cm.UserId = :UserId
 			AND c.DeleteAt = 0
-			AND c.Id NOT IN (
-			    SELECT
-			        c.Id
-			    FROM
-			        PublicChannels c
-			    JOIN
-			        ChannelMembers cm ON (cm.ChannelId = c.Id)
-			    WHERE
-			        c.TeamId = :TeamId
-			    AND cm.UserId = :UserId
-			    AND c.DeleteAt = 0
-			)
-			ORDER BY
-				c.DisplayName
-			LIMIT :Limit
-			OFFSET :Offset
+		)
+		ORDER BY
+			c.DisplayName
+		LIMIT :Limit
+		OFFSET :Offset
 		`, map[string]interface{}{
-			"TeamId": teamId,
-			"UserId": userId,
-			"Limit":  limit,
-			"Offset": offset,
-		})
-
-		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.GetMoreChannels", "store.sql_channel.get_more_channels.get.app_error", nil, "teamId="+teamId+", userId="+userId+", err="+err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		result.Data = data
+		"TeamId": teamId,
+		"UserId": userId,
+		"Limit":  limit,
+		"Offset": offset,
 	})
+
+	if err != nil {
+		return nil, model.NewAppError("SqlChannelStore.GetMoreChannels", "store.sql_channel.get_more_channels.get.app_error", nil, "teamId="+teamId+", userId="+userId+", err="+err.Error(), http.StatusInternalServerError)
+	}
+
+	return channels, nil
 }
 
 func (s SqlChannelStore) GetPublicChannelsForTeam(teamId string, offset int, limit int) store.StoreChannel {
