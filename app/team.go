@@ -1097,8 +1097,8 @@ func (a *App) PermanentDeleteTeam(team *model.Team) *model.AppError {
 		return err
 	}
 
-	if result := <-a.Srv.Store.Team().PermanentDelete(team.Id); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.Team().PermanentDelete(team.Id); err != nil {
+		return err
 	}
 
 	a.sendTeamEvent(team, model.WEBSOCKET_EVENT_DELETE_TEAM)

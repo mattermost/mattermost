@@ -744,8 +744,8 @@ func testDelete(t *testing.T, ss store.Store) {
 	_, err = ss.Team().Save(&o2)
 	require.Nil(t, err)
 
-	if r1 := <-ss.Team().PermanentDelete(o1.Id); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if r1 := ss.Team().PermanentDelete(o1.Id); r1 != nil {
+		t.Fatal(r1)
 	}
 }
 
@@ -923,7 +923,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 	})
 	require.Nil(t, errSave)
 	defer func() {
-		<-ss.Team().PermanentDelete(team.Id)
+		ss.Team().PermanentDelete(team.Id)
 	}()
 
 	userIds := make([]string, maxUsersPerTeam)
@@ -1070,7 +1070,7 @@ func testGetTeamMember(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	defer func() {
-		<-ss.Team().PermanentDelete(t2.Id)
+		ss.Team().PermanentDelete(t2.Id)
 	}()
 
 	m2 := &model.TeamMember{TeamId: t2.Id, UserId: model.NewId(), SchemeUser: true}

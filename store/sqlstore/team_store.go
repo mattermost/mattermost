@@ -451,13 +451,11 @@ func (s SqlTeamStore) GetAllTeamPageListing(offset int, limit int) ([]*model.Tea
 	return teams, nil
 }
 
-func (s SqlTeamStore) PermanentDelete(teamId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if _, err := s.GetMaster().Exec("DELETE FROM Teams WHERE Id = :TeamId", map[string]interface{}{"TeamId": teamId}); err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.Delete", "store.sql_team.permanent_delete.app_error", nil, "teamId="+teamId+", "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-	})
+func (s SqlTeamStore) PermanentDelete(teamId string) *model.AppError {
+	if _, err := s.GetMaster().Exec("DELETE FROM Teams WHERE Id = :TeamId", map[string]interface{}{"TeamId": teamId}); err != nil {
+		return model.NewAppError("SqlTeamStore.Delete", "store.sql_team.permanent_delete.app_error", nil, "teamId="+teamId+", "+err.Error(), http.StatusInternalServerError)
+	}
+	return nil
 }
 
 func (s SqlTeamStore) AnalyticsTeamCount() (int64, *model.AppError) {
