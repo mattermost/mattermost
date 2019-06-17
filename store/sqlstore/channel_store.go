@@ -1957,50 +1957,48 @@ func (s SqlChannelStore) GetMembersForUserWithPagination(teamId, userId string, 
 	})
 }
 
-func (s SqlChannelStore) AutocompleteInTeam(teamId string, term string, includeDeleted bool) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		deleteFilter := "AND c.DeleteAt = 0"
-		if includeDeleted {
-			deleteFilter = ""
+func (s SqlChannelStore) AutocompleteInTeam(teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
+	deleteFilter := "AND c.DeleteAt = 0"
+	if includeDeleted {
+		deleteFilter = ""
+	}
+
+	queryFormat := `
+		SELECT
+			Channels.*
+		FROM
+			Channels
+		JOIN
+			PublicChannels c ON (c.Id = Channels.Id)
+		WHERE
+			c.TeamId = :TeamId
+			` + deleteFilter + `
+			%v
+		LIMIT ` + strconv.Itoa(model.CHANNEL_SEARCH_DEFAULT_LIMIT)
+
+	var channels model.ChannelList
+
+	if likeClause, likeTerm := s.buildLIKEClause(term, "c.Name, c.DisplayName, c.Purpose"); likeClause == "" {
+		if _, err := s.GetReplica().Select(&channels, fmt.Sprintf(queryFormat, ""), map[string]interface{}{"TeamId": teamId}); err != nil {
+			return nil, model.NewAppError("SqlChannelStore.AutocompleteInTeam", "store.sql_channel.search.app_error", nil, "term="+term+", "+", "+err.Error(), http.StatusInternalServerError)
 		}
+	} else {
+		// Using a UNION results in index_merge and fulltext queries and is much faster than the ref
+		// query you would get using an OR of the LIKE and full-text clauses.
+		fulltextClause, fulltextTerm := s.buildFulltextClause(term, "c.Name, c.DisplayName, c.Purpose")
+		likeQuery := fmt.Sprintf(queryFormat, "AND "+likeClause)
+		fulltextQuery := fmt.Sprintf(queryFormat, "AND "+fulltextClause)
+		query := fmt.Sprintf("(%v) UNION (%v) LIMIT 50", likeQuery, fulltextQuery)
 
-		queryFormat := `
-			SELECT
-			    Channels.*
-			FROM
-			    Channels
-			JOIN
-			    PublicChannels c ON (c.Id = Channels.Id)
-			WHERE
-			    c.TeamId = :TeamId
-			    ` + deleteFilter + `
-			    %v
-			LIMIT ` + strconv.Itoa(model.CHANNEL_SEARCH_DEFAULT_LIMIT)
-
-		var channels model.ChannelList
-
-		if likeClause, likeTerm := s.buildLIKEClause(term, "c.Name, c.DisplayName, c.Purpose"); likeClause == "" {
-			if _, err := s.GetReplica().Select(&channels, fmt.Sprintf(queryFormat, ""), map[string]interface{}{"TeamId": teamId}); err != nil {
-				result.Err = model.NewAppError("SqlChannelStore.AutocompleteInTeam", "store.sql_channel.search.app_error", nil, "term="+term+", "+", "+err.Error(), http.StatusInternalServerError)
-			}
-		} else {
-			// Using a UNION results in index_merge and fulltext queries and is much faster than the ref
-			// query you would get using an OR of the LIKE and full-text clauses.
-			fulltextClause, fulltextTerm := s.buildFulltextClause(term, "c.Name, c.DisplayName, c.Purpose")
-			likeQuery := fmt.Sprintf(queryFormat, "AND "+likeClause)
-			fulltextQuery := fmt.Sprintf(queryFormat, "AND "+fulltextClause)
-			query := fmt.Sprintf("(%v) UNION (%v) LIMIT 50", likeQuery, fulltextQuery)
-
-			if _, err := s.GetReplica().Select(&channels, query, map[string]interface{}{"TeamId": teamId, "LikeTerm": likeTerm, "FulltextTerm": fulltextTerm}); err != nil {
-				result.Err = model.NewAppError("SqlChannelStore.AutocompleteInTeam", "store.sql_channel.search.app_error", nil, "term="+term+", "+", "+err.Error(), http.StatusInternalServerError)
-			}
+		if _, err := s.GetReplica().Select(&channels, query, map[string]interface{}{"TeamId": teamId, "LikeTerm": likeTerm, "FulltextTerm": fulltextTerm}); err != nil {
+			return nil, model.NewAppError("SqlChannelStore.AutocompleteInTeam", "store.sql_channel.search.app_error", nil, "term="+term+", "+", "+err.Error(), http.StatusInternalServerError)
 		}
+	}
 
-		sort.Slice(channels, func(a, b int) bool {
-			return strings.ToLower(channels[a].DisplayName) < strings.ToLower(channels[b].DisplayName)
-		})
-		result.Data = &channels
+	sort.Slice(channels, func(a, b int) bool {
+		return strings.ToLower(channels[a].DisplayName) < strings.ToLower(channels[b].DisplayName)
 	})
+	return &channels, nil
 }
 
 func (s SqlChannelStore) AutocompleteInTeamForSearch(teamId string, userId string, term string, includeDeleted bool) store.StoreChannel {
@@ -2100,29 +2098,27 @@ func (s SqlChannelStore) autocompleteInTeamForSearchDirectMessages(userId string
 	return channels, nil
 }
 
-func (s SqlChannelStore) SearchInTeam(teamId string, term string, includeDeleted bool) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		deleteFilter := "AND c.DeleteAt = 0"
-		if includeDeleted {
-			deleteFilter = ""
-		}
+func (s SqlChannelStore) SearchInTeam(teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
+	deleteFilter := "AND c.DeleteAt = 0"
+	if includeDeleted {
+		deleteFilter = ""
+	}
 
-		*result = s.performSearch(`
-			SELECT
-			    Channels.*
-			FROM
-			    Channels
-			JOIN
-			    PublicChannels c ON (c.Id = Channels.Id)
-			WHERE
-			    c.TeamId = :TeamId
-			    `+deleteFilter+`
-			    SEARCH_CLAUSE
-			ORDER BY c.DisplayName
-			LIMIT 100
+	return s.performSearch(`
+		SELECT
+			Channels.*
+		FROM
+			Channels
+		JOIN
+			PublicChannels c ON (c.Id = Channels.Id)
+		WHERE
+			c.TeamId = :TeamId
+			`+deleteFilter+`
+			SEARCH_CLAUSE
+		ORDER BY c.DisplayName
+		LIMIT 100
 		`, term, map[string]interface{}{
-			"TeamId": teamId,
-		})
+		"TeamId": teamId,
 	})
 }
 
@@ -2172,37 +2168,35 @@ func (s SqlChannelStore) SearchAllChannels(term string, opts store.ChannelSearch
 	})
 }
 
-func (s SqlChannelStore) SearchMore(userId string, teamId string, term string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		*result = s.performSearch(`
+func (s SqlChannelStore) SearchMore(userId string, teamId string, term string) (*model.ChannelList, *model.AppError) {
+	return s.performSearch(`
+		SELECT
+			Channels.*
+		FROM
+			Channels
+		JOIN
+			PublicChannels c ON (c.Id = Channels.Id)
+		WHERE
+			c.TeamId = :TeamId
+		AND c.DeleteAt = 0
+		AND c.Id NOT IN (
 			SELECT
-			    Channels.*
+				c.Id
 			FROM
-			    Channels
+				PublicChannels c
 			JOIN
-			    PublicChannels c ON (c.Id = Channels.Id)
+				ChannelMembers cm ON (cm.ChannelId = c.Id)
 			WHERE
-			    c.TeamId = :TeamId
+				c.TeamId = :TeamId
+			AND cm.UserId = :UserId
 			AND c.DeleteAt = 0
-			AND c.Id NOT IN (
-			    SELECT
-			        c.Id
-			    FROM
-			        PublicChannels c
-			    JOIN
-			        ChannelMembers cm ON (cm.ChannelId = c.Id)
-			    WHERE
-			        c.TeamId = :TeamId
-			    AND cm.UserId = :UserId
-			    AND c.DeleteAt = 0
-		        )
-			SEARCH_CLAUSE
-			ORDER BY c.DisplayName
-			LIMIT 100
+			)
+		SEARCH_CLAUSE
+		ORDER BY c.DisplayName
+		LIMIT 100
 		`, term, map[string]interface{}{
-			"TeamId": teamId,
-			"UserId": userId,
-		})
+		"TeamId": teamId,
+		"UserId": userId,
 	})
 }
 
@@ -2277,9 +2271,7 @@ func (s SqlChannelStore) buildFulltextClause(term string, searchColumns string) 
 	return
 }
 
-func (s SqlChannelStore) performSearch(searchQuery string, term string, parameters map[string]interface{}) store.StoreResult {
-	result := store.StoreResult{}
-
+func (s SqlChannelStore) performSearch(searchQuery string, term string, parameters map[string]interface{}) (*model.ChannelList, *model.AppError) {
 	likeClause, likeTerm := s.buildLIKEClause(term, "c.Name, c.DisplayName, c.Purpose")
 	if likeTerm == "" {
 		// If the likeTerm is empty after preparing, then don't bother searching.
@@ -2294,12 +2286,10 @@ func (s SqlChannelStore) performSearch(searchQuery string, term string, paramete
 	var channels model.ChannelList
 
 	if _, err := s.GetReplica().Select(&channels, searchQuery, parameters); err != nil {
-		result.Err = model.NewAppError("SqlChannelStore.Search", "store.sql_channel.search.app_error", nil, "term="+term+", "+", "+err.Error(), http.StatusInternalServerError)
-		return result
+		return nil, model.NewAppError("SqlChannelStore.Search", "store.sql_channel.search.app_error", nil, "term="+term+", "+", "+err.Error(), http.StatusInternalServerError)
 	}
 
-	result.Data = &channels
-	return result
+	return &channels, nil
 }
 
 func (s SqlChannelStore) GetMembersByIds(channelId string, userIds []string) store.StoreChannel {

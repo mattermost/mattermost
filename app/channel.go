@@ -1774,11 +1774,7 @@ func (a *App) AutocompleteChannels(teamId string, term string) (*model.ChannelLi
 		return &channelList, nil
 	}
 
-	result := <-a.Srv.Store.Channel().AutocompleteInTeam(teamId, term, includeDeleted)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.ChannelList), nil
+	return a.Srv.Store.Channel().AutocompleteInTeam(teamId, term, includeDeleted)
 }
 
 func (a *App) AutocompleteChannelsForSearch(teamId string, userId string, term string) (*model.ChannelList, *model.AppError) {
@@ -1818,20 +1814,12 @@ func (a *App) SearchChannels(teamId string, term string) (*model.ChannelList, *m
 
 	term = strings.TrimSpace(term)
 
-	result := <-a.Srv.Store.Channel().SearchInTeam(teamId, term, includeDeleted)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.ChannelList), nil
+	return a.Srv.Store.Channel().SearchInTeam(teamId, term, includeDeleted)
 }
 
 func (a *App) SearchChannelsUserNotIn(teamId string, userId string, term string) (*model.ChannelList, *model.AppError) {
 	term = strings.TrimSpace(term)
-	result := <-a.Srv.Store.Channel().SearchMore(userId, teamId, term)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.ChannelList), nil
+	return a.Srv.Store.Channel().SearchMore(userId, teamId, term)
 }
 
 func (a *App) MarkChannelsAsViewed(channelIds []string, userId string, currentSessionId string) (map[string]int64, *model.AppError) {
