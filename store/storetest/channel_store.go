@@ -634,7 +634,7 @@ func testChannelStoreDelete(t *testing.T, ss store.Store) {
 		t.Fatal("invalid number of channels")
 	}
 
-	cresult = <-ss.Channel().PermanentDelete(o2.Id)
+	cresult := <-ss.Channel().PermanentDelete(o2.Id)
 	require.Nil(t, cresult.Err)
 
 	list, err = ss.Channel().GetChannels(o1.TeamId, m1.UserId, false)
