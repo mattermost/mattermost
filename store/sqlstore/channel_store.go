@@ -1115,25 +1115,22 @@ type channelIdWithCountAndUpdateAt struct {
 	UpdateAt      int64
 }
 
-func (s SqlChannelStore) GetChannelCounts(teamId string, userId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var data []channelIdWithCountAndUpdateAt
-		_, err := s.GetReplica().Select(&data, "SELECT Id, TotalMsgCount, UpdateAt FROM Channels WHERE Id IN (SELECT ChannelId FROM ChannelMembers WHERE UserId = :UserId) AND (TeamId = :TeamId OR TeamId = '') AND DeleteAt = 0 ORDER BY DisplayName", map[string]interface{}{"TeamId": teamId, "UserId": userId})
+func (s SqlChannelStore) GetChannelCounts(teamId string, userId string) (*model.ChannelCounts, *model.AppError) {
+	var data []channelIdWithCountAndUpdateAt
+	_, err := s.GetReplica().Select(&data, "SELECT Id, TotalMsgCount, UpdateAt FROM Channels WHERE Id IN (SELECT ChannelId FROM ChannelMembers WHERE UserId = :UserId) AND (TeamId = :TeamId OR TeamId = '') AND DeleteAt = 0 ORDER BY DisplayName", map[string]interface{}{"TeamId": teamId, "UserId": userId})
 
-		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.GetChannelCounts", "store.sql_channel.get_channel_counts.get.app_error", nil, "teamId="+teamId+", userId="+userId+", err="+err.Error(), http.StatusInternalServerError)
-			return
-		}
+	if err != nil {
+		return nil, model.NewAppError("SqlChannelStore.GetChannelCounts", "store.sql_channel.get_channel_counts.get.app_error", nil, "teamId="+teamId+", userId="+userId+", err="+err.Error(), http.StatusInternalServerError)
+	}
 
-		counts := &model.ChannelCounts{Counts: make(map[string]int64), UpdateTimes: make(map[string]int64)}
-		for i := range data {
-			v := data[i]
-			counts.Counts[v.Id] = v.TotalMsgCount
-			counts.UpdateTimes[v.Id] = v.UpdateAt
-		}
+	counts := &model.ChannelCounts{Counts: make(map[string]int64), UpdateTimes: make(map[string]int64)}
+	for i := range data {
+		v := data[i]
+		counts.Counts[v.Id] = v.TotalMsgCount
+		counts.UpdateTimes[v.Id] = v.UpdateAt
+	}
 
-		result.Data = counts
-	})
+	return counts, nil
 }
 
 func (s SqlChannelStore) GetTeamChannels(teamId string) store.StoreChannel {

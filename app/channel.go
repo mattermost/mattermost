@@ -1355,11 +1355,7 @@ func (a *App) GetChannelMemberCount(channelId string) (int64, *model.AppError) {
 }
 
 func (a *App) GetChannelCounts(teamId string, userId string) (*model.ChannelCounts, *model.AppError) {
-	result := <-a.Srv.Store.Channel().GetChannelCounts(teamId, userId)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.ChannelCounts), nil
+	return a.Srv.Store.Channel().GetChannelCounts(teamId, userId)
 }
 
 func (a *App) GetChannelUnread(channelId, userId string) (*model.ChannelUnread, *model.AppError) {

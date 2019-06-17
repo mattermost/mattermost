@@ -1540,8 +1540,7 @@ func testChannelStoreGetChannelCounts(t *testing.T, ss store.Store) {
 	m3.NotifyProps = model.GetDefaultChannelNotifyProps()
 	store.Must(ss.Channel().SaveMember(&m3))
 
-	cresult := <-ss.Channel().GetChannelCounts(o1.TeamId, m1.UserId)
-	counts := cresult.Data.(*model.ChannelCounts)
+	counts, _ := ss.Channel().GetChannelCounts(o1.TeamId, m1.UserId)
 
 	if len(counts.Counts) != 1 {
 		t.Fatal("wrong number of counts")
