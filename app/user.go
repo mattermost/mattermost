@@ -2154,7 +2154,7 @@ func (a *App) getListOfAllowedChannelsForTeam(teamId string, viewRestrictions *m
 		return channelIds, nil
 	}
 
-	channels, err := <-a.Srv.Store.Channel().GetChannelsByIds(viewRestrictions.Channels)
+	channels, err := a.Srv.Store.Channel().GetChannelsByIds(viewRestrictions.Channels)
 	if err != nil {
 		return nil, err
 	}

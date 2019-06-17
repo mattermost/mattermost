@@ -484,7 +484,7 @@ func testChannelStoreGetChannelsByIds(t *testing.T, ss store.Store) {
 	_, err = ss.Channel().SaveDirectChannel(&o2, &m1, &m2)
 	require.Nil(t, err)
 
-	if r1, err := <-ss.Channel().GetChannelsByIds([]string{o1.Id, o2.Id}); err != nil {
+	if r1, err := ss.Channel().GetChannelsByIds([]string{o1.Id, o2.Id}); err != nil {
 		t.Fatal(err)
 	} else {
 		if len(r1) != 2 {
@@ -499,7 +499,7 @@ func testChannelStoreGetChannelsByIds(t *testing.T, ss store.Store) {
 	}
 
 	nonexistentId := "abcd1234"
-	if r2, err := <-ss.Channel().GetChannelsByIds([]string{o1.Id, nonexistentId}); err != nil {
+	if r2, err := ss.Channel().GetChannelsByIds([]string{o1.Id, nonexistentId}); err != nil {
 		t.Fatal(err)
 	} else {
 		if len(r2) != 1 {

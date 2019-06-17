@@ -1771,7 +1771,7 @@ func (a *App) AutocompleteChannels(teamId string, term string) (*model.ChannelLi
 
 		channelList := model.ChannelList{}
 		if len(channelIds) > 0 {
-			channels, err := <-a.Srv.Store.Channel().GetChannelsByIds(channelIds)
+			channels, err := a.Srv.Store.Channel().GetChannelsByIds(channelIds)
 			if err != nil {
 				return nil, err
 			}
