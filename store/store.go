@@ -98,7 +98,7 @@ type TeamStore interface {
 	GetAllTeamPageListing(offset int, limit int) ([]*model.Team, *model.AppError)
 	GetTeamsByUserId(userId string) StoreChannel
 	GetByInviteId(inviteId string) (*model.Team, *model.AppError)
-	PermanentDelete(teamId string) StoreChannel
+	PermanentDelete(teamId string) *model.AppError
 	AnalyticsTeamCount() (int64, *model.AppError)
 	SaveMember(member *model.TeamMember, maxUsersPerTeam int) StoreChannel
 	UpdateMember(member *model.TeamMember) (*model.TeamMember, *model.AppError)
