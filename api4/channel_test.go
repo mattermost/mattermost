@@ -2637,3 +2637,97 @@ func TestGetChannelMembersTimezones(t *testing.T) {
 	}
 
 }
+
+func TestChannelMembersMinusGroupMembers(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	user1 := th.BasicUser
+	user2 := th.BasicUser2
+
+	channel := th.CreatePrivateChannel()
+
+	_, err := th.App.AddChannelMember(user1.Id, channel, "", "")
+	require.Nil(t, err)
+	_, err = th.App.AddChannelMember(user2.Id, channel, "", "")
+	require.Nil(t, err)
+
+	channel.GroupConstrained = model.NewBool(true)
+	channel, err = th.App.UpdateChannel(channel)
+	require.Nil(t, err)
+
+	group1 := th.CreateGroup()
+	group2 := th.CreateGroup()
+
+	_, err = th.App.CreateOrRestoreGroupMember(group1.Id, user1.Id)
+	require.Nil(t, err)
+	_, err = th.App.CreateOrRestoreGroupMember(group2.Id, user2.Id)
+	require.Nil(t, err)
+
+	// No permissions
+	_, _, res := th.Client.ChannelMembersMinusGroupMembers(channel.Id, []string{group1.Id, group2.Id}, 0, 100, "")
+	require.Equal(t, "api.context.permissions.app_error", res.Error.Id)
+
+	testCases := map[string]struct {
+		groupIDs        []string
+		page            int
+		perPage         int
+		length          int
+		count           int
+		otherAssertions func([]*model.UserWithGroups)
+	}{
+		"All groups, expect no users removed": {
+			groupIDs: []string{group1.Id, group2.Id},
+			page:     0,
+			perPage:  100,
+			length:   0,
+			count:    0,
+		},
+		"Some nonexistent group, page 0": {
+			groupIDs: []string{model.NewId()},
+			page:     0,
+			perPage:  1,
+			length:   1,
+			count:    2,
+		},
+		"Some nonexistent group, page 1": {
+			groupIDs: []string{model.NewId()},
+			page:     1,
+			perPage:  1,
+			length:   1,
+			count:    2,
+		},
+		"One group, expect one user removed": {
+			groupIDs: []string{group1.Id},
+			page:     0,
+			perPage:  100,
+			length:   1,
+			count:    1,
+			otherAssertions: func(uwg []*model.UserWithGroups) {
+				require.Equal(t, uwg[0].Id, user2.Id)
+			},
+		},
+		"Other group, expect other user removed": {
+			groupIDs: []string{group2.Id},
+			page:     0,
+			perPage:  100,
+			length:   1,
+			count:    1,
+			otherAssertions: func(uwg []*model.UserWithGroups) {
+				require.Equal(t, uwg[0].Id, user1.Id)
+			},
+		},
+	}
+
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			uwg, count, res := th.SystemAdminClient.ChannelMembersMinusGroupMembers(channel.Id, tc.groupIDs, tc.page, tc.perPage, "")
+			require.Nil(t, res.Error)
+			require.Len(t, uwg, tc.length)
+			require.Equal(t, tc.count, int(count))
+			if tc.otherAssertions != nil {
+				tc.otherAssertions(uwg)
+			}
+		})
+	}
+}

@@ -81,10 +81,10 @@ func checkNoError(t *testing.T, err *model.AppError) {
 }
 
 func AssertAllPostsCount(t *testing.T, a *App, initialCount int64, change int64, teamName string) {
-	if result := <-a.Srv.Store.Post().AnalyticsPostCount(teamName, false, false); result.Err != nil {
-		t.Fatal(result.Err)
+	if result, err := a.Srv.Store.Post().AnalyticsPostCount(teamName, false, false); err != nil {
+		t.Fatal(err)
 	} else {
-		if initialCount+change != result.Data.(int64) {
+		if initialCount+change != result {
 			debug.PrintStack()
 			t.Fatalf("Did not find the expected number of posts.")
 		}
@@ -92,8 +92,7 @@ func AssertAllPostsCount(t *testing.T, a *App, initialCount int64, change int64,
 }
 
 func AssertChannelCount(t *testing.T, a *App, channelType string, expectedCount int64) {
-	if r := <-a.Srv.Store.Channel().AnalyticsTypeCount("", channelType); r.Err == nil {
-		count := r.Data.(int64)
+	if count, err := a.Srv.Store.Channel().AnalyticsTypeCount("", channelType); err == nil {
 		if count != expectedCount {
 			debug.PrintStack()
 			t.Fatalf("Channel count of type: %v. Expected: %v, Got: %v", channelType, expectedCount, count)
