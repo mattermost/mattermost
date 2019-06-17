@@ -21,10 +21,11 @@ func TestReactionStore(t *testing.T, ss store.Store) {
 }
 
 func testReactionSave(t *testing.T, ss store.Store) {
-	post := store.Must(ss.Post().Save(&model.Post{
+	post, err := ss.Post().Save(&model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
-	})).(*model.Post)
+	})
+	require.Nil(t, err)
 	firstUpdateAt := post.UpdateAt
 
 	reaction1 := &model.Reaction{
@@ -32,7 +33,8 @@ func testReactionSave(t *testing.T, ss store.Store) {
 		PostId:    post.Id,
 		EmojiName: model.NewId(),
 	}
-	if reaction, err := ss.Reaction().Save(reaction1); err != nil {
+	reaction, err := ss.Reaction().Save(reaction1)
+	if err != nil {
 		t.Fatal(err)
 	} else if saved := reaction; saved.UserId != reaction1.UserId ||
 		saved.PostId != reaction1.PostId || saved.EmojiName != reaction1.EmojiName {
@@ -107,10 +109,11 @@ func testReactionSave(t *testing.T, ss store.Store) {
 }
 
 func testReactionDelete(t *testing.T, ss store.Store) {
-	post := store.Must(ss.Post().Save(&model.Post{
+	post, err := ss.Post().Save(&model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
-	})).(*model.Post)
+	})
+	require.Nil(t, err)
 
 	reaction := &model.Reaction{
 		UserId:    model.NewId(),
@@ -118,7 +121,7 @@ func testReactionDelete(t *testing.T, ss store.Store) {
 		EmojiName: model.NewId(),
 	}
 
-	_, err := ss.Reaction().Save(reaction)
+	_, err = ss.Reaction().Save(reaction)
 	require.Nil(t, err)
 	result, err := ss.Post().Get(reaction.PostId)
 	if err != nil {
@@ -232,18 +235,21 @@ func testReactionGetForPost(t *testing.T, ss store.Store) {
 func testReactionDeleteAllWithEmojiName(t *testing.T, ss store.Store) {
 	emojiToDelete := model.NewId()
 
-	post := store.Must(ss.Post().Save(&model.Post{
+	post, err1 := ss.Post().Save(&model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
-	})).(*model.Post)
-	post2 := store.Must(ss.Post().Save(&model.Post{
+	})
+	require.Nil(t, err1)
+	post2, err2 := ss.Post().Save(&model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
-	})).(*model.Post)
-	post3 := store.Must(ss.Post().Save(&model.Post{
+	})
+	require.Nil(t, err2)
+	post3, err3 := ss.Post().Save(&model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
-	})).(*model.Post)
+	})
+	require.Nil(t, err3)
 
 	userId := model.NewId()
 
@@ -337,10 +343,11 @@ func testReactionDeleteAllWithEmojiName(t *testing.T, ss store.Store) {
 }
 
 func testReactionStorePermanentDeleteBatch(t *testing.T, ss store.Store) {
-	post := store.Must(ss.Post().Save(&model.Post{
+	post, err1 := ss.Post().Save(&model.Post{
 		ChannelId: model.NewId(),
 		UserId:    model.NewId(),
-	})).(*model.Post)
+	})
+	require.Nil(t, err1)
 
 	reactions := []*model.Reaction{
 		{

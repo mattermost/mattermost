@@ -124,8 +124,8 @@ func testSessionRemove(t *testing.T, ss store.Store) {
 		}
 	}
 
-	store.Must(ss.Session().Remove(s1.Id))
-
+	removeErr := ss.Session().Remove(s1.Id)
+	require.Nil(t, removeErr)
 	if _, err := ss.Session().Get(s1.Id); err == nil {
 		t.Fatal("should have been removed")
 	}
@@ -192,7 +192,8 @@ func testSessionRemoveToken(t *testing.T, ss store.Store) {
 		}
 	}
 
-	store.Must(ss.Session().Remove(s1.Token))
+	removeErr := ss.Session().Remove(s1.Token)
+	require.Nil(t, removeErr)
 
 	if _, err := ss.Session().Get(s1.Id); err == nil {
 		t.Fatal("should have been removed")
@@ -333,6 +334,9 @@ func testSessionCleanup(t *testing.T, ss store.Store) {
 	_, err = ss.Session().Get(s4.Id)
 	assert.NotNil(t, err)
 
-	store.Must(ss.Session().Remove(s1.Id))
-	store.Must(ss.Session().Remove(s2.Id))
+	removeErr := ss.Session().Remove(s1.Id)
+	require.Nil(t, removeErr)
+
+	removeErr = ss.Session().Remove(s2.Id)
+	require.Nil(t, removeErr)
 }

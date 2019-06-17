@@ -943,14 +943,11 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel, teamMem
 }
 
 func (a *App) AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
-	tmchan := a.Srv.Store.Team().GetMember(channel.TeamId, user.Id)
-	var teamMember *model.TeamMember
+	teamMember, err := a.Srv.Store.Team().GetMember(channel.TeamId, user.Id)
 
-	result := <-tmchan
-	if result.Err != nil {
-		return nil, result.Err
+	if err != nil {
+		return nil, err
 	}
-	teamMember = result.Data.(*model.TeamMember)
 	if teamMember.DeleteAt > 0 {
 		return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.deleted.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -1193,16 +1190,16 @@ func (a *App) GetChannelByName(channelName, teamId string, includeDeleted bool) 
 }
 
 func (a *App) GetChannelsByNames(channelNames []string, teamId string) ([]*model.Channel, *model.AppError) {
-	result := <-a.Srv.Store.Channel().GetByNames(teamId, channelNames, true)
-	if result.Err != nil {
-		if result.Err.Id == "store.sql_channel.get_by_name.missing.app_error" {
-			result.Err.StatusCode = http.StatusNotFound
-			return nil, result.Err
+	channels, err := a.Srv.Store.Channel().GetByNames(teamId, channelNames, true)
+	if err != nil {
+		if err.Id == "store.sql_channel.get_by_name.missing.app_error" {
+			err.StatusCode = http.StatusNotFound
+			return nil, err
 		}
-		result.Err.StatusCode = http.StatusBadRequest
-		return nil, result.Err
+		err.StatusCode = http.StatusBadRequest
+		return nil, err
 	}
-	return result.Data.([]*model.Channel), nil
+	return channels, nil
 }
 
 func (a *App) GetChannelByNameForTeamName(channelName, teamName string, includeDeleted bool) (*model.Channel, *model.AppError) {
@@ -1268,11 +1265,7 @@ func (a *App) GetDeletedChannels(teamId string, offset int, limit int) (*model.C
 }
 
 func (a *App) GetChannelsUserNotIn(teamId string, userId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
-	result := <-a.Srv.Store.Channel().GetMoreChannels(teamId, userId, offset, limit)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.ChannelList), nil
+	return a.Srv.Store.Channel().GetMoreChannels(teamId, userId, offset, limit)
 }
 
 func (a *App) GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) (*model.ChannelList, *model.AppError) {
@@ -1362,11 +1355,7 @@ func (a *App) GetChannelMemberCount(channelId string) (int64, *model.AppError) {
 }
 
 func (a *App) GetChannelCounts(teamId string, userId string) (*model.ChannelCounts, *model.AppError) {
-	result := <-a.Srv.Store.Channel().GetChannelCounts(teamId, userId)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.ChannelCounts), nil
+	return a.Srv.Store.Channel().GetChannelCounts(teamId, userId)
 }
 
 func (a *App) GetChannelUnread(channelId, userId string) (*model.ChannelUnread, *model.AppError) {

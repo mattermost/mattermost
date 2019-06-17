@@ -136,6 +136,10 @@
     "translation": "Bot creation has been disabled."
   },
   {
+    "id": "api.bot.teams_channels.add_message_mobile",
+    "translation": "Please add me to teams and channels you want me to interact in. To do this, use the browser or Mattermost Desktop App."
+  },
+  {
     "id": "api.channel.add_member.added",
     "translation": "%v added to the channel by %v."
   },
@@ -6525,6 +6529,10 @@
   {
     "id": "store.sql_team.get.finding.app_error",
     "translation": "We encountered an error finding the team"
+  },
+  {
+    "id": "store.sql_team.get_active_member_count.app_error",
+    "translation": "Unable to count the team members"
   },
   {
     "id": "store.sql_team.get_all.app_error",
