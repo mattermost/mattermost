@@ -2154,11 +2154,11 @@ func (a *App) getListOfAllowedChannelsForTeam(teamId string, viewRestrictions *m
 		return channelIds, nil
 	}
 
-	cresult := <-a.Srv.Store.Channel().GetChannelsByIds(viewRestrictions.Channels)
-	if cresult.Err != nil {
-		return nil, cresult.Err
+	channels, err := a.Srv.Store.Channel().GetChannelsByIds(viewRestrictions.Channels)
+	if err != nil {
+		return nil, err
 	}
-	for _, c := range cresult.Data.([]*model.Channel) {
+	for _, c := range channels {
 		if c.TeamId == teamId {
 			listOfAllowedChannels = append(listOfAllowedChannels, c.Id)
 		}
