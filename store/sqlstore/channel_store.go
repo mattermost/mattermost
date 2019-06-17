@@ -994,8 +994,8 @@ func (s SqlChannelStore) GetAllChannels(offset int, limit int, opts store.Channe
 }
 
 func (s SqlChannelStore) GetMoreChannels(teamId string, userId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
-	data := &model.ChannelList{}
-	_, err := s.GetReplica().Select(data, `
+	channels := &model.ChannelList{}
+	_, err := s.GetReplica().Select(channels, `
 		SELECT
 			Channels.*
 		FROM
@@ -1032,7 +1032,7 @@ func (s SqlChannelStore) GetMoreChannels(teamId string, userId string, offset in
 		return nil, model.NewAppError("SqlChannelStore.GetMoreChannels", "store.sql_channel.get_more_channels.get.app_error", nil, "teamId="+teamId+", userId="+userId+", err="+err.Error(), http.StatusInternalServerError)
 	}
 
-	return data, nil
+	return channels, nil
 }
 
 func (s SqlChannelStore) GetPublicChannelsForTeam(teamId string, offset int, limit int) store.StoreChannel {
