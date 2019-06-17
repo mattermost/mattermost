@@ -780,11 +780,10 @@ func testChannelStoreGetDeleted(t *testing.T, ss store.Store) {
 	err = ss.Channel().Delete(o1.Id, model.GetMillis())
 	require.Nil(t, err, "channel should have been deleted")
 
-	cresult := <-ss.Channel().GetDeleted(o1.TeamId, 0, 100)
-	if cresult.Err != nil {
-		t.Fatal(cresult.Err)
+	list, err := ss.Channel().GetDeleted(o1.TeamId, 0, 100)
+	if err != nil {
+		t.Fatal(err)
 	}
-	list := cresult.Data.(*model.ChannelList)
 
 	if len(*list) != 1 {
 		t.Fatal("wrong list")
@@ -802,11 +801,10 @@ func testChannelStoreGetDeleted(t *testing.T, ss store.Store) {
 	_, err = ss.Channel().Save(&o2, -1)
 	require.Nil(t, err)
 
-	cresult = <-ss.Channel().GetDeleted(o1.TeamId, 0, 100)
-	if cresult.Err != nil {
-		t.Fatal(cresult.Err)
+	list, err = ss.Channel().GetDeleted(o1.TeamId, 0, 100)
+	if err != nil {
+		t.Fatal(err)
 	}
-	list = cresult.Data.(*model.ChannelList)
 
 	if len(*list) != 1 {
 		t.Fatal("wrong list")
@@ -824,31 +822,28 @@ func testChannelStoreGetDeleted(t *testing.T, ss store.Store) {
 	err = ss.Channel().Delete(o3.Id, model.GetMillis())
 	require.Nil(t, err, "channel should have been deleted")
 
-	cresult = <-ss.Channel().GetDeleted(o1.TeamId, 0, 100)
-	if cresult.Err != nil {
-		t.Fatal(cresult.Err)
+	list, err = ss.Channel().GetDeleted(o1.TeamId, 0, 100)
+	if err != nil {
+		t.Fatal(err)
 	}
-	list = cresult.Data.(*model.ChannelList)
 
 	if len(*list) != 2 {
 		t.Fatal("wrong list length")
 	}
 
-	cresult = <-ss.Channel().GetDeleted(o1.TeamId, 0, 1)
-	if cresult.Err != nil {
-		t.Fatal(cresult.Err)
+	list, err = ss.Channel().GetDeleted(o1.TeamId, 0, 1)
+	if err != nil {
+		t.Fatal(err)
 	}
-	list = cresult.Data.(*model.ChannelList)
 
 	if len(*list) != 1 {
 		t.Fatal("wrong list length")
 	}
 
-	cresult = <-ss.Channel().GetDeleted(o1.TeamId, 1, 1)
-	if cresult.Err != nil {
-		t.Fatal(cresult.Err)
+	list, err = ss.Channel().GetDeleted(o1.TeamId, 1, 1)
+	if err != nil {
+		t.Fatal(err)
 	}
-	list = cresult.Data.(*model.ChannelList)
 
 	if len(*list) != 1 {
 		t.Fatal("wrong list length")
