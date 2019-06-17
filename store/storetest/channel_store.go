@@ -1038,7 +1038,8 @@ func testChannelStoreGetChannels(t *testing.T, ss store.Store) {
 	m3.NotifyProps = model.GetDefaultChannelNotifyProps()
 	store.Must(ss.Channel().SaveMember(&m3))
 
-	list, _ := ss.Channel().GetChannels(o1.TeamId, m1.UserId, false)
+	list, err := ss.Channel().GetChannels(o1.TeamId, m1.UserId, false)
+	require.Nil(t, err)
 
 	if (*list)[0].Id != o1.Id {
 		t.Fatal("missing channel")

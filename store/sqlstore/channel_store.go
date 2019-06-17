@@ -934,18 +934,18 @@ func (s SqlChannelStore) GetChannels(teamId string, userId string, includeDelete
 	if includeDeleted {
 		query = "SELECT Channels.* FROM Channels, ChannelMembers WHERE Id = ChannelId AND UserId = :UserId AND (TeamId = :TeamId OR TeamId = '') ORDER BY DisplayName"
 	}
-	data := &model.ChannelList{}
-	_, err := s.GetReplica().Select(data, query, map[string]interface{}{"TeamId": teamId, "UserId": userId})
+	channels := &model.ChannelList{}
+	_, err := s.GetReplica().Select(channels, query, map[string]interface{}{"TeamId": teamId, "UserId": userId})
 
 	if err != nil {
 		return nil, model.NewAppError("SqlChannelStore.GetChannels", "store.sql_channel.get_channels.get.app_error", nil, "teamId="+teamId+", userId="+userId+", err="+err.Error(), http.StatusInternalServerError)
 	}
 
-	if len(*data) == 0 {
+	if len(*channels) == 0 {
 		return nil, model.NewAppError("SqlChannelStore.GetChannels", "store.sql_channel.get_channels.not_found.app_error", nil, "teamId="+teamId+", userId="+userId, http.StatusBadRequest)
 	}
 
-	return data, nil
+	return channels, nil
 }
 
 func (s SqlChannelStore) GetAllChannels(offset int, limit int, opts store.ChannelSearchOpts) store.StoreChannel {
