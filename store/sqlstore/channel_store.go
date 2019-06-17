@@ -1478,13 +1478,12 @@ func (s SqlChannelStore) IsUserInChannelUseCache(userId string, channelId string
 		s.metrics.IncrementMemCacheMissCounter("All Channel Members for User")
 	}
 
-	result := <-s.GetAllChannelMembersForUser(userId, true, false)
-	if result.Err != nil {
-		mlog.Error("SqlChannelStore.IsUserInChannelUseCache: " + result.Err.Error())
+	ids, err := s.GetAllChannelMembersForUser(userId, true, false)
+	if err != nil {
+		mlog.Error("SqlChannelStore.IsUserInChannelUseCache: " + err.Error())
 		return false
 	}
 
-	ids := result.Data.(map[string]string)
 	if _, ok := ids[channelId]; ok {
 		return true
 	}
@@ -1527,8 +1526,7 @@ func (s SqlChannelStore) GetMemberForPost(postId string, userId string) store.St
 	})
 }
 
-func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCache bool, includeDeleted bool) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
+func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCache bool, includeDeleted bool) (map[string]string, *model.AppError) {
 		cache_key := userId
 		if includeDeleted {
 			cache_key += "_deleted"
@@ -1538,8 +1536,8 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCac
 				if s.metrics != nil {
 					s.metrics.IncrementMemCacheHitCounter("All Channel Members for User")
 				}
-				result.Data = cacheItem.(map[string]string)
-				return
+				ids := cacheItem.(map[string]string)
+				return ids, nil
 			}
 		}
 
@@ -1578,17 +1576,15 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCac
 				ChannelMembers.UserId = :UserId`, map[string]interface{}{"UserId": userId})
 
 		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.GetAllChannelMembersForUser", "store.sql_channel.get_channels.get.app_error", nil, "userId="+userId+", err="+err.Error(), http.StatusInternalServerError)
-			return
+			return nil, model.NewAppError("SqlChannelStore.GetAllChannelMembersForUser", "store.sql_channel.get_channels.get.app_error", nil, "userId="+userId+", err="+err.Error(), http.StatusInternalServerError)
 		}
 
 		ids := data.ToMapStringString()
-		result.Data = ids
 
 		if allowFromCache {
 			allChannelMembersForUserCache.AddWithExpiresInSecs(cache_key, ids, ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SEC)
 		}
-	})
+		return ids, nil
 }
 
 func (s SqlChannelStore) InvalidateCacheForChannelMembersNotifyProps(channelId string) {
