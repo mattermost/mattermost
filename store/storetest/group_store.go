@@ -47,6 +47,7 @@ func TestGroupStore(t *testing.T, ss store.Store) {
 	t.Run("GetGroups", func(t *testing.T) { testGetGroups(t, ss) })
 
 	t.Run("TeamMembersMinusGroupMembers", func(t *testing.T) { testTeamMembersMinusGroupMembers(t, ss) })
+	t.Run("ChannelMembersMinusGroupMembers", func(t *testing.T) { testChannelMembersMinusGroupMembers(t, ss) })
 }
 
 func testGroupStoreCreate(t *testing.T, ss store.Store) {
@@ -2387,6 +2388,160 @@ func testTeamMembersMinusGroupMembers(t *testing.T, ss store.Store) {
 			}
 
 			actualCount, err := ss.Group().CountTeamMembersMinusGroupMembers(team.Id, tc.groupIDs)
+			require.Nil(t, err)
+			require.Equal(t, tc.expectedTotalCount, actualCount)
+		})
+	}
+}
+
+func testChannelMembersMinusGroupMembers(t *testing.T, ss store.Store) {
+	const numberOfGroups = 3
+	const numberOfUsers = 4
+
+	groups := []*model.Group{}
+	users := []*model.User{}
+
+	channel := &model.Channel{
+		TeamId:           model.NewId(),
+		DisplayName:      "A Name",
+		Name:             model.NewId(),
+		Type:             model.CHANNEL_PRIVATE,
+		GroupConstrained: model.NewBool(true),
+	}
+	channel, err := ss.Channel().Save(channel, 9999)
+	require.Nil(t, err)
+
+	for i := 0; i < numberOfUsers; i++ {
+		user := &model.User{
+			Email:    MakeEmail(),
+			Username: model.NewId(),
+		}
+		res := <-ss.User().Save(user)
+		require.Nil(t, res.Err)
+		user = res.Data.(*model.User)
+		users = append(users, user)
+
+		trueOrFalse := int(math.Mod(float64(i), 2)) == 0
+		res = <-ss.Channel().SaveMember(&model.ChannelMember{
+			ChannelId:   channel.Id,
+			UserId:      user.Id,
+			SchemeUser:  trueOrFalse,
+			SchemeAdmin: !trueOrFalse,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.Nil(t, res.Err)
+	}
+
+	for i := 0; i < numberOfGroups; i++ {
+		group := &model.Group{
+			Name:        fmt.Sprintf("n_%d_%s", i, model.NewId()),
+			DisplayName: model.NewId(),
+			Source:      model.GroupSourceLdap,
+			Description: model.NewId(),
+			RemoteId:    model.NewId(),
+		}
+		res := <-ss.Group().Create(group)
+		require.Nil(t, res.Err)
+		group = res.Data.(*model.Group)
+		groups = append(groups, group)
+	}
+
+	sort.Slice(users, func(i, j int) bool {
+		return users[i].Id < users[j].Id
+	})
+
+	// Add even users to even group, and the inverse
+	for i := 0; i < numberOfUsers; i++ {
+		groupIndex := int(math.Mod(float64(i), 2))
+		res := <-ss.Group().CreateOrRestoreMember(groups[groupIndex].Id, users[i].Id)
+		require.Nil(t, res.Err)
+
+		// Add everyone to group 2
+		res = <-ss.Group().CreateOrRestoreMember(groups[numberOfGroups-1].Id, users[i].Id)
+		require.Nil(t, res.Err)
+	}
+
+	testCases := map[string]struct {
+		expectedUserIDs    []string
+		expectedTotalCount int64
+		groupIDs           []string
+		page               int
+		perPage            int
+		setup              func()
+		teardown           func()
+	}{
+		"No group IDs, all members": {
+			expectedUserIDs:    []string{users[0].Id, users[1].Id, users[2].Id, users[3].Id},
+			expectedTotalCount: numberOfUsers,
+			groupIDs:           []string{},
+			page:               0,
+			perPage:            100,
+		},
+		"All members, page 1": {
+			expectedUserIDs:    []string{users[0].Id, users[1].Id},
+			expectedTotalCount: numberOfUsers,
+			groupIDs:           []string{},
+			page:               0,
+			perPage:            2,
+		},
+		"All members, page 2": {
+			expectedUserIDs:    []string{users[2].Id, users[3].Id},
+			expectedTotalCount: numberOfUsers,
+			groupIDs:           []string{},
+			page:               1,
+			perPage:            2,
+		},
+		"Group 1, even users would be removed": {
+			expectedUserIDs:    []string{users[0].Id, users[2].Id},
+			expectedTotalCount: 2,
+			groupIDs:           []string{groups[1].Id},
+			page:               0,
+			perPage:            100,
+		},
+		"Group 0, odd users would be removed": {
+			expectedUserIDs:    []string{users[1].Id, users[3].Id},
+			expectedTotalCount: 2,
+			groupIDs:           []string{groups[0].Id},
+			page:               0,
+			perPage:            100,
+		},
+		"All groups, no users would be removed": {
+			expectedUserIDs:    []string{},
+			expectedTotalCount: 0,
+			groupIDs:           []string{groups[0].Id, groups[1].Id},
+			page:               0,
+			perPage:            100,
+		},
+	}
+
+	mapUserIDs := func(users []*model.UserWithGroups) []string {
+		ids := []string{}
+		for _, user := range users {
+			ids = append(ids, user.Id)
+		}
+		return ids
+	}
+
+	for tcName, tc := range testCases {
+		t.Run(tcName, func(t *testing.T) {
+			if tc.setup != nil {
+				tc.setup()
+			}
+
+			if tc.teardown != nil {
+				defer tc.teardown()
+			}
+
+			actual, err := ss.Group().ChannelMembersMinusGroupMembers(channel.Id, tc.groupIDs, tc.page, tc.perPage)
+			require.Nil(t, err)
+			require.ElementsMatch(t, tc.expectedUserIDs, mapUserIDs(actual))
+
+			for _, user := range actual {
+				require.NotNil(t, user.GroupIDs)
+				require.True(t, (user.SchemeAdmin || user.SchemeUser))
+			}
+
+			actualCount, err := ss.Group().CountChannelMembersMinusGroupMembers(channel.Id, tc.groupIDs)
 			require.Nil(t, err)
 			require.Equal(t, tc.expectedTotalCount, actualCount)
 		})

@@ -4424,3 +4424,15 @@ func (c *Client4) TeamMembersMinusGroupMembers(teamID string, groupIDs []string,
 	ugc := UsersWithGroupsAndCountFromJson(r.Body)
 	return ugc.Users, ugc.Count, BuildResponse(r)
 }
+
+func (c *Client4) ChannelMembersMinusGroupMembers(channelID string, groupIDs []string, page, perPage int, etag string) ([]*UserWithGroups, int64, *Response) {
+	groupIDStr := strings.Join(groupIDs, ",")
+	query := fmt.Sprintf("?group_ids=%s&page=%d&per_page=%d", groupIDStr, page, perPage)
+	r, err := c.DoApiGet(c.GetChannelRoute(channelID)+"/members_minus_group_members"+query, etag)
+	if err != nil {
+		return nil, 0, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	ugc := UsersWithGroupsAndCountFromJson(r.Body)
+	return ugc.Users, ugc.Count, BuildResponse(r)
+}

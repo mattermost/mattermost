@@ -1128,3 +1128,80 @@ func (s *SqlGroupStore) CountTeamMembersMinusGroupMembers(teamID string, groupID
 
 	return count, nil
 }
+
+func (s *SqlGroupStore) channelMembersMinusGroupMembersQuery(channelID string, groupIDs []string, isCount bool) squirrel.SelectBuilder {
+	var selectStr string
+
+	if isCount {
+		selectStr = "count(DISTINCT Users.Id)"
+	} else {
+		tmpl := "Users.*, ChannelMembers.SchemeGuest, ChannelMembers.SchemeAdmin, ChannelMembers.SchemeUser, %s AS GroupIDs"
+		if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+			selectStr = fmt.Sprintf(tmpl, "group_concat(UserGroups.Id)")
+		} else {
+			selectStr = fmt.Sprintf(tmpl, "string_agg(UserGroups.Id, ',')")
+		}
+	}
+
+	subQuery := s.getQueryBuilder().Select("GroupMembers.UserId").
+		From("GroupMembers").
+		Join("UserGroups ON UserGroups.Id = GroupMembers.GroupId").
+		Where("GroupMembers.DeleteAt = 0").
+		Where(fmt.Sprintf("GroupMembers.GroupId IN ('%s')", strings.Join(groupIDs, "', '")))
+
+	sql, _ := subQuery.MustSql()
+
+	query := s.getQueryBuilder().Select(selectStr).
+		From("ChannelMembers").
+		Join("Channels ON Channels.Id = ChannelMembers.ChannelId").
+		Join("Users ON Users.Id = ChannelMembers.UserId").
+		LeftJoin("Bots ON Bots.UserId = ChannelMembers.UserId").
+		Join("GroupMembers ON GroupMembers.UserId = Users.Id").
+		Join("UserGroups ON UserGroups.Id = GroupMembers.GroupId").
+		Where("Channels.DeleteAt = 0").
+		Where("Users.DeleteAt = 0").
+		Where("Bots.UserId IS NULL").
+		Where("Channels.Id = ?", channelID).
+		Where(fmt.Sprintf("Users.Id NOT IN (%s)", sql))
+
+	if !isCount {
+		query = query.GroupBy("Users.Id, ChannelMembers.SchemeGuest, ChannelMembers.SchemeAdmin, ChannelMembers.SchemeUser")
+	}
+
+	return query
+}
+
+// ChannelMembersMinusGroupMembers returns the set of users in the given channel minus the set of users in the given
+// groups.
+func (s *SqlGroupStore) ChannelMembersMinusGroupMembers(channelID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, *model.AppError) {
+	query := s.channelMembersMinusGroupMembersQuery(channelID, groupIDs, false)
+	query = query.OrderBy("Users.Id").Limit(uint64(perPage)).Offset(uint64(page * perPage))
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlGroupStore.ChannelMembersMinusGroupMembers", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	var users []*model.UserWithGroups
+	if _, err = s.GetReplica().Select(&users, queryString, args...); err != nil {
+		return nil, model.NewAppError("SqlGroupStore.ChannelMembersMinusGroupMembers", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return users, nil
+}
+
+// CountChannelMembersMinusGroupMembers returns the count of the set of users in the given channel minus the set of users
+// in the given groups.
+func (s *SqlGroupStore) CountChannelMembersMinusGroupMembers(channelID string, groupIDs []string) (int64, *model.AppError) {
+	queryString, args, err := s.channelMembersMinusGroupMembersQuery(channelID, groupIDs, true).ToSql()
+	if err != nil {
+		return 0, model.NewAppError("SqlGroupStore.CountChannelMembersMinusGroupMembers", "store.sql_group.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	var count int64
+	if count, err = s.GetReplica().SelectInt(queryString, args...); err != nil {
+		return 0, model.NewAppError("SqlGroupStore.CountChannelMembersMinusGroupMembers", "store.select_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return count, nil
+}
