@@ -104,6 +104,7 @@ func (env *Environment) IsActive(id string) bool {
 	return ok
 }
 
+// GetPluginState returns the current state of a plugin (disabled, running, or error)
 func (env *Environment) GetPluginState(id string) int {
 	h, ok := env.pluginHealthStatuses.Load(id)
 	if !ok {
@@ -113,6 +114,7 @@ func (env *Environment) GetPluginState(id string) int {
 	return *h.(*pluginHealthStatus).State
 }
 
+// SetPluginState sets the current state of a plugin (disabled, running, or error)
 func (env *Environment) SetPluginState(id string, state int) bool {
 	h, ok := env.pluginHealthStatuses.Load(id)
 	if !ok {
