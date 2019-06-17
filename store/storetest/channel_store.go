@@ -484,30 +484,28 @@ func testChannelStoreGetChannelsByIds(t *testing.T, ss store.Store) {
 	_, err = ss.Channel().SaveDirectChannel(&o2, &m1, &m2)
 	require.Nil(t, err)
 
-	if r1 := <-ss.Channel().GetChannelsByIds([]string{o1.Id, o2.Id}); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if r1, err := ss.Channel().GetChannelsByIds([]string{o1.Id, o2.Id}); err != nil {
+		t.Fatal(err)
 	} else {
-		cl := r1.Data.([]*model.Channel)
-		if len(cl) != 2 {
-			t.Fatal("invalid returned channels, expected 2 and got " + strconv.Itoa(len(cl)))
+		if len(r1) != 2 {
+			t.Fatal("invalid returned channels, expected 2 and got " + strconv.Itoa(len(r1)))
 		}
-		if cl[0].ToJson() != o1.ToJson() {
+		if r1[0].ToJson() != o1.ToJson() {
 			t.Fatal("invalid returned channel")
 		}
-		if cl[1].ToJson() != o2.ToJson() {
+		if r1[1].ToJson() != o2.ToJson() {
 			t.Fatal("invalid returned channel")
 		}
 	}
 
 	nonexistentId := "abcd1234"
-	if r2 := <-ss.Channel().GetChannelsByIds([]string{o1.Id, nonexistentId}); r2.Err != nil {
-		t.Fatal(r2.Err)
+	if r2, err := ss.Channel().GetChannelsByIds([]string{o1.Id, nonexistentId}); err != nil {
+		t.Fatal(err)
 	} else {
-		cl := r2.Data.([]*model.Channel)
-		if len(cl) != 1 {
-			t.Fatal("invalid returned channels, expected 1 and got " + strconv.Itoa(len(cl)))
+		if len(r2) != 1 {
+			t.Fatal("invalid returned channels, expected 1 and got " + strconv.Itoa(len(r2)))
 		}
-		if cl[0].ToJson() != o1.ToJson() {
+		if r2[0].ToJson() != o1.ToJson() {
 			t.Fatal("invalid returned channel")
 		}
 	}

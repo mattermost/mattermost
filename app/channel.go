@@ -1759,11 +1759,11 @@ func (a *App) AutocompleteChannels(teamId string, term string) (*model.ChannelLi
 
 		channelList := model.ChannelList{}
 		if len(channelIds) > 0 {
-			cresult := <-a.Srv.Store.Channel().GetChannelsByIds(channelIds)
-			if cresult.Err != nil {
-				return nil, cresult.Err
+			channels, err := a.Srv.Store.Channel().GetChannelsByIds(channelIds)
+			if err != nil {
+				return nil, err
 			}
-			for _, c := range cresult.Data.([]*model.Channel) {
+			for _, c := range channels {
 				if c.DeleteAt > 0 && !includeDeleted {
 					continue
 				}

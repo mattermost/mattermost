@@ -1857,22 +1857,18 @@ func (s SqlChannelStore) GetAll(teamId string) store.StoreChannel {
 	})
 }
 
-func (s SqlChannelStore) GetChannelsByIds(channelIds []string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		keys, params := MapStringsToQueryParams(channelIds, "Channel")
+func (s SqlChannelStore) GetChannelsByIds(channelIds []string) ([]*model.Channel, *model.AppError) {
+	keys, params := MapStringsToQueryParams(channelIds, "Channel")
+	query := `SELECT * FROM Channels WHERE Id IN ` + keys + ` ORDER BY Name`
 
-		query := `SELECT * FROM Channels WHERE Id IN ` + keys + ` ORDER BY Name`
+	var channels []*model.Channel
+	_, err := s.GetReplica().Select(&channels, query, params)
 
-		var channels []*model.Channel
-		_, err := s.GetReplica().Select(&channels, query, params)
-
-		if err != nil {
-			mlog.Error(fmt.Sprint(err))
-			result.Err = model.NewAppError("SqlChannelStore.GetChannelsByIds", "store.sql_channel.get_channels_by_ids.app_error", nil, "", http.StatusInternalServerError)
-		} else {
-			result.Data = channels
-		}
-	})
+	if err != nil {
+		mlog.Error(fmt.Sprint(err))
+		return nil, model.NewAppError("SqlChannelStore.GetChannelsByIds", "store.sql_channel.get_channels_by_ids.app_error", nil, "", http.StatusInternalServerError)
+	}
+	return channels, nil
 }
 
 func (s SqlChannelStore) GetForPost(postId string) store.StoreChannel {
