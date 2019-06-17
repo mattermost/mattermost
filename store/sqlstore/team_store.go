@@ -339,11 +339,11 @@ func (s SqlTeamStore) SearchPrivate(term string) ([]*model.Team, *model.AppError
 	var teams []*model.Team
 
 	query :=
-		`SELECT * 
-		FROM 
-			Teams 
-		WHERE 
-			(Type != 'O' OR AllowOpenInvite = false) AND 
+		`SELECT *
+		FROM
+			Teams
+		WHERE
+			(Type != 'O' OR AllowOpenInvite = false) AND
 			(Name LIKE :Term OR DisplayName LIKE :Term)`
 	if _, err := s.GetReplica().Select(&teams, query, map[string]interface{}{"Term": term + "%"}); err != nil {
 		return nil, model.NewAppError("SqlTeamStore.SearchPrivate", "store.sql_team.search_private_team.app_error", nil, "term="+term+", "+err.Error(), http.StatusInternalServerError)
@@ -361,16 +361,25 @@ func (s SqlTeamStore) GetAll() ([]*model.Team, *model.AppError) {
 	return teams, nil
 }
 
-func (s SqlTeamStore) GetAllPage(offset int, limit int) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var data []*model.Team
-		if _, err := s.GetReplica().Select(&data, "SELECT * FROM Teams ORDER BY DisplayName LIMIT :Limit OFFSET :Offset", map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.GetAllTeams", "store.sql_team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+func (s SqlTeamStore) GetAllPage(offset int, limit int) ([]*model.Team, *model.AppError) {
+	var teams []*model.Team
 
-		result.Data = data
-	})
+	if _, err := s.GetReplica().Select(&teams,
+		`SELECT
+			*
+		FROM
+			Teams
+		ORDER BY
+			DisplayName
+		LIMIT
+			:Limit
+		OFFSET
+			:Offset`, map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
+		return nil, model.NewAppError("SqlTeamStore.GetAllTeams",
+			"store.sql_team.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return teams, nil
 }
 
 func (s SqlTeamStore) GetTeamsByUserId(userId string) store.StoreChannel {
