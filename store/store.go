@@ -151,7 +151,7 @@ type ChannelStore interface {
 	GetAllChannels(page, perPage int, opts ChannelSearchOpts) StoreChannel
 	GetMoreChannels(teamId string, userId string, offset int, limit int) StoreChannel
 	GetPublicChannelsForTeam(teamId string, offset int, limit int) StoreChannel
-	GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) StoreChannel
+	GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) (*model.ChannelList, *model.AppError)
 	GetChannelCounts(teamId string, userId string) StoreChannel
 	GetTeamChannels(teamId string) StoreChannel
 	GetAll(teamId string) StoreChannel
