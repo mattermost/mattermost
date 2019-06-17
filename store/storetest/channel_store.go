@@ -484,30 +484,28 @@ func testChannelStoreGetChannelsByIds(t *testing.T, ss store.Store) {
 	_, err = ss.Channel().SaveDirectChannel(&o2, &m1, &m2)
 	require.Nil(t, err)
 
-	if r1 := <-ss.Channel().GetChannelsByIds([]string{o1.Id, o2.Id}); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if r1, err := ss.Channel().GetChannelsByIds([]string{o1.Id, o2.Id}); err != nil {
+		t.Fatal(err)
 	} else {
-		cl := r1.Data.([]*model.Channel)
-		if len(cl) != 2 {
-			t.Fatal("invalid returned channels, expected 2 and got " + strconv.Itoa(len(cl)))
+		if len(r1) != 2 {
+			t.Fatal("invalid returned channels, expected 2 and got " + strconv.Itoa(len(r1)))
 		}
-		if cl[0].ToJson() != o1.ToJson() {
+		if r1[0].ToJson() != o1.ToJson() {
 			t.Fatal("invalid returned channel")
 		}
-		if cl[1].ToJson() != o2.ToJson() {
+		if r1[1].ToJson() != o2.ToJson() {
 			t.Fatal("invalid returned channel")
 		}
 	}
 
 	nonexistentId := "abcd1234"
-	if r2 := <-ss.Channel().GetChannelsByIds([]string{o1.Id, nonexistentId}); r2.Err != nil {
-		t.Fatal(r2.Err)
+	if r2, err := ss.Channel().GetChannelsByIds([]string{o1.Id, nonexistentId}); err != nil {
+		t.Fatal(err)
 	} else {
-		cl := r2.Data.([]*model.Channel)
-		if len(cl) != 1 {
-			t.Fatal("invalid returned channels, expected 1 and got " + strconv.Itoa(len(cl)))
+		if len(r2) != 1 {
+			t.Fatal("invalid returned channels, expected 1 and got " + strconv.Itoa(len(r2)))
 		}
-		if cl[0].ToJson() != o1.ToJson() {
+		if r2[0].ToJson() != o1.ToJson() {
 			t.Fatal("invalid returned channel")
 		}
 	}
@@ -780,11 +778,10 @@ func testChannelStoreGetDeleted(t *testing.T, ss store.Store) {
 	err = ss.Channel().Delete(o1.Id, model.GetMillis())
 	require.Nil(t, err, "channel should have been deleted")
 
-	cresult := <-ss.Channel().GetDeleted(o1.TeamId, 0, 100)
-	if cresult.Err != nil {
-		t.Fatal(cresult.Err)
+	list, err := ss.Channel().GetDeleted(o1.TeamId, 0, 100)
+	if err != nil {
+		t.Fatal(err)
 	}
-	list := cresult.Data.(*model.ChannelList)
 
 	if len(*list) != 1 {
 		t.Fatal("wrong list")
@@ -802,11 +799,10 @@ func testChannelStoreGetDeleted(t *testing.T, ss store.Store) {
 	_, err = ss.Channel().Save(&o2, -1)
 	require.Nil(t, err)
 
-	cresult = <-ss.Channel().GetDeleted(o1.TeamId, 0, 100)
-	if cresult.Err != nil {
-		t.Fatal(cresult.Err)
+	list, err = ss.Channel().GetDeleted(o1.TeamId, 0, 100)
+	if err != nil {
+		t.Fatal(err)
 	}
-	list = cresult.Data.(*model.ChannelList)
 
 	if len(*list) != 1 {
 		t.Fatal("wrong list")
@@ -824,31 +820,28 @@ func testChannelStoreGetDeleted(t *testing.T, ss store.Store) {
 	err = ss.Channel().Delete(o3.Id, model.GetMillis())
 	require.Nil(t, err, "channel should have been deleted")
 
-	cresult = <-ss.Channel().GetDeleted(o1.TeamId, 0, 100)
-	if cresult.Err != nil {
-		t.Fatal(cresult.Err)
+	list, err = ss.Channel().GetDeleted(o1.TeamId, 0, 100)
+	if err != nil {
+		t.Fatal(err)
 	}
-	list = cresult.Data.(*model.ChannelList)
 
 	if len(*list) != 2 {
 		t.Fatal("wrong list length")
 	}
 
-	cresult = <-ss.Channel().GetDeleted(o1.TeamId, 0, 1)
-	if cresult.Err != nil {
-		t.Fatal(cresult.Err)
+	list, err = ss.Channel().GetDeleted(o1.TeamId, 0, 1)
+	if err != nil {
+		t.Fatal(err)
 	}
-	list = cresult.Data.(*model.ChannelList)
 
 	if len(*list) != 1 {
 		t.Fatal("wrong list length")
 	}
 
-	cresult = <-ss.Channel().GetDeleted(o1.TeamId, 1, 1)
-	if cresult.Err != nil {
-		t.Fatal(cresult.Err)
+	list, err = ss.Channel().GetDeleted(o1.TeamId, 1, 1)
+	if err != nil {
+		t.Fatal(err)
 	}
-	list = cresult.Data.(*model.ChannelList)
 
 	if len(*list) != 1 {
 		t.Fatal("wrong list length")
