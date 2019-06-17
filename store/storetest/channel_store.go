@@ -1152,31 +1152,36 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlSupplier)
 	_, err = ss.Channel().Save(&c5, -1)
 	require.Nil(t, err)
 
-	list, _ := ss.Channel().GetAllChannels(0, 10, store.ChannelSearchOpts{})
+	list, err := ss.Channel().GetAllChannels(0, 10, store.ChannelSearchOpts{})
+	require.Nil(t, err)
 	assert.Len(t, *list, 2)
 	assert.Equal(t, (*list)[0].Id, c1.Id)
 	assert.Equal(t, (*list)[0].TeamDisplayName, "Name")
 	assert.Equal(t, (*list)[1].Id, c3.Id)
 	assert.Equal(t, (*list)[1].TeamDisplayName, "Name2")
 
-	list, _ = ss.Channel().GetAllChannels(0, 10, store.ChannelSearchOpts{IncludeDeleted: true})
+	list, err = ss.Channel().GetAllChannels(0, 10, store.ChannelSearchOpts{IncludeDeleted: true})
+	require.Nil(t, err)
 	assert.Len(t, *list, 3)
 	assert.Equal(t, (*list)[0].Id, c1.Id)
 	assert.Equal(t, (*list)[0].TeamDisplayName, "Name")
 	assert.Equal(t, (*list)[1].Id, c2.Id)
 	assert.Equal(t, (*list)[2].Id, c3.Id)
 
-	list, _ = ss.Channel().GetAllChannels(0, 1, store.ChannelSearchOpts{IncludeDeleted: true})
+	list, err = ss.Channel().GetAllChannels(0, 1, store.ChannelSearchOpts{IncludeDeleted: true})
+	require.Nil(t, err)
 	assert.Len(t, *list, 1)
 	assert.Equal(t, (*list)[0].Id, c1.Id)
 	assert.Equal(t, (*list)[0].TeamDisplayName, "Name")
 
 	// Not associated to group
-	list, _ = ss.Channel().GetAllChannels(0, 10, store.ChannelSearchOpts{NotAssociatedToGroup: group.Id})
+	list, err = ss.Channel().GetAllChannels(0, 10, store.ChannelSearchOpts{NotAssociatedToGroup: group.Id})
+	require.Nil(t, err)
 	assert.Len(t, *list, 1)
 
 	// Exclude channel names
-	list, _ = ss.Channel().GetAllChannels(0, 10, store.ChannelSearchOpts{ExcludeChannelNames: []string{c1.Name}})
+	list, err = ss.Channel().GetAllChannels(0, 10, store.ChannelSearchOpts{ExcludeChannelNames: []string{c1.Name}})
+	require.Nil(t, err)
 	assert.Len(t, *list, 1)
 
 	// Manually truncate Channels table until testlib can handle cleanups
