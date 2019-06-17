@@ -1293,11 +1293,11 @@ func (a *App) GetChannelMember(channelId string, userId string) (*model.ChannelM
 }
 
 func (a *App) GetChannelMembersPage(channelId string, page, perPage int) (*model.ChannelMembers, *model.AppError) {
-	result := <-a.Srv.Store.Channel().GetMembers(channelId, page*perPage, perPage)
-	if result.Err != nil {
-		return nil, result.Err
+	channelMembers, err := a.Srv.Store.Channel().GetMembers(channelId, page*perPage, perPage)
+	if err != nil {
+		return nil, err
 	}
-	return result.Data.(*model.ChannelMembers), nil
+	return channelMembers, nil
 }
 
 func (a *App) GetChannelMembersTimezones(channelId string) ([]string, *model.AppError) {
