@@ -1299,9 +1299,8 @@ func testTeamMemberRemovals(t *testing.T, ss store.Store) {
 		DisplayName: "dn_" + model.NewId(),
 		OwnerId:     teamMember.UserId,
 	}
-	res = <-ss.Bot().Save(bot)
-	require.Nil(t, res.Err)
-	bot = res.Data.(*model.Bot)
+	bot, err = ss.Bot().Save(bot)
+	require.Nil(t, err)
 
 	// verify that bot is not returned in results
 	teamMembers, err = ss.Group().TeamMembersToRemove()
@@ -1309,8 +1308,8 @@ func testTeamMemberRemovals(t *testing.T, ss store.Store) {
 	require.Len(t, teamMembers, 2)
 
 	// delete the bot
-	res = <-ss.Bot().PermanentDelete(bot.UserId)
-	require.Nil(t, res.Err)
+	err = ss.Bot().PermanentDelete(bot.UserId)
+	require.Nil(t, err)
 
 	// Should be back to 3 users
 	teamMembers, err = ss.Group().TeamMembersToRemove()
@@ -1375,9 +1374,8 @@ func testChannelMemberRemovals(t *testing.T, ss store.Store) {
 		DisplayName: "dn_" + model.NewId(),
 		OwnerId:     channelMember.UserId,
 	}
-	res = <-ss.Bot().Save(bot)
-	require.Nil(t, res.Err)
-	bot = res.Data.(*model.Bot)
+	bot, err = ss.Bot().Save(bot)
+	require.Nil(t, err)
 
 	// verify that bot is not returned in results
 	channelMembers, err = ss.Group().ChannelMembersToRemove()
@@ -1385,8 +1383,8 @@ func testChannelMemberRemovals(t *testing.T, ss store.Store) {
 	require.Len(t, channelMembers, 2)
 
 	// delete the bot
-	res = <-ss.Bot().PermanentDelete(bot.UserId)
-	require.Nil(t, res.Err)
+	err = ss.Bot().PermanentDelete(bot.UserId)
+	require.Nil(t, err)
 
 	// Should be back to 3 users
 	channelMembers, err = ss.Group().ChannelMembersToRemove()

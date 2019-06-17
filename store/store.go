@@ -95,19 +95,19 @@ type TeamStore interface {
 	GetAllPrivateTeamListing() StoreChannel
 	GetAllPrivateTeamPageListing(offset int, limit int) ([]*model.Team, *model.AppError)
 	GetAllTeamListing() StoreChannel
-	GetAllTeamPageListing(offset int, limit int) StoreChannel
+	GetAllTeamPageListing(offset int, limit int) ([]*model.Team, *model.AppError)
 	GetTeamsByUserId(userId string) StoreChannel
 	GetByInviteId(inviteId string) (*model.Team, *model.AppError)
-	PermanentDelete(teamId string) StoreChannel
+	PermanentDelete(teamId string) *model.AppError
 	AnalyticsTeamCount() (int64, *model.AppError)
 	SaveMember(member *model.TeamMember, maxUsersPerTeam int) StoreChannel
-	UpdateMember(member *model.TeamMember) StoreChannel
+	UpdateMember(member *model.TeamMember) (*model.TeamMember, *model.AppError)
 	GetMember(teamId string, userId string) (*model.TeamMember, *model.AppError)
 	GetMembers(teamId string, offset int, limit int, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError)
 	GetMembersByIds(teamId string, userIds []string, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError)
 	GetTotalMemberCount(teamId string) (int64, *model.AppError)
-	GetActiveMemberCount(teamId string) StoreChannel
-	GetTeamsForUser(userId string) StoreChannel
+	GetActiveMemberCount(teamId string) (int64, *model.AppError)
+	GetTeamsForUser(userId string) ([]*model.TeamMember, *model.AppError)
 	GetTeamsForUserWithPagination(userId string, page, perPage int) StoreChannel
 	GetChannelUnreadsForAllTeams(excludeTeamId, userId string) StoreChannel
 	GetChannelUnreadsForTeam(teamId, userId string) ([]*model.ChannelUnread, *model.AppError)
@@ -177,7 +177,7 @@ type ChannelStore interface {
 	PermanentDeleteMembersByChannel(channelId string) StoreChannel
 	UpdateLastViewedAt(channelIds []string, userId string) StoreChannel
 	IncrementMentionCount(channelId string, userId string) StoreChannel
-	AnalyticsTypeCount(teamId string, channelType string) StoreChannel
+	AnalyticsTypeCount(teamId string, channelType string) (int64, *model.AppError)
 	GetMembersForUser(teamId string, userId string) StoreChannel
 	GetMembersForUserWithPagination(teamId, userId string, page, perPage int) StoreChannel
 	AutocompleteInTeam(teamId string, term string, includeDeleted bool) StoreChannel
@@ -228,7 +228,7 @@ type PostStore interface {
 	Search(teamId string, userId string, params *model.SearchParams) StoreChannel
 	AnalyticsUserCountsWithPostsByDay(teamId string) (model.AnalyticsRows, *model.AppError)
 	AnalyticsPostCountsByDay(teamId string) (model.AnalyticsRows, *model.AppError)
-	AnalyticsPostCount(teamId string, mustHaveFile bool, mustHaveHashtag bool) StoreChannel
+	AnalyticsPostCount(teamId string, mustHaveFile bool, mustHaveHashtag bool) (int64, *model.AppError)
 	ClearCaches()
 	InvalidateLastPostTimeCache(channelId string)
 	GetPostsCreatedAt(channelId string, time int64) ([]*model.Post, *model.AppError)
@@ -304,11 +304,11 @@ type UserStore interface {
 }
 
 type BotStore interface {
-	Get(userId string, includeDeleted bool) StoreChannel
-	GetAll(options *model.BotGetOptions) StoreChannel
-	Save(bot *model.Bot) StoreChannel
-	Update(bot *model.Bot) StoreChannel
-	PermanentDelete(userId string) StoreChannel
+	Get(userId string, includeDeleted bool) (*model.Bot, *model.AppError)
+	GetAll(options *model.BotGetOptions) ([]*model.Bot, *model.AppError)
+	Save(bot *model.Bot) (*model.Bot, *model.AppError)
+	Update(bot *model.Bot) (*model.Bot, *model.AppError)
+	PermanentDelete(userId string) *model.AppError
 }
 
 type SessionStore interface {
@@ -500,18 +500,18 @@ type ReactionStore interface {
 }
 
 type JobStore interface {
-	Save(job *model.Job) StoreChannel
-	UpdateOptimistically(job *model.Job, currentStatus string) StoreChannel
-	UpdateStatus(id string, status string) StoreChannel
-	UpdateStatusOptimistically(id string, currentStatus string, newStatus string) StoreChannel
-	Get(id string) StoreChannel
-	GetAllPage(offset int, limit int) StoreChannel
-	GetAllByType(jobType string) StoreChannel
-	GetAllByTypePage(jobType string, offset int, limit int) StoreChannel
-	GetAllByStatus(status string) StoreChannel
-	GetNewestJobByStatusAndType(status string, jobType string) StoreChannel
-	GetCountByStatusAndType(status string, jobType string) StoreChannel
-	Delete(id string) StoreChannel
+	Save(job *model.Job) (*model.Job, *model.AppError)
+	UpdateOptimistically(job *model.Job, currentStatus string) (bool, *model.AppError)
+	UpdateStatus(id string, status string) (*model.Job, *model.AppError)
+	UpdateStatusOptimistically(id string, currentStatus string, newStatus string) (bool, *model.AppError)
+	Get(id string) (*model.Job, *model.AppError)
+	GetAllPage(offset int, limit int) ([]*model.Job, *model.AppError)
+	GetAllByType(jobType string) ([]*model.Job, *model.AppError)
+	GetAllByTypePage(jobType string, offset int, limit int) ([]*model.Job, *model.AppError)
+	GetAllByStatus(status string) ([]*model.Job, *model.AppError)
+	GetNewestJobByStatusAndType(status string, jobType string) (*model.Job, *model.AppError)
+	GetCountByStatusAndType(status string, jobType string) (int64, *model.AppError)
+	Delete(id string) (string, *model.AppError)
 }
 
 type UserAccessTokenStore interface {
