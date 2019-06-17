@@ -108,7 +108,7 @@ type TeamStore interface {
 	GetTotalMemberCount(teamId string) StoreChannel
 	GetActiveMemberCount(teamId string) StoreChannel
 	GetTeamsForUser(userId string) StoreChannel
-	GetTeamsForUserWithPagination(userId string, page, perPage int) StoreChannel
+	GetTeamsForUserWithPagination(userId string, page, perPage int) ([]*model.TeamMember, *model.AppError)
 	GetChannelUnreadsForAllTeams(excludeTeamId, userId string) StoreChannel
 	GetChannelUnreadsForTeam(teamId, userId string) StoreChannel
 	RemoveMember(teamId string, userId string) StoreChannel
