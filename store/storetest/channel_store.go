@@ -524,11 +524,12 @@ func testChannelStoreGetForPost(t *testing.T, ss store.Store) {
 	o1, err := ss.Channel().Save(ch, -1)
 	require.Nil(t, err)
 
-	p1 := store.Must(ss.Post().Save(&model.Post{
+	p1, err := ss.Post().Save(&model.Post{
 		UserId:    model.NewId(),
 		ChannelId: o1.Id,
 		Message:   "test",
-	})).(*model.Post)
+	})
+	require.Nil(t, err)
 
 	if r1 := <-ss.Channel().GetForPost(p1.Id); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -1320,15 +1321,15 @@ func testChannelStoreGetMoreChannels(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("verify analytics for open channels", func(t *testing.T) {
-		result := <-ss.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_OPEN)
-		require.Nil(t, result.Err)
-		require.EqualValues(t, 4, result.Data.(int64))
+		count, err := ss.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_OPEN)
+		require.Nil(t, err)
+		require.EqualValues(t, 4, count)
 	})
 
 	t.Run("verify analytics for private channels", func(t *testing.T) {
-		result := <-ss.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_PRIVATE)
-		require.Nil(t, result.Err)
-		require.EqualValues(t, 2, result.Data.(int64))
+		count, err := ss.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_PRIVATE)
+		require.Nil(t, err)
+		require.EqualValues(t, 2, count)
 	})
 }
 
@@ -1412,15 +1413,15 @@ func testChannelStoreGetPublicChannelsForTeam(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("verify analytics for open channels", func(t *testing.T) {
-		result := <-ss.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_OPEN)
-		require.Nil(t, result.Err)
-		require.EqualValues(t, 3, result.Data.(int64))
+		count, err := ss.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_OPEN)
+		require.Nil(t, err)
+		require.EqualValues(t, 3, count)
 	})
 
 	t.Run("verify analytics for private channels", func(t *testing.T) {
-		result := <-ss.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_PRIVATE)
-		require.Nil(t, result.Err)
-		require.EqualValues(t, 1, result.Data.(int64))
+		count, err := ss.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_PRIVATE)
+		require.Nil(t, err)
+		require.EqualValues(t, 1, count)
 	})
 }
 
@@ -1871,11 +1872,12 @@ func testChannelStoreGetMemberForPost(t *testing.T, ss store.Store) {
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})).(*model.ChannelMember)
 
-	p1 := store.Must(ss.Post().Save(&model.Post{
+	p1, err := ss.Post().Save(&model.Post{
 		UserId:    model.NewId(),
 		ChannelId: o1.Id,
 		Message:   "test",
-	})).(*model.Post)
+	})
+	require.Nil(t, err)
 
 	if r1 := <-ss.Channel().GetMemberForPost(p1.Id, m1.UserId); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -2836,12 +2838,12 @@ func testChannelStoreGetPinnedPosts(t *testing.T, ss store.Store) {
 	o1, err := ss.Channel().Save(ch1, -1)
 	require.Nil(t, err)
 
-	p1 := store.Must(ss.Post().Save(&model.Post{
+	p1, err := ss.Post().Save(&model.Post{
 		UserId:    model.NewId(),
 		ChannelId: o1.Id,
 		Message:   "test",
 		IsPinned:  true,
-	})).(*model.Post)
+	})
 
 	if r1 := <-ss.Channel().GetPinnedPosts(o1.Id); r1.Err != nil {
 		t.Fatal(r1.Err)
@@ -2859,11 +2861,12 @@ func testChannelStoreGetPinnedPosts(t *testing.T, ss store.Store) {
 	o2, err := ss.Channel().Save(ch2, -1)
 	require.Nil(t, err)
 
-	store.Must(ss.Post().Save(&model.Post{
+	_, err = ss.Post().Save(&model.Post{
 		UserId:    model.NewId(),
 		ChannelId: o2.Id,
 		Message:   "test",
-	}))
+	})
+	require.Nil(t, err)
 
 	if r2 := <-ss.Channel().GetPinnedPosts(o2.Id); r2.Err != nil {
 		t.Fatal(r2.Err)
