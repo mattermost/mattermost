@@ -586,7 +586,6 @@ func (a *App) trackConfig() {
 		"enable_zoom":                   pluginActivated(cfg.PluginSettings.PluginStates, "zoom"),
 		"enable":                        *cfg.PluginSettings.Enable,
 		"enable_uploads":                *cfg.PluginSettings.EnableUploads,
-		"enable_health_check":           *cfg.PluginSettings.EnableHealthCheck,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_DATA_RETENTION, map[string]interface{}{
