@@ -1190,16 +1190,16 @@ func (a *App) GetChannelByName(channelName, teamId string, includeDeleted bool) 
 }
 
 func (a *App) GetChannelsByNames(channelNames []string, teamId string) ([]*model.Channel, *model.AppError) {
-	result := <-a.Srv.Store.Channel().GetByNames(teamId, channelNames, true)
-	if result.Err != nil {
-		if result.Err.Id == "store.sql_channel.get_by_name.missing.app_error" {
-			result.Err.StatusCode = http.StatusNotFound
-			return nil, result.Err
+	channels, err := a.Srv.Store.Channel().GetByNames(teamId, channelNames, true)
+	if err != nil {
+		if err.Id == "store.sql_channel.get_by_name.missing.app_error" {
+			err.StatusCode = http.StatusNotFound
+			return nil, err
 		}
-		result.Err.StatusCode = http.StatusBadRequest
-		return nil, result.Err
+		err.StatusCode = http.StatusBadRequest
+		return nil, err
 	}
-	return result.Data.([]*model.Channel), nil
+	return channels, nil
 }
 
 func (a *App) GetChannelByNameForTeamName(channelName, teamName string, includeDeleted bool) (*model.Channel, *model.AppError) {
