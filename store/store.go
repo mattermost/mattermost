@@ -179,7 +179,7 @@ type ChannelStore interface {
 	IncrementMentionCount(channelId string, userId string) StoreChannel
 	AnalyticsTypeCount(teamId string, channelType string) (int64, *model.AppError)
 	GetMembersForUser(teamId string, userId string) StoreChannel
-	GetMembersForUserWithPagination(teamId, userId string, page, perPage int) StoreChannel
+	GetMembersForUserWithPagination(teamId, userId string, page, perPage int) (*model.ChannelMembers, *model.AppError)
 	AutocompleteInTeam(teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError)
 	AutocompleteInTeamForSearch(teamId string, userId string, term string, includeDeleted bool) StoreChannel
 	SearchAllChannels(term string, opts ChannelSearchOpts) StoreChannel
