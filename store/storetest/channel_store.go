@@ -223,7 +223,7 @@ func testChannelStoreCreateDirectChannel(t *testing.T, ss store.Store) {
 		t.Fatal("couldn't create direct channel", err)
 	}
 	defer func() {
-		<-ss.Channel().PermanentDeleteMembersByChannel(c1.Id)
+		ss.Channel().PermanentDeleteMembersByChannel(c1.Id)
 		<-ss.Channel().PermanentDelete(c1.Id)
 	}()
 
@@ -984,8 +984,8 @@ func testChannelDeleteMemberStore(t *testing.T, ss store.Store) {
 		t.Fatal("should have removed 1 member")
 	}
 
-	if r1 := <-ss.Channel().PermanentDeleteMembersByChannel(o1.ChannelId); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if err := ss.Channel().PermanentDeleteMembersByChannel(o1.ChannelId); err != nil {
+		t.Fatal(err)
 	}
 
 	count = (<-ss.Channel().GetMemberCount(o1.ChannelId, false)).Data.(int64)
@@ -2750,7 +2750,7 @@ func testChannelStoreAnalyticsDeletedTypeCount(t *testing.T, ss store.Store) {
 		t.Fatalf(err.Error())
 	}
 	defer func() {
-		<-ss.Channel().PermanentDeleteMembersByChannel(d4.Id)
+		ss.Channel().PermanentDeleteMembersByChannel(d4.Id)
 		<-ss.Channel().PermanentDelete(d4.Id)
 	}()
 
@@ -3650,18 +3650,18 @@ func testChannelStoreGetChannelsBatchForIndexing(t *testing.T, ss store.Store) {
 	endTime := c6.CreateAt
 
 	// First and last channel should be outside the range
-	res1 := <-ss.Channel().GetChannelsBatchForIndexing(startTime, endTime, 1000)
-	assert.Nil(t, res1.Err)
-	assert.ElementsMatch(t, []*model.Channel{c2, c3, c5}, res1.Data)
+	channels, err := ss.Channel().GetChannelsBatchForIndexing(startTime, endTime, 1000)
+	assert.Nil(t, err)
+	assert.ElementsMatch(t, []*model.Channel{c2, c3, c5}, channels)
 
 	// Update the endTime, last channel should be in
 	endTime = model.GetMillis()
-	res2 := <-ss.Channel().GetChannelsBatchForIndexing(startTime, endTime, 1000)
-	assert.Nil(t, res2.Err)
-	assert.ElementsMatch(t, []*model.Channel{c2, c3, c5, c6}, res2.Data)
+	channels, err = ss.Channel().GetChannelsBatchForIndexing(startTime, endTime, 1000)
+	assert.Nil(t, err)
+	assert.ElementsMatch(t, []*model.Channel{c2, c3, c5, c6}, channels)
 
 	// Testing the limit
-	res3 := <-ss.Channel().GetChannelsBatchForIndexing(startTime, endTime, 2)
-	assert.Nil(t, res3.Err)
-	assert.ElementsMatch(t, []*model.Channel{c2, c3}, res3.Data)
+	channels, err = ss.Channel().GetChannelsBatchForIndexing(startTime, endTime, 2)
+	assert.Nil(t, err)
+	assert.ElementsMatch(t, []*model.Channel{c2, c3}, channels)
 }

@@ -1916,8 +1916,8 @@ func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
 		return err
 	}
 
-	if result := <-a.Srv.Store.Channel().PermanentDeleteMembersByChannel(channel.Id); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.Channel().PermanentDeleteMembersByChannel(channel.Id); err != nil {
+		return err
 	}
 
 	if err := a.Srv.Store.Webhook().PermanentDeleteIncomingByChannel(channel.Id); err != nil {

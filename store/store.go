@@ -174,7 +174,7 @@ type ChannelStore interface {
 	GetPinnedPosts(channelId string) StoreChannel
 	RemoveMember(channelId string, userId string) StoreChannel
 	PermanentDeleteMembersByUser(userId string) StoreChannel
-	PermanentDeleteMembersByChannel(channelId string) StoreChannel
+	PermanentDeleteMembersByChannel(channelId string) *model.AppError
 	UpdateLastViewedAt(channelIds []string, userId string) StoreChannel
 	IncrementMentionCount(channelId string, userId string) *model.AppError
 	AnalyticsTypeCount(teamId string, channelType string) (int64, *model.AppError)
@@ -198,7 +198,7 @@ type ChannelStore interface {
 	GetAllDirectChannelsForExportAfter(limit int, afterId string) StoreChannel
 	GetChannelMembersForExport(userId string, teamId string) StoreChannel
 	RemoveAllDeactivatedMembers(channelId string) StoreChannel
-	GetChannelsBatchForIndexing(startTime, endTime int64, limit int) StoreChannel
+	GetChannelsBatchForIndexing(startTime, endTime int64, limit int) ([]*model.Channel, *model.AppError)
 	UserBelongsToChannels(userId string, channelIds []string) StoreChannel
 }
 
