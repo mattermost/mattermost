@@ -165,7 +165,7 @@ type ChannelStore interface {
 	GetAllChannelMembersForUser(userId string, allowFromCache bool, includeDeleted bool) StoreChannel
 	InvalidateAllChannelMembersForUser(userId string)
 	IsUserInChannelUseCache(userId string, channelId string) bool
-	GetAllChannelMembersNotifyPropsForChannel(channelId string, allowFromCache bool) StoreChannel
+	GetAllChannelMembersNotifyPropsForChannel(channelId string, allowFromCache bool) (map[string]model.StringMap, *model.AppError)
 	InvalidateCacheForChannelMembersNotifyProps(channelId string)
 	GetMemberForPost(postId string, userId string) StoreChannel
 	InvalidateMemberCount(channelId string)
