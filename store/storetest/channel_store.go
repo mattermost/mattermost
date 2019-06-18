@@ -432,10 +432,9 @@ func testChannelStoreGet(t *testing.T, ss store.Store, s SqlSupplier) {
 		}
 	}
 
-	if r3 := <-ss.Channel().GetTeamChannels(o1.TeamId); r3.Err != nil {
-		t.Fatal(r3.Err)
+	if channels, err := ss.Channel().GetTeamChannels(o1.TeamId); err != nil {
+		t.Fatal(err)
 	} else {
-		channels := r3.Data.(*model.ChannelList)
 		if len(*channels) == 0 {
 			t.Fatal("too little")
 		}
@@ -1824,22 +1823,17 @@ func testGetMember(t *testing.T, ss store.Store) {
 		t.Fatal("should've gotten member for user")
 	}
 
-	if result := <-ss.Channel().GetAllChannelMembersNotifyPropsForChannel(c2.Id, false); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		props := result.Data.(map[string]model.StringMap)
-		if len(props) == 0 {
-			t.Fatal("should not be empty")
-		}
+	if props, err := ss.Channel().GetAllChannelMembersNotifyPropsForChannel(c2.Id, false); err != nil {
+		t.Fatal(err)
+	} else if len(props) == 0 {
+		t.Fatal("should not be empty")
 	}
 
-	if result := <-ss.Channel().GetAllChannelMembersNotifyPropsForChannel(c2.Id, true); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		props := result.Data.(map[string]model.StringMap)
-		if len(props) == 0 {
-			t.Fatal("should not be empty")
-		}
+	if props, err := ss.Channel().GetAllChannelMembersNotifyPropsForChannel(c2.Id, true); err != nil {
+		t.Fatal(err)
+	} else if len(props) == 0 {
+		t.Fatal("should not be empty")
+
 	}
 
 	ss.Channel().InvalidateCacheForChannelMembersNotifyProps(c2.Id)

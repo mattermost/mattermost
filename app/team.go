@@ -1070,12 +1070,11 @@ func (a *App) PermanentDeleteTeam(team *model.Team) *model.AppError {
 		return err
 	}
 
-	if result := <-a.Srv.Store.Channel().GetTeamChannels(team.Id); result.Err != nil {
-		if result.Err.Id != "store.sql_channel.get_channels.not_found.app_error" {
-			return result.Err
+	if channels, err := a.Srv.Store.Channel().GetTeamChannels(team.Id); err != nil {
+		if err.Id != "store.sql_channel.get_channels.not_found.app_error" {
+			return err
 		}
 	} else {
-		channels := result.Data.(*model.ChannelList)
 		for _, c := range *channels {
 			a.PermanentDeleteChannel(c)
 		}

@@ -153,7 +153,7 @@ type ChannelStore interface {
 	GetPublicChannelsForTeam(teamId string, offset int, limit int) StoreChannel
 	GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) StoreChannel
 	GetChannelCounts(teamId string, userId string) (*model.ChannelCounts, *model.AppError)
-	GetTeamChannels(teamId string) StoreChannel
+	GetTeamChannels(teamId string) (*model.ChannelList, *model.AppError)
 	GetAll(teamId string) StoreChannel
 	GetChannelsByIds(channelIds []string) ([]*model.Channel, *model.AppError)
 	GetForPost(postId string) StoreChannel
@@ -165,7 +165,7 @@ type ChannelStore interface {
 	GetAllChannelMembersForUser(userId string, allowFromCache bool, includeDeleted bool) StoreChannel
 	InvalidateAllChannelMembersForUser(userId string)
 	IsUserInChannelUseCache(userId string, channelId string) bool
-	GetAllChannelMembersNotifyPropsForChannel(channelId string, allowFromCache bool) StoreChannel
+	GetAllChannelMembersNotifyPropsForChannel(channelId string, allowFromCache bool) (map[string]model.StringMap, *model.AppError)
 	InvalidateCacheForChannelMembersNotifyProps(channelId string)
 	GetMemberForPost(postId string, userId string) StoreChannel
 	InvalidateMemberCount(channelId string)

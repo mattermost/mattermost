@@ -29,7 +29,14 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	}
 
 	pchan := a.Srv.Store.User().GetAllProfilesInChannel(channel.Id, true)
-	cmnchan := a.Srv.Store.Channel().GetAllChannelMembersNotifyPropsForChannel(channel.Id, true)
+
+	cmnchan := make(chan store.StoreResult, 1)
+	go func() {
+		props, err := a.Srv.Store.Channel().GetAllChannelMembersNotifyPropsForChannel(channel.Id, true)
+		cmnchan <- store.StoreResult{Data: props, Err: err}
+		close(cmnchan)
+	}()
+
 	var fchan chan store.StoreResult
 	if len(post.FileIds) != 0 {
 		fchan = make(chan store.StoreResult, 1)
