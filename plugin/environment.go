@@ -285,6 +285,10 @@ func (env *Environment) Deactivate(id string) bool {
 		return false
 	}
 
+	if !env.IsActive(id) {
+		return false
+	}
+
 	rp := p.(*registeredPlugin)
 	if rp.supervisor != nil {
 		if err := rp.supervisor.Hooks().OnDeactivate(); err != nil {
