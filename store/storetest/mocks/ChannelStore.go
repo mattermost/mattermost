@@ -774,19 +774,28 @@ func (_m *ChannelStore) GetPinnedPosts(channelId string) store.StoreChannel {
 }
 
 // GetPublicChannelsByIdsForTeam provides a mock function with given fields: teamId, channelIds
-func (_m *ChannelStore) GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) store.StoreChannel {
+func (_m *ChannelStore) GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) (*model.ChannelList, *model.AppError) {
 	ret := _m.Called(teamId, channelIds)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, []string) store.StoreChannel); ok {
+	var r0 *model.ChannelList
+	if rf, ok := ret.Get(0).(func(string, []string) *model.ChannelList); ok {
 		r0 = rf(teamId, channelIds)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.ChannelList)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, []string) *model.AppError); ok {
+		r1 = rf(teamId, channelIds)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetPublicChannelsForTeam provides a mock function with given fields: teamId, offset, limit

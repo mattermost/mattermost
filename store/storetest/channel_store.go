@@ -1450,15 +1450,15 @@ func testChannelStoreGetPublicChannelsByIdsForTeam(t *testing.T, ss store.Store)
 	require.Nil(t, err)
 
 	t.Run("oc1 by itself should be found as a public channel in the team", func(t *testing.T) {
-		result := <-ss.Channel().GetPublicChannelsByIdsForTeam(teamId, []string{oc1.Id})
-		require.Nil(t, result.Err)
-		require.Equal(t, &model.ChannelList{&oc1}, result.Data.(*model.ChannelList))
+		list, channelErr := ss.Channel().GetPublicChannelsByIdsForTeam(teamId, []string{oc1.Id})
+		require.Nil(t, channelErr)
+		require.Equal(t, &model.ChannelList{&oc1}, list)
 	})
 
 	t.Run("only oc1, among others, should be found as a public channel in the team", func(t *testing.T) {
-		result := <-ss.Channel().GetPublicChannelsByIdsForTeam(teamId, []string{oc1.Id, oc2.Id, model.NewId(), pc3.Id})
-		require.Nil(t, result.Err)
-		require.Equal(t, &model.ChannelList{&oc1}, result.Data.(*model.ChannelList))
+		list, channelErr := ss.Channel().GetPublicChannelsByIdsForTeam(teamId, []string{oc1.Id, oc2.Id, model.NewId(), pc3.Id})
+		require.Nil(t, channelErr)
+		require.Equal(t, &model.ChannelList{&oc1}, list)
 	})
 
 	// oc4 is another public channel on the team
@@ -1485,15 +1485,15 @@ func testChannelStoreGetPublicChannelsByIdsForTeam(t *testing.T, ss store.Store)
 	require.Nil(t, err, "channel should have been deleted")
 
 	t.Run("only oc1 and oc4, among others, should be found as a public channel in the team", func(t *testing.T) {
-		result := <-ss.Channel().GetPublicChannelsByIdsForTeam(teamId, []string{oc1.Id, oc2.Id, model.NewId(), pc3.Id, oc4.Id})
-		require.Nil(t, result.Err)
-		require.Equal(t, &model.ChannelList{&oc1, &oc4}, result.Data.(*model.ChannelList))
+		list, err := ss.Channel().GetPublicChannelsByIdsForTeam(teamId, []string{oc1.Id, oc2.Id, model.NewId(), pc3.Id, oc4.Id})
+		require.Nil(t, err)
+		require.Equal(t, &model.ChannelList{&oc1, &oc4}, list)
 	})
 
 	t.Run("random channel id should not be found as a public channel in the team", func(t *testing.T) {
-		result := <-ss.Channel().GetPublicChannelsByIdsForTeam(teamId, []string{model.NewId()})
-		require.NotNil(t, result.Err)
-		require.Equal(t, result.Err.Id, "store.sql_channel.get_channels_by_ids.not_found.app_error")
+		_, err := ss.Channel().GetPublicChannelsByIdsForTeam(teamId, []string{model.NewId()})
+		require.NotNil(t, err)
+		require.Equal(t, err.Id, "store.sql_channel.get_channels_by_ids.not_found.app_error")
 	})
 }
 
