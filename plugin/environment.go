@@ -20,17 +20,13 @@ import (
 
 type apiImplCreatorFunc func(*model.Manifest) API
 
-type activePlugin struct {
+type registeredPlugin struct {
 	BundleInfo *model.BundleInfo
-
-	supervisor *supervisor
-}
-
-type pluginHealthStatus struct {
-	State *int
+	State      *int
 
 	failTimeStamps []time.Time
 	lastError      error
+	supervisor     *supervisor
 }
 
 // Environment represents the execution environment of active plugins.
@@ -38,8 +34,7 @@ type pluginHealthStatus struct {
 // It is meant for use by the Mattermost server to manipulate, interact with and report on the set
 // of active plugins.
 type Environment struct {
-	activePlugins        sync.Map
-	pluginHealthStatuses sync.Map
+	registeredPlugins    sync.Map
 	pluginHealthCheckJob *PluginHealthCheckJob
 	logger               *mlog.Logger
 	newAPIImpl           apiImplCreatorFunc
@@ -88,9 +83,11 @@ func (env *Environment) Available() ([]*model.BundleInfo, error) {
 // Returns a list of all currently active plugins within the environment.
 func (env *Environment) Active() []*model.BundleInfo {
 	activePlugins := []*model.BundleInfo{}
-	env.activePlugins.Range(func(key, value interface{}) bool {
-		plugin := value.(activePlugin)
-		activePlugins = append(activePlugins, plugin.BundleInfo)
+	env.registeredPlugins.Range(func(key, value interface{}) bool {
+		plugin := value.(*registeredPlugin)
+		if env.IsActive(plugin.BundleInfo.Manifest.Id) {
+			activePlugins = append(activePlugins, plugin.BundleInfo)
+		}
 
 		return true
 	})
@@ -100,35 +97,34 @@ func (env *Environment) Active() []*model.BundleInfo {
 
 // IsActive returns true if the plugin with the given id is active.
 func (env *Environment) IsActive(id string) bool {
-	_, ok := env.activePlugins.Load(id)
-	return ok
+	return env.GetPluginState(id) == model.PluginStateRunning
 }
 
 // GetPluginState returns the current state of a plugin (disabled, running, or error)
 func (env *Environment) GetPluginState(id string) int {
-	h, ok := env.pluginHealthStatuses.Load(id)
+	rp, ok := env.registeredPlugins.Load(id)
 	if !ok {
 		return model.PluginStateNotRunning
 	}
 
-	return *h.(*pluginHealthStatus).State
+	return *rp.(*registeredPlugin).State
 }
 
 // SetPluginState sets the current state of a plugin (disabled, running, or error)
 func (env *Environment) SetPluginState(id string, state int) bool {
-	h, ok := env.pluginHealthStatuses.Load(id)
+	rp, ok := env.registeredPlugins.Load(id)
 	if !ok {
 		return false
 	}
 
-	*h.(*pluginHealthStatus).State = state
+	*rp.(*registeredPlugin).State = state
 	return true
 }
 
 // PublicFilesPath returns a path and true if the plugin with the given id is active.
 // It returns an empty string and false if the path is not set or invalid
 func (env *Environment) PublicFilesPath(id string) (string, error) {
-	if _, ok := env.activePlugins.Load(id); !ok {
+	if _, ok := env.registeredPlugins.Load(id); !ok {
 		return "", fmt.Errorf("plugin not found: %v", id)
 	}
 	return filepath.Join(env.pluginDir, id, "public"), nil
@@ -167,7 +163,7 @@ func (env *Environment) Statuses() (model.PluginStatuses, error) {
 
 func (env *Environment) Activate(id string) (manifest *model.Manifest, activated bool, reterr error) {
 	// Check if we are already active
-	if _, ok := env.activePlugins.Load(id); ok {
+	if env.IsActive(id) {
 		return nil, false, nil
 	}
 
@@ -188,14 +184,19 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 		return nil, false, fmt.Errorf("plugin not found: %v", id)
 	}
 
-	if _, ok := env.pluginHealthStatuses.Load(id); !ok {
-		env.pluginHealthStatuses.Store(id, newPluginHealthStatus())
+	value, ok := env.registeredPlugins.Load(id)
+	if !ok {
+		value = newRegisteredPlugin(pluginInfo)
+		env.registeredPlugins.Store(id, value)
 	}
 
-	ap := activePlugin{BundleInfo: pluginInfo}
+	rp := value.(*registeredPlugin)
+
+	// Store latest BundleInfo in case something has changed since last activation
+	rp.BundleInfo = pluginInfo
+
 	defer func() {
 		if reterr == nil {
-			env.activePlugins.Store(id, ap)
 			env.SetPluginState(id, model.PluginStateRunning)
 		} else {
 			env.SetPluginState(id, model.PluginStateFailedToStart)
@@ -256,7 +257,7 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 		if err != nil {
 			return nil, false, errors.Wrapf(err, "unable to start plugin: %v", id)
 		}
-		ap.supervisor = sup
+		rp.supervisor = sup
 
 		componentActivated = true
 	}
@@ -268,21 +269,28 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 	return pluginInfo.Manifest, true, nil
 }
 
+func (env *Environment) RemovePlugin(id string) bool {
+	if _, ok := env.registeredPlugins.Load(id); ok {
+		env.registeredPlugins.Delete(id)
+		return true
+	}
+
+	return false
+}
+
 // Deactivates the plugin with the given id.
 func (env *Environment) Deactivate(id string) bool {
-	p, ok := env.activePlugins.Load(id)
+	p, ok := env.registeredPlugins.Load(id)
 	if !ok {
 		return false
 	}
 
-	env.activePlugins.Delete(id)
-
-	ap := p.(activePlugin)
-	if ap.supervisor != nil {
-		if err := ap.supervisor.Hooks().OnDeactivate(); err != nil {
-			env.logger.Error("Plugin OnDeactivate() error", mlog.String("plugin_id", ap.BundleInfo.Manifest.Id), mlog.Err(err))
+	rp := p.(*registeredPlugin)
+	if rp.supervisor != nil {
+		if err := rp.supervisor.Hooks().OnDeactivate(); err != nil {
+			env.logger.Error("Plugin OnDeactivate() error", mlog.String("plugin_id", rp.BundleInfo.Manifest.Id), mlog.Err(err))
 		}
-		ap.supervisor.Shutdown()
+		rp.supervisor.Shutdown()
 	}
 
 	return true
@@ -297,17 +305,17 @@ func (env *Environment) RestartPlugin(id string) error {
 
 // Shutdown deactivates all plugins and gracefully shuts down the environment.
 func (env *Environment) Shutdown() {
-	env.activePlugins.Range(func(key, value interface{}) bool {
-		ap := value.(activePlugin)
+	env.registeredPlugins.Range(func(key, value interface{}) bool {
+		rp := value.(*registeredPlugin)
 
-		if ap.supervisor != nil {
-			if err := ap.supervisor.Hooks().OnDeactivate(); err != nil {
-				env.logger.Error("Plugin OnDeactivate() error", mlog.String("plugin_id", ap.BundleInfo.Manifest.Id), mlog.Err(err))
+		if rp.supervisor != nil {
+			if err := rp.supervisor.Hooks().OnDeactivate(); err != nil {
+				env.logger.Error("Plugin OnDeactivate() error", mlog.String("plugin_id", rp.BundleInfo.Manifest.Id), mlog.Err(err))
 			}
-			ap.supervisor.Shutdown()
+			rp.supervisor.Shutdown()
 		}
 
-		env.activePlugins.Delete(key)
+		env.registeredPlugins.Delete(key)
 
 		return true
 	})
@@ -317,10 +325,10 @@ func (env *Environment) Shutdown() {
 //
 // Consider using RunMultiPluginHook instead.
 func (env *Environment) HooksForPlugin(id string) (Hooks, error) {
-	if p, ok := env.activePlugins.Load(id); ok {
-		ap := p.(activePlugin)
-		if ap.supervisor != nil {
-			return ap.supervisor.Hooks(), nil
+	if p, ok := env.registeredPlugins.Load(id); ok {
+		rp := p.(*registeredPlugin)
+		if rp.supervisor != nil {
+			return rp.supervisor.Hooks(), nil
 		}
 	}
 
@@ -332,13 +340,13 @@ func (env *Environment) HooksForPlugin(id string) (Hooks, error) {
 // If hookRunnerFunc returns false, iteration will not continue. The iteration order among active
 // plugins is not specified.
 func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks) bool, hookId int) {
-	env.activePlugins.Range(func(key, value interface{}) bool {
-		ap := value.(activePlugin)
+	env.registeredPlugins.Range(func(key, value interface{}) bool {
+		rp := value.(*registeredPlugin)
 
-		if ap.supervisor == nil || !ap.supervisor.Implements(hookId) {
+		if rp.supervisor == nil || !rp.supervisor.Implements(hookId) {
 			return true
 		}
-		if !hookRunnerFunc(ap.supervisor.Hooks()) {
+		if !hookRunnerFunc(rp.supervisor.Hooks()) {
 			return false
 		}
 
@@ -346,7 +354,7 @@ func (env *Environment) RunMultiPluginHook(hookRunnerFunc func(hooks Hooks) bool
 	})
 }
 
-func newPluginHealthStatus() *pluginHealthStatus {
+func newRegisteredPlugin(bundle *model.BundleInfo) *registeredPlugin {
 	state := model.PluginStateNotRunning
-	return &pluginHealthStatus{failTimeStamps: []time.Time{}, State: &state}
+	return &registeredPlugin{failTimeStamps: []time.Time{}, State: &state, BundleInfo: bundle}
 }
