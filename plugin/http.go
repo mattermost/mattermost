@@ -26,7 +26,8 @@ func (w *httpResponseWriterRPCServer) Write(args []byte, reply *struct{}) error 
 
 func (w *httpResponseWriterRPCServer) WriteHeader(args int, reply *struct{}) error {
 	// Check if args is a valid http status code. This prevents plugins from crashing the server with a panic.
-	if len(http.StatusText(args)) == 0 {
+	// This is a copy of the checkWriteHeaderCode function in net/http/server.go in the go source.
+	if args < 100 || args > 999 {
 		return errors.New("invalid http status code")
 	}
 	w.w.WriteHeader(args)
