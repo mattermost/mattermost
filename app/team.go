@@ -611,11 +611,7 @@ func (a *App) GetAllTeams() ([]*model.Team, *model.AppError) {
 }
 
 func (a *App) GetAllTeamsPage(offset int, limit int) ([]*model.Team, *model.AppError) {
-	result := <-a.Srv.Store.Team().GetAllPage(offset, limit)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.Team), nil
+	return a.Srv.Store.Team().GetAllPage(offset, limit)
 }
 
 func (a *App) GetAllPrivateTeams() ([]*model.Team, *model.AppError) {
@@ -1074,12 +1070,11 @@ func (a *App) PermanentDeleteTeam(team *model.Team) *model.AppError {
 		return err
 	}
 
-	if result := <-a.Srv.Store.Channel().GetTeamChannels(team.Id); result.Err != nil {
-		if result.Err.Id != "store.sql_channel.get_channels.not_found.app_error" {
-			return result.Err
+	if channels, err := a.Srv.Store.Channel().GetTeamChannels(team.Id); err != nil {
+		if err.Id != "store.sql_channel.get_channels.not_found.app_error" {
+			return err
 		}
 	} else {
-		channels := result.Data.(*model.ChannelList)
 		for _, c := range *channels {
 			a.PermanentDeleteChannel(c)
 		}

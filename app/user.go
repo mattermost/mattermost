@@ -2142,23 +2142,23 @@ func (a *App) GetViewUsersRestrictionsForTeam(userId string, teamId string) ([]s
 func (a *App) getListOfAllowedChannelsForTeam(teamId string, viewRestrictions *model.ViewUsersRestrictions) ([]string, *model.AppError) {
 	var listOfAllowedChannels []string
 	if viewRestrictions == nil || strings.Contains(strings.Join(viewRestrictions.Teams, "."), teamId) {
-		result := <-a.Srv.Store.Channel().GetTeamChannels(teamId)
-		if result.Err != nil {
-			return nil, result.Err
+		channels, err := a.Srv.Store.Channel().GetTeamChannels(teamId)
+		if err != nil {
+			return nil, err
 		}
 		channelIds := []string{}
-		for _, channel := range *result.Data.(*model.ChannelList) {
+		for _, channel := range *channels {
 			channelIds = append(channelIds, channel.Id)
 		}
 
 		return channelIds, nil
 	}
 
-	cresult := <-a.Srv.Store.Channel().GetChannelsByIds(viewRestrictions.Channels)
-	if cresult.Err != nil {
-		return nil, cresult.Err
+	channels, err := a.Srv.Store.Channel().GetChannelsByIds(viewRestrictions.Channels)
+	if err != nil {
+		return nil, err
 	}
-	for _, c := range cresult.Data.([]*model.Channel) {
+	for _, c := range channels {
 		if c.TeamId == teamId {
 			listOfAllowedChannels = append(listOfAllowedChannels, c.Id)
 		}
