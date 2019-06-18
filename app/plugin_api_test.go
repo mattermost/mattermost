@@ -756,6 +756,59 @@ func TestPluginAPIKVCompareAndSet(t *testing.T) {
 	}
 }
 
+func TestPluginAPIKVCompareAndSetWithExpiry(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	testCases := []struct {
+		Description  string
+		CurrentValue []byte
+		OldValue     []byte
+		NewValue     []byte
+		Expiry       int64
+		Output       bool
+	}{
+		{
+			Description:  "Testing nil current value, non-empty value",
+			CurrentValue: nil,
+			OldValue:     nil,
+			NewValue:     []byte("value2"),
+			Expiry:       1,
+			Output:       true,
+		},
+		{
+			Description:  "Testing mismatched current value, non-empty value",
+			CurrentValue: []byte("value3"),
+			OldValue:     []byte("value1"),
+			NewValue:     []byte("value2"),
+			Expiry:       0,
+			Output:       false,
+		},
+	}
+
+	for i, tc := range testCases {
+		t.Run(tc.Description, func(t *testing.T) {
+			key := fmt.Sprintf("Key%d", i)
+			if tc.CurrentValue != nil {
+				err := api.KVSet(key, tc.CurrentValue)
+				require.Nil(t, err)
+			}
+			output, err := api.KVCompareAndSetWithExpiry(key, tc.OldValue, tc.NewValue, tc.Expiry)
+			require.Nil(t, err)
+			require.Equal(t, output, tc.Output)
+
+			if tc.Expiry > 0 {
+				sleepTime := time.Second
+				time.Sleep(sleepTime)
+				value, err := api.KVGet(key)
+				require.Nil(t, err)
+				require.Nil(t, value)
+			}
+		})
+	}
+}
+
 func TestPluginCreateBot(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
