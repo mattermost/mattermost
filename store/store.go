@@ -195,7 +195,7 @@ type ChannelStore interface {
 	ClearAllCustomRoleAssignments() StoreChannel
 	MigratePublicChannels() error
 	GetAllChannelsForExportAfter(limit int, afterId string) StoreChannel
-	GetAllDirectChannelsForExportAfter(limit int, afterId string) StoreChannel
+	GetAllDirectChannelsForExportAfter(limit int, afterId string) ([]*model.DirectChannelForExport, *model.AppError)
 	GetChannelMembersForExport(userId string, teamId string) StoreChannel
 	RemoveAllDeactivatedMembers(channelId string) StoreChannel
 	GetChannelsBatchForIndexing(startTime, endTime int64, limit int) ([]*model.Channel, *model.AppError)
