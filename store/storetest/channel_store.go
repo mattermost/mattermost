@@ -153,8 +153,8 @@ func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store, s SqlSuppli
 		t.Fatal("couldn't save direct channel", err)
 	}
 
-	members, err := ss.Channel().GetMembers(o1.Id, 0, 100)
-	require.Nil(t, err)
+	members, err2 := ss.Channel().GetMembers(o1.Id, 0, 100)
+	require.Nil(t, err2)
 	if len(*members) != 2 {
 		t.Fatal("should have saved 2 members")
 	}
