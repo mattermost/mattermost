@@ -1643,31 +1643,29 @@ func (s SqlChannelStore) GetMemberCountFromCache(channelId string) int64 {
 		s.metrics.IncrementMemCacheMissCounter("Channel Member Counts")
 	}
 
-	result := <-s.GetMemberCount(channelId, true)
-	if result.Err != nil {
+	count, err := s.GetMemberCount(channelId, true)
+	if err != nil {
 		return 0
 	}
 
-	return result.Data.(int64)
+	return count
 }
 
-func (s SqlChannelStore) GetMemberCount(channelId string, allowFromCache bool) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if allowFromCache {
-			if cacheItem, ok := channelMemberCountsCache.Get(channelId); ok {
-				if s.metrics != nil {
-					s.metrics.IncrementMemCacheHitCounter("Channel Member Counts")
-				}
-				result.Data = cacheItem.(int64)
-				return
+func (s SqlChannelStore) GetMemberCount(channelId string, allowFromCache bool) (int64, *model.AppError) {
+	if allowFromCache {
+		if cacheItem, ok := channelMemberCountsCache.Get(channelId); ok {
+			if s.metrics != nil {
+				s.metrics.IncrementMemCacheHitCounter("Channel Member Counts")
 			}
+			return cacheItem.(int64), nil
 		}
+	}
 
-		if s.metrics != nil {
-			s.metrics.IncrementMemCacheMissCounter("Channel Member Counts")
-		}
+	if s.metrics != nil {
+		s.metrics.IncrementMemCacheMissCounter("Channel Member Counts")
+	}
 
-		count, err := s.GetReplica().SelectInt(`
+	count, err := s.GetReplica().SelectInt(`
 			SELECT
 				count(*)
 			FROM
@@ -1677,16 +1675,15 @@ func (s SqlChannelStore) GetMemberCount(channelId string, allowFromCache bool) s
 				ChannelMembers.UserId = Users.Id
 				AND ChannelMembers.ChannelId = :ChannelId
 				AND Users.DeleteAt = 0`, map[string]interface{}{"ChannelId": channelId})
-		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.GetMemberCount", "store.sql_channel.get_member_count.app_error", nil, "channel_id="+channelId+", "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-		result.Data = count
+	if err != nil {
+		return 0, model.NewAppError("SqlChannelStore.GetMemberCount", "store.sql_channel.get_member_count.app_error", nil, "channel_id="+channelId+", "+err.Error(), http.StatusInternalServerError)
+	}
 
-		if allowFromCache {
-			channelMemberCountsCache.AddWithExpiresInSecs(channelId, count, CHANNEL_MEMBERS_COUNTS_CACHE_SEC)
-		}
-	})
+	if allowFromCache {
+		channelMemberCountsCache.AddWithExpiresInSecs(channelId, count, CHANNEL_MEMBERS_COUNTS_CACHE_SEC)
+	}
+
+	return count, nil
 }
 
 func (s SqlChannelStore) RemoveMember(channelId string, userId string) store.StoreChannel {

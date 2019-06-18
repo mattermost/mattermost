@@ -170,7 +170,7 @@ type ChannelStore interface {
 	GetMemberForPost(postId string, userId string) StoreChannel
 	InvalidateMemberCount(channelId string)
 	GetMemberCountFromCache(channelId string) int64
-	GetMemberCount(channelId string, allowFromCache bool) StoreChannel
+	GetMemberCount(channelId string, allowFromCache bool) (int64, *model.AppError)
 	GetPinnedPosts(channelId string) StoreChannel
 	RemoveMember(channelId string, userId string) StoreChannel
 	PermanentDeleteMembersByUser(userId string) StoreChannel
