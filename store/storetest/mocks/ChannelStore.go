@@ -441,19 +441,28 @@ func (_m *ChannelStore) GetChannels(teamId string, userId string, includeDeleted
 }
 
 // GetChannelsBatchForIndexing provides a mock function with given fields: startTime, endTime, limit
-func (_m *ChannelStore) GetChannelsBatchForIndexing(startTime int64, endTime int64, limit int) store.StoreChannel {
+func (_m *ChannelStore) GetChannelsBatchForIndexing(startTime int64, endTime int64, limit int) ([]*model.Channel, *model.AppError) {
 	ret := _m.Called(startTime, endTime, limit)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(int64, int64, int) store.StoreChannel); ok {
+	var r0 []*model.Channel
+	if rf, ok := ret.Get(0).(func(int64, int64, int) []*model.Channel); ok {
 		r0 = rf(startTime, endTime, limit)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]*model.Channel)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(int64, int64, int) *model.AppError); ok {
+		r1 = rf(startTime, endTime, limit)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetChannelsByIds provides a mock function with given fields: channelIds
