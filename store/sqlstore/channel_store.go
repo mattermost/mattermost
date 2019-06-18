@@ -1666,15 +1666,15 @@ func (s SqlChannelStore) GetMemberCount(channelId string, allowFromCache bool) (
 	}
 
 	count, err := s.GetReplica().SelectInt(`
-			SELECT
-				count(*)
-			FROM
-				ChannelMembers,
-				Users
-			WHERE
-				ChannelMembers.UserId = Users.Id
-				AND ChannelMembers.ChannelId = :ChannelId
-				AND Users.DeleteAt = 0`, map[string]interface{}{"ChannelId": channelId})
+		SELECT
+			count(*)
+		FROM
+			ChannelMembers,
+			Users
+		WHERE
+			ChannelMembers.UserId = Users.Id
+			AND ChannelMembers.ChannelId = :ChannelId
+			AND Users.DeleteAt = 0`, map[string]interface{}{"ChannelId": channelId})
 	if err != nil {
 		return 0, model.NewAppError("SqlChannelStore.GetMemberCount", "store.sql_channel.get_member_count.app_error", nil, "channel_id="+channelId+", "+err.Error(), http.StatusInternalServerError)
 	}

@@ -1476,11 +1476,11 @@ func (a *App) LeaveChannel(channelId string, userId string) *model.AppError {
 		close(uc)
 	}()
 
-	cc := make(chan store.StoreResult, 1)
+	mcc := make(chan store.StoreResult, 1)
 	go func() {
 		count, err := a.Srv.Store.Channel().GetMemberCount(channelId, false)
-		cc <- store.StoreResult{Data: count, Err: err}
-		close(cc)
+		mcc <- store.StoreResult{Data: count, Err: err}
+		close(mcc)
 	}()
 
 	cresult := <-sc
@@ -1491,7 +1491,7 @@ func (a *App) LeaveChannel(channelId string, userId string) *model.AppError {
 	if uresult.Err != nil {
 		return cresult.Err
 	}
-	ccresult := <-cc
+	ccresult := <-mcc
 	if ccresult.Err != nil {
 		return ccresult.Err
 	}
