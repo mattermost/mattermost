@@ -977,7 +977,7 @@ func testChannelDeleteMemberStore(t *testing.T, ss store.Store) {
 		t.Fatal("should have saved 2 members")
 	}
 
-	store.Must(ss.Channel().PermanentDeleteMembersByUser(o2.UserId))
+	ss.Channel().PermanentDeleteMembersByUser(o2.UserId)
 
 	count = (<-ss.Channel().GetMemberCount(o1.ChannelId, false)).Data.(int64)
 	if count != 1 {
