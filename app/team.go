@@ -457,11 +457,10 @@ func (a *App) AddUserToTeamByToken(userId string, tokenId string) (*model.Team, 
 	}
 
 	if token.Type == TOKEN_TYPE_GUEST_INVITATION {
-		result = <-a.Srv.Store.Channel().GetChannelsByIds(strings.Split(tokenData["channels"], " "))
-		if result.Err != nil {
-			return nil, result.Err
+		channels, err := a.Srv.Store.Channel().GetChannelsByIds(strings.Split(tokenData["channels"], " "))
+		if err != nil {
+			return nil, err
 		}
-		channels := result.Data.([]*model.Channel)
 
 		for _, channel := range channels {
 			_, err := a.AddUserToChannel(user, channel)
@@ -1048,7 +1047,12 @@ func (a *App) InviteGuestsToChannels(teamId string, guestsInvite *model.GuestsIn
 		tchan <- store.StoreResult{Data: team, Err: err}
 		close(tchan)
 	}()
-	cchan := a.Srv.Store.Channel().GetChannelsByIds(guestsInvite.Channels)
+	cchan := make(chan store.StoreResult, 1)
+	go func() {
+		channels, err := a.Srv.Store.Channel().GetChannelsByIds(guestsInvite.Channels)
+		cchan <- store.StoreResult{Data: channels, Err: err}
+		close(cchan)
+	}()
 	uchan := make(chan store.StoreResult, 1)
 	go func() {
 		user, err := a.Srv.Store.User().Get(senderId)

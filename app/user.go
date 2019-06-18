@@ -73,11 +73,10 @@ func (a *App) CreateUserWithToken(user *model.User, tokenId string) (*model.User
 		return nil, err
 	}
 
-	result = <-a.Srv.Store.Channel().GetChannelsByIds(strings.Split(tokenData["channels"], " "))
-	if result.Err != nil {
-		return nil, result.Err
+	channels, err := a.Srv.Store.Channel().GetChannelsByIds(strings.Split(tokenData["channels"], " "))
+	if err != nil {
+		return nil, err
 	}
-	channels := result.Data.([]*model.Channel)
 
 	user.Email = tokenData["email"]
 	user.EmailVerified = true
