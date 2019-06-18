@@ -840,8 +840,8 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 	for _, channel := range *channelList {
 		if !channel.IsGroupOrDirect() {
 			a.InvalidateCacheForChannelMembers(channel.Id)
-			if result := <-a.Srv.Store.Channel().RemoveMember(channel.Id, user.Id); result.Err != nil {
-				return result.Err
+			if err := a.Srv.Store.Channel().RemoveMember(channel.Id, user.Id); err != nil {
+				return err
 			}
 		}
 	}
