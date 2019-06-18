@@ -84,7 +84,7 @@ func (b *S3FileBackend) TestConnection() *model.AppError {
 }
 
 // Caller must close the first return value
-func (b *S3FileBackend) Reader(path string) (io.ReadCloser, *model.AppError) {
+func (b *S3FileBackend) Reader(path string) (ReadCloseSeeker, *model.AppError) {
 	s3Clnt, err := b.s3New()
 	if err != nil {
 		return nil, model.NewAppError("Reader", "api.file.reader.s3.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -287,7 +287,7 @@ func CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError {
 
 	// if S3 endpoint is not set call the set defaults to set that
 	if settings.AmazonS3Endpoint == nil || len(*settings.AmazonS3Endpoint) == 0 {
-		settings.SetDefaults()
+		settings.SetDefaults(true)
 	}
 
 	return nil

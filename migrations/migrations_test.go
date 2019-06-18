@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost-server/model"
 )
@@ -30,16 +31,16 @@ func TestGetMigrationState(t *testing.T) {
 		Name:  migrationKey,
 		Value: "true",
 	}
-	res1 := <-th.App.Srv.Store.System().Save(&system)
-	assert.Nil(t, res1.Err)
+	err = th.App.Srv.Store.System().Save(&system)
+	assert.Nil(t, err)
 
 	state, job, err = GetMigrationState(migrationKey, th.App.Srv.Store)
 	assert.Nil(t, err)
 	assert.Nil(t, job)
 	assert.Equal(t, "completed", state)
 
-	res2 := <-th.App.Srv.Store.System().PermanentDeleteByName(migrationKey)
-	assert.Nil(t, res2.Err)
+	_, err = th.App.Srv.Store.System().PermanentDeleteByName(migrationKey)
+	assert.Nil(t, err)
 
 	// Test with a job scheduled in "pending" state.
 	j1 := &model.Job{
@@ -52,7 +53,8 @@ func TestGetMigrationState(t *testing.T) {
 		Type:   model.JOB_TYPE_MIGRATIONS,
 	}
 
-	j1 = (<-th.App.Srv.Store.Job().Save(j1)).Data.(*model.Job)
+	j1, err = th.App.Srv.Store.Job().Save(j1)
+	require.Nil(t, err)
 
 	state, job, err = GetMigrationState(migrationKey, th.App.Srv.Store)
 	assert.Nil(t, err)
@@ -70,7 +72,8 @@ func TestGetMigrationState(t *testing.T) {
 		Type:   model.JOB_TYPE_MIGRATIONS,
 	}
 
-	j2 = (<-th.App.Srv.Store.Job().Save(j2)).Data.(*model.Job)
+	j2, err = th.App.Srv.Store.Job().Save(j2)
+	require.Nil(t, err)
 
 	state, job, err = GetMigrationState(migrationKey, th.App.Srv.Store)
 	assert.Nil(t, err)
@@ -88,7 +91,8 @@ func TestGetMigrationState(t *testing.T) {
 		Type:   model.JOB_TYPE_MIGRATIONS,
 	}
 
-	j3 = (<-th.App.Srv.Store.Job().Save(j3)).Data.(*model.Job)
+	j3, err = th.App.Srv.Store.Job().Save(j3)
+	require.Nil(t, err)
 
 	state, job, err = GetMigrationState(migrationKey, th.App.Srv.Store)
 	assert.Nil(t, err)

@@ -161,7 +161,11 @@ func getWebappPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 	clientManifests := []*model.Manifest{}
 	for _, m := range manifests {
 		if m.HasClient() {
-			clientManifests = append(clientManifests, m.ClientManifest())
+			manifest := m.ClientManifest()
+
+			// There is no reason to expose the SettingsSchema in this API call; it's not used in the webapp.
+			manifest.SettingsSchema = nil
+			clientManifests = append(clientManifests, manifest)
 		}
 	}
 

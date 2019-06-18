@@ -280,6 +280,10 @@ func (t *Team) Patch(patch *TeamPatch) {
 	}
 }
 
+func (t *Team) IsGroupConstrained() bool {
+	return t.GroupConstrained != nil && *t.GroupConstrained
+}
+
 func (t *TeamPatch) ToJson() string {
 	b, err := json.Marshal(t)
 	if err != nil {

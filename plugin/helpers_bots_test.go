@@ -9,6 +9,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 	"github.com/mattermost/mattermost-server/plugin/plugintest"
+	"github.com/mattermost/mattermost-server/plugin/plugintest/mock"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -115,13 +116,15 @@ func TestEnsureBot(t *testing.T) {
 			assert.Nil(t, err)
 		})
 
-		t.Run("should fail if user exists with the same name and is not a bot", func(t *testing.T) {
+		t.Run("should return the non-bot account but log a message if user exists with the same name and is not a bot", func(t *testing.T) {
+			expectedBotId := model.NewId()
 			api := setupAPI()
 			api.On("KVGet", plugin.BOT_USER_KEY).Return(nil, nil)
 			api.On("GetUserByUsername", testbot.Username).Return(&model.User{
-				Id:    "conflictingid",
+				Id:    expectedBotId,
 				IsBot: false,
 			}, nil)
+			api.On("LogError", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return()
 			defer api.AssertExpectations(t)
 
 			p := &plugin.HelpersImpl{}
@@ -129,10 +132,8 @@ func TestEnsureBot(t *testing.T) {
 
 			botId, err := p.EnsureBot(testbot)
 
-			t.Log(botId)
-			t.Log(err)
-			assert.Equal(t, "", botId)
-			assert.NotNil(t, err)
+			assert.Equal(t, expectedBotId, botId)
+			assert.Nil(t, err)
 		})
 
 		t.Run("shoudl fail if create bot fails", func(t *testing.T) {

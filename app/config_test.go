@@ -124,9 +124,9 @@ func TestEnsureInstallationDate(t *testing.T) {
 			}
 
 			if tc.PrevInstallationDate == nil {
-				<-th.App.Srv.Store.System().PermanentDeleteByName(model.SYSTEM_INSTALLATION_DATE_KEY)
+				th.App.Srv.Store.System().PermanentDeleteByName(model.SYSTEM_INSTALLATION_DATE_KEY)
 			} else {
-				<-th.App.Srv.Store.System().SaveOrUpdate(&model.System{
+				th.App.Srv.Store.System().SaveOrUpdate(&model.System{
 					Name:  model.SYSTEM_INSTALLATION_DATE_KEY,
 					Value: strconv.FormatInt(*tc.PrevInstallationDate, 10),
 				})
@@ -139,9 +139,8 @@ func TestEnsureInstallationDate(t *testing.T) {
 			} else {
 				assert.NoError(t, err)
 
-				result := <-th.App.Srv.Store.System().GetByName(model.SYSTEM_INSTALLATION_DATE_KEY)
-				assert.Nil(t, result.Err)
-				data, _ := result.Data.(*model.System)
+				data, err := th.App.Srv.Store.System().GetByName(model.SYSTEM_INSTALLATION_DATE_KEY)
+				assert.Nil(t, err)
 				value, _ := strconv.ParseInt(data.Value, 10, 64)
 				assert.True(t, *tc.ExpectedInstallationDate <= value && *tc.ExpectedInstallationDate+1000 >= value)
 			}
