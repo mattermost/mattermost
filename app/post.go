@@ -274,10 +274,9 @@ func (a *App) CreatePost(post *model.Post, channel *model.Channel, triggerWebhoo
 		})
 	}
 
-	esInterface := a.Elasticsearch
-	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
+	if a.IsESIndexingEnabled() {
 		a.Srv.Go(func() {
-			if err = esInterface.IndexPost(rpost, channel.TeamId); err != nil {
+			if err = a.Elasticsearch.IndexPost(rpost, channel.TeamId); err != nil {
 				mlog.Error("Encountered error indexing post", mlog.String("post_id", post.Id), mlog.Err(err))
 			}
 		})
@@ -551,15 +550,14 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 		})
 	}
 
-	esInterface := a.Elasticsearch
-	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
+	if a.IsESIndexingEnabled() {
 		a.Srv.Go(func() {
 			rchannel := <-a.Srv.Store.Channel().GetForPost(rpost.Id)
 			if rchannel.Err != nil {
 				mlog.Error(fmt.Sprintf("Couldn't get channel %v for post %v for Elasticsearch indexing.", rpost.ChannelId, rpost.Id))
 				return
 			}
-			if err := esInterface.IndexPost(rpost, rchannel.Data.(*model.Channel).TeamId); err != nil {
+			if err := a.Elasticsearch.IndexPost(rpost, rchannel.Data.(*model.Channel).TeamId); err != nil {
 				mlog.Error("Encountered error indexing post", mlog.String("post_id", post.Id), mlog.Err(err))
 			}
 		})
@@ -708,10 +706,9 @@ func (a *App) DeletePost(postId, deleteByID string) (*model.Post, *model.AppErro
 		a.DeleteFlaggedPosts(post.Id)
 	})
 
-	esInterface := a.Elasticsearch
-	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
+	if a.IsESIndexingEnabled() {
 		a.Srv.Go(func() {
-			if err := esInterface.DeletePost(post); err != nil {
+			if err := a.Elasticsearch.DeletePost(post); err != nil {
 				mlog.Error("Encountered error deleting post", mlog.String("post_id", post.Id), mlog.Err(err))
 			}
 		})
@@ -811,75 +808,82 @@ func (a *App) SearchPostsInTeam(teamId string, paramsList []*model.SearchParams)
 	})
 }
 
-func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.PostSearchResults, *model.AppError) {
-	paramsList := model.ParseSearchParams(strings.TrimSpace(terms), timeZoneOffset)
+func (a *App) esSearchPostsInTeamForUser(paramsList []*model.SearchParams, userId, teamId string, isOrSearch, includeDeletedChannels bool, page, perPage int) (*model.PostSearchResults, *model.AppError) {
+	finalParamsList := []*model.SearchParams{}
 	includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 
-	esInterface := a.Elasticsearch
-	license := a.License()
-	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableSearching && license != nil && *license.Features.Elasticsearch {
-		finalParamsList := []*model.SearchParams{}
-
-		for _, params := range paramsList {
-			params.OrTerms = isOrSearch
-			// Don't allow users to search for "*"
-			if params.Terms != "*" {
-				// Convert channel names to channel IDs
-				for idx, channelName := range params.InChannels {
-					channel, err := a.parseAndFetchChannelIdByNameFromInFilter(channelName, userId, teamId, includeDeletedChannels)
-					if err != nil {
-						mlog.Error(fmt.Sprint(err))
-						continue
-					}
-					params.InChannels[idx] = channel.Id
+	for _, params := range paramsList {
+		params.OrTerms = isOrSearch
+		// Don't allow users to search for "*"
+		if params.Terms != "*" {
+			// Convert channel names to channel IDs
+			for idx, channelName := range params.InChannels {
+				channel, err := a.parseAndFetchChannelIdByNameFromInFilter(channelName, userId, teamId, includeDeletedChannels)
+				if err != nil {
+					mlog.Error(fmt.Sprint(err))
+					continue
 				}
-
-				// Convert usernames to user IDs
-				for idx, username := range params.FromUsers {
-					if user, err := a.GetUserByUsername(username); err != nil {
-						mlog.Error(fmt.Sprint(err))
-					} else {
-						params.FromUsers[idx] = user.Id
-					}
-				}
-
-				finalParamsList = append(finalParamsList, params)
+				params.InChannels[idx] = channel.Id
 			}
-		}
 
-		// If the processed search params are empty, return empty search results.
-		if len(finalParamsList) == 0 {
-			return model.MakePostSearchResults(model.NewPostList(), nil), nil
-		}
+			// Convert usernames to user IDs
+			for idx, username := range params.FromUsers {
+				if user, err := a.GetUserByUsername(username); err != nil {
+					mlog.Error(fmt.Sprint(err))
+				} else {
+					params.FromUsers[idx] = user.Id
+				}
+			}
 
-		// We only allow the user to search in channels they are a member of.
-		userChannels, err := a.GetChannelsForUser(teamId, userId, includeDeleted)
+			finalParamsList = append(finalParamsList, params)
+		}
+	}
+
+	// If the processed search params are empty, return empty search results.
+	if len(finalParamsList) == 0 {
+		return model.MakePostSearchResults(model.NewPostList(), nil), nil
+	}
+
+	// We only allow the user to search in channels they are a member of.
+	userChannels, err := a.GetChannelsForUser(teamId, userId, includeDeleted)
+	if err != nil {
+		mlog.Error(fmt.Sprint(err))
+		return nil, err
+	}
+
+	postIds, matches, err := a.Elasticsearch.SearchPosts(userChannels, finalParamsList, page, perPage)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get the posts
+	postList := model.NewPostList()
+	if len(postIds) > 0 {
+		posts, err := a.Srv.Store.Post().GetPostsByIds(postIds)
 		if err != nil {
-			mlog.Error(fmt.Sprint(err))
 			return nil, err
 		}
+		for _, p := range posts {
+			if p.DeleteAt == 0 {
+				postList.AddPost(p)
+				postList.AddOrder(p.Id)
+			}
+		}
+	}
 
-		postIds, matches, err := a.Elasticsearch.SearchPosts(userChannels, finalParamsList, page, perPage)
+	return model.MakePostSearchResults(postList, matches), nil
+}
+
+func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamId string, isOrSearch bool, includeDeletedChannels bool, timeZoneOffset int, page, perPage int) (*model.PostSearchResults, *model.AppError) {
+	var postSearchResults *model.PostSearchResults
+	var err *model.AppError
+	paramsList := model.ParseSearchParams(strings.TrimSpace(terms), timeZoneOffset)
+
+	if a.IsESSearchEnabled() {
+		postSearchResults, err = a.esSearchPostsInTeamForUser(paramsList, userId, teamId, isOrSearch, includeDeletedChannels, page, perPage)
 		if err != nil {
-			return nil, err
+			mlog.Error("Encountered error on SearchPostsInTeamForUser through Elasticsearch. Falling back to default search.", mlog.Err(err))
 		}
-
-		// Get the posts
-		postList := model.NewPostList()
-		if len(postIds) > 0 {
-			posts, err := a.Srv.Store.Post().GetPostsByIds(postIds)
-			if err != nil {
-				return nil, err
-			}
-			for _, p := range posts {
-				if p.DeleteAt == 0 {
-					postList.AddPost(p)
-					postList.AddOrder(p.Id)
-				}
-			}
-		}
-
-		return model.MakePostSearchResults(postList, matches), nil
 	}
 
 	if !*a.Config().ServiceSettings.EnablePostSearch {
@@ -891,24 +895,30 @@ func (a *App) SearchPostsInTeamForUser(terms string, userId string, teamId strin
 		return model.MakePostSearchResults(model.NewPostList(), nil), nil
 	}
 
-	posts, err := a.searchPostsInTeam(teamId, userId, paramsList, func(params *model.SearchParams) {
-		params.IncludeDeletedChannels = includeDeleted
-		params.OrTerms = isOrSearch
-		for idx, channelName := range params.InChannels {
-			if strings.HasPrefix(channelName, "@") {
-				channel, err := a.parseAndFetchChannelIdByNameFromInFilter(channelName, userId, teamId, includeDeletedChannels)
-				if err != nil {
-					mlog.Error(fmt.Sprint(err))
-					continue
+	if !a.IsESSearchEnabled() || err != nil {
+		includeDeleted := includeDeletedChannels && *a.Config().TeamSettings.ExperimentalViewArchivedChannels
+		posts, err := a.searchPostsInTeam(teamId, userId, paramsList, func(params *model.SearchParams) {
+			params.IncludeDeletedChannels = includeDeleted
+			params.OrTerms = isOrSearch
+			for idx, channelName := range params.InChannels {
+				if strings.HasPrefix(channelName, "@") {
+					channel, err := a.parseAndFetchChannelIdByNameFromInFilter(channelName, userId, teamId, includeDeletedChannels)
+					if err != nil {
+						mlog.Error(fmt.Sprint(err))
+						continue
+					}
+					params.InChannels[idx] = channel.Name
 				}
-				params.InChannels[idx] = channel.Name
 			}
+		})
+		if err != nil {
+			return nil, err
 		}
-	})
-	if err != nil {
-		return nil, err
+
+		postSearchResults = model.MakePostSearchResults(posts, nil)
 	}
-	return model.MakePostSearchResults(posts, nil), nil
+
+	return postSearchResults, nil
 }
 
 func (a *App) GetFileInfosForPostWithMigration(postId string) ([]*model.FileInfo, *model.AppError) {
