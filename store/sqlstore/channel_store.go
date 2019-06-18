@@ -2608,33 +2608,30 @@ func (s SqlChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId s
 	})
 }
 
-func (s SqlChannelStore) GetChannelsBatchForIndexing(startTime, endTime int64, limit int) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var channels []*model.Channel
-		_, err1 := s.GetSearchReplica().Select(&channels,
-			`SELECT
-                 *
-             FROM
-                 Channels
-             WHERE
-                 Type = 'O'
-             AND
-                 CreateAt >= :StartTime
-             AND
-                 CreateAt < :EndTime
-             ORDER BY
-                 CreateAt
-             LIMIT
-                 :NumChannels`,
-			map[string]interface{}{"StartTime": startTime, "EndTime": endTime, "NumChannels": limit})
+func (s SqlChannelStore) GetChannelsBatchForIndexing(startTime, endTime int64, limit int) ([]*model.Channel, *model.AppError) {
+	query :=
+		`SELECT
+			 *
+		 FROM
+			 Channels
+		 WHERE
+			 Type = 'O'
+		 AND
+			 CreateAt >= :StartTime
+		 AND
+			 CreateAt < :EndTime
+		 ORDER BY
+			 CreateAt
+		 LIMIT
+			 :NumChannels`
 
-		if err1 != nil {
-			result.Err = model.NewAppError("SqlChannelStore.GetChannelsBatchForIndexing", "store.sql_channel.get_channels_batch_for_indexing.get.app_error", nil, err1.Error(), http.StatusInternalServerError)
-			return
-		}
+	var channels []*model.Channel
+	_, err := s.GetSearchReplica().Select(&channels, query, map[string]interface{}{"StartTime": startTime, "EndTime": endTime, "NumChannels": limit})
+	if err != nil {
+		return nil, model.NewAppError("SqlChannelStore.GetChannelsBatchForIndexing", "store.sql_channel.get_channels_batch_for_indexing.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = channels
-	})
+	return channels, nil
 }
 
 func (s SqlChannelStore) UserBelongsToChannels(userId string, channelIds []string) store.StoreChannel {

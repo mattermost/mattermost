@@ -3650,18 +3650,18 @@ func testChannelStoreGetChannelsBatchForIndexing(t *testing.T, ss store.Store) {
 	endTime := c6.CreateAt
 
 	// First and last channel should be outside the range
-	res1 := <-ss.Channel().GetChannelsBatchForIndexing(startTime, endTime, 1000)
-	assert.Nil(t, res1.Err)
-	assert.ElementsMatch(t, []*model.Channel{c2, c3, c5}, res1.Data)
+	channels, err := ss.Channel().GetChannelsBatchForIndexing(startTime, endTime, 1000)
+	assert.Nil(t, err)
+	assert.ElementsMatch(t, []*model.Channel{c2, c3, c5}, channels)
 
 	// Update the endTime, last channel should be in
 	endTime = model.GetMillis()
-	res2 := <-ss.Channel().GetChannelsBatchForIndexing(startTime, endTime, 1000)
-	assert.Nil(t, res2.Err)
-	assert.ElementsMatch(t, []*model.Channel{c2, c3, c5, c6}, res2.Data)
+	channels, err = ss.Channel().GetChannelsBatchForIndexing(startTime, endTime, 1000)
+	assert.Nil(t, err)
+	assert.ElementsMatch(t, []*model.Channel{c2, c3, c5, c6}, channels)
 
 	// Testing the limit
-	res3 := <-ss.Channel().GetChannelsBatchForIndexing(startTime, endTime, 2)
-	assert.Nil(t, res3.Err)
-	assert.ElementsMatch(t, []*model.Channel{c2, c3}, res3.Data)
+	channels, err = ss.Channel().GetChannelsBatchForIndexing(startTime, endTime, 2)
+	assert.Nil(t, err)
+	assert.ElementsMatch(t, []*model.Channel{c2, c3}, channels)
 }
