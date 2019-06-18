@@ -91,7 +91,7 @@ type TeamStore interface {
 	SearchOpen(term string) StoreChannel
 	SearchPrivate(term string) ([]*model.Team, *model.AppError)
 	GetAll() ([]*model.Team, *model.AppError)
-	GetAllPage(offset int, limit int) StoreChannel
+	GetAllPage(offset int, limit int) ([]*model.Team, *model.AppError)
 	GetAllPrivateTeamListing() StoreChannel
 	GetAllPrivateTeamPageListing(offset int, limit int) ([]*model.Team, *model.AppError)
 	GetAllTeamListing() StoreChannel
@@ -143,19 +143,19 @@ type ChannelStore interface {
 	PermanentDeleteByTeam(teamId string) StoreChannel
 	PermanentDelete(channelId string) StoreChannel
 	GetByName(team_id string, name string, allowFromCache bool) StoreChannel
-	GetByNames(team_id string, names []string, allowFromCache bool) StoreChannel
+	GetByNames(team_id string, names []string, allowFromCache bool) ([]*model.Channel, *model.AppError)
 	GetByNameIncludeDeleted(team_id string, name string, allowFromCache bool) StoreChannel
 	GetDeletedByName(team_id string, name string) StoreChannel
-	GetDeleted(team_id string, offset int, limit int) StoreChannel
+	GetDeleted(team_id string, offset int, limit int) (*model.ChannelList, *model.AppError)
 	GetChannels(teamId string, userId string, includeDeleted bool) StoreChannel
 	GetAllChannels(page, perPage int, opts ChannelSearchOpts) StoreChannel
 	GetMoreChannels(teamId string, userId string, offset int, limit int) (*model.ChannelList, *model.AppError)
 	GetPublicChannelsForTeam(teamId string, offset int, limit int) StoreChannel
-	GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) StoreChannel
+	GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) (*model.ChannelList, *model.AppError)
 	GetChannelCounts(teamId string, userId string) (*model.ChannelCounts, *model.AppError)
-	GetTeamChannels(teamId string) StoreChannel
+	GetTeamChannels(teamId string) (*model.ChannelList, *model.AppError)
 	GetAll(teamId string) StoreChannel
-	GetChannelsByIds(channelIds []string) StoreChannel
+	GetChannelsByIds(channelIds []string) ([]*model.Channel, *model.AppError)
 	GetForPost(postId string) StoreChannel
 	SaveMember(member *model.ChannelMember) StoreChannel
 	UpdateMember(member *model.ChannelMember) StoreChannel
@@ -165,26 +165,26 @@ type ChannelStore interface {
 	GetAllChannelMembersForUser(userId string, allowFromCache bool, includeDeleted bool) StoreChannel
 	InvalidateAllChannelMembersForUser(userId string)
 	IsUserInChannelUseCache(userId string, channelId string) bool
-	GetAllChannelMembersNotifyPropsForChannel(channelId string, allowFromCache bool) StoreChannel
+	GetAllChannelMembersNotifyPropsForChannel(channelId string, allowFromCache bool) (map[string]model.StringMap, *model.AppError)
 	InvalidateCacheForChannelMembersNotifyProps(channelId string)
 	GetMemberForPost(postId string, userId string) StoreChannel
 	InvalidateMemberCount(channelId string)
 	GetMemberCountFromCache(channelId string) int64
 	GetMemberCount(channelId string, allowFromCache bool) StoreChannel
 	GetPinnedPosts(channelId string) StoreChannel
-	RemoveMember(channelId string, userId string) StoreChannel
+	RemoveMember(channelId string, userId string) *model.AppError
 	PermanentDeleteMembersByUser(userId string) StoreChannel
-	PermanentDeleteMembersByChannel(channelId string) StoreChannel
+	PermanentDeleteMembersByChannel(channelId string) *model.AppError
 	UpdateLastViewedAt(channelIds []string, userId string) StoreChannel
 	IncrementMentionCount(channelId string, userId string) StoreChannel
 	AnalyticsTypeCount(teamId string, channelType string) (int64, *model.AppError)
 	GetMembersForUser(teamId string, userId string) StoreChannel
 	GetMembersForUserWithPagination(teamId, userId string, page, perPage int) StoreChannel
-	AutocompleteInTeam(teamId string, term string, includeDeleted bool) StoreChannel
+	AutocompleteInTeam(teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError)
 	AutocompleteInTeamForSearch(teamId string, userId string, term string, includeDeleted bool) StoreChannel
 	SearchAllChannels(term string, opts ChannelSearchOpts) StoreChannel
-	SearchInTeam(teamId string, term string, includeDeleted bool) StoreChannel
-	SearchMore(userId string, teamId string, term string) StoreChannel
+	SearchInTeam(teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError)
+	SearchMore(userId string, teamId string, term string) (*model.ChannelList, *model.AppError)
 	GetMembersByIds(channelId string, userIds []string) StoreChannel
 	AnalyticsDeletedTypeCount(teamId string, channelType string) StoreChannel
 	GetChannelUnread(channelId, userId string) (*model.ChannelUnread, *model.AppError)
@@ -196,10 +196,10 @@ type ChannelStore interface {
 	MigratePublicChannels() error
 	GetAllChannelsForExportAfter(limit int, afterId string) StoreChannel
 	GetAllDirectChannelsForExportAfter(limit int, afterId string) StoreChannel
-	GetChannelMembersForExport(userId string, teamId string) StoreChannel
-	RemoveAllDeactivatedMembers(channelId string) StoreChannel
-	GetChannelsBatchForIndexing(startTime, endTime int64, limit int) StoreChannel
-	UserBelongsToChannels(userId string, channelIds []string) StoreChannel
+	GetChannelMembersForExport(userId string, teamId string) ([]*model.ChannelMemberForExport, *model.AppError)
+	RemoveAllDeactivatedMembers(channelId string) *model.AppError
+	GetChannelsBatchForIndexing(startTime, endTime int64, limit int) ([]*model.Channel, *model.AppError)
+	UserBelongsToChannels(userId string, channelIds []string) (bool, *model.AppError)
 }
 
 type ChannelMemberHistoryStore interface {
@@ -605,6 +605,8 @@ type GroupStore interface {
 
 	TeamMembersMinusGroupMembers(teamID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, *model.AppError)
 	CountTeamMembersMinusGroupMembers(teamID string, groupIDs []string) (int64, *model.AppError)
+	ChannelMembersMinusGroupMembers(channelID string, groupIDs []string, page, perPage int) ([]*model.UserWithGroups, *model.AppError)
+	CountChannelMembersMinusGroupMembers(channelID string, groupIDs []string) (int64, *model.AppError)
 }
 
 type LinkMetadataStore interface {
