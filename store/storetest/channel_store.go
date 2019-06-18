@@ -3348,10 +3348,9 @@ func testChannelStoreGetChannelMembersForExport(t *testing.T, ss store.Store) {
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 	store.Must(ss.Channel().SaveMember(&m2))
 
-	r1 := <-ss.Channel().GetChannelMembersForExport(u1.Id, t1.Id)
-	assert.Nil(t, r1.Err)
+	d1, err := ss.Channel().GetChannelMembersForExport(u1.Id, t1.Id)
+	assert.Nil(t, err)
 
-	d1 := r1.Data.([]*model.ChannelMemberForExport)
 	assert.Len(t, d1, 1)
 
 	cmfe1 := d1[0]

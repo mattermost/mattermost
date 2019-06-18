@@ -196,7 +196,7 @@ type ChannelStore interface {
 	MigratePublicChannels() error
 	GetAllChannelsForExportAfter(limit int, afterId string) StoreChannel
 	GetAllDirectChannelsForExportAfter(limit int, afterId string) StoreChannel
-	GetChannelMembersForExport(userId string, teamId string) StoreChannel
+	GetChannelMembersForExport(userId string, teamId string) ([]*model.ChannelMemberForExport, *model.AppError)
 	RemoveAllDeactivatedMembers(channelId string) StoreChannel
 	GetChannelsBatchForIndexing(startTime, endTime int64, limit int) ([]*model.Channel, *model.AppError)
 	UserBelongsToChannels(userId string, channelIds []string) (bool, *model.AppError)

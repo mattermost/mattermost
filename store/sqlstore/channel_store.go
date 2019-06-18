@@ -2509,40 +2509,37 @@ func (s SqlChannelStore) GetAllChannelsForExportAfter(limit int, afterId string)
 	})
 }
 
-func (s SqlChannelStore) GetChannelMembersForExport(userId string, teamId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var members []*model.ChannelMemberForExport
-		_, err := s.GetReplica().Select(&members, `
-            SELECT
-                ChannelMembers.ChannelId,
-                ChannelMembers.UserId,
-                ChannelMembers.Roles,
-                ChannelMembers.LastViewedAt,
-                ChannelMembers.MsgCount,
-                ChannelMembers.MentionCount,
-                ChannelMembers.NotifyProps,
-                ChannelMembers.LastUpdateAt,
-                ChannelMembers.SchemeUser,
-                ChannelMembers.SchemeAdmin,
-                (ChannelMembers.SchemeGuest IS NOT NULL AND ChannelMembers.SchemeGuest) as SchemeGuest,
-                Channels.Name as ChannelName
-            FROM
-                ChannelMembers
-            INNER JOIN
-                Channels ON ChannelMembers.ChannelId = Channels.Id
-            WHERE
-                ChannelMembers.UserId = :UserId
-				AND Channels.TeamId = :TeamId
-				AND Channels.DeleteAt = 0`,
-			map[string]interface{}{"TeamId": teamId, "UserId": userId})
+func (s SqlChannelStore) GetChannelMembersForExport(userId string, teamId string) ([]*model.ChannelMemberForExport, *model.AppError) {
+	var members []*model.ChannelMemberForExport
+	_, err := s.GetReplica().Select(&members, `
+		SELECT
+			ChannelMembers.ChannelId,
+			ChannelMembers.UserId,
+			ChannelMembers.Roles,
+			ChannelMembers.LastViewedAt,
+			ChannelMembers.MsgCount,
+			ChannelMembers.MentionCount,
+			ChannelMembers.NotifyProps,
+			ChannelMembers.LastUpdateAt,
+			ChannelMembers.SchemeUser,
+			ChannelMembers.SchemeAdmin,
+			(ChannelMembers.SchemeGuest IS NOT NULL AND ChannelMembers.SchemeGuest) as SchemeGuest,
+			Channels.Name as ChannelName
+		FROM
+			ChannelMembers
+		INNER JOIN
+			Channels ON ChannelMembers.ChannelId = Channels.Id
+		WHERE
+			ChannelMembers.UserId = :UserId
+			AND Channels.TeamId = :TeamId
+			AND Channels.DeleteAt = 0`,
+		map[string]interface{}{"TeamId": teamId, "UserId": userId})
 
-		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.GetChannelMembersForExport", "store.sql_channel.get_members.app_error", nil, "teamId="+teamId+", userId="+userId+", err="+err.Error(), http.StatusInternalServerError)
-			return
-		}
+	if err != nil {
+		return nil, model.NewAppError("SqlChannelStore.GetChannelMembersForExport", "store.sql_channel.get_members.app_error", nil, "teamId="+teamId+", userId="+userId+", err="+err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = members
-	})
+	return members, nil
 }
 
 func (s SqlChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId string) store.StoreChannel {
