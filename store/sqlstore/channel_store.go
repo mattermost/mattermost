@@ -1685,13 +1685,12 @@ func (s SqlChannelStore) GetMemberCount(channelId string, allowFromCache bool) s
 	})
 }
 
-func (s SqlChannelStore) RemoveMember(channelId string, userId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		_, err := s.GetMaster().Exec("DELETE FROM ChannelMembers WHERE ChannelId = :ChannelId AND UserId = :UserId", map[string]interface{}{"ChannelId": channelId, "UserId": userId})
-		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.RemoveMember", "store.sql_channel.remove_member.app_error", nil, "channel_id="+channelId+", user_id="+userId+", "+err.Error(), http.StatusInternalServerError)
-		}
-	})
+func (s SqlChannelStore) RemoveMember(channelId string, userId string) *model.AppError {
+	_, err := s.GetMaster().Exec("DELETE FROM ChannelMembers WHERE ChannelId = :ChannelId AND UserId = :UserId", map[string]interface{}{"ChannelId": channelId, "UserId": userId})
+	if err != nil {
+		return model.NewAppError("SqlChannelStore.RemoveMember", "store.sql_channel.remove_member.app_error", nil, "channel_id="+channelId+", user_id="+userId+", "+err.Error(), http.StatusInternalServerError)
+	}
+	return nil
 }
 
 func (s SqlChannelStore) RemoveAllDeactivatedMembers(channelId string) store.StoreChannel {
