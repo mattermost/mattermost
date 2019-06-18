@@ -1495,29 +1495,30 @@ func (s SqlChannelStore) IsUserInChannelUseCache(userId string, channelId string
 func (s SqlChannelStore) GetMemberForPost(postId string, userId string) (*model.ChannelMember, *model.AppError) {
 	var dbMember channelMemberWithSchemeRoles
 	query := `
-			SELECT
-				ChannelMembers.*,
-				TeamScheme.DefaultChannelGuestRole TeamSchemeDefaultGuestRole,
-				TeamScheme.DefaultChannelUserRole TeamSchemeDefaultUserRole,
-				TeamScheme.DefaultChannelAdminRole TeamSchemeDefaultAdminRole,
-				ChannelScheme.DefaultChannelGuestRole ChannelSchemeDefaultGuestRole,
-				ChannelScheme.DefaultChannelUserRole ChannelSchemeDefaultUserRole,
-				ChannelScheme.DefaultChannelAdminRole ChannelSchemeDefaultAdminRole
-			FROM
-				ChannelMembers
-			INNER JOIN
-				Posts ON ChannelMembers.ChannelId = Posts.ChannelId
-			INNER JOIN
-				Channels ON ChannelMembers.ChannelId = Channels.Id
-			LEFT JOIN
-				Schemes ChannelScheme ON Channels.SchemeId = ChannelScheme.Id
-			LEFT JOIN
-				Teams ON Channels.TeamId = Teams.Id
-			LEFT JOIN
-				Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id
-			WHERE
-				ChannelMembers.UserId = :UserId
-				AND Posts.Id = :PostId`
+		SELECT
+			ChannelMembers.*,
+			TeamScheme.DefaultChannelGuestRole TeamSchemeDefaultGuestRole,
+			TeamScheme.DefaultChannelUserRole TeamSchemeDefaultUserRole,
+			TeamScheme.DefaultChannelAdminRole TeamSchemeDefaultAdminRole,
+			ChannelScheme.DefaultChannelGuestRole ChannelSchemeDefaultGuestRole,
+			ChannelScheme.DefaultChannelUserRole ChannelSchemeDefaultUserRole,
+			ChannelScheme.DefaultChannelAdminRole ChannelSchemeDefaultAdminRole
+		FROM
+			ChannelMembers
+		INNER JOIN
+			Posts ON ChannelMembers.ChannelId = Posts.ChannelId
+		INNER JOIN
+			Channels ON ChannelMembers.ChannelId = Channels.Id
+		LEFT JOIN
+			Schemes ChannelScheme ON Channels.SchemeId = ChannelScheme.Id
+		LEFT JOIN
+			Teams ON Channels.TeamId = Teams.Id
+		LEFT JOIN
+			Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id
+		WHERE
+			ChannelMembers.UserId = :UserId
+		AND 
+			Posts.Id = :PostId`
 	if err := s.GetReplica().SelectOne(&dbMember, query, map[string]interface{}{"UserId": userId, "PostId": postId}); err != nil {
 		return nil, model.NewAppError("SqlChannelStore.GetMemberForPost", "store.sql_channel.get_member_for_post.app_error", nil, "postId="+postId+", err="+err.Error(), http.StatusInternalServerError)
 	}
