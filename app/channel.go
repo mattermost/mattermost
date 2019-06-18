@@ -1616,8 +1616,8 @@ func (a *App) removeUserFromChannel(userIdToRemove string, removerUserId string,
 		return err
 	}
 
-	if cmresult := <-a.Srv.Store.Channel().RemoveMember(channel.Id, userIdToRemove); cmresult.Err != nil {
-		return cmresult.Err
+	if err := a.Srv.Store.Channel().RemoveMember(channel.Id, userIdToRemove); err != nil {
+		return err
 	}
 	if cmhResult := <-a.Srv.Store.ChannelMemberHistory().LogLeaveEvent(userIdToRemove, channel.Id, model.GetMillis()); cmhResult.Err != nil {
 		return cmhResult.Err

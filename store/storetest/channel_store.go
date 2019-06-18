@@ -910,7 +910,8 @@ func testChannelMemberStore(t *testing.T, ss store.Store) {
 		t.Fatal("should have saved 2 members")
 	}
 
-	store.Must(ss.Channel().RemoveMember(o2.ChannelId, o2.UserId))
+	err = ss.Channel().RemoveMember(o2.ChannelId, o2.UserId)
+	require.Nil(t, err)
 
 	count = (<-ss.Channel().GetMemberCount(o1.ChannelId, false)).Data.(int64)
 	if count != 1 {
