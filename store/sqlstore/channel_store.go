@@ -1492,11 +1492,9 @@ func (s SqlChannelStore) IsUserInChannelUseCache(userId string, channelId string
 	return false
 }
 
-func (s SqlChannelStore) GetMemberForPost(postId string, userId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var dbMember channelMemberWithSchemeRoles
-		if err := s.GetReplica().SelectOne(&dbMember,
-			`
+func (s SqlChannelStore) GetMemberForPost(postId string, userId string) (*model.ChannelMember, *model.AppError) {
+	var dbMember channelMemberWithSchemeRoles
+	query := `
 			SELECT
 				ChannelMembers.*,
 				TeamScheme.DefaultChannelGuestRole TeamSchemeDefaultGuestRole,
@@ -1519,12 +1517,11 @@ func (s SqlChannelStore) GetMemberForPost(postId string, userId string) store.St
 				Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id
 			WHERE
 				ChannelMembers.UserId = :UserId
-				AND Posts.Id = :PostId`, map[string]interface{}{"UserId": userId, "PostId": postId}); err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.GetMemberForPost", "store.sql_channel.get_member_for_post.app_error", nil, "postId="+postId+", err="+err.Error(), http.StatusInternalServerError)
-			return
-		}
-		result.Data = dbMember.ToModel()
-	})
+				AND Posts.Id = :PostId`
+	if err := s.GetReplica().SelectOne(&dbMember, query, map[string]interface{}{"UserId": userId, "PostId": postId}); err != nil {
+		return nil, model.NewAppError("SqlChannelStore.GetMemberForPost", "store.sql_channel.get_member_for_post.app_error", nil, "postId="+postId+", err="+err.Error(), http.StatusInternalServerError)
+	}
+	return dbMember.ToModel(), nil
 }
 
 func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCache bool, includeDeleted bool) store.StoreChannel {
