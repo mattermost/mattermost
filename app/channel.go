@@ -1697,11 +1697,11 @@ func (a *App) RemoveUserFromChannel(userIdToRemove string, removerUserId string,
 
 func (a *App) GetNumberOfChannelsOnTeam(teamId string) (int, *model.AppError) {
 	// Get total number of channels on current team
-	result := <-a.Srv.Store.Channel().GetTeamChannels(teamId)
-	if result.Err != nil {
-		return 0, result.Err
+	list, err := a.Srv.Store.Channel().GetTeamChannels(teamId)
+	if err != nil {
+		return 0, err
 	}
-	return len(*result.Data.(*model.ChannelList)), nil
+	return len(*list), nil
 }
 
 func (a *App) SetActiveChannel(userId string, channelId string) *model.AppError {
