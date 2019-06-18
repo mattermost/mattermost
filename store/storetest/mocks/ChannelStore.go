@@ -377,19 +377,28 @@ func (_m *ChannelStore) GetChannelCounts(teamId string, userId string) (*model.C
 }
 
 // GetChannelMembersForExport provides a mock function with given fields: userId, teamId
-func (_m *ChannelStore) GetChannelMembersForExport(userId string, teamId string) store.StoreChannel {
+func (_m *ChannelStore) GetChannelMembersForExport(userId string, teamId string) ([]*model.ChannelMemberForExport, *model.AppError) {
 	ret := _m.Called(userId, teamId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, string) store.StoreChannel); ok {
+	var r0 []*model.ChannelMemberForExport
+	if rf, ok := ret.Get(0).(func(string, string) []*model.ChannelMemberForExport); ok {
 		r0 = rf(userId, teamId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]*model.ChannelMemberForExport)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+		r1 = rf(userId, teamId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetChannelMembersTimezones provides a mock function with given fields: channelId
@@ -996,15 +1005,15 @@ func (_m *ChannelStore) RemoveAllDeactivatedMembers(channelId string) store.Stor
 }
 
 // RemoveMember provides a mock function with given fields: channelId, userId
-func (_m *ChannelStore) RemoveMember(channelId string, userId string) store.StoreChannel {
+func (_m *ChannelStore) RemoveMember(channelId string, userId string) *model.AppError {
 	ret := _m.Called(channelId, userId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, string) store.StoreChannel); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, string) *model.AppError); ok {
 		r0 = rf(channelId, userId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
@@ -1249,17 +1258,24 @@ func (_m *ChannelStore) UpdateMember(member *model.ChannelMember) store.StoreCha
 }
 
 // UserBelongsToChannels provides a mock function with given fields: userId, channelIds
-func (_m *ChannelStore) UserBelongsToChannels(userId string, channelIds []string) store.StoreChannel {
+func (_m *ChannelStore) UserBelongsToChannels(userId string, channelIds []string) (bool, *model.AppError) {
 	ret := _m.Called(userId, channelIds)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, []string) store.StoreChannel); ok {
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(string, []string) bool); ok {
 		r0 = rf(userId, channelIds)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+		r0 = ret.Get(0).(bool)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, []string) *model.AppError); ok {
+		r1 = rf(userId, channelIds)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
 		}
 	}
 
-	return r0
+	return r0, r1
 }
