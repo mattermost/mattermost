@@ -1956,8 +1956,8 @@ func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
 // is in progress, and therefore should not be used from the API without first fixing this potential race condition.
 func (a *App) MoveChannel(team *model.Team, channel *model.Channel, user *model.User, removeDeactivatedMembers bool) *model.AppError {
 	if removeDeactivatedMembers {
-		if result := <-a.Srv.Store.Channel().RemoveAllDeactivatedMembers(channel.Id); result.Err != nil {
-			return result.Err
+		if err := a.Srv.Store.Channel().RemoveAllDeactivatedMembers(channel.Id); err != nil {
+			return err
 		}
 	}
 
