@@ -189,7 +189,7 @@ type ChannelStore interface {
 	AnalyticsDeletedTypeCount(teamId string, channelType string) (int64, *model.AppError)
 	GetChannelUnread(channelId, userId string) (*model.ChannelUnread, *model.AppError)
 	ClearCaches()
-	GetChannelsByScheme(schemeId string, offset int, limit int) StoreChannel
+	GetChannelsByScheme(schemeId string, offset int, limit int) (model.ChannelList, *model.AppError)
 	MigrateChannelMembers(fromChannelId string, fromUserId string) StoreChannel
 	ResetAllChannelSchemes() StoreChannel
 	ClearAllCustomRoleAssignments() *model.AppError
