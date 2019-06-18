@@ -1695,21 +1695,21 @@ func (s SqlChannelStore) RemoveMember(channelId string, userId string) *model.Ap
 
 func (s SqlChannelStore) RemoveAllDeactivatedMembers(channelId string) *model.AppError {
 	query := `
-			DELETE
-			FROM
-				ChannelMembers
-			WHERE
-				UserId IN (
-					SELECT
-						Id
-					FROM
-						Users
-					WHERE
-						Users.DeleteAt != 0
-				)
-			AND
-				ChannelMembers.ChannelId = :ChannelId
-		`
+		DELETE
+		FROM
+			ChannelMembers
+		WHERE
+			UserId IN (
+				SELECT
+					Id
+				FROM
+					Users
+				WHERE
+					Users.DeleteAt != 0
+			)
+		AND
+			ChannelMembers.ChannelId = :ChannelId
+	`
 
 	_, err := s.GetMaster().Exec(query, map[string]interface{}{"ChannelId": channelId})
 	if err != nil {
