@@ -65,7 +65,7 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	hereNotification := false
 	channelNotification := false
 	allNotification := false
-	updateMentionChans := []*model.AppError{}
+	updateMentionChans := []chan *model.AppError{}
 
 	if channel.Type == model.CHANNEL_DIRECT {
 		var otherUserId string
@@ -176,7 +176,12 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	mentionedUsersList := make([]string, 0, len(mentionedUserIds))
 	for id := range mentionedUserIds {
 		mentionedUsersList = append(mentionedUsersList, id)
-		updateMentionChans = append(updateMentionChans, a.Srv.Store.Channel().IncrementMentionCount(post.ChannelId, id))
+		umc := make(chan *model.AppError, 1)
+		go func() {
+			umc <- a.Srv.Store.Channel().IncrementMentionCount(post.ChannelId, id)
+			close(umc)
+		}()
+		updateMentionChans = append(updateMentionChans, umc)
 	}
 
 	notification := &postNotification{
@@ -275,8 +280,8 @@ func (a *App) SendNotifications(post *model.Post, team *model.Team, channel *mod
 	// Make sure all mention updates are complete to prevent race
 	// Probably better to batch these DB updates in the future
 	// MUST be completed before push notifications send
-	for _, err := range updateMentionChans {
-		if err != nil {
+	for _, umc := range updateMentionChans {
+		if err := <-umc; err != nil {
 			mlog.Warn(fmt.Sprintf("Failed to update mention count, post_id=%v channel_id=%v err=%v", post.Id, post.ChannelId, result.Err), mlog.String("post_id", post.Id))
 		}
 	}
