@@ -1586,42 +1586,38 @@ type allChannelMemberNotifyProps struct {
 	NotifyProps model.StringMap
 }
 
-func (s SqlChannelStore) GetAllChannelMembersNotifyPropsForChannel(channelId string, allowFromCache bool) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if allowFromCache {
-			if cacheItem, ok := allChannelMembersNotifyPropsForChannelCache.Get(channelId); ok {
-				if s.metrics != nil {
-					s.metrics.IncrementMemCacheHitCounter("All Channel Members Notify Props for Channel")
-				}
-				result.Data = cacheItem.(map[string]model.StringMap)
-				return
+func (s SqlChannelStore) GetAllChannelMembersNotifyPropsForChannel(channelId string, allowFromCache bool) (map[string]model.StringMap, *model.AppError) {
+	if allowFromCache {
+		if cacheItem, ok := allChannelMembersNotifyPropsForChannelCache.Get(channelId); ok {
+			if s.metrics != nil {
+				s.metrics.IncrementMemCacheHitCounter("All Channel Members Notify Props for Channel")
 			}
+			return cacheItem.(map[string]model.StringMap), nil
 		}
+	}
 
-		if s.metrics != nil {
-			s.metrics.IncrementMemCacheMissCounter("All Channel Members Notify Props for Channel")
-		}
+	if s.metrics != nil {
+		s.metrics.IncrementMemCacheMissCounter("All Channel Members Notify Props for Channel")
+	}
 
-		var data []allChannelMemberNotifyProps
-		_, err := s.GetReplica().Select(&data, `
-			SELECT UserId, NotifyProps
-			FROM ChannelMembers
-			WHERE ChannelId = :ChannelId`, map[string]interface{}{"ChannelId": channelId})
+	var data []allChannelMemberNotifyProps
+	_, err := s.GetReplica().Select(&data, `
+		SELECT UserId, NotifyProps
+		FROM ChannelMembers
+		WHERE ChannelId = :ChannelId`, map[string]interface{}{"ChannelId": channelId})
 
-		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.GetAllChannelMembersPropsForChannel", "store.sql_channel.get_members.app_error", nil, "channelId="+channelId+", err="+err.Error(), http.StatusInternalServerError)
-			return
-		}
+	if err != nil {
+		return nil, model.NewAppError("SqlChannelStore.GetAllChannelMembersPropsForChannel", "store.sql_channel.get_members.app_error", nil, "channelId="+channelId+", err="+err.Error(), http.StatusInternalServerError)
+	}
 
-		props := make(map[string]model.StringMap)
-		for i := range data {
-			props[data[i].UserId] = data[i].NotifyProps
-		}
+	props := make(map[string]model.StringMap)
+	for i := range data {
+		props[data[i].UserId] = data[i].NotifyProps
+	}
 
-		result.Data = props
+	allChannelMembersNotifyPropsForChannelCache.AddWithExpiresInSecs(channelId, props, ALL_CHANNEL_MEMBERS_NOTIFY_PROPS_FOR_CHANNEL_CACHE_SEC)
 
-		allChannelMembersNotifyPropsForChannelCache.AddWithExpiresInSecs(channelId, props, ALL_CHANNEL_MEMBERS_NOTIFY_PROPS_FOR_CHANNEL_CACHE_SEC)
-	})
+	return props, nil
 }
 
 func (s SqlChannelStore) InvalidateMemberCount(channelId string) {
