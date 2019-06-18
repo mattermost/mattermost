@@ -1474,7 +1474,7 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
-    "translation": "@{{.Usernames}) i @{{.LastUsername}} nie zostały powiadomione przez tę wzmiankę, ponieważ nie znajdują się na kanale. Nie można ich dodać do kanału, ponieważ nie należą do połączonych grup. Aby dodać je do tego kanału, muszą zostać dodane do połączonych grup."
+    "translation": "@{{.Usernames}}) i @{{.LastUsername}} nie zostały powiadomione przez tę wzmiankę, ponieważ nie znajdują się na kanale. Nie można ich dodać do kanału, ponieważ nie należą do połączonych grup. Aby dodać je do tego kanału, muszą zostać dodane do połączonych grup."
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.one",
