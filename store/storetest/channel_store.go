@@ -2968,9 +2968,9 @@ func testChannelStoreGetPinnedPosts(t *testing.T, ss store.Store) {
 		IsPinned:  true,
 	})
 
-	if r1 := <-ss.Channel().GetPinnedPosts(o1.Id); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else if r1.Data.(*model.PostList).Posts[p1.Id] == nil {
+	if pl, err := ss.Channel().GetPinnedPosts(o1.Id); err != nil {
+		t.Fatal(err)
+	} else if pl.Posts[p1.Id] == nil {
 		t.Fatal("didn't return relevant pinned posts")
 	}
 
@@ -2991,9 +2991,9 @@ func testChannelStoreGetPinnedPosts(t *testing.T, ss store.Store) {
 	})
 	require.Nil(t, err)
 
-	if r2 := <-ss.Channel().GetPinnedPosts(o2.Id); r2.Err != nil {
-		t.Fatal(r2.Err)
-	} else if len(r2.Data.(*model.PostList).Posts) != 0 {
+	if pl, err := ss.Channel().GetPinnedPosts(o2.Id); err != nil {
+		t.Fatal(err)
+	} else if len(pl.Posts) != 0 {
 		t.Fatal("wasn't supposed to return posts")
 	}
 }
