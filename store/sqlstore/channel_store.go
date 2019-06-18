@@ -1066,47 +1066,45 @@ func (s SqlChannelStore) GetPublicChannelsForTeam(teamId string, offset int, lim
 	})
 }
 
-func (s SqlChannelStore) GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		props := make(map[string]interface{})
-		props["teamId"] = teamId
+func (s SqlChannelStore) GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) (*model.ChannelList, *model.AppError) {
+	props := make(map[string]interface{})
+	props["teamId"] = teamId
 
-		idQuery := ""
+	idQuery := ""
 
-		for index, channelId := range channelIds {
-			if len(idQuery) > 0 {
-				idQuery += ", "
-			}
-
-			props["channelId"+strconv.Itoa(index)] = channelId
-			idQuery += ":channelId" + strconv.Itoa(index)
+	for index, channelId := range channelIds {
+		if len(idQuery) > 0 {
+			idQuery += ", "
 		}
 
-		data := &model.ChannelList{}
-		_, err := s.GetReplica().Select(data, `
-			SELECT
-			    Channels.*
-			FROM
-			    Channels
-			JOIN
-			    PublicChannels pc ON (pc.Id = Channels.Id)
-			WHERE
-			    pc.TeamId = :teamId
-			AND pc.DeleteAt = 0
-			AND pc.Id IN (`+idQuery+`)
-			ORDER BY pc.DisplayName
+		props["channelId"+strconv.Itoa(index)] = channelId
+		idQuery += ":channelId" + strconv.Itoa(index)
+	}
+
+	data := &model.ChannelList{}
+	_, err := s.GetReplica().Select(data, `
+		SELECT
+			Channels.*
+		FROM
+			Channels
+		JOIN
+			PublicChannels pc ON (pc.Id = Channels.Id)
+		WHERE
+			pc.TeamId = :teamId
+		AND pc.DeleteAt = 0
+		AND pc.Id IN (`+idQuery+`)
+		ORDER BY pc.DisplayName
 		`, props)
 
-		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.GetPublicChannelsByIdsForTeam", "store.sql_channel.get_channels_by_ids.get.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
+	if err != nil {
+		return nil, model.NewAppError("SqlChannelStore.GetPublicChannelsByIdsForTeam", "store.sql_channel.get_channels_by_ids.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		if len(*data) == 0 {
-			result.Err = model.NewAppError("SqlChannelStore.GetPublicChannelsByIdsForTeam", "store.sql_channel.get_channels_by_ids.not_found.app_error", nil, "", http.StatusNotFound)
-		}
+	if len(*data) == 0 {
+		return nil, model.NewAppError("SqlChannelStore.GetPublicChannelsByIdsForTeam", "store.sql_channel.get_channels_by_ids.not_found.app_error", nil, "", http.StatusNotFound)
+	}
 
-		result.Data = data
-	})
+	return data, nil
 }
 
 type channelIdWithCountAndUpdateAt struct {
