@@ -153,7 +153,8 @@ func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store, s SqlSuppli
 		t.Fatal("couldn't save direct channel", err)
 	}
 
-	members, _ := ss.Channel().GetMembers(o1.Id, 0, 100)
+	members, err := ss.Channel().GetMembers(o1.Id, 0, 100)
+	require.Nil(t, err)
 	if len(*members) != 2 {
 		t.Fatal("should have saved 2 members")
 	}
@@ -196,7 +197,8 @@ func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store, s SqlSuppli
 		t.Fatal("couldn't save direct channel", err)
 	}
 
-	members, _ = ss.Channel().GetMembers(o1.Id, 0, 100)
+	members, err = ss.Channel().GetMembers(o1.Id, 0, 100)
+	require.Nil(t, err)
 	if len(*members) != 1 {
 		t.Fatal("should have saved just 1 member")
 	}
@@ -227,7 +229,8 @@ func testChannelStoreCreateDirectChannel(t *testing.T, ss store.Store) {
 		<-ss.Channel().PermanentDelete(c1.Id)
 	}()
 
-	members, _ := ss.Channel().GetMembers(c1.Id, 0, 100)
+	members, err := ss.Channel().GetMembers(c1.Id, 0, 100)
+	require.Nil(t, err)
 	if len(*members) != 2 {
 		t.Fatal("should have saved 2 members")
 	}
