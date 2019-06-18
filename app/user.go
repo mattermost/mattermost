@@ -2134,11 +2134,11 @@ func (a *App) userBelongsToTeams(userId string, teamIds []string) (bool, *model.
 }
 
 func (a *App) userBelongsToChannels(userId string, channelIds []string) (bool, *model.AppError) {
-	result := <-a.Srv.Store.Channel().UserBelongsToChannels(userId, channelIds)
-	if result.Err != nil {
-		return false, result.Err
+	result, err := a.Srv.Store.Channel().UserBelongsToChannels(userId, channelIds)
+	if err != nil {
+		return false, err
 	}
-	return result.Data.(bool), nil
+	return result, nil
 }
 
 func (a *App) GetViewUsersRestrictions(userId string) (*model.ViewUsersRestrictions, *model.AppError) {
