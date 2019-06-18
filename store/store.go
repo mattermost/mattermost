@@ -199,7 +199,7 @@ type ChannelStore interface {
 	GetChannelMembersForExport(userId string, teamId string) StoreChannel
 	RemoveAllDeactivatedMembers(channelId string) StoreChannel
 	GetChannelsBatchForIndexing(startTime, endTime int64, limit int) ([]*model.Channel, *model.AppError)
-	UserBelongsToChannels(userId string, channelIds []string) StoreChannel
+	UserBelongsToChannels(userId string, channelIds []string) (bool, *model.AppError)
 }
 
 type ChannelMemberHistoryStore interface {
