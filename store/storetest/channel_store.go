@@ -2778,28 +2778,27 @@ func testChannelStoreAnalyticsDeletedTypeCount(t *testing.T, ss store.Store) {
 	err = ss.Channel().Delete(d4.Id, model.GetMillis())
 	require.Nil(t, err, "channel should have been deleted")
 
-	if count, err := ss.Channel().AnalyticsDeletedTypeCount("", "O"); err != nil {
+	var count int64
+
+	if count, err = ss.Channel().AnalyticsDeletedTypeCount("", "O"); err != nil {
 		t.Fatal(err)
-	} else {
-		if count != openStartCount+2 {
-			t.Fatalf("Wrong open channel deleted count.")
-		}
+	}
+	if count != openStartCount+2 {
+		t.Fatalf("Wrong open channel deleted count.")
 	}
 
-	if count, err := ss.Channel().AnalyticsDeletedTypeCount("", "P"); err != nil {
+	if count, err = ss.Channel().AnalyticsDeletedTypeCount("", "P"); err != nil {
 		t.Fatal(err)
-	} else {
-		if count != privateStartCount+1 {
-			t.Fatalf("Wrong private channel deleted count.")
-		}
+	}
+	if count != privateStartCount+1 {
+		t.Fatalf("Wrong private channel deleted count.")
 	}
 
-	if count, err := ss.Channel().AnalyticsDeletedTypeCount("", "D"); err != nil {
+	if count, err = ss.Channel().AnalyticsDeletedTypeCount("", "D"); err != nil {
 		t.Fatal(err)
-	} else {
-		if count != directStartCount+1 {
-			t.Fatalf("Wrong direct channel deleted count.")
-		}
+	}
+	if count != directStartCount+1 {
+		t.Fatalf("Wrong direct channel deleted count.")
 	}
 }
 
