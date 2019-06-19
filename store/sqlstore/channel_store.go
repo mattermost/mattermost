@@ -1829,18 +1829,15 @@ func (s SqlChannelStore) IncrementMentionCount(channelId string, userId string) 
 	})
 }
 
-func (s SqlChannelStore) GetAll(teamId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var data []*model.Channel
-		_, err := s.GetReplica().Select(&data, "SELECT * FROM Channels WHERE TeamId = :TeamId AND Type != 'D' ORDER BY Name", map[string]interface{}{"TeamId": teamId})
+func (s SqlChannelStore) GetAll(teamId string) ([]*model.Channel, *model.AppError) {
+	var data []*model.Channel
+	_, err := s.GetReplica().Select(&data, "SELECT * FROM Channels WHERE TeamId = :TeamId AND Type != 'D' ORDER BY Name", map[string]interface{}{"TeamId": teamId})
 
-		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.GetAll", "store.sql_channel.get_all.app_error", nil, "teamId="+teamId+", err="+err.Error(), http.StatusInternalServerError)
-			return
-		}
+	if err != nil {
+		return nil, model.NewAppError("SqlChannelStore.GetAll", "store.sql_channel.get_all.app_error", nil, "teamId="+teamId+", err="+err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = data
-	})
+	return data, nil
 }
 
 func (s SqlChannelStore) GetChannelsByIds(channelIds []string) ([]*model.Channel, *model.AppError) {
