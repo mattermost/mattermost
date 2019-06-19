@@ -393,19 +393,28 @@ func (_m *ChannelStore) GetChannelMembersForExport(userId string, teamId string)
 }
 
 // GetChannelMembersTimezones provides a mock function with given fields: channelId
-func (_m *ChannelStore) GetChannelMembersTimezones(channelId string) store.StoreChannel {
+func (_m *ChannelStore) GetChannelMembersTimezones(channelId string) ([]model.StringMap, *model.AppError) {
 	ret := _m.Called(channelId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+	var r0 []model.StringMap
+	if rf, ok := ret.Get(0).(func(string) []model.StringMap); ok {
 		r0 = rf(channelId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]model.StringMap)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(channelId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetChannelUnread provides a mock function with given fields: channelId, userId

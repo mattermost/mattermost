@@ -1401,25 +1401,23 @@ func (s SqlChannelStore) GetMembers(channelId string, offset, limit int) store.S
 	})
 }
 
-func (s SqlChannelStore) GetChannelMembersTimezones(channelId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var dbMembersTimezone []map[string]string
-		_, err := s.GetReplica().Select(&dbMembersTimezone, `
-					SELECT
-						Users.Timezone
-					FROM
-						ChannelMembers
-					LEFT JOIN
-						Users  ON ChannelMembers.UserId = Id
-					WHERE ChannelId = :ChannelId
-		`, map[string]interface{}{
-			"ChannelId": channelId})
-		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.GetChannelMembersTimezones", "store.sql_channel.get_members.app_error", nil, "channel_id="+channelId+","+err.Error(), http.StatusInternalServerError)
-			return
-		}
-		result.Data = dbMembersTimezone
-	})
+func (s SqlChannelStore) GetChannelMembersTimezones(channelId string) ([]model.StringMap, *model.AppError) {
+	var dbMembersTimezone []model.StringMap
+	_, err := s.GetReplica().Select(&dbMembersTimezone, `
+		SELECT
+			Users.Timezone
+		FROM
+			ChannelMembers
+		LEFT JOIN
+			Users  ON ChannelMembers.UserId = Id
+		WHERE ChannelId = :ChannelId
+	`, map[string]interface{}{"ChannelId": channelId})
+
+	if err != nil {
+		return nil, model.NewAppError("SqlChannelStore.GetChannelMembersTimezones", "store.sql_channel.get_members.app_error", nil, "channel_id="+channelId+","+err.Error(), http.StatusInternalServerError)
+	}
+
+	return dbMembersTimezone, nil
 }
 
 func (s SqlChannelStore) GetMember(channelId string, userId string) (*model.ChannelMember, *model.AppError) {
