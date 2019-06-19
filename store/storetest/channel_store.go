@@ -223,7 +223,7 @@ func testChannelStoreCreateDirectChannel(t *testing.T, ss store.Store) {
 		t.Fatal("couldn't create direct channel", err)
 	}
 	defer func() {
-		<-ss.Channel().PermanentDeleteMembersByChannel(c1.Id)
+		ss.Channel().PermanentDeleteMembersByChannel(c1.Id)
 		<-ss.Channel().PermanentDelete(c1.Id)
 	}()
 
@@ -423,10 +423,9 @@ func testChannelStoreGet(t *testing.T, ss store.Store, s SqlSupplier) {
 		}
 	}
 
-	if r3 := <-ss.Channel().GetAll(o1.TeamId); r3.Err != nil {
-		t.Fatal(r3.Err)
+	if channels, chanErr := ss.Channel().GetAll(o1.TeamId); chanErr != nil {
+		t.Fatal(chanErr)
 	} else {
-		channels := r3.Data.([]*model.Channel)
 		if len(channels) == 0 {
 			t.Fatal("too little")
 		}
@@ -528,9 +527,9 @@ func testChannelStoreGetForPost(t *testing.T, ss store.Store) {
 	})
 	require.Nil(t, err)
 
-	if r1 := <-ss.Channel().GetForPost(p1.Id); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else if r1.Data.(*model.Channel).Id != o1.Id {
+	if channel, chanErr := ss.Channel().GetForPost(p1.Id); chanErr != nil {
+		t.Fatal(chanErr)
+	} else if channel.Id != o1.Id {
 		t.Fatal("incorrect channel returned")
 	}
 }
@@ -913,7 +912,8 @@ func testChannelMemberStore(t *testing.T, ss store.Store) {
 		t.Fatal("should have saved 2 members")
 	}
 
-	store.Must(ss.Channel().RemoveMember(o2.ChannelId, o2.UserId))
+	err = ss.Channel().RemoveMember(o2.ChannelId, o2.UserId)
+	require.Nil(t, err)
 
 	count, err = ss.Channel().GetMemberCount(o1.ChannelId, false)
 	require.Nil(t, err)
@@ -990,8 +990,8 @@ func testChannelDeleteMemberStore(t *testing.T, ss store.Store) {
 		t.Fatal("should have removed 1 member")
 	}
 
-	if r1 := <-ss.Channel().PermanentDeleteMembersByChannel(o1.ChannelId); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if err := ss.Channel().PermanentDeleteMembersByChannel(o1.ChannelId); err != nil {
+		t.Fatal(err)
 	}
 
 	count, err = ss.Channel().GetMemberCount(o1.ChannelId, false)
@@ -1456,15 +1456,15 @@ func testChannelStoreGetPublicChannelsByIdsForTeam(t *testing.T, ss store.Store)
 	require.Nil(t, err)
 
 	t.Run("oc1 by itself should be found as a public channel in the team", func(t *testing.T) {
-		result := <-ss.Channel().GetPublicChannelsByIdsForTeam(teamId, []string{oc1.Id})
-		require.Nil(t, result.Err)
-		require.Equal(t, &model.ChannelList{&oc1}, result.Data.(*model.ChannelList))
+		list, channelErr := ss.Channel().GetPublicChannelsByIdsForTeam(teamId, []string{oc1.Id})
+		require.Nil(t, channelErr)
+		require.Equal(t, &model.ChannelList{&oc1}, list)
 	})
 
 	t.Run("only oc1, among others, should be found as a public channel in the team", func(t *testing.T) {
-		result := <-ss.Channel().GetPublicChannelsByIdsForTeam(teamId, []string{oc1.Id, oc2.Id, model.NewId(), pc3.Id})
-		require.Nil(t, result.Err)
-		require.Equal(t, &model.ChannelList{&oc1}, result.Data.(*model.ChannelList))
+		list, channelErr := ss.Channel().GetPublicChannelsByIdsForTeam(teamId, []string{oc1.Id, oc2.Id, model.NewId(), pc3.Id})
+		require.Nil(t, channelErr)
+		require.Equal(t, &model.ChannelList{&oc1}, list)
 	})
 
 	// oc4 is another public channel on the team
@@ -1491,15 +1491,15 @@ func testChannelStoreGetPublicChannelsByIdsForTeam(t *testing.T, ss store.Store)
 	require.Nil(t, err, "channel should have been deleted")
 
 	t.Run("only oc1 and oc4, among others, should be found as a public channel in the team", func(t *testing.T) {
-		result := <-ss.Channel().GetPublicChannelsByIdsForTeam(teamId, []string{oc1.Id, oc2.Id, model.NewId(), pc3.Id, oc4.Id})
-		require.Nil(t, result.Err)
-		require.Equal(t, &model.ChannelList{&oc1, &oc4}, result.Data.(*model.ChannelList))
+		list, err := ss.Channel().GetPublicChannelsByIdsForTeam(teamId, []string{oc1.Id, oc2.Id, model.NewId(), pc3.Id, oc4.Id})
+		require.Nil(t, err)
+		require.Equal(t, &model.ChannelList{&oc1, &oc4}, list)
 	})
 
 	t.Run("random channel id should not be found as a public channel in the team", func(t *testing.T) {
-		result := <-ss.Channel().GetPublicChannelsByIdsForTeam(teamId, []string{model.NewId()})
-		require.NotNil(t, result.Err)
-		require.Equal(t, result.Err.Id, "store.sql_channel.get_channels_by_ids.not_found.app_error")
+		_, err := ss.Channel().GetPublicChannelsByIdsForTeam(teamId, []string{model.NewId()})
+		require.NotNil(t, err)
+		require.Equal(t, err.Id, "store.sql_channel.get_channels_by_ids.not_found.app_error")
 	})
 }
 
@@ -1830,22 +1830,17 @@ func testGetMember(t *testing.T, ss store.Store) {
 		t.Fatal("should've gotten member for user")
 	}
 
-	if result := <-ss.Channel().GetAllChannelMembersNotifyPropsForChannel(c2.Id, false); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		props := result.Data.(map[string]model.StringMap)
-		if len(props) == 0 {
-			t.Fatal("should not be empty")
-		}
+	if props, err := ss.Channel().GetAllChannelMembersNotifyPropsForChannel(c2.Id, false); err != nil {
+		t.Fatal(err)
+	} else if len(props) == 0 {
+		t.Fatal("should not be empty")
 	}
 
-	if result := <-ss.Channel().GetAllChannelMembersNotifyPropsForChannel(c2.Id, true); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		props := result.Data.(map[string]model.StringMap)
-		if len(props) == 0 {
-			t.Fatal("should not be empty")
-		}
+	if props, err := ss.Channel().GetAllChannelMembersNotifyPropsForChannel(c2.Id, true); err != nil {
+		t.Fatal(err)
+	} else if len(props) == 0 {
+		t.Fatal("should not be empty")
+
 	}
 
 	ss.Channel().InvalidateCacheForChannelMembersNotifyProps(c2.Id)
@@ -2762,7 +2757,7 @@ func testChannelStoreAnalyticsDeletedTypeCount(t *testing.T, ss store.Store) {
 		t.Fatalf(err.Error())
 	}
 	defer func() {
-		<-ss.Channel().PermanentDeleteMembersByChannel(d4.Id)
+		ss.Channel().PermanentDeleteMembersByChannel(d4.Id)
 		<-ss.Channel().PermanentDelete(d4.Id)
 	}()
 
@@ -3107,7 +3102,7 @@ func testChannelStoreClearAllCustomRoleAssignments(t *testing.T, ss store.Store)
 	store.Must(ss.Channel().SaveMember(m3))
 	store.Must(ss.Channel().SaveMember(m4))
 
-	require.Nil(t, (<-ss.Channel().ClearAllCustomRoleAssignments()).Err)
+	require.Nil(t, ss.Channel().ClearAllCustomRoleAssignments())
 
 	member, err := ss.Channel().GetMember(m1.ChannelId, m1.UserId)
 	require.Nil(t, err)
@@ -3302,9 +3297,8 @@ func testChannelStoreGetAllChannelsForExportAfter(t *testing.T, ss store.Store) 
 	_, err = ss.Channel().Save(&c1, -1)
 	require.Nil(t, err)
 
-	r1 := <-ss.Channel().GetAllChannelsForExportAfter(10000, strings.Repeat("0", 26))
-	assert.Nil(t, r1.Err)
-	d1 := r1.Data.([]*model.ChannelForExport)
+	d1, err := ss.Channel().GetAllChannelsForExportAfter(10000, strings.Repeat("0", 26))
+	assert.Nil(t, err)
 
 	found := false
 	for _, c := range d1 {
@@ -3360,10 +3354,9 @@ func testChannelStoreGetChannelMembersForExport(t *testing.T, ss store.Store) {
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 	store.Must(ss.Channel().SaveMember(&m2))
 
-	r1 := <-ss.Channel().GetChannelMembersForExport(u1.Id, t1.Id)
-	assert.Nil(t, r1.Err)
+	d1, err := ss.Channel().GetChannelMembersForExport(u1.Id, t1.Id)
+	assert.Nil(t, err)
 
-	d1 := r1.Data.([]*model.ChannelMemberForExport)
 	assert.Len(t, d1, 1)
 
 	cmfe1 := d1[0]
@@ -3438,7 +3431,7 @@ func testChannelStoreRemoveAllDeactivatedMembers(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	// Remove all deactivated users from the channel.
-	assert.Nil(t, (<-ss.Channel().RemoveAllDeactivatedMembers(c1.Id)).Err)
+	assert.Nil(t, ss.Channel().RemoveAllDeactivatedMembers(c1.Id))
 
 	// Get all the channel members. Check there is now only 1: m3.
 	r2 := <-ss.Channel().GetMembers(c1.Id, 0, 1000)
@@ -3662,18 +3655,18 @@ func testChannelStoreGetChannelsBatchForIndexing(t *testing.T, ss store.Store) {
 	endTime := c6.CreateAt
 
 	// First and last channel should be outside the range
-	res1 := <-ss.Channel().GetChannelsBatchForIndexing(startTime, endTime, 1000)
-	assert.Nil(t, res1.Err)
-	assert.ElementsMatch(t, []*model.Channel{c2, c3, c5}, res1.Data)
+	channels, err := ss.Channel().GetChannelsBatchForIndexing(startTime, endTime, 1000)
+	assert.Nil(t, err)
+	assert.ElementsMatch(t, []*model.Channel{c2, c3, c5}, channels)
 
 	// Update the endTime, last channel should be in
 	endTime = model.GetMillis()
-	res2 := <-ss.Channel().GetChannelsBatchForIndexing(startTime, endTime, 1000)
-	assert.Nil(t, res2.Err)
-	assert.ElementsMatch(t, []*model.Channel{c2, c3, c5, c6}, res2.Data)
+	channels, err = ss.Channel().GetChannelsBatchForIndexing(startTime, endTime, 1000)
+	assert.Nil(t, err)
+	assert.ElementsMatch(t, []*model.Channel{c2, c3, c5, c6}, channels)
 
 	// Testing the limit
-	res3 := <-ss.Channel().GetChannelsBatchForIndexing(startTime, endTime, 2)
-	assert.Nil(t, res3.Err)
-	assert.ElementsMatch(t, []*model.Channel{c2, c3}, res3.Data)
+	channels, err = ss.Channel().GetChannelsBatchForIndexing(startTime, endTime, 2)
+	assert.Nil(t, err)
+	assert.ElementsMatch(t, []*model.Channel{c2, c3}, channels)
 }

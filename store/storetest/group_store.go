@@ -1324,12 +1324,12 @@ func testTeamMemberRemovals(t *testing.T, ss store.Store) {
 	require.Nil(t, res.Err)
 	res = <-ss.Team().RemoveMember(data.ConstrainedTeam.Id, data.UserC.Id)
 	require.Nil(t, res.Err)
-	res = <-ss.Channel().RemoveMember(data.ConstrainedChannel.Id, data.UserA.Id)
-	require.Nil(t, res.Err)
-	res = <-ss.Channel().RemoveMember(data.ConstrainedChannel.Id, data.UserB.Id)
-	require.Nil(t, res.Err)
-	res = <-ss.Channel().RemoveMember(data.ConstrainedChannel.Id, data.UserC.Id)
-	require.Nil(t, res.Err)
+	err = ss.Channel().RemoveMember(data.ConstrainedChannel.Id, data.UserA.Id)
+	require.Nil(t, err)
+	err = ss.Channel().RemoveMember(data.ConstrainedChannel.Id, data.UserB.Id)
+	require.Nil(t, err)
+	err = ss.Channel().RemoveMember(data.ConstrainedChannel.Id, data.UserC.Id)
+	require.Nil(t, err)
 }
 
 func testChannelMemberRemovals(t *testing.T, ss store.Store) {
@@ -1399,12 +1399,12 @@ func testChannelMemberRemovals(t *testing.T, ss store.Store) {
 	require.Nil(t, res.Err)
 	res = <-ss.Team().RemoveMember(data.ConstrainedTeam.Id, data.UserC.Id)
 	require.Nil(t, res.Err)
-	res = <-ss.Channel().RemoveMember(data.ConstrainedChannel.Id, data.UserA.Id)
-	require.Nil(t, res.Err)
-	res = <-ss.Channel().RemoveMember(data.ConstrainedChannel.Id, data.UserB.Id)
-	require.Nil(t, res.Err)
-	res = <-ss.Channel().RemoveMember(data.ConstrainedChannel.Id, data.UserC.Id)
-	require.Nil(t, res.Err)
+	err = ss.Channel().RemoveMember(data.ConstrainedChannel.Id, data.UserA.Id)
+	require.Nil(t, err)
+	err = ss.Channel().RemoveMember(data.ConstrainedChannel.Id, data.UserB.Id)
+	require.Nil(t, err)
+	err = ss.Channel().RemoveMember(data.ConstrainedChannel.Id, data.UserC.Id)
+	require.Nil(t, err)
 }
 
 type removalsData struct {
