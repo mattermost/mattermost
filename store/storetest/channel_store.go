@@ -2678,10 +2678,10 @@ func testChannelStoreGetMembersByIds(t *testing.T, ss store.Store) {
 	m1 := &model.ChannelMember{ChannelId: o1.Id, UserId: model.NewId(), NotifyProps: model.GetDefaultChannelNotifyProps()}
 	store.Must(ss.Channel().SaveMember(m1))
 
-	if r := <-ss.Channel().GetMembersByIds(m1.ChannelId, []string{m1.UserId}); r.Err != nil {
-		t.Fatal(r.Err)
+	if members, err := ss.Channel().GetMembersByIds(m1.ChannelId, []string{m1.UserId}); err != nil {
+		t.Fatal(err)
 	} else {
-		rm1 := (*r.Data.(*model.ChannelMembers))[0]
+		rm1 := (*members)[0]
 
 		if rm1.ChannelId != m1.ChannelId {
 			t.Fatal("bad team id")
@@ -2695,17 +2695,15 @@ func testChannelStoreGetMembersByIds(t *testing.T, ss store.Store) {
 	m2 := &model.ChannelMember{ChannelId: o1.Id, UserId: model.NewId(), NotifyProps: model.GetDefaultChannelNotifyProps()}
 	store.Must(ss.Channel().SaveMember(m2))
 
-	if r := <-ss.Channel().GetMembersByIds(m1.ChannelId, []string{m1.UserId, m2.UserId, model.NewId()}); r.Err != nil {
-		t.Fatal(r.Err)
+	if members, err := ss.Channel().GetMembersByIds(m1.ChannelId, []string{m1.UserId, m2.UserId, model.NewId()}); err != nil {
+		t.Fatal(err)
 	} else {
-		rm := (*r.Data.(*model.ChannelMembers))
-
-		if len(rm) != 2 {
+		if len(*members) != 2 {
 			t.Fatal("return wrong number of results")
 		}
 	}
 
-	if r := <-ss.Channel().GetMembersByIds(m1.ChannelId, []string{}); r.Err == nil {
+	if _, err := ss.Channel().GetMembersByIds(m1.ChannelId, []string{}); err == nil {
 		t.Fatal("empty user ids - should have failed")
 	}
 }

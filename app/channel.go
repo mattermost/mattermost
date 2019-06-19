@@ -1299,11 +1299,7 @@ func (a *App) GetChannelMembersTimezones(channelId string) ([]string, *model.App
 }
 
 func (a *App) GetChannelMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError) {
-	result := <-a.Srv.Store.Channel().GetMembersByIds(channelId, userIds)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.ChannelMembers), nil
+	return a.Srv.Store.Channel().GetMembersByIds(channelId, userIds)
 }
 
 func (a *App) GetChannelMembersForUser(teamId string, userId string) (*model.ChannelMembers, *model.AppError) {
