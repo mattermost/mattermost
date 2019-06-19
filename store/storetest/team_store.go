@@ -536,20 +536,17 @@ func testGetAllTeamPageListing(t *testing.T, ss store.Store) {
 	_, err = ss.Team().Save(&o4)
 	require.Nil(t, err)
 
-	if r1 := <-ss.Team().GetAllTeamPageListing(0, 10); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		teams := r1.Data.([]*model.Team)
+	teams, err := ss.Team().GetAllTeamPageListing(0, 10)
+	require.Nil(t, err)
 
-		for _, team := range teams {
-			if !team.AllowOpenInvite {
-				t.Fatal("should have returned team with AllowOpenInvite as true")
-			}
+	for _, team := range teams {
+		if !team.AllowOpenInvite {
+			t.Fatal("should have returned team with AllowOpenInvite as true")
 		}
+	}
 
-		if len(teams) > 10 {
-			t.Fatal("should have returned max of 10 teams")
-		}
+	if len(teams) > 10 {
+		t.Fatal("should have returned max of 10 teams")
 	}
 
 	o5 := model.Team{}
@@ -561,36 +558,30 @@ func testGetAllTeamPageListing(t *testing.T, ss store.Store) {
 	_, err = ss.Team().Save(&o5)
 	require.Nil(t, err)
 
-	if r1 := <-ss.Team().GetAllTeamPageListing(0, 4); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		teams := r1.Data.([]*model.Team)
+	teams, err = ss.Team().GetAllTeamPageListing(0, 4)
+	require.Nil(t, err)
 
-		for _, team := range teams {
-			if !team.AllowOpenInvite {
-				t.Fatal("should have returned team with AllowOpenInvite as true")
-			}
-		}
-
-		if len(teams) > 4 {
-			t.Fatal("should have returned max of 4 teams")
+	for _, team := range teams {
+		if !team.AllowOpenInvite {
+			t.Fatal("should have returned team with AllowOpenInvite as true")
 		}
 	}
 
-	if r1 := <-ss.Team().GetAllTeamPageListing(1, 1); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		teams := r1.Data.([]*model.Team)
+	if len(teams) > 4 {
+		t.Fatal("should have returned max of 4 teams")
+	}
 
-		for _, team := range teams {
-			if !team.AllowOpenInvite {
-				t.Fatal("should have returned team with AllowOpenInvite as true")
-			}
-		}
+	teams, err = ss.Team().GetAllTeamPageListing(1, 1)
+	require.Nil(t, err)
 
-		if len(teams) > 1 {
-			t.Fatal("should have returned max of 1 team")
+	for _, team := range teams {
+		if !team.AllowOpenInvite {
+			t.Fatal("should have returned team with AllowOpenInvite as true")
 		}
+	}
+
+	if len(teams) > 1 {
+		t.Fatal("should have returned max of 1 team")
 	}
 }
 
@@ -753,8 +744,8 @@ func testDelete(t *testing.T, ss store.Store) {
 	_, err = ss.Team().Save(&o2)
 	require.Nil(t, err)
 
-	if r1 := <-ss.Team().PermanentDelete(o1.Id); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if r1 := ss.Team().PermanentDelete(o1.Id); r1 != nil {
+		t.Fatal(r1)
 	}
 }
 
@@ -806,10 +797,9 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 		require.Equal(t, m3.UserId, ms[0].UserId)
 	}
 
-	if r1 := <-ss.Team().GetTeamsForUser(m1.UserId); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if ms, err := ss.Team().GetTeamsForUser(m1.UserId); err != nil {
+		t.Fatal(err)
 	} else {
-		ms := r1.Data.([]*model.TeamMember)
 
 		require.Len(t, ms, 1)
 		require.Equal(t, m1.TeamId, ms[0].TeamId)
@@ -846,10 +836,9 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	store.Must(ss.Team().SaveMember(m4, -1))
 	store.Must(ss.Team().SaveMember(m5, -1))
 
-	if r1 := <-ss.Team().GetTeamsForUser(uid); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if ms, err := ss.Team().GetTeamsForUser(uid); err != nil {
+		t.Fatal(err)
 	} else {
-		ms := r1.Data.([]*model.TeamMember)
 
 		require.Len(t, ms, 2)
 	}
@@ -858,10 +847,9 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 		t.Fatal(r1.Err)
 	}
 
-	if r1 := <-ss.Team().GetTeamsForUser(m1.UserId); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if ms, err := ss.Team().GetTeamsForUser(m1.UserId); err != nil {
+		t.Fatal(err)
 	} else {
-		ms := r1.Data.([]*model.TeamMember)
 
 		require.Len(t, ms, 0)
 	}
@@ -932,7 +920,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 	})
 	require.Nil(t, errSave)
 	defer func() {
-		<-ss.Team().PermanentDelete(team.Id)
+		ss.Team().PermanentDelete(team.Id)
 	}()
 
 	userIds := make([]string, maxUsersPerTeam)
@@ -1079,7 +1067,7 @@ func testGetTeamMember(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	defer func() {
-		<-ss.Team().PermanentDelete(t2.Id)
+		ss.Team().PermanentDelete(t2.Id)
 	}()
 
 	m2 := &model.TeamMember{TeamId: t2.Id, UserId: model.NewId(), SchemeUser: true}
