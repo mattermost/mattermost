@@ -192,7 +192,7 @@ type ChannelStore interface {
 	GetChannelsByScheme(schemeId string, offset int, limit int) StoreChannel
 	MigrateChannelMembers(fromChannelId string, fromUserId string) StoreChannel
 	ResetAllChannelSchemes() StoreChannel
-	ClearAllCustomRoleAssignments() StoreChannel
+	ClearAllCustomRoleAssignments() *model.AppError
 	MigratePublicChannels() error
 	GetAllChannelsForExportAfter(limit int, afterId string) StoreChannel
 	GetAllDirectChannelsForExportAfter(limit int, afterId string) StoreChannel
