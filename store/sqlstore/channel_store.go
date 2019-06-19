@@ -1388,17 +1388,14 @@ func (s SqlChannelStore) UpdateMember(member *model.ChannelMember) store.StoreCh
 	})
 }
 
-func (s SqlChannelStore) GetMembers(channelId string, offset, limit int) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var dbMembers channelMemberWithSchemeRolesList
-		_, err := s.GetReplica().Select(&dbMembers, CHANNEL_MEMBERS_WITH_SCHEME_SELECT_QUERY+"WHERE ChannelId = :ChannelId LIMIT :Limit OFFSET :Offset", map[string]interface{}{"ChannelId": channelId, "Limit": limit, "Offset": offset})
-		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.GetMembers", "store.sql_channel.get_members.app_error", nil, "channel_id="+channelId+","+err.Error(), http.StatusInternalServerError)
-			return
-		}
+func (s SqlChannelStore) GetMembers(channelId string, offset, limit int) (*model.ChannelMembers, *model.AppError) {
+	var dbMembers channelMemberWithSchemeRolesList
+	_, err := s.GetReplica().Select(&dbMembers, CHANNEL_MEMBERS_WITH_SCHEME_SELECT_QUERY+"WHERE ChannelId = :ChannelId LIMIT :Limit OFFSET :Offset", map[string]interface{}{"ChannelId": channelId, "Limit": limit, "Offset": offset})
+	if err != nil {
+		return nil, model.NewAppError("SqlChannelStore.GetMembers", "store.sql_channel.get_members.app_error", nil, "channel_id="+channelId+","+err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = dbMembers.ToModel()
-	})
+	return dbMembers.ToModel(), nil
 }
 
 func (s SqlChannelStore) GetChannelMembersTimezones(channelId string) ([]model.StringMap, *model.AppError) {

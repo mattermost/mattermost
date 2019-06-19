@@ -153,12 +153,13 @@ func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store, s SqlSuppli
 		t.Fatal("couldn't save direct channel", err)
 	}
 
-	members := (<-ss.Channel().GetMembers(o1.Id, 0, 100)).Data.(*model.ChannelMembers)
+	members, err := ss.Channel().GetMembers(o1.Id, 0, 100)
+	require.Nil(t, err)
 	if len(*members) != 2 {
 		t.Fatal("should have saved 2 members")
 	}
 
-	if _, err := ss.Channel().SaveDirectChannel(&o1, &m1, &m2); err == nil {
+	if _, err = ss.Channel().SaveDirectChannel(&o1, &m1, &m2); err == nil {
 		t.Fatal("shouldn't be able to update from save")
 	}
 
@@ -183,7 +184,7 @@ func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store, s SqlSuppli
 	o1.Id = ""
 	o1.Name = "zz" + model.NewId() + "b"
 	o1.Type = model.CHANNEL_OPEN
-	if _, err := ss.Channel().SaveDirectChannel(&o1, &m1, &m2); err == nil {
+	if _, err = ss.Channel().SaveDirectChannel(&o1, &m1, &m2); err == nil {
 		t.Fatal("Should not be able to save non-direct channel")
 	}
 
@@ -192,11 +193,12 @@ func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store, s SqlSuppli
 	o1.DisplayName = "Myself"
 	o1.Name = "zz" + model.NewId() + "b"
 	o1.Type = model.CHANNEL_DIRECT
-	if _, err := ss.Channel().SaveDirectChannel(&o1, &m1, &m1); err != nil {
+	if _, err = ss.Channel().SaveDirectChannel(&o1, &m1, &m1); err != nil {
 		t.Fatal("couldn't save direct channel", err)
 	}
 
-	members = (<-ss.Channel().GetMembers(o1.Id, 0, 100)).Data.(*model.ChannelMembers)
+	members, err = ss.Channel().GetMembers(o1.Id, 0, 100)
+	require.Nil(t, err)
 	if len(*members) != 1 {
 		t.Fatal("should have saved just 1 member")
 	}
@@ -227,7 +229,8 @@ func testChannelStoreCreateDirectChannel(t *testing.T, ss store.Store) {
 		<-ss.Channel().PermanentDelete(c1.Id)
 	}()
 
-	members := (<-ss.Channel().GetMembers(c1.Id, 0, 100)).Data.(*model.ChannelMembers)
+	members, err := ss.Channel().GetMembers(c1.Id, 0, 100)
+	require.Nil(t, err)
 	if len(*members) != 2 {
 		t.Fatal("should have saved 2 members")
 	}
@@ -3395,9 +3398,8 @@ func testChannelStoreRemoveAllDeactivatedMembers(t *testing.T, ss store.Store) {
 	store.Must(ss.Channel().SaveMember(&m3))
 
 	// Get all the channel members. Check there are 3.
-	r1 := <-ss.Channel().GetMembers(c1.Id, 0, 1000)
-	assert.Nil(t, r1.Err)
-	d1 := r1.Data.(*model.ChannelMembers)
+	d1, err := ss.Channel().GetMembers(c1.Id, 0, 1000)
+	assert.Nil(t, err)
 	assert.Len(t, *d1, 3)
 
 	// Deactivate users 1 & 2.
@@ -3412,9 +3414,8 @@ func testChannelStoreRemoveAllDeactivatedMembers(t *testing.T, ss store.Store) {
 	assert.Nil(t, ss.Channel().RemoveAllDeactivatedMembers(c1.Id))
 
 	// Get all the channel members. Check there is now only 1: m3.
-	r2 := <-ss.Channel().GetMembers(c1.Id, 0, 1000)
-	assert.Nil(t, r1.Err)
-	d2 := r2.Data.(*model.ChannelMembers)
+	d2, err := ss.Channel().GetMembers(c1.Id, 0, 1000)
+	assert.Nil(t, err)
 	assert.Len(t, *d2, 1)
 	assert.Equal(t, (*d2)[0].UserId, u3.Id)
 }
