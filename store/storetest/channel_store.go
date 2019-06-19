@@ -2783,23 +2783,17 @@ func testChannelStoreAnalyticsDeletedTypeCount(t *testing.T, ss store.Store) {
 	if count, err = ss.Channel().AnalyticsDeletedTypeCount("", "O"); err != nil {
 		t.Fatal(err)
 	}
-	if count != openStartCount+2 {
-		t.Fatalf("Wrong open channel deleted count.")
-	}
+	assert.Equal(t, openStartCount+2, count, "Wrong open channel deleted count.")
 
 	if count, err = ss.Channel().AnalyticsDeletedTypeCount("", "P"); err != nil {
 		t.Fatal(err)
 	}
-	if count != privateStartCount+1 {
-		t.Fatalf("Wrong private channel deleted count.")
-	}
+	assert.Equal(t, privateStartCount+1, count, "Wrong private channel deleted count.")
 
 	if count, err = ss.Channel().AnalyticsDeletedTypeCount("", "D"); err != nil {
 		t.Fatal(err)
 	}
-	if count != directStartCount+1 {
-		t.Fatalf("Wrong direct channel deleted count.")
-	}
+	assert.Equal(t, directStartCount+1, count, "Wrong direct channel deleted count.")
 }
 
 func testChannelStoreGetPinnedPosts(t *testing.T, ss store.Store) {
