@@ -128,18 +128,52 @@ func TestConfigDefaultServiceSettingsExperimentalGroupUnreadChannels(t *testing.
 }
 
 func TestConfigDefaultNPSPluginState(t *testing.T) {
-	c1 := Config{}
-	c1.SetDefaults()
+	t.Run("should enable NPS plugin by default", func(t *testing.T) {
+		c1 := Config{}
+		c1.SetDefaults()
 
-	if c1.PluginSettings.PluginStates["com.mattermost.nps"].Enable != true {
-		t.Fatal("PluginSettings.PluginStates[\"com.mattermost.nps\"].Enable should default to true")
-	}
+		assert.True(t, c1.PluginSettings.PluginStates["com.mattermost.nps"].Enable)
+	})
 
-	c1.PluginSettings.PluginStates["com.mattermost.nps"].Enable = false
-	c1.SetDefaults()
-	if c1.PluginSettings.PluginStates["com.mattermost.nps"].Enable != false {
-		t.Fatal("PluginSettings.PluginStates[\"com.mattermost.nps\"].Enable should remain false")
-	}
+	t.Run("should enable NPS plugin if diagnostics are enabled", func(t *testing.T) {
+		c1 := Config{
+			LogSettings: LogSettings{
+				EnableDiagnostics: NewBool(true),
+			},
+		}
+
+		c1.SetDefaults()
+
+		assert.True(t, c1.PluginSettings.PluginStates["com.mattermost.nps"].Enable)
+	})
+
+	t.Run("should not enable NPS plugin if diagnostics are disabled", func(t *testing.T) {
+		c1 := Config{
+			LogSettings: LogSettings{
+				EnableDiagnostics: NewBool(false),
+			},
+		}
+
+		c1.SetDefaults()
+
+		assert.False(t, c1.PluginSettings.PluginStates["com.mattermost.nps"].Enable)
+	})
+
+	t.Run("should not re-enable NPS plugin after it has been disabled", func(t *testing.T) {
+		c1 := Config{
+			PluginSettings: PluginSettings{
+				PluginStates: map[string]*PluginState{
+					"com.mattermost.nps": {
+						Enable: false,
+					},
+				},
+			},
+		}
+
+		c1.SetDefaults()
+
+		assert.False(t, c1.PluginSettings.PluginStates["com.mattermost.nps"].Enable)
+	})
 }
 
 func TestTeamSettingsIsValidSiteNameEmpty(t *testing.T) {
