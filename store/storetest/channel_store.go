@@ -2755,24 +2755,18 @@ func testChannelStoreAnalyticsDeletedTypeCount(t *testing.T, ss store.Store) {
 	}()
 
 	var openStartCount int64
-	if result := <-ss.Channel().AnalyticsDeletedTypeCount("", "O"); result.Err != nil {
-		t.Fatal(result.Err.Error())
-	} else {
-		openStartCount = result.Data.(int64)
+	if openStartCount, err = ss.Channel().AnalyticsDeletedTypeCount("", "O"); err != nil {
+		t.Fatal(err)
 	}
 
 	var privateStartCount int64
-	if result := <-ss.Channel().AnalyticsDeletedTypeCount("", "P"); result.Err != nil {
-		t.Fatal(result.Err.Error())
-	} else {
-		privateStartCount = result.Data.(int64)
+	if privateStartCount, err = ss.Channel().AnalyticsDeletedTypeCount("", "P"); err != nil {
+		t.Fatal(err)
 	}
 
 	var directStartCount int64
-	if result := <-ss.Channel().AnalyticsDeletedTypeCount("", "D"); result.Err != nil {
-		t.Fatal(result.Err.Error())
-	} else {
-		directStartCount = result.Data.(int64)
+	if directStartCount, err = ss.Channel().AnalyticsDeletedTypeCount("", "D"); err != nil {
+		t.Fatal(err)
 	}
 
 	err = ss.Channel().Delete(o1.Id, model.GetMillis())
@@ -2784,29 +2778,22 @@ func testChannelStoreAnalyticsDeletedTypeCount(t *testing.T, ss store.Store) {
 	err = ss.Channel().Delete(d4.Id, model.GetMillis())
 	require.Nil(t, err, "channel should have been deleted")
 
-	if result := <-ss.Channel().AnalyticsDeletedTypeCount("", "O"); result.Err != nil {
-		t.Fatal(result.Err.Error())
-	} else {
-		if result.Data.(int64) != openStartCount+2 {
-			t.Fatalf("Wrong open channel deleted count.")
-		}
-	}
+	var count int64
 
-	if result := <-ss.Channel().AnalyticsDeletedTypeCount("", "P"); result.Err != nil {
-		t.Fatal(result.Err.Error())
-	} else {
-		if result.Data.(int64) != privateStartCount+1 {
-			t.Fatalf("Wrong private channel deleted count.")
-		}
+	if count, err = ss.Channel().AnalyticsDeletedTypeCount("", "O"); err != nil {
+		t.Fatal(err)
 	}
+	assert.Equal(t, openStartCount+2, count, "Wrong open channel deleted count.")
 
-	if result := <-ss.Channel().AnalyticsDeletedTypeCount("", "D"); result.Err != nil {
-		t.Fatal(result.Err.Error())
-	} else {
-		if result.Data.(int64) != directStartCount+1 {
-			t.Fatalf("Wrong direct channel deleted count.")
-		}
+	if count, err = ss.Channel().AnalyticsDeletedTypeCount("", "P"); err != nil {
+		t.Fatal(err)
 	}
+	assert.Equal(t, privateStartCount+1, count, "Wrong private channel deleted count.")
+
+	if count, err = ss.Channel().AnalyticsDeletedTypeCount("", "D"); err != nil {
+		t.Fatal(err)
+	}
+	assert.Equal(t, directStartCount+1, count, "Wrong direct channel deleted count.")
 }
 
 func testChannelStoreGetPinnedPosts(t *testing.T, ss store.Store) {
