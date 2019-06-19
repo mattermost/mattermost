@@ -423,10 +423,9 @@ func testChannelStoreGet(t *testing.T, ss store.Store, s SqlSupplier) {
 		}
 	}
 
-	if r3 := <-ss.Channel().GetAll(o1.TeamId); r3.Err != nil {
-		t.Fatal(r3.Err)
+	if channels, chanErr := ss.Channel().GetAll(o1.TeamId); chanErr != nil {
+		t.Fatal(chanErr)
 	} else {
-		channels := r3.Data.([]*model.Channel)
 		if len(channels) == 0 {
 			t.Fatal("too little")
 		}
