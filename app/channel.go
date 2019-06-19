@@ -107,8 +107,7 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, shouldBeAdmin
 		}
 	}
 
-	esInterface := a.Elasticsearch
-	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
+	if a.IsESIndexingEnabled() {
 		a.Srv.Go(func() {
 			if err = a.indexUser(user); err != nil {
 				mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.Err(err))
@@ -185,8 +184,7 @@ func (a *App) CreateChannelWithUser(channel *model.Channel, userId string) (*mod
 	message.Add("team_id", channel.TeamId)
 	a.Publish(message)
 
-	esInterface := a.Elasticsearch
-	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
+	if a.IsESIndexingEnabled() {
 		a.Srv.Go(func() {
 			if err := a.indexUser(user); err != nil {
 				mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.Err(err))
@@ -261,11 +259,10 @@ func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Chan
 		})
 	}
 
-	esInterface := a.Elasticsearch
-	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
-		if sc.Type == "O" {
+	if a.IsESIndexingEnabled() {
+		if sc.Type == model.CHANNEL_OPEN {
 			a.Srv.Go(func() {
-				if err := esInterface.IndexChannel(sc); err != nil {
+				if err := a.Elasticsearch.IndexChannel(sc); err != nil {
 					mlog.Error("Encountered error indexing channel", mlog.String("channel_id", sc.Id), mlog.Err(err))
 				}
 			})
@@ -309,8 +306,7 @@ func (a *App) GetOrCreateDirectChannel(userId, otherUserId string) (*model.Chann
 				})
 			}
 
-			esInterface := a.Elasticsearch
-			if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
+			if a.IsESIndexingEnabled() {
 				a.Srv.Go(func() {
 					for _, id := range []string{userId, otherUserId} {
 						if err := a.indexUserFromId(id); err != nil {
@@ -419,8 +415,7 @@ func (a *App) CreateGroupChannel(userIds []string, creatorId string) (*model.Cha
 	message.Add("teammate_ids", model.ArrayToJson(userIds))
 	a.Publish(message)
 
-	esInterface := a.Elasticsearch
-	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
+	if a.IsESIndexingEnabled() {
 		a.Srv.Go(func() {
 			for _, id := range userIds {
 				if err := a.indexUserFromId(id); err != nil {
@@ -517,10 +512,9 @@ func (a *App) UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppE
 	messageWs.Add("channel", channel.ToJson())
 	a.Publish(messageWs)
 
-	esInterface := a.Elasticsearch
-	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing && channel.Type == "O" {
+	if a.IsESIndexingEnabled() && channel.Type == model.CHANNEL_OPEN {
 		a.Srv.Go(func() {
-			if err := esInterface.IndexChannel(channel); err != nil {
+			if err := a.Elasticsearch.IndexChannel(channel); err != nil {
 				mlog.Error("Encountered error indexing channel", mlog.String("channel_id", channel.Id), mlog.Err(err))
 			}
 		})
@@ -1003,8 +997,7 @@ func (a *App) AddChannelMember(userId string, channel *model.Channel, userReques
 		})
 	}
 
-	esInterface := a.Elasticsearch
-	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
+	if a.IsESIndexingEnabled() {
 		a.Srv.Go(func() {
 			if err := a.indexUser(user); err != nil {
 				mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.Err(err))
@@ -1265,11 +1258,7 @@ func (a *App) GetChannelsUserNotIn(teamId string, userId string, offset int, lim
 }
 
 func (a *App) GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) (*model.ChannelList, *model.AppError) {
-	result := <-a.Srv.Store.Channel().GetPublicChannelsByIdsForTeam(teamId, channelIds)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.ChannelList), nil
+	return a.Srv.Store.Channel().GetPublicChannelsByIdsForTeam(teamId, channelIds)
 }
 
 func (a *App) GetPublicChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
@@ -1289,11 +1278,10 @@ func (a *App) GetChannelMembersPage(channelId string, page, perPage int) (*model
 }
 
 func (a *App) GetChannelMembersTimezones(channelId string) ([]string, *model.AppError) {
-	result := <-a.Srv.Store.Channel().GetChannelMembersTimezones(channelId)
-	if result.Err != nil {
-		return nil, result.Err
+	membersTimezones, err := a.Srv.Store.Channel().GetChannelMembersTimezones(channelId)
+	if err != nil {
+		return nil, err
 	}
-	membersTimezones := result.Data.([]map[string]string)
 
 	var timezones []string
 	for _, membersTimezone := range membersTimezones {
@@ -1409,8 +1397,7 @@ func (a *App) JoinChannel(channel *model.Channel, userId string) *model.AppError
 		})
 	}
 
-	esInterface := a.Elasticsearch
-	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
+	if a.IsESIndexingEnabled() {
 		a.Srv.Go(func() {
 			if err := a.indexUser(user); err != nil {
 				mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.Err(err))
@@ -1620,8 +1607,8 @@ func (a *App) removeUserFromChannel(userIdToRemove string, removerUserId string,
 		return err
 	}
 
-	if cmresult := <-a.Srv.Store.Channel().RemoveMember(channel.Id, userIdToRemove); cmresult.Err != nil {
-		return cmresult.Err
+	if err := a.Srv.Store.Channel().RemoveMember(channel.Id, userIdToRemove); err != nil {
+		return err
 	}
 	if cmhResult := <-a.Srv.Store.ChannelMemberHistory().LogLeaveEvent(userIdToRemove, channel.Id, model.GetMillis()); cmhResult.Err != nil {
 		return cmhResult.Err
@@ -1645,8 +1632,7 @@ func (a *App) removeUserFromChannel(userIdToRemove string, removerUserId string,
 		})
 	}
 
-	esInterface := a.Elasticsearch
-	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
+	if a.IsESIndexingEnabled() {
 		a.Srv.Go(func() {
 			if err := a.indexUserFromId(userIdToRemove); err != nil {
 				mlog.Error("Encountered error indexing user", mlog.String("user_id", userIdToRemove), mlog.Err(err))
@@ -1693,11 +1679,11 @@ func (a *App) RemoveUserFromChannel(userIdToRemove string, removerUserId string,
 
 func (a *App) GetNumberOfChannelsOnTeam(teamId string) (int, *model.AppError) {
 	// Get total number of channels on current team
-	result := <-a.Srv.Store.Channel().GetTeamChannels(teamId)
-	if result.Err != nil {
-		return 0, result.Err
+	list, err := a.Srv.Store.Channel().GetTeamChannels(teamId)
+	if err != nil {
+		return 0, err
 	}
-	return len(*result.Data.(*model.ChannelList)), nil
+	return len(*list), nil
 }
 
 func (a *App) SetActiveChannel(userId string, channelId string) *model.AppError {
@@ -1741,36 +1727,50 @@ func (a *App) UpdateChannelLastViewedAt(channelIds []string, userId string) *mod
 	return nil
 }
 
-func (a *App) AutocompleteChannels(teamId string, term string) (*model.ChannelList, *model.AppError) {
-	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
-	term = strings.TrimSpace(term)
+func (a *App) esAutocompleteChannels(teamId, term string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
+	channelIds, err := a.Elasticsearch.SearchChannels(teamId, term)
+	if err != nil {
+		return nil, err
+	}
 
-	esInterface := a.Elasticsearch
-	license := a.License()
-	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableAutocomplete && license != nil && *license.Features.Elasticsearch {
-		channelIds, err := a.Elasticsearch.SearchChannels(teamId, term)
+	channelList := model.ChannelList{}
+	if len(channelIds) > 0 {
+		channels, err := a.Srv.Store.Channel().GetChannelsByIds(channelIds)
 		if err != nil {
 			return nil, err
 		}
-
-		channelList := model.ChannelList{}
-		if len(channelIds) > 0 {
-			channels, err := a.Srv.Store.Channel().GetChannelsByIds(channelIds)
-			if err != nil {
-				return nil, err
+		for _, c := range channels {
+			if c.DeleteAt > 0 && !includeDeleted {
+				continue
 			}
-			for _, c := range channels {
-				if c.DeleteAt > 0 && !includeDeleted {
-					continue
-				}
-				channelList = append(channelList, c)
-			}
+			channelList = append(channelList, c)
 		}
-
-		return &channelList, nil
 	}
 
-	return a.Srv.Store.Channel().AutocompleteInTeam(teamId, term, includeDeleted)
+	return &channelList, nil
+}
+
+func (a *App) AutocompleteChannels(teamId string, term string) (*model.ChannelList, *model.AppError) {
+	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
+	var channelList *model.ChannelList
+	var err *model.AppError
+	term = strings.TrimSpace(term)
+
+	if a.IsESAutocompletionEnabled() {
+		channelList, err = a.esAutocompleteChannels(teamId, term, includeDeleted)
+		if err != nil {
+			mlog.Error("Encountered error on AutocompleteChannels through Elasticsearch. Falling back to default autocompletion.", mlog.Err(err))
+		}
+	}
+
+	if !a.IsESAutocompletionEnabled() || err != nil {
+		channelList, err = a.Srv.Store.Channel().AutocompleteInTeam(teamId, term, includeDeleted)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return channelList, nil
 }
 
 func (a *App) AutocompleteChannelsForSearch(teamId string, userId string, term string) (*model.ChannelList, *model.AppError) {
@@ -1907,8 +1907,8 @@ func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
 		return err
 	}
 
-	if result := <-a.Srv.Store.Channel().PermanentDeleteMembersByChannel(channel.Id); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.Channel().PermanentDeleteMembersByChannel(channel.Id); err != nil {
+		return err
 	}
 
 	if err := a.Srv.Store.Webhook().PermanentDeleteIncomingByChannel(channel.Id); err != nil {
@@ -1923,8 +1923,7 @@ func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
 		return result.Err
 	}
 
-	esInterface := a.Elasticsearch
-	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
+	if a.IsESIndexingEnabled() {
 		a.Srv.Go(func() {
 			for _, user := range channelUsers.Data.(map[string]*model.User) {
 				if err := a.indexUser(user); err != nil {
@@ -1932,9 +1931,9 @@ func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
 				}
 			}
 		})
-		if channel.Type == "O" {
+		if channel.Type == model.CHANNEL_OPEN {
 			a.Srv.Go(func() {
-				if err := esInterface.DeleteChannel(channel); err != nil {
+				if err := a.Elasticsearch.DeleteChannel(channel); err != nil {
 					mlog.Error("Encountered error deleting channel", mlog.String("channel_id", channel.Id), mlog.Err(err))
 				}
 			})
@@ -1948,8 +1947,8 @@ func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
 // is in progress, and therefore should not be used from the API without first fixing this potential race condition.
 func (a *App) MoveChannel(team *model.Team, channel *model.Channel, user *model.User, removeDeactivatedMembers bool) *model.AppError {
 	if removeDeactivatedMembers {
-		if result := <-a.Srv.Store.Channel().RemoveAllDeactivatedMembers(channel.Id); result.Err != nil {
-			return result.Err
+		if err := a.Srv.Store.Channel().RemoveAllDeactivatedMembers(channel.Id); err != nil {
+			return err
 		}
 	}
 

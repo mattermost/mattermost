@@ -1255,6 +1255,8 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 			"api.user.login.inactive.app_error",
 			"api.user.login.not_verified.app_error",
 			"api.user.check_user_login_attempts.too_many.app_error",
+			"app.team.join_user_to_team.max_accounts.app_error",
+			"store.sql_user.save.max_accounts.app_error",
 		}
 
 		maskError := true

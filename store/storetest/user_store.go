@@ -3825,8 +3825,8 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, ss store.Store) {
 	requireNUsers(2)
 
 	// delete team membership of allowed user
-	res = <-ss.Channel().RemoveMember(channel.Id, userGroupA.Id)
-	require.Nil(t, res.Err)
+	err = ss.Channel().RemoveMember(channel.Id, userGroupA.Id)
+	require.Nil(t, err)
 
 	// ensure removed allowed member still returned by query
 	requireNUsers(2)
