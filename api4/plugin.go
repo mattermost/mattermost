@@ -7,6 +7,7 @@ package api4
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -22,6 +23,7 @@ func (api *API) InitPlugin() {
 	api.BaseRoutes.Plugins.Handle("", api.ApiSessionRequired(uploadPlugin)).Methods("POST")
 	api.BaseRoutes.Plugins.Handle("", api.ApiSessionRequired(getPlugins)).Methods("GET")
 	api.BaseRoutes.Plugin.Handle("", api.ApiSessionRequired(removePlugin)).Methods("DELETE")
+	api.BaseRoutes.Plugins.Handle("/install_from_url", api.ApiSessionRequired(installPluginFromUrl)).Methods("POST")
 
 	api.BaseRoutes.Plugins.Handle("/statuses", api.ApiSessionRequired(getPluginStatuses)).Methods("GET")
 	api.BaseRoutes.Plugin.Handle("/enable", api.ApiSessionRequired(enablePlugin)).Methods("POST")
@@ -71,6 +73,51 @@ func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 		force = true
 	}
 	manifest, unpackErr := c.App.InstallPlugin(file, force)
+
+	if unpackErr != nil {
+		c.Err = unpackErr
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	w.Write([]byte(manifest.ToJson()))
+}
+
+func installPluginFromUrl(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !*c.App.Config().PluginSettings.Enable {
+		c.Err = model.NewAppError("installPluginFromUrl", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	url := c.Params.PluginDownloadUrl
+
+	if !model.IsValidHttpUrl(url) {
+		c.Err = model.NewAppError("installPluginFromUrl", "api.plugin.install.invalid_url.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if !(strings.HasPrefix(url, "https") || *c.App.Config().PluginSettings.AllowInsecureDownloadUrl) {
+		c.Err = model.NewAppError("installPluginFromUrl", "api.plugin.install.insecure_url.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	resp, err := http.Get(url)
+	if err != nil {
+		c.Err = model.NewAppError("installPluginFromUrl", "api.plugin.install.download_failed.app_error", nil, err.Error(), http.StatusBadRequest)
+		return
+	}
+	defer resp.Body.Close()
+
+	force := false
+	if r.URL.Query().Get("force") == "true" {
+		force = true
+	}
+	manifest, unpackErr := c.App.InstallPlugin(resp.Body, force)
 
 	if unpackErr != nil {
 		c.Err = unpackErr
