@@ -2465,32 +2465,29 @@ func (s SqlChannelStore) ClearAllCustomRoleAssignments() *model.AppError {
 	return nil
 }
 
-func (s SqlChannelStore) GetAllChannelsForExportAfter(limit int, afterId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var data []*model.ChannelForExport
-		if _, err := s.GetReplica().Select(&data, `
-			SELECT
-				Channels.*,
-				Teams.Name as TeamName,
-				Schemes.Name as SchemeName
-			FROM Channels
-			INNER JOIN
-				Teams ON Channels.TeamId = Teams.Id
-			LEFT JOIN
-				Schemes ON Channels.SchemeId = Schemes.Id
-			WHERE
-				Channels.Id > :AfterId
-				AND Channels.Type IN ('O', 'P')
-			ORDER BY
-				Id
-			LIMIT :Limit`,
-			map[string]interface{}{"AfterId": afterId, "Limit": limit}); err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.GetAllChannelsForExportAfter", "store.sql_channel.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+func (s SqlChannelStore) GetAllChannelsForExportAfter(limit int, afterId string) ([]*model.ChannelForExport, *model.AppError) {
+	var channels []*model.ChannelForExport
+	if _, err := s.GetReplica().Select(&channels, `
+		SELECT
+			Channels.*,
+			Teams.Name as TeamName,
+			Schemes.Name as SchemeName
+		FROM Channels
+		INNER JOIN
+			Teams ON Channels.TeamId = Teams.Id
+		LEFT JOIN
+			Schemes ON Channels.SchemeId = Schemes.Id
+		WHERE
+			Channels.Id > :AfterId
+			AND Channels.Type IN ('O', 'P')
+		ORDER BY
+			Id
+		LIMIT :Limit`,
+		map[string]interface{}{"AfterId": afterId, "Limit": limit}); err != nil {
+		return nil, model.NewAppError("SqlChannelStore.GetAllChannelsForExportAfter", "store.sql_channel.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = data
-	})
+	return channels, nil
 }
 
 func (s SqlChannelStore) GetChannelMembersForExport(userId string, teamId string) ([]*model.ChannelMemberForExport, *model.AppError) {
