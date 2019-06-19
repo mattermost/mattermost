@@ -990,7 +990,7 @@ func testChannelDeleteMemberStore(t *testing.T, ss store.Store) {
 		t.Fatal("should have removed 1 member")
 	}
 
-	if err := ss.Channel().PermanentDeleteMembersByChannel(o1.ChannelId); err != nil {
+	if err = ss.Channel().PermanentDeleteMembersByChannel(o1.ChannelId); err != nil {
 		t.Fatal(err)
 	}
 
