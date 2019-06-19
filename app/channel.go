@@ -1258,11 +1258,7 @@ func (a *App) GetChannelsUserNotIn(teamId string, userId string, offset int, lim
 }
 
 func (a *App) GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) (*model.ChannelList, *model.AppError) {
-	result := <-a.Srv.Store.Channel().GetPublicChannelsByIdsForTeam(teamId, channelIds)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.ChannelList), nil
+	return a.Srv.Store.Channel().GetPublicChannelsByIdsForTeam(teamId, channelIds)
 }
 
 func (a *App) GetPublicChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
@@ -1286,11 +1282,10 @@ func (a *App) GetChannelMembersPage(channelId string, page, perPage int) (*model
 }
 
 func (a *App) GetChannelMembersTimezones(channelId string) ([]string, *model.AppError) {
-	result := <-a.Srv.Store.Channel().GetChannelMembersTimezones(channelId)
-	if result.Err != nil {
-		return nil, result.Err
+	membersTimezones, err := a.Srv.Store.Channel().GetChannelMembersTimezones(channelId)
+	if err != nil {
+		return nil, err
 	}
-	membersTimezones := result.Data.([]map[string]string)
 
 	var timezones []string
 	for _, membersTimezone := range membersTimezones {
@@ -1956,8 +1951,8 @@ func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
 // is in progress, and therefore should not be used from the API without first fixing this potential race condition.
 func (a *App) MoveChannel(team *model.Team, channel *model.Channel, user *model.User, removeDeactivatedMembers bool) *model.AppError {
 	if removeDeactivatedMembers {
-		if result := <-a.Srv.Store.Channel().RemoveAllDeactivatedMembers(channel.Id); result.Err != nil {
-			return result.Err
+		if err := a.Srv.Store.Channel().RemoveAllDeactivatedMembers(channel.Id); err != nil {
+			return err
 		}
 	}
 

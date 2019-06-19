@@ -146,13 +146,11 @@ func (a *App) ExportAllTeams(writer io.Writer) *model.AppError {
 func (a *App) ExportAllChannels(writer io.Writer) *model.AppError {
 	afterId := strings.Repeat("0", 26)
 	for {
-		result := <-a.Srv.Store.Channel().GetAllChannelsForExportAfter(1000, afterId)
+		channels, err := a.Srv.Store.Channel().GetAllChannelsForExportAfter(1000, afterId)
 
-		if result.Err != nil {
-			return result.Err
+		if err != nil {
+			return err
 		}
-
-		channels := result.Data.([]*model.ChannelForExport)
 
 		if len(channels) == 0 {
 			break

@@ -69,7 +69,12 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 		close(pchan)
 	}()
 
-	cchan := a.Srv.Store.Channel().GetForPost(postId)
+	cchan := make(chan store.StoreResult, 1)
+	go func() {
+		channel, err := a.Srv.Store.Channel().GetForPost(postId)
+		cchan <- store.StoreResult{Data: channel, Err: err}
+		close(cchan)
+	}()
 
 	result := <-pchan
 	if result.Err != nil {

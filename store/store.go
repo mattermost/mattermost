@@ -151,17 +151,17 @@ type ChannelStore interface {
 	GetAllChannels(page, perPage int, opts ChannelSearchOpts) StoreChannel
 	GetMoreChannels(teamId string, userId string, offset int, limit int) (*model.ChannelList, *model.AppError)
 	GetPublicChannelsForTeam(teamId string, offset int, limit int) StoreChannel
-	GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) StoreChannel
+	GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) (*model.ChannelList, *model.AppError)
 	GetChannelCounts(teamId string, userId string) (*model.ChannelCounts, *model.AppError)
 	GetTeamChannels(teamId string) (*model.ChannelList, *model.AppError)
-	GetAll(teamId string) StoreChannel
+	GetAll(teamId string) ([]*model.Channel, *model.AppError)
 	GetChannelsByIds(channelIds []string) ([]*model.Channel, *model.AppError)
-	GetForPost(postId string) StoreChannel
+	GetForPost(postId string) (*model.Channel, *model.AppError)
 	SaveMember(member *model.ChannelMember) StoreChannel
 	UpdateMember(member *model.ChannelMember) StoreChannel
 	GetMembers(channelId string, offset, limit int) StoreChannel
 	GetMember(channelId string, userId string) (*model.ChannelMember, *model.AppError)
-	GetChannelMembersTimezones(channelId string) StoreChannel
+	GetChannelMembersTimezones(channelId string) ([]model.StringMap, *model.AppError)
 	GetAllChannelMembersForUser(userId string, allowFromCache bool, includeDeleted bool) StoreChannel
 	InvalidateAllChannelMembersForUser(userId string)
 	IsUserInChannelUseCache(userId string, channelId string) bool
@@ -192,12 +192,12 @@ type ChannelStore interface {
 	GetChannelsByScheme(schemeId string, offset int, limit int) StoreChannel
 	MigrateChannelMembers(fromChannelId string, fromUserId string) StoreChannel
 	ResetAllChannelSchemes() StoreChannel
-	ClearAllCustomRoleAssignments() StoreChannel
+	ClearAllCustomRoleAssignments() *model.AppError
 	MigratePublicChannels() error
-	GetAllChannelsForExportAfter(limit int, afterId string) StoreChannel
+	GetAllChannelsForExportAfter(limit int, afterId string) ([]*model.ChannelForExport, *model.AppError)
 	GetAllDirectChannelsForExportAfter(limit int, afterId string) ([]*model.DirectChannelForExport, *model.AppError)
 	GetChannelMembersForExport(userId string, teamId string) ([]*model.ChannelMemberForExport, *model.AppError)
-	RemoveAllDeactivatedMembers(channelId string) StoreChannel
+	RemoveAllDeactivatedMembers(channelId string) *model.AppError
 	GetChannelsBatchForIndexing(startTime, endTime int64, limit int) ([]*model.Channel, *model.AppError)
 	UserBelongsToChannels(userId string, channelIds []string) (bool, *model.AppError)
 }

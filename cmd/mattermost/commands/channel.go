@@ -444,11 +444,9 @@ func listChannelsCmdF(command *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to find team '" + args[i] + "'")
 			continue
 		}
-		if result := <-a.Srv.Store.Channel().GetAll(team.Id); result.Err != nil {
+		if channels, chanErr := a.Srv.Store.Channel().GetAll(team.Id); chanErr != nil {
 			CommandPrintErrorln("Unable to list channels for '" + args[i] + "'")
 		} else {
-			channels := result.Data.([]*model.Channel)
-
 			for _, channel := range channels {
 				if channel.DeleteAt > 0 {
 					CommandPrettyPrintln(channel.Name + " (archived)")
