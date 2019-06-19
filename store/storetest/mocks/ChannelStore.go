@@ -566,19 +566,28 @@ func (_m *ChannelStore) GetDeletedByName(team_id string, name string) store.Stor
 }
 
 // GetForPost provides a mock function with given fields: postId
-func (_m *ChannelStore) GetForPost(postId string) store.StoreChannel {
+func (_m *ChannelStore) GetForPost(postId string) (*model.Channel, *model.AppError) {
 	ret := _m.Called(postId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+	var r0 *model.Channel
+	if rf, ok := ret.Get(0).(func(string) *model.Channel); ok {
 		r0 = rf(postId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.Channel)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(postId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetFromMaster provides a mock function with given fields: id

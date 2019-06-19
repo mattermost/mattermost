@@ -1857,25 +1857,22 @@ func (s SqlChannelStore) GetChannelsByIds(channelIds []string) ([]*model.Channel
 	return channels, nil
 }
 
-func (s SqlChannelStore) GetForPost(postId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		channel := &model.Channel{}
-		if err := s.GetReplica().SelectOne(
-			channel,
-			`SELECT
-				Channels.*
-			FROM
-				Channels,
-				Posts
-			WHERE
-				Channels.Id = Posts.ChannelId
-				AND Posts.Id = :PostId`, map[string]interface{}{"PostId": postId}); err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.GetForPost", "store.sql_channel.get_for_post.app_error", nil, "postId="+postId+", err="+err.Error(), http.StatusInternalServerError)
-			return
-		}
+func (s SqlChannelStore) GetForPost(postId string) (*model.Channel, *model.AppError) {
+	channel := &model.Channel{}
+	if err := s.GetReplica().SelectOne(
+		channel,
+		`SELECT
+			Channels.*
+		FROM
+			Channels,
+			Posts
+		WHERE
+			Channels.Id = Posts.ChannelId
+			AND Posts.Id = :PostId`, map[string]interface{}{"PostId": postId}); err != nil {
+		return nil, model.NewAppError("SqlChannelStore.GetForPost", "store.sql_channel.get_for_post.app_error", nil, "postId="+postId+", err="+err.Error(), http.StatusInternalServerError)
 
-		result.Data = channel
-	})
+	}
+	return channel, nil
 }
 
 func (s SqlChannelStore) AnalyticsTypeCount(teamId string, channelType string) (int64, *model.AppError) {
