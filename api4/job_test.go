@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCreateJob(t *testing.T) {
@@ -46,9 +46,8 @@ func TestGetJob(t *testing.T) {
 		Id:     model.NewId(),
 		Status: model.JOB_STATUS_PENDING,
 	}
-	if result := <-th.App.Srv.Store.Job().Save(job); result.Err != nil {
-		t.Fatal(result.Err)
-	}
+	_, err := th.App.Srv.Store.Job().Save(job)
+	require.Nil(t, err)
 
 	defer th.App.Srv.Store.Job().Delete(job.Id)
 
@@ -95,7 +94,8 @@ func TestGetJobs(t *testing.T) {
 	}
 
 	for _, job := range jobs {
-		store.Must(th.App.Srv.Store.Job().Save(job))
+		_, err := th.App.Srv.Store.Job().Save(job)
+		require.Nil(t, err)
 		defer th.App.Srv.Store.Job().Delete(job.Id)
 	}
 
@@ -151,7 +151,8 @@ func TestGetJobsByType(t *testing.T) {
 	}
 
 	for _, job := range jobs {
-		store.Must(th.App.Srv.Store.Job().Save(job))
+		_, err := th.App.Srv.Store.Job().Save(job)
+		require.Nil(t, err)
 		defer th.App.Srv.Store.Job().Delete(job.Id)
 	}
 
@@ -208,7 +209,8 @@ func TestCancelJob(t *testing.T) {
 	}
 
 	for _, job := range jobs {
-		store.Must(th.App.Srv.Store.Job().Save(job))
+		_, err := th.App.Srv.Store.Job().Save(job)
+		require.Nil(t, err)
 		defer th.App.Srv.Store.Job().Delete(job.Id)
 	}
 
