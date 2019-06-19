@@ -185,7 +185,7 @@ type ChannelStore interface {
 	SearchAllChannels(term string, opts ChannelSearchOpts) StoreChannel
 	SearchInTeam(teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError)
 	SearchMore(userId string, teamId string, term string) (*model.ChannelList, *model.AppError)
-	GetMembersByIds(channelId string, userIds []string) StoreChannel
+	GetMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError)
 	AnalyticsDeletedTypeCount(teamId string, channelType string) (int64, *model.AppError)
 	GetChannelUnread(channelId, userId string) (*model.ChannelUnread, *model.AppError)
 	ClearCaches()
