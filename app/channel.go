@@ -1274,11 +1274,7 @@ func (a *App) GetChannelMember(channelId string, userId string) (*model.ChannelM
 }
 
 func (a *App) GetChannelMembersPage(channelId string, page, perPage int) (*model.ChannelMembers, *model.AppError) {
-	result := <-a.Srv.Store.Channel().GetMembers(channelId, page*perPage, perPage)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.ChannelMembers), nil
+	return a.Srv.Store.Channel().GetMembers(channelId, page*perPage, perPage)
 }
 
 func (a *App) GetChannelMembersTimezones(channelId string) ([]string, *model.AppError) {
