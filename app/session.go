@@ -244,11 +244,10 @@ func (a *App) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAc
 
 	token.Token = model.NewId()
 
-	result := <-a.Srv.Store.UserAccessToken().Save(token)
-	if result.Err != nil {
-		return nil, result.Err
+	token, err = a.Srv.Store.UserAccessToken().Save(token)
+	if err != nil {
+		return nil, err
 	}
-	token = result.Data.(*model.UserAccessToken)
 
 	// Don't send emails to bot users.
 	if !user.IsBot {
