@@ -14,19 +14,26 @@ type ChannelStore struct {
 }
 
 // AnalyticsDeletedTypeCount provides a mock function with given fields: teamId, channelType
-func (_m *ChannelStore) AnalyticsDeletedTypeCount(teamId string, channelType string) store.StoreChannel {
+func (_m *ChannelStore) AnalyticsDeletedTypeCount(teamId string, channelType string) (int64, *model.AppError) {
 	ret := _m.Called(teamId, channelType)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, string) store.StoreChannel); ok {
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(string, string) int64); ok {
 		r0 = rf(teamId, channelType)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+		r1 = rf(teamId, channelType)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
 		}
 	}
 
-	return r0
+	return r0, r1
 }
 
 // AnalyticsTypeCount provides a mock function with given fields: teamId, channelType
@@ -730,19 +737,28 @@ func (_m *ChannelStore) GetMembers(channelId string, offset int, limit int) stor
 }
 
 // GetMembersByIds provides a mock function with given fields: channelId, userIds
-func (_m *ChannelStore) GetMembersByIds(channelId string, userIds []string) store.StoreChannel {
+func (_m *ChannelStore) GetMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError) {
 	ret := _m.Called(channelId, userIds)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, []string) store.StoreChannel); ok {
+	var r0 *model.ChannelMembers
+	if rf, ok := ret.Get(0).(func(string, []string) *model.ChannelMembers); ok {
 		r0 = rf(channelId, userIds)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.ChannelMembers)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, []string) *model.AppError); ok {
+		r1 = rf(channelId, userIds)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetMembersForUser provides a mock function with given fields: teamId, userId
