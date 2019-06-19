@@ -1886,22 +1886,19 @@ func (s SqlChannelStore) AnalyticsTypeCount(teamId string, channelType string) (
 	return value, nil
 }
 
-func (s SqlChannelStore) AnalyticsDeletedTypeCount(teamId string, channelType string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		query := "SELECT COUNT(Id) AS Value FROM Channels WHERE Type = :ChannelType AND DeleteAt > 0"
+func (s SqlChannelStore) AnalyticsDeletedTypeCount(teamId string, channelType string) (int64, *model.AppError) {
+	query := "SELECT COUNT(Id) AS Value FROM Channels WHERE Type = :ChannelType AND DeleteAt > 0"
 
-		if len(teamId) > 0 {
-			query += " AND TeamId = :TeamId"
-		}
+	if len(teamId) > 0 {
+		query += " AND TeamId = :TeamId"
+	}
 
-		v, err := s.GetReplica().SelectInt(query, map[string]interface{}{"TeamId": teamId, "ChannelType": channelType})
-		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.AnalyticsDeletedTypeCount", "store.sql_channel.analytics_deleted_type_count.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	v, err := s.GetReplica().SelectInt(query, map[string]interface{}{"TeamId": teamId, "ChannelType": channelType})
+	if err != nil {
+		return 0, model.NewAppError("SqlChannelStore.AnalyticsDeletedTypeCount", "store.sql_channel.analytics_deleted_type_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = v
-	})
+	return v, nil
 }
 
 func (s SqlChannelStore) GetMembersForUser(teamId string, userId string) store.StoreChannel {
@@ -2265,30 +2262,27 @@ func (s SqlChannelStore) performSearch(searchQuery string, term string, paramete
 	return &channels, nil
 }
 
-func (s SqlChannelStore) GetMembersByIds(channelId string, userIds []string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var dbMembers channelMemberWithSchemeRolesList
-		props := make(map[string]interface{})
-		idQuery := ""
+func (s SqlChannelStore) GetMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError) {
+	var dbMembers channelMemberWithSchemeRolesList
+	props := make(map[string]interface{})
+	idQuery := ""
 
-		for index, userId := range userIds {
-			if len(idQuery) > 0 {
-				idQuery += ", "
-			}
-
-			props["userId"+strconv.Itoa(index)] = userId
-			idQuery += ":userId" + strconv.Itoa(index)
+	for index, userId := range userIds {
+		if len(idQuery) > 0 {
+			idQuery += ", "
 		}
 
-		props["ChannelId"] = channelId
+		props["userId"+strconv.Itoa(index)] = userId
+		idQuery += ":userId" + strconv.Itoa(index)
+	}
 
-		if _, err := s.GetReplica().Select(&dbMembers, CHANNEL_MEMBERS_WITH_SCHEME_SELECT_QUERY+"WHERE ChannelMembers.ChannelId = :ChannelId AND ChannelMembers.UserId IN ("+idQuery+")", props); err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.GetMembersByIds", "store.sql_channel.get_members_by_ids.app_error", nil, "channelId="+channelId+" "+err.Error(), http.StatusInternalServerError)
-			return
-		}
+	props["ChannelId"] = channelId
 
-		result.Data = dbMembers.ToModel()
-	})
+	if _, err := s.GetReplica().Select(&dbMembers, CHANNEL_MEMBERS_WITH_SCHEME_SELECT_QUERY+"WHERE ChannelMembers.ChannelId = :ChannelId AND ChannelMembers.UserId IN ("+idQuery+")", props); err != nil {
+		return nil, model.NewAppError("SqlChannelStore.GetMembersByIds", "store.sql_channel.get_members_by_ids.app_error", nil, "channelId="+channelId+" "+err.Error(), http.StatusInternalServerError)
+	}
+
+	return dbMembers.ToModel(), nil
 }
 
 func (s SqlChannelStore) GetChannelsByScheme(schemeId string, offset int, limit int) store.StoreChannel {
