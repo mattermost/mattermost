@@ -1282,11 +1282,10 @@ func (a *App) GetChannelMembersPage(channelId string, page, perPage int) (*model
 }
 
 func (a *App) GetChannelMembersTimezones(channelId string) ([]string, *model.AppError) {
-	result := <-a.Srv.Store.Channel().GetChannelMembersTimezones(channelId)
-	if result.Err != nil {
-		return nil, result.Err
+	membersTimezones, err := a.Srv.Store.Channel().GetChannelMembersTimezones(channelId)
+	if err != nil {
+		return nil, err
 	}
-	membersTimezones := result.Data.([]map[string]string)
 
 	var timezones []string
 	for _, membersTimezone := range membersTimezones {
