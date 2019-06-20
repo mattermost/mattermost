@@ -30,7 +30,7 @@ func (b *LocalFileBackend) TestConnection() *model.AppError {
 		return model.NewAppError("TestFileConnection", "api.file.test_connection.local.connection.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 	os.Remove(filepath.Join(b.directory, TEST_FILE_PATH))
-	mlog.Info("Able to write files to local storage.")
+	mlog.Debug("Able to write files to local storage.")
 	return nil
 }
 
