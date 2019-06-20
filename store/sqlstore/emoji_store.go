@@ -195,14 +195,14 @@ func (es SqlEmojiStore) Search(name string, prefixOnly bool, limit int) ([]*mode
 
 	if _, err := es.GetReplica().Select(&emojis,
 		`SELECT
-				*
-			FROM
-				Emoji
-			WHERE
-				Name LIKE :Name
-				AND DeleteAt = 0
-				ORDER BY Name
-				LIMIT :Limit`, map[string]interface{}{"Name": term, "Limit": limit}); err != nil {
+			*
+		FROM
+			Emoji
+		WHERE
+			Name LIKE :Name
+			AND DeleteAt = 0
+			ORDER BY Name
+			LIMIT :Limit`, map[string]interface{}{"Name": term, "Limit": limit}); err != nil {
 		return nil, model.NewAppError("SqlEmojiStore.Search", "store.sql_emoji.get_by_name.app_error", nil, "name="+name+", "+err.Error(), http.StatusInternalServerError)
 	}
 	return emojis, nil
