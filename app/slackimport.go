@@ -506,9 +506,9 @@ func (a *App) SlackAddChannels(teamId string, slackchannels []SlackChannel, post
 		newChannel = SlackSanitiseChannelProperties(newChannel)
 
 		var mChannel *model.Channel
-		if result := <-a.Srv.Store.Channel().GetByName(teamId, sChannel.Name, true); result.Err == nil {
+		var err *model.AppError
+		if mChannel, err = a.Srv.Store.Channel().GetByName(teamId, sChannel.Name, true); err == nil {
 			// The channel already exists as an active channel. Merge with the existing one.
-			mChannel = result.Data.(*model.Channel)
 			importerLog.WriteString(utils.T("api.slackimport.slack_add_channels.merge", map[string]interface{}{"DisplayName": newChannel.DisplayName}))
 		} else if result := <-a.Srv.Store.Channel().GetDeletedByName(teamId, sChannel.Name); result.Err == nil {
 			// The channel already exists but has been deleted. Generate a random string for the handle instead.
