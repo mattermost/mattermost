@@ -2966,12 +2966,11 @@ func testChannelStoreMigrateChannelMembers(t *testing.T, ss store.Store) {
 	lastDoneUserId := strings.Repeat("0", 26)
 
 	for {
-		res := <-ss.Channel().MigrateChannelMembers(lastDoneChannelId, lastDoneUserId)
-		if assert.Nil(t, res.Err) {
-			if res.Data == nil {
+		data, err := ss.Channel().MigrateChannelMembers(lastDoneChannelId, lastDoneUserId)
+		if assert.Nil(t, err) {
+			if data == nil {
 				break
 			}
-			data := res.Data.(map[string]string)
 			lastDoneChannelId = data["ChannelId"]
 			lastDoneUserId = data["UserId"]
 		}
