@@ -1161,15 +1161,15 @@ func (_m *ChannelStore) RemoveMember(channelId string, userId string) *model.App
 }
 
 // ResetAllChannelSchemes provides a mock function with given fields:
-func (_m *ChannelStore) ResetAllChannelSchemes() store.StoreChannel {
+func (_m *ChannelStore) ResetAllChannelSchemes() *model.AppError {
 	ret := _m.Called()
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func() store.StoreChannel); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func() *model.AppError); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 

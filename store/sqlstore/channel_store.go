@@ -2340,36 +2340,31 @@ func (s SqlChannelStore) MigrateChannelMembers(fromChannelId string, fromUserId 
 	return data, nil
 }
 
-func (s SqlChannelStore) ResetAllChannelSchemes() store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		transaction, err := s.GetMaster().Begin()
-		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.ResetAllChannelSchemes", "store.sql_channel.reset_all_channel_schemes.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		defer finalizeTransaction(transaction)
+func (s SqlChannelStore) ResetAllChannelSchemes() *model.AppError {
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return model.NewAppError("SqlChannelStore.ResetAllChannelSchemes", "store.sql_channel.reset_all_channel_schemes.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	defer finalizeTransaction(transaction)
 
-		*result = s.resetAllChannelSchemesT(transaction)
-		if result.Err != nil {
-			return
-		}
-
-		if err := transaction.Commit(); err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.ResetAllChannelSchemes", "store.sql_channel.reset_all_channel_schemes.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	})
-}
-
-func (s SqlChannelStore) resetAllChannelSchemesT(transaction *gorp.Transaction) store.StoreResult {
-	result := store.StoreResult{}
-
-	if _, err := transaction.Exec("UPDATE Channels SET SchemeId=''"); err != nil {
-		result.Err = model.NewAppError("SqlChannelStore.ResetAllChannelSchemes", "store.sql_channel.reset_all_channel_schemes.app_error", nil, err.Error(), http.StatusInternalServerError)
-		return result
+	resetErr := s.resetAllChannelSchemesT(transaction)
+	if resetErr != nil {
+		return resetErr
 	}
 
-	return result
+	if err := transaction.Commit(); err != nil {
+		return model.NewAppError("SqlChannelStore.ResetAllChannelSchemes", "store.sql_channel.reset_all_channel_schemes.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
+}
+
+func (s SqlChannelStore) resetAllChannelSchemesT(transaction *gorp.Transaction) *model.AppError {
+	if _, err := transaction.Exec("UPDATE Channels SET SchemeId=''"); err != nil {
+		return model.NewAppError("SqlChannelStore.ResetAllChannelSchemes", "store.sql_channel.reset_all_channel_schemes.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
 }
 
 func (s SqlChannelStore) ClearAllCustomRoleAssignments() *model.AppError {
