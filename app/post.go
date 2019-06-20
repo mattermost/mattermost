@@ -341,11 +341,11 @@ func (a *App) FillInPostProps(post *model.Post, channel *model.Channel) *model.A
 
 	if len(channelMentions) > 0 {
 		if channel == nil {
-			result := <-a.Srv.Store.Channel().GetForPost(post.Id)
-			if result.Err != nil {
-				return model.NewAppError("FillInPostProps", "api.context.invalid_param.app_error", map[string]interface{}{"Name": "post.channel_id"}, result.Err.Error(), http.StatusBadRequest)
+			postChannel, err := a.Srv.Store.Channel().GetForPost(post.Id)
+			if err != nil {
+				return model.NewAppError("FillInPostProps", "api.context.invalid_param.app_error", map[string]interface{}{"Name": "post.channel_id"}, err.Error(), http.StatusBadRequest)
 			}
-			channel = result.Data.(*model.Channel)
+			channel = postChannel
 		}
 
 		mentionedChannels, err := a.GetChannelsByNames(channelMentions, channel.TeamId)
@@ -552,12 +552,12 @@ func (a *App) UpdatePost(post *model.Post, safeUpdate bool) (*model.Post, *model
 
 	if a.IsESIndexingEnabled() {
 		a.Srv.Go(func() {
-			rchannel := <-a.Srv.Store.Channel().GetForPost(rpost.Id)
-			if rchannel.Err != nil {
+			channel, chanErr := a.Srv.Store.Channel().GetForPost(rpost.Id)
+			if chanErr != nil {
 				mlog.Error(fmt.Sprintf("Couldn't get channel %v for post %v for Elasticsearch indexing.", rpost.ChannelId, rpost.Id))
 				return
 			}
-			if err := a.Elasticsearch.IndexPost(rpost, rchannel.Data.(*model.Channel).TeamId); err != nil {
+			if err := a.Elasticsearch.IndexPost(rpost, channel.TeamId); err != nil {
 				mlog.Error("Encountered error indexing post", mlog.String("post_id", post.Id), mlog.Err(err))
 			}
 		})
