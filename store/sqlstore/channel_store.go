@@ -1139,7 +1139,7 @@ func (s SqlChannelStore) GetTeamChannels(teamId string) (*model.ChannelList, *mo
 	return data, nil
 }
 
-func (s SqlChannelStore) GetByName(teamId string, name string, allowFromCache bool) store.StoreChannel {
+func (s SqlChannelStore) GetByName(teamId string, name string, allowFromCache bool) (*model.Channel, *model.AppError) {
 	return s.getByName(teamId, name, false, allowFromCache)
 }
 
@@ -1199,45 +1199,40 @@ func (s SqlChannelStore) GetByNames(teamId string, names []string, allowFromCach
 	return channels, nil
 }
 
-func (s SqlChannelStore) GetByNameIncludeDeleted(teamId string, name string, allowFromCache bool) store.StoreChannel {
+func (s SqlChannelStore) GetByNameIncludeDeleted(teamId string, name string, allowFromCache bool) (*model.Channel, *model.AppError) {
 	return s.getByName(teamId, name, true, allowFromCache)
 }
 
-func (s SqlChannelStore) getByName(teamId string, name string, includeDeleted bool, allowFromCache bool) store.StoreChannel {
+func (s SqlChannelStore) getByName(teamId string, name string, includeDeleted bool, allowFromCache bool) (*model.Channel, *model.AppError) {
 	var query string
 	if includeDeleted {
 		query = "SELECT * FROM Channels WHERE (TeamId = :TeamId OR TeamId = '') AND Name = :Name"
 	} else {
 		query = "SELECT * FROM Channels WHERE (TeamId = :TeamId OR TeamId = '') AND Name = :Name AND DeleteAt = 0"
 	}
-	return store.Do(func(result *store.StoreResult) {
-		channel := model.Channel{}
+	channel := model.Channel{}
 
-		if allowFromCache {
-			if cacheItem, ok := channelByNameCache.Get(teamId + name); ok {
-				if s.metrics != nil {
-					s.metrics.IncrementMemCacheHitCounter("Channel By Name")
-				}
-				result.Data = cacheItem.(*model.Channel)
-				return
-			}
+	if allowFromCache {
+		if cacheItem, ok := channelByNameCache.Get(teamId + name); ok {
 			if s.metrics != nil {
-				s.metrics.IncrementMemCacheMissCounter("Channel By Name")
+				s.metrics.IncrementMemCacheHitCounter("Channel By Name")
 			}
+			return cacheItem.(*model.Channel), nil
 		}
-
-		if err := s.GetReplica().SelectOne(&channel, query, map[string]interface{}{"TeamId": teamId, "Name": name}); err != nil {
-			if err == sql.ErrNoRows {
-				result.Err = model.NewAppError("SqlChannelStore.GetByName", store.MISSING_CHANNEL_ERROR, nil, "teamId="+teamId+", "+"name="+name+", "+err.Error(), http.StatusNotFound)
-				return
-			}
-			result.Err = model.NewAppError("SqlChannelStore.GetByName", "store.sql_channel.get_by_name.existing.app_error", nil, "teamId="+teamId+", "+"name="+name+", "+err.Error(), http.StatusInternalServerError)
-			return
+		if s.metrics != nil {
+			s.metrics.IncrementMemCacheMissCounter("Channel By Name")
 		}
+	}
 
-		result.Data = &channel
-		channelByNameCache.AddWithExpiresInSecs(teamId+name, &channel, CHANNEL_CACHE_SEC)
-	})
+	if err := s.GetReplica().SelectOne(&channel, query, map[string]interface{}{"TeamId": teamId, "Name": name}); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, model.NewAppError("SqlChannelStore.GetByName", store.MISSING_CHANNEL_ERROR, nil, "teamId="+teamId+", "+"name="+name+", "+err.Error(), http.StatusNotFound)
+		}
+		return nil, model.NewAppError("SqlChannelStore.GetByName", "store.sql_channel.get_by_name.existing.app_error", nil, "teamId="+teamId+", "+"name="+name+", "+err.Error(), http.StatusInternalServerError)
+	}
+
+	channelByNameCache.AddWithExpiresInSecs(teamId+name, &channel, CHANNEL_CACHE_SEC)
+	return &channel, nil
 }
 
 func (s SqlChannelStore) GetDeletedByName(teamId string, name string) store.StoreChannel {

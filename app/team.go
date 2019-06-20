@@ -834,17 +834,16 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 	for _, channel := range *channelList {
 		if !channel.IsGroupOrDirect() {
 			a.InvalidateCacheForChannelMembers(channel.Id)
-			if err := a.Srv.Store.Channel().RemoveMember(channel.Id, user.Id); err != nil {
+			if err = a.Srv.Store.Channel().RemoveMember(channel.Id, user.Id); err != nil {
 				return err
 			}
 		}
 	}
 
-	result := <-a.Srv.Store.Channel().GetByName(team.Id, model.DEFAULT_CHANNEL, false)
-	if result.Err != nil {
-		return result.Err
+	channel, err := a.Srv.Store.Channel().GetByName(team.Id, model.DEFAULT_CHANNEL, false)
+	if err != nil {
+		return err
 	}
-	channel := result.Data.(*model.Channel)
 
 	if *a.Config().ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages {
 		if requestorId == user.Id {
