@@ -823,14 +823,12 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 
 	var channelList *model.ChannelList
 
-	if result := <-a.Srv.Store.Channel().GetChannels(team.Id, user.Id, true); result.Err != nil {
-		if result.Err.Id == "store.sql_channel.get_channels.not_found.app_error" {
+	if channelList, err = a.Srv.Store.Channel().GetChannels(team.Id, user.Id, true); err != nil {
+		if err.Id == "store.sql_channel.get_channels.not_found.app_error" {
 			channelList = &model.ChannelList{}
 		} else {
-			return result.Err
+			return err
 		}
-	} else {
-		channelList = result.Data.(*model.ChannelList)
 	}
 
 	for _, channel := range *channelList {

@@ -621,9 +621,8 @@ func testChannelStoreDelete(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	cresult := <-ss.Channel().GetChannels(o1.TeamId, m1.UserId, false)
-	require.Nil(t, cresult.Err)
-	list := cresult.Data.(*model.ChannelList)
+	list, err := ss.Channel().GetChannels(o1.TeamId, m1.UserId, false)
+	require.Nil(t, err)
 
 	if len(*list) != 1 {
 		t.Fatal("invalid number of channels")
@@ -636,14 +635,14 @@ func testChannelStoreDelete(t *testing.T, ss store.Store) {
 		t.Fatal("invalid number of channels")
 	}
 
-	cresult = <-ss.Channel().PermanentDelete(o2.Id)
+	cresult := <-ss.Channel().PermanentDelete(o2.Id)
 	require.Nil(t, cresult.Err)
 
-	cresult = <-ss.Channel().GetChannels(o1.TeamId, m1.UserId, false)
-	if assert.NotNil(t, cresult.Err) {
-		require.Equal(t, "store.sql_channel.get_channels.not_found.app_error", cresult.Err.Id)
+	list, err = ss.Channel().GetChannels(o1.TeamId, m1.UserId, false)
+	if assert.NotNil(t, err) {
+		require.Equal(t, "store.sql_channel.get_channels.not_found.app_error", err.Id)
 	} else {
-		require.Equal(t, &model.ChannelList{}, cresult.Data.(*model.ChannelList))
+		require.Equal(t, &model.ChannelList{}, list)
 	}
 
 	if r := <-ss.Channel().PermanentDeleteByTeam(o1.TeamId); r.Err != nil {
@@ -1032,8 +1031,8 @@ func testChannelStoreGetChannels(t *testing.T, ss store.Store) {
 	m3.NotifyProps = model.GetDefaultChannelNotifyProps()
 	store.Must(ss.Channel().SaveMember(&m3))
 
-	cresult := <-ss.Channel().GetChannels(o1.TeamId, m1.UserId, false)
-	list := cresult.Data.(*model.ChannelList)
+	list, err := ss.Channel().GetChannels(o1.TeamId, m1.UserId, false)
+	require.Nil(t, err)
 
 	if (*list)[0].Id != o1.Id {
 		t.Fatal("missing channel")
