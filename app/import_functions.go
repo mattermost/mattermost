@@ -226,8 +226,8 @@ func (a *App) ImportChannel(data *ChannelImportData, dryRun bool) *model.AppErro
 	}
 
 	var channel *model.Channel
-	if result := <-a.Srv.Store.Channel().GetByNameIncludeDeleted(team.Id, *data.Name, true); result.Err == nil {
-		channel = result.Data.(*model.Channel)
+	if result, err := a.Srv.Store.Channel().GetByNameIncludeDeleted(team.Id, *data.Name, true); err == nil {
+		channel = result
 	} else {
 		channel = &model.Channel{}
 	}
@@ -946,13 +946,12 @@ func (a *App) ImportPost(data *PostImportData, dryRun bool) *model.AppError {
 		return model.NewAppError("BulkImport", "app.import.import_post.team_not_found.error", map[string]interface{}{"TeamName": *data.Team}, err.Error(), http.StatusBadRequest)
 	}
 
-	result := <-a.Srv.Store.Channel().GetByName(team.Id, *data.Channel, false)
-	if result.Err != nil {
-		return model.NewAppError("BulkImport", "app.import.import_post.channel_not_found.error", map[string]interface{}{"ChannelName": *data.Channel}, result.Err.Error(), http.StatusBadRequest)
+	channel, err := a.Srv.Store.Channel().GetByName(team.Id, *data.Channel, false)
+	if err != nil {
+		return model.NewAppError("BulkImport", "app.import.import_post.channel_not_found.error", map[string]interface{}{"ChannelName": *data.Channel}, err.Error(), http.StatusBadRequest)
 	}
-	channel := result.Data.(*model.Channel)
 
-	result = <-a.Srv.Store.User().GetByUsername(*data.User)
+	result := <-a.Srv.Store.User().GetByUsername(*data.User)
 	if result.Err != nil {
 		return model.NewAppError("BulkImport", "app.import.import_post.user_not_found.error", map[string]interface{}{"Username": *data.User}, result.Err.Error(), http.StatusBadRequest)
 	}

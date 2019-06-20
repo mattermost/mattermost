@@ -262,12 +262,10 @@ func (a *App) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAc
 }
 
 func (a *App) createSessionForUserAccessToken(tokenString string) (*model.Session, *model.AppError) {
-	var token *model.UserAccessToken
-	result := <-a.Srv.Store.UserAccessToken().GetByToken(tokenString)
-	if result.Err != nil {
-		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, result.Err.Error(), http.StatusUnauthorized)
+	token, err := a.Srv.Store.UserAccessToken().GetByToken(tokenString)
+	if err != nil {
+		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, err.Error(), http.StatusUnauthorized)
 	}
-	token = result.Data.(*model.UserAccessToken)
 
 	if !token.IsActive {
 		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, "inactive_token", http.StatusUnauthorized)
@@ -357,17 +355,16 @@ func (a *App) EnableUserAccessToken(token *model.UserAccessToken) *model.AppErro
 }
 
 func (a *App) GetUserAccessTokens(page, perPage int) ([]*model.UserAccessToken, *model.AppError) {
-	result := <-a.Srv.Store.UserAccessToken().GetAll(page*perPage, perPage)
-	if result.Err != nil {
-		return nil, result.Err
+	tokens, err := a.Srv.Store.UserAccessToken().GetAll(page*perPage, perPage)
+	if err != nil {
+		return nil, err
 	}
-	tokens := result.Data.([]*model.UserAccessToken)
+
 	for _, token := range tokens {
 		token.Token = ""
 	}
 
 	return tokens, nil
-
 }
 
 func (a *App) GetUserAccessTokensForUser(userId string, page, perPage int) ([]*model.UserAccessToken, *model.AppError) {
@@ -385,16 +382,15 @@ func (a *App) GetUserAccessTokensForUser(userId string, page, perPage int) ([]*m
 }
 
 func (a *App) GetUserAccessToken(tokenId string, sanitize bool) (*model.UserAccessToken, *model.AppError) {
-	result := <-a.Srv.Store.UserAccessToken().Get(tokenId)
-	if result.Err != nil {
-		return nil, result.Err
+	token, err := a.Srv.Store.UserAccessToken().Get(tokenId)
+	if err != nil {
+		return nil, err
 	}
-	token := result.Data.(*model.UserAccessToken)
+
 	if sanitize {
 		token.Token = ""
 	}
 	return token, nil
-
 }
 
 func (a *App) SearchUserAccessTokens(term string) ([]*model.UserAccessToken, *model.AppError) {
