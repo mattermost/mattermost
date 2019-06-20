@@ -1031,35 +1031,32 @@ func (s SqlChannelStore) GetMoreChannels(teamId string, userId string, offset in
 	return channels, nil
 }
 
-func (s SqlChannelStore) GetPublicChannelsForTeam(teamId string, offset int, limit int) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		data := &model.ChannelList{}
-		_, err := s.GetReplica().Select(data, `
-			SELECT
-			    Channels.*
-			FROM
-			    Channels
-			JOIN
-			    PublicChannels pc ON (pc.Id = Channels.Id)
-			WHERE
-			    pc.TeamId = :TeamId
-			AND pc.DeleteAt = 0
-			ORDER BY pc.DisplayName
-			LIMIT :Limit
-			OFFSET :Offset
+func (s SqlChannelStore) GetPublicChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
+	channels := &model.ChannelList{}
+	_, err := s.GetReplica().Select(channels, `
+		SELECT
+			Channels.*
+		FROM
+			Channels
+		JOIN
+			PublicChannels pc ON (pc.Id = Channels.Id)
+		WHERE
+			pc.TeamId = :TeamId
+		AND pc.DeleteAt = 0
+		ORDER BY pc.DisplayName
+		LIMIT :Limit
+		OFFSET :Offset
 		`, map[string]interface{}{
-			"TeamId": teamId,
-			"Limit":  limit,
-			"Offset": offset,
-		})
-
-		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.GetPublicChannelsForTeam", "store.sql_channel.get_public_channels.get.app_error", nil, "teamId="+teamId+", err="+err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		result.Data = data
+		"TeamId": teamId,
+		"Limit":  limit,
+		"Offset": offset,
 	})
+
+	if err != nil {
+		return nil, model.NewAppError("SqlChannelStore.GetPublicChannelsForTeam", "store.sql_channel.get_public_channels.get.app_error", nil, "teamId="+teamId+", err="+err.Error(), http.StatusInternalServerError)
+	}
+
+	return channels, nil
 }
 
 func (s SqlChannelStore) GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) (*model.ChannelList, *model.AppError) {

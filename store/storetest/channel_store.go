@@ -1359,9 +1359,9 @@ func testChannelStoreGetPublicChannelsForTeam(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	t.Run("only o1 initially listed in public channels", func(t *testing.T) {
-		result := <-ss.Channel().GetPublicChannelsForTeam(teamId, 0, 100)
-		require.Nil(t, result.Err)
-		require.Equal(t, &model.ChannelList{&o1}, result.Data.(*model.ChannelList))
+		list, channelErr := ss.Channel().GetPublicChannelsForTeam(teamId, 0, 100)
+		require.Nil(t, channelErr)
+		require.Equal(t, &model.ChannelList{&o1}, list)
 	})
 
 	// o4 is another public channel on the team
@@ -1387,21 +1387,21 @@ func testChannelStoreGetPublicChannelsForTeam(t *testing.T, ss store.Store) {
 	require.Nil(t, err, "channel should have been deleted")
 
 	t.Run("both o1 and o4 listed in public channels", func(t *testing.T) {
-		cresult := <-ss.Channel().GetPublicChannelsForTeam(teamId, 0, 100)
-		require.Nil(t, cresult.Err)
-		require.Equal(t, &model.ChannelList{&o1, &o4}, cresult.Data.(*model.ChannelList))
+		list, err := ss.Channel().GetPublicChannelsForTeam(teamId, 0, 100)
+		require.Nil(t, err)
+		require.Equal(t, &model.ChannelList{&o1, &o4}, list)
 	})
 
 	t.Run("only o1 listed in public channels with offset 0, limit 1", func(t *testing.T) {
-		result := <-ss.Channel().GetPublicChannelsForTeam(teamId, 0, 1)
-		require.Nil(t, result.Err)
-		require.Equal(t, &model.ChannelList{&o1}, result.Data.(*model.ChannelList))
+		list, err := ss.Channel().GetPublicChannelsForTeam(teamId, 0, 1)
+		require.Nil(t, err)
+		require.Equal(t, &model.ChannelList{&o1}, list)
 	})
 
 	t.Run("only o4 listed in public channels with offset 1, limit 1", func(t *testing.T) {
-		result := <-ss.Channel().GetPublicChannelsForTeam(teamId, 1, 1)
-		require.Nil(t, result.Err)
-		require.Equal(t, &model.ChannelList{&o4}, result.Data.(*model.ChannelList))
+		list, err := ss.Channel().GetPublicChannelsForTeam(teamId, 1, 1)
+		require.Nil(t, err)
+		require.Equal(t, &model.ChannelList{&o4}, list)
 	})
 
 	t.Run("verify analytics for open channels", func(t *testing.T) {
