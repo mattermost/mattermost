@@ -46,19 +46,28 @@ func (_m *UserAccessTokenStore) DeleteAllForUser(userId string) store.StoreChann
 }
 
 // Get provides a mock function with given fields: tokenId
-func (_m *UserAccessTokenStore) Get(tokenId string) store.StoreChannel {
+func (_m *UserAccessTokenStore) Get(tokenId string) (*model.UserAccessToken, *model.AppError) {
 	ret := _m.Called(tokenId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+	var r0 *model.UserAccessToken
+	if rf, ok := ret.Get(0).(func(string) *model.UserAccessToken); ok {
 		r0 = rf(tokenId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.UserAccessToken)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(tokenId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetAll provides a mock function with given fields: offset, limit
