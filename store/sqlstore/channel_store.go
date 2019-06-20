@@ -948,45 +948,41 @@ func (s SqlChannelStore) GetChannels(teamId string, userId string, includeDelete
 	return channels, nil
 }
 
-func (s SqlChannelStore) GetAllChannels(offset int, limit int, opts store.ChannelSearchOpts) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		query := s.getQueryBuilder().
-			Select("c.*, Teams.DisplayName AS TeamDisplayName, Teams.Name AS TeamName, Teams.UpdateAt AS TeamUpdateAt").
-			From("Channels AS c").
-			Join("Teams ON Teams.Id = c.TeamId").
-			Where(sq.Eq{"c.Type": []string{model.CHANNEL_PRIVATE, model.CHANNEL_OPEN}}).
-			OrderBy("c.DisplayName, Teams.DisplayName").
-			Limit(uint64(limit)).
-			Offset(uint64(offset))
+func (s SqlChannelStore) GetAllChannels(offset int, limit int, opts store.ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError) {
+	query := s.getQueryBuilder().
+		Select("c.*, Teams.DisplayName AS TeamDisplayName, Teams.Name AS TeamName, Teams.UpdateAt AS TeamUpdateAt").
+		From("Channels AS c").
+		Join("Teams ON Teams.Id = c.TeamId").
+		Where(sq.Eq{"c.Type": []string{model.CHANNEL_PRIVATE, model.CHANNEL_OPEN}}).
+		OrderBy("c.DisplayName, Teams.DisplayName").
+		Limit(uint64(limit)).
+		Offset(uint64(offset))
 
-		if !opts.IncludeDeleted {
-			query = query.Where(sq.Eq{"c.DeleteAt": int(0)})
-		}
+	if !opts.IncludeDeleted {
+		query = query.Where(sq.Eq{"c.DeleteAt": int(0)})
+	}
 
-		if len(opts.NotAssociatedToGroup) > 0 {
-			query = query.Where("c.Id NOT IN (SELECT ChannelId FROM GroupChannels WHERE GroupChannels.GroupId = ? AND GroupChannels.DeleteAt = 0)", opts.NotAssociatedToGroup)
-		}
+	if len(opts.NotAssociatedToGroup) > 0 {
+		query = query.Where("c.Id NOT IN (SELECT ChannelId FROM GroupChannels WHERE GroupChannels.GroupId = ? AND GroupChannels.DeleteAt = 0)", opts.NotAssociatedToGroup)
+	}
 
-		if len(opts.ExcludeChannelNames) > 0 {
-			query = query.Where(fmt.Sprintf("c.Name NOT IN ('%s')", strings.Join(opts.ExcludeChannelNames, "', '")))
-		}
+	if len(opts.ExcludeChannelNames) > 0 {
+		query = query.Where(fmt.Sprintf("c.Name NOT IN ('%s')", strings.Join(opts.ExcludeChannelNames, "', '")))
+	}
 
-		queryString, args, err := query.ToSql()
-		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.GetAllChannels", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlChannelStore.GetAllChannels", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		data := &model.ChannelListWithTeamData{}
-		_, err = s.GetReplica().Select(data, queryString, args...)
+	data := &model.ChannelListWithTeamData{}
+	_, err = s.GetReplica().Select(data, queryString, args...)
 
-		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.GetAllChannels", "store.sql_channel.get_all_channels.get.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	if err != nil {
+		return nil, model.NewAppError("SqlChannelStore.GetAllChannels", "store.sql_channel.get_all_channels.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = data
-	})
+	return data, nil
 }
 
 func (s SqlChannelStore) GetMoreChannels(teamId string, userId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
