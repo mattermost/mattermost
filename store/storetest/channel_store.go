@@ -1865,13 +1865,13 @@ func testChannelStoreGetMemberForPost(t *testing.T, ss store.Store) {
 	})
 	require.Nil(t, err)
 
-	if r1 := <-ss.Channel().GetMemberForPost(p1.Id, m1.UserId); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else if r1.Data.(*model.ChannelMember).ToJson() != m1.ToJson() {
+	if r1, err := ss.Channel().GetMemberForPost(p1.Id, m1.UserId); err != nil {
+		t.Fatal(err)
+	} else if r1.ToJson() != m1.ToJson() {
 		t.Fatal("invalid returned channel member")
 	}
 
-	if r2 := <-ss.Channel().GetMemberForPost(p1.Id, model.NewId()); r2.Err == nil {
+	if _, err := ss.Channel().GetMemberForPost(p1.Id, model.NewId()); err == nil {
 		t.Fatal("shouldn't have returned a member")
 	}
 }
