@@ -155,9 +155,8 @@ func (s SqlUserAccessTokenStore) Get(tokenId string) (*model.UserAccessToken, *m
 	if err := s.GetReplica().SelectOne(&token, "SELECT * FROM UserAccessTokens WHERE Id = :Id", map[string]interface{}{"Id": tokenId}); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, model.NewAppError("SqlUserAccessTokenStore.Get", "store.sql_user_access_token.get.app_error", nil, err.Error(), http.StatusNotFound)
-		} else {
-			return nil, model.NewAppError("SqlUserAccessTokenStore.Get", "store.sql_user_access_token.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
+		return nil, model.NewAppError("SqlUserAccessTokenStore.Get", "store.sql_user_access_token.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return &token, nil
