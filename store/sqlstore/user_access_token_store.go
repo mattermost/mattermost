@@ -44,9 +44,8 @@ func (s SqlUserAccessTokenStore) Save(token *model.UserAccessToken) (*model.User
 
 	if err := s.GetMaster().Insert(token); err != nil {
 		return nil, model.NewAppError("SqlUserAccessTokenStore.Save", "store.sql_user_access_token.save.app_error", nil, "", http.StatusInternalServerError)
-	} else {
-		return token, nil
 	}
+	return token, nil
 }
 
 func (s SqlUserAccessTokenStore) Delete(tokenId string) store.StoreChannel {
