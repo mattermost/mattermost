@@ -262,12 +262,10 @@ func (a *App) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAc
 }
 
 func (a *App) createSessionForUserAccessToken(tokenString string) (*model.Session, *model.AppError) {
-	var token *model.UserAccessToken
-	result := <-a.Srv.Store.UserAccessToken().GetByToken(tokenString)
-	if result.Err != nil {
-		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, result.Err.Error(), http.StatusUnauthorized)
+	token, err := a.Srv.Store.UserAccessToken().GetByToken(tokenString)
+	if err != nil {
+		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, err.Error(), http.StatusUnauthorized)
 	}
-	token = result.Data.(*model.UserAccessToken)
 
 	if !token.IsActive {
 		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, "inactive_token", http.StatusUnauthorized)
