@@ -61,17 +61,17 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 	// Enhanced ping health check:
 	// If an extra form value is provided then perform extra health checks for
 	// database and file storage backends.
-	if r.FormValue("getserverstatus") != "" {
-		dbStatusKey := "database-status"
+	if r.FormValue("get_server_status") != "" {
+		dbStatusKey := "database_status"
 		s[dbStatusKey] = model.STATUS_OK
 		_, appErr := c.App.Srv.Store.System().Get()
 		if appErr != nil {
-			mlog.Debug(fmt.Sprintf("Unable to get filestore for ping status: %s", appErr.Error()))
+			mlog.Debug(fmt.Sprintf("Unable to get database status: %s", appErr.Error()))
 			s[dbStatusKey] = model.STATUS_UNHEALTHY
 			s[model.STATUS] = model.STATUS_UNHEALTHY
 		}
 
-		filestoreStatusKey := "filestore-status"
+		filestoreStatusKey := "filestore_status"
 		s[filestoreStatusKey] = model.STATUS_OK
 		license := c.App.License()
 		backend, appErr := filesstore.NewFileBackend(&c.App.Config().FileSettings, license != nil && *license.Features.Compliance)
