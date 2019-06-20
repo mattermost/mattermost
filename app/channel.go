@@ -1258,11 +1258,7 @@ func (a *App) GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) 
 }
 
 func (a *App) GetPublicChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
-	result := <-a.Srv.Store.Channel().GetPublicChannelsForTeam(teamId, offset, limit)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.ChannelList), nil
+	return a.Srv.Store.Channel().GetPublicChannelsForTeam(teamId, offset, limit)
 }
 
 func (a *App) GetChannelMember(channelId string, userId string) (*model.ChannelMember, *model.AppError) {
