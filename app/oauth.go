@@ -54,12 +54,7 @@ func (a *App) UpdateOauthApp(oldApp, updatedApp *model.OAuthApp) (*model.OAuthAp
 	updatedApp.CreateAt = oldApp.CreateAt
 	updatedApp.ClientSecret = oldApp.ClientSecret
 
-	app, err := a.Srv.Store.OAuth().UpdateApp(updatedApp)
-	if err != nil {
-		return nil, err
-	}
-
-	return app[0], nil
+	return a.Srv.Store.OAuth().UpdateApp(updatedApp)
 }
 
 func (a *App) DeleteOAuthApp(appId string) *model.AppError {

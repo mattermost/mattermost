@@ -75,7 +75,7 @@ func (as SqlOAuthStore) SaveApp(app *model.OAuthApp) (*model.OAuthApp, *model.Ap
 	return app, nil
 }
 
-func (as SqlOAuthStore) UpdateApp(app *model.OAuthApp) ([]*model.OAuthApp, *model.AppError) {
+func (as SqlOAuthStore) UpdateApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError) {
 	app.PreUpdate()
 
 	if err := app.IsValid(); err != nil {
@@ -101,7 +101,7 @@ func (as SqlOAuthStore) UpdateApp(app *model.OAuthApp) ([]*model.OAuthApp, *mode
 	if count != 1 {
 		return nil, model.NewAppError("SqlOAuthStore.UpdateApp", "store.sql_oauth.update_app.update.app_error", nil, "app_id="+app.Id, http.StatusBadRequest)
 	}
-	return []*model.OAuthApp{app, oldApp}, nil
+	return app, nil
 }
 
 func (as SqlOAuthStore) GetApp(id string) (*model.OAuthApp, *model.AppError) {

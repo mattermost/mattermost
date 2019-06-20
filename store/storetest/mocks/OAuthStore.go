@@ -402,15 +402,15 @@ func (_m *OAuthStore) UpdateAccessData(accessData *model.AccessData) (*model.Acc
 }
 
 // UpdateApp provides a mock function with given fields: app
-func (_m *OAuthStore) UpdateApp(app *model.OAuthApp) ([]*model.OAuthApp, *model.AppError) {
+func (_m *OAuthStore) UpdateApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError) {
 	ret := _m.Called(app)
 
-	var r0 []*model.OAuthApp
-	if rf, ok := ret.Get(0).(func(*model.OAuthApp) []*model.OAuthApp); ok {
+	var r0 *model.OAuthApp
+	if rf, ok := ret.Get(0).(func(*model.OAuthApp) *model.OAuthApp); ok {
 		r0 = rf(app)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]*model.OAuthApp)
+			r0 = ret.Get(0).(*model.OAuthApp)
 		}
 	}
 

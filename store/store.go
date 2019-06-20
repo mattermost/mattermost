@@ -353,7 +353,7 @@ type ComplianceStore interface {
 
 type OAuthStore interface {
 	SaveApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError)
-	UpdateApp(app *model.OAuthApp) ([]*model.OAuthApp, *model.AppError)
+	UpdateApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError)
 	GetApp(id string) (*model.OAuthApp, *model.AppError)
 	GetAppByUser(userId string, offset, limit int) ([]*model.OAuthApp, *model.AppError)
 	GetApps(offset, limit int) ([]*model.OAuthApp, *model.AppError)

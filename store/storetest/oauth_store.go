@@ -110,9 +110,9 @@ func testOAuthStoreUpdateApp(t *testing.T, ss store.Store) {
 	a1.Id = id
 	ua, err := ss.OAuth().UpdateApp(&a1)
 	require.Nil(t, err)
-	require.Equal(t, ua[0].Name, "NewName", "name did not update")
-	require.NotEqual(t, ua[0].CreateAt, 1, "create at should not have updated")
-	require.NotEqual(t, ua[0].CreatorId, "12345678901234567890123456", "creator id should not have updated")
+	require.Equal(t, ua.Name, "NewName", "name did not update")
+	require.NotEqual(t, ua.CreateAt, 1, "create at should not have updated")
+	require.NotEqual(t, ua.CreatorId, "12345678901234567890123456", "creator id should not have updated")
 }
 
 func testOAuthStoreSaveAccessData(t *testing.T, ss store.Store) {
