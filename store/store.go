@@ -459,7 +459,7 @@ type EmojiStore interface {
 	GetByName(name string) StoreChannel
 	GetMultipleByName(names []string) StoreChannel
 	GetList(offset, limit int, sort string) StoreChannel
-	Delete(id string, time int64) StoreChannel
+	Delete(id string, time int64) *model.AppError
 	Search(name string, prefixOnly bool, limit int) StoreChannel
 }
 
