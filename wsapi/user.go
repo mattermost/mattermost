@@ -4,9 +4,6 @@
 package wsapi
 
 import (
-	"fmt"
-
-	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -49,8 +46,6 @@ func (api *API) userUpdateActiveStatus(req *model.WebSocketRequest) (map[string]
 	if manual, ok = req.Data["manual"].(bool); !ok {
 		manual = false
 	}
-
-	mlog.Debug(fmt.Sprintf("[Status Update], userIsActive: %v, manual: %v", userIsActive, manual))
 
 	if userIsActive {
 		api.App.SetStatusOnline(req.Session.UserId, manual)
