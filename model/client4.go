@@ -1500,6 +1500,18 @@ func (c *Client4) GetAllTeams(etag string, page int, perPage int) ([]*Team, *Res
 	return TeamListFromJson(r.Body), BuildResponse(r)
 }
 
+// GetAllTeamsWithTotalCount returns all teams based on permissions.
+func (c *Client4) GetAllTeamsWithTotalCount(etag string, page int, perPage int) ([]*Team, int64, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v&include_total_count=true", page, perPage)
+	r, err := c.DoApiGet(c.GetTeamsRoute()+query, etag)
+	if err != nil {
+		return nil, 0, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	teamsListWithCount := TeamsWithCountFromJson(r.Body)
+	return teamsListWithCount.Teams, teamsListWithCount.TotalCount, BuildResponse(r)
+}
+
 // GetTeamByName returns a team based on the provided team name string.
 func (c *Client4) GetTeamByName(name, etag string) (*Team, *Response) {
 	r, err := c.DoApiGet(c.GetTeamByNameRoute(name), etag)
