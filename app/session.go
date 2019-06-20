@@ -384,16 +384,15 @@ func (a *App) GetUserAccessTokensForUser(userId string, page, perPage int) ([]*m
 }
 
 func (a *App) GetUserAccessToken(tokenId string, sanitize bool) (*model.UserAccessToken, *model.AppError) {
-	result := <-a.Srv.Store.UserAccessToken().Get(tokenId)
-	if result.Err != nil {
-		return nil, result.Err
+	token, err := a.Srv.Store.UserAccessToken().Get(tokenId)
+	if err != nil {
+		return nil, err
 	}
-	token := result.Data.(*model.UserAccessToken)
+
 	if sanitize {
 		token.Token = ""
 	}
 	return token, nil
-
 }
 
 func (a *App) SearchUserAccessTokens(term string) ([]*model.UserAccessToken, *model.AppError) {
