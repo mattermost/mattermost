@@ -20,6 +20,11 @@ import (
 
 type apiImplCreatorFunc func(*model.Manifest) API
 
+// registeredPlugin stores the state for a given plugin that has been activated
+// or attempted to be activated this server run.
+//
+// If an installed plugin is missing from the env.registeredPlugins map, then the
+// plugin is configured as disabled and has not been activated during this server run.
 type registeredPlugin struct {
 	BundleInfo *model.BundleInfo
 	State      *int
@@ -111,14 +116,10 @@ func (env *Environment) GetPluginState(id string) int {
 }
 
 // SetPluginState sets the current state of a plugin (disabled, running, or error)
-func (env *Environment) SetPluginState(id string, state int) bool {
-	rp, ok := env.registeredPlugins.Load(id)
-	if !ok {
-		return false
+func (env *Environment) SetPluginState(id string, state int) {
+	if rp, ok := env.registeredPlugins.Load(id); ok {
+		*rp.(*registeredPlugin).State = state
 	}
-
-	*rp.(*registeredPlugin).State = state
-	return true
 }
 
 // PublicFilesPath returns a path and true if the plugin with the given id is active.
@@ -269,13 +270,10 @@ func (env *Environment) Activate(id string) (manifest *model.Manifest, activated
 	return pluginInfo.Manifest, true, nil
 }
 
-func (env *Environment) RemovePlugin(id string) bool {
+func (env *Environment) RemovePlugin(id string) {
 	if _, ok := env.registeredPlugins.Load(id); ok {
 		env.registeredPlugins.Delete(id)
-		return true
 	}
-
-	return false
 }
 
 // Deactivates the plugin with the given id.
@@ -284,6 +282,8 @@ func (env *Environment) Deactivate(id string) bool {
 	if !ok {
 		return false
 	}
+
+	env.SetPluginState(id, model.PluginStateNotRunning)
 
 	if !env.IsActive(id) {
 		return false

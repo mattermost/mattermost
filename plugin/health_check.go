@@ -99,12 +99,12 @@ func (job *PluginHealthCheckJob) handleHealthCheckFail(id string, err error) {
 	// Append current failure before checking for deactivate vs restart action
 	p.failTimeStamps = append(p.failTimeStamps, time.Now())
 	p.lastError = err
-	*p.State = model.PluginStateFailedToStayRunning
 
 	if shouldDeactivatePlugin(p) {
 		p.failTimeStamps = []time.Time{}
 		mlog.Debug(fmt.Sprintf("Deactivating plugin due to multiple crashes `%s`", id))
 		job.env.Deactivate(id)
+		job.env.SetPluginState(id, model.PluginStateFailedToStayRunning)
 	} else {
 		mlog.Debug(fmt.Sprintf("Restarting plugin due to failed health check `%s`", id))
 		if err := job.env.RestartPlugin(id); err != nil {
