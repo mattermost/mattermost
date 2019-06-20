@@ -169,33 +169,33 @@ func testEmojiGetMultipleByName(t *testing.T, ss store.Store) {
 	}()
 
 	t.Run("one emoji", func(t *testing.T) {
-		if result := <-ss.Emoji().GetMultipleByName([]string{emojis[0].Name}); result.Err != nil {
-			t.Fatal("could not get emoji", result.Err)
-		} else if received := result.Data.([]*model.Emoji); len(received) != 1 || *received[0] != emojis[0] {
+		if received, err := ss.Emoji().GetMultipleByName([]string{emojis[0].Name}); err != nil {
+			t.Fatal("could not get emoji", err)
+		} else if len(received) != 1 || *received[0] != emojis[0] {
 			t.Fatal("got incorrect emoji")
 		}
 	})
 
 	t.Run("multiple emojis", func(t *testing.T) {
-		if result := <-ss.Emoji().GetMultipleByName([]string{emojis[0].Name, emojis[1].Name, emojis[2].Name}); result.Err != nil {
-			t.Fatal("could not get emojis", result.Err)
-		} else if received := result.Data.([]*model.Emoji); len(received) != 3 {
+		if received, err := ss.Emoji().GetMultipleByName([]string{emojis[0].Name, emojis[1].Name, emojis[2].Name}); err != nil {
+			t.Fatal("could not get emojis", err)
+		} else if len(received) != 3 {
 			t.Fatal("got incorrect emojis")
 		}
 	})
 
 	t.Run("one nonexistent emoji", func(t *testing.T) {
-		if result := <-ss.Emoji().GetMultipleByName([]string{"ab"}); result.Err != nil {
-			t.Fatal("could not get emoji", result.Err)
-		} else if received := result.Data.([]*model.Emoji); len(received) != 0 {
+		if received, err := ss.Emoji().GetMultipleByName([]string{"ab"}); err != nil {
+			t.Fatal("could not get emoji", err)
+		} else if len(received) != 0 {
 			t.Fatal("got incorrect emoji")
 		}
 	})
 
 	t.Run("multiple emojis with nonexistent names", func(t *testing.T) {
-		if result := <-ss.Emoji().GetMultipleByName([]string{emojis[0].Name, emojis[1].Name, emojis[2].Name, "abcd", "1234"}); result.Err != nil {
-			t.Fatal("could not get emojis", result.Err)
-		} else if received := result.Data.([]*model.Emoji); len(received) != 3 {
+		if received, err := ss.Emoji().GetMultipleByName([]string{emojis[0].Name, emojis[1].Name, emojis[2].Name, "abcd", "1234"}); err != nil {
+			t.Fatal("could not get emojis", err)
+		} else if len(received) != 3 {
 			t.Fatal("got incorrect emojis")
 		}
 	})
