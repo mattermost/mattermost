@@ -1436,8 +1436,8 @@ func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 		return result.Err
 	}
 
-	if result := <-a.Srv.Store.OAuth().PermanentDeleteAuthDataByUser(user.Id); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.OAuth().PermanentDeleteAuthDataByUser(user.Id); err != nil {
+		return err
 	}
 
 	if err := a.Srv.Store.Webhook().PermanentDeleteIncomingByUser(user.Id); err != nil {
