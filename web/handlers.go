@@ -5,6 +5,7 @@ package web
 
 import (
 	"fmt"
+	"github.com/NYTimes/gziphandler"
 	"net/http"
 	"time"
 
@@ -223,4 +224,39 @@ func (h *Handler) checkCSRFToken(c *Context, r *http.Request, token string, toke
 	}
 
 	return csrfCheckNeeded, csrfCheckPassed
+}
+
+// trustRequesterHandler provides a handler for API endpoints which do not require the user to be logged in and are
+// allowed to be requested directly rather than via javascript/XMLHttpRequest, such as site branding images or the
+// websocket.
+func (w *Web) trustRequesterHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	handler := &Handler{
+		GetGlobalAppOptions: w.GetGlobalAppOptions,
+		HandleFunc:          h,
+		RequireSession:      false,
+		TrustRequester:      true,
+		RequireMfa:          false,
+		IsStatic:            false,
+	}
+	if *w.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
+		return gziphandler.GzipHandler(handler)
+	}
+	return handler
+}
+
+// apiSessionRequired provides a handler for API endpoints which require the user to be logged in in order for access to
+// be granted.
+func (w *Web) apiSessionRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	handler := &Handler{
+		GetGlobalAppOptions: w.GetGlobalAppOptions,
+		HandleFunc:          h,
+		RequireSession:      true,
+		TrustRequester:      false,
+		RequireMfa:          true,
+		IsStatic:            false,
+	}
+	if *w.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
+		return gziphandler.GzipHandler(handler)
+	}
+	return handler
 }

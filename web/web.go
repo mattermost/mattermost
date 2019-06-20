@@ -36,6 +36,7 @@ func New(config configservice.ConfigService, globalOptions app.AppOptionCreator,
 	web.InitWebhooks()
 	web.InitSaml()
 	web.InitStatic()
+	web.InitOAuth()
 
 	return web
 }
