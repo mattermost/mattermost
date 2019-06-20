@@ -5,9 +5,10 @@ package web
 
 import (
 	"fmt"
-	"github.com/NYTimes/gziphandler"
 	"net/http"
 	"time"
+
+	"github.com/NYTimes/gziphandler"
 
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/mlog"
@@ -226,6 +227,23 @@ func (h *Handler) checkCSRFToken(c *Context, r *http.Request, token string, toke
 	return csrfCheckNeeded, csrfCheckPassed
 }
 
+// apiHandler provides a handler for API endpoints which do not require the user to be logged in order for access to be
+// granted.
+func (w *Web) apiHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	handler := &Handler{
+		GetGlobalAppOptions: w.GetGlobalAppOptions,
+		HandleFunc:          h,
+		RequireSession:      false,
+		TrustRequester:      false,
+		RequireMfa:          false,
+		IsStatic:            false,
+	}
+	if *w.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
+		return gziphandler.GzipHandler(handler)
+	}
+	return handler
+}
+
 // trustRequesterHandler provides a handler for API endpoints which do not require the user to be logged in and are
 // allowed to be requested directly rather than via javascript/XMLHttpRequest, such as site branding images or the
 // websocket.
@@ -253,6 +271,24 @@ func (w *Web) apiSessionRequired(h func(*Context, http.ResponseWriter, *http.Req
 		RequireSession:      true,
 		TrustRequester:      false,
 		RequireMfa:          true,
+		IsStatic:            false,
+	}
+	if *w.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
+		return gziphandler.GzipHandler(handler)
+	}
+	return handler
+}
+
+// apiHandlerTrustRequester provides a handler for API endpoints which do not require the user to be logged in and are
+// allowed to be requested directly rather than via javascript/XMLHttpRequest, such as site branding images or the
+// websocket.
+func (w *Web) apiHandlerTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+	handler := &Handler{
+		GetGlobalAppOptions: w.GetGlobalAppOptions,
+		HandleFunc:          h,
+		RequireSession:      false,
+		TrustRequester:      true,
+		RequireMfa:          false,
 		IsStatic:            false,
 	}
 	if *w.ConfigService.Config().ServiceSettings.WebserverMode == "gzip" {
