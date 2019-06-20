@@ -517,7 +517,7 @@ type JobStore interface {
 type UserAccessTokenStore interface {
 	Save(token *model.UserAccessToken) StoreChannel
 	Delete(tokenId string) StoreChannel
-	DeleteAllForUser(userId string) StoreChannel
+	DeleteAllForUser(userId string) *model.AppError
 	Get(tokenId string) StoreChannel
 	GetAll(offset int, limit int) StoreChannel
 	GetByToken(tokenString string) StoreChannel
