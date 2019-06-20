@@ -53,13 +53,11 @@ func (me *MuteProvider) DoCommand(a *App, args *model.CommandArgs, message strin
 	}
 
 	if len(channelName) > 0 && len(message) > 0 {
-		data := (<-a.Srv.Store.Channel().GetByName(channel.TeamId, channelName, true)).Data
+		channel, _ = a.Srv.Store.Channel().GetByName(channel.TeamId, channelName, true)
 
-		if data == nil {
+		if channel == nil {
 			return &model.CommandResponse{Text: args.T("api.command_mute.error", map[string]interface{}{"Channel": channelName}), ResponseType: model.COMMAND_RESPONSE_TYPE_EPHEMERAL}
 		}
-
-		channel = data.(*model.Channel)
 	}
 
 	channelMember := a.ToggleMuteChannel(channel.Id, args.UserId)
