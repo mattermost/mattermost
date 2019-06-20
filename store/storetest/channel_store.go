@@ -23,11 +23,10 @@ type SqlSupplier interface {
 }
 
 func cleanupChannels(t *testing.T, ss store.Store) {
-	result := <-ss.Channel().GetAllChannels(0, 100000, store.ChannelSearchOpts{IncludeDeleted: true})
-	if result.Err != nil {
-		t.Fatalf("error cleaning all channels: %v", result.Err)
+	list, err := ss.Channel().GetAllChannels(0, 100000, store.ChannelSearchOpts{IncludeDeleted: true})
+	if err != nil {
+		t.Fatalf("error cleaning all channels: %v", err)
 	}
-	list := result.Data.(*model.ChannelListWithTeamData)
 	for _, channel := range *list {
 		ss.Channel().PermanentDelete(channel.Id)
 	}
@@ -1152,36 +1151,36 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlSupplier)
 	_, err = ss.Channel().Save(&c5, -1)
 	require.Nil(t, err)
 
-	cresult := <-ss.Channel().GetAllChannels(0, 10, store.ChannelSearchOpts{})
-	list := cresult.Data.(*model.ChannelListWithTeamData)
+	list, err := ss.Channel().GetAllChannels(0, 10, store.ChannelSearchOpts{})
+	require.Nil(t, err)
 	assert.Len(t, *list, 2)
 	assert.Equal(t, (*list)[0].Id, c1.Id)
 	assert.Equal(t, (*list)[0].TeamDisplayName, "Name")
 	assert.Equal(t, (*list)[1].Id, c3.Id)
 	assert.Equal(t, (*list)[1].TeamDisplayName, "Name2")
 
-	cresult = <-ss.Channel().GetAllChannels(0, 10, store.ChannelSearchOpts{IncludeDeleted: true})
-	list = cresult.Data.(*model.ChannelListWithTeamData)
+	list, err = ss.Channel().GetAllChannels(0, 10, store.ChannelSearchOpts{IncludeDeleted: true})
+	require.Nil(t, err)
 	assert.Len(t, *list, 3)
 	assert.Equal(t, (*list)[0].Id, c1.Id)
 	assert.Equal(t, (*list)[0].TeamDisplayName, "Name")
 	assert.Equal(t, (*list)[1].Id, c2.Id)
 	assert.Equal(t, (*list)[2].Id, c3.Id)
 
-	cresult = <-ss.Channel().GetAllChannels(0, 1, store.ChannelSearchOpts{IncludeDeleted: true})
-	list = cresult.Data.(*model.ChannelListWithTeamData)
+	list, err = ss.Channel().GetAllChannels(0, 1, store.ChannelSearchOpts{IncludeDeleted: true})
+	require.Nil(t, err)
 	assert.Len(t, *list, 1)
 	assert.Equal(t, (*list)[0].Id, c1.Id)
 	assert.Equal(t, (*list)[0].TeamDisplayName, "Name")
 
 	// Not associated to group
-	cresult = <-ss.Channel().GetAllChannels(0, 10, store.ChannelSearchOpts{NotAssociatedToGroup: group.Id})
-	list = cresult.Data.(*model.ChannelListWithTeamData)
+	list, err = ss.Channel().GetAllChannels(0, 10, store.ChannelSearchOpts{NotAssociatedToGroup: group.Id})
+	require.Nil(t, err)
 	assert.Len(t, *list, 1)
 
 	// Exclude channel names
-	cresult = <-ss.Channel().GetAllChannels(0, 10, store.ChannelSearchOpts{ExcludeChannelNames: []string{c1.Name}})
-	list = cresult.Data.(*model.ChannelListWithTeamData)
+	list, err = ss.Channel().GetAllChannels(0, 10, store.ChannelSearchOpts{ExcludeChannelNames: []string{c1.Name}})
+	require.Nil(t, err)
 	assert.Len(t, *list, 1)
 
 	// Manually truncate Channels table until testlib can handle cleanups

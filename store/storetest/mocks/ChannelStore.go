@@ -254,19 +254,28 @@ func (_m *ChannelStore) GetAllChannelMembersNotifyPropsForChannel(channelId stri
 }
 
 // GetAllChannels provides a mock function with given fields: page, perPage, opts
-func (_m *ChannelStore) GetAllChannels(page int, perPage int, opts store.ChannelSearchOpts) store.StoreChannel {
+func (_m *ChannelStore) GetAllChannels(page int, perPage int, opts store.ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError) {
 	ret := _m.Called(page, perPage, opts)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(int, int, store.ChannelSearchOpts) store.StoreChannel); ok {
+	var r0 *model.ChannelListWithTeamData
+	if rf, ok := ret.Get(0).(func(int, int, store.ChannelSearchOpts) *model.ChannelListWithTeamData); ok {
 		r0 = rf(page, perPage, opts)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.ChannelListWithTeamData)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(int, int, store.ChannelSearchOpts) *model.AppError); ok {
+		r1 = rf(page, perPage, opts)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetAllChannelsForExportAfter provides a mock function with given fields: limit, afterId

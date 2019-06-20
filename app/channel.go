@@ -1240,11 +1240,7 @@ func (a *App) GetAllChannels(page, perPage int, opts model.ChannelSearchOpts) (*
 		NotAssociatedToGroup: opts.NotAssociatedToGroup,
 		IncludeDeleted:       opts.IncludeDeleted,
 	}
-	result := <-a.Srv.Store.Channel().GetAllChannels(page*perPage, perPage, storeOpts)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.ChannelListWithTeamData), nil
+	return a.Srv.Store.Channel().GetAllChannels(page*perPage, perPage, storeOpts)
 }
 
 func (a *App) GetDeletedChannels(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
