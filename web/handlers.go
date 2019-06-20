@@ -227,9 +227,9 @@ func (h *Handler) checkCSRFToken(c *Context, r *http.Request, token string, toke
 	return csrfCheckNeeded, csrfCheckPassed
 }
 
-// apiHandler provides a handler for API endpoints which do not require the user to be logged in order for access to be
+// ApiHandler provides a handler for API endpoints which do not require the user to be logged in order for access to be
 // granted.
-func (w *Web) apiHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+func (w *Web) ApiHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	handler := &Handler{
 		GetGlobalAppOptions: w.GetGlobalAppOptions,
 		HandleFunc:          h,
@@ -244,10 +244,10 @@ func (w *Web) apiHandler(h func(*Context, http.ResponseWriter, *http.Request)) h
 	return handler
 }
 
-// trustRequesterHandler provides a handler for API endpoints which do not require the user to be logged in and are
+// ApiHandlerTrustRequester provides a handler for API endpoints which do not require the user to be logged in and are
 // allowed to be requested directly rather than via javascript/XMLHttpRequest, such as site branding images or the
 // websocket.
-func (w *Web) trustRequesterHandler(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+func (w *Web) ApiHandlerTrustRequester(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	handler := &Handler{
 		GetGlobalAppOptions: w.GetGlobalAppOptions,
 		HandleFunc:          h,
@@ -262,9 +262,9 @@ func (w *Web) trustRequesterHandler(h func(*Context, http.ResponseWriter, *http.
 	return handler
 }
 
-// apiSessionRequired provides a handler for API endpoints which require the user to be logged in in order for access to
+// ApiSessionRequired provides a handler for API endpoints which require the user to be logged in in order for access to
 // be granted.
-func (w *Web) apiSessionRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
+func (w *Web) ApiSessionRequired(h func(*Context, http.ResponseWriter, *http.Request)) http.Handler {
 	handler := &Handler{
 		GetGlobalAppOptions: w.GetGlobalAppOptions,
 		HandleFunc:          h,
