@@ -888,12 +888,14 @@ func testChannelMemberStore(t *testing.T, ss store.Store) {
 	c1t2, _ := ss.Channel().Get(c1.Id, false)
 	assert.EqualValues(t, 0, c1t2.ExtraUpdateAt, "ExtraUpdateAt should be 0")
 
-	count := (<-ss.Channel().GetMemberCount(o1.ChannelId, true)).Data.(int64)
+	count, err := ss.Channel().GetMemberCount(o1.ChannelId, true)
+	require.Nil(t, err)
 	if count != 2 {
 		t.Fatal("should have saved 2 members")
 	}
 
-	count = (<-ss.Channel().GetMemberCount(o1.ChannelId, true)).Data.(int64)
+	count, err = ss.Channel().GetMemberCount(o1.ChannelId, true)
+	require.Nil(t, err)
 	if count != 2 {
 		t.Fatal("should have saved 2 members")
 	}
@@ -906,7 +908,8 @@ func testChannelMemberStore(t *testing.T, ss store.Store) {
 		t.Fatal("should have saved 0 members")
 	}
 
-	count = (<-ss.Channel().GetMemberCount(o1.ChannelId, false)).Data.(int64)
+	count, err = ss.Channel().GetMemberCount(o1.ChannelId, false)
+	require.Nil(t, err)
 	if count != 2 {
 		t.Fatal("should have saved 2 members")
 	}
@@ -914,7 +917,8 @@ func testChannelMemberStore(t *testing.T, ss store.Store) {
 	err = ss.Channel().RemoveMember(o2.ChannelId, o2.UserId)
 	require.Nil(t, err)
 
-	count = (<-ss.Channel().GetMemberCount(o1.ChannelId, false)).Data.(int64)
+	count, err = ss.Channel().GetMemberCount(o1.ChannelId, false)
+	require.Nil(t, err)
 	if count != 1 {
 		t.Fatal("should have removed 1 member")
 	}
@@ -974,23 +978,26 @@ func testChannelDeleteMemberStore(t *testing.T, ss store.Store) {
 	c1t2, _ := ss.Channel().Get(c1.Id, false)
 	assert.EqualValues(t, 0, c1t2.ExtraUpdateAt, "ExtraUpdateAt should be 0")
 
-	count := (<-ss.Channel().GetMemberCount(o1.ChannelId, false)).Data.(int64)
+	count, err := ss.Channel().GetMemberCount(o1.ChannelId, false)
+	require.Nil(t, err)
 	if count != 2 {
 		t.Fatal("should have saved 2 members")
 	}
 
 	store.Must(ss.Channel().PermanentDeleteMembersByUser(o2.UserId))
 
-	count = (<-ss.Channel().GetMemberCount(o1.ChannelId, false)).Data.(int64)
+	count, err = ss.Channel().GetMemberCount(o1.ChannelId, false)
+	require.Nil(t, err)
 	if count != 1 {
 		t.Fatal("should have removed 1 member")
 	}
 
-	if err := ss.Channel().PermanentDeleteMembersByChannel(o1.ChannelId); err != nil {
+	if err = ss.Channel().PermanentDeleteMembersByChannel(o1.ChannelId); err != nil {
 		t.Fatal(err)
 	}
 
-	count = (<-ss.Channel().GetMemberCount(o1.ChannelId, false)).Data.(int64)
+	count, err = ss.Channel().GetMemberCount(o1.ChannelId, false)
+	require.Nil(t, err)
 	if count != 0 {
 		t.Fatal("should have removed all members")
 	}
@@ -1911,10 +1918,10 @@ func testGetMemberCount(t *testing.T, ss store.Store) {
 	}
 	store.Must(ss.Channel().SaveMember(&m1))
 
-	if result := <-ss.Channel().GetMemberCount(c1.Id, false); result.Err != nil {
-		t.Fatalf("failed to get member count: %v", result.Err)
-	} else if result.Data.(int64) != 1 {
-		t.Fatalf("got incorrect member count %v", result.Data)
+	if count, err := ss.Channel().GetMemberCount(c1.Id, false); err != nil {
+		t.Fatalf("failed to get member count: %v", err)
+	} else if count != 1 {
+		t.Fatalf("got incorrect member count %v", count)
 	}
 
 	u2 := model.User{
@@ -1931,10 +1938,10 @@ func testGetMemberCount(t *testing.T, ss store.Store) {
 	}
 	store.Must(ss.Channel().SaveMember(&m2))
 
-	if result := <-ss.Channel().GetMemberCount(c1.Id, false); result.Err != nil {
-		t.Fatalf("failed to get member count: %v", result.Err)
-	} else if result.Data.(int64) != 2 {
-		t.Fatalf("got incorrect member count %v", result.Data)
+	if count, err := ss.Channel().GetMemberCount(c1.Id, false); err != nil {
+		t.Fatalf("failed to get member count: %v", err)
+	} else if count != 2 {
+		t.Fatalf("got incorrect member count %v", count)
 	}
 
 	// make sure members of other channels aren't counted
@@ -1952,10 +1959,10 @@ func testGetMemberCount(t *testing.T, ss store.Store) {
 	}
 	store.Must(ss.Channel().SaveMember(&m3))
 
-	if result := <-ss.Channel().GetMemberCount(c1.Id, false); result.Err != nil {
-		t.Fatalf("failed to get member count: %v", result.Err)
-	} else if result.Data.(int64) != 2 {
-		t.Fatalf("got incorrect member count %v", result.Data)
+	if count, err := ss.Channel().GetMemberCount(c1.Id, false); err != nil {
+		t.Fatalf("failed to get member count: %v", err)
+	} else if count != 2 {
+		t.Fatalf("got incorrect member count %v", count)
 	}
 
 	// make sure inactive users aren't counted
@@ -1973,10 +1980,10 @@ func testGetMemberCount(t *testing.T, ss store.Store) {
 	}
 	store.Must(ss.Channel().SaveMember(&m4))
 
-	if result := <-ss.Channel().GetMemberCount(c1.Id, false); result.Err != nil {
-		t.Fatalf("failed to get member count: %v", result.Err)
-	} else if result.Data.(int64) != 2 {
-		t.Fatalf("got incorrect member count %v", result.Data)
+	if count, err := ss.Channel().GetMemberCount(c1.Id, false); err != nil {
+		t.Fatalf("failed to get member count: %v", err)
+	} else if count != 2 {
+		t.Fatalf("got incorrect member count %v", count)
 	}
 }
 

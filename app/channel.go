@@ -1317,11 +1317,7 @@ func (a *App) GetChannelMembersForUserWithPagination(teamId, userId string, page
 }
 
 func (a *App) GetChannelMemberCount(channelId string) (int64, *model.AppError) {
-	result := <-a.Srv.Store.Channel().GetMemberCount(channelId, true)
-	if result.Err != nil {
-		return 0, result.Err
-	}
-	return result.Data.(int64), nil
+	return a.Srv.Store.Channel().GetMemberCount(channelId, true)
 }
 
 func (a *App) GetChannelCounts(teamId string, userId string) (*model.ChannelCounts, *model.AppError) {
@@ -1452,7 +1448,13 @@ func (a *App) LeaveChannel(channelId string, userId string) *model.AppError {
 		uc <- store.StoreResult{Data: user, Err: err}
 		close(uc)
 	}()
-	ccm := a.Srv.Store.Channel().GetMemberCount(channelId, false)
+
+	mcc := make(chan store.StoreResult, 1)
+	go func() {
+		count, err := a.Srv.Store.Channel().GetMemberCount(channelId, false)
+		mcc <- store.StoreResult{Data: count, Err: err}
+		close(mcc)
+	}()
 
 	cresult := <-sc
 	if cresult.Err != nil {
@@ -1462,14 +1464,14 @@ func (a *App) LeaveChannel(channelId string, userId string) *model.AppError {
 	if uresult.Err != nil {
 		return cresult.Err
 	}
-	ccmresult := <-ccm
-	if ccmresult.Err != nil {
-		return ccmresult.Err
+	ccresult := <-mcc
+	if ccresult.Err != nil {
+		return ccresult.Err
 	}
 
 	channel := cresult.Data.(*model.Channel)
 	user := uresult.Data.(*model.User)
-	membersCount := ccmresult.Data.(int64)
+	membersCount := ccresult.Data.(int64)
 
 	if channel.IsGroupOrDirect() {
 		err := model.NewAppError("LeaveChannel", "api.channel.leave.direct.app_error", nil, "", http.StatusBadRequest)
