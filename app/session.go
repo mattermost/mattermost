@@ -102,8 +102,8 @@ func (a *App) RevokeAllSessions(userId string) *model.AppError {
 		if session.IsOAuth {
 			a.RevokeAccessToken(session.Token)
 		} else {
-			if result := <-a.Srv.Store.Session().Remove(session.Id); result.Err != nil {
-				return result.Err
+			if err := a.Srv.Store.Session().Remove(session.Id); err != nil {
+				return err
 			}
 		}
 	}
@@ -195,8 +195,8 @@ func (a *App) RevokeSession(session *model.Session) *model.AppError {
 			return err
 		}
 	} else {
-		if result := <-a.Srv.Store.Session().Remove(session.Id); result.Err != nil {
-			return result.Err
+		if err := a.Srv.Store.Session().Remove(session.Id); err != nil {
+			return err
 		}
 	}
 
@@ -223,8 +223,8 @@ func (a *App) UpdateLastActivityAtIfNeeded(session model.Session) {
 		return
 	}
 
-	if result := <-a.Srv.Store.Session().UpdateLastActivityAt(session.Id, now); result.Err != nil {
-		mlog.Error(fmt.Sprintf("Failed to update LastActivityAt for user_id=%v and session_id=%v, err=%v", session.UserId, session.Id, result.Err), mlog.String("user_id", session.UserId))
+	if err := a.Srv.Store.Session().UpdateLastActivityAt(session.Id, now); err != nil {
+		mlog.Error(fmt.Sprintf("Failed to update LastActivityAt for user_id=%v and session_id=%v, err=%v", session.UserId, session.Id, err), mlog.String("user_id", session.UserId))
 	}
 
 	session.LastActivityAt = now
@@ -262,10 +262,6 @@ func (a *App) CreateUserAccessToken(token *model.UserAccessToken) (*model.UserAc
 }
 
 func (a *App) createSessionForUserAccessToken(tokenString string) (*model.Session, *model.AppError) {
-	if !*a.Config().ServiceSettings.EnableUserAccessTokens {
-		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, "EnableUserAccessTokens=false", http.StatusUnauthorized)
-	}
-
 	var token *model.UserAccessToken
 	result := <-a.Srv.Store.UserAccessToken().GetByToken(tokenString)
 	if result.Err != nil {
@@ -282,6 +278,10 @@ func (a *App) createSessionForUserAccessToken(tokenString string) (*model.Sessio
 		return nil, err
 	}
 
+	if !*a.Config().ServiceSettings.EnableUserAccessTokens && !user.IsBot {
+		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, "EnableUserAccessTokens=false", http.StatusUnauthorized)
+	}
+
 	if user.DeleteAt != 0 {
 		return nil, model.NewAppError("createSessionForUserAccessToken", "app.user_access_token.invalid_or_missing", nil, "inactive_user_id="+user.Id, http.StatusUnauthorized)
 	}
@@ -295,6 +295,9 @@ func (a *App) createSessionForUserAccessToken(tokenString string) (*model.Sessio
 
 	session.AddProp(model.SESSION_PROP_USER_ACCESS_TOKEN_ID, token.Id)
 	session.AddProp(model.SESSION_PROP_TYPE, model.SESSION_TYPE_USER_ACCESS_TOKEN)
+	if user.IsBot {
+		session.AddProp(model.SESSION_PROP_IS_BOT, model.SESSION_PROP_IS_BOT_VALUE)
+	}
 	session.SetExpireInDays(model.SESSION_USER_ACCESS_TOKEN_EXPIRY)
 
 	session, err = a.Srv.Store.Session().Save(session)
