@@ -536,6 +536,13 @@ func TestGetEmbedForPost(t *testing.T) {
 
 			w.Header().Set("Content-Type", "image/png")
 			w.Write(file)
+		} else if r.URL.Path == "/other" {
+			w.Header().Set("Content-Type", "text/html")
+			w.Write([]byte(`
+			<html>
+			<head>
+			</head>
+			</html>`))
 		} else {
 			t.Fatal("Invalid path", r.URL.Path)
 		}
@@ -544,6 +551,7 @@ func TestGetEmbedForPost(t *testing.T) {
 
 	ogURL := server.URL + "/index.html"
 	imageURL := server.URL + "/image.png"
+	otherURL := server.URL + "/other"
 
 	t.Run("with link previews enabled", func(t *testing.T) {
 		th := Setup(t)
@@ -593,6 +601,16 @@ func TestGetEmbedForPost(t *testing.T) {
 			}, embed)
 			assert.Nil(t, err)
 		})
+
+		t.Run("should return a link embed", func(t *testing.T) {
+			embed, err := th.App.getEmbedForPost(&model.Post{}, otherURL, false)
+
+			assert.Equal(t, &model.PostEmbed{
+				Type: model.POST_EMBED_LINK,
+				URL:  otherURL,
+			}, embed)
+			assert.Nil(t, err)
+		})
 	})
 
 	t.Run("with link previews disabled", func(t *testing.T) {
@@ -630,6 +648,13 @@ func TestGetEmbedForPost(t *testing.T) {
 
 		t.Run("should not return an image embed", func(t *testing.T) {
 			embed, err := th.App.getEmbedForPost(&model.Post{}, imageURL, false)
+
+			assert.Nil(t, embed)
+			assert.Nil(t, err)
+		})
+
+		t.Run("should not return a link embed", func(t *testing.T) {
+			embed, err := th.App.getEmbedForPost(&model.Post{}, otherURL, false)
 
 			assert.Nil(t, embed)
 			assert.Nil(t, err)
