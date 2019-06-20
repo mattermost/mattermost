@@ -521,7 +521,7 @@ type UserAccessTokenStore interface {
 	Get(tokenId string) StoreChannel
 	GetAll(offset int, limit int) StoreChannel
 	GetByToken(tokenString string) StoreChannel
-	GetByUser(userId string, page, perPage int) StoreChannel
+	GetByUser(userId string, page, perPage int) ([]*model.UserAccessToken, *model.AppError)
 	Search(term string) StoreChannel
 	UpdateTokenEnable(tokenId string) StoreChannel
 	UpdateTokenDisable(tokenId string) StoreChannel
