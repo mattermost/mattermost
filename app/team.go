@@ -639,11 +639,7 @@ func (a *App) GetAllPublicTeamsPage(offset int, limit int) ([]*model.Team, *mode
 }
 
 func (a *App) SearchAllTeams(term string) ([]*model.Team, *model.AppError) {
-	result := <-a.Srv.Store.Team().SearchAll(term)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.Team), nil
+	return a.Srv.Store.Team().SearchAll(term)
 }
 
 func (a *App) SearchPublicTeams(term string) ([]*model.Team, *model.AppError) {

@@ -87,7 +87,7 @@ type TeamStore interface {
 	Get(id string) (*model.Team, *model.AppError)
 	GetByName(name string) (*model.Team, *model.AppError)
 	SearchByName(name string) ([]*model.Team, *model.AppError)
-	SearchAll(term string) StoreChannel
+	SearchAll(term string) ([]*model.Team, *model.AppError)
 	SearchOpen(term string) StoreChannel
 	SearchPrivate(term string) ([]*model.Team, *model.AppError)
 	GetAll() ([]*model.Team, *model.AppError)
