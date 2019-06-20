@@ -948,45 +948,41 @@ func (s SqlChannelStore) GetChannels(teamId string, userId string, includeDelete
 	return channels, nil
 }
 
-func (s SqlChannelStore) GetAllChannels(offset int, limit int, opts store.ChannelSearchOpts) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		query := s.getQueryBuilder().
-			Select("c.*, Teams.DisplayName AS TeamDisplayName, Teams.Name AS TeamName, Teams.UpdateAt AS TeamUpdateAt").
-			From("Channels AS c").
-			Join("Teams ON Teams.Id = c.TeamId").
-			Where(sq.Eq{"c.Type": []string{model.CHANNEL_PRIVATE, model.CHANNEL_OPEN}}).
-			OrderBy("c.DisplayName, Teams.DisplayName").
-			Limit(uint64(limit)).
-			Offset(uint64(offset))
+func (s SqlChannelStore) GetAllChannels(offset int, limit int, opts store.ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError) {
+	query := s.getQueryBuilder().
+		Select("c.*, Teams.DisplayName AS TeamDisplayName, Teams.Name AS TeamName, Teams.UpdateAt AS TeamUpdateAt").
+		From("Channels AS c").
+		Join("Teams ON Teams.Id = c.TeamId").
+		Where(sq.Eq{"c.Type": []string{model.CHANNEL_PRIVATE, model.CHANNEL_OPEN}}).
+		OrderBy("c.DisplayName, Teams.DisplayName").
+		Limit(uint64(limit)).
+		Offset(uint64(offset))
 
-		if !opts.IncludeDeleted {
-			query = query.Where(sq.Eq{"c.DeleteAt": int(0)})
-		}
+	if !opts.IncludeDeleted {
+		query = query.Where(sq.Eq{"c.DeleteAt": int(0)})
+	}
 
-		if len(opts.NotAssociatedToGroup) > 0 {
-			query = query.Where("c.Id NOT IN (SELECT ChannelId FROM GroupChannels WHERE GroupChannels.GroupId = ? AND GroupChannels.DeleteAt = 0)", opts.NotAssociatedToGroup)
-		}
+	if len(opts.NotAssociatedToGroup) > 0 {
+		query = query.Where("c.Id NOT IN (SELECT ChannelId FROM GroupChannels WHERE GroupChannels.GroupId = ? AND GroupChannels.DeleteAt = 0)", opts.NotAssociatedToGroup)
+	}
 
-		if len(opts.ExcludeChannelNames) > 0 {
-			query = query.Where(fmt.Sprintf("c.Name NOT IN ('%s')", strings.Join(opts.ExcludeChannelNames, "', '")))
-		}
+	if len(opts.ExcludeChannelNames) > 0 {
+		query = query.Where(fmt.Sprintf("c.Name NOT IN ('%s')", strings.Join(opts.ExcludeChannelNames, "', '")))
+	}
 
-		queryString, args, err := query.ToSql()
-		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.GetAllChannels", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlChannelStore.GetAllChannels", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		data := &model.ChannelListWithTeamData{}
-		_, err = s.GetReplica().Select(data, queryString, args...)
+	data := &model.ChannelListWithTeamData{}
+	_, err = s.GetReplica().Select(data, queryString, args...)
 
-		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.GetAllChannels", "store.sql_channel.get_all_channels.get.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	if err != nil {
+		return nil, model.NewAppError("SqlChannelStore.GetAllChannels", "store.sql_channel.get_all_channels.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = data
-	})
+	return data, nil
 }
 
 func (s SqlChannelStore) GetMoreChannels(teamId string, userId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
@@ -2491,67 +2487,63 @@ func (s SqlChannelStore) GetChannelMembersForExport(userId string, teamId string
 	return members, nil
 }
 
-func (s SqlChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var directChannelsForExport []*model.DirectChannelForExport
-		query := s.getQueryBuilder().
-			Select("Channels.*").
-			From("Channels").
-			Where(sq.And{
-				sq.Gt{"Channels.Id": afterId},
-				sq.Eq{"Channels.DeleteAt": int(0)},
-				sq.Eq{"Channels.Type": []string{"D", "G"}},
-			}).
-			OrderBy("Channels.Id").
-			Limit(uint64(limit))
+func (s SqlChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId string) ([]*model.DirectChannelForExport, *model.AppError) {
+	var directChannelsForExport []*model.DirectChannelForExport
+	query := s.getQueryBuilder().
+		Select("Channels.*").
+		From("Channels").
+		Where(sq.And{
+			sq.Gt{"Channels.Id": afterId},
+			sq.Eq{"Channels.DeleteAt": int(0)},
+			sq.Eq{"Channels.Type": []string{"D", "G"}},
+		}).
+		OrderBy("Channels.Id").
+		Limit(uint64(limit))
 
-		queryString, args, err := query.ToSql()
-		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.GetAllDirectChannelsForExportAfter", "store.sql_channel.get_all_direct.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlChannelStore.GetAllDirectChannelsForExportAfter", "store.sql_channel.get_all_direct.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		if _, err = s.GetReplica().Select(&directChannelsForExport, queryString, args...); err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.GetAllDirectChannelsForExportAfter", "store.sql_channel.get_all_direct.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	if _, err = s.GetReplica().Select(&directChannelsForExport, queryString, args...); err != nil {
+		return nil, model.NewAppError("SqlChannelStore.GetAllDirectChannelsForExportAfter", "store.sql_channel.get_all_direct.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		var channelIds []string
-		for _, channel := range directChannelsForExport {
-			channelIds = append(channelIds, channel.Id)
-		}
-		query = s.getQueryBuilder().
-			Select("u.Username as Username, ChannelId, UserId, cm.Roles as Roles, LastViewedAt, MsgCount, MentionCount, cm.NotifyProps as NotifyProps, LastUpdateAt, SchemeUser, SchemeAdmin, (SchemeGuest IS NOT NULL AND SchemeGuest) as SchemeGuest").
-			From("ChannelMembers cm").
-			Join("Users u ON ( u.Id = cm.UserId )").
-			Where(sq.And{
-				sq.Eq{"cm.ChannelId": channelIds},
-				sq.Eq{"u.DeleteAt": int(0)},
-			})
+	var channelIds []string
+	for _, channel := range directChannelsForExport {
+		channelIds = append(channelIds, channel.Id)
+	}
+	query = s.getQueryBuilder().
+		Select("u.Username as Username, ChannelId, UserId, cm.Roles as Roles, LastViewedAt, MsgCount, MentionCount, cm.NotifyProps as NotifyProps, LastUpdateAt, SchemeUser, SchemeAdmin, (SchemeGuest IS NOT NULL AND SchemeGuest) as SchemeGuest").
+		From("ChannelMembers cm").
+		Join("Users u ON ( u.Id = cm.UserId )").
+		Where(sq.And{
+			sq.Eq{"cm.ChannelId": channelIds},
+			sq.Eq{"u.DeleteAt": int(0)},
+		})
 
-		queryString, args, err = query.ToSql()
-		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.GetAllDirectChannelsForExportAfter", "store.sql_channel.get_all_direct.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	queryString, args, err = query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlChannelStore.GetAllDirectChannelsForExportAfter", "store.sql_channel.get_all_direct.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		var channelMembers []*model.ChannelMemberForExport
-		if _, err := s.GetReplica().Select(&channelMembers, queryString, args...); err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.GetAllDirectChannelsForExportAfter", "store.sql_channel.get_all_direct.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
+	var channelMembers []*model.ChannelMemberForExport
+	if _, err := s.GetReplica().Select(&channelMembers, queryString, args...); err != nil {
+		return nil, model.NewAppError("SqlChannelStore.GetAllDirectChannelsForExportAfter", "store.sql_channel.get_all_direct.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		// Populate each channel with its members
-		dmChannelsMap := make(map[string]*model.DirectChannelForExport)
-		for _, channel := range directChannelsForExport {
-			channel.Members = &[]string{}
-			dmChannelsMap[channel.Id] = channel
-		}
-		for _, member := range channelMembers {
-			members := dmChannelsMap[member.ChannelId].Members
-			*members = append(*members, member.Username)
-		}
-		result.Data = directChannelsForExport
-	})
+	// Populate each channel with its members
+	dmChannelsMap := make(map[string]*model.DirectChannelForExport)
+	for _, channel := range directChannelsForExport {
+		channel.Members = &[]string{}
+		dmChannelsMap[channel.Id] = channel
+	}
+	for _, member := range channelMembers {
+		members := dmChannelsMap[member.ChannelId].Members
+		*members = append(*members, member.Username)
+	}
+
+	return directChannelsForExport, nil
 }
 
 func (s SqlChannelStore) GetChannelsBatchForIndexing(startTime, endTime int64, limit int) ([]*model.Channel, *model.AppError) {
