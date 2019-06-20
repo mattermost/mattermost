@@ -520,7 +520,7 @@ type UserAccessTokenStore interface {
 	DeleteAllForUser(userId string) StoreChannel
 	Get(tokenId string) StoreChannel
 	GetAll(offset int, limit int) StoreChannel
-	GetByToken(tokenString string) StoreChannel
+	GetByToken(tokenString string) (*model.UserAccessToken, *model.AppError)
 	GetByUser(userId string, page, perPage int) StoreChannel
 	Search(term string) StoreChannel
 	UpdateTokenEnable(tokenId string) StoreChannel

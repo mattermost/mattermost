@@ -41,13 +41,13 @@ func testUserAccessTokenSaveGetDelete(t *testing.T, ss store.Store) {
 		t.Fatal("received incorrect token after save")
 	}
 
-	if result := <-ss.UserAccessToken().GetByToken(uat.Token); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if received := result.Data.(*model.UserAccessToken); received.Token != uat.Token {
+	if received, err2 := ss.UserAccessToken().GetByToken(uat.Token); err2 != nil {
+		t.Fatal(err2)
+	} else if received.Token != uat.Token {
 		t.Fatal("received incorrect token after save")
 	}
 
-	if result := <-ss.UserAccessToken().GetByToken("notarealtoken"); result.Err == nil {
+	if _, err = ss.UserAccessToken().GetByToken("notarealtoken"); err == nil {
 		t.Fatal("should have failed on bad token")
 	}
 
@@ -71,7 +71,7 @@ func testUserAccessTokenSaveGetDelete(t *testing.T, ss store.Store) {
 		t.Fatal("should error - session should be deleted")
 	}
 
-	if err = (<-ss.UserAccessToken().GetByToken(s1.Token)).Err; err == nil {
+	if _, err = ss.UserAccessToken().GetByToken(s1.Token); err == nil {
 		t.Fatal("should error - access token should be deleted")
 	}
 
@@ -94,7 +94,7 @@ func testUserAccessTokenSaveGetDelete(t *testing.T, ss store.Store) {
 		t.Fatal("should error - session should be deleted")
 	}
 
-	if err := (<-ss.UserAccessToken().GetByToken(s2.Token)).Err; err == nil {
+	if _, err := ss.UserAccessToken().GetByToken(s2.Token); err == nil {
 		t.Fatal("should error - access token should be deleted")
 	}
 }
