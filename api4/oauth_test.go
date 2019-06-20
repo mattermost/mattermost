@@ -1147,30 +1147,6 @@ func TestOAuthComplete(t *testing.T) {
 	}
 }
 
-// func TestOAuthComplete_AccessDenied(t *testing.T) {
-// 	th := Setup().InitBasic()
-// 	defer th.TearDown()
-
-// 	c := &Context{
-// 		App: th.App,
-// 		Params: &web.Params{
-// 			Service: "TestService",
-// 		},
-// 	}
-// 	responseWriter := httptest.NewRecorder()
-// 	request, _ := http.NewRequest(http.MethodGet, th.App.GetSiteURL()+"/signup/TestService/complete?error=access_denied", nil)
-
-// 	completeOAuth(c, responseWriter, request)
-
-// 	response := responseWriter.Result()
-
-// 	assert.Equal(t, http.StatusTemporaryRedirect, response.StatusCode)
-
-// 	location, _ := url.Parse(response.Header.Get("Location"))
-// 	assert.Equal(t, "oauth_access_denied", location.Query().Get("type"))
-// 	assert.Equal(t, "TestService", location.Query().Get("service"))
-// }
-
 func HttpGet(url string, httpClient *http.Client, authToken string, followRedirect bool) (*http.Response, *model.AppError) {
 	rq, _ := http.NewRequest("GET", url, nil)
 	rq.Close = true
