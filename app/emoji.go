@@ -53,7 +53,7 @@ func (a *App) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartIma
 		return nil, model.NewAppError("createEmoji", "api.emoji.create.other_user.app_error", nil, "", http.StatusForbidden)
 	}
 
-	if result := <-a.Srv.Store.Emoji().GetByName(emoji.Name); result.Err == nil && result.Data != nil {
+	if existingEmoji, err := a.Srv.Store.Emoji().GetByName(emoji.Name); err == nil && existingEmoji != nil {
 		return nil, model.NewAppError("createEmoji", "api.emoji.create.duplicate.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -190,11 +190,11 @@ func (a *App) GetEmojiByName(emojiName string) (*model.Emoji, *model.AppError) {
 		return nil, model.NewAppError("GetEmoji", "api.emoji.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	result := <-a.Srv.Store.Emoji().GetByName(emojiName)
-	if result.Err != nil {
-		return nil, result.Err
+	emoji, err := a.Srv.Store.Emoji().GetByName(emojiName)
+	if err != nil {
+		return nil, err
 	}
-	return result.Data.(*model.Emoji), nil
+	return emoji, nil
 }
 
 func (a *App) GetMultipleEmojiByName(names []string) ([]*model.Emoji, *model.AppError) {

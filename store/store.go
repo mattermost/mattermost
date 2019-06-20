@@ -456,7 +456,7 @@ type TokenStore interface {
 type EmojiStore interface {
 	Save(emoji *model.Emoji) (*model.Emoji, *model.AppError)
 	Get(id string, allowFromCache bool) (*model.Emoji, *model.AppError)
-	GetByName(name string) StoreChannel
+	GetByName(name string) (*model.Emoji, *model.AppError)
 	GetMultipleByName(names []string) StoreChannel
 	GetList(offset, limit int, sort string) StoreChannel
 	Delete(id string, time int64) *model.AppError
