@@ -507,12 +507,11 @@ func (a *App) copyEmojiImages(emojiId string, emojiImagePath string, pathToDir s
 func (a *App) ExportAllDirectChannels(writer io.Writer) *model.AppError {
 	afterId := strings.Repeat("0", 26)
 	for {
-		result := <-a.Srv.Store.Channel().GetAllDirectChannelsForExportAfter(1000, afterId)
-		if result.Err != nil {
-			return result.Err
+		channels, err := a.Srv.Store.Channel().GetAllDirectChannelsForExportAfter(1000, afterId)
+		if err != nil {
+			return err
 		}
 
-		channels := result.Data.([]*model.DirectChannelForExport)
 		if len(channels) == 0 {
 			break
 		}
