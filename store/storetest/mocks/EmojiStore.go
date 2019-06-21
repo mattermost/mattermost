@@ -14,15 +14,15 @@ type EmojiStore struct {
 }
 
 // Delete provides a mock function with given fields: id, time
-func (_m *EmojiStore) Delete(id string, time int64) store.StoreChannel {
+func (_m *EmojiStore) Delete(id string, time int64) *model.AppError {
 	ret := _m.Called(id, time)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, int64) store.StoreChannel); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, int64) *model.AppError); ok {
 		r0 = rf(id, time)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
@@ -55,19 +55,28 @@ func (_m *EmojiStore) Get(id string, allowFromCache bool) (*model.Emoji, *model.
 }
 
 // GetByName provides a mock function with given fields: name
-func (_m *EmojiStore) GetByName(name string) store.StoreChannel {
+func (_m *EmojiStore) GetByName(name string) (*model.Emoji, *model.AppError) {
 	ret := _m.Called(name)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+	var r0 *model.Emoji
+	if rf, ok := ret.Get(0).(func(string) *model.Emoji); ok {
 		r0 = rf(name)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.Emoji)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(name)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetList provides a mock function with given fields: offset, limit, sort

@@ -35,6 +35,7 @@ const (
 	STATUS                    = "status"
 	STATUS_OK                 = "OK"
 	STATUS_FAIL               = "FAIL"
+	STATUS_UNHEALTHY          = "UNHEALTHY"
 	STATUS_REMOVE             = "REMOVE"
 
 	CLIENT_DIR = "client"
@@ -2682,7 +2683,22 @@ func (c *Client4) GetPing() (string, *Response) {
 	r, err := c.DoApiGet(c.GetSystemRoute()+"/ping", "")
 	if r != nil && r.StatusCode == 500 {
 		defer r.Body.Close()
-		return "unhealthy", BuildErrorResponse(r, err)
+		return STATUS_UNHEALTHY, BuildErrorResponse(r, err)
+	}
+	if err != nil {
+		return "", BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return MapFromJson(r.Body)["status"], BuildResponse(r)
+}
+
+// GetPingWithServerStatus will return ok if several basic server health checks
+// all psss successfully.
+func (c *Client4) GetPingWithServerStatus() (string, *Response) {
+	r, err := c.DoApiGet(c.GetSystemRoute()+"/ping?get_server_status=true", "")
+	if r != nil && r.StatusCode == 500 {
+		defer r.Body.Close()
+		return STATUS_UNHEALTHY, BuildErrorResponse(r, err)
 	}
 	if err != nil {
 		return "", BuildErrorResponse(r, err)
