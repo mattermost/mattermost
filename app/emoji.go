@@ -190,11 +190,7 @@ func (a *App) GetEmojiByName(emojiName string) (*model.Emoji, *model.AppError) {
 		return nil, model.NewAppError("GetEmoji", "api.emoji.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	emoji, err := a.Srv.Store.Emoji().GetByName(emojiName)
-	if err != nil {
-		return nil, err
-	}
-	return emoji, nil
+	return a.Srv.Store.Emoji().GetByName(emojiName)
 }
 
 func (a *App) GetMultipleEmojiByName(names []string) ([]*model.Emoji, *model.AppError) {

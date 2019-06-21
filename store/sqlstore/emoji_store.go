@@ -106,12 +106,12 @@ func (es SqlEmojiStore) GetByName(name string) (*model.Emoji, *model.AppError) {
 
 	if err := es.GetReplica().SelectOne(&emoji,
 		`SELECT
-				*
-			FROM
-				Emoji
-			WHERE
-				Name = :Name
-				AND DeleteAt = 0`, map[string]interface{}{"Name": name}); err != nil {
+			*
+		FROM
+			Emoji
+		WHERE
+			Name = :Name
+			AND DeleteAt = 0`, map[string]interface{}{"Name": name}); err != nil {
 
 		if err == sql.ErrNoRows {
 			return nil, model.NewAppError("SqlEmojiStore.GetByName", "store.sql_emoji.get_by_name.app_error", nil, "name="+name+", "+err.Error(), http.StatusNotFound)
