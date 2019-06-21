@@ -2233,7 +2233,8 @@ func TestResetPassword(t *testing.T) {
 		if !strings.ContainsAny(resultsMailbox[0].To[0], user.Email) {
 			t.Fatal("Wrong To recipient")
 		} else {
-			if resultsEmail, err := mailservice.GetMessageFromMailbox(user.Email, resultsMailbox[0].ID); err == nil {
+			var resultsEmail mailservice.JSONMessageInbucket
+			if resultsEmail, err = mailservice.GetMessageFromMailbox(user.Email, resultsMailbox[0].ID); err == nil {
 				loc := strings.Index(resultsEmail.Body.Text, "token=")
 				if loc == -1 {
 					t.Log(resultsEmail.Body.Text)
