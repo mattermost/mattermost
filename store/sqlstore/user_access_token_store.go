@@ -35,20 +35,17 @@ func (s SqlUserAccessTokenStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_user_access_tokens_user_id", "UserAccessTokens", "UserId")
 }
 
-func (s SqlUserAccessTokenStore) Save(token *model.UserAccessToken) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		token.PreSave()
+func (s SqlUserAccessTokenStore) Save(token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError) {
+	token.PreSave()
 
-		if result.Err = token.IsValid(); result.Err != nil {
-			return
-		}
+	if err := token.IsValid(); err != nil {
+		return nil, err
+	}
 
-		if err := s.GetMaster().Insert(token); err != nil {
-			result.Err = model.NewAppError("SqlUserAccessTokenStore.Save", "store.sql_user_access_token.save.app_error", nil, "", http.StatusInternalServerError)
-		} else {
-			result.Data = token
-		}
-	})
+	if err := s.GetMaster().Insert(token); err != nil {
+		return nil, model.NewAppError("SqlUserAccessTokenStore.Save", "store.sql_user_access_token.save.app_error", nil, "", http.StatusInternalServerError)
+	}
+	return token, nil
 }
 
 func (s SqlUserAccessTokenStore) Delete(tokenId string) store.StoreChannel {
