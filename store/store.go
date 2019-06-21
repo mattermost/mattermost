@@ -145,7 +145,7 @@ type ChannelStore interface {
 	GetByName(team_id string, name string, allowFromCache bool) (*model.Channel, *model.AppError)
 	GetByNames(team_id string, names []string, allowFromCache bool) ([]*model.Channel, *model.AppError)
 	GetByNameIncludeDeleted(team_id string, name string, allowFromCache bool) (*model.Channel, *model.AppError)
-	GetDeletedByName(team_id string, name string) StoreChannel
+	GetDeletedByName(team_id string, name string) (*model.Channel, *model.AppError)
 	GetDeleted(team_id string, offset int, limit int) (*model.ChannelList, *model.AppError)
 	GetChannels(teamId string, userId string, includeDeleted bool) (*model.ChannelList, *model.AppError)
 	GetAllChannels(page, perPage int, opts ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError)
