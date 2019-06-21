@@ -117,7 +117,7 @@ func testUserAccessTokenDisableEnable(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	if err = (<-ss.UserAccessToken().UpdateTokenDisable(uat.Id)).Err; err != nil {
+	if err = ss.UserAccessToken().UpdateTokenDisable(uat.Id); err != nil {
 		t.Fatal(err)
 	}
 
