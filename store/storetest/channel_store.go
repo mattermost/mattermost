@@ -751,15 +751,15 @@ func testChannelStoreGetDeletedByName(t *testing.T, ss store.Store) {
 	o1.DeleteAt = now
 	o1.UpdateAt = now
 
-	if r1 := <-ss.Channel().GetDeletedByName(o1.TeamId, o1.Name); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if r1, err := ss.Channel().GetDeletedByName(o1.TeamId, o1.Name); err != nil {
+		t.Fatal(err)
 	} else {
-		if r1.Data.(*model.Channel).ToJson() != o1.ToJson() {
+		if r1.ToJson() != o1.ToJson() {
 			t.Fatal("invalid returned channel")
 		}
 	}
 
-	if err := (<-ss.Channel().GetDeletedByName(o1.TeamId, "")).Err; err == nil {
+	if _, err := ss.Channel().GetDeletedByName(o1.TeamId, ""); err == nil {
 		t.Fatal("Missing id should have failed")
 	}
 }
@@ -3037,8 +3037,8 @@ func testResetAllChannelSchemes(t *testing.T, ss store.Store) {
 	assert.Equal(t, s1.Id, *c1.SchemeId)
 	assert.Equal(t, s1.Id, *c2.SchemeId)
 
-	res := <-ss.Channel().ResetAllChannelSchemes()
-	assert.Nil(t, res.Err)
+	err := ss.Channel().ResetAllChannelSchemes()
+	assert.Nil(t, err)
 
 	c1, _ = ss.Channel().Get(c1.Id, true)
 	c2, _ = ss.Channel().Get(c2.Id, true)

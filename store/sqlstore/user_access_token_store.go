@@ -35,20 +35,17 @@ func (s SqlUserAccessTokenStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_user_access_tokens_user_id", "UserAccessTokens", "UserId")
 }
 
-func (s SqlUserAccessTokenStore) Save(token *model.UserAccessToken) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		token.PreSave()
+func (s SqlUserAccessTokenStore) Save(token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError) {
+	token.PreSave()
 
-		if result.Err = token.IsValid(); result.Err != nil {
-			return
-		}
+	if err := token.IsValid(); err != nil {
+		return nil, err
+	}
 
-		if err := s.GetMaster().Insert(token); err != nil {
-			result.Err = model.NewAppError("SqlUserAccessTokenStore.Save", "store.sql_user_access_token.save.app_error", nil, "", http.StatusInternalServerError)
-		} else {
-			result.Data = token
-		}
-	})
+	if err := s.GetMaster().Insert(token); err != nil {
+		return nil, model.NewAppError("SqlUserAccessTokenStore.Save", "store.sql_user_access_token.save.app_error", nil, "", http.StatusInternalServerError)
+	}
+	return token, nil
 }
 
 func (s SqlUserAccessTokenStore) Delete(tokenId string) store.StoreChannel {
@@ -149,48 +146,40 @@ func (s SqlUserAccessTokenStore) deleteTokensByUser(transaction *gorp.Transactio
 	return result
 }
 
-func (s SqlUserAccessTokenStore) Get(tokenId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		token := model.UserAccessToken{}
+func (s SqlUserAccessTokenStore) Get(tokenId string) (*model.UserAccessToken, *model.AppError) {
+	token := model.UserAccessToken{}
 
-		if err := s.GetReplica().SelectOne(&token, "SELECT * FROM UserAccessTokens WHERE Id = :Id", map[string]interface{}{"Id": tokenId}); err != nil {
-			if err == sql.ErrNoRows {
-				result.Err = model.NewAppError("SqlUserAccessTokenStore.Get", "store.sql_user_access_token.get.app_error", nil, err.Error(), http.StatusNotFound)
-			} else {
-				result.Err = model.NewAppError("SqlUserAccessTokenStore.Get", "store.sql_user_access_token.get.app_error", nil, err.Error(), http.StatusInternalServerError)
-			}
+	if err := s.GetReplica().SelectOne(&token, "SELECT * FROM UserAccessTokens WHERE Id = :Id", map[string]interface{}{"Id": tokenId}); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, model.NewAppError("SqlUserAccessTokenStore.Get", "store.sql_user_access_token.get.app_error", nil, err.Error(), http.StatusNotFound)
 		}
+		return nil, model.NewAppError("SqlUserAccessTokenStore.Get", "store.sql_user_access_token.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = &token
-	})
+	return &token, nil
 }
 
-func (s SqlUserAccessTokenStore) GetAll(offset, limit int) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		tokens := []*model.UserAccessToken{}
+func (s SqlUserAccessTokenStore) GetAll(offset, limit int) ([]*model.UserAccessToken, *model.AppError) {
+	tokens := []*model.UserAccessToken{}
 
-		if _, err := s.GetReplica().Select(&tokens, "SELECT * FROM UserAccessTokens LIMIT :Limit OFFSET :Offset", map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
-			result.Err = model.NewAppError("SqlUserAccessTokenStore.GetAll", "store.sql_user_access_token.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
+	if _, err := s.GetReplica().Select(&tokens, "SELECT * FROM UserAccessTokens LIMIT :Limit OFFSET :Offset", map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
+		return nil, model.NewAppError("SqlUserAccessTokenStore.GetAll", "store.sql_user_access_token.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = tokens
-	})
+	return tokens, nil
 }
 
-func (s SqlUserAccessTokenStore) GetByToken(tokenString string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		token := model.UserAccessToken{}
+func (s SqlUserAccessTokenStore) GetByToken(tokenString string) (*model.UserAccessToken, *model.AppError) {
+	token := model.UserAccessToken{}
 
-		if err := s.GetReplica().SelectOne(&token, "SELECT * FROM UserAccessTokens WHERE Token = :Token", map[string]interface{}{"Token": tokenString}); err != nil {
-			if err == sql.ErrNoRows {
-				result.Err = model.NewAppError("SqlUserAccessTokenStore.GetByToken", "store.sql_user_access_token.get_by_token.app_error", nil, err.Error(), http.StatusNotFound)
-			} else {
-				result.Err = model.NewAppError("SqlUserAccessTokenStore.GetByToken", "store.sql_user_access_token.get_by_token.app_error", nil, err.Error(), http.StatusInternalServerError)
-			}
+	if err := s.GetReplica().SelectOne(&token, "SELECT * FROM UserAccessTokens WHERE Token = :Token", map[string]interface{}{"Token": tokenString}); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, model.NewAppError("SqlUserAccessTokenStore.GetByToken", "store.sql_user_access_token.get_by_token.app_error", nil, err.Error(), http.StatusNotFound)
 		}
+		return nil, model.NewAppError("SqlUserAccessTokenStore.GetByToken", "store.sql_user_access_token.get_by_token.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = &token
-	})
+	return &token, nil
 }
 
 func (s SqlUserAccessTokenStore) GetByUser(userId string, offset, limit int) ([]*model.UserAccessToken, *model.AppError) {
