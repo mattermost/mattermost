@@ -66,8 +66,8 @@ func prettyPrintMap(configMap map[string]interface{}) string {
 	return printStringMap(value, 0)
 }
 
-// printStringMap takes a reflect.Value and prints it out, recursively if it's a map with the given tab settings
-// assumes the key values in the map are of type String, and orders the printed output based on the key values.
+// printStringMap takes a reflect.Value and prints it out alphabetically based on key values, which must be strings.
+// This is done recursively if it's a map, and uses the given tab settings.
 func printStringMap(value reflect.Value, tabVal int) string {
 	out := &bytes.Buffer{}
 
