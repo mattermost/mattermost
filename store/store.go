@@ -352,24 +352,24 @@ type ComplianceStore interface {
 }
 
 type OAuthStore interface {
-	SaveApp(app *model.OAuthApp) StoreChannel
-	UpdateApp(app *model.OAuthApp) StoreChannel
-	GetApp(id string) StoreChannel
-	GetAppByUser(userId string, offset, limit int) StoreChannel
-	GetApps(offset, limit int) StoreChannel
-	GetAuthorizedApps(userId string, offset, limit int) StoreChannel
-	DeleteApp(id string) StoreChannel
-	SaveAuthData(authData *model.AuthData) StoreChannel
-	GetAuthData(code string) StoreChannel
-	RemoveAuthData(code string) StoreChannel
-	PermanentDeleteAuthDataByUser(userId string) StoreChannel
-	SaveAccessData(accessData *model.AccessData) StoreChannel
-	UpdateAccessData(accessData *model.AccessData) StoreChannel
-	GetAccessData(token string) StoreChannel
-	GetAccessDataByUserForApp(userId, clientId string) StoreChannel
-	GetAccessDataByRefreshToken(token string) StoreChannel
-	GetPreviousAccessData(userId, clientId string) StoreChannel
-	RemoveAccessData(token string) StoreChannel
+	SaveApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError)
+	UpdateApp(app *model.OAuthApp) (*model.OAuthApp, *model.AppError)
+	GetApp(id string) (*model.OAuthApp, *model.AppError)
+	GetAppByUser(userId string, offset, limit int) ([]*model.OAuthApp, *model.AppError)
+	GetApps(offset, limit int) ([]*model.OAuthApp, *model.AppError)
+	GetAuthorizedApps(userId string, offset, limit int) ([]*model.OAuthApp, *model.AppError)
+	DeleteApp(id string) *model.AppError
+	SaveAuthData(authData *model.AuthData) (*model.AuthData, *model.AppError)
+	GetAuthData(code string) (*model.AuthData, *model.AppError)
+	RemoveAuthData(code string) *model.AppError
+	PermanentDeleteAuthDataByUser(userId string) *model.AppError
+	SaveAccessData(accessData *model.AccessData) (*model.AccessData, *model.AppError)
+	UpdateAccessData(accessData *model.AccessData) (*model.AccessData, *model.AppError)
+	GetAccessData(token string) (*model.AccessData, *model.AppError)
+	GetAccessDataByUserForApp(userId, clientId string) ([]*model.AccessData, *model.AppError)
+	GetAccessDataByRefreshToken(token string) (*model.AccessData, *model.AppError)
+	GetPreviousAccessData(userId, clientId string) (*model.AccessData, *model.AppError)
+	RemoveAccessData(token string) *model.AppError
 }
 
 type SystemStore interface {
