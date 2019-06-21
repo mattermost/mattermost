@@ -235,12 +235,12 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer th.TearDown()
 
 		token := model.NewToken("invalid", "")
-		result := <-th.App.Srv.Store.Token().Save(token)
-		require.Nil(t, result.Err)
+		err := th.App.Srv.Store.Token().Save(token)
+		require.Nil(t, err)
 
 		state := makeState(token)
 
-		_, _, _, err := th.App.AuthorizeOAuthUser(nil, nil, model.SERVICE_GITLAB, "", state, "")
+		_, _, _, err = th.App.AuthorizeOAuthUser(nil, nil, model.SERVICE_GITLAB, "", state, "")
 		require.NotNil(t, err)
 		assert.Equal(t, "api.oauth.invalid_state_token.app_error", err.Id)
 		assert.Equal(t, "", err.DetailedError)

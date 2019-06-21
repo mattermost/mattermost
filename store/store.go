@@ -446,7 +446,7 @@ type LicenseStore interface {
 }
 
 type TokenStore interface {
-	Save(recovery *model.Token) StoreChannel
+	Save(recovery *model.Token) *model.AppError
 	Delete(token string) StoreChannel
 	GetByToken(token string) StoreChannel
 	Cleanup()

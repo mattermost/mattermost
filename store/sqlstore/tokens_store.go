@@ -32,16 +32,15 @@ func NewSqlTokenStore(sqlStore SqlStore) store.TokenStore {
 func (s SqlTokenStore) CreateIndexesIfNotExists() {
 }
 
-func (s SqlTokenStore) Save(token *model.Token) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if result.Err = token.IsValid(); result.Err != nil {
-			return
-		}
+func (s SqlTokenStore) Save(token *model.Token) *model.AppError {
+	if err := token.IsValid(); err != nil {
+		return err
+	}
 
-		if err := s.GetMaster().Insert(token); err != nil {
-			result.Err = model.NewAppError("SqlTokenStore.Save", "store.sql_recover.save.app_error", nil, "", http.StatusInternalServerError)
-		}
-	})
+	if err := s.GetMaster().Insert(token); err != nil {
+		return model.NewAppError("SqlTokenStore.Save", "store.sql_recover.save.app_error", nil, "", http.StatusInternalServerError)
+	}
+	return nil
 }
 
 func (s SqlTokenStore) Delete(token string) store.StoreChannel {

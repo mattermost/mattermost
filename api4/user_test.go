@@ -93,7 +93,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			app.TOKEN_TYPE_TEAM_INVITATION,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
-		<-th.App.Srv.Store.Token().Save(token)
+		th.App.Srv.Store.Token().Save(token)
 
 		ruser, resp := th.Client.CreateUserWithToken(&user, token.Token)
 		CheckNoError(t, resp)
@@ -129,7 +129,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			app.TOKEN_TYPE_TEAM_INVITATION,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
-		<-th.App.Srv.Store.Token().Save(token)
+		th.App.Srv.Store.Token().Save(token)
 		defer th.App.DeleteToken(token)
 
 		_, resp := th.Client.CreateUserWithToken(&user, "")
@@ -146,7 +146,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
 		token.CreateAt = past49Hours
-		<-th.App.Srv.Store.Token().Save(token)
+		th.App.Srv.Store.Token().Save(token)
 		defer th.App.DeleteToken(token)
 
 		_, resp := th.Client.CreateUserWithToken(&user, token.Token)
@@ -175,7 +175,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			app.TOKEN_TYPE_TEAM_INVITATION,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
-		<-th.App.Srv.Store.Token().Save(token)
+		th.App.Srv.Store.Token().Save(token)
 		defer th.App.DeleteToken(token)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableUserCreation = false })
@@ -193,7 +193,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			app.TOKEN_TYPE_TEAM_INVITATION,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
-		<-th.App.Srv.Store.Token().Save(token)
+		th.App.Srv.Store.Token().Save(token)
 
 		enableOpenServer := th.App.Config().TeamSettings.EnableOpenServer
 		defer func() {
