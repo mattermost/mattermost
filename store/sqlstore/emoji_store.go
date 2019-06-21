@@ -129,12 +129,12 @@ func (es SqlEmojiStore) GetMultipleByName(names []string) ([]*model.Emoji, *mode
 
 	if _, err := es.GetReplica().Select(&emojis,
 		`SELECT
-				*
-			FROM
-				Emoji
-			WHERE
-				Name IN `+keys+`
-				AND DeleteAt = 0`, params); err != nil {
+			*
+		FROM
+			Emoji
+		WHERE
+			Name IN `+keys+`
+			AND DeleteAt = 0`, params); err != nil {
 		return nil, model.NewAppError("SqlEmojiStore.GetByName", "store.sql_emoji.get_by_name.app_error", nil, fmt.Sprintf("names=%v, %v", names, err.Error()), http.StatusInternalServerError)
 	}
 	return emojis, nil
