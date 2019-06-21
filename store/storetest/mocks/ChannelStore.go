@@ -1283,6 +1283,31 @@ func (_m *ChannelStore) SearchAllChannels(term string, opts store.ChannelSearchO
 	return r0
 }
 
+// SearchGroupChannels provides a mock function with given fields: userId, term
+func (_m *ChannelStore) SearchGroupChannels(userId string, term string) (*model.ChannelList, *model.AppError) {
+	ret := _m.Called(userId, term)
+
+	var r0 *model.ChannelList
+	if rf, ok := ret.Get(0).(func(string, string) *model.ChannelList); ok {
+		r0 = rf(userId, term)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.ChannelList)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+		r1 = rf(userId, term)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // SearchInTeam provides a mock function with given fields: teamId, term, includeDeleted
 func (_m *ChannelStore) SearchInTeam(teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
 	ret := _m.Called(teamId, term, includeDeleted)
