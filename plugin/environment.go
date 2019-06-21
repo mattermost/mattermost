@@ -283,9 +283,11 @@ func (env *Environment) Deactivate(id string) bool {
 		return false
 	}
 
+	isActive := env.IsActive(id)
+
 	env.SetPluginState(id, model.PluginStateNotRunning)
 
-	if !env.IsActive(id) {
+	if !isActive {
 		return false
 	}
 
