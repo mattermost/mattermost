@@ -478,19 +478,19 @@ func (me *TestHelper) ResetEmojisMigration() {
 }
 
 func (me *TestHelper) CheckTeamCount(t *testing.T, expected int64) {
-	if r := <-me.App.Srv.Store.Team().AnalyticsTeamCount(); r.Err == nil {
-		if r.Data.(int64) != expected {
-			t.Fatalf("Unexpected number of teams. Expected: %v, found: %v", expected, r.Data.(int64))
-		}
-	} else {
+	teamCount, err := me.App.Srv.Store.Team().AnalyticsTeamCount()
+	if err != nil {
 		t.Fatalf("Failed to get team count.")
+	}
+	if teamCount != expected {
+		t.Fatalf("Unexpected number of teams. Expected: %v, found: %v", expected, teamCount)
 	}
 }
 
 func (me *TestHelper) CheckChannelsCount(t *testing.T, expected int64) {
-	if r := <-me.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN); r.Err == nil {
-		if r.Data.(int64) != expected {
-			t.Fatalf("Unexpected number of channels. Expected: %v, found: %v", expected, r.Data.(int64))
+	if count, err := me.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN); err == nil {
+		if count != expected {
+			t.Fatalf("Unexpected number of channels. Expected: %v, found: %v", expected, count)
 		}
 	} else {
 		t.Fatalf("Failed to get channel count.")

@@ -756,7 +756,6 @@ func (s *MetricsSettings) SetDefaults() {
 type ExperimentalSettings struct {
 	ClientSideCertEnable            *bool
 	ClientSideCertCheck             *string
-	DisablePostMetadata             *bool  `restricted:"true"`
 	EnableClickToReply              *bool  `restricted:"true"`
 	LinkMetadataTimeoutMilliseconds *int64 `restricted:"true"`
 	RestrictSystemAdmin             *bool  `restricted:"true"`
@@ -769,10 +768,6 @@ func (s *ExperimentalSettings) SetDefaults() {
 
 	if s.ClientSideCertCheck == nil {
 		s.ClientSideCertCheck = NewString(CLIENT_SIDE_CERT_CHECK_SECONDARY_AUTH)
-	}
-
-	if s.DisablePostMetadata == nil {
-		s.DisablePostMetadata = NewBool(false)
 	}
 
 	if s.EnableClickToReply == nil {
@@ -2182,7 +2177,7 @@ type PluginSettings struct {
 	PluginStates      map[string]*PluginState
 }
 
-func (s *PluginSettings) SetDefaults() {
+func (s *PluginSettings) SetDefaults(ls LogSettings) {
 	if s.Enable == nil {
 		s.Enable = NewBool(true)
 	}
@@ -2220,7 +2215,8 @@ func (s *PluginSettings) SetDefaults() {
 	}
 
 	if s.PluginStates["com.mattermost.nps"] == nil {
-		s.PluginStates["com.mattermost.nps"] = &PluginState{Enable: true}
+		// Enable the NPS plugin by default if diagnostics are enabled
+		s.PluginStates["com.mattermost.nps"] = &PluginState{Enable: ls.EnableDiagnostics == nil || *ls.EnableDiagnostics}
 	}
 }
 
@@ -2446,7 +2442,7 @@ func (o *Config) SetDefaults() {
 	o.AnnouncementSettings.SetDefaults()
 	o.ThemeSettings.SetDefaults()
 	o.ClusterSettings.SetDefaults()
-	o.PluginSettings.SetDefaults()
+	o.PluginSettings.SetDefaults(o.LogSettings)
 	o.AnalyticsSettings.SetDefaults()
 	o.ComplianceSettings.SetDefaults()
 	o.LocalizationSettings.SetDefaults()
