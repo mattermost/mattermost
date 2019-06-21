@@ -239,7 +239,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 
 		state := makeState(token)
 
-		_, _, _, err = th.App.AuthorizeOAuthUser(nil, nil, model.SERVICE_GITLAB, "", state, "")
+		_, _, _, err := th.App.AuthorizeOAuthUser(nil, nil, model.SERVICE_GITLAB, "", state, "")
 		require.NotNil(t, err)
 		assert.Equal(t, "api.oauth.invalid_state_token.app_error", err.Id)
 		assert.Equal(t, "", err.DetailedError)
