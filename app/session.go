@@ -327,8 +327,8 @@ func (a *App) DisableUserAccessToken(token *model.UserAccessToken) *model.AppErr
 	var session *model.Session
 	session, _ = a.Srv.Store.Session().Get(token.Token)
 
-	if result := <-a.Srv.Store.UserAccessToken().UpdateTokenDisable(token.Id); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.UserAccessToken().UpdateTokenDisable(token.Id); err != nil {
+		return err
 	}
 
 	if session == nil {

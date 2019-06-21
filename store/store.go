@@ -524,7 +524,7 @@ type UserAccessTokenStore interface {
 	GetByUser(userId string, page, perPage int) ([]*model.UserAccessToken, *model.AppError)
 	Search(term string) StoreChannel
 	UpdateTokenEnable(tokenId string) StoreChannel
-	UpdateTokenDisable(tokenId string) StoreChannel
+	UpdateTokenDisable(tokenId string) *model.AppError
 }
 
 type PluginStore interface {
