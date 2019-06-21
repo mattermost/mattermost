@@ -108,11 +108,11 @@ func TestCreateUserWithToken(t *testing.T) {
 			t.Fatal("did not clear roles")
 		}
 		CheckUserSanitization(t, ruser)
-		if result := <-th.App.Srv.Store.Token().GetByToken(token.Token); result.Err == nil {
+		if _, err := th.App.Srv.Store.Token().GetByToken(token.Token); err == nil {
 			t.Fatal("The token must be deleted after be used")
 		}
 
-		if result := <-th.App.Srv.Store.Token().GetByToken(token.Token); result.Err == nil {
+		if _, err := th.App.Srv.Store.Token().GetByToken(token.Token); err == nil {
 			t.Fatal("The token must be deleted after be used")
 		}
 
@@ -215,7 +215,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			t.Fatal("did not clear roles")
 		}
 		CheckUserSanitization(t, ruser)
-		if result := <-th.App.Srv.Store.Token().GetByToken(token.Token); result.Err == nil {
+		if _, err := th.App.Srv.Store.Token().GetByToken(token.Token); err == nil {
 			t.Fatal("The token must be deleted after be used")
 		}
 	})
@@ -2250,13 +2250,12 @@ func TestResetPassword(t *testing.T) {
 			}
 		}
 	}
-	var recoveryToken *model.Token
-	if result := <-th.App.Srv.Store.Token().GetByToken(recoveryTokenString); result.Err != nil {
+	recoveryToken, err := th.App.Srv.Store.Token().GetByToken(recoveryTokenString)
+	if err != nil {
 		t.Log(recoveryTokenString)
-		t.Fatal(result.Err)
-	} else {
-		recoveryToken = result.Data.(*model.Token)
+		t.Fatal(err)
 	}
+
 	_, resp = th.Client.ResetPassword(recoveryToken.Token, "")
 	CheckBadRequestStatus(t, resp)
 	_, resp = th.Client.ResetPassword(recoveryToken.Token, "newp")
@@ -4179,7 +4178,6 @@ func TestLoginErrorMessage(t *testing.T) {
 
 	_, resp := th.Client.Logout()
 	CheckNoError(t, resp)
-
 
 	// Email and Username enabled
 	th.App.UpdateConfig(func(cfg *model.Config) {

@@ -1436,7 +1436,7 @@ func TestAddTeamMember(t *testing.T) {
 		t.Fatal("team ids should have matched")
 	}
 
-	if result := <-th.App.Srv.Store.Token().GetByToken(token.Token); result.Err == nil {
+	if _, err := th.App.Srv.Store.Token().GetByToken(token.Token); err == nil {
 		t.Fatal("The token must be deleted after be used")
 	}
 
