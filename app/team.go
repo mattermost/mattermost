@@ -270,7 +270,8 @@ func (a *App) UpdateTeamMemberRoles(teamId string, userId string, newRoles strin
 	member.SchemeAdmin = false
 
 	for _, roleName := range strings.Fields(newRoles) {
-		role, err := a.GetRoleByName(roleName)
+		var role *model.Role
+		role, err = a.GetRoleByName(roleName)
 		if err != nil {
 			err.StatusCode = http.StatusBadRequest
 			return nil, err
@@ -304,11 +305,10 @@ func (a *App) UpdateTeamMemberRoles(teamId string, userId string, newRoles strin
 
 	member.ExplicitRoles = strings.Join(newExplicitRoles, " ")
 
-	result := <-a.Srv.Store.Team().UpdateMember(member)
-	if result.Err != nil {
-		return nil, result.Err
+	member, err = a.Srv.Store.Team().UpdateMember(member)
+	if err != nil {
+		return nil, err
 	}
-	member = result.Data.(*model.TeamMember)
 
 	a.ClearSessionCacheForUser(userId)
 
@@ -336,11 +336,10 @@ func (a *App) UpdateTeamMemberSchemeRoles(teamId string, userId string, isScheme
 		member.ExplicitRoles = RemoveRoles([]string{model.TEAM_GUEST_ROLE_ID, model.TEAM_USER_ROLE_ID, model.TEAM_ADMIN_ROLE_ID}, member.ExplicitRoles)
 	}
 
-	result := <-a.Srv.Store.Team().UpdateMember(member)
-	if result.Err != nil {
-		return nil, result.Err
+	member, err = a.Srv.Store.Team().UpdateMember(member)
+	if err != nil {
+		return nil, err
 	}
-	member = result.Data.(*model.TeamMember)
 
 	a.ClearSessionCacheForUser(userId)
 
@@ -532,12 +531,12 @@ func (a *App) joinUserToTeam(team *model.Team, user *model.User) (*model.TeamMem
 		return nil, false, model.NewAppError("joinUserToTeam", "app.team.join_user_to_team.max_accounts.app_error", nil, "teamId="+tm.TeamId, http.StatusBadRequest)
 	}
 
-	tmr := <-a.Srv.Store.Team().UpdateMember(tm)
-	if tmr.Err != nil {
-		return nil, false, tmr.Err
+	member, err := a.Srv.Store.Team().UpdateMember(tm)
+	if err != nil {
+		return nil, false, err
 	}
 
-	return tmr.Data.(*model.TeamMember), false, nil
+	return member, false, nil
 }
 
 func (a *App) JoinUserToTeam(team *model.Team, user *model.User, userRequestorId string) *model.AppError {
@@ -612,11 +611,7 @@ func (a *App) GetAllTeams() ([]*model.Team, *model.AppError) {
 }
 
 func (a *App) GetAllTeamsPage(offset int, limit int) ([]*model.Team, *model.AppError) {
-	result := <-a.Srv.Store.Team().GetAllPage(offset, limit)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.Team), nil
+	return a.Srv.Store.Team().GetAllPage(offset, limit)
 }
 
 func (a *App) GetAllPrivateTeams() ([]*model.Team, *model.AppError) {
@@ -640,19 +635,11 @@ func (a *App) GetAllPublicTeams() ([]*model.Team, *model.AppError) {
 }
 
 func (a *App) GetAllPublicTeamsPage(offset int, limit int) ([]*model.Team, *model.AppError) {
-	result := <-a.Srv.Store.Team().GetAllTeamPageListing(offset, limit)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.Team), nil
+	return a.Srv.Store.Team().GetAllTeamPageListing(offset, limit)
 }
 
 func (a *App) SearchAllTeams(term string) ([]*model.Team, *model.AppError) {
-	result := <-a.Srv.Store.Team().SearchAll(term)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.Team), nil
+	return a.Srv.Store.Team().SearchAll(term)
 }
 
 func (a *App) SearchPublicTeams(term string) ([]*model.Team, *model.AppError) {
@@ -680,19 +667,11 @@ func (a *App) GetTeamMember(teamId, userId string) (*model.TeamMember, *model.Ap
 }
 
 func (a *App) GetTeamMembersForUser(userId string) ([]*model.TeamMember, *model.AppError) {
-	result := <-a.Srv.Store.Team().GetTeamsForUser(userId)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.TeamMember), nil
+	return a.Srv.Store.Team().GetTeamsForUser(userId)
 }
 
 func (a *App) GetTeamMembersForUserWithPagination(userId string, page, perPage int) ([]*model.TeamMember, *model.AppError) {
-	result := <-a.Srv.Store.Team().GetTeamsForUserWithPagination(userId, page, perPage)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.TeamMember), nil
+	return a.Srv.Store.Team().GetTeamsForUserWithPagination(userId, page, perPage)
 }
 
 func (a *App) GetTeamMembers(teamId string, offset int, limit int, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError) {
@@ -840,30 +819,27 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 
 	var channelList *model.ChannelList
 
-	if result := <-a.Srv.Store.Channel().GetChannels(team.Id, user.Id, true); result.Err != nil {
-		if result.Err.Id == "store.sql_channel.get_channels.not_found.app_error" {
+	if channelList, err = a.Srv.Store.Channel().GetChannels(team.Id, user.Id, true); err != nil {
+		if err.Id == "store.sql_channel.get_channels.not_found.app_error" {
 			channelList = &model.ChannelList{}
 		} else {
-			return result.Err
+			return err
 		}
-	} else {
-		channelList = result.Data.(*model.ChannelList)
 	}
 
 	for _, channel := range *channelList {
 		if !channel.IsGroupOrDirect() {
 			a.InvalidateCacheForChannelMembers(channel.Id)
-			if result := <-a.Srv.Store.Channel().RemoveMember(channel.Id, user.Id); result.Err != nil {
-				return result.Err
+			if err = a.Srv.Store.Channel().RemoveMember(channel.Id, user.Id); err != nil {
+				return err
 			}
 		}
 	}
 
-	result := <-a.Srv.Store.Channel().GetByName(team.Id, model.DEFAULT_CHANNEL, false)
-	if result.Err != nil {
-		return result.Err
+	channel, err := a.Srv.Store.Channel().GetByName(team.Id, model.DEFAULT_CHANNEL, false)
+	if err != nil {
+		return err
 	}
-	channel := result.Data.(*model.Channel)
 
 	if *a.Config().ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages {
 		if requestorId == user.Id {
@@ -886,8 +862,8 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 	teamMember.Roles = ""
 	teamMember.DeleteAt = model.GetMillis()
 
-	if result := <-a.Srv.Store.Team().UpdateMember(teamMember); result.Err != nil {
-		return result.Err
+	if _, err := a.Srv.Store.Team().UpdateMember(teamMember); err != nil {
+		return err
 	}
 
 	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
@@ -1083,12 +1059,11 @@ func (a *App) PermanentDeleteTeam(team *model.Team) *model.AppError {
 		return err
 	}
 
-	if result := <-a.Srv.Store.Channel().GetTeamChannels(team.Id); result.Err != nil {
-		if result.Err.Id != "store.sql_channel.get_channels.not_found.app_error" {
-			return result.Err
+	if channels, err := a.Srv.Store.Channel().GetTeamChannels(team.Id); err != nil {
+		if err.Id != "store.sql_channel.get_channels.not_found.app_error" {
+			return err
 		}
 	} else {
-		channels := result.Data.(*model.ChannelList)
 		for _, c := range *channels {
 			a.PermanentDeleteChannel(c)
 		}
@@ -1102,8 +1077,8 @@ func (a *App) PermanentDeleteTeam(team *model.Team) *model.AppError {
 		return err
 	}
 
-	if result := <-a.Srv.Store.Team().PermanentDelete(team.Id); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.Team().PermanentDelete(team.Id); err != nil {
+		return err
 	}
 
 	a.sendTeamEvent(team, model.WEBSOCKET_EVENT_DELETE_TEAM)

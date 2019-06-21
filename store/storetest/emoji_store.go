@@ -45,16 +45,16 @@ func testEmojiSaveDelete(t *testing.T, ss store.Store) {
 		t.Fatal("shouldn't be able to save emoji with duplicate name")
 	}
 
-	if result := <-ss.Emoji().Delete(emoji1.Id, time.Now().Unix()); result.Err != nil {
-		t.Fatal(result.Err)
+	if err := ss.Emoji().Delete(emoji1.Id, time.Now().Unix()); err != nil {
+		t.Fatal(err)
 	}
 
 	if _, err := ss.Emoji().Save(&emoji2); err != nil {
 		t.Fatal("should be able to save emoji with duplicate name now that original has been deleted", err)
 	}
 
-	if result := <-ss.Emoji().Delete(emoji2.Id, time.Now().Unix()+1); result.Err != nil {
-		t.Fatal(result.Err)
+	if err := ss.Emoji().Delete(emoji2.Id, time.Now().Unix()+1); err != nil {
+		t.Fatal(err)
 	}
 }
 
@@ -81,7 +81,8 @@ func testEmojiGet(t *testing.T, ss store.Store) {
 	}
 	defer func() {
 		for _, emoji := range emojis {
-			store.Must(ss.Emoji().Delete(emoji.Id, time.Now().Unix()))
+			err := ss.Emoji().Delete(emoji.Id, time.Now().Unix())
+			require.Nil(t, err)
 		}
 	}()
 
@@ -127,7 +128,8 @@ func testEmojiGetByName(t *testing.T, ss store.Store) {
 	}
 	defer func() {
 		for _, emoji := range emojis {
-			store.Must(ss.Emoji().Delete(emoji.Id, time.Now().Unix()))
+			err := ss.Emoji().Delete(emoji.Id, time.Now().Unix())
+			require.Nil(t, err)
 		}
 	}()
 
@@ -161,7 +163,8 @@ func testEmojiGetMultipleByName(t *testing.T, ss store.Store) {
 	}
 	defer func() {
 		for _, emoji := range emojis {
-			store.Must(ss.Emoji().Delete(emoji.Id, time.Now().Unix()))
+			err := ss.Emoji().Delete(emoji.Id, time.Now().Unix())
+			require.Nil(t, err)
 		}
 	}()
 
@@ -221,7 +224,8 @@ func testEmojiGetList(t *testing.T, ss store.Store) {
 	}
 	defer func() {
 		for _, emoji := range emojis {
-			store.Must(ss.Emoji().Delete(emoji.Id, time.Now().Unix()))
+			err := ss.Emoji().Delete(emoji.Id, time.Now().Unix())
+			require.Nil(t, err)
 		}
 	}()
 
@@ -288,7 +292,8 @@ func testEmojiSearch(t *testing.T, ss store.Store) {
 	}
 	defer func() {
 		for _, emoji := range emojis {
-			store.Must(ss.Emoji().Delete(emoji.Id, time.Now().Unix()))
+			err := ss.Emoji().Delete(emoji.Id, time.Now().Unix())
+			require.Nil(t, err)
 		}
 	}()
 
