@@ -259,9 +259,8 @@ func TestAddUserToTeamByToken(t *testing.T) {
 			t.Log(err)
 			t.Fatal("Should add user to the team")
 		}
-		if result := <-th.App.Srv.Store.Token().GetByToken(token.Token); result.Err == nil {
-			t.Fatal("The token must be deleted after be used")
-		}
+		_, err := th.App.Srv.Store.Token().GetByToken(token.Token)
+		require.NotNil(t, err, "The token must be deleted after be used")
 	})
 
 	t.Run("group-constrained team", func(t *testing.T) {

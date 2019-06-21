@@ -108,13 +108,8 @@ func TestCreateUserWithToken(t *testing.T) {
 			t.Fatal("did not clear roles")
 		}
 		CheckUserSanitization(t, ruser)
-		if result := <-th.App.Srv.Store.Token().GetByToken(token.Token); result.Err == nil {
-			t.Fatal("The token must be deleted after be used")
-		}
-
-		if result := <-th.App.Srv.Store.Token().GetByToken(token.Token); result.Err == nil {
-			t.Fatal("The token must be deleted after be used")
-		}
+		_, err := th.App.Srv.Store.Token().GetByToken(token.Token)
+		require.NotNil(t, err, "The token must be deleted after being used")
 
 		if teams, err := th.App.GetTeamsForUser(ruser.Id); err != nil || len(teams) == 0 {
 			t.Fatal("The user must have teams")
@@ -215,9 +210,8 @@ func TestCreateUserWithToken(t *testing.T) {
 			t.Fatal("did not clear roles")
 		}
 		CheckUserSanitization(t, ruser)
-		if result := <-th.App.Srv.Store.Token().GetByToken(token.Token); result.Err == nil {
-			t.Fatal("The token must be deleted after be used")
-		}
+		_, err := th.App.Srv.Store.Token().GetByToken(token.Token)
+		require.NotNil(t, err, "The token must be deleted after be used")
 	})
 }
 
@@ -2239,7 +2233,8 @@ func TestResetPassword(t *testing.T) {
 		if !strings.ContainsAny(resultsMailbox[0].To[0], user.Email) {
 			t.Fatal("Wrong To recipient")
 		} else {
-			if resultsEmail, err := mailservice.GetMessageFromMailbox(user.Email, resultsMailbox[0].ID); err == nil {
+			var resultsEmail mailservice.JSONMessageInbucket
+			if resultsEmail, err = mailservice.GetMessageFromMailbox(user.Email, resultsMailbox[0].ID); err == nil {
 				loc := strings.Index(resultsEmail.Body.Text, "token=")
 				if loc == -1 {
 					t.Log(resultsEmail.Body.Text)
@@ -2250,13 +2245,9 @@ func TestResetPassword(t *testing.T) {
 			}
 		}
 	}
-	var recoveryToken *model.Token
-	if result := <-th.App.Srv.Store.Token().GetByToken(recoveryTokenString); result.Err != nil {
-		t.Log(recoveryTokenString)
-		t.Fatal(result.Err)
-	} else {
-		recoveryToken = result.Data.(*model.Token)
-	}
+	recoveryToken, err := th.App.Srv.Store.Token().GetByToken(recoveryTokenString)
+	require.Nil(t, err, "Recovery token not found (%s)", recoveryTokenString)
+
 	_, resp = th.Client.ResetPassword(recoveryToken.Token, "")
 	CheckBadRequestStatus(t, resp)
 	_, resp = th.Client.ResetPassword(recoveryToken.Token, "newp")
@@ -4179,7 +4170,6 @@ func TestLoginErrorMessage(t *testing.T) {
 
 	_, resp := th.Client.Logout()
 	CheckNoError(t, resp)
-
 
 	// Email and Username enabled
 	th.App.UpdateConfig(func(cfg *model.Config) {

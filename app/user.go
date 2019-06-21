@@ -50,12 +50,11 @@ func (a *App) CreateUserWithToken(user *model.User, tokenId string) (*model.User
 		return nil, err
 	}
 
-	result := <-a.Srv.Store.Token().GetByToken(tokenId)
-	if result.Err != nil {
-		return nil, model.NewAppError("CreateUserWithToken", "api.user.create_user.signup_link_invalid.app_error", nil, result.Err.Error(), http.StatusBadRequest)
+	token, err := a.Srv.Store.Token().GetByToken(tokenId)
+	if err != nil {
+		return nil, model.NewAppError("CreateUserWithToken", "api.user.create_user.signup_link_invalid.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	token := result.Data.(*model.Token)
 	if token.Type != TOKEN_TYPE_TEAM_INVITATION {
 		return nil, model.NewAppError("CreateUserWithToken", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -1350,11 +1349,10 @@ func (a *App) CreatePasswordRecoveryToken(userId, email string) (*model.Token, *
 }
 
 func (a *App) GetPasswordRecoveryToken(token string) (*model.Token, *model.AppError) {
-	result := <-a.Srv.Store.Token().GetByToken(token)
-	if result.Err != nil {
-		return nil, model.NewAppError("GetPasswordRecoveryToken", "api.user.reset_password.invalid_link.app_error", nil, result.Err.Error(), http.StatusBadRequest)
+	rtoken, err := a.Srv.Store.Token().GetByToken(token)
+	if err != nil {
+		return nil, model.NewAppError("GetPasswordRecoveryToken", "api.user.reset_password.invalid_link.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
-	rtoken := result.Data.(*model.Token)
 	if rtoken.Type != TOKEN_TYPE_PASSWORD_RECOVERY {
 		return nil, model.NewAppError("GetPasswordRecoveryToken", "api.user.reset_password.broken_token.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -1617,11 +1615,10 @@ func (a *App) CreateVerifyEmailToken(userId string, newEmail string) (*model.Tok
 }
 
 func (a *App) GetVerifyEmailToken(token string) (*model.Token, *model.AppError) {
-	result := <-a.Srv.Store.Token().GetByToken(token)
-	if result.Err != nil {
-		return nil, model.NewAppError("GetVerifyEmailToken", "api.user.verify_email.bad_link.app_error", nil, result.Err.Error(), http.StatusBadRequest)
+	rtoken, err := a.Srv.Store.Token().GetByToken(token)
+	if err != nil {
+		return nil, model.NewAppError("GetVerifyEmailToken", "api.user.verify_email.bad_link.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
-	rtoken := result.Data.(*model.Token)
 	if rtoken.Type != TOKEN_TYPE_VERIFY_EMAIL {
 		return nil, model.NewAppError("GetVerifyEmailToken", "api.user.verify_email.broken_token.app_error", nil, "", http.StatusBadRequest)
 	}
