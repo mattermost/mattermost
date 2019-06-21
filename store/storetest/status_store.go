@@ -58,10 +58,9 @@ func testStatusStore(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if result := <-ss.Status().GetOnline(); result.Err != nil {
-		t.Fatal(result.Err)
+	if statuses, err := ss.Status().GetOnline(); err != nil {
+		t.Fatal(err)
 	} else {
-		statuses := result.Data.([]*model.Status)
 		for _, status := range statuses {
 			if status.Status != model.STATUS_ONLINE {
 				t.Fatal("should not have returned offline statuses")
