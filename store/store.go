@@ -452,7 +452,7 @@ type TokenStore interface {
 	Delete(token string) StoreChannel
 	GetByToken(token string) (*model.Token, *model.AppError)
 	Cleanup()
-	RemoveAllTokensByType(tokenType string) StoreChannel
+	RemoveAllTokensByType(tokenType string) *model.AppError
 }
 
 type EmojiStore interface {
