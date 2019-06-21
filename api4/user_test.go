@@ -108,13 +108,8 @@ func TestCreateUserWithToken(t *testing.T) {
 			t.Fatal("did not clear roles")
 		}
 		CheckUserSanitization(t, ruser)
-		if _, err := th.App.Srv.Store.Token().GetByToken(token.Token); err == nil {
-			t.Fatal("The token must be deleted after be used")
-		}
-
-		if _, err := th.App.Srv.Store.Token().GetByToken(token.Token); err == nil {
-			t.Fatal("The token must be deleted after be used")
-		}
+		_, err := th.App.Srv.Store.Token().GetByToken(token.Token)
+		require.NotNil(t, err, "The token must be deleted after being used")
 
 		if teams, err := th.App.GetTeamsForUser(ruser.Id); err != nil || len(teams) == 0 {
 			t.Fatal("The user must have teams")
@@ -215,9 +210,8 @@ func TestCreateUserWithToken(t *testing.T) {
 			t.Fatal("did not clear roles")
 		}
 		CheckUserSanitization(t, ruser)
-		if _, err := th.App.Srv.Store.Token().GetByToken(token.Token); err == nil {
-			t.Fatal("The token must be deleted after be used")
-		}
+		_, err := th.App.Srv.Store.Token().GetByToken(token.Token)
+		require.NotNil(t, err, "The token must be deleted after be used")
 	})
 }
 
@@ -2251,10 +2245,7 @@ func TestResetPassword(t *testing.T) {
 		}
 	}
 	recoveryToken, err := th.App.Srv.Store.Token().GetByToken(recoveryTokenString)
-	if err != nil {
-		t.Log(recoveryTokenString)
-		t.Fatal(err)
-	}
+	require.Nil(t, err, "Recovery token not found (%s)", recoveryTokenString)
 
 	_, resp = th.Client.ResetPassword(recoveryToken.Token, "")
 	CheckBadRequestStatus(t, resp)
