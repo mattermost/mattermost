@@ -789,76 +789,60 @@ func TestImportImportUser(t *testing.T) {
 	defer th.TearDown()
 
 	// Check how many users are in the database.
-	var userCount int64
-	if r := <-th.App.Srv.Store.User().Count(model.UserCountOptions{
+	userCount, err := th.App.Srv.Store.User().Count(model.UserCountOptions{
 		IncludeDeleted:     true,
 		IncludeBotAccounts: false,
-	}); r.Err == nil {
-		userCount = r.Data.(int64)
-	} else {
-		t.Fatalf("Failed to get user count.")
-	}
+	})
+	require.Nil(t, err, "Failed to get user count.")
 
 	// Do an invalid user in dry-run mode.
 	data := UserImportData{
 		Username: ptrStr(model.NewId()),
 	}
-	if err := th.App.ImportUser(&data, true); err == nil {
+	if err = th.App.ImportUser(&data, true); err == nil {
 		t.Fatalf("Should have failed to import invalid user.")
 	}
 
 	// Check that no more users are in the DB.
-	if r := <-th.App.Srv.Store.User().Count(model.UserCountOptions{
+	userCount2, err := th.App.Srv.Store.User().Count(model.UserCountOptions{
 		IncludeDeleted:     true,
 		IncludeBotAccounts: false,
-	}); r.Err == nil {
-		if r.Data.(int64) != userCount {
-			t.Fatalf("Unexpected number of users")
-		}
-	} else {
-		t.Fatalf("Failed to get user count.")
-	}
+	})
+	require.Nil(t, err, "Failed to get user count.")
+	assert.Equal(t, userCount, userCount2, "Unexpected number of users")
 
 	// Do a valid user in dry-run mode.
 	data = UserImportData{
 		Username: ptrStr(model.NewId()),
 		Email:    ptrStr(model.NewId() + "@example.com"),
 	}
-	if err := th.App.ImportUser(&data, true); err != nil {
+	if err = th.App.ImportUser(&data, true); err != nil {
 		t.Fatalf("Should have succeeded to import valid user.")
 	}
 
 	// Check that no more users are in the DB.
-	if r := <-th.App.Srv.Store.User().Count(model.UserCountOptions{
+	userCount3, err := th.App.Srv.Store.User().Count(model.UserCountOptions{
 		IncludeDeleted:     true,
 		IncludeBotAccounts: false,
-	}); r.Err == nil {
-		if r.Data.(int64) != userCount {
-			t.Fatalf("Unexpected number of users")
-		}
-	} else {
-		t.Fatalf("Failed to get user count.")
-	}
+	})
+	require.Nil(t, err, "Failed to get user count.")
+	assert.Equal(t, userCount, userCount3, "Unexpected number of users")
 
 	// Do an invalid user in apply mode.
 	data = UserImportData{
 		Username: ptrStr(model.NewId()),
 	}
-	if err := th.App.ImportUser(&data, false); err == nil {
+	if err = th.App.ImportUser(&data, false); err == nil {
 		t.Fatalf("Should have failed to import invalid user.")
 	}
 
 	// Check that no more users are in the DB.
-	if r := <-th.App.Srv.Store.User().Count(model.UserCountOptions{
+	userCount4, err := th.App.Srv.Store.User().Count(model.UserCountOptions{
 		IncludeDeleted:     true,
 		IncludeBotAccounts: false,
-	}); r.Err == nil {
-		if r.Data.(int64) != userCount {
-			t.Fatalf("Unexpected number of users")
-		}
-	} else {
-		t.Fatalf("Failed to get user count.")
-	}
+	})
+	require.Nil(t, err, "Failed to get user count.")
+	assert.Equal(t, userCount, userCount4, "Unexpected number of users")
 
 	// Do a valid user in apply mode.
 	username := model.NewId()
@@ -872,24 +856,20 @@ func TestImportImportUser(t *testing.T) {
 		LastName:     ptrStr(model.NewId()),
 		Position:     ptrStr(model.NewId()),
 	}
-	if err := th.App.ImportUser(&data, false); err != nil {
+	if err = th.App.ImportUser(&data, false); err != nil {
 		t.Fatalf("Should have succeeded to import valid user.")
 	}
 
 	// Check that one more user is in the DB.
-	if r := <-th.App.Srv.Store.User().Count(model.UserCountOptions{
+	userCount5, err := th.App.Srv.Store.User().Count(model.UserCountOptions{
 		IncludeDeleted:     true,
 		IncludeBotAccounts: false,
-	}); r.Err == nil {
-		if r.Data.(int64) != userCount+1 {
-			t.Fatalf("Unexpected number of users")
-		}
-	} else {
-		t.Fatalf("Failed to get user count.")
-	}
+	})
+	require.Nil(t, err, "Failed to get user count.")
+	assert.Equal(t, userCount+1, userCount5, "Unexpected number of users")
 
 	// Get the user and check all the fields are correct.
-	if user, err := th.App.GetUserByUsername(username); err != nil {
+	if user, err2 := th.App.GetUserByUsername(username); err2 != nil {
 		t.Fatalf("Failed to get user from database.")
 	} else {
 		if user.Email != *data.Email || user.Nickname != *data.Nickname || user.FirstName != *data.FirstName || user.LastName != *data.LastName || user.Position != *data.Position {
@@ -932,24 +912,20 @@ func TestImportImportUser(t *testing.T) {
 	data.Position = ptrStr(model.NewId())
 	data.Roles = ptrStr("system_admin system_user")
 	data.Locale = ptrStr("zh_CN")
-	if err := th.App.ImportUser(&data, false); err != nil {
+	if err = th.App.ImportUser(&data, false); err != nil {
 		t.Fatalf("Should have succeeded to update valid user %v", err)
 	}
 
 	// Check user count the same.
-	if r := <-th.App.Srv.Store.User().Count(model.UserCountOptions{
+	userCount6, err := th.App.Srv.Store.User().Count(model.UserCountOptions{
 		IncludeDeleted:     true,
 		IncludeBotAccounts: false,
-	}); r.Err == nil {
-		if r.Data.(int64) != userCount+1 {
-			t.Fatalf("Unexpected number of users")
-		}
-	} else {
-		t.Fatalf("Failed to get user count.")
-	}
+	})
+	require.Nil(t, err, "Failed to get user count.")
+	assert.Equal(t, userCount+1, userCount6, "Unexpected number of users")
 
 	// Get the user and check all the fields are correct.
-	if user, err := th.App.GetUserByUsername(username); err != nil {
+	if user, err2 := th.App.GetUserByUsername(username); err2 != nil {
 		t.Fatalf("Failed to get user from database.")
 	} else {
 		if user.Email != *data.Email || user.Nickname != *data.Nickname || user.FirstName != *data.FirstName || user.LastName != *data.LastName || user.Position != *data.Position {
@@ -983,22 +959,22 @@ func TestImportImportUser(t *testing.T) {
 
 	// Check Password and AuthData together.
 	data.Password = ptrStr("PasswordTest")
-	if err := th.App.ImportUser(&data, false); err == nil {
+	if err = th.App.ImportUser(&data, false); err == nil {
 		t.Fatalf("Should have failed to import invalid user.")
 	}
 
 	data.AuthData = nil
-	if err := th.App.ImportUser(&data, false); err != nil {
+	if err = th.App.ImportUser(&data, false); err != nil {
 		t.Fatalf("Should have succeeded to update valid user %v", err)
 	}
 
 	data.Password = ptrStr("")
-	if err := th.App.ImportUser(&data, false); err == nil {
+	if err = th.App.ImportUser(&data, false); err == nil {
 		t.Fatalf("Should have failed to import invalid user.")
 	}
 
 	data.Password = ptrStr(strings.Repeat("0123456789", 10))
-	if err := th.App.ImportUser(&data, false); err == nil {
+	if err = th.App.ImportUser(&data, false); err == nil {
 		t.Fatalf("Should have failed to import invalid user.")
 	}
 
