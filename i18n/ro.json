@@ -2376,19 +2376,19 @@
   },
   {
     "id": "api.user.login.invalid_credentials_email",
-    "translation": "Enter a valid email and/or password"
+    "translation": "Introduceți un e-mail valid și/sau o parolă"
   },
   {
     "id": "api.user.login.invalid_credentials_email_username",
-    "translation": "Enter a valid email or username and/or password."
+    "translation": "Introduceți un e-mail valid sau nume de utilizator și/sau o parolă."
   },
   {
     "id": "api.user.login.invalid_credentials_sso",
-    "translation": "Enter a valid email or username and/or password, or sign in using another method.\n"
+    "translation": "Introduceți un e-mail valid sau un nume de utilizator și/sau o parolă, sau conectați-vă utilizând altă metodă.\n"
   },
   {
     "id": "api.user.login.invalid_credentials_username",
-    "translation": "Enter a valid username and/or password."
+    "translation": "Introduceți un nume de utilizator și/sau o parolă valide."
   },
   {
     "id": "api.user.login.not_verified.app_error",

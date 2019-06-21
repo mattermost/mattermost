@@ -1474,7 +1474,7 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.multiple",
-    "translation": "@{{.Usernames}} i @{{.LastUsername}} nie zostały powiadomione przez tę wzmiankę, ponieważ nie znajdują się na kanale. Nie można ich dodać do kanału, ponieważ nie należą do połączonych grup. Aby dodać je do tego kanału, muszą zostać dodane do połączonych grup."
+    "translation": "@{{.Usernames}}) i @{{.LastUsername}} nie zostały powiadomione przez tę wzmiankę, ponieważ nie znajdują się na kanale. Nie można ich dodać do kanału, ponieważ nie należą do połączonych grup. Aby dodać je do tego kanału, muszą zostać dodane do połączonych grup."
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.one",
@@ -2376,19 +2376,19 @@
   },
   {
     "id": "api.user.login.invalid_credentials_email",
-    "translation": "Enter a valid email and/or password"
+    "translation": "Wprowadź poprawny E-Mail i/lub Hasło"
   },
   {
     "id": "api.user.login.invalid_credentials_email_username",
-    "translation": "Enter a valid email or username and/or password."
+    "translation": "Wprowadź poprawną nazwę użytkownika i/lub hasło."
   },
   {
     "id": "api.user.login.invalid_credentials_sso",
-    "translation": "Enter a valid email or username and/or password, or sign in using another method.\n"
+    "translation": "Wprowadź prawidłowy adres e-mail lub login i/lub hasło lub zaloguj się przy użyciu innej metody.\n"
   },
   {
     "id": "api.user.login.invalid_credentials_username",
-    "translation": "Enter a valid username and/or password."
+    "translation": "Wprowadź prawidłową nazwę użytkownika i/lub hasło."
   },
   {
     "id": "api.user.login.not_verified.app_error",

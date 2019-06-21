@@ -2376,19 +2376,19 @@
   },
   {
     "id": "api.user.login.invalid_credentials_email",
-    "translation": "Enter a valid email and/or password"
+    "translation": "Geçerli bir e-posta ve parola yazın"
   },
   {
     "id": "api.user.login.invalid_credentials_email_username",
-    "translation": "Enter a valid email or username and/or password."
+    "translation": "Geçerli bir e-posta ya da kullanıcı adı ve parola yazın."
   },
   {
     "id": "api.user.login.invalid_credentials_sso",
-    "translation": "Enter a valid email or username and/or password, or sign in using another method.\n"
+    "translation": "Geçerli bir e-posta ya da kullanıcı adı ve parola yazın ya da başka bir oturum açma yöntemi kullanın.\n"
   },
   {
     "id": "api.user.login.invalid_credentials_username",
-    "translation": "Enter a valid username and/or password."
+    "translation": "Geçerli bir kullanıcı adı ve parola yazın."
   },
   {
     "id": "api.user.login.not_verified.app_error",
