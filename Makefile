@@ -330,7 +330,7 @@ i18n-extract: ## Extract strings for translation from the source code
 	$(GOPATH)/bin/mmgotool i18n extract
 
 store-mocks: ## Creates mock files.
-	env GO111MODULE=off go get -u github.com/vektra/mockery/...
+	env GO111MODULE=off go get -u github.com/vektra/mockery/cmd/mockery
 	$(GOPATH)/bin/mockery -dir store -all -output store/storetest/mocks -note 'Regenerate this file using `make store-mocks`.'
 
 filesstore-mocks: ## Creates mock files.
