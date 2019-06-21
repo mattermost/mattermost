@@ -1342,7 +1342,7 @@ func (a *App) CreatePasswordRecoveryToken(userId, email string) (*model.Token, *
 
 	token := model.NewToken(TOKEN_TYPE_PASSWORD_RECOVERY, string(jsonData))
 
-	if err:= a.Srv.Store.Token().Save(token); err != nil {
+	if err := a.Srv.Store.Token().Save(token); err != nil {
 		return nil, err
 	}
 
