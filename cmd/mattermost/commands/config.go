@@ -398,6 +398,12 @@ func configResetCmdF(command *cobra.Command, args []string) error {
 	defaultConfig.SetDefaults()
 
 	confirmFlag, _ := command.Flags().GetBool("confirm")
+
+	if confirmFlag {
+		app.SaveConfig(defaultConfig, false)
+		return nil
+	}
+
 	if !confirmFlag && len(args) == 0 {
 		var confirmResetAll string
 		CommandPrettyPrintln("Are you sure you want to reset all the configuration settings?(YES/NO): ")
