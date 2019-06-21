@@ -1127,6 +1127,35 @@ func TestGetUsersByIds(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 }
 
+func TestGetUsersByGroupChannelIds(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	gc1, err := th.App.CreateGroupChannel([]string{th.BasicUser.Id, th.SystemAdminUser.Id, th.TeamAdminUser.Id}, th.BasicUser.Id)
+	require.Nil(t, err)
+
+	usersByChannelId, resp := th.Client.GetUsersByGroupChannelIds([]string{gc1.Id})
+	CheckNoError(t, resp)
+
+	users, _ := usersByChannelId[gc1.Id]
+	userIds := []string{}
+	for _, user := range users {
+		userIds = append(userIds, user.Id)
+	}
+
+	require.ElementsMatch(t, []string{th.SystemAdminUser.Id, th.TeamAdminUser.Id}, userIds)
+
+	th.LoginBasic2()
+	usersByChannelId, resp = th.Client.GetUsersByGroupChannelIds([]string{gc1.Id})
+
+	_, ok := usersByChannelId[gc1.Id]
+	require.False(t, ok)
+
+	th.Client.Logout()
+	_, resp = th.Client.GetUsersByGroupChannelIds([]string{gc1.Id})
+	CheckUnauthorizedStatus(t, resp)
+}
+
 func TestGetUsersByUsernames(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()

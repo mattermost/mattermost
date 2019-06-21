@@ -637,6 +637,18 @@ func (a *App) GetUsersByIds(userIds []string, asAdmin bool, viewRestrictions *mo
 	return a.sanitizeProfiles(result.Data.([]*model.User), asAdmin), nil
 }
 
+func (a *App) GetUsersByGroupChannelIds(channelIds []string, asAdmin bool) (map[string][]*model.User, *model.AppError) {
+	usersByChannelId, err := a.Srv.Store.User().GetProfileByGroupChannelIdsForUser(a.Session.UserId, channelIds)
+	if err != nil {
+		return nil, err
+	}
+	for channelId, userList := range usersByChannelId {
+		usersByChannelId[channelId] = a.sanitizeProfiles(userList, asAdmin)
+	}
+
+	return usersByChannelId, nil
+}
+
 func (a *App) GetUsersByUsernames(usernames []string, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
 	result := <-a.Srv.Store.User().GetProfilesByUsernames(usernames, viewRestrictions)
 	if result.Err != nil {
