@@ -105,7 +105,7 @@ var ModifyTeamCmd = &cobra.Command{
 	Short:   "Modify a team's privacy setting to public or private",
 	Long:    `Modify a team's privacy setting to public or private.`,
 	Example: "  team modify myteam --private",
-	Args: cobra.ExactArgs(1)
+	Args:    cobra.ExactArgs(1),
 	RunE:    modifyTeamCmdF,
 }
 
