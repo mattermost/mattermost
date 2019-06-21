@@ -124,7 +124,7 @@ func (a *App) RevokeAllSessions(userId string) *model.AppError {
 // RevokeSessionsFromAllUsers will go through all the sessions active
 // in the server and revoke them
 func (a *App) RevokeSessionsFromAllUsers() *model.AppError {
-	sessions, err := a.Srv.Store.Session().GetAll()
+	sessions, err := a.Srv.Store.Session().RemoveAllSessions()
 	if err != nil {
 		return err
 	}
