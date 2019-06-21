@@ -2794,7 +2794,7 @@ func testChannelStoreSearchGroupChannels(t *testing.T, ss store.Store) {
 
 	defer func() {
 		for _, gc := range []model.Channel{gc1, gc2, gc3} {
-			<-ss.Channel().PermanentDeleteMembersByChannel(gc3.Id)
+			ss.Channel().PermanentDeleteMembersByChannel(gc3.Id)
 			<-ss.Channel().PermanentDelete(gc.Id)
 		}
 	}()
