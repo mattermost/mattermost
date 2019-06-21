@@ -31,8 +31,8 @@ func testUserAccessTokenSaveGetDelete(t *testing.T, ss store.Store) {
 	s1, err := ss.Session().Save(s1)
 	require.Nil(t, err)
 
-	if result := <-ss.UserAccessToken().Save(uat); result.Err != nil {
-		t.Fatal(result.Err)
+	if _, err = ss.UserAccessToken().Save(uat); err != nil {
+		t.Fatal(err)
 	}
 
 	if result, terr := ss.UserAccessToken().Get(uat.Id); terr != nil {
@@ -82,8 +82,8 @@ func testUserAccessTokenSaveGetDelete(t *testing.T, ss store.Store) {
 	s2, err = ss.Session().Save(s2)
 	require.Nil(t, err)
 
-	if result := <-ss.UserAccessToken().Save(uat); result.Err != nil {
-		t.Fatal(result.Err)
+	if _, err = ss.UserAccessToken().Save(uat); err != nil {
+		t.Fatal(err)
 	}
 
 	if result := <-ss.UserAccessToken().DeleteAllForUser(uat.UserId); result.Err != nil {
@@ -113,8 +113,8 @@ func testUserAccessTokenDisableEnable(t *testing.T, ss store.Store) {
 	s1, err := ss.Session().Save(s1)
 	require.Nil(t, err)
 
-	if result := <-ss.UserAccessToken().Save(uat); result.Err != nil {
-		t.Fatal(result.Err)
+	if _, err = ss.UserAccessToken().Save(uat); err != nil {
+		t.Fatal(err)
 	}
 
 	if err = (<-ss.UserAccessToken().UpdateTokenDisable(uat.Id)).Err; err != nil {
@@ -157,8 +157,8 @@ func testUserAccessTokenSearch(t *testing.T, ss store.Store) {
 	s1, err := ss.Session().Save(s1)
 	require.Nil(t, err)
 
-	if result := <-ss.UserAccessToken().Save(uat); result.Err != nil {
-		t.Fatal(result.Err)
+	if _, err = ss.UserAccessToken().Save(uat); err != nil {
+		t.Fatal(err)
 	}
 
 	if result := <-ss.UserAccessToken().Search(uat.Id); result.Err != nil {
