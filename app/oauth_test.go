@@ -92,11 +92,10 @@ func TestOAuthRevokeAccessToken(t *testing.T) {
 	accessData.ClientId = model.NewId()
 	accessData.ExpiresAt = session.ExpiresAt
 
-	if result := <-th.App.Srv.Store.OAuth().SaveAccessData(accessData); result.Err != nil {
-		t.Fatal(result.Err)
-	}
+	_, err := th.App.Srv.Store.OAuth().SaveAccessData(accessData)
+	require.Nil(t, err)
 
-	if err := th.App.RevokeAccessToken(accessData.Token); err != nil {
+	if err = th.App.RevokeAccessToken(accessData.Token); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -136,15 +135,14 @@ func TestOAuthDeleteApp(t *testing.T) {
 	accessData.ClientId = a1.Id
 	accessData.ExpiresAt = session.ExpiresAt
 
-	if result := <-th.App.Srv.Store.OAuth().SaveAccessData(accessData); result.Err != nil {
-		t.Fatal(result.Err)
-	}
+	_, err = th.App.Srv.Store.OAuth().SaveAccessData(accessData)
+	require.Nil(t, err)
 
-	if err := th.App.DeleteOAuthApp(a1.Id); err != nil {
+	if err = th.App.DeleteOAuthApp(a1.Id); err != nil {
 		t.Fatal(err)
 	}
 
-	if _, err := th.App.GetSession(session.Token); err == nil {
+	if _, err = th.App.GetSession(session.Token); err == nil {
 		t.Fatal("should not get session from cache or db")
 	}
 }
