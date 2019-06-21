@@ -367,11 +367,10 @@ func (a *App) GetUserAccessTokens(page, perPage int) ([]*model.UserAccessToken, 
 }
 
 func (a *App) GetUserAccessTokensForUser(userId string, page, perPage int) ([]*model.UserAccessToken, *model.AppError) {
-	result := <-a.Srv.Store.UserAccessToken().GetByUser(userId, page*perPage, perPage)
-	if result.Err != nil {
-		return nil, result.Err
+	tokens, err := a.Srv.Store.UserAccessToken().GetByUser(userId, page*perPage, perPage)
+	if err != nil {
+		return nil, err
 	}
-	tokens := result.Data.([]*model.UserAccessToken)
 	for _, token := range tokens {
 		token.Token = ""
 	}

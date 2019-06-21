@@ -121,19 +121,28 @@ func (_m *UserAccessTokenStore) GetByToken(tokenString string) (*model.UserAcces
 }
 
 // GetByUser provides a mock function with given fields: userId, page, perPage
-func (_m *UserAccessTokenStore) GetByUser(userId string, page int, perPage int) store.StoreChannel {
+func (_m *UserAccessTokenStore) GetByUser(userId string, page int, perPage int) ([]*model.UserAccessToken, *model.AppError) {
 	ret := _m.Called(userId, page, perPage)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, int, int) store.StoreChannel); ok {
+	var r0 []*model.UserAccessToken
+	if rf, ok := ret.Get(0).(func(string, int, int) []*model.UserAccessToken); ok {
 		r0 = rf(userId, page, perPage)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]*model.UserAccessToken)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, int, int) *model.AppError); ok {
+		r1 = rf(userId, page, perPage)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // Save provides a mock function with given fields: token
