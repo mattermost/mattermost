@@ -63,7 +63,7 @@ func testUserAccessTokenSaveGetDelete(t *testing.T, ss store.Store) {
 		t.Fatal("received incorrect number of tokens after save")
 	}
 
-	if err := ss.UserAccessToken().Delete(uat.Id); err != nil {
+	if err = ss.UserAccessToken().Delete(uat.Id); err != nil {
 		t.Fatal(err)
 	}
 
