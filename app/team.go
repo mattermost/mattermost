@@ -398,12 +398,11 @@ func (a *App) AddUserToTeamByTeamId(teamId string, user *model.User) *model.AppE
 }
 
 func (a *App) AddUserToTeamByToken(userId string, tokenId string) (*model.Team, *model.AppError) {
-	result := <-a.Srv.Store.Token().GetByToken(tokenId)
-	if result.Err != nil {
-		return nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.signup_link_invalid.app_error", nil, result.Err.Error(), http.StatusBadRequest)
+	token, err := a.Srv.Store.Token().GetByToken(tokenId)
+	if err != nil {
+		return nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.signup_link_invalid.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
-	token := result.Data.(*model.Token)
 	if token.Type != TOKEN_TYPE_TEAM_INVITATION {
 		return nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.signup_link_invalid.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -429,7 +428,7 @@ func (a *App) AddUserToTeamByToken(userId string, tokenId string) (*model.Team, 
 		close(uchan)
 	}()
 
-	result = <-tchan
+	result := <-tchan
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -611,11 +610,7 @@ func (a *App) GetAllTeams() ([]*model.Team, *model.AppError) {
 }
 
 func (a *App) GetAllTeamsPage(offset int, limit int) ([]*model.Team, *model.AppError) {
-	result := <-a.Srv.Store.Team().GetAllPage(offset, limit)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.Team), nil
+	return a.Srv.Store.Team().GetAllPage(offset, limit)
 }
 
 func (a *App) GetAllPrivateTeams() ([]*model.Team, *model.AppError) {
@@ -643,11 +638,7 @@ func (a *App) GetAllPublicTeamsPage(offset int, limit int) ([]*model.Team, *mode
 }
 
 func (a *App) SearchAllTeams(term string) ([]*model.Team, *model.AppError) {
-	result := <-a.Srv.Store.Team().SearchAll(term)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.Team), nil
+	return a.Srv.Store.Team().SearchAll(term)
 }
 
 func (a *App) SearchPublicTeams(term string) ([]*model.Team, *model.AppError) {
@@ -679,11 +670,7 @@ func (a *App) GetTeamMembersForUser(userId string) ([]*model.TeamMember, *model.
 }
 
 func (a *App) GetTeamMembersForUserWithPagination(userId string, page, perPage int) ([]*model.TeamMember, *model.AppError) {
-	result := <-a.Srv.Store.Team().GetTeamsForUserWithPagination(userId, page, perPage)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.TeamMember), nil
+	return a.Srv.Store.Team().GetTeamsForUserWithPagination(userId, page, perPage)
 }
 
 func (a *App) GetTeamMembers(teamId string, offset int, limit int, restrictions *model.ViewUsersRestrictions) ([]*model.TeamMember, *model.AppError) {
@@ -831,30 +818,27 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 
 	var channelList *model.ChannelList
 
-	if result := <-a.Srv.Store.Channel().GetChannels(team.Id, user.Id, true); result.Err != nil {
-		if result.Err.Id == "store.sql_channel.get_channels.not_found.app_error" {
+	if channelList, err = a.Srv.Store.Channel().GetChannels(team.Id, user.Id, true); err != nil {
+		if err.Id == "store.sql_channel.get_channels.not_found.app_error" {
 			channelList = &model.ChannelList{}
 		} else {
-			return result.Err
+			return err
 		}
-	} else {
-		channelList = result.Data.(*model.ChannelList)
 	}
 
 	for _, channel := range *channelList {
 		if !channel.IsGroupOrDirect() {
 			a.InvalidateCacheForChannelMembers(channel.Id)
-			if result := <-a.Srv.Store.Channel().RemoveMember(channel.Id, user.Id); result.Err != nil {
-				return result.Err
+			if err = a.Srv.Store.Channel().RemoveMember(channel.Id, user.Id); err != nil {
+				return err
 			}
 		}
 	}
 
-	result := <-a.Srv.Store.Channel().GetByName(team.Id, model.DEFAULT_CHANNEL, false)
-	if result.Err != nil {
-		return result.Err
+	channel, err := a.Srv.Store.Channel().GetByName(team.Id, model.DEFAULT_CHANNEL, false)
+	if err != nil {
+		return err
 	}
-	channel := result.Data.(*model.Channel)
 
 	if *a.Config().ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages {
 		if requestorId == user.Id {
@@ -1074,12 +1058,11 @@ func (a *App) PermanentDeleteTeam(team *model.Team) *model.AppError {
 		return err
 	}
 
-	if result := <-a.Srv.Store.Channel().GetTeamChannels(team.Id); result.Err != nil {
-		if result.Err.Id != "store.sql_channel.get_channels.not_found.app_error" {
-			return result.Err
+	if channels, err := a.Srv.Store.Channel().GetTeamChannels(team.Id); err != nil {
+		if err.Id != "store.sql_channel.get_channels.not_found.app_error" {
+			return err
 		}
 	} else {
-		channels := result.Data.(*model.ChannelList)
 		for _, c := range *channels {
 			a.PermanentDeleteChannel(c)
 		}
@@ -1170,12 +1153,11 @@ func (a *App) GetTeamIdFromQuery(query url.Values) (string, *model.AppError) {
 	inviteId := query.Get("id")
 
 	if len(tokenId) > 0 {
-		result := <-a.Srv.Store.Token().GetByToken(tokenId)
-		if result.Err != nil {
+		token, err := a.Srv.Store.Token().GetByToken(tokenId)
+		if err != nil {
 			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.invalid_link.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		token := result.Data.(*model.Token)
 		if token.Type != TOKEN_TYPE_TEAM_INVITATION {
 			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.singup_with_oauth.invalid_link.app_error", nil, "", http.StatusBadRequest)
 		}

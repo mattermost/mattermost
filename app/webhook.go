@@ -599,9 +599,19 @@ func (a *App) HandleIncomingWebhook(hookId string, req *model.IncomingWebhookReq
 				}
 			}
 		} else if channelName[0] == '#' {
-			cchan = a.Srv.Store.Channel().GetByName(hook.TeamId, channelName[1:], true)
+			cchan = make(store.StoreChannel, 1)
+			go func() {
+				chnn, chnnErr := a.Srv.Store.Channel().GetByName(hook.TeamId, channelName[1:], true)
+				cchan <- store.StoreResult{Data: chnn, Err: chnnErr}
+				close(cchan)
+			}()
 		} else {
-			cchan = a.Srv.Store.Channel().GetByName(hook.TeamId, channelName, true)
+			cchan = make(store.StoreChannel, 1)
+			go func() {
+				chnn, chnnErr := a.Srv.Store.Channel().GetByName(hook.TeamId, channelName, true)
+				cchan <- store.StoreResult{Data: chnn, Err: chnnErr}
+				close(cchan)
+			}()
 		}
 	} else {
 		var err *model.AppError
