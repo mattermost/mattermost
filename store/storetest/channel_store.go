@@ -2991,8 +2991,8 @@ func testChannelStoreGetPinnedPosts(t *testing.T, ss store.Store) {
 	})
 	require.Nil(t, err)
 
-	if pl, err := ss.Channel().GetPinnedPosts(o2.Id); err != nil {
-		t.Fatal(err)
+	if pl, errGet := ss.Channel().GetPinnedPosts(o2.Id); errGet != nil {
+		t.Fatal(errGet)
 	} else if len(pl.Posts) != 0 {
 		t.Fatal("wasn't supposed to return posts")
 	}
