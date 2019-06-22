@@ -38,6 +38,13 @@ func Must(sc StoreChannel) interface{} {
 	return r.Data
 }
 
+func MustHaveNoErr(err *model.AppError) {
+	if err != nil {
+		time.Sleep(time.Second)
+		panic(err)
+	}
+}
+
 type Store interface {
 	Team() TeamStore
 	Channel() ChannelStore
@@ -464,7 +471,7 @@ type EmojiStore interface {
 }
 
 type StatusStore interface {
-	SaveOrUpdate(status *model.Status) StoreChannel
+	SaveOrUpdate(status *model.Status) *model.AppError
 	Get(userId string) StoreChannel
 	GetByIds(userIds []string) StoreChannel
 	GetOnlineAway() StoreChannel

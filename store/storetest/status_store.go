@@ -22,14 +22,11 @@ func TestStatusStore(t *testing.T, ss store.Store) {
 
 func testStatusStore(t *testing.T, ss store.Store) {
 	status := &model.Status{UserId: model.NewId(), Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
-
-	if err := (<-ss.Status().SaveOrUpdate(status)).Err; err != nil {
-		t.Fatal(err)
-	}
+	store.MustHaveNoErr(ss.Status().SaveOrUpdate(status))
 
 	status.LastActivityAt = 10
 
-	if err := (<-ss.Status().SaveOrUpdate(status)).Err; err != nil {
+	if err := ss.Status().SaveOrUpdate(status); err != nil {
 		t.Fatal(err)
 	}
 
@@ -38,14 +35,10 @@ func testStatusStore(t *testing.T, ss store.Store) {
 	}
 
 	status2 := &model.Status{UserId: model.NewId(), Status: model.STATUS_AWAY, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
-	if err := (<-ss.Status().SaveOrUpdate(status2)).Err; err != nil {
-		t.Fatal(err)
-	}
+	store.MustHaveNoErr(ss.Status().SaveOrUpdate(status2))
 
 	status3 := &model.Status{UserId: model.NewId(), Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
-	if err := (<-ss.Status().SaveOrUpdate(status3)).Err; err != nil {
-		t.Fatal(err)
-	}
+	store.MustHaveNoErr(ss.Status().SaveOrUpdate(status3))
 
 	if result := <-ss.Status().GetOnlineAway(); result.Err != nil {
 		t.Fatal(result.Err)
@@ -98,7 +91,7 @@ func testStatusStore(t *testing.T, ss store.Store) {
 
 func testActiveUserCount(t *testing.T, ss store.Store) {
 	status := &model.Status{UserId: model.NewId(), Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
-	store.Must(ss.Status().SaveOrUpdate(status))
+	store.MustHaveNoErr(ss.Status().SaveOrUpdate(status))
 
 	if result := <-ss.Status().GetTotalActiveUsersCount(); result.Err != nil {
 		t.Fatal(result.Err)
@@ -159,21 +152,16 @@ func testGetAllFromTeam(t *testing.T, ss store.Store) {
 	}
 
 	team1Member1Status := &model.Status{UserId: team1Member1.UserId, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
-	if err := (<-ss.Status().SaveOrUpdate(team1Member1Status)).Err; err != nil {
-		t.Fatal(err)
-	}
+	store.MustHaveNoErr(ss.Status().SaveOrUpdate(team1Member1Status))
+
 	team1Member2Status := &model.Status{UserId: team1Member2.UserId, Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
-	if err := (<-ss.Status().SaveOrUpdate(team1Member2Status)).Err; err != nil {
-		t.Fatal(err)
-	}
+	store.MustHaveNoErr(ss.Status().SaveOrUpdate(team1Member2Status))
+
 	team2Member1Status := &model.Status{UserId: team2Member1.UserId, Status: model.STATUS_ONLINE, Manual: true, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
-	if err := (<-ss.Status().SaveOrUpdate(team2Member1Status)).Err; err != nil {
-		t.Fatal(err)
-	}
+	store.MustHaveNoErr(ss.Status().SaveOrUpdate(team2Member1Status))
+
 	team2Member2Status := &model.Status{UserId: team2Member2.UserId, Status: model.STATUS_OFFLINE, Manual: true, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
-	if err := (<-ss.Status().SaveOrUpdate(team2Member2Status)).Err; err != nil {
-		t.Fatal(err)
-	}
+	store.MustHaveNoErr(ss.Status().SaveOrUpdate(team2Member2Status))
 
 	if result := <-ss.Status().GetAllFromTeam(team1.Id); result.Err != nil {
 		t.Fatal(result.Err)
