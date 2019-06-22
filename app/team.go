@@ -509,7 +509,8 @@ func (a *App) joinUserToTeam(team *model.Team, user *model.User) (*model.TeamMem
 	rtm, err := a.Srv.Store.Team().GetMember(team.Id, user.Id)
 	if err != nil {
 		// Membership appears to be missing. Lets try to add.
-		tmr, err := a.Srv.Store.Team().SaveMember(tm, *a.Config().TeamSettings.MaxUsersPerTeam)
+		var tmr *model.TeamMember
+		tmr, err = a.Srv.Store.Team().SaveMember(tm, *a.Config().TeamSettings.MaxUsersPerTeam)
 		if err != nil {
 			return nil, false, err
 		}
