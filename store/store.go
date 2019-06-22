@@ -462,7 +462,7 @@ type EmojiStore interface {
 	GetMultipleByName(names []string) StoreChannel
 	GetList(offset, limit int, sort string) StoreChannel
 	Delete(id string, time int64) *model.AppError
-	Search(name string, prefixOnly bool, limit int) StoreChannel
+	Search(name string, prefixOnly bool, limit int) ([]*model.Emoji, *model.AppError)
 }
 
 type StatusStore interface {
