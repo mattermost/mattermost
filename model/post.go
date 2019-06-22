@@ -48,6 +48,7 @@ const (
 	POST_PROPS_MAX_RUNES        = 8000
 	POST_PROPS_MAX_USER_RUNES   = POST_PROPS_MAX_RUNES - 400 // Leave some room for system / pre-save modifications
 	POST_CUSTOM_TYPE_PREFIX     = "custom_"
+	POST_ME                     = "me"
 	PROPS_ADD_CHANNEL_MEMBER    = "add_channel_member"
 	POST_PROPS_ADDED_USER_ID    = "addedUserId"
 	POST_PROPS_DELETE_BY        = "deleteBy"
@@ -236,6 +237,7 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		POST_CONVERT_CHANNEL,
 		POST_CHANNEL_DELETED,
 		POST_CHANGE_CHANNEL_PRIVACY,
+		POST_ME,
 		POST_ADD_BOT_TEAMS_CHANNELS:
 	default:
 		if !strings.HasPrefix(o.Type, POST_CUSTOM_TYPE_PREFIX) {
