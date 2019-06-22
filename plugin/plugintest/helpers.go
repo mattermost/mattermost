@@ -34,17 +34,24 @@ func (_m *Helpers) EnsureBot(bot *model.Bot) (string, error) {
 }
 
 // KVCompareAndSetJSON provides a mock function with given fields: key, oldValue, newValue
-func (_m *Helpers) KVCompareAndSetJSON(key string, oldValue interface{}, newValue interface{}) error {
+func (_m *Helpers) KVCompareAndSetJSON(key string, oldValue interface{}, newValue interface{}) (bool, error) {
 	ret := _m.Called(key, oldValue, newValue)
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(string, interface{}, interface{}) error); ok {
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(string, interface{}, interface{}) bool); ok {
 		r0 = rf(key, oldValue, newValue)
 	} else {
-		r0 = ret.Error(0)
+		r0 = ret.Get(0).(bool)
 	}
 
-	return r0
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string, interface{}, interface{}) error); ok {
+		r1 = rf(key, oldValue, newValue)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // KVGetJSON provides a mock function with given fields: key, value
