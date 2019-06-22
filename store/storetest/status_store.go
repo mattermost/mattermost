@@ -33,7 +33,7 @@ func testStatusStore(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	if err := (<-ss.Status().Get(status.UserId)).Err; err != nil {
+	if _, err := ss.Status().Get(status.UserId); err != nil { //Fix
 		t.Fatal(err)
 	}
 
@@ -82,11 +82,11 @@ func testStatusStore(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	if result := <-ss.Status().Get(status.UserId); result.Err != nil {
-		t.Fatal(result.Err)
+	if _, err := ss.Status().Get(status.UserId); err != nil {
+		t.Fatal(err)
 	} else {
-		status := result.Data.(*model.Status)
-		if status.Status != model.STATUS_OFFLINE {
+		status := status.Status
+		if status != model.STATUS_OFFLINE {
 			t.Fatal("should be offline")
 		}
 	}
