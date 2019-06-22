@@ -151,7 +151,7 @@ func testChannelStoreSaveDirectChannel(t *testing.T, ss store.Store, s SqlSuppli
 	m2.UserId = u2.Id
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 
-	if _, err := ss.Channel().SaveDirectChannel(&o1, &m1, &m2); err != nil {
+	if _, err = ss.Channel().SaveDirectChannel(&o1, &m1, &m2); err != nil {
 		t.Fatal("couldn't save direct channel", err)
 	}
 
@@ -1933,7 +1933,8 @@ func testGetMemberCount(t *testing.T, ss store.Store) {
 	}
 	store.Must(ss.Channel().SaveMember(&m1))
 
-	if count, err := ss.Channel().GetMemberCount(c1.Id, false); err != nil {
+	var count int64
+	if count, err = ss.Channel().GetMemberCount(c1.Id, false); err != nil {
 		t.Fatalf("failed to get member count: %v", err)
 	} else if count != 1 {
 		t.Fatalf("got incorrect member count %v", count)
@@ -1954,7 +1955,7 @@ func testGetMemberCount(t *testing.T, ss store.Store) {
 	}
 	store.Must(ss.Channel().SaveMember(&m2))
 
-	if count, err := ss.Channel().GetMemberCount(c1.Id, false); err != nil {
+	if count, err = ss.Channel().GetMemberCount(c1.Id, false); err != nil {
 		t.Fatalf("failed to get member count: %v", err)
 	} else if count != 2 {
 		t.Fatalf("got incorrect member count %v", count)
@@ -1976,7 +1977,7 @@ func testGetMemberCount(t *testing.T, ss store.Store) {
 	}
 	store.Must(ss.Channel().SaveMember(&m3))
 
-	if count, err := ss.Channel().GetMemberCount(c1.Id, false); err != nil {
+	if count, err = ss.Channel().GetMemberCount(c1.Id, false); err != nil {
 		t.Fatalf("failed to get member count: %v", err)
 	} else if count != 2 {
 		t.Fatalf("got incorrect member count %v", count)

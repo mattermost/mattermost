@@ -156,24 +156,24 @@ func testUserStoreUpdate(t *testing.T, ss store.Store) {
 
 	time.Sleep(100 * time.Millisecond)
 
-	if _, err := ss.User().Update(u1, false); err != nil {
+	if _, err = ss.User().Update(u1, false); err != nil {
 		t.Fatal(err)
 	}
 
 	missing := &model.User{}
-	if _, err := ss.User().Update(missing, false); err == nil {
+	if _, err = ss.User().Update(missing, false); err == nil {
 		t.Fatal("Update should have failed because of missing key")
 	}
 
 	newId := &model.User{
 		Id: model.NewId(),
 	}
-	if _, err := ss.User().Update(newId, false); err == nil {
+	if _, err = ss.User().Update(newId, false); err == nil {
 		t.Fatal("Update should have failed because id change")
 	}
 
 	u2.Email = MakeEmail()
-	if _, err := ss.User().Update(u2, false); err == nil {
+	if _, err = ss.User().Update(u2, false); err == nil {
 		t.Fatal("Update should have failed because you can't modify AD/LDAP fields")
 	}
 
@@ -222,7 +222,7 @@ func testUserStoreUpdateUpdateAt(t *testing.T, ss store.Store) {
 
 	time.Sleep(10 * time.Millisecond)
 
-	if err := (<-ss.User().UpdateUpdateAt(u1.Id)).Err; err != nil {
+	if err = (<-ss.User().UpdateUpdateAt(u1.Id)).Err; err != nil {
 		t.Fatal(err)
 	}
 
@@ -242,7 +242,7 @@ func testUserStoreUpdateFailedPasswordAttempts(t *testing.T, ss store.Store) {
 	_, err := ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1)
 	require.Nil(t, err)
 
-	if err := (<-ss.User().UpdateFailedPasswordAttempts(u1.Id, 3)).Err; err != nil {
+	if err = (<-ss.User().UpdateFailedPasswordAttempts(u1.Id, 3)).Err; err != nil {
 		t.Fatal(err)
 	}
 
@@ -1853,16 +1853,17 @@ func testUserStoreUpdateMfaActive(t *testing.T, ss store.Store) {
 
 	time.Sleep(100 * time.Millisecond)
 
-	if err := (<-ss.User().UpdateMfaActive(u1.Id, true)).Err; err != nil {
+	var err *model.AppError
+	if err = (<-ss.User().UpdateMfaActive(u1.Id, true)).Err; err != nil {
 		t.Fatal(err)
 	}
 
-	if err := (<-ss.User().UpdateMfaActive(u1.Id, false)).Err; err != nil {
+	if err = (<-ss.User().UpdateMfaActive(u1.Id, false)).Err; err != nil {
 		t.Fatal(err)
 	}
 
 	// should pass, no update will occur though
-	if err := (<-ss.User().UpdateMfaActive("junk", true)).Err; err != nil {
+	if err = (<-ss.User().UpdateMfaActive("junk", true)).Err; err != nil {
 		t.Fatal(err)
 	}
 }

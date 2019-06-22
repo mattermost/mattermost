@@ -785,13 +785,14 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	_, err = ss.Team().SaveMember(m3, -1)
 	require.Nil(t, err)
 
-	if ms, err := ss.Team().GetMembers(teamId1, 0, 100, nil); err != nil {
+	var ms []*model.TeamMember
+	if ms, err = ss.Team().GetMembers(teamId1, 0, 100, nil); err != nil {
 		t.Fatal(err)
 	} else {
 		require.Len(t, ms, 2)
 	}
 
-	if ms, err := ss.Team().GetMembers(teamId2, 0, 100, nil); err != nil {
+	if ms, err = ss.Team().GetMembers(teamId2, 0, 100, nil); err != nil {
 		t.Fatal(err)
 	} else {
 
@@ -799,7 +800,7 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 		require.Equal(t, m3.UserId, ms[0].UserId)
 	}
 
-	if ms, err := ss.Team().GetTeamsForUser(m1.UserId); err != nil {
+	if ms, err = ss.Team().GetTeamsForUser(m1.UserId); err != nil {
 		t.Fatal(err)
 	} else {
 
@@ -811,7 +812,7 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 		t.Fatal(r1.Err)
 	}
 
-	if ms, err := ss.Team().GetMembers(teamId1, 0, 100, nil); err != nil {
+	if ms, err = ss.Team().GetMembers(teamId1, 0, 100, nil); err != nil {
 		t.Fatal(err)
 	} else {
 
@@ -826,7 +827,7 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 		t.Fatal(r1.Err)
 	}
 
-	if ms, err := ss.Team().GetMembers(teamId1, 0, 100, nil); err != nil {
+	if ms, err = ss.Team().GetMembers(teamId1, 0, 100, nil); err != nil {
 		t.Fatal(err)
 	} else {
 
@@ -841,7 +842,7 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	_, err = ss.Team().SaveMember(m5, -1)
 	require.Nil(t, err)
 
-	if ms, err := ss.Team().GetTeamsForUser(uid); err != nil {
+	if ms, err = ss.Team().GetTeamsForUser(uid); err != nil {
 		t.Fatal(err)
 	} else {
 
@@ -852,7 +853,7 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 		t.Fatal(r1.Err)
 	}
 
-	if ms, err := ss.Team().GetTeamsForUser(m1.UserId); err != nil {
+	if ms, err = ss.Team().GetTeamsForUser(m1.UserId); err != nil {
 		t.Fatal(err)
 	} else {
 
@@ -1036,7 +1037,8 @@ func testGetTeamMember(t *testing.T, ss store.Store) {
 	_, err := ss.Team().SaveMember(m1, -1)
 	require.Nil(t, err)
 
-	if rm1, err := ss.Team().GetMember(m1.TeamId, m1.UserId); err != nil {
+	var rm1 *model.TeamMember
+	if rm1, err = ss.Team().GetMember(m1.TeamId, m1.UserId); err != nil {
 		t.Fatal(err)
 	} else {
 
@@ -1049,11 +1051,11 @@ func testGetTeamMember(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if _, err := ss.Team().GetMember(m1.TeamId, ""); err == nil {
+	if _, err = ss.Team().GetMember(m1.TeamId, ""); err == nil {
 		t.Fatal("empty user id - should have failed")
 	}
 
-	if _, err := ss.Team().GetMember("", m1.UserId); err == nil {
+	if _, err = ss.Team().GetMember("", m1.UserId); err == nil {
 		t.Fatal("empty team id - should have failed")
 	}
 
@@ -1106,7 +1108,8 @@ func testGetTeamMembersByIds(t *testing.T, ss store.Store) {
 	_, err := ss.Team().SaveMember(m1, -1)
 	require.Nil(t, err)
 
-	if r, err := ss.Team().GetMembersByIds(m1.TeamId, []string{m1.UserId}, nil); err != nil {
+	var r []*model.TeamMember
+	if r, err = ss.Team().GetMembersByIds(m1.TeamId, []string{m1.UserId}, nil); err != nil {
 		t.Fatal(err)
 	} else {
 		rm1 := r[0]
@@ -1157,7 +1160,8 @@ func testTeamStoreMemberCount(t *testing.T, ss store.Store) {
 	_, err = ss.Team().SaveMember(m2, -1)
 	require.Nil(t, err)
 
-	if totalMemberCount, err := ss.Team().GetTotalMemberCount(teamId1); err != nil {
+	var totalMemberCount int64
+	if totalMemberCount, err = ss.Team().GetTotalMemberCount(teamId1); err != nil {
 		t.Fatal(err)
 	} else {
 		if totalMemberCount != 2 {
@@ -1165,7 +1169,8 @@ func testTeamStoreMemberCount(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if result, err := ss.Team().GetActiveMemberCount(teamId1); err != nil {
+	var result int64
+	if result, err = ss.Team().GetActiveMemberCount(teamId1); err != nil {
 		t.Fatal(err)
 	} else {
 		if result != 1 {
