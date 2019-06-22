@@ -1436,9 +1436,8 @@ func TestAddTeamMember(t *testing.T) {
 		t.Fatal("team ids should have matched")
 	}
 
-	if result := <-th.App.Srv.Store.Token().GetByToken(token.Token); result.Err == nil {
-		t.Fatal("The token must be deleted after be used")
-	}
+	_, err := th.App.Srv.Store.Token().GetByToken(token.Token)
+	require.NotNil(t, err, "The token must be deleted after be used")
 
 	tm, resp = Client.AddTeamMemberFromInvite("junk", "")
 	CheckBadRequestStatus(t, resp)
@@ -1495,7 +1494,7 @@ func TestAddTeamMember(t *testing.T) {
 
 	// Set a team to group-constrained
 	team.GroupConstrained = model.NewBool(true)
-	_, err := th.App.UpdateTeam(team)
+	_, err = th.App.UpdateTeam(team)
 	require.Nil(t, err)
 
 	// Attempt to use a token on a group-constrained team

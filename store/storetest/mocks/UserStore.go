@@ -381,6 +381,31 @@ func (_m *UserStore) GetNewUsersForTeam(teamId string, offset int, limit int, vi
 	return r0
 }
 
+// GetProfileByGroupChannelIdsForUser provides a mock function with given fields: userId, channelIds
+func (_m *UserStore) GetProfileByGroupChannelIdsForUser(userId string, channelIds []string) (map[string][]*model.User, *model.AppError) {
+	ret := _m.Called(userId, channelIds)
+
+	var r0 map[string][]*model.User
+	if rf, ok := ret.Get(0).(func(string, []string) map[string][]*model.User); ok {
+		r0 = rf(userId, channelIds)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string][]*model.User)
+		}
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, []string) *model.AppError); ok {
+		r1 = rf(userId, channelIds)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetProfileByIds provides a mock function with given fields: userId, allowFromCache, viewRestrictions
 func (_m *UserStore) GetProfileByIds(userId []string, allowFromCache bool, viewRestrictions *model.ViewUsersRestrictions) store.StoreChannel {
 	ret := _m.Called(userId, allowFromCache, viewRestrictions)
