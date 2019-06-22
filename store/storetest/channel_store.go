@@ -2968,8 +2968,8 @@ func testChannelStoreGetPinnedPosts(t *testing.T, ss store.Store) {
 		IsPinned:  true,
 	})
 
-	if pl, err := ss.Channel().GetPinnedPosts(o1.Id); err != nil {
-		t.Fatal(err)
+	if pl, errGet := ss.Channel().GetPinnedPosts(o1.Id); errGet != nil {
+		t.Fatal(errGet)
 	} else if pl.Posts[p1.Id] == nil {
 		t.Fatal("didn't return relevant pinned posts")
 	}
