@@ -237,6 +237,9 @@ pipeline {
         }
 
         stage('Clean checkout') {
+            when {
+                expression { env.CHANGE_ID != null }
+            }
             // We need to perform a clean checkout here to ge the original git commit hash from the PR
             // Jenkins now merges master in top of the PR and this generate a new git hash
             // We need to do that to build the docker image based on the original git commit and then this will be used by
