@@ -183,30 +183,27 @@ func (es SqlEmojiStore) Delete(id string, time int64) *model.AppError {
 	return nil
 }
 
-func (es SqlEmojiStore) Search(name string, prefixOnly bool, limit int) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var emojis []*model.Emoji
+func (es SqlEmojiStore) Search(name string, prefixOnly bool, limit int) ([]*model.Emoji, *model.AppError) {
+	var emojis []*model.Emoji
 
-		term := ""
-		if !prefixOnly {
-			term = "%"
-		}
+	term := ""
+	if !prefixOnly {
+		term = "%"
+	}
 
-		term += name + "%"
+	term += name + "%"
 
-		if _, err := es.GetReplica().Select(&emojis,
-			`SELECT
-				*
-			FROM
-				Emoji
-			WHERE
-				Name LIKE :Name
-				AND DeleteAt = 0
-				ORDER BY Name
-				LIMIT :Limit`, map[string]interface{}{"Name": term, "Limit": limit}); err != nil {
-			result.Err = model.NewAppError("SqlEmojiStore.Search", "store.sql_emoji.get_by_name.app_error", nil, "name="+name+", "+err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = emojis
-		}
-	})
+	if _, err := es.GetReplica().Select(&emojis,
+		`SELECT
+			*
+		FROM
+			Emoji
+		WHERE
+			Name LIKE :Name
+			AND DeleteAt = 0
+			ORDER BY Name
+			LIMIT :Limit`, map[string]interface{}{"Name": term, "Limit": limit}); err != nil {
+		return nil, model.NewAppError("SqlEmojiStore.Search", "store.sql_emoji.get_by_name.app_error", nil, "name="+name+", "+err.Error(), http.StatusInternalServerError)
+	}
+	return emojis, nil
 }

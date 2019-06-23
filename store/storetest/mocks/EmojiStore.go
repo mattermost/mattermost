@@ -137,17 +137,26 @@ func (_m *EmojiStore) Save(emoji *model.Emoji) (*model.Emoji, *model.AppError) {
 }
 
 // Search provides a mock function with given fields: name, prefixOnly, limit
-func (_m *EmojiStore) Search(name string, prefixOnly bool, limit int) store.StoreChannel {
+func (_m *EmojiStore) Search(name string, prefixOnly bool, limit int) ([]*model.Emoji, *model.AppError) {
 	ret := _m.Called(name, prefixOnly, limit)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, bool, int) store.StoreChannel); ok {
+	var r0 []*model.Emoji
+	if rf, ok := ret.Get(0).(func(string, bool, int) []*model.Emoji); ok {
 		r0 = rf(name, prefixOnly, limit)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]*model.Emoji)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, bool, int) *model.AppError); ok {
+		r1 = rf(name, prefixOnly, limit)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }

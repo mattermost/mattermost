@@ -299,13 +299,13 @@ func testEmojiSearch(t *testing.T, ss store.Store) {
 
 	shouldFind := []bool{true, false, false, false}
 
-	if result := <-ss.Emoji().Search("blargh", true, 100); result.Err != nil {
-		t.Fatal(result.Err)
+	if result, err := ss.Emoji().Search("blargh", true, 100); err != nil {
+		t.Fatal(err)
 	} else {
 		for i, emoji := range emojis {
 			found := false
 
-			for _, savedEmoji := range result.Data.([]*model.Emoji) {
+			for _, savedEmoji := range result {
 				if emoji.Id == savedEmoji.Id {
 					found = true
 					break
@@ -317,13 +317,13 @@ func testEmojiSearch(t *testing.T, ss store.Store) {
 	}
 
 	shouldFind = []bool{true, true, true, false}
-	if result := <-ss.Emoji().Search("blargh", false, 100); result.Err != nil {
-		t.Fatal(result.Err)
+	if result, err := ss.Emoji().Search("blargh", false, 100); err != nil {
+		t.Fatal(err)
 	} else {
 		for i, emoji := range emojis {
 			found := false
 
-			for _, savedEmoji := range result.Data.([]*model.Emoji) {
+			for _, savedEmoji := range result {
 				if emoji.Id == savedEmoji.Id {
 					found = true
 					break

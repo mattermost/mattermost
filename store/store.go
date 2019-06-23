@@ -185,6 +185,7 @@ type ChannelStore interface {
 	SearchAllChannels(term string, opts ChannelSearchOpts) StoreChannel
 	SearchInTeam(teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError)
 	SearchMore(userId string, teamId string, term string) (*model.ChannelList, *model.AppError)
+	SearchGroupChannels(userId, term string) (*model.ChannelList, *model.AppError)
 	GetMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError)
 	AnalyticsDeletedTypeCount(teamId string, channelType string) (int64, *model.AppError)
 	GetChannelUnread(channelId, userId string) (*model.ChannelUnread, *model.AppError)
@@ -267,6 +268,7 @@ type UserStore interface {
 	GetAllProfiles(options *model.UserGetOptions) StoreChannel
 	GetProfiles(options *model.UserGetOptions) StoreChannel
 	GetProfileByIds(userId []string, allowFromCache bool, viewRestrictions *model.ViewUsersRestrictions) StoreChannel
+	GetProfileByGroupChannelIdsForUser(userId string, channelIds []string) (map[string][]*model.User, *model.AppError)
 	InvalidatProfileCacheForUser(userId string)
 	GetByEmail(email string) (*model.User, *model.AppError)
 	GetByAuth(authData *string, authService string) (*model.User, *model.AppError)
@@ -448,7 +450,7 @@ type LicenseStore interface {
 type TokenStore interface {
 	Save(recovery *model.Token) StoreChannel
 	Delete(token string) *model.AppError
-	GetByToken(token string) StoreChannel
+	GetByToken(token string) (*model.Token, *model.AppError)
 	Cleanup()
 	RemoveAllTokensByType(tokenType string) StoreChannel
 }
@@ -460,7 +462,7 @@ type EmojiStore interface {
 	GetMultipleByName(names []string) StoreChannel
 	GetList(offset, limit int, sort string) StoreChannel
 	Delete(id string, time int64) *model.AppError
-	Search(name string, prefixOnly bool, limit int) StoreChannel
+	Search(name string, prefixOnly bool, limit int) ([]*model.Emoji, *model.AppError)
 }
 
 type StatusStore interface {
