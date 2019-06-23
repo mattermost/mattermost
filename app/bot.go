@@ -19,13 +19,12 @@ func (a *App) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
 	bot.UserId = result.Data.(*model.User).Id
 
 	savedBot, err := a.Srv.Store.Bot().Save(bot)
-
-	if _, err := a.UpdateUserRoles(savedBot.UserId, model.SYSTEM_USER_ROLE_ID, true); err != nil {
+	if err != nil {
+		a.Srv.Store.User().PermanentDelete(bot.UserId)
 		return nil, err
 	}
 
-	if err != nil {
-		a.Srv.Store.User().PermanentDelete(bot.UserId)
+	if _, err := a.UpdateUserRoles(savedBot.UserId, model.SYSTEM_USER_ROLE_ID, true); err != nil {
 		return nil, err
 	}
 
