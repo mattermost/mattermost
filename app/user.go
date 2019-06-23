@@ -1362,11 +1362,7 @@ func (a *App) GetPasswordRecoveryToken(token string) (*model.Token, *model.AppEr
 }
 
 func (a *App) DeleteToken(token *model.Token) *model.AppError {
-	if err := a.Srv.Store.Token().Delete(token.Token); err != nil {
-		return err
-	}
-
-	return nil
+	return a.Srv.Store.Token().Delete(token.Token)
 }
 
 func (a *App) UpdateUserRoles(userId string, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError) {
