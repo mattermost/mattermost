@@ -122,17 +122,15 @@ func (s SqlStatusStore) GetOnline() store.StoreChannel {
 	})
 }
 
-func (s SqlStatusStore) GetAllFromTeam(teamId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var statuses []*model.Status
-		if _, err := s.GetReplica().Select(&statuses,
-			`SELECT s.* FROM Status AS s INNER JOIN
+func (s SqlStatusStore) GetAllFromTeam(teamId string) ([]*model.Status, *model.AppError) {
+	var statuses []*model.Status
+	if _, err := s.GetReplica().Select(&statuses,
+		`SELECT s.* FROM Status AS s INNER JOIN
 			TeamMembers AS tm ON tm.TeamId=:TeamId AND s.UserId=tm.UserId`, map[string]interface{}{"TeamId": teamId}); err != nil {
-			result.Err = model.NewAppError("SqlStatusStore.GetAllFromTeam", "store.sql_status.get_team_statuses.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = statuses
-		}
-	})
+		return nil, model.NewAppError("SqlStatusStore.GetAllFromTeam", "store.sql_status.get_team_statuses.app_error", nil, err.Error(), http.StatusInternalServerError)
+	} else {
+		return statuses, nil
+	}
 }
 
 func (s SqlStatusStore) ResetAll() store.StoreChannel {

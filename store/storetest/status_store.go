@@ -175,21 +175,21 @@ func testGetAllFromTeam(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	if result := <-ss.Status().GetAllFromTeam(team1.Id); result.Err != nil {
-		t.Fatal(result.Err)
+	if statueses, err := ss.Status().GetAllFromTeam(team1.Id); err != nil {
+		t.Fatal(err)
 	} else {
 		assertStatuses([]*model.Status{
 			team1Member1Status,
 			team1Member2Status,
-		}, result.Data.([]*model.Status))
+		}, statueses)
 	}
 
-	if result := <-ss.Status().GetAllFromTeam(team2.Id); result.Err != nil {
-		t.Fatal(result.Err)
+	if statueses, err := ss.Status().GetAllFromTeam(team2.Id); err != nil {
+		t.Fatal(err)
 	} else {
 		assertStatuses([]*model.Status{
 			team2Member1Status,
 			team2Member2Status,
-		}, result.Data.([]*model.Status))
+		}, statueses)
 	}
 }

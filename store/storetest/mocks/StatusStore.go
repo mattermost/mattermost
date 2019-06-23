@@ -30,19 +30,28 @@ func (_m *StatusStore) Get(userId string) store.StoreChannel {
 }
 
 // GetAllFromTeam provides a mock function with given fields: teamId
-func (_m *StatusStore) GetAllFromTeam(teamId string) store.StoreChannel {
+func (_m *StatusStore) GetAllFromTeam(teamId string) ([]*model.Status, *model.AppError) {
 	ret := _m.Called(teamId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+	var r0 []*model.Status
+	if rf, ok := ret.Get(0).(func(string) []*model.Status); ok {
 		r0 = rf(teamId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]*model.Status)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(teamId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetByIds provides a mock function with given fields: userIds
