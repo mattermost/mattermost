@@ -570,6 +570,7 @@ func (a *App) trackConfig() {
 		"live_indexing_batch_size":          *cfg.ElasticsearchSettings.LiveIndexingBatchSize,
 		"bulk_indexing_time_window_seconds": *cfg.ElasticsearchSettings.BulkIndexingTimeWindowSeconds,
 		"request_timeout_seconds":           *cfg.ElasticsearchSettings.RequestTimeoutSeconds,
+		"skip_tls_verification":             *cfg.ElasticsearchSettings.SkipTLSVerification,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_PLUGIN, map[string]interface{}{
