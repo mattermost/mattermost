@@ -128,9 +128,8 @@ func (s SqlStatusStore) GetAllFromTeam(teamId string) ([]*model.Status, *model.A
 		`SELECT s.* FROM Status AS s INNER JOIN
 			TeamMembers AS tm ON tm.TeamId=:TeamId AND s.UserId=tm.UserId`, map[string]interface{}{"TeamId": teamId}); err != nil {
 		return nil, model.NewAppError("SqlStatusStore.GetAllFromTeam", "store.sql_status.get_team_statuses.app_error", nil, err.Error(), http.StatusInternalServerError)
-	} else {
-		return statuses, nil
 	}
+	return statuses, nil
 }
 
 func (s SqlStatusStore) ResetAll() store.StoreChannel {
