@@ -18,6 +18,7 @@ func (api *API) InitChannel() {
 	api.BaseRoutes.Channels.Handle("", api.ApiSessionRequired(createChannel)).Methods("POST")
 	api.BaseRoutes.Channels.Handle("/direct", api.ApiSessionRequired(createDirectChannel)).Methods("POST")
 	api.BaseRoutes.Channels.Handle("/search", api.ApiSessionRequired(searchAllChannels)).Methods("POST")
+	api.BaseRoutes.Channels.Handle("/group/search", api.ApiSessionRequired(searchGroupChannels)).Methods("POST")
 	api.BaseRoutes.Channels.Handle("/group", api.ApiSessionRequired(createGroupChannel)).Methods("POST")
 	api.BaseRoutes.Channels.Handle("/members/{user_id:[A-Za-z0-9]+}/view", api.ApiSessionRequired(viewChannel)).Methods("POST")
 	api.BaseRoutes.Channels.Handle("/{channel_id:[A-Za-z0-9]+}/scheme", api.ApiSessionRequired(updateChannelScheme)).Methods("PUT")
@@ -354,6 +355,22 @@ func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte(sc.ToJson()))
+}
+
+func searchGroupChannels(c *Context, w http.ResponseWriter, r *http.Request) {
+	props := model.ChannelSearchFromJson(r.Body)
+	if props == nil {
+		c.SetInvalidParam("channel_search")
+		return
+	}
+
+	groupChannels, err := c.App.SearchGroupChannels(c.App.Session.UserId, props.Term)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	w.Write([]byte(groupChannels.ToJson()))
 }
 
 func createGroupChannel(c *Context, w http.ResponseWriter, r *http.Request) {
