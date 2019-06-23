@@ -38,13 +38,6 @@ func Must(sc StoreChannel) interface{} {
 	return r.Data
 }
 
-func MustHaveNoErr(err *model.AppError) {
-	if err != nil {
-		time.Sleep(time.Second)
-		panic(err)
-	}
-}
-
 type Store interface {
 	Team() TeamStore
 	Channel() ChannelStore
