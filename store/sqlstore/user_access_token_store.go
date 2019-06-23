@@ -52,16 +52,17 @@ func (s SqlUserAccessTokenStore) Delete(tokenId string) *model.AppError {
 	transaction, err := s.GetMaster().Begin()
 	if err != nil {
 		return model.NewAppError("SqlUserAccessTokenStore.Delete", "store.sql_user_access_token.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
-	} else {
-		defer finalizeTransaction(transaction)
+	}
 
-		if err := s.deleteSessionsAndTokensById(transaction, tokenId); err == nil {
-			if err := transaction.Commit(); err != nil {
-				// don't need to rollback here since the transaction is already closed
-				return model.NewAppError("SqlUserAccessTokenStore.Delete", "store.sql_user_access_token.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
-			}
+	defer finalizeTransaction(transaction)
+
+	if err := s.deleteSessionsAndTokensById(transaction, tokenId); err == nil {
+		if err := transaction.Commit(); err != nil {
+			// don't need to rollback here since the transaction is already closed
+			return model.NewAppError("SqlUserAccessTokenStore.Delete", "store.sql_user_access_token.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
+
 
 	return nil
 }
