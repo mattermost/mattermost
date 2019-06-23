@@ -24,7 +24,8 @@ func (a *App) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
 		return nil, err
 	}
 
-	if _, err := a.UpdateUserRoles(savedBot.UserId, model.SYSTEM_USER_ROLE_ID, true); err != nil {
+	_, err = a.UpdateUserRoles(savedBot.UserId, model.SYSTEM_USER_ROLE_ID, true)
+	if err != nil {
 		return nil, err
 	}
 
