@@ -1362,8 +1362,8 @@ func (a *App) GetPasswordRecoveryToken(token string) (*model.Token, *model.AppEr
 }
 
 func (a *App) DeleteToken(token *model.Token) *model.AppError {
-	if result := <-a.Srv.Store.Token().Delete(token.Token); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.Token().Delete(token.Token); err != nil {
+		return err
 	}
 
 	return nil
