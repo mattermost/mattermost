@@ -833,6 +833,73 @@ func (a *App) RemoveUserFromTeam(teamId string, userId string, requestorId strin
 	return nil
 }
 
+func (a *App) RemoveTeamMemberFromTeam(teamMember *model.TeamMember, requestorId string) *model.AppError {
+	user, err := a.Srv.Store.User().Get(teamMember.UserId)
+	if err != nil {
+		return err
+	}
+	isGuest := user.IsGuest()
+
+	teamMember.Roles = ""
+	teamMember.DeleteAt = model.GetMillis()
+
+	if _, err := a.Srv.Store.Team().UpdateMember(teamMember); err != nil {
+		return err
+	}
+
+	if isGuest {
+		teams, err := a.GetTeamsForUser(teamMember.UserId)
+		if err != nil {
+			mlog.Error(fmt.Sprintf("Unable to count the teams of the user: %v", err))
+		}
+		if len(teams) == 0 {
+			_, err := a.UpdateActive(user, false)
+			if err != nil {
+				mlog.Error(fmt.Sprintf("Unable to deactivate the user: %v", err))
+			}
+		}
+	}
+
+	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
+		var actor *model.User
+		if requestorId != "" {
+			actor, _ = a.GetUser(requestorId)
+		}
+
+		a.Srv.Go(func() {
+			pluginContext := a.PluginContext()
+			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
+				hooks.UserHasLeftTeam(pluginContext, teamMember, actor)
+				return true
+			}, plugin.UserHasLeftTeamId)
+		})
+	}
+
+	esInterface := a.Elasticsearch
+	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
+		a.Srv.Go(func() {
+			if err := a.indexUser(user); err != nil {
+				mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.Err(err))
+			}
+		})
+	}
+
+	if uua := <-a.Srv.Store.User().UpdateUpdateAt(user.Id); uua.Err != nil {
+		return uua.Err
+	}
+
+	// delete the preferences that set the last channel used in the team and other team specific preferences
+	if err := a.Srv.Store.Preference().DeleteCategory(user.Id, teamMember.TeamId); err != nil {
+		return err
+	}
+
+	a.ClearSessionCacheForUser(user.Id)
+	a.InvalidateCacheForUser(user.Id)
+	a.InvalidateCacheForUserTeams(user.Id)
+
+	return nil
+}
+
 func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) *model.AppError {
 	teamMember, err := a.GetTeamMember(team.Id, user.Id)
 	if err != nil {
@@ -881,49 +948,10 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 	message.Add("team_id", team.Id)
 	a.Publish(message)
 
-	teamMember.Roles = ""
-	teamMember.DeleteAt = model.GetMillis()
-
-	if _, err := a.Srv.Store.Team().UpdateMember(teamMember); err != nil {
+	err = a.RemoveTeamMemberFromTeam(teamMember, requestorId)
+	if err != nil {
 		return err
 	}
-
-	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
-		var actor *model.User
-		if requestorId != "" {
-			actor, _ = a.GetUser(requestorId)
-		}
-
-		a.Srv.Go(func() {
-			pluginContext := a.PluginContext()
-			pluginsEnvironment.RunMultiPluginHook(func(hooks plugin.Hooks) bool {
-				hooks.UserHasLeftTeam(pluginContext, teamMember, actor)
-				return true
-			}, plugin.UserHasLeftTeamId)
-		})
-	}
-
-	esInterface := a.Elasticsearch
-	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
-		a.Srv.Go(func() {
-			if err := a.indexUser(user); err != nil {
-				mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.Err(err))
-			}
-		})
-	}
-
-	if uua := <-a.Srv.Store.User().UpdateUpdateAt(user.Id); uua.Err != nil {
-		return uua.Err
-	}
-
-	// delete the preferences that set the last channel used in the team and other team specific preferences
-	if err := a.Srv.Store.Preference().DeleteCategory(user.Id, team.Id); err != nil {
-		return err
-	}
-
-	a.ClearSessionCacheForUser(user.Id)
-	a.InvalidateCacheForUser(user.Id)
-	a.InvalidateCacheForUserTeams(user.Id)
 
 	return nil
 }

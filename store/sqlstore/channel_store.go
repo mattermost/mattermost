@@ -1876,7 +1876,7 @@ func (s SqlChannelStore) AnalyticsDeletedTypeCount(teamId string, channelType st
 func (s SqlChannelStore) GetMembersForUser(teamId string, userId string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		var dbMembers channelMemberWithSchemeRolesList
-		_, err := s.GetReplica().Select(&dbMembers, CHANNEL_MEMBERS_WITH_SCHEME_SELECT_QUERY+"WHERE ChannelMembers.UserId = :UserId", map[string]interface{}{"TeamId": teamId, "UserId": userId})
+		_, err := s.GetReplica().Select(&dbMembers, CHANNEL_MEMBERS_WITH_SCHEME_SELECT_QUERY+"WHERE ChannelMembers.UserId = :UserId AND Teams.Id = :TeamId", map[string]interface{}{"TeamId": teamId, "UserId": userId})
 
 		if err != nil {
 			result.Err = model.NewAppError("SqlChannelStore.GetMembersForUser", "store.sql_channel.get_members.app_error", nil, "teamId="+teamId+", userId="+userId+", err="+err.Error(), http.StatusInternalServerError)
