@@ -63,8 +63,8 @@ func (s SqlUserAccessTokenStore) Delete(tokenId string) *model.AppError {
 		}
 	}
 
-
 	return nil
+
 }
 
 func (s SqlUserAccessTokenStore) deleteSessionsAndTokensById(transaction *gorp.Transaction, tokenId string) *model.AppError {
