@@ -236,12 +236,38 @@ pipeline {
             }
         }
 
+        stage('Clean checkout') {
+            // We need to perform a clean checkout here to ge the original git commit hash from the PR
+            // Jenkins now merges master in top of the PR and this generate a new git hash
+            // We need to do that to build the docker image based on the original git commit and then this will be used by
+            // mattermod to update the test server.
+            steps {
+                sh """
+                    mkdir -p /tmp/mattermost-server
+                """
+                dir('/tmp/mattermost-server') {
+                    checkout([$class: 'GitSCM', branches: [[name: 'FETCH_HEAD']],
+                        doGenerateSubmoduleConfigurations: false, extensions: [],
+                        submoduleCfg: [], userRemoteConfigs:  [
+                        [refspec: "+refs/pull/${CHANGE_ID}/head:refs/remotes/origin/PR-${CHANGE_ID}",
+                        credentialsId: "310159d3-f7c5-4f5d-bfa1-151e3ef2db57",url: "https://github.com/mattermost/mattermost-server.git"]]])
+                    sh 'git rev-parse --short HEAD'
+                }
+            }
+        }
+
         stage('Trigger docker image') {
+            environment {
+                GIT_COMMIT_SHORT = sh(
+                        script: "cd /tmp/mattermost-server && printf \$(git rev-parse --short HEAD)",
+                        returnStdout: true
+                )
+            }
             when {
                 expression { env.CHANGE_ID != null }
             }
             steps {
-                build job: '../../mk/mattermost-enterprise-edition-release', parameters: [string(name: 'RELEASE', value: "${CHANGE_ID}"), booleanParam(name: 'FROM_PR', value: true)], propagate: false, wait: false
+                build job: '../../mk/mattermost-enterprise-edition-release', parameters: [string(name: 'RELEASE', value: "${CHANGE_ID}"), booleanParam(name: 'FROM_PR', value: true),string(name: 'PR_TAG', value: "${GIT_COMMIT_SHORT}")], propagate: false, wait: false
             }
         }
     }

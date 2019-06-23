@@ -318,7 +318,7 @@ gofmt: ## Runs gofmt against all packages.
 	@echo "gofmt success"; \
 
 megacheck: ## Run megacheck on codebasis
-	go get honnef.co/go/tools/cmd/megacheck
+	env GO111MODULE=off go get -u honnef.co/go/tools/cmd/megacheck
 	$(GOPATH)/bin/megacheck $(TE_PACKAGES)
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -326,23 +326,23 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 endif
 
 i18n-extract: ## Extract strings for translation from the source code
-	go get -u github.com/mattermost/mattermost-utilities/mmgotool
+	env GO111MODULE=off go get -u github.com/mattermost/mattermost-utilities/mmgotool
 	$(GOPATH)/bin/mmgotool i18n extract
 
 store-mocks: ## Creates mock files.
-	go get -u github.com/vektra/mockery/...
+	env GO111MODULE=off go get -u github.com/vektra/mockery/...
 	$(GOPATH)/bin/mockery -dir store -all -output store/storetest/mocks -note 'Regenerate this file using `make store-mocks`.'
 
 filesstore-mocks: ## Creates mock files.
-	go get -u github.com/vektra/mockery/...
+	env GO111MODULE=off go get -u github.com/vektra/mockery/...
 	$(GOPATH)/bin/mockery -dir services/filesstore -all -output services/filesstore/mocks -note 'Regenerate this file using `make filesstore-mocks`.'
 
 ldap-mocks: ## Creates mock files for ldap.
-	go get -u github.com/vektra/mockery/...
+	env GO111MODULE=off go get -u github.com/vektra/mockery/...
 	$(GOPATH)/bin/mockery -dir enterprise/ldap -all -output enterprise/ldap/mocks -note 'Regenerate this file using `make ldap-mocks`.'
 
 plugin-mocks: ## Creates mock files for plugins.
-	go get -u github.com/vektra/mockery/...
+	env GO111MODULE=off go get -u github.com/vektra/mockery/...
 	$(GOPATH)/bin/mockery -dir plugin -name API -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
 	$(GOPATH)/bin/mockery -dir plugin -name Hooks -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
 	$(GOPATH)/bin/mockery -dir plugin -name Helpers -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
@@ -395,7 +395,7 @@ do-cover-file: ## Creates the test coverage report file.
 	@echo "mode: count" > cover.out
 
 go-junit-report:
-	go get -u github.com/jstemmer/go-junit-report
+	env GO111MODULE=off go get -u github.com/jstemmer/go-junit-report
 
 test-compile:
 	@echo COMPILE TESTS
