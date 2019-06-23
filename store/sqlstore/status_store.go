@@ -77,8 +77,7 @@ func (s SqlStatusStore) Get(userId string) store.StoreChannel {
 	})
 }
 
-func (s SqlStatusStore) GetByIds(userIds []string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
+func (s SqlStatusStore) GetByIds(userIds []string) ([]*model.Status, *model.AppError) {
 		props := make(map[string]interface{})
 		idQuery := ""
 
@@ -93,11 +92,9 @@ func (s SqlStatusStore) GetByIds(userIds []string) store.StoreChannel {
 
 		var statuses []*model.Status
 		if _, err := s.GetReplica().Select(&statuses, "SELECT * FROM Status WHERE UserId IN ("+idQuery+")", props); err != nil {
-			result.Err = model.NewAppError("SqlStatusStore.GetByIds", "store.sql_status.get.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = statuses
+			return nil, model.NewAppError("SqlStatusStore.GetByIds", "store.sql_status.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
-	})
+		return statuses, nil
 }
 
 func (s SqlStatusStore) GetOnlineAway() store.StoreChannel {
