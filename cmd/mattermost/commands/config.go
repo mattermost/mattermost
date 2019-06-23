@@ -203,7 +203,7 @@ func printConfigValues(configMap map[string]interface{}, configSetting []string,
 	switch value.Kind() {
 	case reflect.Map:
 		if len(configSetting) == 1 {
-			return printMap(value, 0), nil
+			return printStringMap(value, 0), nil
 		}
 		return printConfigValues(res.(map[string]interface{}), configSetting[1:], name)
 	default:
