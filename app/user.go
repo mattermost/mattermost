@@ -2277,11 +2277,35 @@ func (a *App) PromoteGuestToUser(user *model.User, requestorId string) *model.Ap
 			mlog.Error(fmt.Sprintf("Encountered an issue joining default channels err=%v", err), mlog.String("user_id", user.Id), mlog.String("team_id", team.Id), mlog.String("requestor_id", requestorId))
 		}
 	}
+
+	promotedUser, err := a.GetUser(user.Id)
+	if err != nil {
+		return err
+	}
+
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", nil)
+	message.Add("user", promotedUser)
+	a.Publish(message)
+
 	return nil
 }
 
 // DemoteUserToGuest Convert user's roles and all his mermbership's roles from
 // regular user roles to guest roles.
 func (a *App) DemoteUserToGuest(user *model.User) *model.AppError {
-	return a.Srv.Store.User().DemoteUserToGuest(user.Id)
+	err := a.Srv.Store.User().DemoteUserToGuest(user.Id)
+	if err != nil {
+		return err
+	}
+
+	demotedUser, err := a.GetUser(user.Id)
+	if err != nil {
+		return err
+	}
+
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", nil)
+	message.Add("user", demotedUser)
+	a.Publish(message)
+
+	return nil
 }
