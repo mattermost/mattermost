@@ -119,7 +119,7 @@ func testLinkMetadataStoreSave(t *testing.T, ss store.Store) {
 		// Should return the original result, not the duplicate one
 		metadata, err := ss.LinkMetadata().Get(metadata.URL, metadata.Timestamp)
 		require.Nil(t, err)
-		assert.Equal(t, &model.PostImage{}, metadata.Data.(*model.LinkMetadata).Data)
+		assert.Equal(t, &model.PostImage{}, metadata.Data)
 	})
 }
 
@@ -136,10 +136,8 @@ func testLinkMetadataStoreGet(t *testing.T, ss store.Store) {
 		require.Nil(t, result.Err)
 
 		linkMetadata, err := ss.LinkMetadata().Get(metadata.URL, metadata.Timestamp)
-
 		require.Nil(t, err)
-		require.IsType(t, metadata, linkMetadata.Data)
-		assert.Equal(t, *metadata, *linkMetadata.Data.(*model.LinkMetadata))
+		assert.Equal(t, &model.PostImage{}, linkMetadata.Data)
 	})
 
 	t.Run("should return not found with incorrect URL", func(t *testing.T) {
@@ -196,10 +194,9 @@ func testLinkMetadataStoreTypes(t *testing.T, ss store.Store) {
 		require.IsType(t, &model.PostImage{}, received.Data)
 		assert.Equal(t, *(metadata.Data.(*model.PostImage)), *(received.Data.(*model.PostImage)))
 
-		linkMetadata, err := ss.LinkMetadata().Get(metadata.URL, metadata.Timestamp)
+		received, err := ss.LinkMetadata().Get(metadata.URL, metadata.Timestamp)
 		require.Nil(t, err)
 
-		received = linkMetadata.Data.(*model.LinkMetadata)
 		require.IsType(t, &model.PostImage{}, received.Data)
 		assert.Equal(t, *(metadata.Data.(*model.PostImage)), *(received.Data.(*model.PostImage)))
 	})
@@ -228,10 +225,9 @@ func testLinkMetadataStoreTypes(t *testing.T, ss store.Store) {
 		require.IsType(t, &opengraph.OpenGraph{}, received.Data)
 		assert.Equal(t, *(metadata.Data.(*opengraph.OpenGraph)), *(received.Data.(*opengraph.OpenGraph)))
 
-		linkMetadata, err := ss.LinkMetadata().Get(metadata.URL, metadata.Timestamp)
+		received, err := ss.LinkMetadata().Get(metadata.URL, metadata.Timestamp)
 		require.Nil(t, err)
 
-		received = linkMetadata.Data.(*model.LinkMetadata)
 		require.IsType(t, &opengraph.OpenGraph{}, received.Data)
 		assert.Equal(t, *(metadata.Data.(*opengraph.OpenGraph)), *(received.Data.(*opengraph.OpenGraph)))
 	})
@@ -250,10 +246,9 @@ func testLinkMetadataStoreTypes(t *testing.T, ss store.Store) {
 		received := result.Data.(*model.LinkMetadata)
 		assert.Nil(t, received.Data)
 
-		linkMetadata, err := ss.LinkMetadata().Get(metadata.URL, metadata.Timestamp)
+		received, err := ss.LinkMetadata().Get(metadata.URL, metadata.Timestamp)
 		require.Nil(t, err)
 
-		received = linkMetadata.Data.(*model.LinkMetadata)
 		require.Nil(t, received.Data)
 	})
 }
