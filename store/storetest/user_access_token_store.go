@@ -31,8 +31,8 @@ func testUserAccessTokenSaveGetDelete(t *testing.T, ss store.Store) {
 	s1, err := ss.Session().Save(s1)
 	require.Nil(t, err)
 
-	if result := <-ss.UserAccessToken().Save(uat); result.Err != nil {
-		t.Fatal(result.Err)
+	if _, err = ss.UserAccessToken().Save(uat); err != nil {
+		t.Fatal(err)
 	}
 
 	if result, terr := ss.UserAccessToken().Get(uat.Id); terr != nil {
@@ -51,9 +51,9 @@ func testUserAccessTokenSaveGetDelete(t *testing.T, ss store.Store) {
 		t.Fatal("should have failed on bad token")
 	}
 
-	if result := <-ss.UserAccessToken().GetByUser(uat.UserId, 0, 100); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if received := result.Data.([]*model.UserAccessToken); len(received) != 1 {
+	if received, err2 := ss.UserAccessToken().GetByUser(uat.UserId, 0, 100); err2 != nil {
+		t.Fatal(err2)
+	} else if len(received) != 1 {
 		t.Fatal("received incorrect number of tokens after save")
 	}
 
@@ -82,8 +82,8 @@ func testUserAccessTokenSaveGetDelete(t *testing.T, ss store.Store) {
 	s2, err = ss.Session().Save(s2)
 	require.Nil(t, err)
 
-	if result := <-ss.UserAccessToken().Save(uat); result.Err != nil {
-		t.Fatal(result.Err)
+	if _, err = ss.UserAccessToken().Save(uat); err != nil {
+		t.Fatal(err)
 	}
 
 	if result := <-ss.UserAccessToken().DeleteAllForUser(uat.UserId); result.Err != nil {
@@ -113,11 +113,11 @@ func testUserAccessTokenDisableEnable(t *testing.T, ss store.Store) {
 	s1, err := ss.Session().Save(s1)
 	require.Nil(t, err)
 
-	if result := <-ss.UserAccessToken().Save(uat); result.Err != nil {
-		t.Fatal(result.Err)
+	if _, err = ss.UserAccessToken().Save(uat); err != nil {
+		t.Fatal(err)
 	}
 
-	if err = (<-ss.UserAccessToken().UpdateTokenDisable(uat.Id)).Err; err != nil {
+	if err = ss.UserAccessToken().UpdateTokenDisable(uat.Id); err != nil {
 		t.Fatal(err)
 	}
 
@@ -157,8 +157,8 @@ func testUserAccessTokenSearch(t *testing.T, ss store.Store) {
 	s1, err := ss.Session().Save(s1)
 	require.Nil(t, err)
 
-	if result := <-ss.UserAccessToken().Save(uat); result.Err != nil {
-		t.Fatal(result.Err)
+	if _, err = ss.UserAccessToken().Save(uat); err != nil {
+		t.Fatal(err)
 	}
 
 	if received, err := ss.UserAccessToken().Search(uat.Id); err != nil {

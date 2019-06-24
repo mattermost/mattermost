@@ -94,7 +94,6 @@ func TestGenerateKey_TrustedHeader(t *testing.T) {
 	req.RemoteAddr = "10.10.10.5:80"
 	req.Header.Set("X-Forwarded-For", "10.6.3.1, 10.5.1.2")
 
-
 	rateLimiter, _ := NewRateLimiter(genRateLimitSettings(true, true, ""), []string{"X-Forwarded-For"})
 	key := rateLimiter.GenerateKey(req)
 	require.Equal(t, "10.6.3.1", key, "Wrong key on test with allowed trusted proxy header")
