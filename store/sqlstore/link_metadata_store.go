@@ -66,13 +66,10 @@ func (s SqlLinkMetadataStore) Get(url string, timestamp int64) (*model.LinkMetad
             URL = :URL
             AND Timestamp = :Timestamp`, map[string]interface{}{"URL": url, "Timestamp": timestamp})
 	if err != nil {
-		resultErr := model.NewAppError("SqlLinkMetadataStore.Get", "store.sql_link_metadata.get.app_error", nil, "url="+url+", "+err.Error(), http.StatusInternalServerError)
-
 		if err == sql.ErrNoRows {
-			resultErr.StatusCode = http.StatusNotFound
+			return nil, model.NewAppError("SqlLinkMetadataStore.Get", "store.sql_link_metadata.get.app_error", nil, "url="+url+", "+err.Error(), http.StatusNotFound)
 		}
-
-		return nil, resultErr
+		return nil, model.NewAppError("SqlLinkMetadataStore.Get", "store.sql_link_metadata.get.app_error", nil, "url="+url+", "+err.Error(), http.StatusInternalServerError)
 	}
 
 	err = metadata.DeserializeDataToConcreteType()
