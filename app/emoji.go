@@ -229,11 +229,7 @@ func (a *App) SearchEmoji(name string, prefixOnly bool, limit int) ([]*model.Emo
 		return nil, model.NewAppError("SearchEmoji", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	result := <-a.Srv.Store.Emoji().Search(name, prefixOnly, limit)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.Emoji), nil
+	return a.Srv.Store.Emoji().Search(name, prefixOnly, limit)
 }
 
 func resizeEmojiGif(gifImg *gif.GIF) *gif.GIF {

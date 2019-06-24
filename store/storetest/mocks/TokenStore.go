@@ -35,19 +35,28 @@ func (_m *TokenStore) Delete(token string) store.StoreChannel {
 }
 
 // GetByToken provides a mock function with given fields: token
-func (_m *TokenStore) GetByToken(token string) store.StoreChannel {
+func (_m *TokenStore) GetByToken(token string) (*model.Token, *model.AppError) {
 	ret := _m.Called(token)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+	var r0 *model.Token
+	if rf, ok := ret.Get(0).(func(string) *model.Token); ok {
 		r0 = rf(token)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.Token)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(token)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // RemoveAllTokensByType provides a mock function with given fields: tokenType
