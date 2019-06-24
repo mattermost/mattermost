@@ -171,19 +171,28 @@ func (_m *UserAccessTokenStore) Save(token *model.UserAccessToken) (*model.UserA
 }
 
 // Search provides a mock function with given fields: term
-func (_m *UserAccessTokenStore) Search(term string) store.StoreChannel {
+func (_m *UserAccessTokenStore) Search(term string) ([]*model.UserAccessToken, *model.AppError) {
 	ret := _m.Called(term)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+	var r0 []*model.UserAccessToken
+	if rf, ok := ret.Get(0).(func(string) []*model.UserAccessToken); ok {
 		r0 = rf(term)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]*model.UserAccessToken)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(term)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // UpdateTokenDisable provides a mock function with given fields: tokenId

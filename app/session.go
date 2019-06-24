@@ -392,14 +392,12 @@ func (a *App) GetUserAccessToken(tokenId string, sanitize bool) (*model.UserAcce
 }
 
 func (a *App) SearchUserAccessTokens(term string) ([]*model.UserAccessToken, *model.AppError) {
-	result := <-a.Srv.Store.UserAccessToken().Search(term)
-	if result.Err != nil {
-		return nil, result.Err
+	tokens, err := a.Srv.Store.UserAccessToken().Search(term)
+	if err != nil {
+		return nil, err
 	}
-	tokens := result.Data.([]*model.UserAccessToken)
 	for _, token := range tokens {
 		token.Token = ""
 	}
 	return tokens, nil
-
 }
