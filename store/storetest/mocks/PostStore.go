@@ -36,13 +36,13 @@ func (_m *PostStore) AnalyticsPostCount(teamId string, mustHaveFile bool, mustHa
 	return r0, r1
 }
 
-// AnalyticsPostCountsByDay provides a mock function with given fields: teamId
-func (_m *PostStore) AnalyticsPostCountsByDay(teamId string) (model.AnalyticsRows, *model.AppError) {
-	ret := _m.Called(teamId)
+// AnalyticsPostCountsByDay provides a mock function with given fields: teamId, botsOnly
+func (_m *PostStore) AnalyticsPostCountsByDay(teamId string, botsOnly bool) (model.AnalyticsRows, *model.AppError) {
+	ret := _m.Called(teamId, botsOnly)
 
 	var r0 model.AnalyticsRows
-	if rf, ok := ret.Get(0).(func(string) model.AnalyticsRows); ok {
-		r0 = rf(teamId)
+	if rf, ok := ret.Get(0).(func(string, bool) model.AnalyticsRows); ok {
+		r0 = rf(teamId, botsOnly)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(model.AnalyticsRows)
@@ -50,8 +50,8 @@ func (_m *PostStore) AnalyticsPostCountsByDay(teamId string) (model.AnalyticsRow
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
-		r1 = rf(teamId)
+	if rf, ok := ret.Get(1).(func(string, bool) *model.AppError); ok {
+		r1 = rf(teamId, botsOnly)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

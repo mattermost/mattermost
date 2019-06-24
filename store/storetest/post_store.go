@@ -1354,7 +1354,7 @@ func testPostCountsByDay(t *testing.T, ss store.Store) {
 
 	time.Sleep(1 * time.Second)
 
-	if r1, err := ss.Post().AnalyticsPostCountsByDay(t1.Id); err != nil {
+	if r1, err := ss.Post().AnalyticsPostCountsByDay(t1.Id, false); err != nil {
 		t.Fatal(err)
 	} else {
 		row1 := r1[0]
