@@ -135,15 +135,15 @@ func (_m *StatusStore) ResetAll() store.StoreChannel {
 }
 
 // SaveOrUpdate provides a mock function with given fields: status
-func (_m *StatusStore) SaveOrUpdate(status *model.Status) store.StoreChannel {
+func (_m *StatusStore) SaveOrUpdate(status *model.Status) *model.AppError {
 	ret := _m.Called(status)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(*model.Status) store.StoreChannel); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(*model.Status) *model.AppError); ok {
 		r0 = rf(status)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
