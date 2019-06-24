@@ -76,5 +76,5 @@ func (a *App) ClusterClearSessionCacheForUserHandler(msg *model.ClusterMessage) 
 }
 
 func (a *App) ClusterClearSessionCacheForAllUsersHandler(msg *model.ClusterMessage) {
-	a.ClusterClearSessionCacheForAllUsersSend(msg.Data)
+	a.ClearSessionCacheForAllUsersSkipClusterSend()
 }
