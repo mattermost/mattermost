@@ -466,11 +466,11 @@ type EmojiStore interface {
 }
 
 type StatusStore interface {
-	SaveOrUpdate(status *model.Status) StoreChannel
+	SaveOrUpdate(status *model.Status) *model.AppError
 	Get(userId string) StoreChannel
 	GetByIds(userIds []string) StoreChannel
 	GetOnlineAway() StoreChannel
-	GetOnline() StoreChannel
+	GetOnline() ([]*model.Status, *model.AppError)
 	GetAllFromTeam(teamId string) StoreChannel
 	ResetAll() StoreChannel
 	GetTotalActiveUsersCount() StoreChannel

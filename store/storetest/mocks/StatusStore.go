@@ -62,19 +62,28 @@ func (_m *StatusStore) GetByIds(userIds []string) store.StoreChannel {
 }
 
 // GetOnline provides a mock function with given fields:
-func (_m *StatusStore) GetOnline() store.StoreChannel {
+func (_m *StatusStore) GetOnline() ([]*model.Status, *model.AppError) {
 	ret := _m.Called()
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func() store.StoreChannel); ok {
+	var r0 []*model.Status
+	if rf, ok := ret.Get(0).(func() []*model.Status); ok {
 		r0 = rf()
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]*model.Status)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
+		r1 = rf()
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetOnlineAway provides a mock function with given fields:
@@ -126,15 +135,15 @@ func (_m *StatusStore) ResetAll() store.StoreChannel {
 }
 
 // SaveOrUpdate provides a mock function with given fields: status
-func (_m *StatusStore) SaveOrUpdate(status *model.Status) store.StoreChannel {
+func (_m *StatusStore) SaveOrUpdate(status *model.Status) *model.AppError {
 	ret := _m.Called(status)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(*model.Status) store.StoreChannel); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(*model.Status) *model.AppError); ok {
 		r0 = rf(status)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
