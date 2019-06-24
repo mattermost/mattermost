@@ -1477,6 +1477,10 @@
     "translation": "An invalid url was given to download the plugin."
   },
   {
+    "id": "api.plugin.upload.array.app_error",
+    "translation": "File array is empty in multipart/form request"
+  },
+  {
     "id": "api.plugin.upload.file.app_error",
     "translation": "Unable to open file in multipart/form request"
   },
