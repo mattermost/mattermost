@@ -66,9 +66,7 @@ func (a *App) SessionHasPermissionToChannel(session model.Session, channelId str
 }
 
 func (a *App) SessionHasPermissionToChannelByPost(session model.Session, postId string, permission *model.Permission) bool {
-	var channelMember *model.ChannelMember
-	if result := <-a.Srv.Store.Channel().GetMemberForPost(postId, session.UserId); result.Err == nil {
-		channelMember = result.Data.(*model.ChannelMember)
+	if channelMember, err := a.Srv.Store.Channel().GetMemberForPost(postId, session.UserId); err == nil {
 
 		if a.RolesGrantPermission(channelMember.GetRoles(), permission.Id) {
 			return true
@@ -165,10 +163,7 @@ func (a *App) HasPermissionToChannel(askingUserId string, channelId string, perm
 }
 
 func (a *App) HasPermissionToChannelByPost(askingUserId string, postId string, permission *model.Permission) bool {
-	var channelMember *model.ChannelMember
-	if result := <-a.Srv.Store.Channel().GetMemberForPost(postId, askingUserId); result.Err == nil {
-		channelMember = result.Data.(*model.ChannelMember)
-
+	if channelMember, err := a.Srv.Store.Channel().GetMemberForPost(postId, askingUserId); err == nil {
 		if a.RolesGrantPermission(channelMember.GetRoles(), permission.Id) {
 			return true
 		}
