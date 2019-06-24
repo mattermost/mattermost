@@ -460,7 +460,7 @@ type EmojiStore interface {
 	Get(id string, allowFromCache bool) (*model.Emoji, *model.AppError)
 	GetByName(name string) (*model.Emoji, *model.AppError)
 	GetMultipleByName(names []string) StoreChannel
-	GetList(offset, limit int, sort string) StoreChannel
+	GetList(offset, limit int, sort string) ([]*model.Emoji, *model.AppError)
 	Delete(id string, time int64) *model.AppError
 	Search(name string, prefixOnly bool, limit int) ([]*model.Emoji, *model.AppError)
 }

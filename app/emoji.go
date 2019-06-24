@@ -79,11 +79,7 @@ func (a *App) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartIma
 }
 
 func (a *App) GetEmojiList(page, perPage int, sort string) ([]*model.Emoji, *model.AppError) {
-	result := <-a.Srv.Store.Emoji().GetList(page*perPage, perPage, sort)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.Emoji), nil
+	return a.Srv.Store.Emoji().GetList(page*perPage, perPage, sort)
 }
 
 func (a *App) UploadEmojiImage(id string, imageData *multipart.FileHeader) *model.AppError {
