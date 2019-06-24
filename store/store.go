@@ -473,7 +473,7 @@ type StatusStore interface {
 	GetOnline() ([]*model.Status, *model.AppError)
 	GetAllFromTeam(teamId string) StoreChannel
 	ResetAll() StoreChannel
-	GetTotalActiveUsersCount() StoreChannel
+	GetTotalActiveUsersCount() (int64, *model.AppError)
 	UpdateLastActivityAt(userId string, lastActivityAt int64) StoreChannel
 }
 
