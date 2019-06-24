@@ -79,7 +79,7 @@ func (b *S3FileBackend) TestConnection() *model.AppError {
 			return model.NewAppError("TestFileConnection", "api.file.test_connection.s3.bucked_create.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
-	mlog.Info("Connection to S3 or minio is good. Bucket exists.")
+	mlog.Debug("Connection to S3 or minio is good. Bucket exists.")
 	return nil
 }
 

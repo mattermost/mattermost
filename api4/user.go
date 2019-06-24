@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -25,6 +26,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/search", api.ApiSessionRequired(searchUsers)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/autocomplete", api.ApiSessionRequired(autocompleteUsers)).Methods("GET")
 	api.BaseRoutes.Users.Handle("/stats", api.ApiSessionRequired(getTotalUsersStats)).Methods("GET")
+	api.BaseRoutes.Users.Handle("/group_channels", api.ApiSessionRequired(getUsersByGroupChannelIds)).Methods("POST")
 
 	api.BaseRoutes.User.Handle("", api.ApiSessionRequired(getUser)).Methods("GET")
 	api.BaseRoutes.User.Handle("/image/default", api.ApiSessionRequiredTrustRequester(getDefaultProfileImage)).Methods("GET")
@@ -446,6 +448,24 @@ func getTotalUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(stats.ToJson()))
+}
+
+func getUsersByGroupChannelIds(c *Context, w http.ResponseWriter, r *http.Request) {
+	channelIds := model.ArrayFromJson(r.Body)
+
+	if len(channelIds) == 0 {
+		c.SetInvalidParam("channel_ids")
+		return
+	}
+
+	usersByChannelId, err := c.App.GetUsersByGroupChannelIds(channelIds, c.IsSystemAdmin())
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	b, _ := json.Marshal(usersByChannelId)
+	w.Write(b)
 }
 
 func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1256,6 +1276,8 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 			"api.user.login.inactive.app_error",
 			"api.user.login.not_verified.app_error",
 			"api.user.check_user_login_attempts.too_many.app_error",
+			"app.team.join_user_to_team.max_accounts.app_error",
+			"store.sql_user.save.max_accounts.app_error",
 		}
 
 		maskError := true
