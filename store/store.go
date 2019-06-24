@@ -460,18 +460,18 @@ type EmojiStore interface {
 	Get(id string, allowFromCache bool) (*model.Emoji, *model.AppError)
 	GetByName(name string) (*model.Emoji, *model.AppError)
 	GetMultipleByName(names []string) StoreChannel
-	GetList(offset, limit int, sort string) StoreChannel
+	GetList(offset, limit int, sort string) ([]*model.Emoji, *model.AppError)
 	Delete(id string, time int64) *model.AppError
 	Search(name string, prefixOnly bool, limit int) ([]*model.Emoji, *model.AppError)
 }
 
 type StatusStore interface {
-	SaveOrUpdate(status *model.Status) StoreChannel
+	SaveOrUpdate(status *model.Status) *model.AppError
 	Get(userId string) StoreChannel
 	GetByIds(userIds []string) StoreChannel
 	GetOnlineAway() StoreChannel
-	GetOnline() StoreChannel
-	GetAllFromTeam(teamId string) StoreChannel
+	GetOnline() ([]*model.Status, *model.AppError)
+	GetAllFromTeam(teamId string) ([]*model.Status, *model.AppError)
 	ResetAll() StoreChannel
 	GetTotalActiveUsersCount() StoreChannel
 	UpdateLastActivityAt(userId string, lastActivityAt int64) StoreChannel
@@ -524,7 +524,7 @@ type UserAccessTokenStore interface {
 	GetAll(offset int, limit int) ([]*model.UserAccessToken, *model.AppError)
 	GetByToken(tokenString string) (*model.UserAccessToken, *model.AppError)
 	GetByUser(userId string, page, perPage int) ([]*model.UserAccessToken, *model.AppError)
-	Search(term string) StoreChannel
+	Search(term string) ([]*model.UserAccessToken, *model.AppError)
 	UpdateTokenEnable(tokenId string) StoreChannel
 	UpdateTokenDisable(tokenId string) *model.AppError
 }
