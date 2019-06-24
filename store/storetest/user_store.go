@@ -822,15 +822,15 @@ func testUserStoreGetProfilesInChannelByStatus(t *testing.T, ss store.Store) {
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	}))
 
-	store.Must(ss.Status().SaveOrUpdate(&model.Status{
+	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{
 		UserId: u1.Id,
 		Status: model.STATUS_DND,
 	}))
-	store.Must(ss.Status().SaveOrUpdate(&model.Status{
+	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{
 		UserId: u2.Id,
 		Status: model.STATUS_AWAY,
 	}))
-	store.Must(ss.Status().SaveOrUpdate(&model.Status{
+	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{
 		UserId: u3.Id,
 		Status: model.STATUS_ONLINE,
 	}))
@@ -1965,9 +1965,9 @@ func testUserStoreGetRecentlyActiveUsersForTeam(t *testing.T, ss store.Store) {
 	u2.LastActivityAt = millis - 1
 	u1.LastActivityAt = millis - 1
 
-	store.Must(ss.Status().SaveOrUpdate(&model.Status{UserId: u1.Id, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: u1.LastActivityAt, ActiveChannel: ""}))
-	store.Must(ss.Status().SaveOrUpdate(&model.Status{UserId: u2.Id, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: u2.LastActivityAt, ActiveChannel: ""}))
-	store.Must(ss.Status().SaveOrUpdate(&model.Status{UserId: u3.Id, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: u3.LastActivityAt, ActiveChannel: ""}))
+	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u1.Id, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: u1.LastActivityAt, ActiveChannel: ""}))
+	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u2.Id, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: u2.LastActivityAt, ActiveChannel: ""}))
+	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u3.Id, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: u3.LastActivityAt, ActiveChannel: ""}))
 
 	t.Run("get team 1, offset 0, limit 100", func(t *testing.T) {
 		result := <-ss.User().GetRecentlyActiveUsersForTeam(teamId, 0, 100, nil)
