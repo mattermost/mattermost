@@ -19,7 +19,6 @@ func TestSessionStore(t *testing.T, ss store.Store) {
 
 	t.Run("Save", func(t *testing.T) { testSessionStoreSave(t, ss) })
 	t.Run("SessionGet", func(t *testing.T) { testSessionGet(t, ss) })
-	t.Run("SessionGetAll", func(t *testing.T) { testSessionGetAll(t, ss) })
 	t.Run("SessionGetWithDeviceId", func(t *testing.T) { testSessionGetWithDeviceId(t, ss) })
 	t.Run("SessionRemove", func(t *testing.T) { testSessionRemove(t, ss) })
 	t.Run("SessionRemoveAll", func(t *testing.T) { testSessionRemoveAll(t, ss) })
@@ -75,10 +74,6 @@ func testSessionGet(t *testing.T, ss store.Store) {
 			t.Fatal("should match len")
 		}
 	}
-}
-
-func testSessionGetAll(t *testing.T, ss store.Store) {
-
 }
 
 func testSessionGetWithDeviceId(t *testing.T, ss store.Store) {

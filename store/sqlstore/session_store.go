@@ -133,22 +133,6 @@ func (me SqlSessionStore) GetSessions(userId string) ([]*model.Session, *model.A
 	return sessions, nil
 }
 
-func (me SqlSessionStore) GetAll() ([]*model.Session, *model.AppError) {
-	var sessions []*model.Session
-
-	if _, err := me.GetReplica().Select(&sessions, "SELECT * FROM Sessions ORDER BY LastActivityAt DESC"); err != nil {
-		return nil, model.NewAppError(
-			"SqlSessionStore.GetSessions",
-			"store.sql_session.get_sessions.app_error",
-			nil,
-			err.Error(),
-			http.StatusInternalServerError,
-		)
-	}
-
-	return sessions, nil
-}
-
 func (me SqlSessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*model.Session, *model.AppError) {
 	query :=
 		`SELECT *
