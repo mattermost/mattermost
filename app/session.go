@@ -155,6 +155,18 @@ func (a *App) ClearSessionCacheForUser(userId string) {
 	}
 }
 
+func (a *App) ClearSessionCacheForAllUsersSend() {
+	a.ClearSessionCacheForAllUsersSkipClusterSend()
+
+	if a.Cluster != nil {
+		msg := &model.ClusterMessage{
+			Event:    model.CLUSTER_EVENT_CLEAR_SESSION_CACHE_FOR_ALL_USERS,
+			SendType: model.CLUSTER_SEND_RELIABLE,
+		}
+		a.Cluster.SendClusterMessage(msg)
+	}
+}
+
 func (a *App) ClearSessionCacheForUserSkipClusterSend(userId string) {
 	keys := a.Srv.sessionCache.Keys()
 
@@ -173,13 +185,9 @@ func (a *App) ClearSessionCacheForUserSkipClusterSend(userId string) {
 	a.InvalidateWebConnSessionCacheForUser(userId)
 }
 
-func (a *App) clearSessionCacheForUserSet(users map[string]struct{}) {
-	// if this ever gets reused, it would make sense to change
-	// parameter type into an actual array
-	// for the time being, I'll avoid to not use any extra memory
-	for userID := range users {
-		a.ClearSessionCacheForUser(userID)
-	}
+func (a *App) ClearSessionCacheForAllUsersSkipClusterSend() {
+	mlog.Info("Purging sessions cache")
+	a.Srv.sessionCache.Purge()
 }
 
 func (a *App) AddSessionToCache(session *model.Session) {
