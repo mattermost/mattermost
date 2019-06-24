@@ -187,7 +187,6 @@ func (s SqlUserAccessTokenStore) GetByUser(userId string, offset, limit int) ([]
 	return tokens, nil
 }
 
-
 func (s SqlUserAccessTokenStore) Search(term string) ([]*model.UserAccessToken, *model.AppError) {
 	tokens := []*model.UserAccessToken{}
 	params := map[string]interface{}{"Term": term + "%"}
