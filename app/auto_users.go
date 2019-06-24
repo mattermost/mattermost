@@ -80,8 +80,8 @@ func (cfg *AutoUserCreator) createRandomUser() (*model.User, bool) {
 	}
 
 	status := &model.Status{UserId: ruser.Id, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
-	if result := <-cfg.app.Srv.Store.Status().SaveOrUpdate(status); result.Err != nil {
-		mlog.Error(result.Err.Error())
+	if err := cfg.app.Srv.Store.Status().SaveOrUpdate(status); err != nil {
+		mlog.Error(err.Error())
 		return nil, false
 	}
 

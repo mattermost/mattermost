@@ -52,20 +52,18 @@ func (s SqlTokenStore) Delete(token string) store.StoreChannel {
 	})
 }
 
-func (s SqlTokenStore) GetByToken(tokenString string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		token := model.Token{}
+func (s SqlTokenStore) GetByToken(tokenString string) (*model.Token, *model.AppError) {
+	token := &model.Token{}
 
-		if err := s.GetReplica().SelectOne(&token, "SELECT * FROM Tokens WHERE Token = :Token", map[string]interface{}{"Token": tokenString}); err != nil {
-			if err == sql.ErrNoRows {
-				result.Err = model.NewAppError("SqlTokenStore.GetByToken", "store.sql_recover.get_by_code.app_error", nil, err.Error(), http.StatusBadRequest)
-			} else {
-				result.Err = model.NewAppError("SqlTokenStore.GetByToken", "store.sql_recover.get_by_code.app_error", nil, err.Error(), http.StatusInternalServerError)
-			}
+	if err := s.GetReplica().SelectOne(token, "SELECT * FROM Tokens WHERE Token = :Token", map[string]interface{}{"Token": tokenString}); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, model.NewAppError("SqlTokenStore.GetByToken", "store.sql_recover.get_by_code.app_error", nil, err.Error(), http.StatusBadRequest)
 		}
 
-		result.Data = &token
-	})
+		return nil, model.NewAppError("SqlTokenStore.GetByToken", "store.sql_recover.get_by_code.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return token, nil
 }
 
 func (s SqlTokenStore) Cleanup() {

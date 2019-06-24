@@ -20,10 +20,11 @@ import (
 )
 
 const (
-	PROFILES_IN_CHANNEL_CACHE_SIZE = model.CHANNEL_CACHE_SIZE
-	PROFILES_IN_CHANNEL_CACHE_SEC  = 900 // 15 mins
-	PROFILE_BY_IDS_CACHE_SIZE      = model.SESSION_CACHE_SIZE
-	PROFILE_BY_IDS_CACHE_SEC       = 900 // 15 mins
+	PROFILES_IN_CHANNEL_CACHE_SIZE  = model.CHANNEL_CACHE_SIZE
+	PROFILES_IN_CHANNEL_CACHE_SEC   = 900 // 15 mins
+	PROFILE_BY_IDS_CACHE_SIZE       = model.SESSION_CACHE_SIZE
+	PROFILE_BY_IDS_CACHE_SEC        = 900 // 15 mins
+	MAX_GROUP_CHANNELS_FOR_PROFILES = 50
 )
 
 var (
@@ -918,6 +919,60 @@ func (us SqlUserStore) GetProfileByIds(userIds []string, allowFromCache bool, vi
 
 		result.Data = users
 	})
+}
+
+type UserWithChannel struct {
+	model.User
+	ChannelId string
+}
+
+func (us SqlUserStore) GetProfileByGroupChannelIdsForUser(userId string, channelIds []string) (map[string][]*model.User, *model.AppError) {
+	if len(channelIds) > MAX_GROUP_CHANNELS_FOR_PROFILES {
+		channelIds = channelIds[0:MAX_GROUP_CHANNELS_FOR_PROFILES]
+	}
+
+	isMemberQuery := fmt.Sprintf(`
+      EXISTS(
+        SELECT
+          1
+        FROM
+          ChannelMembers
+        WHERE
+          UserId = '%s'
+        AND
+          ChannelId = cm.ChannelId
+        )`, userId)
+
+	query := us.getQueryBuilder().
+		Select("u.*, cm.ChannelId").
+		From("Users u").
+		Join("ChannelMembers cm ON u.Id = cm.UserId").
+		Join("Channels c ON cm.ChannelId = c.Id").
+		Where(sq.Eq{"c.Type": model.CHANNEL_GROUP, "cm.ChannelId": channelIds}).
+		Where(isMemberQuery).
+		Where(sq.NotEq{"u.Id": userId}).
+		OrderBy("u.Username ASC")
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlUserStore.GetProfileByGroupChannelIdsForUser", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	usersWithChannel := []*UserWithChannel{}
+	if _, err := us.GetReplica().Select(&usersWithChannel, queryString, args...); err != nil {
+		return nil, model.NewAppError("SqlUserStore.GetProfileByGroupChannelIdsForUser", "store.sql_user.get_profile_by_group_channel_ids_for_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	usersByChannelId := map[string][]*model.User{}
+	for _, user := range usersWithChannel {
+		if val, ok := usersByChannelId[user.ChannelId]; ok {
+			usersByChannelId[user.ChannelId] = append(val, &user.User)
+		} else {
+			usersByChannelId[user.ChannelId] = []*model.User{&user.User}
+		}
+	}
+
+	return usersByChannelId, nil
 }
 
 func (us SqlUserStore) GetSystemAdminProfiles() store.StoreChannel {

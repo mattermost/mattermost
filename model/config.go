@@ -2033,6 +2033,7 @@ type ElasticsearchSettings struct {
 	LiveIndexingBatchSize         *int    `restricted:"true"`
 	BulkIndexingTimeWindowSeconds *int    `restricted:"true"`
 	RequestTimeoutSeconds         *int    `restricted:"true"`
+	SkipTLSVerification           *bool   `restricted:"true"`
 	Trace                         *string `restricted:"true"`
 }
 
@@ -2113,6 +2114,10 @@ func (s *ElasticsearchSettings) SetDefaults() {
 		s.RequestTimeoutSeconds = NewInt(ELASTICSEARCH_SETTINGS_DEFAULT_REQUEST_TIMEOUT_SECONDS)
 	}
 
+	if s.SkipTLSVerification == nil {
+		s.SkipTLSVerification = NewBool(false)
+	}
+
 	if s.Trace == nil {
 		s.Trace = NewString("")
 	}
@@ -2177,7 +2182,7 @@ type PluginSettings struct {
 	PluginStates      map[string]*PluginState
 }
 
-func (s *PluginSettings) SetDefaults() {
+func (s *PluginSettings) SetDefaults(ls LogSettings) {
 	if s.Enable == nil {
 		s.Enable = NewBool(true)
 	}
@@ -2215,7 +2220,8 @@ func (s *PluginSettings) SetDefaults() {
 	}
 
 	if s.PluginStates["com.mattermost.nps"] == nil {
-		s.PluginStates["com.mattermost.nps"] = &PluginState{Enable: true}
+		// Enable the NPS plugin by default if diagnostics are enabled
+		s.PluginStates["com.mattermost.nps"] = &PluginState{Enable: ls.EnableDiagnostics == nil || *ls.EnableDiagnostics}
 	}
 }
 
@@ -2441,7 +2447,7 @@ func (o *Config) SetDefaults() {
 	o.AnnouncementSettings.SetDefaults()
 	o.ThemeSettings.SetDefaults()
 	o.ClusterSettings.SetDefaults()
-	o.PluginSettings.SetDefaults()
+	o.PluginSettings.SetDefaults(o.LogSettings)
 	o.AnalyticsSettings.SetDefaults()
 	o.ComplianceSettings.SetDefaults()
 	o.LocalizationSettings.SetDefaults()

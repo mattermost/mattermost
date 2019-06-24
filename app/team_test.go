@@ -260,9 +260,9 @@ func TestAddUserToTeamByToken(t *testing.T) {
 			t.Log(err)
 			t.Fatal("Should add user to the team")
 		}
-		if result := <-th.App.Srv.Store.Token().GetByToken(token.Token); result.Err == nil {
-			t.Fatal("The token must be deleted after be used")
-		}
+		_, err := th.App.Srv.Store.Token().GetByToken(token.Token)
+		require.NotNil(t, err, "The token must be deleted after be used")
+
 		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, ruser.Id)
 		require.Nil(t, err)
 		assert.Len(t, *members, 2)
@@ -294,13 +294,14 @@ func TestAddUserToTeamByToken(t *testing.T) {
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "channels": th.BasicChannel.Id}),
 		)
 		<-th.App.Srv.Store.Token().Save(token)
+		require.Nil(t, err)
 		if _, err := th.App.AddUserToTeamByToken(rguest.Id, token.Token); err != nil {
 			t.Log(err)
 			t.Fatal("Should add user to the team")
 		}
-		if result := <-th.App.Srv.Store.Token().GetByToken(token.Token); result.Err == nil {
-			t.Fatal("The token must be deleted after be used")
-		}
+		_, err := th.App.Srv.Store.Token().GetByToken(token.Token)
+		require.NotNil(t, err, "The token must be deleted after be used")
+
 		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, rguest.Id)
 		require.Nil(t, err)
 		require.Len(t, *members, 1)

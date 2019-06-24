@@ -183,12 +183,12 @@ func (a *App) trackActivity() {
 		directChannelCount = dcc
 	}
 
-	if duccr := <-a.Srv.Store.Channel().AnalyticsDeletedTypeCount("", "O"); duccr.Err == nil {
-		deletedPublicChannelCount = duccr.Data.(int64)
+	if duccr, err := a.Srv.Store.Channel().AnalyticsDeletedTypeCount("", "O"); err == nil {
+		deletedPublicChannelCount = duccr
 	}
 
-	if dpccr := <-a.Srv.Store.Channel().AnalyticsDeletedTypeCount("", "P"); dpccr.Err == nil {
-		deletedPrivateChannelCount = dpccr.Data.(int64)
+	if dpccr, err := a.Srv.Store.Channel().AnalyticsDeletedTypeCount("", "P"); err == nil {
+		deletedPrivateChannelCount = dpccr
 	}
 
 	postsCount, _ = a.Srv.Store.Post().AnalyticsPostCount("", false, false)
@@ -570,6 +570,7 @@ func (a *App) trackConfig() {
 		"live_indexing_batch_size":          *cfg.ElasticsearchSettings.LiveIndexingBatchSize,
 		"bulk_indexing_time_window_seconds": *cfg.ElasticsearchSettings.BulkIndexingTimeWindowSeconds,
 		"request_timeout_seconds":           *cfg.ElasticsearchSettings.RequestTimeoutSeconds,
+		"skip_tls_verification":             *cfg.ElasticsearchSettings.SkipTLSVerification,
 		"trace":                             *cfg.ElasticsearchSettings.Trace,
 	})
 

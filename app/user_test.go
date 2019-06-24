@@ -619,9 +619,10 @@ func TestCreateUserWithToken(t *testing.T) {
 		if newUser.Email != invitationEmail {
 			t.Fatal("The user email must be the invitation one")
 		}
-		if result := <-th.App.Srv.Store.Token().GetByToken(token.Token); result.Err == nil {
-			t.Fatal("The token must be deleted after be used")
-		}
+
+		_, err = th.App.Srv.Store.Token().GetByToken(token.Token)
+		require.NotNil(t, err, "The token must be deleted after be used")
+
 		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, newUser.Id)
 		require.Nil(t, err)
 		assert.Len(t, *members, 2)
@@ -645,9 +646,9 @@ func TestCreateUserWithToken(t *testing.T) {
 		if newGuest.Email != invitationEmail {
 			t.Fatal("The user email must be the invitation one")
 		}
-		if result := <-th.App.Srv.Store.Token().GetByToken(token.Token); result.Err == nil {
-			t.Fatal("The token must be deleted after be used")
-		}
+		_, err = th.App.Srv.Store.Token().GetByToken(token.Token)
+		require.NotNil(t, err, "The token must be deleted after be used")
+
 		members, err := th.App.GetChannelMembersForUser(th.BasicTeam.Id, newGuest.Id)
 		require.Nil(t, err)
 		require.Len(t, *members, 1)
