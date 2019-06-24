@@ -124,20 +124,11 @@ func (a *App) RevokeAllSessions(userId string) *model.AppError {
 // RevokeSessionsFromAllUsers will go through all the sessions active
 // in the server and revoke them
 func (a *App) RevokeSessionsFromAllUsers() *model.AppError {
-	sessions, err := a.Srv.Store.Session().RemoveAllSessions()
+	err := a.Srv.Store.Session().RemoveAllSessions()
 	if err != nil {
 		return err
 	}
-	userSet := make(map[string]struct{}) // set type for holding user id's
-	for _, session := range sessions {
-		revokeErr := a.revokeSession(session)
-		if revokeErr != nil {
-			a.clearSessionCacheForUserSet(userSet)
-			return revokeErr
-		}
-		userSet[session.UserId] = struct{}{} // we just need the keys, no value need
-	}
-	a.clearSessionCacheForUserSet(userSet)
+	a.ClearSessionCacheForAllUsers()
 
 	return nil
 }
@@ -155,7 +146,7 @@ func (a *App) ClearSessionCacheForUser(userId string) {
 	}
 }
 
-func (a *App) ClearSessionCacheForAllUsersSend() {
+func (a *App) ClearSessionCacheForAllUsers() {
 	a.ClearSessionCacheForAllUsersSkipClusterSend()
 
 	if a.Cluster != nil {
