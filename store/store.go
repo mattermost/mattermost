@@ -470,7 +470,7 @@ type StatusStore interface {
 	Get(userId string) StoreChannel
 	GetByIds(userIds []string) StoreChannel
 	GetOnlineAway() StoreChannel
-	GetOnline() StoreChannel
+	GetOnline() ([]*model.Status, *model.AppError)
 	GetAllFromTeam(teamId string) StoreChannel
 	ResetAll() StoreChannel
 	GetTotalActiveUsersCount() StoreChannel

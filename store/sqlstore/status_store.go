@@ -111,15 +111,12 @@ func (s SqlStatusStore) GetOnlineAway() store.StoreChannel {
 	})
 }
 
-func (s SqlStatusStore) GetOnline() store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var statuses []*model.Status
-		if _, err := s.GetReplica().Select(&statuses, "SELECT * FROM Status WHERE Status = :Online", map[string]interface{}{"Online": model.STATUS_ONLINE}); err != nil {
-			result.Err = model.NewAppError("SqlStatusStore.GetOnline", "store.sql_status.get_online.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = statuses
-		}
-	})
+func (s SqlStatusStore) GetOnline() ([]*model.Status, *model.AppError) {
+	var statuses []*model.Status
+	if _, err := s.GetReplica().Select(&statuses, "SELECT * FROM Status WHERE Status = :Online", map[string]interface{}{"Online": model.STATUS_ONLINE}); err != nil {
+		return nil, model.NewAppError("SqlStatusStore.GetOnline", "store.sql_status.get_online.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return statuses, nil
 }
 
 func (s SqlStatusStore) GetAllFromTeam(teamId string) store.StoreChannel {
