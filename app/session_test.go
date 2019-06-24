@@ -40,7 +40,7 @@ func TestCache(t *testing.T) {
 
 	rkeys := th.App.Srv.sessionCache.Keys()
 	if len(rkeys) != len(keys)-1 {
-		t.Fatal("should have one less")
+		t.Fatalf("should have one less: %d - %d != 1", len(keys), len(rkeys))
 	}
 
 	if len(rkeys) <= 0 {
@@ -50,8 +50,8 @@ func TestCache(t *testing.T) {
 	th.App.ClearSessionCacheForAllUsers()
 
 	rkeys = th.App.Srv.sessionCache.Keys()
-	if len(rkeys) == 0 {
-		t.Fatal("should have one less")
+	if len(rkeys) != 0 {
+		t.Fatal("shouldn't have sessions")
 	}
 }
 
