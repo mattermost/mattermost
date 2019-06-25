@@ -69,7 +69,6 @@ type Params struct {
 	NotAssociatedToGroup   string
 	ExcludeDefaultChannels bool
 	GroupIDs               string
-	PluginDownloadUrl      string
 }
 
 func ParamsFromRequest(r *http.Request) *Params {
@@ -271,8 +270,6 @@ func ParamsFromRequest(r *http.Request) *Params {
 	}
 
 	params.GroupIDs = query.Get("group_ids")
-
-	params.PluginDownloadUrl = query.Get("plugin_download_url")
 
 	return params
 }

@@ -26,6 +26,7 @@ func TestPlugin(t *testing.T) {
 	states := map[string]*model.PluginState{}
 	json.Unmarshal(statesJson, &states)
 	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.1"
 		*cfg.PluginSettings.Enable = true
 		*cfg.PluginSettings.EnableUploads = true
 		*cfg.PluginSettings.AllowInsecureDownloadUrl = true
@@ -46,14 +47,14 @@ func TestPlugin(t *testing.T) {
 
 	url := testServer.URL
 
-	manifest, resp := th.SystemAdminClient.InstallPluginFromUrl(url)
+	manifest, resp := th.SystemAdminClient.InstallPluginFromUrl(url, false)
 	CheckNoError(t, resp)
 	assert.Equal(t, "testplugin", manifest.Id)
 
-	_, resp = th.SystemAdminClient.InstallPluginFromUrl(url)
+	_, resp = th.SystemAdminClient.InstallPluginFromUrl(url, false)
 	CheckBadRequestStatus(t, resp)
 
-	manifest, resp = th.SystemAdminClient.InstallPluginFromUrlForced(url)
+	manifest, resp = th.SystemAdminClient.InstallPluginFromUrl(url, true)
 	CheckNoError(t, resp)
 	assert.Equal(t, "testplugin", manifest.Id)
 
@@ -61,20 +62,20 @@ func TestPlugin(t *testing.T) {
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = false })
 
-	_, resp = th.SystemAdminClient.InstallPluginFromUrl(url)
+	_, resp = th.SystemAdminClient.InstallPluginFromUrl(url, false)
 	CheckNotImplementedStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = true })
 
-	_, resp = th.Client.InstallPluginFromUrl(url)
+	_, resp = th.Client.InstallPluginFromUrl(url, false)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp = th.SystemAdminClient.InstallPluginFromUrl("http://nodata")
+	_, resp = th.SystemAdminClient.InstallPluginFromUrl("http://nodata", false)
 	CheckBadRequestStatus(t, resp)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.AllowInsecureDownloadUrl = false })
 
-	_, resp = th.SystemAdminClient.InstallPluginFromUrl(url)
+	_, resp = th.SystemAdminClient.InstallPluginFromUrl(url, false)
 	CheckBadRequestStatus(t, resp)
 
 	// Successful upload

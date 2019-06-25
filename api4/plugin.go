@@ -7,7 +7,7 @@ package api4
 
 import (
 	"net/http"
-	"strings"
+	"net/url"
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
@@ -94,19 +94,26 @@ func installPluginFromUrl(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	url := c.Params.PluginDownloadUrl
+	downloadUrl := r.URL.Query().Get("plugin_download_url")
 
-	if !model.IsValidHttpUrl(url) {
+	if !model.IsValidHttpUrl(downloadUrl) {
 		c.Err = model.NewAppError("installPluginFromUrl", "api.plugin.install.invalid_url.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
-	if !(strings.HasPrefix(url, "https") || *c.App.Config().PluginSettings.AllowInsecureDownloadUrl) {
+	u, err := url.ParseRequestURI(downloadUrl)
+	if err != nil {
+		c.Err = model.NewAppError("installPluginFromUrl", "api.plugin.install.invalid_url.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if !*c.App.Config().PluginSettings.AllowInsecureDownloadUrl && u.Scheme != "https" {
 		c.Err = model.NewAppError("installPluginFromUrl", "api.plugin.install.insecure_url.app_error", nil, "", http.StatusBadRequest)
 		return
 	}
 
-	resp, err := http.Get(url)
+	client := c.App.HTTPService.MakeClient(false)
+	resp, err := client.Get(downloadUrl)
 	if err != nil {
 		c.Err = model.NewAppError("installPluginFromUrl", "api.plugin.install.download_failed.app_error", nil, err.Error(), http.StatusBadRequest)
 		return

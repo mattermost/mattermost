@@ -4239,15 +4239,7 @@ func (c *Client4) uploadPlugin(file io.Reader, force bool) (*Manifest, *Response
 	return ManifestFromJson(rp.Body), BuildResponse(rp)
 }
 
-func (c *Client4) InstallPluginFromUrl(url string) (*Manifest, *Response) {
-	return c.installPluginFromUrl(url, false)
-}
-
-func (c *Client4) InstallPluginFromUrlForced(url string) (*Manifest, *Response) {
-	return c.installPluginFromUrl(url, true)
-}
-
-func (c *Client4) installPluginFromUrl(downloadUrl string, force bool) (*Manifest, *Response) {
+func (c *Client4) InstallPluginFromUrl(downloadUrl string, force bool) (*Manifest, *Response) {
 	forceStr := "false"
 	if force {
 		forceStr = "true"
