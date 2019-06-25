@@ -268,7 +268,7 @@ type UserStore interface {
 	GetProfilesByUsernames(usernames []string, viewRestrictions *model.ViewUsersRestrictions) StoreChannel
 	GetAllProfiles(options *model.UserGetOptions) StoreChannel
 	GetProfiles(options *model.UserGetOptions) StoreChannel
-	GetProfileByIds(userId []string, allowFromCache bool, viewRestrictions *model.ViewUsersRestrictions) StoreChannel
+	GetProfileByIds(userIds []string, options *model.UserGetByIdsOptions, allowFromCache bool) StoreChannel
 	GetProfileByGroupChannelIdsForUser(userId string, channelIds []string) (map[string][]*model.User, *model.AppError)
 	InvalidatProfileCacheForUser(userId string)
 	GetByEmail(email string) (*model.User, *model.AppError)

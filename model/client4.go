@@ -936,6 +936,26 @@ func (c *Client4) GetUsersByIds(userIds []string) ([]*User, *Response) {
 	return UserListFromJson(r.Body), BuildResponse(r)
 }
 
+// GetUsersByIds returns a list of users based on the provided user ids.
+func (c *Client4) GetUsersByIdsWithOptions(userIds []string, options *UserGetByIdsOptions) ([]*User, *Response) {
+	var query []string
+	if options.Since != 0 {
+		query = append(query, "since="+url.QueryEscape(fmt.Sprintf("%d", options.Since)))
+	}
+
+	url := c.GetUsersRoute() + "/ids"
+	if len(query) > 0 {
+		url += "?" + strings.Join(query, "&")
+	}
+
+	r, err := c.DoApiPost(url, ArrayToJson(userIds))
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return UserListFromJson(r.Body), BuildResponse(r)
+}
+
 // GetUsersByUsernames returns a list of users based on the provided usernames.
 func (c *Client4) GetUsersByUsernames(usernames []string) ([]*User, *Response) {
 	r, err := c.DoApiPost(c.GetUsersRoute()+"/usernames", ArrayToJson(usernames))

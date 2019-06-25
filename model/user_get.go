@@ -29,3 +29,14 @@ type UserGetOptions struct {
 	// Page size
 	PerPage int
 }
+
+type UserGetByIdsOptions struct {
+	// IsAdmin tracks whether or not the request is being made by an administrator. Does nothing when provided by a client.
+	IsAdmin bool
+
+	// Since filters the users based on their UpdateAt timestamp.
+	Since int64
+
+	// Restrict to search in a list of teams and channels. Does nothing when provided by a client.
+	ViewRestrictions *ViewUsersRestrictions
+}

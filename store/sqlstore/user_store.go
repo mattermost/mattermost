@@ -10,6 +10,7 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/Masterminds/squirrel"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/gorp"
 
@@ -858,8 +859,12 @@ func (us SqlUserStore) GetNewUsersForTeam(teamId string, offset, limit int, view
 	})
 }
 
-func (us SqlUserStore) GetProfileByIds(userIds []string, allowFromCache bool, viewRestrictions *model.ViewUsersRestrictions) store.StoreChannel {
+func (us SqlUserStore) GetProfileByIds(userIds []string, options *model.UserGetByIdsOptions, allowFromCache bool) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
+		if options == nil {
+			options = &model.UserGetByIdsOptions{}
+		}
+
 		users := []*model.User{}
 		remainingUserIds := make([]string, 0)
 
@@ -868,7 +873,10 @@ func (us SqlUserStore) GetProfileByIds(userIds []string, allowFromCache bool, vi
 				if cacheItem, ok := profileByIdsCache.Get(userId); ok {
 					u := &model.User{}
 					*u = *cacheItem.(*model.User)
-					users = append(users, u)
+
+					if options.Since == 0 || u.UpdateAt > options.Since {
+						users = append(users, u)
+					}
 				} else {
 					remainingUserIds = append(remainingUserIds, userId)
 				}
@@ -896,7 +904,13 @@ func (us SqlUserStore) GetProfileByIds(userIds []string, allowFromCache bool, vi
 			}).
 			OrderBy("u.Username ASC")
 
-		query = applyViewRestrictionsFilter(query, viewRestrictions, true)
+		if options.Since > 0 {
+			query = query.Where(squirrel.Gt(map[string]interface{}{
+				"u.UpdateAt": options.Since,
+			}))
+		}
+
+		query = applyViewRestrictionsFilter(query, options.ViewRestrictions, true)
 
 		queryString, args, err := query.ToSql()
 		if err != nil {
