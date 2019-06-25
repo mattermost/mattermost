@@ -1473,7 +1473,7 @@ func (s SqlChannelStore) GetMemberForPost(postId string, userId string) (*model.
 			Schemes TeamScheme ON Teams.SchemeId = TeamScheme.Id
 		WHERE
 			ChannelMembers.UserId = :UserId
-		AND 
+		AND
 			Posts.Id = :PostId`
 	if err := s.GetReplica().SelectOne(&dbMember, query, map[string]interface{}{"UserId": userId, "PostId": postId}); err != nil {
 		return nil, model.NewAppError("SqlChannelStore.GetMemberForPost", "store.sql_channel.get_member_for_post.app_error", nil, "postId="+postId+", err="+err.Error(), http.StatusInternalServerError)
@@ -2235,6 +2235,104 @@ func (s SqlChannelStore) performSearch(searchQuery string, term string, paramete
 	}
 
 	return &channels, nil
+}
+
+func (s SqlChannelStore) getSearchGroupChannelsQuery(userId, term string, isPostgreSQL bool) (string, map[string]interface{}) {
+	var query, baseLikeClause string
+	if isPostgreSQL {
+		baseLikeClause = "ARRAY_TO_STRING(ARRAY_AGG(u.Username), ', ') LIKE %s"
+		query = `
+            SELECT
+                *
+            FROM
+                Channels
+            WHERE
+                Id IN (
+                    SELECT
+                        cc.Id
+                    FROM (
+                        SELECT
+                            c.Id
+                        FROM
+                            Channels c
+                        JOIN
+                            ChannelMembers cm on c.Id = cm.ChannelId
+                        JOIN
+                            Users u on u.Id = cm.UserId
+                        WHERE
+                            c.Type = 'G'
+                        AND
+                            u.Id = :UserId
+                        GROUP BY
+                            c.Id
+                    ) cc
+                    JOIN
+                        ChannelMembers cm on cc.Id = cm.ChannelId
+                    JOIN
+                        Users u on u.Id = cm.UserId
+                    GROUP BY
+                        cc.Id
+                    HAVING
+                        %s
+                    LIMIT
+                        ` + strconv.Itoa(model.CHANNEL_SEARCH_DEFAULT_LIMIT) + `
+                )`
+	} else {
+		baseLikeClause = "GROUP_CONCAT(u.Username SEPARATOR ', ') LIKE %s"
+		query = `
+            SELECT
+                cc.*
+            FROM (
+                SELECT
+                    c.*
+                FROM
+                    Channels c
+                JOIN
+                    ChannelMembers cm on c.Id = cm.ChannelId
+                JOIN
+                    Users u on u.Id = cm.UserId
+                WHERE
+                    c.Type = 'G'
+                AND
+                    u.Id = :UserId
+                GROUP BY
+                    c.Id
+            ) cc
+            JOIN
+                ChannelMembers cm on cc.Id = cm.ChannelId
+            JOIN
+                Users u on u.Id = cm.UserId
+            GROUP BY
+                cc.Id
+            HAVING
+                %s
+            LIMIT
+                ` + strconv.Itoa(model.CHANNEL_SEARCH_DEFAULT_LIMIT)
+	}
+
+	var likeClauses []string
+	args := map[string]interface{}{"UserId": userId}
+	terms := strings.Split(strings.ToLower(strings.Trim(term, " ")), " ")
+
+	for idx, term := range terms {
+		argName := fmt.Sprintf("Term%v", idx)
+		likeClauses = append(likeClauses, fmt.Sprintf(baseLikeClause, ":"+argName))
+		args[argName] = "%" + term + "%"
+	}
+
+	query = fmt.Sprintf(query, strings.Join(likeClauses, " AND "))
+	return query, args
+}
+
+func (s SqlChannelStore) SearchGroupChannels(userId, term string) (*model.ChannelList, *model.AppError) {
+	isPostgreSQL := s.DriverName() == model.DATABASE_DRIVER_POSTGRES
+	queryString, args := s.getSearchGroupChannelsQuery(userId, term, isPostgreSQL)
+
+	var groupChannels model.ChannelList
+	if _, err := s.GetReplica().Select(&groupChannels, queryString, args); err != nil {
+		return nil, model.NewAppError("SqlChannelStore.SearchGroupChannels", "store.sql_channel.search_group_channels.app_error", nil, "userId="+userId+", term="+term+", err="+err.Error(), http.StatusInternalServerError)
+	}
+	return &groupChannels, nil
 }
 
 func (s SqlChannelStore) GetMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError) {

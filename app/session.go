@@ -312,8 +312,8 @@ func (a *App) RevokeUserAccessToken(token *model.UserAccessToken) *model.AppErro
 	var session *model.Session
 	session, _ = a.Srv.Store.Session().Get(token.Token)
 
-	if result := <-a.Srv.Store.UserAccessToken().Delete(token.Id); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.UserAccessToken().Delete(token.Id); err != nil {
+		return err
 	}
 
 	if session == nil {
@@ -327,8 +327,8 @@ func (a *App) DisableUserAccessToken(token *model.UserAccessToken) *model.AppErr
 	var session *model.Session
 	session, _ = a.Srv.Store.Session().Get(token.Token)
 
-	if result := <-a.Srv.Store.UserAccessToken().UpdateTokenDisable(token.Id); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.UserAccessToken().UpdateTokenDisable(token.Id); err != nil {
+		return err
 	}
 
 	if session == nil {
@@ -367,11 +367,10 @@ func (a *App) GetUserAccessTokens(page, perPage int) ([]*model.UserAccessToken, 
 }
 
 func (a *App) GetUserAccessTokensForUser(userId string, page, perPage int) ([]*model.UserAccessToken, *model.AppError) {
-	result := <-a.Srv.Store.UserAccessToken().GetByUser(userId, page*perPage, perPage)
-	if result.Err != nil {
-		return nil, result.Err
+	tokens, err := a.Srv.Store.UserAccessToken().GetByUser(userId, page*perPage, perPage)
+	if err != nil {
+		return nil, err
 	}
-	tokens := result.Data.([]*model.UserAccessToken)
 	for _, token := range tokens {
 		token.Token = ""
 	}
@@ -393,14 +392,12 @@ func (a *App) GetUserAccessToken(tokenId string, sanitize bool) (*model.UserAcce
 }
 
 func (a *App) SearchUserAccessTokens(term string) ([]*model.UserAccessToken, *model.AppError) {
-	result := <-a.Srv.Store.UserAccessToken().Search(term)
-	if result.Err != nil {
-		return nil, result.Err
+	tokens, err := a.Srv.Store.UserAccessToken().Search(term)
+	if err != nil {
+		return nil, err
 	}
-	tokens := result.Data.([]*model.UserAccessToken)
 	for _, token := range tokens {
 		token.Token = ""
 	}
 	return tokens, nil
-
 }

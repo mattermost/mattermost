@@ -976,7 +976,8 @@ func TestOAuthAccessToken(t *testing.T) {
 	}
 
 	authData := &model.AuthData{ClientId: oauthApp.Id, RedirectUri: oauthApp.CallbackUrls[0], UserId: th.BasicUser.Id, Code: model.NewId(), ExpiresIn: -1}
-	<-th.App.Srv.Store.OAuth().SaveAuthData(authData)
+	_, err := th.App.Srv.Store.OAuth().SaveAuthData(authData)
+	require.Nil(t, err)
 
 	data.Set("grant_type", model.ACCESS_TOKEN_GRANT_TYPE)
 	data.Set("client_id", oauthApp.Id)
