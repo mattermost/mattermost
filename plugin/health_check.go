@@ -29,20 +29,11 @@ type PluginHealthStatus struct {
 	lastError      error
 }
 
-// InitPluginHealthCheckJob starts a new job if one is not running and is set to enabled, or kills an existing one if set to disabled.
-func (env *Environment) InitPluginHealthCheckJob(enable bool) {
-	// Config is set to enable. No job exists, start a new job.
-	if enable && env.pluginHealthCheckJob == nil {
-		job := newPluginHealthCheckJob(env)
-		env.pluginHealthCheckJob = job
-		job.Start()
-	}
-
-	// Config is set to disable. Job exists, kill existing job.
-	if !enable && env.pluginHealthCheckJob != nil {
-		env.pluginHealthCheckJob.Cancel()
-		env.pluginHealthCheckJob = nil
-	}
+// InitPluginHealthCheckJob starts a new job for checking all active plugins
+func (env *Environment) InitPluginHealthCheckJob() {
+	job := newPluginHealthCheckJob(env)
+	env.pluginHealthCheckJob = job
+	job.Start()
 }
 
 // Start continuously runs health checks on all active plugins, on a timer.
