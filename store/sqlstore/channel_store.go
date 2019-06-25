@@ -1783,22 +1783,22 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 	})
 }
 
-func (s SqlChannelStore) IncrementMentionCount(channelId string, userId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		_, err := s.GetMaster().Exec(
-			`UPDATE
-				ChannelMembers
-			SET
-				MentionCount = MentionCount + 1,
-				LastUpdateAt = :LastUpdateAt
-			WHERE
-				UserId = :UserId
-					AND ChannelId = :ChannelId`,
-			map[string]interface{}{"ChannelId": channelId, "UserId": userId, "LastUpdateAt": model.GetMillis()})
-		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.IncrementMentionCount", "store.sql_channel.increment_mention_count.app_error", nil, "channel_id="+channelId+", user_id="+userId+", "+err.Error(), http.StatusInternalServerError)
-		}
-	})
+func (s SqlChannelStore) IncrementMentionCount(channelId string, userId string) *model.AppError {
+	_, err := s.GetMaster().Exec(
+		`UPDATE
+			ChannelMembers
+		SET
+			MentionCount = MentionCount + 1,
+			LastUpdateAt = :LastUpdateAt
+		WHERE
+			UserId = :UserId
+				AND ChannelId = :ChannelId`,
+		map[string]interface{}{"ChannelId": channelId, "UserId": userId, "LastUpdateAt": model.GetMillis()})
+	if err != nil {
+		return model.NewAppError("SqlChannelStore.IncrementMentionCount", "store.sql_channel.increment_mention_count.app_error", nil, "channel_id="+channelId+", user_id="+userId+", "+err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
 }
 
 func (s SqlChannelStore) GetAll(teamId string) ([]*model.Channel, *model.AppError) {
