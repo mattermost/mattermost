@@ -136,8 +136,10 @@ func testLinkMetadataStoreGet(t *testing.T, ss store.Store) {
 		require.Nil(t, result.Err)
 
 		linkMetadata, err := ss.LinkMetadata().Get(metadata.URL, metadata.Timestamp)
+
 		require.Nil(t, err)
-		assert.Equal(t, &model.PostImage{}, linkMetadata.Data)
+		require.IsType(t, metadata, linkMetadata)
+		assert.Equal(t, *metadata, *linkMetadata)
 	})
 
 	t.Run("should return not found with incorrect URL", func(t *testing.T) {
