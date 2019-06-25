@@ -34,5 +34,12 @@ func (me *MeProvider) GetCommand(a *App, T goi18n.TranslateFunc) *model.Command 
 }
 
 func (me *MeProvider) DoCommand(a *App, args *model.CommandArgs, message string) *model.CommandResponse {
-	return &model.CommandResponse{ResponseType: model.COMMAND_RESPONSE_TYPE_IN_CHANNEL, Text: "*" + message + "*"}
+	return &model.CommandResponse{
+		ResponseType: model.COMMAND_RESPONSE_TYPE_IN_CHANNEL,
+		Type:         model.POST_ME,
+		Text:         "*" + message + "*",
+		Props: model.StringInterface{
+			"message": message,
+		},
+	}
 }

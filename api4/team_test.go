@@ -627,6 +627,8 @@ func TestGetAllTeams(t *testing.T) {
 		PerPage       int
 		Permissions   []string
 		ExpectedTeams []string
+		WithCount     bool
+		ExpectedCount int64
 	}{
 		{
 			Name:          "Get 1 team per page",
@@ -677,6 +679,15 @@ func TestGetAllTeams(t *testing.T) {
 			Permissions:   []string{},
 			ExpectedTeams: []string{},
 		},
+		{
+			Name:          "Get all teams with count",
+			Page:          0,
+			PerPage:       10,
+			Permissions:   []string{model.PERMISSION_LIST_PUBLIC_TEAMS.Id, model.PERMISSION_LIST_PRIVATE_TEAMS.Id},
+			ExpectedTeams: []string{th.BasicTeam.Id, team1.Id, team2.Id, team3.Id},
+			WithCount:     true,
+			ExpectedCount: 4,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -694,12 +705,18 @@ func TestGetAllTeams(t *testing.T) {
 			}
 
 			var teams []*model.Team
-			teams, resp = Client.GetAllTeams("", tc.Page, tc.PerPage)
+			var count int64
+			if tc.WithCount {
+				teams, count, resp = Client.GetAllTeamsWithTotalCount("", tc.Page, tc.PerPage)
+			} else {
+				teams, resp = Client.GetAllTeams("", tc.Page, tc.PerPage)
+			}
 			CheckNoError(t, resp)
 			require.Equal(t, len(tc.ExpectedTeams), len(teams))
 			for idx, team := range teams {
 				assert.Equal(t, tc.ExpectedTeams[idx], team.Id)
 			}
+			require.Equal(t, tc.ExpectedCount, count)
 		})
 	}
 
@@ -1436,9 +1453,8 @@ func TestAddTeamMember(t *testing.T) {
 		t.Fatal("team ids should have matched")
 	}
 
-	if result := <-th.App.Srv.Store.Token().GetByToken(token.Token); result.Err == nil {
-		t.Fatal("The token must be deleted after be used")
-	}
+	_, err := th.App.Srv.Store.Token().GetByToken(token.Token)
+	require.NotNil(t, err, "The token must be deleted after be used")
 
 	tm, resp = Client.AddTeamMemberFromInvite("junk", "")
 	CheckBadRequestStatus(t, resp)
@@ -1495,7 +1511,7 @@ func TestAddTeamMember(t *testing.T) {
 
 	// Set a team to group-constrained
 	team.GroupConstrained = model.NewBool(true)
-	_, err := th.App.UpdateTeam(team)
+	_, err = th.App.UpdateTeam(team)
 	require.Nil(t, err)
 
 	// Attempt to use a token on a group-constrained team
