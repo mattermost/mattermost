@@ -1243,6 +1243,18 @@ func (a *App) GetAllChannels(page, perPage int, opts model.ChannelSearchOpts) (*
 	return a.Srv.Store.Channel().GetAllChannels(page*perPage, perPage, storeOpts)
 }
 
+func (a *App) GetAllChannelsCount(opts model.ChannelSearchOpts) (int64, *model.AppError) {
+	if opts.ExcludeDefaultChannels {
+		opts.ExcludeChannelNames = a.DefaultChannelNames()
+	}
+	storeOpts := store.ChannelSearchOpts{
+		ExcludeChannelNames:  opts.ExcludeChannelNames,
+		NotAssociatedToGroup: opts.NotAssociatedToGroup,
+		IncludeDeleted:       opts.IncludeDeleted,
+	}
+	return a.Srv.Store.Channel().GetAllChannelsCount(storeOpts)
+}
+
 func (a *App) GetDeletedChannels(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
 	return a.Srv.Store.Channel().GetDeleted(teamId, offset, limit)
 }
