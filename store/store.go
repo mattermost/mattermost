@@ -285,7 +285,7 @@ type UserStore interface {
 	GetUnreadCount(userId string) StoreChannel
 	GetUnreadCountForChannel(userId string, channelId string) StoreChannel
 	GetAnyUnreadPostCountForChannel(userId string, channelId string) StoreChannel
-	GetRecentlyActiveUsersForTeam(teamId string, offset, limit int, viewRestrictions *model.ViewUsersRestrictions) StoreChannel
+	GetRecentlyActiveUsersForTeam(teamId string, offset, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
 	GetNewUsersForTeam(teamId string, offset, limit int, viewRestrictions *model.ViewUsersRestrictions) StoreChannel
 	Search(teamId string, term string, options *model.UserSearchOptions) StoreChannel
 	SearchNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) StoreChannel
