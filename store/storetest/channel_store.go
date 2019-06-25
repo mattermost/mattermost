@@ -1722,22 +1722,22 @@ func testChannelStoreIncrementMentionCount(t *testing.T, ss store.Store) {
 	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
 	store.Must(ss.Channel().SaveMember(&m1))
 
-	err = (<-ss.Channel().IncrementMentionCount(m1.ChannelId, m1.UserId)).Err
+	err = ss.Channel().IncrementMentionCount(m1.ChannelId, m1.UserId)
 	if err != nil {
 		t.Fatal("failed to update")
 	}
 
-	err = (<-ss.Channel().IncrementMentionCount(m1.ChannelId, "missing id")).Err
+	err = ss.Channel().IncrementMentionCount(m1.ChannelId, "missing id")
 	if err != nil {
 		t.Fatal("failed to update")
 	}
 
-	err = (<-ss.Channel().IncrementMentionCount("missing id", m1.UserId)).Err
+	err = ss.Channel().IncrementMentionCount("missing id", m1.UserId)
 	if err != nil {
 		t.Fatal("failed to update")
 	}
 
-	err = (<-ss.Channel().IncrementMentionCount("missing id", "missing id")).Err
+	err = ss.Channel().IncrementMentionCount("missing id", "missing id")
 	if err != nil {
 		t.Fatal("failed to update")
 	}

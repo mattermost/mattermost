@@ -176,7 +176,7 @@ type ChannelStore interface {
 	PermanentDeleteMembersByUser(userId string) StoreChannel
 	PermanentDeleteMembersByChannel(channelId string) *model.AppError
 	UpdateLastViewedAt(channelIds []string, userId string) StoreChannel
-	IncrementMentionCount(channelId string, userId string) StoreChannel
+	IncrementMentionCount(channelId string, userId string) *model.AppError
 	AnalyticsTypeCount(teamId string, channelType string) (int64, *model.AppError)
 	GetMembersForUser(teamId string, userId string) StoreChannel
 	GetMembersForUserWithPagination(teamId, userId string, page, perPage int) StoreChannel
@@ -460,7 +460,7 @@ type EmojiStore interface {
 	Get(id string, allowFromCache bool) (*model.Emoji, *model.AppError)
 	GetByName(name string) (*model.Emoji, *model.AppError)
 	GetMultipleByName(names []string) StoreChannel
-	GetList(offset, limit int, sort string) StoreChannel
+	GetList(offset, limit int, sort string) ([]*model.Emoji, *model.AppError)
 	Delete(id string, time int64) *model.AppError
 	Search(name string, prefixOnly bool, limit int) ([]*model.Emoji, *model.AppError)
 }
@@ -471,7 +471,7 @@ type StatusStore interface {
 	GetByIds(userIds []string) StoreChannel
 	GetOnlineAway() StoreChannel
 	GetOnline() ([]*model.Status, *model.AppError)
-	GetAllFromTeam(teamId string) StoreChannel
+	GetAllFromTeam(teamId string) ([]*model.Status, *model.AppError)
 	ResetAll() StoreChannel
 	GetTotalActiveUsersCount() (int64, *model.AppError)
 	UpdateLastActivityAt(userId string, lastActivityAt int64) StoreChannel
@@ -518,7 +518,7 @@ type JobStore interface {
 
 type UserAccessTokenStore interface {
 	Save(token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError)
-	Delete(tokenId string) StoreChannel
+	Delete(tokenId string) *model.AppError
 	DeleteAllForUser(userId string) StoreChannel
 	Get(tokenId string) (*model.UserAccessToken, *model.AppError)
 	GetAll(offset int, limit int) ([]*model.UserAccessToken, *model.AppError)
