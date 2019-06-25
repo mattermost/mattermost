@@ -144,24 +144,21 @@ func (es SqlEmojiStore) GetMultipleByName(names []string) store.StoreChannel {
 	})
 }
 
-func (es SqlEmojiStore) GetList(offset, limit int, sort string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var emoji []*model.Emoji
+func (es SqlEmojiStore) GetList(offset, limit int, sort string) ([]*model.Emoji, *model.AppError) {
+	var emoji []*model.Emoji
 
-		query := "SELECT * FROM Emoji WHERE DeleteAt = 0"
+	query := "SELECT * FROM Emoji WHERE DeleteAt = 0"
 
-		if sort == model.EMOJI_SORT_BY_NAME {
-			query += " ORDER BY Name"
-		}
+	if sort == model.EMOJI_SORT_BY_NAME {
+		query += " ORDER BY Name"
+	}
 
-		query += " LIMIT :Limit OFFSET :Offset"
+	query += " LIMIT :Limit OFFSET :Offset"
 
-		if _, err := es.GetReplica().Select(&emoji, query, map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
-			result.Err = model.NewAppError("SqlEmojiStore.GetList", "store.sql_emoji.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = emoji
-		}
-	})
+	if _, err := es.GetReplica().Select(&emoji, query, map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
+		return nil, model.NewAppError("SqlEmojiStore.GetList", "store.sql_emoji.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return emoji, nil
 }
 
 func (es SqlEmojiStore) Delete(id string, time int64) *model.AppError {

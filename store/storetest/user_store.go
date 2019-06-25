@@ -822,15 +822,15 @@ func testUserStoreGetProfilesInChannelByStatus(t *testing.T, ss store.Store) {
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	}))
 
-	store.Must(ss.Status().SaveOrUpdate(&model.Status{
+	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{
 		UserId: u1.Id,
 		Status: model.STATUS_DND,
 	}))
-	store.Must(ss.Status().SaveOrUpdate(&model.Status{
+	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{
 		UserId: u2.Id,
 		Status: model.STATUS_AWAY,
 	}))
-	store.Must(ss.Status().SaveOrUpdate(&model.Status{
+	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{
 		UserId: u3.Id,
 		Status: model.STATUS_ONLINE,
 	}))
@@ -1851,7 +1851,8 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	// Post one message with mention to open channel
 	_, err := ss.Post().Save(&p1)
 	require.Nil(t, err)
-	store.Must(ss.Channel().IncrementMentionCount(c1.Id, u2.Id))
+	err = ss.Channel().IncrementMentionCount(c1.Id, u2.Id)
+	require.Nil(t, err)
 
 	// Post 2 messages without mention to direct channel
 	p2 := model.Post{}
@@ -1861,7 +1862,8 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 
 	_, err = ss.Post().Save(&p2)
 	require.Nil(t, err)
-	store.Must(ss.Channel().IncrementMentionCount(c2.Id, u2.Id))
+	err = ss.Channel().IncrementMentionCount(c2.Id, u2.Id)
+	require.Nil(t, err)
 
 	p3 := model.Post{}
 	p3.ChannelId = c2.Id
@@ -1870,7 +1872,8 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	_, err = ss.Post().Save(&p3)
 	require.Nil(t, err)
 
-	store.Must(ss.Channel().IncrementMentionCount(c2.Id, u2.Id))
+	err = ss.Channel().IncrementMentionCount(c2.Id, u2.Id)
+	require.Nil(t, err)
 
 	badge := (<-ss.User().GetUnreadCount(u2.Id)).Data.(int64)
 	if badge != 3 {
@@ -1965,9 +1968,9 @@ func testUserStoreGetRecentlyActiveUsersForTeam(t *testing.T, ss store.Store) {
 	u2.LastActivityAt = millis - 1
 	u1.LastActivityAt = millis - 1
 
-	store.Must(ss.Status().SaveOrUpdate(&model.Status{UserId: u1.Id, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: u1.LastActivityAt, ActiveChannel: ""}))
-	store.Must(ss.Status().SaveOrUpdate(&model.Status{UserId: u2.Id, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: u2.LastActivityAt, ActiveChannel: ""}))
-	store.Must(ss.Status().SaveOrUpdate(&model.Status{UserId: u3.Id, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: u3.LastActivityAt, ActiveChannel: ""}))
+	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u1.Id, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: u1.LastActivityAt, ActiveChannel: ""}))
+	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u2.Id, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: u2.LastActivityAt, ActiveChannel: ""}))
+	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u3.Id, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: u3.LastActivityAt, ActiveChannel: ""}))
 
 	t.Run("get team 1, offset 0, limit 100", func(t *testing.T) {
 		result := <-ss.User().GetRecentlyActiveUsersForTeam(teamId, 0, 100, nil)
