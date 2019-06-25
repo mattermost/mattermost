@@ -2098,50 +2098,47 @@ func (s SqlChannelStore) SearchInTeam(teamId string, term string, includeDeleted
 	})
 }
 
-func (s SqlChannelStore) SearchAllChannels(term string, opts store.ChannelSearchOpts) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		query := s.getQueryBuilder().
-			Select("c.*, t.DisplayName AS TeamDisplayName, t.Name AS TeamName, t.UpdateAt as TeamUpdateAt").
-			From("Channels AS c").
-			Join("Teams AS t ON t.Id = c.TeamId").
-			Where(sq.Eq{"c.Type": []string{model.CHANNEL_PRIVATE, model.CHANNEL_OPEN}}).
-			OrderBy("c.DisplayName, t.DisplayName").
-			Limit(uint64(100))
+func (s SqlChannelStore) SearchAllChannels(term string, opts store.ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError) {
+	query := s.getQueryBuilder().
+		Select("c.*, t.DisplayName AS TeamDisplayName, t.Name AS TeamName, t.UpdateAt as TeamUpdateAt").
+		From("Channels AS c").
+		Join("Teams AS t ON t.Id = c.TeamId").
+		Where(sq.Eq{"c.Type": []string{model.CHANNEL_PRIVATE, model.CHANNEL_OPEN}}).
+		OrderBy("c.DisplayName, t.DisplayName").
+		Limit(uint64(100))
 
-		if !opts.IncludeDeleted {
-			query = query.Where(sq.Eq{"c.DeleteAt": int(0)})
-		}
+	if !opts.IncludeDeleted {
+		query = query.Where(sq.Eq{"c.DeleteAt": int(0)})
+	}
 
-		likeClause, likeTerm := s.buildLIKEClause(term, "c.Name, c.DisplayName, c.Purpose")
-		if len(likeTerm) > 0 {
-			likeClause = strings.ReplaceAll(likeClause, ":LikeTerm", "'"+likeTerm+"'")
-			fulltextClause, fulltextTerm := s.buildFulltextClause(term, "c.Name, c.DisplayName, c.Purpose")
-			fulltextClause = strings.ReplaceAll(fulltextClause, ":FulltextTerm", "'"+fulltextTerm+"'")
-			query = query.Where("(" + likeClause + " OR " + fulltextClause + ")")
-		}
+	likeClause, likeTerm := s.buildLIKEClause(term, "c.Name, c.DisplayName, c.Purpose")
+	if len(likeTerm) > 0 {
+		likeClause = strings.ReplaceAll(likeClause, ":LikeTerm", "'"+likeTerm+"'")
+		fulltextClause, fulltextTerm := s.buildFulltextClause(term, "c.Name, c.DisplayName, c.Purpose")
+		fulltextClause = strings.ReplaceAll(fulltextClause, ":FulltextTerm", "'"+fulltextTerm+"'")
+		query = query.Where("(" + likeClause + " OR " + fulltextClause + ")")
+	}
 
-		if len(opts.ExcludeChannelNames) > 0 {
-			query = query.Where(fmt.Sprintf("c.Name NOT IN ('%s')", strings.Join(opts.ExcludeChannelNames, "', '")))
-		}
+	if len(opts.ExcludeChannelNames) > 0 {
+		query = query.Where(fmt.Sprintf("c.Name NOT IN ('%s')", strings.Join(opts.ExcludeChannelNames, "', '")))
+	}
 
-		if len(opts.NotAssociatedToGroup) > 0 {
-			query = query.Where("c.Id NOT IN (SELECT ChannelId FROM GroupChannels WHERE GroupChannels.GroupId = ? AND GroupChannels.DeleteAt = 0)", opts.NotAssociatedToGroup)
-		}
+	if len(opts.NotAssociatedToGroup) > 0 {
+		query = query.Where("c.Id NOT IN (SELECT ChannelId FROM GroupChannels WHERE GroupChannels.GroupId = ? AND GroupChannels.DeleteAt = 0)", opts.NotAssociatedToGroup)
+	}
 
-		queryString, args, err := query.ToSql()
-		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.SearchAllChannels", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlChannelStore.SearchAllChannels", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		var channels model.ChannelListWithTeamData
+	var channels model.ChannelListWithTeamData
 
-		if _, err := s.GetReplica().Select(&channels, queryString, args...); err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.Search", "store.sql_channel.search.app_error", nil, "term="+term+", "+", "+err.Error(), http.StatusInternalServerError)
-		}
+	if _, err := s.GetReplica().Select(&channels, queryString, args...); err != nil {
+		return nil, model.NewAppError("SqlChannelStore.Search", "store.sql_channel.search.app_error", nil, "term="+term+", "+", "+err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = &channels
-	})
+	return &channels, nil
 }
 
 func (s SqlChannelStore) SearchMore(userId string, teamId string, term string) (*model.ChannelList, *model.AppError) {
