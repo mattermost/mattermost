@@ -14,7 +14,6 @@ import (
 	"github.com/mattermost/gorp"
 	"github.com/pkg/errors"
 
-	"github.com/Masterminds/squirrel"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/mattermost/mattermost-server/einterfaces"
 	"github.com/mattermost/mattermost-server/mlog"
@@ -985,7 +984,7 @@ func (s SqlChannelStore) GetAllChannelsCount(opts store.ChannelSearchOpts) (int6
 	return count, nil
 }
 
-func (s SqlChannelStore) getAllChannelsQuery(opts store.ChannelSearchOpts, forCount bool) squirrel.SelectBuilder {
+func (s SqlChannelStore) getAllChannelsQuery(opts store.ChannelSearchOpts, forCount bool) sq.SelectBuilder {
 	var selectStr string
 	if forCount {
 		selectStr = "count(c.Id)"
