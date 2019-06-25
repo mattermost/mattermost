@@ -69,6 +69,7 @@ type Params struct {
 	NotAssociatedToGroup   string
 	ExcludeDefaultChannels bool
 	GroupIDs               string
+	IncludeTotalCount      bool
 }
 
 func ParamsFromRequest(r *http.Request) *Params {
@@ -270,6 +271,10 @@ func ParamsFromRequest(r *http.Request) *Params {
 	}
 
 	params.GroupIDs = query.Get("group_ids")
+
+	if val, err := strconv.ParseBool(query.Get("include_total_count")); err == nil {
+		params.IncludeTotalCount = val
+	}
 
 	return params
 }

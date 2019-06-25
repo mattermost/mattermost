@@ -35,6 +35,7 @@ const (
 	STATUS                    = "status"
 	STATUS_OK                 = "OK"
 	STATUS_FAIL               = "FAIL"
+	STATUS_UNHEALTHY          = "UNHEALTHY"
 	STATUS_REMOVE             = "REMOVE"
 
 	CLIENT_DIR = "client"
@@ -945,6 +946,20 @@ func (c *Client4) GetUsersByUsernames(usernames []string) ([]*User, *Response) {
 	return UserListFromJson(r.Body), BuildResponse(r)
 }
 
+// GetUsersByGroupChannelIds returns a map with channel ids as keys
+// and a list of users as values based on the provided user ids.
+func (c *Client4) GetUsersByGroupChannelIds(groupChannelIds []string) (map[string][]*User, *Response) {
+	r, err := c.DoApiPost(c.GetUsersRoute()+"/group_channels", ArrayToJson(groupChannelIds))
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+
+	usersByChannelId := map[string][]*User{}
+	json.NewDecoder(r.Body).Decode(&usersByChannelId)
+	return usersByChannelId, BuildResponse(r)
+}
+
 // SearchUsers returns a list of users based on some search criteria.
 func (c *Client4) SearchUsers(search *UserSearch) ([]*User, *Response) {
 	r, err := c.doApiPostBytes(c.GetUsersRoute()+"/search", search.ToJson())
@@ -1483,6 +1498,18 @@ func (c *Client4) GetAllTeams(etag string, page int, perPage int) ([]*Team, *Res
 	}
 	defer closeBody(r)
 	return TeamListFromJson(r.Body), BuildResponse(r)
+}
+
+// GetAllTeamsWithTotalCount returns all teams based on permissions.
+func (c *Client4) GetAllTeamsWithTotalCount(etag string, page int, perPage int) ([]*Team, int64, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v&include_total_count=true", page, perPage)
+	r, err := c.DoApiGet(c.GetTeamsRoute()+query, etag)
+	if err != nil {
+		return nil, 0, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	teamsListWithCount := TeamsWithCountFromJson(r.Body)
+	return teamsListWithCount.Teams, teamsListWithCount.TotalCount, BuildResponse(r)
 }
 
 // GetTeamByName returns a team based on the provided team name string.
@@ -2053,6 +2080,16 @@ func (c *Client4) SearchAllChannels(search *ChannelSearch) (*ChannelListWithTeam
 	}
 	defer closeBody(r)
 	return ChannelListWithTeamDataFromJson(r.Body), BuildResponse(r)
+}
+
+// SearchGroupChannels returns the group channels of the user whose members' usernames match the search term.
+func (c *Client4) SearchGroupChannels(search *ChannelSearch) ([]*Channel, *Response) {
+	r, err := c.DoApiPost(c.GetChannelsRoute()+"/group/search", search.ToJson())
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ChannelSliceFromJson(r.Body), BuildResponse(r)
 }
 
 // DeleteChannel deletes channel based on the provided channel id string.
@@ -2682,7 +2719,22 @@ func (c *Client4) GetPing() (string, *Response) {
 	r, err := c.DoApiGet(c.GetSystemRoute()+"/ping", "")
 	if r != nil && r.StatusCode == 500 {
 		defer r.Body.Close()
-		return "unhealthy", BuildErrorResponse(r, err)
+		return STATUS_UNHEALTHY, BuildErrorResponse(r, err)
+	}
+	if err != nil {
+		return "", BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return MapFromJson(r.Body)["status"], BuildResponse(r)
+}
+
+// GetPingWithServerStatus will return ok if several basic server health checks
+// all psss successfully.
+func (c *Client4) GetPingWithServerStatus() (string, *Response) {
+	r, err := c.DoApiGet(c.GetSystemRoute()+"/ping?get_server_status=true", "")
+	if r != nil && r.StatusCode == 500 {
+		defer r.Body.Close()
+		return STATUS_UNHEALTHY, BuildErrorResponse(r, err)
 	}
 	if err != nil {
 		return "", BuildErrorResponse(r, err)
