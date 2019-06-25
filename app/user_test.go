@@ -618,9 +618,8 @@ func TestCreateUserWithToken(t *testing.T) {
 		if newUser.Email != invitationEmail {
 			t.Fatal("The user email must be the invitation one")
 		}
-		if result := <-th.App.Srv.Store.Token().GetByToken(token.Token); result.Err == nil {
-			t.Fatal("The token must be deleted after be used")
-		}
+		_, err = th.App.Srv.Store.Token().GetByToken(token.Token)
+		require.NotNil(t, err, "The token must be deleted after be used")
 	})
 }
 
