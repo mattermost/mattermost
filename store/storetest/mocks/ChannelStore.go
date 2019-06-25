@@ -278,6 +278,29 @@ func (_m *ChannelStore) GetAllChannels(page int, perPage int, opts store.Channel
 	return r0, r1
 }
 
+// GetAllChannelsCount provides a mock function with given fields: opts
+func (_m *ChannelStore) GetAllChannelsCount(opts store.ChannelSearchOpts) (int64, *model.AppError) {
+	ret := _m.Called(opts)
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(store.ChannelSearchOpts) int64); ok {
+		r0 = rf(opts)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(store.ChannelSearchOpts) *model.AppError); ok {
+		r1 = rf(opts)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetAllChannelsForExportAfter provides a mock function with given fields: limit, afterId
 func (_m *ChannelStore) GetAllChannelsForExportAfter(limit int, afterId string) ([]*model.ChannelForExport, *model.AppError) {
 	ret := _m.Called(limit, afterId)
