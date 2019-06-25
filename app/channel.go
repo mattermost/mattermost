@@ -1798,11 +1798,7 @@ func (a *App) SearchAllChannels(term string, opts model.ChannelSearchOpts) (*mod
 
 	term = strings.TrimSpace(term)
 
-	result := <-a.Srv.Store.Channel().SearchAllChannels(term, storeOpts)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.ChannelListWithTeamData), nil
+	return a.Srv.Store.Channel().SearchAllChannels(term, storeOpts)
 }
 
 func (a *App) SearchChannels(teamId string, term string) (*model.ChannelList, *model.AppError) {

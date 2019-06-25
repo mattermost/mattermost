@@ -2547,9 +2547,8 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.Description, func(t *testing.T) {
-			result := <-ss.Channel().SearchAllChannels(testCase.Term, testCase.Opts)
-			require.Nil(t, result.Err)
-			channels := result.Data.(*model.ChannelListWithTeamData)
+			channels, err := ss.Channel().SearchAllChannels(testCase.Term, testCase.Opts)
+			require.Nil(t, err)
 			require.Equal(t, len(*testCase.ExpectedResults), len(*channels))
 			for i, expected := range *testCase.ExpectedResults {
 				require.Equal(t, (*channels)[i].Id, expected.Id)
