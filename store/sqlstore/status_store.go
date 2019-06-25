@@ -136,16 +136,13 @@ func (s SqlStatusStore) ResetAll() store.StoreChannel {
 	})
 }
 
-func (s SqlStatusStore) GetTotalActiveUsersCount() store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		time := model.GetMillis() - (1000 * 60 * 60 * 24)
-
-		if count, err := s.GetReplica().SelectInt("SELECT COUNT(UserId) FROM Status WHERE LastActivityAt > :Time", map[string]interface{}{"Time": time}); err != nil {
-			result.Err = model.NewAppError("SqlStatusStore.GetTotalActiveUsersCount", "store.sql_status.get_total_active_users_count.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = count
-		}
-	})
+func (s SqlStatusStore) GetTotalActiveUsersCount() (int64, *model.AppError) {
+	time := model.GetMillis() - (1000 * 60 * 60 * 24)
+	count, err := s.GetReplica().SelectInt("SELECT COUNT(UserId) FROM Status WHERE LastActivityAt > :Time", map[string]interface{}{"Time": time})
+	if err != nil {
+		return count, model.NewAppError("SqlStatusStore.GetTotalActiveUsersCount", "store.sql_status.get_total_active_users_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return count, nil
 }
 
 func (s SqlStatusStore) UpdateLastActivityAt(userId string, lastActivityAt int64) store.StoreChannel {
