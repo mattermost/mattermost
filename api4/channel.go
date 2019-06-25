@@ -534,7 +534,23 @@ func getAllChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Write([]byte(channels.ToJson()))
+	var payload []byte
+	if c.Params.IncludeTotalCount {
+		totalCount, err := c.App.GetAllChannelsCount(opts)
+		if err != nil {
+			c.Err = err
+			return
+		}
+		cwc := &model.ChannelsWithCount{
+			Channels:   channels,
+			TotalCount: totalCount,
+		}
+		payload = cwc.ToJson()
+	} else {
+		payload = []byte(channels.ToJson())
+	}
+
+	w.Write(payload)
 }
 
 func getPublicChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
