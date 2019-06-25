@@ -158,21 +158,21 @@ func testGetAllFromTeam(t *testing.T, ss store.Store) {
 	team2Member2Status := &model.Status{UserId: team2Member2.UserId, Status: model.STATUS_OFFLINE, Manual: true, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
 	require.Nil(t, ss.Status().SaveOrUpdate(team2Member2Status))
 
-	if result := <-ss.Status().GetAllFromTeam(team1.Id); result.Err != nil {
-		t.Fatal(result.Err)
+	if statueses, err := ss.Status().GetAllFromTeam(team1.Id); err != nil {
+		t.Fatal(err)
 	} else {
 		assertStatuses([]*model.Status{
 			team1Member1Status,
 			team1Member2Status,
-		}, result.Data.([]*model.Status))
+		}, statueses)
 	}
 
-	if result := <-ss.Status().GetAllFromTeam(team2.Id); result.Err != nil {
-		t.Fatal(result.Err)
+	if statueses, err := ss.Status().GetAllFromTeam(team2.Id); err != nil {
+		t.Fatal(err)
 	} else {
 		assertStatuses([]*model.Status{
 			team2Member1Status,
 			team2Member2Status,
-		}, result.Data.([]*model.Status))
+		}, statueses)
 	}
 }

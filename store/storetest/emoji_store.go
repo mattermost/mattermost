@@ -229,13 +229,13 @@ func testEmojiGetList(t *testing.T, ss store.Store) {
 		}
 	}()
 
-	if result := <-ss.Emoji().GetList(0, 100, ""); result.Err != nil {
-		t.Fatal(result.Err)
+	if result, err := ss.Emoji().GetList(0, 100, ""); err != nil {
+		t.Fatal(err)
 	} else {
 		for _, emoji := range emojis {
 			found := false
 
-			for _, savedEmoji := range result.Data.([]*model.Emoji) {
+			for _, savedEmoji := range result {
 				if emoji.Id == savedEmoji.Id {
 					found = true
 					break
@@ -248,17 +248,15 @@ func testEmojiGetList(t *testing.T, ss store.Store) {
 		}
 	}
 
-	result := <-ss.Emoji().GetList(0, 3, model.EMOJI_SORT_BY_NAME)
-	assert.Nil(t, result.Err)
-	remojis := result.Data.([]*model.Emoji)
+	remojis, err := ss.Emoji().GetList(0, 3, model.EMOJI_SORT_BY_NAME)
+	assert.Nil(t, err)
 	assert.Equal(t, 3, len(remojis))
 	assert.Equal(t, emojis[0].Name, remojis[0].Name)
 	assert.Equal(t, emojis[1].Name, remojis[1].Name)
 	assert.Equal(t, emojis[2].Name, remojis[2].Name)
 
-	result = <-ss.Emoji().GetList(1, 2, model.EMOJI_SORT_BY_NAME)
-	assert.Nil(t, result.Err)
-	remojis = result.Data.([]*model.Emoji)
+	remojis, err = ss.Emoji().GetList(1, 2, model.EMOJI_SORT_BY_NAME)
+	assert.Nil(t, err)
 	assert.Equal(t, 2, len(remojis))
 	assert.Equal(t, emojis[1].Name, remojis[0].Name)
 	assert.Equal(t, emojis[2].Name, remojis[1].Name)

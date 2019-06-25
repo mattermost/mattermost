@@ -1160,6 +1160,9 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlSupplier)
 	assert.Equal(t, (*list)[1].Id, c3.Id)
 	assert.Equal(t, (*list)[1].TeamDisplayName, "Name2")
 
+	count1, err := ss.Channel().GetAllChannelsCount(store.ChannelSearchOpts{})
+	require.Nil(t, err)
+
 	list, err = ss.Channel().GetAllChannels(0, 10, store.ChannelSearchOpts{IncludeDeleted: true})
 	require.Nil(t, err)
 	assert.Len(t, *list, 3)
@@ -1167,6 +1170,12 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlSupplier)
 	assert.Equal(t, (*list)[0].TeamDisplayName, "Name")
 	assert.Equal(t, (*list)[1].Id, c2.Id)
 	assert.Equal(t, (*list)[2].Id, c3.Id)
+
+	count2, err := ss.Channel().GetAllChannelsCount(store.ChannelSearchOpts{IncludeDeleted: true})
+	require.Nil(t, err)
+	require.True(t, func() bool {
+		return count2 > count1
+	}())
 
 	list, err = ss.Channel().GetAllChannels(0, 1, store.ChannelSearchOpts{IncludeDeleted: true})
 	require.Nil(t, err)
@@ -1722,22 +1731,22 @@ func testChannelStoreIncrementMentionCount(t *testing.T, ss store.Store) {
 	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
 	store.Must(ss.Channel().SaveMember(&m1))
 
-	err = (<-ss.Channel().IncrementMentionCount(m1.ChannelId, m1.UserId)).Err
+	err = ss.Channel().IncrementMentionCount(m1.ChannelId, m1.UserId)
 	if err != nil {
 		t.Fatal("failed to update")
 	}
 
-	err = (<-ss.Channel().IncrementMentionCount(m1.ChannelId, "missing id")).Err
+	err = ss.Channel().IncrementMentionCount(m1.ChannelId, "missing id")
 	if err != nil {
 		t.Fatal("failed to update")
 	}
 
-	err = (<-ss.Channel().IncrementMentionCount("missing id", m1.UserId)).Err
+	err = ss.Channel().IncrementMentionCount("missing id", m1.UserId)
 	if err != nil {
 		t.Fatal("failed to update")
 	}
 
-	err = (<-ss.Channel().IncrementMentionCount("missing id", "missing id")).Err
+	err = ss.Channel().IncrementMentionCount("missing id", "missing id")
 	if err != nil {
 		t.Fatal("failed to update")
 	}
@@ -2538,9 +2547,8 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.Description, func(t *testing.T) {
-			result := <-ss.Channel().SearchAllChannels(testCase.Term, testCase.Opts)
-			require.Nil(t, result.Err)
-			channels := result.Data.(*model.ChannelListWithTeamData)
+			channels, err := ss.Channel().SearchAllChannels(testCase.Term, testCase.Opts)
+			require.Nil(t, err)
 			require.Equal(t, len(*testCase.ExpectedResults), len(*channels))
 			for i, expected := range *testCase.ExpectedResults {
 				require.Equal(t, (*channels)[i].Id, expected.Id)
