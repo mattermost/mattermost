@@ -1801,6 +1801,18 @@ func (a *App) SearchChannels(teamId string, term string) (*model.ChannelList, *m
 	return a.Srv.Store.Channel().SearchInTeam(teamId, term, includeDeleted)
 }
 
+func (a *App) SearchGroupChannels(userId, term string) (*model.ChannelList, *model.AppError) {
+	if term == "" {
+		return &model.ChannelList{}, nil
+	}
+
+	channelList, err := a.Srv.Store.Channel().SearchGroupChannels(userId, term)
+	if err != nil {
+		return nil, err
+	}
+	return channelList, nil
+}
+
 func (a *App) SearchChannelsUserNotIn(teamId string, userId string, term string) (*model.ChannelList, *model.AppError) {
 	term = strings.TrimSpace(term)
 	return a.Srv.Store.Channel().SearchMore(userId, teamId, term)

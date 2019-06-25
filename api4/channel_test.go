@@ -918,6 +918,64 @@ func TestSearchAllChannels(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 }
 
+func TestSearchGroupChannels(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+
+	u1 := th.CreateUserWithClient(th.SystemAdminClient)
+
+	// Create a group channel in which base user belongs but not sysadmin
+	gc1, resp := th.Client.CreateGroupChannel([]string{th.BasicUser.Id, th.BasicUser2.Id, u1.Id})
+	CheckNoError(t, resp)
+	defer th.Client.DeleteChannel(gc1.Id)
+
+	gc2, resp := th.Client.CreateGroupChannel([]string{th.BasicUser.Id, th.BasicUser2.Id, th.SystemAdminUser.Id})
+	CheckNoError(t, resp)
+	defer th.Client.DeleteChannel(gc2.Id)
+
+	search := &model.ChannelSearch{Term: th.BasicUser2.Username}
+
+	// sysadmin should only find gc2 as he doesn't belong to gc1
+	channels, resp := th.SystemAdminClient.SearchGroupChannels(search)
+	CheckNoError(t, resp)
+
+	assert.Len(t, channels, 1)
+	assert.Equal(t, channels[0].Id, gc2.Id)
+
+	// basic user should find both
+	Client.Login(th.BasicUser.Username, th.BasicUser.Password)
+	channels, resp = Client.SearchGroupChannels(search)
+	CheckNoError(t, resp)
+
+	assert.Len(t, channels, 2)
+	channelIds := []string{}
+	for _, c := range channels {
+		channelIds = append(channelIds, c.Id)
+	}
+	assert.ElementsMatch(t, channelIds, []string{gc1.Id, gc2.Id})
+
+	// searching for sysadmin, it should only find gc1
+	search = &model.ChannelSearch{Term: th.SystemAdminUser.Username}
+	channels, resp = Client.SearchGroupChannels(search)
+	CheckNoError(t, resp)
+
+	assert.Len(t, channels, 1)
+	assert.Equal(t, channels[0].Id, gc2.Id)
+
+	// with an empty search, response should be empty
+	search = &model.ChannelSearch{Term: ""}
+	channels, resp = Client.SearchGroupChannels(search)
+	CheckNoError(t, resp)
+
+	assert.Len(t, channels, 0)
+
+	// search unprivileged, forbidden
+	th.Client.Logout()
+	_, resp = Client.SearchAllChannels(search)
+	CheckUnauthorizedStatus(t, resp)
+}
+
 func TestDeleteChannel(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
