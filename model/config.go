@@ -2984,8 +2984,13 @@ func (o *Config) Sanitize() {
 	}
 
 	*o.FileSettings.PublicLinkSalt = FAKE_SETTING
+
 	if len(*o.FileSettings.AmazonS3SecretAccessKey) > 0 {
 		*o.FileSettings.AmazonS3SecretAccessKey = FAKE_SETTING
+	}
+
+	if o.EmailSettings.SMTPPassword != nil && len(*o.EmailSettings.SMTPPassword) > 0 {
+		*o.EmailSettings.SMTPPassword = FAKE_SETTING
 	}
 
 	if len(*o.GitLabSettings.Secret) > 0 {
@@ -2995,6 +3000,8 @@ func (o *Config) Sanitize() {
 	*o.SqlSettings.DataSource = FAKE_SETTING
 	*o.SqlSettings.AtRestEncryptKey = FAKE_SETTING
 
+	*o.ElasticsearchSettings.Password = FAKE_SETTING
+
 	for i := range o.SqlSettings.DataSourceReplicas {
 		o.SqlSettings.DataSourceReplicas[i] = FAKE_SETTING
 	}
@@ -3002,6 +3009,4 @@ func (o *Config) Sanitize() {
 	for i := range o.SqlSettings.DataSourceSearchReplicas {
 		o.SqlSettings.DataSourceSearchReplicas[i] = FAKE_SETTING
 	}
-
-	*o.ElasticsearchSettings.Password = FAKE_SETTING
 }
