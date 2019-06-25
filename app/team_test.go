@@ -294,7 +294,6 @@ func TestAddUserToTeamByToken(t *testing.T) {
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "channels": th.BasicChannel.Id}),
 		)
 		<-th.App.Srv.Store.Token().Save(token)
-		require.Nil(t, err)
 		if _, err := th.App.AddUserToTeamByToken(rguest.Id, token.Token); err != nil {
 			t.Log(err)
 			t.Fatal("Should add user to the team")
