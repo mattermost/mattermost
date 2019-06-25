@@ -779,7 +779,7 @@ func (_m *TeamStore) SearchOpen(term string) ([]*model.Team, *model.AppError) {
 
 	var r1 *model.AppError
 	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
-		r1 = rf(name)
+		r1 = rf(term)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
