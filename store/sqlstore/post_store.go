@@ -991,7 +991,7 @@ func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.A
 	return rows, nil
 }
 
-func (s *SqlPostStore) AnalyticsPostCountsByDay(teamId string, botsOnly bool) (model.AnalyticsRows, *model.AppError) {
+func (s *SqlPostStore) AnalyticsPostCountsByDay(teamId string, botsOnly bool, yesterdayOnly bool) (model.AnalyticsRows, *model.AppError) {
 	query :=
 		`SELECT
 		        DATE(FROM_UNIXTIME(Posts.CreateAt / 1000)) AS Name,
@@ -1035,6 +1035,9 @@ func (s *SqlPostStore) AnalyticsPostCountsByDay(teamId string, botsOnly bool) (m
 
 	end := utils.MillisFromTime(utils.EndOfDay(utils.Yesterday()))
 	start := utils.MillisFromTime(utils.StartOfDay(utils.Yesterday().AddDate(0, 0, -31)))
+	if yesterdayOnly {
+		start = utils.MillisFromTime(utils.StartOfDay(utils.Yesterday().AddDate(0, 0, -1)))
+	}
 
 	var rows model.AnalyticsRows
 	_, err := s.GetReplica().Select(

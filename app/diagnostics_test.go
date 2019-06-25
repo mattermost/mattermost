@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/utils"
 )
 
 func newTestServer() (chan string, *httptest.Server) {
@@ -97,6 +98,21 @@ func TestDiagnostics(t *testing.T) {
 			t.Fatal("Did not receive diagnostic")
 		}
 	})
+
+	// create bot and bot post for testing bots in AnalyticsPostCountsByDay() and AnalyticsPostCount()
+	bot, _ := th.App.CreateBot(&model.Bot{
+		Username:    "username",
+		Description: "a bot",
+		OwnerId:     th.BasicUser.Id,
+	})
+
+	post := &model.Post{
+		Message:   "reply three",
+		ChannelId: th.BasicChannel.Id,
+		UserId:    bot.UserId,
+		CreateAt:  utils.MillisFromTime(utils.Yesterday()),
+	}
+	_, _ = th.App.CreatePost(post, th.BasicChannel, false)
 
 	t.Run("SendDailyDiagnostics", func(t *testing.T) {
 		th.App.sendDailyDiagnostics(true)
