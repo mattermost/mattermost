@@ -322,10 +322,10 @@ func (a *App) GetRecentlyActiveUsersForTeamPage(teamId string, page, perPage int
 }
 
 func (a *App) GetNewUsersForTeamPage(teamId string, page, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
-	result, err := a.Srv.Store.User().GetNewUsersForTeam(teamId, page*perPage, perPage, viewRestrictions)
+	user, err := a.Srv.Store.User().GetNewUsersForTeam(teamId, page*perPage, perPage, viewRestrictions)
 	if err != nil {
 		return nil, err
 	}
 
-	return a.sanitizeProfiles(result, asAdmin), nil
+	return a.sanitizeProfiles(user, asAdmin), nil
 }
