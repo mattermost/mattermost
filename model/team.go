@@ -62,6 +62,11 @@ type Invites struct {
 	Invites []map[string]string `json:"invites"`
 }
 
+type TeamsWithCount struct {
+	Teams      []*Team `json:"teams"`
+	TotalCount int64   `json:"total_count"`
+}
+
 func InvitesFromJson(data io.Reader) *Invites {
 	var o *Invites
 	json.NewDecoder(data).Decode(&o)
@@ -106,6 +111,17 @@ func TeamMapFromJson(data io.Reader) map[string]*Team {
 func TeamListToJson(t []*Team) string {
 	b, _ := json.Marshal(t)
 	return string(b)
+}
+
+func TeamsWithCountToJson(tlc *TeamsWithCount) []byte {
+	b, _ := json.Marshal(tlc)
+	return b
+}
+
+func TeamsWithCountFromJson(data io.Reader) *TeamsWithCount {
+	var twc *TeamsWithCount
+	json.NewDecoder(data).Decode(&twc)
+	return twc
 }
 
 func TeamListFromJson(data io.Reader) []*Team {
