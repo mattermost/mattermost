@@ -2376,19 +2376,19 @@
   },
   {
     "id": "api.user.login.invalid_credentials_email",
-    "translation": "Enter a valid email and/or password"
+    "translation": "Informe um e-mail e/ou senha válidos"
   },
   {
     "id": "api.user.login.invalid_credentials_email_username",
-    "translation": "Enter a valid email or username and/or password."
+    "translation": "Informe um nome de usuário ou e-mail e/ou senha válidos."
   },
   {
     "id": "api.user.login.invalid_credentials_sso",
-    "translation": "Enter a valid email or username and/or password, or sign in using another method.\n"
+    "translation": "Informe um e-mail ou nome de usuário e/ou senha válidos, ou entre utilizando outro método.\n"
   },
   {
     "id": "api.user.login.invalid_credentials_username",
-    "translation": "Enter a valid username and/or password."
+    "translation": "Informe um nome de usuário e/ou senha válidos."
   },
   {
     "id": "api.user.login.not_verified.app_error",
