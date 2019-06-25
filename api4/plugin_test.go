@@ -26,7 +26,6 @@ func TestPlugin(t *testing.T) {
 	states := map[string]*model.PluginState{}
 	json.Unmarshal(statesJson, &states)
 	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "127.0.0.1"
 		*cfg.PluginSettings.Enable = true
 		*cfg.PluginSettings.EnableUploads = true
 		*cfg.PluginSettings.AllowInsecureDownloadUrl = true

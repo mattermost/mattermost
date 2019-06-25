@@ -112,7 +112,7 @@ func installPluginFromUrl(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	client := c.App.HTTPService.MakeClient(false)
+	client := c.App.HTTPService.MakeClient(true)
 	resp, err := client.Get(downloadUrl)
 	if err != nil {
 		c.Err = model.NewAppError("installPluginFromUrl", "api.plugin.install.download_failed.app_error", nil, err.Error(), http.StatusBadRequest)
