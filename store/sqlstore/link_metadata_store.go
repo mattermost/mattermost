@@ -59,12 +59,12 @@ func (s SqlLinkMetadataStore) Get(url string, timestamp int64) (*model.LinkMetad
 
 	err := s.GetReplica().SelectOne(&metadata,
 		`SELECT
-            *
-        FROM
-            LinkMetadata
-        WHERE
-            URL = :URL
-            AND Timestamp = :Timestamp`, map[string]interface{}{"URL": url, "Timestamp": timestamp})
+			*
+		FROM
+			LinkMetadata
+		WHERE
+			URL = :URL
+			AND Timestamp = :Timestamp`, map[string]interface{}{"URL": url, "Timestamp": timestamp})
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, model.NewAppError("SqlLinkMetadataStore.Get", "store.sql_link_metadata.get.app_error", nil, "url="+url+", "+err.Error(), http.StatusNotFound)
