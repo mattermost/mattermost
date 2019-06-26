@@ -303,7 +303,7 @@ type UserStore interface {
 	GetUsersBatchForIndexing(startTime, endTime int64, limit int) ([]*model.UserForIndexing, *model.AppError)
 	Count(options model.UserCountOptions) (int64, *model.AppError)
 	GetTeamGroupUsers(teamID string) StoreChannel
-	GetChannelGroupUsers(channelID string) StoreChannel
+	GetChannelGroupUsers(channelID string) ([]*model.User, *model.AppError)
 }
 
 type BotStore interface {

@@ -618,11 +618,11 @@ func (a *App) GetTeamGroupUsers(teamID string) ([]*model.User, *model.AppError) 
 
 // GetChannelGroupUsers returns the users who are associated to the channel via GroupChannels and GroupMembers.
 func (a *App) GetChannelGroupUsers(channelID string) ([]*model.User, *model.AppError) {
-	result := <-a.Srv.Store.User().GetChannelGroupUsers(channelID)
-	if result.Err != nil {
-		return nil, result.Err
+	users, err := a.Srv.Store.User().GetChannelGroupUsers(channelID)
+	if err != nil {
+		return nil, err
 	}
-	return result.Data.([]*model.User), nil
+	return users, nil
 }
 
 func (a *App) GetUsersByIds(userIds []string, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
