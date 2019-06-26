@@ -634,8 +634,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			TOKEN_TYPE_GUEST_INVITATION,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail, "channels": th.BasicChannel.Id}),
 		)
-		result := <-th.App.Srv.Store.Token().Save(token)
-		require.Nil(t, result.Err)
+		require.Nil(t, th.App.Srv.Store.Token().Save(token))
 		guest := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: "passwd1", AuthService: ""}
 		newGuest, err := th.App.CreateUserWithToken(&guest, token.Token)
 		if err != nil {
