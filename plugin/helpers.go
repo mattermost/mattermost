@@ -17,9 +17,11 @@ type Helpers interface {
 	// KVSetJSON stores a key-value pair.
 	KVSetJSON(key string, value interface{}) error
 
-	// VKCompareAndSetJSON updates a key-value pair if the current
-	// value is equal to oldValue. Inserts a key-value pair if oldValue is nil.
-	// Will not update it the current value != oldValue.
+	// KVCompareAndSetJSON updates a key-value pair if the current
+	// value is equal to oldValue.
+	// Returns (false, err) if DB/marshal/unmarshal error occurred
+	// Returns (false, nil) if current value != old value
+	// Returns (true, nil) if current value == old value or new key is inserted
 	KVCompareAndSetJSON(key string, oldValue interface{}, newValue interface{}) (bool, error)
 
 	// KVSetWithExpiryJSON stores a key-value pair with an expiry time.
