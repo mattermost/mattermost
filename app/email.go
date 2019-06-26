@@ -6,6 +6,7 @@ package app
 import (
 	"fmt"
 	"net/url"
+	"path"
 
 	"net/http"
 
@@ -25,6 +26,15 @@ const (
 	emailRateLimitingPerHour      = 20
 	emailRateLimitingMaxBurst     = 20
 )
+
+func condenseSiteURL(siteURL string) string {
+	parsedSiteURL, _ := url.Parse(siteURL)
+	if parsedSiteURL.Path == "" || parsedSiteURL.Path == "/" {
+		return parsedSiteURL.Host
+	}
+
+	return path.Join(parsedSiteURL.Host, parsedSiteURL.Path)
+}
 
 func (a *App) SetupInviteEmailRateLimiting() error {
 	store, err := memstore.New(emailRateLimitingMemstoreSize)
@@ -117,14 +127,14 @@ func (a *App) SendVerifyEmail(userEmail, locale, siteURL, token string) *model.A
 
 	link := fmt.Sprintf("%s/do_verify_email?token=%s&email=%s", siteURL, token, url.QueryEscape(userEmail))
 
-	url, _ := url.Parse(siteURL)
+	serverURL := condenseSiteURL(siteURL)
 
 	subject := T("api.templates.verify_subject",
 		map[string]interface{}{"SiteName": a.ClientConfig()["SiteName"]})
 
 	bodyPage := a.NewEmailTemplate("verify_body", locale)
 	bodyPage.Props["SiteURL"] = siteURL
-	bodyPage.Props["Title"] = T("api.templates.verify_body.title", map[string]interface{}{"ServerURL": url.Host})
+	bodyPage.Props["Title"] = T("api.templates.verify_body.title", map[string]interface{}{"ServerURL": serverURL})
 	bodyPage.Props["Info"] = T("api.templates.verify_body.info")
 	bodyPage.Props["VerifyUrl"] = link
 	bodyPage.Props["Button"] = T("api.templates.verify_body.button")
@@ -159,15 +169,15 @@ func (a *App) SendSignInChangeEmail(email, method, locale, siteURL string) *mode
 func (a *App) SendWelcomeEmail(userId string, email string, verified bool, locale, siteURL string) *model.AppError {
 	T := utils.GetUserTranslations(locale)
 
-	rawUrl, _ := url.Parse(siteURL)
+	serverURL := condenseSiteURL(siteURL)
 
 	subject := T("api.templates.welcome_subject",
 		map[string]interface{}{"SiteName": a.ClientConfig()["SiteName"],
-			"ServerURL": rawUrl.Host})
+			"ServerURL": serverURL})
 
 	bodyPage := a.NewEmailTemplate("welcome_body", locale)
 	bodyPage.Props["SiteURL"] = siteURL
-	bodyPage.Props["Title"] = T("api.templates.welcome_body.title", map[string]interface{}{"ServerURL": rawUrl.Host})
+	bodyPage.Props["Title"] = T("api.templates.welcome_body.title", map[string]interface{}{"ServerURL": serverURL})
 	bodyPage.Props["Info"] = T("api.templates.welcome_body.info")
 	bodyPage.Props["Button"] = T("api.templates.welcome_body.button")
 	bodyPage.Props["Info2"] = T("api.templates.welcome_body.info2")
@@ -382,15 +392,15 @@ func (a *App) NewEmailTemplate(name, locale string) *utils.HTMLTemplate {
 func (a *App) SendDeactivateAccountEmail(email string, locale, siteURL string) *model.AppError {
 	T := utils.GetUserTranslations(locale)
 
-	rawUrl, _ := url.Parse(siteURL)
+	serverURL := condenseSiteURL(siteURL)
 
 	subject := T("api.templates.deactivate_subject",
 		map[string]interface{}{"SiteName": a.ClientConfig()["SiteName"],
-			"ServerURL": rawUrl.Host})
+			"ServerURL": serverURL})
 
 	bodyPage := a.NewEmailTemplate("deactivate_body", locale)
 	bodyPage.Props["SiteURL"] = siteURL
-	bodyPage.Props["Title"] = T("api.templates.deactivate_body.title", map[string]interface{}{"ServerURL": rawUrl.Host})
+	bodyPage.Props["Title"] = T("api.templates.deactivate_body.title", map[string]interface{}{"ServerURL": serverURL})
 	bodyPage.Props["Info"] = T("api.templates.deactivate_body.info",
 		map[string]interface{}{"SiteURL": siteURL})
 	bodyPage.Props["Warning"] = T("api.templates.deactivate_body.warning")
