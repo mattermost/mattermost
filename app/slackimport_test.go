@@ -168,7 +168,7 @@ func TestSlackParsePosts(t *testing.T) {
 
 	posts, err := SlackParsePosts(file)
 	require.NoError(t, err)
-	assert.Equal(t, 8, len(posts))
+	assert.Equal(t, 9, len(posts))
 }
 
 func TestSlackSanitiseChannelProperties(t *testing.T) {
