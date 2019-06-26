@@ -1450,19 +1450,28 @@ func (_m *ChannelStore) Update(channel *model.Channel) (*model.Channel, *model.A
 }
 
 // UpdateLastViewedAt provides a mock function with given fields: channelIds, userId
-func (_m *ChannelStore) UpdateLastViewedAt(channelIds []string, userId string) store.StoreChannel {
+func (_m *ChannelStore) UpdateLastViewedAt(channelIds []string, userId string) (map[string]int64, *model.AppError) {
 	ret := _m.Called(channelIds, userId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func([]string, string) store.StoreChannel); ok {
+	var r0 map[string]int64
+	if rf, ok := ret.Get(0).(func([]string, string) map[string]int64); ok {
 		r0 = rf(channelIds, userId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(map[string]int64)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func([]string, string) *model.AppError); ok {
+		r1 = rf(channelIds, userId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // UpdateMember provides a mock function with given fields: member
