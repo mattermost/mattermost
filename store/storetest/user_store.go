@@ -330,21 +330,21 @@ func testGetAllUsingAuthService(t *testing.T, ss store.Store) {
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u3.Id)) }()
 
 	t.Run("get by unknown auth service", func(t *testing.T) {
-		result := <-ss.User().GetAllUsingAuthService("unknown")
-		require.Nil(t, result.Err)
-		assert.Equal(t, []*model.User{}, result.Data.([]*model.User))
+		users, err := ss.User().GetAllUsingAuthService("unknown")
+		require.Nil(t, err)
+		assert.Equal(t, []*model.User{}, users)
 	})
 
 	t.Run("get by auth service", func(t *testing.T) {
-		result := <-ss.User().GetAllUsingAuthService("service")
-		require.Nil(t, result.Err)
-		assert.Equal(t, []*model.User{u1, u2}, result.Data.([]*model.User))
+		users, err := ss.User().GetAllUsingAuthService("service")
+		require.Nil(t, err)
+		assert.Equal(t, []*model.User{u1, u2}, users)
 	})
 
 	t.Run("get by other auth service", func(t *testing.T) {
-		result := <-ss.User().GetAllUsingAuthService("service2")
-		require.Nil(t, result.Err)
-		assert.Equal(t, []*model.User{u3}, result.Data.([]*model.User))
+		users, err := ss.User().GetAllUsingAuthService("service2")
+		require.Nil(t, err)
+		assert.Equal(t, []*model.User{u3}, users)
 	})
 }
 
@@ -1771,9 +1771,8 @@ func testUserStoreUpdateAuthData(t *testing.T, ss store.Store) {
 	service := "someservice"
 	authData := model.NewId()
 
-	if err := (<-ss.User().UpdateAuthData(u1.Id, service, &authData, "", true)).Err; err != nil {
-		t.Fatal(err)
-	}
+	_, err := ss.User().UpdateAuthData(u1.Id, service, &authData, "", true)
+	require.Nil(t, err)
 
 	if user, err := ss.User().GetByEmail(u1.Email); err != nil {
 		t.Fatal(err)
@@ -3131,80 +3130,80 @@ func testCount(t *testing.T, ss store.Store) {
 	u3.IsBot = true
 	defer func() { require.Nil(t, ss.Bot().PermanentDelete(u3.Id)) }()
 
-	result := <-ss.User().Count(model.UserCountOptions{
+	count, err := ss.User().Count(model.UserCountOptions{
 		IncludeBotAccounts: false,
 		IncludeDeleted:     false,
 		TeamId:             "",
 	})
-	require.Nil(t, result.Err)
-	require.Equal(t, int64(1), result.Data.(int64))
+	require.Nil(t, err)
+	require.Equal(t, int64(1), count)
 
-	result = <-ss.User().Count(model.UserCountOptions{
+	count, err = ss.User().Count(model.UserCountOptions{
 		IncludeBotAccounts: true,
 		IncludeDeleted:     false,
 		TeamId:             "",
 	})
-	require.Nil(t, result.Err)
-	require.Equal(t, int64(2), result.Data.(int64))
+	require.Nil(t, err)
+	require.Equal(t, int64(2), count)
 
-	result = <-ss.User().Count(model.UserCountOptions{
+	count, err = ss.User().Count(model.UserCountOptions{
 		IncludeBotAccounts: false,
 		IncludeDeleted:     true,
 		TeamId:             "",
 	})
-	require.Nil(t, result.Err)
-	require.Equal(t, int64(2), result.Data.(int64))
+	require.Nil(t, err)
+	require.Equal(t, int64(2), count)
 
-	result = <-ss.User().Count(model.UserCountOptions{
+	count, err = ss.User().Count(model.UserCountOptions{
 		IncludeBotAccounts: true,
 		IncludeDeleted:     true,
 		TeamId:             "",
 	})
-	require.Nil(t, result.Err)
-	require.Equal(t, int64(3), result.Data.(int64))
+	require.Nil(t, err)
+	require.Equal(t, int64(3), count)
 
-	result = <-ss.User().Count(model.UserCountOptions{
+	count, err = ss.User().Count(model.UserCountOptions{
 		IncludeBotAccounts:  true,
 		IncludeDeleted:      true,
 		ExcludeRegularUsers: true,
 		TeamId:              "",
 	})
-	require.Nil(t, result.Err)
-	require.Equal(t, int64(1), result.Data.(int64))
+	require.Nil(t, err)
+	require.Equal(t, int64(1), count)
 
-	result = <-ss.User().Count(model.UserCountOptions{
+	count, err = ss.User().Count(model.UserCountOptions{
 		IncludeBotAccounts: true,
 		IncludeDeleted:     true,
 		TeamId:             teamId,
 	})
-	require.Nil(t, result.Err)
-	require.Equal(t, int64(1), result.Data.(int64))
+	require.Nil(t, err)
+	require.Equal(t, int64(1), count)
 
-	result = <-ss.User().Count(model.UserCountOptions{
+	count, err = ss.User().Count(model.UserCountOptions{
 		IncludeBotAccounts: true,
 		IncludeDeleted:     true,
 		TeamId:             model.NewId(),
 	})
-	require.Nil(t, result.Err)
-	require.Equal(t, int64(0), result.Data.(int64))
+	require.Nil(t, err)
+	require.Equal(t, int64(0), count)
 
-	result = <-ss.User().Count(model.UserCountOptions{
+	count, err = ss.User().Count(model.UserCountOptions{
 		IncludeBotAccounts: true,
 		IncludeDeleted:     true,
 		TeamId:             teamId,
 		ViewRestrictions:   &model.ViewUsersRestrictions{Teams: []string{teamId}},
 	})
-	require.Nil(t, result.Err)
-	require.Equal(t, int64(1), result.Data.(int64))
+	require.Nil(t, err)
+	require.Equal(t, int64(1), count)
 
-	result = <-ss.User().Count(model.UserCountOptions{
+	count, err = ss.User().Count(model.UserCountOptions{
 		IncludeBotAccounts: true,
 		IncludeDeleted:     true,
 		TeamId:             teamId,
 		ViewRestrictions:   &model.ViewUsersRestrictions{Teams: []string{model.NewId()}},
 	})
-	require.Nil(t, result.Err)
-	require.Equal(t, int64(0), result.Data.(int64))
+	require.Nil(t, err)
+	require.Equal(t, int64(0), count)
 }
 
 func testUserStoreAnalyticsGetInactiveUsersCount(t *testing.T, ss store.Store) {
@@ -3661,9 +3660,8 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
 	endTime := u3.CreateAt
 
 	// First and last user should be outside the range
-	res1 := <-ss.User().GetUsersBatchForIndexing(startTime, endTime, 100)
-	assert.Nil(t, res1.Err)
-	res1List := res1.Data.([]*model.UserForIndexing)
+	res1List, err := ss.User().GetUsersBatchForIndexing(startTime, endTime, 100)
+	assert.Nil(t, err)
 
 	assert.Len(t, res1List, 1)
 	assert.Equal(t, res1List[0].Username, u2.Username)
@@ -3672,9 +3670,8 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
 
 	// Update startTime to include first user
 	startTime = u1.CreateAt
-	res2 := <-ss.User().GetUsersBatchForIndexing(startTime, endTime, 100)
-	assert.Nil(t, res1.Err)
-	res2List := res2.Data.([]*model.UserForIndexing)
+	res2List, err := ss.User().GetUsersBatchForIndexing(startTime, endTime, 100)
+	assert.Nil(t, err)
 
 	assert.Len(t, res2List, 2)
 	assert.Equal(t, res2List[0].Username, u1.Username)
@@ -3684,9 +3681,8 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
 
 	// Update endTime to include last user
 	endTime = model.GetMillis()
-	res3 := <-ss.User().GetUsersBatchForIndexing(startTime, endTime, 100)
-	assert.Nil(t, res3.Err)
-	res3List := res3.Data.([]*model.UserForIndexing)
+	res3List, err := ss.User().GetUsersBatchForIndexing(startTime, endTime, 100)
+	assert.Nil(t, err)
 
 	assert.Len(t, res3List, 3)
 	assert.Equal(t, res3List[0].Username, u1.Username)
@@ -3696,9 +3692,8 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
 	assert.ElementsMatch(t, res3List[2].ChannelsIds, []string{cPub2.Id})
 
 	// Testing the limit
-	res4 := <-ss.User().GetUsersBatchForIndexing(startTime, endTime, 2)
-	assert.Nil(t, res4.Err)
-	res4List := res4.Data.([]*model.UserForIndexing)
+	res4List, err := ss.User().GetUsersBatchForIndexing(startTime, endTime, 2)
+	assert.Nil(t, err)
 
 	assert.Len(t, res4List, 2)
 	assert.Equal(t, res4List[0].Username, u1.Username)

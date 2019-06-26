@@ -577,8 +577,8 @@ func (a *App) CompleteSwitchWithOAuth(service string, userData io.Reader, email 
 		return nil, err
 	}
 
-	if result := <-a.Srv.Store.User().UpdateAuthData(user.Id, service, &authData, ssoEmail, true); result.Err != nil {
-		return nil, result.Err
+	if _, err = a.Srv.Store.User().UpdateAuthData(user.Id, service, &authData, ssoEmail, true); err != nil {
+		return nil, err
 	}
 
 	a.Srv.Go(func() {
