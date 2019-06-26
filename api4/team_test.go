@@ -627,6 +627,8 @@ func TestGetAllTeams(t *testing.T) {
 		PerPage       int
 		Permissions   []string
 		ExpectedTeams []string
+		WithCount     bool
+		ExpectedCount int64
 	}{
 		{
 			Name:          "Get 1 team per page",
@@ -677,6 +679,15 @@ func TestGetAllTeams(t *testing.T) {
 			Permissions:   []string{},
 			ExpectedTeams: []string{},
 		},
+		{
+			Name:          "Get all teams with count",
+			Page:          0,
+			PerPage:       10,
+			Permissions:   []string{model.PERMISSION_LIST_PUBLIC_TEAMS.Id, model.PERMISSION_LIST_PRIVATE_TEAMS.Id},
+			ExpectedTeams: []string{th.BasicTeam.Id, team1.Id, team2.Id, team3.Id},
+			WithCount:     true,
+			ExpectedCount: 4,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -694,12 +705,18 @@ func TestGetAllTeams(t *testing.T) {
 			}
 
 			var teams []*model.Team
-			teams, resp = Client.GetAllTeams("", tc.Page, tc.PerPage)
+			var count int64
+			if tc.WithCount {
+				teams, count, resp = Client.GetAllTeamsWithTotalCount("", tc.Page, tc.PerPage)
+			} else {
+				teams, resp = Client.GetAllTeams("", tc.Page, tc.PerPage)
+			}
 			CheckNoError(t, resp)
 			require.Equal(t, len(tc.ExpectedTeams), len(teams))
 			for idx, team := range teams {
 				assert.Equal(t, tc.ExpectedTeams[idx], team.Id)
 			}
+			require.Equal(t, tc.ExpectedCount, count)
 		})
 	}
 
