@@ -60,11 +60,11 @@ func (s SqlStatusStore) Get(userId string) (*model.Status, *model.AppError) {
 
 	if err := s.GetReplica().SelectOne(&status,
 		`SELECT
-				*
-			FROM
-				Status
-			WHERE
-				UserId = :UserId`, map[string]interface{}{"UserId": userId}); err != nil {
+			*
+		FROM
+			Status
+		WHERE
+			UserId = :UserId`, map[string]interface{}{"UserId": userId}); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, model.NewAppError("SqlStatusStore.Get", MISSING_STATUS_ERROR, nil, err.Error(), http.StatusNotFound)
 		}
