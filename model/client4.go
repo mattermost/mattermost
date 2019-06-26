@@ -1908,6 +1908,18 @@ func (c *Client4) GetAllChannels(page int, perPage int, etag string) (*ChannelLi
 	return ChannelListWithTeamDataFromJson(r.Body), BuildResponse(r)
 }
 
+// GetAllChannelsWithCount get all the channels including the total count. Must be a system administrator.
+func (c *Client4) GetAllChannelsWithCount(page int, perPage int, etag string) (*ChannelListWithTeamData, int64, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v&include_total_count=true", page, perPage)
+	r, err := c.DoApiGet(c.GetChannelsRoute()+query, etag)
+	if err != nil {
+		return nil, 0, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	cwc := ChannelsWithCountFromJson(r.Body)
+	return cwc.Channels, cwc.TotalCount, BuildResponse(r)
+}
+
 // CreateChannel creates a channel based on the provided channel struct.
 func (c *Client4) CreateChannel(channel *Channel) (*Channel, *Response) {
 	r, err := c.DoApiPost(c.GetChannelsRoute(), channel.ToJson())
