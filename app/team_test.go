@@ -273,7 +273,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 			TOKEN_TYPE_TEAM_INVITATION,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id}),
 		)
-		<-th.App.Srv.Store.Token().Save(token)
+		require.Nil(t, th.App.Srv.Store.Token().Save(token))
 		_, err := th.App.AddUserToTeamByToken(rguest.Id, token.Token)
 		assert.NotNil(t, err)
 	})
@@ -283,7 +283,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 			TOKEN_TYPE_GUEST_INVITATION,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "channels": th.BasicChannel.Id}),
 		)
-		<-th.App.Srv.Store.Token().Save(token)
+		require.Nil(t, th.App.Srv.Store.Token().Save(token))
 		_, err := th.App.AddUserToTeamByToken(ruser.Id, token.Token)
 		assert.NotNil(t, err)
 	})
@@ -293,7 +293,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 			TOKEN_TYPE_GUEST_INVITATION,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "channels": th.BasicChannel.Id}),
 		)
-		<-th.App.Srv.Store.Token().Save(token)
+		require.Nil(t, th.App.Srv.Store.Token().Save(token))
 		if _, err := th.App.AddUserToTeamByToken(rguest.Id, token.Token); err != nil {
 			t.Log(err)
 			t.Fatal("Should add user to the team")
