@@ -60,6 +60,11 @@ type ChannelWithTeamData struct {
 	TeamUpdateAt    int64  `json:"team_update_at"`
 }
 
+type ChannelsWithCount struct {
+	Channels   *ChannelListWithTeamData `json:"channels"`
+	TotalCount int64                    `json:"total_count"`
+}
+
 type ChannelPatch struct {
 	DisplayName      *string `json:"display_name"`
 	Name             *string `json:"name"`
@@ -109,6 +114,17 @@ func (o *Channel) ToJson() string {
 func (o *ChannelPatch) ToJson() string {
 	b, _ := json.Marshal(o)
 	return string(b)
+}
+
+func (o *ChannelsWithCount) ToJson() []byte {
+	b, _ := json.Marshal(o)
+	return b
+}
+
+func ChannelsWithCountFromJson(data io.Reader) *ChannelsWithCount {
+	var o *ChannelsWithCount
+	json.NewDecoder(data).Decode(&o)
+	return o
 }
 
 func ChannelFromJson(data io.Reader) *Channel {

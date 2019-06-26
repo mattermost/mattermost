@@ -46,10 +46,14 @@ func (o *ClusterDiscovery) AutoFillHostname() {
 	}
 }
 
-func (o *ClusterDiscovery) AutoFillIpAddress(iface string) {
+func (o *ClusterDiscovery) AutoFillIpAddress(iface string, ipAddress string) {
 	// attempt to set the hostname to the first non-local IP address
 	if len(o.Hostname) == 0 {
-		o.Hostname = GetServerIpAddress(iface)
+		if len(ipAddress) > 0 {
+			o.Hostname = ipAddress
+		} else {
+			o.Hostname = GetServerIpAddress(iface)
+		}
 	}
 }
 

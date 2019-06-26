@@ -55,35 +55,53 @@ func (_m *EmojiStore) Get(id string, allowFromCache bool) (*model.Emoji, *model.
 }
 
 // GetByName provides a mock function with given fields: name
-func (_m *EmojiStore) GetByName(name string) store.StoreChannel {
+func (_m *EmojiStore) GetByName(name string) (*model.Emoji, *model.AppError) {
 	ret := _m.Called(name)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+	var r0 *model.Emoji
+	if rf, ok := ret.Get(0).(func(string) *model.Emoji); ok {
 		r0 = rf(name)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.Emoji)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
+		r1 = rf(name)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetList provides a mock function with given fields: offset, limit, sort
-func (_m *EmojiStore) GetList(offset int, limit int, sort string) store.StoreChannel {
+func (_m *EmojiStore) GetList(offset int, limit int, sort string) ([]*model.Emoji, *model.AppError) {
 	ret := _m.Called(offset, limit, sort)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(int, int, string) store.StoreChannel); ok {
+	var r0 []*model.Emoji
+	if rf, ok := ret.Get(0).(func(int, int, string) []*model.Emoji); ok {
 		r0 = rf(offset, limit, sort)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]*model.Emoji)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(int, int, string) *model.AppError); ok {
+		r1 = rf(offset, limit, sort)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetMultipleByName provides a mock function with given fields: names
@@ -128,17 +146,26 @@ func (_m *EmojiStore) Save(emoji *model.Emoji) (*model.Emoji, *model.AppError) {
 }
 
 // Search provides a mock function with given fields: name, prefixOnly, limit
-func (_m *EmojiStore) Search(name string, prefixOnly bool, limit int) store.StoreChannel {
+func (_m *EmojiStore) Search(name string, prefixOnly bool, limit int) ([]*model.Emoji, *model.AppError) {
 	ret := _m.Called(name, prefixOnly, limit)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, bool, int) store.StoreChannel); ok {
+	var r0 []*model.Emoji
+	if rf, ok := ret.Get(0).(func(string, bool, int) []*model.Emoji); ok {
 		r0 = rf(name, prefixOnly, limit)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]*model.Emoji)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, bool, int) *model.AppError); ok {
+		r1 = rf(name, prefixOnly, limit)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
