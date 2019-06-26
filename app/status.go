@@ -78,11 +78,10 @@ func (a *App) GetStatusesByIds(userIds []string) (map[string]interface{}, *model
 	}
 
 	if len(missingUserIds) > 0 {
-		result := <-a.Srv.Store.Status().GetByIds(missingUserIds)
-		if result.Err != nil {
-			return nil, result.Err
+		statuses, err := a.Srv.Store.Status().GetByIds(missingUserIds)
+		if err != nil {
+			return nil, err
 		}
-		statuses := result.Data.([]*model.Status)
 
 		for _, s := range statuses {
 			a.AddStatusCacheSkipClusterSend(s)
@@ -126,11 +125,10 @@ func (a *App) GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.Ap
 	}
 
 	if len(missingUserIds) > 0 {
-		result := <-a.Srv.Store.Status().GetByIds(missingUserIds)
-		if result.Err != nil {
-			return nil, result.Err
+		statuses, err := a.Srv.Store.Status().GetByIds(missingUserIds)
+		if err != nil {
+			return nil, err
 		}
-		statuses := result.Data.([]*model.Status)
 
 		for _, s := range statuses {
 			a.AddStatusCacheSkipClusterSend(s)

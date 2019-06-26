@@ -88,7 +88,7 @@ type TeamStore interface {
 	GetByName(name string) (*model.Team, *model.AppError)
 	SearchByName(name string) ([]*model.Team, *model.AppError)
 	SearchAll(term string) ([]*model.Team, *model.AppError)
-	SearchOpen(term string) StoreChannel
+	SearchOpen(term string) ([]*model.Team, *model.AppError)
 	SearchPrivate(term string) ([]*model.Team, *model.AppError)
 	GetAll() ([]*model.Team, *model.AppError)
 	GetAllPage(offset int, limit int) ([]*model.Team, *model.AppError)
@@ -174,15 +174,15 @@ type ChannelStore interface {
 	GetMemberCount(channelId string, allowFromCache bool) (int64, *model.AppError)
 	GetPinnedPosts(channelId string) StoreChannel
 	RemoveMember(channelId string, userId string) *model.AppError
-	PermanentDeleteMembersByUser(userId string) StoreChannel
+	PermanentDeleteMembersByUser(userId string) *model.AppError
 	PermanentDeleteMembersByChannel(channelId string) *model.AppError
-	UpdateLastViewedAt(channelIds []string, userId string) StoreChannel
+	UpdateLastViewedAt(channelIds []string, userId string) (map[string]int64, *model.AppError)
 	IncrementMentionCount(channelId string, userId string) *model.AppError
 	AnalyticsTypeCount(teamId string, channelType string) (int64, *model.AppError)
-	GetMembersForUser(teamId string, userId string) StoreChannel
+	GetMembersForUser(teamId string, userId string) (*model.ChannelMembers, *model.AppError)
 	GetMembersForUserWithPagination(teamId, userId string, page, perPage int) StoreChannel
 	AutocompleteInTeam(teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError)
-	AutocompleteInTeamForSearch(teamId string, userId string, term string, includeDeleted bool) StoreChannel
+	AutocompleteInTeamForSearch(teamId string, userId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError)
 	SearchAllChannels(term string, opts ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError)
 	SearchInTeam(teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError)
 	SearchMore(userId string, teamId string, term string) (*model.ChannelList, *model.AppError)
@@ -205,10 +205,10 @@ type ChannelStore interface {
 }
 
 type ChannelMemberHistoryStore interface {
-	LogJoinEvent(userId string, channelId string, joinTime int64) StoreChannel
-	LogLeaveEvent(userId string, channelId string, leaveTime int64) StoreChannel
-	GetUsersInChannelDuring(startTime int64, endTime int64, channelId string) StoreChannel
-	PermanentDeleteBatch(endTime int64, limit int64) StoreChannel
+	LogJoinEvent(userId string, channelId string, joinTime int64) *model.AppError
+	LogLeaveEvent(userId string, channelId string, leaveTime int64) *model.AppError
+	GetUsersInChannelDuring(startTime int64, endTime int64, channelId string) ([]*model.ChannelMemberHistoryResult, *model.AppError)
+	PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError)
 }
 
 type PostStore interface {
@@ -252,7 +252,7 @@ type UserStore interface {
 	ResetLastPictureUpdate(userId string) StoreChannel
 	UpdateUpdateAt(userId string) StoreChannel
 	UpdatePassword(userId, newPassword string) StoreChannel
-	UpdateAuthData(userId string, service string, authData *string, email string, resetMfa bool) StoreChannel
+	UpdateAuthData(userId string, service string, authData *string, email string, resetMfa bool) (string, *model.AppError)
 	UpdateMfaSecret(userId, secret string) StoreChannel
 	UpdateMfaActive(userId string, active bool) StoreChannel
 	Get(id string) (*model.User, *model.AppError)
@@ -273,7 +273,7 @@ type UserStore interface {
 	InvalidatProfileCacheForUser(userId string)
 	GetByEmail(email string) (*model.User, *model.AppError)
 	GetByAuth(authData *string, authService string) (*model.User, *model.AppError)
-	GetAllUsingAuthService(authService string) StoreChannel
+	GetAllUsingAuthService(authService string) ([]*model.User, *model.AppError)
 	GetByUsername(username string) StoreChannel
 	GetForLogin(loginId string, allowSignInWithUsername, allowSignInWithEmail bool) StoreChannel
 	VerifyEmail(userId, email string) (string, *model.AppError)
@@ -300,8 +300,8 @@ type UserStore interface {
 	ClearAllCustomRoleAssignments() StoreChannel
 	InferSystemInstallDate() StoreChannel
 	GetAllAfter(limit int, afterId string) StoreChannel
-	GetUsersBatchForIndexing(startTime, endTime int64, limit int) StoreChannel
-	Count(options model.UserCountOptions) StoreChannel
+	GetUsersBatchForIndexing(startTime, endTime int64, limit int) ([]*model.UserForIndexing, *model.AppError)
+	Count(options model.UserCountOptions) (int64, *model.AppError)
 	GetTeamGroupUsers(teamID string) StoreChannel
 	GetChannelGroupUsers(channelID string) StoreChannel
 	PromoteGuestToUser(userID string) *model.AppError
@@ -451,7 +451,7 @@ type LicenseStore interface {
 }
 
 type TokenStore interface {
-	Save(recovery *model.Token) StoreChannel
+	Save(recovery *model.Token) *model.AppError
 	Delete(token string) StoreChannel
 	GetByToken(token string) (*model.Token, *model.AppError)
 	Cleanup()
@@ -471,12 +471,12 @@ type EmojiStore interface {
 type StatusStore interface {
 	SaveOrUpdate(status *model.Status) *model.AppError
 	Get(userId string) StoreChannel
-	GetByIds(userIds []string) StoreChannel
+	GetByIds(userIds []string) ([]*model.Status, *model.AppError)
 	GetOnlineAway() StoreChannel
 	GetOnline() ([]*model.Status, *model.AppError)
 	GetAllFromTeam(teamId string) ([]*model.Status, *model.AppError)
 	ResetAll() StoreChannel
-	GetTotalActiveUsersCount() StoreChannel
+	GetTotalActiveUsersCount() (int64, *model.AppError)
 	UpdateLastActivityAt(userId string, lastActivityAt int64) StoreChannel
 }
 
@@ -521,8 +521,8 @@ type JobStore interface {
 
 type UserAccessTokenStore interface {
 	Save(token *model.UserAccessToken) (*model.UserAccessToken, *model.AppError)
+	DeleteAllForUser(userId string) *model.AppError
 	Delete(tokenId string) *model.AppError
-	DeleteAllForUser(userId string) StoreChannel
 	Get(tokenId string) (*model.UserAccessToken, *model.AppError)
 	GetAll(offset int, limit int) ([]*model.UserAccessToken, *model.AppError)
 	GetByToken(tokenString string) (*model.UserAccessToken, *model.AppError)
