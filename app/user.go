@@ -1856,12 +1856,22 @@ func (a *App) AutocompleteUsersInChannel(teamId string, channelId string, term s
 
 	if !a.IsESAutocompletionEnabled() || err != nil {
 		autocomplete = &model.UserAutocompleteInChannel{}
-		users, err := a.Srv.Store.User().SearchInChannel(channelId, term, options)
+
+		uchan := make(chan store.StoreResult, 1)
+		go func() {
+			users, err := a.Srv.Store.User().SearchInChannel(channelId, term, options)
+			uchan <- store.StoreResult{Data: users, Err: err}
+			close(uchan)
+		}()
+
 		nuchan := a.Srv.Store.User().SearchNotInChannel(teamId, channelId, term, options)
 
-		if err != nil {
-			return nil, err
+		result := <-uchan
+		if result.Err != nil {
+			return nil, result.Err
 		}
+
+		users := result.Data.([]*model.User)
 
 		for _, user := range users {
 			a.SanitizeProfile(user, options.IsAdmin)
@@ -1869,7 +1879,7 @@ func (a *App) AutocompleteUsersInChannel(teamId string, channelId string, term s
 
 		autocomplete.InChannel = users
 
-		result := <-nuchan
+		result = <-nuchan
 		if result.Err != nil {
 			return nil, result.Err
 		}
