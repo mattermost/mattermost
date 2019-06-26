@@ -1192,7 +1192,7 @@ func TestGetTotalUsersStat(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	total := <-th.Server.Store.User().Count(model.UserCountOptions{
+	total, _ := th.Server.Store.User().Count(model.UserCountOptions{
 		IncludeDeleted:     false,
 		IncludeBotAccounts: true,
 	})
@@ -1200,7 +1200,7 @@ func TestGetTotalUsersStat(t *testing.T) {
 	rstats, resp := th.Client.GetTotalUsersStats("")
 	CheckNoError(t, resp)
 
-	if rstats.TotalUsersCount != total.Data.(int64) {
+	if rstats.TotalUsersCount != total {
 		t.Fatal("wrong count")
 	}
 }
@@ -1617,8 +1617,8 @@ func TestUpdateUserActive(t *testing.T) {
 		CheckNoError(t, resp)
 
 		authData := model.NewId()
-		result := <-th.App.Srv.Store.User().UpdateAuthData(user.Id, "random", &authData, "", true)
-		require.Nil(t, result.Err)
+		_, err := th.App.Srv.Store.User().UpdateAuthData(user.Id, "random", &authData, "", true)
+		require.Nil(t, err)
 
 		_, resp = th.SystemAdminClient.UpdateUserActive(user.Id, false)
 		CheckNoError(t, resp)
@@ -2301,8 +2301,8 @@ func TestResetPassword(t *testing.T) {
 	_, resp = th.Client.ResetPassword(recoveryToken.Token, "newpwd")
 	CheckBadRequestStatus(t, resp)
 	authData := model.NewId()
-	if result := <-th.App.Srv.Store.User().UpdateAuthData(user.Id, "random", &authData, "", true); result.Err != nil {
-		t.Fatal(result.Err)
+	if _, err := th.App.Srv.Store.User().UpdateAuthData(user.Id, "random", &authData, "", true); err != nil {
+		t.Fatal(err)
 	}
 	_, resp = th.Client.SendPasswordResetEmail(user.Email)
 	CheckBadRequestStatus(t, resp)
@@ -2974,8 +2974,8 @@ func TestSwitchAccount(t *testing.T) {
 	th.LoginBasic()
 
 	fakeAuthData := model.NewId()
-	if result := <-th.App.Srv.Store.User().UpdateAuthData(th.BasicUser.Id, model.USER_AUTH_SERVICE_GITLAB, &fakeAuthData, th.BasicUser.Email, true); result.Err != nil {
-		t.Fatal(result.Err)
+	if _, err := th.App.Srv.Store.User().UpdateAuthData(th.BasicUser.Id, model.USER_AUTH_SERVICE_GITLAB, &fakeAuthData, th.BasicUser.Email, true); err != nil {
+		t.Fatal(err)
 	}
 
 	sr = &model.SwitchRequest{

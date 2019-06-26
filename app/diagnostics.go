@@ -149,17 +149,12 @@ func (a *App) trackActivity() {
 		activeUsersMonthlyCount = r.Data.(int64)
 	}
 
-	if ucr := <-a.Srv.Store.User().Count(model.UserCountOptions{
-		IncludeDeleted: true,
-	}); ucr.Err == nil {
-		userCount = ucr.Data.(int64)
+	if count, err := a.Srv.Store.User().Count(model.UserCountOptions{IncludeDeleted: true}); err == nil {
+		userCount = count
 	}
 
-	if bc := <-a.Srv.Store.User().Count(model.UserCountOptions{
-		IncludeBotAccounts:  true,
-		ExcludeRegularUsers: true,
-	}); bc.Err == nil {
-		botAccountsCount = bc.Data.(int64)
+	if count, err := a.Srv.Store.User().Count(model.UserCountOptions{IncludeBotAccounts: true, ExcludeRegularUsers: true}); err == nil {
+		botAccountsCount = count
 	}
 
 	if iucr := <-a.Srv.Store.User().AnalyticsGetInactiveUsersCount(); iucr.Err == nil {
