@@ -39,20 +39,19 @@ func (s SqlStatusStore) CreateIndexesIfNotExists() {
 	s.CreateIndexIfNotExists("idx_status_status", "Status", "Status")
 }
 
-func (s SqlStatusStore) SaveOrUpdate(status *model.Status) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if err := s.GetReplica().SelectOne(&model.Status{}, "SELECT * FROM Status WHERE UserId = :UserId", map[string]interface{}{"UserId": status.UserId}); err == nil {
-			if _, err := s.GetMaster().Update(status); err != nil {
-				result.Err = model.NewAppError("SqlStatusStore.SaveOrUpdate", "store.sql_status.update.app_error", nil, err.Error(), http.StatusInternalServerError)
-			}
-		} else {
-			if err := s.GetMaster().Insert(status); err != nil {
-				if !(strings.Contains(err.Error(), "for key 'PRIMARY'") && strings.Contains(err.Error(), "Duplicate entry")) {
-					result.Err = model.NewAppError("SqlStatusStore.SaveOrUpdate", "store.sql_status.save.app_error", nil, err.Error(), http.StatusInternalServerError)
-				}
+func (s SqlStatusStore) SaveOrUpdate(status *model.Status) *model.AppError {
+	if err := s.GetReplica().SelectOne(&model.Status{}, "SELECT * FROM Status WHERE UserId = :UserId", map[string]interface{}{"UserId": status.UserId}); err == nil {
+		if _, err := s.GetMaster().Update(status); err != nil {
+			return model.NewAppError("SqlStatusStore.SaveOrUpdate", "store.sql_status.update.app_error", nil, err.Error(), http.StatusInternalServerError)
+		}
+	} else {
+		if err := s.GetMaster().Insert(status); err != nil {
+			if !(strings.Contains(err.Error(), "for key 'PRIMARY'") && strings.Contains(err.Error(), "Duplicate entry")) {
+				return model.NewAppError("SqlStatusStore.SaveOrUpdate", "store.sql_status.save.app_error", nil, err.Error(), http.StatusInternalServerError)
 			}
 		}
-	})
+	}
+	return nil
 }
 
 func (s SqlStatusStore) Get(userId string) (*model.Status, *model.AppError) {
@@ -107,28 +106,22 @@ func (s SqlStatusStore) GetOnlineAway() store.StoreChannel {
 	})
 }
 
-func (s SqlStatusStore) GetOnline() store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var statuses []*model.Status
-		if _, err := s.GetReplica().Select(&statuses, "SELECT * FROM Status WHERE Status = :Online", map[string]interface{}{"Online": model.STATUS_ONLINE}); err != nil {
-			result.Err = model.NewAppError("SqlStatusStore.GetOnline", "store.sql_status.get_online.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = statuses
-		}
-	})
+func (s SqlStatusStore) GetOnline() ([]*model.Status, *model.AppError) {
+	var statuses []*model.Status
+	if _, err := s.GetReplica().Select(&statuses, "SELECT * FROM Status WHERE Status = :Online", map[string]interface{}{"Online": model.STATUS_ONLINE}); err != nil {
+		return nil, model.NewAppError("SqlStatusStore.GetOnline", "store.sql_status.get_online.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return statuses, nil
 }
 
-func (s SqlStatusStore) GetAllFromTeam(teamId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var statuses []*model.Status
-		if _, err := s.GetReplica().Select(&statuses,
-			`SELECT s.* FROM Status AS s INNER JOIN
+func (s SqlStatusStore) GetAllFromTeam(teamId string) ([]*model.Status, *model.AppError) {
+	var statuses []*model.Status
+	if _, err := s.GetReplica().Select(&statuses,
+		`SELECT s.* FROM Status AS s INNER JOIN
 			TeamMembers AS tm ON tm.TeamId=:TeamId AND s.UserId=tm.UserId`, map[string]interface{}{"TeamId": teamId}); err != nil {
-			result.Err = model.NewAppError("SqlStatusStore.GetAllFromTeam", "store.sql_status.get_team_statuses.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = statuses
-		}
-	})
+		return nil, model.NewAppError("SqlStatusStore.GetAllFromTeam", "store.sql_status.get_team_statuses.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return statuses, nil
 }
 
 func (s SqlStatusStore) ResetAll() store.StoreChannel {
@@ -139,16 +132,13 @@ func (s SqlStatusStore) ResetAll() store.StoreChannel {
 	})
 }
 
-func (s SqlStatusStore) GetTotalActiveUsersCount() store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		time := model.GetMillis() - (1000 * 60 * 60 * 24)
-
-		if count, err := s.GetReplica().SelectInt("SELECT COUNT(UserId) FROM Status WHERE LastActivityAt > :Time", map[string]interface{}{"Time": time}); err != nil {
-			result.Err = model.NewAppError("SqlStatusStore.GetTotalActiveUsersCount", "store.sql_status.get_total_active_users_count.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = count
-		}
-	})
+func (s SqlStatusStore) GetTotalActiveUsersCount() (int64, *model.AppError) {
+	time := model.GetMillis() - (1000 * 60 * 60 * 24)
+	count, err := s.GetReplica().SelectInt("SELECT COUNT(UserId) FROM Status WHERE LastActivityAt > :Time", map[string]interface{}{"Time": time})
+	if err != nil {
+		return count, model.NewAppError("SqlStatusStore.GetTotalActiveUsersCount", "store.sql_status.get_total_active_users_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return count, nil
 }
 
 func (s SqlStatusStore) UpdateLastActivityAt(userId string, lastActivityAt int64) store.StoreChannel {

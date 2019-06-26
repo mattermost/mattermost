@@ -724,9 +724,14 @@ func updateTeamMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.Requ
 func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	var teams []*model.Team
 	var err *model.AppError
+	var teamsWithCount *model.TeamsWithCount
 
 	if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PRIVATE_TEAMS) && c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PUBLIC_TEAMS) {
-		teams, err = c.App.GetAllTeamsPage(c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+		if c.Params.IncludeTotalCount {
+			teamsWithCount, err = c.App.GetAllTeamsPageWithCount(c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+		} else {
+			teams, err = c.App.GetAllTeamsPage(c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+		}
 	} else if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PRIVATE_TEAMS) {
 		teams, err = c.App.GetAllPrivateTeamsPage(c.Params.Page*c.Params.PerPage, c.Params.PerPage)
 	} else if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PUBLIC_TEAMS) {
@@ -740,7 +745,15 @@ func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.App.SanitizeTeams(c.App.Session, teams)
 
-	w.Write([]byte(model.TeamListToJson(teams)))
+	var resBody []byte
+
+	if c.Params.IncludeTotalCount {
+		resBody = model.TeamsWithCountToJson(teamsWithCount)
+	} else {
+		resBody = []byte(model.TeamListToJson(teams))
+	}
+
+	w.Write(resBody)
 }
 
 func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
