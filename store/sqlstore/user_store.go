@@ -787,41 +787,37 @@ type UserWithLastActivityAt struct {
 	LastActivityAt int64
 }
 
-func (us SqlUserStore) GetRecentlyActiveUsersForTeam(teamId string, offset, limit int, viewRestrictions *model.ViewUsersRestrictions) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		query := us.usersQuery.
-			Column("s.LastActivityAt").
-			Join("TeamMembers tm ON (tm.UserId = u.Id AND tm.TeamId = ?)", teamId).
-			Join("Status s ON (s.UserId = u.Id)").
-			OrderBy("s.LastActivityAt DESC").
-			OrderBy("u.Username ASC").
-			Offset(uint64(offset)).Limit(uint64(limit))
+func (us SqlUserStore) GetRecentlyActiveUsersForTeam(teamId string, offset, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+	query := us.usersQuery.
+		Column("s.LastActivityAt").
+		Join("TeamMembers tm ON (tm.UserId = u.Id AND tm.TeamId = ?)", teamId).
+		Join("Status s ON (s.UserId = u.Id)").
+		OrderBy("s.LastActivityAt DESC").
+		OrderBy("u.Username ASC").
+		Offset(uint64(offset)).Limit(uint64(limit))
 
-		query = applyViewRestrictionsFilter(query, viewRestrictions, true)
+	query = applyViewRestrictionsFilter(query, viewRestrictions, true)
 
-		queryString, args, err := query.ToSql()
-		if err != nil {
-			result.Err = model.NewAppError("SqlUserStore.GetRecentlyActiveUsers", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlUserStore.GetRecentlyActiveUsers", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		var users []*UserWithLastActivityAt
-		if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.GetRecentlyActiveUsers", "store.sql_user.get_recently_active_users.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	var users []*UserWithLastActivityAt
+	if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
+		return nil, model.NewAppError("SqlUserStore.GetRecentlyActiveUsers", "store.sql_user.get_recently_active_users.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		userList := []*model.User{}
+	userList := []*model.User{}
 
-		for _, userWithLastActivityAt := range users {
-			u := userWithLastActivityAt.User
-			u.Sanitize(map[string]bool{})
-			u.LastActivityAt = userWithLastActivityAt.LastActivityAt
-			userList = append(userList, &u)
-		}
+	for _, userWithLastActivityAt := range users {
+		u := userWithLastActivityAt.User
+		u.Sanitize(map[string]bool{})
+		u.LastActivityAt = userWithLastActivityAt.LastActivityAt
+		userList = append(userList, &u)
+	}
 
-		result.Data = userList
-	})
+	return userList, nil
 }
 
 func (us SqlUserStore) GetNewUsersForTeam(teamId string, offset, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
