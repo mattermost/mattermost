@@ -1874,7 +1874,8 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	err = ss.Channel().IncrementMentionCount(c2.Id, u2.Id)
 	require.Nil(t, err)
 
-	badge := (<-ss.User().GetUnreadCount(u2.Id)).Data.(int64)
+	badge, unreadCountErr := ss.User().GetUnreadCount(u2.Id)
+	require.Nil(t, unreadCountErr)
 	if badge != 3 {
 		t.Fatal("should have 3 unread messages")
 	}

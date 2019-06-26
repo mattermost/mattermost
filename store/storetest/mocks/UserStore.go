@@ -608,19 +608,24 @@ func (_m *UserStore) GetTeamGroupUsers(teamID string) store.StoreChannel {
 }
 
 // GetUnreadCount provides a mock function with given fields: userId
-func (_m *UserStore) GetUnreadCount(userId string) store.StoreChannel {
+func (_m *UserStore) GetUnreadCount(userId string) (int64, error) {
 	ret := _m.Called(userId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(string) int64); ok {
 		r0 = rf(userId)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
-		}
+		r0 = ret.Get(0).(int64)
 	}
 
-	return r0
+	var r1 error
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(userId)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // GetUnreadCountForChannel provides a mock function with given fields: userId, channelId
