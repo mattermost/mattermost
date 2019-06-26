@@ -130,6 +130,7 @@ func (a *App) removePlugin(id string) *model.AppError {
 	}
 
 	pluginsEnvironment.Deactivate(id)
+	pluginsEnvironment.RemovePlugin(id)
 	a.UnregisterPluginCommands(id)
 
 	err = os.RemoveAll(pluginPath)
