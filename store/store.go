@@ -467,7 +467,7 @@ type EmojiStore interface {
 }
 
 type StatusStore interface {
-  SaveOrUpdate(status *model.Status) *model.AppError
+	SaveOrUpdate(status *model.Status) StoreChannel
 	Get(userId string) (*model.Status, *model.AppError)
 	GetByIds(userIds []string) StoreChannel
 	GetOnlineAway() StoreChannel
