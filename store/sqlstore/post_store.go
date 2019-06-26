@@ -991,18 +991,27 @@ func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.A
 	return rows, nil
 }
 
+type AnalyticsPostCountsOptions struct {
+	teamId        string
+	botsOnly      bool
+	yesterdayOnly bool
+}
+
 func (s *SqlPostStore) AnalyticsPostCountsByDay(teamId string, botsOnly bool, yesterdayOnly bool) (model.AnalyticsRows, *model.AppError) {
+
+	options := AnalyticsPostCountsOptions{teamId, botsOnly, yesterdayOnly}
+
 	query :=
 		`SELECT
 		        DATE(FROM_UNIXTIME(Posts.CreateAt / 1000)) AS Name,
 		        COUNT(Posts.Id) AS Value
 		    FROM Posts`
 
-	if botsOnly {
+	if options.botsOnly {
 		query += " INNER JOIN Bots ON Posts.UserId = Bots.Userid"
 	}
 
-	if len(teamId) > 0 {
+	if len(options.teamId) > 0 {
 		query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id AND Channels.TeamId = :TeamId AND"
 	} else {
 		query += " WHERE"
@@ -1020,7 +1029,7 @@ func (s *SqlPostStore) AnalyticsPostCountsByDay(teamId string, botsOnly bool, ye
 				TO_CHAR(DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)), 'YYYY-MM-DD') AS Name, Count(Posts.Id) AS Value
 			FROM Posts`
 
-		if len(teamId) > 0 {
+		if len(options.teamId) > 0 {
 			query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id  AND Channels.TeamId = :TeamId AND"
 		} else {
 			query += " WHERE"
@@ -1035,7 +1044,7 @@ func (s *SqlPostStore) AnalyticsPostCountsByDay(teamId string, botsOnly bool, ye
 
 	end := utils.MillisFromTime(utils.EndOfDay(utils.Yesterday()))
 	start := utils.MillisFromTime(utils.StartOfDay(utils.Yesterday().AddDate(0, 0, -31)))
-	if yesterdayOnly {
+	if options.yesterdayOnly {
 		start = utils.MillisFromTime(utils.StartOfDay(utils.Yesterday().AddDate(0, 0, -1)))
 	}
 
@@ -1043,7 +1052,7 @@ func (s *SqlPostStore) AnalyticsPostCountsByDay(teamId string, botsOnly bool, ye
 	_, err := s.GetReplica().Select(
 		&rows,
 		query,
-		map[string]interface{}{"TeamId": teamId, "StartTime": start, "EndTime": end})
+		map[string]interface{}{"TeamId": options.teamId, "StartTime": start, "EndTime": end})
 	if err != nil {
 		return nil, model.NewAppError("SqlPostStore.AnalyticsPostCountsByDay", "store.sql_post.analytics_posts_count_by_day.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

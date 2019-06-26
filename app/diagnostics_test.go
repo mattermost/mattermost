@@ -99,21 +99,6 @@ func TestDiagnostics(t *testing.T) {
 		}
 	})
 
-	// create bot and bot post for testing bots in AnalyticsPostCountsByDay() and AnalyticsPostCount()
-	bot, _ := th.App.CreateBot(&model.Bot{
-		Username:    "username",
-		Description: "a bot",
-		OwnerId:     th.BasicUser.Id,
-	})
-
-	post := &model.Post{
-		Message:   "reply three",
-		ChannelId: th.BasicChannel.Id,
-		UserId:    bot.UserId,
-		CreateAt:  utils.MillisFromTime(utils.Yesterday()),
-	}
-	_, _ = th.App.CreatePost(post, th.BasicChannel, false)
-
 	t.Run("SendDailyDiagnostics", func(t *testing.T) {
 		th.App.sendDailyDiagnostics(true)
 

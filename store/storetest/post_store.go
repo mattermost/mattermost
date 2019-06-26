@@ -1386,59 +1386,37 @@ func testPostCountsByDay(t *testing.T, ss store.Store) {
 	if r1, err := ss.Post().AnalyticsPostCountsByDay(t1.Id, false, false); err != nil {
 		t.Fatal(err)
 	} else {
-		row1 := r1[0]
-		if row1.Value != 3 {
-			t.Fatal(row1)
-		}
-
-		row2 := r1[1]
-		if row2.Value != 3 {
-			t.Fatal("wrong value", row2)
-		}
+		assert.Equal(t, float64(3), r1[0].Value)
+		assert.Equal(t, float64(3), r1[1].Value)
 	}
 
 	// last 31 days, bots only
 	if r1, err := ss.Post().AnalyticsPostCountsByDay(t1.Id, true, false); err != nil {
 		t.Fatal(err)
 	} else {
-		row1 := r1[0]
-		if row1.Value != 1 {
-			t.Fatal(row1)
-		}
-
-		row2 := r1[1]
-		if row2.Value != 1 {
-			t.Fatal(row2)
-		}
+		assert.Equal(t, float64(1), r1[0].Value)
+		assert.Equal(t, float64(1), r1[1].Value)
 	}
 
 	// yesterday only, all users (including bots)
 	if r1, err := ss.Post().AnalyticsPostCountsByDay(t1.Id, false, true); err != nil {
 		t.Fatal(err)
 	} else {
-		row1 := r1[0]
-		if row1.Value != 3 {
-			t.Fatal("wrong value", row1)
-		}
+		assert.Equal(t, float64(3), r1[0].Value)
 	}
 
 	// yesterday only, bots only
 	if r1, err := ss.Post().AnalyticsPostCountsByDay(t1.Id, true, true); err != nil {
 		t.Fatal(err)
 	} else {
-		row1 := r1[0]
-		if row1.Value != 1 {
-			t.Fatal(row1)
-		}
+		assert.Equal(t, float64(1), r1[0].Value)
 	}
 
 	// total posts
 	if r1, err := ss.Post().AnalyticsPostCount(t1.Id, false, false); err != nil {
 		t.Fatal(err)
 	} else {
-		if r1 != 6 {
-			t.Fatal("wrong value ", r1)
-		}
+		assert.Equal(t, int64(6), r1)
 	}
 }
 
