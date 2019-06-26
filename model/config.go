@@ -673,6 +673,8 @@ type ClusterSettings struct {
 	ClusterName                 *string `restricted:"true"`
 	OverrideHostname            *string `restricted:"true"`
 	NetworkInterface            *string `restricted:"true"`
+	BindAddress                 *string `restricted:"true"`
+	AdvertiseAddress            *string `restricted:"true"`
 	UseIpAddress                *bool   `restricted:"true"`
 	UseExperimentalGossip       *bool   `restricted:"true"`
 	ReadOnlyConfig              *bool   `restricted:"true"`
@@ -698,6 +700,14 @@ func (s *ClusterSettings) SetDefaults() {
 
 	if s.NetworkInterface == nil {
 		s.NetworkInterface = NewString("")
+	}
+
+	if s.BindAddress == nil {
+		s.BindAddress = NewString("")
+	}
+
+	if s.AdvertiseAddress == nil {
+		s.AdvertiseAddress = NewString("")
 	}
 
 	if s.UseIpAddress == nil {
