@@ -1349,8 +1349,8 @@ func (a *App) CreatePasswordRecoveryToken(userId, email string) (*model.Token, *
 
 	token := model.NewToken(TOKEN_TYPE_PASSWORD_RECOVERY, string(jsonData))
 
-	if result := <-a.Srv.Store.Token().Save(token); result.Err != nil {
-		return nil, result.Err
+	if err := a.Srv.Store.Token().Save(token); err != nil {
+		return nil, err
 	}
 
 	return token, nil
@@ -1615,8 +1615,8 @@ func (a *App) CreateVerifyEmailToken(userId string, newEmail string) (*model.Tok
 
 	token := model.NewToken(TOKEN_TYPE_VERIFY_EMAIL, string(jsonData))
 
-	if result := <-a.Srv.Store.Token().Save(token); result.Err != nil {
-		return nil, result.Err
+	if err := a.Srv.Store.Token().Save(token); err != nil {
+		return nil, err
 	}
 
 	return token, nil

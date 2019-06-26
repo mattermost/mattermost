@@ -335,8 +335,8 @@ func (a *App) SendInviteEmails(team *model.Team, senderName string, senderUserId
 			props["name"] = team.Name
 			data := model.MapToJson(props)
 
-			if result := <-a.Srv.Store.Token().Save(token); result.Err != nil {
-				mlog.Error(fmt.Sprintf("Failed to send invite email successfully err=%v", result.Err))
+			if err := a.Srv.Store.Token().Save(token); err != nil {
+				mlog.Error(fmt.Sprintf("Failed to send invite email successfully err=%v", err))
 				continue
 			}
 			bodyPage.Props["Link"] = fmt.Sprintf("%s/signup_user_complete/?d=%s&t=%s", siteURL, url.QueryEscape(data), url.QueryEscape(token.Token))
