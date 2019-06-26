@@ -283,7 +283,7 @@ type UserStore interface {
 	GetSystemAdminProfiles() StoreChannel
 	PermanentDelete(userId string) *model.AppError
 	AnalyticsActiveCount(time int64) StoreChannel
-	GetUnreadCount(userId string) StoreChannel
+	GetUnreadCount(userId string) (int64, error)
 	GetUnreadCountForChannel(userId string, channelId string) StoreChannel
 	GetAnyUnreadPostCountForChannel(userId string, channelId string) StoreChannel
 	GetRecentlyActiveUsersForTeam(teamId string, offset, limit int, viewRestrictions *model.ViewUsersRestrictions) StoreChannel
