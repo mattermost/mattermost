@@ -614,7 +614,7 @@ type GroupStore interface {
 
 type LinkMetadataStore interface {
 	Save(linkMetadata *model.LinkMetadata) StoreChannel
-	Get(url string, timestamp int64) StoreChannel
+	Get(url string, timestamp int64) (*model.LinkMetadata, *model.AppError)
 }
 
 // ChannelSearchOpts contains options for searching channels.
