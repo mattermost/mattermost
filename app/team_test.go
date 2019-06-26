@@ -205,7 +205,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 			TOKEN_TYPE_VERIFY_EMAIL,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id}),
 		)
-		<-th.App.Srv.Store.Token().Save(token)
+		require.Nil(t, th.App.Srv.Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
 		if _, err := th.App.AddUserToTeamByToken(ruser.Id, token.Token); err == nil {
 			t.Fatal("Should fail on bad token type")
@@ -218,7 +218,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id}),
 		)
 		token.CreateAt = model.GetMillis() - TEAM_INVITATION_EXPIRY_TIME - 1
-		<-th.App.Srv.Store.Token().Save(token)
+		require.Nil(t, th.App.Srv.Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
 		if _, err := th.App.AddUserToTeamByToken(ruser.Id, token.Token); err == nil {
 			t.Fatal("Should fail on expired token")
@@ -230,7 +230,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 			TOKEN_TYPE_TEAM_INVITATION,
 			model.MapToJson(map[string]string{"teamId": model.NewId()}),
 		)
-		<-th.App.Srv.Store.Token().Save(token)
+		require.Nil(t, th.App.Srv.Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
 		if _, err := th.App.AddUserToTeamByToken(ruser.Id, token.Token); err == nil {
 			t.Fatal("Should fail on bad team id")
@@ -242,7 +242,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 			TOKEN_TYPE_TEAM_INVITATION,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id}),
 		)
-		<-th.App.Srv.Store.Token().Save(token)
+		require.Nil(t, th.App.Srv.Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
 		if _, err := th.App.AddUserToTeamByToken(model.NewId(), token.Token); err == nil {
 			t.Fatal("Should fail on bad user id")
@@ -254,14 +254,13 @@ func TestAddUserToTeamByToken(t *testing.T) {
 			TOKEN_TYPE_TEAM_INVITATION,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id}),
 		)
-		<-th.App.Srv.Store.Token().Save(token)
+		require.Nil(t, th.App.Srv.Store.Token().Save(token))
 		if _, err := th.App.AddUserToTeamByToken(ruser.Id, token.Token); err != nil {
 			t.Log(err)
 			t.Fatal("Should add user to the team")
 		}
-		if result := <-th.App.Srv.Store.Token().GetByToken(token.Token); result.Err == nil {
-			t.Fatal("The token must be deleted after be used")
-		}
+		_, err := th.App.Srv.Store.Token().GetByToken(token.Token)
+		require.NotNil(t, err, "The token must be deleted after be used")
 	})
 
 	t.Run("group-constrained team", func(t *testing.T) {
@@ -275,7 +274,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 			TOKEN_TYPE_TEAM_INVITATION,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id}),
 		)
-		<-th.App.Srv.Store.Token().Save(token)
+		require.Nil(t, th.App.Srv.Store.Token().Save(token))
 		if _, err := th.App.AddUserToTeamByToken(ruser.Id, token.Token); err == nil {
 			t.Fatal("Should return an error when trying to join a group-constrained team.")
 		} else {
@@ -304,7 +303,7 @@ func TestAddUserToTeamByToken(t *testing.T) {
 			TOKEN_TYPE_TEAM_INVITATION,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id}),
 		)
-		<-th.App.Srv.Store.Token().Save(token)
+		require.Nil(t, th.App.Srv.Store.Token().Save(token))
 
 		if _, err := th.App.AddUserToTeamByToken(ruser.Id, token.Token); err == nil || err.Where != "JoinUserToTeam" {
 			t.Log(err)
