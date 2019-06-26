@@ -118,38 +118,39 @@ func testPluginHealthCheck_Panic(t *testing.T) {
 }
 
 func TestShouldDeactivatePlugin(t *testing.T) {
-	h := newPluginHealthStatus()
-	require.NotNil(t, h)
+	bundle := &model.BundleInfo{}
+	rp := newRegisteredPlugin(bundle)
+	require.NotNil(t, rp)
 
 	// No failures, don't restart
-	result := shouldDeactivatePlugin(h)
+	result := shouldDeactivatePlugin(rp)
 	require.Equal(t, false, result)
 
 	now := time.Now()
 
 	// Failures are recent enough to restart
-	h = newPluginHealthStatus()
-	h.failTimeStamps = append(h.failTimeStamps, now.Add(-HEALTH_CHECK_DISABLE_DURATION*0.2*time.Minute))
-	h.failTimeStamps = append(h.failTimeStamps, now.Add(-HEALTH_CHECK_DISABLE_DURATION*0.1*time.Minute))
-	h.failTimeStamps = append(h.failTimeStamps, now)
+	rp = newRegisteredPlugin(bundle)
+	rp.failTimeStamps = append(rp.failTimeStamps, now.Add(-HEALTH_CHECK_DISABLE_DURATION*0.2*time.Minute))
+	rp.failTimeStamps = append(rp.failTimeStamps, now.Add(-HEALTH_CHECK_DISABLE_DURATION*0.1*time.Minute))
+	rp.failTimeStamps = append(rp.failTimeStamps, now)
 
-	result = shouldDeactivatePlugin(h)
+	result = shouldDeactivatePlugin(rp)
 	require.Equal(t, true, result)
 
 	// Failures are too spaced out to warrant a restart
-	h = newPluginHealthStatus()
-	h.failTimeStamps = append(h.failTimeStamps, now.Add(-HEALTH_CHECK_DISABLE_DURATION*2*time.Minute))
-	h.failTimeStamps = append(h.failTimeStamps, now.Add(-HEALTH_CHECK_DISABLE_DURATION*1*time.Minute))
-	h.failTimeStamps = append(h.failTimeStamps, now)
+	rp = newRegisteredPlugin(bundle)
+	rp.failTimeStamps = append(rp.failTimeStamps, now.Add(-HEALTH_CHECK_DISABLE_DURATION*2*time.Minute))
+	rp.failTimeStamps = append(rp.failTimeStamps, now.Add(-HEALTH_CHECK_DISABLE_DURATION*1*time.Minute))
+	rp.failTimeStamps = append(rp.failTimeStamps, now)
 
-	result = shouldDeactivatePlugin(h)
+	result = shouldDeactivatePlugin(rp)
 	require.Equal(t, false, result)
 
 	// Not enough failures are present to warrant a restart
-	h = newPluginHealthStatus()
-	h.failTimeStamps = append(h.failTimeStamps, now.Add(-HEALTH_CHECK_DISABLE_DURATION*0.1*time.Minute))
-	h.failTimeStamps = append(h.failTimeStamps, now)
+	rp = newRegisteredPlugin(bundle)
+	rp.failTimeStamps = append(rp.failTimeStamps, now.Add(-HEALTH_CHECK_DISABLE_DURATION*0.1*time.Minute))
+	rp.failTimeStamps = append(rp.failTimeStamps, now)
 
-	result = shouldDeactivatePlugin(h)
+	result = shouldDeactivatePlugin(rp)
 	require.Equal(t, false, result)
 }

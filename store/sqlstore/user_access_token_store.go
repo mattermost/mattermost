@@ -92,30 +92,24 @@ func (s SqlUserAccessTokenStore) deleteTokensById(transaction *gorp.Transaction,
 	return nil
 }
 
-func (s SqlUserAccessTokenStore) DeleteAllForUser(userId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		transaction, err := s.GetMaster().Begin()
-		if err != nil {
-			result.Err = model.NewAppError("SqlUserAccessTokenStore.DeleteAllForUser", "store.sql_user_access_token.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			defer finalizeTransaction(transaction)
-			if extrasResult := s.deleteSessionsandTokensByUser(transaction, userId); extrasResult.Err != nil {
-				*result = extrasResult
-			}
+func (s SqlUserAccessTokenStore) DeleteAllForUser(userId string) *model.AppError {
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return model.NewAppError("SqlUserAccessTokenStore.DeleteAllForUser", "store.sql_user_access_token.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	defer finalizeTransaction(transaction)
+	if err := s.deleteSessionsandTokensByUser(transaction, userId); err != nil {
+		return err
+	}
 
-			if result.Err == nil {
-				if err := transaction.Commit(); err != nil {
-					// don't need to rollback here since the transaction is already closed
-					result.Err = model.NewAppError("SqlUserAccessTokenStore.DeleteAllForUser", "store.sql_user_access_token.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
-				}
-			}
-		}
-	})
+	if err := transaction.Commit(); err != nil {
+		// don't need to rollback here since the transaction is already closed
+		return model.NewAppError("SqlUserAccessTokenStore.DeleteAllForUser", "store.sql_user_access_token.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return nil
 }
 
-func (s SqlUserAccessTokenStore) deleteSessionsandTokensByUser(transaction *gorp.Transaction, userId string) store.StoreResult {
-	result := store.StoreResult{}
-
+func (s SqlUserAccessTokenStore) deleteSessionsandTokensByUser(transaction *gorp.Transaction, userId string) *model.AppError {
 	query := ""
 	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
 		query = "DELETE FROM Sessions s USING UserAccessTokens o WHERE o.Token = s.Token AND o.UserId = :UserId"
@@ -124,21 +118,18 @@ func (s SqlUserAccessTokenStore) deleteSessionsandTokensByUser(transaction *gorp
 	}
 
 	if _, err := transaction.Exec(query, map[string]interface{}{"UserId": userId}); err != nil {
-		result.Err = model.NewAppError("SqlUserAccessTokenStore.deleteSessionsByUser", "store.sql_user_access_token.delete.app_error", nil, "user_id="+userId+", err="+err.Error(), http.StatusInternalServerError)
-		return result
+		return model.NewAppError("SqlUserAccessTokenStore.deleteSessionsByUser", "store.sql_user_access_token.delete.app_error", nil, "user_id="+userId+", err="+err.Error(), http.StatusInternalServerError)
 	}
 
 	return s.deleteTokensByUser(transaction, userId)
 }
 
-func (s SqlUserAccessTokenStore) deleteTokensByUser(transaction *gorp.Transaction, userId string) store.StoreResult {
-	result := store.StoreResult{}
-
+func (s SqlUserAccessTokenStore) deleteTokensByUser(transaction *gorp.Transaction, userId string) *model.AppError {
 	if _, err := transaction.Exec("DELETE FROM UserAccessTokens WHERE UserId = :UserId", map[string]interface{}{"UserId": userId}); err != nil {
-		result.Err = model.NewAppError("SqlUserAccessTokenStore.deleteTokensByUser", "store.sql_user_access_token.delete.app_error", nil, "", http.StatusInternalServerError)
+		return model.NewAppError("SqlUserAccessTokenStore.deleteTokensByUser", "store.sql_user_access_token.delete.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	return result
+	return nil
 }
 
 func (s SqlUserAccessTokenStore) Get(tokenId string) (*model.UserAccessToken, *model.AppError) {
