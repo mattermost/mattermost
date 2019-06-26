@@ -1973,29 +1973,29 @@ func testUserStoreGetRecentlyActiveUsersForTeam(t *testing.T, ss store.Store) {
 	require.Nil(t, ss.Status().SaveOrUpdate(&model.Status{UserId: u3.Id, Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: u3.LastActivityAt, ActiveChannel: ""}))
 
 	t.Run("get team 1, offset 0, limit 100", func(t *testing.T) {
-		result := <-ss.User().GetRecentlyActiveUsersForTeam(teamId, 0, 100, nil)
-		require.Nil(t, result.Err)
+		users, err := ss.User().GetRecentlyActiveUsersForTeam(teamId, 0, 100, nil)
+		require.Nil(t, err)
 		assert.Equal(t, []*model.User{
 			sanitized(u3),
 			sanitized(u1),
 			sanitized(u2),
-		}, result.Data.([]*model.User))
+		}, users)
 	})
 
 	t.Run("get team 1, offset 0, limit 1", func(t *testing.T) {
-		result := <-ss.User().GetRecentlyActiveUsersForTeam(teamId, 0, 1, nil)
-		require.Nil(t, result.Err)
+		users, err := ss.User().GetRecentlyActiveUsersForTeam(teamId, 0, 1, nil)
+		require.Nil(t, err)
 		assert.Equal(t, []*model.User{
 			sanitized(u3),
-		}, result.Data.([]*model.User))
+		}, users)
 	})
 
 	t.Run("get team 1, offset 2, limit 1", func(t *testing.T) {
-		result := <-ss.User().GetRecentlyActiveUsersForTeam(teamId, 2, 1, nil)
-		require.Nil(t, result.Err)
+		users, err := ss.User().GetRecentlyActiveUsersForTeam(teamId, 2, 1, nil)
+		require.Nil(t, err)
 		assert.Equal(t, []*model.User{
 			sanitized(u2),
-		}, result.Data.([]*model.User))
+		}, users)
 	})
 }
 
