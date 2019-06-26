@@ -855,19 +855,28 @@ func (_m *ChannelStore) GetMembersByIds(channelId string, userIds []string) (*mo
 }
 
 // GetMembersForUser provides a mock function with given fields: teamId, userId
-func (_m *ChannelStore) GetMembersForUser(teamId string, userId string) store.StoreChannel {
+func (_m *ChannelStore) GetMembersForUser(teamId string, userId string) (*model.ChannelMembers, *model.AppError) {
 	ret := _m.Called(teamId, userId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, string) store.StoreChannel); ok {
+	var r0 *model.ChannelMembers
+	if rf, ok := ret.Get(0).(func(string, string) *model.ChannelMembers); ok {
 		r0 = rf(teamId, userId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.ChannelMembers)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+		r1 = rf(teamId, userId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetMembersForUserWithPagination provides a mock function with given fields: teamId, userId, page, perPage

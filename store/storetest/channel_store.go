@@ -1597,8 +1597,8 @@ func testChannelStoreGetMembersForUser(t *testing.T, ss store.Store) {
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 	store.Must(ss.Channel().SaveMember(&m2))
 
-	cresult := <-ss.Channel().GetMembersForUser(o1.TeamId, m1.UserId)
-	members := cresult.Data.(*model.ChannelMembers)
+	members, err := ss.Channel().GetMembersForUser(o1.TeamId, m1.UserId)
+	require.Nil(t, err)
 
 	// no unread messages
 	if len(*members) != 2 {
