@@ -470,7 +470,7 @@ type StatusStore interface {
 	SaveOrUpdate(status *model.Status) *model.AppError
 	Get(userId string) StoreChannel
 	GetByIds(userIds []string) ([]*model.Status, *model.AppError)
-	GetOnlineAway() StoreChannel
+	GetOnlineAway() ([]*model.Status, *model.AppError)
 	GetOnline() ([]*model.Status, *model.AppError)
 	GetAllFromTeam(teamId string) ([]*model.Status, *model.AppError)
 	ResetAll() StoreChannel
