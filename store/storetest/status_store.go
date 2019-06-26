@@ -88,10 +88,9 @@ func testActiveUserCount(t *testing.T, ss store.Store) {
 	status := &model.Status{UserId: model.NewId(), Status: model.STATUS_ONLINE, Manual: false, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
 	require.Nil(t, ss.Status().SaveOrUpdate(status))
 
-	if result := <-ss.Status().GetTotalActiveUsersCount(); result.Err != nil {
-		t.Fatal(result.Err)
+	if count, err := ss.Status().GetTotalActiveUsersCount(); err != nil {
+		t.Fatal(err)
 	} else {
-		count := result.Data.(int64)
 		require.True(t, count > 0, "expected count > 0, got %d", count)
 	}
 }
