@@ -627,6 +627,8 @@ func TestGetAllTeams(t *testing.T) {
 		PerPage       int
 		Permissions   []string
 		ExpectedTeams []string
+		WithCount     bool
+		ExpectedCount int64
 	}{
 		{
 			Name:          "Get 1 team per page",
@@ -677,6 +679,15 @@ func TestGetAllTeams(t *testing.T) {
 			Permissions:   []string{},
 			ExpectedTeams: []string{},
 		},
+		{
+			Name:          "Get all teams with count",
+			Page:          0,
+			PerPage:       10,
+			Permissions:   []string{model.PERMISSION_LIST_PUBLIC_TEAMS.Id, model.PERMISSION_LIST_PRIVATE_TEAMS.Id},
+			ExpectedTeams: []string{th.BasicTeam.Id, team1.Id, team2.Id, team3.Id},
+			WithCount:     true,
+			ExpectedCount: 4,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -694,12 +705,18 @@ func TestGetAllTeams(t *testing.T) {
 			}
 
 			var teams []*model.Team
-			teams, resp = Client.GetAllTeams("", tc.Page, tc.PerPage)
+			var count int64
+			if tc.WithCount {
+				teams, count, resp = Client.GetAllTeamsWithTotalCount("", tc.Page, tc.PerPage)
+			} else {
+				teams, resp = Client.GetAllTeams("", tc.Page, tc.PerPage)
+			}
 			CheckNoError(t, resp)
 			require.Equal(t, len(tc.ExpectedTeams), len(teams))
 			for idx, team := range teams {
 				assert.Equal(t, tc.ExpectedTeams[idx], team.Id)
 			}
+			require.Equal(t, tc.ExpectedCount, count)
 		})
 	}
 
@@ -1419,7 +1436,7 @@ func TestAddTeamMember(t *testing.T) {
 		app.TOKEN_TYPE_TEAM_INVITATION,
 		model.MapToJson(map[string]string{"teamId": team.Id}),
 	)
-	<-th.App.Srv.Store.Token().Save(token)
+	require.Nil(t, th.App.Srv.Store.Token().Save(token))
 
 	tm, resp = Client.AddTeamMemberFromInvite(token.Token, "")
 	CheckNoError(t, resp)
@@ -1449,7 +1466,7 @@ func TestAddTeamMember(t *testing.T) {
 	// expired token of more than 50 hours
 	token = model.NewToken(app.TOKEN_TYPE_TEAM_INVITATION, "")
 	token.CreateAt = model.GetMillis() - 1000*60*60*50
-	<-th.App.Srv.Store.Token().Save(token)
+	require.Nil(t, th.App.Srv.Store.Token().Save(token))
 
 	_, resp = Client.AddTeamMemberFromInvite(token.Token, "")
 	CheckBadRequestStatus(t, resp)
@@ -1461,7 +1478,7 @@ func TestAddTeamMember(t *testing.T) {
 		app.TOKEN_TYPE_TEAM_INVITATION,
 		model.MapToJson(map[string]string{"teamId": testId}),
 	)
-	<-th.App.Srv.Store.Token().Save(token)
+	require.Nil(t, th.App.Srv.Store.Token().Save(token))
 
 	_, resp = Client.AddTeamMemberFromInvite(token.Token, "")
 	CheckNotFoundStatus(t, resp)
@@ -1502,7 +1519,7 @@ func TestAddTeamMember(t *testing.T) {
 		app.TOKEN_TYPE_TEAM_INVITATION,
 		model.MapToJson(map[string]string{"teamId": team.Id}),
 	)
-	<-th.App.Srv.Store.Token().Save(token)
+	require.Nil(t, th.App.Srv.Store.Token().Save(token))
 	tm, resp = Client.AddTeamMemberFromInvite(token.Token, "")
 	require.Equal(t, "app.team.invite_token.group_constrained.error", resp.Error.Id)
 

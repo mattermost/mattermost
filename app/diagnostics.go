@@ -149,17 +149,12 @@ func (a *App) trackActivity() {
 		activeUsersMonthlyCount = r.Data.(int64)
 	}
 
-	if ucr := <-a.Srv.Store.User().Count(model.UserCountOptions{
-		IncludeDeleted: true,
-	}); ucr.Err == nil {
-		userCount = ucr.Data.(int64)
+	if count, err := a.Srv.Store.User().Count(model.UserCountOptions{IncludeDeleted: true}); err == nil {
+		userCount = count
 	}
 
-	if bc := <-a.Srv.Store.User().Count(model.UserCountOptions{
-		IncludeBotAccounts:  true,
-		ExcludeRegularUsers: true,
-	}); bc.Err == nil {
-		botAccountsCount = bc.Data.(int64)
+	if count, err := a.Srv.Store.User().Count(model.UserCountOptions{IncludeBotAccounts: true, ExcludeRegularUsers: true}); err == nil {
+		botAccountsCount = count
 	}
 
 	if iucr := <-a.Srv.Store.User().AnalyticsGetInactiveUsersCount(); iucr.Err == nil {
@@ -581,12 +576,11 @@ func (a *App) trackConfig() {
 		"enable_github":                 pluginActivated(cfg.PluginSettings.PluginStates, "github"),
 		"enable_jira":                   pluginActivated(cfg.PluginSettings.PluginStates, "jira"),
 		"enable_nps":                    pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.nps"),
-		"enable_nps_survey":             pluginSetting(&cfg.PluginSettings, "com.mattermost.nps", "enablesurvey", false),
+		"enable_nps_survey":             pluginSetting(&cfg.PluginSettings, "com.mattermost.nps", "enablesurvey", true),
 		"enable_welcome_bot":            pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.welcomebot"),
 		"enable_zoom":                   pluginActivated(cfg.PluginSettings.PluginStates, "zoom"),
 		"enable":                        *cfg.PluginSettings.Enable,
 		"enable_uploads":                *cfg.PluginSettings.EnableUploads,
-		"enable_health_check":           *cfg.PluginSettings.EnableHealthCheck,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_DATA_RETENTION, map[string]interface{}{
