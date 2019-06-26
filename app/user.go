@@ -2198,13 +2198,13 @@ func (a *App) GetViewUsersRestrictionsForTeam(userId string, teamId string) ([]s
 		return nil, nil
 	}
 
-	result := <-a.Srv.Store.Channel().GetMembersForUser(teamId, userId)
-	if result.Err != nil {
-		return nil, result.Err
+	members, err := a.Srv.Store.Channel().GetMembersForUser(teamId, userId)
+	if err != nil {
+		return nil, err
 	}
 
 	channelIds := []string{}
-	for _, membership := range *result.Data.(*model.ChannelMembers) {
+	for _, membership := range *members {
 		channelIds = append(channelIds, membership.ChannelId)
 	}
 
