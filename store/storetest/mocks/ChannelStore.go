@@ -278,6 +278,29 @@ func (_m *ChannelStore) GetAllChannels(page int, perPage int, opts store.Channel
 	return r0, r1
 }
 
+// GetAllChannelsCount provides a mock function with given fields: opts
+func (_m *ChannelStore) GetAllChannelsCount(opts store.ChannelSearchOpts) (int64, *model.AppError) {
+	ret := _m.Called(opts)
+
+	var r0 int64
+	if rf, ok := ret.Get(0).(func(store.ChannelSearchOpts) int64); ok {
+		r0 = rf(opts)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(store.ChannelSearchOpts) *model.AppError); ok {
+		r1 = rf(opts)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetAllChannelsForExportAfter provides a mock function with given fields: limit, afterId
 func (_m *ChannelStore) GetAllChannelsForExportAfter(limit int, afterId string) ([]*model.ChannelForExport, *model.AppError) {
 	ret := _m.Called(limit, afterId)
@@ -980,15 +1003,15 @@ func (_m *ChannelStore) GetTeamChannels(teamId string) (*model.ChannelList, *mod
 }
 
 // IncrementMentionCount provides a mock function with given fields: channelId, userId
-func (_m *ChannelStore) IncrementMentionCount(channelId string, userId string) store.StoreChannel {
+func (_m *ChannelStore) IncrementMentionCount(channelId string, userId string) *model.AppError {
 	ret := _m.Called(channelId, userId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, string) store.StoreChannel); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, string) *model.AppError); ok {
 		r0 = rf(channelId, userId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
@@ -1268,19 +1291,28 @@ func (_m *ChannelStore) SaveMember(member *model.ChannelMember) store.StoreChann
 }
 
 // SearchAllChannels provides a mock function with given fields: term, opts
-func (_m *ChannelStore) SearchAllChannels(term string, opts store.ChannelSearchOpts) store.StoreChannel {
+func (_m *ChannelStore) SearchAllChannels(term string, opts store.ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError) {
 	ret := _m.Called(term, opts)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, store.ChannelSearchOpts) store.StoreChannel); ok {
+	var r0 *model.ChannelListWithTeamData
+	if rf, ok := ret.Get(0).(func(string, store.ChannelSearchOpts) *model.ChannelListWithTeamData); ok {
 		r0 = rf(term, opts)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.ChannelListWithTeamData)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, store.ChannelSearchOpts) *model.AppError); ok {
+		r1 = rf(term, opts)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // SearchGroupChannels provides a mock function with given fields: userId, term
