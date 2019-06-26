@@ -1111,9 +1111,9 @@ func TestOAuthComplete(t *testing.T) {
 		closeBody(r)
 	}
 
-	if result := <-th.App.Srv.Store.User().UpdateAuthData(
-		th.BasicUser.Id, model.SERVICE_GITLAB, &th.BasicUser.Email, th.BasicUser.Email, true); result.Err != nil {
-		t.Fatal(result.Err)
+	if _, err := th.App.Srv.Store.User().UpdateAuthData(
+		th.BasicUser.Id, model.SERVICE_GITLAB, &th.BasicUser.Email, th.BasicUser.Email, true); err != nil {
+		t.Fatal(err)
 	}
 
 	redirect, resp = Client.AuthorizeOAuthApp(authRequest)

@@ -984,7 +984,8 @@ func testChannelDeleteMemberStore(t *testing.T, ss store.Store) {
 		t.Fatal("should have saved 2 members")
 	}
 
-	store.Must(ss.Channel().PermanentDeleteMembersByUser(o2.UserId))
+	err = ss.Channel().PermanentDeleteMembersByUser(o2.UserId)
+	require.Nil(t, err)
 
 	count, err = ss.Channel().GetMemberCount(o1.ChannelId, false)
 	require.Nil(t, err)
@@ -1597,8 +1598,8 @@ func testChannelStoreGetMembersForUser(t *testing.T, ss store.Store) {
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 	store.Must(ss.Channel().SaveMember(&m2))
 
-	cresult := <-ss.Channel().GetMembersForUser(o1.TeamId, m1.UserId)
-	members := cresult.Data.(*model.ChannelMembers)
+	members, err := ss.Channel().GetMembersForUser(o1.TeamId, m1.UserId)
+	require.Nil(t, err)
 
 	// no unread messages
 	if len(*members) != 2 {
@@ -1686,15 +1687,16 @@ func testChannelStoreUpdateLastViewedAt(t *testing.T, ss store.Store) {
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 	store.Must(ss.Channel().SaveMember(&m2))
 
-	if result := <-ss.Channel().UpdateLastViewedAt([]string{m1.ChannelId}, m1.UserId); result.Err != nil {
-		t.Fatal("failed to update", result.Err)
-	} else if result.Data.(map[string]int64)[o1.Id] != o1.LastPostAt {
+	var times map[string]int64
+	if times, err = ss.Channel().UpdateLastViewedAt([]string{m1.ChannelId}, m1.UserId); err != nil {
+		t.Fatal("failed to update", err)
+	} else if times[o1.Id] != o1.LastPostAt {
 		t.Fatal("last viewed at time incorrect")
 	}
 
-	if result := <-ss.Channel().UpdateLastViewedAt([]string{m1.ChannelId, m2.ChannelId}, m1.UserId); result.Err != nil {
-		t.Fatal("failed to update", result.Err)
-	} else if result.Data.(map[string]int64)[o2.Id] != o2.LastPostAt {
+	if times, err = ss.Channel().UpdateLastViewedAt([]string{m1.ChannelId, m2.ChannelId}, m1.UserId); err != nil {
+		t.Fatal("failed to update", err)
+	} else if times[o2.Id] != o2.LastPostAt {
 		t.Fatal("last viewed at time incorrect")
 	}
 
@@ -1710,7 +1712,7 @@ func testChannelStoreUpdateLastViewedAt(t *testing.T, ss store.Store) {
 	assert.Equal(t, rm2.LastUpdateAt, o2.LastPostAt)
 	assert.Equal(t, rm2.MsgCount, o2.TotalMsgCount)
 
-	if result := <-ss.Channel().UpdateLastViewedAt([]string{m1.ChannelId}, "missing id"); result.Err != nil {
+	if _, err := ss.Channel().UpdateLastViewedAt([]string{m1.ChannelId}, "missing id"); err != nil {
 		t.Fatal("failed to update")
 	}
 }
@@ -2672,9 +2674,8 @@ func testChannelStoreAutocompleteInTeamForSearch(t *testing.T, ss store.Store, s
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			result := <-ss.Channel().AutocompleteInTeamForSearch(o1.TeamId, m1.UserId, "ChannelA", false)
-			require.Nil(t, result.Err)
-			channels := result.Data.(*model.ChannelList)
+			channels, err := ss.Channel().AutocompleteInTeamForSearch(o1.TeamId, m1.UserId, "ChannelA", false)
+			require.Nil(t, err)
 			require.Len(t, *channels, 2)
 		})
 	}
