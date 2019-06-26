@@ -79,7 +79,7 @@ func (b *S3FileBackend) TestConnection() *model.AppError {
 			return model.NewAppError("TestFileConnection", "api.file.test_connection.s3.bucked_create.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
 	}
-	mlog.Info("Connection to S3 or minio is good. Bucket exists.")
+	mlog.Debug("Connection to S3 or minio is good. Bucket exists.")
 	return nil
 }
 
@@ -287,7 +287,7 @@ func CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError {
 
 	// if S3 endpoint is not set call the set defaults to set that
 	if settings.AmazonS3Endpoint == nil || len(*settings.AmazonS3Endpoint) == 0 {
-		settings.SetDefaults()
+		settings.SetDefaults(true)
 	}
 
 	return nil

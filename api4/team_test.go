@@ -627,6 +627,8 @@ func TestGetAllTeams(t *testing.T) {
 		PerPage       int
 		Permissions   []string
 		ExpectedTeams []string
+		WithCount     bool
+		ExpectedCount int64
 	}{
 		{
 			Name:          "Get 1 team per page",
@@ -677,6 +679,15 @@ func TestGetAllTeams(t *testing.T) {
 			Permissions:   []string{},
 			ExpectedTeams: []string{},
 		},
+		{
+			Name:          "Get all teams with count",
+			Page:          0,
+			PerPage:       10,
+			Permissions:   []string{model.PERMISSION_LIST_PUBLIC_TEAMS.Id, model.PERMISSION_LIST_PRIVATE_TEAMS.Id},
+			ExpectedTeams: []string{th.BasicTeam.Id, team1.Id, team2.Id, team3.Id},
+			WithCount:     true,
+			ExpectedCount: 4,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -694,12 +705,18 @@ func TestGetAllTeams(t *testing.T) {
 			}
 
 			var teams []*model.Team
-			teams, resp = Client.GetAllTeams("", tc.Page, tc.PerPage)
+			var count int64
+			if tc.WithCount {
+				teams, count, resp = Client.GetAllTeamsWithTotalCount("", tc.Page, tc.PerPage)
+			} else {
+				teams, resp = Client.GetAllTeams("", tc.Page, tc.PerPage)
+			}
 			CheckNoError(t, resp)
 			require.Equal(t, len(tc.ExpectedTeams), len(teams))
 			for idx, team := range teams {
 				assert.Equal(t, tc.ExpectedTeams[idx], team.Id)
 			}
+			require.Equal(t, tc.ExpectedCount, count)
 		})
 	}
 
@@ -1419,7 +1436,7 @@ func TestAddTeamMember(t *testing.T) {
 		app.TOKEN_TYPE_TEAM_INVITATION,
 		model.MapToJson(map[string]string{"teamId": team.Id}),
 	)
-	<-th.App.Srv.Store.Token().Save(token)
+	require.Nil(t, th.App.Srv.Store.Token().Save(token))
 
 	tm, resp = Client.AddTeamMemberFromInvite(token.Token, "")
 	CheckNoError(t, resp)
@@ -1436,9 +1453,8 @@ func TestAddTeamMember(t *testing.T) {
 		t.Fatal("team ids should have matched")
 	}
 
-	if result := <-th.App.Srv.Store.Token().GetByToken(token.Token); result.Err == nil {
-		t.Fatal("The token must be deleted after be used")
-	}
+	_, err := th.App.Srv.Store.Token().GetByToken(token.Token)
+	require.NotNil(t, err, "The token must be deleted after be used")
 
 	tm, resp = Client.AddTeamMemberFromInvite("junk", "")
 	CheckBadRequestStatus(t, resp)
@@ -1450,7 +1466,7 @@ func TestAddTeamMember(t *testing.T) {
 	// expired token of more than 50 hours
 	token = model.NewToken(app.TOKEN_TYPE_TEAM_INVITATION, "")
 	token.CreateAt = model.GetMillis() - 1000*60*60*50
-	<-th.App.Srv.Store.Token().Save(token)
+	require.Nil(t, th.App.Srv.Store.Token().Save(token))
 
 	_, resp = Client.AddTeamMemberFromInvite(token.Token, "")
 	CheckBadRequestStatus(t, resp)
@@ -1462,7 +1478,7 @@ func TestAddTeamMember(t *testing.T) {
 		app.TOKEN_TYPE_TEAM_INVITATION,
 		model.MapToJson(map[string]string{"teamId": testId}),
 	)
-	<-th.App.Srv.Store.Token().Save(token)
+	require.Nil(t, th.App.Srv.Store.Token().Save(token))
 
 	_, resp = Client.AddTeamMemberFromInvite(token.Token, "")
 	CheckNotFoundStatus(t, resp)
@@ -1495,7 +1511,7 @@ func TestAddTeamMember(t *testing.T) {
 
 	// Set a team to group-constrained
 	team.GroupConstrained = model.NewBool(true)
-	_, err := th.App.UpdateTeam(team)
+	_, err = th.App.UpdateTeam(team)
 	require.Nil(t, err)
 
 	// Attempt to use a token on a group-constrained team
@@ -1503,7 +1519,7 @@ func TestAddTeamMember(t *testing.T) {
 		app.TOKEN_TYPE_TEAM_INVITATION,
 		model.MapToJson(map[string]string{"teamId": team.Id}),
 	)
-	<-th.App.Srv.Store.Token().Save(token)
+	require.Nil(t, th.App.Srv.Store.Token().Save(token))
 	tm, resp = Client.AddTeamMemberFromInvite(token.Token, "")
 	require.Equal(t, "app.team.invite_token.group_constrained.error", resp.Error.Id)
 
@@ -2487,4 +2503,97 @@ func TestUpdateTeamScheme(t *testing.T) {
 	th.SystemAdminClient.Logout()
 	_, resp = th.SystemAdminClient.UpdateTeamScheme(team.Id, teamScheme.Id)
 	CheckUnauthorizedStatus(t, resp)
+}
+
+func TestTeamMembersMinusGroupMembers(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+
+	user1 := th.BasicUser
+	user2 := th.BasicUser2
+
+	team := th.CreateTeam()
+	team.GroupConstrained = model.NewBool(true)
+	team, err := th.App.UpdateTeam(team)
+	require.Nil(t, err)
+
+	_, err = th.App.AddTeamMember(team.Id, user1.Id)
+	require.Nil(t, err)
+	_, err = th.App.AddTeamMember(team.Id, user2.Id)
+	require.Nil(t, err)
+
+	group1 := th.CreateGroup()
+	group2 := th.CreateGroup()
+
+	_, err = th.App.CreateOrRestoreGroupMember(group1.Id, user1.Id)
+	require.Nil(t, err)
+	_, err = th.App.CreateOrRestoreGroupMember(group2.Id, user2.Id)
+	require.Nil(t, err)
+
+	// No permissions
+	_, _, res := th.Client.TeamMembersMinusGroupMembers(team.Id, []string{group1.Id, group2.Id}, 0, 100, "")
+	require.Equal(t, "api.context.permissions.app_error", res.Error.Id)
+
+	testCases := map[string]struct {
+		groupIDs        []string
+		page            int
+		perPage         int
+		length          int
+		count           int
+		otherAssertions func([]*model.UserWithGroups)
+	}{
+		"All groups, expect no users removed": {
+			groupIDs: []string{group1.Id, group2.Id},
+			page:     0,
+			perPage:  100,
+			length:   0,
+			count:    0,
+		},
+		"Some nonexistent group, page 0": {
+			groupIDs: []string{model.NewId()},
+			page:     0,
+			perPage:  1,
+			length:   1,
+			count:    2,
+		},
+		"Some nonexistent group, page 1": {
+			groupIDs: []string{model.NewId()},
+			page:     1,
+			perPage:  1,
+			length:   1,
+			count:    2,
+		},
+		"One group, expect one user removed": {
+			groupIDs: []string{group1.Id},
+			page:     0,
+			perPage:  100,
+			length:   1,
+			count:    1,
+			otherAssertions: func(uwg []*model.UserWithGroups) {
+				require.Equal(t, uwg[0].Id, user2.Id)
+			},
+		},
+		"Other group, expect other user removed": {
+			groupIDs: []string{group2.Id},
+			page:     0,
+			perPage:  100,
+			length:   1,
+			count:    1,
+			otherAssertions: func(uwg []*model.UserWithGroups) {
+				require.Equal(t, uwg[0].Id, user1.Id)
+			},
+		},
+	}
+
+	for name, tc := range testCases {
+		t.Run(name, func(t *testing.T) {
+			uwg, count, res := th.SystemAdminClient.TeamMembersMinusGroupMembers(team.Id, tc.groupIDs, tc.page, tc.perPage, "")
+			require.Nil(t, res.Error)
+			require.Len(t, uwg, tc.length)
+			require.Equal(t, tc.count, int(count))
+			if tc.otherAssertions != nil {
+				tc.otherAssertions(uwg)
+			}
+		})
+	}
 }

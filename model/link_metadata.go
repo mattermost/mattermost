@@ -6,9 +6,11 @@ package model
 import (
 	"encoding/binary"
 	"encoding/json"
+	"fmt"
 	"hash/fnv"
 	"net/http"
 	"time"
+	"unicode/utf8"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
 )
@@ -17,6 +19,7 @@ const (
 	LINK_METADATA_TYPE_IMAGE     LinkMetadataType = "image"
 	LINK_METADATA_TYPE_NONE      LinkMetadataType = "none"
 	LINK_METADATA_TYPE_OPENGRAPH LinkMetadataType = "opengraph"
+	MAX_IMAGES                   int              = 5
 )
 
 type LinkMetadataType string
@@ -36,6 +39,50 @@ type LinkMetadata struct {
 	// - *opengraph.OpenGraph if the linked content is an HTML document
 	// - nil if the linked content has no metadata
 	Data interface{}
+}
+
+// truncateText ensure string is 300 chars, truncate and add ellipsis
+// if it was bigger.
+func truncateText(original string) string {
+	if utf8.RuneCountInString(original) > 300 {
+		return fmt.Sprintf("%.300s[...]", original)
+	}
+	return original
+}
+
+func firstNImages(images []*opengraph.Image, maxImages int) []*opengraph.Image {
+	if maxImages < 0 { // dont break stuff, if it's weird, go for sane defaults
+		maxImages = MAX_IMAGES
+	}
+	numImages := len(images)
+	if numImages > maxImages {
+		subImages := make([]*opengraph.Image, maxImages)
+		subImages = images[0:maxImages]
+		return subImages
+	}
+	return images
+}
+
+// TruncateOpenGraph ensure OpenGraph metadata doesn't grow too big by
+// shortening strings, trimming fields and reducing the number of
+// images.
+func TruncateOpenGraph(ogdata *opengraph.OpenGraph) *opengraph.OpenGraph {
+	if ogdata != nil {
+		empty := &opengraph.OpenGraph{}
+		ogdata.Title = truncateText(ogdata.Title)
+		ogdata.Description = truncateText(ogdata.Description)
+		ogdata.SiteName = truncateText(ogdata.SiteName)
+		ogdata.Article = empty.Article
+		ogdata.Book = empty.Book
+		ogdata.Profile = empty.Profile
+		ogdata.Determiner = empty.Determiner
+		ogdata.Locale = empty.Locale
+		ogdata.LocalesAlternate = empty.LocalesAlternate
+		ogdata.Images = firstNImages(ogdata.Images, MAX_IMAGES)
+		ogdata.Audios = empty.Audios
+		ogdata.Videos = empty.Videos
+	}
+	return ogdata
 }
 
 func (o *LinkMetadata) PreSave() {

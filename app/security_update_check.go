@@ -69,18 +69,16 @@ func (s *Server) DoSecurityUpdateCheck() {
 			s.Store.System().Update(systemSecurityLastTime)
 		}
 
-		if ucr := <-s.Store.User().Count(model.UserCountOptions{
-			IncludeDeleted: true,
-		}); ucr.Err == nil {
-			v.Set(PROP_SECURITY_USER_COUNT, strconv.FormatInt(ucr.Data.(int64), 10))
+		if count, err := s.Store.User().Count(model.UserCountOptions{IncludeDeleted: true}); err == nil {
+			v.Set(PROP_SECURITY_USER_COUNT, strconv.FormatInt(count, 10))
 		}
 
-		if ucr := <-s.Store.Status().GetTotalActiveUsersCount(); ucr.Err == nil {
-			v.Set(PROP_SECURITY_ACTIVE_USER_COUNT, strconv.FormatInt(ucr.Data.(int64), 10))
+		if ucr, err := s.Store.Status().GetTotalActiveUsersCount(); err == nil {
+			v.Set(PROP_SECURITY_ACTIVE_USER_COUNT, strconv.FormatInt(ucr, 10))
 		}
 
-		if tcr := <-s.Store.Team().AnalyticsTeamCount(); tcr.Err == nil {
-			v.Set(PROP_SECURITY_TEAM_COUNT, strconv.FormatInt(tcr.Data.(int64), 10))
+		if teamCount, err := s.Store.Team().AnalyticsTeamCount(); err == nil {
+			v.Set(PROP_SECURITY_TEAM_COUNT, strconv.FormatInt(teamCount, 10))
 		}
 
 		res, err := http.Get(SECURITY_URL + "/security?" + v.Encode())

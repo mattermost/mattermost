@@ -50,7 +50,7 @@ func (a *App) DefaultChannelNames() []string {
 	if len(a.Config().TeamSettings.ExperimentalDefaultChannels) == 0 {
 		names = append(names, "off-topic")
 	} else {
-		seenChannels := map[string]bool{}
+		seenChannels := map[string]bool{"town-square": true}
 		for _, channelName := range a.Config().TeamSettings.ExperimentalDefaultChannels {
 			if !seenChannels[channelName] {
 				names = append(names, channelName)
@@ -74,41 +74,41 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, shouldBeAdmin
 
 	var err *model.AppError
 	for _, channelName := range a.DefaultChannelNames() {
-		if result := <-a.Srv.Store.Channel().GetByName(teamId, channelName, true); result.Err != nil {
-			err = result.Err
-		} else {
-			channel := result.Data.(*model.Channel)
-
-			if channel.Type != model.CHANNEL_OPEN {
-				continue
-			}
-
-			cm := &model.ChannelMember{
-				ChannelId:   channel.Id,
-				UserId:      user.Id,
-				SchemeGuest: user.IsGuest(),
-				SchemeUser:  !user.IsGuest(),
-				SchemeAdmin: shouldBeAdmin,
-				NotifyProps: model.GetDefaultChannelNotifyProps(),
-			}
-
-			if cmResult := <-a.Srv.Store.Channel().SaveMember(cm); cmResult.Err != nil {
-				err = cmResult.Err
-			}
-			if result = <-a.Srv.Store.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); result.Err != nil {
-				mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", result.Err))
-			}
-
-			if *a.Config().ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages {
-				a.postJoinMessageForDefaultChannel(user, requestor, channel)
-			}
-
-			a.InvalidateCacheForChannelMembers(channel.Id)
+		channel, channelErr := a.Srv.Store.Channel().GetByName(teamId, channelName, true)
+		if channelErr != nil {
+			err = channelErr
+			continue
 		}
+
+		if channel.Type != model.CHANNEL_OPEN {
+			continue
+		}
+
+		cm := &model.ChannelMember{
+			ChannelId:   channel.Id,
+			UserId:      user.Id,
+			SchemeGuest: user.IsGuest(),
+			SchemeUser:  !user.IsGuest(),
+			SchemeAdmin: shouldBeAdmin,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		}
+
+		if cmResult := <-a.Srv.Store.Channel().SaveMember(cm); cmResult.Err != nil {
+			err = cmResult.Err
+		}
+		if histErr := a.Srv.Store.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); histErr != nil {
+			mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", histErr))
+		}
+
+		if *a.Config().ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages {
+			a.postJoinMessageForDefaultChannel(user, requestor, channel)
+		}
+
+		a.InvalidateCacheForChannelMembers(channel.Id)
+
 	}
 
-	esInterface := a.Elasticsearch
-	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
+	if a.IsESIndexingEnabled() {
 		a.Srv.Go(func() {
 			if err = a.indexUser(user); err != nil {
 				mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.Err(err))
@@ -185,8 +185,7 @@ func (a *App) CreateChannelWithUser(channel *model.Channel, userId string) (*mod
 	message.Add("team_id", channel.TeamId)
 	a.Publish(message)
 
-	esInterface := a.Elasticsearch
-	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
+	if a.IsESIndexingEnabled() {
 		a.Srv.Go(func() {
 			if err := a.indexUser(user); err != nil {
 				mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.Err(err))
@@ -244,8 +243,8 @@ func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Chan
 		if cmresult := <-a.Srv.Store.Channel().SaveMember(cm); cmresult.Err != nil {
 			return nil, cmresult.Err
 		}
-		if result := <-a.Srv.Store.ChannelMemberHistory().LogJoinEvent(channel.CreatorId, sc.Id, model.GetMillis()); result.Err != nil {
-			mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", result.Err))
+		if err := a.Srv.Store.ChannelMemberHistory().LogJoinEvent(channel.CreatorId, sc.Id, model.GetMillis()); err != nil {
+			mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", err))
 		}
 
 		a.InvalidateCacheForUser(channel.CreatorId)
@@ -261,11 +260,10 @@ func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Chan
 		})
 	}
 
-	esInterface := a.Elasticsearch
-	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
-		if sc.Type == "O" {
+	if a.IsESIndexingEnabled() {
+		if sc.Type == model.CHANNEL_OPEN {
 			a.Srv.Go(func() {
-				if err := esInterface.IndexChannel(sc); err != nil {
+				if err := a.Elasticsearch.IndexChannel(sc); err != nil {
 					mlog.Error("Encountered error indexing channel", mlog.String("channel_id", sc.Id), mlog.Err(err))
 				}
 			})
@@ -283,10 +281,10 @@ func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Chan
 }
 
 func (a *App) GetOrCreateDirectChannel(userId, otherUserId string) (*model.Channel, *model.AppError) {
-	result := <-a.Srv.Store.Channel().GetByName("", model.GetDMNameFromIds(userId, otherUserId), true)
-	if result.Err != nil {
-		if result.Err.Id == store.MISSING_CHANNEL_ERROR {
-			channel, err := a.createDirectChannel(userId, otherUserId)
+	channel, err := a.Srv.Store.Channel().GetByName("", model.GetDMNameFromIds(userId, otherUserId), true)
+	if err != nil {
+		if err.Id == store.MISSING_CHANNEL_ERROR {
+			channel, err = a.createDirectChannel(userId, otherUserId)
 			if err != nil {
 				if err.Id == store.CHANNEL_EXISTS_ERROR {
 					return channel, nil
@@ -309,12 +307,11 @@ func (a *App) GetOrCreateDirectChannel(userId, otherUserId string) (*model.Chann
 				})
 			}
 
-			esInterface := a.Elasticsearch
-			if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
+			if a.IsESIndexingEnabled() {
 				a.Srv.Go(func() {
 					for _, id := range []string{userId, otherUserId} {
-						if err := a.indexUserFromId(id); err != nil {
-							mlog.Error("Encountered error indexing user", mlog.String("user_id", id), mlog.Err(err))
+						if indexUserErr := a.indexUserFromId(id); indexUserErr != nil {
+							mlog.Error("Encountered error indexing user", mlog.String("user_id", id), mlog.Err(indexUserErr))
 						}
 					}
 				})
@@ -326,9 +323,9 @@ func (a *App) GetOrCreateDirectChannel(userId, otherUserId string) (*model.Chann
 
 			return channel, nil
 		}
-		return nil, model.NewAppError("GetOrCreateDMChannel", "web.incoming_webhook.channel.app_error", nil, "err="+result.Err.Message, result.Err.StatusCode)
+		return nil, model.NewAppError("GetOrCreateDMChannel", "web.incoming_webhook.channel.app_error", nil, "err="+err.Message, err.StatusCode)
 	}
-	return result.Data.(*model.Channel), nil
+	return channel, nil
 }
 
 func (a *App) createDirectChannel(userId string, otherUserId string) (*model.Channel, *model.AppError) {
@@ -361,11 +358,11 @@ func (a *App) createDirectChannel(userId string, otherUserId string) (*model.Cha
 		return nil, err
 	}
 
-	if result := <-a.Srv.Store.ChannelMemberHistory().LogJoinEvent(userId, channel.Id, model.GetMillis()); result.Err != nil {
-		mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", result.Err))
+	if err = a.Srv.Store.ChannelMemberHistory().LogJoinEvent(userId, channel.Id, model.GetMillis()); err != nil {
+		mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", err))
 	}
-	if result := <-a.Srv.Store.ChannelMemberHistory().LogJoinEvent(otherUserId, channel.Id, model.GetMillis()); result.Err != nil {
-		mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", result.Err))
+	if err = a.Srv.Store.ChannelMemberHistory().LogJoinEvent(otherUserId, channel.Id, model.GetMillis()); err != nil {
+		mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", err))
 	}
 
 	return channel, nil
@@ -419,8 +416,7 @@ func (a *App) CreateGroupChannel(userIds []string, creatorId string) (*model.Cha
 	message.Add("teammate_ids", model.ArrayToJson(userIds))
 	a.Publish(message)
 
-	esInterface := a.Elasticsearch
-	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
+	if a.IsESIndexingEnabled() {
 		a.Srv.Go(func() {
 			for _, id := range userIds {
 				if err := a.indexUserFromId(id); err != nil {
@@ -474,8 +470,8 @@ func (a *App) createGroupChannel(userIds []string, creatorId string) (*model.Cha
 		if result := <-a.Srv.Store.Channel().SaveMember(cm); result.Err != nil {
 			return nil, result.Err
 		}
-		if result := <-a.Srv.Store.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); result.Err != nil {
-			mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", result.Err))
+		if err := a.Srv.Store.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); err != nil {
+			mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", err))
 		}
 	}
 
@@ -517,10 +513,9 @@ func (a *App) UpdateChannel(channel *model.Channel) (*model.Channel, *model.AppE
 	messageWs.Add("channel", channel.ToJson())
 	a.Publish(messageWs)
 
-	esInterface := a.Elasticsearch
-	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing && channel.Type == "O" {
+	if a.IsESIndexingEnabled() && channel.Type == model.CHANNEL_OPEN {
 		a.Srv.Go(func() {
-			if err := esInterface.IndexChannel(channel); err != nil {
+			if err := a.Elasticsearch.IndexChannel(channel); err != nil {
 				mlog.Error("Encountered error indexing channel", mlog.String("channel_id", channel.Id), mlog.Err(err))
 			}
 		})
@@ -932,8 +927,8 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel, teamMem
 	}
 	a.WaitForChannelMembership(channel.Id, user.Id)
 
-	if result := <-a.Srv.Store.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); result.Err != nil {
-		mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", result.Err))
+	if err = a.Srv.Store.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); err != nil {
+		mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", err))
 	}
 
 	a.InvalidateCacheForUser(user.Id)
@@ -943,14 +938,11 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel, teamMem
 }
 
 func (a *App) AddUserToChannel(user *model.User, channel *model.Channel) (*model.ChannelMember, *model.AppError) {
-	tmchan := a.Srv.Store.Team().GetMember(channel.TeamId, user.Id)
-	var teamMember *model.TeamMember
+	teamMember, err := a.Srv.Store.Team().GetMember(channel.TeamId, user.Id)
 
-	result := <-tmchan
-	if result.Err != nil {
-		return nil, result.Err
+	if err != nil {
+		return nil, err
 	}
-	teamMember = result.Data.(*model.TeamMember)
 	if teamMember.DeleteAt > 0 {
 		return nil, model.NewAppError("AddUserToChannel", "api.channel.add_user.to.channel.failed.deleted.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -1006,8 +998,7 @@ func (a *App) AddChannelMember(userId string, channel *model.Channel, userReques
 		})
 	}
 
-	esInterface := a.Elasticsearch
-	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
+	if a.IsESIndexingEnabled() {
 		a.Srv.Go(func() {
 			if err := a.indexUser(user); err != nil {
 				mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.Err(err))
@@ -1171,75 +1162,73 @@ func (a *App) GetChannel(channelId string) (*model.Channel, *model.AppError) {
 }
 
 func (a *App) GetChannelByName(channelName, teamId string, includeDeleted bool) (*model.Channel, *model.AppError) {
-	var result store.StoreResult
+	var channel *model.Channel
+	var err *model.AppError
 
 	if includeDeleted {
-		result = <-a.Srv.Store.Channel().GetByNameIncludeDeleted(teamId, channelName, false)
+		channel, err = a.Srv.Store.Channel().GetByNameIncludeDeleted(teamId, channelName, false)
 	} else {
-		result = <-a.Srv.Store.Channel().GetByName(teamId, channelName, false)
+		channel, err = a.Srv.Store.Channel().GetByName(teamId, channelName, false)
 	}
 
-	if result.Err != nil && result.Err.Id == "store.sql_channel.get_by_name.missing.app_error" {
-		result.Err.StatusCode = http.StatusNotFound
-		return nil, result.Err
+	if err != nil && err.Id == "store.sql_channel.get_by_name.missing.app_error" {
+		err.StatusCode = http.StatusNotFound
+		return nil, err
 	}
 
-	if result.Err != nil {
-		result.Err.StatusCode = http.StatusBadRequest
-		return nil, result.Err
+	if err != nil {
+		err.StatusCode = http.StatusBadRequest
+		return nil, err
 	}
 
-	return result.Data.(*model.Channel), nil
+	return channel, nil
 }
 
 func (a *App) GetChannelsByNames(channelNames []string, teamId string) ([]*model.Channel, *model.AppError) {
-	result := <-a.Srv.Store.Channel().GetByNames(teamId, channelNames, true)
-	if result.Err != nil {
-		if result.Err.Id == "store.sql_channel.get_by_name.missing.app_error" {
-			result.Err.StatusCode = http.StatusNotFound
-			return nil, result.Err
+	channels, err := a.Srv.Store.Channel().GetByNames(teamId, channelNames, true)
+	if err != nil {
+		if err.Id == "store.sql_channel.get_by_name.missing.app_error" {
+			err.StatusCode = http.StatusNotFound
+			return nil, err
 		}
-		result.Err.StatusCode = http.StatusBadRequest
-		return nil, result.Err
+		err.StatusCode = http.StatusBadRequest
+		return nil, err
 	}
-	return result.Data.([]*model.Channel), nil
+	return channels, nil
 }
 
 func (a *App) GetChannelByNameForTeamName(channelName, teamName string, includeDeleted bool) (*model.Channel, *model.AppError) {
 	var team *model.Team
 
-	result := <-a.Srv.Store.Team().GetByName(teamName)
-	if result.Err != nil {
-		result.Err.StatusCode = http.StatusNotFound
-		return nil, result.Err
+	team, err := a.Srv.Store.Team().GetByName(teamName)
+	if err != nil {
+		err.StatusCode = http.StatusNotFound
+		return nil, err
 	}
-	team = result.Data.(*model.Team)
+
+	var result *model.Channel
 
 	if includeDeleted {
-		result = <-a.Srv.Store.Channel().GetByNameIncludeDeleted(team.Id, channelName, false)
+		result, err = a.Srv.Store.Channel().GetByNameIncludeDeleted(team.Id, channelName, false)
 	} else {
-		result = <-a.Srv.Store.Channel().GetByName(team.Id, channelName, false)
+		result, err = a.Srv.Store.Channel().GetByName(team.Id, channelName, false)
 	}
 
-	if result.Err != nil && result.Err.Id == "store.sql_channel.get_by_name.missing.app_error" {
-		result.Err.StatusCode = http.StatusNotFound
-		return nil, result.Err
+	if err != nil && err.Id == "store.sql_channel.get_by_name.missing.app_error" {
+		err.StatusCode = http.StatusNotFound
+		return nil, err
 	}
 
-	if result.Err != nil {
-		result.Err.StatusCode = http.StatusBadRequest
-		return nil, result.Err
+	if err != nil {
+		err.StatusCode = http.StatusBadRequest
+		return nil, err
 	}
 
-	return result.Data.(*model.Channel), nil
+	return result, nil
 }
 
 func (a *App) GetChannelsForUser(teamId string, userId string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
-	result := <-a.Srv.Store.Channel().GetChannels(teamId, userId, includeDeleted)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.ChannelList), nil
+	return a.Srv.Store.Channel().GetChannels(teamId, userId, includeDeleted)
 }
 
 func (a *App) GetAllChannels(page, perPage int, opts model.ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError) {
@@ -1251,43 +1240,35 @@ func (a *App) GetAllChannels(page, perPage int, opts model.ChannelSearchOpts) (*
 		NotAssociatedToGroup: opts.NotAssociatedToGroup,
 		IncludeDeleted:       opts.IncludeDeleted,
 	}
-	result := <-a.Srv.Store.Channel().GetAllChannels(page*perPage, perPage, storeOpts)
-	if result.Err != nil {
-		return nil, result.Err
+	return a.Srv.Store.Channel().GetAllChannels(page*perPage, perPage, storeOpts)
+}
+
+func (a *App) GetAllChannelsCount(opts model.ChannelSearchOpts) (int64, *model.AppError) {
+	if opts.ExcludeDefaultChannels {
+		opts.ExcludeChannelNames = a.DefaultChannelNames()
 	}
-	return result.Data.(*model.ChannelListWithTeamData), nil
+	storeOpts := store.ChannelSearchOpts{
+		ExcludeChannelNames:  opts.ExcludeChannelNames,
+		NotAssociatedToGroup: opts.NotAssociatedToGroup,
+		IncludeDeleted:       opts.IncludeDeleted,
+	}
+	return a.Srv.Store.Channel().GetAllChannelsCount(storeOpts)
 }
 
 func (a *App) GetDeletedChannels(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
-	result := <-a.Srv.Store.Channel().GetDeleted(teamId, offset, limit)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.ChannelList), nil
+	return a.Srv.Store.Channel().GetDeleted(teamId, offset, limit)
 }
 
 func (a *App) GetChannelsUserNotIn(teamId string, userId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
-	result := <-a.Srv.Store.Channel().GetMoreChannels(teamId, userId, offset, limit)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.ChannelList), nil
+	return a.Srv.Store.Channel().GetMoreChannels(teamId, userId, offset, limit)
 }
 
 func (a *App) GetPublicChannelsByIdsForTeam(teamId string, channelIds []string) (*model.ChannelList, *model.AppError) {
-	result := <-a.Srv.Store.Channel().GetPublicChannelsByIdsForTeam(teamId, channelIds)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.ChannelList), nil
+	return a.Srv.Store.Channel().GetPublicChannelsByIdsForTeam(teamId, channelIds)
 }
 
 func (a *App) GetPublicChannelsForTeam(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
-	result := <-a.Srv.Store.Channel().GetPublicChannelsForTeam(teamId, offset, limit)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.ChannelList), nil
+	return a.Srv.Store.Channel().GetPublicChannelsForTeam(teamId, offset, limit)
 }
 
 func (a *App) GetChannelMember(channelId string, userId string) (*model.ChannelMember, *model.AppError) {
@@ -1295,19 +1276,14 @@ func (a *App) GetChannelMember(channelId string, userId string) (*model.ChannelM
 }
 
 func (a *App) GetChannelMembersPage(channelId string, page, perPage int) (*model.ChannelMembers, *model.AppError) {
-	result := <-a.Srv.Store.Channel().GetMembers(channelId, page*perPage, perPage)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.ChannelMembers), nil
+	return a.Srv.Store.Channel().GetMembers(channelId, page*perPage, perPage)
 }
 
 func (a *App) GetChannelMembersTimezones(channelId string) ([]string, *model.AppError) {
-	result := <-a.Srv.Store.Channel().GetChannelMembersTimezones(channelId)
-	if result.Err != nil {
-		return nil, result.Err
+	membersTimezones, err := a.Srv.Store.Channel().GetChannelMembersTimezones(channelId)
+	if err != nil {
+		return nil, err
 	}
-	membersTimezones := result.Data.([]map[string]string)
 
 	var timezones []string
 	for _, membersTimezone := range membersTimezones {
@@ -1321,19 +1297,11 @@ func (a *App) GetChannelMembersTimezones(channelId string) ([]string, *model.App
 }
 
 func (a *App) GetChannelMembersByIds(channelId string, userIds []string) (*model.ChannelMembers, *model.AppError) {
-	result := <-a.Srv.Store.Channel().GetMembersByIds(channelId, userIds)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.ChannelMembers), nil
+	return a.Srv.Store.Channel().GetMembersByIds(channelId, userIds)
 }
 
 func (a *App) GetChannelMembersForUser(teamId string, userId string) (*model.ChannelMembers, *model.AppError) {
-	result := <-a.Srv.Store.Channel().GetMembersForUser(teamId, userId)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.ChannelMembers), nil
+	return a.Srv.Store.Channel().GetMembersForUser(teamId, userId)
 }
 
 func (a *App) GetChannelMembersForUserWithPagination(teamId, userId string, page, perPage int) ([]*model.ChannelMember, *model.AppError) {
@@ -1353,19 +1321,11 @@ func (a *App) GetChannelMembersForUserWithPagination(teamId, userId string, page
 }
 
 func (a *App) GetChannelMemberCount(channelId string) (int64, *model.AppError) {
-	result := <-a.Srv.Store.Channel().GetMemberCount(channelId, true)
-	if result.Err != nil {
-		return 0, result.Err
-	}
-	return result.Data.(int64), nil
+	return a.Srv.Store.Channel().GetMemberCount(channelId, true)
 }
 
 func (a *App) GetChannelCounts(teamId string, userId string) (*model.ChannelCounts, *model.AppError) {
-	result := <-a.Srv.Store.Channel().GetChannelCounts(teamId, userId)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.ChannelCounts), nil
+	return a.Srv.Store.Channel().GetChannelCounts(teamId, userId)
 }
 
 func (a *App) GetChannelUnread(channelId, userId string) (*model.ChannelUnread, *model.AppError) {
@@ -1427,8 +1387,7 @@ func (a *App) JoinChannel(channel *model.Channel, userId string) *model.AppError
 		})
 	}
 
-	esInterface := a.Elasticsearch
-	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
+	if a.IsESIndexingEnabled() {
 		a.Srv.Go(func() {
 			if err := a.indexUser(user); err != nil {
 				mlog.Error("Encountered error indexing user", mlog.String("user_id", user.Id), mlog.Err(err))
@@ -1493,7 +1452,13 @@ func (a *App) LeaveChannel(channelId string, userId string) *model.AppError {
 		uc <- store.StoreResult{Data: user, Err: err}
 		close(uc)
 	}()
-	ccm := a.Srv.Store.Channel().GetMemberCount(channelId, false)
+
+	mcc := make(chan store.StoreResult, 1)
+	go func() {
+		count, err := a.Srv.Store.Channel().GetMemberCount(channelId, false)
+		mcc <- store.StoreResult{Data: count, Err: err}
+		close(mcc)
+	}()
 
 	cresult := <-sc
 	if cresult.Err != nil {
@@ -1503,14 +1468,14 @@ func (a *App) LeaveChannel(channelId string, userId string) *model.AppError {
 	if uresult.Err != nil {
 		return cresult.Err
 	}
-	ccmresult := <-ccm
-	if ccmresult.Err != nil {
-		return ccmresult.Err
+	ccresult := <-mcc
+	if ccresult.Err != nil {
+		return ccresult.Err
 	}
 
 	channel := cresult.Data.(*model.Channel)
 	user := uresult.Data.(*model.User)
-	membersCount := ccmresult.Data.(int64)
+	membersCount := ccresult.Data.(int64)
 
 	if channel.IsGroupOrDirect() {
 		err := model.NewAppError("LeaveChannel", "api.channel.leave.direct.app_error", nil, "", http.StatusBadRequest)
@@ -1638,11 +1603,11 @@ func (a *App) removeUserFromChannel(userIdToRemove string, removerUserId string,
 		return err
 	}
 
-	if cmresult := <-a.Srv.Store.Channel().RemoveMember(channel.Id, userIdToRemove); cmresult.Err != nil {
-		return cmresult.Err
+	if err := a.Srv.Store.Channel().RemoveMember(channel.Id, userIdToRemove); err != nil {
+		return err
 	}
-	if cmhResult := <-a.Srv.Store.ChannelMemberHistory().LogLeaveEvent(userIdToRemove, channel.Id, model.GetMillis()); cmhResult.Err != nil {
-		return cmhResult.Err
+	if err := a.Srv.Store.ChannelMemberHistory().LogLeaveEvent(userIdToRemove, channel.Id, model.GetMillis()); err != nil {
+		return err
 	}
 
 	a.InvalidateCacheForUser(userIdToRemove)
@@ -1663,8 +1628,7 @@ func (a *App) removeUserFromChannel(userIdToRemove string, removerUserId string,
 		})
 	}
 
-	esInterface := a.Elasticsearch
-	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
+	if a.IsESIndexingEnabled() {
 		a.Srv.Go(func() {
 			if err := a.indexUserFromId(userIdToRemove); err != nil {
 				mlog.Error("Encountered error indexing user", mlog.String("user_id", userIdToRemove), mlog.Err(err))
@@ -1711,11 +1675,11 @@ func (a *App) RemoveUserFromChannel(userIdToRemove string, removerUserId string,
 
 func (a *App) GetNumberOfChannelsOnTeam(teamId string) (int, *model.AppError) {
 	// Get total number of channels on current team
-	result := <-a.Srv.Store.Channel().GetTeamChannels(teamId)
-	if result.Err != nil {
-		return 0, result.Err
+	list, err := a.Srv.Store.Channel().GetTeamChannels(teamId)
+	if err != nil {
+		return 0, err
 	}
-	return len(*result.Data.(*model.ChannelList)), nil
+	return len(*list), nil
 }
 
 func (a *App) SetActiveChannel(userId string, channelId string) *model.AppError {
@@ -1744,8 +1708,8 @@ func (a *App) SetActiveChannel(userId string, channelId string) *model.AppError 
 }
 
 func (a *App) UpdateChannelLastViewedAt(channelIds []string, userId string) *model.AppError {
-	if result := <-a.Srv.Store.Channel().UpdateLastViewedAt(channelIds, userId); result.Err != nil {
-		return result.Err
+	if _, err := a.Srv.Store.Channel().UpdateLastViewedAt(channelIds, userId); err != nil {
+		return err
 	}
 
 	if *a.Config().ServiceSettings.EnableChannelViewedMessages {
@@ -1759,40 +1723,50 @@ func (a *App) UpdateChannelLastViewedAt(channelIds []string, userId string) *mod
 	return nil
 }
 
-func (a *App) AutocompleteChannels(teamId string, term string) (*model.ChannelList, *model.AppError) {
-	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
-	term = strings.TrimSpace(term)
+func (a *App) esAutocompleteChannels(teamId, term string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
+	channelIds, err := a.Elasticsearch.SearchChannels(teamId, term)
+	if err != nil {
+		return nil, err
+	}
 
-	esInterface := a.Elasticsearch
-	license := a.License()
-	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableAutocomplete && license != nil && *license.Features.Elasticsearch {
-		channelIds, err := a.Elasticsearch.SearchChannels(teamId, term)
+	channelList := model.ChannelList{}
+	if len(channelIds) > 0 {
+		channels, err := a.Srv.Store.Channel().GetChannelsByIds(channelIds)
 		if err != nil {
 			return nil, err
 		}
-
-		channelList := model.ChannelList{}
-		if len(channelIds) > 0 {
-			cresult := <-a.Srv.Store.Channel().GetChannelsByIds(channelIds)
-			if cresult.Err != nil {
-				return nil, cresult.Err
+		for _, c := range channels {
+			if c.DeleteAt > 0 && !includeDeleted {
+				continue
 			}
-			for _, c := range cresult.Data.([]*model.Channel) {
-				if c.DeleteAt > 0 && !includeDeleted {
-					continue
-				}
-				channelList = append(channelList, c)
-			}
+			channelList = append(channelList, c)
 		}
-
-		return &channelList, nil
 	}
 
-	result := <-a.Srv.Store.Channel().AutocompleteInTeam(teamId, term, includeDeleted)
-	if result.Err != nil {
-		return nil, result.Err
+	return &channelList, nil
+}
+
+func (a *App) AutocompleteChannels(teamId string, term string) (*model.ChannelList, *model.AppError) {
+	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
+	var channelList *model.ChannelList
+	var err *model.AppError
+	term = strings.TrimSpace(term)
+
+	if a.IsESAutocompletionEnabled() {
+		channelList, err = a.esAutocompleteChannels(teamId, term, includeDeleted)
+		if err != nil {
+			mlog.Error("Encountered error on AutocompleteChannels through Elasticsearch. Falling back to default autocompletion.", mlog.Err(err))
+		}
 	}
-	return result.Data.(*model.ChannelList), nil
+
+	if !a.IsESAutocompletionEnabled() || err != nil {
+		channelList, err = a.Srv.Store.Channel().AutocompleteInTeam(teamId, term, includeDeleted)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return channelList, nil
 }
 
 func (a *App) AutocompleteChannelsForSearch(teamId string, userId string, term string) (*model.ChannelList, *model.AppError) {
@@ -1800,11 +1774,7 @@ func (a *App) AutocompleteChannelsForSearch(teamId string, userId string, term s
 
 	term = strings.TrimSpace(term)
 
-	result := <-a.Srv.Store.Channel().AutocompleteInTeamForSearch(teamId, userId, term, includeDeleted)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.ChannelList), nil
+	return a.Srv.Store.Channel().AutocompleteInTeamForSearch(teamId, userId, term, includeDeleted)
 }
 
 func (a *App) SearchAllChannels(term string, opts model.ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError) {
@@ -1820,11 +1790,7 @@ func (a *App) SearchAllChannels(term string, opts model.ChannelSearchOpts) (*mod
 
 	term = strings.TrimSpace(term)
 
-	result := <-a.Srv.Store.Channel().SearchAllChannels(term, storeOpts)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.ChannelListWithTeamData), nil
+	return a.Srv.Store.Channel().SearchAllChannels(term, storeOpts)
 }
 
 func (a *App) SearchChannels(teamId string, term string) (*model.ChannelList, *model.AppError) {
@@ -1832,20 +1798,24 @@ func (a *App) SearchChannels(teamId string, term string) (*model.ChannelList, *m
 
 	term = strings.TrimSpace(term)
 
-	result := <-a.Srv.Store.Channel().SearchInTeam(teamId, term, includeDeleted)
-	if result.Err != nil {
-		return nil, result.Err
+	return a.Srv.Store.Channel().SearchInTeam(teamId, term, includeDeleted)
+}
+
+func (a *App) SearchGroupChannels(userId, term string) (*model.ChannelList, *model.AppError) {
+	if term == "" {
+		return &model.ChannelList{}, nil
 	}
-	return result.Data.(*model.ChannelList), nil
+
+	channelList, err := a.Srv.Store.Channel().SearchGroupChannels(userId, term)
+	if err != nil {
+		return nil, err
+	}
+	return channelList, nil
 }
 
 func (a *App) SearchChannelsUserNotIn(teamId string, userId string, term string) (*model.ChannelList, *model.AppError) {
 	term = strings.TrimSpace(term)
-	result := <-a.Srv.Store.Channel().SearchMore(userId, teamId, term)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.ChannelList), nil
+	return a.Srv.Store.Channel().SearchMore(userId, teamId, term)
 }
 
 func (a *App) MarkChannelsAsViewed(channelIds []string, userId string, currentSessionId string) (map[string]int64, *model.AppError) {
@@ -1886,12 +1856,11 @@ func (a *App) MarkChannelsAsViewed(channelIds []string, userId string, currentSe
 			}
 		}
 	}
-	result := <-a.Srv.Store.Channel().UpdateLastViewedAt(channelIds, userId)
-	if result.Err != nil {
-		return nil, result.Err
+	times, err := a.Srv.Store.Channel().UpdateLastViewedAt(channelIds, userId)
+	if err != nil {
+		return nil, err
 	}
 
-	times := result.Data.(map[string]int64)
 	if *a.Config().ServiceSettings.EnableChannelViewedMessages {
 		for _, channelId := range channelIds {
 			message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_CHANNEL_VIEWED, "", "", userId, nil)
@@ -1937,8 +1906,8 @@ func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
 		return err
 	}
 
-	if result := <-a.Srv.Store.Channel().PermanentDeleteMembersByChannel(channel.Id); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.Channel().PermanentDeleteMembersByChannel(channel.Id); err != nil {
+		return err
 	}
 
 	if err := a.Srv.Store.Webhook().PermanentDeleteIncomingByChannel(channel.Id); err != nil {
@@ -1953,8 +1922,7 @@ func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
 		return result.Err
 	}
 
-	esInterface := a.Elasticsearch
-	if esInterface != nil && *a.Config().ElasticsearchSettings.EnableIndexing {
+	if a.IsESIndexingEnabled() {
 		a.Srv.Go(func() {
 			for _, user := range channelUsers.Data.(map[string]*model.User) {
 				if err := a.indexUser(user); err != nil {
@@ -1962,9 +1930,9 @@ func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
 				}
 			}
 		})
-		if channel.Type == "O" {
+		if channel.Type == model.CHANNEL_OPEN {
 			a.Srv.Go(func() {
-				if err := esInterface.DeleteChannel(channel); err != nil {
+				if err := a.Elasticsearch.DeleteChannel(channel); err != nil {
 					mlog.Error("Encountered error deleting channel", mlog.String("channel_id", channel.Id), mlog.Err(err))
 				}
 			})
@@ -1978,8 +1946,8 @@ func (a *App) PermanentDeleteChannel(channel *model.Channel) *model.AppError {
 // is in progress, and therefore should not be used from the API without first fixing this potential race condition.
 func (a *App) MoveChannel(team *model.Team, channel *model.Channel, user *model.User, removeDeactivatedMembers bool) *model.AppError {
 	if removeDeactivatedMembers {
-		if result := <-a.Srv.Store.Channel().RemoveAllDeactivatedMembers(channel.Id); result.Err != nil {
-			return result.Err
+		if err := a.Srv.Store.Channel().RemoveAllDeactivatedMembers(channel.Id); err != nil {
+			return err
 		}
 	}
 

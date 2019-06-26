@@ -87,16 +87,15 @@ func (worker *Worker) runAdvancedPermissionsPhase2Migration(lastDone string) (bo
 		}
 	} else if progress.CurrentTable == "ChannelMembers" {
 		// Run a ChannelMembers migration batch.
-		if result := <-worker.app.Srv.Store.Channel().MigrateChannelMembers(progress.LastChannelId, progress.LastUserId); result.Err != nil {
-			return false, progress.ToJson(), result.Err
+		if data, err := worker.app.Srv.Store.Channel().MigrateChannelMembers(progress.LastChannelId, progress.LastUserId); err != nil {
+			return false, progress.ToJson(), err
 		} else {
-			if result.Data == nil {
+			if data == nil {
 				// We haven't progressed. That means we've reached the end of this final stage of the migration.
 
 				return true, progress.ToJson(), nil
 			}
 
-			data := result.Data.(map[string]string)
 			progress.LastChannelId = data["ChannelId"]
 			progress.LastUserId = data["UserId"]
 		}
