@@ -1462,8 +1462,8 @@ func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 		return err
 	}
 
-	if result := <-a.Srv.Store.Channel().PermanentDeleteMembersByUser(user.Id); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.Channel().PermanentDeleteMembersByUser(user.Id); err != nil {
+		return err
 	}
 
 	if err := a.Srv.Store.Post().PermanentDeleteByUser(user.Id); err != nil {
