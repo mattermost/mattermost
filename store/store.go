@@ -526,7 +526,7 @@ type UserAccessTokenStore interface {
 	GetByToken(tokenString string) (*model.UserAccessToken, *model.AppError)
 	GetByUser(userId string, page, perPage int) ([]*model.UserAccessToken, *model.AppError)
 	Search(term string) ([]*model.UserAccessToken, *model.AppError)
-	UpdateTokenEnable(tokenId string) StoreChannel
+	UpdateTokenEnable(tokenId string) *model.AppError
 	UpdateTokenDisable(tokenId string) *model.AppError
 }
 
