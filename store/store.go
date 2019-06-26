@@ -287,7 +287,7 @@ type UserStore interface {
 	GetUnreadCountForChannel(userId string, channelId string) StoreChannel
 	GetAnyUnreadPostCountForChannel(userId string, channelId string) StoreChannel
 	GetRecentlyActiveUsersForTeam(teamId string, offset, limit int, viewRestrictions *model.ViewUsersRestrictions) StoreChannel
-	GetNewUsersForTeam(teamId string, offset, limit int, viewRestrictions *model.ViewUsersRestrictions) StoreChannel
+	GetNewUsersForTeam(teamId string, offset, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
 	Search(teamId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
 	SearchNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) StoreChannel
 	SearchInChannel(channelId string, term string, options *model.UserSearchOptions) StoreChannel
@@ -614,7 +614,7 @@ type GroupStore interface {
 
 type LinkMetadataStore interface {
 	Save(linkMetadata *model.LinkMetadata) StoreChannel
-	Get(url string, timestamp int64) StoreChannel
+	Get(url string, timestamp int64) (*model.LinkMetadata, *model.AppError)
 }
 
 // ChannelSearchOpts contains options for searching channels.
