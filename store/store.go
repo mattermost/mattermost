@@ -613,7 +613,7 @@ type GroupStore interface {
 }
 
 type LinkMetadataStore interface {
-	Save(linkMetadata *model.LinkMetadata) StoreChannel
+	Save(linkMetadata *model.LinkMetadata) (*model.LinkMetadata, *model.AppError)
 	Get(url string, timestamp int64) (*model.LinkMetadata, *model.AppError)
 }
 
