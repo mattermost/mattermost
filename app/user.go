@@ -1752,12 +1752,10 @@ func (a *App) SearchUsersInTeam(teamId, term string, options *model.UserSearchOp
 	}
 
 	if !a.IsESAutocompletionEnabled() || err != nil {
-		result := <-a.Srv.Store.User().Search(teamId, term, options)
-		if result.Err != nil {
-			return nil, result.Err
+		users, err = a.Srv.Store.User().Search(teamId, term, options)
+		if err != nil {
+			return nil, err
 		}
-
-		users = result.Data.([]*model.User)
 
 		for _, user := range users {
 			a.SanitizeProfile(user, options.IsAdmin)
@@ -1936,12 +1934,11 @@ func (a *App) AutocompleteUsersInTeam(teamId string, term string, options *model
 
 	if !a.IsESAutocompletionEnabled() || err != nil {
 		autocomplete = &model.UserAutocompleteInTeam{}
-		result := <-a.Srv.Store.User().Search(teamId, term, options)
-		if result.Err != nil {
-			return nil, result.Err
+		users, err := a.Srv.Store.User().Search(teamId, term, options)
+		if err != nil {
+			return nil, err
 		}
 
-		users := result.Data.([]*model.User)
 		for _, user := range users {
 			a.SanitizeProfile(user, options.IsAdmin)
 		}
