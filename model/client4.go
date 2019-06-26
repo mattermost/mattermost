@@ -938,14 +938,14 @@ func (c *Client4) GetUsersByIds(userIds []string) ([]*User, *Response) {
 
 // GetUsersByIds returns a list of users based on the provided user ids.
 func (c *Client4) GetUsersByIdsWithOptions(userIds []string, options *UserGetByIdsOptions) ([]*User, *Response) {
-	var query []string
+	v := url.Values{}
 	if options.Since != 0 {
-		query = append(query, "since="+url.QueryEscape(fmt.Sprintf("%d", options.Since)))
+		v.Set("since", fmt.Sprintf("%d", options.Since))
 	}
 
 	url := c.GetUsersRoute() + "/ids"
-	if len(query) > 0 {
-		url += "?" + strings.Join(query, "&")
+	if len(v) > 0 {
+		url += "?" + v.Encode()
 	}
 
 	r, err := c.DoApiPost(url, ArrayToJson(userIds))

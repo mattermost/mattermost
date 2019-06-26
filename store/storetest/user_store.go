@@ -1224,7 +1224,7 @@ func testUserStoreGetProfilesByIds(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("should only return users with UpdateAt greater than the since time", func(t *testing.T) {
-		result := <-ss.User().GetProfileByIds([]string{u1.Id, u2.Id, u3.Id, u4.Id}, &model.UserGetByIdsOptions{
+		result := <-ss.User().GetProfileByIds([]string{u1.Id, u2.Id, u3.Id, u4.Id}, &store.UserGetByIdsOpts{
 			Since: u2.CreateAt,
 		}, true)
 		require.Nil(t, result.Err)

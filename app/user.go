@@ -629,8 +629,10 @@ func (a *App) GetChannelGroupUsers(channelID string) ([]*model.User, *model.AppE
 	return result.Data.([]*model.User), nil
 }
 
-func (a *App) GetUsersByIds(userIds []string, options *model.UserGetByIdsOptions) ([]*model.User, *model.AppError) {
-	result := <-a.Srv.Store.User().GetProfileByIds(userIds, options, options.ViewRestrictions == nil)
+func (a *App) GetUsersByIds(userIds []string, options *store.UserGetByIdsOpts) ([]*model.User, *model.AppError) {
+	allowFromCache := options.ViewRestrictions == nil
+
+	result := <-a.Srv.Store.User().GetProfileByIds(userIds, options, allowFromCache)
 	if result.Err != nil {
 		return nil, result.Err
 	}

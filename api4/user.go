@@ -15,6 +15,7 @@ import (
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
@@ -617,7 +618,7 @@ func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	sinceString := r.URL.Query().Get("since")
 
-	options := &model.UserGetByIdsOptions{
+	options := &store.UserGetByIdsOpts{
 		IsAdmin: c.IsSystemAdmin(),
 	}
 

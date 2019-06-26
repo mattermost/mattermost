@@ -859,10 +859,10 @@ func (us SqlUserStore) GetNewUsersForTeam(teamId string, offset, limit int, view
 	})
 }
 
-func (us SqlUserStore) GetProfileByIds(userIds []string, options *model.UserGetByIdsOptions, allowFromCache bool) store.StoreChannel {
+func (us SqlUserStore) GetProfileByIds(userIds []string, options *store.UserGetByIdsOpts, allowFromCache bool) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 		if options == nil {
-			options = &model.UserGetByIdsOptions{}
+			options = &store.UserGetByIdsOpts{}
 		}
 
 		users := []*model.User{}

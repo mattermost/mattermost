@@ -1104,9 +1104,7 @@ func TestGetUsersByIds(t *testing.T) {
 
 		CheckNoError(t, resp)
 
-		if users[0].Id != th.BasicUser.Id {
-			t.Fatal("returned wrong user")
-		}
+		assert.Equal(t, th.BasicUser.Id, users[0].Id)
 		CheckUserSanitization(t, users[0])
 	})
 
