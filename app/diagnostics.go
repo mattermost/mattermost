@@ -195,7 +195,7 @@ func (a *App) trackActivity() {
 
 	postsCount, _ = a.Srv.Store.Post().AnalyticsPostCount("", false, false)
 
-	postCountsOptions = &model.AnalyticsPostCountsOptions{TeamId: "", BotsOnly: false, YesterdayOnly: true}
+	postCountsOptions := &model.AnalyticsPostCountsOptions{TeamId: "", BotsOnly: false, YesterdayOnly: true}
 	postCountsYesterday, _ := a.Srv.Store.Post().AnalyticsPostCountsByDay(postCountsOptions)
 	postsCountPreviousDay = 0
 	if len(postCountsYesterday) > 0 {

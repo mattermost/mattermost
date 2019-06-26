@@ -180,7 +180,7 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			return rows, nil
 		}
 
-		postCountsOptions = &model.AnalyticsPostCountsOptions{TeamId: teamId, BotsOnly: true, YesterdayOnly: false}
+		postCountsOptions := &model.AnalyticsPostCountsOptions{TeamId: teamId, BotsOnly: true, YesterdayOnly: false}
 		return a.Srv.Store.Post().AnalyticsPostCountsByDay(postCountsOptions)
 	} else if name == "post_counts_day" {
 		if skipIntensiveQueries {
@@ -188,7 +188,7 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			return rows, nil
 		}
 
-		postCountsOptions = &model.AnalyticsPostCountsOptions{TeamId: teamId, BotsOnly: false, YesterdayOnly: false}
+		postCountsOptions := &model.AnalyticsPostCountsOptions{TeamId: teamId, BotsOnly: false, YesterdayOnly: false}
 		return a.Srv.Store.Post().AnalyticsPostCountsByDay(postCountsOptions)
 	} else if name == "user_counts_with_posts_day" {
 		if skipIntensiveQueries {
