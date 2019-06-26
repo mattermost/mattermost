@@ -609,11 +609,7 @@ func (a *App) GetUsersWithoutTeam(offset int, limit int, viewRestrictions *model
 
 // GetTeamGroupUsers returns the users who are associated to the team via GroupTeams and GroupMembers.
 func (a *App) GetTeamGroupUsers(teamID string) ([]*model.User, *model.AppError) {
-	result := <-a.Srv.Store.User().GetTeamGroupUsers(teamID)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.User), nil
+	return a.Srv.Store.User().GetTeamGroupUsers(teamID)
 }
 
 // GetChannelGroupUsers returns the users who are associated to the channel via GroupChannels and GroupMembers.
