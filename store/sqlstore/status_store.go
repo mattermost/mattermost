@@ -67,12 +67,10 @@ func (s SqlStatusStore) Get(userId string) (*model.Status, *model.AppError) {
 				UserId = :UserId`, map[string]interface{}{"UserId": userId}); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, model.NewAppError("SqlStatusStore.Get", MISSING_STATUS_ERROR, nil, err.Error(), http.StatusNotFound)
-		} else {
-			return nil, model.NewAppError("SqlStatusStore.Get", "store.sql_status.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}
-	} else {
-		return &status, nil
+		return nil, model.NewAppError("SqlStatusStore.Get", "store.sql_status.get.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
+	return &status, nil
 }
 
 func (s SqlStatusStore) GetByIds(userIds []string) store.StoreChannel {
