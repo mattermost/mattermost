@@ -417,12 +417,12 @@ func getLinkMetadataFromCache(requestURL string, timestamp int64) (*opengraph.Op
 }
 
 func (a *App) getLinkMetadataFromDatabase(requestURL string, timestamp int64) (*opengraph.OpenGraph, *model.PostImage, bool) {
-	result := <-a.Srv.Store.LinkMetadata().Get(requestURL, timestamp)
-	if result.Err != nil {
+	linkMetadata, err := a.Srv.Store.LinkMetadata().Get(requestURL, timestamp)
+	if err != nil {
 		return nil, nil, false
 	}
 
-	data := result.Data.(*model.LinkMetadata).Data
+	data := linkMetadata.Data
 
 	switch v := data.(type) {
 	case *opengraph.OpenGraph:
