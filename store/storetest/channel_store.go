@@ -1597,8 +1597,8 @@ func testChannelStoreGetMembersForUser(t *testing.T, ss store.Store) {
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 	store.Must(ss.Channel().SaveMember(&m2))
 
-	cresult := <-ss.Channel().GetMembersForUser(o1.TeamId, m1.UserId)
-	members := cresult.Data.(*model.ChannelMembers)
+	members, err := ss.Channel().GetMembersForUser(o1.TeamId, m1.UserId)
+	require.Nil(t, err)
 
 	// no unread messages
 	if len(*members) != 2 {
@@ -2672,9 +2672,8 @@ func testChannelStoreAutocompleteInTeamForSearch(t *testing.T, ss store.Store, s
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			result := <-ss.Channel().AutocompleteInTeamForSearch(o1.TeamId, m1.UserId, "ChannelA", false)
-			require.Nil(t, result.Err)
-			channels := result.Data.(*model.ChannelList)
+			channels, err := ss.Channel().AutocompleteInTeamForSearch(o1.TeamId, m1.UserId, "ChannelA", false)
+			require.Nil(t, err)
 			require.Len(t, *channels, 2)
 		})
 	}
