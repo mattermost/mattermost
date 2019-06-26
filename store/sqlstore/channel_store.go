@@ -948,27 +948,10 @@ func (s SqlChannelStore) GetChannels(teamId string, userId string, includeDelete
 	return channels, nil
 }
 
-func (s SqlChannelStore) GetAllChannels(offset int, limit int, opts store.ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError) {
-	query := s.getQueryBuilder().
-		Select("c.*, Teams.DisplayName AS TeamDisplayName, Teams.Name AS TeamName, Teams.UpdateAt AS TeamUpdateAt").
-		From("Channels AS c").
-		Join("Teams ON Teams.Id = c.TeamId").
-		Where(sq.Eq{"c.Type": []string{model.CHANNEL_PRIVATE, model.CHANNEL_OPEN}}).
-		OrderBy("c.DisplayName, Teams.DisplayName").
-		Limit(uint64(limit)).
-		Offset(uint64(offset))
+func (s SqlChannelStore) GetAllChannels(offset, limit int, opts store.ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError) {
+	query := s.getAllChannelsQuery(opts, false)
 
-	if !opts.IncludeDeleted {
-		query = query.Where(sq.Eq{"c.DeleteAt": int(0)})
-	}
-
-	if len(opts.NotAssociatedToGroup) > 0 {
-		query = query.Where("c.Id NOT IN (SELECT ChannelId FROM GroupChannels WHERE GroupChannels.GroupId = ? AND GroupChannels.DeleteAt = 0)", opts.NotAssociatedToGroup)
-	}
-
-	if len(opts.ExcludeChannelNames) > 0 {
-		query = query.Where(fmt.Sprintf("c.Name NOT IN ('%s')", strings.Join(opts.ExcludeChannelNames, "', '")))
-	}
+	query = query.OrderBy("c.DisplayName, Teams.DisplayName").Limit(uint64(limit)).Offset(uint64(offset))
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -983,6 +966,54 @@ func (s SqlChannelStore) GetAllChannels(offset int, limit int, opts store.Channe
 	}
 
 	return data, nil
+}
+
+func (s SqlChannelStore) GetAllChannelsCount(opts store.ChannelSearchOpts) (int64, *model.AppError) {
+	query := s.getAllChannelsQuery(opts, true)
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return 0, model.NewAppError("SqlChannelStore.GetAllChannelsCount", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	count, err := s.GetReplica().SelectInt(queryString, args...)
+	if err != nil {
+		return 0, model.NewAppError("SqlChannelStore.GetAllChannelsCount", "store.sql_channel.get_all_channels.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return count, nil
+}
+
+func (s SqlChannelStore) getAllChannelsQuery(opts store.ChannelSearchOpts, forCount bool) sq.SelectBuilder {
+	var selectStr string
+	if forCount {
+		selectStr = "count(c.Id)"
+	} else {
+		selectStr = "c.*, Teams.DisplayName AS TeamDisplayName, Teams.Name AS TeamName, Teams.UpdateAt AS TeamUpdateAt"
+	}
+
+	query := s.getQueryBuilder().
+		Select(selectStr).
+		From("Channels AS c").
+		Where(sq.Eq{"c.Type": []string{model.CHANNEL_PRIVATE, model.CHANNEL_OPEN}})
+
+	if !forCount {
+		query = query.Join("Teams ON Teams.Id = c.TeamId")
+	}
+
+	if !opts.IncludeDeleted {
+		query = query.Where(sq.Eq{"c.DeleteAt": int(0)})
+	}
+
+	if len(opts.NotAssociatedToGroup) > 0 {
+		query = query.Where("c.Id NOT IN (SELECT ChannelId FROM GroupChannels WHERE GroupChannels.GroupId = ? AND GroupChannels.DeleteAt = 0)", opts.NotAssociatedToGroup)
+	}
+
+	if len(opts.ExcludeChannelNames) > 0 {
+		query = query.Where(fmt.Sprintf("c.Name NOT IN ('%s')", strings.Join(opts.ExcludeChannelNames, "', '")))
+	}
+
+	return query
 }
 
 func (s SqlChannelStore) GetMoreChannels(teamId string, userId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
@@ -1686,119 +1717,114 @@ func (s SqlChannelStore) RemoveAllDeactivatedMembers(channelId string) *model.Ap
 	return nil
 }
 
-func (s SqlChannelStore) PermanentDeleteMembersByUser(userId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if _, err := s.GetMaster().Exec("DELETE FROM ChannelMembers WHERE UserId = :UserId", map[string]interface{}{"UserId": userId}); err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.RemoveMember", "store.sql_channel.permanent_delete_members_by_user.app_error", nil, "user_id="+userId+", "+err.Error(), http.StatusInternalServerError)
-		}
-	})
+func (s SqlChannelStore) PermanentDeleteMembersByUser(userId string) *model.AppError {
+	if _, err := s.GetMaster().Exec("DELETE FROM ChannelMembers WHERE UserId = :UserId", map[string]interface{}{"UserId": userId}); err != nil {
+		return model.NewAppError("SqlChannelStore.RemoveMember", "store.sql_channel.permanent_delete_members_by_user.app_error", nil, "user_id="+userId+", "+err.Error(), http.StatusInternalServerError)
+	}
+	return nil
 }
 
-func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		props := make(map[string]interface{})
+func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) (map[string]int64, *model.AppError) {
+	props := make(map[string]interface{})
 
-		updateIdQuery := ""
-		for index, channelId := range channelIds {
-			if len(updateIdQuery) > 0 {
-				updateIdQuery += " OR "
-			}
-
-			props["channelId"+strconv.Itoa(index)] = channelId
-			updateIdQuery += "ChannelId = :channelId" + strconv.Itoa(index)
+	updateIdQuery := ""
+	for index, channelId := range channelIds {
+		if len(updateIdQuery) > 0 {
+			updateIdQuery += " OR "
 		}
 
-		selectIdQuery := strings.Replace(updateIdQuery, "ChannelId", "Id", -1)
+		props["channelId"+strconv.Itoa(index)] = channelId
+		updateIdQuery += "ChannelId = :channelId" + strconv.Itoa(index)
+	}
 
-		var lastPostAtTimes []struct {
-			Id            string
-			LastPostAt    int64
-			TotalMsgCount int64
+	selectIdQuery := strings.Replace(updateIdQuery, "ChannelId", "Id", -1)
+
+	var lastPostAtTimes []struct {
+		Id            string
+		LastPostAt    int64
+		TotalMsgCount int64
+	}
+
+	selectQuery := "SELECT Id, LastPostAt, TotalMsgCount FROM Channels WHERE (" + selectIdQuery + ")"
+
+	if _, err := s.GetMaster().Select(&lastPostAtTimes, selectQuery, props); err != nil || len(lastPostAtTimes) <= 0 {
+		var extra string
+		status := http.StatusInternalServerError
+		if err == nil {
+			status = http.StatusBadRequest
+			extra = "No channels found"
+		} else {
+			extra = err.Error()
 		}
+		return nil, model.NewAppError("SqlChannelStore.UpdateLastViewedAt", "store.sql_channel.update_last_viewed_at.app_error", nil, "channel_ids="+strings.Join(channelIds, ",")+", user_id="+userId+", "+extra, status)
+	}
 
-		selectQuery := "SELECT Id, LastPostAt, TotalMsgCount FROM Channels WHERE (" + selectIdQuery + ")"
+	times := map[string]int64{}
+	msgCountQuery := ""
+	lastViewedQuery := ""
+	for index, t := range lastPostAtTimes {
+		times[t.Id] = t.LastPostAt
 
-		if _, err := s.GetMaster().Select(&lastPostAtTimes, selectQuery, props); err != nil || len(lastPostAtTimes) <= 0 {
-			var extra string
-			status := http.StatusInternalServerError
-			if err == nil {
-				status = http.StatusBadRequest
-				extra = "No channels found"
-			} else {
-				extra = err.Error()
-			}
-			result.Err = model.NewAppError("SqlChannelStore.UpdateLastViewedAt", "store.sql_channel.update_last_viewed_at.app_error", nil, "channel_ids="+strings.Join(channelIds, ",")+", user_id="+userId+", "+extra, status)
-			return
-		}
+		props["msgCount"+strconv.Itoa(index)] = t.TotalMsgCount
+		msgCountQuery += fmt.Sprintf("WHEN :channelId%d THEN GREATEST(MsgCount, :msgCount%d) ", index, index)
 
-		times := map[string]int64{}
-		msgCountQuery := ""
-		lastViewedQuery := ""
-		for index, t := range lastPostAtTimes {
-			times[t.Id] = t.LastPostAt
+		props["lastViewed"+strconv.Itoa(index)] = t.LastPostAt
+		lastViewedQuery += fmt.Sprintf("WHEN :channelId%d THEN GREATEST(LastViewedAt, :lastViewed%d) ", index, index)
 
-			props["msgCount"+strconv.Itoa(index)] = t.TotalMsgCount
-			msgCountQuery += fmt.Sprintf("WHEN :channelId%d THEN GREATEST(MsgCount, :msgCount%d) ", index, index)
+		props["channelId"+strconv.Itoa(index)] = t.Id
+	}
 
-			props["lastViewed"+strconv.Itoa(index)] = t.LastPostAt
-			lastViewedQuery += fmt.Sprintf("WHEN :channelId%d THEN GREATEST(LastViewedAt, :lastViewed%d) ", index, index)
+	var updateQuery string
 
-			props["channelId"+strconv.Itoa(index)] = t.Id
-		}
-
-		var updateQuery string
-
-		if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-			updateQuery = `UPDATE
-				ChannelMembers
-			SET
-			    MentionCount = 0,
-			    MsgCount = CAST(CASE ChannelId ` + msgCountQuery + ` END AS BIGINT),
-			    LastViewedAt = CAST(CASE ChannelId ` + lastViewedQuery + ` END AS BIGINT),
-			    LastUpdateAt = CAST(CASE ChannelId ` + lastViewedQuery + ` END AS BIGINT)
-			WHERE
-			        UserId = :UserId
-			        AND (` + updateIdQuery + `)`
-		} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
-			updateQuery = `UPDATE
-				ChannelMembers
-			SET
-			    MentionCount = 0,
-			    MsgCount = CASE ChannelId ` + msgCountQuery + ` END,
-			    LastViewedAt = CASE ChannelId ` + lastViewedQuery + ` END,
-			    LastUpdateAt = CASE ChannelId ` + lastViewedQuery + ` END
-			WHERE
-			        UserId = :UserId
-			        AND (` + updateIdQuery + `)`
-		}
-
-		props["UserId"] = userId
-
-		if _, err := s.GetMaster().Exec(updateQuery, props); err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.UpdateLastViewedAt", "store.sql_channel.update_last_viewed_at.app_error", nil, "channel_ids="+strings.Join(channelIds, ",")+", user_id="+userId+", "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		result.Data = times
-	})
-}
-
-func (s SqlChannelStore) IncrementMentionCount(channelId string, userId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		_, err := s.GetMaster().Exec(
-			`UPDATE
-				ChannelMembers
-			SET
-				MentionCount = MentionCount + 1,
-				LastUpdateAt = :LastUpdateAt
-			WHERE
+	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		updateQuery = `UPDATE
+			ChannelMembers
+		SET
+			MentionCount = 0,
+			MsgCount = CAST(CASE ChannelId ` + msgCountQuery + ` END AS BIGINT),
+			LastViewedAt = CAST(CASE ChannelId ` + lastViewedQuery + ` END AS BIGINT),
+			LastUpdateAt = CAST(CASE ChannelId ` + lastViewedQuery + ` END AS BIGINT)
+		WHERE
 				UserId = :UserId
-					AND ChannelId = :ChannelId`,
-			map[string]interface{}{"ChannelId": channelId, "UserId": userId, "LastUpdateAt": model.GetMillis()})
-		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.IncrementMentionCount", "store.sql_channel.increment_mention_count.app_error", nil, "channel_id="+channelId+", user_id="+userId+", "+err.Error(), http.StatusInternalServerError)
-		}
-	})
+				AND (` + updateIdQuery + `)`
+	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
+		updateQuery = `UPDATE
+			ChannelMembers
+		SET
+			MentionCount = 0,
+			MsgCount = CASE ChannelId ` + msgCountQuery + ` END,
+			LastViewedAt = CASE ChannelId ` + lastViewedQuery + ` END,
+			LastUpdateAt = CASE ChannelId ` + lastViewedQuery + ` END
+		WHERE
+				UserId = :UserId
+				AND (` + updateIdQuery + `)`
+	}
+
+	props["UserId"] = userId
+
+	if _, err := s.GetMaster().Exec(updateQuery, props); err != nil {
+		return nil, model.NewAppError("SqlChannelStore.UpdateLastViewedAt", "store.sql_channel.update_last_viewed_at.app_error", nil, "channel_ids="+strings.Join(channelIds, ",")+", user_id="+userId+", "+err.Error(), http.StatusInternalServerError)
+	}
+
+	return times, nil
+}
+
+func (s SqlChannelStore) IncrementMentionCount(channelId string, userId string) *model.AppError {
+	_, err := s.GetMaster().Exec(
+		`UPDATE
+			ChannelMembers
+		SET
+			MentionCount = MentionCount + 1,
+			LastUpdateAt = :LastUpdateAt
+		WHERE
+			UserId = :UserId
+				AND ChannelId = :ChannelId`,
+		map[string]interface{}{"ChannelId": channelId, "UserId": userId, "LastUpdateAt": model.GetMillis()})
+	if err != nil {
+		return model.NewAppError("SqlChannelStore.IncrementMentionCount", "store.sql_channel.increment_mention_count.app_error", nil, "channel_id="+channelId+", user_id="+userId+", "+err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
 }
 
 func (s SqlChannelStore) GetAll(teamId string) ([]*model.Channel, *model.AppError) {
@@ -1873,18 +1899,15 @@ func (s SqlChannelStore) AnalyticsDeletedTypeCount(teamId string, channelType st
 	return v, nil
 }
 
-func (s SqlChannelStore) GetMembersForUser(teamId string, userId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var dbMembers channelMemberWithSchemeRolesList
-		_, err := s.GetReplica().Select(&dbMembers, CHANNEL_MEMBERS_WITH_SCHEME_SELECT_QUERY+"WHERE ChannelMembers.UserId = :UserId", map[string]interface{}{"TeamId": teamId, "UserId": userId})
+func (s SqlChannelStore) GetMembersForUser(teamId string, userId string) (*model.ChannelMembers, *model.AppError) {
+	var dbMembers channelMemberWithSchemeRolesList
+	_, err := s.GetReplica().Select(&dbMembers, CHANNEL_MEMBERS_WITH_SCHEME_SELECT_QUERY+"WHERE ChannelMembers.UserId = :UserId", map[string]interface{}{"TeamId": teamId, "UserId": userId})
 
-		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.GetMembersForUser", "store.sql_channel.get_members.app_error", nil, "teamId="+teamId+", userId="+userId+", err="+err.Error(), http.StatusInternalServerError)
-			return
-		}
+	if err != nil {
+		return nil, model.NewAppError("SqlChannelStore.GetMembersForUser", "store.sql_channel.get_members.app_error", nil, "teamId="+teamId+", userId="+userId+", err="+err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = dbMembers.ToModel()
-	})
+	return dbMembers.ToModel(), nil
 }
 
 func (s SqlChannelStore) GetMembersForUserWithPagination(teamId, userId string, page, perPage int) store.StoreChannel {
@@ -1946,59 +1969,56 @@ func (s SqlChannelStore) AutocompleteInTeam(teamId string, term string, includeD
 	return &channels, nil
 }
 
-func (s SqlChannelStore) AutocompleteInTeamForSearch(teamId string, userId string, term string, includeDeleted bool) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		deleteFilter := "AND DeleteAt = 0"
-		if includeDeleted {
-			deleteFilter = ""
+func (s SqlChannelStore) AutocompleteInTeamForSearch(teamId string, userId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError) {
+	deleteFilter := "AND DeleteAt = 0"
+	if includeDeleted {
+		deleteFilter = ""
+	}
+
+	queryFormat := `
+		SELECT
+			C.*
+		FROM
+			Channels AS C
+		JOIN
+			ChannelMembers AS CM ON CM.ChannelId = C.Id
+		WHERE
+			(C.TeamId = :TeamId OR (C.TeamId = '' AND C.Type = 'G'))
+			AND CM.UserId = :UserId
+			` + deleteFilter + `
+			%v
+		LIMIT 50`
+
+	var channels model.ChannelList
+
+	if likeClause, likeTerm := s.buildLIKEClause(term, "Name, DisplayName, Purpose"); likeClause == "" {
+		if _, err := s.GetReplica().Select(&channels, fmt.Sprintf(queryFormat, ""), map[string]interface{}{"TeamId": teamId, "UserId": userId}); err != nil {
+			return nil, model.NewAppError("SqlChannelStore.AutocompleteInTeamForSearch", "store.sql_channel.search.app_error", nil, "term="+term+", "+", "+err.Error(), http.StatusInternalServerError)
 		}
+	} else {
+		// Using a UNION results in index_merge and fulltext queries and is much faster than the ref
+		// query you would get using an OR of the LIKE and full-text clauses.
+		fulltextClause, fulltextTerm := s.buildFulltextClause(term, "Name, DisplayName, Purpose")
+		likeQuery := fmt.Sprintf(queryFormat, "AND "+likeClause)
+		fulltextQuery := fmt.Sprintf(queryFormat, "AND "+fulltextClause)
+		query := fmt.Sprintf("(%v) UNION (%v) LIMIT 50", likeQuery, fulltextQuery)
 
-		queryFormat := `
-			SELECT
-				C.*
-			FROM
-				Channels AS C
-			JOIN
-				ChannelMembers AS CM ON CM.ChannelId = C.Id
-			WHERE
-			    (C.TeamId = :TeamId OR (C.TeamId = '' AND C.Type = 'G'))
-				AND CM.UserId = :UserId
-				` + deleteFilter + `
-				%v
-			LIMIT 50`
-
-		var channels model.ChannelList
-
-		if likeClause, likeTerm := s.buildLIKEClause(term, "Name, DisplayName, Purpose"); likeClause == "" {
-			if _, err := s.GetReplica().Select(&channels, fmt.Sprintf(queryFormat, ""), map[string]interface{}{"TeamId": teamId, "UserId": userId}); err != nil {
-				result.Err = model.NewAppError("SqlChannelStore.AutocompleteInTeamForSearch", "store.sql_channel.search.app_error", nil, "term="+term+", "+", "+err.Error(), http.StatusInternalServerError)
-			}
-		} else {
-			// Using a UNION results in index_merge and fulltext queries and is much faster than the ref
-			// query you would get using an OR of the LIKE and full-text clauses.
-			fulltextClause, fulltextTerm := s.buildFulltextClause(term, "Name, DisplayName, Purpose")
-			likeQuery := fmt.Sprintf(queryFormat, "AND "+likeClause)
-			fulltextQuery := fmt.Sprintf(queryFormat, "AND "+fulltextClause)
-			query := fmt.Sprintf("(%v) UNION (%v) LIMIT 50", likeQuery, fulltextQuery)
-
-			if _, err := s.GetReplica().Select(&channels, query, map[string]interface{}{"TeamId": teamId, "UserId": userId, "LikeTerm": likeTerm, "FulltextTerm": fulltextTerm}); err != nil {
-				result.Err = model.NewAppError("SqlChannelStore.AutocompleteInTeamForSearch", "store.sql_channel.search.app_error", nil, "term="+term+", "+", "+err.Error(), http.StatusInternalServerError)
-			}
+		if _, err := s.GetReplica().Select(&channels, query, map[string]interface{}{"TeamId": teamId, "UserId": userId, "LikeTerm": likeTerm, "FulltextTerm": fulltextTerm}); err != nil {
+			return nil, model.NewAppError("SqlChannelStore.AutocompleteInTeamForSearch", "store.sql_channel.search.app_error", nil, "term="+term+", "+", "+err.Error(), http.StatusInternalServerError)
 		}
+	}
 
-		directChannels, err := s.autocompleteInTeamForSearchDirectMessages(userId, term)
-		if err != nil {
-			result.Err = err
-			return
-		}
+	directChannels, err := s.autocompleteInTeamForSearchDirectMessages(userId, term)
+	if err != nil {
+		return nil, err
+	}
 
-		channels = append(channels, directChannels...)
+	channels = append(channels, directChannels...)
 
-		sort.Slice(channels, func(a, b int) bool {
-			return strings.ToLower(channels[a].DisplayName) < strings.ToLower(channels[b].DisplayName)
-		})
-		result.Data = &channels
+	sort.Slice(channels, func(a, b int) bool {
+		return strings.ToLower(channels[a].DisplayName) < strings.ToLower(channels[b].DisplayName)
 	})
+	return &channels, nil
 }
 
 func (s SqlChannelStore) autocompleteInTeamForSearchDirectMessages(userId string, term string) ([]*model.Channel, *model.AppError) {
@@ -2067,50 +2087,47 @@ func (s SqlChannelStore) SearchInTeam(teamId string, term string, includeDeleted
 	})
 }
 
-func (s SqlChannelStore) SearchAllChannels(term string, opts store.ChannelSearchOpts) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		query := s.getQueryBuilder().
-			Select("c.*, t.DisplayName AS TeamDisplayName, t.Name AS TeamName, t.UpdateAt as TeamUpdateAt").
-			From("Channels AS c").
-			Join("Teams AS t ON t.Id = c.TeamId").
-			Where(sq.Eq{"c.Type": []string{model.CHANNEL_PRIVATE, model.CHANNEL_OPEN}}).
-			OrderBy("c.DisplayName, t.DisplayName").
-			Limit(uint64(100))
+func (s SqlChannelStore) SearchAllChannels(term string, opts store.ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError) {
+	query := s.getQueryBuilder().
+		Select("c.*, t.DisplayName AS TeamDisplayName, t.Name AS TeamName, t.UpdateAt as TeamUpdateAt").
+		From("Channels AS c").
+		Join("Teams AS t ON t.Id = c.TeamId").
+		Where(sq.Eq{"c.Type": []string{model.CHANNEL_PRIVATE, model.CHANNEL_OPEN}}).
+		OrderBy("c.DisplayName, t.DisplayName").
+		Limit(uint64(100))
 
-		if !opts.IncludeDeleted {
-			query = query.Where(sq.Eq{"c.DeleteAt": int(0)})
-		}
+	if !opts.IncludeDeleted {
+		query = query.Where(sq.Eq{"c.DeleteAt": int(0)})
+	}
 
-		likeClause, likeTerm := s.buildLIKEClause(term, "c.Name, c.DisplayName, c.Purpose")
-		if len(likeTerm) > 0 {
-			likeClause = strings.ReplaceAll(likeClause, ":LikeTerm", "'"+likeTerm+"'")
-			fulltextClause, fulltextTerm := s.buildFulltextClause(term, "c.Name, c.DisplayName, c.Purpose")
-			fulltextClause = strings.ReplaceAll(fulltextClause, ":FulltextTerm", "'"+fulltextTerm+"'")
-			query = query.Where("(" + likeClause + " OR " + fulltextClause + ")")
-		}
+	likeClause, likeTerm := s.buildLIKEClause(term, "c.Name, c.DisplayName, c.Purpose")
+	if len(likeTerm) > 0 {
+		likeClause = strings.ReplaceAll(likeClause, ":LikeTerm", "'"+likeTerm+"'")
+		fulltextClause, fulltextTerm := s.buildFulltextClause(term, "c.Name, c.DisplayName, c.Purpose")
+		fulltextClause = strings.ReplaceAll(fulltextClause, ":FulltextTerm", "'"+fulltextTerm+"'")
+		query = query.Where("(" + likeClause + " OR " + fulltextClause + ")")
+	}
 
-		if len(opts.ExcludeChannelNames) > 0 {
-			query = query.Where(fmt.Sprintf("c.Name NOT IN ('%s')", strings.Join(opts.ExcludeChannelNames, "', '")))
-		}
+	if len(opts.ExcludeChannelNames) > 0 {
+		query = query.Where(fmt.Sprintf("c.Name NOT IN ('%s')", strings.Join(opts.ExcludeChannelNames, "', '")))
+	}
 
-		if len(opts.NotAssociatedToGroup) > 0 {
-			query = query.Where("c.Id NOT IN (SELECT ChannelId FROM GroupChannels WHERE GroupChannels.GroupId = ? AND GroupChannels.DeleteAt = 0)", opts.NotAssociatedToGroup)
-		}
+	if len(opts.NotAssociatedToGroup) > 0 {
+		query = query.Where("c.Id NOT IN (SELECT ChannelId FROM GroupChannels WHERE GroupChannels.GroupId = ? AND GroupChannels.DeleteAt = 0)", opts.NotAssociatedToGroup)
+	}
 
-		queryString, args, err := query.ToSql()
-		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.SearchAllChannels", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlChannelStore.SearchAllChannels", "store.sql.build_query.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		var channels model.ChannelListWithTeamData
+	var channels model.ChannelListWithTeamData
 
-		if _, err := s.GetReplica().Select(&channels, queryString, args...); err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.Search", "store.sql_channel.search.app_error", nil, "term="+term+", "+", "+err.Error(), http.StatusInternalServerError)
-		}
+	if _, err := s.GetReplica().Select(&channels, queryString, args...); err != nil {
+		return nil, model.NewAppError("SqlChannelStore.Search", "store.sql_channel.search.app_error", nil, "term="+term+", "+", "+err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = &channels
-	})
+	return &channels, nil
 }
 
 func (s SqlChannelStore) SearchMore(userId string, teamId string, term string) (*model.ChannelList, *model.AppError) {
@@ -2201,7 +2218,7 @@ func (s SqlChannelStore) buildFulltextClause(term string, searchColumns string) 
 
 		fulltextTerm = strings.Join(splitTerm, " ")
 
-		fulltextClause = fmt.Sprintf("((%s) @@ to_tsquery(:FulltextTerm))", convertMySQLFullTextColumnsToPostgres(searchColumns))
+		fulltextClause = fmt.Sprintf("((to_tsvector('english', %s)) @@ to_tsquery(:FulltextTerm))", convertMySQLFullTextColumnsToPostgres(searchColumns))
 	} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
 		splitTerm := strings.Fields(fulltextTerm)
 		for i, t := range strings.Fields(fulltextTerm) {

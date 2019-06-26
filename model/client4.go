@@ -1500,6 +1500,18 @@ func (c *Client4) GetAllTeams(etag string, page int, perPage int) ([]*Team, *Res
 	return TeamListFromJson(r.Body), BuildResponse(r)
 }
 
+// GetAllTeamsWithTotalCount returns all teams based on permissions.
+func (c *Client4) GetAllTeamsWithTotalCount(etag string, page int, perPage int) ([]*Team, int64, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v&include_total_count=true", page, perPage)
+	r, err := c.DoApiGet(c.GetTeamsRoute()+query, etag)
+	if err != nil {
+		return nil, 0, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	teamsListWithCount := TeamsWithCountFromJson(r.Body)
+	return teamsListWithCount.Teams, teamsListWithCount.TotalCount, BuildResponse(r)
+}
+
 // GetTeamByName returns a team based on the provided team name string.
 func (c *Client4) GetTeamByName(name, etag string) (*Team, *Response) {
 	r, err := c.DoApiGet(c.GetTeamByNameRoute(name), etag)
@@ -1894,6 +1906,18 @@ func (c *Client4) GetAllChannels(page int, perPage int, etag string) (*ChannelLi
 	}
 	defer closeBody(r)
 	return ChannelListWithTeamDataFromJson(r.Body), BuildResponse(r)
+}
+
+// GetAllChannelsWithCount get all the channels including the total count. Must be a system administrator.
+func (c *Client4) GetAllChannelsWithCount(page int, perPage int, etag string) (*ChannelListWithTeamData, int64, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v&include_total_count=true", page, perPage)
+	r, err := c.DoApiGet(c.GetChannelsRoute()+query, etag)
+	if err != nil {
+		return nil, 0, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	cwc := ChannelsWithCountFromJson(r.Body)
+	return cwc.Channels, cwc.TotalCount, BuildResponse(r)
 }
 
 // CreateChannel creates a channel based on the provided channel struct.

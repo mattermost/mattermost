@@ -19,12 +19,11 @@ const (
 func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *model.AppError) {
 	skipIntensiveQueries := false
 	var systemUserCount int64
-	r := <-a.Srv.Store.User().Count(model.UserCountOptions{})
-	if r.Err != nil {
-		return nil, r.Err
+	systemUserCount, err := a.Srv.Store.User().Count(model.UserCountOptions{})
+	if err != nil {
+		return nil, err
 	}
 
-	systemUserCount = r.Data.(int64)
 	if systemUserCount > int64(*a.Config().AnalyticsSettings.MaxUsersForStatistics) {
 		mlog.Debug(fmt.Sprintf("More than %v users on the system, intensive queries skipped", *a.Config().AnalyticsSettings.MaxUsersForStatistics))
 		skipIntensiveQueries = true
@@ -62,9 +61,12 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 		if teamId == "" {
 			userInactiveChan = a.Srv.Store.User().AnalyticsGetInactiveUsersCount()
 		} else {
-			userChan = a.Srv.Store.User().Count(model.UserCountOptions{
-				TeamId: teamId,
-			})
+			userChan := make(chan store.StoreResult, 1)
+			go func() {
+				count, err := a.Srv.Store.User().Count(model.UserCountOptions{TeamId: teamId})
+				userChan <- store.StoreResult{Data: count, Err: err}
+				close(userChan)
+			}()
 		}
 
 		var postChan store.StoreChannel
@@ -322,12 +324,10 @@ func (a *App) GetRecentlyActiveUsersForTeamPage(teamId string, page, perPage int
 }
 
 func (a *App) GetNewUsersForTeamPage(teamId string, page, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
-	var users []*model.User
-	result := <-a.Srv.Store.User().GetNewUsersForTeam(teamId, page*perPage, perPage, viewRestrictions)
-	if result.Err != nil {
-		return nil, result.Err
+	users, err := a.Srv.Store.User().GetNewUsersForTeam(teamId, page*perPage, perPage, viewRestrictions)
+	if err != nil {
+		return nil, err
 	}
-	users = result.Data.([]*model.User)
 
 	return a.sanitizeProfiles(users, asAdmin), nil
 }

@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Masterminds/squirrel"
 	sq "github.com/Masterminds/squirrel"
 
 	"github.com/mattermost/mattermost-server/model"
@@ -900,7 +899,7 @@ func (s *SqlGroupStore) ChannelMembersToRemove() ([]*model.ChannelMember, *model
 	return channelMembers, nil
 }
 
-func (s *SqlGroupStore) groupsBySyncableBaseQuery(st model.GroupSyncableType, t selectType, syncableID string, opts model.GroupSearchOpts) squirrel.SelectBuilder {
+func (s *SqlGroupStore) groupsBySyncableBaseQuery(st model.GroupSyncableType, t selectType, syncableID string, opts model.GroupSearchOpts) sq.SelectBuilder {
 	selectStrs := map[selectType]string{
 		selectGroups:      "ug.*",
 		selectCountGroups: "COUNT(*)",
@@ -1051,7 +1050,7 @@ func (s *SqlGroupStore) GetGroups(page, perPage int, opts model.GroupSearchOpts)
 	return groups, nil
 }
 
-func (s *SqlGroupStore) teamMembersMinusGroupMembersQuery(teamID string, groupIDs []string, isCount bool) squirrel.SelectBuilder {
+func (s *SqlGroupStore) teamMembersMinusGroupMembersQuery(teamID string, groupIDs []string, isCount bool) sq.SelectBuilder {
 	var selectStr string
 
 	if isCount {
@@ -1129,7 +1128,7 @@ func (s *SqlGroupStore) CountTeamMembersMinusGroupMembers(teamID string, groupID
 	return count, nil
 }
 
-func (s *SqlGroupStore) channelMembersMinusGroupMembersQuery(channelID string, groupIDs []string, isCount bool) squirrel.SelectBuilder {
+func (s *SqlGroupStore) channelMembersMinusGroupMembersQuery(channelID string, groupIDs []string, isCount bool) sq.SelectBuilder {
 	var selectStr string
 
 	if isCount {

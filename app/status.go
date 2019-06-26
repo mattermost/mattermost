@@ -8,7 +8,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
@@ -79,11 +78,10 @@ func (a *App) GetStatusesByIds(userIds []string) (map[string]interface{}, *model
 	}
 
 	if len(missingUserIds) > 0 {
-		result := <-a.Srv.Store.Status().GetByIds(missingUserIds)
-		if result.Err != nil {
-			return nil, result.Err
+		statuses, err := a.Srv.Store.Status().GetByIds(missingUserIds)
+		if err != nil {
+			return nil, err
 		}
-		statuses := result.Data.([]*model.Status)
 
 		for _, s := range statuses {
 			a.AddStatusCacheSkipClusterSend(s)
@@ -127,11 +125,10 @@ func (a *App) GetUserStatusesByIds(userIds []string) ([]*model.Status, *model.Ap
 	}
 
 	if len(missingUserIds) > 0 {
-		result := <-a.Srv.Store.Status().GetByIds(missingUserIds)
-		if result.Err != nil {
-			return nil, result.Err
+		statuses, err := a.Srv.Store.Status().GetByIds(missingUserIds)
+		if err != nil {
+			return nil, err
 		}
-		statuses := result.Data.([]*model.Status)
 
 		for _, s := range statuses {
 			a.AddStatusCacheSkipClusterSend(s)
@@ -216,16 +213,15 @@ func (a *App) SetStatusOnline(userId string, manual bool) {
 	// Only update the database if the status has changed, the status has been manually set,
 	// or enough time has passed since the previous action
 	if status.Status != oldStatus || status.Manual != oldManual || status.LastActivityAt-oldTime > model.STATUS_MIN_UPDATE_TIME {
-
-		var schan store.StoreChannel
 		if broadcast {
-			schan = a.Srv.Store.Status().SaveOrUpdate(status)
+			if err := a.Srv.Store.Status().SaveOrUpdate(status); err != nil {
+				mlog.Error(fmt.Sprintf("Failed to save status for user_id=%v, err=%v", userId, err), mlog.String("user_id", userId))
+			}
 		} else {
-			schan = a.Srv.Store.Status().UpdateLastActivityAt(status.UserId, status.LastActivityAt)
-		}
-
-		if result := <-schan; result.Err != nil {
-			mlog.Error(fmt.Sprintf("Failed to save status for user_id=%v, err=%v", userId, result.Err), mlog.String("user_id", userId))
+			schan := a.Srv.Store.Status().UpdateLastActivityAt(status.UserId, status.LastActivityAt)
+			if result := <-schan; result.Err != nil {
+				mlog.Error(fmt.Sprintf("Failed to save status for user_id=%v, err=%v", userId, result.Err), mlog.String("user_id", userId))
+			}
 		}
 	}
 
@@ -308,8 +304,8 @@ func (a *App) SetStatusDoNotDisturb(userId string) {
 func (a *App) SaveAndBroadcastStatus(status *model.Status) {
 	a.AddStatusCache(status)
 
-	if result := <-a.Srv.Store.Status().SaveOrUpdate(status); result.Err != nil {
-		mlog.Error(fmt.Sprintf("Failed to save status for user_id=%v, err=%v", status.UserId, result.Err))
+	if err := a.Srv.Store.Status().SaveOrUpdate(status); err != nil {
+		mlog.Error(fmt.Sprintf("Failed to save status for user_id=%v, err=%v", status.UserId, err))
 	}
 
 	a.BroadcastStatus(status)

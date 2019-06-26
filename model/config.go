@@ -673,6 +673,8 @@ type ClusterSettings struct {
 	ClusterName                 *string `restricted:"true"`
 	OverrideHostname            *string `restricted:"true"`
 	NetworkInterface            *string `restricted:"true"`
+	BindAddress                 *string `restricted:"true"`
+	AdvertiseAddress            *string `restricted:"true"`
 	UseIpAddress                *bool   `restricted:"true"`
 	UseExperimentalGossip       *bool   `restricted:"true"`
 	ReadOnlyConfig              *bool   `restricted:"true"`
@@ -698,6 +700,14 @@ func (s *ClusterSettings) SetDefaults() {
 
 	if s.NetworkInterface == nil {
 		s.NetworkInterface = NewString("")
+	}
+
+	if s.BindAddress == nil {
+		s.BindAddress = NewString("")
+	}
+
+	if s.AdvertiseAddress == nil {
+		s.AdvertiseAddress = NewString("")
 	}
 
 	if s.UseIpAddress == nil {
@@ -2175,7 +2185,6 @@ type PluginState struct {
 type PluginSettings struct {
 	Enable                   *bool
 	EnableUploads            *bool   `restricted:"true"`
-	EnableHealthCheck        *bool   `restricted:"true"`
 	AllowInsecureDownloadUrl *bool   `restricted:"true"`
 	Directory                *string `restricted:"true"`
 	ClientDirectory          *string `restricted:"true"`
@@ -2190,10 +2199,6 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 
 	if s.EnableUploads == nil {
 		s.EnableUploads = NewBool(false)
-	}
-
-	if s.EnableHealthCheck == nil {
-		s.EnableHealthCheck = NewBool(true)
 	}
 
 	if s.AllowInsecureDownloadUrl == nil {
@@ -2989,8 +2994,13 @@ func (o *Config) Sanitize() {
 	}
 
 	*o.FileSettings.PublicLinkSalt = FAKE_SETTING
+
 	if len(*o.FileSettings.AmazonS3SecretAccessKey) > 0 {
 		*o.FileSettings.AmazonS3SecretAccessKey = FAKE_SETTING
+	}
+
+	if o.EmailSettings.SMTPPassword != nil && len(*o.EmailSettings.SMTPPassword) > 0 {
+		*o.EmailSettings.SMTPPassword = FAKE_SETTING
 	}
 
 	if len(*o.GitLabSettings.Secret) > 0 {
@@ -3000,6 +3010,8 @@ func (o *Config) Sanitize() {
 	*o.SqlSettings.DataSource = FAKE_SETTING
 	*o.SqlSettings.AtRestEncryptKey = FAKE_SETTING
 
+	*o.ElasticsearchSettings.Password = FAKE_SETTING
+
 	for i := range o.SqlSettings.DataSourceReplicas {
 		o.SqlSettings.DataSourceReplicas[i] = FAKE_SETTING
 	}
@@ -3007,6 +3019,4 @@ func (o *Config) Sanitize() {
 	for i := range o.SqlSettings.DataSourceSearchReplicas {
 		o.SqlSettings.DataSourceSearchReplicas[i] = FAKE_SETTING
 	}
-
-	*o.ElasticsearchSettings.Password = FAKE_SETTING
 }
