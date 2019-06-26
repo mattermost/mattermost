@@ -1243,6 +1243,18 @@ func (a *App) GetAllChannels(page, perPage int, opts model.ChannelSearchOpts) (*
 	return a.Srv.Store.Channel().GetAllChannels(page*perPage, perPage, storeOpts)
 }
 
+func (a *App) GetAllChannelsCount(opts model.ChannelSearchOpts) (int64, *model.AppError) {
+	if opts.ExcludeDefaultChannels {
+		opts.ExcludeChannelNames = a.DefaultChannelNames()
+	}
+	storeOpts := store.ChannelSearchOpts{
+		ExcludeChannelNames:  opts.ExcludeChannelNames,
+		NotAssociatedToGroup: opts.NotAssociatedToGroup,
+		IncludeDeleted:       opts.IncludeDeleted,
+	}
+	return a.Srv.Store.Channel().GetAllChannelsCount(storeOpts)
+}
+
 func (a *App) GetDeletedChannels(teamId string, offset int, limit int) (*model.ChannelList, *model.AppError) {
 	return a.Srv.Store.Channel().GetDeleted(teamId, offset, limit)
 }
@@ -1786,11 +1798,7 @@ func (a *App) SearchAllChannels(term string, opts model.ChannelSearchOpts) (*mod
 
 	term = strings.TrimSpace(term)
 
-	result := <-a.Srv.Store.Channel().SearchAllChannels(term, storeOpts)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.ChannelListWithTeamData), nil
+	return a.Srv.Store.Channel().SearchAllChannels(term, storeOpts)
 }
 
 func (a *App) SearchChannels(teamId string, term string) (*model.ChannelList, *model.AppError) {
@@ -1799,6 +1807,18 @@ func (a *App) SearchChannels(teamId string, term string) (*model.ChannelList, *m
 	term = strings.TrimSpace(term)
 
 	return a.Srv.Store.Channel().SearchInTeam(teamId, term, includeDeleted)
+}
+
+func (a *App) SearchGroupChannels(userId, term string) (*model.ChannelList, *model.AppError) {
+	if term == "" {
+		return &model.ChannelList{}, nil
+	}
+
+	channelList, err := a.Srv.Store.Channel().SearchGroupChannels(userId, term)
+	if err != nil {
+		return nil, err
+	}
+	return channelList, nil
 }
 
 func (a *App) SearchChannelsUserNotIn(teamId string, userId string, term string) (*model.ChannelList, *model.AppError) {

@@ -70,6 +70,7 @@ func TestChannelStore(t *testing.T, ss store.Store, s SqlSupplier) {
 	t.Run("SearchAllChannels", func(t *testing.T) { testChannelStoreSearchAllChannels(t, ss) })
 	t.Run("AutocompleteInTeamForSearch", func(t *testing.T) { testChannelStoreAutocompleteInTeamForSearch(t, ss, s) })
 	t.Run("GetMembersByIds", func(t *testing.T) { testChannelStoreGetMembersByIds(t, ss) })
+	t.Run("SearchGroupChannels", func(t *testing.T) { testChannelStoreSearchGroupChannels(t, ss) })
 	t.Run("AnalyticsDeletedTypeCount", func(t *testing.T) { testChannelStoreAnalyticsDeletedTypeCount(t, ss) })
 	t.Run("GetPinnedPosts", func(t *testing.T) { testChannelStoreGetPinnedPosts(t, ss) })
 	t.Run("MaxChannelsPerTeam", func(t *testing.T) { testChannelStoreMaxChannelsPerTeam(t, ss) })
@@ -751,15 +752,15 @@ func testChannelStoreGetDeletedByName(t *testing.T, ss store.Store) {
 	o1.DeleteAt = now
 	o1.UpdateAt = now
 
-	if r1 := <-ss.Channel().GetDeletedByName(o1.TeamId, o1.Name); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if r1, err := ss.Channel().GetDeletedByName(o1.TeamId, o1.Name); err != nil {
+		t.Fatal(err)
 	} else {
-		if r1.Data.(*model.Channel).ToJson() != o1.ToJson() {
+		if r1.ToJson() != o1.ToJson() {
 			t.Fatal("invalid returned channel")
 		}
 	}
 
-	if err := (<-ss.Channel().GetDeletedByName(o1.TeamId, "")).Err; err == nil {
+	if _, err := ss.Channel().GetDeletedByName(o1.TeamId, ""); err == nil {
 		t.Fatal("Missing id should have failed")
 	}
 }
@@ -1159,6 +1160,9 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlSupplier)
 	assert.Equal(t, (*list)[1].Id, c3.Id)
 	assert.Equal(t, (*list)[1].TeamDisplayName, "Name2")
 
+	count1, err := ss.Channel().GetAllChannelsCount(store.ChannelSearchOpts{})
+	require.Nil(t, err)
+
 	list, err = ss.Channel().GetAllChannels(0, 10, store.ChannelSearchOpts{IncludeDeleted: true})
 	require.Nil(t, err)
 	assert.Len(t, *list, 3)
@@ -1166,6 +1170,12 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlSupplier)
 	assert.Equal(t, (*list)[0].TeamDisplayName, "Name")
 	assert.Equal(t, (*list)[1].Id, c2.Id)
 	assert.Equal(t, (*list)[2].Id, c3.Id)
+
+	count2, err := ss.Channel().GetAllChannelsCount(store.ChannelSearchOpts{IncludeDeleted: true})
+	require.Nil(t, err)
+	require.True(t, func() bool {
+		return count2 > count1
+	}())
 
 	list, err = ss.Channel().GetAllChannels(0, 1, store.ChannelSearchOpts{IncludeDeleted: true})
 	require.Nil(t, err)
@@ -1721,22 +1731,22 @@ func testChannelStoreIncrementMentionCount(t *testing.T, ss store.Store) {
 	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
 	store.Must(ss.Channel().SaveMember(&m1))
 
-	err = (<-ss.Channel().IncrementMentionCount(m1.ChannelId, m1.UserId)).Err
+	err = ss.Channel().IncrementMentionCount(m1.ChannelId, m1.UserId)
 	if err != nil {
 		t.Fatal("failed to update")
 	}
 
-	err = (<-ss.Channel().IncrementMentionCount(m1.ChannelId, "missing id")).Err
+	err = ss.Channel().IncrementMentionCount(m1.ChannelId, "missing id")
 	if err != nil {
 		t.Fatal("failed to update")
 	}
 
-	err = (<-ss.Channel().IncrementMentionCount("missing id", m1.UserId)).Err
+	err = ss.Channel().IncrementMentionCount("missing id", m1.UserId)
 	if err != nil {
 		t.Fatal("failed to update")
 	}
 
-	err = (<-ss.Channel().IncrementMentionCount("missing id", "missing id")).Err
+	err = ss.Channel().IncrementMentionCount("missing id", "missing id")
 	if err != nil {
 		t.Fatal("failed to update")
 	}
@@ -2537,9 +2547,8 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.Description, func(t *testing.T) {
-			result := <-ss.Channel().SearchAllChannels(testCase.Term, testCase.Opts)
-			require.Nil(t, result.Err)
-			channels := result.Data.(*model.ChannelListWithTeamData)
+			channels, err := ss.Channel().SearchAllChannels(testCase.Term, testCase.Opts)
+			require.Nil(t, err)
 			require.Equal(t, len(*testCase.ExpectedResults), len(*channels))
 			for i, expected := range *testCase.ExpectedResults {
 				require.Equal(t, (*channels)[i].Id, expected.Id)
@@ -2713,6 +2722,153 @@ func testChannelStoreGetMembersByIds(t *testing.T, ss store.Store) {
 
 	if _, err := ss.Channel().GetMembersByIds(m1.ChannelId, []string{}); err == nil {
 		t.Fatal("empty user ids - should have failed")
+	}
+}
+
+func testChannelStoreSearchGroupChannels(t *testing.T, ss store.Store) {
+	// Users
+	u1 := &model.User{}
+	u1.Username = "user.one"
+	u1.Email = MakeEmail()
+	u1.Nickname = model.NewId()
+	store.Must(ss.User().Save(u1))
+
+	u2 := &model.User{}
+	u2.Username = "user.two"
+	u2.Email = MakeEmail()
+	u2.Nickname = model.NewId()
+	store.Must(ss.User().Save(u2))
+
+	u3 := &model.User{}
+	u3.Username = "user.three"
+	u3.Email = MakeEmail()
+	u3.Nickname = model.NewId()
+	store.Must(ss.User().Save(u3))
+
+	u4 := &model.User{}
+	u4.Username = "user.four"
+	u4.Email = MakeEmail()
+	u4.Nickname = model.NewId()
+	store.Must(ss.User().Save(u4))
+
+	// Group channels
+	userIds := []string{u1.Id, u2.Id, u3.Id}
+	gc1 := model.Channel{}
+	gc1.Name = model.GetGroupNameFromUserIds(userIds)
+	gc1.DisplayName = "GroupChannel" + model.NewId()
+	gc1.Type = model.CHANNEL_GROUP
+	_, err := ss.Channel().Save(&gc1, -1)
+	require.Nil(t, err)
+
+	for _, userId := range userIds {
+		store.Must(ss.Channel().SaveMember(&model.ChannelMember{
+			ChannelId:   gc1.Id,
+			UserId:      userId,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		}))
+	}
+
+	userIds = []string{u1.Id, u4.Id}
+	gc2 := model.Channel{}
+	gc2.Name = model.GetGroupNameFromUserIds(userIds)
+	gc2.DisplayName = "GroupChannel" + model.NewId()
+	gc2.Type = model.CHANNEL_GROUP
+	_, err = ss.Channel().Save(&gc2, -1)
+	require.Nil(t, err)
+
+	for _, userId := range userIds {
+		store.Must(ss.Channel().SaveMember(&model.ChannelMember{
+			ChannelId:   gc2.Id,
+			UserId:      userId,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		}))
+	}
+
+	userIds = []string{u1.Id, u2.Id, u3.Id, u4.Id}
+	gc3 := model.Channel{}
+	gc3.Name = model.GetGroupNameFromUserIds(userIds)
+	gc3.DisplayName = "GroupChannel" + model.NewId()
+	gc3.Type = model.CHANNEL_GROUP
+	_, err = ss.Channel().Save(&gc3, -1)
+	require.Nil(t, err)
+
+	for _, userId := range userIds {
+		store.Must(ss.Channel().SaveMember(&model.ChannelMember{
+			ChannelId:   gc3.Id,
+			UserId:      userId,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		}))
+	}
+
+	defer func() {
+		for _, gc := range []model.Channel{gc1, gc2, gc3} {
+			ss.Channel().PermanentDeleteMembersByChannel(gc3.Id)
+			<-ss.Channel().PermanentDelete(gc.Id)
+		}
+	}()
+
+	testCases := []struct {
+		Name           string
+		UserId         string
+		Term           string
+		ExpectedResult []string
+	}{
+		{
+			Name:           "Get all group channels for user1",
+			UserId:         u1.Id,
+			Term:           "",
+			ExpectedResult: []string{gc1.Id, gc2.Id, gc3.Id},
+		},
+		{
+			Name:           "Get group channels for user1 and term 'three'",
+			UserId:         u1.Id,
+			Term:           "three",
+			ExpectedResult: []string{gc1.Id, gc3.Id},
+		},
+		{
+			Name:           "Get group channels for user1 and term 'four two'",
+			UserId:         u1.Id,
+			Term:           "four two",
+			ExpectedResult: []string{gc3.Id},
+		},
+		{
+			Name:           "Get all group channels for user2",
+			UserId:         u2.Id,
+			Term:           "",
+			ExpectedResult: []string{gc1.Id, gc3.Id},
+		},
+		{
+			Name:           "Get group channels for user2 and term 'four'",
+			UserId:         u2.Id,
+			Term:           "four",
+			ExpectedResult: []string{gc3.Id},
+		},
+		{
+			Name:           "Get all group channels for user4",
+			UserId:         u4.Id,
+			Term:           "",
+			ExpectedResult: []string{gc2.Id, gc3.Id},
+		},
+		{
+			Name:           "Get group channels for user4 and term 'one five'",
+			UserId:         u4.Id,
+			Term:           "one five",
+			ExpectedResult: []string{},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.Name, func(t *testing.T) {
+			result, err := ss.Channel().SearchGroupChannels(tc.UserId, tc.Term)
+			require.Nil(t, err)
+
+			resultIds := []string{}
+			for _, gc := range *result {
+				resultIds = append(resultIds, gc.Id)
+			}
+
+			require.ElementsMatch(t, tc.ExpectedResult, resultIds)
+		})
 	}
 }
 
