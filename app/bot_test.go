@@ -57,6 +57,16 @@ func TestCreateBot(t *testing.T) {
 		assert.Equal(t, "username", bot.Username)
 		assert.Equal(t, "a bot", bot.Description)
 		assert.Equal(t, th.BasicUser.Id, bot.OwnerId)
+
+		// Check that a post was created to add bot to team and channels
+		channel, err := th.App.GetOrCreateDirectChannel(bot.UserId, th.BasicUser.Id)
+		require.Nil(t, err)
+		posts, err := th.App.GetPosts(channel.Id, 0, 1)
+		require.Nil(t, err)
+
+		postArray := posts.ToSlice()
+		assert.Len(t, postArray, 1)
+		assert.Equal(t, postArray[0].Type, model.POST_ADD_BOT_TEAMS_CHANNELS)
 	})
 
 	t.Run("create bot, username already used by a non-bot user", func(t *testing.T) {

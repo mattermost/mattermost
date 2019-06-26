@@ -32,10 +32,6 @@ func TestPreparePostListForClient(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ExperimentalSettings.DisablePostMetadata = false
-	})
-
 	postList := model.NewPostList()
 	for i := 0; i < 5; i++ {
 		postList.AddPost(&model.Post{})
@@ -68,7 +64,6 @@ func TestPreparePostForClient(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.ServiceSettings.EnableLinkPreviews = true
 			*cfg.ImageProxySettings.Enable = false
-			*cfg.ExperimentalSettings.DisablePostMetadata = false
 		})
 
 		return th
@@ -230,7 +225,7 @@ func TestPreparePostForClient(t *testing.T) {
 
 		clientPost := th.App.PreparePostForClient(post, false, false)
 
-		t.Run("pupulates emojis", func(t *testing.T) {
+		t.Run("populates emojis", func(t *testing.T) {
 			assert.ElementsMatch(t, []*model.Emoji{emoji1, emoji2, emoji3, emoji4}, clientPost.Metadata.Emojis, "should've populated post.Emojis")
 		})
 
@@ -331,26 +326,18 @@ func TestPreparePostForClient(t *testing.T) {
 		require.Nil(t, err)
 
 		clientPost := th.App.PreparePostForClient(post, false, false)
+		firstEmbed := clientPost.Metadata.Embeds[0]
+		ogData := firstEmbed.Data.(*opengraph.OpenGraph)
 
 		t.Run("populates embeds", func(t *testing.T) {
-			assert.ElementsMatch(t, []*model.PostEmbed{
-				{
-					Type: model.POST_EMBED_OPENGRAPH,
-					URL:  "https://github.com/hmhealey/test-files",
-					Data: &opengraph.OpenGraph{
-						Description: "Contribute to hmhealey/test-files development by creating an account on GitHub.",
-						SiteName:    "GitHub",
-						Title:       "hmhealey/test-files",
-						Type:        "object",
-						URL:         "https://github.com/hmhealey/test-files",
-						Images: []*opengraph.Image{
-							{
-								URL: "https://avatars1.githubusercontent.com/u/3277310?s=400&v=4",
-							},
-						},
-					},
-				},
-			}, clientPost.Metadata.Embeds)
+			assert.Equal(t, firstEmbed.Type, model.POST_EMBED_OPENGRAPH)
+			assert.Equal(t, firstEmbed.URL, "https://github.com/hmhealey/test-files")
+			assert.Equal(t, ogData.Description, "Contribute to hmhealey/test-files development by creating an account on GitHub.")
+			assert.Equal(t, ogData.SiteName, "GitHub")
+			assert.Equal(t, ogData.Title, "hmhealey/test-files")
+			assert.Equal(t, ogData.Type, "object")
+			assert.Equal(t, ogData.URL, "https://github.com/hmhealey/test-files")
+			assert.Equal(t, ogData.Images[0].URL, "https://avatars1.githubusercontent.com/u/3277310?s=400&v=4")
 		})
 
 		t.Run("populates image dimensions", func(t *testing.T) {
@@ -401,24 +388,6 @@ func TestPreparePostForClient(t *testing.T) {
 			}, imageDimensions["https://github.com/hmhealey/test-files/raw/master/icon.png"])
 		})
 	})
-
-	t.Run("when disabled", func(t *testing.T) {
-		th := setup()
-		defer th.TearDown()
-
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			*cfg.ExperimentalSettings.DisablePostMetadata = true
-		})
-
-		post := th.CreatePost(th.BasicChannel)
-		post = th.App.PreparePostForClient(post, false, false)
-
-		assert.Nil(t, post.Metadata)
-
-		b := post.ToJson()
-
-		assert.NotContains(t, string(b), "metadata", "json shouldn't include a metadata field, not even a falsey one")
-	})
 }
 
 func TestPreparePostForClientWithImageProxy(t *testing.T) {
@@ -432,7 +401,6 @@ func TestPreparePostForClientWithImageProxy(t *testing.T) {
 			*cfg.ImageProxySettings.ImageProxyType = "atmos/camo"
 			*cfg.ImageProxySettings.RemoteImageProxyURL = "https://127.0.0.1"
 			*cfg.ImageProxySettings.RemoteImageProxyOptions = "foo"
-			*cfg.ExperimentalSettings.DisablePostMetadata = false
 		})
 
 		return th

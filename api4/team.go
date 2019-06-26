@@ -6,11 +6,14 @@ package api4
 import (
 	"bytes"
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
+	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/mattermost/mattermost-server/model"
 )
@@ -18,7 +21,14 @@ import (
 const (
 	MAX_ADD_MEMBERS_BATCH    = 20
 	MAXIMUM_BULK_IMPORT_SIZE = 10 * 1024 * 1024
+	groupIDsParamPattern     = "[^a-zA-Z0-9,]*"
 )
+
+var groupIDsQueryParamRegex *regexp.Regexp
+
+func init() {
+	groupIDsQueryParamRegex = regexp.MustCompile(groupIDsParamPattern)
+}
 
 func (api *API) InitTeam() {
 	api.BaseRoutes.Teams.Handle("", api.ApiSessionRequired(createTeam)).Methods("POST")
@@ -58,6 +68,8 @@ func (api *API) InitTeam() {
 	api.BaseRoutes.Team.Handle("/invite/email", api.ApiSessionRequired(inviteUsersToTeam)).Methods("POST")
 	api.BaseRoutes.Teams.Handle("/invites/email", api.ApiSessionRequired(invalidateAllEmailInvites)).Methods("DELETE")
 	api.BaseRoutes.Teams.Handle("/invite/{invite_id:[A-Za-z0-9]+}", api.ApiHandler(getInviteInfo)).Methods("GET")
+
+	api.BaseRoutes.Teams.Handle("/{team_id:[A-Za-z0-9]+}/members_minus_group_members", api.ApiSessionRequired(teamMembersMinusGroupMembers)).Methods("GET")
 }
 
 func createTeam(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -712,9 +724,14 @@ func updateTeamMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.Requ
 func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 	var teams []*model.Team
 	var err *model.AppError
+	var teamsWithCount *model.TeamsWithCount
 
 	if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PRIVATE_TEAMS) && c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PUBLIC_TEAMS) {
-		teams, err = c.App.GetAllTeamsPage(c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+		if c.Params.IncludeTotalCount {
+			teamsWithCount, err = c.App.GetAllTeamsPageWithCount(c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+		} else {
+			teams, err = c.App.GetAllTeamsPage(c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+		}
 	} else if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PRIVATE_TEAMS) {
 		teams, err = c.App.GetAllPrivateTeamsPage(c.Params.Page*c.Params.PerPage, c.Params.PerPage)
 	} else if c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_LIST_PUBLIC_TEAMS) {
@@ -728,7 +745,15 @@ func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.App.SanitizeTeams(c.App.Session, teams)
 
-	w.Write([]byte(model.TeamListToJson(teams)))
+	var resBody []byte
+
+	if c.Params.IncludeTotalCount {
+		resBody = model.TeamsWithCountToJson(teamsWithCount)
+	} else {
+		resBody = []byte(model.TeamListToJson(teams))
+	}
+
+	w.Write(resBody)
 }
 
 func searchTeams(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1081,4 +1106,54 @@ func updateTeamScheme(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	ReturnStatusOK(w)
+}
+
+func teamMembersMinusGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireTeamId()
+	if c.Err != nil {
+		return
+	}
+
+	groupIDsParam := groupIDsQueryParamRegex.ReplaceAllString(c.Params.GroupIDs, "")
+
+	if len(groupIDsParam) < 26 {
+		c.SetInvalidParam("group_ids")
+		return
+	}
+
+	groupIDs := []string{}
+	for _, gid := range strings.Split(c.Params.GroupIDs, ",") {
+		if len(gid) != 26 {
+			c.SetInvalidParam("group_ids")
+			return
+		}
+		groupIDs = append(groupIDs, gid)
+	}
+
+	if !c.App.SessionHasPermissionTo(c.App.Session, model.PERMISSION_MANAGE_SYSTEM) {
+		c.SetPermissionError(model.PERMISSION_MANAGE_SYSTEM)
+		return
+	}
+
+	users, totalCount, err := c.App.TeamMembersMinusGroupMembers(
+		c.Params.TeamId,
+		groupIDs,
+		c.Params.Page,
+		c.Params.PerPage,
+	)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	b, marshalErr := json.Marshal(&model.UsersWithGroupsAndCount{
+		Users: users,
+		Count: totalCount,
+	})
+	if marshalErr != nil {
+		c.Err = model.NewAppError("Api4.teamMembersMinusGroupMembers", "api.marshal_error", nil, marshalErr.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(b)
 }

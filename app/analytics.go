@@ -44,9 +44,18 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 		rows[9] = &model.AnalyticsRow{Name: "monthly_active_users", Value: 0}
 		rows[10] = &model.AnalyticsRow{Name: "inactive_user_count", Value: 0}
 
-		openChan := a.Srv.Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_OPEN)
-		privateChan := a.Srv.Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_PRIVATE)
-		teamChan := a.Srv.Store.Team().AnalyticsTeamCount()
+		openChan := make(chan store.StoreResult, 1)
+		privateChan := make(chan store.StoreResult, 1)
+		go func() {
+			count, err := a.Srv.Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_OPEN)
+			openChan <- store.StoreResult{Data: count, Err: err}
+			close(openChan)
+		}()
+		go func() {
+			count, err := a.Srv.Store.Channel().AnalyticsTypeCount(teamId, model.CHANNEL_PRIVATE)
+			privateChan <- store.StoreResult{Data: count, Err: err}
+			close(privateChan)
+		}()
 
 		var userChan store.StoreChannel
 		var userInactiveChan store.StoreChannel
@@ -60,11 +69,22 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 
 		var postChan store.StoreChannel
 		if !skipIntensiveQueries {
-			postChan = a.Srv.Store.Post().AnalyticsPostCount(teamId, false, false)
+			postChan = make(chan store.StoreResult, 1)
+			go func() {
+				count, err := a.Srv.Store.Post().AnalyticsPostCount(teamId, false, false)
+				postChan <- store.StoreResult{Data: count, Err: err}
+				close(postChan)
+			}()
 		}
 
 		dailyActiveChan := a.Srv.Store.User().AnalyticsActiveCount(DAY_MILLISECONDS)
 		monthlyActiveChan := a.Srv.Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS)
+		teamCountChan := make(chan store.StoreResult, 1)
+		go func() {
+			teamCount, err := a.Srv.Store.Team().AnalyticsTeamCount()
+			teamCountChan <- store.StoreResult{Data: teamCount, Err: err}
+			close(teamCountChan)
+		}()
 
 		r := <-openChan
 		if r.Err != nil {
@@ -108,7 +128,7 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			rows[10].Value = float64(r.Data.(int64))
 		}
 
-		r = <-teamChan
+		r = <-teamCountChan
 		if r.Err != nil {
 			return nil, r.Err
 		}
@@ -160,22 +180,14 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			return rows, nil
 		}
 
-		r := <-a.Srv.Store.Post().AnalyticsPostCountsByDay(teamId)
-		if r.Err != nil {
-			return nil, r.Err
-		}
-		return r.Data.(model.AnalyticsRows), nil
+		return a.Srv.Store.Post().AnalyticsPostCountsByDay(teamId)
 	} else if name == "user_counts_with_posts_day" {
 		if skipIntensiveQueries {
 			rows := model.AnalyticsRows{&model.AnalyticsRow{Name: "", Value: -1}}
 			return rows, nil
 		}
 
-		r := <-a.Srv.Store.Post().AnalyticsUserCountsWithPostsByDay(teamId)
-		if r.Err != nil {
-			return nil, r.Err
-		}
-		return r.Data.(model.AnalyticsRows), nil
+		return a.Srv.Store.Post().AnalyticsUserCountsWithPostsByDay(teamId)
 	} else if name == "extra_counts" {
 		var rows model.AnalyticsRows = make([]*model.AnalyticsRow, 6)
 		rows[0] = &model.AnalyticsRow{Name: "file_post_count", Value: 0}
@@ -215,9 +227,21 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 
 		var fileChan store.StoreChannel
 		var hashtagChan store.StoreChannel
+
 		if !skipIntensiveQueries {
-			fileChan = a.Srv.Store.Post().AnalyticsPostCount(teamId, true, false)
-			hashtagChan = a.Srv.Store.Post().AnalyticsPostCount(teamId, false, true)
+			fileChan = make(chan store.StoreResult, 1)
+			go func() {
+				count, err := a.Srv.Store.Post().AnalyticsPostCount(teamId, true, false)
+				fileChan <- store.StoreResult{Data: count, Err: err}
+				close(fileChan)
+			}()
+
+			hashtagChan = make(chan store.StoreResult, 1)
+			go func() {
+				count, err := a.Srv.Store.Post().AnalyticsPostCount(teamId, false, true)
+				hashtagChan <- store.StoreResult{Data: count, Err: err}
+				close(hashtagChan)
+			}()
 		}
 
 		if fileChan == nil {

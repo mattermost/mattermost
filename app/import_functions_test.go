@@ -568,10 +568,8 @@ func TestImportImportTeam(t *testing.T) {
 	scheme2 := th.SetupTeamScheme()
 
 	// Check how many teams are in the database.
-	var teamsCount int64
-	if r := <-th.App.Srv.Store.Team().AnalyticsTeamCount(); r.Err == nil {
-		teamsCount = r.Data.(int64)
-	} else {
+	teamsCount, err := th.App.Srv.Store.Team().AnalyticsTeamCount()
+	if err != nil {
 		t.Fatalf("Failed to get team count.")
 	}
 
@@ -681,12 +679,8 @@ func TestImportImportChannel(t *testing.T) {
 	}
 
 	// Check how many channels are in the database.
-	var channelCount int64
-	if r := <-th.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN); r.Err == nil {
-		channelCount = r.Data.(int64)
-	} else {
-		t.Fatalf("Failed to get team count.")
-	}
+	channelCount, err := th.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_OPEN)
+	require.Nil(t, err, "Failed to get team count.")
 
 	// Do an invalid channel in dry-run mode.
 	data := ChannelImportData{
@@ -1801,11 +1795,9 @@ func TestImportImportPost(t *testing.T) {
 	}
 
 	// Count the number of posts in the testing team.
-	var initialPostCount int64
-	if result := <-th.App.Srv.Store.Post().AnalyticsPostCount(team.Id, false, false); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		initialPostCount = result.Data.(int64)
+	initialPostCount, err := th.App.Srv.Store.Post().AnalyticsPostCount(team.Id, false, false)
+	if err != nil {
+		t.Fatal(err)
 	}
 
 	// Try adding an invalid post in dry run mode.
@@ -2177,19 +2169,11 @@ func TestImportImportDirectChannel(t *testing.T) {
 	defer th.TearDown()
 
 	// Check how many channels are in the database.
-	var directChannelCount int64
-	if r := <-th.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_DIRECT); r.Err == nil {
-		directChannelCount = r.Data.(int64)
-	} else {
-		t.Fatalf("Failed to get direct channel count.")
-	}
+	directChannelCount, err := th.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_DIRECT)
+	require.Nil(t, err, "Failed to get direct channel count.")
 
-	var groupChannelCount int64
-	if r := <-th.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_GROUP); r.Err == nil {
-		groupChannelCount = r.Data.(int64)
-	} else {
-		t.Fatalf("Failed to get group channel count.")
-	}
+	groupChannelCount, err := th.App.Srv.Store.Channel().AnalyticsTypeCount("", model.CHANNEL_GROUP)
+	require.Nil(t, err, "Failed to get group channel count.")
 
 	// Do an invalid channel in dry-run mode.
 	data := DirectChannelImportData{
@@ -2198,7 +2182,7 @@ func TestImportImportDirectChannel(t *testing.T) {
 		},
 		Header: ptrStr("Channel Header"),
 	}
-	err := th.App.ImportDirectChannel(&data, true)
+	err = th.App.ImportDirectChannel(&data, true)
 	require.NotNil(t, err)
 
 	// Check that no more channels are in the DB.
@@ -2370,9 +2354,9 @@ func TestImportImportDirectPost(t *testing.T) {
 	directChannel = channel
 
 	// Get the number of posts in the system.
-	result := <-th.App.Srv.Store.Post().AnalyticsPostCount("", false, false)
-	require.Nil(t, result.Err)
-	initialPostCount := result.Data.(int64)
+	result, err := th.App.Srv.Store.Post().AnalyticsPostCount("", false, false)
+	require.Nil(t, err)
+	initialPostCount := result
 
 	// Try adding an invalid post in dry run mode.
 	data := &DirectPostImportData{
@@ -2536,9 +2520,9 @@ func TestImportImportDirectPost(t *testing.T) {
 	groupChannel = channel
 
 	// Get the number of posts in the system.
-	result = <-th.App.Srv.Store.Post().AnalyticsPostCount("", false, false)
-	require.Nil(t, result.Err)
-	initialPostCount = result.Data.(int64)
+	result, err = th.App.Srv.Store.Post().AnalyticsPostCount("", false, false)
+	require.Nil(t, err)
+	initialPostCount = result
 
 	// Try adding an invalid post in dry run mode.
 	data = &DirectPostImportData{
@@ -2697,8 +2681,9 @@ func TestImportImportEmoji(t *testing.T) {
 	err := th.App.ImportEmoji(&data, true)
 	assert.NotNil(t, err, "Invalid emoji should have failed dry run")
 
-	result := <-th.App.Srv.Store.Emoji().GetByName(*data.Name)
-	assert.Nil(t, result.Data, "Emoji should not have been imported")
+	emoji, err := th.App.Srv.Store.Emoji().GetByName(*data.Name)
+	assert.Nil(t, emoji, "Emoji should not have been imported")
+	assert.NotNil(t, err)
 
 	data.Image = ptrStr(testImage)
 	err = th.App.ImportEmoji(&data, true)
@@ -2716,8 +2701,9 @@ func TestImportImportEmoji(t *testing.T) {
 	err = th.App.ImportEmoji(&data, false)
 	assert.Nil(t, err, "Valid emoji should have succeeded apply mode")
 
-	result = <-th.App.Srv.Store.Emoji().GetByName(*data.Name)
-	assert.NotNil(t, result.Data, "Emoji should have been imported")
+	emoji, err = th.App.Srv.Store.Emoji().GetByName(*data.Name)
+	assert.NotNil(t, emoji, "Emoji should have been imported")
+	assert.Nil(t, err, "Emoji should have been imported without any error")
 
 	err = th.App.ImportEmoji(&data, false)
 	assert.Nil(t, err, "Second run should have succeeded apply mode")

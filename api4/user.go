@@ -4,6 +4,7 @@
 package api4
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -25,6 +26,7 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/search", api.ApiSessionRequired(searchUsers)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/autocomplete", api.ApiSessionRequired(autocompleteUsers)).Methods("GET")
 	api.BaseRoutes.Users.Handle("/stats", api.ApiSessionRequired(getTotalUsersStats)).Methods("GET")
+	api.BaseRoutes.Users.Handle("/group_channels", api.ApiSessionRequired(getUsersByGroupChannelIds)).Methods("POST")
 
 	api.BaseRoutes.User.Handle("", api.ApiSessionRequired(getUser)).Methods("GET")
 	api.BaseRoutes.User.Handle("/image/default", api.ApiSessionRequiredTrustRequester(getDefaultProfileImage)).Methods("GET")
@@ -445,6 +447,24 @@ func getTotalUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(stats.ToJson()))
+}
+
+func getUsersByGroupChannelIds(c *Context, w http.ResponseWriter, r *http.Request) {
+	channelIds := model.ArrayFromJson(r.Body)
+
+	if len(channelIds) == 0 {
+		c.SetInvalidParam("channel_ids")
+		return
+	}
+
+	usersByChannelId, err := c.App.GetUsersByGroupChannelIds(channelIds, c.IsSystemAdmin())
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	b, _ := json.Marshal(usersByChannelId)
+	w.Write(b)
 }
 
 func getUsers(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1240,15 +1260,61 @@ func sendPasswordReset(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func login(c *Context, w http.ResponseWriter, r *http.Request) {
-	// Translate all login errors to generic. MFA error being an exception, since it's required for the login flow itself
+	// Mask all sensitive errors, with the exception of the following
 	defer func() {
-		if c.Err != nil &&
-			c.Err.Id != "mfa.validate_token.authenticate.app_error" &&
-			c.Err.Id != "api.user.login.blank_pwd.app_error" &&
-			c.Err.Id != "api.user.login.bot_login_forbidden.app_error" &&
-			c.Err.Id != "api.user.login.client_side_cert.certificate.app_error" {
-			c.Err = model.NewAppError("login", "api.user.login.invalid_credentials", nil, "", http.StatusUnauthorized)
+		if c.Err == nil {
+			return
 		}
+
+		unmaskedErrors := []string{
+			"mfa.validate_token.authenticate.app_error",
+			"api.user.check_user_mfa.bad_code.app_error",
+			"api.user.login.blank_pwd.app_error",
+			"api.user.login.bot_login_forbidden.app_error",
+			"api.user.login.client_side_cert.certificate.app_error",
+			"api.user.login.inactive.app_error",
+			"api.user.login.not_verified.app_error",
+			"api.user.check_user_login_attempts.too_many.app_error",
+			"app.team.join_user_to_team.max_accounts.app_error",
+			"store.sql_user.save.max_accounts.app_error",
+		}
+
+		maskError := true
+
+		for _, unmaskedError := range unmaskedErrors {
+			if c.Err.Id == unmaskedError {
+				maskError = false
+			}
+		}
+
+		if !maskError {
+			return
+		}
+
+		config := c.App.Config()
+		enableUsername := *config.EmailSettings.EnableSignInWithUsername
+		enableEmail := *config.EmailSettings.EnableSignInWithEmail
+		samlEnabled := *config.SamlSettings.Enable
+		gitlabEnabled := *config.GetSSOService("gitlab").Enable
+		googleEnabled := *config.GetSSOService("google").Enable
+		office365Enabled := *config.GetSSOService("office365").Enable
+
+		if samlEnabled || gitlabEnabled || googleEnabled || office365Enabled {
+			c.Err = model.NewAppError("login", "api.user.login.invalid_credentials_sso", nil, "", http.StatusUnauthorized)
+			return
+		}
+
+		if enableUsername && !enableEmail {
+			c.Err = model.NewAppError("login", "api.user.login.invalid_credentials_username", nil, "", http.StatusUnauthorized)
+			return
+		}
+
+		if !enableUsername && enableEmail {
+			c.Err = model.NewAppError("login", "api.user.login.invalid_credentials_email", nil, "", http.StatusUnauthorized)
+			return
+		}
+
+		c.Err = model.NewAppError("login", "api.user.login.invalid_credentials_email_username", nil, "", http.StatusUnauthorized)
 	}()
 
 	props := model.MapFromJson(r.Body)
@@ -1297,6 +1363,10 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.LogAuditWithUserId(user.Id, "success")
+
+	if r.Header.Get(model.HEADER_REQUESTED_WITH) == model.HEADER_REQUESTED_WITH_XML {
+		c.App.AttachSessionCookies(w, r, session)
+	}
 
 	userTermsOfService, err := c.App.GetUserTermsOfService(user.Id)
 	if err != nil && err.StatusCode != http.StatusNotFound {
