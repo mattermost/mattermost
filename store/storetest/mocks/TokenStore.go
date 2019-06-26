@@ -76,15 +76,15 @@ func (_m *TokenStore) RemoveAllTokensByType(tokenType string) store.StoreChannel
 }
 
 // Save provides a mock function with given fields: recovery
-func (_m *TokenStore) Save(recovery *model.Token) store.StoreChannel {
+func (_m *TokenStore) Save(recovery *model.Token) *model.AppError {
 	ret := _m.Called(recovery)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(*model.Token) store.StoreChannel); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(*model.Token) *model.AppError); ok {
 		r0 = rf(recovery)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 

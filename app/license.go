@@ -53,11 +53,10 @@ func (a *App) SaveLicense(licenseBytes []byte) (*model.License, *model.AppError)
 	}
 	license := model.LicenseFromJson(strings.NewReader(licenseStr))
 
-	result := <-a.Srv.Store.User().Count(model.UserCountOptions{})
-	if result.Err != nil {
-		return nil, model.NewAppError("addLicense", "api.license.add_license.invalid_count.app_error", nil, result.Err.Error(), http.StatusBadRequest)
+	uniqueUserCount, err := a.Srv.Store.User().Count(model.UserCountOptions{})
+	if err != nil {
+		return nil, model.NewAppError("addLicense", "api.license.add_license.invalid_count.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
-	uniqueUserCount := result.Data.(int64)
 
 	if uniqueUserCount > int64(*license.Features.Users) {
 		return nil, model.NewAppError("addLicense", "api.license.add_license.unique_users.app_error", map[string]interface{}{"Users": *license.Features.Users, "Count": uniqueUserCount}, "", http.StatusBadRequest)
@@ -75,7 +74,7 @@ func (a *App) SaveLicense(licenseBytes []byte) (*model.License, *model.AppError)
 	record.Id = license.Id
 	record.Bytes = string(licenseBytes)
 
-	_, err := a.Srv.Store.License().Save(record)
+	_, err = a.Srv.Store.License().Save(record)
 	if err != nil {
 		a.RemoveLicense()
 		return nil, model.NewAppError("addLicense", "api.license.add_license.save.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
