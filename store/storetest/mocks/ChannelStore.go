@@ -222,19 +222,28 @@ func (_m *ChannelStore) GetAll(teamId string) ([]*model.Channel, *model.AppError
 }
 
 // GetAllChannelMembersForUser provides a mock function with given fields: userId, allowFromCache, includeDeleted
-func (_m *ChannelStore) GetAllChannelMembersForUser(userId string, allowFromCache bool, includeDeleted bool) store.StoreChannel {
+func (_m *ChannelStore) GetAllChannelMembersForUser(userId string, allowFromCache bool, includeDeleted bool) (map[string]string, *model.AppError) {
 	ret := _m.Called(userId, allowFromCache, includeDeleted)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, bool, bool) store.StoreChannel); ok {
+	var r0 map[string]string
+	if rf, ok := ret.Get(0).(func(string, bool, bool) map[string]string); ok {
 		r0 = rf(userId, allowFromCache, includeDeleted)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(map[string]string)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, bool, bool) *model.AppError); ok {
+		r1 = rf(userId, allowFromCache, includeDeleted)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetAllChannelMembersNotifyPropsForChannel provides a mock function with given fields: channelId, allowFromCache

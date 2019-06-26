@@ -1465,13 +1465,12 @@ func (s SqlChannelStore) IsUserInChannelUseCache(userId string, channelId string
 		s.metrics.IncrementMemCacheMissCounter("All Channel Members for User")
 	}
 
-	result := <-s.GetAllChannelMembersForUser(userId, true, false)
-	if result.Err != nil {
-		mlog.Error("SqlChannelStore.IsUserInChannelUseCache: " + result.Err.Error())
+	ids, err := s.GetAllChannelMembersForUser(userId, true, false)
+	if err != nil {
+		mlog.Error("SqlChannelStore.IsUserInChannelUseCache: " + err.Error())
 		return false
 	}
 
-	ids := result.Data.(map[string]string)
 	if _, ok := ids[channelId]; ok {
 		return true
 	}
@@ -1512,33 +1511,32 @@ func (s SqlChannelStore) GetMemberForPost(postId string, userId string) (*model.
 	return dbMember.ToModel(), nil
 }
 
-func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCache bool, includeDeleted bool) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		cache_key := userId
-		if includeDeleted {
-			cache_key += "_deleted"
-		}
-		if allowFromCache {
-			if cacheItem, ok := allChannelMembersForUserCache.Get(cache_key); ok {
-				if s.metrics != nil {
-					s.metrics.IncrementMemCacheHitCounter("All Channel Members for User")
-				}
-				result.Data = cacheItem.(map[string]string)
-				return
+func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCache bool, includeDeleted bool) (map[string]string, *model.AppError) {
+	cache_key := userId
+	if includeDeleted {
+		cache_key += "_deleted"
+	}
+	if allowFromCache {
+		if cacheItem, ok := allChannelMembersForUserCache.Get(cache_key); ok {
+			if s.metrics != nil {
+				s.metrics.IncrementMemCacheHitCounter("All Channel Members for User")
 			}
+			ids := cacheItem.(map[string]string)
+			return ids, nil
 		}
+	}
 
-		if s.metrics != nil {
-			s.metrics.IncrementMemCacheMissCounter("All Channel Members for User")
-		}
+	if s.metrics != nil {
+		s.metrics.IncrementMemCacheMissCounter("All Channel Members for User")
+	}
 
-		var deletedClause string
-		if !includeDeleted {
-			deletedClause = "Channels.DeleteAt = 0 AND"
-		}
+	var deletedClause string
+	if !includeDeleted {
+		deletedClause = "Channels.DeleteAt = 0 AND"
+	}
 
-		var data allChannelMembers
-		_, err := s.GetReplica().Select(&data, `
+	var data allChannelMembers
+	_, err := s.GetReplica().Select(&data, `
 			SELECT
 				ChannelMembers.ChannelId, ChannelMembers.Roles,
 				ChannelMembers.SchemeGuest, ChannelMembers.SchemeUser, ChannelMembers.SchemeAdmin,
@@ -1562,18 +1560,16 @@ func (s SqlChannelStore) GetAllChannelMembersForUser(userId string, allowFromCac
 				`+deletedClause+`
 				ChannelMembers.UserId = :UserId`, map[string]interface{}{"UserId": userId})
 
-		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.GetAllChannelMembersForUser", "store.sql_channel.get_channels.get.app_error", nil, "userId="+userId+", err="+err.Error(), http.StatusInternalServerError)
-			return
-		}
+	if err != nil {
+		return nil, model.NewAppError("SqlChannelStore.GetAllChannelMembersForUser", "store.sql_channel.get_channels.get.app_error", nil, "userId="+userId+", err="+err.Error(), http.StatusInternalServerError)
+	}
 
-		ids := data.ToMapStringString()
-		result.Data = ids
+	ids := data.ToMapStringString()
 
-		if allowFromCache {
-			allChannelMembersForUserCache.AddWithExpiresInSecs(cache_key, ids, ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SEC)
-		}
-	})
+	if allowFromCache {
+		allChannelMembersForUserCache.AddWithExpiresInSecs(cache_key, ids, ALL_CHANNEL_MEMBERS_FOR_USER_CACHE_SEC)
+	}
+	return ids, nil
 }
 
 func (s SqlChannelStore) InvalidateCacheForChannelMembersNotifyProps(channelId string) {

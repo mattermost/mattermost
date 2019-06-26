@@ -1046,20 +1046,17 @@ func testChannelStoreGetChannels(t *testing.T, ss store.Store) {
 		t.Fatal("missing channel")
 	}
 
-	acresult := <-ss.Channel().GetAllChannelMembersForUser(m1.UserId, false, false)
-	ids := acresult.Data.(map[string]string)
+	ids, _ := ss.Channel().GetAllChannelMembersForUser(m1.UserId, false, false)
 	if _, ok := ids[o1.Id]; !ok {
 		t.Fatal("missing channel")
 	}
 
-	acresult2 := <-ss.Channel().GetAllChannelMembersForUser(m1.UserId, true, false)
-	ids2 := acresult2.Data.(map[string]string)
+	ids2, _ := ss.Channel().GetAllChannelMembersForUser(m1.UserId, true, false)
 	if _, ok := ids2[o1.Id]; !ok {
 		t.Fatal("missing channel")
 	}
 
-	acresult3 := <-ss.Channel().GetAllChannelMembersForUser(m1.UserId, true, false)
-	ids3 := acresult3.Data.(map[string]string)
+	ids3, _ := ss.Channel().GetAllChannelMembersForUser(m1.UserId, true, false)
 	if _, ok := ids3[o1.Id]; !ok {
 		t.Fatal("missing channel")
 	}
