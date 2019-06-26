@@ -174,7 +174,7 @@ type ChannelStore interface {
 	GetMemberCount(channelId string, allowFromCache bool) (int64, *model.AppError)
 	GetPinnedPosts(channelId string) StoreChannel
 	RemoveMember(channelId string, userId string) *model.AppError
-	PermanentDeleteMembersByUser(userId string) StoreChannel
+	PermanentDeleteMembersByUser(userId string) *model.AppError
 	PermanentDeleteMembersByChannel(channelId string) *model.AppError
 	UpdateLastViewedAt(channelIds []string, userId string) (map[string]int64, *model.AppError)
 	IncrementMentionCount(channelId string, userId string) *model.AppError
