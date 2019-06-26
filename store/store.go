@@ -176,7 +176,7 @@ type ChannelStore interface {
 	RemoveMember(channelId string, userId string) *model.AppError
 	PermanentDeleteMembersByUser(userId string) StoreChannel
 	PermanentDeleteMembersByChannel(channelId string) *model.AppError
-	UpdateLastViewedAt(channelIds []string, userId string) StoreChannel
+	UpdateLastViewedAt(channelIds []string, userId string) (map[string]int64, *model.AppError)
 	IncrementMentionCount(channelId string, userId string) *model.AppError
 	AnalyticsTypeCount(teamId string, channelType string) (int64, *model.AppError)
 	GetMembersForUser(teamId string, userId string) (*model.ChannelMembers, *model.AppError)
