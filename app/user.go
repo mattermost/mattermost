@@ -199,13 +199,13 @@ func (a *App) indexUser(user *model.User) *model.AppError {
 		userTeamsIds = append(userTeamsIds, team.Id)
 	}
 
-	userChannelMembers := <-a.Srv.Store.Channel().GetAllChannelMembersForUser(user.Id, false, true)
-	if userChannelMembers.Err != nil {
-		return userChannelMembers.Err
+	userChannelMembers, err := a.Srv.Store.Channel().GetAllChannelMembersForUser(user.Id, false, true)
+	if err != nil {
+		return err
 	}
 
 	userChannelsIds := []string{}
-	for channelId := range userChannelMembers.Data.(map[string]string) {
+	for channelId := range userChannelMembers {
 		userChannelsIds = append(userChannelsIds, channelId)
 	}
 
@@ -1748,12 +1748,10 @@ func (a *App) SearchUsersInTeam(teamId, term string, options *model.UserSearchOp
 	}
 
 	if !a.IsESAutocompletionEnabled() || err != nil {
-		result := <-a.Srv.Store.User().Search(teamId, term, options)
-		if result.Err != nil {
-			return nil, result.Err
+		users, err = a.Srv.Store.User().Search(teamId, term, options)
+		if err != nil {
+			return nil, err
 		}
-
-		users = result.Data.([]*model.User)
 
 		for _, user := range users {
 			a.SanitizeProfile(user, options.IsAdmin)
@@ -1932,12 +1930,11 @@ func (a *App) AutocompleteUsersInTeam(teamId string, term string, options *model
 
 	if !a.IsESAutocompletionEnabled() || err != nil {
 		autocomplete = &model.UserAutocompleteInTeam{}
-		result := <-a.Srv.Store.User().Search(teamId, term, options)
-		if result.Err != nil {
-			return nil, result.Err
+		users, err := a.Srv.Store.User().Search(teamId, term, options)
+		if err != nil {
+			return nil, err
 		}
 
-		users := result.Data.([]*model.User)
 		for _, user := range users {
 			a.SanitizeProfile(user, options.IsAdmin)
 		}
@@ -2163,13 +2160,13 @@ func (a *App) GetViewUsersRestrictions(userId string) (*model.ViewUsersRestricti
 		return &model.ViewUsersRestrictions{Teams: teamIdsWithPermission}, nil
 	}
 
-	userChannelMembers := <-a.Srv.Store.Channel().GetAllChannelMembersForUser(userId, true, true)
-	if userChannelMembers.Err != nil {
-		return nil, userChannelMembers.Err
+	userChannelMembers, err := a.Srv.Store.Channel().GetAllChannelMembersForUser(userId, true, true)
+	if err != nil {
+		return nil, err
 	}
 
 	channelIds := []string{}
-	for channelId := range userChannelMembers.Data.(map[string]string) {
+	for channelId := range userChannelMembers {
 		channelIds = append(channelIds, channelId)
 	}
 
