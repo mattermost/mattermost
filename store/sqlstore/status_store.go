@@ -76,27 +76,24 @@ func (s SqlStatusStore) Get(userId string) store.StoreChannel {
 	})
 }
 
-func (s SqlStatusStore) GetByIds(userIds []string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		props := make(map[string]interface{})
-		idQuery := ""
+func (s SqlStatusStore) GetByIds(userIds []string) ([]*model.Status, *model.AppError) {
+	props := make(map[string]interface{})
+	idQuery := ""
 
-		for index, userId := range userIds {
-			if len(idQuery) > 0 {
-				idQuery += ", "
-			}
-
-			props["userId"+strconv.Itoa(index)] = userId
-			idQuery += ":userId" + strconv.Itoa(index)
+	for index, userId := range userIds {
+		if len(idQuery) > 0 {
+			idQuery += ", "
 		}
 
-		var statuses []*model.Status
-		if _, err := s.GetReplica().Select(&statuses, "SELECT * FROM Status WHERE UserId IN ("+idQuery+")", props); err != nil {
-			result.Err = model.NewAppError("SqlStatusStore.GetByIds", "store.sql_status.get.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = statuses
-		}
-	})
+		props["userId"+strconv.Itoa(index)] = userId
+		idQuery += ":userId" + strconv.Itoa(index)
+	}
+
+	var statuses []*model.Status
+	if _, err := s.GetReplica().Select(&statuses, "SELECT * FROM Status WHERE UserId IN ("+idQuery+")", props); err != nil {
+		return nil, model.NewAppError("SqlStatusStore.GetByIds", "store.sql_status.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return statuses, nil
 }
 
 func (s SqlStatusStore) GetOnlineAway() store.StoreChannel {
