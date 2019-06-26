@@ -824,34 +824,30 @@ func (us SqlUserStore) GetRecentlyActiveUsersForTeam(teamId string, offset, limi
 	})
 }
 
-func (us SqlUserStore) GetNewUsersForTeam(teamId string, offset, limit int, viewRestrictions *model.ViewUsersRestrictions) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		query := us.usersQuery.
-			Join("TeamMembers tm ON (tm.UserId = u.Id AND tm.TeamId = ?)", teamId).
-			OrderBy("u.CreateAt DESC").
-			OrderBy("u.Username ASC").
-			Offset(uint64(offset)).Limit(uint64(limit))
+func (us SqlUserStore) GetNewUsersForTeam(teamId string, offset, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
+	query := us.usersQuery.
+		Join("TeamMembers tm ON (tm.UserId = u.Id AND tm.TeamId = ?)", teamId).
+		OrderBy("u.CreateAt DESC").
+		OrderBy("u.Username ASC").
+		Offset(uint64(offset)).Limit(uint64(limit))
 
-		query = applyViewRestrictionsFilter(query, viewRestrictions, true)
+	query = applyViewRestrictionsFilter(query, viewRestrictions, true)
 
-		queryString, args, err := query.ToSql()
-		if err != nil {
-			result.Err = model.NewAppError("SqlUserStore.GetNewUsersForTeam", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlUserStore.GetNewUsersForTeam", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		var users []*model.User
-		if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.GetNewUsersForTeam", "store.sql_user.get_new_users.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	var users []*model.User
+	if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
+		return nil, model.NewAppError("SqlUserStore.GetNewUsersForTeam", "store.sql_user.get_new_users.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		for _, u := range users {
-			u.Sanitize(map[string]bool{})
-		}
+	for _, u := range users {
+		u.Sanitize(map[string]bool{})
+	}
 
-		result.Data = users
-	})
+	return users, nil
 }
 
 func (us SqlUserStore) GetProfileByIds(userIds []string, allowFromCache bool, viewRestrictions *model.ViewUsersRestrictions) store.StoreChannel {
