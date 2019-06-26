@@ -1349,8 +1349,8 @@ func (a *App) CreatePasswordRecoveryToken(userId, email string) (*model.Token, *
 
 	token := model.NewToken(TOKEN_TYPE_PASSWORD_RECOVERY, string(jsonData))
 
-	if result := <-a.Srv.Store.Token().Save(token); result.Err != nil {
-		return nil, result.Err
+	if err := a.Srv.Store.Token().Save(token); err != nil {
+		return nil, err
 	}
 
 	return token, nil
@@ -1438,8 +1438,8 @@ func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 		return err
 	}
 
-	if result := <-a.Srv.Store.UserAccessToken().DeleteAllForUser(user.Id); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.UserAccessToken().DeleteAllForUser(user.Id); err != nil {
+		return err
 	}
 
 	if err := a.Srv.Store.OAuth().PermanentDeleteAuthDataByUser(user.Id); err != nil {
@@ -1462,8 +1462,8 @@ func (a *App) PermanentDeleteUser(user *model.User) *model.AppError {
 		return err
 	}
 
-	if result := <-a.Srv.Store.Channel().PermanentDeleteMembersByUser(user.Id); result.Err != nil {
-		return result.Err
+	if err := a.Srv.Store.Channel().PermanentDeleteMembersByUser(user.Id); err != nil {
+		return err
 	}
 
 	if err := a.Srv.Store.Post().PermanentDeleteByUser(user.Id); err != nil {
@@ -1615,8 +1615,8 @@ func (a *App) CreateVerifyEmailToken(userId string, newEmail string) (*model.Tok
 
 	token := model.NewToken(TOKEN_TYPE_VERIFY_EMAIL, string(jsonData))
 
-	if result := <-a.Srv.Store.Token().Save(token); result.Err != nil {
-		return nil, result.Err
+	if err := a.Srv.Store.Token().Save(token); err != nil {
+		return nil, err
 	}
 
 	return token, nil
