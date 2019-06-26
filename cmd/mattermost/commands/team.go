@@ -451,7 +451,7 @@ func modifyTeamCmdF(command *cobra.Command, args []string) error {
 		team.AllowOpenInvite = false
 	}
 
-	if _, err := a.UpdateTeamPrivacy(team); err != nil {
+	if err := a.UpdateTeamPrivacy(team.Id, team.Type, team.AllowOpenInvite); err != nil {
 		return errors.New("Failed to update privacy for team" + args[0])
 	}
 
