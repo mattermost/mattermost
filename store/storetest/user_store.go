@@ -2412,9 +2412,9 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.Description, func(t *testing.T) {
-			result := <-ss.User().Search(testCase.TeamId, testCase.Term, testCase.Options)
-			require.Nil(t, result.Err)
-			assertUsersMatchInAnyOrder(t, testCase.Expected, result.Data.([]*model.User))
+			users, err := ss.User().Search(testCase.TeamId, testCase.Term, testCase.Options)
+			require.Nil(t, err)
+			assertUsersMatchInAnyOrder(t, testCase.Expected, users)
 		})
 	}
 
@@ -2424,9 +2424,9 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 			Limit:          model.USER_SEARCH_DEFAULT_LIMIT,
 		}
 
-		r1 := <-ss.User().Search(tid, "", searchOptions)
-		require.Nil(t, r1.Err)
-		assert.Len(t, r1.Data.([]*model.User), 4)
+		users, err := ss.User().Search(tid, "", searchOptions)
+		require.Nil(t, err)
+		assert.Len(t, users, 4)
 		// Don't assert contents, since Postgres' default collation order is left up to
 		// the operating system, and jimbo1 might sort before or after jim-bo.
 		// assertUsers(t, []*model.User{u2, u1, u6, u5}, r1.Data.([]*model.User))
@@ -2438,9 +2438,9 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 			Limit:          2,
 		}
 
-		r1 := <-ss.User().Search(tid, "", searchOptions)
-		require.Nil(t, r1.Err)
-		assert.Len(t, r1.Data.([]*model.User), 2)
+		users, err := ss.User().Search(tid, "", searchOptions)
+		require.Nil(t, err)
+		assert.Len(t, users, 2)
 		// Don't assert contents, since Postgres' default collation order is left up to
 		// the operating system, and jimbo1 might sort before or after jim-bo.
 		// assertUsers(t, []*model.User{u2, u1, u6, u5}, r1.Data.([]*model.User))
