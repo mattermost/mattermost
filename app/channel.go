@@ -96,8 +96,8 @@ func (a *App) JoinDefaultChannels(teamId string, user *model.User, shouldBeAdmin
 		if cmResult := <-a.Srv.Store.Channel().SaveMember(cm); cmResult.Err != nil {
 			err = cmResult.Err
 		}
-		if result := <-a.Srv.Store.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); result.Err != nil {
-			mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", result.Err))
+		if histErr := a.Srv.Store.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); histErr != nil {
+			mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", histErr))
 		}
 
 		if *a.Config().ServiceSettings.ExperimentalEnableDefaultChannelLeaveJoinMessages {
@@ -243,8 +243,8 @@ func (a *App) CreateChannel(channel *model.Channel, addMember bool) (*model.Chan
 		if cmresult := <-a.Srv.Store.Channel().SaveMember(cm); cmresult.Err != nil {
 			return nil, cmresult.Err
 		}
-		if result := <-a.Srv.Store.ChannelMemberHistory().LogJoinEvent(channel.CreatorId, sc.Id, model.GetMillis()); result.Err != nil {
-			mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", result.Err))
+		if err := a.Srv.Store.ChannelMemberHistory().LogJoinEvent(channel.CreatorId, sc.Id, model.GetMillis()); err != nil {
+			mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", err))
 		}
 
 		a.InvalidateCacheForUser(channel.CreatorId)
@@ -358,11 +358,11 @@ func (a *App) createDirectChannel(userId string, otherUserId string) (*model.Cha
 		return nil, err
 	}
 
-	if result := <-a.Srv.Store.ChannelMemberHistory().LogJoinEvent(userId, channel.Id, model.GetMillis()); result.Err != nil {
-		mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", result.Err))
+	if err = a.Srv.Store.ChannelMemberHistory().LogJoinEvent(userId, channel.Id, model.GetMillis()); err != nil {
+		mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", err))
 	}
-	if result := <-a.Srv.Store.ChannelMemberHistory().LogJoinEvent(otherUserId, channel.Id, model.GetMillis()); result.Err != nil {
-		mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", result.Err))
+	if err = a.Srv.Store.ChannelMemberHistory().LogJoinEvent(otherUserId, channel.Id, model.GetMillis()); err != nil {
+		mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", err))
 	}
 
 	return channel, nil
@@ -470,8 +470,8 @@ func (a *App) createGroupChannel(userIds []string, creatorId string) (*model.Cha
 		if result := <-a.Srv.Store.Channel().SaveMember(cm); result.Err != nil {
 			return nil, result.Err
 		}
-		if result := <-a.Srv.Store.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); result.Err != nil {
-			mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", result.Err))
+		if err := a.Srv.Store.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); err != nil {
+			mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", err))
 		}
 	}
 
@@ -927,8 +927,8 @@ func (a *App) addUserToChannel(user *model.User, channel *model.Channel, teamMem
 	}
 	a.WaitForChannelMembership(channel.Id, user.Id)
 
-	if result := <-a.Srv.Store.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); result.Err != nil {
-		mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", result.Err))
+	if err = a.Srv.Store.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis()); err != nil {
+		mlog.Warn(fmt.Sprintf("Failed to update ChannelMemberHistory table %v", err))
 	}
 
 	a.InvalidateCacheForUser(user.Id)
@@ -1606,8 +1606,8 @@ func (a *App) removeUserFromChannel(userIdToRemove string, removerUserId string,
 	if err := a.Srv.Store.Channel().RemoveMember(channel.Id, userIdToRemove); err != nil {
 		return err
 	}
-	if cmhResult := <-a.Srv.Store.ChannelMemberHistory().LogLeaveEvent(userIdToRemove, channel.Id, model.GetMillis()); cmhResult.Err != nil {
-		return cmhResult.Err
+	if err := a.Srv.Store.ChannelMemberHistory().LogLeaveEvent(userIdToRemove, channel.Id, model.GetMillis()); err != nil {
+		return err
 	}
 
 	a.InvalidateCacheForUser(userIdToRemove)

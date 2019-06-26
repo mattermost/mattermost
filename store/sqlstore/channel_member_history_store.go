@@ -33,62 +33,64 @@ func NewSqlChannelMemberHistoryStore(sqlStore SqlStore) store.ChannelMemberHisto
 	return s
 }
 
-func (s SqlChannelMemberHistoryStore) LogJoinEvent(userId string, channelId string, joinTime int64) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		channelMemberHistory := &model.ChannelMemberHistory{
-			UserId:    userId,
-			ChannelId: channelId,
-			JoinTime:  joinTime,
-		}
+func (s SqlChannelMemberHistoryStore) LogJoinEvent(userId string, channelId string, joinTime int64) *model.AppError {
+	channelMemberHistory := &model.ChannelMemberHistory{
+		UserId:    userId,
+		ChannelId: channelId,
+		JoinTime:  joinTime,
+	}
 
-		if err := s.GetMaster().Insert(channelMemberHistory); err != nil {
-			result.Err = model.NewAppError("SqlChannelMemberHistoryStore.LogJoinEvent", "store.sql_channel_member_history.log_join_event.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-	})
+	if err := s.GetMaster().Insert(channelMemberHistory); err != nil {
+		return model.NewAppError("SqlChannelMemberHistoryStore.LogJoinEvent", "store.sql_channel_member_history.log_join_event.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return nil
 }
 
-func (s SqlChannelMemberHistoryStore) LogLeaveEvent(userId string, channelId string, leaveTime int64) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		query := `
-			UPDATE ChannelMemberHistory
-			SET LeaveTime = :LeaveTime
-			WHERE UserId = :UserId
-			AND ChannelId = :ChannelId
-			AND LeaveTime IS NULL`
+func (s SqlChannelMemberHistoryStore) LogLeaveEvent(userId string, channelId string, leaveTime int64) *model.AppError {
+	query := `
+		UPDATE ChannelMemberHistory
+		SET LeaveTime = :LeaveTime
+		WHERE UserId = :UserId
+		AND ChannelId = :ChannelId
+		AND LeaveTime IS NULL`
 
-		params := map[string]interface{}{"UserId": userId, "ChannelId": channelId, "LeaveTime": leaveTime}
-		if sqlResult, err := s.GetMaster().Exec(query, params); err != nil {
-			result.Err = model.NewAppError("SqlChannelMemberHistoryStore.LogLeaveEvent", "store.sql_channel_member_history.log_leave_event.update_error", params, err.Error(), http.StatusInternalServerError)
-		} else if rows, err := sqlResult.RowsAffected(); err == nil && rows != 1 {
-			// there was no join event to update - this is best effort, so no need to raise an error
-			mlog.Warn(fmt.Sprintf("Channel join event for user %v and channel %v not found", userId, channelId), mlog.String("user_id", userId))
-		}
-	})
+	params := map[string]interface{}{"UserId": userId, "ChannelId": channelId, "LeaveTime": leaveTime}
+	sqlResult, err := s.GetMaster().Exec(query, params)
+	if err != nil {
+		return model.NewAppError("SqlChannelMemberHistoryStore.LogLeaveEvent", "store.sql_channel_member_history.log_leave_event.update_error", params, err.Error(), http.StatusInternalServerError)
+	}
+
+	if rows, err := sqlResult.RowsAffected(); err == nil && rows != 1 {
+		// there was no join event to update - this is best effort, so no need to raise an error
+		mlog.Warn(fmt.Sprintf("Channel join event for user %v and channel %v not found", userId, channelId), mlog.String("user_id", userId))
+	}
+	return nil
 }
 
-func (s SqlChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, endTime int64, channelId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if useChannelMemberHistory, err := s.hasDataAtOrBefore(startTime); err != nil {
-			result.Err = model.NewAppError("SqlChannelMemberHistoryStore.GetUsersInChannelAt", "store.sql_channel_member_history.get_users_in_channel_during.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else if useChannelMemberHistory {
-			// the export period starts after the ChannelMemberHistory table was first introduced, so we can use the
-			// data from it for our export
-			if channelMemberHistories, err := s.getFromChannelMemberHistoryTable(startTime, endTime, channelId); err != nil {
-				result.Err = model.NewAppError("SqlChannelMemberHistoryStore.GetUsersInChannelAt", "store.sql_channel_member_history.get_users_in_channel_during.app_error", nil, err.Error(), http.StatusInternalServerError)
-			} else {
-				result.Data = channelMemberHistories
-			}
-		} else {
-			// the export period starts before the ChannelMemberHistory table was introduced, so we need to fake the
-			// data by assuming that anybody who has ever joined the channel in question was present during the export period.
-			// this may not always be true, but it's better than saying that somebody wasn't there when they were
-			if channelMemberHistories, err := s.getFromChannelMembersTable(startTime, endTime, channelId); err != nil {
-				result.Err = model.NewAppError("SqlChannelMemberHistoryStore.GetUsersInChannelAt", "store.sql_channel_member_history.get_users_in_channel_during.app_error", nil, err.Error(), http.StatusInternalServerError)
-			} else {
-				result.Data = channelMemberHistories
-			}
+func (s SqlChannelMemberHistoryStore) GetUsersInChannelDuring(startTime int64, endTime int64, channelId string) ([]*model.ChannelMemberHistoryResult, *model.AppError) {
+	useChannelMemberHistory, err := s.hasDataAtOrBefore(startTime)
+	if err != nil {
+		return nil, model.NewAppError("SqlChannelMemberHistoryStore.GetUsersInChannelAt", "store.sql_channel_member_history.get_users_in_channel_during.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	if useChannelMemberHistory {
+		// the export period starts after the ChannelMemberHistory table was first introduced, so we can use the
+		// data from it for our export
+		channelMemberHistories, err2 := s.getFromChannelMemberHistoryTable(startTime, endTime, channelId)
+		if err2 != nil {
+			return nil, model.NewAppError("SqlChannelMemberHistoryStore.GetUsersInChannelAt", "store.sql_channel_member_history.get_users_in_channel_during.app_error", nil, err2.Error(), http.StatusInternalServerError)
 		}
-	})
+		return channelMemberHistories, nil
+	}
+
+	// the export period starts before the ChannelMemberHistory table was introduced, so we need to fake the
+	// data by assuming that anybody who has ever joined the channel in question was present during the export period.
+	// this may not always be true, but it's better than saying that somebody wasn't there when they were
+	channelMemberHistories, err := s.getFromChannelMembersTable(startTime, endTime, channelId)
+	if err != nil {
+		return nil, model.NewAppError("SqlChannelMemberHistoryStore.GetUsersInChannelAt", "store.sql_channel_member_history.get_users_in_channel_during.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return channelMemberHistories, nil
 }
 
 func (s SqlChannelMemberHistoryStore) hasDataAtOrBefore(time int64) (bool, error) {
@@ -159,35 +161,34 @@ func (s SqlChannelMemberHistoryStore) getFromChannelMembersTable(startTime int64
 	}
 }
 
-func (s SqlChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit int64) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var query string
-		if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
-			query =
-				`DELETE FROM ChannelMemberHistory
+func (s SqlChannelMemberHistoryStore) PermanentDeleteBatch(endTime int64, limit int64) (int64, *model.AppError) {
+	var query string
+	if s.DriverName() == model.DATABASE_DRIVER_POSTGRES {
+		query =
+			`DELETE FROM ChannelMemberHistory
 				 WHERE ctid IN (
 					SELECT ctid FROM ChannelMemberHistory
 					WHERE LeaveTime IS NOT NULL
 					AND LeaveTime <= :EndTime
 					LIMIT :Limit
 				);`
-		} else {
-			query =
-				`DELETE FROM ChannelMemberHistory
+	} else {
+		query =
+			`DELETE FROM ChannelMemberHistory
 				 WHERE LeaveTime IS NOT NULL
 				 AND LeaveTime <= :EndTime
 				 LIMIT :Limit`
-		}
+	}
 
-		params := map[string]interface{}{"EndTime": endTime, "Limit": limit}
-		if sqlResult, err := s.GetMaster().Exec(query, params); err != nil {
-			result.Err = model.NewAppError("SqlChannelMemberHistoryStore.PermanentDeleteBatchForChannel", "store.sql_channel_member_history.permanent_delete_batch.app_error", params, err.Error(), http.StatusInternalServerError)
-		} else {
-			if rowsAffected, err1 := sqlResult.RowsAffected(); err1 != nil {
-				result.Err = model.NewAppError("SqlChannelMemberHistoryStore.PermanentDeleteBatchForChannel", "store.sql_channel_member_history.permanent_delete_batch.app_error", params, err.Error(), http.StatusInternalServerError)
-			} else {
-				result.Data = rowsAffected
-			}
-		}
-	})
+	params := map[string]interface{}{"EndTime": endTime, "Limit": limit}
+	sqlResult, err := s.GetMaster().Exec(query, params)
+	if err != nil {
+		return int64(0), model.NewAppError("SqlChannelMemberHistoryStore.PermanentDeleteBatchForChannel", "store.sql_channel_member_history.permanent_delete_batch.app_error", params, err.Error(), http.StatusInternalServerError)
+	}
+
+	rowsAffected, err := sqlResult.RowsAffected()
+	if err != nil {
+		return int64(0), model.NewAppError("SqlChannelMemberHistoryStore.PermanentDeleteBatchForChannel", "store.sql_channel_member_history.permanent_delete_batch.app_error", params, err.Error(), http.StatusInternalServerError)
+	}
+	return rowsAffected, nil
 }
