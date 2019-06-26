@@ -15,25 +15,47 @@ import (
 func TestGetPing(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
-	Client := th.Client
 
-	goRoutineHealthThreshold := *th.App.Config().ServiceSettings.GoroutineHealthThreshold
-	defer func() {
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.GoroutineHealthThreshold = goRoutineHealthThreshold })
-	}()
+	t.Run("basic ping", func(t *testing.T) {
 
-	status, resp := Client.GetPing()
-	CheckNoError(t, resp)
-	if status != "OK" {
-		t.Fatal("should return OK")
-	}
+		t.Run("healthy", func(t *testing.T) {
+			status, resp := th.Client.GetPing()
+			CheckNoError(t, resp)
+			assert.Equal(t, model.STATUS_OK, status)
+		})
 
-	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.GoroutineHealthThreshold = 10 })
-	status, resp = th.SystemAdminClient.GetPing()
-	CheckInternalErrorStatus(t, resp)
-	if status != "unhealthy" {
-		t.Fatal("should return unhealthy")
-	}
+		t.Run("unhealthy", func(t *testing.T) {
+			goRoutineHealthThreshold := *th.App.Config().ServiceSettings.GoroutineHealthThreshold
+			defer func() {
+				th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.GoroutineHealthThreshold = goRoutineHealthThreshold })
+			}()
+
+			th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.GoroutineHealthThreshold = 10 })
+			status, resp := th.Client.GetPing()
+			CheckInternalErrorStatus(t, resp)
+			assert.Equal(t, model.STATUS_UNHEALTHY, status)
+		})
+
+	})
+
+	t.Run("with server status", func(t *testing.T) {
+
+		t.Run("healthy", func(t *testing.T) {
+			status, resp := th.Client.GetPingWithServerStatus()
+			CheckNoError(t, resp)
+			assert.Equal(t, model.STATUS_OK, status)
+		})
+
+		t.Run("unhealthy", func(t *testing.T) {
+			badDriver := "badDriverName"
+			th.App.Config().FileSettings.DriverName = &badDriver
+
+			status, resp := th.Client.GetPingWithServerStatus()
+			CheckInternalErrorStatus(t, resp)
+			assert.Equal(t, model.STATUS_UNHEALTHY, status)
+		})
+
+	})
 }
 
 func TestGetAudits(t *testing.T) {

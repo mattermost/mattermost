@@ -1236,22 +1236,22 @@ func testPendingAutoAddChannelMembers(t *testing.T, ss store.Store) {
 	require.Len(t, channelMembers, 1)
 
 	// Adding Channel (ChannelMemberHistory) should stop returning result
-	res = <-ss.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis())
-	require.Nil(t, res.Err)
+	err = ss.ChannelMemberHistory().LogJoinEvent(user.Id, channel.Id, model.GetMillis())
+	require.Nil(t, err)
 	channelMembers, err = ss.Group().ChannelMembersToAdd(0)
 	require.Nil(t, err)
 	require.Len(t, channelMembers, 0)
 
 	// Leaving Channel (ChannelMemberHistory) should still not return result
-	res = <-ss.ChannelMemberHistory().LogLeaveEvent(user.Id, channel.Id, model.GetMillis())
-	require.Nil(t, res.Err)
+	err = ss.ChannelMemberHistory().LogLeaveEvent(user.Id, channel.Id, model.GetMillis())
+	require.Nil(t, err)
 	channelMembers, err = ss.Group().ChannelMembersToAdd(0)
 	require.Nil(t, err)
 	require.Len(t, channelMembers, 0)
 
 	// Purging ChannelMemberHistory re-returns the result
-	res = <-ss.ChannelMemberHistory().PermanentDeleteBatch(model.GetMillis()+1, 100)
-	require.Nil(t, res.Err)
+	_, err = ss.ChannelMemberHistory().PermanentDeleteBatch(model.GetMillis()+1, 100)
+	require.Nil(t, err)
 	channelMembers, err = ss.Group().ChannelMembersToAdd(0)
 	require.Nil(t, err)
 	require.Len(t, channelMembers, 1)
