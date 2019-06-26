@@ -1383,7 +1383,8 @@ func testPostCountsByDay(t *testing.T, ss store.Store) {
 	// 3 days ago - 2 non-bot user posts, 1 bot user post
 
 	// last 31 days, all users (including bots)
-	if r1, err := ss.Post().AnalyticsPostCountsByDay(t1.Id, false, false); err != nil {
+	postCountsOptions := &model.AnalyticsPostCountsOptions{TeamId: t1.Id, BotsOnly: false, YesterdayOnly: false}
+	if r1, err := ss.Post().AnalyticsPostCountsByDay(postCountsOptions); err != nil {
 		t.Fatal(err)
 	} else {
 		assert.Equal(t, float64(3), r1[0].Value)
@@ -1391,7 +1392,8 @@ func testPostCountsByDay(t *testing.T, ss store.Store) {
 	}
 
 	// last 31 days, bots only
-	if r1, err := ss.Post().AnalyticsPostCountsByDay(t1.Id, true, false); err != nil {
+	postCountsOptions = &model.AnalyticsPostCountsOptions{TeamId: t1.Id, BotsOnly: true, YesterdayOnly: false}
+	if r1, err := ss.Post().AnalyticsPostCountsByDay(postCountsOptions); err != nil {
 		t.Fatal(err)
 	} else {
 		assert.Equal(t, float64(1), r1[0].Value)
@@ -1399,14 +1401,16 @@ func testPostCountsByDay(t *testing.T, ss store.Store) {
 	}
 
 	// yesterday only, all users (including bots)
-	if r1, err := ss.Post().AnalyticsPostCountsByDay(t1.Id, false, true); err != nil {
+	postCountsOptions = &model.AnalyticsPostCountsOptions{TeamId: t1.Id, BotsOnly: false, YesterdayOnly: true}
+	if r1, err := ss.Post().AnalyticsPostCountsByDay(postCountsOptions); err != nil {
 		t.Fatal(err)
 	} else {
 		assert.Equal(t, float64(3), r1[0].Value)
 	}
 
 	// yesterday only, bots only
-	if r1, err := ss.Post().AnalyticsPostCountsByDay(t1.Id, true, true); err != nil {
+	postCountsOptions = &model.AnalyticsPostCountsOptions{TeamId: t1.Id, BotsOnly: true, YesterdayOnly: true}
+	if r1, err := ss.Post().AnalyticsPostCountsByDay(postCountsOptions); err != nil {
 		t.Fatal(err)
 	} else {
 		assert.Equal(t, float64(1), r1[0].Value)

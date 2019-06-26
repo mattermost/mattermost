@@ -180,14 +180,16 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			return rows, nil
 		}
 
-		return a.Srv.Store.Post().AnalyticsPostCountsByDay(teamId, true, false)
+		postCountsOptions = &model.AnalyticsPostCountsOptions{TeamId: teamId, BotsOnly: true, YesterdayOnly: false}
+		return a.Srv.Store.Post().AnalyticsPostCountsByDay(postCountsOptions)
 	} else if name == "post_counts_day" {
 		if skipIntensiveQueries {
 			rows := model.AnalyticsRows{&model.AnalyticsRow{Name: "", Value: -1}}
 			return rows, nil
 		}
 
-		return a.Srv.Store.Post().AnalyticsPostCountsByDay(teamId, false, false)
+		postCountsOptions = &model.AnalyticsPostCountsOptions{TeamId: teamId, BotsOnly: false, YesterdayOnly: false}
+		return a.Srv.Store.Post().AnalyticsPostCountsByDay(postCountsOptions)
 	} else if name == "user_counts_with_posts_day" {
 		if skipIntensiveQueries {
 			rows := model.AnalyticsRows{&model.AnalyticsRow{Name: "", Value: -1}}

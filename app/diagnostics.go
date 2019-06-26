@@ -195,13 +195,15 @@ func (a *App) trackActivity() {
 
 	postsCount, _ = a.Srv.Store.Post().AnalyticsPostCount("", false, false)
 
-	postCountsYesterday, _ := a.Srv.Store.Post().AnalyticsPostCountsByDay("", false, true)
+	postCountsOptions = &model.AnalyticsPostCountsOptions{TeamId: "", BotsOnly: false, YesterdayOnly: true}
+	postCountsYesterday, _ := a.Srv.Store.Post().AnalyticsPostCountsByDay(postCountsOptions)
 	postsCountPreviousDay = 0
 	if len(postCountsYesterday) > 0 {
 		postsCountPreviousDay = int64(postCountsYesterday[0].Value)
 	}
 
-	botPostCountsYesterday, _ := a.Srv.Store.Post().AnalyticsPostCountsByDay("", true, true)
+	postCountsOptions = &model.AnalyticsPostCountsOptions{TeamId: "", BotsOnly: true, YesterdayOnly: true}
+	botPostCountsYesterday, _ := a.Srv.Store.Post().AnalyticsPostCountsByDay(postCountsOptions)
 	botPostsCountPreviousDay = 0
 	if len(botPostCountsYesterday) > 0 {
 		botPostsCountPreviousDay = int64(botPostCountsYesterday[0].Value)
