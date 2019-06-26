@@ -2039,37 +2039,37 @@ func testUserStoreGetNewUsersForTeam(t *testing.T, ss store.Store) {
 	store.Must(ss.Team().SaveMember(&model.TeamMember{TeamId: teamId2, UserId: u4.Id}, -1))
 
 	t.Run("get team 1, offset 0, limit 100", func(t *testing.T) {
-		result := <-ss.User().GetNewUsersForTeam(teamId, 0, 100, nil)
-		require.Nil(t, result.Err)
+		result, err := ss.User().GetNewUsersForTeam(teamId, 0, 100, nil)
+		require.Nil(t, err)
 		assert.Equal(t, []*model.User{
 			sanitized(u3),
 			sanitized(u2),
 			sanitized(u1),
-		}, result.Data.([]*model.User))
+		}, result)
 	})
 
 	t.Run("get team 1, offset 0, limit 1", func(t *testing.T) {
-		result := <-ss.User().GetNewUsersForTeam(teamId, 0, 1, nil)
-		require.Nil(t, result.Err)
+		result, err := ss.User().GetNewUsersForTeam(teamId, 0, 1, nil)
+		require.Nil(t, err)
 		assert.Equal(t, []*model.User{
 			sanitized(u3),
-		}, result.Data.([]*model.User))
+		}, result)
 	})
 
 	t.Run("get team 1, offset 2, limit 1", func(t *testing.T) {
-		result := <-ss.User().GetNewUsersForTeam(teamId, 2, 1, nil)
-		require.Nil(t, result.Err)
+		result, err := ss.User().GetNewUsersForTeam(teamId, 2, 1, nil)
+		require.Nil(t, err)
 		assert.Equal(t, []*model.User{
 			sanitized(u1),
-		}, result.Data.([]*model.User))
+		}, result)
 	})
 
 	t.Run("get team 2, offset 0, limit 100", func(t *testing.T) {
-		result := <-ss.User().GetNewUsersForTeam(teamId2, 0, 100, nil)
-		require.Nil(t, result.Err)
+		result, err := ss.User().GetNewUsersForTeam(teamId2, 0, 100, nil)
+		require.Nil(t, err)
 		assert.Equal(t, []*model.User{
 			sanitized(u4),
-		}, result.Data.([]*model.User))
+		}, result)
 	})
 }
 
