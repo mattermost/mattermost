@@ -72,10 +72,10 @@ func testStatusStore(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	if status, err := ss.Status().Get(status3.UserId); err != nil {
+	if status3, err := ss.Status().Get(status3.UserId); err != nil {
 		t.Fatal(err)
 	} else {
-		if status.Status != model.STATUS_OFFLINE {
+		if status3.Status != model.STATUS_OFFLINE {
 			t.Fatal("should be offline")
 		}
 	}
