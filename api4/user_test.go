@@ -1099,32 +1099,71 @@ func TestGetUsersByIds(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	users, resp := th.Client.GetUsersByIds([]string{th.BasicUser.Id})
-	CheckNoError(t, resp)
+	t.Run("should return the user", func(t *testing.T) {
+		users, resp := th.Client.GetUsersByIds([]string{th.BasicUser.Id})
 
-	if users[0].Id != th.BasicUser.Id {
-		t.Fatal("returned wrong user")
-	}
-	CheckUserSanitization(t, users[0])
+		CheckNoError(t, resp)
 
-	_, resp = th.Client.GetUsersByIds([]string{})
-	CheckBadRequestStatus(t, resp)
+		assert.Equal(t, th.BasicUser.Id, users[0].Id)
+		CheckUserSanitization(t, users[0])
+	})
 
-	users, resp = th.Client.GetUsersByIds([]string{"junk"})
-	CheckNoError(t, resp)
-	if len(users) > 0 {
-		t.Fatal("no users should be returned")
-	}
+	t.Run("should return error when no IDs are specified", func(t *testing.T) {
+		_, resp := th.Client.GetUsersByIds([]string{})
 
-	users, resp = th.Client.GetUsersByIds([]string{"junk", th.BasicUser.Id})
-	CheckNoError(t, resp)
-	if len(users) != 1 {
-		t.Fatal("1 user should be returned")
-	}
+		CheckBadRequestStatus(t, resp)
+	})
 
-	th.Client.Logout()
-	_, resp = th.Client.GetUsersByIds([]string{th.BasicUser.Id})
-	CheckUnauthorizedStatus(t, resp)
+	t.Run("should not return an error for invalid IDs", func(t *testing.T) {
+		users, resp := th.Client.GetUsersByIds([]string{"junk"})
+
+		CheckNoError(t, resp)
+		if len(users) > 0 {
+			t.Fatal("no users should be returned")
+		}
+	})
+
+	t.Run("should still return users for valid IDs when invalid IDs are specified", func(t *testing.T) {
+		users, resp := th.Client.GetUsersByIds([]string{"junk", th.BasicUser.Id})
+
+		CheckNoError(t, resp)
+		if len(users) != 1 {
+			t.Fatal("1 user should be returned")
+		}
+	})
+
+	t.Run("should return error when not logged in", func(t *testing.T) {
+		th.Client.Logout()
+
+		_, resp := th.Client.GetUsersByIds([]string{th.BasicUser.Id})
+		CheckUnauthorizedStatus(t, resp)
+	})
+}
+
+func TestGetUsersByIdsWithOptions(t *testing.T) {
+	t.Run("should only return specified users that have been updated since the given time", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
+
+		// Users before the timestamp shouldn't be returned
+		user1, err := th.App.CreateUser(&model.User{Email: th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+		require.Nil(t, err)
+
+		user2, err := th.App.CreateUser(&model.User{Email: th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+		require.Nil(t, err)
+
+		// Users not in the list of IDs shouldn't be returned
+		_, err = th.App.CreateUser(&model.User{Email: th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+		require.Nil(t, err)
+
+		users, resp := th.Client.GetUsersByIdsWithOptions([]string{user1.Id, user2.Id}, &model.UserGetByIdsOptions{
+			Since: user2.UpdateAt - 1,
+		})
+
+		assert.Nil(t, resp.Error)
+		assert.Len(t, users, 1)
+		assert.Equal(t, users[0].Id, user2.Id)
+	})
 }
 
 func TestGetUsersByGroupChannelIds(t *testing.T) {

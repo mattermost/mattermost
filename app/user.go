@@ -617,12 +617,15 @@ func (a *App) GetChannelGroupUsers(channelID string) ([]*model.User, *model.AppE
 	return a.Srv.Store.User().GetChannelGroupUsers(channelID)
 }
 
-func (a *App) GetUsersByIds(userIds []string, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
-	result := <-a.Srv.Store.User().GetProfileByIds(userIds, viewRestrictions == nil, viewRestrictions)
+func (a *App) GetUsersByIds(userIds []string, options *store.UserGetByIdsOpts) ([]*model.User, *model.AppError) {
+	allowFromCache := options.ViewRestrictions == nil
+
+	result := <-a.Srv.Store.User().GetProfileByIds(userIds, options, allowFromCache)
 	if result.Err != nil {
 		return nil, result.Err
 	}
-	return a.sanitizeProfiles(result.Data.([]*model.User), asAdmin), nil
+
+	return a.sanitizeProfiles(result.Data.([]*model.User), options.IsAdmin), nil
 }
 
 func (a *App) GetUsersByGroupChannelIds(channelIds []string, asAdmin bool) (map[string][]*model.User, *model.AppError) {
@@ -1713,7 +1716,7 @@ func (a *App) esSearchUsersInTeam(teamId, term string, options *model.UserSearch
 		return nil, err
 	}
 
-	result := <-a.Srv.Store.User().GetProfileByIds(usersIds, false, nil)
+	result := <-a.Srv.Store.User().GetProfileByIds(usersIds, nil, false)
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -1800,8 +1803,8 @@ func (a *App) esAutocompleteUsersInChannel(teamId, channelId, term string, optio
 	if err != nil {
 		return nil, err
 	}
-	uchan := a.Srv.Store.User().GetProfileByIds(uchanIds, false, nil)
-	nuchan := a.Srv.Store.User().GetProfileByIds(nuchanIds, false, nil)
+	uchan := a.Srv.Store.User().GetProfileByIds(uchanIds, nil, false)
+	nuchan := a.Srv.Store.User().GetProfileByIds(nuchanIds, nil, false)
 	autocomplete := &model.UserAutocompleteInChannel{}
 
 	result := <-uchan
@@ -1890,7 +1893,7 @@ func (a *App) esAutocompleteUsersInTeam(teamId, term string, options *model.User
 		return nil, err
 	}
 
-	result := <-a.Srv.Store.User().GetProfileByIds(usersIds, false, nil)
+	result := <-a.Srv.Store.User().GetProfileByIds(usersIds, nil, false)
 	if result.Err != nil {
 		return nil, result.Err
 	}
