@@ -134,7 +134,7 @@ func testEmojiGetByName(t *testing.T, ss store.Store) {
 	}()
 
 	for _, emoji := range emojis {
-		if _, err := ss.Emoji().GetByName(emoji.Name); err != nil {
+		if _, err := ss.Emoji().GetByName(emoji.Name, true); err != nil {
 			t.Fatalf("failed to get emoji with name %v: %v", emoji.Name, err)
 		}
 	}

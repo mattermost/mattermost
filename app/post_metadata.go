@@ -53,11 +53,34 @@ func (a *App) PreparePostListForClient(originalList *model.PostList) *model.Post
 	return list
 }
 
+// PostWithOverridenIconURL changes the post icon override URL prop, if it has an emoji icon,
+// so that it points to the URL (relative) of the emoji - static if emoji is default, /api if custom.
+func (a *App) PostWithOverridenIconURL(post *model.Post) *model.Post {
+	prop, ok := post.Props[model.POST_PROPS_OVERRIDE_ICON_EMOJI]
+	if !ok || prop == nil {
+		return post
+	}
+
+	emojiName := prop.(string)
+	if emojiName == "" {
+		return post
+	}
+
+	if emojiUrl, err := a.GetEmojiStaticUrl(emojiName); err == nil {
+		post.AddProp(model.POST_PROPS_OVERRIDE_ICON_URL, emojiUrl)
+	} else {
+		mlog.Warn("Failed to retrieve emoji for icon URL: %s.", mlog.String("emojiName", emojiName), mlog.Err(err))
+	}
+
+	return post
+}
+
 func (a *App) PreparePostForClient(originalPost *model.Post, isNewPost bool, isEditPost bool) *model.Post {
 	post := originalPost.Clone()
 
 	// Proxy image links before constructing metadata so that requests go through the proxy
 	post = a.PostWithProxyAddedToImageURLs(post)
+	post = a.PostWithOverridenIconURL(post)
 
 	post.Metadata = &model.PostMetadata{}
 

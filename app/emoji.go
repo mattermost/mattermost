@@ -53,7 +53,7 @@ func (a *App) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartIma
 		return nil, model.NewAppError("createEmoji", "api.emoji.create.other_user.app_error", nil, "", http.StatusForbidden)
 	}
 
-	if existingEmoji, err := a.Srv.Store.Emoji().GetByName(emoji.Name); err == nil && existingEmoji != nil {
+	if existingEmoji, err := a.Srv.Store.Emoji().GetByName(emoji.Name, true); err == nil && existingEmoji != nil {
 		return nil, model.NewAppError("createEmoji", "api.emoji.create.duplicate.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -186,7 +186,7 @@ func (a *App) GetEmojiByName(emojiName string) (*model.Emoji, *model.AppError) {
 		return nil, model.NewAppError("GetEmoji", "api.emoji.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	return a.Srv.Store.Emoji().GetByName(emojiName)
+	return a.Srv.Store.Emoji().GetByName(emojiName, true)
 }
 
 func (a *App) GetMultipleEmojiByName(names []string) ([]*model.Emoji, *model.AppError) {
@@ -222,6 +222,21 @@ func (a *App) SearchEmoji(name string, prefixOnly bool, limit int) ([]*model.Emo
 	}
 
 	return a.Srv.Store.Emoji().Search(name, prefixOnly, limit)
+}
+
+// GetEmojiStaticUrl returns a relative static URL for system default emojis,
+// and the API route for custom ones. Errors if not found or if custom and deleted.
+func (a *App) GetEmojiStaticUrl(emojiName string) (string, *model.AppError) {
+	var id string
+	var found bool
+	if id, found = model.GetSystemEmojiId(emojiName); !found {
+		emoji, err := a.Srv.Store.Emoji().GetByName(emojiName, true)
+		if err != nil {
+			return "", err
+		}
+		return fmt.Sprintf("/api/v4/emoji/%s/image", emoji.Id), nil
+	}
+	return fmt.Sprintf("/static/emoji/%s.png", id), nil
 }
 
 func resizeEmojiGif(gifImg *gif.GIF) *gif.GIF {

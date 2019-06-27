@@ -53,13 +53,13 @@ func (_m *EmojiStore) Get(id string, allowFromCache bool) (*model.Emoji, *model.
 	return r0, r1
 }
 
-// GetByName provides a mock function with given fields: name
-func (_m *EmojiStore) GetByName(name string) (*model.Emoji, *model.AppError) {
-	ret := _m.Called(name)
+// GetByName provides a mock function with given fields: name, allowFromCache
+func (_m *EmojiStore) GetByName(name string, allowFromCache bool) (*model.Emoji, *model.AppError) {
+	ret := _m.Called(name, allowFromCache)
 
 	var r0 *model.Emoji
-	if rf, ok := ret.Get(0).(func(string) *model.Emoji); ok {
-		r0 = rf(name)
+	if rf, ok := ret.Get(0).(func(string, bool) *model.Emoji); ok {
+		r0 = rf(name, allowFromCache)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Emoji)
@@ -67,8 +67,8 @@ func (_m *EmojiStore) GetByName(name string) (*model.Emoji, *model.AppError) {
 	}
 
 	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
-		r1 = rf(name)
+	if rf, ok := ret.Get(1).(func(string, bool) *model.AppError); ok {
+		r1 = rf(name, allowFromCache)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

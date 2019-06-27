@@ -1280,7 +1280,7 @@ func (a *App) ImportEmoji(data *EmojiImportData, dryRun bool) *model.AppError {
 
 	var emoji *model.Emoji
 
-	emoji, appError := a.Srv.Store.Emoji().GetByName(*data.Name)
+	emoji, appError := a.Srv.Store.Emoji().GetByName(*data.Name, true)
 	if appError != nil && appError.StatusCode != http.StatusNotFound {
 		return appError
 	}
