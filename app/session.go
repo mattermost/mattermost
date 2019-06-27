@@ -93,27 +93,20 @@ func (a *App) GetSessions(userId string) ([]*model.Session, *model.AppError) {
 	return a.Srv.Store.Session().GetSessions(userId)
 }
 
-func (a *App) revokeSession(session *model.Session) *model.AppError {
-	if session.IsOAuth {
-		a.RevokeAccessToken(session.Token)
-	} else {
-		if err := a.Srv.Store.Session().Remove(session.Id); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
 func (a *App) RevokeAllSessions(userId string) *model.AppError {
 	sessions, err := a.Srv.Store.Session().GetSessions(userId)
 	if err != nil {
 		return err
 	}
 	for _, session := range sessions {
-		revokeErr := a.revokeSession(session)
-		if revokeErr != nil {
-			return revokeErr
+		if session.IsOAuth {
+			a.RevokeAccessToken(session.Token)
+		} else {
+			if err := a.Srv.Store.Session().Remove(session.Id); err != nil {
+				return err
+			}
 		}
+		return nil
 	}
 
 	a.ClearSessionCacheForUser(userId)
@@ -124,6 +117,11 @@ func (a *App) RevokeAllSessions(userId string) *model.AppError {
 // RevokeSessionsFromAllUsers will go through all the sessions active
 // in the server and revoke them
 func (a *App) RevokeSessionsFromAllUsers() *model.AppError {
+	// TODO: revoke tokens before sessions so they can't be used to relogin
+	tErr := a.Srv.Store.OAuth().RemoveAllAccessData()
+	if tErr != nil {
+		return tErr
+	}
 	err := a.Srv.Store.Session().RemoveAllSessions()
 	if err != nil {
 		return err

@@ -2457,19 +2457,19 @@ func TestRevokeSessionsFromAllUsers(t *testing.T) {
 
 	user := th.BasicUser
 	th.Client.Login(user.Email, user.Password)
-	_, resp := th.Client.RevokeSessionsFromAllUsers(user.Id)
+	_, resp := th.Client.RevokeSessionsFromAllUsers()
 	CheckForbiddenStatus(t, resp)
 
 	th.Client.Logout()
-	_, resp = th.Client.RevokeSessionsFromAllUsers(user.Id)
+	_, resp = th.Client.RevokeSessionsFromAllUsers()
 	CheckUnauthorizedStatus(t, resp)
 
 	admin := th.SystemAdminUser
 	th.Client.Login(admin.Email, admin.Password)
-	_, resp = th.Client.RevokeSessionsFromAllUsers(admin.Id)
+	_, resp = th.Client.RevokeSessionsFromAllUsers()
 	CheckNoError(t, resp)
 
-	_, resp = th.Client.RevokeSessionsFromAllUsers(admin.Id)
+	_, resp = th.Client.RevokeSessionsFromAllUsers()
 	CheckUnauthorizedStatus(t, resp)
 
 	sessions, _ := th.SystemAdminClient.GetSessions(user.Id, "")
