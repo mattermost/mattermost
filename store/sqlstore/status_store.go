@@ -126,10 +126,10 @@ func (s SqlStatusStore) GetAllFromTeam(teamId string) ([]*model.Status, *model.A
 }
 
 func (s SqlStatusStore) ResetAll() *model.AppError {
-		if _, err := s.GetMaster().Exec("UPDATE Status SET Status = :Status WHERE Manual = false", map[string]interface{}{"Status": model.STATUS_OFFLINE}); err != nil {
-			return model.NewAppError("SqlStatusStore.ResetAll", "store.sql_status.reset_all.app_error", nil, "", http.StatusInternalServerError)
-		}
-		return nil
+	if _, err := s.GetMaster().Exec("UPDATE Status SET Status = :Status WHERE Manual = false", map[string]interface{}{"Status": model.STATUS_OFFLINE}); err != nil {
+		return model.NewAppError("SqlStatusStore.ResetAll", "store.sql_status.reset_all.app_error", nil, "", http.StatusInternalServerError)
+	}
+	return nil
 }
 
 func (s SqlStatusStore) GetTotalActiveUsersCount() (int64, *model.AppError) {
