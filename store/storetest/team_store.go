@@ -244,12 +244,11 @@ func testTeamStoreSearchAll(t *testing.T, ss store.Store) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			r1 := <-ss.Team().SearchAll(tc.Term)
-			require.Nil(t, r1.Err)
-			results := r1.Data.([]*model.Team)
-			require.Equal(t, tc.ExpectedLenth, len(results))
+			r1, err := ss.Team().SearchAll(tc.Term)
+			require.Nil(t, err)
+			require.Equal(t, tc.ExpectedLenth, len(r1))
 			if tc.ExpectedFirstId != "" {
-				assert.Equal(t, tc.ExpectedFirstId, results[0].Id)
+				assert.Equal(t, tc.ExpectedFirstId, r1[0].Id)
 			}
 		})
 	}
@@ -310,9 +309,9 @@ func testTeamStoreSearchOpen(t *testing.T, ss store.Store) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			r1 := <-ss.Team().SearchOpen(tc.Term)
-			require.Nil(t, r1.Err)
-			results := r1.Data.([]*model.Team)
+			r1, err := ss.Team().SearchOpen(tc.Term)
+			require.Nil(t, err)
+			results := r1
 			require.Equal(t, tc.ExpectedLenth, len(results))
 			if tc.ExpectedFirstId != "" {
 				assert.Equal(t, tc.ExpectedFirstId, results[0].Id)
@@ -869,9 +868,8 @@ func testTeamMembersWithPagination(t *testing.T, ss store.Store) {
 	store.Must(ss.Team().SaveMember(m2, -1))
 	store.Must(ss.Team().SaveMember(m3, -1))
 
-	r1 = <-ss.Team().GetTeamsForUserWithPagination(m1.UserId, 0, 1)
-	require.Nil(t, r1.Err)
-	ms := r1.Data.([]*model.TeamMember)
+	ms, errTeam := ss.Team().GetTeamsForUserWithPagination(m1.UserId, 0, 1)
+	require.Nil(t, errTeam)
 
 	require.Len(t, ms, 1)
 	require.Equal(t, m1.TeamId, ms[0].TeamId)
@@ -896,18 +894,16 @@ func testTeamMembersWithPagination(t *testing.T, ss store.Store) {
 	store.Must(ss.Team().SaveMember(m4, -1))
 	store.Must(ss.Team().SaveMember(m5, -1))
 
-	r1 = <-ss.Team().GetTeamsForUserWithPagination(uid, 0, 1)
-	require.Nil(t, r1.Err)
-	ms = r1.Data.([]*model.TeamMember)
-	require.Len(t, ms, 1)
+	result, err := ss.Team().GetTeamsForUserWithPagination(uid, 0, 1)
+	require.Nil(t, err)
+	require.Len(t, result, 1)
 
 	r1 = <-ss.Team().RemoveAllMembersByUser(uid)
 	require.Nil(t, r1.Err)
 
-	r1 = <-ss.Team().GetTeamsForUserWithPagination(uid, 1, 1)
-	require.Nil(t, r1.Err)
-	ms = r1.Data.([]*model.TeamMember)
-	require.Len(t, ms, 0)
+	result, err = ss.Team().GetTeamsForUserWithPagination(uid, 1, 1)
+	require.Nil(t, err)
+	require.Len(t, result, 0)
 }
 
 func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {

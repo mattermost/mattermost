@@ -976,7 +976,8 @@ func TestOAuthAccessToken(t *testing.T) {
 	}
 
 	authData := &model.AuthData{ClientId: oauthApp.Id, RedirectUri: oauthApp.CallbackUrls[0], UserId: th.BasicUser.Id, Code: model.NewId(), ExpiresIn: -1}
-	<-th.App.Srv.Store.OAuth().SaveAuthData(authData)
+	_, err := th.App.Srv.Store.OAuth().SaveAuthData(authData)
+	require.Nil(t, err)
 
 	data.Set("grant_type", model.ACCESS_TOKEN_GRANT_TYPE)
 	data.Set("client_id", oauthApp.Id)
@@ -1110,9 +1111,9 @@ func TestOAuthComplete(t *testing.T) {
 		closeBody(r)
 	}
 
-	if result := <-th.App.Srv.Store.User().UpdateAuthData(
-		th.BasicUser.Id, model.SERVICE_GITLAB, &th.BasicUser.Email, th.BasicUser.Email, true); result.Err != nil {
-		t.Fatal(result.Err)
+	if _, err := th.App.Srv.Store.User().UpdateAuthData(
+		th.BasicUser.Id, model.SERVICE_GITLAB, &th.BasicUser.Email, th.BasicUser.Email, true); err != nil {
+		t.Fatal(err)
 	}
 
 	redirect, resp = Client.AuthorizeOAuthApp(authRequest)
