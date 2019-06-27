@@ -725,27 +725,25 @@ func (s SqlTeamStore) GetTeamsForUserWithPagination(userId string, page, perPage
 	return dbMembers.ToModel(), nil
 }
 
-func (s SqlTeamStore) GetChannelUnreadsForAllTeams(excludeTeamId, userId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var data []*model.ChannelUnread
-		_, err := s.GetReplica().Select(&data,
-			`SELECT
-				Channels.TeamId TeamId, Channels.Id ChannelId, (Channels.TotalMsgCount - ChannelMembers.MsgCount) MsgCount, ChannelMembers.MentionCount MentionCount, ChannelMembers.NotifyProps NotifyProps
-			FROM
-				Channels, ChannelMembers
-			WHERE
-				Id = ChannelId
-                AND UserId = :UserId
-                AND DeleteAt = 0
-                AND TeamId != :TeamId`,
-			map[string]interface{}{"UserId": userId, "TeamId": excludeTeamId})
+func (s SqlTeamStore) GetChannelUnreadsForAllTeams(excludeTeamId, userId string) ([]*model.ChannelUnread, *model.AppError) {
+	var data []*model.ChannelUnread
+	_, err := s.GetReplica().Select(&data,
+		`SELECT
+			Channels.TeamId TeamId, Channels.Id ChannelId, (Channels.TotalMsgCount - ChannelMembers.MsgCount) MsgCount, ChannelMembers.MentionCount MentionCount, ChannelMembers.NotifyProps NotifyProps
+		FROM
+			Channels, ChannelMembers
+		WHERE
+			Id = ChannelId
+			AND UserId = :UserId
+			AND DeleteAt = 0
+			AND TeamId != :TeamId`,
+		map[string]interface{}{"UserId": userId, "TeamId": excludeTeamId})
 
-		if err != nil {
-			result.Err = model.NewAppError("SqlTeamStore.GetChannelUnreadsForAllTeams", "store.sql_team.get_unread.app_error", nil, "userId="+userId+" "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-		result.Data = data
-	})
+	if err != nil {
+		return nil, model.NewAppError("SqlTeamStore.GetChannelUnreadsForAllTeams", "store.sql_team.get_unread.app_error", nil, "userId="+userId+" "+err.Error(), http.StatusInternalServerError)
+	}
+
+	return data, nil
 }
 
 func (s SqlTeamStore) GetChannelUnreadsForTeam(teamId, userId string) ([]*model.ChannelUnread, *model.AppError) {

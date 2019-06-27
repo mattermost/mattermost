@@ -96,15 +96,12 @@ func (s SqlStatusStore) GetByIds(userIds []string) ([]*model.Status, *model.AppE
 	return statuses, nil
 }
 
-func (s SqlStatusStore) GetOnlineAway() store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var statuses []*model.Status
-		if _, err := s.GetReplica().Select(&statuses, "SELECT * FROM Status WHERE Status = :Online OR Status = :Away LIMIT 300", map[string]interface{}{"Online": model.STATUS_ONLINE, "Away": model.STATUS_AWAY}); err != nil {
-			result.Err = model.NewAppError("SqlStatusStore.GetOnlineAway", "store.sql_status.get_online_away.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = statuses
-		}
-	})
+func (s SqlStatusStore) GetOnlineAway() ([]*model.Status, *model.AppError) {
+	var statuses []*model.Status
+	if _, err := s.GetReplica().Select(&statuses, "SELECT * FROM Status WHERE Status = :Online OR Status = :Away LIMIT 300", map[string]interface{}{"Online": model.STATUS_ONLINE, "Away": model.STATUS_AWAY}); err != nil {
+		return nil, model.NewAppError("SqlStatusStore.GetOnlineAway", "store.sql_status.get_online_away.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return statuses, nil
 }
 
 func (s SqlStatusStore) GetOnline() ([]*model.Status, *model.AppError) {

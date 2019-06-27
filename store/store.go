@@ -109,7 +109,7 @@ type TeamStore interface {
 	GetActiveMemberCount(teamId string) (int64, *model.AppError)
 	GetTeamsForUser(userId string) ([]*model.TeamMember, *model.AppError)
 	GetTeamsForUserWithPagination(userId string, page, perPage int) ([]*model.TeamMember, *model.AppError)
-	GetChannelUnreadsForAllTeams(excludeTeamId, userId string) StoreChannel
+	GetChannelUnreadsForAllTeams(excludeTeamId, userId string) ([]*model.ChannelUnread, *model.AppError)
 	GetChannelUnreadsForTeam(teamId, userId string) ([]*model.ChannelUnread, *model.AppError)
 	RemoveMember(teamId string, userId string) StoreChannel
 	RemoveAllMembersByTeam(teamId string) StoreChannel
@@ -163,7 +163,7 @@ type ChannelStore interface {
 	GetMembers(channelId string, offset, limit int) (*model.ChannelMembers, *model.AppError)
 	GetMember(channelId string, userId string) (*model.ChannelMember, *model.AppError)
 	GetChannelMembersTimezones(channelId string) ([]model.StringMap, *model.AppError)
-	GetAllChannelMembersForUser(userId string, allowFromCache bool, includeDeleted bool) StoreChannel
+	GetAllChannelMembersForUser(userId string, allowFromCache bool, includeDeleted bool) (map[string]string, *model.AppError)
 	InvalidateAllChannelMembersForUser(userId string)
 	IsUserInChannelUseCache(userId string, channelId string) bool
 	GetAllChannelMembersNotifyPropsForChannel(channelId string, allowFromCache bool) (map[string]model.StringMap, *model.AppError)
@@ -268,7 +268,7 @@ type UserStore interface {
 	GetProfilesByUsernames(usernames []string, viewRestrictions *model.ViewUsersRestrictions) StoreChannel
 	GetAllProfiles(options *model.UserGetOptions) StoreChannel
 	GetProfiles(options *model.UserGetOptions) StoreChannel
-	GetProfileByIds(userId []string, allowFromCache bool, viewRestrictions *model.ViewUsersRestrictions) StoreChannel
+	GetProfileByIds(userIds []string, options *UserGetByIdsOpts, allowFromCache bool) StoreChannel
 	GetProfileByGroupChannelIdsForUser(userId string, channelIds []string) (map[string][]*model.User, *model.AppError)
 	InvalidatProfileCacheForUser(userId string)
 	GetByEmail(email string) (*model.User, *model.AppError)
@@ -283,16 +283,16 @@ type UserStore interface {
 	GetSystemAdminProfiles() StoreChannel
 	PermanentDelete(userId string) *model.AppError
 	AnalyticsActiveCount(time int64) StoreChannel
-	GetUnreadCount(userId string) StoreChannel
+	GetUnreadCount(userId string) (int64, error)
 	GetUnreadCountForChannel(userId string, channelId string) StoreChannel
-	GetAnyUnreadPostCountForChannel(userId string, channelId string) StoreChannel
-	GetRecentlyActiveUsersForTeam(teamId string, offset, limit int, viewRestrictions *model.ViewUsersRestrictions) StoreChannel
-	GetNewUsersForTeam(teamId string, offset, limit int, viewRestrictions *model.ViewUsersRestrictions) StoreChannel
-	Search(teamId string, term string, options *model.UserSearchOptions) StoreChannel
+	GetAnyUnreadPostCountForChannel(userId string, channelId string) (int64, *model.AppError)
+	GetRecentlyActiveUsersForTeam(teamId string, offset, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
+	GetNewUsersForTeam(teamId string, offset, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
+	Search(teamId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
 	SearchNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) StoreChannel
 	SearchInChannel(channelId string, term string, options *model.UserSearchOptions) StoreChannel
 	SearchNotInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) StoreChannel
-	SearchWithoutTeam(term string, options *model.UserSearchOptions) StoreChannel
+	SearchWithoutTeam(term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
 	AnalyticsGetInactiveUsersCount() StoreChannel
 	AnalyticsGetSystemAdminCount() StoreChannel
 	GetProfilesNotInTeam(teamId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) StoreChannel
@@ -302,8 +302,8 @@ type UserStore interface {
 	GetAllAfter(limit int, afterId string) StoreChannel
 	GetUsersBatchForIndexing(startTime, endTime int64, limit int) ([]*model.UserForIndexing, *model.AppError)
 	Count(options model.UserCountOptions) (int64, *model.AppError)
-	GetTeamGroupUsers(teamID string) StoreChannel
-	GetChannelGroupUsers(channelID string) StoreChannel
+	GetTeamGroupUsers(teamID string) ([]*model.User, *model.AppError)
+	GetChannelGroupUsers(channelID string) ([]*model.User, *model.AppError)
 	PromoteGuestToUser(userID string) *model.AppError
 	DemoteUserToGuest(userID string) *model.AppError
 }
@@ -452,7 +452,7 @@ type LicenseStore interface {
 
 type TokenStore interface {
 	Save(recovery *model.Token) *model.AppError
-	Delete(token string) StoreChannel
+	Delete(token string) *model.AppError
 	GetByToken(token string) (*model.Token, *model.AppError)
 	Cleanup()
 	RemoveAllTokensByType(tokenType string) StoreChannel
@@ -472,7 +472,7 @@ type StatusStore interface {
 	SaveOrUpdate(status *model.Status) *model.AppError
 	Get(userId string) StoreChannel
 	GetByIds(userIds []string) ([]*model.Status, *model.AppError)
-	GetOnlineAway() StoreChannel
+	GetOnlineAway() ([]*model.Status, *model.AppError)
 	GetOnline() ([]*model.Status, *model.AppError)
 	GetAllFromTeam(teamId string) ([]*model.Status, *model.AppError)
 	ResetAll() StoreChannel
@@ -616,7 +616,7 @@ type GroupStore interface {
 
 type LinkMetadataStore interface {
 	Save(linkMetadata *model.LinkMetadata) StoreChannel
-	Get(url string, timestamp int64) StoreChannel
+	Get(url string, timestamp int64) (*model.LinkMetadata, *model.AppError)
 }
 
 // ChannelSearchOpts contains options for searching channels.
@@ -629,4 +629,15 @@ type ChannelSearchOpts struct {
 	NotAssociatedToGroup string
 	IncludeDeleted       bool
 	ExcludeChannelNames  []string
+}
+
+type UserGetByIdsOpts struct {
+	// IsAdmin tracks whether or not the request is being made by an administrator. Does nothing when provided by a client.
+	IsAdmin bool
+
+	// Restrict to search in a list of teams and channels. Does nothing when provided by a client.
+	ViewRestrictions *model.ViewUsersRestrictions
+
+	// Since filters the users based on their UpdateAt timestamp.
+	Since int64
 }

@@ -219,13 +219,13 @@ func (a *App) indexUser(user *model.User) *model.AppError {
 		userTeamsIds = append(userTeamsIds, team.Id)
 	}
 
-	userChannelMembers := <-a.Srv.Store.Channel().GetAllChannelMembersForUser(user.Id, false, true)
-	if userChannelMembers.Err != nil {
-		return userChannelMembers.Err
+	userChannelMembers, err := a.Srv.Store.Channel().GetAllChannelMembersForUser(user.Id, false, true)
+	if err != nil {
+		return err
 	}
 
 	userChannelsIds := []string{}
-	for channelId := range userChannelMembers.Data.(map[string]string) {
+	for channelId := range userChannelMembers {
 		userChannelsIds = append(userChannelsIds, channelId)
 	}
 
@@ -629,28 +629,23 @@ func (a *App) GetUsersWithoutTeam(offset int, limit int, viewRestrictions *model
 
 // GetTeamGroupUsers returns the users who are associated to the team via GroupTeams and GroupMembers.
 func (a *App) GetTeamGroupUsers(teamID string) ([]*model.User, *model.AppError) {
-	result := <-a.Srv.Store.User().GetTeamGroupUsers(teamID)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.User), nil
+	return a.Srv.Store.User().GetTeamGroupUsers(teamID)
 }
 
 // GetChannelGroupUsers returns the users who are associated to the channel via GroupChannels and GroupMembers.
 func (a *App) GetChannelGroupUsers(channelID string) ([]*model.User, *model.AppError) {
-	result := <-a.Srv.Store.User().GetChannelGroupUsers(channelID)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.User), nil
+	return a.Srv.Store.User().GetChannelGroupUsers(channelID)
 }
 
-func (a *App) GetUsersByIds(userIds []string, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
-	result := <-a.Srv.Store.User().GetProfileByIds(userIds, viewRestrictions == nil, viewRestrictions)
+func (a *App) GetUsersByIds(userIds []string, options *store.UserGetByIdsOpts) ([]*model.User, *model.AppError) {
+	allowFromCache := options.ViewRestrictions == nil
+
+	result := <-a.Srv.Store.User().GetProfileByIds(userIds, options, allowFromCache)
 	if result.Err != nil {
 		return nil, result.Err
 	}
-	return a.sanitizeProfiles(result.Data.([]*model.User), asAdmin), nil
+
+	return a.sanitizeProfiles(result.Data.([]*model.User), options.IsAdmin), nil
 }
 
 func (a *App) GetUsersByGroupChannelIds(channelIds []string, asAdmin bool) (map[string][]*model.User, *model.AppError) {
@@ -1388,11 +1383,7 @@ func (a *App) GetPasswordRecoveryToken(token string) (*model.Token, *model.AppEr
 }
 
 func (a *App) DeleteToken(token *model.Token) *model.AppError {
-	if result := <-a.Srv.Store.Token().Delete(token.Token); result.Err != nil {
-		return result.Err
-	}
-
-	return nil
+	return a.Srv.Store.Token().Delete(token.Token)
 }
 
 func (a *App) UpdateUserRoles(userId string, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError) {
@@ -1745,7 +1736,7 @@ func (a *App) esSearchUsersInTeam(teamId, term string, options *model.UserSearch
 		return nil, err
 	}
 
-	result := <-a.Srv.Store.User().GetProfileByIds(usersIds, false, nil)
+	result := <-a.Srv.Store.User().GetProfileByIds(usersIds, nil, false)
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -1772,12 +1763,10 @@ func (a *App) SearchUsersInTeam(teamId, term string, options *model.UserSearchOp
 	}
 
 	if !a.IsESAutocompletionEnabled() || err != nil {
-		result := <-a.Srv.Store.User().Search(teamId, term, options)
-		if result.Err != nil {
-			return nil, result.Err
+		users, err = a.Srv.Store.User().Search(teamId, term, options)
+		if err != nil {
+			return nil, err
 		}
-
-		users = result.Data.([]*model.User)
 
 		for _, user := range users {
 			a.SanitizeProfile(user, options.IsAdmin)
@@ -1804,11 +1793,10 @@ func (a *App) SearchUsersNotInTeam(notInTeamId string, term string, options *mod
 
 func (a *App) SearchUsersWithoutTeam(term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	term = strings.TrimSpace(term)
-	result := <-a.Srv.Store.User().SearchWithoutTeam(term, options)
-	if result.Err != nil {
-		return nil, result.Err
+	users, err := a.Srv.Store.User().SearchWithoutTeam(term, options)
+	if err != nil {
+		return nil, err
 	}
-	users := result.Data.([]*model.User)
 
 	for _, user := range users {
 		a.SanitizeProfile(user, options.IsAdmin)
@@ -1835,8 +1823,8 @@ func (a *App) esAutocompleteUsersInChannel(teamId, channelId, term string, optio
 	if err != nil {
 		return nil, err
 	}
-	uchan := a.Srv.Store.User().GetProfileByIds(uchanIds, false, nil)
-	nuchan := a.Srv.Store.User().GetProfileByIds(nuchanIds, false, nil)
+	uchan := a.Srv.Store.User().GetProfileByIds(uchanIds, nil, false)
+	nuchan := a.Srv.Store.User().GetProfileByIds(nuchanIds, nil, false)
 	autocomplete := &model.UserAutocompleteInChannel{}
 
 	result := <-uchan
@@ -1925,7 +1913,7 @@ func (a *App) esAutocompleteUsersInTeam(teamId, term string, options *model.User
 		return nil, err
 	}
 
-	result := <-a.Srv.Store.User().GetProfileByIds(usersIds, false, nil)
+	result := <-a.Srv.Store.User().GetProfileByIds(usersIds, nil, false)
 	if result.Err != nil {
 		return nil, result.Err
 	}
@@ -1956,12 +1944,11 @@ func (a *App) AutocompleteUsersInTeam(teamId string, term string, options *model
 
 	if !a.IsESAutocompletionEnabled() || err != nil {
 		autocomplete = &model.UserAutocompleteInTeam{}
-		result := <-a.Srv.Store.User().Search(teamId, term, options)
-		if result.Err != nil {
-			return nil, result.Err
+		users, err := a.Srv.Store.User().Search(teamId, term, options)
+		if err != nil {
+			return nil, err
 		}
 
-		users := result.Data.([]*model.User)
 		for _, user := range users {
 			a.SanitizeProfile(user, options.IsAdmin)
 		}
@@ -2187,13 +2174,13 @@ func (a *App) GetViewUsersRestrictions(userId string) (*model.ViewUsersRestricti
 		return &model.ViewUsersRestrictions{Teams: teamIdsWithPermission}, nil
 	}
 
-	userChannelMembers := <-a.Srv.Store.Channel().GetAllChannelMembersForUser(userId, true, true)
-	if userChannelMembers.Err != nil {
-		return nil, userChannelMembers.Err
+	userChannelMembers, err := a.Srv.Store.Channel().GetAllChannelMembersForUser(userId, true, true)
+	if err != nil {
+		return nil, err
 	}
 
 	channelIds := []string{}
-	for channelId := range userChannelMembers.Data.(map[string]string) {
+	for channelId := range userChannelMembers {
 		channelIds = append(channelIds, channelId)
 	}
 

@@ -1465,6 +1465,18 @@
     "translation": "Outgoing webhooks have been disabled by the system admin."
   },
   {
+    "id": "api.plugin.install.download_failed.app_error",
+    "translation": "An error occurred while downloading the plugin."
+  },
+  {
+    "id": "api.plugin.install.insecure_url.app_error",
+    "translation": "An insecure url was given to download the plugin. Please provide a secure url or enable PluginSettings.AllowInsecureDownloadUrl in your configuration."
+  },
+  {
+    "id": "api.plugin.install.invalid_url.app_error",
+    "translation": "An invalid url was given to download the plugin."
+  },
+  {
     "id": "api.plugin.upload.array.app_error",
     "translation": "File array is empty in multipart/form request"
   },
