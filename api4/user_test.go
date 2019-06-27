@@ -5,6 +5,7 @@ package api4
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -2687,17 +2688,20 @@ func TestGetIconImage(t *testing.T) {
 	// Set an icon image
 	path, _ := fileutils.FindDir("tests")
 	svgFile, fileErr := os.Open(filepath.Join(path, "test.svg"))
-	require.Nil(t, fileErr)
+	require.NoError(t, fileErr)
 	defer svgFile.Close()
+
+	expectedData, err := ioutil.ReadAll(svgFile)
+	require.NoError(t, err)
+
+	svgFile.Seek(0, 0)
 	fpath := fmt.Sprintf("/users/%v/icon.svg", user.Id)
-	_, err := th.App.WriteFile(svgFile, fpath)
+	_, err = th.App.WriteFile(svgFile, fpath)
 	require.Nil(t, err)
 
 	data, resp = th.Client.GetIconImage(user.Id)
 	CheckNoError(t, resp)
-	if len(data) == 0 {
-		t.Fatal("Should not be empty")
-	}
+	require.Equal(t, expectedData, data)
 
 	_, resp = th.Client.GetIconImage("junk")
 	CheckBadRequestStatus(t, resp)
