@@ -218,9 +218,8 @@ func (a *App) SetStatusOnline(userId string, manual bool) {
 				mlog.Error(fmt.Sprintf("Failed to save status for user_id=%v, err=%v", userId, err), mlog.String("user_id", userId))
 			}
 		} else {
-			schan := a.Srv.Store.Status().UpdateLastActivityAt(status.UserId, status.LastActivityAt)
-			if result := <-schan; result.Err != nil {
-				mlog.Error(fmt.Sprintf("Failed to save status for user_id=%v, err=%v", userId, result.Err), mlog.String("user_id", userId))
+			if err := a.Srv.Store.Status().UpdateLastActivityAt(status.UserId, status.LastActivityAt); err != nil {
+				mlog.Error(fmt.Sprintf("Failed to save status for user_id=%v, err=%v", userId, err), mlog.String("user_id", userId))
 			}
 		}
 	}
