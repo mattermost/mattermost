@@ -86,6 +86,20 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			close(teamCountChan)
 		}()
 
+		dailyActiveChan := make(chan store.StoreResult, 1)
+		go func() {
+			dailyActive, err := a.Srv.Store.User().AnalyticsActiveCount(DAY_MILLISECONDS)
+			dailyActiveChan <- store.StoreResult{Data: dailyActive, Err: err}
+			close(dailyActiveChan)
+		}()
+
+		monthlyActiveChan := make(chan store.StoreResult, 1)
+		go func() {
+			monthlyActive, err := a.Srv.Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS)
+			monthlyActiveChan <- store.StoreResult{Data: monthlyActive, Err: err}
+			close(monthlyActiveChan)
+		}()
+
 		r := <-openChan
 		if r.Err != nil {
 			return nil, r.Err
@@ -161,17 +175,17 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			rows[7].Value = float64(a.Srv.Store.TotalReadDbConnections())
 		}
 
-		dailyActive, err := a.Srv.Store.User().AnalyticsActiveCount(DAY_MILLISECONDS)
-		if err != nil {
-			return nil, err
+		r = <-dailyActiveChan
+		if r.Err != nil {
+			return nil, r.Err
 		}
-		rows[8].Value = float64(dailyActive)
+		rows[8].Value = float64(r.Data.(int64))
 
-		monthlyActive, err := a.Srv.Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS)
-		if err != nil {
-			return nil, err
+		r = <-monthlyActiveChan
+		if r.Err != nil {
+			return nil, r.Err
 		}
-		rows[9].Value = float64(monthlyActive)
+		rows[9].Value = float64(r.Data.(int64))
 
 		return rows, nil
 	} else if name == "post_counts_day" {
