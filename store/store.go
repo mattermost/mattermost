@@ -583,7 +583,7 @@ type GroupStore interface {
 	GetMemberUsers(groupID string) StoreChannel
 	GetMemberUsersPage(groupID string, offset int, limit int) StoreChannel
 	GetMemberCount(groupID string) StoreChannel
-	CreateOrRestoreMember(groupID string, userID string) StoreChannel
+	UpsertMember(groupID string, userID string) StoreChannel
 	DeleteMember(groupID string, userID string) StoreChannel
 
 	CreateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError)

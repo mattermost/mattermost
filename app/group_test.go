@@ -105,11 +105,11 @@ func TestCreateOrRestoreGroupMember(t *testing.T) {
 	defer th.TearDown()
 	group := th.CreateGroup()
 
-	g, err := th.App.CreateOrRestoreGroupMember(group.Id, th.BasicUser.Id)
+	g, err := th.App.UpsertGroupMember(group.Id, th.BasicUser.Id)
 	require.Nil(t, err)
 	require.NotNil(t, g)
 
-	g, err = th.App.CreateOrRestoreGroupMember(group.Id, th.BasicUser.Id)
+	g, err = th.App.UpsertGroupMember(group.Id, th.BasicUser.Id)
 	require.NotNil(t, err)
 	require.Nil(t, g)
 }
@@ -118,7 +118,7 @@ func TestDeleteGroupMember(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	group := th.CreateGroup()
-	groupMember, err := th.App.CreateOrRestoreGroupMember(group.Id, th.BasicUser.Id)
+	groupMember, err := th.App.UpsertGroupMember(group.Id, th.BasicUser.Id)
 	require.Nil(t, err)
 	require.NotNil(t, groupMember)
 
