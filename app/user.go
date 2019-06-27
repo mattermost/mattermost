@@ -1360,11 +1360,7 @@ func (a *App) GetPasswordRecoveryToken(token string) (*model.Token, *model.AppEr
 }
 
 func (a *App) DeleteToken(token *model.Token) *model.AppError {
-	if result := <-a.Srv.Store.Token().Delete(token.Token); result.Err != nil {
-		return result.Err
-	}
-
-	return nil
+	return a.Srv.Store.Token().Delete(token.Token)
 }
 
 func (a *App) UpdateUserRoles(userId string, newRoles string, sendWebSocketEvent bool) (*model.User, *model.AppError) {

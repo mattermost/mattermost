@@ -43,12 +43,11 @@ func (s SqlTokenStore) Save(token *model.Token) *model.AppError {
 	return nil
 }
 
-func (s SqlTokenStore) Delete(token string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if _, err := s.GetMaster().Exec("DELETE FROM Tokens WHERE Token = :Token", map[string]interface{}{"Token": token}); err != nil {
-			result.Err = model.NewAppError("SqlTokenStore.Delete", "store.sql_recover.delete.app_error", nil, "", http.StatusInternalServerError)
-		}
-	})
+func (s SqlTokenStore) Delete(token string) *model.AppError {
+	if _, err := s.GetMaster().Exec("DELETE FROM Tokens WHERE Token = :Token", map[string]interface{}{"Token": token}); err != nil {
+		return model.NewAppError("SqlTokenStore.Delete", "store.sql_recover.delete.app_error", nil, "", http.StatusInternalServerError)
+	}
+	return nil
 }
 
 func (s SqlTokenStore) GetByToken(tokenString string) (*model.Token, *model.AppError) {

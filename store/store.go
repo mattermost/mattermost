@@ -450,7 +450,7 @@ type LicenseStore interface {
 
 type TokenStore interface {
 	Save(recovery *model.Token) *model.AppError
-	Delete(token string) StoreChannel
+	Delete(token string) *model.AppError
 	GetByToken(token string) (*model.Token, *model.AppError)
 	Cleanup()
 	RemoveAllTokensByType(tokenType string) StoreChannel
