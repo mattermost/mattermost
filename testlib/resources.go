@@ -39,6 +39,7 @@ func getTestResourcesToSetup() []testResourceDetails {
 	var found bool
 
 	var testResourcesToSetup = []testResourceDetails{
+		{"mattermost-server", "mattermost-server", resourceTypeFolder, actionSymlink},
 		{"i18n", "i18n", resourceTypeFolder, actionSymlink},
 		{"templates", "templates", resourceTypeFolder, actionSymlink},
 		{"tests", "tests", resourceTypeFolder, actionSymlink},
