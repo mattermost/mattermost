@@ -169,7 +169,10 @@ func TestKVGetJSON(t *testing.T) {
 		var dat map[string]interface{}
 
 		err := p.KVGetJSON(plugin.BOT_USER_KEY, dat)
+
+		api.AssertExpectations(t)
 		assert.NotNil(t, err)
+		assert.Nil(t, dat)
 	})
 
 	t.Run("Malformed JSON", func(t *testing.T) {
@@ -185,6 +188,7 @@ func TestKVGetJSON(t *testing.T) {
 
 		err := p.KVGetJSON(key, &dat)
 
+		api.AssertExpectations(t)
 		assert.NotNil(t, err)
 		assert.Nil(t, dat)
 	})
@@ -202,6 +206,7 @@ func TestKVGetJSON(t *testing.T) {
 
 		err := p.KVGetJSON(key, &dat)
 
+		api.AssertExpectations(t)
 		assert.Nil(t, err)
 		assert.Equal(t, map[string]interface{}{
 			"val-a": float64(10),
@@ -218,11 +223,13 @@ func TestKVSetJSON(t *testing.T) {
 
 	t.Run("JSON Marshal error", func(t *testing.T) {
 		api := setupAPI()
+		api.AssertNotCalled(t, "KVSetJSON")
 
 		p := &plugin.HelpersImpl{API: api}
 
 		err := p.KVSetJSON(key, func() { return })
 
+		api.AssertExpectations(t)
 		assert.NotNil(t, err)
 	})
 
@@ -236,6 +243,7 @@ func TestKVSetJSON(t *testing.T) {
 			"val-a": float64(10),
 		})
 
+		api.AssertExpectations(t)
 		assert.Nil(t, err)
 	})
 }
@@ -248,20 +256,25 @@ func TestKVCompareAndSetJSON(t *testing.T) {
 
 	t.Run("old value JSON marshal error", func(t *testing.T) {
 		api := setupAPI()
+		api.AssertNotCalled(t, "KVCompareAndSet")
 		p := &plugin.HelpersImpl{API: api}
 
 		ok, err := p.KVCompareAndSetJSON(key, func() { return }, map[string]interface{}{})
 
+		api.AssertExpectations(t)
 		assert.Equal(t, false, ok)
 		assert.NotNil(t, err)
 	})
 
 	t.Run("new value JSON marshal error", func(t *testing.T) {
 		api := setupAPI()
+		api.AssertNotCalled(t, "KVCompareAndSet")
+
 		p := &plugin.HelpersImpl{API: api}
 
 		ok, err := p.KVCompareAndSetJSON(key, map[string]interface{}{}, func() { return })
 
+		api.AssertExpectations(t)
 		assert.Equal(t, false, ok)
 		assert.NotNil(t, err)
 	})
@@ -277,6 +290,7 @@ func TestKVCompareAndSetJSON(t *testing.T) {
 			"val-b": 20,
 		})
 
+		api.AssertExpectations(t)
 		assert.Equal(t, false, ok)
 		assert.Nil(t, err)
 	})
@@ -291,11 +305,13 @@ func TestKVSetWithExpiryJSON(t *testing.T) {
 
 	t.Run("JSON Marshal error", func(t *testing.T) {
 		api := setupAPI()
+		api.AssertNotCalled(t, "KVSetWithExpiry")
 
 		p := &plugin.HelpersImpl{API: api}
 
 		err := p.KVSetWithExpiryJSON(key, func() { return }, 100)
 
+		api.AssertExpectations(t)
 		assert.NotNil(t, err)
 	})
 
@@ -309,6 +325,7 @@ func TestKVSetWithExpiryJSON(t *testing.T) {
 			"val-a": float64(10),
 		}, 100)
 
+		api.AssertExpectations(t)
 		assert.Nil(t, err)
 	})
 }
