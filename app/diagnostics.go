@@ -124,10 +124,7 @@ func pluginActivated(pluginStates map[string]*model.PluginState, pluginId string
 func (a *App) trackActivity() {
 	var userCount int64
 	var botAccountsCount int64
-	var activeUsersDailyCount int64
-	var activeUsersMonthlyCount int64
 	var inactiveUserCount int64
-	var teamCount int64
 	var publicChannelCount int64
 	var privateChannelCount int64
 	var directChannelCount int64
@@ -138,15 +135,14 @@ func (a *App) trackActivity() {
 	var incomingWebhooksCount int64
 	var outgoingWebhooksCount int64
 
-	dailyActiveChan := a.Srv.Store.User().AnalyticsActiveCount(DAY_MILLISECONDS)
-	monthlyActiveChan := a.Srv.Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS)
-
-	if r := <-dailyActiveChan; r.Err == nil {
-		activeUsersDailyCount = r.Data.(int64)
+	activeUsersDailyCount, err := a.Srv.Store.User().AnalyticsActiveCount(DAY_MILLISECONDS)
+	if err != nil {
+		mlog.Error(err.Error())
 	}
 
-	if r := <-monthlyActiveChan; r.Err == nil {
-		activeUsersMonthlyCount = r.Data.(int64)
+	activeUsersMonthlyCount, err := a.Srv.Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS)
+	if err != nil {
+		mlog.Error(err.Error())
 	}
 
 	if count, err := a.Srv.Store.User().Count(model.UserCountOptions{IncludeDeleted: true}); err == nil {

@@ -79,8 +79,6 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			}()
 		}
 
-		dailyActiveChan := a.Srv.Store.User().AnalyticsActiveCount(DAY_MILLISECONDS)
-		monthlyActiveChan := a.Srv.Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS)
 		teamCountChan := make(chan store.StoreResult, 1)
 		go func() {
 			teamCount, err := a.Srv.Store.Team().AnalyticsTeamCount()
@@ -163,17 +161,17 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 			rows[7].Value = float64(a.Srv.Store.TotalReadDbConnections())
 		}
 
-		r = <-dailyActiveChan
-		if r.Err != nil {
-			return nil, r.Err
+		dailyActive, err := a.Srv.Store.User().AnalyticsActiveCount(DAY_MILLISECONDS)
+		if err != nil {
+			return nil, err
 		}
-		rows[8].Value = float64(r.Data.(int64))
+		rows[8].Value = float64(dailyActive)
 
-		r = <-monthlyActiveChan
-		if r.Err != nil {
-			return nil, r.Err
+		monthlyActive, err := a.Srv.Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS)
+		if err != nil {
+			return nil, err
 		}
-		rows[9].Value = float64(r.Data.(int64))
+		rows[9].Value = float64(monthlyActive)
 
 		return rows, nil
 	} else if name == "post_counts_day" {
