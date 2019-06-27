@@ -842,6 +842,12 @@ func (a *App) RemoveUserFromTeam(teamId string, userId string, requestorId strin
 }
 
 func (a *App) RemoveTeamMemberFromTeam(teamMember *model.TeamMember, requestorId string) *model.AppError {
+	// Send the websocket message before we actually do the remove so the user being removed gets it.
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_LEAVE_TEAM, teamMember.TeamId, "", "", nil)
+	message.Add("user_id", teamMember.UserId)
+	message.Add("team_id", teamMember.TeamId)
+	a.Publish(message)
+
 	user, err := a.Srv.Store.User().Get(teamMember.UserId)
 	if err != nil {
 		return err
@@ -949,12 +955,6 @@ func (a *App) LeaveTeam(team *model.Team, user *model.User, requestorId string) 
 			}
 		}
 	}
-
-	// Send the websocket message before we actually do the remove so the user being removed gets it.
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_LEAVE_TEAM, team.Id, "", "", nil)
-	message.Add("user_id", user.Id)
-	message.Add("team_id", team.Id)
-	a.Publish(message)
 
 	err = a.RemoveTeamMemberFromTeam(teamMember, requestorId)
 	if err != nil {
