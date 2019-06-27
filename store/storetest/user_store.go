@@ -3342,29 +3342,29 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("get not in team 1, offset 0, limit 100000", func(t *testing.T) {
-		result := <-ss.User().GetProfilesNotInTeam(teamId, false, 0, 100000, nil)
-		require.Nil(t, result.Err)
+		users, userErr := ss.User().GetProfilesNotInTeam(teamId, false, 0, 100000, nil)
+		require.Nil(t, userErr)
 		assert.Equal(t, []*model.User{
 			sanitized(u2),
 			sanitized(u3),
-		}, result.Data.([]*model.User))
+		}, users)
 	})
 
 	t.Run("get not in team 1, offset 1, limit 1", func(t *testing.T) {
-		result := <-ss.User().GetProfilesNotInTeam(teamId, false, 1, 1, nil)
-		require.Nil(t, result.Err)
+		users, userErr := ss.User().GetProfilesNotInTeam(teamId, false, 1, 1, nil)
+		require.Nil(t, userErr)
 		assert.Equal(t, []*model.User{
 			sanitized(u3),
-		}, result.Data.([]*model.User))
+		}, users)
 	})
 
 	t.Run("get not in team 2, offset 0, limit 100", func(t *testing.T) {
-		result := <-ss.User().GetProfilesNotInTeam(teamId2, false, 0, 100, nil)
-		require.Nil(t, result.Err)
+		users, userErr := ss.User().GetProfilesNotInTeam(teamId2, false, 0, 100, nil)
+		require.Nil(t, userErr)
 		assert.Equal(t, []*model.User{
 			sanitized(u1),
 			sanitized(u3),
-		}, result.Data.([]*model.User))
+		}, users)
 	})
 
 	// Ensure update at timestamp changes
@@ -3382,11 +3382,11 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("get not in team 1, offset 0, limit 100000 after update", func(t *testing.T) {
-		result := <-ss.User().GetProfilesNotInTeam(teamId, false, 0, 100000, nil)
-		require.Nil(t, result.Err)
+		users, userErr := ss.User().GetProfilesNotInTeam(teamId, false, 0, 100000, nil)
+		require.Nil(t, userErr)
 		assert.Equal(t, []*model.User{
 			sanitized(u3),
-		}, result.Data.([]*model.User))
+		}, users)
 	})
 
 	// Ensure update at timestamp changes
@@ -3406,13 +3406,13 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("get not in team 1, offset 0, limit 100000 after second update", func(t *testing.T) {
-		result := <-ss.User().GetProfilesNotInTeam(teamId, false, 0, 100000, nil)
-		require.Nil(t, result.Err)
+		users, userErr := ss.User().GetProfilesNotInTeam(teamId, false, 0, 100000, nil)
+		require.Nil(t, userErr)
 		assert.Equal(t, []*model.User{
 			sanitized(u1),
 			sanitized(u2),
 			sanitized(u3),
-		}, result.Data.([]*model.User))
+		}, users)
 	})
 
 	// Ensure update at timestamp changes
@@ -3450,9 +3450,9 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("get not in team 1, offset 0, limit 100000 after second update, setting group constrained when it's not", func(t *testing.T) {
-		result := <-ss.User().GetProfilesNotInTeam(teamId, true, 0, 100000, nil)
-		require.Nil(t, result.Err)
-		assert.Empty(t, result.Data.([]*model.User))
+		users, userErr := ss.User().GetProfilesNotInTeam(teamId, true, 0, 100000, nil)
+		require.Nil(t, userErr)
+		assert.Empty(t, users)
 	})
 
 	// create a group
@@ -3479,12 +3479,12 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	t.Run("get not in team 1, offset 0, limit 100000 after second update, setting group constrained", func(t *testing.T) {
-		result := <-ss.User().GetProfilesNotInTeam(teamId, true, 0, 100000, nil)
-		require.Nil(t, result.Err)
+		users, userErr := ss.User().GetProfilesNotInTeam(teamId, true, 0, 100000, nil)
+		require.Nil(t, userErr)
 		assert.Equal(t, []*model.User{
 			sanitized(u1),
 			sanitized(u2),
-		}, result.Data.([]*model.User))
+		}, users)
 	})
 }
 
