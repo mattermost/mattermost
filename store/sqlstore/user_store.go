@@ -1233,10 +1233,9 @@ func (us SqlUserStore) Search(teamId string, term string, options *model.UserSea
 	return result.Data.([]*model.User), nil
 }
 
-func (us SqlUserStore) SearchWithoutTeam(term string, options *model.UserSearchOptions) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		query := us.usersQuery.
-			Where(`(
+func (us SqlUserStore) SearchWithoutTeam(term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+	query := us.usersQuery.
+		Where(`(
 				SELECT
 					COUNT(0)
 				FROM
@@ -1245,11 +1244,14 @@ func (us SqlUserStore) SearchWithoutTeam(term string, options *model.UserSearchO
 					TeamMembers.UserId = u.Id
 					AND TeamMembers.DeleteAt = 0
 			) = 0`).
-			OrderBy("u.Username ASC").
-			Limit(uint64(options.Limit))
+		OrderBy("u.Username ASC").
+		Limit(uint64(options.Limit))
 
-		*result = us.performSearch(query, term, options)
-	})
+	result := us.performSearch(query, term, options)
+	if result.Err != nil {
+		return nil, result.Err
+	}
+	return result.Data.([]*model.User), nil
 }
 
 func (us SqlUserStore) SearchNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) store.StoreChannel {

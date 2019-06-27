@@ -856,19 +856,28 @@ func (_m *UserStore) SearchNotInTeam(notInTeamId string, term string, options *m
 }
 
 // SearchWithoutTeam provides a mock function with given fields: term, options
-func (_m *UserStore) SearchWithoutTeam(term string, options *model.UserSearchOptions) store.StoreChannel {
+func (_m *UserStore) SearchWithoutTeam(term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	ret := _m.Called(term, options)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, *model.UserSearchOptions) store.StoreChannel); ok {
+	var r0 []*model.User
+	if rf, ok := ret.Get(0).(func(string, *model.UserSearchOptions) []*model.User); ok {
 		r0 = rf(term, options)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]*model.User)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, *model.UserSearchOptions) *model.AppError); ok {
+		r1 = rf(term, options)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // Update provides a mock function with given fields: user, allowRoleUpdate
