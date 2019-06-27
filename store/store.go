@@ -302,7 +302,7 @@ type UserStore interface {
 	GetAllAfter(limit int, afterId string) StoreChannel
 	GetUsersBatchForIndexing(startTime, endTime int64, limit int) ([]*model.UserForIndexing, *model.AppError)
 	Count(options model.UserCountOptions) (int64, *model.AppError)
-	GetTeamGroupUsers(teamID string) StoreChannel
+	GetTeamGroupUsers(teamID string) ([]*model.User, *model.AppError)
 	GetChannelGroupUsers(channelID string) ([]*model.User, *model.AppError)
 }
 

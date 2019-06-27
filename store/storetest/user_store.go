@@ -3776,9 +3776,8 @@ func testUserStoreGetTeamGroupUsers(t *testing.T, ss store.Store) {
 	var users []*model.User
 
 	requireNUsers := func(n int) {
-		res = <-ss.User().GetTeamGroupUsers(team.Id)
-		require.Nil(t, res.Err)
-		users = res.Data.([]*model.User)
+		users, err = ss.User().GetTeamGroupUsers(team.Id)
+		require.Nil(t, err)
 		require.NotNil(t, users)
 		require.Len(t, users, n)
 	}

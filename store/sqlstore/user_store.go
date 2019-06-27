@@ -1643,28 +1643,24 @@ func (us SqlUserStore) GetUsersBatchForIndexing(startTime, endTime int64, limit 
 	return usersForIndexing, nil
 }
 
-func (us SqlUserStore) GetTeamGroupUsers(teamID string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		query := applyTeamGroupConstrainedFilter(us.usersQuery, teamID)
+func (us SqlUserStore) GetTeamGroupUsers(teamID string) ([]*model.User, *model.AppError) {
+	query := applyTeamGroupConstrainedFilter(us.usersQuery, teamID)
 
-		queryString, args, err := query.ToSql()
-		if err != nil {
-			result.Err = model.NewAppError("SqlUserStore.UsersPermittedToTeam", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlUserStore.UsersPermittedToTeam", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		var users []*model.User
-		if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.UsersPermittedToTeam", "store.sql_user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	var users []*model.User
+	if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
+		return nil, model.NewAppError("SqlUserStore.UsersPermittedToTeam", "store.sql_user.get_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		for _, u := range users {
-			u.Sanitize(map[string]bool{})
-		}
+	for _, u := range users {
+		u.Sanitize(map[string]bool{})
+	}
 
-		result.Data = users
-	})
+	return users, nil
 }
 
 func (us SqlUserStore) GetChannelGroupUsers(channelID string) ([]*model.User, *model.AppError) {
