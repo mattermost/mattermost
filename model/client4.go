@@ -1146,7 +1146,7 @@ func (c *Client4) RevokeAllSessions(userId string) (bool, *Response) {
 	return CheckStatusOK(r), BuildResponse(r)
 }
 
-// RevokeAllSessions revokes all sessions for the provided user id string.
+// RevokeAllSessions revokes all sessions for all the users.
 func (c *Client4) RevokeSessionsFromAllUsers() (bool, *Response) {
 	r, err := c.DoApiPost(c.GetUsersRoute()+"/sessions/revoke/all", "")
 	if err != nil {
