@@ -93,7 +93,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			app.TOKEN_TYPE_TEAM_INVITATION,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
-		<-th.App.Srv.Store.Token().Save(token)
+		require.Nil(t, th.App.Srv.Store.Token().Save(token))
 
 		ruser, resp := th.Client.CreateUserWithToken(&user, token.Token)
 		CheckNoError(t, resp)
@@ -124,7 +124,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			app.TOKEN_TYPE_TEAM_INVITATION,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
-		<-th.App.Srv.Store.Token().Save(token)
+		require.Nil(t, th.App.Srv.Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
 
 		_, resp := th.Client.CreateUserWithToken(&user, "")
@@ -141,7 +141,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
 		token.CreateAt = past49Hours
-		<-th.App.Srv.Store.Token().Save(token)
+		require.Nil(t, th.App.Srv.Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
 
 		_, resp := th.Client.CreateUserWithToken(&user, token.Token)
@@ -170,7 +170,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			app.TOKEN_TYPE_TEAM_INVITATION,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
-		<-th.App.Srv.Store.Token().Save(token)
+		require.Nil(t, th.App.Srv.Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.EnableUserCreation = false })
@@ -188,7 +188,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			app.TOKEN_TYPE_TEAM_INVITATION,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
-		<-th.App.Srv.Store.Token().Save(token)
+		require.Nil(t, th.App.Srv.Store.Token().Save(token))
 
 		enableOpenServer := th.App.Config().TeamSettings.EnableOpenServer
 		defer func() {
@@ -1099,32 +1099,71 @@ func TestGetUsersByIds(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	users, resp := th.Client.GetUsersByIds([]string{th.BasicUser.Id})
-	CheckNoError(t, resp)
+	t.Run("should return the user", func(t *testing.T) {
+		users, resp := th.Client.GetUsersByIds([]string{th.BasicUser.Id})
 
-	if users[0].Id != th.BasicUser.Id {
-		t.Fatal("returned wrong user")
-	}
-	CheckUserSanitization(t, users[0])
+		CheckNoError(t, resp)
 
-	_, resp = th.Client.GetUsersByIds([]string{})
-	CheckBadRequestStatus(t, resp)
+		assert.Equal(t, th.BasicUser.Id, users[0].Id)
+		CheckUserSanitization(t, users[0])
+	})
 
-	users, resp = th.Client.GetUsersByIds([]string{"junk"})
-	CheckNoError(t, resp)
-	if len(users) > 0 {
-		t.Fatal("no users should be returned")
-	}
+	t.Run("should return error when no IDs are specified", func(t *testing.T) {
+		_, resp := th.Client.GetUsersByIds([]string{})
 
-	users, resp = th.Client.GetUsersByIds([]string{"junk", th.BasicUser.Id})
-	CheckNoError(t, resp)
-	if len(users) != 1 {
-		t.Fatal("1 user should be returned")
-	}
+		CheckBadRequestStatus(t, resp)
+	})
 
-	th.Client.Logout()
-	_, resp = th.Client.GetUsersByIds([]string{th.BasicUser.Id})
-	CheckUnauthorizedStatus(t, resp)
+	t.Run("should not return an error for invalid IDs", func(t *testing.T) {
+		users, resp := th.Client.GetUsersByIds([]string{"junk"})
+
+		CheckNoError(t, resp)
+		if len(users) > 0 {
+			t.Fatal("no users should be returned")
+		}
+	})
+
+	t.Run("should still return users for valid IDs when invalid IDs are specified", func(t *testing.T) {
+		users, resp := th.Client.GetUsersByIds([]string{"junk", th.BasicUser.Id})
+
+		CheckNoError(t, resp)
+		if len(users) != 1 {
+			t.Fatal("1 user should be returned")
+		}
+	})
+
+	t.Run("should return error when not logged in", func(t *testing.T) {
+		th.Client.Logout()
+
+		_, resp := th.Client.GetUsersByIds([]string{th.BasicUser.Id})
+		CheckUnauthorizedStatus(t, resp)
+	})
+}
+
+func TestGetUsersByIdsWithOptions(t *testing.T) {
+	t.Run("should only return specified users that have been updated since the given time", func(t *testing.T) {
+		th := Setup().InitBasic()
+		defer th.TearDown()
+
+		// Users before the timestamp shouldn't be returned
+		user1, err := th.App.CreateUser(&model.User{Email: th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+		require.Nil(t, err)
+
+		user2, err := th.App.CreateUser(&model.User{Email: th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+		require.Nil(t, err)
+
+		// Users not in the list of IDs shouldn't be returned
+		_, err = th.App.CreateUser(&model.User{Email: th.GenerateTestEmail(), Username: model.NewId(), Password: model.NewId()})
+		require.Nil(t, err)
+
+		users, resp := th.Client.GetUsersByIdsWithOptions([]string{user1.Id, user2.Id}, &model.UserGetByIdsOptions{
+			Since: user2.UpdateAt - 1,
+		})
+
+		assert.Nil(t, resp.Error)
+		assert.Len(t, users, 1)
+		assert.Equal(t, users[0].Id, user2.Id)
+	})
 }
 
 func TestGetUsersByGroupChannelIds(t *testing.T) {
@@ -1192,7 +1231,7 @@ func TestGetTotalUsersStat(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
 
-	total := <-th.Server.Store.User().Count(model.UserCountOptions{
+	total, _ := th.Server.Store.User().Count(model.UserCountOptions{
 		IncludeDeleted:     false,
 		IncludeBotAccounts: true,
 	})
@@ -1200,7 +1239,7 @@ func TestGetTotalUsersStat(t *testing.T) {
 	rstats, resp := th.Client.GetTotalUsersStats("")
 	CheckNoError(t, resp)
 
-	if rstats.TotalUsersCount != total.Data.(int64) {
+	if rstats.TotalUsersCount != total {
 		t.Fatal("wrong count")
 	}
 }
@@ -1617,8 +1656,8 @@ func TestUpdateUserActive(t *testing.T) {
 		CheckNoError(t, resp)
 
 		authData := model.NewId()
-		result := <-th.App.Srv.Store.User().UpdateAuthData(user.Id, "random", &authData, "", true)
-		require.Nil(t, result.Err)
+		_, err := th.App.Srv.Store.User().UpdateAuthData(user.Id, "random", &authData, "", true)
+		require.Nil(t, err)
 
 		_, resp = th.SystemAdminClient.UpdateUserActive(user.Id, false)
 		CheckNoError(t, resp)
@@ -2301,8 +2340,8 @@ func TestResetPassword(t *testing.T) {
 	_, resp = th.Client.ResetPassword(recoveryToken.Token, "newpwd")
 	CheckBadRequestStatus(t, resp)
 	authData := model.NewId()
-	if result := <-th.App.Srv.Store.User().UpdateAuthData(user.Id, "random", &authData, "", true); result.Err != nil {
-		t.Fatal(result.Err)
+	if _, err := th.App.Srv.Store.User().UpdateAuthData(user.Id, "random", &authData, "", true); err != nil {
+		t.Fatal(err)
 	}
 	_, resp = th.Client.SendPasswordResetEmail(user.Email)
 	CheckBadRequestStatus(t, resp)
@@ -2974,8 +3013,8 @@ func TestSwitchAccount(t *testing.T) {
 	th.LoginBasic()
 
 	fakeAuthData := model.NewId()
-	if result := <-th.App.Srv.Store.User().UpdateAuthData(th.BasicUser.Id, model.USER_AUTH_SERVICE_GITLAB, &fakeAuthData, th.BasicUser.Email, true); result.Err != nil {
-		t.Fatal(result.Err)
+	if _, err := th.App.Srv.Store.User().UpdateAuthData(th.BasicUser.Id, model.USER_AUTH_SERVICE_GITLAB, &fakeAuthData, th.BasicUser.Email, true); err != nil {
+		t.Fatal(err)
 	}
 
 	sr = &model.SwitchRequest{

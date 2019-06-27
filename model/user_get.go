@@ -29,3 +29,8 @@ type UserGetOptions struct {
 	// Page size
 	PerPage int
 }
+
+type UserGetByIdsOptions struct {
+	// Since filters the users based on their UpdateAt timestamp.
+	Since int64
+}

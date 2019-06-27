@@ -936,6 +936,26 @@ func (c *Client4) GetUsersByIds(userIds []string) ([]*User, *Response) {
 	return UserListFromJson(r.Body), BuildResponse(r)
 }
 
+// GetUsersByIds returns a list of users based on the provided user ids.
+func (c *Client4) GetUsersByIdsWithOptions(userIds []string, options *UserGetByIdsOptions) ([]*User, *Response) {
+	v := url.Values{}
+	if options.Since != 0 {
+		v.Set("since", fmt.Sprintf("%d", options.Since))
+	}
+
+	url := c.GetUsersRoute() + "/ids"
+	if len(v) > 0 {
+		url += "?" + v.Encode()
+	}
+
+	r, err := c.DoApiPost(url, ArrayToJson(userIds))
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return UserListFromJson(r.Body), BuildResponse(r)
+}
+
 // GetUsersByUsernames returns a list of users based on the provided usernames.
 func (c *Client4) GetUsersByUsernames(usernames []string) ([]*User, *Response) {
 	r, err := c.DoApiPost(c.GetUsersRoute()+"/usernames", ArrayToJson(usernames))
@@ -1500,6 +1520,18 @@ func (c *Client4) GetAllTeams(etag string, page int, perPage int) ([]*Team, *Res
 	return TeamListFromJson(r.Body), BuildResponse(r)
 }
 
+// GetAllTeamsWithTotalCount returns all teams based on permissions.
+func (c *Client4) GetAllTeamsWithTotalCount(etag string, page int, perPage int) ([]*Team, int64, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v&include_total_count=true", page, perPage)
+	r, err := c.DoApiGet(c.GetTeamsRoute()+query, etag)
+	if err != nil {
+		return nil, 0, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	teamsListWithCount := TeamsWithCountFromJson(r.Body)
+	return teamsListWithCount.Teams, teamsListWithCount.TotalCount, BuildResponse(r)
+}
+
 // GetTeamByName returns a team based on the provided team name string.
 func (c *Client4) GetTeamByName(name, etag string) (*Team, *Response) {
 	r, err := c.DoApiGet(c.GetTeamByNameRoute(name), etag)
@@ -1894,6 +1926,18 @@ func (c *Client4) GetAllChannels(page int, perPage int, etag string) (*ChannelLi
 	}
 	defer closeBody(r)
 	return ChannelListWithTeamDataFromJson(r.Body), BuildResponse(r)
+}
+
+// GetAllChannelsWithCount get all the channels including the total count. Must be a system administrator.
+func (c *Client4) GetAllChannelsWithCount(page int, perPage int, etag string) (*ChannelListWithTeamData, int64, *Response) {
+	query := fmt.Sprintf("?page=%v&per_page=%v&include_total_count=true", page, perPage)
+	r, err := c.DoApiGet(c.GetChannelsRoute()+query, etag)
+	if err != nil {
+		return nil, 0, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	cwc := ChannelsWithCountFromJson(r.Body)
+	return cwc.Channels, cwc.TotalCount, BuildResponse(r)
 }
 
 // CreateChannel creates a channel based on the provided channel struct.
@@ -4237,6 +4281,21 @@ func (c *Client4) uploadPlugin(file io.Reader, force bool) (*Manifest, *Response
 	}
 
 	return ManifestFromJson(rp.Body), BuildResponse(rp)
+}
+
+func (c *Client4) InstallPluginFromUrl(downloadUrl string, force bool) (*Manifest, *Response) {
+	forceStr := "false"
+	if force {
+		forceStr = "true"
+	}
+
+	url := fmt.Sprintf("%s?plugin_download_url=%s&force=%s", c.GetPluginsRoute()+"/install_from_url", url.QueryEscape(downloadUrl), forceStr)
+	r, err := c.DoApiPost(url, "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ManifestFromJson(r.Body), BuildResponse(r)
 }
 
 // GetPlugins will return a list of plugin manifests for currently active plugins.

@@ -63,8 +63,8 @@ func testUserAccessTokenSaveGetDelete(t *testing.T, ss store.Store) {
 		t.Fatal("received incorrect number of tokens after save")
 	}
 
-	if result := <-ss.UserAccessToken().Delete(uat.Id); result.Err != nil {
-		t.Fatal(result.Err)
+	if err = ss.UserAccessToken().Delete(uat.Id); err != nil {
+		t.Fatal(err)
 	}
 
 	if _, err = ss.Session().Get(s1.Token); err == nil {
@@ -86,8 +86,8 @@ func testUserAccessTokenSaveGetDelete(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	if result := <-ss.UserAccessToken().DeleteAllForUser(uat.UserId); result.Err != nil {
-		t.Fatal(result.Err)
+	if err := ss.UserAccessToken().DeleteAllForUser(uat.UserId); err != nil {
+		t.Fatal(err)
 	}
 
 	if _, err := ss.Session().Get(s2.Token); err == nil {
@@ -161,21 +161,21 @@ func testUserAccessTokenSearch(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	if result := <-ss.UserAccessToken().Search(uat.Id); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if received := result.Data.([]*model.UserAccessToken); len(received) != 1 {
+	if received, err := ss.UserAccessToken().Search(uat.Id); err != nil {
+		t.Fatal(err)
+	} else if len(received) != 1 {
 		t.Fatal("received incorrect number of tokens after search")
 	}
 
-	if result := <-ss.UserAccessToken().Search(uat.UserId); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if received := result.Data.([]*model.UserAccessToken); len(received) != 1 {
+	if received, err := ss.UserAccessToken().Search(uat.UserId); err != nil {
+		t.Fatal(err)
+	} else if len(received) != 1 {
 		t.Fatal("received incorrect number of tokens after search")
 	}
 
-	if result := <-ss.UserAccessToken().Search(u1.Username); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if received := result.Data.([]*model.UserAccessToken); len(received) != 1 {
+	if received, err := ss.UserAccessToken().Search(u1.Username); err != nil {
+		t.Fatal(err)
+	} else if len(received) != 1 {
 		t.Fatal("received incorrect number of tokens after search")
 	}
 }
