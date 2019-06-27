@@ -24,11 +24,6 @@ func (a *App) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
 		return nil, err
 	}
 
-	_, err = a.UpdateUserRoles(savedBot.UserId, model.SYSTEM_USER_ROLE_ID, true)
-	if err != nil {
-		return nil, err
-	}
-
 	// Get the owner of the bot, if one exists. If not, don't send a message
 	ownerUser, err := a.Srv.Store.User().Get(bot.OwnerId)
 	if err != nil && err.Id != store.MISSING_ACCOUNT_ERROR {
