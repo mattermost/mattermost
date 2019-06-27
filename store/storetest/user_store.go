@@ -1187,34 +1187,50 @@ func testUserStoreGetProfilesByIds(t *testing.T, ss store.Store) {
 	u3.IsBot = true
 	defer func() { require.Nil(t, ss.Bot().PermanentDelete(u3.Id)) }()
 
+	u4 := store.Must(ss.User().Save(&model.User{
+		Email:    MakeEmail(),
+		Username: "u4" + model.NewId(),
+	})).(*model.User)
+	defer func() { require.Nil(t, ss.User().PermanentDelete(u4.Id)) }()
+
 	t.Run("get u1 by id, no caching", func(t *testing.T) {
-		result := <-ss.User().GetProfileByIds([]string{u1.Id}, false, nil)
+		result := <-ss.User().GetProfileByIds([]string{u1.Id}, nil, false)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{sanitized(u1)}, result.Data.([]*model.User))
 	})
 
 	t.Run("get u1 by id, caching", func(t *testing.T) {
-		result := <-ss.User().GetProfileByIds([]string{u1.Id}, true, nil)
+		result := <-ss.User().GetProfileByIds([]string{u1.Id}, nil, true)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{sanitized(u1)}, result.Data.([]*model.User))
 	})
 
 	t.Run("get u1, u2, u3 by id, no caching", func(t *testing.T) {
-		result := <-ss.User().GetProfileByIds([]string{u1.Id, u2.Id, u3.Id}, false, nil)
+		result := <-ss.User().GetProfileByIds([]string{u1.Id, u2.Id, u3.Id}, nil, false)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{sanitized(u1), sanitized(u2), sanitized(u3)}, result.Data.([]*model.User))
 	})
 
 	t.Run("get u1, u2, u3 by id, caching", func(t *testing.T) {
-		result := <-ss.User().GetProfileByIds([]string{u1.Id, u2.Id, u3.Id}, true, nil)
+		result := <-ss.User().GetProfileByIds([]string{u1.Id, u2.Id, u3.Id}, nil, true)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{sanitized(u1), sanitized(u2), sanitized(u3)}, result.Data.([]*model.User))
 	})
 
 	t.Run("get unknown id, caching", func(t *testing.T) {
-		result := <-ss.User().GetProfileByIds([]string{"123"}, true, nil)
+		result := <-ss.User().GetProfileByIds([]string{"123"}, nil, true)
 		require.Nil(t, result.Err)
 		assert.Equal(t, []*model.User{}, result.Data.([]*model.User))
+	})
+
+	t.Run("should only return users with UpdateAt greater than the since time", func(t *testing.T) {
+		result := <-ss.User().GetProfileByIds([]string{u1.Id, u2.Id, u3.Id, u4.Id}, &store.UserGetByIdsOpts{
+			Since: u2.CreateAt,
+		}, true)
+		require.Nil(t, result.Err)
+
+		// u3 comes from the cache, and u4 does not
+		assert.Equal(t, []*model.User{sanitized(u3), sanitized(u4)}, result.Data.([]*model.User))
 	})
 }
 

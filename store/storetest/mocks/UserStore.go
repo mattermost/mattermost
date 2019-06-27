@@ -447,13 +447,13 @@ func (_m *UserStore) GetProfileByGroupChannelIdsForUser(userId string, channelId
 	return r0, r1
 }
 
-// GetProfileByIds provides a mock function with given fields: userId, allowFromCache, viewRestrictions
-func (_m *UserStore) GetProfileByIds(userId []string, allowFromCache bool, viewRestrictions *model.ViewUsersRestrictions) store.StoreChannel {
-	ret := _m.Called(userId, allowFromCache, viewRestrictions)
+// GetProfileByIds provides a mock function with given fields: userIds, options, allowFromCache
+func (_m *UserStore) GetProfileByIds(userIds []string, options *store.UserGetByIdsOpts, allowFromCache bool) store.StoreChannel {
+	ret := _m.Called(userIds, options, allowFromCache)
 
 	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func([]string, bool, *model.ViewUsersRestrictions) store.StoreChannel); ok {
-		r0 = rf(userId, allowFromCache, viewRestrictions)
+	if rf, ok := ret.Get(0).(func([]string, *store.UserGetByIdsOpts, bool) store.StoreChannel); ok {
+		r0 = rf(userIds, options, allowFromCache)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.StoreChannel)
