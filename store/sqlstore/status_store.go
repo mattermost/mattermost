@@ -125,7 +125,7 @@ func (s SqlStatusStore) GetAllFromTeam(teamId string) ([]*model.Status, *model.A
 	return statuses, nil
 }
 
-func (s SqlStatusStore) ResetAll() (*model.AppError) {
+func (s SqlStatusStore) ResetAll() *model.AppError {
 		if _, err := s.GetMaster().Exec("UPDATE Status SET Status = :Status WHERE Manual = false", map[string]interface{}{"Status": model.STATUS_OFFLINE}); err != nil {
 			return model.NewAppError("SqlStatusStore.ResetAll", "store.sql_status.reset_all.app_error", nil, "", http.StatusInternalServerError)
 		}
