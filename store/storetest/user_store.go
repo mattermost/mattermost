@@ -3091,12 +3091,12 @@ func testUserStoreSearchWithoutTeam(t *testing.T, ss store.Store) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.Description, func(t *testing.T) {
-			result := <-ss.User().SearchWithoutTeam(
+			users, err := ss.User().SearchWithoutTeam(
 				testCase.Term,
 				testCase.Options,
 			)
-			require.Nil(t, result.Err)
-			assertUsers(t, testCase.Expected, result.Data.([]*model.User))
+			require.Nil(t, err)
+			assertUsers(t, testCase.Expected, users)
 		})
 	}
 }
