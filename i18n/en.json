@@ -2335,6 +2335,10 @@
     "translation": "The signup link does not appear to be valid"
   },
   {
+    "id": "api.user.delete_icon_image.app_error",
+    "translation": "Couldn't delete icon image"
+  },
+  {
     "id": "api.user.email_to_ldap.not_available.app_error",
     "translation": "AD/LDAP not available on this server"
   },

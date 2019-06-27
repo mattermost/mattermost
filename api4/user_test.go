@@ -2722,6 +2722,55 @@ func TestGetIconImage(t *testing.T) {
 	}
 }
 
+func TestDeleteIconImage(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	user := th.BasicUser
+
+	// Get icon image for user with no icon
+	data, resp := th.Client.GetIconImage(user.Id)
+	CheckNotFoundStatus(t, resp)
+	require.Equal(t, 0, len(data))
+
+	// Set an icon image
+	svgData, err := testutils.ReadTestFile("test.svg")
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, resp = th.Client.SetIconImage(user.Id, svgData)
+	CheckNoError(t, resp)
+
+	fpath := fmt.Sprintf("/users/%v/icon.svg", user.Id)
+	exists, err := th.App.FileExists(fpath)
+	require.Nil(t, err)
+	require.True(t, exists, "icon.svg needs to exist for the user")
+
+	data, resp = th.Client.GetIconImage(user.Id)
+	CheckNoError(t, resp)
+	require.Equal(t, svgData, data)
+
+	success, resp := th.Client.DeleteIconImage("junk")
+	CheckBadRequestStatus(t, resp)
+	require.False(t, success)
+
+	success, resp = th.Client.DeleteIconImage(model.NewId())
+	CheckForbiddenStatus(t, resp)
+	require.False(t, success)
+
+	th.Client.Logout()
+	success, resp = th.Client.DeleteIconImage(user.Id)
+	CheckUnauthorizedStatus(t, resp)
+	require.False(t, success)
+
+	success, resp = th.SystemAdminClient.DeleteIconImage(user.Id)
+	CheckNoError(t, resp)
+	require.True(t, success)
+
+	exists, err = th.App.FileExists(fpath)
+	require.Nil(t, err)
+	require.False(t, exists, "icon.svg should not for the user")
+}
+
 func TestSetDefaultProfileImage(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()

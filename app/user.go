@@ -915,22 +915,9 @@ func (a *App) SetProfileImageFromFile(userId string, file io.Reader) *model.AppE
 		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.upload_profile.app_error", nil, "", http.StatusInternalServerError)
 	}
 
+	// Invalidate user cache
 	<-a.Srv.Store.User().UpdateLastPictureUpdate(userId)
-
-	a.InvalidateCacheForUser(userId)
-
-	user, userErr := a.GetUser(userId)
-	if userErr != nil {
-		mlog.Error(fmt.Sprintf("Error in getting users profile for id=%v forcing logout", userId), mlog.String("user_id", userId))
-		return nil
-	}
-
-	options := a.Config().GetSanitizeOptions()
-	user.SanitizeProfile(options)
-
-	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", nil)
-	message.Add("user", user)
-	a.Publish(message)
+	a.invalidateUserCacheAndPublish(userId)
 
 	return nil
 }
@@ -962,6 +949,28 @@ func (a *App) SetIconImage(userId string, imageData *multipart.FileHeader) *mode
 	if _, err := a.WriteFile(file, path); err != nil {
 		return model.NewAppError("SetIconImage", "api.user.set_icon_image.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
+
+	// Invalidate user cache
+	<-a.Srv.Store.User().UpdateLastPictureUpdate(userId)
+	a.invalidateUserCacheAndPublish(userId)
+
+	return nil
+}
+
+func (a *App) DeleteIconImage(userId string) *model.AppError {
+	if len(*a.Config().FileSettings.DriverName) == 0 {
+		return model.NewAppError("DeleteIconImage", "api.user.user_icon_image.storage.app_error", nil, "", http.StatusNotImplemented)
+	}
+
+	// Delete icon
+	path := "users/" + userId + "/icon.svg"
+	if err := a.RemoveFile(path); err != nil {
+		return model.NewAppError("DeleteIconImage", "api.user.delete_icon_image.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	// Invalidate user cache
+	<-a.Srv.Store.User().UpdateLastPictureUpdate(userId)
+	a.invalidateUserCacheAndPublish(userId)
 
 	return nil
 }
@@ -2279,4 +2288,22 @@ func (a *App) getListOfAllowedChannelsForTeam(teamId string, viewRestrictions *m
 	}
 
 	return listOfAllowedChannels, nil
+}
+
+// invalidateUserCacheAndPublish Invalidates cache for a user and publishes user updated event
+func (a *App) invalidateUserCacheAndPublish(userId string) {
+	a.InvalidateCacheForUser(userId)
+
+	user, userErr := a.GetUser(userId)
+	if userErr != nil {
+		mlog.Error(fmt.Sprintf("Error in getting users profile for id=%v", userId), mlog.String("user_id", userId))
+		return
+	}
+
+	options := a.Config().GetSanitizeOptions()
+	user.SanitizeProfile(options)
+
+	message := model.NewWebSocketEvent(model.WEBSOCKET_EVENT_USER_UPDATED, "", "", "", nil)
+	message.Add("user", user)
+	a.Publish(message)
 }

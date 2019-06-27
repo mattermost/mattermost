@@ -1315,6 +1315,16 @@ func (c *Client4) GetIconImage(userId string) ([]byte, *Response) {
 	return data, BuildResponse(r)
 }
 
+// DeleteIconImage deletes user's LHS icon image. Must be logged in.
+func (c *Client4) DeleteIconImage(userId string) (bool, *Response) {
+	r, appErr := c.DoApiDelete(c.GetUserRoute(userId) + "/icon")
+	if appErr != nil {
+		return false, BuildErrorResponse(r, appErr)
+	}
+	defer closeBody(r)
+	return CheckStatusOK(r), BuildResponse(r)
+}
+
 // CreateUserAccessToken will generate a user access token that can be used in place
 // of a session token to access the REST API. Must have the 'create_user_access_token'
 // permission and if generating for another user, must have the 'edit_other_users'

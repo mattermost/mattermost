@@ -35,6 +35,7 @@ func (api *API) InitUser() {
 
 	api.BaseRoutes.User.Handle("/icon", api.ApiSessionRequiredTrustRequester(getIconImage)).Methods("GET")
 	api.BaseRoutes.User.Handle("/icon", api.ApiSessionRequired(setIconImage)).Methods("POST")
+	api.BaseRoutes.User.Handle("/icon", api.ApiSessionRequired(deleteIconImage)).Methods("DELETE")
 
 	api.BaseRoutes.User.Handle("", api.ApiSessionRequired(getUser)).Methods("GET")
 	api.BaseRoutes.User.Handle("", api.ApiSessionRequired(updateUser)).Methods("PUT")
@@ -456,6 +457,11 @@ func getIconImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	etag := strconv.FormatInt(user.LastPictureUpdate, 10)
+	if c.HandleEtag(etag, "Get Icon Image", w, r) {
+		return
+	}
+
 	img, readFailed, err := c.App.GetIconImage(user)
 	if err != nil {
 		c.Err = err
@@ -466,6 +472,7 @@ func getIconImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, public", 5*60)) // 5 mins
 	} else {
 		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, public", 24*60*60)) // 24 hrs
+		w.Header().Set(model.HEADER_ETAG_SERVER, etag)
 	}
 
 	w.Header().Set("Content-Type", "image/svg+xml")
@@ -514,6 +521,28 @@ func setIconImage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	imageData := imageArray[0]
 	if err := c.App.SetIconImage(c.Params.UserId, imageData); err != nil {
+		c.Err = err
+		return
+	}
+
+	c.LogAudit("")
+	ReturnStatusOK(w)
+}
+
+func deleteIconImage(c *Context, w http.ResponseWriter, r *http.Request) {
+	defer io.Copy(ioutil.Discard, r.Body)
+
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToUser(c.App.Session, c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	if err := c.App.DeleteIconImage(c.Params.UserId); err != nil {
 		c.Err = err
 		return
 	}
