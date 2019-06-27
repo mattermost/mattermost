@@ -893,7 +893,7 @@ func (s *SqlPostStore) Search(teamId string, userId string, params *model.Search
 				terms = strings.Join(strings.Fields(terms), " & ")
 			}
 
-			searchClause := fmt.Sprintf("AND %s @@  to_tsquery(:Terms)", searchType)
+			searchClause := fmt.Sprintf("AND to_tsvector('english', %s) @@  to_tsquery(:Terms)", searchType)
 			searchQuery = strings.Replace(searchQuery, "SEARCH_CLAUSE", searchClause, 1)
 		} else if s.DriverName() == model.DATABASE_DRIVER_MYSQL {
 			searchClause := fmt.Sprintf("AND MATCH (%s) AGAINST (:Terms IN BOOLEAN MODE)", searchType)
@@ -1020,6 +1020,10 @@ func (s *SqlPostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCoun
 			`SELECT
 				TO_CHAR(DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)), 'YYYY-MM-DD') AS Name, Count(Posts.Id) AS Value
 			FROM Posts`
+
+		if options.BotsOnly {
+			query += " INNER JOIN Bots ON Posts.UserId = Bots.Userid"
+		}
 
 		if len(options.TeamId) > 0 {
 			query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id  AND Channels.TeamId = :TeamId AND"

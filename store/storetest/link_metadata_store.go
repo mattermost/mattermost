@@ -117,9 +117,9 @@ func testLinkMetadataStoreSave(t *testing.T, ss store.Store) {
 		assert.Equal(t, result.Data.(*model.LinkMetadata).Data, &model.PostImage{Height: 10, Width: 20})
 
 		// Should return the original result, not the duplicate one
-		result = <-ss.LinkMetadata().Get(metadata.URL, metadata.Timestamp)
-		require.Nil(t, result.Err)
-		assert.Equal(t, &model.PostImage{}, result.Data.(*model.LinkMetadata).Data)
+		metadata, err := ss.LinkMetadata().Get(metadata.URL, metadata.Timestamp)
+		require.Nil(t, err)
+		assert.Equal(t, &model.PostImage{}, metadata.Data)
 	})
 }
 
@@ -135,11 +135,11 @@ func testLinkMetadataStoreGet(t *testing.T, ss store.Store) {
 		result := <-ss.LinkMetadata().Save(metadata)
 		require.Nil(t, result.Err)
 
-		result = <-ss.LinkMetadata().Get(metadata.URL, metadata.Timestamp)
+		linkMetadata, err := ss.LinkMetadata().Get(metadata.URL, metadata.Timestamp)
 
-		require.Nil(t, result.Err)
-		require.IsType(t, metadata, result.Data)
-		assert.Equal(t, *metadata, *result.Data.(*model.LinkMetadata))
+		require.Nil(t, err)
+		require.IsType(t, metadata, linkMetadata)
+		assert.Equal(t, *metadata, *linkMetadata)
 	})
 
 	t.Run("should return not found with incorrect URL", func(t *testing.T) {
@@ -153,10 +153,10 @@ func testLinkMetadataStoreGet(t *testing.T, ss store.Store) {
 		result := <-ss.LinkMetadata().Save(metadata)
 		require.Nil(t, result.Err)
 
-		result = <-ss.LinkMetadata().Get("http://example.com/another_page", metadata.Timestamp)
+		_, err := ss.LinkMetadata().Get("http://example.com/another_page", metadata.Timestamp)
 
-		require.NotNil(t, result.Err)
-		assert.Equal(t, http.StatusNotFound, result.Err.StatusCode)
+		require.NotNil(t, err)
+		assert.Equal(t, http.StatusNotFound, err.StatusCode)
 	})
 
 	t.Run("should return not found with incorrect timestamp", func(t *testing.T) {
@@ -170,10 +170,10 @@ func testLinkMetadataStoreGet(t *testing.T, ss store.Store) {
 		result := <-ss.LinkMetadata().Save(metadata)
 		require.Nil(t, result.Err)
 
-		result = <-ss.LinkMetadata().Get(metadata.URL, getNextLinkMetadataTimestamp())
+		_, err := ss.LinkMetadata().Get(metadata.URL, getNextLinkMetadataTimestamp())
 
-		require.NotNil(t, result.Err)
-		assert.Equal(t, http.StatusNotFound, result.Err.StatusCode)
+		require.NotNil(t, err)
+		assert.Equal(t, http.StatusNotFound, err.StatusCode)
 	})
 }
 
@@ -196,10 +196,9 @@ func testLinkMetadataStoreTypes(t *testing.T, ss store.Store) {
 		require.IsType(t, &model.PostImage{}, received.Data)
 		assert.Equal(t, *(metadata.Data.(*model.PostImage)), *(received.Data.(*model.PostImage)))
 
-		result = <-ss.LinkMetadata().Get(metadata.URL, metadata.Timestamp)
-		require.Nil(t, result.Err)
+		received, err := ss.LinkMetadata().Get(metadata.URL, metadata.Timestamp)
+		require.Nil(t, err)
 
-		received = result.Data.(*model.LinkMetadata)
 		require.IsType(t, &model.PostImage{}, received.Data)
 		assert.Equal(t, *(metadata.Data.(*model.PostImage)), *(received.Data.(*model.PostImage)))
 	})
@@ -228,10 +227,9 @@ func testLinkMetadataStoreTypes(t *testing.T, ss store.Store) {
 		require.IsType(t, &opengraph.OpenGraph{}, received.Data)
 		assert.Equal(t, *(metadata.Data.(*opengraph.OpenGraph)), *(received.Data.(*opengraph.OpenGraph)))
 
-		result = <-ss.LinkMetadata().Get(metadata.URL, metadata.Timestamp)
-		require.Nil(t, result.Err)
+		received, err := ss.LinkMetadata().Get(metadata.URL, metadata.Timestamp)
+		require.Nil(t, err)
 
-		received = result.Data.(*model.LinkMetadata)
 		require.IsType(t, &opengraph.OpenGraph{}, received.Data)
 		assert.Equal(t, *(metadata.Data.(*opengraph.OpenGraph)), *(received.Data.(*opengraph.OpenGraph)))
 	})
@@ -250,10 +248,9 @@ func testLinkMetadataStoreTypes(t *testing.T, ss store.Store) {
 		received := result.Data.(*model.LinkMetadata)
 		assert.Nil(t, received.Data)
 
-		result = <-ss.LinkMetadata().Get(metadata.URL, metadata.Timestamp)
-		require.Nil(t, result.Err)
+		received, err := ss.LinkMetadata().Get(metadata.URL, metadata.Timestamp)
+		require.Nil(t, err)
 
-		received = result.Data.(*model.LinkMetadata)
 		require.Nil(t, received.Data)
 	})
 }
