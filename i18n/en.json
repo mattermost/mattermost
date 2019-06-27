@@ -1827,6 +1827,10 @@
     "translation": "Parameter required to add user to team."
   },
   {
+    "id": "api.team.demote_user_to_guest.disabled.error",
+    "translation": "Guest accounts are disabled."
+  },
+  {
     "id": "api.team.demote_user_to_guest.license.error",
     "translation": "Your license does not support guest accounts"
   },
@@ -1873,6 +1877,10 @@
   {
     "id": "api.team.invalidate_all_email_invites.app_error",
     "translation": "Error invalidating email invites."
+  },
+  {
+    "id": "api.team.invate_guests_to_channels.disabled.error",
+    "translation": "Guest accounts are disabled"
   },
   {
     "id": "api.team.invate_guests_to_channels.license.error",
@@ -1925,6 +1933,10 @@
   {
     "id": "api.team.move_channel.success",
     "translation": "This channel has been moved to this team from %v."
+  },
+  {
+    "id": "api.team.promote_guest_to_user.disabled.error",
+    "translation": "Guest accounts are disabled."
   },
   {
     "id": "api.team.promote_guest_to_user.license.error",
@@ -2355,6 +2367,14 @@
     "translation": "User creation is disabled."
   },
   {
+    "id": "api.user.create_user.guest_accounts.disabled.app_error",
+    "translation": "Guest accounts are disabled"
+  },
+  {
+    "id": "api.user.create_user.guest_accounts.license.app_error",
+    "translation": "Your license does not support guest accounts"
+  },
+  {
     "id": "api.user.create_user.invalid_invitation_type.app_error",
     "translation": "Unable to create the user, invalid invitation."
   },
@@ -2417,6 +2437,14 @@
   {
     "id": "api.user.login.client_side_cert.license.app_error",
     "translation": "Attempt to use the experimental feature ClientSideCertEnable without a valid enterprise license"
+  },
+  {
+    "id": "api.user.login.guest_accounts.disabled.error",
+    "translation": "Guest accounts are disabled"
+  },
+  {
+    "id": "api.user.login.guest_accounts.license.error",
+    "translation": "Your license does not support guest accounts"
   },
   {
     "id": "api.user.login.inactive.app_error",

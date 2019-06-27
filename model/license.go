@@ -59,6 +59,7 @@ type Features struct {
 	MessageExport             *bool `json:"message_export"`
 	CustomPermissionsSchemes  *bool `json:"custom_permissions_schemes"`
 	CustomTermsOfService      *bool `json:"custom_terms_of_service"`
+	GuestAccountsPermissions  *bool `json:"guest_accounts_permissions"`
 
 	// after we enabled more features we'll need to control them with this
 	FutureFeatures *bool `json:"future_features"`
@@ -81,6 +82,7 @@ func (f *Features) ToMap() map[string]interface{} {
 		"data_retention":              *f.DataRetention,
 		"message_export":              *f.MessageExport,
 		"custom_permissions_schemes":  *f.CustomPermissionsSchemes,
+		"guest_accounts_permissions":  *f.GuestAccountsPermissions,
 		"future":                      *f.FutureFeatures,
 	}
 }
@@ -160,6 +162,10 @@ func (f *Features) SetDefaults() {
 
 	if f.CustomPermissionsSchemes == nil {
 		f.CustomPermissionsSchemes = NewBool(*f.FutureFeatures)
+	}
+
+	if f.GuestAccountsPermissions == nil {
+		f.GuestAccountsPermissions = NewBool(*f.FutureFeatures)
 	}
 
 	if f.CustomTermsOfService == nil {

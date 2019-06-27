@@ -82,6 +82,12 @@ func (a *App) CreateUserWithToken(user *model.User, tokenId string) (*model.User
 
 	var ruser *model.User
 	if token.Type == TOKEN_TYPE_TEAM_INVITATION {
+		if a.License() == nil {
+			return nil, model.NewAppError("CreateUserWithToken", "api.user.create_user.guest_accounts.license.app_error", nil, "", http.StatusBadRequest)
+		}
+		if !*a.Config().GuestAccountsSettings.Enable {
+			return nil, model.NewAppError("CreateUserWithToken", "api.user.create_user.guest_accounts.disabled.app_error", nil, "", http.StatusBadRequest)
+		}
 		ruser, err = a.CreateUser(user)
 	} else {
 		ruser, err = a.CreateGuest(user)
@@ -253,7 +259,11 @@ func (a *App) CreateGuest(user *model.User) (*model.User, *model.AppError) {
 }
 
 func (a *App) createUserOrGuest(user *model.User, guest bool) (*model.User, *model.AppError) {
-	if !user.IsLDAPUser() && !user.IsSAMLUser() && !CheckUserDomain(user, *a.Config().TeamSettings.RestrictCreationToDomains) {
+	if !user.IsLDAPUser() && !user.IsSAMLUser() && !user.IsGuest() && !CheckUserDomain(user, *a.Config().TeamSettings.RestrictCreationToDomains) {
+		return nil, model.NewAppError("CreateUser", "api.user.create_user.accepted_domain.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if !user.IsLDAPUser() && !user.IsSAMLUser() && user.IsGuest() && !CheckUserDomain(user, *a.Config().GuestAccountsSettings.RestrictCreationToDomains) {
 		return nil, model.NewAppError("CreateUser", "api.user.create_user.accepted_domain.app_error", nil, "", http.StatusBadRequest)
 	}
 
