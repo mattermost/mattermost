@@ -4263,6 +4263,21 @@ func (c *Client4) uploadPlugin(file io.Reader, force bool) (*Manifest, *Response
 	return ManifestFromJson(rp.Body), BuildResponse(rp)
 }
 
+func (c *Client4) InstallPluginFromUrl(downloadUrl string, force bool) (*Manifest, *Response) {
+	forceStr := "false"
+	if force {
+		forceStr = "true"
+	}
+
+	url := fmt.Sprintf("%s?plugin_download_url=%s&force=%s", c.GetPluginsRoute()+"/install_from_url", url.QueryEscape(downloadUrl), forceStr)
+	r, err := c.DoApiPost(url, "")
+	if err != nil {
+		return nil, BuildErrorResponse(r, err)
+	}
+	defer closeBody(r)
+	return ManifestFromJson(r.Body), BuildResponse(r)
+}
+
 // GetPlugins will return a list of plugin manifests for currently active plugins.
 // WARNING: PLUGINS ARE STILL EXPERIMENTAL. THIS FUNCTION IS SUBJECT TO CHANGE.
 func (c *Client4) GetPlugins() (*PluginsResponse, *Response) {

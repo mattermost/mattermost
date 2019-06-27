@@ -336,12 +336,12 @@ func (webCon *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 		}
 
 		if webCon.AllChannelMembers == nil {
-			result := <-webCon.App.Srv.Store.Channel().GetAllChannelMembersForUser(webCon.UserId, true, false)
-			if result.Err != nil {
-				mlog.Error("webhub.shouldSendEvent: " + result.Err.Error())
+			result, err := webCon.App.Srv.Store.Channel().GetAllChannelMembersForUser(webCon.UserId, true, false)
+			if err != nil {
+				mlog.Error("webhub.shouldSendEvent: " + err.Error())
 				return false
 			}
-			webCon.AllChannelMembers = result.Data.(map[string]string)
+			webCon.AllChannelMembers = result
 			webCon.LastAllChannelMembersTime = model.GetMillis()
 		}
 

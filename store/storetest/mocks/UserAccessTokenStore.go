@@ -30,15 +30,15 @@ func (_m *UserAccessTokenStore) Delete(tokenId string) *model.AppError {
 }
 
 // DeleteAllForUser provides a mock function with given fields: userId
-func (_m *UserAccessTokenStore) DeleteAllForUser(userId string) store.StoreChannel {
+func (_m *UserAccessTokenStore) DeleteAllForUser(userId string) *model.AppError {
 	ret := _m.Called(userId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
 		r0 = rf(userId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
