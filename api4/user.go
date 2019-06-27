@@ -28,11 +28,15 @@ func (api *API) InitUser() {
 	api.BaseRoutes.Users.Handle("/stats", api.ApiSessionRequired(getTotalUsersStats)).Methods("GET")
 	api.BaseRoutes.Users.Handle("/group_channels", api.ApiSessionRequired(getUsersByGroupChannelIds)).Methods("POST")
 
-	api.BaseRoutes.User.Handle("", api.ApiSessionRequired(getUser)).Methods("GET")
 	api.BaseRoutes.User.Handle("/image/default", api.ApiSessionRequiredTrustRequester(getDefaultProfileImage)).Methods("GET")
 	api.BaseRoutes.User.Handle("/image", api.ApiSessionRequiredTrustRequester(getProfileImage)).Methods("GET")
 	api.BaseRoutes.User.Handle("/image", api.ApiSessionRequired(setProfileImage)).Methods("POST")
 	api.BaseRoutes.User.Handle("/image", api.ApiSessionRequired(setDefaultProfileImage)).Methods("DELETE")
+
+	api.BaseRoutes.User.Handle("/icon", api.ApiSessionRequiredTrustRequester(getIconImage)).Methods("GET")
+	api.BaseRoutes.User.Handle("/icon", api.ApiSessionRequired(setIconImage)).Methods("POST")
+
+	api.BaseRoutes.User.Handle("", api.ApiSessionRequired(getUser)).Methods("GET")
 	api.BaseRoutes.User.Handle("", api.ApiSessionRequired(updateUser)).Methods("PUT")
 	api.BaseRoutes.User.Handle("/patch", api.ApiSessionRequired(patchUser)).Methods("PUT")
 	api.BaseRoutes.User.Handle("", api.ApiSessionRequired(deleteUser)).Methods("DELETE")
@@ -421,6 +425,95 @@ func setDefaultProfileImage(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	if err := c.App.SetDefaultProfileImage(user); err != nil {
+		c.Err = err
+		return
+	}
+
+	c.LogAudit("")
+	ReturnStatusOK(w)
+}
+
+func getIconImage(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	canSee, err := c.App.UserCanSeeOtherUser(c.App.Session.UserId, c.Params.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if !canSee {
+		c.SetPermissionError(model.PERMISSION_VIEW_MEMBERS)
+		return
+	}
+
+	user, err := c.App.GetUser(c.Params.UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	img, readFailed, err := c.App.GetIconImage(user)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if readFailed {
+		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, public", 5*60)) // 5 mins
+	} else {
+		w.Header().Set("Cache-Control", fmt.Sprintf("max-age=%v, public", 24*60*60)) // 24 hrs
+	}
+
+	w.Header().Set("Content-Type", "image/svg+xml")
+	w.Write(img)
+}
+
+func setIconImage(c *Context, w http.ResponseWriter, r *http.Request) {
+	defer io.Copy(ioutil.Discard, r.Body)
+
+	c.RequireUserId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.SessionHasPermissionToUser(c.App.Session, c.Params.UserId) {
+		c.SetPermissionError(model.PERMISSION_EDIT_OTHER_USERS)
+		return
+	}
+
+	if len(*c.App.Config().FileSettings.DriverName) == 0 {
+		c.Err = model.NewAppError("setIconImage", "api.user.set_icon_image.storage.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if r.ContentLength > *c.App.Config().FileSettings.MaxFileSize {
+		c.Err = model.NewAppError("setIconImage", "api.user.set_icon_image.too_large.app_error", nil, "", http.StatusRequestEntityTooLarge)
+		return
+	}
+
+	if err := r.ParseMultipartForm(*c.App.Config().FileSettings.MaxFileSize); err != nil {
+		c.Err = model.NewAppError("setIconImage", "api.user.set_icon_image.parse.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	m := r.MultipartForm
+	imageArray, ok := m.File["image"]
+	if !ok {
+		c.Err = model.NewAppError("setIconImage", "api.user.set_icon_image.no_file.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	if len(imageArray) <= 0 {
+		c.Err = model.NewAppError("setIconImage", "api.user.set_icon_image.array.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	imageData := imageArray[0]
+	if err := c.App.SetIconImage(c.Params.UserId, imageData); err != nil {
 		c.Err = err
 		return
 	}

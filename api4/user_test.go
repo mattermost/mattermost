@@ -6,6 +6,8 @@ package api4
 import (
 	"fmt"
 	"net/http"
+	"os"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -17,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/services/mailservice"
+	"github.com/mattermost/mattermost-server/utils/fileutils"
 	"github.com/mattermost/mattermost-server/utils/testutils"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -2617,6 +2620,99 @@ func TestSetProfileImage(t *testing.T) {
 	assert.True(t, buser.LastPictureUpdate < ruser.LastPictureUpdate, "Picture should have updated for user")
 
 	info := &model.FileInfo{Path: "users/" + user.Id + "/profile.png"}
+	if err := th.cleanupTestFile(info); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestSetIconImage(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	user := th.BasicUser
+
+	badData, err := testutils.ReadTestFile("test.png")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	goodData, err := testutils.ReadTestFile("test.svg")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// png/jpg is not allowed
+	ok, resp := th.Client.SetIconImage(user.Id, badData)
+	if ok {
+		t.Fatal("Should return false, set icon image only allows svg")
+	}
+	CheckBadRequestStatus(t, resp)
+
+	ok, resp = th.Client.SetIconImage(model.NewId(), badData)
+	if ok {
+		t.Fatal("Should return false, set icon image not allowed")
+	}
+	CheckForbiddenStatus(t, resp)
+
+	// status code returns either forbidden or unauthorized
+	// note: forbidden is set as default at Client4.SetIconImage when request is terminated early by server
+	th.Client.Logout()
+	_, resp = th.Client.SetIconImage(user.Id, badData)
+	if resp.StatusCode == http.StatusForbidden {
+		CheckForbiddenStatus(t, resp)
+	} else if resp.StatusCode == http.StatusUnauthorized {
+		CheckUnauthorizedStatus(t, resp)
+	} else {
+		t.Fatal("Should have failed either forbidden or unauthorized")
+	}
+
+	_, resp = th.SystemAdminClient.SetIconImage(user.Id, goodData)
+	CheckNoError(t, resp)
+
+	info := &model.FileInfo{Path: "users/" + user.Id + "/icon.svg"}
+	if err := th.cleanupTestFile(info); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestGetIconImage(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	user := th.BasicUser
+
+	// Get icon image for user with no icon
+	data, resp := th.Client.GetIconImage(user.Id)
+	CheckNotFoundStatus(t, resp)
+	require.Equal(t, 0, len(data))
+
+	// Set an icon image
+	path, _ := fileutils.FindDir("tests")
+	svgFile, fileErr := os.Open(filepath.Join(path, "test.svg"))
+	require.Nil(t, fileErr)
+	defer svgFile.Close()
+	fpath := fmt.Sprintf("/users/%v/icon.svg", user.Id)
+	_, err := th.App.WriteFile(svgFile, fpath)
+	require.Nil(t, err)
+
+	data, resp = th.Client.GetIconImage(user.Id)
+	CheckNoError(t, resp)
+	if len(data) == 0 {
+		t.Fatal("Should not be empty")
+	}
+
+	_, resp = th.Client.GetIconImage("junk")
+	CheckBadRequestStatus(t, resp)
+
+	_, resp = th.Client.GetIconImage(model.NewId())
+	CheckNotFoundStatus(t, resp)
+
+	th.Client.Logout()
+	_, resp = th.Client.GetIconImage(user.Id)
+	CheckUnauthorizedStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.GetIconImage(user.Id)
+	CheckNoError(t, resp)
+
+	info := &model.FileInfo{Path: "/users/" + user.Id + "/icon.svg"}
 	if err := th.cleanupTestFile(info); err != nil {
 		t.Fatal(err)
 	}
