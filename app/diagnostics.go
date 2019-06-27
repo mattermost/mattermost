@@ -123,6 +123,8 @@ func pluginActivated(pluginStates map[string]*model.PluginState, pluginId string
 
 func (a *App) trackActivity() {
 	var userCount int64
+	var activeUsersMonthlyCount int64
+	var activeUsersDailyCount int64
 	var botAccountsCount int64
 	var inactiveUserCount int64
 	var publicChannelCount int64
@@ -140,7 +142,7 @@ func (a *App) trackActivity() {
 		mlog.Error(err.Error())
 	}
 
-	activeUsersMonthlyCount, err := a.Srv.Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS)
+	activeUsersMonthlyCount, err = a.Srv.Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS)
 	if err != nil {
 		mlog.Error(err.Error())
 	}
