@@ -106,7 +106,6 @@ func (a *App) RevokeAllSessions(userId string) *model.AppError {
 				return err
 			}
 		}
-		return nil
 	}
 
 	a.ClearSessionCacheForUser(userId)
