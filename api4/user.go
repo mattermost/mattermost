@@ -486,7 +486,7 @@ func setIconImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(*c.App.Config().FileSettings.DriverName) == 0 {
-		c.Err = model.NewAppError("setIconImage", "api.user.set_icon_image.storage.app_error", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("setIconImage", "api.user.user_icon_image.storage.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
 

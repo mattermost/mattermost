@@ -937,7 +937,7 @@ func (a *App) SetProfileImageFromFile(userId string, file io.Reader) *model.AppE
 
 func (a *App) SetIconImage(userId string, imageData *multipart.FileHeader) *model.AppError {
 	if len(*a.Config().FileSettings.DriverName) == 0 {
-		return model.NewAppError("SetIconImage", "api.user.set_icon_image.app_error", nil, "", http.StatusNotImplemented)
+		return model.NewAppError("SetIconImage", "api.user.user_icon_image.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	file, err := imageData.Open()
@@ -946,6 +946,7 @@ func (a *App) SetIconImage(userId string, imageData *multipart.FileHeader) *mode
 	}
 	defer file.Close()
 
+	// TODO: Sanitize SVG
 	svgInfo, err := parseSVG(file)
 	if err != nil {
 		return model.NewAppError("SetIconImage", "api.user.set_icon_image.parse.app_error", nil, err.Error(), http.StatusBadRequest)
@@ -967,7 +968,7 @@ func (a *App) SetIconImage(userId string, imageData *multipart.FileHeader) *mode
 
 func (a *App) GetIconImage(user *model.User) ([]byte, bool, *model.AppError) {
 	if len(*a.Config().FileSettings.DriverName) == 0 {
-		return nil, false, model.NewAppError("GetIconImage", "api.user.get_icon_image.app_error", nil, "", http.StatusNotImplemented)
+		return nil, false, model.NewAppError("GetIconImage", "api.user.user_icon_image.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	path := "users/" + user.Id + "/icon.svg"
