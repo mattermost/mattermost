@@ -233,8 +233,7 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		defer th.TearDown()
 
 		token := model.NewToken("invalid", "")
-		result := <-th.App.Srv.Store.Token().Save(token)
-		require.Nil(t, result.Err)
+		require.Nil(t, th.App.Srv.Store.Token().Save(token))
 
 		state := makeState(token)
 

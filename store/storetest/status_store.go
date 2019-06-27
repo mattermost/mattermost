@@ -40,10 +40,9 @@ func testStatusStore(t *testing.T, ss store.Store) {
 	status3 := &model.Status{UserId: model.NewId(), Status: model.STATUS_OFFLINE, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 	require.Nil(t, ss.Status().SaveOrUpdate(status3))
 
-	if result := <-ss.Status().GetOnlineAway(); result.Err != nil {
-		t.Fatal(result.Err)
+	if statuses, err := ss.Status().GetOnlineAway(); err != nil {
+		t.Fatal(err)
 	} else {
-		statuses := result.Data.([]*model.Status)
 		for _, status := range statuses {
 			if status.Status == model.STATUS_OFFLINE {
 				t.Fatal("should not have returned offline statuses")
@@ -61,10 +60,9 @@ func testStatusStore(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if result := <-ss.Status().GetByIds([]string{status.UserId, "junk"}); result.Err != nil {
-		t.Fatal(result.Err)
+	if statuses, err := ss.Status().GetByIds([]string{status.UserId, "junk"}); err != nil {
+		t.Fatal(err)
 	} else {
-		statuses := result.Data.([]*model.Status)
 		if len(statuses) != 1 {
 			t.Fatal("should only have 1 status")
 		}

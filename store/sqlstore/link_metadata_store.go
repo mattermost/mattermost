@@ -54,35 +54,28 @@ func (s SqlLinkMetadataStore) Save(metadata *model.LinkMetadata) store.StoreChan
 	})
 }
 
-func (s SqlLinkMetadataStore) Get(url string, timestamp int64) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var metadata *model.LinkMetadata
+func (s SqlLinkMetadataStore) Get(url string, timestamp int64) (*model.LinkMetadata, *model.AppError) {
+	var metadata *model.LinkMetadata
 
-		err := s.GetReplica().SelectOne(&metadata,
-			`SELECT
-				*
-			FROM
-				LinkMetadata
-			WHERE
-				URL = :URL
-				AND Timestamp = :Timestamp`, map[string]interface{}{"URL": url, "Timestamp": timestamp})
-		if err != nil {
-			result.Err = model.NewAppError("SqlLinkMetadataStore.Get", "store.sql_link_metadata.get.app_error", nil, "url="+url+", "+err.Error(), http.StatusInternalServerError)
-
-			if err == sql.ErrNoRows {
-				result.Err.StatusCode = http.StatusNotFound
-			}
-
-			return
+	err := s.GetReplica().SelectOne(&metadata,
+		`SELECT
+			*
+		FROM
+			LinkMetadata
+		WHERE
+			URL = :URL
+			AND Timestamp = :Timestamp`, map[string]interface{}{"URL": url, "Timestamp": timestamp})
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, model.NewAppError("SqlLinkMetadataStore.Get", "store.sql_link_metadata.get.app_error", nil, "url="+url+", "+err.Error(), http.StatusNotFound)
 		}
+		return nil, model.NewAppError("SqlLinkMetadataStore.Get", "store.sql_link_metadata.get.app_error", nil, "url="+url+", "+err.Error(), http.StatusInternalServerError)
+	}
 
-		err = metadata.DeserializeDataToConcreteType()
-		if err != nil {
-			result.Err = model.NewAppError("SqlLinkMetadataStore.Get", "store.sql_link_metadata.get.app_error", nil, "url="+url+", "+err.Error(), http.StatusInternalServerError)
+	err = metadata.DeserializeDataToConcreteType()
+	if err != nil {
+		return nil, model.NewAppError("SqlLinkMetadataStore.Get", "store.sql_link_metadata.get.app_error", nil, "url="+url+", "+err.Error(), http.StatusInternalServerError)
+	}
 
-			return
-		}
-
-		result.Data = metadata
-	})
+	return metadata, nil
 }
