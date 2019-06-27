@@ -8,9 +8,10 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/segmentio/analytics-go"
+
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
-	analytics "github.com/segmentio/analytics-go"
 )
 
 const (
@@ -123,8 +124,6 @@ func pluginActivated(pluginStates map[string]*model.PluginState, pluginId string
 
 func (a *App) trackActivity() {
 	var userCount int64
-	var activeUsersMonthlyCount int64
-	var activeUsersDailyCount int64
 	var botAccountsCount int64
 	var inactiveUserCount int64
 	var publicChannelCount int64
@@ -137,14 +136,14 @@ func (a *App) trackActivity() {
 	var incomingWebhooksCount int64
 	var outgoingWebhooksCount int64
 
-	activeUsersDailyCount, err := a.Srv.Store.User().AnalyticsActiveCount(DAY_MILLISECONDS)
-	if err != nil {
-		mlog.Error(err.Error())
+	activeUsersDailyCount, errDaily := a.Srv.Store.User().AnalyticsActiveCount(DAY_MILLISECONDS)
+	if errDaily != nil {
+		mlog.Error(errDaily.Error())
 	}
 
-	activeUsersMonthlyCount, err = a.Srv.Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS)
-	if err != nil {
-		mlog.Error(err.Error())
+	activeUsersMonthlyCount, errMonthly := a.Srv.Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS)
+	if errMonthly != nil {
+		mlog.Error(errMonthly.Error())
 	}
 
 	if count, err := a.Srv.Store.User().Count(model.UserCountOptions{IncludeDeleted: true}); err == nil {
