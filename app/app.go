@@ -17,6 +17,7 @@ import (
 	"github.com/mattermost/mattermost-server/services/imageproxy"
 	"github.com/mattermost/mattermost-server/services/timezones"
 	"github.com/mattermost/mattermost-server/utils"
+	analytics "github.com/segmentio/analytics-go"
 )
 
 type App struct {
@@ -42,6 +43,8 @@ type App struct {
 	MessageExport    einterfaces.MessageExportInterface
 	Metrics          einterfaces.MetricsInterface
 	Saml             einterfaces.SamlInterface
+
+	diagnosticClient *analytics.Client
 
 	HTTPService httpservice.HTTPService
 	ImageProxy  *imageproxy.ImageProxy

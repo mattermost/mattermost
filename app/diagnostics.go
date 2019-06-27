@@ -56,7 +56,32 @@ const (
 	TRACK_PLUGINS  = "plugins"
 )
 
-var client *analytics.Client
+func (a *App) initDiagnostics(endpoint string) {
+	if a.diagnosticClient == nil {
+		client := analytics.New(SEGMENT_KEY)
+		client.Logger = a.Log.StdLog(mlog.String("source", "segment"))
+		// For testing
+		if endpoint != "" {
+			client.Endpoint = endpoint
+			client.Verbose = true
+			client.Size = 1
+		}
+		client.Identify(&analytics.Identify{
+			UserId: a.DiagnosticId(),
+		})
+
+		a.diagnosticClient = client
+	}
+}
+
+// ShutdownDiagnostics closes the diagnostic client.
+func (a *App) ShutdownDiagnostics() error {
+	if a.diagnosticClient != nil {
+		return a.diagnosticClient.Close()
+	}
+
+	return nil
+}
 
 func (a *App) SendDailyDiagnostics() {
 	a.sendDailyDiagnostics(false)
@@ -74,24 +99,8 @@ func (a *App) sendDailyDiagnostics(override bool) {
 	}
 }
 
-func (a *App) initDiagnostics(endpoint string) {
-	if client == nil {
-		client = analytics.New(SEGMENT_KEY)
-		client.Logger = a.Log.StdLog(mlog.String("source", "segment"))
-		// For testing
-		if endpoint != "" {
-			client.Endpoint = endpoint
-			client.Verbose = true
-			client.Size = 1
-		}
-		client.Identify(&analytics.Identify{
-			UserId: a.DiagnosticId(),
-		})
-	}
-}
-
 func (a *App) SendDiagnostic(event string, properties map[string]interface{}) {
-	client.Track(&analytics.Track{
+	a.diagnosticClient.Track(&analytics.Track{
 		Event:      event,
 		UserId:     a.DiagnosticId(),
 		Properties: properties,
