@@ -38,11 +38,10 @@ func testLinkMetadataStoreSave(t *testing.T, ss store.Store) {
 			Data:      &model.PostImage{},
 		}
 
-		result := <-ss.LinkMetadata().Save(metadata)
+		linkMetadata, err := ss.LinkMetadata().Save(metadata)
 
-		require.Nil(t, result.Err)
-		require.IsType(t, metadata, result.Data)
-		assert.Equal(t, *metadata, *result.Data.(*model.LinkMetadata))
+		require.Nil(t, err)
+		assert.Equal(t, *metadata, *linkMetadata)
 	})
 
 	t.Run("should fail to save invalid item", func(t *testing.T) {
@@ -53,9 +52,9 @@ func testLinkMetadataStoreSave(t *testing.T, ss store.Store) {
 			Data:      nil,
 		}
 
-		result := <-ss.LinkMetadata().Save(metadata)
+		_, err := ss.LinkMetadata().Save(metadata)
 
-		assert.NotNil(t, result.Err)
+		assert.NotNil(t, err)
 	})
 
 	t.Run("should save with duplicate URL and different timestamp", func(t *testing.T) {
@@ -66,16 +65,15 @@ func testLinkMetadataStoreSave(t *testing.T, ss store.Store) {
 			Data:      &model.PostImage{},
 		}
 
-		result := <-ss.LinkMetadata().Save(metadata)
-		require.Nil(t, result.Err)
+		_, err := ss.LinkMetadata().Save(metadata)
+		require.Nil(t, err)
 
 		metadata.Timestamp = getNextLinkMetadataTimestamp()
 
-		result = <-ss.LinkMetadata().Save(metadata)
+		linkMetadata, err := ss.LinkMetadata().Save(metadata)
 
-		require.Nil(t, result.Err)
-		require.IsType(t, metadata, result.Data)
-		assert.Equal(t, *metadata, *result.Data.(*model.LinkMetadata))
+		require.Nil(t, err)
+		assert.Equal(t, *metadata, *linkMetadata)
 	})
 
 	t.Run("should save with duplicate timestamp and different URL", func(t *testing.T) {
@@ -86,16 +84,15 @@ func testLinkMetadataStoreSave(t *testing.T, ss store.Store) {
 			Data:      &model.PostImage{},
 		}
 
-		result := <-ss.LinkMetadata().Save(metadata)
-		require.Nil(t, result.Err)
+		_, err := ss.LinkMetadata().Save(metadata)
+		require.Nil(t, err)
 
 		metadata.URL = "http://example.com/another/page"
 
-		result = <-ss.LinkMetadata().Save(metadata)
+		linkMetadata, err := ss.LinkMetadata().Save(metadata)
 
-		require.Nil(t, result.Err)
-		require.IsType(t, metadata, result.Data)
-		assert.Equal(t, *metadata, *result.Data.(*model.LinkMetadata))
+		require.Nil(t, err)
+		assert.Equal(t, *metadata, *linkMetadata)
 	})
 
 	t.Run("should not save with duplicate URL and timestamp, but should not return an error", func(t *testing.T) {
@@ -106,20 +103,20 @@ func testLinkMetadataStoreSave(t *testing.T, ss store.Store) {
 			Data:      &model.PostImage{},
 		}
 
-		result := <-ss.LinkMetadata().Save(metadata)
-		require.Nil(t, result.Err)
-		assert.Equal(t, &model.PostImage{}, result.Data.(*model.LinkMetadata).Data)
+		linkMetadata, err := ss.LinkMetadata().Save(metadata)
+		require.Nil(t, err)
+		assert.Equal(t, &model.PostImage{}, linkMetadata.Data)
 
 		metadata.Data = &model.PostImage{Height: 10, Width: 20}
 
-		result = <-ss.LinkMetadata().Save(metadata)
-		require.Nil(t, result.Err)
-		assert.Equal(t, result.Data.(*model.LinkMetadata).Data, &model.PostImage{Height: 10, Width: 20})
+		linkMetadata, err = ss.LinkMetadata().Save(metadata)
+		require.Nil(t, err)
+		assert.Equal(t, linkMetadata.Data, &model.PostImage{Height: 10, Width: 20})
 
 		// Should return the original result, not the duplicate one
-		metadata, err := ss.LinkMetadata().Get(metadata.URL, metadata.Timestamp)
+		linkMetadata, err = ss.LinkMetadata().Get(metadata.URL, metadata.Timestamp)
 		require.Nil(t, err)
-		assert.Equal(t, &model.PostImage{}, metadata.Data)
+		assert.Equal(t, &model.PostImage{}, linkMetadata.Data)
 	})
 }
 
@@ -132,8 +129,8 @@ func testLinkMetadataStoreGet(t *testing.T, ss store.Store) {
 			Data:      &model.PostImage{},
 		}
 
-		result := <-ss.LinkMetadata().Save(metadata)
-		require.Nil(t, result.Err)
+		_, err := ss.LinkMetadata().Save(metadata)
+		require.Nil(t, err)
 
 		linkMetadata, err := ss.LinkMetadata().Get(metadata.URL, metadata.Timestamp)
 
@@ -150,10 +147,10 @@ func testLinkMetadataStoreGet(t *testing.T, ss store.Store) {
 			Data:      &model.PostImage{},
 		}
 
-		result := <-ss.LinkMetadata().Save(metadata)
-		require.Nil(t, result.Err)
+		_, err := ss.LinkMetadata().Save(metadata)
+		require.Nil(t, err)
 
-		_, err := ss.LinkMetadata().Get("http://example.com/another_page", metadata.Timestamp)
+		_, err = ss.LinkMetadata().Get("http://example.com/another_page", metadata.Timestamp)
 
 		require.NotNil(t, err)
 		assert.Equal(t, http.StatusNotFound, err.StatusCode)
@@ -167,10 +164,10 @@ func testLinkMetadataStoreGet(t *testing.T, ss store.Store) {
 			Data:      &model.PostImage{},
 		}
 
-		result := <-ss.LinkMetadata().Save(metadata)
-		require.Nil(t, result.Err)
+		_, err := ss.LinkMetadata().Save(metadata)
+		require.Nil(t, err)
 
-		_, err := ss.LinkMetadata().Get(metadata.URL, getNextLinkMetadataTimestamp())
+		_, err = ss.LinkMetadata().Get(metadata.URL, getNextLinkMetadataTimestamp())
 
 		require.NotNil(t, err)
 		assert.Equal(t, http.StatusNotFound, err.StatusCode)
@@ -189,14 +186,13 @@ func testLinkMetadataStoreTypes(t *testing.T, ss store.Store) {
 			},
 		}
 
-		result := <-ss.LinkMetadata().Save(metadata)
-		require.Nil(t, result.Err)
+		received, err := ss.LinkMetadata().Save(metadata)
+		require.Nil(t, err)
 
-		received := result.Data.(*model.LinkMetadata)
 		require.IsType(t, &model.PostImage{}, received.Data)
 		assert.Equal(t, *(metadata.Data.(*model.PostImage)), *(received.Data.(*model.PostImage)))
 
-		received, err := ss.LinkMetadata().Get(metadata.URL, metadata.Timestamp)
+		received, err = ss.LinkMetadata().Get(metadata.URL, metadata.Timestamp)
 		require.Nil(t, err)
 
 		require.IsType(t, &model.PostImage{}, received.Data)
@@ -220,14 +216,13 @@ func testLinkMetadataStoreTypes(t *testing.T, ss store.Store) {
 			Data:      og,
 		}
 
-		result := <-ss.LinkMetadata().Save(metadata)
-		require.Nil(t, result.Err)
+		received, err := ss.LinkMetadata().Save(metadata)
+		require.Nil(t, err)
 
-		received := result.Data.(*model.LinkMetadata)
 		require.IsType(t, &opengraph.OpenGraph{}, received.Data)
 		assert.Equal(t, *(metadata.Data.(*opengraph.OpenGraph)), *(received.Data.(*opengraph.OpenGraph)))
 
-		received, err := ss.LinkMetadata().Get(metadata.URL, metadata.Timestamp)
+		received, err = ss.LinkMetadata().Get(metadata.URL, metadata.Timestamp)
 		require.Nil(t, err)
 
 		require.IsType(t, &opengraph.OpenGraph{}, received.Data)
@@ -242,13 +237,11 @@ func testLinkMetadataStoreTypes(t *testing.T, ss store.Store) {
 			Data:      nil,
 		}
 
-		result := <-ss.LinkMetadata().Save(metadata)
-		require.Nil(t, result.Err)
-
-		received := result.Data.(*model.LinkMetadata)
+		received, err := ss.LinkMetadata().Save(metadata)
+		require.Nil(t, err)
 		assert.Nil(t, received.Data)
 
-		received, err := ss.LinkMetadata().Get(metadata.URL, metadata.Timestamp)
+		received, err = ss.LinkMetadata().Get(metadata.URL, metadata.Timestamp)
 		require.Nil(t, err)
 
 		require.Nil(t, received.Data)
