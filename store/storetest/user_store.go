@@ -3229,12 +3229,9 @@ func testUserStoreAnalyticsGetInactiveUsersCount(t *testing.T, ss store.Store) {
 	store.Must(ss.User().Save(u1))
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u1.Id)) }()
 
-	var count int64
-
-	if result := <-ss.User().AnalyticsGetInactiveUsersCount(); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		count = result.Data.(int64)
+	count, err := ss.User().AnalyticsGetInactiveUsersCount()
+	if err != nil {
+		t.Fatal(err)
 	}
 
 	u2 := &model.User{}
@@ -3243,13 +3240,13 @@ func testUserStoreAnalyticsGetInactiveUsersCount(t *testing.T, ss store.Store) {
 	store.Must(ss.User().Save(u2))
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u2.Id)) }()
 
-	if result := <-ss.User().AnalyticsGetInactiveUsersCount(); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		newCount := result.Data.(int64)
-		if count != newCount-1 {
-			t.Fatal("Expected 1 more inactive users but found otherwise.", count, newCount)
-		}
+	newCount, err := ss.User().AnalyticsGetInactiveUsersCount()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if count != newCount-1 {
+		t.Fatal("Expected 1 more inactive users but found otherwise.", count, newCount)
 	}
 }
 
