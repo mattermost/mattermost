@@ -2464,23 +2464,30 @@ func TestRevokeSessionsFromAllUsers(t *testing.T) {
 	_, resp = th.Client.RevokeSessionsFromAllUsers()
 	CheckUnauthorizedStatus(t, resp)
 
+	th.Client.Login(user.Email, user.Password)
 	admin := th.SystemAdminUser
 	th.Client.Login(admin.Email, admin.Password)
+	sessions, err := th.Server.Store.Session().GetSessions(user.Id)
+	require.NotEmpty(t, sessions)
+	require.Nil(t, err)
+	sessions, err = th.Server.Store.Session().GetSessions(admin.Id)
+	require.NotEmpty(t, sessions)
+	require.Nil(t, err)
 	_, resp = th.Client.RevokeSessionsFromAllUsers()
 	CheckNoError(t, resp)
 
+	// All sessions were revoked, so making the same call
+	// again will fail due to lack of a session.
 	_, resp = th.Client.RevokeSessionsFromAllUsers()
 	CheckUnauthorizedStatus(t, resp)
 
-	sessions, _ := th.SystemAdminClient.GetSessions(user.Id, "")
-	if len(sessions) != 0 {
-		t.Fatal("no sessions should exist for user")
-	}
+	sessions, err = th.Server.Store.Session().GetSessions(user.Id)
+	require.Empty(t, sessions)
+	require.Nil(t, err)
 
-	sessions, _ = th.SystemAdminClient.GetSessions(admin.Id, "")
-	if len(sessions) != 0 {
-		t.Fatal("no sessions should exist for admin")
-	}
+	sessions, err = th.Server.Store.Session().GetSessions(admin.Id)
+	require.Empty(t, sessions)
+	require.Nil(t, err)
 
 }
 
