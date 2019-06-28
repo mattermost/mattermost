@@ -679,7 +679,8 @@ func (a *App) UpdateChannelMemberRoles(channelId string, userId string, newRoles
 	member.SchemeAdmin = false
 
 	for _, roleName := range strings.Fields(newRoles) {
-		role, err := a.GetRoleByName(roleName)
+		var role *model.Role
+		role, err = a.GetRoleByName(roleName)
 		if err != nil {
 			err.StatusCode = http.StatusBadRequest
 			return nil, err
