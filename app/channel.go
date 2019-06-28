@@ -2008,11 +2008,7 @@ func (a *App) postChannelMoveMessage(user *model.User, channel *model.Channel, p
 }
 
 func (a *App) GetPinnedPosts(channelId string) (*model.PostList, *model.AppError) {
-	result := <-a.Srv.Store.Channel().GetPinnedPosts(channelId)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.PostList), nil
+	return a.Srv.Store.Channel().GetPinnedPosts(channelId)
 }
 
 func (a *App) ToggleMuteChannel(channelId string, userId string) *model.ChannelMember {
