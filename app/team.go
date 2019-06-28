@@ -1013,11 +1013,10 @@ func (a *App) FindTeamByName(name string) bool {
 }
 
 func (a *App) GetTeamsUnreadForUser(excludeTeamId string, userId string) ([]*model.TeamUnread, *model.AppError) {
-	result := <-a.Srv.Store.Team().GetChannelUnreadsForAllTeams(excludeTeamId, userId)
-	if result.Err != nil {
-		return nil, result.Err
+	data, err := a.Srv.Store.Team().GetChannelUnreadsForAllTeams(excludeTeamId, userId)
+	if err != nil {
+		return nil, err
 	}
-	data := result.Data.([]*model.ChannelUnread)
 	members := []*model.TeamUnread{}
 	membersMap := make(map[string]*model.TeamUnread)
 
