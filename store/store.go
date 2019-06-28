@@ -299,7 +299,7 @@ type UserStore interface {
 	GetEtagForProfilesNotInTeam(teamId string) StoreChannel
 	ClearAllCustomRoleAssignments() StoreChannel
 	InferSystemInstallDate() StoreChannel
-	GetAllAfter(limit int, afterId string) StoreChannel
+	GetAllAfter(limit int, afterId string) ([]*model.User, *model.AppError)
 	GetUsersBatchForIndexing(startTime, endTime int64, limit int) ([]*model.UserForIndexing, *model.AppError)
 	Count(options model.UserCountOptions) (int64, *model.AppError)
 	GetTeamGroupUsers(teamID string) ([]*model.User, *model.AppError)

@@ -3567,26 +3567,23 @@ func testUserStoreGetAllAfter(t *testing.T, ss store.Store) {
 	}
 
 	t.Run("get after lowest possible id", func(t *testing.T) {
-		result := <-ss.User().GetAllAfter(10000, strings.Repeat("0", 26))
-		require.Nil(t, result.Err)
+		actual, err := ss.User().GetAllAfter(10000, strings.Repeat("0", 26))
+		require.Nil(t, err)
 
-		actual := result.Data.([]*model.User)
 		assert.Equal(t, expected, actual)
 	})
 
 	t.Run("get after first user", func(t *testing.T) {
-		result := <-ss.User().GetAllAfter(10000, expected[0].Id)
-		require.Nil(t, result.Err)
+		actual, err := ss.User().GetAllAfter(10000, expected[0].Id)
+		require.Nil(t, err)
 
-		actual := result.Data.([]*model.User)
 		assert.Equal(t, []*model.User{expected[1]}, actual)
 	})
 
 	t.Run("get after second user", func(t *testing.T) {
-		result := <-ss.User().GetAllAfter(10000, expected[1].Id)
-		require.Nil(t, result.Err)
+		actual, err := ss.User().GetAllAfter(10000, expected[1].Id)
+		require.Nil(t, err)
 
-		actual := result.Data.([]*model.User)
 		assert.Equal(t, []*model.User{}, actual)
 	})
 }
