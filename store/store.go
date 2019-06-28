@@ -159,7 +159,7 @@ type ChannelStore interface {
 	GetChannelsByIds(channelIds []string) ([]*model.Channel, *model.AppError)
 	GetForPost(postId string) (*model.Channel, *model.AppError)
 	SaveMember(member *model.ChannelMember) StoreChannel
-	UpdateMember(member *model.ChannelMember) StoreChannel
+	UpdateMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError)
 	GetMembers(channelId string, offset, limit int) (*model.ChannelMembers, *model.AppError)
 	GetMember(channelId string, userId string) (*model.ChannelMember, *model.AppError)
 	GetChannelMembersTimezones(channelId string) ([]model.StringMap, *model.AppError)
