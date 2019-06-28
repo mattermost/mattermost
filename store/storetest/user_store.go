@@ -1134,7 +1134,7 @@ func testUserStoreGetProfilesNotInChannel(t *testing.T, ss store.Store) {
 
 	// add two members to the group
 	for _, u := range []*model.User{u1, u2} {
-		res := <-ss.Group().CreateOrRestoreMember(group.Id, u.Id)
+		res := <-ss.Group().UpsertMember(group.Id, u.Id)
 		require.Nil(t, res.Err)
 	}
 
@@ -3467,7 +3467,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 
 	// add two members to the group
 	for _, u := range []*model.User{u1, u2} {
-		res := <-ss.Group().CreateOrRestoreMember(group.Id, u.Id)
+		res := <-ss.Group().UpsertMember(group.Id, u.Id)
 		require.Nil(t, res.Err)
 	}
 
@@ -3773,9 +3773,9 @@ func testUserStoreGetTeamGroupUsers(t *testing.T, ss store.Store) {
 	groupB := testGroups[1]
 
 	// add members to groups
-	res = <-ss.Group().CreateOrRestoreMember(groupA.Id, userGroupA.Id)
+	res = <-ss.Group().UpsertMember(groupA.Id, userGroupA.Id)
 	require.Nil(t, res.Err)
-	res = <-ss.Group().CreateOrRestoreMember(groupB.Id, userGroupB.Id)
+	res = <-ss.Group().UpsertMember(groupB.Id, userGroupB.Id)
 	require.Nil(t, res.Err)
 
 	// association one group to team
@@ -3895,9 +3895,9 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, ss store.Store) {
 	groupB := testGroups[1]
 
 	// add members to groups
-	res = <-ss.Group().CreateOrRestoreMember(groupA.Id, userGroupA.Id)
+	res = <-ss.Group().UpsertMember(groupA.Id, userGroupA.Id)
 	require.Nil(t, res.Err)
-	res = <-ss.Group().CreateOrRestoreMember(groupB.Id, userGroupB.Id)
+	res = <-ss.Group().UpsertMember(groupB.Id, userGroupB.Id)
 	require.Nil(t, res.Err)
 
 	// association one group to channel

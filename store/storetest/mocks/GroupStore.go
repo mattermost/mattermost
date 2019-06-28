@@ -221,22 +221,6 @@ func (_m *GroupStore) CreateGroupSyncable(groupSyncable *model.GroupSyncable) (*
 	return r0, r1
 }
 
-// CreateOrRestoreMember provides a mock function with given fields: groupID, userID
-func (_m *GroupStore) CreateOrRestoreMember(groupID string, userID string) store.StoreChannel {
-	ret := _m.Called(groupID, userID)
-
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, string) store.StoreChannel); ok {
-		r0 = rf(groupID, userID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
-		}
-	}
-
-	return r0
-}
-
 // Delete provides a mock function with given fields: groupID
 func (_m *GroupStore) Delete(groupID string) store.StoreChannel {
 	ret := _m.Called(groupID)
@@ -654,4 +638,20 @@ func (_m *GroupStore) UpdateGroupSyncable(groupSyncable *model.GroupSyncable) (*
 	}
 
 	return r0, r1
+}
+
+// UpsertMember provides a mock function with given fields: groupID, userID
+func (_m *GroupStore) UpsertMember(groupID string, userID string) store.StoreChannel {
+	ret := _m.Called(groupID, userID)
+
+	var r0 store.StoreChannel
+	if rf, ok := ret.Get(0).(func(string, string) store.StoreChannel); ok {
+		r0 = rf(groupID, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.StoreChannel)
+		}
+	}
+
+	return r0
 }
