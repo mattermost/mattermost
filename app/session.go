@@ -116,7 +116,7 @@ func (a *App) RevokeAllSessions(userId string) *model.AppError {
 // RevokeSessionsFromAllUsers will go through all the sessions active
 // in the server and revoke them
 func (a *App) RevokeSessionsFromAllUsers() *model.AppError {
-	// TODO: revoke tokens before sessions so they can't be used to relogin
+	// revoke tokens before sessions so they can't be used to relogin
 	tErr := a.Srv.Store.OAuth().RemoveAllAccessData()
 	if tErr != nil {
 		return tErr
