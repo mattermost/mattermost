@@ -56,7 +56,7 @@ const (
 	TRACK_PLUGINS  = "plugins"
 )
 
-var client *analytics.Client
+var client analytics.Client
 
 func (a *App) SendDailyDiagnostics() {
 	a.sendDailyDiagnostics(false)
@@ -76,22 +76,26 @@ func (a *App) sendDailyDiagnostics(override bool) {
 
 func (a *App) initDiagnostics(endpoint string) {
 	if client == nil {
-		client = analytics.New(SEGMENT_KEY)
-		client.Logger = a.Log.StdLog(mlog.String("source", "segment"))
-		// For testing
+		config := analytics.Config{}
+
+		config.Logger = analytics.StdLogger(a.Log.StdLog(mlog.String("source", "segment")))
+
 		if endpoint != "" {
-			client.Endpoint = endpoint
-			client.Verbose = true
-			client.Size = 1
+			config.Endpoint = endpoint
+			config.Verbose = true
+			config.BatchSize = 1
 		}
-		client.Identify(&analytics.Identify{
+
+		client, _ = analytics.NewWithConfig(SEGMENT_KEY, config)
+
+		client.Enqueue(&analytics.Identify{
 			UserId: a.DiagnosticId(),
 		})
 	}
 }
 
 func (a *App) SendDiagnostic(event string, properties map[string]interface{}) {
-	client.Track(&analytics.Track{
+	client.Enqueue(&analytics.Track{
 		Event:      event,
 		UserId:     a.DiagnosticId(),
 		Properties: properties,
