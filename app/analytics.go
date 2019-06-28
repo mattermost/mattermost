@@ -297,12 +297,11 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 }
 
 func (a *App) GetRecentlyActiveUsersForTeam(teamId string) (map[string]*model.User, *model.AppError) {
-	result := <-a.Srv.Store.User().GetRecentlyActiveUsersForTeam(teamId, 0, 100, nil)
-	if result.Err != nil {
-		return nil, result.Err
+	users, err := a.Srv.Store.User().GetRecentlyActiveUsersForTeam(teamId, 0, 100, nil)
+	if err != nil {
+		return nil, err
 	}
 
-	users := result.Data.([]*model.User)
 	userMap := make(map[string]*model.User)
 
 	for _, user := range users {
@@ -313,23 +312,19 @@ func (a *App) GetRecentlyActiveUsersForTeam(teamId string) (map[string]*model.Us
 }
 
 func (a *App) GetRecentlyActiveUsersForTeamPage(teamId string, page, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
-	var users []*model.User
-	result := <-a.Srv.Store.User().GetRecentlyActiveUsersForTeam(teamId, page*perPage, perPage, viewRestrictions)
-	if result.Err != nil {
-		return nil, result.Err
+	users, err := a.Srv.Store.User().GetRecentlyActiveUsersForTeam(teamId, page*perPage, perPage, viewRestrictions)
+	if err != nil {
+		return nil, err
 	}
-	users = result.Data.([]*model.User)
 
 	return a.sanitizeProfiles(users, asAdmin), nil
 }
 
 func (a *App) GetNewUsersForTeamPage(teamId string, page, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
-	var users []*model.User
-	result := <-a.Srv.Store.User().GetNewUsersForTeam(teamId, page*perPage, perPage, viewRestrictions)
-	if result.Err != nil {
-		return nil, result.Err
+	users, err := a.Srv.Store.User().GetNewUsersForTeam(teamId, page*perPage, perPage, viewRestrictions)
+	if err != nil {
+		return nil, err
 	}
-	users = result.Data.([]*model.User)
 
 	return a.sanitizeProfiles(users, asAdmin), nil
 }

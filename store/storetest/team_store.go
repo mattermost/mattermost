@@ -1224,13 +1224,12 @@ func testGetChannelUnreadsForAllTeams(t *testing.T, ss store.Store) {
 	cm2 := &model.ChannelMember{ChannelId: c2.Id, UserId: m2.UserId, NotifyProps: model.GetDefaultChannelNotifyProps(), MsgCount: 90}
 	store.Must(ss.Channel().SaveMember(cm2))
 
-	if r1 := <-ss.Team().GetChannelUnreadsForAllTeams("", uid); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if ms1, err := ss.Team().GetChannelUnreadsForAllTeams("", uid); err != nil {
+		t.Fatal(err)
 	} else {
-		ms := r1.Data.([]*model.ChannelUnread)
 		membersMap := make(map[string]bool)
-		for i := range ms {
-			id := ms[i].TeamId
+		for i := range ms1 {
+			id := ms1[i].TeamId
 			if _, ok := membersMap[id]; !ok {
 				membersMap[id] = true
 			}
@@ -1239,18 +1238,17 @@ func testGetChannelUnreadsForAllTeams(t *testing.T, ss store.Store) {
 			t.Fatal("Should be the unreads for all the teams")
 		}
 
-		if ms[0].MsgCount != 10 {
+		if ms1[0].MsgCount != 10 {
 			t.Fatal("subtraction failed")
 		}
 	}
 
-	if r2 := <-ss.Team().GetChannelUnreadsForAllTeams(teamId1, uid); r2.Err != nil {
-		t.Fatal(r2.Err)
+	if ms2, err := ss.Team().GetChannelUnreadsForAllTeams(teamId1, uid); err != nil {
+		t.Fatal(err)
 	} else {
-		ms := r2.Data.([]*model.ChannelUnread)
 		membersMap := make(map[string]bool)
-		for i := range ms {
-			id := ms[i].TeamId
+		for i := range ms2 {
+			id := ms2[i].TeamId
 			if _, ok := membersMap[id]; !ok {
 				membersMap[id] = true
 			}
@@ -1260,7 +1258,7 @@ func testGetChannelUnreadsForAllTeams(t *testing.T, ss store.Store) {
 			t.Fatal("Should be the unreads for just one team")
 		}
 
-		if ms[0].MsgCount != 10 {
+		if ms2[0].MsgCount != 10 {
 			t.Fatal("subtraction failed")
 		}
 	}

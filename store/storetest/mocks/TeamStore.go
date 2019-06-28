@@ -320,19 +320,28 @@ func (_m *TeamStore) GetByName(name string) (*model.Team, *model.AppError) {
 }
 
 // GetChannelUnreadsForAllTeams provides a mock function with given fields: excludeTeamId, userId
-func (_m *TeamStore) GetChannelUnreadsForAllTeams(excludeTeamId string, userId string) store.StoreChannel {
+func (_m *TeamStore) GetChannelUnreadsForAllTeams(excludeTeamId string, userId string) ([]*model.ChannelUnread, *model.AppError) {
 	ret := _m.Called(excludeTeamId, userId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, string) store.StoreChannel); ok {
+	var r0 []*model.ChannelUnread
+	if rf, ok := ret.Get(0).(func(string, string) []*model.ChannelUnread); ok {
 		r0 = rf(excludeTeamId, userId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]*model.ChannelUnread)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string) *model.AppError); ok {
+		r1 = rf(excludeTeamId, userId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetChannelUnreadsForTeam provides a mock function with given fields: teamId, userId
