@@ -159,7 +159,7 @@ type ChannelStore interface {
 	GetChannelsByIds(channelIds []string) ([]*model.Channel, *model.AppError)
 	GetForPost(postId string) (*model.Channel, *model.AppError)
 	SaveMember(member *model.ChannelMember) StoreChannel
-	UpdateMember(member *model.ChannelMember) StoreChannel
+	UpdateMember(member *model.ChannelMember) (*model.ChannelMember, *model.AppError)
 	GetMembers(channelId string, offset, limit int) (*model.ChannelMembers, *model.AppError)
 	GetMember(channelId string, userId string) (*model.ChannelMember, *model.AppError)
 	GetChannelMembersTimezones(channelId string) ([]model.StringMap, *model.AppError)
@@ -172,7 +172,7 @@ type ChannelStore interface {
 	InvalidateMemberCount(channelId string)
 	GetMemberCountFromCache(channelId string) int64
 	GetMemberCount(channelId string, allowFromCache bool) (int64, *model.AppError)
-	GetPinnedPosts(channelId string) StoreChannel
+	GetPinnedPosts(channelId string) (*model.PostList, *model.AppError)
 	RemoveMember(channelId string, userId string) *model.AppError
 	PermanentDeleteMembersByUser(userId string) *model.AppError
 	PermanentDeleteMembersByChannel(channelId string) *model.AppError
@@ -293,13 +293,13 @@ type UserStore interface {
 	SearchInChannel(channelId string, term string, options *model.UserSearchOptions) StoreChannel
 	SearchNotInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) StoreChannel
 	SearchWithoutTeam(term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
-	AnalyticsGetInactiveUsersCount() StoreChannel
+	AnalyticsGetInactiveUsersCount() (int64, *model.AppError)
 	AnalyticsGetSystemAdminCount() StoreChannel
 	GetProfilesNotInTeam(teamId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) StoreChannel
 	GetEtagForProfilesNotInTeam(teamId string) StoreChannel
 	ClearAllCustomRoleAssignments() StoreChannel
 	InferSystemInstallDate() StoreChannel
-	GetAllAfter(limit int, afterId string) StoreChannel
+	GetAllAfter(limit int, afterId string) ([]*model.User, *model.AppError)
 	GetUsersBatchForIndexing(startTime, endTime int64, limit int) ([]*model.UserForIndexing, *model.AppError)
 	Count(options model.UserCountOptions) (int64, *model.AppError)
 	GetTeamGroupUsers(teamID string) ([]*model.User, *model.AppError)
@@ -473,7 +473,7 @@ type StatusStore interface {
 	GetOnlineAway() ([]*model.Status, *model.AppError)
 	GetOnline() ([]*model.Status, *model.AppError)
 	GetAllFromTeam(teamId string) ([]*model.Status, *model.AppError)
-	ResetAll() StoreChannel
+	ResetAll() *model.AppError
 	GetTotalActiveUsersCount() (int64, *model.AppError)
 	UpdateLastActivityAt(userId string, lastActivityAt int64) StoreChannel
 }
@@ -526,7 +526,7 @@ type UserAccessTokenStore interface {
 	GetByToken(tokenString string) (*model.UserAccessToken, *model.AppError)
 	GetByUser(userId string, page, perPage int) ([]*model.UserAccessToken, *model.AppError)
 	Search(term string) ([]*model.UserAccessToken, *model.AppError)
-	UpdateTokenEnable(tokenId string) StoreChannel
+	UpdateTokenEnable(tokenId string) *model.AppError
 	UpdateTokenDisable(tokenId string) *model.AppError
 }
 
@@ -583,7 +583,7 @@ type GroupStore interface {
 	GetMemberUsers(groupID string) StoreChannel
 	GetMemberUsersPage(groupID string, offset int, limit int) StoreChannel
 	GetMemberCount(groupID string) StoreChannel
-	CreateOrRestoreMember(groupID string, userID string) StoreChannel
+	UpsertMember(groupID string, userID string) StoreChannel
 	DeleteMember(groupID string, userID string) StoreChannel
 
 	CreateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError)
@@ -613,7 +613,7 @@ type GroupStore interface {
 }
 
 type LinkMetadataStore interface {
-	Save(linkMetadata *model.LinkMetadata) StoreChannel
+	Save(linkMetadata *model.LinkMetadata) (*model.LinkMetadata, *model.AppError)
 	Get(url string, timestamp int64) (*model.LinkMetadata, *model.AppError)
 }
 

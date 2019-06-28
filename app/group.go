@@ -79,8 +79,8 @@ func (a *App) GetGroupMemberUsersPage(groupID string, page int, perPage int) ([]
 	return members, count, nil
 }
 
-func (a *App) CreateOrRestoreGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
-	result := <-a.Srv.Store.Group().CreateOrRestoreMember(groupID, userID)
+func (a *App) UpsertGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
+	result := <-a.Srv.Store.Group().UpsertMember(groupID, userID)
 	if result.Err != nil {
 		return nil, result.Err
 	}
