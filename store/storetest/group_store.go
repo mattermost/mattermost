@@ -597,7 +597,7 @@ func testUpsertMember(t *testing.T, ss store.Store) {
 
 	// Restores a deleted member
 	_, err = ss.Group().UpsertMember(group.Id, user.Id)
-	require.NotNil(t, err)
+	require.Nil(t, err)
 
 	_, err = ss.Group().DeleteMember(group.Id, user.Id)
 	require.Nil(t, err)
