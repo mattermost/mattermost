@@ -177,13 +177,11 @@ func (a *App) ExportAllChannels(writer io.Writer) *model.AppError {
 func (a *App) ExportAllUsers(writer io.Writer) *model.AppError {
 	afterId := strings.Repeat("0", 26)
 	for {
-		result := <-a.Srv.Store.User().GetAllAfter(1000, afterId)
+		users, err := a.Srv.Store.User().GetAllAfter(1000, afterId)
 
-		if result.Err != nil {
-			return result.Err
+		if err != nil {
+			return err
 		}
-
-		users := result.Data.([]*model.User)
 
 		if len(users) == 0 {
 			break

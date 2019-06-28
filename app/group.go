@@ -74,8 +74,8 @@ func (a *App) GetGroupMemberUsersPage(groupID string, page int, perPage int) ([]
 	return members, int(count), nil
 }
 
-func (a *App) CreateOrRestoreGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
-	return a.Srv.Store.Group().CreateOrRestoreMember(groupID, userID)
+func (a *App) UpsertGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {
+	return a.Srv.Store.Group().UpsertMember(groupID, userID)
 }
 
 func (a *App) DeleteGroupMember(groupID string, userID string) (*model.GroupMember, *model.AppError) {

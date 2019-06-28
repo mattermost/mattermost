@@ -1134,7 +1134,7 @@ func testUserStoreGetProfilesNotInChannel(t *testing.T, ss store.Store) {
 
 	// add two members to the group
 	for _, u := range []*model.User{u1, u2} {
-		_, err = ss.Group().CreateOrRestoreMember(group.Id, u.Id)
+		_, err = ss.Group().UpsertMember(group.Id, u.Id)
 		require.Nil(t, err)
 	}
 
@@ -3467,7 +3467,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 
 	// add two members to the group
 	for _, u := range []*model.User{u1, u2} {
-		_, err = ss.Group().CreateOrRestoreMember(group.Id, u.Id)
+		_, err = ss.Group().UpsertMember(group.Id, u.Id)
 		require.Nil(t, err)
 	}
 
@@ -3567,26 +3567,23 @@ func testUserStoreGetAllAfter(t *testing.T, ss store.Store) {
 	}
 
 	t.Run("get after lowest possible id", func(t *testing.T) {
-		result := <-ss.User().GetAllAfter(10000, strings.Repeat("0", 26))
-		require.Nil(t, result.Err)
+		actual, err := ss.User().GetAllAfter(10000, strings.Repeat("0", 26))
+		require.Nil(t, err)
 
-		actual := result.Data.([]*model.User)
 		assert.Equal(t, expected, actual)
 	})
 
 	t.Run("get after first user", func(t *testing.T) {
-		result := <-ss.User().GetAllAfter(10000, expected[0].Id)
-		require.Nil(t, result.Err)
+		actual, err := ss.User().GetAllAfter(10000, expected[0].Id)
+		require.Nil(t, err)
 
-		actual := result.Data.([]*model.User)
 		assert.Equal(t, []*model.User{expected[1]}, actual)
 	})
 
 	t.Run("get after second user", func(t *testing.T) {
-		result := <-ss.User().GetAllAfter(10000, expected[1].Id)
-		require.Nil(t, result.Err)
+		actual, err := ss.User().GetAllAfter(10000, expected[1].Id)
+		require.Nil(t, err)
 
-		actual := result.Data.([]*model.User)
 		assert.Equal(t, []*model.User{}, actual)
 	})
 }
@@ -3776,9 +3773,9 @@ func testUserStoreGetTeamGroupUsers(t *testing.T, ss store.Store) {
 	groupB := testGroups[1]
 
 	// add members to groups
-	_, err = ss.Group().CreateOrRestoreMember(groupA.Id, userGroupA.Id)
+	_, err = ss.Group().UpsertMember(groupA.Id, userGroupA.Id)
 	require.Nil(t, err)
-	_, err = ss.Group().CreateOrRestoreMember(groupB.Id, userGroupB.Id)
+	_, err = ss.Group().UpsertMember(groupB.Id, userGroupB.Id)
 	require.Nil(t, err)
 
 	// association one group to team
@@ -3898,9 +3895,9 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, ss store.Store) {
 	groupB := testGroups[1]
 
 	// add members to groups
-	_, err = ss.Group().CreateOrRestoreMember(groupA.Id, userGroupA.Id)
+	_, err = ss.Group().UpsertMember(groupA.Id, userGroupA.Id)
 	require.Nil(t, err)
-	_, err = ss.Group().CreateOrRestoreMember(groupB.Id, userGroupB.Id)
+	_, err = ss.Group().UpsertMember(groupB.Id, userGroupB.Id)
 	require.Nil(t, err)
 
 	// association one group to channel
