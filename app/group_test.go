@@ -110,8 +110,8 @@ func TestCreateOrRestoreGroupMember(t *testing.T) {
 	require.NotNil(t, g)
 
 	g, err = th.App.UpsertGroupMember(group.Id, th.BasicUser.Id)
-	require.NotNil(t, err)
-	require.Nil(t, g)
+	require.Nil(t, err)
+	require.NotNil(t, g)
 }
 
 func TestDeleteGroupMember(t *testing.T) {
