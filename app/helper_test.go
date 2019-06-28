@@ -421,7 +421,6 @@ func (me *TestHelper) ShutdownApp() {
 	done := make(chan bool)
 	go func() {
 		me.Server.Shutdown()
-		me.App.ShutdownDiagnostics()
 		close(done)
 	}()
 

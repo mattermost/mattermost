@@ -20,6 +20,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
+	analytics "github.com/segmentio/analytics-go"
 	"github.com/throttled/throttled"
 	"golang.org/x/crypto/acme/autocert"
 
@@ -100,7 +101,9 @@ type Server struct {
 	clientConfig        map[string]string
 	clientConfigHash    string
 	limitedClientConfig map[string]string
-	diagnosticId        string
+
+	diagnosticId     string
+	diagnosticClient *analytics.Client
 
 	phase2PermissionsMigrationComplete bool
 
@@ -320,6 +323,11 @@ func (s *Server) Shutdown() error {
 	mlog.Info("Stopping Server...")
 
 	s.RunOldAppShutdown()
+
+	err := s.ShutdownDiagnostics()
+	if err != nil {
+		mlog.Error(fmt.Sprintf("Unable to cleanly shutdown diagnostic client: %s", err))
+	}
 
 	s.StopHTTPServer()
 	s.WaitForGoroutines()
@@ -733,4 +741,13 @@ func (s *Server) StartElasticsearch() {
 			})
 		}
 	})
+}
+
+// ShutdownDiagnostics closes the diagnostic client.
+func (s *Server) ShutdownDiagnostics() error {
+	if s.diagnosticClient != nil {
+		return s.diagnosticClient.Close()
+	}
+
+	return nil
 }

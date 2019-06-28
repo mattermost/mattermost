@@ -57,7 +57,7 @@ const (
 )
 
 func (a *App) initDiagnostics(endpoint string) {
-	if a.diagnosticClient == nil {
+	if a.Srv.diagnosticClient == nil {
 		client := analytics.New(SEGMENT_KEY)
 		client.Logger = a.Log.StdLog(mlog.String("source", "segment"))
 		// For testing
@@ -70,17 +70,13 @@ func (a *App) initDiagnostics(endpoint string) {
 			UserId: a.DiagnosticId(),
 		})
 
-		a.diagnosticClient = client
+		a.Srv.diagnosticClient = client
 	}
 }
 
-// ShutdownDiagnostics closes the diagnostic client.
+// ShutdownDiagnostics closes the server's diagnostic client.
 func (a *App) ShutdownDiagnostics() error {
-	if a.diagnosticClient != nil {
-		return a.diagnosticClient.Close()
-	}
-
-	return nil
+	return a.Srv.ShutdownDiagnostics()
 }
 
 func (a *App) SendDailyDiagnostics() {
@@ -100,7 +96,7 @@ func (a *App) sendDailyDiagnostics(override bool) {
 }
 
 func (a *App) SendDiagnostic(event string, properties map[string]interface{}) {
-	a.diagnosticClient.Track(&analytics.Track{
+	a.Srv.diagnosticClient.Track(&analytics.Track{
 		Event:      event,
 		UserId:     a.DiagnosticId(),
 		Properties: properties,
