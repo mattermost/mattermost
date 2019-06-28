@@ -223,7 +223,7 @@ func TestKVSetJSON(t *testing.T) {
 
 	t.Run("JSON Marshal error", func(t *testing.T) {
 		api := setupAPI()
-		api.AssertNotCalled(t, "KVSetJSON")
+		api.AssertNotCalled(t, "KVSet")
 
 		p := &plugin.HelpersImpl{API: api}
 
