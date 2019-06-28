@@ -1417,14 +1417,12 @@ func (us SqlUserStore) performSearch(query sq.SelectBuilder, term string, option
 	return result
 }
 
-func (us SqlUserStore) AnalyticsGetInactiveUsersCount() store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if count, err := us.GetReplica().SelectInt("SELECT COUNT(Id) FROM Users WHERE DeleteAt > 0"); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.AnalyticsGetInactiveUsersCount", "store.sql_user.analytics_get_inactive_users_count.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = count
-		}
-	})
+func (us SqlUserStore) AnalyticsGetInactiveUsersCount() (int64, *model.AppError) {
+	count, err := us.GetReplica().SelectInt("SELECT COUNT(Id) FROM Users WHERE DeleteAt > 0")
+	if err != nil {
+		return int64(0), model.NewAppError("SqlUserStore.AnalyticsGetInactiveUsersCount", "store.sql_user.analytics_get_inactive_users_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return count, nil
 }
 
 func (us SqlUserStore) AnalyticsGetSystemAdminCount() store.StoreChannel {
