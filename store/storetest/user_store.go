@@ -1134,8 +1134,8 @@ func testUserStoreGetProfilesNotInChannel(t *testing.T, ss store.Store) {
 
 	// add two members to the group
 	for _, u := range []*model.User{u1, u2} {
-		res := <-ss.Group().CreateOrRestoreMember(group.Id, u.Id)
-		require.Nil(t, res.Err)
+		_, err = ss.Group().CreateOrRestoreMember(group.Id, u.Id)
+		require.Nil(t, err)
 	}
 
 	// associate the group with the channel
@@ -3467,8 +3467,8 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 
 	// add two members to the group
 	for _, u := range []*model.User{u1, u2} {
-		res := <-ss.Group().CreateOrRestoreMember(group.Id, u.Id)
-		require.Nil(t, res.Err)
+		_, err = ss.Group().CreateOrRestoreMember(group.Id, u.Id)
+		require.Nil(t, err)
 	}
 
 	// associate the group with the team
@@ -3776,10 +3776,10 @@ func testUserStoreGetTeamGroupUsers(t *testing.T, ss store.Store) {
 	groupB := testGroups[1]
 
 	// add members to groups
-	res = <-ss.Group().CreateOrRestoreMember(groupA.Id, userGroupA.Id)
-	require.Nil(t, res.Err)
-	res = <-ss.Group().CreateOrRestoreMember(groupB.Id, userGroupB.Id)
-	require.Nil(t, res.Err)
+	_, err = ss.Group().CreateOrRestoreMember(groupA.Id, userGroupA.Id)
+	require.Nil(t, err)
+	_, err = ss.Group().CreateOrRestoreMember(groupB.Id, userGroupB.Id)
+	require.Nil(t, err)
 
 	// association one group to team
 	_, err = ss.Group().CreateGroupSyncable(&model.GroupSyncable{
@@ -3898,10 +3898,10 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, ss store.Store) {
 	groupB := testGroups[1]
 
 	// add members to groups
-	res = <-ss.Group().CreateOrRestoreMember(groupA.Id, userGroupA.Id)
-	require.Nil(t, res.Err)
-	res = <-ss.Group().CreateOrRestoreMember(groupB.Id, userGroupB.Id)
-	require.Nil(t, res.Err)
+	_, err = ss.Group().CreateOrRestoreMember(groupA.Id, userGroupA.Id)
+	require.Nil(t, err)
+	_, err = ss.Group().CreateOrRestoreMember(groupB.Id, userGroupB.Id)
+	require.Nil(t, err)
 
 	// association one group to channel
 	_, err = ss.Group().CreateGroupSyncable(&model.GroupSyncable{
