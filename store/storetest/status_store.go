@@ -26,10 +26,6 @@ func testStatusStore(t *testing.T, ss store.Store) {
 
 	status.LastActivityAt = 10
 
-	if err := ss.Status().SaveOrUpdate(status); err != nil {
-		t.Fatal(err)
-	}
-
 	if _, err := ss.Status().Get(status.UserId); err != nil {
 		t.Fatal(err)
 	}
