@@ -26,7 +26,7 @@ func TestGroupStore(t *testing.T, ss store.Store) {
 
 	t.Run("GetMemberUsers", func(t *testing.T) { testGroupGetMemberUsers(t, ss) })
 	t.Run("GetMemberUsersPage", func(t *testing.T) { testGroupGetMemberUsersPage(t, ss) })
-	t.Run("UpsertMember", func(t *testing.T) { testGroupCreateOrRestoreMember(t, ss) })
+	t.Run("UpsertMember", func(t *testing.T) { testUpsertMember(t, ss) })
 	t.Run("DeleteMember", func(t *testing.T) { testGroupDeleteMember(t, ss) })
 
 	t.Run("CreateGroupSyncable", func(t *testing.T) { testCreateGroupSyncable(t, ss) })
@@ -558,7 +558,7 @@ func testGroupGetMemberUsersPage(t *testing.T, ss store.Store) {
 	require.Equal(t, 1, len(groupMembers))
 }
 
-func testGroupCreateOrRestoreMember(t *testing.T, ss store.Store) {
+func testUpsertMember(t *testing.T, ss store.Store) {
 	// Create group
 	g1 := &model.Group{
 		Name:        model.NewId(),
@@ -589,7 +589,7 @@ func testGroupCreateOrRestoreMember(t *testing.T, ss store.Store) {
 
 	// Duplicate composite key (GroupId, UserId)
 	_, err = ss.Group().UpsertMember(group.Id, user.Id)
-	require.Equal(t, err.Id, "store.sql_group.uniqueness_error")
+	require.Nil(t, err)
 
 	// Invalid GroupId
 	_, err = ss.Group().UpsertMember(model.NewId(), user.Id)
