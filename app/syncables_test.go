@@ -89,12 +89,12 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	singer1 := th.BasicUser
 	scientist1 := th.BasicUser2
 
-	_, err = th.App.CreateOrRestoreGroupMember(gleeGroup.Id, singer1.Id)
+	_, err = th.App.UpsertGroupMember(gleeGroup.Id, singer1.Id)
 	if err != nil {
 		t.Errorf("test groupmember not created: %s", err.Error())
 	}
 
-	scientistGroupMember, err := th.App.CreateOrRestoreGroupMember(scienceGroup.Id, scientist1.Id)
+	scientistGroupMember, err := th.App.UpsertGroupMember(scienceGroup.Id, scientist1.Id)
 	if err != nil {
 		t.Errorf("test groupmember not created: %s", err.Error())
 	}
@@ -375,7 +375,7 @@ func TestDeleteGroupMemberships(t *testing.T) {
 	require.Equal(t, 3, int(cmemberCount))
 
 	// add a user to the group
-	_, err = th.App.CreateOrRestoreGroupMember(group.Id, th.SystemAdminUser.Id)
+	_, err = th.App.UpsertGroupMember(group.Id, th.SystemAdminUser.Id)
 	require.Nil(t, err)
 
 	// run the delete
