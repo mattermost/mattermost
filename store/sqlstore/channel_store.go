@@ -710,22 +710,18 @@ func (s SqlChannelStore) Get(id string, allowFromCache bool) (*model.Channel, *m
 	return s.get(id, false, allowFromCache)
 }
 
-func (s SqlChannelStore) GetPinnedPosts(channelId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		pl := model.NewPostList()
+func (s SqlChannelStore) GetPinnedPosts(channelId string) (*model.PostList, *model.AppError) {
+	pl := model.NewPostList()
 
-		var posts []*model.Post
-		if _, err := s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE IsPinned = true AND ChannelId = :ChannelId AND DeleteAt = 0 ORDER BY CreateAt ASC", map[string]interface{}{"ChannelId": channelId}); err != nil {
-			result.Err = model.NewAppError("SqlPostStore.GetPinnedPosts", "store.sql_channel.pinned_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			for _, post := range posts {
-				pl.AddPost(post)
-				pl.AddOrder(post.Id)
-			}
-		}
-
-		result.Data = pl
-	})
+	var posts []*model.Post
+	if _, err := s.GetReplica().Select(&posts, "SELECT * FROM Posts WHERE IsPinned = true AND ChannelId = :ChannelId AND DeleteAt = 0 ORDER BY CreateAt ASC", map[string]interface{}{"ChannelId": channelId}); err != nil {
+		return nil, model.NewAppError("SqlPostStore.GetPinnedPosts", "store.sql_channel.pinned_posts.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	for _, post := range posts {
+		pl.AddPost(post)
+		pl.AddOrder(post.Id)
+	}
+	return pl, nil
 }
 
 func (s SqlChannelStore) GetFromMaster(id string) (*model.Channel, *model.AppError) {
