@@ -450,9 +450,9 @@ func (a *App) saveLinkMetadataToDatabase(requestURL string, timestamp int64, og 
 		metadata.Type = model.LINK_METADATA_TYPE_NONE
 	}
 
-	result := <-a.Srv.Store.LinkMetadata().Save(metadata)
-	if result.Err != nil {
-		mlog.Warn("Failed to write link metadata", mlog.String("request_url", requestURL), mlog.Err(result.Err))
+	_, err := a.Srv.Store.LinkMetadata().Save(metadata)
+	if err != nil {
+		mlog.Warn("Failed to write link metadata", mlog.String("request_url", requestURL), mlog.Err(err))
 	}
 }
 
