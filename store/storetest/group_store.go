@@ -759,11 +759,13 @@ func testGetAllGroupSyncablesByGroup(t *testing.T, ss store.Store) {
 			Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 			Type:            model.TEAM_OPEN,
 		}
-		team, err := ss.Team().Save(t1)
+		var team *model.Team
+		team, err = ss.Team().Save(t1)
 		require.Nil(t, err)
 
 		// create groupteam
-		groupTeam, err := ss.Group().CreateGroupSyncable(model.NewGroupTeam(group.Id, team.Id, false))
+		var groupTeam *model.GroupSyncable
+		groupTeam, err = ss.Group().CreateGroupSyncable(model.NewGroupTeam(group.Id, team.Id, false))
 		require.Nil(t, err)
 		groupTeams = append(groupTeams, groupTeam)
 	}

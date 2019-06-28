@@ -3763,7 +3763,8 @@ func testUserStoreGetTeamGroupUsers(t *testing.T, ss store.Store) {
 	var testGroups []*model.Group
 	for i := 0; i < 2; i++ {
 		id = model.NewId()
-		group, err := ss.Group().Create(&model.Group{
+		var group *model.Group
+		group, err = ss.Group().Create(&model.Group{
 			Name:        "n_" + id,
 			DisplayName: "dn_" + id,
 			Source:      model.GroupSourceLdap,
@@ -3884,7 +3885,8 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, ss store.Store) {
 	var testGroups []*model.Group
 	for i := 0; i < 2; i++ {
 		id = model.NewId()
-		group, err := ss.Group().Create(&model.Group{
+		var group *model.Group
+		group, err = ss.Group().Create(&model.Group{
 			Name:        "n_" + id,
 			DisplayName: "dn_" + id,
 			Source:      model.GroupSourceLdap,
