@@ -1134,7 +1134,7 @@ func testUserStoreGetProfilesNotInChannel(t *testing.T, ss store.Store) {
 
 	// add two members to the group
 	for _, u := range []*model.User{u1, u2} {
-		res := <-ss.Group().CreateOrRestoreMember(group.Id, u.Id)
+		res := <-ss.Group().UpsertMember(group.Id, u.Id)
 		require.Nil(t, res.Err)
 	}
 
@@ -3005,13 +3005,13 @@ func testUserStoreSearchNotInTeam(t *testing.T, ss store.Store) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.Description, func(t *testing.T) {
-			result := <-ss.User().SearchNotInTeam(
+			users, err := ss.User().SearchNotInTeam(
 				testCase.TeamId,
 				testCase.Term,
 				testCase.Options,
 			)
-			require.Nil(t, result.Err)
-			assertUsers(t, testCase.Expected, result.Data.([]*model.User))
+			require.Nil(t, err)
+			assertUsers(t, testCase.Expected, users)
 		})
 	}
 }
@@ -3229,12 +3229,9 @@ func testUserStoreAnalyticsGetInactiveUsersCount(t *testing.T, ss store.Store) {
 	store.Must(ss.User().Save(u1))
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u1.Id)) }()
 
-	var count int64
-
-	if result := <-ss.User().AnalyticsGetInactiveUsersCount(); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		count = result.Data.(int64)
+	count, err := ss.User().AnalyticsGetInactiveUsersCount()
+	if err != nil {
+		t.Fatal(err)
 	}
 
 	u2 := &model.User{}
@@ -3243,13 +3240,13 @@ func testUserStoreAnalyticsGetInactiveUsersCount(t *testing.T, ss store.Store) {
 	store.Must(ss.User().Save(u2))
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u2.Id)) }()
 
-	if result := <-ss.User().AnalyticsGetInactiveUsersCount(); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		newCount := result.Data.(int64)
-		if count != newCount-1 {
-			t.Fatal("Expected 1 more inactive users but found otherwise.", count, newCount)
-		}
+	newCount, err := ss.User().AnalyticsGetInactiveUsersCount()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if count != newCount-1 {
+		t.Fatal("Expected 1 more inactive users but found otherwise.", count, newCount)
 	}
 }
 
@@ -3467,7 +3464,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 
 	// add two members to the group
 	for _, u := range []*model.User{u1, u2} {
-		res := <-ss.Group().CreateOrRestoreMember(group.Id, u.Id)
+		res := <-ss.Group().UpsertMember(group.Id, u.Id)
 		require.Nil(t, res.Err)
 	}
 
@@ -3567,26 +3564,23 @@ func testUserStoreGetAllAfter(t *testing.T, ss store.Store) {
 	}
 
 	t.Run("get after lowest possible id", func(t *testing.T) {
-		result := <-ss.User().GetAllAfter(10000, strings.Repeat("0", 26))
-		require.Nil(t, result.Err)
+		actual, err := ss.User().GetAllAfter(10000, strings.Repeat("0", 26))
+		require.Nil(t, err)
 
-		actual := result.Data.([]*model.User)
 		assert.Equal(t, expected, actual)
 	})
 
 	t.Run("get after first user", func(t *testing.T) {
-		result := <-ss.User().GetAllAfter(10000, expected[0].Id)
-		require.Nil(t, result.Err)
+		actual, err := ss.User().GetAllAfter(10000, expected[0].Id)
+		require.Nil(t, err)
 
-		actual := result.Data.([]*model.User)
 		assert.Equal(t, []*model.User{expected[1]}, actual)
 	})
 
 	t.Run("get after second user", func(t *testing.T) {
-		result := <-ss.User().GetAllAfter(10000, expected[1].Id)
-		require.Nil(t, result.Err)
+		actual, err := ss.User().GetAllAfter(10000, expected[1].Id)
+		require.Nil(t, err)
 
-		actual := result.Data.([]*model.User)
 		assert.Equal(t, []*model.User{}, actual)
 	})
 }
@@ -3776,9 +3770,9 @@ func testUserStoreGetTeamGroupUsers(t *testing.T, ss store.Store) {
 	groupB := testGroups[1]
 
 	// add members to groups
-	res = <-ss.Group().CreateOrRestoreMember(groupA.Id, userGroupA.Id)
+	res = <-ss.Group().UpsertMember(groupA.Id, userGroupA.Id)
 	require.Nil(t, res.Err)
-	res = <-ss.Group().CreateOrRestoreMember(groupB.Id, userGroupB.Id)
+	res = <-ss.Group().UpsertMember(groupB.Id, userGroupB.Id)
 	require.Nil(t, res.Err)
 
 	// association one group to team
@@ -3898,9 +3892,9 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, ss store.Store) {
 	groupB := testGroups[1]
 
 	// add members to groups
-	res = <-ss.Group().CreateOrRestoreMember(groupA.Id, userGroupA.Id)
+	res = <-ss.Group().UpsertMember(groupA.Id, userGroupA.Id)
 	require.Nil(t, res.Err)
-	res = <-ss.Group().CreateOrRestoreMember(groupB.Id, userGroupB.Id)
+	res = <-ss.Group().UpsertMember(groupB.Id, userGroupB.Id)
 	require.Nil(t, res.Err)
 
 	// association one group to channel

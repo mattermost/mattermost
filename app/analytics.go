@@ -59,7 +59,12 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 		var userChan store.StoreChannel
 		var userInactiveChan store.StoreChannel
 		if teamId == "" {
-			userInactiveChan = a.Srv.Store.User().AnalyticsGetInactiveUsersCount()
+			userInactiveChan = make(chan store.StoreResult, 1)
+			go func() {
+				count, err := a.Srv.Store.User().AnalyticsGetInactiveUsersCount()
+				userInactiveChan <- store.StoreResult{Data: count, Err: err}
+				close(userInactiveChan)
+			}()
 		} else {
 			userChan := make(chan store.StoreResult, 1)
 			go func() {

@@ -335,7 +335,7 @@ func (s *SqlGroupStore) GetMemberCount(groupID string) store.StoreChannel {
 	})
 }
 
-func (s *SqlGroupStore) CreateOrRestoreMember(groupID string, userID string) store.StoreChannel {
+func (s *SqlGroupStore) UpsertMember(groupID string, userID string) store.StoreChannel {
 	return store.Do(func(result *store.StoreResult) {
 
 		member := &model.GroupMember{
@@ -360,11 +360,6 @@ func (s *SqlGroupStore) CreateOrRestoreMember(groupID string, userID string) sto
 				result.Err = model.NewAppError("SqlGroupStore.GroupCreateOrRestoreMember", "store.select_error", nil, "group_id="+member.GroupId+"user_id="+member.UserId+","+err.Error(), http.StatusInternalServerError)
 				return
 			}
-		}
-
-		if retrievedMember != nil && retrievedMember.DeleteAt == 0 {
-			result.Err = model.NewAppError("SqlGroupStore.GroupCreateOrRestoreMember", "store.sql_group.uniqueness_error", nil, "group_id="+member.GroupId+", user_id="+member.UserId, http.StatusBadRequest)
-			return
 		}
 
 		if retrievedMember == nil {
