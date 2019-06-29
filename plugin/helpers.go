@@ -12,7 +12,7 @@ type Helpers interface {
 	EnsureBot(bot *model.Bot) (string, error)
 
 	// KVGetJSON retrievs a value based on the key.
-	KVGetJSON(key string, value interface{}) error
+	KVGetJSON(key string, value interface{}) (bool, error)
 
 	// KVSetJSON stores a key-value pair.
 	KVSetJSON(key string, value interface{}) error
