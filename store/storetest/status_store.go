@@ -64,11 +64,11 @@ func testStatusStore(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if err := (<-ss.Status().ResetAll()).Err; err != nil {
+	if err := ss.Status().ResetAll(); err != nil {
 		t.Fatal(err)
 	}
 
-	if statusParameter, err := ss.Status().Get(status3.UserId); err != nil {
+	if statusParameter, err := ss.Status().Get(status.UserId); err != nil {
 		t.Fatal(err)
 	} else {
 		if statusParameter.Status != model.STATUS_OFFLINE {
