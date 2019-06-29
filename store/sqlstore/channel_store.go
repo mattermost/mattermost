@@ -825,49 +825,42 @@ func (s SqlChannelStore) setDeleteAtT(transaction *gorp.Transaction, channelId s
 }
 
 // PermanentDeleteByTeam removes all channels for the given team from the database.
-func (s SqlChannelStore) PermanentDeleteByTeam(teamId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		transaction, err := s.GetMaster().Begin()
-		if err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.PermanentDeleteByTeam", "store.sql_channel.permanent_delete_by_team.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
-		defer finalizeTransaction(transaction)
+func (s SqlChannelStore) PermanentDeleteByTeam(teamId string) *model.AppError {
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return model.NewAppError("SqlChannelStore.PermanentDeleteByTeam", "store.sql_channel.permanent_delete_by_team.open_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	defer finalizeTransaction(transaction)
 
-		*result = s.permanentDeleteByTeamtT(transaction, teamId)
-		if result.Err != nil {
-			return
-		}
+	if err := s.permanentDeleteByTeamtT(transaction, teamId); err != nil {
+		return err
+	}
 
-		// Additionally propagate the deletions to the PublicChannels table.
-		if _, err := transaction.Exec(`
+	// Additionally propagate the deletions to the PublicChannels table.
+	if _, err := transaction.Exec(`
 			DELETE FROM
 			    PublicChannels
 			WHERE
 			    TeamId = :TeamId
 		`, map[string]interface{}{
-			"TeamId": teamId,
-		}); err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.PermanentDeleteByTeamt", "store.sql_channel.permanent_delete_by_team.delete_public_channels.app_error", nil, "team_id="+teamId+", "+err.Error(), http.StatusInternalServerError)
-			return
-		}
-
-		if err := transaction.Commit(); err != nil {
-			result.Err = model.NewAppError("SqlChannelStore.PermanentDeleteByTeam", "store.sql_channel.permanent_delete_by_team.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
-	})
-}
-
-func (s SqlChannelStore) permanentDeleteByTeamtT(transaction *gorp.Transaction, teamId string) store.StoreResult {
-	result := store.StoreResult{}
-
-	if _, err := transaction.Exec("DELETE FROM Channels WHERE TeamId = :TeamId", map[string]interface{}{"TeamId": teamId}); err != nil {
-		result.Err = model.NewAppError("SqlChannelStore.PermanentDeleteByTeam", "store.sql_channel.permanent_delete_by_team.app_error", nil, "teamId="+teamId+", "+err.Error(), http.StatusInternalServerError)
-		return result
+		"TeamId": teamId,
+	}); err != nil {
+		return model.NewAppError("SqlChannelStore.PermanentDeleteByTeamt", "store.sql_channel.permanent_delete_by_team.delete_public_channels.app_error", nil, "team_id="+teamId+", "+err.Error(), http.StatusInternalServerError)
 	}
 
-	return result
+	if err := transaction.Commit(); err != nil {
+		return model.NewAppError("SqlChannelStore.PermanentDeleteByTeam", "store.sql_channel.permanent_delete_by_team.commit_transaction.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
+}
+
+func (s SqlChannelStore) permanentDeleteByTeamtT(transaction *gorp.Transaction, teamId string) *model.AppError {
+	if _, err := transaction.Exec("DELETE FROM Channels WHERE TeamId = :TeamId", map[string]interface{}{"TeamId": teamId}); err != nil {
+		return model.NewAppError("SqlChannelStore.PermanentDeleteByTeam", "store.sql_channel.permanent_delete_by_team.app_error", nil, "teamId="+teamId+", "+err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
 }
 
 // PermanentDelete removes the given channel from the database.
