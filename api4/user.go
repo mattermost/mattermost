@@ -15,6 +15,7 @@ import (
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
 )
 
@@ -615,13 +616,29 @@ func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	sinceString := r.URL.Query().Get("since")
+
+	options := &store.UserGetByIdsOpts{
+		IsAdmin: c.IsSystemAdmin(),
+	}
+
+	if len(sinceString) > 0 {
+		since, parseError := strconv.ParseInt(sinceString, 10, 64)
+		if parseError != nil {
+			c.SetInvalidParam("since")
+			return
+		}
+		options.Since = since
+	}
+
 	restrictions, err := c.App.GetViewUsersRestrictions(c.App.Session.UserId)
 	if err != nil {
 		c.Err = err
 		return
 	}
+	options.ViewRestrictions = restrictions
 
-	users, err := c.App.GetUsersByIds(userIds, c.IsSystemAdmin(), restrictions)
+	users, err := c.App.GetUsersByIds(userIds, options)
 	if err != nil {
 		c.Err = err
 		return

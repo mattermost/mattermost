@@ -2178,7 +2178,7 @@ func TestAddChannelMember(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// Add user to group
-	_, appErr = th.App.CreateOrRestoreGroupMember(th.Group.Id, user.Id)
+	_, appErr = th.App.UpsertGroupMember(th.Group.Id, user.Id)
 	require.Nil(t, appErr)
 
 	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user.Id)
@@ -2748,9 +2748,9 @@ func TestChannelMembersMinusGroupMembers(t *testing.T) {
 	group1 := th.CreateGroup()
 	group2 := th.CreateGroup()
 
-	_, err = th.App.CreateOrRestoreGroupMember(group1.Id, user1.Id)
+	_, err = th.App.UpsertGroupMember(group1.Id, user1.Id)
 	require.Nil(t, err)
-	_, err = th.App.CreateOrRestoreGroupMember(group2.Id, user2.Id)
+	_, err = th.App.UpsertGroupMember(group2.Id, user2.Id)
 	require.Nil(t, err)
 
 	// No permissions
