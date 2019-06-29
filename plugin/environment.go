@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strconv"
 	"sync"
 	"syscall"
 	"time"
@@ -316,23 +317,40 @@ func (env *Environment) Shutdown() {
 		rp := value.(*registeredPlugin)
 
 		if rp.supervisor != nil {
-			//if err := rp.supervisor.Hooks().OnDeactivate(); err != nil {
-			//	env.logger.Error("Plugin OnDeactivate() error", mlog.String("plugin_id", rp.BundleInfo.Manifest.Id), mlog.Err(err))
-			//}
-			//rp.supervisor.Shutdown()
-			p, err := os.FindProcess(rp.supervisor.pid)
-			if err == nil {
-				err = p.Signal(syscall.SIGTERM)
-				if err != nil {
-					p.Signal(syscall.SIGKILL)
-				}
+			if err := rp.supervisor.Hooks().OnDeactivate(); err != nil {
+				env.logger.Error("Plugin OnDeactivate() error", mlog.String("plugin_id", rp.BundleInfo.Manifest.Id), mlog.Err(err))
 			}
+			rp.supervisor.Shutdown()
+			env.StopPlugin(rp.supervisor.pid)
 		}
 
 		env.registeredPlugins.Delete(key)
 
 		return true
 	})
+}
+
+//Stops plugin forcefully if not shutdown gracefully
+func (env *Environment) StopPlugin(pid int) {
+	env.logger.Info("Checking if plugin pid " + strconv.Itoa(pid) + " is already stopped")
+	if p, err := os.FindProcess(pid); err != nil {
+		env.logger.Info("Plugin pid " + strconv.Itoa(pid) + " is stopped")
+	} else {
+		env.logger.Info("Plugin pid " + strconv.Itoa(pid) + " is still active, sending SIGTERM")
+		if err = p.Signal(syscall.SIGTERM); err != nil {
+			env.logger.Info("Error sending SIGTERM to plugin pid " + strconv.Itoa(pid))
+		} else {
+			go func() {
+				<-time.NewTimer(time.Second * 10).C
+				if p, err := os.FindProcess(pid); err != nil {
+					env.logger.Info("Plugin pid " + strconv.Itoa(pid) + " is stopped")
+				} else {
+					env.logger.Info("Plugin pid " + strconv.Itoa(pid) + " is still active, sending SIGKILL")
+					p.Signal(syscall.SIGKILL)
+				}
+			}()
+		}
+	}
 }
 
 // HooksForPlugin returns the hooks API for the plugin with the given id.
