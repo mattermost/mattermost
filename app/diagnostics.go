@@ -12,6 +12,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/store"
 )
 
 const (
@@ -136,15 +137,25 @@ func (a *App) trackActivity() {
 	var incomingWebhooksCount int64
 	var outgoingWebhooksCount int64
 
-	activeUsersDailyCount, errDaily := a.Srv.Store.User().AnalyticsActiveCount(DAY_MILLISECONDS)
-	if errDaily != nil {
-		mlog.Error(errDaily.Error())
-	}
+	activeUsersDailyCountChan := make(chan store.StoreResult, 1)
+	go func() {
+		count, err := a.Srv.Store.User().AnalyticsActiveCount(DAY_MILLISECONDS)
+		if err != nil {
+			mlog.Error(err.Error())
+		}
+		activeUsersDailyCountChan <- store.StoreResult{Data: count, Err: err}
+		close(activeUsersDailyCountChan)
+	}()
 
-	activeUsersMonthlyCount, errMonthly := a.Srv.Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS)
-	if errMonthly != nil {
-		mlog.Error(errMonthly.Error())
-	}
+	activeUsersMonthlyCountChan := make(chan store.StoreResult, 1)
+	go func() {
+		count, err := a.Srv.Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS)
+		if err != nil {
+			mlog.Error(err.Error())
+		}
+		activeUsersMonthlyCountChan <- store.StoreResult{Data: count, Err: err}
+		close(activeUsersMonthlyCountChan)
+	}()
 
 	if count, err := a.Srv.Store.User().Count(model.UserCountOptions{IncludeDeleted: true}); err == nil {
 		userCount = count
@@ -192,6 +203,16 @@ func (a *App) trackActivity() {
 	}
 
 	outgoingWebhooksCount, _ = a.Srv.Store.Webhook().AnalyticsOutgoingCount("")
+
+	var activeUsersDailyCount int64
+	if r := <-activeUsersDailyCountChan; r.Err == nil {
+		activeUsersDailyCount = r.Data.(int64)
+	}
+
+	var activeUsersMonthlyCount int64
+	if r := <-activeUsersMonthlyCountChan; r.Err == nil {
+		activeUsersMonthlyCount = r.Data.(int64)
+	}
 
 	a.SendDiagnostic(TRACK_ACTIVITY, map[string]interface{}{
 		"registered_users":             userCount,
