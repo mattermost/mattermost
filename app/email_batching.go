@@ -152,19 +152,17 @@ func (job *EmailBatchingJob) checkPendingNotifications(now time.Time, handler fu
 
 			// if the user has viewed any channels in this team since the notification was queued, delete
 			// all queued notifications
-			result := <-job.server.Store.Channel().GetMembersForUser(inspectedTeamNames[notification.teamName], userId)
-			if result.Err != nil {
-				mlog.Error(fmt.Sprint("Unable to find ChannelMembers for user", result.Err))
+			channelMembers, err := job.server.Store.Channel().GetMembersForUser(inspectedTeamNames[notification.teamName], userId)
+			if err != nil {
+				mlog.Error(fmt.Sprint("Unable to find ChannelMembers for user", err))
 				continue
 			}
 
-			if channelMembers, ok := result.Data.(*model.ChannelMembers); ok {
-				for _, channelMember := range *channelMembers {
-					if channelMember.LastViewedAt >= batchStartTime {
-						mlog.Debug(fmt.Sprintf("Deleted notifications for user %s", userId), mlog.String("user_id", userId))
-						delete(job.pendingNotifications, userId)
-						break
-					}
+			for _, channelMember := range *channelMembers {
+				if channelMember.LastViewedAt >= batchStartTime {
+					mlog.Debug(fmt.Sprintf("Deleted notifications for user %s", userId), mlog.String("user_id", userId))
+					delete(job.pendingNotifications, userId)
+					break
 				}
 			}
 		}

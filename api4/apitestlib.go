@@ -750,9 +750,9 @@ func (me *TestHelper) MakeUserChannelAdmin(user *model.User, channel *model.Chan
 
 	if cm, err := me.App.Srv.Store.Channel().GetMember(channel.Id, user.Id); err == nil {
 		cm.SchemeAdmin = true
-		if sr := <-me.App.Srv.Store.Channel().UpdateMember(cm); sr.Err != nil {
+		if _, err = me.App.Srv.Store.Channel().UpdateMember(cm); err != nil {
 			utils.EnableDebugLogForTest()
-			panic(sr.Err)
+			panic(err)
 		}
 	} else {
 		utils.EnableDebugLogForTest()

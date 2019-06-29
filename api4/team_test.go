@@ -1436,7 +1436,7 @@ func TestAddTeamMember(t *testing.T) {
 		app.TOKEN_TYPE_TEAM_INVITATION,
 		model.MapToJson(map[string]string{"teamId": team.Id}),
 	)
-	<-th.App.Srv.Store.Token().Save(token)
+	require.Nil(t, th.App.Srv.Store.Token().Save(token))
 
 	tm, resp = Client.AddTeamMemberFromInvite(token.Token, "")
 	CheckNoError(t, resp)
@@ -1466,7 +1466,7 @@ func TestAddTeamMember(t *testing.T) {
 	// expired token of more than 50 hours
 	token = model.NewToken(app.TOKEN_TYPE_TEAM_INVITATION, "")
 	token.CreateAt = model.GetMillis() - 1000*60*60*50
-	<-th.App.Srv.Store.Token().Save(token)
+	require.Nil(t, th.App.Srv.Store.Token().Save(token))
 
 	_, resp = Client.AddTeamMemberFromInvite(token.Token, "")
 	CheckBadRequestStatus(t, resp)
@@ -1478,7 +1478,7 @@ func TestAddTeamMember(t *testing.T) {
 		app.TOKEN_TYPE_TEAM_INVITATION,
 		model.MapToJson(map[string]string{"teamId": testId}),
 	)
-	<-th.App.Srv.Store.Token().Save(token)
+	require.Nil(t, th.App.Srv.Store.Token().Save(token))
 
 	_, resp = Client.AddTeamMemberFromInvite(token.Token, "")
 	CheckNotFoundStatus(t, resp)
@@ -1519,7 +1519,7 @@ func TestAddTeamMember(t *testing.T) {
 		app.TOKEN_TYPE_TEAM_INVITATION,
 		model.MapToJson(map[string]string{"teamId": team.Id}),
 	)
-	<-th.App.Srv.Store.Token().Save(token)
+	require.Nil(t, th.App.Srv.Store.Token().Save(token))
 	tm, resp = Client.AddTeamMemberFromInvite(token.Token, "")
 	require.Equal(t, "app.team.invite_token.group_constrained.error", resp.Error.Id)
 
@@ -1540,7 +1540,7 @@ func TestAddTeamMember(t *testing.T) {
 	require.Nil(t, err)
 
 	// Add user to group
-	_, err = th.App.CreateOrRestoreGroupMember(th.Group.Id, otherUser.Id)
+	_, err = th.App.UpsertGroupMember(th.Group.Id, otherUser.Id)
 	require.Nil(t, err)
 
 	_, resp = th.SystemAdminClient.AddTeamMember(team.Id, otherUser.Id)
@@ -1755,7 +1755,7 @@ func TestAddTeamMembers(t *testing.T) {
 	require.Nil(t, err)
 
 	// Add user to group
-	_, err = th.App.CreateOrRestoreGroupMember(th.Group.Id, userList[0])
+	_, err = th.App.UpsertGroupMember(th.Group.Id, userList[0])
 	require.Nil(t, err)
 
 	_, resp = Client.AddTeamMembers(team.Id, userList)
@@ -2525,9 +2525,9 @@ func TestTeamMembersMinusGroupMembers(t *testing.T) {
 	group1 := th.CreateGroup()
 	group2 := th.CreateGroup()
 
-	_, err = th.App.CreateOrRestoreGroupMember(group1.Id, user1.Id)
+	_, err = th.App.UpsertGroupMember(group1.Id, user1.Id)
 	require.Nil(t, err)
-	_, err = th.App.CreateOrRestoreGroupMember(group2.Id, user2.Id)
+	_, err = th.App.UpsertGroupMember(group2.Id, user2.Id)
 	require.Nil(t, err)
 
 	// No permissions

@@ -7,6 +7,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"testing"
@@ -26,6 +28,7 @@ func TestPlugin(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.PluginSettings.Enable = true
 		*cfg.PluginSettings.EnableUploads = true
+		*cfg.PluginSettings.AllowInsecureDownloadUrl = true
 	})
 
 	path, _ := fileutils.FindDir("tests")
@@ -34,9 +37,52 @@ func TestPlugin(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Successful upload
-	manifest, resp := th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
+	// Install from URL
+	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		res.WriteHeader(http.StatusOK)
+		res.Write(tarData)
+	}))
+	defer func() { testServer.Close() }()
+
+	url := testServer.URL
+
+	manifest, resp := th.SystemAdminClient.InstallPluginFromUrl(url, false)
 	CheckNoError(t, resp)
+	assert.Equal(t, "testplugin", manifest.Id)
+
+	_, resp = th.SystemAdminClient.InstallPluginFromUrl(url, false)
+	CheckBadRequestStatus(t, resp)
+
+	manifest, resp = th.SystemAdminClient.InstallPluginFromUrl(url, true)
+	CheckNoError(t, resp)
+	assert.Equal(t, "testplugin", manifest.Id)
+
+	th.App.RemovePlugin(manifest.Id)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = false })
+
+	_, resp = th.SystemAdminClient.InstallPluginFromUrl(url, false)
+	CheckNotImplementedStatus(t, resp)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.Enable = true })
+
+	_, resp = th.Client.InstallPluginFromUrl(url, false)
+	CheckForbiddenStatus(t, resp)
+
+	_, resp = th.SystemAdminClient.InstallPluginFromUrl("http://nodata", false)
+	CheckBadRequestStatus(t, resp)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.AllowInsecureDownloadUrl = false })
+
+	_, resp = th.SystemAdminClient.InstallPluginFromUrl(url, false)
+	CheckBadRequestStatus(t, resp)
+
+	// Successful upload
+	manifest, resp = th.SystemAdminClient.UploadPlugin(bytes.NewReader(tarData))
+	CheckNoError(t, resp)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.PluginSettings.EnableUploads = true })
+
 	manifest, resp = th.SystemAdminClient.UploadPluginForced(bytes.NewReader(tarData))
 	defer os.RemoveAll("plugins/testplugin")
 	CheckNoError(t, resp)

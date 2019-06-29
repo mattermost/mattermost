@@ -673,6 +673,8 @@ type ClusterSettings struct {
 	ClusterName                 *string `restricted:"true"`
 	OverrideHostname            *string `restricted:"true"`
 	NetworkInterface            *string `restricted:"true"`
+	BindAddress                 *string `restricted:"true"`
+	AdvertiseAddress            *string `restricted:"true"`
 	UseIpAddress                *bool   `restricted:"true"`
 	UseExperimentalGossip       *bool   `restricted:"true"`
 	ReadOnlyConfig              *bool   `restricted:"true"`
@@ -698,6 +700,14 @@ func (s *ClusterSettings) SetDefaults() {
 
 	if s.NetworkInterface == nil {
 		s.NetworkInterface = NewString("")
+	}
+
+	if s.BindAddress == nil {
+		s.BindAddress = NewString("")
+	}
+
+	if s.AdvertiseAddress == nil {
+		s.AdvertiseAddress = NewString("")
 	}
 
 	if s.UseIpAddress == nil {
@@ -2173,12 +2183,13 @@ type PluginState struct {
 }
 
 type PluginSettings struct {
-	Enable          *bool
-	EnableUploads   *bool   `restricted:"true"`
-	Directory       *string `restricted:"true"`
-	ClientDirectory *string `restricted:"true"`
-	Plugins         map[string]map[string]interface{}
-	PluginStates    map[string]*PluginState
+	Enable                   *bool
+	EnableUploads            *bool   `restricted:"true"`
+	AllowInsecureDownloadUrl *bool   `restricted:"true"`
+	Directory                *string `restricted:"true"`
+	ClientDirectory          *string `restricted:"true"`
+	Plugins                  map[string]map[string]interface{}
+	PluginStates             map[string]*PluginState
 }
 
 func (s *PluginSettings) SetDefaults(ls LogSettings) {
@@ -2188,6 +2199,10 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 
 	if s.EnableUploads == nil {
 		s.EnableUploads = NewBool(false)
+	}
+
+	if s.AllowInsecureDownloadUrl == nil {
+		s.AllowInsecureDownloadUrl = NewBool(false)
 	}
 
 	if s.Directory == nil {
