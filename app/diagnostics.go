@@ -56,36 +56,13 @@ const (
 	TRACK_PLUGINS  = "plugins"
 )
 
-func (a *App) initDiagnostics(endpoint string) {
-	if a.Srv.diagnosticClient == nil {
-		client := analytics.New(SEGMENT_KEY)
-		client.Logger = a.Log.StdLog(mlog.String("source", "segment"))
-		// For testing
-		if endpoint != "" {
-			client.Endpoint = endpoint
-			client.Verbose = true
-			client.Size = 1
-		}
-		client.Identify(&analytics.Identify{
-			UserId: a.DiagnosticId(),
-		})
-
-		a.Srv.diagnosticClient = client
-	}
-}
-
-// ShutdownDiagnostics closes the server's diagnostic client.
-func (a *App) ShutdownDiagnostics() error {
-	return a.Srv.ShutdownDiagnostics()
-}
-
 func (a *App) SendDailyDiagnostics() {
 	a.sendDailyDiagnostics(false)
 }
 
 func (a *App) sendDailyDiagnostics(override bool) {
 	if *a.Config().LogSettings.EnableDiagnostics && a.IsLeader() && (!strings.Contains(SEGMENT_KEY, "placeholder") || override) {
-		a.initDiagnostics("")
+		a.Srv.initDiagnostics("")
 		a.trackActivity()
 		a.trackConfig()
 		a.trackLicense()

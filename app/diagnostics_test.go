@@ -61,7 +61,7 @@ func TestDiagnostics(t *testing.T) {
 
 	diagnosticID := "test-diagnostic-id-12345"
 	th.App.SetDiagnosticId(diagnosticID)
-	th.App.initDiagnostics(server.URL)
+	th.Server.initDiagnostics(server.URL)
 
 	// Should send a client identify message
 	select {

@@ -324,7 +324,7 @@ func (s *Server) Shutdown() error {
 
 	s.RunOldAppShutdown()
 
-	err := s.ShutdownDiagnostics()
+	err := s.shutdownDiagnostics()
 	if err != nil {
 		mlog.Error(fmt.Sprintf("Unable to cleanly shutdown diagnostic client: %s", err))
 	}
@@ -743,8 +743,26 @@ func (s *Server) StartElasticsearch() {
 	})
 }
 
+func (s *Server) initDiagnostics(endpoint string) {
+	if s.diagnosticClient == nil {
+		client := analytics.New(SEGMENT_KEY)
+		client.Logger = s.Log.StdLog(mlog.String("source", "segment"))
+		// For testing
+		if endpoint != "" {
+			client.Endpoint = endpoint
+			client.Verbose = true
+			client.Size = 1
+		}
+		client.Identify(&analytics.Identify{
+			UserId: s.diagnosticId,
+		})
+
+		s.diagnosticClient = client
+	}
+}
+
 // ShutdownDiagnostics closes the diagnostic client.
-func (s *Server) ShutdownDiagnostics() error {
+func (s *Server) shutdownDiagnostics() error {
 	if s.diagnosticClient != nil {
 		return s.diagnosticClient.Close()
 	}
