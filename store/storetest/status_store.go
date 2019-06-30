@@ -64,7 +64,7 @@ func testStatusStore(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if err := (<-ss.Status().ResetAll()).Err; err != nil {
+	if err := ss.Status().ResetAll(); err != nil {
 		t.Fatal(err)
 	}
 
