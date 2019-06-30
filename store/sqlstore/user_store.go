@@ -1265,20 +1265,22 @@ func (us SqlUserStore) SearchWithoutTeam(term string, options *model.UserSearchO
 	return result.Data.([]*model.User), nil
 }
 
-func (us SqlUserStore) SearchNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		query := us.usersQuery.
-			LeftJoin("TeamMembers tm ON ( tm.UserId = u.Id AND tm.DeleteAt = 0 AND tm.TeamId = ? )", notInTeamId).
-			Where("tm.UserId IS NULL").
-			OrderBy("u.Username ASC").
-			Limit(uint64(options.Limit))
+func (us SqlUserStore) SearchNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+	query := us.usersQuery.
+		LeftJoin("TeamMembers tm ON ( tm.UserId = u.Id AND tm.DeleteAt = 0 AND tm.TeamId = ? )", notInTeamId).
+		Where("tm.UserId IS NULL").
+		OrderBy("u.Username ASC").
+		Limit(uint64(options.Limit))
 
-		if options.GroupConstrained {
-			query = applyTeamGroupConstrainedFilter(query, notInTeamId)
-		}
+	if options.GroupConstrained {
+		query = applyTeamGroupConstrainedFilter(query, notInTeamId)
+	}
 
-		*result = us.performSearch(query, term, options)
-	})
+	result := us.performSearch(query, term, options)
+	if result.Err != nil {
+		return nil, result.Err
+	}
+	return result.Data.([]*model.User), nil
 }
 
 func (us SqlUserStore) SearchNotInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) store.StoreChannel {
