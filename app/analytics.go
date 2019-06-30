@@ -59,7 +59,12 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 		var userChan store.StoreChannel
 		var userInactiveChan store.StoreChannel
 		if teamId == "" {
-			userInactiveChan = a.Srv.Store.User().AnalyticsGetInactiveUsersCount()
+			userInactiveChan = make(chan store.StoreResult, 1)
+			go func() {
+				count, err := a.Srv.Store.User().AnalyticsGetInactiveUsersCount()
+				userInactiveChan <- store.StoreResult{Data: count, Err: err}
+				close(userInactiveChan)
+			}()
 		} else {
 			userChan := make(chan store.StoreResult, 1)
 			go func() {
@@ -297,12 +302,11 @@ func (a *App) GetAnalytics(name string, teamId string) (model.AnalyticsRows, *mo
 }
 
 func (a *App) GetRecentlyActiveUsersForTeam(teamId string) (map[string]*model.User, *model.AppError) {
-	result := <-a.Srv.Store.User().GetRecentlyActiveUsersForTeam(teamId, 0, 100, nil)
-	if result.Err != nil {
-		return nil, result.Err
+	users, err := a.Srv.Store.User().GetRecentlyActiveUsersForTeam(teamId, 0, 100, nil)
+	if err != nil {
+		return nil, err
 	}
 
-	users := result.Data.([]*model.User)
 	userMap := make(map[string]*model.User)
 
 	for _, user := range users {
@@ -313,12 +317,10 @@ func (a *App) GetRecentlyActiveUsersForTeam(teamId string) (map[string]*model.Us
 }
 
 func (a *App) GetRecentlyActiveUsersForTeamPage(teamId string, page, perPage int, asAdmin bool, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
-	var users []*model.User
-	result := <-a.Srv.Store.User().GetRecentlyActiveUsersForTeam(teamId, page*perPage, perPage, viewRestrictions)
-	if result.Err != nil {
-		return nil, result.Err
+	users, err := a.Srv.Store.User().GetRecentlyActiveUsersForTeam(teamId, page*perPage, perPage, viewRestrictions)
+	if err != nil {
+		return nil, err
 	}
-	users = result.Data.([]*model.User)
 
 	return a.sanitizeProfiles(users, asAdmin), nil
 }
