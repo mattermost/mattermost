@@ -1,8 +1,10 @@
 package utils
 
-import "time"
+import (
+	"time"
+)
 
-const backoffBase time.Duration = 128
+const backoffBase uint64 = 128
 
 // BackoffOperation is executed by Retry.
 // The BackoffOperation will be retried the provided
@@ -11,34 +13,29 @@ type BackoffOperation func() error
 
 // Backoff holds the max number of retries that should occur.
 type Backoff struct {
-	max, attempts int64
+	max, attempts uint64
 }
 
 // NewBackoff initialize a new backoff with the number of max
 // retries provided
-func NewBackoff(max int64) *Backoff {
+func NewBackoff(max uint64) *Backoff {
 	return &Backoff{
-		max: max,
+		max:      max,
+		attempts: 0,
 	}
 }
 
 // Retry executes a BackoffOperation and retries the operation upon error.
-func (b Backoff) Retry(bo BackoffOperation) error {
+func (b *Backoff) Retry(bo BackoffOperation) error {
 	var t *time.Timer
 
 	for {
-		b.attempts++
-
 		err := bo()
-		if err != nil {
+		if err == nil {
 			return nil
 		}
 
-		if b.attempts >= b.max {
-			return err
-		}
-
-		nextRetry := b.nextRetry()
+		nextRetry := b.NextRetry()
 		if t == nil {
 			t = time.NewTimer(nextRetry)
 		} else {
@@ -47,9 +44,17 @@ func (b Backoff) Retry(bo BackoffOperation) error {
 
 		// Wait until trying again
 		<-t.C
+
+		b.attempts++
+		if b.attempts >= b.max {
+			return err
+		}
 	}
 }
 
-func (b Backoff) nextRetry() time.Duration {
-	return time.Duration(b.attempts) * backoffBase * time.Millisecond
+// NextRetry calculates the duration until next retry
+// by bit shift left starting from 128 as base
+func (b *Backoff) NextRetry() time.Duration {
+	progressiveBackoff := time.Duration(backoffBase << (b.attempts))
+	return progressiveBackoff * time.Millisecond
 }

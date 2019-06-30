@@ -25,14 +25,14 @@ func (p *HelpersImpl) EnsureBot(bot *model.Bot) (retBotId string, retErr error) 
 			var botIdBytes []byte
 			backoff := utils.NewBackoff(3)
 
-			retryRequest := func() error {
+			retryOperation := func() error {
 				botIdBytes, err = p.API.KVGet(BOT_USER_KEY)
 				if err != nil {
 					return err
 				}
 				return nil
 			}
-			err = backoff.Retry(retryRequest)
+			err = backoff.Retry(retryOperation)
 
 			if err == nil && botIdBytes != nil {
 				retBotId = string(botIdBytes)
