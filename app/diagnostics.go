@@ -140,9 +140,6 @@ func (a *App) trackActivity() {
 	activeUsersDailyCountChan := make(chan store.StoreResult, 1)
 	go func() {
 		count, err := a.Srv.Store.User().AnalyticsActiveCount(DAY_MILLISECONDS)
-		if err != nil {
-			mlog.Error(err.Error())
-		}
 		activeUsersDailyCountChan <- store.StoreResult{Data: count, Err: err}
 		close(activeUsersDailyCountChan)
 	}()
@@ -150,9 +147,6 @@ func (a *App) trackActivity() {
 	activeUsersMonthlyCountChan := make(chan store.StoreResult, 1)
 	go func() {
 		count, err := a.Srv.Store.User().AnalyticsActiveCount(MONTH_MILLISECONDS)
-		if err != nil {
-			mlog.Error(err.Error())
-		}
 		activeUsersMonthlyCountChan <- store.StoreResult{Data: count, Err: err}
 		close(activeUsersMonthlyCountChan)
 	}()
