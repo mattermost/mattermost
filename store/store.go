@@ -180,7 +180,7 @@ type ChannelStore interface {
 	IncrementMentionCount(channelId string, userId string) *model.AppError
 	AnalyticsTypeCount(teamId string, channelType string) (int64, *model.AppError)
 	GetMembersForUser(teamId string, userId string) (*model.ChannelMembers, *model.AppError)
-	GetMembersForUserWithPagination(teamId, userId string, page, perPage int) StoreChannel
+	GetMembersForUserWithPagination(teamId, userId string, page, perPage int) (*model.ChannelMembers, *model.AppError)
 	AutocompleteInTeam(teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError)
 	AutocompleteInTeamForSearch(teamId string, userId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError)
 	SearchAllChannels(term string, opts ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError)
@@ -249,7 +249,7 @@ type UserStore interface {
 	Save(user *model.User) StoreChannel
 	Update(user *model.User, allowRoleUpdate bool) (*model.UserUpdate, *model.AppError)
 	UpdateLastPictureUpdate(userId string) StoreChannel
-	ResetLastPictureUpdate(userId string) StoreChannel
+	ResetLastPictureUpdate(userId string) *model.AppError
 	UpdateUpdateAt(userId string) StoreChannel
 	UpdatePassword(userId, newPassword string) StoreChannel
 	UpdateAuthData(userId string, service string, authData *string, email string, resetMfa bool) (string, *model.AppError)
@@ -290,7 +290,7 @@ type UserStore interface {
 	GetNewUsersForTeam(teamId string, offset, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
 	Search(teamId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
 	SearchNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
-	SearchInChannel(channelId string, term string, options *model.UserSearchOptions) StoreChannel
+	SearchInChannel(channelId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
 	SearchNotInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) StoreChannel
 	SearchWithoutTeam(term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
 	AnalyticsGetInactiveUsersCount() (int64, *model.AppError)
@@ -373,6 +373,7 @@ type OAuthStore interface {
 	GetAccessDataByRefreshToken(token string) (*model.AccessData, *model.AppError)
 	GetPreviousAccessData(userId, clientId string) (*model.AccessData, *model.AppError)
 	RemoveAccessData(token string) *model.AppError
+	RemoveAllAccessData() *model.AppError
 }
 
 type SystemStore interface {
@@ -468,7 +469,7 @@ type EmojiStore interface {
 
 type StatusStore interface {
 	SaveOrUpdate(status *model.Status) *model.AppError
-	Get(userId string) StoreChannel
+	Get(userId string) (*model.Status, *model.AppError)
 	GetByIds(userIds []string) ([]*model.Status, *model.AppError)
 	GetOnlineAway() ([]*model.Status, *model.AppError)
 	GetOnline() ([]*model.Status, *model.AppError)
