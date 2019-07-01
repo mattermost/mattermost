@@ -15,7 +15,7 @@ import (
 )
 
 func makeBotWithUser(ss store.Store, bot *model.Bot) (*model.Bot, *model.User) {
-	user := store.Must(ss.User().Save(model.UserFromBot(bot))).(*model.User)
+	user, _ := ss.User().Save(model.UserFromBot(bot))
 
 	bot.UserId = user.Id
 	bot, err := ss.Bot().Save(bot)
@@ -178,7 +178,7 @@ func testBotStoreGetAll(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	if err := (<-ss.User().Save(&deletedUser)).Err; err != nil {
+	if _, err := ss.User().Save(&deletedUser); err != nil {
 		t.Fatal("couldn't save user", err)
 	}
 	deletedUser.DeleteAt = model.GetMillis()
@@ -314,7 +314,7 @@ func testBotStoreSave(t *testing.T, ss store.Store) {
 			OwnerId:     model.NewId(),
 		}
 
-		user := store.Must(ss.User().Save(model.UserFromBot(bot))).(*model.User)
+		user, _ := ss.User().Save(model.UserFromBot(bot))
 		defer func() { require.Nil(t, ss.User().PermanentDelete(user.Id)) }()
 		bot.UserId = user.Id
 

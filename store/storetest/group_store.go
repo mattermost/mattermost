@@ -453,9 +453,8 @@ func testGroupGetMemberUsers(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	res = <-ss.User().Save(u1)
-	require.Nil(t, res.Err)
-	user1 := res.Data.(*model.User)
+	user1, err := ss.User().Save(u1)
+	require.Nil(t, err)
 
 	res = <-ss.Group().UpsertMember(group.Id, user1.Id)
 	require.Nil(t, res.Err)
@@ -464,9 +463,8 @@ func testGroupGetMemberUsers(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	res = <-ss.User().Save(u2)
-	require.Nil(t, res.Err)
-	user2 := res.Data.(*model.User)
+	user2, err := ss.User().Save(u2)
+	require.Nil(t, err)
 
 	res = <-ss.Group().UpsertMember(group.Id, user2.Id)
 	require.Nil(t, res.Err)
@@ -507,9 +505,8 @@ func testGroupGetMemberUsersPage(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	res = <-ss.User().Save(u1)
-	require.Nil(t, res.Err)
-	user1 := res.Data.(*model.User)
+	user1, err := ss.User().Save(u1)
+	require.Nil(t, err)
 
 	res = <-ss.Group().UpsertMember(group.Id, user1.Id)
 	require.Nil(t, res.Err)
@@ -518,9 +515,8 @@ func testGroupGetMemberUsersPage(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	res = <-ss.User().Save(u2)
-	require.Nil(t, res.Err)
-	user2 := res.Data.(*model.User)
+	user2, err := ss.User().Save(u2)
+	require.Nil(t, err)
 
 	res = <-ss.Group().UpsertMember(group.Id, user2.Id)
 	require.Nil(t, res.Err)
@@ -575,9 +571,8 @@ func testGroupCreateOrRestoreMember(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	res2 := <-ss.User().Save(u1)
-	require.Nil(t, res2.Err)
-	user := res2.Data.(*model.User)
+	user, err := ss.User().Save(u1)
+	require.Nil(t, err)
 
 	// Happy path
 	res3 := <-ss.Group().UpsertMember(group.Id, user.Id)
@@ -632,9 +627,8 @@ func testGroupDeleteMember(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	res2 := <-ss.User().Save(u1)
-	require.Nil(t, res2.Err)
-	user := res2.Data.(*model.User)
+	user, err := ss.User().Save(u1)
+	require.Nil(t, err)
 
 	// Create member
 	res3 := <-ss.Group().UpsertMember(group.Id, user.Id)
@@ -940,9 +934,8 @@ func testPendingAutoAddTeamMembers(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	res = <-ss.User().Save(user)
-	require.Nil(t, res.Err)
-	user = res.Data.(*model.User)
+	user, err := ss.User().Save(user)
+	require.Nil(t, err)
 
 	// Create GroupMember
 	res = <-ss.Group().UpsertMember(group.Id, user.Id)
@@ -959,7 +952,7 @@ func testPendingAutoAddTeamMembers(t *testing.T, ss store.Store) {
 		Email:           "success+" + model.NewId() + "@simulator.amazonses.com",
 		Type:            model.TEAM_OPEN,
 	}
-	team, err := ss.Team().Save(team)
+	team, err = ss.Team().Save(team)
 	require.Nil(t, err)
 
 	// Create GroupTeam
@@ -1103,9 +1096,8 @@ func testPendingAutoAddChannelMembers(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	res = <-ss.User().Save(user)
-	require.Nil(t, res.Err)
-	user = res.Data.(*model.User)
+	user, err := ss.User().Save(user)
+	require.Nil(t, err)
 
 	// Create GroupMember
 	res = <-ss.Group().UpsertMember(group.Id, user.Id)
@@ -1118,7 +1110,7 @@ func testPendingAutoAddChannelMembers(t *testing.T, ss store.Store) {
 		Name:        model.NewId(),
 		Type:        model.CHANNEL_OPEN, // Query does not look at type so this shouldn't matter.
 	}
-	channel, err := ss.Channel().Save(channel, 9999)
+	channel, err = ss.Channel().Save(channel, 9999)
 	require.Nil(t, err)
 
 	// Create GroupChannel
@@ -1435,27 +1427,24 @@ func pendingMemberRemovalsDataSetup(t *testing.T, ss store.Store) *removalsData 
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	res = <-ss.User().Save(userA)
-	require.Nil(t, res.Err)
-	userA = res.Data.(*model.User)
+	userA, err := ss.User().Save(userA)
+	require.Nil(t, err)
 
 	// userB will not get removed from the group
 	userB := &model.User{
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	res = <-ss.User().Save(userB)
-	require.Nil(t, res.Err)
-	userB = res.Data.(*model.User)
+	userB, err = ss.User().Save(userB)
+	require.Nil(t, err)
 
 	// userC was never in the group
 	userC := &model.User{
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	res = <-ss.User().Save(userC)
-	require.Nil(t, res.Err)
-	userC = res.Data.(*model.User)
+	userC, err = ss.User().Save(userC)
+	require.Nil(t, err)
 
 	// add users to group (but not userC)
 	res = <-ss.Group().UpsertMember(group.Id, userA.Id)
@@ -1472,7 +1461,7 @@ func pendingMemberRemovalsDataSetup(t *testing.T, ss store.Store) *removalsData 
 		Type:             model.CHANNEL_PRIVATE,
 		GroupConstrained: model.NewBool(true),
 	}
-	channelConstrained, err := ss.Channel().Save(channelConstrained, 9999)
+	channelConstrained, err = ss.Channel().Save(channelConstrained, 9999)
 	require.Nil(t, err)
 
 	channelUnconstrained := &model.Channel{
@@ -1650,9 +1639,8 @@ func testGetGroupsByChannel(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	res = <-ss.User().Save(u1)
-	require.Nil(t, res.Err)
-	user1 := res.Data.(*model.User)
+	user1, err := ss.User().Save(u1)
+	require.Nil(t, err)
 	<-ss.Group().UpsertMember(group1.Id, user1.Id)
 
 	group1WithMemberCount := model.Group(*group1)
@@ -1851,9 +1839,8 @@ func testGetGroupsByTeam(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	res = <-ss.User().Save(u1)
-	require.Nil(t, res.Err)
-	user1 := res.Data.(*model.User)
+	user1, err := ss.User().Save(u1)
+	require.Nil(t, err)
 	<-ss.Group().UpsertMember(group1.Id, user1.Id)
 
 	group1WithMemberCount := model.Group(*group1)
@@ -2093,9 +2080,8 @@ func testGetGroups(t *testing.T, ss store.Store) {
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	}
-	res = <-ss.User().Save(u1)
-	require.Nil(t, res.Err)
-	user1 := res.Data.(*model.User)
+	user1, err := ss.User().Save(u1)
+	require.Nil(t, err)
 	<-ss.Group().UpsertMember(group1.Id, user1.Id)
 
 	group1WithMemberCount := model.Group(*group1)
@@ -2268,13 +2254,12 @@ func testTeamMembersMinusGroupMembers(t *testing.T, ss store.Store) {
 			Email:    MakeEmail(),
 			Username: model.NewId(),
 		}
-		res := <-ss.User().Save(user)
-		require.Nil(t, res.Err)
-		user = res.Data.(*model.User)
+		user, err = ss.User().Save(user)
+		require.Nil(t, err)
 		users = append(users, user)
 
 		trueOrFalse := int(math.Mod(float64(i), 2)) == 0
-		res = <-ss.Team().SaveMember(&model.TeamMember{TeamId: team.Id, UserId: user.Id, SchemeUser: trueOrFalse, SchemeAdmin: !trueOrFalse}, 999)
+		res := <-ss.Team().SaveMember(&model.TeamMember{TeamId: team.Id, UserId: user.Id, SchemeUser: trueOrFalse, SchemeAdmin: !trueOrFalse}, 999)
 		require.Nil(t, res.Err)
 	}
 
@@ -2416,13 +2401,12 @@ func testChannelMembersMinusGroupMembers(t *testing.T, ss store.Store) {
 			Email:    MakeEmail(),
 			Username: model.NewId(),
 		}
-		res := <-ss.User().Save(user)
-		require.Nil(t, res.Err)
-		user = res.Data.(*model.User)
+		user, err = ss.User().Save(user)
+		require.Nil(t, err)
 		users = append(users, user)
 
 		trueOrFalse := int(math.Mod(float64(i), 2)) == 0
-		res = <-ss.Channel().SaveMember(&model.ChannelMember{
+		res := <-ss.Channel().SaveMember(&model.ChannelMember{
 			ChannelId:   channel.Id,
 			UserId:      user.Id,
 			SchemeUser:  trueOrFalse,

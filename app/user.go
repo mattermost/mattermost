@@ -293,12 +293,11 @@ func (a *App) createUser(user *model.User) (*model.User, *model.AppError) {
 		return nil, err
 	}
 
-	result := <-a.Srv.Store.User().Save(user)
-	if result.Err != nil {
-		mlog.Error(fmt.Sprintf("Couldn't save the user err=%v", result.Err))
-		return nil, result.Err
+	ruser, err := a.Srv.Store.User().Save(user)
+	if err != nil {
+		mlog.Error(fmt.Sprintf("Couldn't save the user err=%v", err))
+		return nil, err
 	}
-	ruser := result.Data.(*model.User)
 
 	if user.EmailVerified {
 		if err := a.VerifyUserEmail(ruser.Id, user.Email); err != nil {

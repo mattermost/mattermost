@@ -922,10 +922,11 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 	userIds := make([]string, maxUsersPerTeam)
 
 	for i := 0; i < maxUsersPerTeam; i++ {
-		userIds[i] = store.Must(ss.User().Save(&model.User{
+		user, _ := ss.User().Save(&model.User{
 			Username: model.NewId(),
 			Email:    MakeEmail(),
-		})).(*model.User).Id
+		})
+		userIds[i] = user.Id
 
 		defer func(userId string) {
 			ss.User().PermanentDelete(userId)
@@ -947,10 +948,11 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 		t.Fatalf("should start with 5 team members, had %v instead", totalMemberCount)
 	}
 
-	newUserId := store.Must(ss.User().Save(&model.User{
+	user, _ := ss.User().Save(&model.User{
 		Username: model.NewId(),
 		Email:    MakeEmail(),
-	})).(*model.User).Id
+	})
+	newUserId := user.Id
 	defer func() {
 		ss.User().PermanentDelete(newUserId)
 	}()
@@ -1004,10 +1006,11 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 	_, err = ss.User().Update(user2, true)
 	require.Nil(t, err)
 
-	newUserId2 := store.Must(ss.User().Save(&model.User{
+	user, _ = ss.User().Save(&model.User{
 		Username: model.NewId(),
 		Email:    MakeEmail(),
-	})).(*model.User).Id
+	})
+	newUserId2 := user.Id
 	if result := <-ss.Team().SaveMember(&model.TeamMember{TeamId: team.Id, UserId: newUserId2}, maxUsersPerTeam); result.Err != nil {
 		t.Fatal("should've been able to save new member after deleting one", result.Err)
 	} else {
@@ -1124,12 +1127,12 @@ func testGetTeamMembersByIds(t *testing.T, ss store.Store) {
 func testTeamStoreMemberCount(t *testing.T, ss store.Store) {
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
-	store.Must(ss.User().Save(u1))
+	ss.User().Save(u1)
 
 	u2 := &model.User{}
 	u2.Email = MakeEmail()
 	u2.DeleteAt = 1
-	store.Must(ss.User().Save(u2))
+	ss.User().Save(u2)
 
 	teamId1 := model.NewId()
 	m1 := &model.TeamMember{TeamId: teamId1, UserId: u1.Id}
@@ -1634,12 +1637,12 @@ func testTeamStoreGetTeamMembersForExport(t *testing.T, ss store.Store) {
 	u1 := model.User{}
 	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
-	store.Must(ss.User().Save(&u1))
+	ss.User().Save(&u1)
 
 	u2 := model.User{}
 	u2.Email = MakeEmail()
 	u2.Nickname = model.NewId()
-	store.Must(ss.User().Save(&u2))
+	ss.User().Save(&u2)
 
 	m1 := &model.TeamMember{TeamId: t1.Id, UserId: u1.Id}
 	store.Must(ss.Team().SaveMember(m1, -1))
