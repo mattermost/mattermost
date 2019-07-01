@@ -291,7 +291,7 @@ type UserStore interface {
 	Search(teamId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
 	SearchNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) StoreChannel
 	SearchInChannel(channelId string, term string, options *model.UserSearchOptions) StoreChannel
-	SearchNotInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) StoreChannel
+	SearchNotInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
 	SearchWithoutTeam(term string, options *model.UserSearchOptions) StoreChannel
 	AnalyticsGetInactiveUsersCount() StoreChannel
 	AnalyticsGetSystemAdminCount() StoreChannel
