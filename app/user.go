@@ -839,7 +839,9 @@ func (a *App) SetDefaultProfileImage(user *model.User) *model.AppError {
 		return err
 	}
 
-	<-a.Srv.Store.User().ResetLastPictureUpdate(user.Id)
+	if err := a.Srv.Store.User().ResetLastPictureUpdate(user.Id); err != nil {
+		mlog.Error(err.Error())
+	}
 
 	a.InvalidateCacheForUser(user.Id)
 
