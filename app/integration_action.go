@@ -207,6 +207,11 @@ func (a *App) DoPostActionWithCookie(postId, actionId, userId, selectedOption st
 // Perform an HTTP POST request to an integration's action endpoint.
 // Caller must consume and close returned http.Response as necessary.
 func (a *App) DoActionRequest(rawURL string, body []byte) (*http.Response, *model.AppError) {
+	siteURL, _ := url.Parse(*a.Config().ServiceSettings.SiteURL)
+	if strings.HasPrefix(rawURL, "/plugins/") {
+		rawURL = siteURL.String() + rawURL
+	}
+
 	req, err := http.NewRequest("POST", rawURL, bytes.NewReader(body))
 	if err != nil {
 		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, err.Error(), http.StatusBadRequest)
@@ -217,7 +222,6 @@ func (a *App) DoActionRequest(rawURL string, body []byte) (*http.Response, *mode
 	// Allow access to plugin routes for action buttons
 	var httpClient *http.Client
 	url, _ := url.Parse(rawURL)
-	siteURL, _ := url.Parse(*a.Config().ServiceSettings.SiteURL)
 	subpath, _ := utils.GetSubpathFromConfig(a.Config())
 	if (url.Hostname() == "localhost" || url.Hostname() == "127.0.0.1" || url.Hostname() == siteURL.Hostname()) && strings.HasPrefix(url.Path, path.Join(subpath, "plugins")) {
 		req.Header.Set(model.HEADER_AUTH, "Bearer "+a.Session.Token)
