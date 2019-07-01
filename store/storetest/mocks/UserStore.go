@@ -767,26 +767,19 @@ func (_m *UserStore) PermanentDelete(userId string) *model.AppError {
 }
 
 // ResetLastPictureUpdate provides a mock function with given fields: userId
-func (_m *UserStore) ResetLastPictureUpdate(userId string) (string, *model.AppError) {
+func (_m *UserStore) ResetLastPictureUpdate(userId string) *model.AppError {
 	ret := _m.Called(userId)
 
-	var r0 string
-	if rf, ok := ret.Get(0).(func(string) string); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
 		r0 = rf(userId)
 	} else {
-		r0 = ret.Get(0).(string)
-	}
-
-	var r1 *model.AppError
-	if rf, ok := ret.Get(1).(func(string) *model.AppError); ok {
-		r1 = rf(userId)
-	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
-	return r0, r1
+	return r0
 }
 
 // Save provides a mock function with given fields: user
