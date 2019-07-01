@@ -20,7 +20,6 @@ import (
 
 	"github.com/mattermost/mattermost-server/app"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
 	"github.com/mattermost/mattermost-server/utils"
 	"github.com/mattermost/mattermost-server/utils/testutils"
 )
@@ -1737,7 +1736,8 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	channelMember, err := th.App.Srv.Store.Channel().GetMember(channelId, userId)
 	require.Nil(t, err)
 	channelMember.LastViewedAt = 0
-	store.Must(th.App.Srv.Store.Channel().UpdateMember(channelMember))
+	_, err = th.App.Srv.Store.Channel().UpdateMember(channelMember)
+	require.Nil(t, err)
 	th.App.Srv.Store.Post().InvalidateLastPostTimeCache(channelId)
 
 	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 20, 20)
@@ -1756,7 +1756,8 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	channelMember, err = th.App.Srv.Store.Channel().GetMember(channelId, userId)
 	require.Nil(t, err)
 	channelMember.LastViewedAt = post1.CreateAt - 1
-	store.Must(th.App.Srv.Store.Channel().UpdateMember(channelMember))
+	_, err = th.App.Srv.Store.Channel().UpdateMember(channelMember)
+	require.Nil(t, err)
 	th.App.Srv.Store.Post().InvalidateLastPostTimeCache(channelId)
 
 	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 3, 3)
@@ -1776,7 +1777,8 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	channelMember, err = th.App.Srv.Store.Channel().GetMember(channelId, userId)
 	require.Nil(t, err)
 	channelMember.LastViewedAt = post6.CreateAt - 1
-	store.Must(th.App.Srv.Store.Channel().UpdateMember(channelMember))
+	_, err = th.App.Srv.Store.Channel().UpdateMember(channelMember)
+	require.Nil(t, err)
 	th.App.Srv.Store.Post().InvalidateLastPostTimeCache(channelId)
 
 	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 3, 3)
@@ -1796,7 +1798,8 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	channelMember, err = th.App.Srv.Store.Channel().GetMember(channelId, userId)
 	require.Nil(t, err)
 	channelMember.LastViewedAt = post10.CreateAt - 1
-	store.Must(th.App.Srv.Store.Channel().UpdateMember(channelMember))
+	_, err = th.App.Srv.Store.Channel().UpdateMember(channelMember)
+	require.Nil(t, err)
 	th.App.Srv.Store.Post().InvalidateLastPostTimeCache(channelId)
 
 	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 3, 3)
@@ -1816,7 +1819,8 @@ func TestGetPostsForChannelAroundLastUnread(t *testing.T) {
 	channelMember, err = th.App.Srv.Store.Channel().GetMember(channelId, userId)
 	require.Nil(t, err)
 	channelMember.LastViewedAt = post10.CreateAt
-	store.Must(th.App.Srv.Store.Channel().UpdateMember(channelMember))
+	_, err = th.App.Srv.Store.Channel().UpdateMember(channelMember)
+	require.Nil(t, err)
 	th.App.Srv.Store.Post().InvalidateLastPostTimeCache(channelId)
 
 	posts, resp = Client.GetPostsAroundLastUnread(userId, channelId, 3, 3)

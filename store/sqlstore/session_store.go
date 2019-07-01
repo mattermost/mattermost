@@ -52,7 +52,12 @@ func (me SqlSessionStore) Save(session *model.Session) (*model.Session, *model.A
 
 	session.PreSave()
 
-	tcs := me.Team().GetTeamsForUser(session.UserId)
+	tcs := make(chan store.StoreResult, 1)
+	go func() {
+		teams, err := me.Team().GetTeamsForUser(session.UserId)
+		tcs <- store.StoreResult{Data: teams, Err: err}
+		close(tcs)
+	}()
 
 	if err := me.GetMaster().Insert(session); err != nil {
 		return nil, model.NewAppError("SqlSessionStore.Save", "store.sql_session.save.app_error", nil, "id="+session.Id+", "+err.Error(), http.StatusInternalServerError)
@@ -85,11 +90,10 @@ func (me SqlSessionStore) Get(sessionIdOrToken string) (*model.Session, *model.A
 	}
 	session := sessions[0]
 
-	rtcs := <-me.Team().GetTeamsForUser(sessions[0].UserId)
-	if rtcs.Err != nil {
-		return nil, model.NewAppError("SqlSessionStore.Get", "store.sql_session.get.app_error", nil, "sessionIdOrToken="+sessionIdOrToken+", "+rtcs.Err.Error(), http.StatusInternalServerError)
+	tempMembers, err := me.Team().GetTeamsForUser(sessions[0].UserId)
+	if err != nil {
+		return nil, model.NewAppError("SqlSessionStore.Get", "store.sql_session.get.app_error", nil, "sessionIdOrToken="+sessionIdOrToken+", "+err.Error(), http.StatusInternalServerError)
 	}
-	tempMembers := rtcs.Data.([]*model.TeamMember)
 	sessions[0].TeamMembers = make([]*model.TeamMember, 0, len(tempMembers))
 	for _, tm := range tempMembers {
 		if tm.DeleteAt == 0 {
@@ -99,45 +103,45 @@ func (me SqlSessionStore) Get(sessionIdOrToken string) (*model.Session, *model.A
 	return session, nil
 }
 
-func (me SqlSessionStore) GetSessions(userId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var sessions []*model.Session
+func (me SqlSessionStore) GetSessions(userId string) ([]*model.Session, *model.AppError) {
+	var sessions []*model.Session
 
-		tcs := me.Team().GetTeamsForUser(userId)
+	tcs := make(chan store.StoreResult, 1)
+	go func() {
+		teams, err := me.Team().GetTeamsForUser(userId)
+		tcs <- store.StoreResult{Data: teams, Err: err}
+		close(tcs)
+	}()
+	if _, err := me.GetReplica().Select(&sessions, "SELECT * FROM Sessions WHERE UserId = :UserId ORDER BY LastActivityAt DESC", map[string]interface{}{"UserId": userId}); err != nil {
+		return nil, model.NewAppError("SqlSessionStore.GetSessions", "store.sql_session.get_sessions.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		if _, err := me.GetReplica().Select(&sessions, "SELECT * FROM Sessions WHERE UserId = :UserId ORDER BY LastActivityAt DESC", map[string]interface{}{"UserId": userId}); err != nil {
-			result.Err = model.NewAppError("SqlSessionStore.GetSessions", "store.sql_session.get_sessions.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
+	rtcs := <-tcs
+	if rtcs.Err != nil {
+		return nil, model.NewAppError("SqlSessionStore.GetSessions", "store.sql_session.get_sessions.app_error", nil, rtcs.Err.Error(), http.StatusInternalServerError)
+	}
 
-			result.Data = sessions
-		}
-
-		if rtcs := <-tcs; rtcs.Err != nil {
-			result.Err = model.NewAppError("SqlSessionStore.GetSessions", "store.sql_session.get_sessions.app_error", nil, rtcs.Err.Error(), http.StatusInternalServerError)
-			return
-		} else {
-			for _, session := range sessions {
-				tempMembers := rtcs.Data.([]*model.TeamMember)
-				session.TeamMembers = make([]*model.TeamMember, 0, len(tempMembers))
-				for _, tm := range tempMembers {
-					if tm.DeleteAt == 0 {
-						session.TeamMembers = append(session.TeamMembers, tm)
-					}
-				}
+	for _, session := range sessions {
+		tempMembers := rtcs.Data.([]*model.TeamMember)
+		session.TeamMembers = make([]*model.TeamMember, 0, len(tempMembers))
+		for _, tm := range tempMembers {
+			if tm.DeleteAt == 0 {
+				session.TeamMembers = append(session.TeamMembers, tm)
 			}
 		}
-	})
+	}
+	return sessions, nil
 }
 
 func (me SqlSessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*model.Session, *model.AppError) {
 	query :=
-		`SELECT * 
-		FROM 
-			Sessions 
-		WHERE 
-			UserId = :UserId AND 
-			ExpiresAt != 0 AND 
-			:ExpiresAt <= ExpiresAt AND 
+		`SELECT *
+		FROM
+			Sessions
+		WHERE
+			UserId = :UserId AND
+			ExpiresAt != 0 AND
+			:ExpiresAt <= ExpiresAt AND
 			DeviceId != ''`
 
 	var sessions []*model.Session
@@ -149,66 +153,62 @@ func (me SqlSessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*mode
 	return sessions, nil
 }
 
-func (me SqlSessionStore) Remove(sessionIdOrToken string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		_, err := me.GetMaster().Exec("DELETE FROM Sessions WHERE Id = :Id Or Token = :Token", map[string]interface{}{"Id": sessionIdOrToken, "Token": sessionIdOrToken})
-		if err != nil {
-			result.Err = model.NewAppError("SqlSessionStore.RemoveSession", "store.sql_session.remove.app_error", nil, "id="+sessionIdOrToken+", err="+err.Error(), http.StatusInternalServerError)
-		}
-	})
+func (me SqlSessionStore) Remove(sessionIdOrToken string) *model.AppError {
+	_, err := me.GetMaster().Exec("DELETE FROM Sessions WHERE Id = :Id Or Token = :Token", map[string]interface{}{"Id": sessionIdOrToken, "Token": sessionIdOrToken})
+	if err != nil {
+		return model.NewAppError("SqlSessionStore.RemoveSession", "store.sql_session.remove.app_error", nil, "id="+sessionIdOrToken+", err="+err.Error(), http.StatusInternalServerError)
+	}
+	return nil
 }
 
-func (me SqlSessionStore) RemoveAllSessions() store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		_, err := me.GetMaster().Exec("DELETE FROM Sessions")
-		if err != nil {
-			result.Err = model.NewAppError("SqlSessionStore.RemoveAllSessions", "store.sql_session.remove_all_sessions_for_team.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-	})
+func (me SqlSessionStore) RemoveAllSessions() *model.AppError {
+	_, err := me.GetMaster().Exec("DELETE FROM Sessions")
+	if err != nil {
+		return model.NewAppError("SqlSessionStore.RemoveAllSessions", "store.sql_session.remove_all_sessions_for_team.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return nil
 }
 
-func (me SqlSessionStore) PermanentDeleteSessionsByUser(userId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		_, err := me.GetMaster().Exec("DELETE FROM Sessions WHERE UserId = :UserId", map[string]interface{}{"UserId": userId})
-		if err != nil {
-			result.Err = model.NewAppError("SqlSessionStore.RemoveAllSessionsForUser", "store.sql_session.permanent_delete_sessions_by_user.app_error", nil, "id="+userId+", err="+err.Error(), http.StatusInternalServerError)
-		}
-	})
+func (me SqlSessionStore) PermanentDeleteSessionsByUser(userId string) *model.AppError {
+	_, err := me.GetMaster().Exec("DELETE FROM Sessions WHERE UserId = :UserId", map[string]interface{}{"UserId": userId})
+	if err != nil {
+		return model.NewAppError("SqlSessionStore.RemoveAllSessionsForUser", "store.sql_session.permanent_delete_sessions_by_user.app_error", nil, "id="+userId+", err="+err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
 }
 
-func (me SqlSessionStore) UpdateLastActivityAt(sessionId string, time int64) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if _, err := me.GetMaster().Exec("UPDATE Sessions SET LastActivityAt = :LastActivityAt WHERE Id = :Id", map[string]interface{}{"LastActivityAt": time, "Id": sessionId}); err != nil {
-			result.Err = model.NewAppError("SqlSessionStore.UpdateLastActivityAt", "store.sql_session.update_last_activity.app_error", nil, "sessionId="+sessionId, http.StatusInternalServerError)
-		} else {
-			result.Data = sessionId
-		}
-	})
+func (me SqlSessionStore) UpdateLastActivityAt(sessionId string, time int64) *model.AppError {
+	_, err := me.GetMaster().Exec("UPDATE Sessions SET LastActivityAt = :LastActivityAt WHERE Id = :Id", map[string]interface{}{"LastActivityAt": time, "Id": sessionId})
+	if err != nil {
+		return model.NewAppError("SqlSessionStore.UpdateLastActivityAt", "store.sql_session.update_last_activity.app_error", nil, "sessionId="+sessionId, http.StatusInternalServerError)
+	}
+	return nil
 }
 
-func (me SqlSessionStore) UpdateRoles(userId, roles string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if _, err := me.GetMaster().Exec("UPDATE Sessions SET Roles = :Roles WHERE UserId = :UserId", map[string]interface{}{"Roles": roles, "UserId": userId}); err != nil {
-			result.Err = model.NewAppError("SqlSessionStore.UpdateRoles", "store.sql_session.update_roles.app_error", nil, "userId="+userId, http.StatusInternalServerError)
-		} else {
-			result.Data = userId
-		}
-	})
+func (me SqlSessionStore) UpdateRoles(userId, roles string) (string, *model.AppError) {
+	query := "UPDATE Sessions SET Roles = :Roles WHERE UserId = :UserId"
+
+	_, err := me.GetMaster().Exec(query, map[string]interface{}{"Roles": roles, "UserId": userId})
+	if err != nil {
+		return "", model.NewAppError("SqlSessionStore.UpdateRoles", "store.sql_session.update_roles.app_error", nil, "userId="+userId, http.StatusInternalServerError)
+	}
+	return userId, nil
 }
 
-func (me SqlSessionStore) UpdateDeviceId(id string, deviceId string, expiresAt int64) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if _, err := me.GetMaster().Exec("UPDATE Sessions SET DeviceId = :DeviceId, ExpiresAt = :ExpiresAt WHERE Id = :Id", map[string]interface{}{"DeviceId": deviceId, "Id": id, "ExpiresAt": expiresAt}); err != nil {
-			result.Err = model.NewAppError("SqlSessionStore.UpdateDeviceId", "store.sql_session.update_device_id.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = deviceId
-		}
-	})
+func (me SqlSessionStore) UpdateDeviceId(id string, deviceId string, expiresAt int64) (string, *model.AppError) {
+	query := "UPDATE Sessions SET DeviceId = :DeviceId, ExpiresAt = :ExpiresAt WHERE Id = :Id"
+
+	_, err := me.GetMaster().Exec(query, map[string]interface{}{"DeviceId": deviceId, "Id": id, "ExpiresAt": expiresAt})
+	if err != nil {
+		return "", model.NewAppError("SqlSessionStore.UpdateDeviceId", "store.sql_session.update_device_id.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return deviceId, nil
 }
 
 func (me SqlSessionStore) AnalyticsSessionCount() (int64, *model.AppError) {
 	query :=
-		`SELECT 
+		`SELECT
 			COUNT(*)
 		FROM
 			Sessions

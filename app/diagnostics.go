@@ -149,50 +149,44 @@ func (a *App) trackActivity() {
 		activeUsersMonthlyCount = r.Data.(int64)
 	}
 
-	if ucr := <-a.Srv.Store.User().Count(model.UserCountOptions{
-		IncludeDeleted: true,
-	}); ucr.Err == nil {
-		userCount = ucr.Data.(int64)
+	if count, err := a.Srv.Store.User().Count(model.UserCountOptions{IncludeDeleted: true}); err == nil {
+		userCount = count
 	}
 
-	if bc := <-a.Srv.Store.User().Count(model.UserCountOptions{
-		IncludeBotAccounts:  true,
-		ExcludeRegularUsers: true,
-	}); bc.Err == nil {
-		botAccountsCount = bc.Data.(int64)
+	if count, err := a.Srv.Store.User().Count(model.UserCountOptions{IncludeBotAccounts: true, ExcludeRegularUsers: true}); err == nil {
+		botAccountsCount = count
 	}
 
-	if iucr := <-a.Srv.Store.User().AnalyticsGetInactiveUsersCount(); iucr.Err == nil {
-		inactiveUserCount = iucr.Data.(int64)
+	if iucr, err := a.Srv.Store.User().AnalyticsGetInactiveUsersCount(); err == nil {
+		inactiveUserCount = iucr
 	}
 
-	if tcr := <-a.Srv.Store.Team().AnalyticsTeamCount(); tcr.Err == nil {
-		teamCount = tcr.Data.(int64)
+	teamCount, err := a.Srv.Store.Team().AnalyticsTeamCount()
+	if err != nil {
+		mlog.Error(err.Error())
 	}
 
-	if ucc := <-a.Srv.Store.Channel().AnalyticsTypeCount("", "O"); ucc.Err == nil {
-		publicChannelCount = ucc.Data.(int64)
+	if ucc, err := a.Srv.Store.Channel().AnalyticsTypeCount("", "O"); err == nil {
+		publicChannelCount = ucc
 	}
 
-	if pcc := <-a.Srv.Store.Channel().AnalyticsTypeCount("", "P"); pcc.Err == nil {
-		privateChannelCount = pcc.Data.(int64)
+	if pcc, err := a.Srv.Store.Channel().AnalyticsTypeCount("", "P"); err == nil {
+		privateChannelCount = pcc
 	}
 
-	if dcc := <-a.Srv.Store.Channel().AnalyticsTypeCount("", "D"); dcc.Err == nil {
-		directChannelCount = dcc.Data.(int64)
+	if dcc, err := a.Srv.Store.Channel().AnalyticsTypeCount("", "D"); err == nil {
+		directChannelCount = dcc
 	}
 
-	if duccr := <-a.Srv.Store.Channel().AnalyticsDeletedTypeCount("", "O"); duccr.Err == nil {
-		deletedPublicChannelCount = duccr.Data.(int64)
+	if duccr, err := a.Srv.Store.Channel().AnalyticsDeletedTypeCount("", "O"); err == nil {
+		deletedPublicChannelCount = duccr
 	}
 
-	if dpccr := <-a.Srv.Store.Channel().AnalyticsDeletedTypeCount("", "P"); dpccr.Err == nil {
-		deletedPrivateChannelCount = dpccr.Data.(int64)
+	if dpccr, err := a.Srv.Store.Channel().AnalyticsDeletedTypeCount("", "P"); err == nil {
+		deletedPrivateChannelCount = dpccr
 	}
 
-	if pcr := <-a.Srv.Store.Post().AnalyticsPostCount("", false, false); pcr.Err == nil {
-		postsCount = pcr.Data.(int64)
-	}
+	postsCount, _ = a.Srv.Store.Post().AnalyticsPostCount("", false, false)
 
 	slashCommandsCount, _ = a.Srv.Store.Command().AnalyticsCommandCount("")
 
@@ -499,6 +493,7 @@ func (a *App) trackConfig() {
 		"enable_sync_with_ldap_include_auth":  *cfg.SamlSettings.EnableSyncWithLdapIncludeAuth,
 		"verify":                              *cfg.SamlSettings.Verify,
 		"encrypt":                             *cfg.SamlSettings.Encrypt,
+		"sign_request":                        *cfg.SamlSettings.SignRequest,
 		"isdefault_scoping_idp_provider_id":   isDefault(*cfg.SamlSettings.ScopingIDPProviderId, ""),
 		"isdefault_scoping_idp_name":          isDefault(*cfg.SamlSettings.ScopingIDPName, ""),
 		"isdefault_id_attribute":              isDefault(*cfg.SamlSettings.IdAttribute, model.SAML_SETTINGS_DEFAULT_ID_ATTRIBUTE),
@@ -536,7 +531,6 @@ func (a *App) trackConfig() {
 	a.SendDiagnostic(TRACK_CONFIG_EXPERIMENTAL, map[string]interface{}{
 		"client_side_cert_enable":            *cfg.ExperimentalSettings.ClientSideCertEnable,
 		"isdefault_client_side_cert_check":   isDefault(*cfg.ExperimentalSettings.ClientSideCertCheck, model.CLIENT_SIDE_CERT_CHECK_PRIMARY_AUTH),
-		"enable_post_metadata":               !*cfg.ExperimentalSettings.DisablePostMetadata,
 		"link_metadata_timeout_milliseconds": *cfg.ExperimentalSettings.LinkMetadataTimeoutMilliseconds,
 		"enable_click_to_reply":              *cfg.ExperimentalSettings.EnableClickToReply,
 		"restrict_system_admin":              *cfg.ExperimentalSettings.RestrictSystemAdmin,
@@ -571,17 +565,23 @@ func (a *App) trackConfig() {
 		"live_indexing_batch_size":          *cfg.ElasticsearchSettings.LiveIndexingBatchSize,
 		"bulk_indexing_time_window_seconds": *cfg.ElasticsearchSettings.BulkIndexingTimeWindowSeconds,
 		"request_timeout_seconds":           *cfg.ElasticsearchSettings.RequestTimeoutSeconds,
+		"skip_tls_verification":             *cfg.ElasticsearchSettings.SkipTLSVerification,
 		"trace":                             *cfg.ElasticsearchSettings.Trace,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_PLUGIN, map[string]interface{}{
-		"enable_jira":         pluginActivated(cfg.PluginSettings.PluginStates, "jira"),
-		"enable_nps":          pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.nps"),
-		"enable_nps_survey":   pluginSetting(&cfg.PluginSettings, "com.mattermost.nps", "enablesurvey", false),
-		"enable_zoom":         pluginActivated(cfg.PluginSettings.PluginStates, "zoom"),
-		"enable":              *cfg.PluginSettings.Enable,
-		"enable_uploads":      *cfg.PluginSettings.EnableUploads,
-		"enable_health_check": *cfg.PluginSettings.EnableHealthCheck,
+		"enable_autolink":               pluginActivated(cfg.PluginSettings.PluginStates, "mattermost-autolink"),
+		"enable_aws_sns":                pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.aws-sns"),
+		"enable_custom_user_attributes": pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.custom-attributes"),
+		"enable_github":                 pluginActivated(cfg.PluginSettings.PluginStates, "github"),
+		"enable_jira":                   pluginActivated(cfg.PluginSettings.PluginStates, "jira"),
+		"enable_nps":                    pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.nps"),
+		"enable_nps_survey":             pluginSetting(&cfg.PluginSettings, "com.mattermost.nps", "enablesurvey", true),
+		"enable_welcome_bot":            pluginActivated(cfg.PluginSettings.PluginStates, "com.mattermost.welcomebot"),
+		"enable_zoom":                   pluginActivated(cfg.PluginSettings.PluginStates, "zoom"),
+		"enable":                        *cfg.PluginSettings.Enable,
+		"enable_uploads":                *cfg.PluginSettings.EnableUploads,
+		"allow_insecure_download_url":   *cfg.PluginSettings.AllowInsecureDownloadUrl,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_DATA_RETENTION, map[string]interface{}{

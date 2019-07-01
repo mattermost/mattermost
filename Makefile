@@ -74,7 +74,14 @@ TESTFLAGSEE ?= -short
 TE_PACKAGES=$(shell go list ./...|grep -v plugin_tests)
 
 # Plugins Packages
-PLUGIN_PACKAGES=mattermost-plugin-zoom mattermost-plugin-jira
+PLUGIN_PACKAGES=mattermost-plugin-zoom-v1.0.7
+PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.0.0
+PLUGIN_PACKAGES += mattermost-plugin-nps-v1.0.0
+PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.0.0
+PLUGIN_PACKAGES += mattermost-plugin-github-v0.10.2
+PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.0.0
+PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.0.0
+PLUGIN_PACKAGES += mattermost-plugin-jira-v2.0.6
 
 # Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -311,7 +318,7 @@ gofmt: ## Runs gofmt against all packages.
 	@echo "gofmt success"; \
 
 megacheck: ## Run megacheck on codebasis
-	go get honnef.co/go/tools/cmd/megacheck
+	env GO111MODULE=off go get -u honnef.co/go/tools/cmd/megacheck
 	$(GOPATH)/bin/megacheck $(TE_PACKAGES)
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -319,23 +326,23 @@ ifeq ($(BUILD_ENTERPRISE_READY),true)
 endif
 
 i18n-extract: ## Extract strings for translation from the source code
-	go get -u github.com/mattermost/mattermost-utilities/mmgotool
+	env GO111MODULE=off go get -u github.com/mattermost/mattermost-utilities/mmgotool
 	$(GOPATH)/bin/mmgotool i18n extract
 
 store-mocks: ## Creates mock files.
-	go get -u github.com/vektra/mockery/...
+	env GO111MODULE=off go get -u github.com/vektra/mockery/...
 	$(GOPATH)/bin/mockery -dir store -all -output store/storetest/mocks -note 'Regenerate this file using `make store-mocks`.'
 
 filesstore-mocks: ## Creates mock files.
-	go get -u github.com/vektra/mockery/...
+	env GO111MODULE=off go get -u github.com/vektra/mockery/...
 	$(GOPATH)/bin/mockery -dir services/filesstore -all -output services/filesstore/mocks -note 'Regenerate this file using `make filesstore-mocks`.'
 
 ldap-mocks: ## Creates mock files for ldap.
-	go get -u github.com/vektra/mockery/...
+	env GO111MODULE=off go get -u github.com/vektra/mockery/...
 	$(GOPATH)/bin/mockery -dir enterprise/ldap -all -output enterprise/ldap/mocks -note 'Regenerate this file using `make ldap-mocks`.'
 
 plugin-mocks: ## Creates mock files for plugins.
-	go get -u github.com/vektra/mockery/...
+	env GO111MODULE=off go get -u github.com/vektra/mockery/...
 	$(GOPATH)/bin/mockery -dir plugin -name API -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
 	$(GOPATH)/bin/mockery -dir plugin -name Hooks -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
 	$(GOPATH)/bin/mockery -dir plugin -name Helpers -output plugin/plugintest -outpkg plugintest -case underscore -note 'Regenerate this file using `make plugin-mocks`.'
@@ -388,7 +395,7 @@ do-cover-file: ## Creates the test coverage report file.
 	@echo "mode: count" > cover.out
 
 go-junit-report:
-	go get -u github.com/jstemmer/go-junit-report
+	env GO111MODULE=off go get -u github.com/jstemmer/go-junit-report
 
 test-compile:
 	@echo COMPILE TESTS
@@ -429,7 +436,8 @@ cover: ## Runs the golang coverage tool. You must run the unit tests first.
 	$(GO) tool cover -html=ecover.out
 
 test-data: start-docker ## Add test data to the local instance.
-	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) sampledata -w 1
+	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) config set TeamSettings.MaxUsersPerTeam 100
+	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) sampledata -w 4 -u 60 
 
 	@echo You may need to restart the Mattermost server before using the following
 	@echo ========================================================================
@@ -528,7 +536,7 @@ config-ldap: ## Configures LDAP.
 config-reset: ## Resets the config/config.json file to the default.
 	@echo Resetting configuration to default
 	rm -f config/config.json
-	cp config/default.json config/config.json
+	OUTPUT_CONFIG=$(PWD)/config/config.json go generate ./config
 
 clean: stop-docker ## Clean up everything except persistant server data.
 	@echo Cleaning
@@ -554,7 +562,7 @@ clean: stop-docker ## Clean up everything except persistant server data.
 	rm -f cmd/platform/cprofile*.out
 	rm -f cmd/mattermost/cprofile*.out
 
-nuke: clean clean-docker ## Clean plus removes persistant server data.
+nuke: clean clean-docker ## Clean plus removes persistent server data.
 	@echo BOOM
 
 	rm -rf data
@@ -562,7 +570,7 @@ nuke: clean clean-docker ## Clean plus removes persistant server data.
 setup-mac: ## Adds macOS hosts entries for Docker.
 	echo $$(boot2docker ip 2> /dev/null) dockerhost | sudo tee -a /etc/hosts
 
-update-dependencies: ## Uses go get -u to update all the dependencies while holding back any that require it. 
+update-dependencies: ## Uses go get -u to update all the dependencies while holding back any that require it.
 	@echo Updating Dependencies
 
 	# Update all dependencies (does not update across major versions)

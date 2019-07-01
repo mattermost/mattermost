@@ -81,10 +81,10 @@ func checkNoError(t *testing.T, err *model.AppError) {
 }
 
 func AssertAllPostsCount(t *testing.T, a *App, initialCount int64, change int64, teamName string) {
-	if result := <-a.Srv.Store.Post().AnalyticsPostCount(teamName, false, false); result.Err != nil {
-		t.Fatal(result.Err)
+	if result, err := a.Srv.Store.Post().AnalyticsPostCount(teamName, false, false); err != nil {
+		t.Fatal(err)
 	} else {
-		if initialCount+change != result.Data.(int64) {
+		if initialCount+change != result {
 			debug.PrintStack()
 			t.Fatalf("Did not find the expected number of posts.")
 		}
@@ -92,8 +92,7 @@ func AssertAllPostsCount(t *testing.T, a *App, initialCount int64, change int64,
 }
 
 func AssertChannelCount(t *testing.T, a *App, channelType string, expectedCount int64) {
-	if r := <-a.Srv.Store.Channel().AnalyticsTypeCount("", channelType); r.Err == nil {
-		count := r.Data.(int64)
+	if count, err := a.Srv.Store.Channel().AnalyticsTypeCount("", channelType); err == nil {
 		if count != expectedCount {
 			debug.PrintStack()
 			t.Fatalf("Channel count of type: %v. Expected: %v, Got: %v", channelType, expectedCount, count)
@@ -260,10 +259,9 @@ func AssertFileIdsInPost(files []*model.FileInfo, th *TestHelper, t *testing.T) 
 	postId := files[0].PostId
 	assert.NotNil(t, postId)
 
-	if result := <-th.App.Srv.Store.Post().GetPostsByIds([]string{postId}); result.Err != nil {
-		t.Fatal(result.Err.Error())
+	if posts, err := th.App.Srv.Store.Post().GetPostsByIds([]string{postId}); err != nil {
+		t.Fatal(err.Error())
 	} else {
-		posts := result.Data.([]*model.Post)
 		assert.Equal(t, len(posts), 1)
 		for _, file := range files {
 			assert.Contains(t, posts[0].FileIds, file.Id)

@@ -192,22 +192,19 @@ func (s SqlPreferenceStore) GetCategory(userId string, category string) (model.P
 
 }
 
-func (s SqlPreferenceStore) GetAll(userId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var preferences model.Preferences
+func (s SqlPreferenceStore) GetAll(userId string) (model.Preferences, *model.AppError) {
+	var preferences model.Preferences
 
-		if _, err := s.GetReplica().Select(&preferences,
-			`SELECT
+	if _, err := s.GetReplica().Select(&preferences,
+		`SELECT
 				*
 			FROM
 				Preferences
 			WHERE
 				UserId = :UserId`, map[string]interface{}{"UserId": userId}); err != nil {
-			result.Err = model.NewAppError("SqlPreferenceStore.GetAll", "store.sql_preference.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = preferences
-		}
-	})
+		return nil, model.NewAppError("SqlPreferenceStore.GetAll", "store.sql_preference.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return preferences, nil
 }
 
 func (s SqlPreferenceStore) PermanentDeleteByUser(userId string) *model.AppError {
@@ -239,18 +236,21 @@ func (s SqlPreferenceStore) IsFeatureEnabled(feature, userId string) (bool, *mod
 	return value == "true", nil
 }
 
-func (s SqlPreferenceStore) Delete(userId, category, name string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if _, err := s.GetMaster().Exec(
-			`DELETE FROM
-				Preferences
-			WHERE
-				UserId = :UserId
-				AND Category = :Category
-				AND Name = :Name`, map[string]interface{}{"UserId": userId, "Category": category, "Name": name}); err != nil {
-			result.Err = model.NewAppError("SqlPreferenceStore.Delete", "store.sql_preference.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
-	})
+func (s SqlPreferenceStore) Delete(userId, category, name string) *model.AppError {
+	query :=
+		`DELETE FROM Preferences
+		WHERE
+			UserId = :UserId
+			AND Category = :Category
+			AND Name = :Name`
+
+	_, err := s.GetMaster().Exec(query, map[string]interface{}{"UserId": userId, "Category": category, "Name": name})
+
+	if err != nil {
+		return model.NewAppError("SqlPreferenceStore.Delete", "store.sql_preference.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	return nil
 }
 
 func (s SqlPreferenceStore) DeleteCategory(userId string, category string) *model.AppError {
