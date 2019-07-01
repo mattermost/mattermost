@@ -708,8 +708,8 @@ func (a *App) trackServer() {
 		"operating_system": runtime.GOOS,
 	}
 
-	if scr := <-a.Srv.Store.User().AnalyticsGetSystemAdminCount(); scr.Err == nil {
-		data["system_admins"] = scr.Data.(int64)
+	if scr, err := a.Srv.Store.User().AnalyticsGetSystemAdminCount(); err == nil {
+		data["system_admins"] = scr
 	}
 
 	a.SendDiagnostic(TRACK_SERVER, data)
