@@ -373,6 +373,7 @@ type OAuthStore interface {
 	GetAccessDataByRefreshToken(token string) (*model.AccessData, *model.AppError)
 	GetPreviousAccessData(userId, clientId string) (*model.AccessData, *model.AppError)
 	RemoveAccessData(token string) *model.AppError
+	RemoveAllAccessData() *model.AppError
 }
 
 type SystemStore interface {
