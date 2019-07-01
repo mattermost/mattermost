@@ -180,7 +180,7 @@ type ChannelStore interface {
 	IncrementMentionCount(channelId string, userId string) *model.AppError
 	AnalyticsTypeCount(teamId string, channelType string) (int64, *model.AppError)
 	GetMembersForUser(teamId string, userId string) (*model.ChannelMembers, *model.AppError)
-	GetMembersForUserWithPagination(teamId, userId string, page, perPage int) StoreChannel
+	GetMembersForUserWithPagination(teamId, userId string, page, perPage int) (*model.ChannelMembers, *model.AppError)
 	AutocompleteInTeam(teamId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError)
 	AutocompleteInTeamForSearch(teamId string, userId string, term string, includeDeleted bool) (*model.ChannelList, *model.AppError)
 	SearchAllChannels(term string, opts ChannelSearchOpts) (*model.ChannelListWithTeamData, *model.AppError)
@@ -289,11 +289,11 @@ type UserStore interface {
 	GetRecentlyActiveUsersForTeam(teamId string, offset, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
 	GetNewUsersForTeam(teamId string, offset, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
 	Search(teamId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
-	SearchNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) StoreChannel
-	SearchInChannel(channelId string, term string, options *model.UserSearchOptions) StoreChannel
+	SearchNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
+	SearchInChannel(channelId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
 	SearchNotInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) StoreChannel
 	SearchWithoutTeam(term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
-	AnalyticsGetInactiveUsersCount() StoreChannel
+	AnalyticsGetInactiveUsersCount() (int64, *model.AppError)
 	AnalyticsGetSystemAdminCount() (int64, *model.AppError)
 	GetProfilesNotInTeam(teamId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) StoreChannel
 	GetEtagForProfilesNotInTeam(teamId string) StoreChannel
@@ -468,7 +468,7 @@ type EmojiStore interface {
 
 type StatusStore interface {
 	SaveOrUpdate(status *model.Status) *model.AppError
-	Get(userId string) StoreChannel
+	Get(userId string) (*model.Status, *model.AppError)
 	GetByIds(userIds []string) ([]*model.Status, *model.AppError)
 	GetOnlineAway() ([]*model.Status, *model.AppError)
 	GetOnline() ([]*model.Status, *model.AppError)
