@@ -562,7 +562,7 @@ clean: stop-docker ## Clean up everything except persistant server data.
 	rm -f cmd/platform/cprofile*.out
 	rm -f cmd/mattermost/cprofile*.out
 
-nuke: clean clean-docker ## Clean plus removes persistant server data.
+nuke: clean clean-docker ## Clean plus removes persistent server data.
 	@echo BOOM
 
 	rm -rf data
