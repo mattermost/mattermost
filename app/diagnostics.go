@@ -157,8 +157,8 @@ func (a *App) trackActivity() {
 		botAccountsCount = count
 	}
 
-	if iucr := <-a.Srv.Store.User().AnalyticsGetInactiveUsersCount(); iucr.Err == nil {
-		inactiveUserCount = iucr.Data.(int64)
+	if iucr, err := a.Srv.Store.User().AnalyticsGetInactiveUsersCount(); err == nil {
+		inactiveUserCount = iucr
 	}
 
 	teamCount, err := a.Srv.Store.Team().AnalyticsTeamCount()
