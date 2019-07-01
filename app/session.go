@@ -342,8 +342,9 @@ func (a *App) EnableUserAccessToken(token *model.UserAccessToken) *model.AppErro
 	var session *model.Session
 	session, _ = a.Srv.Store.Session().Get(token.Token)
 
-	if result := <-a.Srv.Store.UserAccessToken().UpdateTokenEnable(token.Id); result.Err != nil {
-		return result.Err
+	err := a.Srv.Store.UserAccessToken().UpdateTokenEnable(token.Id)
+	if err != nil {
+		return err
 	}
 
 	if session == nil {
