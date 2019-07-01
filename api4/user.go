@@ -93,7 +93,26 @@ func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	var ruser *model.User
 	var err *model.AppError
 	if len(tokenId) > 0 {
-		ruser, err = c.App.CreateUserWithToken(user, tokenId)
+		var token *model.Token
+		token, err = c.App.Srv.Store.Token().GetByToken(tokenId)
+		if err != nil {
+			c.Err = model.NewAppError("CreateUserWithToken", "api.user.create_user.signup_link_invalid.app_error", nil, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		if token.Type == app.TOKEN_TYPE_GUEST_INVITATION {
+			if c.App.License() == nil {
+				c.Err = model.NewAppError("CreateUserWithToken", "api.user.create_user.guest_accounts.license.app_error", nil, "", http.StatusBadRequest)
+				return
+			}
+			if !*c.App.Config().GuestAccountsSettings.Enable {
+				c.Err = model.NewAppError("CreateUserWithToken", "api.user.create_user.guest_accounts.disabled.app_error", nil, "", http.StatusBadRequest)
+				return
+			}
+		}
+		ruser, err = c.App.CreateUserWithToken(user, token)
+		if err == nil {
+		}
 	} else if len(inviteId) > 0 {
 		ruser, err = c.App.CreateUserWithInviteId(user, inviteId)
 	} else if c.IsSystemAdmin() {

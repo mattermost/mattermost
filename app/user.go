@@ -46,14 +46,9 @@ const (
 	IMAGE_PROFILE_PIXEL_DIMENSION = 128
 )
 
-func (a *App) CreateUserWithToken(user *model.User, tokenId string) (*model.User, *model.AppError) {
+func (a *App) CreateUserWithToken(user *model.User, token *model.Token) (*model.User, *model.AppError) {
 	if err := a.IsUserSignUpAllowed(); err != nil {
 		return nil, err
-	}
-
-	token, err := a.Srv.Store.Token().GetByToken(tokenId)
-	if err != nil {
-		return nil, model.NewAppError("CreateUserWithToken", "api.user.create_user.signup_link_invalid.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
 
 	if token.Type != TOKEN_TYPE_TEAM_INVITATION && token.Type != TOKEN_TYPE_GUEST_INVITATION {
@@ -82,12 +77,6 @@ func (a *App) CreateUserWithToken(user *model.User, tokenId string) (*model.User
 
 	var ruser *model.User
 	if token.Type == TOKEN_TYPE_TEAM_INVITATION {
-		if a.License() == nil {
-			return nil, model.NewAppError("CreateUserWithToken", "api.user.create_user.guest_accounts.license.app_error", nil, "", http.StatusBadRequest)
-		}
-		if !*a.Config().GuestAccountsSettings.Enable {
-			return nil, model.NewAppError("CreateUserWithToken", "api.user.create_user.guest_accounts.disabled.app_error", nil, "", http.StatusBadRequest)
-		}
 		ruser, err = a.CreateUser(user)
 	} else {
 		ruser, err = a.CreateGuest(user)
