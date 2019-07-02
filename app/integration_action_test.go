@@ -64,6 +64,7 @@ func TestPostActionInvalidURL(t *testing.T) {
 
 	_, err = th.App.DoPostAction(post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
 	require.NotNil(t, err)
+	require.True(t, strings.Contains(err.Error(), "missing protocol scheme"))
 }
 
 func TestPostAction(t *testing.T) {
@@ -577,6 +578,86 @@ func TestPostActionRelativeURL(t *testing.T) {
 							{
 								Integration: &model.PostActionIntegration{
 									URL: "/plugins/myplugin/myaction",
+								},
+								Name: "action",
+								Type: "some_type",
+							},
+						},
+					},
+				},
+			},
+		}
+
+		post, err := th.App.CreatePostAsUser(&interactivePost, "")
+		require.Nil(t, err)
+		attachments, ok := post.Props["attachments"].([]*model.SlackAttachment)
+		require.True(t, ok)
+		require.NotEmpty(t, attachments[0].Actions)
+		require.NotEmpty(t, attachments[0].Actions[0].Id)
+
+		_, err = th.App.DoPostAction(post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
+		require.Nil(t, err)
+	})
+
+	t.Run("valid (but dirty) relative URL with SiteURL set", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = ""
+			*cfg.ServiceSettings.SiteURL = ts.URL
+		})
+
+		interactivePost := model.Post{
+			Message:       "Interactive post",
+			ChannelId:     th.BasicChannel.Id,
+			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+			UserId:        th.BasicUser.Id,
+			Props: model.StringInterface{
+				"attachments": []*model.SlackAttachment{
+					{
+						Text: "hello",
+						Actions: []*model.PostAction{
+							{
+								Integration: &model.PostActionIntegration{
+									URL: "//plugins/myplugin///myaction",
+								},
+								Name: "action",
+								Type: "some_type",
+							},
+						},
+					},
+				},
+			},
+		}
+
+		post, err := th.App.CreatePostAsUser(&interactivePost, "")
+		require.Nil(t, err)
+		attachments, ok := post.Props["attachments"].([]*model.SlackAttachment)
+		require.True(t, ok)
+		require.NotEmpty(t, attachments[0].Actions)
+		require.NotEmpty(t, attachments[0].Actions[0].Id)
+
+		_, err = th.App.DoPostAction(post.Id, attachments[0].Actions[0].Id, th.BasicUser.Id, "")
+		require.Nil(t, err)
+	})
+
+	t.Run("valid relative URL with SiteURL set and no leading slash", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = ""
+			*cfg.ServiceSettings.SiteURL = ts.URL
+		})
+
+		interactivePost := model.Post{
+			Message:       "Interactive post",
+			ChannelId:     th.BasicChannel.Id,
+			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+			UserId:        th.BasicUser.Id,
+			Props: model.StringInterface{
+				"attachments": []*model.SlackAttachment{
+					{
+						Text: "hello",
+						Actions: []*model.PostAction{
+							{
+								Integration: &model.PostActionIntegration{
+									URL: "plugins/myplugin/myaction",
 								},
 								Name: "action",
 								Type: "some_type",
