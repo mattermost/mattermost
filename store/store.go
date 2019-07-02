@@ -280,7 +280,7 @@ type UserStore interface {
 	GetEtagForAllProfiles() StoreChannel
 	GetEtagForProfiles(teamId string) StoreChannel
 	UpdateFailedPasswordAttempts(userId string, attempts int) StoreChannel
-	GetSystemAdminProfiles() StoreChannel
+	GetSystemAdminProfiles() (map[string]*model.User, *model.AppError)
 	PermanentDelete(userId string) *model.AppError
 	AnalyticsActiveCount(time int64) StoreChannel
 	GetUnreadCount(userId string) (int64, error)
