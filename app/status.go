@@ -349,11 +349,7 @@ func (a *App) GetStatus(userId string) (*model.Status, *model.AppError) {
 		return status, nil
 	}
 
-	result := <-a.Srv.Store.Status().Get(userId)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.Status), nil
+	return a.Srv.Store.Status().Get(userId)
 }
 
 func (a *App) IsUserAway(lastActivityAt int64) bool {

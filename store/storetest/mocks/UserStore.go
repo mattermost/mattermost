@@ -767,15 +767,15 @@ func (_m *UserStore) PermanentDelete(userId string) *model.AppError {
 }
 
 // ResetLastPictureUpdate provides a mock function with given fields: userId
-func (_m *UserStore) ResetLastPictureUpdate(userId string) store.StoreChannel {
+func (_m *UserStore) ResetLastPictureUpdate(userId string) *model.AppError {
 	ret := _m.Called(userId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string) store.StoreChannel); ok {
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
 		r0 = rf(userId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).(*model.AppError)
 		}
 	}
 
@@ -824,19 +824,28 @@ func (_m *UserStore) Search(teamId string, term string, options *model.UserSearc
 }
 
 // SearchInChannel provides a mock function with given fields: channelId, term, options
-func (_m *UserStore) SearchInChannel(channelId string, term string, options *model.UserSearchOptions) store.StoreChannel {
+func (_m *UserStore) SearchInChannel(channelId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	ret := _m.Called(channelId, term, options)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, string, *model.UserSearchOptions) store.StoreChannel); ok {
+	var r0 []*model.User
+	if rf, ok := ret.Get(0).(func(string, string, *model.UserSearchOptions) []*model.User); ok {
 		r0 = rf(channelId, term, options)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]*model.User)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string, *model.UserSearchOptions) *model.AppError); ok {
+		r1 = rf(channelId, term, options)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // SearchNotInChannel provides a mock function with given fields: teamId, channelId, term, options

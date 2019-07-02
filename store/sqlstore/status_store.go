@@ -54,26 +54,22 @@ func (s SqlStatusStore) SaveOrUpdate(status *model.Status) *model.AppError {
 	return nil
 }
 
-func (s SqlStatusStore) Get(userId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var status model.Status
+func (s SqlStatusStore) Get(userId string) (*model.Status, *model.AppError) {
+	var status model.Status
 
-		if err := s.GetReplica().SelectOne(&status,
-			`SELECT
-				*
-			FROM
-				Status
-			WHERE
-				UserId = :UserId`, map[string]interface{}{"UserId": userId}); err != nil {
-			if err == sql.ErrNoRows {
-				result.Err = model.NewAppError("SqlStatusStore.Get", MISSING_STATUS_ERROR, nil, err.Error(), http.StatusNotFound)
-			} else {
-				result.Err = model.NewAppError("SqlStatusStore.Get", "store.sql_status.get.app_error", nil, err.Error(), http.StatusInternalServerError)
-			}
-		} else {
-			result.Data = &status
+	if err := s.GetReplica().SelectOne(&status,
+		`SELECT
+			*
+		FROM
+			Status
+		WHERE
+			UserId = :UserId`, map[string]interface{}{"UserId": userId}); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, model.NewAppError("SqlStatusStore.Get", MISSING_STATUS_ERROR, nil, err.Error(), http.StatusNotFound)
 		}
-	})
+		return nil, model.NewAppError("SqlStatusStore.Get", "store.sql_status.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return &status, nil
 }
 
 func (s SqlStatusStore) GetByIds(userIds []string) ([]*model.Status, *model.AppError) {
