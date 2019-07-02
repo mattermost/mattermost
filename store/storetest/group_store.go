@@ -445,7 +445,7 @@ func testGroupGetMemberUsers(t *testing.T, ss store.Store) {
 	require.Nil(t, res.Err)
 	user1 := res.Data.(*model.User)
 
-	_, err := ss.Group().UpsertMember(group.Id, user1.Id)
+	_, err = ss.Group().UpsertMember(group.Id, user1.Id)
 	require.Nil(t, err)
 
 	u2 := &model.User{
@@ -499,7 +499,7 @@ func testGroupGetMemberUsersPage(t *testing.T, ss store.Store) {
 	require.Nil(t, res.Err)
 	user1 := res.Data.(*model.User)
 
-	_, err := ss.Group().UpsertMember(group.Id, user1.Id)
+	_, err = ss.Group().UpsertMember(group.Id, user1.Id)
 	require.Nil(t, err)
 
 	u2 := &model.User{
@@ -923,7 +923,7 @@ func testPendingAutoAddTeamMembers(t *testing.T, ss store.Store) {
 	user = res.Data.(*model.User)
 
 	// Create GroupMember
-	_, err := ss.Group().UpsertMember(group.Id, user.Id)
+	_, err = ss.Group().UpsertMember(group.Id, user.Id)
 	require.Nil(t, err)
 
 	// Create Team
@@ -1087,7 +1087,7 @@ func testPendingAutoAddChannelMembers(t *testing.T, ss store.Store) {
 	user = res.Data.(*model.User)
 
 	// Create GroupMember
-	_, err := ss.Group().UpsertMember(group.Id, user.Id)
+	_, err = ss.Group().UpsertMember(group.Id, user.Id)
 	require.Nil(t, res.Err)
 
 	// Create Channel
@@ -1437,7 +1437,7 @@ func pendingMemberRemovalsDataSetup(t *testing.T, ss store.Store) *removalsData 
 	userC = res.Data.(*model.User)
 
 	// add users to group (but not userC)
-	_, err := ss.Group().UpsertMember(group.Id, userA.Id)
+	_, err = ss.Group().UpsertMember(group.Id, userA.Id)
 	require.Nil(t, err)
 
 	_, err = ss.Group().UpsertMember(group.Id, userB.Id)
