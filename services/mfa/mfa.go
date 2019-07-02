@@ -112,10 +112,9 @@ func (m *Mfa) Deactivate(userId string) *model.AppError {
 	}
 
 	achan := m.Store.User().UpdateMfaActive(userId, false)
-	schan := make(chan store.StoreResult, 1)
+	schan := make(chan *model.AppError, 1)
 	go func() {
-		err := m.Store.User().UpdateMfaSecret(userId, "")
-		schan <- store.StoreResult{Data: userId, Err: err}
+		schan <- m.Store.User().UpdateMfaSecret(userId, "")
 		close(schan)
 	}()
 
@@ -123,8 +122,8 @@ func (m *Mfa) Deactivate(userId string) *model.AppError {
 		return model.NewAppError("Deactivate", "mfa.deactivate.save_active.app_error", nil, result.Err.Error(), http.StatusInternalServerError)
 	}
 
-	if result := <-schan; result.Err != nil {
-		return model.NewAppError("Deactivate", "mfa.deactivate.save_secret.app_error", nil, result.Err.Error(), http.StatusInternalServerError)
+	if err := <-schan; err != nil {
+		return model.NewAppError("Deactivate", "mfa.deactivate.save_secret.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	return nil
