@@ -1450,12 +1450,12 @@ func testUserStoreGetSystemAdminProfiles(t *testing.T, ss store.Store) {
 	defer func() { require.Nil(t, ss.Bot().PermanentDelete(u3.Id)) }()
 
 	t.Run("all system admin profiles", func(t *testing.T) {
-		result := <-ss.User().GetSystemAdminProfiles()
-		require.Nil(t, result.Err)
+		result, userError := ss.User().GetSystemAdminProfiles()
+		require.Nil(t, userError)
 		assert.Equal(t, map[string]*model.User{
 			u1.Id: sanitized(u1),
 			u3.Id: sanitized(u3),
-		}, result.Data.(map[string]*model.User))
+		}, result)
 	})
 }
 

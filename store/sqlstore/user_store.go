@@ -972,33 +972,29 @@ func (us SqlUserStore) GetProfileByGroupChannelIdsForUser(userId string, channel
 	return usersByChannelId, nil
 }
 
-func (us SqlUserStore) GetSystemAdminProfiles() store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		query := us.usersQuery.
-			Where("Roles LIKE ?", "%system_admin%").
-			OrderBy("u.Username ASC")
+func (us SqlUserStore) GetSystemAdminProfiles() (map[string]*model.User, *model.AppError) {
+	query := us.usersQuery.
+		Where("Roles LIKE ?", "%system_admin%").
+		OrderBy("u.Username ASC")
 
-		queryString, args, err := query.ToSql()
-		if err != nil {
-			result.Err = model.NewAppError("SqlUserStore.GetSystemAdminProfiles", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlUserStore.GetSystemAdminProfiles", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		var users []*model.User
-		if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.GetSystemAdminProfiles", "store.sql_user.get_sysadmin_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	var users []*model.User
+	if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
+		return nil, model.NewAppError("SqlUserStore.GetSystemAdminProfiles", "store.sql_user.get_sysadmin_profiles.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		userMap := make(map[string]*model.User)
+	userMap := make(map[string]*model.User)
 
-		for _, u := range users {
-			u.Sanitize(map[string]bool{})
-			userMap[u.Id] = u
-		}
+	for _, u := range users {
+		u.Sanitize(map[string]bool{})
+		userMap[u.Id] = u
+	}
 
-		result.Data = userMap
-	})
+	return userMap, nil
 }
 
 func (us SqlUserStore) GetByEmail(email string) (*model.User, *model.AppError) {
