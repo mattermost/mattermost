@@ -1916,12 +1916,12 @@ func testUserStoreUpdateMfaSecret(t *testing.T, ss store.Store) {
 
 	time.Sleep(100 * time.Millisecond)
 
-	if err := (<-ss.User().UpdateMfaSecret(u1.Id, "12345")).Err; err != nil {
+	if err := ss.User().UpdateMfaSecret(u1.Id, "12345"); err != nil {
 		t.Fatal(err)
 	}
 
 	// should pass, no update will occur though
-	if err := (<-ss.User().UpdateMfaSecret("junk", "12345")).Err; err != nil {
+	if err := ss.User().UpdateMfaSecret("junk", "12345"); err != nil {
 		t.Fatal(err)
 	}
 }
