@@ -645,8 +645,8 @@ func testChannelStoreDelete(t *testing.T, ss store.Store) {
 		require.Equal(t, &model.ChannelList{}, list)
 	}
 
-	if r := <-ss.Channel().PermanentDeleteByTeam(o1.TeamId); r.Err != nil {
-		t.Fatal(r.Err)
+	if err = ss.Channel().PermanentDeleteByTeam(o1.TeamId); err != nil {
+		t.Fatal(err)
 	}
 }
 
@@ -1113,7 +1113,9 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlSupplier)
 		Source:      model.GroupSourceLdap,
 		RemoteId:    model.NewId(),
 	}
-	store.Must(ss.Group().Create(group))
+	_, err = ss.Group().Create(group)
+	require.Nil(t, err)
+
 	_, err = ss.Group().CreateGroupSyncable(model.NewGroupChannel(group.Id, c1.Id, true))
 	require.Nil(t, err)
 
@@ -2457,7 +2459,9 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 		Source:      model.GroupSourceLdap,
 		RemoteId:    model.NewId(),
 	}
-	store.Must(ss.Group().Create(group))
+	_, err = ss.Group().Create(group)
+	require.Nil(t, err)
+
 	_, err = ss.Group().CreateGroupSyncable(model.NewGroupChannel(group.Id, o7.Id, true))
 	require.Nil(t, err)
 
@@ -3069,21 +3073,18 @@ func testChannelStoreGetChannelsByScheme(t *testing.T, ss store.Store) {
 	_, _ = ss.Channel().Save(c3, 100)
 
 	// Get the channels by a valid Scheme ID.
-	res1 := <-ss.Channel().GetChannelsByScheme(s1.Id, 0, 100)
-	assert.Nil(t, res1.Err)
-	d1 := res1.Data.(model.ChannelList)
+	d1, err := ss.Channel().GetChannelsByScheme(s1.Id, 0, 100)
+	assert.Nil(t, err)
 	assert.Len(t, d1, 2)
 
 	// Get the channels by a valid Scheme ID where there aren't any matching Channel.
-	res2 := <-ss.Channel().GetChannelsByScheme(s2.Id, 0, 100)
-	assert.Nil(t, res2.Err)
-	d2 := res2.Data.(model.ChannelList)
+	d2, err := ss.Channel().GetChannelsByScheme(s2.Id, 0, 100)
+	assert.Nil(t, err)
 	assert.Len(t, d2, 0)
 
 	// Get the channels by an invalid Scheme ID.
-	res3 := <-ss.Channel().GetChannelsByScheme(model.NewId(), 0, 100)
-	assert.Nil(t, res3.Err)
-	d3 := res3.Data.(model.ChannelList)
+	d3, err := ss.Channel().GetChannelsByScheme(model.NewId(), 0, 100)
+	assert.Nil(t, err)
 	assert.Len(t, d3, 0)
 }
 

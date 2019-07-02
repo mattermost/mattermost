@@ -2118,8 +2118,8 @@ func TestUserLoginMFAFlow(t *testing.T) {
 			t.Fatal(result.Err)
 		}
 
-		if result := <-th.Server.Store.User().UpdateMfaSecret(th.BasicUser.Id, secret.Secret); result.Err != nil {
-			t.Fatal(result.Err)
+		if err = th.Server.Store.User().UpdateMfaSecret(th.BasicUser.Id, secret.Secret); err != nil {
+			t.Fatal(err)
 		}
 
 		user, resp := th.Client.Login(th.BasicUser.Email, th.BasicUser.Password)
@@ -2150,8 +2150,8 @@ func TestUserLoginMFAFlow(t *testing.T) {
 			t.Fatal(result.Err)
 		}
 
-		if result := <-th.Server.Store.User().UpdateMfaSecret(th.BasicUser.Id, secret.Secret); result.Err != nil {
-			t.Fatal(result.Err)
+		if err = th.Server.Store.User().UpdateMfaSecret(th.BasicUser.Id, secret.Secret); err != nil {
+			t.Fatal(err)
 		}
 
 		code := dgoogauth.ComputeCode(secret.Secret, time.Now().UTC().Unix()/30)

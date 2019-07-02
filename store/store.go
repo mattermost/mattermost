@@ -140,7 +140,7 @@ type ChannelStore interface {
 	Delete(channelId string, time int64) *model.AppError
 	Restore(channelId string, time int64) *model.AppError
 	SetDeleteAt(channelId string, deleteAt int64, updateAt int64) *model.AppError
-	PermanentDeleteByTeam(teamId string) StoreChannel
+	PermanentDeleteByTeam(teamId string) *model.AppError
 	PermanentDelete(channelId string) StoreChannel
 	GetByName(team_id string, name string, allowFromCache bool) (*model.Channel, *model.AppError)
 	GetByNames(team_id string, names []string, allowFromCache bool) ([]*model.Channel, *model.AppError)
@@ -191,7 +191,7 @@ type ChannelStore interface {
 	AnalyticsDeletedTypeCount(teamId string, channelType string) (int64, *model.AppError)
 	GetChannelUnread(channelId, userId string) (*model.ChannelUnread, *model.AppError)
 	ClearCaches()
-	GetChannelsByScheme(schemeId string, offset int, limit int) StoreChannel
+	GetChannelsByScheme(schemeId string, offset int, limit int) (model.ChannelList, *model.AppError)
 	MigrateChannelMembers(fromChannelId string, fromUserId string) (map[string]string, *model.AppError)
 	ResetAllChannelSchemes() *model.AppError
 	ClearAllCustomRoleAssignments() *model.AppError
@@ -229,7 +229,7 @@ type PostStore interface {
 	GetEtag(channelId string, allowFromCache bool) string
 	Search(teamId string, userId string, params *model.SearchParams) StoreChannel
 	AnalyticsUserCountsWithPostsByDay(teamId string) (model.AnalyticsRows, *model.AppError)
-	AnalyticsPostCountsByDay(teamId string) (model.AnalyticsRows, *model.AppError)
+	AnalyticsPostCountsByDay(options *model.AnalyticsPostCountsOptions) (model.AnalyticsRows, *model.AppError)
 	AnalyticsPostCount(teamId string, mustHaveFile bool, mustHaveHashtag bool) (int64, *model.AppError)
 	ClearCaches()
 	InvalidateLastPostTimeCache(channelId string)
@@ -253,7 +253,7 @@ type UserStore interface {
 	UpdateUpdateAt(userId string) StoreChannel
 	UpdatePassword(userId, newPassword string) StoreChannel
 	UpdateAuthData(userId string, service string, authData *string, email string, resetMfa bool) (string, *model.AppError)
-	UpdateMfaSecret(userId, secret string) StoreChannel
+	UpdateMfaSecret(userId, secret string) *model.AppError
 	UpdateMfaActive(userId string, active bool) StoreChannel
 	Get(id string) (*model.User, *model.AppError)
 	GetAll() StoreChannel
@@ -280,7 +280,7 @@ type UserStore interface {
 	GetEtagForAllProfiles() StoreChannel
 	GetEtagForProfiles(teamId string) StoreChannel
 	UpdateFailedPasswordAttempts(userId string, attempts int) StoreChannel
-	GetSystemAdminProfiles() StoreChannel
+	GetSystemAdminProfiles() (map[string]*model.User, *model.AppError)
 	PermanentDelete(userId string) *model.AppError
 	AnalyticsActiveCount(time int64) StoreChannel
 	GetUnreadCount(userId string) (int64, error)
@@ -294,8 +294,8 @@ type UserStore interface {
 	SearchNotInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) StoreChannel
 	SearchWithoutTeam(term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError)
 	AnalyticsGetInactiveUsersCount() (int64, *model.AppError)
-	AnalyticsGetSystemAdminCount() StoreChannel
-	GetProfilesNotInTeam(teamId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) StoreChannel
+	AnalyticsGetSystemAdminCount() (int64, *model.AppError)
+	GetProfilesNotInTeam(teamId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError)
 	GetEtagForProfilesNotInTeam(teamId string) StoreChannel
 	ClearAllCustomRoleAssignments() StoreChannel
 	InferSystemInstallDate() StoreChannel
@@ -454,14 +454,14 @@ type TokenStore interface {
 	Delete(token string) *model.AppError
 	GetByToken(token string) (*model.Token, *model.AppError)
 	Cleanup()
-	RemoveAllTokensByType(tokenType string) StoreChannel
+	RemoveAllTokensByType(tokenType string) *model.AppError
 }
 
 type EmojiStore interface {
 	Save(emoji *model.Emoji) (*model.Emoji, *model.AppError)
 	Get(id string, allowFromCache bool) (*model.Emoji, *model.AppError)
 	GetByName(name string) (*model.Emoji, *model.AppError)
-	GetMultipleByName(names []string) StoreChannel
+	GetMultipleByName(names []string) ([]*model.Emoji, *model.AppError)
 	GetList(offset, limit int, sort string) ([]*model.Emoji, *model.AppError)
 	Delete(id string, time int64) *model.AppError
 	Search(name string, prefixOnly bool, limit int) ([]*model.Emoji, *model.AppError)
@@ -561,31 +561,31 @@ type SchemeStore interface {
 }
 
 type TermsOfServiceStore interface {
-	Save(termsOfService *model.TermsOfService) StoreChannel
-	GetLatest(allowFromCache bool) StoreChannel
-	Get(id string, allowFromCache bool) StoreChannel
+	Save(termsOfService *model.TermsOfService) (*model.TermsOfService, *model.AppError)
+	GetLatest(allowFromCache bool) (*model.TermsOfService, *model.AppError)
+	Get(id string, allowFromCache bool) (*model.TermsOfService, *model.AppError)
 }
 
 type UserTermsOfServiceStore interface {
-	GetByUser(userId string) StoreChannel
-	Save(userTermsOfService *model.UserTermsOfService) StoreChannel
-	Delete(userId, termsOfServiceId string) StoreChannel
+	GetByUser(userId string) (*model.UserTermsOfService, *model.AppError)
+	Save(userTermsOfService *model.UserTermsOfService) (*model.UserTermsOfService, *model.AppError)
+	Delete(userId, termsOfServiceId string) *model.AppError
 }
 
 type GroupStore interface {
-	Create(group *model.Group) StoreChannel
-	Get(groupID string) StoreChannel
+	Create(group *model.Group) (*model.Group, *model.AppError)
+	Get(groupID string) (*model.Group, *model.AppError)
 	GetByIDs(groupIDs []string) ([]*model.Group, *model.AppError)
-	GetByRemoteID(remoteID string, groupSource model.GroupSource) StoreChannel
-	GetAllBySource(groupSource model.GroupSource) StoreChannel
-	Update(group *model.Group) StoreChannel
-	Delete(groupID string) StoreChannel
+	GetByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, *model.AppError)
+	GetAllBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError)
+	Update(group *model.Group) (*model.Group, *model.AppError)
+	Delete(groupID string) (*model.Group, *model.AppError)
 
-	GetMemberUsers(groupID string) StoreChannel
-	GetMemberUsersPage(groupID string, offset int, limit int) StoreChannel
-	GetMemberCount(groupID string) StoreChannel
-	UpsertMember(groupID string, userID string) StoreChannel
-	DeleteMember(groupID string, userID string) StoreChannel
+	GetMemberUsers(groupID string) ([]*model.User, *model.AppError)
+	GetMemberUsersPage(groupID string, offset int, limit int) ([]*model.User, *model.AppError)
+	GetMemberCount(groupID string) (int64, *model.AppError)
+	UpsertMember(groupID string, userID string) (*model.GroupMember, *model.AppError)
+	DeleteMember(groupID string, userID string) (*model.GroupMember, *model.AppError)
 
 	CreateGroupSyncable(groupSyncable *model.GroupSyncable) (*model.GroupSyncable, *model.AppError)
 	GetGroupSyncable(groupID string, syncableID string, syncableType model.GroupSyncableType) (*model.GroupSyncable, *model.AppError)
