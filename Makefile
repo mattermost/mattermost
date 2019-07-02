@@ -76,7 +76,7 @@ TE_PACKAGES=$(shell go list ./...|grep -v plugin_tests)
 # Plugins Packages
 PLUGIN_PACKAGES=mattermost-plugin-zoom-v1.0.7
 PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.0.0
-PLUGIN_PACKAGES += mattermost-plugin-nps-v1.0.0
+PLUGIN_PACKAGES += mattermost-plugin-nps-v1.0.1
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-github-v0.10.2
 PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.0.0
@@ -437,7 +437,7 @@ cover: ## Runs the golang coverage tool. You must run the unit tests first.
 
 test-data: start-docker ## Add test data to the local instance.
 	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) config set TeamSettings.MaxUsersPerTeam 100
-	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) sampledata -w 4 -u 60 
+	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) sampledata -w 4 -u 60
 
 	@echo You may need to restart the Mattermost server before using the following
 	@echo ========================================================================
