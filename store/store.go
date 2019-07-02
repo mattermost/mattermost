@@ -561,15 +561,15 @@ type SchemeStore interface {
 }
 
 type TermsOfServiceStore interface {
-	Save(termsOfService *model.TermsOfService) StoreChannel
-	GetLatest(allowFromCache bool) StoreChannel
-	Get(id string, allowFromCache bool) StoreChannel
+	Save(termsOfService *model.TermsOfService) (*model.TermsOfService, *model.AppError)
+	GetLatest(allowFromCache bool) (*model.TermsOfService, *model.AppError)
+	Get(id string, allowFromCache bool) (*model.TermsOfService, *model.AppError)
 }
 
 type UserTermsOfServiceStore interface {
-	GetByUser(userId string) StoreChannel
-	Save(userTermsOfService *model.UserTermsOfService) StoreChannel
-	Delete(userId, termsOfServiceId string) StoreChannel
+	GetByUser(userId string) (*model.UserTermsOfService, *model.AppError)
+	Save(userTermsOfService *model.UserTermsOfService) (*model.UserTermsOfService, *model.AppError)
+	Delete(userId, termsOfServiceId string) *model.AppError
 }
 
 type GroupStore interface {
