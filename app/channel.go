@@ -679,7 +679,8 @@ func (a *App) UpdateChannelMemberRoles(channelId string, userId string, newRoles
 	member.SchemeAdmin = false
 
 	for _, roleName := range strings.Fields(newRoles) {
-		role, err := a.GetRoleByName(roleName)
+		var role *model.Role
+		role, err = a.GetRoleByName(roleName)
 		if err != nil {
 			err.StatusCode = http.StatusBadRequest
 			return nil, err
@@ -714,11 +715,10 @@ func (a *App) UpdateChannelMemberRoles(channelId string, userId string, newRoles
 
 	member.ExplicitRoles = strings.Join(newExplicitRoles, " ")
 
-	result := <-a.Srv.Store.Channel().UpdateMember(member)
-	if result.Err != nil {
-		return nil, result.Err
+	member, err = a.Srv.Store.Channel().UpdateMember(member)
+	if err != nil {
+		return nil, err
 	}
-	member = result.Data.(*model.ChannelMember)
 
 	a.InvalidateCacheForUser(userId)
 	return member, nil
@@ -743,11 +743,10 @@ func (a *App) UpdateChannelMemberSchemeRoles(channelId string, userId string, is
 		member.ExplicitRoles = RemoveRoles([]string{model.CHANNEL_GUEST_ROLE_ID, model.CHANNEL_USER_ROLE_ID, model.CHANNEL_ADMIN_ROLE_ID}, member.ExplicitRoles)
 	}
 
-	result := <-a.Srv.Store.Channel().UpdateMember(member)
-	if result.Err != nil {
-		return nil, result.Err
+	member, err = a.Srv.Store.Channel().UpdateMember(member)
+	if err != nil {
+		return nil, err
 	}
-	member = result.Data.(*model.ChannelMember)
 
 	a.InvalidateCacheForUser(userId)
 	return member, nil
@@ -781,9 +780,9 @@ func (a *App) UpdateChannelMemberNotifyProps(data map[string]string, channelId s
 		member.NotifyProps[model.IGNORE_CHANNEL_MENTIONS_NOTIFY_PROP] = ignoreChannelMentions
 	}
 
-	result := <-a.Srv.Store.Channel().UpdateMember(member)
-	if result.Err != nil {
-		return nil, result.Err
+	member, err = a.Srv.Store.Channel().UpdateMember(member)
+	if err != nil {
+		return nil, err
 	}
 
 	a.InvalidateCacheForUser(userId)
@@ -1305,12 +1304,11 @@ func (a *App) GetChannelMembersForUser(teamId string, userId string) (*model.Cha
 }
 
 func (a *App) GetChannelMembersForUserWithPagination(teamId, userId string, page, perPage int) ([]*model.ChannelMember, *model.AppError) {
-	result := <-a.Srv.Store.Channel().GetMembersForUserWithPagination(teamId, userId, page, perPage)
-	if result.Err != nil {
-		return nil, result.Err
+	m, err := a.Srv.Store.Channel().GetMembersForUserWithPagination(teamId, userId, page, perPage)
+	if err != nil {
+		return nil, err
 	}
 
-	m := result.Data.(*model.ChannelMembers)
 	members := make([]*model.ChannelMember, 0)
 	if m != nil {
 		for _, member := range *m {
@@ -2023,7 +2021,7 @@ func (a *App) ToggleMuteChannel(channelId string, userId string) *model.ChannelM
 		member.NotifyProps[model.MARK_UNREAD_NOTIFY_PROP] = model.CHANNEL_NOTIFY_MENTION
 	}
 
-	<-a.Srv.Store.Channel().UpdateMember(member)
+	a.Srv.Store.Channel().UpdateMember(member)
 	return member
 }
 

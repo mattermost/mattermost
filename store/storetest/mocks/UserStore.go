@@ -30,19 +30,26 @@ func (_m *UserStore) AnalyticsActiveCount(time int64) store.StoreChannel {
 }
 
 // AnalyticsGetInactiveUsersCount provides a mock function with given fields:
-func (_m *UserStore) AnalyticsGetInactiveUsersCount() store.StoreChannel {
+func (_m *UserStore) AnalyticsGetInactiveUsersCount() (int64, *model.AppError) {
 	ret := _m.Called()
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func() store.StoreChannel); ok {
+	var r0 int64
+	if rf, ok := ret.Get(0).(func() int64); ok {
 		r0 = rf()
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+		r0 = ret.Get(0).(int64)
+	}
+
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func() *model.AppError); ok {
+		r1 = rf()
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
 		}
 	}
 
-	return r0
+	return r0, r1
 }
 
 // AnalyticsGetSystemAdminCount provides a mock function with given fields:
@@ -147,19 +154,28 @@ func (_m *UserStore) GetAll() store.StoreChannel {
 }
 
 // GetAllAfter provides a mock function with given fields: limit, afterId
-func (_m *UserStore) GetAllAfter(limit int, afterId string) store.StoreChannel {
+func (_m *UserStore) GetAllAfter(limit int, afterId string) ([]*model.User, *model.AppError) {
 	ret := _m.Called(limit, afterId)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(int, string) store.StoreChannel); ok {
+	var r0 []*model.User
+	if rf, ok := ret.Get(0).(func(int, string) []*model.User); ok {
 		r0 = rf(limit, afterId)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]*model.User)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(int, string) *model.AppError); ok {
+		r1 = rf(limit, afterId)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // GetAllProfiles provides a mock function with given fields: options
@@ -808,19 +824,28 @@ func (_m *UserStore) Search(teamId string, term string, options *model.UserSearc
 }
 
 // SearchInChannel provides a mock function with given fields: channelId, term, options
-func (_m *UserStore) SearchInChannel(channelId string, term string, options *model.UserSearchOptions) store.StoreChannel {
+func (_m *UserStore) SearchInChannel(channelId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	ret := _m.Called(channelId, term, options)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, string, *model.UserSearchOptions) store.StoreChannel); ok {
+	var r0 []*model.User
+	if rf, ok := ret.Get(0).(func(string, string, *model.UserSearchOptions) []*model.User); ok {
 		r0 = rf(channelId, term, options)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]*model.User)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string, *model.UserSearchOptions) *model.AppError); ok {
+		r1 = rf(channelId, term, options)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // SearchNotInChannel provides a mock function with given fields: teamId, channelId, term, options
@@ -840,19 +865,28 @@ func (_m *UserStore) SearchNotInChannel(teamId string, channelId string, term st
 }
 
 // SearchNotInTeam provides a mock function with given fields: notInTeamId, term, options
-func (_m *UserStore) SearchNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) store.StoreChannel {
+func (_m *UserStore) SearchNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	ret := _m.Called(notInTeamId, term, options)
 
-	var r0 store.StoreChannel
-	if rf, ok := ret.Get(0).(func(string, string, *model.UserSearchOptions) store.StoreChannel); ok {
+	var r0 []*model.User
+	if rf, ok := ret.Get(0).(func(string, string, *model.UserSearchOptions) []*model.User); ok {
 		r0 = rf(notInTeamId, term, options)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(store.StoreChannel)
+			r0 = ret.Get(0).([]*model.User)
 		}
 	}
 
-	return r0
+	var r1 *model.AppError
+	if rf, ok := ret.Get(1).(func(string, string, *model.UserSearchOptions) *model.AppError); ok {
+		r1 = rf(notInTeamId, term, options)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
 }
 
 // SearchWithoutTeam provides a mock function with given fields: term, options

@@ -132,7 +132,7 @@ func testUserAccessTokenDisableEnable(t *testing.T, ss store.Store) {
 	s2, err = ss.Session().Save(s2)
 	require.Nil(t, err)
 
-	if err := (<-ss.UserAccessToken().UpdateTokenEnable(uat.Id)).Err; err != nil {
+	if err = ss.UserAccessToken().UpdateTokenEnable(uat.Id); err != nil {
 		t.Fatal(err)
 	}
 }

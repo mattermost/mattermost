@@ -366,26 +366,23 @@ func (us SqlUserStore) GetAll() store.StoreChannel {
 	})
 }
 
-func (us SqlUserStore) GetAllAfter(limit int, afterId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		query := us.usersQuery.
-			Where("Id > ?", afterId).
-			OrderBy("Id ASC").
-			Limit(uint64(limit))
+func (us SqlUserStore) GetAllAfter(limit int, afterId string) ([]*model.User, *model.AppError) {
+	query := us.usersQuery.
+		Where("Id > ?", afterId).
+		OrderBy("Id ASC").
+		Limit(uint64(limit))
 
-		queryString, args, err := query.ToSql()
-		if err != nil {
-			result.Err = model.NewAppError("SqlUserStore.GetAllAfter", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
-			return
-		}
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, model.NewAppError("SqlUserStore.GetAllAfter", "store.sql_user.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		var data []*model.User
-		if _, err := us.GetReplica().Select(&data, queryString, args...); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.GetAllAfter", "store.sql_user.get.app_error", nil, err.Error(), http.StatusInternalServerError)
-		}
+	var users []*model.User
+	if _, err := us.GetReplica().Select(&users, queryString, args...); err != nil {
+		return nil, model.NewAppError("SqlUserStore.GetAllAfter", "store.sql_user.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = data
-	})
+	return users, nil
 }
 
 func (s SqlUserStore) GetEtagForAllProfiles() store.StoreChannel {
@@ -1268,20 +1265,22 @@ func (us SqlUserStore) SearchWithoutTeam(term string, options *model.UserSearchO
 	return result.Data.([]*model.User), nil
 }
 
-func (us SqlUserStore) SearchNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		query := us.usersQuery.
-			LeftJoin("TeamMembers tm ON ( tm.UserId = u.Id AND tm.DeleteAt = 0 AND tm.TeamId = ? )", notInTeamId).
-			Where("tm.UserId IS NULL").
-			OrderBy("u.Username ASC").
-			Limit(uint64(options.Limit))
+func (us SqlUserStore) SearchNotInTeam(notInTeamId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+	query := us.usersQuery.
+		LeftJoin("TeamMembers tm ON ( tm.UserId = u.Id AND tm.DeleteAt = 0 AND tm.TeamId = ? )", notInTeamId).
+		Where("tm.UserId IS NULL").
+		OrderBy("u.Username ASC").
+		Limit(uint64(options.Limit))
 
-		if options.GroupConstrained {
-			query = applyTeamGroupConstrainedFilter(query, notInTeamId)
-		}
+	if options.GroupConstrained {
+		query = applyTeamGroupConstrainedFilter(query, notInTeamId)
+	}
 
-		*result = us.performSearch(query, term, options)
-	})
+	result := us.performSearch(query, term, options)
+	if result.Err != nil {
+		return nil, result.Err
+	}
+	return result.Data.([]*model.User), nil
 }
 
 func (us SqlUserStore) SearchNotInChannel(teamId string, channelId string, term string, options *model.UserSearchOptions) store.StoreChannel {
@@ -1304,15 +1303,17 @@ func (us SqlUserStore) SearchNotInChannel(teamId string, channelId string, term 
 	})
 }
 
-func (us SqlUserStore) SearchInChannel(channelId string, term string, options *model.UserSearchOptions) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		query := us.usersQuery.
-			Join("ChannelMembers cm ON ( cm.UserId = u.Id AND cm.ChannelId = ? )", channelId).
-			OrderBy("Username ASC").
-			Limit(uint64(options.Limit))
+func (us SqlUserStore) SearchInChannel(channelId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
+	query := us.usersQuery.
+		Join("ChannelMembers cm ON ( cm.UserId = u.Id AND cm.ChannelId = ? )", channelId).
+		OrderBy("Username ASC").
+		Limit(uint64(options.Limit))
 
-		*result = us.performSearch(query, term, options)
-	})
+	result := us.performSearch(query, term, options)
+	if result.Err != nil {
+		return nil, result.Err
+	}
+	return result.Data.([]*model.User), nil
 }
 
 var escapeLikeSearchChar = []string{
@@ -1420,14 +1421,12 @@ func (us SqlUserStore) performSearch(query sq.SelectBuilder, term string, option
 	return result
 }
 
-func (us SqlUserStore) AnalyticsGetInactiveUsersCount() store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if count, err := us.GetReplica().SelectInt("SELECT COUNT(Id) FROM Users WHERE DeleteAt > 0"); err != nil {
-			result.Err = model.NewAppError("SqlUserStore.AnalyticsGetInactiveUsersCount", "store.sql_user.analytics_get_inactive_users_count.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = count
-		}
-	})
+func (us SqlUserStore) AnalyticsGetInactiveUsersCount() (int64, *model.AppError) {
+	count, err := us.GetReplica().SelectInt("SELECT COUNT(Id) FROM Users WHERE DeleteAt > 0")
+	if err != nil {
+		return int64(0), model.NewAppError("SqlUserStore.AnalyticsGetInactiveUsersCount", "store.sql_user.analytics_get_inactive_users_count.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return count, nil
 }
 
 func (us SqlUserStore) AnalyticsGetSystemAdminCount() store.StoreChannel {
