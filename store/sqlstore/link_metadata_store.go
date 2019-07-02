@@ -36,22 +36,19 @@ func (s SqlLinkMetadataStore) CreateIndexesIfNotExists() {
 	}
 }
 
-func (s SqlLinkMetadataStore) Save(metadata *model.LinkMetadata) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if result.Err = metadata.IsValid(); result.Err != nil {
-			return
-		}
+func (s SqlLinkMetadataStore) Save(metadata *model.LinkMetadata) (*model.LinkMetadata, *model.AppError) {
+	if err := metadata.IsValid(); err != nil {
+		return nil, err
+	}
 
-		metadata.PreSave()
+	metadata.PreSave()
 
-		err := s.GetMaster().Insert(metadata)
-		if err != nil && !IsUniqueConstraintError(err, []string{"PRIMARY", "linkmetadata_pkey"}) {
-			result.Err = model.NewAppError("SqlLinkMetadataStore.Save", "store.sql_link_metadata.save.app_error", nil, "url="+metadata.URL+", "+err.Error(), http.StatusInternalServerError)
-			return
-		}
+	err := s.GetMaster().Insert(metadata)
+	if err != nil && !IsUniqueConstraintError(err, []string{"PRIMARY", "linkmetadata_pkey"}) {
+		return nil, model.NewAppError("SqlLinkMetadataStore.Save", "store.sql_link_metadata.save.app_error", nil, "url="+metadata.URL+", "+err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = metadata
-	})
+	return metadata, nil
 }
 
 func (s SqlLinkMetadataStore) Get(url string, timestamp int64) (*model.LinkMetadata, *model.AppError) {
