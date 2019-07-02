@@ -476,11 +476,7 @@ func (a *App) GetUsersInTeam(options *model.UserGetOptions) ([]*model.User, *mod
 }
 
 func (a *App) GetUsersNotInTeam(teamId string, groupConstrained bool, offset int, limit int, viewRestrictions *model.ViewUsersRestrictions) ([]*model.User, *model.AppError) {
-	result := <-a.Srv.Store.User().GetProfilesNotInTeam(teamId, groupConstrained, offset, limit, viewRestrictions)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.User), nil
+	return a.Srv.Store.User().GetProfilesNotInTeam(teamId, groupConstrained, offset, limit, viewRestrictions)
 }
 
 func (a *App) GetUsersInTeamPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError) {
@@ -839,7 +835,9 @@ func (a *App) SetDefaultProfileImage(user *model.User) *model.AppError {
 		return err
 	}
 
-	<-a.Srv.Store.User().ResetLastPictureUpdate(user.Id)
+	if err := a.Srv.Store.User().ResetLastPictureUpdate(user.Id); err != nil {
+		mlog.Error(err.Error())
+	}
 
 	a.InvalidateCacheForUser(user.Id)
 
@@ -1674,12 +1672,10 @@ func (a *App) SearchUsers(props *model.UserSearch, options *model.UserSearchOpti
 
 func (a *App) SearchUsersInChannel(channelId string, term string, options *model.UserSearchOptions) ([]*model.User, *model.AppError) {
 	term = strings.TrimSpace(term)
-	result := <-a.Srv.Store.User().SearchInChannel(channelId, term, options)
-	if result.Err != nil {
-		return nil, result.Err
+	users, err := a.Srv.Store.User().SearchInChannel(channelId, term, options)
+	if err != nil {
+		return nil, err
 	}
-	users := result.Data.([]*model.User)
-
 	for _, user := range users {
 		a.SanitizeProfile(user, options.IsAdmin)
 	}
@@ -1847,13 +1843,21 @@ func (a *App) AutocompleteUsersInChannel(teamId string, channelId string, term s
 
 	if !a.IsESAutocompletionEnabled() || err != nil {
 		autocomplete = &model.UserAutocompleteInChannel{}
-		uchan := a.Srv.Store.User().SearchInChannel(channelId, term, options)
+
+		uchan := make(chan store.StoreResult, 1)
+		go func() {
+			users, err := a.Srv.Store.User().SearchInChannel(channelId, term, options)
+			uchan <- store.StoreResult{Data: users, Err: err}
+			close(uchan)
+		}()
+
 		nuchan := a.Srv.Store.User().SearchNotInChannel(teamId, channelId, term, options)
 
 		result := <-uchan
 		if result.Err != nil {
 			return nil, result.Err
 		}
+
 		users := result.Data.([]*model.User)
 
 		for _, user := range users {
