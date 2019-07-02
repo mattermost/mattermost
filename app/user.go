@@ -912,7 +912,7 @@ func (a *App) SetProfileImageFromFile(userId string, file io.Reader) *model.AppE
 		return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.upload_profile.app_error", nil, "", http.StatusInternalServerError)
 	}
 
-	<-a.Srv.Store.User().UpdateLastPictureUpdate(userId)
+	a.Srv.Store.User().UpdateLastPictureUpdate(userId)
 
 	a.InvalidateCacheForUser(userId)
 
