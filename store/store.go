@@ -251,7 +251,7 @@ type UserStore interface {
 	UpdateLastPictureUpdate(userId string) StoreChannel
 	ResetLastPictureUpdate(userId string) *model.AppError
 	UpdateUpdateAt(userId string) StoreChannel
-	UpdatePassword(userId, newPassword string) StoreChannel
+	UpdatePassword(userId, newPassword string) *model.AppError
 	UpdateAuthData(userId string, service string, authData *string, email string, resetMfa bool) (string, *model.AppError)
 	UpdateMfaSecret(userId, secret string) StoreChannel
 	UpdateMfaActive(userId string, active bool) StoreChannel
