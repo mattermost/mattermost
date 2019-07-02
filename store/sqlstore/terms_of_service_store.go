@@ -40,107 +40,81 @@ func NewSqlTermsOfServiceStore(sqlStore SqlStore, metrics einterfaces.MetricsInt
 func (s SqlTermsOfServiceStore) CreateIndexesIfNotExists() {
 }
 
-func (s SqlTermsOfServiceStore) Save(termsOfService *model.TermsOfService) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if len(termsOfService.Id) > 0 {
-			result.Err = model.NewAppError(
-				"SqlTermsOfServiceStore.Save",
-				"store.sql_terms_of_service_store.save.existing.app_error",
-				nil,
-				"id="+termsOfService.Id, http.StatusBadRequest,
-			)
-			return
+func (s SqlTermsOfServiceStore) Save(termsOfService *model.TermsOfService) (*model.TermsOfService, *model.AppError) {
+	if len(termsOfService.Id) > 0 {
+		return nil, model.NewAppError("SqlTermsOfServiceStore.Save", "store.sql_terms_of_service_store.save.existing.app_error", nil, "id="+termsOfService.Id, http.StatusBadRequest)
+	}
+
+	termsOfService.PreSave()
+
+	if err := termsOfService.IsValid(); err != nil {
+		return nil, err
+	}
+
+	if err := s.GetMaster().Insert(termsOfService); err != nil {
+		return nil, model.NewAppError("SqlTermsOfServiceStore.Save", "store.sql_terms_of_service.save.app_error", nil, "terms_of_service_id="+termsOfService.Id+",err="+err.Error(), http.StatusInternalServerError)
+	}
+
+	termsOfServiceCache.AddWithDefaultExpires(termsOfService.Id, termsOfService)
+
+	return termsOfService, nil
+}
+
+func (s SqlTermsOfServiceStore) GetLatest(allowFromCache bool) (*model.TermsOfService, *model.AppError) {
+	if allowFromCache {
+		if termsOfServiceCache.Len() != 0 {
+			if cacheItem, ok := termsOfServiceCache.Get(termsOfServiceCache.Keys()[0]); ok {
+				if s.metrics != nil {
+					s.metrics.IncrementMemCacheHitCounter(termsOfServiceCacheName)
+				}
+
+				return cacheItem.(*model.TermsOfService), nil
+			}
 		}
+	}
 
-		termsOfService.PreSave()
+	if s.metrics != nil {
+		s.metrics.IncrementMemCacheMissCounter(termsOfServiceCacheName)
+	}
 
-		if result.Err = termsOfService.IsValid(); result.Err != nil {
-			return
+	var termsOfService *model.TermsOfService
+
+	err := s.GetReplica().SelectOne(&termsOfService, "SELECT * FROM TermsOfService ORDER BY CreateAt DESC LIMIT 1")
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, model.NewAppError("SqlTermsOfServiceStore.GetLatest", "store.sql_terms_of_service_store.get.no_rows.app_error", nil, "err="+err.Error(), http.StatusNotFound)
 		}
+		return nil, model.NewAppError("SqlTermsOfServiceStore.GetLatest", "store.sql_terms_of_service_store.get.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
+	}
 
-		if err := s.GetMaster().Insert(termsOfService); err != nil {
-			result.Err = model.NewAppError(
-				"SqlTermsOfServiceStore.Save",
-				"store.sql_terms_of_service.save.app_error",
-				nil,
-				"terms_of_service_id="+termsOfService.Id+",err="+err.Error(),
-				http.StatusInternalServerError,
-			)
-		}
-
-		result.Data = termsOfService
-
+	if allowFromCache {
 		termsOfServiceCache.AddWithDefaultExpires(termsOfService.Id, termsOfService)
-	})
+	}
+	return termsOfService, nil
 }
 
-func (s SqlTermsOfServiceStore) GetLatest(allowFromCache bool) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if allowFromCache {
-			if termsOfServiceCache.Len() == 0 {
+func (s SqlTermsOfServiceStore) Get(id string, allowFromCache bool) (*model.TermsOfService, *model.AppError) {
+	if allowFromCache {
+		if termsOfServiceCache.Len() != 0 {
+			if cacheItem, ok := termsOfServiceCache.Get(id); ok {
 				if s.metrics != nil {
-					s.metrics.IncrementMemCacheMissCounter(termsOfServiceCacheName)
+					s.metrics.IncrementMemCacheHitCounter(termsOfServiceCacheName)
 				}
-			} else {
-				if cacheItem, ok := termsOfServiceCache.Get(termsOfServiceCache.Keys()[0]); ok {
-					if s.metrics != nil {
-						s.metrics.IncrementMemCacheHitCounter(termsOfServiceCacheName)
-					}
 
-					result.Data = cacheItem.(*model.TermsOfService)
-					return
-				} else if s.metrics != nil {
-					s.metrics.IncrementMemCacheMissCounter(termsOfServiceCacheName)
-				}
+				return cacheItem.(*model.TermsOfService), nil
 			}
 		}
+	}
+	if s.metrics != nil {
+		s.metrics.IncrementMemCacheMissCounter(termsOfServiceCacheName)
+	}
 
-		var termsOfService *model.TermsOfService
-
-		err := s.GetReplica().SelectOne(&termsOfService, "SELECT * FROM TermsOfService ORDER BY CreateAt DESC LIMIT 1")
-		if err != nil {
-			if err == sql.ErrNoRows {
-				result.Err = model.NewAppError("SqlTermsOfServiceStore.GetLatest", "store.sql_terms_of_service_store.get.no_rows.app_error", nil, "err="+err.Error(), http.StatusNotFound)
-			} else {
-				result.Err = model.NewAppError("SqlTermsOfServiceStore.GetLatest", "store.sql_terms_of_service_store.get.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
-			}
-		} else {
-			result.Data = termsOfService
-
-			if allowFromCache {
-				termsOfServiceCache.AddWithDefaultExpires(termsOfService.Id, termsOfService)
-			}
-		}
-	})
-}
-
-func (s SqlTermsOfServiceStore) Get(id string, allowFromCache bool) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if allowFromCache {
-			if termsOfServiceCache.Len() == 0 {
-				if s.metrics != nil {
-					s.metrics.IncrementMemCacheMissCounter(termsOfServiceCacheName)
-				}
-			} else {
-				if cacheItem, ok := termsOfServiceCache.Get(id); ok {
-					if s.metrics != nil {
-						s.metrics.IncrementMemCacheHitCounter(termsOfServiceCacheName)
-					}
-
-					result.Data = cacheItem.(*model.TermsOfService)
-					return
-				} else if s.metrics != nil {
-					s.metrics.IncrementMemCacheMissCounter(termsOfServiceCacheName)
-				}
-			}
-		}
-
-		if obj, err := s.GetReplica().Get(model.TermsOfService{}, id); err != nil {
-			result.Err = model.NewAppError("SqlTermsOfServiceStore.Get", "store.sql_terms_of_service_store.get.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
-		} else if obj == nil {
-			result.Err = model.NewAppError("SqlTermsOfServiceStore.GetLatest", "store.sql_terms_of_service_store.get.no_rows.app_error", nil, "", http.StatusNotFound)
-		} else {
-			result.Data = obj.(*model.TermsOfService)
-		}
-	})
+	obj, err := s.GetReplica().Get(model.TermsOfService{}, id)
+	if err != nil {
+		return nil, model.NewAppError("SqlTermsOfServiceStore.Get", "store.sql_terms_of_service_store.get.app_error", nil, "err="+err.Error(), http.StatusInternalServerError)
+	}
+	if obj == nil {
+		return nil, model.NewAppError("SqlTermsOfServiceStore.GetLatest", "store.sql_terms_of_service_store.get.no_rows.app_error", nil, "", http.StatusNotFound)
+	}
+	return obj.(*model.TermsOfService), nil
 }
