@@ -9,6 +9,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/store"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestTermsOfServiceStore(t *testing.T, ss store.Store) {
@@ -22,7 +23,8 @@ func testSaveTermsOfService(t *testing.T, ss store.Store) {
 	u1.Username = model.NewId()
 	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
-	ss.User().Save(&u1)
+	_, err := ss.User().Save(&u1)
+	require.Nil(t, err)
 
 	termsOfService := &model.TermsOfService{Text: "terms of service", UserId: u1.Id}
 	r1 := <-ss.TermsOfService().Save(termsOfService)
@@ -46,7 +48,8 @@ func testGetLatestTermsOfService(t *testing.T, ss store.Store) {
 	u1.Username = model.NewId()
 	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
-	ss.User().Save(&u1)
+	_, err := ss.User().Save(&u1)
+	require.Nil(t, err)
 
 	termsOfService := &model.TermsOfService{Text: "terms of service", UserId: u1.Id}
 	store.Must(ss.TermsOfService().Save(termsOfService))
@@ -66,7 +69,8 @@ func testGetTermsOfService(t *testing.T, ss store.Store) {
 	u1.Username = model.NewId()
 	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
-	ss.User().Save(&u1)
+	_, err := ss.User().Save(&u1)
+	require.Nil(t, err)
 
 	termsOfService := &model.TermsOfService{Text: "terms of service", UserId: u1.Id}
 	store.Must(ss.TermsOfService().Save(termsOfService))

@@ -39,7 +39,8 @@ func testLogJoinEvent(t *testing.T, ss store.Store) {
 		Nickname: model.NewId(),
 		Username: model.NewId(),
 	}
-	userPtr, _ := ss.User().Save(&user)
+	userPtr, err := ss.User().Save(&user)
+	require.Nil(t, err)
 	user = *userPtr
 
 	// log a join event
@@ -64,7 +65,8 @@ func testLogLeaveEvent(t *testing.T, ss store.Store) {
 		Nickname: model.NewId(),
 		Username: model.NewId(),
 	}
-	userPtr, _ := ss.User().Save(&user)
+	userPtr, err := ss.User().Save(&user)
+	require.Nil(t, err)
 	user = *userPtr
 
 	// log a join event, followed by a leave event
@@ -92,7 +94,8 @@ func testGetUsersInChannelAtChannelMemberHistory(t *testing.T, ss store.Store) {
 		Nickname: model.NewId(),
 		Username: model.NewId(),
 	}
-	userPtr, _ := ss.User().Save(&user)
+	userPtr, err := ss.User().Save(&user)
+	require.Nil(t, err)
 	user = *userPtr
 
 	// the user was previously in the channel a long time ago, before the export period starts
@@ -187,7 +190,8 @@ func testGetUsersInChannelAtChannelMembers(t *testing.T, ss store.Store) {
 		Nickname: model.NewId(),
 		Username: model.NewId(),
 	}
-	userPtr, _ := ss.User().Save(&user)
+	userPtr, err := ss.User().Save(&user)
+	require.Nil(t, err)
 	user = *userPtr
 
 	// clear any existing ChannelMemberHistory data that might interfere with our test
@@ -296,7 +300,8 @@ func testPermanentDeleteBatch(t *testing.T, ss store.Store) {
 		Nickname: model.NewId(),
 		Username: model.NewId(),
 	}
-	userPtr, _ := ss.User().Save(&user)
+	userPtr, err := ss.User().Save(&user)
+	require.Nil(t, err)
 	user = *userPtr
 
 	user2 := model.User{
@@ -304,7 +309,8 @@ func testPermanentDeleteBatch(t *testing.T, ss store.Store) {
 		Nickname: model.NewId(),
 		Username: model.NewId(),
 	}
-	user2Ptr, _ := ss.User().Save(&user2)
+	user2Ptr, err := ss.User().Save(&user2)
+	require.Nil(t, err)
 	user2 = *user2Ptr
 
 	// user1 joins and leaves the channel

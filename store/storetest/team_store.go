@@ -922,10 +922,11 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 	userIds := make([]string, maxUsersPerTeam)
 
 	for i := 0; i < maxUsersPerTeam; i++ {
-		user, _ := ss.User().Save(&model.User{
+		user, err := ss.User().Save(&model.User{
 			Username: model.NewId(),
 			Email:    MakeEmail(),
 		})
+		require.Nil(t, err)
 		userIds[i] = user.Id
 
 		defer func(userId string) {
@@ -948,10 +949,11 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 		t.Fatalf("should start with 5 team members, had %v instead", totalMemberCount)
 	}
 
-	user, _ := ss.User().Save(&model.User{
+	user, err := ss.User().Save(&model.User{
 		Username: model.NewId(),
 		Email:    MakeEmail(),
 	})
+	require.Nil(t, err)
 	newUserId := user.Id
 	defer func() {
 		ss.User().PermanentDelete(newUserId)
@@ -964,23 +966,23 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 		t.Fatal("shouldn't be able to save member when at maximum members per team")
 	}
 
-	if totalMemberCount, err := ss.Team().GetTotalMemberCount(team.Id); err != nil {
-		t.Fatal(err)
+	if totalMemberCount, teamErr := ss.Team().GetTotalMemberCount(team.Id); teamErr != nil {
+		t.Fatal(teamErr)
 	} else if int(totalMemberCount) != maxUsersPerTeam {
 		t.Fatalf("should still have 5 team members, had %v instead", totalMemberCount)
 	}
 
 	// Leaving the team from the UI sets DeleteAt instead of using TeamStore.RemoveMember
-	if _, err := ss.Team().UpdateMember(&model.TeamMember{
+	if _, teamErr := ss.Team().UpdateMember(&model.TeamMember{
 		TeamId:   team.Id,
 		UserId:   userIds[0],
 		DeleteAt: 1234,
-	}); err != nil {
-		panic(err)
+	}); teamErr != nil {
+		panic(teamErr)
 	}
 
-	if totalMemberCount, err := ss.Team().GetTotalMemberCount(team.Id); err != nil {
-		t.Fatal(err)
+	if totalMemberCount, teamErr := ss.Team().GetTotalMemberCount(team.Id); teamErr != nil {
+		t.Fatal(teamErr)
 	} else if int(totalMemberCount) != maxUsersPerTeam-1 {
 		t.Fatalf("should now only have 4 team members, had %v instead", totalMemberCount)
 	}
@@ -993,8 +995,8 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 		}(newUserId)
 	}
 
-	if totalMemberCount, err := ss.Team().GetTotalMemberCount(team.Id); err != nil {
-		t.Fatal(err)
+	if totalMemberCount, teamErr := ss.Team().GetTotalMemberCount(team.Id); teamErr != nil {
+		t.Fatal(teamErr)
 	} else if int(totalMemberCount) != maxUsersPerTeam {
 		t.Fatalf("should have 5 team members again, had %v instead", totalMemberCount)
 	}
@@ -1006,10 +1008,11 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 	_, err = ss.User().Update(user2, true)
 	require.Nil(t, err)
 
-	user, _ = ss.User().Save(&model.User{
+	user, err = ss.User().Save(&model.User{
 		Username: model.NewId(),
 		Email:    MakeEmail(),
 	})
+	require.Nil(t, err)
 	newUserId2 := user.Id
 	if result := <-ss.Team().SaveMember(&model.TeamMember{TeamId: team.Id, UserId: newUserId2}, maxUsersPerTeam); result.Err != nil {
 		t.Fatal("should've been able to save new member after deleting one", result.Err)
@@ -1127,12 +1130,14 @@ func testGetTeamMembersByIds(t *testing.T, ss store.Store) {
 func testTeamStoreMemberCount(t *testing.T, ss store.Store) {
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
-	ss.User().Save(u1)
+	_, err := ss.User().Save(u1)
+	require.Nil(t, err)
 
 	u2 := &model.User{}
 	u2.Email = MakeEmail()
 	u2.DeleteAt = 1
-	ss.User().Save(u2)
+	_, err = ss.User().Save(u2)
+	require.Nil(t, err)
 
 	teamId1 := model.NewId()
 	m1 := &model.TeamMember{TeamId: teamId1, UserId: u1.Id}
@@ -1637,12 +1642,14 @@ func testTeamStoreGetTeamMembersForExport(t *testing.T, ss store.Store) {
 	u1 := model.User{}
 	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
-	ss.User().Save(&u1)
+	_, err = ss.User().Save(&u1)
+	require.Nil(t, err)
 
 	u2 := model.User{}
 	u2.Email = MakeEmail()
 	u2.Nickname = model.NewId()
-	ss.User().Save(&u2)
+	_, err = ss.User().Save(&u2)
+	require.Nil(t, err)
 
 	m1 := &model.TeamMember{TeamId: t1.Id, UserId: u1.Id}
 	store.Must(ss.Team().SaveMember(m1, -1))
