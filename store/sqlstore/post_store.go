@@ -991,14 +991,19 @@ func (s *SqlPostStore) AnalyticsUserCountsWithPostsByDay(teamId string) (model.A
 	return rows, nil
 }
 
-func (s *SqlPostStore) AnalyticsPostCountsByDay(teamId string) (model.AnalyticsRows, *model.AppError) {
+func (s *SqlPostStore) AnalyticsPostCountsByDay(options *model.AnalyticsPostCountsOptions) (model.AnalyticsRows, *model.AppError) {
+
 	query :=
 		`SELECT
 		        DATE(FROM_UNIXTIME(Posts.CreateAt / 1000)) AS Name,
 		        COUNT(Posts.Id) AS Value
 		    FROM Posts`
 
-	if len(teamId) > 0 {
+	if options.BotsOnly {
+		query += " INNER JOIN Bots ON Posts.UserId = Bots.Userid"
+	}
+
+	if len(options.TeamId) > 0 {
 		query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id AND Channels.TeamId = :TeamId AND"
 	} else {
 		query += " WHERE"
@@ -1016,7 +1021,11 @@ func (s *SqlPostStore) AnalyticsPostCountsByDay(teamId string) (model.AnalyticsR
 				TO_CHAR(DATE(TO_TIMESTAMP(Posts.CreateAt / 1000)), 'YYYY-MM-DD') AS Name, Count(Posts.Id) AS Value
 			FROM Posts`
 
-		if len(teamId) > 0 {
+		if options.BotsOnly {
+			query += " INNER JOIN Bots ON Posts.UserId = Bots.Userid"
+		}
+
+		if len(options.TeamId) > 0 {
 			query += " INNER JOIN Channels ON Posts.ChannelId = Channels.Id  AND Channels.TeamId = :TeamId AND"
 		} else {
 			query += " WHERE"
@@ -1031,12 +1040,15 @@ func (s *SqlPostStore) AnalyticsPostCountsByDay(teamId string) (model.AnalyticsR
 
 	end := utils.MillisFromTime(utils.EndOfDay(utils.Yesterday()))
 	start := utils.MillisFromTime(utils.StartOfDay(utils.Yesterday().AddDate(0, 0, -31)))
+	if options.YesterdayOnly {
+		start = utils.MillisFromTime(utils.StartOfDay(utils.Yesterday().AddDate(0, 0, -1)))
+	}
 
 	var rows model.AnalyticsRows
 	_, err := s.GetReplica().Select(
 		&rows,
 		query,
-		map[string]interface{}{"TeamId": teamId, "StartTime": start, "EndTime": end})
+		map[string]interface{}{"TeamId": options.TeamId, "StartTime": start, "EndTime": end})
 	if err != nil {
 		return nil, model.NewAppError("SqlPostStore.AnalyticsPostCountsByDay", "store.sql_post.analytics_posts_count_by_day.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}

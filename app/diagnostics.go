@@ -134,6 +134,8 @@ func (a *App) trackActivity() {
 	var deletedPublicChannelCount int64
 	var deletedPrivateChannelCount int64
 	var postsCount int64
+	var postsCountPreviousDay int64
+	var botPostsCountPreviousDay int64
 	var slashCommandsCount int64
 	var incomingWebhooksCount int64
 	var outgoingWebhooksCount int64
@@ -188,6 +190,20 @@ func (a *App) trackActivity() {
 
 	postsCount, _ = a.Srv.Store.Post().AnalyticsPostCount("", false, false)
 
+	postCountsOptions := &model.AnalyticsPostCountsOptions{TeamId: "", BotsOnly: false, YesterdayOnly: true}
+	postCountsYesterday, _ := a.Srv.Store.Post().AnalyticsPostCountsByDay(postCountsOptions)
+	postsCountPreviousDay = 0
+	if len(postCountsYesterday) > 0 {
+		postsCountPreviousDay = int64(postCountsYesterday[0].Value)
+	}
+
+	postCountsOptions = &model.AnalyticsPostCountsOptions{TeamId: "", BotsOnly: true, YesterdayOnly: true}
+	botPostCountsYesterday, _ := a.Srv.Store.Post().AnalyticsPostCountsByDay(postCountsOptions)
+	botPostsCountPreviousDay = 0
+	if len(botPostCountsYesterday) > 0 {
+		botPostsCountPreviousDay = int64(botPostCountsYesterday[0].Value)
+	}
+
 	slashCommandsCount, _ = a.Srv.Store.Command().AnalyticsCommandCount("")
 
 	if c, err := a.Srv.Store.Webhook().AnalyticsIncomingCount(""); err == nil {
@@ -208,6 +224,8 @@ func (a *App) trackActivity() {
 		"direct_message_channels":      directChannelCount,
 		"public_channels_deleted":      deletedPublicChannelCount,
 		"private_channels_deleted":     deletedPrivateChannelCount,
+		"posts_previous_day":           postsCountPreviousDay,
+		"bot_posts_previous_day":       botPostsCountPreviousDay,
 		"posts":                        postsCount,
 		"slash_commands":               slashCommandsCount,
 		"incoming_webhooks":            incomingWebhooksCount,
