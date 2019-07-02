@@ -984,7 +984,8 @@ func testChannelDeleteMemberStore(t *testing.T, ss store.Store) {
 		t.Fatal("should have saved 2 members")
 	}
 
-	store.Must(ss.Channel().PermanentDeleteMembersByUser(o2.UserId))
+	err = ss.Channel().PermanentDeleteMembersByUser(o2.UserId)
+	require.Nil(t, err)
 
 	count, err = ss.Channel().GetMemberCount(o1.ChannelId, false)
 	require.Nil(t, err)
@@ -1045,20 +1046,17 @@ func testChannelStoreGetChannels(t *testing.T, ss store.Store) {
 		t.Fatal("missing channel")
 	}
 
-	acresult := <-ss.Channel().GetAllChannelMembersForUser(m1.UserId, false, false)
-	ids := acresult.Data.(map[string]string)
+	ids, _ := ss.Channel().GetAllChannelMembersForUser(m1.UserId, false, false)
 	if _, ok := ids[o1.Id]; !ok {
 		t.Fatal("missing channel")
 	}
 
-	acresult2 := <-ss.Channel().GetAllChannelMembersForUser(m1.UserId, true, false)
-	ids2 := acresult2.Data.(map[string]string)
+	ids2, _ := ss.Channel().GetAllChannelMembersForUser(m1.UserId, true, false)
 	if _, ok := ids2[o1.Id]; !ok {
 		t.Fatal("missing channel")
 	}
 
-	acresult3 := <-ss.Channel().GetAllChannelMembersForUser(m1.UserId, true, false)
-	ids3 := acresult3.Data.(map[string]string)
+	ids3, _ := ss.Channel().GetAllChannelMembersForUser(m1.UserId, true, false)
 	if _, ok := ids3[o1.Id]; !ok {
 		t.Fatal("missing channel")
 	}
@@ -1115,7 +1113,9 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlSupplier)
 		Source:      model.GroupSourceLdap,
 		RemoteId:    model.NewId(),
 	}
-	store.Must(ss.Group().Create(group))
+	_, err = ss.Group().Create(group)
+	require.Nil(t, err)
+
 	_, err = ss.Group().CreateGroupSyncable(model.NewGroupChannel(group.Id, c1.Id, true))
 	require.Nil(t, err)
 
@@ -1160,6 +1160,9 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlSupplier)
 	assert.Equal(t, (*list)[1].Id, c3.Id)
 	assert.Equal(t, (*list)[1].TeamDisplayName, "Name2")
 
+	count1, err := ss.Channel().GetAllChannelsCount(store.ChannelSearchOpts{})
+	require.Nil(t, err)
+
 	list, err = ss.Channel().GetAllChannels(0, 10, store.ChannelSearchOpts{IncludeDeleted: true})
 	require.Nil(t, err)
 	assert.Len(t, *list, 3)
@@ -1167,6 +1170,12 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlSupplier)
 	assert.Equal(t, (*list)[0].TeamDisplayName, "Name")
 	assert.Equal(t, (*list)[1].Id, c2.Id)
 	assert.Equal(t, (*list)[2].Id, c3.Id)
+
+	count2, err := ss.Channel().GetAllChannelsCount(store.ChannelSearchOpts{IncludeDeleted: true})
+	require.Nil(t, err)
+	require.True(t, func() bool {
+		return count2 > count1
+	}())
 
 	list, err = ss.Channel().GetAllChannels(0, 1, store.ChannelSearchOpts{IncludeDeleted: true})
 	require.Nil(t, err)
@@ -1588,8 +1597,8 @@ func testChannelStoreGetMembersForUser(t *testing.T, ss store.Store) {
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 	store.Must(ss.Channel().SaveMember(&m2))
 
-	cresult := <-ss.Channel().GetMembersForUser(o1.TeamId, m1.UserId)
-	members := cresult.Data.(*model.ChannelMembers)
+	members, err := ss.Channel().GetMembersForUser(o1.TeamId, m1.UserId)
+	require.Nil(t, err)
 
 	// no unread messages
 	if len(*members) != 2 {
@@ -1634,13 +1643,12 @@ func testChannelStoreGetMembersForUserWithPagination(t *testing.T, ss store.Stor
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 	store.Must(ss.Channel().SaveMember(&m2))
 
-	cresult := <-ss.Channel().GetMembersForUserWithPagination(o1.TeamId, m1.UserId, 0, 1)
-	members := cresult.Data.(*model.ChannelMembers)
-
+	members, err := ss.Channel().GetMembersForUserWithPagination(o1.TeamId, m1.UserId, 0, 1)
+	require.Nil(t, err)
 	assert.Len(t, *members, 1)
 
-	cresult = <-ss.Channel().GetMembersForUserWithPagination(o1.TeamId, m1.UserId, 1, 1)
-	members = cresult.Data.(*model.ChannelMembers)
+	members, err = ss.Channel().GetMembersForUserWithPagination(o1.TeamId, m1.UserId, 1, 1)
+	require.Nil(t, err)
 	assert.Len(t, *members, 1)
 }
 
@@ -1677,15 +1685,16 @@ func testChannelStoreUpdateLastViewedAt(t *testing.T, ss store.Store) {
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 	store.Must(ss.Channel().SaveMember(&m2))
 
-	if result := <-ss.Channel().UpdateLastViewedAt([]string{m1.ChannelId}, m1.UserId); result.Err != nil {
-		t.Fatal("failed to update", result.Err)
-	} else if result.Data.(map[string]int64)[o1.Id] != o1.LastPostAt {
+	var times map[string]int64
+	if times, err = ss.Channel().UpdateLastViewedAt([]string{m1.ChannelId}, m1.UserId); err != nil {
+		t.Fatal("failed to update", err)
+	} else if times[o1.Id] != o1.LastPostAt {
 		t.Fatal("last viewed at time incorrect")
 	}
 
-	if result := <-ss.Channel().UpdateLastViewedAt([]string{m1.ChannelId, m2.ChannelId}, m1.UserId); result.Err != nil {
-		t.Fatal("failed to update", result.Err)
-	} else if result.Data.(map[string]int64)[o2.Id] != o2.LastPostAt {
+	if times, err = ss.Channel().UpdateLastViewedAt([]string{m1.ChannelId, m2.ChannelId}, m1.UserId); err != nil {
+		t.Fatal("failed to update", err)
+	} else if times[o2.Id] != o2.LastPostAt {
 		t.Fatal("last viewed at time incorrect")
 	}
 
@@ -1701,7 +1710,7 @@ func testChannelStoreUpdateLastViewedAt(t *testing.T, ss store.Store) {
 	assert.Equal(t, rm2.LastUpdateAt, o2.LastPostAt)
 	assert.Equal(t, rm2.MsgCount, o2.TotalMsgCount)
 
-	if result := <-ss.Channel().UpdateLastViewedAt([]string{m1.ChannelId}, "missing id"); result.Err != nil {
+	if _, err := ss.Channel().UpdateLastViewedAt([]string{m1.ChannelId}, "missing id"); err != nil {
 		t.Fatal("failed to update")
 	}
 }
@@ -1722,22 +1731,22 @@ func testChannelStoreIncrementMentionCount(t *testing.T, ss store.Store) {
 	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
 	store.Must(ss.Channel().SaveMember(&m1))
 
-	err = (<-ss.Channel().IncrementMentionCount(m1.ChannelId, m1.UserId)).Err
+	err = ss.Channel().IncrementMentionCount(m1.ChannelId, m1.UserId)
 	if err != nil {
 		t.Fatal("failed to update")
 	}
 
-	err = (<-ss.Channel().IncrementMentionCount(m1.ChannelId, "missing id")).Err
+	err = ss.Channel().IncrementMentionCount(m1.ChannelId, "missing id")
 	if err != nil {
 		t.Fatal("failed to update")
 	}
 
-	err = (<-ss.Channel().IncrementMentionCount("missing id", m1.UserId)).Err
+	err = ss.Channel().IncrementMentionCount("missing id", m1.UserId)
 	if err != nil {
 		t.Fatal("failed to update")
 	}
 
-	err = (<-ss.Channel().IncrementMentionCount("missing id", "missing id")).Err
+	err = ss.Channel().IncrementMentionCount("missing id", "missing id")
 	if err != nil {
 		t.Fatal("failed to update")
 	}
@@ -1763,12 +1772,12 @@ func testUpdateChannelMember(t *testing.T, ss store.Store) {
 	store.Must(ss.Channel().SaveMember(m1))
 
 	m1.NotifyProps["test"] = "sometext"
-	if result := <-ss.Channel().UpdateMember(m1); result.Err != nil {
-		t.Fatal(result.Err)
+	if _, err := ss.Channel().UpdateMember(m1); err != nil {
+		t.Fatal(err)
 	}
 
 	m1.UserId = ""
-	if result := <-ss.Channel().UpdateMember(m1); result.Err == nil {
+	if _, err := ss.Channel().UpdateMember(m1); err == nil {
 		t.Fatal("bad user id - should fail")
 	}
 }
@@ -2450,7 +2459,9 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 		Source:      model.GroupSourceLdap,
 		RemoteId:    model.NewId(),
 	}
-	store.Must(ss.Group().Create(group))
+	_, err = ss.Group().Create(group)
+	require.Nil(t, err)
+
 	_, err = ss.Group().CreateGroupSyncable(model.NewGroupChannel(group.Id, o7.Id, true))
 	require.Nil(t, err)
 
@@ -2538,9 +2549,8 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.Description, func(t *testing.T) {
-			result := <-ss.Channel().SearchAllChannels(testCase.Term, testCase.Opts)
-			require.Nil(t, result.Err)
-			channels := result.Data.(*model.ChannelListWithTeamData)
+			channels, err := ss.Channel().SearchAllChannels(testCase.Term, testCase.Opts)
+			require.Nil(t, err)
 			require.Equal(t, len(*testCase.ExpectedResults), len(*channels))
 			for i, expected := range *testCase.ExpectedResults {
 				require.Equal(t, (*channels)[i].Id, expected.Id)
@@ -2664,9 +2674,8 @@ func testChannelStoreAutocompleteInTeamForSearch(t *testing.T, ss store.Store, s
 
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
-			result := <-ss.Channel().AutocompleteInTeamForSearch(o1.TeamId, m1.UserId, "ChannelA", false)
-			require.Nil(t, result.Err)
-			channels := result.Data.(*model.ChannelList)
+			channels, err := ss.Channel().AutocompleteInTeamForSearch(o1.TeamId, m1.UserId, "ChannelA", false)
+			require.Nil(t, err)
 			require.Len(t, *channels, 2)
 		})
 	}
@@ -2968,9 +2977,9 @@ func testChannelStoreGetPinnedPosts(t *testing.T, ss store.Store) {
 		IsPinned:  true,
 	})
 
-	if r1 := <-ss.Channel().GetPinnedPosts(o1.Id); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else if r1.Data.(*model.PostList).Posts[p1.Id] == nil {
+	if pl, errGet := ss.Channel().GetPinnedPosts(o1.Id); errGet != nil {
+		t.Fatal(errGet)
+	} else if pl.Posts[p1.Id] == nil {
 		t.Fatal("didn't return relevant pinned posts")
 	}
 
@@ -2991,9 +3000,9 @@ func testChannelStoreGetPinnedPosts(t *testing.T, ss store.Store) {
 	})
 	require.Nil(t, err)
 
-	if r2 := <-ss.Channel().GetPinnedPosts(o2.Id); r2.Err != nil {
-		t.Fatal(r2.Err)
-	} else if len(r2.Data.(*model.PostList).Posts) != 0 {
+	if pl, errGet := ss.Channel().GetPinnedPosts(o2.Id); errGet != nil {
+		t.Fatal(errGet)
+	} else if len(pl.Posts) != 0 {
 		t.Fatal("wasn't supposed to return posts")
 	}
 }

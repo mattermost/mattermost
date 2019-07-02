@@ -149,21 +149,16 @@ func (a *App) trackActivity() {
 		activeUsersMonthlyCount = r.Data.(int64)
 	}
 
-	if ucr := <-a.Srv.Store.User().Count(model.UserCountOptions{
-		IncludeDeleted: true,
-	}); ucr.Err == nil {
-		userCount = ucr.Data.(int64)
+	if count, err := a.Srv.Store.User().Count(model.UserCountOptions{IncludeDeleted: true}); err == nil {
+		userCount = count
 	}
 
-	if bc := <-a.Srv.Store.User().Count(model.UserCountOptions{
-		IncludeBotAccounts:  true,
-		ExcludeRegularUsers: true,
-	}); bc.Err == nil {
-		botAccountsCount = bc.Data.(int64)
+	if count, err := a.Srv.Store.User().Count(model.UserCountOptions{IncludeBotAccounts: true, ExcludeRegularUsers: true}); err == nil {
+		botAccountsCount = count
 	}
 
-	if iucr := <-a.Srv.Store.User().AnalyticsGetInactiveUsersCount(); iucr.Err == nil {
-		inactiveUserCount = iucr.Data.(int64)
+	if iucr, err := a.Srv.Store.User().AnalyticsGetInactiveUsersCount(); err == nil {
+		inactiveUserCount = iucr
 	}
 
 	teamCount, err := a.Srv.Store.Team().AnalyticsTeamCount()
@@ -586,7 +581,7 @@ func (a *App) trackConfig() {
 		"enable_zoom":                   pluginActivated(cfg.PluginSettings.PluginStates, "zoom"),
 		"enable":                        *cfg.PluginSettings.Enable,
 		"enable_uploads":                *cfg.PluginSettings.EnableUploads,
-		"enable_health_check":           *cfg.PluginSettings.EnableHealthCheck,
+		"allow_insecure_download_url":   *cfg.PluginSettings.AllowInsecureDownloadUrl,
 	})
 
 	a.SendDiagnostic(TRACK_CONFIG_DATA_RETENTION, map[string]interface{}{
@@ -713,8 +708,8 @@ func (a *App) trackServer() {
 		"operating_system": runtime.GOOS,
 	}
 
-	if scr := <-a.Srv.Store.User().AnalyticsGetSystemAdminCount(); scr.Err == nil {
-		data["system_admins"] = scr.Data.(int64)
+	if scr, err := a.Srv.Store.User().AnalyticsGetSystemAdminCount(); err == nil {
+		data["system_admins"] = scr
 	}
 
 	a.SendDiagnostic(TRACK_SERVER, data)

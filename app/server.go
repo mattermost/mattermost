@@ -201,14 +201,8 @@ func NewServer(options ...Option) (*Server, error) {
 	// Start plugin health check job
 	pluginsEnvironment := s.PluginsEnvironment
 	if pluginsEnvironment != nil {
-		pluginsEnvironment.InitPluginHealthCheckJob(*s.Config().PluginSettings.EnableHealthCheck)
+		pluginsEnvironment.InitPluginHealthCheckJob()
 	}
-	s.AddConfigListener(func(_, c *model.Config) {
-		pluginsEnvironment := s.PluginsEnvironment
-		if pluginsEnvironment != nil {
-			pluginsEnvironment.InitPluginHealthCheckJob(*c.PluginSettings.EnableHealthCheck)
-		}
-	})
 
 	mlog.Info(fmt.Sprintf("Current version is %v (%v/%v/%v/%v)", model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash, model.BuildHashEnterprise))
 	mlog.Info(fmt.Sprintf("Enterprise Enabled: %v", model.BuildEnterpriseReady))
@@ -240,8 +234,8 @@ func NewServer(options ...Option) (*Server, error) {
 		s.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableDeveloper = true })
 	}
 
-	if result := <-s.Store.Status().ResetAll(); result.Err != nil {
-		mlog.Error(fmt.Sprint("Error to reset the server status.", result.Err.Error()))
+	if err := s.Store.Status().ResetAll(); err != nil {
+		mlog.Error(fmt.Sprint("Error to reset the server status.", err.Error()))
 	}
 
 	if s.joinCluster && s.Cluster != nil {

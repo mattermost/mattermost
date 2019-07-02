@@ -832,6 +832,37 @@ func TestGetAllChannels(t *testing.T) {
 	CheckForbiddenStatus(t, resp)
 }
 
+func TestGetAllChannelsWithCount(t *testing.T) {
+	th := Setup().InitBasic()
+	defer th.TearDown()
+	Client := th.Client
+
+	channels, total, resp := th.SystemAdminClient.GetAllChannelsWithCount(0, 20, "")
+	CheckNoError(t, resp)
+
+	// At least, all the not-deleted channels created during the InitBasic
+	require.True(t, len(*channels) >= 3)
+	for _, c := range *channels {
+		require.NotEqual(t, c.TeamId, "")
+	}
+	require.Equal(t, int64(5), total)
+
+	channels, _, resp = th.SystemAdminClient.GetAllChannelsWithCount(0, 10, "")
+	CheckNoError(t, resp)
+	require.True(t, len(*channels) >= 3)
+
+	channels, _, resp = th.SystemAdminClient.GetAllChannelsWithCount(1, 1, "")
+	CheckNoError(t, resp)
+	require.Len(t, *channels, 1)
+
+	channels, _, resp = th.SystemAdminClient.GetAllChannelsWithCount(10000, 10000, "")
+	CheckNoError(t, resp)
+	require.Len(t, *channels, 0)
+
+	_, _, resp = Client.GetAllChannelsWithCount(0, 20, "")
+	CheckForbiddenStatus(t, resp)
+}
+
 func TestSearchChannels(t *testing.T) {
 	th := Setup().InitBasic()
 	defer th.TearDown()
@@ -2147,7 +2178,7 @@ func TestAddChannelMember(t *testing.T) {
 	require.Nil(t, appErr)
 
 	// Add user to group
-	_, appErr = th.App.CreateOrRestoreGroupMember(th.Group.Id, user.Id)
+	_, appErr = th.App.UpsertGroupMember(th.Group.Id, user.Id)
 	require.Nil(t, appErr)
 
 	_, resp = th.SystemAdminClient.AddChannelMember(privateChannel.Id, user.Id)
@@ -2717,9 +2748,9 @@ func TestChannelMembersMinusGroupMembers(t *testing.T) {
 	group1 := th.CreateGroup()
 	group2 := th.CreateGroup()
 
-	_, err = th.App.CreateOrRestoreGroupMember(group1.Id, user1.Id)
+	_, err = th.App.UpsertGroupMember(group1.Id, user1.Id)
 	require.Nil(t, err)
-	_, err = th.App.CreateOrRestoreGroupMember(group2.Id, user2.Id)
+	_, err = th.App.UpsertGroupMember(group2.Id, user2.Id)
 	require.Nil(t, err)
 
 	// No permissions
