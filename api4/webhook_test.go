@@ -683,9 +683,7 @@ func TestUpdateIncomingWebhook_BypassTeamPermissions(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnablePostIconOverride = true })
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
-	defer func() {
-		th.RestoreDefaultRolePermissions(defaultRolePermissions)
-	}()
+	defer th.RestoreDefaultRolePermissions(defaultRolePermissions)
 	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_INCOMING_WEBHOOKS.Id, model.SYSTEM_USER_ROLE_ID)
 	th.AddPermissionToRole(model.PERMISSION_MANAGE_INCOMING_WEBHOOKS.Id, model.TEAM_ADMIN_ROLE_ID)
 	th.AddPermissionToRole(model.PERMISSION_MANAGE_INCOMING_WEBHOOKS.Id, model.TEAM_USER_ROLE_ID)
@@ -695,17 +693,9 @@ func TestUpdateIncomingWebhook_BypassTeamPermissions(t *testing.T) {
 	rhook, resp := th.Client.CreateIncomingWebhook(hook)
 	CheckNoError(t, resp)
 
-	if rhook.ChannelId != hook.ChannelId {
-		t.Fatal("channel ids didn't match")
-	}
-
-	if rhook.UserId != th.BasicUser.Id {
-		t.Fatal("user ids didn't match")
-	}
-
-	if rhook.TeamId != th.BasicTeam.Id {
-		t.Fatal("team ids didn't match")
-	}
+	require.Equal(t, rhook.ChannelId, hook.ChannelId)
+	require.Equal(t, rhook.UserId, th.BasicUser.Id)
+	require.Equal(t, rhook.TeamId,th.BasicTeam.Id)
 
 	team := th.CreateTeam()
 	team.AllowOpenInvite = false
@@ -920,9 +910,7 @@ func TestUpdateOutgoingWebhook_BypassTeamPermissions(t *testing.T) {
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableOutgoingWebhooks = true })
 
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
-	defer func() {
-		th.RestoreDefaultRolePermissions(defaultRolePermissions)
-	}()
+	defer th.RestoreDefaultRolePermissions(defaultRolePermissions)
 	th.RemovePermissionFromRole(model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS.Id, model.SYSTEM_USER_ROLE_ID)
 	th.AddPermissionToRole(model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS.Id, model.TEAM_ADMIN_ROLE_ID)
 	th.AddPermissionToRole(model.PERMISSION_MANAGE_OUTGOING_WEBHOOKS.Id, model.TEAM_USER_ROLE_ID)
@@ -933,13 +921,8 @@ func TestUpdateOutgoingWebhook_BypassTeamPermissions(t *testing.T) {
 	rhook, resp := th.Client.CreateOutgoingWebhook(hook)
 	CheckNoError(t, resp)
 
-	if rhook.ChannelId != hook.ChannelId {
-		t.Fatal("channel ids didn't match")
-	}
-
-	if rhook.TeamId != th.BasicTeam.Id {
-		t.Fatal("team ids didn't match")
-	}
+	require.Equal(t, rhook.ChannelId, hook.ChannelId)
+	require.Equal(t, rhook.TeamId,th.BasicTeam.Id)
 
 	team := th.CreateTeam()
 	team.AllowOpenInvite = false
