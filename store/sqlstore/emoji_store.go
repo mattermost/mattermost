@@ -100,26 +100,27 @@ func (es SqlEmojiStore) Get(id string, allowFromCache bool) (*model.Emoji, *mode
 	return emoji, nil
 }
 
-func (es SqlEmojiStore) GetByName(name string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var emoji *model.Emoji
+func (es SqlEmojiStore) GetByName(name string) (*model.Emoji, *model.AppError) {
 
-		if err := es.GetReplica().SelectOne(&emoji,
-			`SELECT
-				*
-			FROM
-				Emoji
-			WHERE
-				Name = :Name
-				AND DeleteAt = 0`, map[string]interface{}{"Name": name}); err != nil {
-			result.Err = model.NewAppError("SqlEmojiStore.GetByName", "store.sql_emoji.get_by_name.app_error", nil, "name="+name+", "+err.Error(), http.StatusInternalServerError)
-			if err == sql.ErrNoRows {
-				result.Err.StatusCode = http.StatusNotFound
-			}
-		} else {
-			result.Data = emoji
+	var emoji *model.Emoji
+
+	if err := es.GetReplica().SelectOne(&emoji,
+		`SELECT
+			*
+		FROM
+			Emoji
+		WHERE
+			Name = :Name
+			AND DeleteAt = 0`, map[string]interface{}{"Name": name}); err != nil {
+
+		if err == sql.ErrNoRows {
+			return nil, model.NewAppError("SqlEmojiStore.GetByName", "store.sql_emoji.get_by_name.app_error", nil, "name="+name+", "+err.Error(), http.StatusNotFound)
 		}
-	})
+
+		return nil, model.NewAppError("SqlEmojiStore.GetByName", "store.sql_emoji.get_by_name.app_error", nil, "name="+name+", "+err.Error(), http.StatusInternalServerError)
+	}
+
+	return emoji, nil
 }
 
 func (es SqlEmojiStore) GetMultipleByName(names []string) ([]*model.Emoji, *model.AppError) {
@@ -140,24 +141,21 @@ func (es SqlEmojiStore) GetMultipleByName(names []string) ([]*model.Emoji, *mode
 	return emojis, nil
 }
 
-func (es SqlEmojiStore) GetList(offset, limit int, sort string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var emoji []*model.Emoji
+func (es SqlEmojiStore) GetList(offset, limit int, sort string) ([]*model.Emoji, *model.AppError) {
+	var emoji []*model.Emoji
 
-		query := "SELECT * FROM Emoji WHERE DeleteAt = 0"
+	query := "SELECT * FROM Emoji WHERE DeleteAt = 0"
 
-		if sort == model.EMOJI_SORT_BY_NAME {
-			query += " ORDER BY Name"
-		}
+	if sort == model.EMOJI_SORT_BY_NAME {
+		query += " ORDER BY Name"
+	}
 
-		query += " LIMIT :Limit OFFSET :Offset"
+	query += " LIMIT :Limit OFFSET :Offset"
 
-		if _, err := es.GetReplica().Select(&emoji, query, map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
-			result.Err = model.NewAppError("SqlEmojiStore.GetList", "store.sql_emoji.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = emoji
-		}
-	})
+	if _, err := es.GetReplica().Select(&emoji, query, map[string]interface{}{"Offset": offset, "Limit": limit}); err != nil {
+		return nil, model.NewAppError("SqlEmojiStore.GetList", "store.sql_emoji.get_all.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return emoji, nil
 }
 
 func (es SqlEmojiStore) Delete(id string, time int64) *model.AppError {
@@ -179,30 +177,27 @@ func (es SqlEmojiStore) Delete(id string, time int64) *model.AppError {
 	return nil
 }
 
-func (es SqlEmojiStore) Search(name string, prefixOnly bool, limit int) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var emojis []*model.Emoji
+func (es SqlEmojiStore) Search(name string, prefixOnly bool, limit int) ([]*model.Emoji, *model.AppError) {
+	var emojis []*model.Emoji
 
-		term := ""
-		if !prefixOnly {
-			term = "%"
-		}
+	term := ""
+	if !prefixOnly {
+		term = "%"
+	}
 
-		term += name + "%"
+	term += name + "%"
 
-		if _, err := es.GetReplica().Select(&emojis,
-			`SELECT
-				*
-			FROM
-				Emoji
-			WHERE
-				Name LIKE :Name
-				AND DeleteAt = 0
-				ORDER BY Name
-				LIMIT :Limit`, map[string]interface{}{"Name": term, "Limit": limit}); err != nil {
-			result.Err = model.NewAppError("SqlEmojiStore.Search", "store.sql_emoji.get_by_name.app_error", nil, "name="+name+", "+err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = emojis
-		}
-	})
+	if _, err := es.GetReplica().Select(&emojis,
+		`SELECT
+			*
+		FROM
+			Emoji
+		WHERE
+			Name LIKE :Name
+			AND DeleteAt = 0
+			ORDER BY Name
+			LIMIT :Limit`, map[string]interface{}{"Name": term, "Limit": limit}); err != nil {
+		return nil, model.NewAppError("SqlEmojiStore.Search", "store.sql_emoji.get_by_name.app_error", nil, "name="+name+", "+err.Error(), http.StatusInternalServerError)
+	}
+	return emojis, nil
 }

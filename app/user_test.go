@@ -571,7 +571,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			TOKEN_TYPE_VERIFY_EMAIL,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
-		<-th.App.Srv.Store.Token().Save(token)
+		require.Nil(t, th.App.Srv.Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
 		if _, err := th.App.CreateUserWithToken(&user, token.Token); err == nil {
 			t.Fatal("Should fail on bad token type")
@@ -584,7 +584,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": user.Email}),
 		)
 		token.CreateAt = model.GetMillis() - TEAM_INVITATION_EXPIRY_TIME - 1
-		<-th.App.Srv.Store.Token().Save(token)
+		require.Nil(t, th.App.Srv.Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
 		if _, err := th.App.CreateUserWithToken(&user, token.Token); err == nil {
 			t.Fatal("Should fail on expired token")
@@ -596,7 +596,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			TOKEN_TYPE_TEAM_INVITATION,
 			model.MapToJson(map[string]string{"teamId": model.NewId(), "email": user.Email}),
 		)
-		<-th.App.Srv.Store.Token().Save(token)
+		require.Nil(t, th.App.Srv.Store.Token().Save(token))
 		defer th.App.DeleteToken(token)
 		if _, err := th.App.CreateUserWithToken(&user, token.Token); err == nil {
 			t.Fatal("Should fail on bad team id")
@@ -609,7 +609,7 @@ func TestCreateUserWithToken(t *testing.T) {
 			TOKEN_TYPE_TEAM_INVITATION,
 			model.MapToJson(map[string]string{"teamId": th.BasicTeam.Id, "email": invitationEmail}),
 		)
-		<-th.App.Srv.Store.Token().Save(token)
+		require.Nil(t, th.App.Srv.Store.Token().Save(token))
 		newUser, err := th.App.CreateUserWithToken(&user, token.Token)
 		if err != nil {
 			t.Log(err)
@@ -618,9 +618,8 @@ func TestCreateUserWithToken(t *testing.T) {
 		if newUser.Email != invitationEmail {
 			t.Fatal("The user email must be the invitation one")
 		}
-		if result := <-th.App.Srv.Store.Token().GetByToken(token.Token); result.Err == nil {
-			t.Fatal("The token must be deleted after be used")
-		}
+		_, err = th.App.Srv.Store.Token().GetByToken(token.Token)
+		require.NotNil(t, err, "The token must be deleted after be used")
 	})
 }
 

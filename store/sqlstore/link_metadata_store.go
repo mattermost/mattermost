@@ -36,53 +36,43 @@ func (s SqlLinkMetadataStore) CreateIndexesIfNotExists() {
 	}
 }
 
-func (s SqlLinkMetadataStore) Save(metadata *model.LinkMetadata) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if result.Err = metadata.IsValid(); result.Err != nil {
-			return
-		}
+func (s SqlLinkMetadataStore) Save(metadata *model.LinkMetadata) (*model.LinkMetadata, *model.AppError) {
+	if err := metadata.IsValid(); err != nil {
+		return nil, err
+	}
 
-		metadata.PreSave()
+	metadata.PreSave()
 
-		err := s.GetMaster().Insert(metadata)
-		if err != nil && !IsUniqueConstraintError(err, []string{"PRIMARY", "linkmetadata_pkey"}) {
-			result.Err = model.NewAppError("SqlLinkMetadataStore.Save", "store.sql_link_metadata.save.app_error", nil, "url="+metadata.URL+", "+err.Error(), http.StatusInternalServerError)
-			return
-		}
+	err := s.GetMaster().Insert(metadata)
+	if err != nil && !IsUniqueConstraintError(err, []string{"PRIMARY", "linkmetadata_pkey"}) {
+		return nil, model.NewAppError("SqlLinkMetadataStore.Save", "store.sql_link_metadata.save.app_error", nil, "url="+metadata.URL+", "+err.Error(), http.StatusInternalServerError)
+	}
 
-		result.Data = metadata
-	})
+	return metadata, nil
 }
 
-func (s SqlLinkMetadataStore) Get(url string, timestamp int64) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var metadata *model.LinkMetadata
+func (s SqlLinkMetadataStore) Get(url string, timestamp int64) (*model.LinkMetadata, *model.AppError) {
+	var metadata *model.LinkMetadata
 
-		err := s.GetReplica().SelectOne(&metadata,
-			`SELECT
-				*
-			FROM
-				LinkMetadata
-			WHERE
-				URL = :URL
-				AND Timestamp = :Timestamp`, map[string]interface{}{"URL": url, "Timestamp": timestamp})
-		if err != nil {
-			result.Err = model.NewAppError("SqlLinkMetadataStore.Get", "store.sql_link_metadata.get.app_error", nil, "url="+url+", "+err.Error(), http.StatusInternalServerError)
-
-			if err == sql.ErrNoRows {
-				result.Err.StatusCode = http.StatusNotFound
-			}
-
-			return
+	err := s.GetReplica().SelectOne(&metadata,
+		`SELECT
+			*
+		FROM
+			LinkMetadata
+		WHERE
+			URL = :URL
+			AND Timestamp = :Timestamp`, map[string]interface{}{"URL": url, "Timestamp": timestamp})
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, model.NewAppError("SqlLinkMetadataStore.Get", "store.sql_link_metadata.get.app_error", nil, "url="+url+", "+err.Error(), http.StatusNotFound)
 		}
+		return nil, model.NewAppError("SqlLinkMetadataStore.Get", "store.sql_link_metadata.get.app_error", nil, "url="+url+", "+err.Error(), http.StatusInternalServerError)
+	}
 
-		err = metadata.DeserializeDataToConcreteType()
-		if err != nil {
-			result.Err = model.NewAppError("SqlLinkMetadataStore.Get", "store.sql_link_metadata.get.app_error", nil, "url="+url+", "+err.Error(), http.StatusInternalServerError)
+	err = metadata.DeserializeDataToConcreteType()
+	if err != nil {
+		return nil, model.NewAppError("SqlLinkMetadataStore.Get", "store.sql_link_metadata.get.app_error", nil, "url="+url+", "+err.Error(), http.StatusInternalServerError)
+	}
 
-			return
-		}
-
-		result.Data = metadata
-	})
+	return metadata, nil
 }

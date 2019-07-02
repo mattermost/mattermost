@@ -53,7 +53,7 @@ func (a *App) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartIma
 		return nil, model.NewAppError("createEmoji", "api.emoji.create.other_user.app_error", nil, "", http.StatusForbidden)
 	}
 
-	if result := <-a.Srv.Store.Emoji().GetByName(emoji.Name); result.Err == nil && result.Data != nil {
+	if existingEmoji, err := a.Srv.Store.Emoji().GetByName(emoji.Name); err == nil && existingEmoji != nil {
 		return nil, model.NewAppError("createEmoji", "api.emoji.create.duplicate.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -79,11 +79,7 @@ func (a *App) CreateEmoji(sessionUserId string, emoji *model.Emoji, multiPartIma
 }
 
 func (a *App) GetEmojiList(page, perPage int, sort string) ([]*model.Emoji, *model.AppError) {
-	result := <-a.Srv.Store.Emoji().GetList(page*perPage, perPage, sort)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.Emoji), nil
+	return a.Srv.Store.Emoji().GetList(page*perPage, perPage, sort)
 }
 
 func (a *App) UploadEmojiImage(id string, imageData *multipart.FileHeader) *model.AppError {
@@ -190,11 +186,7 @@ func (a *App) GetEmojiByName(emojiName string) (*model.Emoji, *model.AppError) {
 		return nil, model.NewAppError("GetEmoji", "api.emoji.storage.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	result := <-a.Srv.Store.Emoji().GetByName(emojiName)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.Emoji), nil
+	return a.Srv.Store.Emoji().GetByName(emojiName)
 }
 
 func (a *App) GetMultipleEmojiByName(names []string) ([]*model.Emoji, *model.AppError) {
@@ -229,11 +221,7 @@ func (a *App) SearchEmoji(name string, prefixOnly bool, limit int) ([]*model.Emo
 		return nil, model.NewAppError("SearchEmoji", "api.emoji.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	result := <-a.Srv.Store.Emoji().Search(name, prefixOnly, limit)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.Emoji), nil
+	return a.Srv.Store.Emoji().Search(name, prefixOnly, limit)
 }
 
 func resizeEmojiGif(gifImg *gif.GIF) *gif.GIF {
