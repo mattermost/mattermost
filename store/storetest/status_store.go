@@ -26,7 +26,7 @@ func testStatusStore(t *testing.T, ss store.Store) {
 
 	status.LastActivityAt = 10
 
-	if err := (<-ss.Status().Get(status.UserId)).Err; err != nil {
+	if _, err := ss.Status().Get(status.UserId); err != nil {
 		t.Fatal(err)
 	}
 
@@ -68,11 +68,10 @@ func testStatusStore(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	if result := <-ss.Status().Get(status.UserId); result.Err != nil {
-		t.Fatal(result.Err)
+	if statusParameter, err := ss.Status().Get(status.UserId); err != nil {
+		t.Fatal(err)
 	} else {
-		status := result.Data.(*model.Status)
-		if status.Status != model.STATUS_OFFLINE {
+		if statusParameter.Status != model.STATUS_OFFLINE {
 			t.Fatal("should be offline")
 		}
 	}
@@ -155,21 +154,21 @@ func testGetAllFromTeam(t *testing.T, ss store.Store) {
 	team2Member2Status := &model.Status{UserId: team2Member2.UserId, Status: model.STATUS_OFFLINE, Manual: true, LastActivityAt: model.GetMillis(), ActiveChannel: ""}
 	require.Nil(t, ss.Status().SaveOrUpdate(team2Member2Status))
 
-	if statueses, err := ss.Status().GetAllFromTeam(team1.Id); err != nil {
+	if statuses, err := ss.Status().GetAllFromTeam(team1.Id); err != nil {
 		t.Fatal(err)
 	} else {
 		assertStatuses([]*model.Status{
 			team1Member1Status,
 			team1Member2Status,
-		}, statueses)
+		}, statuses)
 	}
 
-	if statueses, err := ss.Status().GetAllFromTeam(team2.Id); err != nil {
+	if statuses, err := ss.Status().GetAllFromTeam(team2.Id); err != nil {
 		t.Fatal(err)
 	} else {
 		assertStatuses([]*model.Status{
 			team2Member1Status,
 			team2Member2Status,
-		}, statueses)
+		}, statuses)
 	}
 }

@@ -157,8 +157,8 @@ func (a *App) trackActivity() {
 		botAccountsCount = count
 	}
 
-	if iucr := <-a.Srv.Store.User().AnalyticsGetInactiveUsersCount(); iucr.Err == nil {
-		inactiveUserCount = iucr.Data.(int64)
+	if iucr, err := a.Srv.Store.User().AnalyticsGetInactiveUsersCount(); err == nil {
+		inactiveUserCount = iucr
 	}
 
 	teamCount, err := a.Srv.Store.Team().AnalyticsTeamCount()
@@ -708,8 +708,8 @@ func (a *App) trackServer() {
 		"operating_system": runtime.GOOS,
 	}
 
-	if scr := <-a.Srv.Store.User().AnalyticsGetSystemAdminCount(); scr.Err == nil {
-		data["system_admins"] = scr.Data.(int64)
+	if scr, err := a.Srv.Store.User().AnalyticsGetSystemAdminCount(); err == nil {
+		data["system_admins"] = scr
 	}
 
 	a.SendDiagnostic(TRACK_SERVER, data)

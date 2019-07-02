@@ -52,7 +52,7 @@ type PluginSetting struct {
 	// "username" will result in a text setting that will autocomplete to a username.
 	Type string `json:"type" yaml:"type"`
 
-	// The help text to display to the user.
+	// The help text to display to the user. Supports Markdown formatting.
 	HelpText string `json:"help_text" yaml:"help_text"`
 
 	// The help text to display alongside the "Regenerate" button for settings of the "generated" type.
@@ -70,10 +70,10 @@ type PluginSetting struct {
 }
 
 type PluginSettingsSchema struct {
-	// Optional text to display above the settings.
+	// Optional text to display above the settings. Supports Markdown formatting.
 	Header string `json:"header" yaml:"header"`
 
-	// Optional text to display below the settings.
+	// Optional text to display below the settings. Supports Markdown formatting.
 	Footer string `json:"footer" yaml:"footer"`
 
 	// A list of setting definitions.
