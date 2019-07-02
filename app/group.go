@@ -10,51 +10,27 @@ import (
 )
 
 func (a *App) GetGroup(id string) (*model.Group, *model.AppError) {
-	result := <-a.Srv.Store.Group().Get(id)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.Group), nil
+	return a.Srv.Store.Group().Get(id)
 }
 
 func (a *App) GetGroupByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, *model.AppError) {
-	result := <-a.Srv.Store.Group().GetByRemoteID(remoteID, groupSource)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.Group), nil
+	return a.Srv.Store.Group().GetByRemoteID(remoteID, groupSource)
 }
 
 func (a *App) GetGroupsBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError) {
-	result := <-a.Srv.Store.Group().GetAllBySource(groupSource)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.([]*model.Group), nil
+	return a.Srv.Store.Group().GetAllBySource(groupSource)
 }
 
 func (a *App) CreateGroup(group *model.Group) (*model.Group, *model.AppError) {
-	result := <-a.Srv.Store.Group().Create(group)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.Group), nil
+	return a.Srv.Store.Group().Create(group)
 }
 
 func (a *App) UpdateGroup(group *model.Group) (*model.Group, *model.AppError) {
-	result := <-a.Srv.Store.Group().Update(group)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.Group), nil
+	return a.Srv.Store.Group().Update(group)
 }
 
 func (a *App) DeleteGroup(groupID string) (*model.Group, *model.AppError) {
-	result := <-a.Srv.Store.Group().Delete(groupID)
-	if result.Err != nil {
-		return nil, result.Err
-	}
-	return result.Data.(*model.Group), nil
+	return a.Srv.Store.Group().Delete(groupID)
 }
 
 func (a *App) GetGroupMemberUsers(groupID string) ([]*model.User, *model.AppError) {

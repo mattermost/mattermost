@@ -1125,12 +1125,13 @@ func testUserStoreGetProfilesNotInChannel(t *testing.T, ss store.Store) {
 	})
 
 	// create a group
-	group := store.Must(ss.Group().Create(&model.Group{
+	group, err := ss.Group().Create(&model.Group{
 		Name:        "n_" + model.NewId(),
 		DisplayName: "dn_" + model.NewId(),
 		Source:      model.GroupSourceLdap,
 		RemoteId:    "ri_" + model.NewId(),
-	})).(*model.Group)
+	})
+	require.Nil(t, err)
 
 	// add two members to the group
 	for _, u := range []*model.User{u1, u2} {
@@ -2825,13 +2826,13 @@ func testUserStoreSearchInChannel(t *testing.T, ss store.Store) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.Description, func(t *testing.T) {
-			result := <-ss.User().SearchInChannel(
+			users, err := ss.User().SearchInChannel(
 				testCase.ChannelId,
 				testCase.Term,
 				testCase.Options,
 			)
-			require.Nil(t, result.Err)
-			assertUsers(t, testCase.Expected, result.Data.([]*model.User))
+			require.Nil(t, err)
+			assertUsers(t, testCase.Expected, users)
 		})
 	}
 }
@@ -3005,13 +3006,13 @@ func testUserStoreSearchNotInTeam(t *testing.T, ss store.Store) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.Description, func(t *testing.T) {
-			result := <-ss.User().SearchNotInTeam(
+			users, err := ss.User().SearchNotInTeam(
 				testCase.TeamId,
 				testCase.Term,
 				testCase.Options,
 			)
-			require.Nil(t, result.Err)
-			assertUsers(t, testCase.Expected, result.Data.([]*model.User))
+			require.Nil(t, err)
+			assertUsers(t, testCase.Expected, users)
 		})
 	}
 }
@@ -3229,12 +3230,9 @@ func testUserStoreAnalyticsGetInactiveUsersCount(t *testing.T, ss store.Store) {
 	store.Must(ss.User().Save(u1))
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u1.Id)) }()
 
-	var count int64
-
-	if result := <-ss.User().AnalyticsGetInactiveUsersCount(); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		count = result.Data.(int64)
+	count, err := ss.User().AnalyticsGetInactiveUsersCount()
+	if err != nil {
+		t.Fatal(err)
 	}
 
 	u2 := &model.User{}
@@ -3243,22 +3241,22 @@ func testUserStoreAnalyticsGetInactiveUsersCount(t *testing.T, ss store.Store) {
 	store.Must(ss.User().Save(u2))
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u2.Id)) }()
 
-	if result := <-ss.User().AnalyticsGetInactiveUsersCount(); result.Err != nil {
-		t.Fatal(result.Err)
-	} else {
-		newCount := result.Data.(int64)
-		if count != newCount-1 {
-			t.Fatal("Expected 1 more inactive users but found otherwise.", count, newCount)
-		}
+	newCount, err := ss.User().AnalyticsGetInactiveUsersCount()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if count != newCount-1 {
+		t.Fatal("Expected 1 more inactive users but found otherwise.", count, newCount)
 	}
 }
 
 func testUserStoreAnalyticsGetSystemAdminCount(t *testing.T, ss store.Store) {
 	var countBefore int64
-	if result := <-ss.User().AnalyticsGetSystemAdminCount(); result.Err != nil {
-		t.Fatal(result.Err)
+	if result, err := ss.User().AnalyticsGetSystemAdminCount(); err != nil {
+		t.Fatal(err)
 	} else {
-		countBefore = result.Data.(int64)
+		countBefore = result
 	}
 
 	u1 := model.User{}
@@ -3280,11 +3278,11 @@ func testUserStoreAnalyticsGetSystemAdminCount(t *testing.T, ss store.Store) {
 	}
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u2.Id)) }()
 
-	if result := <-ss.User().AnalyticsGetSystemAdminCount(); result.Err != nil {
-		t.Fatal(result.Err)
+	if result, err := ss.User().AnalyticsGetSystemAdminCount(); err != nil {
+		t.Fatal(err)
 	} else {
 		// We expect to find 1 more system admin than there was at the start of this test function.
-		if count := result.Data.(int64); count != countBefore+1 {
+		if count := result; count != countBefore+1 {
 			t.Fatal("Did not get the expected number of system admins. Expected, got: ", countBefore+1, count)
 		}
 	}
@@ -3458,12 +3456,13 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	})
 
 	// create a group
-	group := store.Must(ss.Group().Create(&model.Group{
+	group, err := ss.Group().Create(&model.Group{
 		Name:        "n_" + model.NewId(),
 		DisplayName: "dn_" + model.NewId(),
 		Source:      model.GroupSourceLdap,
 		RemoteId:    "ri_" + model.NewId(),
-	})).(*model.Group)
+	})
+	require.Nil(t, err)
 
 	// add two members to the group
 	for _, u := range []*model.User{u1, u2} {
@@ -3758,14 +3757,14 @@ func testUserStoreGetTeamGroupUsers(t *testing.T, ss store.Store) {
 	var testGroups []*model.Group
 	for i := 0; i < 2; i++ {
 		id = model.NewId()
-		res = <-ss.Group().Create(&model.Group{
+		var group *model.Group
+		group, err = ss.Group().Create(&model.Group{
 			Name:        "n_" + id,
 			DisplayName: "dn_" + id,
 			Source:      model.GroupSourceLdap,
 			RemoteId:    "ri_" + id,
 		})
-		require.Nil(t, res.Err)
-		group := res.Data.(*model.Group)
+		require.Nil(t, err)
 		require.NotNil(t, group)
 		testGroups = append(testGroups, group)
 	}
@@ -3880,14 +3879,14 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, ss store.Store) {
 	var testGroups []*model.Group
 	for i := 0; i < 2; i++ {
 		id = model.NewId()
-		res = <-ss.Group().Create(&model.Group{
+		var group *model.Group
+		group, err = ss.Group().Create(&model.Group{
 			Name:        "n_" + id,
 			DisplayName: "dn_" + id,
 			Source:      model.GroupSourceLdap,
 			RemoteId:    "ri_" + id,
 		})
-		require.Nil(t, res.Err)
-		group := res.Data.(*model.Group)
+		require.Nil(t, err)
 		require.NotNil(t, group)
 		testGroups = append(testGroups, group)
 	}
