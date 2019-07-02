@@ -577,8 +577,8 @@ func (a *App) CompleteSwitchWithOAuth(service string, userData io.Reader, email 
 		return nil, err
 	}
 
-	if result := <-a.Srv.Store.User().UpdateAuthData(user.Id, service, &authData, ssoEmail, true); result.Err != nil {
-		return nil, result.Err
+	if _, err = a.Srv.Store.User().UpdateAuthData(user.Id, service, &authData, ssoEmail, true); err != nil {
+		return nil, err
 	}
 
 	a.Srv.Go(func() {
@@ -593,8 +593,8 @@ func (a *App) CompleteSwitchWithOAuth(service string, userData io.Reader, email 
 func (a *App) CreateOAuthStateToken(extra string) (*model.Token, *model.AppError) {
 	token := model.NewToken(model.TOKEN_TYPE_OAUTH, extra)
 
-	if result := <-a.Srv.Store.Token().Save(token); result.Err != nil {
-		return nil, result.Err
+	if err := a.Srv.Store.Token().Save(token); err != nil {
+		return nil, err
 	}
 
 	return token, nil
