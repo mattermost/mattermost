@@ -573,13 +573,13 @@ type UserTermsOfServiceStore interface {
 }
 
 type GroupStore interface {
-	Create(group *model.Group) StoreChannel
-	Get(groupID string) StoreChannel
+	Create(group *model.Group) (*model.Group, *model.AppError)
+	Get(groupID string) (*model.Group, *model.AppError)
 	GetByIDs(groupIDs []string) ([]*model.Group, *model.AppError)
-	GetByRemoteID(remoteID string, groupSource model.GroupSource) StoreChannel
-	GetAllBySource(groupSource model.GroupSource) StoreChannel
-	Update(group *model.Group) StoreChannel
-	Delete(groupID string) StoreChannel
+	GetByRemoteID(remoteID string, groupSource model.GroupSource) (*model.Group, *model.AppError)
+	GetAllBySource(groupSource model.GroupSource) ([]*model.Group, *model.AppError)
+	Update(group *model.Group) (*model.Group, *model.AppError)
+	Delete(groupID string) (*model.Group, *model.AppError)
 
 	GetMemberUsers(groupID string) StoreChannel
 	GetMemberUsersPage(groupID string, offset int, limit int) StoreChannel
