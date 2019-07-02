@@ -3252,10 +3252,10 @@ func testUserStoreAnalyticsGetInactiveUsersCount(t *testing.T, ss store.Store) {
 
 func testUserStoreAnalyticsGetSystemAdminCount(t *testing.T, ss store.Store) {
 	var countBefore int64
-	if result := <-ss.User().AnalyticsGetSystemAdminCount(); result.Err != nil {
-		t.Fatal(result.Err)
+	if result, err := ss.User().AnalyticsGetSystemAdminCount(); err != nil {
+		t.Fatal(err)
 	} else {
-		countBefore = result.Data.(int64)
+		countBefore = result
 	}
 
 	u1 := model.User{}
@@ -3277,11 +3277,11 @@ func testUserStoreAnalyticsGetSystemAdminCount(t *testing.T, ss store.Store) {
 	}
 	defer func() { require.Nil(t, ss.User().PermanentDelete(u2.Id)) }()
 
-	if result := <-ss.User().AnalyticsGetSystemAdminCount(); result.Err != nil {
-		t.Fatal(result.Err)
+	if result, err := ss.User().AnalyticsGetSystemAdminCount(); err != nil {
+		t.Fatal(err)
 	} else {
 		// We expect to find 1 more system admin than there was at the start of this test function.
-		if count := result.Data.(int64); count != countBefore+1 {
+		if count := result; count != countBefore+1 {
 			t.Fatal("Did not get the expected number of system admins. Expected, got: ", countBefore+1, count)
 		}
 	}
