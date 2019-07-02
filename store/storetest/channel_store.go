@@ -984,7 +984,8 @@ func testChannelDeleteMemberStore(t *testing.T, ss store.Store) {
 		t.Fatal("should have saved 2 members")
 	}
 
-	store.Must(ss.Channel().PermanentDeleteMembersByUser(o2.UserId))
+	err = ss.Channel().PermanentDeleteMembersByUser(o2.UserId)
+	require.Nil(t, err)
 
 	count, err = ss.Channel().GetMemberCount(o1.ChannelId, false)
 	require.Nil(t, err)
@@ -1045,20 +1046,17 @@ func testChannelStoreGetChannels(t *testing.T, ss store.Store) {
 		t.Fatal("missing channel")
 	}
 
-	acresult := <-ss.Channel().GetAllChannelMembersForUser(m1.UserId, false, false)
-	ids := acresult.Data.(map[string]string)
+	ids, _ := ss.Channel().GetAllChannelMembersForUser(m1.UserId, false, false)
 	if _, ok := ids[o1.Id]; !ok {
 		t.Fatal("missing channel")
 	}
 
-	acresult2 := <-ss.Channel().GetAllChannelMembersForUser(m1.UserId, true, false)
-	ids2 := acresult2.Data.(map[string]string)
+	ids2, _ := ss.Channel().GetAllChannelMembersForUser(m1.UserId, true, false)
 	if _, ok := ids2[o1.Id]; !ok {
 		t.Fatal("missing channel")
 	}
 
-	acresult3 := <-ss.Channel().GetAllChannelMembersForUser(m1.UserId, true, false)
-	ids3 := acresult3.Data.(map[string]string)
+	ids3, _ := ss.Channel().GetAllChannelMembersForUser(m1.UserId, true, false)
 	if _, ok := ids3[o1.Id]; !ok {
 		t.Fatal("missing channel")
 	}
@@ -1115,7 +1113,9 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlSupplier)
 		Source:      model.GroupSourceLdap,
 		RemoteId:    model.NewId(),
 	}
-	store.Must(ss.Group().Create(group))
+	_, err = ss.Group().Create(group)
+	require.Nil(t, err)
+
 	_, err = ss.Group().CreateGroupSyncable(model.NewGroupChannel(group.Id, c1.Id, true))
 	require.Nil(t, err)
 
@@ -1643,13 +1643,12 @@ func testChannelStoreGetMembersForUserWithPagination(t *testing.T, ss store.Stor
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 	store.Must(ss.Channel().SaveMember(&m2))
 
-	cresult := <-ss.Channel().GetMembersForUserWithPagination(o1.TeamId, m1.UserId, 0, 1)
-	members := cresult.Data.(*model.ChannelMembers)
-
+	members, err := ss.Channel().GetMembersForUserWithPagination(o1.TeamId, m1.UserId, 0, 1)
+	require.Nil(t, err)
 	assert.Len(t, *members, 1)
 
-	cresult = <-ss.Channel().GetMembersForUserWithPagination(o1.TeamId, m1.UserId, 1, 1)
-	members = cresult.Data.(*model.ChannelMembers)
+	members, err = ss.Channel().GetMembersForUserWithPagination(o1.TeamId, m1.UserId, 1, 1)
+	require.Nil(t, err)
 	assert.Len(t, *members, 1)
 }
 
@@ -1773,12 +1772,12 @@ func testUpdateChannelMember(t *testing.T, ss store.Store) {
 	store.Must(ss.Channel().SaveMember(m1))
 
 	m1.NotifyProps["test"] = "sometext"
-	if result := <-ss.Channel().UpdateMember(m1); result.Err != nil {
-		t.Fatal(result.Err)
+	if _, err := ss.Channel().UpdateMember(m1); err != nil {
+		t.Fatal(err)
 	}
 
 	m1.UserId = ""
-	if result := <-ss.Channel().UpdateMember(m1); result.Err == nil {
+	if _, err := ss.Channel().UpdateMember(m1); err == nil {
 		t.Fatal("bad user id - should fail")
 	}
 }
@@ -2460,7 +2459,9 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 		Source:      model.GroupSourceLdap,
 		RemoteId:    model.NewId(),
 	}
-	store.Must(ss.Group().Create(group))
+	_, err = ss.Group().Create(group)
+	require.Nil(t, err)
+
 	_, err = ss.Group().CreateGroupSyncable(model.NewGroupChannel(group.Id, o7.Id, true))
 	require.Nil(t, err)
 
@@ -2976,9 +2977,9 @@ func testChannelStoreGetPinnedPosts(t *testing.T, ss store.Store) {
 		IsPinned:  true,
 	})
 
-	if r1 := <-ss.Channel().GetPinnedPosts(o1.Id); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else if r1.Data.(*model.PostList).Posts[p1.Id] == nil {
+	if pl, errGet := ss.Channel().GetPinnedPosts(o1.Id); errGet != nil {
+		t.Fatal(errGet)
+	} else if pl.Posts[p1.Id] == nil {
 		t.Fatal("didn't return relevant pinned posts")
 	}
 
@@ -2999,9 +3000,9 @@ func testChannelStoreGetPinnedPosts(t *testing.T, ss store.Store) {
 	})
 	require.Nil(t, err)
 
-	if r2 := <-ss.Channel().GetPinnedPosts(o2.Id); r2.Err != nil {
-		t.Fatal(r2.Err)
-	} else if len(r2.Data.(*model.PostList).Posts) != 0 {
+	if pl, errGet := ss.Channel().GetPinnedPosts(o2.Id); errGet != nil {
+		t.Fatal(errGet)
+	} else if len(pl.Posts) != 0 {
 		t.Fatal("wasn't supposed to return posts")
 	}
 }

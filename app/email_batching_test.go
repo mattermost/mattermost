@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/mattermost/mattermost-server/store"
 	"github.com/stretchr/testify/require"
 )
 
@@ -113,7 +112,8 @@ func TestCheckPendingNotifications(t *testing.T) {
 	channelMember, err := th.App.Srv.Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
 	require.Nil(t, err)
 	channelMember.LastViewedAt = 9999999
-	store.Must(th.App.Srv.Store.Channel().UpdateMember(channelMember))
+	_, err = th.App.Srv.Store.Channel().UpdateMember(channelMember)
+	require.Nil(t, err)
 
 	err = th.App.Srv.Store.Preference().Save(&model.Preferences{{
 		UserId:   th.BasicUser.Id,
@@ -134,7 +134,8 @@ func TestCheckPendingNotifications(t *testing.T) {
 	channelMember, err = th.App.Srv.Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
 	require.Nil(t, err)
 	channelMember.LastViewedAt = 10001000
-	store.Must(th.App.Srv.Store.Channel().UpdateMember(channelMember))
+	_, err = th.App.Srv.Store.Channel().UpdateMember(channelMember)
+	require.Nil(t, err)
 
 	job.checkPendingNotifications(time.Unix(10002, 0), func(string, []*batchedNotification) {})
 
@@ -215,7 +216,8 @@ func TestCheckPendingNotificationsDefaultInterval(t *testing.T) {
 	channelMember, err := th.App.Srv.Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
 	require.Nil(t, err)
 	channelMember.LastViewedAt = 9999000
-	store.Must(th.App.Srv.Store.Channel().UpdateMember(channelMember))
+	_, err = th.App.Srv.Store.Channel().UpdateMember(channelMember)
+	require.Nil(t, err)
 
 	job.pendingNotifications[th.BasicUser.Id] = []*batchedNotification{
 		{
@@ -254,7 +256,8 @@ func TestCheckPendingNotificationsCantParseInterval(t *testing.T) {
 	channelMember, err := th.App.Srv.Store.Channel().GetMember(th.BasicChannel.Id, th.BasicUser.Id)
 	require.Nil(t, err)
 	channelMember.LastViewedAt = 9999000
-	store.Must(th.App.Srv.Store.Channel().UpdateMember(channelMember))
+	_, err = th.App.Srv.Store.Channel().UpdateMember(channelMember)
+	require.Nil(t, err)
 
 	// preference value is not an integer, so we'll fall back to the default 15min value
 	err = th.App.Srv.Store.Preference().Save(&model.Preferences{{

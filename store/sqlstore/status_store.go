@@ -54,26 +54,22 @@ func (s SqlStatusStore) SaveOrUpdate(status *model.Status) *model.AppError {
 	return nil
 }
 
-func (s SqlStatusStore) Get(userId string) store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var status model.Status
+func (s SqlStatusStore) Get(userId string) (*model.Status, *model.AppError) {
+	var status model.Status
 
-		if err := s.GetReplica().SelectOne(&status,
-			`SELECT
-				*
-			FROM
-				Status
-			WHERE
-				UserId = :UserId`, map[string]interface{}{"UserId": userId}); err != nil {
-			if err == sql.ErrNoRows {
-				result.Err = model.NewAppError("SqlStatusStore.Get", MISSING_STATUS_ERROR, nil, err.Error(), http.StatusNotFound)
-			} else {
-				result.Err = model.NewAppError("SqlStatusStore.Get", "store.sql_status.get.app_error", nil, err.Error(), http.StatusInternalServerError)
-			}
-		} else {
-			result.Data = &status
+	if err := s.GetReplica().SelectOne(&status,
+		`SELECT
+			*
+		FROM
+			Status
+		WHERE
+			UserId = :UserId`, map[string]interface{}{"UserId": userId}); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, model.NewAppError("SqlStatusStore.Get", MISSING_STATUS_ERROR, nil, err.Error(), http.StatusNotFound)
 		}
-	})
+		return nil, model.NewAppError("SqlStatusStore.Get", "store.sql_status.get.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return &status, nil
 }
 
 func (s SqlStatusStore) GetByIds(userIds []string) ([]*model.Status, *model.AppError) {
@@ -96,15 +92,12 @@ func (s SqlStatusStore) GetByIds(userIds []string) ([]*model.Status, *model.AppE
 	return statuses, nil
 }
 
-func (s SqlStatusStore) GetOnlineAway() store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		var statuses []*model.Status
-		if _, err := s.GetReplica().Select(&statuses, "SELECT * FROM Status WHERE Status = :Online OR Status = :Away LIMIT 300", map[string]interface{}{"Online": model.STATUS_ONLINE, "Away": model.STATUS_AWAY}); err != nil {
-			result.Err = model.NewAppError("SqlStatusStore.GetOnlineAway", "store.sql_status.get_online_away.app_error", nil, err.Error(), http.StatusInternalServerError)
-		} else {
-			result.Data = statuses
-		}
-	})
+func (s SqlStatusStore) GetOnlineAway() ([]*model.Status, *model.AppError) {
+	var statuses []*model.Status
+	if _, err := s.GetReplica().Select(&statuses, "SELECT * FROM Status WHERE Status = :Online OR Status = :Away LIMIT 300", map[string]interface{}{"Online": model.STATUS_ONLINE, "Away": model.STATUS_AWAY}); err != nil {
+		return nil, model.NewAppError("SqlStatusStore.GetOnlineAway", "store.sql_status.get_online_away.app_error", nil, err.Error(), http.StatusInternalServerError)
+	}
+	return statuses, nil
 }
 
 func (s SqlStatusStore) GetOnline() ([]*model.Status, *model.AppError) {
@@ -125,12 +118,11 @@ func (s SqlStatusStore) GetAllFromTeam(teamId string) ([]*model.Status, *model.A
 	return statuses, nil
 }
 
-func (s SqlStatusStore) ResetAll() store.StoreChannel {
-	return store.Do(func(result *store.StoreResult) {
-		if _, err := s.GetMaster().Exec("UPDATE Status SET Status = :Status WHERE Manual = false", map[string]interface{}{"Status": model.STATUS_OFFLINE}); err != nil {
-			result.Err = model.NewAppError("SqlStatusStore.ResetAll", "store.sql_status.reset_all.app_error", nil, "", http.StatusInternalServerError)
-		}
-	})
+func (s SqlStatusStore) ResetAll() *model.AppError {
+	if _, err := s.GetMaster().Exec("UPDATE Status SET Status = :Status WHERE Manual = false", map[string]interface{}{"Status": model.STATUS_OFFLINE}); err != nil {
+		return model.NewAppError("SqlStatusStore.ResetAll", "store.sql_status.reset_all.app_error", nil, "", http.StatusInternalServerError)
+	}
+	return nil
 }
 
 func (s SqlStatusStore) GetTotalActiveUsersCount() (int64, *model.AppError) {
