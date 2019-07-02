@@ -1304,12 +1304,11 @@ func (a *App) GetChannelMembersForUser(teamId string, userId string) (*model.Cha
 }
 
 func (a *App) GetChannelMembersForUserWithPagination(teamId, userId string, page, perPage int) ([]*model.ChannelMember, *model.AppError) {
-	result := <-a.Srv.Store.Channel().GetMembersForUserWithPagination(teamId, userId, page, perPage)
-	if result.Err != nil {
-		return nil, result.Err
+	m, err := a.Srv.Store.Channel().GetMembersForUserWithPagination(teamId, userId, page, perPage)
+	if err != nil {
+		return nil, err
 	}
 
-	m := result.Data.(*model.ChannelMembers)
 	members := make([]*model.ChannelMember, 0)
 	if m != nil {
 		for _, member := range *m {
