@@ -512,9 +512,9 @@ func botToUser(command *cobra.Command, args []string, a *app.App) error {
 		}
 	}
 
-	result := <-a.Srv.Store.Bot().PermanentDelete(user.Id)
-	if result.Err != nil {
-		return fmt.Errorf("Unable to delete bot. Error: %s", result.Err.Error())
+	appErr = a.Srv.Store.Bot().PermanentDelete(user.Id)
+	if appErr != nil {
+		return fmt.Errorf("Unable to delete bot. Error: %s", appErr.Error())
 	}
 
 	CommandPrettyPrintln("id: " + user.Id)
@@ -886,8 +886,8 @@ func verifyUserCmdF(command *cobra.Command, args []string) error {
 			CommandPrintErrorln("Unable to find user '" + args[i] + "'")
 			continue
 		}
-		if cresult := <-a.Srv.Store.User().VerifyEmail(user.Id, user.Email); cresult.Err != nil {
-			CommandPrintErrorln("Unable to verify '" + args[i] + "' email. Error: " + cresult.Err.Error())
+		if _, err := a.Srv.Store.User().VerifyEmail(user.Id, user.Email); err != nil {
+			CommandPrintErrorln("Unable to verify '" + args[i] + "' email. Error: " + err.Error())
 		}
 	}
 

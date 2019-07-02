@@ -112,7 +112,7 @@ func testTeamStoreUpdateDisplayName(t *testing.T, ss store.Store) {
 
 	newDisplayName := "NewDisplayName"
 
-	if err = (<-ss.Team().UpdateDisplayName(newDisplayName, o1.Id)).Err; err != nil {
+	if err = ss.Team().UpdateDisplayName(newDisplayName, o1.Id); err != nil {
 		t.Fatal(err)
 	}
 
@@ -149,15 +149,15 @@ func testTeamStoreGetByName(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	if r1 := <-ss.Team().GetByName(o1.Name); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if team, err := ss.Team().GetByName(o1.Name); err != nil {
+		t.Fatal(err)
 	} else {
-		if r1.Data.(*model.Team).ToJson() != o1.ToJson() {
+		if team.ToJson() != o1.ToJson() {
 			t.Fatal("invalid returned team")
 		}
 	}
 
-	if err := (<-ss.Team().GetByName("")).Err; err == nil {
+	if _, err := ss.Team().GetByName(""); err == nil {
 		t.Fatal("Missing id should have failed")
 	}
 }
@@ -174,10 +174,10 @@ func testTeamStoreSearchByName(t *testing.T, ss store.Store) {
 		t.Fatal(err)
 	}
 
-	if r1 := <-ss.Team().SearchByName(name); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if r1, err := ss.Team().SearchByName(name); err != nil {
+		t.Fatal(err)
 	} else {
-		if r1.Data.([]*model.Team)[0].ToJson() != o1.ToJson() {
+		if r1[0].ToJson() != o1.ToJson() {
 			t.Fatal("invalid returned team")
 		}
 	}
@@ -244,12 +244,11 @@ func testTeamStoreSearchAll(t *testing.T, ss store.Store) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			r1 := <-ss.Team().SearchAll(tc.Term)
-			require.Nil(t, r1.Err)
-			results := r1.Data.([]*model.Team)
-			require.Equal(t, tc.ExpectedLenth, len(results))
+			r1, err := ss.Team().SearchAll(tc.Term)
+			require.Nil(t, err)
+			require.Equal(t, tc.ExpectedLenth, len(r1))
 			if tc.ExpectedFirstId != "" {
-				assert.Equal(t, tc.ExpectedFirstId, results[0].Id)
+				assert.Equal(t, tc.ExpectedFirstId, r1[0].Id)
 			}
 		})
 	}
@@ -310,9 +309,9 @@ func testTeamStoreSearchOpen(t *testing.T, ss store.Store) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			r1 := <-ss.Team().SearchOpen(tc.Term)
-			require.Nil(t, r1.Err)
-			results := r1.Data.([]*model.Team)
+			r1, err := ss.Team().SearchOpen(tc.Term)
+			require.Nil(t, err)
+			results := r1
 			require.Equal(t, tc.ExpectedLenth, len(results))
 			if tc.ExpectedFirstId != "" {
 				assert.Equal(t, tc.ExpectedFirstId, results[0].Id)
@@ -376,9 +375,9 @@ func testTeamStoreSearchPrivate(t *testing.T, ss store.Store) {
 
 	for _, tc := range testCases {
 		t.Run(tc.Name, func(t *testing.T) {
-			r1 := <-ss.Team().SearchPrivate(tc.Term)
-			require.Nil(t, r1.Err)
-			results := r1.Data.([]*model.Team)
+			r1, err := ss.Team().SearchPrivate(tc.Term)
+			require.Nil(t, err)
+			results := r1
 			require.Equal(t, tc.ExpectedLenth, len(results))
 			if tc.ExpectedFirstId != "" {
 				assert.Equal(t, tc.ExpectedFirstId, results[0].Id)
@@ -406,15 +405,15 @@ func testTeamStoreGetByInviteId(t *testing.T, ss store.Store) {
 	o2.Email = MakeEmail()
 	o2.Type = model.TEAM_OPEN
 
-	if r1 := <-ss.Team().GetByInviteId(save1.InviteId); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if r1, err := ss.Team().GetByInviteId(save1.InviteId); err != nil {
+		t.Fatal(err)
 	} else {
-		if r1.Data.(*model.Team).ToJson() != o1.ToJson() {
+		if r1.ToJson() != o1.ToJson() {
 			t.Fatal("invalid returned team")
 		}
 	}
 
-	if err := (<-ss.Team().GetByInviteId("")).Err; err == nil {
+	if _, err := ss.Team().GetByInviteId(""); err == nil {
 		t.Fatal("Missing id should have failed")
 	}
 }
@@ -535,20 +534,17 @@ func testGetAllTeamPageListing(t *testing.T, ss store.Store) {
 	_, err = ss.Team().Save(&o4)
 	require.Nil(t, err)
 
-	if r1 := <-ss.Team().GetAllTeamPageListing(0, 10); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		teams := r1.Data.([]*model.Team)
+	teams, err := ss.Team().GetAllTeamPageListing(0, 10)
+	require.Nil(t, err)
 
-		for _, team := range teams {
-			if !team.AllowOpenInvite {
-				t.Fatal("should have returned team with AllowOpenInvite as true")
-			}
+	for _, team := range teams {
+		if !team.AllowOpenInvite {
+			t.Fatal("should have returned team with AllowOpenInvite as true")
 		}
+	}
 
-		if len(teams) > 10 {
-			t.Fatal("should have returned max of 10 teams")
-		}
+	if len(teams) > 10 {
+		t.Fatal("should have returned max of 10 teams")
 	}
 
 	o5 := model.Team{}
@@ -560,36 +556,30 @@ func testGetAllTeamPageListing(t *testing.T, ss store.Store) {
 	_, err = ss.Team().Save(&o5)
 	require.Nil(t, err)
 
-	if r1 := <-ss.Team().GetAllTeamPageListing(0, 4); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		teams := r1.Data.([]*model.Team)
+	teams, err = ss.Team().GetAllTeamPageListing(0, 4)
+	require.Nil(t, err)
 
-		for _, team := range teams {
-			if !team.AllowOpenInvite {
-				t.Fatal("should have returned team with AllowOpenInvite as true")
-			}
-		}
-
-		if len(teams) > 4 {
-			t.Fatal("should have returned max of 4 teams")
+	for _, team := range teams {
+		if !team.AllowOpenInvite {
+			t.Fatal("should have returned team with AllowOpenInvite as true")
 		}
 	}
 
-	if r1 := <-ss.Team().GetAllTeamPageListing(1, 1); r1.Err != nil {
-		t.Fatal(r1.Err)
-	} else {
-		teams := r1.Data.([]*model.Team)
+	if len(teams) > 4 {
+		t.Fatal("should have returned max of 4 teams")
+	}
 
-		for _, team := range teams {
-			if !team.AllowOpenInvite {
-				t.Fatal("should have returned team with AllowOpenInvite as true")
-			}
-		}
+	teams, err = ss.Team().GetAllTeamPageListing(1, 1)
+	require.Nil(t, err)
 
-		if len(teams) > 1 {
-			t.Fatal("should have returned max of 1 team")
+	for _, team := range teams {
+		if !team.AllowOpenInvite {
+			t.Fatal("should have returned team with AllowOpenInvite as true")
 		}
+	}
+
+	if len(teams) > 1 {
+		t.Fatal("should have returned max of 1 team")
 	}
 }
 
@@ -682,11 +672,9 @@ func testGetAllPrivateTeamPageListing(t *testing.T, ss store.Store) {
 	_, err = ss.Team().Save(&o4)
 	require.Nil(t, err)
 
-	if r1 := <-ss.Team().GetAllPrivateTeamPageListing(0, 10); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if teams, listErr := ss.Team().GetAllPrivateTeamPageListing(0, 10); listErr != nil {
+		t.Fatal(listErr)
 	} else {
-		teams := r1.Data.([]*model.Team)
-
 		for _, team := range teams {
 			if team.AllowOpenInvite {
 				t.Fatal("should have returned team with AllowOpenInvite as false")
@@ -707,11 +695,9 @@ func testGetAllPrivateTeamPageListing(t *testing.T, ss store.Store) {
 	_, err = ss.Team().Save(&o5)
 	require.Nil(t, err)
 
-	if r1 := <-ss.Team().GetAllPrivateTeamPageListing(0, 4); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if teams, listErr := ss.Team().GetAllPrivateTeamPageListing(0, 4); listErr != nil {
+		t.Fatal(listErr)
 	} else {
-		teams := r1.Data.([]*model.Team)
-
 		for _, team := range teams {
 			if team.AllowOpenInvite {
 				t.Fatal("should have returned team with AllowOpenInvite as false")
@@ -723,11 +709,9 @@ func testGetAllPrivateTeamPageListing(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if r1 := <-ss.Team().GetAllPrivateTeamPageListing(1, 1); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if teams, listErr := ss.Team().GetAllPrivateTeamPageListing(1, 1); listErr != nil {
+		t.Fatal(listErr)
 	} else {
-		teams := r1.Data.([]*model.Team)
-
 		for _, team := range teams {
 			if team.AllowOpenInvite {
 				t.Fatal("should have returned team with AllowOpenInvite as false")
@@ -758,8 +742,8 @@ func testDelete(t *testing.T, ss store.Store) {
 	_, err = ss.Team().Save(&o2)
 	require.Nil(t, err)
 
-	if r1 := <-ss.Team().PermanentDelete(o1.Id); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if r1 := ss.Team().PermanentDelete(o1.Id); r1 != nil {
+		t.Fatal(r1)
 	}
 }
 
@@ -773,10 +757,10 @@ func testTeamCount(t *testing.T, ss store.Store) {
 	_, err := ss.Team().Save(&o1)
 	require.Nil(t, err)
 
-	if r1 := <-ss.Team().AnalyticsTeamCount(); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if teamCount, err := ss.Team().AnalyticsTeamCount(); err != nil {
+		t.Fatal(err)
 	} else {
-		if r1.Data.(int64) == 0 {
+		if teamCount == 0 {
 			t.Fatal("should be at least 1 team")
 		}
 	}
@@ -797,26 +781,23 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	store.Must(ss.Team().SaveMember(m2, -1))
 	store.Must(ss.Team().SaveMember(m3, -1))
 
-	if r1 := <-ss.Team().GetMembers(teamId1, 0, 100, nil); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if ms, err := ss.Team().GetMembers(teamId1, 0, 100, nil); err != nil {
+		t.Fatal(err)
 	} else {
-		ms := r1.Data.([]*model.TeamMember)
 		require.Len(t, ms, 2)
 	}
 
-	if r1 := <-ss.Team().GetMembers(teamId2, 0, 100, nil); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if ms, err := ss.Team().GetMembers(teamId2, 0, 100, nil); err != nil {
+		t.Fatal(err)
 	} else {
-		ms := r1.Data.([]*model.TeamMember)
 
 		require.Len(t, ms, 1)
 		require.Equal(t, m3.UserId, ms[0].UserId)
 	}
 
-	if r1 := <-ss.Team().GetTeamsForUser(m1.UserId); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if ms, err := ss.Team().GetTeamsForUser(m1.UserId); err != nil {
+		t.Fatal(err)
 	} else {
-		ms := r1.Data.([]*model.TeamMember)
 
 		require.Len(t, ms, 1)
 		require.Equal(t, m1.TeamId, ms[0].TeamId)
@@ -826,10 +807,9 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 		t.Fatal(r1.Err)
 	}
 
-	if r1 := <-ss.Team().GetMembers(teamId1, 0, 100, nil); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if ms, err := ss.Team().GetMembers(teamId1, 0, 100, nil); err != nil {
+		t.Fatal(err)
 	} else {
-		ms := r1.Data.([]*model.TeamMember)
 
 		require.Len(t, ms, 1)
 		require.Equal(t, m2.UserId, ms[0].UserId)
@@ -841,10 +821,9 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 		t.Fatal(r1.Err)
 	}
 
-	if r1 := <-ss.Team().GetMembers(teamId1, 0, 100, nil); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if ms, err := ss.Team().GetMembers(teamId1, 0, 100, nil); err != nil {
+		t.Fatal(err)
 	} else {
-		ms := r1.Data.([]*model.TeamMember)
 
 		require.Len(t, ms, 0)
 	}
@@ -855,10 +834,9 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 	store.Must(ss.Team().SaveMember(m4, -1))
 	store.Must(ss.Team().SaveMember(m5, -1))
 
-	if r1 := <-ss.Team().GetTeamsForUser(uid); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if ms, err := ss.Team().GetTeamsForUser(uid); err != nil {
+		t.Fatal(err)
 	} else {
-		ms := r1.Data.([]*model.TeamMember)
 
 		require.Len(t, ms, 2)
 	}
@@ -867,10 +845,9 @@ func testTeamMembers(t *testing.T, ss store.Store) {
 		t.Fatal(r1.Err)
 	}
 
-	if r1 := <-ss.Team().GetTeamsForUser(m1.UserId); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if ms, err := ss.Team().GetTeamsForUser(m1.UserId); err != nil {
+		t.Fatal(err)
 	} else {
-		ms := r1.Data.([]*model.TeamMember)
 
 		require.Len(t, ms, 0)
 	}
@@ -890,9 +867,8 @@ func testTeamMembersWithPagination(t *testing.T, ss store.Store) {
 	store.Must(ss.Team().SaveMember(m2, -1))
 	store.Must(ss.Team().SaveMember(m3, -1))
 
-	r1 = <-ss.Team().GetTeamsForUserWithPagination(m1.UserId, 0, 1)
-	require.Nil(t, r1.Err)
-	ms := r1.Data.([]*model.TeamMember)
+	ms, errTeam := ss.Team().GetTeamsForUserWithPagination(m1.UserId, 0, 1)
+	require.Nil(t, errTeam)
 
 	require.Len(t, ms, 1)
 	require.Equal(t, m1.TeamId, ms[0].TeamId)
@@ -900,10 +876,9 @@ func testTeamMembersWithPagination(t *testing.T, ss store.Store) {
 	r1 = <-ss.Team().RemoveMember(teamId1, m1.UserId)
 	require.Nil(t, r1.Err)
 
-	r1 = <-ss.Team().GetMembers(teamId1, 0, 100, nil)
-	require.Nil(t, r1.Err)
+	ms, err := ss.Team().GetMembers(teamId1, 0, 100, nil)
+	require.Nil(t, err)
 
-	ms = r1.Data.([]*model.TeamMember)
 	require.Len(t, ms, 1)
 	require.Equal(t, m2.UserId, ms[0].UserId)
 
@@ -918,31 +893,29 @@ func testTeamMembersWithPagination(t *testing.T, ss store.Store) {
 	store.Must(ss.Team().SaveMember(m4, -1))
 	store.Must(ss.Team().SaveMember(m5, -1))
 
-	r1 = <-ss.Team().GetTeamsForUserWithPagination(uid, 0, 1)
-	require.Nil(t, r1.Err)
-	ms = r1.Data.([]*model.TeamMember)
-	require.Len(t, ms, 1)
+	result, err := ss.Team().GetTeamsForUserWithPagination(uid, 0, 1)
+	require.Nil(t, err)
+	require.Len(t, result, 1)
 
 	r1 = <-ss.Team().RemoveAllMembersByUser(uid)
 	require.Nil(t, r1.Err)
 
-	r1 = <-ss.Team().GetTeamsForUserWithPagination(uid, 1, 1)
-	require.Nil(t, r1.Err)
-	ms = r1.Data.([]*model.TeamMember)
-	require.Len(t, ms, 0)
+	result, err = ss.Team().GetTeamsForUserWithPagination(uid, 1, 1)
+	require.Nil(t, err)
+	require.Len(t, result, 0)
 }
 
 func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 	maxUsersPerTeam := 5
 
-	team, err := ss.Team().Save(&model.Team{
+	team, errSave := ss.Team().Save(&model.Team{
 		DisplayName: "DisplayName",
 		Name:        "z-z-z" + model.NewId() + "b",
 		Type:        model.TEAM_OPEN,
 	})
-	require.Nil(t, err)
+	require.Nil(t, errSave)
 	defer func() {
-		<-ss.Team().PermanentDelete(team.Id)
+		ss.Team().PermanentDelete(team.Id)
 	}()
 
 	userIds := make([]string, maxUsersPerTeam)
@@ -967,10 +940,10 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 		}(userIds[i])
 	}
 
-	if result := <-ss.Team().GetTotalMemberCount(team.Id); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if count := result.Data.(int64); int(count) != maxUsersPerTeam {
-		t.Fatalf("should start with 5 team members, had %v instead", count)
+	if totalMemberCount, err := ss.Team().GetTotalMemberCount(team.Id); err != nil {
+		t.Fatal(err)
+	} else if int(totalMemberCount) != maxUsersPerTeam {
+		t.Fatalf("should start with 5 team members, had %v instead", totalMemberCount)
 	}
 
 	newUserId := store.Must(ss.User().Save(&model.User{
@@ -988,23 +961,25 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 		t.Fatal("shouldn't be able to save member when at maximum members per team")
 	}
 
-	if result := <-ss.Team().GetTotalMemberCount(team.Id); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if count := result.Data.(int64); int(count) != maxUsersPerTeam {
-		t.Fatalf("should still have 5 team members, had %v instead", count)
+	if totalMemberCount, err := ss.Team().GetTotalMemberCount(team.Id); err != nil {
+		t.Fatal(err)
+	} else if int(totalMemberCount) != maxUsersPerTeam {
+		t.Fatalf("should still have 5 team members, had %v instead", totalMemberCount)
 	}
 
 	// Leaving the team from the UI sets DeleteAt instead of using TeamStore.RemoveMember
-	store.Must(ss.Team().UpdateMember(&model.TeamMember{
+	if _, err := ss.Team().UpdateMember(&model.TeamMember{
 		TeamId:   team.Id,
 		UserId:   userIds[0],
 		DeleteAt: 1234,
-	}))
+	}); err != nil {
+		panic(err)
+	}
 
-	if result := <-ss.Team().GetTotalMemberCount(team.Id); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if count := result.Data.(int64); int(count) != maxUsersPerTeam-1 {
-		t.Fatalf("should now only have 4 team members, had %v instead", count)
+	if totalMemberCount, err := ss.Team().GetTotalMemberCount(team.Id); err != nil {
+		t.Fatal(err)
+	} else if int(totalMemberCount) != maxUsersPerTeam-1 {
+		t.Fatalf("should now only have 4 team members, had %v instead", totalMemberCount)
 	}
 
 	if result := <-ss.Team().SaveMember(&model.TeamMember{TeamId: team.Id, UserId: newUserId}, maxUsersPerTeam); result.Err != nil {
@@ -1015,10 +990,10 @@ func testSaveTeamMemberMaxMembers(t *testing.T, ss store.Store) {
 		}(newUserId)
 	}
 
-	if result := <-ss.Team().GetTotalMemberCount(team.Id); result.Err != nil {
-		t.Fatal(result.Err)
-	} else if count := result.Data.(int64); int(count) != maxUsersPerTeam {
-		t.Fatalf("should have 5 team members again, had %v instead", count)
+	if totalMemberCount, err := ss.Team().GetTotalMemberCount(team.Id); err != nil {
+		t.Fatal(err)
+	} else if int(totalMemberCount) != maxUsersPerTeam {
+		t.Fatalf("should have 5 team members again, had %v instead", totalMemberCount)
 	}
 
 	// Deactivating a user should make them stop counting against max members
@@ -1047,10 +1022,9 @@ func testGetTeamMember(t *testing.T, ss store.Store) {
 	m1 := &model.TeamMember{TeamId: teamId1, UserId: model.NewId()}
 	store.Must(ss.Team().SaveMember(m1, -1))
 
-	if r := <-ss.Team().GetMember(m1.TeamId, m1.UserId); r.Err != nil {
-		t.Fatal(r.Err)
+	if rm1, err := ss.Team().GetMember(m1.TeamId, m1.UserId); err != nil {
+		t.Fatal(err)
 	} else {
-		rm1 := r.Data.(*model.TeamMember)
 
 		if rm1.TeamId != m1.TeamId {
 			t.Fatal("bad team id")
@@ -1061,11 +1035,11 @@ func testGetTeamMember(t *testing.T, ss store.Store) {
 		}
 	}
 
-	if r := <-ss.Team().GetMember(m1.TeamId, ""); r.Err == nil {
+	if _, err := ss.Team().GetMember(m1.TeamId, ""); err == nil {
 		t.Fatal("empty user id - should have failed")
 	}
 
-	if r := <-ss.Team().GetMember("", m1.UserId); r.Err == nil {
+	if _, err := ss.Team().GetMember("", m1.UserId); err == nil {
 		t.Fatal("empty team id - should have failed")
 	}
 
@@ -1088,15 +1062,14 @@ func testGetTeamMember(t *testing.T, ss store.Store) {
 	require.Nil(t, err)
 
 	defer func() {
-		<-ss.Team().PermanentDelete(t2.Id)
+		ss.Team().PermanentDelete(t2.Id)
 	}()
 
 	m2 := &model.TeamMember{TeamId: t2.Id, UserId: model.NewId(), SchemeUser: true}
 	store.Must(ss.Team().SaveMember(m2, -1))
 
-	r2 := <-ss.Team().GetMember(m2.TeamId, m2.UserId)
-	require.Nil(t, r2.Err)
-	m3 := r2.Data.(*model.TeamMember)
+	m3, err := ss.Team().GetMember(m2.TeamId, m2.UserId)
+	require.Nil(t, err)
 	t.Log(m3)
 
 	assert.Equal(t, s2.DefaultTeamUserRole, m3.Roles)
@@ -1104,9 +1077,8 @@ func testGetTeamMember(t *testing.T, ss store.Store) {
 	m4 := &model.TeamMember{TeamId: t2.Id, UserId: model.NewId(), SchemeGuest: true}
 	store.Must(ss.Team().SaveMember(m4, -1))
 
-	r3 := <-ss.Team().GetMember(m4.TeamId, m4.UserId)
-	require.Nil(t, r3.Err)
-	m5 := r3.Data.(*model.TeamMember)
+	m5, err := ss.Team().GetMember(m4.TeamId, m4.UserId)
+	require.Nil(t, err)
 
 	assert.Equal(t, s2.DefaultTeamGuestRole, m5.Roles)
 }
@@ -1117,10 +1089,10 @@ func testGetTeamMembersByIds(t *testing.T, ss store.Store) {
 	m1 := &model.TeamMember{TeamId: teamId1, UserId: model.NewId()}
 	store.Must(ss.Team().SaveMember(m1, -1))
 
-	if r := <-ss.Team().GetMembersByIds(m1.TeamId, []string{m1.UserId}, nil); r.Err != nil {
-		t.Fatal(r.Err)
+	if r, err := ss.Team().GetMembersByIds(m1.TeamId, []string{m1.UserId}, nil); err != nil {
+		t.Fatal(err)
 	} else {
-		rm1 := r.Data.([]*model.TeamMember)[0]
+		rm1 := r[0]
 
 		if rm1.TeamId != m1.TeamId {
 			t.Fatal("bad team id")
@@ -1134,17 +1106,16 @@ func testGetTeamMembersByIds(t *testing.T, ss store.Store) {
 	m2 := &model.TeamMember{TeamId: teamId1, UserId: model.NewId()}
 	store.Must(ss.Team().SaveMember(m2, -1))
 
-	if r := <-ss.Team().GetMembersByIds(m1.TeamId, []string{m1.UserId, m2.UserId, model.NewId()}, nil); r.Err != nil {
-		t.Fatal(r.Err)
+	if rm, err := ss.Team().GetMembersByIds(m1.TeamId, []string{m1.UserId, m2.UserId, model.NewId()}, nil); err != nil {
+		t.Fatal(err)
 	} else {
-		rm := r.Data.([]*model.TeamMember)
 
 		if len(rm) != 2 {
 			t.Fatal("return wrong number of results")
 		}
 	}
 
-	if r := <-ss.Team().GetMembersByIds(m1.TeamId, []string{}, nil); r.Err == nil {
+	if _, err := ss.Team().GetMembersByIds(m1.TeamId, []string{}, nil); err == nil {
 		t.Fatal("empty user ids - should have failed")
 	}
 }
@@ -1166,18 +1137,18 @@ func testTeamStoreMemberCount(t *testing.T, ss store.Store) {
 	m2 := &model.TeamMember{TeamId: teamId1, UserId: u2.Id}
 	store.Must(ss.Team().SaveMember(m2, -1))
 
-	if result := <-ss.Team().GetTotalMemberCount(teamId1); result.Err != nil {
-		t.Fatal(result.Err)
+	if totalMemberCount, err := ss.Team().GetTotalMemberCount(teamId1); err != nil {
+		t.Fatal(err)
 	} else {
-		if result.Data.(int64) != 2 {
+		if totalMemberCount != 2 {
 			t.Fatal("wrong count")
 		}
 	}
 
-	if result := <-ss.Team().GetActiveMemberCount(teamId1); result.Err != nil {
-		t.Fatal(result.Err)
+	if result, err := ss.Team().GetActiveMemberCount(teamId1); err != nil {
+		t.Fatal(err)
 	} else {
-		if result.Data.(int64) != 1 {
+		if result != 1 {
 			t.Fatal("wrong count")
 		}
 	}
@@ -1185,18 +1156,18 @@ func testTeamStoreMemberCount(t *testing.T, ss store.Store) {
 	m3 := &model.TeamMember{TeamId: teamId1, UserId: model.NewId()}
 	store.Must(ss.Team().SaveMember(m3, -1))
 
-	if result := <-ss.Team().GetTotalMemberCount(teamId1); result.Err != nil {
-		t.Fatal(result.Err)
+	if totalMemberCount, err := ss.Team().GetTotalMemberCount(teamId1); err != nil {
+		t.Fatal(err)
 	} else {
-		if result.Data.(int64) != 2 {
+		if totalMemberCount != 2 {
 			t.Fatal("wrong count")
 		}
 	}
 
-	if result := <-ss.Team().GetActiveMemberCount(teamId1); result.Err != nil {
-		t.Fatal(result.Err)
+	if result, err := ss.Team().GetActiveMemberCount(teamId1); err != nil {
+		t.Fatal(err)
 	} else {
-		if result.Data.(int64) != 1 {
+		if result != 1 {
 			t.Fatal("wrong count")
 		}
 	}
@@ -1225,13 +1196,12 @@ func testGetChannelUnreadsForAllTeams(t *testing.T, ss store.Store) {
 	cm2 := &model.ChannelMember{ChannelId: c2.Id, UserId: m2.UserId, NotifyProps: model.GetDefaultChannelNotifyProps(), MsgCount: 90}
 	store.Must(ss.Channel().SaveMember(cm2))
 
-	if r1 := <-ss.Team().GetChannelUnreadsForAllTeams("", uid); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if ms1, err := ss.Team().GetChannelUnreadsForAllTeams("", uid); err != nil {
+		t.Fatal(err)
 	} else {
-		ms := r1.Data.([]*model.ChannelUnread)
 		membersMap := make(map[string]bool)
-		for i := range ms {
-			id := ms[i].TeamId
+		for i := range ms1 {
+			id := ms1[i].TeamId
 			if _, ok := membersMap[id]; !ok {
 				membersMap[id] = true
 			}
@@ -1240,18 +1210,17 @@ func testGetChannelUnreadsForAllTeams(t *testing.T, ss store.Store) {
 			t.Fatal("Should be the unreads for all the teams")
 		}
 
-		if ms[0].MsgCount != 10 {
+		if ms1[0].MsgCount != 10 {
 			t.Fatal("subtraction failed")
 		}
 	}
 
-	if r2 := <-ss.Team().GetChannelUnreadsForAllTeams(teamId1, uid); r2.Err != nil {
-		t.Fatal(r2.Err)
+	if ms2, err := ss.Team().GetChannelUnreadsForAllTeams(teamId1, uid); err != nil {
+		t.Fatal(err)
 	} else {
-		ms := r2.Data.([]*model.ChannelUnread)
 		membersMap := make(map[string]bool)
-		for i := range ms {
-			id := ms[i].TeamId
+		for i := range ms2 {
+			id := ms2[i].TeamId
 			if _, ok := membersMap[id]; !ok {
 				membersMap[id] = true
 			}
@@ -1261,7 +1230,7 @@ func testGetChannelUnreadsForAllTeams(t *testing.T, ss store.Store) {
 			t.Fatal("Should be the unreads for just one team")
 		}
 
-		if ms[0].MsgCount != 10 {
+		if ms2[0].MsgCount != 10 {
 			t.Fatal("subtraction failed")
 		}
 	}
@@ -1291,10 +1260,9 @@ func testGetChannelUnreadsForTeam(t *testing.T, ss store.Store) {
 	cm2 := &model.ChannelMember{ChannelId: c2.Id, UserId: m1.UserId, NotifyProps: model.GetDefaultChannelNotifyProps(), MsgCount: 90}
 	store.Must(ss.Channel().SaveMember(cm2))
 
-	if r1 := <-ss.Team().GetChannelUnreadsForTeam(m1.TeamId, m1.UserId); r1.Err != nil {
-		t.Fatal(r1.Err)
+	if ms, err := ss.Team().GetChannelUnreadsForTeam(m1.TeamId, m1.UserId); err != nil {
+		t.Fatal(err)
 	} else {
-		ms := r1.Data.([]*model.ChannelUnread)
 		if len(ms) != 2 {
 			t.Fatal("wrong length")
 		}
@@ -1452,23 +1420,20 @@ func testTeamStoreMigrateTeamMembers(t *testing.T, ss store.Store) {
 		}
 	}
 
-	res1 := <-ss.Team().GetMember(tm1.TeamId, tm1.UserId)
-	assert.Nil(t, res1.Err)
-	tm1b := res1.Data.(*model.TeamMember)
+	tm1b, err := ss.Team().GetMember(tm1.TeamId, tm1.UserId)
+	assert.Nil(t, err)
 	assert.Equal(t, "", tm1b.ExplicitRoles)
 	assert.True(t, tm1b.SchemeUser)
 	assert.True(t, tm1b.SchemeAdmin)
 
-	res2 := <-ss.Team().GetMember(tm2.TeamId, tm2.UserId)
-	assert.Nil(t, res2.Err)
-	tm2b := res2.Data.(*model.TeamMember)
+	tm2b, err := ss.Team().GetMember(tm2.TeamId, tm2.UserId)
+	assert.Nil(t, err)
 	assert.Equal(t, "", tm2b.ExplicitRoles)
 	assert.True(t, tm2b.SchemeUser)
 	assert.False(t, tm2b.SchemeAdmin)
 
-	res3 := <-ss.Team().GetMember(tm3.TeamId, tm3.UserId)
-	assert.Nil(t, res3.Err)
-	tm3b := res3.Data.(*model.TeamMember)
+	tm3b, err := ss.Team().GetMember(tm3.TeamId, tm3.UserId)
+	assert.Nil(t, err)
 	assert.Equal(t, "something_else", tm3b.ExplicitRoles)
 	assert.False(t, tm3b.SchemeUser)
 	assert.False(t, tm3b.SchemeAdmin)
@@ -1549,21 +1514,21 @@ func testTeamStoreClearAllCustomRoleAssignments(t *testing.T, ss store.Store) {
 
 	require.Nil(t, (<-ss.Team().ClearAllCustomRoleAssignments()).Err)
 
-	r1 := <-ss.Team().GetMember(m1.TeamId, m1.UserId)
-	require.Nil(t, r1.Err)
-	assert.Equal(t, m1.ExplicitRoles, r1.Data.(*model.TeamMember).Roles)
+	r1, err := ss.Team().GetMember(m1.TeamId, m1.UserId)
+	require.Nil(t, err)
+	assert.Equal(t, m1.ExplicitRoles, r1.Roles)
 
-	r2 := <-ss.Team().GetMember(m2.TeamId, m2.UserId)
-	require.Nil(t, r2.Err)
-	assert.Equal(t, "team_user team_admin", r2.Data.(*model.TeamMember).Roles)
+	r2, err := ss.Team().GetMember(m2.TeamId, m2.UserId)
+	require.Nil(t, err)
+	assert.Equal(t, "team_user team_admin", r2.Roles)
 
-	r3 := <-ss.Team().GetMember(m3.TeamId, m3.UserId)
-	require.Nil(t, r3.Err)
-	assert.Equal(t, m3.ExplicitRoles, r3.Data.(*model.TeamMember).Roles)
+	r3, err := ss.Team().GetMember(m3.TeamId, m3.UserId)
+	require.Nil(t, err)
+	assert.Equal(t, m3.ExplicitRoles, r3.Roles)
 
-	r4 := <-ss.Team().GetMember(m4.TeamId, m4.UserId)
-	require.Nil(t, r4.Err)
-	assert.Equal(t, "", r4.Data.(*model.TeamMember).Roles)
+	r4, err := ss.Team().GetMember(m4.TeamId, m4.UserId)
+	require.Nil(t, err)
+	assert.Equal(t, "", r4.Roles)
 }
 
 func testTeamStoreAnalyticsGetTeamCountForScheme(t *testing.T, ss store.Store) {
