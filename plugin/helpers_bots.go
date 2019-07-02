@@ -24,6 +24,9 @@ func (p *HelpersImpl) EnsureBot(bot *model.Bot) (retBotId string, retErr error) 
 			var err error
 			var botIdBytes []byte
 
+			// this func is the operation that will be retried if
+			// returns not nil. It will be retried up to 3 times with
+			// and the wait it 128, 256 and 512 ms
 			retryOperation := func() error {
 				botIdBytes, err = p.API.KVGet(BOT_USER_KEY)
 				if err != nil {
