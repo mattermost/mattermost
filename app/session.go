@@ -101,15 +101,14 @@ func (a *App) UpdateSessionsIsGuest(userId string, isGuest bool) {
 
 	for _, session := range sessions {
 		if isGuest {
-			mlog.Error("UPDATING SESSIONS TO GUEST")
 			session.AddProp(model.SESSION_PROP_IS_GUEST, "true")
 		} else {
-			mlog.Error("UPDATING SESSIONS TO NOT GUEST")
 			session.AddProp(model.SESSION_PROP_IS_GUEST, "false")
 		}
-		_, err := a.Srv.Store.Session().Save(session)
+		err := a.Srv.Store.Session().UpdateProps(session)
 		if err != nil {
 			mlog.Error(fmt.Sprintf("Unable to update isGuest session: %s", err.Error()))
+			continue
 		}
 		a.AddSessionToCache(session)
 	}
