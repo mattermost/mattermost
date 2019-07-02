@@ -3920,7 +3920,7 @@ func testUserStoreGetTeamGroupUsers(t *testing.T, ss store.Store) {
 	requireNUsers(2)
 
 	// delete team membership of allowed user
-	res = <-ss.Team().RemoveMember(team.Id, userGroupA.Id)
+	res := <-ss.Team().RemoveMember(team.Id, userGroupA.Id)
 	require.Nil(t, res.Err)
 
 	// ensure removed allowed member still returned by query
