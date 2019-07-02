@@ -1125,12 +1125,13 @@ func testUserStoreGetProfilesNotInChannel(t *testing.T, ss store.Store) {
 	})
 
 	// create a group
-	group := store.Must(ss.Group().Create(&model.Group{
+	group, err := ss.Group().Create(&model.Group{
 		Name:        "n_" + model.NewId(),
 		DisplayName: "dn_" + model.NewId(),
 		Source:      model.GroupSourceLdap,
 		RemoteId:    "ri_" + model.NewId(),
-	})).(*model.Group)
+	})
+	require.Nil(t, err)
 
 	// add two members to the group
 	for _, u := range []*model.User{u1, u2} {
@@ -3455,12 +3456,13 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	})
 
 	// create a group
-	group := store.Must(ss.Group().Create(&model.Group{
+	group, err := ss.Group().Create(&model.Group{
 		Name:        "n_" + model.NewId(),
 		DisplayName: "dn_" + model.NewId(),
 		Source:      model.GroupSourceLdap,
 		RemoteId:    "ri_" + model.NewId(),
-	})).(*model.Group)
+	})
+	require.Nil(t, err)
 
 	// add two members to the group
 	for _, u := range []*model.User{u1, u2} {
@@ -3755,14 +3757,14 @@ func testUserStoreGetTeamGroupUsers(t *testing.T, ss store.Store) {
 	var testGroups []*model.Group
 	for i := 0; i < 2; i++ {
 		id = model.NewId()
-		res = <-ss.Group().Create(&model.Group{
+		var group *model.Group
+		group, err = ss.Group().Create(&model.Group{
 			Name:        "n_" + id,
 			DisplayName: "dn_" + id,
 			Source:      model.GroupSourceLdap,
 			RemoteId:    "ri_" + id,
 		})
-		require.Nil(t, res.Err)
-		group := res.Data.(*model.Group)
+		require.Nil(t, err)
 		require.NotNil(t, group)
 		testGroups = append(testGroups, group)
 	}
@@ -3877,14 +3879,14 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, ss store.Store) {
 	var testGroups []*model.Group
 	for i := 0; i < 2; i++ {
 		id = model.NewId()
-		res = <-ss.Group().Create(&model.Group{
+		var group *model.Group
+		group, err = ss.Group().Create(&model.Group{
 			Name:        "n_" + id,
 			DisplayName: "dn_" + id,
 			Source:      model.GroupSourceLdap,
 			RemoteId:    "ri_" + id,
 		})
-		require.Nil(t, res.Err)
-		group := res.Data.(*model.Group)
+		require.Nil(t, err)
 		require.NotNil(t, group)
 		testGroups = append(testGroups, group)
 	}

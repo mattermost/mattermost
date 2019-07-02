@@ -1113,7 +1113,9 @@ func testChannelStoreGetAllChannels(t *testing.T, ss store.Store, s SqlSupplier)
 		Source:      model.GroupSourceLdap,
 		RemoteId:    model.NewId(),
 	}
-	store.Must(ss.Group().Create(group))
+	_, err = ss.Group().Create(group)
+	require.Nil(t, err)
+
 	_, err = ss.Group().CreateGroupSyncable(model.NewGroupChannel(group.Id, c1.Id, true))
 	require.Nil(t, err)
 
@@ -2457,7 +2459,9 @@ func testChannelStoreSearchAllChannels(t *testing.T, ss store.Store) {
 		Source:      model.GroupSourceLdap,
 		RemoteId:    model.NewId(),
 	}
-	store.Must(ss.Group().Create(group))
+	_, err = ss.Group().Create(group)
+	require.Nil(t, err)
+
 	_, err = ss.Group().CreateGroupSyncable(model.NewGroupChannel(group.Id, o7.Id, true))
 	require.Nil(t, err)
 
